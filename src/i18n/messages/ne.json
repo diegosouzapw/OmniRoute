@@ -5693,7 +5693,7 @@
     "claudeImportBulkModePaste": "JSON एरे टाँस्नुहोस्",
     "claudeImportBulkModeZip": "ZIP अपलोड गर्नुहोस्",
     "claudeImportBulkUploadHint": "बढीमा 50 वटा .credentials.json फाइलहरू छोड्नुहोस् वा छान्नुहोस् (प्रत्येक 256KB, जम्मा 10MB)।",
-    "claudeImportBulkPasteHint": "वस्तुहरूको एरे टाँस्नुहोस्: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "वस्तुहरूको एरे टाँस्नुहोस्: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": ".json प्रविष्टिहरू भएको ZIP। बढीमा 50 प्रविष्टि, अनप्याक गरेपछि 10MB।",
     "claudeImportBulkSubmit": "सबै आयात गर्नुहोस्",
     "claudeImportBulkSuccess": "{count} वटा Claude जडानहरू आयात गरिए",
@@ -5725,7 +5725,7 @@
     "geminiImportBulkModePaste": "JSON एरे टाँस्नुहोस्",
     "geminiImportBulkModeZip": "ZIP अपलोड गर्नुहोस्",
     "geminiImportBulkUploadHint": "बढीमा 50 वटा oauth_creds.json फाइलहरू ड्रप गर्नुहोस् वा छान्नुहोस् (प्रत्येक 256KB, जम्मा 10MB)।",
-    "geminiImportBulkPasteHint": "वस्तुहरूको एरे टाँस्नुहोस्: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "वस्तुहरूको एरे टाँस्नुहोस्: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "oauth_creds.json प्रविष्टिहरू समावेश भएको ZIP। बढीमा 50 प्रविष्टिहरू, अनप्याक गरेपछि 10MB।",
     "geminiImportBulkSubmit": "सबै आयात गर्नुहोस्",
     "geminiImportBulkSuccess": "{count} वटा Gemini जडानहरू आयात गरियो",
@@ -5774,7 +5774,7 @@
     "codexImportBulkModePaste": "सूची टाँस्नुहोस्",
     "codexImportBulkModeZip": "ZIP अभिलेख",
     "codexImportBulkUploadHint": "धेरै .json फाइलहरू चयन गर्नुहोस् वा तानेर छोड्नुहोस्",
-    "codexImportBulkPasteHint": "JSON एरे [ {...}, {...} ] वा छुट्टै लाइनमा --- द्वारा छुट्याइएका धेरै JSONहरू",
+    "codexImportBulkPasteHint": "JSON एरे [ '{...}', '{...}' ] वा छुट्टै लाइनमा --- द्वारा छुट्याइएका धेरै JSONहरू",
     "codexImportBulkZipHint": "auth.json फाइलहरू भएको .zip अपलोड गर्नुहोस् (अधिकतम 50 फाइल, 10 MB)",
     "codexImportBulkSubmit": "{count} वटा खाता आयात गर्नुहोस्",
     "codexImportBulkLimit": "प्रति आयात अधिकतम 50 फाइल",
@@ -6012,7 +6012,7 @@
     "validationModelIdPlaceholder": "जस्तै meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "API कुञ्जी वा Service Account JSON",
     "vertexCredentialHint": "API कुञ्जीहरूले चयनित परियोजना क्याटलग प्रयोग गर्छन्। Service Account JSON ले प्रत्यक्ष Model Garden खोज सक्षम गर्छ।",
-    "vertexServiceAccountPlaceholder": "API कुञ्जी, Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}), वा OAuth access token टाँस्नुहोस्",
+    "vertexServiceAccountPlaceholder": "API कुञ्जी, Service Account JSON ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}'), वा OAuth access token टाँस्नुहोस्",
     "webCookieProviders": "वेब कुकी प्रदायकहरू",
     "weeklyShort": "साप्ताहिक छोटकरी",
     "xiaomiMimoBaseUrlHint": "Xiaomi Mimo आधार URL सम्बन्धी सङ्केत",
@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "मूल बाइनरी मार्ग",
-      "coreBinaryPathHelp": "वैकल्पिक: प्रतिस्थापन गर्नुअघि मूल बाइनरीसँग उत्पादन गरिएको फाइल प्रमाणित गर्छ। यसको पाखामा नै लेख्न जारी राख्न खाली छोड्नुहोस्। नभएको डिरेक्टरी सिर्जना हुन्छ।",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "वैकल्पिक: प्रतिस्थापन गर्नुअघि मूल बाइनरीसँग उत्पादन गरिएको फाइल प्रमाणित गर्छ। यसको पाखामा नै लेख्न जारी राख्न खाली छोड्नुहोस्। नभएको डिरेक्टरी सिर्जना हुन्छ।"
     },
     "bulkHealthcheck": "सामूहिक स्वास्थ्य जाँच",
     "bulkHealthcheckDesc": "कुन प्रोक्सीहरू काम गर्छन् भनी पत्ता लगाउन कन्फिगर गरिएका सबै प्रोक्सीहरूलाई लक्षित URL विरुद्ध परीक्षण गर्नुहोस्।",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "लोड हुँदैछ…",
     "loadFailed": "इन्जिनसम्बन्धी जानकारी लोड गर्न असफल भयो।",
+    "settingsLoadFailed": "सुरक्षित गरिएका सेटिङहरू लोड गर्न सकिएन। फिल्डहरूले पूर्वनिर्धारित मानहरू देखाउँछन्, र पृष्ठ पुनः लोड नभएसम्म सेभ बन्द रहन्छ।",
     "engineNotFound": "इन्जिन \"{engine}\" फेला परेन।",
     "saveFailed": "कन्फिगरेसन सुरक्षित गर्न असफल भयो।",
     "previewFailed": "पूर्वावलोकन असफल भयो।",
@@ -9673,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "उदा. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "उदा. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderExact": "ठ्याक्कै अपेक्षित प्रतिक्रिया टाँस्नुहोस्",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "उदा. ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "उदा. ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "JavaScript रेगुलर एक्सप्रेसनलाई स्ल्यासहरूभित्र नराखी प्रयोग गर्नुहोस्।",
     "suiteBuilderNamePlaceholder": "उदा. कोडिङ गुणस्तर सुइट",
     "suiteBuilderAddCase": "केस थप्नुहोस्",
@@ -10882,7 +10883,7 @@
     "grokAuthJsonDescription": "~/.grok/auth.json को पूर्ण सामग्री टाँस्नुहोस् (JWT को \"key\" फिल्ड मात्र होइन)। छुट्टै JWT मा refresh_token हुँदैन, त्यसैले म्याद सकिएपछि जडान बन्द हुन्छ (#7610)। उपलब्ध हुँदा समर्पित Import auth.json मोडल प्रयोग गर्नु उपयुक्त हुन्छ।",
     "devinDesktopPasteDescription": "प्रमाणीकृत Devin सत्रबाट विद्यमान Devin API कुञ्जी टाँस्नुहोस्। कुञ्जी निर्यातको उपलब्धता र चरणहरू Devin को संस्करण र खाताअनुसार फरक हुन्छन्।",
     "devinPasteDescription": "आफ्नो WINDSURF_API_KEY दिनुहोस् (`devin auth login` मार्फत वा Windsurf IDE को \"Windsurf: Provide Auth Token\" कमान्डमार्फत प्राप्त गरिएको)।",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "Grok Build auth.json",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "API कुञ्जी / टोकन",
@@ -10895,7 +10896,10 @@
     "gitlabDuoSetupTitle": "GitLab Duo OAuth सेटअप",
     "gitlabDuoSetupMessage": "GitLab Duo OAuth कन्फिगर गरिएको छैन। रिडाइरेक्ट URI {redirectUri} र स्कोपहरू \"{scopes}\" सहित {applicationsUrl} मा OAuth अनुप्रयोग दर्ता गर्नुहोस्, त्यसपछि {clientIdEnv} (र वैकल्पिक रूपमा {clientSecretEnv}) सेट गरेर पुनः सुरु गर्नुहोस्।",
     "gitlabDuoSetupDescription": "अनुप्रयोग दर्ता भएपछि र यस OmniRoute इन्स्ट्यान्समा वातावरणीय चरहरू सेट गरिएपछि, OAuth लगइन सुरु गर्न जारी राख्नुहोस् क्लिक गर्नुहोस्।",
-    "continue": "जारी राख्नुहोस्"
+    "continue": "जारी राख्नुहोस्",
+    "tabPasteSetupToken": "सेटअप टोकन",
+    "claudeSetupTokenDescription": "टर्मिनलमा `claude setup-token` चलाउनुहोस् र यसले छाप्ने टोकन टाँस्नुहोस्। यो एक वर्षका लागि मान्य छ र यसमा रिफ्रेस टोकन छैन। सुरक्षित गर्नुअघि OmniRoute ले Anthropic मा एउटा परीक्षण अनुरोध पठाउँछ।",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Cursor जडान गर्नुहोस्",
@@ -13713,7 +13717,7 @@
     "secondaryNote": "Open VSX मा पनि उपलब्ध (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "बन्द गर्नुहोस्"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "जुन मोडेलको क्यानोनिकल स्वामित्वकर्तासँग सक्रिय क्रेडेन्सियल छैन तर सक्रिय क्रेडेन्सियल भएको पासथ्रु गेटवेले त्यसलाई रुट गर्छ, त्यस्ता मोडेलका लागि /v1/models मा <gateway-alias>/<model> मिरर ids देखाउनुहोस्। चेतावनी: विश्वव्यापी रूपमा सक्षम गर्दा सबै क्लाइन्टका लागि क्याटलग प्रविष्टिहरू थपिन्छन्।",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "जुन मोडेलको क्यानोनिकल स्वामित्वकर्तासँग सक्रिय क्रेडेन्सियल छैन तर सक्रिय क्रेडेन्सियल भएको पासथ्रु गेटवेले त्यसलाई रुट गर्छ, त्यस्ता मोडेलका लागि /v1/models मा '<gateway-alias>'/'<model>' मिरर ids देखाउनुहोस्। चेतावनी: विश्वव्यापी रूपमा सक्षम गर्दा सबै क्लाइन्टका लागि क्याटलग प्रविष्टिहरू थपिन्छन्।",
   "radarPage": {
     "title": "Radar क्याटलग",
     "subtitle": "सामुदायिक जानकारीले समृद्ध निःशुल्क मोडेल क्याटलग",

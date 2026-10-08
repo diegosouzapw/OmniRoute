@@ -120,7 +120,7 @@ Truy cập qua: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ## 📖 Thiết lập nhà cung cấp
 
-Để thêm hàng loạt kết nối khóa API từ tệp CSV hoặc JSON, hãy sử dụng **Bảng điều khiển → Nhà cung cấp → Nhập từ tệp**. Các cột được xác định theo vị trí (`provider,name,apiKey,baseUrl,priority`); `provider` phải tồn tại sẵn dưới dạng nhà cung cấp được quản lý hoặc nút tương thích. Xem [Nhập nhà cung cấp từ tệp CSV hoặc JSON](../providers/CSV-IMPORT.md).
+Để thêm hàng loạt kết nối khóa API từ tệp CSV hoặc JSON, hãy sử dụng **Bảng điều khiển → Nhà cung cấp → Nhập từ tệp**. Các cột được xác định theo vị trí (`provider,name,apiKey,baseUrl,priority`); `provider` phải tồn tại sẵn dưới dạng nhà cung cấp được quản lý hoặc một nút tương thích. Xem [Nhập nhà cung cấp từ tệp CSV hoặc JSON](../providers/CSV-IMPORT.md).
 
 ### 🔐 Nhà cung cấp theo gói đăng ký
 
@@ -139,7 +139,9 @@ Mô hình:
 
 **Mẹo chuyên nghiệp:** Dùng Opus cho các tác vụ phức tạp, Sonnet khi cần tốc độ. OmniRoute theo dõi hạn mức theo từng mô hình!
 
-Các tuyến Claude và tương thích với Claude Code duy trì mức nỗ lực suy luận `max` cho các mô hình Opus và Sonnet. Các mô hình Haiku không chấp nhận mức nỗ lực `max`, vì vậy OmniRoute hạ yêu cầu đó xuống ngân sách suy luận cao trước khi gửi đến nhà cung cấp thượng nguồn.
+Không có trình duyệt trên máy chủ OmniRoute? Chạy `claude setup-token` ở bất kỳ đâu đã đăng nhập Claude Code và dán token có thời hạn một năm vào tab **Setup Token**. Xem [Claude Code với setup token](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Các tuyến Claude và tương thích với Claude Code duy trì mức nỗ lực suy luận `max` cho các mô hình Opus và Sonnet. Các mô hình Haiku không chấp nhận mức nỗ lực `max`, vì vậy OmniRoute sẽ hạ yêu cầu đó xuống ngân sách suy luận cao trước khi gửi đến dịch vụ thượng nguồn.
 
 #### OpenAI Codex (Plus/Pro)
 
@@ -199,18 +201,18 @@ Mô hình:
 1. Đăng ký: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
 2. Tạo khóa API Qianfan → Bảng điều khiển → Thêm khóa API: Nhà cung cấp: `qianfan`
 
-**Sử dụng:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, hoặc một ID mô hình tương thích với OpenAI khác của Qianfan.
+**Sử dụng:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` hoặc một ID mô hình Qianfan tương thích với OpenAI khác.
 
 ### 🆓 Nhà cung cấp MIỄN PHÍ
 
-Các nhà cung cấp miễn phí không yêu cầu xác thực có công tắc bên cạnh **Không yêu cầu xác thực** trên trang nhà cung cấp của họ.
-Việc tắt công tắc sẽ vô hiệu hóa nhà cung cấp đó, xóa nhà cung cấp khỏi chế độ xem nhà cung cấp đã cấu hình/thu gọn và
+Các nhà cung cấp miễn phí không yêu cầu xác thực có một công tắc bên cạnh **Không yêu cầu xác thực** trên trang nhà cung cấp của họ.
+Việc tắt công tắc sẽ vô hiệu hóa nhà cung cấp đó, xóa nhà cung cấp khỏi các chế độ xem nhà cung cấp đã cấu hình/thu gọn và
 xóa các mô hình của nhà cung cấp khỏi `/v1/models`.
 
 #### Qoder (9 mô hình MIỄN PHÍ)
 
 ```bash
-Bảng điều khiển → Kết nối Qoder → Đăng nhập OAuth → Quyền truy cập tuân theo các giới hạn hiện tại của nhà cung cấp
+Bảng điều khiển → Kết nối Qoder → Đăng nhập OAuth → Quyền truy cập phụ thuộc vào các giới hạn hiện tại của nhà cung cấp
 
 Mô hình: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
@@ -218,7 +220,7 @@ Mô hình: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, 
 #### Kiro (Claude MIỄN PHÍ)
 
 ```bash
-Bảng điều khiển → Kết nối Kiro → AWS Builder ID hoặc Google/GitHub → Khoảng 50 tín dụng/tháng
+Bảng điều khiển → Kết nối Kiro → AWS Builder ID hoặc Google/GitHub → ~50 tín dụng/tháng
 
 Mô hình: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```

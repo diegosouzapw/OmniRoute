@@ -7,6 +7,7 @@ export const CHATGPT_COMPOSER_SELECTOR = [
   '[data-testid="prompt-textarea"]',
   "#prompt-textarea",
   '[contenteditable="true"][data-lexical-editor="true"]',
+  '[contenteditable="true"][role="textbox"]',
   '[contenteditable="true"][role="textbox"].ProseMirror',
 ].join(", ");
 export const CHATGPT_EFFORT_CONTROL_SELECTOR = [
@@ -20,16 +21,19 @@ export const CHATGPT_EFFORT_MENU_SELECTOR = [
 ].join(", ");
 export const CHATGPT_EFFORT_ITEM_SELECTOR = '[role="menuitemradio"]';
 export const CHATGPT_EFFORT_SLIDER_SELECTOR =
-  '[data-model-reasoning-effort-slider] [role="slider"]';
+  '[data-model-reasoning-effort-slider] [role="slider"], [role="menuitem"][data-reasoning-slider="true"], [role="menuitem"]:has([role="status"])';
 export const CHATGPT_EFFORT_SLIDER_MAX_OPTIONS = 5;
 export const CHATGPT_STOP_BUTTON_SELECTOR = '[data-testid="stop-button"]';
-export const CHATGPT_COMPLETION_ACTION_SELECTOR = 'button[data-testid="copy-turn-action-button"]';
+export const CHATGPT_COMPLETION_ACTION_SELECTOR =
+  'button[data-testid="copy-turn-action-button"], button[aria-label="Copy"], button[aria-label="Copiar"]';
 export const CHATGPT_ASSISTANT_TURN_SELECTOR = [
+  '[data-chatgpt-search-unit-key$=":assistant"]',
   '[data-testid^="conversation-turn-"][data-turn="assistant"]',
   '[data-testid^="conversation-turn-"][data-message-author-role="assistant"]',
   '[data-testid^="conversation-turn-"]:has([data-message-author-role="assistant"])',
 ].join(", ");
 export const CHATGPT_USER_TURN_SELECTOR = [
+  '[data-chatgpt-search-unit-key$=":user"]',
   '[data-testid^="conversation-turn-"][data-turn="user"]',
   '[data-testid^="conversation-turn-"][data-message-author-role="user"]',
   '[data-testid^="conversation-turn-"]:has([data-message-author-role="user"])',
@@ -60,6 +64,20 @@ export function parseChatGptEffortSliderState(
   if (optionCount < 1 || optionCount > CHATGPT_EFFORT_SLIDER_MAX_OPTIONS) return undefined;
   if (value < min || value > max) return undefined;
   return { min, max, value };
+}
+
+/** Current ChatGPT renders the effort control as a keyboard stepper with a live status label. */
+export function parseChatGptEffortStepperState(
+  statusText: string | null
+): ChatGptEffortSliderState | undefined {
+  const match = statusText?.match(/(?:^|\D)(\d+)\s+(?:of|de)\s+(\d+)(?:\D|$)/i);
+  if (!match) return undefined;
+  const value = Number(match[1]);
+  const max = Number(match[2]);
+  if (!Number.isSafeInteger(value) || !Number.isSafeInteger(max)) return undefined;
+  if (max < 1 || max > CHATGPT_EFFORT_SLIDER_MAX_OPTIONS || value < 1 || value > max)
+    return undefined;
+  return { min: 1, max, value };
 }
 
 async function anyVisible(locator: Locator): Promise<boolean> {
@@ -112,7 +130,7 @@ export async function detectChatGptAccountCapabilities(
   const composerForm = composer.locator("xpath=ancestor::form[1]");
   const effortButton = composerForm.locator(CHATGPT_EFFORT_CONTROL_SELECTOR).last();
   const deadline = Date.now() + (options.selectorTimeoutMs ?? 30_000);
-  const stableAbsenceMs = options.stableAbsenceMs ?? 3_000;
+  const stableAbsenceMs = options.stableAbsenceMs ?? 12_000;
   let absenceSince: number | undefined;
   let presenceObservations = 0;
   while (true) {
@@ -156,6 +174,7 @@ export async function detectChatGptAccountCapabilities(
   try {
     const efforts = menu.locator(CHATGPT_EFFORT_ITEM_SELECTOR);
     const slider = page.locator(CHATGPT_EFFORT_SLIDER_SELECTOR).filter({ visible: true }).last();
+    const stepperStatuses = menu.locator('[role="status"]');
     const waitAbort = new AbortController();
     try {
       const ready = await Promise.race([
@@ -166,8 +185,19 @@ export async function detectChatGptAccountCapabilities(
         slider
           .waitFor({ state: "visible", timeout: 70_000, signal: waitAbort.signal })
           .then(() => "slider" as const),
+        stepperStatuses
+          .first()
+          .waitFor({ state: "attached", timeout: 70_000, signal: waitAbort.signal })
+          .then(() => "stepper" as const),
       ]);
-      const sliderVisible = ready === "slider" || (await slider.isVisible().catch(() => false));
+      const sliderVisible = await slider.isVisible().catch(() => false);
+      const stepperState = (await stepperStatuses.allTextContents().catch(() => []))
+        .map((text) => parseChatGptEffortStepperState(text))
+        .find((state) => state !== undefined);
+      if (ready === "stepper" || stepperState) {
+        if (!stepperState) throw new Error("ChatGPT effort stepper exposed an invalid status");
+        return { solAvailable: true, proAvailable: stepperState.max >= 5 };
+      }
       if (!sliderVisible) {
         return { solAvailable: true, proAvailable: (await efforts.count()) >= 5 };
       }

@@ -1,6 +1,7 @@
 import {
   handleAdobeFireflyImageGeneration,
   handleCodexImageEdit,
+  handleImageGeneration,
   handleOpenAIImageEdit,
   handleOpenRouterImageEdit,
 } from "@omniroute/open-sse/handlers/imageGeneration.ts";
@@ -14,6 +15,7 @@ import {
   getProviderCredentialsWithQuotaPreflight,
   clearRecoveredProviderState,
 } from "@/sse/services/auth";
+import { executeImageWithCredentialFallback } from "@/sse/services/imageCredentialRetry";
 import {
   parseImageModel,
   getImageProvider,
@@ -906,6 +908,68 @@ async function postHandler(request: Request, _context?: unknown) {
 
     if (result.success) {
       await clearRecoveredProviderState(credentials);
+      return jsonResponse(result.data);
+    }
+    return jsonResponse(
+      toJsonErrorPayload(result.error, "Image edit provider error"),
+      result.status
+    );
+  }
+
+  // Antigravity Gemini Image-to-Image editing support
+  if (providerConfig?.format === "gemini-image" || parsed.provider === "antigravity") {
+    const credentials = await getProviderCredentialsWithQuotaPreflight(
+      parsed.provider,
+      null,
+      allowedConnections,
+      resolvedModel
+    );
+    if (!credentials) {
+      return errorResponse(
+        HTTP_STATUS.UNAUTHORIZED,
+        `No credentials for provider: ${parsed.provider}`
+      );
+    }
+    const creds = credentials as {
+      allRateLimited?: boolean;
+      retryAfter?: string;
+      retryAfterHuman?: string;
+      apiKey?: string | null;
+      accessToken?: string | null;
+      connectionId?: string | null;
+      providerSpecificData?: Record<string, unknown> | null;
+    };
+    if (creds.allRateLimited) {
+      return unavailableResponse(
+        HTTP_STATUS.RATE_LIMITED,
+        `[${parsed.provider}] All accounts rate limited`,
+        creds.retryAfter,
+        creds.retryAfterHuman
+      );
+    }
+
+    const { credentials: finalCreds, result } = await executeImageWithCredentialFallback({
+      provider: parsed.provider,
+      requestedModel: resolvedModel,
+      credentials,
+      execute: (creds) =>
+        handleImageGeneration({
+          body: {
+            model: resolvedModel,
+            prompt,
+            size: size ?? undefined,
+            response_format: responseFormat ?? undefined,
+            n: 1,
+            imageBytes,
+            imageMime,
+          },
+          credentials: creds,
+          log,
+        }),
+    });
+
+    if (result.success) {
+      if (finalCreds) await clearRecoveredProviderState(finalCreds);
       return jsonResponse(result.data);
     }
     return jsonResponse(

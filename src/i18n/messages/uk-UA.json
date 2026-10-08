@@ -5693,7 +5693,7 @@
     "claudeImportBulkModePaste": "Вставити масив JSON",
     "claudeImportBulkModeZip": "Завантажити ZIP",
     "claudeImportBulkUploadHint": "Перемістіть або виберіть до 50 файлів .credentials.json (256 КБ кожен, 10 МБ загалом).",
-    "claudeImportBulkPasteHint": "Вставте масив об’єктів: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "Вставте масив об’єктів: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": "ZIP із записами .json. Макс. 50 записів, 10 Мб без упаковки.",
     "claudeImportBulkSubmit": "Імпортувати все",
     "claudeImportBulkSuccess": "Імпортовано підключення {count} Claude",
@@ -5725,7 +5725,7 @@
     "geminiImportBulkModePaste": "Вставити масив JSON",
     "geminiImportBulkModeZip": "Завантажити ZIP",
     "geminiImportBulkUploadHint": "Витягніть або виберіть до 50 файлів oauth_creds.json (256 КБ кожен, 10 МБ загалом).",
-    "geminiImportBulkPasteHint": "Вставте масив об’єктів: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "Вставте масив об’єктів: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "ZIP із записами oauth_creds.json. Макс. 50 записів, 10 Мб без упаковки.",
     "geminiImportBulkSubmit": "Імпортувати все",
     "geminiImportBulkSuccess": "Імпортовано підключення {count} Gemini",
@@ -5774,7 +5774,7 @@
     "codexImportBulkModePaste": "Вставити список",
     "codexImportBulkModeZip": "ZIP архів",
     "codexImportBulkUploadHint": "Виберіть кілька файлів .json або перетягніть їх",
-    "codexImportBulkPasteHint": "Масив JSON [ {...}, {...} ] або кілька JSON, розділених --- в окремому рядку",
+    "codexImportBulkPasteHint": "Масив JSON [ '{...}', '{...}' ] або кілька JSON, розділених --- в окремому рядку",
     "codexImportBulkZipHint": "Завантажте .zip, що містить файли auth.json (макс. 50 файлів, 10 МБ)",
     "codexImportBulkSubmit": "Імпортувати облікові записи {count}",
     "codexImportBulkLimit": "Максимум 50 файлів на імпорт",
@@ -6012,7 +6012,7 @@
     "validationModelIdPlaceholder": "напр. meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "API Key або Service Account JSON",
     "vertexCredentialHint": "Ключі API використовують добірний каталог проєктів. Service Account JSON дає змогу виявляти моделі в Model Garden у реальному часі.",
-    "vertexServiceAccountPlaceholder": "Вставте ключ API, JSON облікового запису служби ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) або токен доступу OAuth",
+    "vertexServiceAccountPlaceholder": "Вставте ключ API, JSON облікового запису служби ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') або токен доступу OAuth",
     "webCookieProviders": "Постачальники, що використовують вебфайли cookie",
     "weeklyShort": "Тиж.",
     "xiaomiMimoBaseUrlHint": "Підказка щодо базової URL-адреси Xiaomi Mimo",
@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Шлях до основного бінарного файлу",
-      "coreBinaryPathHelp": "Необов'язково: перевіряє згенерований файл основним бінарним файлом перед заміною прийнятого файлу. Залиште порожнім, щоб продовжувати запис поруч. Каталог створюється, якщо його немає.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Необов'язково: перевіряє згенерований файл основним бінарним файлом перед заміною прийнятого файлу. Залиште порожнім, щоб продовжувати запис поруч. Каталог створюється, якщо його немає."
     },
     "bulkHealthcheck": "Масова перевірка стану",
     "bulkHealthcheckDesc": "Надішліть тестові запити через усі налаштовані проксі-сервери до цільової URL-адреси, щоб з’ясувати, які з них працюють.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Завантаження…",
     "loadFailed": "Не вдалося завантажити інформацію про рушій.",
+    "settingsLoadFailed": "Не вдалося завантажити збережені налаштування. У полях відображаються значення за замовчуванням, а кнопка «Зберегти» залишається неактивною, доки сторінку не буде перезавантажено.",
     "engineNotFound": "Рушій \"{engine}\" не знайдено.",
     "saveFailed": "Не вдалося зберегти конфігурацію.",
     "previewFailed": "Помилка попереднього перегляду.",
@@ -9673,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "напр., def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "напр. визначення фібоначчі",
     "suiteBuilderCaseExpectedPlaceholderExact": "Вставте точну очікувану відповідь",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "напр. ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "напр. ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "Використовуйте регулярний вираз JavaScript без похилих рис.",
     "suiteBuilderNamePlaceholder": "напр., набір оцінювання якості коду",
     "suiteBuilderAddCase": "Додати тестовий випадок",
@@ -10882,7 +10883,7 @@
     "grokAuthJsonDescription": "Вставте повний вміст ~/.grok/auth.json (не лише поле \"key\" JWT). Простий JWT не має refresh_token, тому з'єднання припиняється після закінчення терміну дії (#7610). Виберіть спеціальне вікно імпорту auth.json, коли це можливо.",
     "devinDesktopPasteDescription": "Вставте існуючий ключ API Devin з автентифікованої сесії Devin. Доступність експорту ключа та кроки можуть відрізнятися в залежності від версії Devin та облікового запису.",
     "devinPasteDescription": "Надайте свій WINDSURF_API_KEY (отриманий через `devin auth login`, або через команду \"Windsurf: Provide Auth Token\" у Windsurf IDE).",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "Grok Build auth.json",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "API Ключ / Токен",
@@ -10895,7 +10896,10 @@
     "gitlabDuoSetupTitle": "Налаштування Duo OAuth для GitLab",
     "gitlabDuoSetupMessage": "Не налаштовано Duo OAuth для GitLab. Зареєструйте OAuth-додаток за адресою {applicationsUrl} з URI перенаправлення {redirectUri} та обсягами \"{scopes}\", потім встановіть {clientIdEnv} (і, за бажанням, {clientSecretEnv}) та перезапустіть.",
     "gitlabDuoSetupDescription": "Після реєстрації програми та налаштування змінних середовища на цьому екземплярі OmniRoute натисніть Продовжити, щоб розпочати вхід через OAuth.",
-    "continue": "Продовжити"
+    "continue": "Продовжити",
+    "tabPasteSetupToken": "Токен налаштування",
+    "claudeSetupTokenDescription": "Виконайте `claude setup-token` у терміналі та вставте виведений токен. Він дійсний один рік і не має токена оновлення. Перед збереженням OmniRoute надсилає до Anthropic один тестовий запит.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Підключіть Cursor IDE",
@@ -13713,7 +13717,7 @@
     "secondaryNote": "Також доступно на Open VSX (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "Закрити"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Рекламуйте <gateway-alias>/<model> ідентифікатори дзеркал на /v1/models для моделей, власник яких не має активних облікових даних, але шлюз з пропуском з активними обліковими даними їх маршрутизує. Увага: додає записи каталогу для всіх клієнтів, коли увімкнено глобально.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Рекламуйте '<gateway-alias>'/'<model>' ідентифікатори дзеркал на /v1/models для моделей, власник яких не має активних облікових даних, але шлюз з пропуском з активними обліковими даними їх маршрутизує. Увага: додає записи каталогу для всіх клієнтів, коли увімкнено глобально.",
   "radarPage": {
     "title": "Каталог Радар",
     "subtitle": "Безкоштовний каталог моделей, збагачений інтелектом спільноти",

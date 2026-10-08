@@ -30,7 +30,10 @@ async function patch(body: Record<string, unknown>) {
       body,
     })
   );
-  return { status: response.status, body: (await response.json()) as any };
+  return {
+    status: response.status,
+    body: (await response.json()) as { error?: { code?: string } },
+  };
 }
 
 async function seedEnabled(subjects: string[]) {

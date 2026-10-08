@@ -5693,7 +5693,7 @@
     "claudeImportBulkModePaste": "Տեղադրել JSON զանգվածը",
     "claudeImportBulkModeZip": "Վերբեռնել ZIP-ը",
     "claudeImportBulkUploadHint": "Քաշեք այստեղ կամ ընտրեք առավելագույնը 50 .credentials.json ֆայլ (յուրաքանչյուրը՝ 256KB, ընդհանուր՝ 10MB)։",
-    "claudeImportBulkPasteHint": "Տեղադրեք օբյեկտների զանգված՝ [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "Տեղադրեք օբյեկտների զանգված՝ ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": ".json գրառումներ պարունակող ZIP։ Առավելագույնը՝ 50 գրառում, ապափաթեթավորված՝ 10MB։",
     "claudeImportBulkSubmit": "Ներմուծել բոլորը",
     "claudeImportBulkSuccess": "Ներմուծվել է Claude-ի {count} կապ",
@@ -5725,7 +5725,7 @@
     "geminiImportBulkModePaste": "Տեղադրել JSON զանգվածը",
     "geminiImportBulkModeZip": "Վերբեռնել ZIP-ը",
     "geminiImportBulkUploadHint": "Քաշեք այստեղ կամ ընտրեք մինչև 50 oauth_creds.json ֆայլ (յուրաքանչյուրը՝ 256 ԿԲ, ընդհանուր՝ 10 ՄԲ)։",
-    "geminiImportBulkPasteHint": "Տեղադրեք օբյեկտների զանգված՝ [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "Տեղադրեք օբյեկտների զանգված՝ ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "ZIP, որը պարունակում է oauth_creds.json տարրեր։ Առավելագույնը՝ 50 տարր, ապափաթեթավորված վիճակում՝ 10 ՄԲ։",
     "geminiImportBulkSubmit": "Ներմուծել բոլորը",
     "geminiImportBulkSuccess": "Ներմուծվել է Gemini-ի {count} կապ",
@@ -5774,7 +5774,7 @@
     "codexImportBulkModePaste": "Տեղադրել ցանկը",
     "codexImportBulkModeZip": "ZIP արխիվ",
     "codexImportBulkUploadHint": "Ընտրեք մի քանի .json ֆայլ կամ քաշեք և թողեք դրանք այստեղ",
-    "codexImportBulkPasteHint": "JSON զանգված [ {...}, {...} ] կամ մի քանի JSON՝ բաժանված առանձին տողում գտնվող --- նշաններով",
+    "codexImportBulkPasteHint": "JSON զանգված [ '{...}', '{...}' ] կամ մի քանի JSON՝ բաժանված առանձին տողում գտնվող --- նշաններով",
     "codexImportBulkZipHint": "Վերբեռնեք auth.json ֆայլեր պարունակող .zip արխիվ (առավելագույնը՝ 50 ֆայլ, 10 MB)",
     "codexImportBulkSubmit": "Ներմուծել {count} հաշիվ",
     "codexImportBulkLimit": "Առավելագույնը՝ 50 ֆայլ յուրաքանչյուր ներմուծման համար",
@@ -6012,7 +6012,7 @@
     "validationModelIdPlaceholder": "օր.՝ meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "API բանալի կամ ծառայության հաշվի JSON",
     "vertexCredentialHint": "API բանալիներն օգտագործում են ընտրված նախագծերի կատալոգը։ Service Account JSON-ը հնարավորություն է տալիս իրական ժամանակում հայտնաբերել Model Garden-ի մոդելները։",
-    "vertexServiceAccountPlaceholder": "Տեղադրեք API բանալի, Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) կամ OAuth access token",
+    "vertexServiceAccountPlaceholder": "Տեղադրեք API բանալի, Service Account JSON ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') կամ OAuth access token",
     "webCookieProviders": "Վեբ քուքիների մատակարարներ",
     "weeklyShort": "Շաբաթական՝ կարճ",
     "xiaomiMimoBaseUrlHint": "Xiaomi Mimo-ի բազային URL-ի հուշում",
@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Հիմնական բինարի ուղին",
-      "coreBinaryPathHelp": "Ընտրովի. ստուգում է գեներացված ֆայլը հիմնական բինարով նախքան ընդունված ֆայլի փոխարինումը. Դատարկ թողեք, որպեսզի շարունակի գրել նրա կողքին. Բացակայող հատուկ թղթապանակը ստեղծվում է։",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Ընտրովի. ստուգում է գեներացված ֆայլը հիմնական բինարով նախքան ընդունված ֆայլի փոխարինումը. Դատարկ թողեք, որպեսզի շարունակի գրել նրա կողքին. Բացակայող հատուկ թղթապանակը ստեղծվում է։"
     },
     "bulkHealthcheck": "Զանգվածային հասանելիության ստուգում",
     "bulkHealthcheckDesc": "Ստուգել բոլոր կարգավորված պրոքսիները թիրախային URL-ի նկատմամբ՝ պարզելու, թե որոնք են աշխատում։",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Բեռնվում է…",
     "loadFailed": "Չհաջողվեց բեռնել շարժիչի մասին տեղեկությունները։",
+    "settingsLoadFailed": "Չհաջողվեց բեռնել պահպանված կարգավորումները։ Դաշտերում ցուցադրվում են կանխադրված արժեքները, իսկ «Պահպանել» կոճակը մնում է ապաակտիվ, մինչև էջը վերաբեռնվի։",
     "engineNotFound": "«{engine}» շարժիչը չի գտնվել։",
     "saveFailed": "Չհաջողվեց պահպանել կազմաձևումը։",
     "previewFailed": "Նախադիտումը ձախողվեց։",
@@ -9673,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "օրինակ՝ def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "օրինակ՝ def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderExact": "Տեղադրեք ճշգրիտ ակնկալվող պատասխանը",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "օրինակ՝ ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "օրինակ՝ ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "Օգտագործեք JavaScript կանոնավոր արտահայտություն՝ առանց այն թեք գծերի մեջ առնելու։",
     "suiteBuilderNamePlaceholder": "օրինակ՝ Կոդավորման որակի հավաքածու",
     "suiteBuilderAddCase": "Ավելացնել դեպք",
@@ -10882,7 +10883,7 @@
     "grokAuthJsonDescription": "Տեղադրեք ~/.grok/auth.json-ի ԱՄԲՈՂՋ բովանդակությունը (ոչ միայն JWT-ի «key» դաշտը)։ Առանձին JWT-ն չունի refresh_token, ուստի ժամկետը լրանալուց հետո կապն ընդհատվում է (#7610)։ Հասանելի լինելու դեպքում նախընտրեք auth.json-ի ներմուծման հատուկ պատուհանը։",
     "devinDesktopPasteDescription": "Տեղադրեք իսկորոշված Devin աշխատաշրջանից ստացված գործող Devin API բանալին։ Բանալու արտահանման հասանելիությունն ու քայլերը տարբերվում են՝ կախված Devin-ի տարբերակից և հաշվից։",
     "devinPasteDescription": "Տրամադրեք ձեր WINDSURF_API_KEY-ը (ստացված `devin auth login`-ի միջոցով կամ Windsurf IDE-ի «Windsurf: Provide Auth Token» հրամանով)։",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "Grok Build-ի auth.json",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "API բանալի / տոկեն",
@@ -10895,7 +10896,10 @@
     "gitlabDuoSetupTitle": "GitLab Duo OAuth-ի կարգավորում",
     "gitlabDuoSetupMessage": "GitLab Duo OAuth-ը կարգավորված չէ։ Գրանցեք OAuth հավելված {applicationsUrl} հասցեում՝ նշելով {redirectUri} վերահղման URI-ն և «{scopes}» տիրույթները, ապա սահմանեք {clientIdEnv}-ը (և ըստ ցանկության՝ {clientSecretEnv}-ը) ու վերագործարկեք։",
     "gitlabDuoSetupDescription": "Հավելվածը գրանցելուց և այս OmniRoute օրինակում միջավայրի փոփոխականները սահմանելուց հետո սեղմեք «Շարունակել»՝ OAuth մուտքը սկսելու համար։",
-    "continue": "Շարունակել"
+    "continue": "Շարունակել",
+    "tabPasteSetupToken": "Կարգավորման թոքեն",
+    "claudeSetupTokenDescription": "Գործարկեք `claude setup-token`-ը տերմինալում և տեղադրեք այն թոքենը, որը տպում է։ Այն վավեր է մեկ տարի և չունի թարմացման թոքեն։ Պահպանելուց առաջ OmniRoute-ը մեկ փորձնական հարցում է ուղարկում Anthropic-ին։",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Միացնել Cursor-ը",
@@ -13713,7 +13717,7 @@
     "secondaryNote": "Հասանելի է նաև Open VSX-ում (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "Փակել"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Հրապարակել <gateway-alias>/<model> հայելային նույնացուցիչները /v1/models-ում այն մոդելների համար, որոնց կանոնական սեփականատերը չունի ակտիվ հավատարմագիր, սակայն ակտիվ հավատարմագրով միջանցիկ դարպասը երթուղավորում է դրանք։ Զգուշացում․ համընդհանուր միացնելու դեպքում կատալոգի գրառումներ են ավելացվում բոլոր հաճախորդների համար։",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Հրապարակել '<gateway-alias>'/'<model>' հայելային նույնացուցիչները /v1/models-ում այն մոդելների համար, որոնց կանոնական սեփականատերը չունի ակտիվ հավատարմագիր, սակայն ակտիվ հավատարմագրով միջանցիկ դարպասը երթուղավորում է դրանք։ Զգուշացում․ համընդհանուր միացնելու դեպքում կատալոգի գրառումներ են ավելացվում բոլոր հաճախորդների համար։",
   "radarPage": {
     "title": "Radar կատալոգ",
     "subtitle": "Համայնքային տվյալներով հարստացված անվճար մոդելների կատալոգ",

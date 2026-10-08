@@ -5693,7 +5693,7 @@
     "claudeImportBulkModePaste": "貼上 JSON 陣列",
     "claudeImportBulkModeZip": "上傳ZIP",
     "claudeImportBulkUploadHint": "拖放或拾取最多 50 個 .credentials.json 檔案（每個 256KB，總共 10MB）。",
-    "claudeImportBulkPasteHint": "貼上物件陣列：[{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "貼上物件陣列：['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": "包含 .json 條目的 ZIP。最多 50 個條目，解壓後 10MB。",
     "claudeImportBulkSubmit": "全部匯入",
     "claudeImportBulkSuccess": "匯入 {count} Claude 連線",
@@ -5725,7 +5725,7 @@
     "geminiImportBulkModePaste": "貼上 JSON 陣列",
     "geminiImportBulkModeZip": "上傳ZIP",
     "geminiImportBulkUploadHint": "拖放或拾取最多 50 個 oauth_creds.json 檔案（每個 256KB，總共 10MB）。",
-    "geminiImportBulkPasteHint": "貼上物件陣列：[{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "貼上物件陣列：['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "包含 oauth_creds.json 條目的 ZIP。最多 50 個條目，解壓後 10MB。",
     "geminiImportBulkSubmit": "全部匯入",
     "geminiImportBulkSuccess": "匯入 {count} Gemini 連線",
@@ -5774,7 +5774,7 @@
     "codexImportBulkModePaste": "貼上列表",
     "codexImportBulkModeZip": "ZIP 存檔",
     "codexImportBulkUploadHint": "選擇多個 .json 檔案或拖放",
-    "codexImportBulkPasteHint": "JSON 陣列 [ {...}, {...} ] 或由 --- 分隔的多個 JSON 在其自己的行上",
+    "codexImportBulkPasteHint": "JSON 陣列 [ '{...}', '{...}' ] 或由 --- 分隔的多個 JSON 在其自己的行上",
     "codexImportBulkZipHint": "上傳包含 auth.json 檔案的 .zip（最多 50 個檔案，10 MB）",
     "codexImportBulkSubmit": "匯入 {count} 帳戶",
     "codexImportBulkLimit": "每次匯入最多 50 個檔案",
@@ -6012,7 +6012,7 @@
     "validationModelIdPlaceholder": "輸入用於測試的模型 ID",
     "vertexCredentialLabel": "API 金鑰或服務帳戶 JSON",
     "vertexCredentialHint": "API 金鑰會使用精選的專案目錄。服務帳戶 JSON 則可啟用即時 Model Garden 探索。",
-    "vertexServiceAccountPlaceholder": "貼上 API 金鑰、Service Account JSON（{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}）或 OAuth 存取權杖",
+    "vertexServiceAccountPlaceholder": "貼上 API 金鑰、Service Account JSON（'{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}'）或 OAuth 存取權杖",
     "webCookieProviders": "Web Cookie Provider",
     "weeklyShort": "每週",
     "xiaomiMimoBaseUrlHint": "小米 Mimo 服務的 Base URL。",
@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "核心二進位檔路徑",
-      "coreBinaryPathHelp": "選用：在取代已採用的檔案前，先以核心二進位檔驗證產生的檔案。若要持續寫入其旁，請留空。目錄不存在時會自動建立。",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "選用：在取代已採用的檔案前，先以核心二進位檔驗證產生的檔案。若要持續寫入其旁，請留空。目錄不存在時會自動建立。"
     },
     "bulkHealthcheck": "批次健康檢查",
     "bulkHealthcheckDesc": "針對目標 URL 測試所有已設定代理，找出可用代理。",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "載入中…",
     "loadFailed": "無法載入引擎資訊。",
+    "settingsLoadFailed": "無法載入已儲存的設定。欄位會顯示預設值，且在頁面重新載入前，「儲存」會維持停用。",
     "engineNotFound": "找不到引擎「{engine}」。",
     "saveFailed": "設定儲存失敗。",
     "previewFailed": "預覽失敗。",
@@ -9673,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "例如 def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "例如 def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderExact": "貼上精確的預期回應",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "例如 ^\\s*\\{.*\\}\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "例如 ^\\s*\\'{.*\\}'\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "使用不帶包裹斜槓的 JavaScript 正規表示式。",
     "suiteBuilderNamePlaceholder": "例如 Coding Quality Suite",
     "suiteBuilderAddCase": "新增 Case",
@@ -10882,7 +10883,7 @@
     "grokAuthJsonDescription": "請粘貼 ~/.grok/auth.json 的完整內容（不僅僅是 JWT \"key\" 欄位）。裸 JWT 沒有 refresh_token，因此連接在過期後會中斷 (#7610)。當可用時，請優先使用專用的導入 auth.json 模態。",
     "devinDesktopPasteDescription": "從已驗證的 Devin 會話中粘貼現有的 Devin API 金鑰。金鑰導出可用性和步驟因 Devin 版本和帳戶而異。",
     "devinPasteDescription": "提供您的 WINDSURF_API_KEY（通過 `devin auth login` 獲取，或通過 Windsurf IDE 的 \"Windsurf: Provide Auth Token\" 命令獲取）。",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "Grok 建構 auth.json",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "API 金鑰 / 令牌",
@@ -10895,7 +10896,10 @@
     "gitlabDuoSetupTitle": "GitLab Duo OAuth 設定",
     "gitlabDuoSetupMessage": "GitLab Duo OAuth 尚未配置。在 {applicationsUrl} 註冊一個 OAuth 應用程式，使用重定向 URI {redirectUri} 和範圍 \"{scopes}\"，然後設置 {clientIdEnv}（可選地設置 {clientSecretEnv}）並重新啟動。",
     "gitlabDuoSetupDescription": "在應用程式註冊並在此 OmniRoute 實例上設置環境變數後，點擊繼續以開始 OAuth 登錄。",
-    "continue": "繼續"
+    "continue": "繼續",
+    "tabPasteSetupToken": "設定權杖",
+    "claudeSetupTokenDescription": "在終端機中執行 `claude setup-token`，然後貼上它輸出的權杖。此權杖有效期為一年，沒有重新整理權杖。OmniRoute 會在儲存前向 Anthropic 發送一次測試請求。",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "連線 Cursor IDE",
@@ -13713,7 +13717,7 @@
     "secondaryNote": "同樣支援 Open VSX（Cursor、Windsurf、VSCodium…）",
     "dismissAriaLabel": "關閉"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "在 /v1/models 上廣告 <gateway-alias>/<model> 鏡像 ID，針對那些其正規擁有者沒有有效憑證但有一個通過網關且有有效憑證路由它們的模型。警告：當全域啟用時，會為所有客戶端添加目錄條目。",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "在 /v1/models 上廣告 '<gateway-alias>'/'<model>' 鏡像 ID，針對那些其正規擁有者沒有有效憑證但有一個通過網關且有有效憑證路由它們的模型。警告：當全域啟用時，會為所有客戶端添加目錄條目。",
   "radarPage": {
     "title": "雷達目錄",
     "subtitle": "由社群智慧增強的免費模型目錄",

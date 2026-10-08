@@ -35,7 +35,7 @@ test("empty model id falls back to the estimated guess without throwing", () => 
 });
 
 test("table hits are untouched", () => {
-  assert.equal(Object.keys(KNOWN_MODEL_PRICING).length, 21);
+  assert.equal(Object.keys(KNOWN_MODEL_PRICING).length, 23);
   assert.deepEqual(getModelPricing("openai", "gpt-4o"), {
     ...KNOWN_MODEL_PRICING["gpt-4o"],
     isEstimated: false,

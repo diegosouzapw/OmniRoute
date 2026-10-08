@@ -5693,7 +5693,7 @@
     "claudeImportBulkModePaste": "Επικόλληση πίνακα JSON",
     "claudeImportBulkModeZip": "Μεταφόρτωση ZIP",
     "claudeImportBulkUploadHint": "Σύρετε ή επιλέξτε έως 50 αρχεία .credentials.json (256KB το καθένα, 10MB συνολικά).",
-    "claudeImportBulkPasteHint": "Επικολλήστε έναν πίνακα αντικειμένων: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "Επικολλήστε έναν πίνακα αντικειμένων: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": "ZIP που περιέχει καταχωρίσεις .json. Έως 50 καταχωρίσεις και 10MB μετά την αποσυμπίεση.",
     "claudeImportBulkSubmit": "Εισαγωγή όλων",
     "claudeImportBulkSuccess": "Εισήχθησαν {count} συνδέσεις Claude",
@@ -5725,7 +5725,7 @@
     "geminiImportBulkModePaste": "Επικόλληση πίνακα JSON",
     "geminiImportBulkModeZip": "Μεταφόρτωση ZIP",
     "geminiImportBulkUploadHint": "Σύρετε και αποθέστε ή επιλέξτε έως 50 αρχεία oauth_creds.json (256KB το καθένα, 10MB συνολικά).",
-    "geminiImportBulkPasteHint": "Επικολλήστε έναν πίνακα αντικειμένων: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "Επικολλήστε έναν πίνακα αντικειμένων: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "ZIP που περιέχει εγγραφές oauth_creds.json. Έως 50 εγγραφές και μέγιστο αποσυμπιεσμένο μέγεθος 10MB.",
     "geminiImportBulkSubmit": "Εισαγωγή όλων",
     "geminiImportBulkSuccess": "Εισήχθησαν {count} συνδέσεις Gemini",
@@ -5774,7 +5774,7 @@
     "codexImportBulkModePaste": "Επικόλληση λίστας",
     "codexImportBulkModeZip": "Αρχείο ZIP",
     "codexImportBulkUploadHint": "Επιλέξτε πολλά αρχεία .json ή σύρτε και αποθέστε",
-    "codexImportBulkPasteHint": "Πίνακας JSON [ {...}, {...} ] ή πολλά JSON χωρισμένα με --- σε δική του γραμμή",
+    "codexImportBulkPasteHint": "Πίνακας JSON [ '{...}', '{...}' ] ή πολλά JSON χωρισμένα με --- σε δική του γραμμή",
     "codexImportBulkZipHint": "Μεταφορτώστε ένα .zip που περιέχει αρχεία auth.json (έως 50 αρχεία, 10 MB)",
     "codexImportBulkSubmit": "Εισαγωγή {count} λογαριασμών",
     "codexImportBulkLimit": "Έως 50 αρχεία ανά εισαγωγή",
@@ -6012,7 +6012,7 @@
     "validationModelIdPlaceholder": "π.χ. meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "Κλειδί API ή JSON λογαριασμού υπηρεσίας",
     "vertexCredentialHint": "Τα κλειδιά API χρησιμοποιούν τον επιμελημένο κατάλογο έργων. Το JSON λογαριασμού υπηρεσίας ενεργοποιεί τη δυναμική ανακάλυψη του Model Garden.",
-    "vertexServiceAccountPlaceholder": "Επικολλήστε ένα κλειδί API, Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) ή OAuth access token",
+    "vertexServiceAccountPlaceholder": "Επικολλήστε ένα κλειδί API, Service Account JSON ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') ή OAuth access token",
     "webCookieProviders": "Πάροχοι web cookie",
     "weeklyShort": "Σύντομη μορφή του «Εβδομαδιαία»",
     "xiaomiMimoBaseUrlHint": "Υπόδειξη βασικής διεύθυνσης URL Xiaomi Mimo",
@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Διαδρομή βασικής εκτελέσιμου",
-      "coreBinaryPathHelp": "Προαιρετικό: επαληθεύει το παραχθέν αρχείο με τη βασική εκτελέσιμο πριν από την αντικατάσταση του υιοθετημένου αρχείου. Αφήστε το κενό για να συνεχίσει η εγγραφή δίπλα του. Ο κατάλογος δημιουργείται αν δεν υπάρχει.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Προαιρετικό: επαληθεύει το παραχθέν αρχείο με τη βασική εκτελέσιμο πριν από την αντικατάσταση του υιοθετημένου αρχείου. Αφήστε το κενό για να συνεχίσει η εγγραφή δίπλα του. Ο κατάλογος δημιουργείται αν δεν υπάρχει."
     },
     "bulkHealthcheck": "Μαζικός έλεγχος εύρυθμης λειτουργίας",
     "bulkHealthcheckDesc": "Δοκιμάστε όλους τους διαμορφωμένους διακομιστές μεσολάβησης με μια διεύθυνση URL-στόχο, για να βρείτε ποιοι λειτουργούν.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Φόρτωση…",
     "loadFailed": "Αποτυχία φόρτωσης των πληροφοριών της μηχανής.",
+    "settingsLoadFailed": "Αποτυχία φόρτωσης των αποθηκευμένων ρυθμίσεων. Τα πεδία εμφανίζουν τις προεπιλεγμένες τιμές και η Αποθήκευση παραμένει απενεργοποιημένη μέχρι να επαναφορτωθεί η σελίδα.",
     "engineNotFound": "Η μηχανή \"{engine}\" δεν βρέθηκε.",
     "saveFailed": "Αποτυχία αποθήκευσης διαμόρφωσης.",
     "previewFailed": "Αποτυχία προεπισκόπησης.",
@@ -9673,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "π.χ. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "π.χ. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderExact": "Επικολλήστε την ακριβή αναμενόμενη απάντηση",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "π.χ. ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "π.χ. ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "Χρησιμοποιήστε μια κανονική έκφραση JavaScript χωρίς τις καθέτους που την περικλείουν.",
     "suiteBuilderNamePlaceholder": "π.χ. Σουίτα Ποιότητας Κώδικα",
     "suiteBuilderAddCase": "Προσθήκη Περίπτωσης",
@@ -10882,7 +10883,7 @@
     "grokAuthJsonDescription": "Επικολλήστε το ΠΛΗΡΕΣ περιεχόμενο του ~/.grok/auth.json (όχι μόνο το πεδίο JWT \"key\"). Ένα μεμονωμένο JWT δεν έχει refresh_token, οπότε η σύνδεση διακόπτεται μετά τη λήξη του (#7610). Προτιμήστε το ειδικό παράθυρο διαλόγου Εισαγωγής auth.json, όταν είναι διαθέσιμο.",
     "devinDesktopPasteDescription": "Επικολλήστε ένα υπάρχον κλειδί API Devin από μια συνεδρία Devin στην οποία έχει πραγματοποιηθεί έλεγχος ταυτότητας. Η διαθεσιμότητα και τα βήματα εξαγωγής του κλειδιού διαφέρουν ανάλογα με την έκδοση του Devin και τον λογαριασμό.",
     "devinPasteDescription": "Δώστε το WINDSURF_API_KEY (που αποκτάται μέσω `devin auth login`, ή μέσω της εντολής \"Windsurf: Provide Auth Token\" στο Windsurf IDE).",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "auth.json του Grok Build",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "Κλειδί API / Διακριτικό",
@@ -10895,7 +10896,10 @@
     "gitlabDuoSetupTitle": "Ρύθμιση OAuth του GitLab Duo",
     "gitlabDuoSetupMessage": "Το OAuth του GitLab Duo δεν έχει ρυθμιστεί. Καταχωρίστε μια εφαρμογή OAuth στη διεύθυνση {applicationsUrl} με URI ανακατεύθυνσης {redirectUri} και πεδία εφαρμογής \"{scopes}\", έπειτα ορίστε το {clientIdEnv} (και προαιρετικά το {clientSecretEnv}) και πραγματοποιήστε επανεκκίνηση.",
     "gitlabDuoSetupDescription": "Αφού καταχωριστεί η εφαρμογή και οριστούν οι μεταβλητές περιβάλλοντος σε αυτό το στιγμιότυπο του OmniRoute, κάντε κλικ στην επιλογή Συνέχεια για να ξεκινήσετε τη σύνδεση OAuth.",
-    "continue": "Συνέχεια"
+    "continue": "Συνέχεια",
+    "tabPasteSetupToken": "Διακριτικό ρύθμισης",
+    "claudeSetupTokenDescription": "Εκτελέστε το `claude setup-token` σε ένα τερματικό και επικολλήστε το διακριτικό που εμφανίζει. Ισχύει για ένα έτος και δεν έχει διακριτικό ανανέωσης. Το OmniRoute στέλνει ένα δοκιμαστικό αίτημα στην Anthropic πριν το αποθηκεύσει.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Σύνδεση στο Cursor",
@@ -13713,7 +13717,7 @@
     "secondaryNote": "Επίσης στο Open VSX (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "Κλείσιμο"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Προβολή των mirror ids <gateway-alias>/<model> στο /v1/models για μοντέλα των οποίων ο κανονικός ιδιοκτήτης δεν διαθέτει ενεργό διαπιστευτήριο, αλλά δρομολογούνται μέσω ενός passthrough gateway με ενεργό διαπιστευτήριο. Προειδοποίηση: όταν ενεργοποιείται καθολικά, προσθέτει καταχωρίσεις στον κατάλογο για όλους τους clients.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Προβολή των mirror ids '<gateway-alias>'/'<model>' στο /v1/models για μοντέλα των οποίων ο κανονικός ιδιοκτήτης δεν διαθέτει ενεργό διαπιστευτήριο, αλλά δρομολογούνται μέσω ενός passthrough gateway με ενεργό διαπιστευτήριο. Προειδοποίηση: όταν ενεργοποιείται καθολικά, προσθέτει καταχωρίσεις στον κατάλογο για όλους τους clients.",
   "radarPage": {
     "title": "Κατάλογος Radar",
     "subtitle": "Δωρεάν κατάλογος μοντέλων εμπλουτισμένος με πληροφορίες από την κοινότητα",

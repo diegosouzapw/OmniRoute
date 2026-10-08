@@ -5693,7 +5693,7 @@
     "claudeImportBulkModePaste": "Wklej tablicę JSON",
     "claudeImportBulkModeZip": "Prześlij ZIP",
     "claudeImportBulkUploadHint": "Przeciągnij lub wybierz do 50 plików .credentials.json (maks. 256KB każdy, łącznie 10MB).",
-    "claudeImportBulkPasteHint": "Wklej tablicę obiektów: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "Wklej tablicę obiektów: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": "Plik ZIP zawierający wpisy .json. Maks. 50 wpisów, 10MB po rozpakowaniu.",
     "claudeImportBulkSubmit": "Importuj wszystkie",
     "claudeImportBulkSuccess": "Zaimportowano {count} połączeń Claude",
@@ -5725,7 +5725,7 @@
     "geminiImportBulkModePaste": "Wklej tablicę JSON",
     "geminiImportBulkModeZip": "Prześlij ZIP",
     "geminiImportBulkUploadHint": "Przeciągnij lub wybierz do 50 plików oauth_creds.json (maks. 256KB każdy, łącznie 10MB).",
-    "geminiImportBulkPasteHint": "Wklej tablicę obiektów: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "Wklej tablicę obiektów: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "Plik ZIP zawierający wpisy oauth_creds.json. Maks. 50 wpisów, 10MB po rozpakowaniu.",
     "geminiImportBulkSubmit": "Importuj wszystkie",
     "geminiImportBulkSuccess": "Zaimportowano {count} połączeń Gemini",
@@ -5774,7 +5774,7 @@
     "codexImportBulkModePaste": "Wklej listę",
     "codexImportBulkModeZip": "Archiwum ZIP",
     "codexImportBulkUploadHint": "Wybierz wiele plików .json lub przeciągnij i upuść",
-    "codexImportBulkPasteHint": "Tablica JSON [ {...}, {...} ] lub wiele obiektów JSON oddzielonych znakiem --- w nowej linii",
+    "codexImportBulkPasteHint": "Tablica JSON [ '{...}', '{...}' ] lub wiele obiektów JSON oddzielonych znakiem --- w nowej linii",
     "codexImportBulkZipHint": "Prześlij plik .zip zawierający pliki auth.json (maks. 50 plików, 10 MB)",
     "codexImportBulkSubmit": "Importuj {count} kont",
     "codexImportBulkLimit": "Maks. 50 plików na import",
@@ -6012,7 +6012,7 @@
     "validationModelIdPlaceholder": "np. meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "API Key or Service Account JSON",
     "vertexCredentialHint": "Klucze API korzystają z wyselekcjonowanego katalogu projektów. Service Account JSON umożliwia wykrywanie modeli na żywo w Model Garden.",
-    "vertexServiceAccountPlaceholder": "Wklej klucz API, Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) lub token dostępu OAuth",
+    "vertexServiceAccountPlaceholder": "Wklej klucz API, Service Account JSON ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') lub token dostępu OAuth",
     "webCookieProviders": "Dostawcy korzystający z ciasteczek WWW",
     "weeklyShort": "Tygodniowo",
     "xiaomiMimoBaseUrlHint": "Wskazówka bazowego URL Xiaomi Mimo",
@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Ścieżka pliku binarnego rdzenia",
-      "coreBinaryPathHelp": "Opcjonalne: weryfikuje wygenerowany plik plikiem binarnym rdzenia przed zastąpieniem przyjętego pliku. Pozostaw puste, aby nadal zapisywać obok niego. Katalog zostanie utworzony, jeśli nie istnieje.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Opcjonalne: weryfikuje wygenerowany plik plikiem binarnym rdzenia przed zastąpieniem przyjętego pliku. Pozostaw puste, aby nadal zapisywać obok niego. Katalog zostanie utworzony, jeśli nie istnieje."
     },
     "bulkHealthcheck": "Zbiorczy Healthcheck",
     "bulkHealthcheckDesc": "Testowanie wszystkich skonfigurowanych proxy pod kątem docelowego URL w celu znalezienia działających.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Wczytywanie…",
     "loadFailed": "Nie udało się wczytać informacji o silniku.",
+    "settingsLoadFailed": "Nie udało się wczytać zapisanych ustawień. Pola pokazują wartości domyślne, a przycisk Zapisz pozostaje nieaktywny do czasu ponownego załadowania strony.",
     "engineNotFound": "Nie znaleziono silnika „{engine}”.",
     "saveFailed": "Nie udało się zapisać konfiguracji.",
     "previewFailed": "Podgląd nie powiódł się.",
@@ -9673,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "np. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "np. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderExact": "Wklej dokładną oczekiwaną odpowiedź",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "np. ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "np. ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "Użyj wyrażenia regularnego JavaScript bez ukośników.",
     "suiteBuilderNamePlaceholder": "np. Coding Quality Suite",
     "suiteBuilderAddCase": "Dodaj przypadek",
@@ -10882,7 +10883,7 @@
     "grokAuthJsonDescription": "Wklej pełną zawartość ~/.grok/auth.json (nie tylko pole \"key\" JWT). Nagie JWT nie ma refresh_token, więc po wygaśnięciu połączenie umiera (#7610). Preferuj dedykowany modal Importuj auth.json, gdy jest dostępny.",
     "devinDesktopPasteDescription": "Wklej istniejący klucz API Devin z uwierzytelnionej sesji Devin. Dostępność eksportu klucza i kroki różnią się w zależności od wersji Devin i konta.",
     "devinPasteDescription": "Podaj swój WINDSURF_API_KEY (uzyskany za pomocą `devin auth login` lub za pomocą polecenia \"Windsurf: Provide Auth Token\" w IDE Windsurf).",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "Grok Build auth.json",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "Klucz API / Token",
@@ -10895,7 +10896,10 @@
     "gitlabDuoSetupTitle": "Konfiguracja OAuth Duo w GitLab",
     "gitlabDuoSetupMessage": "GitLab Duo OAuth nie jest skonfigurowany. Zarejestruj aplikację OAuth pod adresem {applicationsUrl} z URI przekierowania {redirectUri} i zakresami \"{scopes}\", a następnie ustaw {clientIdEnv} (opcjonalnie {clientSecretEnv}) i uruchom ponownie.",
     "gitlabDuoSetupDescription": "Po zarejestrowaniu aplikacji i ustawieniu zmiennych środowiskowych w tej instancji OmniRoute, kliknij Kontynuuj, aby rozpocząć logowanie OAuth.",
-    "continue": "Kontynuuj"
+    "continue": "Kontynuuj",
+    "tabPasteSetupToken": "Token konfiguracyjny",
+    "claudeSetupTokenDescription": "Uruchom `claude setup-token` w terminalu i wklej wypisany token. Jest ważny przez rok i nie ma tokenu odświeżania. Przed zapisaniem OmniRoute wysyła jedno testowe żądanie do Anthropic.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Połącz Cursor IDE",
@@ -13713,7 +13717,7 @@
     "secondaryNote": "Dostępne również na Open VSX (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "Odrzuć"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Reklamuj identyfikatory luster <gateway-alias>/<model> na /v1/models dla modeli, których kanoniczny właściciel nie ma aktywnego poświadczenia, ale brama passthrough z aktywnym poświadczeniem je kieruje. Uwaga: dodaje wpisy katalogu dla wszystkich klientów, gdy jest włączone globalnie.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Reklamuj identyfikatory luster '<gateway-alias>'/'<model>' na /v1/models dla modeli, których kanoniczny właściciel nie ma aktywnego poświadczenia, ale brama passthrough z aktywnym poświadczeniem je kieruje. Uwaga: dodaje wpisy katalogu dla wszystkich klientów, gdy jest włączone globalnie.",
   "radarPage": {
     "title": "Katalog Radar",
     "subtitle": "Bezpłatny katalog modeli wzbogacony o inteligencję społeczności",

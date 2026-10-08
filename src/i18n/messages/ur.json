@@ -5693,7 +5693,7 @@
     "claudeImportBulkModePaste": "JSON صف پیسٹ کریں۔",
     "claudeImportBulkModeZip": "زپ اپ لوڈ کریں۔",
     "claudeImportBulkUploadHint": "50 .credentials.json فائلیں (256KB ہر ایک، 10MB کل) ڈراپ یا پک اپ کریں۔",
-    "claudeImportBulkPasteHint": "اشیاء کی ایک صف چسپاں کریں: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "اشیاء کی ایک صف چسپاں کریں: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": ".json اندراجات پر مشتمل زپ۔ زیادہ سے زیادہ 50 اندراجات، 10MB بغیر پیک۔",
     "claudeImportBulkSubmit": "تمام درآمد کریں۔",
     "claudeImportBulkSuccess": "درآمد شدہ {count} کلاڈ کنکشن",
@@ -5725,7 +5725,7 @@
     "geminiImportBulkModePaste": "JSON صف پیسٹ کریں۔",
     "geminiImportBulkModeZip": "زپ اپ لوڈ کریں۔",
     "geminiImportBulkUploadHint": "50 oauth_creds.json فائلیں (256KB ہر ایک، 10MB کل) ڈراپ یا پک اپ کریں۔",
-    "geminiImportBulkPasteHint": "اشیاء کی ایک صف چسپاں کریں: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "اشیاء کی ایک صف چسپاں کریں: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "ZIP جس میں oauth_creds.json اندراجات ہوں۔ زیادہ سے زیادہ 50 اندراجات، 10MB بغیر پیک۔",
     "geminiImportBulkSubmit": "تمام درآمد کریں۔",
     "geminiImportBulkSuccess": "درآمد شدہ {count} Gemini کنکشن",
@@ -5774,7 +5774,7 @@
     "codexImportBulkModePaste": "فہرست چسپاں کریں۔",
     "codexImportBulkModeZip": "زپ آرکائیو",
     "codexImportBulkUploadHint": "متعدد .json فائلوں کو منتخب کریں یا ڈریگ اینڈ ڈراپ کریں۔",
-    "codexImportBulkPasteHint": "JSON سرنی [ {...}, {...} ] یا ایک سے زیادہ JSONs کو --- سے الگ کیا گیا اس کی اپنی لائن پر",
+    "codexImportBulkPasteHint": "JSON سرنی [ '{...}', '{...}' ] یا ایک سے زیادہ JSONs کو --- سے الگ کیا گیا اس کی اپنی لائن پر",
     "codexImportBulkZipHint": "auth.json فائلوں پر مشتمل .zip اپ لوڈ کریں (زیادہ سے زیادہ 50 فائلیں، 10 MB)",
     "codexImportBulkSubmit": "{count} اکاؤنٹس درآمد کریں۔",
     "codexImportBulkLimit": "زیادہ سے زیادہ 50 فائلیں فی درآمد",
@@ -6012,7 +6012,7 @@
     "validationModelIdPlaceholder": "مثلاً meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "API Key یا Service Account JSON",
     "vertexCredentialHint": "API keys منتخب شدہ پروجیکٹ کیٹلاگ استعمال کرتی ہیں۔ Service Account JSON، Model Garden میں براہ راست دریافت کو فعال کرتا ہے۔",
-    "vertexServiceAccountPlaceholder": "API key، Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"})، یا OAuth access token پیسٹ کریں",
+    "vertexServiceAccountPlaceholder": "API key، Service Account JSON ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}')، یا OAuth access token پیسٹ کریں",
     "webCookieProviders": "ویب کوکی فراہم کنندگان",
     "weeklyShort": "ہفتہ وار مختصر نام",
     "xiaomiMimoBaseUrlHint": "Xiaomi Mimo بنیادی URL کا اشارہ",
@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "بنیائی بائنیری کا پاتھ",
-      "coreBinaryPathHelp": "اختیاری: تبدیلی سے پہلے تیار کردہ فائل کو بنیائی بائنیری سے تصدیق کرتی ہے۔ ساتھ لکھنا جاری رکھنے کے لیے خالی چھوڑیں۔ فولڈر موجود نہ ہونے پر بنایا جاتا ہے۔",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "اختیاری: تبدیلی سے پہلے تیار کردہ فائل کو بنیائی بائنیری سے تصدیق کرتی ہے۔ ساتھ لکھنا جاری رکھنے کے لیے خالی چھوڑیں۔ فولڈر موجود نہ ہونے پر بنایا جاتا ہے۔"
     },
     "bulkHealthcheck": "اجتماعی ہیلتھ چیک",
     "bulkHealthcheckDesc": "تمام ترتیب شدہ پراکسیز کو ہدف URL پر جانچیں تاکہ معلوم ہو سکے کہ کون سی کام کرتی ہیں۔",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "لوڈ ہو رہا ہے…",
     "loadFailed": "انجن کی معلومات لوڈ کرنے میں ناکامی۔",
+    "settingsLoadFailed": "محفوظ کردہ ترتیبات لوڈ نہیں ہو سکیں۔ فیلڈز میں طے شدہ اقدار دکھائی دیتی ہیں، اور صفحہ دوبارہ لوڈ ہونے تک محفوظ کریں غیر فعال رہتا ہے۔",
     "engineNotFound": "انجن \"{engine}\" نہیں ملا۔",
     "saveFailed": "کنفیگریشن محفوظ کرنے میں ناکامی۔",
     "previewFailed": "پیش نظارہ ناکام ہو گیا۔",
@@ -9673,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "مثلاً def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "جیسے ڈیف فبونیکی",
     "suiteBuilderCaseExpectedPlaceholderExact": "عین متوقع جواب چسپاں کریں۔",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "جیسے ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "جیسے ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "سلیشوں کو لپیٹے بغیر جاوا اسکرپٹ کا ریگولر ایکسپریشن استعمال کریں۔",
     "suiteBuilderNamePlaceholder": "مثلاً کوڈنگ کوالٹی سویٹ",
     "suiteBuilderAddCase": "کیس شامل کریں",
@@ -10882,7 +10883,7 @@
     "grokAuthJsonDescription": "~/.grok/auth.json کے مکمل مواد کو پیسٹ کریں (صرف JWT \"key\" فیلڈ نہیں)۔ ایک خالی JWT میں refresh_token نہیں ہوتا، اس لیے کنکشن کی میعاد ختم ہونے کے بعد بند ہو جاتا ہے (#7610)۔ جب دستیاب ہو تو مخصوص Import auth.json ماڈل کو ترجیح دیں۔",
     "devinDesktopPasteDescription": "ایک موجودہ Devin API کلید کو ایک تصدیق شدہ Devin سیشن سے پیسٹ کریں۔ کلید برآمد کرنے کی دستیابی اور مراحل Devin ورژن اور اکاؤنٹ کے لحاظ سے مختلف ہیں۔",
     "devinPasteDescription": "اپنا WINDSURF_API_KEY فراہم کریں (جو `devin auth login` کے ذریعے حاصل کیا گیا، یا Windsurf IDE \"Windsurf: Provide Auth Token\" کمانڈ کے ذریعے)۔",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "Grok Build auth.json",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "API کی چابی / ٹوکن",
@@ -10895,7 +10896,10 @@
     "gitlabDuoSetupTitle": "GitLab Duo OAuth سیٹ اپ",
     "gitlabDuoSetupMessage": "GitLab Duo OAuth ترتیب نہیں دیا گیا ہے۔ {applicationsUrl} پر ایک OAuth ایپلیکیشن رجسٹر کریں جس میں ری ڈائریکٹ URI {redirectUri} اور اسکوپس \"{scopes}\" ہوں، پھر {clientIdEnv} (اور اختیاری طور پر {clientSecretEnv}) سیٹ کریں اور دوبارہ شروع کریں۔",
     "gitlabDuoSetupDescription": "جب ایپلیکیشن رجسٹر ہو جائے اور اس OmniRoute انسٹنس پر env vars سیٹ ہو جائیں، تو OAuth لاگ ان شروع کرنے کے لیے Continue پر کلک کریں۔",
-    "continue": "جاری رکھیں"
+    "continue": "جاری رکھیں",
+    "tabPasteSetupToken": "سیٹ اپ ٹوکن",
+    "claudeSetupTokenDescription": "ٹرمینل میں `claude setup-token` چلائیں اور اس کا پرنٹ کردہ ٹوکن پیسٹ کریں۔ یہ ایک سال کے لیے درست ہے اور اس کا کوئی ریفریش ٹوکن نہیں ہے۔ محفوظ کرنے سے پہلے OmniRoute، Anthropic کو ایک ٹیسٹ درخواست بھیجتا ہے۔",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Connect Cursor IDE",
@@ -13713,7 +13717,7 @@
     "secondaryNote": "Open VSX پر بھی دستیاب ہے (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "خارج کریں"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "/gateway-alias/<model> کی عکاسی کے IDs کو /v1/models پر اشتہار دیں ان ماڈلز کے لیے جن کے حقیقی مالک کے پاس کوئی فعال سند نہیں ہے لیکن ایک پاس تھرو گیٹ وے جس کے پاس ایک فعال سند ہے انہیں روٹ کرتا ہے۔ انتباہ: جب عالمی طور پر فعال کیا جائے تو یہ تمام کلائنٹس کے لیے کیٹلاگ کی اندراجات شامل کرتا ہے۔",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "/gateway-alias/'<model>' کی عکاسی کے IDs کو /v1/models پر اشتہار دیں ان ماڈلز کے لیے جن کے حقیقی مالک کے پاس کوئی فعال سند نہیں ہے لیکن ایک پاس تھرو گیٹ وے جس کے پاس ایک فعال سند ہے انہیں روٹ کرتا ہے۔ انتباہ: جب عالمی طور پر فعال کیا جائے تو یہ تمام کلائنٹس کے لیے کیٹلاگ کی اندراجات شامل کرتا ہے۔",
   "radarPage": {
     "title": "ریڈار کیٹلاگ",
     "subtitle": "کمیونٹی کی ذہانت سے بھرپور مفت ماڈل کیٹلاگ",

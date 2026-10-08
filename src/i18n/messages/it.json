@@ -5693,7 +5693,7 @@
     "claudeImportBulkModePaste": "Incolla l'array JSON",
     "claudeImportBulkModeZip": "Carica CAP",
     "claudeImportBulkUploadHint": "Rilascia o raccogli fino a 50 file .credentials.json (256 KB ciascuno, 10 MB in totale).",
-    "claudeImportBulkPasteHint": "Incolla una serie di oggetti: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "Incolla una serie di oggetti: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": "ZIP contenente voci .json. Max 50 voci, 10 MB scompattati.",
     "claudeImportBulkSubmit": "Importa tutto",
     "claudeImportBulkSuccess": "Connessioni {count} Claude importate",
@@ -5725,7 +5725,7 @@
     "geminiImportBulkModePaste": "Incolla l'array JSON",
     "geminiImportBulkModeZip": "Carica CAP",
     "geminiImportBulkUploadHint": "Rilascia o raccogli fino a 50 file oauth_creds.json (256 KB ciascuno, 10 MB in totale).",
-    "geminiImportBulkPasteHint": "Incolla una serie di oggetti: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "Incolla una serie di oggetti: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "ZIP contenente le voci oauth_creds.json. Max 50 voci, 10 MB scompattati.",
     "geminiImportBulkSubmit": "Importa tutto",
     "geminiImportBulkSuccess": "Connessioni Gemini importate {count}",
@@ -5774,7 +5774,7 @@
     "codexImportBulkModePaste": "Incolla elenco",
     "codexImportBulkModeZip": "Archivio ZIP",
     "codexImportBulkUploadHint": "Seleziona più file .json o trascina e rilascia",
-    "codexImportBulkPasteHint": "Array JSON [ {...}, {...} ] o più JSON separati da --- sulla propria riga",
+    "codexImportBulkPasteHint": "Array JSON [ '{...}', '{...}' ] o più JSON separati da --- sulla propria riga",
     "codexImportBulkZipHint": "Carica un file .zip contenente file auth.json (max 50 file, 10 MB)",
     "codexImportBulkSubmit": "Importa account {count}",
     "codexImportBulkLimit": "Massimo 50 file per importazione",
@@ -6012,7 +6012,7 @@
     "validationModelIdPlaceholder": "es. meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "Chiave API o JSON del Service Account",
     "vertexCredentialHint": "Le chiavi API utilizzano il catalogo di progetti selezionato. Il JSON del Service Account consente il rilevamento in tempo reale di Model Garden.",
-    "vertexServiceAccountPlaceholder": "Incolla una chiave API, il JSON del Service Account ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) o un token di accesso OAuth",
+    "vertexServiceAccountPlaceholder": "Incolla una chiave API, il JSON del Service Account ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') o un token di accesso OAuth",
     "webCookieProviders": "Provider di cookie web",
     "weeklyShort": "Sett.",
     "xiaomiMimoBaseUrlHint": "Suggerimento per l'URL di base di Xiaomi Mimo",
@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Percorso del binario di base",
-      "coreBinaryPathHelp": "Opzionale: verifica il file generato con il binario di base prima di sostituire il file adottato. Lascia vuoto per continuare a scrivere accanto. La directory viene creata se mancante.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Opzionale: verifica il file generato con il binario di base prima di sostituire il file adottato. Lascia vuoto per continuare a scrivere accanto. La directory viene creata se mancante."
     },
     "bulkHealthcheck": "Controllo integrità in blocco",
     "bulkHealthcheckDesc": "Testa tutti i proxy configurati con un URL di destinazione per individuare quelli funzionanti.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Caricamento in corso…",
     "loadFailed": "Impossibile caricare le informazioni sul motore.",
+    "settingsLoadFailed": "Impossibile caricare le impostazioni salvate. I campi mostrano i valori predefiniti e Salva rimane disattivato finché la pagina non viene ricaricata.",
     "engineNotFound": "Motore \"{engine}\" non trovato.",
     "saveFailed": "Impossibile salvare la configurazione.",
     "previewFailed": "Anteprima non riuscita.",
@@ -9673,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "es. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "per esempio. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderExact": "Incolla l'esatta risposta prevista",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "per esempio. ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "per esempio. ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "Utilizza un'espressione regolare JavaScript senza racchiudere le barre.",
     "suiteBuilderNamePlaceholder": "es. Suite per la qualità del codice",
     "suiteBuilderAddCase": "Aggiungi caso",
@@ -10882,7 +10883,7 @@
     "grokAuthJsonDescription": "Incolla il contenuto COMPLETO di ~/.grok/auth.json (non solo il campo \"key\" del JWT). Un JWT nudo non ha refresh_token, quindi la connessione si interrompe dopo la scadenza (#7610). Preferisci il modulo di importazione dedicato auth.json quando disponibile.",
     "devinDesktopPasteDescription": "Incolla una chiave API Devin esistente da una sessione Devin autenticata. La disponibilità dell'esportazione della chiave e i passaggi variano a seconda della versione e dell'account Devin.",
     "devinPasteDescription": "Fornisci la tua WINDSURF_API_KEY (ottenuta tramite `devin auth login`, o tramite il comando \"Windsurf: Provide Auth Token\" dell'IDE Windsurf).",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "auth.json di Grok Build",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "Chiave API / Token",
@@ -10895,7 +10896,10 @@
     "gitlabDuoSetupTitle": "Impostazione OAuth Duo per GitLab",
     "gitlabDuoSetupMessage": "GitLab Duo OAuth non è configurato. Registrare un'applicazione OAuth su {applicationsUrl} con URI di reindirizzamento {redirectUri} e ambiti \"{scopes}\", quindi impostare {clientIdEnv} (e facoltativamente {clientSecretEnv}) e riavviare.",
     "gitlabDuoSetupDescription": "Dopo che l'applicazione è stata registrata e le variabili d'ambiente sono state impostate su questa istanza di OmniRoute, fai clic su Continua per avviare il login OAuth.",
-    "continue": "Continua"
+    "continue": "Continua",
+    "tabPasteSetupToken": "Token di configurazione",
+    "claudeSetupTokenDescription": "Esegui `claude setup-token` in un terminale e incolla il token che stampa. È valido per un anno e non ha un token di aggiornamento. OmniRoute invia una richiesta di prova ad Anthropic prima di salvarlo.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Connetti l'IDE del cursore",
@@ -13713,7 +13717,7 @@
     "secondaryNote": "Disponibile anche su Open VSX (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "Ignora"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Mostra gli id specchio <gateway-alias>/<model> su /v1/models per i modelli il cui proprietario canonico non ha credenziali attive ma un gateway di transito con una credenziale attiva li instrada. Attenzione: aggiunge voci nel catalogo per tutti i client quando abilitato globalmente.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Mostra gli id specchio '<gateway-alias>'/'<model>' su /v1/models per i modelli il cui proprietario canonico non ha credenziali attive ma un gateway di transito con una credenziale attiva li instrada. Attenzione: aggiunge voci nel catalogo per tutti i client quando abilitato globalmente.",
   "radarPage": {
     "title": "Catalogo Radar",
     "subtitle": "Catalogo di modelli gratuito arricchito con intelligenza della comunità",

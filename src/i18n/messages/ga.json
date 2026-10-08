@@ -5693,7 +5693,7 @@
     "claudeImportBulkModePaste": "Greamaigh eagar JSON",
     "claudeImportBulkModeZip": "Uaslódáil ZIP",
     "claudeImportBulkUploadHint": "Scaoil nó roghnaigh suas le 50 comhad .credentials.json (256KB an ceann, 10MB san iomlán).",
-    "claudeImportBulkPasteHint": "Greamaigh eagar de réada: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "Greamaigh eagar de réada: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": "ZIP ina bhfuil iontrálacha .json. Uasmhéid 50 iontráil, 10MB díphacáilte.",
     "claudeImportBulkSubmit": "Iompórtáil go léir",
     "claudeImportBulkSuccess": "Iompórtáladh {count} ceangal Claude",
@@ -5725,7 +5725,7 @@
     "geminiImportBulkModePaste": "Greamaigh eagar JSON",
     "geminiImportBulkModeZip": "Uaslódáil ZIP",
     "geminiImportBulkUploadHint": "Scaoil nó roghnaigh suas le 50 comhad oauth_creds.json (256KB an ceann, 10MB san iomlán).",
-    "geminiImportBulkPasteHint": "Greamaigh eagar de réada: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "Greamaigh eagar de réada: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "ZIP ina bhfuil iontrálacha oauth_creds.json. 50 iontráil ar a mhéad, 10MB tar éis eastósctha.",
     "geminiImportBulkSubmit": "Allmhairigh go léir",
     "geminiImportBulkSuccess": "Allmhairíodh {count} naisc Gemini",
@@ -5774,7 +5774,7 @@
     "codexImportBulkModePaste": "Greamaigh liosta",
     "codexImportBulkModeZip": "Cartlann ZIP",
     "codexImportBulkUploadHint": "Roghnaigh comhaid .json iolracha nó tarraing agus scaoil iad",
-    "codexImportBulkPasteHint": "Eagar JSON [ {...}, {...} ] nó JSONanna iolracha scartha le --- ar a líne féin",
+    "codexImportBulkPasteHint": "Eagar JSON [ '{...}', '{...}' ] nó JSONanna iolracha scartha le --- ar a líne féin",
     "codexImportBulkZipHint": "Uaslódáil .zip ina bhfuil comhaid auth.json (uasmhéid 50 comhad, 10 MB)",
     "codexImportBulkSubmit": "Iompórtáil {count} cuntas",
     "codexImportBulkLimit": "Uasmhéid 50 comhad in aghaidh an iompórtála",
@@ -6012,7 +6012,7 @@
     "validationModelIdPlaceholder": "m.sh. meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "Eochair API nó JSON Cuntais Seirbhíse",
     "vertexCredentialHint": "Úsáideann eochracha API catalóg choimeádta na dtionscadal. Cumasaíonn JSON Cuntais Seirbhíse aimsiú beo in Model Garden.",
-    "vertexServiceAccountPlaceholder": "Greamaigh eochair API, JSON Cuntais Seirbhíse ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}), nó comhartha rochtana OAuth",
+    "vertexServiceAccountPlaceholder": "Greamaigh eochair API, JSON Cuntais Seirbhíse ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}'), nó comhartha rochtana OAuth",
     "webCookieProviders": "Soláthraithe Fianáin Ghréasáin",
     "weeklyShort": "Leagan Gearr de ‘Seachtainiúil’",
     "xiaomiMimoBaseUrlHint": "Leid maidir le bun-URL Xiaomi Mimo",
@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Conair an bhinary príomh",
-      "coreBinaryPathHelp": "Roghnach: fíoraíonn sé an comhad ginte leis an mbinary príomh sula ndéantar an comhad ghlactaithe a athsholáthar. Fág folamh chun leanúint den scríobadh ina dhiaidh. Cruthaítear an eolaire má tá sé ar iarraidh.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Roghnach: fíoraíonn sé an comhad ginte leis an mbinary príomh sula ndéantar an comhad ghlactaithe a athsholáthar. Fág folamh chun leanúint den scríobadh ina dhiaidh. Cruthaítear an eolaire má tá sé ar iarraidh."
     },
     "bulkHealthcheck": "Seiceáil Sláinte ar an Mórchóir",
     "bulkHealthcheckDesc": "Tástáil na seachfhreastalaithe cumraithe go léir i gcoinne URL sprice lena fháil amach cé na cinn a oibríonn.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Ag lódáil…",
     "loadFailed": "Theip ar fhaisnéis faoin inneall a lódáil.",
+    "settingsLoadFailed": "Níorbh fhéidir na socruithe sábháilte a luchtú. Taispeánann na réimsí na luachanna réamhshocraithe, agus fanann Sábháil díchumasaithe go dtí go n-athlódálfar an leathanach.",
     "engineNotFound": "Ní aimsíodh an t-inneall \"{engine}\".",
     "saveFailed": "Theip ar an gcumraíocht a shábháil.",
     "previewFailed": "Theip ar an réamhamharc.",
@@ -9673,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "m.sh. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "m.sh. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderExact": "Greamaigh an freagra beacht a bhfuil súil leis",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "m.sh. ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "m.sh. ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "Bain úsáid as slonn rialta JavaScript gan slaiseanna timpeall air.",
     "suiteBuilderNamePlaceholder": "m.sh. Sraith um Cháilíocht Chódúcháin",
     "suiteBuilderAddCase": "Cuir Cás leis",
@@ -10882,7 +10883,7 @@
     "grokAuthJsonDescription": "Greamaigh inneachar IOMLÁN ~/.grok/auth.json (ní hamháin an réimse \"key\" JWT). Níl refresh_token ag JWT lom, mar sin teipeann ar an nasc tar éis dó dul in éag (#7610). B'fhearr an dialóg thiomnaithe Iompórtáil auth.json a úsáid nuair atá sí ar fáil.",
     "devinDesktopPasteDescription": "Greamaigh eochair API Devin atá ann cheana ó sheisiún Devin fíordheimhnithe. Athraíonn infhaighteacht easpórtála na heochrach agus na céimeanna de réir leagan agus chuntas Devin.",
     "devinPasteDescription": "Cuir do WINDSURF_API_KEY ar fáil (faighte trí `devin auth login`, nó trí ordú \"Windsurf: Provide Auth Token\" in IDE Windsurf).",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "auth.json Grok Build",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "Eochair API / Comhartha",
@@ -10895,7 +10896,10 @@
     "gitlabDuoSetupTitle": "Socrú OAuth GitLab Duo",
     "gitlabDuoSetupMessage": "Níl OAuth GitLab Duo cumraithe. Cláraigh feidhmchlár OAuth ag {applicationsUrl} leis an URI atreoraithe {redirectUri} agus na scóip \"{scopes}\", ansin socraigh {clientIdEnv} (agus {clientSecretEnv} go roghnach) agus atosaigh.",
     "gitlabDuoSetupDescription": "Tar éis an feidhmchlár a chlárú agus na hathróga timpeallachta a shocrú ar an ásc seo de OmniRoute, cliceáil Lean ar aghaidh chun logáil isteach OAuth a thosú.",
-    "continue": "Lean ar aghaidh"
+    "continue": "Lean ar aghaidh",
+    "tabPasteSetupToken": "Comhartha socraithe",
+    "claudeSetupTokenDescription": "Rith `claude setup-token` i dteirminéal agus greamaigh an comhartha a phriontálann sé. Tá sé bailí ar feadh bliana agus níl comhartha athnuachana aige. Seolann OmniRoute iarratas tástála amháin chuig Anthropic sula sábhálann sé é.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Ceangail Cursor",
@@ -13713,7 +13717,7 @@
     "secondaryNote": "Freisin ar Open VSX (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "Dún"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Fógraigh aitheantóirí scátháin <gateway-alias>/<model> ar /v1/models do shamhlacha nach bhfuil dintiúr gníomhach ag a n-úinéir canónach ach a ndéanann geata pas-trí a bhfuil dintiúr gníomhach aige iad a ródú. Rabhadh: nuair a chumasaítear é go domhanda, cuirtear iontrálacha leis an gcatalóg do gach cliant.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Fógraigh aitheantóirí scátháin '<gateway-alias>'/'<model>' ar /v1/models do shamhlacha nach bhfuil dintiúr gníomhach ag a n-úinéir canónach ach a ndéanann geata pas-trí a bhfuil dintiúr gníomhach aige iad a ródú. Rabhadh: nuair a chumasaítear é go domhanda, cuirtear iontrálacha leis an gcatalóg do gach cliant.",
   "radarPage": {
     "title": "Catalóg Radar",
     "subtitle": "Catalóg samhlacha saor in aisce arna saibhriú le faisnéis ón bpobal",

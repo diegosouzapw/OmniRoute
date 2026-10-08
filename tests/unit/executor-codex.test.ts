@@ -184,10 +184,10 @@ test("CodexExecutor.buildHeaders binds workspace ids and disables SSE accept for
   assert.equal(standardHeaders.Authorization, "Bearer codex-token");
   assert.equal(standardHeaders.Accept, "text/event-stream");
   assert.equal(standardHeaders["chatgpt-account-id"], "workspace-1");
-  assert.equal(standardHeaders.Version, "0.156.1");
+  assert.equal(standardHeaders.Version, "0.159.2");
   assert.equal(standardHeaders["Openai-Beta"], "responses_websockets=2026-02-06");
   assert.equal(standardHeaders["X-Codex-Beta-Features"], undefined);
-  assert.equal(standardHeaders["User-Agent"], "codex-cli/0.156.1 (Windows 10.0.26200; x64)");
+  assert.equal(standardHeaders["User-Agent"], "codex-cli/0.159.2 (Windows 10.0.26200; x64)");
   assert.equal(compactHeaders.Accept, "application/json");
 });
 
@@ -213,7 +213,7 @@ test("CodexExecutor.buildHeaders honors safe env overrides for Version and User-
     },
     () => {
       const headers = executor.buildHeaders({ accessToken: "codex-token" }, true);
-      assert.equal(headers.Version, "0.156.1");
+      assert.equal(headers.Version, "0.159.2");
       assert.equal(headers["User-Agent"], "custom-codex/9.9.9");
     }
   );
@@ -318,7 +318,7 @@ test("CodexExecutor.transformRequest non-passthrough allowlist strips all residu
   assert.equal(result._internal_marker, undefined, "internal markers should be stripped");
 });
 
-test("CodexExecutor.transformRequest normalizes max reasoning_effort to xhigh", () => {
+test("CodexExecutor.transformRequest forwards max for upstream validation without an unknown-model cap", () => {
   const executor = new CodexExecutor();
   const result = executor.transformRequest(
     "gpt-5.5",
@@ -333,7 +333,7 @@ test("CodexExecutor.transformRequest normalizes max reasoning_effort to xhigh", 
     }
   );
 
-  assert.equal(result.reasoning.effort, "xhigh");
+  assert.equal(result.reasoning.effort, "max");
   assert.equal(result.reasoning_effort, undefined);
 });
 

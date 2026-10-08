@@ -24,6 +24,7 @@ export type PricingByProvider = Record<string, PricingModels>;
 export interface ModelCapabilityEntry {
   tool_call: boolean | null;
   reasoning: boolean | null;
+  reasoning_efforts?: string[] | null;
   attachment: boolean | null;
   structured_output: boolean | null;
   temperature: boolean | null;
@@ -70,12 +71,18 @@ export interface ModelsDevInterleaved {
   field?: string;
 }
 
+export interface ModelsDevReasoningOption {
+  type?: string;
+  values?: string[];
+}
+
 export interface ModelsDevModel {
   id: string;
   name: string;
   family?: string;
   attachment?: boolean;
   reasoning?: boolean;
+  reasoning_options?: ModelsDevReasoningOption[];
   tool_call?: boolean;
   structured_output?: boolean;
   temperature?: boolean;
@@ -231,6 +238,19 @@ export function transformModelsDevToPricing(raw: ModelsDevData): PricingByProvid
 
 // ─── Transform: Capabilities ─────────────────────────────
 
+// models.dev lists tiers as reasoning_options: [{ type: "effort", values }].
+// Only the effort option is a reasoning tier; anything else is unrelated.
+function modelsDevEffortValues(
+  options: ModelsDevReasoningOption[] | undefined
+): string[] | null {
+  if (!Array.isArray(options)) return null;
+  const values = options.flatMap((option) =>
+    option?.type === "effort" && Array.isArray(option.values) ? option.values : []
+  );
+  const efforts = values.filter((value) => typeof value === "string" && value.length > 0);
+  return efforts.length > 0 ? [...new Set(efforts)] : null;
+}
+
 /**
  * Transform models.dev raw data → CapabilitiesByProvider format.
  */
@@ -260,6 +280,7 @@ export function transformModelsDevToCapabilities(raw: ModelsDevData): Capabiliti
       const cap: ModelCapabilityEntry = {
         tool_call: model.tool_call ?? null,
         reasoning: model.reasoning ?? null,
+        reasoning_efforts: modelsDevEffortValues(model.reasoning_options),
         attachment,
         structured_output: model.structured_output ?? null,
         temperature: model.temperature ?? null,

@@ -958,6 +958,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
   {
+    key: "GROK_SUBSCRIPTION_IMAGES_ENABLED",
+    label: "Grok Subscription Images",
+    description:
+      "Register xai-oauth (xao) and grok-cli image routes and map OpenAI quality high/hd to xAI medium. Off by default: the API-key xAI image path stays on the existing OpenAI-compatible request and the subscription routes are not registered.",
+    descriptionI18nKey: "featureFlagGrokSubscriptionImagesEnabledDescription",
+    category: "runtime",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "info",
+  },
+  {
     key: "XAI_OAUTH_LIVE_MODEL_DISCOVERY",
     label: "xAI OAuth Live Model Discovery",
     description:

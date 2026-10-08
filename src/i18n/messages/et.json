@@ -5693,7 +5693,7 @@
     "claudeImportBulkModePaste": "Kleebi JSON-massiiv",
     "claudeImportBulkModeZip": "Laadi ZIP üles",
     "claudeImportBulkUploadHint": "Lohista või vali kuni 50 .credentials.json faili (igaüks kuni 256 KB, kokku 10 MB).",
-    "claudeImportBulkPasteHint": "Kleebi objektide massiiv: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "Kleebi objektide massiiv: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": "ZIP, mis sisaldab .json-kirjeid. Kuni 50 kirjet ja lahtipakituna kuni 10 MB.",
     "claudeImportBulkSubmit": "Impordi kõik",
     "claudeImportBulkSuccess": "Imporditi {count} Claude'i ühendust",
@@ -5725,7 +5725,7 @@
     "geminiImportBulkModePaste": "Kleebi JSON-massiiv",
     "geminiImportBulkModeZip": "Laadi ZIP üles",
     "geminiImportBulkUploadHint": "Lohistage või valige kuni 50 oauth_creds.json faili (igaüks kuni 256 KB, kokku 10 MB).",
-    "geminiImportBulkPasteHint": "Kleepige objektide massiiv: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "Kleepige objektide massiiv: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "ZIP-fail, mis sisaldab faile nimega oauth_creds.json. Kuni 50 faili, lahtipakituna kokku kuni 10 MB.",
     "geminiImportBulkSubmit": "Impordi kõik",
     "geminiImportBulkSuccess": "Imporditi {count} Gemini ühendust",
@@ -5774,7 +5774,7 @@
     "codexImportBulkModePaste": "Kleebi loend",
     "codexImportBulkModeZip": "ZIP-arhiiv",
     "codexImportBulkUploadHint": "Vali mitu .json-faili või lohista need siia",
-    "codexImportBulkPasteHint": "JSON-massiiv [ {...}, {...} ] või mitu JSON-i, mis on üksteisest eraldatud omaette real oleva jadaga ---",
+    "codexImportBulkPasteHint": "JSON-massiiv [ '{...}', '{...}' ] või mitu JSON-i, mis on üksteisest eraldatud omaette real oleva jadaga ---",
     "codexImportBulkZipHint": "Laadi üles auth.json-faile sisaldav .zip-fail (kuni 50 faili, 10 MB)",
     "codexImportBulkSubmit": "Impordi kontosid: {count}",
     "codexImportBulkLimit": "Ühe impordi kohta kuni 50 faili",
@@ -6012,7 +6012,7 @@
     "validationModelIdPlaceholder": "nt meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "API-võti või teenusekonto JSON",
     "vertexCredentialHint": "API-võtmed kasutavad kureeritud projektikataloogi. Teenusekonto JSON võimaldab Model Gardeni reaalajas avastamist.",
-    "vertexServiceAccountPlaceholder": "Kleepige API-võti, teenusekonto JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) või OAuthi juurdepääsutõend",
+    "vertexServiceAccountPlaceholder": "Kleepige API-võti, teenusekonto JSON ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') või OAuthi juurdepääsutõend",
     "webCookieProviders": "Veebiküpsiste pakkujad",
     "weeklyShort": "Iganädalane (lühidalt)",
     "xiaomiMimoBaseUrlHint": "Xiaomi Mimo baas-URL-i vihje",
@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Põhibinaari tee",
-      "coreBinaryPathHelp": "Valikuline: kontrollib genereeritud faili põhibinaariga enne vastuvõetud faili asendamist. Jäta tühjaks, et kirjutada edasi selle kõrvale. Puuduv kataloog luuakse.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Valikuline: kontrollib genereeritud faili põhibinaariga enne vastuvõetud faili asendamist. Jäta tühjaks, et kirjutada edasi selle kõrvale. Puuduv kataloog luuakse."
     },
     "bulkHealthcheck": "Hulgiviisiline seisundikontroll",
     "bulkHealthcheckDesc": "Testige kõiki seadistatud puhverservereid siht-URL-iga, et teha kindlaks, millised neist töötavad.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Laadimine…",
     "loadFailed": "Mootori teabe laadimine nurjus.",
+    "settingsLoadFailed": "Salvestatud seadete laadimine ebaõnnestus. Väljadel kuvatakse vaikeväärtused ja Salvesta jääb keelatuks kuni lehe uuesti laadimiseni.",
     "engineNotFound": "Mootorit „{engine}” ei leitud.",
     "saveFailed": "Konfiguratsiooni salvestamine nurjus.",
     "previewFailed": "Eelvaate loomine nurjus.",
@@ -9673,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "nt def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "nt def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderExact": "Kleepige täpne oodatav vastus",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "nt ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "nt ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "Kasutage JavaScripti regulaaravaldist ilma ümbritsevate kaldkriipsudeta.",
     "suiteBuilderNamePlaceholder": "nt koodikvaliteedi testikomplekt",
     "suiteBuilderAddCase": "Lisa testjuhtum",
@@ -10882,7 +10883,7 @@
     "grokAuthJsonDescription": "Kleepige faili ~/.grok/auth.json KOGU sisu (mitte ainult JWT välja „key”). Eraldiseisval JWT-l puudub refresh_token, mistõttu ühendus aegumise järel katkeb (#7610). Võimaluse korral eelistage spetsiaalset auth.json importimise dialoogi.",
     "devinDesktopPasteDescription": "Kleepige olemasolev Devin API-võti autenditud Devini seansist. Võtme eksportimise võimalus ja toimingud olenevad Devini versioonist ja kontost.",
     "devinPasteDescription": "Sisestage oma WINDSURF_API_KEY (saadud käsuga `devin auth login` või Windsurfi IDE käsuga „Windsurf: Provide Auth Token”).",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "Grok Buildi auth.json",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "API-võti / tõend",
@@ -10895,7 +10896,10 @@
     "gitlabDuoSetupTitle": "GitLab Duo OAuthi seadistamine",
     "gitlabDuoSetupMessage": "GitLab Duo OAuth pole seadistatud. Registreerige OAuthi rakendus aadressil {applicationsUrl}, kasutades ümbersuunamise URI-d {redirectUri} ja ulatusi „{scopes}”, seejärel määrake {clientIdEnv} (ja soovi korral {clientSecretEnv}) ning taaskäivitage.",
     "gitlabDuoSetupDescription": "Kui rakendus on registreeritud ja selle OmniRoute’i eksemplari keskkonnamuutujad määratud, klõpsake OAuthiga sisselogimise alustamiseks nuppu Jätka.",
-    "continue": "Jätka"
+    "continue": "Jätka",
+    "tabPasteSetupToken": "Seadistusluba",
+    "claudeSetupTokenDescription": "Käivitage terminalis `claude setup-token` ja kleepige selle väljastatud luba. See kehtib ühe aasta ja sellel puudub värskendusluba. OmniRoute saadab enne salvestamist Anthropicule ühe testpäringu.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Ühenda Cursor",
@@ -13713,7 +13717,7 @@
     "secondaryNote": "Saadaval ka Open VSX-is (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "Sulge"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Avalda lõpp-punktis /v1/models peegel-ID-d kujul <gateway-alias>/<model> nende mudelite jaoks, mille kanoonilisel omanikul pole aktiivseid autentimisandmeid, kuid mida suunab aktiivsete autentimisandmetega läbipääsulüüs. Hoiatus: globaalsel lubamisel lisab see kataloogikirjed kõigile klientidele.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Avalda lõpp-punktis /v1/models peegel-ID-d kujul '<gateway-alias>'/'<model>' nende mudelite jaoks, mille kanoonilisel omanikul pole aktiivseid autentimisandmeid, kuid mida suunab aktiivsete autentimisandmetega läbipääsulüüs. Hoiatus: globaalsel lubamisel lisab see kataloogikirjed kõigile klientidele.",
   "radarPage": {
     "title": "Radari kataloog",
     "subtitle": "Kogukonna teadmistega rikastatud tasuta mudelikataloog",

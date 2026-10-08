@@ -5693,7 +5693,7 @@
     "claudeImportBulkModePaste": "JSON配列を貼り付けます",
     "claudeImportBulkModeZip": "ZIP をアップロードする",
     "claudeImportBulkUploadHint": "最大 50 個の .credentials.json ファイル (それぞれ 256 KB、合計 10 MB) をドロップまたはピックします。",
-    "claudeImportBulkPasteHint": "オブジェクトの配列を貼り付けます: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "オブジェクトの配列を貼り付けます: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": ".json エントリを含む ZIP。最大 50 エントリ、解凍された状態で 10MB。",
     "claudeImportBulkSubmit": "すべてインポート",
     "claudeImportBulkSuccess": "インポートされた {count} クロード接続",
@@ -5725,7 +5725,7 @@
     "geminiImportBulkModePaste": "JSON配列を貼り付けます",
     "geminiImportBulkModeZip": "ZIP をアップロードする",
     "geminiImportBulkUploadHint": "最大 50 個の oauth_creds.json ファイル (それぞれ 256 KB、合計 10 MB) をドロップまたはピックします。",
-    "geminiImportBulkPasteHint": "オブジェクトの配列を貼り付けます: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "オブジェクトの配列を貼り付けます: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "oauth_creds.json エントリを含む ZIP。最大 50 エントリ、解凍された状態で 10MB。",
     "geminiImportBulkSubmit": "すべてインポート",
     "geminiImportBulkSuccess": "インポートされた {count} Gemini 接続",
@@ -5774,7 +5774,7 @@
     "codexImportBulkModePaste": "リストの貼り付け",
     "codexImportBulkModeZip": "ZIP アーカイブ",
     "codexImportBulkUploadHint": "複数の .json ファイルを選択するか、ドラッグ アンド ドロップします。",
-    "codexImportBulkPasteHint": "JSON 配列 [ {...}, {...} ]、または単独の行に --- で区切られた複数の JSON",
+    "codexImportBulkPasteHint": "JSON 配列 [ '{...}', '{...}' ]、または単独の行に --- で区切られた複数の JSON",
     "codexImportBulkZipHint": "auth.json ファイルを含む .zip をアップロードします (最大 50 ファイル、10 MB)",
     "codexImportBulkSubmit": "{count} アカウントをインポートする",
     "codexImportBulkLimit": "インポートごとに最大 50 ファイル",
@@ -6012,7 +6012,7 @@
     "validationModelIdPlaceholder": "例: meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "APIキーまたはサービスアカウントJSON",
     "vertexCredentialHint": "APIキーでは厳選されたプロジェクトカタログを使用します。サービスアカウントJSONを使用すると、Model Gardenのモデルをリアルタイムで検出できます。",
-    "vertexServiceAccountPlaceholder": "APIキー、サービスアカウントJSON（{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}）、またはOAuthアクセストークンを貼り付けてください",
+    "vertexServiceAccountPlaceholder": "APIキー、サービスアカウントJSON（'{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}'）、またはOAuthアクセストークンを貼り付けてください",
     "webCookieProviders": "Web Cookieプロバイダー",
     "weeklyShort": "週次（短縮）",
     "xiaomiMimoBaseUrlHint": "Xiaomi MimoのベースURLに関するヒント",
@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "コアバイナリのパス",
-      "coreBinaryPathHelp": "任意: 置き換える前に、コアバイナリで生成されたファイルを検証します。空欄にすると、隣に書き込んだままになります。ディレクトリが存在しない場合は作成されます。",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "任意: 置き換える前に、コアバイナリで生成されたファイルを検証します。空欄にすると、隣に書き込んだままになります。ディレクトリが存在しない場合は作成されます。"
     },
     "bulkHealthcheck": "一括ヘルスチェック",
     "bulkHealthcheckDesc": "設定済みのすべてのプロキシを対象URLに対してテストし、動作するものを確認します。",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "読み込み中…",
     "loadFailed": "エンジン情報の読み込みに失敗しました。",
+    "settingsLoadFailed": "保存済みの設定を読み込めませんでした. 各フィールドにはデフォルト値が表示され、ページを再読み込みするまで［保存］は無効のままです.",
     "engineNotFound": "エンジン「{engine}」が見つかりません。",
     "saveFailed": "設定の保存に失敗しました。",
     "previewFailed": "プレビューに失敗しました。",
@@ -9673,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "例: def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "例:デフフィボナッチ",
     "suiteBuilderCaseExpectedPlaceholderExact": "予想される正確な応答を貼り付けます",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "例: ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "例: ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "スラッシュを囲まずに JavaScript 正規表現を使用します。",
     "suiteBuilderNamePlaceholder": "例: コーディング品質スイート",
     "suiteBuilderAddCase": "ケースを追加",
@@ -10882,7 +10883,7 @@
     "grokAuthJsonDescription": "~/.grok/auth.json の完全な内容を貼り付けてください（JWT \"key\" フィールドだけではありません）。生の JWT には refresh_token がないため、有効期限切れ後に接続が切断されます (#7610)。利用可能な場合は、専用の Import auth.json モーダルを使用してください。",
     "devinDesktopPasteDescription": "認証されたDevinセッションから既存のDevin APIキーを貼り付けてください。キーのエクスポートの可用性と手順は、Devinのバージョンとアカウントによって異なります。",
     "devinPasteDescription": "WINDSURF_API_KEYを提供してください（`devin auth login`を介して取得するか、Windsurf IDEの「Windsurf: Provide Auth Token」コマンドを介して取得します）。",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "Grok Build auth.json",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "APIキー / トークン",
@@ -10895,7 +10896,10 @@
     "gitlabDuoSetupTitle": "GitLab Duo OAuth セットアップ",
     "gitlabDuoSetupMessage": "GitLab Duo OAuthが構成されていません。{applicationsUrl}でOAuthアプリケーションを登録し、リダイレクトURI {redirectUri}とスコープ\"{scopes}\"を設定してください。その後、{clientIdEnv}（オプションで{clientSecretEnv}も）を設定し、再起動してください。",
     "gitlabDuoSetupDescription": "アプリケーションが登録され、環境変数がこのOmniRouteインスタンスに設定された後、続行をクリックしてOAuthログインを開始します。",
-    "continue": "続ける"
+    "continue": "続ける",
+    "tabPasteSetupToken": "セットアップトークン",
+    "claudeSetupTokenDescription": "ターミナルで `claude setup-token` を実行し、表示されたトークンを貼り付けてください。有効期間は1年で、リフレッシュトークンはありません。OmniRoute は保存前に Anthropic へテストリクエストを1件送信します。",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "カーソルIDEの接続",
@@ -13713,7 +13717,7 @@
     "secondaryNote": "Open VSXでも利用可能（Cursor、Windsurf、VSCodiumなど）",
     "dismissAriaLabel": "閉じる"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "<gateway-alias>/<model> ミラー ID を /v1/models で広告します。これは、正規の所有者にアクティブな資格情報がないが、パススルーゲートウェイがアクティブな資格情報でルーティングされるモデルに適用されます。警告: グローバルに有効にすると、すべてのクライアントにカタログエントリが追加されます。",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "'<gateway-alias>'/'<model>' ミラー ID を /v1/models で広告します。これは、正規の所有者にアクティブな資格情報がないが、パススルーゲートウェイがアクティブな資格情報でルーティングされるモデルに適用されます。警告: グローバルに有効にすると、すべてのクライアントにカタログエントリが追加されます。",
   "radarPage": {
     "title": "レーダーカタログ",
     "subtitle": "コミュニティインテリジェンスで強化された無料モデルカタログ",
