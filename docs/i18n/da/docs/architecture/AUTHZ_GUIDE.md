@@ -17,17 +17,17 @@ OmniRoute har en rutebevidst autorisationspipeline, der beskytter hver API-anmod
 
 ### 1. API-nøgle (Bearer)
 
-Bruges til de OpenAI-/Anthropic-/Gemini-kompatible klient-API'er og nogle få management-ruter, når nøglen har `manage`-scope.
+Bruges til de OpenAI-/Anthropic-/Gemini-kompatible klient-API'er og enkelte administrationsruter, når nøglen har `manage`-omfanget.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Valideres af `isValidApiKey()` / `extractApiKey()` i `src/sse/services/auth.ts` og reeksporteres gennem `src/shared/utils/apiAuth.ts`. Validatoren accepterer også miljøvariablerne `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` som vedvarende passthrough-nøgler (issue #1350).
+Valideres af `isValidApiKey()` / `extractApiKey()` i `src/sse/services/auth.ts` og geneksporteres via `src/shared/utils/apiAuth.ts`. Validatoren accepterer også miljøvariablerne `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` som permanente passthrough-nøgler (problem #1350).
 
 ### 2. Dashboard-session (auth_token-cookie)
 
-Til dashboard-sider og administratorhandlinger.
+Til dashboardsider og administratorhandlinger.
 
 ```
 Cookie: auth_token=<JWT signeret med JWT_SECRET>
@@ -35,40 +35,42 @@ Cookie: auth_token=<JWT signeret med JWT_SECRET>
 
 En cookie er kun en session, når JWT'en kan verificeres **og** indeholder `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Alle
-forbrugere af cookien (rutebeskyttelse, opdatering i authz-pipelinen, WebSocket-handshake, live-
+brugere af cookien (dashboardets rutebeskyttelse (`isDashboardSessionAuthenticated()`), opdatering i authz-pipelinen, WebSocket-handshake, live-
 server, `/api/settings/require-login`, `/api/auth/status`) går gennem denne hjælpefunktion.
-Der findes andre JWT'er signeret med `JWT_SECRET` — Cursor CLI-passthrough udsteder
+Der findes andre JWT'er, som er signeret med `JWT_SECRET` — Cursor CLI-passthrough-funktionen udsteder
 tokens med `iss "omniroute" / aud "cursor-cli"` til nøgleindehavere — og de er aldrig sessioner
 (#13298).
 
 Verificeres af `isDashboardSessionAuthenticated()` i `src/shared/utils/apiAuth.ts`. Pipelinen opdaterer automatisk JWT'en, når der er mindre end 7 dage tilbage af dens levetid på 30 dage.
 
-Nogle management-ruter accepterer **enten** den ene eller den anden tilstand: cookie ELLER `Bearer <key>`, når API-nøglen har `manage`-scope (eller `admin`-scope). Det er dette, der muliggør arbejdsgangen "konfigurerbar via API-kald", som blev tilføjet i v3.8.
+En session kan også udløbe, før de 30 dage er gået, fordi alle udstedere går gennem `mintDashboardSessionToken` (et udstedelsestidspunkt `iat` og et id `jti`), og verifikatoren kontrollerer to indstillinger: `sessionsValidAfter`, som angives ved en adgangskodeændring, så alle sessioner, der er udstedt før dette tidspunkt, ikke længere kan verificeres (browseren, hvor adgangskoden blev ændret, får en ny cookie), og `revokedDashboardSessions`, hvortil `POST /api/auth/logout` føjer den udloggede sessions `jti`. Sessioner, der er udstedt af en ældre version, indeholder ingen af disse claims og forbliver gyldige indtil den første adgangskodeændring. Hvis indstillingerne ikke kan læses, betragtes sessionen ikke som pålidelig.
 
-#### Valgfri OIDC-loginbeskyttelse (#6973)
+Nogle administrationsruter accepterer **enten** den ene eller den anden tilstand: cookie ELLER `Bearer <key>`, når API-nøglen har `manage`- (eller `admin`-) omfanget. Dette muliggør arbejdsgangen "konfigurerbar via API-kald", som blev tilføjet i v3.8.
+
+#### Valgfri OIDC-loginbarriere (#6973)
 
 Dashboardets administratorlogin understøtter også et **tilvalgt** OIDC-flow (OpenID Connect)
-sideløbende med standardlogin med adgangskode — login med adgangskode fjernes aldrig,
-men suppleres kun:
+sideløbende med standardlogin med adgangskode — login med adgangskode fjernes aldrig, men
+suppleres blot:
 
 - Deaktiveret, medmindre `settings.oidcEnabled === true` **og** `oidcIssuer` /
   `oidcClientId` / `oidcClientSecret` alle er konfigureret (Indstillinger → Godkendelse).
   `GET /api/auth/oidc/login` returnerer ellers `400`.
 - `GET /api/auth/oidc/login` finder `authorization_endpoint` fra udstederens
-  `/.well-known/openid-configuration` (falder tilbage til
-  `<issuer>/authorize`), bygger omdirigerings-URI'en ud fra den indgående anmodning
+  `/.well-known/openid-configuration` (bruger
+  `<issuer>/authorize` som reserve), opbygger URI'en til omdirigering ud fra den indgående anmodning
   (med understøttelse af `x-forwarded-proto`) og omdirigerer til IdP'en med en tilfældig `state`,
-  der gemmes i en `httpOnly` `oidc_state`-cookie.
-- `GET /api/auth/oidc/callback` validerer `state`, udveksler autorisationskoden
-  og verificerer ID-tokenets signatur via udstederens JWKS
+  som er gemt i en `httpOnly` `oidc_state`-cookie.
+- `GET /api/auth/oidc/callback` validerer `state`, udveksler godkendelses-
+  koden og verificerer ID-tokenets signatur via udstederens JWKS
   (`jose`'s `createRemoteJWKSet`, cachelagret pr. JWKS-URI) med kontrol af `issuer`/`audience`.
   En valgfri `oidcAllowedSubjects`-tilladelsesliste matcher tokenets
-  `sub`-claim eller dets `email`-claim — e-mail-claimet accepteres kun, når
-  `email_verified === true`, så en ubekræftet e-mail hos IdP'en aldrig kan
-  passere beskyttelsen.
-- Ved succes udsteder den **præcis den samme** 30-dages `auth_token`-JWT som login med
+  `sub`-claim eller dets `email`-claim — email-claimet accepteres kun, når
+  `email_verified === true`, så en ubekræftet e-mailadresse hos IdP'en aldrig kan passere
+  barrieren.
+- Ved succes udsteder den **præcis den samme** 30-dages `auth_token`-JWT, som login med
   adgangskode udsteder (`src/app/api/auth/login/route.ts`), så resten af
-  dashboardets sessionspipeline (automatisk opdatering, cookieflag) er uændret —
+  dashboardets sessionspipeline (automatisk opdatering, cookieflag) forbliver uændret —
   OIDC erstatter kun, hvordan cookien udstedes, ikke hvilke rettigheder den giver.
 
 ## Ruteklasser

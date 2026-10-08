@@ -33,37 +33,37 @@ OmniRoute uchun keng tarqalgan muammolar va ularning yechimlari.
 
 ---
 
-## Muammolarni batafsil bartaraf etish
+## Nosozliklarni batafsil bartaraf etish
 
 ---
 
-### Bepul provayderlarda tezlik cheklovi (429 / 400 / 401)
+### Bepul provayderlarda soʻrovlar tezligini cheklash (429 / 400 / 401)
 
-**Alomat**: Bepul/autentifikatsiyasiz provayderlar (opencode, auggie va boshqalar) bilan `model: "auto"` dan foydalanganda, javoblar o‘rniga vaqti-vaqti bilan `HTTP 429`, `400` yoki `401` xatolarini olasiz. Xuddi shu so‘rov matnini birozdan keyin qayta yuborganda so‘rovlar muvaffaqiyatli bajariladi, ammo avtomatlashtirish (cron vazifalari, agentlar, skriptlar) birinchi xatodayoq buziladi.
+**Alomat**: Bepul/autentifikatsiyasiz provayderlar (opencode, auggie va boshqalar) bilan `model: "auto"` ishlatilganda, javoblar oʻrniga vaqti-vaqti bilan `HTTP 429`, `400` yoki `401` xatolari olinadi. Bir ozdan soʻng ayni soʻrovni qayta yuborishda u muvaffaqiyatli bajariladi, ammo avtomatlashtirish (cron vazifalari, agentlar, skriptlar) birinchi xatolikdayoq buziladi.
 
-**Asosiy sabab**: Uchta mustaqil nosozlik holati bir-birining ustiga tushadi:
+**Asosiy sabab**: Uchta mustaqil nosozlik holati bir-birining ustiga keladi:
 
-1. **Provayder tezlik cheklovi (`429`)**: Bepul tariflar har bir vaqt oralig‘i uchun kvota qo‘llashi mumkin. Bir vaqtda yuborilgan ko‘plab so‘rovlar uni tugatadi, shuning uchun vaqt oralig‘i yangilanmaguncha keyingi so‘rov rad etiladi.
-2. **To‘g‘ridan-to‘g‘ri uzatishdagi nosoz model (`400`/`401`)**: `auto/*` hovuzlari katalogda ro‘yxatdan o‘tgan, ammo amaldagi hisob maʼlumotlariga ega bo‘lmagan `opencode` provayderining to‘g‘ridan-to‘g‘ri uzatiladigan modellarini o‘z ichiga olishi mumkin (masalan, `oc/north-mini-code-free` → `401`). Avtomatik yo‘naltirgich ulardan birini sinab ko‘radi, muvaffaqiyatsizlikka uchraydi va zaxira variantiga o‘tish ishga tushishidan oldin xato uzatiladi.
-3. **Parallel bajarilishning kuchaytiruvchi taʼsiri (yuklama ostidagi `429`)**: Bir nechta agent/cron seansi bir vaqtda `auto` ga murojaat qilganda, umumiy so‘rovlar tezligi bepul provayderlar ko‘tara oladigan darajadan oshadi va natijada haqiqiy so‘rovlar suiisteʼmol sifatida belgilanadi.
+1. **Provayder tezlik cheklovi (`429`)**: Bepul tariflarda har bir vaqt oraligʻi uchun kvota qoʻllanishi mumkin. Parallel chaqiruvlar oqimi uni tugatib qoʻyadi, natijada vaqt oraligʻi qayta tiklanmaguncha keyingi soʻrov rad etiladi.
+2. **Toʻgʻridan-toʻgʻri uzatishdagi buzilgan model (`400`/`401`)**: `auto/*` pullari katalogda roʻyxatdan oʻtgan, ammo faol hisob maʼlumotlariga ega boʻlmagan `opencode` toʻgʻridan-toʻgʻri uzatish modellarini oʻz ichiga olishi mumkin (masalan, `oc/north-mini-code-free` → `401`). Avtomatik marshrutizator ulardan birini sinab koʻradi, muvaffaqiyatsizlikka uchraydi va zaxira mexanizmi ishga tushishidan oldin xato yuqoriga uzatiladi.
+3. **Parallel ishlashning kuchaytiruvchi taʼsiri (yuklama ostida `429`)**: Bir nechta agent/cron seanslari bir vaqtning oʻzida `auto`ga murojaat qilganda, umumiy soʻrovlar tezligi bepul provayderlar koʻtara oladigan darajadan oshadi va qonuniy chaqiruvlar suiisteʼmol sifatida belgilanadi.
 
-**Tasdiqlangan yechim (hamjamiyat xabariga ko‘ra, 2026-08-10)**: aylantirish, parallel bajarilish va zaxira variantiga o‘tish bepul tarifdagi beqarorlikni xato bilan yakunlanish o‘rniga bartaraf etishi uchun uchta muhit o‘zgaruvchisini sozlang:
+**Tasdiqlangan yechim (hamjamiyat xabariga koʻra, 2026-08-10)**: rotatsiya, parallel ishlash va zaxira mexanizmi bepul tarifdagi beqarorlik sababli toʻxtab qolish oʻrniga uni oʻzlashtirishi uchun uchta muhit oʻzgaruvchisini sozlang:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # 400/401 holatida boshqa model/provayderga o‘tish (nosoz to‘g‘ridan-to‘g‘ri uzatiladigan modellarni o‘tkazib yuboradi)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # katta yukli so‘rovlarni qabul qilishning aniq yuqori chegarasi (birlamchi holatda o‘rnatilmagan: so‘rovlar soni bo‘yicha cheklov yo‘q, quyidagi izohga qarang)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # darhol qayta urinish mumkin bo‘lgan 503 xatosi o‘rniga katta yukli so‘rovlar sig‘imi uchun uzoqroq, cheklangan kutish
+export OMNIROUTE_ROTATE_ON_400=true           # 400/401 holatida boshqa model/provayderga oʻtish (buzilgan toʻgʻridan-toʻgʻri uzatish modellarini oʻtkazib yuboradi)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # katta yuklamali soʻrovlarni qabul qilishning aniq yuqori chegarasi (birlamchi holatda sozlanmagan: soʻrovlar soni cheklanmaydi, quyidagi izohga qarang)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # sekin yuqori oqim xizmatlari uchun chegaralangan kutish vaqtini RATE_LIMIT_MAX_WAIT_MS standart qiymatidan yuqoriga oshirish
 ```
 
-Bularni OmniRoute jarayoni muhitida (demon uchun, masalan, LaunchAgent plist yoki `systemctl edit` orqali) o‘rnating, so‘ng OmniRoute’ni qayta ishga tushiring. Aylantirish bayrog‘i eng katta taʼsirga ega vositadir: u jiddiy xatoni hovuzdagi sog‘lom provayderga shaffof tarzda qayta urinishga aylantiradi.
+Bularni OmniRoute jarayoni muhitida (demon uchun, masalan, LaunchAgent plist yoki `systemctl edit` orqali) oʻrnating, soʻng OmniRoute’ni qayta ishga tushiring. Rotatsiya bayrogʻi eng katta taʼsirga ega vositadir: u jiddiy xatoni puldagi sogʻlom provayder orqali shaffof tarzda qayta urinishga aylantiradi.
 
-**Izoh**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` bir vaqtda nechta katta yukli — uzun kontekstli — so‘rov bajarilishini cheklaydi; bu chegara provayder tezlik cheklagichi emas, balki qabul qilish darvozasidir. **#503-fanout yangilanishi:** bu o‘zgaruvchi endi birlamchi holatda o‘rnatilmaydi (endi u faqat yuqoridagidek aniq sozlanganda amal qiladi) — buning o‘rniga katta yukli so‘rovlarni qabul qilish xostning haqiqiy xotira chegarasidan kelib chiqib o‘zini masshtablaydigan, avtomatik aniqlanuvchi bayt budjeti (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) orqali boshqariladi. Shu sababli yangi o‘rnatilgan tizim bu o‘zgaruvchini umuman sozlamasdan ham ancha kam `503 chat_admission_busy` rad etishlarini ko‘rishi kerak; uni bu yerda aniq o‘rnatish hujjatda ko‘rsatilganidek ishlashda davom etadi. Bayt budjetining aniq qayta belgilangan qiymatlari 8 MiB–2 GiB oralig‘i bilan cheklanadi. `413 body_exceeds_budget` vaqtinchalik holat emas: ushbu bayt budjetini oshiring, `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` qiymatini kamaytiring yoki jarayon xotirasi chegarasini oshiring. `inflight_bytes_budget` sababli yuklamani kamaytirish vaqtinchalik resurs talashish holatidir va qayta urinish mumkin bo‘lib qoladi. Har bir provayder uchun tezlik cheklovi (`open-sse/services/rateLimitManager.ts`) alohida ravishda `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` va `RATE_LIMIT_AUTO_ENABLE` orqali boshqariladi — `.env.example` fayliga qarang.
+**Izoh**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` bir vaqtning oʻzida nechta katta yuklamali — uzun kontekstli — soʻrov bajarilishini cheklaydi; bu chegara provayder tezligini cheklovchi mexanizm emas, balki qabul qilish darvozasidir. **#503-fanout yangilanishi:** bu oʻzgaruvchi endi birlamchi holatda oʻrnatilmaydi (endi u faqat yuqoridagidek aniq sozlanganda amal qiladi) — katta yuklamali soʻrovlarni qabul qilish esa xostning haqiqiy xotira chegarasiga qarab avtomatik miqyoslanadigan, avtomatik aniqlangan bayt budjeti (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) orqali boshqariladi. Shu sababli yangi joylashtirishda bu oʻzgaruvchini umuman sozlamasdan ham `503 chat_admission_busy` rad etishlari ancha kamayishi kerak; uni bu yerda aniq oʻrnatish hanuz hujjatlashtirilganidek ishlaydi. Bayt budjetining aniq qayta belgilangan qiymatlari 8 MiB–2 GiB oraligʻi bilan cheklanadi. `413 body_exceeds_budget` vaqtinchalik emas: ushbu bayt budjetini oshiring, `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES`ni kamaytiring yoki jarayon xotirasi chegarasini oshiring. `inflight_bytes_budget` tufayli yuklamani kamaytirish vaqtinchalik resurs talashuvidir va qayta urinish mumkin boʻlib qoladi. Har bir provayder boʻyicha tezlikni cheklash (`open-sse/services/rateLimitManager.ts`) alohida ravishda `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` va `RATE_LIMIT_AUTO_ENABLE` orqali boshqariladi — `.env.example`ga qarang.
 
-**Ishlaganini qanday tekshirish mumkin**: agent/cron’ingizni qisqa vaqt oralig‘ida ikki marta ishga tushiring va har ikkala ishga tushirish ham muvaffaqiyatli yakunlanganini tasdiqlang. Tuzatishdan oldin ikkinchi ishga tushirish odatda `429`/`401` xatosini chiqaradi. Tuzatishdan keyin nosozliklar (agar bo‘lsa) avtomatik tarzda qayta urinib ko‘riladi va chaqiruv yakunlanadi. Shuningdek, `curl /monitoring/health` buyrug‘ini bajarib, provayder ulanishlaridagi `rateLimitedUntil` maydonini va ta’sirlangan provayderlar uchun `circuitBreakers.providerBreakers[].state` qiymatini kuzatishingiz mumkin — holat `CLOSED`, `DEGRADED`, `OPEN` yoki `HALF_OPEN` qiymatlaridan biri bo‘ladi (`src/shared/utils/circuitBreaker.ts` fayliga qarang) va qayta tiklash oynasi sinov so‘rovini o‘tkazishga imkon berishidan (`HALF_OPEN`) oldin xatolik berishda davom etayotgan provayder `CLOSED → DEGRADED → OPEN` holatlariga o‘tadi.
+**Ishlaganini tekshirish usuli**: agent/cron jarayoningizni qisqa oraliqda ikki marta ishga tushiring va ikkalasi ham muvaffaqiyatli yakunlanganini tasdiqlang. Tuzatishdan oldin ikkinchi ishga tushirish odatda `429`/`401` xatosini chiqaradi. Tuzatishdan soʻng xatolar (agar mavjud boʻlsa) shaffof tarzda qayta uriniladi va chaqiruv yakunlanadi. Shuningdek, `curl /monitoring/health`ni bajarib, provayder ulanishlaridagi `rateLimitedUntil` maydonini va taʼsirlangan provayderlar uchun `circuitBreakers.providerBreakers[].state`ni kuzatishingiz mumkin — holat `CLOSED`, `DEGRADED`, `OPEN` yoki `HALF_OPEN` qiymatlaridan biri boʻladi (`src/shared/utils/circuitBreaker.ts`ga qarang); doimiy ravishda muvaffaqiyatsizlikka uchrayotgan provayder tiklash oraligʻi sinov soʻrovini oʻtkazishga imkon berguncha (`HALF_OPEN`) `CLOSED → DEGRADED → OPEN` holatlariga oʻtadi.
 
-**Agar hali ham 429 xatosini ko‘rsangiz**: ushbu provayder uchun faol hisob haqiqatan ham o‘z _kvotasini_ (faqat tezlik cheklovini emas) tugatgan. OmniRoute boshqaruv paneli → Providers → Accounts bo‘limida ayni provayder uchun ikkinchi hisob qo‘shing yoki boshqa bepul provayderni (masalan, `routeway`, `auggie`) qo‘shib ishlating. Rotatsiya faqat vaqtinchalik tezlik/400/401 xatolarida yordam beradi; kvotaning to‘liq tugashi ikkinchi hisob ma’lumotlarini yoki boshqa provayderni talab qiladi.
+**Agar 429 hali ham kuzatilsa**: ushbu provayder uchun faol hisob oʻzining _kvotasini_ (shunchaki tezlik limitini emas) haqiqatan ham tugatgan. OmniRoute boshqaruv paneli → Providers → Accounts orqali ayni provayder uchun ikkinchi hisob qoʻshing yoki boshqa bepul provayderni (masalan, `routeway`, `auggie`) aralashtirib ishlating. Rotatsiya faqat vaqtinchalik tezlik cheklovi/400/401 holatlarida yordam beradi; qatʼiy kvota tugashi ikkinchi hisob maʼlumotlarini yoki boshqa provayderni talab qiladi.
 
-**Agar vision modellarida (`auto/vision`, `bazaarlink/*`) 403 xatosini ko‘rsangiz**: ulangan hisobda vision imkoniyatini o‘z ichiga oluvchi pulli tarif yo‘q yoki API kalitining ruxsatlari yetarli emas. Provayder boshqaruv panelida kalit doirasi vision/multimodal imkoniyatlarini o‘z ichiga olishini tekshiring yoki pulli tarifdagi hisobni ulang va uni vision uchun mo‘ljallangan maqsad sifatida saqlang.
+**Agar koʻrish modellarida (`auto/vision`, `bazaarlink/*`) 403 koʻrsangiz**: ulangan hisob koʻrish imkoniyatini oʻz ichiga oladigan pulli tarifga ega emas yoki API kalitida yetarli ruxsatlar mavjud emas. Provayder boshqaruv panelida kalit doirasi koʻrish/multimodal imkoniyatlarni oʻz ichiga olishini tekshiring yoki pulli tarif hisobini ulang va uni koʻrish vazifalari uchun maqsad sifatida saqlang.
 
 ---
 
@@ -547,35 +547,35 @@ Formatlarni tarjima qilish bilan bogʻliq muammolarni aniqlash uchun **Boshqaruv
 
 ### Avtomatik tezlik cheklovi ishga tushmayapti
 
-- Avtomatik tezlik cheklovi faqat API kaliti provayderlariga tatbiq etiladi (OAuth/obuna uchun emas)
-- **Settings → Resilience → Provider Profiles** bo‘limida avtomatik tezlik cheklovi yoqilganini tekshiring
+- Avtomatik tezlik cheklovi faqat API kaliti provayderlariga taalluqli (OAuth/obunaga emas)
+- **Sozlamalar → Barqarorlik → Provayder profillari** bo‘limida avtomatik tezlik cheklovi yoqilganini tekshiring
 - Provayder `429` holat kodlarini yoki `Retry-After` sarlavhalarini qaytarayotganini tekshiring
 
 ### Eksponensial kechikishni sozlash
 
 Provayder profillari quyidagi sozlamalarni qo‘llab-quvvatlaydi:
 
-- **Asosiy kechikish** — Birinchi xatodan keyingi dastlabki kutish vaqti (standart: 1s)
-- **Maksimal kechikish** — Kutish vaqtining maksimal chegarasi (standart: 30s)
-- **Ko‘paytirgich** — Har bir ketma-ket xatoda kechikishni qanchaga oshirish (standart: 2x)
+- **Asosiy kechikish** — Birinchi nosozlikdan keyingi dastlabki kutish vaqti (standart: 1s)
+- **Maksimal kechikish** — Kutish vaqtining eng yuqori chegarasi (standart: 30s)
+- **Ko‘paytirgich** — Har bir ketma-ket nosozlikda kechikishni qancha oshirish kerakligi (standart: 2x)
 
-### So‘rovlar oqimining birdan yopirilishidan himoya
+### So‘rovlar oqimining keskin yopirilishidan himoya
 
-Ko‘plab parallel so‘rovlar tezligi cheklangan provayderga yuborilganda, OmniRoute so‘rovlarni ketma-ket bajarish va zanjirli nosozliklarning oldini olish uchun mutex + avtomatik tezlik cheklovidan foydalanadi. Bu API kaliti provayderlari uchun avtomatik tarzda amalga oshiriladi.
+Ko‘plab parallel so‘rovlar tezligi cheklangan provayderga yuborilganda, OmniRoute so‘rovlarni ketma-ket bajarish va zanjirli nosozliklarning oldini olish uchun mutex hamda avtomatik tezlik cheklovidan foydalanadi. Bu API kaliti provayderlari uchun avtomatik tarzda amalga oshiriladi.
 
-### Chat so‘rovlari 503 / chat_admission_busy bilan bajarilmayapti
+### Chat so‘rovlari 503 / chat_admission_busy bilan muvaffaqiyatsiz tugaydi
 
 **Alomatlar:**
 
 - Chat yakunlash endpointi xato kodi
   `chat_admission_busy` bo‘lgan, qayta urinib ko‘rish mumkin bo‘lgan `503` javobini qaytaradi.
-- Javob `Retry-After` qiymatini o‘z ichiga oladi. #12135 dan boshlab qiymat kuzatilgan
-  bandlik asosida aniqlanadi — so‘rov allaqachon kutgan `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` oynasi
-  va joriy katta resurs talab qiluvchi lease’lar ushlab turilgan vaqtdan kattarog‘i olinadi — to‘liq
-  soniyagacha yuqoriga yaxlitlanadi va 60 bilan cheklanadi. Bo‘sh gate holatida avvalgi minimal
+- Javobda `Retry-After` mavjud. #12135 dan boshlab qiymat kuzatilgan
+  bandlik asosida aniqlanadi — so‘rov allaqachon kutgan `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`
+  oynasi bilan joriy og‘ir vaznli ijara slotlari band bo‘lib turgan vaqtning kattarog‘i olinadi,
+  butun soniyagacha yuqoriga yaxlitlanadi va 60 bilan cheklanadi. Bo‘sh shlyuzda tarixiy minimal
   qiymatlar saqlanadi: baytga asoslangan yo‘lda 2 soniya, tuzilmaga asoslangan yo‘lda 1 soniya
-  (bu yo‘l `reason: "structure_limit"` ni ham o‘z ichiga oladi).
-- Bu boshqa katta resurs talab qiluvchi chat yoki uzoq davom etuvchi oqimli javob hali
+  (ikkinchisi `reason: "structure_limit"` ni ham o‘z ichiga oladi).
+- Bu boshqa og‘ir vaznli chat yoki uzoq davom etuvchi oqimli javob hali ham
   bajarilayotgan paytda yuz berishi mumkin.
 
 Baytga asoslangan javob tanasi:
@@ -590,58 +590,51 @@ Baytga asoslangan javob tanasi:
 }
 ```
 
-Tuzilmaga asoslangan javob xuddi shu tur va koddan foydalanadi, xabari esa
+Tuzilmaga asoslangan javob xuddi shu tur va koddan foydalanadi, uning xabari
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 va `reason: "structure_limit"` bo‘ladi.
-Standart chegaralarda so‘rovda kamida `200` ta xabar, kamida `64` ta vosita yoki kamida
-`32,000` ta taxminiy token mavjud bo‘lsa yoxud cheklangan tuzilma hisob-kitobi `10,000` ta
-tashrif buyurilgan tugun yoki `12` chuqurlik chegarasiga yetsa, so‘rov tuzilmaviy jihatdan
-katta resurs talab qiluvchi hisoblanadi.
+Standart chegaralarda so‘rov kamida `200` ta xabarga, kamida `64` ta vositaga yoki
+kamida `32,000` ta taxminiy tokenga ega bo‘lsa yoxud chegaralangan tuzilma baholashi
+`10,000` ta ko‘rilgan tugun yoki `12` chuqurlik chegarasiga yetsa, u tuzilmaviy jihatdan og‘ir hisoblanadi.
 
-**Sabab:** Bu yuqori oqim provayderidagi nosozlik emas, balki OmniRoute ichidagi ataylab qo‘llanadigan yukni kamaytirish mexanizmidir.
-Har bir jarayon katta so‘rov tanasini saqlab qolish va tahlil qilishdan oldin cheklangan, katta
-resurs talab qiluvchi quvvatni band qilish uchun jarayonga lokal guard’dan foydalanadi. Katta
-resurs talab qiluvchi lease SSE javobining butun ishlash muddati davomida ushlab turiladi.
+**Sabab:** Bu yuqori oqim provayderi nosozligi emas, balki OmniRoute ichidagi ataylab amalga oshirilgan yukni kamaytirish mexanizmidir.
+Har bir jarayon katta so‘rov tanasini saqlab qolish va tahlil qilishdan oldin cheklangan og‘ir vaznli sig‘imni band qilish uchun jarayon doirasidagi mahalliy himoya vositasidan foydalanadi.
+Og‘ir vaznli ijara sloti SSE javobining butun ishlash muddati davomida band bo‘lib qoladi.
 
-**#503-fanout:** ushbu tuzatishdan oldin guard host xotirasidan qat’i nazar parallel ishlashni
-qat’iy so‘rovlar SONI (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, standart `1`) bilan cheklar edi,
-shu sababli kodlash agentlarining fan-out’i (bir nechta subagent/CLI, odatda > 256 KB hajmdagi
-tanalar) amaldagi parallellikni ~1 gacha tushirib yuborar va mutlaqo odatiy yuklama ostida
-503 xatolariga olib kelar edi. Endi guard o‘zini o‘zi sozlaydi: u jarayonning haqiqiy xotira
-chegarasidan kelib chiqib o‘lchami belgilanadigan, avtomatik aniqlangan qabul qilish BAYT budjeti
-(`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) bilan boshqariladi va jonli resurs bosimi signalini ham
-hisobga oladi — shu sababli u bittadan ortiq katta so‘rov bir vaqtda kelgani uchungina emas,
-faqat host haqiqatan ham xotira bosimi ostida bo‘lganda yukni kamaytiradi. Eski son cheklovi
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) hali ham hisobga olinadi, ammo faqat uni aniq belgilasangiz.
+**#503-tarqalishi:** bu tuzatishdan oldin himoya mexanizmi xost xotirasidan qat’i nazar, parallel ishlashni belgilangan so‘rovlar SONI
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, standart `1`) bilan cheklardi, shu sababli kod yozuvchi agentlarning
+tarqalishi (bir nechta quyi agentlar/CLIlar, so‘rov tanalari muntazam ravishda > 256 KB) samarali
+parallel ishlashni ~1 gacha tushirib yuborar va mutlaqo odatiy yuklama ostida 503 xatolariga olib kelardi. Endi himoya mexanizmi o‘zini o‘zi sozlaydi: u
+jarayonning haqiqiy xotira chegarasidan kelib chiqib o‘lchangan, avtomatik aniqlanadigan qabul qilinuvchi BAYT budjeti (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) bilan boshqariladi
+va jonli resurs bosimi signalini ham hisobga oladi — shu sababli u bir vaqtning o‘zida bittadan ortiq
+og‘ir so‘rov kelgani uchungina emas, balki xost haqiqatan ham xotira bosimi ostida bo‘lgandagina
+yukni kamaytiradi. Eski son chegarasi (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) hali ham
+inobatga olinadi, ammo faqat uni aniq belgilasangiz.
 
-Quvvat band bo‘lganda, katta resurs talab qiluvchi so‘rov qayta urinib ko‘rish mumkin bo‘lgan
-`503` javobini qaytarishdan oldin slot bo‘shashini `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` davomida
-(standart `2000`, `0` kutishni o‘chiradi) kutadi. Cheklangan kutish agent uslubidagi mijozlar
-(OpenCode, Claude Code, Cursor) parallel yuboradigan katta subso‘rovlar oqimini ketma-ket
-bajarishga imkon beradi; aks holda ular darhol rad etilishlar sababli butun qayta urinish
-budjetini sarflab, vazifa o‘rtasida ishlashdan to‘xtaydi.
-Joriy katta resurs talab qiluvchi lease bandligi, aniqlangan bayt budjeti va jonli bosim darajasi
+Sig‘im band bo‘lganda, og‘ir vaznli so‘rov qayta urinib ko‘rish mumkin bo‘lgan `503` javobini
+qaytarishdan oldin slot bo‘shashini `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` gacha (standart qiymati `RATE_LIMIT_MAX_WAIT_MS`; `0` kutishni o‘chiradi) kutadi.
+Chegaralangan kutish agent uslubidagi mijozlar
+(OpenCode, Claude Code, Cursor) og‘ir quyi so‘rovlarni parallel ravishda tarqatganda, butun qayta urinishlar budjetini
+darhol rad etishlarga sarflab, vazifa o‘rtasida to‘xtab qolish o‘rniga so‘rovlar keskin oqimini ketma-ket bajarishi uchun mavjud.
+Joriy og‘ir vaznli ijara slotlarining bandligi, aniqlangan bayt budjeti va jonli bosim darajasi
 `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
-`budgetSource`, `pressureSeverity`, `countCapEnabled`) orqali ko‘rsatiladi — biror muhit
-o‘zgaruvchisini o‘zgartirishdan oldin bularni tekshiring.
-Settings → Resilience → Request Queue → Concurrent Requests buni boshqarmaydi; bu sozlama
+`budgetSource`, `pressureSeverity`, `countCapEnabled`) manzilida ko‘rsatiladi — biror env var qiymatini o‘zgartirishdan oldin bularni tekshiring.
+Sozlamalar → Barqarorlik → So‘rovlar navbati → Parallel so‘rovlar buni boshqarmaydi; bu sozlama
 provayder so‘rovlari navbatining alohida mexanizmini boshqaradi.
 
 **Tuzatish:**
 
-1. Avval qayta urinib ko‘ring. Mijozlar so‘rovni darhol takrorlash o‘rniga `Retry-After`
-   qiymatiga rioya qilishi va kechikishdan foydalanishi kerak.
+1. Avval qayta urinib ko‘ring. Mijozlar so‘rovni darhol
+   takrorlash o‘rniga `Retry-After` ga rioya qilishi va kechikishdan foydalanishi kerak.
 2. Biror narsani sozlashdan oldin `/api/monitoring/health` → `chatAdmission` ni tekshiring. `countCapEnabled:
 false` va yetarlicha katta `maxInflightBytes` avtomatik aniqlangan budjet allaqachon o‘z
-   vazifasini bajarayotganini anglatadi; `high`/`critical` qiymatli `pressureSeverity` hostda
-   haqiqatan ham xotira yetishmayotganini anglatadi — buni qabul qilishga oid muhit o‘zgaruvchisi
-   bilan tuzatib bo‘lmaydi, buning uchun ko‘proq RAM yoki kichikroq ish yuklamasi kerak.
-3. Faqat `/api/monitoring/health` avtomatik aniqlangan budjet hostingiz uchun haqiqatan ham
-   juda kichikligini ko‘rsatsagina (bu kamdan-kam uchraydi — u allaqachon konteynerdan bare-metal’gacha
-   masshtablanadi), eski so‘rovlar soni chekloviga qaytish o‘rniga uni bevosita
-   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` orqali qayta belgilang.
+   vazifasini bajarayotganini anglatadi; `high`/`critical` qiymatli `pressureSeverity` xostda haqiqatan ham xotira kamligini anglatadi —
+   buni qabul qilishga oid env var bilan tuzatib bo‘lmaydi, buning uchun ko‘proq RAM yoki kichikroq ish yuklamasi kerak.
+3. Faqat `/api/monitoring/health` avtomatik aniqlangan budjet xostingiz uchun haqiqatan ham juda kichikligini
+   ko‘rsatsagina (bu kamdan-kam uchraydi — u allaqachon konteynerdan bare-metalgacha masshtablanadi), eski so‘rovlar soni chegarasiga qaytish o‘rniga
+   uni bevosita `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` orqali qayta belgilang.
 
-Qabul qilish bo‘yicha rasmiy sozlamalar uchun [muhit o‘zgaruvchilari ma’lumotnomasiga](../reference/ENVIRONMENT.md#4-security--authentication)
+Qabul qilishning asosiy sozlamalari uchun [muhit o‘zgaruvchilari ma’lumotnomasiga](../reference/ENVIRONMENT.md#4-security--authentication)
 qarang.
 
 ---

@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Makundi ya proksi na uzungushaji wa kila akaunti wa opencode huacha kutumia tena proksi iliyoshindwa hivi punde (jaribio la TCP lilikataliwa, au 429 ilipokelewa kupitia proksi hiyo) kwa kipindi maalumu kwa kila mchakato, ambacho huongezeka maradufu kila kushindwa kunaporudiwa, hadi kikomo fulani. Hakuna hali ya proksi inayoandikwa; kila chaguo linalowezekana likiwekwa kando, uteuzi hubaki bila kubadilika. Imewashwa kwa chaguo-msingi; `false` hurejesha uteuzi wa kawaida.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Kwa watoa huduma ambao mgao wao hugawanywa kwa anwani ya egress, humweka mwanachama wa pool anayeshiriki anwani ya egress iliyoonekana ya mwanachama aliyekataliwa hivi karibuni chini kidogo ya wanachama wenye afya. Mpangilio tu, kamwe haondolewi. Inahitaji PROXY_SKIP_RECENTLY_FAILED, ambayo huzalisha ishara ya kukataliwa inayoisoma. Imezimwa kwa chaguomsingi: mpangilio wa uteuzi ni mzunguko wa kawaida kabisa.",
   "featureFlagProxyPoolEgressObservationDescription": "Onyesha, chini ya kundi la proksi kwenye dashibodi, idadi ya anwani za IP za kutoka zilizozingatiwa ambazo zilitumiwa na wanachama wake katika saa 24 zilizopita, idadi ya miunganisho iliyozitumia, na idadi kubwa zaidi iliyoonekana nyuma ya anwani moja ya IP. Ni ya kusoma pekee, huhesabiwa kutoka kwenye kumbukumbu ya proksi, na haitumiki kamwe kuelekeza trafiki. Imezimwa kwa chaguo-msingi: kihariri cha kundi hakibadiliki na njia ya uchunguzi hujibu null.",
+  "featureFlagProxyOperatorEgressDescription": "Kubali anwani zilizochunguliwa zilizo na tarehe ambazo mwenye operesheni amezisambaza kwa kila mwanachama wa hifadhi, na uziunganishe na usomaji wa jarida kwa ajili ya maonyesho na mpangilio wa hifadhi. Imefungwa kwa chaguo-msingi: njia ya kusambaza inajibu 404, na usomaji wa hifadhi unatenda kama ilivyokuwa hapo awali.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Katika ukaguzi wa afya ya proksi, ruhusu jaribio lililokataliwa na lengwa (401/403/429: proksi ilisambaza ombi, lakini lengwa lilikataa anwani hii ya IP ya kutoka) liweke upya mfululizo wa kushindwa kwa proksi, kama jaribio lililohudumiwa. Imezimwa kwa chaguo-msingi: kukataliwa hubaki bila upande na hudumisha mfululizo huo. 5xx hubaki bila hitimisho kwa vyovyote vile, na kukataliwa kamwe hakuondoi, hakuzima wala kuwezesha tena proksi.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Ruhusu usafishaji wa kiotomatiki ufute kazi za Batch API zilizo katika hali ya mwisho (zilizokamilika/zilizoshindwa/zilizoghairiwa/zilizopitwa na muda) ambazo ni za zamani kuliko OMNIROUTE_BATCH_RETENTION_DAYS, pamoja na vituo vyake vya ukaguzi vya kila mstari, na ufute maudhui ya BLOB ya faili zilizopakiwa ambazo muda wake wa expires_at umepita. Huzimwa kwa chaguo-msingi: kila usakinishaji uliopo utaendelea kuhifadhi data hii kama hapo awali hadi mwendeshaji atakapochagua kuwasha kipengele hiki. Njia ya DELETE /api/v1/batches/delete-completed inayoanzishwa na mwendeshaji haiathiriwi kwa vyovyote vile — ni mkataba tofauti wa API ya umma usio na masharti.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Leta katalogi ya moja kwa moja ya modeli za xAI kwa miunganisho ya xai-oauth kutoka https://api.x.ai/v1/models ukitumia tokeni ya OAuth bearer, badala ya data tuli ya mwanzo isiyobadilika. Huzimwa kwa chaguo-msingi: xai-oauth huendelea kutoa data tuli ya mwanzo bila mabadiliko. Hitilafu yoyote ya utatuzi ikitokea, ugunduzi hurudi kutumia data ya mwanzo.",
@@ -5636,7 +5637,7 @@
     "accountName": "Jina la akaunti",
     "email": "Email",
     "healthCheckMinutes": "Ukaguzi wa Hali (dak.)",
-    "healthCheckHint": "Proactive token refresh interval. 0 = disabled.",
+    "healthCheckHint": "Thamani maalum kwa muunganisho huu. Tupu = fuata chaguo-msingi la jumla (Mipangilio › Ustahimilivu). 0 = usiwahi kukagua muunganisho huu. Upeo 1440 (saa 24).",
     "deselectAllModels": "Ondoa chaguo zote",
     "modelsActiveCount": "{active}/{total} zinazotumika",
     "noModelsMatch": "Hakuna modeli zinazolingana na \"{filter}\"",
@@ -5692,7 +5693,7 @@
     "claudeImportBulkModePaste": "Bandika safu ya JSON",
     "claudeImportBulkModeZip": "Pakia ZIP",
     "claudeImportBulkUploadHint": "Dondosha au chukua hadi faili 50 za .credentials.json (KB 256 kila moja, jumla ya MB 10).",
-    "claudeImportBulkPasteHint": "Bandika safu ya vitu: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "Bandika safu ya vitu: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": "ZIP iliyo na maingizo ya .json. Idadi ya juu ya maingizo 50, MB 10 haijapakiwa.",
     "claudeImportBulkSubmit": "Ingiza zote",
     "claudeImportBulkSuccess": "Imeingiza {count} miunganisho ya Claude",
@@ -5724,7 +5725,7 @@
     "geminiImportBulkModePaste": "Bandika safu ya JSON",
     "geminiImportBulkModeZip": "Pakia ZIP",
     "geminiImportBulkUploadHint": "Dondosha au chukua hadi faili 50 za oauth_creds.json (KB 256 kila moja, jumla ya MB 10).",
-    "geminiImportBulkPasteHint": "Bandika safu ya vitu: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "Bandika safu ya vitu: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "ZIP iliyo na maingizo ya oauth_creds.json. Idadi ya juu ya maingizo 50, MB 10 haijapakiwa.",
     "geminiImportBulkSubmit": "Ingiza zote",
     "geminiImportBulkSuccess": "Imeingiza {count} miunganisho ya Gemini",
@@ -5773,7 +5774,7 @@
     "codexImportBulkModePaste": "Bandika orodha",
     "codexImportBulkModeZip": "Kumbukumbu ya ZIP",
     "codexImportBulkUploadHint": "Chagua faili nyingi za .json au buruta na uangushe",
-    "codexImportBulkPasteHint": "safu ya JSON [ {...}, {...} ] au JSON nyingi zikitenganishwa na --- kwa njia yake yenyewe",
+    "codexImportBulkPasteHint": "safu ya JSON [ '{...}', '{...}' ] au JSON nyingi zikitenganishwa na --- kwa njia yake yenyewe",
     "codexImportBulkZipHint": "Pakia .zip iliyo na faili za auth.json (faili zisizozidi 50, MB 10)",
     "codexImportBulkSubmit": "Leta akaunti {count}",
     "codexImportBulkLimit": "Upeo wa faili 50 kwa kila uagizaji",
@@ -6011,7 +6012,7 @@
     "validationModelIdPlaceholder": "k.m. meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "Ufunguo wa API au JSON ya Akaunti ya Huduma",
     "vertexCredentialHint": "Funguo za API hutumia katalogi ya mradi iliyoratibiwa. JSON ya Akaunti ya Huduma huwezesha ugunduzi wa moja kwa moja wa Model Garden.",
-    "vertexServiceAccountPlaceholder": "Bandika ufunguo wa API, JSON ya Akaunti ya Huduma ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}), au tokeni ya ufikiaji ya OAuth",
+    "vertexServiceAccountPlaceholder": "Bandika ufunguo wa API, JSON ya Akaunti ya Huduma ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}'), au tokeni ya ufikiaji ya OAuth",
     "webCookieProviders": "Watoa huduma wa kuki za wavuti",
     "weeklyShort": "Kwa wiki",
     "xiaomiMimoBaseUrlHint": "Kidokezo cha URL ya msingi ya Xiaomi Mimo",
@@ -6197,7 +6198,7 @@
       "bluesminds": "Pata ufunguo wako wa API kwenye https://www.bluesminds.com — endpoint inayooana na OpenAI kwenye https://api.bluesminds.com/v1 yenye salio la bure la kila siku. Miundo ya VIP (Claude Opus 4.5, Gemini 2.5 Pro) inatumia salio la pi.",
       "byteplus": "Unganisha BytePlus ModelArk kwa ufunguo wa API.",
       "bytez": "Salio la bure la $1, linasasishwa kila baada ya wiki 4",
-      "cerebras": "Majaribio ya Bure: tokeni 1M/siku, 30K TPM, 5 RPM — hakuna kadi ya mkopo.",
+      "cerebras": "Mkopo wa mara moja wa $5 wakati wa kujisajili (halali kwa siku 30); njia ya malipo inahitajika. Si kiwango cha bure kinachojirudia.",
       "charm-hyper": "Fungua ufunguo wa API kwenye https://hyper.charm.land, kisha ubandike hapa kama tokeni ya Bearer.",
       "chutes": "Ufunguo wa API wa Bearer kwa lango linalooana na OpenAI la Chutes.",
       "clarifai": "Clarifai hutoa gumzo, majibu na /models zinazoendana na OpenAI kwenye /v2/ext/openai/v1. Miundo ya umma/jumuiya kwa kawaida huhitaji PAT; funguo zenye upeo wa programu hufanya kazi tu kwa rasilimali zilizo ndani ya programu hiyo.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Mwisho wa proxy-core ya ndani si halali; nodi za SS/VMess/Trojan/VLESS zilipuuzwa.",
         "NEEDS_CORE_NOT_CONFIGURED": "Usajili huu una nodi zinazohitaji proxy core ya ndani (SS/VMess/Trojan/VLESS); hazitaelekezwa hadi usanidi mwisho wa SOCKS5 wa local-core.",
         "NO_USABLE_NODES": "Usajili haukutoa nodi zozote zinazoweza kutumika (http/https/socks5 au nodi zilizo na mwisho wa local core).",
-        "SELECTOR_SWITCH_FAILED": "Mwito wa kudhibiti wa proxy-core umeshindwa; njia iliyotangulia inaendelea kufanya kazi. Angalia URL na siri ya kudhibiti, kisha onyesha upya."
+        "SELECTOR_SWITCH_FAILED": "Mwito wa kudhibiti wa proxy-core umeshindwa; njia iliyotangulia inaendelea kufanya kazi. Angalia URL na siri ya kudhibiti, kisha onyesha upya.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Mwesti uliozalishwa wa msingi haukuweza kubadilisha faili iliyotumika; badala yake nakala iliyo karibu nayo ilihifadhiwa.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Baadhi ya maingilio hayakuengwa wakati wa kuzalisha. Angalia kumbukumbu za seva."
       },
       "description": "Bandika kiungo cha usajili wako wa wakala. Mara baada ya kuwezeshwa, trafiki hupitishwa kupitia hifadhi ya seva mbadala katika hali ya kimataifa au sheria (Mtoa huduma aliyebainishwa). Nodi za usajili husawazishwa kiotomatiki kwenye hifadhi ya seva mbadala na kutumia tena mbinu zilizopo za upigaji kura, ukaguzi wa afya na kuzuia kuvuja.",
       "addSubscription": "Ongeza Usajili",
@@ -6889,8 +6895,8 @@
       "globalModeDesc": "Trafiki yote ya Watoa Huduma hupitia hifadhi ya seva mbadala ya usajili huu.",
       "ruleModeDesc": "Trafiki ya Watoa Huduma waliochaguliwa pekee ndiyo hupitia proksi; wengine kuungana moja kwa moja.",
       "localCoreEndpoint": "Local Core SOCKS5/HTTP Endpoint (Si lazima)",
-      "localCoreEndpointPlaceholder": "soksi5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "Inakubali 127.0.0.1 / localhost pekee (SS/VMess/Trojan/VLESS inahitaji kisanduku cha kuimba/mgongano wa ndani).",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "Moja kwa kila mstari. Inakubali 127.0.0.1 / localhost pekee (SS/VMess/Trojan/VLESS zinahitaji kiini cha sing-box/clash cha ndani).",
       "routeByProvider": "Njia kwa Mtoa Huduma (chaguo nyingi)",
       "loadingProviders": "Inapakia orodha ya Watoa Huduma...",
       "autoRefreshInterval": "Muda wa Kuonyesha Kiotomatiki (dakika)",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Hakuna mabadiliko yaliyorekodiwa bado",
       "lastSwitchMember": "Mwanachama anayehudumu",
       "nextSwitch": "Mabadiliko yajayo yanayowezekana",
-      "nextSwitchNow": "Sasa"
+      "nextSwitchNow": "Sasa",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Njia ya kiunzi cha msingi",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Hiari: huthibitisha faili iliyozalishwa kwa kiunzi cha msingi kabla ya kubadilisha faili iliyotumika. IACHE wazi ili kuendelea kuandika iliyo karibu nayo. Faili la husika hufunguliwa likitokuwepo."
     },
     "bulkHealthcheck": "Ukaguzi wa Afya kwa Wingi",
     "bulkHealthcheckDesc": "Jaribu proksi zote zilizosanidiwa dhidi ya URL lengwa ili kubaini zinazofanya kazi.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "Mfinyazo wa maelezo ya MCP",
     "mcpAccessibilityTitle": "Matokeo ya ufikiaji wa MCP",
     "compressionSettingsCavemanIntensity": "Nguvu ya Caveman",
-    "compressionSettingsCavemanOutputMode": "Njia ya pato la Caveman",
     "compressionSettingsOutputStyles": "Mitindo ya matokeo",
     "compressionStylesTileTitle": "Mitindo ya matokeo",
     "compressionSettingsOutputIntensity": "Nguvu ya pato",
-    "compressionSettingsAutoClarityBypass": "Njia ya uwazi wa kiotomatiki",
     "compressionEffectivePipeline": "Pipeline inayofanya kazi:",
     "compressionDerivedOff": "imezimwa",
     "compressionDerivedRuns": "uendeshaji: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "Kile ambacho GET /v1/models hutangaza kwa ufunguo huu. Kupunguza orodha hakubadilishi kamwe kile ambacho ufunguo unaweza kuita.",
     "catalogScopeAll": "Zote mbili",
     "catalogScopeCombos": "Mijumuisho pekee",
-    "catalogScopeModels": "Modeli pekee"
+    "catalogScopeModels": "Modeli pekee",
+    "resilienceTokenRefreshTitle": "Kikata cha Kusasisha Tokeni",
+    "resilienceTokenRefreshDesc": "Inasimisha majaribio ya kusasisha tokeni baada ya kushindwa mara kwa mara. Upeo wa kwa muunganisho hutenganisha akaunti moisha ili akaunti zenye afya kwa mtoaji ule ule ziendelee kusasishwa.",
+    "resilienceTokenRefreshScope": "Majaribio ya kusasisha tokeni kwa mtoaji mmoja",
+    "resilienceTokenRefreshTrigger": "Majaribio mfululizo yaliyoshindwa ya kusasisha",
+    "resilienceTokenRefreshEffect": "Inasimamisha majaribio ya kusasisha wakati wa kipindi cha kugandisha",
+    "resilienceTokenRefreshScopeLabel": "Upeo",
+    "resilienceTokenRefreshScopeProvider": "Mtoaji (akaunti zote zinashiriki kipochi kimoja)",
+    "resilienceTokenRefreshScopeConnection": "Muunganisho (kila akaunti ina kipochi chake cha kuzima)",
+    "resilienceTokenRefreshThreshold": "Kushindwa kabla ya kusimamisha",
+    "resilienceTokenRefreshCooldown": "Mapumziko baada ya kuamilishwa"
   },
   "contextRtk": {
     "title": "Injini ya RTK",
@@ -8544,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Inapakia…",
     "loadFailed": "Imeshindwa kupakia maelezo ya injini.",
+    "settingsLoadFailed": "Imeshindwa kupakia mipangilio iliyohifadhiwa. Sehemu zinaonyesha chaguo-msingi, na Hifadhi inasalia imezimwa hadi ukurasa upakiwe upya.",
     "engineNotFound": "Injini \"{engine}\" haijapatikana.",
     "saveFailed": "Imeshindwa kuhifadhi usanidi.",
     "previewFailed": "Onyesho la kukagua limefeli.",
@@ -8638,9 +8667,6 @@
       "minRows": {
         "label": "Kiwango cha chini cha safu mlalo za kubana",
         "description": "Kiwango cha chini cha safu mlalo katika safu ya JSON inayofanana inayohitajika ili kuanzisha ubana wa jedwali. Chaguo-msingi: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Hifadhi kidokezo cha mfumo"
       },
       "summarizerEnabled": {
         "label": "Wezesha kifupishaji"
@@ -9029,12 +9055,7 @@
     "tooltipMinLength": "Ujumbe mfupi kuliko huu haujabanwa. Chini = compression zaidi.",
     "tooltipMinSavings": "Finyaza tu ikiwa itaokoa angalau ishara hizi nyingi.",
     "ultraSettings": "Mipangilio ya Juu",
-    "ultraSettingsDesc": "Mfinyazo wa kisemantiki unaoendeshwa na SLM",
-    "preview": {
-      "lite": "Jibu kwa ufupi. Hifadhi istilahi za kiufundi, msimbo, hitilafu, URLs na vitambulisho.",
-      "full": "Jibu kwa maneno machache na kwa ufupi. Hifadhi maudhui yote ya kiufundi.",
-      "ultra": "Jibu kwa ufupi sana ukitumia vifupisho vya kawaida vya kiufundi. Hifadhi alama halisi."
-    }
+    "ultraSettingsDesc": "Mfinyazo wa kisemantiki unaoendeshwa na SLM"
   },
   "translator": {
     "title": "Mtafsiri",
@@ -9576,7 +9597,7 @@
     "redeemResetCredit": "Komboa uwekaji upya",
     "manageResetCredits": "Tazama krediti",
     "viewResetCredits": "Tazama krediti za kuweka upya",
-    "resetCreditsModalTitle": "Krediti za kuweka upya za Codex",
+    "resetCreditsModalTitle": "Krediti za kuweka upya",
     "resetCreditsModalExplainer": "Krediti zimepangwa kulingana na muda wa kuisha. Ukombozi wa kiotomatiki hutumia kila wakati krediti inayoisha muda wake kwanza.",
     "resetCreditsLoadFailed": "Imeshindwa kupakia krediti za kuweka upya",
     "resetCreditsDetailsUnavailable": "Maelezo ya krediti hayapatikani kwa sasa. Burudisha na ujaribu tena.",
@@ -9587,7 +9608,7 @@
     "resetCreditNoExpiry": "Hakuna tarehe ya kuisha muda",
     "redeemThisResetCredit": "Komboa",
     "confirmRedeemResetCreditTitle": "Komboa mkopo huu wa kuweka upya?",
-    "confirmRedeemResetCredit": "Kukomboa kunaweka upya mara moja madirisha ya matumizi ya Codex yanayostahiki na kutumia kabisa mkopo huu.",
+    "confirmRedeemResetCredit": "Kukomboa kunaweka upya mara moja madirisha ya matumizi yanayostahiki na kutumia kabisa mkopo huu.",
     "confirmRedeemResetCreditButton": "Komboa mkopo",
     "resetCreditRedeemed": "Uwekaji upya umekombolewa",
     "resetCreditRedeemFailed": "Imeshindwa kukomboa mkopo wa kuweka upya",
@@ -9653,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "k.m. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "k.m. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderExact": "Bandika jibu kamili linalotarajiwa",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "k.m. ^\\\\s*\\\\{.*\\\\}\\\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "k.m. ^\\\\s*\\\\'{.*\\\\}'\\\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "Tumia msemo wa kawaida wa JavaScript bila kukunja mikwaju.",
     "suiteBuilderNamePlaceholder": "k.m. Kifurushi cha Ubora wa Usimbaji",
     "suiteBuilderAddCase": "Ongeza Kipimo",
@@ -10862,7 +10883,7 @@
     "grokAuthJsonDescription": "Bandika maudhui YOTE ya ~/.grok/auth.json (sio tu uwanja wa JWT \"key\"). JWT tupu haina refresh_token, hivyo muunganisho unakufa baada ya muda wake kumalizika (#7610). Pendelea kidirisha maalum cha Kuagiza auth.json inapopatikana.",
     "devinDesktopPasteDescription": "Pasta funguo ya API ya Devin iliyopo kutoka kwa kikao cha Devin kilichothibitishwa. Upatikanaji wa usafirishaji wa funguo na hatua zinatofautiana kulingana na toleo la Devin na akaunti.",
     "devinPasteDescription": "Toa WINDSURF_API_KEY yako (iliyopatikana kupitia `devin auth login`, au kupitia amri ya Windsurf IDE \"Windsurf: Provide Auth Token\").",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "auth.json ya Grok Build",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "Funguo la API / Token",
@@ -10875,7 +10896,10 @@
     "gitlabDuoSetupTitle": "Mipangilio ya GitLab Duo OAuth",
     "gitlabDuoSetupMessage": "GitLab Duo OAuth haijasanidiwa. Jisajili programu ya OAuth kwenye {applicationsUrl} na URI ya kurejea {redirectUri} na mipango \"{scopes}\", kisha weka {clientIdEnv} (na hiari {clientSecretEnv}) na uanzishe upya.",
     "gitlabDuoSetupDescription": "Baada ya programu kuandikishwa na vigezo vya mazingira kuwekwa kwenye mfano huu wa OmniRoute, bonyeza Endelea kuanza kuingia kwa OAuth.",
-    "continue": "Endelea"
+    "continue": "Endelea",
+    "tabPasteSetupToken": "Tokeni ya usanidi",
+    "claudeSetupTokenDescription": "Endesha `claude setup-token` kwenye terminal na ubandike tokeni inayochapisha. Ni halali kwa mwaka mmoja na haina tokeni ya kuonyesha upya. OmniRoute hutuma ombi moja la majaribio kwa Anthropic kabla ya kuihifadhi.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Connect Cursor IDE",
@@ -11073,6 +11097,7 @@
     "poolEgressFailuresUnattributed": "Hitilafu bila njia ya kutoka iliyohusishwa: {count}",
     "poolMemberEgress": "{host}:{port} ilitoka kupitia {egressIp} · saa {hours} zilizopita",
     "poolMemberEgressEmpty": "{host}:{port}: hakuna trafiki iliyoonekana katika saa {hours} zilizopita",
+    "poolMemberEgressOperator": "{host}:{port} zimetoka kupitia {egressIp} · zimetolewa na mwenye operesheni, {date}",
     "poolMemberEgressHint": "IP ya mwisho ya kutoka iliyoonekana kupitia mshiriki huyu wa kundi katika kipindi hiki, ikisomwa kutoka kwenye logi ya proksi. Mshiriki asiye na trafiki katika kipindi hicho huonyesha mstari wa kutokuwepo kwa trafiki.",
     "poolRemove": "Ondoa",
     "poolRemoveFailed": "Imeshindwa kuondoa proksi kwenye dimbwi",
@@ -11086,6 +11111,7 @@
     "poolSetAsideKindProxyUnreachable": "proksi haifikiki",
     "poolSetAsideKindIpQuota429": "kikomo cha kasi cha IP (429)",
     "poolSetAsideKindSlow": "majibu polepole",
+    "poolSetAsideKindGeoBlocked": "kuzuiliwa kwa mkoa (403/451)",
     "poolSetAsideUntil": "Kurudi kwenye mzunguko {endsAt}",
     "poolSetAsideRepeat": "Imewekwa kando {count, plural, one {# mara} other {# mara}}",
     "poolUnknownAddress": "Anwani isiyojulikana",
@@ -11094,10 +11120,15 @@
     "poolSignalPosition": "Mpangilio wa nafasi",
     "poolHealthRankingOff": "Kiwango cha afya kimezimwa",
     "transportRate": "{rate}% usafiri",
+    "slowAbandoned": "{count} uacha polepole",
+    "clientAborted": "{count} mteja amegoma",
+    "slowAbandonedHint": "Imewekwa kando baada ya kufikia kikomo cha kusubiri vichwa, imefutwa kutoka kwa kiwango cha usafirishaji",
     "previousSuccessRate": "Awali {rate}% mafanikio",
-    "upstreamRefusals": "{count} kukataliwa kwa upstream",
     "connectionTestsCount": "{count} majaribio ya muunganisho",
-    "notMeasured": "Haijapimwa"
+    "notMeasured": "Haijapimwa",
+    "upstream4xx": "{count} makosa ya mteja kaskazini",
+    "upstream5xx": "{count} makosa ya server kaskazini",
+    "uniformEgressLine": "{affected} kati ya {exits} milango yanashindwa pamoja kwenye {provider} (masaa {hours} yaliyopita) — si shida la kilango"
   },
   "playground": {
     "title": "Mazingira ya Majaribio ya Modeli",
@@ -12871,7 +12902,10 @@
     "inheritedPool": "Inarithi dimbwi la miunganisho ({count})",
     "poolEmptyBlocked": "Dimbwi tupu — maombi yanashindwa (siyo moja kwa moja)",
     "directEgress": "Moja kwa moja (bila proksi)",
-    "ownProxy": "Proksi yako"
+    "ownProxy": "Proksi yako",
+    "freeTierPause": "Modeli {model} imesimamishwa (429), itarudi {time}",
+    "freeTierPauseProvider": "Imesisitishwa (429), itarudi saa {time}",
+    "freeTierPauseNote": "Susamisho la mchakato katika mfano huu"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13052,6 +13086,10 @@
     "inactiveCount": "{count} zisizo hai",
     "dbOverrideCount": "Ubatilishaji {count} wa DB",
     "searchPlaceholder": "Tafuta bendera...",
+    "descriptionModeLabel": "Mwonekano wa maelezo",
+    "descriptionModeHint": "Ukipita: kadi hubaki fupi na kupita juu ya maelezo huonyesha maandishi kamili. Maandishi kamili: onyesha maelezo yote daima.",
+    "descriptionModeHover": "Ukipita juu",
+    "descriptionModeFull": "Maandishi kamili",
     "categories": {
       "all": "Zote",
       "security": "Usalama",
@@ -13679,7 +13717,7 @@
     "secondaryNote": "Pia kwenye Open VSX (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "Ondoa"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Tangaza <gateway-alias>/<model> vitambulisho vya kioo kwenye /v1/models kwa ajili ya mifano ambayo mmiliki wake wa kanuni hana akreditivu hai lakini lango la kupitisha lenye akreditivu hai linaelekeza kwao. Onyo: inaongeza orodha za katalogi kwa wateja wote inapowezeshwa kimataifa.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Tangaza '<gateway-alias>'/'<model>' vitambulisho vya kioo kwenye /v1/models kwa ajili ya mifano ambayo mmiliki wake wa kanuni hana akreditivu hai lakini lango la kupitisha lenye akreditivu hai linaelekeza kwao. Onyo: inaongeza orodha za katalogi kwa wateja wote inapowezeshwa kimataifa.",
   "radarPage": {
     "title": "Radar Katalog",
     "subtitle": "Gratis modellkatalog berikad med gemenskapsintelligens",

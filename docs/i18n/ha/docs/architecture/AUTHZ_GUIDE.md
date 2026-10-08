@@ -13,17 +13,17 @@ OmniRoute yana da tsarin izini mai sanin hanya wanda ke hana kowane buƙatar API
 
 > Tushe: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
-## Hanyoyin Tabbatar da Shaida Biyu
+## Hanyoyin Tantancewa Biyu
 
-### 1. Maɓallin API (Bearer)
+### 1. API Key (Bearer)
 
-Ana amfani da shi don API na abokan hulɗa masu dacewa da OpenAI/Anthropic/Gemini da kuma wasu hanyoyin gudanarwa kaɗan idan maɓallin yana da iyakar izinin `manage`.
+Ana amfani da shi don API ɗin abokan hulɗa masu dacewa da OpenAI/Anthropic/Gemini da kuma wasu hanyoyin gudanarwa idan maɓallin yana da izinin `manage`.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Ana inganta shi ta `isValidApiKey()` / `extractApiKey()` a cikin `src/sse/services/auth.ts`, sannan a sake fitar da su ta `src/shared/utils/apiAuth.ts`. Mai ingantawar yana kuma karɓar env vars na `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` a matsayin maɓallan wucewa masu ɗorewa (batun #1350).
+Ana inganta shi ta `isValidApiKey()` / `extractApiKey()` a cikin `src/sse/services/auth.ts`, sannan a sake fitar da su ta `src/shared/utils/apiAuth.ts`. Mai ingantawar yana kuma karɓar env vars na `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` a matsayin maɓallan wucewa na dindindin (issue #1350).
 
 ### 2. Zaman Dashboard (cookie na auth_token)
 
@@ -35,40 +35,42 @@ Cookie: auth_token=<JWT signed with JWT_SECRET>
 
 Ana ɗaukar cookie a matsayin zama ne kawai idan an tabbatar da JWT ɗin **kuma** yana ɗauke da `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Duk
-mai amfani da cookie ɗin (mai gadin hanya, sabunta bututun authz, musayar hannun WebSocket, sabar
-kai-tsaye, `/api/settings/require-login`, `/api/auth/status`) yana bi ta wannan mataimakin.
-Akwai wasu JWT da aka sanya wa hannu da `JWT_SECRET` — wucewar Cursor CLI tana ƙirƙirar
-tokens na `iss "omniroute" / aud "cursor-cli"` ga masu riƙe da maɓalli — kuma ba a taɓa ɗaukar su a matsayin zaman mai amfani
+mai amfani da cookie ɗin (mai gadin hanyar dashboard (`isDashboardSessionAuthenticated()`), sabuntawar tsarin authz, musayar farko ta WebSocket, live
+server, `/api/settings/require-login`, `/api/auth/status`) yana bi ta wannan helper.
+Akwai wasu JWT da aka sanya wa hannu da `JWT_SECRET` — hanyar wucewa ta Cursor CLI tana ƙirƙirar
+tokens na `iss "omniroute" / aud "cursor-cli"` ga masu maɓalli — kuma ba a taɓa ɗaukar su a matsayin zaman shiga ba
 (#13298).
 
-Ana tabbatar da shi ta `isDashboardSessionAuthenticated()` a cikin `src/shared/utils/apiAuth.ts`. Bututun yana sabunta JWT ta atomatik idan kwanakin da suka rage masa sun ƙasa da 7 daga tsawon rayuwarsa na kwanaki 30.
+Ana tabbatar da shi ta `isDashboardSessionAuthenticated()` a cikin `src/shared/utils/apiAuth.ts`. Tsarin yana sabunta JWT ta atomatik idan kwanaki ƙasa da 7 suka rage daga tsawon rayuwarsa na kwanaki 30.
 
-Wasu hanyoyin gudanarwa suna karɓar **ɗaya daga cikin** hanyoyin biyu: cookie KO `Bearer <key>` idan maɓallin API yana da iyakar izinin `manage` (ko `admin`). Wannan ne ke ba da damar tsarin aiki na “daidaitawa ta hanyar kiran API” da aka ƙara a v3.8.
+Zama na iya ƙarewa kafin kwanaki 30 su cika, domin kowane mai ƙirƙira yana bi ta `mintDashboardSessionToken` (lokacin ƙirƙira `iat` da ID `jti`) kuma mai tabbatarwa yana bincika saituna biyu: `sessionsValidAfter`, wanda sauya kalmar sirri ke saita shi domin duk zaman da aka bayar kafin lokacin ya daina ingantuwa (browser ɗin da ya sauya kalmar sirri zai sami sabon cookie), da `revokedDashboardSessions`, inda `POST /api/auth/logout` ke ƙara `jti` na zaman da aka fita daga gare shi. Zaman da tsohuwar sigar software ta ƙirƙira ba su ɗauke da ɗayan waɗannan claims ɗin kuma suna ci gaba da aiki har sai an fara sauya kalmar sirri. Idan ba za a iya karanta saitunan ba, ba za a amince da zaman ba.
 
-#### Ƙofar shiga ta OIDC mai zaɓi (#6973)
+Wasu hanyoyin gudanarwa suna karɓar **ɗaya daga cikin** hanyoyin biyu: cookie KO `Bearer <key>` idan API key ɗin yana da izinin `manage` (ko `admin`). Wannan ne ke ba da damar tsarin aiki na “iya daidaitawa ta hanyar kiran API” da aka ƙara a v3.8.
 
-Shigar admin na dashboard yana kuma tallafa wa tsarin OIDC (OpenID Connect) na **zaɓin shiga**
-tare da tsohuwar hanyar shiga da kalmar sirri — ba a taɓa cire hanyar shiga da kalmar sirri, ana
-ƙara mata wata hanya ne kawai:
+#### Ƙofar shiga ta OIDC ta zaɓi (#6973)
 
-- A kashe take sai idan `settings.oidcEnabled === true` **kuma** an daidaita
-  `oidcIssuer` / `oidcClientId` / `oidcClientSecret` duka (Settings → Auth).
+Shigar admin na dashboard yana kuma goyon bayan tsarin OIDC (OpenID Connect) na **zaɓin amfani**
+tare da shigar tsoho ta kalmar sirri — ba a taɓa cire shigar ta kalmar sirri ba, ana
+kawai ƙara mata wani zaɓi:
+
+- Yana kashe sai dai idan `settings.oidcEnabled === true` **kuma** an saita dukkan `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` (Settings → Auth).
   In ba haka ba, `GET /api/auth/oidc/login` yana mayar da `400`.
 - `GET /api/auth/oidc/login` yana gano `authorization_endpoint` daga
-  `/.well-known/openid-configuration` na mai bayarwa (yana komawa
-  `<issuer>/authorize` idan hakan ya gaza), yana gina URI na turawa daga buƙatar da ta shigo
-  (tare da la’akari da `x-forwarded-proto`), sannan ya tura zuwa IdP tare da `state` bazuwar
-  da aka adana a cikin cookie na `oidc_state` mai `httpOnly`.
-- `GET /api/auth/oidc/callback` yana tabbatar da `state`, yana musanya lambar ba da izini,
-  sannan yana tabbatar da sa hannun ID token ta hanyar JWKS na mai bayarwa
-  (`createRemoteJWKSet` na `jose`, wanda ake cache bisa kowane JWKS URI) tare da binciken
-  `issuer`/`audience`. Jerin izini na `oidcAllowedSubjects` mai zaɓi yana daidaita da iƙirarin
-  `sub` na token ko iƙirarin `email` — ana amincewa da iƙirarin email ne kawai idan
-  `email_verified === true`, saboda haka email da ba a tabbatar da shi ba a IdP ba zai taɓa
-  wuce ƙofar ba.
-- Idan an yi nasara, yana ƙirƙirar **daidai wannan** JWT na `auth_token` na kwanaki 30 da hanyar
-  shiga da kalmar sirri ke bayarwa (`src/app/api/auth/login/route.ts`), don haka sauran
-  bututun zaman dashboard (sabuntawa ta atomatik, tutocin cookie) bai canza ba —
+  `/.well-known/openid-configuration` na issuer (idan hakan ya gaza, yana komawa zuwa
+  `<issuer>/authorize`), yana gina redirect URI daga request mai shigowa
+  (tare da la'akari da `x-forwarded-proto`), sannan ya tura zuwa IdP da `state`
+  na bazuwar da aka adana a cikin cookie na `httpOnly` mai suna `oidc_state`.
+- `GET /api/auth/oidc/callback` yana inganta `state`, yana musanya authorization
+  code, sannan yana tabbatar da sa hannun ID token ta hanyar JWKS na issuer
+  (`createRemoteJWKSet` na `jose`, wanda ake adanawa a cache bisa kowane JWKS URI) tare da binciken `issuer`/`audience`.
+  Jerin izini na zaɓi `oidcAllowedSubjects` yana daidaita claim na `sub`
+  na token ko claim ɗinsa na `email` — ana girmama claim na email ne kawai idan
+  `email_verified === true`, don haka email da ba a tabbatar da shi ba a IdP ba zai taɓa
+  iya wuce ƙofar ba.
+- Idan an yi nasara, yana ƙirƙirar **ainihin irin** JWT na `auth_token` mai kwanaki 30 da shigar
+  ta kalmar sirri ke bayarwa (`src/app/api/auth/login/route.ts`), don haka sauran
+  tsarin zaman dashboard (sabuntawa ta atomatik, flags na cookie) bai canza ba —
   OIDC yana maye gurbin yadda ake ƙirƙirar cookie ne kawai, ba abin da yake ba da izini ba.
 
 ## Rukunonin Hanya

@@ -237,8 +237,7 @@ Ogni stub esporta la stessa interfaccia, ma ogni funzione genera un
 disabilitato restituiscono HTTP 503 con un messaggio chiaro, anziché attivare il
 percorso di codice sensibile.
 
-Il bundle risultante è destinato alla pubblicazione come `omniroute-secure`. Consultare
-`docs/ops/PUBLISHING_SECURE.md` per la procedura di pubblicazione.
+Il bundle risultante è destinato alla pubblicazione come `omniroute-secure`.
 
 ---
 

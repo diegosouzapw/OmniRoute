@@ -1,1 +1,0 @@
-- **fix(authz):** a reverse proxy on the same host that sets `X-Forwarded-Proto`, `X-Forwarded-Host`, `Forwarded` or `Via` but no address header is no longer taken for the host itself, and the nginx example in `docs/security/CORS.md` now sets the address headers too

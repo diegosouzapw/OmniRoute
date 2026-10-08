@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Proxygrupper og rotasjonen per konto for opencode slutter midlertidig å bruke en proxy som nettopp sviktet (avvist TCP-sonde eller en 429 mottatt gjennom den), i en prosesspesifikk periode som dobles for hver gjentakelse, opptil en øvre grense. Ingen proxystatus lagres. Hvis alle kandidater settes til side, forblir valget uendret. På som standard; `false` gjenoppretter vanlig valg.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "For leverandører der kvoten fordeles etter egress-adresse, rangeres et pool-medlem som deler den observerte egress-adressen til et nylig avvist medlem rett under de friske medlemmene. Kun rekkefølge, aldri utelatt. Krever PROXY_SKIP_RECENTLY_FAILED, som produserer avvisningssignalet den leser. Av som standard: utvelgelsesrekkefølgen er nøyaktig den vanlige rotasjonen.",
   "featureFlagProxyPoolEgressObservationDescription": "Vis under en proxygruppe i kontrollpanelet hvor mange observerte utgående IP-adresser som betjente medlemmene i løpet av de siste 24 timene, hvor mange tilkoblinger som brukte dem, og det høyeste antallet som ble observert bak én IP-adresse. Skrivebeskyttet, beregnet fra proxyloggen og aldri brukt til ruting. Av som standard: Redigeringen av proxygruppen er uendret, og observasjonsruten returnerer null.",
+  "featureFlagProxyOperatorEgressDescription": "Akseptér operatør-pushte daterte observerte adresser per pool-medlem og slå dem sammen med journal-lese for visning og pool-rekkefølge. Av standard: push-ruten svarer 404 og pool-leser oppfører seg nøyaktig som før.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "La en sonde som målet avviste (401/403/429: proxyen videresendte forespørselen, men destinasjonen avviste denne utgående IP-adressen), nullstille proxyens rekke av påfølgende feil under helsesjekken av proxyer, på samme måte som en besvart sonde. Av som standard: En avvisning forblir nøytral og beholder rekken. En 5xx forblir ikke-konkluderende i begge tilfeller, og en avvisning fjerner, deaktiverer eller reaktiverer aldri en proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "La den automatiske oppryddingen slette avsluttede (fullførte/mislykkede/avbrutte/utløpte) Batch API-jobber som er eldre enn OMNIROUTE_BATCH_RETENTION_DAYS, sammen med kontrollpunktene deres per linje, og tømme BLOB-innholdet i opplastede filer etter deres respektive expires_at. Av som standard: Alle eksisterende installasjoner beholder disse dataene nøyaktig som før frem til en operatør aktiverer funksjonen. Den operatørutløste ruten DELETE /api/v1/batches/delete-completed påvirkes uansett ikke – den er en separat, ubetinget offentlig API-kontrakt.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Hent den oppdaterte xAI-modellkatalogen for xai-oauth-tilkoblinger fra https://api.x.ai/v1/models ved hjelp av OAuth-bærertokenet, i stedet for det fastlåste statiske utgangspunktet. Av som standard: xai-oauth fortsetter å bruke det statiske utgangspunktet uendret. Ved feil under oppslag faller modelloppdagelsen tilbake til utgangspunktet.",
@@ -5636,7 +5637,7 @@
     "accountName": "Kontonavn",
     "email": "E-post",
     "healthCheckMinutes": "Helsesjekk (min)",
-    "healthCheckHint": "Proaktivt token-oppdateringsintervall. 0 = deaktivert.",
+    "healthCheckHint": "Overstyring for denne tilkoblingen. Tom = følg den globale standarden (Innstillinger › Robusthet). 0 = sjekk aldri denne tilkoblingen. Maks 1440 (24 t).",
     "deselectAllModels": "Fjern alle valg",
     "modelsActiveCount": "{active}/{total} aktive",
     "noModelsMatch": "Ingen modeller samsvarer med «{filter}»",
@@ -5692,7 +5693,7 @@
     "claudeImportBulkModePaste": "Lim inn JSON-array",
     "claudeImportBulkModeZip": "Last opp ZIP",
     "claudeImportBulkUploadHint": "Slipp eller hent opptil 50 .credentials.json-filer (256 KB hver, totalt 10 MB).",
-    "claudeImportBulkPasteHint": "Lim inn en rekke objekter: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "Lim inn en rekke objekter: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": "ZIP som inneholder .json-oppføringer. Maks 50 oppføringer, 10MB utpakket.",
     "claudeImportBulkSubmit": "Importer alle",
     "claudeImportBulkSuccess": "Importerte {count} Claude-forbindelser",
@@ -5724,7 +5725,7 @@
     "geminiImportBulkModePaste": "Lim inn JSON-array",
     "geminiImportBulkModeZip": "Last opp ZIP",
     "geminiImportBulkUploadHint": "Slipp eller hent opptil 50 oauth_creds.json-filer (256 KB hver, totalt 10 MB).",
-    "geminiImportBulkPasteHint": "Lim inn en rekke objekter: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "Lim inn en rekke objekter: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "ZIP som inneholder oauth_creds.json-oppføringer. Maks 50 oppføringer, 10MB utpakket.",
     "geminiImportBulkSubmit": "Importer alle",
     "geminiImportBulkSuccess": "Importerte {count} Gemini-tilkoblinger",
@@ -5773,7 +5774,7 @@
     "codexImportBulkModePaste": "Lim inn liste",
     "codexImportBulkModeZip": "ZIP-arkiv",
     "codexImportBulkUploadHint": "Velg flere .json-filer eller dra og slipp",
-    "codexImportBulkPasteHint": "JSON-matrise [ {...}, {...} ] eller flere JSON-er atskilt med --- på sin egen linje",
+    "codexImportBulkPasteHint": "JSON-matrise [ '{...}', '{...}' ] eller flere JSON-er atskilt med --- på sin egen linje",
     "codexImportBulkZipHint": "Last opp en .zip som inneholder auth.json-filer (maks. 50 filer, 10 MB)",
     "codexImportBulkSubmit": "Importer {count} kontoer",
     "codexImportBulkLimit": "Maks 50 filer per import",
@@ -6011,7 +6012,7 @@
     "validationModelIdPlaceholder": "f.eks. meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "API-nøkkel eller JSON for tjenestekonto",
     "vertexCredentialHint": "API-nøkler bruker den kuraterte prosjektkatalogen. JSON for tjenestekonto muliggjør direkte oppdagelse i Model Garden.",
-    "vertexServiceAccountPlaceholder": "Lim inn en API-nøkkel, JSON for tjenestekonto ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) eller et OAuth-tilgangstoken",
+    "vertexServiceAccountPlaceholder": "Lim inn en API-nøkkel, JSON for tjenestekonto ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') eller et OAuth-tilgangstoken",
     "webCookieProviders": "Leverandører av nettcookies",
     "weeklyShort": "Ukentlig",
     "xiaomiMimoBaseUrlHint": "Hint for Xiaomi Mimo-basis-URL",
@@ -6197,7 +6198,7 @@
       "bluesminds": "Få API-nøkkelen din på https://www.bluesminds.com — OpenAI-kompatibelt endepunkt på https://api.bluesminds.com/v1 med gratis daglige kreditter. VIP-modeller (Claude Opus 4.5, Gemini 2.5 Pro) forbruker pi-kreditter.",
       "byteplus": "Koble til BytePlus ModelArk med en API-nøkkel.",
       "bytez": "$1 i gratis kreditter, fornyes hver 4. uke",
-      "cerebras": "Gratis prøveperiode: 1M tokens/dag, 30K TPM, 5 RPM — ingen kredittkort.",
+      "cerebras": "Engangskreditt på $5 ved registrering (gyldig i 30 dager); krever en betalingsmetode. Ikke et gjentakende gratisnivå.",
       "charm-hyper": "Opprett en API-nøkkel på https://hyper.charm.land, og lim den deretter inn her som et Bearer-token.",
       "chutes": "Bearer API-nøkkel for den OpenAI-kompatible Chutes-gatewayen.",
       "clarifai": "Clarifai eksponerer OpenAI-kompatibel chat, responser og /models på /v2/ext/openai/v1. Offentlige/fellesskapsmodeller krever vanligvis en PAT; app-spesifikke nøkler fungerer bare for ressurser i den appen.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Lokalt endepunkt for proxykjernen er ugyldig; SS/VMess/Trojan/VLESS-noder ble ignorert.",
         "NEEDS_CORE_NOT_CONFIGURED": "Dette abonnementet har noder som krever en lokal proxykjerne (SS/VMess/Trojan/VLESS); de rutes ikke før du konfigurerer SOCKS5-endepunktet for den lokale kjernen.",
         "NO_USABLE_NODES": "Abonnementet ga ingen brukbare noder (http/https/socks5 eller noder med et lokalt kjerne-endepunkt).",
-        "SELECTOR_SWITCH_FAILED": "Proxy-coreens styrekall mislyktes; den forrige ruten forblir aktiv. Kontroller styre-URL og hemmelighet, og oppdater deretter."
+        "SELECTOR_SWITCH_FAILED": "Proxy-coreens styrekall mislyktes; den forrige ruten forblir aktiv. Kontroller styre-URL og hemmelighet, og oppdater deretter.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Den genererte kjernekonfigurasjonen kunne ikke erstatte den adopterte filen; kopien ved siden av ble beholdt i stedet.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Noen oppføringer ble hoppet over under generering. Se serverloggen."
       },
       "description": "Lim inn koblingen for proxy-abonnement. Når den er aktivert, rutes trafikken gjennom proxy-poolen i global modus eller regel (spesifisert leverandør). Abonnementsnoder synkroniseres automatisk inn i proxy-poolen og gjenbruker eksisterende polling-, helsesjekk- og anti-lekkasjemekanismer.",
       "addSubscription": "Legg til abonnement",
@@ -6889,8 +6895,8 @@
       "globalModeDesc": "All leverandørtrafikk går gjennom dette abonnementets proxy-pool.",
       "ruleModeDesc": "Bare utvalgte leverandørers trafikk går gjennom proxyen; resten kobles direkte til.",
       "localCoreEndpoint": "Local Core SOCKS5/HTTP-endepunkt (valgfritt)",
-      "localCoreEndpointPlaceholder": "sokker5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "Godtar kun 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS krever en lokal sing-box/clash-kjerne).",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "Én per linje. Godtar kun 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS krever en lokal sing-box/clash-kjerne).",
       "routeByProvider": "Rute etter leverandør (flervalg)",
       "loadingProviders": "Laster leverandørliste …",
       "autoRefreshInterval": "Automatisk oppdateringsintervall (minutter)",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Ingen bytter registrert ennå",
       "lastSwitchMember": "Betjenende medlem",
       "nextSwitch": "Neste mulige bytte",
-      "nextSwitchNow": "Nå"
+      "nextSwitchNow": "Nå",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Søkesti til kjernebinærfilen",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Valgfritt: verifiserer den genererte filen med kjernebinærfilen før den adopterte filen erstattes. La stå tomt for å fortsette å skrive ved siden av. Mappen opprettes hvis den mangler."
     },
     "bulkHealthcheck": "Samlet tilstandskontroll",
     "bulkHealthcheckDesc": "Test alle konfigurerte proxyer mot en mål-URL for å finne ut hvilke som fungerer.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP-beskrivelseskomprimering",
     "mcpAccessibilityTitle": "MCP-tilgjengelighetsutdata",
     "compressionSettingsCavemanIntensity": "Caveman intensitet",
-    "compressionSettingsCavemanOutputMode": "Caveman utgangsmodus",
     "compressionSettingsOutputStyles": "Utdatastiler",
     "compressionStylesTileTitle": "Utdatastiler",
     "compressionSettingsOutputIntensity": "Utgangsintensitet",
-    "compressionSettingsAutoClarityBypass": "Automatisk klarhetsbypass",
     "compressionEffectivePipeline": "Gjeldende pipeline:",
     "compressionDerivedOff": "av",
     "compressionDerivedRuns": "kjøringer: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "Hva GET /v1/models oppgir for denne nøkkelen. Å begrense listen endrer aldri hva nøkkelen kan kalle.",
     "catalogScopeAll": "Begge",
     "catalogScopeCombos": "Bare kombinasjoner",
-    "catalogScopeModels": "Bare modeller"
+    "catalogScopeModels": "Bare modeller",
+    "resilienceTokenRefreshTitle": "Tokenfornyelsesvern",
+    "resilienceTokenRefreshDesc": "Stopper med å forsøke på nytt å fornye token etter gjentatte feil. Omfang per kobling isolerer én død konto, slik at friske kontoer på samme leverandør fortsetter å fornyes.",
+    "resilienceTokenRefreshScope": "Forsøk på å fornye token for én leverandør",
+    "resilienceTokenRefreshTrigger": "Påfølgende mislykkede oppdateringsforsøk",
+    "resilienceTokenRefreshEffect": "Pauserer oppdateringsforsøk i nedkjølingsperioden",
+    "resilienceTokenRefreshScopeLabel": "Omfang",
+    "resilienceTokenRefreshScopeProvider": "Provider (alle kontoer deler én breaker)",
+    "resilienceTokenRefreshScopeConnection": "Tilkobling (hver konto har sin egen breaker)",
+    "resilienceTokenRefreshThreshold": "Feil før pausing",
+    "resilienceTokenRefreshCooldown": "Pause etter utløsning"
   },
   "contextRtk": {
     "title": "RTK-motor",
@@ -8544,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Laster inn…",
     "loadFailed": "Kunne ikke laste inn motorinformasjon.",
+    "settingsLoadFailed": "Kunne ikke laste inn de lagrede innstillingene. Feltene viser standardverdier, og Lagre forblir deaktivert til siden lastes inn på nytt.",
     "engineNotFound": "Motoren \"{engine}\" ble ikke funnet.",
     "saveFailed": "Kunne ikke lagre konfigurasjonen.",
     "previewFailed": "Forhåndsvisningen mislyktes.",
@@ -8638,9 +8667,6 @@
       "minRows": {
         "label": "Minimum rader å komprimere",
         "description": "Minimum antall rader i et homogent JSON-array som kreves for å utløse tabulær komprimering. Standard: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Bevar system-prompt"
       },
       "summarizerEnabled": {
         "label": "Aktiver oppsummering"
@@ -9029,12 +9055,7 @@
     "tooltipMinLength": "Meldinger som er kortere enn dette, komprimeres ikke. Lavere = mer kompresjon.",
     "tooltipMinSavings": "Komprimer bare hvis det sparer minst så mange tokens.",
     "ultraSettings": "Ultra-innstillinger",
-    "ultraSettingsDesc": "SLM-drevet semantisk komprimering",
-    "preview": {
-      "lite": "Svar kortfattet. Bevar tekniske termer, kode, feil, URL-er og identifikatorer.",
-      "full": "Svar knapt og kompakt. Bevar alt teknisk innhold.",
-      "ultra": "Svar svært knapt med vanlige tekniske forkortelser. Bevar eksakte symboler."
-    }
+    "ultraSettingsDesc": "SLM-drevet semantisk komprimering"
   },
   "translator": {
     "title": "Oversetter",
@@ -9576,7 +9597,7 @@
     "redeemResetCredit": "Løs inn tilbakestilling",
     "manageResetCredits": "Vis kreditter",
     "viewResetCredits": "Vis tilbakestillingskreditter",
-    "resetCreditsModalTitle": "Codex-tilbakestillingskreditter",
+    "resetCreditsModalTitle": "Tilbakestillingskreditter",
     "resetCreditsModalExplainer": "Kreditter er sortert etter utløpsdato. Automatisk innløsning bruker alltid kreditten som utløper først.",
     "resetCreditsLoadFailed": "Kunne ikke laste inn tilbakestillingskreditter",
     "resetCreditsDetailsUnavailable": "Kredittdetaljer er for øyeblikket utilgjengelige. Oppdater og prøv igjen.",
@@ -9587,7 +9608,7 @@
     "resetCreditNoExpiry": "Ingen utløpsdato",
     "redeemThisResetCredit": "Løs inn",
     "confirmRedeemResetCreditTitle": "Løse inn denne tilbakestillingskreditten?",
-    "confirmRedeemResetCredit": "Innløsning tilbakestiller umiddelbart de kvalifiserte Codex-bruksvinduene og forbruker denne kreditten permanent.",
+    "confirmRedeemResetCredit": "Innløsning tilbakestiller umiddelbart de kvalifiserte bruksvinduene og forbruker denne kreditten permanent.",
     "confirmRedeemResetCreditButton": "Løs inn kreditt",
     "resetCreditRedeemed": "Tilbakestill innløste",
     "resetCreditRedeemFailed": "Kunne ikke innløse tilbakestillingskreditt",
@@ -9653,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "f.eks. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "f.eks. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderExact": "Lim inn nøyaktig forventet svar",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "f.eks. ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "f.eks. ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "Bruk et regulært JavaScript uten å pakke skråstreker.",
     "suiteBuilderNamePlaceholder": "f.eks. testsamling for kodekvalitet",
     "suiteBuilderAddCase": "Legg til testtilfelle",
@@ -10862,7 +10883,7 @@
     "grokAuthJsonDescription": "Lim inn hele innholdet av ~/.grok/auth.json (ikke bare JWT \"nøkkel\"-feltet). En bare JWT har ingen refresh_token, så tilkoblingen dør etter utløp (#7610). Foretrekk den dedikerte Import auth.json-modalen når den er tilgjengelig.",
     "devinDesktopPasteDescription": "Lim inn en eksisterende Devin API-nøkkel fra en autentisert Devin-økt. Tilgjengelighet for nøkkeleksport og trinn varierer etter Devin-versjon og konto.",
     "devinPasteDescription": "Oppgi din WINDSURF_API_KEY (fått via `devin auth login`, eller via Windsurf IDE \"Windsurf: Provide Auth Token\" kommandoen).",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "Grok Bygg auth.json",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "API-nøkkel / Token",
@@ -10875,7 +10896,10 @@
     "gitlabDuoSetupTitle": "GitLab Duo OAuth-oppsett",
     "gitlabDuoSetupMessage": "GitLab Duo OAuth er ikke konfigurert. Registrer en OAuth-applikasjon på {applicationsUrl} med omdirigerings-URI {redirectUri} og omfang \"{scopes}\", sett deretter {clientIdEnv} (og valgfritt {clientSecretEnv}) og start på nytt.",
     "gitlabDuoSetupDescription": "Etter at applikasjonen er registrert og miljøvariablene er satt på denne OmniRoute-instansen, klikk Fortsett for å starte OAuth-påloggingen.",
-    "continue": "Fortsett"
+    "continue": "Fortsett",
+    "tabPasteSetupToken": "Oppsettstoken",
+    "claudeSetupTokenDescription": "Kjør `claude setup-token` i en terminal og lim inn tokenet den skriver ut. Det er gyldig i ett år og har ingen oppdateringstoken. OmniRoute sender én testforespørsel til Anthropic før det lagres.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Koble til markør-IDE",
@@ -11073,6 +11097,7 @@
     "poolEgressFailuresUnattributed": "Feil uten tilordnet utgang: {count}",
     "poolMemberEgress": "{host}:{port} gikk ut via {egressIp} · siste {hours} t",
     "poolMemberEgressEmpty": "{host}:{port}: ingen trafikk observert de siste {hours} t",
+    "poolMemberEgressOperator": "{host}:{port} forlot gjennom {egressIp} · operatørlevert, {date}",
     "poolMemberEgressHint": "Siste utgående IP-adresse observert via dette poolmedlemmet i perioden, hentet fra proxyloggen. Et medlem uten trafikk i perioden viser linjen for ingen trafikk.",
     "poolRemove": "Fjern",
     "poolRemoveFailed": "Kunne ikke fjerne proxyen fra poolen",
@@ -11086,6 +11111,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy kan ikke nås",
     "poolSetAsideKindIpQuota429": "IP-hastighetsbegrensning (429)",
     "poolSetAsideKindSlow": "trege svar",
+    "poolSetAsideKindGeoBlocked": "region-blokkert (403/451)",
     "poolSetAsideUntil": "Tilbake i rotasjon {endsAt}",
     "poolSetAsideRepeat": "Satt til side {count, plural, one {# gang} other {# ganger}}",
     "poolUnknownAddress": "Ukjent adresse",
@@ -11094,10 +11120,15 @@
     "poolSignalPosition": "Posisjonsrekkefølge",
     "poolHealthRankingOff": "Helserangering av",
     "transportRate": "{rate} % transport",
+    "slowAbandoned": "{count} langsomme forlatelser",
+    "clientAborted": "{count} klientavbrudd",
+    "slowAbandonedHint": "Forlatt etter overskriftsventetidspunktet, ekskludert fra transportrate",
     "previousSuccessRate": "Tidligere {rate} % suksess",
-    "upstreamRefusals": "{count} upstream-avvisninger",
     "connectionTestsCount": "{count} tilkoblingstester",
-    "notMeasured": "Ikke målt"
+    "notMeasured": "Ikke målt",
+    "upstream4xx": "{count} oppstrøms klientfeil",
+    "upstream5xx": "{count} oppstrøms serverfeil",
+    "uniformEgressLine": "{affected} av {exits} utganger feiler sammen på {provider} (siste {hours}t) — ikke et utgangsproblem"
   },
   "playground": {
     "title": "Title",
@@ -12871,7 +12902,10 @@
     "inheritedPool": "Arver tilkoblingspool ({count})",
     "poolEmptyBlocked": "Pool tom — forespørsler mislykkes (ikke direkte)",
     "directEgress": "Direkte (ingen proxy)",
-    "ownProxy": "Egen proxy"
+    "ownProxy": "Egen proxy",
+    "freeTierPause": "Modell {model} pauset (429), tilbake kl. {time}",
+    "freeTierPauseProvider": "Pauset (429), tilbake kl. {time}",
+    "freeTierPauseNote": "Pause i prosessen på denne forekomsten"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13052,6 +13086,10 @@
     "inactiveCount": "{count} inaktive",
     "dbOverrideCount": "{count} DB-overstyringer",
     "searchPlaceholder": "Søk i flagg...",
+    "descriptionModeLabel": "Beskrivelsesvisning",
+    "descriptionModeHint": "Ved hovering: kortene forblir kompakte, og å holde pekeren over en beskrivelse viser full tekst. Full tekst: vis alltid hele beskrivelsen.",
+    "descriptionModeHover": "Ved hovering",
+    "descriptionModeFull": "Full tekst",
     "categories": {
       "all": "Alle",
       "security": "Sikkerhet",
@@ -13679,7 +13717,7 @@
     "secondaryNote": "Også på Open VSX (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "Avvis"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Reklamer <gateway-alias>/<model> speil-id-er på /v1/models for modeller hvis kanoniske eier ikke har aktive legitimasjoner, men en passthrough-gateway med aktive legitimasjoner ruter dem. Advarsel: legger til katalogoppføringer for alle klienter når det er aktivert globalt.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Reklamer '<gateway-alias>'/'<model>' speil-id-er på /v1/models for modeller hvis kanoniske eier ikke har aktive legitimasjoner, men en passthrough-gateway med aktive legitimasjoner ruter dem. Advarsel: legger til katalogoppføringer for alle klienter når det er aktivert globalt.",
   "radarPage": {
     "title": "Radar Katalog",
     "subtitle": "Gratis modellkatalog beriket med fellesskapsintelligens",

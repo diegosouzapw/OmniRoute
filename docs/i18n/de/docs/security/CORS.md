@@ -138,22 +138,26 @@ Neustart erforderlich ist.
 
 ## Beispiel: Reverse-Proxy vor OmniRoute
 
-CORS wird von OmniRoute selbst durchgesetzt. Daher sollte der Proxy im Allgemeinen **keine**
+CORS wird von OmniRoute selbst durchgesetzt, daher sollte der Proxy im Allgemeinen **keine**
 `Access-Control-*`-Header hinzufügen oder umschreiben (doppelte Header verursachen Fehler in Browsern). Terminieren Sie TLS
-und leiten Sie die Anfragen weiter — lassen Sie OmniRoute die Preflight-Anfrage beantworten:
+und leiten Sie die Anfragen weiter — überlassen Sie OmniRoute die Beantwortung der Preflight-Anfrage:
 
 ```nginx
 # nginx — an OmniRoute weiterleiten; hier KEINE Access-Control-*-Header einfügen
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # X-Forwarded-For NICHT auf 127.0.0.1 setzen — dadurch wird der Loopback-Routenschutz umgangen.
+    # Behalten Sie die Weiterleitungs-Header bei: Ein Proxy auf demselben Host stellt die Verbindung über die Loopback-Adresse her, und sie
+    # teilen OmniRoute mit, dass der Aufrufer nicht der lokale Betreiber ist. Ein Proxy, der keinen dieser Header hinzufügt,
+    # lässt jeden entfernten Aufrufer wie einen lokalen erscheinen. Setzen Sie X-Forwarded-For außerdem niemals auf 127.0.0.1.
 }
 ```
 
 Legen Sie die zulässigen Browser-Ursprünge in OmniRoute (`CORS_ALLOWED_ORIGINS` oder auf der
-Registerkarte „Security“) fest, nicht im Proxy.
+Registerkarte „Sicherheit“) fest, nicht im Proxy.
 
 ## Quelldateien
 

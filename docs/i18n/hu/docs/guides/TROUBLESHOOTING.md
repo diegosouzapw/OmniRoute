@@ -39,31 +39,31 @@ Az OmniRoute gyakori problémái és azok megoldásai.
 
 ### Sebességkorlátozás ingyenes szolgáltatóknál (429 / 400 / 401)
 
-**Tünet**: Ha a `model: "auto"` beállítást ingyenes vagy hitelesítést nem igénylő szolgáltatókkal (opencode, auggie stb.) használod, időnként válaszok helyett `HTTP 429`, `400` vagy `401` hibát kapsz. Ha néhány pillanattal később ugyanazzal a prompttal újrapróbálkozol, a kérések sikeresek, de az automatizálás (cron-feladatok, ügynökök, szkriptek) már az első hibánál leáll.
+**Tünet**: Ha a `model: "auto"` beállítást ingyenes vagy hitelesítést nem igénylő szolgáltatókkal (opencode, auggie stb.) használja, időnként válasz helyett `HTTP 429`, `400` vagy `401` hibát kap. Ha néhány pillanattal később ugyanazzal a prompttal újrapróbálkozik, a kérés sikeres, de az automatizálás (cron-feladatok, ügynökök, szkriptek) már az első hibánál megszakad.
 
-**Kiváltó ok**: Három egymástól független hibamód rakódik egymásra:
+**Kiváltó ok**: Három egymástól független hibamód hatása adódik össze:
 
-1. **Szolgáltatói sebességkorlát (`429`)**: Az ingyenes csomagok időablakonkénti kvótát alkalmazhatnak. A párhuzamos hívások hirtelen megugrása kimeríti ezt, ezért a rendszer a következő kérést elutasítja az időablak visszaállásáig.
-2. **Hibás modell az átadás során (`400`/`401`)**: Az `auto/*` készletek tartalmazhatnak olyan átadott modelleket az `opencode` szolgáltatótól, amelyek szerepelnek a katalógusban, de nem rendelkeznek élő hitelesítési adatokkal (például `oc/north-mini-code-free` → `401`). Az automatikus útválasztó megpróbálja az egyiket, az sikertelen lesz, és a hiba még a tartalékra váltás előtt továbbterjed.
-3. **A párhuzamosság felerősítő hatása (`429` terhelés alatt)**: Amikor egyszerre több ügynök- vagy cron-munkamenet használja az `auto` beállítást, az összesített kérési sebesség meghaladja az ingyenes szolgáltatók által tolerált mértéket, ezért a rendszer a szabályos hívásokat is visszaélésszerűként jelöli meg.
+1. **Szolgáltatói sebességkorlát (`429`)**: Az ingyenes csomagok időablakonkénti kvótát alkalmazhatnak. A párhuzamos hívások hirtelen sorozata kimeríti ezt, ezért a következő kérést a rendszer az időablak visszaállásáig elutasítja.
+2. **Hibás modell az áteresztett forgalomban (`400`/`401`)**: Az `auto/*` készletek tartalmazhatnak olyan, az `opencode` szolgáltatótól áteresztett modelleket, amelyek regisztrálva vannak a katalógusban, de nem rendelkeznek működő hitelesítő adatokkal (például `oc/north-mini-code-free` → `401`). Az automatikus útválasztó megpróbálja az egyiket, az sikertelen lesz, és a hiba még a tartalékra váltás előtt továbbterjed.
+3. **A párhuzamosság felerősítő hatása (terhelés alatti `429`)**: Ha egyszerre több ügynök- vagy cron-munkamenet használja az `auto` beállítást, az összesített kérésszám meghaladja az ingyenes szolgáltatók által tolerált szintet, ezért azok a szabályos hívásokat is visszaélésként jelölhetik meg.
 
-**Ellenőrzött javítás (közösségi jelentés alapján, 2026-08-10)**: hangolj be három környezeti változót, hogy a rotáció, a párhuzamosság és a tartalékra váltás kezelje az ingyenes csomagok ingadozását, ahelyett hogy a folyamat emiatt leállna:
+**Ellenőrzött javítás (közösségi jelentések alapján, 2026-08-10)**: állítsa be az alábbi három környezeti változót úgy, hogy a rotáció, a párhuzamosság és a tartalékra váltás elnyelje az ingyenes csomagok ingadozásait ahelyett, hogy leállna miattuk:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # 400/401 esetén váltás másik modellre/szolgáltatóra (kihagyja a hibás átadott modelleket)
+export OMNIROUTE_ROTATE_ON_400=true           # váltson másik modellre/szolgáltatóra 400/401 esetén (kihagyja a hibás áteresztett modelleket)
 export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # explicit felső befogadási korlát a nagy erőforrás-igényű kérésekhez (alapértelmezetten nincs beállítva: nincs kérésszámkorlát, lásd az alábbi megjegyzést)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # hosszabb, korlátozott várakozás a nagy erőforrás-igényű kapacitásra az azonnali, újrapróbálható 503 helyett
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # növelje a korlátozott várakozást a RATE_LIMIT_MAX_WAIT_MS alapértéke fölé a lassú felsőbb rétegbeli szolgáltatásokhoz
 ```
 
-Állítsd be ezeket az OmniRoute-folyamat környezetében (a démonnál, például a LaunchAgent plist vagy a `systemctl edit` használatával), majd indítsd újra az OmniRoute-ot. A rotációs jelző messze a leghatékonyabb beállítás: a végleges hibát átlátható újrapróbálkozássá alakítja a készlet egyik működő szolgáltatójánál.
+Ezeket az OmniRoute-folyamat környezetében állítsa be (a démonnál, például a LaunchAgent plist fájlon vagy a `systemctl edit` parancson keresztül), majd indítsa újra az OmniRoute szolgáltatást. A rotációs jelző önmagában a legnagyobb hatású beállítás: a végleges hibát átlátható újrapróbálkozássá alakítja a készlet egy működő szolgáltatójánál.
 
-**Megjegyzés**: Az `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` korlátozza, hogy egyszerre hány nagy erőforrás-igényű — hosszú kontextusú — kérés futhat; ez a korlát egy befogadási kapu, nem pedig szolgáltatói sebességkorlátozó. **#503-fanout frissítés:** ez a változó alapértelmezetten már nincs beállítva (mostantól csak explicit konfigurálás esetén lép életbe, mint fent) — a nagy erőforrás-igényű kérések befogadását ehelyett egy automatikusan származtatott bájtkeret (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) szabályozza, amely a gazdagép tényleges memóriakorlátjához igazodik. Emiatt egy friss telepítésnél ennek a változónak a beállítása nélkül is jóval kevesebb `503 chat_admission_busy` elutasításnak kell jelentkeznie; az explicit beállítása továbbra is pontosan a dokumentált módon működik. Az explicit bájtkeret-felülbírálások 8 MiB és 2 GiB közötti tartományra vannak korlátozva. A `413 body_exceeds_budget` nem átmeneti hiba: növeld ezt a bájtkeretet, csökkentsd az `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` értékét, vagy növeld a folyamat memóriakorlátját. Az `inflight_bytes_budget` miatti tehermentesítés átmeneti erőforrás-versengést jelez, és továbbra is újrapróbálható. A szolgáltatónkénti sebességkorlátozást (`open-sse/services/rateLimitManager.ts`) külön a `RATE_LIMIT_MAX_WAIT_MS`, a `RATE_LIMIT_MAX_QUEUE_DEPTH` és a `RATE_LIMIT_AUTO_ENABLE` szabályozza — lásd: `.env.example`.
+**Megjegyzés**: Az `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` korlátozza, hogy hány nagy erőforrás-igényű — hosszú kontextusú — kérés futhat egyszerre; ez a korlát befogadási kapu, nem szolgáltatói sebességkorlátozó. **#503-fanout frissítés:** ez a változó alapértelmezetten már nincs beállítva (mostantól csak explicit konfigurálás esetén érvényesül, ahogy fent látható) — ehelyett a nagy erőforrás-igényű kérések befogadását egy automatikusan származtatott bájtkeret (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) szabályozza, amely a gazdagép tényleges memóriakorlátjához igazodik. Emiatt egy új telepítésnél e változó beállítása nélkül is jóval kevesebb `503 chat_admission_busy` elutasításnak kell előfordulnia; az itt bemutatott explicit beállítás továbbra is pontosan a dokumentált módon működik. Az explicit bájtkeret-felülbírálások 8 MiB és 2 GiB közötti tartományra vannak korlátozva. A `413 body_exceeds_budget` nem átmeneti hiba: növelje ezt a bájtkeretet, csökkentse az `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` értékét, vagy növelje a folyamat memóriakorlátját. Az `inflight_bytes_budget` miatti terheléscsökkentés átmeneti erőforrás-versengést jelez, ezért továbbra is érdemes újrapróbálkozni. A szolgáltatónkénti sebességkorlátozást (`open-sse/services/rateLimitManager.ts`) külön a `RATE_LIMIT_MAX_WAIT_MS`, a `RATE_LIMIT_MAX_QUEUE_DEPTH` és a `RATE_LIMIT_AUTO_ENABLE` szabályozza — lásd: `.env.example`.
 
-**A működés ellenőrzése**: futtasd gyors egymásutánban kétszer az agentet/cron feladatot, és ellenőrizd, hogy mindkettő sikeresen lefut-e. A javítás előtt a második futtatás jellemzően `429`/`401` hibát ad. A javítás után a sikertelen kérések újrapróbálása — ha vannak ilyenek — transzparensen történik, és a hívás befejeződik. A `curl /monitoring/health` paranccsal is ellenőrizheted a szolgáltatói kapcsolatok `rateLimitedUntil` mezőjét, illetve az érintett szolgáltatókhoz tartozó `circuitBreakers.providerBreakers[].state` értéket — az állapot a `CLOSED`, `DEGRADED`, `OPEN` vagy `HALF_OPEN` értékek egyike (lásd: `src/shared/utils/circuitBreaker.ts`), és egy folyamatosan hibázó szolgáltató állapota `CLOSED → DEGRADED → OPEN` sorrendben változik, mielőtt az alaphelyzetbe állítási időablak engedélyezne egy próbakérést (`HALF_OPEN`).
+**A javítás ellenőrzése**: futtassa az ügynököt vagy cron-feladatot kétszer gyors egymásutánban, és ellenőrizze, hogy mindkettő sikeresen végrehajtódik-e. A javítás előtt a második futtatás jellemzően `429`/`401` hibát ad. A javítás után az esetleges hibák esetén a rendszer átláthatóan újrapróbálkozik, és a hívás befejeződik. Emellett lekérdezheti a `curl /monitoring/health` végpontot, és figyelheti a szolgáltatói kapcsolatok `rateLimitedUntil` mezőjét, valamint az érintett szolgáltatók `circuitBreakers.providerBreakers[].state` értékét — az állapot a `CLOSED`, `DEGRADED`, `OPEN` vagy `HALF_OPEN` értékek egyike lehet (lásd: `src/shared/utils/circuitBreaker.ts`), és a folyamatosan hibázó szolgáltató állapota `CLOSED → DEGRADED → OPEN` sorrendben változik, mielőtt a visszaállítási időablak engedélyezne egy próbakérést (`HALF_OPEN`).
 
-**Ha továbbra is 429-es hibát látsz**: az adott szolgáltató aktív fiókja ténylegesen kimerítette a _kvótáját_ (nem csak a sebességkorlátot érte el). Adj hozzá egy második fiókot ugyanahhoz a szolgáltatóhoz az OmniRoute irányítópultján a Providers → Accounts menüpontban, vagy vonj be egy másik ingyenes szolgáltatót is (például `routeway`, `auggie`). A rotáció csak az átmeneti sebességkorlátozási/400/401-es hibák esetén segít; a kvóta teljes kimerüléséhez második hitelesítő adat vagy másik szolgáltató szükséges.
+**Ha továbbra is 429 hibát lát**: az adott szolgáltató aktív fiókja valóban kimerítette a _kvótáját_ (nem csupán a sebességkorlátot érte el). Adjon hozzá egy második fiókot ugyanahhoz a szolgáltatóhoz az OmniRoute irányítópultján a Providers → Accounts útvonalon, vagy vegyen fel egy másik ingyenes szolgáltatót is (például `routeway`, `auggie`). A rotáció csak az átmeneti sebességkorlátozások és 400/401 hibák esetén segít; a kvóta teljes kimerüléséhez második hitelesítő adat vagy másik szolgáltató szükséges.
 
-**Ha 403-as hibát látsz a vision modelleknél (`auto/vision`, `bazaarlink/*`)**: a csatlakoztatott fiók nem rendelkezik vision funkciót tartalmazó fizetős csomaggal, vagy az API-kulcs jogosultságai nem elegendők. Ellenőrizd a szolgáltató irányítópultján, hogy a kulcs hatóköre tartalmazza-e a vision/multimodális funkciókat, vagy csatlakoztass egy fizetős szintű fiókot, és továbbra is azt használd vision célként.
+**Ha 403 hibát lát képfeldolgozó modelleknél (`auto/vision`, `bazaarlink/*`)**: a csatlakoztatott fiók nem rendelkezik képfeldolgozást tartalmazó fizetős csomaggal, vagy az API-kulcs jogosultságai nem elegendők. Ellenőrizze a szolgáltató irányítópultján, hogy a kulcs hatóköre tartalmazza-e a képfeldolgozást/multimodális használatot, vagy csatlakoztasson egy fizetős csomaghoz tartozó fiókot, és használja azt képfeldolgozási célként.
 
 ---
 
@@ -543,25 +543,25 @@ A formátumfordítási problémák hibakereséséhez használja a **Dashboard �
 
 ---
 
-## Rugalmassági beállítások
+## Ellenálló képességi beállítások
 
 ### Az automatikus sebességkorlátozás nem aktiválódik
 
 - Az automatikus sebességkorlátozás csak API-kulcsot használó szolgáltatókra vonatkozik (OAuth-/előfizetés-alapúakra nem)
-- Ellenőrizze, hogy a **Settings → Resilience → Provider Profiles** alatt engedélyezve van-e az automatikus sebességkorlátozás
-- Ellenőrizze, hogy a szolgáltató ad-e vissza `429` állapotkódot vagy `Retry-After` fejlécet
+- Ellenőrizze, hogy a **Beállítások → Ellenálló képesség → Szolgáltatói profilok** alatt engedélyezve van-e az automatikus sebességkorlátozás
+- Ellenőrizze, hogy a szolgáltató küld-e `429` állapotkódokat vagy `Retry-After` fejléceket
 
 ### Az exponenciális visszalépés finomhangolása
 
 A szolgáltatói profilok a következő beállításokat támogatják:
 
-- **Alapvető késleltetés** — Az első hiba utáni kezdeti várakozási idő (alapértelmezett: 1s)
+- **Alap késleltetés** — Az első hiba utáni kezdeti várakozási idő (alapértelmezett: 1s)
 - **Maximális késleltetés** — A várakozási idő felső korlátja (alapértelmezett: 30s)
-- **Szorzó** — Ennyivel nő a késleltetés minden egymást követő hiba után (alapértelmezett: 2x)
+- **Szorzó** — Ennyivel növekszik a késleltetés minden egymást követő hiba után (alapértelmezett: 2x)
 
-### Tömeges egyidejű újrapróbálkozások elkerülése
+### Kéréshullámok elleni védelem
 
-Amikor sok párhuzamos kérés ér el egy sebességkorlátozott szolgáltatót, az OmniRoute mutexet és automatikus sebességkorlátozást használ a kérések sorosításához és a továbbgyűrűző hibák megelőzéséhez. Ez automatikusan működik az API-kulcsot használó szolgáltatóknál.
+Amikor sok párhuzamos kérés ér el egy sebességkorlátozott szolgáltatót, az OmniRoute mutexet és automatikus sebességkorlátozást használ a kérések sorosításához és a továbbgyűrűző hibák megelőzéséhez. Ez az API-kulcsot használó szolgáltatóknál automatikusan történik.
 
 ### A csevegési kérések 503 / chat_admission_busy hibával meghiúsulnak
 
@@ -571,12 +571,12 @@ Amikor sok párhuzamos kérés ér el egy sebességkorlátozott szolgáltatót, 
   `chat_admission_busy`.
 - A válasz tartalmazza a `Retry-After` fejlécet. A #12135 óta az érték a megfigyelt
   kihasználtságból származik — a kérés által már kivárt `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`
-  időablak és az aktuális nagy terhelésű foglalások fennállási ideje közül a nagyobbik — egész
-  másodpercre felfelé kerekítve, legfeljebb 60-ig. Terheletlen beléptetési kapu esetén megmaradnak
-  a korábbi alsó korlátok: 2 másodperc a bájtalapú útvonalon, 1 másodperc a struktúraalapú
-  útvonalon (amely a `reason: "structure_limit"` értéket is tartalmazza).
-- Ez akkor fordulhat elő, amikor egy másik nagy terhelésű csevegési kérés vagy hosszan futó
-  streamelt válasz még folyamatban van.
+  időablak és a jelenlegi nagy erőforrás-igényű lefoglalások fennállási ideje közül a nagyobbik — egész
+  másodpercre felfelé kerekítve, legfeljebb 60 másodpercig. Üres beléptetési kapunál megmaradnak a korábbi
+  minimumértékek: 2 másodperc a bájtalapú útvonalon, 1 másodperc a struktúraalapú útvonalon (amely a
+  `reason: "structure_limit"` mezőt is tartalmazza).
+- Ez akkor fordulhat elő, amikor egy másik nagy erőforrás-igényű csevegés vagy hosszú ideig futó streamelt válasz még
+  folyamatban van.
 
 A bájtalapú válasz törzse:
 
@@ -590,58 +590,52 @@ A bájtalapú válasz törzse:
 }
 ```
 
-A struktúraalapú válasz ugyanazt a típust és kódot használja, a következő üzenettel:
+A struktúraalapú válasz ugyanazt a típust és kódot használja, ezzel az üzenettel:
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
-és a `reason: "structure_limit"` értékkel.
-Az alapértelmezett küszöbértékek mellett egy kérés akkor minősül strukturálisan nagynak, ha legalább
-`200` üzenetet, legalább `64` eszközt vagy legalább `32,000` becsült tokent tartalmaz, illetve ha
-a korlátozott struktúrabecslés eléri a `10,000` bejárt csomópontos vagy `12` mélységi korlátját.
+és a `reason: "structure_limit"` mezővel.
+Az alapértelmezett küszöbértékek mellett egy kérés akkor számít strukturálisan nagy erőforrás-igényűnek, ha legalább `200` üzenetet,
+legalább `64` eszközt vagy legalább `32,000` becsült tokent tartalmaz, illetve ha a korlátozott struktúrabecslés
+eléri a `10,000` meglátogatott csomópontban vagy `12` szintű mélységben meghatározott korlátját.
 
-**Ok:** Ez szándékos terheléscsökkentés az OmniRoute-on belül, nem pedig a felsőbb szintű szolgáltató hibája.
-Minden folyamat egy folyamatlokális védelmet használ, hogy korlátozott kapacitást foglaljon le a nagy
-terhelésű kérések számára, mielőtt megtartaná és feldolgozná a nagy méretű kéréstörzset. Egy nagy
-terhelésű foglalás az SSE-válasz teljes élettartama alatt fennmarad.
+**Ok:** Ez az OmniRoute-on belüli szándékos terheléscsökkentés, nem egy felsőbb szintű szolgáltató hibája.
+Minden folyamat folyamatlokális védelmet használ a korlátozott nagy erőforrás-igényű kapacitás lefoglalására, mielőtt
+megtartaná és feldolgozná egy nagy kérés törzsét. A nagy erőforrás-igényű lefoglalás egy SSE-
+válasz teljes élettartama alatt fennmarad.
 
-**#503-szétterjedés:** a javítás előtt a védelem a párhuzamosságot a kérések rögzített SZÁMÁRA
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, alapértelmezett: `1`) korlátozta, a gazdagép memóriájától
-függetlenül, ezért a kódolóügynökök többfelé ágazása (több alügynök/CLI, rendszeresen > 256 KB-os
-törzsek) a tényleges párhuzamosságot körülbelül 1-re csökkentette, és teljesen normál terhelés
-mellett is 503-as hibákhoz vezetett. A védelem most már önhangoló: egy automatikusan meghatározott
-beolvasási BÁJTkeret (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) szabályozza, amelyet a folyamat tényleges
-memóriakorlátja alapján méretez a rendszer, továbbá egy élő erőforrásterhelési jelzést is figyelembe
-vesz — így csak akkor csökkenti a terhelést, amikor a gazdagépen valóban memórianyomás áll fenn, nem
-pusztán azért, mert egynél több nagy terhelésű kérés érkezett egyszerre. A régi darabszámkorlátot
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) a rendszer továbbra is figyelembe veszi, de csak akkor, ha
-kifejezetten beállítja.
+**#503-szétterjedés:** a javítás előtt a védelem egy rögzített kérésszámban korlátozta a párhuzamosságot
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, alapértelmezett: `1`), a gazdagép memóriájától függetlenül, ezért a kódoló ügynökök
+párhuzamos kérésszétosztása (több alügynök/CLI, rendszeresen > 256 KB méretű törzsek) a tényleges
+párhuzamosságot ~1-re csökkentette, és teljesen normális terhelés alatt is 503-as hibákat okozott. A védelem most önhangoló: egy
+automatikusan származtatott beérkezési BÁJTkeret (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) szabályozza, amelynek mérete a
+folyamat tényleges memóriakorlátjához igazodik, továbbá egy élő erőforrás-terhelési jelzést is figyelembe vesz — így
+csak akkor csökkenti a terhelést, amikor a gazdagép valóban memórianyomás alatt áll, nem pusztán azért, mert egyszerre több
+nagy erőforrás-igényű kérés érkezett. A régi darabszámkorlátot (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) a rendszer
+továbbra is figyelembe veszi, de csak akkor, ha kifejezetten beállítja.
 
-Ha a kapacitás foglalt, a nagy terhelésű kérés először legfeljebb
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` ideig (alapértelmezett: `2000`, a `0` letiltja a várakozást)
-vár egy hely felszabadulására, mielőtt az újrapróbálható `503` választ adná. A korlátozott várakozás
-azért létezik, hogy a nagy terhelésű részkéréseket párhuzamosan elágaztató, ügynökszerű kliensek
-(OpenCode, Claude Code, Cursor) sorosítsák a kiugró terhelést ahelyett, hogy azonnali elutasításokkal
-felhasználnák a teljes újrapróbálkozási keretüket, majd feladatvégzés közben leállnának.
-A nagy terhelésű foglalások aktuális kihasználtsága, a meghatározott bájtkeret és az élő terhelés
-súlyossága a `GET /api/monitoring/health` → `chatAdmission` alatt érhető el (`inflightBytes`,
-`maxInflightBytes`, `budgetSource`, `pressureSeverity`, `countCapEnabled`) — ellenőrizze ezeket,
-mielőtt bármely környezeti változót módosítaná.
-A Settings → Resilience → Request Queue → Concurrent Requests beállítás ezt nem szabályozza; az
-egy különálló szolgáltatói kérési sor mechanizmusát vezérli.
+Ha a kapacitás foglalt, egy nagy erőforrás-igényű kérés először legfeljebb
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` ideig vár (alapértelmezés szerint `RATE_LIMIT_MAX_WAIT_MS`; a `0` kikapcsolja a várakozást) egy hely felszabadulására,
+mielőtt visszaadná az újrapróbálható `503` választ. A korlátozott várakozás azért létezik, hogy az ügynökszerű kliensek
+(OpenCode, Claude Code, Cursor), amelyek párhuzamosan osztanak szét nagy erőforrás-igényű alkéréseket, sorosítsák a kiugró terhelést,
+ahelyett, hogy az azonnali elutasításokra felhasználnák a teljes újrapróbálkozási keretüket, majd feladat közben leállnának.
+A nagy erőforrás-igényű lefoglalások aktuális kihasználtsága, a meghatározott bájtkeret és az élő terhelés súlyossága
+a `GET /api/monitoring/health` → `chatAdmission` alatt érhető el (`inflightBytes`, `maxInflightBytes`,
+`budgetSource`, `pressureSeverity`, `countCapEnabled`) — ezeket ellenőrizze, mielőtt bármilyen környezeti változót módosítana.
+A Beállítások → Ellenálló képesség → Kéréssor → Párhuzamos kérések beállítás ezt nem szabályozza; az a beállítás
+egy különálló szolgáltatói kéréssor-mechanizmust vezérel.
 
 **Javítás:**
 
-1. Először próbálkozzon újra. A klienseknek figyelembe kell venniük a `Retry-After` értékét, és az
-   azonnali ismétlés helyett visszalépési stratégiát kell használniuk.
-2. Mielőtt bármit finomhangolna, ellenőrizze a `/api/monitoring/health` → `chatAdmission` értékét. A
-   `countCapEnabled: false` és a bőséges `maxInflightBytes` azt jelenti, hogy az automatikusan
-   meghatározott keret már megfelelően működik; a `high`/`critical` `pressureSeverity` azt jelenti,
-   hogy a gazdagépen valóban kevés a memória — ez beléptetési környezeti változóval nem javítható,
-   hanem több RAM-ra vagy kisebb munkaterhelésre van szükség.
-3. Csak akkor írja felül közvetlenül az `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` használatával, ha a
-   `/api/monitoring/health` azt mutatja, hogy az automatikusan meghatározott keret valóban túl kicsi
-   a gazdagépéhez (ez ritka — a rendszer már eleve a konténerektől a fizikai gépekig terjedő
-   környezethez igazítja), ahelyett, hogy visszatérne a régi, kérésszámon alapuló korláthoz.
+1. Először próbálkozzon újra. A klienseknek figyelembe kell venniük a `Retry-After` fejlécet, és az azonnali
+   ismétlés helyett visszalépési stratégiát kell használniuk.
+2. Mielőtt bármit finomhangolna, ellenőrizze a `/api/monitoring/health` → `chatAdmission` értékeit. A `countCapEnabled:
+false` és a bőséges `maxInflightBytes` azt jelenti, hogy az automatikusan származtatott keret már megfelelően
+   működik; a `high`/`critical` értékű `pressureSeverity` azt jelzi, hogy a gazdagépnek valóban kevés a memóriája —
+   ez nem javítható egy beléptetési környezeti változóval, hanem több RAM-ra vagy kisebb munkaterhelésre van szükség.
+3. Csak akkor bírálja felül közvetlenül az `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` használatával, ha a `/api/monitoring/health`
+   azt mutatja, hogy az automatikusan származtatott keret valóban túl kicsi a gazdagépéhez
+   (ez ritka — már eleve a konténerektől a fizikai gépekig skálázódik), ahelyett, hogy visszatérne az örökölt kérésszámkorláthoz.
 
-A hiteles beléptetési beállításokat lásd a [környezeti változók referenciájában](../reference/ENVIRONMENT.md#4-security--authentication).
+A mérvadó beléptetési beállításokat lásd a [környezeti változók referenciájában](../reference/ENVIRONMENT.md#4-security--authentication).
 
 ---
 

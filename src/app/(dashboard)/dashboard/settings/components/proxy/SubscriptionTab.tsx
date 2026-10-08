@@ -15,11 +15,14 @@ interface SubscriptionRecord {
   localCoreEndpoint: string | null;
   updateIntervalMinutes: number;
   controlUrl: string | null;
+  coreConfigPath: string | null;
+  coreReloadMode?: "api" | "command" | "external" | "undeclared" | null;
   hasControlSecret: boolean;
   selectorMinGapSeconds: number;
   selectorLastSwitchAt: string | null;
   selectorLastSwitchResult: string | null;
   selectorLastSwitchMember: string | null;
+  selectorLastSwitchKind: string | null;
   lastFetchedAt: string | null;
   status: "ok" | "error" | "empty";
   error: string | null;
@@ -41,6 +44,7 @@ type FormState = {
   ruleProviders: string[];
   localCoreEndpoint: string;
   controlUrl: string;
+  coreConfigPath: string;
   controlSecret: string;
   selectorMinGapSeconds: number;
   updateIntervalMinutes: number;
@@ -54,6 +58,7 @@ const EMPTY_FORM: FormState = {
   ruleProviders: [],
   localCoreEndpoint: "",
   controlUrl: "",
+  coreConfigPath: "",
   controlSecret: "",
   selectorMinGapSeconds: 60,
   updateIntervalMinutes: 60,
@@ -98,6 +103,22 @@ export default function SubscriptionTab() {
   const [error, setError] = useState<string | null>(null);
 
   const t = useTranslations("settings");
+
+  // Map a stored refusal kind to a generic display label. Unknown future
+  // kinds fall back to plain English so the UI never shows a raw code.
+  const switchKindLabel = useCallback(
+    (kind: string | null): string | null => {
+      if (!kind) return null;
+      try {
+        const label = t(`proxySubscription.switchKind.${kind}`);
+        if (label && !label.includes("switchKind.")) return label;
+      } catch {
+        // fall through to the generic fallback below
+      }
+      return kind.replace(/_/g, " ");
+    },
+    [t]
+  );
 
   // Resolve a subscription `error` value into a localized message. Values are
   // either a `{ code, detail? }` JSON (user-facing, i18n'd) or a plain
@@ -183,6 +204,7 @@ export default function SubscriptionTab() {
       ruleProviders: sub.ruleProviders ?? [],
       localCoreEndpoint: sub.localCoreEndpoint ?? "",
       controlUrl: sub.controlUrl ?? "",
+      coreConfigPath: sub.coreConfigPath ?? "",
       controlSecret: "",
       selectorMinGapSeconds: sub.selectorMinGapSeconds ?? 60,
       updateIntervalMinutes: sub.updateIntervalMinutes,
@@ -207,6 +229,7 @@ export default function SubscriptionTab() {
         ruleProviders: form.mode === "rule" ? form.ruleProviders : null,
         localCoreEndpoint: form.localCoreEndpoint.trim() || null,
         controlUrl: form.controlUrl.trim() || null,
+        coreConfigPath: form.coreConfigPath.trim() || null,
         selectorMinGapSeconds: Number(form.selectorMinGapSeconds) || 60,
         updateIntervalMinutes: Number(form.updateIntervalMinutes) || 60,
         enabled: form.enabled,
@@ -298,11 +321,13 @@ export default function SubscriptionTab() {
       const member = sub.selectorLastSwitchMember
         ? ` · ${t("proxySubscription.lastSwitchMember")}: ${sub.selectorLastSwitchMember}`
         : "";
+      const kindLabel = switchKindLabel(sub.selectorLastSwitchKind);
+      const kind = kindLabel ? ` · ${t("proxySubscription.lastSwitchKind")}: ${kindLabel}` : "";
       const next = nextSwitchLabel(sub);
       const nextText = next === "now" ? t("proxySubscription.nextSwitchNow") : next;
-      return `${t("proxySubscription.lastSwitch")}: ${sub.selectorLastSwitchAt}${result}${member} · ${t("proxySubscription.nextSwitch")}: ${nextText}`;
+      return `${t("proxySubscription.lastSwitch")}: ${sub.selectorLastSwitchAt}${result}${member}${kind} · ${t("proxySubscription.nextSwitch")}: ${nextText}`;
     },
-    [t]
+    [t, switchKindLabel]
   );
 
   const statusBadge: Record<SubscriptionRecord["status"], string> = {
@@ -472,6 +497,20 @@ export default function SubscriptionTab() {
                   : t("proxySubscription.controlSecretNotSet")}
               </span>
             </label>
+
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="text-text-muted">{t("proxySubscription.coreConfigPath")}</span>
+              <input
+                className="rounded border border-border bg-surface px-2 py-1.5 text-text outline-none focus:border-primary"
+                value={form.coreConfigPath}
+                onChange={(e) => setForm({ ...form, coreConfigPath: e.target.value })}
+                placeholder={t("proxySubscription.coreConfigPathPlaceholder")}
+                inputMode="url"
+              />
+              <span className="text-xs text-text-muted">
+                {t("proxySubscription.coreConfigPathDesc")}
+              </span>
+            </label>
           </div>
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -580,6 +619,13 @@ export default function SubscriptionTab() {
                   )}
                   {describeSwitch(sub) && (
                     <p className="text-xs text-text-muted mt-1">{describeSwitch(sub)}</p>
+                  )}
+                  {sub.coreConfigPath && (
+                    <p className="text-xs text-text-muted mt-1">
+                      {t("proxySubscription.coreReloadAppliedBy", {
+                        mode: sub.coreReloadMode ?? "undeclared",
+                      })}
+                    </p>
                   )}
                   {showCoreHint && (
                     <div className="mt-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 space-y-1.5">

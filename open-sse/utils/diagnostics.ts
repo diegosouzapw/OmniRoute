@@ -11,7 +11,10 @@
 
 import { sanitizeErrorMessage } from "./error.ts";
 import { classifyFakeSuccessBody } from "../services/errorClassifier.ts";
-import { SYNTHETIC_RESPONSES_SEQUENCE_NUMBER } from "./responsesSequence.ts";
+import {
+  buildSyntheticResponsesFailureId,
+  SYNTHETIC_RESPONSES_SEQUENCE_NUMBER,
+} from "./responsesSequence.ts";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -150,9 +153,10 @@ export function synthResponsesFailure(reason?: MalformedReason): string {
     // #14330: this frame is synthesized outside the real per-stream sequence
     // counter, so it uses the shared synthetic seed instead of omitting the
     // required field — a strict Responses decoder aborts without it.
+    // #15202: `response.id` must be a string; `null` aborts those same decoders.
     sequence_number: SYNTHETIC_RESPONSES_SEQUENCE_NUMBER,
     response: {
-      id: null,
+      id: buildSyntheticResponsesFailureId(),
       status: "failed",
       error: {
         type: "stream_error",

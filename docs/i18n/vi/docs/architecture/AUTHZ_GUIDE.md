@@ -17,13 +17,13 @@ OmniRoute có một quy trình ủy quyền nhận biết tuyến đường, ki�
 
 ### 1. Khóa API (Bearer)
 
-Được sử dụng cho các API máy khách tương thích với OpenAI/Anthropic/Gemini và một số tuyến quản trị khi khóa có phạm vi `manage`.
+Được sử dụng cho các API máy khách tương thích với OpenAI/Anthropic/Gemini và một số route quản lý khi khóa có phạm vi `manage`.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Được xác thực bởi `isValidApiKey()` / `extractApiKey()` trong `src/sse/services/auth.ts` và được tái xuất thông qua `src/shared/utils/apiAuth.ts`. Trình xác thực cũng chấp nhận các biến môi trường `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` làm khóa chuyển tiếp lâu dài (vấn đề #1350).
+Được xác thực bởi `isValidApiKey()` / `extractApiKey()` trong `src/sse/services/auth.ts` và được tái xuất thông qua `src/shared/utils/apiAuth.ts`. Trình xác thực cũng chấp nhận các biến môi trường `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` làm khóa chuyển tiếp cố định (vấn đề #1350).
 
 ### 2. Phiên bảng điều khiển (cookie auth_token)
 
@@ -33,43 +33,45 @@ Dành cho các trang bảng điều khiển và thao tác quản trị.
 Cookie: auth_token=<JWT được ký bằng JWT_SECRET>
 ```
 
-Cookie chỉ là một phiên khi JWT được xác minh thành công **và** mang `authenticated: true`
+Một cookie chỉ được xem là phiên khi JWT được xác minh thành công **và** chứa `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Mọi
-thành phần sử dụng cookie (bộ bảo vệ tuyến, làm mới quy trình authz, bắt tay WebSocket, máy chủ
-trực tiếp, `/api/settings/require-login`, `/api/auth/status`) đều đi qua trình trợ giúp đó.
-Các JWT khác được ký bằng `JWT_SECRET` vẫn tồn tại — tính năng chuyển tiếp Cursor CLI cấp
-token `iss "omniroute" / aud "cursor-cli"` cho người giữ khóa — và chúng không bao giờ là phiên
+thành phần sử dụng cookie (trình bảo vệ route của bảng điều khiển (`isDashboardSessionAuthenticated()`), làm mới pipeline authz, bắt tay WebSocket, máy chủ
+trực tiếp, `/api/settings/require-login`, `/api/auth/status`) đều đi qua helper đó.
+Ngoài ra còn có các JWT khác được ký bằng `JWT_SECRET` — cơ chế chuyển tiếp của Cursor CLI phát hành
+token `iss "omniroute" / aud "cursor-cli"` cho chủ sở hữu khóa — và những token này không bao giờ là phiên
 (#13298).
 
-Được xác minh bởi `isDashboardSessionAuthenticated()` trong `src/shared/utils/apiAuth.ts`. Quy trình tự động làm mới JWT khi thời hạn còn lại dưới 7 ngày trong tổng thời hạn 30 ngày.
+Được xác minh bởi `isDashboardSessionAuthenticated()` trong `src/shared/utils/apiAuth.ts`. Pipeline tự động làm mới JWT khi thời hạn còn lại ít hơn 7 ngày trong vòng đời 30 ngày của token.
 
-Một số tuyến quản trị chấp nhận **một trong hai** chế độ: cookie HOẶC `Bearer <key>` khi khóa API có phạm vi `manage` (hoặc `admin`). Đây là cơ chế cho phép quy trình làm việc "có thể cấu hình thông qua lệnh gọi API" được bổ sung trong v3.8.
+Một phiên cũng có thể kết thúc trước khi hết 30 ngày vì mọi trình phát hành đều đi qua `mintDashboardSessionToken` (với thời điểm phát hành `iat` và mã định danh `jti`), đồng thời trình xác minh kiểm tra hai cài đặt: `sessionsValidAfter`, được thiết lập khi thay đổi mật khẩu để mọi phiên được phát hành trước thời điểm đó không còn được xác minh (trình duyệt đã thay đổi mật khẩu sẽ nhận được cookie mới), và `revokedDashboardSessions`, nơi `POST /api/auth/logout` thêm `jti` của phiên đã đăng xuất. Các phiên được phát hành bởi phiên bản cũ hơn không chứa cả hai claim này và vẫn hợp lệ cho đến lần thay đổi mật khẩu đầu tiên. Nếu không thể đọc các cài đặt, phiên sẽ không được tin cậy.
+
+Một số route quản lý chấp nhận **một trong hai** chế độ: cookie HOẶC `Bearer <key>` khi khóa API có phạm vi `manage` (hoặc `admin`). Đây là cơ chế hỗ trợ quy trình "có thể cấu hình thông qua các lệnh gọi API" được bổ sung trong v3.8.
 
 #### Cổng đăng nhập OIDC tùy chọn (#6973)
 
-Đăng nhập quản trị trên bảng điều khiển cũng hỗ trợ quy trình OIDC (OpenID Connect) **tùy chọn tham gia**
+Đăng nhập quản trị bảng điều khiển cũng hỗ trợ quy trình OIDC (OpenID Connect) **tùy chọn bật**
 song song với đăng nhập bằng mật khẩu mặc định — đăng nhập bằng mật khẩu không bao giờ bị loại bỏ mà chỉ
 được bổ sung:
 
 - Bị vô hiệu hóa trừ khi `settings.oidcEnabled === true` **và** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` đều được cấu hình (Cài đặt → Xác thực).
+  `oidcClientId` / `oidcClientSecret` đều đã được cấu hình (Cài đặt → Xác thực).
   Nếu không, `GET /api/auth/oidc/login` trả về `400`.
-- `GET /api/auth/oidc/login` phát hiện `authorization_endpoint` từ
-  `/.well-known/openid-configuration` của nhà phát hành (dự phòng về
+- `GET /api/auth/oidc/login` khám phá `authorization_endpoint` từ
+  `/.well-known/openid-configuration` của bên phát hành (dự phòng bằng
   `<issuer>/authorize`), tạo URI chuyển hướng từ yêu cầu đến
-  (có xét `x-forwarded-proto`) và chuyển hướng đến IdP với một `state` ngẫu nhiên
-  được lưu trong cookie `oidc_state` `httpOnly`.
+  (có hỗ trợ `x-forwarded-proto`) và chuyển hướng đến IdP bằng một `state` ngẫu nhiên
+  được lưu trong cookie `oidc_state` có thuộc tính `httpOnly`.
 - `GET /api/auth/oidc/callback` xác thực `state`, trao đổi mã ủy quyền
-  và xác minh chữ ký của token ID thông qua JWKS của nhà phát hành
-  (`createRemoteJWKSet` của `jose`, được lưu vào bộ nhớ đệm theo từng URI JWKS), kèm các bước kiểm tra
-  `issuer`/`audience`. Danh sách cho phép `oidcAllowedSubjects` tùy chọn khớp với
-  claim `sub` hoặc claim `email` của token — claim email chỉ được chấp nhận khi
-  `email_verified === true`, vì vậy email chưa được xác minh tại IdP không bao giờ có thể vượt qua
-  cổng.
-- Khi thành công, quy trình sẽ cấp **chính xác cùng một** JWT `auth_token` có thời hạn 30 ngày mà
-  chức năng đăng nhập bằng mật khẩu cấp (`src/app/api/auth/login/route.ts`), vì vậy phần còn lại của
-  quy trình phiên bảng điều khiển (tự động làm mới, cờ cookie) không thay đổi —
-  OIDC chỉ thay thế cách cookie được cấp chứ không thay đổi quyền mà cookie đó cung cấp.
+  và xác minh chữ ký của token ID thông qua JWKS của bên phát hành
+  (`createRemoteJWKSet` của `jose`, được lưu vào bộ nhớ đệm theo từng URI JWKS), cùng với việc kiểm tra `issuer`/`audience`.
+  Danh sách cho phép `oidcAllowedSubjects` tùy chọn sẽ đối chiếu với claim
+  `sub` hoặc claim `email` của token — claim email chỉ được chấp nhận khi
+  `email_verified === true`, vì vậy một email chưa được xác minh tại IdP sẽ không bao giờ vượt qua
+  cổng này.
+- Khi thành công, hệ thống phát hành JWT `auth_token` 30 ngày **hoàn toàn giống** JWT được cấp khi
+  đăng nhập bằng mật khẩu (`src/app/api/auth/login/route.ts`), vì vậy phần còn lại của
+  pipeline phiên bảng điều khiển (tự động làm mới, các cờ cookie) không thay đổi —
+  OIDC chỉ thay thế cách cookie được phát hành chứ không thay đổi những quyền mà cookie cấp.
 
 ## Các lớp tuyến
 

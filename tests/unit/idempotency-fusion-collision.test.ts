@@ -145,3 +145,18 @@ test("Chat and Responses generation limits participate in the fingerprint", () =
     composeIdempotencyKey({ ...base, body: { input: "hello", max_output_tokens: 200 } })
   );
 });
+
+test("the same key, model and body from different API keys get DIFFERENT keys", () => {
+  const base = { rawKey: "req-1", provider: "cc", model: "claude-opus-4-6", messages: MSGS };
+  const a = composeIdempotencyKey({ ...base, apiKeyId: "key-a" });
+  const b = composeIdempotencyKey({ ...base, apiKeyId: "key-b" });
+  assert.notEqual(a, b);
+});
+
+test("a retry from the SAME API key still replays (same key)", () => {
+  const base = { rawKey: "req-1", provider: "cc", model: "claude-opus-4-6", messages: MSGS };
+  assert.equal(
+    composeIdempotencyKey({ ...base, apiKeyId: "key-a" }),
+    composeIdempotencyKey({ ...base, apiKeyId: "key-a" })
+  );
+});

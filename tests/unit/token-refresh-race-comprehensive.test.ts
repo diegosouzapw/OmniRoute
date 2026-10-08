@@ -21,8 +21,19 @@ test("Fix A: getAccessToken accepts an onPersist parameter", async () => {
 
 test("Fix A: getAccessToken invokes onPersist INSIDE the per-connection mutex closure", async () => {
   const src = await read("open-sse/services/tokenRefresh.ts");
-  const closureMatch = src.match(/entry\.promise\s*=\s*\(async\s*\(\)\s*=>\s*\{([\s\S]+?)\}\)\(\)/);
+  // #15002 (#14970) moved the closure into `const work = (async () => {...})()` and made the
+  // shared `entry.promise` a bounded race over it; the closure is still the mutex body.
+  const closureMatch = src.match(
+    /(?:entry\.promise|const work)\s*=\s*\(async\s*\(\)\s*=>\s*\{([\s\S]+?)\}\)\(\)/
+  );
   assert.ok(closureMatch, "Per-connection mutex closure must use the (async () => {...})() form");
+  if (/const work\s*=/.test(closureMatch![0])) {
+    assert.match(
+      src,
+      /entry\.promise\s*=\s*Promise\.race\(\[\s*work,/,
+      "the shared mutex promise must be the raced `work` closure"
+    );
+  }
   const closureBody = closureMatch![1];
   assert.match(
     closureBody,
@@ -177,7 +188,6 @@ test("Imports: base.ts imports runWithOnPersist from open-sse tokenRefresh", asy
   assert.match(src, /from\s+"\.\.\/services\/tokenRefresh\.ts"/);
 });
 
-
 test("serialized refresh re-checks rotation inside the lane, not before waiting", async () => {
   const src = await read("open-sse/services/tokenRefresh.ts");
   const start = src.indexOf("async function _getAccessTokenWithStalenessCheck");
@@ -186,7 +196,8 @@ test("serialized refresh re-checks rotation inside the lane, not before waiting"
   const wrapper = src.slice(start, inner);
   assert.match(
     wrapper,
-    /serializeRefresh\(provider,\s*\(\)\s*=>/,
+    // Whitespace-tolerant: #15002 added a `log` argument, so prettier wraps the call.
+    /serializeRefresh\(\s*provider,\s*\(\)\s*=>/,
     "the network POST must stay behind serializeRefresh"
   );
   assert.match(wrapper, /_refreshWithFreshCredentials/);

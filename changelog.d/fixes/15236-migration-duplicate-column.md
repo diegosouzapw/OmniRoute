@@ -1,0 +1,1 @@
+- **fix(db):** a migration file that hits "duplicate column name" now gets its missing columns instead of being marked applied with none of them added, which left routes failing with "no such column" ([#15236](https://github.com/diegosouzapw/OmniRoute/pull/15236)) — thanks @maxmad64bis

@@ -4,16 +4,18 @@
 
 ---
 
-OmniRoute သည် provider **account အပြီးတိုင် အသုံးမပြုနိုင်တော့ကြောင်း** (ဆိုင်းငံ့ခံရခြင်း / ပိတ်သိမ်းခံရခြင်း / ToS ချိုးဖောက်မှုကြောင့် ပိတ်ပင်ခံရခြင်း) ဖော်ပြသည့် အချက်ပြမှုများကို ရှာဖွေရန် upstream error response များကို စစ်ဆေးပြီး၊ ကိုက်ညီမှုတွေ့ရှိပါက ထို connection ကို **အပြီးသတ် `banned` state** သို့ ရွှေ့ပေးသည်။ ထို့ကြောင့် ၎င်း connection ကို request များအတွက် နောက်ထပ်ရွေးချယ်တော့မည် မဟုတ်ပါ။ ဤအရာကို **Security → Banned Keywords** settings card က စီစဉ်သတ်မှတ်ပေးသည် ("အပြီးတိုင် account ပိတ်ပင်ခံရမှုကို ဖော်ထုတ်စေမည့် ထပ်ဆောင်း keyword များ။ Built-in keyword များသည် အမြဲတမ်း သက်ရောက်သည်။")။
+OmniRoute သည် provider **အကောင့် အပြီးအပိုင် အသုံးမပြုနိုင်တော့ကြောင်း** (ဆိုင်းငံ့ခံရခြင်း / ပိတ်သိမ်းခံရခြင်း / ToS ချိုးဖောက်မှုကြောင့် ပိတ်ပင်ခံရခြင်း) ဖော်ပြသည့် အချက်ပြများကို ရှာဖွေရန် upstream error response များကို စစ်ဆေးပြီး၊ ကိုက်ညီမှုရှိသည့်အခါ အဆိုပါ connection ကို **အဆုံးသတ် `banned` အခြေအနေ** သို့ ရွှေ့ပေးသဖြင့် request များအတွက် ထပ်မံရွေးချယ်တော့မည် မဟုတ်ပါ။ ဤအရာကို **Security → Banned Keywords** settings card က စီစဉ်သတ်မှတ်ပေးသည် ("အကောင့်ကို အပြီးအပိုင် ပိတ်ပင်ထားကြောင်း စစ်ဆေးဖော်ထုတ်မှုကို ဖြစ်ပေါ်စေသည့် ထပ်ဆောင်း keyword များ။ Built-in keyword များသည် အမြဲတမ်း သက်ရောက်သည်။")။
 
-ဤစာမျက်နှာတွင် built-in စာရင်း၊ ဖော်ထုတ်မှု လုပ်ငန်းစဉ်၊ ၎င်း၏ သက်ရောက်မှုနယ်ပယ်၊ custom keyword များကို ဘေးကင်းစွာ ထည့်သွင်းနည်းနှင့် အမှတ်အသားပြုခံထားရသော connection ကို ပြန်လည်အသုံးပြုနိုင်အောင် လုပ်ဆောင်နည်းတို့ကို မှတ်တမ်းတင်ထားသည်။ အပြီးသတ် state ကိုယ်တိုင်သည် ခံနိုင်ရည်ရှိမှု model ၏ အစိတ်အပိုင်းဖြစ်သည် — [RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("အပြီးသတ် state များ") ကို ကြည့်ပါ။
+ဤစာမျက်နှာတွင် built-in list၊ စစ်ဆေးဖော်ထုတ်မှု လုပ်ငန်းစဉ်၊ ၎င်း၏ သက်ရောက်မှုနယ်ပယ်၊ custom keyword များကို ဘေးကင်းစွာ ထည့်သွင်းနည်းနှင့် အမှတ်အသားပြုခံထားရသော connection ကို ပြန်လည်အသုံးပြုနိုင်အောင် ပြုလုပ်နည်းတို့ကို မှတ်တမ်းတင်ထားသည်။ အဆိုပါ အဆုံးသတ်အခြေအနေသည် resilience model ၏ အစိတ်အပိုင်းတစ်ခုဖြစ်သည် — [RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("အဆုံးသတ်အခြေအနေများ") ကို ကြည့်ပါ။
 
-**တရားဝင်ကိုးကားရမည့် source:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`)။
+**အမှန်တကယ် ကိုးကားရမည့် source:** `open-sse/services/accountFallback.ts`
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+ထို့အပြင် အဆုံးသတ်မဟုတ်သော အတည်ပြုမှု class
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) နှင့် ၎င်းကို အသုံးပြုသည့် 403 branch အတွက် `open-sse/services/errorClassifier.ts` ကို ကိုးကားပါ။
 
-## Built-in keyword များ
+## ထည့်သွင်းပါရှိပြီးသား သော့ချက်စကားလုံးများ
 
-Custom စာရင်းတစ်ခုခု ရှိသည်ဖြစ်စေ မရှိသည်ဖြစ်စေ အောက်ပါ substring 8 ခုသည် စာလုံးအကြီးအသေး မခွဲခြားဘဲ အမြဲတမ်း သက်ရောက်သည်-
+စိတ်ကြိုက်စာရင်းတစ်ခုခုနှင့် မသက်ဆိုင်ဘဲ အောက်ပါ substring 7 ခုသည် အမြဲတမ်း အကျုံးဝင်သည် (စာလုံးအကြီးအသေး မခွဲခြားပါ) -
 
 ```
 account_deactivated
@@ -21,23 +23,51 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> Provider များက ၎င်းတို့၏ ပိတ်ပင်ကြောင်း ဖော်ပြသည့် စာသားအသုံးအနှုန်းများကို ပြောင်းလဲသည်နှင့်အမျှ ဤစာရင်းလည်း ပြောင်းလဲတိုးတက်နေသည်။ တရားဝင်
-> မူရင်းမှာ `open-sse/services/accountFallback.ts` ရှိ `ACCOUNT_DEACTIVATED_SIGNALS` ဖြစ်သည်။
-> အထက်ပါ block ကို လက်ရှိအခြေအနေ၏ snapshot တစ်ခုအဖြစ်သာ သဘောထားပါ။
+> Provider များ၏ ban ဆိုင်ရာ အသုံးအနှုန်းများ ပြောင်းလဲလာသည်နှင့်အမျှ ဤစာရင်းလည်း ပြောင်းလဲတိုးတက်နေသည်။
+> အတည်ပြုကိုးကားရမည့် မူရင်းမှာ `open-sse/services/accountFallback.ts` ရှိ
+> `ACCOUNT_DEACTIVATED_SIGNALS` ဖြစ်ပြီး၊ အထက်ပါ block ကို လက်ရှိအခြေအနေ၏ snapshot အဖြစ်သာ သတ်မှတ်ပါ။
 
-တစ်ခုနှင့်တစ်ခု ကပ်လျက်ရှိသည့် **သီးခြား** signal table နှစ်ခုသည် ထို file တစ်ခုတည်းထဲတွင် ရှိသော်လည်း banned-keyword ဖော်ထုတ်မှု၏ အစိတ်အပိုင်း _မဟုတ်ပါ_-
+### Ban မဟုတ်သောအရာ - operator က ဆောင်ရွက်ဖြေရှင်းနိုင်သည့် verification prompt များ
 
-- `CREDITS_EXHAUSTED_SIGNALS` — billing/quota ကုန်ဆုံးခြင်း (`insufficient_quota`,
-  `credit_balance_too_low`, `payment required`, …) → အပြီးသတ် `credits_exhausted`။
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **အပြီးသတ်မဟုတ်ပါ**; token refresh လုပ်ခြင်းဖြင့် ပြန်လည်အသုံးပြုနိုင်သည်။
+`verify your account to continue` သည် ယခင်က အထက်ပါစာရင်းထဲတွင် **ပါဝင်ခဲ့သည်**။ ၎င်းသည် ban
+signal မဟုတ်ဘဲ ယခုအခါ `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` ထဲတွင် ရှိပြီး၊ connection ကို
+terminal အခြေအနေသို့ ပြောင်းလဲစေမည့်အစား ပြန်လည်ရယူနိုင်သော `PROJECT_ROUTE_ERROR` အဖြစ် အမျိုးအစားခွဲသည်။
 
-မှတ်ချက်- **`rate limit`** / `429` ကဲ့သို့ အဖြစ်များသော ယာယီစာသားများကို
-rate-limit / connection-cooldown လမ်းကြောင်းက ကိုင်တွယ်ပြီး ၎င်းတို့သည် ban signal များ **မဟုတ်ပါ**။
+Google Cloud Code / Antigravity က ၎င်းကို `403 VALIDATION_REQUIRED` အဖြစ် ပြန်ပေးသည်။ ၎င်းသည်
+**ယာယီသာဖြစ်ပြီး quota အပြည့်ရှိသည့် ပုံမှန်အလုပ်လုပ်နေသော account များတွင်လည်း ဖြစ်ပေါ်သည်** —
+တိုက်ရိုက် deployment တစ်ခုတွင် တိုင်းတာထားချက်အရ (2026-09-25၊ `proxy_logs`) Antigravity
+connection တစ်ခုသည် 10 မိနစ်အတွင်း ထို 403 များကို 33 ကြိမ် ပြန်ပေးခဲ့သော်လည်း `active`
+အခြေအနေတွင် ဆက်ရှိနေခဲ့သည်။ ထိုအချိန်တွင် window 17 ခုလုံး၌ ၎င်း၏ quota 100 % ရှိနေသော
+အခြား sibling connection တစ်ခုမှာမူ ထိုအရာကို **တစ်ကြိမ်တည်း** ရရှိပြီး အပြီးတိုင် ban ခံခဲ့ရသည်။
+တစ်ခုတည်းသော ကွာခြားချက်မှာ မည်သည့် attempt ကို တုံ့ပြန်ပေးခဲ့သည်ဆိုသည့်အချက်သာ ဖြစ်သည်။
+
+Terminal match တစ်ခုသည် `permanent: true` ဖြစ်ပြီး (1 နှစ် cooldown၊ အလိုအလျောက် မည်သည့်အခါမျှ
+ပြန်မကောင်းလာပါ)၊ verification prompt ကိုမူ operator က browser ထဲတွင် ဖြေရှင်းနိုင်သောကြောင့်
+ဤခွဲခြားချက်သည် အရေးကြီးသည်။ ထိုစကားစုကို ban စာရင်းထဲတွင် ဆက်လက်ထားရှိခြင်းက
+`classifyProviderError` ရှိ ပြန်လည်ရယူနိုင်သော cloud-code 403 branch ကိုလည်း ဤအသုံးအနှုန်းအတွက်
+ရောက်ရှိ၍မရအောင် ဖြစ်စေခဲ့သည်။ အကြောင်းမှာ `accountDeactivated` ကို ဦးစွာ စစ်ဆေးသောကြောင့်ဖြစ်ပြီး —
+ထို့ကြောင့် Gemini Code Assist အတွက်
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) နှင့်
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) တို့တွင် ထည့်သွင်းခဲ့သော project-route
+ပြန်လည်ရယူရေး logic သည် မည်သည့်အခါမျှ အလုပ်လုပ်နိုင်မည်မဟုတ်ပါ။
+
+အနီးကပ်တည်ရှိသော်လည်း **သီးခြားစီဖြစ်သော** အောက်ပါ signal table သုံးခုသည် banned-keyword
+စစ်ဆေးခြင်း၏ အစိတ်အပိုင်း _မဟုတ်ပါ_ -
+
+- `CREDITS_EXHAUSTED_SIGNALS` — billing/quota ကုန်ဆုံးနေခြင်း (`insufficient_quota`,
+  `credit_balance_too_low`, `payment required`, …) → terminal `credits_exhausted`။
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **non-terminal** ဖြစ်ပြီး token refresh လုပ်ခြင်းဖြင့် ပြန်လည်ရယူနိုင်သည်။
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **non-terminal** ဖြစ်ပြီး operator က upstream တွင်
+  account ကို ပြန်လည် verify လုပ်ရမည်။ `open-sse/services/errorClassifier.ts` တွင် ရှိသည်
+  (အခြားနှစ်ခုမှာ `accountFallback.ts` တွင် ရှိသည်)။ အထက်ပါအပိုင်းကို ကြည့်ပါ။
+
+မှတ်ချက် - **`rate limit`** / `429` ကဲ့သို့ အဖြစ်များသော ယာယီစကားစုများကို
+rate-limit / connection-cooldown လမ်းကြောင်းက ကိုင်တွယ်ပြီး ၎င်းတို့သည် ban signal များ
+**မဟုတ်ပါ**။
 
 ## ဖော်ထုတ်မှု လုပ်ငန်းစဉ်
 

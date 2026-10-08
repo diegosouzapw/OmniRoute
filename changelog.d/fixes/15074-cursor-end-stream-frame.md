@@ -1,1 +1,0 @@
-- **fix(cursor):** turns no longer fail with 502 "cursor-agent frame decode failed (flag=2, size=2)" — the stream driver now handles the Connect end-of-stream frame (JSON, not protobuf), ending the turn cleanly or reporting its Connect error code ([#15074](https://github.com/diegosouzapw/OmniRoute/pull/15074)).

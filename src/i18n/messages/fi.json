@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Välityspalvelinpoolit ja opencoden tilikohtainen kierto estävät juuri epäonnistuneen välityspalvelimen (hylätty TCP-tarkistus tai sen kautta saatu 429-vastaus) tarjoamisen uudelleen prosessikohtaisen ajanjakson ajan. Ajanjakso kaksinkertaistuu jokaisen toistuvan epäonnistumisen myötä enimmäisrajaan asti. Välityspalvelimen tilaa ei kirjata; jos kaikki ehdokkaat on siirretty sivuun, valinta pysyy ennallaan. Oletusarvoisesti käytössä; `false` palauttaa tavallisen valinnan.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Palveluntarjoajille, joiden kiintiö jaetaan lähtevän (egress) osoitteen mukaan, sijoittaa poolin jäsenen, joka jakaa äskettäin hylätyn jäsenen havaitun egress-osoitteen, heti terveiden jäsenten alapuolelle. Vain järjestys, ei koskaan poissulkemista. Vaatii PROXY_SKIP_RECENTLY_FAILED-asetuksen, joka tuottaa sen lukeman hylkäyssignaalin. Oletuksena pois päältä: valintajärjestys on täsmälleen tavallinen kierto.",
   "featureFlagProxyPoolEgressObservationDescription": "Näytä hallintapaneelissa välityspalvelinpoolin kohdalla, kuinka monta havaittua lähtevän liikenteen IP-osoitetta sen jäsenet käyttivät viimeisten 24 tunnin aikana, kuinka monta yhteyttä käytti niitä ja kuinka monta yhteyttä enimmillään havaittiin yhden IP-osoitteen takana. Vain luku -tieto, joka lasketaan välityspalvelinlokista ja jota ei koskaan käytetä reititykseen. Oletusarvoisesti poissa käytöstä: poolieditori säilyy ennallaan ja havaintoreitti palauttaa arvon null.",
+  "featureFlagProxyOperatorEgressDescription": "Hyväksy toimittajan lähettämät päiväysmerkityt havaitut osoitteet jokaiselle ryhmäjäsenelle ja yhdistä ne tiedostojen lukemiseen näyttöön ja ryhmäjärjestykseen. Pois päältä oletuksena: push-reitti vastaa 404 ja ryhmäluvut käyttäytyvät täysin samalla tavalla kuin ennen.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Salli välityspalvelinten kuntotarkistuksessa sellaisen tarkistuksen, jonka kohde hylkäsi (401/403/429: välityspalvelin välitti pyynnön, mutta kohde hylkäsi tämän lähtevän liikenteen IP-osoitteen), nollata välityspalvelimen peräkkäisten epäonnistumisten sarja onnistuneesti palvellun tarkistuksen tavoin. Oletusarvoisesti poissa käytöstä: hylkäys pysyy neutraalina eikä katkaise sarjaa. 5xx-vastaus pysyy kummassakin tapauksessa tuloksettomana, eikä hylkäys koskaan poista välityspalvelinta, poista sitä käytöstä tai aktivoi sitä uudelleen.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Anna automaattisen puhdistuksen poistaa OMNIROUTE_BATCH_RETENTION_DAYS-arvoa vanhemmat päättyneet (valmistuneet/epäonnistuneet/peruutetut/vanhentuneet) Batch API -työt sekä niiden rivikohtaiset tarkistuspisteet ja tyhjentää niiden ladattujen tiedostojen BLOB-sisältö, joiden oma expires_at-ajankohta on ohitettu. Oletusarvoisesti poissa käytöstä: jokainen nykyinen asennus säilyttää nämä tiedot täsmälleen kuten ennenkin, kunnes ylläpitäjä ottaa toiminnon käyttöön. Ylläpitäjän käynnistämään DELETE /api/v1/batches/delete-completed -reittiin tällä ei ole vaikutusta — se on erillinen, ehdoton julkinen API-sopimus.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Nouda ajantasainen xAI-malliluettelo xai-oauth-yhteyksille osoitteesta https://api.x.ai/v1/models käyttämällä OAuth-haltijatunnusta jäädytetyn staattisen alkuluettelon sijaan. Oletusarvoisesti poissa käytöstä: xai-oauth käyttää edelleen muuttumatonta staattista alkuluetteloa. Jos määrityksessä tapahtuu virhe, mallien haku käyttää alkuluetteloa varavaihtoehtona.",
@@ -5636,7 +5637,7 @@
     "accountName": "Tilin nimi",
     "email": "Sähköposti",
     "healthCheckMinutes": "Terveystarkastus (min)",
-    "healthCheckHint": "Ennakoiva tunnuksen päivitysväli. 0 = pois käytöstä.",
+    "healthCheckHint": "Tämän yhteyden ohitusarvo. Tyhjä = käytä yleistä oletusta (Asetukset › Vikasietoisuus). 0 = älä koskaan tarkista tätä yhteyttä. Enintään 1440 (24 h).",
     "deselectAllModels": "Poista kaikki valinnat",
     "modelsActiveCount": "{active}/{total} aktiivisena",
     "noModelsMatch": "Mikään malli ei vastaa suodatinta ”{filter}”",
@@ -5692,7 +5693,7 @@
     "claudeImportBulkModePaste": "Liitä JSON-taulukko",
     "claudeImportBulkModeZip": "Lataa ZIP",
     "claudeImportBulkUploadHint": "Pudota tai poimi jopa 50 .credentials.json-tiedostoa (kukin 256 kt, yhteensä 10 Mt).",
-    "claudeImportBulkPasteHint": "Liitä joukko objekteja: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "Liitä joukko objekteja: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": "ZIP, joka sisältää .json-merkintöjä. Enintään 50 merkintää, 10 Mt pakattuna.",
     "claudeImportBulkSubmit": "Tuo kaikki",
     "claudeImportBulkSuccess": "Tuodut {count} Claude-yhteydet",
@@ -5724,7 +5725,7 @@
     "geminiImportBulkModePaste": "Liitä JSON-taulukko",
     "geminiImportBulkModeZip": "Lataa ZIP",
     "geminiImportBulkUploadHint": "Pudota tai poimi jopa 50 oauth_creds.json-tiedostoa (kukin 256 kt, yhteensä 10 Mt).",
-    "geminiImportBulkPasteHint": "Liitä joukko objekteja: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "Liitä joukko objekteja: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "ZIP, joka sisältää oauth_creds.json-merkinnät. Enintään 50 merkintää, 10 Mt pakattuna.",
     "geminiImportBulkSubmit": "Tuo kaikki",
     "geminiImportBulkSuccess": "Tuodut {count} Gemini-yhteydet",
@@ -5773,7 +5774,7 @@
     "codexImportBulkModePaste": "Liitä luettelo",
     "codexImportBulkModeZip": "ZIP-arkisto",
     "codexImportBulkUploadHint": "Valitse useita .json-tiedostoja tai vedä ja pudota",
-    "codexImportBulkPasteHint": "JSON-taulukko [ {...}, {...} ] tai useita JSON-tiedostoja erotettuna --- omalla rivillään",
+    "codexImportBulkPasteHint": "JSON-taulukko [ '{...}', '{...}' ] tai useita JSON-tiedostoja erotettuna --- omalla rivillään",
     "codexImportBulkZipHint": "Lataa auth.json-tiedostoja sisältävä .zip (enintään 50 tiedostoa, 10 Mt)",
     "codexImportBulkSubmit": "Tuo {count} tiliä",
     "codexImportBulkLimit": "Enintään 50 tiedostoa tuontia kohden",
@@ -6011,7 +6012,7 @@
     "validationModelIdPlaceholder": "esim. meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "API Key tai Service Account JSON",
     "vertexCredentialHint": "API Key -avaimet käyttävät kuratoitua projektiluetteloa. Service Account JSON mahdollistaa Model Gardenin reaaliaikaisen haun.",
-    "vertexServiceAccountPlaceholder": "Liitä API key, Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) tai OAuth access token",
+    "vertexServiceAccountPlaceholder": "Liitä API key, Service Account JSON ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') tai OAuth access token",
     "webCookieProviders": "Verkkoevästeiden palveluntarjoajat",
     "weeklyShort": "Viikoittainen lyhyt versio",
     "xiaomiMimoBaseUrlHint": "Xiaomi Mimo Base URL -ohje",
@@ -6197,7 +6198,7 @@
       "bluesminds": "Hanki API-avaimesi osoitteesta https://www.bluesminds.com — OpenAI-yhteensopiva päätepiste osoitteessa https://api.bluesminds.com/v1 ilmaisilla päivittäisillä saldoilla. VIP-mallit (Claude Opus 4.5, Gemini 2.5 Pro) kuluttavat pi-saldoja.",
       "byteplus": "Yhdistä BytePlus ModelArk API-avaimella.",
       "bytez": "1 $ ilmaista saldoa, uusiutuu 4 viikon välein",
-      "cerebras": "Ilmainen kokeilu: 1M tokenia/päivä, 30K TPM, 5 RPM — ei luottokorttia.",
+      "cerebras": "Kertaluonteinen 5 $:n rekisteröitymishyvitys (voimassa 30 päivää); maksutapa vaaditaan. Ei toistuva ilmaistaso.",
       "charm-hyper": "Luo API-avain osoitteessa https://hyper.charm.land ja liitä se tähän Bearer-tokenina.",
       "chutes": "Bearer API -avain Chutes OpenAI-yhteensopivalle yhdyskäytävälle.",
       "clarifai": "Clarifai tarjoaa OpenAI-yhteensopivan chatin, vastaukset ja /models-päätepisteen osoitteessa /v2/ext/openai/v1. Julkiset/yhteisömallit vaativat yleensä PAT-tunnisteen; sovelluskohtaiset avaimet toimivat vain kyseisen sovelluksen sisäisille resursseille.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Paikallinen välityspalvelinytimen päätepiste on virheellinen; SS/VMess/Trojan/VLESS-solmut ohitettiin.",
         "NEEDS_CORE_NOT_CONFIGURED": "Tässä tilauksessa on solmuja, jotka tarvitsevat paikallisen välityspalvelinytimen (SS/VMess/Trojan/VLESS); niitä ei reititetä ennen kuin määrität paikallisen ytimen SOCKS5-päätepisteen.",
         "NO_USABLE_NODES": "Tilaus ei tuottanut käyttökelpoisia solmuja (http/https/socks5 tai solmuja, joilla on paikallisen ytimen päätepiste).",
-        "SELECTOR_SWITCH_FAILED": "Välitysymen ohjauskutsu epäonnistui; edellinen reitti pysyy käytössä. Tarkista ohjaus-URL ja salaisuus ja päivitä sitten."
+        "SELECTOR_SWITCH_FAILED": "Välitysymen ohjauskutsu epäonnistui; edellinen reitti pysyy käytössä. Tarkista ohjaus-URL ja salaisuus ja päivitä sitten.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Generoitua ydinasetustiedostoa ei voitu korvata otetulla tiedostolla; viereinen kopio säilytettiin sen sijaan.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Jotkut merkinnät ohitettiin generoinnin aikana. Katso palvelinloki."
       },
       "description": "Liitä välityspalvelimen tilauslinkki. Kun tämä on otettu käyttöön, liikenne reititetään välityspalvelimen kautta yleisessä tai sääntötilassa (määritetty toimittaja). Tilaussolmut synkronoidaan automaattisesti välityspalvelinpooliin, ja ne käyttävät uudelleen olemassa olevia kysely-, kuntotarkastus- ja vuodonestomekanismeja.",
       "addSubscription": "Lisää tilaus",
@@ -6889,8 +6895,8 @@
       "globalModeDesc": "Kaikki Palveluntarjoajan liikenne kulkee tämän tilauksen välityspalvelimen kautta.",
       "ruleModeDesc": "Vain valittujen Palveluntarjoajien liikenne kulkee välityspalvelimen kautta; loput kytkeytyvät suoraan.",
       "localCoreEndpoint": "Local Core SOCKS5/HTTP-päätepiste (valinnainen)",
-      "localCoreEndpointPlaceholder": "sukat5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "Hyväksyy vain 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS vaativat paikallisen sing-box/clash-ytimen).",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "Yksi per rivi. Hyväksyy vain 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS vaativat paikallisen sing-box/clash-ytimen).",
       "routeByProvider": "Reitti palveluntarjoajan mukaan (monivalinta)",
       "loadingProviders": "Ladataan tarjoajaluetteloa…",
       "autoRefreshInterval": "Automaattisen päivityksen aikaväli (minuutteja)",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Vaihtoja ei ole vielä kirjattu",
       "lastSwitchMember": "Palveleva jäsen",
       "nextSwitch": "Seuraava mahdollinen vaihto",
-      "nextSwitchNow": "Nyt"
+      "nextSwitchNow": "Nyt",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Ydinbinäärin polku",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Valinnainen: tarkistaa generoidun tiedoston ydinbinääriä ennen otetun tiedoston korvaamista. Jätä tyhjäksi, niin kirjoitetaan sen viereen. Puuttuva hakemisto luodaan."
     },
     "bulkHealthcheck": "Kuntotarkistus joukkona",
     "bulkHealthcheckDesc": "Testaa kaikki määritetyt välityspalvelimet kohde-URL-osoitetta vasten selvittääksesi, mitkä niistä toimivat.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP-kuvauksen pakkaus",
     "mcpAccessibilityTitle": "MCP-saavutettavuustuloste",
     "compressionSettingsCavemanIntensity": "Luolamiesten intensiteetti",
-    "compressionSettingsCavemanOutputMode": "Caveman-lähtötila",
     "compressionSettingsOutputStyles": "Tulostetyylit",
     "compressionStylesTileTitle": "Tulostetyylit",
     "compressionSettingsOutputIntensity": "Tulostuksen intensiteetti",
-    "compressionSettingsAutoClarityBypass": "Automaattinen selkeyden ohitus",
     "compressionEffectivePipeline": "Voimassa oleva liukuhihna:",
     "compressionDerivedOff": "pois päältä",
     "compressionDerivedRuns": "ajot: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "Mitä GET /v1/models ilmoittaa tälle avaimelle. Luettelon rajaaminen ei koskaan muuta sitä, mitä avain voi kutsua.",
     "catalogScopeAll": "Molemmat",
     "catalogScopeCombos": "Vain yhdistelmät",
-    "catalogScopeModels": "Vain mallit"
+    "catalogScopeModels": "Vain mallit",
+    "resilienceTokenRefreshTitle": "Tokenin päivityksen katkaisija",
+    "resilienceTokenRefreshDesc": "Lopettaa tokenin päivityksen yrittämisen toistuvien epäonnistumisten jälkeen. Yhteyden kohta-alue erottaa yhden kuolleen tilin, jotta saman palveluntarjoajan terveet tilit jatkavat päivitystä.",
+    "resilienceTokenRefreshScope": "Tokenin päivitysyritykset yhdelle palveluntarjoajalle",
+    "resilienceTokenRefreshTrigger": "Peräkkäiset epäonnistuneet päivitysyritykset",
+    "resilienceTokenRefreshEffect": "Keskeyttää päivitysyritykset jäähdytysajaksi",
+    "resilienceTokenRefreshScopeLabel": "Laajuus",
+    "resilienceTokenRefreshScopeProvider": "Palveluntarjoaja (kaikki tilit jakavat yhden katkaisijan)",
+    "resilienceTokenRefreshScopeConnection": "Yhteys (jokaisella tilillä on oma katkaisija)",
+    "resilienceTokenRefreshThreshold": "Virheitä ennen tauottamista",
+    "resilienceTokenRefreshCooldown": "Tauko laukeamisen jälkeen"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -8544,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Ladataan…",
     "loadFailed": "Moottorin tietojen lataaminen epäonnistui.",
+    "settingsLoadFailed": "Tallennettujen asetusten lataaminen epäonnistui. Kentissä näkyvät oletusarvot, ja Tallenna pysyy poissa käytöstä, kunnes sivu ladataan uudelleen.",
     "engineNotFound": "Moottoria \"{engine}\" ei löytynyt.",
     "saveFailed": "Asetusten tallentaminen epäonnistui.",
     "previewFailed": "Esikatselu epäonnistui.",
@@ -8638,9 +8667,6 @@
       "minRows": {
         "label": "Tiivistettävien rivien vähimmäismäärä",
         "description": "Homogeenisen JSON-taulukon rivien vähimmäismäärä taulukkomaisen tiivistämisen käynnistämiseksi. Oletus: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Säilytä järjestelmäkehote"
       },
       "summarizerEnabled": {
         "label": "Ota tiivistäjä käyttöön"
@@ -9029,12 +9055,7 @@
     "tooltipMinLength": "Tätä lyhyempiä viestejä ei pakata. Alempi = enemmän pakkausta.",
     "tooltipMinSavings": "Pakkaa vain, jos se säästää vähintään näin monta merkkiä.",
     "ultraSettings": "Ultra-asetukset",
-    "ultraSettingsDesc": "SLM-käyttöinen semanttinen pakkaus",
-    "preview": {
-      "lite": "Vastaa ytimekkäästi. Säilytä tekniset termit, koodi, virheet, URL-osoitteet ja tunnisteet.",
-      "full": "Vastaa lyhyesti ja tiiviisti. Säilytä kaikki tekninen asiasisältö.",
-      "ultra": "Vastaa erittäin lyhyesti käyttäen yleisiä teknisiä lyhenteitä. Säilytä symbolit täsmälleen."
-    }
+    "ultraSettingsDesc": "SLM-käyttöinen semanttinen pakkaus"
   },
   "translator": {
     "title": "Kääntäjä",
@@ -9576,7 +9597,7 @@
     "redeemResetCredit": "Lunasta nollaus",
     "manageResetCredits": "Näytä krediitit",
     "viewResetCredits": "Näytä nollauskrediitit",
-    "resetCreditsModalTitle": "Codex-nollauskrediitit",
+    "resetCreditsModalTitle": "Nollauskrediitit",
     "resetCreditsModalExplainer": "Krediitit on järjestetty vanhentumisajan mukaan. Automaattinen lunastus käyttää aina ensin vanhentuvaa krediittiä.",
     "resetCreditsLoadFailed": "Nollauskrediittien lataaminen epäonnistui",
     "resetCreditsDetailsUnavailable": "Krediittitiedot eivät ole tällä hetkellä saatavilla. Päivitä ja yritä uudelleen.",
@@ -9587,7 +9608,7 @@
     "resetCreditNoExpiry": "Ei vanhenemispäivää",
     "redeemThisResetCredit": "Lunasta",
     "confirmRedeemResetCreditTitle": "Lunastetaanko tämä nollaushyvitys?",
-    "confirmRedeemResetCredit": "Lunastaminen nollaa soveltuvat Codex-käyttöikkunat välittömästi ja kuluttaa tämän hyvityksen pysyvästi.",
+    "confirmRedeemResetCredit": "Lunastaminen nollaa soveltuvat käyttöikkunat välittömästi ja kuluttaa tämän hyvityksen pysyvästi.",
     "confirmRedeemResetCreditButton": "Lunasta hyvitys",
     "resetCreditRedeemed": "Nollaus lunastettu",
     "resetCreditRedeemFailed": "Nollaushyvityksen lunastaminen epäonnistui",
@@ -9653,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "esim. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "esim. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderExact": "Liitä tarkka odotettu vastaus",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "esim. ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "esim. ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "Käytä säännöllistä JavaScript-lauseketta ilman vinoviivaa.",
     "suiteBuilderNamePlaceholder": "esim. koodin laadun testikokoelma",
     "suiteBuilderAddCase": "Lisää testitapaus",
@@ -10862,7 +10883,7 @@
     "grokAuthJsonDescription": "Liitä koko sisältö tiedostosta ~/.grok/auth.json (ei vain JWT \"key\" -kenttää). Pelkkä JWT:llä ei ole refresh_tokenia, joten yhteys katkeaa vanhentumisen jälkeen (#7610). Suosi erityistä Import auth.json -modaalia, kun se on saatavilla.",
     "devinDesktopPasteDescription": "Liitä olemassa oleva Devin API-avain todennetusta Devin-istunnosta. Avaimen vientimahdollisuudet ja vaiheet vaihtelevat Devin-version ja tilin mukaan.",
     "devinPasteDescription": "Anna WINDSURF_API_KEY (saadaksesi sen `devin auth login` -komennolla tai Windsurf IDE:n \"Windsurf: Provide Auth Token\" -komennolla).",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "Grok Build auth.json",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "API-avain / Token",
@@ -10875,7 +10896,10 @@
     "gitlabDuoSetupTitle": "GitLab Duo OAuth -asetuksen määrittäminen",
     "gitlabDuoSetupMessage": "GitLab Duo OAuthia ei ole määritetty. Rekisteröi OAuth-sovellus osoitteessa {applicationsUrl} uudelleenohjaus-URI:lla {redirectUri} ja käyttöoikeusalueilla \"{scopes}\", sitten aseta {clientIdEnv} (ja valinnaisesti {clientSecretEnv}) ja käynnistä uudelleen.",
     "gitlabDuoSetupDescription": "Kun sovellus on rekisteröity ja ympäristömuuttujat on asetettu tälle OmniRoute-instanssille, napsauta Jatka aloittaaksesi OAuth-kirjautumisen.",
-    "continue": "Jatka"
+    "continue": "Jatka",
+    "tabPasteSetupToken": "Asetustunnus",
+    "claudeSetupTokenDescription": "Suorita `claude setup-token` päätteessä ja liitä sen tulostama tunnus. Se on voimassa vuoden, eikä sillä ole päivitystunnusta. OmniRoute lähettää Anthropicille yhden testipyynnön ennen tallentamista.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Yhdistä kohdistin IDE",
@@ -11073,6 +11097,7 @@
     "poolEgressFailuresUnattributed": "Virheet ilman kohdistettua ulostuloa: {count}",
     "poolMemberEgress": "{host}:{port} poistui osoitteen {egressIp} kautta · viimeiset {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: liikennettä ei havaittu viimeisten {hours} tunnin aikana",
+    "poolMemberEgressOperator": "{host}:{port} lähtenyt läpi {egressIp} · toimittajan tarjoama, {date}",
     "poolMemberEgressHint": "Viimeisin tämän poolin jäsenen kautta havaittu ulostulo-IP valitulla aikavälillä välityspalvelimen lokin perusteella. Jos jäsenellä ei ole ollut liikennettä aikavälillä, näytetään Ei liikennettä -rivi.",
     "poolRemove": "Poista",
     "poolRemoveFailed": "Proxyn poistaminen poolista epäonnistui",
@@ -11086,6 +11111,7 @@
     "poolSetAsideKindProxyUnreachable": "välityspalvelin ei tavoitettavissa",
     "poolSetAsideKindIpQuota429": "IP-nopeusrajoitus (429)",
     "poolSetAsideKindSlow": "hitaat vastaukset",
+    "poolSetAsideKindGeoBlocked": "alue estetty (403/451)",
     "poolSetAsideUntil": "Takaisin kierrossa {endsAt}",
     "poolSetAsideRepeat": "Syrjään {count, plural, one {# kerran} other {# kertaa}}",
     "poolUnknownAddress": "Tuntematon osoite",
@@ -11094,10 +11120,15 @@
     "poolSignalPosition": "Sijaintijärjestys",
     "poolHealthRankingOff": "Terveysjärjestys pois päältä",
     "transportRate": "{rate} % siirtoa",
+    "slowAbandoned": "{count} hidasta keskeytystä",
+    "clientAborted": "{count} asiakkaan keskeytystä",
+    "slowAbandonedHint": "Keskeytetty otsikoiden odotusajan rajan jälkeen, ei huomioida kuljetusnopeudessa",
     "previousSuccessRate": "Aiemmin {rate} % onnistumisia",
-    "upstreamRefusals": "{count} upstream-hylkäystä",
     "connectionTestsCount": "{count} yhteystestiä",
-    "notMeasured": "Ei mitattu"
+    "notMeasured": "Ei mitattu",
+    "upstream4xx": "{count} ylävirta-asiakasvirheet",
+    "upstream5xx": "{count} ylävirta-palvelinvirheet",
+    "uniformEgressLine": "{affected} kpl {exits} poistoa epäonnistuu yhdessä {provider} (viimeisen {hours}h) — ei ole poistoprobleema"
   },
   "playground": {
     "title": "Title",
@@ -12871,7 +12902,10 @@
     "inheritedPool": "Perii yhteyspoolin ({count})",
     "poolEmptyBlocked": "Pooli tyhjä — pyynnöt epäonnistuvat (ei suoraan)",
     "directEgress": "Suora (ei välityspalvelinta)",
-    "ownProxy": "Oma välityspalvelin"
+    "ownProxy": "Oma välityspalvelin",
+    "freeTierPause": "Malli {model} keskeytetty (429), palaa {time}",
+    "freeTierPauseProvider": "Keskeytetty (429), palaa {time}",
+    "freeTierPauseNote": "Prosessinsisäinen tauko tällä instanssilla"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13052,6 +13086,10 @@
     "inactiveCount": "{count} ei-aktiivista",
     "dbOverrideCount": "{count} tietokannan yliajoa",
     "searchPlaceholder": "Hae lippuja...",
+    "descriptionModeLabel": "Kuvausnäkymä",
+    "descriptionModeHint": "Vierailla: kortit pysyvät kompakteina ja kuvauksen vieressä näytetään koko teksti. Koko teksti: näytä aina koko kuvaus.",
+    "descriptionModeHover": "Vierailla",
+    "descriptionModeFull": "Koko teksti",
     "categories": {
       "all": "Kaikki",
       "security": "Tietoturva",
@@ -13679,7 +13717,7 @@
     "secondaryNote": "Myös Open VSX:ssä (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "Sulje"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Mainosta <gateway-alias>/<model> peilid tunnuksia /v1/models -osoitteessa malleille, joiden kanoninen omistaja ei omaa aktiivista tunnistetta, mutta ohjaa niitä aktiivisella tunnisteella varustettu ohitusportti. Varoitus: lisää luettelo-merkintöjä kaikille asiakkaille, kun se on otettu käyttöön globaalisti.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Mainosta '<gateway-alias>'/'<model>' peilid tunnuksia /v1/models -osoitteessa malleille, joiden kanoninen omistaja ei omaa aktiivista tunnistetta, mutta ohjaa niitä aktiivisella tunnisteella varustettu ohitusportti. Varoitus: lisää luettelo-merkintöjä kaikille asiakkaille, kun se on otettu käyttöön globaalisti.",
   "radarPage": {
     "title": "Radar-katalogi",
     "subtitle": "Ilmainen mallikatalogi, joka on rikastettu yhteisön tiedoilla",

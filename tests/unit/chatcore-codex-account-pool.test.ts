@@ -230,8 +230,13 @@ test("chatCore retains exact quota resets from intermediate rotated Codex 429s",
       input: "persist exact reset before rotation",
       stream: false,
     },
-    responseFactory(_captured: unknown, calls: unknown[]) {
-      if (calls.length < 4) {
+    // Key the 429 on the FIRST account's token, not on a call count: since #14959 a
+    // 429 carrying Retry-After: 60 skips the same-account intra-retries, so the first
+    // account answers once (not 3x) before chatCore rotates to the second one.
+    responseFactory(captured: unknown) {
+      const headers = (captured as { headers: Record<string, string> }).headers;
+      const auth = headers.authorization ?? headers.Authorization ?? "";
+      if (auth.includes("codex-exact-reset-first")) {
         return new Response(JSON.stringify({ error: { message: "Codex quota exceeded" } }), {
           status: 429,
           headers: {

@@ -14,7 +14,6 @@ import {
 } from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
 
-
 export const cloudCredentialUpdateSchema = z.object({
   provider: z.string().trim().min(1, "Provider is required"),
   credentials: z
@@ -48,6 +47,11 @@ export const cloudModelAliasUpdateSchema = z.object({
   alias: z.string().trim().min(1, "Model and alias required"),
 });
 
-export const cloudSyncActionSchema = z.object({
-  action: z.enum(["enable", "sync", "disable"]),
-});
+export const cloudSyncActionSchema = z
+  .object({
+    action: z.enum(["enable", "sync", "disable"]),
+    acknowledgeCredentialUpload: z.boolean().optional(),
+  })
+  .refine((value) => value.action !== "enable" || value.acknowledgeCredentialUpload === true, {
+    message: "Enabling cloud sync requires acknowledgment that credentials will be uploaded",
+  });

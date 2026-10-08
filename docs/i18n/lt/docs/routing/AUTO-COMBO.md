@@ -10,7 +10,7 @@
 
 ## Nulinės konfigūracijos automatinis maršruto parinkimas (`auto/` priešdėlis)
 
-> **NAUJA:** derinio kurti nereikia. Naudokite `auto/` priešdėlį tiesiogiai bet kuriame kliente.
+> **NAUJA:** Derinio kurti nebereikia. Naudokite `auto/` priešdėlį tiesiogiai bet kuriame kliente.
 
 ### Trumpi pavyzdžiai
 
@@ -18,117 +18,115 @@
 | -------------- | --------- | ----------------------------------------------------------------------------------------- |
 | `auto`         | default   | Visi prijungti teikėjai, LKGP strategija, subalansuoti svoriai                            |
 | `auto/coding`  | coding    | Kokybei pirmenybę teikiantys svoriai, tinkami kodui generuoti                             |
-| `auto/fast`    | fast      | Mažą delsą akcentuojanti svertinė atranka                                                 |
+| `auto/fast`    | fast      | Mažos delsos svertinis pasirinkimas                                                       |
 | `auto/cheap`   | cheap     | Pagal kainą optimizuotas maršruto parinkimas (pirmiausia mažiausia kaina)                 |
-| `auto/offline` | offline   | Pirmenybė teikėjams, turintiems didžiausią prieinamą kvotą                                |
-| `auto/smart`   | smart     | Pirmenybė kokybei + didesnis tyrinėjimo dažnis (10 %), kad būtų geriau atrandami modeliai |
+| `auto/offline` | offline   | Pirmenybė teikėjams, turintiems didžiausią pasiekiamą kvotą                               |
+| `auto/smart`   | smart     | Pirmenybė kokybei + didesnis tyrinėjimo dažnis (10 %), kad modeliai būtų atrandami geriau |
 | `auto/lkgp`    | lkgp      | Aiškiai nurodytas LKGP (tas pats kaip numatytasis `auto`)                                 |
-| `auto/chaos`   | chaos     | Gedimų įterpimo svoriai atsparumui testuoti (chaoso inžinerija)                           |
+| `auto/chaos`   | chaos     | Lygiagretus išsiuntimas, po vieną modelį kiekvienam teikėjui (ne trikčių įterpimas)       |
 
 ### Kategorijos × lygio kompozicija (`auto/<category>:<tier>`)
 
-OpenRouter stiliaus priesagos atskiria **kokio pobūdžio maršrutą** (kategoriją) nuo **to, kaip jį optimizuoti** (lygio), todėl jas galima laisvai derinti (#4235 B etapas, `open-sse/services/autoCombo/suffixComposition.ts`):
+OpenRouter stiliaus priesagos atskiria **maršruto tipą** (kategoriją) nuo **jo optimizavimo būdo** (lygio), todėl juos galima laisvai derinti (#4235 B etapas, `open-sse/services/autoCombo/suffixComposition.ts`):
 
-- **Kategorijos** (filtruoja kandidatų telkinį pagal galimybes): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` palieka vaizdus palaikančius modelius; `reasoning` palieka samprotavimo / mąstymo modelius.
-- **Lygiai** (parenka vertinimo svorius / telkinio filtrą): `fast` (greitam pateikimui) · `cheap` (`floor` alternatyvusis pavadinimas, taupantis išlaidas) · `reliable` (grandinės pertraukiklio būklė + delsos stabilumas) · `free` / `pro` (filtruoja telkinį pagal modelio lygį naudodami `classifyTier` — nemokamas lygis arba „premium“).
+- **Kategorijos** (filtruoja kandidatų rinkinį pagal galimybes): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` palieka regą palaikančius modelius; `reasoning` palieka samprotavimo / mąstymo modelius.
+- **Lygiai** (parenka vertinimo svorius / rinkinio filtrą): `fast` (greitas pateikimas) · `cheap` (alternatyvus pavadinimas `floor`, išlaidų taupymas) · `reliable` (grandinės pertraukiklio būklė + delsos stabilumas) · `free` / `pro` (filtruoja rinkinį pagal modelio lygį naudodamas `classifyTier` — nemokamas lygis arba aukščiausios klasės lygis).
 
-| Pavyzdys               | Rezultatas                                                                                   |
-| ---------------------- | -------------------------------------------------------------------------------------------- |
-| `auto/coding:fast`     | kodavimo telkinys, mažos delsos svoriai                                                      |
-| `auto/coding:cheap`    | kodavimo telkinys, optimizuotas pagal kainą (`auto/coding:floor` alternatyvusis pavadinimas) |
-| `auto/reasoning:pro`   | tik samprotavimo / mąstymo modeliai, „premium“ lygis                                         |
-| `auto/vision`          | vaizdus palaikantys modeliai (be lygio → subalansuoti svoriai)                               |
-| `auto/multimodal:free` | daugiamodališkumą palaikantys modeliai, tik nemokamas lygis                                  |
+| Pavyzdys               | Rezultatas                                                                                 |
+| ---------------------- | ------------------------------------------------------------------------------------------ |
+| `auto/coding:fast`     | kodavimo rinkinys, mažos delsos svoriai                                                    |
+| `auto/coding:cheap`    | kodavimo rinkinys, optimizuotas pagal kainą (alternatyvus pavadinimas `auto/coding:floor`) |
+| `auto/reasoning:pro`   | tik samprotavimo / mąstymo modeliai, aukščiausios klasės lygis                             |
+| `auto/vision`          | regą palaikantys modeliai (be lygio → subalansuoti svoriai)                                |
+| `auto/multimodal:free` | daugiarūšius duomenis palaikantys modeliai, tik nemokamas lygis                            |
 
-Bet kuris galiojantis `auto/<category>[:<tier>]` variantas nustatomas pagal poreikį; atrinktas poaibis skelbiamas `/v1/models` ir valdymo skydelyje (`AUTO_SUFFIX_VARIANTS`, esančiame `open-sse/services/autoCombo/builtinCatalog.ts`). Filtravimas yra **fail-open** — jei apribojimo neatitinka nė vienas prijungtas modelis, naudojamas visas telkinys, todėl maršruto parinkimas niekada nenutrūksta. Pagrindinis vertintojas (`combo.ts`) nekeičiamas; kategorijos / lygio filtras taikomas funkcijoje `buildAutoCandidates`.
+Bet kuris galiojantis `auto/<category>[:<tier>]` išsprendžiamas pagal poreikį; kruopščiai atrinktas poaibis skelbiamas `/v1/models` ir valdymo skydelyje (`AUTO_SUFFIX_VARIANTS`, esantis `open-sse/services/autoCombo/builtinCatalog.ts`). Filtravimas yra **leidžiantis tęsti įvykus klaidai** — jei apribojimo neatitinka nė vienas prijungtas modelis, naudojamas visas rinkinys, kad maršruto parinkimas niekada nenutrūktų. Pagrindinis vertintojas (`combo.ts`) nekeičiamas; kategorijos / lygio filtras taikomas funkcijoje `buildAutoCandidates`.
 
-> **Tiesioginė modelių analizė:** kai įjungta žyma `ARENA_ELO_SYNC_ENABLED`, automatinio maršruto parinkimo tinkamumą padeda nustatyti tiesioginiai **Arena ELO** reitingai ir **models.dev** lygių duomenys (kitu atveju naudojamas statinis tinkamumo žemėlapis).
+> **Tiesioginė modelių informacija:** kai įjungta žyma `ARENA_ELO_SYNC_ENABLED`, automatinio maršruto parinkimo tinkamumas nustatomas pagal tiesioginius **Arena ELO** reitingus ir **models.dev** lygių duomenis (kitu atveju naudojamas statinis tinkamumo žemėlapis).
 
 **Kaip naudoti:**
 
 ```bash
-# Bet kuris IDE arba CLI įrankis, palaikantis OpenAI formatą
+# Bet kuris OpenAI formatą palaikantis IDE arba CLI įrankis
 Bazinis URL: http://localhost:20128/v1
 API raktas:  <jūsų-galinio-taško-raktas>
 
 # Savo kode / konfigūracijoje nustatykite modelį:
 model: "auto"                 # subalansuotas numatytasis variantas
 model: "auto/coding"          # geriausiai tinka kodavimo užduotims
-model: "auto/fast"            # greičiausias prieinamas
-model: "auto/cheap"           # pigiausias vienam žetonui
+model: "auto/fast"            # greičiausias pasiekiamas
+model: "auto/cheap"           # pigiausias pagal žetoną
 ```
 
 **Kas vyksta:**
 
 1. OmniRoute aptinka `auto/` priešdėlį faile `src/sse/handlers/chat.ts`
 2. Duomenų bazėje užklausia visų **aktyvių teikėjų jungčių**
-3. Atrenka turinčias galiojančius prisijungimo duomenis (API raktą arba OAuth prieigos raktą)
+3. Atrenka tas, kurios turi galiojančius prisijungimo duomenis (API raktą arba OAuth prieigos raktą)
 4. Nustato kiekvienos jungties modelį (`connection.defaultModel` arba pirmąjį teikėjo modelį)
 5. Atmintyje sukuria **virtualų derinį** (jis nesaugomas DB)
-6. Parenka maršrutą naudodamas pasirinkto varianto svorių profilį ir LKGP strategiją
+6. Parenka maršrutą naudodama pasirinkto varianto svorių profilį ir LKGP strategiją
 
 **Pagrindinės savybės:**
 
-- ✅ **Visada įjungta:** nereikia perjungiklio, kurti derinio ar atlikti konfigūracijos
+- ✅ **Visada aktyvu:** nereikia perjungiklio, derinio kūrimo ar konfigūravimo
 - ✅ **Dinamiška:** automatiškai atspindi šiuo metu prijungtus teikėjus
-- ✅ **Seanso pastovumas:** LKGP užtikrina, kad pirmenybė būtų teikiama paskutiniam sėkmingam teikėjui
+- ✅ **Seanso pastovumas:** LKGP užtikrina, kad paskutiniam sėkmingam teikėjui būtų teikiama pirmenybė
 - ✅ **Kelių paskyrų palaikymas:** kiekviena teikėjo jungtis tampa atskiru kandidatu
-- ✅ **Jokių įrašų DB:** virtualus derinys egzistuoja tik užklausos metu, be jokių išliekamumo sąnaudų
+- ✅ **Nerašoma į DB:** virtualus derinys egzistuoja tik užklausos metu, todėl nėra jokių ilgalaikio saugojimo sąnaudų
 
 ### Kandidatų valdymas pagal raktą (#7819, 1+2 lygis)
 
 `GET /v1/auto-combo/{channel}/candidates` (`{channel}` = priesaga po `auto/` arba
-pažodinis `auto`, skirtas pagrindiniam kanalui) yra **tik skaitomas** galinis taškas,
-pateikiantis dabartinį `auto/*` kanalo kandidatų telkinį kartu su tiesiogine
-pasiekiamumo informacija, pakartotinai naudojant esamas atsparumo nuskaitymo
-operacijas (niekada nenaudojama neapdorota pertraukiklio `state`):
+pažodinis `auto` baziniam kanalui) yra **tik skaitomas** galinis taškas, pateikiantis
+dabartinį `auto/*` kanalo kandidatų rinkinį su tiesiogine pasiekiamumo informacija ir
+pakartotinai naudojantis esamais atsparumo nuskaitymais (niekada nenaudojama neapdorota
+pertraukiklio `state`):
 
 - teikėjo grandinės pertraukiklis — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
-- jungties laukimo laikotarpis — `rateLimitedUntil` / `testStatus` nustatytoje
+- jungties laukimo laikotarpis — `rateLimitedUntil` / `testStatus` išspręstoje
   `provider_connections` eilutėje
 - modelio blokavimas — `isModelLocked(provider, connectionId, model)`
 
-Kiekvienas kandidatas taip pat turi šio API rakto `excluded` žymą. Išimtys saugomos
+Kiekvienas kandidatas taip pat turi šio API rakto žymą `excluded`. Išimtys saugomos
 atskirai kiekvienam API raktui (`auto_candidate_overrides` lentelė, migracija `128`) —
 OmniRoute yra vieno nuomininko sistema be `users` lentelės, todėl `apiKeyId` yra
-artimiausia tikra kiekvieną iškvietėją identifikuojanti tapatybė — ir taikomos
-kandidatų telkinio kontroliniame taške
-`open-sse/services/autoCombo/virtualFactory.ts`, naudojant grynąją, vienetų testais
-patikrintą funkciją `filterExcludedCandidates()`
-(`open-sse/services/autoCombo/candidateOverrides.ts`). Filtras veikia
-**fail-open** principu: nenustatytas apiKeyId / kanalas arba DB peržvalgos klaida
-palieka telkinį nefiltruotą, todėl administratorius, nesukonfigūravęs jokių išimčių,
-gauna baitų lygmeniu identišką maršruto parinkimą kaip iki šios funkcijos įdiegimo.
+artimiausia tikra kiekvieno kvietėjo tapatybė — ir pritaikomos kandidatų rinkinio
+kontroliniame taške, esančiame
+`open-sse/services/autoCombo/virtualFactory.ts`, naudojant gryną, vienetų testais
+patikrintą `filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`).
+Filtras yra **leidžiantis tęsti įvykus klaidai**: nenustatytas apiKeyId / kanalas arba
+DB paieškos klaida palieka rinkinį nefiltruotą, todėl operatoriui, kuriam nesukonfigūruotos
+jokios išimtys, maršruto parinkimas baitų tikslumu išlieka toks pat kaip prieš šią funkciją.
 
-**Atidėta kitai užduočiai:** kiekvieno kandidato svoriai + aiškus eiliškumas (3 lygis
-— perduodama esamiems svertinės / prioritetinės strategijos keliams) ir konkrečios
-`combo.ts` strategijos prisegimas kiekvienam `auto/*` kanalui (4 lygis). Žr. #7819
-planą dėl neatsakyto klausimo, ar, atsižvelgiant į vieno nuomininko modelį, pakeitimai
-turėtų likti susieti su kiekvienu API raktu, ar tapti visuotiniai.
+**Atidėta tolesniam klausimui:** kiekvieno kandidato svoriai + aiški tvarka (3 lygis
+— naudojami esamuose svorinės / prioritetinės strategijos keliuose) ir konkrečios
+`combo.ts` strategijos susiejimas su kiekvienu `auto/*` kanalu (4 lygis). Žr. #7819 planą dėl atviro
+klausimo, ar, atsižvelgiant į vieno nuomininko modelį, perrašymai turėtų likti susieti su kiekvienu API raktu, ar tapti visuotiniai.
 
-**Kas vyksta viduje:**
+**Veikimas viduje:**
 
 ```txt
 Užklausa: { model: "auto/coding" }
    ↓
-src/sse/handlers/chat.ts aptinka priešdėlį
+src/sse/handlers/chat.ts aptinka prefiksą
    ↓
-createVirtualAutoCombo('coding') → candidatePool iš aktyvių jungčių
+createVirtualAutoCombo('coding') → candidatePool iš aktyvių ryšių
    ↓
 handleComboChat (tas pats variklis kaip ir išsaugotiems deriniams)
    ↓
-Automatinis vertinimas parenka geriausią teikėją / modelį kiekvienai užklausai
+Automatinis vertinimas kiekvienai užklausai parenka geriausią teikėją / modelį
 ```
 
 **Įgyvendinimo failai:**
 
-| Failas                                                    | Paskirtis                                       |
-| --------------------------------------------------------- | ----------------------------------------------- |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Priešdėlio analizatorius (`parseAutoPrefix`)    |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Kuria virtualius `AutoComboConfig` objektus     |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testavimo sąsaja teikėjų registrui imituoti     |
-| `src/sse/handlers/chat.ts`                                | Integracija: trumpasis `auto` priešdėlio kelias |
-| `src/shared/constants/providers.ts`                       | `SYSTEM_PROVIDERS.auto` sistemos įrašas         |
+| Failas                                                    | Paskirtis                                          |
+| --------------------------------------------------------- | -------------------------------------------------- |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | Prefikso analizatorius (`parseAutoPrefix`)         |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Kuria virtualius `AutoComboConfig` objektus        |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testavimo sąsaja teikėjų registrui imituoti        |
+| `src/sse/handlers/chat.ts`                                | Integracija: spartusis automatinio prefikso kelias |
+| `src/shared/constants/providers.ts`                       | `SYSTEM_PROVIDERS.auto` sistemos įrašas            |
 
 ## Kombinacijų pavadinimai, sutampantys su tikru modelio ID
 
@@ -221,7 +219,7 @@ Automatinių derinių variklis dinamiškai parenka geriausią paslaugų teikėj�
 
 ## Režimų paketai
 
-6 iš anksto nustatyti svorių profiliai faile `open-sse/services/autoCombo/modePacks.ts`. Kiekvienas paketas visiškai pakeičia numatytuosius svorius, kad pasirinkimas būtų orientuotas į vieną tikslą. Kiekvieno paketo svorių suma jau yra `1.0` (`0.9999`, kai rodoma keturių skaitmenų po kablelio tikslumu), todėl, kai paketas aktyvus, `normalizeScoringWeights()` neturi ko reikšmingai koreguoti — toliau pateiktos reikšmės, atsižvelgiant į apvalinimą, yra tos, kurias naudoja vertinimo funkcija.
+6 iš anksto apibrėžti svorių profiliai faile `open-sse/services/autoCombo/modePacks.ts`. Kiekvienas paketas visiškai pakeičia numatytuosius svorius, kad atranka būtų nukreipta į vieną tikslą. Kiekvieno paketo svorių suma jau yra `1.0` (spausdinant keturių dešimtainių skaitmenų tikslumu — `0.9999`), todėl, kai paketas aktyvus, `normalizeScoringWeights()` neturi ko reikšmingai koreguoti — suapvalinus vertintojas taiko toliau pateiktas reikšmes.
 
 | Veiksnys              | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
@@ -243,29 +241,29 @@ Automatinių derinių variklis dinamiškai parenka geriausią paslaugų teikėj�
 
 Pastabos:
 
-- **Paketuose yra `quality` ir `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`), o svorių žemėlapis pakeičiamas visas (`weights = pack`, o ne sujungiamas). `DEFAULT_WEIGHTS` reikšmės yra `quality 0.03 / reliability 0`; pasirinkus `balanced`/`default`, išlaikomos šios numatytosios reikšmės, o pasirinkus paketą naudojamos pirmiau pateiktos to paketo reikšmės. Šaltame telkinyje (dar nėra stebėjimų, todėl `quality 0.5`, o `reliability 1`) šie du veiksniai prideda `+0.04`, kai naudojamas bendrasis paketas (`0.03 + 0.01`), `+0.045`, kai naudojamas `quality-first`, ir `+0.05`, kai naudojamas `reliability-first`.
+- **Paketai apima `quality` ir `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) ir visiškai pakeičia svorių žemėlapį (`weights = pack`, tai nėra suliejimas). `DEFAULT_WEIGHTS` apima `quality 0.03 / reliability 0`; pasirinkus `balanced`/`default`, šios numatytosios reikšmės išlieka, o pasirinkus paketą naudojamos pirmiau pateiktos jo reikšmės. Šaltame telkinyje (kai dar nėra stebėjimų, todėl `quality 0.5`, o `reliability 1`) šie du veiksniai prideda `+0.04`, naudojant bendrąjį paketą (`0.03 + 0.01`), `+0.045`, naudojant `quality-first`, ir `+0.05`, naudojant `reliability-first`.
 - `tierAffinity`, `specificityMatch` ir `resetWindowAffinity` kiekviename pakete yra aiškiai nustatyti į `0`.
-- Trumpa kiekvieno paketo paskirties apžvalga:
-  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (mažos delsos, tinkamai veikiančios jungtys)
-  - **cost-saver** → costInv 0.3324 (laimi pigiausi žetonai)
-  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, didžiausia reikšmė iš visų paketų (geriausiai užduočiai tinkantis, nuoseklus modelis)
-  - **offline-friendly** → quota 0.3324 + health 0.2667 (didžiausias rezervas, neatsižvelgiant į greitį ar kainą)
+- Trumpa kiekvieno paketo prioritetų apžvalga:
+  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (mažos delsos, tinkamai veikiantys ryšiai)
+  - **cost-saver** → costInv 0.3324 (laimi pigiausi prieigos raktai)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, didžiausia reikšmė iš visų paketų (geriausias užduočiai skirtas modelis, nuoseklus veikimas)
+  - **offline-friendly** → quota 0.3324 + health 0.2667 (didžiausia galima atsarga, neatsižvelgiant į spartą ar kainą)
   - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, didžiausia reikšmė iš visų paketų (mažiausiai netikėtumų)
-  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (trikčių įterpimo profilis)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (svorių paketas, kurį `auto/chaos` priskiria savo skydelio nariams; lygiagretus išskleidimas šių svorių neskaito ir tai nėra trikčių įterpimo profilis, žr. [CHAOS-MODE.md](../guides/CHAOS-MODE.md#autochaos-parallel-fan-out))
 
-### Atskiros užklausos valdikliai (antraštės) — #6023 / #6024 / #6025 / #3470
+### Kiekvienos užklausos valdikliai (antraštės) — #6023 / #6024 / #6025 / #3470
 
-`auto` derinį galima valdyti **atskirai kiekvienai užklausai** naudojant tris antraštes ir nekeičiant
+`auto` derinį galima valdyti **kiekvienai užklausai atskirai** naudojant tris antraštes ir nekeičiant
 išsaugotos derinio konfigūracijos. Jos taikomos tik `auto` strategijai ir tik tai užklausai,
-kurioje jos pateikiamos; kai antraštės nėra, naudojami derinio išsaugoti `modePack`/`budgetCap`/`budgetFallback`
-parametrai.
+kurioje jos pateiktos; kai antraštės nėra, naudojamos išsaugotos derinio `modePack`/`budgetCap`/`budgetFallback`
+reikšmės.
 
-| Antraštė                      | Priima                                                                                                                                                                                                                 | Poveikis                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| :---------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-Mode`            | iš anksto nustatytą pseudonimą (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) arba neapdorotą paketo pavadinimą (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Pakeičia šios užklausos vertinimo svorius. `balanced`/`default` priverstinai taiko numatytuosius svorius (be paketo). Nežinomos reikšmės ignoruojamos (konfigūracija išsaugoma).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `X-OmniRoute-Budget`          | teigiamą skaičių (didžiausia USD suma vienai užklausai)                                                                                                                                                                | Griežta išlaidų riba: kandidatai, kurių numatomos išlaidos ją viršija, atmetami prieš atranką. Tai, kas nutinka, kai ją viršija **kiekvienas** kandidatas, valdoma toliau nurodyta antrašte `X-OmniRoute-Budget-Fallback`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `X-OmniRoute-Budget-Fallback` | `cheapest` (numatytoji reikšmė, pseudonimai: `cheapest-viable`, `soft`) arba `strict` (pseudonimai: `block`, `hard`)                                                                                                   | `cheapest`: grįžtama prie pigiausio kandidato iš visų, nors jis vis tiek viršija ribą (ankstesnė elgsena). `strict`: atsisakoma atlikti atranką — užklausa iškart nutraukiama pateikiant `HTTP 402`, užuot nepastebimai viršijus biudžetą. Nežinomos reikšmės ignoruojamos.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `X-OmniRoute-Effort`          | `auto` (kitos reikšmės rezervuotos)                                                                                                                                                                                    | Adaptyvus mąstymo biudžetas: kai užklausoje **nėra** jokios formos samprotavimo lauko (`reasoning_effort`, `reasoning`, `thinking`), tinklų sietuvas nustato `auto` kaip `low`/`medium`/`high` pagal deterministinius užklausos struktūros signalus (paskutinio naudotojo pranešimo ilgį, konteksto dydį iki paskutinio naudotojo pranešimo, ankstesnius įrankių rezultatus, įrankių ciklo gylį). Signalai apribojami dabartiniu veiksmu — viskas po paskutinio naudotojo pranešimo ignoruojama — todėl kiekvienai įrankių ciklo užklausai nustatomas tas pats lygis (būsenos neišsaugantis kiekvieno veiksmo fiksavimas, be seanso būsenos ir be eskalavimo ciklo metu, kuris pažeistų aukštesniojo lygmens raginimų podėlio prefiksus). Aiškiai nurodytas kliento samprotavimo laukas visada turi pirmenybę. Taikoma tik užklausoms, kurių aukštesniojo lygmens siuntimas nustatomas pagal OpenAI Chat Completions struktūrą (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` yra OpenAI struktūros laukas, todėl antraštė nedaro jokio poveikio Claude arba Gemini skirtai užklausai (žr. `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
+| Antraštė                      | Priimamos reikšmės                                                                                                                                                                                                         | Poveikis                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| :---------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`            | iš anksto nustatytas pseudonimas (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) arba neapdorotas paketo pavadinimas (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Šiai užklausai pakeičia vertinimo svorius. `balanced`/`default` priverstinai taiko numatytuosius svorius (be paketo). Nežinomos reikšmės ignoruojamos (konfigūracija išsaugoma).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `X-OmniRoute-Budget`          | teigiamas skaičius (didžiausia USD suma vienai užklausai)                                                                                                                                                                  | Griežta išlaidų riba: kandidatai, kurių apskaičiuotos išlaidos ją viršija, prieš atranką atmetami. Kas nutinka, kai ją viršija **visi** kandidatai, nustatoma toliau aprašyta antrašte `X-OmniRoute-Budget-Fallback`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (numatytoji reikšmė, pseudonimai: `cheapest-viable`, `soft`) arba `strict` (pseudonimai: `block`, `hard`)                                                                                                       | `cheapest`: pasirenkamas visame sąraše pigiausias kandidatas, nors jis vis tiek viršija ribą (ankstesnė elgsena). `strict`: atsisakoma pasirinkti — užklausa nedelsiant nutraukiama pateikiant `HTTP 402`, užuot nepastebimai viršijus biudžetą. Nežinomos reikšmės ignoruojamos.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `X-OmniRoute-Effort`          | `auto` (kitos reikšmės rezervuotos)                                                                                                                                                                                        | Adaptyvus mąstymo biudžetas: kai užklausoje nėra **jokio** jokios formos samprotavimo lauko (`reasoning_effort`, `reasoning`, `thinking`), šliuzas nustato `auto` kaip `low` / `medium` / `high`, remdamasis deterministiniais užklausos struktūros signalais (paskutinio naudotojo pranešimo ilgiu, konteksto dydžiu iki paskutinio naudotojo pranešimo, ankstesniais įrankių rezultatais, įrankių ciklo gyliu). Signalų aprėptis ribojama dabartiniu veiksmu — viskas po paskutinio naudotojo pranešimo ignoruojama — todėl kiekvienai įrankių ciklo užklausai nustatomas tas pats lygis (būsenos nekintantis fiksavimas kiekvienam veiksmui, be sesijos būsenos ir be lygio didinimo ciklo viduryje, kuris pažeistų aukštesniojo lygmens raginimų podėlio prefiksus). Aiškiai nurodytas kliento samprotavimo laukas visada turi pirmenybę. Taikoma užklausoms, kurių aukštesniojo lygmens nukreipimas nustato OpenAI Chat Completions formatą (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` yra OpenAI formato laukas, todėl antraštė neturi jokio poveikio Claude arba Gemini skirtai užklausai (žr. `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
 
 ```bash
 # Priverstinai naudoti sparčiausią profilį, apriboti šios užklausos kainą iki $0.05 ir griežtai blokuoti, užuot viršijus biudžetą
@@ -277,10 +275,10 @@ curl -sS http://localhost:20128/v1/chat/completions \
   -d '{"model":"auto","messages":[{"role":"user","content":"hi"}]}'
 ```
 
-Reikšmių nustatymas yra grynoji funkcija (`open-sse/services/autoCombo/requestControls.ts`); nustatytos
-reikšmės perduodamos esamoms variklio `config.modePack` / `config.budgetCap` /
-`config.budgetFallback` įvestims. Derinio išsaugota `config.budgetFallback` reikšmė („strict“ |
-„cheapest“) nustato nuolatinę strategiją, o antraštė ją pakeičia vienai užklausai.
+Nustatymas yra grynoji funkcija (`open-sse/services/autoCombo/requestControls.ts`);
+nustatytos reikšmės perduodamos esamoms variklio `config.modePack` / `config.budgetCap` /
+`config.budgetFallback` įvestims. Derinyje išsaugota `config.budgetFallback` („strict“ |
+„cheapest“) nustato nuolatinę politiką; antraštė ją pakeičia vienai užklausai.
 
 ## Visos maršruto parinkimo strategijos
 
@@ -768,19 +766,14 @@ SLA palaikantys laukai:
 
 (Pats `AutoVariant` išvardija 6 reikšmes; 7-oji parinktis yra „be varianto“ — bazinis `auto` — kurią `parseAutoPrefix()` apdoroja kaip `variant: undefined`.)
 
-## Kaip pakopos dera su „Auto-Combo“
+## Kaip lygiai dera su Auto-Combo
 
-16 veiksnių vertinimo funkcija (`open-sse/services/autoCombo/scoring.ts`) narystę pakopoje
-vertina kaip du signalus: `tierPriority` (0.0476) ir `tierAffinity` (0.0476). Visą
-`DEFAULT_WEIGHTS` rinkinį žr. aukščiau pateiktoje kanoninėje [vertinimo veiksnių lentelėje](#how-it-works-persisted-auto-combos) —
-atskirų rinkinių perrašymai (ship-fast/cost-saver/quality-first/
-offline-friendly) pateikti lentelėje „Kiekvieno rinkinio svorių profiliai“.
+16 veiksnių vertinimo funkcija (`open-sse/services/autoCombo/scoring.ts`) narystę lygyje vertina kaip du signalus: `tierPriority` (0.0476) ir `tierAffinity` (0.0476). Visą `DEFAULT_WEIGHTS` rinkinį žr. aukščiau pateiktoje kanoninėje [vertinimo veiksnių lentelėje](#how-it-works-persisted-auto-combos) — kiekvieno paketo išimtys (ship-fast/cost-saver/quality-first/
+offline-friendly) pateiktos lentelėje „Svorių profiliai pagal paketą“.
 
-Vien pakopa **neužtikrina**, kad pirmiausia bus pasirinkta 1 pakopa — jei 1 pakopos delsa yra didelė arba
-kainos ir kokybės santykis nėra optimalus, pasirenkama 2 pakopa. Norėdami priverstinai taikyti pakopų eiliškumą, naudokite derinio
-strategiją `priority` ir išdėstykite teikėjus pagal pakopas.
+Vien lygis **neužtikrina**, kad 1 lygis bus pirmas — jei 1 lygio delsa yra didelė arba kainos ir kokybės santykis nėra optimalus, laimi 2 lygis. Norėdami užtikrinti eiliškumą pagal lygius, naudokite derinio strategiją `priority` ir išdėstykite teikėjus pagal lygį.
 
-Norėdami aiškiai teikti pirmenybę 1 pakopai (prenumeratai), padidinkite `tierPriority` svorį:
+Norėdami suteikti didelę pirmenybę 1 lygiui (prenumeratai), padidinkite `tierPriority` svorį:
 
 ```json
 {
@@ -789,7 +782,7 @@ Norėdami aiškiai teikti pirmenybę 1 pakopai (prenumeratai), padidinkite `tier
 }
 ```
 
-Pakopų apibrėžimus ir teikėjų klasifikaciją žr. `docs/marketing/TIERS.md`.
+Lygių apibrėžtis ir teikėjų klasifikaciją žr. [`docs/guides/TIERS.md`](../guides/TIERS.md).
 
 ## Testavimas ir aprėptis
 

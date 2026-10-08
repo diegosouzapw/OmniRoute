@@ -13,12 +13,19 @@
  * (`command-code/moonshotai/Kimi-K2.6`) with no error surfaced to the client:
  * the wrong model answered, billing followed the wrong connection, and
  * `call_logs` recorded the substitute as if it were intended.
+ *
+ * Fixture note: #14117 later gave `kimi-for-coding` a MODEL_SPECS entry (Kimi K2.8
+ * Preview, supportsVision: true), so it no longer exercises the UNKNOWN-capability
+ * path. The cases below use `deepseek-coder-6.7b` (served by `llamagate`), which has
+ * neither a spec nor a registry vision flag; a precondition test pins that so a future
+ * spec change fails here loudly instead of silently turning these cases into no-ops.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
 
 const { VisionBridgeGuardrail } = await import("../../../src/lib/guardrails/visionBridge.ts");
 const { resetGuardrailsForTests } = await import("../../../src/lib/guardrails/registry.ts");
+const { getResolvedModelCapabilities } = await import("../../../src/lib/modelCapabilities.ts");
 import type { GuardrailContext } from "../../../src/lib/guardrails/base.ts";
 import type { VisionModelConfig } from "../../../src/lib/guardrails/visionBridgeHelpers.ts";
 
@@ -94,24 +101,34 @@ test.beforeEach(() => {
   mockSettings = baseSettings();
 });
 
+const BARE_UNKNOWN = "deepseek-coder-6.7b";
+const QUALIFIED_UNKNOWN = `llamagate/${BARE_UNKNOWN}`;
+
+test("VB-14003-FIXTURE: the bare and qualified fixture ids still have UNKNOWN vision", () => {
+  assert.strictEqual(getResolvedModelCapabilities(BARE_UNKNOWN).supportsVision, null);
+  const qualified = getResolvedModelCapabilities(QUALIFIED_UNKNOWN);
+  assert.strictEqual(qualified.provider, "llamagate");
+  assert.strictEqual(qualified.supportsVision, null);
+});
+
 test("VB-14003-BARE: keeps a bare model id with unknown vision capability instead of rerouting", async () => {
-  // Models production exactly: hasUsableCredentialsForModel("kimi-for-coding")
+  // Models production exactly (reported with `kimi-for-coding`): hasUsableCredentialsForModel(bare)
   // is blind to the bare id (it splits on "/" and treats the MODEL name as a
   // provider, finds no rows, and reports false), while the Vision Bridge's
   // reroute target is a perfectly healthy, credentialed model. Before the fix
   // that combination rerouted the whole request to the substitute model.
-  credentialsMock = async (model: string) => (model === "kimi-for-coding" ? false : null);
+  credentialsMock = async (model: string) => (model === BARE_UNKNOWN ? false : null);
 
-  const result = await createGuardrail().preCall(
-    imagePayload("kimi-for-coding", "bare-14003"),
-    { model: "kimi-for-coding", log: createLogger() }
-  );
+  const result = await createGuardrail().preCall(imagePayload(BARE_UNKNOWN, "bare-14003"), {
+    model: BARE_UNKNOWN,
+    log: createLogger(),
+  });
 
   assert.strictEqual(result.block, false);
   const body = result.modifiedPayload as Record<string, unknown>;
   assert.strictEqual(
     body.model,
-    "kimi-for-coding",
+    BARE_UNKNOWN,
     "the explicitly requested model must not be swapped for another provider's model"
   );
   assert.strictEqual(
@@ -121,7 +138,7 @@ test("VB-14003-BARE: keeps a bare model id with unknown vision capability instea
   );
   assert.strictEqual(visionCallCount, 1, "images must be described, not dropped");
   assert.ok(
-    warnLines().some((line) => line.includes("kimi-for-coding")),
+    warnLines().some((line) => line.includes(BARE_UNKNOWN)),
     "the skipped reroute must name the original model in the log"
   );
 });
@@ -150,18 +167,18 @@ test("VB-14003-QUALIFIED: a provider-qualified id with unknown capability still 
 });
 
 test("VB-14003-QUALIFIED-LEAF: the same wire id under a provider prefix still reroutes", async () => {
-  // `kimi-for-coding` and `kimi-coding/kimi-for-coding` are the same wire model;
+  // `deepseek-coder-6.7b` and `llamagate/deepseek-coder-6.7b` are the same wire model;
   // only the qualified spelling keeps the existing reroute. This is the boundary
   // the gate must respect.
   credentialsMock = async () => null;
 
   const result = await createGuardrail().preCall(
-    imagePayload("kimi-coding/kimi-for-coding", "qualified-leaf-14003"),
-    { model: "kimi-coding/kimi-for-coding", log: createLogger() }
+    imagePayload(QUALIFIED_UNKNOWN, "qualified-leaf-14003"),
+    { model: QUALIFIED_UNKNOWN, log: createLogger() }
   );
 
   const body = result.modifiedPayload as Record<string, unknown>;
-  assert.notStrictEqual(body.model, "kimi-coding/kimi-for-coding");
+  assert.notStrictEqual(body.model, QUALIFIED_UNKNOWN);
   assert.strictEqual((result.meta as Record<string, unknown>).rerouted, true);
 });
 

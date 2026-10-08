@@ -39,31 +39,31 @@ Veelvoorkomende problemen en oplossingen voor OmniRoute.
 
 ### Snelheidsbeperking bij gratis providers (429 / 400 / 401)
 
-**Symptoom**: Wanneer u `model: "auto"` gebruikt met gratis providers/providers zonder authenticatie (opencode, auggie enzovoort), krijgt u af en toe `HTTP 429`, `400` of `401` in plaats van antwoorden. De verzoeken slagen wanneer u dezelfde prompt even later opnieuw probeert, maar automatisering (cron-taken, agents, scripts) stopt bij de eerste fout.
+**Symptoom**: Wanneer je `model: "auto"` gebruikt met gratis providers/providers zonder authenticatie (opencode, auggie, enz.), krijg je af en toe `HTTP 429`, `400` of `401` in plaats van antwoorden. De verzoeken slagen wanneer je dezelfde prompt even later opnieuw probeert, maar automatisering (cron-taken, agents, scripts) stopt bij de eerste fout.
 
-**Hoofdoorzaak**: Drie onafhankelijke foutmodi stapelen zich op:
+**Hoofdoorzaak**: Drie onafhankelijke foutscenario's stapelen zich op:
 
 1. **Snelheidslimiet van provider (`429`)**: Gratis abonnementen kunnen een quotum per tijdsvenster afdwingen. Een piek aan parallelle aanroepen put dit uit, waardoor het volgende verzoek wordt geweigerd totdat het venster opnieuw wordt ingesteld.
-2. **Defect model bij passthrough (`400`/`401`)**: `auto/*`-pools kunnen passthrough-modellen van `opencode` bevatten die in de catalogus zijn geregistreerd, maar geen werkende aanmeldgegevens hebben (bijvoorbeeld `oc/north-mini-code-free` → `401`). De automatische router probeert er één, faalt en geeft de fout door voordat de terugval in werking treedt.
-3. **Versterking door gelijktijdigheid (`429` onder belasting)**: Wanneer meerdere agent-/cron-sessies tegelijk `auto` gebruiken, overschrijdt het totale aantal verzoeken wat gratis providers tolereren, waardoor legitieme aanroepen als misbruik worden gemarkeerd.
+2. **Defect model bij passthrough (`400`/`401`)**: `auto/*`-pools kunnen passthrough-modellen van `opencode` bevatten die in de catalogus zijn geregistreerd, maar geen geldige inloggegevens hebben (bijv. `oc/north-mini-code-free` → `401`). De auto-router probeert er één, faalt, en de fout wordt doorgegeven voordat de fallback wordt geactiveerd.
+3. **Versterking door gelijktijdigheid (`429` onder belasting)**: Wanneer meerdere agent-/cron-sessies tegelijk `auto` aanroepen, overschrijdt het totale aantal verzoeken wat gratis providers tolereren, waardoor legitieme aanroepen als misbruik worden aangemerkt.
 
-**Geverifieerde oplossing (gemeld door de community, 2026-08-10)**: stel drie omgevingsvariabelen zo af dat rotatie, gelijktijdigheid en terugval de wisselvalligheid van gratis abonnementen opvangen in plaats van erop vast te lopen:
+**Geverifieerde oplossing (gerapporteerd door de community, 2026-08-10)**: stel drie omgevingsvariabelen zo in dat rotatie, gelijktijdigheid en fallback de wisselvalligheid van gratis abonnementen opvangen in plaats van erop vast te lopen:
 
 ```bash
 export OMNIROUTE_ROTATE_ON_400=true           # schakel bij 400/401 over naar een ander model/andere provider (slaat defecte passthrough-modellen over)
 export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # expliciete toelatingslimiet voor zware verzoeken (standaard niet ingesteld: geen limiet voor het aantal verzoeken, zie opmerking hieronder)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # langere begrensde wachttijd op capaciteit voor zware verzoeken in plaats van een onmiddellijke, opnieuw te proberen 503
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # verhoog de begrensde wachttijd tot boven de standaardwaarde van RATE_LIMIT_MAX_WAIT_MS voor trage upstreams
 ```
 
-Stel deze in de procesomgeving van OmniRoute in (de daemon, bijvoorbeeld via de LaunchAgent-plist of `systemctl edit`) en start OmniRoute vervolgens opnieuw. De rotatievlag heeft verreweg de meeste impact: deze zet een harde fout om in een transparante nieuwe poging via een gezonde provider in de pool.
+Stel deze in binnen de procesomgeving van OmniRoute (de daemon, bijvoorbeeld via de LaunchAgent-plist of `systemctl edit`) en start OmniRoute vervolgens opnieuw. De rotatievlag heeft veruit de meeste impact: deze zet een onherstelbare fout om in een transparante nieuwe poging via een werkende provider in de pool.
 
-**Opmerking**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` begrenst hoeveel zware verzoeken — verzoeken met een lange context — tegelijk worden uitgevoerd; de begrenzing is een toelatingspoort, geen snelheidsbegrenzer van de provider. **Update over #503-fanout:** deze variabele wordt niet langer standaard ingesteld (deze is nu alleen van toepassing wanneer hij expliciet is geconfigureerd, zoals hierboven) — toelating van zware verzoeken wordt in plaats daarvan geregeld door een automatisch afgeleid bytebudget (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) dat zichzelf schaalt op basis van de werkelijke geheugenlimiet van de host. Daardoor zou een nieuwe implementatie veel minder afwijzingen met `503 chat_admission_busy` moeten opleveren zonder dat deze variabele überhaupt wordt ingesteld; expliciete instelling zoals hier beschreven werkt nog steeds precies zoals gedocumenteerd. Expliciete overschrijvingen van het bytebudget worden begrensd op 8 MiB–2 GiB. Een `413 body_exceeds_budget` is niet tijdelijk: verhoog dat bytebudget, verlaag `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` of verhoog de geheugenlimiet van het proces. Een afwijzing wegens `inflight_bytes_budget` is tijdelijke capaciteitsconcurrentie en kan opnieuw worden geprobeerd. De snelheidsbeperking per provider (`open-sse/services/rateLimitManager.ts`) wordt afzonderlijk beheerd door `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` en `RATE_LIMIT_AUTO_ENABLE` — zie `.env.example`.
+**Opmerking**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` beperkt hoeveel zware verzoeken — met een lange context — tegelijkertijd worden uitgevoerd; de limiet is een toelatingspoort, geen snelheidsbeperking van de provider. **Update over #503-fanout:** deze variabele wordt niet langer standaard ingesteld (de limiet geldt nu alleen wanneer deze expliciet is geconfigureerd, zoals hierboven) — de toelating van zware verzoeken wordt in plaats daarvan geregeld door een automatisch afgeleid bytebudget (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) dat zichzelf schaalt op basis van de werkelijke geheugenlimiet van de host. Een nieuwe implementatie zou daardoor veel minder afwijzingen met `503 chat_admission_busy` moeten opleveren, zonder dat deze variabele überhaupt hoeft te worden ingesteld; het expliciet instellen ervan werkt nog steeds precies zoals beschreven. Expliciete overschrijvingen van het bytebudget worden begrensd op 8 MiB–2 GiB. Een `413 body_exceeds_budget` is niet tijdelijk: verhoog dat bytebudget, verlaag `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` of verhoog de geheugenlimiet van het proces. Een afwijzing vanwege `inflight_bytes_budget` duidt op tijdelijke capaciteitsconcurrentie en kan opnieuw worden geprobeerd. De snelheidsbeperking per provider (`open-sse/services/rateLimitManager.ts`) wordt afzonderlijk geregeld door `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` en `RATE_LIMIT_AUTO_ENABLE` — zie `.env.example`.
 
-**Zo controleert u of het werkt**: voer uw agent/cron tweemaal kort na elkaar uit en controleer of beide uitvoeringen slagen. Vóór de oplossing levert de tweede uitvoering doorgaans een `429`/`401` op. Na de oplossing worden fouten (indien aanwezig) transparant opnieuw geprobeerd en wordt de aanroep voltooid. U kunt ook `curl /monitoring/health` uitvoeren en het veld `rateLimitedUntil` bij de providerverbindingen en `circuitBreakers.providerBreakers[].state` voor de getroffen providers volgen — de status is `CLOSED`, `DEGRADED`, `OPEN` of `HALF_OPEN` (zie `src/shared/utils/circuitBreaker.ts`), en een provider die blijft falen, schakelt van `CLOSED → DEGRADED → OPEN` voordat na het resetvenster een testaanroep wordt doorgelaten (`HALF_OPEN`).
+**Controleren of het heeft gewerkt**: voer je agent/cron tweemaal kort na elkaar uit en controleer of beide uitvoeringen slagen. Vóór de oplossing geeft de tweede uitvoering doorgaans een `429`/`401`. Na de oplossing worden fouten (indien aanwezig) transparant opnieuw geprobeerd en wordt de aanroep voltooid. Je kunt ook `curl /monitoring/health` uitvoeren en het veld `rateLimitedUntil` bij de providerverbindingen en `circuitBreakers.providerBreakers[].state` voor de betrokken providers controleren — de status is `CLOSED`, `DEGRADED`, `OPEN` of `HALF_OPEN` (zie `src/shared/utils/circuitBreaker.ts`), en een provider die blijft falen, gaat van `CLOSED → DEGRADED → OPEN` voordat na het resetvenster een testverzoek wordt doorgelaten (`HALF_OPEN`).
 
-**Als u nog steeds 429 ziet**: het actieve account voor die provider heeft daadwerkelijk zijn _quotum_ uitgeput (en niet alleen de aanvraaglimiet bereikt). Voeg in het OmniRoute-dashboard via Providers → Accounts een tweede account voor dezelfde provider toe, of gebruik daarnaast een andere gratis provider (bijvoorbeeld `routeway`, `auggie`). Rotatie helpt alleen bij tijdelijke limiet-/400-/401-fouten; bij een volledig uitgeput quotum is een tweede toegangsgegeven of een andere provider vereist.
+**Als je nog steeds 429 ziet**: het actieve account voor die provider heeft daadwerkelijk zijn _quotum_ uitgeput (niet alleen de snelheidslimiet bereikt). Voeg in het OmniRoute-dashboard via Providers → Accounts een tweede account voor dezelfde provider toe, of voeg een andere gratis provider toe (bijv. `routeway`, `auggie`). Rotatie helpt alleen bij tijdelijke snelheidslimieten/400/401; bij een volledig uitgeput quotum is een tweede set inloggegevens of een andere provider vereist.
 
-**Als u 403 ziet bij vision-modellen (`auto/vision`, `bazaarlink/*`)**: het gekoppelde account heeft geen betaald abonnement waarin vision is inbegrepen, of de API-sleutel heeft onvoldoende machtigingen. Controleer in het providerdashboard of het bereik van de sleutel vision/multimodaal omvat, of koppel een account met een betaald abonnement en behoud dit als doelprovider voor vision.
+**Als je 403 ziet bij vision-modellen (`auto/vision`, `bazaarlink/*`)**: het gekoppelde account beschikt niet over een betaald abonnement dat vision ondersteunt, of de API-sleutel heeft onvoldoende machtigingen. Controleer in het dashboard van de provider of het bereik van de sleutel vision/multimodal omvat, of koppel een betaald account en behoud dit als vision-doel.
 
 ---
 
@@ -513,10 +513,10 @@ Gebruik **Dashboard → Translator** om problemen met indelingsconversie op te s
 
 ## Instellingen voor veerkracht
 
-### Automatische snelheidsbeperking wordt niet geactiveerd
+### Automatische snelheidslimiet wordt niet geactiveerd
 
-- Automatische snelheidsbeperking is alleen van toepassing op providers met API-sleutels (niet op OAuth/abonnementen)
-- Controleer of bij **Instellingen → Veerkracht → Providerprofielen** automatische snelheidsbeperking is ingeschakeld
+- Automatische snelheidslimieten zijn alleen van toepassing op providers met API-sleutels (niet op OAuth/abonnementen)
+- Controleer of automatische snelheidslimieten zijn ingeschakeld onder **Instellingen → Veerkracht → Providerprofielen**
 - Controleer of de provider `429`-statuscodes of `Retry-After`-headers retourneert
 
 ### Exponentiële back-off afstemmen
@@ -524,29 +524,29 @@ Gebruik **Dashboard → Translator** om problemen met indelingsconversie op te s
 Providerprofielen ondersteunen deze instellingen:
 
 - **Basisvertraging** — Initiële wachttijd na de eerste fout (standaard: 1s)
-- **Maximale vertraging** — Bovengrens voor de wachttijd (standaard: 30s)
+- **Maximale vertraging** — Bovengrens voor de maximale wachttijd (standaard: 30s)
 - **Vermenigvuldigingsfactor** — Hoeveel de vertraging per opeenvolgende fout wordt verhoogd (standaard: 2x)
 
-### Bescherming tegen een thundering herd
+### Voorkomen van een thundering herd
 
-Wanneer veel gelijktijdige verzoeken een provider met snelheidsbeperking bereiken, gebruikt OmniRoute een mutex plus automatische snelheidsbeperking om verzoeken sequentieel af te handelen en trapsgewijze fouten te voorkomen. Dit gebeurt automatisch voor providers met API-sleutels.
+Wanneer veel gelijktijdige aanvragen een provider met een snelheidslimiet bereiken, gebruikt OmniRoute mutex + automatische snelheidslimieten om aanvragen te serialiseren en cascadefouten te voorkomen. Dit gebeurt automatisch voor providers met API-sleutels.
 
-### Chatverzoeken mislukken met 503 / chat_admission_busy
+### Chataanvragen mislukken met 503 / chat_admission_busy
 
 **Symptomen:**
 
-- Het endpoint voor chatvoltooiingen retourneert een opnieuw uitvoerbaar `503`-antwoord met foutcode
-  `chat_admission_busy`.
-- Het antwoord bevat `Retry-After`. Sinds #12135 wordt de waarde afgeleid van de waargenomen
-  bezetting — de hoogste waarde van het `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`-venster waarin het verzoek al
-  heeft gewacht en de tijd dat de huidige heavyweight-leases al worden vastgehouden — naar boven afgerond op hele
-  seconden en begrensd op 60. Bij een inactieve gate blijven de historische minimumwaarden gelden: 2 seconden voor het
-  bytegebaseerde pad, 1 seconde voor het structuurgebaseerde pad (dat ook
+- Het endpoint voor chataanvullingen retourneert een opnieuw te proberen `503`-respons waarvan de foutcode
+  `chat_admission_busy` is.
+- De respons bevat `Retry-After`. Sinds #12135 wordt de waarde afgeleid van de waargenomen
+  bezetting — de hoogste waarde van het `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`-venster waarin de aanvraag al
+  heeft gewacht en de tijd dat de huidige zwaargewichtleases actief zijn — naar boven afgerond op hele
+  seconden en begrensd op 60. Bij een niet-belaste gate blijven de historische minimumwaarden behouden: 2 seconden op het
+  op bytes gebaseerde pad, 1 seconde op het op structuur gebaseerde pad (dat ook
   `reason: "structure_limit"` bevat).
-- Dit kan gebeuren terwijl een andere heavyweight-chat of langlopende streamingrespons nog
+- Dit kan gebeuren terwijl een andere zwaargewichtchataanvraag of langlopende streamingrespons nog
   wordt verwerkt.
 
-De bytegebaseerde responsebody is:
+De op bytes gebaseerde responsbody is:
 
 ```json
 {
@@ -558,50 +558,50 @@ De bytegebaseerde responsebody is:
 }
 ```
 
-Het structuurgebaseerde antwoord gebruikt hetzelfde type en dezelfde code, met het bericht
+De op structuur gebaseerde respons gebruikt hetzelfde type en dezelfde code, met het bericht
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 en `reason: "structure_limit"`.
-Bij de standaarddrempelwaarden is een verzoek structureel zwaar wanneer het ten minste `200` berichten,
-ten minste `64` tools of ten minste `32,000` geschatte tokens bevat, of wanneer begrensde structuurschatting
-de limieten van `10,000` bezochte nodes of diepte `12` bereikt.
+Bij de standaarddrempels wordt een aanvraag als structureel zwaar beschouwd wanneer deze ten minste `200` berichten,
+ten minste `64` tools of ten minste `32,000` geschatte tokens bevat, of wanneer de begrensde structuurschatting
+de limieten van `10,000` bezochte knooppunten of diepte `12` bereikt.
 
-**Oorzaak:** Dit is doelbewuste load shedding binnen OmniRoute en geen fout bij een upstreamprovider.
-Elk proces gebruikt een proceslokale beveiliging om beperkte heavyweight-capaciteit te reserveren voordat
-een grote requestbody wordt vastgehouden en geparseerd. Een heavyweight-lease blijft gedurende de volledige levensduur van een SSE-
+**Oorzaak:** Dit is doelbewuste load shedding binnen OmniRoute, geen fout van een upstreamprovider.
+Elk proces gebruikt een proceslokale beveiliging om beperkte zwaargewichtcapaciteit te reserveren voordat een
+grote aanvraagbody wordt vastgehouden en geparseerd. Een zwaargewichtlease blijft gedurende de volledige levensduur van een SSE-
 respons actief.
 
-**#503-fan-out:** vóór deze oplossing beperkte de beveiliging de gelijktijdigheid tot een vast AANTAL verzoeken
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, standaard `1`), ongeacht het geheugen van de host, waardoor fan-out van
-coding-agents (meerdere subagents/CLI's, bodies routinematig > 256 KB) terugviel tot een effectieve
-gelijktijdigheid van ~1 en bij volledig normale belasting 503-fouten veroorzaakte. De beveiliging stemt zichzelf nu af: deze wordt gestuurd
-door een automatisch afgeleid BYTE-budget voor ingestie (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), berekend op basis van de
-werkelijke geheugenlimiet van het proces, en raadpleegt ook een live signaal voor resourcebelasting — zodat
-load shedding alleen plaatsvindt wanneer de host daadwerkelijk onder geheugendruk staat, en niet alleen omdat er meer dan één
-zwaar verzoek tegelijk binnenkomt. De oude limiet op het aantal (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) wordt
+**#503-fanout:** vóór deze oplossing beperkte de beveiliging de gelijktijdigheid tot een vast AANTAL aanvragen
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, standaard `1`), ongeacht het hostgeheugen, waardoor fan-out van
+coding-agents (meerdere subagents/CLI's, bodies doorgaans > 256 KB) instortte tot een effectieve
+gelijktijdigheid van ~1 en onder volkomen normale belasting 503-fouten veroorzaakte. De beveiliging stemt zichzelf nu af: deze wordt begrensd
+door een automatisch afgeleid BYTE-budget voor ingestie (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), waarvan de grootte wordt bepaald op basis van de
+werkelijke geheugenlimiet van het proces, en houdt ook rekening met een live signaal voor resourcebelasting — zodat alleen
+load shedding plaatsvindt wanneer de host daadwerkelijk onder geheugendruk staat, niet alleen omdat er meer dan één
+zware aanvraag tegelijk binnenkomt. De oude limiet voor het aantal aanvragen (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) wordt
 nog steeds gerespecteerd, maar alleen als u deze expliciet instelt.
 
-Wanneer de capaciteit bezet is, wacht een heavyweight-verzoek eerst maximaal
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (standaard `2000`; `0` schakelt het wachten uit) tot een plek vrijkomt,
-voordat het opnieuw uitvoerbare `503`-antwoord wordt gegeven. De begrensde wachttijd bestaat zodat agentachtige clients
-(OpenCode, Claude Code, Cursor) die gelijktijdig zware subverzoeken uitwaaieren, de piek sequentieel verwerken
-in plaats van hun volledige retrybudget te verbruiken aan onmiddellijke afwijzingen en halverwege een taak te stoppen.
-De huidige bezetting van heavyweight-leases, het bepaalde bytebudget en de live ernst van de belasting worden
-weergegeven bij `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
+Wanneer de capaciteit bezet is, wacht een zwaargewichtaanvraag eerst maximaal
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (standaard gelijk aan `RATE_LIMIT_MAX_WAIT_MS`; `0` schakelt het wachten uit) totdat er een plek vrijkomt,
+voordat de opnieuw te proberen `503` wordt geretourneerd. De begrensde wachttijd bestaat zodat clients in agentstijl
+(OpenCode, Claude Code, Cursor) die zware subaanvragen gelijktijdig uitwaaieren, de piek serialiseren
+in plaats van hun volledige budget voor nieuwe pogingen te verbruiken aan onmiddellijke afwijzingen en midden in een taak uit te vallen.
+De huidige bezetting van zwaargewichtleases, het vastgestelde bytebudget en de actuele ernst van de belasting worden
+weergegeven via `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
 `budgetSource`, `pressureSeverity`, `countCapEnabled`) — controleer deze voordat u een omgevingsvariabele wijzigt.
-Instellingen → Veerkracht → Verzoekwachtrij → Gelijktijdige verzoeken regelt dit niet; die instelling
-beheert een afzonderlijk wachtrijmechanisme voor providerverzoeken.
+Instellingen → Veerkracht → Aanvragenwachtrij → Gelijktijdige aanvragen bepaalt dit niet; die instelling
+regelt een afzonderlijk wachtrijmechanisme voor provideraanvragen.
 
 **Oplossing:**
 
-1. Probeer het eerst opnieuw. Clients moeten `Retry-After` respecteren en back-off gebruiken in plaats van het verzoek
-   onmiddellijk te herhalen.
+1. Probeer het eerst opnieuw. Clients moeten `Retry-After` respecteren en back-off gebruiken in plaats van de aanvraag
+   onmiddellijk opnieuw te verzenden.
 2. Controleer `/api/monitoring/health` → `chatAdmission` voordat u iets afstemt. `countCapEnabled:
-false` en een ruim `maxInflightBytes` betekenen dat het automatisch afgeleide budget zijn werk al
-   doet; een `pressureSeverity` van `high`/`critical` betekent dat de host daadwerkelijk weinig geheugen heeft —
-   dit kan niet worden opgelost met een omgevingsvariabele voor toelating; hiervoor is meer RAM of een kleinere workload nodig.
+false` en een ruim `maxInflightBytes` betekenen dat het automatisch afgeleide budget zijn
+   werk al doet; een `pressureSeverity` van `high`/`critical` betekent dat de host daadwerkelijk weinig geheugen heeft —
+   dit kan niet worden opgelost met een omgevingsvariabele voor toelating; er is meer RAM of een kleinere werklast nodig.
 3. Alleen als `/api/monitoring/health` aangeeft dat het automatisch afgeleide budget daadwerkelijk te klein is voor
-   uw host (zeldzaam — het schaalt al van containers tot bare-metal), kunt u dit rechtstreeks overschrijven met
-   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` in plaats van terug te vallen op de verouderde limiet voor het aantal verzoeken.
+   uw host (zeldzaam — het schaalt al van containers tot bare-metal), overschrijft u dit rechtstreeks met
+   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` in plaats van terug te vallen op de verouderde limiet voor het aantal aanvragen.
 
 Zie de [referentie voor omgevingsvariabelen](../reference/ENVIRONMENT.md#4-security--authentication)
 voor de gezaghebbende toelatingsinstellingen.

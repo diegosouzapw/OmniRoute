@@ -390,22 +390,24 @@ Ikteb testijiet unitarji f'`tests/unit/` li jkopru mill-inqas:
 
 ---
 
-## Kaxxa tal-Għarfien tal-Pull Request
+## Lista ta' Kontroll tal-Pull Request
 
-- [ ] Testijiet għaddew (`npm test`)
-- [ ] Linting għaddew (`npm run lint`)
-- [ ] Build rnexxielu (`npm run build`)
-- [ ] It-Tipijiet TypeScript ġew miżjuda għal funzjonijiet u interfaces ġodda pubbliċi
-- [ ] M'hemm xejn skrin fiżjati ta' sigrieti jew valuri fallback
-- [ ] Kredenzjali upstream pubbliċi ġew imbodding permezz ta' `resolvePublicCred()` (ara [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), qatt bħala literals
-- [ ] Ir-risponsi ta' żball jgħaddu minn `buildErrorBody()` / `sanitizeErrorMessage()` — l-ebda trace rwiexi fil-korp tal-Response (ara [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Il-kmandi shell (`exec` / `spawn`) jgħaddu valuri runtime permezz ta' `env`, mhux permezz ta' interpolarzjoni tal-stringa
-- [ ] Kull input ġie validat permezz ta' skemi Zod
-- [ ] **Fragament** tal-CHANGELOG ġie miżjud taħt `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` għal bidliet li jaffettwaw l-utenti (ara [`changelog.d/README.md`](./changelog.d/README.md)) — tagħmilx direttament editjar `CHANGELOG.md`; il-fragments jiġbru fis-sak ħin tat-tħarir u qatt ma jikkuntrastaw bejn il-PRs
-- [ ] Dukumentazzjoni aġġornata (jekk applicable)
-- [ ] L-ebda ġdida CodeQL / Secret-Scanning alerts miftuħa, jew kollha riżolvuti b'ġustifikazzjoni teknika li tirreferi għad-dokument rilevanti ta' `docs/security/`
-- [ ] Rotot li jħaddmu proċessi iben (`/api/mcp/`, `/api/cli-tools/runtime/`) huma klassifikati bħala `isLocalOnlyPath()` f'`src/server/authz/routeGuard.ts` — ara [Rekwiżiti Ħorox #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] M'hemm l-ebda `Co-Authored-By` trailers fil-messaġġi tal-kommit — il-kommits iridu jidhru biss taħt l-identità Git tal-sid tal-repositorju (Rekwiżit Ħarxa #16)
+- [ ] It-testijiet jgħaddu (`npm test`)
+- [ ] Il-linting jgħaddi (`npm run lint`)
+- [ ] Il-build jirnexxi (`npm run build`)
+- [ ] Żdiedu t-tipi TypeScript għal funzjonijiet u interfaces pubbliċi ġodda
+- [ ] L-ebda sigriet jew valur ta' riżerva kkodifikat direttament
+- [ ] Il-kredenzjali upstream pubbliċi huma inkorporati permezz ta' `resolvePublicCred()` (ara [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), u qatt bħala litterali
+- [ ] Ir-risposti ta' żball jgħaddu minn `buildErrorBody()` / `sanitizeErrorMessage()` — l-ebda stack trace mhux ipproċessat fil-korpi tar-risposti (ara [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Il-kmandi tax-shell (`exec` / `spawn`) jgħaddu l-valuri waqt l-eżekuzzjoni permezz ta' `env`, mhux permezz ta' interpolazzjoni ta' strings
+- [ ] L-inputs kollha huma vvalidati bi skemi Zod
+- [ ] Żdied **framment** tal-changelog taħt `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` għal bidliet viżibbli għall-utent (ara [`changelog.d/README.md`](./changelog.d/README.md)) — teditjax `CHANGELOG.md` direttament; il-frammenti jiġu aggregati waqt ir-rilaxx u qatt ma joħolqu kunflitti bejn il-PRs
+- [ ] Id-dokumentazzjoni ġiet aġġornata (jekk applikabbli)
+- [ ] Ma nfetħux twissijiet ġodda ta' CodeQL / Secret-Scanning, jew kull waħda ġiet miċħuda b'ġustifikazzjoni teknika li tirreferi għad-dokument rilevanti f'`docs/security/`
+- [ ] Ir-rotot li jniedu proċessi sekondarji (`/api/mcp/`, `/api/cli-tools/runtime/`) huma kklassifikati bħala `isLocalOnlyPath()` f'`src/server/authz/routeGuard.ts` — ara [Regola Stretta #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] L-ebda trailer `Co-authored-by` ta' AI/bot fil-messaġġi tal-commit (Regola Stretta #16) — il-kollaboraturi umani li x-xogħol tagħhom jerġa' jintuża jingħataw kreditu bi trailers standard `Co-authored-by: Name <email>`
+
+---
 
 ## Rilaxjar
 
@@ -415,11 +417,10 @@ Għad-displokki VPS, uża `npm run build:release` (mhux `npm run build`) — dan
 
 ---
 
-## Kif Tista' Tinkiseb Għajnuna
+## Kif Tikseb l-Għajnuna
 
 - **Arkitettura**: Ara [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **Referenza API**: Ara [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **Dokumentazzjoni tas-Sigurtà**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Dokumentazzjoni tal-Operazzjonijiet**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
-- **Għaddas ta' Problemi**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: Ara `docs/adr/` għar-rekords tad-deċiżjonijiet tal-arkitettura
+- **Referenza tal-API**: Ara [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **Dokumentazzjoni tas-sigurtà**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **Dokumentazzjoni tal-operazzjonijiet**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Problemi**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)

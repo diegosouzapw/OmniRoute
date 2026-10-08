@@ -1,1 +1,0 @@
-- **fix(providers):** a passing or skipped connection test no longer re-enables a connection an operator switched off on purpose; toggling a connection off (single or bulk) records the intent in `providerSpecificData.operatorDisabledAt`, and only an explicit re-enable clears it ([#14941](https://github.com/diegosouzapw/OmniRoute/pull/14941)) — thanks @shipsfromrio

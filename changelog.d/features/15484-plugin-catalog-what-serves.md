@@ -1,0 +1,1 @@
+- **feat(plugin):** trim the default view with per-provider fresh and showcase caps, tunable freshness window and new options ([#15484](https://github.com/diegosouzapw/OmniRoute/pull/15484)) — thanks @maxmad64bis

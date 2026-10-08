@@ -4,17 +4,17 @@
 
 ---
 
-OmniRoute は、プロバイダーの**アカウントが恒久的に無効**（一時停止 / 無効化 / 利用規約違反による禁止）であることを示すシグナルがないかアップストリームのエラーレスポンスをスキャンし、一致した場合、その接続を**終端 `banned` 状態**に移行して、以後リクエストに選択されないようにします。これは、**Security → Banned Keywords** 設定カード（「恒久的なアカウント禁止の検出をトリガーする追加キーワード。組み込みキーワードは常に適用されます。」）で設定する機能です。
+OmniRoute は、プロバイダーの**アカウントが恒久的に無効**（停止 / 無効化 / 利用規約違反によるBAN）であることを示すシグナルがないか、アップストリームのエラーレスポンスをスキャンします。一致した場合、その接続を**終端 `banned` 状態**に移行し、以後リクエストに選択されないようにします。これは、**Security → Banned Keywords** 設定カード（「恒久的なアカウントBANの検出をトリガーする追加キーワード。組み込みキーワードは常に適用されます。」）で設定する内容です。
 
-このページでは、組み込みリスト、検出フロー、その適用範囲、カスタムキーワードを安全に追加する方法、およびフラグが付けられた接続を復旧する方法について説明します。終端状態自体はレジリエンスモデルの一部です。詳細については、
-[RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md)（「終端状態」）を参照してください。
+このページでは、組み込みリスト、検出フロー、その適用範囲、カスタムキーワードを安全に追加する方法、フラグが付けられた接続を復旧する方法について説明します。終端状態自体はレジリエンスモデルの一部です。[RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md)（「終端状態」）を参照してください。
 
 **信頼できる情報源:** `open-sse/services/accountFallback.ts`
 （`ACCOUNT_DEACTIVATED_SIGNALS`、`getMergedBannedSignals()`、`isAccountDeactivated()`）。
+また、非終端の検証クラス（`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`）およびそれを使用する403分岐については、`open-sse/services/errorClassifier.ts` を参照してください。
 
 ## 組み込みキーワード
 
-以下の8つの部分文字列は、カスタムリストの有無にかかわらず、常に適用されます（大文字と小文字は区別されません）。
+以下の7つの部分文字列は、カスタムリストの内容にかかわらず、常に適用されます（大文字と小文字は区別されません）。
 
 ```
 account_deactivated
@@ -22,22 +22,45 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> このリストは、プロバイダーが禁止時の文言を変更するのに合わせて更新されます。正式な
-> 内容は `open-sse/services/accountFallback.ts` の `ACCOUNT_DEACTIVATED_SIGNALS`
-> です。上記のブロックはスナップショットとして扱ってください。
+> プロバイダーによるアカウント停止メッセージの変更に伴い、このリストも更新されます。正式な
+> コピーは `open-sse/services/accountFallback.ts` の `ACCOUNT_DEACTIVATED_SIGNALS` です。
+> 上記のブロックはスナップショットとして扱ってください。
 
-同じファイルには、隣接する2つの**別個の**シグナルテーブルがあり、これらは banned-keyword 検出の一部ではありません。
+### アカウント停止ではないもの：オペレーターが対応可能な確認プロンプト
 
-- `CREDITS_EXHAUSTED_SIGNALS` — 請求枠/クォータの枯渇（`insufficient_quota`、
-  `credit_balance_too_low`、`payment required`、…）→ 終端 `credits_exhausted`。
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **非終端**。トークンの更新によって復旧可能です。
+`verify your account to continue` は、**以前は**上記のリストに含まれていました。これはアカウント停止
+シグナルではなく、現在は `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` に含まれており、接続を終了状態にするのではなく、
+回復可能な `PROJECT_ROUTE_ERROR` として分類されます。
 
-注: **`rate limit`** / `429` のような一般的な一時的フレーズは、レート制限 / 接続クールダウンの経路で処理され、禁止シグナルには**該当しません**。
+Google Cloud Code / Antigravity は、これを `403 VALIDATION_REQUIRED` として返します。これは
+**一時的なものであり、正常でクォータが十分に残っているアカウントでも発生します**。実稼働環境での
+測定結果（2026-09-25、`proxy_logs`）では、ある Antigravity 接続が10分間にこの403を33回返した後も
+`active` のままでした。一方、17個すべてのウィンドウでクォータを100 %保持していた別の接続は、
+これが**たった1回**発生しただけで永久に停止されました。唯一の違いは、どの試行がたまたま処理されたかでした。
+
+この区別が重要なのは、終端扱いとなる一致には `permanent: true` が設定され（1年間のクールダウンが適用され、
+自動回復しません）、一方で確認プロンプトはオペレーターがブラウザー上で解除できるためです。
+このフレーズをアカウント停止リストに残しておくと、`accountDeactivated` が先に評価されるため、
+`classifyProviderError` にある回復可能な cloud-code 403 の分岐も、この文言に対して到達不能になります。
+その結果、Gemini Code Assist 用として
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) および
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) で追加されたプロジェクトルートの回復処理が実行されなくなります。
+
+隣接する以下の3つの**個別の**シグナルテーブルは、禁止キーワード検出の一部ではありません。
+
+- `CREDITS_EXHAUSTED_SIGNALS` — 課金残高／クォータの枯渇（`insufficient_quota`、
+  `credit_balance_too_low`、`payment required`、…）→ 終端状態の `credits_exhausted`。
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **非終端**。トークンを更新することで回復できます。
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **非終端**。オペレーターが上流で
+  アカウントを再確認する必要があります。`open-sse/services/errorClassifier.ts` に定義されています
+  （他の2つは `accountFallback.ts` に定義されています）。上記のセクションを参照してください。
+
+注：**`rate limit`** / `429` のような一般的な一時的フレーズは、
+レート制限／接続クールダウンの処理経路で扱われ、アカウント停止シグナルには**該当しません**。
 
 ## 検出フロー
 

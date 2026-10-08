@@ -39,14 +39,19 @@ const STRIP_RULES: StripRule[] = [
   { match: /claude-opus-4/i, drop: ["temperature"] },
   // GitHub Copilot gpt-5.4: temperature unsupported.
   { provider: "github", match: /gpt-5\.4/i, drop: ["temperature"] },
-  // OpenAI gpt-5.x reasoning models reject sampling params with HTTP 400
-  // "Unsupported parameter: 'temperature' is not supported with this model"
-  // (same for top_p). Agent clients (Hermes, OpenClaw, ...) send a temperature
-  // on every turn, so each first attempt burned a round trip before the combo
-  // fell back. `gpt-5-chat*` variants still accept sampling and stay untouched.
+  // OpenAI GPT-5.0 family (gpt-5, gpt-5-mini, gpt-5-nano, dated snapshots) always
+  // reasons and rejects sampling params with HTTP 400 "Unsupported parameter:
+  // 'temperature' is not supported with this model" (same for top_p). Agent
+  // clients (Hermes, OpenClaw, ...) send a temperature on every turn, so each
+  // first attempt burned a round trip before the combo fell back (#14133).
+  // Versioned GPT-5.1+ ids (gpt-5.1, gpt-5.4, gpt-5.6-luna, ...) are NOT listed:
+  // they default to reasoning_effort "none", where sampling IS accepted, so a
+  // static strip would drop a legitimate temperature. The reasoning-aware
+  // stripGpt5SamplingWhenReasoning (services/gpt5SamplingGuard.ts) strips them
+  // only when an active effort is present. `gpt-5-chat*` accepts sampling.
   {
     provider: "openai",
-    match: (m: string) => /^gpt-5(?:[.-]|$)/i.test(m) && !/chat/i.test(m),
+    match: (m: string) => /^gpt-5(?:-|$)/i.test(m) && !/chat/i.test(m),
     drop: ["temperature", "top_p"],
   },
   // Codex /responses (chatgpt.com backend-api) rejects sampling params with

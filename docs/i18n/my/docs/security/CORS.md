@@ -127,26 +127,28 @@ Origin များကို စာလုံးအကြီးအသေးမခ
   တစ်ခုခုထဲ မထည့်ပါနှင့်။ ၎င်းတို့သည် fail-closed အတိုင်း တိတိကျကျ
   ဆက်ရှိနေရမည်။
 
-## ဥပမာ- OmniRoute ၏ရှေ့တွင် reverse proxy ထားခြင်း
+## ဥပမာ: OmniRoute ၏ ရှေ့တွင် reverse proxy ထားခြင်း
 
-CORS ကို OmniRoute ကိုယ်တိုင်က စည်းကမ်းသတ်မှတ်သည်။ ထို့ကြောင့် proxy သည်
-ယေဘုယျအားဖြင့် `Access-Control-*` header များကို **မထည့်သင့်** သို့မဟုတ်
-ပြန်လည်မရေးသင့်ပါ (header နှစ်ထပ်ဖြစ်ခြင်းက browser များကို အလုပ်မလုပ်စေပါ)။
-TLS ကို terminate လုပ်ပြီး forward လုပ်ပါ — preflight ကို OmniRoute က
-တုံ့ပြန်ပါစေ-
+CORS ကို OmniRoute ကိုယ်တိုင်က ပြဋ္ဌာန်းထားသောကြောင့် proxy သည် ပုံမှန်အားဖြင့် `Access-Control-*` header များကို **မထည့်သင့်** သို့မဟုတ်
+ပြန်လည်မရေးသင့်ပါ (header နှစ်ထပ်ဖြစ်ခြင်းက browser များကို အလုပ်မလုပ်စေပါ)။ TLS ကို အဆုံးသတ်ပြီး
+ရှေ့ဆက်ပို့ပါ — preflight ကို OmniRoute က တုံ့ပြန်ပါစေ-
 
 ```nginx
-# nginx — OmniRoute သို့ forward လုပ်ပါ။ ဤနေရာတွင် Access-Control-* ကို မထည့်သွင်းပါနှင့်
+# nginx — OmniRoute သို့ ရှေ့ဆက်ပို့ပါ၊ ဤနေရာတွင် Access-Control-* ကို မထည့်သွင်းပါနှင့်
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # X-Forwarded-For ကို 127.0.0.1 အဖြစ် မသတ်မှတ်ပါနှင့် — ထိုသို့ပြုလုပ်ခြင်းသည် loopback route guard ကို အကျိုးမဲ့စေသည်။
+    # forwarding header များကို ဆက်လက်ထားရှိပါ- host တစ်ခုတည်းပေါ်ရှိ proxy သည် loopback မှတစ်ဆင့် ချိတ်ဆက်ပြီး ၎င်းတို့က
+    # ခေါ်ဆိုသူသည် local operator မဟုတ်ကြောင်း OmniRoute ကို အသိပေးပါသည်။ ၎င်းတို့ထဲမှ တစ်ခုမျှ မထည့်သည့် proxy ကြောင့်
+    # အဝေးမှ ခေါ်ဆိုသူတိုင်းသည် local ဖြစ်သကဲ့သို့ မြင်ရစေပါသည်။ X-Forwarded-For ကိုလည်း 127.0.0.1 ဟု မည်သည့်အခါမျှ မသတ်မှတ်ပါနှင့်။
 }
 ```
 
-ခွင့်ပြုထားသော browser origin များကို proxy တွင်မဟုတ်ဘဲ OmniRoute
-(`CORS_ALLOWED_ORIGINS` သို့မဟုတ် Security tab) တွင် သတ်မှတ်ပါ။
+ခွင့်ပြုမည့် browser origin များကို proxy ထဲတွင်မဟုတ်ဘဲ OmniRoute (`CORS_ALLOWED_ORIGINS` သို့မဟုတ်
+Security tab) ထဲတွင် သတ်မှတ်ပါ။
 
 ## Source file များ
 

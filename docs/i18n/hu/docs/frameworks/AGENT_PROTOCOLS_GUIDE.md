@@ -74,17 +74,21 @@ Az átviteli részleteket, az ügynökkártya felépítését, a feladatok TTL-k
 
 ### Mi ez?
 
-Az ACP az OmniRoute **helyi CLI-ügynöknyilvántartása**. Észleli, hogy mely programozási CLI-k vannak telepítve a gazdagépen (Cursor, Cline, Claude Code, Codex CLI, Continue stb.), meghatározza a verziójukat, és megjeleníti őket az irányítópulton, hogy a felhasználó beállíthassa az egyes CLI-ket az OmniRoute használatára.
+Az ACP az OmniRoute **helyi CLI-ügynöknyilvántartása**. Észleli, hogy mely programozási CLI-k vannak telepítve a gazdagépen (Cursor, Cline, Claude Code, Codex CLI, Continue stb.), meghatározza a verziójukat, és megjeleníti őket az irányítópulton, hogy a felhasználó mindegyik CLI-t beállíthassa az OmniRoute használatára.
 
-Ez NEM külső protokoll — egy belső nyilvántartás, amely a „CLI Tools” felhasználói felületet és a CLI-ujjlenyomatok követését működteti (lásd: [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+A HTTP-felület egy belső nyilvántartás, amely a „CLI Tools” felhasználói felületet és
+a CLI-ujjlenyomatok követését működteti (lásd: [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Ettől elkülönülten
+a belső folyamatkezelő támogatja a natív Agent Client Protocolt a
+regisztrált Gemini-indítóhoz, valamint a korábbi stdio-adaptereket más szerződésekhez.
+Ezekről az eltérő módokról és korlátozásokról lásd: [ACP-nyilvántartás és indítók](./ACP.md).
 
 ### Mit csinál?
 
-- Ellenőrzi, hogy milyen CLI-binárisok vannak telepítve a gazdagépen (operációs rendszertől függően a `which` / `where` parancsot használja)
+- Megvizsgálja, hogy mely CLI-binárisok vannak telepítve a gazdagépen (operációs rendszertől függően a `which` / `where` parancsot használja)
 - Beolvassa az egyes CLI-k verzióját (meghívja a `<bin> --version` parancsot)
-- Opcionálisan felhasználó által definiált egyéni ügynököket fogad el (bináris elérési útja + verziólekérdezés + indítási argumentumok)
+- Opcionálisan elfogad felhasználó által definiált egyéni ügynököket (bináris elérési útja + verziólekérdezés + indítási argumentumok)
 - A beállításokban tartósan tárolja az egyéni ügynököket
-- Visszaadja az egyesített listát az irányítópultnak
+- Visszaadja az egységesített listát az irányítópultnak
 
 ### REST API
 
@@ -93,7 +97,7 @@ Ez NEM külső protokoll — egy belső nyilvántartás, amely a „CLI Tools”
 | `/api/acp/agents` | GET     | Az észlelt és egyéni ügynökök listája (telepített/összes darabszám)                  | API-kulcs   |
 | `/api/acp/agents` | POST    | Egyéni ügynök hozzáadása/frissítése/eltávolítása (műveletmegkülönböztető a törzsben) | API-kulcs   |
 
-A POST-törzs szerkezete (`customAgentBodySchema` az `src/app/api/acp/agents/route.ts` fájlban):
+A POST törzsének szerkezete (`customAgentBodySchema` itt: `src/app/api/acp/agents/route.ts`):
 
 ```json
 {
@@ -108,15 +112,18 @@ A POST-törzs szerkezete (`customAgentBodySchema` az `src/app/api/acp/agents/rou
 }
 ```
 
-### Használati esetek
+### Felhasználási esetek
 
-- Az irányítópult „CLI Tools” oldala felsorolja a telepített eszközöket, és segít beállítani mindegyiket az OmniRoute használatára
-- Az egyéni ügynökök lehetővé teszik a haladó felhasználók számára olyan belső/saját fejlesztésű CLI-k regisztrálását, amelyeket az OmniRoute alapértelmezetten nem ismer
-- Az észlelési eredmény szolgáltatja az adatokat a `cli-tools` ujjlenyomatmátrixhoz
+- Az irányítópult „CLI Tools” oldala felsorolja a telepített eszközöket, és segít mindegyiket az OmniRoute használatára beállítani
+- Az egyéni ügynökök lehetővé teszik a haladó felhasználók számára olyan belső/saját fejlesztésű CLI-k regisztrálását, amelyeket az OmniRoute alapértelmezés szerint nem ismer
+- Az észlelés eredménye szolgáltat adatokat a `cli-tools` ujjlenyomatmátrixhoz
 
 ### Mikor NE használja az ACP-t?
 
-- Az ACP nem _futtat_ feladatokat. Csak észleli és konfigurálja a CLI-ket. Egy CLI tényleges meghívásához Önnek kell elindítania azt az OmniRoute által biztosított környezeti változókkal (`OPENAI_BASE_URL`, `OPENAI_API_KEY` stb.).
+- A HTTP-nyilvántartás nem fogad feladatokat, és nem teszi elérhetővé a folyamatok indítását. A belső
+  kezelő képes elindítani egy regisztrált CLI-t, de nincs automatikus szolgáltatói
+  tartalékmegoldásként bekötve. Szokásos interaktív használathoz indítsa el saját maga a konfigurált CLI-t, vagy
+  használja az `omniroute run` parancsot.
 
 ## 3. Felhőalapú ügynökök
 

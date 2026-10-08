@@ -128,24 +128,28 @@ nepaleidžiant sistemos iš naujo.
   administravimo / valdymo skydelio šaltinių į jokią mažiau ribojančią konfigūraciją; jiems turi būti taikoma
   būtent uždara numatytoji nuostata.
 
-## Pavyzdys: atvirkštinis tarpinis serveris prieš „OmniRoute“
+## Pavyzdys: atvirkštinis tarpinis serveris prieš OmniRoute
 
-CORS užtikrina pats „OmniRoute“, todėl tarpinis serveris paprastai **neturėtų** pridėti ar
+CORS užtikrina pati OmniRoute, todėl tarpinis serveris paprastai **neturėtų** pridėti ar
 perrašyti `Access-Control-*` antraščių (dvigubos antraštės sutrikdo naršyklių veikimą). Užbaikite TLS
-ir persiųskite užklausą — leiskite „OmniRoute“ atsakyti į išankstinę užklausą:
+ryšį ir persiųskite užklausą — leiskite OmniRoute atsakyti į išankstinę užklausą:
 
 ```nginx
-# „nginx“ — persiųskite į „OmniRoute“; čia NEĮTERPKITE Access-Control-*
+# nginx — persiųsti į OmniRoute; čia NEĮTERPKITE Access-Control-*
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # NENUSTATYKITE X-Forwarded-For į 127.0.0.1 — taip apeinama vietinio grįžtamojo ryšio maršrutų apsauga.
+    # Išsaugokite persiuntimo antraštes: tame pačiame pagrindiniame kompiuteryje veikiantis tarpinis serveris jungiasi iš grįžtamojo ryšio adreso, o jos
+    # nurodo OmniRoute, kad užklausą pateikė ne vietinis operatorius. Jei tarpinis serveris neprideda nė vienos iš jų,
+    # visi nuotoliniai užklausų teikėjai atrodo kaip vietiniai. Taip pat niekada nenustatykite X-Forwarded-For reikšmės į 127.0.0.1.
 }
 ```
 
-Leidžiamus naršyklės šaltinius nustatykite „OmniRoute“ (`CORS_ALLOWED_ORIGINS` arba
-skirtuke „Security“), o ne tarpiniame serveryje.
+Leidžiamas naršyklių kilmės vietas nustatykite OmniRoute (`CORS_ALLOWED_ORIGINS` arba
+skirtuke „Sauga“), o ne tarpiniame serveryje.
 
 ## Šaltinio failai
 

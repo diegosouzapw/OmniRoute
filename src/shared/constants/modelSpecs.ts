@@ -134,6 +134,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     ...GPT_5_6_MODEL_SPEC,
     aliases: ["openai/gpt-6-astra"],
   },
+  "gpt-6.1-sol": GPT_5_6_MODEL_SPEC,
   "gpt-5.6": {
     ...GPT_5_6_MODEL_SPEC,
     aliases: ["openai/gpt-5.6"],
@@ -404,6 +405,23 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     aliases: BEDROCK_CLAUDE_ALIASES("claude-sonnet-5"),
   },
 
+  // ── Claude Sonnet 5.5 ───────────────────────────────────────────
+  "claude-sonnet-5-5": {
+    // Same shape as Sonnet 5, but it rejects thinking.type:"disabled"
+    // (use between_tools) and forced tool_choice (any/tool).
+    maxOutputTokens: 128000,
+    contextWindow: 1000000,
+    defaultThinkingBudget: 32000,
+    thinkingBudgetCap: 120000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    adaptiveThinkingOnly: true,
+    rejectsThinkingDisabled: true,
+    rejectsForcedToolChoice: true,
+    aliases: BEDROCK_CLAUDE_ALIASES("claude-sonnet-5-5"),
+  },
+
   // ── Claude Opus 4.6 ─────────────────────────────────────────────
   "claude-opus-4-6": {
     maxOutputTokens: 128000,
@@ -466,6 +484,22 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     // …and, like Opus 4.7+, rejects manual budgets/`type:"enabled"` (adaptive-only).
     adaptiveThinkingOnly: true,
     aliases: BEDROCK_CLAUDE_ALIASES("claude-fable-5"),
+  },
+
+  // ── Claude Opus 5.5 ─────────────────────────────────────────────
+  "claude-opus-5-5": {
+    maxOutputTokens: 128000,
+    contextWindow: 1000000,
+    defaultThinkingBudget: 32000,
+    thinkingBudgetCap: 120000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    rejectsThinkingDisabled: true,
+    adaptiveThinkingOnly: true,
+    rejectsForcedToolChoice: true,
+    defaultReasoningEffort: "medium",
+    aliases: BEDROCK_CLAUDE_ALIASES("claude-opus-5-5", "claude-opus-5.5"),
   },
 
   // ── Claude Opus 5 ───────────────────────────────────────────────

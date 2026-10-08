@@ -74,26 +74,30 @@ Perdavimo informacija, agento kortelės struktūra, užduočių TTL konfigūraci
 
 ### Kas tai yra
 
-ACP yra OmniRoute **vietinis CLI agentų inventorius**. Jis aptinka, kurios programavimo CLI priemonės įdiegtos pagrindiniame kompiuteryje (Cursor, Cline, Claude Code, Codex CLI, Continue ir kt.), nustato jų versijas ir pateikia jas valdymo skydelyje, kad naudotojas galėtų sukonfigūruoti kiekvieną CLI naudoti OmniRoute.
+ACP yra **vietinis OmniRoute CLI agentų sąrašas**. Jis aptinka, kurios programavimo CLI priemonės yra įdiegtos pagrindiniame kompiuteryje (Cursor, Cline, Claude Code, Codex CLI, Continue ir kt.), nustato jų versijas ir pateikia jas valdymo skydelyje, kad naudotojas galėtų sukonfigūruoti kiekvieną CLI naudoti OmniRoute.
 
-Tai NĖRA išorinis protokolas — tai vidinis registras, kuriuo grindžiama „CLI Tools“ naudotojo sąsaja ir CLI kontrolinių identifikatorių stebėjimas (žr. [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+HTTP sąsaja yra vidinis registras, kuriuo grindžiama „CLI Tools“ naudotojo sąsaja ir
+CLI kontrolinių atspaudų sekimas (žr. [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Atskirai
+vidinė procesų tvarkytuvė palaiko savąjį Agent Client Protocol, skirtą
+užregistruotai Gemini paleidimo priemonei, ir senesnius stdio adapterius kitoms sutartims.
+Apie šiuos skirtingus režimus ir apribojimus žr. [ACP registras ir paleidimo priemonės](./ACP.md).
 
 ### Ką jis daro
 
-- Tikrina, ar pagrindiniame kompiuteryje yra įdiegti CLI vykdomieji failai (priklausomai nuo OS naudoja `which` / `where`)
-- Nuskaito kiekvieno CLI versiją (iškviečia `<bin> --version`)
-- Pasirinktinai priima naudotojo apibrėžtus pasirinktinius agentus (vykdomojo failo kelias + versijos patikros komanda + paleidimo argumentai)
+- Tikrina, ar pagrindiniame kompiuteryje yra įdiegti CLI vykdomieji failai (pagal OS naudoja `which` / `where`)
+- Nuskaito kiekvienos CLI versiją (iškviečia `<bin> --version`)
+- Pasirinktinai priima naudotojo apibrėžtus pasirinktinius agentus (vykdomojo failo kelias + versijos patikra + paleidimo argumentai)
 - Išsaugo pasirinktinius agentus nustatymuose
 - Grąžina bendrą sąrašą valdymo skydeliui
 
 ### REST API
 
-| Galinis taškas    | Metodas | Aprašymas                                                                        | Autentifikavimas |
-| ----------------- | ------- | -------------------------------------------------------------------------------- | ---------------- |
-| `/api/acp/agents` | GET     | Pateikia aptiktų ir pasirinktinių agentų sąrašą (įdiegtų / visų skaičius)        | API raktas       |
-| `/api/acp/agents` | POST    | Prideda / atnaujina / pašalina pasirinktinį agentą (veiksmas nurodomas turinyje) | API raktas       |
+| Galinis taškas    | Metodas | Aprašas                                                                                     | Autentifikavimas |
+| ----------------- | ------- | ------------------------------------------------------------------------------------------- | ---------------- |
+| `/api/acp/agents` | GET     | Pateikia aptiktų ir pasirinktinių agentų sąrašą (įdiegtų / visų skaičius)                   | API raktas       |
+| `/api/acp/agents` | POST    | Prideda, atnaujina arba pašalina pasirinktinį agentą (veiksmo skyriklis užklausos turinyje) | API raktas       |
 
-POST užklausos turinio struktūra (`customAgentBodySchema`, esanti `src/app/api/acp/agents/route.ts`):
+POST užklausos turinio struktūra (`customAgentBodySchema` faile `src/app/api/acp/agents/route.ts`):
 
 ```json
 {
@@ -110,13 +114,16 @@ POST užklausos turinio struktūra (`customAgentBodySchema`, esanti `src/app/api
 
 ### Naudojimo atvejai
 
-- Valdymo skydelio puslapyje „CLI Tools“ pateikiama, kas įdiegta, ir padedama kiekvieną įrankį nukreipti į OmniRoute
-- Pasirinktiniai agentai leidžia patyrusiems naudotojams registruoti vidines / nuosavybines CLI priemones, kurių OmniRoute pagal numatytąją konfigūraciją neatpažįsta
-- Aptikimo rezultatas naudojamas `cli-tools` kontrolinių identifikatorių matricai sudaryti
+- Valdymo skydelio puslapyje „CLI Tools“ pateikiamas įdiegtų priemonių sąrašas ir padedama kiekvieną iš jų nukreipti į OmniRoute
+- Pasirinktiniai agentai leidžia patyrusiems naudotojams užregistruoti vidines ar nuosavybines CLI priemones, kurių OmniRoute pagal numatytuosius nustatymus neatpažįsta
+- Aptikimo rezultatas naudojamas `cli-tools` kontrolinių atspaudų matricai sudaryti
 
 ### Kada ACP NENAUDOTI
 
-- ACP _nevykdo_ užduočių. Jis tik aptinka ir konfigūruoja CLI priemones. Norėdami faktiškai iškviesti CLI, paleiskite jį patys su OmniRoute pateikiamais aplinkos kintamaisiais (`OPENAI_BASE_URL`, `OPENAI_API_KEY` ir kt.).
+- HTTP registras nepriima užduočių ir nesuteikia procesų paleidimo funkcijos. Vidinė
+  tvarkytuvė gali paleisti užregistruotą CLI, tačiau ji nėra prijungta kaip automatinis alternatyvus
+  teikėjas. Įprastam interaktyviam naudojimui sukonfigūruotą CLI paleiskite patys arba
+  naudokite `omniroute run`.
 
 ## 3. Debesijos agentai
 

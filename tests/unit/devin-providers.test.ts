@@ -134,8 +134,14 @@ test("OAuth modal Desktop branch gives honest import guidance without public Win
     new URL("../../src/i18n/messages/en.json", import.meta.url),
     "utf8"
   );
+  // The per-provider paste description key lives in the modal's paste-copy table.
+  const pasteCopySource = await readFile(
+    new URL("../../src/shared/components/oauthModal/pasteTokenCopy.ts", import.meta.url),
+    "utf8"
+  );
 
-  assert.match(source, /devinDesktopPasteDescription/);
+  assert.match(source, /getPasteTokenCopyKeys/);
+  assert.match(pasteCopySource, /"devin-desktop": "devinDesktopPasteDescription"/);
   assert.match(enMessages, /Paste an existing Devin API key/);
   assert.match(enMessages, /vary by Devin version and account/);
   assert.doesNotMatch(source, /Devin: Copy API Key to Clipboard/);

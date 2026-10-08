@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "تمنع مجموعات الوكلاء والتناوب لكل حساب في opencode إعادة استخدام وكيل فشل للتو (رفض فحص TCP، أو تم تلقي 429 من خلاله) لمدة خاصة بكل عملية تتضاعف مع كل تكرار، حتى حد أقصى. لا تُكتب أي حالة للوكيل؛ وعند استبعاد جميع المرشحين، يظل الاختيار دون تغيير. مفعّل افتراضيًا؛ تعيد القيمة `false` الاختيار العادي.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "بالنسبة للمزوّدين الذين تُحتسب حصتهم حسب عنوان الخروج (egress)، يضع عضو الـ pool الذي يشارك عنوان الخروج المرصود لعضو رُفض مؤخرًا مباشرةً أسفل الأعضاء السليمين. يغيّر الترتيب فقط، ولا يستبعد أبدًا. يتطلب PROXY_SKIP_RECENTLY_FAILED، الذي يُنتج إشارة الرفض التي يقرؤها. معطّل افتراضيًا: يكون ترتيب الاختيار مطابقًا تمامًا للتدوير العادي.",
   "featureFlagProxyPoolEgressObservationDescription": "اعرض، أسفل مجموعة وكلاء في لوحة المعلومات، عدد عناوين IP الصادرة المرصودة التي خدمت أعضاءها خلال آخر 24 ساعة، وعدد الاتصالات التي استخدمتها، وأكبر عدد شوهد خلف عنوان IP واحد. للقراءة فقط، ويُحتسب من سجل الوكيل، ولا يُستخدم مطلقًا للتوجيه. معطّل افتراضيًا: يظل محرر المجموعة دون تغيير ويُرجع مسار الرصد null.",
+  "featureFlagProxyOperatorEgressDescription": "قبول عناوين الملاحظات المؤرخة المُرصَدة التي يدفعها المشغل لكل عضو في مجموعة التجمع، ودمجها مع بيانات قراءة السجل للعرض وترتيب مجموعة التجمع. معطل افتراضياً: يرد مسار الدفع برمز 404، وتتصرف عمليات قراءة مجموعة التجمع تماماً كما كانت من قبل.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "في فحص سلامة الوكلاء، اسمح للفحص الذي رفضه الهدف (401/403/429: قام الوكيل بالترحيل، لكن الوجهة رفضت عنوان IP الصادر هذا) بإعادة تعيين سلسلة حالات الفشل المتتالية للوكيل، كما لو كان فحصًا تمت خدمته. معطّل افتراضيًا: يظل الرفض محايدًا ويحافظ على السلسلة. تظل استجابة 5xx غير حاسمة في كلتا الحالتين، ولا يؤدي الرفض مطلقًا إلى إزالة وكيل أو تعطيله أو إعادة تنشيطه.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "اسمح لعملية التنظيف التلقائي بحذف مهام Batch API النهائية (المكتملة/الفاشلة/الملغاة/منتهية الصلاحية) الأقدم من OMNIROUTE_BATCH_RETENTION_DAYS، إلى جانب نقاط التحقق الخاصة بكل سطر، ومسح محتوى BLOB للملفات المرفوعة التي تجاوزت قيمة expires_at الخاصة بها. معطّل افتراضيًا: يحتفظ كل تثبيت حالي بهذه البيانات كما كان تمامًا إلى أن يفعّله أحد المشغّلين. لا يتأثر المسار DELETE /api/v1/batches/delete-completed الذي يشغّله المشغّل في كلتا الحالتين — فهو عقد API عام منفصل وغير مشروط.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "اجلب كتالوج نماذج xAI المباشر لاتصالات xai-oauth من https://api.x.ai/v1/models باستخدام رمز OAuth المميز من نوع bearer، بدلًا من البيانات الأولية الثابتة. معطّل افتراضيًا: يواصل xai-oauth تقديم البيانات الأولية الثابتة دون تغيير. عند حدوث أي خطأ في تحديد النماذج، يعود الاكتشاف إلى البيانات الأولية.",
@@ -5636,7 +5637,7 @@
     "accountName": "اسم الحساب",
     "email": "البريد الإلكتروني",
     "healthCheckMinutes": "فحص الصحة (دقيقة)",
-    "healthCheckHint": "الفاصل الزمني لتحديث الرمز المميز. 0 = معطل.",
+    "healthCheckHint": "تجاوز لهذا الاتصال. فارغ = اتباع القيمة الافتراضية العامة (الإعدادات › المرونة). 0 = عدم فحص هذا الاتصال أبدًا. الحد الأقصى 1440 (24 ساعة).",
     "deselectAllModels": "قم بإلغاء تحديد الكل",
     "modelsActiveCount": "{active}/{total} نشط",
     "noModelsMatch": "لا توجد نماذج مطابقة \"{filter}\"",
@@ -5692,7 +5693,7 @@
     "claudeImportBulkModePaste": "لصق مجموعة JSON",
     "claudeImportBulkModeZip": "تحميل الرمز البريدي",
     "claudeImportBulkUploadHint": "قم بإسقاط أو التقاط ما يصل إلى 50 ملفًا بتنسيق ‎.credentials.json (256 كيلو بايت لكل ملف، بإجمالي 10 ميجابايت).",
-    "claudeImportBulkPasteHint": "لصق مصفوفة من الكائنات: [{ json, name?, email? }، ...]",
+    "claudeImportBulkPasteHint": "لصق مصفوفة من الكائنات: ['{ json, name?, email? }'، ...]",
     "claudeImportBulkZipHint": "ملف مضغوط يحتوي على إدخالات ‎.json. الحد الأقصى 50 إدخالاً، ومساحة 10 ميجابايت مفتوحة.",
     "claudeImportBulkSubmit": "استيراد الكل",
     "claudeImportBulkSuccess": "تم استيراد {count} من اتصالات Claude",
@@ -5724,7 +5725,7 @@
     "geminiImportBulkModePaste": "لصق مجموعة JSON",
     "geminiImportBulkModeZip": "تحميل الرمز البريدي",
     "geminiImportBulkUploadHint": "قم بإسقاط أو التقاط ما يصل إلى 50 ملفًا من ملفات oauth_creds.json (256 كيلو بايت لكل منها، إجمالي 10 ميجابايت).",
-    "geminiImportBulkPasteHint": "لصق مصفوفة من الكائنات: [{ json, name?, email? }، ...]",
+    "geminiImportBulkPasteHint": "لصق مصفوفة من الكائنات: ['{ json, name?, email? }'، ...]",
     "geminiImportBulkZipHint": "ملف مضغوط يحتوي على إدخالات oauth_creds.json. الحد الأقصى 50 إدخالاً، ومساحة 10 ميجابايت مفتوحة.",
     "geminiImportBulkSubmit": "استيراد الكل",
     "geminiImportBulkSuccess": "تم استيراد {count} من اتصالات Gemini",
@@ -5773,7 +5774,7 @@
     "codexImportBulkModePaste": "لصق القائمة",
     "codexImportBulkModeZip": "أرشيف مضغوط",
     "codexImportBulkUploadHint": "حدد ملفات .json متعددة أو قم بالسحب والإسقاط",
-    "codexImportBulkPasteHint": "مصفوفة JSON [ {...}, {...} ] أو عدة JSONs مفصولة --- في سطر خاص بها",
+    "codexImportBulkPasteHint": "مصفوفة JSON [ '{...}', '{...}' ] أو عدة JSONs مفصولة --- في سطر خاص بها",
     "codexImportBulkZipHint": "قم بتحميل ملف .zip يحتوي على ملفات auth.json (بحد أقصى 50 ملفًا، 10 ميجابايت)",
     "codexImportBulkSubmit": "استيراد {count} من الحسابات",
     "codexImportBulkLimit": "الحد الأقصى 50 ملفًا لكل عملية استيراد",
@@ -6011,7 +6012,7 @@
     "validationModelIdPlaceholder": "مثال: gpt-4o-mini",
     "vertexCredentialLabel": "مفتاح API أو JSON لحساب الخدمة",
     "vertexCredentialHint": "تستخدم مفاتيح API كتالوج المشروع المنسّق. يتيح JSON لحساب الخدمة الاكتشاف المباشر في Model Garden.",
-    "vertexServiceAccountPlaceholder": "ألصق JSON لحساب الخدمة ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) أو OAuth access_token",
+    "vertexServiceAccountPlaceholder": "ألصق مفتاح API أو JSON لحساب الخدمة ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') أو رمز وصول OAuth",
     "webCookieProviders": "مزودو ملفات تعريف ارتباط الويب",
     "weeklyShort": "أسبوعي",
     "xiaomiMimoBaseUrlHint": "عنوان URL الأساسي لـ Xiaomi MiMo",
@@ -6197,7 +6198,7 @@
       "bluesminds": "احصل على مفتاح API الخاص بك من https://www.bluesminds.com — نقطة نهاية متوافقة مع OpenAI على https://api.bluesminds.com/v1 مع أرصدة يومية مجانية. تستهلك نماذج VIP (مثل Claude Opus 4.5 و Gemini 2.5 Pro) أرصدة pi.",
       "byteplus": "ربط BytePlus ModelArk بمفتاح API.",
       "bytez": "رصيد مجاني بقيمة $1، يتجدد كل 4 أسابيع",
-      "cerebras": "تجربة مجانية: 1 مليون رمز يوميًا، 30 ألف TPM، 5 RPM — بدون بطاقة ائتمان.",
+      "cerebras": "رصيد تسجيل لمرة واحدة بقيمة 5 دولارات (صالح 30 يومًا)؛ يلزم إدخال وسيلة دفع. ليست فئة مجانية متجددة.",
       "charm-hyper": "أنشئ مفتاح API على https://hyper.charm.land، ثم الصقه هنا كرمز Bearer.",
       "chutes": "مفتاح Bearer API لبوابة Chutes المتوافقة مع OpenAI.",
       "clarifai": "توفر Clarifai دردشة واستجابات و /models متوافقة مع OpenAI على /v2/ext/openai/v1. تتطلب النماذج العامة/المجتمعية عادةً رمز PAT؛ بينما تعمل المفاتيح المخصصة للتطبيق فقط مع الموارد الموجودة داخل هذا التطبيق.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "نقطة نهاية نواة الوكيل المحلي غير صالحة؛ تم تجاهل عقد SS/VMess/Trojan/VLESS.",
         "NEEDS_CORE_NOT_CONFIGURED": "يحتوي هذا الاشتراك على عقد تحتاج إلى نواة وكيل محلي (SS/VMess/Trojan/VLESS)؛ لن يتم توجيهها حتى تقوم بتكوين نقطة نهاية SOCKS5 للنواة المحلية.",
         "NO_USABLE_NODES": "لم ينتج عن الاشتراك أي عقد صالحة للاستخدام (http/https/socks5 أو عقد تحتوي على نقطة نهاية للنواة المحلية).",
-        "SELECTOR_SWITCH_FAILED": "فشل استدعاء التحكم في نواة الوكيل؛ ويظل المسار السابق نشطًا. تحقق من عنوان URL والسر الخاص بالتحكم، ثم حدّث."
+        "SELECTOR_SWITCH_FAILED": "فشل استدعاء التحكم في نواة الوكيل؛ ويظل المسار السابق نشطًا. تحقق من عنوان URL والسر الخاص بالتحكم، ثم حدّث.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "تعذر على الإعداد الأساسي المولَّد استبدال الملف المعتمد؛ تم الاحتفاظ بالنسخة المجاورة بدلاً منه.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "تم تخطي بعض الإدخالات أثناء الإنشاء. راجع سجل الخادم."
       },
       "description": "الصق رابط اشتراك الوكيل الخاص بك. بمجرد التمكين، يتم توجيه حركة المرور عبر تجمع الوكيل في الوضع العام أو وضع القاعدة (الموفر المحدد). تتم مزامنة عقد الاشتراك تلقائيًا في تجمع الوكيل وإعادة استخدام آليات الاستقصاء والفحص الصحي ومكافحة التسرب الموجودة.",
       "addSubscription": "إضافة الاشتراك",
@@ -6889,8 +6895,8 @@
       "globalModeDesc": "تمر كل حركة مرور الموفر عبر تجمع الوكيل لهذا الاشتراك.",
       "ruleModeDesc": "تمر حركة مرور مقدمي الخدمة المحددين فقط عبر الوكيل؛ الباقي يتصل مباشرة.",
       "localCoreEndpoint": "نقطة نهاية SOCKS5/HTTP الأساسية المحلية (اختياري)",
-      "localCoreEndpointPlaceholder": "الجوارب5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "يقبل فقط 127.0.0.1 / localhost (يتطلب SS/VMess/Trojan/VLESS صندوق غناء محلي/clash core).",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "واحد في كل سطر. يقبل فقط 127.0.0.1 / localhost (تتطلب SS/VMess/Trojan/VLESS نواة sing-box/clash محلية).",
       "routeByProvider": "المسار حسب الموفر (اختيار متعدد)",
       "loadingProviders": "جارٍ تحميل قائمة الموفرين…",
       "autoRefreshInterval": "الفاصل الزمني للتحديث التلقائي (بالدقائق)",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "لم يُسجَّل أي تبديل بعد",
       "lastSwitchMember": "العضو الذي يخدم",
       "nextSwitch": "التبديل التالي الممكن",
-      "nextSwitchNow": "الآن"
+      "nextSwitchNow": "الآن",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "مسار ثنائي النواة",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "اختياري: يتحقق من الملف المولَّد باستخدام ثنائي النواة قبل استبدال الملف المعتمد. اتركه فارغًا للاستمرار في الكتابة بجانبه. يتم إنشاء الدليل إذا كان مفقودًا."
     },
     "bulkHealthcheck": "الفحص الصحي بالجملة",
     "bulkHealthcheckDesc": "اختبر جميع الوكلاء الذين تم تكوينهم مقابل عنوان URL المستهدف للعثور على الوكلاء الذين يعملون.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "ضغط وصف MCP",
     "mcpAccessibilityTitle": "مخرجات إمكانية الوصول لـ MCP",
     "compressionSettingsCavemanIntensity": "شدة Caveman",
-    "compressionSettingsCavemanOutputMode": "وضع إخراج Caveman",
     "compressionSettingsOutputStyles": "أنماط المخرجات",
     "compressionStylesTileTitle": "أنماط المخرجات",
     "compressionSettingsOutputIntensity": "كثافة الإخراج",
-    "compressionSettingsAutoClarityBypass": "تجاوز الوضوح التلقائي",
     "compressionEffectivePipeline": "المسار الفعال:",
     "compressionDerivedOff": "معطل",
     "compressionDerivedRuns": "عمليات التشغيل: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "ما تعرضه GET /v1/models لهذا المفتاح. لا يؤدي تضييق القائمة مطلقًا إلى تغيير ما يمكن للمفتاح استدعاؤه.",
     "catalogScopeAll": "كلاهما",
     "catalogScopeCombos": "التركيبات فقط",
-    "catalogScopeModels": "النماذج فقط"
+    "catalogScopeModels": "النماذج فقط",
+    "resilienceTokenRefreshTitle": "قاطع تحديث الرمز",
+    "resilienceTokenRefreshDesc": "يوقف إعادة محاولة تحديث الرمز بعد فشل متكرر. يعزل نطاق لكل اتصال حسابًا ميتًا واحدًا حتى تستمر الحسابات السليمة على نفس المزود في التحديث.",
+    "resilienceTokenRefreshScope": "محاولات تحديث الرمز لأحد المزودين",
+    "resilienceTokenRefreshTrigger": "محاولات تحديث فاشلة متتالية",
+    "resilienceTokenRefreshEffect": "يوقف محاولات التحديث لمدة التهدئة",
+    "resilienceTokenRefreshScopeLabel": "النطاق",
+    "resilienceTokenRefreshScopeProvider": "المزوّد (جميع الحسابات تشترك في قاطع واحد)",
+    "resilienceTokenRefreshScopeConnection": "الاتصال (لكل حساب قاطع خاص به)",
+    "resilienceTokenRefreshThreshold": "عدد الفشل قبل الإيقاف",
+    "resilienceTokenRefreshCooldown": "الوقفة بعد التفعيل"
   },
   "contextRtk": {
     "title": "محرك آر تي كيه",
@@ -8544,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "جاري التحميل…",
     "loadFailed": "فشل تحميل معلومات المحرك.",
+    "settingsLoadFailed": "تعذر تحميل الإعدادات المحفوظة. تعرض الحقول القيم الافتراضية، ويظل زر «حفظ» معطلاً حتى إعادة تحميل الصفحة.",
     "engineNotFound": "المحرك \"{engine}\" غير موجود.",
     "saveFailed": "فشل حفظ التكوين.",
     "previewFailed": "فشلت المعاينة.",
@@ -8638,9 +8667,6 @@
       "minRows": {
         "label": "الحد الأدنى للصفوف لضغطها",
         "description": "الحد الأدنى للصفوف في مصفوفة JSON متجانسة المطلوبة لتشغيل الضغط الجدولي. الافتراضي: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "الحفاظ على توجيه النظام"
       },
       "summarizerEnabled": {
         "label": "تمكين الملخص"
@@ -9029,12 +9055,7 @@
     "tooltipMinLength": "لا يتم ضغط الرسائل الأقصر من ذلك. أقل = المزيد من الضغط.",
     "tooltipMinSavings": "قم بالضغط فقط إذا كان يحفظ هذا العدد من الرموز المميزة على الأقل.",
     "ultraSettings": "إعدادات الترا",
-    "ultraSettingsDesc": "الضغط الدلالي الذي يعمل بنظام SLM",
-    "preview": {
-      "lite": "أجب بإيجاز. حافظ على المصطلحات التقنية والشيفرة والأخطاء وعناوين URL والمعرّفات.",
-      "full": "أجب باقتضاب وبصيغة مضغوطة مع الحفاظ على كامل المضمون التقني.",
-      "ultra": "أجب بأقصى إيجاز باستخدام الاختصارات التقنية الشائعة، وحافظ على الرموز كما هي."
-    }
+    "ultraSettingsDesc": "الضغط الدلالي الذي يعمل بنظام SLM"
   },
   "translator": {
     "title": "مترجم",
@@ -9576,7 +9597,7 @@
     "redeemResetCredit": "استرداد إعادة التعيين",
     "manageResetCredits": "عرض الأرصدة",
     "viewResetCredits": "عرض أرصدة إعادة التعيين",
-    "resetCreditsModalTitle": "أرصدة إعادة تعيين Codex",
+    "resetCreditsModalTitle": "أرصدة إعادة التعيين",
     "resetCreditsModalExplainer": "يتم ترتيب الأرصدة حسب تاريخ انتهاء الصلاحية. يستخدم الاسترداد التلقائي دائمًا الرصيد الذي تنتهي صلاحيته أولاً.",
     "resetCreditsLoadFailed": "فشل تحميل أرصدة إعادة التعيين",
     "resetCreditsDetailsUnavailable": "تفاصيل الرصيد غير متوفرة حاليًا. يُرجى التحديث والمحاولة مرة أخرى.",
@@ -9587,7 +9608,7 @@
     "resetCreditNoExpiry": "بلا تاريخ انتهاء صلاحية",
     "redeemThisResetCredit": "استرداد",
     "confirmRedeemResetCreditTitle": "هل تريد استرداد رصيد إعادة التعيين هذا؟",
-    "confirmRedeemResetCredit": "يؤدي الاسترداد إلى إعادة تعيين نوافذ استخدام Codex المؤهلة فورًا واستهلاك هذا الرصيد نهائيًا.",
+    "confirmRedeemResetCredit": "يؤدي الاسترداد إلى إعادة تعيين نوافذ الاستخدام المؤهلة فورًا واستهلاك هذا الرصيد نهائيًا.",
     "confirmRedeemResetCreditButton": "استرداد الرصيد",
     "resetCreditRedeemed": "تم استرداد إعادة التعيين",
     "resetCreditRedeemFailed": "فشل استرداد رصيد إعادة التعيين",
@@ -9653,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "مثال: def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "على سبيل المثال ديف فيبوناتشي",
     "suiteBuilderCaseExpectedPlaceholderExact": "الصق الاستجابة المتوقعة بالضبط",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "على سبيل المثال ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "على سبيل المثال ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "استخدم تعبير JavaScript العادي دون التفاف الخطوط المائلة.",
     "suiteBuilderNamePlaceholder": "مثال: حزمة جودة البرمجة",
     "suiteBuilderAddCase": "إضافة حالة",
@@ -10862,7 +10883,7 @@
     "grokAuthJsonDescription": "الصق المحتويات الكاملة لـ ~/.grok/auth.json (ليس فقط حقل \"key\" الخاص بـ JWT). يحتوي JWT العاري على عدم وجود refresh_token، لذا تتوقف الاتصال بعد انتهاء الصلاحية (#7610). يُفضل استخدام نافذة استيراد auth.json المخصصة عند توفرها.",
     "devinDesktopPasteDescription": "قم بلصق مفتاح API الخاص بـ Devin الموجود من جلسة Devin مصدقة. تتفاوت توفر تصدير المفتاح والخطوات حسب إصدار Devin والحساب.",
     "devinPasteDescription": "قدم مفتاح API الخاص بك WINDSURF_API_KEY (الذي تم الحصول عليه عبر `devin auth login`، أو عبر أمر \"Windsurf: Provide Auth Token\" في IDE Windsurf).",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "Grok بناء auth.json",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "مفتاح API / رمز",
@@ -10875,7 +10896,10 @@
     "gitlabDuoSetupTitle": "إعداد OAuth ثنائي لـ GitLab",
     "gitlabDuoSetupMessage": "لم يتم تكوين GitLab Duo OAuth. قم بتسجيل تطبيق OAuth على {applicationsUrl} مع URI إعادة التوجيه {redirectUri} والنطاقات \"{scopes}\"، ثم قم بتعيين {clientIdEnv} (ويمكنك أيضًا {clientSecretEnv}) وأعد التشغيل.",
     "gitlabDuoSetupDescription": "بعد تسجيل التطبيق وضبط متغيرات البيئة على هذه النسخة من OmniRoute، انقر على متابعة لبدء تسجيل الدخول عبر OAuth.",
-    "continue": "تابع"
+    "continue": "تابع",
+    "tabPasteSetupToken": "رمز الإعداد",
+    "claudeSetupTokenDescription": "شغّل `claude setup-token` في الطرفية والصق الرمز الذي يطبعه. الرمز صالح لمدة عام واحد ولا يملك رمز تحديث. يرسل OmniRoute طلب اختبار واحدًا إلى Anthropic قبل حفظه.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "ربط IDE Cursor",
@@ -11073,6 +11097,7 @@
     "poolEgressFailuresUnattributed": "إخفاقات دون مخرج منسوب: {count}",
     "poolMemberEgress": "خرج {host}:{port} عبر {egressIp} · آخر {hours} ساعة",
     "poolMemberEgressEmpty": "{host}:{port}: لم تُرصد أي حركة مرور خلال آخر {hours} ساعة",
+    "poolMemberEgressOperator": "{host}:{port} غادر عبر {egressIp} · مقدمة من المشغل، {date}",
     "poolMemberEgressHint": "آخر عنوان IP للخروج تم رصده عبر عضو مجموعة الوكلاء هذا خلال الفترة الزمنية، كما ورد في سجل الوكيل. يظهر للعضو الذي لم يشهد أي حركة مرور خلال الفترة سطر عدم وجود حركة مرور.",
     "poolRemove": "إزالة",
     "poolRemoveFailed": "فشل إزالة الوكيل من التجمع",
@@ -11086,6 +11111,7 @@
     "poolSetAsideKindProxyUnreachable": "تعذّر الوصول إلى الوكيل",
     "poolSetAsideKindIpQuota429": "تقييد معدل عنوان IP ‏(429)",
     "poolSetAsideKindSlow": "استجابات بطيئة",
+    "poolSetAsideKindGeoBlocked": "منطقة محظورة (403/451)",
     "poolSetAsideUntil": "يعود إلى التناوب {endsAt}",
     "poolSetAsideRepeat": "مستبعد {count, plural, one {# مرة} other {# مرات}}",
     "poolUnknownAddress": "عنوان غير معروف",
@@ -11094,10 +11120,15 @@
     "poolSignalPosition": "ترتيب المواضع",
     "poolHealthRankingOff": "ترتيب الصحة متوقف",
     "transportRate": "{rate}% نقل",
+    "slowAbandoned": "{count} عمليات تخلٍّ بطيئة",
+    "clientAborted": "{count} عمليات إلغاء من العميل",
+    "slowAbandonedHint": "تم التخلي بعد عتبة انتظار الترويسات، مستبعد من معدل النقل",
     "previousSuccessRate": "سابقًا {rate}% نجاح",
-    "upstreamRefusals": "{count} رفضًا من الخادم الأعلى",
     "connectionTestsCount": "{count} اختبارات اتصال",
-    "notMeasured": "غير مقاس"
+    "notMeasured": "غير مقاس",
+    "upstream4xx": "{count} أخطاء عميل من المصدر العلوي",
+    "upstream5xx": "{count} أخطاء الخادم العلوي",
+    "uniformEgressLine": "فشل {affected} من {exits} مخرجًا معًا على {provider} (آخر {hours}h) — ليس مشكلة خروج"
   },
   "playground": {
     "title": "العنوان",
@@ -12871,7 +12902,10 @@
     "inheritedPool": "يرث تجمع الاتصالات ({count})",
     "poolEmptyBlocked": "التجمع فارغ — تفشل الطلبات (ليس مباشرًا)",
     "directEgress": "مباشر (بدون وكيل)",
-    "ownProxy": "وكيل خاص"
+    "ownProxy": "وكيل خاص",
+    "freeTierPause": "تم إيقاف النموذج {model} مؤقتًا (429)، وسيعود في {time}",
+    "freeTierPauseProvider": "تم الإيقاف مؤقتًا (429)، وسيعود في {time}",
+    "freeTierPauseNote": "إيقاف مؤقت داخل العملية على هذه النسخة"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13052,6 +13086,10 @@
     "inactiveCount": "{count} غير نشط",
     "dbOverrideCount": "{count} من تجاوزات قاعدة البيانات",
     "searchPlaceholder": "البحث في العلامات...",
+    "descriptionModeLabel": "عرض الوصف",
+    "descriptionModeHint": "عند التمرير: تبقى البطاقات مضغورة ويُعرض النص الكامل عند التمرير فوق وصف ما. النص الكامل: إظهار الوصف الكامل دائمًا.",
+    "descriptionModeHover": "عند التمرير",
+    "descriptionModeFull": "النص الكامل",
     "categories": {
       "all": "الكل",
       "security": "الأمان",
@@ -13679,7 +13717,7 @@
     "secondaryNote": "متوفر أيضًا على Open VSX (Cursor، Windsurf، VSCodium…)",
     "dismissAriaLabel": "تجاهل"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "قم بالإعلان عن معرفات المرايا <gateway-alias>/<model> على /v1/models للنماذج التي ليس لديها مالك قانوني لديه بيانات اعتماد نشطة ولكن بوابة تمرير مع بيانات اعتماد نشطة توجهها. تحذير: يضيف إدخالات الكتالوج لجميع العملاء عند تمكينه عالميًا.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "قم بالإعلان عن معرفات المرايا '<gateway-alias>'/'<model>' على /v1/models للنماذج التي ليس لديها مالك قانوني لديه بيانات اعتماد نشطة ولكن بوابة تمرير مع بيانات اعتماد نشطة توجهها. تحذير: يضيف إدخالات الكتالوج لجميع العملاء عند تمكينه عالميًا.",
   "radarPage": {
     "title": "كتالوج الرادار",
     "subtitle": "كتالوج نموذج مجاني معزز بذكاء المجتمع",

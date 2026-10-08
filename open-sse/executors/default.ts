@@ -61,7 +61,7 @@ import {
 } from "@/lib/providers/validation/urlHelpers";
 import { forwardOpencodeClientHeaders } from "../utils/opencodeHeaders.ts";
 import { resolveZaiUrl } from "./default/zaiFormatOverride.ts";
-import { normalizePoolConfig } from "./default/poolConfig.ts";
+import { normalizePoolConfig, rejectStrictPool } from "./default/poolConfig.ts";
 import { acquireNvidiaConcurrencySlot } from "./default/nvidiaConcurrencyGate.ts";
 import { resolveAlibabaProviderBaseUrl } from "@/shared/constants/alibabaProviderRegions";
 import { xiaomiAlternateUrl, xiaomiMimoChatUrl } from "./default/xiaomiTokenPlan.ts";
@@ -275,6 +275,10 @@ export class DefaultExecutor extends BaseExecutor {
       }
     }
     switch (this.provider) {
+      case "muse-code": {
+        const baseUrl = normalizeOpenAIChatUrl(this.resolveBaseUrl(credentials));
+        return baseUrl.replace(/\/(?:chat\/completions|chat)$/, "/responses");
+      }
       case "perplexity-agent":
         return this.config.baseUrl;
       case "openai": {
@@ -1150,8 +1154,8 @@ export class DefaultExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
-    // #6846 Phase 1: per-connection concurrency cap for nvidia — no-op for every
-    // other provider (returns null immediately, no semaphore key allocated).
+    rejectStrictPool(input.validationDispatch, this.poolConfig);
+    // #6846 Phase 1: per-connection nvidia concurrency cap — no-op for other providers.
     const releaseNvidiaSlot = await acquireNvidiaConcurrencySlot(
       this.provider,
       input.credentials?.connectionId

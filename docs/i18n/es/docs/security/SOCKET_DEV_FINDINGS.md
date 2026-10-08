@@ -184,13 +184,13 @@ centralice las credenciales del equipo. La corrección deja claro el modelo de a
 
 ## Perfil de compilación: `minimal`
 
-Para los usuarios que necesiten un artefacto compatible con Socket, compilen con:
+Para los usuarios que necesitan un artefacto compatible con Socket, compile con:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-El `NormalModuleReplacementPlugin` de webpack sustituye cuatro módulos por stubs:
+El `NormalModuleReplacementPlugin` de webpack asigna cuatro módulos a stubs:
 
 | Módulo                                      | Stub                                             |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -200,12 +200,11 @@ El `NormalModuleReplacementPlugin` de webpack sustituye cuatro módulos por stub
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
 Cada stub exporta la misma interfaz, pero todas las funciones lanzan un
-`featureDisabledError(name)` en tiempo de ejecución. Las rutas que dependen del módulo
-deshabilitado devuelven HTTP 503 con un mensaje claro, en lugar de activar la
-ruta de código sensible.
+`featureDisabledError(name)` en tiempo de ejecución. Las rutas que dependen del
+módulo deshabilitado devuelven un estado HTTP 503 con un mensaje claro en lugar
+de activar la ruta de código sensible.
 
-El bundle resultante está destinado a publicarse como `omniroute-secure`. Consulte
-`docs/ops/PUBLISHING_SECURE.md` para ver el procedimiento de publicación.
+El paquete resultante está destinado a publicarse como `omniroute-secure`.
 
 ---
 

@@ -67,31 +67,32 @@ Bu makinenin dışında iş yapmak için bir bulut hizmetine (Codex Cloud / Curs
 
 Aktarım ayrıntıları, ajan kartı yapısı, görev TTL yapılandırması ve yeni beceriler ekleme şablonu için [A2A-SERVER.md](./A2A-SERVER.md) belgesine bakın.
 
-## 2. ACP — CLI Aracıları Kayıt Defteri
+## 2. ACP — CLI Ajanları Kayıt Defteri
 
 **OmniRoute uç noktası:** `GET /api/acp/agents`
 **Kaynak:** `src/lib/acp/{index,manager,registry}.ts`
 
 ### Nedir?
 
-ACP, OmniRoute'un **yerel CLI aracısı envanteridir**. Ana makinede hangi kodlama CLI'larının yüklü olduğunu (Cursor, Cline, Claude Code, Codex CLI, Continue vb.) algılar, sürümlerini belirler ve kullanıcının her CLI'ı OmniRoute'u işaret edecek şekilde yapılandırabilmesi için bunları panoda gösterir.
+ACP, OmniRoute'un **yerel CLI ajanı envanteridir**. Ana makinede hangi kodlama CLI'larının yüklü olduğunu (Cursor, Cline, Claude Code, Codex CLI, Continue vb.) algılar, sürümlerini belirler ve kullanıcıların her CLI'ı OmniRoute'u kullanacak şekilde yapılandırabilmesi için bunları kontrol panelinde gösterir.
 
-Bu harici bir protokol DEĞİLDİR; "CLI Tools" kullanıcı arayüzünü ve CLI parmak izi takibini destekleyen dahili bir kayıt defteridir (bkz. [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+HTTP yüzeyi, "CLI Tools" kullanıcı arayüzünü ve CLI parmak izi takibini destekleyen dahili bir envanterdir (bkz. [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Bunun yanında dahili süreç yöneticisi, kayıtlı Gemini başlatıcısı için yerel Agent Client Protocol desteği ve diğer sözleşmeler için eski stdio bağdaştırıcıları sağlar.
+Bu farklı modlar ve sınırlamalar için [ACP kayıt defteri ve başlatıcıları](./ACP.md) bölümüne bakın.
 
 ### Ne yapar?
 
-- Ana makinede yüklü CLI ikili dosyalarını tarar (işletim sistemine göre `which` / `where` kullanır)
-- Her CLI'ın sürümünü okur (`<bin> --version` çağrısını yapar)
-- İsteğe bağlı olarak kullanıcı tanımlı özel aracıları kabul eder (ikili dosya yolu + sürüm sorgusu + başlatma argümanları)
-- Özel aracıları ayarlarda kalıcı olarak saklar
-- Birleştirilmiş listeyi panoya döndürür
+- Yüklü CLI ikili dosyalarını bulmak için ana makineyi yoklar (işletim sistemine göre `which` / `where` kullanır)
+- Her CLI'ın sürümünü okur (`<bin> --version` komutunu çağırır)
+- İsteğe bağlı olarak kullanıcı tanımlı özel ajanları kabul eder (ikili dosya yolu + sürüm sorgusu + süreç başlatma argümanları)
+- Özel ajanları ayarlarda kalıcı olarak saklar
+- Birleştirilmiş listeyi kontrol paneline döndürür
 
 ### REST API
 
-| Uç nokta          | Yöntem | Açıklama                                                          | Kimlik doğrulama |
-| ----------------- | ------ | ----------------------------------------------------------------- | ---------------- |
-| `/api/acp/agents` | GET    | Algılanan + özel aracıları listeler (yüklü/toplam sayıları)       | API anahtarı     |
-| `/api/acp/agents` | POST   | Özel aracı ekler/günceller/kaldırır (gövdede eylem ayırt edicisi) | API anahtarı     |
+| Uç nokta          | Yöntem | Açıklama                                                         | Kimlik doğrulama |
+| ----------------- | ------ | ---------------------------------------------------------------- | ---------------- |
+| `/api/acp/agents` | GET    | Algılanan + özel ajanları listeler (yüklü/toplam sayıları)       | API anahtarı     |
+| `/api/acp/agents` | POST   | Özel ajan ekler/günceller/kaldırır (gövdede eylem ayırt edicisi) | API anahtarı     |
 
 POST için gövde yapısı (`src/app/api/acp/agents/route.ts` içindeki `customAgentBodySchema`):
 
@@ -110,13 +111,13 @@ POST için gövde yapısı (`src/app/api/acp/agents/route.ts` içindeki `customA
 
 ### Kullanım alanları
 
-- Panodaki "CLI Tools" sayfası, yüklü olanları listeler ve her birini OmniRoute'u işaret edecek şekilde yapılandırmanıza yardımcı olur
-- Özel aracılar, ileri düzey kullanıcıların OmniRoute'un varsayılan olarak tanımadığı dahili/tescilli CLI'ları kaydetmesine olanak tanır
+- Kontrol panelindeki "CLI Tools" sayfası, nelerin yüklü olduğunu listeler ve her birini OmniRoute'a yönlendirmenize yardımcı olur
+- Özel ajanlar, ileri düzey kullanıcıların OmniRoute'un varsayılan olarak tanımadığı dahili/tescilli CLI'ları kaydetmesine olanak tanır
 - Algılama sonucu, `cli-tools` parmak izi matrisini besler
 
 ### ACP ne zaman KULLANILMAMALIDIR?
 
-- ACP görevleri _çalıştırmaz_. Yalnızca CLI'ları algılar ve yapılandırır. Bir CLI'ı gerçekten çağırmak için OmniRoute'un sağladığı ortam değişkenleriyle (`OPENAI_BASE_URL`, `OPENAI_API_KEY` vb.) kendiniz başlatmanız gerekir.
+- HTTP kayıt defteri görev kabul etmez veya süreç başlatma işlevini kullanıma sunmaz. Dahili yönetici kayıtlı bir CLI'ı başlatabilir ancak otomatik sağlayıcı yedeği olarak bağlanmamıştır. Sıradan etkileşimli kullanım için yapılandırılmış CLI'ı kendiniz başlatın veya `omniroute run` kullanın.
 
 ## 3. Bulut Aracıları
 

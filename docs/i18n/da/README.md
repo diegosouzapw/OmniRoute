@@ -341,35 +341,35 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🎯 Comboer — flagskibet
+## 🎯 Comboer — Flagskibet
 
 </div>
 
-<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="Alle 19 routingstrategier for comboer animeret — én flise pr. strategi: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline. Se tabellen ovenfor for at få mere at vide om, hvad de hver især gør."/>
+<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="Alle 19 routingstrategier for comboer animeret — én flise pr. strategi: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline. Se tabellen ovenfor for at få at vide, hvad de hver især gør."/>
 
-> En **combo** er en kæde af modeller, som OmniRoute router på tværs af **automatisk**. Hvis kvoten slipper op, en udbyder fejler, eller omkostningerne stiger kraftigt, kan comboen gå videre til den næste kvalificerede, velfungerende model. 🛡️
+> En **combo** er en kæde af modeller, som OmniRoute router på tværs af **automatisk**. Hvis kvoten opbruges, en udbyder svigter, eller omkostningerne stiger kraftigt, kan comboen gå videre til den næste kvalificerede og velfungerende model. 🛡️
 
-### ⚡ Ingen konfiguration — brug blot `auto`
+### ⚡ Nul konfiguration — brug blot `auto`
 
-Du behøver ikke oprette en combo. Indstil din model til `auto` (eller en variant), så bygger OmniRoute en virtuel combo ud fra dine tilsluttede udbydere, som bedømmes i realtid:
+Der skal ikke oprettes nogen combo. Indstil din model til `auto` (eller en variant), så bygger OmniRoute en virtuel combo ud fra dine tilknyttede udbydere, som vurderes løbende:
 
 <table>
   <tr><th align="left">Model-id</th><th align="left">Hvad den optimerer til</th></tr>
   <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 Afbalanceret standard (LKGP — holder sig til din senest velfungerende udbyder)</td></tr>
-  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 Kvalitetsprioriterede vægte til kodegenerering</td></tr>
+  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 Kvalitetsfokuseret vægtning til kodegenerering</td></tr>
   <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ Laveste latenstid først</td></tr>
   <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 Billigste pr. token først</td></tr>
-  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 Mest råderum i kvote/hastighedsgrænse først</td></tr>
+  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 Størst råderum i kvote/hastighedsgrænse først</td></tr>
   <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 Kvalitet først + 10 % udforskning for at finde bedre modeller</td></tr>
   <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 Eksplicit fastholdelse af den senest velfungerende udbyder</td></tr>
-  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 Fejlinjektionsvægte til robusthedstest (chaos engineering)</td></tr>
+  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 Parallel udsendelse til et panel af modeller (én pr. udbyder, som standard 5), returnerer ét svar; ét upstream-kald pr. panelmodel, ikke fejlinjektion</td></tr>
 </table>
 
 ##
 
 ### 🔀 Eller byg din egen — 19 routingstrategier
 
-Alle **19** strategier — bland og kombiner dem for hvert trin i en combo:
+Alle **19** strategier — bland og kombinér pr. combo-trin:
 
 <table>
   <tr>
@@ -380,7 +380,7 @@ Alle **19** strategier — bland og kombiner dem for hvert trin i en combo:
   <tr>
     <td align="center">1</td>
     <td nowrap><code>priority</code></td>
-    <td>Ordnet liste med det første mål først — udtøm hvert mål før det næste 🥇</td>
+    <td>Ordnet liste med første mål først — udtøm hvert mål før det næste 🥇</td>
   </tr>
   <tr>
     <td align="center">2</td>
@@ -390,17 +390,17 @@ Alle **19** strategier — bland og kombiner dem for hvert trin i en combo:
   <tr>
     <td align="center">3</td>
     <td nowrap><code>weighted</code></td>
-    <td>Vægtet tilfældig udvælgelse baseret på vægten for hvert mål</td>
+    <td>Vægtet tilfældig udvælgelse efter vægten for hvert mål</td>
   </tr>
   <tr>
     <td align="center">4</td>
     <td nowrap><code>round-robin</code></td>
-    <td>Gå gennem målene på skift i rækkefølge</td>
+    <td>Gennemløb målene i rækkefølge</td>
   </tr>
   <tr>
     <td align="center">5</td>
     <td nowrap><code>p2c</code></td>
-    <td>Tilfældig belastningsfordeling med valget mellem to mål</td>
+    <td>Tilfældig belastningsfordeling med valget mellem to muligheder</td>
   </tr>
   <tr>
     <td align="center">6</td>
@@ -410,7 +410,7 @@ Alle **19** strategier — bland og kombiner dem for hvert trin i en combo:
   <tr>
     <td align="center">7</td>
     <td nowrap><code>random</code></td>
-    <td>Ensartet tilfældigt valg (uden dubletter)</td>
+    <td>Ensartet tilfældigt valg (dubletter fjernes)</td>
   </tr>
   <tr>
     <td align="center">8</td>
@@ -430,7 +430,7 @@ Alle **19** strategier — bland og kombiner dem for hvert trin i en combo:
   <tr>
     <td align="center">11</td>
     <td nowrap><code>reset-window</code></td>
-    <td>Foretræk det mål, hvis kvotevindue nulstilles først</td>
+    <td>Foretræk målet, hvis kvotevindue nulstilles snarest</td>
   </tr>
   <tr>
     <td align="center">12</td>
@@ -440,7 +440,7 @@ Alle **19** strategier — bland og kombiner dem for hvert trin i en combo:
   <tr>
     <td align="center">13</td>
     <td nowrap><code>context-relay</code></td>
-    <td>Overdrag kontekst på tværs af mål i lange samtaler 🧠</td>
+    <td>Overdrag kontekst mellem mål i lange samtaler 🧠</td>
   </tr>
   <tr>
     <td align="center">14</td>
@@ -450,22 +450,22 @@ Alle **19** strategier — bland og kombiner dem for hvert trin i en combo:
   <tr>
     <td align="center">15</td>
     <td nowrap><code>cache-optimized</code></td>
-    <td>Fastgør hvert genanvendeligt promptpræfiks til den samme konto — maksimer træffere i promptcachen 🎯</td>
+    <td>Fastgør hvert genanvendeligt promptpræfiks til den samme konto — maksimer antallet af træffere i promptcachen 🎯</td>
   </tr>
   <tr>
     <td align="center">16</td>
     <td nowrap><code>lkgp</code></td>
-    <td>Senest kendte velfungerende rute — fastgør til den senest vellykkede udbyder og falder derefter tilbage på reglerne</td>
+    <td>Senest kendte velfungerende sti — fastgør til den senest vellykkede udbyder og falder derefter tilbage på regler</td>
   </tr>
   <tr>
     <td align="center">17</td>
     <td nowrap><code>auto</code></td>
-    <td>Bedømmelse i realtid ud fra 16 faktorer på tværs af alle forbindelser 🤖</td>
+    <td>Løbende vurdering ud fra 16 faktorer på tværs af alle forbindelser 🤖</td>
   </tr>
   <tr>
     <td align="center">18</td>
     <td nowrap><code>fusion</code></td>
-    <td>Sender ud til et panel af modeller + en bedømmer sammenfatter ét svar 🧬</td>
+    <td>Send til et panel af modeller + en dommer syntetiserer ét svar 🧬</td>
   </tr>
   <tr>
     <td align="center">19</td>
@@ -474,15 +474,15 @@ Alle **19** strategier — bland og kombiner dem for hvert trin i en combo:
   </tr>
 </table>
 
-<sub>Auto-Combo-motoren bedømmer hver kandidat ud fra **16 faktorer** (driftstilstand, kvote, omkostninger, latenstid, egnethed til opgaven, kvalitet, sessionstilgængelighed …) — se [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md).</sub>
+<sub>Auto-Combo-motoren vurderer hver kandidat ud fra **16 faktorer** (driftstilstand, kvote, omkostninger, latenstid, opgavematch, kvalitet, sessionstilgængelighed …) — se [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md).</sub>
 
 ##
 
 ### 🧱 Robusthed er indbygget (3 uafhængige lag)
 
-<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="OmniRoute-resiliens — 3 uafhængige selvhelende lag, det rette lag til den rette fejl. Lag 1: circuit breaker for udbyder (hele udbyderen): udløses kun ved 408/5xx, tærskler OAuth 8× / API-nøgle 12× / lokal 2×, nulstilles efter 60s/30s/15s til en HALF-OPEN-sondering, doven genoprettelse; mens den er OPEN, omdirigerer kombinationen til den næste udbyder. Lag 2: nedkøling af forbindelse (én nøgle/konto): grundværdi 5s OAuth / 3s API-nøgle, eksponentiel ×2-backoff med beskyttelse mod samtidige genforsøg, 429 respekterer Retry-After, succes rydder al fejltilstand; en nøgle under nedkøling springes over, mens parallelle nøgler fortsætter med at betjene anmodninger. Lag 3: modellåsning (én model): modelspecifik 429, lokal 404 eller afvisninger på grund af tilstand låser kun den pågældende model — aldrig hele forbindelsen. Terminaltilstande (udelukket, udløbet, kreditter opbrugt) er operatørens ansvar, ikke nedkølinger."/>
+<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="OmniRoute-resiliens — 3 uafhængige selvhelende lag, det rette lag til den rette fejl. Lag 1: udbyderens circuit breaker (hele udbyderen): udløses kun ved 408/5xx, tærskler OAuth 8× / API-nøgle 12× / lokal 2×, nulstilles efter 60s/30s/15s til en HALF-OPEN-sondering, gradvis genoprettelse; mens den er OPEN, omdirigerer kombinationen til den næste udbyder. Lag 2: nedkøling af forbindelsen (én nøgle/konto): basis 5s OAuth / 3s API-nøgle, eksponentiel ×2-backoff med beskyttelse mod stampede-effekt, 429 respekterer Retry-After, succes rydder al fejltilstand; en nøgle under nedkøling springes over, mens øvrige nøgler fortsat betjener anmodninger. Lag 3: modelspærring (én model): 429 pr. model, lokal 404 eller tilstandsafvisninger spærrer kun den pågældende model — aldrig hele forbindelsen. Terminaltilstande (bandlyst, udløbet, kreditter opbrugt) er operatørens ansvar, ikke nedkølinger."/>
 
-<sub>📖 [Automatisk kombinationsmotor](docs/routing/AUTO-COMBO.md) · [Resiliensvejledning](docs/architecture/RESILIENCE_GUIDE.md)</sub>
+<sub>📖 [Auto-Combo-motor](docs/routing/AUTO-COMBO.md) · [Resiliensvejledning](docs/architecture/RESILIENCE_GUIDE.md)</sub>
 
 <br/>
 
@@ -571,29 +571,29 @@ adgangskrav og det aktuelle katalog på **[radar.omniroute.online/planos](https:
 
 </div>
 
-> Seneste højdepunkter fra **v3.8.20 → v3.8.50**. Den fulde historik findes i [`CHANGELOG.md`](CHANGELOG.md).
+> Seneste højdepunkter fra **v3.8.20 → v3.8.50**. Se hele historikken i [`CHANGELOG.md`](CHANGELOG.md).
 
 - **🎛️ OmniConductor** — indgående A2A-delegering til din agentflåde, Conductor-færdigheder på Agent Card og et dashboardpanel med Faro push-to-talk-stemmechat. → [A2A-server](docs/frameworks/A2A-SERVER.md)
-- **🛂 Adaptiv adgangskontrol og overbelastningsbeskyttelse** — tunge chatanmodninger sættes i kø i stedet for at returnere 503, med atomare, rullende RPM-leases pr. forbindelse. → [Robusthedsvejledning](docs/architecture/RESILIENCE_GUIDE.md)
+- **🛂 Adaptiv adgangskontrol og overbelastningsbeskyttelse** — tunge chatanmodninger sættes i kø i stedet for at returnere 503, med atomare rullende RPM-leases pr. forbindelse. → [Guide til robusthed](docs/architecture/RESILIENCE_GUIDE.md)
 - **🗂️ Kanonisk rækkefølge for `/v1/models`** — én sammenhængende blok grupperet efter udbyder pr. udbyder (kombinationer fastgjort først), stabil på tværs af alle katalogkilder. → [API-reference](docs/reference/API_REFERENCE.md)
-- **🗜️ Hærdning af komprimering** — inflationsværn aktiveret som standard, Caveman-pakker til DE / FR / JA + kinesisk (wényán), RTK-filtre til Gradle og .NET. → [Komprimering](docs/compression/COMPRESSION_ENGINES.md)
-- **💸 Retvisende fastprishåndtering** — udbydere med abonnementer/kodningsplaner vises med **$0** i omkostningsanalyser; budget, kvote og routing fortsætter med at estimere. → [API-reference](docs/reference/API_REFERENCE.md)
-- **⚖️ Quota-Share-routing** — fordel en delt kontos kvote retfærdigt på tværs af samlede nøgler med arbejdsbevarende udlån af ubrugte andele. → [Robusthedsvejledning](docs/architecture/RESILIENCE_GUIDE.md)
-- **🤖 Opsætning af CLI/agent med én kommando** — 13 registrerede `setup-*`-kommandoer; `omniroute run` starter 7 CLI'er (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI); `omniroute configure` understøtter 10 mål med en interaktiv udbyder- og modelvælger samt kontekstspecifikke favoritter. → [CLI-integrationer](docs/guides/CLI-INTEGRATIONS.md)
-- **🛰️ Fjerntilstand** — styr en ekstern OmniRoute med afgrænsede tokens (`connect` / `contexts` / `tokens`) samt en `antigravity` OAuth-hjælper til VPS-installationer. → [Fjerntilstand](docs/guides/REMOTE-MODE.md)
-- **🧭 Smartere automatisk routing** — `auto/<category>:<tier>`-kombinationer, **Fusion** (modelpanel + dommer), opgavebevidst routing samt tilsidesættelse af model/tilstand/USD-budget pr. anmodning. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **🗜️ Modulær komprimering** — 12 kombinerbare motorer + Compression Studios: LLMLingua-2, todelt Ultra, omniglyph, pålidelighedskontrol pr. trin, GCF v3.2, redigering med træk-og-slip-omrokering. → [Komprimering](docs/compression/COMPRESSION_ENGINES.md)
-- **🕵️ Transparent MITM-dekryptering (TPROXY)** — opfang CLI'er, der ignorerer proxy-miljøvariabler, med en CA pr. SNI samt et installationsprogram til tillidslageret. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
-- **💸 Omkostningstelemetri overalt** — `X-OmniRoute-*`-headere for omkostninger/forbrug på alle endpoints, header for besparelser ved cache-HIT og USD-forbrugskvoter pr. nøgle. → [API-reference](docs/reference/API_REFERENCE.md)
-- **🧠 Hukommelse, du styrer** — deaktiveret som standard, tilvalgt int8-vektorkvantisering + typestyret henfald, `x-omniroute-no-memory` pr. anmodning. → [Hukommelse](docs/frameworks/MEMORY.md)
-- **🛡️ Sikkerhed** — beskyttelse mod prompt-injektion på alle LLM-ruter (red-team-testsuite), valgfri sikkerhedsforanstaltning til maskering af legitimationsoplysninger (bortredigerer lækkede API-nøgler/hemmeligheder i begge retninger), gratis DuckDuckGo-websøgning som sidste udvej og en valgfri OIDC-logingateway til dashboardet (adgangskodelogin forbliver altid tilgængeligt). → [Sikkerhedsforanstaltninger](docs/security/GUARDRAILS.md)
+- **🗜️ Styrket komprimering** — inflationsbeskyttelse aktiveret som standard, Caveman-pakker til DE / FR / JA + kinesisk (wényán) samt RTK-filtre til Gradle og .NET. → [Komprimering](docs/compression/COMPRESSION_ENGINES.md)
+- **💸 Retvisende fastprissats** — abonnements- og udviklingsplanudbydere vises med en omkostning på **$0** i omkostningsanalyser; budget, kvote og routing fortsætter med at estimere. → [API-reference](docs/reference/API_REFERENCE.md)
+- **⚖️ Quota-Share-routing** — fordel en delt kontos kvote retfærdigt mellem puljede nøgler med en arbejdsbevarende model, så ubrugte andele udlånes. → [Guide til robusthed](docs/architecture/RESILIENCE_GUIDE.md)
+- **🤖 CLI-/agentopsætning med én kommando** — 13 registrerede `setup-*`-kommandoer; `omniroute run` starter 7 CLI'er (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI); `omniroute configure` understøtter 10 mål med en interaktiv udbyder- og modelvælger samt kontekstspecifikke favoritter. → [CLI-integrationer](docs/guides/CLI-INTEGRATIONS.md)
+- **🛰️ Fjerntilstand** — styr en ekstern OmniRoute med afgrænsede tokens (`connect` / `contexts` / `tokens`) samt en `antigravity`-OAuth-hjælper til VPS-installationer. → [Fjerntilstand](docs/guides/REMOTE-MODE.md)
+- **🧭 Smartere automatisk routing** — `auto/<category>:<tier>`-kombinationer, **Fusion** (modelpanel + dommer), opgavebevidst routing samt tilsidesættelse af model / tilstand / USD-budget pr. anmodning. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **🗜️ Modulær komprimering** — 12 kombinerbare motorer + Compression Studios: LLMLingua-2, Ultra med to niveauer, omniglyph, nøjagtighedskontrol pr. trin, GCF v3.2 og redigering med træk for at omarrangere. → [Komprimering](docs/compression/COMPRESSION_ENGINES.md)
+- **🕵️ Gennemsigtig MITM-dekryptering (TPROXY)** — opfang CLI'er, der ignorerer proxy-miljøvariabler, med en CA pr. SNI samt et installationsprogram til tillidslageret. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
+- **💸 Omkostningstelemetri overalt** — `X-OmniRoute-*`-headere for omkostninger/forbrug på alle endpoints, en header for besparelser ved cache-HIT og USD-forbrugskvoter pr. nøgle. → [API-reference](docs/reference/API_REFERENCE.md)
+- **🧠 Hukommelse, du styrer** — deaktiveret som standard, valgfri int8-vektorkvantisering + typestyret henfald og `x-omniroute-no-memory` pr. anmodning. → [Hukommelse](docs/frameworks/MEMORY.md)
+- **🛡️ Sikkerhed** — beskyttelse mod prompt-injektion på alle LLM-ruter (red-team-testsuite), valgfri sikkerhedsforanstaltning til maskering af legitimationsoplysninger (bortredigerer lækkede API-nøgler/hemmeligheder i begge retninger), gratis DuckDuckGo-websøgning som sidste udvej og en valgfri OIDC-loginport til dashboardet (login med adgangskode forbliver altid tilgængeligt). → [Sikkerhedsforanstaltninger](docs/security/GUARDRAILS.md)
 - **🖼️ Nye endpoints** — `/v1/ocr` (Mistral OCR) og `/v1/audio/translations` (Whisper-lignende) fuldender mediefladen. → [API-reference](docs/reference/API_REFERENCE.md)
-- **🎨 Generering af billeder/video/lyd** — én API til medier: xAI Grok Imagine- og Novita AI-video, ComfyUI, Magnific, Adobe Firefly, Segmind samt taleudbydere som ElevenLabs. → [API-reference](docs/reference/API_REFERENCE.md)
-- **🌍 Udrulning og drift** — reverse proxy-`basePath`, automatisk registrering af browsersprog, enhedssporing pr. nøgle, root-fri MITM-tillid, zh-TW-lokalisering. → [Miljø](docs/reference/ENVIRONMENT.md)
-- **🤝 Flere udbydere og agenter** — cloudagenter (Codex Cloud, Cursor, Devin, Jules), Grok Build (xAI) med browser + OAuth-login, førsteklasses Ollama-kort, Claude Opus 5 og Sonnet 5, officielt partnerskab med Kimi (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… samt et opdateret **katalog med 352 udbydere**. → [Udbydere](docs/reference/PROVIDER_REFERENCE.md)
-- **📡 Gennemsigtig routing** — hvert svar indeholder en `X-OmniRoute-Decision`-header, der angiver den strategi/udbyder/latens, som håndterede det; en ny `cache-optimized`-kombinationsstrategi + Auto-Combo-`cacheAffinity`-faktor sender gentagne anmodninger tilbage til forbindelsen med det cachelagrede præfiks, og et skrivebeskyttet `/v1/auto-combo/{channel}/candidates`-endpoint viser den aktive kandidatpulje for en `auto/*`-kanal. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **⚡ Lokal ydeevne og infrastruktur** — lokal Redis med ét klik, relæudrullere til Cloudflare Workers / Deno Deploy samt Bifrost og Mux som overvågede, indlejrede tjenester. → [Indlejrede tjenester](docs/frameworks/EMBEDDED-SERVICES.md)
-- **🧩 Også inkluderet** — plugin-framework + markedsplads, Omni-/Agent-/GitHub-færdighedsframeworks, Obsidian-vaultintegration (22 MCP-værktøjer), OpenAI-kompatible Batch- og Files-API'er, semantisk svarcache, gamification med ranglister, ACP-agentregistrering (15 indbyggede agenter), planlagt eksport af logge til BigQuery, `auto/chaos`-fejlinjektion, en Telegram-botbro, en versionsadministrator i appen og LMArena-ELO-rangeringer af gratis udbydere. → [Dokumentation](docs/README.md)
+- **🎨 Generering af billeder / video / lyd** — én API til medier: xAI Grok Imagine og Novita AI-video, ComfyUI, Magnific, Adobe Firefly, Segmind samt taleudbydere såsom ElevenLabs. → [API-reference](docs/reference/API_REFERENCE.md)
+- **🌍 Implementering og drift** — reverse proxy-`basePath`, automatisk registrering af browsersprog, enhedssporing pr. nøgle, root-fri MITM-tillid og zh-TW-lokalisering. → [Miljø](docs/reference/ENVIRONMENT.md)
+- **🤝 Flere udbydere og agenter** — cloudagenter (Codex Cloud, Cursor, Devin, Jules), Grok Build (xAI) med browser- og OAuth-login, førsteklasses Ollama-kort, Claude Opus 5 og Sonnet 5, officielt Kimi-partnerskab (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… samt et opdateret **katalog med 352 udbydere**. → [Udbydere](docs/reference/PROVIDER_REFERENCE.md)
+- **📡 Gennemsigtighed i routing** — hvert svar indeholder en `X-OmniRoute-Decision`-header, der angiver den strategi/udbyder/ventetid, som håndterede det; en ny `cache-optimized`-kombinationsstrategi + Auto-Combo-`cacheAffinity`-faktor sender gentagne anmodninger tilbage til den forbindelse, der indeholder det cachelagrede præfiks; og et skrivebeskyttet `/v1/auto-combo/{channel}/candidates`-endpoint viser en `auto/*`-kanals aktuelle kandidatpulje. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **⚡ Lokal ydeevne og infrastruktur** — lokal Redis med ét klik, implementeringsværktøjer til Cloudflare Workers- / Deno Deploy-relæer samt Bifrost og Mux som overvågede, indlejrede tjenester. → [Indlejrede tjenester](docs/frameworks/EMBEDDED-SERVICES.md)
+- **🧩 Også inkluderet** — plugin-framework + markedsplads, frameworks til Omni-/Agent-/GitHub-færdigheder, Obsidian-vault-integration (22 MCP-værktøjer), OpenAI-kompatible Batch- og Files-API'er, semantisk svarcache, gamificering med ranglister, ACP-agentregistrering (15 indbyggede agenter), planlagt logeksport til BigQuery, `auto/chaos`-parallel fan-out til flere modeller, en Telegram-botbro, en versionsstyring i appen og LMArena-ELO-rangeringer af gratis udbydere. → [Dokumentation](docs/README.md)
 
 <br/>
 
@@ -1272,21 +1272,21 @@ Kanoniske målinger den 2026-08-24: **1.029 unikke videoer** · **11.132.922 ken
 <table>
   <tr><th align="left">Lag</th><th align="left">Teknologi</th></tr>
   <tr><td nowrap><b>Kørselsmiljø</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Sprog</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> på tværs af <code>src/</code> og <code>open-sse/</code> (ingen <code>any</code> i kernen siden v2.0)</td></tr>
+  <tr><td nowrap><b>Sprog</b></td><td>TypeScript 6.0 — <b>100 % TypeScript</b> på tværs af <code>src/</code> og <code>open-sse/</code> (ingen <code>any</code> i kernen siden v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, WAL-journalføring) + LowDB (ældre JSON-format) — 122 domænemoduler, 190 migreringer</td></tr>
-  <tr><td nowrap><b>Hukommelse</b></td><td>SQLite FTS5-fuldtekstsøgning + int8-kvantiserede vektorindlejringer, typebestemt henfald</td></tr>
+  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, WAL-journalføring) + LowDB (ældre JSON-format) — 137 domænemoduler, 193 migreringer</td></tr>
+  <tr><td nowrap><b>Hukommelse</b></td><td>SQLite FTS5-fuldtekstsøgning + int8-kvantiserede vektorindlejringer, typestyret henfald</td></tr>
   <tr><td nowrap><b>Skemaer</b></td><td>Zod 4 — validering af input/output for MCP-værktøjer + API-kontrakter</td></tr>
   <tr><td nowrap><b>Protokoller</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>Streaming</b></td><td>Server-Sent Events (SSE) + WebSocket-bro (<code>/v1/ws</code>)</td></tr>
   <tr><td nowrap><b>Komprimering</b></td><td>Pipeline med 12 motorer — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
   <tr><td nowrap><b>Godkendelse &amp; sikkerhed</b></td><td>OAuth 2.0 (PKCE) + JWT + API-nøgler + omfangsbaseret MCP-godkendelse · AES-256-GCM ved lagring · DOMPurify</td></tr>
-  <tr><td nowrap><b>Sløring</b></td><td>wreq-js — efterligning af JA3-/JA4-TLS-fingeraftryk, proxy i 3 niveauer</td></tr>
-  <tr><td nowrap><b>Robusthed</b></td><td>Kredsløbsafbryder, eksponentiel ventetid, beskyttelse mod thundering herd, selvhelende automatisk kombination</td></tr>
+  <tr><td nowrap><b>Stealth</b></td><td>wreq-js — efterligning af JA3-/JA4-TLS-fingeraftryk, proxy i 3 niveauer</td></tr>
+  <tr><td nowrap><b>Robusthed</b></td><td>Circuit breaker, eksponentiel backoff, beskyttelse mod thundering herd, selvhelbredende auto-combo</td></tr>
   <tr><td nowrap><b>Logning</b></td><td>pino — strukturerede JSON-logfiler med anmodningskontekst</td></tr>
-  <tr><td nowrap><b>Test</b></td><td>Node.js-testkørsel + Vitest — <b>39.000+ statiske testerklæringer</b> fordelt på 5.100+ sporede testfiler (enheds-, integrations-, E2E-, sikkerheds- og økosystemtest)</td></tr>
+  <tr><td nowrap><b>Test</b></td><td>Node.js-testrunner + Vitest — <b>39.000+ statiske testerklæringer</b> på tværs af 5.100+ sporede testfiler (enheds-, integrations-, E2E-, sikkerheds- og økosystemtest)</td></tr>
   <tr><td nowrap><b>Platforme</b></td><td>Desktop (Electron) · Android (Termux) · PWA (enhver browser)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatisk udgivelse til npm + Docker Hub ved nye versioner</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatisk npm-udgivelse + Docker Hub ved udgivelse</td></tr>
   <tr><td nowrap><b>Links</b></td><td><a href="https://omniroute.online">Websted</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
@@ -1738,7 +1738,7 @@ MIT-licens – se [LICENSE](LICENSE) for detaljer.
 
 **[⬆ Tilbage til toppen](#-omniroute)** · Bygget med ❤️ til open source-AI-fællesskabet.
 
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · MIT-licens · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.52 · Node ≥22.22.2 · MIT-licens · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- GitHub Discussions er aktiveret til spørgsmål og svar i fællesskabet -->

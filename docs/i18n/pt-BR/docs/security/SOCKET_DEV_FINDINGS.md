@@ -230,12 +230,11 @@ O `NormalModuleReplacementPlugin` do webpack cria aliases de quatro módulos par
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
 Cada stub exporta a mesma interface, mas todas as funções lançam um
-`featureDisabledError(name)` em tempo de execução. As rotas que dependem do
-módulo desativado retornam HTTP 503 com uma mensagem clara, em vez de ativar
-o caminho de código sensível.
+`featureDisabledError(name)` em tempo de execução. As rotas que dependem do módulo
+desabilitado retornam HTTP 503 com uma mensagem clara, em vez de ativar o
+caminho de código sensível.
 
-O bundle resultante destina-se à publicação como `omniroute-secure`. Consulte
-`docs/ops/PUBLISHING_SECURE.md` para obter as instruções de publicação.
+O bundle resultante destina-se a ser publicado como `omniroute-secure`.
 
 ---
 

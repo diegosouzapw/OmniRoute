@@ -1,0 +1,1 @@
+- **fix(api):** the standalone server (Docker `dev/run-standalone.mjs`) now owns SIGTERM/SIGINT, so graceful-shutdown cleanup (spend flush, call-log flush, DB checkpoint) runs before exit instead of being preempted by Next's own handler calling `process.exit(143)` ([#15331](https://github.com/diegosouzapw/OmniRoute/pull/15331))

@@ -392,16 +392,16 @@ docs/                       # Documentation
 - [ ] בדיקת הסגנון עוברת (`npm run lint`)
 - [ ] הבנייה מצליחה (`npm run build`)
 - [ ] נוספו טיפוסי TypeScript עבור פונקציות וממשקים ציבוריים חדשים
-- [ ] אין סודות או ערכי ברירת מחדל המקודדים באופן קשיח
-- [ ] פרטי גישה ציבוריים לשירותי upstream מוטמעים באמצעות `resolvePublicCred()` (ראו [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), ולעולם לא כליטרלים
-- [ ] תגובות שגיאה מנותבות דרך `buildErrorBody()` / `sanitizeErrorMessage()` — ללא עקבות מחסנית גולמיים בגופי התגובות (ראו [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] פקודות מעטפת (`exec` / `spawn`) מעבירות ערכי זמן ריצה באמצעות `env`, ולא באמצעות אינטרפולציית מחרוזות
+- [ ] אין סודות או ערכי ברירת מחדל מקודדים בקוד
+- [ ] פרטי גישה ציבוריים של upstream מוטמעים באמצעות `resolvePublicCred()` (ראו [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), ולעולם לא כערכים מילוליים
+- [ ] תגובות שגיאה עוברות דרך `buildErrorBody()` / `sanitizeErrorMessage()` — אין עקבות מחסנית גולמיים בגופי התגובות (ראו [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] פקודות מעטפת (`exec` / `spawn`) מעבירות ערכים בזמן ריצה באמצעות `env`, ולא באמצעות אינטרפולציית מחרוזות
 - [ ] כל הקלטים מאומתים באמצעות סכמות Zod
-- [ ] נוסף **מקטע** יומן שינויים תחת `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` עבור שינויים הנראים למשתמש (ראו [`changelog.d/README.md`](./changelog.d/README.md)) — **אין** לערוך את `CHANGELOG.md` ישירות; המקטעים מאוגדים בזמן ההפצה ולעולם אינם יוצרים התנגשויות בין בקשות משיכה
+- [ ] נוסף **מקטע** יומן שינויים תחת `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` עבור שינויים הנראים למשתמשים (ראו [`changelog.d/README.md`](./changelog.d/README.md)) — **אין** לערוך את `CHANGELOG.md` ישירות; המקטעים מאוגדים בעת ההפצה ולעולם אינם יוצרים התנגשויות בין בקשות משיכה
 - [ ] התיעוד עודכן (אם רלוונטי)
-- [ ] לא נפתחו התראות CodeQL / Secret-Scanning חדשות, או שכל אחת מהן נדחתה בצירוף הצדקה טכנית המפנה למסמך הרלוונטי תחת `docs/security/`
-- [ ] נתיבים שמפעילים תהליכי־בן (`/api/mcp/`, `/api/cli-tools/runtime/`) מסווגים כ־`isLocalOnlyPath()` בתוך `src/server/authz/routeGuard.ts` — ראו [כלל מחייב מס' 15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] אין שורות סיום מסוג `Co-Authored-By` בהודעות commit — ה־commits חייבים להופיע אך ורק תחת זהות ה־Git של בעלי המאגר (כלל מחייב מס' 16)
+- [ ] לא נפתחו התראות CodeQL / סריקת סודות חדשות, או שכל אחת מהן נדחתה בצירוף הצדקה טכנית המפנה למסמך הרלוונטי תחת `docs/security/`
+- [ ] נתיבים שמפעילים תהליכי-בן (`/api/mcp/`, `/api/cli-tools/runtime/`) מסווגים כ-`isLocalOnlyPath()` בתוך `src/server/authz/routeGuard.ts` — ראו [כלל מחייב מס' 15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] אין סיומות `Co-authored-by` של AI/בוט בהודעות commit (כלל מחייב מס' 16) — שותפים אנושיים שעבודתם נעשה שימוש חוזר מקבלים קרדיט באמצעות סיומות `Co-authored-by: Name <email>` תקניות
 
 ---
 
@@ -417,5 +417,4 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 - **תיעוד API**: ראו [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **מסמכי אבטחה**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **מסמכי תפעול**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
-- **דיווחים על בעיות**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: ראו `docs/adr/` לרשומות של החלטות ארכיטקטוניות
+- **בעיות**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)

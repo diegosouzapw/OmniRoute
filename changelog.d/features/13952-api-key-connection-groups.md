@@ -1,1 +1,0 @@
-- feat(api-manager): collapsible and searchable connection groups with provider select-all in permissions modal ([#13952](https://github.com/diegosouzapw/OmniRoute/pull/13952))

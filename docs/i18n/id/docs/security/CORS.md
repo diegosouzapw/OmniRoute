@@ -131,21 +131,25 @@ memulai ulang.
 ## Contoh: reverse proxy di depan OmniRoute
 
 CORS diberlakukan oleh OmniRoute sendiri, sehingga proxy umumnya **tidak boleh** menambahkan atau
-menulis ulang header `Access-Control-*` (header ganda merusak fungsi browser). Terminasi TLS
-dan teruskan — biarkan OmniRoute menjawab preflight:
+menulis ulang header `Access-Control-*` (header ganda menyebabkan masalah pada browser). Akhiri TLS
+dan teruskan — biarkan OmniRoute merespons preflight:
 
 ```nginx
 # nginx — teruskan ke OmniRoute; JANGAN menyisipkan Access-Control-* di sini
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # JANGAN menetapkan X-Forwarded-For ke 127.0.0.1 — hal itu menonaktifkan pengaman rute loopback.
+    # Pertahankan header penerusan: proxy pada host yang sama terhubung dari loopback, dan header tersebut
+    # memberi tahu OmniRoute bahwa pemanggil bukan operator lokal. Proxy yang tidak menambahkan satu pun
+    # header tersebut membuat setiap pemanggil jarak jauh terlihat lokal. Jangan pernah menetapkan X-Forwarded-For ke 127.0.0.1.
 }
 ```
 
-Tetapkan origin browser yang diizinkan di OmniRoute (`CORS_ALLOWED_ORIGINS` atau tab
-Security), bukan di proxy.
+Tetapkan origin browser yang diizinkan di OmniRoute (`CORS_ALLOWED_ORIGINS` atau
+tab Security), bukan di proxy.
 
 ## File sumber
 

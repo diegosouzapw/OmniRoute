@@ -398,17 +398,17 @@ docs/
 - [ ] ტესტები წარმატებით სრულდება (`npm test`)
 - [ ] ლინტინგი წარმატებით სრულდება (`npm run lint`)
 - [ ] აგება წარმატებით სრულდება (`npm run build`)
-- [ ] ახალი საჯარო ფუნქციებისა და ინტერფეისებისთვის დამატებულია TypeScript-ის ტიპები
-- [ ] არ არის მყარად გაწერილი საიდუმლოები ან სარეზერვო მნიშვნელობები
-- [ ] ზედა დონის საჯარო ავტორიზაციის მონაცემები ჩაშენებულია `resolvePublicCred()`-ის მეშვეობით (იხილეთ [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)) და არასოდეს — ლიტერალების სახით
-- [ ] შეცდომის პასუხები მუშავდება `buildErrorBody()` / `sanitizeErrorMessage()`-ის მეშვეობით — პასუხის სხეულებში არ არის დაუმუშავებელი სტეკის კვალები (იხილეთ [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] ახალ საჯარო ფუნქციებსა და ინტერფეისებს დამატებული აქვს TypeScript-ის ტიპები
+- [ ] არ არის მყარად გაწერილი საიდუმლო მონაცემები ან სარეზერვო მნიშვნელობები
+- [ ] საჯარო upstream ავტორიზაციის მონაცემები ჩაშენებულია `resolvePublicCred()`-ის მეშვეობით (იხილეთ [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)) და არასდროს — პირდაპირი ლიტერალების სახით
+- [ ] შეცდომის პასუხები მუშავდება `buildErrorBody()` / `sanitizeErrorMessage()`-ის მეშვეობით — პასუხის სხეულებში არ არის დაუმუშავებელი stack trace-ები (იხილეთ [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
 - [ ] გარსის ბრძანებები (`exec` / `spawn`) შესრულების დროის მნიშვნელობებს გადასცემს `env`-ის მეშვეობით და არა სტრიქონული ინტერპოლაციით
-- [ ] ყველა შეყვანილი მონაცემი შემოწმებულია Zod-ის სქემებით
-- [ ] მომხმარებლისთვის ხილული ცვლილებებისთვის ცვლილებების ჟურნალის **ფრაგმენტი** დამატებულია `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md`-ში (იხილეთ [`changelog.d/README.md`](./changelog.d/README.md)) — **არ** დაარედაქტიროთ `CHANGELOG.md` პირდაპირ; ფრაგმენტები გაერთიანდება გამოშვებისას და Pull Request-ებს შორის კონფლიქტს არასოდეს წარმოქმნის
+- [ ] ყველა შეყვანილი მონაცემი ვალიდირებულია Zod-ის სქემებით
+- [ ] მომხმარებლისთვის ხილული ცვლილებებისთვის `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md`-ში დამატებულია ცვლილებების ჟურნალის **ფრაგმენტი** (იხილეთ [`changelog.d/README.md`](./changelog.d/README.md)) — **არ** დაარედაქტიროთ `CHANGELOG.md` პირდაპირ; ფრაგმენტები ერთიანდება რელიზის დროს და Pull Request-ებს შორის კონფლიქტს არასდროს იწვევს
 - [ ] დოკუმენტაცია განახლებულია (თუ საჭიროა)
-- [ ] არ არის გახსნილი CodeQL-ის / Secret-Scanning-ის ახალი გაფრთხილებები, ან თითოეული მათგანი უარყოფილია ტექნიკური დასაბუთებით, რომელიც შესაბამის `docs/security/` დოკუმენტს მიუთითებს
+- [ ] არ გახსნილა CodeQL-ის / Secret-Scanning-ის ახალი გაფრთხილებები, ან თითოეული მათგანი უარყოფილია ტექნიკური დასაბუთებით, შესაბამის `docs/security/` დოკუმენტზე მითითებით
 - [ ] მარშრუტები, რომლებიც შვილობილ პროცესებს უშვებს (`/api/mcp/`, `/api/cli-tools/runtime/`), კლასიფიცირებულია როგორც `isLocalOnlyPath()` ფაილში `src/server/authz/routeGuard.ts` — იხილეთ [მკაცრი წესი #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] commit-ის შეტყობინებებში არ არის `Co-Authored-By` ტრეილერები — commit-ები მხოლოდ რეპოზიტორიის მფლობელის Git-ის იდენტობის ქვეშ უნდა გამოჩნდეს (მკაცრი წესი #16)
+- [ ] commit-ის შეტყობინებებში არ არის AI/bot-ის `Co-authored-by` ტრეილერები (მკაცრი წესი #16) — ადამიან თანამშრომლებს, რომელთა ნამუშევარიც ხელახლა გამოიყენება, მიეთითებათ ავტორობა სტანდარტული `Co-authored-by: Name <email>` ტრეილერებით
 
 ---
 
@@ -428,5 +428,4 @@ VPS-ზე განთავსებისთვის გამოიყე�
 - **API-ის ცნობარი**: იხილეთ [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **უსაფრთხოების დოკუმენტაცია**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **ოპერაციების დოკუმენტაცია**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
-- **საკითხები**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR-ები**: არქიტექტურული გადაწყვეტილებების ჩანაწერებისთვის იხილეთ `docs/adr/`
+- **პრობლემები**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)

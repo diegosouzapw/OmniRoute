@@ -129,24 +129,26 @@ CORS_ALLOWED_ORIGINS="http://localhost:5173, http://localhost:3000"
   management/dashboard origins ඕනෑම ලිහිල් config එකකින් බැහැරව තබන්න; ඒවා නියත වශයෙන්ම
   fail-closed ලෙස පැවතිය යුතුය.
 
-## උදාහරණය: OmniRoute ඉදිරිපස ඇති reverse proxy එකක්
+## උදාහරණය: OmniRoute ඉදිරියෙන් reverse proxy එකක්
 
-CORS OmniRoute විසින්ම බලාත්මක කරන බැවින්, proxy එක සාමාන්යයෙන්
-`Access-Control-*` headers එක් කිරීම හෝ නැවත ලිවීම **නොකළ යුතුය** (ද්විත්ව headers නිසා browsers ක්රියා නොකරයි).
-TLS අවසන් කර forward කරන්න — preflight එකට පිළිතුරු දීමට OmniRoute වෙත ඉඩ දෙන්න:
+CORS, OmniRoute විසින්ම බලාත්මක කරන බැවින්, proxy එක සාමාන්යයෙන් `Access-Control-*` headers එක් කිරීම හෝ නැවත ලිවීම **නොකළ යුතුය** (headers දෙවරක් තිබීම browsers ක්රියා නොකරවයි). TLS අවසන් කර ඉදිරියට යොමු කරන්න — preflight ඉල්ලීමට OmniRoute හට පිළිතුරු දීමට ඉඩ දෙන්න:
 
 ```nginx
-# nginx — OmniRoute වෙත forward කරන්න; මෙහිදී Access-Control-* ඇතුළු නොකරන්න
+# nginx — OmniRoute වෙත ඉදිරියට යොමු කරන්න; මෙහිදී Access-Control-* ඇතුළු නොකරන්න
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # X-Forwarded-For 127.0.0.1 ලෙස සකසන්න එපා — එය loopback route guard එක අක්රිය කරයි.
+    # ඉදිරියට යැවීමේ headers තබාගන්න: එකම host එකෙහි ඇති proxy එකක් loopback වෙතින් සම්බන්ධ වන අතර,
+    # ඇමතුම්කරු local operator නොවන බව OmniRoute වෙත දන්වන්නේ ඒවාය. ඒවායින් කිසිවක් එක් නොකරන proxy එකක්
+    # සෑම දුරස්ථ ඇමතුම්කරුවෙකුම local ලෙස පෙනෙන්නට සලස්වයි. එසේම X-Forwarded-For කිසිවිටෙක 127.0.0.1 ලෙස සකසන්න එපා.
 }
 ```
 
-අවසර දිය යුතු browser origins proxy එකේ නොව, OmniRoute තුළ (`CORS_ALLOWED_ORIGINS` හෝ
-Security ටැබය) සකසන්න.
+අවසර දී ඇති browser origins, proxy එකෙහි නොව OmniRoute තුළ (`CORS_ALLOWED_ORIGINS` හෝ
+Security tab එකෙහි) සකසන්න.
 
 ## මූලාශ්ර ගොනු
 

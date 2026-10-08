@@ -391,18 +391,18 @@ Skriv enhetstester i `tests/unit/` som minst dekker:
 
 - [ ] Tester består (`npm test`)
 - [ ] Linting består (`npm run lint`)
-- [ ] Bygging lykkes (`npm run build`)
+- [ ] Bygging fullføres (`npm run build`)
 - [ ] TypeScript-typer er lagt til for nye offentlige funksjoner og grensesnitt
 - [ ] Ingen hardkodede hemmeligheter eller reserveverdier
-- [ ] Offentlig tilgjengelig oppstrømslegitimasjon er innebygd via `resolvePublicCred()` (se [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), aldri som literalverdier
-- [ ] Feilsvar går gjennom `buildErrorBody()` / `sanitizeErrorMessage()` — ingen rå stakkspor i svarinnholdet (se [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Offentlig tilgjengelig påloggingsinformasjon for oppstrømstjenester bygges inn via `resolvePublicCred()` (se [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), aldri som litteraler
+- [ ] Feilsvar går gjennom `buildErrorBody()` / `sanitizeErrorMessage()` — ingen rå stakksporinger i svarinnhold (se [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
 - [ ] Skallkommandoer (`exec` / `spawn`) sender kjøretidsverdier via `env`, ikke via strenginterpolasjon
 - [ ] Alle inndata valideres med Zod-skjemaer
-- [ ] Et **fragment** til endringsloggen er lagt til under `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` for endringer som er synlige for brukerne (se [`changelog.d/README.md`](./changelog.d/README.md)) — **ikke** rediger `CHANGELOG.md` direkte; fragmentene samles ved utgivelse og skaper aldri konflikter mellom pull requests
+- [ ] En **fragmentfil** for endringsloggen er lagt til under `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` for brukersynlige endringer (se [`changelog.d/README.md`](./changelog.d/README.md)) — rediger **ikke** `CHANGELOG.md` direkte; fragmentene samles ved utgivelse og skaper aldri konflikter mellom pull request-er
 - [ ] Dokumentasjonen er oppdatert (hvis aktuelt)
-- [ ] Ingen nye CodeQL-varsler eller varsler fra Secret-Scanning er åpnet, eller hvert varsel er avvist med en teknisk begrunnelse som henviser til det relevante dokumentet under `docs/security/`
+- [ ] Ingen nye CodeQL-/Secret-Scanning-varsler er opprettet, eller hvert varsel er avvist med en teknisk begrunnelse som henviser til det relevante dokumentet under `docs/security/`
 - [ ] Ruter som starter underprosesser (`/api/mcp/`, `/api/cli-tools/runtime/`), er klassifisert som `isLocalOnlyPath()` i `src/server/authz/routeGuard.ts` — se [ufravikelig regel nr. 15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Ingen `Co-Authored-By`-trailere i commit-meldinger — commits må utelukkende vises under repository-eierens Git-identitet (ufravikelig regel nr. 16)
+- [ ] Ingen AI-/bot-`Co-authored-by`-trailere i commit-meldinger (ufravikelig regel nr. 16) — menneskelige samarbeidspartnere hvis arbeid gjenbrukes, krediteres med standardtrailere av typen `Co-authored-by: Name <email>`
 
 ---
 
@@ -419,4 +419,3 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 - **Sikkerhetsdokumentasjon**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **Driftsdokumentasjon**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Problemer**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR-er**: Se `docs/adr/` for arkitekturbeslutningslogger

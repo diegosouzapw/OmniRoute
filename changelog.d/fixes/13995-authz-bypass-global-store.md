@@ -1,1 +1,0 @@
-- fix(auth): back the manage-scope authz-bypass policy with a globalThis-shared store so every standalone-build webpack chunk sees the same configured prefixes (#13995)

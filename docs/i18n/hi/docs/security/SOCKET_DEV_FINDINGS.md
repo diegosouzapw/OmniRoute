@@ -199,13 +199,13 @@ rawBody)`) की जाँच करता है। यदि सीक्र�
 
 ## बिल्ड प्रोफ़ाइल: `minimal`
 
-जिन उपयोगकर्ताओं को Socket-अनुकूल आर्टिफ़ैक्ट चाहिए, वे इसके साथ बिल्ड करें:
+जिन उपयोगकर्ताओं को Socket-अनुकूल आर्टिफ़ैक्ट चाहिए, वे इसे इस प्रकार बिल्ड करें:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-webpack का `NormalModuleReplacementPlugin` चार मॉड्यूल को स्टब्स से एलियस करता है:
+webpack का `NormalModuleReplacementPlugin` चार मॉड्यूल को स्टब्स से एलियास करता है:
 
 | मॉड्यूल                                     | स्टब                                             |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -214,12 +214,12 @@ webpack का `NormalModuleReplacementPlugin` चार मॉड्यूल �
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-प्रत्येक स्टब समान इंटरफ़ेस एक्सपोर्ट करता है, लेकिन प्रत्येक फ़ंक्शन रनटाइम पर
-`featureDisabledError(name)` थ्रो करता है। अक्षम किए गए मॉड्यूल पर निर्भर रूट,
-संवेदनशील कोड पाथ को सक्रिय करने के बजाय स्पष्ट संदेश के साथ HTTP 503 लौटाते हैं।
+प्रत्येक स्टब वही इंटरफ़ेस एक्सपोर्ट करता है, लेकिन हर फ़ंक्शन रनटाइम पर
+`featureDisabledError(name)` थ्रो करता है। अक्षम किए गए मॉड्यूल पर निर्भर
+रूट संवेदनशील कोड पथ को सक्रिय करने के बजाय एक स्पष्ट संदेश के साथ HTTP 503
+लौटाते हैं।
 
 परिणामी बंडल को `omniroute-secure` के रूप में प्रकाशित करने के लिए बनाया गया है।
-प्रकाशन प्रक्रिया के लिए `docs/ops/PUBLISHING_SECURE.md` देखें।
 
 ---
 

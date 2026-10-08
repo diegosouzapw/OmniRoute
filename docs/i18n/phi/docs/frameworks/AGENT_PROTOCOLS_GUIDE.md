@@ -67,33 +67,37 @@ Kailangan mo ba ng cloud service upang gumawa ng trabaho sa labas ng computer na
 
 Tingnan ang [A2A-SERVER.md](./A2A-SERVER.md) para sa mga detalye ng transportasyon, istruktura ng agent card, configuration ng task TTL, at template para sa pagdaragdag ng mga bagong skill.
 
-## 2. ACP — Rehistro ng mga CLI Agent
+## 2. ACP — Registry ng mga CLI Agent
 
 **OmniRoute endpoint:** `GET /api/acp/agents`
-**Source:** `src/lib/acp/{index,manager,registry}.ts`
+**Pinagmulan:** `src/lib/acp/{index,manager,registry}.ts`
 
 ### Ano ito
 
-Ang ACP ay ang **lokal na imbentaryo ng mga CLI agent** ng OmniRoute. Tinutukoy nito kung aling mga coding CLI ang naka-install sa host (Cursor, Cline, Claude Code, Codex CLI, Continue, atbp.), kinukuha ang mga bersyon ng mga ito, at ipinapakita ang mga ito sa dashboard upang maituro ng user ang bawat CLI sa OmniRoute.
+Ang ACP ang **lokal na imbentaryo ng mga CLI agent** ng OmniRoute. Tinutukoy nito kung aling mga coding CLI ang naka-install sa host (Cursor, Cline, Claude Code, Codex CLI, Continue, atbp.), kinikilala ang mga bersyon ng mga ito, at ipinapakita ang mga ito sa dashboard upang maituro ng user ang bawat CLI sa OmniRoute.
 
-HINDI ito isang panlabas na protocol — isa itong panloob na rehistro na nagpapatakbo sa UI na "CLI Tools" at sa pagsubaybay ng CLI fingerprint (tingnan ang [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+Ang HTTP surface ay isang panloob na imbentaryo na nagpapatakbo sa UI na "CLI Tools" at
+pagsubaybay sa CLI fingerprint (tingnan ang [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Hiwalay dito,
+sinusuportahan ng panloob na process manager ang native na Agent Client Protocol para sa
+nakarehistrong Gemini launcher at mga legacy stdio adapter para sa iba pang mga contract.
+Tingnan ang [ACP registry at mga launcher](./ACP.md) para sa magkakaibang mode at limitasyong iyon.
 
 ### Ano ang ginagawa nito
 
-- Sinusuri ang host para sa mga naka-install na CLI binary (gumagamit ng `which` / `where` depende sa OS)
+- Sinusuri ang host para sa mga naka-install na CLI binary (gumagamit ng `which` / `where` ayon sa OS)
 - Binabasa ang bersyon ng bawat CLI (tinatawag ang `<bin> --version`)
 - Opsyonal na tumatanggap ng mga custom agent na tinukoy ng user (binary path + version probe + spawn args)
-- Iniimbak ang mga custom agent sa mga setting
-- Ibinabalik ang pinagsamang listahan sa dashboard
+- Permanenteng sine-save ang mga custom agent sa mga setting
+- Ibinabalik ang pinag-isang listahan sa dashboard
 
 ### REST API
 
-| Endpoint          | Pamamaraan | Paglalarawan                                                                   | Awtorisasyon |
-| ----------------- | ---------- | ------------------------------------------------------------------------------ | ------------ |
-| `/api/acp/agents` | GET        | Ilista ang mga natukoy + custom agent (bilang ng naka-install/kabuuan)         | API key      |
-| `/api/acp/agents` | POST       | Magdagdag/mag-update/mag-alis ng custom agent (`action` discriminator sa body) | API key      |
+| Endpoint          | Paraan | Paglalarawan                                                                 | Awtorisasyon |
+| ----------------- | ------ | ---------------------------------------------------------------------------- | ------------ |
+| `/api/acp/agents` | GET    | Ilista ang mga natukoy + custom agent (bilang ng naka-install/kabuuan)       | API key      |
+| `/api/acp/agents` | POST   | Magdagdag/mag-update/mag-alis ng custom agent (action discriminator sa body) | API key      |
 
-Anyo ng body para sa POST (`customAgentBodySchema` sa `src/app/api/acp/agents/route.ts`):
+Hugis ng body para sa POST (`customAgentBodySchema` sa `src/app/api/acp/agents/route.ts`):
 
 ```json
 {
@@ -111,12 +115,15 @@ Anyo ng body para sa POST (`customAgentBodySchema` sa `src/app/api/acp/agents/ro
 ### Mga gamit
 
 - Inililista ng page na "CLI Tools" sa dashboard kung ano ang naka-install at tinutulungan kang ituro ang bawat isa sa OmniRoute
-- Nagbibigay-daan ang mga custom agent sa mga power user na irehistro ang mga panloob/proprietaryong CLI na hindi kilala ng OmniRoute bilang default
-- Ginagamit ang resulta ng pagtukoy upang punan ang `cli-tools` fingerprint matrix
+- Nagbibigay-daan ang mga custom agent sa mga power user na irehistro ang mga panloob/proprietary na CLI na hindi kilala ng OmniRoute bilang default
+- Ginagamit ang resulta ng detection sa `cli-tools` fingerprint matrix
 
 ### Kailan HINDI dapat gamitin ang ACP
 
-- Hindi _nagpapatakbo_ ng mga task ang ACP. Tinutukoy at kino-configure lamang nito ang mga CLI. Upang aktuwal na gamitin ang isang CLI, ikaw mismo ang maglunsad nito gamit ang mga env var na ibinibigay ng OmniRoute (`OPENAI_BASE_URL`, `OPENAI_API_KEY`, atbp.).
+- Hindi tumatanggap ng mga task o naglalantad ng process spawning ang HTTP registry. Maaaring
+  mag-launch ang panloob na manager ng isang nakarehistrong CLI, ngunit hindi ito nakakonekta bilang
+  awtomatikong provider fallback. Para sa karaniwang interactive na paggamit, ikaw mismo ang mag-launch
+  ng naka-configure na CLI o gamitin ang `omniroute run`.
 
 ## 3. Mga Cloud Agent
 

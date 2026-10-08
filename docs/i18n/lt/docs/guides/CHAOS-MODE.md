@@ -4,22 +4,45 @@
 
 ---
 
-> **Valdymo skydelis:** **Chaoso režimas** (šoninėje juostoje) → `/dashboard/chaos`  
-> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (valdymo skydelio sesija) · `POST /api/skills/collect/chaos` (API raktas)  
+> **Valdymo skydas:** **Chaoso režimas** (šoninėje juostoje) → `/dashboard/chaos`  
+> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (valdymo skydo sesija) · `POST /api/skills/collect/chaos` (API raktas)  
 > **Šaltinis:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
 Chaoso režimas siunčia **vieną užduotį keliems teikėjams vienu metu** — kiekvienas dalyvaujantis teikėjas
-pateikia po vieną modelio egzempliorių, o jūs gaunate visus atsakymus vieną šalia kito (arba sujungtus į grandinę). Tai yra
-kelių modelių vykdymo sąsaja, o ne maršruto parinkimo strategija: įprastam jūsų `/v1/chat/completions`
-srautui ji niekada nedaro įtakos.
+pateikia po vieną modelio egzempliorių, o jūs gaunate visus atsakymus greta (arba sujungtus į grandinę). Tai yra
+kelių modelių vykdymo sąsaja, o ne maršruto parinkimo strategija: ji niekada nepaveikia jūsų įprasto
+`/v1/chat/completions` srauto.
 
-**Paaiškinimas — su žodžiu „chaos“ pavadinime pateikiami trys skirtingi dalykai:**
+**Patikslinimas — su žodžiu „chaos“ pavadinime pateikiami trys skirtingi dalykai:**
 
-| Dalykas                      | Kas tai yra                                                                                                                         | Kur dokumentuota                             |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Chaoso režimas**           | Čia aprašytas valdymo skydelio puslapis ir API: viena užduotis išsiunčiama daugeliui teikėjų (lygiagrečiai arba bendradarbiaujant). | Šis vadovas                                  |
-| `auto/chaos`                 | Auto-Combo modelio ID su trikčių įterpimo vertinimo svoriais, skirtas atsparumui tikrinti. Nieko konfigūruoti nereikia.             | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Chaoso derinio konfigūracija | Išsaugotas derinys su `config.chaos.enabled` išsiunčia užduotį modelių grupei su pasirenkamu vertinančiu modeliu (tik per API).     | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Dalykas                      | Kas tai yra                                                                                                                                                                               | Kur aprašyta                                 |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Chaoso režimas**           | Čia aprašytas valdymo skydo puslapis ir API: viena užduotis išskirstoma daugeliui teikėjų (lygiagrečiai arba bendradarbiaujant).                                                          | Šiame vadove                                 |
+| `auto/chaos`                 | Auto-Combo modelio ID: lygiagretus išskirstymas, po vieną modelį iš kiekvieno teikėjo ir po vieną išorinę užklausą. Tai nėra trikčių įterpimas ([išsamiau](#autochaos-parallel-fan-out)). | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Chaoso derinio konfigūracija | Išsaugotas derinys, kuriame `config.chaos.enabled` užduotis išskirsto taip pat (tik per API); `judgeModel` tik parenka galutinį atsakymą, papildomas sintezės iškvietimas neatliekamas.   | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: lygiagretus išskirstymas
+
+`auto/chaos` **nėra** trikčių įterpimo ar atsparumo testavimo parinktis. Užklausiant
+`model: "auto/chaos"` per `/v1/chat/completions`:
+
+1. Sudaroma grupė, kurioje yra **po vieną modelį iš kiekvieno teikėjo**: pirmasis kiekvieno
+   prijungto teikėjo kandidatas pagal kandidatų telkinio eiliškumą, daugiausia 5 nariai
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, ribojama iki 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). `chaos-mode` svorių
+   paketas nustato tik kiekvieno nario `weight`; išskirstymo mechanizmas jo neskaito.
+2. Ta pati užklausa siunčiama kiekvienam grupės nariui **lygiagrečiai**, todėl viena užklausa
+   kainuoja po vieną išorinį iškvietimą kiekvienam grupės nariui
+   (`open-sse/services/autoCombo/chaosEngine.ts`, išsiunčiama iš
+   `open-sse/services/combo.ts`).
+3. Kiekvienam grupės nariui gavus rezultatą, perduodama po vieną būsenos eilutę: pagal numatytąją
+   nuostatą — SSE komentaras (`: chaos <index> ok|fail <model>`), taip pat `omni-chaos-part`
+   įvykis (`model`, `index`, `ok`, `error`), kai užklausoje nustatyta
+   `stream_options.include_chaos_parts: true`. Juose atsakymo tekstas neperduodamas.
+4. Kaip galutinis OpenAI formato fragmentas išsiunčiamas **vienas** grupės atsakymas: pirmojo grupės
+   nario (`auto/chaos` jį nustato kaip `judgeModel`), jei jo užklausa sėkminga, kitu atveju —
+   paskutinio sėkmingo nario atsakymas. Kitų grupės narių atsakymai negrąžinami, todėl
+   mokate už N iškvietimų, o gaunate vieną užbaigtą atsakymą.
 
 ## Sąranka
 

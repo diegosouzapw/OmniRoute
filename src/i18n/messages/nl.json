@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Proxypools en de rotatie per account van opencode zorgen ervoor dat een proxy die zojuist is mislukt (geweigerde TCP-probe of een 429 die via de proxy is ontvangen) gedurende een periode per proces niet opnieuw wordt aangeboden. Deze periode verdubbelt bij elke herhaling, tot een maximum. Er wordt geen proxystatus opgeslagen; wanneer elke kandidaat terzijde is geschoven, blijft de keuze ongewijzigd. Standaard ingeschakeld; `false` herstelt de gewone selectie.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Voor providers waarvan het quotum per egress-adres wordt verdeeld, wordt een pool-lid dat het waargenomen egress-adres deelt met een recent geweigerd lid direct onder de gezonde leden gerangschikt. Alleen volgorde, nooit uitgesloten. Vereist PROXY_SKIP_RECENTLY_FAILED, dat het weigeringssignaal produceert dat het leest. Standaard uit: de selectievolgorde is precies de gewone rotatie.",
   "featureFlagProxyPoolEgressObservationDescription": "Toon onder een proxypool in het dashboard hoeveel waargenomen uitgaande IP-adressen de leden ervan in de afgelopen 24 uur hebben gebruikt, hoeveel verbindingen daarvan gebruikmaakten en hoeveel verbindingen maximaal achter één IP zijn waargenomen. Alleen-lezen, berekend op basis van het proxylogboek en nooit gebruikt voor routering. Standaard uitgeschakeld: de pooleditor blijft ongewijzigd en de observatieroute antwoordt met null.",
+  "featureFlagProxyOperatorEgressDescription": "Accepteer operator-pushed gedateerde waargenomen adressen per pool-lid en voeg ze samen met de journaal-lezing voor weergave en poolvolgorde. Uitgeschakeld standaard: de push-route geeft 404 terug en pool-lezingen gedragen zich precies zoals eerder.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Laat bij de proxygezondheidscontrole een probe die door het doel is geweigerd (401/403/429: de proxy heeft doorgestuurd, maar de bestemming heeft dit uitgaande IP-adres geweigerd) de reeks opeenvolgende fouten van de proxy resetten, net als een geslaagde probe. Standaard uitgeschakeld: een weigering blijft neutraal en behoudt de reeks. Een 5xx blijft in beide gevallen onbeslist, en een weigering verwijdert, deactiveert of heractiveert een proxy nooit.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Laat de automatische opschoonactie definitieve (voltooide/mislukte/geannuleerde/verlopen) Batch API-taken verwijderen die ouder zijn dan OMNIROUTE_BATCH_RETENTION_DAYS, samen met hun controlepunten per regel, en laat de BLOB-inhoud wissen van geüploade bestanden waarvan de eigen expires_at is verstreken. Standaard uitgeschakeld: elke bestaande installatie bewaart deze gegevens precies zoals voorheen, totdat een beheerder dit inschakelt. De door de beheerder geactiveerde route DELETE /api/v1/batches/delete-completed wordt in beide gevallen niet beïnvloed; dit is een afzonderlijk, onvoorwaardelijk openbaar API-contract.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Haal voor xai-oauth-verbindingen de actuele xAI-modelcatalogus op van https://api.x.ai/v1/models met behulp van het OAuth-bearertoken, in plaats van de bevroren statische basisset. Standaard uitgeschakeld: xai-oauth blijft de statische basisset ongewijzigd aanbieden. Bij elke fout bij het bepalen van de modellen valt de detectie terug op de basisset.",
@@ -5636,7 +5637,7 @@
     "accountName": "Accountnaam",
     "email": "E-mail",
     "healthCheckMinutes": "Gezondheidscontrole (min)",
-    "healthCheckHint": "Proactief tokenvernieuwingsinterval. 0 = uitgeschakeld.",
+    "healthCheckHint": "Overschrijving voor deze verbinding. Leeg = volg de globale standaard (Instellingen › Veerkracht). 0 = deze verbinding nooit controleren. Maximaal 1440 (24 u).",
     "deselectAllModels": "Alles deselecteren",
     "modelsActiveCount": "{active}/{total} actief",
     "noModelsMatch": "Geen modellen komen overeen met \"{filter}\"",
@@ -5692,7 +5693,7 @@
     "claudeImportBulkModePaste": "Plak de JSON-array",
     "claudeImportBulkModeZip": "ZIP uploaden",
     "claudeImportBulkUploadHint": "Plaats of haal maximaal 50 .credentials.json-bestanden op (elk 256 KB, totaal 10 MB).",
-    "claudeImportBulkPasteHint": "Plak een array met objecten: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "Plak een array met objecten: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": "ZIP met .json-vermeldingen. Max. 50 inzendingen, 10 MB uitgepakt.",
     "claudeImportBulkSubmit": "Importeer alles",
     "claudeImportBulkSuccess": "Geïmporteerde {count} Claude-verbindingen",
@@ -5724,7 +5725,7 @@
     "geminiImportBulkModePaste": "Plak de JSON-array",
     "geminiImportBulkModeZip": "ZIP uploaden",
     "geminiImportBulkUploadHint": "Plaats of haal maximaal 50 oauth_creds.json-bestanden op (elk 256 KB, totaal 10 MB).",
-    "geminiImportBulkPasteHint": "Plak een array met objecten: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "Plak een array met objecten: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "ZIP met oauth_creds.json-vermeldingen. Max. 50 inzendingen, 10 MB uitgepakt.",
     "geminiImportBulkSubmit": "Importeer alles",
     "geminiImportBulkSuccess": "Geïmporteerde {count} Gemini-verbindingen",
@@ -5773,7 +5774,7 @@
     "codexImportBulkModePaste": "Lijst plakken",
     "codexImportBulkModeZip": "ZIP-archief",
     "codexImportBulkUploadHint": "Selecteer meerdere .json-bestanden of slepen en neerzetten",
-    "codexImportBulkPasteHint": "JSON-array [ {...}, {...} ] of meerdere JSON's gescheiden door --- op een eigen regel",
+    "codexImportBulkPasteHint": "JSON-array [ '{...}', '{...}' ] of meerdere JSON's gescheiden door --- op een eigen regel",
     "codexImportBulkZipHint": "Upload een .zip met auth.json-bestanden (max. 50 bestanden, 10 MB)",
     "codexImportBulkSubmit": "Importeer {count} accounts",
     "codexImportBulkLimit": "Maximaal 50 bestanden per import",
@@ -6011,7 +6012,7 @@
     "validationModelIdPlaceholder": "bijv. meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "API-sleutel of Service Account-JSON",
     "vertexCredentialHint": "API-sleutels gebruiken de gecureerde projectcatalogus. Service Account-JSON maakt live modeldetectie in Model Garden mogelijk.",
-    "vertexServiceAccountPlaceholder": "Plak een API-sleutel, Service Account-JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) of OAuth-toegangstoken",
+    "vertexServiceAccountPlaceholder": "Plak een API-sleutel, Service Account-JSON ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') of OAuth-toegangstoken",
     "webCookieProviders": "Webcookieproviders",
     "weeklyShort": "Wekelijks kort",
     "xiaomiMimoBaseUrlHint": "Hint voor Xiaomi Mimo-basis-URL",
@@ -6197,7 +6198,7 @@
       "bluesminds": "Haal je API-sleutel op via https://www.bluesminds.com — OpenAI-compatibel eindpunt op https://api.bluesminds.com/v1 met gratis dagelijks tegoed. VIP-modellen (Claude Opus 4.5, Gemini 2.5 Pro) verbruiken pi-tegoed.",
       "byteplus": "Verbind BytePlus ModelArk met een API-sleutel.",
       "bytez": "$1 gratis tegoed, wordt elke 4 weken vernieuwd",
-      "cerebras": "Gratis proefperiode: 1M tokens/dag, 30K TPM, 5 RPM — geen creditcard.",
+      "cerebras": "Eenmalig tegoed van $5 bij aanmelding (30 dagen geldig); een betaalmethode is vereist. Geen terugkerende gratis laag.",
       "charm-hyper": "Maak een API-sleutel aan op https://hyper.charm.land en plak deze hier als een Bearer-token.",
       "chutes": "Bearer API-sleutel voor de Chutes OpenAI-compatibele gateway.",
       "clarifai": "Clarifai stelt OpenAI-compatibele chat, antwoorden en /models beschikbaar op /v2/ext/openai/v1. Openbare/community-modellen vereisen doorgaans een PAT; sleutels met app-bereik werken alleen voor resources binnen die app.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Lokaal proxy-core-eindpunt is ongeldig; SS/VMess/Trojan/VLESS-nodes zijn genegeerd.",
         "NEEDS_CORE_NOT_CONFIGURED": "Dit abonnement bevat nodes die een lokale proxy-core vereisen (SS/VMess/Trojan/VLESS); ze worden niet gerouteerd totdat u het SOCKS5-eindpunt van de lokale core configureert.",
         "NO_USABLE_NODES": "Abonnement heeft geen bruikbare nodes opgeleverd (http/https/socks5 of nodes met een lokaal core-eindpunt).",
-        "SELECTOR_SWITCH_FAILED": "De besturingsaanroep van de proxy-core is mislukt; de vorige route blijft actief. Controleer de besturings-URL en het geheim en vernieuw daarna."
+        "SELECTOR_SWITCH_FAILED": "De besturingsaanroep van de proxy-core is mislukt; de vorige route blijft actief. Controleer de besturings-URL en het geheim en vernieuw daarna.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "De gegenereerde kernconfiguratie kon het overgenomen bestand niet vervangen; in plaats daarvan is de ernaast gemaakte kopie behouden.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Sommige items zijn overgeslagen tijdens het genereren. Zie de serverlog."
       },
       "description": "Plak uw proxy-abonnementslink. Eenmaal ingeschakeld, wordt het verkeer door de proxypool gerouteerd in de globale of regelmodus (gespecificeerde provider). Abonnementknooppunten worden automatisch gesynchroniseerd met de proxypool en hergebruiken bestaande polling-, statuscheck- en anti-lekmechanismen.",
       "addSubscription": "Abonnement toevoegen",
@@ -6889,8 +6895,8 @@
       "globalModeDesc": "Al het providerverkeer loopt via de proxypool van dit abonnement.",
       "ruleModeDesc": "Alleen het verkeer van geselecteerde providers gaat via de proxy; de rest sluit rechtstreeks aan.",
       "localCoreEndpoint": "Lokaal kern SOCKS5/HTTP-eindpunt (optioneel)",
-      "localCoreEndpointPlaceholder": "sokken5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "Accepteert alleen 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS vereist een lokale sing-box/clash core).",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "Eén per regel. Accepteert alleen 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS vereisen een lokale sing-box/clash-core).",
       "routeByProvider": "Route per aanbieder (multi-select)",
       "loadingProviders": "Providerlijst laden...",
       "autoRefreshInterval": "Interval automatisch vernieuwen (minuten)",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Nog geen wisseling vastgelegd",
       "lastSwitchMember": "Bedienend lid",
       "nextSwitch": "Volgende mogelijke wisseling",
-      "nextSwitchNow": "Nu"
+      "nextSwitchNow": "Nu",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Pad van kernbinaire bestand",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optioneel: verifieert het gegenereerde bestand met het kernbinaire bestand voordat het overgenomen bestand wordt vervangen. Leeg laten om ernaast te blijven schrijven. De map wordt aangemaakt als deze ontbreekt."
     },
     "bulkHealthcheck": "Bulkstatuscontrole",
     "bulkHealthcheckDesc": "Test alle geconfigureerde proxy's met een doel-URL om te bepalen welke werken.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP-beschrijving compressie",
     "mcpAccessibilityTitle": "MCP-toegankelijkheidsuitvoer",
     "compressionSettingsCavemanIntensity": "De intensiteit van de holbewoner",
-    "compressionSettingsCavemanOutputMode": "Holbewoner-uitvoermodus",
     "compressionSettingsOutputStyles": "Uitvoerstijlen",
     "compressionStylesTileTitle": "Uitvoerstijlen",
     "compressionSettingsOutputIntensity": "Uitgangsintensiteit",
-    "compressionSettingsAutoClarityBypass": "Automatische helderheidsbypass",
     "compressionEffectivePipeline": "Effectieve pipeline:",
     "compressionDerivedOff": "uit",
     "compressionDerivedRuns": "uitvoeringen: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "Wat GET /v1/models voor deze sleutel weergeeft. Het beperken van de lijst verandert nooit welke modellen met de sleutel kunnen worden aangeroepen.",
     "catalogScopeAll": "Beide",
     "catalogScopeCombos": "Alleen combo's",
-    "catalogScopeModels": "Alleen modellen"
+    "catalogScopeModels": "Alleen modellen",
+    "resilienceTokenRefreshTitle": "Tokenvernieuwingsonderbreker",
+    "resilienceTokenRefreshDesc": "Stopt met het opnieuw proberen van tokenvernieuwing na herhaalde mislukkingen. Bereik per verbinding isoleert één dood account, zodat gezonde accounts bij dezelfde aanbieder blijven vernieuwen.",
+    "resilienceTokenRefreshScope": "Pogingen om tokens bij te werken voor één provider",
+    "resilienceTokenRefreshTrigger": "Opeenvolgende mislukte verversingspogingen",
+    "resilienceTokenRefreshEffect": "Pauzeert vernieuwingspogingen tijdens de cooldown",
+    "resilienceTokenRefreshScopeLabel": "Bereik",
+    "resilienceTokenRefreshScopeProvider": "Provider (alle accounts delen één breaker)",
+    "resilienceTokenRefreshScopeConnection": "Verbinding (elk account heeft zijn eigen breaker)",
+    "resilienceTokenRefreshThreshold": "Mislukkingen vóór pauzeren",
+    "resilienceTokenRefreshCooldown": "Pauzeer na het uitschakelen"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -8544,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Laden…",
     "loadFailed": "Laden van engine-informatie mislukt.",
+    "settingsLoadFailed": "Laden van de opgeslagen instellingen is mislukt. De velden tonen standaardwaarden en Opslaan blijft uitgeschakeld totdat de pagina opnieuw wordt geladen.",
     "engineNotFound": "Engine \"{engine}\" niet gevonden.",
     "saveFailed": "Opslaan van configuratie mislukt.",
     "previewFailed": "Voorvertoning mislukt.",
@@ -8638,9 +8667,6 @@
       "minRows": {
         "label": "Minimum aantal rijen om te compacteren",
         "description": "Minimum aantal rijen in een homogene JSON-array dat vereist is om tabulaire compactie te activeren. Standaard: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Systeemprompt behouden"
       },
       "summarizerEnabled": {
         "label": "Samenvatter inschakelen"
@@ -9029,12 +9055,7 @@
     "tooltipMinLength": "Berichten die korter zijn dan dit, worden niet gecomprimeerd. Lager = meer compressie.",
     "tooltipMinSavings": "Alleen comprimeren als het minstens zoveel tokens bespaart.",
     "ultraSettings": "Ultra-instellingen",
-    "ultraSettingsDesc": "SLM-aangedreven semantische compressie",
-    "preview": {
-      "lite": "Antwoord bondig. Behoud technische termen, code, fouten, URLs en identificatiecodes.",
-      "full": "Antwoord beknopt en compact. Behoud alle technische inhoud.",
-      "ultra": "Antwoord uiterst beknopt met gangbare technische afkortingen. Behoud exacte symbolen."
-    }
+    "ultraSettingsDesc": "SLM-aangedreven semantische compressie"
   },
   "translator": {
     "title": "Vertaler",
@@ -9576,7 +9597,7 @@
     "redeemResetCredit": "Reset inwisselen",
     "manageResetCredits": "Credits bekijken",
     "viewResetCredits": "Reset-credits bekijken",
-    "resetCreditsModalTitle": "Codex-reset-credits",
+    "resetCreditsModalTitle": "Reset-credits",
     "resetCreditsModalExplainer": "Credits zijn gesorteerd op verloopdatum. Automatisch inwisselen gebruikt altijd de credit die het eerst verloopt.",
     "resetCreditsLoadFailed": "Laden van reset-credits mislukt",
     "resetCreditsDetailsUnavailable": "Creditdetails zijn momenteel niet beschikbaar. Vernieuw en probeer het opnieuw.",
@@ -9587,7 +9608,7 @@
     "resetCreditNoExpiry": "Geen verloopdatum",
     "redeemThisResetCredit": "Inwisselen",
     "confirmRedeemResetCreditTitle": "Deze reset-credit inwisselen?",
-    "confirmRedeemResetCredit": "Inwisselen reset onmiddellijk de in aanmerking komende Codex-gebruiksvensters en verbruikt deze credit permanent.",
+    "confirmRedeemResetCredit": "Inwisselen reset onmiddellijk de in aanmerking komende gebruiksvensters en verbruikt deze credit permanent.",
     "confirmRedeemResetCreditButton": "Credit inwisselen",
     "resetCreditRedeemed": "Inwisseling gereset",
     "resetCreditRedeemFailed": "Inwisselen van reset-tegoed mislukt",
@@ -9653,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "bijv. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "bijv. zeker fibonacci",
     "suiteBuilderCaseExpectedPlaceholderExact": "Plak het exacte verwachte antwoord",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "bijv. ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "bijv. ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "Gebruik een reguliere JavaScript-expressie zonder schuine strepen.",
     "suiteBuilderNamePlaceholder": "bijv. suite voor codekwaliteit",
     "suiteBuilderAddCase": "Testcase toevoegen",
@@ -10862,7 +10883,7 @@
     "grokAuthJsonDescription": "Plak de VOLLEDIGE inhoud van ~/.grok/auth.json (niet alleen het JWT \"key\" veld). Een blote JWT heeft geen refresh_token, dus de verbinding stopt na verloop (#7610). Geef de voorkeur aan de speciale Import auth.json-modus wanneer deze beschikbaar is.",
     "devinDesktopPasteDescription": "Plak een bestaande Devin API-sleutel van een geauthenticeerde Devin-sessie. De beschikbaarheid van sleutelexport en de stappen variëren per Devin-versie en account.",
     "devinPasteDescription": "Geef uw WINDSURF_API_KEY op (verkregen via `devin auth login`, of via de Windsurf IDE \"Windsurf: Provide Auth Token\" opdracht).",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "Grok Build auth.json",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "API-sleutel / Token",
@@ -10875,7 +10896,10 @@
     "gitlabDuoSetupTitle": "GitLab Duo OAuth-configuratie",
     "gitlabDuoSetupMessage": "GitLab Duo OAuth is niet geconfigureerd. Registreer een OAuth-toepassing op {applicationsUrl} met omleidings-URI {redirectUri} en scopes \"{scopes}\", stel vervolgens {clientIdEnv} in (en optioneel {clientSecretEnv}) en herstart.",
     "gitlabDuoSetupDescription": "Nadat de applicatie is geregistreerd en de omgevingsvariabelen zijn ingesteld op deze OmniRoute-instantie, klik op Doorgaan om de OAuth-login te starten.",
-    "continue": "Doorgaan"
+    "continue": "Doorgaan",
+    "tabPasteSetupToken": "Setup-token",
+    "claudeSetupTokenDescription": "Voer `claude setup-token` uit in een terminal en plak het token dat wordt getoond. Het is een jaar geldig en heeft geen vernieuwingstoken. OmniRoute stuurt één testverzoek naar Anthropic voordat het wordt opgeslagen.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Sluit Cursor-IDE aan",
@@ -11073,6 +11097,7 @@
     "poolEgressFailuresUnattributed": "Fouten zonder toegewezen uitgang: {count}",
     "poolMemberEgress": "{host}:{port} verliet via {egressIp} · afgelopen {hours} u",
     "poolMemberEgressEmpty": "{host}:{port}: geen verkeer waargenomen in de afgelopen {hours} u",
+    "poolMemberEgressOperator": "{host}:{port} verlaten via {egressIp} · door de operator geleverd, {date}",
     "poolMemberEgressHint": "Het laatste uitgaande IP-adres dat binnen dit tijdsvenster via dit poollid is waargenomen, afgelezen uit het proxylogboek. Voor een lid zonder verkeer binnen het tijdsvenster wordt de regel voor geen verkeer weergegeven.",
     "poolRemove": "Verwijderen",
     "poolRemoveFailed": "Kan de proxy niet uit de pool verwijderen",
@@ -11086,6 +11111,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy onbereikbaar",
     "poolSetAsideKindIpQuota429": "IP-snelheidslimiet (429)",
     "poolSetAsideKindSlow": "trage reacties",
+    "poolSetAsideKindGeoBlocked": "regio geblokkeerd (403/451)",
     "poolSetAsideUntil": "Terug in rotatie {endsAt}",
     "poolSetAsideRepeat": "Terzijde gesteld {count, plural, one {# keer} other {# keer}}",
     "poolUnknownAddress": "Onbekend adres",
@@ -11094,10 +11120,15 @@
     "poolSignalPosition": "Positievolgorde",
     "poolHealthRankingOff": "Gezondheidsrangschikking uit",
     "transportRate": "{rate} % transport",
+    "slowAbandoned": "{count} trage afwijzingen",
+    "clientAborted": "{count} clientafbrekingen",
+    "slowAbandonedHint": "Verlaten na de headers-wachttijd, uitgesloten van het transporttarief",
     "previousSuccessRate": "Eerder {rate} % succes",
-    "upstreamRefusals": "{count} upstream-weigeringen",
     "connectionTestsCount": "{count} verbindingstests",
-    "notMeasured": "Niet gemeten"
+    "notMeasured": "Niet gemeten",
+    "upstream4xx": "{count} upstream clientfouten",
+    "upstream5xx": "{count} upstream serverfouten",
+    "uniformEgressLine": "{affected} van {exits} exits falen tegelijk op {provider} (laatste {hours}u) — geen exit-probleem"
   },
   "playground": {
     "title": "Title",
@@ -12871,7 +12902,10 @@
     "inheritedPool": "Erft verbindingspool ({count})",
     "poolEmptyBlocked": "Pool leeg — verzoeken mislukken (niet direct)",
     "directEgress": "Direct (geen proxy)",
-    "ownProxy": "Eigen proxy"
+    "ownProxy": "Eigen proxy",
+    "freeTierPause": "Model {model} gepauzeerd (429), terug om {time}",
+    "freeTierPauseProvider": "Gepauzeerd (429), terug om {time}",
+    "freeTierPauseNote": "Pauze in proces op deze instantie"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13052,6 +13086,10 @@
     "inactiveCount": "{count} inactief",
     "dbOverrideCount": "{count} DB-overrides",
     "searchPlaceholder": "Flags zoeken...",
+    "descriptionModeLabel": "Beschrijvingsweergave",
+    "descriptionModeHint": "Bij aanwijzen: kaarten blijven compact en het aanwijzen van een beschrijving toont de volledige tekst. Volledige tekst: toon altijd de volledige beschrijving.",
+    "descriptionModeHover": "Bij aanwijzen",
+    "descriptionModeFull": "Volledige tekst",
     "categories": {
       "all": "Alles",
       "security": "Beveiliging",
@@ -13679,7 +13717,7 @@
     "secondaryNote": "Ook op Open VSX (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "Sluiten"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Adverteer <gateway-alias>/<model> mirror-id's op /v1/models voor modellen waarvan de canonieke eigenaar geen actieve referentie heeft, maar een passthrough-gateway met een actieve referentie ze doorstuurt. Waarschuwing: voegt catalogusvermeldingen toe voor alle klanten wanneer wereldwijd ingeschakeld.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Adverteer '<gateway-alias>'/'<model>' mirror-id's op /v1/models voor modellen waarvan de canonieke eigenaar geen actieve referentie heeft, maar een passthrough-gateway met een actieve referentie ze doorstuurt. Waarschuwing: voegt catalogusvermeldingen toe voor alle klanten wanneer wereldwijd ingeschakeld.",
   "radarPage": {
     "title": "Radar Catalogus",
     "subtitle": "Gratis modelcatalogus verrijkt met community-intelligentie",
@@ -14124,7 +14162,7 @@
     "errorImportFailed": "Importeren mislukt",
     "title": "Verbind Trae SOLO",
     "authorizeDescription": "Autoriseren via <code>trae.ai</code> in een popup. De popup sluit zichzelf zodra de token is geïmporteerd.",
-    "authorizeImportant": "<strong>Belangrijk:</strong> je moet eerst ingelogd zijn op <code>trae.ai</code> in <emdeze</em> browser. De autorisatiepagina bevestigt alleen een bestaande sessie — het kan je niet inloggen. Als je \"Inloggen mislukt\" ziet, klik dan op \"Open solo.trae.ai\", log in en keer dan hier terug.",
+    "authorizeImportant": "<strong>Belangrijk:</strong> je moet eerst ingelogd zijn op <code>trae.ai</code> in <em>deze</em> browser. De autorisatiepagina bevestigt alleen een bestaande sessie — het kan je niet inloggen. Als je \"Inloggen mislukt\" ziet, klik dan op \"Open solo.trae.ai\", log in en keer dan hier terug.",
     "waitingForAuthorization": "Wachten op trae.ai…",
     "authorizeWithBrowser": "Autoriseren met Browser",
     "openSoloTrae": "solo.trae.ai openen",

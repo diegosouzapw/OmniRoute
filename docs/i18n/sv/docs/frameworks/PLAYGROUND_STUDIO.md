@@ -190,14 +190,14 @@ Autentisering: valfri (`REQUIRE_API_KEY`). Fel via `buildErrorBody()` (strikt re
 
 ## Felsökning
 
-| Symptom                                     | Orsak                                              | Åtgärd                                                                                    |
-| ------------------------------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| Monaco-redigeraren visas inte på API-fliken | SSR läste in Monaco                                | Kontrollera att `ApiTab` använder `dynamic(..., { ssr: false })`                          |
-| Jämförelseströmmar startar sekventiellt     | Felaktig användning av `Promise.all`               | Alla strömstarter måste initieras i ett enda anrop till `Promise.all`                     |
-| Mätvärden visar `null` för TTFT             | Hanteraren för första datablocket är inte ansluten | Kontrollera att `useStreamMetrics.onFirstChunk()` anropas i SSE-läsarens loop             |
-| Förinställningen sparas inte                | Databasmigreringen har inte körts                  | Kör `npm run db:migrate` eller starta om servern (migreringen körs automatiskt vid start) |
-| Förbättring av prompt returnerar 502        | Modell har inte angetts i Config                   | Användaren måste ange ett modellnamn i Config-panelen innan förbättringen görs            |
-| Exporterad kod visar `MISSING_API_KEY`      | Platshållaren har inte infogats                    | `codeExport.ts` använder alltid `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`              |
+| Symptom                                     | Orsak                                            | Lösning                                                                       |
+| ------------------------------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------- |
+| Monaco-redigeraren visas inte på API-fliken | SSR läste in Monaco                              | Kontrollera att `ApiTab` använder `dynamic(..., { ssr: false })`              |
+| Jämförelseströmmar startar sekventiellt     | Felaktig användning av `Promise.all`             | Alla strömstarter måste initieras i ett enda `Promise.all`-anrop              |
+| Mätvärden visar `null` för TTFT             | Hanteraren för första datadelen är inte ansluten | Kontrollera att `useStreamMetrics.onFirstChunk()` anropas i SSE-läsarens loop |
+| Förinställningen sparas inte                | DB-migreringen har inte körts                    | Starta om servern: migreringar körs automatiskt vid start                     |
+| Förbättring av prompt returnerar 502        | Modellen har inte angetts i konfigurationen      | Användaren måste ange ett modellnamn i konfigurationspanelen före förbättring |
+| Exporterad kod visar `MISSING_API_KEY`      | Platshållaren har inte infogats                  | `codeExport.ts` använder alltid `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`  |
 
 ---
 

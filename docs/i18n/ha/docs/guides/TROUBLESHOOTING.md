@@ -33,37 +33,37 @@ Matsalolin da aka fi samu da hanyoyin magance su na OmniRoute.
 
 ---
 
-## Cikakken Jagorar Warware Matsala
+## Cikakken Warware Matsaloli
 
 ---
 
-### Taƙaita Yawan Buƙatu a Masu Bayarwa na Kyauta (429 / 400 / 401)
+### Iyakance Yawan Buƙatu a Masu Bayar da Sabis na Kyauta (429 / 400 / 401)
 
-**Alama**: Lokacin amfani da `model: "auto"` tare da masu bayarwa na kyauta/marasa buƙatar tantancewa (opencode, auggie, da sauransu), lokaci-lokaci kana samun `HTTP 429`, `400`, ko `401` maimakon amsoshi. Buƙatun suna nasara idan aka sake gwada wannan saƙon bayan ɗan lokaci, amma sarrafa aiki ta atomatik (cron jobs, agents, scripts) yana katsewa a gazawar farko.
+**Alama**: Lokacin amfani da `model: "auto"` tare da masu bayar da sabis na kyauta/waɗanda ba sa buƙatar tantancewa (opencode, auggie, da sauransu), lokaci-lokaci za ka samu `HTTP 429`, `400`, ko `401` maimakon amsoshi. Buƙatun suna yin nasara idan aka sake gwada saƙon nan kaɗan bayan haka, amma aiki ta atomatik (ayyukan cron, agents, scripts) yana yankewa a gazawar farko.
 
-**Asalin matsalar**: Hanyoyin gazawa guda uku masu zaman kansu suna taruwa:
+**Asalin matsalar**: Hanyoyin gazawa guda uku masu zaman kansu suna haɗuwa:
 
-1. **Iyakar yawan buƙatun mai bayarwa (`429`)**: Matakan kyauta na iya tilasta ƙayyadadden kaso a kowane zangon lokaci. Aika tarin kiraye-kiraye a lokaci guda yana ƙare shi, don haka za a ƙi buƙata ta gaba har sai zangon ya sake farawa.
-2. **Samfuri mara aiki a passthrough (`400`/`401`)**: Tarin `auto/*` na iya ƙunsar samfuran passthrough daga `opencode` waɗanda aka yi wa rajista a kundin bayanai amma ba su da ingantattun bayanan shaida masu aiki (misali `oc/north-mini-code-free` → `401`). Auto-router yana gwada ɗaya, ya gaza, sannan kuskuren ya wuce kafin sauyawa ta fara aiki.
-3. **Ƙaruwar tasirin aiki a lokaci guda (`429` a ƙarƙashin nauyi)**: Lokacin da zaman agent/cron da yawa suka aika buƙatu zuwa `auto` a lokaci guda, jimillar yawan buƙatun tana wuce abin da masu bayarwa na kyauta za su iya jurewa, don haka ana ɗaukar ingantattun kiraye-kiraye a matsayin amfani mara kyau.
+1. **Iyakance yawan buƙatu na mai bayar da sabis (`429`)**: Matakan kyauta na iya tilasta ƙayyadadden adadin buƙatu a kowane zangon lokaci. Turawar kira da yawa a lokaci guda tana ƙare wannan adadi, don haka ana ƙin buƙata ta gaba har sai zangon ya sake farawa.
+2. **Samfurin da ya lalace a passthrough (`400`/`401`)**: Rukunin `auto/*` na iya ƙunsar samfuran passthrough daga `opencode` waɗanda aka yi wa rajista a kundin amma ba su da ingantattun bayanan shiga masu aiki (misali `oc/north-mini-code-free` → `401`). Auto-router yana gwada ɗaya, ya gaza, sannan kuskuren ya bazu kafin fallback ya fara aiki.
+3. **Ƙaruwa sakamakon gudanarwa lokaci guda (`429` a ƙarƙashin nauyi)**: Lokacin da sessions na agent/cron da yawa suka bugi `auto` lokaci guda, jimillar saurin buƙatu yana wuce abin da masu bayar da sabis na kyauta za su iya jurewa, don haka ana yi wa ingantattun kira alama a matsayin cin zarafi.
 
-**Tabbataccen gyara (al'umma ta bayar da rahoto, 2026-08-10)**: daidaita environment variables guda uku domin juyawa, aiki a lokaci guda, da sauyawa su shawo kan rashin daidaiton matakin kyauta maimakon tsarin ya tsaya saboda shi:
+**Tabbataccen gyara (rahoton al'umma, 2026-08-10)**: daidaita environment variables guda uku domin rotation, concurrency, da fallback su ɗauki sauye-sauyen matakin kyauta maimakon tsarin ya tsaya saboda su:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # matsa zuwa wani samfuri/mai bayarwa idan an sami 400/401 (yana tsallake samfuran passthrough marasa aiki)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # bayyanannen iyakar karɓar manyan ayyuka (ba a saita shi ta tsohuwa ba: babu iyakar adadin buƙatu, duba bayanin da ke ƙasa)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # jira mai iyaka na tsawon lokaci domin samun ƙarfin manyan ayyuka maimakon 503 mai ba da damar sake gwadawa nan take
+export OMNIROUTE_ROTATE_ON_400=true           # tsallaka zuwa wani samfurin/mai bayar da sabis idan an samu 400/401 (yana tsallake samfuran passthrough da suka lalace)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # ƙayyadadden iyakar karɓar manyan buƙatu (ba a saita shi ta tsohuwa: babu iyakar adadin buƙatu, duba bayanin da ke ƙasa)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # ƙara iyakantaccen lokacin jira fiye da tsohon RATE_LIMIT_MAX_WAIT_MS ga upstreams masu jinkiri
 ```
 
-Saita waɗannan a cikin muhallin aikin OmniRoute (daemon ɗin, misali ta LaunchAgent plist ko `systemctl edit`), sannan sake kunna OmniRoute. Alamar juyawa ita ce hanya guda mafi tasiri: tana sauya gazawa kai tsaye zuwa sake gwadawa ba tare da mai amfani ya lura ba, ta amfani da ingantaccen mai bayarwa a cikin tarin.
+Saita waɗannan a muhallin process na OmniRoute (daemon ɗin, misali ta LaunchAgent plist ko `systemctl edit`), sannan a sake kunna OmniRoute. Alamar rotation ita ce mafi tasiri daga cikinsu: tana mayar da gazawa kai tsaye zuwa sake gwadawa a ɓoye ta hanyar lafiyayyen mai bayar da sabis a cikin rukunin.
 
-**Lura**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` yana iyakance adadin manyan buƙatu — masu dogon mahalli — da za su gudana a lokaci guda; wannan iyaka ƙofar karɓa ce, ba mai taƙaita yawan buƙatun mai bayarwa ba. **Sabuntawar #503-fanout:** ba a ƙara saita wannan var ta tsohuwa ba (yanzu yana aiki ne kawai idan an saita shi a bayyane, kamar yadda aka yi a sama) — maimakon haka, ana sarrafa karɓar manyan ayyuka ta kasafin bytes da aka samar ta atomatik (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), wanda yake daidaita kansa bisa ainihin iyakar ƙwaƙwalwar na'urar, don haka sabon deployment ya kamata ya ga raguwar ƙin buƙatu na `503 chat_admission_busy` sosai ba tare da saita wannan var kwata-kwata ba; saita shi a bayyane a nan har yanzu yana aiki daidai kamar yadda aka bayyana. Bayyanannun sauye-sauyen kasafin bytes ana taƙaita su zuwa 8 MiB–2 GiB. `413 body_exceeds_budget` ba matsala ce ta ɗan lokaci ba: ƙara wannan kasafin bytes, rage `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES`, ko ƙara iyakar ƙwaƙwalwar aikin. Watsar da buƙata saboda `inflight_bytes_budget` cunkoso ne na ɗan lokaci kuma har yanzu ana iya sake gwadawa. Ana sarrafa iyakar yawan buƙatu ta kowane mai bayarwa (`open-sse/services/rateLimitManager.ts`) daban ta `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH`, da `RATE_LIMIT_AUTO_ENABLE` — duba `.env.example`.
+**Lura**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` yana iyakance yawan manyan buƙatu — masu dogon context — da za su gudana lokaci guda; wannan iyaka ƙofar karɓa ce, ba mai iyakance yawan buƙatu na mai bayar da sabis ba. **Sabuntawar #503-fanout:** ba a ƙara saita wannan var ta tsohuwa ba (yanzu yana aiki ne kawai idan an saita shi kai tsaye, kamar yadda aka nuna a sama) — a maimakon haka, ana sarrafa karɓar manyan buƙatu ta hanyar byte budget da ake samarwa ta atomatik (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) wanda yake daidaita kansa bisa ainihin iyakar memory na host, saboda haka sabon deployment ya kamata ya ga ƙarancin ƙin amincewa na `503 chat_admission_busy` sosai ba tare da saita wannan var kwata-kwata ba; saita shi kai tsaye a nan har yanzu yana aiki daidai kamar yadda aka rubuta. Ana ƙuntata overrides na byte-budget da aka saita kai tsaye zuwa 8 MiB–2 GiB. `413 body_exceeds_budget` ba matsala ce ta wucin gadi ba: ƙara wannan byte budget, rage `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES`, ko ƙara iyakar memory na process. Watsar da buƙata saboda `inflight_bytes_budget` cunkoso ne na ɗan lokaci kuma har yanzu ana iya sake gwadawa. Ana sarrafa iyakance yawan buƙatu na kowane mai bayar da sabis (`open-sse/services/rateLimitManager.ts`) dabam ta `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH`, da `RATE_LIMIT_AUTO_ENABLE` — duba `.env.example`.
 
-**Yadda za a tabbatar ya yi aiki**: gudanar da agent/cron ɗinka sau biyu a jere cikin sauri, sannan ka tabbatar dukansu sun yi nasara. Kafin gyaran, gudu na biyu yawanci yana jefa kuskuren `429`/`401`. Bayan gyaran, za a sake gwada buƙatun da suka gaza (idan akwai) ta atomatik ba tare da an nuna maka ba, kuma kiran zai kammala. Haka kuma, za ka iya yin `curl /monitoring/health` sannan ka lura da filin `rateLimitedUntil` a haɗin masu samarwa da kuma `circuitBreakers.providerBreakers[].state` na masu samarwar da abin ya shafa — matsayin zai kasance ɗaya daga cikin `CLOSED`, `DEGRADED`, `OPEN`, ko `HALF_OPEN` (duba `src/shared/utils/circuitBreaker.ts`), kuma mai samarwar da ke ci gaba da gazawa zai sauya daga `CLOSED → DEGRADED → OPEN` kafin lokacin sake saiti ya ba da damar aika buƙatar gwaji (`HALF_OPEN`).
+**Yadda za a tabbatar ya yi aiki**: gudanar da agent/cron ɗinka sau biyu a jere cikin sauri kuma ka tabbatar duka sun yi nasara. Kafin gyaran, gudu na biyu yawanci yana jefa `429`/`401`. Bayan gyaran, ana sake gwada gazawa (idan akwai) a ɓoye kuma kiran yana kammalawa. Haka kuma za ka iya amfani da `curl /monitoring/health` ka kuma lura da filin `rateLimitedUntil` a connections na masu bayar da sabis da kuma `circuitBreakers.providerBreakers[].state` na masu bayar da sabis da abin ya shafa — state ɗin yana ɗaya daga cikin `CLOSED`, `DEGRADED`, `OPEN`, ko `HALF_OPEN` (duba `src/shared/utils/circuitBreaker.ts`), kuma mai bayar da sabis da ke ci gaba da gazawa zai sauya daga `CLOSED → DEGRADED → OPEN` kafin zangon sake saiti ya bar probe ya wuce (`HALF_OPEN`).
 
-**Idan har yanzu kana ganin 429**: asusun da ke aiki na wannan mai samarwar ya ƙare da gaske da _quota_ ɗinsa (ba wai iyakar saurin buƙatu kawai ba). Ƙara asusu na biyu don mai samarwar iri ɗaya a OmniRoute dashboard → Providers → Accounts, ko haɗa wani mai samarwa na kyauta (misali, `routeway`, `auggie`). Juyawa tsakanin asusu yana taimakawa ne kawai ga matsalolin wucin gadi na iyakar saurin buƙatu/400/401; ƙarewar quota gaba ɗaya na buƙatar bayanan shiga na biyu ko wani mai samarwa daban.
+**Idan har yanzu kana ganin 429**: active account na wannan mai bayar da sabis ya ƙare _quota_ ɗinsa da gaske (ba iyakance sauri kawai ba). Ƙara account na biyu na wannan mai bayar da sabis a dashboard na OmniRoute → Providers → Accounts, ko haɗa wani mai bayar da sabis na kyauta (misali `routeway`, `auggie`). Rotation yana taimakawa ne kawai da matsalolin wucin gadi na rate/400/401; ƙarewar quota gaba ɗaya tana buƙatar credential na biyu ko wani mai bayar da sabis daban.
 
-**Idan kana ganin 403 a kan samfuran vision (`auto/vision`, `bazaarlink/*`)**: asusun da aka haɗa ba shi da shirin biyan kuɗi wanda ya ƙunshi vision, ko kuma API key ɗin ba shi da isassun izini. Tabbatar a dashboard na mai samarwar cewa key scope ɗin ya ƙunshi vision/multimodal, ko kuma haɗa asusun matakin biyan kuɗi sannan ka bar shi a matsayin maƙasudin vision.
+**Idan kana ganin 403 a vision models (`auto/vision`, `bazaarlink/*`)**: account da aka haɗa ba shi da tsarin biyan kuɗi da ya ƙunshi vision, ko kuma API key ɗin ba shi da isassun izini. Tabbatar a dashboard na mai bayar da sabis cewa scope na key ɗin ya ƙunshi vision/multimodal, ko haɗa account na matakin biyan kuɗi kuma ka bar shi a matsayin vision target.
 
 ---
 
@@ -537,40 +537,40 @@ Yi amfani da **Dashboard → Translator** don gano matsalolin fassarar tsari:
 
 ## Saitunan Juriya
 
-### Iyakance ƙima ta atomatik ba ta kunnawa
+### Iyakance ƙimar atomatik ba ya fara aiki
 
-- Iyakance ƙima ta atomatik tana aiki ne kawai ga masu samarwa masu amfani da maɓallin API (ba OAuth/biyan kuɗi ba)
-- Tabbatar cewa an kunna iyakance ƙima ta atomatik a **Settings → Resilience → Provider Profiles**
-- Duba ko mai samarwar yana mayar da lambobin matsayi na `429` ko kanun `Retry-After`
+- Iyakance ƙimar atomatik yana aiki ne kawai ga masu samarwa masu amfani da maɓallin API (ba OAuth/biyan kuɗi ba)
+- Tabbatar cewa an kunna iyakance ƙimar atomatik a **Settings → Resilience → Provider Profiles**
+- Bincika ko mai samarwar yana dawo da lambobin matsayi na `429` ko kanun `Retry-After`
 
-### Daidaita jinkirin exponential backoff
+### Daidaita jinkirin ƙaruwa ninki-ninki
 
-Bayanan martabar masu samarwa suna goyan bayan waɗannan saituna:
+Bayanan martabar masu samarwa suna goyon bayan waɗannan saitunan:
 
-- **Base delay** — Lokacin jira na farko bayan gazawar farko (tsoho: 1s)
-- **Max delay** — Matsakaicin iyakar lokacin jira (tsoho: 30s)
-- **Multiplier** — Adadin ƙara jinkiri bayan kowace gazawa a jere (tsoho: 2x)
+- **Jinkirin farko** — Lokacin jira na farko bayan gazawar farko (tsoho: 1s)
+- **Matsakaicin jinkiri** — Iyakar mafi tsawon lokacin jira (tsoho: 30s)
+- **Mai ninkawa** — Adadin da za a ƙara wa jinkiri bayan kowace gazawa a jere (tsoho: 2x)
 
 ### Hana cunkoson buƙatu lokaci guda
 
-Lokacin da buƙatu masu yawa na lokaci guda suka isa ga mai samarwa da aka iyakance ƙimarsa, OmniRoute yana amfani da mutex + iyakance ƙima ta atomatik don jera buƙatun ɗaya bayan ɗaya da hana gazawa mai yaɗuwa. Wannan yana faruwa ta atomatik ga masu samarwa masu amfani da maɓallin API.
+Lokacin da buƙatu masu yawa na lokaci guda suka isa ga mai samarwa da aka iyakance ƙimarsa, OmniRoute yana amfani da mutex + iyakance ƙimar atomatik don jera buƙatun ɗaya bayan ɗaya da hana gazawa mai sarƙaƙƙiya. Wannan yana faruwa ta atomatik ga masu samarwa masu amfani da maɓallin API.
 
-### Buƙatun chat suna gazawa da 503 / chat_admission_busy
+### Buƙatun hira suna gazawa da 503 / chat_admission_busy
 
 **Alamomi:**
 
-- Ƙarshen hanyar cika chat yana mayar da martanin `503` da za a iya sake gwadawa, wanda lambar kuskurensa ita ce
+- Ƙarshen API na kammalawar hira yana dawo da amsar `503` da za a iya sake gwadawa, wadda lambar kuskurenta ita ce
   `chat_admission_busy`.
-- Martanin yana ɗauke da `Retry-After`. Tun daga #12135 ana samo ƙimar daga yawan amfani da aka lura da shi
-  — mafi girma tsakanin taga ta `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` da buƙatar ta riga ta
-  jira da kuma tsawon lokacin da manyan leases na yanzu suka kasance a riƙe — ana zagaye ta zuwa cikakkun
-  daƙiƙu kuma ana iyakance ta zuwa 60. A kan gate marar aiki tana riƙe da mafi ƙarancin ƙimomin tarihi: daƙiƙu 2 a
-  hanyar da ta dogara da bytes, daƙiƙa 1 a hanyar da ta dogara da tsari (wadda kuma ta haɗa da
+- Amsar tana ƙunshe da `Retry-After`. Tun daga #12135 ana samo ƙimar daga yawan amfanin ƙarfin da aka lura da shi
+  — mafi girma tsakanin taga `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` da buƙatar ta riga ta
+  jira da kuma tsawon lokacin da aka riƙe lasisin manyan buƙatu na yanzu — ana zagaye shi zuwa cikakkun
+  sakanni kuma ana iyakance shi zuwa 60. Idan ƙofar ba ta da aiki, yana riƙe da tsoffin mafi ƙarancin ƙimomi: sakanni 2 a
+  hanyar da ta dogara da byte, da sakan 1 a hanyar da ta dogara da tsari (wadda kuma ta ƙunshi
   `reason: "structure_limit"`).
-- Wannan na iya faruwa yayin da wani babban chat ko martanin streaming mai ɗaukar lokaci mai tsawo yake
-  ci gaba da gudana.
+- Wannan na iya faruwa yayin da wata babbar hirar ko amsar streaming mai ɗaukar lokaci mai tsawo har yanzu
+  take gudana.
 
-Jikin martanin da ya dogara da bytes shi ne:
+Jikin amsar da ke dogara da byte shi ne:
 
 ```json
 {
@@ -582,52 +582,52 @@ Jikin martanin da ya dogara da bytes shi ne:
 }
 ```
 
-Martanin da ya dogara da tsari yana amfani da type da code iri ɗaya, tare da saƙon
+Amsar da ke dogara da tsari tana amfani da nau'i da lamba iri ɗaya, tare da saƙon
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 da `reason: "structure_limit"`.
-A tsoffin ma'aunan iyaka, ana ɗaukar buƙata a matsayin mai nauyin tsari idan tana da aƙalla saƙonni `200`,
-aƙalla tools `64`, ko aƙalla kimantattun tokens `32,000`, ko kuma idan kimanta tsari mai iyaka
-ta cinye iyakokinta na nodes `10,000` da aka ziyarta ko zurfin `12`.
+A tsoffin matakan iyaka, ana ɗaukar buƙata a matsayin mai nauyin tsari idan tana da aƙalla saƙonni `200`,
+aƙalla kayan aiki `64`, ko aƙalla kimanin token `32,000`, ko kuma lokacin da ƙididdigar tsari mai iyaka
+ta kai iyakokinta na node `10,000` da aka ziyarta ko zurfin `12`.
 
-**Dalili:** Wannan rage kaya ne da aka yi da gangan a cikin OmniRoute, ba gazawar mai samarwa na upstream ba.
-Kowane process yana amfani da kariya ta cikin process don tanadin iyakantacciyar damar manyan buƙatu kafin riƙewa
-da sarrafa babban jikin buƙata. Babban lease yana kasancewa a riƙe tsawon rayuwar martanin SSE.
+**Dalili:** Wannan rage kaya ne da aka yi da gangan a cikin OmniRoute, ba gazawar mai samarwa na waje ba.
+Kowane process yana amfani da kariya ta cikin process don tanadar iyakantaccen ƙarfin manyan buƙatu kafin riƙewa
+da warware babban jikin buƙata. Ana ci gaba da riƙe lasisin babbar buƙata tsawon rayuwar amsar SSE.
 
-**#503-fanout:** kafin wannan gyaran, kariyar tana iyakance concurrency da tsayayyen ADADIN buƙatu
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, tsoho `1`) ba tare da la'akari da ƙwaƙwalwar host ba, don haka fan-out na
-coding-agent (subagents/CLIs da yawa, jikuna da a kai a kai suke > 256 KB) yana faɗuwa zuwa ingantaccen
-concurrency na kusan 1 kuma yana haifar da 503 a ƙarƙashin kaya na yau da kullum. Yanzu kariyar tana daidaita
-kanta: ana sarrafa ta da kasafin BYTES na ingest da ake samo ta atomatik (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) wanda aka tsara daga
-ainihin iyakar ƙwaƙwalwar process, sannan kuma tana duba alamar matsin albarkatu kai tsaye — don haka tana
-rage kaya ne kawai lokacin da host yake fuskantar matsin ƙwaƙwalwa na gaske, ba don kawai buƙatu masu nauyi fiye da ɗaya
+**#503-fanout:** kafin wannan gyaran, kariyar tana iyakance yawan aiki lokaci guda da tsayayyen ADADIN buƙatu
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, tsoho `1`) ba tare da la'akari da ƙwaƙwalwar host ba, don haka fan-out na coding-agent
+(subagents/CLIs da yawa, jikkunan buƙatu da a kai a kai suke > 256 KB) ya durƙushe zuwa ingantaccen
+yawan aiki lokaci guda na kusan 1 kuma ya samar da kurakuran 503 ƙarƙashin kaya na yau da kullum. Yanzu kariyar tana daidaita kanta: ana sarrafa ta
+ta hanyar kasafin BYTE na ingest da ake samo wa ta atomatik (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) wanda aka ƙayyade bisa
+ainihin iyakar ƙwaƙwalwar process, sannan kuma tana duba siginar matsin albarkatu kai tsaye — don haka
+tana rage kaya ne kawai lokacin da host yake ƙarƙashin ainihin matsin ƙwaƙwalwa, ba don kawai buƙatu masu nauyi fiye da ɗaya
 sun iso lokaci guda ba. Har yanzu ana mutunta tsohuwar iyakar adadi (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`), amma
-sai idan ka saita ta kai tsaye.
+sai kawai idan ka saita ta da kanka.
 
-Lokacin da damar take cike, babban buƙata da farko tana jira har zuwa
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (tsoho `2000`, `0` yana kashe jiran) domin wani gurbi ya samu
-kafin a mayar da `503` da za a iya sake gwadawa. An tanadi wannan iyakantaccen jira ne domin clients irin na agent
-(OpenCode, Claude Code, Cursor) waɗanda ke fan-out na manyan ƙananan buƙatu lokaci guda su jera cunkoson
-ɗaya bayan ɗaya maimakon ƙone duk kasafin sake gwadawarsu a kan ƙin karɓa nan take sannan su mutu a tsakiyar aiki.
-Ana nuna yawan amfani da manyan leases na yanzu, kasafin bytes da aka ƙayyade, da tsananin matsin kai tsaye
+Lokacin da ƙarfin ya cika, babbar buƙata za ta fara jira har zuwa
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (tsoho shi ne `RATE_LIMIT_MAX_WAIT_MS`; `0` yana kashe jiran) domin a samu gurbi
+kafin a mayar da amsar `503` da za a iya sake gwadawa. Wannan iyakantaccen jira yana nan ne domin clients irin na agent
+(OpenCode, Claude Code, Cursor) waɗanda ke aika manyan ƙananan buƙatu da yawa lokaci guda su jera cunkoson
+maimakon cinye dukkan kasafin sake gwadawarsu kan ƙin amincewa nan take kuma su mutu a tsakiyar aiki.
+Ana nuna yawan lasisin manyan buƙatu da ake amfani da su yanzu, kasafin byte da aka tantance, da tsananin matsin lamba kai tsaye
 a `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
-`budgetSource`, `pressureSeverity`, `countCapEnabled`) — duba waɗannan kafin ka taɓa kowace env var.
+`budgetSource`, `pressureSeverity`, `countCapEnabled`) — bincika waɗannan kafin ka taɓa kowane env var.
 Settings → Resilience → Request Queue → Concurrent Requests ba ya sarrafa wannan; wannan saitin
-yana sarrafa wata dabara ta daban ta jerin buƙatun mai samarwa.
+yana kula da wata dabara dabam ta jerin gwano na buƙatun mai samarwa.
 
 **Gyara:**
 
-1. Da farko sake gwadawa. Ya kamata clients su mutunta `Retry-After` kuma su yi amfani da backoff maimakon
+1. Fara da sake gwadawa. Ya kamata clients su mutunta `Retry-After` kuma su yi amfani da backoff maimakon
    maimaita buƙatar nan take.
-2. Duba `/api/monitoring/health` → `chatAdmission` kafin daidaita komai. `countCapEnabled:
-false` da wadataccen `maxInflightBytes` suna nufin kasafin da aka samo ta atomatik yana riga yana yin
-   aikinsa; `pressureSeverity` na `high`/`critical` yana nufin host ɗin yana fama da ƙarancin ƙwaƙwalwa na gaske —
-   ba za a iya gyara wannan da admission env var ba, yana buƙatar ƙarin RAM ko ƙaramin workload.
+2. Bincika `/api/monitoring/health` → `chatAdmission` kafin daidaita komai. `countCapEnabled:
+false` da `maxInflightBytes` mai yalwa suna nufin kasafin da aka samo ta atomatik ya riga yana yin
+   aikinsa; `pressureSeverity` na `high`/`critical` yana nufin host ɗin na fama da ƙarancin ƙwaƙwalwa na gaske —
+   ba za a iya gyara wannan da env var na admission ba, yana buƙatar ƙarin RAM ko ƙaramin nauyin aiki.
 3. Sai kawai idan `/api/monitoring/health` ya nuna cewa kasafin da aka samo ta atomatik ya yi ƙanƙanta sosai ga
-   host ɗinka (abu ne da ba kasafai yake faruwa ba — yana riga yana daidaitawa daga container zuwa bare-metal), ka sauya shi kai tsaye da
+   host ɗinka (abin da ba kasafai yake faruwa ba — ya riga yana daidaitawa daga container zuwa bare-metal), maye gurbinsa kai tsaye da
    `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` maimakon komawa ga tsohuwar iyakar adadin buƙatu.
 
 Duba [manunin environment-variable](../reference/ENVIRONMENT.md#4-security--authentication)
-domin saitunan admission masu cikakken iko.
+don saitunan admission na hukuma.
 
 ---
 

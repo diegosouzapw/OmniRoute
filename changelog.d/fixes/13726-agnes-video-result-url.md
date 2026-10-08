@@ -1,1 +1,0 @@
-- fix(video): robustly extract video result URL from top-level fields, stringified JSON metadata, and arrays in Agnes and job-based video polling (#13726)

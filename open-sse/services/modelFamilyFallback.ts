@@ -120,6 +120,7 @@ const FAMILY_FALLBACK_TEMPLATES: Record<string, readonly string[]> = {
   "claude-fable-5": ["claude-opus-4-8", "claude-opus-4-7", "claude-sonnet-5"],
 
   // Claude Opus family
+  "claude-opus-5-5": ["claude-opus-5", "claude-opus-4-8", "claude-sonnet-5"],
   "claude-opus-5": ["claude-opus-4-8", "claude-opus-4-7", "claude-sonnet-5"],
   "claude-opus-4-8": ["claude-opus-4-7", "claude-opus-4-6", "claude-sonnet-5"],
   "claude-opus-4-7": ["claude-opus-4-6", "claude-opus-4-5-20251101", "claude-sonnet-5"],
@@ -127,6 +128,7 @@ const FAMILY_FALLBACK_TEMPLATES: Record<string, readonly string[]> = {
   "claude-opus-4-6-thinking": ["claude-opus-4-6", "claude-opus-4-5-20251101"],
 
   // Claude Sonnet family — Sonnet 5 is the newest tier; degrade to 4.6 → 4.5 → 4.
+  "claude-sonnet-5-5": ["claude-sonnet-5", "claude-sonnet-4-6", "claude-sonnet-4-5-20250929"],
   "claude-sonnet-5": [
     "claude-sonnet-4-6",
     "claude-sonnet-4-5-20250929",

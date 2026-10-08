@@ -60,3 +60,24 @@ test("only Command Code is clamped: native deepseek keeps none", () => {
   assert.equal(result, body, "none is already the OpenAI no-thinking carrier for deepseek");
   assert.equal((result as Record<string, unknown>).reasoning_effort, "none");
 });
+
+// #14692 routes Responses-shaped bodies to /provider/v1/responses, the one Command
+// Code surface that honors `reasoning: {effort: "none"}` — the clamp must not
+// turn a no-thinking Responses request back into a reasoning one.
+test("command-code keeps none on a Responses-shaped body (/provider/v1/responses honors it)", () => {
+  const body = {
+    model: "gpt-5.6-luna",
+    input: [{ role: "user", content: "hi" }],
+    reasoning: { effort: "none" },
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "command-code", "gpt-5.6-luna", null);
+
+  assert.deepEqual((result as Record<string, unknown>).reasoning, { effort: "none" });
+});
+
+test("command-code still clamps minimal to low on a Responses-shaped body", () => {
+  const body = { input: [], reasoning: { effort: "minimal" } };
+  const result = sanitizeReasoningEffortForProvider(body, "command-code", "gpt-5.6-luna", null);
+
+  assert.deepEqual((result as Record<string, unknown>).reasoning, { effort: "low" });
+});

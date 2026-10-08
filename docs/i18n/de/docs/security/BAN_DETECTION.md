@@ -4,17 +4,20 @@
 
 ---
 
-OmniRoute durchsucht Upstream-Fehlerantworten nach Signalen, die darauf hindeuten, dass ein Provider-**Konto dauerhaft unbrauchbar ist** (gesperrt / deaktiviert / wegen Verstoßes gegen die Nutzungsbedingungen gesperrt), und versetzt die betreffende Verbindung bei einem Treffer in einen **terminalen `banned`-Status**, sodass sie nicht mehr für Anfragen ausgewählt wird. Dies wird über die Einstellungskarte **Sicherheit → Gesperrte Schlüsselwörter** konfiguriert („Zusätzliche Schlüsselwörter, die die Erkennung einer dauerhaften Kontosperrung auslösen. Integrierte Schlüsselwörter gelten immer.“).
+OmniRoute durchsucht Fehlerantworten von Upstream-Anbietern nach Signalen, die darauf hinweisen, dass ein Anbieter-**Konto dauerhaft unbrauchbar ist** (gesperrt / deaktiviert / wegen Verstößen gegen die Nutzungsbedingungen gesperrt), und versetzt die entsprechende Verbindung bei einem Treffer in einen **terminalen Zustand `banned`**, sodass sie nicht mehr für Anfragen ausgewählt wird. Dies wird über die Einstellungskarte **Sicherheit → Gesperrte Schlüsselwörter** konfiguriert („Zusätzliche Schlüsselwörter, die die Erkennung dauerhaft gesperrter Konten auslösen. Integrierte Schlüsselwörter gelten immer.“).
 
-Diese Seite dokumentiert die integrierte Liste, den Erkennungsablauf, ihren Geltungsbereich, das sichere Hinzufügen benutzerdefinierter Schlüsselwörter und die Wiederherstellung einer markierten Verbindung. Der terminale Status selbst ist Teil des Resilienzmodells — siehe
-[RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) („Terminale Status“).
+Diese Seite dokumentiert die integrierte Liste, den Erkennungsablauf, seinen Geltungsbereich, das sichere Hinzufügen benutzerdefinierter Schlüsselwörter und die Wiederherstellung einer als gesperrt markierten Verbindung. Der terminale Zustand selbst ist Teil des Resilienzmodells — siehe
+[RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) („Terminale Zustände“).
 
 **Maßgebliche Quelle:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+sowie `open-sse/services/errorClassifier.ts` für die nicht-terminale Verifizierungsklasse
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) und für
+den 403-Zweig, der sie verwendet.
 
 ## Integrierte Schlüsselwörter
 
-Diese 8 Teilzeichenfolgen gelten immer (ohne Beachtung der Groß-/Kleinschreibung), unabhängig von einer benutzerdefinierten Liste:
+Diese 7 Teilzeichenfolgen werden unabhängig von benutzerdefinierten Listen immer berücksichtigt (Groß-/Kleinschreibung wird ignoriert):
 
 ```
 account_deactivated
@@ -22,22 +25,46 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> Diese Liste wird weiterentwickelt, wenn Provider den Wortlaut ihrer Sperrmeldungen ändern. Die maßgebliche
+> Diese Liste wird angepasst, wenn Anbieter den Wortlaut ihrer Sperrmeldungen ändern. Die maßgebliche
 > Fassung ist `ACCOUNT_DEACTIVATED_SIGNALS` in `open-sse/services/accountFallback.ts`;
 > betrachten Sie den obigen Block als Momentaufnahme.
 
-Zwei angrenzende, **separate** Signaltabellen befinden sich in derselben Datei und sind _nicht_ Teil der Erkennung gesperrter Schlüsselwörter:
+### Keine Sperre: Verifizierungsaufforderungen, bei denen ein Eingreifen des Betreibers möglich ist
+
+`verify your account to continue` stand **früher** in der obigen Liste. Diese Formulierung ist kein
+Sperrsignal und befindet sich jetzt in `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS`, wodurch sie als
+wiederherstellbarer `PROJECT_ROUTE_ERROR` klassifiziert wird, anstatt die Verbindung endgültig zu beenden.
+
+Google Cloud Code / Antigravity geben dies als `403 VALIDATION_REQUIRED` zurück. Der Fehler ist
+**vorübergehend und tritt bei funktionierenden Konten mit vollständig verfügbarem Kontingent auf** — gemessen in einer aktiven
+Bereitstellung (2026-09-25, `proxy_logs`): Eine Antigravity-Verbindung gab innerhalb von 10 Minuten 33 dieser
+403-Fehler zurück und blieb `active`, während eine parallele Verbindung, deren Kontingent in allen
+17 Zeitfenstern zu 100 % verfügbar war, durch einen **einzigen** solchen Fehler dauerhaft gesperrt wurde. Der einzige
+Unterschied bestand darin, welcher Versuch zufällig verarbeitet wurde.
+
+Diese Unterscheidung ist wichtig, da eine endgültige Übereinstimmung `permanent: true` ergibt (einjährige Abklingzeit,
+keine automatische Wiederherstellung), während der Betreiber eine Verifizierungsaufforderung in einem Browser erledigen kann.
+Wenn die Formulierung in der Sperrliste verbleibt, ist außerdem der wiederherstellbare Cloud-Code-403-Zweig in
+`classifyProviderError` für diesen Wortlaut nicht erreichbar, da `accountDeactivated` zuerst
+ausgewertet wird — sodass die in
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) und
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) hinzugefügte Projektrouten-Wiederherstellung für Gemini Code Assist niemals ausgeführt werden konnte.
+
+Drei angrenzende, **separate** Signaltabellen sind _nicht_ Teil der Erkennung gesperrter Schlüsselwörter:
 
 - `CREDITS_EXHAUSTED_SIGNALS` — Guthaben/Kontingent aufgebraucht (`insufficient_quota`,
-  `credit_balance_too_low`, `payment required`, …) → terminaler Status `credits_exhausted`.
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **nicht terminal**; eine Token-Aktualisierung kann den Zustand beheben.
+  `credit_balance_too_low`, `payment required`, …) → endgültig `credits_exhausted`.
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **nicht endgültig**; eine Token-Aktualisierung kann den Zustand beheben.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **nicht endgültig**; der Betreiber muss
+  das Konto beim vorgelagerten Anbieter erneut verifizieren. Befindet sich in `open-sse/services/errorClassifier.ts`
+  (die anderen beiden befinden sich in `accountFallback.ts`). Siehe den obigen Abschnitt.
 
-Hinweis: Häufige vorübergehende Formulierungen wie **`rate limit`** / `429` werden über den Pfad für Ratenbegrenzung bzw. Verbindungs-Cooldown verarbeitet und sind **keine** Sperrsignale.
+Hinweis: Häufige vorübergehende Formulierungen wie **`rate limit`** / `429` werden über den
+Ratenbegrenzungs-/Verbindungsabklingzeit-Pfad verarbeitet und sind **keine** Sperrsignale.
 
 ## Erkennungsablauf
 

@@ -4,6 +4,10 @@ import { GheCopilotExecutor } from "../../open-sse/executors/ghe-copilot.ts";
 import { gheCopilotProvider } from "../../open-sse/config/providers/registry/ghe-copilot/index.ts";
 import { GHE_COPILOT_TARGET } from "../../src/mitm/targets/ghe-copilot.ts";
 import type { ProviderCredentials } from "../../open-sse/executors/base.ts";
+import { getModelTargetFormat } from "../../open-sse/config/providerModels.ts";
+import { resolveChatCoreTargetFormat } from "../../open-sse/handlers/chatCore/targetFormat.ts";
+import { translateRequest } from "../../open-sse/translator/index.ts";
+import { GithubExecutor } from "../../open-sse/executors/github.ts";
 
 test("GHE Copilot registry exposes Claude Opus 5", () => {
   const opus5 = gheCopilotProvider.models.find((model) => model.id === "claude-opus-5");
@@ -13,6 +17,11 @@ test("GHE Copilot registry exposes Claude Opus 5", () => {
     name: "Claude Opus 5",
     contextLength: 1000000,
     maxOutputTokens: 64000,
+    // #14732 declared the thinking-effort tiers on the first-party Claude registries
+    // (GHE Copilot included) — intentional contract change.
+    supportsReasoning: true,
+    supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+    supportsXHighEffort: true,
     unsupportedParams: ["temperature", "top_p", "top_k"],
   });
 });
@@ -68,6 +77,118 @@ test("buildUrl uses responses endpoint for gpt-5.4-mini and gpt-5.6-sol", () => 
   assert.strictEqual(
     executor.buildUrl("ghe-copilot/gpt-5.6-sol", true, 0, credentials),
     "https://ghe.company.com/responses"
+  );
+});
+
+test("buildUrl routes unregistered GPT-6 models to the Responses endpoint", () => {
+  const executor = new GheCopilotExecutor({
+    gheUrl: "https://ghe.company.com",
+    clientId: "test-client",
+    clientSecret: "test-secret",
+  });
+  const credentials: ProviderCredentials = {
+    providerSpecificData: { gheUrl: "https://ghe.company.com" },
+  };
+
+  assert.strictEqual(
+    executor.buildUrl("ghe-copilot/gpt-6-luna", true, 0, credentials),
+    "https://ghe.company.com/responses"
+  );
+});
+
+// Ids the PR's buildUrl regex (`^gpt-6`) sends to /responses. Unregistered, so
+// they have no catalog targetFormat — the body must still be Responses-shaped.
+const UNREGISTERED_GPT6_MODELS = [
+  "ghe-copilot/gpt-6-luna",
+  "gpt-6-sol",
+  "gpt-6-astra",
+  "gpt-6-luna-high",
+];
+
+function outboundBody(
+  executor: GheCopilotExecutor,
+  model: string,
+  credentials: ProviderCredentials
+): Record<string, unknown> {
+  const bare = model.startsWith("ghe-copilot/") ? model.slice("ghe-copilot/".length) : model;
+  const { targetFormat } = resolveChatCoreTargetFormat({
+    provider: "ghe-copilot",
+    resolvedModel: bare,
+    apiFormat: undefined,
+    sourceFormat: "openai",
+    customModelTargetFormat: undefined,
+    providerSpecificData: credentials.providerSpecificData,
+  });
+  const translated = translateRequest(
+    "openai",
+    targetFormat,
+    bare,
+    {
+      model: bare,
+      messages: [{ role: "user", content: "hi" }],
+      max_tokens: 16,
+    },
+    true,
+    credentials,
+    "ghe-copilot"
+  );
+  return executor.transformRequest(model, translated, true, credentials) as Record<string, unknown>;
+}
+
+test("GPT-6 requests routed to /responses send a Responses body, not chat completions", () => {
+  const executor = new GheCopilotExecutor({
+    gheUrl: "https://ghe.company.com",
+    clientId: "test-client",
+    clientSecret: "test-secret",
+  });
+  const credentials: ProviderCredentials = {
+    providerSpecificData: { gheUrl: "https://ghe.company.com" },
+  };
+
+  for (const model of UNREGISTERED_GPT6_MODELS) {
+    assert.strictEqual(
+      executor.buildUrl(model, true, 0, credentials),
+      "https://ghe.company.com/responses",
+      `${model} URL`
+    );
+    const sent = outboundBody(executor, model, credentials);
+    assert.ok(
+      Array.isArray(sent.input),
+      `${model} must send Responses input, got keys ${Object.keys(sent).join(",")}`
+    );
+    assert.equal(sent.messages, undefined, `${model} must not send chat-completions messages`);
+    assert.equal(sent.max_tokens, undefined, `${model} must not send chat-completions max_tokens`);
+    assert.equal(sent.max_output_tokens, 16);
+  }
+});
+
+test("models this PR did not move keep chat-completions bodies and URLs", () => {
+  const executor = new GheCopilotExecutor({
+    gheUrl: "https://ghe.company.com",
+    clientId: "test-client",
+    clientSecret: "test-secret",
+  });
+  const credentials: ProviderCredentials = {
+    providerSpecificData: { gheUrl: "https://ghe.company.com" },
+  };
+
+  for (const model of ["gpt-4o", "gemini-3.7-flash"]) {
+    assert.strictEqual(
+      executor.buildUrl(model, true, 0, credentials),
+      "https://ghe.company.com/chat/completions"
+    );
+    const sent = outboundBody(executor, model, credentials);
+    assert.ok(Array.isArray(sent.messages), `${model} must keep chat-completions messages`);
+    assert.equal(sent.input, undefined, `${model} must not be rewritten to Responses input`);
+  }
+
+  // github.com Copilot did not gain the gpt-6 URL regex. Its body stays chat.
+  assert.equal(getModelTargetFormat("gh", "gpt-6-luna"), null);
+  assert.equal(getModelTargetFormat("github", "gpt-6-luna"), null);
+  const github = new GithubExecutor();
+  assert.equal(
+    github.buildUrl("gpt-6-luna", true, 0, { apiKey: "test-token" }),
+    "https://api.githubcopilot.com/chat/completions"
   );
 });
 

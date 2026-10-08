@@ -223,7 +223,7 @@ központilag kezelje a csapat hitelesítő adatait. A javítás egyértelművé 
 
 ## Buildprofil: `minimal`
 
-Azok a felhasználók, akiknek Socket-barát buildtermékre van szükségük, a következő paranccsal készíthetik el:
+Azok a felhasználók, akiknek Socket-kompatibilis buildkimenetre van szükségük, a következő paranccsal végezhetik el a buildelést:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
@@ -239,11 +239,11 @@ A webpack `NormalModuleReplacementPlugin` négy modult helyettesít stubokkal:
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
 Minden stub ugyanazt a felületet exportálja, de futásidőben minden függvény
-`featureDisabledError(name)` hibát dob. A letiltott modultól függő
-útvonalak a bizalmas kódútvonal aktiválása helyett egyértelmű üzenettel HTTP 503 választ adnak.
+`featureDisabledError(name)` hibát dob. A letiltott modultól függő útvonalak
+HTTP 503 választ adnak egyértelmű üzenettel az érzékeny kódútvonal aktiválása
+helyett.
 
-Az így létrejövő csomagot `omniroute-secure` néven történő közzétételre szánjuk. A
-közzétételi eljárást lásd a `docs/ops/PUBLISHING_SECURE.md` fájlban.
+Az így létrejövő csomag `omniroute-secure` néven való közzétételre szolgál.
 
 ---
 

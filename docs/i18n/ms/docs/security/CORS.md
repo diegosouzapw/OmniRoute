@@ -129,22 +129,26 @@ memulakan semula.
 
 ## Contoh: proksi songsang di hadapan OmniRoute
 
-CORS dikuatkuasakan oleh OmniRoute sendiri, jadi proksi secara umumnya **tidak** sepatutnya menambah atau
-menulis semula pengepala `Access-Control-*` (pengepala berganda menyebabkan pelayar gagal). Tamatkan TLS
-dan majukan permintaan — biarkan OmniRoute menjawab prapenerbangan:
+CORS dikuatkuasakan oleh OmniRoute sendiri, jadi proksi secara umumnya **tidak sepatutnya** menambah atau
+menulis semula pengepala `Access-Control-*` (pengepala berganda menyebabkan pelayar gagal berfungsi). Tamatkan TLS
+dan majukan trafik — biarkan OmniRoute menjawab permintaan prapenerbangan:
 
 ```nginx
 # nginx — majukan ke OmniRoute; JANGAN suntik Access-Control-* di sini
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # JANGAN tetapkan X-Forwarded-For kepada 127.0.0.1 — tindakan itu menewaskan pengawal laluan gelung balik.
+    # Kekalkan pengepala pemajuan: proksi pada hos yang sama bersambung daripada gelung balik, dan pengepala ini
+    # memberitahu OmniRoute bahawa pemanggil bukan pengendali setempat. Proksi yang tidak menambah mana-mana pengepala ini
+    # menjadikan setiap pemanggil jauh kelihatan seperti pemanggil setempat. Jangan sekali-kali tetapkan X-Forwarded-For kepada 127.0.0.1.
 }
 ```
 
-Tetapkan origin pelayar yang dibenarkan dalam OmniRoute (`CORS_ALLOWED_ORIGINS` atau tab
-Security), bukan dalam proksi.
+Tetapkan sumber pelayar yang dibenarkan dalam OmniRoute (`CORS_ALLOWED_ORIGINS` atau
+tab Security), bukan dalam proksi.
 
 ## Fail sumber
 

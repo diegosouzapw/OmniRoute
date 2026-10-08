@@ -17,17 +17,17 @@ OmniRoute dispone de una canalización de autorización que tiene en cuenta las 
 
 ### 1. Clave de API (Bearer)
 
-Se utiliza para las API de cliente compatibles con OpenAI/Anthropic/Gemini y para algunas rutas de gestión cuando la clave tiene el ámbito `manage`.
+Se utiliza para las API de cliente compatibles con OpenAI/Anthropic/Gemini y para algunas rutas de administración cuando la clave tiene el ámbito `manage`.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Se valida mediante `isValidApiKey()` / `extractApiKey()` en `src/sse/services/auth.ts` y se vuelve a exportar a través de `src/shared/utils/apiAuth.ts`. El validador también acepta las variables de entorno `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` como claves persistentes de paso directo (incidencia #1350).
+Se valida mediante `isValidApiKey()` / `extractApiKey()` en `src/sse/services/auth.ts` y se reexporta a través de `src/shared/utils/apiAuth.ts`. El validador también acepta las variables de entorno `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` como claves persistentes de paso directo (incidencia #1350).
 
-### 2. Sesión del panel (cookie auth_token)
+### 2. Sesión del panel de control (cookie auth_token)
 
-Para las páginas del panel y las operaciones administrativas.
+Para las páginas del panel de control y las operaciones administrativas.
 
 ```
 Cookie: auth_token=<JWT firmado con JWT_SECRET>
@@ -35,41 +35,43 @@ Cookie: auth_token=<JWT firmado con JWT_SECRET>
 
 Una cookie solo constituye una sesión cuando el JWT se verifica **y** contiene `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Todos los
-consumidores de la cookie (protección de rutas, actualización de la canalización de AuthZ, negociación de WebSocket, servidor
-en vivo, `/api/settings/require-login`, `/api/auth/status`) pasan por ese helper.
-Existen otros JWT firmados con `JWT_SECRET`: el paso directo de Cursor CLI genera
-tokens `iss "omniroute" / aud "cursor-cli"` para los titulares de claves, y estos nunca son sesiones
+consumidores de la cookie (el protector de rutas del panel de control (`isDashboardSessionAuthenticated()`), la actualización del proceso de autorización, el establecimiento de conexión WebSocket, el servidor
+en vivo, `/api/settings/require-login`, `/api/auth/status`) pasan por esa función auxiliar.
+Existen otros JWT firmados con `JWT_SECRET`: el paso directo de la CLI de Cursor emite
+tokens `iss "omniroute" / aud "cursor-cli"` para los titulares de claves, y estos nunca constituyen sesiones
 (#13298).
 
-Se verifica mediante `isDashboardSessionAuthenticated()` en `src/shared/utils/apiAuth.ts`. La canalización actualiza automáticamente el JWT cuando le quedan menos de 7 días de sus 30 días de vigencia.
+La verificación se realiza mediante `isDashboardSessionAuthenticated()` en `src/shared/utils/apiAuth.ts`. El proceso actualiza automáticamente el JWT cuando le quedan menos de 7 días de sus 30 días de vigencia.
 
-Algunas rutas de gestión aceptan **cualquiera** de los dos modos: cookie O `Bearer <key>` cuando la clave de API tiene el ámbito `manage` (o `admin`). Esto es lo que permite el flujo de trabajo «configurable mediante llamadas a la API» añadido en v3.8.
+Una sesión también puede finalizar antes de que transcurran sus 30 días, porque todos los emisores pasan por `mintDashboardSessionToken` (una hora de emisión `iat` y un identificador `jti`) y el verificador comprueba dos ajustes: `sessionsValidAfter`, que se establece al cambiar una contraseña para que todas las sesiones emitidas anteriormente dejen de verificarse (el navegador que cambió la contraseña recibe una cookie nueva), y `revokedDashboardSessions`, al que `POST /api/auth/logout` añade el `jti` de la sesión cerrada. Las sesiones emitidas por una versión anterior no contienen ninguna de estas declaraciones y siguen siendo válidas hasta el primer cambio de contraseña. Si no se pueden leer los ajustes, la sesión no se considera de confianza.
+
+Algunas rutas de administración aceptan **cualquiera** de los dos modos: cookie O `Bearer <key>` cuando la clave de API tiene el ámbito `manage` (o `admin`). Esto es lo que permite el flujo de trabajo «configurable mediante llamadas a la API» añadido en v3.8.
 
 #### Control de acceso OIDC opcional (#6973)
 
-El inicio de sesión administrativo del panel también admite un flujo OIDC (OpenID Connect) **opcional**
-junto con el inicio de sesión predeterminado mediante contraseña; el inicio de sesión mediante contraseña nunca se elimina, solo
+El inicio de sesión de administrador del panel de control también admite un flujo OIDC (OpenID Connect) **opcional**
+junto con el inicio de sesión con contraseña predeterminado; el inicio de sesión con contraseña nunca se elimina, solo
 se complementa:
 
-- Está deshabilitado a menos que `settings.oidcEnabled === true` **y** que `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` estén todos configurados (Configuración → Autenticación).
+- Está deshabilitado a menos que `settings.oidcEnabled === true` **y** `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` estén configurados (Ajustes → Autenticación).
   De lo contrario, `GET /api/auth/oidc/login` devuelve `400`.
-- `GET /api/auth/oidc/login` descubre el `authorization_endpoint` desde
-  `/.well-known/openid-configuration` del emisor (recurre a
-  `<issuer>/authorize` si no está disponible), construye el URI de redirección a partir de la solicitud entrante
+- `GET /api/auth/oidc/login` obtiene el `authorization_endpoint` a partir de
+  `/.well-known/openid-configuration` del emisor (con
+  `<issuer>/authorize` como alternativa), crea el URI de redirección a partir de la solicitud entrante
   (teniendo en cuenta `x-forwarded-proto`) y redirige al IdP con un `state` aleatorio
-  almacenado en una cookie `oidc_state` `httpOnly`.
+  almacenado en una cookie `oidc_state` con `httpOnly`.
 - `GET /api/auth/oidc/callback` valida `state`, intercambia el código de autorización
   y verifica la firma del token de ID mediante el JWKS del emisor
   (`createRemoteJWKSet` de `jose`, almacenado en caché por URI de JWKS), con comprobaciones de `issuer`/`audience`.
-  Una lista de permitidos opcional `oidcAllowedSubjects` compara la afirmación
-  `sub` del token o su afirmación `email`; la afirmación de correo electrónico solo se admite cuando
-  `email_verified === true`, por lo que una dirección de correo electrónico no verificada en el IdP nunca puede superar
+  Una lista de permitidos `oidcAllowedSubjects` opcional compara la declaración
+  `sub` del token o su declaración `email`; la declaración de correo electrónico solo se acepta cuando
+  `email_verified === true`, por lo que un correo electrónico no verificado en el IdP nunca puede superar
   el control de acceso.
-- Si el proceso finaliza correctamente, genera **exactamente el mismo** JWT `auth_token` de 30 días que emite el inicio de sesión
-  mediante contraseña (`src/app/api/auth/login/route.ts`), por lo que el resto de la
-  canalización de sesión del panel (actualización automática y atributos de la cookie) permanece sin cambios:
-  OIDC solo sustituye la forma en que se genera la cookie, no los permisos que concede.
+- Si se completa correctamente, se emite **exactamente el mismo** JWT `auth_token` de 30 días que genera
+  el inicio de sesión con contraseña (`src/app/api/auth/login/route.ts`), por lo que el resto del
+  proceso de sesión del panel de control (actualización automática, atributos de la cookie) permanece sin cambios:
+  OIDC solo sustituye la forma en que se emite la cookie, no los permisos que concede.
 
 ## Clases de rutas
 

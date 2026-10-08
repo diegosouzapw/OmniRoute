@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Пулы прокси и ротация opencode для каждой учётной записи временно перестают повторно выбирать прокси сразу после сбоя (отказ при проверке TCP или ответ 429, полученный через него) на срок, действующий в рамках процесса и удваивающийся при каждом повторном сбое вплоть до установленного предела. Статус прокси не записывается; если отложены все кандидаты, выбор остаётся прежним. По умолчанию включено; `false` возвращает обычный выбор.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Для провайдеров, квота которых распределяется по исходящему (egress) адресу, ставит участника pool, разделяющего наблюдаемый egress-адрес недавно отклонённого участника, сразу ниже здоровых участников. Только порядок, никогда не исключает. Требует PROXY_SKIP_RECENTLY_FAILED, который формирует считываемый сигнал отказа. По умолчанию выключено: порядок выбора — в точности обычная ротация.",
   "featureFlagProxyPoolEgressObservationDescription": "Показывать под пулом прокси на панели управления, сколько наблюдаемых исходящих IP-адресов использовалось его участниками за последние 24 ч, сколько подключений использовало эти адреса и какое наибольшее число подключений приходилось на один IP-адрес. Данные доступны только для чтения, вычисляются по журналу прокси и никогда не используются для маршрутизации. По умолчанию отключено: редактор пула остаётся без изменений, а маршрут наблюдений возвращает null.",
+  "featureFlagProxyOperatorEgressDescription": "Принимать отправляемые оператором датированные адреса наблюдаемых объектов для каждого участника пула и объединять их с данными, получаемыми при чтении журнала, для отображения и определения порядка в пуле. Отключено по умолчанию: маршрут отправки возвращает 404 в ответ на запрос, а чтение пула работает точно так же, как раньше.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "При проверке работоспособности прокси позволить проверке, отклонённой целевым сервером (401/403/429: прокси передал запрос, но целевой сервер отклонил этот исходящий IP-адрес), сбрасывать счётчик последовательных сбоев прокси, как при успешно обслуженной проверке. По умолчанию отключено: отказ остаётся нейтральным и не сбрасывает счётчик. Ответ 5xx в любом случае остаётся неопределённым, а отказ никогда не удаляет, не отключает и не активирует прокси повторно.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Разрешить автоматической очистке удалять задания Batch API в конечном состоянии (завершённые/завершившиеся ошибкой/отменённые/с истёкшим сроком действия) старше OMNIROUTE_BATCH_RETENTION_DAYS вместе с их построчными контрольными точками, а также очищать содержимое BLOB загруженных файлов после наступления указанного для них expires_at. По умолчанию отключено: во всех существующих установках эти данные сохраняются без изменений, пока оператор не включит эту функцию. Маршрут DELETE /api/v1/batches/delete-completed, запускаемый оператором, не затрагивается независимо от этой настройки — это отдельный безусловный контракт публичного API.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Получать актуальный каталог моделей xAI для подключений xai-oauth с https://api.x.ai/v1/models, используя OAuth-токен доступа, вместо зафиксированного статического набора. По умолчанию отключено: xai-oauth продолжает без изменений использовать статический набор. При любой ошибке получения каталога используется резервный статический набор.",
@@ -5692,7 +5693,7 @@
     "claudeImportBulkModePaste": "Вставить массив JSON",
     "claudeImportBulkModeZip": "Загрузить ZIP-файл",
     "claudeImportBulkUploadHint": "Перетащите или возьмите до 50 файлов .credentials.json (256 КБ каждый, общий размер 10 МБ).",
-    "claudeImportBulkPasteHint": "Вставьте массив объектов: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "Вставьте массив объектов: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": "ZIP-архив, содержащий записи .json. Макс. 50 записей, 10 МБ в распакованном виде.",
     "claudeImportBulkSubmit": "Импортировать все",
     "claudeImportBulkSuccess": "Импортированные соединения {count} Claude",
@@ -5724,7 +5725,7 @@
     "geminiImportBulkModePaste": "Вставить массив JSON",
     "geminiImportBulkModeZip": "Загрузить ZIP-файл",
     "geminiImportBulkUploadHint": "Перетащите или возьмите до 50 файлов oauth_creds.json (256 КБ каждый, общий размер 10 МБ).",
-    "geminiImportBulkPasteHint": "Вставьте массив объектов: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "Вставьте массив объектов: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "ZIP-архив, содержащий записи oauth_creds.json. Макс. 50 записей, 10 МБ в распакованном виде.",
     "geminiImportBulkSubmit": "Импортировать все",
     "geminiImportBulkSuccess": "Импортированы соединения {count} Gemini.",
@@ -5773,7 +5774,7 @@
     "codexImportBulkModePaste": "Вставить список",
     "codexImportBulkModeZip": "ZIP-архив",
     "codexImportBulkUploadHint": "Выберите несколько файлов .json или перетащите их.",
-    "codexImportBulkPasteHint": "Массив JSON [ {...}, {...} ] или несколько JSON, разделенных --- в отдельной строке",
+    "codexImportBulkPasteHint": "Массив JSON [ '{...}', '{...}' ] или несколько JSON, разделенных --- в отдельной строке",
     "codexImportBulkZipHint": "Загрузите ZIP-файл, содержащий файлы auth.json (максимум 50 файлов, 10 МБ).",
     "codexImportBulkSubmit": "Импортировать аккаунты {count}.",
     "codexImportBulkLimit": "Макс. 50 файлов за один импорт",
@@ -6011,7 +6012,7 @@
     "validationModelIdPlaceholder": "например, meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "API-ключ или JSON сервисного аккаунта",
     "vertexCredentialHint": "API-ключи используют курируемый каталог проектов. JSON сервисного аккаунта позволяет динамически обнаруживать модели в Model Garden.",
-    "vertexServiceAccountPlaceholder": "Вставьте API-ключ, JSON сервисного аккаунта ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) или токен доступа OAuth",
+    "vertexServiceAccountPlaceholder": "Вставьте API-ключ, JSON сервисного аккаунта ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') или токен доступа OAuth",
     "webCookieProviders": "Провайдеры с веб-cookie-файлами",
     "weeklyShort": "Нед.",
     "xiaomiMimoBaseUrlHint": "Подсказка по базовому URL Xiaomi Mimo",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Локальный эндпоинт прокси-ядра недействителен; узлы SS/VMess/Trojan/VLESS были проигнорированы.",
         "NEEDS_CORE_NOT_CONFIGURED": "Эта подписка содержит узлы, которым требуется локальное прокси-ядро (SS/VMess/Trojan/VLESS); они не будут маршрутизироваться, пока вы не настроите SOCKS5-эндпоинт локального ядра.",
         "NO_USABLE_NODES": "Подписка не вернула доступных узлов (http/https/socks5 или узлов с локальным эндпоинтом ядра).",
-        "SELECTOR_SWITCH_FAILED": "Вызов управления прокси-ядра не удался; предыдущий маршрут остаётся активным. Проверьте URL и секрет управления, затем обновите."
+        "SELECTOR_SWITCH_FAILED": "Вызов управления прокси-ядра не удался; предыдущий маршрут остаётся активным. Проверьте URL и секрет управления, затем обновите.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Сгенерированное базовое конфигурационное файл не смогло заменить принятый файл; вместо него была сохранена соседняя копия.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Некоторые записи были пропущены во время генерации. Смотрите журнал сервера."
       },
       "description": "Вставьте ссылку на подписку на прокси. После включения трафик маршрутизируется через пул прокси-серверов в глобальном режиме или режиме правила (указанного поставщика). Узлы подписки автоматически синхронизируются с пулом прокси-серверов и повторно используют существующие механизмы опроса, проверки работоспособности и защиты от утечек.",
       "addSubscription": "Добавить подписку",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Переключения пока не записаны",
       "lastSwitchMember": "Обслуживающий участник",
       "nextSwitch": "Следующее возможное переключение",
-      "nextSwitchNow": "Сейчас"
+      "nextSwitchNow": "Сейчас",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Путь к основному исполняемому файлу",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Необязательно: проверяет созданный файл основным исполняемым файлом перед заменой принятого файла. Оставьте пустым, чтобы продолжать запись рядом. Каталог создается, если отсутствует."
     },
     "bulkHealthcheck": "Массовая проверка здоровья",
     "bulkHealthcheckDesc": "Проверьте все настроенные прокси по целевому URL, чтобы определить рабочие.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "Сжатие описания MCP",
     "mcpAccessibilityTitle": "Вывод доступности MCP",
     "compressionSettingsCavemanIntensity": "Интенсивность пещерного человека",
-    "compressionSettingsCavemanOutputMode": "Режим вывода «Пещерный человек»",
     "compressionSettingsOutputStyles": "Стили вывода",
     "compressionStylesTileTitle": "Стили вывода",
     "compressionSettingsOutputIntensity": "Выходная интенсивность",
-    "compressionSettingsAutoClarityBypass": "Автоматический обход четкости",
     "compressionEffectivePipeline": "Действующий конвейер:",
     "compressionDerivedOff": "выкл.",
     "compressionDerivedRuns": "запуски: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "Что GET /v1/models возвращает для этого ключа. Сокращение списка не влияет на то, какие модели может вызывать ключ.",
     "catalogScopeAll": "Оба варианта",
     "catalogScopeCombos": "Только комбо",
-    "catalogScopeModels": "Только модели"
+    "catalogScopeModels": "Только модели",
+    "resilienceTokenRefreshTitle": "Автоматический выключатель обновления токена",
+    "resilienceTokenRefreshDesc": "Останавливает повторные попытки обновления токена после нескольких неудач. Область per-connection изолирует один мёртвый аккаунт, чтобы здоровые аккаунты у того же провайдера продолжали обновляться.",
+    "resilienceTokenRefreshScope": "Попытки обновления токена для одного провайдера",
+    "resilienceTokenRefreshTrigger": "Последовательные неудачные попытки обновления",
+    "resilienceTokenRefreshEffect": "Приостанавливает попытки обновления на время периода ожидания",
+    "resilienceTokenRefreshScopeLabel": "Область",
+    "resilienceTokenRefreshScopeProvider": "Провайдер (все аккаунты используют один предохранитель)",
+    "resilienceTokenRefreshScopeConnection": "Подключение (у каждого аккаунта свой автоматический выключатель)",
+    "resilienceTokenRefreshThreshold": "Количество сбоев до приостановки",
+    "resilienceTokenRefreshCooldown": "Пауза после срабатывания"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -8544,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Загрузка…",
     "loadFailed": "Не удалось загрузить информацию о движке.",
+    "settingsLoadFailed": "Не удалось загрузить сохранённые настройки. В полях отображаются значения по умолчанию, а кнопка «Сохранить» остаётся отключённой до перезагрузки страницы.",
     "engineNotFound": "Движок \"{engine}\" не найден.",
     "saveFailed": "Не удалось сохранить конфигурацию.",
     "previewFailed": "Ошибка предпросмотра.",
@@ -8638,9 +8667,6 @@
       "minRows": {
         "label": "Минимальное число строк для компактизации",
         "description": "Минимальное количество строк в однородном массиве JSON, необходимое для запуска табличной компактизации. По умолчанию: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Сохранять системный промпт"
       },
       "summarizerEnabled": {
         "label": "Включить суммаризатор"
@@ -9029,12 +9055,7 @@
     "tooltipMinLength": "Сообщения короче этого значения не сжимаются. Ниже = больше сжатия.",
     "tooltipMinSavings": "Сжимайте только в том случае, если при этом сохраняется хотя бы столько же токенов.",
     "ultraSettings": "Ультра настройки",
-    "ultraSettingsDesc": "Семантическое сжатие на основе SLM",
-    "preview": {
-      "lite": "Отвечайте кратко. Сохраняйте технические термины, код, ошибки, URL-адреса и идентификаторы.",
-      "full": "Отвечайте лаконично и компактно. Сохраняйте всю техническую суть.",
-      "ultra": "Отвечайте предельно кратко, используя общепринятые технические сокращения. Сохраняйте символы без изменений."
-    }
+    "ultraSettingsDesc": "Семантическое сжатие на основе SLM"
   },
   "translator": {
     "title": "Переводчик",
@@ -9653,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "например, def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "например защита Фибоначчи",
     "suiteBuilderCaseExpectedPlaceholderExact": "Вставьте точный ожидаемый ответ",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "например ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "например ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "Используйте регулярное выражение JavaScript без переноса косых черт.",
     "suiteBuilderNamePlaceholder": "например, Набор тестов качества кода",
     "suiteBuilderAddCase": "Добавить тест",
@@ -10862,7 +10883,7 @@
     "grokAuthJsonDescription": "Вставьте ПОЛНОЕ содержимое ~/.grok/auth.json (не только поле JWT \"key\"). Обычный JWT не имеет refresh_token, поэтому соединение прекращается после истечения срока действия (#7610). Предпочитайте специальное модальное окно Импорт auth.json, когда оно доступно.",
     "devinDesktopPasteDescription": "Вставьте существующий ключ API Devin из аутентифицированной сессии Devin. Доступность экспорта ключа и шаги могут различаться в зависимости от версии Devin и учетной записи.",
     "devinPasteDescription": "Укажите ваш WINDSURF_API_KEY (полученный через `devin auth login` или через команду \"Windsurf: Provide Auth Token\" в IDE Windsurf).",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "auth.json для Grok Build",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "API Ключ / Токен",
@@ -10875,7 +10896,10 @@
     "gitlabDuoSetupTitle": "Настройка Duo OAuth для GitLab",
     "gitlabDuoSetupMessage": "Не настроен Duo OAuth для GitLab. Зарегистрируйте OAuth-приложение по адресу {applicationsUrl} с URI перенаправления {redirectUri} и областями \"{scopes}\", затем установите {clientIdEnv} (и, при необходимости, {clientSecretEnv}) и перезапустите.",
     "gitlabDuoSetupDescription": "После регистрации приложения и настройки переменных окружения в этом экземпляре OmniRoute нажмите Продолжить, чтобы начать вход через OAuth.",
-    "continue": "Продолжить"
+    "continue": "Продолжить",
+    "tabPasteSetupToken": "Токен настройки",
+    "claudeSetupTokenDescription": "Выполните `claude setup-token` в терминале и вставьте выведенный токен. Он действует один год и не имеет токена обновления. Перед сохранением OmniRoute отправляет в Anthropic один тестовый запрос.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Подключить курсор IDE",
@@ -11073,6 +11097,7 @@
     "poolEgressFailuresUnattributed": "Сбои без определённого выхода: {count}",
     "poolMemberEgress": "{host}:{port} выходил через {egressIp} · за последние {hours} ч",
     "poolMemberEgressEmpty": "{host}:{port}: за последние {hours} ч трафик не наблюдался",
+    "poolMemberEgressOperator": "{host}:{port} вышел через {egressIp} · предоставлено оператором, {date}",
     "poolMemberEgressHint": "Последний исходящий IP-адрес, наблюдавшийся у этого участника пула за указанный период согласно журналу прокси-сервера. Для участника, у которого за этот период не было трафика, отображается строка об отсутствии трафика.",
     "poolRemove": "Удалить",
     "poolRemoveFailed": "Не удалось удалить прокси из пула",
@@ -11086,6 +11111,7 @@
     "poolSetAsideKindProxyUnreachable": "прокси недоступен",
     "poolSetAsideKindIpQuota429": "ограничение частоты по IP (429)",
     "poolSetAsideKindSlow": "медленные ответы",
+    "poolSetAsideKindGeoBlocked": "заблокировано по региону (403/451)",
     "poolSetAsideUntil": "Снова в ротации {endsAt}",
     "poolSetAsideRepeat": "Отложен {count, plural, one {# раз} other {# раз}}",
     "poolUnknownAddress": "Неизвестный адрес",
@@ -11094,10 +11120,15 @@
     "poolSignalPosition": "Порядок позиций",
     "poolHealthRankingOff": "Рейтинг здоровья выкл",
     "transportRate": "{rate}% транспорта",
+    "slowAbandoned": "{count} медленных отказов",
+    "clientAborted": "{count} прерываний клиента",
+    "slowAbandonedHint": "Отказано после порога ожидания заголовков, исключено из транспортной скорости",
     "previousSuccessRate": "Ранее {rate}% успеха",
-    "upstreamRefusals": "{count} отказов апстрима",
     "connectionTestsCount": "{count} проверок соединения",
-    "notMeasured": "Не измерено"
+    "notMeasured": "Не измерено",
+    "upstream4xx": "{count} ошибки клиента вверху",
+    "upstream5xx": "{count} ошибки сервера вверху",
+    "uniformEgressLine": "{affected} из {exits} выходов одновременно дают сбой у {provider} (за последние {hours} ч) — проблема не в выходе"
   },
   "playground": {
     "title": "Title",
@@ -12871,7 +12902,10 @@
     "inheritedPool": "Наследует пул соединений ({count})",
     "poolEmptyBlocked": "Пул пуст — запросы завершаются ошибкой (не напрямую)",
     "directEgress": "Напрямую (без прокси)",
-    "ownProxy": "Собственный прокси"
+    "ownProxy": "Собственный прокси",
+    "freeTierPause": "Модель {model} приостановлена (429), возврат в {time}",
+    "freeTierPauseProvider": "Приостановлено (429), возврат в {time}",
+    "freeTierPauseNote": "Пауза в процессе на этом экземпляре"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13052,6 +13086,10 @@
     "inactiveCount": "{count} неактивных",
     "dbOverrideCount": "{count} переопределений в БД",
     "searchPlaceholder": "Поиск флагов...",
+    "descriptionModeLabel": "Вид описания",
+    "descriptionModeHint": "При наведении: карточки остаются компактными, а при наведении на описание показывается полный текст. Полный текст: всегда показывать описание целиком.",
+    "descriptionModeHover": "При наведении",
+    "descriptionModeFull": "Полный текст",
     "categories": {
       "all": "Все",
       "security": "Безопасность",
@@ -13679,7 +13717,7 @@
     "secondaryNote": "Также доступно на Open VSX (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "Закрыть"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Рекламируйте <gateway-alias>/<model> идентификаторы зеркал на /v1/models для моделей, у которых канонический владелец не имеет активной учетной записи, но шлюз с пропуском с активной учетной записью маршрутизирует их. Внимание: добавляет записи каталога для всех клиентов при глобальном включении.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Рекламируйте '<gateway-alias>'/'<model>' идентификаторы зеркал на /v1/models для моделей, у которых канонический владелец не имеет активной учетной записи, но шлюз с пропуском с активной учетной записью маршрутизирует их. Внимание: добавляет записи каталога для всех клиентов при глобальном включении.",
   "radarPage": {
     "title": "Каталог Радар",
     "subtitle": "Бесплатный каталог моделей, обогащенный данными сообщества",

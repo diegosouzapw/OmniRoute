@@ -1,1 +1,0 @@
-- fix(providers): expand IMAGE_PROVIDERS with missing OpenRouter image models so combo routing stops silently dropping them (#14545)

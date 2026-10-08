@@ -149,6 +149,40 @@ construct topology-bearing messages in the first place.
 
 When adding a new route or executor, copy the assertion pattern from this file. The coverage gate (`npm run test:coverage`) enforces ≥60% statements/lines/functions/branches — error paths must be covered.
 
+### The static gate: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` scans `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` and every `src/app/api/**/route.ts` for a raw caught error (`err.message` / `err.stack`) or a raw upstream `body.error.message` reaching a client-facing body.
+
+**Trust is call-scoped, never file-scoped** (G-03, #15159). The gate used to skip an entire file the moment it saw any import from a `utils/error` path — a file-scoped exemption applied to a call-scoped hazard. One correct `import { sanitizeErrorMessage }` permanently excused every other sink in the file, which is how a live leak shipped green. Now a line is trusted only when it actually routes through a sanctioned builder or sanitizer:
+
+| Line shape                                                                                                      | Trusted?           |
+| --------------------------------------------------------------------------------------------------------------- | ------------------ |
+| calls `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …             | yes                |
+| calls a canonical builder **that this file imports** from `open-sse/utils/error` or `src/lib/api/errorResponse` | yes                |
+| a sanctioned builder is called **multi-line**, so the `message:` field sits on a later line                     | yes                |
+| calls a file-local `function errorResponse(...)` whose own body sanitizes                                       | yes                |
+| forwards `err.message` / `err.stack` anywhere else                                                              | **no — violation** |
+
+Two consequences worth knowing:
+
+- Importing `errorResponse` is _not_ blanket trust. A file that defines its own `errorResponse` still gets flagged at the call site, because the gate resolves trust per symbol, not per file. The same holds for `createErrorResponse`.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` followed by `error: body.error.message` is the **sanitized** idiom used across the `*-fetch.ts` executors and is not flagged.
+
+Both sanctioned builder modules count: `open-sse/utils/error.ts` and `src/lib/api/errorResponse.ts`. The second is what the ~54 route handlers outside `open-sse` use, and it sanitizes both of its exports.
+
+Two shapes that are **not** violations, both of which the gate once reported as leaks:
+
+- a raw error inside an **audit row** — `saveCallLog({ error: err.message })`, `logToolCall(...)`, or a logger that takes a message first (`log.error("BATCHES", "sweep failed", { error: err.message })`). The client-facing response on the next lines may well be a static `buildErrorBody`.
+- a **multi-line** sanctioned builder call, where the `message:` field names no builder at all:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` freezes pre-existing violations so the gate blocks only _new_ ones. `assertNoStale` drops an entry automatically once its violation is fixed, so the freeze cannot ossify. Regression guards: `tests/unit/check-error-helper.test.ts` and `tests/unit/check-error-helper-call-scope.test.ts`.
+
 ## Related controls
 
 - `js/stack-trace-exposure` CodeQL alerts in `.github/security` should always be **either** fixed via these helpers **or** dismissed with a comment citing this doc.

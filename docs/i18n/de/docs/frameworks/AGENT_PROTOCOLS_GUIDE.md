@@ -67,33 +67,37 @@ Benötigen Sie einen Cloud-Dienst, der Arbeiten außerhalb dieses Rechners ausf�
 
 Weitere Informationen zu Transportdetails, zur Struktur der Agentenkarte, zur TTL-Konfiguration von Aufgaben und zur Vorlage für das Hinzufügen neuer Fähigkeiten finden Sie unter [A2A-SERVER.md](./A2A-SERVER.md).
 
-## 2. ACP — CLI-Agenten-Registry
+## 2. ACP — CLI-Agentenregister
 
 **OmniRoute-Endpunkt:** `GET /api/acp/agents`
 **Quelle:** `src/lib/acp/{index,manager,registry}.ts`
 
 ### Was es ist
 
-ACP ist OmniRoutes **lokales Inventar für CLI-Agenten**. Es erkennt, welche Coding-CLIs auf dem Host installiert sind (Cursor, Cline, Claude Code, Codex CLI, Continue usw.), ermittelt deren Versionen und zeigt sie im Dashboard an, damit Benutzer jede CLI so konfigurieren können, dass sie auf OmniRoute verweist.
+ACP ist OmniRoutes **lokales Verzeichnis für CLI-Agenten**. Es erkennt, welche Coding-CLIs auf dem Host installiert sind (Cursor, Cline, Claude Code, Codex CLI, Continue usw.), ermittelt deren Versionen und stellt sie dem Dashboard bereit, damit Benutzer jede CLI so konfigurieren können, dass sie auf OmniRoute verweist.
 
-Dies ist KEIN externes Protokoll — es handelt sich um eine interne Registry, die die Benutzeroberfläche „CLI Tools“ und die Verfolgung von CLI-Fingerprints unterstützt (siehe [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+Die HTTP-Schnittstelle ist ein internes Verzeichnis, das die Benutzeroberfläche „CLI Tools“ und
+die Verfolgung von CLI-Fingerprints ermöglicht (siehe [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Unabhängig davon
+unterstützt der interne Prozessmanager das native Agent Client Protocol für den
+registrierten Gemini-Launcher sowie ältere stdio-Adapter für andere Schnittstellen.
+Weitere Informationen zu diesen unterschiedlichen Modi und Einschränkungen finden Sie unter [ACP-Register und -Launcher](./ACP.md).
 
 ### Funktionsweise
 
 - Prüft den Host auf installierte CLI-Binärdateien (verwendet je nach Betriebssystem `which` / `where`)
 - Liest die Version jeder CLI aus (ruft `<bin> --version` auf)
-- Akzeptiert optional benutzerdefinierte Agenten (Binärdateipfad + Versionsprüfung + Startargumente)
+- Akzeptiert optional benutzerdefinierte Agenten (Binärdateipfad + Versionsabfrage + Startargumente)
 - Speichert benutzerdefinierte Agenten in den Einstellungen
-- Gibt die zusammengeführte Liste an das Dashboard zurück
+- Gibt die vereinheitlichte Liste an das Dashboard zurück
 
 ### REST-API
 
-| Endpunkt          | Methode | Beschreibung                                                                    | Authentifizierung |
-| ----------------- | ------- | ------------------------------------------------------------------------------- | ----------------- |
-| `/api/acp/agents` | GET     | Erkannte + benutzerdefinierte Agenten auflisten (installiert/Gesamtanzahl)      | API-Schlüssel     |
-| `/api/acp/agents` | POST    | Benutzerdefinierten Agenten hinzufügen/aktualisieren/entfernen (Aktion im Body) | API-Schlüssel     |
+| Endpunkt          | Methode | Beschreibung                                                                            | Authentifizierung |
+| ----------------- | ------- | --------------------------------------------------------------------------------------- | ----------------- |
+| `/api/acp/agents` | GET     | Erkannte + benutzerdefinierte Agenten auflisten (installiert/gesamt)                    | API-Schlüssel     |
+| `/api/acp/agents` | POST    | Benutzerdefinierten Agenten hinzufügen/aktualisieren/entfernen (Aktionskennung im Body) | API-Schlüssel     |
 
-Body-Format für POST (`customAgentBodySchema` in `src/app/api/acp/agents/route.ts`):
+Body-Struktur für POST (`customAgentBodySchema` in `src/app/api/acp/agents/route.ts`):
 
 ```json
 {
@@ -110,13 +114,16 @@ Body-Format für POST (`customAgentBodySchema` in `src/app/api/acp/agents/route.
 
 ### Anwendungsfälle
 
-- Die Dashboard-Seite „CLI Tools“ listet auf, was installiert ist, und hilft dabei, die einzelnen Tools auf OmniRoute zu verweisen
+- Die Dashboard-Seite „CLI Tools“ zeigt an, was installiert ist, und hilft Ihnen dabei, jede CLI auf OmniRoute auszurichten
 - Mit benutzerdefinierten Agenten können erfahrene Benutzer interne/proprietäre CLIs registrieren, die OmniRoute standardmäßig nicht kennt
-- Das Erkennungsergebnis dient als Grundlage für die `cli-tools`-Fingerprint-Matrix
+- Das Erkennungsergebnis speist die `cli-tools`-Fingerprint-Matrix
 
 ### Wann ACP NICHT verwendet werden sollte
 
-- ACP führt keine Aufgaben _aus_. Es erkennt und konfiguriert lediglich CLIs. Um eine CLI tatsächlich aufzurufen, starten Sie sie selbst mit den von OmniRoute bereitgestellten Umgebungsvariablen (`OPENAI_BASE_URL`, `OPENAI_API_KEY` usw.).
+- Das HTTP-Register nimmt keine Aufgaben an und bietet keine Prozessstartfunktion. Der interne
+  Manager kann eine registrierte CLI starten, ist jedoch nicht als automatischer Provider-
+  Fallback eingebunden. Starten Sie für die gewöhnliche interaktive Nutzung die konfigurierte CLI selbst oder
+  verwenden Sie `omniroute run`.
 
 ## 3. Cloud-Agenten
 

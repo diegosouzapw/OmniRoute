@@ -16,6 +16,7 @@ import { splitClaudeEffortSuffix } from "../../config/providerModels.ts";
 import { isClaudeCodeCompatibleProvider } from "../../services/claudeCodeCompatible.ts";
 import { FORMATS } from "../../translator/formats.ts";
 import { isKnownClaudeEffortBaseModel } from "../../utils/claudeEffortVariants.ts";
+import { isAntigravityLiteralTierModelId } from "../../utils/antigravityLiteralModelIds.ts";
 import { isDevinLiteralModelIdProvider } from "../../utils/devinLiteralModelIds.ts";
 
 /**
@@ -58,6 +59,12 @@ export function applyClaudeEffortVariant(opts: {
   // would dispatch a base id that does not exist upstream, so keep the id
   // literal for these providers regardless of the Claude-family name.
   if (isDevinLiteralModelIdProvider(provider)) {
+    return { effectiveModel, log: null };
+  }
+
+  // Antigravity Claude 5.x tiers are distinct upstream ids (`claude-opus-5-5-high`);
+  // the bare base id does not exist on the Cloud Code backend.
+  if (isAntigravityLiteralTierModelId(provider, effectiveModel)) {
     return { effectiveModel, log: null };
   }
 

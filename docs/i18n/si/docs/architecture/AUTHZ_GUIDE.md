@@ -13,61 +13,62 @@ OmniRoute සතුව සෑම API ඉල්ලීමක්ම පාලනය
 
 > මූලාශ්රය: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
-## සත්යාපන ආකාර දෙක
+## සත්යාපන ක්රම දෙකක්
 
 ### 1. API යතුර (Bearer)
 
-OpenAI/Anthropic/Gemini-අනුකූල සේවාලාභී API සඳහාත්, යතුරට `manage` විෂය පථය ඇති විට කළමනාකරණ මාර්ග කිහිපයක් සඳහාත් භාවිත කෙරේ.
+OpenAI/Anthropic/Gemini-අනුකූල සේවාලාභී API සහ යතුරට `manage` විෂය පථය ඇති විට කළමනාකරණ මාර්ග කිහිපයක් සඳහා භාවිත වේ.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-`src/sse/services/auth.ts` තුළ ඇති `isValidApiKey()` / `extractApiKey()` මඟින් වලංගු කරනු ලබන අතර `src/shared/utils/apiAuth.ts` හරහා නැවත නිර්යාත කෙරේ. වලංගුකාරකය ස්ථිර සෘජු-යොමු යතුරු ලෙස `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` පරිසර විචල්ය ද පිළිගනී (ගැටලුව #1350).
+`src/sse/services/auth.ts` හි `isValidApiKey()` / `extractApiKey()` මඟින් වලංගු කරනු ලබන අතර `src/shared/utils/apiAuth.ts` හරහා නැවත අපනයනය කෙරේ. වලංගුකාරකය ස්ථිර passthrough යතුරු ලෙස `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` පරිසර විචල්ය ද පිළිගනී (ගැටලුව #1350).
 
-### 2. උපකරණ පුවරු සැසිය (auth_token කුකිය)
+### 2. Dashboard සැසිය (auth_token cookie)
 
-උපකරණ පුවරු පිටු සහ පරිපාලක මෙහෙයුම් සඳහාය.
+Dashboard පිටු සහ පරිපාලක මෙහෙයුම් සඳහාය.
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-JWT සත්යාපනය වී **සහ** එහි `authenticated: true` අඩංගු වන විට පමණක් කුකියක් සැසියක් වේ
-(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). කුකිය භාවිත කරන සෑම
-පාරිභෝගිකයෙක්ම (මාර්ග ආරක්ෂකය, authz නල මාර්ග නැවුම් කිරීම, WebSocket ආරම්භක සම්බන්ධතාව, සජීවී
-සේවාදායකය, `/api/settings/require-login`, `/api/auth/status`) එම සහායකය හරහා ගමන් කරයි.
-`JWT_SECRET` භාවිතයෙන් අත්සන් කළ වෙනත් JWT ද පවතී — Cursor CLI සෘජු-යොමුව මඟින්
-යතුරු හිමියන් සඳහා `iss "omniroute" / aud "cursor-cli"` ටෝකන නිකුත් කරයි — ඒවා කිසිවිටෙක සැසි ලෙස
-සලකනු නොලැබේ (#13298).
+JWT සත්යාපනය **සහ** එහි `authenticated: true` අඩංගු වීම යන දෙකම සිදු වන විට පමණක් cookie එකක් සැසියක් වේ
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Cookie එක භාවිත කරන සෑම අංගයක්ම (dashboard මාර්ග ආරක්ෂකය (`isDashboardSessionAuthenticated()`), authz pipeline නැවුම් කිරීම, WebSocket handshake, සජීවී
+සේවාදායකය, `/api/settings/require-login`, `/api/auth/status`) එම උපකාරකය හරහා යයි.
+`JWT_SECRET` සමඟ අත්සන් කළ වෙනත් JWT ද පවතී — Cursor CLI passthrough එක යතුරු හිමියන් සඳහා
+`iss "omniroute" / aud "cursor-cli"` token නිකුත් කරයි — ඒවා කිසිවිටෙකත් සැසි නොවේ
+(#13298).
 
-`src/shared/utils/apiAuth.ts` තුළ ඇති `isDashboardSessionAuthenticated()` මඟින් සත්යාපනය කෙරේ. දින 30ක ආයු කාලයෙන් දින 7කට අඩු කාලයක් ඉතිරිව ඇති විට නල මාර්ගය JWT ස්වයංක්රීයව නැවුම් කරයි.
+`src/shared/utils/apiAuth.ts` හි `isDashboardSessionAuthenticated()` මඟින් සත්යාපනය කෙරේ. JWT එකේ දින 30ක ආයු කාලයෙන් දින 7කට අඩු කාලයක් ඉතිරිව ඇති විට pipeline එක එය ස්වයංක්රීයව නැවුම් කරයි.
 
-සමහර කළමනාකරණ මාර්ග **මෙම ආකාර දෙකෙන් ඕනෑම එකක්** පිළිගනී: කුකිය හෝ API යතුරට `manage` (හෝ `admin`) විෂය පථය ඇති විට `Bearer <key>`. v3.8 හි එක් කළ "API ඇමතුම් හරහා වින්යාස කළ හැකි" කාර්ය ප්රවාහය සක්රීය වන්නේ මෙලෙසය.
+සෑම නිකුත් කරන්නෙකුම `mintDashboardSessionToken` හරහා යන බැවින් (නිකුත් කළ වේලාවක් වන `iat` සහ හැඳුනුම්කාරකයක් වන `jti` සමඟ), සැසියක දින 30 සම්පූර්ණ වීමට පෙරද එය අවසන් විය හැක. සත්යාපකය සැකසුම් දෙකක් පරීක්ෂා කරයි: මුරපදය වෙනස් කිරීමකදී සකසන `sessionsValidAfter`, එමඟින් ඊට පෙර නිකුත් කළ සෑම සැසියක්ම තවදුරටත් සත්යාපනය නොවේ (මුරපදය වෙනස් කළ browser එකට නව cookie එකක් ලැබේ), සහ `revokedDashboardSessions`, එයට `POST /api/auth/logout` මඟින් ඉවත් වූ සැසියේ `jti` එක් කරයි. පැරණි නිකුතුවක් මඟින් නිකුත් කළ සැසිවල මෙම claim දෙකෙන් එකක්වත් නොමැති අතර පළමු මුරපද වෙනස් කිරීම දක්වා ඒවා වලංගුව පවතී. සැකසුම් කියවීමට නොහැකි නම්, සැසිය විශ්වාස නොකෙරේ.
+
+සමහර කළමනාකරණ මාර්ග **මෙම ක්රම දෙකෙන් ඕනෑම එකක්** පිළිගනී: cookie හෝ API යතුරට `manage` (හෝ `admin`) විෂය පථය ඇති විට `Bearer <key>`. v3.8 හි එක් කළ "API ඇමතුම් හරහා වින්යාස කළ හැකි" කාර්ය ප්රවාහය සක්රීය කරන්නේ මෙයයි.
 
 #### විකල්ප OIDC පිවිසුම් ද්වාරය (#6973)
 
-උපකරණ පුවරුවේ පරිපාලක පිවිසුම පෙරනිමි මුරපද පිවිසුමට අමතරව **කැමැත්තෙන් සක්රීය කළ හැකි** OIDC (OpenID Connect) ප්රවාහයකට ද සහාය දක්වයි — මුරපද පිවිසුම කිසිවිටෙක ඉවත් නොකරන අතර, එය අතිරේකව සපයනු ලැබේ:
+Dashboard පරිපාලක පිවිසුම පෙරනිමි මුරපද පිවිසුමට අමතරව **තෝරා සක්රීය කළ හැකි** OIDC (OpenID Connect) ප්රවාහයකටද සහාය දක්වයි — මුරපද පිවිසුම කිසිවිටෙක ඉවත් නොකරන අතර එයට අතිරේකයක් පමණක් එක් කෙරේ:
 
-- `settings.oidcEnabled === true` වීම **සහ** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` සියල්ල වින්යාස කර තිබීම හැර අන් අවස්ථාවලදී අක්රීය වේ (Settings → Auth).
-  එසේ නොමැති නම් `GET /api/auth/oidc/login` විසින් `400` ආපසු ලබා දෙයි.
+- `settings.oidcEnabled === true` **සහ** `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` සියල්ල වින්යාස කර ඇත්නම් පමණක් සක්රීය වේ (Settings → Auth).
+  එසේ නොමැති නම් `GET /api/auth/oidc/login` විසින් `400` ලබා දෙයි.
 - `GET /api/auth/oidc/login` නිකුත් කරන්නාගේ
-  `/.well-known/openid-configuration` වෙතින් `authorization_endpoint` සොයා ගනී (`<issuer>/authorize`
-  වෙත පසුබැසීමක් ඇත), ලැබෙන ඉල්ලීමෙන් යළි-යොමු URI එක ගොඩනඟයි
-  (`x-forwarded-proto` පිළිබඳ දැනුවත්ය), සහ අහඹු `state` අගයක්
-  `httpOnly` `oidc_state` කුකියක ගබඩා කර IdP වෙත යළි යොමු කරයි.
-- `GET /api/auth/oidc/callback` විසින් `state` වලංගු කර, බලය පැවරීමේ
-  කේතය හුවමාරු කර, නිකුත් කරන්නාගේ JWKS හරහා ID ටෝකනයේ අත්සන
-  (`jose` හි `createRemoteJWKSet`, එක් එක් JWKS URI සඳහා හැඹිලිගත කෙරේ) `issuer`/`audience`
-  පරීක්ෂාවන් සමඟ සත්යාපනය කරයි. විකල්ප `oidcAllowedSubjects` අවසර ලැයිස්තුවක් ටෝකනයේ
-  `sub` හිමිකම හෝ එහි `email` හිමිකම සමඟ ගැළපේ — email හිමිකම පිළිගනු ලබන්නේ
-  `email_verified === true` වන විට පමණක් බැවින්, IdP හි සත්යාපනය නොකළ email ලිපිනයකට කිසිවිටෙක
+  `/.well-known/openid-configuration` වෙතින් `authorization_endpoint` සොයාගනී (`<issuer>/authorize` වෙත
+  fallback වේ), ලැබෙන ඉල්ලීමෙන් redirect URI එක සාදයි
+  (`x-forwarded-proto` පිළිබඳ දැනුවත්ය), සහ `httpOnly` `oidc_state` cookie එකක ගබඩා කළ අහඹු `state`
+  සමඟ IdP වෙත redirect කරයි.
+- `GET /api/auth/oidc/callback` විසින් `state` වලංගු කර, authorization
+  code එක හුවමාරු කර, නිකුත් කරන්නාගේ JWKS හරහා ID token එකේ අත්සන
+  (`jose` හි `createRemoteJWKSet`, එක් එක් JWKS URI සඳහා cache කර ඇත) `issuer`/`audience`
+  පරීක්ෂණ සමඟ සත්යාපනය කරයි. විකල්ප `oidcAllowedSubjects` අවසර ලැයිස්තුවක් token එකේ
+  `sub` claim එකට හෝ එහි `email` claim එකට ගැළපේ — email claim එක පිළිගනු ලබන්නේ
+  `email_verified === true` වූ විට පමණි; එබැවින් IdP හි සත්යාපනය නොකළ email එකකට කිසිවිටෙක
   ද්වාරය පසු කළ නොහැක.
-- සාර්ථක වූ විට, මුරපද පිවිසුම නිකුත් කරන **හරියටම එම** දින 30ක `auth_token` JWT එකම
-  එය නිකුත් කරයි (`src/app/api/auth/login/route.ts`), එබැවින් අනෙකුත්
-  උපකරණ පුවරු සැසි නල මාර්ගය (ස්වයංක්රීය නැවුම් කිරීම, කුකි ධජ) නොවෙනස්ව පවතී —
-  OIDC ප්රතිස්ථාපනය කරන්නේ කුකිය නිකුත් කරන ආකාරය පමණක් වන අතර, එයින් ලබා දෙන අවසර නොවේ.
+- සාර්ථක වූ විට, එය මුරපද පිවිසුම නිකුත් කරන දින 30ක **හරියටම එම** `auth_token` JWT එක
+  නිකුත් කරයි (`src/app/api/auth/login/route.ts`), එබැවින් dashboard
+  සැසි pipeline එකේ ඉතිරි කොටස (ස්වයංක්රීය නැවුම් කිරීම, cookie flags) වෙනස් නොවේ —
+  OIDC මඟින් ප්රතිස්ථාපනය කරන්නේ cookie එක නිකුත් කරන ආකාරය පමණක් වන අතර, එය ලබා දෙන අවසර නොවේ.
 
 ## මාර්ග පන්ති
 

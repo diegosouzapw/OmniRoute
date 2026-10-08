@@ -341,35 +341,35 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🎯 कम्बोहरू — प्रमुख सुविधा
+## 🎯 कम्बोहरू — प्रमुख विशेषता
 
 </div>
 
-<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="सबै 19 कम्बो राउटिङ रणनीतिहरू एनिमेटेड — प्रत्येक रणनीतिका लागि एउटा टाइल: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline। प्रत्येकले के गर्छ भन्ने जानकारीका लागि माथिको तालिका हेर्नुहोस्।"/>
+<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="सबै 19 कम्बो राउटिङ रणनीतिहरू एनिमेटेड — प्रत्येक रणनीतिका लागि एउटा टाइल: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline। प्रत्येकले के गर्छ भन्ने जान्न माथिको तालिका हेर्नुहोस्।"/>
 
-> **कम्बो** भनेको मोडेलहरूको शृङ्खला हो, जसमा OmniRoute ले **स्वचालित रूपमा** राउट गर्छ। कोटा सकिएमा, प्रदायक असफल भएमा वा लागत अचानक बढेमा, कम्बो अर्को योग्य र स्वस्थ मोडेलमा जान सक्छ। 🛡️
+> **कम्बो** भनेको मोडेलहरूको एउटा शृङ्खला हो, जसमार्फत OmniRoute ले **स्वचालित रूपमा** राउट गर्छ। कोटा सकिएमा, प्रदायक असफल भएमा वा लागत बढेमा, कम्बो अर्को योग्य र स्वस्थ मोडेलमा जान सक्छ। 🛡️
 
 ### ⚡ शून्य-कन्फिगरेसन — केवल `auto` प्रयोग गर्नुहोस्
 
-कुनै कम्बो सिर्जना गर्नु पर्दैन। आफ्नो मोडेललाई `auto` (वा यसको कुनै भेरियन्ट) मा सेट गर्नुहोस् र OmniRoute ले तपाईंका जडान गरिएका प्रदायकहरूबाट प्रत्यक्ष रूपमा स्कोर गरिएको भर्चुअल कम्बो बनाउँछ:
+कम्बो सिर्जना गर्नुपर्दैन। आफ्नो मोडेललाई `auto` (वा यसको कुनै भेरियन्ट) मा सेट गर्नुहोस् र OmniRoute ले तपाईंका जडान गरिएका प्रदायकहरूबाट प्रत्यक्ष रूपमा स्कोर गरिएको भर्चुअल कम्बो बनाउँछ:
 
 <table>
   <tr><th align="left">मोडेल ID</th><th align="left">यसले केका लागि अनुकूलन गर्छ</th></tr>
-  <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 सन्तुलित पूर्वनिर्धारित (LKGP — तपाईंको पछिल्लो राम्रो प्रदायकमै कायम रहन्छ)</td></tr>
-  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 कोड जेनेरेसनका लागि गुणस्तर-प्रथम भारहरू</td></tr>
-  <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ सबैभन्दा कम विलम्बता पहिले</td></tr>
-  <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 प्रति टोकन सबैभन्दा सस्तो पहिले</td></tr>
-  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 सबैभन्दा धेरै कोटा / दर-सीमा हेडरुम पहिले</td></tr>
-  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 गुणस्तर-प्रथम + अझ राम्रा मोडेलहरू पत्ता लगाउन 10% अन्वेषण</td></tr>
-  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 पछिल्लो-ज्ञात-राम्रो-प्रदायकप्रतिको स्पष्ट आबद्धता</td></tr>
-  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 लचिलोपन परीक्षणका लागि त्रुटि-इन्जेक्सन भारहरू (क्याओस इन्जिनियरिङ)</td></tr>
+  <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 सन्तुलित पूर्वनिर्धारित विकल्प (LKGP — तपाईंको पछिल्लो राम्रो प्रदायकमै कायम रहन्छ)</td></tr>
+  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 कोड निर्माणका लागि गुणस्तरलाई प्राथमिकता दिने भारहरू</td></tr>
+  <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ सबैभन्दा कम विलम्बतालाई पहिलो प्राथमिकता</td></tr>
+  <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 प्रति टोकन सबैभन्दा सस्तोलाई पहिलो प्राथमिकता</td></tr>
+  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 सबैभन्दा धेरै कोटा / दर-सीमा अतिरिक्त क्षमता भएकालाई पहिलो प्राथमिकता</td></tr>
+  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 गुणस्तरलाई पहिलो प्राथमिकता + अझ राम्रा मोडेलहरू पत्ता लगाउन 10% अन्वेषण</td></tr>
+  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 अन्तिम-ज्ञात-राम्रो-प्रदायकमै स्पष्ट रूपमा कायम रहने</td></tr>
+  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 मोडेलहरूको प्यानलमा समानान्तर फ्यान-आउट (प्रति प्रदायक एउटा, पूर्वनिर्धारित रूपमा 5), एउटा उत्तर फर्काउँछ; प्रति प्यानल मोडेल एउटा अपस्ट्रिम कल, त्रुटि इन्जेक्सन होइन</td></tr>
 </table>
 
 ##
 
 ### 🔀 वा आफ्नै बनाउनुहोस् — 19 राउटिङ रणनीतिहरू
 
-सबै **19** रणनीतिहरू — प्रत्येक कम्बो चरणमा इच्छाअनुसार मिलाउनुहोस्:
+सबै **19** रणनीतिहरू — प्रत्येक कम्बो चरणमा मिसाउनुहोस् र मिलाउनुहोस्:
 
 <table>
   <tr>
@@ -380,82 +380,82 @@ curl http://localhost:20128/v1/chat/completions \
   <tr>
     <td align="center">1</td>
     <td nowrap><code>priority</code></td>
-    <td>पहिलो-लक्ष्य प्राथमिकतासहितको क्रमबद्ध सूची — अर्कोमा जानुअघि प्रत्येकलाई समाप्त पार्छ 🥇</td>
+    <td>पहिलो लक्ष्यलाई प्राथमिकता दिने क्रमबद्ध सूची — अर्कोमा जानुअघि प्रत्येकलाई समाप्त गर्नुहोस् 🥇</td>
   </tr>
   <tr>
     <td align="center">2</td>
     <td nowrap><code>fill-first</code></td>
-    <td>अर्कोमा जानुअघि प्रत्येक लक्ष्यको कोटा पूर्ण रूपमा भर्छ</td>
+    <td>अर्कोमा जानुअघि प्रत्येक लक्ष्यको कोटा पूर्ण रूपमा भर्नुहोस्</td>
   </tr>
   <tr>
     <td align="center">3</td>
     <td nowrap><code>weighted</code></td>
-    <td>प्रत्येक लक्ष्यको भारअनुसार भारित यादृच्छिक चयन</td>
+    <td>प्रत्येक लक्ष्यको भारअनुसार भारित अनियमित छनोट</td>
   </tr>
   <tr>
     <td align="center">4</td>
     <td nowrap><code>round-robin</code></td>
-    <td>लक्ष्यहरूलाई क्रमअनुसार चक्रीय रूपमा प्रयोग गर्छ</td>
+    <td>लक्ष्यहरूलाई क्रमअनुसार चक्रीय रूपमा प्रयोग गर्नुहोस्</td>
   </tr>
   <tr>
     <td align="center">5</td>
     <td nowrap><code>p2c</code></td>
-    <td>दुई-विकल्पको-शक्ति आधारित यादृच्छिक लोड सन्तुलन</td>
+    <td>दुई-विकल्पको-शक्ति अनियमित लोड सन्तुलन</td>
   </tr>
   <tr>
     <td align="center">6</td>
     <td nowrap><code>least-used</code></td>
-    <td>हाल सबैभन्दा कम लोड भएको लक्ष्य चयन गर्छ</td>
+    <td>हालको लोड सबैभन्दा कम भएको लक्ष्य छान्नुहोस्</td>
   </tr>
   <tr>
     <td align="center">7</td>
     <td nowrap><code>random</code></td>
-    <td>समान सम्भावनासहितको यादृच्छिक चयन (दोहोरोपन हटाइएको)</td>
+    <td>समान वितरणसहितको अनियमित छनोट (दोहोरोपन हटाइएको)</td>
   </tr>
   <tr>
     <td align="center">8</td>
     <td nowrap><code>strict-random</code></td>
-    <td>दोहोरिएका चयनहरू नहटाई यादृच्छिक रूपमा छान्छ 🎲</td>
+    <td>दोहोरिएका छनोटहरू नहटाई अनियमित छनोट 🎲</td>
   </tr>
   <tr>
     <td align="center">9</td>
     <td nowrap><code>cost-optimized</code></td>
-    <td>प्रत्यक्ष क्याटलग मूल्यबाट प्रति अनुरोध $ न्यूनतम पार्छ 💸</td>
+    <td>प्रत्यक्ष क्याटलग मूल्य निर्धारणबाट प्रति अनुरोध $ न्यूनतम गर्नुहोस् 💸</td>
   </tr>
   <tr>
     <td align="center">10</td>
     <td nowrap><code>headroom</code></td>
-    <td>सबैभन्दा धेरै बाँकी कोटा भएको लक्ष्य चयन गर्छ</td>
+    <td>सबैभन्दा धेरै बाँकी कोटा भएको लक्ष्य छान्नुहोस्</td>
   </tr>
   <tr>
     <td align="center">11</td>
     <td nowrap><code>reset-window</code></td>
-    <td>जसको कोटा विन्डो सबैभन्दा चाँडो रिसेट हुन्छ, त्यस लक्ष्यलाई प्राथमिकता दिन्छ</td>
+    <td>जसको कोटा विन्डो सबैभन्दा चाँडो रिसेट हुन्छ, त्यस लक्ष्यलाई प्राथमिकता दिनुहोस्</td>
   </tr>
   <tr>
     <td align="center">12</td>
     <td nowrap><code>reset-aware</code></td>
-    <td>कोटा रिसेट समयअनुसार क्रम निर्धारण गर्छ — छोटा विन्डोहरू पहिले 📊</td>
+    <td>कोटा रिसेट समयअनुसार क्रमबद्ध गर्नुहोस् — छोटा विन्डोहरू पहिले 📊</td>
   </tr>
   <tr>
     <td align="center">13</td>
     <td nowrap><code>context-relay</code></td>
-    <td>लामो संवादका लागि लक्ष्यहरूबीच सन्दर्भ हस्तान्तरण गर्छ 🧠</td>
+    <td>लामा कुराकानीहरूका लागि लक्ष्यहरूबीच सन्दर्भ हस्तान्तरण गर्नुहोस् 🧠</td>
   </tr>
   <tr>
     <td align="center">14</td>
     <td nowrap><code>context-optimized</code></td>
-    <td>हालको सन्दर्भ आकारका लागि सबैभन्दा उपयुक्त लक्ष्य चयन गर्छ</td>
+    <td>हालको सन्दर्भ आकारका लागि सबैभन्दा उपयुक्त विकल्प छान्नुहोस्</td>
   </tr>
   <tr>
     <td align="center">15</td>
     <td nowrap><code>cache-optimized</code></td>
-    <td>प्रत्येक पुनःप्रयोगयोग्य प्रम्प्ट प्रिफिक्सलाई एउटै खातामा पिन गर्छ — प्रम्प्ट-क्यास हिटहरू अधिकतम बनाउँछ 🎯</td>
+    <td>पुनः प्रयोग गर्न मिल्ने प्रत्येक प्रम्प्ट प्रिफिक्सलाई एउटै खातामा पिन गर्नुहोस् — प्रम्प्ट-क्यास हिटहरू अधिकतम बनाउनुहोस् 🎯</td>
   </tr>
   <tr>
     <td align="center">16</td>
     <td nowrap><code>lkgp</code></td>
-    <td>पछिल्लो-ज्ञात-राम्रो पथ — पछिल्लो सफल प्रदायकमा पिन गर्छ, त्यसपछि नियमहरूमा फलब्याक गर्छ</td>
+    <td>अन्तिम-ज्ञात-राम्रो पथ — पछिल्लो सफल प्रदायकमा पिन गर्छ, त्यसपछि नियमहरूमा फलब्याक गर्छ</td>
   </tr>
   <tr>
     <td align="center">17</td>
@@ -465,24 +465,24 @@ curl http://localhost:20128/v1/chat/completions \
   <tr>
     <td align="center">18</td>
     <td nowrap><code>fusion</code></td>
-    <td>मोडेलहरूको प्यानलमा अनुरोध फैलाउँछ + निर्णायकले एउटा उत्तर संश्लेषण गर्छ 🧬</td>
+    <td>मोडेलहरूको प्यानलमा फ्यान-आउट + एउटा निर्णायकले एउटै उत्तर संश्लेषण गर्छ 🧬</td>
   </tr>
   <tr>
     <td align="center">19</td>
     <td nowrap><code>pipeline</code></td>
-    <td>चरणहरूलाई शृङ्खलाबद्ध गर्छ — प्रत्येक लक्ष्यको आउटपुट अर्को लक्ष्यको इनपुट बन्छ 🔗</td>
+    <td>चरणहरू शृङ्खलाबद्ध गर्नुहोस् — प्रत्येक लक्ष्यको आउटपुट अर्कोमा प्रवाह हुन्छ 🔗</td>
   </tr>
 </table>
 
-<sub>Auto-Combo इन्जिनले प्रत्येक उम्मेदवारलाई **16 कारकहरू** (स्वास्थ्य, कोटा, लागत, विलम्बता, कार्य उपयुक्तता, गुणस्तर, सत्र उपलब्धता…) का आधारमा स्कोर गर्छ — [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md) हेर्नुहोस्।</sub>
+<sub>Auto-Combo इन्जिनले प्रत्येक उम्मेदवारलाई **16 कारकहरू** (स्वास्थ्य, कोटा, लागत, विलम्बता, कार्य अनुकूलता, गुणस्तर, सत्र उपलब्धता…) का आधारमा स्कोर गर्छ — [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md) हेर्नुहोस्।</sub>
 
 ##
 
 ### 🧱 लचिलोपन अन्तर्निर्मित छ (3 स्वतन्त्र तहहरू)
 
-<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="OmniRoute रेजिलियन्स — 3 स्वतन्त्र स्व-उपचार तहहरू, सही विफलताका लागि सही तह। तह 1 प्रदायक सर्किट ब्रेकर (सम्पूर्ण प्रदायक): 408/5xx मा मात्र ट्रिप हुन्छ, थ्रेसहोल्डहरू OAuth 8× / API-key 12× / local 2×, HALF-OPEN प्रोबमा 60s/30s/15s पछि रिसेट हुन्छ, अल्छी रिकभरी; OPEN हुँदा कम्बोले अर्को प्रदायकमा पुनःरूट गर्छ। तह 2 जडान कूलडाउन (एउटा कुञ्जी/खाता): आधार OAuth का लागि 5s / API-key का लागि 3s, एन्टी-थन्डरिङ-हर्ड गार्डसहित एक्सपोनेन्सियल ×2 ब्याकअफ, 429 ले Retry-After लाई पालना गर्छ, सफलताले सबै त्रुटि अवस्था हटाउँछ; एउटा कूलडाउनमा रहेको कुञ्जीलाई छोडिन्छ जबकि सहोदर कुञ्जीहरूले सेवा दिइरहन्छन्। तह 3 मोडेल लकआउट (एउटा मोडेल): प्रति-मोडेल 429, local 404 वा मोड अस्वीकारहरूले त्यही मोडेललाई मात्र लक गर्छन् — सम्पूर्ण जडानलाई कहिल्यै गर्दैनन्। अन्तिम अवस्थाहरू (प्रतिबन्धित, म्याद सकिएको, क्रेडिट समाप्त भएको) अपरेटरका लागि हुन्, कूलडाउनका लागि होइनन्।"/>
+<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="OmniRoute रेजिलियन्स — 3 स्वतन्त्र स्व-उपचार तहहरू, सही विफलताका लागि सही तह। तह 1 प्रदायक सर्किट ब्रेकर (सम्पूर्ण प्रदायक): 408/5xx मा मात्र ट्रिप हुन्छ, थ्रेसहोल्डहरू OAuth 8× / API-key 12× / local 2×, 60s/30s/15s पछि HALF-OPEN प्रोबमा रिसेट हुन्छ, आवश्यक पर्दा मात्र पुनःप्राप्ति हुन्छ; OPEN हुँदा कम्बो अर्को प्रदायकतर्फ पुनःरुट हुन्छ। तह 2 जडान कुलडाउन (एउटा कुञ्जी/खाता): आधार अवधि OAuth का लागि 5s / API-key का लागि 3s, एन्टी-थन्डरिङ-हर्ड गार्डसहित घातीय ×2 ब्याकअफ, 429 ले Retry-After लाई पालना गर्छ, सफलताले त्रुटिका सबै अवस्थाहरू हटाउँछ; कुलडाउनमा रहेको एउटा कुञ्जीलाई छोडिन्छ जबकि सहोदर कुञ्जीहरूले सेवा दिइरहन्छन्। तह 3 मोडेल लकआउट (एउटा मोडेल): प्रत्येक मोडेलको 429, local 404 वा मोड अस्वीकृतिहरूले त्यही मोडेललाई मात्र लक गर्छन् — सम्पूर्ण जडानलाई कहिल्यै गर्दैनन्। अन्तिम अवस्थाहरू (प्रतिबन्धित, म्याद सकिएको, क्रेडिट समाप्त भएको) सञ्चालकका लागि हुन्, कुलडाउनका लागि होइनन्।"/>
 
-<sub>📖 [स्वतः-कम्बो इन्जिन](docs/routing/AUTO-COMBO.md) · [रेजिलियन्स मार्गदर्शिका](docs/architecture/RESILIENCE_GUIDE.md)</sub>
+<sub>📖 [स्वचालित कम्बो इन्जिन](docs/routing/AUTO-COMBO.md) · [रेजिलियन्स मार्गदर्शिका](docs/architecture/RESILIENCE_GUIDE.md)</sub>
 
 <br/>
 
@@ -572,27 +572,27 @@ Radar वैकल्पिक रूपमा सक्रिय गर्न �
 
 > **v3.8.20 → v3.8.50** का हालैका मुख्य विशेषताहरू। पूर्ण इतिहास [`CHANGELOG.md`](CHANGELOG.md) मा छ।
 
-- **🎛️ OmniConductor** — तपाईंको एजेन्ट समूहमा आगमन A2A प्रत्यायोजन, Agent Card मा Conductor सीपहरू, र Faro push-to-talk भ्वाइस च्याटसहितको ड्यासबोर्ड प्यानल। → [A2A सर्भर](docs/frameworks/A2A-SERVER.md)
-- **🛂 अनुकूलनीय प्रवेश तथा ओभरलोड सुरक्षा** — भारी च्याट अनुरोधहरूले 503 दिनुको सट्टा लामबद्ध हुन्छन्, र प्रत्येक जडानका लागि परमाणविक RPM रोलिङ लिजहरू प्रयोग हुन्छन्। → [लचिलोपन मार्गदर्शिका](docs/architecture/RESILIENCE_GUIDE.md)
-- **🗂️ मानक `/v1/models` क्रमबद्धता** — प्रत्येक प्रदायकका लागि प्रदायकअनुसार समूहबद्ध गरिएको एउटा निरन्तर ब्लक (combos लाई सुरुमा स्थिर राखेर), जुन हरेक क्याटलग स्रोतमा स्थिर रहन्छ। → [API सन्दर्भ](docs/reference/API_REFERENCE.md)
-- **🗜️ कम्प्रेसन सुदृढीकरण** — पूर्वनिर्धारित रूपमा सक्रिय inflation guard, DE / FR / JA + चिनियाँ (wényán) का लागि Caveman packs, र Gradle तथा .NET का लागि RTK filters। → [कम्प्रेसन](docs/compression/COMPRESSION_ENGINES.md)
-- **💸 पारदर्शी समदर लागत** — सदस्यता / कोडिङ-योजना प्रदायकहरूको लागत विश्लेषणमा **$0** देखिन्छ; बजेट, कोटा तथा राउटिङले अनुमान जारी राख्छन्। → [API सन्दर्भ](docs/reference/API_REFERENCE.md)
-- **⚖️ Quota-Share राउटिङ** — साझा खाताको कोटा pooled keys बीच निष्पक्ष रूपमा बाँड्छ र निष्क्रिय हिस्साहरू अरूलाई उपलब्ध गराएर काम-संरक्षणशील रहन्छ। → [लचिलोपन मार्गदर्शिका](docs/architecture/RESILIENCE_GUIDE.md)
-- **🤖 एक-कमान्ड CLI/एजेन्ट सेटअप** — दर्ता गरिएका 13 वटा `setup-*` कमान्ड; `omniroute run` ले 7 वटा CLI (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI) सुरु गर्छ; `omniroute configure` ले अन्तरक्रियात्मक प्रदायक+मोडेल चयनकर्ता र प्रत्येक सन्दर्भका मनपर्ने विकल्पहरूसहित 10 वटा लक्ष्य समर्थन गर्छ। → [CLI एकीकरणहरू](docs/guides/CLI-INTEGRATIONS.md)
-- **🛰️ रिमोट मोड** — सीमित-कार्यक्षेत्र टोकनहरू (`connect` / `contexts` / `tokens`) र VPS स्थापनाका लागि `antigravity` OAuth सहायक प्रयोग गरेर रिमोट OmniRoute सञ्चालन गर्नुहोस्। → [रिमोट मोड](docs/guides/REMOTE-MODE.md)
-- **🧭 अझ बुद्धिमान स्वतः-राउटिङ** — `auto/<category>:<tier>` combos, **Fusion** (मोडेल प्यानल + निर्णायक), कार्य-सचेत राउटिङ, र प्रत्येक अनुरोधका लागि मोडेल / मोड / USD-बजेट ओभरराइडहरू। → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **🗜️ प्लग गर्न मिल्ने कम्प्रेसन** — संयोजन गर्न मिल्ने 12 वटा इन्जिन + Compression Studios: LLMLingua-2, दुई-तहको Ultra, omniglyph, प्रत्येक चरणको fidelity gate, GCF v3.2, र तानेर पुनःक्रमबद्ध गर्ने सम्पादक। → [कम्प्रेसन](docs/compression/COMPRESSION_ENGINES.md)
-- **🕵️ पारदर्शी MITM डिक्रिप्ट (TPROXY)** — प्रत्येक SNI का लागि CA र trust-store installer प्रयोग गरी proxy env vars बेवास्ता गर्ने CLI हरू क्याप्चर गर्नुहोस्। → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
-- **💸 सर्वत्र लागत टेलिमेट्री** — प्रत्येक endpoint मा `X-OmniRoute-*` लागत/प्रयोग headers, cache-HIT बचत header, र प्रत्येक key का लागि USD खर्च कोटा। → [API सन्दर्भ](docs/reference/API_REFERENCE.md)
-- **🧠 तपाईंको नियन्त्रणमा रहेको मेमोरी** — पूर्वनिर्धारित रूपमा बन्द, रोजेर सक्रिय गर्न मिल्ने int8 vector quantization + typed decay, र प्रत्येक अनुरोधका लागि `x-omniroute-no-memory`। → [मेमोरी](docs/frameworks/MEMORY.md)
-- **🛡️ सुरक्षा** — प्रत्येक LLM route मा prompt-injection guard (red-team suite), रोजेर सक्रिय गर्न मिल्ने credential-masking guardrail (दुवै दिशामा चुहिएका API keys/secrets लुकाउँछ), अन्तिम निःशुल्क विकल्पका रूपमा DuckDuckGo वेब खोज, र ड्यासबोर्डका लागि वैकल्पिक OIDC लगइन गेट (पासवर्ड लगइन सधैँ उपलब्ध रहन्छ)। → [सुरक्षा सीमाहरू](docs/security/GUARDRAILS.md)
-- **🖼️ नयाँ endpoints** — `/v1/ocr` (Mistral OCR) र `/v1/audio/translations` (Whisper-शैली) ले मिडिया क्षमतालाई पूर्ण बनाउँछन्। → [API सन्दर्भ](docs/reference/API_REFERENCE.md)
-- **🎨 छवि / भिडियो / अडियो उत्पादन** — मिडियाका लागि एउटै API: xAI Grok Imagine & Novita AI video, ComfyUI, Magnific, Adobe Firefly, Segmind, र ElevenLabs जस्ता वाणी प्रदायकहरू। → [API सन्दर्भ](docs/reference/API_REFERENCE.md)
-- **🌍 डिप्लोयमेन्ट तथा सञ्चालन** — reverse-proxy `basePath`, ब्राउजर भाषाको स्वतः पहिचान, प्रत्येक key को उपकरण ट्र्याकिङ, root-less MITM trust, र zh-TW स्थानीयकरण। → [वातावरण](docs/reference/ENVIRONMENT.md)
-- **🤝 थप प्रदायक तथा एजेन्टहरू** — क्लाउड एजेन्टहरू (Codex Cloud, Cursor, Devin, Jules), ब्राउजर + OAuth लगइनसहित Grok Build (xAI), Ollama को प्रथम-श्रेणी card, Claude Opus 5 & Sonnet 5, Kimi को आधिकारिक साझेदारी (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… र अद्यावधिक गरिएको **352-प्रदायक क्याटलग**। → [प्रदायकहरू](docs/reference/PROVIDER_REFERENCE.md)
-- **📡 राउटिङ पारदर्शिता** — प्रत्येक प्रतिक्रियामा सेवा प्रदान गर्ने रणनीति/प्रदायक/विलम्बको नाम उल्लेख भएको `X-OmniRoute-Decision` header हुन्छ, नयाँ `cache-optimized` combo strategy + Auto-Combo `cacheAffinity` factor ले दोहोरिएका अनुरोधहरू cached prefix भएको जडानतर्फ फिर्ता पठाउँछ, र read-only `/v1/auto-combo/{channel}/candidates` endpoint ले `auto/*` channel को प्रत्यक्ष candidate pool उपलब्ध गराउँछ। → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **⚡ स्थानीय कार्यसम्पादन तथा पूर्वाधार** — एक-क्लिक स्थानीय Redis, Cloudflare Workers / Deno Deploy relay deployers, र सुपरिवेक्षण गरिएका embedded services का रूपमा Bifrost & Mux। → [Embedded Services](docs/frameworks/EMBEDDED-SERVICES.md)
-- **🧩 प्याकेजमा थप सुविधाहरू** — plugin framework + marketplace, Omni/Agent/GitHub skills frameworks, Obsidian vault integration (22 MCP tools), OpenAI-compatible Batch & Files APIs, semantic response cache, leaderboards सहितको gamification, ACP agent discovery (15 built-in agents), BigQuery मा निर्धारित log export, `auto/chaos` fault injection, Telegram bot bridge, in-app version manager र LMArena-ELO free-provider rankings। → [कागजातहरू](docs/README.md)
+- **🎛️ OmniConductor** — तपाईंको एजेन्ट समूहमा आगमन A2A प्रत्यायोजन, Agent Card मा Conductor सीपहरू, र Faro पुश-टु-टक भ्वाइस च्याटसहितको ड्यासबोर्ड प्यानल। → [A2A सर्भर](docs/frameworks/A2A-SERVER.md)
+- **🛂 अनुकूलनीय प्रवेश तथा ओभरलोड सुरक्षा** — भारी च्याट अनुरोधहरूले 503 त्रुटि दिनुको सट्टा पङ्क्तिमा प्रतीक्षा गर्छन्, र प्रत्येक जडानका लागि परमाणविक RPM रोलिङ लिजहरू उपलब्ध छन्। → [दृढता मार्गदर्शिका](docs/architecture/RESILIENCE_GUIDE.md)
+- **🗂️ मानक `/v1/models` क्रमबद्धता** — प्रत्येक प्रदायकका लागि प्रदायकअनुसार समूहबद्ध एउटा निरन्तर ब्लक (कम्बोहरू सुरुमा स्थिर), जुन हरेक क्याटलग स्रोतमा स्थिर रहन्छ। → [API सन्दर्भ](docs/reference/API_REFERENCE.md)
+- **🗜️ कम्प्रेसन सुदृढीकरण** — पूर्वनिर्धारित रूपमा सक्रिय इन्फ्लेसन गार्ड, DE / FR / JA + चिनियाँ (wényán) का लागि Caveman प्याकहरू, र Gradle तथा .NET का लागि RTK फिल्टरहरू। → [कम्प्रेसन](docs/compression/COMPRESSION_ENGINES.md)
+- **💸 पारदर्शी फ्ल्याट-रेट लागत** — सदस्यता / कोडिङ-प्लान प्रदायकहरूको लागत विश्लेषणमा **$0** देखिन्छ; बजेट, कोटा र राउटिङले अनुमान गर्न जारी राख्छन्। → [API सन्दर्भ](docs/reference/API_REFERENCE.md)
+- **⚖️ कोटा-साझेदारी राउटिङ** — साझा खाताको कोटा पूल गरिएका कुञ्जीहरूबीच निष्पक्ष रूपमा बाँड्छ र कार्य-संरक्षणकारी भएकाले निष्क्रिय अंशहरू अरूलाई उपलब्ध गराउँछ। → [दृढता मार्गदर्शिका](docs/architecture/RESILIENCE_GUIDE.md)
+- **🤖 एक-कमान्ड CLI/एजेन्ट सेटअप** — 13 दर्ता गरिएका `setup-*` कमान्डहरू; `omniroute run` ले 7 CLI हरू (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI) सुरु गर्छ; `omniroute configure` ले अन्तरक्रियात्मक प्रदायक+मोडेल चयनकर्ता र प्रत्येक कन्टेक्स्टका मनपर्ने विकल्पहरूसहित 10 लक्ष्यहरू समर्थन गर्छ। → [CLI एकीकरणहरू](docs/guides/CLI-INTEGRATIONS.md)
+- **🛰️ रिमोट मोड** — स्कोप गरिएका टोकनहरू (`connect` / `contexts` / `tokens`) र VPS स्थापनाहरूका लागि `antigravity` OAuth सहायकमार्फत रिमोट OmniRoute सञ्चालन गर्नुहोस्। → [रिमोट मोड](docs/guides/REMOTE-MODE.md)
+- **🧭 अझ स्मार्ट स्वचालित राउटिङ** — `auto/<category>:<tier>` कम्बोहरू, **Fusion** (मोडेल प्यानल + निर्णायक), कार्य-सचेत राउटिङ, र प्रत्येक अनुरोधका लागि मोडेल / मोड / USD-बजेट ओभरराइडहरू। → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **🗜️ प्लग गर्न मिल्ने कम्प्रेसन** — 12 संयोजनयोग्य इन्जिनहरू + Compression Studios: LLMLingua-2, दुई-तहको Ultra, omniglyph, प्रत्येक चरणको फिडेलिटी गेट, GCF v3.2, र ड्र्याग-रिअर्डर सम्पादक। → [कम्प्रेसन](docs/compression/COMPRESSION_ENGINES.md)
+- **🕵️ पारदर्शी MITM डिक्रिप्सन (TPROXY)** — प्रत्येक SNI का लागि CA र ट्रस्ट-स्टोर इन्स्टलरसहित प्रोक्सी वातावरण चरहरू बेवास्ता गर्ने CLI हरू क्याप्चर गर्नुहोस्। → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
+- **💸 सर्वत्र लागत टेलिमेट्री** — प्रत्येक एन्डपोइन्टमा `X-OmniRoute-*` लागत/प्रयोग हेडरहरू, cache-HIT बचत हेडर, र प्रत्येक कुञ्जीका लागि USD खर्च कोटाहरू। → [API सन्दर्भ](docs/reference/API_REFERENCE.md)
+- **🧠 तपाईंको नियन्त्रणमा रहने मेमोरी** — पूर्वनिर्धारित रूपमा निष्क्रिय, अप्ट-इन int8 भेक्टर क्वान्टाइजेसन + प्रकारयुक्त डिके, र प्रत्येक अनुरोधका लागि `x-omniroute-no-memory`। → [मेमोरी](docs/frameworks/MEMORY.md)
+- **🛡️ सुरक्षा** — हरेक LLM रुटमा प्रम्प्ट-इन्जेक्सन गार्ड (रेड-टिम सुइट), अप्ट-इन क्रेडेन्सियल-मास्किङ गार्डरेल (दुवै दिशामा चुहिएका API कुञ्जीहरू/गोप्य जानकारी हटाउँछ), अन्तिम विकल्पका रूपमा निःशुल्क DuckDuckGo वेब खोज, र ड्यासबोर्डका लागि वैकल्पिक OIDC लगइन गेट (पासवर्ड लगइन सधैँ उपलब्ध रहन्छ)। → [गार्डरेलहरू](docs/security/GUARDRAILS.md)
+- **🖼️ नयाँ एन्डपोइन्टहरू** — `/v1/ocr` (Mistral OCR) र `/v1/audio/translations` (Whisper-शैली) ले मिडिया सुविधाहरूलाई पूर्णता दिन्छन्। → [API सन्दर्भ](docs/reference/API_REFERENCE.md)
+- **🎨 तस्बिर / भिडियो / अडियो उत्पादन** — मिडियाका लागि एउटै API: xAI Grok Imagine र Novita AI भिडियो, ComfyUI, Magnific, Adobe Firefly, Segmind, तथा ElevenLabs जस्ता स्पिच प्रदायकहरू। → [API सन्दर्भ](docs/reference/API_REFERENCE.md)
+- **🌍 डिप्लोयमेन्ट तथा सञ्चालन** — रिभर्स-प्रोक्सी `basePath`, ब्राउजरको भाषा स्वतः पहिचान, प्रत्येक कुञ्जीका लागि उपकरण ट्र्याकिङ, रुटविहीन MITM ट्रस्ट, र zh-TW स्थानीयकरण। → [वातावरण](docs/reference/ENVIRONMENT.md)
+- **🤝 थप प्रदायक तथा एजेन्टहरू** — क्लाउड एजेन्टहरू (Codex Cloud, Cursor, Devin, Jules), ब्राउजर + OAuth लगइनसहित Grok Build (xAI), Ollama को प्रथम-श्रेणी कार्ड, Claude Opus 5 र Sonnet 5, Kimi को आधिकारिक साझेदारी (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… र अद्यावधिक गरिएको **352-प्रदायक क्याटलग**। → [प्रदायकहरू](docs/reference/PROVIDER_REFERENCE.md)
+- **📡 राउटिङ पारदर्शिता** — हरेक प्रतिक्रियामा सेवा दिने रणनीति/प्रदायक/विलम्बको नामसहित `X-OmniRoute-Decision` हेडर हुन्छ, नयाँ `cache-optimized` कम्बो रणनीति + Auto-Combo `cacheAffinity` कारकले दोहोरिएका अनुरोधहरूलाई क्यास गरिएको प्रिफिक्स राख्ने जडानतर्फ फर्काउँछ, र पढ्न-मात्र मिल्ने `/v1/auto-combo/{channel}/candidates` एन्डपोइन्टले `auto/*` च्यानलको प्रत्यक्ष उम्मेदवार पूल देखाउँछ। → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **⚡ स्थानीय कार्यसम्पादन तथा पूर्वाधार** — एक-क्लिक स्थानीय Redis, Cloudflare Workers / Deno Deploy रिले डिप्लोयरहरू, तथा पर्यवेक्षित एम्बेडेड सेवाका रूपमा Bifrost र Mux। → [एम्बेडेड सेवाहरू](docs/frameworks/EMBEDDED-SERVICES.md)
+- **🧩 साथै समावेश** — प्लगइन फ्रेमवर्क + मार्केटप्लेस, Omni/Agent/GitHub सीप फ्रेमवर्कहरू, Obsidian vault एकीकरण (22 MCP उपकरणहरू), OpenAI-सङ्गत Batch र Files API हरू, अर्थगत प्रतिक्रिया क्यास, लिडरबोर्डसहित गेमिफिकेसन, ACP एजेन्ट खोज (15 अन्तर्निर्मित एजेन्टहरू), BigQuery मा निर्धारित लग निर्यात, `auto/chaos` समानान्तर बहु-मोडेल फ्यान-आउट, Telegram बट ब्रिज, एपभित्रको संस्करण व्यवस्थापक, र LMArena-ELO निःशुल्क-प्रदायक वरीयताहरू। → [कागजातहरू](docs/README.md)
 
 <br/>
 
@@ -1273,17 +1273,17 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 ले पनि 
   <tr><td nowrap><b>रनटाइम</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>भाषा</b></td><td>TypeScript 6.0 — <code>src/</code> र <code>open-sse/</code> भरि <b>100% TypeScript</b> (v2.0 देखि कोरमा शून्य <code>any</code>)</td></tr>
   <tr><td nowrap><b>फ्रेमवर्क</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>डेटाबेस</b></td><td>better-sqlite3 (SQLite, WAL जर्नलिङ) + LowDB (JSON लिगेसी) — 122 डोमेन मोड्युल, 190 माइग्रेसन</td></tr>
-  <tr><td nowrap><b>मेमोरी</b></td><td>SQLite FTS5 पूर्ण-पाठ + int8-क्वान्टाइज्ड भेक्टर इम्बेडिङ, टाइपयुक्त डिके</td></tr>
-  <tr><td nowrap><b>स्किमा</b></td><td>Zod 4 — MCP उपकरण I/O प्रमाणीकरण + API कन्ट्र्याक्टहरू</td></tr>
+  <tr><td nowrap><b>डेटाबेस</b></td><td>better-sqlite3 (SQLite, WAL जर्नलिङ) + LowDB (JSON लिगेसी) — 137 डोमेन मोड्युल, 193 माइग्रेसन</td></tr>
+  <tr><td nowrap><b>मेमोरी</b></td><td>SQLite FTS5 पूर्ण-पाठ + int8-क्वान्टाइज्ड भेक्टर एम्बेडिङ, टाइपयुक्त क्षय</td></tr>
+  <tr><td nowrap><b>स्किमा</b></td><td>Zod 4 — MCP उपकरण I/O प्रमाणीकरण + API सम्झौताहरू</td></tr>
   <tr><td nowrap><b>प्रोटोकल</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>स्ट्रिमिङ</b></td><td>Server-Sent Events (SSE) + WebSocket ब्रिज (<code>/v1/ws</code>)</td></tr>
   <tr><td nowrap><b>कम्प्रेसन</b></td><td>12-इन्जिन पाइपलाइन — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>प्रमाणीकरण र सुरक्षा</b></td><td>OAuth 2.0 (PKCE) + JWT + API कुञ्जीहरू + MCP स्कोपयुक्त प्रमाणीकरण · भण्डारण अवस्थामा AES-256-GCM · DOMPurify</td></tr>
-  <tr><td nowrap><b>स्टेल्थ</b></td><td>wreq-js — JA3 / JA4 TLS फिङ्गरप्रिन्ट प्रतिरूपण, 3-स्तरीय प्रोक्सी</td></tr>
-  <tr><td nowrap><b>लचिलोपन</b></td><td>सर्किट ब्रेकर, एक्सपोनेन्सियल ब्याकअफ, एन्टी-थन्डरिङ-हर्ड, अटो-कम्बो स्व-उपचार</td></tr>
+  <tr><td nowrap><b>प्रमाणीकरण र सुरक्षा</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP स्कोपयुक्त प्रमाणीकरण · भण्डारण अवस्थामा AES-256-GCM · DOMPurify</td></tr>
+  <tr><td nowrap><b>गोप्यता</b></td><td>wreq-js — JA3 / JA4 TLS फिङ्गरप्रिन्ट प्रतिरूपण, 3-तहको प्रोक्सी</td></tr>
+  <tr><td nowrap><b>लचिलोपन</b></td><td>सर्किट ब्रेकर, एक्सपोनेन्सियल ब्याकअफ, एन्टी-थन्डरिङ-हर्ड, स्वतः-कम्बो स्व-उपचार</td></tr>
   <tr><td nowrap><b>लगिङ</b></td><td>pino — अनुरोध सन्दर्भसहितका संरचित JSON लगहरू</td></tr>
-  <tr><td nowrap><b>परीक्षण</b></td><td>Node.js परीक्षण रनर + Vitest — 5,100+ ट्र्याक गरिएका परीक्षण फाइलहरूमा <b>39,000+ स्थिर परीक्षण घोषणाहरू</b> (युनिट, इन्टिग्रेसन, E2E, सुरक्षा, इकोसिस्टम)</td></tr>
+  <tr><td nowrap><b>परीक्षण</b></td><td>Node.js परीक्षण रनर + Vitest — 5,100+ ट्र्याक गरिएका परीक्षण फाइलहरूमा <b>39,000+ स्थिर परीक्षण घोषणाहरू</b> (युनिट, एकीकरण, E2E, सुरक्षा, इकोसिस्टम)</td></tr>
   <tr><td nowrap><b>प्लेटफर्म</b></td><td>डेस्कटप (Electron) · Android (Termux) · PWA (कुनै पनि ब्राउजर)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — रिलिज हुँदा स्वचालित npm प्रकाशन + Docker Hub</td></tr>
   <tr><td nowrap><b>लिङ्कहरू</b></td><td><a href="https://omniroute.online">वेबसाइट</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
@@ -1737,7 +1737,7 @@ OmniRoute दिग्गजहरूको योगदानमा आधा�
 
 **[⬆ शीर्षमा फर्कनुहोस्](#-omniroute)** · खुला-स्रोत AI समुदायका लागि ❤️ सहित निर्मित।
 
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · MIT लाइसेन्स · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.52 · Node ≥22.22.2 · MIT लाइसेन्स · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- सामुदायिक प्रश्नोत्तरका लागि GitHub Discussions सक्षम गरिएको छ -->

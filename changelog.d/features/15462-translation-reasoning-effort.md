@@ -1,0 +1,1 @@
+- **feat(i18n):** the translation backend forwards the optional reasoning control when set ([#15462](https://github.com/diegosouzapw/OmniRoute/pull/15462)) — thanks @maxmad64bis

@@ -53,6 +53,7 @@ import {
   getQuotaWindowStatus,
   hydrateCodexQuotaCacheForRequest,
   isQuotaExhaustedForRequest,
+  getClaudeQuotaPreflightResetAt,
   resolveClaudeQuotaCooldownMs as resolveClaudeCooldown,
 } from "@/domain/quotaCache";
 import { isClaudeExtraUsageAllowed } from "@/lib/providers/claudeExtraUsage";
@@ -65,7 +66,7 @@ import {
   persistAntigravityFamilyCooldownIfQuota,
 } from "@omniroute/open-sse/services/antigravityFamilyCooldown.ts";
 import { markQuotaPreflightAccountUnavailable } from "./quotaPreflightUnavailable.ts";
-import { buildNoAuthModelCooldown } from "./noAuthModelCooldown.ts";
+import { buildNoAuthModelCooldown, pauseCooldownIfPaused } from "./noAuthModelCooldown.ts";
 import { getCreditsMode } from "@omniroute/open-sse/services/antigravityCredits.ts";
 import { preferAntigravityConnectionsWithStoredProject } from "@omniroute/open-sse/services/antigravityProjectPersistence.ts";
 import {
@@ -86,6 +87,7 @@ import {
   isProviderModelUnsupported400,
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import { isSharedWalletCredits402 } from "@omniroute/open-sse/services/accountFallback/sharedWalletCredits.ts";
+import { postOutputFailureReachesLockout } from "@omniroute/open-sse/services/accountFallback/postOutputFailureStreak.ts";
 import { isOpencodeFreeTierRefusalForProvider } from "@omniroute/open-sse/executors/opencodeGeoBlock.ts";
 import { isOpencodeFreeTierSkipped } from "@omniroute/open-sse/services/opencodeFreeTierSkip.ts";
 import { isLocalProvider } from "@omniroute/open-sse/config/providerRegistry.ts";
@@ -151,7 +153,7 @@ import {
   SYNCED_AVAILABLE_MODELS_MALFORMED,
   type SyncedAvailableModelsByConnection,
 } from "@/lib/db/models";
-import { isFreeModel } from "@/shared/utils/freeModels";
+import { isCatalogFreeModel } from "@/shared/utils/freeModels";
 import {
   applySessionAffinityPin,
   formatSessionKeyForLog,
@@ -198,7 +200,7 @@ import {
   type CredentialLeaseSelectionContext,
 } from "./exclusiveConnectionLeasePolicy";
 import { readHeaderValue, type AuthRequestHeaders } from "./headerReader.ts";
-import { isSyntheticEmptyStreamFailure } from "./syntheticEmptyStream.ts";
+import { isRequestScopedServerFailure } from "./syntheticEmptyStream.ts";
 import {
   getOAuthSessionAvailability,
   reserveOAuthSession,
@@ -336,14 +338,12 @@ function isTerminalConnectionStatus(connection: ProviderConnectionView): boolean
   return status === "credits_exhausted" || status === "banned" || status === "expired";
 }
 
-// OpenRouter's paid balance and its `:free`-suffixed models are billed
-// separately — a 402 from a paid model call correctly locks the whole
-// connection as credits_exhausted (see openrouter-quota-6842.test.ts), but
-// that lock must not also block :free model requests on the same
-// connection, or combo failover to the user's configured free models never
-// fires. Scoped to provider === "openrouter" + status === credits_exhausted
-// only; every other terminal status (banned, expired) and every other
-// provider keep the unconditional exclusion.
+// OpenRouter's paid balance and catalogued free-access models are billed
+// separately — a paid-model 402 locks the connection as credits_exhausted,
+// but that lock must not block catalogued free-access requests, or combo
+// failover to free models never fires. Only catalogued free-access earns
+// the exemption. Scoped to openrouter + credits_exhausted; all other
+// statuses and providers stay excluded.
 function isTerminalConnectionStatusForModel(
   connection: ProviderConnectionView,
   provider: string,
@@ -354,7 +354,7 @@ function isTerminalConnectionStatusForModel(
     provider === "openrouter" &&
     normalizeStatus(connection.testStatus) === "credits_exhausted" &&
     requestedModel &&
-    isFreeModel("openrouter", { id: requestedModel })
+    isCatalogFreeModel("openrouter", requestedModel)
   ) {
     return false;
   }
@@ -783,17 +783,24 @@ function isAnonymousFallbackOnlyProvider(providerId: string): boolean {
 async function maybeSyntheticNoAuthFallback(
   providerId: string,
   excludedConnectionIds: Set<string>,
-  allowedConnections: string[] | null = null
+  allowedConnections: string[] | null = null,
+  pauseAsCooldown = false,
+  requestedModelForPause?: string | null
 ) {
   if (!providerCanUseSyntheticNoAuthFallback(providerId)) return null;
   // #9057: a restricted key must NOT reach free providers (OpenCode Free, etc.) through the
   // synthetic "noauth" connection unless its allowedConnections names it.
   if (!allowlistPermitsSyntheticNoAuth(allowedConnections)) return null;
   if (excludedConnectionIds.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) return null;
-  // #14313: a free-tier refusal just paused this keyless path — do not re-select
-  // the synthetic noauth connection until the short TTL expires.
-  if (isOpencodeFreeTierSkipped(providerId)) {
-    log.info("AUTH", `${providerId} | no-auth fallback skipped (OpenCode free-tier pause)`);
+  if (pauseAsCooldown) {
+    const paused = pauseCooldownIfPaused(
+      providerId,
+      SYNTHETIC_NOAUTH_CONNECTION_ID,
+      requestedModelForPause
+    );
+    if (paused) return paused;
+  } else if (isOpencodeFreeTierSkipped(providerId, Date.now(), requestedModelForPause)) {
+    log.info("AUTH", `${providerId} | no-auth fallback skipped (OpenCode free-tier pause)`); // #14313
     return null;
   }
   if (
@@ -1243,7 +1250,13 @@ export async function getProviderCredentials(
               )
             : null;
         }
-        return await maybeSyntheticNoAuthFallback(resolvedId, excludedForNoAuth);
+        return await maybeSyntheticNoAuthFallback(
+          resolvedId,
+          excludedForNoAuth,
+          null,
+          true,
+          requestedModel
+        );
       }
     }
 
@@ -1467,7 +1480,9 @@ export async function getProviderCredentials(
           const syntheticFallback = await maybeSyntheticNoAuthFallback(
             resolvedId,
             excludedConnectionIds,
-            allowedConnections
+            allowedConnections,
+            false,
+            requestedModel
           );
           if (syntheticFallback) return syntheticFallback;
           return buildAllExpiredCredentials(terminalConnections);
@@ -1476,7 +1491,9 @@ export async function getProviderCredentials(
       const syntheticFallback = await maybeSyntheticNoAuthFallback(
         resolvedId,
         excludedConnectionIds,
-        allowedConnections
+        allowedConnections,
+        false,
+        requestedModel
       );
       if (syntheticFallback) return syntheticFallback;
       const jinaEnvCredentials = buildJinaEnvCredentials(resolvedId, {
@@ -1739,7 +1756,9 @@ export async function getProviderCredentials(
       const syntheticFallback = await maybeSyntheticNoAuthFallback(
         resolvedId,
         excludedConnectionIds,
-        allowedConnections
+        allowedConnections,
+        false,
+        requestedModel
       );
       if (syntheticFallback) return syntheticFallback;
 
@@ -1895,11 +1914,16 @@ export async function getProviderCredentials(
     }
 
     if (withQuota.length === 0 && exhaustedQuota.length > 0) {
-      // All remaining eligible accounts are exhausted
       const earliestResetAt = getEarliestFutureDate(
         exhaustedQuota.map((c) => {
-          const entry = getQuotaCache(c.id);
-          return entry?.nextResetAt || null;
+          if (resolveProviderId(provider) === "claude") {
+            return (
+              getClaudeQuotaPreflightResetAt(c.id, requestedModel, c.providerSpecificData) ||
+              getQuotaCache(c.id)?.nextResetAt ||
+              null
+            );
+          }
+          return getQuotaCache(c.id)?.nextResetAt || null;
         })
       );
       const earliestResetMs = parseFutureDateMs(earliestResetAt);
@@ -1912,7 +1936,7 @@ export async function getProviderCredentials(
         allRateLimited: true,
         retryAfter,
         retryAfterHuman: formatRetryAfter(retryAfter),
-        lastError: `All ${provider} accounts have exhausted their quota (cached quota state, no upstream attempt; earliest reset ${formatRetryAfter(retryAfter)})`,
+        lastError: `All ${provider} accounts have exhausted their quota (cached quota state, no upstream attempt; earliest ${formatRetryAfter(retryAfter)})`,
         lastErrorCode: 429,
       };
     }
@@ -2648,27 +2672,24 @@ async function applyEgressIpLockout(
   }
 }
 
+type ExhaustionOptions = NonNullable<Parameters<typeof markAccountUnavailable>[6]>;
+
 /** Build the options for markAccountUnavailable on the chat exhaustion path.
  * Single place that forwards the request id so no chat sender can forget it:
  * every chat caller passes its in-scope id through here. */
 export function buildExhaustionOptions(
   correlationId: string | null,
-  rest: {
-    persistUnavailableState?: boolean;
-    /** Caller is the combo engine — it records its own model-level lockouts. */
-    isCombo?: boolean;
-    headers?: Headers | Record<string, string> | null;
-  } = {}
-): {
-  persistUnavailableState?: boolean;
-  isCombo?: boolean;
-  headers?: Headers | Record<string, string> | null;
-  correlationId: string | null;
-} {
+  rest: Omit<ExhaustionOptions, "correlationId"> = {}
+): ExhaustionOptions & { correlationId: string | null } {
   return { ...rest, correlationId };
 }
 
 /** Persist exponential-backoff state for an unavailable provider connection. */
+/** The content-stall watchdog's error (open-sse/utils/streamHandler.ts). */
+function isStreamContentStall(errorText: string): boolean {
+  return /stream content stall/i.test(String(errorText || ""));
+}
+
 export async function markAccountUnavailable(
   connectionId: string,
   status: number,
@@ -2682,6 +2703,7 @@ export async function markAccountUnavailable(
     isCombo?: boolean;
     headers?: Headers | Record<string, string> | null;
     correlationId?: string | null;
+    streamOutputEmitted?: boolean;
   } = {}
 ) {
   const currentMutex = markMutexes.get(connectionId) || Promise.resolve();
@@ -2731,6 +2753,25 @@ export async function markAccountUnavailable(
     // Request-scoped refusal: nothing about it belongs on this account or this model.
     if (isOpencodeFreeTierRefusalForProvider(provider, status, errorText))
       return { shouldFallback: true, cooldownMs: 0 };
+
+    // A stream content stall gave up on this one request (usually a long reasoning turn
+    // with no output yet); cooling the account for it takes healthy capacity out of routing.
+    if (
+      isStreamContentStall(errorText) &&
+      !resolveResilienceSettings(await getCachedSettings()).streamStallCooldown.enabled
+    ) {
+      updateProviderConnection(connectionId, {
+        lastErrorType: "server_error",
+        lastError: `Stream stalled on ${model ?? "request"} (no account cooldown)`,
+        lastErrorAt: new Date().toISOString(),
+        errorCode: status,
+      }).catch(() => {});
+      log.info(
+        "AUTH",
+        `${connectionId.slice(0, 8)} stream content stall on ${provider}:${model ?? "n/a"} — no account cooldown`
+      );
+      return { shouldFallback: true, cooldownMs: 0 };
+    }
 
     // ─── Anti-Thundering Herd Guard ─────────────────────────────────
     // If this connection was ALREADY marked unavailable by a prior concurrent
@@ -3049,7 +3090,11 @@ export async function markAccountUnavailable(
       // 0 hot-loops the failing upstream (broke resilience-http-e2e on the PR).
       // The empty-stream 502 is synthesized by OmniRoute, not the provider: locking
       // the model benched healthy accounts and emptied the combo (incident 2026-09-21).
-      if (status === 500 || isSyntheticEmptyStreamFailure(status, errorText)) {
+      const exemptAfterOutput =
+        status >= 500 &&
+        options.streamOutputEmitted === true &&
+        !postOutputFailureReachesLockout(provider, connectionId, model);
+      if (isRequestScopedServerFailure(status, errorText, exemptAfterOutput)) {
         updateProviderConnection(connectionId, {
           lastErrorType: reason,
           lastError: `Model ${model} ${reason}`,
@@ -3058,7 +3103,7 @@ export async function markAccountUnavailable(
         }).catch(() => {});
         log.info(
           "AUTH",
-          `Server error for ${provider}:${model} — ${status} ${reason} (no model lockout, connection stays active for sibling models)`,
+          `Server error for ${provider}:${model} — ${status} ${reason}${options.streamOutputEmitted === true ? " after stream output" : ""} (no model lockout, connection stays active for sibling models)`,
           {
             ...(options.correlationId ? { correlationId: options.correlationId } : {}),
           }

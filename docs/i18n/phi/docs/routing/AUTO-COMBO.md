@@ -10,97 +10,97 @@
 
 ## Zero-Config na Auto-Routing (`auto/` prefix)
 
-> **BAGO:** Hindi kailangang gumawa ng combo. Direktang gamitin ang `auto/` prefix sa anumang client.
+> **BAGO:** Hindi na kailangang gumawa ng combo. Direktang gamitin ang `auto/` prefix sa anumang client.
 
-### Mabilisang mga Halimbawa
+### Mabilisang Mga Halimbawa
 
-| Model ID       | Variant | Gawi                                                                                           |
-| -------------- | ------- | ---------------------------------------------------------------------------------------------- |
-| `auto`         | default | Lahat ng nakakonektang provider, LKGP strategy, balanseng mga weight                           |
-| `auto/coding`  | coding  | Quality-first na mga weight, angkop para sa pagbuo ng code                                     |
-| `auto/fast`    | fast    | Weighted selection na may mababang latency                                                     |
-| `auto/cheap`   | cheap   | Cost-optimized na routing (pinakamababang gastos muna)                                         |
-| `auto/offline` | offline | Pinapaboran ang mga provider na may pinakamataas na available na quota                         |
-| `auto/smart`   | smart   | Quality-first + mas mataas na exploration rate (10%) para sa mas mahusay na pagtuklas ng model |
-| `auto/lkgp`    | lkgp    | Tiyak na LKGP (kapareho ng default na `auto`)                                                  |
-| `auto/chaos`   | chaos   | Mga weight para sa fault injection upang subukan ang resilience (chaos engineering)            |
+| Model ID       | Variant | Pag-uugali                                                                                      |
+| -------------- | ------- | ----------------------------------------------------------------------------------------------- |
+| `auto`         | default | Lahat ng nakakonektang provider, LKGP strategy, balanseng weights                               |
+| `auto/coding`  | coding  | Quality-first na weights, angkop para sa pagbuo ng code                                         |
+| `auto/fast`    | fast    | Weighted selection na may mababang latency                                                      |
+| `auto/cheap`   | cheap   | Routing na naka-optimize sa gastos (pinakamababang gastos muna)                                 |
+| `auto/offline` | offline | Pinapaboran ang mga provider na may pinakamataas na available na quota                          |
+| `auto/smart`   | smart   | Quality-first + mas mataas na exploration rate (10%) para sa mas mahusay na pagtuklas ng modelo |
+| `auto/lkgp`    | lkgp    | Tahasang LKGP (kapareho ng default na `auto`)                                                   |
+| `auto/chaos`   | chaos   | Parallel fan-out, isang modelo bawat provider (hindi fault injection)                           |
 
-### Komposisyong Category × Tier (`auto/<category>:<tier>`)
+### Komposisyon ng Category × Tier (`auto/<category>:<tier>`)
 
-Pinaghihiwalay ng mga OpenRouter-style suffix ang **kung anong uri ng route** (category) mula sa **kung paano ito io-optimize** (tier), kaya maaari mong pagsamahin ang mga ito nang malaya (#4235 Phase B, `open-sse/services/autoCombo/suffixComposition.ts`):
+Pinaghihiwalay ng mga OpenRouter-style suffix ang **kung anong uri ng ruta** (category) mula sa **kung paano ito i-optimize** (tier), upang malaya mong mapagsama ang mga ito (#4235 Phase B, `open-sse/services/autoCombo/suffixComposition.ts`):
 
-- **Mga Category** (sinasala ang candidate pool ayon sa capability): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. Pinananatili ng `vision`/`multimodal` ang mga model na may kakayahang gumamit ng vision; pinananatili ng `reasoning` ang mga reasoning/thinking model.
-- **Mga Tier** (pinipili ang mga scoring weight / pool filter): `fast` (ship-fast) · `cheap` (alias na `floor`, cost-saver) · `reliable` (kalagayan ng circuit breaker + katatagan ng latency) · `free` / `pro` (sinasala ang pool ayon sa model tier sa pamamagitan ng `classifyTier` — free-tier kumpara sa premium).
+- **Mga category** (sinasala ang candidate pool ayon sa kakayahan): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. Pinapanatili ng `vision`/`multimodal` ang mga modelong may kakayahang magproseso ng vision; pinapanatili ng `reasoning` ang mga reasoning/thinking model.
+- **Mga tier** (pinipili ang scoring weights / pool filter): `fast` (ship-fast) · `cheap` (alias na `floor`, cost-saver) · `reliable` (kalusugan ng circuit breaker + katatagan ng latency) · `free` / `pro` (sinasala ang pool ayon sa model tier sa pamamagitan ng `classifyTier` — free-tier kumpara sa premium).
 
-| Halimbawa              | Nagre-resolve sa                                                                   |
+| Halimbawa              | Nagreresulta sa                                                                    |
 | ---------------------- | ---------------------------------------------------------------------------------- |
-| `auto/coding:fast`     | coding pool, mga weight na may mababang latency                                    |
-| `auto/coding:cheap`    | coding pool, cost-optimized (alias na `auto/coding:floor`)                         |
+| `auto/coding:fast`     | coding pool, weights na may mababang latency                                       |
+| `auto/coding:cheap`    | coding pool, naka-optimize sa gastos (alias na `auto/coding:floor`)                |
 | `auto/reasoning:pro`   | mga reasoning/thinking model lamang, premium tier                                  |
-| `auto/vision`          | mga model na may kakayahang gumamit ng vision (walang tier → balanseng mga weight) |
-| `auto/multimodal:free` | mga model na may kakayahang multimodal, free tier lamang                           |
+| `auto/vision`          | mga modelong may kakayahang magproseso ng vision (walang tier → balanseng weights) |
+| `auto/multimodal:free` | mga modelong may kakayahang multimodal, free tier lamang                           |
 
-Ang anumang valid na `auto/<category>[:<tier>]` ay nagre-resolve kapag kinakailangan; isang piniling subset ang ipinapakita sa `/v1/models` at sa dashboard (`AUTO_SUFFIX_VARIANTS` sa `open-sse/services/autoCombo/builtinCatalog.ts`). Ang pag-filter ay **fail-open** — kung walang nakakonektang model na tumutugma sa isang constraint, gagamitin ang buong pool upang hindi kailanman masira ang routing. Hindi binago ang pangunahing scorer (`combo.ts`); inilalapat ang category/tier filter sa `buildAutoCandidates`.
+Ang anumang valid na `auto/<category>[:<tier>]` ay nireresolba kapag kailangan; isang piniling subset ang inilalathala sa `/v1/models` at sa dashboard (`AUTO_SUFFIX_VARIANTS` sa `open-sse/services/autoCombo/builtinCatalog.ts`). Ang filtering ay **fail-open** — kung walang nakakonektang modelong tumutugma sa isang constraint, gagamitin ang buong pool upang hindi kailanman masira ang routing. Hindi binago ang pangunahing scorer (`combo.ts`); inilalapat ang category/tier filter sa `buildAutoCandidates`.
 
-> **Live na model intelligence:** ang pagiging angkop para sa auto-routing ay ginagabayan ng live na mga ranking ng **Arena ELO** + tier data mula sa **models.dev** kapag naka-on ang `ARENA_ELO_SYNC_ENABLED` flag (kung hindi, bumabalik ito sa static fitness map).
+> **Live na model intelligence:** ang fitness ng auto-routing ay ginagabayan ng live na **Arena ELO** rankings + **models.dev** tier data kapag naka-on ang `ARENA_ELO_SYNC_ENABLED` flag (kung hindi, bumabalik ito sa static fitness map).
 
 **Paano gamitin:**
 
 ```bash
-# Anumang IDE o CLI tool na sumusuporta sa format ng OpenAI
+# Anumang IDE o CLI tool na sumusuporta sa OpenAI format
 Base URL: http://localhost:20128/v1
 API Key:  <your-endpoint-key>
 
 # Sa iyong code/config, itakda ang model sa:
 model: "auto"                 # balanseng default
-model: "auto/coding"          # pinakamahusay para sa mga coding task
+model: "auto/coding"          # pinakamainam para sa mga coding task
 model: "auto/fast"            # pinakamabilis na available
-model: "auto/cheap"           # pinakamura kada token
+model: "auto/cheap"           # pinakamura bawat token
 ```
 
 **Ano ang nangyayari:**
 
-1. Dinedetect ng OmniRoute ang `auto/` prefix sa `src/sse/handlers/chat.ts`
-2. Kinukuha mula sa database ang lahat ng **active provider connection**
+1. Tinutukoy ng OmniRoute ang `auto/` prefix sa `src/sse/handlers/chat.ts`
+2. Kinukuha mula sa database ang lahat ng **aktibong koneksyon ng provider**
 3. Sinasala ang mga may valid na credential (API key o OAuth token)
-4. Tinutukoy ang model para sa bawat connection (`connection.defaultModel` o ang unang model ng provider)
+4. Tinutukoy ang modelo para sa bawat koneksyon (`connection.defaultModel` o unang modelo ng provider)
 5. Bumubuo ng **virtual combo** sa memory (hindi iniimbak sa DB)
-6. Nagra-route gamit ang weight profile ng napiling variant + LKGP strategy
+6. Nagsasagawa ng routing gamit ang weight profile ng napiling variant + LKGP strategy
 
-**Mga pangunahing katangian:**
+**Mahahalagang katangian:**
 
 - ✅ **Palaging naka-on:** Walang toggle, hindi kailangang gumawa ng combo, at walang kinakailangang configuration
 - ✅ **Dynamic:** Awtomatikong ipinapakita ang kasalukuyang nakakonektang mga provider
-- ✅ **Session stickiness:** Tinitiyak ng LKGP na binibigyan ng prayoridad ang huling matagumpay na provider
-- ✅ **May kaalaman sa multi-account:** Ang bawat provider connection ay nagiging hiwalay na candidate
-- ✅ **Walang pagsusulat sa DB:** Umiiral lamang ang virtual combo para sa request, kaya walang persistence overhead
+- ✅ **Session stickiness:** Tinitiyak ng LKGP na binibigyang-priyoridad ang huling matagumpay na provider
+- ✅ **May suporta sa maraming account:** Ang bawat koneksyon ng provider ay nagiging hiwalay na candidate
+- ✅ **Walang pagsusulat sa DB:** Umiiral lamang ang virtual combo para sa request, nang walang persistence overhead
 
 ### Kontrol sa candidate para sa bawat key (#7819, Level 1+2)
 
 Ang `GET /v1/auto-combo/{channel}/candidates` (`{channel}` = ang suffix pagkatapos ng `auto/`, o
 ang literal na `auto` para sa base channel) ay isang **read-only** endpoint na naglilista ng
-kasalukuyang candidate pool ng isang `auto/*` channel na may kasamang live reachability, gamit muli
-ang kasalukuyang mga resilience read (hindi kailanman ang raw na `state` ng breaker):
+kasalukuyang candidate pool ng isang `auto/*` channel, kasama ang live na reachability, gamit muli
+ang umiiral na resilience reads (hindi kailanman ang raw breaker `state`):
 
-- provider circuit breaker — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
-- connection cooldown — `rateLimitedUntil` / `testStatus` sa na-resolve na
+- circuit breaker ng provider — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
+- cooldown ng koneksyon — `rateLimitedUntil` / `testStatus` sa naresolbang
   `provider_connections` row
-- model lockout — `isModelLocked(provider, connectionId, model)`
+- lockout ng modelo — `isModelLocked(provider, connectionId, model)`
 
 Taglay rin ng bawat candidate ang `excluded` flag ng API key na ito. Iniimbak ang mga exclusion
 para sa bawat API key (`auto_candidate_overrides` table, migration `128`) — single-tenant ang
 OmniRoute at walang `users` table, kaya ang `apiKeyId` ang pinakamalapit na tunay na per-caller
-identity — at ipinapatupad ang mga ito sa chokepoint ng candidate pool sa
+identity — at ipinapatupad sa chokepoint ng candidate pool sa
 `open-sse/services/autoCombo/virtualFactory.ts` sa pamamagitan ng pure at unit-tested na
 `filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`).
-Ang filter ay **fail-open**: kapwa hinahayaan ng hindi nakatakdang apiKeyId/channel o pagkabigo
-ng DB lookup na manatiling hindi naka-filter ang pool, kaya ang isang operator na walang
-naka-configure na override ay nakakakita ng routing na byte-identical sa routing bago idagdag ang feature na ito.
+Ang filter ay **fail-open**: kapuwa iniiwang hindi na-filter ang pool kapag walang nakatakdang
+apiKeyId/channel o kapag nabigo ang DB lookup, kaya ang isang operator na walang naka-configure na
+override ay makakakita ng routing na byte-identical sa dati bago ang feature na ito.
 
-**Ipinagpaliban sa isang follow-up na isyu:** mga timbang para sa bawat kandidato + tahasang pagkakasunod-sunod (Antas 3
-— ipinapasok sa mga kasalukuyang path ng may-timbang/prayoridad na estratehiya) at pag-pin ng isang partikular na
-estratehiyang `combo.ts` para sa bawat channel na `auto/*` (Antas 4). Tingnan ang plano sa #7819 para sa bukas na
-tanong kung dapat manatiling para sa bawat API key ang mga override o maging pandaigdigan dahil sa
+**Ipinagpaliban para sa susunod na isyu:** mga timbang kada kandidato + tahasang pagkakasunud-sunod (Level 3
+— ipinapasok sa mga kasalukuyang weighted/priority strategy path) at pag-pin ng isang partikular na
+`combo.ts` strategy kada `auto/*` channel (Level 4). Tingnan ang plano sa #7819 para sa bukas na
+tanong kung dapat manatiling kada-API-key ang mga override o maging global dahil sa
 single-tenant na modelo.
 
 **Sa likod ng mga eksena:**
@@ -112,20 +112,20 @@ Tinutukoy ng src/sse/handlers/chat.ts ang prefix
    ↓
 createVirtualAutoCombo('coding') → candidatePool mula sa mga aktibong koneksyon
    ↓
-handleComboChat (kaparehong engine ng mga naka-persist na combo)
+handleComboChat (parehong engine gaya ng mga naka-save na combo)
    ↓
-Pinipili ng awtomatikong pagmamarka ang pinakamahusay na provider/model para sa bawat kahilingan
+Pinipili ng auto-scoring ang pinakamahusay na provider/model kada kahilingan
 ```
 
 **Mga file ng implementasyon:**
 
-| File                                                      | Layunin                                                       |
-| --------------------------------------------------------- | ------------------------------------------------------------- |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Parser ng prefix (`parseAutoPrefix`)                          |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Gumagawa ng mga virtual na object na `AutoComboConfig`        |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Test hook para sa pag-mock ng registry ng provider            |
-| `src/sse/handlers/chat.ts`                                | Integrasyon: maagang pag-short-circuit ng awtomatikong prefix |
-| `src/shared/constants/providers.ts`                       | System entry na `SYSTEM_PROVIDERS.auto`                       |
+| File                                                      | Layunin                                             |
+| --------------------------------------------------------- | --------------------------------------------------- |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | Parser ng prefix (`parseAutoPrefix`)                |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Gumagawa ng mga virtual na `AutoComboConfig` object |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Test hook para sa pag-mock ng provider registry     |
+| `src/sse/handlers/chat.ts`                                | Integrasyon: auto prefix short-circuit              |
+| `src/shared/constants/providers.ts`                       | `SYSTEM_PROVIDERS.auto` system entry                |
 
 ## Mga Pangalan ng Combo na Tumutugma sa Tunay na Model Id
 
@@ -217,7 +217,7 @@ Dinamikong pinipili ng Auto-Combo Engine ang pinakamahusay na provider/model par
 
 ## Mga Mode Pack
 
-6 na paunang tinukoy na profile ng timbang sa `open-sse/services/autoCombo/modePacks.ts`. Ganap na pinapalitan ng bawat pack ang mga default na timbang upang ikiling ang pagpili tungo sa isang layunin. Ang kabuuan ng bawat pack ay `1.0` na (`0.9999` kapag ipinakita sa apat na decimal), kaya walang makabuluhang kailangang itama ang `normalizeScoringWeights()` kapag aktibo ang isang pack — ang mga value sa ibaba, maliban sa rounding, ang ginagamit ng scorer.
+6 na paunang tinukoy na profile ng timbang sa `open-sse/services/autoCombo/modePacks.ts`. Ganap na pinapalitan ng bawat pack ang mga default na timbang upang ikiling ang pagpili sa iisang layunin. Ang kabuuan ng bawat pack ay `1.0` na (`0.9999` kapag ipinakita sa apat na decimal), kaya walang makabuluhang kailangang itama ang `normalizeScoringWeights()` kapag aktibo ang isang pack — ang mga halaga sa ibaba, matapos ang pag-round, ang siyang inilalapat ng scorer.
 
 | Salik                 | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
@@ -239,32 +239,32 @@ Dinamikong pinipili ng Auto-Combo Engine ang pinakamahusay na provider/model par
 
 Mga Tala:
 
-- **Kasama sa mga pack ang `quality` at `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) at ganap na pinapalitan ang weight map (`weights = pack`, hindi merge). Taglay ng `DEFAULT_WEIGHTS` ang `quality 0.03 / reliability 0`; kapag pinili ang `balanced`/`default`, mananatili ang mga default na iyon, samantalang kapag pinili ang isang pack, gagamitin ang mga value nito sa itaas. Sa isang cold pool (wala pang mga obserbasyon, kaya `quality 0.5` at `reliability 1`), nagdaragdag ang dalawang salik na ito ng `+0.04` sa isang generic na pack (`0.03 + 0.01`), `+0.045` sa `quality-first`, at `+0.05` sa `reliability-first`.
+- **Kasama sa mga pack ang `quality` at `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) at ganap na pinapalitan ang mapa ng mga timbang (`weights = pack`, hindi isang merge). Taglay ng `DEFAULT_WEIGHTS` ang `quality 0.03 / reliability 0`; kapag pinili ang `balanced`/`default`, pananatilihin ang mga default na iyon, samantalang kapag pinili ang isang pack, gagamitin ang mga halaga ng pack sa itaas. Sa isang cold pool (wala pang mga obserbasyon, kaya `quality 0.5` at `reliability 1`), nagdaragdag ang dalawang salik na ito ng `+0.04` sa ilalim ng isang generic na pack (`0.03 + 0.01`), `+0.045` sa ilalim ng `quality-first`, at `+0.05` sa ilalim ng `reliability-first`.
 - Tahasang `0` ang `tierAffinity`, `specificityMatch`, at `resetWindowAffinity` sa bawat pack.
-- Buod ng binibigyang-diin ng bawat pack:
-  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (mga malusog na koneksiyong mababa ang latency)
-  - **cost-saver** → costInv 0.3324 (pinakamurang mga token ang mananaig)
-  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, ang pinakamataas sa lahat ng pack (pinakamahusay na modelo para sa gawain, pare-pareho)
+- Isang mabilisang pagtingin sa binibigyang-diin ng bawat pack:
+  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (mga koneksiyong may mababang latency at maayos na kalagayan)
+  - **cost-saver** → costInv 0.3324 (ang may pinakamurang mga token ang nananalo)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, ang pinakamataas sa lahat ng pack (pinakamahusay at pare-parehong modelo para sa gawain)
   - **offline-friendly** → quota 0.3324 + health 0.2667 (pinakamalaking headroom anuman ang bilis/gastos)
   - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, ang pinakamataas sa lahat ng pack (pinakakaunting hindi inaasahang pangyayari)
-  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (profile para sa fault injection)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (ang weight pack na itinatalaga ng `auto/chaos` sa mga miyembro ng panel nito; hindi binabasa ng parallel fan-out ang mga timbang na ito, at hindi ito isang fault-injection profile, tingnan ang [CHAOS-MODE.md](../guides/CHAOS-MODE.md#autochaos-parallel-fan-out))
 
-### Mga Kontrol Kada Request (mga header) — #6023 / #6024 / #6025 / #3470
+### Mga Kontrol Bawat Kahilingan (mga header) — #6023 / #6024 / #6025 / #3470
 
-Maaaring kontrolin ang isang `auto` combo **sa bawat request** sa pamamagitan ng tatlong header, nang hindi binabago ang
-naka-store na config ng combo. Nalalapat lamang ang mga ito sa `auto` strategy at sa request lamang
-na naglalaman ng mga ito; ginagamit ang naka-save na `modePack`/`budgetCap`/`budgetFallback` ng combo
+Maaaring kontrolin ang isang `auto` combo **bawat kahilingan** sa pamamagitan ng tatlong header, nang hindi binabago ang
+nakaimbak na config ng combo. Nalalapat lamang ang mga ito sa `auto` strategy at sa kahilingang
+naglalaman ng mga ito; ginagamit ang naka-save na `modePack`/`budgetCap`/`budgetFallback` ng combo
 kapag wala ang header.
 
-| Header                        | Tinatanggap                                                                                                                                                                                    | Epekto                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| :---------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-Mode`            | isang preset alias (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) o isang raw pack name (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Ino-override ang mga scoring weight para sa request na ito. Pinipilit ng `balanced`/`default` ang mga default na weight (walang pack). Binabalewala ang mga hindi kilalang value (pinananatili ang config).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `X-OmniRoute-Budget`          | isang positibong numero (maximum na USD bawat request)                                                                                                                                         | Mahigpit na limitasyon sa gastos: ang mga kandidatong lumalampas dito ang tinatayang gastos ay sinasala bago ang pagpili. Ang mangyayari kapag lumampas dito ang **bawat** kandidato ay kinokontrol ng `X-OmniRoute-Budget-Fallback` sa ibaba.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `X-OmniRoute-Budget-Fallback` | `cheapest` (default, mga alias: `cheapest-viable`, `soft`) o `strict` (mga alias: `block`, `hard`)                                                                                             | `cheapest`: bumabalik sa kandidatong pinakamura sa kabuuan kahit lumalampas pa rin ito sa limitasyon (dating gawi). `strict`: tumatangging pumili — agad na nabibigo ang request na may `HTTP 402` sa halip na tahimik na lumampas sa badyet. Binabalewala ang mga hindi kilalang value.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `X-OmniRoute-Effort`          | `auto` (nakalaan ang ibang mga value)                                                                                                                                                          | Agpang na badyet sa pag-iisip: kapag **walang** reasoning field sa anumang anyo (`reasoning_effort`, `reasoning`, `thinking`) ang request, nireresolba ng gateway ang `auto` bilang `low`/`medium`/`high` mula sa mga deterministikong signal ng hugis ng request (haba ng huling mensahe ng user, laki ng konteksto hanggang sa huling mensahe ng user, mga naunang resulta ng tool, lalim ng tool loop). Saklaw lamang ng mga signal ang kasalukuyang turn — binabalewala ang lahat pagkatapos ng huling mensahe ng user — kaya nireresolba sa parehong antas ang bawat request sa isang tool loop (stateless na per-turn pin, walang session state, walang pagtaas sa gitna ng loop na makasisira sa mga upstream na prefix ng prompt cache). Palaging nangingibabaw ang tahasang reasoning field ng client. Saklaw lamang ito ng mga request na ang upstream dispatch ay nireresolba sa anyong OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — ang `reasoning_effort` ay isang field na may anyong OpenAI, kaya walang epekto ang header sa request na naka-target sa Claude o Gemini (tingnan ang `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
+| Header                        | Tinatanggap                                                                                                                                                                                                 | Epekto                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| :---------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`            | isang preset na alias (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) o isang raw na pangalan ng pack (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Ino-override ang mga timbang ng pagmamarka para sa kahilingang ito. Pinipilit ng `balanced`/`default` ang mga default na timbang (walang pack). Binabalewala ang mga hindi kilalang value (pinapanatili ang configuration).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `X-OmniRoute-Budget`          | isang positibong numero (maximum na USD bawat kahilingan)                                                                                                                                                   | Mahigpit na limitasyon sa gastos: ang mga kandidatong may tinatayang gastos na lumalampas dito ay fina-filter bago ang pagpili. Ang mangyayari kapag **bawat** kandidato ay lumampas dito ay kinokontrol ng `X-OmniRoute-Budget-Fallback` sa ibaba.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (default, mga alias: `cheapest-viable`, `soft`) o `strict` (mga alias: `block`, `hard`)                                                                                                          | `cheapest`: bumabalik sa pinakamurang kandidato sa kabuuan kahit lumalampas pa rin ito sa limitasyon (dating gawi). `strict`: tumatangging pumili — agad na nabibigo ang kahilingan gamit ang `HTTP 402` sa halip na tahimik na gumastos nang lampas sa limitasyon. Binabalewala ang mga hindi kilalang value.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `X-OmniRoute-Effort`          | `auto` (nakalaan ang iba pang mga value)                                                                                                                                                                    | Agpang na badyet sa pag-iisip: kapag **walang** anumang reasoning field ang request (`reasoning_effort`, `reasoning`, `thinking`), nire-resolve ng gateway ang `auto` bilang `low`/`medium`/`high` mula sa mga deterministikong signal ng hugis ng request (haba ng huling mensahe ng user, laki ng konteksto hanggang sa huling mensahe ng user, mga naunang resulta ng tool, lalim ng tool loop). Nakatuon ang mga signal sa kasalukuyang turn — binabalewala ang lahat ng nasa kasunod ng huling mensahe ng user — kaya ang bawat request sa isang tool loop ay nire-resolve sa parehong antas (stateless na per-turn pin, walang session state, walang mid-loop escalation na sisira sa mga prefix ng upstream prompt cache). Palaging nangingibabaw ang tahasang reasoning field ng client. Nakatuon ito sa mga request na ang upstream dispatch ay nire-resolve sa hugis ng OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — ang `reasoning_effort` ay isang field na may hugis ng OpenAI, kaya walang epekto ang header sa isang request na naka-target sa Claude o Gemini (tingnan ang `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
 
 ```bash
-# Pilitin ang pinakamabilis na profile, limitahan ang kahilingang ito sa $0.05, at mahigpit na i-block sa halip na lumampas sa badyet
+# Pilitin ang pinakamabilis na profile, limitahan ang request na ito sa $0.05, at ganap itong i-block sa halip na lumampas sa badyet
 curl -sS http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-OmniRoute-Mode: fast" \
@@ -275,8 +275,8 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 Ang resolution ay isang pure function (`open-sse/services/autoCombo/requestControls.ts`); ang mga
 na-resolve na value ay ipinapasa sa mga umiiral na input na `config.modePack` / `config.budgetCap` /
-`config.budgetFallback` ng engine. Itinatakda ng naka-store na `config.budgetFallback` ("strict" |
-"cheapest") ng isang combo ang persistent policy; ino-override ito ng header para sa iisang request.
+`config.budgetFallback` ng engine. Itinatakda ng nakaimbak na `config.budgetFallback` ("strict" |
+"cheapest") ng isang combo ang persistent na patakaran; ino-override ito ng header para sa isang request.
 
 ## Lahat ng Estratehiya sa Routing
 
@@ -763,12 +763,16 @@ Kasama ang payak na `auto` (default) at ang 6 na value ng `AutoVariant` na idine
 
 ## Paano umaangkop ang mga tier sa Auto-Combo
 
-Itinuturing ng 16-factor scoring function (`open-sse/services/autoCombo/scoring.ts`) ang pagiging kabilang sa isang tier bilang dalawang signal: `tierPriority` (0.0476) at `tierAffinity` (0.0476). Tingnan ang kanonikal na [talahanayan ng mga scoring factor](#how-it-works-persisted-auto-combos) sa itaas para sa kumpletong hanay ng `DEFAULT_WEIGHTS` — nakalista sa talahanayang "Weight profiles per pack" ang mga override para sa bawat pack (ship-fast/cost-saver/quality-first/
+Itinuturing ng 16-factor scoring function (`open-sse/services/autoCombo/scoring.ts`) ang pagiging kabilang sa tier bilang dalawang signal: `tierPriority` (0.0476) at `tierAffinity` (0.0476). Tingnan ang
+kanonikal na [talahanayan ng mga scoring factor](#how-it-works-persisted-auto-combos) sa itaas para sa kumpletong
+set ng `DEFAULT_WEIGHTS` — nakalista sa talahanayang "Mga weight profile sa bawat pack" ang mga override para sa bawat pack (ship-fast/cost-saver/quality-first/
 offline-friendly).
 
-Hindi **awtomatikong** inuuna ng tier lamang ang Tier 1 — kung hindi maganda ang latency ng Tier 1 o hindi pinakamainam ang ugnayan ng gastos at kalidad, mananaig ang Tier 2. Upang ipilit ang pagkakasunod-sunod ng mga tier, gamitin ang combo strategy na `priority` at ayusin ang mga provider ayon sa tier.
+Ang tier lamang ay **hindi** awtomatikong nag-uuna sa Tier 1 — kung mabagal ang latency ng Tier 1 o
+hindi optimal ang cost-vs-quality, mananaig ang Tier 2. Upang ipatupad ang pagkakasunod-sunod ayon sa tier, gamitin ang combo
+strategy na `priority` at isaayos ang mga provider ayon sa tier.
 
-Upang lubos na paboran ang Tier 1 (subscription), dagdagan ang bigat ng `tierPriority`:
+Upang higit na paboran ang Tier 1 (subscription), taasan ang weight ng `tierPriority`:
 
 ```json
 {
@@ -777,7 +781,7 @@ Upang lubos na paboran ang Tier 1 (subscription), dagdagan ang bigat ng `tierPri
 }
 ```
 
-Tingnan ang `docs/marketing/TIERS.md` para sa mga depinisyon ng tier at klasipikasyon ng provider.
+Tingnan ang [`docs/guides/TIERS.md`](../guides/TIERS.md) para sa mga depinisyon ng tier at pag-uuri ng provider.
 
 ## Pagsubok at Saklaw
 
