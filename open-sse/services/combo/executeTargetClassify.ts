@@ -7,6 +7,7 @@
 import { isInputBoundRequestFailure } from "./comboPredicates.ts";
 import { comboTargetDecision } from "./statusDecisionTable.ts";
 import { errorResponse, errorResponseWithComboDiagnostics } from "../../utils/error.ts";
+import { isContentPolicyRefusal } from "../../utils/contentPolicyError.ts";
 import { buildRedactedSummary } from "./comboErrorAggregation.ts";
 import type { ComboDiagnostics } from "../../utils/error.ts";
 import { formatExhaustedConnectionKey } from "./comboDiagFormat.ts";
@@ -144,6 +145,16 @@ export function qualityValidationFailure(quality: ResponseQualityResult): {
   ok: false;
   response: Response;
 } {
+  const failure = quality.upstreamFailure;
+  if (failure && isContentPolicyRefusal(failure)) {
+    return {
+      ok: false,
+      response: errorResponse(failure.status, failure.message || "Upstream request refused", {
+        code: failure.code,
+        type: failure.type ?? "invalid_request_error",
+      }),
+    };
+  }
   return {
     ok: false,
     response: quality.upstreamFailure
@@ -158,7 +169,11 @@ export function shouldAbortOnInputBoundFailure(opts: {
 }): boolean {
   const structured = opts.structuredError as
     { code?: string | null; type?: string | null } | undefined;
-  return isInputBoundRequestFailure(structured) && opts.remainderIsHomogeneous;
+  // Never route around a content-policy refusal, including heterogeneous combos.
+  return (
+    isContentPolicyRefusal(structured) ||
+    (isInputBoundRequestFailure(structured) && opts.remainderIsHomogeneous)
+  );
 }
 
 /**

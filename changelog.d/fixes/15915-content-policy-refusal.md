@@ -1,0 +1,1 @@
+- **fix(resilience):** Keep structured content-policy refusals request-scoped: preserve their public error codes, avoid account cooldowns, and stop combo retries/fallback without bypassing the provider's refusal (refs #15915).

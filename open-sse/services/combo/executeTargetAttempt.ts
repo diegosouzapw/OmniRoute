@@ -24,6 +24,7 @@ import {
   readProseRetryAfter,
 } from "../../utils/error.ts";
 import { recordComboFailure, clearComboFailureTracking } from "./failureTracker.ts";
+import { isContentPolicyRefusal } from "../../utils/contentPolicyError.ts";
 import { recordComboRequest, getComboMetrics } from "../comboMetrics.ts";
 import {
   expandComboSystemPromptIfPresent,
@@ -440,6 +441,8 @@ export async function executeTargetAttempt(opts: {
         });
         state.observeFailure(false, target.executionKey);
         if (handlePreContentStreamRetry(quality, retry, deps, modelStr)) continue;
+        if (isContentPolicyRefusal(quality.upstreamFailure))
+          return qualityValidationFailure(quality);
         familyTried.add(modelStr);
         // A request-scoped refusal (invalid request, context overflow) is a property of
         // the request, not of the effort tier — replaying it on a sibling alias of the
@@ -842,6 +845,8 @@ export async function executeTargetAttempt(opts: {
     // let that case fall through, so only short-circuit when every remaining
     // target is the same model (the "retrying will fail identically" premise
     // only holds within a homogeneous same-model pool).
+    // Content-policy refusals are terminal even with different models remaining:
+    // return the refusal rather than routing around the provider's policy.
     const remainderHomogeneous = remainderIsHomogeneous(state.orderedTargets, i, modelStr);
     const isInputBoundFailure = shouldAbortOnInputBoundFailure({
       structuredError,
@@ -850,7 +855,7 @@ export async function executeTargetAttempt(opts: {
     if (isInputBoundFailure) {
       deps.log.warn(
         "COMBO",
-        `Input-bound request failure from ${modelStr} — aborting combo (same input will fail identically on every account)`
+        `Input-bound request failure from ${modelStr} — stopping combo and returning the refusal`
       );
       recordComboRequest(deps.combo.name, modelStr, {
         success: false,
