@@ -24,6 +24,7 @@
         "**/.next/**"
       ],
       "ignoreDependencies": [
+        "@omniroute/open-sse",
         "typescript",
         "tsx",
         "@types/*",
@@ -59,6 +60,30 @@
       "entry": ["src/index.ts"],
       "project": ["src/**/*.ts", "!src/**/*.test.ts"],
       "ignore": ["node_modules/**", "dist/**"]
+    },
+    "@omniroute/opencode-plugin": {
+      "entry": ["src/index.ts", "tsup.config.ts"],
+      "project": ["src/**/*.ts", "tsup.config.ts"],
+      "ignore": ["tests/**", "dist/**"],
+      "ignoreIssues": {
+        "**/*": ["files", "exports", "nsExports", "types", "nsTypes"]
+      }
+    },
+    "@omniroute/opencode-plugin-v2": {
+      "entry": ["src/index.ts", "tsup.config.ts"],
+      "project": ["src/**/*.ts", "tsup.config.ts"],
+      "ignore": ["tests/**", "dist/**"],
+      "ignoreIssues": {
+        "**/*": ["files", "exports", "nsExports", "types", "nsTypes"]
+      }
+    },
+    "@omniroute/opencode-provider": {
+      "entry": ["src/index.ts", "tsup.config.ts"],
+      "project": ["src/**/*.ts", "tsup.config.ts"],
+      "ignore": ["tests/**", "dist/**"],
+      "ignoreIssues": {
+        "**/*": ["files", "exports", "nsExports", "types", "nsTypes"]
+      }
     }
   },
   "include": ["exports", "nsExports", "types", "nsTypes", "files"],
