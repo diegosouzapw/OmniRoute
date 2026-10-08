@@ -34,6 +34,29 @@ test("getCodexPlanLabel returns empty string when chatgptPlanType is missing/bla
   assert.equal(getCodexPlanLabel(true, undefined), "");
 });
 
+test("getCodexPlanLabel falls back to workspacePlanType when chatgptPlanType is missing or blank (#15161)", () => {
+  assert.equal(getCodexPlanLabel(true, { workspacePlanType: "  prolite " }), "prolite");
+  assert.equal(
+    getCodexPlanLabel(true, { chatgptPlanType: "", workspacePlanType: "promax" }),
+    "promax"
+  );
+  assert.equal(
+    getCodexPlanLabel(true, { chatgptPlanType: "   ", workspacePlanType: "plus" }),
+    "plus"
+  );
+  assert.equal(
+    getCodexPlanLabel(true, { chatgptPlanType: null, workspacePlanType: "team" }),
+    "team"
+  );
+  // chatgptPlanType still wins when it is set.
+  assert.equal(
+    getCodexPlanLabel(true, { chatgptPlanType: "Pro", workspacePlanType: "plus" }),
+    "Pro"
+  );
+  // Not Codex -> always empty, even with a workspace plan.
+  assert.equal(getCodexPlanLabel(false, { workspacePlanType: "plus" }), "");
+});
+
 test("resolvePlanValue falls back to the persisted Codex chatgptPlanType when the live plan is unknown", () => {
   // Reproduces the exact shape open-sse/services/usage/codex.ts returns when
   // the upstream Codex usage endpoint omits plan_type/planType.

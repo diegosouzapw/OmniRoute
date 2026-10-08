@@ -126,6 +126,7 @@ export const AGGREGATOR_PROVIDER_IDS = new Set([
   "llm-kiwi",
   "literouter",
   "eurouter",
+  "y-api",
   "mnn-ai",
   "meganova-ai",
   "mixlayer",

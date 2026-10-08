@@ -1,4 +1,4 @@
-import { getUnifiedModelsResponse } from "@/app/api/v1/models/catalog";
+import { getUnifiedModelsResponse as fetchUnifiedModels } from "@/app/api/v1/models/catalog";
 import { getProviderNodeById } from "@/lib/db/providers/nodes";
 import { getServiceModels } from "@/lib/db/serviceModels";
 import { isServiceBackendPluginId } from "@/lib/services/serviceBackends";
@@ -6,6 +6,10 @@ import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts
 import { getProviderById, getProviderByAlias } from "@/shared/constants/providers";
 import { isCompatibleProviderConnectionId } from "@/shared/utils/compatibleProviderId";
 import { stripStaleEncodingHeaders } from "@omniroute/open-sse/utils/upstreamResponseHeaders.ts";
+
+// Object field, not a live ESM binding: tests replace `load` so a planted
+// upstream response reaches GET. Production leaves it pointing at the catalog.
+export const unifiedModels = { load: fetchUnifiedModels };
 
 /**
  * Handle CORS preflight
@@ -79,7 +83,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ prov
     }
   }
 
-  const response = await getUnifiedModelsResponse(request);
+  const response = await unifiedModels.load(request);
   const payload = (await response
     .clone()
     .json()

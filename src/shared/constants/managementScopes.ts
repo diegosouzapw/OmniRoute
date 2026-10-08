@@ -33,6 +33,21 @@ export const MANAGEMENT_API_KEY_SCOPES = new Set<string>(["manage", "admin"]);
 export const MCP_CONNECT_SCOPE = "mcp:connect";
 
 /**
+ * Narrow scopes (#14304) for the cache management routes. A machine client
+ * that holds `read:cache` may read `/api/cache`, and one that holds
+ * `write:cache` may flush it. Like `mcp:connect`, these stay OUT of
+ * `MANAGEMENT_API_KEY_SCOPES`: they open only the cache routes, never the
+ * rest of the management API. `manage` and `admin` still pass both.
+ */
+export const CACHE_READ_SCOPE = "read:cache";
+export const CACHE_WRITE_SCOPE = "write:cache";
+
+export function hasCacheScope(scopes: readonly string[] = [], scope: string): boolean {
+  if (hasManageScope(scopes)) return true;
+  return scopes.includes(scope);
+}
+
+/**
  * Check whether any of the given scopes authorizes the `/api/mcp/` LOCAL_ONLY
  * carve-out specifically — i.e. either a full management scope (`manage`/`admin`)
  * or the narrow `mcp:connect` scope. Use this ONLY for the `/api/mcp/` bypass

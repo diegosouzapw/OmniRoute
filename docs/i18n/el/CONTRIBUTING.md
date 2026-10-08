@@ -392,22 +392,24 @@ docs/
 
 ---
 
-## Λίστα Ελέγχου Pull Request
+## Λίστα ελέγχου Pull Request
 
-- [ ] Τα tests περνούν (`npm test`)
-- [ ] Το linting περνά (`npm run lint`)
+- [ ] Οι δοκιμές ολοκληρώνονται επιτυχώς (`npm test`)
+- [ ] Ο έλεγχος lint ολοκληρώνεται επιτυχώς (`npm run lint`)
 - [ ] Το build ολοκληρώνεται επιτυχώς (`npm run build`)
-- [ ] Προστέθηκαν TypeScript types για νέες δημόσιες συναρτήσεις και interfaces
-- [ ] Δεν υπάρχουν hardcoded secrets ή fallback τιμές
-- [ ] Τα δημόσια upstream διαπιστευτήρια ενσωματώνονται μέσω `resolvePublicCred()` (δείτε [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), ποτέ ως literals
-- [ ] Οι αποκρίσεις σφαλμάτων δρομολογούνται μέσω `buildErrorBody()` / `sanitizeErrorMessage()` — χωρίς raw stack traces στα σώματα απόκρισης (δείτε [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Οι εντολές shell (`exec` / `spawn`) μεταβιβάζουν τιμές runtime μέσω `env`, όχι μέσω string interpolation
-- [ ] Όλες οι εισόδοι επικυρώνονται με Zod schemas
-- [ ] Προστέθηκε **fragment** Changelog στο `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` για αλλαγές που επηρεάζουν τον χρήστη (δείτε [`changelog.d/README.md`](./changelog.d/README.md)) — **μην** επεξεργάζεστε απευθείας το `CHANGELOG.md`· τα fragments συγκεντρώνονται κατά την έκδοση και δεν δημιουργούν ποτέ συγκρούσεις μεταξύ PRs
-- [ ] Η τεκμηρίωση ενημερώθηκε (εάν απαιτείται)
-- [ ] Δεν ανοίχτηκαν νέες ειδοποιήσεις CodeQL / Secret-Scanning, ή κάθε μία απορρίφθηκε με τεχνική αιτιολόγηση που παραπέμπει στο σχετικό έγγραφο `docs/security/`
-- [ ] Τα routes που εκκινούν child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) ταξινομούνται ως `isLocalOnlyPath()` στο `src/server/authz/routeGuard.ts` — δείτε [Κανόνα #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Δεν υπάρχουν trailers `Co-Authored-By` στα μηνύματα commit — τα commits πρέπει να εμφανίζονται αποκλειστικά υπό την Git ταυτότητα του ιδιοκτήτη του αποθετηρίου (Κανόνας #16)
+- [ ] Προστέθηκαν τύποι TypeScript για νέες δημόσιες συναρτήσεις και διεπαφές
+- [ ] Δεν υπάρχουν hardcoded μυστικά ή εφεδρικές τιμές
+- [ ] Τα δημόσια διαπιστευτήρια upstream ενσωματώνονται μέσω `resolvePublicCred()` (βλ. [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)) και ποτέ ως literals
+- [ ] Οι αποκρίσεις σφαλμάτων δρομολογούνται μέσω `buildErrorBody()` / `sanitizeErrorMessage()` — δεν υπάρχουν ανεπεξέργαστα stack traces στα σώματα αποκρίσεων (βλ. [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Οι εντολές shell (`exec` / `spawn`) μεταβιβάζουν τις τιμές χρόνου εκτέλεσης μέσω `env` και όχι μέσω παρεμβολής συμβολοσειρών
+- [ ] Όλες οι είσοδοι επικυρώνονται με σχήματα Zod
+- [ ] Προστέθηκε **τμήμα** changelog στον κατάλογο `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` για αλλαγές που επηρεάζουν τους χρήστες (βλ. [`changelog.d/README.md`](./changelog.d/README.md)) — **μην** επεξεργάζεστε απευθείας το `CHANGELOG.md`· τα τμήματα συγκεντρώνονται κατά την έκδοση και δεν δημιουργούν ποτέ διενέξεις μεταξύ PR
+- [ ] Η τεκμηρίωση ενημερώθηκε (εφόσον απαιτείται)
+- [ ] Δεν δημιουργήθηκαν νέες ειδοποιήσεις CodeQL / Secret-Scanning ή καθεμία απορρίφθηκε με τεχνική αιτιολόγηση που παραπέμπει στο σχετικό έγγραφο του `docs/security/`
+- [ ] Οι διαδρομές που εκκινούν θυγατρικές διεργασίες (`/api/mcp/`, `/api/cli-tools/runtime/`) ταξινομούνται ως `isLocalOnlyPath()` στο `src/server/authz/routeGuard.ts` — βλ. [Αυστηρός κανόνας #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Δεν υπάρχουν trailers `Co-authored-by` από AI/bot στα μηνύματα commit (Αυστηρός κανόνας #16) — οι άνθρωποι συνεργάτες των οποίων η εργασία επαναχρησιμοποιείται αναφέρονται με τα τυπικά trailers `Co-authored-by: Name <email>`
+
+---
 
 ## Κυκλοφορία Εκδόσεων
 
