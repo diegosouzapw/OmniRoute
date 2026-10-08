@@ -902,6 +902,7 @@ Provider-level circuit breaker tuning. Defaults reflect the scaled values used s
 | `OMNIROUTE_PROVIDER_BREAKER_LOCAL_FAILURE_THRESHOLD` | `2` | `open-sse/config/constants.ts` | Provider-level breaker: failures before the entire local provider enters cooldown. |
 | `OMNIROUTE_PROVIDER_BREAKER_LOCAL_FAILURE_WINDOW_MS` | `300000` | `open-sse/config/constants.ts` | Provider-level breaker: rolling failure-count window (ms) for local providers. |
 | `OMNIROUTE_PROVIDER_BREAKER_LOCAL_COOLDOWN_MS` | `60000` | `open-sse/config/constants.ts` | Provider-level breaker: cooldown (ms) once the local provider threshold is reached. |
+| `OMNIROUTE_API_KEY_COOLDOWN_MS` | `60000` | `open-sse/services/apiKeyRotator.ts` | Per-key cooldown (ms) applied by multi-key API-key rotation when an upstream 429 carries no `Retry-After` (#14573). Non-positive or non-numeric values fall back to the default. |
 | `PIN_DROP_BACKOFF_LEVEL`                      | `2`     | `open-sse/services/combo.ts`   | Backoff depth at which a context-cache pin's provider is deemed durably unhealthy and the pin is dropped for failover. |
 | `PIN_DROP_GRACE_MS`                           | `20000` | `open-sse/services/combo.ts`   | Anti-flap window (ms) tolerating brief transient cooldowns before dropping a context-cache pin.                        |
 
@@ -1820,3 +1821,5 @@ Used by `open-sse/services/combo.ts` and `src/lib/quota/quotaScheduler.ts` for p
 | Variable                          | Default  | Source File                       | Description                                                                                                      |
 | --------------------------------- | -------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | `OMNIROUTE_QUOTA_AWARE_ROUTING`   | `0`      | `open-sse/services/combo.ts`      | When `1`, skip connections whose per-window token budget (`rateLimitOverrides.tpm`, table `provider_quota_state`) cannot afford the estimated request cost before dispatch. Fail-open when no budget configured. |
+| `OMNIROUTE_ESTIMATOR_CALIBRATION` | _(on)_ | `open-sse/services/estimatorCalibration.ts` | Feedback calibration of the context-guard token estimator (#14931): per (provider, model, tools present) EMA of `usage.prompt_tokens` / estimate, clamped to 0.15–2.0, in memory only. `off`, `0` or `false` disables recording and application. |
+| `GROK_SUBSCRIPTION_IMAGES_ENABLED` | `false` | `open-sse/config/imageRegistry.ts` | Registers the `xai-oauth` (`xao`) and `grok-cli` image routes. Dashboard feature flag of the same name; a DB override wins over this value. |
