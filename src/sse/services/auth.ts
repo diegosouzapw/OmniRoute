@@ -3195,10 +3195,6 @@ export async function markAccountUnavailable(
           connProviderSpecificData,
           model
         );
-        // Split write: drained-models is account state (never read by the
-        // catalog builder) → model-catalog-safe writer; runtime error fields
-        // take the whitelisted path. A combined payload would fail the
-        // runtime-state whitelist and drop the /v1/models catalog cache.
         await mergeConnectionProviderSpecificData(connectionId, persistedProviderSpecificData);
         await updateProviderConnection(connectionId, {
           lastErrorType: "free_quota_exhausted",
@@ -3231,7 +3227,6 @@ export async function markAccountUnavailable(
         return { shouldFallback: true, cooldownMs: 0 };
       }
     }
-
     if (provider && resolveProviderId(provider) === "grok-web" && status === 403 && model) {
       const lockout = recordModelLockoutFailure(
         provider,
