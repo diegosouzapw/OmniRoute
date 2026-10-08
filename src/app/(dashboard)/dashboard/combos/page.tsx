@@ -69,6 +69,7 @@ import { KIMI_CODING_PRESET, hasKimiCodingPreset } from "./kimiComboPreset";
 import BuilderIntelligentStep from "./BuilderIntelligentStep";
 import IntelligentComboPanel from "./IntelligentComboPanel";
 import { ComboSortSelect } from "./ComboSortSelect";
+import { StaleModelBadge, buildStaleModelSet, isStaleComboStep } from "./StaleModelBadge";
 import {
   sortComboStepsSync,
   sortComboStepsByScore,
@@ -2161,6 +2162,7 @@ function ComboFormModal({
   const [modelAliases, setModelAliases] = useState({});
   const [providerNodes, setProviderNodes] = useState([]);
   const [builderOptions, setBuilderOptions] = useState({ providers: [], comboRefs: [] });
+  const [staleModels, setStaleModels] = useState<Set<string>>(() => new Set());
   const [builderLoading, setBuilderLoading] = useState(false);
   const [builderProviderId, setBuilderProviderId] = useState("");
   const [builderModelId, setBuilderModelId] = useState("");
@@ -2527,9 +2529,11 @@ function ComboFormModal({
         providers: builderData.providers || [],
         comboRefs: builderData.comboRefs || [],
       });
+      setStaleModels(buildStaleModelSet(builderData.staleComboRefs));
     } catch (error) {
       console.error("Error fetching modal data:", error);
       setBuilderOptions({ providers: [], comboRefs: [] });
+      setStaleModels(new Set());
     } finally {
       setBuilderLoading(false);
     }
@@ -3864,8 +3868,19 @@ function ComboFormModal({
 
                       {/* Model display */}
                       <div className="flex-1 min-w-0 px-1">
-                        <div className="text-xs text-text-main truncate">
-                          {formatModelDisplay(entry)}
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <div className="text-xs text-text-main truncate">
+                            {formatModelDisplay(entry)}
+                          </div>
+                          {isStaleComboStep(entry, staleModels) && (
+                            <StaleModelBadge
+                              label={getI18nOrFallback(
+                                t,
+                                "builderStaleModel",
+                                "Not in live catalog"
+                              )}
+                            />
+                          )}
                         </div>
                         <div className="text-[10px] text-text-muted truncate">
                           {entry.kind === "combo-ref"
