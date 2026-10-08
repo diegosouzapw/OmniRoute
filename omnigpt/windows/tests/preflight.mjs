@@ -26,6 +26,9 @@ catch (e) { check("file reader", false, String(e.stdout).split("\n").filter((l) 
   try { execFileSync(process.execPath, [path.join(here, "folder-test.mjs")], { stdio: "pipe", env: { ...process.env, LOCALAPPDATA: tmp } }); check("attached folders: all rules", true); }
   catch (e) { check("attached folders", false, String(e.stdout).split("\n").filter((l) => l.startsWith("FAIL")).join("; ").slice(0, 400)); }
   fs.rmSync(tmp, { recursive: true, force: true }); }
+// 1b3. settings and chats keep saving after a backend restart
+try { execFileSync(process.execPath, [path.join(here, "settings-test.mjs")], { stdio: "pipe" }); check("settings survive a backend restart", true); }
+catch (e) { check("settings survive a backend restart", false, String(e.stdout).split("\n").filter((l) => l.startsWith("FAIL")).join("; ").slice(0, 400)); }
 // 1c. inspect_file follows the same folder rules as every other tool
 { let ok = true; try { await tools.precheck("inspect_file", { path: "C:/Windows/win.ini" }); ok = false; } catch {} try { await tools.precheck("inspect_file", { path: path.join(os.homedir(), ".ssh", "id_rsa") }); ok = false; } catch {} check("inspect_file stays inside the allowed folders", ok); }
 

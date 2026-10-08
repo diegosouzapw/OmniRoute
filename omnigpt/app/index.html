@@ -299,12 +299,17 @@ body.nograph #brainpane{display:none!important}
   <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn" id="t-x">Close</button><button class="btn pri" id="t-add">Add task</button></div>
 </dialog>
 <script>
-const TOKEN="__TOKEN__";
+const TOKEN0="__TOKEN__"; let TOKEN=TOKEN0; // per backend launch
 const $=s=>document.querySelector(s);
 const col=$("#col"), thread=$("#thread"), input=$("#in"), sendBtn=$("#send");
 let history=[], busy=false, ctrl=null, attachments=[], chatId=null;
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const F=(u,o={})=>fetch(u,{...o,headers:{"x-app-token":TOKEN,"content-type":"application/json",...(o.headers||{})}});
+const F0=(u,o={})=>fetch(u,{...o,headers:{"x-app-token":TOKEN,"content-type":"application/json",...(o.headers||{})}});
+// The backend picks a new token each time it starts. If it restarted while this window stayed open, every request
+// (including saving settings and chats) would be refused; read the current token from the page once and retry.
+let tokenP=null;
+const renewToken=()=>tokenP||(tokenP=fetch("/",{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{const m=t.match(/TOKEN0="([0-9a-f]{16,})"/);const ok=!!m&&m[1]!==TOKEN;if(ok)TOKEN=m[1];return ok}).catch(()=>false).finally(()=>setTimeout(()=>{tokenP=null},2000)));
+const F=async(u,o={})=>{const r=await F0(u,o);if(r.status!==403||!(await renewToken()))return r;return F0(typeof u==="string"?u.replace(/([?&]t=)[0-9a-f]+/,"$1"+TOKEN):u,o)};
 // BRAIN-START
 // A small layered diagram of the agents taking part in this conversation. Only agents that are used or planned are shown.
 // Rows: you, models, parallel workers, checks and tools, answer. Signals travel along the links that were actually used.
@@ -1257,7 +1262,7 @@ document.addEventListener("drop",e=>{e.preventDefault();addFiles([...e.dataTrans
 
 // ---- saved chats, folders and projects (stored in this app window's browser storage)
 // Chats, folders, projects and model-health data live in files next to the app (no browser storage limit).
-const KV={}; const dirty=new Set(); let flushT=0, KVOK=false;
+const KV={}; const dirty=new Set(); let flushT=0, KVOK=false; const PRESET={}; // PRESET: settings changed before the store finished loading
 const LS={
   get:k=>KV[k]===undefined?null:KV[k], // callers treat results as read-only
   
@@ -1265,18 +1270,26 @@ const LS={
 };
 async function flushKV(){
   if(!KVOK)return; // an unread store must never be overwritten by a half-empty copy
+  clearTimeout(flushT);
   for(const k of [...dirty]){dirty.delete(k);try{const r=await api("/api/kv",{key:k,value:KV[k]});if(!r||!r.ok)dirty.add(k)}catch{dirty.add(k)}}
   if(dirty.size){clearTimeout(flushT);flushT=setTimeout(flushKV,3000)}
 }
 async function loadKV(){
-  for(let i=0;i<30&&!KVOK;i++){try{const d=await (await F("/api/kv")).json();Object.assign(KV,d);KVOK=true}catch{await new Promise(r=>setTimeout(r,1000))}}
-  if(!KVOK)return;
+  let d=null;
+  for(let i=0;!d;i++){ // keep trying: giving up would leave the app on default settings that are never saved
+    try{const r=await F("/api/kv");if(!r.ok)throw new Error("HTTP "+r.status);const j=await r.json();if(j&&typeof j==="object"&&!Array.isArray(j))d=j;else throw new Error("bad store")}
+    catch{if(i===10)flash("Settings and chats are not loaded yet. Changes will be kept and saved once the backend answers.");await new Promise(r=>setTimeout(r,i<30?1000:5000))}
+  }
+  Object.assign(KV,d);
+  if(Object.keys(PRESET).length){KV["orc.settings"]={...(d["orc.settings"]||{}),...PRESET};dirty.add("orc.settings")} // changes made while loading win over the stored copy, the rest is kept
+  KVOK=true;
   flushKV(); // anything changed while the store was loading
-  if(!Object.keys(KV).length){ // one-time move from the old browser storage
+  if(!Object.keys(d).length){ // one-time move from the old browser storage
     for(const k of ["orc.chats","orc.folders","orc.projects","orc.health","orc.collapsed","orc.settings"]){try{const v=JSON.parse(localStorage.getItem(k));if(v!==null)LS.set(k,v)}catch{}}
   }
 }
-document.addEventListener("visibilitychange",()=>{if(document.hidden){clearTimeout(flushT);flushKV()}});
+document.addEventListener("visibilitychange",()=>{if(document.hidden)flushKV()});
+addEventListener("pagehide",()=>{if(!KVOK)return;for(const k of dirty){const body=JSON.stringify({key:k,value:KV[k]});if(body.length<60000)fetch("/api/kv",{method:"POST",keepalive:true,headers:{"x-app-token":TOKEN,"content-type":"application/json"},body}).catch(()=>{})}});
 
 const DB={chats:()=>LS.get("orc.chats")||[],folders:()=>LS.get("orc.folders")||[],projects:()=>LS.get("orc.projects")||[]};
 let sel=null, pendingTitle=null, curProject=null; // sel = the folder/project new chats are created in
@@ -1648,7 +1661,7 @@ function applySettings(){
   const prof=PROFILES[s.mode]; if(prof)for(const t in TIERS)TIERS[t].splice(0,TIERS[t].length,...(prof[t]||prof.fast));
   $("#modelabel").textContent=(MODES[s.mode]||MODES.default)[0];
 }
-const setSet=(k,v)=>{LS.set("orc.settings",{...SET(),[k]:v});applySettings()};
+const setSet=(k,v)=>{if(!KVOK)PRESET[k]=v;LS.set("orc.settings",{...SET(),[k]:v});applySettings()};
 let CFG={approval:"ask",cwd:"",roots:[]}, curPane="general", SK_EDIT=null;
 const saveCfg=()=>api("/api/config",{approval:CFG.approval,cwd:CFG.cwd,roots:CFG.roots});
 const sRow=(t,d,c,cls="")=>`<div class="srow ${cls}"><div><b>${t}</b>${d?`<small>${d}</small>`:""}</div>${c}</div>`;

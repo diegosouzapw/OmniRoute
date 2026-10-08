@@ -5,7 +5,7 @@ import path from "node:path";
 const port = process.argv[2] || "20139", dir = process.argv[3];
 const base = `http://127.0.0.1:${port}`;
 const page = await (await fetch(base + "/")).text();
-const TOKEN = /const TOKEN="([0-9a-f]+)"/.exec(page)[1];
+const TOKEN = /TOKEN0?="([0-9a-f]{16,})"/.exec(page)[1];
 const H = { "x-app-token": TOKEN };
 let bad = 0, n = 0;
 for (const name of fs.readdirSync(dir)) {

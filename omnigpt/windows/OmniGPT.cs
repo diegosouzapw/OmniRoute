@@ -151,7 +151,10 @@ class MainForm : Form
             await wv.EnsureCoreWebView2Async(env);
             wv.CoreWebView2.WebMessageReceived += delegate(object o, CoreWebView2WebMessageReceivedEventArgs a)
             {   // only the OmniGPT page itself may ask for the console
-                if (a.Source != null && a.Source.StartsWith(Url) && a.TryGetWebMessageAsString() == "console") ShowConsole();
+                if (a.Source == null || !a.Source.StartsWith(Url)) return;
+                string m = a.TryGetWebMessageAsString();
+                if (m == "console") ShowConsole();
+                else if (m == "saved" && saving && !saved) { saved = true; BeginInvoke((MethodInvoker)delegate { Close(); }); }
             };
             wv.CoreWebView2.NewWindowRequested += delegate(object o, CoreWebView2NewWindowRequestedEventArgs a)
             {   // links in answers open in the normal browser, never inside this window
@@ -235,8 +238,24 @@ class MainForm : Form
         wv.Focus();
     }
 
+    bool saving, saved; // the page gets a moment to save unsaved settings and chats before the backend stops
+
     void OnClosing(object sender, FormClosingEventArgs e)
     {
+        if (!saved && e.CloseReason != CloseReason.WindowsShutDown && wv.CoreWebView2 != null && !status.Visible)
+        {
+            e.Cancel = true;
+            if (saving) return;
+            saving = true;
+            System.Windows.Forms.Timer t = new System.Windows.Forms.Timer();
+            t.Interval = 3000; // never hold the window open longer than this
+            t.Tick += delegate { t.Stop(); if (!saved) { saved = true; Close(); } };
+            t.Start();
+            try { wv.CoreWebView2.ExecuteScriptAsync("Promise.resolve(typeof flushKV==='function'&&flushKV()).finally(function(){chrome.webview.postMessage('saved')})"); }
+            catch (Exception) { t.Stop(); saved = true; BeginInvoke((MethodInvoker)delegate { Close(); }); }
+            return;
+        }
+        saved = true;
         try
         {
             if (server != null && !server.HasExited)
