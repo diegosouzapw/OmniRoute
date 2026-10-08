@@ -3901,6 +3901,7 @@
     "builderComboRefStep": "Dodaj sklic na kombinacijo",
     "builderPinnedAccount": "Pripeti račun",
     "builderLegacyEntry": "Vnos starejše različice",
+    "builderStaleModel": "Ni v živem katalogu",
     "reviewName": "Ime",
     "reviewStrategy": "Strategija",
     "reviewSteps": "Koraki",

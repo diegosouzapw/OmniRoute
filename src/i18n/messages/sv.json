@@ -3901,6 +3901,7 @@
     "builderComboRefStep": "Lägg till kombinationsreferens",
     "builderPinnedAccount": "Fäst konto",
     "builderLegacyEntry": "Äldre post",
+    "builderStaleModel": "Finns inte i livekatalogen",
     "reviewName": "Namn",
     "reviewStrategy": "Strategi",
     "reviewSteps": "Steg",

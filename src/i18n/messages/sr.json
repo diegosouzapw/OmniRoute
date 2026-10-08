@@ -3901,6 +3901,7 @@
     "builderComboRefStep": "Додај референцу комбинације",
     "builderPinnedAccount": "Фиксирани налог",
     "builderLegacyEntry": "Застарели унос",
+    "builderStaleModel": "Није у активном каталогу",
     "reviewName": "Назив",
     "reviewStrategy": "Стратегија",
     "reviewSteps": "Кораци",
