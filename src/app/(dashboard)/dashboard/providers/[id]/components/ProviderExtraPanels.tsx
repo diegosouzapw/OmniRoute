@@ -9,12 +9,16 @@ import ProviderPlaygroundPanel from "./ProviderPlaygroundPanel";
 import ProviderParamFilterSection from "./ProviderParamFilterSection";
 import ProviderInterceptionSection from "./ProviderInterceptionSection";
 import ProviderCcAliasSection from "./ProviderCcAliasSection";
+import { ModelIntelligencePanel } from "./ModelIntelligencePanel";
 
 export default function ProviderExtraPanels({ providerId }: { providerId: string }) {
   return (
     <>
       {/* Playground panel — rendered for providers that declare serviceKinds */}
       <ProviderPlaygroundPanel providerId={providerId} />
+
+      {/* Model intelligence comparison panel — resolved-source badges per model */}
+      <ModelIntelligencePanel providerId={providerId} />
 
       {/* Param filters — denylist/allowlist config per provider/model (#6625) */}
       <ProviderParamFilterSection providerId={providerId} />
