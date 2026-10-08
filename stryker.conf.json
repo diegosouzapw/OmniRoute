@@ -42,6 +42,8 @@
   "plugins": ["@stryker-mutator/tap-runner"],
   "tap": {
     "testFiles": [
+      "tests/unit/devin-cli-fallback-spawn-local-only-15159.test.ts",
+      "tests/unit/15633-groq-404-model-scope.test.ts",
       "tests/unit/check-error-helper-call-scope.test.ts",
       "tests/unit/check-error-helper-false-positives-15159.test.ts",
       "tests/unit/codex-quota-optout.test.ts",
