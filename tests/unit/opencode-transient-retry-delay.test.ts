@@ -12,6 +12,7 @@ import {
   sleepAbortable,
 } from "../../open-sse/executors/opencodeTransientFailure.ts";
 import { resolveProxyForRequest } from "../../open-sse/utils/proxyFetch.ts";
+import { __resetProxyRefusalMemoryForTesting } from "../../open-sse/utils/proxyRefusalMemory.ts";
 import { resetDbInstance } from "../../src/lib/db/core.ts";
 
 // #13615 rework: the failover pause is opt-in (OPENCODE_TRANSIENT_FAILOVER_BACKOFF,
@@ -111,6 +112,10 @@ describe("opencode rotation with OPENCODE_TRANSIENT_FAILOVER_BACKOFF", () => {
     originalFetch = globalThis.fetch;
     priorFlag = process.env[FLAG];
     process.env[FLAG] = "true";
+    // Refusal memory is module-level and skipping a recently failed proxy is on by
+    // default since #14688: forget the egresses an earlier case refused (a 429
+    // sets its proxy aside) so every case rotates over its full account set.
+    __resetProxyRefusalMemoryForTesting();
     observed = [];
     upstream = [];
     sleeps = [];
@@ -254,6 +259,8 @@ describe("opencode rotation with OPENCODE_TRANSIENT_FAILOVER_BACKOFF", () => {
     for (const breaker of [{ status: 429 }, { status: 403, body: GEO_BODY }]) {
       sleeps = [];
       events = [];
+      // The 429 case sets its proxy aside (#14688); the geo case needs all four.
+      __resetProxyRefusalMemoryForTesting();
       const exec = newExecutor();
       installFetch([{ status: 500 }, breaker, { status: 500 }, { status: 200 }]);
       const response = await run(exec, 4);

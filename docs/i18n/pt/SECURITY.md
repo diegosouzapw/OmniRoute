@@ -1,6 +1,6 @@
 # Security Policy (Português (Portugal))
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇧🇦 [bs](../bs/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -220,37 +220,21 @@ Estas regras são aplicadas pelas ferramentas e pelos revisores:
 10. **Valores de runtime de `exec()` / `spawn()` através da opção `env`** — nunca utilize interpolação de strings para inserir caminhos externos ou valores não fidedignos em scripts passados à shell. Referência: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Dê preferência a bibliotecas seguras por predefinição** — consulte [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Utilize-as antes de implementar uma solução própria.
 
-## Resultados de scanners da cadeia de fornecimento (Socket.dev / Snyk / similares)
+## Conclusões do scanner da cadeia de fornecimento (Socket.dev / Snyk / semelhante)
 
-O artefacto npm `omniroute` publicado inclui a compilação Next.js com `output: "standalone"`,
-o que significa que todos os processadores de rotas — incluindo funcionalidades privilegiadas
-documentadas (MITM, importação do Zed, Cloud Sync, supervisor de serviços incorporado) — são
-incluídos nos segmentos minificados `.next/server/*.js`. Os scanners heurísticos da cadeia de
-fornecimento fazem frequentemente a correspondência de padrões entre esses segmentos e
-assinaturas de malware.
+> **Nota sobre o âmbito:** o ficheiro `socket.yml` na raiz do repositório apenas configura `projectIgnorePaths` para a análise pós-publicação, do lado do registo, realizada pelo Socket.dev ao artefacto npm publicado — não constitui um controlo obrigatório para a integração contínua/fusão de PR. Nenhum fluxo de trabalho em `.github/workflows`, nenhum script de `package.json` e nenhum alvo de `Makefile` invoca o Socket.dev.
 
-A configuração do scanner que utilizamos encontra-se em [`socket.yml`](socket.yml), na raiz do
-repositório (formato v2 da aplicação GitHub Socket.dev — consulte
-<https://docs.socket.dev/docs/socket-yml>). Esta exclui explicitamente
-diretórios que não são distribuídos (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
-`_mono_repo/`, `docs/`, etc.), para que o scanner apenas reporte caminhos de código que
-chegam efetivamente aos utilizadores da publicação — a própria análise é executada pela
-aplicação GitHub Socket, que lê esse ficheiro, e não por um fluxo de trabalho neste repositório.
+O artefacto npm `omniroute` publicado inclui a compilação Next.js com `output: "standalone"`, o que significa que todos os processadores de rotas — incluindo funcionalidades privilegiadas documentadas (MITM, importação do Zed, Cloud Sync e supervisor de serviços incorporado) — acabam em fragmentos minificados `.next/server/*.js`. Os scanners heurísticos da cadeia de fornecimento comparam frequentemente os padrões desses fragmentos com assinaturas de malware.
 
-Para cada categoria de resultado, mantemos uma declaração do responsável por cada resultado:
+A configuração do scanner que utilizamos encontra-se em [`socket.yml`](socket.yml), na raiz do repositório (formato v2 da aplicação Socket.dev para GitHub — consulte <https://docs.socket.dev/docs/socket-yml>). Esta configuração exclui explicitamente diretórios não distribuídos (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`, `docs/`, etc.), para que o scanner apenas comunique caminhos de código que chegam efetivamente aos utilizadores do pacote publicado — a própria análise é executada pela aplicação Socket para GitHub, que lê esse ficheiro, e não por um fluxo de trabalho neste repositório.
+
+Para cada categoria de conclusão, mantemos uma declaração por conclusão da equipa de manutenção:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  mapa por resultado: ficheiro de origem ↔ segmento sinalizado ↔ comportamento ↔ mitigação
-  aplicada na v3.8.6.
-- Blocos `SECURITY-AUDITOR-NOTE:` no código-fonte, em cada função sinalizada, remetem
-  para o mesmo documento.
+  mapa por conclusão: ficheiro de origem ↔ fragmento sinalizado ↔ comportamento ↔ mitigação aplicada na v3.8.6.
+- Os blocos `SECURITY-AUDITOR-NOTE:` no código-fonte, em cada função sinalizada, remetem para o mesmo documento.
 
-Para utilizadores cujo pipeline não permita flexibilizar o alerta: compile com
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Isto substitui os quatro
-módulos sensíveis por stubs que devolvem HTTP 503 `feature-disabled` em
-tempo de execução, pelo que os caminhos de código privilegiados ficam fisicamente ausentes do pacote.
-Consulte [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
-para obter as instruções de publicação.
+Para os utilizadores cujos pipelines não possam flexibilizar o alerta: compilem com `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Isto substitui os quatro módulos sensíveis por stubs que devolvem HTTP 503 `feature-disabled` em tempo de execução, pelo que os caminhos de código privilegiados ficam fisicamente ausentes do pacote. Consulte [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) para obter as instruções de publicação.
 
 ## Referências
 

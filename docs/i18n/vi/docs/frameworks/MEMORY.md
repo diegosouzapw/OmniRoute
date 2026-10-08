@@ -1,6 +1,6 @@
 # Memory System (Tiếng Việt)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MEMORY.md) · 🇪🇹 [am](../../../am/docs/frameworks/MEMORY.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MEMORY.md) · 🇦🇿 [az](../../../az/docs/frameworks/MEMORY.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MEMORY.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MEMORY.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MEMORY.md) · 🇩🇰 [da](../../../da/docs/frameworks/MEMORY.md) · 🇩🇪 [de](../../../de/docs/frameworks/MEMORY.md) · 🇬🇷 [el](../../../el/docs/frameworks/MEMORY.md) · 🇪🇸 [es](../../../es/docs/frameworks/MEMORY.md) · 🇪🇪 [et](../../../et/docs/frameworks/MEMORY.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MEMORY.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MEMORY.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MEMORY.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MEMORY.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MEMORY.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MEMORY.md) · 🇮🇱 [he](../../../he/docs/frameworks/MEMORY.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MEMORY.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MEMORY.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MEMORY.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MEMORY.md) · 🇮🇩 [id](../../../id/docs/frameworks/MEMORY.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MEMORY.md) · 🇮🇹 [it](../../../it/docs/frameworks/MEMORY.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MEMORY.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MEMORY.md) · 🇰🇭 [km](../../../km/docs/frameworks/MEMORY.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MEMORY.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MEMORY.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MEMORY.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MEMORY.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MEMORY.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MEMORY.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MEMORY.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MEMORY.md) · 🇲🇲 [my](../../../my/docs/frameworks/MEMORY.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MEMORY.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MEMORY.md) · 🇳🇴 [no](../../../no/docs/frameworks/MEMORY.md) · 🇮🇳 [or](../../../or/docs/frameworks/MEMORY.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MEMORY.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MEMORY.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MEMORY.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MEMORY.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MEMORY.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MEMORY.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MEMORY.md) · 🇱🇰 [si](../../../si/docs/frameworks/MEMORY.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MEMORY.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MEMORY.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MEMORY.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MEMORY.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MEMORY.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MEMORY.md) · 🇮🇳 [te](../../../te/docs/frameworks/MEMORY.md) · 🇹🇭 [th](../../../th/docs/frameworks/MEMORY.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MEMORY.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MEMORY.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MEMORY.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MEMORY.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MEMORY.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MEMORY.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MEMORY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MEMORY.md) · 🇪🇹 [am](../../../am/docs/frameworks/MEMORY.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MEMORY.md) · 🇦🇿 [az](../../../az/docs/frameworks/MEMORY.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MEMORY.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MEMORY.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/MEMORY.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MEMORY.md) · 🇩🇰 [da](../../../da/docs/frameworks/MEMORY.md) · 🇩🇪 [de](../../../de/docs/frameworks/MEMORY.md) · 🇬🇷 [el](../../../el/docs/frameworks/MEMORY.md) · 🇪🇸 [es](../../../es/docs/frameworks/MEMORY.md) · 🇪🇪 [et](../../../et/docs/frameworks/MEMORY.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MEMORY.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MEMORY.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MEMORY.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MEMORY.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MEMORY.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MEMORY.md) · 🇮🇱 [he](../../../he/docs/frameworks/MEMORY.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MEMORY.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MEMORY.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MEMORY.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MEMORY.md) · 🇮🇩 [id](../../../id/docs/frameworks/MEMORY.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MEMORY.md) · 🇮🇹 [it](../../../it/docs/frameworks/MEMORY.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MEMORY.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MEMORY.md) · 🇰🇭 [km](../../../km/docs/frameworks/MEMORY.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MEMORY.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MEMORY.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MEMORY.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MEMORY.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MEMORY.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MEMORY.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MEMORY.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MEMORY.md) · 🇲🇲 [my](../../../my/docs/frameworks/MEMORY.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MEMORY.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MEMORY.md) · 🇳🇴 [no](../../../no/docs/frameworks/MEMORY.md) · 🇮🇳 [or](../../../or/docs/frameworks/MEMORY.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MEMORY.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MEMORY.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MEMORY.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MEMORY.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MEMORY.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MEMORY.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MEMORY.md) · 🇱🇰 [si](../../../si/docs/frameworks/MEMORY.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MEMORY.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MEMORY.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MEMORY.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MEMORY.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MEMORY.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MEMORY.md) · 🇮🇳 [te](../../../te/docs/frameworks/MEMORY.md) · 🇹🇭 [th](../../../th/docs/frameworks/MEMORY.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MEMORY.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MEMORY.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MEMORY.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MEMORY.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MEMORY.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MEMORY.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MEMORY.md)
 
 ---
 
@@ -163,37 +163,39 @@ Bảng `memory_vec_meta` (migration `083_memory_vec.sql`) lưu trữ:
 - `last_reset_at` — dấu thời gian của lần đặt lại toàn bộ gần nhất.
 - `vec_loaded` — cờ 0/1 cho biết sqlite-vec đã được tải thành công hay chưa.
 
-## Mở rộng cài đặt
+## Tiện ích mở rộng cài đặt
 
-Chín trường embedding và vector có sẵn trong `MemorySettingsExtended` tại
-`src/shared/schemas/memory.ts`, được lưu bền vững thông qua `src/lib/db/settings.ts`:
+Có chín trường embedding và vector trong `MemorySettingsExtended` tại
+`src/shared/schemas/memory.ts`, được lưu trữ thông qua `src/lib/db/settings.ts`:
 
 | Trường                   | Kiểu                                               | Mặc định | Mô tả                                                             |
 | ------------------------ | -------------------------------------------------- | -------- | ----------------------------------------------------------------- |
 | `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Nguồn embedding sẽ sử dụng                                        |
 | `embeddingProviderModel` | `string \| null`                                   | `null`   | Nhà cung cấp/mô hình theo định dạng `provider/model`              |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | URL cơ sở của endpoint tương thích OpenAI chỉ dành cho bộ nhớ     |
-| `customModelId`          | `string \| null`                                   | `null`   | ID mô hình được gửi tới endpoint tùy chỉnh                        |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | URL cơ sở của endpoint tương thích OpenAI chỉ dành cho Memory     |
+| `customModelId`          | `string \| null`                                   | `null`   | ID mô hình được gửi đến endpoint tùy chỉnh                        |
 | `transformersEnabled`    | `boolean`                                          | `false`  | Tùy chọn bật Transformers.js (MiniLM, ~400MB)                     |
 | `staticEnabled`          | `boolean`                                          | `false`  | Tùy chọn bật mô hình cục bộ tĩnh potion-base-8M                   |
 | `rerankEnabled`          | `boolean`                                          | `false`  | Bật bước xếp hạng lại (tăng thêm +200-500ms/yêu cầu)              |
 | `rerankProviderModel`    | `string \| null`                                   | `null`   | Nhà cung cấp/mô hình xếp hạng lại theo định dạng `provider/model` |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"` | Backend vector sẽ sử dụng                                         |
 
-Các trường này được cung cấp qua `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
+`rerankProviderModel` được phân giải bởi `POST /v1/rerank` (được gọi qua loopback), vì vậy nó chấp nhận mọi giá trị mà route đó chấp nhận: một mô hình xếp hạng lại trên đám mây đã được tuyển chọn (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) hoặc một nút nhà cung cấp tương thích OpenAI dưới dạng `<node-prefix>/<model>` (ví dụ: `skilled-mini/bge-reranker-v2-m3` cho một máy TEI/Infinity). Các nút loopback luôn đủ điều kiện; một nút trên máy chủ khác (LAN, Tailscale) còn yêu cầu cờ tính năng `RERANK_REMOTE_PROVIDER_NODES` và phải đáp ứng chính sách URL gửi ra ngoài của nhà cung cấp — xem [Cờ tính năng](../reference/FEATURE_FLAGS.md). Bộ chọn trên bảng điều khiển liệt kê các nhà cung cấp đã được tuyển chọn cùng với các nút cục bộ; mọi chuỗi `provider/model` hợp lệ đều có thể được thiết lập trực tiếp thông qua `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Backend vector sẽ sử dụng |
+
+Các trường này được cung cấp thông qua `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
 
 Đối với nguồn `remote`, Memory cũng chấp nhận các cài đặt tùy chọn `customBaseUrl` và
 `customModelId`. Khi kết hợp, chúng chọn một endpoint `/embeddings` tương thích OpenAI
 và mô hình mà không thay đổi registry embedding toàn cục. Endpoint được chuẩn hóa
-trước khi sử dụng và được kiểm tra theo chính sách URL đầu ra của nhà cung cấp: bắt
-buộc phải dùng HTTP(S), thông tin xác thực nhúng và chuỗi truy vấn bị từ chối, đồng
-thời các địa chỉ siêu dữ liệu đám mây vẫn bị chặn. Giá trị trống sẽ giữ nguyên nhà
-cung cấp được chọn trong registry. Các lỗi trả về dashboard được làm sạch và thông
-tin xác thực của endpoint không bao giờ được ghi vào nhật ký.
+trước khi sử dụng và được kiểm tra theo chính sách URL gửi ra ngoài của nhà cung cấp:
+bắt buộc dùng HTTP(S), thông tin xác thực được nhúng và chuỗi truy vấn sẽ bị từ chối,
+còn các địa chỉ metadata đám mây vẫn bị chặn. Các giá trị trống sẽ giữ nguyên nhà cung
+cấp registry đã chọn. Các lỗi trả về bảng điều khiển được làm sạch và thông tin xác
+thực của endpoint không bao giờ được ghi vào nhật ký.
 
-> **TODO (D20):** Phạm vi `global` (chia sẻ bộ nhớ giữa tất cả các khóa API) chưa
-> được triển khai trong bản phát hành này. Tính năng này yêu cầu thay đổi schema và
-> một đường truy xuất toàn cục. Theo dõi riêng.
+> **TODO (D20):** Phạm vi `global` (chia sẻ các bộ nhớ giữa tất cả khóa API) chưa
+> được triển khai trong bản phát hành này. Tính năng này yêu cầu thay đổi schema và một
+> đường dẫn truy xuất toàn cục. Theo dõi riêng.
 
 ## Các lớp lưu trữ
 

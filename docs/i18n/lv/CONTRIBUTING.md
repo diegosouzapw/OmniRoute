@@ -1,6 +1,6 @@
 # Contributing to OmniRoute (Latviešu)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CONTRIBUTING.md) · 🇪🇹 [am](../am/CONTRIBUTING.md) · 🇸🇦 [ar](../ar/CONTRIBUTING.md) · 🇦🇿 [az](../az/CONTRIBUTING.md) · 🇧🇬 [bg](../bg/CONTRIBUTING.md) · 🇧🇩 [bn](../bn/CONTRIBUTING.md) · 🇨🇿 [cs](../cs/CONTRIBUTING.md) · 🇩🇰 [da](../da/CONTRIBUTING.md) · 🇩🇪 [de](../de/CONTRIBUTING.md) · 🇬🇷 [el](../el/CONTRIBUTING.md) · 🇪🇸 [es](../es/CONTRIBUTING.md) · 🇪🇪 [et](../et/CONTRIBUTING.md) · 🇮🇷 [fa](../fa/CONTRIBUTING.md) · 🇫🇮 [fi](../fi/CONTRIBUTING.md) · 🇫🇷 [fr](../fr/CONTRIBUTING.md) · 🇮🇪 [ga](../ga/CONTRIBUTING.md) · 🇮🇳 [gu](../gu/CONTRIBUTING.md) · 🇳🇬 [ha](../ha/CONTRIBUTING.md) · 🇮🇱 [he](../he/CONTRIBUTING.md) · 🇮🇳 [hi](../hi/CONTRIBUTING.md) · 🇭🇷 [hr](../hr/CONTRIBUTING.md) · 🇭🇺 [hu](../hu/CONTRIBUTING.md) · 🇦🇲 [hy](../hy/CONTRIBUTING.md) · 🇮🇩 [id](../id/CONTRIBUTING.md) · 🇳🇬 [ig](../ig/CONTRIBUTING.md) · 🇮🇹 [it](../it/CONTRIBUTING.md) · 🇯🇵 [ja](../ja/CONTRIBUTING.md) · 🇬🇪 [ka](../ka/CONTRIBUTING.md) · 🇰🇭 [km](../km/CONTRIBUTING.md) · 🇮🇳 [kn](../kn/CONTRIBUTING.md) · 🇰🇷 [ko](../ko/CONTRIBUTING.md) · 🇱🇹 [lt](../lt/CONTRIBUTING.md) · 🇮🇳 [ml](../ml/CONTRIBUTING.md) · 🇮🇳 [mr](../mr/CONTRIBUTING.md) · 🇲🇾 [ms](../ms/CONTRIBUTING.md) · 🇲🇹 [mt](../mt/CONTRIBUTING.md) · 🇲🇲 [my](../my/CONTRIBUTING.md) · 🇳🇵 [ne](../ne/CONTRIBUTING.md) · 🇳🇱 [nl](../nl/CONTRIBUTING.md) · 🇳🇴 [no](../no/CONTRIBUTING.md) · 🇮🇳 [or](../or/CONTRIBUTING.md) · 🇮🇳 [pa](../pa/CONTRIBUTING.md) · 🇵🇭 [phi](../phi/CONTRIBUTING.md) · 🇵🇱 [pl](../pl/CONTRIBUTING.md) · 🇵🇹 [pt](../pt/CONTRIBUTING.md) · 🇧🇷 [pt-BR](../pt-BR/CONTRIBUTING.md) · 🇷🇴 [ro](../ro/CONTRIBUTING.md) · 🇷🇺 [ru](../ru/CONTRIBUTING.md) · 🇱🇰 [si](../si/CONTRIBUTING.md) · 🇸🇰 [sk](../sk/CONTRIBUTING.md) · 🇸🇮 [sl](../sl/CONTRIBUTING.md) · 🇷🇸 [sr](../sr/CONTRIBUTING.md) · 🇸🇪 [sv](../sv/CONTRIBUTING.md) · 🇰🇪 [sw](../sw/CONTRIBUTING.md) · 🇮🇳 [ta](../ta/CONTRIBUTING.md) · 🇮🇳 [te](../te/CONTRIBUTING.md) · 🇹🇭 [th](../th/CONTRIBUTING.md) · 🇹🇷 [tr](../tr/CONTRIBUTING.md) · 🇺🇦 [uk-UA](../uk-UA/CONTRIBUTING.md) · 🇵🇰 [ur](../ur/CONTRIBUTING.md) · 🇺🇿 [uz](../uz/CONTRIBUTING.md) · 🇻🇳 [vi](../vi/CONTRIBUTING.md) · 🇳🇬 [yo](../yo/CONTRIBUTING.md) · 🇨🇳 [zh-CN](../zh-CN/CONTRIBUTING.md) · 🇹🇼 [zh-TW](../zh-TW/CONTRIBUTING.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CONTRIBUTING.md) · 🇪🇹 [am](../am/CONTRIBUTING.md) · 🇸🇦 [ar](../ar/CONTRIBUTING.md) · 🇦🇿 [az](../az/CONTRIBUTING.md) · 🇧🇬 [bg](../bg/CONTRIBUTING.md) · 🇧🇩 [bn](../bn/CONTRIBUTING.md) · 🇧🇦 [bs](../bs/CONTRIBUTING.md) · 🇨🇿 [cs](../cs/CONTRIBUTING.md) · 🇩🇰 [da](../da/CONTRIBUTING.md) · 🇩🇪 [de](../de/CONTRIBUTING.md) · 🇬🇷 [el](../el/CONTRIBUTING.md) · 🇪🇸 [es](../es/CONTRIBUTING.md) · 🇪🇪 [et](../et/CONTRIBUTING.md) · 🇮🇷 [fa](../fa/CONTRIBUTING.md) · 🇫🇮 [fi](../fi/CONTRIBUTING.md) · 🇫🇷 [fr](../fr/CONTRIBUTING.md) · 🇮🇪 [ga](../ga/CONTRIBUTING.md) · 🇮🇳 [gu](../gu/CONTRIBUTING.md) · 🇳🇬 [ha](../ha/CONTRIBUTING.md) · 🇮🇱 [he](../he/CONTRIBUTING.md) · 🇮🇳 [hi](../hi/CONTRIBUTING.md) · 🇭🇷 [hr](../hr/CONTRIBUTING.md) · 🇭🇺 [hu](../hu/CONTRIBUTING.md) · 🇦🇲 [hy](../hy/CONTRIBUTING.md) · 🇮🇩 [id](../id/CONTRIBUTING.md) · 🇳🇬 [ig](../ig/CONTRIBUTING.md) · 🇮🇹 [it](../it/CONTRIBUTING.md) · 🇯🇵 [ja](../ja/CONTRIBUTING.md) · 🇬🇪 [ka](../ka/CONTRIBUTING.md) · 🇰🇭 [km](../km/CONTRIBUTING.md) · 🇮🇳 [kn](../kn/CONTRIBUTING.md) · 🇰🇷 [ko](../ko/CONTRIBUTING.md) · 🇱🇹 [lt](../lt/CONTRIBUTING.md) · 🇮🇳 [ml](../ml/CONTRIBUTING.md) · 🇮🇳 [mr](../mr/CONTRIBUTING.md) · 🇲🇾 [ms](../ms/CONTRIBUTING.md) · 🇲🇹 [mt](../mt/CONTRIBUTING.md) · 🇲🇲 [my](../my/CONTRIBUTING.md) · 🇳🇵 [ne](../ne/CONTRIBUTING.md) · 🇳🇱 [nl](../nl/CONTRIBUTING.md) · 🇳🇴 [no](../no/CONTRIBUTING.md) · 🇮🇳 [or](../or/CONTRIBUTING.md) · 🇮🇳 [pa](../pa/CONTRIBUTING.md) · 🇵🇭 [phi](../phi/CONTRIBUTING.md) · 🇵🇱 [pl](../pl/CONTRIBUTING.md) · 🇵🇹 [pt](../pt/CONTRIBUTING.md) · 🇧🇷 [pt-BR](../pt-BR/CONTRIBUTING.md) · 🇷🇴 [ro](../ro/CONTRIBUTING.md) · 🇷🇺 [ru](../ru/CONTRIBUTING.md) · 🇱🇰 [si](../si/CONTRIBUTING.md) · 🇸🇰 [sk](../sk/CONTRIBUTING.md) · 🇸🇮 [sl](../sl/CONTRIBUTING.md) · 🇷🇸 [sr](../sr/CONTRIBUTING.md) · 🇸🇪 [sv](../sv/CONTRIBUTING.md) · 🇰🇪 [sw](../sw/CONTRIBUTING.md) · 🇮🇳 [ta](../ta/CONTRIBUTING.md) · 🇮🇳 [te](../te/CONTRIBUTING.md) · 🇹🇭 [th](../th/CONTRIBUTING.md) · 🇹🇷 [tr](../tr/CONTRIBUTING.md) · 🇺🇦 [uk-UA](../uk-UA/CONTRIBUTING.md) · 🇵🇰 [ur](../ur/CONTRIBUTING.md) · 🇺🇿 [uz](../uz/CONTRIBUTING.md) · 🇻🇳 [vi](../vi/CONTRIBUTING.md) · 🇳🇬 [yo](../yo/CONTRIBUTING.md) · 🇨🇳 [zh-CN](../zh-CN/CONTRIBUTING.md) · 🇹🇼 [zh-TW](../zh-TW/CONTRIBUTING.md)
 
 ---
 
@@ -391,20 +391,20 @@ Uzrakstiet vienību testus direktorijā `tests/unit/`, kas aptver vismaz:
 
 ## Pull Request kontrolsaraksts
 
-- [ ] Testi ir veiksmīgi (`npm test`)
-- [ ] Lint pārbaude ir veiksmīga (`npm run lint`)
-- [ ] Būvēšana ir veiksmīga (`npm run build`)
-- [ ] Jaunām publiskajām funkcijām un saskarnēm ir pievienoti TypeScript tipi
-- [ ] Nav cietkodētu noslēpumu vai rezerves vērtību
-- [ ] Publiskie augšupējā nodrošinātāja akreditācijas dati ir iegulti, izmantojot `resolvePublicCred()` (skatiet [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), nekad kā literāļi
-- [ ] Kļūdu atbildes tiek novirzītas caur `buildErrorBody()` / `sanitizeErrorMessage()` — atbildes pamattekstā nav neapstrādātu steka izsekojumu (skatiet [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Čaulas komandas (`exec` / `spawn`) izpildlaika vērtības padod, izmantojot `env`, nevis virkņu interpolāciju
-- [ ] Visas ievades tiek validētas ar Zod shēmām
-- [ ] Lietotājiem redzamām izmaiņām ir pievienots izmaiņu žurnāla **fragment** fails `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` (skatiet [`changelog.d/README.md`](./changelog.d/README.md)) — **ne**rediģējiet `CHANGELOG.md` tieši; fragmenti tiek apkopoti laidiena izveides laikā un nekad nerada konfliktus starp PR
-- [ ] Dokumentācija ir atjaunināta (ja piemērojams)
-- [ ] Nav atvērti jauni CodeQL / Secret-Scanning brīdinājumi, vai arī katrs no tiem ir noraidīts ar tehnisku pamatojumu, atsaucoties uz atbilstošo `docs/security/` dokumentu
-- [ ] Maršruti, kas palaiž bērnprocesus (`/api/mcp/`, `/api/cli-tools/runtime/`), failā `src/server/authz/routeGuard.ts` ir klasificēti ar `isLocalOnlyPath()` — skatiet [Stingro noteikumu #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Komitziņojumos nav `Co-Authored-By` papildinājumu — komitiem ir jāparādās tikai repozitorija īpašnieka Git identitātes vārdā (Stingrais noteikums #16)
+- [ ] Testi ir sekmīgi (`npm test`)
+- [ ] Lintēšana ir sekmīga (`npm run lint`)
+- [ ] Būvēšana ir sekmīga (`npm run build`)
+- [ ] Jaunajām publiskajām funkcijām un saskarnēm ir pievienoti TypeScript tipi
+- [ ] Nav nekodētu noslēpumu vai atkāpšanās vērtību
+- [ ] Publiskie augšupstraumes akreditācijas dati ir iegulti, izmantojot `resolvePublicCred()` (skatiet [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), un nekad nav norādīti kā literāļi
+- [ ] Kļūdu atbildes tiek apstrādātas, izmantojot `buildErrorBody()` / `sanitizeErrorMessage()` — atbilžu pamattekstā nav neapstrādātu steka izsekojumu (skatiet [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Čaulas komandas (`exec` / `spawn`) izpildlaika vērtības nodod, izmantojot `env`, nevis virkņu interpolāciju
+- [ ] Visas ievades ir validētas, izmantojot Zod shēmas
+- [ ] Lietotājam redzamajām izmaiņām sadaļā `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` ir pievienots izmaiņu žurnāla **fragments** (skatiet [`changelog.d/README.md`](./changelog.d/README.md)) — **nerediģējiet** `CHANGELOG.md` tieši; fragmenti tiek apkopoti laidiena izveides laikā un nekad nerada konfliktus starp PR
+- [ ] Dokumentācija ir atjaunināta (ja attiecināms)
+- [ ] Nav izveidots neviens jauns CodeQL / Secret-Scanning brīdinājums, vai arī katrs brīdinājums ir noraidīts ar tehnisku pamatojumu, atsaucoties uz attiecīgo `docs/security/` dokumentu
+- [ ] Maršruti, kas palaiž bērnprocesus (`/api/mcp/`, `/api/cli-tools/runtime/`), failā `src/server/authz/routeGuard.ts` ir klasificēti kā `isLocalOnlyPath()` — skatiet [Stingro noteikumu Nr. 15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Izpildes ziņojumos nav AI/robotu `Co-authored-by` nobeiguma rindu (Stingrais noteikums Nr. 16) — cilvēki, kuru darbs tiek atkārtoti izmantots, tiek norādīti ar standarta `Co-authored-by: Name <email>` nobeiguma rindām
 
 ---
 
@@ -420,9 +420,8 @@ Pēc tam izmantojiet `/deploy-vps-*-cc` prasmes, kas ar rsync sinhronizē `dist/
 
 ## Palīdzības saņemšana
 
-- **Arhitektūra**: skatiet [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **API atsauce**: skatiet [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **Arhitektūra**: Skatiet [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- **API atsauce**: Skatiet [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **Drošības dokumentācija**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Operāciju dokumentācija**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Ekspluatācijas dokumentācija**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Problēmas**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR**: skatiet `docs/adr/`, lai iepazītos ar arhitektūras lēmumu ierakstiem

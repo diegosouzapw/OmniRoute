@@ -1,1 +1,0 @@
-- **fix(sse):** gate thinking block emission on requestedThinking (streaming + non-stream) and flush reasoning-only responses as text to stop reasoning leak, autocompact loops, and 502 ([#12905](https://github.com/diegosouzapw/OmniRoute/pull/12905)) — thanks @initguru

@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
-import { access, writeFile } from "node:fs/promises";
+import { access, mkdtemp, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
 
 import {
@@ -15,6 +17,12 @@ const CONTAINER_PROBE_STDOUT = JSON.stringify({
   format: { duration: "12.0", format_name: "mov,mp4,m4a,3gp,3g2,mj2" },
   streams: [{ index: 0, codec_type: "video", width: 640, height: 360 }],
 });
+
+// Per-run temp dir, never a fixed /tmp name: on a shared self-hosted runner a leftover file
+// owned by another user makes a fixed path unwritable (EACCES under /tmp's sticky bit, even
+// for root with fs.protected_regular), and parallel shards would race on the same name.
+const TEMP_DIR = await mkdtemp(path.join(os.tmpdir(), "omniroute-subtitle-runtime-"));
+test.after(() => rm(TEMP_DIR, { recursive: true, force: true }));
 
 function isSubtitleStreamProbe(args: readonly string[]): boolean {
   return args.some((arg) => arg.includes("codec_name"));
@@ -59,7 +67,7 @@ test("extracts a single allowlisted stream to bounded WebVTT text", async () => 
     }
     return { stdout: "", stderr: "" };
   };
-  const outputPath = "/tmp/omniroute-subtitle-runtime-test.vtt";
+  const outputPath = path.join(TEMP_DIR, "test.vtt");
   await extractSubtitleStreamToFile("/tmp/input.video", outputPath, 3, {
     runner,
     timeoutMs: 5_000,
@@ -69,13 +77,13 @@ test("extracts a single allowlisted stream to bounded WebVTT text", async () => 
 });
 
 test("readBoundedSubtitleOutput rejects output above the byte cap", async () => {
-  const outputPath = "/tmp/omniroute-subtitle-runtime-oversized.vtt";
+  const outputPath = path.join(TEMP_DIR, "oversized.vtt");
   await writeFile(outputPath, "x".repeat(VIDEO_SUBTITLE_MAX_OUTPUT_BYTES + 1));
   await assert.rejects(() => readBoundedSubtitleOutput(outputPath), /byte limit/);
 });
 
 test("readBoundedSubtitleOutput rejects an empty extraction result", async () => {
-  const outputPath = "/tmp/omniroute-subtitle-runtime-empty.vtt";
+  const outputPath = path.join(TEMP_DIR, "empty.vtt");
   await writeFile(outputPath, "");
   await assert.rejects(() => readBoundedSubtitleOutput(outputPath), /no output/);
 });

@@ -1,6 +1,6 @@
 # Remote Mode (Suomi)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/REMOTE-MODE.md) · 🇪🇹 [am](../../../am/docs/guides/REMOTE-MODE.md) · 🇸🇦 [ar](../../../ar/docs/guides/REMOTE-MODE.md) · 🇦🇿 [az](../../../az/docs/guides/REMOTE-MODE.md) · 🇧🇬 [bg](../../../bg/docs/guides/REMOTE-MODE.md) · 🇧🇩 [bn](../../../bn/docs/guides/REMOTE-MODE.md) · 🇨🇿 [cs](../../../cs/docs/guides/REMOTE-MODE.md) · 🇩🇰 [da](../../../da/docs/guides/REMOTE-MODE.md) · 🇩🇪 [de](../../../de/docs/guides/REMOTE-MODE.md) · 🇬🇷 [el](../../../el/docs/guides/REMOTE-MODE.md) · 🇪🇸 [es](../../../es/docs/guides/REMOTE-MODE.md) · 🇪🇪 [et](../../../et/docs/guides/REMOTE-MODE.md) · 🇮🇷 [fa](../../../fa/docs/guides/REMOTE-MODE.md) · 🇫🇷 [fr](../../../fr/docs/guides/REMOTE-MODE.md) · 🇮🇪 [ga](../../../ga/docs/guides/REMOTE-MODE.md) · 🇮🇳 [gu](../../../gu/docs/guides/REMOTE-MODE.md) · 🇳🇬 [ha](../../../ha/docs/guides/REMOTE-MODE.md) · 🇮🇱 [he](../../../he/docs/guides/REMOTE-MODE.md) · 🇮🇳 [hi](../../../hi/docs/guides/REMOTE-MODE.md) · 🇭🇷 [hr](../../../hr/docs/guides/REMOTE-MODE.md) · 🇭🇺 [hu](../../../hu/docs/guides/REMOTE-MODE.md) · 🇦🇲 [hy](../../../hy/docs/guides/REMOTE-MODE.md) · 🇮🇩 [id](../../../id/docs/guides/REMOTE-MODE.md) · 🇳🇬 [ig](../../../ig/docs/guides/REMOTE-MODE.md) · 🇮🇹 [it](../../../it/docs/guides/REMOTE-MODE.md) · 🇯🇵 [ja](../../../ja/docs/guides/REMOTE-MODE.md) · 🇬🇪 [ka](../../../ka/docs/guides/REMOTE-MODE.md) · 🇰🇭 [km](../../../km/docs/guides/REMOTE-MODE.md) · 🇮🇳 [kn](../../../kn/docs/guides/REMOTE-MODE.md) · 🇰🇷 [ko](../../../ko/docs/guides/REMOTE-MODE.md) · 🇱🇹 [lt](../../../lt/docs/guides/REMOTE-MODE.md) · 🇱🇻 [lv](../../../lv/docs/guides/REMOTE-MODE.md) · 🇮🇳 [ml](../../../ml/docs/guides/REMOTE-MODE.md) · 🇮🇳 [mr](../../../mr/docs/guides/REMOTE-MODE.md) · 🇲🇾 [ms](../../../ms/docs/guides/REMOTE-MODE.md) · 🇲🇹 [mt](../../../mt/docs/guides/REMOTE-MODE.md) · 🇲🇲 [my](../../../my/docs/guides/REMOTE-MODE.md) · 🇳🇵 [ne](../../../ne/docs/guides/REMOTE-MODE.md) · 🇳🇱 [nl](../../../nl/docs/guides/REMOTE-MODE.md) · 🇳🇴 [no](../../../no/docs/guides/REMOTE-MODE.md) · 🇮🇳 [or](../../../or/docs/guides/REMOTE-MODE.md) · 🇮🇳 [pa](../../../pa/docs/guides/REMOTE-MODE.md) · 🇵🇭 [phi](../../../phi/docs/guides/REMOTE-MODE.md) · 🇵🇱 [pl](../../../pl/docs/guides/REMOTE-MODE.md) · 🇵🇹 [pt](../../../pt/docs/guides/REMOTE-MODE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/REMOTE-MODE.md) · 🇷🇴 [ro](../../../ro/docs/guides/REMOTE-MODE.md) · 🇷🇺 [ru](../../../ru/docs/guides/REMOTE-MODE.md) · 🇱🇰 [si](../../../si/docs/guides/REMOTE-MODE.md) · 🇸🇰 [sk](../../../sk/docs/guides/REMOTE-MODE.md) · 🇸🇮 [sl](../../../sl/docs/guides/REMOTE-MODE.md) · 🇷🇸 [sr](../../../sr/docs/guides/REMOTE-MODE.md) · 🇸🇪 [sv](../../../sv/docs/guides/REMOTE-MODE.md) · 🇰🇪 [sw](../../../sw/docs/guides/REMOTE-MODE.md) · 🇮🇳 [ta](../../../ta/docs/guides/REMOTE-MODE.md) · 🇮🇳 [te](../../../te/docs/guides/REMOTE-MODE.md) · 🇹🇭 [th](../../../th/docs/guides/REMOTE-MODE.md) · 🇹🇷 [tr](../../../tr/docs/guides/REMOTE-MODE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/REMOTE-MODE.md) · 🇵🇰 [ur](../../../ur/docs/guides/REMOTE-MODE.md) · 🇺🇿 [uz](../../../uz/docs/guides/REMOTE-MODE.md) · 🇻🇳 [vi](../../../vi/docs/guides/REMOTE-MODE.md) · 🇳🇬 [yo](../../../yo/docs/guides/REMOTE-MODE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/REMOTE-MODE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/REMOTE-MODE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/REMOTE-MODE.md) · 🇪🇹 [am](../../../am/docs/guides/REMOTE-MODE.md) · 🇸🇦 [ar](../../../ar/docs/guides/REMOTE-MODE.md) · 🇦🇿 [az](../../../az/docs/guides/REMOTE-MODE.md) · 🇧🇬 [bg](../../../bg/docs/guides/REMOTE-MODE.md) · 🇧🇩 [bn](../../../bn/docs/guides/REMOTE-MODE.md) · 🇧🇦 [bs](../../../bs/docs/guides/REMOTE-MODE.md) · 🇨🇿 [cs](../../../cs/docs/guides/REMOTE-MODE.md) · 🇩🇰 [da](../../../da/docs/guides/REMOTE-MODE.md) · 🇩🇪 [de](../../../de/docs/guides/REMOTE-MODE.md) · 🇬🇷 [el](../../../el/docs/guides/REMOTE-MODE.md) · 🇪🇸 [es](../../../es/docs/guides/REMOTE-MODE.md) · 🇪🇪 [et](../../../et/docs/guides/REMOTE-MODE.md) · 🇮🇷 [fa](../../../fa/docs/guides/REMOTE-MODE.md) · 🇫🇷 [fr](../../../fr/docs/guides/REMOTE-MODE.md) · 🇮🇪 [ga](../../../ga/docs/guides/REMOTE-MODE.md) · 🇮🇳 [gu](../../../gu/docs/guides/REMOTE-MODE.md) · 🇳🇬 [ha](../../../ha/docs/guides/REMOTE-MODE.md) · 🇮🇱 [he](../../../he/docs/guides/REMOTE-MODE.md) · 🇮🇳 [hi](../../../hi/docs/guides/REMOTE-MODE.md) · 🇭🇷 [hr](../../../hr/docs/guides/REMOTE-MODE.md) · 🇭🇺 [hu](../../../hu/docs/guides/REMOTE-MODE.md) · 🇦🇲 [hy](../../../hy/docs/guides/REMOTE-MODE.md) · 🇮🇩 [id](../../../id/docs/guides/REMOTE-MODE.md) · 🇳🇬 [ig](../../../ig/docs/guides/REMOTE-MODE.md) · 🇮🇹 [it](../../../it/docs/guides/REMOTE-MODE.md) · 🇯🇵 [ja](../../../ja/docs/guides/REMOTE-MODE.md) · 🇬🇪 [ka](../../../ka/docs/guides/REMOTE-MODE.md) · 🇰🇭 [km](../../../km/docs/guides/REMOTE-MODE.md) · 🇮🇳 [kn](../../../kn/docs/guides/REMOTE-MODE.md) · 🇰🇷 [ko](../../../ko/docs/guides/REMOTE-MODE.md) · 🇱🇹 [lt](../../../lt/docs/guides/REMOTE-MODE.md) · 🇱🇻 [lv](../../../lv/docs/guides/REMOTE-MODE.md) · 🇮🇳 [ml](../../../ml/docs/guides/REMOTE-MODE.md) · 🇮🇳 [mr](../../../mr/docs/guides/REMOTE-MODE.md) · 🇲🇾 [ms](../../../ms/docs/guides/REMOTE-MODE.md) · 🇲🇹 [mt](../../../mt/docs/guides/REMOTE-MODE.md) · 🇲🇲 [my](../../../my/docs/guides/REMOTE-MODE.md) · 🇳🇵 [ne](../../../ne/docs/guides/REMOTE-MODE.md) · 🇳🇱 [nl](../../../nl/docs/guides/REMOTE-MODE.md) · 🇳🇴 [no](../../../no/docs/guides/REMOTE-MODE.md) · 🇮🇳 [or](../../../or/docs/guides/REMOTE-MODE.md) · 🇮🇳 [pa](../../../pa/docs/guides/REMOTE-MODE.md) · 🇵🇭 [phi](../../../phi/docs/guides/REMOTE-MODE.md) · 🇵🇱 [pl](../../../pl/docs/guides/REMOTE-MODE.md) · 🇵🇹 [pt](../../../pt/docs/guides/REMOTE-MODE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/REMOTE-MODE.md) · 🇷🇴 [ro](../../../ro/docs/guides/REMOTE-MODE.md) · 🇷🇺 [ru](../../../ru/docs/guides/REMOTE-MODE.md) · 🇱🇰 [si](../../../si/docs/guides/REMOTE-MODE.md) · 🇸🇰 [sk](../../../sk/docs/guides/REMOTE-MODE.md) · 🇸🇮 [sl](../../../sl/docs/guides/REMOTE-MODE.md) · 🇷🇸 [sr](../../../sr/docs/guides/REMOTE-MODE.md) · 🇸🇪 [sv](../../../sv/docs/guides/REMOTE-MODE.md) · 🇰🇪 [sw](../../../sw/docs/guides/REMOTE-MODE.md) · 🇮🇳 [ta](../../../ta/docs/guides/REMOTE-MODE.md) · 🇮🇳 [te](../../../te/docs/guides/REMOTE-MODE.md) · 🇹🇭 [th](../../../th/docs/guides/REMOTE-MODE.md) · 🇹🇷 [tr](../../../tr/docs/guides/REMOTE-MODE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/REMOTE-MODE.md) · 🇵🇰 [ur](../../../ur/docs/guides/REMOTE-MODE.md) · 🇺🇿 [uz](../../../uz/docs/guides/REMOTE-MODE.md) · 🇻🇳 [vi](../../../vi/docs/guides/REMOTE-MODE.md) · 🇳🇬 [yo](../../../yo/docs/guides/REMOTE-MODE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/REMOTE-MODE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/REMOTE-MODE.md)
 
 ---
 
@@ -358,65 +358,56 @@ opencode -m omniroute/glm/glm-5.2 "..."          # vie ensin OMNIROUTE_API_KEY y
 
 ## Kontekstien hallinta (palvelimien välillä vaihtaminen)
 
-**Konteksti** on tallennettu palvelin (baseUrl + tunnistetieto + käyttöalue). `omniroute connect`
-luo kontekstin ja aktivoi sen; sen jälkeen jokainen komento kohdistuu siihen. Hallitse
-konteksteja ja vaihda niiden välillä komennolla `omniroute contexts`:
+**Konteksti** on tallennettu palvelin (baseUrl + tunnistetieto + laajuus). `omniroute connect` luo sellaisen ja tekee siitä aktiivisen; siitä eteenpäin jokainen komento kohdistuu siihen. Hallitse ja vaihda niiden välillä komennolla `omniroute contexts`:
 
 ```bash
-omniroute contexts list            # kaikki kontekstit; aktiivinen on merkitty symbolilla ●
-omniroute contexts current         # aktiivinen palvelin, todennuksen tila ja käyttöalue
+omniroute contexts list            # kaikki kontekstit; aktiivinen on merkitty ●
+omniroute contexts current         # aktiivinen palvelin, todennustila, laajuus
 ```
 
 ```text
-  | Nimi    | Perus-URL                 | Todennus | Käyttöalue | Kuvaus
-● | vps     | http://100.67.86.91:20128 | token    | admin      | Etä-OmniRoute (…)
-  | default | http://localhost:20128    | ✗        |            |
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
+  | default | http://localhost:20128    | ✗     |       |
 ```
 
-**Vaihda palvelinta** — kaikki seuraavat komennot käyttävät aktiivista kontekstia:
+**Vaihda palvelimia** – jokainen seuraava komento noudattaa aktiivista kontekstia:
 
 ```bash
-omniroute contexts use vps         # → kaikki komennot kohdistuvat nyt VPS-etäpalvelimeen
-omniroute tokens list              #   (suoritetaan VPS-palvelinta vasten)
+omniroute contexts use vps         # → kaikki komennot kohdistuvat nyt etä-VPS:ään
+omniroute tokens list              #   (ajetaan VPS:ää vasten)
 
-omniroute contexts use default     # → takaisin localhost-palvelimeen
-omniroute tokens list              #   (suoritetaan paikallista palvelinta vasten)
+omniroute contexts use default     # → takaisin localhostiin
+omniroute tokens list              #   (ajetaan paikallista palvelinta vasten)
 ```
 
-**Lisää konteksti manuaalisesti** (`connect`-komennon sijaan), tarkastele sitä tai nimeä se uudelleen:
+**Lisää konteksti manuaalisesti** (`connect`-komennon sijaan), tarkastele tai nimeä uudelleen:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
-  --access-token oma_live_xxxx --scope write --description "välipalvelin"
-omniroute contexts show staging    # yhden kontekstin täydelliset tiedot
+  --access-token oma_live_xxxx --scope write --description "staging box"
+omniroute contexts show staging    # yhden kontekstin kaikki tiedot
 omniroute contexts rename staging stg
 ```
 
-**Poista konteksti** — pyytää vahvistusta; ohita se antamalla `--yes`
-(vaaditaan komentosarjoissa / ei-vuorovaikutteisissa komentotulkeissa, jotka muuten kieltäytyvät turvallisesti):
+**Poista konteksti** – pyytää vahvistusta; ohita se `--yes`-lipulla (tarvitaan skripteissä / ei-interaktiivisissa kuorissa, jotka muuten kieltäytyvät turvallisesti):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> `default`-kontekstia (localhost) ei voi poistaa. Aktiivisen kontekstin poistaminen vaihtaa
-> takaisin `default`-kontekstiin. Vinkki: kontekstin poistaminen poistaa vain **paikallisesti** tallennetun tunnistetiedon —
-> peruuta token palvelimella komennolla `omniroute tokens revoke <id>`, jotta
-> käyttöoikeus todella poistuu.
+> `default`-kontekstia (localhost) ei voi poistaa. Aktiivisen kontekstin poistaminen palauttaa oletukseksi `default`-kontekstin. Vinkki: kontekstin poistaminen poistaa vain **paikallisesti** tallennetun tunnistetiedon – kumoa tunnus palvelimelta komennolla `omniroute tokens revoke <id>` poistaaksesi pääsyn kokonaan.
 
-**Vie / tuo** konteksteja (esimerkiksi niiden siirtämiseksi koneiden välillä). Uusissa konteksteissa säilytetään
-vain viittaus avainnippuun; tunnistetietoja ei kopioida vientiin, kun käyttöjärjestelmän
-avainnippu on käytettävissä:
+**Vie / tuo** konteksteja (esim. siirtääksesi niitä koneiden välillä). Vienti jättää tunnistetiedot oletuksena pois, mukaan lukien tiedostovarmistuksen tallentamat tunnistetiedot. Käytä `--include-secrets`-lippua eksplisiittisesti, kun tarvitaan siirrettävä tunnistetietoja sisältävä varmuuskopio:
 
 ```bash
-omniroute contexts export --out contexts.json     # oletus: stdout
-omniroute contexts import contexts.json            # korvaa; säilytä nykyiset valitsimella --merge
-omniroute contexts migrate --yes                  # siirrä vanhat selväkieliset tokenit avainnippuun
+omniroute contexts export --out contexts.json     # sensuroitu; oletuskohde: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # ylikirjoita; --merge säilyttää olemassa olevat
+omniroute contexts migrate --yes                  # siirrä vanhat selväkieliset tunnukset avainnippuun
 ```
 
-Ilman käyttökelpoista käyttöjärjestelmän avainnippua toimivissa headless-järjestelmissä CLI käyttää varajärjestelynä
-`config.json`-tiedostoa tilassa `0600` ja näyttää kertaluonteisen varoituksen. Käsittele tämän
-varajärjestelyn vientejä (ja kaikkia ennen siirtoa luotuja vanhoja määrityksiä) salassa pidettävänä aineistona.
+`--include-secrets` ratkaisee avainnippuviittaukset ennen vientiä ja epäonnistuu, jos jotakin viitattua tunnistetietoa ei voida lukea. `--no-secrets` on aina etusijalla. Vientitiedostot kirjoitetaan atomisesti tilassa `0600`. Käsittele eksplisiittistä salaisuuksia sisältävää vientiä salaisena materiaalina. Päätteettömissä järjestelmissä, joissa ei ole käyttökelpoista käyttöjärjestelmän avainnippua, CLI palautuu `config.json`-tiedostoon tilassa `0600` ja tulostaa kertaluonteisen varoituksen; oletusvienti pysyy sensuroituna tässä tilassa.
 
 ---
 

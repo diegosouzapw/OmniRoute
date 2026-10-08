@@ -19,6 +19,7 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 import { getMitmStatus } from "@/mitm/manager";
 import { checkCertInstalled } from "@/mitm/cert/install";
+import { resolveActiveCertPath } from "@/mitm/cert/activeCert";
 import { resolveMitmDataDir } from "@/mitm/dataDir";
 import { summarizeDiagnostics } from "@/mitm/inspector/diagnostics";
 import { getAllAgentBridgeStates } from "@/lib/db/agentBridgeState";
@@ -46,7 +47,12 @@ export async function GET(request: Request): Promise<Response> {
   try {
     const agentId = new URL(request.url).searchParams.get("agentId") ?? undefined;
     const status = await getMitmStatus(agentId);
-    const certPath = path.join(resolveMitmDataDir(), "mitm", "server.crt");
+    // #14070: resolve the file the active migration decision actually
+    // installs (ca.crt under the root-CA model) instead of always
+    // hard-coding the legacy server.crt path.
+    const certDir = path.join(resolveMitmDataDir(), "mitm");
+    const rootCaEnabled = process.env.MITM_ROOT_CA_ENABLED === "true";
+    const { certPath } = resolveActiveCertPath(certDir, rootCaEnabled);
     const certExists = fs.existsSync(certPath);
     const certTrusted = certExists ? await checkCertInstalled(certPath) : false;
     const port =

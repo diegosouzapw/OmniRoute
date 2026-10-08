@@ -1,22 +1,24 @@
 # Socket.dev / supply-chain finding attestation (中文 (简体))
 
-🌐 **Languages:** 🇺🇸 [English](../../../../security/SOCKET_DEV_FINDINGS.md) · 🇪🇹 [am](../../../am/docs/security/SOCKET_DEV_FINDINGS.md) · 🇸🇦 [ar](../../../ar/docs/security/SOCKET_DEV_FINDINGS.md) · 🇦🇿 [az](../../../az/docs/security/SOCKET_DEV_FINDINGS.md) · 🇧🇬 [bg](../../../bg/docs/security/SOCKET_DEV_FINDINGS.md) · 🇧🇩 [bn](../../../bn/docs/security/SOCKET_DEV_FINDINGS.md) · 🇨🇿 [cs](../../../cs/docs/security/SOCKET_DEV_FINDINGS.md) · 🇩🇰 [da](../../../da/docs/security/SOCKET_DEV_FINDINGS.md) · 🇩🇪 [de](../../../de/docs/security/SOCKET_DEV_FINDINGS.md) · 🇬🇷 [el](../../../el/docs/security/SOCKET_DEV_FINDINGS.md) · 🇪🇸 [es](../../../es/docs/security/SOCKET_DEV_FINDINGS.md) · 🇪🇪 [et](../../../et/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇷 [fa](../../../fa/docs/security/SOCKET_DEV_FINDINGS.md) · 🇫🇮 [fi](../../../fi/docs/security/SOCKET_DEV_FINDINGS.md) · 🇫🇷 [fr](../../../fr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇪 [ga](../../../ga/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [gu](../../../gu/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇬 [ha](../../../ha/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇱 [he](../../../he/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [hi](../../../hi/docs/security/SOCKET_DEV_FINDINGS.md) · 🇭🇷 [hr](../../../hr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇭🇺 [hu](../../../hu/docs/security/SOCKET_DEV_FINDINGS.md) · 🇦🇲 [hy](../../../hy/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇩 [id](../../../id/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇬 [ig](../../../ig/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇹 [it](../../../it/docs/security/SOCKET_DEV_FINDINGS.md) · 🇯🇵 [ja](../../../ja/docs/security/SOCKET_DEV_FINDINGS.md) · 🇬🇪 [ka](../../../ka/docs/security/SOCKET_DEV_FINDINGS.md) · 🇰🇭 [km](../../../km/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [kn](../../../kn/docs/security/SOCKET_DEV_FINDINGS.md) · 🇰🇷 [ko](../../../ko/docs/security/SOCKET_DEV_FINDINGS.md) · 🇱🇹 [lt](../../../lt/docs/security/SOCKET_DEV_FINDINGS.md) · 🇱🇻 [lv](../../../lv/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [ml](../../../ml/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [mr](../../../mr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇲🇾 [ms](../../../ms/docs/security/SOCKET_DEV_FINDINGS.md) · 🇲🇹 [mt](../../../mt/docs/security/SOCKET_DEV_FINDINGS.md) · 🇲🇲 [my](../../../my/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇵 [ne](../../../ne/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇱 [nl](../../../nl/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇴 [no](../../../no/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [or](../../../or/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [pa](../../../pa/docs/security/SOCKET_DEV_FINDINGS.md) · 🇵🇭 [phi](../../../phi/docs/security/SOCKET_DEV_FINDINGS.md) · 🇵🇱 [pl](../../../pl/docs/security/SOCKET_DEV_FINDINGS.md) · 🇵🇹 [pt](../../../pt/docs/security/SOCKET_DEV_FINDINGS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/SOCKET_DEV_FINDINGS.md) · 🇷🇴 [ro](../../../ro/docs/security/SOCKET_DEV_FINDINGS.md) · 🇷🇺 [ru](../../../ru/docs/security/SOCKET_DEV_FINDINGS.md) · 🇱🇰 [si](../../../si/docs/security/SOCKET_DEV_FINDINGS.md) · 🇸🇰 [sk](../../../sk/docs/security/SOCKET_DEV_FINDINGS.md) · 🇸🇮 [sl](../../../sl/docs/security/SOCKET_DEV_FINDINGS.md) · 🇷🇸 [sr](../../../sr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇸🇪 [sv](../../../sv/docs/security/SOCKET_DEV_FINDINGS.md) · 🇰🇪 [sw](../../../sw/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [ta](../../../ta/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [te](../../../te/docs/security/SOCKET_DEV_FINDINGS.md) · 🇹🇭 [th](../../../th/docs/security/SOCKET_DEV_FINDINGS.md) · 🇹🇷 [tr](../../../tr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/SOCKET_DEV_FINDINGS.md) · 🇵🇰 [ur](../../../ur/docs/security/SOCKET_DEV_FINDINGS.md) · 🇺🇿 [uz](../../../uz/docs/security/SOCKET_DEV_FINDINGS.md) · 🇻🇳 [vi](../../../vi/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇬 [yo](../../../yo/docs/security/SOCKET_DEV_FINDINGS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/SOCKET_DEV_FINDINGS.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../security/SOCKET_DEV_FINDINGS.md) · 🇪🇹 [am](../../../am/docs/security/SOCKET_DEV_FINDINGS.md) · 🇸🇦 [ar](../../../ar/docs/security/SOCKET_DEV_FINDINGS.md) · 🇦🇿 [az](../../../az/docs/security/SOCKET_DEV_FINDINGS.md) · 🇧🇬 [bg](../../../bg/docs/security/SOCKET_DEV_FINDINGS.md) · 🇧🇩 [bn](../../../bn/docs/security/SOCKET_DEV_FINDINGS.md) · 🇧🇦 [bs](../../../bs/docs/security/SOCKET_DEV_FINDINGS.md) · 🇨🇿 [cs](../../../cs/docs/security/SOCKET_DEV_FINDINGS.md) · 🇩🇰 [da](../../../da/docs/security/SOCKET_DEV_FINDINGS.md) · 🇩🇪 [de](../../../de/docs/security/SOCKET_DEV_FINDINGS.md) · 🇬🇷 [el](../../../el/docs/security/SOCKET_DEV_FINDINGS.md) · 🇪🇸 [es](../../../es/docs/security/SOCKET_DEV_FINDINGS.md) · 🇪🇪 [et](../../../et/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇷 [fa](../../../fa/docs/security/SOCKET_DEV_FINDINGS.md) · 🇫🇮 [fi](../../../fi/docs/security/SOCKET_DEV_FINDINGS.md) · 🇫🇷 [fr](../../../fr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇪 [ga](../../../ga/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [gu](../../../gu/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇬 [ha](../../../ha/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇱 [he](../../../he/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [hi](../../../hi/docs/security/SOCKET_DEV_FINDINGS.md) · 🇭🇷 [hr](../../../hr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇭🇺 [hu](../../../hu/docs/security/SOCKET_DEV_FINDINGS.md) · 🇦🇲 [hy](../../../hy/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇩 [id](../../../id/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇬 [ig](../../../ig/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇹 [it](../../../it/docs/security/SOCKET_DEV_FINDINGS.md) · 🇯🇵 [ja](../../../ja/docs/security/SOCKET_DEV_FINDINGS.md) · 🇬🇪 [ka](../../../ka/docs/security/SOCKET_DEV_FINDINGS.md) · 🇰🇭 [km](../../../km/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [kn](../../../kn/docs/security/SOCKET_DEV_FINDINGS.md) · 🇰🇷 [ko](../../../ko/docs/security/SOCKET_DEV_FINDINGS.md) · 🇱🇹 [lt](../../../lt/docs/security/SOCKET_DEV_FINDINGS.md) · 🇱🇻 [lv](../../../lv/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [ml](../../../ml/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [mr](../../../mr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇲🇾 [ms](../../../ms/docs/security/SOCKET_DEV_FINDINGS.md) · 🇲🇹 [mt](../../../mt/docs/security/SOCKET_DEV_FINDINGS.md) · 🇲🇲 [my](../../../my/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇵 [ne](../../../ne/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇱 [nl](../../../nl/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇴 [no](../../../no/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [or](../../../or/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [pa](../../../pa/docs/security/SOCKET_DEV_FINDINGS.md) · 🇵🇭 [phi](../../../phi/docs/security/SOCKET_DEV_FINDINGS.md) · 🇵🇱 [pl](../../../pl/docs/security/SOCKET_DEV_FINDINGS.md) · 🇵🇹 [pt](../../../pt/docs/security/SOCKET_DEV_FINDINGS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/SOCKET_DEV_FINDINGS.md) · 🇷🇴 [ro](../../../ro/docs/security/SOCKET_DEV_FINDINGS.md) · 🇷🇺 [ru](../../../ru/docs/security/SOCKET_DEV_FINDINGS.md) · 🇱🇰 [si](../../../si/docs/security/SOCKET_DEV_FINDINGS.md) · 🇸🇰 [sk](../../../sk/docs/security/SOCKET_DEV_FINDINGS.md) · 🇸🇮 [sl](../../../sl/docs/security/SOCKET_DEV_FINDINGS.md) · 🇷🇸 [sr](../../../sr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇸🇪 [sv](../../../sv/docs/security/SOCKET_DEV_FINDINGS.md) · 🇰🇪 [sw](../../../sw/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [ta](../../../ta/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [te](../../../te/docs/security/SOCKET_DEV_FINDINGS.md) · 🇹🇭 [th](../../../th/docs/security/SOCKET_DEV_FINDINGS.md) · 🇹🇷 [tr](../../../tr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/SOCKET_DEV_FINDINGS.md) · 🇵🇰 [ur](../../../ur/docs/security/SOCKET_DEV_FINDINGS.md) · 🇺🇿 [uz](../../../uz/docs/security/SOCKET_DEV_FINDINGS.md) · 🇻🇳 [vi](../../../vi/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇬 [yo](../../../yo/docs/security/SOCKET_DEV_FINDINGS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/SOCKET_DEV_FINDINGS.md)
 
 ---
 
-本文档是维护者针对 `omniroute@3.8.5` 中六项
-`AI-detected potential malware` 检测结果编写的证明，以及
-`omniroute@3.8.6` 中所采取的缓解措施。本文档的目的如下：
+> **范围说明：** `socket.yml` 配置 Socket.dev 在注册表侧对已发布 npm 构件执行发布后扫描（忽略未随包发布的内容路径，例如 `tests/`、`docs/` 和构建报告）。它不会设置 CI/PR 合并门禁——`.github/workflows` 中没有工作流、`package.json` 中没有脚本，且没有任何 `Makefile` 目标会调用 Socket.dev。
 
-1. 为安全流水线运营人员提供单一参考，以便他们根据实际源代码
-   评估这些检测结果。
-2. 让未来的 AI 扫描器能够识别由维护者签署的声明，即每一条
-   被标记的路径都是有意设计、需要主动启用且已有文档说明的。
-3. 以书面形式记录每个调用点为何采用当前形式 —
-   从而避免未来的重构意外重新引入已被刻意移除的特征。
+本文档是由维护者撰写的证明，用于说明针对 `omniroute@3.8.5` 提出的六项
+`AI-detected potential malware` 检测结果，以及在 `omniroute@3.8.6` 中采取的
+缓解措施。本文档的目的如下：
 
-如果您运营的扫描器在 v3.8.6 缓解措施发布后再次标记以下任何
-调用点，请提交包含扫描跟踪信息的 issue，我们将在此扩展相关证明。
+1. 当安全流水线操作人员需要根据实际源代码评估这些检测结果时，可引用这份
+   统一的参考资料。
+2. 让未来的 AI 扫描器能够识别由维护者签署的声明，即每个被标记的路径都是
+   有意设计的、需主动选择启用的，并且已有文档说明。
+3. 以书面形式记录每个调用点采用当前形式的*原因*——
+   从而避免未来的重构意外重新引入已被特意移除的特征。
+
+如果您运营的扫描器在 v3.8.6 缓解措施发布后仍重新标记以下任何调用点，
+请提交包含扫描跟踪信息的 issue，我们将扩展此处的证明内容。
 
 ---
 
@@ -177,7 +179,7 @@ rawBody)`）。如果已设置密钥，则必须提供签名。如果未设置�
 
 ## 构建配置：`minimal`
 
-需要对 Socket 友好的构建产物时，请使用以下命令构建：
+对于需要 Socket 友好型构建产物的用户，请使用以下命令构建：
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
@@ -192,12 +194,11 @@ webpack 的 `NormalModuleReplacementPlugin` 会将四个模块别名映射到存
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-每个存根都导出相同的接口，但每个函数在运行时都会抛出
+每个存根均导出相同的接口，但每个函数都会在运行时抛出
 `featureDisabledError(name)`。依赖已禁用模块的路由会返回 HTTP 503
-以及清晰的消息，而不会激活敏感代码路径。
+及清晰的消息，而不会激活敏感代码路径。
 
-生成的捆绑包将以 `omniroute-secure` 的名称发布。有关发布流程，请参阅
-`docs/ops/PUBLISHING_SECURE.md`。
+生成的捆绑包旨在以 `omniroute-secure` 的名称发布。
 
 ---
 

@@ -1,6 +1,6 @@
 # OmniRoute MCP Server Documentation (Português (Brasil))
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
@@ -289,10 +289,103 @@ Os transportes SSE e HTTP com streaming ficam bloqueados até que o servidor MCP
 
 ---
 
-## Autenticação e escopos
+## Autenticação e Escopos
 
-As ferramentas MCP são autenticadas por meio de escopos de chave de API. A aplicação dos escopos é centralizada em
-`open-sse/mcp-server/scopeEnforcement.ts`. Cada ferramenta requer escopos específicos:
+A ferramenta MCP lê strings de escopo do chamador. Essa verificação é um dos três
+namespaces independentes. Uma aprovação de um verificador não é uma aprovação dos
+outros. As regras são [Três namespaces de escopo](#três-namespaces-de-escopo).
+O catálogo de ferramentas é [Escopos da ferramenta MCP](#escopos-da-ferramenta-mcp).
+
+### Três namespaces de escopo
+
+`manage` em uma chave de API, `read:compression` em uma ferramenta MCP e `read` em um
+token de acesso `oma_live_…` são três concessões diferentes. Chamadores que enviam um token de acesso `read`
+para uma rota de gerenciamento mutável recebem HTTP 403
+`Access token scope 'read' is insufficient; 'write' required.`
+Essa classificação é `scopeSatisfies`. Ela não consulta a tabela MCP, e o
+comparador MCP não a consulta.
+
+| Namespace                     | Credencial                                                   | Verificador               | Uma aprovação permite                                                   |
+| :---------------------------- | :----------------------------------------------------------- | :------------------------ | :---------------------------------------------------------------------- |
+| Gerenciamento de chave de API | `api_keys.scopes`                                            | `hasManageScope`          | REST de gerenciamento para aquela chave Bearer                          |
+| Aditivo de chave de API       | mesmo array, uma string exata                                | o auxiliar nomeado abaixo | Apenas aquela capacidade                                                |
+| Escopos da ferramenta MCP     | mesmo array, senão MCP `_meta`, senão `OMNIROUTE_MCP_SCOPES` | `scopeMatches`            | Aquela ferramenta, uma vez que a aplicação esteja ativada               |
+| Token de acesso               | `oma_live_…`                                                 | `scopeSatisfies`          | A rota de gerenciamento cujo método e caminho exigem essa classificação |
+
+A criação de cada credencial é abordada em
+[Autenticação de Gerenciamento](../guides/MANAGEMENT-AUTH.md).
+
+#### Escopos de chave de API
+
+Um array `api_keys.scopes` alimenta dois trabalhos. Eles usam funções diferentes.
+
+**REST de Gerenciamento.** `manage` e `admin` são os membros de
+`MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`).
+`hasManageScope` é o que autoriza as rotas de gerenciamento para aquela chave. `admin` é
+capaz de gerenciamento nessas rotas. A palavra `admin` aqui não é o
+rank do token de acesso e não se expande para escopos de ferramenta MCP.
+
+**Strings aditivas.** Cada uma é um teste de associação exato, e cada uma permanece
+fora de `MANAGEMENT_API_KEY_SCOPES`.
+
+| Escopo                         | Uma aprovação permite                                                                                                                                                    |
+| :----------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | A exceção LOCAL_ONLY não-loopback `/api/mcp/` apenas (`hasMcpConnectOrManageScope`). Uma chave com `manage` ou `admin` ainda passa por essa exceção.                     |
+| `self:usage`                   | `GET /api/v1/me/status` para esta chave (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` adiciona este escopo na criação (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | Cotas de conta upstream dentro desse payload de status (`src/lib/usage/apiKeySelfService.ts`). A rota de status ainda requer `self:usage`.                               |
+| `policy:bypass-provider-quota` | As chamadas de inferência desta chave ignoram a política de cota do provedor (`hasProviderQuotaBypassScope` em `src/sse/handlers/chat.ts`).                              |
+
+#### Correspondência
+
+O catálogo é a tabela em [Escopos da ferramenta MCP](#escopos-da-ferramenta-mcp). Não
+trate `MCP_SCOPE_LIST` em `src/shared/constants/mcpScopes.ts` como esse catálogo:
+é o subconjunto tipado original. Ferramentas posteriores declaram escopos adicionais ao lado dele
+(`read:notion`, `read:skills`, `read:local-corpus` e o restante da tabela).
+
+`evaluateToolScopes` em `open-sse/mcp-server/scopeEnforcement.ts` permite uma chamada
+quando cada escopo necessário corresponde a algum escopo concedido:
+
+- `*` corresponde a cada escopo necessário.
+- Um escopo concedido que termina em `*` corresponde a um escopo necessário que começa com
+  o prefixo antes do asterisco. `read:*` corresponde a `read:compression`.
+- Cada outro escopo concedido corresponde apenas à string necessária idêntica.
+
+Uma chave cujos escopos são `["manage"]` falha em `scopeMatches` para `read:compression`.
+A mesma chamada falha para `admin`, `mcp:connect`, `read` e `write` quando esses
+são as únicas strings concedidas. Não há hierarquia entre os escopos da ferramenta MCP
+além do `*` final.
+
+A aplicação está desativada a menos que `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (padrão
+`false`). Enquanto estiver desativada, `evaluateToolScopes` permite a chamada e ignora o
+catálogo. Enquanto estiver ativada, o HTTP usa `api_keys.scopes` da chave Bearer como
+`authInfo` (consulte [Vinculação de escopo HTTP por chave](#vinculação-de-escopo-http-por-chave-7895)).
+Quando nenhum escopo de chave é resolvido, o conjunto concedido passa para MCP `_meta`, então
+`OMNIROUTE_MCP_SCOPES`.
+
+#### Escopos de token de acesso
+
+Tokens `oma_live_…` (`src/lib/accessTokens/scopes.ts`) carregam `read`, `write` ou
+`admin`. `scopeSatisfies` é um rank: `admin` cobre `write` e `read`, e
+`write` cobre `read`. Escopos desconhecidos não cobrem nada.
+
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) compara esse
+rank com `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
+
+- `GET`, `HEAD` e `OPTIONS` exigem `read`.
+- Todos os outros métodos exigem `write`.
+- Caminhos em `ADMIN_SCOPE_PREFIXES` exigem `admin` para cada método. `/api/mcp`
+  está nessa lista, então um token de acesso `write` ainda não pode chamar a superfície HTTP do MCP.
+- Caminhos em `ADMIN_MUTATION_PREFIXES` exigem `admin` apenas para mutações.
+
+`PATCH /api/keys/{id}` é uma mutação e não está nessas listas de administrador, então um token `read` recebe 403
+`Access token scope 'read' is insufficient; 'write' required.`
+Um token de acesso `write` ou `admin` satisfaz essa rota. Um JWT de painel, o token `machine-id` do CLI do loopback e uma chave de API com `manage` ou `admin` seguem outros caminhos e não são restringidos por esta classificação.
+
+Um token de acesso que passa `scopeSatisfies` para `/api/mcp` apenas liberou o portão de gerenciamento. As chamadas de ferramenta ainda executam `scopeMatches` contra os escopos da chave de API. A classificação do token de acesso não é uma entrada para `scopeMatches`.
+
+### Escopos de ferramenta MCP
+
+A aplicação de escopo é centralizada em `open-sse/mcp-server/scopeEnforcement.ts`. Cada ferramenta requer escopos específicos:
 
 | Escopo                | Ferramentas                                                                                                                                                                              |
 | :-------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -330,35 +423,15 @@ As ferramentas MCP são autenticadas por meio de escopos de chave de API. A apli
 | `write:obsidian`      | 9 ferramentas de escrita — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                |
 | `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                                        |
 
-Há suporte a escopos curinga: `read:*` concede todos os escopos de leitura, e `*` concede acesso total.
+Escopos curinga são suportados: `read:*` concede todos os escopos de leitura, `*` concede acesso total.
 
-### `mcp:connect` — capacidade de rota restrita (#7895)
+### `mcp:connect` — capacidade de rota estreita (#7895)
 
-Acessar o transporte HTTP/SSE do MCP (`/api/mcp/*`) a partir de um endereço que não seja de loopback exige a
-exceção LOCAL_ONLY de `/api/mcp/` (consulte `docs/security/ROUTE_GUARD_TIERS.md`). Historicamente,
-essa exceção aceitava apenas uma chave de API com escopo completo `manage`/`admin` — amplo demais para um
-chamador que precisa apenas se comunicar com o MCP. `src/shared/constants/managementScopes.ts` agora
-exporta `MCP_CONNECT_SCOPE = "mcp:connect"`: um escopo adicional e restrito (seguindo o mesmo precedente de
-`SELF_USAGE_SCOPE`) que autoriza SOMENTE o desvio de `/api/mcp/` em
-`src/server/authz/policies/management.ts` — ele não concede acesso a nenhuma outra rota de gerenciamento
-e é deliberadamente mantido FORA de `MANAGEMENT_API_KEY_SCOPES`. Uma chave que possua `manage`/`admin`
-continua passando pela exceção sem alterações; `mcp:connect` é uma alternativa com privilégios menores para
-chamadores remotos que utilizam apenas o MCP, verificada por meio de `hasMcpConnectOrManageScope()`.
+Atingir o transporte HTTP/SSE MCP (`/api/mcp/*`) de não-loopback requer a exceção `LOCAL_ONLY` de `/api/mcp/` (veja `docs/security/ROUTE_GUARD_TIERS.md`). Historicamente, essa exceção aceitava apenas uma chave de API de escopo `manage`/`admin` completa — muito ampla para um chamador que só precisa se comunicar com o MCP. `src/shared/constants/managementScopes.ts` agora exporta `MCP_CONNECT_SCOPE = "mcp:connect"`: um escopo aditivo e estreito (mesmo precedente de `SELF_USAGE_SCOPE`) que autoriza APENAS o bypass de `/api/mcp/` em `src/server/authz/policies/management.ts` — ele não concede nenhum outro acesso a rotas de gerenciamento e é deliberadamente mantido FORA de `MANAGEMENT_API_KEY_SCOPES`. Uma chave que possui `manage`/`admin` ainda passa pela exceção inalterada; `mcp:connect` é uma alternativa de menor privilégio para chamadores remotos somente MCP, verificada via `hasMcpConnectOrManageScope()`.
 
 ### Vinculação de escopo HTTP por chave (#7895)
 
-Por HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` agora resolve os
-`api_keys.scopes` reais do chamador por meio de `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
-e os repassa para `transport.handleRequest(req, { authInfo })` do SDK do MCP, de modo que
-`extra.authInfo.scopes`, recebido por cada chamada de ferramenta, reflita os escopos da própria chave Bearer.
-`resolveCallerScopeContext()` de `scopeEnforcement.ts` já priorizava `authInfo` em relação
-ao `_meta` e ao fallback da variável de ambiente `OMNIROUTE_MCP_SCOPES` — isso apenas preenche essa primeira
-fonte, de prioridade mais alta, que anteriormente não era alimentada por HTTP. Quando nenhuma chave de API é resolvida
-(sem cabeçalho ou com uma chave inválida), `authInfo` permanece `undefined`, e a resolução segue para a
-cadeia `meta`/variável de ambiente existente, sem alterações. Isso NÃO altera o valor padrão de `OMNIROUTE_MCP_ENFORCE_SCOPES` —
-a imposição ainda precisa ser habilitada explicitamente; essa alteração apenas faz com que o
-caminho por chave tenha precedência quando ela estiver habilitada. stdio não possui identidade por chamador (consulte
-`mcpCallerIdentity.ts`) e não é afetado — ele continua usando a cadeia de fallback `_meta`/variável de ambiente.
+Via HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` agora resolve os `api_keys.scopes` reais do chamador via `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) e os passa para `transport.handleRequest(req, { authInfo })` do SDK do MCP, de modo que `extra.authInfo.scopes` que chega a cada chamada de ferramenta reflita os próprios escopos da chave Bearer. `scopeEnforcement.ts`'s `resolveCallerScopeContext()` já priorizava `authInfo` sobre o fallback de `_meta` e `OMNIROUTE_MCP_SCOPES` — isso apenas preenche essa primeira fonte de maior prioridade, que antes não era alimentada via HTTP. Quando nenhuma chave de API é resolvida (sem cabeçalho, chave inválida), `authInfo` permanece `undefined` e a resolução segue para a cadeia `meta`/env existente inalterada. Isso NÃO inverte o padrão de `OMNIROUTE_MCP_ENFORCE_SCOPES` — a aplicação ainda precisa ser explicitamente habilitada; essa mudança apenas faz com que o caminho por chave tenha precedência quando ativado. O stdio não tem identidade por chamador (veja `mcpCallerIdentity.ts`) e não é afetado — ele permanece na cadeia de fallback `_meta`/env.
 
 ---
 

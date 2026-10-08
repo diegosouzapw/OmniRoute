@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import plugin from "../src/index.js";
-import { publishCatalog } from "../src/catalog.js";
+import { collectCatalog } from "../src/catalog.js";
 
 const MODELS_URL = "https://gw.example.com/v1/models";
 const COMBOS_URL = "https://gw.example.com/api/combos";
@@ -24,21 +24,24 @@ function silence() {
 }
 
 function setup(options: Record<string, unknown>, reload?: () => Promise<void>) {
-  const catalogCallbacks: Array<(draft: unknown) => Promise<void>> = [];
+  const added: unknown[] = [];
   const ctx = {
     options,
-    catalog: {
-      transform: (cb: (draft: unknown) => Promise<void>) => {
-        catalogCallbacks.push(cb);
+    provider: {
+      transform: (cb: (editor: { add: (input: unknown) => void }) => void) => {
+        cb({ add: (input: unknown) => added.push(input) });
         return Promise.resolve({ dispose: async () => {} });
       },
       ...(reload ? { reload } : {}),
+    },
+    model: {
+      transform: () => Promise.resolve({ dispose: async () => {} }),
     },
     integration: {
       transform: () => Promise.resolve({ dispose: async () => {} }),
     },
   };
-  return { catalogCallbacks, ctx };
+  return { added, ctx };
 }
 
 function stubDraft() {
@@ -63,9 +66,6 @@ describe("plugin-v2 managementReadToken wiring (F1)", () => {
     globalThis.fetch = (async (url: unknown, init?: { headers?: Record<string, string> }) => {
       const href = String(url);
       seen.set(href, String(init?.headers?.Authorization ?? ""));
-      if (href.includes("/api/combos/auto")) {
-        return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
-      }
       if (href.includes("/api/combos")) {
         return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
       }
@@ -73,21 +73,22 @@ describe("plugin-v2 managementReadToken wiring (F1)", () => {
         ok: true,
         status: 200,
         statusText: "OK",
-        json: async () => ({ data: [{ id: "m1" }] }),
+        json: async () => ({ data: [{ id: "m1", capabilities: { tool_calling: true } }] }),
       };
     }) as typeof fetch;
     const guard = silence();
     try {
-      const { catalogCallbacks, ctx } = setup({
+      const { added, ctx } = setup({
         baseURL: "https://gw.example.com",
         providerId: "omniroute",
         apiKey: "chat-key",
         managementReadToken: "mgmt-key",
       });
       await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(ctx);
-      const { draft, published } = stubDraft();
-      await catalogCallbacks[0](draft);
-      assert.ok(published.has("omniroute/m1"));
+      const ids = (added as Array<{ models: Array<{ id: string }> }>).flatMap((a) =>
+        a.models.map((m) => m.id)
+      );
+      assert.ok(ids.includes("m1"));
       assert.equal(seen.get(COMBOS_URL), "Bearer mgmt-key");
       assert.equal(seen.get(MODELS_URL), "Bearer chat-key");
     } finally {
@@ -102,9 +103,6 @@ describe("plugin-v2 managementReadToken wiring (F1)", () => {
     globalThis.fetch = (async (url: unknown, init?: { headers?: Record<string, string> }) => {
       const href = String(url);
       seen.set(href, String(init?.headers?.Authorization ?? ""));
-      if (href.includes("/api/combos/auto")) {
-        return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
-      }
       if (href.includes("/api/combos")) {
         return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
       }
@@ -112,19 +110,17 @@ describe("plugin-v2 managementReadToken wiring (F1)", () => {
         ok: true,
         status: 200,
         statusText: "OK",
-        json: async () => ({ data: [{ id: "m1" }] }),
+        json: async () => ({ data: [{ id: "m1", capabilities: { tool_calling: true } }] }),
       };
     }) as typeof fetch;
     const guard = silence();
     try {
-      const { catalogCallbacks, ctx } = setup({
+      const { ctx } = setup({
         baseURL: "https://gw.example.com",
         providerId: "omniroute",
         apiKey: "chat-key",
       });
       await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(ctx);
-      const { draft } = stubDraft();
-      await catalogCallbacks[0](draft);
       assert.equal(seen.get(COMBOS_URL), "Bearer chat-key");
     } finally {
       globalThis.fetch = origFetch;
@@ -132,16 +128,9 @@ describe("plugin-v2 managementReadToken wiring (F1)", () => {
     }
   });
 
-  it("publishCatalog routes combosFetcher to managementReadToken, models to apiKey", async () => {
+  it("collectCatalog routes combosFetcher to managementReadToken, models to apiKey", async () => {
     const calls: Array<[string, string]> = [];
-    const draft = {
-      provider: { update: (_id: string, fn: (p: Record<string, unknown>) => void) => fn({}) },
-      model: {
-        update: (_p: string, _m: string, fn: (m: Record<string, unknown>) => void) => fn({}),
-      },
-    };
-    const res = await publishCatalog(
-      draft as never,
+    const collected = await collectCatalog(
       {
         providerId: "omniroute",
         baseURL: "https://gw.example.com",
@@ -154,7 +143,7 @@ describe("plugin-v2 managementReadToken wiring (F1)", () => {
       {
         fetcher: async (_baseURL, token) => {
           calls.push(["models", token]);
-          return [{ id: "m1" }];
+          return [{ id: "m1", capabilities: { tool_calling: true } }];
         },
         combosFetcher: async (_baseURL, token) => {
           calls.push(["combos", token]);
@@ -162,7 +151,8 @@ describe("plugin-v2 managementReadToken wiring (F1)", () => {
         },
       }
     );
-    assert.deepEqual(res, { models: 1, combos: 0, autoCombos: 0 });
+    const res = collected.counts;
+    assert.deepEqual(res, { models: 1, combos: 0 });
     assert.deepEqual(calls, [
       ["models", "chat-key"],
       ["combos", "mgmt-key"],
@@ -182,9 +172,6 @@ describe("plugin-v2 fail-closed models (F2)", () => {
     const origFetch = globalThis.fetch;
     globalThis.fetch = (async (url: unknown) => {
       const href = String(url);
-      if (href.includes("/api/combos/auto")) {
-        return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
-      }
       if (href.includes("/api/combos")) {
         return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
       }
@@ -194,33 +181,63 @@ describe("plugin-v2 fail-closed models (F2)", () => {
           ok: true,
           status: 200,
           statusText: "OK",
-          json: async () => ({ data: [{ id: "m1" }] }),
+          json: async () => ({ data: [{ id: "m1", capabilities: { tool_calling: true } }] }),
         };
       }
       return { ok: false, status: 500, statusText: "Error", json: async () => ({}) };
     }) as typeof fetch;
     const guard = silence();
     try {
-      const { catalogCallbacks, ctx } = setup({
-        baseURL: "https://gw.example.com",
-        providerId: "f2-keep",
-        apiKey: "k-f2",
-        modelCacheTtlMs: 1,
-      });
-      await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(ctx);
-      const first = stubDraft();
-      await catalogCallbacks[0](first.draft);
-      assert.ok(first.published.has("f2-keep/m1"), "first refresh must publish m1");
+      const firstAdded: unknown[] = [];
+      const firstCtx = {
+        options: {
+          baseURL: "https://gw.example.com",
+          providerId: "f2-keep",
+          apiKey: "k-f2",
+          modelCacheTtlMs: 1,
+        },
+        provider: {
+          transform: (cb: (editor: { add: (input: unknown) => void }) => void) => {
+            cb({ add: (input: unknown) => firstAdded.push(input) });
+            return Promise.resolve({ dispose: async () => {} });
+          },
+          reload: async () => {},
+        },
+        model: { transform: () => Promise.resolve({ dispose: async () => {} }) },
+        integration: { transform: () => Promise.resolve({ dispose: async () => {} }) },
+      };
+      await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(firstCtx);
+      const firstIds = (firstAdded as Array<{ models: Array<{ id: string }> }>).flatMap((a) =>
+        a.models.map((m) => m.id)
+      );
+      assert.ok(firstIds.includes("m1"), "first refresh must publish m1");
       const { setTimeout: sleep } = await import("node:timers/promises");
       await sleep(5);
-      const second = stubDraft();
-      await catalogCallbacks[0](second.draft);
+      const secondAdded: unknown[] = [];
+      const secondCtx = {
+        options: {
+          baseURL: "https://gw.example.com",
+          providerId: "f2-keep",
+          apiKey: "k-f2",
+          modelCacheTtlMs: 1,
+        },
+        provider: {
+          transform: (cb: (editor: { add: (input: unknown) => void }) => void) => {
+            cb({ add: (input: unknown) => secondAdded.push(input) });
+            return Promise.resolve({ dispose: async () => {} });
+          },
+          reload: async () => {},
+        },
+        model: { transform: () => Promise.resolve({ dispose: async () => {} }) },
+        integration: { transform: () => Promise.resolve({ dispose: async () => {} }) },
+      };
+      await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(secondCtx);
       if (prevDataDir === undefined) delete process.env.OPENCODE_DATA_DIR;
       else process.env.OPENCODE_DATA_DIR = prevDataDir;
-      assert.ok(
-        second.published.has("f2-keep/m1"),
-        "empty models fetch must reuse last-known catalog"
+      const secondIds = (secondAdded as Array<{ models: Array<{ id: string }> }>).flatMap((a) =>
+        a.models.map((m) => m.id)
       );
+      assert.ok(secondIds.includes("m1"), "empty models fetch must reuse last-known catalog");
       assert.ok(
         guard.warns.some((w) => w.includes("keeping last-known catalog")),
         `expected keep-last-known warn, got: ${JSON.stringify(guard.warns)}`

@@ -6,6 +6,10 @@ import {
   CHATGPT_WEB_RETIRED_MESSAGE,
   isCommonChatGptWebRetiredProviderId,
 } from "@/shared/constants/chatgptWebRetirement";
+import {
+  isMicrosoftDesignerWebRetiredProviderId,
+  MICROSOFT_DESIGNER_WEB_RETIRED_MESSAGE,
+} from "@/shared/constants/designerWebRetirement";
 
 import { getImageProvider, parseImageModel } from "../config/imageRegistry.ts";
 import { HTTP_STATUS } from "../config/constants.ts";
@@ -31,17 +35,16 @@ import {
   extractComfyOutputFiles,
   resolveComfyUiBaseUrl,
 } from "../utils/comfyuiClient.ts";
-import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
+import { fetchUntrustedRemoteImage } from "@/shared/network/remoteImageFetch";
 import {
   FetchTimeoutError,
   fetchWithTimeout,
   getConfiguredTimeout,
 } from "@/shared/utils/fetchTimeout";
 import { sanitizeErrorMessage, sanitizeUpstreamDetails } from "../utils/error.ts";
-import {
-  isMicrosoftDesignerWebRetiredProviderId,
-  MICROSOFT_DESIGNER_WEB_RETIRED_MESSAGE,
-} from "@/shared/constants/designerWebRetirement";
+// Shared with imageUpscale/shared.ts — see imageErrorLog.ts for why a bare
+// String(value) is unsafe here (null-prototype sanitizeUpstreamDetails() payloads, #12506).
+import { stringifyImageErrorForLog } from "./imageErrorLog.ts";
 
 import { handleSDWebUIImageGeneration } from "./imageGeneration/providers/sdWebUI.ts";
 import { handleHyperbolicImageGeneration } from "./imageGeneration/providers/hyperbolic.ts";
@@ -57,10 +60,14 @@ import { handleSegmindImageGeneration } from "./imageGeneration/providers/segmin
 import { handleUcImageGeneration } from "./imageGeneration/providers/ucImage.ts";
 import { handleCursorAgentImageGeneration } from "./imageGeneration/providers/cursorAgentImage.ts";
 import { handleMinimaxImageGeneration } from "./imageGeneration/providers/minimax.ts";
+import { handleCloudflareAiImageGeneration } from "./imageGeneration/providers/cloudflareAi.ts";
+import { buildXaiImageRequest } from "./imageGeneration/providers/xaiImage.ts";
 import { handleMaxaiImageGeneration } from "./imageGeneration/providers/maxaiImage.ts";
 import { handleAdobeFireflyImageGeneration } from "./imageGeneration/providers/adobeFirefly.ts";
 import { handleAlibabaImageGeneration } from "./imageGeneration/providers/alibabaImage.ts";
 import { handleAiHordeImageGeneration } from "./imageGeneration/providers/aihorde.ts";
+import * as codexImages from "./imageGeneration/providers/codexImages.ts";
+import { handleZenmuxImageGeneration } from "./imageGeneration/providers/zenmux.ts";
 import {
   applyPollinationsAnonymousFallback,
   reportPollinationsAnonOutcome,
@@ -68,6 +75,7 @@ import {
 
 // Re-export so /v1/images/edits can dispatch Firefly reference-image edits.
 export { handleAdobeFireflyImageGeneration };
+export { isCodexChatGptModelAccessError };
 
 interface KieImageOptions {
   model: string;
@@ -181,6 +189,27 @@ const IMAGE_ASPECT_RATIO_PATTERN = /^\d+:\d+$/;
 const IMAGE_SIZE_PATTERN = /^(?:1K|2K|4K)$/;
 
 /**
+ * Read the configured node base URL from a custom provider's credentials:
+ * `providerSpecificData.baseUrl` first, then the legacy top-level
+ * `credentials.baseUrl`. Returns null when neither is set, so callers can
+ * fall back to a default or fail closed.
+ */
+function pickConfiguredNodeBaseUrl(
+  credentials:
+    { baseUrl?: unknown; providerSpecificData?: { baseUrl?: unknown } | null } | null | undefined
+): string | null {
+  const psd = credentials?.providerSpecificData;
+  const psdBaseUrl =
+    psd && typeof psd === "object" && typeof psd.baseUrl === "string" && psd.baseUrl.trim()
+      ? psd.baseUrl.trim()
+      : null;
+  if (psdBaseUrl) return psdBaseUrl;
+  return typeof credentials?.baseUrl === "string" && credentials.baseUrl.trim()
+    ? credentials.baseUrl.trim()
+    : null;
+}
+
+/**
  * Resolve the upstream images endpoint for a custom (OpenAI-compatible) image
  * provider node (#3205).
  *
@@ -188,7 +217,8 @@ const IMAGE_SIZE_PATTERN = /^(?:1K|2K|4K)$/;
  * in `credentials.providerSpecificData.baseUrl` (e.g. `https://example.com/v1`),
  * NOT as a top-level `credentials.baseUrl`. Older callers may still pass a
  * top-level `baseUrl`, so we honor that as a secondary source. When neither is
- * present we fall back to `fallback` (the built-in Gemini OpenAI endpoint).
+ * present the caller may use its explicit fallback. Custom-node callers use
+ * failClosed so they never route to a built-in provider endpoint.
  *
  * Resolution order: providerSpecificData.baseUrl → credentials.baseUrl → fallback.
  *
@@ -203,20 +233,12 @@ export function resolveImageBaseUrl(
   credentials:
     { baseUrl?: unknown; providerSpecificData?: { baseUrl?: unknown } | null } | null | undefined,
   fallback: string,
-  endpoint: "generations" | "edits" = "generations"
+  endpoint: "generations" | "edits" = "generations",
+  failClosed = false
 ): string {
-  const psd = credentials?.providerSpecificData;
-  const psdBaseUrl =
-    psd && typeof psd === "object" && typeof psd.baseUrl === "string" && psd.baseUrl.trim()
-      ? psd.baseUrl.trim()
-      : null;
-  const topLevelBaseUrl =
-    typeof credentials?.baseUrl === "string" && credentials.baseUrl.trim()
-      ? credentials.baseUrl.trim()
-      : null;
-  const nodeBaseUrl = psdBaseUrl || topLevelBaseUrl;
+  const nodeBaseUrl = pickConfiguredNodeBaseUrl(credentials);
 
-  if (!nodeBaseUrl) return fallback;
+  if (!nodeBaseUrl) return failClosed ? "" : fallback;
 
   // A single configured node serves both image routes: honor a base URL that already
   // points at the requested OpenAI image path, and rewrite one that points at the other
@@ -239,11 +261,26 @@ function normalizeImageAspectRatio(value: unknown, fallbackSize: unknown): strin
   return mapImageSize(typeof fallbackSize === "string" ? fallbackSize : null);
 }
 
-function normalizeImageGenerationSize(snakeCaseValue: unknown, camelCaseValue: unknown): string {
-  const value = snakeCaseValue ?? camelCaseValue;
-  if (typeof value !== "string") return "1K";
+/**
+ * Normalize the caller's `image_size` for Antigravity's `imageConfig.imageSize`.
+ *
+ * This is the output-resolution axis (`1K` | `2K` | `4K` — the values #11952 observed
+ * Antigravity accepting; not a documented upstream enum), distinct from the `size`/`aspect_ratio`
+ * axis handled by `normalizeImageAspectRatio`. Returns `value: undefined` when the caller sent
+ * nothing usable (absent or non-string), so the key is left out and the upstream default
+ * applies. A string outside that set is clamped to `1K` rather than forwarded because we have
+ * not confirmed what upstream does with an unrecognised value; the clamp is reported through
+ * `clamped: true` so the caller can warn and the call log can record the raw request next to
+ * what was actually sent (omni-code-review LEDGER-6 / LEDGER-48 / LEDGER-57).
+ */
+function normalizeImageGenerationSize(value: unknown): {
+  value: string | undefined;
+  clamped: boolean;
+} {
+  if (typeof value !== "string") return { value: undefined, clamped: false };
   const normalized = value.trim().toUpperCase();
-  return IMAGE_SIZE_PATTERN.test(normalized) ? normalized : "1K";
+  if (IMAGE_SIZE_PATTERN.test(normalized)) return { value: normalized, clamped: false };
+  return { value: "1K", clamped: true };
 }
 
 function parseJsonOrNull(value: string): unknown | null {
@@ -254,7 +291,7 @@ function parseJsonOrNull(value: string): unknown | null {
   }
 }
 
-function sanitizeImageProviderError(errorText: string): unknown {
+export function sanitizeImageProviderError(errorText: string): unknown {
   const parsed = parseJsonOrNull(errorText);
   if (parsed !== null) {
     return sanitizeUpstreamDetails(parsed) || sanitizeErrorMessage(errorText);
@@ -310,12 +347,6 @@ const BFL_EDIT_MODELS = new Set([
 ]);
 
 const BFL_FAILURE_STATUSES = new Set(["Error", "Failed", "Content Moderated", "Request Moderated"]);
-
-function formatImageProviderError(err) {
-  const sanitized = sanitizeErrorMessage(err);
-  const message = (sanitized || "").replace(/^Error:\s*/i, "").trim();
-  return message ? `Image provider error: ${message}` : "Image provider error";
-}
 
 const STABILITY_GENERATION_ENDPOINTS = {
   "sd3.5-large": "/v2beta/stable-image/generate/sd3",
@@ -394,6 +425,9 @@ export async function handleImageGeneration({
   clientHeaders = null,
   peerLocality = null,
 }) {
+  // Retirement guards: the retired-provider sets hold bare provider ids only, so testing
+  // the `<provider>/` prefix (or the whole model when it carries no slash) covers both the
+  // `provider/model` and bare-id request shapes.
   const requestedModel = typeof body?.model === "string" ? body.model : "";
   const slash = requestedModel.indexOf("/");
   const requestedPrefix = slash > 0 ? requestedModel.slice(0, slash) : requestedModel;
@@ -408,15 +442,13 @@ export async function handleImageGeneration({
     };
   }
 
-  const requestedProvider = slash > 0 ? requestedModel.slice(0, slash) : null;
   if (
     isCommonChatGptWebRetiredProviderId(resolvedProvider) ||
-    isCommonChatGptWebRetiredProviderId(requestedProvider) ||
-    isCommonChatGptWebRetiredProviderId(requestedModel)
+    isCommonChatGptWebRetiredProviderId(requestedPrefix)
   ) {
     return {
       success: false,
-      status: 410,
+      status: HTTP_STATUS.GONE,
       error: CHATGPT_WEB_RETIRED_MESSAGE,
       code: CHATGPT_WEB_RETIRED_ERROR_CODE,
     };
@@ -472,14 +504,19 @@ export async function handleImageGeneration({
       // Previously only the (always-absent) top-level credentials.baseUrl was
       // read, so every custom image node fell back to the Gemini endpoint and
       // returned "Please pass a valid API key".
-      baseUrl: resolveImageBaseUrl(
-        credentials,
-        `https://generativelanguage.googleapis.com/v1beta/openai/images/generations`
-      ),
+      baseUrl: resolveImageBaseUrl(credentials, "", "generations", true),
       authType: "apikey",
       authHeader: "bearer",
       format: "openai",
     };
+
+    if (!syntheticConfig.baseUrl) {
+      return {
+        success: false,
+        status: 501,
+        error: `Image generation is not configured for custom provider: ${provider}`,
+      };
+    }
 
     return handleOpenAIImageGeneration({
       model,
@@ -488,6 +525,18 @@ export async function handleImageGeneration({
       body,
       credentials,
       log,
+    });
+  }
+
+  if (providerConfig.format === "zenmux-image") {
+    return handleZenmuxImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+      signal,
     });
   }
 
@@ -746,6 +795,17 @@ export async function handleImageGeneration({
     });
   }
 
+  if (providerConfig.format === "cloudflare-ai-image") {
+    return handleCloudflareAiImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
   if (providerConfig.format === "minimax-image") {
     return handleMinimaxImageGeneration({
       model,
@@ -809,9 +869,12 @@ function normalizeKieImageResult(recordData: unknown): string[] {
   add(resultJson?.resultUrl);
   add(resultJson?.imageUrl);
 
-  // Check data.response (common in 4o-image API)
+  // Check data.response (common in 4o-image API); resultImageUrl(s) is the
+  // flux/kontext shape normalizeNanoBananaTaskResult also reads (#14335 LEDGER-11).
   add(response.resultUrls);
   add(response.resultUrl);
+  add(response.resultImageUrl);
+  add(response.resultImageUrls);
 
   // Check direct data fields
   add(data.resultImageUrls);
@@ -959,12 +1022,14 @@ async function handleKieImageGeneration({
       pollIntervalMs,
     });
 
-    if (state === "success") {
+    const kieUrls = state === "success" ? normalizeKieImageResult(recordData) : [];
+    // #14335 LEDGER-13: a "success" state with zero usable urls falls through to
+    // the failure branch below instead of a fake HTTP-200 success with data:[].
+    if (kieUrls.length > 0) {
       if (log) {
         log.info("IMAGE", `KIE poll success for task ${taskId}`);
       }
-      const urls = normalizeKieImageResult(recordData);
-      const images = urls.map((url: string) => ({ url, revised_prompt: prompt }));
+      const images = kieUrls.map((url: string) => ({ url, revised_prompt: prompt }));
 
       return saveImageSuccessResult({
         provider,
@@ -1010,6 +1075,31 @@ async function handleKieImageGeneration({
  * Handle Gemini-format image generation (Antigravity / Nano Banana)
  * Uses Gemini's generateContent API with responseModalities: ["TEXT", "IMAGE"]
  */
+function geminiInlineImagePart(
+  body: unknown
+): { inlineData: { mimeType: string; data: string } } | null {
+  if (!body || typeof body !== "object") return null;
+  const record = body as Record<string, unknown>;
+  const mimeType =
+    typeof record.imageMime === "string" && record.imageMime ? record.imageMime : "image/png";
+  if (Buffer.isBuffer(record.imageBytes)) {
+    return { inlineData: { mimeType, data: record.imageBytes.toString("base64") } };
+  }
+  if (typeof record.imageBytes === "string" && record.imageBytes.length > 0) {
+    return { inlineData: { mimeType, data: record.imageBytes } };
+  }
+  if (typeof record.image_url === "string" && record.image_url.startsWith("data:")) {
+    return {
+      inlineData: {
+        mimeType:
+          record.image_url.match(/^data:(image\/[a-zA-Z0-9+-]+);base64,/)?.[1] || "image/png",
+        data: record.image_url.replace(/^data:image\/[a-zA-Z0-9+-]+;base64,/, ""),
+      },
+    };
+  }
+  return null;
+}
+
 async function handleGeminiImageGeneration({ model, providerConfig, body, credentials, log }) {
   const startTime = Date.now();
   const url = providerConfig.baseUrl;
@@ -1030,15 +1120,26 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
     typeof body.n === "number" && Number.isFinite(body.n) && body.n > 0 ? Math.floor(body.n) : 1;
   const promptText = typeof body.prompt === "string" ? body.prompt : String(body.prompt ?? "");
   const aspectRatio = normalizeImageAspectRatio(body.aspect_ratio, body.size);
-  const imageSize = normalizeImageGenerationSize(body.image_size, body.imageSize);
+  const { value: imageSize, clamped: imageSizeClamped } = normalizeImageGenerationSize(
+    body.image_size
+  );
+  if (imageSizeClamped && log && typeof log.warn === "function") {
+    log.warn(
+      "IMAGE",
+      `antigravity/${model}: unsupported image_size ${JSON.stringify(body.image_size)} — clamped to 1K (accepted: 1K|2K|4K)`
+    );
+  }
 
-  // Summarized request for call log
+  // Summarized request for call log. Both axes are recorded so the log never hides what the
+  // client asked for: `image_size` is the raw caller value (null when absent) and
+  // `image_size_applied` is what went upstream ("default" when the key was omitted).
   const logRequestBody = {
     model: body.model,
     prompt: promptText.slice(0, 200),
     size: body.size || "default",
     aspect_ratio: aspectRatio,
-    image_size: imageSize,
+    image_size: body.image_size ?? null,
+    image_size_applied: imageSize ?? "default",
     n: candidateCount,
   };
 
@@ -1054,6 +1155,7 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
     });
   }
 
+  const inlineImage = geminiInlineImagePart(body);
   const antigravityBody = {
     project: projectId,
     requestId: `image_gen/${Date.now()}/${randomUUID()}/0`,
@@ -1061,14 +1163,14 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
       contents: [
         {
           role: "user",
-          parts: [{ text: promptText }],
+          parts: [...(inlineImage ? [inlineImage] : []), { text: promptText }],
         },
       ],
       generationConfig: {
         candidateCount,
         imageConfig: {
           aspectRatio,
-          imageSize,
+          ...(imageSize ? { imageSize } : {}),
         },
       },
     },
@@ -1088,7 +1190,7 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
     const promptPreview = promptText.slice(0, 60);
     log.info(
       "IMAGE",
-      `antigravity/${model} (gemini) | prompt: "${promptPreview}..." | ${aspectRatio} ${imageSize}`
+      `antigravity/${model} (gemini) | prompt: "${promptPreview}..." | ${aspectRatio} ${imageSize ?? "default"}`
     );
   }
 
@@ -1244,7 +1346,11 @@ async function handleOpenAIImageGeneration({
           prompt: body.prompt,
         };
 
-  if (providerConfig.format !== "agnes-image") {
+  if (providerConfig.format === "xai-image") {
+    const request = buildXaiImageRequest(model, body);
+    if ("error" in request) return { success: false, status: 400, error: request.error };
+    Object.assign(upstreamBody, request.body);
+  } else if (providerConfig.format !== "agnes-image") {
     // Pass optional parameters for ordinary OpenAI-compatible providers.
     if (body.n !== undefined) upstreamBody.n = body.n;
     if (body.size !== undefined) upstreamBody.size = body.size;
@@ -2243,11 +2349,8 @@ export async function resolveImageSource(source) {
   }
 
   if (isHttpUrl(trimmed)) {
-    // GHSA-34rg-3pqj-35g9 / #13883: caller-input URL — pin `public-only` (never the operator
-    // outbound policy, which would let a request body reach loopback/LAN) and `pinDns: true`
-    // to close the DNS-rebinding TOCTOU where a second, un-pinned resolution at connect time
-    // could answer differently than the validated lookup and bypass the guard.
-    const remoteImage = await fetchRemoteImage(trimmed, { guard: "public-only", pinDns: true });
+    // Caller-input URL — public-only + DNS-pinned policy lives in fetchUntrustedRemoteImage.
+    const remoteImage = await fetchUntrustedRemoteImage(trimmed);
     return {
       buffer: remoteImage.buffer,
       base64: remoteImage.buffer.toString("base64"),
@@ -2457,7 +2560,7 @@ export function extractImageGenerationCalls(
 // The image_generation hosted tool accepts { "auto" | "low" | "medium" | "high" }
 // for `quality`. Legacy image clients often send "standard" / "hd". Map those values
 // so OpenWebUI's quality dropdown doesn't silently get rejected upstream.
-function mapLegacyImageQualityToImageTool(value: string): string {
+export function mapLegacyImageQualityToImageTool(value: string): string {
   const normalized = value.toLowerCase();
   if (normalized === "standard") return "medium";
   if (normalized === "hd") return "high";
@@ -2527,11 +2630,10 @@ async function handleCodexImageGeneration({
     !Array.isArray(credentials.providerSpecificData)
       ? (credentials.providerSpecificData as Record<string, unknown>).workspaceId
       : undefined;
-
-  // Forward size/quality from the GPT-Image-style body into the hosted tool so
-  // OpenWebUI's size/quality selectors actually take effect. Everything else
-  // (model, n, background, moderation, output_compression) is left to the
-  // Codex backend's defaults — today that's `gpt-image-2`.
+  if (codexImages.isCodexImagesApiModel(model)) {
+    // prettier-ignore
+    return codexImages.handleCodexImagesApi({ model, provider, baseUrl: providerConfig.baseUrl, body, token, workspaceId, requestedCount, referenceImages, startTime, log, signal, logPath });
+  }
   const toolConfig: Record<string, unknown> = { type: "image_generation", output_format: "png" };
   if (referenceImages.length > 0) toolConfig.action = "edit";
   if (typeof body.size === "string" && body.size.trim()) {
@@ -2780,40 +2882,6 @@ export function saveImageSuccessResult({
       data: images,
     },
   };
-}
-
-/**
- * Render an arbitrary `error` value as a call-log string.
- *
- * `saveImageErrorResult` takes `error: unknown`, and the Codex fan-out forwards
- * whatever `sanitizeImageProviderError()` produced — i.e. the output of
- * `sanitizeUpstreamDetails()`, which builds every object with
- * `Object.create(null)` on purpose (#12506) so a hostile upstream key such as
- * `__proto__` or `constructor` can never reach a real prototype. That object
- * therefore has NO `toString`/`Symbol.toPrimitive`, so a bare `String(value)`
- * throws `TypeError: Cannot convert object to primitive value` and turned every
- * Codex image failure into an unhandled crash instead of the sanitized error.
- * The null prototype is the correct behavior at the source, so the sink is what
- * has to be total: serialize objects structurally (the same way the Antigravity
- * branch already logs its sanitized payload) and keep `String()` semantics for
- * everything else.
- */
-function stringifyImageErrorForLog(value: unknown): string {
-  if (typeof value === "string") return value;
-  if (value instanceof Error) return `${value.name}: ${value.message}`;
-  if (value !== null && typeof value === "object") {
-    try {
-      const serialized = JSON.stringify(value);
-      if (typeof serialized === "string") return serialized;
-    } catch {
-      // Circular graph or a throwing toJSON — fall through to String().
-    }
-  }
-  try {
-    return String(value);
-  } catch {
-    return "[unserializable error]";
-  }
 }
 
 export function saveImageErrorResult({
@@ -3276,10 +3344,9 @@ export async function normalizeNanoBananaTaskResult(taskData, body, log) {
 
     if (urlCandidates.length > 0) {
       const firstUrl = urlCandidates[0];
-      // GHSA-34rg-3pqj-35g9 / #13883: upstream-supplied result URL, not an OmniRoute-
-      // controlled host — pin `public-only`, never the operator outbound policy, and
-      // `pinDns: true` to close the DNS-rebinding TOCTOU (see `resolveImageSource`).
-      const remoteImage = await fetchRemoteImage(firstUrl, { guard: "public-only", pinDns: true });
+      // Upstream-supplied result URL, not an OmniRoute-controlled host — public-only +
+      // DNS-pinned policy lives in fetchUntrustedRemoteImage.
+      const remoteImage = await fetchUntrustedRemoteImage(firstUrl);
       const base64 = remoteImage.buffer.toString("base64");
       return [{ b64_json: base64, revised_prompt: body.prompt }];
     }

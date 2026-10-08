@@ -8,6 +8,7 @@ permissions:
   issues: write
 jobs:
   property-random-seed:
+    if: ${{ github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

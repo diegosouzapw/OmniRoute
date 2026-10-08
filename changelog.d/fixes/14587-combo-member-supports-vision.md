@@ -1,0 +1,1 @@
+- fix(api): expose per-member `supportsVision` on `/v1/combos` model steps so the member blocking a combo's `multimodal` capability can be identified (#14587)

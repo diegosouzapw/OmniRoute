@@ -495,13 +495,29 @@ body sent upstream to the model is unchanged. An observed request also populates
 no durable Memory (both request- and response-derived extraction are skipped),
 so the model's own reply cannot echo transcript text into Memory.
 
-Retention surfaces still open, tracked for a follow-up (**P2**, #12430): the raw
-pre-guardrail client-request snapshot in the detailed-log artifact;
-`previous_response_id` continuation fail-closed; derived-prompt internal
-dispatches that embed the transcript inside a synthesized string prompt
-(pipeline stages, context-handoff); and the response body / semantic-cache copy
-of a model reply that quotes the transcript. These are raw/response-class or
-opt-in surfaces outside P1's persisted-request-body + Memory scope.
+Additional retained copies use the same observed-request signal. The raw
+pre-guardrail client-request snapshot, in-memory pending request, and early
+rejected-request log structurally replace transcript fields in video parts;
+string prompts synthesized by pipeline stages and context handoff are redacted
+at the persisted-request-body sink. The persisted `video_content_removed` marker
+makes `previous_response_id` continuation fail closed rather than reconstruct
+text that was intentionally discarded. If an observed request loses its
+per-part redaction shadow before logging, or even one of several video shadows
+fails to match after later request mutations, the retained request body is
+omitted entirely instead of retaining a partially redacted transcript.
+
+For an observed request, a model response might quote any portion of the
+transcript without a structured cue boundary. Its persisted call-log
+`responseBody` is therefore replaced by an omission marker; the detailed
+pipeline artifact (which can include upstream/client bodies and stream chunks)
+is not retained. Semantic, idempotency, and reasoning-replay caches bypass
+reads and writes for that request. The provider request and client-visible
+response remain unchanged. Early keepalive bytes are drained from the temporary
+buffer when the detailed artifact is omitted. Kiro's malformed EventStream
+warning reports only the payload byte count, never its contents or the JSON
+parser's raw error.
+This does not claim that every unrelated provider/plugin diagnostic has been
+audited; the broader retained-sink sweep is tracked in #11658.
 
 The internal `/api/modality-bridge/video/drilldown` lifecycle is a separate,
 loopback/token-authenticated cache substrate. Every operation also requires a

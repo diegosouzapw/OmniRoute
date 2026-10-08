@@ -1,0 +1,1 @@
+- **fix(proxy):** Count no-auth account proxy references during deletion and keep unresolved or inactive required proxy bindings from silently dispatching direct ([#15087](https://github.com/diegosouzapw/OmniRoute/pull/15087)) — thanks @xiaoyaner0201

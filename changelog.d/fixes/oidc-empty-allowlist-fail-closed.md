@@ -1,0 +1,1 @@
+- **fix(auth):** the OIDC callback no longer signs anyone in when `oidcAllowedSubjects` is empty, and the settings route rejects any update that would leave OIDC enabled with an empty allowlist, not only the one that enables it

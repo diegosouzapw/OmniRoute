@@ -1,5 +1,6 @@
 // OpenAI <-> Grok tool-call translation (pure). Extracted verbatim from grok-web.ts.
 import type { GrokStreamResponse } from "./types.ts";
+import { findTagBlocks } from "../../utils/tagBlocks.ts";
 
 // ─── OpenAI message → Grok query translation ───────────────────────────────
 
@@ -32,12 +33,29 @@ export interface ToolBridgeContext {
   lastUserText: string;
 }
 
+/**
+ * Where a reminder block starts once the `---` separator line the client put in front of it is
+ * counted: `\n?---`, blanks, a newline and any further whitespace, right before the tag.
+ */
+function reminderBlockStart(text: string, floor: number, tagStart: number): number {
+  let runStart = tagStart;
+  while (runStart > floor && /\s/.test(text[runStart - 1])) runStart -= 1;
+  if (!text.slice(runStart, tagStart).includes("\n")) return tagStart;
+  if (runStart - 3 < floor || text.slice(runStart - 3, runStart) !== "---") return tagStart;
+  const separatorStart = runStart - 3;
+  return separatorStart > floor && text[separatorStart - 1] === "\n"
+    ? separatorStart - 1
+    : separatorStart;
+}
+
 export function stripInjectedRuntimeReminders(text: string): string {
-  return text
-    .replace(/\n?---\s*\n\s*<internal_reminder>[\s\S]*?<\/internal_reminder>/gi, "")
-    .replace(/<internal_reminder>[\s\S]*?<\/internal_reminder>/gi, "")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
+  let kept = "";
+  let position = 0;
+  for (const block of findTagBlocks(text, /<internal_reminder>/gi, /<\/internal_reminder>/gi)) {
+    kept += text.slice(position, reminderBlockStart(text, position, block.start));
+    position = block.end;
+  }
+  return (kept + text.slice(position)).replace(/\n{3,}/g, "\n\n").trim();
 }
 
 export function extractTextContent(msg: Record<string, unknown>): string {
@@ -629,11 +647,10 @@ export function parseClientToolCallMarkup(
 ): OpenAIToolCall[] | null {
   if (!toolRegistry.enabled || !text.includes("<tool_call>")) return null;
   const calls: OpenAIToolCall[] = [];
-  const re = /<tool_call>\s*([\s\S]*?)\s*<\/tool_call>/g;
-  for (const match of text.matchAll(re)) {
+  for (const block of findTagBlocks(text, /<tool_call>/g, /<\/tool_call>/g)) {
     let parsed: unknown;
     try {
-      parsed = JSON.parse(match[1]);
+      parsed = JSON.parse(block.inner.trim());
     } catch {
       continue;
     }

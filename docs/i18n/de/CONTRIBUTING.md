@@ -1,6 +1,6 @@
 # Contributing to OmniRoute (Deutsch)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CONTRIBUTING.md) · 🇪🇹 [am](../am/CONTRIBUTING.md) · 🇸🇦 [ar](../ar/CONTRIBUTING.md) · 🇦🇿 [az](../az/CONTRIBUTING.md) · 🇧🇬 [bg](../bg/CONTRIBUTING.md) · 🇧🇩 [bn](../bn/CONTRIBUTING.md) · 🇨🇿 [cs](../cs/CONTRIBUTING.md) · 🇩🇰 [da](../da/CONTRIBUTING.md) · 🇬🇷 [el](../el/CONTRIBUTING.md) · 🇪🇸 [es](../es/CONTRIBUTING.md) · 🇪🇪 [et](../et/CONTRIBUTING.md) · 🇮🇷 [fa](../fa/CONTRIBUTING.md) · 🇫🇮 [fi](../fi/CONTRIBUTING.md) · 🇫🇷 [fr](../fr/CONTRIBUTING.md) · 🇮🇪 [ga](../ga/CONTRIBUTING.md) · 🇮🇳 [gu](../gu/CONTRIBUTING.md) · 🇳🇬 [ha](../ha/CONTRIBUTING.md) · 🇮🇱 [he](../he/CONTRIBUTING.md) · 🇮🇳 [hi](../hi/CONTRIBUTING.md) · 🇭🇷 [hr](../hr/CONTRIBUTING.md) · 🇭🇺 [hu](../hu/CONTRIBUTING.md) · 🇦🇲 [hy](../hy/CONTRIBUTING.md) · 🇮🇩 [id](../id/CONTRIBUTING.md) · 🇳🇬 [ig](../ig/CONTRIBUTING.md) · 🇮🇹 [it](../it/CONTRIBUTING.md) · 🇯🇵 [ja](../ja/CONTRIBUTING.md) · 🇬🇪 [ka](../ka/CONTRIBUTING.md) · 🇰🇭 [km](../km/CONTRIBUTING.md) · 🇮🇳 [kn](../kn/CONTRIBUTING.md) · 🇰🇷 [ko](../ko/CONTRIBUTING.md) · 🇱🇹 [lt](../lt/CONTRIBUTING.md) · 🇱🇻 [lv](../lv/CONTRIBUTING.md) · 🇮🇳 [ml](../ml/CONTRIBUTING.md) · 🇮🇳 [mr](../mr/CONTRIBUTING.md) · 🇲🇾 [ms](../ms/CONTRIBUTING.md) · 🇲🇹 [mt](../mt/CONTRIBUTING.md) · 🇲🇲 [my](../my/CONTRIBUTING.md) · 🇳🇵 [ne](../ne/CONTRIBUTING.md) · 🇳🇱 [nl](../nl/CONTRIBUTING.md) · 🇳🇴 [no](../no/CONTRIBUTING.md) · 🇮🇳 [or](../or/CONTRIBUTING.md) · 🇮🇳 [pa](../pa/CONTRIBUTING.md) · 🇵🇭 [phi](../phi/CONTRIBUTING.md) · 🇵🇱 [pl](../pl/CONTRIBUTING.md) · 🇵🇹 [pt](../pt/CONTRIBUTING.md) · 🇧🇷 [pt-BR](../pt-BR/CONTRIBUTING.md) · 🇷🇴 [ro](../ro/CONTRIBUTING.md) · 🇷🇺 [ru](../ru/CONTRIBUTING.md) · 🇱🇰 [si](../si/CONTRIBUTING.md) · 🇸🇰 [sk](../sk/CONTRIBUTING.md) · 🇸🇮 [sl](../sl/CONTRIBUTING.md) · 🇷🇸 [sr](../sr/CONTRIBUTING.md) · 🇸🇪 [sv](../sv/CONTRIBUTING.md) · 🇰🇪 [sw](../sw/CONTRIBUTING.md) · 🇮🇳 [ta](../ta/CONTRIBUTING.md) · 🇮🇳 [te](../te/CONTRIBUTING.md) · 🇹🇭 [th](../th/CONTRIBUTING.md) · 🇹🇷 [tr](../tr/CONTRIBUTING.md) · 🇺🇦 [uk-UA](../uk-UA/CONTRIBUTING.md) · 🇵🇰 [ur](../ur/CONTRIBUTING.md) · 🇺🇿 [uz](../uz/CONTRIBUTING.md) · 🇻🇳 [vi](../vi/CONTRIBUTING.md) · 🇳🇬 [yo](../yo/CONTRIBUTING.md) · 🇨🇳 [zh-CN](../zh-CN/CONTRIBUTING.md) · 🇹🇼 [zh-TW](../zh-TW/CONTRIBUTING.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CONTRIBUTING.md) · 🇪🇹 [am](../am/CONTRIBUTING.md) · 🇸🇦 [ar](../ar/CONTRIBUTING.md) · 🇦🇿 [az](../az/CONTRIBUTING.md) · 🇧🇬 [bg](../bg/CONTRIBUTING.md) · 🇧🇩 [bn](../bn/CONTRIBUTING.md) · 🇧🇦 [bs](../bs/CONTRIBUTING.md) · 🇨🇿 [cs](../cs/CONTRIBUTING.md) · 🇩🇰 [da](../da/CONTRIBUTING.md) · 🇬🇷 [el](../el/CONTRIBUTING.md) · 🇪🇸 [es](../es/CONTRIBUTING.md) · 🇪🇪 [et](../et/CONTRIBUTING.md) · 🇮🇷 [fa](../fa/CONTRIBUTING.md) · 🇫🇮 [fi](../fi/CONTRIBUTING.md) · 🇫🇷 [fr](../fr/CONTRIBUTING.md) · 🇮🇪 [ga](../ga/CONTRIBUTING.md) · 🇮🇳 [gu](../gu/CONTRIBUTING.md) · 🇳🇬 [ha](../ha/CONTRIBUTING.md) · 🇮🇱 [he](../he/CONTRIBUTING.md) · 🇮🇳 [hi](../hi/CONTRIBUTING.md) · 🇭🇷 [hr](../hr/CONTRIBUTING.md) · 🇭🇺 [hu](../hu/CONTRIBUTING.md) · 🇦🇲 [hy](../hy/CONTRIBUTING.md) · 🇮🇩 [id](../id/CONTRIBUTING.md) · 🇳🇬 [ig](../ig/CONTRIBUTING.md) · 🇮🇹 [it](../it/CONTRIBUTING.md) · 🇯🇵 [ja](../ja/CONTRIBUTING.md) · 🇬🇪 [ka](../ka/CONTRIBUTING.md) · 🇰🇭 [km](../km/CONTRIBUTING.md) · 🇮🇳 [kn](../kn/CONTRIBUTING.md) · 🇰🇷 [ko](../ko/CONTRIBUTING.md) · 🇱🇹 [lt](../lt/CONTRIBUTING.md) · 🇱🇻 [lv](../lv/CONTRIBUTING.md) · 🇮🇳 [ml](../ml/CONTRIBUTING.md) · 🇮🇳 [mr](../mr/CONTRIBUTING.md) · 🇲🇾 [ms](../ms/CONTRIBUTING.md) · 🇲🇹 [mt](../mt/CONTRIBUTING.md) · 🇲🇲 [my](../my/CONTRIBUTING.md) · 🇳🇵 [ne](../ne/CONTRIBUTING.md) · 🇳🇱 [nl](../nl/CONTRIBUTING.md) · 🇳🇴 [no](../no/CONTRIBUTING.md) · 🇮🇳 [or](../or/CONTRIBUTING.md) · 🇮🇳 [pa](../pa/CONTRIBUTING.md) · 🇵🇭 [phi](../phi/CONTRIBUTING.md) · 🇵🇱 [pl](../pl/CONTRIBUTING.md) · 🇵🇹 [pt](../pt/CONTRIBUTING.md) · 🇧🇷 [pt-BR](../pt-BR/CONTRIBUTING.md) · 🇷🇴 [ro](../ro/CONTRIBUTING.md) · 🇷🇺 [ru](../ru/CONTRIBUTING.md) · 🇱🇰 [si](../si/CONTRIBUTING.md) · 🇸🇰 [sk](../sk/CONTRIBUTING.md) · 🇸🇮 [sl](../sl/CONTRIBUTING.md) · 🇷🇸 [sr](../sr/CONTRIBUTING.md) · 🇸🇪 [sv](../sv/CONTRIBUTING.md) · 🇰🇪 [sw](../sw/CONTRIBUTING.md) · 🇮🇳 [ta](../ta/CONTRIBUTING.md) · 🇮🇳 [te](../te/CONTRIBUTING.md) · 🇹🇭 [th](../th/CONTRIBUTING.md) · 🇹🇷 [tr](../tr/CONTRIBUTING.md) · 🇺🇦 [uk-UA](../uk-UA/CONTRIBUTING.md) · 🇵🇰 [ur](../ur/CONTRIBUTING.md) · 🇺🇿 [uz](../uz/CONTRIBUTING.md) · 🇻🇳 [vi](../vi/CONTRIBUTING.md) · 🇳🇬 [yo](../yo/CONTRIBUTING.md) · 🇨🇳 [zh-CN](../zh-CN/CONTRIBUTING.md) · 🇹🇼 [zh-TW](../zh-TW/CONTRIBUTING.md)
 
 ---
 
@@ -389,20 +389,20 @@ Unit-Tests in `tests/unit/` schreiben, die mindestens Folgendes abdecken:
 
 ## Pull-Request-Checkliste
 
-- [ ] Tests erfolgreich (`npm test`)
-- [ ] Linting erfolgreich (`npm run lint`)
-- [ ] Build erfolgreich (`npm run build`)
+- [ ] Tests sind erfolgreich (`npm test`)
+- [ ] Linting ist erfolgreich (`npm run lint`)
+- [ ] Build ist erfolgreich (`npm run build`)
 - [ ] TypeScript-Typen für neue öffentliche Funktionen und Schnittstellen hinzugefügt
 - [ ] Keine hartcodierten Geheimnisse oder Fallback-Werte
-- [ ] Öffentliche Upstream-Zugangsdaten über `resolvePublicCred()` eingebettet (siehe [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), niemals als Literale
-- [ ] Fehlerantworten werden über `buildErrorBody()` / `sanitizeErrorMessage()` geleitet – keine unverarbeiteten Stacktraces in Antworttexten (siehe [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Öffentliche Zugangsdaten von Upstream-Diensten über `resolvePublicCred()` eingebettet (siehe [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), niemals als Literale
+- [ ] Fehlerantworten werden über `buildErrorBody()` / `sanitizeErrorMessage()` geleitet — keine unbearbeiteten Stacktraces in Antwortinhalten (siehe [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
 - [ ] Shell-Befehle (`exec` / `spawn`) übergeben Laufzeitwerte über `env`, nicht über String-Interpolation
 - [ ] Alle Eingaben mit Zod-Schemas validiert
-- [ ] Changelog-**Fragment** für benutzersichtbare Änderungen unter `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` hinzugefügt (siehe [`changelog.d/README.md`](./changelog.d/README.md)) – `CHANGELOG.md` **nicht** direkt bearbeiten; Fragmente werden zum Veröffentlichungszeitpunkt zusammengeführt und verursachen niemals Konflikte zwischen PRs
+- [ ] Changelog-**Fragment** für benutzersichtbare Änderungen unter `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` hinzugefügt (siehe [`changelog.d/README.md`](./changelog.d/README.md)) — `CHANGELOG.md` **nicht** direkt bearbeiten; Fragmente werden zum Veröffentlichungszeitpunkt zusammengeführt und verursachen niemals Konflikte zwischen PRs
 - [ ] Dokumentation aktualisiert (falls zutreffend)
-- [ ] Keine neuen CodeQL- / Secret-Scanning-Warnungen ausgelöst oder jede einzelne mit einer technischen Begründung unter Verweis auf das relevante Dokument unter `docs/security/` verworfen
-- [ ] Routen, die untergeordnete Prozesse starten (`/api/mcp/`, `/api/cli-tools/runtime/`), in `src/server/authz/routeGuard.ts` als `isLocalOnlyPath()` klassifiziert – siehe [Strikte Regel Nr. 15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Keine `Co-Authored-By`-Trailer in Commit-Nachrichten – Commits dürfen ausschließlich unter der Git-Identität des Repository-Eigentümers erscheinen (Strikte Regel Nr. 16)
+- [ ] Keine neuen CodeQL-/Secret-Scanning-Warnungen ausgelöst oder jede Warnung mit einer technischen Begründung unter Verweis auf das relevante Dokument unter `docs/security/` verworfen
+- [ ] Routen, die untergeordnete Prozesse starten (`/api/mcp/`, `/api/cli-tools/runtime/`), in `src/server/authz/routeGuard.ts` als `isLocalOnlyPath()` klassifiziert — siehe [Strikte Regel Nr. 15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Keine `Co-authored-by`-Trailer für KI/Bots in Commit-Nachrichten (strikte Regel Nr. 16) — menschliche Mitwirkende, deren Arbeit wiederverwendet wird, werden mit standardmäßigen `Co-authored-by: Name <email>`-Trailern gewürdigt
 
 ---
 
@@ -418,5 +418,4 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 - **API-Referenz**: Siehe [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **Sicherheitsdokumentation**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **Betriebsdokumentation**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
-- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: Siehe `docs/adr/` für Aufzeichnungen zu Architekturentscheidungen
+- **Probleme**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)

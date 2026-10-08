@@ -1,27 +1,30 @@
 # Account-Ban / Banned-Keyword Detection (Gaeilge)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../security/BAN_DETECTION.md) · 🇪🇹 [am](../../../am/docs/security/BAN_DETECTION.md) · 🇸🇦 [ar](../../../ar/docs/security/BAN_DETECTION.md) · 🇦🇿 [az](../../../az/docs/security/BAN_DETECTION.md) · 🇧🇬 [bg](../../../bg/docs/security/BAN_DETECTION.md) · 🇧🇩 [bn](../../../bn/docs/security/BAN_DETECTION.md) · 🇨🇿 [cs](../../../cs/docs/security/BAN_DETECTION.md) · 🇩🇰 [da](../../../da/docs/security/BAN_DETECTION.md) · 🇩🇪 [de](../../../de/docs/security/BAN_DETECTION.md) · 🇬🇷 [el](../../../el/docs/security/BAN_DETECTION.md) · 🇪🇸 [es](../../../es/docs/security/BAN_DETECTION.md) · 🇪🇪 [et](../../../et/docs/security/BAN_DETECTION.md) · 🇮🇷 [fa](../../../fa/docs/security/BAN_DETECTION.md) · 🇫🇮 [fi](../../../fi/docs/security/BAN_DETECTION.md) · 🇫🇷 [fr](../../../fr/docs/security/BAN_DETECTION.md) · 🇮🇳 [gu](../../../gu/docs/security/BAN_DETECTION.md) · 🇳🇬 [ha](../../../ha/docs/security/BAN_DETECTION.md) · 🇮🇱 [he](../../../he/docs/security/BAN_DETECTION.md) · 🇮🇳 [hi](../../../hi/docs/security/BAN_DETECTION.md) · 🇭🇷 [hr](../../../hr/docs/security/BAN_DETECTION.md) · 🇭🇺 [hu](../../../hu/docs/security/BAN_DETECTION.md) · 🇦🇲 [hy](../../../hy/docs/security/BAN_DETECTION.md) · 🇮🇩 [id](../../../id/docs/security/BAN_DETECTION.md) · 🇳🇬 [ig](../../../ig/docs/security/BAN_DETECTION.md) · 🇮🇹 [it](../../../it/docs/security/BAN_DETECTION.md) · 🇯🇵 [ja](../../../ja/docs/security/BAN_DETECTION.md) · 🇬🇪 [ka](../../../ka/docs/security/BAN_DETECTION.md) · 🇰🇭 [km](../../../km/docs/security/BAN_DETECTION.md) · 🇮🇳 [kn](../../../kn/docs/security/BAN_DETECTION.md) · 🇰🇷 [ko](../../../ko/docs/security/BAN_DETECTION.md) · 🇱🇹 [lt](../../../lt/docs/security/BAN_DETECTION.md) · 🇱🇻 [lv](../../../lv/docs/security/BAN_DETECTION.md) · 🇮🇳 [ml](../../../ml/docs/security/BAN_DETECTION.md) · 🇮🇳 [mr](../../../mr/docs/security/BAN_DETECTION.md) · 🇲🇾 [ms](../../../ms/docs/security/BAN_DETECTION.md) · 🇲🇹 [mt](../../../mt/docs/security/BAN_DETECTION.md) · 🇲🇲 [my](../../../my/docs/security/BAN_DETECTION.md) · 🇳🇵 [ne](../../../ne/docs/security/BAN_DETECTION.md) · 🇳🇱 [nl](../../../nl/docs/security/BAN_DETECTION.md) · 🇳🇴 [no](../../../no/docs/security/BAN_DETECTION.md) · 🇮🇳 [or](../../../or/docs/security/BAN_DETECTION.md) · 🇮🇳 [pa](../../../pa/docs/security/BAN_DETECTION.md) · 🇵🇭 [phi](../../../phi/docs/security/BAN_DETECTION.md) · 🇵🇱 [pl](../../../pl/docs/security/BAN_DETECTION.md) · 🇵🇹 [pt](../../../pt/docs/security/BAN_DETECTION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/BAN_DETECTION.md) · 🇷🇴 [ro](../../../ro/docs/security/BAN_DETECTION.md) · 🇷🇺 [ru](../../../ru/docs/security/BAN_DETECTION.md) · 🇱🇰 [si](../../../si/docs/security/BAN_DETECTION.md) · 🇸🇰 [sk](../../../sk/docs/security/BAN_DETECTION.md) · 🇸🇮 [sl](../../../sl/docs/security/BAN_DETECTION.md) · 🇷🇸 [sr](../../../sr/docs/security/BAN_DETECTION.md) · 🇸🇪 [sv](../../../sv/docs/security/BAN_DETECTION.md) · 🇰🇪 [sw](../../../sw/docs/security/BAN_DETECTION.md) · 🇮🇳 [ta](../../../ta/docs/security/BAN_DETECTION.md) · 🇮🇳 [te](../../../te/docs/security/BAN_DETECTION.md) · 🇹🇭 [th](../../../th/docs/security/BAN_DETECTION.md) · 🇹🇷 [tr](../../../tr/docs/security/BAN_DETECTION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/BAN_DETECTION.md) · 🇵🇰 [ur](../../../ur/docs/security/BAN_DETECTION.md) · 🇺🇿 [uz](../../../uz/docs/security/BAN_DETECTION.md) · 🇻🇳 [vi](../../../vi/docs/security/BAN_DETECTION.md) · 🇳🇬 [yo](../../../yo/docs/security/BAN_DETECTION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/BAN_DETECTION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/BAN_DETECTION.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../security/BAN_DETECTION.md) · 🇪🇹 [am](../../../am/docs/security/BAN_DETECTION.md) · 🇸🇦 [ar](../../../ar/docs/security/BAN_DETECTION.md) · 🇦🇿 [az](../../../az/docs/security/BAN_DETECTION.md) · 🇧🇬 [bg](../../../bg/docs/security/BAN_DETECTION.md) · 🇧🇩 [bn](../../../bn/docs/security/BAN_DETECTION.md) · 🇧🇦 [bs](../../../bs/docs/security/BAN_DETECTION.md) · 🇨🇿 [cs](../../../cs/docs/security/BAN_DETECTION.md) · 🇩🇰 [da](../../../da/docs/security/BAN_DETECTION.md) · 🇩🇪 [de](../../../de/docs/security/BAN_DETECTION.md) · 🇬🇷 [el](../../../el/docs/security/BAN_DETECTION.md) · 🇪🇸 [es](../../../es/docs/security/BAN_DETECTION.md) · 🇪🇪 [et](../../../et/docs/security/BAN_DETECTION.md) · 🇮🇷 [fa](../../../fa/docs/security/BAN_DETECTION.md) · 🇫🇮 [fi](../../../fi/docs/security/BAN_DETECTION.md) · 🇫🇷 [fr](../../../fr/docs/security/BAN_DETECTION.md) · 🇮🇳 [gu](../../../gu/docs/security/BAN_DETECTION.md) · 🇳🇬 [ha](../../../ha/docs/security/BAN_DETECTION.md) · 🇮🇱 [he](../../../he/docs/security/BAN_DETECTION.md) · 🇮🇳 [hi](../../../hi/docs/security/BAN_DETECTION.md) · 🇭🇷 [hr](../../../hr/docs/security/BAN_DETECTION.md) · 🇭🇺 [hu](../../../hu/docs/security/BAN_DETECTION.md) · 🇦🇲 [hy](../../../hy/docs/security/BAN_DETECTION.md) · 🇮🇩 [id](../../../id/docs/security/BAN_DETECTION.md) · 🇳🇬 [ig](../../../ig/docs/security/BAN_DETECTION.md) · 🇮🇹 [it](../../../it/docs/security/BAN_DETECTION.md) · 🇯🇵 [ja](../../../ja/docs/security/BAN_DETECTION.md) · 🇬🇪 [ka](../../../ka/docs/security/BAN_DETECTION.md) · 🇰🇭 [km](../../../km/docs/security/BAN_DETECTION.md) · 🇮🇳 [kn](../../../kn/docs/security/BAN_DETECTION.md) · 🇰🇷 [ko](../../../ko/docs/security/BAN_DETECTION.md) · 🇱🇹 [lt](../../../lt/docs/security/BAN_DETECTION.md) · 🇱🇻 [lv](../../../lv/docs/security/BAN_DETECTION.md) · 🇮🇳 [ml](../../../ml/docs/security/BAN_DETECTION.md) · 🇮🇳 [mr](../../../mr/docs/security/BAN_DETECTION.md) · 🇲🇾 [ms](../../../ms/docs/security/BAN_DETECTION.md) · 🇲🇹 [mt](../../../mt/docs/security/BAN_DETECTION.md) · 🇲🇲 [my](../../../my/docs/security/BAN_DETECTION.md) · 🇳🇵 [ne](../../../ne/docs/security/BAN_DETECTION.md) · 🇳🇱 [nl](../../../nl/docs/security/BAN_DETECTION.md) · 🇳🇴 [no](../../../no/docs/security/BAN_DETECTION.md) · 🇮🇳 [or](../../../or/docs/security/BAN_DETECTION.md) · 🇮🇳 [pa](../../../pa/docs/security/BAN_DETECTION.md) · 🇵🇭 [phi](../../../phi/docs/security/BAN_DETECTION.md) · 🇵🇱 [pl](../../../pl/docs/security/BAN_DETECTION.md) · 🇵🇹 [pt](../../../pt/docs/security/BAN_DETECTION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/BAN_DETECTION.md) · 🇷🇴 [ro](../../../ro/docs/security/BAN_DETECTION.md) · 🇷🇺 [ru](../../../ru/docs/security/BAN_DETECTION.md) · 🇱🇰 [si](../../../si/docs/security/BAN_DETECTION.md) · 🇸🇰 [sk](../../../sk/docs/security/BAN_DETECTION.md) · 🇸🇮 [sl](../../../sl/docs/security/BAN_DETECTION.md) · 🇷🇸 [sr](../../../sr/docs/security/BAN_DETECTION.md) · 🇸🇪 [sv](../../../sv/docs/security/BAN_DETECTION.md) · 🇰🇪 [sw](../../../sw/docs/security/BAN_DETECTION.md) · 🇮🇳 [ta](../../../ta/docs/security/BAN_DETECTION.md) · 🇮🇳 [te](../../../te/docs/security/BAN_DETECTION.md) · 🇹🇭 [th](../../../th/docs/security/BAN_DETECTION.md) · 🇹🇷 [tr](../../../tr/docs/security/BAN_DETECTION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/BAN_DETECTION.md) · 🇵🇰 [ur](../../../ur/docs/security/BAN_DETECTION.md) · 🇺🇿 [uz](../../../uz/docs/security/BAN_DETECTION.md) · 🇻🇳 [vi](../../../vi/docs/security/BAN_DETECTION.md) · 🇳🇬 [yo](../../../yo/docs/security/BAN_DETECTION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/BAN_DETECTION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/BAN_DETECTION.md)
 
 ---
 
-Scanann OmniRoute freagraí earráide réamhtheachtacha le haghaidh comharthaí a léiríonn go bhfuil
-**cuntas soláthraí marbh go buan** (curtha ar fionraí / díghníomhachtaithe / coiscthe de bharr ToS) agus, nuair a
+Scanann OmniRoute freagraí earráide ó sholáthraithe réamhtheachtacha le haghaidh comharthaí a léiríonn go bhfuil
+**cuntas marbh go buan** (curtha ar fionraí / díghníomhachtaithe / toirmiscthe de bharr shárú na dTéarmaí Seirbhíse) agus, nuair a
 aimsítear meaitseáil, bogann sé an nasc sin isteach i **staid chríochfoirt `banned`** ionas nach
-roghnaítear é a thuilleadh le haghaidh iarratas. Seo a chumraíonn an cárta socruithe
-**Slándáil → Eochairfhocail Choiscthe** ("Eochairfhocail bhreise a spreagann brath
+roghnaítear é a thuilleadh le haghaidh iarratas. Seo é a chumraíonn an cárta socruithe
+**Slándáil → Eochairfhocail Toirmiscthe** ("Eochairfhocail bhreise a ghníomhaíonn brath
 ar chosc buan cuntais. Bíonn na heochairfhocail ionsuite i bhfeidhm i gcónaí.").
 
-Déantar cur síos ar an leathanach seo ar an liosta ionsuite, an sreabhadh braite, a raon feidhme, conas
-eochairfhocail shaincheaptha a chur leis go sábháilte, agus conas nasc marcáilte a athshlánú. Tá an staid
+Déantar cur síos ar an leathanach seo ar an liosta ionsuite, ar an sreabhadh braite, ar a raon feidhme, ar conas
+eochairfhocail shaincheaptha a chur leis go sábháilte, agus ar conas nasc a bhfuil bratach curtha air a athshlánú. Tá an staid
 chríochfoirt féin mar chuid den tsamhail athléimneachta — féach
 [RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("Staideanna críochfoirt").
 
-**Foinse údaráis:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+**Foinse na fírinne:** `open-sse/services/accountFallback.ts`
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+chomh maith le `open-sse/services/errorClassifier.ts` don aicme fíoraithe neamhchríochfoirt
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) agus don
+bhrainse 403 a úsáideann í.
 
 ## Eochairfhocail ionsuite
 
-Bíonn na 8 bhfotheaghrán seo i bhfeidhm i gcónaí (gan beann ar chás na litreacha), beag beann ar aon liosta saincheaptha:
+Bíonn feidhm i gcónaí ag na 7 bhfo-theaghrán seo (gan beann ar chás), beag beann ar aon liosta saincheaptha:
 
 ```
 account_deactivated
@@ -29,24 +32,47 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> Forbraíonn an liosta seo de réir mar a athraíonn soláthraithe foclaíocht a gcuid cosc. Is é
+> Forbraíonn an liosta seo de réir mar a athraíonn soláthraithe foclaíocht a gcuid toirmeasc. Is é
 > `ACCOUNT_DEACTIVATED_SIGNALS` in `open-sse/services/accountFallback.ts` an chóip
-> údarásach; caith leis an mbloc thuas mar léargas den staid ag pointe ama ar leith.
+> údarásach; caith leis an mbloc thuas mar léargas reatha.
 
-Tá dhá thábla comharthaí chomhthadhlacha, **ar leith**, sa chomhad céanna agus _ní_ cuid iad
-de bhrath eochairfhocal coiscthe:
+### Ní toirmeasc é: leideanna fíorúcháin ar féidir leis an oibreoir gníomhú ina leith
+
+Bhíodh `verify your account to continue` **sa liosta thuas**. Ní comhartha
+toirmisc é agus tá sé anois in `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS`, a rangaítear mar
+`PROJECT_ROUTE_ERROR` in-aisghabhála seachas an nasc a fhoirceannadh.
+
+Tugann Google Cloud Code / Antigravity ar ais é mar `403 VALIDATION_REQUIRED`. Tá sé
+**neamhbhuan agus tarlaíonn sé ar chuntais shláintiúla a bhfuil a gcuóta iomlán acu** — tomhaiseadh é ar
+imscaradh beo (2026-09-25, `proxy_logs`): thug nasc Antigravity amháin 33 cheann de na
+403 seo ar ais laistigh de 10 nóiméad agus d'fhan sé `active`, agus cuireadh toirmeasc buan
+ar nasc eile a raibh 100 % dá chuóta aige ar gach ceann de na 17 bhfuinneog de bharr
+**ceann amháin** acu. Ba é an t-aon difríocht ná cén iarracht a seirbheáladh.
+
+Tá an t-idirdhealú tábhachtach mar is ionann meaitseáil fhoirceanta agus `permanent: true`
+(tréimhse athshocraithe 1 bhliain, ní thagann sé chuige féin go huathoibríoch choíche), ach is féidir leis an oibreoir leid
+fhíorúcháin a ghlanadh i mbrabhsálaí. Má choinnítear an frása sa liosta toirmisc, fágann sé sin
+an chraobh 403 in-aisghabhála de chuid cloud-code in `classifyProviderError` dosroichte
+don fhoclaíocht seo freisin, toisc go ndéantar `accountDeactivated` a mheas ar dtús — mar sin ní fhéadfadh
+an t-aisghabháil bealaigh tionscadail a cuireadh leis do Gemini Code Assist in
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) agus
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) rith choíche.
+
+Ní cuid de bhrath eochairfhocal toirmisc iad na trí thábla comharthaí chóngaracha, **ar leith** seo:
 
 - `CREDITS_EXHAUSTED_SIGNALS` — billeáil/cuóta ídithe (`insufficient_quota`,
-  `credit_balance_too_low`, `payment required`, …) → `credits_exhausted` críochfoirt.
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **neamhchríochfoirt**; is féidir athshlánú trí athnuachan ceadaiscín.
+  `credit_balance_too_low`, `payment required`, …) → `credits_exhausted` foirceanta.
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **neamhfhoirceanta**; is féidir teacht chuige féin trí chomhartha ceadúcháin a athnuachan.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **neamhfhoirceanta**; caithfidh an t-oibreoir
+  an cuntas a athfhíorú ag an soláthraí réamhtheachtach. Tá sé in `open-sse/services/errorClassifier.ts`
+  (tá an dá cheann eile in `accountFallback.ts`). Féach an rannán thuas.
 
-Nóta: láimhseálann an chonair teorann ráta / mharana naisc frásaí sealadacha coitianta amhail
-**`rate limit`** / `429`, agus **ní** comharthaí coisc iad.
+Nóta: láimhseálann an chonair teorannaithe ráta / athshocraithe naisc frásaí
+neamhbhuana coitianta amhail **`rate limit`** / `429` agus **ní** comharthaí toirmisc iad.
 
 ## Sreabhadh braite
 

@@ -12,7 +12,7 @@ import {
 } from "./transport";
 import { SafeOutboundFetchError } from "@/shared/network/safeOutboundFetch";
 import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
-import { normalizeGeminiCookieInput } from "@omniroute/open-sse/utils/geminiCookies.ts";
+import { normalizeGeminiValidationCookie } from "@omniroute/open-sse/utils/geminiCookies.ts";
 import { buildJulesApiUrl } from "@/lib/cloudAgent/julesApi.ts";
 import {
   META_AI_ASBD_ID,
@@ -216,7 +216,15 @@ export async function validateGeminiWebProvider({ apiKey, providerSpecificData =
     }
 
     // Accept full cookie blob, bare value, or browser-export JSON.
-    const cookieHeader = normalizeGeminiCookieInput(raw);
+    // #15387: reject credentials without a __Secure-1PSID cookie before any network call.
+    const cookieHeader = normalizeGeminiValidationCookie(raw);
+    if (!cookieHeader) {
+      return {
+        valid: false,
+        error:
+          "No __Secure-1PSID cookie found — paste it from gemini.google.com DevTools → Cookies",
+      };
+    }
 
     const response = await validationRead("https://gemini.google.com/app", {
       headers: applyCustomUserAgent(
@@ -238,7 +246,17 @@ export async function validateGeminiWebProvider({ apiKey, providerSpecificData =
       };
     }
 
-    // 200/302 = valid, anything < 500 that isn't auth failure is acceptable
+    // #15387: a 200 is only a signed-in session when the page carries the SNlM0e token;
+    // a signed-out landing page also answers 200 for any junk cookie value.
+    if (response.status === 200) {
+      const body = await response.text().catch(() => "");
+      if (/"SNlM0e"\s*:\s*"[^"]+"/.test(body)) return { valid: true, error: null };
+      return {
+        valid: false,
+        error:
+          "Not signed in — the cookie was not accepted by gemini.google.com. Re-paste __Secure-1PSID from DevTools → Cookies",
+      };
+    }
     if (response.status < 500) {
       return { valid: true, error: null };
     }
@@ -280,7 +298,15 @@ export async function validateGeminiWebProvider({ apiKey, providerSpecificData =
           warning: "Cookie accepted. Full verification requires browser test on first chat.",
         };
       }
-      return { valid: true, error: null };
+      // #15387: only Google-owned redirect targets are acceptable; anything else is not a
+      // Gemini session signal.
+      if (/^https:\/\/([a-z0-9-]+\.)*google\.com(\/|$)/i.test(location)) {
+        return { valid: true, error: null };
+      }
+      return {
+        valid: false,
+        error: "Unexpected redirect from gemini.google.com — cookie not verified",
+      };
     }
     return toValidationErrorResult(error);
   }
@@ -557,8 +583,19 @@ async function validateDevinCliKeyFallback(
  */
 export async function validateDevinCloudAgentProvider({
   apiKey,
+  allowLocalSpawn = true,
 }: {
   apiKey: string;
+  /**
+   * S-01 (#15159): whether this caller may cause the local Devin CLI fallback to
+   * spawn. Defaults to permissive because the direct callers (credential-health
+   * scheduler, VNC harvest — the latter is already loopback-gated) are internal.
+   * Remote-reachable routes MUST pass `false` for non-loopback callers: the
+   * fallback is `spawn(bin, ["acp","--agent-type","summarizer"])`, and Hard Rules
+   * #15/#17 require loopback enforcement before any auth check so a leaked JWT via
+   * tunnel cannot trigger process spawning.
+   */
+  allowLocalSpawn?: boolean;
 }): Promise<{ valid: boolean; error: string | null; warning?: string }> {
   try {
     const response = await validationWrite("https://api.devin.ai/v1/sessions?limit=1", {
@@ -573,6 +610,14 @@ export async function validateDevinCloudAgentProvider({
       // but are exactly what the devin-cli executor authenticates with (via
       // WINDSURF_API_KEY). Fall back to probing the CLI itself — the real
       // routing path — before declaring the key invalid.
+      //
+      // S-01 (#15159): that fallback spawns a child process, so it is skipped
+      // entirely for callers that are not loopback. The HTTP verdict below is
+      // unchanged — a rejected key is still invalid, just not re-probed on the
+      // host on behalf of a remote caller.
+      if (!allowLocalSpawn) {
+        return { valid: false, error: "Invalid API key" };
+      }
       const cliCheck = await validateDevinCliKeyFallback(apiKey);
       if (cliCheck.valid) {
         return {

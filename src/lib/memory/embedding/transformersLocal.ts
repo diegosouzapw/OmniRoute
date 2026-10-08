@@ -1,16 +1,16 @@
 /**
- * Transformers.js local embedding (D8) — Xenova/all-MiniLM-L6-v2.
+ * Transformers.js local embedding (D8) - Xenova/all-MiniLM-L6-v2.
  *
- * IMPORTANT: @huggingface/transformers is imported lazily (await import())
- * ONLY when this function is called. Never imported at module level.
- * This satisfies D8 + D25 (serverExternalPackages + no bundle impact).
+ * IMPORTANT: @huggingface/transformers is imported lazily, ONLY when this
+ * function is called. Never imported at module level. The specifier is assembled
+ * at runtime and marked webpackIgnore so Next does not resolve the optional
+ * package while compiling /health (D8 + D25).
  */
 
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 import type { EmbeddingResult, EmbeddingError } from "./types";
 
-const TRANSFORMERS_MODEL =
-  process.env.MEMORY_TRANSFORMERS_MODEL || "Xenova/all-MiniLM-L6-v2";
+const TRANSFORMERS_MODEL = process.env.MEMORY_TRANSFORMERS_MODEL || "Xenova/all-MiniLM-L6-v2";
 
 // Singleton pipeline, initialized once
 type PipelineFn = (text: string | string[], options?: Record<string, unknown>) => Promise<unknown>;
@@ -28,9 +28,17 @@ async function getOrLoadPipeline(): Promise<PipelineFn> {
   if (_pipelineLoading) return _pipelineLoading;
 
   _pipelineLoading = (async (): Promise<PipelineFn> => {
-    // Lazy import — never at module level (D8, D25)
-    const transformers = await import("@huggingface/transformers");
-    const { pipeline } = transformers as { pipeline: (task: string, model: string, opts?: Record<string, unknown>) => Promise<PipelineFn> };
+    // Lazy import - never at module level (D8, D25). A string-literal
+    // specifier is still traced by Next even inside await import().
+    const specifier = "@huggingface/" + "transformers";
+    const transformers = await import(/* webpackIgnore: true */ specifier);
+    const { pipeline } = transformers as {
+      pipeline: (
+        task: string,
+        model: string,
+        opts?: Record<string, unknown>
+      ) => Promise<PipelineFn>;
+    };
     const pipe = await pipeline("feature-extraction", TRANSFORMERS_MODEL, { dtype: "q8" });
     _pipeline = pipe;
     _pipelineLoading = null;
@@ -70,7 +78,7 @@ function tensorToFloat32Array(output: unknown): Float32Array {
       seqLen = dims[0];
       hiddenSize = dims[1];
     } else {
-      // Already flat — return as-is
+      // Already flat - return as-is
       return data instanceof Float32Array ? data : new Float32Array(data);
     }
 

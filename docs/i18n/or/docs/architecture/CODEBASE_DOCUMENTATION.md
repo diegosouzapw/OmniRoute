@@ -1,6 +1,6 @@
 # OmniRoute Codebase Documentation (ଓଡ଼ିଆ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇹 [am](../../../am/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇦 [ar](../../../ar/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇿 [az](../../../az/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../../../bg/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇩 [bn](../../../bn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇿 [cs](../../../cs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../../../da/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../../../de/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇷 [el](../../../el/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../../../es/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇪 [et](../../../et/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇷 [fa](../../../fa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../../../fi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../../../fr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇪 [ga](../../../ga/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [gu](../../../gu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ha](../../../ha/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../../../he/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [hi](../../../hi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇷 [hr](../../../hr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../../../hu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇲 [hy](../../../hy/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../../../id/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ig](../../../ig/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../../../it/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../../../ja/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇪 [ka](../../../ka/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇭 [km](../../../km/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [kn](../../../kn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../../../ko/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇹 [lt](../../../lt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇻 [lv](../../../lv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ml](../../../ml/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [mr](../../../mr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../../../ms/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇹 [mt](../../../mt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇲 [my](../../../my/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇵 [ne](../../../ne/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../../../nl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../../../no/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [pa](../../../pa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../../../phi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../../../pl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../../../pt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../../../ro/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../../../ru/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇰 [si](../../../si/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../../../sk/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇮 [sl](../../../sl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇸 [sr](../../../sr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../../../sv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇪 [sw](../../../sw/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ta](../../../ta/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [te](../../../te/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../../../th/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇷 [tr](../../../tr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇰 [ur](../../../ur/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇿 [uz](../../../uz/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../../../vi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [yo](../../../yo/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/CODEBASE_DOCUMENTATION.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇹 [am](../../../am/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇦 [ar](../../../ar/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇿 [az](../../../az/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../../../bg/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇩 [bn](../../../bn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇦 [bs](../../../bs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇿 [cs](../../../cs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../../../da/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../../../de/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇷 [el](../../../el/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../../../es/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇪 [et](../../../et/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇷 [fa](../../../fa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../../../fi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../../../fr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇪 [ga](../../../ga/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [gu](../../../gu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ha](../../../ha/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../../../he/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [hi](../../../hi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇷 [hr](../../../hr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../../../hu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇲 [hy](../../../hy/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../../../id/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ig](../../../ig/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../../../it/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../../../ja/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇪 [ka](../../../ka/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇭 [km](../../../km/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [kn](../../../kn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../../../ko/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇹 [lt](../../../lt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇻 [lv](../../../lv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ml](../../../ml/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [mr](../../../mr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../../../ms/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇹 [mt](../../../mt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇲 [my](../../../my/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇵 [ne](../../../ne/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../../../nl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../../../no/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [pa](../../../pa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../../../phi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../../../pl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../../../pt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../../../ro/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../../../ru/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇰 [si](../../../si/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../../../sk/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇮 [sl](../../../sl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇸 [sr](../../../sr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../../../sv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇪 [sw](../../../sw/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ta](../../../ta/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [te](../../../te/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../../../th/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇷 [tr](../../../tr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇰 [ur](../../../ur/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇿 [uz](../../../uz/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../../../vi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [yo](../../../yo/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/CODEBASE_DOCUMENTATION.md)
 
 ---
 
@@ -435,18 +435,18 @@ server/
 
 ## 4. `open-sse/` — ଷ୍ଟ୍ରିମିଂ ଇଞ୍ଜିନ୍ ୱର୍କସ୍ପେସ୍
 
-`@omniroute/open-sse` ଭାବରେ ପ୍ରକାଶିତ ଏକ ପୃଥକ npm ୱର୍କସ୍ପେସ୍। ଏହା ଅନୁରୋଧ
-ପ୍ରକ୍ରିୟାକରଣ, ଏକ୍ସିକ୍ୟୁଟର୍, ଅନୁବାଦକ, ସେବା, ଟ୍ରାନ୍ସଫର୍ମର୍ ଏବଂ MCP ସର୍ଭର୍ ପରିଚାଳନା କରେ।
+`@omniroute/open-sse` ଭାବେ ପ୍ରକାଶିତ ଏକ ପୃଥକ npm ୱର୍କସ୍ପେସ୍। ଏହା ଅନୁରୋଧ
+ପ୍ରକ୍ରିୟାକରଣ, ଏକ୍ସିକ୍ୟୁଟର୍, ଅନୁବାଦକ, ସେବା, ଟ୍ରାନ୍ସଫର୍ମର୍ ଏବଂ MCP ସର୍ଭର୍କୁ ପରିଚାଳନା କରେ।
 
 ```
 open-sse/
 ├── index.ts                ସାର୍ବଜନୀନ ଏକ୍ସପୋର୍ଟ
-├── package.json            ୱର୍କସ୍ପେସ୍ ମାନିଫେଷ୍ଟ
+├── package.json            ୱର୍କସ୍ପେସ୍ ମ୍ୟାନିଫେଷ୍ଟ
 ├── tsconfig.json
 ├── types.d.ts
-├── config/                 ପ୍ରଦାତା ରେଜିଷ୍ଟ୍ରି, ହେଡର୍ ପ୍ରୋଫାଇଲ୍, ପରିଚୟ, …
-├── handlers/               ଅନୁରୋଧ ହ୍ୟାଣ୍ଡଲର୍ (ଚାଟ୍, ଏମ୍ବେଡିଂ, ଅଡିଓ, ଚିତ୍ର, …)
-├── executors/              108ଟି ପ୍ରଦାତା-ନିର୍ଦ୍ଦିଷ୍ଟ HTTP ଏକ୍ସିକ୍ୟୁଟର୍
+├── config/                 ପ୍ରଦାନକାରୀ ରେଜିଷ୍ଟ୍ରି, ହେଡର୍ ପ୍ରୋଫାଇଲ୍, ପରିଚୟ, …
+├── handlers/               ଅନୁରୋଧ ହ୍ୟାଣ୍ଡଲର୍ (ଚାଟ୍, ଏମ୍ବେଡିଂ, ଅଡିଓ, ଛବି, …)
+├── executors/              108ଟି ପ୍ରଦାନକାରୀ-ନିର୍ଦ୍ଦିଷ୍ଟ HTTP ଏକ୍ସିକ୍ୟୁଟର୍
 ├── translator/             ଫର୍ମାଟ୍ ରୂପାନ୍ତରଣ (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions ଷ୍ଟ୍ରିମ୍ ଟ୍ରାନ୍ସଫର୍ମର୍
 ├── services/               80+ ସେବା ମଡ୍ୟୁଲ୍ (କମ୍ବୋ, ଫଲ୍ବ୍ୟାକ୍, କୋଟା, ପରିଚୟ, …)
@@ -461,31 +461,31 @@ open-sse/
 | `chatCore.ts`           | ମୁଖ୍ୟ ଚାଟ୍ ପାଇପ୍ଲାଇନ୍ (କ୍ୟାଶ୍, ହାର ସୀମା, କମ୍ବୋ ରାଉଟିଂ, ଏକ୍ସିକ୍ୟୁଟର୍ ଡିସ୍ପ୍ୟାଚ୍) |
 | `responsesHandler.ts`   | OpenAI Responses API ପ୍ରବେଶ ବିନ୍ଦୁ                                              |
 | `embeddings.ts`         | ଏମ୍ବେଡିଂ                                                                        |
-| `imageGeneration.ts`    | ଚିତ୍ର ସୃଷ୍ଟି                                                                    |
-| `audioSpeech.ts`        | ଟେକ୍ସଟ୍ରୁ-ବକ୍ତବ୍ୟ                                                               |
-| `audioTranscription.ts` | ବକ୍ତବ୍ୟରୁ-ଟେକ୍ସଟ୍                                                               |
+| `imageGeneration.ts`    | ଛବି ସୃଷ୍ଟି                                                                      |
+| `audioSpeech.ts`        | ଟେକ୍ସଟ୍ରୁ ବାକ୍                                                                  |
+| `audioTranscription.ts` | ବାକ୍ରୁ ଟେକ୍ସଟ୍                                                                  |
 | `videoGeneration.ts`    | ଭିଡିଓ ସୃଷ୍ଟି                                                                    |
 | `musicGeneration.ts`    | ସଙ୍ଗୀତ ସୃଷ୍ଟି                                                                   |
 | `rerank.ts`             | ପୁନଃ-ର୍ୟାଙ୍କିଂ                                                                  |
-| `moderations.ts`        | ନିୟନ୍ତ୍ରଣ                                                                       |
+| `moderations.ts`        | ବିଷୟବସ୍ତୁ ନିୟନ୍ତ୍ରଣ                                                             |
 | `search.ts`             | ୱେବ୍ ସନ୍ଧାନ                                                                     |
 | `sseParser.ts`          | SSE ଇଭେଣ୍ଟ ପାର୍ସର୍                                                              |
-| `usageExtractor.ts`     | ଅପ୍ଷ୍ଟ୍ରିମ୍ ଷ୍ଟ୍ରିମ୍ରୁ ଟୋକେନ୍ ଗଣନା ବାହାର କରେ                                    |
-| `responseSanitizer.ts`  | ପ୍ରଦାତା-ନିର୍ଦ୍ଦିଷ୍ଟ ଅନାବଶ୍ୟକ ତଥ୍ୟ ହଟାଏ                                          |
-| `responseTranslator.ts` | ପ୍ରଦାତା ପ୍ରତିକ୍ରିୟା ଏବଂ ଅନୁବାଦକ ସ୍ତର ମଧ୍ୟରେ ସଂଯୋଜକ                              |
+| `usageExtractor.ts`     | ଅପ୍ଷ୍ଟ୍ରିମ୍ ଷ୍ଟ୍ରିମ୍ରୁ ଟୋକେନ୍ ସଂଖ୍ୟା ବାହାର କରେ                                  |
+| `responseSanitizer.ts`  | ପ୍ରଦାନକାରୀ-ନିର୍ଦ୍ଦିଷ୍ଟ ଅନାବଶ୍ୟକ ତଥ୍ୟ ଅପସାରଣ କରେ                                 |
+| `responseTranslator.ts` | ପ୍ରଦାନକାରୀ ପ୍ରତିକ୍ରିୟା ଏବଂ ଅନୁବାଦକ ସ୍ତର ମଧ୍ୟରେ ସଂଯୋଜକ                           |
 
 ### 4.2 `open-sse/executors/`
 
-108ଟି ପ୍ରଦାତା ଏକ୍ସିକ୍ୟୁଟର୍, ପ୍ରତ୍ୟେକଟି `BaseExecutor` (`base.ts`)କୁ ବିସ୍ତାର କରେ:
+108ଟି ପ୍ରଦାନକାରୀ ଏକ୍ସିକ୍ୟୁଟର୍, ପ୍ରତ୍ୟେକଟି `BaseExecutor` (`base.ts`)କୁ ବିସ୍ତାର କରେ:
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`,
 `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
 `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`,
-`pollinations`, `qoder`, `vertex`, `devin-desktop`, ଏହା ସହିତ `claudeIdentity.ts`
+`pollinations`, `qoder`, `vertex`, `devin-desktop`, ଏଥିସହିତ `claudeIdentity.ts`
 (ସହଭାଗୀ ପରିଚୟ ସହାୟକ) ଏବଂ `index.ts` (ରେଜିଷ୍ଟ୍ରି)।
 
-> ଟିପ୍ପଣୀ: ଏଠାରେ ତାଲିକାଭୁକ୍ତ ହୋଇନଥିବା ପ୍ରଦାତାଗୁଡ଼ିକୁ ସାଧାରଣ
-> OpenAI-ସୁସଙ୍ଗତ ଏକ୍ସିକ୍ୟୁଟର୍ ବ୍ୟବହାର କରି `default.ts` ଦ୍ୱାରା ସେବା ପ୍ରଦାନ କରାଯାଏ। ସମ୍ପୂର୍ଣ୍ଣ ପ୍ରଦାତା କ୍ୟାଟାଲଗ୍ (355ଟି ପ୍ରଦାତା)
+> ଟିପ୍ପଣୀ: ଏଠାରେ ତାଲିକାଭୁକ୍ତ ହୋଇନଥିବା ପ୍ରଦାନକାରୀଗୁଡ଼ିକୁ ସାଧାରଣ
+> OpenAI-ସୁସଙ୍ଗତ ଏକ୍ସିକ୍ୟୁଟର୍ ବ୍ୟବହାର କରି `default.ts` ଦ୍ୱାରା ସେବା ଦିଆଯାଏ। ସମ୍ପୂର୍ଣ୍ଣ ପ୍ରଦାନକାରୀ କ୍ୟାଟାଲଗ୍ (355ଟି ପ୍ରଦାନକାରୀ)
 > `src/shared/constants/providers.ts`ରେ ରହିଛି।
 
 ### 4.3 `open-sse/translator/`
@@ -502,43 +502,43 @@ open-sse/
   `openai-to-claude`।
 - **9ଟି ସହାୟକ** (`translator/helpers/`):
   `claudeHelper`, `geminiHelper`, `geminiToolsSanitizer`, `maxTokensHelper`,
-  `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`, ଏହା ସହିତ
+  `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`, ଏଥିସହିତ
   ସହାୟକ ପରୀକ୍ଷାଗୁଡ଼ିକ।
-- **ଚିତ୍ର ସହାୟକ** (`translator/image/sizeMapper.ts`)।
+- **ଛବି ସହାୟକ** (`translator/image/sizeMapper.ts`)।
 - ଶୀର୍ଷ-ସ୍ତର: `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`।
 
 ### 4.4 `open-sse/transformer/`
 
 - `responsesTransformer.ts` — `TransformStream`-ଆଧାରିତ Responses API ↔ Chat
-  Completions ରୂପାନ୍ତରକ (ଏହା `responses/` ରୁଟ୍ କ୍ୟାଚ୍-ଅଲ୍ ଦ୍ୱାରା ବ୍ୟବହୃତ ହୁଏ)।
+  Completions କନ୍ଭର୍ଟର୍ (`responses/` ରୁଟ୍ର କ୍ୟାଚ୍-ଅଲ୍ ଦ୍ୱାରା ବ୍ୟବହୃତ)।
 
 ### 4.5 `open-sse/services/`
 
-ମୁଖ୍ୟାଂଶଗୁଡ଼ିକ (`open-sse/services/` ଅଧୀନରେ ସମ୍ପୂର୍ଣ୍ଣ ତାଲିକା):
+ମୁଖ୍ୟ ବିଶେଷତାଗୁଡ଼ିକ (ସମ୍ପୂର୍ଣ୍ଣ ତାଲିକା `open-sse/services/` ଅଧୀନରେ):
 
-| ବିଷୟ               | ଫାଇଲଗୁଡ଼ିକ                                                                                                                                                                                                                                        |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| କମ୍ବୋ ରାଉଟିଂ       | `combo.ts` (19ଟି କୌଶଳ), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                 |
-| ଅଟୋ କମ୍ବୋ ଇଞ୍ଜିନ୍  | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`      |
-| ସହନଶୀଳତା           | `accountFallback.ts` (କୁଲ୍ଡାଉନ୍ + ଲକ୍ଆଉଟ୍), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                 |
-| କୋଟା               | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts`                       |
-| କ୍ୟାଶିଂ            | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                     |
-| ରାଉଟିଂ ବୁଦ୍ଧିମତ୍ତା | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                      |
-| ମଡେଲ୍ ପରିଚାଳନା     | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                       |
-| ସଙ୍କୋଚନ            | `compression/` — ସମ୍ପୂର୍ଣ୍ଣ ସଙ୍କୋଚନ ଇଞ୍ଜିନ୍ର ୱାୟାରିଂ                                                                                                                                                                                              |
-| ଟୋକନ୍ + ସେସନ୍      | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts` |
-| ସ୍ତର / ମ୍ୟାନିଫେଷ୍ଟ | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                     |
-| IP / ନେଟୱର୍କ       | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                             |
-| ବ୍ୟାଚ୍ଗୁଡ଼ିକ       | `batchProcessor.ts`                                                                                                                                                                                                                               |
-| ବ୍ୟବହାର            | `usage.ts`                                                                                                                                                                                                                                        |
+| ବିଷୟ                     | ଫାଇଲଗୁଡ଼ିକ                                                                                                                                                                                                                                               |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| କମ୍ବୋ ରାଉଟିଂ             | `combo.ts` (19ଟି କୌଶଳ), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                        |
+| ସ୍ୱୟଂଚାଳିତ କମ୍ବୋ ଇଞ୍ଜିନ୍ | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
+| ସ୍ଥିତିସ୍ଥାପକତା           | `accountFallback.ts` (କୁଲଡାଉନ୍ + ଲକ୍ଆଉଟ୍), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                         |
+| କୋଟାଗୁଡ଼ିକ               | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
+| କ୍ୟାଶିଂ                  | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                            |
+| ରାଉଟିଂ ବୁଦ୍ଧିମତ୍ତା       | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                             |
+| ମଡେଲ୍ ପରିଚାଳନା           | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                              |
+| ସଙ୍କୋଚନ                  | `compression/` — ସମ୍ପୂର୍ଣ୍ଣ ସଙ୍କୋଚନ ଇଞ୍ଜିନ୍ର ୱାୟାରିଂ                                                                                                                                                                                                     |
+| ଟୋକନ୍ + ସେସନ୍            | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts`        |
+| ସ୍ତର / ମାନିଫେଷ୍ଟ         | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                            |
+| IP / ନେଟୱର୍କ             | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                                    |
+| ବ୍ୟାଚ୍ଗୁଡ଼ିକ             | `batchProcessor.ts`                                                                                                                                                                                                                                      |
+| ବ୍ୟବହାର                  | `usage.ts`                                                                                                                                                                                                                                               |
 
 ### 4.6 `open-sse/mcp-server/`
 
-- `server.ts`ରେ **110ଟି ଅନନ୍ୟ ଟୁଲ୍** ୱାୟାର୍ କରାଯାଇଛି (`schemas/tools.ts`ରେ 45ଟି କ୍ୟାନୋନିକାଲ୍ +
+- **110ଟି ଅନନ୍ୟ ଟୁଲ୍** `server.ts`ରେ ୱାୟାର୍ କରାଯାଇଛି (`schemas/tools.ts`ରେ 45ଟି ପ୍ରାମାଣିକ +
   ମେମୋରି, ସ୍କିଲ୍, GitHub-ସ୍କିଲ୍, ପୁଲ୍, ଗେମିଫିକେସନ୍, ପ୍ଲଗଇନ୍, Notion, Obsidian,
   ଲୋକାଲ୍-କର୍ପସ୍ ଏବଂ ସଙ୍କୋଚନ ମଡ୍ୟୁଲ୍ଗୁଡ଼ିକ — ୟୁନିଅନ୍କୁ `countUniqueMcpTools` ଦ୍ୱାରା ଗଣନା କରାଯାଇଛି)।
-- **3ଟି ପରିବହନ**: stdio, HTTP Streamable, SSE।
-- ରନ୍ଟାଇମ୍ରେ **33ଟି ସ୍କୋପ୍** ପ୍ରବର୍ତ୍ତନ କରାଯାଇଛି — ମୂଳ ତାଲିକା `src/shared/constants/mcpScopes.ts`ରେ ଅଛି, ସମ୍ପୂର୍ଣ୍ଣ ସେଟ୍ ହେଉଛି ପ୍ରତ୍ୟେକ ଟୁଲ୍ ମଡ୍ୟୁଲ୍ ଦ୍ୱାରା ଘୋଷିତ ସ୍କୋପ୍ଗୁଡ଼ିକର ୟୁନିଅନ୍।
+- **3ଟି ଟ୍ରାନ୍ସପୋର୍ଟ**: stdio, HTTP Streamable, SSE।
+- ରନ୍ଟାଇମ୍ରେ **33ଟି ସ୍କୋପ୍** ବାଧ୍ୟତାମୂଳକ କରାଯାଇଛି — ମୂଳ ତାଲିକା `src/shared/constants/mcpScopes.ts`ରେ ଅଛି, ସମ୍ପୂର୍ଣ୍ଣ ସେଟ୍ଟି ପ୍ରତ୍ୟେକ ଟୁଲ୍ ମଡ୍ୟୁଲ୍ରେ ଘୋଷିତ ସ୍କୋପ୍ଗୁଡ଼ିକର ୟୁନିଅନ୍ ଅଟେ।
 - ଅଡିଟ୍ ଟେବୁଲ୍: `mcp_tool_audit` (`audit.ts` ଦ୍ୱାରା ପୂରଣ କରାଯାଏ)।
 - ଫାଇଲ୍ଗୁଡ଼ିକ: `server.ts`, `index.ts`, `httpTransport.ts`, `audit.ts`, `scopeEnforcement.ts`,
   `runtimeHeartbeat.ts`, `descriptionCompressor.ts`, `schemas/{tools, a2a, audit, index}.ts`,
@@ -548,21 +548,21 @@ open-sse/
 
 ### 4.7 `open-sse/config/`
 
-ପ୍ରଦାନକାରୀ ରେଜିଷ୍ଟ୍ରିଗୁଡ଼ିକ (`providerRegistry.ts`, `providerModels.ts`,
+ପ୍ରଦାତା ରେଜିଷ୍ଟ୍ରିଗୁଡ଼ିକ (`providerRegistry.ts`, `providerModels.ts`,
 `providerHeaderProfiles.ts`), ପ୍ରତି-ଫର୍ମାଟ୍ ମଡେଲ୍ ରେଜିଷ୍ଟ୍ରିଗୁଡ଼ିକ (`audioRegistry.ts`,
 `embeddingRegistry.ts`, `imageRegistry.ts`, `moderationRegistry.ts`,
 `musicRegistry.ts`, `rerankRegistry.ts`, `searchRegistry.ts`, `videoRegistry.ts`),
 ପରିଚୟ ସହାୟକଗୁଡ଼ିକ (`codexIdentity.ts`, `codexInstructions.ts`,
 `anthropicHeaders.ts`, `antigravityUpstream.ts`, `antigravityModelAliases.ts`,
 `cliFingerprints.ts`, `toolCloaking.ts`, `defaultThinkingSignature.ts`),
-ପ୍ରମାଣପତ୍ର ସହାୟକଗୁଡ଼ିକ (`credentialLoader.ts`, `codexClient.ts`), ଏବଂ କ୍ଲାଉଡ୍
+କ୍ରେଡେନ୍ସିଆଲ୍ ସହାୟକଗୁଡ଼ିକ (`credentialLoader.ts`, `codexClient.ts`), ଏବଂ କ୍ଲାଉଡ୍
 ଆଡାପ୍ଟର୍ଗୁଡ଼ିକ (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
 `maritalk.ts`, `oci.ts`, `petals.ts`, `runway.ts`, `sap.ts`, `watsonx.ts`,
 `ollamaModels.ts`, `errorConfig.ts`, `constants.ts`, `registryUtils.ts`)।
 
 ### 4.8 `open-sse/utils/`
 
-ଷ୍ଟ୍ରିମିଂ ପ୍ରିମିଟିଭ୍ସ ଏବଂ ପ୍ରଦାତା ସହାୟକଗୁଡ଼ିକ: `stream.ts`, `streamHandler.ts`,
+ଷ୍ଟ୍ରିମିଂ ପ୍ରିମିଟିଭ୍ଗୁଡ଼ିକ ଏବଂ ପ୍ରଦାତା ସହାୟକଗୁଡ଼ିକ: `stream.ts`, `streamHandler.ts`,
 `streamHelpers.ts`, `streamPayloadCollector.ts`, `streamReadiness.ts`,
 `sseHeartbeat.ts`, `proxyFetch.ts`, `proxyDispatcher.ts`, `tlsClient.ts`,
 `networkProxy.ts`, `awsSigV4.ts`, `cacheControlPolicy.ts`,

@@ -140,6 +140,66 @@ test("pinNativeCodexTurn allows connectionId change on same provider+model", () 
   assert.equal(pin?.connectionId, "conn-2", "pin updated to new connection");
 });
 
+test("a removed turn pin never replaces the only eligible sibling", () => {
+  const pin = {
+    comboName: "test",
+    modelStr: "gpt-5.6-sol",
+    provider: "codex",
+    connectionId: "disabled",
+    createdAt: 0,
+    expiresAt: Date.now() + 60000,
+  };
+  const healthy = makeTarget("healthy");
+  const result = applyNativeCodexTurnPin([healthy], pin);
+  assert.deepEqual(
+    result.map((t) => t.connectionId),
+    ["healthy"]
+  );
+  assert.ok(!result.some((t) => t.allowedConnectionIds?.includes("disabled")));
+});
+
+test("dynamic targets keep their eligible pool when the old turn account disappears", () => {
+  const pin = {
+    comboName: "test",
+    modelStr: "gpt-5.6-sol",
+    provider: "codex",
+    connectionId: "disabled",
+    createdAt: 0,
+    expiresAt: Date.now() + 60000,
+  };
+  const dynamic = {
+    ...makeTarget("placeholder"),
+    connectionId: null,
+    allowedConnectionIds: ["healthy"],
+  };
+  const result = applyNativeCodexTurnPin([dynamic], pin);
+  assert.deepEqual(result, [dynamic]);
+  const expanded = applyNativeCodexTurnPin([dynamic], pin, ["healthy", "forbidden"]);
+  assert.deepEqual(
+    expanded.map((target) => target.connectionId),
+    ["healthy"]
+  );
+  assert.deepEqual(expanded[0].allowedConnectionIds, ["healthy"]);
+  assert.equal(expanded[0].executionKey, `${dynamic.executionKey}@healthy`);
+});
+
+test("turn affinity cannot widen explicit per-step connection restrictions", () => {
+  const pin = {
+    comboName: "test",
+    modelStr: "gpt-5.6-sol",
+    provider: "codex",
+    connectionId: "a",
+    createdAt: 0,
+    expiresAt: Date.now() + 60000,
+  };
+  const targets = ["a", "b"].map((id) => ({ ...makeTarget(id), allowedConnectionIds: [id] }));
+  const result = applyNativeCodexTurnPin(targets, pin);
+  assert.deepEqual(
+    result.map((t) => t.allowedConnectionIds),
+    [["a"], ["b"]]
+  );
+});
+
 test("pinNativeCodexTurn rejects provider/model change", () => {
   clearNativeCodexTurnPinsForTests();
   pinNativeCodexTurn({

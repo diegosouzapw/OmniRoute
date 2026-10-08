@@ -1,75 +1,77 @@
 # Authorization Guide (Yorùbá)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
 
 ---
 
 > **Orísun òtítọ́:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Ìmúdójúìwọ̀n tó kẹ́yìn:** 2026-06-28 — v3.8.40
+> **Ìgbà tó kẹ́yìn tí wọ́n ṣe àtúnṣe:** 2026-09-22 — àwọn orúkọ ààyè ìpele tọ́ka sí MCP-SERVER.md
 
-OmniRoute ní ìlànà ìfúnni-láṣẹ tó mọ ipa-ọ̀nà, èyí tó ń ṣàkóso gbogbo ìbéèrè API. Ìsọ̀rí jẹ́ **onípinnu** àti **fail-closed** — ohunkóhun tí a kò bá lè sọ̀rí rẹ̀ yóò parí sí `MANAGEMENT`, yóò sì béèrè fún session tàbí token ìpele ìṣàkóso. Ojú-ìwé yìí ṣàlàyé àwòṣe náà fún àwọn onímọ̀-ẹ̀rọ tó ń tọ́jú àwọn ipa-ọ̀nà tàbí tó ń ṣe àwòrán àwọn endpoint tuntun.
+OmniRoute ní ọ̀nà ìfọwọ́sí tó mọ ọ̀nà tó máa ń ṣàkóso gbogbo ìbéèrè API. Ìsọ̀rí jẹ́ **tí a lè pinnu** àti **tí kò lè kùnà** — ohunkóhun tí kò bá lè ṣe ìsọ̀rí yóò di `MANAGEMENT` yóò sì béèrè ìgbà kan tàbí àmì ìpele ìṣàkóso. Ojúewé yìí ṣàlàyé àwòrán fún àwọn onímọ̀-ẹ̀rọ tó ń tọ́jú àwọn ọ̀nà tàbí tó ń ṣe àwọn ibi ìparí tuntun.
 
-![Ìlànà AuthZ (àwọn ẹ̀ka ipa-ọ̀nà 3 + ìgbéyẹ̀wò ìlànà)](../diagrams/exported/authz-pipeline.svg)
+![Ọ̀nà AuthZ (àwọn ìpele ọ̀nà 3 + ìṣàyẹ̀wò ètò)](../diagrams/exported/authz-pipeline.svg)
 
 > Orísun: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
-## Àwọn Ọ̀nà Ìfàṣẹ̀sí Méjì
+## Àwọn Ọ̀nà Ìfàṣẹsí Méjì
 
 ### 1. Kọ́kọ́rọ́ API (Bearer)
 
-A máa ń lò ó fún àwọn API oníbàárà tó bá OpenAI/Anthropic/Gemini mu àti àwọn ipa-ọ̀nà ìṣàkóso díẹ̀ nígbà tí kọ́kọ́rọ́ náà bá ní scope `manage`.
+A máa ń lò ó fún àwọn API oníbàárà tó bá OpenAI/Anthropic/Gemini mu àti díẹ̀ lára àwọn ipa-ọ̀nà ìṣàkóso nígbà tí kọ́kọ́rọ́ náà bá ní àyè ìgbaniláṣẹ `manage`.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-`isValidApiKey()` / `extractApiKey()` inú `src/sse/services/auth.ts` ló ń fìdí rẹ̀ múlẹ̀, a sì tún ṣe àgbéjáde rẹ̀ nípasẹ̀ `src/shared/utils/apiAuth.ts`. Validator náà tún gba àwọn env var `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` gẹ́gẹ́ bí àwọn kọ́kọ́rọ́ passthrough tó wà pẹ́ títí (ìṣòro #1350).
+`isValidApiKey()` / `extractApiKey()` inú `src/sse/services/auth.ts` ló ń ṣàyẹ̀wò rẹ̀, a sì tún ń gbé e jáde nípasẹ̀ `src/shared/utils/apiAuth.ts`. Ẹ̀rọ ìṣàyẹ̀wò náà tún gba àwọn env vars `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` gẹ́gẹ́ bí àwọn kọ́kọ́rọ́ passthrough tó wà pẹ́ títí (ọ̀ràn #1350).
 
-### 2. Session Dashboard (cookie auth_token)
+### 2. Sẹ́ṣọ̀nù Dashboard (cookie auth_token)
 
-Fún àwọn ojú-ìwé dashboard àti àwọn iṣẹ́ admin.
+Fún àwọn ojú-ewé dashboard àti àwọn iṣẹ́ alábòójútó.
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-Cookie kan jẹ́ session kìkì nígbà tí JWT bá jẹ́rìí **tí** ó sì ní `authenticated: true`
+Cookie kan jẹ́ sẹ́ṣọ̀nù kìkì nígbà tí JWT bá ṣe àyẹ̀wò àṣeyọrí **tí** ó sì ní `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Gbogbo
-ẹni tó ń lo cookie náà (olùṣọ́ ipa-ọ̀nà, ìsọdọtun ìlànà authz, ìfọwọ́sowọ́pọ̀ WebSocket, server
-lẹ́sẹ̀kẹsẹ̀, `/api/settings/require-login`, `/api/auth/status`) ń gba inú helper náà kọjá.
-Àwọn JWT mìíràn tí a fi `JWT_SECRET` fọwọ́ sí tún wà — passthrough Cursor CLI ń ṣe
-àwọn token `iss "omniroute" / aud "cursor-cli"` fún àwọn tó ní kọ́kọ́rọ́ — wọn kì í sì í ṣe session láé
+ẹni tó ń lo cookie náà (olùṣọ́ ipa-ọ̀nà dashboard (`isDashboardSessionAuthenticated()`), ìtúnṣe pipeline authz, ìfọwọ́bọ̀ WebSocket, server
+aláàyè, `/api/settings/require-login`, `/api/auth/status`) ń gba inú helper yẹn kọjá.
+Àwọn JWT mìíràn tí a fi `JWT_SECRET` fọwọ́ sí tún wà — passthrough Cursor CLI ń ṣẹ̀dá
+àwọn token `iss "omniroute" / aud "cursor-cli"` fún àwọn tó ní kọ́kọ́rọ́ — wọn kì í sì í ṣe sẹ́ṣọ̀nù láé
 (#13298).
 
-`isDashboardSessionAuthenticated()` inú `src/shared/utils/apiAuth.ts` ló ń jẹ́rìí rẹ̀. Ìlànà náà máa ń sọ JWT di tuntun láìfọwọ́sí nígbà tí ó bá ku ọjọ́ tó kéré ju 7 nínú àkókò ìwàláàyè ọjọ́ 30 rẹ̀.
+`isDashboardSessionAuthenticated()` inú `src/shared/utils/apiAuth.ts` ló ń ṣàyẹ̀wò rẹ̀. Pipeline náà máa ń sọ JWT di tuntun láìfọwọ́ṣe nígbà tí ọjọ́ tó kù nínú àkókò ìwàláàyè ọjọ́ 30 rẹ̀ bá kéré ju ọjọ́ 7 lọ.
 
-Àwọn ipa-ọ̀nà ìṣàkóso kan gba **èyíkéyìí** nínú àwọn ọ̀nà méjèèjì: cookie TÀBÍ `Bearer <key>` nígbà tí kọ́kọ́rọ́ API bá ní scope `manage` (tàbí `admin`). Èyí ló mú kí ìṣàn iṣẹ́ “tí a lè ṣètò nípasẹ̀ àwọn ìpè API” tí a fi kún un ní v3.8 ṣeé ṣe.
+Sẹ́ṣọ̀nù tún lè parí kí ọjọ́ 30 rẹ̀ tó pé, nítorí gbogbo olùṣẹ̀dá rẹ̀ ń gba inú `mintDashboardSessionToken` kọjá (àkókò ìṣẹ̀dá `iat` àti ìdánimọ̀ `jti`), olùṣàyẹ̀wò náà sì ń ṣàyẹ̀wò ètò méjì: `sessionsValidAfter`, èyí tí ìyípadà ọ̀rọ̀ aṣínà máa ń ṣètò kí gbogbo sẹ́ṣọ̀nù tí a ṣẹ̀dá ṣáájú rẹ̀ má ṣe lè ṣe àyẹ̀wò mọ́ (browser tí a fi yí ọ̀rọ̀ aṣínà padà máa gba cookie tuntun), àti `revokedDashboardSessions`, nínú èyí tí `POST /api/auth/logout` ti máa ń fi `jti` sẹ́ṣọ̀nù tí a ṣẹ̀ṣẹ̀ jáde kúrò sí. Àwọn sẹ́ṣọ̀nù tí ẹ̀yà àtijọ́ ṣẹ̀dá kò ní ìkankan nínú àwọn claim wọ̀nyí, wọn yóò sì wà ní ìṣiṣẹ́ títí di ìgbà àkọ́kọ́ tí a bá yí ọ̀rọ̀ aṣínà padà. Bí kò bá ṣeé ka àwọn ètò náà, a kò ní fọkàn tán sẹ́ṣọ̀nù náà.
+
+Àwọn ipa-ọ̀nà ìṣàkóso kan gba **èyíkéyìí** nínú ọ̀nà méjèèjì: cookie TÀBÍ `Bearer <key>` nígbà tí kọ́kọ́rọ́ API bá ní àyè ìgbaniláṣẹ `manage` (tàbí `admin`). Èyí ló mú kí ìṣàn iṣẹ́ “tí a lè ṣètò nípasẹ̀ àwọn ìpè API” tí a fi kun ní v3.8 ṣeé ṣe.
 
 #### Ẹnu-ọ̀nà ìwọlé OIDC àṣàyàn (#6973)
 
-Ìwọlé admin dashboard tún ṣe àtìlẹ́yìn fún ìṣàn OIDC (OpenID Connect) tí a lè **yàn láti mú ṣiṣẹ́**
-lẹ́gbẹ̀ẹ́ ìwọlé ọ̀rọ̀ aṣínà àìyẹsẹ̀ — a kì í yọ ìwọlé ọ̀rọ̀ aṣínà kúrò láé, a kàn
-ṣe àfikún sí i:
+Ìwọlé alábòójútó dashboard tún ṣe àtìlẹ́yìn fún ìṣàn OIDC (OpenID Connect) tí a lè **yàn láti mú ṣiṣẹ́**
+lẹ́gbẹ̀ẹ́ ìwọlé ọ̀rọ̀ aṣínà àìyípadà — a kì í yọ ìwọlé ọ̀rọ̀ aṣínà kúrò láé, a kàn
+ń fi kún un:
 
-- Ó jẹ́ pípa àyàfi tí `settings.oidcEnabled === true` **àti** tí `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` bá jẹ́ ṣíṣètò pátápátá (Settings → Auth).
+- Ó wà ní pípa àyàfi tí `settings.oidcEnabled === true` **tí** `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` sì ti jẹ́ ṣíṣètò gbogbo wọn (Settings → Auth).
   `GET /api/auth/oidc/login` yóò dá `400` padà bí bẹ́ẹ̀ kọ́.
 - `GET /api/auth/oidc/login` máa ń ṣàwárí `authorization_endpoint` láti inú
-  `/.well-known/openid-configuration` ti olùfúnni (yóò lo
-  `<issuer>/authorize` bí èyí kò bá ṣiṣẹ́), yóò kọ URI ìdarípadà láti inú ìbéèrè tó wọlé
-  (pẹ̀lú ìmọ̀ nípa `x-forwarded-proto`), yóò sì darí padà sí IdP pẹ̀lú `state`
-  àìròtẹ́lẹ̀ tí a fi pamọ́ sínú cookie `oidc_state` `httpOnly`.
-- `GET /api/auth/oidc/callback` máa ń fìdí `state` múlẹ̀, pàṣípààrọ̀ kóòdù ìfúnni-láṣẹ,
-  yóò sì jẹ́rìí ìfọwọ́sí token ID nípasẹ̀ JWKS ti olùfúnni
-  (`createRemoteJWKSet` ti `jose`, tí a cache fún URI JWKS kọ̀ọ̀kan) pẹ̀lú àwọn àyẹ̀wò
-  `issuer`/`audience`. Àtòjọ ìyọ̀ǹda `oidcAllowedSubjects` àṣàyàn máa ń bá
-  claim `sub` ti token náà tàbí claim `email` rẹ̀ mu — a máa ń gba claim email náà kìkì
-  nígbà tí `email_verified === true`, nítorí náà email tí a kò jẹ́rìí ní IdP kò lè kọjá
+  `/.well-known/openid-configuration` ti olùfúnni
+  (yóò lo `<issuer>/authorize` bí èyí kò bá ṣiṣẹ́), yóò kọ́ URI àtúndarí láti inú ìbéèrè tó ń wọlé
+  (pẹ̀lú ìmọ̀ nípa `x-forwarded-proto`), yóò sì darí lọ sí IdP pẹ̀lú `state` àròtẹ́lẹ̀ kan
+  tí a tọ́jú sínú cookie `oidc_state` `httpOnly`.
+- `GET /api/auth/oidc/callback` máa ń ṣàyẹ̀wò `state`, pààrọ̀ kóòdù ìfàṣẹsí,
+  yóò sì ṣàyẹ̀wò ìfọwọ́sí token ID nípasẹ̀ JWKS ti olùfúnni
+  (`createRemoteJWKSet` ti `jose`, tí a fi pamọ́ fún URI JWKS kọ̀ọ̀kan) pẹ̀lú àwọn àyẹ̀wò `issuer`/`audience`.
+  Àtòjọ àwọn ẹni tí a gbà láàyè `oidcAllowedSubjects` tó jẹ́ àṣàyàn máa ń fi ara wé claim
+  `sub` ti token náà tàbí claim `email` rẹ̀ — a máa ń gba claim email náà kìkì nígbà tí
+  `email_verified === true`, nítorí náà email tí a kò tíì jẹ́rìí rẹ̀ ní IdP kò lè kọjá
   ẹnu-ọ̀nà náà láé.
-- Nígbà tí ó bá ṣàṣeyọrí, ó máa ń ṣe **JWT `auth_token` ọjọ́ 30 kan náà gan-an** tí ìwọlé
-  ọ̀rọ̀ aṣínà ń ṣe (`src/app/api/auth/login/route.ts`), nítorí náà ìlànà session
-  dashboard tó kù (ìsọdọtun aládàáṣe, àwọn àmì cookie) kò yí padà —
-  OIDC kàn rọ́pò bí a ṣe ń ṣe cookie náà, kì í ṣe ohun tí cookie náà ń fúnni láyè.
+- Nígbà àṣeyọrí, ó máa ń ṣẹ̀dá JWT `auth_token` ọjọ́ 30 **kan náà gan-an** tí ìwọlé
+  ọ̀rọ̀ aṣínà ń ṣẹ̀dá (`src/app/api/auth/login/route.ts`), nítorí náà ìyókù
+  pipeline sẹ́ṣọ̀nù dashboard (ìsọdọtun aládàáṣe, àwọn flag cookie) kò yí padà —
+  OIDC kàn rọ́pò bí a ṣe ń ṣẹ̀dá cookie náà, kì í ṣe ohun tí ó ń fúnni láṣẹ láti ṣe.
 
 ## Àwọn Kíláàsì Ìtọ́sọ́nà
 
@@ -199,28 +201,31 @@ export async function POST(request: Request) {
 
 Yan set náà gẹ́gẹ́ bí ìrísí, kì í ṣe nítorí ìrọ̀rùn. Route kan ṣoṣo lọ sínú `PUBLIC_API_ROUTES_EXACT` (tàbí `PUBLIC_READONLY_CORS_API_ROUTES` fún GET-nìkan); subtree gidi nìkan ló yẹ kó lọ sínú `PUBLIC_API_ROUTE_PREFIXES`, ó sì **gbọdọ̀ parí pẹ̀lú `/`**. Fífi route kan ṣoṣo sínú àtòjọ prefix tún máa ń sọ gbogbo path tó wà lẹ́gbẹ̀ẹ́ tí wọ́n ní àwọn àmì ìbẹ̀rẹ̀ kan náà di gbangba — pẹ̀lú àwọn dynamic-segment sibling tí a bá fi kún un lọ́jọ́ iwájú (GHSA-74g9-q8f6-793h). Ṣàfikún àwọn unit test ní `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` àti `tests/unit/authz/classify.test.ts`.
 
-## Àwọn Ìwọ̀n Ààyè
+## Àwọn Àyè
 
-Àwọn kọ́kọ́rọ́ API ní àkójọpọ̀ `scopes` kan (tí a tọ́jú gẹ́gẹ́ bí JSON nínú `api_keys.scopes`, wo `src/lib/db/apiKeys.ts`).
+Àwọn àyè orúkọ mẹ́ta. Olùṣàyẹ̀wò kọ̀ọ̀kan ka àwọn okùn tirẹ̀ nìkan. Ìfiwéra, pẹ̀lú ìdí tí `manage` fi kùnà `scopeMatches` fún `read:compression` àti ìdí tí àmì ìwọlé `read` kò fi lè `PATCH /api/keys/{id}`, wà ní [Àwọn àyè orúkọ mẹ́ta](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Ìwọ̀n ààyè ìṣàkóso
+Àwọn kọ́kọ́rọ́ API gbé àtòpọ̀ `scopes` (tí a tọ́jú sí bi JSON nínú `api_keys.scopes`, wo `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — ń fún kọ́kọ́rọ́ náà ní àṣẹ sí àwọn endpoint API ìṣàkóso nígbà tí a bá fi ránṣẹ́ gẹ́gẹ́ bí Bearer.
+### Àyè ìṣàkóso
 
-### Àwọn ìwọ̀n ààyè MCP (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Ìwọlé tí ó gbé àmì sí àwọn ọ̀nà API ìṣàkóso.
+- `mcp:connect`, `self:usage`, `self:account-quota`, àti
+  `policy:bypass-provider-quota` jẹ́ àwọn àyè ìbámu-gangan tí a lè fi kún. Wọ́n wà ní ìta `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` ṣí
+  `/api/mcp/` ìpín-ìwọlé tí kìí ṣe loopback nìkan.
 
-Ohun èlò MCP kọ̀ọ̀kan nílò àwọn ìwọ̀n ààyè pàtó nípasẹ̀ `MCP_TOOL_SCOPES`. Àkójọ kíkún (`MCP_SCOPE_LIST`):
+### Àwọn àyè irinṣẹ́ MCP
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Ìtòlẹ́sẹẹsẹ àti àwọn òfin ìbámu (okùn kan náà, tàbí àyè tí a fún tí ó parí pẹ̀lú `*`):
+[Àwọn àyè irinṣẹ́ MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` nínú `src/shared/constants/mcpScopes.ts` jẹ́ ìpín-ẹ̀ka tí a tẹ́ tẹ́lẹ̀, kìí ṣe gbogbo ìtòlẹ́sẹẹsẹ náà. Ìmúṣẹ́ ń ṣiṣẹ́ nínú
+`open-sse/mcp-server/scopeEnforcement.ts` lẹ́hìn tí `resolveCallerScopeContext()`
+bá ti yanjú àwọn àyè láti ìwífún ìfọwọ́sí MCP, metadata ìbéèrè, tàbí `OMNIROUTE_MCP_SCOPES`. Kò ní ṣiṣẹ́ àyàfi tí `OMNIROUTE_MCP_ENFORCE_SCOPES=true` bá wà.
 
-Ìmúlò ìwọ̀n ààyè nínú `open-sse/mcp-server/server.ts` ń fi àkójọ ìwọ̀n ààyè ohun èlò kọ̀ọ̀kan ránṣẹ́ sí
-`evaluateToolScopes()` lẹ́yìn tí `resolveCallerScopeContext()` bá ti yanjú àwọn ìwọ̀n ààyè láti inú àlàyé ìfàṣẹsí MCP,
-metadata ìbéèrè, tàbí `OMNIROUTE_MCP_SCOPES`.
+### Àwọn àyè àmì ìwọlé
+
+`read` / `write` / `admin` lórí àwọn àmì `oma_live_…`, tí a tò lẹ́sẹẹsẹ nípasẹ̀ `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Ìpele yìí kan ìwé-ẹ̀rí àmì ìwọlé nìkan. Wo [Ìfọwọ́sí Ìṣàkóso](../guides/MANAGEMENT-AUTH.md).
 
 ## Bọ́tìnì Ìbéèrè Ìfàṣẹsí
 
@@ -268,7 +273,7 @@ Lo `assertAuth(req, expectedClass)` nínú àwọn handler — ó máa ń ju `Au
 
 ## Wo Pẹ̀lú
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — àmì auth fún endpoint kọ̀ọ̀kan
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — àkọsílẹ̀ àyẹ̀wò fún àwọn ìṣẹ̀lẹ̀ auth
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — àwọn kúlẹ̀kúlẹ̀ nípa fífi scope MCP múlẹ̀
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — àmì ìfọwọ́sí fún ojúami kọ̀ọ̀kan
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — àkọsílẹ̀ àyẹ̀wò fún àwọn ìṣẹ̀lẹ̀ ìfọwọ́sí
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — àwọn ààyè orúkọ ìpele mẹ́ta àti àtòjọ àwọn irinṣẹ́ MCP
 - Orísun: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

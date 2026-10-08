@@ -1,0 +1,1 @@
+- **fix(embeddings):** LAN/CGNAT OpenAI-compatible embeddings nodes with a stored API key now send `Authorization: Bearer` on the outbound request, matching dashboard Check. Keyless LAN nodes stay no-auth ([#6925](https://github.com/diegosouzapw/OmniRoute/issues/6925)) ([#13234](https://github.com/diegosouzapw/OmniRoute/issues/13234))

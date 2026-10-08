@@ -1,1 +1,0 @@
-- Fix Antigravity image generation not rotating to another account when the upstream returns an explicit quota-exhausted 429, so a second configured account with available quota is no longer stuck behind the first account's terminal quota error.

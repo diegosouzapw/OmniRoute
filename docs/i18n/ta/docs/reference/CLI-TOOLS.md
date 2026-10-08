@@ -1,6 +1,6 @@
 # CLI Tools — OmniRoute (தமிழ்)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
 
@@ -43,44 +43,27 @@ ACP முகவர்கள் (மறுபுற உருவாக்கு�
 
 ---
 
-## `setup-*` உடன் தானாகக் கட்டமைக்கவும்
+## `setup-*` மூலம் தானாகவே கட்டமைத்தல்
 
-ஒவ்வொரு கருவியின் கட்டமைப்பை கையால் எழுத வேண்டிய அவசியமில்லை. OmniRoute ஒவ்வொரு ஆதரிக்கப்படும் CLI-க்கு `setup-*`
-கமாண்டை வழங்குகிறது, இது ஓர் இயக்கத்தில் உள்ள OmniRoute-இல் இருந்து **உயிருடன்** உள்ள மாதிரி பட்டியலைப் படிக்கிறது
-மற்றும் உங்கள் இயந்திரத்தில் கருவியின் சொந்த கட்டமைப்பை எழுதுகிறது:
+ஒவ்வொரு கருவியின் கட்டமைப்பையும் நீங்கள் கையால் எழுத வேண்டியதில்லை. OmniRoute ஆனது, ஆதரிக்கப்படும் ஒவ்வொரு CLI-க்கும் ஒரு `setup-*` கட்டளையை வழங்குகிறது, இது இயங்கும் OmniRoute (உள்ளூர் அல்லது தொலைநிலை) இலிருந்து **நேரடி** மாதிரி பட்டியலைப் படித்து, உங்கள் கணினியில் கருவியின் சொந்த கட்டமைப்பை எழுதுகிறது:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
-ஒவ்வொன்றும் `--remote <url> --api-key <key>` (ஒரு தொலைதூர OmniRoute-க்கு எதிராக உள்ளூர் கருவியை கட்டமைக்கவும்), `--dry-run` (எழுதாமல் முன்னோட்டம்), மற்றும் `--port` ஐ ஏற்கிறது. மாதிரி தானாகக் கண்டறியாத கருவிகள் (Cline, Kilo, Roo, Goose, Aider, Qwen) `--model <id>` (மற்றும் `--yes` என்றால் தொடர்பில்லாத ஓட்டங்களுக்கு) எடுக்கின்றன. சரியான சூழலை ஊட்டிய மற்றும் எந்த கட்டமைப்பும் எழுதாத CLI-ஐ தொடங்க, பொதுவான `omniroute run <target>` லாஞ்சரைப் பயன்படுத்தவும் (claude, codex, aider, goose, opencode, qwen, gemini — இலக்குகள் மற்றும் பெயர்கள் `bin/cli/cli-manifest.mjs` இல் இருந்து வருகின்றன); பழைய ஒவ்வொரு கருவிக்கும் தனித்துவமான லாஞ்சர்கள் `omniroute launch` (Claude Code) மற்றும் `omniroute launch-codex` (Codex) கிடைக்கின்றன. Gemini CLI என்பது தொடங்குவதற்கே: இது `omniroute run` இலக்கு ஆனால் `setup-*`/`configure` செய்முறை இல்லை.
+ஒவ்வொன்றும் `--remote <url> --api-key <key>` (தொலைநிலை OmniRoute-க்கு எதிராக ஒரு உள்ளூர் கருவியை கட்டமைக்க), `--dry-run` (எழுதாமல் முன்னோட்டம் காண), மற்றும் `--port` ஆகியவற்றை ஏற்கிறது. மாதிரி தானாகக் கண்டறிதல் இல்லாத கருவிகள் (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) `--model <id>` (மற்றும் ஊடாடாத இயக்கங்களுக்கு `--yes`) ஐ எடுத்துக்கொள்கின்றன. `setup-5dive` என்பது `$HOME` இன் கீழ் எழுதாத ஒரே செய்முறை: இது ஒரு 5dive முகவர் தொகுப்பை, தொகுப்பு ஹோஸ்டில் ரூட்-உரிமையுள்ள அங்கீகார சுயவிவரத்தை எழுதுவதன் மூலம் கட்டமைக்கிறது, எனவே இது `sudo` வழியாக மீண்டும் செயல்படுகிறது மற்றும் அதற்கு அதன் சொந்த தொலைநிலை முறை இல்லை. சரியான env செலுத்தப்பட்டு, எந்த கட்டமைப்பும் எழுதப்படாமல் ஒரு CLI ஐத் தொடங்க, பொதுவான `omniroute run <target>` துவக்கியைப் பயன்படுத்தவும் (claude, codex, aider, goose, opencode, qwen, gemini — இலக்குகள் மற்றும் மாற்றுப்பெயர்கள் `bin/cli/cli-manifest.mjs` இலிருந்து வருகின்றன); பழைய கருவி சார்ந்த துவக்கிகள் `omniroute launch` (Claude Code) மற்றும் `omniroute launch-codex` (Codex) இன்னும் கிடைக்கின்றன. Gemini CLI ஆனது துவக்க-மட்டும்: இது ஒரு `omniroute run` இலக்கு ஆனால் `setup-*`/`configure` செய்முறை இல்லை.
 
-> **முழு குறிப்புகள்:** மாஸ்டர் அட்டவணை — ஒவ்வொரு கட்டளை எழுதும், ஒவ்வொரு கொள்கை, உள்ளூர் மற்றும் தொலைதூர, மற்றும் எந்த கருவிகள் `/v1` பின்விளைவுகளை விரும்புகின்றன — **[CLI ஒருங்கிணைப்புகள்](../guides/CLI-INTEGRATIONS.md)** இல் உள்ளது.
+> **முழுமையான குறிப்பு:** ஒவ்வொரு கட்டளையும் எதை எழுதுகிறது, ஒவ்வொரு கொடியும், உள்ளூர் vs தொலைநிலை, மற்றும் எந்த கருவிகளுக்கு `/v1` பின்னொட்டு தேவை - இவை அனைத்தும் **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)** இல் உள்ள முதன்மை அட்டவணையில் உள்ளன.
 
-### ஒரு கொண்டெய்னரில் உள்ளே இவற்றை இயக்குதல்
+### இவற்றை ஒரு கொள்கலனுக்குள் இயக்குதல்
 
-OmniRoute கொண்டெய்னரில் செயல்படுத்தப்படும் `setup-*` கட்டளை கொண்டெய்னரின் சொந்த வீட்டில் எழுதுகிறது,
-அது எந்த ஹோஸ்ட் CLI-க்கும் படிக்கப்படாது மற்றும் கொண்டெய்னருடன் மறைந்து விடும். OmniRoute அதை கண்டுபிடிக்கிறது
-மற்றும் எழுதுவதற்குப் பதிலாக வழிமுறைகளுடன் `2` ஐ வெளியேற்றுகிறது. முன்னேற்றத்திற்கு இரண்டு ஆதரிக்கப்படும் வழிகள் —
-ஹோஸ்டில் CLI-ஐ நிறுவவும் மற்றும் `omniroute connect` கொண்டெய்னருக்கு, அல்லது கட்டமைப்பு அடைவுகளை பிணைக்கவும்
-மற்றும் `CLI_CONFIG_HOME` ஐ அமைக்கவும் (கொம்போஸ் `host` சுயவிவரம்). ஒவ்வொரு `setup-*` கட்டளையும்,
-மேலும் `omniroute configure` மற்றும் `omniroute config set`, கொண்டெய்னரின் சொந்த CLI-களை
-கட்டமைக்க நீங்கள் உண்மையில் பொருத்தமாக இருந்தால் `--allow-container-write` ஐ ஏற்கிறது;
-`OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` சேவையகத்திற்காக அதே செய்கிறது.
-[Docker கையேடு → ஹோஸ்ட் CLI கருவிகளை கட்டமைத்தல்](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker) ஐப் பார்க்கவும்.
+OmniRoute கொள்கலனுக்குள் செயல்படுத்தப்படும் ஒரு `setup-*` கட்டளை கொள்கலனின் சொந்த முகப்பு கோப்பகத்தில் எழுதுகிறது, இதை எந்த ஹோஸ்ட் CLI-யும் படிக்காது மற்றும் கொள்கலனுடன் மறைந்துவிடும். OmniRoute இதை கண்டறிந்து, எழுதுவதற்குப் பதிலாக வழிமுறைகளுடன் `2` என வெளியேறுகிறது. இரண்டு ஆதரிக்கப்படும் வழிகள் - ஹோஸ்டில் CLI ஐ நிறுவி கொள்கலனுடன் `omniroute connect` செய்யவும், அல்லது கட்டமைப்பு கோப்பகங்களை பிணைத்து `CLI_CONFIG_HOME` ஐ அமைக்கவும் (compose `host` சுயவிவரம்). ஒவ்வொரு `setup-*` கட்டளையும், `omniroute configure` மற்றும் `omniroute config set` உடன், கொள்கலனின் சொந்த CLI களை கட்டமைப்பதுதான் நீங்கள் உண்மையில் விரும்பியிருந்தால் `--allow-container-write` ஐ ஏற்கிறது; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` சேவையகத்திற்கும் அதையே செய்கிறது. [Docker Guide → Configuring host CLI tools](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker) ஐப் பார்க்கவும்.
 
-டாஷ்போர்டின் **செயல்படுத்தும் முடிவு** (`POST /api/cli-tools/apply`) ஒரே பாதுகாப்பை அமல்படுத்துகிறது:
-ஒரு கொண்டெய்னரில், ஹோஸ்டில் இருந்து பிணைக்கப்படாத இலக்கு எழுதுதல் **`422`** என்ற பதிலுடன்
-`containerEphemeralTarget: true`, பாதுகாப்பான பிழை உரை மற்றும் — ஹோஸ்ட் செய்முறை உள்ள கருவிகளுக்கான
-(claude, codex, opencode, cline, kilo, continue) — `hostSetupCommand` (எடுத்துக்காட்டாக `omniroute setup-opencode`)
-ஹோஸ்டில் இயக்க வேண்டும்; எதுவும் எழுதப்படவில்லை. `dryRun: true` கொண்டெய்னர் முறையில் வேலை செய்கிறது
-மற்றும் உருவாக்கப்பட்ட உள்ளடக்கம் + இலக்கு பாதையை டிஸ்க் தொடாமல் திருப்புகிறது,
-எனவே நீங்கள் டாஷ்போர்டில் முன்னோட்டம் காணலாம் மற்றும் ஹோஸ்டில் செயல்படுத்தலாம்.
-இந்த நடத்தை நோக்கமாகும் மற்றும் `tests/unit/api/cli-tools/apply-container-guard.test.ts` மூலம்
-மறுபடியும் பாதுகாக்கப்படுகிறது — 422 ஐ "சரி" செய்யாதீர்கள், பாதுகாப்பை நீக்குவதன் மூலம்.
+டாஷ்போர்டின் **apply endpoint** (`POST /api/cli-tools/apply`) அதே பாதுகாப்பை செயல்படுத்துகிறது: ஒரு கொள்கலனில், ஹோஸ்டிலிருந்து பிணைக்கப்பட்ட இலக்கு இல்லாத ஒரு எழுத்து `containerEphemeralTarget: true`, பாதுகாப்பான பிழை உரை மற்றும் - ஹோஸ்ட் செய்முறை கொண்ட கருவிகளுக்கு (claude, codex, opencode, cline, kilo, continue) - ஹோஸ்டில் இயக்க ஒரு `hostSetupCommand` (எ.கா. `omniroute setup-opencode`) உடன் **`422`** என பதிலளிக்கிறது; எதுவும் எழுதப்படவில்லை. `dryRun: true` கொள்கலன் பயன்முறையில் தொடர்ந்து செயல்படுகிறது மற்றும் வட்டைத் தொடாமல் திருத்தப்பட்ட முன்னோட்டம் + இலக்கு பாதையை வழங்குகிறது. முன்னோட்ட உள்ளடக்கம் நகலெடுக்க அல்லது இறக்குமதி செய்ய ஒரு சான்றளிக்கும் கட்டமைப்பு அல்ல. அசல் கருவி/அடிப்படை URL/API விசை/மாதிரி உள்ளீடுகளுடன் ஹோஸ்டில் பயன்படுத்தவும், அல்லது சுட்டிக்காட்டப்பட்ட ஹோஸ்ட்-பக்க அமைப்பு கட்டளையைப் பயன்படுத்தவும். முன்னோட்ட தலைப்பு மற்றும் கோரிக்கை ஒப்பந்தத்திற்கான [CLI configuration security](../security/CLI-CONFIGURATION.md) ஐப் பார்க்கவும். இந்த நடத்தை வேண்டுமென்றே மற்றும் `tests/unit/api/cli-tools/apply-container-guard.test.ts` மூலம் பின்னடைவு-பாதுகாக்கப்பட்டது - பாதுகாப்பை நீக்குவதன் மூலம் ஒரு 422 ஐ ஒருபோதும் "சரிசெய்ய" வேண்டாம்.
 
 ---
 
@@ -571,154 +554,161 @@ kiro-cli status
 **Kiro IDE** டெஸ்க்டாப் செயலிக்கு, OmniRoute மூலம் வெளியிடப்பட்ட MITM முடிவுகளைப் பயன்படுத்தவும்
 `/dashboard/cli-tools → Kiro` இல்.
 
-## 10. உள்ளக OmniRoute CLI
+## 10. உள்புற OmniRoute CLI
 
-`omniroute` பைனரி சர்வர் வாழ்க்கைச்சுழற்சி, அமைப்பு, பரிசோதனை மற்றும் வழங்குநர் மேலாண்மைக்கான கட்டளைகளை வழங்குகிறது. நுழைவுப் புள்ளி: `bin/omniroute.mjs`.
+`omniroute` பைனரி, சேவையக வாழ்க்கைச்சுழற்சி, அமைத்தல், கண்டறிதல் மற்றும் வழங்குநர் மேலாண்மைக்கான கட்டளைகளை வழங்குகிறது. நுழைவுப் புள்ளி: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # சர்வரை தொடங்கவும் (இயல்புநிலை போர்ட் 20128)
-omniroute setup                        # தொடர்பான அமைப்பு மந்திரி
-omniroute doctor                       # கட்டமைப்பு, DB, போர்டுகள், இயக்க நேரத்தைச் சரிபார்க்கவும்
-omniroute providers list               # கட்டமைக்கப்பட்ட வழங்குநர் இணைப்புகள்
-omniroute providers test-all           # ஒவ்வொரு செயல்பாட்டிற்கான இணைப்பையும் சோதிக்கவும்
-omniroute reset-password               # நிர்வாக கடவுச்சொல்லை மீட்டமைக்கவும்
-omniroute logs                         # கோரிக்கைகள் பதிவுகளை ஒளிபரப்பவும்
-omniroute health                       # விரிவான ஆரோக்கியம் (பிரேக்கர்கள், கொஞ்சம், நினைவகம்)
-omniroute --version                    # பதிப்பை அச்சிடவும்
-omniroute --help                       # அனைத்து கட்டளைகளை காண்பிக்கவும்
+omniroute                              # சேவையகத்தைத் தொடங்கு (இயல்புநிலை போர்ட் 20128)
+omniroute setup                        # ஊடாடும் அமைவு வழிகாட்டி
+omniroute doctor                       # உள்ளமைவு, DB, போர்ட்கள், இயக்கச்சூழல் ஆகியவற்றைச் சரிபார்
+omniroute providers list               # உள்ளமைக்கப்பட்ட வழங்குநர் இணைப்புகள்
+omniroute providers test-all           # செயலில் உள்ள ஒவ்வொரு இணைப்பையும் சோதி
+omniroute reset-password               # நிர்வாகி கடவுச்சொல்லை மீட்டமை
+omniroute logs                         # கோரிக்கை பதிவுகளைத் தொடரோட்டமாகக் காட்டு
+omniroute health                       # விரிவான ஆரோக்கிய நிலை (breakers, தற்காலிகச் சேமிப்பு, நினைவகம்)
+omniroute --version                    # பதிப்பை அச்சிடு
+omniroute --help                       # அனைத்து கட்டளைகளையும் காட்டு
 ```
 
-### அமைப்பு & ஆரம்பிப்பு
+### அமைவு & துவக்கமயமாக்கல்
 
 ```bash
-omniroute setup                        # தொடர்பான அமைப்பு மந்திரி
-omniroute setup --non-interactive      # CI/தானியங்கி முறை (சுற்றுப்புற மாறிகள் + கொடிகள்)
-omniroute setup --password '<value>'   # நிர்வாக கடவுச்சொல்லை நேரடியாக அமைக்கவும்
+omniroute setup                        # ஊடாடும் அமைவு வழிகாட்டி
+omniroute setup --non-interactive      # CI/தானியக்கப் பயன்முறை (சூழல் மாறிகள் + கொடிகளைப் படிக்கும்)
+omniroute setup --password '<value>'   # நிர்வாகி கடவுச்சொல்லை நேரடியாக அமை
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # ஒரு அடிப்படையில் வழங்குநரைச் சேர்க்கவும் மற்றும் சோதிக்கவும்
+  --test-provider                      # ஒரே முறையில் ஒரு வழங்குநரைச் சேர்த்துச் சோதி
 ```
 
-தொடர்பில்லாத அமைப்பிற்கான அங்கீகாரம் பெற்ற சுற்றுப்புற மாறிகள்:
+ஊடாடாத அமைவிற்காக அங்கீகரிக்கப்படும் சூழல் மாறிகள்:
 
-| Var                 | நோக்கம்                                                                              |
-| ------------------- | ------------------------------------------------------------------------------------ |
-| `OMNIROUTE_API_KEY` | வழங்குநர் API விசை (Commander `.env()` மூலம் `--api-key` க்கு கட்டுப்படுத்தப்பட்டது) |
-| `DATA_DIR`          | OmniRoute தரவுத்தொகுப்பை மீறவும்                                                     |
+| மாறி                | நோக்கம்                                                                         |
+| ------------------- | ------------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | வழங்குநர் API விசை (Commander `.env()` வழியாக `--api-key` உடன் பிணைக்கப்பட்டது) |
+| `DATA_DIR`          | OmniRoute தரவுக் கோப்பகத்தை மேலெழுது                                            |
 
-மற்ற அனைத்து தொடர்பில்லாத உள்ளீடுகள் கொடிகளாகவே அனுப்பப்படுகின்றன, சுற்றுப்புற மாறிகள் அல்ல:
+மற்ற அனைத்து ஊடாடாத உள்ளீடுகளும் சூழல் மாறிகளாக அல்லாமல் கொடிகளாக அனுப்பப்படுகின்றன:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (மேலே உள்ள `omniroute setup` விருப்பங்களைப் பார்க்கவும்).
 
-### பரிசோதனை
+### கண்டறிதல்
 
 ```bash
-omniroute doctor                       # கட்டமைப்பு, DB, போர்டுகள், இயக்க நேரம், நினைவகம், உயிரியல் நிலை சரிபார்க்கவும்
+omniroute doctor                       # உள்ளமைவு, DB, போர்ட்கள், இயக்கச்சூழல், நினைவகம், செயல்பாட்டு நிலை ஆகியவற்றைச் சரிபார்
 omniroute doctor --json                # இயந்திரம் வாசிக்கக்கூடிய JSON
-omniroute doctor --no-liveness         # HTTP ஆரோக்கியத்தை தவிர்க்கவும்
-omniroute doctor --host 0.0.0.0        # உயிரியல் நிலை ஹோஸ்டை மீறவும்
-omniroute doctor --liveness-url <url>  # முழு ஆரோக்கியம் முடிவுக்கான URL மீறவும்
+omniroute doctor --no-liveness         # HTTP ஆரோக்கியச் சோதனையைத் தவிர்
+omniroute doctor --host 0.0.0.0        # செயல்பாட்டு நிலை ஹோஸ்டை மேலெழுது
+omniroute doctor --liveness-url <url>  # முழுமையான ஆரோக்கிய முனைப்புள்ளி URL-ஐ மேலெழுது
 ```
 
-மருத்துவர் இந்த சரிபார்ப்புகளை இயக்குகிறார்: `கட்டமைப்பு`, `தரவுத்தொகுப்பு`, `சேமிப்பு/குறியாக்கம்`,
-`போர்ட் கிடைக்கும்`, `Node இயக்க நேரம்`, `உள்ளூர் பைனரி` (better-sqlite3),
-`நினைவகம்`, மற்றும் `சர்வர் உயிரியல் நிலை`. எந்த சரிபார்ப்பு `தவறு` என்றால் அது மின்வெட்டு செய்யும்.
+doctor பின்வரும் சோதனைகளை இயக்குகிறது: `Config`, `Database`, `Storage/encryption`,
+`Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
+`Memory` மற்றும் `Server liveness`. ஏதேனும் சோதனை `fail` ஆனால், இது பூஜ்ஜியமற்ற வெளியேற்றக் குறியீட்டுடன் நிறைவடையும்.
 
 ### வழங்குநர் மேலாண்மை
 
 ```bash
 omniroute providers available                       # OmniRoute வழங்குநர் பட்டியல்
-omniroute providers available --search openai       # அடையாளம்/பெயர்/மாற்று/வகை மூலம் பட்டியலை வடிகட்டி
-omniroute providers available --category api-key    # வகை மூலம் வடிகட்டி (api-key, oauth, free, ...)
+omniroute providers available --search openai       # id/பெயர்/மாற்றுப்பெயர்/வகை அடிப்படையில் பட்டியலை வடிகட்டு
+omniroute providers available --category api-key    # வகை அடிப்படையில் வடிகட்டு (api-key, oauth, free, ...)
 omniroute providers available --json                # இயந்திரம் வாசிக்கக்கூடிய JSON
 
-omniroute providers list                            # கட்டமைக்கப்பட்ட வழங்குநர் இணைப்புகள்
+omniroute providers list                            # உள்ளமைக்கப்பட்ட வழங்குநர் இணைப்புகள்
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # ஒரு கட்டமைக்கப்பட்ட இணைப்பை சோதிக்கவும்
-omniroute providers test-all                        # ஒவ்வொரு செயல்பாட்டிற்கான இணைப்பையும் சோதிக்கவும்
-omniroute providers validate                        # உள்ளூர் மட்டுமே கட்டமைப்புப் பரிசோதனை
+omniroute providers test <id|name>                  # உள்ளமைக்கப்பட்ட ஓர் இணைப்பைச் சோதி
+omniroute providers test-all                        # செயலில் உள்ள ஒவ்வொரு இணைப்பையும் சோதி
+omniroute providers validate                        # உள்ளூர்-மட்டும் கட்டமைப்புச் சரிபார்ப்பு
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
-omniroute providers auth <provider>                 # ஏற்கனவே உள்ள OAuth ஓட்டம்
+omniroute providers auth <provider>                 # ஏற்கனவே உள்ள OAuth செயல்முறை
 omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` API-முதலில் ஆகவே செயல்படுகிறது
-செயல்பாட்டில் உள்ள உள்ளூர் அல்லது தொலைதூர சூழ்நிலைக்கு எதிராக. அங்கீகாரம் உள்ளீடு
-`--credential-stdin` அல்லது `--credential-env` ஐப் பயன்படுத்த வேண்டும்; `--dry-run --json` மட்டும்
-மறைக்கப்பட்ட இருப்பு/வடிவத்தைப் புகாரளிக்கிறது. `providers available` OmniRoute பட்டியலைப் படிக்கிறது;
-`providers list/test/test-all/validate` தங்கள் உள்ளூர் SQLite நடத்தைப் பாதுகாக்கின்றன மற்றும்
-சர்வர் இயக்கப்பட வேண்டும் என்பதற்கான தேவையில்லை.
+`providers add/import/auth/edit/remove` API-முதன்மையானவை; எனவே அவை செயலில் உள்ள
+உள்ளூர் அல்லது தொலைநிலைச் சூழலுடன் செயல்படுகின்றன. நற்சான்று உள்ளீட்டிற்கு
+`--credential-stdin` அல்லது `--credential-env` பயன்படுத்தப்பட வேண்டும்; `--dry-run --json`
+மறைக்கப்பட்ட இருப்பு/வடிவத்தை மட்டுமே அறிக்கையிடும். `providers available`, OmniRoute பட்டியலைப்
+படிக்கிறது; `providers list/test/test-all/validate` அவற்றின் உள்ளூர் SQLite நடத்தையைத்
+தக்கவைத்துக் கொள்வதுடன், சேவையகம் இயங்கிக் கொண்டிருக்க வேண்டிய அவசியமும் இல்லை.
 
 ### மீட்பு & மீட்டமைப்பு
 
 ```bash
-omniroute reset-password                # நிர்வாக கடவுச்சொல்லை மீட்டமைக்கவும் (மேலும்: omniroute-reset-password)
-omniroute reset-encrypted-columns       # குறியாக்கப்பட்ட அங்கீகாரத்தை மீட்டமைக்க எச்சரிக்கையை காண்பிக்கவும் + உலாவி இயக்கவும்
-omniroute reset-encrypted-columns --force  # SQLite இல் குறியாக்கப்பட்ட அங்கீகாரங்களை உண்மையில் நீக்கவும்
+omniroute reset-password                # நிர்வாகி கடவுச்சொல்லை மீட்டமை (இதுவும்: omniroute-reset-password)
+omniroute reset-encrypted-columns       # மறைகுறியாக்கப்பட்ட நற்சான்றுகளை மீட்டமைப்பதற்கான எச்சரிக்கை + ஒத்திகையைக் காட்டு
+omniroute reset-encrypted-columns --force  # SQLite-இல் மறைகுறியாக்கப்பட்ட நற்சான்றுகளை உண்மையில் null ஆக்கு
 ```
 
-### அங்கீகாரம் ஏற்றுமதி (⚠ கவனமாக கையாளவும்)
+### நற்சான்று ஏற்றுமதி (⚠ கவனமாகக் கையாளவும்)
 
 ```bash
-omniroute auth export                                 # எச்சரிக்கையை காண்பிக்கவும் + உறுதிப்படுத்தல் வாயிலாக — DB அணுகல் இல்லை
-omniroute auth export --force                          # அனைத்து இணைப்புகளின் DECRYPTED அங்கீகாரங்களை stdout இல் JSON ஆக ஏற்றுமதி செய்யவும்
-omniroute auth export --force --id <id>                 # பொருந்தும் இணைப்பை மட்டுமே ஏற்றுமதி செய்யவும்
-omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> வரிகளை வெளியிடவும்
-omniroute auth export --force --out creds.json           # ஒரு கோப்பிற்கு எழுதவும் (0600 அனுமதிகளுடன் உருவாக்கப்பட்டது)
+omniroute auth export                                 # எச்சரிக்கை + உறுதிப்படுத்தல் தடுப்பைக் காட்டு — DB அணுகல் இல்லை
+omniroute auth export --force                          # அனைத்து இணைப்புகளின் மறைகுறிநீக்கப்பட்ட நற்சான்றுகளையும் JSON ஆக stdout-க்கு ஏற்றுமதி செய்
+omniroute auth export --force --id <id>                 # பொருந்தும் இணைப்பை மட்டும் ஏற்றுமதி செய்
+omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> வரிகளை வெளியிடு
+omniroute auth export --force --out creds.json           # ஒரு கோப்பில் எழுது (0600 அனுமதிகளுடன் உருவாக்கப்படும்)
 ```
 
-`auth export` என்பது **உள்ளூர் மட்டுமே** (நேரடி SQLite வாசிப்பு, HTTP பாதை இல்லை) மற்றும்
-உறுதியாக அச்சிடுகிறது/எழுதுகிறது **சரளமாக** `apiKey`/`accessToken`/`refreshToken`/`idToken` மதிப்புகள் — இது அம்சமாகும், பிழை அல்ல. தரவுத்தொகுப்பிலிருந்து எதுவும் வாசிக்கப்படவில்லை, மற்றும் எதுவும் குறியாக்கம் செய்யப்படவில்லை, `--force` இல்லாமல். எந்த சரளமும் வெளியிடப்படுவதற்கு முன் எப்போதும் stderr எச்சரிக்கை பேனர் அச்சிடப்படுகிறது. `STORAGE_ENCRYPTION_KEY` அமைக்கப்பட வேண்டும். குறியாக்கத்தில் தோல்வியுறும் ஒரு புலம் (பழைய விசை, கெட்ட ciphertext) ` <field>DecryptFailed: true` எனக் கூறப்படுகிறது, முழு ஏற்றுமதியை நிறுத்துவதற்காக அல்லது அடிப்படையான பிழையை வெளியிடுவதற்காக அல்ல.
+`auth export` என்பது **உள்ளூர்-மட்டும்** செயல்பாடு (நேரடி SQLite வாசிப்பு, HTTP வழித்தடம் இல்லை); மேலும் இது வேண்டுமென்றே
+**எளிய உரையாக** `apiKey`/`accessToken`/`refreshToken`/`idToken` மதிப்புகளை அச்சிடுகிறது/எழுதுகிறது — இது ஒரு
+அம்சமே தவிர, பிழை அல்ல. `--force` இல்லாமல் தரவுத்தளத்திலிருந்து எதுவும் படிக்கப்படாது; எதுவும் மறைகுறிநீக்கம்
+செய்யப்படாது. எந்த எளிய உரையும் வெளியிடப்படுவதற்கு முன்பு, stderr-இல் எப்போதும் ஓர் எச்சரிக்கைப் பட்டை
+அச்சிடப்படும். `STORAGE_ENCRYPTION_KEY` அமைக்கப்பட்டிருக்க வேண்டும். மறைகுறிநீக்கம் செய்யத் தவறும் ஒரு புலம்
+(பழைய விசை, சிதைந்த மறைக்குறியீட்டு உரை), முழு ஏற்றுமதியையும் நிறுத்துவதற்கோ அடிப்படைப் பிழையைக் கசியவிடுவதற்கோ பதிலாக
+`<field>DecryptFailed: true` என அறிக்கையிடப்படும்.
 
-### பிற துணைக்கட்டளைகள்
+### பிற துணைக் கட்டளைகள்
 
-இவை ஓடும் OmniRoute சர்வரைப் பொறுத்தது, வேறு எதுவும் குறிப்பிடப்படவில்லை:
+வேறுவிதமாகக் குறிப்பிடப்படாத வரை, இவை இயங்கிக் கொண்டிருக்கும் OmniRoute சேவையகம் இருப்பதாகக் கருதுகின்றன:
 
 ```bash
-omniroute status                       # விரிவான இயக்க நேர நிலை
-omniroute logs                         # கோரிக்கைகள் பதிவுகளை ஒளிபரப்பவும் (--json, --search, --follow)
-omniroute config show                  # தற்போதைய கட்டமைப்பை காண்பிக்கவும்
+omniroute status                       # விரிவான இயக்கநேர நிலை
+omniroute logs                         # கோரிக்கைப் பதிவுகளை நேரலையாகக் காட்டு (--json, --search, --follow)
+omniroute config list                  # உள்ளமைக்கப்பட்ட CLI கருவிகளைக் காட்டு
 
-omniroute provider list                # கிடைக்கும் வழங்குநர்களின் பட்டியல் (provides list இன் மாற்று)
-omniroute provider add                 # ஒரு கருவியில் OmniRoute ஐ வழங்குநராக பதிவு செய்யவும்
-omniroute keys add | list | remove     # API விசைகளை நிர்வகிக்கவும்
-omniroute models [provider]            # மாதிரிகளை பட்டியலிடவும் (--json, --search)
+omniroute provider list                # கிடைக்கக்கூடிய வழங்குநர்களைப் பட்டியலிடு (providers list என்பதன் மாற்றுப்பெயர்)
+omniroute provider add                 # ஒரு கருவியில் OmniRoute-ஐ வழங்குநராகப் பதிவுசெய்
+omniroute keys add | list | remove     # API விசைகளை நிர்வகி
+omniroute models [provider]            # மாதிரிகளைப் பட்டியலிடு (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # கட்டமைப்பு + DB ஐ புகைப்படம் எடுக்கவும்
-omniroute restore                      # முந்தைய புகைப்படத்திலிருந்து மீட்டமைக்கவும்
+omniroute backup                       # உள்ளமைவு + DB-இன் தருணநிலை நகலை உருவாக்கு
+omniroute restore                      # முந்தைய தருணநிலை நகலிலிருந்து மீட்டமை
 
-omniroute health                       # விரிவான ஆரோக்கியம் (பிரேக்கர்கள், கொஞ்சம், நினைவகம்)
-omniroute quota                        # வழங்குநர் குவோட்டா பயன்பாடு
-omniroute cache                        # கொஞ்சம் நிலை
-omniroute cache clear                  # கருத்தியல் + கையொப்ப கொஞ்சங்களை அழிக்கவும்
+omniroute health                       # விரிவான ஆரோக்கிய நிலை (சுற்றுத்தடுப்பிகள், தற்காலிகச் சேமிப்பு, நினைவகம்)
+omniroute quota                        # வழங்குநர் ஒதுக்கீட்டுப் பயன்பாடு
+omniroute cache                        # தற்காலிகச் சேமிப்பு நிலை
+omniroute cache clear                  # பொருள்சார் + கையொப்பத் தற்காலிகச் சேமிப்புகளை அழி
 
-omniroute mcp status | restart         # MCP சர்வர் நிலை / மீட்டமைப்பு
-omniroute a2a status | card            # A2A சர்வர் நிலை / முகவர் அட்டை
+omniroute mcp status | restart         # MCP சேவையக நிலை / மறுதொடக்கம்
+omniroute a2a status | card            # A2A சேவையக நிலை / முகவர் அட்டை
 
-omniroute tunnel list | create | stop  # குழாய்களை நிர்வகிக்கவும் (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # சுற்றுப்புற மாறிகளை ஆய்வு / அமைக்கவும் (தற்காலிகம்)
+omniroute tunnel list | create | stop  # சுரங்கங்களை நிர்வகி (cloudflare/tailscale/ngrok)
+omniroute env show | get <k> | set <k> <v>  # சூழல் மாறிகளை ஆய்வுசெய் / அமை (தற்காலிகமானது)
 
-omniroute test                         # வழங்குநர் இணைப்பு புகை சோதனை
-omniroute update                       # புதுப்பிப்புகளை சரிபார்க்கவும்
-omniroute completion                   # கச்சா நிறைவு உருவாக்கவும்
+omniroute test                         # வழங்குநர் இணைப்பிற்கான அடிப்படைச் சோதனை
+omniroute update                       # புதுப்பிப்புகளைச் சரிபார்
+omniroute completion                   # ஷெல் தான்நிறைவை உருவாக்கு
 ```
 
 ### பொதுவான கொடிகள்
 
-| கொடி                | விளக்கம்                                                                 |
-| ------------------- | ------------------------------------------------------------------------ |
-| `--no-open`         | தொடங்கும்போது உலாவியை தானாக திறக்காதே                                    |
-| `--port <n>`        | API போர்டை மீறவும் (இயல்புநிலை 20128)                                    |
-| `--mcp`             | IDE களுக்காக stdio மூலம் MCP சர்வராக இயக்கவும்                           |
-| `--non-interactive` | CI முறை (எந்த கேள்விகளும் இல்லை; சுற்றுப்புற/கொடியிலிருந்து வாசிக்கவும்) |
-| `--json`            | இயந்திரம் வாசிக்கக்கூடிய JSON வெளியீடு (doctor, providers, etc.)         |
-| `--help`, `-h`      | கட்டளை-சிறப்பு உதவியை காண்பிக்கவும்                                      |
-| `--version`, `-v`   | நிறுவப்பட்ட பதிப்பை அச்சிடவும்                                           |
+| கொடி                | விளக்கம்                                                                |
+| ------------------- | ----------------------------------------------------------------------- |
+| `--no-open`         | தொடக்கத்தின்போது உலாவியைத் தானாகத் திறக்க வேண்டாம்                      |
+| `--port <n>`        | API போர்ட்டை மேலெழுது (இயல்புநிலை 20128)                                |
+| `--mcp`             | stdio வழியாக MCP சேவையகமாக இயக்கு (IDE-களுக்காக)                        |
+| `--non-interactive` | CI பயன்முறை (தூண்டல்கள் இல்லை; சூழல் மாறிகள்/கொடிகளிலிருந்து படிக்கும்) |
+| `--json`            | இயந்திரம் வாசிக்கக்கூடிய JSON வெளியீடு (doctor, providers போன்றவை)      |
+| `--help`, `-h`      | கட்டளைக்குரிய உதவியைக் காட்டு                                           |
+| `--version`, `-v`   | நிறுவப்பட்ட பதிப்பை அச்சிடு                                             |
+
+---
 
 ## கிடைக்கும் API முடிவுகள்
 

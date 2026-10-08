@@ -1,6 +1,6 @@
 # Resilience Guide (മലയാളം)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
 
 ---
 
@@ -69,14 +69,14 @@ OmniRoute-ന് വ്യത്യസ്തവും എന്നാൽ പര�
 
 ## 2. കണക്ഷൻ കൂൾഡൗൺ
 
-**വ്യാപ്തി:** ഒരൊറ്റ പ്രൊവൈഡർ കണക്ഷൻ/അക്കൗണ്ട്/കീ.
+**പരിധി:** ഒരൊറ്റ പ്രൊവൈഡർ കണക്ഷൻ/അക്കൗണ്ട്/കീ.
 
-**ഉദ്ദേശ്യം:** അതേ പ്രൊവൈഡറിനായുള്ള മറ്റ് കണക്ഷനുകൾ സേവനം നൽകുന്നത് തുടരുമ്പോൾ പ്രശ്നമുള്ള ഒരു കീ ഒഴിവാക്കുക.
+**ഉദ്ദേശ്യം:** അതേ പ്രൊവൈഡറിലെ മറ്റ് കണക്ഷനുകൾ സേവനം തുടരുമ്പോൾ, തകരാറുള്ള ഒരു കീ ഒഴിവാക്കുക.
 
 **നടപ്പാക്കൽ:**
 
 - ലഭ്യമല്ലെന്ന് അടയാളപ്പെടുത്തൽ: `src/sse/services/auth.ts::markAccountUnavailable()`
-- തിരഞ്ഞെടുപ്പ്: അതേ ഫയലിലെ `getProviderCredentials*`
+- തിരഞ്ഞെടുക്കൽ: അതേ ഫയലിലെ `getProviderCredentials*`
 - കൂൾഡൗൺ കണക്കുകൂട്ടൽ: `open-sse/services/accountFallback.ts::checkFallbackError()`
 - ക്രമീകരണങ്ങൾ: `src/lib/resilience/settings.ts`
 
@@ -91,56 +91,115 @@ OmniRoute-ന് വ്യത്യസ്തവും എന്നാൽ പര�
 
 - OAuth അടിസ്ഥാനം: 5s
 - API-key അടിസ്ഥാനം: 3s
-- API-key 429: അപ്സ്ട്രീമിൽനിന്നുള്ള `Retry-After`/റീസെറ്റ് ഹെഡറുകൾ/പാഴ്സ് ചെയ്യാവുന്ന റീസെറ്റ് ടെക്സ്റ്റ് എന്നിവയ്ക്ക് മുൻഗണന നൽകുന്നു
+- API-key 429: അപ്സ്ട്രീം `Retry-After`/റീസെറ്റ് ഹെഡറുകൾ/പാഴ്സ് ചെയ്യാവുന്ന റീസെറ്റ് ടെക്സ്റ്റ് എന്നിവയ്ക്ക് മുൻഗണന നൽകുന്നു
 - ബാക്ക്ഓഫ്: `baseCooldownMs * 2 ** failureIndex`
 
-**തണ്ടറിങ്-ഹെർഡ് പ്രതിരോധ ഗാർഡ്:** ഒരേസമയം സംഭവിക്കുന്ന പരാജയങ്ങൾ കൂൾഡൗൺ അമിതമായി നീട്ടുന്നതോ `backoffLevel` രണ്ടുതവണ വർധിപ്പിക്കുന്നതോ തടയുന്നു.
+**തണ്ടറിങ്-ഹെർഡ് വിരുദ്ധ സംരക്ഷണം:** ഒരേസമയം സംഭവിക്കുന്ന പരാജയങ്ങൾ കൂൾഡൗൺ അമിതമായി നീട്ടുന്നതോ `backoffLevel` രണ്ടുതവണ വർധിപ്പിക്കുന്നതോ തടയുന്നു.
 
-**ടെർമിനൽ നിലകൾ (കൂൾഡൗണുകൾ അല്ല):**
+**അന്തിമ നിലകൾ (കൂൾഡൗണുകൾ അല്ല):**
 
-- `banned` — നിരോധിത-കീവേഡ് / അക്കൗണ്ട്-ബാൻ കണ്ടെത്തൽ വഴി സജ്ജമാക്കുന്നു ([BAN_DETECTION](../security/BAN_DETECTION.md) കാണുക); കൂടാതെ, തുടർച്ചയായി മൂന്ന് അപ്സ്ട്രീം ഓരോ-അഭ്യർത്ഥന നിരസിക്കലുകൾ (`request_rejected`, ഉദാ. Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`) വഴിയും സജ്ജമാക്കുന്നു; ഒരൊറ്റ നിരസിക്കൽ കണക്ഷനെ കൂൾഡൗണിലാക്കുക മാത്രമാണ് ചെയ്യുന്നത്
-- `expired` (പരിമിതമായ പുനഃശ്രമങ്ങൾക്കുശേഷം ടെർമിനൽ നിലയിലേക്ക് മാറുന്നു — എക്സ്പോണൻഷ്യൽ ബാക്ക്ഓഫോടുകൂടിയ `EXPIRED_RETRY_MAX = 3` — അതിനാൽ താൽക്കാലിക OAuth പിശകുകൾ അക്കൗണ്ട് ശാശ്വതമായി നിർജ്ജീവമാക്കുന്നതിന് മുമ്പ് സ്വയം പരിഹരിക്കപ്പെടാം)
+- `banned` — നിരോധിത കീവേഡ് / അക്കൗണ്ട് നിരോധനം കണ്ടെത്തുമ്പോഴും ([BAN_DETECTION](../security/BAN_DETECTION.md) കാണുക), തുടർച്ചയായി മൂന്ന് അപ്സ്ട്രീം ഓരോ-അഭ്യർത്ഥന നിരസിക്കലുകൾ (`request_rejected`, ഉദാ. Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`) ഉണ്ടാകുമ്പോഴും സജ്ജമാക്കുന്നു; ഒരൊറ്റ നിരസിക്കൽ കണക്ഷനെ കൂൾഡൗണിൽ മാത്രമേ ആക്കൂ
+- `expired` (പരിമിതമായ പുനഃശ്രമങ്ങൾക്ക് ശേഷം അന്തിമ നിലയിലേക്ക് മാറുന്നു — എക്സ്പോണൻഷ്യൽ ബാക്ക്ഓഫോടെ `EXPIRED_RETRY_MAX = 3` — അതിനാൽ താൽക്കാലിക OAuth പിശകുകൾ അക്കൗണ്ട് ശാശ്വതമായി നിർജ്ജീവമാക്കുന്നതിന് മുമ്പ് സ്വയം പരിഹരിക്കപ്പെടാം)
 - `credits_exhausted`
 
-ക്രെഡൻഷ്യലുകൾ മാറുകയോ ഒരു ഓപ്പറേറ്റർ അവ റീസെറ്റ് ചെയ്യുകയോ ചെയ്യുന്നതുവരെ ഇവ നിലനിൽക്കും. താൽക്കാലിക കൂൾഡൗൺ നില ഉപയോഗിച്ച് ടെർമിനൽ നിലകളെ ഓവർറൈറ്റ് ചെയ്യരുത്.
+ക്രെഡൻഷ്യലുകൾ മാറുന്നതുവരെയോ ഒരു ഓപ്പറേറ്റർ അവ റീസെറ്റ് ചെയ്യുന്നതുവരെയോ ഇവ നിലനിൽക്കും. താൽക്കാലിക കൂൾഡൗൺ നില ഉപയോഗിച്ച് അന്തിമ നിലകളെ ഓവർറൈറ്റ് ചെയ്യരുത്.
 
-**ലേസി റിക്കവറി:** `rateLimitedUntil` കഴിഞ്ഞാൽ കണക്ഷൻ വീണ്ടും യോഗ്യമാകും. വിജയകരമായി ഉപയോഗിക്കുമ്പോൾ, `clearAccountError()` എല്ലാ പിശക് ഫീൽഡുകളും മായ്ക്കുന്നു.
+**ലേസി റിക്കവറി:** `rateLimitedUntil` കഴിഞ്ഞാൽ കണക്ഷൻ വീണ്ടും യോഗ്യമാകും. വിജയകരമായ ഉപയോഗത്തിന് ശേഷം, `clearAccountError()` എല്ലാ പിശക് ഫീൽഡുകളും മായ്ക്കുന്നു.
 
-### സെഷൻ അഫിനിറ്റി (#7274)
+### Claude OAuth ഉപയോഗ പരിധി: കുറഞ്ഞ മുൻഗണനാ ലെയിൻ + സെഷൻ-പരിധി റീസെറ്റ്
 
-**വ്യാപ്തി:** **ഏത്** പ്രൊവൈഡറിനും, ഒരു കണക്ഷനിലേക്ക് പിൻ ചെയ്തിരിക്കുന്ന ഒരൊറ്റ ക്ലയന്റ് സെഷൻ (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` ഹെഡർ).
-
-**ഉദ്ദേശ്യം:** ഒന്നിലധികം ടേണുകളുള്ള ഒരു ഏജന്റിനെ (Claude Code, aider, ഇഷ്ടാനുസൃത ഏജന്റുകൾ) അഭ്യർത്ഥനകളിലുടനീളം അതേ അക്കൗണ്ടിൽ നിലനിർത്തുക; ഇതിലൂടെ ക്രോസ്-അക്കൗണ്ട് കോൺടെക്സ്റ്റ് നഷ്ടവും ഓരോ അക്കൗണ്ടിനും പ്രത്യേകം സെഷൻ നിലയുള്ള പ്രൊവൈഡറുകളിൽ ആവർത്തിച്ചുള്ള കോൾഡ്-സ്റ്റാർട്ട് 429-കളും കുറയ്ക്കാം.
+**പരിധി:** ഒരു Claude സബ്സ്ക്രിപ്ഷൻ (OAuth) കണക്ഷൻ. രണ്ട് ഫീച്ചറുകളും **ഓരോ
+കണക്ഷനിലും പ്രത്യേകം ഓപ്റ്റ്-ഇൻ ചെയ്യേണ്ടവയാണ്** (കണക്ഷൻ എഡിറ്റ് ചെയ്യുക → Claude വിഭാഗം → `lowPriorityMode` / `autoLimitReset`,
+`providerSpecificData`-ൽ; രണ്ടും ഡിഫോൾട്ടായി ഓഫാണ്), കൂടാതെ Claude Code-ന്റെ `/low-priority`,
+`/limit-reset` കമാൻഡുകളെ പ്രതിഫലിപ്പിക്കുന്നു (Claude Code 2.1.263-ൽ നിന്ന് വയർ കോൺട്രാക്റ്റ് രേഖപ്പെടുത്തിയിരിക്കുന്നു).
 
 **നടപ്പാക്കൽ:**
 
-- TTL നിർണയം: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
-- പിൻ തിരഞ്ഞെടുക്കൽ/സൃഷ്ടിക്കൽ: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
-- ഹെഡർ എക്സ്ട്രാക്ഷൻ (പൊതുവായത്, ഏത് പ്രൊവൈഡറിനും): `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- നിലനിർത്തുന്ന പിൻ പട്ടിക: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- ക്രമീകരണം: `sessionAffinityTtlMs` (ms-ലുള്ള ഗ്ലോബൽ TTL, `0` പ്രവർത്തനരഹിതമാക്കുന്നു) — `src/lib/db/settings.ts`. `124_generic_session_affinity_ttl.sql` മൈഗ്രേഷൻ വഴി Codex-ന് മാത്രമായിരുന്ന `codexSessionAffinityTtlMs` എന്നതിൽനിന്ന് പുനർനാമകരണം ചെയ്തു; മുമ്പ് കോൺഫിഗർ ചെയ്തിട്ടുള്ള ഏതൊരു Codex TTL-ഉം ഇത് പുതിയ ഡിഫോൾട്ടായി കൈമാറുന്നു.
+- സ്റ്റേറ്റ് മെഷീൻ + റെസ്പോൺസ് വർഗ്ഗീകരണം: `open-sse/services/claudeLowPriority.ts`
+- റീസെറ്റ് സ്റ്റാറ്റസ്/ക്ലെയിം ക്ലയന്റ്: `open-sse/services/claudeLimitReset.ts`
+- എക്സിക്യൂട്ടർ ഹുക്ക് (ഹെഡർ ഇൻജക്ഷൻ + അതേ അക്കൗണ്ടിലെ പുനഃശ്രമം): `open-sse/executors/base.ts::execute()`
+- ഓപ്റ്റ്-ഇൻ പെർസിസ്റ്റൻസ്: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
 
-#7274-ന് മുമ്പ്, `codex` ഒഴികെയുള്ള ഓരോ പ്രൊവൈഡറിനും `resolveSessionAffinityTtlMs()` നേരിട്ട് `0` നൽകി പുറത്തുകടന്നിരുന്നു; അതിനാൽ പിന്നിങ് സംവിധാനവും ഹെഡർ എക്സ്ട്രാക്ഷനും ഇതിനകം പ്രൊവൈഡർ-അജ്ഞേയമായിരുന്നെങ്കിലും TTL ക്രമീകരണത്തിനും സെഷൻ ഹെഡറുകൾക്കും മറ്റൊരിടത്തും പ്രഭാവമുണ്ടായിരുന്നില്ല. ഈ പരിഹാരം ആ നേരത്തെയുള്ള റിട്ടേൺ നീക്കം ചെയ്തു; TTL ആഗോളമായി `0`-ന് മുകളിൽ സജ്ജമാക്കിയാൽ ഇപ്പോൾ എല്ലാ പ്രൊവൈഡറുകൾക്കും ഒരേ രീതിയിൽ ബാധകമാണ്.
+**ട്രിഗർ:** 5-മണിക്കൂർ ഉപയോഗ പരിധി — ഹെഡറുകളിൽ
+`anthropic-ratelimit-unified-status: rejected` ഉള്ള ഒരു `429`; അക്കൗണ്ട് യോഗ്യമാകുമ്പോൾ
+`anthropic-ratelimit-unified-slow-offer: treatment`-ഉം ഉണ്ടായിരിക്കും. ആ ആദ്യ പരിധി
+429-ന് മുമ്പ് ഒന്നും അയയ്ക്കില്ല; ഏകീകൃത ഹെഡറുകളില്ലാത്ത ബർസ്റ്റ് 429 സാധാരണ കൂൾഡൗൺ പാതയിലൂടെ പോകും.
 
-മൂന്ന് സെഷൻ-അഫിനിറ്റി ഹെഡറുകളും ഒരിക്കലും അപ്സ്ട്രീമിലേക്ക് ഫോർവേഡ് ചെയ്യപ്പെടുന്നില്ല — ക്ലയന്റ് ഹെഡറുകൾ കടത്തിവിടുന്നതിനുപകരം എക്സിക്യൂട്ടറുകൾ സ്വന്തം അപ്സ്ട്രീം ഹെഡറുകൾ ആദ്യംമുതൽ നിർമ്മിക്കുന്നു; അതിനാൽ ഇത് ഒരു ആന്തരിക കോറിലേഷൻ ഐഡി മാത്രമായി തുടരുന്നു.
+**കുറഞ്ഞ മുൻഗണനാ ലെയിൻ** (`lowPriorityMode`):
 
-### എക്സ്ക്ലൂസീവ് മാനേജ്ഡ് സെഷൻ കണക്ഷൻ ലീസുകൾ
+- പരിധി 429 ലഭിക്കുമ്പോൾ എക്സിക്യൂട്ടർ ഓഫർ സ്വീകരിക്കുകയും `anthropic-usage-limit: slow` ഉപയോഗിച്ച് **അതേ**
+  അക്കൗണ്ട് ഉടൻ പുനഃശ്രമിക്കുകയും ചെയ്യുന്നു; പ്രഖ്യാപിച്ച
+  `anthropic-ratelimit-unified-reset` (+60s ഗ്രേസ്) വരെയും ലെയിൻ സജീവമായി തുടരും, ആ സമയപരിധിയിലെ എല്ലാ അഭ്യർത്ഥനകളിലും
+  ഹെഡർ ഉൾപ്പെടും. തടഞ്ഞുവെച്ച 429 ഒരിക്കലും `handleChatCore`-ലേക്ക് എത്തില്ല, അതിനാൽ കണക്ഷൻ
+  കൂൾഡൗണിൽ ആക്കുകയോ മറ്റൊന്നിലേക്ക് റൊട്ടേറ്റ് ചെയ്യുകയോ ഇല്ല.
+- പിന്നീടുള്ള റെസ്പോൺസുകളിലെ `anthropic-ratelimit-unified-slow-status`: `active` / `not_needed`
+  ലെയിൻ നിലനിർത്തും; `slot_busy` (429) അല്ലെങ്കിൽ ഒരു `529`, സെർവറിന്റെ
+  `anthropic-ratelimit-unified-slow-retry-after` അനുസരിച്ച് കാത്തിരിക്കുകയും (ഡിഫോൾട്ട് 20s, 5–600s ആയി പരിമിതപ്പെടുത്തുന്നു, ±30% ജിറ്റർ)
+  പുനഃശ്രമിക്കുകയും ചെയ്യും; ഇത് `anthropic-ratelimit-unified-slow-max-wait` പ്രകാരം പരിമിതമാണ് (ഡിഫോൾട്ട് 20 മിനിറ്റ്, 1 മിനിറ്റ്–6 മണിക്കൂർ ആയി
+  പരിമിതപ്പെടുത്തുന്നു) — അത് കഴിഞ്ഞാൽ ലെയിൻ അവസാനിക്കുകയും 10-മിനിറ്റ് കൂൾ-ഓഫ് വീണ്ടും സ്വീകരിക്കുന്നത് തടയുകയും ചെയ്യും.
+  അഭ്യർത്ഥനയുടെ സ്വന്തം അപ്സ്ട്രീം-സ്റ്റാർട്ട് ടൈംഔട്ടിൽ ശേഷിക്കുന്ന സമയം
+  (`resolveFetchStartTimeout`, ഡിഫോൾട്ടായി 10 മിനിറ്റ്) മൈനസ് 5 s മാർജിൻ അനുസരിച്ചും കാത്തിരിപ്പ് പരിമിതപ്പെടുത്തുന്നു: ആ പരിധിയില്ലെങ്കിൽ
+  ഡിഫോൾട്ട് 20-മിനിറ്റ് പരമാവധി കാത്തിരിപ്പ് അഭ്യർത്ഥനയുടെ ആയുസ്സിനെ മറികടക്കുകയും സ്ലീപ്പ്
+  കാത്തിരിപ്പിനിടയിൽ അബോർട്ട് ചെയ്യപ്പെടുകയും ചെയ്യും; ഇതുമൂലം ഭംഗിയായ `max_wait` അവസാനവും കൂൾ-ഓഫും ലഭിക്കുന്നതിന് പകരം
+  `TimeoutError` പുറത്തുവരും.
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, 5h-വിൻഡോ റോൾഓവർ, അല്ലെങ്കിൽ
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (പണമടച്ചുള്ള അധിക ഉപയോഗം ഇപ്പോൾ പരിധി മറികടക്കുന്നതിനാൽ,
+  ഏത് സ്റ്റാറ്റസിലും ഇത് `extra_usage` ആയി അവസാനിപ്പിക്കും) ലെയിൻ അവസാനിപ്പിക്കും; തുടർന്ന്
+  റെസ്പോൺസ് സാധാരണ കൂൾഡൗൺ പാതയിലേക്ക് പോകും. പ്രഖ്യാപിച്ച ബജറ്റ് റീസെറ്റ് (≤ 8 ദിവസം) വരെയും `budget_exhausted` ഓർമ്മിച്ചുവെക്കും.
+- എക്സിക്യൂട്ടറിന്റെ സ്വന്തം 400-പ്രേരിത ഇൻട്രാ-അറ്റംപ്റ്റ് പുനഃശ്രമങ്ങൾക്ക് ശേഷം (കോൺടെക്സ്റ്റ്
+  എഡിറ്റിംഗ്, തിങ്കിങ്/എഫർട്ട് ക്ലാമ്പുകൾ, പാരാമീറ്റർ ഓട്ടോ-ലേൺ) പരിധി പരിശോധന പ്രവർത്തിക്കുന്നു; അതിനാൽ
+  അത്തരം പുനഃശ്രമങ്ങളിലൊന്നിൽ മാത്രം പ്രത്യക്ഷപ്പെടുന്ന പരിധി 429 പോലും കൂൾഡൗൺ പാതയിലെത്തുന്നതിന് പകരം തടഞ്ഞുവെക്കപ്പെടും.
+- ഓരോ കണക്ഷനിലെയും നില ഇൻ-മെമ്മറിയിലാണ് (ഒരു റീസ്റ്റാർട്ടിന് വീണ്ടും സ്വീകരിക്കാൻ ഒരു അധിക പരിധി 429 ആവശ്യമായി വരും).
 
-**വ്യാപ്തി:** സജീവമായ ഒരു മാനേജ്ഡ് HTTP ക്ലയന്റ്/സെഷൻ, യോഗ്യമായ ഒരു OmniRoute കണക്ഷന്റെ ഉടമസ്ഥത വഹിക്കുന്നു.
+**സെഷൻ-പരിധി റീസെറ്റ്** (`autoLimitReset`, രണ്ടും ഓണായിരിക്കുമ്പോൾ ലെയിനിന് മുമ്പ് ശ്രമിക്കുന്നു):
 
-**ഉദ്ദേശ്യം:** അഭ്യർത്ഥനകളിലുടനീളം കർശനമായ റൂട്ടിങ് പരിധി ആവശ്യമായ ക്ലയന്റുകൾക്ക് ദീർഘകാലം നിലനിൽക്കുന്ന എക്സ്ക്ലൂസീവ് കണക്ഷൻ ഉടമസ്ഥത നൽകുക. സോഫ്റ്റ് കണ്ടിന്യൂയിറ്റി മുൻഗണനയായ സെഷൻ അഫിനിറ്റിയിൽനിന്ന് ഇത് വ്യത്യസ്തമാണ്: ഒരു എക്സ്ക്ലൂസീവ് ലീസ് SQLite-ൽ ലൈഫ്സൈക്കിൾ നില നിലനിർത്തുകയും, ഗ്ലോബൽ സജീവ-ഉടമ, സജീവ-കണക്ഷൻ ഏകത്വം നിർബന്ധമാക്കുകയും, പ്രൊവൈഡർ ഡിസ്പാച്ചിന് മുമ്പ് കാലഹരണപ്പെട്ട ഒരു ജനറേഷൻ നിരസിക്കുകയും ചെയ്യുന്നു.
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → `juniper_tide`
+  ബ്ലോക്ക്; `arm: "reset"` എന്നും `available: true` എന്നും ആയിരിക്കുമ്പോൾ,
+  `{ "program": "juniper_tide" }` സഹിതം
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits`
+  (`providerSpecificData.organizationUUID`-ൽ നിന്നുള്ള ഓർഗനൈസേഷൻ UUID, ബൂട്ട്സ്ട്രാപ്പ് ഫാൾബാക്ക്).
+- `result: reset|not_limited` → അഭ്യർത്ഥന പൂർണ്ണ വേഗത്തിൽ പുനഃശ്രമിക്കുന്നു (സ്ലോ ഹെഡർ ഇല്ല).
+  `already_used` / `not_offered`, `next_available_at` ഓർമ്മിച്ചുവെക്കും (ഡിഫോൾട്ട് ഒരു ആഴ്ച);
+  ഏത് പരാജയവും 15 മിനിറ്റ് ബാക്ക്ഓഫ് ചെയ്യും. റീസെറ്റ് ആഴ്ചയിൽ ഒരിക്കൽ മാത്രമാണ്, എന്നിരുന്നാലും അത് പ്രതിവാര പരിധിയിൽ കണക്കാക്കപ്പെടും.
 
-ഓരോ API കീയ്ക്കും പ്രത്യേകം തിരഞ്ഞെടുക്കാവുന്ന ഫീച്ചറാണിത്. ഒരു മാനേജ്ഡ് കീയ്ക്ക് `lease:exclusive` സ്കോപ്പും വ്യക്തമായി നൽകിയ ശൂന്യമല്ലാത്ത `allowedConnections` ലിസ്റ്റും ഉണ്ടായിരിക്കണം. ഏതൊരു HTTP ക്ലയന്റിനും ലൈഫ്സൈക്കിൾ എൻഡ്പോയിന്റ് ഉപയോഗിക്കാം; ക്ലയന്റ് പേര്, യൂസർ-ഏജന്റ്, പ്രൊവൈഡർ, OAuth രീതി, അല്ലെങ്കിൽ മോഡൽ എന്നിവയൊന്നും ആവശ്യമില്ല. ലീസ് ഒരു കണക്ഷന്റെ ഉടമസ്ഥതയാണ് വഹിക്കുന്നത്, മോഡലിന്റേതല്ല; അതിനാൽ കണക്ഷൻ സാധാരണ രീതിയിൽ യോഗ്യമായി തുടരുന്നിടത്തോളം മോഡൽ മാറിയാലും ബൈൻഡിങ് നിലനിൽക്കും. സാധാരണ മോഡൽ, ക്വോട്ട, ഹെൽത്ത്, കൂൾഡൗൺ, അലൗലിസ്റ്റ് നിയമങ്ങൾക്കാണ് തുടർന്നും ആധികാരികത; അവ അതേ ജനറേഷനെ സ്വതന്ത്രവും യോഗ്യവുമായ മറ്റൊരു കണക്ഷനിലേക്ക് മാറ്റിയേക്കാം.
+റിഗ്രഷൻ സംരക്ഷണങ്ങൾ: `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
 
-JSON ആക്ഷനുകളായ `acquire`, `renew`, `release` എന്നിവയോടുകൂടിയ `POST /api/v1/session-leases` ആണ് ലൈഫ്സൈക്കിൾ. മാനേജ്ഡ് ഇൻഫറൻസ് അഭ്യർത്ഥനകൾ ഒപേക്ക് `X-OmniRoute-Lease-Owner` മൂല്യവും കൃത്യമായ `X-OmniRoute-Lease-Generation`-ഉം നൽകുന്നു. ഉടമ `vlo_`-നും പിന്നാലെ 43 base64url പ്രതീകങ്ങളും ഉപയോഗിക്കുന്നു; അതിന്റെ SHA-256 ഹാഷ് മാത്രമാണ് സംഭരിക്കുന്നത്. ഓരോ അന്തിമ ഡിസ്പാച്ച് പരിധിയും ഓതന്റിക്കേറ്റ് ചെയ്ത API കീ ഐഡിയെയും സജീവ കണക്ഷൻ ഐഡിയെയും ബന്ധിപ്പിക്കുന്നു. ലീസ് നിയന്ത്രണ ഹെഡറുകൾ ലോഗുകൾ, നിലനിർത്തിയ അഭ്യർത്ഥന സ്നാപ്പ്ഷോട്ടുകൾ, അപ്സ്ട്രീം എക്സിക്യൂട്ടർ ഹെഡറുകൾ എന്നിവയിൽനിന്ന് നീക്കം ചെയ്യപ്പെടുന്നു.
+### സെഷൻ അഫിനിറ്റി (#7274)
 
-സാധാരണ റൂട്ടിങ്ങിൽ യോഗ്യമായ മാനേജ്ഡ് കാൻഡിഡേറ്റുകൾ ഉണ്ടായിട്ടും എല്ലാ സ്വതന്ത്ര കാൻഡിഡേറ്റുകളും മറ്റൊരു സജീവ ലീസിന്റെ അധീനതയിലാണെങ്കിൽ, OmniRoute HTTP `429`, ലീസ്-കപ്പാസിറ്റി-ലഭ്യമല്ല കോഡ്, കപ്പാസിറ്റിക്കായി കാത്തിരിക്കുന്ന നില, പ്രസക്തമായ ഏറ്റവും നേരത്തെയുള്ള കാലാവധിയിൽനിന്ന് നിർണയിക്കുന്ന പരിധിയുള്ള `Retry-After` എന്നിവ നൽകുന്നു. സാധാരണ രീതിയിലുള്ള ശൂന്യമായ യോഗ്യത ലീസ് മത്സരമല്ല; അത് നിലവിലുള്ള റൂട്ടിങ് പിശക് സെമാന്റിക്സ് നിലനിർത്തുന്നു.
+**പരിധി:** **ഏത്** പ്രൊവൈഡറിനും, ഒരു കണക്ഷനിലേക്ക് പിൻ ചെയ്ത ഒരു ക്ലയന്റ് സെഷൻ (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` ഹെഡർ).
 
-അനുബന്ധ സംവിധാനങ്ങൾ വേറിട്ടുതന്നെ തുടരുന്നു:
+**ഉദ്ദേശ്യം:** അഭ്യർത്ഥനകളിലുടനീളം ഒരു multi-turn agent-നെ (Claude Code, aider, custom agents) ഒരേ അക്കൗണ്ടിൽ നിലനിർത്തുക; അതുവഴി അക്കൗണ്ടുകൾക്കിടയിലെ context നഷ്ടവും ഓരോ അക്കൗണ്ടിനും session state ഉള്ള providers-ൽ ആവർത്തിച്ചുണ്ടാകുന്ന cold-start 429-കളും കുറയ്ക്കുക.
 
-- OAuth സെഷൻ ഒക്ക്യുപൻസി എന്നത് OAuth അക്കൗണ്ടുകൾക്കായുള്ള പ്രോസസ്-ലോക്കൽ സോഫ്റ്റ് ഡിസ്ട്രിബ്യൂഷനാണ്.
-- അക്കൗണ്ട് സെമഫോറുകൾ അഭ്യർത്ഥന-കൺകറൻസി പെർമിറ്റുകൾ അനുവദിക്കുകയും ഒരു അഭ്യർത്ഥന പൂർത്തിയാകുമ്പോൾ അവസാനിക്കുകയും ചെയ്യുന്നു.
-- എക്സ്ക്ലൂസീവ് മാനേജ്ഡ് സെഷൻ ലീസുകൾ എന്നത് ജനറേഷൻ പരിധിയോടുകൂടിയ, ദീർഘകാലം നിലനിൽക്കുന്ന ലൈഫ്സൈക്കിൾ ഉടമസ്ഥതയാണ്.
+**നടപ്പാക്കൽ:**
+
+- TTL നിർണ്ണയം: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
+- Pin തിരഞ്ഞെടുക്കൽ/സൃഷ്ടിക്കൽ: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
+- Header വേർതിരിച്ചെടുക്കൽ (പൊതുവായത്, ഏത് provider-നും): `src/sse/services/auth.ts::extractSessionAffinityKey()`
+- Persist ചെയ്ത pin table: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- Setting: `sessionAffinityTtlMs` (ms-ലുള്ള global TTL, `0` പ്രവർത്തനരഹിതമാക്കുന്നു) — `src/lib/db/settings.ts`. Codex-ന് മാത്രം ബാധകമായിരുന്ന `codexSessionAffinityTtlMs` എന്നതിൽ നിന്ന് `124_generic_session_affinity_ttl.sql` migration വഴി പുനർനാമകരണം ചെയ്തു; മുമ്പ് configure ചെയ്തിരുന്ന ഏതൊരു Codex TTL-ഉം ഇത് പുതിയ default ആയി നിലനിർത്തുന്നു.
+
+#7274-ന് മുമ്പ്, `codex` ഒഴികെയുള്ള എല്ലാ provider-കൾക്കും `resolveSessionAffinityTtlMs()` ഉടൻ `0` മടക്കിനൽകിയിരുന്നു. അതിനാൽ pinning mechanism-വും header extraction-വും ഇതിനകം provider-agnostic ആയിരുന്നിട്ടും, TTL setting-നും session headers-നും മറ്റെവിടെയും ഫലമുണ്ടായിരുന്നില്ല. ഈ പരിഹാരം ആ early-return നീക്കം ചെയ്തു; ഇപ്പോൾ global ആയി `0`-ന് മുകളിലുള്ള മൂല്യം സജ്ജീകരിച്ചാൽ TTL എല്ലാ provider-കൾക്കും ഒരേപോലെ ബാധകമാകും.
+
+മൂന്ന് session-affinity headers-ഉം upstream-ലേക്ക് ഒരിക്കലും forward ചെയ്യപ്പെടുന്നില്ല — client headers അതേപടി കടത്തിവിടുന്നതിനുപകരം executors അവരുടെ upstream headers ആദ്യം മുതൽ സ്വയം നിർമ്മിക്കുന്നു. അതിനാൽ ഇത് ഒരു internal correlation id മാത്രമായി തുടരുന്നു.
+
+### Exclusive managed session connection leases
+
+**വ്യാപ്തി:** സജീവമായ ഒരു managed HTTP client/session, യോഗ്യമായ ഒരു OmniRoute connection-ന്റെ ഉടമയായിരിക്കും.
+
+**ഉദ്ദേശ്യം:** അഭ്യർത്ഥനകളിലുടനീളം കർശനമായ routing fence ആവശ്യമുള്ള clients-ന് ദീർഘകാല exclusive connection ownership നൽകുക. ഇത് soft continuity preference ആയ session affinity-യിൽ നിന്ന് വ്യത്യസ്തമാണ്: ഒരു exclusive lease lifecycle state SQLite-ൽ persist ചെയ്യുകയും global active-owner, active-connection uniqueness നടപ്പാക്കുകയും provider dispatch-ന് മുമ്പ് stale generation നിരസിക്കുകയും ചെയ്യുന്നു.
+
+ഈ feature ഓരോ API key-ക്കും opt-in ആണ്. ഒരു managed key-ക്ക് `lease:exclusive` scope-ഉം വ്യക്തമായി നൽകിയ, ശൂന്യമല്ലാത്ത `allowedConnections` list-ഉം ഉണ്ടായിരിക്കണം. ഏത് HTTP client-നും lifecycle endpoint ഉപയോഗിക്കാം; client name, user-agent, provider, OAuth method, അല്ലെങ്കിൽ model ഒന്നും ആവശ്യമില്ല. Lease ഒരു connection-നെയാണ് സ്വന്തമാക്കുന്നത്, model-നെ അല്ല. അതിനാൽ connection സാധാരണ രീതിയിൽ eligible ആയി തുടരുന്നിടത്തോളം model മാറിയാലും binding നിലനിൽക്കും. സാധാരണ model, quota, health, cooldown, allowlist നിയമങ്ങൾ തുടർന്നും ആധികാരികമായിരിക്കും; അവ ഒരേ generation-നെ മറ്റൊരു സ്വതന്ത്രവും യോഗ്യവുമായ connection-ലേക്ക് മാറ്റിയേക്കാം.
+
+Lifecycle എന്നത് `acquire`, `renew`, `release` എന്നീ JSON actions സഹിതമുള്ള `POST /api/v1/session-leases` ആണ്. Managed inference requests opaque ആയ `X-OmniRoute-Lease-Owner` മൂല്യവും കൃത്യമായ `X-OmniRoute-Lease-Generation` മൂല്യവും നൽകുന്നു. Owner-ൽ `vlo_`-ന് പിന്നാലെ 43 base64url characters ഉണ്ടായിരിക്കും; അതിന്റെ SHA-256 hash മാത്രമാണ് സംഭരിക്കുന്നത്. ഓരോ final dispatch fence-ഉം authenticated API key ID-യെയും active connection ID-യെയും കൂടി bind ചെയ്യുന്നു. Lease control headers logs, retained request snapshots, upstream executor headers എന്നിവയിൽ നിന്ന് നീക്കംചെയ്യപ്പെടുന്നു.
+
+സാധാരണ routing-ൽ eligible managed candidates ഉണ്ടായിരിക്കെ സ്വതന്ത്രമായ ഓരോ candidate-ഉം മറ്റൊരാളുടെ active lease കൈവശപ്പെടുത്തിയിട്ടുണ്ടെങ്കിൽ, OmniRoute HTTP `429`, lease-capacity-unavailable code, waiting-for-capacity state, കൂടാതെ ഏറ്റവും നേരത്തെയുള്ള പ്രസക്തമായ expiry-യിൽ നിന്ന് കണക്കാക്കുന്ന പരിധിയുള്ള `Retry-After` എന്നിവ മടക്കിനൽകുന്നു. സാധാരണ empty eligibility lease contention അല്ല; അതിനാൽ നിലവിലുള്ള routing error semantics തന്നെ അത് നിലനിർത്തുന്നു.
+
+ബന്ധപ്പെട്ട mechanisms വേർതിരിച്ചുതന്നെ തുടരുന്നു:
+
+- OAuth session occupancy എന്നത് OAuth accounts-നുള്ള process-local soft distribution ആണ്.
+- Account semaphores request-concurrency permits നൽകുകയും ഒരു request പൂർത്തിയാകുമ്പോൾ അവസാനിക്കുകയും ചെയ്യുന്നു.
+- Exclusive managed session leases എന്നത് generation fence ഉള്ള durable lifecycle ownership ആണ്.
 
 ---
 
@@ -236,28 +295,80 @@ UI: Settings → Model Cooldowns (`src/app/(dashboard)/dashboard/settings/compon
 
 ---
 
-## 5. അഭ്യർത്ഥനാ ക്യൂ പ്രവേശന നിയന്ത്രണം (v3.8.49 · issue #6593)
+## 5. അഭ്യർത്ഥന ക്യൂ അഡ്മിഷൻ നിയന്ത്രണം (v3.8.49 · issue #6593)
 
-**പരിധി**: മുകളിലുള്ള മൂന്ന് സംവിധാനങ്ങൾക്കു തൊട്ടുതാഴെയുള്ള, പ്രാദേശികമായി ഓരോ provider+connection-നുമുള്ള നിരക്ക്-പരിധി ക്യൂ (`open-sse/services/rateLimitManager.ts`, Bottleneck അടിസ്ഥാനമാക്കിയത്).
+**പരിധി**: ലോക്കൽ per-provider+connection നിരക്ക്-പരിധി ക്യൂ (`open-sse/services/rateLimitManager.ts`,
+Bottleneck അടിസ്ഥാനമാക്കിയുള്ളത്), മുകളിലെ മൂന്ന് സംവിധാനങ്ങൾക്കു താഴെയുള്ള ഒരു പാളി.
 
-**`maxWaitMs` എന്നത് എക്സിക്യൂഷൻ കാലഹരണപ്പെടലിനായി നിലനിർത്തിയിരിക്കുന്ന ഒരു പഴയ പേരാണ്.**
-`resilienceSettings.requestQueue.maxWaitMs`, Bottleneck-ലേക്ക് ജോബ് `expiration` ആയി കൈമാറുന്നു; അതിന്റെ ടൈമർ ഡിസ്പാച്ചിനുശേഷം മാത്രമാണ് ആരംഭിക്കുന്നത്. അതിനാൽ ഇത് പ്രാദേശിക ക്യൂവിൽ ചെലവഴിക്കുന്ന സമയത്തെയല്ല, ലിമിറ്റർ നിയന്ത്രിക്കുന്ന എക്സിക്യൂഷനെയാണ് പരിമിതപ്പെടുത്തുന്നത്. കാലഹരണപ്പെടൽ വിശ്വസനീയമായ പ്രാദേശിക `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504) ആയി റിപ്പോർട്ട് ചെയ്യപ്പെടുന്നു; പഴയ ക്യൂ-ടൈംഔട്ട് കോഡ് പേര്, വിശ്വസനീയമായ ആന്തരിക ബാക്ക്വേഡ് കോംപാറ്റിബിലിറ്റിക്കായി മാത്രമേ സ്വീകരിക്കൂ. ഡിഫോൾട്ട് 15000ms ആണ്; `RATE_LIMIT_MAX_WAIT_MS` (env) വഴിയോ ഡാഷ്ബോർഡിലൂടെയോ (**Settings → Resilience**, 1–30000ms UI പരമാവധി) ഇത് മാറ്റിയെഴുതാം. ക്യൂവിൽ തുടരുന്ന സമയത്തിന് സമയപരിധിയില്ല; ക്യൂവിലുള്ള കോളർമാരുടെ എണ്ണം പരിമിതപ്പെടുത്താൻ താഴെയുള്ള `maxQueueDepth` ഉപയോഗിക്കുക.
+**`maxWaitMs` ക്യൂ കാത്തിരിപ്പ് പരിമിതപ്പെടുത്തുന്നു; `executionMaxWaitMs` നിർവഹണം പരിമിതപ്പെടുത്തുന്നു.**
+ഇവ രണ്ടും മനഃപൂർവം വേർതിരിച്ചവയാണ്; ഒന്നും മറ്റൊന്നിനെ സ്വാധീനിക്കുന്നില്ല.
 
-**`maxQueueDepth` — തിരഞ്ഞെടുക്കാവുന്ന പ്രവേശന പരിധി (പുതിയത്).** ഒരേസമയം ഒരു provider+connection-നായി ക്യൂവിൽ (ഇതുവരെ ഡിസ്പാച്ച് ചെയ്യാത്തവയായി) എത്ര അഭ്യർത്ഥനകൾ ഇരിക്കാമെന്ന് `resilienceSettings.requestQueue.maxQueueDepth` പരിമിതപ്പെടുത്തുന്നു. ക്യൂവിൽ ഇതിനകം `maxQueueDepth` അഭ്യർത്ഥനകളുണ്ടെങ്കിൽ, ഒരു പുതിയ അഭ്യർത്ഥന `limiter.schedule()`-ൽ എത്തുന്നതിന് **മുമ്പുതന്നെ** ടൈപ്പ് ചെയ്ത `code: "RATE_LIMIT_QUEUE_FULL"` പിശകോടെ ഉടനടി നിരസിക്കപ്പെടുന്നു — അതിനാൽ നിരസിക്കൽ ചെലവുകുറഞ്ഞതാണ്, കൂടാതെ ആ അഭ്യർത്ഥനയ്ക്കായുള്ള ഏതെങ്കിലും ഡൗൺസ്ട്രീം പ്രോംപ്റ്റ്-കംപ്രഷൻ / വിവർത്തന പ്രവർത്തനങ്ങൾക്ക് മുമ്പുതന്നെ ഇത് സംഭവിക്കുന്നു. ഡിഫോൾട്ട് `0` = പ്രവർത്തനരഹിതം; ഇത് നിലവിലെ പരിധിയില്ലാത്ത ക്യൂ പ്രവർത്തനരീതി നിലനിർത്തുന്നു; അനുവദനീയമായ പരിധി 0–100000. `RATE_LIMIT_MAX_QUEUE_DEPTH` (env) വഴിയോ `resilienceSettings.requestQueue.maxQueueDepth` (dashboard/API patch) വഴിയോ ഇത് മാറ്റിയെഴുതാം.
+`resilienceSettings.requestQueue.maxWaitMs` എന്നത് **ക്യൂ-കാത്തിരിപ്പ് ബജറ്റ്** ആണ്:
+ഒരു provider സ്ലോട്ടിനായി കാത്തിരിക്കുന്നതും തുടർന്ന് QUEUED നിലയിൽ തുടരുന്നതും ഇതിൽ
+ഉൾപ്പെടുന്നു; ജോലി QUEUED നില വിട്ട് നിർവഹണം ആരംഭിക്കുന്ന നിമിഷം തന്നെ ഇതിന്റെ ടൈമർ
+മായ്ക്കപ്പെടുന്നു (`rateLimitManager.ts`, `wrappedFn`). ഇത് കവിയുന്ന ഒരു അഭ്യർത്ഥന
+ഒരിക്കലും upstream-ൽ എത്തില്ല. ഡിഫോൾട്ട് 30000ms ആണ്; ഇത്
+`src/lib/resilience/settings.ts`-ലെ `DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS` നൽകുകയും
+`tests/unit/ratelimit-admission-control-6593.test.ts` ഉറപ്പിക്കുകയും ചെയ്യുന്നു.
+അതിനാൽ ഇതിൽ മാറ്റം വരുത്തിയാൽ, ഈ ഖണ്ഡിക ശ്രദ്ധിക്കപ്പെടാതെ കാലഹരണപ്പെടുന്നതിന് പകരം
+ആ ടെസ്റ്റ് പരാജയപ്പെടും.
 
-പ്രവേശന പരിശോധന തന്നെ ഒരു പ്യൂർ ഫങ്ഷനാണ് (`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`), അതിനാൽ യഥാർഥ Bottleneck ലിമിറ്റർ ഇല്ലാതെയും ഇതിന് യൂണിറ്റ് ടെസ്റ്റ് നടത്താം.
+Bottleneck-ന് ജോലിയുടെ `expiration` ആയി ലഭിക്കുന്നത്
+`resilienceSettings.requestQueue.executionMaxWaitMs` ആണ്; അതിന്റെ ടൈമർ dispatch
+ചെയ്തതിനുശേഷം മാത്രമാണ് ആരംഭിക്കുന്നത്. സ്വന്തമായി upstream timeout ഇല്ലാത്ത
+executors-ക്കുള്ള ഒരു സുരക്ഷാ പരിധിയാണിത്; executor-ന്റെ സ്വന്തം fetch-start
+timeout ഇതിലും ദൈർഘ്യമേറിയതാണെങ്കിൽ, ഇതും ആ സമയപരിധിയിലേക്ക് ഉയർത്തപ്പെടും. അതിനാൽ
+ആരോഗ്യകരമായി പുരോഗമിക്കുന്ന in-flight response-നെ ഇതിന് ഇടയിൽ നിർത്താനാവില്ല.
+ഡിഫോൾട്ട് 600000ms (10 മിനിറ്റ്).
 
-> #6593 ആരംഭിച്ച RFC ഒരു `bypassCompressionOnRateLimit`
-> ഫ്ലാഗും നിർദേശിച്ചിരുന്നു. ഈ റിപ്പോയിലെ `open-sse/services/compression/` പൈപ്പ്ലൈൻ,
-> ഔട്ട്ബൗണ്ട് LLM അഭ്യർത്ഥനയിലെ (`chatCore.ts`,
-> `resolveCompressionSettings`/`selectCompressionStrategy` ബ്ലോക്കിന് സമീപമുള്ള)
-> പ്രോംപ്റ്റ്/കോൺടെക്സ്റ്റ് കംപ്രഷനാണ്; സൃഷ്ടിച്ച 429 ബോഡികളിലെ HTTP പ്രതികരണ
-> കംപ്രഷനല്ല — ഒരു ലിറ്ററൽ bypass ഫ്ലാഗിന് അനുയോജ്യമായ കോഡ് പാത ഇവിടെ ഇല്ല.
-> ആ പ്രോംപ്റ്റ്-കംപ്രഷൻ ഘട്ടം നിലവിൽ അഭ്യർത്ഥനാ പൈപ്പ്ലൈനിൽ `withRateLimit()`-ന്
-> _മുമ്പും_ പ്രവർത്തിക്കുന്നു. അതിനാൽ queue-full നിരസിക്കലിൽ അത് ഒഴിവാക്കാൻ
-> ക്രമം മാറ്റുന്നത് ഈ issue-ന്റെ പരിധിയേക്കാൾ വേറിട്ടതും വലുതുമായ ഒരു മാറ്റമാണ്;
-> അത് ഇവിടെ മനഃപൂർവം നടപ്പാക്കിയിട്ടില്ല. CPU ലാഭം ക്രമം മാറ്റുന്നതിന്റെ
-> അപകടസാധ്യതയ്ക്കു തക്കതാണെങ്കിൽ, ഒരു തുടർനടപടിയായി അത് ശേഷിപ്പിച്ചിരിക്കുന്നു.
+ക്യൂ ബജറ്റിനെ `expiration`-ലേക്ക് നൽകുന്നതാണ് മുമ്പ് non-incremental gateways-നെ
+പ്രവർത്തനത്തിനിടയിൽ അവസാനിപ്പിച്ചിരുന്നത് — ആദ്യ bytes ലഭിക്കുന്നതിന് മുമ്പ് അവ
+ന്യായമായും മിനിറ്റുകളോളം പ്രവർത്തിക്കും — അതുകൊണ്ടാണ് expiration സംഭവിക്കുമ്പോൾ
+അത് `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504) ആയി പുറത്തുകൊണ്ടുവരുന്നത്;
+അതേസമയം ക്യൂ ബജറ്റിന് queue-timeout code ആയിരിക്കും. `RATE_LIMIT_MAX_WAIT_MS` /
+`RATE_LIMIT_EXECUTION_MAX_WAIT_MS` (env) വഴിയോ dashboard-ലെ
+(**Settings → Resilience**) ക്രമീകരണത്തിലൂടെയോ ഇവയിൽ ഏതെങ്കിലും override ചെയ്യാം.
+normalise ചെയ്യുമ്പോൾ രണ്ടും 1ms–24h പരിധിക്കുള്ളിൽ നിയന്ത്രിക്കപ്പെടുന്നു.
+
+**രണ്ടിനുമുള്ള മുൻഗണനാക്രമം:** env var _ഡിഫോൾട്ട്_ മാത്രമാണ് നൽകുന്നത്.
+`resilienceSettings.requestQueue`-ൽ സ്ഥിരമായി സൂക്ഷിച്ചിരിക്കുന്ന ഒരു മൂല്യം
+(dashboard / API patch, `key_value`-ൽ സംഭരിച്ചത്) അതിനെക്കാൾ മുൻഗണന നേടും;
+അതിലും മുകളിൽ per-connection `rateLimitOverrides.maxWaitMs` /
+`.executionMaxWaitMs` മുൻഗണന നേടും. അതിനാൽ ഇതിനകം സ്ഥിരമായി സൂക്ഷിച്ച മൂല്യമുള്ള
+ഒരു deployment-ൽ env var സജ്ജീകരിക്കുന്നത് ഒന്നും മാറ്റില്ല — പകരം സ്ഥിരമായി
+സൂക്ഷിച്ച ക്രമീകരണം മായ്ക്കുകയോ പുതുക്കുകയോ ചെയ്യുക.
+
+ക്യൂവിൽ തുടരാവുന്ന സമയം `maxWaitMs` പരിമിതപ്പെടുത്തുന്നു; ഒരേസമയം എത്ര callers
+ക്യൂവിൽ ഉണ്ടാകാമെന്ന് താഴെയുള്ള `maxQueueDepth` പരിമിതപ്പെടുത്തുന്നു.
+
+**`maxQueueDepth` — opt-in അഡ്മിഷൻ പരിധി (പുതിയത്).** ഒരു
+provider+connection-നായി ഒരേസമയം എത്ര അഭ്യർത്ഥനകൾ ക്യൂവിൽ (ഇനിയും dispatch
+ചെയ്യാതെ) തുടരാമെന്ന് `resilienceSettings.requestQueue.maxQueueDepth`
+പരിമിതപ്പെടുത്തുന്നു. ക്യൂവിൽ ഇതിനകം `maxQueueDepth` അഭ്യർത്ഥനകൾ ഉണ്ടെങ്കിൽ,
+പുതിയ അഭ്യർത്ഥന `limiter.schedule()`-ൽ എത്തുന്നതിന് **മുമ്പ്** തന്നെ typed
+`code: "RATE_LIMIT_QUEUE_FULL"` പിശകോടെ ഉടൻ നിരസിക്കപ്പെടും — അതിനാൽ നിരസിക്കൽ
+ചെലവ് കുറഞ്ഞതും, ആ അഭ്യർത്ഥനയ്ക്കായുള്ള ഏതെങ്കിലും downstream
+prompt-compression / translation പ്രവർത്തനങ്ങൾക്ക് മുമ്പ് സംഭവിക്കുന്നതുമാണ്.
+ഡിഫോൾട്ട് `0` = പ്രവർത്തനരഹിതം; ഇത് നിലവിലുള്ള പരിധിയില്ലാത്ത-ക്യൂ പെരുമാറ്റം
+നിലനിർത്തുന്നു; പരിധി 0–100000. `RATE_LIMIT_MAX_QUEUE_DEPTH` (env) വഴിയോ
+`resilienceSettings.requestQueue.maxQueueDepth` (dashboard/API patch) വഴിയോ
+override ചെയ്യാം.
+
+അഡ്മിഷൻ പരിശോധന തന്നെ ഒരു pure function ആണ്
+(`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`), അതിനാൽ
+യഥാർത്ഥ Bottleneck limiter ഇല്ലാതെയും ഇത് unit-test ചെയ്യാനാകും.
+
+> #6593 ആരംഭിച്ച RFC ഒരു `bypassCompressionOnRateLimit` flag-ഉം
+> നിർദേശിച്ചിരുന്നു. ഈ repo-യിലെ `open-sse/services/compression/` pipeline,
+> outbound LLM അഭ്യർത്ഥനയിലെ prompt/context compression ആണ് (`chatCore.ts`,
+> `resolveCompressionSettings`/`selectCompressionStrategy` block-ന് സമീപം);
+> synthesized 429 bodies-ലെ HTTP response compression അല്ല — അക്ഷരാർത്ഥത്തിലുള്ള
+> bypass flag-ന് യോജിക്കുന്ന code path ഒന്നുമില്ല. ആ prompt-compression ഘട്ടം
+> നിലവിൽ request pipeline-ൽ `withRateLimit()`-ന് _മുമ്പാണ്_ പ്രവർത്തിക്കുന്നത്.
+> അതിനാൽ queue-full നിരസിക്കലിൽ അത് ഒഴിവാക്കുന്നതിനായി ക്രമം മാറ്റുന്നത് ഈ
+> issue-ന്റെ പരിധിയേക്കാൾ വേറിട്ടതും വലുതുമായ മാറ്റമാണ്; അത് ഇവിടെ
+> മനഃപൂർവം നടപ്പാക്കിയിട്ടില്ല. CPU ലാഭം ക്രമം മാറ്റുന്നതിലെ അപകടസാധ്യതയ്ക്ക്
+> മൂല്യമുള്ളതാണെങ്കിൽ, തുടർനടപടിയായി അത് ശേഷിപ്പിച്ചിരിക്കുന്നു.
 
 ---
 

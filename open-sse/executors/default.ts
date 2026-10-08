@@ -1,5 +1,4 @@
 import { createHash } from "node:crypto";
-
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { mapNvidiaGlm52ReasoningParams } from "./base/reasoningEffort.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
@@ -14,8 +13,9 @@ import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { getRegistryEntry, requireCompatibleBaseUrl } from "../config/providerRegistry.ts";
 import { getModelTargetFormat } from "../config/providerModels.ts";
 import {
-  mergeClientAnthropicBeta,
+  applyClientAnthropicBeta,
   normalizeAnthropicHeaderVariants,
+  maybeAppendSkillsBeta,
 } from "../config/anthropicHeaders.ts";
 import { isOfficialAnthropicBaseUrl } from "../utils/anthropicHost.ts";
 import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
@@ -40,7 +40,6 @@ import {
   normalizeWatsonxChatUrl,
   normalizeOciChatUrl,
   normalizeSapChatUrl,
-  normalizeXiaomiMimoChatUrl,
   normalizeOpenAIChatUrl,
   getOpenRouterConnectionPreset,
 } from "./default/urlNormalizers.ts";
@@ -61,10 +60,12 @@ import {
 } from "@/lib/providers/validation/urlHelpers";
 import { forwardOpencodeClientHeaders } from "../utils/opencodeHeaders.ts";
 import { resolveZaiUrl } from "./default/zaiFormatOverride.ts";
-import { normalizePoolConfig } from "./default/poolConfig.ts";
+import { normalizePoolConfig, rejectStrictPool } from "./default/poolConfig.ts";
 import { acquireNvidiaConcurrencySlot } from "./default/nvidiaConcurrencyGate.ts";
 import { resolveAlibabaProviderBaseUrl } from "@/shared/constants/alibabaProviderRegions";
+import { xiaomiAlternateUrl, xiaomiMimoChatUrl } from "./default/xiaomiTokenPlan.ts";
 import { usesCcWireImage } from "../services/ccWireImageBuiltins.ts";
+import { applyRegistryBodyRepairs } from "../utils/strictChatHistory.ts";
 
 const NVIDIA_TOOL_CALL_ID_PATTERN = /^[A-Za-z0-9]{9}$/;
 const PERPLEXITY_AGENT_DEFAULT_MAX_OUTPUT_TOKENS = 4096;
@@ -266,7 +267,7 @@ export class DefaultExecutor extends BaseExecutor {
       if (alternate?.baseUrl && !hasManualBaseUrl) {
         // Operator's manual override (#6147) keeps its own semantics and falls
         // through to the provider-specific handling below.
-        const normalized = alternate.baseUrl.replace(/\/$/, "");
+        const normalized = xiaomiAlternateUrl(this.provider, alternate.baseUrl, credentials);
         // A model-scoped alternate (the Gemini protocol: `{base}/{model}:generateContent`)
         // builds its own URL — chatPath/urlSuffix are constants and cannot carry the model.
         if (alternate.urlBuilder) return alternate.urlBuilder(normalized, model, stream);
@@ -274,6 +275,10 @@ export class DefaultExecutor extends BaseExecutor {
       }
     }
     switch (this.provider) {
+      case "muse-code": {
+        const baseUrl = normalizeOpenAIChatUrl(this.resolveBaseUrl(credentials));
+        return baseUrl.replace(/\/(?:chat\/completions|chat)$/, "/responses");
+      }
       case "perplexity-agent":
         return this.config.baseUrl;
       case "openai": {
@@ -359,10 +364,10 @@ export class DefaultExecutor extends BaseExecutor {
         return normalizeSapChatUrl(baseUrl);
       }
       case "xiaomi-mimo":
-      case "xiaomi-mimo-token-plan": {
-        const baseUrl = this.resolveBaseUrl(credentials);
-        return normalizeXiaomiMimoChatUrl(baseUrl);
-      }
+      case "xiaomi-mimo-token-plan":
+        return xiaomiMimoChatUrl(this.provider, credentials, () =>
+          this.resolveBaseUrl(credentials)
+        );
       case "snowflake": {
         const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeSnowflakeChatUrl(baseUrl);
@@ -473,7 +478,9 @@ export class DefaultExecutor extends BaseExecutor {
     credentials,
     stream = true,
     clientHeaders?: Record<string, string> | null,
-    model?: string | null
+    model?: string | null,
+    _health?: unknown,
+    body?: unknown
   ) {
     const { headers, effectiveKey } = this.buildHeadersPreamble(credentials, stream);
 
@@ -590,12 +597,12 @@ export class DefaultExecutor extends BaseExecutor {
         }
         applyClineAuthHeaders(headers, credentials, effectiveKey, clientHeaders, true);
         break;
-      case "cline":
-        // Cline's API requires the bearer token prefixed with `workos:` plus a
-        // set of Cline client-identification headers; plain `Bearer <token>`
-        // is rejected upstream. applyClineAuthHeaders() emits both.
-        applyClineAuthHeaders(headers, credentials, effectiveKey, clientHeaders, false);
+      case "cline": {
+        // OAuth: `workos:`-prefixed bearer + Cline client headers. BYOK API key: plain Bearer.
+        const byok = credentials?.authType === "apikey" || credentials?.authType === "api_key";
+        applyClineAuthHeaders(headers, credentials, effectiveKey, clientHeaders, byok);
         break;
+      }
       default:
         if (this.usesClaudeCodeProtocol(credentials)) {
           const ccRequestDefaults = getClaudeCodeCompatibleRequestDefaults(
@@ -677,9 +684,9 @@ export class DefaultExecutor extends BaseExecutor {
     }
 
     // Forward client request metadata headers (from OpenCode or similar clients)
-    // Allowlist-based: only specific x-opencode-* headers and User-Agent are forwarded
+    // Allowlist-based: x-opencode-* headers only; the caller's User-Agent is NOT forwarded (#15632)
     if (clientHeaders) {
-      forwardOpencodeClientHeaders(headers, clientHeaders);
+      forwardOpencodeClientHeaders(headers, clientHeaders, { forwardUserAgent: false });
 
       // #3974: merge the client's negotiated anthropic-beta (allowlisted) into the
       // outbound set. The registry's static ANTHROPIC_BETA_CLAUDE_OAUTH lacks
@@ -687,19 +694,18 @@ export class DefaultExecutor extends BaseExecutor {
       // 400 "Tool reference not found". Allowlist-merge preserves it without
       // forwarding betas the backend rejects.
       const clientBeta = clientHeaders["anthropic-beta"] ?? clientHeaders["Anthropic-Beta"] ?? null;
-      const betaKey = Object.keys(headers).find((key) => key.toLowerCase() === "anthropic-beta");
-      if (betaKey && clientBeta) {
-        headers[betaKey] = mergeClientAnthropicBeta(
-          headers[betaKey],
-          clientBeta,
-          undefined,
-          // Gate the client-negotiated context-1m beta on the RESOLVED target model:
-          // combo/fallback can route a request negotiated for a [1m] sibling onto a
-          // model that does not qualify (e.g. Haiku), which Anthropic rejects (#10119).
-          model
-        );
-      }
+      // `model` gates the client-negotiated context-1m beta on the RESOLVED target:
+      // combo/fallback can route a request negotiated for a [1m] sibling onto a model
+      // that does not qualify (e.g. Haiku), which Anthropic rejects (#10119).
+      // `body` gates skills-2025-10-02 on presence of code_execution tool (#14200).
+      applyClientAnthropicBeta(headers, clientBeta, {
+        seedWhenAbsent: this.provider?.startsWith?.("anthropic-compatible-") === true,
+        model,
+        body,
+      });
     }
+
+    maybeAppendSkillsBeta(headers, this.provider, body, this.usesClaudeCodeProtocol(credentials));
 
     normalizeAnthropicHeaderVariants(headers);
 
@@ -962,7 +968,9 @@ export class DefaultExecutor extends BaseExecutor {
 
       // #1961: Map max_tokens -> max_completion_tokens for recent OpenAI models
       if (targetFormat === "openai") {
-        const isRecentOpenAI = /^(?:openai\/)?(?:o1|o3|o4|gpt-5)/i.test(model);
+        const isRecentOpenAI = /^(?:openai\/)?(?:o1|o3|o4|gpt-(?:[5-9]|1\d)(?:[._-]|$))/i.test(
+          model
+        );
         if (isRecentOpenAI && withDefaults && typeof withDefaults === "object") {
           const defaultsRecord = withDefaults as Record<string, unknown>;
           if ("max_tokens" in defaultsRecord) {
@@ -1067,7 +1075,7 @@ export class DefaultExecutor extends BaseExecutor {
       }
     }
 
-    return withDefaults;
+    return applyRegistryBodyRepairs(this.provider, withDefaults);
   }
 
   // Reasoning models (ClinePass, OpenRouter, etc.) leave content empty when the reasoning
@@ -1103,10 +1111,10 @@ export class DefaultExecutor extends BaseExecutor {
     const tokenKey =
       body.max_completion_tokens !== undefined ? "max_completion_tokens" : "max_tokens";
 
+    // #14888: a positive client budget is a choice. Raising it made reasoning
+    // models spend the whole window on thinking and return empty content.
     if (typeof current !== "number" || current <= 0) {
       body[tokenKey] = target;
-    } else if (current < MIN_TOKENS && current < maxOutput) {
-      body[tokenKey] = MIN_TOKENS;
     }
     return body;
   }
@@ -1146,8 +1154,8 @@ export class DefaultExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
-    // #6846 Phase 1: per-connection concurrency cap for nvidia — no-op for every
-    // other provider (returns null immediately, no semaphore key allocated).
+    rejectStrictPool(input.validationDispatch, this.poolConfig);
+    // #6846 Phase 1: per-connection nvidia concurrency cap — no-op for other providers.
     const releaseNvidiaSlot = await acquireNvidiaConcurrencySlot(
       this.provider,
       input.credentials?.connectionId

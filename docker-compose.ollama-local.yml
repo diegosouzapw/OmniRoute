@@ -1,0 +1,44 @@
+# ──────────────────────────────────────────────────────────────────────
+#  OmniRoute — Local Ollama (Docker → host-native Ollama)
+# ──────────────────────────────────────────────────────────────────────
+#
+#  Use when Ollama runs natively on the Linux host and OmniRoute runs in
+#  Docker. Requires host.docker.internal → host-gateway (Linux Docker 20.10+).
+#
+#  Usage:
+#    docker compose -f docker-compose.ollama-local.yml up -d
+#
+#  Then in VS Code (OmniCopilot) or any OpenAI-compatible client:
+#    base URL: http://<host-ip>:20128
+#    model:    ollama/<your-model>
+#
+#  Configure the Local Ollama openai-compatible provider in the dashboard
+#  with base URL: http://host.docker.internal:11434/v1
+#
+#  Timeout notes:
+#    - v3.8.51+ auto-raises direct response-start timeout to 300s for local
+#      targets (host.docker.internal, 192.168.x.x, localhost).
+#    - Override via OMNIROUTE_LOCAL_DIRECT_HEADERS_TIMEOUT_MS if needed.
+# ──────────────────────────────────────────────────────────────────────
+
+services:
+  omniroute:
+    image: diegosouzapw/omniroute:latest
+    container_name: omniroute
+    environment:
+      - OMNIROUTE_DIRECT_HEADERS_TIMEOUT_MS=${OMNIROUTE_DIRECT_HEADERS_TIMEOUT_MS:-300000}
+      - OMNIROUTE_LOCAL_DIRECT_HEADERS_TIMEOUT_MS=${OMNIROUTE_LOCAL_DIRECT_HEADERS_TIMEOUT_MS:-300000}
+      - STREAM_IDLE_TIMEOUT_MS=${STREAM_IDLE_TIMEOUT_MS:-600000}
+      - RATE_LIMIT_EXECUTION_MAX_WAIT_MS=${RATE_LIMIT_EXECUTION_MAX_WAIT_MS:-300000}
+      - RATE_LIMIT_MAX_WAIT_MS=${RATE_LIMIT_MAX_WAIT_MS:-300000}
+      - OMNIROUTE_DIRECT_DISPATCHER_CONNECTIONS=${OMNIROUTE_DIRECT_DISPATCHER_CONNECTIONS:-32}
+    ports:
+      - "${APP_BIND_HOST:-0.0.0.0}:20128:20128"
+    volumes:
+      - omniroute-data:/app/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+volumes:
+  omniroute-data:

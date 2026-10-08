@@ -8,13 +8,18 @@ const TEST_DATA_DIR = fs.mkdtempSync(
   path.join(os.tmpdir(), "omniroute-provider-model-management-route-")
 );
 process.env.DATA_DIR = TEST_DATA_DIR;
+const ORIGINAL_API_KEY_SECRET = process.env.API_KEY_SECRET;
+const API_KEY_SECRET = "provider-models-management-route-test-secret";
+process.env.API_KEY_SECRET = API_KEY_SECRET;
 
 const core = await import("../../src/lib/db/core.ts");
 const modelsDb = await import("../../src/lib/db/models.ts");
+const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const providerModelsRoute = await import("../../src/app/api/provider-models/route.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
+  apiKeysDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
@@ -47,7 +52,46 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   core.resetDbInstance();
+  apiKeysDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  if (ORIGINAL_API_KEY_SECRET === undefined) delete process.env.API_KEY_SECRET;
+  else process.env.API_KEY_SECRET = ORIGINAL_API_KEY_SECRET;
+});
+
+test("provider-models POST accepts management API keys with manage and admin scopes", async () => {
+  const originalInitialPassword = process.env.INITIAL_PASSWORD;
+  process.env.INITIAL_PASSWORD = "provider-models-auth-test-password";
+
+  try {
+    for (const scope of ["manage", "admin"]) {
+      const modelId = `${scope}-managed-model`;
+      const apiKey = await apiKeysDb.createApiKey(`provider-models-${scope}`, "test-machine", [
+        scope,
+      ]);
+      const response = await providerModelsRoute.POST(
+        new Request("http://localhost/api/provider-models", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey.key}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            provider: "openai",
+            modelId,
+            modelName: "Managed Model",
+            targetFormat: "claude",
+          }),
+        })
+      );
+
+      assert.equal(response.status, 200, `${scope} scope should be accepted`);
+      const models = await modelsDb.getCustomModels("openai");
+      assert.equal(models.find((model) => model.id === modelId)?.targetFormat, "claude");
+    }
+  } finally {
+    if (originalInitialPassword === undefined) delete process.env.INITIAL_PASSWORD;
+    else process.env.INITIAL_PASSWORD = originalInitialPassword;
+  }
 });
 
 test("provider-models GET returns an empty hiddenModelsByProvider map with no hidden models", async () => {

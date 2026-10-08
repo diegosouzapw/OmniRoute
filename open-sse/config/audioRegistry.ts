@@ -9,6 +9,7 @@
 
 import { getProviderAlias } from "@/shared/constants/providers";
 import { isLoopbackNodeHost } from "@/shared/network/loopbackNodeHost";
+import { hasUnsafeModelIdSyntax } from "../utils/modelIdSafety.ts";
 
 interface AudioModel {
   id: string;
@@ -366,7 +367,12 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     authType: "apikey",
     authHeader: "bearer",
     format: "soniox-tts",
-    models: [{ id: "tts-rt-v1", name: "Soniox TTS RT v1" }],
+    // tts-rt-v1 is deprecated upstream (2026-08-31) and now served by tts-rt-v2;
+    // kept so existing clients that pin v1 still resolve.
+    models: [
+      { id: "tts-rt-v2", name: "Soniox TTS RT v2" },
+      { id: "tts-rt-v1", name: "Soniox TTS RT v1" },
+    ],
   },
 
   elevenlabs: {
@@ -645,16 +651,18 @@ export { isLoopbackNodeHost };
  * Build a dynamic AudioProvider from a provider_node DB entry.
  *
  * Loopback nodes keep `authType: "none"` — a local Ollama/LM Studio has no key and
- * must not be blocked on a missing credential. A remote node is the opposite: it is
- * only reachable when the operator opted in, and it must present the credential
- * stored on its connection, so it is built as an api-key provider keyed by the node
- * id (`credentialProviderId`) rather than by the caller-facing prefix.
+ * must not be blocked on a missing credential. Every other node — a remote node the
+ * operator opted into, or a hostname listed in `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS`
+ * (#14635) — must present the credential stored on its connection, so it is built as an
+ * api-key provider keyed by the node id (`credentialProviderId`) rather than by the
+ * caller-facing prefix.
  */
 export function buildDynamicAudioProvider(node: ProviderNodeRow, audioPath: string): AudioProvider {
   if (!node.prefix || !node.baseUrl) {
     throw new Error(`Invalid provider_node: missing prefix or baseUrl`);
   }
   const baseUrl = node.baseUrl.replace(/\/+$/, "");
+  // Auth follows the built-in loopback class only (see above).
   const isLocal = isLoopbackNodeHost(node.baseUrl);
   return {
     id: node.prefix,
@@ -671,7 +679,7 @@ function parseAudioModel(
   registry: Record<string, AudioProvider>,
   dynamicProviders?: AudioProvider[]
 ): { provider: string | null; model: string | null } {
-  if (!modelStr) return { provider: null, model: null };
+  if (!modelStr || hasUnsafeModelIdSyntax(modelStr)) return { provider: null, model: null };
 
   // Phase 1: prefix match in hardcoded registry
   for (const [providerId] of Object.entries(registry)) {

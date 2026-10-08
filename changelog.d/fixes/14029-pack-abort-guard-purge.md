@@ -1,1 +1,0 @@
-- **fix(build):** drop the orphaned `httpClientAbortGuard.mjs` entries from the pack-artifact allowlists — the #13636 crash-guard wiring was removed, so no producer or consumer ships the file anymore ([#14029](https://github.com/diegosouzapw/OmniRoute/pull/14029))

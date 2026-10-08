@@ -1,50 +1,17 @@
-# Zasady bezpieczeństwa i porządku dla asystentów AI
+# GEMINI.md (Polski)
 
-> **Zakres:** reguły dla agentów opartych na Gemini. Dla Claude Code zobacz `CLAUDE.md`. Dla innych asystentów AI zobacz `AGENTS.md`.
+🌐 **Languages:** 🇺🇸 [English](../../../GEMINI.md) · 🇪🇹 [am](../am/GEMINI.md) · 🇸🇦 [ar](../ar/GEMINI.md) · 🇦🇿 [az](../az/GEMINI.md) · 🇧🇬 [bg](../bg/GEMINI.md) · 🇧🇩 [bn](../bn/GEMINI.md) · 🇧🇦 [bs](../bs/GEMINI.md) · 🇨🇿 [cs](../cs/GEMINI.md) · 🇩🇰 [da](../da/GEMINI.md) · 🇩🇪 [de](../de/GEMINI.md) · 🇬🇷 [el](../el/GEMINI.md) · 🇪🇸 [es](../es/GEMINI.md) · 🇪🇪 [et](../et/GEMINI.md) · 🇮🇷 [fa](../fa/GEMINI.md) · 🇫🇮 [fi](../fi/GEMINI.md) · 🇫🇷 [fr](../fr/GEMINI.md) · 🇮🇪 [ga](../ga/GEMINI.md) · 🇮🇳 [gu](../gu/GEMINI.md) · 🇳🇬 [ha](../ha/GEMINI.md) · 🇮🇱 [he](../he/GEMINI.md) · 🇮🇳 [hi](../hi/GEMINI.md) · 🇭🇷 [hr](../hr/GEMINI.md) · 🇭🇺 [hu](../hu/GEMINI.md) · 🇦🇲 [hy](../hy/GEMINI.md) · 🇮🇩 [id](../id/GEMINI.md) · 🇳🇬 [ig](../ig/GEMINI.md) · 🇮🇹 [it](../it/GEMINI.md) · 🇯🇵 [ja](../ja/GEMINI.md) · 🇬🇪 [ka](../ka/GEMINI.md) · 🇰🇭 [km](../km/GEMINI.md) · 🇮🇳 [kn](../kn/GEMINI.md) · 🇰🇷 [ko](../ko/GEMINI.md) · 🇱🇹 [lt](../lt/GEMINI.md) · 🇱🇻 [lv](../lv/GEMINI.md) · 🇮🇳 [ml](../ml/GEMINI.md) · 🇮🇳 [mr](../mr/GEMINI.md) · 🇲🇾 [ms](../ms/GEMINI.md) · 🇲🇹 [mt](../mt/GEMINI.md) · 🇲🇲 [my](../my/GEMINI.md) · 🇳🇵 [ne](../ne/GEMINI.md) · 🇳🇱 [nl](../nl/GEMINI.md) · 🇳🇴 [no](../no/GEMINI.md) · 🇮🇳 [or](../or/GEMINI.md) · 🇮🇳 [pa](../pa/GEMINI.md) · 🇵🇭 [phi](../phi/GEMINI.md) · 🇵🇹 [pt](../pt/GEMINI.md) · 🇧🇷 [pt-BR](../pt-BR/GEMINI.md) · 🇷🇴 [ro](../ro/GEMINI.md) · 🇷🇺 [ru](../ru/GEMINI.md) · 🇱🇰 [si](../si/GEMINI.md) · 🇸🇰 [sk](../sk/GEMINI.md) · 🇸🇮 [sl](../sl/GEMINI.md) · 🇷🇸 [sr](../sr/GEMINI.md) · 🇸🇪 [sv](../sv/GEMINI.md) · 🇰🇪 [sw](../sw/GEMINI.md) · 🇮🇳 [ta](../ta/GEMINI.md) · 🇮🇳 [te](../te/GEMINI.md) · 🇹🇭 [th](../th/GEMINI.md) · 🇹🇷 [tr](../tr/GEMINI.md) · 🇺🇦 [uk-UA](../uk-UA/GEMINI.md) · 🇵🇰 [ur](../ur/GEMINI.md) · 🇺🇿 [uz](../uz/GEMINI.md) · 🇻🇳 [vi](../vi/GEMINI.md) · 🇳🇬 [yo](../yo/GEMINI.md) · 🇨🇳 [zh-CN](../zh-CN/GEMINI.md) · 🇹🇼 [zh-TW](../zh-TW/GEMINI.md)
 
-## 1. Umieszczanie plików i organizacja
+---
 
-- **Pliki testowe**: WSZYSTKIE testy jednostkowe, integracyjne, ekosystemowe lub pliki Vitest MUSZĄ być umieszczane wyłącznie w katalogu `tests/` (np. `tests/unit/`, `tests/integration/`). NIGDY nie twórz plików testowych w katalogu głównym projektu (`/`).
-- **Skrypty i narzędzia pomocnicze**: WSZYSTKIE skrypty konserwacyjne, debugujące, generujące lub eksperymentalne (`.cjs`, `.mjs`, `.js`, `.ts`) MUSZĄ być umieszczane wyłącznie w jednym z podkatalogów `scripts/` (`build/`, `dev/`, `check/`, `docs/`, `i18n/`, `ad-hoc/`). Kod jednorazowy lub eksperymentalny trafia do `scripts/ad-hoc/`. NIGDY nie wrzucaj luźnych skryptów do katalogu głównego projektu (`/`) ani do katalogu najwyższego poziomu `scripts/`.
+> **Jedyne źródło prawdy:** wszystkie reguły projektu dla asystentów AI znajdują się w pliku
+> [`AGENTS.md`](AGENTS.md). Przeczytaj go w całości przed wprowadzeniem jakiejkolwiek zmiany — zawiera 23 Reguły Bezwzględne,
+> bramki jakości, konwencje kodu, reguły dotyczące umieszczania plików / utrzymania porządku w katalogu głównym repozytorium, mapę repozytorium
+> oraz informacje o dostępie do lokalnego środowiska programistycznego, które wcześniej znajdowały się w tym pliku.
 
-**Katalog główny projektu MOŻE ZAWIERAĆ WYŁĄCZNIE:**
+Uwagi dotyczące Gemini:
 
-- Pliki konfiguracyjne (`vitest.config.ts`, `next.config.mjs`, `eslint.config.mjs`, `tsconfig*.json`, `playwright.config.ts`, `prettier.config.mjs`, `postcss.config.mjs`, `sonar-project.properties`, `fly.toml`, `docker-compose*.yml`, `Dockerfile`)
-- Pliki zależności (`package.json`, `package-lock.json`)
-- Pliki dokumentacji (`README.md`, `CHANGELOG.md`, `LICENSE`, `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `llm.txt`, `Tuto_Qdrant.md`)
-- Pliki CI/CD oraz definicje ignorowania (`.gitignore`, `.dockerignore`, `.npmignore`, `.npmrc`, `.node-version`, `.nvmrc`, `.env.example`)
-
-Tworząc _jakiekolwiek_ testy walidacyjne lub jednorazowe skrypty logiczne, domyślnie używaj katalogów `scripts/ad-hoc/` lub `tests/unit/` w zależności od celu. Nie zaśmiecaj kontekstu katalogu głównego `/`.
-
-## 2. Twarde reguły (odzwierciedlenie `CLAUDE.md`)
-
-1. **Nigdy nie commituj sekretów ani poświadczeń.** Używaj `.env` (generowanego automatycznie z `.env.example`) lub sejfu. Hasła, sekrety OAuth, klucze API oraz wartości Cookie nigdy nie mogą pojawiać się w commitowanych plikach.
-2. **Nigdy nie dodawaj logiki do `src/lib/localDb.ts`.** To wyłącznie barrel re-eksportów.
-3. **Nigdy nie używaj `eval()`, `new Function()` ani żadnej formy implied eval.** ESLint tego egzekwuje.
-4. **Nigdy nie commituj bezpośrednio do `main`.** Używaj gałęzi `feat/`, `fix/`, `refactor/`, `docs/`, `test/` lub `chore/`.
-5. **Nigdy nie pisz surowego SQL w trasach** — zawsze przechodź przez moduły domenowe `src/lib/db/`.
-6. **Nigdy nie połykaj cicho błędów w strumieniach SSE** — propaguj je albo czysto przerwij strumień.
-7. **Nigdy nie omijaj hooków Husky** (`--no-verify`, `--no-gpg-sign`) bez wyraźnej zgody operatora.
-8. **Zawsze waliduj dane wejściowe schematami Zod** z `src/shared/validation/schemas.ts`.
-9. **Zawsze dołączaj testy przy zmianach w kodzie produkcyjnym** (`src/`, `open-sse/`, `electron/`, `bin/`).
-10. **Pokrycie musi pozostać** ≥ 60 % statements / lines / functions / branches — oficjalna bramka CI (`npm run test:coverage`). Bazowa wartość ratchet w `quality-baseline.json` może zamrozić wyższy próg; nigdy go nie obniżaj.
-
-## 3. Nawigacja po bazie kodu
-
-| Zadanie                     | Przeczytaj najpierw                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Zrozumienie bazy kodu       | `docs/architecture/REPOSITORY_MAP.md`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| Przegląd architektury       | `docs/architecture/ARCHITECTURE.md`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| Dokumentacja inżynierska    | `docs/architecture/CODEBASE_DOCUMENTATION.md`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| Dodanie funkcji             | `CONTRIBUTING.md` + odpowiadający `docs/<area>.md`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| Pogłębione analizy obszarów | `docs/frameworks/SKILLS.md`, `docs/frameworks/MEMORY.md`, `docs/frameworks/EVALS.md`, `docs/security/GUARDRAILS.md`, `docs/security/COMPLIANCE.md`, `docs/frameworks/CLOUD_AGENT.md`, `docs/frameworks/MCP-SERVER.md`, `docs/frameworks/A2A-SERVER.md`, `docs/architecture/AUTHZ_GUIDE.md`, `docs/architecture/RESILIENCE_GUIDE.md`, `docs/routing/AUTO-COMBO.md`, `docs/frameworks/WEBHOOKS.md`, `docs/routing/REASONING_REPLAY.md`, `docs/security/STEALTH_GUIDE.md`, `docs/ops/TUNNELS_GUIDE.md`, `docs/guides/ELECTRON_GUIDE.md`, `docs/reference/PROVIDER_REFERENCE.md` |
-| Przebieg wydania            | `docs/ops/RELEASE_CHECKLIST.md`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-
-## 4. Dostęp do lokalnego środowiska deweloperskiego
-
-Dashboard jest dostępny pod wybranym przez operatora adresem URL/portem (domyślnie `http://localhost:20128`). Poświadczenia są specyficzne dla operatora:
-
-- **Początkowe hasło administratora** jest odczytywane ze zmiennej środowiskowej `INITIAL_PASSWORD` przy pierwszej instalacji (domyślnie `CHANGEME` w `.env.example`; zmień je natychmiast po pierwszym logowaniu).
-- **Lokalne VPS / współdzielone środowiska deweloperskie**: zapytaj operatora o URL i aktualne poświadczenia — znajdują się w jego osobistym sejfie, NIE w tym repozytorium.
-
-> Wszelkie poświadczenia zauważone w poprzedniej wersji tego pliku były wartościami demonstracyjnymi spoza produkcji; traktuj je jako skompromitowane i nie używaj ich ponownie.
+- Umiejętności są aktywowane za pomocą narzędzia `activate_skill` (metadane umiejętności są ładowane na początku sesji,
+  a pełna zawartość jest aktywowana na żądanie).
+- Obecnie nie ma żadnych innych reguł dotyczących wyłącznie Gemini. Nie dodawaj tutaj ponownie reguł projektu — zamiast tego edytuj
+  plik `AGENTS.md`, aby każdy asystent otrzymywał te same instrukcje.

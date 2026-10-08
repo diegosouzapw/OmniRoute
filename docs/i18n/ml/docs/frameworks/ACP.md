@@ -1,561 +1,121 @@
-# ACP (Agent Client Protocol) (മലയാളം)
+# ACP registry and registered CLI launchers (മലയാളം)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/ACP.md) · 🇪🇹 [am](../../../am/docs/frameworks/ACP.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/ACP.md) · 🇦🇿 [az](../../../az/docs/frameworks/ACP.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/ACP.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/ACP.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/ACP.md) · 🇩🇰 [da](../../../da/docs/frameworks/ACP.md) · 🇩🇪 [de](../../../de/docs/frameworks/ACP.md) · 🇬🇷 [el](../../../el/docs/frameworks/ACP.md) · 🇪🇸 [es](../../../es/docs/frameworks/ACP.md) · 🇪🇪 [et](../../../et/docs/frameworks/ACP.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/ACP.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/ACP.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/ACP.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/ACP.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/ACP.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/ACP.md) · 🇮🇱 [he](../../../he/docs/frameworks/ACP.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/ACP.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/ACP.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/ACP.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/ACP.md) · 🇮🇩 [id](../../../id/docs/frameworks/ACP.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/ACP.md) · 🇮🇹 [it](../../../it/docs/frameworks/ACP.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/ACP.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/ACP.md) · 🇰🇭 [km](../../../km/docs/frameworks/ACP.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/ACP.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/ACP.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/ACP.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/ACP.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/ACP.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/ACP.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/ACP.md) · 🇲🇲 [my](../../../my/docs/frameworks/ACP.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/ACP.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/ACP.md) · 🇳🇴 [no](../../../no/docs/frameworks/ACP.md) · 🇮🇳 [or](../../../or/docs/frameworks/ACP.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/ACP.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/ACP.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/ACP.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/ACP.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/ACP.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/ACP.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/ACP.md) · 🇱🇰 [si](../../../si/docs/frameworks/ACP.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/ACP.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/ACP.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/ACP.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/ACP.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/ACP.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/ACP.md) · 🇮🇳 [te](../../../te/docs/frameworks/ACP.md) · 🇹🇭 [th](../../../th/docs/frameworks/ACP.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/ACP.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/ACP.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/ACP.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/ACP.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/ACP.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/ACP.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/ACP.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/ACP.md)
-
----
-
-> **ചുരുക്കത്തിൽ**: HTTP API-കൾ ഉപയോഗിക്കുന്നതിന് പകരം Claude Code, Codex പോലുള്ള CLI ഏജന്റുകളെ ചൈൽഡ് പ്രോസസ്സുകളായി ആരംഭിക്കാൻ ACP OmniRoute-നെ അനുവദിക്കുന്നു. ഇതിലൂടെ നിങ്ങൾക്ക് "CLI-as-backend" ട്രാൻസ്പോർട്ട് ലഭിക്കുന്നു.
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/ACP.md) · 🇪🇹 [am](../../../am/docs/frameworks/ACP.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/ACP.md) · 🇦🇿 [az](../../../az/docs/frameworks/ACP.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/ACP.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/ACP.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/ACP.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/ACP.md) · 🇩🇰 [da](../../../da/docs/frameworks/ACP.md) · 🇩🇪 [de](../../../de/docs/frameworks/ACP.md) · 🇬🇷 [el](../../../el/docs/frameworks/ACP.md) · 🇪🇸 [es](../../../es/docs/frameworks/ACP.md) · 🇪🇪 [et](../../../et/docs/frameworks/ACP.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/ACP.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/ACP.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/ACP.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/ACP.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/ACP.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/ACP.md) · 🇮🇱 [he](../../../he/docs/frameworks/ACP.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/ACP.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/ACP.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/ACP.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/ACP.md) · 🇮🇩 [id](../../../id/docs/frameworks/ACP.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/ACP.md) · 🇮🇹 [it](../../../it/docs/frameworks/ACP.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/ACP.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/ACP.md) · 🇰🇭 [km](../../../km/docs/frameworks/ACP.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/ACP.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/ACP.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/ACP.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/ACP.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/ACP.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/ACP.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/ACP.md) · 🇲🇲 [my](../../../my/docs/frameworks/ACP.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/ACP.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/ACP.md) · 🇳🇴 [no](../../../no/docs/frameworks/ACP.md) · 🇮🇳 [or](../../../or/docs/frameworks/ACP.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/ACP.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/ACP.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/ACP.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/ACP.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/ACP.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/ACP.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/ACP.md) · 🇱🇰 [si](../../../si/docs/frameworks/ACP.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/ACP.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/ACP.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/ACP.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/ACP.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/ACP.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/ACP.md) · 🇮🇳 [te](../../../te/docs/frameworks/ACP.md) · 🇹🇭 [th](../../../th/docs/frameworks/ACP.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/ACP.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/ACP.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/ACP.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/ACP.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/ACP.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/ACP.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/ACP.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/ACP.md)
 
 ---
 
-## എന്താണ് ACP?
+OmniRoute **CLI കണ്ടെത്തൽ**, **നേറ്റീവ് Agent Client Protocol**, കൂടാതെ
+**ലെഗസി stdio അഡാപ്റ്ററുകൾ** എന്നിവയെ വേർതിരിക്കുന്നു. ഇൻസ്റ്റാൾ ചെയ്ത ഒരു ബൈനറി കണ്ടെത്തുന്നത് അതിന്റെ
+ഓതന്റിക്കേഷൻ, മോഡൽ അനുയോജ്യത, അല്ലെങ്കിൽ ഒരു പ്രോംപ്റ്റ് കൈകാര്യം ചെയ്യാനുള്ള സന്നദ്ധത എന്നിവ തെളിയിക്കുന്നില്ല.
 
-ACP (Agent Client Protocol) എന്നത് OmniRoute-നുള്ള ഒരു **"CLI-as-backend" ട്രാൻസ്പോർട്ടാണ്**. AI ദാതാക്കളിലേക്കുള്ള HTTP API കോളുകൾ തടഞ്ഞ് കൈകാര്യം ചെയ്യുന്നതിന് പകരം, ACP **CLI ഏജന്റുകളെ ചൈൽഡ് പ്രോസസ്സുകളായി ആരംഭിക്കുകയും** അവയുടെ നേറ്റീവ് ഇന്റർഫേസിലൂടെ പ്രോംപ്റ്റുകൾ നൽകുകയും ചെയ്യുന്നു.
+ഇൻവെന്ററിക്കും ഇഷ്ടാനുസൃത ഏജന്റ് രജിസ്ട്രേഷനും ഡാഷ്ബോർഡ് `GET /api/acp/agents`, `POST /api/acp/agents` എന്നിവ ഉപയോഗിക്കുന്നു.
+ഇവ ലോക്കൽ-മാത്രം മാനേജ്മെന്റ് റൂട്ടുകളാണ്; പ്രോസസ്സുകൾ സ്പോൺ ചെയ്യുന്നതിനോ പ്രോംപ്റ്റുകൾ സമർപ്പിക്കുന്നതിനോ ഉള്ള
+പബ്ലിക് API അല്ല. ആന്തരിക `AcpManager` സ്വയമേവ ഒരു HTTP പ്രൊവൈഡർ ഫാൾബാക്ക് ആയി മാറുന്നില്ല.
 
-### എന്തുകൊണ്ട് ACP ഉപയോഗിക്കണം?
+## രജിസ്റ്റർ ചെയ്ത കോൺട്രാക്റ്റുകൾ
 
-| പ്രയോജനം                      | വിവരണം                                                                 |
-| ----------------------------- | ---------------------------------------------------------------------- |
-| **API കീകൾ ആവശ്യമില്ല**       | നിലവിലുള്ള നിങ്ങളുടെ CLI ഓതന്റിക്കേഷൻ ഉപയോഗിക്കുന്നു                   |
-| **നേറ്റീവ് പ്രോട്ടോക്കോൾ**    | ഓരോ CLI-യുടെയും നേറ്റീവ് ഇൻപുട്ട്/ഔട്ട്പുട്ട് ഫോർമാറ്റ് ഉപയോഗിക്കുന്നു |
-| **സ്വയമേവ കണ്ടെത്തൽ**         | നിങ്ങളുടെ സിസ്റ്റത്തിൽ ഇൻസ്റ്റാൾ ചെയ്തിട്ടുള്ള CLI-കൾ കണ്ടെത്തുന്നു    |
-| **ബിൽറ്റ്-ഇൻ ആയ 15 ഏജന്റുകൾ** | ജനപ്രിയ CLI ടൂളുകൾക്കായി മുൻകൂട്ടി കോൺഫിഗർ ചെയ്തിരിക്കുന്നു            |
-| **കസ്റ്റം ഏജന്റുകൾ**          | ക്രമീകരണങ്ങളിലൂടെ നിങ്ങളുടെ സ്വന്തം CLI ടൂളുകൾ ചേർക്കാം                |
-| **പ്രോസസ് മാനേജ്മെന്റ്**      | ലൈഫ്സൈക്കിൾ കൈകാര്യം ചെയ്യുന്നു (ആരംഭിക്കൽ, അയയ്ക്കൽ, അവസാനിപ്പിക്കൽ)  |
+ബിൽറ്റ്-ഇൻ ലോഞ്ച് ബൈനറികൾ, ആർഗ്യുമെന്റുകൾ, ബാക്കെൻഡ് മോഡുകൾ എന്നിവയ്ക്കുള്ള ആധികാരിക ഉറവിടമാണ്
+`config/cli-tools-manifest.json`. ആ മാനിഫെസ്റ്റിൽ നിന്നാണ് രജിസ്ട്രി അതിന്റെ നിർവചനങ്ങൾ രൂപപ്പെടുത്തുന്നത്.
+കണ്ടെത്തൽ 60 സെക്കൻഡ് നേരത്തേക്ക് കാഷ് ചെയ്യപ്പെടുന്നു.
 
----
+- `acp`: Gemini കോൺട്രാക്റ്റ് `gemini --experimental-acp` ലോഞ്ച് ചെയ്യുകയും
+  ഔദ്യോഗിക TypeScript SDK വഴി ന്യൂലൈൻ-ഡിലിമിറ്റഡ് ACP JSON-RPC ഉപയോഗിച്ച് ആശയവിനിമയം നടത്തുകയും ചെയ്യുന്നു.
+- `stdio-adapter`: രജിസ്റ്റർ ചെയ്ത മറ്റ് കോൺട്രാക്റ്റുകൾ ലെഗസി ന്യൂലൈൻ-ഇൻപുട്ട്,
+  stdout-ഔട്ട്പുട്ട് അഡാപ്റ്റർ നിലനിർത്തുന്നു. രണ്ട് സെക്കൻഡ് ഔട്ട്പുട്ട് നിഷ്ക്രിയാവസ്ഥ അതിന്റെ പ്രതികരണം അവസാനിപ്പിക്കുന്നു.
+  ഈ അഡാപ്റ്റർ ആ CLI-കൾക്കുള്ള നേറ്റീവ് ACP പിന്തുണ **സാക്ഷ്യപ്പെടുത്തുന്നില്ല**.
 
-## പിന്തുണയ്ക്കുന്ന CLI ഏജന്റുകൾ
+Gemini അതിന്റെ [CLI റഫറൻസിൽ](https://geminicli.com/docs/cli/cli-reference/) ലോഞ്ച് ഫ്ലാഗ് രേഖപ്പെടുത്തിയിട്ടുണ്ട്.
+ഇനിഷ്യലൈസേഷൻ, സെഷൻ സൃഷ്ടിക്കൽ, പ്രോംപ്റ്റ് അഭ്യർത്ഥനകൾ, നോട്ടിഫിക്കേഷനുകൾ, റദ്ദാക്കൽ എന്നിവയ്ക്കായി ക്ലയന്റ്
+[ഔദ്യോഗിക ACP SDK](https://github.com/agentclientprotocol/typescript-sdk) ഉപയോഗിക്കുന്നു.
 
-ACP-യിൽ ഉപയോഗിക്കാൻ തയ്യാറായ **15 ബിൽറ്റ്-ഇൻ CLI ഏജന്റുകൾക്ക്** പിന്തുണയുണ്ട്:
+ഇഷ്ടാനുസൃത ഏജന്റ് നിർവചനങ്ങൾ അഡ്മിനിസ്ട്രേറ്റർ നിയന്ത്രിക്കുന്ന ലോഞ്ച് കോൺട്രാക്റ്റുകളായി തുടരുന്നു.
+ഒരു ബൈനറിയും ആർഗ്യുമെന്റുകളും രജിസ്റ്റർ ചെയ്യുന്നത് ആ പ്രോസസ്സിന് സെർവർ ഉപയോക്താവിന്റെ ലോക്കൽ
+എക്സിക്യൂഷൻ പ്രിവിലേജുകൾ നൽകുന്നു; രജിസ്ട്രേഷൻ ഒരു സാൻഡ്ബോക്സ് അല്ല. വേർഷൻ പ്രോബുകൾ
+രജിസ്റ്റർ ചെയ്ത എക്സിക്യൂട്ടബിളും അംഗീകരിക്കപ്പെട്ട ഒരു വേർഷൻ ഫ്ലാഗും മാത്രമേ സ്വീകരിക്കൂ.
 
-| ഏജന്റ് ID     | പ്രദർശന നാമം       | ബൈനറി         | പ്രോട്ടോക്കോൾ |
-| ------------- | ------------------ | ------------- | ------------- |
-| `codex`       | OpenAI Codex CLI   | `codex`       | stdio         |
-| `claude`      | Claude Code CLI    | `claude`      | stdio         |
-| `goose`       | Goose CLI          | `goose`       | stdio         |
-| `openclaw`    | OpenClaw           | `openclaw`    | stdio         |
-| `aider`       | Aider              | `aider`       | stdio         |
-| `opencode`    | OpenCode           | `opencode`    | stdio         |
-| `cline`       | Cline              | `cline`       | stdio         |
-| `qwen`        | Qwen Code          | `qwen --acp`  | stdio         |
-| `forge`       | ForgeCode          | `forge`       | stdio         |
-| `amazon-q`    | Amazon Q Developer | `q`           | stdio         |
-| `interpreter` | Open Interpreter   | `interpreter` | stdio         |
-| `cursor-cli`  | Cursor CLI         | `cursor`      | stdio         |
-| `warp`        | Warp AI            | `warp`        | stdio         |
-| `gemini`      | Gemini CLI         | `gemini`      | stdio         |
-| `zcode`       | ZCode              | `zcode`       | stdio         |
-
-### കസ്റ്റം ഏജന്റുകൾ
-
-ക്രമീകരണങ്ങളിലൂടെ നിങ്ങളുടെ സ്വന്തം CLI ഏജന്റുകൾ ചേർക്കാം. ബിൽറ്റ്-ഇൻ ഏജന്റുകൾക്കുള്ള അതേ സവിശേഷതകൾ കസ്റ്റം ഏജന്റുകളും പിന്തുണയ്ക്കുന്നു.
-
----
-
-## വേഗത്തിലുള്ള തുടക്കം
-
-### ഘട്ടം 1: ഒരു CLI ഏജന്റ് ഇൻസ്റ്റാൾ ചെയ്യുക
-
-```bash
-# ഉദാഹരണം: Claude Code CLI ഇൻസ്റ്റാൾ ചെയ്യുക
-npm install -g @anthropic-ai/claude-code
-
-# ഇൻസ്റ്റാളേഷൻ പരിശോധിക്കുക
-claude --version
-```
-
-### ഘട്ടം 2: ACP സ്വയമേവ കണ്ടെത്തൽ
-
-നിങ്ങളുടെ സിസ്റ്റത്തിൽ ഇൻസ്റ്റാൾ ചെയ്തിട്ടുള്ള CLI ഏജന്റുകളെ ACP സ്വയമേവ കണ്ടെത്തുന്നു. കോൺഫിഗറേഷൻ ആവശ്യമില്ല!
-
-### ഘട്ടം 3: ACP ട്രാൻസ്പോർട്ട് ഉപയോഗിക്കുക
-
-കണ്ടെത്തിക്കഴിഞ്ഞാൽ, പിന്തുണയ്ക്കുന്ന ഏതൊരു ദാതാവിനുമുള്ള ട്രാൻസ്പോർട്ടായി ACP ഉപയോഗിക്കാം. CLI ലഭ്യമാകുമ്പോൾ OmniRoute സ്വയമേവ ACP ഉപയോഗിക്കും.
-
----
-
-## ACP എങ്ങനെ പ്രവർത്തിക്കുന്നു
-
-### ആർക്കിടെക്ചർ
-
-```
-┌─────────────────┐
-│  OmniRoute      │
-│  (HTTP പ്രോക്സി) │
-└────────┬────────┘
-         │
-         │ spawn()
-         ▼
-┌─────────────────┐
-│  ചൈൽഡ് പ്രോസസ്  │
-│  (CLI ഏജന്റ്)   │
-│                 │
-│  stdin  ◄──────┤  പ്രോംപ്റ്റ് അയയ്ക്കുക
-│  stdout ──────►│  പ്രതികരണം സ്വീകരിക്കുക
-│  stderr ──────►│  പിശകുകൾ സ്വീകരിക്കുക
-└─────────────────┘
-```
-
-### പ്രോസസ് ലൈഫ്സൈക്കിൾ
-
-1. **ആരംഭിക്കൽ** — CLI ഏജന്റിനായി ACP ഒരു ചൈൽഡ് പ്രോസസ് സൃഷ്ടിക്കുന്നു
-2. **അയയ്ക്കൽ** — പ്രോസസ്സിന്റെ stdin-ലേക്ക് ACP പ്രോംപ്റ്റുകൾ എഴുതുന്നു
-3. **സ്വീകരിക്കൽ** — stdout/stderr-ൽ നിന്ന് ACP പ്രതികരണങ്ങൾ വായിക്കുന്നു
-4. **നിഷ്ക്രിയത്വം കണ്ടെത്തൽ** — പ്രതികരണം പൂർത്തിയായതായി കണക്കാക്കുന്നതിന് മുമ്പ് 2 സെക്കൻഡ് നിഷ്ക്രിയത്വത്തിനായി ACP കാത്തിരിക്കുന്നു
-5. **അവസാനിപ്പിക്കൽ** — ACP പ്രോസസ് അവസാനിപ്പിക്കുന്നു (SIGTERM, തുടർന്ന് 5s കഴിഞ്ഞ് SIGKILL)
-
-### ആശയവിനിമയ പ്രോട്ടോക്കോൾ
-
-CLI ഏജന്റുകളുമായി ആശയവിനിമയം നടത്താൻ ACP **stdio** (സ്റ്റാൻഡേർഡ് ഇൻപുട്ട്/ഔട്ട്പുട്ട്) ഉപയോഗിക്കുന്നു. പ്രോട്ടോക്കോൾ ഇപ്രകാരമാണ്:
-
-1. **പ്രോംപ്റ്റ് അയയ്ക്കുക** — ഒരു പുതിയ വരിയോടൊപ്പം stdin-ലേക്ക് എഴുതുക
-2. **പ്രതികരണത്തിനായി കാത്തിരിക്കുക** — നിഷ്ക്രിയമാകുന്നതുവരെ stdout-ൽ നിന്ന് വായിക്കുക (2s നേരത്തേക്ക് ഔട്ട്പുട്ട് ഇല്ലാത്തത്)
-3. **ടൈംഔട്ട്** — ഡിഫോൾട്ടായി 120 സെക്കൻഡ് (കോൺഫിഗർ ചെയ്യാവുന്നത്)
-
----
-
-## API റഫറൻസ്
-
-### രജിസ്ട്രി ഫംഗ്ഷനുകൾ
-
-#### `detectInstalledAgents()`
-
-സിസ്റ്റത്തിൽ ഇൻസ്റ്റാൾ ചെയ്തിട്ടുള്ള എല്ലാ CLI ഏജന്റുകളെയും കണ്ടെത്തുന്നു. ഫലങ്ങൾ 60 സെക്കൻഡ് നേരത്തേക്ക് കാഷ് ചെയ്യപ്പെടുന്നു.
+## ആന്തരിക ലോഞ്ച് API
 
 ```typescript
-import { detectInstalledAgents } from "@/lib/acp";
+import { acpManager } from "@/lib/acp";
 
-const agents = detectInstalledAgents();
-// മടക്കിനൽകുന്നത്: CliAgentInfo[]
-
-interface CliAgentInfo {
-  id: string; // ഉദാ., "codex", "claude"
-  name: string; // പ്രദർശന നാമം
-  binary: string; // പ്രവർത്തിപ്പിക്കേണ്ട ബൈനറിയുടെ പേര്
-  versionCommand: string; // പതിപ്പ് കണ്ടെത്തുന്നതിനുള്ള കമാൻഡ്
-  version: string | null; // കണ്ടെത്തിയ പതിപ്പ് (ഇൻസ്റ്റാൾ ചെയ്തിട്ടില്ലെങ്കിൽ null)
-  installed: boolean; // ഏജന്റ് ഇൻസ്റ്റാൾ ചെയ്തിട്ടുണ്ടോ എന്ന്
-  providerAlias: string; // OmniRoute-ലെ പ്രൊവൈഡർ ID
-  spawnArgs: string[]; // പ്രവർത്തിപ്പിക്കുമ്പോൾ കൈമാറേണ്ട ആർഗ്യുമെന്റുകൾ
-  protocol: "stdio" | "http"; // ആശയവിനിമയ പ്രോട്ടോക്കോൾ
-  isCustom?: boolean; // ഇത് ഉപയോക്താവ് നിർവചിച്ച കസ്റ്റം ഏജന്റാണോ എന്ന്
-}
-```
-
-#### `getAvailableAgents()`
-
-ഇൻസ്റ്റാൾ ചെയ്തിട്ടുള്ളതും ACP-യ്ക്ക് ലഭ്യമായതുമായ ഏജന്റുകളെ മാത്രം ലഭ്യമാക്കുന്നു.
-
-```typescript
-import { getAvailableAgents } from "@/lib/acp";
-
-const available = getAvailableAgents();
-// മടക്കിനൽകുന്നത്: CliAgentInfo[] (ഇൻസ്റ്റാൾ ചെയ്ത ഏജന്റുകൾ മാത്രം)
-```
-
-#### `getAgentById(id)`
-
-ID ഉപയോഗിച്ച് ഒരു നിർദ്ദിഷ്ട ഏജന്റിനെ ലഭ്യമാക്കുന്നു.
-
-```typescript
-import { getAgentById } from "@/lib/acp";
-
-const agent = getAgentById("claude");
-// മടക്കിനൽകുന്നത്: CliAgentInfo | undefined
-```
-
-#### `setCustomAgents(agents)`
-
-ക്രമീകരണങ്ങളിൽനിന്നുള്ള കസ്റ്റം ഏജന്റ് നിർവചനങ്ങൾ സജ്ജീകരിക്കുന്നു.
-
-```typescript
-import { setCustomAgents } from "@/lib/acp";
-
-setCustomAgents([
-  {
-    id: "my-custom-cli",
-    name: "My Custom CLI",
-    binary: "mycli",
-    versionCommand: "mycli --version",
-    providerAlias: "my-provider",
-    spawnArgs: [],
-    protocol: "stdio",
+const session = acpManager.spawn("gemini", {
+  cwd: process.cwd(),
+  // ഈ ഏജന്റിന് മനഃപൂർവം നിയോഗിച്ച പ്രൊവൈഡർ വേരിയബിളുകൾ മാത്രം കൈമാറുക.
+  env: {
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
   },
-]);
-```
-
-### മാനേജർ ഫംഗ്ഷനുകൾ
-
-#### `acpManager.spawn(agentId, binary, args, env)`
-
-ഒരു പുതിയ CLI ഏജന്റ് പ്രോസസ് പ്രവർത്തിപ്പിക്കുന്നു.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const session = acpManager.spawn("claude", "claude", ["--print", "--output-format", "json"], {
-  /* കസ്റ്റം എൻവയോൺമെന്റ് വേരിയബിളുകൾ */
 });
-// മടക്കിനൽകുന്നത്: AcpSession
-```
 
-**അനുവദനീയമായ ഏജന്റ് ID-കൾ**: `["claude", "codex", "gemini", "qwen"]`
-
-#### `acpManager.sendPrompt(sessionId, prompt, timeoutMs)`
-
-ഒരു CLI ഏജന്റിന് പ്രോംപ്റ്റ് അയയ്ക്കുകയും പ്രതികരണം ശേഖരിക്കുകയും ചെയ്യുന്നു.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const response = await acpManager.sendPrompt(
-  "acp-claude-1234567890-abc123",
-  "What is 2+2?",
-  120000 // 2 മിനിറ്റ് സമയപരിധി
-);
-// മടക്കിനൽകുന്നത്: Promise<string>
-```
-
-#### `acpManager.kill(sessionId)`
-
-ഒരു സെഷൻ അവസാനിപ്പിക്കുകയും വൃത്തിയാക്കുകയും ചെയ്യുന്നു.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const killed = acpManager.kill("acp-claude-1234567890-abc123");
-// മടക്കിനൽകുന്നത്: boolean
-```
-
-#### `acpManager.getActiveSessions()`
-
-സജീവമായ എല്ലാ സെഷനുകളും ലഭ്യമാക്കുന്നു.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const sessions = acpManager.getActiveSessions();
-// മടക്കിനൽകുന്നത്: AcpSession[]
-```
-
-#### `acpManager.killAll()`
-
-എല്ലാ സെഷനുകളും അവസാനിപ്പിക്കുന്നു.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-acpManager.killAll();
-```
-
-### സെഷൻ ഇന്റർഫേസ്
-
-```typescript
-interface AcpSession {
-  id: string; // തനതായ സെഷൻ ID
-  agentId: string; // ഏജന്റ് ID (ഉദാ., "claude")
-  process: ChildProcess; // ചൈൽഡ് പ്രോസസ് ഹാൻഡിൽ
-  alive: boolean; // പ്രോസസ് സജീവമാണോ എന്ന്
-  stdoutBuffer: string; // ശേഖരിച്ച stdout ബഫർ
-  stderrBuffer: string; // ശേഖരിച്ച stderr ബഫർ
-  createdAt: Date; // സൃഷ്ടിച്ച സമയമുദ്ര
-}
-```
-
-### ഇവന്റുകൾ
-
-`AcpManager`, `EventEmitter`-നെ വിപുലീകരിക്കുകയും ഇനിപ്പറയുന്ന ഇവന്റുകൾ എമിറ്റ് ചെയ്യുകയും ചെയ്യുന്നു:
-
-#### `stdout`
-
-CLI ഏജന്റ് stdout-ലേക്ക് എഴുതുമ്പോൾ എമിറ്റ് ചെയ്യപ്പെടുന്നു.
-
-```typescript
-acpManager.on("stdout", ({ sessionId, data }) => {
-  console.log(`[${sessionId}] stdout: ${data}`);
-});
-```
-
-#### `stderr`
-
-CLI ഏജന്റ് stderr-ലേക്ക് എഴുതുമ്പോൾ എമിറ്റ് ചെയ്യപ്പെടുന്നു.
-
-```typescript
-acpManager.on("stderr", ({ sessionId, data }) => {
-  console.error(`[${sessionId}] stderr: ${data}`);
-});
-```
-
-#### `exit`
-
-CLI ഏജന്റ് പ്രോസസ് അവസാനിക്കുമ്പോൾ എമിറ്റ് ചെയ്യപ്പെടുന്നു.
-
-```typescript
-acpManager.on("exit", ({ sessionId, code, signal }) => {
-  console.log(`[${sessionId}] exited with code ${code}, signal ${signal}`);
-});
-```
-
-#### `error`
-
-CLI ഏജന്റ് പ്രോസസിൽ പിശക് സംഭവിക്കുമ്പോൾ എമിറ്റ് ചെയ്യപ്പെടുന്നു.
-
-```typescript
-acpManager.on("error", ({ sessionId, error }) => {
-  console.error(`[${sessionId}] error: ${error}`);
-});
-```
-
----
-
-## കോൺഫിഗറേഷൻ
-
-### എൻവയോൺമെന്റ് വേരിയബിളുകൾ
-
-പാരന്റ് പ്രോസസിൽ നിന്നുള്ള എല്ലാ എൻവയോൺമെന്റ് വേരിയബിളുകളും ACP സ്വീകരിക്കുന്നു; കൂടാതെ ഇഷ്ടാനുസൃത env vars ഉപയോഗിച്ച് അവ വിപുലീകരിക്കാനും കഴിയും:
-
-```typescript
-acpManager.spawn("claude", "claude", [], {
-  ANTHROPIC_API_KEY: "sk-...",
-  DEBUG: "true",
-});
-```
-
-### സ്പോൺ ആർഗ്യുമെന്റുകൾ
-
-ഓരോ ഏജന്റിനും രജിസ്ട്രിയിൽ നിർവചിച്ചിട്ടുള്ള ഡിഫോൾട്ട് സ്പോൺ ആർഗ്യുമെന്റുകളുണ്ട്. നിങ്ങൾക്ക് അവ ഓവർറൈഡ് ചെയ്യാം:
-
-```typescript
-acpManager.spawn("claude", "claude", ["--print", "--verbose"], {});
-```
-
-### ടൈംഔട്ടുകൾ
-
-ഡിഫോൾട്ട് പ്രോംപ്റ്റ് ടൈംഔട്ട് **120 സെക്കൻഡ്** (2 മിനിറ്റ്) ആണ്. നിങ്ങൾക്ക് ഇത് ഓവർറൈഡ് ചെയ്യാം:
-
-```typescript
-await acpManager.sendPrompt(sessionId, prompt, 300000); // 5 മിനിറ്റ്
-```
-
-### ഡിറ്റക്ഷൻ കാഷ്
-
-ചെലവേറിയ ഫയൽസിസ്റ്റം സ്കാനുകൾ ഒഴിവാക്കാൻ ഏജന്റ് ഡിറ്റക്ഷൻ **60 സെക്കൻഡ്** നേരത്തേക്ക് കാഷ് ചെയ്യപ്പെടുന്നു. നിർബന്ധിതമായി പുതുക്കാൻ:
-
-```typescript
-import { refreshAgentCache } from "@/lib/acp";
-
-refreshAgentCache();
-```
-
----
-
-## സുരക്ഷ
-
-### കമാൻഡ് ഇൻജക്ഷൻ തടയൽ
-
-കമാൻഡ് ഇൻജക്ഷൻ ആക്രമണങ്ങൾ തടയാൻ ACP വേർഷൻ കമാൻഡുകൾ സാധൂകരിക്കുന്നു:
-
-```typescript
-const DISALLOWED_VERSION_COMMAND_CHARS = /[;&|<>`$\r\n]/;
-```
-
-ഈ പ്രതീകങ്ങൾ ഉൾക്കൊള്ളുന്ന വേർഷൻ കമാൻഡുകൾ നിരസിക്കപ്പെടും:
-
-- `;` — കമാൻഡ് വേർതിരിക്കൽ ചിഹ്നം
-- `&` — പശ്ചാത്തല പ്രോസസ്
-- `|` — പൈപ്പ്
-- `<`, `>` — റീഡയറക്ഷൻ
-- `` ` `` — കമാൻഡ് സബ്സ്റ്റിറ്റ്യൂഷൻ
-- `$` — വേരിയബിൾ എക്സ്പാൻഷൻ
-- `\r`, `\n` — ലൈൻ ബ്രേക്കുകൾ
-
-### ബൈനറി നാമത്തിന്റെ സാധൂകരണം
-
-വേർഷൻ കമാൻഡിലെ ബൈനറി പ്രതീക്ഷിക്കുന്ന ബൈനറി നാമവുമായി പൊരുത്തപ്പെടുന്നുവെന്ന് ACP സാധൂകരിക്കുന്നു (ഇത് ഒരു ഇഷ്ടാനുസൃത ഏജന്റ് അല്ലെങ്കിൽ).
-
-### പ്രോസസ് ഐസൊലേഷൻ
-
-ഓരോ ACP സെഷനും അതിന്റേതായ ചൈൽഡ് പ്രോസസിലാണ് പ്രവർത്തിക്കുന്നത്. സെഷൻ അവസാനിക്കുമ്പോഴോ ടൈംഔട്ട് ആകുമ്പോഴോ പ്രോസസ് നിർത്തപ്പെടുന്നു.
-
----
-
-## പ്രകടനം
-
-### ഡിറ്റക്ഷൻ പ്രകടനം
-
-- **ആദ്യ കോൾ**: ~50-200ms (ഓരോ ഏജന്റിനുമായി `version` കമാൻഡ് പ്രവർത്തിപ്പിക്കുന്നു)
-- **കാഷ് ചെയ്ത കോളുകൾ**: <1ms (കാഷിൽ നിന്ന് നൽകുന്നു)
-- **കാഷ് TTL**: 60 സെക്കൻഡ്
-
-### പ്രോംപ്റ്റ് പ്രകടനം
-
-- **സ്പോൺ**: ~50-100ms
-- **പ്രോംപ്റ്റ് അയയ്ക്കൽ**: ~10-50ms
-- **പ്രതികരണത്തിനായി കാത്തിരിപ്പ്**: CLI ഏജന്റിനെ ആശ്രയിച്ചിരിക്കുന്നു (സാധാരണയായി 1-30 സെക്കൻഡ്)
-- **നിർത്തൽ**: ~5 സെക്കൻഡ് (SIGTERM) + ഉടനടി (SIGKILL)
-
-### റിസോഴ്സ് ഉപയോഗം
-
-- **ഓരോ സെഷനിലെയും മെമ്മറി**: ~10-50MB (CLI ഏജന്റിനെ ആശ്രയിച്ചിരിക്കുന്നു)
-- **CPU**: ഏറ്റവും കുറവ് (I/O ബൗണ്ട്)
-- **ഡിസ്ക്**: ഒന്നുമില്ല
-
----
-
-## പ്രശ്നപരിഹാരം
-
-### "Unknown agent" പിശക്
-
-**പ്രശ്നം**: `acpManager.spawn()` എന്നത് `Unknown agent: <id>` പിശക് ഉയർത്തുന്നു
-
-**പരിഹാരം**: `spawn()`-ൽ ഈ ഏജന്റുകൾ മാത്രമാണ് അനുവദിച്ചിരിക്കുന്നത്:
-
-- `claude`
-- `codex`
-- `gemini`
-- `qwen`
-
-മറ്റ് ഏജന്റുകളെ മാനുവലായോ ഇഷ്ടാനുസൃത ഏജന്റ് നിർവചനങ്ങൾ വഴിയോ സ്പോൺ ചെയ്യണം.
-
-### "Session not alive" പിശക്
-
-**പ്രശ്നം**: `acpManager.sendPrompt()` എന്നത് `Session ${sessionId} is not alive` പിശക് ഉയർത്തുന്നു
-
-**പരിഹാരം**: സെഷൻ അവസാനിച്ചിരിക്കാം അല്ലെങ്കിൽ നിർത്തപ്പെട്ടിരിക്കാം. സെഷന്റെ നില പരിശോധിക്കുക:
-
-```typescript
-const session = acpManager.getSession(sessionId);
-if (!session?.alive) {
-  // സെഷൻ വീണ്ടും സ്പോൺ ചെയ്യുക
-  acpManager.spawn("claude", "claude", [], {});
-}
-```
-
-### "ACP timeout" പിശക്
-
-**പ്രശ്നം**: `acpManager.sendPrompt()` എന്നത് `ACP timeout after 120000ms` പിശക് ഉയർത്തുന്നു
-
-**പരിഹാരം**: ടൈംഔട്ട് വർധിപ്പിക്കുക:
-
-```typescript
-await acpManager.sendPrompt(sessionId, prompt, 300000); // 5 മിനിറ്റ്
-```
-
-### CLI കണ്ടെത്തിയില്ല
-
-**പ്രശ്നം**: `detectInstalledAgents()` നിങ്ങളുടെ CLI കണ്ടെത്തുന്നില്ല
-
-**പരിഹാരങ്ങൾ**:
-
-1. **PATH പരിശോധിക്കുക**: CLI നിങ്ങളുടെ സിസ്റ്റം PATH-ൽ ഉണ്ടെന്ന് ഉറപ്പാക്കുക
-2. **വേർഷൻ കമാൻഡ് പരിശോധിക്കുക**: `claude --version` മാനുവലായി പ്രവർത്തിപ്പിക്കുക
-3. **അനുമതികൾ പരിശോധിക്കുക**: CLI എക്സിക്യൂട്ട് ചെയ്യാനാകുന്നതാണെന്ന് ഉറപ്പാക്കുക
-4. **ഇഷ്ടാനുസൃത ഏജന്റ്**: നിലവാരമില്ലാത്ത CLI-കൾക്കായി ഒരു ഇഷ്ടാനുസൃത ഏജന്റ് നിർവചനം ചേർക്കുക
-
-### അനുമതി നിരസിച്ചു
-
-**പ്രശ്നം**: ACP-ക്ക് CLI എക്സിക്യൂട്ട് ചെയ്യാൻ കഴിയുന്നില്ല
-
-**പരിഹാരങ്ങൾ**:
-
-1. **ഫയൽ അനുമതികൾ പരിശോധിക്കുക**: `chmod +x /usr/local/bin/claude`
-2. **ഉടമസ്ഥാവകാശം പരിശോധിക്കുക**: OmniRoute-ന് വായിക്കാനും എക്സിക്യൂട്ട് ചെയ്യാനുമുള്ള അനുമതികളുണ്ടെന്ന് ഉറപ്പാക്കുക
-3. **SELinux/AppArmor പരിശോധിക്കുക**: ഇവ പ്രോസസ് സ്പോണിംഗ് തടഞ്ഞേക്കാം
-
----
-
-## ഉദാഹരണങ്ങൾ
-
-### ഉദാഹരണം 1: Claude Code ആരംഭിച്ച് ഉപയോഗിക്കുക
-
-```typescript
-import { acpManager, detectInstalledAgents } from "@/lib/acp";
-
-// ഇൻസ്റ്റാൾ ചെയ്ത ഏജന്റുകളെ കണ്ടെത്തുക
-const agents = detectInstalledAgents();
-const claude = agents.find((a) => a.id === "claude");
-
-if (claude?.installed) {
-  // ഒരു പുതിയ സെഷൻ ആരംഭിക്കുക
-  const session = acpManager.spawn("claude", claude.binary, ["--print", "--output-format", "json"]);
-
-  // ഒരു പ്രോംപ്റ്റ് അയയ്ക്കുക
-  const response = await acpManager.sendPrompt(
-    session.id,
-    "100 വാക്കുകളിൽ ക്വാണ്ടം കമ്പ്യൂട്ടിംഗ് വിശദീകരിക്കുക"
-  );
-
-  console.log("Claude-ന്റെ പ്രതികരണം:", response);
-
-  // വിഭവങ്ങൾ നീക്കം ചെയ്യുക
+try {
+  const response = await acpManager.sendPrompt(session.id, "ഈ പ്രോജക്റ്റ് വിശദീകരിക്കുക", 120_000);
+  // വിളിക്കുന്ന ആപ്ലിക്കേഷനിൽ പ്രതികരണം ഉപയോഗിക്കുക.
+} finally {
   acpManager.kill(session.id);
 }
 ```
 
-### ഉദാഹരണം 2: ഫാൾബാക്കോടുകൂടിയ സ്വയമേവയുള്ള കണ്ടെത്തൽ
+`spawn(agentId, options)` രജിസ്റ്റർ ചെയ്ത നിർവചനത്തിൽ നിന്ന് എക്സിക്യൂട്ടബിളും ആർഗ്യുമെന്റുകളും കണ്ടെത്തുന്നു.
+`cwd`, `env` എന്നിവ മാത്രമാണ് കോളർക്കുള്ള ഓപ്ഷനുകൾ; പഴയ
+`spawn(agentId, binary, args, env)` സിഗ്നേച്ചറും എക്സിക്യൂട്ടബിൾ ഓവർറൈഡുകളും നിരസിക്കപ്പെടുന്നു.
+HTTP ലോഞ്ച് കോൺട്രാക്റ്റുകൾ ഈ മാനേജർ പിന്തുണയ്ക്കുന്നില്ല.
 
-```typescript
-import { acpManager, getAvailableAgents } from "@/lib/acp";
+CLI ലോഞ്ചറുകളുടെ അതേ ഓപ്പറേറ്റിങ് സിസ്റ്റം, ടെർമിനൽ, ലൊക്കേൽ, സർട്ടിഫിക്കറ്റ്
+അലൗലിസ്റ്റ് എന്നിവ ചൈൽഡ് പ്രോസസിന് ഇൻഹെറിറ്റ് ചെയ്യപ്പെടുന്നു. സെർവർ/പ്രൊവൈഡർ രഹസ്യങ്ങൾ
+പാരന്റ് എൻവയോൺമെന്റിൽ നിന്ന് പകർത്തപ്പെടുന്നില്ല. തിരഞ്ഞെടുത്ത CLI-ക്ക് ആവശ്യമായ ക്രെഡൻഷ്യലുകൾ
+വ്യക്തമായി കൈമാറുകയോ ആ CLI-യുടെ സ്വന്തം ലോക്കൽ ഓതന്റിക്കേഷൻ വഴി നൽകുകയോ വേണം. ചൈൽഡിന്
+അപ്പോഴും ലോക്കൽ ഉപയോക്താവിന്റെ ഫയൽസിസ്റ്റം അനുമതികൾ ഉണ്ടായിരിക്കും; അതിന് സ്വന്തം കോൺഫിഗ് വായിക്കാനും കഴിയും.
 
-const available = getAvailableAgents();
+## നേറ്റീവ് ലൈഫ്സൈക്കിളും പരിധികളും
 
-// ആദ്യം Claude പരീക്ഷിക്കുക, ലഭ്യമല്ലെങ്കിൽ Codex ഉപയോഗിക്കുക
-let agentId = "claude";
-if (!available.find((a) => a.id === "claude")) {
-  if (available.find((a) => a.id === "codex")) {
-    agentId = "codex";
-  } else {
-    throw new Error("ACP-അനുയോജ്യമായ CLI ഏജന്റൊന്നും കണ്ടെത്തിയില്ല");
-  }
-}
+1. രജിസ്റ്റർ ചെയ്ത ബൈനറി സ്പോൺ ചെയ്യുക, ACP ഇനിഷ്യലൈസ് ചെയ്യുക, തിരഞ്ഞെടുത്ത വർക്കിങ് ഡയറക്ടറിയിൽ
+   റൂട്ട് ചെയ്ത ഒരു സെഷൻ സൃഷ്ടിക്കുക. ഇനിഷ്യലൈസേഷന് പത്ത് സെക്കൻഡ് പരിധിയുണ്ട്.
+2. ഒരു പ്രോംപ്റ്റ് സമർപ്പിച്ച് ആ സെഷനുള്ള ടെക്സ്റ്റ് നോട്ടിഫിക്കേഷനുകൾ മാത്രം ശേഖരിക്കുക.
+   പൂർത്തീകരണം എന്നത് പ്രോംപ്റ്റ് RPC പ്രതികരണമാണ്; stdout നിശ്ശബ്ദതയുടെ ഒരു കാലയളവല്ല.
+3. പൂർത്തിയാകാത്ത ഇനിഷ്യലൈസേഷൻ ഉൾപ്പെടെ ഒരൊറ്റ പ്രോംപ്റ്റ് ഡെഡ്ലൈൻ ഉപയോഗിക്കുക; ഡിഫോൾട്ട്
+   120 സെക്കൻഡാണ്. അതേ പ്രോസസ്സിലെ സമകാലിക പ്രോംപ്റ്റുകൾ നിരസിക്കപ്പെടുന്നു.
+4. നേറ്റീവ് ടൈംഔട്ടിൽ `session/cancel` ശ്രമിച്ച് പ്രോസസ് ടെർമിനേറ്റ് ചെയ്യുക.
+   ടെർമിനേഷനു മുമ്പ് നോട്ടിഫിക്കേഷൻ ഫ്ലഷ് ചെയ്യാൻ പരിമിതമായ 100 ms വിൻഡോ അനുവദിക്കുന്നു.
+5. ഇനിഷ്യലൈസേഷൻ പരാജയപ്പെടുമ്പോഴോ, കണക്ഷൻ ക്ലോസ് ആകുമ്പോഴോ, പ്രോസസ് എക്സിറ്റ് ചെയ്യുമ്പോഴോ,
+   കോളർ അത് കിൽ ചെയ്യുമ്പോഴോ ട്രാൻസ്പോർട്ട് സ്റ്റേറ്റ് ക്ലോസ് ചെയ്ത് സെഷൻ നീക്കം ചെയ്യുക.
 
-const agent = available.find((a) => a.id === agentId)!;
-const session = acpManager.spawn(agentId, agent.binary, agent.spawnArgs);
+ടൂൾ അനുമതി അഭ്യർത്ഥനകൾ നിരസിക്കപ്പെടുന്നു. ഫയൽസിസ്റ്റം അല്ലെങ്കിൽ ടെർമിനൽ ക്ലയന്റ്
+കഴിവുകളൊന്നും പരസ്യപ്പെടുത്തുന്നില്ല. ഈ നിയന്ത്രണങ്ങൾ ചൈൽഡ് ബൈനറിയെ തന്നെ സാൻഡ്ബോക്സ് ചെയ്യുകയോ
+ഒരു CLI-യുടെ സ്വന്തം ഓതറൈസേഷൻ ക്രമീകരണങ്ങൾക്ക് പകരമാകുകയോ ചെയ്യുന്നില്ല.
 
-const response = await acpManager.sendPrompt(session.id, "നമസ്കാരം!");
+നേറ്റീവ് ടെക്സ്റ്റും ലെഗസി stdout/stderr-ഉം പരമാവധി 1 MiB അക്ഷരങ്ങൾ നിലനിർത്തുന്നു;
+ട്രങ്കേഷൻ അറിയിപ്പിനൊപ്പം ഏറ്റവും പുതിയ ഔട്ട്പുട്ട് സൂക്ഷിക്കുന്നു. SDK പാഴ്സിങ്ങിന് മുമ്പ് ഓരോ നേറ്റീവ് വയർ
+ഫ്രെയിമിനും 2 MiB ബൈറ്റുകളുടെ പരിധിയുണ്ട്. ഓരോ പ്രോംപ്റ്റിനും ബഫറുകൾ റീസെറ്റ് ചെയ്യപ്പെടുന്നു.
 
-acpManager.kill(session.id);
-```
+`kill(sessionId)` SIGTERM അയയ്ക്കുന്നു; അഞ്ച് സെക്കൻഡിന് ശേഷവും പ്രോസസ് എക്സിറ്റ് ചെയ്തിട്ടില്ലെങ്കിൽ
+SIGKILL അയയ്ക്കുന്നു. ലെഗസി പ്രോംപ്റ്റ് ടൈംഔട്ടുകൾ ലിസണറുകളും ടൈമറുകളും റിലീസ് ചെയ്യുമെങ്കിലും
+മറ്റൊരു പ്രോംപ്റ്റിനായി സെഷൻ ലഭ്യമായി നിലനിർത്തുന്നു; പൂർത്തിയാകുമ്പോൾ `kill()` അല്ലെങ്കിൽ `killAll()`
+വിളിക്കാനുള്ള ഉത്തരവാദിത്തം കോളർമാർക്കാണ്.
 
-### ഉദാഹരണം 3: ഇഷ്ടാനുസൃത ഏജന്റ്
+## ഇവന്റുകളും പരിശോധനയും
 
-```typescript
-import { setCustomAgents, detectInstalledAgents } from "@/lib/acp";
+മാനേജർ `stdout`, `stderr`, `exit` എന്നിവ എമിറ്റ് ചെയ്യുന്നു; ഓരോന്നിലും `sessionId` ഉണ്ടായിരിക്കും.
+`sessionError` സാനിറ്റൈസ് ചെയ്ത ഒരു ട്രാൻസ്പോർട്ട് പിശക് റിപ്പോർട്ട് ചെയ്യുന്നു. അനുയോജ്യതയ്ക്കുള്ള `error`
+ഇവന്റിന് ഒരു സബ്സ്ക്രൈബർ ഉള്ളപ്പോൾ മാത്രം അത് എമിറ്റ് ചെയ്യപ്പെടുന്നു; അതിനാൽ ഒരു ബൈനറി ലഭ്യമല്ലാത്തത്
+കൈകാര്യം ചെയ്യപ്പെടാത്ത EventEmitter പിശകിന് കാരണമാകില്ല.
 
-// ഒരു ഇഷ്ടാനുസൃത CLI ഏജന്റ് രജിസ്റ്റർ ചെയ്യുക
-setCustomAgents([
-  {
-    id: "my-llm-cli",
-    name: "My LLM CLI",
-    binary: "myllm",
-    versionCommand: "myllm --version",
-    providerAlias: "my-llm-provider",
-    spawnArgs: ["--format", "json"],
-    protocol: "stdio",
-  },
-]);
+- `getSession(sessionId)` മാനേജ് ചെയ്യുന്ന ഒരു സെഷൻ അല്ലെങ്കിൽ `undefined` മടക്കിനൽകുന്നു.
+- `getActiveSessions()` നിർത്തിയതോ നിർത്തിക്കൊണ്ടിരിക്കുന്നതോ ആയ സെഷനുകളെ ഒഴിവാക്കുന്നു.
+- `sendInput(sessionId, input)` സജീവമായ ഒരു ലെഗസി അഡാപ്റ്ററിന് മാത്രമാണ് ലഭ്യം;
+  അതിന്റെ JSON-RPC സ്ട്രീം സംരക്ഷിക്കാൻ നേറ്റീവ് ACP റോ ഇൻപുട്ട് നിരസിക്കുന്നു.
+- `killAll()` ആ ഇൻസ്റ്റൻസ് മാനേജ് ചെയ്യുന്ന എല്ലാ സെഷനുകളും ടെർമിനേറ്റ് ചെയ്യുന്നു.
 
-// ഇപ്പോൾ detectInstalledAgents() എന്നതിൽ "my-llm-cli" ഉൾപ്പെടും
-const agents = detectInstalledAgents();
-```
+## വാലിഡേഷൻ അതിരുകൾ
 
----
+നേറ്റീവ് ഹാൻഡ്ഷേക്ക്, ടെക്സ്റ്റ് ഔട്ട്പുട്ട്, നിരസിച്ച അനുമതികൾ, റദ്ദാക്കൽ, സമകാലിക പ്രോംപ്റ്റുകൾ,
+പരാജയപ്പെട്ട ഇനിഷ്യലൈസേഷൻ, പ്രോസസ് എക്സിറ്റ്, ഔട്ട്പുട്ട് പരിധികൾ, രഹസ്യങ്ങളുടെ ഐസൊലേഷൻ എന്നിവ
+നിർണ്ണയാത്മക ഫിക്ചറുകൾ ഉൾക്കൊള്ളുന്നു. നിലവിലുള്ള ലെഗസി ബഫർ/ലിസണർ റിഗ്രഷനുകൾക്കും കവറേജ് തുടരുന്നു.
+ഈ ടെസ്റ്റുകൾ ഒരു സജീവ Gemini ലോഗിൻ അല്ലെങ്കിൽ വിജയകരമായ പ്രൊവൈഡർ ഇൻഫറൻസ് തെളിയിക്കുന്നില്ല;
+അവയ്ക്ക് ലക്ഷ്യ എൻവയോൺമെന്റിൽ പ്രത്യേകം ഓതറൈസ് ചെയ്ത ഒരു സ്മോക്ക് ടെസ്റ്റ് ആവശ്യമാണ്.
 
-## അടുത്തത് എന്താണ്?
+## ബന്ധപ്പെട്ട ഡോക്യുമെന്റേഷൻ
 
-- **[API റഫറൻസ്](../reference/API_REFERENCE.md)** — REST API എൻഡ്പോയിന്റുകൾ
-- **[പ്രൊവൈഡർ റഫറൻസ്](../reference/PROVIDER_REFERENCE.md)** — എല്ലാ 352 പ്രൊവൈഡറുകളും
-- **[MCP സെർവർ](./MCP-SERVER.md)** — Model Context Protocol സംയോജനം
-- **[A2A സെർവർ](./A2A-SERVER.md)** — Agent-to-Agent പ്രോട്ടോക്കോൾ
-- **[ക്ലൗഡ് ഏജന്റ്](./CLOUD_AGENT.md)** — ക്ലൗഡ് അധിഷ്ഠിത ഏജന്റുകൾ
-
----
-
-## റഫറൻസ്
-
-- [AionUi പ്രോജക്റ്റ്](https://github.com/iOfficeAI/AionUi) — ACP സ്വയം കണ്ടെത്തലിനുള്ള പ്രചോദനം
-- [ACP സോഴ്സ് കോഡ്](../../src/lib/acp/) — നടപ്പാക്കൽ വിശദാംശങ്ങൾ
-  - `manager.ts` — പ്രോസസ് ലൈഫ്സൈക്കിൾ മാനേജ്മെന്റ്
-  - `registry.ts` — ഏജന്റുകളെ കണ്ടെത്തലും രജിസ്ട്രേഷനും
-  - `index.ts` — പൊതു API എക്സ്പോർട്ടുകൾ
+- [ഏജന്റ് പ്രോട്ടോക്കോളുകൾ](./AGENT_PROTOCOLS_GUIDE.md)
+- [CLI ലോഞ്ച് കോൺട്രാക്റ്റുകൾ](../guides/CLI-LAUNCH-CONTRACTS.md)
+- [CLI ടൂളുകൾ](../reference/CLI-TOOLS.md)
+- [A2A സെർവർ](./A2A-SERVER.md)
+- [ക്ലൗഡ് ഏജന്റുകൾ](./CLOUD_AGENT.md)

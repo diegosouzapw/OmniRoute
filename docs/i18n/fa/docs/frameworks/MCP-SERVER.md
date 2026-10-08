@@ -1,6 +1,6 @@
 # OmniRoute MCP Server Documentation (فارسی)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
@@ -289,56 +289,121 @@ curl -X DELETE http://localhost:20128/api/settings/notion
 
 ---
 
-## احراز هویت و حوزههای دسترسی
+## احراز هویت و محدودهها
 
-ابزارهای MCP از طریق حوزههای دسترسی کلید API احراز هویت میشوند. اعمال محدودیت حوزههای دسترسی بهصورت متمرکز در
-`open-sse/mcp-server/scopeEnforcement.ts` انجام میشود. هر ابزار به حوزههای دسترسی مشخصی نیاز دارد:
+ابزار MCP رشتههای محدوده خواندن را از تماسگیرنده میخواند. این بررسی یکی از سه فضای نام مستقل است. قبولی از یک بررسیکننده به معنای قبولی از بقیه نیست. قوانین در [سه فضای نام محدوده](#سه-فضای-نام-محدوده) آمده است. کاتالوگ ابزار در [محدودههای ابزار MCP](#محدودههای-ابزار-mcp) آمده است.
 
-| دامنه                 | ابزارها                                                                                                                                                                        |
-| :-------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `read:health`         | `get_health`، `get_provider_metrics`، `simulate_route`، `explain_route`، `best_combo_for_task`، `db_health_check`                                                              |
-| `read:combos`         | `list_combos`، `get_combo_metrics`، `simulate_route`، `best_combo_for_task`، `test_combo`                                                                                      |
-| `write:combos`        | `switch_combo`، `set_routing_strategy`                                                                                                                                         |
-| `read:quota`          | `check_quota`                                                                                                                                                                  |
-| `read:usage`          | `cost_report`، `get_session_snapshot`، `explain_route`                                                                                                                         |
-| `read:models`         | `list_models_catalog`                                                                                                                                                          |
-| `execute:completions` | `route_request`، `test_combo`                                                                                                                                                  |
-| `execute:search`      | `web_search`، `x_search`، `web_fetch`                                                                                                                                          |
-| `write:budget`        | `set_budget_guard`                                                                                                                                                             |
-| `write:resilience`    | `set_resilience_profile`، `db_health_check`                                                                                                                                    |
-| `pricing:write`       | `sync_pricing`                                                                                                                                                                 |
-| `read:cache`          | `cache_stats`                                                                                                                                                                  |
-| `write:cache`         | `cache_flush`                                                                                                                                                                  |
-| `read:compression`    | `compression_status`، `list_compression_combos`، `compression_combo_stats`                                                                                                     |
-| `write:compression`   | `compression_configure`، `set_compression_engine`                                                                                                                              |
-| `read:proxies`        | `oneproxy_fetch`، `oneproxy_rotate`، `oneproxy_stats`                                                                                                                          |
-| `read:notion`         | `notion_search`، `notion_get_page`، `notion_list_block_children`، `notion_query_database`، `notion_get_database`                                                               |
-| `write:notion`        | `notion_append_blocks`                                                                                                                                                         |
-| `read:memory`         | `memory_search`                                                                                                                                                                |
-| `write:memory`        | `memory_add`، `memory_clear`                                                                                                                                                   |
-| `read:skills`         | `skills_list`، `skills_executions`                                                                                                                                             |
-| `write:skills`        | `skills_enable`                                                                                                                                                                |
-| `execute:skills`      | `skills_execute`                                                                                                                                                               |
-| `read:catalog`        | `agent_skills_list`، `agent_skills_get`، `agent_skills_coverage`                                                                                                               |
-| `read:tools`          | `omniroute_tool_search`                                                                                                                                                        |
-| `read:radar`          | `omniroute_radar_catalog`                                                                                                                                                      |
-| `read:gamification`   | `gamification_profile`، `gamification_rank`، `gamification_leaderboard`، `gamification_badges`، `gamification_servers`، `gamification_anomalies`                               |
-| `write:gamification`  | `gamification_invite`، `gamification_transfer`                                                                                                                                 |
-| `read:plugins`        | `plugin_list`، `plugin_executions`                                                                                                                                             |
-| `write:plugins`       | `plugin_scan`، `plugin_install`، `plugin_uninstall`، `plugin_activate`، `plugin_deactivate`، `plugin_configure`                                                                |
-| `read:obsidian`       | ۱۳ ابزار خواندن — `obsidian_list_vault`، `obsidian_read_note`، `obsidian_search_simple`، `obsidian_search_structured`، `obsidian_get_periodic_note`، `obsidian_sync_status`، … |
-| `write:obsidian`      | ۹ ابزار نوشتن — `obsidian_write_note`، `obsidian_append_note`، `obsidian_patch_note`، `obsidian_move_note`، `obsidian_delete_note`، `obsidian_sync_trigger`، …                 |
-| `read:local-corpus`   | `local_corpus_search`، `local_corpus_read`، `local_corpus_status`                                                                                                              |
+### سه فضای نام محدوده
 
-دامنههای دارای نویسهٔ عام پشتیبانی میشوند: `read:*` همهٔ دامنههای خواندن را اعطا میکند و `*` دسترسی کامل میدهد.
+`manage` در یک کلید API، `read:compression` در یک ابزار MCP، و `read` در یک توکن دسترسی `oma_live_…` سه مجوز متفاوت هستند. تماسگیرندگانی که یک توکن دسترسی `read` را به یک مسیر مدیریتی تغییردهنده ارسال میکنند، HTTP 403 دریافت میکنند:
+`Access token scope 'read' is insufficient; 'write' required.`
+این رتبه `scopeSatisfies` است. این رتبه جدول MCP را بررسی نمیکند، و تطبیقدهنده MCP نیز آن را بررسی نمیکند.
 
-### `mcp:connect` — قابلیت محدود مسیر (#7895)
+| فضای نام            | اعتبارنامه                                                                      | بررسیکننده                  | قبولی اجازه میدهد                                  |
+| :------------------ | :------------------------------------------------------------------------------ | :-------------------------- | :------------------------------------------------- |
+| مدیریت کلید API     | `api_keys.scopes`                                                               | `hasManageScope`            | REST مدیریتی برای آن کلید Bearer                   |
+| افزودنی کلید API    | همان آرایه، یک رشته دقیق                                                        | کمکی که در زیر نام برده شده | فقط همان یک قابلیت                                 |
+| محدودههای ابزار MCP | همان آرایه، در غیر این صورت MCP `_meta`، در غیر این صورت `OMNIROUTE_MCP_SCOPES` | `scopeMatches`              | آن ابزار، پس از فعال شدن اجبار                     |
+| توکن دسترسی         | `oma_live_…`                                                                    | `scopeSatisfies`            | مسیر مدیریتی که متد و مسیر آن به آن رتبه نیاز دارد |
 
-دسترسی به انتقال HTTP/SSE مربوط به MCP (`/api/mcp/*`) از مبدأ غیر-loopback، به استثنای LOCAL_ONLY برای `/api/mcp/` نیاز دارد (به `docs/security/ROUTE_GUARD_TIERS.md` مراجعه کنید). از نظر تاریخی، این استثنا فقط کلید API با دامنهٔ کامل `manage`/`admin` را میپذیرفت — سطح دسترسیای بیش از حد گسترده برای فراخوانی که فقط نیاز به ارتباط با MCP دارد. اکنون `src/shared/constants/managementScopes.ts` مقدار `MCP_CONNECT_SCOPE = "mcp:connect"` را صادر میکند: دامنهای محدود و افزایشی (با همان رویهٔ `SELF_USAGE_SCOPE`) که فقط مجوز عبور از محدودیت `/api/mcp/` را در `src/server/authz/policies/management.ts` صادر میکند — هیچ دسترسی دیگری به مسیرهای مدیریتی اعطا نمیکند و عمداً خارج از `MANAGEMENT_API_KEY_SCOPES` نگه داشته شده است. کلیدی که دارای `manage`/`admin` باشد همچنان بدون تغییر از این استثنا عبور میکند؛ `mcp:connect` جایگزینی با سطح دسترسی پایینتر برای فراخوانهای راه دوری است که فقط از MCP استفاده میکنند و از طریق `hasMcpConnectOrManageScope()` بررسی میشود.
+ساخت هر اعتبارنامه در [احراز هویت مدیریت](../guides/MANAGEMENT-AUTH.md) پوشش داده شده است.
 
-### اتصال دامنهٔ HTTP بهازای هر کلید (#7895)
+#### محدودههای کلید API
 
-در HTTP/SSE، فایل `open-sse/mcp-server/httpTransport.ts` اکنون `api_keys.scopes` واقعی فراخوان را از طریق `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) تشخیص میدهد و آن را به `transport.handleRequest(req, { authInfo })` متعلق به SDK مربوط به MCP ارسال میکند؛ بنابراین `extra.authInfo.scopes` که به هر فراخوانی ابزار میرسد، دامنههای خود کلید Bearer را منعکس میکند. تابع `resolveCallerScopeContext()` در `scopeEnforcement.ts` از قبل `authInfo` را نسبت به `_meta` و مسیر جایگزین متغیر محیطی `OMNIROUTE_MCP_SCOPES` در اولویت قرار میداد — این تغییر فقط همان منبع نخست و دارای بالاترین اولویت را مقداردهی میکند که پیشتر از طریق HTTP تغذیه نمیشد. هنگامی که هیچ کلید API تشخیص داده نشود (نبودن هدر یا نامعتبر بودن کلید)، `authInfo` همچنان `undefined` میماند و فرایند تشخیص، بدون تغییر به زنجیرهٔ موجود `meta`/env منتقل میشود. این تغییر مقدار پیشفرض `OMNIROUTE_MCP_ENFORCE_SCOPES` را عوض نمیکند — اعمال محدودیت همچنان باید صراحتاً فعال شود؛ این تغییر فقط باعث میشود پس از فعالسازی، مسیر مبتنی بر هر کلید در اولویت قرار گیرد. stdio فاقد هویت مجزا برای هر فراخوان است (به `mcpCallerIdentity.ts` مراجعه کنید) و تحت تأثیر قرار نمیگیرد — همچنان از زنجیرهٔ جایگزین `_meta`/env استفاده میکند.
+یک آرایه `api_keys.scopes` دو کار را انجام میدهد. آنها از توابع متفاوتی استفاده میکنند.
+
+**REST مدیریت.** `manage` و `admin` اعضای `MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`) هستند. `hasManageScope` چیزی است که مسیرهای مدیریتی را برای آن کلید مجاز میکند. `admin` در آن مسیرها قابلیت مدیریت دارد. کلمه `admin` در اینجا رتبه توکن دسترسی نیست و به محدودههای ابزار MCP گسترش نمییابد.
+
+**رشتههای افزودنی.** هر یک یک تست عضویت دقیق است، و هر یک خارج از `MANAGEMENT_API_KEY_SCOPES` باقی میماند.
+
+| محدوده                         | قبولی اجازه میدهد                                                                                                                                                              |
+| :----------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | فقط برش `/api/mcp/` LOCAL_ONLY غیر-loopback (`hasMcpConnectOrManageScope`). یک کلید با `manage` یا `admin` همچنان از آن برش عبور میکند.                                        |
+| `self:usage`                   | `GET /api/v1/me/status` برای این کلید (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` این محدوده را در زمان ایجاد اضافه میکند (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | سهمیههای حساب بالادستی در داخل آن بار وضعیت (`src/lib/usage/apiKeySelfService.ts`). مسیر وضعیت همچنان به `self:usage` نیاز دارد.                                               |
+| `policy:bypass-provider-quota` | فراخوانیهای استنتاج این کلید از خطمشی سهمیه ارائهدهنده صرف نظر میکنند (`hasProviderQuotaBypassScope` در `src/sse/handlers/chat.ts`).                                           |
+
+#### تطبیق
+
+کاتالوگ جدولی است که در زیر [محدودههای ابزار MCP](#محدودههای-ابزار-mcp) آمده است. `MCP_SCOPE_LIST` در `src/shared/constants/mcpScopes.ts` را به عنوان آن کاتالوگ در نظر نگیرید: این زیرمجموعه تایپ شده اصلی است. ابزارهای بعدی محدودههای دیگری را در کنار آن اعلام میکنند (`read:notion`, `read:skills`, `read:local-corpus`, و بقیه جدول).
+
+`evaluateToolScopes` در `open-sse/mcp-server/scopeEnforcement.ts` زمانی که هر محدوده مورد نیاز با برخی از محدودههای اعطا شده مطابقت دارد، یک فراخوانی را مجاز میکند:
+
+- `*` با هر محدوده مورد نیاز مطابقت دارد.
+- یک محدوده اعطا شده که به `*` ختم میشود، با یک محدوده مورد نیاز که با پیشوند قبل از ستاره شروع میشود، مطابقت دارد. `read:*` با `read:compression` مطابقت دارد.
+- هر محدوده اعطا شده دیگر فقط با رشته مورد نیاز یکسان مطابقت دارد.
+
+یک کلید که محدودههای آن `["manage"]` است، برای `read:compression` در `scopeMatches` شکست میخورد. همان فراخوانی برای `admin`، `mcp:connect`، `read` و `write` زمانی که اینها تنها رشتههای اعطا شده هستند، شکست میخورد. هیچ سلسله مراتبی بین محدودههای ابزار MCP فراتر از `*` انتهایی وجود ندارد.
+
+اجرا خاموش است مگر اینکه `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (پیشفرض `false`). در حالی که خاموش است، `evaluateToolScopes` فراخوانی را مجاز میکند و از کاتالوگ صرف نظر میکند. در حالی که روشن است، HTTP از `api_keys.scopes` کلید Bearer به عنوان `authInfo` استفاده میکند (به [اتصال محدوده HTTP به ازای هر کلید](#اتصال-محدوده-http-به-ازای-هر-کلید-7895) مراجعه کنید). هنگامی که هیچ محدوده کلیدی حل نمیشود، مجموعه اعطا شده به `_meta` MCP، سپس `OMNIROUTE_MCP_SCOPES` میرسد.
+
+#### محدودههای توکن دسترسی
+
+توکنهای `oma_live_…` (`src/lib/accessTokens/scopes.ts`) دارای `read`، `write` یا `admin` هستند. `scopeSatisfies` یک رتبه است: `admin` شامل `write` و `read` میشود، و `write` شامل `read` میشود. محدودههای ناشناخته هیچ چیز را پوشش نمیدهند.
+
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) آن رتبه را با `inferRequiredScope` (`src/server/authz/accessScopes.ts`) مقایسه میکند:
+
+- `GET`، `HEAD` و `OPTIONS` به `read` نیاز دارند.
+- هر متد دیگر به `write` نیاز دارد.
+- مسیرها در `ADMIN_SCOPE_PREFIXES` برای هر متد به `admin` نیاز دارند. `/api/mcp` در آن لیست است، بنابراین یک توکن دسترسی `write` همچنان نمیتواند سطح HTTP MCP را فراخوانی کند.
+- مسیرها در `ADMIN_MUTATION_PREFIXES` فقط برای تغییرات به `admin` نیاز دارند.
+
+`PATCH /api/keys/{id}` یک عملیات تغییردهنده (mutation) است و در آن لیستهای ادمین نیست، بنابراین یک توکن `read` خطای 403 دریافت میکند:
+`Access token scope 'read' is insufficient; 'write' required.`
+یک توکن دسترسی `write` یا `admin` برای آن مسیر کافی است. یک JWT داشبورد، توکن machine-id مربوط به CLI لوپبک، و یک کلید API با `manage` یا `admin` مسیرهای دیگری را طی میکنند و توسط این رتبه محدود نمیشوند.
+
+یک توکن دسترسی که `scopeSatisfies` را برای `/api/mcp` با موفقیت پشت سر میگذارد، فقط از دروازه مدیریت عبور کرده است. فراخوانیهای ابزار همچنان `scopeMatches` را در برابر اسکوپهای کلید API اجرا میکنند. رتبه توکن دسترسی ورودی برای `scopeMatches` نیست.
+
+### اسکوپهای ابزار MCP
+
+اعمال اسکوپ در `open-sse/mcp-server/scopeEnforcement.ts` متمرکز شده است.
+هر ابزار به اسکوپهای خاصی نیاز دارد:
+
+| دامنه                | ابزارها                                                                                                                                                                        |
+| :------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `خواندن:سلامت`       | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                              |
+| `خواندن:ترکیبها`     | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                      |
+| `نوشتن:ترکیبها`      | `switch_combo`, `set_routing_strategy`                                                                                                                                         |
+| `خواندن:سهمیه`       | `check_quota`                                                                                                                                                                  |
+| `خواندن:مصرف`        | `cost_report`, `get_session_snapshot`, `explain_route`                                                                                                                         |
+| `خواندن:مدلها`       | `list_models_catalog`                                                                                                                                                          |
+| `اجرا:تکمیلها`       | `route_request`, `test_combo`                                                                                                                                                  |
+| `اجرا:جستجو`         | `web_search`, `x_search`, `web_fetch`                                                                                                                                          |
+| `نوشتن:بودجه`        | `set_budget_guard`                                                                                                                                                             |
+| `نوشتن:تابآوری`      | `set_resilience_profile`, `db_health_check`                                                                                                                                    |
+| `قیمتگذاری:نوشتن`    | `sync_pricing`                                                                                                                                                                 |
+| `خواندن:کش`          | `cache_stats`                                                                                                                                                                  |
+| `نوشتن:کش`           | `cache_flush`                                                                                                                                                                  |
+| `خواندن:فشردهسازی`   | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                                                                                     |
+| `نوشتن:فشردهسازی`    | `compression_configure`, `set_compression_engine`                                                                                                                              |
+| `خواندن:پراکسیها`    | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                                                                                          |
+| `خواندن:نوشن`        | `notion_search`, `notion_get_page`, `notion_list_block_children`, `notion_query_database`, `notion_get_database`                                                               |
+| `نوشتن:نوشن`         | `notion_append_blocks`                                                                                                                                                         |
+| `خواندن:حافظه`       | `memory_search`                                                                                                                                                                |
+| `نوشتن:حافظه`        | `memory_add`, `memory_clear`                                                                                                                                                   |
+| `خواندن:مهارتها`     | `skills_list`, `skills_executions`                                                                                                                                             |
+| `نوشتن:مهارتها`      | `skills_enable`                                                                                                                                                                |
+| `اجرا:مهارتها`       | `skills_execute`                                                                                                                                                               |
+| `خواندن:کاتالوگ`     | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                                                                               |
+| `خواندن:ابزارها`     | `omniroute_tool_search`                                                                                                                                                        |
+| `خواندن:رادار`       | `omniroute_radar_catalog`                                                                                                                                                      |
+| `خواندن:بازیسازی`    | `gamification_profile`, `gamification_rank`, `gamification_leaderboard`, `gamification_badges`, `gamification_servers`, `gamification_anomalies`                               |
+| `write:gamification` | `gamification_invite`, `gamification_transfer`                                                                                                                                 |
+| `read:plugins`       | `plugin_list`, `plugin_executions`                                                                                                                                             |
+| `write:plugins`      | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                                |
+| `read:obsidian`      | 13 ابزار خواندن — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
+| `write:obsidian`     | 9 ابزار نوشتن — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                 |
+| `read:local-corpus`  | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                              |
+
+اسکوپهای وایلدکارد پشتیبانی میشوند: `read:*` تمام اسکوپهای خواندن را اعطا میکند، `*` دسترسی کامل را اعطا میکند.
+
+### `mcp:connect` — قابلیت مسیر محدود (#7895)
+
+دسترسی به انتقال HTTP/SSE MCP (`/api/mcp/*`) از خارج از لوپبک (non-loopback) نیازمند استثنای `LOCAL_ONLY` برای `/api/mcp/` است (به `docs/security/ROUTE_GUARD_TIERS.md` مراجعه کنید). از لحاظ تاریخی، این استثنا فقط یک کلید API با اسکوپ کامل `manage`/`admin` را میپذیرفت — که برای یک تماسگیرنده که فقط نیاز به ارتباط با MCP دارد، بیش از حد گسترده بود. `src/shared/constants/managementScopes.ts` اکنون `MCP_CONNECT_SCOPE = "mcp:connect"` را صادر میکند: یک اسکوپ افزایشی و محدود (با همان سابقه `SELF_USAGE_SCOPE`) که فقط دور زدن `/api/mcp/` را در `src/server/authz/policies/management.ts` مجاز میسازد — این اسکوپ هیچ دسترسی دیگری به مسیرهای مدیریتی نمیدهد و عمداً از `MANAGEMENT_API_KEY_SCOPES` خارج نگه داشته شده است. یک کلید دارای `manage`/`admin` همچنان بدون تغییر از این استثنا عبور میکند؛ `mcp:connect` یک جایگزین با امتیاز کمتر برای تماسگیرندگان از راه دور که فقط به MCP نیاز دارند، است که از طریق `hasMcpConnectOrManageScope()` بررسی میشود.
+
+### اتصال اسکوپ HTTP به ازای هر کلید (#7895)
+
+از طریق HTTP/SSE، `open-sse/mcp-server/httpTransport.ts` اکنون `api_keys.scopes` واقعی تماسگیرنده را از طریق `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) حل میکند و آن را به `transport.handleRequest(req, { authInfo })` در MCP SDK ارسال میکند، بنابراین `extra.authInfo.scopes` که به هر فراخوانی ابزار میرسد، اسکوپهای خود کلید Bearer را منعکس میکند. `resolveCallerScopeContext()` در `scopeEnforcement.ts` قبلاً `authInfo` را بر `_meta` و بازگشت به متغیر محیطی `OMNIROUTE_MCP_SCOPES` اولویت داده بود — این تغییر فقط آن منبع اول و با بالاترین اولویت را پر میکند، که قبلاً از طریق HTTP تغذیه نمیشد. هنگامی که هیچ کلید API حل نمیشود (بدون هدر، کلید نامعتبر)، `authInfo` به صورت `undefined` باقی میماند و حل و فصل بدون تغییر به زنجیره `meta`/env موجود منتقل میشود. این تغییر پیشفرض `OMNIROUTE_MCP_ENFORCE_SCOPES` را برعکس نمیکند — اعمال همچنان باید به صراحت فعال شود؛ این تغییر فقط باعث میشود که مسیر به ازای هر کلید، پس از فعال شدن، اولویت پیدا کند. stdio هویت به ازای هر تماسگیرنده ندارد (به `mcpCallerIdentity.ts` مراجعه کنید) و تحت تأثیر قرار نمیگیرد — و در زنجیره بازگشت `_meta`/env باقی میماند.
 
 ---
 

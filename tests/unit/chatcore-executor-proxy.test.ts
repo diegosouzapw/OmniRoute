@@ -199,6 +199,36 @@ test("retired Qwen Web ids cannot bypass the tombstone through a connection prox
   assert.equal(qwenCloud, await getExecutor("cliproxyapi"));
 });
 
+test("retired Gemini CLI cannot bypass the tombstone through proxy overrides", async () => {
+  for (const providerSpecificData of [
+    { cliproxyapiMode: "claude-native" },
+    { darioMode: "claude-native" },
+  ]) {
+    await assert.rejects(
+      resolveExecutorWithProxy("gemini-cli", undefined, providerSpecificData),
+      (error: unknown) => {
+        const typed = error as Error & { code?: string; status?: number };
+        assert.equal(typed.code, "PROVIDER_RETIRED");
+        assert.equal(typed.status, 410);
+        return true;
+      }
+    );
+  }
+
+  for (const mode of ["native", "cliproxyapi", "dario", "fallback"] as const) {
+    await upstreamProxyDb.upsertUpstreamProxyConfig({
+      providerId: "gemini-cli",
+      mode,
+      enabled: true,
+    });
+    clearUpstreamProxyConfigCache("gemini-cli");
+    await assert.rejects(resolveExecutorWithProxy("gemini-cli"), {
+      code: "PROVIDER_RETIRED",
+      status: 410,
+    });
+  }
+});
+
 test("retired common ChatGPT Web alias cannot bypass retirement through proxy overrides", async () => {
   for (const providerId of ["cgpt-web"]) {
     await assert.rejects(

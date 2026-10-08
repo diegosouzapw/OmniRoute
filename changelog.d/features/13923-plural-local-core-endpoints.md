@@ -1,1 +1,0 @@
-- **feat(proxy):** support multiple local core endpoints, one per line ([#13923](https://github.com/diegosouzapw/OmniRoute/pull/13923) — thanks @maxmad64bis)

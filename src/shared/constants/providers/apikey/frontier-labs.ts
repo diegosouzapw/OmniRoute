@@ -38,12 +38,11 @@ export const APIKEY_PROVIDERS_FRONTIER = {
     textIcon: "PN",
     website: "https://pioneer.ai",
     notice: {
-      text: "Pioneer AI by Fastino Labs. Free $75 usage credits, no credit card required. Use API key auth with a pio_sk_... key. Only open-tier models (Qwen3, Llama, Gemma, SmolLM) work directly — gated models (Claude/GPT/Gemini) require prior fine-tuning via the Pioneer platform.",
+      text: "Pioneer AI by Fastino Labs. Use API key auth with a pio_sk_... key. Only open-tier models (Qwen3, Llama, Gemma, SmolLM) work directly — gated models (Claude/GPT/Gemini) require prior fine-tuning via the Pioneer platform. No free tier — paid plans start with $40 of platform credits.",
       apiKeyUrl: "https://agent.pioneer.ai/settings/api-keys",
       signupUrl: "https://agent.pioneer.ai/auth",
     },
-    hasFree: true,
-    freeNote: "$75 free usage credits — no credit card required",
+    hasFree: false,
     serviceKinds: ["llm"],
   },
   "uc-direct": {
@@ -339,22 +338,6 @@ export const APIKEY_PROVIDERS_FRONTIER = {
     website: "https://dev.writer.com",
     apiHint:
       "Writer Palmyra is OpenAI-compatible at https://api.writer.com/v1. palmyra-x5 offers a 1M-token context window.",
-    hasFree: false,
-  },
-  "muse-code": {
-    id: "muse-code",
-    serviceKinds: ["llm"],
-    alias: "mc",
-    name: "Muse Code (Meta)",
-    icon: "auto_awesome",
-    color: "#0866FF",
-    textIcon: "MC",
-    website: "https://github.com/meta-llama/llama-stack",
-    authHint:
-      "Use your META_API_KEY env var as a Bearer token. Muse Code CLI uses the OpenAI Responses API wire format (POST /responses).",
-    apiHint:
-      "Muse Code is OpenAI-compatible. OmniRoute routes chat traffic through the Responses API and exposes the proprietary model catalog at /v1/muse-code/models.",
-    passthroughModels: true,
     hasFree: false,
   },
 };

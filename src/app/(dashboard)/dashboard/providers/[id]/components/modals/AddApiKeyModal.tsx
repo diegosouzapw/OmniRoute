@@ -47,7 +47,10 @@ export interface AddApiKeyModalProps {
   providerName?: string;
   providerWebsite?: string;
   initialBaseUrl?: string;
-  existingConnectionCount?: number;
+  // #15006 — pass live connection NAMES (not a count): after a delete the count
+  // no longer matches the highest suffix, so a count-derived default collides
+  // with a live connection and the backend name-upsert overwrites it.
+  existingConnectionNames?: string[];
   isCompatible?: boolean;
   isAnthropic?: boolean;
   isCcCompatible?: boolean;
@@ -71,7 +74,7 @@ export default function AddApiKeyModal({
   providerName,
   providerWebsite,
   initialBaseUrl,
-  existingConnectionCount = 0,
+  existingConnectionNames = [],
   isCompatible,
   isAnthropic,
   isCcCompatible,
@@ -112,7 +115,7 @@ export default function AddApiKeyModal({
     providerAllowsOptionalApiKey(provider) || Boolean(isNoAuthWebSessionCredential);
   const commandCodeAuthPhaseLabel = getCommandCodeAuthPhaseLabel(commandCodeAuthState);
   const [formData, setFormData] = useState({
-    name: computeConnectionDefaultName(existingConnectionCount),
+    name: computeConnectionDefaultName(existingConnectionNames),
     apiKey: "",
     tokenSecret: "", // #5446 — Modal Token Secret (joined with apiKey as id:secret)
     defaultModel: "",
@@ -127,6 +130,7 @@ export default function AddApiKeyModal({
     routingTags: "",
     excludedModels: "",
     customUserAgent: "",
+    huggingfaceBillTo: "",
     accountId: "",
     consoleApiKey: "",
     newApiUserId: "",
@@ -163,12 +167,12 @@ export default function AddApiKeyModal({
     // name-based upsert that would silently overwrite the first connection (#6499, #11033).
     setFormData((current) => ({
       ...current,
-      name: computeConnectionDefaultName(existingConnectionCount),
+      name: computeConnectionDefaultName(existingConnectionNames),
       baseUrl: initialBaseUrl || defaultBaseUrl,
     }));
     setValidationResult(null);
     setSaveError(null);
-  }, [defaultBaseUrl, initialBaseUrl, isOpen, existingConnectionCount]);
+  }, [defaultBaseUrl, initialBaseUrl, isOpen, existingConnectionNames]);
   const bulkSupported = supportsBulkApiKey(provider);
   const [mode, setMode] = useState<"single" | "bulk">("single");
   const [bulkText, setBulkText] = useState("");
@@ -221,7 +225,7 @@ export default function AddApiKeyModal({
       : isQoder
         ? t("qoderPatHint")
         : isFreebuff
-          ? "Freebuff uses an authentic CLI auth token obtained via codebuff CLI login or automated harvester."
+          ? "Freebuff uses an authentic CLI auth token obtained via codebuff CLI login."
           : isWebSessionCredential
             ? getWebSessionCredentialHint(t, webSessionCredential, providerDisplayName, false)
             : isLocalSelfHostedProvider
@@ -1055,6 +1059,17 @@ export default function AddApiKeyModal({
                   placeholder="my-app/1.0"
                   hint={t("customUserAgentHint")}
                 />
+                {provider === "huggingface" && (
+                  <Input
+                    label={t("huggingfaceBillToLabel")}
+                    value={formData.huggingfaceBillTo}
+                    onChange={(e) =>
+                      setFormData({ ...formData, huggingfaceBillTo: e.target.value })
+                    }
+                    placeholder="account-123"
+                    hint={t("huggingfaceBillToHint")}
+                  />
+                )}
                 <Input
                   label={t("routingTagsLabel")}
                   value={formData.routingTags}

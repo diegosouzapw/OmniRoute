@@ -1,6 +1,6 @@
 # Resilience Guide (Română)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
 
 ---
 
@@ -68,9 +68,9 @@ Test de protecție împotriva regresiilor: `tests/unit/provider-cooldown-window-
 
 ## 2. Perioada de așteptare a conexiunii
 
-**Domeniu de aplicare:** o singură conexiune/un singur cont/o singură cheie de furnizor.
+**Domeniu:** o singură conexiune/un singur cont/o singură cheie a furnizorului.
 
-**Scop:** omiterea unei chei nefuncționale, în timp ce alte conexiuni pentru același furnizor continuă să deservească solicitări.
+**Scop:** omiterea unei chei nefuncționale, în timp ce celelalte conexiuni pentru același furnizor continuă să deservească cereri.
 
 **Implementare:**
 
@@ -79,7 +79,7 @@ Test de protecție împotriva regresiilor: `tests/unit/provider-cooldown-window-
 - Calcularea perioadei de așteptare: `open-sse/services/accountFallback.ts::checkFallbackError()`
 - Setări: `src/lib/resilience/settings.ts`
 
-**Câmpuri per conexiune:**
+**Câmpuri pentru fiecare conexiune:**
 
 - `rateLimitedUntil` — marcaj temporal până la expirarea perioadei de așteptare
 - `testStatus: "unavailable"`
@@ -93,53 +93,113 @@ Test de protecție împotriva regresiilor: `tests/unit/provider-cooldown-window-
 - 429 pentru cheia API: preferă antetele din amonte `Retry-After`/de resetare/textul de resetare care poate fi analizat
 - Temporizare: `baseCooldownMs * 2 ** failureIndex`
 
-**Mecanism de protecție împotriva efectului de turmă:** împiedică erorile concurente să extindă excesiv perioada de așteptare sau să incrementeze de două ori `backoffLevel`.
+**Protecție anti-thundering-herd:** împiedică erorile concurente să prelungească excesiv perioada de așteptare sau să incrementeze de două ori `backoffLevel`.
 
 **Stări terminale (NU perioade de așteptare):**
 
-- `banned` — setată prin detectarea cuvintelor-cheie asociate interdicției/detectarea interdicției contului (consultați [BAN_DETECTION](../security/BAN_DETECTION.md)) și prin trei refuzuri consecutive din amonte pentru fiecare solicitare (`request_rejected`, de exemplu, răspunsul OAuth 403 „Request not allowed” de la Anthropic — `open-sse/services/requestRejectedStreak.ts`); un singur refuz doar trece conexiunea în perioada de așteptare
-- `expired` (trece în starea terminală după un număr limitat de reîncercări — `EXPIRED_RETRY_MAX = 3` cu temporizare exponențială — astfel încât erorile OAuth tranzitorii se pot remedia automat înainte ca acel cont să fie dezactivat permanent)
+- `banned` — setată prin detectarea cuvintelor-cheie asociate interdicției/detectarea blocării contului (consultați [BAN_DETECTION](../security/BAN_DETECTION.md)) și prin trei refuzuri consecutive per solicitare din amonte (`request_rejected`, de exemplu, răspunsul Anthropic OAuth 403 „Request not allowed” — `open-sse/services/requestRejectedStreak.ts`); un singur refuz doar plasează conexiunea în perioada de așteptare
+- `expired` (trece la starea terminală după un număr limitat de reîncercări — `EXPIRED_RETRY_MAX = 3` cu temporizare exponențială — astfel încât erorile OAuth tranzitorii să se poată remedia automat înainte ca acest cont să fie dezactivat permanent)
 - `credits_exhausted`
 
-Acestea persistă până la modificarea acreditărilor sau până când un operator le resetează. Nu suprascrieți stările terminale cu starea tranzitorie a perioadei de așteptare.
+Acestea persistă până la modificarea acreditărilor sau până când un operator le resetează. Nu suprascrieți stările terminale cu starea tranzitorie de așteptare.
 
-**Recuperare întârziată:** când `rateLimitedUntil` este în trecut, conexiunea devine din nou eligibilă. După utilizarea cu succes, `clearAccountError()` elimină toate câmpurile de eroare.
+**Recuperare leneșă:** după depășirea valorii `rateLimitedUntil`, conexiunea devine din nou eligibilă. După o utilizare reușită, `clearAccountError()` șterge toate câmpurile de eroare.
 
-### Afinitatea sesiunii (#7274)
+### Limita de utilizare Claude OAuth: bandă cu prioritate redusă + resetarea limitei sesiunii
 
-**Domeniu de aplicare:** o sesiune de client (antetul `X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`) fixată la o conexiune, pentru **orice** furnizor.
-
-**Scop:** menținerea unui agent cu mai multe interacțiuni (Claude Code, aider, agenți personalizați) pe același cont între solicitări, reducând pierderea contextului între conturi și răspunsurile 429 repetate la pornirea la rece în cazul furnizorilor cu stare de sesiune per cont.
+**Domeniu:** o conexiune de abonament Claude (OAuth). Ambele funcționalități sunt **opționale pentru fiecare
+conexiune** (Editare conexiune → secțiunea Claude → `lowPriorityMode` / `autoLimitReset` în
+`providerSpecificData`, ambele dezactivate implicit) și reproduc comenzile Claude Code `/low-priority` și
+`/limit-reset` (contractul de comunicație capturat din Claude Code 2.1.263).
 
 **Implementare:**
 
-- Rezolvarea TTL: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
+- Mașina de stări + clasificarea răspunsurilor: `open-sse/services/claudeLowPriority.ts`
+- Client pentru starea/revendicarea resetării: `open-sse/services/claudeLimitReset.ts`
+- Cârligul executorului (injectarea antetului + reîncercare cu același cont): `open-sse/executors/base.ts::execute()`
+- Persistența activării opționale: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+
+**Declanșator:** limita de utilizare de 5 ore — un răspuns `429` ale cărui antete conțin
+`anthropic-ratelimit-unified-status: rejected` și, când contul este eligibil,
+`anthropic-ratelimit-unified-slow-offer: treatment`. Nu se trimite nimic înainte de primul răspuns 429
+aferent limitei; un răspuns 429 în rafală fără antete unificate urmează fluxul normal al perioadei de așteptare.
+
+**Bandă cu prioritate redusă** (`lowPriorityMode`):
+
+- La primirea răspunsului 429 aferent limitei, executorul acceptă oferta și reîncearcă imediat cu **același**
+  cont, folosind `anthropic-usage-limit: slow`; banda rămâne activă până la momentul anunțat prin
+  `anthropic-ratelimit-unified-reset` (+60s perioadă de grație), iar fiecare solicitare din acel interval conține
+  antetul. Răspunsul 429 interceptat nu ajunge niciodată la `handleChatCore`, astfel încât conexiunea
+  **nu** este plasată în perioada de așteptare și nu este înlocuită prin rotație.
+- `anthropic-ratelimit-unified-slow-status` în răspunsurile ulterioare: `active` / `not_needed`
+  mențin banda; `slot_busy` (429) sau un răspuns `529` așteaptă intervalul indicat de server în
+  `anthropic-ratelimit-unified-slow-retry-after` (implicit 20s, limitat la 5–600s, cu fluctuație de ±30%)
+  și reîncearcă, în limita `anthropic-ratelimit-unified-slow-max-wait` (implicit 20 min, limitat la
+  1 min–6 h) — după depășirea acesteia, banda se încheie, iar o perioadă de pauză de 10 minute blochează reacceptarea. Perioada
+  de așteptare este limitată suplimentar de timpul rămas din propriul termen-limită al solicitării pentru pornirea operațiunii din amonte
+  (`resolveFetchStartTimeout`, implicit 10 min), minus o marjă de 5 s: fără această limită,
+  timpul maxim implicit de așteptare de 20 de minute ar depăși durata de viață a solicitării, iar așteptarea ar fi anulată
+  în timpul desfășurării, expunând o `TimeoutError` în locul încheierii controlate `max_wait` + perioadă de pauză.
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, trecerea într-o nouă fereastră de 5h sau
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (care o încheie ca
+  `extra_usage` indiferent de stare, deoarece depășirea contra cost acoperă acum limita) încheie banda;
+  răspunsul urmează apoi fluxul normal al perioadei de așteptare. `budget_exhausted` este reținut până la
+  resetarea anunțată a bugetului (≤ 8 zile).
+- Verificarea limitei rulează după propriile reîncercări din cadrul tentativei, declanșate de răspunsuri 400, ale executorului (editarea
+  contextului, limitarea parametrilor de gândire/efort, învățarea automată a parametrilor), astfel încât un răspuns 429 aferent limitei, care apare doar la
+  una dintre aceste reîncercări, să fie totuși interceptat în loc să ajungă la fluxul perioadei de așteptare.
+- Starea este păstrată în memorie pentru fiecare conexiune (o repornire implică un răspuns 429 suplimentar aferent limitei pentru reacceptare).
+
+**Resetarea limitei sesiunii** (`autoLimitReset`, încercată înaintea benzii când ambele sunt activate):
+
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → blocul `juniper_tide`;
+  când `arm: "reset"` și `available: true`,
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` cu
+  `{ "program": "juniper_tide" }` (UUID-ul organizației din
+  `providerSpecificData.organizationUUID`, cu revenire la valoarea obținută la inițializare).
+- `result: reset|not_limited` → solicitarea este reîncercată la viteză maximă (fără antetul pentru viteză redusă).
+  `already_used` / `not_offered` memorează `next_available_at` (implicit o săptămână); orice
+  eroare aplică o temporizare de 15 minute. Resetarea are loc o dată pe săptămână și este luată în continuare în calcul pentru
+  limita săptămânală.
+
+Protecții împotriva regresiilor: `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
+
+### Afinitatea sesiunii (#7274)
+
+**Domeniu:** o sesiune client (`X-Session-Id` / `x-codex-session-id` / antetul `x-omniroute-session`) fixată la o singură conexiune, pentru **orice** furnizor.
+
+**Scop:** menținerea unui agent cu mai multe interacțiuni (Claude Code, aider, agenți personalizați) pe același cont între cereri, reducând pierderea contextului la trecerea între conturi și erorile 429 repetate la pornirea la rece pentru furnizorii cu stare de sesiune per cont.
+
+**Implementare:**
+
+- Rezolvarea TTL-ului: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
 - Selectarea/crearea fixării: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
 - Extragerea antetului (generică, pentru orice furnizor): `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- Tabel de fixări persistente: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- Setare: `sessionAffinityTtlMs` (TTL global în ms, `0` îl dezactivează) — `src/lib/db/settings.ts`. Redenumită din `codexSessionAffinityTtlMs`, specifică exclusiv Codex, prin migrarea `124_generic_session_affinity_ttl.sql`, care transferă orice TTL Codex configurat anterior ca nouă valoare implicită.
+- Tabelul persistent al fixărilor: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- Setare: `sessionAffinityTtlMs` (TTL global în ms, `0` îl dezactivează) — `src/lib/db/settings.ts`. Redenumită din setarea exclusivă pentru Codex `codexSessionAffinityTtlMs` prin migrarea `124_generic_session_affinity_ttl.sql`, care transferă orice TTL Codex configurat anterior drept noua valoare implicită.
 
-Înainte de #7274, `resolveSessionAffinityTtlMs()` returna imediat `0` pentru fiecare furnizor, cu excepția `codex`, astfel încât setarea TTL (și antetele de sesiune) nu aveau niciun efect în altă parte, chiar dacă mecanismul de fixare și extragerea antetelor erau deja independente de furnizor. Remedierea a eliminat acea returnare anticipată; acum, TTL se aplică uniform fiecărui furnizor după ce este setat global la o valoare mai mare decât `0`.
+Înainte de #7274, `resolveSessionAffinityTtlMs()` returna imediat `0` pentru fiecare furnizor, cu excepția `codex`, astfel încât setarea TTL (și antetele de sesiune) nu aveau efect în altă parte, chiar dacă mecanismul de fixare și extragerea antetelor erau deja independente de furnizor. Remedierea a eliminat acea returnare prematură; TTL-ul se aplică acum uniform fiecărui furnizor după ce este setat global la o valoare mai mare decât `0`.
 
-Cele trei antete pentru afinitatea sesiunii nu sunt redirecționate niciodată în amonte — executorii își construiesc propriile antete din amonte de la zero, în loc să transmită antetele clientului, astfel încât acestea rămân doar identificatori interni de corelare.
+Cele trei antete de afinitate a sesiunii nu sunt transmise niciodată în amonte — executorii își construiesc propriile antete pentru sistemul din amonte de la zero, în loc să transmită antetele clientului, astfel încât acestea rămân doar identificatori interni de corelare.
 
-### Închirieri exclusive de conexiuni pentru sesiuni gestionate
+### Închirieri exclusive ale conexiunilor pentru sesiuni gestionate
 
 **Domeniu de aplicare:** un client/o sesiune HTTP gestionată activă deține o conexiune OmniRoute eligibilă.
 
-**Scop:** asigurarea deținerii exclusive și persistente a conexiunii pentru clienții care necesită o barieră strictă de rutare între solicitări. Aceasta diferă de afinitatea sesiunii, care reprezintă o preferință flexibilă pentru continuitate: o închiriere exclusivă persistă starea ciclului de viață în SQLite, impune unicitatea globală a proprietarului activ și a conexiunii active și respinge o generație expirată înainte de trimiterea către furnizor.
+**Scop:** asigurarea deținerii exclusive și durabile a conexiunii pentru clienții care au nevoie de o barieră strictă de rutare între cereri. Aceasta diferă de afinitatea sesiunii, care reprezintă o preferință flexibilă pentru continuitate: o închiriere exclusivă păstrează starea ciclului de viață în SQLite, impune unicitatea globală a proprietarului activ și a conexiunii active și respinge o generație expirată înainte de trimiterea către furnizor.
 
-Funcționalitatea este opțională pentru fiecare cheie API. O cheie gestionată trebuie să aibă domeniul `lease:exclusive` și o listă `allowedConnections` explicită și nevidă. Orice client HTTP poate utiliza endpointul ciclului de viață; nu este necesar niciun nume de client, agent utilizator, furnizor, metodă OAuth sau model. Închirierea deține o conexiune, nu un model, astfel încât schimbarea modelului păstrează asocierea atât timp cât conexiunea rămâne eligibilă în mod normal. Regulile normale privind modelul, cota, starea de funcționare, perioada de așteptare și lista de permisiuni rămân autoritare și pot transfera aceeași generație către o altă conexiune eligibilă și liberă.
+Funcționalitatea este opțională pentru fiecare cheie API. O cheie gestionată trebuie să aibă domeniul `lease:exclusive` și o listă `allowedConnections` explicită și nevidă. Orice client HTTP poate utiliza endpointul ciclului de viață; nu sunt necesare numele clientului, agentul utilizator, furnizorul, metoda OAuth sau modelul. Închirierea deține o conexiune, nu un model, astfel încât schimbarea modelului păstrează asocierea atât timp cât conexiunea rămâne eligibilă în mod obișnuit. Regulile normale privind modelul, cota, starea de funcționare, perioada de așteptare și lista de permisiuni rămân autoritare și pot transfera aceeași generație către o altă conexiune liberă și eligibilă.
 
-Ciclul de viață este `POST /api/v1/session-leases`, cu acțiunile JSON `acquire`, `renew` și `release`. Solicitările de inferență gestionate prezintă valoarea opacă `X-OmniRoute-Lease-Owner` și valoarea exactă `X-OmniRoute-Lease-Generation`. Proprietarul utilizează prefixul `vlo_`, urmat de 43 de caractere base64url; este stocat doar hashul SHA-256 al acestuia. Fiecare barieră finală de trimitere asociază, de asemenea, ID-ul cheii API autentificate și ID-ul conexiunii active. Antetele de control ale închirierii sunt eliminate din jurnale, instantaneele păstrate ale solicitărilor și antetele executorilor din amonte.
+Ciclul de viață utilizează `POST /api/v1/session-leases` cu acțiunile JSON `acquire`, `renew` și `release`. Cererile de inferență gestionate prezintă valoarea opacă `X-OmniRoute-Lease-Owner` și valoarea exactă `X-OmniRoute-Lease-Generation`. Identificatorul proprietarului folosește prefixul `vlo_`, urmat de 43 de caractere base64url; este stocat doar hashul său SHA-256. Fiecare barieră finală de trimitere asociază, de asemenea, ID-ul cheii API autentificate și ID-ul conexiunii active. Antetele de control ale închirierii sunt eliminate din jurnale, din instantaneele păstrate ale cererilor și din antetele executorilor pentru sistemele din amonte.
 
-Dacă rutarea obișnuită are candidați gestionați eligibili, dar fiecare candidat liber este ocupat de o închiriere activă străină, OmniRoute returnează HTTP `429`, codul de indisponibilitate a capacității de închiriere, o stare de așteptare a capacității și un `Retry-After` limitat, derivat din cea mai apropiată expirare relevantă. Lipsa obișnuită a eligibilității nu reprezintă o dispută pentru închiriere și își păstrează semantica existentă pentru erorile de rutare.
+Dacă rutarea obișnuită are candidați gestionați eligibili, dar fiecare candidat liber este ocupat de o închiriere activă străină, OmniRoute returnează HTTP `429`, codul lease-capacity-unavailable, o stare de așteptare a capacității și un `Retry-After` limitat, calculat din cea mai apropiată expirare relevantă. Lipsa obișnuită a conexiunilor eligibile nu reprezintă o dispută pentru închiriere și își păstrează semantica existentă privind erorile de rutare.
 
 Mecanismele asociate rămân separate:
 
-- Ocuparea sesiunii OAuth reprezintă o distribuire flexibilă, locală procesului, pentru conturile OAuth.
-- Semafoarele contului acordă permisiuni pentru concurența solicitărilor și se încheie la finalizarea unei solicitări.
-- Închirierile exclusive pentru sesiunile gestionate reprezintă o deținere persistentă pe durata ciclului de viață, cu o barieră de generație.
+- Ocuparea sesiunii OAuth reprezintă o distribuție flexibilă, locală procesului, pentru conturile OAuth.
+- Semafoarele conturilor acordă permisiuni de concurență a cererilor și se încheie odată cu finalizarea unei cereri.
+- Închirierile exclusive ale sesiunilor gestionate reprezintă o deținere durabilă pe durata ciclului de viață, cu o barieră de generație.
 
 ---
 
@@ -270,47 +330,72 @@ ating limita de rată per model. Comportamentul este limitat prin `comboCooldown
 
 ---
 
-## 5. Controlul admiterii în coada de solicitări (v3.8.49 · problema #6593)
+## 5. Controlul admiterii în coada de cereri (v3.8.49 · problema #6593)
 
-**Domeniu de aplicare**: coada locală pentru limitarea ratei per furnizor+conexiune (`open-sse/services/rateLimitManager.ts`,
-susținută de Bottleneck), aflată cu un nivel sub cele trei mecanisme de mai sus.
+**Domeniu de aplicare**: coada locală de limitare a ratei per furnizor+conexiune (`open-sse/services/rateLimitManager.ts`,
+susținută de Bottleneck), cu un nivel sub cele trei mecanisme de mai sus.
 
-**`maxWaitMs` este o denumire persistentă învechită pentru expirarea execuției.**
-`resilienceSettings.requestQueue.maxWaitMs` este transmis către Bottleneck drept valoare `expiration` a unei sarcini,
-al cărei temporizator pornește numai după rutare. Prin urmare, acesta limitează
-execuția gestionată de limitator, nu timpul petrecut în coada locală. Expirarea este
-raportată drept eroare locală de încredere `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504);
-vechea denumire a codului pentru expirarea timpului în coadă este acceptată numai pentru compatibilitate internă
-retroactivă de încredere. Valoarea implicită este 15000ms; suprascrieți-o prin
-`RATE_LIMIT_MAX_WAIT_MS` (variabilă de mediu) sau din panoul de control (**Setări → Reziliență**,
-limită UI de 1–30000ms). Timpul petrecut în coadă nu are un termen-limită; utilizați
-`maxQueueDepth` de mai jos pentru a limita numărul solicitanților aflați în coadă.
+**`maxWaitMs` limitează așteptarea în coadă; `executionMaxWaitMs` limitează execuția.**
+Cele două sunt separate în mod deliberat și niciuna nu o influențează pe cealaltă.
 
-**`maxQueueDepth` — limită opțională de admitere (nouă).** `resilienceSettings.requestQueue.maxQueueDepth`
-limitează numărul de solicitări care pot rămâne simultan în coadă (fără a fi încă rutate) pentru o
-combinație furnizor+conexiune. Atunci când coada conține deja `maxQueueDepth`
-solicitări, o solicitare nouă este respinsă imediat cu o eroare tipizată
+`resilienceSettings.requestQueue.maxWaitMs` este **bugetul de așteptare în coadă**:
+acoperă așteptarea unui slot al furnizorului și apoi staționarea în starea QUEUED, iar temporizatorul său este
+eliminat în momentul în care sarcina părăsește starea QUEUED și începe să se execute
+(`rateLimitManager.ts`, `wrappedFn`). O cerere care îl depășește nu ajunge niciodată
+la serviciul din amonte. Valoarea implicită este 30000ms, furnizată de `DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS`
+în `src/lib/resilience/settings.ts` și fixată de
+`tests/unit/ratelimit-admission-control-6593.test.ts`, astfel încât o modificare a acesteia face
+ca testul respectiv să eșueze, în loc ca acest paragraf să rămână neobservat și neactualizat.
+
+`resilienceSettings.requestQueue.executionMaxWaitMs` este valoarea pe care Bottleneck
+o primește drept `expiration` pentru sarcină, al cărei temporizator pornește numai după trimitere. Aceasta este
+o măsură de siguranță pentru executanții care nu au propriul timeout pentru serviciul din amonte și este
+mărită la timeout-ul propriu al executantului pentru începerea operației de preluare atunci când acesta este mai lung, astfel încât
+să nu poată întrerupe un răspuns valid aflat în curs. Valoarea implicită este 600000ms (10 min).
+
+Folosirea bugetului cozii drept `expiration` este ceea ce obișnuia să oprească gateway-urile
+neincrementale în timpul execuției — acestea rulează în mod legitim timp de câteva minute înainte de primii octeți —
+și acesta este motivul pentru care o expirare este expusă drept `code:
+"RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504), în timp ce bugetul cozii folosește
+codul de timeout al cozii. Suprascrieți oricare dintre valori prin `RATE_LIMIT_MAX_WAIT_MS` /
+`RATE_LIMIT_EXECUTION_MAX_WAIT_MS` (variabile de mediu) sau din panoul de control
+(**Setări → Reziliență**). Ambele sunt limitate la intervalul 1ms–24h în timpul normalizării.
+
+**Precedența, pentru ambele:** variabila de mediu furnizează numai valoarea _implicită_. O valoare
+persistată în `resilienceSettings.requestQueue` (prin panoul de control / un patch API, stocată
+în `key_value`) are prioritate față de aceasta, iar un
+`rateLimitOverrides.maxWaitMs` / `.executionMaxWaitMs` per conexiune are prioritate față de valoarea respectivă. Prin urmare, setarea
+variabilei de mediu într-o implementare care are deja o valoare persistată
+nu schimbă nimic — eliminați sau actualizați în schimb setarea persistată.
+
+Timpul de staționare în coadă este limitat de `maxWaitMs`; parametrul `maxQueueDepth` de mai jos limitează numărul de
+apelanți care pot fi plasați simultan în coadă.
+
+**`maxQueueDepth` — limită de admitere cu activare explicită (nouă).** `resilienceSettings.requestQueue.maxQueueDepth`
+limitează numărul de cereri care pot sta în coadă (fără a fi încă trimise) simultan pentru o
+combinație furnizor+conexiune. Când coada conține deja `maxQueueDepth`
+cereri, o cerere nouă este respinsă imediat cu o eroare tipizată
 `code: "RATE_LIMIT_QUEUE_FULL"` **înainte** de a ajunge vreodată la `limiter.schedule()`
-— astfel, respingerea este eficientă și are loc înaintea oricăror operațiuni ulterioare
-de comprimare/traducere a promptului pentru solicitarea respectivă. Valoarea implicită `0` =
-dezactivat, păstrând comportamentul existent al cozii nelimitate; intervalul permis este 0–100000.
-Suprascrieți valoarea prin `RATE_LIMIT_MAX_QUEUE_DEPTH` (variabilă de mediu) sau prin
-`resilienceSettings.requestQueue.maxQueueDepth` (panou de control/corecție API).
+— astfel, respingerea este necostisitoare și are loc înaintea oricărei operații ulterioare de
+comprimare / traducere a promptului pentru cererea respectivă. Valoarea implicită `0` =
+dezactivat, păstrând comportamentul existent al cozii nelimitate; interval limitat la 0–100000.
+Suprascrieți prin `RATE_LIMIT_MAX_QUEUE_DEPTH` (variabilă de mediu) sau
+`resilienceSettings.requestQueue.maxQueueDepth` (panou de control/patch API).
 
-Verificarea de admitere propriu-zisă este o funcție pură
+Verificarea de admitere în sine este o funcție pură
 (`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`), astfel încât
 poate fi testată unitar fără un limitator Bottleneck real.
 
-> RFC-ul care a inițiat problema #6593 a propus și un indicator `bypassCompressionOnRateLimit`.
-> Lanțul de procesare `open-sse/services/compression/` din acest depozit efectuează
-> comprimarea promptului/contextului pentru solicitarea LLM de ieșire (`chatCore.ts`,
+> RFC-ul care a inițiat #6593 a propus și un indicator `bypassCompressionOnRateLimit`.
+> Fluxul `open-sse/services/compression/` din acest depozit realizează
+> comprimarea promptului/contextului pentru cererea LLM de ieșire (`chatCore.ts`,
 > în jurul blocului `resolveCompressionSettings`/`selectCompressionStrategy`),
 > nu comprimarea răspunsului HTTP pentru corpurile 429 sintetizate — nu există
-> nicio cale de cod corespunzătoare pentru un indicator literal de omitere. De asemenea, în prezent, acel pas de comprimare a promptului
-> rulează _înainte de_ `withRateLimit()` în lanțul de procesare a solicitării, astfel încât
-> reordonarea pentru a-l omite în cazul unei respingeri cauzate de o coadă plină reprezintă o schimbare separată și mai amplă
-> decât domeniul de aplicare al acestei probleme; aceasta **nu** a fost implementată intenționat
-> aici și este lăsată pentru o intervenție ulterioară, dacă economia de resurse CPU justifică
+> o cale de cod corespunzătoare pentru un indicator literal de omitere. De asemenea, acel pas de comprimare a promptului
+> rulează în prezent _înainte de_ `withRateLimit()` în fluxul de procesare a cererii, astfel încât
+> reordonarea pentru a-l omite în cazul unei respingeri din cauza cozii pline este o modificare separată și mai amplă
+> decât domeniul de aplicare al acestei probleme; în mod intenționat, aceasta **nu** a fost implementată
+> aici și este lăsată pentru o etapă ulterioară, dacă economia de procesor justifică
 > riscul reordonării.
 
 ---

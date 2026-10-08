@@ -7,8 +7,11 @@
 // antigravity/sseCollect.ts submodule pattern.
 import { mergeAbortSignals, type ExecutorLog } from "../base.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../../config/cliFingerprints.ts";
-import { buildAntigravityUpstreamError } from "../antigravityUpstreamError.ts";
-import { maybeTriggerReactiveModelSync } from "@/lib/providerModels/reactiveModelSync.ts";
+import {
+  buildAntigravityUpstreamError,
+  projectAntigravityValidationDiagnostic,
+} from "../antigravityUpstreamError.ts";
+import { awaitReactiveModelSync } from "@/lib/providerModels/reactiveModelSync.ts";
 import {
   HTTP_STATUS,
   STREAM_READINESS_TIMEOUT_MS,
@@ -21,12 +24,14 @@ import {
   removeHeaderCaseInsensitive,
 } from "../../services/antigravityClientProfile.ts";
 import * as prl from "../../utils/providerRequestLogging.ts";
+import { generateAntigravityRequestId } from "../../services/antigravityIdentity.ts";
 import {
   createCreditsExtractionTransform as createCreditsExtractionTransformImpl,
   buildSsePassthroughResult,
+  bindAbortLifecycle,
   type SsePassthroughResult,
 } from "./streamingPassthrough.ts";
-import type { AntigravityCredentials } from "../antigravity.ts";
+import { cleanModelName, type AntigravityCredentials } from "../antigravity.ts";
 
 const LONG_RETRY_THRESHOLD_MS = 60_000;
 const CREDITS_EXHAUSTED_TTL_MS = 5 * 60 * 60 * 1000; // 5 hours
@@ -196,21 +201,6 @@ export function buildAntigravity429ErrorMessage(errorJson: unknown): string {
   return errorMessage;
 }
 
-function getChunkedOrFixedBody(bodyStr: string, stream: boolean): BodyInit {
-  if (stream) {
-    return new ReadableStream(
-      {
-        async start(controller) {
-          controller.enqueue(new TextEncoder().encode(bodyStr));
-          controller.close();
-        },
-      },
-      { highWaterMark: 16384 }
-    );
-  }
-  return bodyStr;
-}
-
 function cloneAntigravityRequestBody(body: unknown): unknown {
   if (!body || typeof body !== "object") {
     return body;
@@ -330,7 +320,7 @@ export async function sendAntigravityRequest(
   headers: Record<string, string>,
   transformedBody: Record<string, unknown>,
   credentials: AntigravityCredentials,
-  stream: boolean,
+  _stream: boolean,
   signal: AbortSignal | null | undefined,
   log: SafeAntigravityLog,
   retryAttempt: number,
@@ -363,11 +353,13 @@ export async function sendAntigravityRequest(
     "TELEMETRY",
     `[Antigravity] PhysicalSend - RequestId: ${correlationId ?? "none"}, URL: ${url}, Model: ${model}, PhysicalSend: ${physicalSendOrdinal}, RetryAttempt: ${retryAttempt}`
   );
+  // The Antigravity request payload is finite JSON even when the response is streamed.
+  // Keep the upload replayable instead of wrapping it in a one-shot ReadableStream; proxyFetch
+  // can then use its normal replay/fallback path without retaining a duplex upload stream.
   let response = await fetchAntigravityWithReadinessTimeout(url, {
     method: "POST",
     headers: finalHeaders,
-    body: getChunkedOrFixedBody(serializedRequest.bodyString, stream),
-    ...(stream ? { duplex: "half" } : {}),
+    body: serializedRequest.bodyString,
     signal,
   });
 
@@ -384,8 +376,7 @@ export async function sendAntigravityRequest(
     response = await fetchAntigravityWithReadinessTimeout(url, {
       method: "POST",
       headers: retryHeaders,
-      body: getChunkedOrFixedBody(serializedRequest.bodyString, stream),
-      ...(stream ? { duplex: "half" } : {}),
+      body: serializedRequest.bodyString,
       signal,
     });
     finalHeaders = retryHeaders;
@@ -399,12 +390,42 @@ export async function sendAntigravityRequest(
     if (response.status === HTTP_STATUS.NOT_FOUND) {
       // The backend may have shipped/renamed models the synced catalog does not
       // know yet (pinned-catalog staleness). Kick a discovery sync for this
-      // connection so the fresh list lands in the synced catalog and the next
-      // request can resolve. Cooldown + in-flight dedup live in the trigger.
-      // credentials.connectionId is optional (base.ts): no connection row means
-      // there is no synced catalog to refresh, so skip rather than pass undefined.
+      // connection so the fresh list lands in the synced catalog. If sync succeeds,
+      // re-resolve the model with the updated catalog, re-serialize the request envelope,
+      // and transparently retry once so the first request for a freshly shipped model
+      // or alias succeeds on the first try.
       if (credentials.connectionId) {
-        maybeTriggerReactiveModelSync(provider, credentials.connectionId);
+        const synced = await awaitReactiveModelSync(provider, credentials.connectionId);
+        if (synced) {
+          const reResolvedModel = await cleanModelName(model, undefined, provider);
+          const retryBody: Record<string, unknown> = {
+            ...transformedBody,
+            model: reResolvedModel,
+            requestId: generateAntigravityRequestId(),
+          };
+          const reSerialized = serializeAntigravityRequest(provider, headers, retryBody);
+          const retryHeaders = reSerialized.headers;
+          applyAntigravityClientProfileHeaders(retryHeaders, credentials, retryBody);
+
+          log.info(
+            "RETRY",
+            `[Antigravity] Discovery sync succeeded after 404 for ${model} (re-resolved to ${reResolvedModel}), retrying request with rebuilt envelope`
+          );
+          await prl.captureCurrentProviderBody(url, retryHeaders, reSerialized.bodyString, log);
+          const syncRetryPhysicalSendOrdinal = ++physicalSendCounter.value;
+          log.debug(
+            "TELEMETRY",
+            `[Antigravity] PhysicalSend - RequestId: ${correlationId ?? "none"}, URL: ${url}, Model: ${reResolvedModel}, PhysicalSend: ${syncRetryPhysicalSendOrdinal}, RetryAttempt: ${retryAttempt}, Cause: reactive-sync-404`
+          );
+          // Same replayable fixed-body upload as the first send (no one-shot stream).
+          response = await fetchAntigravityWithReadinessTimeout(url, {
+            method: "POST",
+            headers: retryHeaders,
+            body: reSerialized.bodyString,
+            signal,
+          });
+          finalHeaders = retryHeaders;
+        }
       }
     }
   }
@@ -455,8 +476,7 @@ export async function tryCreditsRetry(
     const creditsResp = await fetchAntigravityWithReadinessTimeout(url, {
       method: "POST",
       headers: finalCreditsHeaders,
-      body: getChunkedOrFixedBody(serializedCreditsRequest.bodyString, stream),
-      ...(stream ? { duplex: "half" } : {}),
+      body: serializedCreditsRequest.bodyString,
       signal,
     });
     if (creditsResp.ok || creditsResp.status !== HTTP_STATUS.RATE_LIMITED) {
@@ -560,6 +580,7 @@ async function buildUpstreamErrorResult(
     .text()
     .catch(() => "");
   const errorBody = buildAntigravityUpstreamError(response.status, response.statusText, rawBody);
+  const upstreamDiagnostic = projectAntigravityValidationDiagnostic(response.status, rawBody);
   return {
     response: new Response(JSON.stringify(errorBody), {
       status: response.status,
@@ -568,6 +589,7 @@ async function buildUpstreamErrorResult(
     url,
     headers: finalHeaders,
     transformedBody,
+    upstreamDiagnostic,
   };
 }
 
@@ -647,27 +669,13 @@ async function buildStreamingExecuteOnceResult(
   }
 
   if (response.body) {
-    // If the downstream client aborts, cancel the upstream fetch body immediately
-    // to release the socket back to the Undici agent pool and prevent memory leaks.
-    if (signal) {
-      const abortHandler = () => {
-        try {
-          response.body?.cancel().catch(() => {});
-        } catch (_) {}
-      };
-      if (signal.aborted) {
-        abortHandler();
-      } else {
-        signal.addEventListener("abort", abortHandler, { once: true });
-      }
-    }
-
+    const abortAwareBody = bindAbortLifecycle(response.body, signal);
     const passThrough = createCreditsExtractionTransformImpl(
       accountId,
       onCreditsUpdate,
       16 * 1024 // 16KB sliding-window cap to prevent OOM
     );
-    const tappedBody = response.body.pipeThrough(passThrough);
+    const tappedBody = abortAwareBody.pipeThrough(passThrough);
     const tappedResponse = new Response(tappedBody, {
       status: response.status,
       statusText: response.statusText,

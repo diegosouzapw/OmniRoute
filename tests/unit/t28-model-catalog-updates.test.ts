@@ -14,10 +14,12 @@ test("T28: gemini AI Studio catalog includes current preview models", () => {
   assert.ok(geminiIds.includes("gemini-3.1-pro-preview"));
   assert.ok(geminiIds.includes("gemini-3-flash-preview"));
   assert.ok(geminiIds.includes("gemini-3.1-flash-lite"));
+  assert.ok(geminiIds.includes("gemini-3.8-flash"));
   assert.ok(geminiIds.includes("gemini-3.7-flash"));
   assert.ok(geminiIds.includes("gemini-2.5-flash"));
   assert.ok(geminiIds.includes("gemini-2.5-pro"));
-  assert.equal(geminiIds[0], "gemini-3.7-flash", "use the current Gemini Flash default");
+  // #12663 registered gemini-3.8-flash at the head of the catalog as the new default.
+  assert.equal(geminiIds[0], "gemini-3.8-flash", "use the current Gemini Flash default");
 });
 
 test("T28: antigravity static catalog exposes only callable Gemini tier IDs", () => {
@@ -65,14 +67,15 @@ test("T28: agy free-model metadata labels upstream Gemini 3.7 tier IDs", () => {
   });
 });
 
-test("T28: github registry exposes Gemini 3.1 Pro Preview and keeps legacy alias compatibility", async () => {
+test("T28: github registry exposes Gemini 3.8 Flash and keeps legacy alias parsing", async () => {
   const githubIds = REGISTRY.github.models.map((m) => m.id);
 
-  assert.ok(githubIds.includes("gemini-3.1-pro-preview"));
+  assert.ok(githubIds.includes("gemini-3.8-flash"));
+  assert.equal(githubIds.includes("gemini-3.1-pro-preview"), false);
 
-  const canonical = await getModelInfoCore("gh/gemini-3.1-pro-preview", {});
+  const canonical = await getModelInfoCore("gh/gemini-3.8-flash", {});
   assert.equal(canonical.provider, "github");
-  assert.equal(canonical.model, "gemini-3.1-pro-preview");
+  assert.equal(canonical.model, "gemini-3.8-flash");
 
   const legacy = await getModelInfoCore("gh/gemini-3-pro", {});
   assert.equal(legacy.provider, "github");

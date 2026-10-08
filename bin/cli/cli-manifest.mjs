@@ -6,10 +6,8 @@
  * wiring from this table instead of keeping private copies, so a new target
  * (or a renamed alias) is declared exactly once.
  *
- * The server-side runtime catalog (`src/shared/services/cliRuntime.ts`) stays
- * the source of truth for binaries, config paths and health checks; the drift
- * test `tests/unit/cli/cli-manifest-drift.test.ts` asserts the two worlds and
- * every consumer surface stay in sync.
+ * The package-level JSON contract is intentionally consumable from both this
+ * plain Node CLI and TypeScript/Next.js without importing either runtime.
  *
  * Capability semantics:
  * - `run`: launchable through `omniroute run <target>`.
@@ -18,92 +16,26 @@
  *   model travels via env/provider args instead of a CLI flag).
  */
 
-export const CLI_TARGET_MANIFEST = Object.freeze({
-  claude: Object.freeze({
-    description: "Claude Code",
-    aliases: Object.freeze(["claude-code", "cc", "anthropic"]),
-    run: true,
-    configure: true,
-    runModel: null, // injected via ANTHROPIC_MODEL env by the launcher
-  }),
-  codex: Object.freeze({
-    description: "OpenAI Codex CLI",
-    aliases: Object.freeze(["codex-cli", "openai-codex", "openai"]),
-    run: true,
-    configure: true,
-    runModel: null, // injected via -c model_providers.omniroute.* args
-  }),
-  aider: Object.freeze({
-    description: "Aider",
-    aliases: Object.freeze([]),
-    run: true,
-    configure: true,
-    runModel: Object.freeze({ flag: "--model", prefix: "openai/" }),
-  }),
-  goose: Object.freeze({
-    description: "Goose",
-    aliases: Object.freeze(["goose-cli"]),
-    run: true,
-    configure: true,
-    runModel: null, // injected via GOOSE_MODEL env
-  }),
-  opencode: Object.freeze({
-    description: "OpenCode",
-    aliases: Object.freeze(["open-code"]),
-    run: true,
-    configure: true,
-    runModel: Object.freeze({ flag: "--model", prefix: "omniroute/" }),
-  }),
-  qwen: Object.freeze({
-    description: "Qwen Code",
-    aliases: Object.freeze(["qwen-code"]),
-    run: true,
-    configure: true,
-    runModel: Object.freeze({ flag: "--model", prefix: "", required: true }),
-  }),
-  gemini: Object.freeze({
-    // Launch contract verified against @google/gemini-cli 0.50.0:
-    // GOOGLE_GEMINI_BASE_URL points the SDK at OmniRoute's /v1beta surface,
-    // GEMINI_API_KEY + isolated GEMINI_CLI_HOME (settings selectedType
-    // "gemini-api-key") force API-key auth over any stored OAuth session.
-    description: "Google Gemini CLI",
-    aliases: Object.freeze(["gemini-cli"]),
-    run: true,
-    configure: false,
-    runModel: Object.freeze({ flag: "--model", prefix: "" }),
-  }),
-  cline: Object.freeze({
-    description: "Cline",
-    aliases: Object.freeze([]),
-    run: false,
-    configure: true,
-    runModel: null,
-  }),
-  continue: Object.freeze({
-    description: "Continue",
-    aliases: Object.freeze(["cn"]),
-    run: false,
-    configure: true,
-    runModel: null,
-  }),
-  kilo: Object.freeze({
-    description: "Kilo Code",
-    aliases: Object.freeze(["kilocode", "kilo-code", "kilo_cli"]),
-    run: false,
-    configure: true,
-    runModel: null,
-  }),
-  "5dive": Object.freeze({
-    // 5dive is a fleet manager, not a coding CLI: it points its own `claude`
-    // agents at an endpoint. `omniroute run 5dive` would have nothing to
-    // launch, so this is configure-only.
-    description: "5dive (agent fleet)",
-    aliases: Object.freeze(["fivedive", "5dive-cli"]),
-    run: false,
-    configure: true,
-    runModel: null, // travels as the profile's ANTHROPIC_DEFAULT_*_MODEL
-  }),
-});
+import rawManifest from "../../config/cli-tools-manifest.json" with { type: "json" };
+
+export const CLI_TARGET_MANIFEST = Object.freeze(
+  Object.fromEntries(
+    Object.entries(rawManifest.tools).map(([id, entry]) => [
+      id,
+      Object.freeze({
+        description: entry.displayName,
+        aliases: Object.freeze([...entry.aliases]),
+        run: entry.surfaces.run,
+        configure: entry.surfaces.configure,
+        configureRecipe: entry.configureRecipe ? Object.freeze({ ...entry.configureRecipe }) : null,
+        runModel: entry.runModel ? Object.freeze({ ...entry.runModel }) : null,
+        providerAlias: entry.agentBackend?.providerAlias || id,
+        platforms: Object.freeze([...rawManifest.runtime.platforms]),
+        primaryConfigPaths: Object.freeze([...(rawManifest.runtime.primaryConfigPaths[id] || [])]),
+      }),
+    ])
+  )
+);
 
 /**
  * List canonical target ids, optionally filtered by capability

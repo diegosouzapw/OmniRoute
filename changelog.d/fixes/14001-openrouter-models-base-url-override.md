@@ -1,1 +1,0 @@
-- **fix(providers):** OpenRouter model discovery honors the per-connection base URL override instead of always importing the global catalog, so a connection pointed at a regional endpoint (e.g. the EU in-region host) no longer advertises model ids that endpoint cannot serve ([#14001](https://github.com/diegosouzapw/OmniRoute/pull/14001)) — thanks @tiangao88

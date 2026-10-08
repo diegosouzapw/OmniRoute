@@ -1,4 +1,5 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
+import { shouldUseShellForCommand } from "@/shared/services/cliRuntime";
 
 const HEADER_SIZE = 13;
 const REGULAR_MESSAGE = 1;
@@ -154,6 +155,21 @@ export function encodeZcodeRpcCall(
   return frame;
 }
 
+/**
+ * Whether spawn() must go through the shell to launch `command`.
+ *
+ * On win32, npm installs global CLI wrappers (e.g. the `zcode`/ZCODE_BIN
+ * shim) as `.cmd`/`.bat` files. Since Node's CVE-2024-27980 fix, `spawn()`
+ * refuses to launch a `.cmd`/`.bat` target without `shell: true`, throwing
+ * ENOENT/EINVAL instead (#13963, same class of bug as #8590/Qoder). The
+ * bundled ZCODE_SERVER_NODE runtime path spawns a bare `node`/`node.exe`
+ * binary (no `.cmd`/`.bat` extension) and must keep `shell: false` even on
+ * win32 — `shouldUseShellForCommand()` already encodes that extension check.
+ */
+export function shouldUseShellForZcodeCommand(command: string): boolean {
+  return shouldUseShellForCommand(command);
+}
+
 function errorFromPayload(payload: unknown, fallback: string): Error {
   if (payload && typeof payload === "object") {
     const record = payload as JsonRecord;
@@ -212,7 +228,8 @@ export class ZcodeAppServerClient implements ZcodeClientLike {
         cwd: this.cwd,
         env: this.env ? { ...process.env, ...this.env } : process.env,
         stdio: ["pipe", "pipe", "pipe"],
-        shell: false,
+        // shell:true on win32 for a .cmd/.bat ZCode shim — see #13963/#8590.
+        shell: shouldUseShellForZcodeCommand(this.command),
         windowsHide: true,
       });
     } catch (error) {
@@ -260,7 +277,11 @@ export class ZcodeAppServerClient implements ZcodeClientLike {
     });
 
     try {
-      await this.withTimeout(readyPromise, this.startupTimeoutMs, "ZCode app-server handshake timed out");
+      await this.withTimeout(
+        readyPromise,
+        this.startupTimeoutMs,
+        "ZCode app-server handshake timed out"
+      );
       this.ready = true;
     } catch (error) {
       await this.disposeChild(child);
@@ -279,9 +300,10 @@ export class ZcodeAppServerClient implements ZcodeClientLike {
     this.pendingChunks.push(chunk);
     let total = 0;
     for (const part of this.pendingChunks) total += part.byteLength;
-    const buffer = total === chunk.byteLength && this.pendingChunks.length > 0
-      ? chunk
-      : Buffer.concat(this.pendingChunks);
+    const buffer =
+      total === chunk.byteLength && this.pendingChunks.length > 0
+        ? chunk
+        : Buffer.concat(this.pendingChunks);
     this.pendingChunks = [buffer];
 
     if (!this.handshakeDone) {
@@ -307,11 +329,13 @@ export class ZcodeAppServerClient implements ZcodeClientLike {
       }
       const child = this.child;
       if (!child) return;
-      child.stdin.write(`${JSON.stringify({
-        type: "zcode-hello-ack",
-        version: "omniroute",
-        clientId: `omniroute-${process.pid}`,
-      })}\n`);
+      child.stdin.write(
+        `${JSON.stringify({
+          type: "zcode-hello-ack",
+          version: "omniroute",
+          clientId: `omniroute-${process.pid}`,
+        })}\n`
+      );
       this.handshakeDone = true;
     }
     this.consumeFrames();
@@ -366,10 +390,12 @@ export class ZcodeAppServerClient implements ZcodeClientLike {
     if (type === RESPONSE_MESSAGE) {
       request.resolve(payload);
     } else {
-      request.reject(errorFromPayload(
-        payload,
-        type === ERROR_MESSAGE ? "ZCode RPC request failed" : "ZCode RPC request canceled"
-      ));
+      request.reject(
+        errorFromPayload(
+          payload,
+          type === ERROR_MESSAGE ? "ZCode RPC request failed" : "ZCode RPC request canceled"
+        )
+      );
     }
   }
 
@@ -437,7 +463,11 @@ export class ZcodeAppServerClient implements ZcodeClientLike {
     }
   }
 
-  private async withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+  private async withTimeout<T>(
+    promise: Promise<T>,
+    timeoutMs: number,
+    message: string
+  ): Promise<T> {
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
       return await Promise.race([

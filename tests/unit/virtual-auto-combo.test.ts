@@ -11,6 +11,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const virtualFactory = await import("../../open-sse/services/autoCombo/virtualFactory.ts");
 
 type VirtualComboResult = Awaited<ReturnType<typeof virtualFactory.createVirtualAutoCombo>>;
@@ -262,6 +263,8 @@ test("createVirtualAutoCombo includes clean-room ChatGPT Web and excludes its le
 });
 
 test("createVirtualAutoCombo includes no-auth OpenCode Free without provider_connections rows", async () => {
+  // #15059: opencode models are tos:avoid and excluded by default; opt out explicitly.
+  await settingsDb.updateSettings({ excludeTosAvoid: false });
   const combo: VirtualComboResult = await virtualFactory.createVirtualAutoCombo("fast");
 
   const opencode = combo.models.find((model) => model.providerId === "opencode");

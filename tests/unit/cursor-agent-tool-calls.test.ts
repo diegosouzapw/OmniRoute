@@ -274,7 +274,7 @@ test("processFrame doesn't emit tool_calls for the same exec_id twice", () => {
   assert.equal(ctx.toolCalls.length, 1);
 });
 
-test("processFrame bridges Cursor shell_stream to an external tool call and cold resume", () => {
+test("processFrame bridges Cursor shell_stream and holds the exec open for the result", () => {
   const emitted: string[] = [];
   const writes: Buffer[] = [];
   const ctx = newStreamCtx("claude-fable-5-thinking-xhigh", (s) => emitted.push(s));
@@ -313,7 +313,13 @@ test("processFrame bridges Cursor shell_stream to an external tool call and cold
   );
 
   assert.equal(ctx.endReason, "tool_calls");
-  assert.equal(ctx.requiresColdResume, true);
+  // The exec is HELD, not rejected: the client's output comes back as a
+  // role:"tool" message and is returned to Cursor as this exec's success.
+  // Rejecting it made the model believe its own shell never ran, so it
+  // retried the same step forever.
+  assert.equal(ctx.requiresColdResume, false, "a held exec resumes inline, not cold");
+  assert.equal(ctx.pendingBuiltinExecs.size, 1, "the shell exec must be held for the result");
+  assert.equal([...ctx.pendingBuiltinExecs.values()][0].kind, "shell_stream");
   assert.equal(ctx.pendingToolCalls.size, 0, "bridged calls must not attempt ExecMcpResult resume");
   assert.equal(ctx.toolCalls.length, 1);
   assert.equal(ctx.toolCalls[0].name, "pty_spawn");
@@ -325,8 +331,82 @@ test("processFrame bridges Cursor shell_stream to an external tool call and cold
     notifyOnExit: true,
   });
   assert.equal(emitted.length, 3, "role + tool init + tool args chunks");
-  assert.equal(writes.length, 1, "native Cursor shell request must receive a typed rejection");
-  assert.ok(writes[0].includes(Buffer.from("Tool not available in this environment", "utf8")));
+  assert.equal(writes.length, 0, "a held exec must NOT be answered with a rejection");
+});
+
+test("parallel grep and shell_stream remain on the same resumable session", () => {
+  const ctx = newStreamCtx("cursor/grok-4.7", () => {});
+  const mcpTools = openAIToolsToMcpDefs([
+    {
+      type: "function",
+      function: {
+        name: "glob",
+        parameters: {
+          type: "object",
+          properties: { pattern: { type: "string" }, path: { type: "string" } },
+          required: ["pattern"],
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "bash",
+        parameters: {
+          type: "object",
+          properties: { command: { type: "string" }, workdir: { type: "string" } },
+          required: ["command"],
+        },
+      },
+    },
+  ]);
+  const acked = new Set<string>();
+  const grep = Buffer.concat([
+    varintField(1, 1),
+    stringField(15, "grep-1"),
+    lenPrefixed(
+      5,
+      Buffer.concat([stringField(1, ""), stringField(2, "/tmp"), stringField(3, "**/*")])
+    ),
+  ]);
+  processFrame(lenPrefixed(2, grep), ctx, acked, { mcpTools });
+  processFrame(buildShellStreamEvent(2, "shell-2", "ls", "/tmp"), ctx, acked, {
+    mcpTools,
+  });
+
+  assert.equal(ctx.toolCalls.length, 2);
+  assert.equal(ctx.requiresColdResume, false, "neither result can use a closed h2 stream");
+  assert.deepEqual(
+    [...ctx.pendingBuiltinExecs.values()].map(({ kind }) => kind),
+    ["grep", "shell_stream"]
+  );
+});
+
+test("bridged Cursor Fetch stays held for the client's webfetch result", () => {
+  const ctx = newStreamCtx("cursor/grok-4.7", () => {});
+  const tools = openAIToolsToMcpDefs([
+    {
+      type: "function",
+      function: {
+        name: "webfetch",
+        parameters: {
+          type: "object",
+          properties: { url: { type: "string" } },
+          required: ["url"],
+        },
+      },
+    },
+  ]);
+  const esm = Buffer.concat([
+    varintField(1, 6),
+    stringField(15, "fetch-6"),
+    lenPrefixed(20, stringField(1, "https://example.com/docs")),
+  ]);
+  processFrame(lenPrefixed(2, esm), ctx, new Set(), { mcpTools: tools });
+  assert.equal(ctx.toolCalls[0]?.name, "webfetch");
+  assert.equal(ctx.requiresColdResume, false);
+  assert.equal([...ctx.pendingBuiltinExecs.values()][0]?.kind, "fetch");
+  assert.equal([...ctx.pendingBuiltinExecs.values()][0]?.url, "https://example.com/docs");
 });
 
 test("processFrame bridges a complete native TodoWrite merge once and forces a cold resume", () => {

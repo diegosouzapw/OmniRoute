@@ -56,6 +56,7 @@ interface StreamingCacheArgs {
   apiKeyId?: string;
   streamUsage?: Record<string, unknown> | null;
   log?: LoggerLike;
+  videoTranscriptSensitive?: boolean;
 }
 
 function streamTokensSaved(streamUsage: Record<string, unknown> | null | undefined): number {
@@ -108,6 +109,7 @@ export function storeStreamingSemanticCacheResponse(
   deps: StreamingSemanticCacheStoreDeps = DEFAULT_DEPS
 ): void {
   if (
+    args.videoTranscriptSensitive ||
     !args.enabled ||
     args.streamStatus !== 200 ||
     !args.streamResponseBody ||

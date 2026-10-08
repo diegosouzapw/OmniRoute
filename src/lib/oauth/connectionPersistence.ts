@@ -149,6 +149,23 @@ export function buildOAuthConnectionCreatePayload(
   };
 }
 
+/** Replace all token-lifetime metadata together when a user signs in again. */
+export function buildOAuthTokenUpdate(
+  tokenData: Record<string, unknown>,
+  expiresAt: string | null
+) {
+  return {
+    ...tokenData,
+    expiresAt,
+    tokenExpiresAt: expiresAt,
+    lastError: null,
+    lastErrorAt: null,
+    lastErrorType: null,
+    lastErrorSource: null,
+    errorCode: null,
+  };
+}
+
 async function syncToCloudIfEnabled(): Promise<void> {
   try {
     const cloudEnabled = await isCloudEnabled();
@@ -187,8 +204,7 @@ export async function persistOAuthConnection(
     const matchId = typeof match?.id === "string" ? match.id : null;
     if (matchId) {
       connection = await updateProviderConnection(matchId, {
-        ...tokenData,
-        expiresAt,
+        ...buildOAuthTokenUpdate(tokenData, expiresAt),
         ...antigravityPersistStatus(degradedProject),
         isActive: true,
       });

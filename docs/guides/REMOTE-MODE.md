@@ -393,19 +393,23 @@ omniroute contexts remove stg --yes
 > revoke the token on the server with `omniroute tokens revoke <id>` to actually
 > kill access.
 
-**Export / import** contexts (e.g. to move them between machines). New contexts persist
-only a keychain reference; credentials are not copied into the export when the OS
-keychain is available:
+**Export / import** contexts (e.g. to move them between machines). Exports omit
+credentials by default, including credentials stored by the file fallback. Use
+`--include-secrets` explicitly when a portable credential-bearing backup is needed:
 
 ```bash
-omniroute contexts export --out contexts.json     # default: stdout
+omniroute contexts export --out contexts.json     # redacted; default destination: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
 omniroute contexts import contexts.json            # overwrite; --merge to keep existing
 omniroute contexts migrate --yes                  # move legacy plaintext tokens to keychain
 ```
 
-On headless systems without a usable OS keychain, the CLI falls back to
-`config.json` with mode `0600` and prints a one-time warning. Treat exports from
-that fallback (and any legacy config before migration) as secret material.
+`--include-secrets` resolves keychain references before exporting and fails if any
+referenced credential cannot be read. `--no-secrets` always takes precedence.
+Export files are written atomically with mode `0600`. Treat an explicit
+secret-bearing export as secret material. On headless systems without a usable OS
+keychain, the CLI falls back to `config.json` with mode `0600` and prints a
+one-time warning; a default export remains redacted in this mode.
 
 ---
 

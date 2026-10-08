@@ -789,11 +789,19 @@ test("chatCore preserves Combo skip behavior for incompatible reasoning", async 
   assert.equal(skipped.calls.length, 0);
 });
 
+// #14316 moved DeepSeek to Chat Completions by default; these cases pin the Responses alternate,
+// which a connection selects by targetFormat (apiType only drives openai-compatible-*).
+const DEEPSEEK_RESPONSES_CREDENTIALS = {
+  apiKey: "sk-deepseek",
+  providerSpecificData: { targetFormat: "openai-responses" },
+};
+
 test("chatCore carries Chat reasoning_content into official DeepSeek Responses input", async () => {
   const { call, result } = await invokeChatCore({
     provider: "deepseek",
     model: "deepseek-v4-pro",
     endpoint: "/v1/chat/completions",
+    credentials: DEEPSEEK_RESPONSES_CREDENTIALS,
     body: {
       model: "deepseek-v4-pro",
       stream: false,
@@ -843,6 +851,7 @@ test("chatCore replays nonstream DeepSeek Responses reasoning across a Chat tool
     provider: "deepseek",
     model: "deepseek-v4-flash",
     endpoint: "/v1/chat/completions",
+    credentials: DEEPSEEK_RESPONSES_CREDENTIALS,
     body: {
       model: "deepseek-v4-flash",
       stream: false,
@@ -871,6 +880,7 @@ test("chatCore replays nonstream DeepSeek Responses reasoning across a Chat tool
     provider: "deepseek",
     model: "deepseek-v4-flash",
     endpoint: "/v1/chat/completions",
+    credentials: DEEPSEEK_RESPONSES_CREDENTIALS,
     body: {
       model: "deepseek-v4-flash",
       stream: false,
@@ -900,6 +910,7 @@ test("chatCore replays streamed DeepSeek Responses reasoning across a Chat tool 
     provider: "deepseek",
     model: "deepseek-v4-flash",
     endpoint: "/v1/chat/completions",
+    credentials: DEEPSEEK_RESPONSES_CREDENTIALS,
     body: {
       model: "deepseek-v4-flash",
       stream: true,
@@ -925,6 +936,7 @@ test("chatCore replays streamed DeepSeek Responses reasoning across a Chat tool 
     provider: "deepseek",
     model: "deepseek-v4-flash",
     endpoint: "/v1/chat/completions",
+    credentials: DEEPSEEK_RESPONSES_CREDENTIALS,
     body: {
       model: "deepseek-v4-flash",
       stream: false,
@@ -2926,6 +2938,7 @@ test("chatCore records Claude prompt cache and cache usage metadata in call logs
             { type: "text", text: "answer", cache_control: { type: "ephemeral", ttl: "10m" } },
           ],
         },
+        { role: "user", content: "follow-up" }, // #15830 strips a trailing assistant turn
       ],
       tools: [
         {
@@ -2959,13 +2972,12 @@ test("chatCore records Claude prompt cache and cache usage metadata in call logs
       );
     },
   });
-
   const detail = await waitFor(() => getLatestCallLog());
 
   assert.equal(result.success, true);
   assert.ok(detail);
   assert.equal(detail.requestBody._omniroute.claudePromptCache.applied, true);
-  // Breakpoints: system[2] (1), message content (1), assistant response (1). Tools cache_control is stripped by base.ts.
+  // Breakpoints: system[2] (1), user (1), assistant (1; kept by the final user turn). Tools cache_control is stripped by base.ts.
   assert.equal(detail.requestBody._omniroute.claudePromptCache.totalBreakpoints, 3);
   assert.equal(detail.responseBody._omniroute.claudePromptCache.applied, true);
   assert.equal(detail.responseBody._omniroute.claudePromptCache.totalBreakpoints, 3);

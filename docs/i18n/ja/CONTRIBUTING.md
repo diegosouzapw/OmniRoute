@@ -1,6 +1,6 @@
 # Contributing to OmniRoute (日本語)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CONTRIBUTING.md) · 🇪🇹 [am](../am/CONTRIBUTING.md) · 🇸🇦 [ar](../ar/CONTRIBUTING.md) · 🇦🇿 [az](../az/CONTRIBUTING.md) · 🇧🇬 [bg](../bg/CONTRIBUTING.md) · 🇧🇩 [bn](../bn/CONTRIBUTING.md) · 🇨🇿 [cs](../cs/CONTRIBUTING.md) · 🇩🇰 [da](../da/CONTRIBUTING.md) · 🇩🇪 [de](../de/CONTRIBUTING.md) · 🇬🇷 [el](../el/CONTRIBUTING.md) · 🇪🇸 [es](../es/CONTRIBUTING.md) · 🇪🇪 [et](../et/CONTRIBUTING.md) · 🇮🇷 [fa](../fa/CONTRIBUTING.md) · 🇫🇮 [fi](../fi/CONTRIBUTING.md) · 🇫🇷 [fr](../fr/CONTRIBUTING.md) · 🇮🇪 [ga](../ga/CONTRIBUTING.md) · 🇮🇳 [gu](../gu/CONTRIBUTING.md) · 🇳🇬 [ha](../ha/CONTRIBUTING.md) · 🇮🇱 [he](../he/CONTRIBUTING.md) · 🇮🇳 [hi](../hi/CONTRIBUTING.md) · 🇭🇷 [hr](../hr/CONTRIBUTING.md) · 🇭🇺 [hu](../hu/CONTRIBUTING.md) · 🇦🇲 [hy](../hy/CONTRIBUTING.md) · 🇮🇩 [id](../id/CONTRIBUTING.md) · 🇳🇬 [ig](../ig/CONTRIBUTING.md) · 🇮🇹 [it](../it/CONTRIBUTING.md) · 🇬🇪 [ka](../ka/CONTRIBUTING.md) · 🇰🇭 [km](../km/CONTRIBUTING.md) · 🇮🇳 [kn](../kn/CONTRIBUTING.md) · 🇰🇷 [ko](../ko/CONTRIBUTING.md) · 🇱🇹 [lt](../lt/CONTRIBUTING.md) · 🇱🇻 [lv](../lv/CONTRIBUTING.md) · 🇮🇳 [ml](../ml/CONTRIBUTING.md) · 🇮🇳 [mr](../mr/CONTRIBUTING.md) · 🇲🇾 [ms](../ms/CONTRIBUTING.md) · 🇲🇹 [mt](../mt/CONTRIBUTING.md) · 🇲🇲 [my](../my/CONTRIBUTING.md) · 🇳🇵 [ne](../ne/CONTRIBUTING.md) · 🇳🇱 [nl](../nl/CONTRIBUTING.md) · 🇳🇴 [no](../no/CONTRIBUTING.md) · 🇮🇳 [or](../or/CONTRIBUTING.md) · 🇮🇳 [pa](../pa/CONTRIBUTING.md) · 🇵🇭 [phi](../phi/CONTRIBUTING.md) · 🇵🇱 [pl](../pl/CONTRIBUTING.md) · 🇵🇹 [pt](../pt/CONTRIBUTING.md) · 🇧🇷 [pt-BR](../pt-BR/CONTRIBUTING.md) · 🇷🇴 [ro](../ro/CONTRIBUTING.md) · 🇷🇺 [ru](../ru/CONTRIBUTING.md) · 🇱🇰 [si](../si/CONTRIBUTING.md) · 🇸🇰 [sk](../sk/CONTRIBUTING.md) · 🇸🇮 [sl](../sl/CONTRIBUTING.md) · 🇷🇸 [sr](../sr/CONTRIBUTING.md) · 🇸🇪 [sv](../sv/CONTRIBUTING.md) · 🇰🇪 [sw](../sw/CONTRIBUTING.md) · 🇮🇳 [ta](../ta/CONTRIBUTING.md) · 🇮🇳 [te](../te/CONTRIBUTING.md) · 🇹🇭 [th](../th/CONTRIBUTING.md) · 🇹🇷 [tr](../tr/CONTRIBUTING.md) · 🇺🇦 [uk-UA](../uk-UA/CONTRIBUTING.md) · 🇵🇰 [ur](../ur/CONTRIBUTING.md) · 🇺🇿 [uz](../uz/CONTRIBUTING.md) · 🇻🇳 [vi](../vi/CONTRIBUTING.md) · 🇳🇬 [yo](../yo/CONTRIBUTING.md) · 🇨🇳 [zh-CN](../zh-CN/CONTRIBUTING.md) · 🇹🇼 [zh-TW](../zh-TW/CONTRIBUTING.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CONTRIBUTING.md) · 🇪🇹 [am](../am/CONTRIBUTING.md) · 🇸🇦 [ar](../ar/CONTRIBUTING.md) · 🇦🇿 [az](../az/CONTRIBUTING.md) · 🇧🇬 [bg](../bg/CONTRIBUTING.md) · 🇧🇩 [bn](../bn/CONTRIBUTING.md) · 🇧🇦 [bs](../bs/CONTRIBUTING.md) · 🇨🇿 [cs](../cs/CONTRIBUTING.md) · 🇩🇰 [da](../da/CONTRIBUTING.md) · 🇩🇪 [de](../de/CONTRIBUTING.md) · 🇬🇷 [el](../el/CONTRIBUTING.md) · 🇪🇸 [es](../es/CONTRIBUTING.md) · 🇪🇪 [et](../et/CONTRIBUTING.md) · 🇮🇷 [fa](../fa/CONTRIBUTING.md) · 🇫🇮 [fi](../fi/CONTRIBUTING.md) · 🇫🇷 [fr](../fr/CONTRIBUTING.md) · 🇮🇪 [ga](../ga/CONTRIBUTING.md) · 🇮🇳 [gu](../gu/CONTRIBUTING.md) · 🇳🇬 [ha](../ha/CONTRIBUTING.md) · 🇮🇱 [he](../he/CONTRIBUTING.md) · 🇮🇳 [hi](../hi/CONTRIBUTING.md) · 🇭🇷 [hr](../hr/CONTRIBUTING.md) · 🇭🇺 [hu](../hu/CONTRIBUTING.md) · 🇦🇲 [hy](../hy/CONTRIBUTING.md) · 🇮🇩 [id](../id/CONTRIBUTING.md) · 🇳🇬 [ig](../ig/CONTRIBUTING.md) · 🇮🇹 [it](../it/CONTRIBUTING.md) · 🇬🇪 [ka](../ka/CONTRIBUTING.md) · 🇰🇭 [km](../km/CONTRIBUTING.md) · 🇮🇳 [kn](../kn/CONTRIBUTING.md) · 🇰🇷 [ko](../ko/CONTRIBUTING.md) · 🇱🇹 [lt](../lt/CONTRIBUTING.md) · 🇱🇻 [lv](../lv/CONTRIBUTING.md) · 🇮🇳 [ml](../ml/CONTRIBUTING.md) · 🇮🇳 [mr](../mr/CONTRIBUTING.md) · 🇲🇾 [ms](../ms/CONTRIBUTING.md) · 🇲🇹 [mt](../mt/CONTRIBUTING.md) · 🇲🇲 [my](../my/CONTRIBUTING.md) · 🇳🇵 [ne](../ne/CONTRIBUTING.md) · 🇳🇱 [nl](../nl/CONTRIBUTING.md) · 🇳🇴 [no](../no/CONTRIBUTING.md) · 🇮🇳 [or](../or/CONTRIBUTING.md) · 🇮🇳 [pa](../pa/CONTRIBUTING.md) · 🇵🇭 [phi](../phi/CONTRIBUTING.md) · 🇵🇱 [pl](../pl/CONTRIBUTING.md) · 🇵🇹 [pt](../pt/CONTRIBUTING.md) · 🇧🇷 [pt-BR](../pt-BR/CONTRIBUTING.md) · 🇷🇴 [ro](../ro/CONTRIBUTING.md) · 🇷🇺 [ru](../ru/CONTRIBUTING.md) · 🇱🇰 [si](../si/CONTRIBUTING.md) · 🇸🇰 [sk](../sk/CONTRIBUTING.md) · 🇸🇮 [sl](../sl/CONTRIBUTING.md) · 🇷🇸 [sr](../sr/CONTRIBUTING.md) · 🇸🇪 [sv](../sv/CONTRIBUTING.md) · 🇰🇪 [sw](../sw/CONTRIBUTING.md) · 🇮🇳 [ta](../ta/CONTRIBUTING.md) · 🇮🇳 [te](../te/CONTRIBUTING.md) · 🇹🇭 [th](../th/CONTRIBUTING.md) · 🇹🇷 [tr](../tr/CONTRIBUTING.md) · 🇺🇦 [uk-UA](../uk-UA/CONTRIBUTING.md) · 🇵🇰 [ur](../ur/CONTRIBUTING.md) · 🇺🇿 [uz](../uz/CONTRIBUTING.md) · 🇻🇳 [vi](../vi/CONTRIBUTING.md) · 🇳🇬 [yo](../yo/CONTRIBUTING.md) · 🇨🇳 [zh-CN](../zh-CN/CONTRIBUTING.md) · 🇹🇼 [zh-TW](../zh-TW/CONTRIBUTING.md)
 
 ---
 
@@ -386,22 +386,22 @@ OAuth 認証情報を `src/lib/oauth/constants/oauth.ts` に、サービスを `
 
 ---
 
-## プルリクエストチェックリスト
+## Pull Request チェックリスト
 
 - [ ] テストが成功する（`npm test`）
 - [ ] Lint が成功する（`npm run lint`）
 - [ ] ビルドが成功する（`npm run build`）
 - [ ] 新しい公開関数およびインターフェースに TypeScript の型が追加されている
 - [ ] ハードコードされたシークレットやフォールバック値がない
-- [ ] 公開アップストリーム認証情報は、リテラルではなく `resolvePublicCred()` を介して埋め込まれている（[`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) を参照）
-- [ ] エラーレスポンスは `buildErrorBody()` / `sanitizeErrorMessage()` を経由している — レスポンス本文に未加工のスタックトレースを含めない（[`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) を参照）
-- [ ] シェルコマンド（`exec` / `spawn`）では、実行時の値を文字列補間ではなく `env` 経由で渡している
+- [ ] 公開アップストリーム認証情報はリテラルではなく `resolvePublicCred()` を使用して埋め込まれている（[`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) を参照）
+- [ ] エラーレスポンスは `buildErrorBody()` / `sanitizeErrorMessage()` を経由している — レスポンス本文に未加工のスタックトレースが含まれていない（[`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) を参照）
+- [ ] シェルコマンド（`exec` / `spawn`）には、文字列補間ではなく `env` を介してランタイム値を渡している
 - [ ] すべての入力が Zod スキーマで検証されている
-- [ ] ユーザー向けの変更について、`changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` 以下に変更履歴の**フラグメント**が追加されている（[`changelog.d/README.md`](./changelog.d/README.md) を参照）— `CHANGELOG.md` を直接編集しては**ならない**。フラグメントはリリース時に集約され、PR 間で競合することはない
+- [ ] ユーザー向けの変更について、`changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` 配下に Changelog の**フラグメント**が追加されている（[`changelog.d/README.md`](./changelog.d/README.md) を参照）— `CHANGELOG.md` を直接編集してはならない。フラグメントはリリース時に集約され、PR 間で競合することはない
 - [ ] ドキュメントが更新されている（該当する場合）
-- [ ] 新しい CodeQL / Secret-Scanning アラートが発生していない。または、各アラートが関連する `docs/security/` ドキュメントを参照した技術的根拠とともに却下されている
-- [ ] 子プロセスを起動するルート（`/api/mcp/`、`/api/cli-tools/runtime/`）が `src/server/authz/routeGuard.ts` で `isLocalOnlyPath()` として分類されている — [ハードルール #15](docs/security/ROUTE_GUARD_TIERS.md) を参照
-- [ ] コミットメッセージに `Co-Authored-By` トレーラーがない — コミットはリポジトリ所有者の Git ID のみで作成されたものとして表示されなければならない（ハードルール #16）
+- [ ] 新しい CodeQL / Secret-Scanning アラートが発生していない、または各アラートが関連する `docs/security/` ドキュメントを参照した技術的根拠とともに却下されている
+- [ ] 子プロセスを起動するルート（`/api/mcp/`、`/api/cli-tools/runtime/`）が `src/server/authz/routeGuard.ts` 内で `isLocalOnlyPath()` として分類されている — [厳守ルール #15](docs/security/ROUTE_GUARD_TIERS.md) を参照
+- [ ] コミットメッセージに AI/bot の `Co-authored-by` トレーラーが含まれていない（厳守ルール #16）— 再利用した作業を行った人間の共同作業者は、標準の `Co-authored-by: Name <email>` トレーラーでクレジットされている
 
 ---
 
@@ -417,5 +417,4 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 - **API リファレンス**: [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)を参照してください
 - **セキュリティドキュメント**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md)、[`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md)、[`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md)、[`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **運用ドキュメント**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
-- **課題**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR**: アーキテクチャ上の意思決定記録については、`docs/adr/`を参照してください
+- **Issue**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)

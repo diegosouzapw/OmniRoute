@@ -102,7 +102,7 @@ export async function ensureDbReadyForBoot(
   }
 }
 
-function isBackgroundServicesDisabled(): boolean {
+export function isBackgroundServicesDisabled(): boolean {
   const raw = process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES;
   if (!raw) return false;
   return new Set(["1", "true", "yes", "on"]).has(raw.trim().toLowerCase());
@@ -272,9 +272,13 @@ export async function warmAdaptiveVirtualLanesIntoRuntime(): Promise<void> {
  * fetcher.
  */
 export async function registerQuotaFetchers(): Promise<void> {
-  // Side-effect registrations for agentrouter, freeModel, grokCli, xaiOauth,
-  // firecrawl (same ordering as the legacy chat.ts path).
-  await import("@omniroute/open-sse/services/quotaTrackersBatch.ts");
+  // Explicit call after the import resolves. A module-load side effect invokes
+  // registerQuotaFetcher while webpack is still binding that async export and
+  // throws "(0 , e.Zd) is not a function", caching an empty HTTP 500 on chat.
+  const { registerQuotaTrackersBatch } = await import(
+    "@omniroute/open-sse/services/quotaTrackersBatch.ts"
+  );
+  registerQuotaTrackersBatch();
 
   const [
     { registerCodexQuotaFetcher },
@@ -345,6 +349,15 @@ export async function registerNodejs(): Promise<void> {
   // Initialize proxy fetch patch FIRST (before any HTTP requests)
   await import("@omniroute/open-sse/utils/proxyFetch.ts");
   console.log("[STARTUP] Global fetch proxy patch initialized");
+
+  // Subscribe the proxy set-aside webhook bridge (side-effect import only).
+  await import("@/lib/proxyEvents/proxyTransitionBridge");
+
+  // Steer the local core selector off every set-aside member, whatever the
+  // refusal kind (explicit idempotent registration; safe to call twice).
+  const { registerSelectorTransitionSubscriber } =
+    await import("@/lib/proxySubscription/proxyTransitionSubscriber");
+  registerSelectorTransitionSubscriber();
 
   // Register quota fetchers early so combo routing can use real quota-aware
   // scoring for generic providers in the App Router production runtime.
@@ -604,12 +617,12 @@ export async function registerNodejs(): Promise<void> {
     console.warn("[STARTUP] Could not start cleanup scheduler (non-fatal):", msg);
   }
 
-  // Warm the model catalog's durable, apiKey-independent sub-caches at
-  // startup — see warmModelCatalogCache() for why the top-level Response
-  // cache alone doesn't deliver this. Fire-and-forget, non-fatal.
-  void warmModelCatalogCache();
-
   if (!isBackgroundServicesDisabled()) {
+    // Warm the model catalog's durable, apiKey-independent sub-caches at
+    // startup — see warmModelCatalogCache() for why the top-level Response
+    // cache alone doesn't deliver this. Fire-and-forget, non-fatal.
+    void warmModelCatalogCache();
+
     // All services are independent — run in parallel for faster cold start.
     await Promise.allSettled([
       import("@/lib/services/bootstrap")
