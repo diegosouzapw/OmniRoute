@@ -281,7 +281,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 ## Key Features (v3.8.50)
 
 ### Core Proxy
-- **360 AI providers** with automatic format translation
+- **363 AI providers** with automatic format translation
 - **Provider categories**: Free (90+ free tiers), OAuth, API Key, Self-Hosted, Custom (OpenAI/Anthropic-compatible)
 - **19 routing strategies**: priority, weighted, round-robin, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline
 - **4-tier fallback**: Subscription → API Key → Cheap → Free

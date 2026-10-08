@@ -293,10 +293,11 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     supportedSizes: ["1024x1024", "1024x1792", "1792x1024"],
   },
 
-  // Codex exposes image generation only as a Responses-API hosted tool under
-  // ChatGPT OAuth. Incoming GPT-Image-style `/v1/images/generations` requests are
-  // translated to /responses calls with `tools: [{ type: "image_generation" }]`
-  // by handleCodexImageGeneration.
+  // Codex serves images under ChatGPT OAuth two ways (handleCodexImageGeneration):
+  //  - `gpt-image-*` ids use the dedicated `/backend-api/codex/images/{generations,edits}`
+  //    routes, which take the image model as a request field (codexImages.ts);
+  //  - the GPT-5.6 ids call `/responses` with the hosted `image_generation` tool, whose
+  //    image model the backend pins to `gpt-image-2-codex`.
   codex: {
     id: "codex",
     alias: "cx",
@@ -320,6 +321,8 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
         catalogId: "gpt-5.6-luna-image",
         name: "GPT 5.6 Luna (Codex Image)",
       },
+      { id: "gpt-image-2.5-flare", name: "GPT Image 2.5 Flare (Codex)" },
+      { id: "gpt-image-2", name: "GPT Image 2 (Codex)" },
     ],
     supportedSizes: ["1024x1024", "1024x1536", "1536x1024"],
   },

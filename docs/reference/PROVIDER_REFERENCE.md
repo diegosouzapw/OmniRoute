@@ -10,7 +10,7 @@ lastUpdated: 2026-10-08
 > Regenerate with: `npm run gen:provider-reference`
 > **Last generated:** 2026-10-08
 
-Total providers: **360**. See category breakdown below.
+Total providers: **363**. See category breakdown below.
 
 ## Categories
 
@@ -57,7 +57,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `amazon-q` | `aq` | Amazon Q | OAuth | [link](https://aws.amazon.com/q/developer/) | Uses the same AWS Builder ID or imported refresh-token flow as Kiro, but keeps Amazon Q connections separate. |
 | `antigravity` | — | Antigravity | OAuth | — | — |
 | `claude` | `cc` | Claude Code | OAuth | — | — |
-| `cline` | `cl` | Cline | OAuth | — | — |
+| `cline` | `cl` | Cline | OAuth | — | Sign in with your Cline account (OAuth), or paste a direct API key from app.cline.bot → Settings → API Keys. Multiple API keys are supported and rotated automatically — add each as a separate connection. |
 | `clinepass` | `cp` | ClinePass | OAuth | [link](https://cline.bot/cline-pass) | ClinePass is Cline's $9.99/mo subscription bundling 10 open coding models. Sign in with your Cline account (same login as the Cline CLI/IDE), or paste a direct ClinePass API key (app.cline.bot → Settings → API Keys). A ClinePass subscription unlocks the cline-pass/* models. Reuses the Cline WorkOS OAuth flow. |
 | `codebuddy-cn` | `cbcn` | CodeBuddy CN | OAuth | [link](https://copilot.tencent.com) | Tencent CodeBuddy CN (copilot.tencent.com). Sign in via the official CLI device-code flow, or paste a direct API key (sent as Authorization: Bearer). Catalog: GLM / Kimi / MiniMax / DeepSeek / Hunyuan. |
 | `codex` | `cx` | OpenAI Codex | OAuth | — | — |
@@ -68,7 +68,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `github` | `gh` | GitHub Copilot | OAuth | — | — |
 | `gitlab-duo` | `gitlab-duo` | GitLab Duo | OAuth | [link](https://docs.gitlab.com/user/duo_agent_platform/code_suggestions/) | GitLab Duo OAuth is not configured. Register an OAuth application at https://gitlab.com/-/profile/applications with redirect URI http://localhost:20128/callback and scopes "ai_features read_user", then set GITLAB_DUO_OAUTH_CLIENT_ID (and optionally GITLAB_DUO_OAUTH_CLIENT_SECRET) and restart. |
 | `grok-cli` | `gc` | Grok Build | OAuth | — | Sign in with your browser, or paste your ~/.grok/auth.json (or the JWT access token) from the Grok Build CLI; refresh_token is rotated automatically either way. |
-| `kilocode` | `kc` | Kilo Code | OAuth | — | — |
+| `kilocode` | `kc` | Kilo Code | OAuth | — | Sign in with your Kilo Code account (device-code OAuth), or paste a direct API key from app.kilo.ai → Settings → API Keys. Multiple API keys are supported and rotated automatically — add each as a separate connection. Without any connection, free anonymous models are available via the anonymousFallback. |
 | `kimi-coding` | `kmc` | Kimi Code CLI | OAuth | [link](https://www.kimi.ai/code?aff=omniroute) | Sign in with the same Kimi account used by Kimi Code CLI. OmniRoute uses the CLI OAuth flow and Kimi Coding Plan endpoints. |
 | `kiro` | `kr` | Kiro AI | OAuth | — | Free tier: 50 credits/month (~25K–100K tokens). ⚠️ Kiro ToS prohibits third-party proxy/harness use. |
 | `muse-code` | `mc` | Muse Code (Meta) | OAuth | [link](https://ai.developer.meta.com/docs/muse-code/auth) | Sign in with the Muse Code device flow (same as `muse login` / CLIProxyAPI `-meta-login`) to use a Muse subscription, or paste a META_API_KEY. Device login keeps the durable dca token and mints the inference key; a 401 remints that key. Wire format is OpenAI Responses (POST /responses). |
@@ -88,6 +88,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `blackbox-web` | `bb-web` | Blackbox Web (Subscription) | Web cookie | [link](https://app.blackbox.ai) | Paste your __Secure-authjs.session-token value or full cookie header from app.blackbox.ai | emulated |
 | `chatgpt-web` | — | ChatGPT Web (Clean Room) | Web cookie | [link](https://chatgpt.com) | Paste Playwright-compatible storage-state JSON exported from a logged-in chatgpt.com browser context. Cookie headers and individual token values are not accepted. | none |
 | `chatgpt-web-codex` | `cgpt-codex` | ChatGPT Web (Codex) | Web cookie | [link](https://chatgpt.com) | Paste the full ChatGPT Cookie header. OmniRoute verifies it in an isolated headless browser profile. | native |
+| `chatplayground` | `cpl` | ChatPlayground | Web cookie | [link](https://web.chatplayground.ai) | Paste your Clerk session token or full cookie export containing __client and __session from web.chatplayground.ai. OmniRoute auto-mints fresh short-lived Clerk session JWTs. | emulated |
 | `claude-web` | `cw` | Claude Web | Web cookie | [link](https://claude.ai) | Paste your session cookie from claude.ai | none |
 | `conol-web` | `cnl` | Conol (Unofficial/Experimental) | Web cookie | [link](https://conol.ai) | Use browser sign-in, or paste the full Cookie header from conol.ai. The __Secure-better-auth.session_token cookie is required. | — |
 | `copilot-m365-web` | `m365copilot` | Microsoft 365 Copilot (BizChat) | Web cookie | [link](https://m365.cloud.microsoft/chat) | Sign in at m365.cloud.microsoft/chat, then open DevTools → Network → filter 'WS' → click the Chathub WebSocket connection. Copy both the access_token query parameter AND the account-specific Chathub path segment from its request URL (wss://…/Chathub/<path>?…&access_token=…). It is NOT an Authorization: Bearer header on an XHR/Fetch request. The token is short-lived; this is an unofficial integration. Optional: store a refresh_token in providerSpecificData.refreshToken (any Microsoft device-code/refresh flow for the substrate.office.com/sydney scopes) and OmniRoute pre-flight-refreshes the access token itself — otherwise re-capture after every ~75 min expiry. | — |
@@ -118,7 +119,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `zai-web` | `zw` | Z.ai Web | Web cookie | [link](https://chat.z.ai) | Copy the "token" value from chat.z.ai → DevTools → Application → Local Storage. Do not copy cookies; OmniRoute handles the per-request CAPTCHA through its browser transport. | — |
 | `zenmux-free` | `zmf` | ZenMux Free (Web) | Web cookie | [link](https://zenmux.ai) | Login at zenmux.ai, then export all cookies using EditThisCookie or Cookie-Editor and paste the full Cookie header string here. Refresh every ~30 days. | — |
 
-## API Key Providers (paid / paid-with-free-credits) (243)
+## API Key Providers (paid / paid-with-free-credits) (245)
 
 | ID | Alias | Name | Tags | Website | Notes |
 |----|-------|------|------|---------|-------|
@@ -146,6 +147,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `bailian-coding-plan` | `bcp` | Alibaba Token Plan | API key | [link](https://www.alibabacloud.com/help/en/model-studio/token-plan-overview) | — |
 | `baseten` | `baseten` | Baseten | API key | [link](https://baseten.co) | $30 free trial credits for GPU inference |
 | `bazaarlink` | `bzl` | BazaarLink | API key | [link](https://bazaarlink.ai) | Use your BazaarLink API key (starts with sk-bl-) in Authorization: Bearer <key>. OpenAI SDK works with base URL https://bazaarlink.ai/api/v1. Models use provider/model-name format. |
+| `beatapi` | `beatapi` | BeatAPI | API key, aggregator | [link](https://beatapi.io) | Create an API key at https://beatapi.io/dashboard/apikeys, then paste it here. |
 | `bedrock` | `bedrock` | Amazon Bedrock | API key, enterprise | [link](https://aws.amazon.com/bedrock) | Use your Amazon Bedrock API key and configure the AWS region where your models are enabled (for example eu-west-2). OmniRoute calls Bedrock's native Converse API directly. |
 | `black-forest-labs` | `bfl` | Black Forest Labs | API key, image | [link](https://blackforestlabs.ai) | — |
 | `blackbox` | `bb` | Blackbox AI | API key | [link](https://blackbox.ai) | ⚠️ **DEPRECATED.** api.blackbox.ai returns HTTP 404 on every path variant (sweep 2026-08-21); the public inference surface has moved to the gated enterprise.blackbox.ai/v1 endpoint. |
@@ -337,6 +339,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `typhoon` | `typhoon` | Typhoon | API key | [link](https://docs.opentyphoon.ai) | Free API key with a 5 req/s and 200 req/m rate limit. |
 | `uc-direct` | `ucd` | UC Direct (uncensored.com) | API key | [link](https://uncensored.com) | Use your uncensored.com Developer API key (uai_sk_live_...). OmniRoute sends it as the X-api-key header to the OpenAI-compatible https://api.uncensored.com/api/v1 endpoint. The key never expires. This is the metered/credits surface; the un-metered subscription chat is the separate 'uc' provider. |
 | `udio` | `udio` | Udio | API key | [link](https://udio.com) | Paste session cookie from udio.com (Supabase auth) |
+| `unifically` | `unifically` | Unifically | API key, aggregator | [link](https://unifically.com) | — |
 | `unorouter` | `unorouter` | UnoRouter | API key, aggregator | [link](https://unorouter.ai) | Models with the :free suffix do not debit balance; limit is 1 request/minute per free model per user. |
 | `upstage` | `upstage` | Upstage | API key | [link](https://www.upstage.ai) | — |
 | `v0-vercel` | `v0` | v0 (Vercel) | API key | [link](https://v0.dev) | — |
@@ -449,7 +452,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 
 - Catalog: [`src/shared/constants/providers.ts`](../../src/shared/constants/providers.ts)
 - Registry (per-model details): [`open-sse/config/providerRegistry.ts`](../../open-sse/config/providerRegistry.ts)
-- Executors: [`open-sse/executors/`](../../open-sse/executors/) (140 implementations)
+- Executors: [`open-sse/executors/`](../../open-sse/executors/) (141 implementations)
 - Translators: [`open-sse/translator/`](../../open-sse/translator/)
 
 ## See Also

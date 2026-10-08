@@ -515,6 +515,9 @@ function parseProviderQuotas(providerId: string, data: any) {
 }
 
 function sortProviderModelOrder(provider: string, quotas: any[]) {
+  // Antigravity/AGY model IDs are discovered live. Static ordering would rank a model
+  // Google ships tomorrow at 999 and bury it below the collapsed three-row cutoff.
+  if (provider === "antigravity" || provider === "agy") return;
   const modelOrder = getModelsByProviderId(provider);
   if (modelOrder.length === 0) return;
   const orderMap = new Map(modelOrder.map((m, i) => [m.id, i]));

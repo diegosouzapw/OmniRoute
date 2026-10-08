@@ -62,7 +62,7 @@ To configure a ChatPlayground connection, you only need **two cookies**, both ob
 
 ChatPlayground routes models to three distinct backend paths:
 
-### 1. Azure Endpoint (`/api/chat/azure`)
+### 1. Azure Endpoint (`https://app.chatplayground.ai/api/chat/azure`)
 
 - **GPT**: `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`, `gpt-5.5-pro`, `gpt-4.5`, `gpt-4o`
 - **Claude**: `claude-sonnet-5`, `claude-sonnet-4-6`, `claude-opus-4-8`, `claude-opus-4-6`, `claude-haiku-4-5`
@@ -70,7 +70,7 @@ ChatPlayground routes models to three distinct backend paths:
 - **DeepSeek**: `deepseek-v4-pro`, `deepseek-v4-flash`
 - **Mistral**: `mistral-large-3`
 
-### 2. LMSYS Endpoint (`/api/chat/lmsys`)
+### 2. LMSYS Endpoint (`https://app.chatplayground.ai/api/chat/lmsys`)
 
 - **Kimi**: `kimi-k3`, `kimi-k2.6`
 - **Llama**: `llama-4-scout`, `llama-3.3-70b`
@@ -78,7 +78,7 @@ ChatPlayground routes models to three distinct backend paths:
 - **Grok**: `grok-4.5`, `grok-4`
 - **Other**: `command-a`, `minimax-m3`, `glm-5`
 
-### 3. Perplexity Endpoint (`/api/chat/perplexity`)
+### 3. Perplexity Endpoint (`https://app.chatplayground.ai/api/chat/perplexity`)
 
 - `perplexity-sonar-pro` / `sonar-pro`
 - `sonar`
