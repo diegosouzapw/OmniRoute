@@ -4677,6 +4677,13 @@
     "installSkill": "Zainstaluj umiejętność"
   },
   "health": {
+    "queuesTitle": "Bramki współbieżności",
+    "queuesScope": "Tylko ten proces. Bramki combo obejmują tylko cele round-robin, nie wszystkie żądania combo. Liczniki nakładają się między bramkami; nie sumuj ich.",
+    "queuesCombo": "Bramki celów combo (round-robin)",
+    "queuesAdmission": "Bramki globalne / dostawcy / konta",
+    "queuesEmpty": "Brak śledzonych bramek w tej migawce.",
+    "queuesStale": "Nieaktualna migawka",
+    "queuesError": "Migawka kolejek niedostępna. Automatyczne ponawianie.",
     "title": "Stan systemu",
     "description": "Monitorowanie instancji OmniRoute w czasie rzeczywistym",
     "healthy": "Sprawny",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Przywróć domyślne ustawienia upstream",
     "resetToUpstreamDefaultsSuccess": "Przywrócono domyślne ustawienia modelu upstream",
     "resetToUpstreamDefaultsFailed": "Nie udało się przywrócić domyślnych ustawień modelu upstream",
-    "autoSyncTooltip": "Automatyczne odświeżanie listy models co 24h (konfigurowalne przez MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Auto-sync włączony — models będą odświeżane okresowo",
     "autoSyncDisabled": "Auto-sync wyłączony",
     "autoSyncToggleFailed": "Nie udało się przełączyć auto-sync",

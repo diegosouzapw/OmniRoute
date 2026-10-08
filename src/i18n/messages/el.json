@@ -4677,6 +4677,13 @@
     "installSkill": "Εγκατάσταση δεξιότητας"
   },
   "health": {
+    "queuesTitle": "Πύλες ταυτόχρονης εκτέλεσης",
+    "queuesScope": "Μόνο αυτή η διεργασία. Οι πύλες combo καλύπτουν μόνο στόχους round-robin, όχι όλα τα αιτήματα combo. Οι μετρήσεις επικαλύπτονται μεταξύ πυλών· μην τις αθροίζετε.",
+    "queuesCombo": "Πύλες στόχων combo (round-robin)",
+    "queuesAdmission": "Καθολικές πύλες / παρόχου / λογαριασμού",
+    "queuesEmpty": "Δεν παρακολουθούνται πύλες σε αυτό το στιγμιότυπο.",
+    "queuesStale": "Παλιό στιγμιότυπο",
+    "queuesError": "Το στιγμιότυπο ουρών δεν είναι διαθέσιμο. Αυτόματη επανάληψη προσπάθειας.",
     "title": "Κατάσταση συστήματος",
     "description": "Παρακολούθηση της εγκατάστασης OmniRoute σε πραγματικό χρόνο",
     "healthy": "Υγιές",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Επαναφορά προεπιλογών upstream",
     "resetToUpstreamDefaultsSuccess": "Οι προεπιλογές upstream μοντέλου επαναφέρθηκαν",
     "resetToUpstreamDefaultsFailed": "Αποτυχία επαναφοράς προεπιλογών upstream μοντέλου",
-    "autoSyncTooltip": "Αυτόματη ανανέωση λίστας μοντέλων κάθε 24 ώρες (ρυθμιζόμενη μέσω MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Ο αυτόματος συγχρονισμός ενεργοποιήθηκε — τα μοντέλα θα ανανεώνονται περιοδικά",
     "autoSyncDisabled": "Ο αυτόματος συγχρονισμός απενεργοποιήθηκε",
     "autoSyncToggleFailed": "Αποτυχία εναλλαγής αυτόματου συγχρονισμού",

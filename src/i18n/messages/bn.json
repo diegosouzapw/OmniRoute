@@ -4677,6 +4677,13 @@
     "installSkill": "দক্ষতা ইনস্টল করুন"
   },
   "health": {
+    "queuesTitle": "সমবর্তী কার্যক্রমের গেট",
+    "queuesScope": "শুধু এই প্রক্রিয়া। combo গেট শুধু round-robin লক্ষ্যগুলোকে অন্তর্ভুক্ত করে, সব combo অনুরোধকে নয়। বিভিন্ন গেটে গণনা পুনরাবৃত্ত হয়; এগুলো যোগ করবেন না।",
+    "queuesCombo": "combo লক্ষ্যের গেট (round-robin)",
+    "queuesAdmission": "বৈশ্বিক / প্রদানকারী / অ্যাকাউন্ট গেট",
+    "queuesEmpty": "এই স্ন্যাপশটে কোনো গেট ট্র্যাক করা হচ্ছে না।",
+    "queuesStale": "পুরোনো স্ন্যাপশট",
+    "queuesError": "সারির স্ন্যাপশট উপলব্ধ নয়। স্বয়ংক্রিয়ভাবে আবার চেষ্টা করা হচ্ছে।",
     "title": "সিস্টেমের অবস্থা",
     "description": "আপনার OmniRoute ইনস্ট্যান্সের রিয়েল-টাইম পর্যবেক্ষণ",
     "healthy": "স্বাভাবিক",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "আপস্ট্রিম ডিফল্টগুলি পুনরুদ্ধার করুন",
     "resetToUpstreamDefaultsSuccess": "আপস্ট্রিম মডেল ডিফল্টগুলি পুনরুদ্ধার করা হয়েছে",
     "resetToUpstreamDefaultsFailed": "আপস্ট্রিম মডেল ডিফল্টগুলি পুনরুদ্ধার করতে ব্যর্থ হয়েছে",
-    "autoSyncTooltip": "প্রতি 24 ঘণ্টায় স্বয়ংক্রিয়ভাবে মডেলের তালিকা রিফ্রেশ হবে (MODEL_SYNC_INTERVAL_HOURS-এর মাধ্যমে কনফিগারযোগ্য)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "স্বয়ংক্রিয় সিঙ্ক চালু আছে — মডেলগুলো নির্দিষ্ট সময় পরপর রিফ্রেশ হবে",
     "autoSyncDisabled": "স্বয়ংক্রিয় সিঙ্ক বন্ধ আছে",
     "autoSyncToggleFailed": "স্বয়ংক্রিয় সিঙ্কের অবস্থা পরিবর্তন করা যায়নি",

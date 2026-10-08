@@ -1555,7 +1555,7 @@ test("markAccountUnavailable uses a connection-wide cooldown for non-local 404 e
   const result = await auth.markAccountUnavailable(
     connection.id,
     404,
-    "model not found",
+    "404 page not found",
     "openai",
     "gpt-missing"
   );

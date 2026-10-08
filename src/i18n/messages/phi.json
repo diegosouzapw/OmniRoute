@@ -4677,6 +4677,13 @@
     "installSkill": "I-install ang Skill"
   },
   "health": {
+    "queuesTitle": "Mga gate ng sabayang pagproseso",
+    "queuesScope": "Ang prosesong ito lamang. Saklaw ng mga combo gate ang mga round-robin na target lamang, hindi lahat ng combo request. Nagkakapatong ang mga bilang sa mga gate; huwag pagsamahin ang mga ito.",
+    "queuesCombo": "Mga gate ng target ng combo (round-robin)",
+    "queuesAdmission": "Mga global / provider / account na gate",
+    "queuesEmpty": "Walang sinusubaybayang gate sa snapshot na ito.",
+    "queuesStale": "Lumang snapshot",
+    "queuesError": "Hindi available ang snapshot ng pila. Awtomatikong sinusubukang muli.",
     "title": "Kalusugan ng System",
     "description": "Real-time na pagsubaybay sa iyong OmniRoute instance",
     "healthy": "Malusog",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Ibalik ang mga default ng upstream",
     "resetToUpstreamDefaultsSuccess": "Ibinalik ang mga default ng upstream model",
     "resetToUpstreamDefaultsFailed": "Nabigong maibalik ang mga default ng upstream model",
-    "autoSyncTooltip": "Awtomatikong i-refresh ang listahan ng modelo tuwing 24h (mako-configure sa pamamagitan ng MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Pinagana ang auto-sync — pana-panahong magre-refresh ang mga modelo",
     "autoSyncDisabled": "Na-disable ang auto-sync",
     "autoSyncToggleFailed": "Nabigong i-toggle ang auto-sync",

@@ -83,6 +83,10 @@ export const USAGE_FETCHER_PROVIDERS = [
   // Tavily monthly credits & quota (GET /usage)
   "tavily-search",
   "tavily",
+  "jina-search",
+  "jina",
+  "jina-ai",
+  "jina-reader",
   // Volcano Ark Plan subscriptions (agent-plan / coding-plan)
   "volcengine-agent-plan",
   "volcengine-coding-plan",

@@ -4677,6 +4677,13 @@
     "installSkill": "安装技巧"
   },
   "health": {
+    "queuesTitle": "并发门控",
+    "queuesScope": "仅限当前进程。组合门控仅覆盖轮询策略的目标，并非所有组合请求。各门控计数存在重叠，请勿相加。",
+    "queuesCombo": "组合目标门控（轮询）",
+    "queuesAdmission": "全局 / 提供者 / 账号门控",
+    "queuesEmpty": "此快照中没有被跟踪的门控。",
+    "queuesStale": "快照已过时",
+    "queuesError": "队列快照不可用，正在自动重试。",
     "title": "系统健康状况",
     "description": "实时监控您的 OmniRoute 实例",
     "healthy": "健康",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "恢复上游默认值",
     "resetToUpstreamDefaultsSuccess": "已恢复上游模型默认设置",
     "resetToUpstreamDefaultsFailed": "恢复上游模型默认设置失败",
-    "autoSyncTooltip": "每 24 小时自动刷新模型列表（可通过 MODEL_SYNC_INTERVAL_HOURS 配置）",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "自动同步已启用 — 模型将定期刷新",
     "autoSyncDisabled": "自动同步已禁用",
     "autoSyncToggleFailed": "切换自动同步失败",

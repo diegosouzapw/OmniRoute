@@ -4677,6 +4677,13 @@
     "installSkill": "Installer Skill"
   },
   "health": {
+    "queuesTitle": "Samtidighetsbegrensninger",
+    "queuesScope": "Bare denne prosessen. Combo-begrensninger dekker kun round-robin-mål, ikke alle combo-forespørsler. Tellinger overlapper mellom begrensninger; ikke summer dem.",
+    "queuesCombo": "Combo-målbegrensninger (round-robin)",
+    "queuesAdmission": "Globale / leverandør- / kontobegrensninger",
+    "queuesEmpty": "Ingen begrensninger spores i dette øyeblikksbildet.",
+    "queuesStale": "Utdatert øyeblikksbilde",
+    "queuesError": "Øyeblikksbilde av køene er utilgjengelig. Prøver automatisk igjen.",
     "title": "Systemhelse",
     "description": "Sanntidsovervåking av din OmniRoute-forekomst",
     "healthy": "Sunn",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Gjenopprett upstream-standardinnstillinger",
     "resetToUpstreamDefaultsSuccess": "Gjenopprettet upstream-modellinnstillinger",
     "resetToUpstreamDefaultsFailed": "Kunne ikke gjenopprette standardinnstillinger for upstream-modellen",
-    "autoSyncTooltip": "Oppdater modelllisten automatisk hver 24. time (kan konfigureres via MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Automatisk synkronisering aktivert – modellene oppdateres med jevne mellomrom",
     "autoSyncDisabled": "Automatisk synkronisering er deaktivert",
     "autoSyncToggleFailed": "Kunne ikke slå på automatisk synkronisering",

@@ -4677,6 +4677,13 @@
     "installSkill": "Instaliraj vještinu"
   },
   "health": {
+    "queuesTitle": "Kontrole istodobnosti",
+    "queuesScope": "Samo ovaj proces. Combo kontrole obuhvaćaju samo round-robin ciljeve, ne sve combo zahtjeve. Brojevi se preklapaju između kontrola; nemojte ih zbrajati.",
+    "queuesCombo": "Kontrole combo ciljeva (round-robin)",
+    "queuesAdmission": "Globalne kontrole / kontrole pružatelja / računa",
+    "queuesEmpty": "U ovoj snimci nema praćenih kontrola.",
+    "queuesStale": "Zastarjela snimka",
+    "queuesError": "Snimka redova nije dostupna. Automatski se pokušava ponovno.",
     "title": "Stanje sustava",
     "description": "Praćenje vaše instance OmniRoute u stvarnom vremenu",
     "healthy": "Ispravno",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Vrati upstream zadane postavke",
     "resetToUpstreamDefaultsSuccess": "Vraćene su zadane upstream postavke modela",
     "resetToUpstreamDefaultsFailed": "Nije uspjelo vraćanje zadanih upstream postavki modela",
-    "autoSyncTooltip": "Automatski osvježavaj popis modela svakih 24h (moguće konfigurirati putem MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Automatska sinkronizacija omogućena — modeli će se povremeno osvježavati",
     "autoSyncDisabled": "Automatska sinkronizacija onemogućena",
     "autoSyncToggleFailed": "Promjena postavke automatske sinkronizacije nije uspjela",

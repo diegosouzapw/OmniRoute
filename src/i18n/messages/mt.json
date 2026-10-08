@@ -4677,6 +4677,13 @@
     "installSkill": "Installa l-Ħila"
   },
   "health": {
+    "queuesTitle": "Bibien tal-konkorrenza",
+    "queuesScope": "Dan il-proċess biss. Il-bibien combo jkopru biss miri round-robin, mhux it-talbiet combo kollha. L-għadd jikkoinċidi bejn il-bibien; tgħoddhomx flimkien.",
+    "queuesCombo": "Bibien tal-miri combo (round-robin)",
+    "queuesAdmission": "Bibien globali / tal-fornitur / tal-kont",
+    "queuesEmpty": "Ebda bieb mhu mmonitorjat f’din l-istampa.",
+    "queuesStale": "Stampa skaduta",
+    "queuesError": "L-istampa tal-kjuwijiet mhix disponibbli. Qed jerġa’ jipprova awtomatikament.",
     "title": "Saħħa tas-Sistema",
     "description": "Monitoraġġ f'ħin reali tal-istanza OmniRoute tiegħek",
     "healthy": "F'saħħtu",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Irrestawra l-valuri predefiniti tas-sors upstream",
     "resetToUpstreamDefaultsSuccess": "Ġew irrestawrati l-valuri predefiniti tal-mudell mis-sors upstream",
     "resetToUpstreamDefaultsFailed": "Ma rnexxiex jiġu rrestawrati l-valuri predefiniti tal-mudell mis-sors upstream",
-    "autoSyncTooltip": "Aġġorna awtomatikament il-lista tal-mudelli kull 24 siegħa (konfigurabbli permezz ta’ MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Is-sinkronizzazzjoni awtomatika hija attivata — il-mudelli se jiġu aġġornati perjodikament",
     "autoSyncDisabled": "Is-sinkronizzazzjoni awtomatika hija diżattivata",
     "autoSyncToggleFailed": "Ma rnexxiex jinbidel l-istat tas-sinkronizzazzjoni awtomatika",

@@ -4677,6 +4677,13 @@
     "installSkill": "Namesti veščino"
   },
   "health": {
+    "queuesTitle": "Omejevalniki sočasnosti",
+    "queuesScope": "Samo ta proces. Omejevalniki combo zajemajo le cilje round-robin, ne vseh zahtev combo. Števci se med omejevalniki prekrivajo; ne seštevajte jih.",
+    "queuesCombo": "Omejevalniki ciljev combo (round-robin)",
+    "queuesAdmission": "Globalni omejevalniki / omejevalniki ponudnika / računa",
+    "queuesEmpty": "V tem posnetku ni spremljanih omejevalnikov.",
+    "queuesStale": "Zastarel posnetek",
+    "queuesError": "Posnetek čakalnih vrst ni na voljo. Samodejni ponovni poskus.",
     "title": "Stanje sistema",
     "description": "Sprotno spremljanje vašega primerka OmniRoute",
     "healthy": "Brezhibno",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Obnovi privzete izvorne nastavitve",
     "resetToUpstreamDefaultsSuccess": "Privzete nastavitve izvornega modela so bile obnovljene",
     "resetToUpstreamDefaultsFailed": "Privzetih nastavitev izvornega modela ni bilo mogoče obnoviti",
-    "autoSyncTooltip": "Samodejno osveži seznam modelov vsakih 24 ur (nastavljivo prek MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Samodejna sinhronizacija je omogočena — modeli se bodo redno osveževali",
     "autoSyncDisabled": "Samodejna sinhronizacija je onemogočena",
     "autoSyncToggleFailed": "Samodejne sinhronizacije ni bilo mogoče preklopiti",

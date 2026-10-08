@@ -4677,6 +4677,13 @@
     "installSkill": "Տեղադրել հմտությունը"
   },
   "health": {
+    "queuesTitle": "Զուգահեռության սահմանափակիչներ",
+    "queuesScope": "Միայն այս գործընթացը։ Combo սահմանափակիչներն ընդգրկում են միայն round-robin թիրախները, ոչ բոլոր combo հարցումները։ Տարբեր սահմանափակիչների հաշվարկները համընկնում են․ մի գումարեք դրանք։",
+    "queuesCombo": "Combo թիրախների սահմանափակիչներ (round-robin)",
+    "queuesAdmission": "Գլոբալ / մատակարարի / հաշվի սահմանափակիչներ",
+    "queuesEmpty": "Այս պատկերում հետևվող սահմանափակիչներ չկան։",
+    "queuesStale": "Հնացած պատկեր",
+    "queuesError": "Հերթերի պատկերը հասանելի չէ։ Ավտոմատ կրկին փորձ է կատարվում։",
     "title": "Համակարգի վիճակ",
     "description": "Ձեր OmniRoute օրինակի իրական ժամանակի մշտադիտարկում",
     "healthy": "Նորմալ",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Վերականգնել վերին աղբյուրի լռելյայն կարգավորումները",
     "resetToUpstreamDefaultsSuccess": "Վերին աղբյուրի մոդելի լռելյայն կարգավորումները վերականգնվել են",
     "resetToUpstreamDefaultsFailed": "Չհաջողվեց վերականգնել վերին աղբյուրի մոդելի լռելյայն կարգավորումները",
-    "autoSyncTooltip": "Ավտոմատ թարմացնել մոդելների ցանկը յուրաքանչյուր 24 ժամը մեկ (կարգավորվում է MODEL_SYNC_INTERVAL_HOURS-ի միջոցով)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Ավտոմատ համաժամացումը միացված է. մոդելները պարբերաբար կթարմացվեն",
     "autoSyncDisabled": "Ավտոմատ համաժամացումն անջատված է",
     "autoSyncToggleFailed": "Չհաջողվեց փոխել ավտոմատ համաժամացման կարգավորումը",

@@ -4677,6 +4677,13 @@
     "installSkill": "ติดตั้งทักษะ"
   },
   "health": {
+    "queuesTitle": "เกตควบคุมการทำงานพร้อมกัน",
+    "queuesScope": "เฉพาะโพรเซสนี้ เกต combo ครอบคลุมเฉพาะเป้าหมายแบบ round-robin ไม่ใช่คำขอ combo ทั้งหมด จำนวนที่นับซ้ำกันระหว่างเกต ห้ามนำมาบวกกัน",
+    "queuesCombo": "เกตเป้าหมาย combo (round-robin)",
+    "queuesAdmission": "เกตส่วนกลาง / ผู้ให้บริการ / บัญชี",
+    "queuesEmpty": "ไม่มีเกตที่ติดตามในสแนปช็อตนี้",
+    "queuesStale": "สแนปช็อตล้าสมัย",
+    "queuesError": "ไม่สามารถเรียกสแนปช็อตคิวได้ กำลังลองใหม่อัตโนมัติ",
     "title": "สุขภาพของระบบ",
     "description": "การตรวจสอบอินสแตนซ์ OmniRoute ของคุณแบบเรียลไทม์",
     "healthy": "ดีต่อสุขภาพ",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "คืนค่าการตั้งค่าเริ่มต้นของ upstream",
     "resetToUpstreamDefaultsSuccess": "กู้คืนค่าเริ่มต้นของโมเดลต้นทาง",
     "resetToUpstreamDefaultsFailed": "ไม่สามารถกู้คืนค่าเริ่มต้นของโมเดลต้นน้ำได้",
-    "autoSyncTooltip": "รีเฟรชรายการโมเดลโดยอัตโนมัติทุกๆ 24 ชั่วโมง (กำหนดค่าได้ผ่าน MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "เปิดใช้งานการซิงค์อัตโนมัติ — โมเดลจะรีเฟรชเป็นระยะ",
     "autoSyncDisabled": "ปิดใช้งานการซิงค์อัตโนมัติแล้ว",
     "autoSyncToggleFailed": "ไม่สามารถสลับการซิงค์อัตโนมัติ",

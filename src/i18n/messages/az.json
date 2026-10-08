@@ -4677,6 +4677,13 @@
     "installSkill": "Bacarıq quraşdırın"
   },
   "health": {
+    "queuesTitle": "Paralellik keçidləri",
+    "queuesScope": "Yalnız bu proses. Combo keçidləri bütün combo sorğularını deyil, yalnız round-robin hədəflərini əhatə edir. Sayğaclar keçidlər arasında üst-üstə düşür; onları toplamayın.",
+    "queuesCombo": "Combo hədəf keçidləri (round-robin)",
+    "queuesAdmission": "Qlobal / provayder / hesab keçidləri",
+    "queuesEmpty": "Bu anlıq görüntüdə izlənən keçid yoxdur.",
+    "queuesStale": "Köhnəlmiş anlıq görüntü",
+    "queuesError": "Növbələrin anlıq görüntüsü əlçatan deyil. Avtomatik yenidən cəhd edilir.",
     "title": "Sistemin vəziyyəti",
     "description": "OmniRoute instansiyanızın real vaxt rejimində monitorinqi",
     "healthy": "Sağlam",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Yuxarı axın standartlarını bərpa et",
     "resetToUpstreamDefaultsSuccess": "Yuxarı axın modelinin standart parametrləri bərpa edildi",
     "resetToUpstreamDefaultsFailed": "Yuxarı axın modelinin standartlarını bərpa etmək mümkün olmadı",
-    "autoSyncTooltip": "Model siyahısını hər 24 saatdan bir avtomatik yenilə (MODEL_SYNC_INTERVAL_HOURS vasitəsilə konfiqurasiya edilə bilər)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Avtomatik sinxronizasiya aktivdir — modellər vaxtaşırı yenilənəcək",
     "autoSyncDisabled": "Avtomatik sinxronizasiya deaktivdir",
     "autoSyncToggleFailed": "Avtomatik sinxronizasiya dəyişdirilə bilmədi",

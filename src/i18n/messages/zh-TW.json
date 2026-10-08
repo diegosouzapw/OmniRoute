@@ -4677,6 +4677,13 @@
     "installSkill": "安裝技巧"
   },
   "health": {
+    "queuesTitle": "並行閘控",
+    "queuesScope": "僅限目前程序。組合閘控僅涵蓋輪詢策略的目標，並非所有組合請求。各閘控計數有所重疊，請勿相加。",
+    "queuesCombo": "組合目標閘控（輪詢）",
+    "queuesAdmission": "全域 / 供應商 / 帳號閘控",
+    "queuesEmpty": "此快照中沒有追蹤中的閘控。",
+    "queuesStale": "快照已過時",
+    "queuesError": "佇列快照無法取得，正在自動重試。",
     "title": "系統健康狀況",
     "description": "即時監控您的 OmniRoute 例項",
     "healthy": "健康",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "恢復上游預設值",
     "resetToUpstreamDefaultsSuccess": "已恢復上游模型預設值",
     "resetToUpstreamDefaultsFailed": "無法恢復上游模型的預設值",
-    "autoSyncTooltip": "每 24 小時自動重新整理模型列表（可通過 MODEL_SYNC_INTERVAL_HOURS 設定）",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "自動同步已啟用 — 模型將定期重新整理",
     "autoSyncDisabled": "自動同步已停用",
     "autoSyncToggleFailed": "切換自動同步失敗",

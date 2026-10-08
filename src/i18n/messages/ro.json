@@ -4677,6 +4677,13 @@
     "installSkill": "Instalați Skill"
   },
   "health": {
+    "queuesTitle": "Porți de concurență",
+    "queuesScope": "Doar acest proces. Porțile combo acoperă doar țintele round-robin, nu toate cererile combo. Numărătorile se suprapun între porți; nu le adunați.",
+    "queuesCombo": "Porți pentru țintele combo (round-robin)",
+    "queuesAdmission": "Porți globale / de furnizor / de cont",
+    "queuesEmpty": "Nicio poartă urmărită în acest instantaneu.",
+    "queuesStale": "Instantaneu învechit",
+    "queuesError": "Instantaneul cozilor nu este disponibil. Se reîncearcă automat.",
     "title": "Sănătatea sistemului",
     "description": "Monitorizarea în timp real a instanței dvs. OmniRoute",
     "healthy": "Sănătos",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Restabilește valorile implicite upstream",
     "resetToUpstreamDefaultsSuccess": "Restabilite valorile implicite ale modelului upstream",
     "resetToUpstreamDefaultsFailed": "Restaurarea valorilor implicite ale modelului upstream a eșuat",
-    "autoSyncTooltip": "Actualizează automat lista de modele la fiecare 24 de ore (configurabil prin MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Sincronizare automată activată — modelele se vor reîmprospăta periodic",
     "autoSyncDisabled": "Sincronizarea automată a fost dezactivată",
     "autoSyncToggleFailed": "Nu s-a putut comuta sincronizarea automată",

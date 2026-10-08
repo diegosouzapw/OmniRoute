@@ -4677,6 +4677,13 @@
     "installSkill": "Install Skill"
   },
   "health": {
+    "queuesTitle": "Concurrency gates",
+    "queuesScope": "This process only. Combo gates cover round-robin targets only, not all combo requests. Counts overlap across gates; do not add them.",
+    "queuesCombo": "Combo target gates (round-robin)",
+    "queuesAdmission": "Global / provider / account gates",
+    "queuesEmpty": "No gates tracked in this snapshot.",
+    "queuesStale": "Stale snapshot",
+    "queuesError": "Queue snapshot unavailable. Retrying automatically.",
     "title": "System Health",
     "description": "Real-time monitoring of your OmniRoute instance",
     "healthy": "Healthy",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Restore upstream defaults",
     "resetToUpstreamDefaultsSuccess": "Restored upstream model defaults",
     "resetToUpstreamDefaultsFailed": "Failed to restore upstream model defaults",
-    "autoSyncTooltip": "Automatically refresh model list every 24h (configurable via MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Auto-sync enabled — models will refresh periodically",
     "autoSyncDisabled": "Auto-sync disabled",
     "autoSyncToggleFailed": "Failed to toggle auto-sync",

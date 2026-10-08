@@ -4677,6 +4677,13 @@
     "installSkill": "Asenna Skill"
   },
   "health": {
+    "queuesTitle": "Rinnakkaisuusrajoittimet",
+    "queuesScope": "Vain tämä prosessi. Combo-rajoittimet kattavat vain round-robin-kohteet, eivät kaikkia combo-pyyntöjä. Laskurit ovat päällekkäisiä eri rajoittimissa; älä laske niitä yhteen.",
+    "queuesCombo": "Combo-kohderajoittimet (round-robin)",
+    "queuesAdmission": "Globaalit / palveluntarjoaja- / tilirajoittimet",
+    "queuesEmpty": "Tässä tilannekuvassa ei seurata rajoittimia.",
+    "queuesStale": "Vanhentunut tilannekuva",
+    "queuesError": "Jonojen tilannekuva ei ole saatavilla. Yritetään automaattisesti uudelleen.",
     "title": "Järjestelmän terveys",
     "description": "OmniRoute-instanssisi reaaliaikainen seuranta",
     "healthy": "Terve",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Palauta upstream-oletukset",
     "resetToUpstreamDefaultsSuccess": "Palautettiin ylävirran mallin oletukset",
     "resetToUpstreamDefaultsFailed": "Palautus upstream-mallin oletusasetuksista epäonnistui",
-    "autoSyncTooltip": "Päivitä malliluettelo automaattisesti 24 tunnin välein (konfiguroitavissa kohdassa MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Automaattinen synkronointi käytössä – mallit päivittyvät säännöllisesti",
     "autoSyncDisabled": "Automaattinen synkronointi poistettu käytöstä",
     "autoSyncToggleFailed": "Automaattisen synkronoinnin vaihtaminen epäonnistui",

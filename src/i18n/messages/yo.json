@@ -4677,6 +4677,13 @@
     "installSkill": "Fi Ọgbọ́n Sí Orí Ẹ̀rọ"
   },
   "health": {
+    "queuesTitle": "Àwọn ẹnu-ọ̀nà iṣẹ́ ní àkókò kan náà",
+    "queuesScope": "Ìlànà yìí nìkan. Àwọn ẹnu-ọ̀nà combo kan àwọn ibi-afẹ́ round-robin nìkan, kì í ṣe gbogbo ìbéèrè combo. Àwọn ìṣirò tún ara wọn ṣe láàárín àwọn ẹnu-ọ̀nà; má ṣe fi wọ́n kún ara wọn.",
+    "queuesCombo": "Àwọn ẹnu-ọ̀nà ibi-afẹ́ combo (round-robin)",
+    "queuesAdmission": "Àwọn ẹnu-ọ̀nà àgbáyé / olùpèsè / àkọọ́lẹ̀",
+    "queuesEmpty": "Kò sí ẹnu-ọ̀nà tí a ń tọpinpin nínú àwòrán ipò yìí.",
+    "queuesStale": "Àwòrán ipò tó ti pẹ́",
+    "queuesError": "Àwòrán ipò àwọn ìlà ìdúró kò sí. A ń tún gbìyànjú láìfọwọ́yí.",
     "title": "Ìlera Ètò",
     "description": "Àbójútó ẹ̀dà OmniRoute rẹ ní àsìkò gidi",
     "healthy": "Ní ìlera tó dára",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Dá àwọn ìṣètò àkọ́kọ́ orísun òkè padà",
     "resetToUpstreamDefaultsSuccess": "A ti dá àwọn ìṣètò àkọ́kọ́ módẹ́lì orísun òkè padà",
     "resetToUpstreamDefaultsFailed": "Dídá àwọn ìṣètò àkọ́kọ́ módẹ́lì orísun òkè padà kò ṣàṣeyọrí",
-    "autoSyncTooltip": "Máa sọ àkójọ módẹ́lì di tuntun láìfọwọ́sí ní gbogbo wákàtí 24 (a lè ṣètò rẹ̀ nípasẹ̀ MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Ìmúdọ́gba aládàáṣiṣẹ́ ti ṣiṣẹ́ — a ó máa sọ àwọn módẹ́lì di tuntun lẹ́ẹ̀kọ̀ọ̀kan",
     "autoSyncDisabled": "Ìmúdọ́gba aládàáṣiṣẹ́ ti dáwọ́ dúró",
     "autoSyncToggleFailed": "Yíyí ìmúdọ́gba aládàáṣiṣẹ́ padà kò ṣàṣeyọrí",

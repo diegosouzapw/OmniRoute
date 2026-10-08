@@ -4677,6 +4677,13 @@
     "installSkill": "నైపుణ్యాన్ని ఇన్స్టాల్ చేయండి"
   },
   "health": {
+    "queuesTitle": "సమకాలీన కార్యాచరణ గేట్లు",
+    "queuesScope": "ఈ ప్రక్రియ మాత్రమే. combo గేట్లు round-robin లక్ష్యాలను మాత్రమే కవర్ చేస్తాయి, అన్ని combo అభ్యర్థనలను కాదు. గేట్ల మధ్య లెక్కలు పునరావృతమవుతాయి; వాటిని కలపవద్దు.",
+    "queuesCombo": "combo లక్ష్య గేట్లు (round-robin)",
+    "queuesAdmission": "గ్లోబల్ / ప్రొవైడర్ / ఖాతా గేట్లు",
+    "queuesEmpty": "ఈ స్నాప్‌షాట్‌లో ఏ గేట్లు ట్రాక్ చేయబడటం లేదు.",
+    "queuesStale": "పాత స్నాప్‌షాట్",
+    "queuesError": "క్యూ స్నాప్‌షాట్ అందుబాటులో లేదు. స్వయంచాలకంగా మళ్లీ ప్రయత్నిస్తోంది.",
     "title": "సిస్టమ్ స్థితి",
     "description": "మీ OmniRoute ఇన్స్టాన్స్ యొక్క రియల్-టైమ్ పర్యవేక్షణ",
     "healthy": "సక్రమంగా ఉంది",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "అప్‌స్ట్రీమ్ డిఫాల్ట్స్‌ను పునరుద్ధరించండి",
     "resetToUpstreamDefaultsSuccess": "అప్‌స్ట్రీమ్ మోడల్ డిఫాల్ట్స్ పునరుద్ధరించబడ్డాయి",
     "resetToUpstreamDefaultsFailed": "అప్‌స్ట్రీమ్ మోడల్ డిఫాల్ట్స్‌ను పునరుద్ధరించడంలో విఫలమైంది",
-    "autoSyncTooltip": "ప్రతి 24 గంటలకు మోడళ్ల జాబితాను స్వయంచాలకంగా తాజాపరుస్తుంది (MODEL_SYNC_INTERVAL_HOURS ద్వారా కాన్ఫిగర్ చేయవచ్చు)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "ఆటో-సింక్ ప్రారంభించబడింది — మోడళ్లు క్రమానుగతంగా తాజాపరచబడతాయి",
     "autoSyncDisabled": "ఆటో-సింక్ నిలిపివేయబడింది",
     "autoSyncToggleFailed": "ఆటో-సింక్ను మార్చడం విఫలమైంది",

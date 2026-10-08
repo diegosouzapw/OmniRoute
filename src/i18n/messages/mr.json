@@ -4677,6 +4677,13 @@
     "installSkill": "कौशल्य स्थापित करा"
   },
   "health": {
+    "queuesTitle": "समवर्ती कार्याचे गेट",
+    "queuesScope": "फक्त ही प्रक्रिया. combo गेट फक्त round-robin लक्ष्यांना समाविष्ट करतात, सर्व combo विनंत्यांना नाही. वेगवेगळ्या गेटमधील मोजणीची पुनरावृत्ती होते; त्यांची बेरीज करू नका.",
+    "queuesCombo": "combo लक्ष्य गेट (round-robin)",
+    "queuesAdmission": "जागतिक / प्रदाता / खाते गेट",
+    "queuesEmpty": "या स्नॅपशॉटमध्ये कोणतेही गेट ट्रॅक केलेले नाहीत.",
+    "queuesStale": "जुना स्नॅपशॉट",
+    "queuesError": "रांगेचा स्नॅपशॉट उपलब्ध नाही. आपोआप पुन्हा प्रयत्न करत आहे.",
     "title": "सिस्टमचे आरोग्य",
     "description": "तुमच्या OmniRoute इंस्टन्सचे रिअल-टाइम निरीक्षण",
     "healthy": "सुस्थितीत",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "अपस्ट्रीम डिफॉल्ट्स पुनर्स्थापित करा",
     "resetToUpstreamDefaultsSuccess": "उपस्ट्रीम मॉडेल डिफॉल्ट्स पुनर्स्थापित केले",
     "resetToUpstreamDefaultsFailed": "उपस्ट्रीम मॉडेल डिफॉल्ट्स पुनर्स्थापित करण्यात अयशस्वी",
-    "autoSyncTooltip": "दर 24 तासांनी मॉडेलची यादी स्वयंचलितपणे रीफ्रेश करते (MODEL_SYNC_INTERVAL_HOURS द्वारे कॉन्फिगर करता येते)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "स्वयं-समक्रमण सक्षम केले — मॉडेल वेळोवेळी रीफ्रेश होतील",
     "autoSyncDisabled": "स्वयं-समक्रमण अक्षम केले",
     "autoSyncToggleFailed": "स्वयं-समक्रमण टॉगल करण्यात अयशस्वी",

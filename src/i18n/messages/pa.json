@@ -4677,6 +4677,13 @@
     "installSkill": "ਸਕਿੱਲ ਇੰਸਟਾਲ ਕਰੋ"
   },
   "health": {
+    "queuesTitle": "ਸਮਕਾਲੀ ਕਾਰਜ ਦੇ ਗੇਟ",
+    "queuesScope": "ਸਿਰਫ਼ ਇਹ ਪ੍ਰਕਿਰਿਆ। combo ਗੇਟ ਸਿਰਫ਼ round-robin ਟੀਚਿਆਂ ਨੂੰ ਕਵਰ ਕਰਦੇ ਹਨ, ਸਾਰੀਆਂ combo ਬੇਨਤੀਆਂ ਨੂੰ ਨਹੀਂ। ਗੇਟਾਂ ਵਿਚਕਾਰ ਗਿਣਤੀਆਂ ਦੁਹਰਾਈਆਂ ਜਾਂਦੀਆਂ ਹਨ; ਉਨ੍ਹਾਂ ਨੂੰ ਨਾ ਜੋੜੋ।",
+    "queuesCombo": "combo ਟੀਚਾ ਗੇਟ (round-robin)",
+    "queuesAdmission": "ਗਲੋਬਲ / ਪ੍ਰਦਾਤਾ / ਖਾਤਾ ਗੇਟ",
+    "queuesEmpty": "ਇਸ ਸਨੈਪਸ਼ਾਟ ਵਿੱਚ ਕੋਈ ਗੇਟ ਟਰੈਕ ਨਹੀਂ ਕੀਤਾ ਗਿਆ।",
+    "queuesStale": "ਪੁਰਾਣਾ ਸਨੈਪਸ਼ਾਟ",
+    "queuesError": "ਕਤਾਰ ਦਾ ਸਨੈਪਸ਼ਾਟ ਉਪਲਬਧ ਨਹੀਂ। ਆਪਣੇ ਆਪ ਮੁੜ ਕੋਸ਼ਿਸ਼ ਹੋ ਰਹੀ ਹੈ।",
     "title": "ਸਿਸਟਮ ਦੀ ਸਿਹਤ",
     "description": "ਤੁਹਾਡੀ OmniRoute ਇੰਸਟੈਂਸ ਦੀ ਰੀਅਲ-ਟਾਈਮ ਨਿਗਰਾਨੀ",
     "healthy": "ਸਿਹਤਮੰਦ",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "ਅੱਪਸਟ੍ਰੀਮ ਡਿਫੌਲਟ ਮੁੜ-ਬਹਾਲ ਕਰੋ",
     "resetToUpstreamDefaultsSuccess": "ਅੱਪਸਟ੍ਰੀਮ ਮਾਡਲ ਦੇ ਡਿਫੌਲਟ ਮੁੜ-ਬਹਾਲ ਕੀਤੇ ਗਏ",
     "resetToUpstreamDefaultsFailed": "ਅੱਪਸਟ੍ਰੀਮ ਮਾਡਲ ਦੇ ਡਿਫੌਲਟ ਮੁੜ-ਬਹਾਲ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
-    "autoSyncTooltip": "ਹਰ 24 ਘੰਟਿਆਂ ਬਾਅਦ ਮਾਡਲ ਸੂਚੀ ਆਪਣੇ ਆਪ ਤਾਜ਼ਾ ਕਰੋ (MODEL_SYNC_INTERVAL_HOURS ਰਾਹੀਂ ਸੰਰਚਨਾਯੋਗ)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "ਆਟੋ-ਸਿੰਕ ਸਮਰੱਥ ਹੈ — ਮਾਡਲ ਸਮੇਂ-ਸਮੇਂ 'ਤੇ ਤਾਜ਼ਾ ਕੀਤੇ ਜਾਣਗੇ",
     "autoSyncDisabled": "ਆਟੋ-ਸਿੰਕ ਅਸਮਰੱਥ ਹੈ",
     "autoSyncToggleFailed": "ਆਟੋ-ਸਿੰਕ ਸੈਟਿੰਗ ਬਦਲਣ ਵਿੱਚ ਅਸਫਲ",

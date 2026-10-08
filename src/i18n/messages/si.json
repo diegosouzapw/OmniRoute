@@ -4677,6 +4677,13 @@
     "installSkill": "කුසලතාව ස්ථාපනය කරන්න"
   },
   "health": {
+    "queuesTitle": "සමගාමී ක්‍රියාකාරී ද්වාර",
+    "queuesScope": "මෙම ක්‍රියාවලිය පමණි. combo ද්වාර ආවරණය කරන්නේ round-robin ඉලක්ක පමණි, සියලු combo ඉල්ලීම් නොවේ. ද්වාර අතර ගණන් නැවත ගණනය වේ; ඒවා එකතු නොකරන්න.",
+    "queuesCombo": "combo ඉලක්ක ද්වාර (round-robin)",
+    "queuesAdmission": "ගෝලීය / සපයන්නා / ගිණුම් ද්වාර",
+    "queuesEmpty": "මෙම සැණරුවේ නිරීක්ෂණය වන ද්වාර නැත.",
+    "queuesStale": "යල් පැන ගිය සැණරුව",
+    "queuesError": "පෝලිම් සැණරුව ලබා ගත නොහැක. ස්වයංක්‍රීයව නැවත උත්සාහ කරමින්.",
     "title": "පද්ධති සෞඛ්යය",
     "description": "ඔබගේ OmniRoute නිදර්ශකය තත්ය කාලීනව නිරීක්ෂණය කිරීම",
     "healthy": "හොඳ තත්ත්වයේ",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "උඩුගං පෙරනිමි ප්රතිසාධනය කරන්න",
     "resetToUpstreamDefaultsSuccess": "උඩුගං මාදිලියේ පෙරනිමි ප්රතිසාධනය කරන ලදී",
     "resetToUpstreamDefaultsFailed": "උඩුගං මාදිලියේ පෙරනිමි ප්රතිසාධනය කිරීමට අසමත් විය",
-    "autoSyncTooltip": "සෑම පැය 24කට වරක්ම මාදිලි ලැයිස්තුව ස්වයංක්රීයව නැවුම් කරන්න (MODEL_SYNC_INTERVAL_HOURS හරහා වින්යාස කළ හැක)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "ස්වයංක්රීය සමමුහුර්තකරණය සබල කර ඇත — මාදිලි වරින් වර නැවුම් කෙරේ",
     "autoSyncDisabled": "ස්වයංක්රීය සමමුහුර්තකරණය අබල කර ඇත",
     "autoSyncToggleFailed": "ස්වයංක්රීය සමමුහුර්තකරණය සක්රිය හෝ අක්රිය කිරීමට අසමත් විය",

@@ -4677,6 +4677,13 @@
     "installSkill": "Vaardigheid installeren"
   },
   "health": {
+    "queuesTitle": "Gelijktijdigheidsbegrenzingen",
+    "queuesScope": "Alleen dit proces. Combo-begrenzingen omvatten alleen round-robin-doelen, niet alle combo-aanvragen. Tellingen overlappen tussen begrenzingen; tel ze niet bij elkaar op.",
+    "queuesCombo": "Combo-doelbegrenzingen (round-robin)",
+    "queuesAdmission": "Globale / provider- / accountbegrenzingen",
+    "queuesEmpty": "Geen begrenzingen bijgehouden in deze momentopname.",
+    "queuesStale": "Verouderde momentopname",
+    "queuesError": "Wachtrijmomentopname niet beschikbaar. Automatisch opnieuw proberen.",
     "title": "Systeemgezondheid",
     "description": "Realtime monitoring van uw OmniRoute-instantie",
     "healthy": "Gezond",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Herstel upstream standaardinstellingen",
     "resetToUpstreamDefaultsSuccess": "Herstelde standaardinstellingen van upstream-model",
     "resetToUpstreamDefaultsFailed": "Het is niet gelukt om de standaardinstellingen van het upstream-model te herstellen",
-    "autoSyncTooltip": "Modellijst automatisch elke 24 uur vernieuwen (configureerbaar via MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Automatische synchronisatie ingeschakeld: modellen worden periodiek vernieuwd",
     "autoSyncDisabled": "Automatische synchronisatie uitgeschakeld",
     "autoSyncToggleFailed": "Kan automatische synchronisatie niet in- of uitschakelen",

@@ -4677,6 +4677,13 @@
     "installSkill": "התקן את מיומנות"
   },
   "health": {
+    "queuesTitle": "שערי מקביליות",
+    "queuesScope": "תהליך זה בלבד. שערי combo מכסים רק יעדי round-robin, לא את כל בקשות ה-combo. הספירות חופפות בין השערים; אין לחבר אותן.",
+    "queuesCombo": "שערי יעדי combo ‏(round-robin)",
+    "queuesAdmission": "שערים כלליים / ספק / חשבון",
+    "queuesEmpty": "אין שערים במעקב בתמונת מצב זו.",
+    "queuesStale": "תמונת מצב מיושנת",
+    "queuesError": "תמונת מצב התורים אינה זמינה. מתבצע ניסיון חוזר אוטומטי.",
     "title": "בריאות המערכת",
     "description": "ניטור בזמן אמת של מופע OmniRoute שלך",
     "healthy": "בריא",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "שחזר את ברירות המחדל של ה-upstream",
     "resetToUpstreamDefaultsSuccess": "שוחזרו ברירות המחדל של המודל העליון",
     "resetToUpstreamDefaultsFailed": "נכשל בשחזור ברירות המחדל של המודל העליון",
-    "autoSyncTooltip": "רענן אוטומטית את רשימת הדגמים כל 24 שעות (ניתן להגדרה באמצעות MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "סנכרון אוטומטי מופעל - הדגמים יתרעננו מעת לעת",
     "autoSyncDisabled": "הסנכרון האוטומטי מושבת",
     "autoSyncToggleFailed": "החלפת הסנכרון האוטומטי נכשלה",

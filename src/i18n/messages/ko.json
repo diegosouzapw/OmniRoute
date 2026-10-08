@@ -4677,6 +4677,13 @@
     "installSkill": "스킬 설치"
   },
   "health": {
+    "queuesTitle": "동시 실행 게이트",
+    "queuesScope": "이 프로세스만 표시합니다. 콤보 게이트는 라운드 로빈 대상만 포함하며 모든 콤보 요청을 나타내지는 않습니다. 게이트 간 집계가 중복되므로 합산하지 마세요.",
+    "queuesCombo": "콤보 대상 게이트(라운드 로빈)",
+    "queuesAdmission": "전역 / 공급자 / 계정 게이트",
+    "queuesEmpty": "이 스냅샷에서 추적 중인 게이트가 없습니다.",
+    "queuesStale": "오래된 스냅샷",
+    "queuesError": "대기열 스냅샷을 사용할 수 없습니다. 자동으로 다시 시도합니다.",
     "title": "시스템 상태",
     "description": "OmniRoute 인스턴스의 실시간 모니터링",
     "healthy": "정상",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "업스트림 기본값 복원",
     "resetToUpstreamDefaultsSuccess": "복원된 업스트림 모델 기본값",
     "resetToUpstreamDefaultsFailed": "업스트림 모델 기본값을 복원하지 못했습니다.",
-    "autoSyncTooltip": "24시간마다 모델 목록 자동 업데이트 (MODEL_SYNC_INTERVAL_HOURS로 구성 가능)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "자동 동기화 활성화 — 모델이 주기적으로 업데이트됩니다",
     "autoSyncDisabled": "자동 동기화 비활성화",
     "autoSyncToggleFailed": "자동 동기화 전환 실패",

@@ -4677,6 +4677,13 @@
     "installSkill": "Suiteáil Scil"
   },
   "health": {
+    "queuesTitle": "Geataí comhthráthachta",
+    "queuesScope": "An próiseas seo amháin. Ní chlúdaíonn geataí combo ach spriocanna round-robin, ní gach iarratas combo. Tá forluí sna comhairimh idir geataí; ná suimigh iad.",
+    "queuesCombo": "Geataí spriocanna combo (round-robin)",
+    "queuesAdmission": "Geataí domhanda / soláthraí / cuntais",
+    "queuesEmpty": "Níl aon gheata á rianú sa léargas seo.",
+    "queuesStale": "Léargas as dáta",
+    "queuesError": "Níl léargas na scuainí ar fáil. Triail eile go huathoibríoch.",
     "title": "Sláinte an Chórais",
     "description": "Monatóireacht fíor-ama ar d'ásc OmniRoute",
     "healthy": "Sláintiúil",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Athchóirigh na réamhshocruithe ón bhfoinse",
     "resetToUpstreamDefaultsSuccess": "Athchóiríodh réamhshocruithe an mhúnla ón bhfoinse",
     "resetToUpstreamDefaultsFailed": "Theip ar réamhshocruithe an mhúnla ón bhfoinse a athchóiriú",
-    "autoSyncTooltip": "Athnuachan liosta na múnlaí go huathoibríoch gach 24h (inchoigeartaithe trí MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Sioncronú uathoibríoch cumasaithe — athnuafaidh múnlaí go tréimhsiúil",
     "autoSyncDisabled": "Sioncronú uathoibríoch díchumasaithe",
     "autoSyncToggleFailed": "Theip ar shioncronú uathoibríoch a scoránú",

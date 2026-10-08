@@ -4677,6 +4677,13 @@
     "installSkill": "Skill installieren"
   },
   "health": {
+    "queuesTitle": "Parallelitätsbegrenzungen",
+    "queuesScope": "Nur dieser Prozess. Combo-Begrenzungen erfassen nur Round-Robin-Ziele, nicht alle Combo-Anfragen. Die Zähler überschneiden sich zwischen Begrenzungen; nicht addieren.",
+    "queuesCombo": "Combo-Zielbegrenzungen (Round-Robin)",
+    "queuesAdmission": "Globale / Anbieter- / Kontobegrenzungen",
+    "queuesEmpty": "Keine Begrenzungen in diesem Snapshot erfasst.",
+    "queuesStale": "Veralteter Snapshot",
+    "queuesError": "Warteschlangen-Snapshot nicht verfügbar. Automatischer neuer Versuch.",
     "title": "Systemgesundheit",
     "description": "Echtzeitüberwachung Ihrer OmniRoute-Instanz",
     "healthy": "Gesund",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Ursprüngliche Standardeinstellungen wiederherstellen",
     "resetToUpstreamDefaultsSuccess": "Ursprüngliche Standardwerte des Upstream-Modells wiederhergestellt",
     "resetToUpstreamDefaultsFailed": "Wiederherstellung der Standardwerte des upstream-Modells fehlgeschlagen",
-    "autoSyncTooltip": "Modellliste automatisch alle 24 Stunden aktualisieren (konfigurierbar über MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Auto-Sync aktiviert — Modelle werden regelmäßig aktualisiert",
     "autoSyncDisabled": "Auto-Sync deaktiviert",
     "autoSyncToggleFailed": "Auto-Sync umschalten fehlgeschlagen",

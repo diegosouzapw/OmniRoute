@@ -4677,6 +4677,13 @@
     "installSkill": "ដំឡើងជំនាញ"
   },
   "health": {
+    "queuesTitle": "ច្រកគ្រប់គ្រងការដំណើរការព្រមគ្នា",
+    "queuesScope": "សម្រាប់ដំណើរការនេះប៉ុណ្ណោះ។ ច្រក combo គ្របដណ្តប់តែគោលដៅ round-robin មិនមែនសំណើ combo ទាំងអស់ទេ។ ចំនួនរាប់ត្រួតគ្នារវាងច្រក កុំបូកវាចូលគ្នា។",
+    "queuesCombo": "ច្រកគោលដៅ combo (round-robin)",
+    "queuesAdmission": "ច្រកសកល / អ្នកផ្តល់សេវា / គណនី",
+    "queuesEmpty": "គ្មានច្រកដែលកំពុងតាមដានក្នុងរូបថតស្ថានភាពនេះទេ។",
+    "queuesStale": "រូបថតស្ថានភាពចាស់",
+    "queuesError": "មិនមានរូបថតស្ថានភាពជួររង់ចាំទេ។ កំពុងព្យាយាមម្តងទៀតដោយស្វ័យប្រវត្តិ។",
     "title": "ស្ថានភាពប្រព័ន្ធ",
     "description": "ការត្រួតពិនិត្យតាមពេលវេលាជាក់ស្តែងលើ instance OmniRoute របស់អ្នក",
     "healthy": "ដំណើរការល្អ",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "ស្ដារការកំណត់លំនាំដើមពីប្រភពដើម",
     "resetToUpstreamDefaultsSuccess": "បានស្ដារការកំណត់លំនាំដើមរបស់ម៉ូដែលពីប្រភពដើម",
     "resetToUpstreamDefaultsFailed": "មិនអាចស្ដារការកំណត់លំនាំដើមរបស់ម៉ូដែលពីប្រភពដើមបានទេ",
-    "autoSyncTooltip": "ធ្វើបច្ចុប្បន្នភាពបញ្ជីម៉ូដែលដោយស្វ័យប្រវត្តិរៀងរាល់ 24 ម៉ោង (អាចកំណត់បានតាមរយៈ MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "បានបើកការធ្វើសមកាលកម្មដោយស្វ័យប្រវត្តិ — ម៉ូដែលនឹងត្រូវបានធ្វើបច្ចុប្បន្នភាពតាមកាលកំណត់",
     "autoSyncDisabled": "បានបិទការធ្វើសមកាលកម្មដោយស្វ័យប្រវត្តិ",
     "autoSyncToggleFailed": "មិនអាចបិទបើកការធ្វើសមកាលកម្មដោយស្វ័យប្រវត្តិបានទេ",

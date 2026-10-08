@@ -4677,6 +4677,13 @@
     "installSkill": "ክህሎት ጫን"
   },
   "health": {
+    "queuesTitle": "የተጓዳኝ አፈጻጸም በሮች",
+    "queuesScope": "ይህ ሂደት ብቻ። የcombo በሮች የround-robin ዒላማዎችን ብቻ ይሸፍናሉ፤ ሁሉንም የcombo ጥያቄዎች አይደሉም። ቆጠራዎች በበሮች መካከል ይደጋገማሉ፤ አትደምሯቸው።",
+    "queuesCombo": "የcombo ዒላማ በሮች (round-robin)",
+    "queuesAdmission": "አጠቃላይ / አቅራቢ / መለያ በሮች",
+    "queuesEmpty": "በዚህ የሁኔታ ቅጽበታዊ ምስል ውስጥ የሚከታተሉ በሮች የሉም።",
+    "queuesStale": "ያረጀ የሁኔታ ቅጽበታዊ ምስል",
+    "queuesError": "የወረፋ ሁኔታ ቅጽበታዊ ምስል አይገኝም። በራስ-ሰር እንደገና በመሞከር ላይ።",
     "title": "የስርዓት ጤና",
     "description": "የOmniRoute ኢንስታንስዎን ቅጽበታዊ ክትትል",
     "healthy": "ጤናማ",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "የላይኛውን ምንጭ ነባሪ ቅንብሮች መልስ",
     "resetToUpstreamDefaultsSuccess": "የላይኛው ምንጭ ሞዴል ነባሪ ቅንብሮች ተመልሰዋል",
     "resetToUpstreamDefaultsFailed": "የላይኛውን ምንጭ ሞዴል ነባሪ ቅንብሮች መመለስ አልተሳካም",
-    "autoSyncTooltip": "በየ24 ሰዓቱ የሞዴል ዝርዝሩን በራስ-ሰር ያድሳል (በ MODEL_SYNC_INTERVAL_HOURS ሊዋቀር ይችላል)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "ራስ-ሰር ማመሳሰል ነቅቷል — ሞዴሎች በየጊዜው ይታደሳሉ",
     "autoSyncDisabled": "ራስ-ሰር ማመሳሰል ተሰናክሏል",
     "autoSyncToggleFailed": "የራስ-ሰር ማመሳሰል ቅንብርን መቀየር አልተሳካም",

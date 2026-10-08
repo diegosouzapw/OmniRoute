@@ -4677,6 +4677,13 @@
     "installSkill": "スキルのインストール"
   },
   "health": {
+    "queuesTitle": "同時実行ゲート",
+    "queuesScope": "このプロセスのみ。コンボゲートはラウンドロビンの対象のみを扱い、すべてのコンボリクエストを表すものではありません。ゲート間で件数が重複するため、合算しないでください。",
+    "queuesCombo": "コンボ対象ゲート（ラウンドロビン）",
+    "queuesAdmission": "グローバル / プロバイダー / アカウントのゲート",
+    "queuesEmpty": "このスナップショットで追跡中のゲートはありません。",
+    "queuesStale": "古いスナップショット",
+    "queuesError": "キューのスナップショットを取得できません。自動で再試行しています。",
     "title": "システムの健全性",
     "description": "OmniRoute インスタンスのリアルタイム監視",
     "healthy": "健康",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "アップストリームのデフォルトを復元する",
     "resetToUpstreamDefaultsSuccess": "アップストリームモデルのデフォルトを復元しました",
     "resetToUpstreamDefaultsFailed": "アップストリームモデルのデフォルトを復元できませんでした",
-    "autoSyncTooltip": "24時間ごとにモデルリストを自動更新（MODEL_SYNC_INTERVAL_HOURSで設定可能）",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "自動同期有効 — モデルは定期的に更新されます",
     "autoSyncDisabled": "自動同期無効",
     "autoSyncToggleFailed": "自動同期の切り替えに失敗",

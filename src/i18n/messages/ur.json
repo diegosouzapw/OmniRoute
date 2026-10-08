@@ -4677,6 +4677,13 @@
     "installSkill": "مہارت کو انسٹال کریں۔"
   },
   "health": {
+    "queuesTitle": "ہم وقتی عمل کے گیٹ",
+    "queuesScope": "صرف یہ عمل۔ combo گیٹ صرف round-robin اہداف کا احاطہ کرتے ہیں، تمام combo درخواستوں کا نہیں۔ مختلف گیٹس کی گنتی میں تکرار ہے؛ انہیں جمع نہ کریں۔",
+    "queuesCombo": "combo ہدف کے گیٹ (round-robin)",
+    "queuesAdmission": "عالمی / فراہم کنندہ / اکاؤنٹ گیٹ",
+    "queuesEmpty": "اس سنیپ شاٹ میں کوئی گیٹ زیر نگرانی نہیں۔",
+    "queuesStale": "پرانا سنیپ شاٹ",
+    "queuesError": "قطار کا سنیپ شاٹ دستیاب نہیں۔ خودکار طور پر دوبارہ کوشش جاری ہے۔",
     "title": "سسٹم کی صحت",
     "description": "آپ کے OmniRoute انسٹینس کی حقیقی وقت میں نگرانی",
     "healthy": "صحت مند",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "اپ اسٹریم ڈیفالٹس بحال کریں",
     "resetToUpstreamDefaultsSuccess": "اپ اسٹریم ماڈل کے ڈیفالٹس بحال کر دیے گئے ہیں",
     "resetToUpstreamDefaultsFailed": "اپ اسٹریم ماڈل کے ڈیفالٹس کو بحال کرنے میں ناکامی",
-    "autoSyncTooltip": "ہر 24 گھنٹے بعد ماڈلز کی فہرست خودکار طور پر تازہ کریں (MODEL_SYNC_INTERVAL_HOURS کے ذریعے قابلِ ترتیب)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "خودکار مطابقت پذیری فعال ہے — ماڈلز وقتاً فوقتاً تازہ ہوتے رہیں گے",
     "autoSyncDisabled": "خودکار مطابقت پذیری غیر فعال ہے",
     "autoSyncToggleFailed": "خودکار مطابقت پذیری تبدیل کرنے میں ناکامی",

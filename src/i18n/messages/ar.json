@@ -4677,6 +4677,13 @@
     "installSkill": "تثبيت المهارة"
   },
   "health": {
+    "queuesTitle": "بوابات التزامن",
+    "queuesScope": "هذه العملية فقط. تغطي بوابات combo أهداف round-robin فقط، وليس جميع طلبات combo. تتداخل الأعداد بين البوابات؛ لا تجمعها.",
+    "queuesCombo": "بوابات أهداف combo ‏(round-robin)",
+    "queuesAdmission": "بوابات عامة / مزوّد / حساب",
+    "queuesEmpty": "لا توجد بوابات متتبعة في هذه اللقطة.",
+    "queuesStale": "لقطة قديمة",
+    "queuesError": "لقطة قوائم الانتظار غير متاحة. تجري إعادة المحاولة تلقائيًا.",
     "title": "صحة النظام",
     "description": "المراقبة في الوقت الحقيقي لمثيل OmniRoute الخاص بك",
     "healthy": "صحي",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "استعادة الإعدادات الافتراضية للمصدر",
     "resetToUpstreamDefaultsSuccess": "تم استعادة إعدادات النموذج الافتراضية من المصدر",
     "resetToUpstreamDefaultsFailed": "فشل في استعادة إعدادات النموذج الافتراضية من المصدر",
-    "autoSyncTooltip": "تحديث قائمة النماذج كل 24 ساعة (يمكن ضبطه عبر MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "تم تمكين المزامنة التلقائية — سيتم تحديث النماذج بشكل دوري",
     "autoSyncDisabled": "تم تعطيل المزامنة التلقائية",
     "autoSyncToggleFailed": "فشل في تبديل المزامنة التلقائية",

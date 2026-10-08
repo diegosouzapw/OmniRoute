@@ -1229,8 +1229,8 @@ test("CodexExecutor.execute adds CLI-like session identity headers without chang
     assert.equal(turnMetadata.thread_id, capturedHeaders?.get("thread-id"));
     assert.equal(turnMetadata.turn_id, meta.turn_id);
     assert.equal(turnMetadata.window_id, capturedHeaders?.get("x-codex-window-id"));
-    assert.equal(turnMetadata.thread_source, "user");
-    assert.equal(turnMetadata.sandbox, "none");
+    assert.equal(turnMetadata.thread_source, undefined);
+    assert.equal(turnMetadata.sandbox, undefined);
     assert.equal(typeof turnMetadata.turn_id, "string");
     assert.equal(capturedBody?.prompt_cache_key, "conversation-1");
     assert.equal(meta["x-codex-installation-id"], "7f06a8ee-2981-4c81-a4ca-e443b5400a63");
@@ -1264,11 +1264,11 @@ test("CodexExecutor.execute skips identity headers for unsafe session ids", asyn
       credentials: { accessToken: "codex-token" },
     });
 
-    assert.notEqual(capturedHeaders?.get("session_id"), "bad\r\nheader");
-    assert.ok(capturedHeaders?.get("session_id"));
-    assert.ok(capturedHeaders?.get("x-client-request-id"));
-    assert.ok(capturedHeaders?.get("x-codex-window-id"));
-    assert.ok(capturedHeaders?.get("x-codex-turn-metadata"));
+    // An unsafe id is no presented identity: no session carrier at all, and it is never forwarded.
+    const carrier = /session|thread|window|request-id|turn-metadata/;
+    const sent = [...(capturedHeaders?.entries() ?? [])];
+    assert.ok(!sent.some(([name]) => carrier.test(name)), "no session carrier expected");
+    assert.ok(!sent.some(([, value]) => value.includes("bad")));
   } finally {
     globalThis.fetch = originalFetch;
   }

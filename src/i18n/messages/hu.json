@@ -4677,6 +4677,13 @@
     "installSkill": "Telepítse a Skill-t"
   },
   "health": {
+    "queuesTitle": "Párhuzamossági kapuk",
+    "queuesScope": "Csak ez a folyamat. A combo kapuk csak a round-robin célpontokat fedik le, nem az összes combo kérést. A számlálók a kapuk között átfednek; ne adja össze őket.",
+    "queuesCombo": "Combo célpontkapuk (round-robin)",
+    "queuesAdmission": "Globális / szolgáltatói / fiókkapuk",
+    "queuesEmpty": "Ebben a pillanatképben nincs követett kapu.",
+    "queuesStale": "Elavult pillanatkép",
+    "queuesError": "A sorok pillanatképe nem érhető el. Automatikus újrapróbálkozás.",
     "title": "Rendszer egészsége",
     "description": "Az OmniRoute példány valós idejű megfigyelése",
     "healthy": "Egészséges",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Állítsa vissza az alapértelmezett beállításokat",
     "resetToUpstreamDefaultsSuccess": "Visszaállítottuk az upstream modell alapértelmezett beállításait",
     "resetToUpstreamDefaultsFailed": "Nem sikerült visszaállítani a fenti modell alapértelmezett beállításait",
-    "autoSyncTooltip": "A modelllista automatikus frissítése 24 óránként (konfigurálható: MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Automatikus szinkronizálás engedélyezve – a modellek rendszeresen frissülnek",
     "autoSyncDisabled": "Az automatikus szinkronizálás letiltva",
     "autoSyncToggleFailed": "Az automatikus szinkronizálás átkapcsolása sikertelen",

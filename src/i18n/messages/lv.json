@@ -4677,6 +4677,13 @@
     "installSkill": "Instalēt prasmi"
   },
   "health": {
+    "queuesTitle": "Vienlaicīguma ierobežotāji",
+    "queuesScope": "Tikai šis process. Combo ierobežotāji aptver tikai round-robin mērķus, nevis visus combo pieprasījumus. Skaitītāji starp ierobežotājiem pārklājas; nesummējiet tos.",
+    "queuesCombo": "Combo mērķu ierobežotāji (round-robin)",
+    "queuesAdmission": "Globālie / pakalpojumu sniedzēja / konta ierobežotāji",
+    "queuesEmpty": "Šajā momentuzņēmumā nav izsekotu ierobežotāju.",
+    "queuesStale": "Novecojis momentuzņēmums",
+    "queuesError": "Rindu momentuzņēmums nav pieejams. Automātiski mēģina vēlreiz.",
     "title": "Sistēmas stāvoklis",
     "description": "Jūsu OmniRoute instances pārraudzība reāllaikā",
     "healthy": "Darbojas",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Atjaunot augšupējā modeļa noklusējuma iestatījumus",
     "resetToUpstreamDefaultsSuccess": "Augšupējā modeļa noklusējuma iestatījumi atjaunoti",
     "resetToUpstreamDefaultsFailed": "Neizdevās atjaunot augšupējā modeļa noklusējuma iestatījumus",
-    "autoSyncTooltip": "Automātiski atsvaidzināt modeļu sarakstu ik pēc 24 h (konfigurējams ar MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Automātiskā sinhronizācija iespējota — modeļi tiks periodiski atsvaidzināti",
     "autoSyncDisabled": "Automātiskā sinhronizācija atspējota",
     "autoSyncToggleFailed": "Neizdevās pārslēgt automātisko sinhronizāciju",

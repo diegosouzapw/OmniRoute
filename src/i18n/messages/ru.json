@@ -4677,6 +4677,13 @@
     "installSkill": "Установить навык"
   },
   "health": {
+    "queuesTitle": "Ограничители параллелизма",
+    "queuesScope": "Только этот процесс. Ограничители combo охватывают лишь цели round-robin, а не все запросы combo. Счётчики разных ограничителей пересекаются; не складывайте их.",
+    "queuesCombo": "Ограничители целей combo (round-robin)",
+    "queuesAdmission": "Глобальные / провайдерские / учётные ограничители",
+    "queuesEmpty": "В этом снимке нет отслеживаемых ограничителей.",
+    "queuesStale": "Устаревший снимок",
+    "queuesError": "Снимок очередей недоступен. Повторная попытка выполняется автоматически.",
     "title": "Здоровье системы",
     "description": "Мониторинг вашего экземпляра OmniRoute в режиме реального времени",
     "healthy": "Здоровый",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Восстановить настройки по умолчанию upstream",
     "resetToUpstreamDefaultsSuccess": "Восстановлены настройки модели по умолчанию для upstream",
     "resetToUpstreamDefaultsFailed": "Не удалось восстановить значения по умолчанию для модели upstream",
-    "autoSyncTooltip": "Автоматически обновляет список моделей каждые 24 часа (настраивается через MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Автосинхронизация включена — модели будут периодически обновляться",
     "autoSyncDisabled": "Автосинхронизация отключена",
     "autoSyncToggleFailed": "Не удалось переключить автосинхронизацию",

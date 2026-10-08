@@ -4677,6 +4677,13 @@
     "installSkill": "Installer Skill"
   },
   "health": {
+    "queuesTitle": "Samtidighedsbegrænsninger",
+    "queuesScope": "Kun denne proces. Combo-begrænsninger dækker kun round-robin-mål, ikke alle combo-anmodninger. Tællinger overlapper mellem begrænsninger; læg dem ikke sammen.",
+    "queuesCombo": "Combo-målbegrænsninger (round-robin)",
+    "queuesAdmission": "Globale / udbyder- / kontobegrænsninger",
+    "queuesEmpty": "Ingen begrænsninger spores i dette øjebliksbillede.",
+    "queuesStale": "Forældet øjebliksbillede",
+    "queuesError": "Køens øjebliksbillede er utilgængeligt. Prøver automatisk igen.",
     "title": "Systemsundhed",
     "description": "Realtidsovervågning af din OmniRoute-instans",
     "healthy": "Sundt",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Gendan upstream standardindstillinger",
     "resetToUpstreamDefaultsSuccess": "Gendannet upstream model standardindstillinger",
     "resetToUpstreamDefaultsFailed": "Mislykkedes med at gendanne standardindstillinger for upstream-modellen",
-    "autoSyncTooltip": "Opdater modellisten automatisk hver 24. time (kan konfigureres via MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Automatisk synkronisering aktiveret - modellerne opdateres med jævne mellemrum",
     "autoSyncDisabled": "Automatisk synkronisering deaktiveret",
     "autoSyncToggleFailed": "Automatisk synkronisering kunne ikke slås til eller fra",

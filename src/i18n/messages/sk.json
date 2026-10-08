@@ -4677,6 +4677,13 @@
     "installSkill": "Nainštalovať Skill"
   },
   "health": {
+    "queuesTitle": "Brány súbežnosti",
+    "queuesScope": "Iba tento proces. Brány combo zahŕňajú len ciele round-robin, nie všetky požiadavky combo. Počty sa medzi bránami prekrývajú; nesčítavajte ich.",
+    "queuesCombo": "Brány cieľov combo (round-robin)",
+    "queuesAdmission": "Globálne brány / brány poskytovateľa / účtu",
+    "queuesEmpty": "V tejto snímke nie sú sledované žiadne brány.",
+    "queuesStale": "Zastaraná snímka",
+    "queuesError": "Snímka frontov nie je dostupná. Pokus sa automaticky opakuje.",
     "title": "Zdravie systému",
     "description": "Monitorovanie vašej inštancie OmniRoute v reálnom čase",
     "healthy": "Zdravý",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Obnoviť predvolené nastavenia upstream",
     "resetToUpstreamDefaultsSuccess": "Obnovené predvolené nastavenia upstream modelu",
     "resetToUpstreamDefaultsFailed": "Obnovenie predvolených nastavení modelu upstream zlyhalo",
-    "autoSyncTooltip": "Automaticky obnovovať zoznam modelov každých 24 hodín (konfigurovateľné cez MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Automatická synchronizácia povolená – modely sa budú pravidelne obnovovať",
     "autoSyncDisabled": "Automatická synchronizácia je zakázaná",
     "autoSyncToggleFailed": "Nepodarilo sa prepnúť automatickú synchronizáciu",

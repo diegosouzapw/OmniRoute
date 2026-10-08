@@ -4677,6 +4677,13 @@
     "installSkill": "സ്കിൽ ഇൻസ്റ്റാൾ ചെയ്യുക"
   },
   "health": {
+    "queuesTitle": "സമകാലിക പ്രവർത്തന ഗേറ്റുകൾ",
+    "queuesScope": "ഈ പ്രക്രിയ മാത്രം. combo ഗേറ്റുകൾ round-robin ലക്ഷ്യങ്ങളെ മാത്രമാണ് ഉൾക്കൊള്ളുന്നത്, എല്ലാ combo അഭ്യർത്ഥനകളെയുമല്ല. ഗേറ്റുകൾക്കിടയിൽ എണ്ണങ്ങൾ ആവർത്തിക്കുന്നു; അവ കൂട്ടരുത്.",
+    "queuesCombo": "combo ലക്ഷ്യ ഗേറ്റുകൾ (round-robin)",
+    "queuesAdmission": "ആഗോള / ദാതാവ് / അക്കൗണ്ട് ഗേറ്റുകൾ",
+    "queuesEmpty": "ഈ സ്നാപ്പ്ഷോട്ടിൽ ഗേറ്റുകളൊന്നും നിരീക്ഷിക്കുന്നില്ല.",
+    "queuesStale": "പഴയ സ്നാപ്പ്ഷോട്ട്",
+    "queuesError": "ക്യൂവിന്റെ സ്നാപ്പ്ഷോട്ട് ലഭ്യമല്ല. സ്വയമേവ വീണ്ടും ശ്രമിക്കുന്നു.",
     "title": "സിസ്റ്റത്തിന്റെ ആരോഗ്യനില",
     "description": "നിങ്ങളുടെ OmniRoute ഇൻസ്റ്റൻസിന്റെ തത്സമയ നിരീക്ഷണം",
     "healthy": "ആരോഗ്യകരം",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "അപ്സ്ട്രീം ഡിഫോൾട്ടുകൾ പുനഃസ്ഥാപിക്കുക",
     "resetToUpstreamDefaultsSuccess": "അപ്സ്ട്രീം മോഡലിന്റെ ഡിഫോൾട്ടുകൾ പുനഃസ്ഥാപിച്ചു",
     "resetToUpstreamDefaultsFailed": "അപ്സ്ട്രീം മോഡലിന്റെ ഡിഫോൾട്ടുകൾ പുനഃസ്ഥാപിക്കുന്നതിൽ പരാജയപ്പെട്ടു",
-    "autoSyncTooltip": "ഓരോ 24 മണിക്കൂറിലും മോഡൽ പട്ടിക യാന്ത്രികമായി പുതുക്കുക (MODEL_SYNC_INTERVAL_HOURS വഴി ക്രമീകരിക്കാം)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "യാന്ത്രിക സമന്വയം പ്രവർത്തനക്ഷമമാക്കി — മോഡലുകൾ നിശ്ചിത ഇടവേളകളിൽ പുതുക്കും",
     "autoSyncDisabled": "യാന്ത്രിക സമന്വയം പ്രവർത്തനരഹിതമാക്കി",
     "autoSyncToggleFailed": "യാന്ത്രിക സമന്വയ നില മാറ്റുന്നതിൽ പരാജയപ്പെട്ടു",

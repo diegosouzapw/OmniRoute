@@ -4677,6 +4677,13 @@
     "installSkill": "Cài đặt kỹ năng"
   },
   "health": {
+    "queuesTitle": "Cổng kiểm soát đồng thời",
+    "queuesScope": "Chỉ tiến trình này. Cổng combo chỉ bao gồm các đích luân phiên, không phải mọi yêu cầu combo. Số đếm trùng lặp giữa các cổng; không cộng chúng lại.",
+    "queuesCombo": "Cổng đích combo (luân phiên)",
+    "queuesAdmission": "Cổng toàn cục / nhà cung cấp / tài khoản",
+    "queuesEmpty": "Không có cổng nào được theo dõi trong ảnh chụp này.",
+    "queuesStale": "Ảnh chụp đã cũ",
+    "queuesError": "Không có ảnh chụp hàng đợi. Đang tự động thử lại.",
     "title": "Trạng thái hệ thống",
     "description": "Giám sát theo thời gian thực bản triển khai OmniRoute của bạn",
     "healthy": "Hoạt động tốt",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Khôi phục mặc định của upstream",
     "resetToUpstreamDefaultsSuccess": "Đã khôi phục các giá trị mặc định của mô hình upstream",
     "resetToUpstreamDefaultsFailed": "Không thể khôi phục mặc định mô hình upstream",
-    "autoSyncTooltip": "Tự động làm mới danh sách mô hình sau mỗi 24 giờ (có thể cấu hình qua MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Đã bật tự động đồng bộ hóa — các mô hình sẽ được làm mới định kỳ",
     "autoSyncDisabled": "Đã tắt tự động đồng bộ hóa",
     "autoSyncToggleFailed": "Không thể chuyển đổi trạng thái tự động đồng bộ hóa",

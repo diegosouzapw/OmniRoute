@@ -4677,6 +4677,13 @@
     "installSkill": "Installera Skill"
   },
   "health": {
+    "queuesTitle": "Samtidighetsbegränsningar",
+    "queuesScope": "Endast denna process. Combo-begränsningar omfattar bara round-robin-mål, inte alla combo-förfrågningar. Antalen överlappar mellan begränsningar; summera dem inte.",
+    "queuesCombo": "Combo-målbegränsningar (round-robin)",
+    "queuesAdmission": "Globala / leverantörs- / kontobegränsningar",
+    "queuesEmpty": "Inga begränsningar spåras i denna ögonblicksbild.",
+    "queuesStale": "Föråldrad ögonblicksbild",
+    "queuesError": "Ögonblicksbild av köerna saknas. Försöker igen automatiskt.",
     "title": "Systemhälsa",
     "description": "Realtidsövervakning av din OmniRoute-instans",
     "healthy": "Frisk",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Återställ upstream-standarder",
     "resetToUpstreamDefaultsSuccess": "Återställda standardinställningar för upstream-modellen",
     "resetToUpstreamDefaultsFailed": "Misslyckades med att återställa standardinställningar för upstream-modellen",
-    "autoSyncTooltip": "Uppdatera modelllistan automatiskt var 24:e timme (konfigurerbar via MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Automatisk synkronisering aktiverad — modeller uppdateras regelbundet",
     "autoSyncDisabled": "Automatisk synkronisering inaktiverad",
     "autoSyncToggleFailed": "Det gick inte att växla automatisk synkronisering",

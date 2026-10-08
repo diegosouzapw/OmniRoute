@@ -4677,6 +4677,13 @@
     "installSkill": "Instalar habilidad"
   },
   "health": {
+    "queuesTitle": "Controles de concurrencia",
+    "queuesScope": "Solo este proceso. Los controles de combo cubren únicamente destinos round-robin, no todas las solicitudes del combo. Los recuentos se solapan entre controles; no los sume.",
+    "queuesCombo": "Controles de destinos de combo (round-robin)",
+    "queuesAdmission": "Controles globales / de proveedor / de cuenta",
+    "queuesEmpty": "No se registran controles en esta instantánea.",
+    "queuesStale": "Instantánea desactualizada",
+    "queuesError": "Instantánea de colas no disponible. Reintentando automáticamente.",
     "title": "Estado del sistema",
     "description": "Monitoreo en tiempo real de su instancia de OmniRoute",
     "healthy": "saludable",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Restaurar valores predeterminados del upstream",
     "resetToUpstreamDefaultsSuccess": "Restaurados los valores predeterminados del modelo upstream",
     "resetToUpstreamDefaultsFailed": "No se pudo restaurar los valores predeterminados del modelo upstream",
-    "autoSyncTooltip": "Actualiza automáticamente la lista de modelos cada 24 horas (configurable vía MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Sincronización automática activada — los modelos se actualizarán periódicamente",
     "autoSyncDisabled": "Sincronización automática desactivada",
     "autoSyncToggleFailed": "Error al alternar sincronización automática",

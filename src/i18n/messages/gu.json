@@ -4677,6 +4677,13 @@
     "installSkill": "કૌશલ્ય સ્થાપિત કરો"
   },
   "health": {
+    "queuesTitle": "સમવર્તી કાર્યના ગેટ",
+    "queuesScope": "માત્ર આ પ્રક્રિયા. combo ગેટ માત્ર round-robin લક્ષ્યોને આવરે છે, બધા combo વિનંતીઓને નહીં. ગેટ વચ્ચે ગણતરીઓ પુનરાવર્તિત થાય છે; તેમને ઉમેરશો નહીં.",
+    "queuesCombo": "combo લક્ષ્ય ગેટ (round-robin)",
+    "queuesAdmission": "વૈશ્વિક / પ્રદાતા / ખાતા ગેટ",
+    "queuesEmpty": "આ સ્નેપશોટમાં કોઈ ગેટ ટ્રૅક થતો નથી.",
+    "queuesStale": "જૂનો સ્નેપશોટ",
+    "queuesError": "કતારનો સ્નેપશોટ ઉપલબ્ધ નથી. આપમેળે ફરી પ્રયાસ થઈ રહ્યો છે.",
     "title": "સિસ્ટમની સ્થિતિ",
     "description": "તમારા OmniRoute ઇન્સ્ટન્સનું રીઅલ-ટાઇમ મોનિટરિંગ",
     "healthy": "સ્વસ્થ",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "અપસ્ટ્રીમ ડિફોલ્ટ્સ પુનઃસ્થાપિત કરો",
     "resetToUpstreamDefaultsSuccess": "ઉપરવાળી મોડલ ડિફોલ્ટ્સ પુનઃસ્થાપિત કરવામાં આવ્યા",
     "resetToUpstreamDefaultsFailed": "અપસ્ટ્રીમ મોડલ ડિફોલ્ટ્સ પુનઃસ્થાપિત કરવામાં નિષ્ફળ થયું",
-    "autoSyncTooltip": "દર 24 કલાકે મોડેલ સૂચિ આપમેળે રિફ્રેશ થાય છે (MODEL_SYNC_INTERVAL_HOURS દ્વારા ગોઠવી શકાય છે)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "ઑટો-સિંક સક્ષમ છે — મોડેલો સમયાંતરે રિફ્રેશ થશે",
     "autoSyncDisabled": "ઑટો-સિંક અક્ષમ છે",
     "autoSyncToggleFailed": "ઑટો-સિંક ટૉગલ કરવામાં નિષ્ફળતા",

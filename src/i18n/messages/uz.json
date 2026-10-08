@@ -4677,6 +4677,13 @@
     "installSkill": "Ko‘nikmani o‘rnatish"
   },
   "health": {
+    "queuesTitle": "Bir vaqtda bajarish cheklovlari",
+    "queuesScope": "Faqat shu jarayon. Combo cheklovlari barcha combo so‘rovlarini emas, faqat round-robin nishonlarini qamrab oladi. Hisoblar cheklovlar orasida takrorlanadi; ularni qo‘shmang.",
+    "queuesCombo": "Combo nishoni cheklovlari (round-robin)",
+    "queuesAdmission": "Global / provayder / hisob cheklovlari",
+    "queuesEmpty": "Bu suratda kuzatilayotgan cheklovlar yo‘q.",
+    "queuesStale": "Eskirgan holat surati",
+    "queuesError": "Navbatlar holati surati mavjud emas. Avtomatik qayta urinilmoqda.",
     "title": "Tizim holati",
     "description": "OmniRoute instansiyangizni real vaqtda kuzatish",
     "healthy": "Sog‘lom",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Yuqori oqim standart sozlamalarini tiklash",
     "resetToUpstreamDefaultsSuccess": "Yuqori oqim modelining standart sozlamalari tiklandi",
     "resetToUpstreamDefaultsFailed": "Yuqori oqim modelining standart sozlamalarini tiklab bo‘lmadi",
-    "autoSyncTooltip": "Modellar ro‘yxatini har 24 soatda avtomatik yangilash (MODEL_SYNC_INTERVAL_HOURS orqali sozlanadi)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Avtomatik sinxronlash yoqildi — modellar muntazam yangilanadi",
     "autoSyncDisabled": "Avtomatik sinxronlash o‘chirildi",
     "autoSyncToggleFailed": "Avtomatik sinxronlash holatini o‘zgartirib bo‘lmadi",

@@ -4677,6 +4677,13 @@
     "installSkill": "უნარის ინსტალაცია"
   },
   "health": {
+    "queuesTitle": "პარალელურობის შემზღუდველები",
+    "queuesScope": "მხოლოდ ეს პროცესი. Combo შემზღუდველები მოიცავს მხოლოდ round-robin სამიზნეებს და არა ყველა combo მოთხოვნას. სხვადასხვა შემზღუდველის მრიცხველები ერთმანეთს ფარავს; არ შეკრიბოთ ისინი.",
+    "queuesCombo": "Combo სამიზნეების შემზღუდველები (round-robin)",
+    "queuesAdmission": "გლობალური / მომწოდებლის / ანგარიშის შემზღუდველები",
+    "queuesEmpty": "ამ სურათში შემზღუდველები არ აღირიცხება.",
+    "queuesStale": "მოძველებული სურათი",
+    "queuesError": "რიგების სურათი მიუწვდომელია. მცდელობა ავტომატურად მეორდება.",
     "title": "სისტემის მდგომარეობა",
     "description": "თქვენი OmniRoute ინსტანციის რეალურ დროში მონიტორინგი",
     "healthy": "გამართულია",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "ზედა წყაროს ნაგულისხმევი პარამეტრების აღდგენა",
     "resetToUpstreamDefaultsSuccess": "ზედა წყაროს მოდელის ნაგულისხმევი პარამეტრები აღდგენილია",
     "resetToUpstreamDefaultsFailed": "ზედა წყაროს მოდელის ნაგულისხმევი პარამეტრების აღდგენა ვერ მოხერხდა",
-    "autoSyncTooltip": "მოდელების სიის ავტომატურად განახლება ყოველ 24 საათში (კონფიგურირდება MODEL_SYNC_INTERVAL_HOURS-ის მეშვეობით)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "ავტომატური სინქრონიზაცია ჩართულია — მოდელები პერიოდულად განახლდება",
     "autoSyncDisabled": "ავტომატური სინქრონიზაცია გამორთულია",
     "autoSyncToggleFailed": "ავტომატური სინქრონიზაციის გადართვა ვერ მოხერხდა",

@@ -4677,6 +4677,13 @@
     "installSkill": "कौशल स्थापित करें"
   },
   "health": {
+    "queuesTitle": "समवर्ती निष्पादन द्वार",
+    "queuesScope": "केवल यह प्रक्रिया। combo द्वार केवल round-robin लक्ष्यों को कवर करते हैं, सभी combo अनुरोधों को नहीं। अलग-अलग द्वारों की गिनतियाँ दोहराती हैं; उन्हें न जोड़ें।",
+    "queuesCombo": "combo लक्ष्य द्वार (round-robin)",
+    "queuesAdmission": "वैश्विक / प्रदाता / खाता द्वार",
+    "queuesEmpty": "इस स्नैपशॉट में कोई द्वार ट्रैक नहीं किया गया है।",
+    "queuesStale": "पुराना स्नैपशॉट",
+    "queuesError": "कतार का स्नैपशॉट उपलब्ध नहीं है। स्वचालित रूप से पुनः प्रयास हो रहा है।",
     "title": "सिस्टम स्वास्थ्य",
     "description": "आपके ओम्निरूट उदाहरण की वास्तविक समय की निगरानी",
     "healthy": "स्वस्थ",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "उपधारा डिफ़ॉल्ट्स को पुनर्स्थापित करें",
     "resetToUpstreamDefaultsSuccess": "उपधारा मॉडल डिफ़ॉल्ट्स को पुनर्स्थापित किया गया",
     "resetToUpstreamDefaultsFailed": "उपधारा मॉडल डिफ़ॉल्ट्स को पुनर्स्थापित करने में विफल",
-    "autoSyncTooltip": "हर 24 घंटे में मॉडल सूची को स्वचालित रूप से रीफ़्रेश करें (MODEL_SYNC_INTERVAL_HOURS के माध्यम से कॉन्फ़िगर किया जा सकता है)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "स्वतः-सिंक सक्षम है — मॉडल समय-समय पर रीफ़्रेश होंगे",
     "autoSyncDisabled": "स्वतः-सिंक अक्षम है",
     "autoSyncToggleFailed": "स्वतः-सिंक टॉगल करने में विफल",

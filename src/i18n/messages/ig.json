@@ -4677,6 +4677,13 @@
     "installSkill": "Wụnye Nkà"
   },
   "health": {
+    "queuesTitle": "Ọnụ ụzọ ọrụ n’otu oge",
+    "queuesScope": "Naanị usoro a. Ọnụ ụzọ combo na-ekpuchi naanị ebe a na-achọ iru nke round-robin, ọ bụghị arịrịọ combo niile. Ọnụọgụ na-emegharị n’etiti ọnụ ụzọ; etinyekọtala ha.",
+    "queuesCombo": "Ọnụ ụzọ ebe combo na-aga (round-robin)",
+    "queuesAdmission": "Ọnụ ụzọ zuru ụwa ọnụ / onye na-eweta / akaụntụ",
+    "queuesEmpty": "Enweghị ọnụ ụzọ a na-enyocha na foto ọnọdụ a.",
+    "queuesStale": "Foto ọnọdụ ochie",
+    "queuesError": "Foto ọnọdụ ahịrị nchere adịghị. A na-anwale ọzọ na-akpaghị aka.",
     "title": "Ahụike Sistemu",
     "description": "Nlekota ozugbo nke instance OmniRoute gị",
     "healthy": "Dị mma",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Weghachite ntọala ndabara upstream",
     "resetToUpstreamDefaultsSuccess": "E weghachiri ntọala ndabara ụdị upstream",
     "resetToUpstreamDefaultsFailed": "Iweghachite ntọala ndabara ụdị upstream kụrụ afọ n'ala",
-    "autoSyncTooltip": "Na-eme ka ndepụta ụdị dị ọhụrụ na akpaaka kwa awa 24 (enwere ike ịhazi ya site na MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Agbanyere mmekọrịta akpaaka — a ga-eme ka ụdị dị ọhụrụ site n'oge ruo n'oge",
     "autoSyncDisabled": "Agbanyụrụ mmekọrịta akpaaka",
     "autoSyncToggleFailed": "Ịgbanye ma ọ bụ ịgbanyụ mmekọrịta akpaaka kụrụ afọ n'ala",

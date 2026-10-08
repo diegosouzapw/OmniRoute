@@ -4677,6 +4677,13 @@
     "installSkill": "திறமையை நிறுவவும்"
   },
   "health": {
+    "queuesTitle": "ஒரேநேர செயலாக்க வாயில்கள்",
+    "queuesScope": "இந்தச் செயல்முறை மட்டும். combo வாயில்கள் round-robin இலக்குகளை மட்டுமே உள்ளடக்கும், எல்லா combo கோரிக்கைகளையும் அல்ல. வாயில்களுக்கிடையே எண்ணிக்கைகள் மீண்டும் கணக்கிடப்படுகின்றன; அவற்றைக் கூட்ட வேண்டாம்.",
+    "queuesCombo": "combo இலக்கு வாயில்கள் (round-robin)",
+    "queuesAdmission": "உலகளாவிய / வழங்குநர் / கணக்கு வாயில்கள்",
+    "queuesEmpty": "இந்த நிலைப்படத்தில் எந்த வாயிலும் கண்காணிக்கப்படவில்லை.",
+    "queuesStale": "பழைய நிலைப்படம்",
+    "queuesError": "வரிசை நிலைப்படம் கிடைக்கவில்லை. தானாக மீண்டும் முயல்கிறது.",
     "title": "அமைப்பின் நலநிலை",
     "description": "உங்கள் OmniRoute instance-இன் நிகழ்நேரக் கண்காணிப்பு",
     "healthy": "நலமாக உள்ளது",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "முதன்மை இயல்புகளை மீட்டமைக்கவும்",
     "resetToUpstreamDefaultsSuccess": "மீட்டமைக்கப்பட்ட மேல்நிலை மாதிரி இயல்புகள்",
     "resetToUpstreamDefaultsFailed": "மேல்நிலை மாதிரி இயல்புகளை மீட்டெடுக்க முடியவில்லை",
-    "autoSyncTooltip": "ஒவ்வொரு 24 மணிநேரத்திலும் மாடல் பட்டியலைத் தானாகப் புதுப்பிக்கும் (MODEL_SYNC_INTERVAL_HOURS மூலம் உள்ளமைக்கலாம்)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "தானியங்கு ஒத்திசைவு இயக்கப்பட்டுள்ளது — மாடல்கள் அவ்வப்போது புதுப்பிக்கப்படும்",
     "autoSyncDisabled": "தானியங்கு ஒத்திசைவு முடக்கப்பட்டுள்ளது",
     "autoSyncToggleFailed": "தானியங்கு ஒத்திசைவை மாற்ற முடியவில்லை",

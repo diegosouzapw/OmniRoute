@@ -4677,6 +4677,13 @@
     "installSkill": "Shigar da Ƙwarewa"
   },
   "health": {
+    "queuesTitle": "Ƙofofin gudanarwa a lokaci guda",
+    "queuesScope": "Wannan tsari kawai. Ƙofofin combo sun ƙunshi manufofin round-robin kawai, ba duk buƙatun combo ba. Ƙididdiga suna maimaituwa tsakanin ƙofofi; kada a haɗa su.",
+    "queuesCombo": "Ƙofofin manufofin combo (round-robin)",
+    "queuesAdmission": "Ƙofofin gama gari / mai ba da sabis / asusu",
+    "queuesEmpty": "Babu ƙofofin da ake sa ido a wannan hoton yanayi.",
+    "queuesStale": "Tsohon hoton yanayi",
+    "queuesError": "Hoton yanayin layukan jira ba ya samuwa. Ana sake gwadawa ta atomatik.",
     "title": "Lafiyar Tsari",
     "description": "Sa ido kai tsaye kan yanayin OmniRoute ɗinka",
     "healthy": "Lafiyayye",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Mayar da tsoffin saitunan upstream",
     "resetToUpstreamDefaultsSuccess": "An mayar da tsoffin saitunan samfurin upstream",
     "resetToUpstreamDefaultsFailed": "An kasa mayar da tsoffin saitunan samfurin upstream",
-    "autoSyncTooltip": "Sabunta jerin samfura ta atomatik kowane awa 24 (ana iya saita shi ta MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "An kunna daidaitawa ta atomatik — za a sabunta samfuran lokaci-lokaci",
     "autoSyncDisabled": "An kashe daidaitawa ta atomatik",
     "autoSyncToggleFailed": "An kasa sauya yanayin daidaitawa ta atomatik",

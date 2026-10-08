@@ -4677,6 +4677,13 @@
     "installSkill": "Beceriyi Yükle"
   },
   "health": {
+    "queuesTitle": "Eşzamanlılık geçitleri",
+    "queuesScope": "Yalnızca bu süreç. Combo geçitleri yalnızca round-robin hedeflerini kapsar, tüm combo isteklerini değil. Sayımlar geçitler arasında örtüşür; bunları toplamayın.",
+    "queuesCombo": "Combo hedef geçitleri (round-robin)",
+    "queuesAdmission": "Genel / sağlayıcı / hesap geçitleri",
+    "queuesEmpty": "Bu anlık görüntüde izlenen geçit yok.",
+    "queuesStale": "Güncelliğini yitirmiş anlık görüntü",
+    "queuesError": "Kuyruk anlık görüntüsü kullanılamıyor. Otomatik olarak yeniden deneniyor.",
     "title": "Sistem Sağlığı",
     "description": "OmniRoute örneğinizin gerçek zamanlı izlenmesi",
     "healthy": "Sağlıklı",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Varsayılan ayarları geri yükle",
     "resetToUpstreamDefaultsSuccess": "Yukarı akış model varsayılanları geri yüklendi",
     "resetToUpstreamDefaultsFailed": "Üst akış model varsayılanlarını geri yükleme başarısız oldu",
-    "autoSyncTooltip": "Model listesini her 24 saatte bir otomatik olarak yenileyin (MODEL_SYNC_INTERVAL_HOURS aracılığıyla yapılandırılabilir)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Otomatik senkronizasyon etkin — modeller periyodik olarak yenilenecek",
     "autoSyncDisabled": "Otomatik senkronizasyon devre dışı bırakıldı",
     "autoSyncToggleFailed": "Otomatik senkronizasyon durumu değiştirilemedi",

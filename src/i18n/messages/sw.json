@@ -4677,6 +4677,13 @@
     "installSkill": "Sakinisha Ujuzi"
   },
   "health": {
+    "queuesTitle": "Milango ya utekelezaji sambamba",
+    "queuesScope": "Mchakato huu tu. Milango ya combo inajumuisha malengo ya round-robin pekee, si maombi yote ya combo. Hesabu zinajirudia kati ya milango; usizijumlishe.",
+    "queuesCombo": "Milango ya malengo ya combo (round-robin)",
+    "queuesAdmission": "Milango ya jumla / mtoa huduma / akaunti",
+    "queuesEmpty": "Hakuna milango inayofuatiliwa katika picha hii ya hali.",
+    "queuesStale": "Picha ya hali iliyopitwa na wakati",
+    "queuesError": "Picha ya hali ya foleni haipatikani. Inajaribu tena kiotomatiki.",
     "title": "Afya ya Mfumo",
     "description": "Ufuatiliaji wa wakati halisi wa instansi yako ya OmniRoute",
     "healthy": "Nzima",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Rejesha mipangilio ya msingi ya upstream",
     "resetToUpstreamDefaultsSuccess": "Imerejeshwa mipangilio ya mfano wa upstream",
     "resetToUpstreamDefaultsFailed": "Imeshindikana kurejesha mipangilio ya msingi ya upstream",
-    "autoSyncTooltip": "Sasisha orodha ya modeli kiotomatiki kila baada ya saa 24 (inaweza kusanidiwa kupitia MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Usawazishaji otomatiki umewezeshwa — modeli zitasasishwa mara kwa mara",
     "autoSyncDisabled": "Usawazishaji otomatiki umezimwa",
     "autoSyncToggleFailed": "Imeshindikana kubadilisha hali ya usawazishaji otomatiki",

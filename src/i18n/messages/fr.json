@@ -4677,6 +4677,13 @@
     "installSkill": "Installer la compétence"
   },
   "health": {
+    "queuesTitle": "Contrôles de concurrence",
+    "queuesScope": "Ce processus uniquement. Les contrôles de combo couvrent uniquement les cibles round-robin, pas toutes les requêtes du combo. Les compteurs se recoupent entre contrôles ; ne les additionnez pas.",
+    "queuesCombo": "Contrôles des cibles de combo (round-robin)",
+    "queuesAdmission": "Contrôles globaux / fournisseur / compte",
+    "queuesEmpty": "Aucun contrôle suivi dans cet instantané.",
+    "queuesStale": "Instantané périmé",
+    "queuesError": "Instantané des files indisponible. Nouvelle tentative automatique.",
     "title": "Santé du système",
     "description": "Surveillance en temps réel de votre instance OmniRoute",
     "healthy": "Sain",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "Restaurer les valeurs par défaut en amont",
     "resetToUpstreamDefaultsSuccess": "Modèles par défaut de l'amont restaurés",
     "resetToUpstreamDefaultsFailed": "Échec de la restauration des paramètres par défaut du modèle en amont",
-    "autoSyncTooltip": "Actualise automatiquement la liste des modèles toutes les 24h (configurable via MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Synchronisation automatique activée — les modèles seront actualisés périodiquement",
     "autoSyncDisabled": "Synchronisation automatique désactivée",
     "autoSyncToggleFailed": "Échec de l'activation de la synchronisation automatique",

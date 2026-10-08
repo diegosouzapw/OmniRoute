@@ -4677,6 +4677,13 @@
     "installSkill": "ಕೌಶಲ್ಯವನ್ನು ಸ್ಥಾಪಿಸಿ"
   },
   "health": {
+    "queuesTitle": "ಸಮವರ್ತಿ ಕಾರ್ಯದ ಗೇಟ್‌ಗಳು",
+    "queuesScope": "ಈ ಪ್ರಕ್ರಿಯೆ ಮಾತ್ರ. combo ಗೇಟ್‌ಗಳು round-robin ಗುರಿಗಳನ್ನು ಮಾತ್ರ ಒಳಗೊಳ್ಳುತ್ತವೆ, ಎಲ್ಲಾ combo ವಿನಂತಿಗಳನ್ನಲ್ಲ. ಗೇಟ್‌ಗಳ ನಡುವೆ ಎಣಿಕೆಗಳು ಪುನರಾವರ್ತಿಸುತ್ತವೆ; ಅವುಗಳನ್ನು ಕೂಡಿಸಬೇಡಿ.",
+    "queuesCombo": "combo ಗುರಿ ಗೇಟ್‌ಗಳು (round-robin)",
+    "queuesAdmission": "ಜಾಗತಿಕ / ಪೂರೈಕೆದಾರ / ಖಾತೆ ಗೇಟ್‌ಗಳು",
+    "queuesEmpty": "ಈ ಸ್ನ್ಯಾಪ್‌ಶಾಟ್‌ನಲ್ಲಿ ಯಾವುದೇ ಗೇಟ್‌ಗಳನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಲಾಗುತ್ತಿಲ್ಲ.",
+    "queuesStale": "ಹಳೆಯ ಸ್ನ್ಯಾಪ್‌ಶಾಟ್",
+    "queuesError": "ಸರತಿಯ ಸ್ನ್ಯಾಪ್‌ಶಾಟ್ ಲಭ್ಯವಿಲ್ಲ. ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಲಾಗುತ್ತಿದೆ.",
     "title": "ಸಿಸ್ಟಮ್ ಆರೋಗ್ಯ",
     "description": "ನಿಮ್ಮ OmniRoute ಇನ್ಸ್ಟಾನ್ಸ್ನ ನೈಜ-ಸಮಯದ ಮೇಲ್ವಿಚಾರಣೆ",
     "healthy": "ಸುಸ್ಥಿತಿಯಲ್ಲಿದೆ",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "ಅಪ್ಸ್ಟ್ರೀಮ್ ಡೀಫಾಲ್ಟ್ಗಳನ್ನು ಮರುಸ್ಥಾಪಿಸಿ",
     "resetToUpstreamDefaultsSuccess": "ಅಪ್ಸ್ಟ್ರೀಮ್ ಮಾದರಿಯ ಡೀಫಾಲ್ಟ್ಗಳನ್ನು ಮರುಸ್ಥಾಪಿಸಲಾಗಿದೆ",
     "resetToUpstreamDefaultsFailed": "ಅಪ್ಸ್ಟ್ರೀಮ್ ಮಾದರಿಯ ಡೀಫಾಲ್ಟ್ಗಳನ್ನು ಮರುಸ್ಥಾಪಿಸಲು ವಿಫಲವಾಗಿದೆ",
-    "autoSyncTooltip": "ಪ್ರತಿ 24 ಗಂಟೆಗಳಿಗೊಮ್ಮೆ ಮಾದರಿಗಳ ಪಟ್ಟಿಯನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ರಿಫ್ರೆಶ್ ಮಾಡಿ (MODEL_SYNC_INTERVAL_HOURS ಮೂಲಕ ಕಾನ್ಫಿಗರ್ ಮಾಡಬಹುದು)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "ಸ್ವಯಂ-ಸಿಂಕ್ ಸಕ್ರಿಯವಾಗಿದೆ — ಮಾದರಿಗಳನ್ನು ನಿಯತಕಾಲಿಕವಾಗಿ ರಿಫ್ರೆಶ್ ಮಾಡಲಾಗುತ್ತದೆ",
     "autoSyncDisabled": "ಸ್ವಯಂ-ಸಿಂಕ್ ನಿಷ್ಕ್ರಿಯವಾಗಿದೆ",
     "autoSyncToggleFailed": "ಸ್ವಯಂ-ಸಿಂಕ್ ಅನ್ನು ಬದಲಾಯಿಸಲು ವಿಫಲವಾಗಿದೆ",

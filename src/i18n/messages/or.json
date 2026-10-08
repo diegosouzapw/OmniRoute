@@ -4677,6 +4677,13 @@
     "installSkill": "ସ୍କିଲ୍ ଇନଷ୍ଟଲ୍ କରନ୍ତୁ"
   },
   "health": {
+    "queuesTitle": "ସମକାଳୀନ କାର୍ଯ୍ୟର ଗେଟ୍",
+    "queuesScope": "କେବଳ ଏହି ପ୍ରକ୍ରିୟା। combo ଗେଟ୍ କେବଳ round-robin ଲକ୍ଷ୍ୟଗୁଡ଼ିକୁ ଅନ୍ତର୍ଭୁକ୍ତ କରେ, ସମସ୍ତ combo ଅନୁରୋଧକୁ ନୁହେଁ। ଗେଟ୍ ମଧ୍ୟରେ ଗଣନା ପୁନରାବୃତ୍ତି ହୁଏ; ସେଗୁଡ଼ିକୁ ଯୋଗ କରନ୍ତୁ ନାହିଁ।",
+    "queuesCombo": "combo ଲକ୍ଷ୍ୟ ଗେଟ୍ (round-robin)",
+    "queuesAdmission": "ବିଶ୍ୱବ୍ୟାପୀ / ପ୍ରଦାନକାରୀ / ଖାତା ଗେଟ୍",
+    "queuesEmpty": "ଏହି ସ୍ନାପସଟ୍‌ରେ କୌଣସି ଗେଟ୍ ଟ୍ରାକ୍ ହେଉନାହିଁ।",
+    "queuesStale": "ପୁରୁଣା ସ୍ନାପସଟ୍",
+    "queuesError": "ଧାଡ଼ିର ସ୍ନାପସଟ୍ ଉପଲବ୍ଧ ନାହିଁ। ସ୍ୱୟଂଚାଳିତ ଭାବେ ପୁଣି ଚେଷ୍ଟା ହେଉଛି।",
     "title": "ସିଷ୍ଟମ୍ ସ୍ୱାସ୍ଥ୍ୟ",
     "description": "ଆପଣଙ୍କ OmniRoute ଇନଷ୍ଟାନ୍ସର ରିଅଲ୍-ଟାଇମ୍ ନିରୀକ୍ଷଣ",
     "healthy": "ସୁସ୍ଥ",
@@ -5375,7 +5382,7 @@
     "resetToUpstreamDefaults": "ଅପ୍ଷ୍ଟ୍ରିମ୍ ଡିଫଲ୍ଟଗୁଡ଼ିକୁ ପୁନଃସ୍ଥାପନ କରନ୍ତୁ",
     "resetToUpstreamDefaultsSuccess": "ଅପ୍ଷ୍ଟ୍ରିମ୍ ମଡେଲ୍ର ଡିଫଲ୍ଟଗୁଡ଼ିକ ପୁନଃସ୍ଥାପିତ ହେଲା",
     "resetToUpstreamDefaultsFailed": "ଅପ୍ଷ୍ଟ୍ରିମ୍ ମଡେଲ୍ର ଡିଫଲ୍ଟଗୁଡ଼ିକୁ ପୁନଃସ୍ଥାପନ କରିବାରେ ବିଫଳ",
-    "autoSyncTooltip": "ପ୍ରତି 24 ଘଣ୍ଟାରେ ମଡେଲ୍ ତାଲିକାକୁ ସ୍ୱୟଂଚାଳିତ ଭାବେ ସତେଜ କରନ୍ତୁ (MODEL_SYNC_INTERVAL_HOURS ମାଧ୍ୟମରେ ବିନ୍ୟାସଯୋଗ୍ୟ)",
+    "autoSyncTooltip": "__MISSING__:Automatically refresh model list every 6h by default (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "ସ୍ୱୟଂ-ସିଙ୍କ୍ ସକ୍ଷମ ହୋଇଛି — ମଡେଲ୍ଗୁଡ଼ିକ ସମୟାନୁସାରେ ସତେଜ ହେବ",
     "autoSyncDisabled": "ସ୍ୱୟଂ-ସିଙ୍କ୍ ଅକ୍ଷମ ହୋଇଛି",
     "autoSyncToggleFailed": "ସ୍ୱୟଂ-ସିଙ୍କ୍ ଟୋଗଲ୍ କରାଯାଇପାରିଲା ନାହିଁ",
