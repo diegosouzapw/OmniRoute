@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Only selected connections",
     "selectAtLeastOneConnection": "Select at least one connection or choose All connections.",
     "allConnectionsDesc": "This key can use any active connection.",
-    "restrictedToConnections": "Restricted to {count, plural, one {# connection} other {# connections}}."
+    "restrictedToConnections": "Restricted to {count, plural, one {# connection} other {# connections}}.",
+    "preferredConnections": "Preferred connections",
+    "preferredConnectionsDesc": "Per-key priority order. If a preferred connection is unavailable, routing falls back to the next eligible one.",
+    "preferredConnectionsNone": "No preference set — the default routing strategy is used.",
+    "preferredConnectionsClear": "Clear"
   },
   "auditLog": {
     "title": "Audit Log",

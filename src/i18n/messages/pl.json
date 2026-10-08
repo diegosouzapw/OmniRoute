@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Tylko wybrane połączenia",
     "selectAtLeastOneConnection": "Wybierz co najmniej jedno połączenie lub opcję Wszystkie połączenia.",
     "allConnectionsDesc": "Ten klucz może korzystać z dowolnego aktywnego połączenia.",
-    "restrictedToConnections": "Ograniczono do {count, plural, one {# połączenia} few {# połączeń} many {# połączeń} other {# połączenia}}."
+    "restrictedToConnections": "Ograniczono do {count, plural, one {# połączenia} few {# połączeń} many {# połączeń} other {# połączenia}}.",
+    "preferredConnections": "Preferowane połączenia",
+    "preferredConnectionsDesc": "Kolejność priorytetów dla każdego klucza. Jeśli preferowane połączenie jest niedostępne, routing przechodzi do następnego kwalifikującego się.",
+    "preferredConnectionsNone": "Nie ustawiono preferencji — używana jest domyślna strategia routingu.",
+    "preferredConnectionsClear": "Wyczyść"
   },
   "auditLog": {
     "title": "Rejestr audytu",

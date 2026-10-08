@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "තෝරාගත් සම්බන්ධතා පමණි",
     "selectAtLeastOneConnection": "අවම වශයෙන් එක් සම්බන්ධතාවක් තෝරන්න, නැතහොත් සියලුම සම්බන්ධතා තෝරන්න.",
     "allConnectionsDesc": "මෙම යතුරට ඕනෑම සක්රිය සම්බන්ධතාවක් භාවිත කළ හැක.",
-    "restrictedToConnections": "{count, plural, one {සම්බන්ධතාව #කට} other {සම්බන්ධතා #කට}} සීමා කර ඇත."
+    "restrictedToConnections": "{count, plural, one {සම්බන්ධතාව #කට} other {සම්බන්ධතා #කට}} සීමා කර ඇත.",
+    "preferredConnections": "කැමති සම්බන්ධතා",
+    "preferredConnectionsDesc": "එක් එක් යතුර සඳහා ප්‍රමුඛතා අනුපිළිවෙල. කැමති සම්බන්ධතාවක් නොමැති නම්, මාර්ගගත කිරීම ඊළඟ සුදුසු සම්බන්ධතාවට මාරු වේ.",
+    "preferredConnectionsNone": "කැමැත්තක් සකසා නැත — පෙරනිමි මාර්ගගත කිරීමේ උපාය මාර්ගය භාවිත වේ.",
+    "preferredConnectionsClear": "හිස් කරන්න"
   },
   "auditLog": {
     "title": "විගණන ලොගය",

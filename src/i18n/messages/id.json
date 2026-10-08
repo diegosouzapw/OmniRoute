@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Hanya koneksi yang dipilih",
     "selectAtLeastOneConnection": "Pilih setidaknya satu koneksi atau pilih Semua koneksi.",
     "allConnectionsDesc": "Kunci ini dapat menggunakan koneksi aktif apa pun.",
-    "restrictedToConnections": "Dibatasi untuk {count, plural, one {# koneksi} other {# koneksi}}."
+    "restrictedToConnections": "Dibatasi untuk {count, plural, one {# koneksi} other {# koneksi}}.",
+    "preferredConnections": "Koneksi pilihan",
+    "preferredConnectionsDesc": "Urutan prioritas per kunci. Jika koneksi pilihan tidak tersedia, perutean beralih ke koneksi memenuhi syarat berikutnya.",
+    "preferredConnectionsNone": "Tidak ada preferensi — strategi perutean bawaan digunakan.",
+    "preferredConnectionsClear": "Hapus"
   },
   "auditLog": {
     "title": "Catatan Audit",

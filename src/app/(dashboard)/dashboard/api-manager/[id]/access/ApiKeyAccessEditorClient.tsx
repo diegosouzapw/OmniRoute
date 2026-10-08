@@ -359,6 +359,9 @@ function AccessConnectionsPanelPanelContent({ context }: { context: AccessFormCo
       allConnections={allConnections}
       setAllowAllConnections={form.setAllowAllConnections}
       setSelectedConnections={form.setSelectedConnections}
+      togglePreferredConnection={form.togglePreferredConnection}
+      movePreferredConnection={form.movePreferredConnection}
+      clearPreferredConnections={form.clearPreferredConnections}
       errors={form.tabErrors.connections}
     />
   );

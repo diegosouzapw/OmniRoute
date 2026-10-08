@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "เฉพาะการเชื่อมต่อที่เลือก",
     "selectAtLeastOneConnection": "เลือกการเชื่อมต่ออย่างน้อยหนึ่งรายการ หรือเลือกการเชื่อมต่อทั้งหมด",
     "allConnectionsDesc": "คีย์นี้สามารถใช้การเชื่อมต่อใดก็ได้ที่เปิดใช้งานอยู่",
-    "restrictedToConnections": "จำกัดไว้ที่ {count, plural, one {# การเชื่อมต่อ} other {# การเชื่อมต่อ}}"
+    "restrictedToConnections": "จำกัดไว้ที่ {count, plural, one {# การเชื่อมต่อ} other {# การเชื่อมต่อ}}",
+    "preferredConnections": "การเชื่อมต่อที่ต้องการ",
+    "preferredConnectionsDesc": "ลำดับความสำคัญสำหรับแต่ละคีย์ หากการเชื่อมต่อที่ต้องการใช้งานไม่ได้ การกำหนดเส้นทางจะเปลี่ยนไปใช้การเชื่อมต่อที่มีสิทธิ์ถัดไป",
+    "preferredConnectionsNone": "ไม่ได้ตั้งค่าการกำหนดลำดับ — ใช้กลยุทธ์การกำหนดเส้นทางเริ่มต้น",
+    "preferredConnectionsClear": "ล้าง"
   },
   "auditLog": {
     "title": "บันทึกการตรวจสอบ",

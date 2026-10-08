@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Samo odabrane konekcije",
     "selectAtLeastOneConnection": "Odaberite najmanje jednu konekciju ili odaberite Sve konekcije.",
     "allConnectionsDesc": "Ovaj ključ može koristiti bilo koju aktivnu konekciju.",
-    "restrictedToConnections": "Ograničeno na {count, plural, one {# konekciju} other {# konekcija}}."
+    "restrictedToConnections": "Ograničeno na {count, plural, one {# konekciju} other {# konekcija}}.",
+    "preferredConnections": "Preferirane konekcije",
+    "preferredConnectionsDesc": "Redoslijed prioriteta po ključu. Ako preferirana konekcija nije dostupna, rutiranje prelazi na sljedeću prihvatljivu.",
+    "preferredConnectionsNone": "Nije postavljena preferencija — koristi se zadana strategija rutiranja.",
+    "preferredConnectionsClear": "Očisti"
   },
   "auditLog": {
     "title": "Dnevnik revizije",

@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Naisc roghnaithe amháin",
     "selectAtLeastOneConnection": "Roghnaigh nasc amháin ar a laghad nó roghnaigh Gach nasc.",
     "allConnectionsDesc": "Is féidir leis an eochair seo aon nasc gníomhach a úsáid.",
-    "restrictedToConnections": "Srianta do {count, plural, one {# nasc} other {# nasc}}."
+    "restrictedToConnections": "Srianta do {count, plural, one {# nasc} other {# nasc}}.",
+    "preferredConnections": "Naisc roghnaithe",
+    "preferredConnectionsDesc": "Ord tosaíochta in aghaidh na heochrach. Mura bhfuil nasc roghnaithe ar fáil, téann an ródú ar aghaidh chuig an gcéad cheann incháilithe eile.",
+    "preferredConnectionsNone": "Níl aon rogha socraithe — úsáidtear an straitéis ródaithe réamhshocraithe.",
+    "preferredConnectionsClear": "Glan"
   },
   "auditLog": {
     "title": "Log Iniúchta",

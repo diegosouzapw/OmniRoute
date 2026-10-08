@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "ಆಯ್ಕೆಮಾಡಿದ ಸಂಪರ್ಕಗಳು ಮಾತ್ರ",
     "selectAtLeastOneConnection": "ಕನಿಷ್ಠ ಒಂದು ಸಂಪರ್ಕವನ್ನು ಆಯ್ಕೆಮಾಡಿ ಅಥವಾ ಎಲ್ಲಾ ಸಂಪರ್ಕಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
     "allConnectionsDesc": "ಈ ಕೀ ಯಾವುದೇ ಸಕ್ರಿಯ ಸಂಪರ್ಕವನ್ನು ಬಳಸಬಹುದು.",
-    "restrictedToConnections": "{count, plural, one {# ಸಂಪರ್ಕಕ್ಕೆ} other {# ಸಂಪರ್ಕಗಳಿಗೆ}} ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ."
+    "restrictedToConnections": "{count, plural, one {# ಸಂಪರ್ಕಕ್ಕೆ} other {# ಸಂಪರ್ಕಗಳಿಗೆ}} ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ.",
+    "preferredConnections": "ಆದ್ಯತೆಯ ಸಂಪರ್ಕಗಳು",
+    "preferredConnectionsDesc": "ಪ್ರತಿ ಕೀಗೆ ಆದ್ಯತೆಯ ಕ್ರಮ. ಆದ್ಯತೆಯ ಸಂಪರ್ಕ ಲಭ್ಯವಿಲ್ಲದಿದ್ದರೆ, ರೂಟಿಂಗ್ ಮುಂದಿನ ಅರ್ಹ ಸಂಪರ್ಕಕ್ಕೆ ಹೋಗುತ್ತದೆ.",
+    "preferredConnectionsNone": "ಯಾವುದೇ ಆದ್ಯತೆ ಹೊಂದಿಸಲಾಗಿಲ್ಲ — ಡೀಫಾಲ್ಟ್ ರೂಟಿಂಗ್ ತಂತ್ರವನ್ನು ಬಳಸಲಾಗುತ್ತದೆ.",
+    "preferredConnectionsClear": "ತೆರವುಗೊಳಿಸಿ"
   },
   "auditLog": {
     "title": "ಆಡಿಟ್ ಲಾಗ್",

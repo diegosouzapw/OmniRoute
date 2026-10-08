@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Apenas as ligações selecionadas",
     "selectAtLeastOneConnection": "Selecione pelo menos uma ligação ou escolha Todas as ligações.",
     "allConnectionsDesc": "Esta chave pode utilizar qualquer ligação ativa.",
-    "restrictedToConnections": "Limitado a {count, plural, one {# ligação} other {# ligações}}."
+    "restrictedToConnections": "Limitado a {count, plural, one {# ligação} other {# ligações}}.",
+    "preferredConnections": "Ligações preferenciais",
+    "preferredConnectionsDesc": "Ordem de prioridade por chave. Se uma ligação preferencial estiver indisponível, o encaminhamento passa para a próxima elegível.",
+    "preferredConnectionsNone": "Nenhuma preferência definida — é usada a estratégia de encaminhamento predefinida.",
+    "preferredConnectionsClear": "Limpar"
   },
   "auditLog": {
     "title": "Registro de auditoria",

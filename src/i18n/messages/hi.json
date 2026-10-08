@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "केवल चयनित कनेक्शन",
     "selectAtLeastOneConnection": "कम-से-कम एक कनेक्शन चुनें या सभी कनेक्शन चुनें।",
     "allConnectionsDesc": "यह कुंजी किसी भी सक्रिय कनेक्शन का उपयोग कर सकती है।",
-    "restrictedToConnections": "{count, plural, one {# कनेक्शन} other {# कनेक्शनों}} तक सीमित।"
+    "restrictedToConnections": "{count, plural, one {# कनेक्शन} other {# कनेक्शनों}} तक सीमित।",
+    "preferredConnections": "पसंदीदा कनेक्शन",
+    "preferredConnectionsDesc": "प्रत्येक कुंजी के लिए प्राथमिकता क्रम। यदि कोई पसंदीदा कनेक्शन उपलब्ध नहीं है, तो रूटिंग अगले योग्य कनेक्शन पर चली जाती है।",
+    "preferredConnectionsNone": "कोई प्राथमिकता सेट नहीं है — डिफ़ॉल्ट रूटिंग रणनीति का उपयोग किया जाता है।",
+    "preferredConnectionsClear": "साफ़ करें"
   },
   "auditLog": {
     "title": "ऑडिट लॉग",

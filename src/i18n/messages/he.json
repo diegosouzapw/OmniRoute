@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "רק חיבורים שנבחרו",
     "selectAtLeastOneConnection": "יש לבחור חיבור אחד לפחות או לבחור באפשרות כל החיבורים.",
     "allConnectionsDesc": "מפתח זה יכול להשתמש בכל חיבור פעיל.",
-    "restrictedToConnections": "מוגבל ל-{count, plural, one {חיבור אחד} other {# חיבורים}}."
+    "restrictedToConnections": "מוגבל ל-{count, plural, one {חיבור אחד} other {# חיבורים}}.",
+    "preferredConnections": "חיבורים מועדפים",
+    "preferredConnectionsDesc": "סדר עדיפויות לכל מפתח. אם חיבור מועדף אינו זמין, הניתוב עובר לחיבור הכשיר הבא.",
+    "preferredConnectionsNone": "לא הוגדרה העדפה — נעשה שימוש באסטרטגיית הניתוב המוגדרת כברירת מחדל.",
+    "preferredConnectionsClear": "נקה"
   },
   "auditLog": {
     "title": "יומן ביקורת",

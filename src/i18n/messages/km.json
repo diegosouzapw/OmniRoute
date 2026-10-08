@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "តែការតភ្ជាប់ដែលបានជ្រើសរើសប៉ុណ្ណោះ",
     "selectAtLeastOneConnection": "ជ្រើសរើសការតភ្ជាប់យ៉ាងហោចណាស់មួយ ឬជ្រើសរើសការតភ្ជាប់ទាំងអស់។",
     "allConnectionsDesc": "សោនេះអាចប្រើការតភ្ជាប់សកម្មណាមួយបាន។",
-    "restrictedToConnections": "បានកំណត់ត្រឹម {count, plural, one {# ការតភ្ជាប់} other {# ការតភ្ជាប់}}។"
+    "restrictedToConnections": "បានកំណត់ត្រឹម {count, plural, one {# ការតភ្ជាប់} other {# ការតភ្ជាប់}}។",
+    "preferredConnections": "ការតភ្ជាប់ដែលពេញចិត្ត",
+    "preferredConnectionsDesc": "លំដាប់អាទិភាពសម្រាប់សោនីមួយៗ។ ប្រសិនបើការតភ្ជាប់ដែលពេញចិត្តមិនអាចប្រើបាន ការបញ្ជូនបន្តនឹងប្តូរទៅការតភ្ជាប់ដែលមានសិទ្ធិបន្ទាប់។",
+    "preferredConnectionsNone": "មិនបានកំណត់ចំណូលចិត្តទេ — យុទ្ធសាស្ត្របញ្ជូនបន្តលំនាំដើមត្រូវបានប្រើ។",
+    "preferredConnectionsClear": "សម្អាត"
   },
   "auditLog": {
     "title": "កំណត់ហេតុសវនកម្ម",

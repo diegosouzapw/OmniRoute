@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "선택한 연결만",
     "selectAtLeastOneConnection": "연결을 하나 이상 선택하거나 모든 연결을 선택하세요.",
     "allConnectionsDesc": "이 키는 모든 활성 연결을 사용할 수 있습니다.",
-    "restrictedToConnections": "{count, plural, one {#개 연결로 제한됩니다} other {#개 연결로 제한됩니다}}."
+    "restrictedToConnections": "{count, plural, one {#개 연결로 제한됩니다} other {#개 연결로 제한됩니다}}.",
+    "preferredConnections": "선호 연결",
+    "preferredConnectionsDesc": "키별 우선순위입니다. 선호 연결을 사용할 수 없으면 다음으로 적합한 연결로 라우팅이 넘어갑니다.",
+    "preferredConnectionsNone": "설정된 선호 항목이 없습니다 — 기본 라우팅 전략이 사용됩니다.",
+    "preferredConnectionsClear": "지우기"
   },
   "auditLog": {
     "title": "감사 로그",

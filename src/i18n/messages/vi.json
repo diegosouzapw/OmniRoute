@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Chỉ các kết nối đã chọn",
     "selectAtLeastOneConnection": "Chọn ít nhất một kết nối hoặc chọn Tất cả kết nối.",
     "allConnectionsDesc": "Khóa này có thể dùng bất kỳ kết nối đang hoạt động nào.",
-    "restrictedToConnections": "Giới hạn ở {count, plural, one {# kết nối} other {# kết nối}}."
+    "restrictedToConnections": "Giới hạn ở {count, plural, one {# kết nối} other {# kết nối}}.",
+    "preferredConnections": "Kết nối ưu tiên",
+    "preferredConnectionsDesc": "Thứ tự ưu tiên theo từng khóa. Nếu một kết nối ưu tiên không khả dụng, định tuyến sẽ chuyển sang kết nối đủ điều kiện tiếp theo.",
+    "preferredConnectionsNone": "Chưa đặt ưu tiên — chiến lược định tuyến mặc định được sử dụng.",
+    "preferredConnectionsClear": "Xóa"
   },
   "auditLog": {
     "title": "Nhật ký kiểm tra",

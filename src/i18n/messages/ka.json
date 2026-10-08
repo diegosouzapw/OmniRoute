@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "მხოლოდ არჩეული კავშირები",
     "selectAtLeastOneConnection": "აირჩიეთ მინიმუმ ერთი კავშირი ან მონიშნეთ „ყველა კავშირი“.",
     "allConnectionsDesc": "ამ გასაღებს შეუძლია ნებისმიერი აქტიური კავშირის გამოყენება.",
-    "restrictedToConnections": "შეზღუდულია {count, plural, one {# კავშირით} other {# კავშირით}}."
+    "restrictedToConnections": "შეზღუდულია {count, plural, one {# კავშირით} other {# კავშირით}}.",
+    "preferredConnections": "სასურველი კავშირები",
+    "preferredConnectionsDesc": "პრიორიტეტის რიგი თითოეული გასაღებისთვის. თუ სასურველი კავშირი მიუწვდომელია, მარშრუტიზაცია გადადის შემდეგ შესაბამის კავშირზე.",
+    "preferredConnectionsNone": "უპირატესობა არ არის დაყენებული — გამოიყენება ნაგულისხმევი მარშრუტიზაციის სტრატეგია.",
+    "preferredConnectionsClear": "გასუფთავება"
   },
   "auditLog": {
     "title": "აუდიტის ჟურნალი",

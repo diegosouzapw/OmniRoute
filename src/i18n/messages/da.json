@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Kun valgte forbindelser",
     "selectAtLeastOneConnection": "Vælg mindst én forbindelse, eller vælg Alle forbindelser.",
     "allConnectionsDesc": "Denne nøgle kan bruge enhver aktiv forbindelse.",
-    "restrictedToConnections": "Begrænset til {count, plural, one {# forbindelse} other {# forbindelser}}."
+    "restrictedToConnections": "Begrænset til {count, plural, one {# forbindelse} other {# forbindelser}}.",
+    "preferredConnections": "Foretrukne forbindelser",
+    "preferredConnectionsDesc": "Prioriteringsrækkefølge pr. nøgle. Hvis en foretrukken forbindelse ikke er tilgængelig, falder routingen tilbage til den næste kvalificerede.",
+    "preferredConnectionsNone": "Ingen præference angivet — standardstrategien for routing bruges.",
+    "preferredConnectionsClear": "Ryd"
   },
   "auditLog": {
     "title": "Revisionslog",

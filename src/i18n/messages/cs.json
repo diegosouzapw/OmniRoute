@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Pouze vybraná připojení",
     "selectAtLeastOneConnection": "Vyberte alespoň jedno připojení nebo zvolte Všechna připojení.",
     "allConnectionsDesc": "Tento klíč může používat libovolné aktivní připojení.",
-    "restrictedToConnections": "Omezeno na {count, plural, one {# připojení} few {# připojení} other {# připojení}}."
+    "restrictedToConnections": "Omezeno na {count, plural, one {# připojení} few {# připojení} other {# připojení}}.",
+    "preferredConnections": "Preferovaná připojení",
+    "preferredConnectionsDesc": "Pořadí priority pro každý klíč. Pokud preferované připojení není dostupné, směrování přejde na další způsobilé.",
+    "preferredConnectionsNone": "Není nastavena žádná preference — použije se výchozí strategie směrování.",
+    "preferredConnectionsClear": "Vymazat"
   },
   "auditLog": {
     "title": "Audit Protokolů",

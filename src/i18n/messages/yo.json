@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Àwọn àsopọ̀ tí a yàn nìkan",
     "selectAtLeastOneConnection": "Yan àsopọ̀ kan ó kéré tán tàbí yan Gbogbo àwọn àsopọ̀.",
     "allConnectionsDesc": "Kọ́kọ́rọ́ yìí lè lo àsopọ̀ èyíkéyìí tó ń ṣiṣẹ́.",
-    "restrictedToConnections": "A fi ààlà sí {count, plural, one {# àsopọ̀} other {# àwọn àsopọ̀}}."
+    "restrictedToConnections": "A fi ààlà sí {count, plural, one {# àsopọ̀} other {# àwọn àsopọ̀}}.",
+    "preferredConnections": "Àwọn ìsopọ̀ tí a fẹ́ràn",
+    "preferredConnectionsDesc": "Ètò àkọ́kọ́ fún kọ́kọ́rọ́ kọ̀ọ̀kan. Bí ìsopọ̀ tí a fẹ́ràn kò bá sí, ìdarí yóò lọ sí èyí tó yẹ tó tẹ̀lé e.",
+    "preferredConnectionsNone": "A kò ṣètò àyànfẹ́ kankan — ọgbọ́n ìdarí àìyipada ni a ń lò.",
+    "preferredConnectionsClear": "Pa rẹ́"
   },
   "auditLog": {
     "title": "Àkọsílẹ̀ Àyẹ̀wò",

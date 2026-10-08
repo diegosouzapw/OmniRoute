@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Haɗin da aka zaɓa kawai",
     "selectAtLeastOneConnection": "Zaɓi aƙalla haɗi ɗaya ko kuma zaɓi Duk haɗin.",
     "allConnectionsDesc": "Wannan maɓalli na iya amfani da kowane haɗi mai aiki.",
-    "restrictedToConnections": "An taƙaita zuwa {count, plural, one {haɗi #} other {haɗi #}}."
+    "restrictedToConnections": "An taƙaita zuwa {count, plural, one {haɗi #} other {haɗi #}}.",
+    "preferredConnections": "Haɗe-haɗen da aka fi so",
+    "preferredConnectionsDesc": "Tsarin fifiko na kowane maɓalli. Idan haɗin da aka fi so ba ya samuwa, hanyar tura buƙata za ta koma ga na gaba da ya cancanta.",
+    "preferredConnectionsNone": "Ba a saita fifiko ba — ana amfani da tsohuwar dabarar tura buƙata.",
+    "preferredConnectionsClear": "Share"
   },
   "auditLog": {
     "title": "Rajistar Bincike",

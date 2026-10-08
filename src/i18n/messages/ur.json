@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "صرف منتخب کنکشنز",
     "selectAtLeastOneConnection": "کم از کم ایک کنکشن منتخب کریں یا تمام کنکشنز کا انتخاب کریں۔",
     "allConnectionsDesc": "یہ کلید کوئی بھی فعال کنکشن استعمال کر سکتی ہے۔",
-    "restrictedToConnections": "{count, plural, one {# کنکشن} other {# کنکشنز}} تک محدود۔"
+    "restrictedToConnections": "{count, plural, one {# کنکشن} other {# کنکشنز}} تک محدود۔",
+    "preferredConnections": "ترجیحی کنکشنز",
+    "preferredConnectionsDesc": "ہر کلید کے لیے ترجیحی ترتیب۔ اگر کوئی ترجیحی کنکشن دستیاب نہ ہو تو روٹنگ اگلے اہل کنکشن پر منتقل ہو جاتی ہے۔",
+    "preferredConnectionsNone": "کوئی ترجیح مقرر نہیں — طے شدہ روٹنگ حکمت عملی استعمال ہوتی ہے۔",
+    "preferredConnectionsClear": "صاف کریں"
   },
   "auditLog": {
     "title": "آڈٹ لاگ",

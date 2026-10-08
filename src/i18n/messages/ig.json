@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Naanị njikọ ndị ahọrọ",
     "selectAtLeastOneConnection": "Họrọ opekata mpe otu njikọ ma ọ bụ họrọ Njikọ niile.",
     "allConnectionsDesc": "Igodo a nwere ike iji njikọ ọ bụla na-arụ ọrụ.",
-    "restrictedToConnections": "Ejedebere ya na {count, plural, one {# njikọ} other {# njikọ}}."
+    "restrictedToConnections": "Ejedebere ya na {count, plural, one {# njikọ} other {# njikọ}}.",
+    "preferredConnections": "Njikọ ndị a họọrọ karịa",
+    "preferredConnectionsDesc": "Usoro mbụ maka igodo ọ bụla. Ọ bụrụ na njikọ a họọrọ adịghị, nduzi na-aga n'njikọ ruru eru na-esote.",
+    "preferredConnectionsNone": "Edobeghị mmasị ọ bụla — a na-eji usoro nduzi ndabara.",
+    "preferredConnectionsClear": "Kpochapụ"
   },
   "auditLog": {
     "title": "Ndekọ Nnyocha",

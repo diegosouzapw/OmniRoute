@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "僅限選取的連線",
     "selectAtLeastOneConnection": "請至少選取一個連線，或選擇「所有連線」。",
     "allConnectionsDesc": "此金鑰可使用任何作用中的連線。",
-    "restrictedToConnections": "僅限使用 {count, plural, one {# 個連線} other {# 個連線}}。"
+    "restrictedToConnections": "僅限使用 {count, plural, one {# 個連線} other {# 個連線}}。",
+    "preferredConnections": "偏好連線",
+    "preferredConnectionsDesc": "依金鑰設定的優先順序。若偏好連線無法使用，路由會改用下一個符合條件的連線。",
+    "preferredConnectionsNone": "未設定偏好 — 使用預設路由策略。",
+    "preferredConnectionsClear": "清除"
   },
   "auditLog": {
     "title": "稽核日誌",

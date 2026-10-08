@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Bare valgte tilkoblinger",
     "selectAtLeastOneConnection": "Velg minst én tilkobling, eller velg Alle tilkoblinger.",
     "allConnectionsDesc": "Denne nøkkelen kan bruke en hvilken som helst aktiv tilkobling.",
-    "restrictedToConnections": "Begrenset til {count, plural, one {# tilkobling} other {# tilkoblinger}}."
+    "restrictedToConnections": "Begrenset til {count, plural, one {# tilkobling} other {# tilkoblinger}}.",
+    "preferredConnections": "Foretrukne tilkoblinger",
+    "preferredConnectionsDesc": "Prioriteringsrekkefølge per nøkkel. Hvis en foretrukken tilkobling ikke er tilgjengelig, faller rutingen tilbake til den neste kvalifiserte.",
+    "preferredConnectionsNone": "Ingen preferanse angitt — standard rutingstrategi brukes.",
+    "preferredConnectionsClear": "Tøm"
   },
   "auditLog": {
     "title": "Revisjonslogg",

@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "فقط اتصالهای انتخابشده",
     "selectAtLeastOneConnection": "حداقل یک اتصال را انتخاب کنید یا «همه اتصالها» را برگزینید.",
     "allConnectionsDesc": "این کلید میتواند از هر اتصال فعالی استفاده کند.",
-    "restrictedToConnections": "محدود به {count, plural, one {# اتصال} other {# اتصال}}."
+    "restrictedToConnections": "محدود به {count, plural, one {# اتصال} other {# اتصال}}.",
+    "preferredConnections": "اتصال‌های ترجیحی",
+    "preferredConnectionsDesc": "ترتیب اولویت برای هر کلید. اگر یک اتصال ترجیحی در دسترس نباشد، مسیریابی به اتصال واجد شرایط بعدی منتقل می‌شود.",
+    "preferredConnectionsNone": "هیچ ترجیحی تنظیم نشده است — از راهبرد پیش‌فرض مسیریابی استفاده می‌شود.",
+    "preferredConnectionsClear": "پاک کردن"
   },
   "auditLog": {
     "title": "گزارش ممیزی",

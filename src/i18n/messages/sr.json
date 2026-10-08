@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Само изабране везе",
     "selectAtLeastOneConnection": "Изаберите бар једну везу или одаберите Све везе.",
     "allConnectionsDesc": "Овај кључ може користити било коју активну везу.",
-    "restrictedToConnections": "Ограничено на {count, plural, one {# везу} few {# везе} other {# веза}}."
+    "restrictedToConnections": "Ограничено на {count, plural, one {# везу} few {# везе} other {# веза}}.",
+    "preferredConnections": "Пожељне везе",
+    "preferredConnectionsDesc": "Редослед приоритета по кључу. Ако пожељна веза није доступна, рутирање прелази на следећу прихватљиву.",
+    "preferredConnectionsNone": "Није постављена жеља — користи се подразумевана стратегија рутирања.",
+    "preferredConnectionsClear": "Очисти"
   },
   "auditLog": {
     "title": "Дневник ревизије",

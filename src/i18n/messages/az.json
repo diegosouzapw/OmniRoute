@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Yalnız seçilmiş bağlantılar",
     "selectAtLeastOneConnection": "Ən azı bir bağlantı seçin və ya Bütün bağlantılar seçimini edin.",
     "allConnectionsDesc": "Bu açar istənilən aktiv bağlantıdan istifadə edə bilər.",
-    "restrictedToConnections": "{count, plural, one {# bağlantı} other {# bağlantı}} ilə məhdudlaşdırılıb."
+    "restrictedToConnections": "{count, plural, one {# bağlantı} other {# bağlantı}} ilə məhdudlaşdırılıb.",
+    "preferredConnections": "Üstünlük verilən bağlantılar",
+    "preferredConnectionsDesc": "Hər açar üçün prioritet sırası. Üstünlük verilən bağlantı əlçatan deyilsə, yönləndirmə növbəti uyğun bağlantıya keçir.",
+    "preferredConnectionsNone": "Üstünlük təyin edilməyib — standart yönləndirmə strategiyası istifadə olunur.",
+    "preferredConnectionsClear": "Təmizlə"
   },
   "auditLog": {
     "title": "Audit jurnalı",

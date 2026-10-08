@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Ainult valitud ühendused",
     "selectAtLeastOneConnection": "Vali vähemalt üks ühendus või suvand „Kõik ühendused“.",
     "allConnectionsDesc": "See võti võib kasutada mis tahes aktiivset ühendust.",
-    "restrictedToConnections": "Piiratud {count, plural, one {# ühendusega} other {# ühendusega}}."
+    "restrictedToConnections": "Piiratud {count, plural, one {# ühendusega} other {# ühendusega}}.",
+    "preferredConnections": "Eelistatud ühendused",
+    "preferredConnectionsDesc": "Võtmepõhine prioriteedijärjestus. Kui eelistatud ühendus pole saadaval, liigub suunamine järgmisele sobivale.",
+    "preferredConnectionsNone": "Eelistust pole määratud — kasutatakse vaikimisi suunamisstrateegiat.",
+    "preferredConnectionsClear": "Tühjenda"
   },
   "auditLog": {
     "title": "Auditilogi",

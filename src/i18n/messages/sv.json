@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Endast valda anslutningar",
     "selectAtLeastOneConnection": "Välj minst en anslutning eller välj Alla anslutningar.",
     "allConnectionsDesc": "Den här nyckeln kan använda alla aktiva anslutningar.",
-    "restrictedToConnections": "Begränsad till {count, plural, one {# anslutning} other {# anslutningar}}."
+    "restrictedToConnections": "Begränsad till {count, plural, one {# anslutning} other {# anslutningar}}.",
+    "preferredConnections": "Föredragna anslutningar",
+    "preferredConnectionsDesc": "Prioritetsordning per nyckel. Om en föredragen anslutning inte är tillgänglig faller routningen tillbaka på nästa behöriga.",
+    "preferredConnectionsNone": "Ingen preferens angiven — standardstrategin för routning används.",
+    "preferredConnectionsClear": "Rensa"
   },
   "auditLog": {
     "title": "Revisionslogg",

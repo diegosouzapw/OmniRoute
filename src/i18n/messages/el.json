@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Μόνο επιλεγμένες συνδέσεις",
     "selectAtLeastOneConnection": "Επιλέξτε τουλάχιστον μία σύνδεση ή επιλέξτε Όλες οι συνδέσεις.",
     "allConnectionsDesc": "Αυτό το κλειδί μπορεί να χρησιμοποιήσει οποιαδήποτε ενεργή σύνδεση.",
-    "restrictedToConnections": "Περιορισμένο σε {count, plural, one {# σύνδεση} other {# συνδέσεις}}."
+    "restrictedToConnections": "Περιορισμένο σε {count, plural, one {# σύνδεση} other {# συνδέσεις}}.",
+    "preferredConnections": "Προτιμώμενες συνδέσεις",
+    "preferredConnectionsDesc": "Σειρά προτεραιότητας ανά κλειδί. Αν μια προτιμώμενη σύνδεση δεν είναι διαθέσιμη, η δρομολόγηση μεταβαίνει στην επόμενη επιλέξιμη.",
+    "preferredConnectionsNone": "Δεν έχει οριστεί προτίμηση — χρησιμοποιείται η προεπιλεγμένη στρατηγική δρομολόγησης.",
+    "preferredConnectionsClear": "Εκκαθάριση"
   },
   "auditLog": {
     "title": "Αρχείο καταγραφής ελέγχου",

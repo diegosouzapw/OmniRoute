@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "ફક્ત પસંદ કરેલા કનેક્શન",
     "selectAtLeastOneConnection": "ઓછામાં ઓછું એક કનેક્શન પસંદ કરો અથવા બધા કનેક્શન પસંદ કરો.",
     "allConnectionsDesc": "આ કી કોઈપણ સક્રિય કનેક્શનનો ઉપયોગ કરી શકે છે.",
-    "restrictedToConnections": "{count, plural, one {# કનેક્શન} other {# કનેક્શન}} સુધી મર્યાદિત."
+    "restrictedToConnections": "{count, plural, one {# કનેક્શન} other {# કનેક્શન}} સુધી મર્યાદિત.",
+    "preferredConnections": "પસંદગીના કનેક્શન",
+    "preferredConnectionsDesc": "દરેક કી માટે પ્રાથમિકતાનો ક્રમ. જો પસંદગીનું કનેક્શન ઉપલબ્ધ ન હોય, તો રૂટિંગ આગલા યોગ્ય કનેક્શન પર જાય છે.",
+    "preferredConnectionsNone": "કોઈ પસંદગી સેટ નથી — ડિફૉલ્ટ રૂટિંગ વ્યૂહરચનાનો ઉપયોગ થાય છે.",
+    "preferredConnectionsClear": "સાફ કરો"
   },
   "auditLog": {
     "title": "ઑડિટ લૉગ",

@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Mga napiling koneksyon lamang",
     "selectAtLeastOneConnection": "Pumili ng kahit isang koneksyon o piliin ang Lahat ng koneksyon.",
     "allConnectionsDesc": "Maaaring gumamit ang key na ito ng anumang aktibong koneksyon.",
-    "restrictedToConnections": "Limitado sa {count, plural, one {# koneksyon} other {# koneksyon}}."
+    "restrictedToConnections": "Limitado sa {count, plural, one {# koneksyon} other {# koneksyon}}.",
+    "preferredConnections": "Mga gustong koneksyon",
+    "preferredConnectionsDesc": "Pagkakasunod-sunod ng priyoridad bawat key. Kung hindi available ang isang gustong koneksyon, lilipat ang routing sa susunod na kwalipikado.",
+    "preferredConnectionsNone": "Walang nakatakdang kagustuhan — ginagamit ang default na routing strategy.",
+    "preferredConnectionsClear": "I-clear"
   },
   "auditLog": {
     "title": "Log ng Audit",

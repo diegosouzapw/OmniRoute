@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "தேர்ந்தெடுக்கப்பட்ட இணைப்புகள் மட்டும்",
     "selectAtLeastOneConnection": "குறைந்தது ஓர் இணைப்பையாவது தேர்ந்தெடுக்கவும் அல்லது அனைத்து இணைப்புகளும் என்பதைத் தேர்வுசெய்யவும்.",
     "allConnectionsDesc": "இந்த விசை செயலில் உள்ள எந்த இணைப்பையும் பயன்படுத்தலாம்.",
-    "restrictedToConnections": "{count, plural, one {# இணைப்புக்கு} other {# இணைப்புகளுக்கு}} வரையறுக்கப்பட்டுள்ளது."
+    "restrictedToConnections": "{count, plural, one {# இணைப்புக்கு} other {# இணைப்புகளுக்கு}} வரையறுக்கப்பட்டுள்ளது.",
+    "preferredConnections": "விருப்ப இணைப்புகள்",
+    "preferredConnectionsDesc": "ஒவ்வொரு விசைக்குமான முன்னுரிமை வரிசை. விருப்ப இணைப்பு கிடைக்கவில்லை என்றால், ரூட்டிங் அடுத்த தகுதியான இணைப்புக்கு மாறும்.",
+    "preferredConnectionsNone": "எந்த விருப்பமும் அமைக்கப்படவில்லை — இயல்புநிலை ரூட்டிங் உத்தி பயன்படுத்தப்படுகிறது.",
+    "preferredConnectionsClear": "அழி"
   },
   "auditLog": {
     "title": "தணிக்கைப் பதிவு",

@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "仅选定的连接",
     "selectAtLeastOneConnection": "请至少选择一个连接，或选择“所有连接”。",
     "allConnectionsDesc": "此密钥可以使用任何活跃连接。",
-    "restrictedToConnections": "仅限用于 {count, plural, one {# 个连接} other {# 个连接}}。"
+    "restrictedToConnections": "仅限用于 {count, plural, one {# 个连接} other {# 个连接}}。",
+    "preferredConnections": "首选连接",
+    "preferredConnectionsDesc": "按密钥设置的优先顺序。如果首选连接不可用，路由会回退到下一个符合条件的连接。",
+    "preferredConnectionsNone": "未设置偏好 — 使用默认路由策略。",
+    "preferredConnectionsClear": "清除"
   },
   "auditLog": {
     "title": "审核日志",

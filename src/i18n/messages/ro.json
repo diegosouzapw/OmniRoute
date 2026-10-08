@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Doar conexiunile selectate",
     "selectAtLeastOneConnection": "Selectați cel puțin o conexiune sau alegeți Toate conexiunile.",
     "allConnectionsDesc": "Această cheie poate utiliza orice conexiune activă.",
-    "restrictedToConnections": "Restricționată la {count, plural, one {# conexiune} other {# conexiuni}}."
+    "restrictedToConnections": "Restricționată la {count, plural, one {# conexiune} other {# conexiuni}}.",
+    "preferredConnections": "Conexiuni preferate",
+    "preferredConnectionsDesc": "Ordine de prioritate pentru fiecare cheie. Dacă o conexiune preferată nu este disponibilă, rutarea trece la următoarea eligibilă.",
+    "preferredConnectionsNone": "Nicio preferință setată — se folosește strategia de rutare implicită.",
+    "preferredConnectionsClear": "Golește"
   },
   "auditLog": {
     "title": "Jurnal de audit",

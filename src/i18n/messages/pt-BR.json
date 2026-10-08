@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Apenas as conexões selecionadas",
     "selectAtLeastOneConnection": "Selecione pelo menos uma conexão ou escolha Todas as conexões.",
     "allConnectionsDesc": "Esta chave pode usar qualquer conexão ativa.",
-    "restrictedToConnections": "Restrita a {count, plural, one {# conexão} other {# conexões}}."
+    "restrictedToConnections": "Restrita a {count, plural, one {# conexão} other {# conexões}}.",
+    "preferredConnections": "Conexões preferenciais",
+    "preferredConnectionsDesc": "Ordem de prioridade por chave. Se uma conexão preferencial estiver indisponível, o roteamento passa para a próxima elegível.",
+    "preferredConnectionsNone": "Nenhuma preferência definida — a estratégia de roteamento padrão é usada.",
+    "preferredConnectionsClear": "Limpar"
   },
   "auditLog": {
     "title": "Log de Auditoria",

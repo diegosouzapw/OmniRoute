@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Nur ausgewählte Verbindungen",
     "selectAtLeastOneConnection": "Wählen Sie mindestens eine Verbindung oder „Alle Verbindungen“ aus.",
     "allConnectionsDesc": "Dieser Schlüssel kann jede aktive Verbindung verwenden.",
-    "restrictedToConnections": "Auf {count, plural, one {# Verbindung} other {# Verbindungen}} beschränkt."
+    "restrictedToConnections": "Auf {count, plural, one {# Verbindung} other {# Verbindungen}} beschränkt.",
+    "preferredConnections": "Bevorzugte Verbindungen",
+    "preferredConnectionsDesc": "Prioritätsreihenfolge pro Schlüssel. Ist eine bevorzugte Verbindung nicht verfügbar, weicht das Routing auf die nächste zulässige aus.",
+    "preferredConnectionsNone": "Keine Präferenz festgelegt — die Standard-Routing-Strategie wird verwendet.",
+    "preferredConnectionsClear": "Leeren"
   },
   "auditLog": {
     "title": "Audit-Protokoll",

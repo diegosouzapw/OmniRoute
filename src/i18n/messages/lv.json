@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Tikai atlasītie savienojumi",
     "selectAtLeastOneConnection": "Atlasiet vismaz vienu savienojumu vai izvēlieties Visi savienojumi.",
     "allConnectionsDesc": "Šī atslēga var izmantot jebkuru aktīvu savienojumu.",
-    "restrictedToConnections": "Piekļuve ierobežota līdz {count, plural, one {# savienojumam} other {# savienojumiem}}."
+    "restrictedToConnections": "Piekļuve ierobežota līdz {count, plural, one {# savienojumam} other {# savienojumiem}}.",
+    "preferredConnections": "Vēlamie savienojumi",
+    "preferredConnectionsDesc": "Prioritātes secība katrai atslēgai. Ja vēlamais savienojums nav pieejams, maršrutēšana pāriet uz nākamo piemēroto.",
+    "preferredConnectionsNone": "Preference nav iestatīta — tiek izmantota noklusējuma maršrutēšanas stratēģija.",
+    "preferredConnectionsClear": "Notīrīt"
   },
   "auditLog": {
     "title": "Audita žurnāls",

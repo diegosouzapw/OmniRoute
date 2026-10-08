@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "選択した接続のみ",
     "selectAtLeastOneConnection": "少なくとも1つの接続を選択するか、すべての接続を選択してください。",
     "allConnectionsDesc": "このキーでは、アクティブな接続をすべて使用できます。",
-    "restrictedToConnections": "{count, plural, one {#件の接続に制限} other {#件の接続に制限}}。"
+    "restrictedToConnections": "{count, plural, one {#件の接続に制限} other {#件の接続に制限}}。",
+    "preferredConnections": "優先接続",
+    "preferredConnectionsDesc": "キーごとの優先順位です。優先接続が利用できない場合、ルーティングは次の利用可能な接続にフォールバックします。",
+    "preferredConnectionsNone": "優先設定はありません — デフォルトのルーティング戦略が使用されます。",
+    "preferredConnectionsClear": "クリア"
   },
   "auditLog": {
     "title": "監査ログ",

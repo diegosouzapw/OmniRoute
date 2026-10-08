@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Alleen geselecteerde verbindingen",
     "selectAtLeastOneConnection": "Selecteer ten minste één verbinding of kies Alle verbindingen.",
     "allConnectionsDesc": "Deze sleutel kan elke actieve verbinding gebruiken.",
-    "restrictedToConnections": "Beperkt tot {count, plural, one {# verbinding} other {# verbindingen}}."
+    "restrictedToConnections": "Beperkt tot {count, plural, one {# verbinding} other {# verbindingen}}.",
+    "preferredConnections": "Voorkeursverbindingen",
+    "preferredConnectionsDesc": "Prioriteitsvolgorde per sleutel. Als een voorkeursverbinding niet beschikbaar is, valt de routering terug op de volgende geschikte.",
+    "preferredConnectionsNone": "Geen voorkeur ingesteld — de standaard routeringsstrategie wordt gebruikt.",
+    "preferredConnectionsClear": "Wissen"
   },
   "auditLog": {
     "title": "Auditlogboek",

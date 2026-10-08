@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "चयन गरिएका जडानहरू मात्र",
     "selectAtLeastOneConnection": "कम्तीमा एउटा जडान चयन गर्नुहोस् वा सबै जडानहरू रोज्नुहोस्।",
     "allConnectionsDesc": "यो कुञ्जीले कुनै पनि सक्रिय जडान प्रयोग गर्न सक्छ।",
-    "restrictedToConnections": "{count, plural, one {# जडान} other {# जडानहरू}} मा सीमित।"
+    "restrictedToConnections": "{count, plural, one {# जडान} other {# जडानहरू}} मा सीमित।",
+    "preferredConnections": "रुचाइएका जडानहरू",
+    "preferredConnectionsDesc": "प्रत्येक कुञ्जीका लागि प्राथमिकता क्रम। रुचाइएको जडान उपलब्ध नभए, राउटिङ अर्को योग्य जडानमा जान्छ।",
+    "preferredConnectionsNone": "कुनै रुचि सेट गरिएको छैन — पूर्वनिर्धारित राउटिङ रणनीति प्रयोग हुन्छ।",
+    "preferredConnectionsClear": "खाली गर्नुहोस्"
   },
   "auditLog": {
     "title": "अडिट लग",

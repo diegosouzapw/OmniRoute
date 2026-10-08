@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "የተመረጡ ግንኙነቶች ብቻ",
     "selectAtLeastOneConnection": "ቢያንስ አንድ ግንኙነት ይምረጡ ወይም «ሁሉም ግንኙነቶች»ን ይምረጡ።",
     "allConnectionsDesc": "ይህ ቁልፍ ማንኛውንም ንቁ ግንኙነት መጠቀም ይችላል።",
-    "restrictedToConnections": "ለ{count, plural, one {# ግንኙነት} other {# ግንኙነቶች}} ብቻ የተገደበ።"
+    "restrictedToConnections": "ለ{count, plural, one {# ግንኙነት} other {# ግንኙነቶች}} ብቻ የተገደበ።",
+    "preferredConnections": "ተመራጭ ግንኙነቶች",
+    "preferredConnectionsDesc": "በቁልፍ የተወሰነ የቅድሚያ ቅደም ተከተል። ተመራጭ ግንኙነት ካልተገኘ፣ ማዘዋወሩ ወደሚቀጥለው ብቁ ግንኙነት ይሸጋገራል።",
+    "preferredConnectionsNone": "ምንም ምርጫ አልተዘጋጀም — ነባሪው የማዘዋወር ስልት ጥቅም ላይ ይውላል።",
+    "preferredConnectionsClear": "አጽዳ"
   },
   "auditLog": {
     "title": "የኦዲት መዝገብ",

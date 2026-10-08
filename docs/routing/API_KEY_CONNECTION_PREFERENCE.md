@@ -39,3 +39,5 @@ This is useful for quota isolation, workload ownership, subscription/account bal
 ## Configure
 
 Create or update an API key through the API-key management endpoints and include `preferredConnections` as an ordered array of connection UUIDs. When `allowedConnections` is also supplied in the same request, preferred IDs must be a subset of it.
+
+In the dashboard, open **API Manager → (key) → Access → Connections**: the _Preferred connections_ list shows only the connections the key may use; click a connection to append it to the order, use the arrows to reorder, and **Clear** to go back to the default routing strategy. Unchecking an allowed connection also drops it from the preference order.

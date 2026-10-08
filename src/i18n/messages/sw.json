@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Miunganisho iliyochaguliwa pekee",
     "selectAtLeastOneConnection": "Chagua angalau muunganisho mmoja au uchague Miunganisho yote.",
     "allConnectionsDesc": "Ufunguo huu unaweza kutumia muunganisho wowote ulio amilifu.",
-    "restrictedToConnections": "Imezuiliwa kwa {count, plural, one {# muunganisho} other {# miunganisho}}."
+    "restrictedToConnections": "Imezuiliwa kwa {count, plural, one {# muunganisho} other {# miunganisho}}.",
+    "preferredConnections": "Miunganisho inayopendelewa",
+    "preferredConnectionsDesc": "Mpangilio wa kipaumbele kwa kila ufunguo. Ikiwa muunganisho unaopendelewa haupatikani, uelekezaji huhamia kwenye unaofuata unaostahiki.",
+    "preferredConnectionsNone": "Hakuna mapendeleo yaliyowekwa — mkakati chaguomsingi wa uelekezaji unatumika.",
+    "preferredConnectionsClear": "Futa"
   },
   "auditLog": {
     "title": "Kumbukumbu ya Ukaguzi",

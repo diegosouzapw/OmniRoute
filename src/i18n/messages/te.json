@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "ఎంచుకున్న కనెక్షన్లు మాత్రమే",
     "selectAtLeastOneConnection": "కనీసం ఒక కనెక్షన్ను ఎంచుకోండి లేదా అన్ని కనెక్షన్లను ఎంచుకోండి.",
     "allConnectionsDesc": "ఈ కీ ఏ క్రియాశీల కనెక్షన్నైనా ఉపయోగించగలదు.",
-    "restrictedToConnections": "{count, plural, one {# కనెక్షన్కు} other {# కనెక్షన్లకు}} పరిమితం చేయబడింది."
+    "restrictedToConnections": "{count, plural, one {# కనెక్షన్కు} other {# కనెక్షన్లకు}} పరిమితం చేయబడింది.",
+    "preferredConnections": "ప్రాధాన్య కనెక్షన్‌లు",
+    "preferredConnectionsDesc": "ప్రతి కీకి ప్రాధాన్య క్రమం. ప్రాధాన్య కనెక్షన్ అందుబాటులో లేకపోతే, రూటింగ్ తదుపరి అర్హత ఉన్న కనెక్షన్‌కు మారుతుంది.",
+    "preferredConnectionsNone": "ఏ ప్రాధాన్యతా సెట్ చేయలేదు — డిఫాల్ట్ రూటింగ్ వ్యూహం ఉపయోగించబడుతుంది.",
+    "preferredConnectionsClear": "క్లియర్ చేయి"
   },
   "auditLog": {
     "title": "ఆడిట్ లాగ్",

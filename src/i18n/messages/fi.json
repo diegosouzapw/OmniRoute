@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Vain valitut yhteydet",
     "selectAtLeastOneConnection": "Valitse vähintään yksi yhteys tai valitse Kaikki yhteydet.",
     "allConnectionsDesc": "Tämä avain voi käyttää mitä tahansa aktiivista yhteyttä.",
-    "restrictedToConnections": "Rajoitettu {count, plural, one {# yhteyteen} other {# yhteyteen}}."
+    "restrictedToConnections": "Rajoitettu {count, plural, one {# yhteyteen} other {# yhteyteen}}.",
+    "preferredConnections": "Ensisijaiset yhteydet",
+    "preferredConnectionsDesc": "Avainkohtainen prioriteettijärjestys. Jos ensisijainen yhteys ei ole käytettävissä, reititys siirtyy seuraavaan kelpoiseen.",
+    "preferredConnectionsNone": "Ensisijaisuutta ei ole asetettu — käytetään oletusreititysstrategiaa.",
+    "preferredConnectionsClear": "Tyhjennä"
   },
   "auditLog": {
     "title": "Tarkastusloki",

@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "শুধু নির্বাচিত সংযোগগুলো",
     "selectAtLeastOneConnection": "অন্তত একটি সংযোগ নির্বাচন করুন অথবা সব সংযোগ বেছে নিন।",
     "allConnectionsDesc": "এই কীটি যেকোনো সক্রিয় সংযোগ ব্যবহার করতে পারে।",
-    "restrictedToConnections": "{count, plural, one {#টি সংযোগে} other {#টি সংযোগে}} সীমাবদ্ধ।"
+    "restrictedToConnections": "{count, plural, one {#টি সংযোগে} other {#টি সংযোগে}} সীমাবদ্ধ।",
+    "preferredConnections": "পছন্দের সংযোগ",
+    "preferredConnectionsDesc": "প্রতিটি কী-এর জন্য অগ্রাধিকার ক্রম। কোনো পছন্দের সংযোগ উপলব্ধ না থাকলে রাউটিং পরবর্তী যোগ্য সংযোগে চলে যায়।",
+    "preferredConnectionsNone": "কোনো পছন্দ নির্ধারণ করা হয়নি — ডিফল্ট রাউটিং কৌশল ব্যবহার করা হয়।",
+    "preferredConnectionsClear": "মুছুন"
   },
   "auditLog": {
     "title": "অডিট লগ",

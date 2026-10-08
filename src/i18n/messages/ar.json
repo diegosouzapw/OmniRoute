@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "الاتصالات المحددة فقط",
     "selectAtLeastOneConnection": "حدّد اتصالًا واحدًا على الأقل أو اختر جميع الاتصالات.",
     "allConnectionsDesc": "يمكن لهذا المفتاح استخدام أي اتصال نشط.",
-    "restrictedToConnections": "مقيّد بـ {count, plural, one {اتصال واحد} other {# اتصالات}}."
+    "restrictedToConnections": "مقيّد بـ {count, plural, one {اتصال واحد} other {# اتصالات}}.",
+    "preferredConnections": "الاتصالات المفضلة",
+    "preferredConnectionsDesc": "ترتيب أولوية خاص بكل مفتاح. إذا لم يكن الاتصال المفضل متاحًا، ينتقل التوجيه إلى الاتصال المؤهل التالي.",
+    "preferredConnectionsNone": "لم يتم تعيين تفضيل — تُستخدم استراتيجية التوجيه الافتراضية.",
+    "preferredConnectionsClear": "مسح"
   },
   "auditLog": {
     "title": "سجل التدقيق",

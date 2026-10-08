@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Iba vybrané pripojenia",
     "selectAtLeastOneConnection": "Vyberte aspoň jedno pripojenie alebo možnosť Všetky pripojenia.",
     "allConnectionsDesc": "Tento kľúč môže používať ľubovoľné aktívne pripojenie.",
-    "restrictedToConnections": "Obmedzené na {count, plural, one {# pripojenie} other {# pripojení}}."
+    "restrictedToConnections": "Obmedzené na {count, plural, one {# pripojenie} other {# pripojení}}.",
+    "preferredConnections": "Preferované pripojenia",
+    "preferredConnectionsDesc": "Poradie priority pre každý kľúč. Ak preferované pripojenie nie je dostupné, smerovanie prejde na ďalšie vhodné.",
+    "preferredConnectionsNone": "Nie je nastavená žiadna preferencia — použije sa predvolená stratégia smerovania.",
+    "preferredConnectionsClear": "Vymazať"
   },
   "auditLog": {
     "title": "Protokol auditu",

@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "ਸਿਰਫ਼ ਚੁਣੇ ਹੋਏ ਕਨੈਕਸ਼ਨ",
     "selectAtLeastOneConnection": "ਘੱਟੋ-ਘੱਟ ਇੱਕ ਕਨੈਕਸ਼ਨ ਚੁਣੋ ਜਾਂ ਸਾਰੇ ਕਨੈਕਸ਼ਨ ਚੁਣੋ।",
     "allConnectionsDesc": "ਇਹ ਕੁੰਜੀ ਕਿਸੇ ਵੀ ਸਰਗਰਮ ਕਨੈਕਸ਼ਨ ਦੀ ਵਰਤੋਂ ਕਰ ਸਕਦੀ ਹੈ।",
-    "restrictedToConnections": "{count, plural, one {# ਕਨੈਕਸ਼ਨ} other {# ਕਨੈਕਸ਼ਨਾਂ}} ਤੱਕ ਸੀਮਿਤ।"
+    "restrictedToConnections": "{count, plural, one {# ਕਨੈਕਸ਼ਨ} other {# ਕਨੈਕਸ਼ਨਾਂ}} ਤੱਕ ਸੀਮਿਤ।",
+    "preferredConnections": "ਤਰਜੀਹੀ ਕਨੈਕਸ਼ਨ",
+    "preferredConnectionsDesc": "ਹਰੇਕ ਕੁੰਜੀ ਲਈ ਤਰਜੀਹ ਕ੍ਰਮ। ਜੇ ਤਰਜੀਹੀ ਕਨੈਕਸ਼ਨ ਉਪਲਬਧ ਨਹੀਂ ਹੈ, ਤਾਂ ਰੂਟਿੰਗ ਅਗਲੇ ਯੋਗ ਕਨੈਕਸ਼ਨ 'ਤੇ ਚਲੀ ਜਾਂਦੀ ਹੈ।",
+    "preferredConnectionsNone": "ਕੋਈ ਤਰਜੀਹ ਸੈੱਟ ਨਹੀਂ — ਡਿਫੌਲਟ ਰੂਟਿੰਗ ਰਣਨੀਤੀ ਵਰਤੀ ਜਾਂਦੀ ਹੈ।",
+    "preferredConnectionsClear": "ਸਾਫ਼ ਕਰੋ"
   },
   "auditLog": {
     "title": "ਆਡਿਟ ਲੌਗ",

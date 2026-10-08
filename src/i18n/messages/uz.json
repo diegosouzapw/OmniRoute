@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Faqat tanlangan ulanishlar",
     "selectAtLeastOneConnection": "Kamida bitta ulanishni tanlang yoki Barcha ulanishlar variantini tanlang.",
     "allConnectionsDesc": "Bu kalit istalgan faol ulanishdan foydalanishi mumkin.",
-    "restrictedToConnections": "{count, plural, one {# ta ulanish bilan} other {# ta ulanish bilan}} cheklangan."
+    "restrictedToConnections": "{count, plural, one {# ta ulanish bilan} other {# ta ulanish bilan}} cheklangan.",
+    "preferredConnections": "Afzal ulanishlar",
+    "preferredConnectionsDesc": "Har bir kalit uchun ustuvorlik tartibi. Afzal ulanish mavjud bo'lmasa, marshrutlash keyingi mos ulanishga o'tadi.",
+    "preferredConnectionsNone": "Afzallik belgilanmagan — standart marshrutlash strategiyasi qo'llaniladi.",
+    "preferredConnectionsClear": "Tozalash"
   },
   "auditLog": {
     "title": "Audit jurnali",

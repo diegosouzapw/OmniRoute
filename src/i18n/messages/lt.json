@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Tik pasirinkti ryšiai",
     "selectAtLeastOneConnection": "Pasirinkite bent vieną ryšį arba parinktį „Visi ryšiai“.",
     "allConnectionsDesc": "Šis raktas gali naudoti bet kurį aktyvų ryšį.",
-    "restrictedToConnections": "Prieiga apribota iki {count, plural, one {# ryšio} other {# ryšių}}."
+    "restrictedToConnections": "Prieiga apribota iki {count, plural, one {# ryšio} other {# ryšių}}.",
+    "preferredConnections": "Pageidaujami ryšiai",
+    "preferredConnectionsDesc": "Kiekvieno rakto prioriteto tvarka. Jei pageidaujamas ryšys nepasiekiamas, maršrutizavimas pereina prie kito tinkamo.",
+    "preferredConnectionsNone": "Pageidavimas nenustatytas — naudojama numatytoji maršrutizavimo strategija.",
+    "preferredConnectionsClear": "Išvalyti"
   },
   "auditLog": {
     "title": "Audito žurnalas",

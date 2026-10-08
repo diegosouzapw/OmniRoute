@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Только выбранные подключения",
     "selectAtLeastOneConnection": "Выберите хотя бы одно подключение или вариант «Все подключения».",
     "allConnectionsDesc": "Этот ключ позволяет использовать любое активное подключение.",
-    "restrictedToConnections": "Доступ ограничен: {count, plural, one {# подключением} few {# подключениями} many {# подключениями} other {# подключения}}."
+    "restrictedToConnections": "Доступ ограничен: {count, plural, one {# подключением} few {# подключениями} many {# подключениями} other {# подключения}}.",
+    "preferredConnections": "Предпочтительные подключения",
+    "preferredConnectionsDesc": "Порядок приоритета для каждого ключа. Если предпочтительное подключение недоступно, маршрутизация переходит к следующему подходящему.",
+    "preferredConnectionsNone": "Предпочтение не задано — используется стратегия маршрутизации по умолчанию.",
+    "preferredConnectionsClear": "Очистить"
   },
   "auditLog": {
     "title": "Журнал аудита",

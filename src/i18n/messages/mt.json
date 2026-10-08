@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Il-konnessjonijiet magħżula biss",
     "selectAtLeastOneConnection": "Agħżel mill-inqas konnessjoni waħda jew agħżel Il-konnessjonijiet kollha.",
     "allConnectionsDesc": "Din iċ-ċavetta tista’ tuża kwalunkwe konnessjoni attiva.",
-    "restrictedToConnections": "Ristretta għal {count, plural, one {# konnessjoni} other {# konnessjonijiet}}."
+    "restrictedToConnections": "Ristretta għal {count, plural, one {# konnessjoni} other {# konnessjonijiet}}.",
+    "preferredConnections": "Konnessjonijiet preferuti",
+    "preferredConnectionsDesc": "Ordni ta' prijorità għal kull ċavetta. Jekk konnessjoni preferuta mhix disponibbli, ir-rotta tgħaddi għall-konnessjoni eliġibbli li jmiss.",
+    "preferredConnectionsNone": "Ebda preferenza ma ġiet issettjata — tintuża l-istrateġija tar-rotta awtomatika.",
+    "preferredConnectionsClear": "Ħassar"
   },
   "auditLog": {
     "title": "Reġistru tal-Awditjar",

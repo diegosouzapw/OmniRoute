@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Yalnızca seçili bağlantılar",
     "selectAtLeastOneConnection": "En az bir bağlantı seçin veya “Tüm bağlantılar” seçeneğini belirleyin.",
     "allConnectionsDesc": "Bu anahtar herhangi bir etkin bağlantıyı kullanabilir.",
-    "restrictedToConnections": "{count, plural, one {# bağlantıyla} other {# bağlantıyla}} sınırlandırıldı."
+    "restrictedToConnections": "{count, plural, one {# bağlantıyla} other {# bağlantıyla}} sınırlandırıldı.",
+    "preferredConnections": "Tercih edilen bağlantılar",
+    "preferredConnectionsDesc": "Anahtar başına öncelik sırası. Tercih edilen bir bağlantı kullanılamıyorsa yönlendirme bir sonraki uygun bağlantıya geçer.",
+    "preferredConnectionsNone": "Tercih ayarlanmadı — varsayılan yönlendirme stratejisi kullanılır.",
+    "preferredConnectionsClear": "Temizle"
   },
   "auditLog": {
     "title": "Denetim Günlüğü",

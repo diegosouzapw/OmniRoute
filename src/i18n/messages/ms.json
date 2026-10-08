@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Hanya sambungan yang dipilih",
     "selectAtLeastOneConnection": "Pilih sekurang-kurangnya satu sambungan atau pilih Semua sambungan.",
     "allConnectionsDesc": "Kunci ini boleh menggunakan mana-mana sambungan aktif.",
-    "restrictedToConnections": "Terhad kepada {count, plural, one {# sambungan} other {# sambungan}}."
+    "restrictedToConnections": "Terhad kepada {count, plural, one {# sambungan} other {# sambungan}}.",
+    "preferredConnections": "Sambungan pilihan",
+    "preferredConnectionsDesc": "Susunan keutamaan bagi setiap kunci. Jika sambungan pilihan tidak tersedia, penghalaan beralih kepada sambungan layak yang seterusnya.",
+    "preferredConnectionsNone": "Tiada keutamaan ditetapkan — strategi penghalaan lalai digunakan.",
+    "preferredConnectionsClear": "Kosongkan"
   },
   "auditLog": {
     "title": "Log Audit",

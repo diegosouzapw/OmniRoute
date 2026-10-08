@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Лише вибрані з’єднання",
     "selectAtLeastOneConnection": "Виберіть принаймні одне з’єднання або варіант «Усі з’єднання».",
     "allConnectionsDesc": "Цей ключ може використовувати будь-яке активне з’єднання.",
-    "restrictedToConnections": "Обмежено до {count, plural, one {# з’єднання} other {# з’єднань}}."
+    "restrictedToConnections": "Обмежено до {count, plural, one {# з’єднання} other {# з’єднань}}.",
+    "preferredConnections": "Бажані підключення",
+    "preferredConnectionsDesc": "Порядок пріоритету для кожного ключа. Якщо бажане підключення недоступне, маршрутизація переходить до наступного придатного.",
+    "preferredConnectionsNone": "Перевагу не задано — використовується стратегія маршрутизації за замовчуванням.",
+    "preferredConnectionsClear": "Очистити"
   },
   "auditLog": {
     "title": "Журнал аудиту",

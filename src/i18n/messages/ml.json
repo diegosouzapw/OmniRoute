@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "തിരഞ്ഞെടുത്ത കണക്ഷനുകൾ മാത്രം",
     "selectAtLeastOneConnection": "കുറഞ്ഞത് ഒരു കണക്ഷനെങ്കിലും തിരഞ്ഞെടുക്കുക, അല്ലെങ്കിൽ എല്ലാ കണക്ഷനുകളും തിരഞ്ഞെടുക്കുക.",
     "allConnectionsDesc": "ഈ കീയ്ക്ക് സജീവമായ ഏത് കണക്ഷനും ഉപയോഗിക്കാം.",
-    "restrictedToConnections": "{count, plural, one {# കണക്ഷനിലേക്ക്} other {# കണക്ഷനുകളിലേക്ക്}} പരിമിതപ്പെടുത്തിയിരിക്കുന്നു."
+    "restrictedToConnections": "{count, plural, one {# കണക്ഷനിലേക്ക്} other {# കണക്ഷനുകളിലേക്ക്}} പരിമിതപ്പെടുത്തിയിരിക്കുന്നു.",
+    "preferredConnections": "മുൻഗണനയുള്ള കണക്ഷനുകൾ",
+    "preferredConnectionsDesc": "ഓരോ കീയ്ക്കുമുള്ള മുൻഗണനാ ക്രമം. മുൻഗണനയുള്ള കണക്ഷൻ ലഭ്യമല്ലെങ്കിൽ, റൂട്ടിംഗ് അടുത്ത യോഗ്യമായ കണക്ഷനിലേക്ക് മാറും.",
+    "preferredConnectionsNone": "മുൻഗണനയൊന്നും സജ്ജമാക്കിയിട്ടില്ല — ഡിഫോൾട്ട് റൂട്ടിംഗ് തന്ത്രം ഉപയോഗിക്കുന്നു.",
+    "preferredConnectionsClear": "മായ്ക്കുക"
   },
   "auditLog": {
     "title": "ഓഡിറ്റ് ലോഗ്",

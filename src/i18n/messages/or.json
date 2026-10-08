@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "କେବଳ ଚୟନିତ ସଂଯୋଗଗୁଡ଼ିକ",
     "selectAtLeastOneConnection": "ଅତି କମ୍ରେ ଗୋଟିଏ ସଂଯୋଗ ଚୟନ କରନ୍ତୁ କିମ୍ବା ସମସ୍ତ ସଂଯୋଗ ବାଛନ୍ତୁ।",
     "allConnectionsDesc": "ଏହି କୀ ଯେକୌଣସି ସକ୍ରିୟ ସଂଯୋଗ ବ୍ୟବହାର କରିପାରିବ।",
-    "restrictedToConnections": "{count, plural, one {#ଟି ସଂଯୋଗ} other {#ଟି ସଂଯୋଗ}} ମଧ୍ୟରେ ସୀମିତ।"
+    "restrictedToConnections": "{count, plural, one {#ଟି ସଂଯୋଗ} other {#ଟି ସଂଯୋଗ}} ମଧ୍ୟରେ ସୀମିତ।",
+    "preferredConnections": "ପସନ୍ଦର ସଂଯୋଗଗୁଡ଼ିକ",
+    "preferredConnectionsDesc": "ପ୍ରତ୍ୟେକ କି ପାଇଁ ପ୍ରାଥମିକତା କ୍ରମ। ଯଦି ପସନ୍ଦର ସଂଯୋଗ ଉପଲବ୍ଧ ନଥାଏ, ରାଉଟିଂ ପରବର୍ତ୍ତୀ ଯୋଗ୍ୟ ସଂଯୋଗକୁ ଯାଏ।",
+    "preferredConnectionsNone": "କୌଣସି ପସନ୍ଦ ସେଟ୍ କରାଯାଇନାହିଁ — ଡିଫଲ୍ଟ ରାଉଟିଂ କୌଶଳ ବ୍ୟବହୃତ ହୁଏ।",
+    "preferredConnectionsClear": "ସଫା କରନ୍ତୁ"
   },
   "auditLog": {
     "title": "ଅଡିଟ୍ ଲଗ୍",

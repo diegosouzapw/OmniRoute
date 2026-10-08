@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Միայն ընտրված կապերը",
     "selectAtLeastOneConnection": "Ընտրեք առնվազն մեկ կապ կամ ընտրեք «Բոլոր կապերը»։",
     "allConnectionsDesc": "Այս բանալին կարող է օգտագործել ցանկացած ակտիվ կապ։",
-    "restrictedToConnections": "Սահմանափակված է {count, plural, one {# կապով} other {# կապով}}։"
+    "restrictedToConnections": "Սահմանափակված է {count, plural, one {# կապով} other {# կապով}}։",
+    "preferredConnections": "Նախընտրելի կապեր",
+    "preferredConnectionsDesc": "Առաջնահերթության կարգ յուրաքանչյուր բանալու համար։ Եթե նախընտրելի կապը հասանելի չէ, երթուղումն անցնում է հաջորդ համապատասխան կապին։",
+    "preferredConnectionsNone": "Նախընտրություն սահմանված չէ — օգտագործվում է երթուղման լռելյայն ռազմավարությունը։",
+    "preferredConnectionsClear": "Մաքրել"
   },
   "auditLog": {
     "title": "Աուդիտի մատյան",

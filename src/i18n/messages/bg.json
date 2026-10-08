@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "Само избраните връзки",
     "selectAtLeastOneConnection": "Изберете поне една връзка или изберете „Всички връзки“.",
     "allConnectionsDesc": "Този ключ може да използва всяка активна връзка.",
-    "restrictedToConnections": "Ограничено до {count, plural, one {# връзка} other {# връзки}}."
+    "restrictedToConnections": "Ограничено до {count, plural, one {# връзка} other {# връзки}}.",
+    "preferredConnections": "Предпочитани връзки",
+    "preferredConnectionsDesc": "Ред на приоритет за всеки ключ. Ако предпочитана връзка е недостъпна, маршрутизирането преминава към следващата допустима.",
+    "preferredConnectionsNone": "Няма зададено предпочитание — използва се стратегията за маршрутизиране по подразбиране.",
+    "preferredConnectionsClear": "Изчисти"
   },
   "auditLog": {
     "title": "Дневник за одит",

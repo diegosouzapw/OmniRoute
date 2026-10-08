@@ -2483,7 +2483,11 @@
     "onlySelectedConnections": "फक्त निवडलेली कनेक्शन्स",
     "selectAtLeastOneConnection": "किमान एक कनेक्शन निवडा किंवा सर्व कनेक्शन्स निवडा.",
     "allConnectionsDesc": "ही की कोणतेही सक्रिय कनेक्शन वापरू शकते.",
-    "restrictedToConnections": "{count, plural, one {# कनेक्शनपुरते} other {# कनेक्शन्सपुरते}} मर्यादित."
+    "restrictedToConnections": "{count, plural, one {# कनेक्शनपुरते} other {# कनेक्शन्सपुरते}} मर्यादित.",
+    "preferredConnections": "पसंतीची कनेक्शन्स",
+    "preferredConnectionsDesc": "प्रत्येक कीसाठी प्राधान्य क्रम. पसंतीचे कनेक्शन उपलब्ध नसल्यास, राउटिंग पुढील पात्र कनेक्शनवर जाते.",
+    "preferredConnectionsNone": "कोणतीही पसंती सेट केलेली नाही — डीफॉल्ट राउटिंग धोरण वापरले जाते.",
+    "preferredConnectionsClear": "साफ करा"
   },
   "auditLog": {
     "title": "ऑडिट लॉग",
