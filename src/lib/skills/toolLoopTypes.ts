@@ -68,6 +68,7 @@ export type NonStreamingProviderLegResult =
   | {
       kind: "error";
       result: ChatCoreErrorResult;
+      upstreamDiagnostic?: Record<string, unknown>;
       receipt: ProviderLegReceipt;
       usage: ProviderLegUsage | null;
     };
@@ -194,6 +195,8 @@ export interface NonStreamingClientTranslateInput {
   customToolNames?: ReadonlySet<string>;
   requestToolIdentityMap: Map<string, { namespace?: string; name: string }> | null;
   reasoningCacheScope: string | null;
+  /** Never retain reasoning from a response that may echo video transcript cues. */
+  videoTranscriptSensitive?: boolean;
   clientHeaders: Headers | Record<string, unknown> | null;
   isClaudeCodeCompatible: boolean;
   /**

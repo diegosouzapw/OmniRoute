@@ -52,13 +52,34 @@ export function createCodexAccountPool(connection: CodexAccountConnection): Code
 /** Project one persisted connection into the safe parent/child account read model. */
 export function projectCodexAccountPool(
   connection: CodexAccountConnection,
-  now = Date.now()
+  now = Date.now(),
+  cachedUsage?: { quotas: Record<string, unknown> | null; fetchedAt: string } | null
 ): CodexAccountPoolProjection {
   const pool = createCodexAccountPool(connection);
   const children = pool.children.map((child) => {
     const state = inspectCodexAccount(pool, child, now);
     const hydration = getCodexChildQuotaHydration(child);
     const quotaWindow = (window: "5h" | "7d"): CodexQuotaWindowSnapshot | null => {
+      const key = `${child.scope === "spark" ? "gpt_5_3_codex_spark_" : ""}${window === "5h" ? "session" : "weekly"}`;
+      const raw = cachedUsage?.quotas?.[key];
+      const cached = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : null;
+      const headerTime = Date.parse(hydration.quotaState?.observedAt ?? "");
+      if (
+        cached &&
+        Number.isFinite(Date.parse(cachedUsage!.fetchedAt)) &&
+        (!Number.isFinite(headerTime) || Date.parse(cachedUsage!.fetchedAt) >= headerTime) &&
+        typeof cached.used === "number" &&
+        Number.isFinite(cached.used) &&
+        typeof cached.total === "number" &&
+        cached.total > 0
+      ) {
+        return {
+          usage: cached.used,
+          limit: cached.total,
+          resetAt: typeof cached.resetAt === "string" ? cached.resetAt : null,
+          usedPercentage: (cached.used / cached.total) * 100,
+        };
+      }
       const quota = hydration.quotaState;
       if (!quota) return null;
       const usage = quota[window === "5h" ? "usage5h" : "usage7d"];

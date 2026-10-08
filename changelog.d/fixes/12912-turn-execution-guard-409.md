@@ -1,1 +1,0 @@
-- **fix(chatcore):** block a client's own duplicate retry (same idempotency key) from opening a second upstream turn while the first is still in flight, returning `409 turn_in_progress` instead of wasting quota on a redundant execution

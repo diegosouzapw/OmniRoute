@@ -57,6 +57,19 @@ export function decodeSkillToolName(toolName: string): string {
 // cannot blow the stack.
 const MAX_SCHEMA_REPAIR_DEPTH = 32;
 
+// JSON Schema primitive type names, used by the #14288 shorthand expansion
+// outside schema maps: a bare-map value is only treated as shorthand when it
+// names one of these, so string keywords on schema nodes stay untouched.
+const PRIMITIVE_TYPE_NAMES = new Set([
+  "string",
+  "number",
+  "integer",
+  "boolean",
+  "object",
+  "array",
+  "null",
+]);
+
 // JSON Schema keywords whose *value* is itself a schema node/map, not a
 // user-declared property — recursing into their children must not treat the
 // container itself as a "bare property map" candidate. Mirrors
@@ -157,6 +170,31 @@ function repairMalformedSchema(node: unknown, parentKey?: string, depth = 0): vo
   }
 
   const record = node as Record<string, unknown>;
+
+  // #14288: expand string-shorthand property values ("topic": "string") into
+  // proper schema nodes ({ type: "string" }) at every schema-map level
+  // (properties/patternProperties/definitions/$defs) and inside bare property
+  // maps before they get lifted, not just at the root (#11881). Strict
+  // validators (DeepSeek behind opencode-go) reject a raw string where a
+  // schema object is required:
+  //   Invalid schema for function 'omr_skill_...': "string" is not of types
+  //   "boolean", "object"
+  // Direct entries of a schema map are property definitions, so any
+  // non-empty string there is shorthand. Elsewhere (e.g. a bare map mixing
+  // shorthand and real schema nodes) only expand strings naming a JSON
+  // Schema primitive type, so keyword-only records like { title: "foo" } or
+  // { description: "..." } are never mistaken for property maps.
+  const expandAll = parentKey !== undefined && SCHEMA_MAP_KEYS.has(parentKey);
+  const expandTyped = parentKey !== undefined && !isSchemaNode(record);
+  if (expandAll || expandTyped) {
+    for (const [key, value] of Object.entries(record)) {
+      if (typeof value === "string" && value.length > 0) {
+        if (expandAll || PRIMITIVE_TYPE_NAMES.has(value)) {
+          record[key] = { type: value };
+        }
+      }
+    }
+  }
 
   for (const [key, value] of Object.entries(record)) {
     if (value && typeof value === "object") {

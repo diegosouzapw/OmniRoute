@@ -4,13 +4,28 @@
  */
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { getCircuitBreaker, STATE } from "../../../src/shared/utils/circuitBreaker.ts";
+import { CliproxyManagementHealthCache } from "../../../src/lib/services/cliproxyManagementPreflight.ts";
+import type { CliproxyAccountHealthResult } from "../../../src/lib/services/cliproxyAccountHealth.ts";
+import { connectionCircuitBreakerName } from "../../../open-sse/services/connectionCircuitBreaker.ts";
 import type {
   AttemptLoopDeps,
   AttemptLoopState,
   GateDecision,
 } from "../../../open-sse/services/combo/attemptLoopTypes.ts";
 import type { ResolvedComboTarget } from "../../../open-sse/services/combo/types.ts";
+
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-execute-target-gates-"));
+process.env.DATA_DIR = TEST_DATA_DIR;
+
+test.after(async () => {
+  const core = await import("../../../src/lib/db/core.ts");
+  core.resetDbInstance();
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+});
 
 test("attemptLoopTypes exports GateDecision discriminant", async () => {
   const mod = await import("../../../open-sse/services/combo/attemptLoopTypes.ts");
@@ -104,6 +119,60 @@ test("breaker OPEN skips and does not call handleSingleModel", async () => {
   });
   assert.equal(decision.kind, "skip");
   assert.equal(state.skippedForCircuitOpen, true);
+});
+
+/**
+ * #14530 — the pre-dispatch circuit gate must look the connection breaker up
+ * under `connectionCircuitBreakerName(provider, target.connectionId)`, not
+ * under the bare provider name. Pins the breaker NAME, not just the skip:
+ * the provider breaker stays CLOSED in both tests, so a lookup that fell back
+ * to `getCircuitBreaker(provider)` would let the dead connection proceed, and
+ * a lookup that widened to the provider would wrongly skip its healthy sibling.
+ */
+test("#14530: an OPEN connection breaker skips only that connection", async () => {
+  const { evaluateExecuteTargetGates } =
+    await import("../../../open-sse/services/combo/executeTargetGates.ts");
+  const provider = `openai-gates-14530-${Date.now()}`;
+  const deadConnectionId = `conn-dead-${Date.now()}`;
+  const connectionBreaker = getCircuitBreaker(
+    connectionCircuitBreakerName(provider, deadConnectionId),
+    { failureThreshold: 1, resetTimeout: 60_000 }
+  );
+  connectionBreaker._onFailure("transient");
+  assert.equal(connectionBreaker.getStatus().state, STATE.OPEN);
+  // The provider-wide breaker must be untouched — that is the whole point.
+  assert.notEqual(getCircuitBreaker(provider).getStatus().state, STATE.OPEN);
+
+  const target = modelTarget({
+    provider,
+    modelStr: `${provider}/gpt-4o-mini`,
+    connectionId: deadConnectionId,
+  });
+  const state = emptyState({ orderedTargets: [target] });
+  const decision = await evaluateExecuteTargetGates({ index: 0, state, deps: baseDeps() });
+  assert.equal(decision.kind, "skip");
+  assert.equal(state.skippedForCircuitOpen, true);
+});
+
+test("#14530: a sibling connection on the same provider still proceeds", async () => {
+  const { evaluateExecuteTargetGates } =
+    await import("../../../open-sse/services/combo/executeTargetGates.ts");
+  const provider = `openai-gates-14530-sibling-${Date.now()}`;
+  const deadConnectionId = `conn-dead-${Date.now()}`;
+  getCircuitBreaker(connectionCircuitBreakerName(provider, deadConnectionId), {
+    failureThreshold: 1,
+    resetTimeout: 60_000,
+  })._onFailure("transient");
+
+  const healthy = modelTarget({
+    provider,
+    modelStr: `${provider}/gpt-4o-mini`,
+    connectionId: `conn-healthy-${Date.now()}`,
+  });
+  const state = emptyState({ orderedTargets: [healthy] });
+  const decision = await evaluateExecuteTargetGates({ index: 0, state, deps: baseDeps() });
+  assert.equal(decision.kind, "proceed");
+  assert.equal(state.skippedForCircuitOpen, false);
 });
 
 test("exhausted connection skip uses getExhaustedTargetSkipReason", async () => {
@@ -297,4 +366,510 @@ test("injection: dropping fallbackAttempts from targetForAttempt goes red", asyn
       true
     );
   }
+});
+
+// ──────────────── CLIProxyAPI management-health preflight wiring ────────────────
+
+function accountFixture(
+  overrides: Partial<CliproxyAccountHealthResult["accounts"][number]> = {}
+): CliproxyAccountHealthResult["accounts"][number] {
+  return {
+    authIndex: `idx-${Math.random()}`,
+    provider: "claude",
+    type: "claude",
+    label: "Account",
+    status: "active",
+    disabled: false,
+    unavailable: false,
+    createdAt: null,
+    updatedAt: null,
+    nextRetryAfter: null,
+    success: 1,
+    failed: 0,
+    recentRequests: [],
+    modelQuotas: {},
+    ...overrides,
+  };
+}
+
+async function makeCliproxyConnection(
+  providersDb: typeof import("../../../src/lib/db/providers.ts"),
+  readCache: typeof import("../../../src/lib/db/readCache.ts"),
+  name: string,
+  apiKey: string
+) {
+  const connection = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name,
+    apiKey,
+    providerSpecificData: {
+      // Same host/port as the operator default so the gate may reuse trusted
+      // management health. A foreign cliproxy baseUrl must fail open instead.
+      baseUrl: "http://127.0.0.1:8317/v1",
+      isCliproxy: true,
+    },
+  });
+  readCache.invalidateDbCache("connections");
+  return connection;
+}
+
+test("CLIProxyAPI preflight gate: two unavailable Claude accounts skip Claude but allow Gemini and Codex on the same instance", async () => {
+  const providersDb = await import("../../../src/lib/db/providers.ts");
+  const readCache = await import("../../../src/lib/db/readCache.ts");
+  const { evaluateExecuteTargetGates } =
+    await import("../../../open-sse/services/combo/executeTargetGates.ts");
+
+  const connection = await makeCliproxyConnection(
+    providersDb,
+    readCache,
+    "CLIProxy-Multi-Family",
+    "cpa-secret-multi"
+  );
+
+  const health: CliproxyAccountHealthResult = {
+    state: "ready",
+    accounts: [
+      accountFixture({ authIndex: "c1", provider: "claude", type: "claude", unavailable: true }),
+      accountFixture({ authIndex: "c2", provider: "claude", type: "claude", disabled: true }),
+      accountFixture({ authIndex: "g1", provider: "gemini", type: "gemini" }),
+      accountFixture({ authIndex: "cx1", provider: "codex", type: "codex" }),
+    ],
+    version: "1.0",
+  };
+  const cache = new CliproxyManagementHealthCache({ fetcher: async () => health });
+
+  const claudeDecision = await evaluateExecuteTargetGates({
+    index: 0,
+    state: emptyState({
+      orderedTargets: [
+        modelTarget({
+          connectionId: connection.id,
+          provider: "openai",
+          modelStr: "claude-3-7-sonnet",
+        }),
+      ],
+    }),
+    deps: baseDeps({ cliproxyManagementHealthCache: cache }),
+  });
+  assert.equal(claudeDecision.kind, "skip");
+
+  const geminiDecision = await evaluateExecuteTargetGates({
+    index: 0,
+    state: emptyState({
+      orderedTargets: [
+        modelTarget({
+          connectionId: connection.id,
+          provider: "openai",
+          modelStr: "gemini-2.5-pro",
+        }),
+      ],
+    }),
+    deps: baseDeps({ cliproxyManagementHealthCache: cache }),
+  });
+  assert.equal(geminiDecision.kind, "proceed");
+
+  const codexDecision = await evaluateExecuteTargetGates({
+    index: 0,
+    state: emptyState({
+      orderedTargets: [
+        modelTarget({ connectionId: connection.id, provider: "openai", modelStr: "gpt-4o" }),
+      ],
+    }),
+    deps: baseDeps({ cliproxyManagementHealthCache: cache }),
+  });
+  assert.equal(codexDecision.kind, "proceed");
+});
+
+test("CLIProxyAPI preflight gate: one healthy Claude account among unavailable ones does not skip", async () => {
+  const providersDb = await import("../../../src/lib/db/providers.ts");
+  const readCache = await import("../../../src/lib/db/readCache.ts");
+  const { evaluateExecuteTargetGates } =
+    await import("../../../open-sse/services/combo/executeTargetGates.ts");
+
+  const connection = await makeCliproxyConnection(
+    providersDb,
+    readCache,
+    "CLIProxy-Healthy-Claude",
+    "cpa-secret-healthy"
+  );
+
+  const health: CliproxyAccountHealthResult = {
+    state: "ready",
+    accounts: [
+      accountFixture({ authIndex: "c1", provider: "claude", type: "claude", unavailable: true }),
+      accountFixture({ authIndex: "c2", provider: "claude", type: "claude", unavailable: false }),
+    ],
+    version: "1.0",
+  };
+  const cache = new CliproxyManagementHealthCache({ fetcher: async () => health });
+
+  const decision = await evaluateExecuteTargetGates({
+    index: 0,
+    state: emptyState({
+      orderedTargets: [
+        modelTarget({
+          connectionId: connection.id,
+          provider: "openai",
+          modelStr: "claude-3-7-sonnet",
+        }),
+      ],
+    }),
+    deps: baseDeps({ cliproxyManagementHealthCache: cache }),
+  });
+  assert.equal(decision.kind, "proceed");
+});
+
+test("CLIProxyAPI preflight gate: only Opus quota rejected skips Opus but allows healthy Sonnet", async () => {
+  const providersDb = await import("../../../src/lib/db/providers.ts");
+  const readCache = await import("../../../src/lib/db/readCache.ts");
+  const { evaluateExecuteTargetGates } =
+    await import("../../../open-sse/services/combo/executeTargetGates.ts");
+
+  const connection = await makeCliproxyConnection(
+    providersDb,
+    readCache,
+    "CLIProxy-Model-Quota",
+    "cpa-secret-quota"
+  );
+
+  const now = new Date().toISOString();
+  const health: CliproxyAccountHealthResult = {
+    state: "ready",
+    accounts: [
+      accountFixture({
+        authIndex: "c1",
+        provider: "claude",
+        type: "claude",
+        modelQuotas: {
+          "claude-opus-4-6": {
+            observedAt: now,
+            signals: {
+              "Anthropic-Ratelimit-Unified-Status": "rejected",
+              "Retry-After": "3600",
+            },
+          },
+          "claude-sonnet-4-6": {
+            observedAt: now,
+            signals: { "Anthropic-Ratelimit-Unified-Status": "allowed" },
+          },
+        },
+      }),
+    ],
+    version: "1.0",
+  };
+  const cache = new CliproxyManagementHealthCache({ fetcher: async () => health });
+
+  const opusDecision = await evaluateExecuteTargetGates({
+    index: 0,
+    state: emptyState({
+      orderedTargets: [
+        modelTarget({
+          connectionId: connection.id,
+          provider: "openai",
+          modelStr: "claude-opus-4-6",
+        }),
+      ],
+    }),
+    deps: baseDeps({ cliproxyManagementHealthCache: cache }),
+  });
+  assert.equal(opusDecision.kind, "skip");
+
+  const sonnetDecision = await evaluateExecuteTargetGates({
+    index: 0,
+    state: emptyState({
+      orderedTargets: [
+        modelTarget({
+          connectionId: connection.id,
+          provider: "openai",
+          modelStr: "claude-sonnet-4-6",
+        }),
+      ],
+    }),
+    deps: baseDeps({ cliproxyManagementHealthCache: cache }),
+  });
+  assert.equal(sonnetDecision.kind, "proceed");
+});
+
+test("CLIProxyAPI preflight gate: management API error fails open (never skips)", async () => {
+  const providersDb = await import("../../../src/lib/db/providers.ts");
+  const readCache = await import("../../../src/lib/db/readCache.ts");
+  const { evaluateExecuteTargetGates } =
+    await import("../../../open-sse/services/combo/executeTargetGates.ts");
+
+  const connection = await makeCliproxyConnection(
+    providersDb,
+    readCache,
+    "CLIProxy-Mgmt-Error",
+    "cpa-secret-error"
+  );
+
+  for (const errState of [
+    "missing_key",
+    "unauthorized",
+    "unsupported",
+    "invalid_response",
+    "unreachable",
+  ] as const) {
+    const cache = new CliproxyManagementHealthCache({
+      fetcher: async () => ({ state: errState, accounts: [], version: null }),
+    });
+    const decision = await evaluateExecuteTargetGates({
+      index: 0,
+      state: emptyState({
+        orderedTargets: [
+          modelTarget({
+            connectionId: connection.id,
+            provider: "openai",
+            modelStr: "claude-3-7-sonnet",
+          }),
+        ],
+      }),
+      deps: baseDeps({ cliproxyManagementHealthCache: cache }),
+    });
+    assert.equal(decision.kind, "proceed", `state ${errState} must fail open`);
+  }
+});
+
+test("CLIProxyAPI preflight gate: TTL + singleflight coalesce concurrent fetches", async () => {
+  const providersDb = await import("../../../src/lib/db/providers.ts");
+  const readCache = await import("../../../src/lib/db/readCache.ts");
+  const { evaluateExecuteTargetGates } =
+    await import("../../../open-sse/services/combo/executeTargetGates.ts");
+
+  const connection = await makeCliproxyConnection(
+    providersDb,
+    readCache,
+    "CLIProxy-TTL-Singleflight",
+    "cpa-secret-ttl"
+  );
+
+  let fetchCount = 0;
+  const cache = new CliproxyManagementHealthCache({
+    // A 50ms TTL expired between calls on a loaded runner; 1s keeps the same
+    // contract (coalesce, serve within TTL, refetch after expiry) without the flake.
+    ttlMs: 1000,
+    fetcher: async () => {
+      fetchCount++;
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      return {
+        state: "ready",
+        accounts: [accountFixture({ authIndex: "c1", provider: "claude", type: "claude" })],
+        version: "1.0",
+      };
+    },
+  });
+
+  const makeTargetDecision = () =>
+    evaluateExecuteTargetGates({
+      index: 0,
+      state: emptyState({
+        orderedTargets: [
+          modelTarget({
+            connectionId: connection.id,
+            provider: "openai",
+            modelStr: "claude-3-7-sonnet",
+          }),
+        ],
+      }),
+      deps: baseDeps({ cliproxyManagementHealthCache: cache }),
+    });
+
+  await Promise.all([makeTargetDecision(), makeTargetDecision(), makeTargetDecision()]);
+  assert.equal(fetchCount, 1, "singleflight must coalesce concurrent requests");
+
+  await makeTargetDecision();
+  assert.equal(fetchCount, 1, "cached result must be served within TTL");
+
+  await new Promise((resolve) => setTimeout(resolve, 1100));
+  await makeTargetDecision();
+  assert.equal(fetchCount, 2, "expired TTL must trigger a fresh fetch");
+});
+
+test("CLIProxyAPI preflight gate: generic non-CLIProxy OpenAI-compatible connection is never checked", async () => {
+  const providersDb = await import("../../../src/lib/db/providers.ts");
+  const readCache = await import("../../../src/lib/db/readCache.ts");
+  const { evaluateExecuteTargetGates } =
+    await import("../../../open-sse/services/combo/executeTargetGates.ts");
+
+  const connection = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "Generic-OpenAI",
+    apiKey: "sk-plain-key",
+    providerSpecificData: {
+      baseUrl: "https://api.openai.com/v1",
+    },
+  });
+  readCache.invalidateDbCache("connections");
+
+  let managementCalled = false;
+  const cache = new CliproxyManagementHealthCache({
+    fetcher: async () => {
+      managementCalled = true;
+      return { state: "ready", accounts: [], version: "1.0" };
+    },
+  });
+
+  const decision = await evaluateExecuteTargetGates({
+    index: 0,
+    state: emptyState({
+      orderedTargets: [
+        modelTarget({
+          connectionId: connection.id,
+          provider: "openai",
+          modelStr: "claude-3-7-sonnet",
+        }),
+      ],
+    }),
+    deps: baseDeps({ cliproxyManagementHealthCache: cache }),
+  });
+  assert.equal(decision.kind, "proceed");
+  assert.equal(
+    managementCalled,
+    false,
+    "management API must never be called for a generic OpenAI-compatible connection"
+  );
+});
+
+test("CLIProxyAPI preflight gate: stale per-model rejected flag on a recovered account does not skip; a live sibling rejection skips only that model (#14206)", async () => {
+  const providersDb = await import("../../../src/lib/db/providers.ts");
+  const readCache = await import("../../../src/lib/db/readCache.ts");
+  const { evaluateExecuteTargetGates } =
+    await import("../../../open-sse/services/combo/executeTargetGates.ts");
+
+  const connection = await makeCliproxyConnection(
+    providersDb,
+    readCache,
+    "CLIProxy-Stale-Rejected",
+    "cpa-secret-stale"
+  );
+
+  const staleObservedAt = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+  const liveObservedAt = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+  const health: CliproxyAccountHealthResult = {
+    state: "ready",
+    accounts: [
+      accountFixture({
+        authIndex: "c1",
+        provider: "claude",
+        type: "claude",
+        unavailable: false,
+        nextRetryAfter: null,
+        modelQuotas: {
+          "claude-opus-5": {
+            observedAt: staleObservedAt,
+            signals: {
+              "Anthropic-Ratelimit-Unified-Status": "rejected",
+              "Retry-After": "0",
+            },
+          },
+          "claude-sonnet-5": {
+            observedAt: liveObservedAt,
+            signals: {
+              "Anthropic-Ratelimit-Unified-Status": "rejected",
+              "Retry-After": "3600",
+            },
+          },
+        },
+      }),
+    ],
+    version: "1.0",
+  };
+  const cache = new CliproxyManagementHealthCache({ fetcher: async () => health });
+
+  test("CLIProxyAPI preflight gate: protected priority target falls through on pure management skip like quota cutoff", async () => {
+    const providersDb = await import("../../../src/lib/db/providers.ts");
+    const readCache = await import("../../../src/lib/db/readCache.ts");
+    const { evaluateExecuteTargetGates } =
+      await import("../../../open-sse/services/combo/executeTargetGates.ts");
+
+    const connection = await makeCliproxyConnection(
+      providersDb,
+      readCache,
+      "CLIProxy-Protected-Priority",
+      "cpa-secret-protected"
+    );
+
+    const health: CliproxyAccountHealthResult = {
+      state: "ready",
+      accounts: [
+        accountFixture({
+          authIndex: "c1",
+          provider: "claude",
+          type: "claude",
+          unavailable: true,
+        }),
+      ],
+      version: "1.0",
+    };
+    const cache = new CliproxyManagementHealthCache({ fetcher: async () => health });
+
+    const target = modelTarget({
+      connectionId: connection.id,
+      provider: "openai",
+      modelStr: "claude-3-7-sonnet",
+      fallbackOnlyOnQuotaExhaustion: true,
+    });
+    const state = emptyState({
+      orderedTargets: [target],
+      observeFailure(quotaExhausted, executionKey) {
+        this.observedFailure = true;
+        this.allObservedFailuresQuota &&= quotaExhausted;
+        if (!executionKey) return;
+        const trust = this.targetFailureTrust.get(executionKey) ?? {
+          observedFailure: false,
+          allObservedFailuresQuota: true,
+        };
+        trust.observedFailure = true;
+        trust.allObservedFailuresQuota &&= quotaExhausted;
+        this.targetFailureTrust.set(executionKey, trust);
+      },
+    });
+
+    const decision = await evaluateExecuteTargetGates({
+      index: 0,
+      state,
+      deps: baseDeps({ cliproxyManagementHealthCache: cache, strategy: "priority" }),
+    });
+
+    assert.equal(decision.kind, "skip");
+    if (decision.kind === "skip") {
+      assert.equal(
+        decision.result,
+        null,
+        "quota-like management skip must fall through to backup targets for protected priority"
+      );
+    }
+  });
+
+  const opusDecision = await evaluateExecuteTargetGates({
+    index: 0,
+    state: emptyState({
+      orderedTargets: [
+        modelTarget({
+          connectionId: connection.id,
+          provider: "openai",
+          modelStr: "claude-opus-5",
+        }),
+      ],
+    }),
+    deps: baseDeps({ cliproxyManagementHealthCache: cache }),
+  });
+  assert.equal(opusDecision.kind, "proceed");
+
+  const sonnetDecision = await evaluateExecuteTargetGates({
+    index: 0,
+    state: emptyState({
+      orderedTargets: [
+        modelTarget({
+          connectionId: connection.id,
+          provider: "openai",
+          modelStr: "claude-sonnet-5",
+        }),
+      ],
+    }),
+    deps: baseDeps({ cliproxyManagementHealthCache: cache }),
+  });
+  assert.equal(sonnetDecision.kind, "skip");
 });

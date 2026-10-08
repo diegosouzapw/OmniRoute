@@ -10,5 +10,6 @@ export function getBaseUrl(request?: NextRequest | null): string {
   if (process.env.OMNIROUTE_BASE_URL) return process.env.OMNIROUTE_BASE_URL;
   // Direct route-handler invocation (unit tests, programmatic calls) passes no
   // Request — fall back to the default local gateway origin instead of crashing.
-  return request?.nextUrl?.origin ?? "http://localhost:20128";
+  const defaultPort = process.env.PORT || process.env.DASHBOARD_PORT || 20128;
+  return request?.nextUrl?.origin ?? `http://localhost:${defaultPort}`;
 }

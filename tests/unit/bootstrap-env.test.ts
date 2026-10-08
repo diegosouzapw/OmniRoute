@@ -8,7 +8,7 @@
 // limitation, not a defect in the code under test: the OmniRoute runtime itself
 // cascades to node:sqlite/sql.js when better-sqlite3 is unavailable. See
 // tests/unit/_helpers/betterSqlite3Availability.ts for a guard helper.
-import test from "node:test";
+import test, { mock } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -50,6 +50,16 @@ function withTempEnv(fn) {
     }
     fs.rmSync(tempRoot, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
+}
+
+function captureStderr(fn) {
+  const write = mock.method(process.stderr, "write", () => true);
+  try {
+    fn();
+  } finally {
+    write.mock.restore();
+  }
+  return write.mock.calls.map((call) => String(call.arguments[0])).join("");
 }
 
 test("bootstrapEnv prefers ~/.omniroute/.env over server.env", () => {
@@ -163,5 +173,85 @@ test("bootstrapEnv ignores blank dataDirOverride values", () => {
     const env = bootstrapEnv({ dataDirOverride: "   ", quiet: true });
 
     assert.equal(env.JWT_SECRET, "jwt-from-dot-env");
+  });
+});
+
+test("bootstrapEnv does not claim a CHANGEME default when INITIAL_PASSWORD is unset", () => {
+  withTempEnv(({ dataDir }) => {
+    process.env.DATA_DIR = dataDir;
+
+    const output = captureStderr(() => bootstrapEnv());
+
+    assert.match(output, /INITIAL_PASSWORD is unset here/);
+    assert.match(output, /onboarding wizard/);
+    assert.doesNotMatch(output, /CHANGEME/);
+  });
+});
+
+test("bootstrapEnv warns that the CHANGEME placeholder becomes the password", () => {
+  withTempEnv(({ tempCwd, dataDir }) => {
+    process.env.DATA_DIR = dataDir;
+    fs.writeFileSync(path.join(tempCwd, ".env"), "INITIAL_PASSWORD=CHANGEME\n", "utf8");
+
+    const output = captureStderr(() => bootstrapEnv());
+
+    assert.match(output, /placeholder 'CHANGEME', a publicly known/);
+    assert.match(output, /In Docker, do it before the/);
+    assert.match(output, /reset-password/);
+    assert.doesNotMatch(output, /is unset here/);
+  });
+});
+
+test("bootstrapEnv warns on placeholder spellings that differ by case or surrounding whitespace", () => {
+  withTempEnv(({ dataDir }) => {
+    process.env.DATA_DIR = dataDir;
+    process.env.INITIAL_PASSWORD = " changeme ";
+
+    const output = captureStderr(() => bootstrapEnv());
+
+    assert.match(output, /placeholder 'CHANGEME', a publicly known/);
+    assert.doesNotMatch(output, /is unset here/);
+    assert.doesNotMatch(output, /only whitespace/);
+  });
+});
+
+test("bootstrapEnv leaves ./.env to Next.js when another .env is preferred", () => {
+  // When another .env is preferred, bootstrap never reads ./.env, so a directory there
+  // cannot stop startup on this path.
+  withTempEnv(({ tempCwd, dataDir }) => {
+    process.env.DATA_DIR = dataDir;
+    fs.mkdirSync(dataDir, { recursive: true });
+    fs.writeFileSync(path.join(dataDir, ".env"), "JWT_SECRET=jwt-from-dot-env\n", "utf8");
+    fs.mkdirSync(path.join(tempCwd, ".env"));
+
+    const output = captureStderr(() => bootstrapEnv());
+
+    assert.match(output, /INITIAL_PASSWORD is unset here/);
+    assert.doesNotMatch(output, /CHANGEME/);
+  });
+});
+
+test("bootstrapEnv warns that a whitespace-only INITIAL_PASSWORD becomes the password", () => {
+  withTempEnv(({ dataDir }) => {
+    process.env.DATA_DIR = dataDir;
+    process.env.INITIAL_PASSWORD = "   ";
+
+    const output = captureStderr(() => bootstrapEnv());
+
+    assert.match(output, /only whitespace/);
+    assert.match(output, /works from any address/);
+    assert.match(output, /Set a real/);
+    assert.doesNotMatch(output, /CHANGEME|is unset here/);
+  });
+});
+
+test("bootstrapEnv prints no password warning for a real INITIAL_PASSWORD", () => {
+  withTempEnv(({ dataDir }) => {
+    process.env.DATA_DIR = dataDir;
+    process.env.INITIAL_PASSWORD = "a-strong-unique-password";
+
+    const output = captureStderr(() => bootstrapEnv());
+
+    assert.doesNotMatch(output, /INITIAL_PASSWORD/);
   });
 });

@@ -39,6 +39,7 @@ import {
 import { findDefaultReferral } from "@/lib/radar/referrals";
 import { type ConnectionRowConnection } from "./components/ConnectionRow";
 import { useProviderConnections } from "./hooks/useProviderConnections";
+import { useProviderQuota } from "./hooks/useProviderQuota";
 import { useProviderSettings } from "./hooks/useProviderSettings";
 import { useProviderModels } from "./hooks/useProviderModels";
 import { useCommandCodeAuth } from "./hooks/useCommandCodeAuth";
@@ -150,6 +151,7 @@ export default function ProviderDetailPageClient() {
     handleToggleRateLimit,
     handleToggleQuotaVisibility,
     handleToggleClaudeExtraUsage,
+    handleToggleCodexPaidCredits,
     handleToggleCodexLimit,
     handleToggleCliproxyapiMode,
     handleSetUpstreamProxyMode,
@@ -205,6 +207,19 @@ export default function ProviderDetailPageClient() {
   const t = useTranslations("providers");
   const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
   const notify = useNotificationStore();
+  // Per-account usage/limits strip — cached snapshot from the server's
+  // providerLimitsCache, with per-connection on-demand live refresh.
+  const {
+    quotaByConnectionId,
+    refreshingIds: quotaRefreshingIds,
+    refreshConnection,
+  } = useProviderQuota();
+  const handleRefreshQuota = useCallback(
+    (connectionId: string) => {
+      void refreshConnection(connectionId);
+    },
+    [refreshConnection]
+  );
 
   // Phase 1i: external link flow — placed after notify/fetchConnections are defined
   const {
@@ -714,6 +729,7 @@ export default function ProviderDetailPageClient() {
                 handleToggleRateLimit={handleToggleRateLimit}
                 handleToggleQuotaVisibility={handleToggleQuotaVisibility}
                 handleToggleClaudeExtraUsage={handleToggleClaudeExtraUsage}
+                handleToggleCodexPaidCredits={handleToggleCodexPaidCredits}
                 canAutoSync={!usesCuratedModelsOnly && compatibleSupportsModelImport}
                 handleToggleConnectionAutoSync={handleToggleConnectionAutoSync}
                 handleToggleCliproxyapiMode={handleToggleCliproxyapiMode}
@@ -733,6 +749,9 @@ export default function ProviderDetailPageClient() {
                 handleToggleSelectAll={handleToggleSelectAll}
                 handleDistributeProxies={handleDistributeProxies}
                 cpaProviderEnabled={cpaProviderEnabled}
+                quotaByConnectionId={quotaByConnectionId}
+                quotaRefreshingIds={quotaRefreshingIds}
+                handleRefreshQuota={handleRefreshQuota}
                 onOpenEditModal={(conn) => {
                   setSelectedConnection(conn);
                   setShowEditModal(true);
@@ -847,7 +866,7 @@ export default function ProviderDetailPageClient() {
         isCommandCode={isCommandCode}
         isUpstreamProxyProvider={isUpstreamProxyProvider}
         subscriptionRisk={subscriptionRisk}
-        existingConnectionCount={connections.length}
+        existingConnectionNames={connections.map((c) => c.name ?? "").filter(Boolean)}
         showRiskNoticeModal={showRiskNoticeModal}
         handleConfirmRiskNotice={handleConfirmRiskNotice}
         handleCancelRiskNotice={handleCancelRiskNotice}

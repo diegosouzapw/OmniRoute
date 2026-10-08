@@ -1,20 +1,30 @@
 # Account-Ban / Banned-Keyword Detection (Slovenščina)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../security/BAN_DETECTION.md) · 🇪🇹 [am](../../../am/docs/security/BAN_DETECTION.md) · 🇸🇦 [ar](../../../ar/docs/security/BAN_DETECTION.md) · 🇦🇿 [az](../../../az/docs/security/BAN_DETECTION.md) · 🇧🇬 [bg](../../../bg/docs/security/BAN_DETECTION.md) · 🇧🇩 [bn](../../../bn/docs/security/BAN_DETECTION.md) · 🇨🇿 [cs](../../../cs/docs/security/BAN_DETECTION.md) · 🇩🇰 [da](../../../da/docs/security/BAN_DETECTION.md) · 🇩🇪 [de](../../../de/docs/security/BAN_DETECTION.md) · 🇬🇷 [el](../../../el/docs/security/BAN_DETECTION.md) · 🇪🇸 [es](../../../es/docs/security/BAN_DETECTION.md) · 🇪🇪 [et](../../../et/docs/security/BAN_DETECTION.md) · 🇮🇷 [fa](../../../fa/docs/security/BAN_DETECTION.md) · 🇫🇮 [fi](../../../fi/docs/security/BAN_DETECTION.md) · 🇫🇷 [fr](../../../fr/docs/security/BAN_DETECTION.md) · 🇮🇪 [ga](../../../ga/docs/security/BAN_DETECTION.md) · 🇮🇳 [gu](../../../gu/docs/security/BAN_DETECTION.md) · 🇳🇬 [ha](../../../ha/docs/security/BAN_DETECTION.md) · 🇮🇱 [he](../../../he/docs/security/BAN_DETECTION.md) · 🇮🇳 [hi](../../../hi/docs/security/BAN_DETECTION.md) · 🇭🇷 [hr](../../../hr/docs/security/BAN_DETECTION.md) · 🇭🇺 [hu](../../../hu/docs/security/BAN_DETECTION.md) · 🇦🇲 [hy](../../../hy/docs/security/BAN_DETECTION.md) · 🇮🇩 [id](../../../id/docs/security/BAN_DETECTION.md) · 🇳🇬 [ig](../../../ig/docs/security/BAN_DETECTION.md) · 🇮🇹 [it](../../../it/docs/security/BAN_DETECTION.md) · 🇯🇵 [ja](../../../ja/docs/security/BAN_DETECTION.md) · 🇬🇪 [ka](../../../ka/docs/security/BAN_DETECTION.md) · 🇰🇭 [km](../../../km/docs/security/BAN_DETECTION.md) · 🇮🇳 [kn](../../../kn/docs/security/BAN_DETECTION.md) · 🇰🇷 [ko](../../../ko/docs/security/BAN_DETECTION.md) · 🇱🇹 [lt](../../../lt/docs/security/BAN_DETECTION.md) · 🇱🇻 [lv](../../../lv/docs/security/BAN_DETECTION.md) · 🇮🇳 [ml](../../../ml/docs/security/BAN_DETECTION.md) · 🇮🇳 [mr](../../../mr/docs/security/BAN_DETECTION.md) · 🇲🇾 [ms](../../../ms/docs/security/BAN_DETECTION.md) · 🇲🇹 [mt](../../../mt/docs/security/BAN_DETECTION.md) · 🇲🇲 [my](../../../my/docs/security/BAN_DETECTION.md) · 🇳🇵 [ne](../../../ne/docs/security/BAN_DETECTION.md) · 🇳🇱 [nl](../../../nl/docs/security/BAN_DETECTION.md) · 🇳🇴 [no](../../../no/docs/security/BAN_DETECTION.md) · 🇮🇳 [or](../../../or/docs/security/BAN_DETECTION.md) · 🇮🇳 [pa](../../../pa/docs/security/BAN_DETECTION.md) · 🇵🇭 [phi](../../../phi/docs/security/BAN_DETECTION.md) · 🇵🇱 [pl](../../../pl/docs/security/BAN_DETECTION.md) · 🇵🇹 [pt](../../../pt/docs/security/BAN_DETECTION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/BAN_DETECTION.md) · 🇷🇴 [ro](../../../ro/docs/security/BAN_DETECTION.md) · 🇷🇺 [ru](../../../ru/docs/security/BAN_DETECTION.md) · 🇱🇰 [si](../../../si/docs/security/BAN_DETECTION.md) · 🇸🇰 [sk](../../../sk/docs/security/BAN_DETECTION.md) · 🇷🇸 [sr](../../../sr/docs/security/BAN_DETECTION.md) · 🇸🇪 [sv](../../../sv/docs/security/BAN_DETECTION.md) · 🇰🇪 [sw](../../../sw/docs/security/BAN_DETECTION.md) · 🇮🇳 [ta](../../../ta/docs/security/BAN_DETECTION.md) · 🇮🇳 [te](../../../te/docs/security/BAN_DETECTION.md) · 🇹🇭 [th](../../../th/docs/security/BAN_DETECTION.md) · 🇹🇷 [tr](../../../tr/docs/security/BAN_DETECTION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/BAN_DETECTION.md) · 🇵🇰 [ur](../../../ur/docs/security/BAN_DETECTION.md) · 🇺🇿 [uz](../../../uz/docs/security/BAN_DETECTION.md) · 🇻🇳 [vi](../../../vi/docs/security/BAN_DETECTION.md) · 🇳🇬 [yo](../../../yo/docs/security/BAN_DETECTION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/BAN_DETECTION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/BAN_DETECTION.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../security/BAN_DETECTION.md) · 🇪🇹 [am](../../../am/docs/security/BAN_DETECTION.md) · 🇸🇦 [ar](../../../ar/docs/security/BAN_DETECTION.md) · 🇦🇿 [az](../../../az/docs/security/BAN_DETECTION.md) · 🇧🇬 [bg](../../../bg/docs/security/BAN_DETECTION.md) · 🇧🇩 [bn](../../../bn/docs/security/BAN_DETECTION.md) · 🇧🇦 [bs](../../../bs/docs/security/BAN_DETECTION.md) · 🇨🇿 [cs](../../../cs/docs/security/BAN_DETECTION.md) · 🇩🇰 [da](../../../da/docs/security/BAN_DETECTION.md) · 🇩🇪 [de](../../../de/docs/security/BAN_DETECTION.md) · 🇬🇷 [el](../../../el/docs/security/BAN_DETECTION.md) · 🇪🇸 [es](../../../es/docs/security/BAN_DETECTION.md) · 🇪🇪 [et](../../../et/docs/security/BAN_DETECTION.md) · 🇮🇷 [fa](../../../fa/docs/security/BAN_DETECTION.md) · 🇫🇮 [fi](../../../fi/docs/security/BAN_DETECTION.md) · 🇫🇷 [fr](../../../fr/docs/security/BAN_DETECTION.md) · 🇮🇪 [ga](../../../ga/docs/security/BAN_DETECTION.md) · 🇮🇳 [gu](../../../gu/docs/security/BAN_DETECTION.md) · 🇳🇬 [ha](../../../ha/docs/security/BAN_DETECTION.md) · 🇮🇱 [he](../../../he/docs/security/BAN_DETECTION.md) · 🇮🇳 [hi](../../../hi/docs/security/BAN_DETECTION.md) · 🇭🇷 [hr](../../../hr/docs/security/BAN_DETECTION.md) · 🇭🇺 [hu](../../../hu/docs/security/BAN_DETECTION.md) · 🇦🇲 [hy](../../../hy/docs/security/BAN_DETECTION.md) · 🇮🇩 [id](../../../id/docs/security/BAN_DETECTION.md) · 🇳🇬 [ig](../../../ig/docs/security/BAN_DETECTION.md) · 🇮🇹 [it](../../../it/docs/security/BAN_DETECTION.md) · 🇯🇵 [ja](../../../ja/docs/security/BAN_DETECTION.md) · 🇬🇪 [ka](../../../ka/docs/security/BAN_DETECTION.md) · 🇰🇭 [km](../../../km/docs/security/BAN_DETECTION.md) · 🇮🇳 [kn](../../../kn/docs/security/BAN_DETECTION.md) · 🇰🇷 [ko](../../../ko/docs/security/BAN_DETECTION.md) · 🇱🇹 [lt](../../../lt/docs/security/BAN_DETECTION.md) · 🇱🇻 [lv](../../../lv/docs/security/BAN_DETECTION.md) · 🇮🇳 [ml](../../../ml/docs/security/BAN_DETECTION.md) · 🇮🇳 [mr](../../../mr/docs/security/BAN_DETECTION.md) · 🇲🇾 [ms](../../../ms/docs/security/BAN_DETECTION.md) · 🇲🇹 [mt](../../../mt/docs/security/BAN_DETECTION.md) · 🇲🇲 [my](../../../my/docs/security/BAN_DETECTION.md) · 🇳🇵 [ne](../../../ne/docs/security/BAN_DETECTION.md) · 🇳🇱 [nl](../../../nl/docs/security/BAN_DETECTION.md) · 🇳🇴 [no](../../../no/docs/security/BAN_DETECTION.md) · 🇮🇳 [or](../../../or/docs/security/BAN_DETECTION.md) · 🇮🇳 [pa](../../../pa/docs/security/BAN_DETECTION.md) · 🇵🇭 [phi](../../../phi/docs/security/BAN_DETECTION.md) · 🇵🇱 [pl](../../../pl/docs/security/BAN_DETECTION.md) · 🇵🇹 [pt](../../../pt/docs/security/BAN_DETECTION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/BAN_DETECTION.md) · 🇷🇴 [ro](../../../ro/docs/security/BAN_DETECTION.md) · 🇷🇺 [ru](../../../ru/docs/security/BAN_DETECTION.md) · 🇱🇰 [si](../../../si/docs/security/BAN_DETECTION.md) · 🇸🇰 [sk](../../../sk/docs/security/BAN_DETECTION.md) · 🇷🇸 [sr](../../../sr/docs/security/BAN_DETECTION.md) · 🇸🇪 [sv](../../../sv/docs/security/BAN_DETECTION.md) · 🇰🇪 [sw](../../../sw/docs/security/BAN_DETECTION.md) · 🇮🇳 [ta](../../../ta/docs/security/BAN_DETECTION.md) · 🇮🇳 [te](../../../te/docs/security/BAN_DETECTION.md) · 🇹🇭 [th](../../../th/docs/security/BAN_DETECTION.md) · 🇹🇷 [tr](../../../tr/docs/security/BAN_DETECTION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/BAN_DETECTION.md) · 🇵🇰 [ur](../../../ur/docs/security/BAN_DETECTION.md) · 🇺🇿 [uz](../../../uz/docs/security/BAN_DETECTION.md) · 🇻🇳 [vi](../../../vi/docs/security/BAN_DETECTION.md) · 🇳🇬 [yo](../../../yo/docs/security/BAN_DETECTION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/BAN_DETECTION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/BAN_DETECTION.md)
 
 ---
 
-OmniRoute pregleduje odzive napak nadrejenih ponudnikov in išče znake, ki kažejo, da je **račun ponudnika trajno neuporaben** (začasno onemogočen / deaktiviran / blokiran zaradi kršitve pogojev uporabe), ter ob ujemanju premakne to povezavo v **končno stanje `banned`**, tako da ni več izbrana za zahteve. To nastavlja kartica z nastavitvami **Security → Banned Keywords** (»Dodatne ključne besede, ki sprožijo zaznavanje trajne blokade računa. Vgrajene ključne besede se vedno upoštevajo.«).
+OmniRoute v odgovorih napak ponudnikov išče znake, ki kažejo, da je ponudnikov
+**račun trajno neaktiven** (začasno onemogočen / deaktiviran / blokiran zaradi kršitve pogojev uporabe), in ob
+ujemajočem se znaku povezavo premakne v **končno stanje `banned`**, zato ni
+več izbrana za zahteve. To nastavlja kartica z nastavitvami **Varnost → Prepovedane ključne besede**
+(»Dodatne ključne besede, ki sprožijo zaznavanje trajne blokade računa.
+Vgrajene ključne besede veljajo vedno.«).
 
-Ta stran dokumentira vgrajeni seznam, potek zaznavanja, njegov obseg, varno dodajanje ključnih besed po meri in obnovitev označene povezave. Končno stanje je del modela odpornosti — glejte
+Na tej strani so dokumentirani vgrajeni seznam, potek zaznavanja, njegov obseg, varno dodajanje
+ključnih besed po meri in način obnovitve označene povezave. Končno
+stanje je del modela odpornosti — glejte
 [RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) (»Končna stanja«).
 
-**Avtoritativni vir:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+**Vir resnice:** `open-sse/services/accountFallback.ts`
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+ter `open-sse/services/errorClassifier.ts` za nekončni razred preverjanja
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) in za
+vejo 403, ki ga uporablja.
 
 ## Vgrajene ključne besede
 
-Teh 8 podnizov se vedno upošteva (ne glede na velikost črk), neodvisno od morebitnega seznama po meri:
+Teh 7 podnizov se vedno upošteva (ne glede na velikost črk), neodvisno od morebitnega seznama po meri:
 
 ```
 account_deactivated
@@ -22,22 +32,46 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> Ta seznam se spreminja, ko ponudniki spreminjajo besedilo obvestil o blokadi. Avtoritativna
+> Ta seznam se razvija, ko ponudniki spreminjajo besedilo svojih obvestil o prepovedi. Merodajna
 > kopija je `ACCOUNT_DEACTIVATED_SIGNALS` v `open-sse/services/accountFallback.ts`;
 > zgornji blok obravnavajte kot posnetek trenutnega stanja.
 
-V isti datoteki sta dve sosednji, **ločeni** tabeli signalov, ki _nista_ del zaznavanja ključnih besed za blokado:
+### Ni prepoved: pozivi za preverjanje, ki jih lahko razreši upravljavec
 
-- `CREDITS_EXHAUSTED_SIGNALS` — izčrpana sredstva/kvota (`insufficient_quota`,
-  `credit_balance_too_low`, `payment required`, …) → končno stanje `credits_exhausted`.
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **ni končno stanje**; stanje je mogoče obnoviti z osvežitvijo žetona.
+`verify your account to continue` je **bil nekoč** na zgornjem seznamu. To ni signal
+prepovedi in je zdaj v `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS`, ki ga razvrsti kot
+obnovljivo napako `PROJECT_ROUTE_ERROR`, namesto da bi trajno zaključil povezavo.
 
-Opomba: pogoste prehodne besedne zveze, kot sta **`rate limit`** / `429`, obravnava pot omejevanja hitrosti / ohlajanja povezave in **niso** signali blokade.
+Google Cloud Code / Antigravity ga vrneta kot `403 VALIDATION_REQUIRED`. Je
+**prehoden in se pojavlja pri zdravih računih s polno kvoto** — izmerjeno v produkcijskem
+okolju (2026-09-25, `proxy_logs`): ena povezava Antigravity je v 10 minutah vrnila 33 takih
+odzivov 403 in ostala `active`, medtem ko je bila sorodna povezava, ki je imela na vseh
+17 oknih na voljo 100 % svoje kvote, trajno prepovedana zaradi **enega samega** takega odziva. Edina
+razlika je bila, kateri poskus je bil po naključju obdelan.
+
+Razlikovanje je pomembno, ker je terminalno ujemanje označeno z `permanent: true` (1-letno obdobje mirovanja,
+brez samodejne obnovitve), medtem ko lahko upravljavec poziv za preverjanje razreši v brskalniku.
+Če bi izraz ostal na seznamu prepovedi, bi bila obnovljiva veja za napako cloud-code 403 v
+`classifyProviderError` za to besedilo prav tako nedosegljiva, ker se `accountDeactivated`
+ovrednoti najprej — zato se obnovitev projektne poti, dodana za Gemini Code Assist v
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) in
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452), ne bi mogla nikoli izvesti.
+
+Tri sosednje, **ločene** tabele signalov _niso_ del zaznavanja prepovedanih ključnih besed:
+
+- `CREDITS_EXHAUSTED_SIGNALS` — porabljena sredstva/kvota (`insufficient_quota`,
+  `credit_balance_too_low`, `payment required`, …) → terminalno stanje `credits_exhausted`.
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **neterminalno**; osvežitev žetona lahko omogoči obnovitev.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **neterminalno**; upravljavec mora
+  znova preveriti račun pri zunanjem ponudniku. Nahaja se v `open-sse/services/errorClassifier.ts`
+  (drugi dve tabeli sta v `accountFallback.ts`). Glejte zgornji razdelek.
+
+Opomba: pogoste prehodne besedne zveze, kot sta **`rate limit`** / `429`, obravnava
+pot za omejevanje hitrosti / obdobje mirovanja povezave in **niso** signali prepovedi.
 
 ## Potek zaznavanja
 

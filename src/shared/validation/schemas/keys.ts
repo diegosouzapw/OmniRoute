@@ -1,3 +1,4 @@
+import { API_KEY_CODEX_SERVICE_MODES } from "../../constants/codexServiceMode";
 import { z } from "zod";
 import {
   ACCOUNT_FALLBACK_STRATEGY_VALUES,
@@ -61,6 +62,7 @@ export const createKeySchema = z
     dailyUsageLimitUsd: z.coerce.number().min(0).optional().nullable(),
     weeklyUsageLimitUsd: z.coerce.number().min(0).optional().nullable(),
     chaosModeEnabled: z.boolean().optional(),
+    expiresAt: z.string().datetime().nullable().optional(),
     scopes: z.array(z.string().trim().min(1).max(64)).max(32).optional(),
     allowedConnections: z.array(z.string().uuid()).min(1).max(100).optional(),
     preferredConnections: z.array(z.string().uuid()).max(100).optional(),
@@ -82,6 +84,15 @@ export const createKeySchema = z
 
 export const createSyncTokenSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(200),
+});
+
+export const setKeyQuotaSchema = z.object({
+  apiKeyId: z.string().trim().min(1, "apiKeyId is required"),
+  // 0/null means unlimited for the dimension (KISS: NULL stores unlimited).
+  // Negative values are rejected.
+  tpmLimit: z.coerce.number().min(0).optional().nullable(),
+  rpmLimit: z.coerce.number().min(0).optional().nullable(),
+  monthlyAmountUsd: z.coerce.number().min(0).optional().nullable(),
 });
 
 export const setBudgetSchema = z.object({
@@ -162,6 +173,7 @@ export const updateKeyPermissionsSchema = z
     allowedEndpoints: z.array(z.string().trim().min(1).max(64)).max(20).optional(),
     streamDefaultMode: z.enum(["legacy", "json"]).optional(),
     compressionEnabled: z.boolean().optional(),
+    codexServiceMode: z.enum(API_KEY_CODEX_SERVICE_MODES).optional(),
     allowAutoCombos: z.boolean().optional(),
     catalogScope: z.enum(["all", "combos", "models"]).optional(),
     cacheDefaultMode: z.enum(["legacy", "bypass"]).optional(),
@@ -223,6 +235,7 @@ export const updateKeyPermissionsSchema = z
       value.allowedEndpoints === undefined &&
       value.streamDefaultMode === undefined &&
       value.compressionEnabled === undefined &&
+      value.codexServiceMode === undefined &&
       value.allowAutoCombos === undefined &&
       value.catalogScope === undefined &&
       value.cacheDefaultMode === undefined &&
@@ -253,3 +266,38 @@ export const updateKeyPermissionsSchema = z
       }
     }
   });
+
+const accessListSchema = z.object({
+  models: z.array(z.string().trim().min(1)).max(1000).optional(),
+  combos: z.array(z.string().trim().min(1).max(200)).max(500).optional(),
+});
+
+type AccessList = z.infer<typeof accessListSchema>;
+
+const isNonEmptyList = (list: string[] | undefined) => (list?.length ?? 0) > 0;
+
+const hasAccessListEntries = (list: AccessList | undefined) =>
+  isNonEmptyList(list?.models) || isNonEmptyList(list?.combos);
+
+const requireAccessAssignEntries = (
+  data: { add?: AccessList; remove?: AccessList },
+  ctx: z.RefinementCtx
+) => {
+  if (!hasAccessListEntries(data.add) && !hasAccessListEntries(data.remove)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "At least one non-empty list of models or combos must be provided to add or remove",
+      path: ["add"],
+    });
+  }
+};
+
+export const apiKeyAccessAssignSchema = z
+  .object({
+    add: accessListSchema.optional(),
+    remove: accessListSchema.optional(),
+    switchToRestricted: z.boolean().optional(),
+  })
+  .superRefine(requireAccessAssignEntries);
+
+export type ApiKeyAccessAssignInput = z.infer<typeof apiKeyAccessAssignSchema>;

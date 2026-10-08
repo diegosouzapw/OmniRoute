@@ -1,4 +1,4 @@
-import type { Model as ModelV2 } from "@opencode-ai/sdk/v2";
+import type { LegacyModel } from "../legacy-model.js";
 import { type ApiFormatV2, type OmniRouteRawModelEntry, resolveApiBlockV2 } from "./models-map.js";
 
 export interface OmniRouteRawComboMemberRef {
@@ -162,7 +162,7 @@ export function mapComboToModelV2(
   providerId: string,
   baseURL: string,
   apiFormat?: ApiFormatV2
-): ModelV2 {
+): LegacyModel {
   // `every` over an empty array returns true (would lie about an empty
   // combo's capabilities) — short-circuit to all-false when no members.
   const hasMembers = members.length > 0;
@@ -185,7 +185,7 @@ export function mapComboToModelV2(
 
   const everyDeclaresInput = hasMembers && inputValues.length === members.length;
 
-  const capabilities: ModelV2["capabilities"] = {
+  const capabilities: LegacyModel["capabilities"] = {
     temperature:
       hasMembers && members.every((m) => (m.capabilities?.temperature ?? true) !== false),
     reasoning:
@@ -225,8 +225,15 @@ export function mapComboToModelV2(
       : resolveApiBlockV2(combo.id, baseURL, apiFormat);
   })();
 
+  // OmniRoute addresses a combo by its NAME (e.g. "static-best-free", "Kimi Coding", "auto/best-coding")
+  // — that string is what GET /v1/models publishes as the model id and what
+  // POST /v1/chat/completions routes via getComboByName (slugified names 400
+  // with "Unable to determine provider"). Some deployments store a UUID in
+  // combo.id; using it would publish an unselectable provider/<uuid> model.
+  const comboModelId = combo.name && combo.name.trim().length > 0 ? combo.name.trim() : combo.id;
+
   return {
-    id: combo.id,
+    id: comboModelId,
     providerID: providerId,
     api: comboApiBlock,
     name: combo.name && combo.name.trim().length > 0 ? combo.name : combo.id,

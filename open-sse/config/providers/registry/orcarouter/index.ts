@@ -51,6 +51,7 @@ export const orcarouterProvider: RegistryEntry = {
       supportsVision: true,
       contextLength: 1000000,
       maxOutputTokens: 128000,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
     },
     {
       id: "grok/grok-4.3",

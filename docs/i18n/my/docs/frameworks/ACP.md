@@ -1,561 +1,123 @@
-# ACP (Agent Client Protocol) (မြန်မာ)
+# ACP registry and registered CLI launchers (မြန်မာ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/ACP.md) · 🇪🇹 [am](../../../am/docs/frameworks/ACP.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/ACP.md) · 🇦🇿 [az](../../../az/docs/frameworks/ACP.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/ACP.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/ACP.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/ACP.md) · 🇩🇰 [da](../../../da/docs/frameworks/ACP.md) · 🇩🇪 [de](../../../de/docs/frameworks/ACP.md) · 🇬🇷 [el](../../../el/docs/frameworks/ACP.md) · 🇪🇸 [es](../../../es/docs/frameworks/ACP.md) · 🇪🇪 [et](../../../et/docs/frameworks/ACP.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/ACP.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/ACP.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/ACP.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/ACP.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/ACP.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/ACP.md) · 🇮🇱 [he](../../../he/docs/frameworks/ACP.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/ACP.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/ACP.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/ACP.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/ACP.md) · 🇮🇩 [id](../../../id/docs/frameworks/ACP.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/ACP.md) · 🇮🇹 [it](../../../it/docs/frameworks/ACP.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/ACP.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/ACP.md) · 🇰🇭 [km](../../../km/docs/frameworks/ACP.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/ACP.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/ACP.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/ACP.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/ACP.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/ACP.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/ACP.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/ACP.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/ACP.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/ACP.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/ACP.md) · 🇳🇴 [no](../../../no/docs/frameworks/ACP.md) · 🇮🇳 [or](../../../or/docs/frameworks/ACP.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/ACP.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/ACP.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/ACP.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/ACP.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/ACP.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/ACP.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/ACP.md) · 🇱🇰 [si](../../../si/docs/frameworks/ACP.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/ACP.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/ACP.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/ACP.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/ACP.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/ACP.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/ACP.md) · 🇮🇳 [te](../../../te/docs/frameworks/ACP.md) · 🇹🇭 [th](../../../th/docs/frameworks/ACP.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/ACP.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/ACP.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/ACP.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/ACP.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/ACP.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/ACP.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/ACP.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/ACP.md)
-
----
-
-> **အကျဉ်းချုပ်**: ACP သည် HTTP API များကို အသုံးပြုမည့်အစား OmniRoute က CLI agent များ (Claude Code၊ Codex ကဲ့သို့) ကို child process များအဖြစ် စတင်နိုင်စေသည်။ ၎င်းက သင့်အား "CLI-as-backend" transport ကို ရရှိစေသည်။
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/ACP.md) · 🇪🇹 [am](../../../am/docs/frameworks/ACP.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/ACP.md) · 🇦🇿 [az](../../../az/docs/frameworks/ACP.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/ACP.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/ACP.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/ACP.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/ACP.md) · 🇩🇰 [da](../../../da/docs/frameworks/ACP.md) · 🇩🇪 [de](../../../de/docs/frameworks/ACP.md) · 🇬🇷 [el](../../../el/docs/frameworks/ACP.md) · 🇪🇸 [es](../../../es/docs/frameworks/ACP.md) · 🇪🇪 [et](../../../et/docs/frameworks/ACP.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/ACP.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/ACP.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/ACP.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/ACP.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/ACP.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/ACP.md) · 🇮🇱 [he](../../../he/docs/frameworks/ACP.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/ACP.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/ACP.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/ACP.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/ACP.md) · 🇮🇩 [id](../../../id/docs/frameworks/ACP.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/ACP.md) · 🇮🇹 [it](../../../it/docs/frameworks/ACP.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/ACP.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/ACP.md) · 🇰🇭 [km](../../../km/docs/frameworks/ACP.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/ACP.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/ACP.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/ACP.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/ACP.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/ACP.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/ACP.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/ACP.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/ACP.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/ACP.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/ACP.md) · 🇳🇴 [no](../../../no/docs/frameworks/ACP.md) · 🇮🇳 [or](../../../or/docs/frameworks/ACP.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/ACP.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/ACP.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/ACP.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/ACP.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/ACP.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/ACP.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/ACP.md) · 🇱🇰 [si](../../../si/docs/frameworks/ACP.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/ACP.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/ACP.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/ACP.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/ACP.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/ACP.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/ACP.md) · 🇮🇳 [te](../../../te/docs/frameworks/ACP.md) · 🇹🇭 [th](../../../th/docs/frameworks/ACP.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/ACP.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/ACP.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/ACP.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/ACP.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/ACP.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/ACP.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/ACP.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/ACP.md)
 
 ---
 
-## ACP ဆိုသည်မှာ အဘယ်နည်း?
+OmniRoute သည် **CLI ရှာဖွေတွေ့ရှိမှု**၊ **မူရင်း Agent Client Protocol** နှင့်
+**အမွေအနှစ် stdio adapter များ** ကို သီးခြားခွဲထားသည်။ ထည့်သွင်းထားသည့် binary တစ်ခုကို ရှာတွေ့ခြင်းသည် ၎င်း၏
+စစ်မှန်ကြောင်းအတည်ပြုမှု၊ model ကိုက်ညီမှု သို့မဟုတ် prompt တစ်ခုကို ကိုင်တွယ်ရန် အသင့်ဖြစ်မှုကို သက်သေမပြနိုင်ပါ။
 
-ACP (Agent Client Protocol) သည် OmniRoute အတွက် **"CLI-as-backend" transport** တစ်ခုဖြစ်သည်။ AI provider များသို့ HTTP API ခေါ်ဆိုမှုများကို ကြားဖြတ်ဖမ်းယူမည့်အစား ACP သည် **CLI agent များကို child process များအဖြစ် စတင်ပြီး** ၎င်းတို့၏ မူရင်း interface မှတစ်ဆင့် prompt များကို ပေးပို့သည်။
+Dashboard သည် inventory နှင့် custom-agent မှတ်ပုံတင်ခြင်းအတွက် `GET /api/acp/agents` နှင့်
+`POST /api/acp/agents` ကို အသုံးပြုသည်။ ဤ route များသည် local-only စီမံခန့်ခွဲမှု route များဖြစ်ပြီး၊
+process များစတင်ရန် သို့မဟုတ် prompt များပေးပို့ရန်အတွက် public API မဟုတ်ပါ။ အတွင်းပိုင်း
+`AcpManager` သည် HTTP provider fallback အဖြစ် အလိုအလျောက် ပြောင်းလဲမသွားပါ။
 
-### ACP ကို အဘယ်ကြောင့် အသုံးပြုသင့်သနည်း?
+## မှတ်ပုံတင်ထားသော contract များ
 
-| အကျိုးကျေးဇူး                 | ဖော်ပြချက်                                                           |
-| ----------------------------- | -------------------------------------------------------------------- |
-| **API key မလိုအပ်ပါ**         | သင့်ရှိပြီးသား CLI authentication ကို အသုံးပြုသည်                    |
-| **မူရင်း protocol**           | CLI တစ်ခုချင်းစီ၏ မူရင်း input/output format ကို အသုံးပြုသည်         |
-| **အလိုအလျောက် ရှာဖွေခြင်း**   | သင့်စနစ်တွင် ထည့်သွင်းထားသော CLI များကို ရှာဖွေသတ်မှတ်သည်            |
-| **အသင့်ပါဝင်သော agent 15 ခု** | လူသုံးများသော CLI tool များအတွက် ကြိုတင်စီစဉ်ထားသည်                  |
-| **စိတ်ကြိုက် agent များ**     | settings မှတစ်ဆင့် သင့်ကိုယ်ပိုင် CLI tool များကို ထည့်သွင်းနိုင်သည် |
-| **Process စီမံခန့်ခွဲမှု**    | lifecycle (စတင်ခြင်း၊ ပေးပို့ခြင်း၊ ရပ်တန့်ခြင်း) ကို ကိုင်တွယ်သည်   |
+`config/cli-tools-manifest.json` သည် built-in စတင်လုပ်ဆောင်ရေး
+binary များ၊ argument များနှင့် backend mode များအတွက် တစ်ခုတည်းသော တရားဝင်အချက်အလက်ရင်းမြစ်ဖြစ်သည်။ Registry သည် ၎င်း၏ definition များကို
+ထို manifest မှ ရယူသည်။ ရှာဖွေတွေ့ရှိမှုကို 60 စက္ကန့်ကြာ cache သိမ်းထားသည်။
 
----
+- `acp`: Gemini contract သည် `gemini --experimental-acp` ကို စတင်ပြီး တရားဝင် TypeScript SDK မှတစ်ဆင့်
+  newline ဖြင့် ပိုင်းခြားထားသော ACP JSON-RPC ကို ဆက်သွယ်အသုံးပြုသည်။
+- `stdio-adapter`: အခြားမှတ်ပုံတင်ထားသော contract များသည် အမွေအနှစ် newline-input၊
+  stdout-output adapter ကို ဆက်လက်အသုံးပြုသည်။ Output မထွက်ဘဲ နှစ်စက္ကန့်ကြာပါက ၎င်း၏ response ပြီးဆုံးသည်။
+  ဤ adapter သည် ထို CLI များအတွက် မူရင်း ACP ပံ့ပိုးမှုရှိကြောင်း **အတည်မပြုပါ**။
 
-## ပံ့ပိုးထားသော CLI Agent များ
+Gemini သည် စတင်အသုံးပြုသည့် flag ကို ၎င်း၏ [CLI ကိုးကားချက်](https://geminicli.com/docs/cli/cli-reference/) တွင် မှတ်တမ်းတင်ထားသည်။
+Client သည် initialization၊ session ဖန်တီးခြင်း၊ prompt request များ၊ notification များနှင့် cancellation အတွက်
+[တရားဝင် ACP SDK](https://github.com/agentclientprotocol/typescript-sdk) ကို အသုံးပြုသည်။
 
-ACP တွင် **အသင့်ပါဝင်သော CLI agent 15 ခု** ကို တစ်ခါတည်း ပံ့ပိုးပေးထားသည်-
+Custom-agent definition များသည် administrator က ထိန်းချုပ်သော launch contract များအဖြစ် ဆက်လက်တည်ရှိသည်။
+Binary နှင့် argument များကို မှတ်ပုံတင်ခြင်းသည် ထို process အား server user ၏ local
+လုပ်ဆောင်ခွင့်များကို ပေးသည်။ မှတ်ပုံတင်ခြင်းသည် sandbox မဟုတ်ပါ။ Version probe များသည်
+မှတ်ပုံတင်ထားသော executable နှင့် အသိအမှတ်ပြုထားသည့် version flag ကိုသာ လက်ခံသည်။
 
-| Agent ID      | ပြသမည့်အမည်        | Binary        | Protocol |
-| ------------- | ------------------ | ------------- | -------- |
-| `codex`       | OpenAI Codex CLI   | `codex`       | stdio    |
-| `claude`      | Claude Code CLI    | `claude`      | stdio    |
-| `goose`       | Goose CLI          | `goose`       | stdio    |
-| `openclaw`    | OpenClaw           | `openclaw`    | stdio    |
-| `aider`       | Aider              | `aider`       | stdio    |
-| `opencode`    | OpenCode           | `opencode`    | stdio    |
-| `cline`       | Cline              | `cline`       | stdio    |
-| `qwen`        | Qwen Code          | `qwen --acp`  | stdio    |
-| `forge`       | ForgeCode          | `forge`       | stdio    |
-| `amazon-q`    | Amazon Q Developer | `q`           | stdio    |
-| `interpreter` | Open Interpreter   | `interpreter` | stdio    |
-| `cursor-cli`  | Cursor CLI         | `cursor`      | stdio    |
-| `warp`        | Warp AI            | `warp`        | stdio    |
-| `gemini`      | Gemini CLI         | `gemini`      | stdio    |
-| `zcode`       | ZCode              | `zcode`       | stdio    |
-
-### စိတ်ကြိုက် Agent များ
-
-settings မှတစ်ဆင့် သင့်ကိုယ်ပိုင် CLI agent များကို ထည့်သွင်းနိုင်သည်။ စိတ်ကြိုက် agent များသည် အသင့်ပါဝင်သော agent များနှင့် တူညီသည့် လုပ်ဆောင်ချက်များကို ပံ့ပိုးသည်။
-
----
-
-## အမြန်စတင်ခြင်း
-
-### အဆင့် 1: CLI Agent တစ်ခုကို ထည့်သွင်းပါ
-
-```bash
-# ဥပမာ- Claude Code CLI ကို ထည့်သွင်းပါ
-npm install -g @anthropic-ai/claude-code
-
-# ထည့်သွင်းမှုကို စစ်ဆေးပါ
-claude --version
-```
-
-### အဆင့် 2: ACP အလိုအလျောက်ရှာဖွေခြင်း
-
-ACP သည် သင့်စနစ်တွင် ထည့်သွင်းထားသော CLI agent များကို အလိုအလျောက် ရှာဖွေသတ်မှတ်သည်။ မည်သည့် configuration မျှ မလိုအပ်ပါ!
-
-### အဆင့် 3: ACP Transport ကို အသုံးပြုပါ
-
-ရှာဖွေတွေ့ရှိပြီးသည်နှင့် ACP ကို ပံ့ပိုးထားသည့် မည်သည့် provider အတွက်မဆို transport အဖြစ် အသုံးပြုနိုင်သည်။ CLI ရရှိနိုင်သည့်အခါ OmniRoute သည် ACP ကို အလိုအလျောက် အသုံးပြုမည်ဖြစ်သည်။
-
----
-
-## ACP အလုပ်လုပ်ပုံ
-
-### တည်ဆောက်ပုံ
-
-```
-┌─────────────────┐
-│  OmniRoute      │
-│  (HTTP Proxy)   │
-└────────┬────────┘
-         │
-         │ spawn()
-         ▼
-┌─────────────────┐
-│  Child Process  │
-│  (CLI Agent)    │
-│                 │
-│  stdin  ◄──────┤  prompt ပေးပို့ရန်
-│  stdout ──────►│  response လက်ခံရန်
-│  stderr ──────►│  error များ လက်ခံရန်
-└─────────────────┘
-```
-
-### Process Lifecycle
-
-1. **စတင်ခြင်း** — ACP သည် CLI agent အတွက် child process တစ်ခုကို ဖန်တီးစတင်သည်
-2. **ပေးပို့ခြင်း** — ACP သည် prompt များကို process ၏ stdin သို့ ရေးသားပေးပို့သည်
-3. **လက်ခံခြင်း** — ACP သည် stdout/stderr မှ response များကို ဖတ်ယူသည်
-4. **အလုပ်မလုပ်မှုကို ရှာဖွေခြင်း** — response ပြည့်စုံသည်ဟု မသတ်မှတ်မီ ACP သည် လုပ်ဆောင်မှုမရှိသည့် အချိန် 2 စက္ကန့်ကို စောင့်ဆိုင်းသည်
-5. **ရပ်တန့်ခြင်း** — ACP သည် process ကို ရပ်တန့်သည် (SIGTERM၊ ထို့နောက် 5s ကြာပြီးနောက် SIGKILL)
-
-### ဆက်သွယ်ရေး Protocol
-
-ACP သည် CLI agent များနှင့် ဆက်သွယ်ရန် **stdio** (စံ input/output) ကို အသုံးပြုသည်။ Protocol မှာ အောက်ပါအတိုင်းဖြစ်သည်-
-
-1. **prompt ပေးပို့ခြင်း** — newline တစ်ခုဖြင့် stdin သို့ ရေးသားပေးပို့သည်
-2. **response ကို စောင့်ဆိုင်းခြင်း** — output မရှိသည့် အချိန် 2s ရောက်သည်အထိ stdout မှ ဖတ်ယူသည်
-3. **အချိန်ကုန်ဆုံးမှု** — မူလသတ်မှတ်ချက်အရ 120 စက္ကန့် (ပြင်ဆင်သတ်မှတ်နိုင်သည်)
-
----
-
-## API အကိုးအကား
-
-### Registry လုပ်ဆောင်ချက်များ
-
-#### `detectInstalledAgents()`
-
-စနစ်တွင် ထည့်သွင်းထားသည့် CLI agent အားလုံးကို ရှာဖွေစစ်ဆေးသည်။ ရလဒ်များကို 60 စက္ကန့်ကြာ cache လုပ်ထားသည်။
+## အတွင်းပိုင်း launch API
 
 ```typescript
-import { detectInstalledAgents } from "@/lib/acp";
+import { acpManager } from "@/lib/acp";
 
-const agents = detectInstalledAgents();
-// ပြန်ပေးသည်- CliAgentInfo[]
-
-interface CliAgentInfo {
-  id: string; // ဥပမာ၊ "codex", "claude"
-  name: string; // ပြသမည့်အမည်
-  binary: string; // စတင်လုပ်ဆောင်မည့် binary အမည်
-  versionCommand: string; // Version ရှာဖွေစစ်ဆေးရေး command
-  version: string | null; // ရှာဖွေတွေ့ရှိသည့် version (ထည့်သွင်းမထားပါက null)
-  installed: boolean; // Agent ကို ထည့်သွင်းထားခြင်းရှိမရှိ
-  providerAlias: string; // OmniRoute ရှိ Provider ID
-  spawnArgs: string[]; // စတင်လုပ်ဆောင်ရာတွင် ထည့်သွင်းပေးမည့် argument များ
-  protocol: "stdio" | "http"; // ဆက်သွယ်ရေး protocol
-  isCustom?: boolean; // ၎င်းသည် အသုံးပြုသူသတ်မှတ်ထားသော custom agent ဟုတ်မဟုတ်
-}
-```
-
-#### `getAvailableAgents()`
-
-ထည့်သွင်းထားပြီး ACP အတွက် အသုံးပြုနိုင်သည့် agent များကိုသာ ရယူသည်။
-
-```typescript
-import { getAvailableAgents } from "@/lib/acp";
-
-const available = getAvailableAgents();
-// ပြန်ပေးသည်- CliAgentInfo[] (ထည့်သွင်းထားသော agent များသာ)
-```
-
-#### `getAgentById(id)`
-
-ID ဖြင့် သတ်မှတ်ထားသော agent တစ်ခုကို ရယူသည်။
-
-```typescript
-import { getAgentById } from "@/lib/acp";
-
-const agent = getAgentById("claude");
-// ပြန်ပေးသည်- CliAgentInfo | undefined
-```
-
-#### `setCustomAgents(agents)`
-
-ဆက်တင်များမှ custom agent သတ်မှတ်ချက်များကို သတ်မှတ်ပေးသည်။
-
-```typescript
-import { setCustomAgents } from "@/lib/acp";
-
-setCustomAgents([
-  {
-    id: "my-custom-cli",
-    name: "My Custom CLI",
-    binary: "mycli",
-    versionCommand: "mycli --version",
-    providerAlias: "my-provider",
-    spawnArgs: [],
-    protocol: "stdio",
+const session = acpManager.spawn("gemini", {
+  cwd: process.cwd(),
+  // ဤ agent အတွက် ရည်ရွယ်ချက်ရှိရှိ သတ်မှတ်ပေးထားသော provider variable များကိုသာ လွှဲပေးပါ။
+  env: {
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
   },
-]);
-```
-
-### Manager လုပ်ဆောင်ချက်များ
-
-#### `acpManager.spawn(agentId, binary, args, env)`
-
-CLI agent process အသစ်တစ်ခုကို စတင်လုပ်ဆောင်သည်။
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const session = acpManager.spawn("claude", "claude", ["--print", "--output-format", "json"], {
-  /* စိတ်ကြိုက် environment variable များ */
 });
-// ပြန်ပေးသည်- AcpSession
-```
 
-**ခွင့်ပြုထားသော agent ID များ**: `["claude", "codex", "gemini", "qwen"]`
-
-#### `acpManager.sendPrompt(sessionId, prompt, timeoutMs)`
-
-CLI agent တစ်ခုထံ prompt ပေးပို့ပြီး တုံ့ပြန်ချက်ကို စုစည်းရယူသည်။
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const response = await acpManager.sendPrompt(
-  "acp-claude-1234567890-abc123",
-  "What is 2+2?",
-  120000 // အချိန်ကုန်ဆုံးကန့်သတ်ချက် 2 မိနစ်
-);
-// ပြန်ပေးသည်- Promise<string>
-```
-
-#### `acpManager.kill(sessionId)`
-
-Session တစ်ခုကို ရပ်တန့်ပြီး ရှင်းလင်းသည်။
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const killed = acpManager.kill("acp-claude-1234567890-abc123");
-// ပြန်ပေးသည်- boolean
-```
-
-#### `acpManager.getActiveSessions()`
-
-လက်ရှိလုပ်ဆောင်နေသော session အားလုံးကို ရယူသည်။
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const sessions = acpManager.getActiveSessions();
-// ပြန်ပေးသည်- AcpSession[]
-```
-
-#### `acpManager.killAll()`
-
-Session အားလုံးကို ရပ်တန့်သည်။
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-acpManager.killAll();
-```
-
-### Session Interface
-
-```typescript
-interface AcpSession {
-  id: string; // သီးခြား session ID
-  agentId: string; // Agent ID (ဥပမာ၊ "claude")
-  process: ChildProcess; // Child process handle
-  alive: boolean; // Process လုပ်ဆောင်နေခြင်းရှိမရှိ
-  stdoutBuffer: string; // စုစည်းထားသော stdout buffer
-  stderrBuffer: string; // စုစည်းထားသော stderr buffer
-  createdAt: Date; // ဖန်တီးခဲ့သည့် timestamp
-}
-```
-
-### Event များ
-
-`AcpManager` သည် `EventEmitter` ကို တိုးချဲ့ထားပြီး အောက်ပါ event များကို ထုတ်လွှတ်သည်-
-
-#### `stdout`
-
-CLI agent က stdout သို့ ရေးသားသောအခါ ထုတ်လွှတ်သည်။
-
-```typescript
-acpManager.on("stdout", ({ sessionId, data }) => {
-  console.log(`[${sessionId}] stdout: ${data}`);
-});
-```
-
-#### `stderr`
-
-CLI agent က stderr သို့ ရေးသားသောအခါ ထုတ်လွှတ်သည်။
-
-```typescript
-acpManager.on("stderr", ({ sessionId, data }) => {
-  console.error(`[${sessionId}] stderr: ${data}`);
-});
-```
-
-#### `exit`
-
-CLI agent process ရပ်တန့်ထွက်ခွာသောအခါ ထုတ်လွှတ်သည်။
-
-```typescript
-acpManager.on("exit", ({ sessionId, code, signal }) => {
-  console.log(`[${sessionId}] exited with code ${code}, signal ${signal}`);
-});
-```
-
-#### `error`
-
-CLI agent process တွင် အမှားဖြစ်ပေါ်သောအခါ ထုတ်လွှတ်သည်။
-
-```typescript
-acpManager.on("error", ({ sessionId, error }) => {
-  console.error(`[${sessionId}] error: ${error}`);
-});
-```
-
----
-
-## ဖွဲ့စည်းသတ်မှတ်ခြင်း
-
-### ပတ်ဝန်းကျင် ကိန်းရှင်များ
-
-ACP သည် ပင်မ process မှ ပတ်ဝန်းကျင် ကိန်းရှင်အားလုံးကို ဆက်ခံပြီး စိတ်ကြိုက် env vars များဖြင့် တိုးချဲ့နိုင်သည်-
-
-```typescript
-acpManager.spawn("claude", "claude", [], {
-  ANTHROPIC_API_KEY: "sk-...",
-  DEBUG: "true",
-});
-```
-
-### Spawn အတွက် Argument များ
-
-Agent တစ်ခုစီတွင် registry ထဲ၌ သတ်မှတ်ထားသည့် မူလ spawn argument များရှိသည်။ ၎င်းတို့ကို override လုပ်နိုင်သည်-
-
-```typescript
-acpManager.spawn("claude", "claude", ["--print", "--verbose"], {});
-```
-
-### အချိန်ကုန်ဆုံးမှုများ
-
-မူလ prompt timeout သည် **120 စက္ကန့်** (2 မိနစ်) ဖြစ်သည်။ Override လုပ်နိုင်သည်-
-
-```typescript
-await acpManager.sendPrompt(sessionId, prompt, 300000); // 5 မိနစ်
-```
-
-### ရှာဖွေသိရှိမှု Cache
-
-ကုန်ကျစရိတ်များသော filesystem scan များကို ရှောင်ရှားရန် Agent ရှာဖွေသိရှိမှုကို **60 စက္ကန့်** ကြာ cache လုပ်ထားသည်။ မဖြစ်မနေ refresh လုပ်ရန်-
-
-```typescript
-import { refreshAgentCache } from "@/lib/acp";
-
-refreshAgentCache();
-```
-
----
-
-## လုံခြုံရေး
-
-### Command Injection ကာကွယ်ခြင်း
-
-ACP သည် command injection တိုက်ခိုက်မှုများကို ကာကွယ်ရန် version command များကို အတည်ပြုစစ်ဆေးသည်-
-
-```typescript
-const DISALLOWED_VERSION_COMMAND_CHARS = /[;&|<>`$\r\n]/;
-```
-
-ဤအက္ခရာများ ပါဝင်သော version command များကို ငြင်းပယ်သည်-
-
-- `;` — Command ခွဲခြားသည့်သင်္ကေတ
-- `&` — နောက်ကွယ် process
-- `|` — Pipe
-- `<`, `>` — လမ်းကြောင်းလွှဲခြင်း
-- `` ` `` — Command အစားထိုးခြင်း
-- `$` — ကိန်းရှင် ဖြန့်ချဲ့ခြင်း
-- `\r`, `\n` — စာကြောင်းဖြတ်ခြင်းများ
-
-### Binary အမည် အတည်ပြုစစ်ဆေးခြင်း
-
-ACP သည် version command ၏ binary အမည်က မျှော်လင့်ထားသော binary အမည်နှင့် ကိုက်ညီကြောင်း အတည်ပြုစစ်ဆေးသည် (စိတ်ကြိုက် agent ဖြစ်လျှင် မစစ်ဆေးပါ)။
-
-### Process သီးခြားခွဲထားခြင်း
-
-ACP session တစ်ခုစီသည် ၎င်း၏ကိုယ်ပိုင် child process ထဲတွင် အလုပ်လုပ်သည်။ Session ပြီးဆုံးသည့်အခါ သို့မဟုတ် timeout ဖြစ်သည့်အခါ process ကို ရပ်တန့်သည်။
-
----
-
-## စွမ်းဆောင်ရည်
-
-### ရှာဖွေသိရှိမှု စွမ်းဆောင်ရည်
-
-- **ပထမဆုံးခေါ်ဆိုမှု**: ~50-200ms (agent တစ်ခုစီအတွက် `version` command ကို လုပ်ဆောင်သည်)
-- **Cache လုပ်ထားသော ခေါ်ဆိုမှုများ**: <1ms (cache မှ ပြန်ပေးသည်)
-- **Cache TTL**: 60 စက္ကန့်
-
-### Prompt စွမ်းဆောင်ရည်
-
-- **Spawn**: ~50-100ms
-- **Prompt ပို့ခြင်း**: ~10-50ms
-- **တုံ့ပြန်မှုကို စောင့်ဆိုင်းခြင်း**: CLI agent ပေါ်တွင် မူတည်သည် (ပုံမှန်အားဖြင့် 1-30 စက္ကန့်)
-- **ရပ်တန့်ခြင်း**: ~5 စက္ကန့် (SIGTERM) + ချက်ချင်း (SIGKILL)
-
-### Resource အသုံးပြုမှု
-
-- **Session တစ်ခုလျှင် Memory**: ~10-50MB (CLI agent ပေါ်တွင် မူတည်သည်)
-- **CPU**: အနည်းဆုံး (I/O ပေါ် မူတည်သည်)
-- **Disk**: မရှိပါ
-
----
-
-## ပြဿနာဖြေရှင်းခြင်း
-
-### "Unknown agent" အမှား
-
-**ပြဿနာ**: `acpManager.spawn()` က `Unknown agent: <id>` ကို throw လုပ်သည်
-
-**ဖြေရှင်းနည်း**: `spawn()` တွင် အောက်ပါ agent များကိုသာ ခွင့်ပြုသည်-
-
-- `claude`
-- `codex`
-- `gemini`
-- `qwen`
-
-အခြား agent များကို ကိုယ်တိုင် သို့မဟုတ် စိတ်ကြိုက် agent သတ်မှတ်ချက်များမှတစ်ဆင့် spawn လုပ်ရမည်။
-
-### "Session not alive" အမှား
-
-**ပြဿနာ**: `acpManager.sendPrompt()` က `Session ${sessionId} is not alive` ကို throw လုပ်သည်
-
-**ဖြေရှင်းနည်း**: Session သည် ရပ်သွားပြီးဖြစ်နိုင်သည် သို့မဟုတ် ရပ်တန့်ခံထားရနိုင်သည်။ Session အခြေအနေကို စစ်ဆေးပါ-
-
-```typescript
-const session = acpManager.getSession(sessionId);
-if (!session?.alive) {
-  // Session ကို ပြန်လည် spawn လုပ်ပါ
-  acpManager.spawn("claude", "claude", [], {});
-}
-```
-
-### "ACP timeout" အမှား
-
-**ပြဿနာ**: `acpManager.sendPrompt()` က `ACP timeout after 120000ms` ကို throw လုပ်သည်
-
-**ဖြေရှင်းနည်း**: Timeout ကို တိုးမြှင့်ပါ-
-
-```typescript
-await acpManager.sendPrompt(sessionId, prompt, 300000); // 5 မိနစ်
-```
-
-### CLI ကို ရှာမတွေ့ခြင်း
-
-**ပြဿနာ**: `detectInstalledAgents()` က သင့် CLI ကို ရှာမတွေ့ပါ
-
-**ဖြေရှင်းနည်းများ**:
-
-1. **PATH ကို စစ်ဆေးပါ**: CLI သည် သင့် system PATH ထဲတွင် ရှိကြောင်း သေချာစေပါ
-2. **Version command ကို စစ်ဆေးပါ**: `claude --version` ကို ကိုယ်တိုင် လုပ်ဆောင်ပါ
-3. **ခွင့်ပြုချက်များကို စစ်ဆေးပါ**: CLI ကို execute လုပ်နိုင်ကြောင်း သေချာစေပါ
-4. **စိတ်ကြိုက် agent**: စံသတ်မှတ်ချက်နှင့် မကိုက်ညီသော CLI များအတွက် စိတ်ကြိုက် agent သတ်မှတ်ချက်တစ်ခု ထည့်ပါ
-
-### ခွင့်ပြုချက် ငြင်းပယ်ခံရခြင်း
-
-**ပြဿနာ**: ACP သည် CLI ကို execute မလုပ်နိုင်ပါ
-
-**ဖြေရှင်းနည်းများ**:
-
-1. **ဖိုင်ခွင့်ပြုချက်များကို စစ်ဆေးပါ**: `chmod +x /usr/local/bin/claude`
-2. **ပိုင်ဆိုင်မှုကို စစ်ဆေးပါ**: OmniRoute တွင် ဖတ်ရှု/လုပ်ဆောင်ခွင့်များ ရှိကြောင်း သေချာစေပါ
-3. **SELinux/AppArmor ကို စစ်ဆေးပါ**: Process spawn လုပ်ခြင်းကို ပိတ်ဆို့ထားနိုင်သည်
-
----
-
-## ဥပမာများ
-
-### ဥပမာ 1: Claude Code ကို စတင်ပြီး အသုံးပြုခြင်း
-
-```typescript
-import { acpManager, detectInstalledAgents } from "@/lib/acp";
-
-// ထည့်သွင်းထားသော agent များကို ရှာဖွေပါ
-const agents = detectInstalledAgents();
-const claude = agents.find((a) => a.id === "claude");
-
-if (claude?.installed) {
-  // session အသစ်တစ်ခုကို စတင်ပါ
-  const session = acpManager.spawn("claude", claude.binary, ["--print", "--output-format", "json"]);
-
-  // prompt တစ်ခု ပို့ပါ
-  const response = await acpManager.sendPrompt(
-    session.id,
-    "Explain quantum computing in 100 words"
-  );
-
-  console.log("Claude's response:", response);
-
-  // ရှင်းလင်းပါ
+try {
+  const response = await acpManager.sendPrompt(session.id, "Explain this project", 120_000);
+  // ခေါ်ယူအသုံးပြုသော application ထဲတွင် response ကို အသုံးပြုပါ။
+} finally {
   acpManager.kill(session.id);
 }
 ```
 
-### ဥပမာ 2: အရန်နည်းလမ်းပါသော အလိုအလျောက်ရှာဖွေခြင်း
+`spawn(agentId, options)` သည် executable နှင့် argument များကို
+မှတ်ပုံတင်ထားသော definition မှ ဖြေရှင်းသတ်မှတ်သည်။ Caller option များမှာ `cwd` နှင့် `env` သာဖြစ်ပြီး၊ အဟောင်း
+`spawn(agentId, binary, args, env)` signature နှင့် executable override များကို
+ငြင်းပယ်သည်။ HTTP launch contract များကို ဤ manager က မပံ့ပိုးပါ။
 
-```typescript
-import { acpManager, getAvailableAgents } from "@/lib/acp";
+Child သည် CLI launcher များနှင့် တူညီသော operating-system၊ terminal၊ locale နှင့် certificate
+allowlist ကို ဆက်ခံသည်။ Server/provider secret များကို
+parent environment မှ ကူးယူမထားပါ။ ရွေးချယ်ထားသော CLI အတွက် လိုအပ်သည့် credential များကို
+တိုက်ရိုက်လွှဲပေးရမည် သို့မဟုတ် ထို CLI ၏ ကိုယ်ပိုင် local authentication မှတစ်ဆင့် ပံ့ပိုးရမည်။ Child တွင်
+local user ၏ filesystem permission များ ရှိနေဆဲဖြစ်ပြီး ၎င်း၏ကိုယ်ပိုင် config ကို ဖတ်ရှုနိုင်သည်။
 
-const available = getAvailableAgents();
+## မူရင်း lifecycle နှင့် ကန့်သတ်ချက်များ
 
-// Claude ကို ဦးစွာ စမ်းသပ်ပြီး မရပါက Codex ကို အသုံးပြုပါ
-let agentId = "claude";
-if (!available.find((a) => a.id === "claude")) {
-  if (available.find((a) => a.id === "codex")) {
-    agentId = "codex";
-  } else {
-    throw new Error("No ACP-compatible CLI agent found");
-  }
-}
+1. မှတ်ပုံတင်ထားသော binary ကို စတင်၍ ACP ကို initialize လုပ်ပြီး
+   ရွေးချယ်ထားသော working directory ကို root အဖြစ် သတ်မှတ်ထားသည့် session တစ်ခု ဖန်တီးသည်။ Initialization ကို ဆယ်စက္ကန့် ကန့်သတ်ထားသည်။
+2. Prompt တစ်ခု ပေးပို့ပြီး ထို session အတွက်သာ text notification များကို စုဆောင်းသည်။
+   ပြီးဆုံးခြင်းဆိုသည်မှာ stdout တိတ်ဆိတ်နေသည့် အချိန်ကာလမဟုတ်ဘဲ prompt RPC response ဖြစ်သည်။
+3. မပြီးဆုံးသေးသော initialization အပါအဝင် prompt deadline တစ်ခုတည်းကို အသုံးပြုသည်။ ပုံမှန်သတ်မှတ်ချက်မှာ
+   120 စက္ကန့်ဖြစ်သည်။ Process တစ်ခုတည်းအတွင်း တစ်ပြိုင်နက် prompt များကို ငြင်းပယ်သည်။
+4. မူရင်း timeout ဖြစ်ပါက `session/cancel` ကို ကြိုးစားပြီး process ကို ရပ်တန့်သည်။
+   ကန့်သတ်ထားသော 100 ms အချိန်အတွင်း ရပ်တန့်ခြင်းမပြုမီ notification များကို flush လုပ်နိုင်သည်။
+5. Initialization မအောင်မြင်သောအခါ၊ connection ပိတ်သောအခါ၊ process ထွက်သွားသောအခါ သို့မဟုတ် caller က ၎င်းကို ရပ်တန့်သောအခါ
+   transport state ကို ပိတ်ပြီး session ကို ဖယ်ရှားသည်။
 
-const agent = available.find((a) => a.id === agentId)!;
-const session = acpManager.spawn(agentId, agent.binary, agent.spawnArgs);
+Tool permission request များကို ငြင်းပယ်သည်။ Filesystem သို့မဟုတ် terminal client
+capability များကို ကြေညာမထားပါ။ ဤကန့်သတ်ချက်များသည် child binary ကိုယ်တိုင်ကို sandbox လုပ်ခြင်းမရှိသကဲ့သို့
+CLI ၏ ကိုယ်ပိုင် authorization setting များကိုလည်း အစားမထိုးပါ။
 
-const response = await acpManager.sendPrompt(session.id, "Hello!");
+မူရင်း text နှင့် အမွေအနှစ် stdout/stderr နှစ်မျိုးလုံးတွင် စာလုံးရေ အများဆုံး 1 MiB အထိသာ ထိန်းသိမ်းပြီး၊
+ဖြတ်တောက်ထားကြောင်း အသိပေးချက်နှင့်အတူ နောက်ဆုံးထွက် output ကို သိမ်းထားသည်။ မူရင်း wire
+frame တစ်ခုချင်းစီကို SDK parsing မပြုမီ byte 2 MiB အထိ ကန့်သတ်ထားသည်။ Prompt တစ်ခုစီအလိုက် buffer များကို reset လုပ်သည်။
 
-acpManager.kill(session.id);
-```
+`kill(sessionId)` သည် SIGTERM ကို ပေးပို့ပြီး process
+မထွက်သေးပါက ငါးစက္ကန့်အကြာတွင် SIGKILL ကို ပေးပို့သည်။ အမွေအနှစ် prompt timeout များသည် listener နှင့် timer များကို
+လွှတ်ပေးသော်လည်း နောက်ထပ် prompt တစ်ခုအတွက် session ကို ဆက်လက်အသုံးပြုနိုင်အောင် ထားသည်။ ပြီးဆုံးသောအခါ
+`kill()` သို့မဟုတ် `killAll()` ကို ခေါ်ရန် caller များတွင် တာဝန်ရှိနေဆဲဖြစ်သည်။
 
-### ဥပမာ 3: စိတ်ကြိုက် Agent
+## Event များနှင့် စစ်ဆေးခြင်း
 
-```typescript
-import { setCustomAgents, detectInstalledAgents } from "@/lib/acp";
+Manager သည် `stdout`၊ `stderr` နှင့် `exit` ကို emit လုပ်ပြီး တစ်ခုချင်းစီတွင် `sessionId` ပါဝင်သည်။
+`sessionError` သည် လုံခြုံအောင် ရှင်းလင်းထားသော transport error ကို အစီရင်ခံသည်။ Compatibility `error`
+event ကို subscriber ရှိမှသာ emit လုပ်သဖြင့် binary မရှိခြင်းသည်
+ကိုင်တွယ်မထားသော EventEmitter error မဖြစ်စေနိုင်ပါ။
 
-// စိတ်ကြိုက် CLI agent တစ်ခုကို မှတ်ပုံတင်ပါ
-setCustomAgents([
-  {
-    id: "my-llm-cli",
-    name: "My LLM CLI",
-    binary: "myllm",
-    versionCommand: "myllm --version",
-    providerAlias: "my-llm-provider",
-    spawnArgs: ["--format", "json"],
-    protocol: "stdio",
-  },
-]);
+- `getSession(sessionId)` သည် စီမံထားသော session သို့မဟုတ် `undefined` ကို ပြန်ပေးသည်။
+- `getActiveSessions()` သည် ရပ်တန့်ပြီးသော သို့မဟုတ် ရပ်တန့်နေဆဲ session များကို ဖယ်ထုတ်ထားသည်။
+- `sendInput(sessionId, input)` ကို အသက်ဝင်နေသော အမွေအနှစ် adapter အတွက်သာ အသုံးပြုနိုင်သည်။
+  မူရင်း ACP သည် ၎င်း၏ JSON-RPC stream ကို ကာကွယ်ရန် raw input ကို ငြင်းပယ်သည်။
+- `killAll()` သည် ထို instance က စီမံထားသည့် session အားလုံးကို ရပ်တန့်သည်။
 
-// ယခု detectInstalledAgents() တွင် "my-llm-cli" ပါဝင်လာပါမည်
-const agents = detectInstalledAgents();
-```
+## အတည်ပြုစစ်ဆေးမှု နယ်နိမိတ်များ
 
----
+Deterministic fixture များသည် မူရင်း handshake၊ text output၊ ငြင်းပယ်ထားသော
+permission များ၊ cancellation၊ တစ်ပြိုင်နက် prompt များ၊ မအောင်မြင်သော initialization၊ process
+ထွက်ခြင်း၊ output limit များနှင့် secret isolation တို့ကို လွှမ်းခြုံထားသည်။ ရှိပြီးသား အမွေအနှစ် buffer/listener
+regression များကိုလည်း ဆက်လက်လွှမ်းခြုံထားသည်။ ဤ test များသည် live Gemini login
+သို့မဟုတ် အောင်မြင်သော provider inference ကို သက်သေမပြပါ။ ထိုအရာများအတွက် ရည်ရွယ်ထားသော environment တွင် သီးခြား authorization ရရှိထားသည့် smoke
+test တစ်ခု လိုအပ်သည်။
 
-## နောက်တစ်ဆင့်မှာ ဘာရှိသလဲ?
+## ဆက်စပ်စာတမ်းများ
 
-- **[API ကိုးကားချက်](../reference/API_REFERENCE.md)** — REST API endpoint များ
-- **[Provider ကိုးကားချက်](../reference/PROVIDER_REFERENCE.md)** — Provider 352 ခုလုံး
-- **[MCP Server](./MCP-SERVER.md)** — Model Context Protocol ပေါင်းစပ်အသုံးပြုမှု
-- **[A2A Server](./A2A-SERVER.md)** — Agent-to-Agent protocol
-- **[Cloud Agent](./CLOUD_AGENT.md)** — Cloud အခြေပြု agent များ
-
----
-
-## ကိုးကားချက်
-
-- [AionUi Project](https://github.com/iOfficeAI/AionUi) — ACP အလိုအလျောက်ရှာဖွေခြင်းအတွက် စိတ်ကူးရင်းမြစ်
-- [ACP Source Code](../../src/lib/acp/) — အကောင်အထည်ဖော်မှု အသေးစိတ်များ
-  - `manager.ts` — Process lifecycle စီမံခန့်ခွဲမှု
-  - `registry.ts` — Agent ရှာဖွေခြင်းနှင့် မှတ်ပုံတင်ခြင်း
-  - `index.ts` — အများသုံး API export များ
+- [Agent protocol များ](./AGENT_PROTOCOLS_GUIDE.md)
+- [CLI launch contract များ](../guides/CLI-LAUNCH-CONTRACTS.md)
+- [CLI tool များ](../reference/CLI-TOOLS.md)
+- [A2A server](./A2A-SERVER.md)
+- [Cloud agent များ](./CLOUD_AGENT.md)

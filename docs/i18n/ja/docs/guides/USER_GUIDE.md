@@ -1,10 +1,10 @@
 # User Guide (日本語)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 ---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 プロバイダーの設定、コンボの作成、CLI ツールの統合、OmniRoute のデプロイに関する完全ガイドです。
 
@@ -120,7 +120,7 @@
 
 ## 📖 プロバイダーのセットアップ
 
-CSV または JSON ファイルから API キー接続を一括追加するには、**ダッシュボード → プロバイダー → ファイルからインポート**を使用します。列は位置によって決まります（`provider,name,apiKey,baseUrl,priority`）。`provider` は、管理対象プロバイダーまたは互換性のあるノードとして、すでに存在している必要があります。[CSV または JSON ファイルからプロバイダーをインポートする](../providers/CSV-IMPORT.md)を参照してください。
+CSV または JSON ファイルから API キー接続を一括追加するには、**ダッシュボード → プロバイダー → ファイルからインポート**を使用します。列は位置によって決まります（`provider,name,apiKey,baseUrl,priority`）。`provider` は、管理対象プロバイダーまたは互換性のあるノードとして既に存在している必要があります。[CSV または JSON ファイルからプロバイダーをインポートする](../providers/CSV-IMPORT.md)を参照してください。
 
 ### 🔐 サブスクリプションプロバイダー
 
@@ -129,7 +129,7 @@ CSV または JSON ファイルから API キー接続を一括追加するに�
 ```bash
 ダッシュボード → プロバイダー → Claude Code に接続
 → OAuth ログイン → トークンの自動更新
-→ 5時間ごと + 週間クォータの追跡
+→ 5時間および週間クォータの追跡
 
 モデル:
   cc/claude-opus-4-7
@@ -137,16 +137,18 @@ CSV または JSON ファイルから API キー接続を一括追加するに�
   cc/claude-haiku-4-5-20251001
 ```
 
-**プロのヒント:** 複雑なタスクには Opus、速度を重視する場合は Sonnet を使用してください。OmniRoute はモデルごとにクォータを追跡します！
+**ヒント:** 複雑なタスクには Opus、速度を重視する場合は Sonnet を使用してください。OmniRoute はモデルごとにクォータを追跡します！
 
-Claude および Claude Code 互換ルートでは、Opus と Sonnet モデルの `max` 思考強度が維持されます。Haiku モデルは `max` 強度レベルを受け付けないため、OmniRoute はアップストリームへ送信する前に、そのリクエストを高い思考予算へダウングレードします。
+OmniRoute ホストにブラウザーがありませんか？Claude Code にログインしている任意の環境で `claude setup-token` を実行し、1年間有効なトークンを **Setup Token** タブに貼り付けてください。[セットアップトークンを使用する Claude Code](../providers/CLAUDE_CODE_SETUP_TOKEN.md)を参照してください。
+
+Claude および Claude Code 互換ルートでは、Opus および Sonnet モデルの `max` 思考強度が維持されます。Haiku モデルは `max` 強度レベルを受け付けないため、OmniRoute はそのリクエストをアップストリームに送信する前に、高い思考バジェットへダウングレードします。
 
 #### OpenAI Codex（Plus/Pro）
 
 ```bash
 ダッシュボード → プロバイダー → Codex に接続
 → OAuth ログイン（ポート 1455）
-→ 5時間ごと + 週間リセット
+→ 5時間ごとおよび週間リセット
 
 モデル:
   cx/gpt-5.5
@@ -159,7 +161,7 @@ Claude および Claude Code 互換ルートでは、Opus と Sonnet モデル�
 
 ```bash
 ダッシュボード → プロバイダー → GitHub に接続
-→ GitHub 経由で OAuth
+→ GitHub 経由の OAuth
 → 毎月リセット（毎月1日）
 
 モデル:
@@ -178,21 +180,21 @@ Claude および Claude Code 互換ルートでは、Opus と Sonnet モデル�
 2. Coding Plan から API キーを取得
 3. ダッシュボード → API キーを追加: プロバイダー: `glm`、API キー: `your-key`
 
-**使用方法:** `glm/glm-4.7` — **プロのヒント:** Coding Plan では、1/7 のコストで3倍のクォータを利用できます！毎日午前10時にリセットされます。
+**使用方法:** `glm/glm-4.7` — **ヒント:** Coding Plan では、7分の1のコストで3倍のクォータを利用できます！毎日午前10時にリセットされます。
 
 #### MiniMax M2.1（5時間ごとにリセット、$0.20/1M）
 
 1. 登録: [MiniMax](https://www.minimax.io)
 2. API キーを取得 → ダッシュボード → API キーを追加
 
-**使用方法:** `minimax/MiniMax-M2.1` — **プロのヒント:** 長いコンテキスト（1M トークン）向けの最安オプションです！
+**使用方法:** `minimax/MiniMax-M2.1` — **ヒント:** 長いコンテキスト（100万トークン）向けの最安オプションです！
 
 #### Kimi K2（月額 $9 の定額制）
 
-1. サブスクリプションに登録: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
+1. サブスクライブ: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. API キーを取得 → ダッシュボード → API キーを追加
 
-**使用方法:** `kimi/kimi-k2.5` — **プロのヒント:** 10M トークンが月額固定 $9 のため、実質コストは $0.90/1M です！
+**使用方法:** `kimi/kimi-k2.5` — **ヒント:** 1,000万トークンを月額固定 $9 で利用でき、実質コストは $0.90/1M です！
 
 #### Baidu Qianfan / ERNIE
 
@@ -203,8 +205,7 @@ Claude および Claude Code 互換ルートでは、Opus と Sonnet モデル�
 
 ### 🆓 無料プロバイダー
 
-認証不要の無料プロバイダーには、そのプロバイダーページの **認証不要** の横に切り替えスイッチがあります。
-オフにすると、そのプロバイダーが無効になり、「設定済みプロバイダー」表示およびコンパクト表示から削除され、さらにそのモデルも `/v1/models` から削除されます。
+認証不要の無料プロバイダーには、そのプロバイダーページの **認証不要** の横にスイッチがあります。オフにすると、そのプロバイダーが無効になり、プロバイダーの設定済みビューおよびコンパクトビューから削除され、そのモデルも `/v1/models` から削除されます。
 
 #### Qoder（無料モデル9種）
 
@@ -214,10 +215,10 @@ Claude および Claude Code 互換ルートでは、Opus と Sonnet モデル�
 モデル: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
-#### Kiro（Claude を無料で利用可能）
+#### Kiro（Claude を無料で利用）
 
 ```bash
-ダッシュボード → Kiro に接続 → AWS Builder ID または Google/GitHub → 月あたり約50クレジット
+ダッシュボード → Kiro に接続 → AWS Builder ID または Google/GitHub → 月間約50クレジット
 
 モデル: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
@@ -667,15 +668,15 @@ post_install() {
 
 ### カスタムモデル
 
-アプリの更新を待たずに、任意のプロバイダーへ任意のモデルIDを追加できます。
+アプリのアップデートを待つことなく、任意のプロバイダーに任意のモデル ID を追加できます。
 
 ```bash
-# API経由
+# API 経由
 curl -X POST http://localhost:20128/api/provider-models \
   -H "Content-Type: application/json" \
   -d '{"provider": "openai", "modelId": "gpt-5.2", "modelName": "GPT-5.2"}'
 
-# 一覧: curl http://localhost:20128/api/provider-models?provider=openai
+# 一覧表示: curl http://localhost:20128/api/provider-models?provider=openai
 # 削除: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
 ```
 
@@ -683,15 +684,37 @@ curl -X POST http://localhost:20128/api/provider-models \
 
 注意事項：
 
-- OpenRouterおよびOpenAI/Anthropic互換プロバイダーは、**Available Models** のみで管理されます。手動追加、インポート、自動同期はすべて同じ利用可能モデル一覧に反映されるため、これらのプロバイダーには独立したCustom Modelsセクションはありません。
-- **Custom Models** セクションは、管理対象の利用可能モデルをインポートする機能を提供していないプロバイダー向けです。
+- OpenRouter および OpenAI/Anthropic 互換プロバイダーは、**Available Models** からのみ管理されます。手動追加、インポート、自動同期はすべて同じ利用可能モデル一覧に反映されるため、これらのプロバイダーには独立した Custom Models セクションはありません。
+- **Custom Models** セクションは、管理された利用可能モデルのインポート機能を提供していないプロバイダー向けです。
 
-### OmniRouteピアのチェーン化
+### カスタム OpenAI 互換プロバイダー
 
-別のOmniRouteゲートウェイを、**Custom OpenAI-compatible** プロバイダーとして追加できます。ピアの
-`/v1`ベースURLと、そのピアが発行した専用の最小権限APIキーを使用してください。
+OpenAI API に対応する任意のゲートウェイ（セルフホスト型プロキシ、vLLM、サードパーティーのアグリゲーター）を、独立したプロバイダーノードとして追加できます。
 
-相互チェーンまたはマルチホップチェーンでは、すべてのゲートウェイでオプトイン方式のループガードを有効にします。
+1. **Providers → Add OpenAI Compatible** を選択します。
+2. **Name**：ノードの表示ラベルです。
+3. **Prefix**：ルーティング名です。クライアントは `<prefix>/<model>` としてモデルを呼び出すため、プレフィックスが `mygw` のノードは `mygw/gpt-4o-mini` を提供します。必須ですが、文字制限はありません。
+4. **API Type**：ゲートウェイが提供するエンドポイントファミリーです（Chat Completions、Responses、Embeddings、音声、画像）。
+5. **Base URL**：`/v1` までを含む API ルートです（例：`https://gateway.example.com/v1`）。完全な `/chat/completions` パスではありません。非標準パスを使用するゲートウェイでは、**Advanced Settings** で設定します（チャットパス、モデルパス）。
+6. **API Key (for Check)** フィールドは、接続のテストにのみ使用されます。ノードを作成した後、そのノードを開き、**Add Connection** を使用して、リクエストで使用するキーを保存します。
+
+ノードには `openai-compatible-<apiType>-<uuid>` 形式の内部 ID が割り当てられます。この ID を入力する必要はなく、プレフィックスが公開名になります。
+
+#### 予約済みプレフィックス
+
+プレフィックスには、組み込みプロバイダーの ID またはエイリアス（例：`openai`、`cf`）や、廃止されたプロバイダーの ID を使用できません。モデルリゾルバーは、カスタムノードより先に組み込みの ID とエイリアスを確認するため、これらのプレフィックスを使用するノードがトラフィックを受信することはありません。`<prefix>/model` は代わりに組み込みプロバイダーへ送信されるか、そのプロバイダーが廃止されている場合はフェイルクローズします。このようなプレフィックスを使用してノードを作成または編集すると、次のエラーで拒否されます。
+
+```text
+prefix: "<prefix>" は予約済みのプロバイダープレフィックスです — 別のプレフィックスを選択してください（予約済みの ID/エイリアスはカスタムノードには使用できません。<prefix>/model のようなリクエストは組み込みプロバイダーへルーティングされるか、廃止されている場合はフェイルクローズするためです）
+```
+
+重複しないプレフィックス（`mygw`、`acme-proxy`）を選択してください。カスタムノードへのリクエストが、組み込みプロバイダーまたはその認証情報を示すエラーで失敗する場合は、ノードのプレフィックスが予約済みかどうか確認してください。このルールが導入される前に保存されたノードは引き続き保存されていますが、そのプレフィックスは組み込みプロバイダーへルーティングされます。ノードを編集し、新しいプレフィックスを指定してください。
+
+### OmniRoute ピアのチェーン接続
+
+別の OmniRoute ゲートウェイを **Custom OpenAI-compatible** プロバイダーとして追加できます。ピアの `/v1` ベース URL と、そのピアが発行した専用の最小権限 API キーを使用してください。
+
+双方向またはマルチホップのチェーンでは、すべてのゲートウェイでオプトイン方式のループガードを有効にします。
 
 ```bash
 # gateway-a
@@ -707,13 +730,9 @@ OMNIROUTE_PEER_URLS=http://gateway-a:20128/v1
 OMNIROUTE_PEER_MAX_HOPS=4
 ```
 
-明示的に許可リストへ登録されたピアURLに送信されるリクエストのみ、
-`X-OmniRoute-Peer-Trace`ヘッダーを受け取ります。ゲートウェイは、インスタンスIDの重複またはホップ
-上限の消費を検出するとHTTP `508 Loop Detected`で拒否します。通常のアップストリームプロバイダーにはピアのメタデータは送信されません。
+明示的に許可リストへ登録されたピア URL に送信されるリクエストだけに、`X-OmniRoute-Peer-Trace` ヘッダーが付与されます。ゲートウェイは、インスタンス ID が重複している場合、またはホップ上限を使い切った場合、HTTP `508 Loop Detected` でリクエストを拒否します。通常のアップストリームプロバイダーには、ピアのメタデータは送信されません。
 
-ピアチェーンは、データベースのレプリケーションやホストのフェイルオーバーではありません。各ゲートウェイは独立した
-SQLiteの状態、キャッシュ、レートカウンター、セッションを保持します。アクティブ／パッシブまたはアクティブ／アクティブ構成で可用性を確保するには、ヘルスチェック付きリバースプロキシまたはクライアント側
-フェイルオーバーを使用してください。また、1つのSQLiteデータベースを実行中の複数のOmniRouteインスタンスにマウントしないでください。
+ピアのチェーン接続は、データベースのレプリケーションやホストのフェイルオーバーではありません。各ゲートウェイは、独立した SQLite の状態、キャッシュ、レートカウンター、セッションを保持します。アクティブ／パッシブまたはアクティブ／アクティブ構成で可用性を確保するには、ヘルスチェック対応のリバースプロキシまたはクライアントフェイルオーバーを使用してください。また、1 つの SQLite データベースを複数の実行中 OmniRoute インスタンスにマウントしないでください。
 
 ### プロバイダー専用ルート
 
@@ -725,9 +744,9 @@ POST http://localhost:20128/v1/providers/openai/embeddings
 POST http://localhost:20128/v1/providers/fireworks/images/generations
 ```
 
-プロバイダーのプレフィックスがない場合は自動的に追加されます。一致しないモデルには`400`が返されます。
+プロバイダープレフィックスがない場合は、自動的に追加されます。一致しないモデルは `400` を返します。
 
-### ネットワークプロキシ設定
+### ネットワークプロキシの設定
 
 ```bash
 # グローバルプロキシを設定
@@ -745,98 +764,98 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
 
 **優先順位：** キー固有 → コンボ固有 → プロバイダー固有 → グローバル → 環境。
 
-### モデルカタログAPI
+### モデルカタログ API
 
 ```bash
 curl http://localhost:20128/api/models/catalog
 ```
 
-タイプ（`chat`、`embedding`、`image`）とともに、プロバイダー別にグループ化されたモデルを返します。
+プロバイダーごとにグループ化されたモデルを、タイプ（`chat`、`embedding`、`image`）とともに返します。
 
 ### クラウド同期
 
 - プロバイダー、コンボ、設定をデバイス間で同期
 - タイムアウトとフェイルファストを備えた自動バックグラウンド同期
-- 本番環境ではサーバー側の`NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL`を推奨
+- 本番環境では、サーバー側の `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` を優先
 
 ### Cloudflare Quick Tunnel
 
-- Dockerおよびその他のセルフホスト環境では、**Dashboard → Endpoints** から利用可能
-- 現在のOpenAI互換`/v1`エンドポイントへ転送する、一時的な`https://*.trycloudflare.com` URLを作成
-- 初回の有効化時のみ、必要に応じて`cloudflared`をインストールし、それ以降の再起動では同じ管理対象バイナリを再利用
-- Quick Tunnelは、OmniRouteまたはコンテナの再起動後に自動復元されません。必要に応じてダッシュボードから再度有効にしてください
-- トンネルURLは一時的なものであり、トンネルを停止／開始するたびに変更されます
-- 管理対象のQuick Tunnelは、制約のあるコンテナで大量のQUIC UDPバッファー警告が発生するのを避けるため、デフォルトでHTTP/2トランスポートを使用します
-- 管理対象トランスポートの選択を上書きする場合は、`CLOUDFLARED_PROTOCOL=quic`または`auto`を設定します
-- 管理対象のダウンロードではなく、プリインストール済みの`cloudflared`バイナリを使用する場合は、`CLOUDFLARED_BIN`を設定します
-- Cloudflare Quick Tunnel、Tailscale Funnel、ngrok Tunnelの各パネルは、**Settings → Appearance** で表示または非表示にできます。パネルを非表示にしても、実行中のトンネルは停止しません。
+- Docker およびその他のセルフホスト型デプロイでは、**Dashboard → Endpoints** から利用できます
+- 現在の OpenAI 互換 `/v1` エンドポイントへ転送する、一時的な `https://*.trycloudflare.com` URL を作成します
+- 初回の有効化時にのみ、必要に応じて `cloudflared` をインストールします。それ以降の再起動では、同じ管理対象バイナリを再利用します
+- Quick Tunnel は、OmniRoute またはコンテナの再起動後に自動復元されません。必要に応じてダッシュボードから再度有効にしてください
+- トンネル URL は一時的なものであり、トンネルを停止・開始するたびに変更されます
+- 管理対象の Quick Tunnel は、制約のあるコンテナで大量に出力される QUIC UDP バッファ警告を回避するため、デフォルトで HTTP/2 トランスポートを使用します
+- 管理対象トランスポートの選択を上書きする場合は、`CLOUDFLARED_PROTOCOL=quic` または `auto` を設定してください
+- 管理対象のダウンロードではなく、プリインストール済みの `cloudflared` バイナリを使用する場合は、`CLOUDFLARED_BIN` を設定してください
+- Cloudflare Quick Tunnel、Tailscale Funnel、および ngrok Tunnel の各パネルは、**Settings → Appearance** で表示または非表示にできます。パネルを非表示にしても、実行中のトンネルは停止しません。
 
-### LLMゲートウェイインテリジェンス（フェーズ9）
+### LLM ゲートウェイインテリジェンス（フェーズ 9）
 
-- **セマンティックキャッシュ** — 非ストリーミングかつtemperature=0のレスポンスを自動的にキャッシュします（`X-OmniRoute-No-Cache: true`でバイパス）
-- **リクエストの冪等性** — `Idempotency-Key`または`X-Request-Id`ヘッダーを使用して、5秒以内のリクエストを重複排除します
-- **進捗追跡** — `X-OmniRoute-Progress: true`ヘッダーを使用して、オプトイン形式のSSE `event: progress`イベントを有効化します
+- **セマンティックキャッシュ** — 非ストリーミングかつ temperature=0 のレスポンスを自動的にキャッシュします（`X-OmniRoute-No-Cache: true` でバイパス可能）
+- **リクエストの冪等性** — `Idempotency-Key` または `X-Request-Id` ヘッダーを使用して、5 秒以内の重複リクエストを排除します
+- **進捗追跡** — `X-OmniRoute-Progress: true` ヘッダーにより、オプトイン方式の SSE `event: progress` イベントを有効にします
 
 ---
 
 ### Translator Playground
 
-**Dashboard → Translator** からアクセスします。OmniRouteがプロバイダー間でAPIリクエストをどのように変換するかをデバッグし、可視化できます。
+**Dashboard → Translator** からアクセスできます。OmniRoute がプロバイダー間で API リクエストをどのように変換するかをデバッグし、可視化できます。
 
 | モード           | 目的                                                                                             |
 | ---------------- | ------------------------------------------------------------------------------------------------ |
-| **Playground**   | 変換元／変換先の形式を選択してリクエストを貼り付け、変換結果を即座に確認します                   |
-| **Chat Tester**  | プロキシ経由でライブチャットメッセージを送信し、リクエスト／レスポンスのサイクル全体を確認します |
+| **Playground**   | 変換元と変換先の形式を選択してリクエストを貼り付けると、変換後の出力を即座に確認できます         |
+| **Chat Tester**  | プロキシ経由でライブチャットメッセージを送信し、リクエストとレスポンスの全サイクルを確認できます |
 | **Test Bench**   | 複数の形式の組み合わせに対してバッチテストを実行し、変換の正確性を検証します                     |
 | **Live Monitor** | リクエストがプロキシを通過する際の変換をリアルタイムで監視します                                 |
 
 **ユースケース：**
 
-- 特定のクライアント／プロバイダーの組み合わせが失敗する理由をデバッグ
-- 思考タグ、ツール呼び出し、システムプロンプトが正しく変換されることを確認
-- OpenAI、Claude、Gemini、Responses APIの各形式の違いを比較
+- 特定のクライアントとプロバイダーの組み合わせが失敗する理由をデバッグする
+- 思考タグ、ツール呼び出し、システムプロンプトが正しく変換されることを確認する
+- OpenAI、Claude、Gemini、および Responses API の各形式の違いを比較する
 
 ---
 
 ### ルーティング戦略
 
-**ダッシュボード → 設定 → ルーティング**から設定します。ダッシュボードには最もよく使用される6つの戦略が表示されますが、コンボとオートルーターは内部的により多くの戦略をサポートしています。
+**Dashboard → Settings → Routing** で設定します。ダッシュボードには、最もよく使用される 6 つの戦略が表示されます。コンボと自動ルーターは、内部的にはさらに幅広い戦略をサポートしています。
 
 **ダッシュボードに表示される戦略（アカウントレベルのルーティング）：**
 
-| 戦略                           | 説明                                                                                                                  |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
-| **Fill First**                 | 優先順位に従ってアカウントを使用します。プライマリアカウントが利用できなくなるまで、すべてのリクエストを処理します    |
-| **Round Robin**                | 設定可能なスティッキー上限（デフォルト：アカウントごとに3回の呼び出し）に従って、すべてのアカウントを順番に使用します |
-| **P2C (Power of Two Choices)** | 2つのアカウントをランダムに選び、より正常な方へルーティングします。正常性を考慮しながら負荷を分散します               |
-| **Random**                     | Fisher-Yatesシャッフルを使用して、リクエストごとにアカウントをランダムに選択します                                    |
-| **Least Used**                 | `lastUsedAt`タイムスタンプが最も古いアカウントへルーティングし、トラフィックを均等に分散します                        |
-| **Cost Optimized**             | 優先順位の値が最も低いアカウントへルーティングし、最も低コストのプロバイダーを優先します                              |
+| 戦略                           | 説明                                                                                                               |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| **Fill First**                 | 優先順位に従ってアカウントを使用します。プライマリアカウントが利用できなくなるまで、すべてのリクエストを処理します |
+| **Round Robin**                | 設定可能な固定上限に従って、すべてのアカウントを順番に使用します（デフォルト：アカウントごとに 3 回の呼び出し）    |
+| **P2C (Power of Two Choices)** | 2 つのアカウントをランダムに選び、より正常な方へルーティングします。正常性を考慮しながら負荷を分散します           |
+| **Random**                     | Fisher-Yates シャッフルを使用して、リクエストごとにアカウントをランダムに選択します                                |
+| **Least Used**                 | `lastUsedAt` タイムスタンプが最も古いアカウントへルーティングし、トラフィックを均等に分散します                    |
+| **Cost Optimized**             | 優先度の値が最も低いアカウントへルーティングし、最も低コストのプロバイダーを優先します                             |
 
-**高度なコンボ戦略とオート戦略**（コンボごと、または`auto/*`プレフィックスを介して設定可能です。[AUTO-COMBO.md](../routing/AUTO-COMBO.md)を参照してください）：
+**高度なコンボおよび自動戦略**（コンボごと、または `auto/*` プレフィックス経由で設定可能。[AUTO-COMBO.md](../routing/AUTO-COMBO.md) を参照）：
 
-- `priority` — 厳密な順序で処理し、ラウンドロビンは行いません
-- `weighted` — モデルごとの重みに基づいてトラフィックを比例配分します
-- `fill-first` — 上限に達するまで最初のモデルを使い切ります
+- `priority` — 厳密な順序で選択し、ラウンドロビンは行いません
+- `weighted` — モデルごとの重みに基づき、トラフィックを比例配分します
+- `fill-first` — 制限に達するまで最初のモデルを使い切ります
 - `round-robin` / `strict-random` / `random`
 - `p2c`（Power of Two Choices）
-- `least-used`および`cost-optimized`
+- `least-used` および `cost-optimized`
 - `auto` — すべての候補をスコアに基づいて選択します
-- `lkgp`（Last Known Good Provider）— 最後に成功したプロバイダーへ固定し、その後ルールに従ってフォールバックします
+- `lkgp`（Last Known Good Provider）— 最後に成功したプロバイダーに固定し、その後ルールにフォールバックします
 - `context-optimized` — 空きコンテキストウィンドウが最も大きいモデルを選択します
-- `context-relay` — 後続のターン向けに、長いコンテキストを持つモデルを連鎖させます
+- `context-relay` — フォローアップターン向けに、長いコンテキストを扱えるモデルを連結します
 
 #### 外部スティッキーセッションヘッダー
 
-外部セッションアフィニティ（たとえば、リバースプロキシの背後にあるClaude Code/Codexエージェント）を使用するには、次を送信します：
+外部セッションアフィニティを使用する場合（たとえば、リバースプロキシの背後にある Claude Code/Codex エージェント）、次を送信します：
 
 ```http
 X-Session-Id: your-session-key
 ```
 
-OmniRouteは`x_session_id`も受け付け、有効なセッションキーを`X-OmniRoute-Session-Id`で返します。
+OmniRoute は `x_session_id` も受け付け、有効なセッションキーを `X-OmniRoute-Session-Id` で返します。
 
-Nginxを使用し、アンダースコア形式のヘッダーを送信する場合は、次を有効にします：
+Nginx を使用し、アンダースコア形式のヘッダーを送信する場合は、次を有効にします：
 
 ```nginx
 underscores_in_headers on;
@@ -847,18 +866,18 @@ underscores_in_headers on;
 モデル名を再マッピングするためのワイルドカードパターンを作成します：
 
 ```
-パターン: claude-sonnet-*     →  ターゲット: cc/claude-sonnet-4-6
-パターン: gpt-*               →  ターゲット: gh/gpt-5.3-codex
+Pattern: claude-sonnet-*     →  Target: cc/claude-sonnet-4-6
+Pattern: gpt-*               →  Target: gh/gpt-5.3-codex
 ```
 
-ワイルドカードでは、`*`（任意の文字列）と`?`（任意の1文字）を使用できます。
+ワイルドカードは、`*`（任意の文字列）と `?`（任意の 1 文字）をサポートします。
 
 #### フォールバックチェーン
 
 すべてのリクエストに適用されるグローバルフォールバックチェーンを定義します：
 
 ```
-チェーン: production-fallback
+Chain: production-fallback
   1. cc/claude-opus-4-7
   2. gh/gpt-5.3-codex
   3. glm/glm-4.7
@@ -868,49 +887,48 @@ underscores_in_headers on;
 
 ### レジリエンスとサーキットブレーカー
 
-**ダッシュボード → 設定 → レジリエンス**から設定します。
+**Dashboard → Settings → Resilience** で設定します。
 
-OmniRouteは、5つのコンポーネントによるプロバイダーレベルのレジリエンスを実装しています：
+OmniRoute は、次の 5 つのコンポーネントによってプロバイダーレベルのレジリエンスを実現します：
 
 1. **リクエストキューとペーシング** — システムレベルのリクエスト制御：
-   - **1分あたりのリクエスト数（RPM）** — アカウントごとの1分あたりの最大リクエスト数
+   - **1 分あたりのリクエスト数（RPM）** — アカウントごとの 1 分あたりの最大リクエスト数
    - **リクエスト間の最小時間** — リクエスト間に設ける最小間隔（ミリ秒）
-   - **最大同時リクエスト数** — アカウントごとの最大同時リクエスト数
+   - **最大同時リクエスト数** — アカウントごとの同時リクエスト数の上限
+2. **接続クールダウン** — 再試行可能な障害の発生後に、単一の接続へ適用される認証タイプごとの設定：
+   - **基本クールダウン** — 再試行可能なアップストリーム障害に対するデフォルトのクールダウン期間
+   - **アップストリームの再試行ヒントを使用** — 提供されている場合、信頼できる `Retry-After` またはリセットのヒントに従う
+   - **最大バックオフステップ数** — 障害が繰り返された場合の指数バックオフの最大レベル
 
-2. **接続クールダウン** — 再試行可能なエラーが発生した後の、単一接続に対する認証タイプ別の設定：
-   - **基本クールダウン** — 再試行可能なアップストリームエラーに対するデフォルトのクールダウン期間
-   - **アップストリームの再試行ヒントを使用** — 提供されている場合、信頼できる`Retry-After`またはリセットヒントに従います
-   - **最大バックオフステップ数** — エラーが繰り返された場合の指数バックオフの最大レベル
-
-3. **プロバイダーサーキットブレーカー** — プロバイダーのエンドツーエンドの障害を追跡し、設定された警告しきい値に達するとプロバイダーを劣化状態としてマークし、設定された障害しきい値に達するとブレーカーを開きます：
-   - **劣化しきい値** — `DEGRADED`へ移行するまでの連続したプロバイダー障害の回数
-   - **障害しきい値** — `OPEN`へ移行するまでの連続したプロバイダー障害の回数
+3. **プロバイダーサーキットブレーカー** — エンドツーエンドのプロバイダー障害を追跡し、設定された警告しきい値でプロバイダーを劣化状態としてマークし、設定された障害しきい値に達するとブレーカーを開きます：
+   - **劣化しきい値** — `DEGRADED` に移行するまでの連続したプロバイダー障害数
+   - **障害しきい値** — `OPEN` に移行するまでの連続したプロバイダー障害数
    - **リセットタイムアウト** — プロバイダーを再テストするまでの時間
-   - **CLOSED**（正常）— リクエストは通常どおり処理されます
-   - **DEGRADED** — 障害の増加を追跡しながら、リクエストの処理を継続します
-   - **OPEN** — 障害が繰り返されたため、プロバイダーは一時的にブロックされます
-   - **HALF_OPEN** — プロバイダーが回復したかどうかをテストしています
+   - **CLOSED**（正常）— リクエストは通常どおり処理される
+   - **DEGRADED** — 増加した障害を追跡しながら、リクエストの処理は継続される
+   - **OPEN** — 障害が繰り返された後、プロバイダーは一時的にブロックされる
+   - **HALF_OPEN** — プロバイダーが復旧したかどうかをテスト中
 
-   接続スコープの`429`レート制限は**接続クールダウン**で処理され、プロバイダーブレーカーにはカウントされません。
+   接続単位の `429` レート制限は **接続クールダウン** で処理され、プロバイダーブレーカーにはカウントされません。
 
-   プロバイダーブレーカーのランタイム状態は、**ダッシュボード → ヘルス**にのみ表示されます。
+   プロバイダーブレーカーのランタイム状態は **ダッシュボード → ヘルス** にのみ表示されます。
 
-4. **クールダウンを待機** — すべての候補接続がすでにクールダウン中の場合、OmniRouteは最も早く終了するクールダウンを待ち、同じクライアントリクエストを自動的に再試行できます。
+4. **クールダウンを待機** — すべての候補接続がすでにクールダウン中の場合、OmniRoute は最も早く終了するクールダウンを待ち、同じクライアントリクエストを自動的に再試行できます。
 
-5. **レート制限の自動検出** — アップストリームプロバイダーが明示的な待機時間を返した場合、この設定が有効であれば、そのヒントがローカル接続のクールダウンより優先されます。
+5. **レート制限の自動検出** — アップストリームプロバイダーが明示的な待機時間を返した場合、この設定が有効であれば、それらのヒントがローカルの接続クールダウンより優先されます。
 
-**ヒント：** 障害発生後に稼働中のプロバイダーブレーカーを確認してリセットするには、**ヘルス**ページを使用してください。レジリエンスページで変更できるのは設定のみです。
+**ヒント：** 障害発生後に稼働中のプロバイダーブレーカーを確認およびリセットするには、**ヘルス** ページを使用してください。レジリエンスページでは設定のみを変更できます。
 
 ---
 
 ### データベースのエクスポート／インポート
 
-データベースのバックアップは、**ダッシュボード → 設定 → システムとストレージ**で管理します。
+**ダッシュボード → 設定 → システムとストレージ** でデータベースのバックアップを管理します。
 
-| アクション                        | 説明                                                                                                                                                                 |
+| 操作                              | 説明                                                                                                                                                                 |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **データベースをエクスポート**    | 現在の SQLite データベースを `.sqlite` ファイルとしてダウンロードします                                                                                              |
-| **すべてエクスポート（.tar.gz）** | データベース、設定、コンボ、プロバイダー接続情報（認証情報を除く）、API キーのメタデータを含む完全なバックアップアーカイブをダウンロードします                       |
+| **すべてエクスポート（.tar.gz）** | データベース、設定、コンボ、プロバイダー接続（認証情報なし）、API キーのメタデータを含む完全なバックアップアーカイブをダウンロードします                             |
 | **データベースをインポート**      | `.sqlite` ファイルをアップロードして現在のデータベースを置き換えます。`DISABLE_SQLITE_AUTO_BACKUP=true` でない限り、インポート前のバックアップが自動的に作成されます |
 
 ```bash
@@ -930,58 +948,58 @@ curl -X POST http://localhost:20128/api/db-backups/import \
 **ユースケース：**
 
 - OmniRoute をマシン間で移行する
-- ディザスターリカバリー用の外部バックアップを作成する
+- 災害復旧用の外部バックアップを作成する
 - チームメンバー間で設定を共有する（すべてエクスポート → アーカイブを共有）
 
 ---
 
 ### 設定ダッシュボード
 
-設定ページは、操作しやすいように **7 個のタブ**に整理されています：
+設定ページは、簡単に移動できるように **7 つのタブ**に分けられています：
 
-| タブ             | 内容                                                                                                                                                                       |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **一般**         | システムストレージツール、デフォルト動作、エンドポイントトンネルの表示設定                                                                                                 |
-| **外観**         | テーマ制御（ライト／ダーク／システム）、サイドバーの表示設定、Cloudflare／Tailscale／ngrok トンネルカードのパネル切り替え                                                  |
-| **AI**           | Thinking Budget（パススルー／自動除去／カスタム／適応型 — [THINKING_BUDGET.md](./THINKING_BUDGET.md) を参照）、グローバルシステムプロンプト、プロンプトキャッシュ統計      |
-| **セキュリティ** | ログイン／パスワード設定、IP アクセス制御、`/models` の API 認証、プロバイダーのブロック、プロンプトインジェクション対策                                                   |
-| **ルーティング** | グローバルルーティング戦略（Fill First／Round Robin／P2C／Random／Least Used／Cost Optimized）、ワイルドカードモデルエイリアス、フォールバックチェーン、コンボのデフォルト |
-| **耐障害性**     | リクエストキュー、接続クールダウン、プロバイダーブレーカー設定、およびクールダウン待機動作                                                                                 |
-| **詳細設定**     | グローバルプロキシ設定（HTTP／SOCKS5）、プロバイダーごとのプロキシオーバーライド                                                                                           |
+| タブ             | 内容                                                                                                                                                                      |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **一般**         | システムストレージツール、デフォルト動作、エンドポイントトンネルの表示設定                                                                                                |
+| **外観**         | テーマ制御（ライト／ダーク／システム）、サイドバーの表示設定、Cloudflare／Tailscale／ngrok トンネルカードのパネル切り替え                                                 |
+| **AI**           | 思考バジェット（パススルー／自動削除／カスタム／適応型 — [THINKING_BUDGET.md](./THINKING_BUDGET.md) を参照）、グローバルシステムプロンプト、プロンプトキャッシュ統計      |
+| **セキュリティ** | ログイン／パスワード設定、IP アクセス制御、`/models` の API 認証、プロバイダーのブロック、プロンプトインジェクション防御                                                  |
+| **ルーティング** | グローバルルーティング戦略（順次充填／ラウンドロビン／P2C／ランダム／最少使用／コスト最適化）、ワイルドカードモデルエイリアス、フォールバックチェーン、コンボのデフォルト |
+| **レジリエンス** | リクエストキュー、接続クールダウン、プロバイダーブレーカー設定、クールダウン待機動作                                                                                      |
+| **詳細設定**     | グローバルプロキシ設定（HTTP/SOCKS5）、プロバイダーごとのプロキシオーバーライド                                                                                           |
 
-「一般」タブには、読み取り専用のログおよびキャッシュに関する注記が重複して表示されなくなりました。データベースの保持期間と
+一般では、読み取り専用のログとキャッシュに関する注記が重複して表示されなくなりました。データベースの保持期間と
 最適化設定は `/api/settings/database` を通じて永続化され、手動でのキャッシュ消去には
-`DELETE /api/cache` を使用します。リクエストログおよびプロキシログの最大行数は、
+`DELETE /api/cache` を使用します。リクエストログとプロキシログの最大行数は、
 `CALL_LOGS_TABLE_MAX_ROWS` と `PROXY_LOGS_TABLE_MAX_ROWS` で制御されます。
 
 ---
 
 ### コストと予算の管理
 
-**ダッシュボード → コスト**からアクセスします。
+**ダッシュボード → コスト** からアクセスします。
 
-| タブ         | 目的                                                                                                  |
-| ------------ | ----------------------------------------------------------------------------------------------------- |
-| **予算**     | API キーごとに日次／週次／月次の予算で支出上限を設定し、リアルタイムで追跡します                      |
-| **価格設定** | モデルの価格エントリ（プロバイダーごとの入力／出力トークン 1,000 個あたりのコスト）を表示・編集します |
+| タブ         | 目的                                                                                                      |
+| ------------ | --------------------------------------------------------------------------------------------------------- |
+| **予算**     | API キーごとに日次／週次／月次の予算による支出上限を設定し、リアルタイムで追跡します                      |
+| **料金設定** | モデルの料金エントリを表示および編集します（プロバイダーごとの入力／出力トークン 1,000 個あたりのコスト） |
 
 ```bash
-# API：予算を設定
+# API: 予算を設定
 curl -X POST http://localhost:20128/api/usage/budget \
   -H "Content-Type: application/json" \
   -d '{"keyId": "key-123", "limit": 50.00, "period": "monthly"}'
 
-# API：現在の予算状況を取得
+# API: 現在の予算状況を取得
 curl http://localhost:20128/api/usage/budget
 ```
 
-**コスト追跡：** すべてのリクエストについてトークン使用量が記録され、価格表を使用してコストが計算されます。プロバイダー、モデル、および API キーごとの内訳は、**ダッシュボード → 使用状況**で確認できます。
+**コスト追跡：** リクエストごとにトークン使用量を記録し、料金表を使用してコストを計算します。プロバイダー、モデル、API キー別の内訳は、**Dashboard → Usage** で確認できます。
 
 ---
 
 ### 音声文字起こし
 
-OmniRoute は、OpenAI 互換エンドポイントを介した音声文字起こしをサポートしています：
+OmniRoute は、OpenAI 互換エンドポイントを介した音声文字起こしをサポートしています。
 
 ```bash
 POST /v1/audio/transcriptions
@@ -995,10 +1013,10 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
   -F "model=openai/whisper-1"
 ```
 
-`deepgram/nova-3` は Deepgram ネイティブのルートであり、Deepgram API キーが必要です。
-OpenRouter のみを設定している場合は、`openrouter/deepgram/nova-3` を使用してください。
+`deepgram/nova-3` はネイティブの Deepgram ルートであり、Deepgram API キーが必要です。
+OpenRouter のみが設定されている場合は、`openrouter/deepgram/nova-3` を使用してください。
 
-**音声テキスト変換（文字起こし）**プロバイダー：
+**音声からテキストへの変換（文字起こし）**のプロバイダー：
 
 - `openai/`（Whisper 互換）
 - `groq/`（Groq Whisper Turbo）
@@ -1008,7 +1026,7 @@ OpenRouter のみを設定している場合は、`openrouter/deepgram/nova-3` �
 - `huggingface/`（Whisper バリアント）
 - `qwen/`
 
-**テキスト音声変換（`POST /v1/audio/speech`）**プロバイダー：
+**テキストから音声への変換（`POST /v1/audio/speech`）**のプロバイダー：
 
 - `openai/`（tts-1、tts-1-hd）
 - `hyperbolic/`
@@ -1029,51 +1047,51 @@ OpenRouter のみを設定している場合は、`openrouter/deepgram/nova-3` �
 
 ---
 
-### コンボのバランシング戦略
+### コンボの負荷分散戦略
 
-コンボごとのバランシングは、**ダッシュボード → コンボ → 作成／編集 → 戦略**で設定します。
+コンボごとの負荷分散は、**Dashboard → Combos → Create/Edit → Strategy** で設定します。
 
-| 戦略               | 説明                                                                               |
-| ------------------ | ---------------------------------------------------------------------------------- |
-| **ラウンドロビン** | モデルを順番に切り替えます                                                         |
-| **優先順位**       | 常に最初のモデルを試し、エラーが発生した場合にのみフォールバックします             |
-| **ランダム**       | リクエストごとにコンボからランダムなモデルを選択します                             |
-| **重み付け**       | モデルごとに割り当てられた重みに基づいて比例配分でルーティングします               |
-| **最少使用**       | 直近のリクエスト数が最も少ないモデルにルーティングします（コンボメトリクスを使用） |
-| **コスト最適化**   | 利用可能な最も安価なモデルにルーティングします（料金表を使用）                     |
+| 戦略               | 説明                                                                         |
+| ------------------ | ---------------------------------------------------------------------------- |
+| **ラウンドロビン** | モデルを順番に切り替えます                                                   |
+| **優先度**         | 常に最初のモデルを試し、エラーが発生した場合にのみフォールバックします       |
+| **ランダム**       | リクエストごとにコンボからランダムなモデルを選択します                       |
+| **重み付き**       | モデルごとに割り当てられた重みに基づき、比例配分でルーティングします         |
+| **最少使用**       | 直近のリクエスト数が最も少ないモデルにルーティングします（コンボ指標を使用） |
+| **コスト最適化**   | 利用可能な最も安価なモデルにルーティングします（料金表を使用）               |
 
-グローバルなコンボのデフォルト設定は、**ダッシュボード → 設定 → ルーティング → コンボのデフォルト**で設定できます。
+グローバルなコンボのデフォルト値は、**Dashboard → Settings → Routing → Combo Defaults** で設定できます。
 コンボターゲットのタイムアウトは、デフォルトで現在のリクエストタイムアウトを継承します。ターゲットごとの制限時間を短くして
-より迅速にフォールバックを開始する必要がある場合にのみ、コンボのデフォルト設定または個別のコンボで**ターゲットタイムアウト
-（秒）**を使用してください。
+フォールバックをより早く実行する必要がある場合にのみ、コンボのデフォルトまたは個々のコンボで **Target timeout
+(seconds)** を使用してください。
 
-ゼロレイテンシーのコンボ最適化はオプトインです。これらのレイテンシー機能によってフォールバックターゲットとの競合、
-TTFT 履歴に基づくターゲットのスキップ、フォールバックリクエストの圧縮が発生しないようにするには、**ゼロレイテンシー最適化**を
-無効のままにしてください。有効にすると、設定されたヘッジング、予測 TTFT
-スキップ、プロアクティブなフォールバック圧縮が使用され、ルーティングやリクエストの忠実性と引き換えにテール
-レイテンシーを低減できます。
+ゼロレイテンシーのコンボ最適化はオプトインです。これらのレイテンシー機能によってフォールバックターゲットが競合したり、TTFT
+履歴に基づいてターゲットがスキップされたり、フォールバックリクエストが圧縮されたりするのを防ぐには、**Zero-latency optimizations** を
+無効のままにしてください。有効にすると、設定されたヘッジング、予測的な TTFT
+スキップ、プロアクティブなフォールバック圧縮を使用し、ルーティングやリクエストの忠実性と引き換えにテール
+レイテンシーを短縮できます。
 
-上流プロバイダーで厳密な
-`max_tokens` / `maxOutputTokens` 制限が必要な場合は、**推論トークンバッファ**を無効にしてください。有効にすると、コンボルーティングでは、既知の出力上限を持つモデルにのみ推論モデル用の
-余裕が追加され、安全なバッファ値がその上限を超える場合はクライアントのトークン制限が変更されません。クライアントの制限が既知の上限をすでに超えている場合、
-OmniRoute は上流リクエストを送信する前に、その上限まで制限値を引き下げます。
+アップストリームプロバイダーが厳密な
+`max_tokens` / `maxOutputTokens` 制限を要求する場合は、**Reasoning token buffer** を無効にしてください。有効にすると、コンボルーティングでは、既知の出力上限があるモデルに対してのみ推論モデル用の
+余裕を追加し、安全なバッファー適用後の値がその上限を超える場合は、クライアントのトークン制限を変更しません。クライアントの制限がすでに既知の上限を超えている場合、
+OmniRoute はアップストリームリクエストを送信する前に、その上限まで値を切り下げます。
 
 ---
 
 ### ヘルスダッシュボード
 
-**ダッシュボード → ヘルス**からアクセスできます。6 つのカードでシステムの健全性をリアルタイムに確認できます。
+**Dashboard → Health** からアクセスできます。6 枚のカードでリアルタイムのシステム稼働状況を確認できます。
 
-| カード                     | 表示内容                                                 |
-| -------------------------- | -------------------------------------------------------- |
-| **システムステータス**     | 稼働時間、バージョン、メモリ使用量、データディレクトリ   |
-| **プロバイダーの健全性**   | グローバルプロバイダーのサーキットブレーカーの実行時状態 |
-| **レート制限**             | アカウントごとの有効な接続クールダウンと残り時間         |
-| **有効なロックアウト**     | 有効なモデル単位のロックアウトと一時的な除外             |
-| **シグネチャキャッシュ**   | 重複排除キャッシュの統計（有効なキー、ヒット率）         |
-| **レイテンシーテレメトリ** | プロバイダーごとの p50/p95/p99 レイテンシー集計          |
+| カード                     | 表示内容                                                     |
+| -------------------------- | ------------------------------------------------------------ |
+| **システムステータス**     | 稼働時間、バージョン、メモリ使用量、データディレクトリ       |
+| **プロバイダーの状態**     | グローバルプロバイダーのサーキットブレーカーのランタイム状態 |
+| **レート制限**             | アカウントごとの有効な接続クールダウンと残り時間             |
+| **有効なロックアウト**     | 有効なモデル単位のロックアウトと一時的な除外                 |
+| **シグネチャキャッシュ**   | 重複排除キャッシュの統計（有効なキー、ヒット率）             |
+| **レイテンシーテレメトリ** | プロバイダーごとの p50/p95/p99 レイテンシー集計              |
 
-**プロのヒント：** ヘルスページは 10 秒ごとに自動更新されます。問題が発生しているプロバイダーを特定するには、サーキットブレーカーカードを使用してください。
+**ヒント：** Health ページは 10 秒ごとに自動更新されます。問題が発生しているプロバイダーを特定するには、サーキットブレーカーのカードを使用してください。
 
 ---
 
@@ -1195,9 +1213,9 @@ OmniRoute はクラウドコーディングエージェント（**OpenAI Codex C
 
 ## 🛠️ プログラムによる管理
 
-`manage` スコープを持つ **Bearer キー**を使用して、HTTP 経由ですべての OmniRoute リソース（プロバイダー、コンボ、キー、設定）を管理できます。
+**`manage` スコープを持つBearerキー**を使用して、すべてのOmniRouteリソース（プロバイダー、コンボ、キー、設定）をHTTP経由で管理できます。
 
-**ダッシュボード → API キー → 新しいキー → スコープ：manage**でキーを生成してから、以下を実行します。
+**ダッシュボード → APIキー → 新しいキー → スコープ: manage** でキーを生成し、以下を実行します。
 
 ```bash
 # プロバイダーを一覧表示
@@ -1216,13 +1234,13 @@ curl -X POST http://localhost:20128/api/combos \
   -H "Content-Type: application/json" \
   -d '{ "name": "premium", "strategy": "priority", "models": [{ "model": "cc/claude-opus-4-7" }, { "model": "glm/glm-5.1" }] }'
 
-# API キーを一覧表示／作成
+# APIキーを一覧表示／作成
 curl http://localhost:20128/api/keys -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY"
 curl -X POST http://localhost:20128/api/keys -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
   -d '{ "name": "ci-bot", "scopes": ["chat"] }'
 ```
 
-エンドポイントの完全なカタログとリクエスト／レスポンススキーマについては、[API_REFERENCE.md](../reference/API_REFERENCE.md) を参照してください。
+エンドポイントの完全なカタログおよびリクエスト／レスポンスのスキーマについては、[API_REFERENCE.md](../reference/API_REFERENCE.md)を参照してください。
 
 ---
 

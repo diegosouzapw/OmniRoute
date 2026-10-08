@@ -7,6 +7,7 @@ import {
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 
 const BLACKBOX_CHAT_API = "https://app.blackbox.ai/api/chat";
 const BLACKBOX_DEFAULT_COOKIE = "next-auth.session-token";
@@ -509,7 +510,7 @@ export class BlackboxWebExecutor extends BaseExecutor {
         signal: combinedSignal,
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const message = sanitizeErrorMessage(error instanceof Error ? error.message : String(error));
       log?.error?.("BLACKBOX-WEB", `Fetch failed: ${message}`);
       const errorResponse = new Response(
         JSON.stringify({

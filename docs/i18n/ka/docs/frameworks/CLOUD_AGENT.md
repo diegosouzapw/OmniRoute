@@ -1,6 +1,6 @@
 # Cloud Agents (ქართული)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/CLOUD_AGENT.md) · 🇪🇹 [am](../../../am/docs/frameworks/CLOUD_AGENT.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/CLOUD_AGENT.md) · 🇦🇿 [az](../../../az/docs/frameworks/CLOUD_AGENT.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/CLOUD_AGENT.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/CLOUD_AGENT.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/CLOUD_AGENT.md) · 🇩🇰 [da](../../../da/docs/frameworks/CLOUD_AGENT.md) · 🇩🇪 [de](../../../de/docs/frameworks/CLOUD_AGENT.md) · 🇬🇷 [el](../../../el/docs/frameworks/CLOUD_AGENT.md) · 🇪🇸 [es](../../../es/docs/frameworks/CLOUD_AGENT.md) · 🇪🇪 [et](../../../et/docs/frameworks/CLOUD_AGENT.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/CLOUD_AGENT.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/CLOUD_AGENT.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/CLOUD_AGENT.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/CLOUD_AGENT.md) · 🇮🇱 [he](../../../he/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/CLOUD_AGENT.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/CLOUD_AGENT.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/CLOUD_AGENT.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/CLOUD_AGENT.md) · 🇮🇩 [id](../../../id/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/CLOUD_AGENT.md) · 🇮🇹 [it](../../../it/docs/frameworks/CLOUD_AGENT.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/CLOUD_AGENT.md) · 🇰🇭 [km](../../../km/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/CLOUD_AGENT.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/CLOUD_AGENT.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/CLOUD_AGENT.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/CLOUD_AGENT.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/CLOUD_AGENT.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/CLOUD_AGENT.md) · 🇲🇲 [my](../../../my/docs/frameworks/CLOUD_AGENT.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/CLOUD_AGENT.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/CLOUD_AGENT.md) · 🇳🇴 [no](../../../no/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [or](../../../or/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/CLOUD_AGENT.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/CLOUD_AGENT.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/CLOUD_AGENT.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/CLOUD_AGENT.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/CLOUD_AGENT.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/CLOUD_AGENT.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/CLOUD_AGENT.md) · 🇱🇰 [si](../../../si/docs/frameworks/CLOUD_AGENT.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/CLOUD_AGENT.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/CLOUD_AGENT.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/CLOUD_AGENT.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/CLOUD_AGENT.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [te](../../../te/docs/frameworks/CLOUD_AGENT.md) · 🇹🇭 [th](../../../th/docs/frameworks/CLOUD_AGENT.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/CLOUD_AGENT.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/CLOUD_AGENT.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/CLOUD_AGENT.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/CLOUD_AGENT.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/CLOUD_AGENT.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/CLOUD_AGENT.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/CLOUD_AGENT.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/CLOUD_AGENT.md) · 🇪🇹 [am](../../../am/docs/frameworks/CLOUD_AGENT.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/CLOUD_AGENT.md) · 🇦🇿 [az](../../../az/docs/frameworks/CLOUD_AGENT.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/CLOUD_AGENT.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/CLOUD_AGENT.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/CLOUD_AGENT.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/CLOUD_AGENT.md) · 🇩🇰 [da](../../../da/docs/frameworks/CLOUD_AGENT.md) · 🇩🇪 [de](../../../de/docs/frameworks/CLOUD_AGENT.md) · 🇬🇷 [el](../../../el/docs/frameworks/CLOUD_AGENT.md) · 🇪🇸 [es](../../../es/docs/frameworks/CLOUD_AGENT.md) · 🇪🇪 [et](../../../et/docs/frameworks/CLOUD_AGENT.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/CLOUD_AGENT.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/CLOUD_AGENT.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/CLOUD_AGENT.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/CLOUD_AGENT.md) · 🇮🇱 [he](../../../he/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/CLOUD_AGENT.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/CLOUD_AGENT.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/CLOUD_AGENT.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/CLOUD_AGENT.md) · 🇮🇩 [id](../../../id/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/CLOUD_AGENT.md) · 🇮🇹 [it](../../../it/docs/frameworks/CLOUD_AGENT.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/CLOUD_AGENT.md) · 🇰🇭 [km](../../../km/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/CLOUD_AGENT.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/CLOUD_AGENT.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/CLOUD_AGENT.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/CLOUD_AGENT.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/CLOUD_AGENT.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/CLOUD_AGENT.md) · 🇲🇲 [my](../../../my/docs/frameworks/CLOUD_AGENT.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/CLOUD_AGENT.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/CLOUD_AGENT.md) · 🇳🇴 [no](../../../no/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [or](../../../or/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/CLOUD_AGENT.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/CLOUD_AGENT.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/CLOUD_AGENT.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/CLOUD_AGENT.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/CLOUD_AGENT.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/CLOUD_AGENT.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/CLOUD_AGENT.md) · 🇱🇰 [si](../../../si/docs/frameworks/CLOUD_AGENT.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/CLOUD_AGENT.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/CLOUD_AGENT.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/CLOUD_AGENT.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/CLOUD_AGENT.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [te](../../../te/docs/frameworks/CLOUD_AGENT.md) · 🇹🇭 [th](../../../th/docs/frameworks/CLOUD_AGENT.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/CLOUD_AGENT.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/CLOUD_AGENT.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/CLOUD_AGENT.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/CLOUD_AGENT.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/CLOUD_AGENT.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/CLOUD_AGENT.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/CLOUD_AGENT.md)
 
 ---
 
@@ -116,9 +116,18 @@ export abstract class CloudAgentBase {
 }
 ```
 
-`CodexCloudAgent.approvePlan` განზრახ წარმოქმნის გამონაკლისს — Codex Cloud გეგმას ავტომატურად ქმნის და დამტკიცების ეტაპი არ აქვს. `CodexCloudAgent.listSources` აბრუნებს `[]`-ს.
+`CodexCloudAgent.approvePlan` განზრახ გამოისვრის გამონაკლისს — Codex Cloud გეგმას ავტომატურად ქმნის და
+დამტკიცების ეტაპი არ აქვს. `CodexCloudAgent.listSources` აბრუნებს `[]`-ს.
 
-`CursorCloudAgent` Cursor-ის Background / Cloud Agents-ს მისი ოფიციალური REST API-ის (`api.cursor.com/v0`) მეშვეობით მართავს, **მომხმარებლის ან სერვისული ანგარიშის API გასაღებით** — ეს Cursor IDE-ის OAuth სესიის ხელახლა გამოყენების უფრო უსაფრთხო, უშუალოდ მწარმოებლის მიერ მხარდაჭერილი ალტერნატივაა (პროვაიდერი `cursor`, რომელსაც დაბლოკვის რისკის გაფრთხილება ახლავს). ის ჩვეულებრივი REST ადაპტერია (`@cursor/sdk`-ზე ნატიური დამოკიდებულების გარეშე). `approvePlan` წარმოქმნის გამონაკლისს (Cursor-ის აგენტები ავტონომიურად მუშაობენ); `listSources` ჩამოთვლის გასაღებისთვის ხელმისაწვდომ რეპოზიტორიებს. Cursor აბრუნებს ზედა რეგისტრში ჩაწერილ სტატუსის ჩამონათვალის მნიშვნელობებს (`CREATING`/`RUNNING`/`FINISHED`/`ERROR`), რომლებიც აშკარად აისახება საერთო `CloudAgentStatus`-ზე. `baseUrl`-ის ჩანაცვლება შესაძლებელია თითოეული ავტორიზაციის მონაცემისთვის, რათა API-ის ვერსია/გზა კოდის შეცვლის გარეშე გასწორდეს.
+`CursorCloudAgent` მართავს Cursor-ის Background / Cloud Agents-ს მისი ოფიციალური REST
+API-ის (`api.cursor.com/v0`) მეშვეობით, **მომხმარებლის ან სერვისული ანგარიშის API გასაღებით** — ეს უფრო უსაფრთხო,
+პირველი მხარის ალტერნატივაა Cursor IDE-ის OAuth სესიის ხელახლა გამოყენებასთან შედარებით (პროვაიდერი `cursor`,
+რომელსაც აკრძალვის რისკის შესახებ გაფრთხილება ახლავს). ის ჩვეულებრივი REST ადაპტერია (არ აქვს `@cursor/sdk`-ის ნატიური
+დამოკიდებულება). `approvePlan` გამოისვრის გამონაკლისს (Cursor-ის აგენტები ავტონომიურად მუშაობენ); `listSources` ჩამოთვლის
+გასაღებით ხელმისაწვდომ რეპოზიტორიებს. Cursor აბრუნებს სტატუსის UPPERCASE ჩამონათვალებს
+(`CREATING`/`RUNNING`/`FINISHED`/`ERROR`), რომლებიც აშკარად აისახება საერთო
+`CloudAgentStatus`-ზე. `baseUrl` შეიძლება გადაიფაროს თითოეული ავტორიზაციის მონაცემისთვის, რათა API-ის ვერსია/გზა
+კოდის შეცვლის გარეშე გასწორდეს.
 
 ## დომენის ტიპები
 
@@ -295,24 +304,29 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 პროვაიდერს **არ** იძახებს — `CloudAgentBase`-ში შეწყვეტის RPC არ არსებობს. upstream-ში
 ბილინგის შესაჩერებლად დაასრულეთ დავალება თავად პროვაიდერის კონსოლში.
 
-## REST API — Cloud-პროვაიდერის დამაკავშირებელი ინფრასტრუქტურა
+## REST API — ღრუბლოვან პროვაიდერთან ინტეგრაცია
 
-ეს დამხმარე endpoint-ები, რომლებიც მდებარეობს `src/app/api/cloud/`-ში, გამოიყენება დისტანციური კლიენტების მიერ
-(CLI, Electron აპი ან სინქრონიზაციის worker-ები), რათა წაიკითხონ პროვაიდერის კავშირის მეტამონაცემები
-და ამოხსნან მოდელების alias-ები. მათი ავთენტიფიკაცია ხდება **ჩვეულებრივი API გასაღებით**
-(`validateApiKey`-ის მეშვეობით) და არა მართვის ავთენტიფიკაციით, რომელსაც ამოცანების endpoint-ები იყენებენ.
+`src/app/api/cloud/`-ში განთავსებული ეს დამხმარე endpoint-ები გამოიყენება დისტანციური კლიენტების
+მიერ (CLI, Electron აპლიკაცია ან სინქრონიზაციის worker-ები), რათა წაიკითხონ პროვაიდერთან კავშირის მეტამონაცემები
+და ამოხსნან მოდელების ალიასები. მათი ავთენტიფიკაცია ხდება **API გასაღებით**
+(`validateApiKey`-ის მეშვეობით) და არა ამოცანების endpoint-ების მიერ გამოყენებული მართვის ავთენტიფიკაციით;
+რას დააბრუნებს `/api/cloud/auth`, დამოკიდებულია გასაღების scope-ზე (იხილეთ ქვემოთ).
 
-| მეთოდი | გზა                             | დანიშნულება                                                                                    |
-| ------ | ------------------------------- | ---------------------------------------------------------------------------------------------- |
-| POST   | `/api/cloud/auth`               | API გასაღების ვალიდაცია, შენიღბული კავშირის მეტამონაცემებისა და მოდელების alias-ების დაბრუნება |
-| PUT    | `/api/cloud/credentials/update` | `accessToken` / `refreshToken` / `expiresAt`-ის განახლება                                      |
-| POST   | `/api/cloud/model/resolve`      | მოდელის alias-ის ამოხსნა `{ provider, model }`-ად                                              |
-| GET    | `/api/cloud/models/alias`       | მოდელების ყველა alias-ის ჩამონათვალი                                                           |
-| PUT    | `/api/cloud/models/alias`       | მოდელის alias-ის დაყენება (და, თუ ჩართულია, Cloud-თან ავტომატური სინქრონიზაცია)                |
+| მეთოდი | მისამართი                       | დანიშნულება                                                                                   |
+| ------ | ------------------------------- | --------------------------------------------------------------------------------------------- |
+| POST   | `/api/cloud/auth`               | API გასაღების შემოწმება და შენიღბული კავშირის მეტამონაცემებისა და მოდელის ალიასების დაბრუნება |
+| PUT    | `/api/cloud/credentials/update` | `accessToken` / `refreshToken` / `expiresAt`-ის განახლება                                     |
+| POST   | `/api/cloud/model/resolve`      | მოდელის ალიასის ამოხსნა `{ provider, model }`-ად                                              |
+| GET    | `/api/cloud/models/alias`       | მოდელის ყველა ალიასის ჩამონათვალი                                                             |
+| PUT    | `/api/cloud/models/alias`       | მოდელის ალიასის დაყენება (და, თუ ჩართულია, Cloud-თან ავტომატური სინქრონიზაცია)                |
 
 `/api/cloud/auth` არასოდეს აბრუნებს დაუმუშავებელ `apiKey` / `accessToken` / `refreshToken`-ს. ის
-აბრუნებს `hasApiKey`, `hasAccessToken`, `hasRefreshToken`-სა და შენიღბულ გადახედვას
-(`maskedApiKey`: პირველი 4 + `****` + ბოლო 4).
+აბრუნებს `hasApiKey`, `hasAccessToken`, `hasRefreshToken`-ს იმ აქტიური კავშირებისთვის, რომელთა
+გამოყენებაც გასაღებს შეუძლია (`allowedConnections`-ით შეზღუდული გასაღები მხოლოდ მათ ხედავს).
+`manage` ან `admin` scope-ის მქონე API გასაღებისთვის, მათ შორის `OMNIROUTE_API_KEY`-დან მიღებული
+deployment გასაღებისთვის, ის ასევე აბრუნებს შენიღბულ წინასწარ ხედს (`maskedApiKey`: თითოეულ ბოლოში
+არაუმეტეს 4 სიმბოლო, მოკლე გასაღებისთვის — ნაკლები, ხოლო 8 ან ნაკლები სიმბოლოს შემთხვევაში — არცერთი)
+და კავშირის `projectId`-ს. ნებისმიერი სხვა გასაღებისთვის ორივე ველი პასუხიდან გამოტოვებულია.
 
 ## ავტორიზაციის მონაცემების ამოხსნა
 

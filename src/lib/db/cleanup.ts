@@ -176,6 +176,39 @@ export async function cleanupCompressionAnalytics(): Promise<CleanupResult> {
 }
 
 /**
+ * Clean up old compression_engine_breakdown based on retention settings (#14268).
+ * Uses retention.compressionAnalytics (same retention window as compression_analytics).
+ */
+export async function cleanupCompressionEngineBreakdown(): Promise<CleanupResult> {
+  const db = getDbInstance();
+  const retention = getRetentionSettings();
+
+  const retentionDays = retention.compressionAnalytics;
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+  const cutoffISO = cutoffDate.toISOString();
+
+  const result: CleanupResult = { deleted: 0, errors: 0 };
+
+  try {
+    if (!tableExists("compression_engine_breakdown")) return result;
+
+    const stmt = db.prepare("DELETE FROM compression_engine_breakdown WHERE timestamp < ?");
+    const runResult = stmt.run(cutoffISO);
+    result.deleted = runResult.changes;
+
+    console.log(
+      `[Cleanup] Deleted ${result.deleted} compression_engine_breakdown older than ${retentionDays} days`
+    );
+  } catch (err: unknown) {
+    console.error("[Cleanup] Error cleaning compression_engine_breakdown:", err);
+    result.errors++;
+  }
+
+  return result;
+}
+
+/**
  * Clean up old mcp_tool_audit based on retention settings.
  */
 export async function cleanupMcpAudit(): Promise<CleanupResult> {
@@ -550,10 +583,10 @@ export async function cleanupExpiredFiles(): Promise<CleanupResult> {
  * separate compliance cleanup path and does not override this window.
  * Deleting an old node only affects reconnect anchors: a conversation resumed
  * after the window mints a new id, which is already the documented
- * anchor-miss behavior of resolveConversationId. `last_seen_at` has no index
- * (migration 156), so each DELETE is a table scan. Bounded batches yield
- * between writes so an existing large table cannot park the event loop for
- * the whole cleanup pass.
+ * anchor-miss behavior of resolveConversationId. `last_seen_at` is indexed
+ * (migration 186, #13973 — migration 156 originally missed it). Bounded
+ * batches yield between writes so an existing large table cannot park the
+ * event loop for the whole cleanup pass.
  */
 export async function cleanupConversationTurnNodes(): Promise<CleanupResult> {
   const retention = getRetentionSettings();
@@ -654,6 +687,7 @@ export async function runAutoCleanup(): Promise<{
     callLogs: await cleanupCallLogs(),
     usageHistory: await cleanupUsageHistory(),
     compressionAnalytics: await cleanupCompressionAnalytics(),
+    compressionEngineBreakdown: await cleanupCompressionEngineBreakdown(),
     mcpAudit: await cleanupMcpAudit(),
     configAudit: await cleanupConfigAudit(),
     a2aEvents: await cleanupA2aEvents(),
@@ -789,6 +823,7 @@ export interface ResetUsageHistoryResult extends CleanupResult {
   deletedProxyLogs: number;
   deletedRelayLogs: number;
   deletedCompressionAnalytics: number;
+  deletedCompressionEngineBreakdown: number;
   deletedCompressionRunTelemetry: number;
   deletedRoutingDecisions: number;
   deletedQuotaConsumption: number;
@@ -852,6 +887,12 @@ const RESET_TARGETS: Array<
     resultKey: "deletedCompressionAnalytics",
   },
   {
+    table: "compression_engine_breakdown",
+    column: "timestamp",
+    cutoff: "iso",
+    resultKey: "deletedCompressionEngineBreakdown",
+  },
+  {
     table: "compression_run_telemetry",
     column: "timestamp",
     cutoff: "epochMs",
@@ -904,6 +945,7 @@ export async function resetUsageHistory(period: string): Promise<ResetUsageHisto
     deletedProxyLogs: 0,
     deletedRelayLogs: 0,
     deletedCompressionAnalytics: 0,
+    deletedCompressionEngineBreakdown: 0,
     deletedCompressionRunTelemetry: 0,
     deletedRoutingDecisions: 0,
     deletedQuotaConsumption: 0,

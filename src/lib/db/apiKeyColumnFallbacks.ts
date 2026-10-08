@@ -1,4 +1,9 @@
 export const API_KEY_COLUMN_FALLBACKS = [
+  {
+    name: "codex_service_mode",
+    definition:
+      "codex_service_mode TEXT NOT NULL DEFAULT 'inherit' CHECK (codex_service_mode IN ('inherit', 'default', 'priority', 'flex'))",
+  },
   { name: "allowed_models", definition: "allowed_models TEXT" },
   {
     name: "model_access_mode",

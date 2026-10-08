@@ -40,13 +40,15 @@ const FETCHER_WITHOUT_DASHBOARD_ENTRY = new Set(["opencode", "opencode-zen", "xa
 /**
  * Offered to the dashboard with no fetcher behind it.
  *
- * `xiaomi-mimo-token-plan` is inert rather than broken: it authenticates by API
- * key and is absent from `PROVIDER_LIMITS_APIKEY_PROVIDERS`, so
- * `isSupportedUsageConnection` refuses it before the dispatcher is ever
- * reached. Listed here so the entry is understood as dead config instead of
- * being "fixed" into a live path that would return "Usage API not implemented".
+ * Empty as of #14543: `xiaomi-mimo-token-plan` used to be pinned here on the
+ * (incorrect) belief that `isSupportedUsageConnection` refuses it before the
+ * dispatcher is reached — it does not: an apikey connection falls back to
+ * `supportsProviderQuota()`, which returns true because the id is already in
+ * `USAGE_SUPPORTED_PROVIDERS`. The dispatcher now has a real case for it (see
+ * `USAGE_FETCHER_PROVIDERS` in fetcherProviders.ts), so this set has nothing
+ * to pin — kept as the documented place to pin the next one.
  */
-const DASHBOARD_ENTRY_WITHOUT_FETCHER = new Set(["xiaomi-mimo-token-plan"]);
+const DASHBOARD_ENTRY_WITHOUT_FETCHER = new Set<string>([]);
 
 const sorted = (values: Iterable<string>) => [...values].sort();
 

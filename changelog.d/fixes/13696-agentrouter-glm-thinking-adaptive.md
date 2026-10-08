@@ -1,1 +1,0 @@
-- fix(providers): map `thinking.type: "adaptive"` to `"enabled"` for AgentRouter GLM models instead of forwarding it unhandled, fixing a 400 from AgentRouter's upstream GLM endpoint (#13696)

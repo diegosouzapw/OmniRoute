@@ -125,7 +125,7 @@ function freshSets() {
 
 test("#5085 empty-content 502 must NOT mark the provider/connection exhausted (model-level, not connection-level)", () => {
   const sets = freshSets();
-  const providerExhausted = applyComboTargetExhaustion(
+  const { providerExhausted: providerExhausted } = applyComboTargetExhaustion(
     makeTarget("nvidia", "nvidia/minimaxai/minimax-m3"),
     {
       result: { status: 502, headers: new Headers() },
@@ -151,7 +151,7 @@ test("#5085 empty-content 502 must NOT mark the provider/connection exhausted (m
 
 test("#8397 empty-response 502 (no usable choices/output) must NOT mark provider/connection exhausted", () => {
   const sets = freshSets();
-  const providerExhausted = applyComboTargetExhaustion(
+  const { providerExhausted: providerExhausted } = applyComboTargetExhaustion(
     makeTarget("nvidia", "nvidia/minimaxai/minimax-m3"),
     {
       result: { status: 502, headers: new Headers() },

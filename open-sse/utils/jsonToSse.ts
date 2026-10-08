@@ -55,7 +55,16 @@ function buildReasoningDelta(message: JsonRecord): JsonRecord | null {
     delta.reasoning_details = message.reasoning_details;
   }
 
-  if (!addReadableReasoning(message, delta)) {
+  // Always emit the readable field (reasoning_content, else the reasoning
+  // alias) WITHOUT short-circuiting the unsupported-alias mirror below.
+  addReadableReasoning(message, delta);
+
+  // Mirror unsupported reasoning aliases (reasoning_text / thinking / thought /
+  // reasoning_details[].text) into reasoning_content unless reasoning_content
+  // itself is present — same gate as copyOpenAICompatibleReasoningFields
+  // (#12665). A populated `reasoning` string must NOT skip this: OpenRouter
+  // thinking models send BOTH `reasoning` and `reasoning_details[].text`.
+  if (!nonEmptyString(message.reasoning_content)) {
     addUnsupportedReasoning(message, delta);
   }
 

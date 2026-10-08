@@ -73,7 +73,7 @@ test("#12441 isQuotaOrCreditsError still matches quota text when structuredError
 
 test("#12441 credits-exhausted HTTP 401 does not mark auth-level connection skip", () => {
   const s = emptySets();
-  const exhausted = applyComboTargetExhaustion(chutesTarget(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(chutesTarget(), {
     result: { status: 401 },
     fallbackResult: {},
     errorText: "[chutes] All 3 connection(s) credits exhausted — please reconnect in the dashboard",
@@ -93,7 +93,7 @@ test("#12441 credits-exhausted HTTP 401 does not mark auth-level connection skip
 
 test("#12441 structuredError quota message with a non-quota code does not auth-skip", () => {
   const s = emptySets();
-  const exhausted = applyComboTargetExhaustion(chutesTarget(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(chutesTarget(), {
     result: { status: 401 },
     fallbackResult: {},
     errorText: "generic upstream failure",
@@ -116,7 +116,7 @@ test("#12441 structuredError quota message with a non-quota code does not auth-s
 
 test("#12441 real authentication expired 401 still marks the connection", () => {
   const s = emptySets();
-  const exhausted = applyComboTargetExhaustion(chutesTarget(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(chutesTarget(), {
     result: { status: 401 },
     fallbackResult: {},
     errorText:
@@ -147,7 +147,7 @@ function quotaTarget() {
 
 test("#12441 credits-exhausted 401 on a non-passthrough provider takes quota skip (#1731) not auth skip (#8133)", () => {
   const s = emptySets();
-  const exhausted = applyComboTargetExhaustion(quotaTarget(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(quotaTarget(), {
     result: { status: 401 },
     fallbackResult: {},
     errorText: "[chutes] All 3 connection(s) credits exhausted — please reconnect in the dashboard",

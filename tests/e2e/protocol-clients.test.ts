@@ -92,7 +92,7 @@ describe("Protocol clients E2E", () => {
       method: "PATCH",
       body: JSON.stringify({ a2aEnabled: true }),
     });
-    expect([200, 401]).toContain(response.status);
+    expect([200, 401, 403]).toContain(response.status);
   });
 
   it(

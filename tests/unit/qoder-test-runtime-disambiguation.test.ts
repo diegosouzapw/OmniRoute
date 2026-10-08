@@ -54,7 +54,8 @@ test("#2247 — early-return on runtime diagnosis short-circuits upstream test",
   const source = fs.readFileSync(ROUTE_FILE, "utf8");
   // The caller must check runtime?.diagnosis first and not fall through to
   // upstream auth tests (which is what produces the cascading 401).
-  const runtimeBlock = source.split("getProviderRuntimeStatus(connection);")[1] || "";
+  // GHSA-jmq6-8j86-8xqj: the call now also passes the caller-locality options.
+  const runtimeBlock = source.split("getProviderRuntimeStatus(connection, options);")[1] || "";
   assert.match(
     runtimeBlock.slice(0, 600),
     /if \(\(runtime as any\)\?\.diagnosis\)/,

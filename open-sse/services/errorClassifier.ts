@@ -16,7 +16,24 @@ import { getProviderCategory, getRegistryEntry } from "../config/providerRegistr
 const LEGIT_EMPTY_CLAUDE_STOP = new Set(["max_tokens", "tool_use"]);
 const LEGIT_EMPTY_OPENAI_FINISH = new Set(["length", "tool_calls", "content_filter"]);
 
-export function isEmptyContentResponse(responseBody: unknown): boolean {
+// #14160: first-party APIs where an empty completion carrying a NORMAL terminal
+// stop reason ("stop" / "end_turn") is a real answer — some prompts legitimately
+// produce no text — not a disguised upstream failure. The fake-success guard
+// exists for free-tier/scraping providers (pollinations, perplexity-web — #13461)
+// whose failure mode is an empty 200 shell; flagging a first-party empty stop
+// turned valid answers into synthetic 502s that fed model lockout and drained
+// the reporter's whole connection pool. Providers outside this set keep the
+// guard unchanged, including on empty stop completions.
+const TRUSTED_EMPTY_STOP_PROVIDERS = new Set(["antigravity"]);
+const NORMAL_STOP_OPENAI_FINISH = new Set(["stop"]);
+const NORMAL_STOP_CLAUDE_STOP = new Set(["end_turn"]);
+
+export function isEmptyContentResponse(
+  responseBody: unknown,
+  opts?: { provider?: string | null }
+): boolean {
+  const trustedEmptyStop =
+    typeof opts?.provider === "string" && TRUSTED_EMPTY_STOP_PROVIDERS.has(opts.provider);
   if (!responseBody || typeof responseBody !== "object") return false;
 
   const body = responseBody as Record<string, unknown>;
@@ -47,6 +64,10 @@ export function isEmptyContentResponse(responseBody: unknown): boolean {
     const finishReason =
       typeof firstChoice.finish_reason === "string" ? firstChoice.finish_reason : "";
     if (LEGIT_EMPTY_OPENAI_FINISH.has(finishReason)) return false;
+    // #14160: on a trusted first-party API, an empty completion that stopped
+    // normally is a valid answer — pass it through as a 200 instead of
+    // rewriting it into a synthetic 502.
+    if (trustedEmptyStop && NORMAL_STOP_OPENAI_FINISH.has(finishReason)) return false;
 
     return !hasContent && !hasReasoning && !hasToolCalls;
   }
@@ -57,6 +78,8 @@ export function isEmptyContentResponse(responseBody: unknown): boolean {
     // to emit a tool_use block) is a legitimate terminal state, not a silent
     // failure. Only flag empty content when no such terminal stop_reason is present.
     const stopReason = typeof body.stop_reason === "string" ? body.stop_reason : "";
+    // #14160: same exemption for the Claude wire shape on trusted first-party APIs.
+    if (trustedEmptyStop && NORMAL_STOP_CLAUDE_STOP.has(stopReason)) return false;
     return !LEGIT_EMPTY_CLAUDE_STOP.has(stopReason);
   }
 
@@ -130,6 +153,27 @@ export const CONTEXT_OVERFLOW_REGEX = new RegExp(CONTEXT_OVERFLOW_SIGNALS.join("
 
 export function isContextOverflow(errorText: string): boolean {
   return CONTEXT_OVERFLOW_REGEX.test(String(errorText || ""));
+}
+
+// Operator-actionable account-state prompts — the account is NOT dead, the human
+// behind it must complete an upstream verification step. Deliberately NOT part of
+// accountFallback.ts's ACCOUNT_DEACTIVATED_SIGNALS: a match there is terminal
+// (`permanent: true`, 1-year cooldown, never auto-recovers), which is the wrong
+// response to a condition the operator clears in a browser.
+//
+// Google Cloud Code / Antigravity answer `403 VALIDATION_REQUIRED` with
+// "Verify your account to continue". It is TRANSIENT and fires on healthy,
+// fully-quota'd accounts. Measured on a live deployment (2026-09-25): one
+// Antigravity connection returned 33 of these 403s inside 10 minutes and stayed
+// `active`, while a sibling holding 100 % of its quota on all 17 windows was
+// permanently banned by a SINGLE one — the only difference being which attempt
+// happened to be served. Keeping the phrase in the ban list also shadowed the
+// cloud-code recovery below, which is only reached after `accountDeactivated`.
+export const ACCOUNT_VERIFICATION_REQUIRED_SIGNALS = ["verify your account to continue"];
+
+export function isAccountVerificationRequired(errorText: string): boolean {
+  const lower = String(errorText || "").toLowerCase();
+  return ACCOUNT_VERIFICATION_REQUIRED_SIGNALS.some((sig) => lower.includes(sig));
 }
 
 // Matches phrasing like `Model minimax-m3-free is not supported` or
@@ -295,6 +339,14 @@ export function isAnthropicRequestNotAllowed(errorText: string): boolean {
   return /\brequest not allowed\b/i.test(String(errorText || ""));
 }
 
+export function isGrokOAuthProvider(provider?: string | null): boolean {
+  return String(provider || "").toLowerCase() === "grok-cli";
+}
+
+export function isGrokContentRefusal(errorText: string): boolean {
+  return /\bi can['’]t help with that request\b/i.test(String(errorText || ""));
+}
+
 function responseBodyToString(responseBody: unknown): string {
   if (typeof responseBody === "string") return responseBody;
   if (responseBody !== null && typeof responseBody === "object") {
@@ -432,6 +484,22 @@ export function classifyProviderError(
   if (statusCode === 403 && accountDeactivated) {
     return PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED;
   }
+  if (statusCode === 403 && isAccountVerificationRequired(bodyStr)) {
+    // Google Cloud Code / Antigravity answer `403 VALIDATION_REQUIRED` with
+    // "Verify your account to continue". This is a TRANSIENT, operator-actionable
+    // account-state prompt — not a permanent ban. Measured on a live deployment
+    // (2026-09-25): one healthy Antigravity connection returned 33 of these 403s
+    // inside 10 minutes and stayed `active`, while a sibling connection holding
+    // 100 % of its quota on all 17 windows was permanently banned by a SINGLE one.
+    // The account serves traffic again as soon as the operator re-verifies, so the
+    // 1-year `permanent` cooldown ACCOUNT_DEACTIVATED implies is the wrong
+    // response. Recoverable, like the operator-fixable 403s below — and this
+    // branch is also what stops a NON-cloud-code provider from falling through to
+    // the generic FORBIDDEN below, which would ban it on the first occurrence.
+    // Checked AFTER accountDeactivated so a body carrying a real ban phrase
+    // ("this service has been disabled in this account for violation") still wins.
+    return PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR;
+  }
   if (
     statusCode === 403 &&
     isAnthropicOAuthProvider(provider) &&
@@ -440,6 +508,13 @@ export function classifyProviderError(
     // Per-request refusal on an otherwise healthy Claude OAuth token — see
     // isAnthropicRequestNotAllowed. Must be checked BEFORE the generic 403 →
     // FORBIDDEN fall-through, which bans the connection permanently.
+    return PROVIDER_ERROR_TYPES.REQUEST_REJECTED;
+  }
+  if (statusCode === 403 && isGrokOAuthProvider(provider) && isGrokContentRefusal(bodyStr)) {
+    // Per-request content refusal on an otherwise healthy Grok Build OAuth token
+    // (e.g. xAI refusal "I can't help with that request" on safety/security prompts).
+    // Must be checked BEFORE the generic 403 → FORBIDDEN fall-through, which bans
+    // the connection permanently.
     return PROVIDER_ERROR_TYPES.REQUEST_REJECTED;
   }
   if (statusCode === 403) {
@@ -623,6 +698,13 @@ export function classifyFakeSuccessBody(
     matchedSignalCoverage(lower, ACCOUNT_DEACTIVATED_SIGNALS) >= FAKE_SUCCESS_MIN_SIGNAL_COVERAGE
   ) {
     return PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED;
+  }
+  // Kept in step with classifyProviderError's 403 branch: a disguised
+  // "verify your account" prompt is recoverable, not a dead account. Without
+  // this the phrase would now fall through to `null` here, because it left
+  // ACCOUNT_DEACTIVATED_SIGNALS.
+  if (isAccountVerificationRequired(lower)) {
+    return PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR;
   }
   return null;
 }

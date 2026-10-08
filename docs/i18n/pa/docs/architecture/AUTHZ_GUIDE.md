@@ -1,73 +1,76 @@
 # Authorization Guide (ਪੰਜਾਬੀ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
 
 ---
 
-> **ਸੱਚਾਈ ਦਾ ਸਰੋਤ:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **ਆਖਰੀ ਵਾਰ ਅੱਪਡੇਟ ਕੀਤਾ:** 2026-06-28 — v3.8.40
+> **ਸੱਚ ਦਾ ਸਰੋਤ:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **ਆਖਰੀ ਵਾਰ ਅੱਪਡੇਟ ਕੀਤਾ ਗਿਆ:** 2026-09-22 — ਸਕੋਪ ਨੇਮਸਪੇਸ MCP-SERVER.md ਵੱਲ ਇਸ਼ਾਰਾ ਕਰਦੇ ਹਨ
 
-OmniRoute ਕੋਲ ਇੱਕ ਰੂਟ-ਅਵੇਅਰ ਅਧਿਕਾਰ-ਪ੍ਰਮਾਣਨ ਪਾਈਪਲਾਈਨ ਹੈ ਜੋ ਹਰ API ਬੇਨਤੀ ਨੂੰ ਨਿਯੰਤਰਿਤ ਕਰਦੀ ਹੈ। ਵਰਗੀਕਰਨ **ਨਿਰਧਾਰਤ** ਅਤੇ **fail-closed** ਹੈ — ਜਿਸ ਵੀ ਚੀਜ਼ ਦਾ ਵਰਗੀਕਰਨ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਦਾ, ਉਹ `MANAGEMENT` ਵਜੋਂ ਮੰਨੀ ਜਾਂਦੀ ਹੈ ਅਤੇ ਉਸ ਲਈ ਇੱਕ ਸੈਸ਼ਨ ਜਾਂ ਮੈਨੇਜਮੈਂਟ-ਗ੍ਰੇਡ ਟੋਕਨ ਲੋੜੀਂਦਾ ਹੁੰਦਾ ਹੈ। ਇਹ ਪੰਨਾ ਰੂਟਾਂ ਦੀ ਦੇਖਭਾਲ ਕਰਨ ਜਾਂ ਨਵੇਂ ਐਂਡਪੌਇੰਟ ਡਿਜ਼ਾਈਨ ਕਰਨ ਵਾਲੇ ਇੰਜੀਨੀਅਰਾਂ ਲਈ ਮਾਡਲ ਦੀ ਵਿਆਖਿਆ ਕਰਦਾ ਹੈ।
+OmniRoute ਕੋਲ ਇੱਕ ਰੂਟ-ਜਾਣੂ ਅਧਿਕਾਰ ਪਾਈਪਲਾਈਨ ਹੈ ਜੋ ਹਰ API ਬੇਨਤੀ ਨੂੰ ਗੇਟ ਕਰਦੀ ਹੈ। ਵਰਗੀਕਰਨ **ਨਿਰਧਾਰਤ** ਅਤੇ **ਫੇਲ-ਕਲੋਜ਼ਡ** ਹੈ — ਕੋਈ ਵੀ ਚੀਜ਼ ਜਿਸਨੂੰ ਵਰਗੀਕ੍ਰਿਤ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਦਾ, ਉਹ `MANAGEMENT` ਦੇ ਰੂਪ ਵਿੱਚ ਖਤਮ ਹੁੰਦੀ ਹੈ ਅਤੇ ਇੱਕ ਸੈਸ਼ਨ ਜਾਂ ਪ੍ਰਬੰਧਨ-ਗ੍ਰੇਡ ਟੋਕਨ ਦੀ ਮੰਗ ਕਰਦੀ ਹੈ। ਇਹ ਪੰਨਾ ਰੂਟਾਂ ਨੂੰ ਬਣਾਈ ਰੱਖਣ ਵਾਲੇ ਜਾਂ ਨਵੇਂ ਐਂਡਪੁਆਇੰਟ ਡਿਜ਼ਾਈਨ ਕਰਨ ਵਾਲੇ ਇੰਜੀਨੀਅਰਾਂ ਲਈ ਮਾਡਲ ਦੀ ਵਿਆਖਿਆ ਕਰਦਾ ਹੈ।
 
 ![AuthZ ਪਾਈਪਲਾਈਨ (3 ਰੂਟ ਕਲਾਸਾਂ + ਨੀਤੀ ਮੁਲਾਂਕਣ)](../diagrams/exported/authz-pipeline.svg)
 
 > ਸਰੋਤ: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
-## ਦੋ ਪ੍ਰਮਾਣੀਕਰਨ ਮੋਡ
+## ਦੋ Auth ਮੋਡ
 
-### 1. API ਕੁੰਜੀ (Bearer)
+### 1. API Key (Bearer)
 
-OpenAI/Anthropic/Gemini-ਅਨੁਕੂਲ ਕਲਾਇੰਟ API ਲਈ ਅਤੇ ਕੁਝ ਮੈਨੇਜਮੈਂਟ ਰੂਟਾਂ ਲਈ ਵਰਤੀ ਜਾਂਦੀ ਹੈ, ਜਦੋਂ ਕੁੰਜੀ ਕੋਲ `manage` ਸਕੋਪ ਹੁੰਦਾ ਹੈ।
+OpenAI/Anthropic/Gemini-ਅਨੁਕੂਲ ਕਲਾਇੰਟ APIs ਅਤੇ ਕੁਝ ਮੈਨੇਜਮੈਂਟ ਰੂਟਾਂ ਲਈ ਵਰਤਿਆ ਜਾਂਦਾ ਹੈ, ਜਦੋਂ key ਕੋਲ `manage` scope ਹੁੰਦਾ ਹੈ।
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-ਇਸ ਨੂੰ `src/sse/services/auth.ts` ਵਿੱਚ `isValidApiKey()` / `extractApiKey()` ਦੁਆਰਾ ਪ੍ਰਮਾਣਿਤ ਕੀਤਾ ਜਾਂਦਾ ਹੈ ਅਤੇ `src/shared/utils/apiAuth.ts` ਰਾਹੀਂ ਮੁੜ ਐਕਸਪੋਰਟ ਕੀਤਾ ਜਾਂਦਾ ਹੈ। ਵੈਲੀਡੇਟਰ `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` env vars ਨੂੰ ਸਥਾਈ ਪਾਸਥਰੂ ਕੁੰਜੀਆਂ ਵਜੋਂ ਵੀ ਸਵੀਕਾਰ ਕਰਦਾ ਹੈ (issue #1350)।
+`src/sse/services/auth.ts` ਵਿੱਚ `isValidApiKey()` / `extractApiKey()` ਦੁਆਰਾ ਪ੍ਰਮਾਣਿਤ ਕੀਤਾ ਜਾਂਦਾ ਹੈ ਅਤੇ `src/shared/utils/apiAuth.ts` ਰਾਹੀਂ ਮੁੜ export ਕੀਤਾ ਜਾਂਦਾ ਹੈ। ਵੈਲੀਡੇਟਰ `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` env vars ਨੂੰ ਸਥਾਈ passthrough keys ਵਜੋਂ ਵੀ ਸਵੀਕਾਰ ਕਰਦਾ ਹੈ (issue #1350)।
 
-### 2. ਡੈਸ਼ਬੋਰਡ ਸੈਸ਼ਨ (auth_token ਕੂਕੀ)
+### 2. Dashboard Session (auth_token cookie)
 
-ਡੈਸ਼ਬੋਰਡ ਪੰਨਿਆਂ ਅਤੇ ਐਡਮਿਨ ਕਾਰਵਾਈਆਂ ਲਈ।
+Dashboard ਪੰਨਿਆਂ ਅਤੇ admin ਕਾਰਵਾਈਆਂ ਲਈ।
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-ਕੋਈ ਕੂਕੀ ਕੇਵਲ ਉਦੋਂ ਹੀ ਸੈਸ਼ਨ ਹੁੰਦੀ ਹੈ ਜਦੋਂ JWT ਦੀ ਪੁਸ਼ਟੀ ਹੋਵੇ **ਅਤੇ** ਉਸ ਵਿੱਚ `authenticated: true` ਹੋਵੇ
-(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`)। ਕੂਕੀ ਦੀ ਵਰਤੋਂ ਕਰਨ ਵਾਲਾ ਹਰ
-ਉਪਭੋਗਤਾ (ਰੂਟ ਗਾਰਡ, authz ਪਾਈਪਲਾਈਨ ਰਿਫ੍ਰੈਸ਼, WebSocket ਹੈਂਡਸ਼ੇਕ, ਲਾਈਵ
-ਸਰਵਰ, `/api/settings/require-login`, `/api/auth/status`) ਉਸ ਹੈਲਪਰ ਰਾਹੀਂ ਜਾਂਦਾ ਹੈ।
-`JWT_SECRET` ਨਾਲ ਸਾਈਨ ਕੀਤੇ ਹੋਰ JWT ਵੀ ਮੌਜੂਦ ਹਨ — Cursor CLI ਪਾਸਥਰੂ ਕੁੰਜੀ ਧਾਰਕਾਂ ਲਈ
-`iss "omniroute" / aud "cursor-cli"` ਟੋਕਨ ਬਣਾਉਂਦਾ ਹੈ — ਅਤੇ ਉਹ ਕਦੇ ਵੀ ਸੈਸ਼ਨ ਨਹੀਂ ਹੁੰਦੇ
+ਕੋਈ cookie ਕੇਵਲ ਉਦੋਂ ਹੀ session ਹੁੰਦੀ ਹੈ ਜਦੋਂ JWT ਦੀ ਪੁਸ਼ਟੀ ਹੁੰਦੀ ਹੈ **ਅਤੇ** ਉਸ ਵਿੱਚ `authenticated: true` ਮੌਜੂਦ ਹੁੰਦਾ ਹੈ
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`)। cookie ਦੀ ਵਰਤੋਂ ਕਰਨ ਵਾਲਾ ਹਰ
+consumer (dashboard route guard (`isDashboardSessionAuthenticated()`), authz pipeline refresh, WebSocket handshake, live
+server, `/api/settings/require-login`, `/api/auth/status`) ਇਸ helper ਰਾਹੀਂ ਜਾਂਦਾ ਹੈ।
+`JWT_SECRET` ਨਾਲ signed ਹੋਰ JWTs ਵੀ ਮੌਜੂਦ ਹਨ — Cursor CLI passthrough key ਧਾਰਕਾਂ ਲਈ
+`iss "omniroute" / aud "cursor-cli"` tokens ਬਣਾਉਂਦਾ ਹੈ — ਅਤੇ ਉਹ ਕਦੇ ਵੀ sessions ਨਹੀਂ ਹੁੰਦੇ
 (#13298)।
 
-ਇਸ ਦੀ ਪੁਸ਼ਟੀ `src/shared/utils/apiAuth.ts` ਵਿੱਚ `isDashboardSessionAuthenticated()` ਦੁਆਰਾ ਕੀਤੀ ਜਾਂਦੀ ਹੈ। ਜਦੋਂ JWT ਦੀ 30-ਦਿਨਾਂ ਦੀ ਮਿਆਦ ਵਿੱਚ 7 ਦਿਨਾਂ ਤੋਂ ਘੱਟ ਸਮਾਂ ਬਚਦਾ ਹੈ, ਤਾਂ ਪਾਈਪਲਾਈਨ ਇਸਨੂੰ ਆਪਣੇ-ਆਪ ਰਿਫ੍ਰੈਸ਼ ਕਰਦੀ ਹੈ।
+`src/shared/utils/apiAuth.ts` ਵਿੱਚ `isDashboardSessionAuthenticated()` ਦੁਆਰਾ ਪ੍ਰਮਾਣਿਤ ਕੀਤਾ ਜਾਂਦਾ ਹੈ। ਜਦੋਂ JWT ਦੀ 30-ਦਿਨਾਂ ਦੀ ਮਿਆਦ ਵਿੱਚੋਂ 7 ਦਿਨਾਂ ਤੋਂ ਘੱਟ ਸਮਾਂ ਬਚਦਾ ਹੈ, ਤਾਂ pipeline ਇਸਨੂੰ ਆਪਣੇ ਆਪ refresh ਕਰਦੀ ਹੈ।
 
-ਕੁਝ ਮੈਨੇਜਮੈਂਟ ਰੂਟ **ਕਿਸੇ ਵੀ** ਮੋਡ ਨੂੰ ਸਵੀਕਾਰ ਕਰਦੇ ਹਨ: ਕੂਕੀ ਜਾਂ `Bearer <key>`, ਜਦੋਂ API ਕੁੰਜੀ ਕੋਲ `manage` (ਜਾਂ `admin`) ਸਕੋਪ ਹੁੰਦਾ ਹੈ। ਇਹੀ v3.8 ਵਿੱਚ ਸ਼ਾਮਲ ਕੀਤੇ ਗਏ "API ਕਾਲਾਂ ਰਾਹੀਂ ਕਾਨਫਿਗਰ ਕਰਨ ਯੋਗ" ਵਰਕਫਲੋ ਨੂੰ ਸਮਰੱਥ ਬਣਾਉਂਦਾ ਹੈ।
+ਕੋਈ session ਆਪਣੇ 30 ਦਿਨ ਪੂਰੇ ਹੋਣ ਤੋਂ ਪਹਿਲਾਂ ਵੀ ਖਤਮ ਹੋ ਸਕਦੀ ਹੈ, ਕਿਉਂਕਿ ਹਰ minter `mintDashboardSessionToken` ਰਾਹੀਂ ਜਾਂਦਾ ਹੈ (ਇੱਕ ਜਾਰੀ ਕਰਨ ਦਾ ਸਮਾਂ `iat` ਅਤੇ ਇੱਕ id `jti`) ਅਤੇ verifier ਦੋ settings ਦੀ ਜਾਂਚ ਕਰਦਾ ਹੈ: `sessionsValidAfter`, ਜੋ password ਬਦਲਣ ਵੇਲੇ ਸੈੱਟ ਹੁੰਦੀ ਹੈ ਤਾਂ ਜੋ ਇਸ ਤੋਂ ਪਹਿਲਾਂ ਜਾਰੀ ਕੀਤੀ ਹਰ session ਦੀ ਪੁਸ਼ਟੀ ਹੋਣੀ ਬੰਦ ਹੋ ਜਾਵੇ (password ਬਦਲਣ ਵਾਲੇ browser ਨੂੰ ਇੱਕ ਨਵੀਂ cookie ਮਿਲਦੀ ਹੈ), ਅਤੇ `revokedDashboardSessions`, ਜਿਸ ਵਿੱਚ `POST /api/auth/logout` sign-out ਕੀਤੀ session ਦਾ `jti` ਜੋੜਦਾ ਹੈ। ਕਿਸੇ ਪੁਰਾਣੀ release ਦੁਆਰਾ ਬਣਾਈਆਂ ਗਈਆਂ sessions ਵਿੱਚ ਇਨ੍ਹਾਂ ਵਿੱਚੋਂ ਕੋਈ ਵੀ claim ਨਹੀਂ ਹੁੰਦਾ ਅਤੇ ਉਹ ਪਹਿਲੀ ਵਾਰ password ਬਦਲੇ ਜਾਣ ਤੱਕ ਵੈਧ ਰਹਿੰਦੀਆਂ ਹਨ। ਜੇ settings ਨੂੰ ਪੜ੍ਹਿਆ ਨਹੀਂ ਜਾ ਸਕਦਾ, ਤਾਂ session 'ਤੇ ਭਰੋਸਾ ਨਹੀਂ ਕੀਤਾ ਜਾਂਦਾ।
 
-#### ਵਿਕਲਪਿਕ OIDC ਲੌਗਇਨ ਗੇਟ (#6973)
+ਕੁਝ management routes **ਦੋਵਾਂ ਵਿੱਚੋਂ ਕਿਸੇ ਵੀ** ਮੋਡ ਨੂੰ ਸਵੀਕਾਰ ਕਰਦੇ ਹਨ: cookie ਜਾਂ `Bearer <key>`, ਜਦੋਂ API key ਕੋਲ `manage` (ਜਾਂ `admin`) scope ਹੁੰਦਾ ਹੈ। ਇਸੇ ਕਰਕੇ v3.8 ਵਿੱਚ ਜੋੜਿਆ ਗਿਆ "API calls ਰਾਹੀਂ configurable" workflow ਸੰਭਵ ਹੁੰਦਾ ਹੈ।
 
-ਡੈਸ਼ਬੋਰਡ ਐਡਮਿਨ ਲੌਗਇਨ ਡਿਫੌਲਟ ਪਾਸਵਰਡ ਲੌਗਇਨ ਦੇ ਨਾਲ ਇੱਕ **ਆਪਟ-ਇਨ** OIDC (OpenID Connect) ਫਲੋ ਦਾ ਵੀ ਸਮਰਥਨ ਕਰਦਾ ਹੈ — ਪਾਸਵਰਡ ਲੌਗਇਨ ਕਦੇ ਹਟਾਇਆ ਨਹੀਂ ਜਾਂਦਾ, ਸਿਰਫ਼ ਇਸ ਵਿੱਚ ਵਾਧਾ ਕੀਤਾ ਜਾਂਦਾ ਹੈ:
+#### ਵਿਕਲਪਿਕ OIDC login gate (#6973)
 
-- ਇਹ ਉਦੋਂ ਤੱਕ ਅਸਮਰੱਥ ਰਹਿੰਦਾ ਹੈ ਜਦੋਂ ਤੱਕ `settings.oidcEnabled === true` **ਅਤੇ** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` ਸਾਰੇ ਕਾਨਫਿਗਰ ਨਾ ਕੀਤੇ ਗਏ ਹੋਣ (Settings → Auth)।
+Dashboard admin login, default password login ਦੇ ਨਾਲ-ਨਾਲ ਇੱਕ **opt-in** OIDC (OpenID Connect) flow ਦਾ ਵੀ ਸਮਰਥਨ ਕਰਦਾ ਹੈ — password login ਨੂੰ ਕਦੇ ਹਟਾਇਆ ਨਹੀਂ ਜਾਂਦਾ, ਸਿਰਫ਼
+ਇਸ ਵਿੱਚ ਵਾਧਾ ਕੀਤਾ ਜਾਂਦਾ ਹੈ:
+
+- ਇਹ ਉਦੋਂ ਤੱਕ disabled ਰਹਿੰਦਾ ਹੈ ਜਦੋਂ ਤੱਕ `settings.oidcEnabled === true` **ਅਤੇ** `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` ਸਾਰੇ configure ਨਾ ਕੀਤੇ ਹੋਣ (Settings → Auth)।
   ਨਹੀਂ ਤਾਂ `GET /api/auth/oidc/login` `400` ਵਾਪਸ ਕਰਦਾ ਹੈ।
 - `GET /api/auth/oidc/login`, issuer ਦੇ
-  `/.well-known/openid-configuration` ਤੋਂ `authorization_endpoint` ਖੋਜਦਾ ਹੈ (`<issuer>/authorize`
-  ਨੂੰ ਫਾਲਬੈਕ ਵਜੋਂ ਵਰਤਦਾ ਹੈ), ਆਉਣ ਵਾਲੀ ਬੇਨਤੀ ਤੋਂ ਰੀਡਾਇਰੈਕਟ URI ਬਣਾਉਂਦਾ ਹੈ
-  (`x-forwarded-proto`-ਅਵੇਅਰ), ਅਤੇ ਇੱਕ ਬੇਤਰਤੀਬ `state` ਨਾਲ IdP ਵੱਲ ਰੀਡਾਇਰੈਕਟ ਕਰਦਾ ਹੈ,
-  ਜਿਸਨੂੰ ਇੱਕ `httpOnly` `oidc_state` ਕੂਕੀ ਵਿੱਚ ਸਟੋਰ ਕੀਤਾ ਜਾਂਦਾ ਹੈ।
-- `GET /api/auth/oidc/callback`, `state` ਨੂੰ ਪ੍ਰਮਾਣਿਤ ਕਰਦਾ ਹੈ, ਅਧਿਕਾਰ-ਪ੍ਰਮਾਣਨ
-  ਕੋਡ ਦੀ ਅਦਲਾ-ਬਦਲੀ ਕਰਦਾ ਹੈ, ਅਤੇ issuer ਦੇ JWKS ਰਾਹੀਂ ID ਟੋਕਨ ਦੇ ਦਸਤਖ਼ਤ ਦੀ ਪੁਸ਼ਟੀ ਕਰਦਾ ਹੈ
-  (`jose` ਦਾ `createRemoteJWKSet`, ਪ੍ਰਤੀ JWKS URI ਕੈਸ਼ ਕੀਤਾ ਹੋਇਆ), ਨਾਲ ਹੀ `issuer`/`audience`
-  ਜਾਂਚਾਂ ਕਰਦਾ ਹੈ। ਇੱਕ ਵਿਕਲਪਿਕ `oidcAllowedSubjects` ਅਲਾਊਲਿਸਟ ਟੋਕਨ ਦੇ
-  `sub` ਕਲੇਮ ਜਾਂ ਇਸਦੇ `email` ਕਲੇਮ ਨਾਲ ਮੇਲ ਕਰਦੀ ਹੈ — `email` ਕਲੇਮ ਨੂੰ ਕੇਵਲ ਉਦੋਂ ਹੀ ਮੰਨਿਆ ਜਾਂਦਾ ਹੈ ਜਦੋਂ
-  `email_verified === true` ਹੋਵੇ, ਇਸ ਲਈ IdP 'ਤੇ ਇੱਕ ਅਪ੍ਰਮਾਣਿਤ ਈਮੇਲ ਕਦੇ ਵੀ
-  ਗੇਟ ਪਾਰ ਨਹੀਂ ਕਰ ਸਕਦੀ।
-- ਸਫਲਤਾ ਮਿਲਣ 'ਤੇ ਇਹ **ਬਿਲਕੁਲ ਉਹੀ** 30-ਦਿਨਾਂ ਵਾਲਾ `auth_token` JWT ਬਣਾਉਂਦਾ ਹੈ ਜੋ ਪਾਸਵਰਡ
-  ਲੌਗਇਨ ਜਾਰੀ ਕਰਦਾ ਹੈ (`src/app/api/auth/login/route.ts`), ਇਸ ਲਈ ਬਾਕੀ
-  ਡੈਸ਼ਬੋਰਡ ਸੈਸ਼ਨ ਪਾਈਪਲਾਈਨ (ਆਟੋ-ਰਿਫ੍ਰੈਸ਼, ਕੂਕੀ ਫਲੈਗ) ਵਿੱਚ ਕੋਈ ਤਬਦੀਲੀ ਨਹੀਂ ਹੁੰਦੀ —
-  OIDC ਸਿਰਫ਼ ਇਹ ਬਦਲਦਾ ਹੈ ਕਿ ਕੂਕੀ ਕਿਵੇਂ ਬਣਾਈ ਜਾਂਦੀ ਹੈ, ਇਹ ਨਹੀਂ ਕਿ ਉਹ ਕਿਹੜੀਆਂ ਇਜਾਜ਼ਤਾਂ ਦਿੰਦੀ ਹੈ।
+  `/.well-known/openid-configuration` ਤੋਂ `authorization_endpoint` ਖੋਜਦਾ ਹੈ (ਜੇ ਇਹ ਨਾ ਮਿਲੇ ਤਾਂ
+  `<issuer>/authorize` ਵਰਤਦਾ ਹੈ), ਆਉਣ ਵਾਲੀ request ਤੋਂ redirect URI ਬਣਾਉਂਦਾ ਹੈ
+  (`x-forwarded-proto` ਨੂੰ ਧਿਆਨ ਵਿੱਚ ਰੱਖਦਿਆਂ), ਅਤੇ ਇੱਕ random `state` ਨਾਲ IdP ਵੱਲ redirect ਕਰਦਾ ਹੈ,
+  ਜੋ ਇੱਕ `httpOnly` `oidc_state` cookie ਵਿੱਚ ਸਟੋਰ ਹੁੰਦਾ ਹੈ।
+- `GET /api/auth/oidc/callback`, `state` ਨੂੰ validate ਕਰਦਾ ਹੈ, authorization
+  code ਨੂੰ exchange ਕਰਦਾ ਹੈ, ਅਤੇ issuer ਦੇ JWKS ਰਾਹੀਂ ID token ਦੇ signature ਦੀ ਪੁਸ਼ਟੀ ਕਰਦਾ ਹੈ
+  (`jose` ਦਾ `createRemoteJWKSet`, ਹਰ JWKS URI ਲਈ cached), ਨਾਲ ਹੀ `issuer`/`audience`
+  ਜਾਂਚਾਂ ਕਰਦਾ ਹੈ। ਇੱਕ ਵਿਕਲਪਿਕ `oidcAllowedSubjects` allowlist token ਦੇ
+  `sub` claim ਜਾਂ ਇਸਦੇ `email` claim ਨਾਲ ਮੇਲ ਖਾਂਦੀ ਹੈ — email claim ਨੂੰ ਕੇਵਲ ਉਦੋਂ ਹੀ ਮੰਨਿਆ ਜਾਂਦਾ ਹੈ ਜਦੋਂ
+  `email_verified === true` ਹੋਵੇ, ਇਸ ਲਈ IdP 'ਤੇ ਕੋਈ unverified email ਕਦੇ ਵੀ
+  gate ਨੂੰ ਪਾਰ ਨਹੀਂ ਕਰ ਸਕਦੀ।
+- ਸਫਲਤਾ ਮਿਲਣ 'ਤੇ ਇਹ **ਬਿਲਕੁਲ ਉਹੀ** 30-ਦਿਨਾਂ ਵਾਲਾ `auth_token` JWT ਬਣਾਉਂਦਾ ਹੈ ਜੋ password
+  login ਜਾਰੀ ਕਰਦਾ ਹੈ (`src/app/api/auth/login/route.ts`), ਇਸ ਲਈ dashboard
+  session pipeline ਦਾ ਬਾਕੀ ਹਿੱਸਾ (auto-refresh, cookie flags) ਬਦਲਿਆ ਨਹੀਂ ਰਹਿੰਦਾ —
+  OIDC ਸਿਰਫ਼ ਇਹ ਬਦਲਦਾ ਹੈ ਕਿ cookie ਕਿਵੇਂ ਬਣਾਈ ਜਾਂਦੀ ਹੈ, ਇਹ ਨਹੀਂ ਕਿ ਉਹ ਕਿਹੜੀਆਂ permissions ਦਿੰਦੀ ਹੈ।
 
 ## ਰੂਟ ਕਲਾਸਾਂ
 
@@ -198,28 +201,35 @@ export async function POST(request: Request) {
 
 ਸਹੂਲਤ ਦੇ ਆਧਾਰ 'ਤੇ ਨਹੀਂ, ਸਗੋਂ ਆਕਾਰ ਦੇ ਆਧਾਰ 'ਤੇ ਸੈੱਟ ਚੁਣੋ। ਇੱਕ ਰੂਟ `PUBLIC_API_ROUTES_EXACT` ਵਿੱਚ ਜਾਂਦਾ ਹੈ (ਜਾਂ ਕੇਵਲ-GET ਲਈ `PUBLIC_READONLY_CORS_API_ROUTES` ਵਿੱਚ); ਕੇਵਲ ਇੱਕ ਅਸਲ ਸਬਟ੍ਰੀ ਹੀ `PUBLIC_API_ROUTE_PREFIXES` ਵਿੱਚ ਜਾਂਦੀ ਹੈ, ਅਤੇ ਇਸਦਾ ਅੰਤ `/` ਨਾਲ ਹੋਣਾ **ਲਾਜ਼ਮੀ ਹੈ**। ਪ੍ਰੀਫਿਕਸ ਸੂਚੀ ਵਿੱਚ ਇੱਕ ਇਕੱਲਾ ਰੂਟ ਪਾਉਣ ਨਾਲ ਉਹ ਸਾਰੇ ਨਾਲ ਲੱਗਦੇ ਪਾਥ ਵੀ ਸਰਵਜਨਿਕ ਹੋ ਜਾਂਦੇ ਹਨ ਜਿਨ੍ਹਾਂ ਦੇ ਸ਼ੁਰੂਆਤੀ ਅੱਖਰ ਇੱਕੋ ਹਨ — ਇਸ ਵਿੱਚ ਬਾਅਦ ਵਿੱਚ ਜੋੜੇ ਗਏ ਡਾਇਨਾਮਿਕ-ਸੈਗਮੈਂਟ ਸਿਬਲਿੰਗ ਵੀ ਸ਼ਾਮਲ ਹਨ (GHSA-74g9-q8f6-793h)। `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` ਅਤੇ `tests/unit/authz/classify.test.ts` ਵਿੱਚ ਯੂਨਿਟ ਟੈਸਟ ਅੱਪਡੇਟ ਕਰੋ।
 
-## ਸਕੋਪ
+## ਸਕੋਪਸ
 
-API ਕੁੰਜੀਆਂ ਵਿੱਚ ਇੱਕ `scopes` ਐਰੇ ਹੁੰਦਾ ਹੈ (JSON ਵਜੋਂ `api_keys.scopes` ਵਿੱਚ ਸਟੋਰ ਕੀਤਾ ਜਾਂਦਾ ਹੈ, `src/lib/db/apiKeys.ts` ਵੇਖੋ)।
+ਤਿੰਨ ਨਾਮਸਪੇਸ। ਹਰੇਕ ਚੈਕਰ ਸਿਰਫ਼ ਆਪਣੀਆਂ ਸਤਰਾਂ ਪੜ੍ਹਦਾ ਹੈ। ਨਾਲ-ਨਾਲ, ਜਿਸ ਵਿੱਚ ਇਹ ਵੀ ਸ਼ਾਮਲ ਹੈ ਕਿ `manage` `read:compression` ਲਈ `scopeMatches` ਵਿੱਚ ਕਿਉਂ ਫੇਲ੍ਹ ਹੁੰਦਾ ਹੈ ਅਤੇ ਇੱਕ `read` ਐਕਸੈਸ ਟੋਕਨ `PATCH /api/keys/{id}` ਕਿਉਂ ਨਹੀਂ ਕਰ ਸਕਦਾ, ਉਹ ਹੈ [ਤਿੰਨ ਸਕੋਪ ਨਾਮਸਪੇਸ](../frameworks/MCP-SERVER.md#three-scope-namespaces)।
+
+API ਕੁੰਜੀਆਂ ਇੱਕ `scopes` ਐਰੇ ਰੱਖਦੀਆਂ ਹਨ (ਜੋ `api_keys.scopes` ਵਿੱਚ JSON ਵਜੋਂ ਸਟੋਰ ਕੀਤੀਆਂ ਜਾਂਦੀਆਂ ਹਨ, ਦੇਖੋ `src/lib/db/apiKeys.ts`)।
 
 ### ਪ੍ਰਬੰਧਨ ਸਕੋਪ
 
-- `manage` / `admin` — Bearer ਵਜੋਂ ਭੇਜੇ ਜਾਣ 'ਤੇ ਕੁੰਜੀ ਨੂੰ ਪ੍ਰਬੰਧਨ API ਐਂਡਪੌਇੰਟਾਂ ਤੱਕ ਪਹੁੰਚ ਦਿੰਦਾ ਹੈ।
+- `manage` / `admin` — `hasManageScope`। ਪ੍ਰਬੰਧਨ API ਰੂਟਾਂ ਤੱਕ ਬੀਅਰਰ ਪਹੁੰਚ।
+- `mcp:connect`, `self:usage`, `self:account-quota`, ਅਤੇ
+  `policy:bypass-provider-quota` ਐਡਿਟਿਵ ਐਗਜ਼ੈਕਟ-ਮੈਚ ਸਕੋਪ ਹਨ। ਉਹ
+  `MANAGEMENT_API_KEY_SCOPES` ਤੋਂ ਬਾਹਰ ਹਨ। `mcp:connect` ਸਿਰਫ਼
+  `/api/mcp/` ਨਾਨ-ਲੂਪਬੈਕ ਕਾਰਵ-ਆਊਟ ਖੋਲ੍ਹਦਾ ਹੈ।
 
-### MCP ਸਕੋਪ (`src/shared/constants/mcpScopes.ts`)
+### MCP ਟੂਲ ਸਕੋਪਸ
 
-ਹਰੇਕ MCP ਟੂਲ ਲਈ `MCP_TOOL_SCOPES` ਰਾਹੀਂ ਖਾਸ ਸਕੋਪ ਲੋੜੀਂਦੇ ਹਨ। ਪੂਰੀ ਸੂਚੀ (`MCP_SCOPE_LIST`):
+ਕੈਟਾਲਾਗ ਅਤੇ ਮੈਚਿੰਗ ਨਿਯਮ (ਇੱਕੋ ਜਿਹੀ ਸਤਰ, ਜਾਂ ਇੱਕ ਗ੍ਰਾਂਟਡ ਸਕੋਪ ਜੋ `*` ਨਾਲ ਖਤਮ ਹੁੰਦਾ ਹੈ):
+[MCP ਟੂਲ ਸਕੋਪਸ](../frameworks/MCP-SERVER.md#mcp-tool-scopes)।
+`src/shared/constants/mcpScopes.ts` ਵਿੱਚ `MCP_SCOPE_LIST` ਅਸਲੀ ਟਾਈਪਡ
+ਸਬਸੈੱਟ ਹੈ, ਨਾ ਕਿ ਉਹ ਪੂਰਾ ਕੈਟਾਲਾਗ। ਲਾਗੂਕਰਨ
+`open-sse/mcp-server/scopeEnforcement.ts` ਵਿੱਚ ਚੱਲਦਾ ਹੈ ਜਦੋਂ `resolveCallerScopeContext()`
+MCP ਪ੍ਰਮਾਣਿਕਤਾ ਜਾਣਕਾਰੀ, ਬੇਨਤੀ ਮੈਟਾਡੇਟਾ, ਜਾਂ `OMNIROUTE_MCP_SCOPES` ਤੋਂ ਸਕੋਪਾਂ ਨੂੰ ਹੱਲ ਕਰਦਾ ਹੈ।
+ਇਹ ਉਦੋਂ ਤੱਕ ਬੰਦ ਰਹਿੰਦਾ ਹੈ ਜਦੋਂ ਤੱਕ `OMNIROUTE_MCP_ENFORCE_SCOPES=true` ਨਹੀਂ ਹੁੰਦਾ।
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### ਐਕਸੈਸ-ਟੋਕਨ ਸਕੋਪਸ
 
-`open-sse/mcp-server/server.ts` ਵਿੱਚ ਸਕੋਪ ਲਾਗੂਕਰਨ, `resolveCallerScopeContext()` ਵੱਲੋਂ MCP ਪ੍ਰਮਾਣੀਕਰਨ ਜਾਣਕਾਰੀ,
-ਬੇਨਤੀ ਮੈਟਾਡੇਟਾ, ਜਾਂ `OMNIROUTE_MCP_SCOPES` ਤੋਂ ਸਕੋਪ ਨਿਰਧਾਰਤ ਕੀਤੇ ਜਾਣ ਤੋਂ ਬਾਅਦ, ਹਰੇਕ ਟੂਲ ਦੀ ਸਕੋਪ ਸੂਚੀ
-`evaluateToolScopes()` ਨੂੰ ਪਾਸ ਕਰਦਾ ਹੈ।
+`oma_live_…` ਟੋਕਨਾਂ 'ਤੇ `read` / `write` / `admin`, `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`) ਦੁਆਰਾ ਦਰਜਾਬੰਦੀ ਕੀਤੀ ਗਈ। ਇਹ ਰੈਂਕ ਸਿਰਫ਼ ਐਕਸੈਸ-ਟੋਕਨ
+ਪ੍ਰਮਾਣ ਪੱਤਰ 'ਤੇ ਲਾਗੂ ਹੁੰਦਾ ਹੈ। ਦੇਖੋ [ਪ੍ਰਬੰਧਨ ਪ੍ਰਮਾਣਿਕਤਾ](../guides/MANAGEMENT-AUTH.md)।
 
 ## ਪ੍ਰਮਾਣੀਕਰਨ ਲੋੜੀਂਦਾ ਟੌਗਲ
 
@@ -267,7 +277,7 @@ x-omniroute-auth-scopes:    ਕੌਮਿਆਂ ਨਾਲ ਵੱਖ ਕੀਤੀ 
 
 ## ਇਹ ਵੀ ਵੇਖੋ
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — ਹਰ ਐਂਡਪੌਇੰਟ ਲਈ ਪ੍ਰਮਾਣੀਕਰਨ ਮਾਰਕਰ
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — ਪ੍ਰਮਾਣੀਕਰਨ ਘਟਨਾਵਾਂ ਲਈ ਆਡਿਟ ਲੌਗ
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP ਸਕੋਪ ਲਾਗੂਕਰਨ ਦੇ ਵੇਰਵੇ
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — ਪ੍ਰਤੀ ਐਂਡਪੁਆਇੰਟ ਪ੍ਰਮਾਣਿਕਤਾ ਮਾਰਕਰ
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — ਪ੍ਰਮਾਣਿਕਤਾ ਇਵੈਂਟਾਂ ਲਈ ਆਡਿਟ ਲੌਗ
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — ਤਿੰਨ ਸਕੋਪ ਨਾਮਸਥਾਨ ਅਤੇ MCP ਟੂਲ-ਸਕੋਪ ਕੈਟਾਲਾਗ
 - ਸਰੋਤ: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

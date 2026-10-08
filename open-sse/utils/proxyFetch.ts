@@ -4,18 +4,27 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { fetch as undiciFetch, Agent } from "undici";
 import {
   buildVercelRelayHeaders,
+  clearDispatcherCache,
   createProxyDispatcher,
   getDefaultDispatcher,
   getProxyRetryDispatcher,
   getRetryDispatcher,
+  isLocalEgressHostname,
   isRelayType,
+  isUpstreamHttp2Enabled,
   normalizeProxyUrl,
   proxyConfigToUrl,
   proxyUrlForLogs,
 } from "./proxyDispatcher.ts";
 import tlsClient, { type TlsFetchOptions, guardTlsFirstByte } from "./tlsClient.ts";
 import { withUpstreamStatusCapture } from "./upstreamStatusCapture.ts";
+import { stampOwnListenerSelfHop } from "./selfHop.ts";
+import { tlsFingerprintProviderAllowed } from "./tlsFingerprintExclusions.ts";
+import { describeFallbackFailure, redactProxyDetailsInMessage } from "./proxyFetchRedaction.ts";
+import { recordFinalTransportOutcome, recordProxiedSuccess } from "./proxyTransportOutcome.ts";
+import { sanitizeTransportError } from "./proxyTransportError.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
+import { isDirectBypassHost } from "./proxyDirectBypass.ts";
 import {
   isControlPlaneProxyDirectFallbackEnabled,
   isFeatureFlagEnabled,
@@ -23,7 +32,7 @@ import {
 import {
   directFetchWithBoundedResponseStart,
   isDirectResponseStartTimeout,
-  resolveDirectHeadersTimeoutMs,
+  directHeadersTimeoutResolver,
 } from "./directResponseStartTimeout.ts";
 
 // #9100: relay egress (Vercel / Deno / Cloudflare edge functions) used to go
@@ -37,14 +46,14 @@ import {
 // pipelines POST (SSE is POST), so a single socket would serialize every
 // concurrent stream; 4 sockets give 4 parallel streams. h2 relays are
 // unaffected — streams multiplex over one socket, so the pool stays at a single
-// connection while streams drain. `allowH2: true` keeps that h2 fast path for
-// Vercel / Deno / Cloudflare.
+// connection while streams drain. HTTP/2 stays enabled by default for
+// Vercel / Deno / Cloudflare; operators can opt out when needed.
 const RELAY_POOL_AGENT_OPTIONS = {
   keepAliveTimeout: 30_000,
   keepAliveMaxTimeout: 60_000,
   pipelining: 4,
   connections: 4,
-  allowH2: true,
+  allowH2: isUpstreamHttp2Enabled(),
 } as const;
 const RELAY_POOL_AGENT = new Agent(RELAY_POOL_AGENT_OPTIONS);
 
@@ -56,7 +65,7 @@ const RELAY_RETRY_AGENT = new Agent({
   keepAliveMaxTimeout: 1,
   pipelining: 0,
   connections: 1,
-  allowH2: true,
+  allowH2: isUpstreamHttp2Enabled(),
 });
 
 // A hung relay must fail BEFORE the client/agent timeout (typically 30s) so the
@@ -83,21 +92,6 @@ const RETRY_BACKOFF_MS = Math.max(Number(process.env.OMNIROUTE_RETRY_BACKOFF_MS)
 
 function isTlsFingerprintEnabled() {
   return process.env.ENABLE_TLS_FINGERPRINT === "true";
-}
-
-function tlsFingerprintProviderAllowed(
-  provider: string | null | undefined,
-  proxied: boolean
-): boolean {
-  const configured = process.env.TLS_FINGERPRINT_PROVIDERS?.trim();
-  // Preserve the legacy direct-only opt-in. The new proxied transport requires
-  // an explicit allowlist so enabling TLS cannot silently change proxy traffic.
-  if (!configured) return !proxied;
-  if (!provider) return false;
-  const normalizedProvider = provider.trim().toLowerCase();
-  return configured
-    .split(",")
-    .some((candidate) => candidate.trim().toLowerCase() === normalizedProvider);
 }
 
 /**
@@ -188,8 +182,31 @@ type TlsFingerprintStore = {
  * the egress logger read the innermost applied proxy (the last writer wins, which
  * is the executor's per-account proxy).
  */
-export type AppliedProxySink = { proxy: unknown; upstreamStatus?: number };
-const appliedProxyContext = new AsyncLocalStorage<AppliedProxySink>();
+export type AppliedProxySink = {
+  proxy: unknown;
+  upstreamStatus?: number;
+  /** Masked serving-account id (N112) — set by the rotation executor at dispatch. */
+  rotationAccount?: string | null;
+  /** Added wait before dispatch, ms — null means none was imposed. */
+  addedWaitMs?: number | null;
+  /** Added-wait cause: throttle, park, or throttle+park. */
+  addedWaitCause?: string | null;
+  /**
+   * Pool-member resolver published by the chat layer when the resolved egress
+   * came from a connection pool that may offer another member on a per-address
+   * refusal. Absent otherwise. Resolves to a proxy config, or null when the
+   * pool has nothing else to offer — the executor keeps its behavior then.
+   */
+  reselectPoolMember?: () => Promise<unknown>;
+};
+const APPLIED_PROXY_CONTEXT_KEY = Symbol.for("omniroute.proxyFetch.applied-context");
+type AppliedProxyStore = typeof globalThis & {
+  [APPLIED_PROXY_CONTEXT_KEY]?: AsyncLocalStorage<AppliedProxySink>;
+};
+function getAppliedProxyContext(): AsyncLocalStorage<AppliedProxySink> {
+  return ((globalThis as AppliedProxyStore)[APPLIED_PROXY_CONTEXT_KEY] ??=
+    new AsyncLocalStorage<AppliedProxySink>());
+}
 
 /**
  * Run `fn` with an applied-proxy capture sink in context. Any
@@ -199,7 +216,72 @@ const appliedProxyContext = new AsyncLocalStorage<AppliedProxySink>();
  * resolves. Pure plumbing — no behavioral change to the request itself.
  */
 export function runWithAppliedProxyCapture<T>(sink: AppliedProxySink, fn: () => T): T {
-  return appliedProxyContext.run(sink, fn);
+  return getAppliedProxyContext().run(sink, fn);
+}
+
+/**
+ * Read the current applied-proxy capture sink, if the request runs inside one
+ * (see runWithAppliedProxyCapture). Read-only: never creates a sink. Lets an
+ * executor read a resolver the chat layer published on the sink before
+ * dispatch without importing the database layer.
+ */
+export function currentAppliedProxySink(): AppliedProxySink | undefined {
+  return getAppliedProxyContext().getStore();
+}
+
+/**
+ * Record the masked id of the rotation account serving this request on the
+ * current capture sink (no-op outside a capture — the sink stays null and the
+ * call-site forwards null). Only an already-masked id may be passed in.
+ */
+export function noteRotationAccount(masked: string): void {
+  try {
+    const sink = getAppliedProxyContext().getStore();
+    if (sink) sink.rotationAccount = masked;
+  } catch {
+    /* attribution is best-effort; never break the request path */
+  }
+}
+
+/** Added-wait causes. Plain data — numbers plus this enum, nothing to mask. */
+export type AddedWaitCause = "throttle" | "park" | "throttle+park";
+
+/**
+ * Cumulative wait before dispatch (pacing, park) on the capture sink.
+ * Snapshot: callers publish cumulative totals, so last-write-wins loses
+ * nothing. Best-effort like noteRotationAccount: no-op outside a capture.
+ */
+export function noteAddedWait(totalMs: number, causes: Set<AddedWaitCause>): void {
+  try {
+    const sink = getAppliedProxyContext().getStore();
+    if (!sink) return;
+    if (!Number.isFinite(totalMs) || totalMs <= 0 || causes.size === 0) {
+      sink.addedWaitMs = null;
+      sink.addedWaitCause = null;
+      return;
+    }
+    sink.addedWaitMs = Math.round(totalMs);
+    sink.addedWaitCause = causes.size > 1 ? "throttle+park" : ([...causes][0] ?? null);
+  } catch {
+    /* added-wait is best-effort; never break the request path */
+  }
+}
+
+/**
+ * Late read of the added wait on the capture sink. Fail-soft: null
+ * outside a capture or when nothing was published — callers persist NULL.
+ */
+export function readAddedWait(): { ms: number | null; cause: string | null } | null {
+  try {
+    const sink = getAppliedProxyContext().getStore();
+    if (!sink) return null;
+    const ms = typeof sink.addedWaitMs === "number" ? sink.addedWaitMs : null;
+    if (ms === null) return null;
+    const cause = typeof sink.addedWaitCause === "string" ? sink.addedWaitCause : null;
+    return { ms, cause };
+  } catch {
+    return null;
+  }
 }
 
 type FetchWithDispatcherOptions = RequestInit & { dispatcher?: unknown };
@@ -284,6 +366,8 @@ const TLS_ALLOWED_OPTION_KEYS: Record<string, true> = {
   method: true,
   redirect: true,
   signal: true,
+  // Next.js cache/revalidation metadata. It is not forwarded to wreq.
+  next: true,
 };
 
 function isWreqBodySupported(body: unknown): boolean {
@@ -304,7 +388,7 @@ function isTlsRequestEligible(
   return Object.keys(options).every((key) => TLS_ALLOWED_OPTION_KEYS[key] === true);
 }
 
-function isTlsFallbackReplaySafe(
+function isAmbiguousFailureReplaySafe(
   input: RequestInfo | URL,
   options: FetchWithDispatcherOptions
 ): boolean {
@@ -338,44 +422,6 @@ function isWreqProxySupported(proxyUrl: string): boolean {
   } catch {
     return false;
   }
-}
-
-/**
- * Redact proxy URLs (and any bare `user:pass@host` credential tokens) from an
- * upstream transport-error message before it is surfaced. #10032 keeps the
- * underlying failure reason in the propagated error for diagnosability, but
- * the raw message can embed the full proxy URL — including userinfo
- * credentials — which must never bubble into response bodies (#9837, Hard
- * Rule #12).
- */
-function redactProxyDetailsInMessage(message: string): string {
-  return message
-    .replace(/\b(?:https?|socks[45][ah]?|socks):\/\/\S+/gi, "[redacted-proxy]")
-    .replace(/\b[^\s:@/]+:[^\s@/]*@\S+/g, "[redacted-proxy]");
-}
-
-function sanitizeTransportError(
-  error: unknown,
-  message: string,
-  fallbackCode: string
-): Error & { code: string; errorCode?: string; statusCode?: number } {
-  const source = error && typeof error === "object" ? (error as Record<string, unknown>) : {};
-  const sanitized = new Error(message) as Error & {
-    code: string;
-    errorCode?: string;
-    statusCode?: number;
-  };
-  sanitized.code =
-    typeof source.code === "string" && /^[A-Z0-9_:-]{1,64}$/.test(source.code)
-      ? source.code
-      : fallbackCode;
-  if (typeof source.errorCode === "string" && /^[a-zA-Z0-9_:-]{1,64}$/.test(source.errorCode)) {
-    sanitized.errorCode = source.errorCode;
-  }
-  if (typeof source.statusCode === "number" && Number.isFinite(source.statusCode)) {
-    sanitized.statusCode = source.statusCode;
-  }
-  return sanitized;
 }
 
 /** Injectable dependencies for testability (Approach B DI). */
@@ -477,26 +523,17 @@ function noProxyMatch(targetUrl) {
   });
 }
 
-function isLocalAddress(hostname: string): boolean {
+/**
+ * A loopback target is this process. Private-network peers are not loopback:
+ * they must retain the outbound bound-and-replay policy.
+ */
+function isLoopbackHost(hostname: string): boolean {
   const host = hostname
     .replace(/^\[/, "")
     .replace(/\]$/, "")
-    .replace(/^::ffff:/i, "");
-  if (host === "localhost" || host === "0.0.0.0" || host === "127.0.0.1" || host === "::1") {
-    return true;
-  }
-  if (host.endsWith(".local") || host.endsWith(".lan") || host.endsWith(".internal")) return true;
-  // RFC1918 + loopback + link-local (169.254, incl. cloud metadata 169.254.169.254)
-  // + CGNAT (100.64/10). 127/8 covers all loopback, not just 127.0.0.1.
-  if (host.startsWith("192.168.")) return true;
-  if (host.startsWith("10.")) return true;
-  if (host.startsWith("127.")) return true;
-  if (host.startsWith("169.254.")) return true;
-  if (/^172\.(1[6-9]|2\d|3[0-1])\./.test(host)) return true;
-  if (/^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(host)) return true;
-  // IPv6 ULA (fc00::/7 → fc/fd prefix) and link-local (fe80::/10)
-  if (/^f[cd][0-9a-f]*:/i.test(host) || host.startsWith("fe80:")) return true;
-  return false;
+    .replace(/^::ffff:/i, "")
+    .toLowerCase();
+  return host === "localhost" || host === "::1" || host === "127.0.0.1" || host.startsWith("127.");
 }
 
 function resolveEnvProxyUrl(targetUrl) {
@@ -532,8 +569,8 @@ export function resolveProxyForRequest(targetUrl) {
     target = null;
   }
 
-  // Always bypass proxy for local/LAN addresses
-  if (target && isLocalAddress(target.hostname.toLowerCase())) {
+  // Always bypass proxy for local/LAN addresses and operator-listed provider-node hosts
+  if (target && isDirectBypassHost(target.hostname)) {
     return { source: "direct", proxyUrl: null };
   }
 
@@ -678,7 +715,7 @@ export async function runWithProxyContext(
     // otherwise leave proxyInfo reading "direct"). Innermost runWithProxyContext
     // wins, which is exactly the per-account proxy the executor selected.
     if (effectiveProxyConfig) {
-      const sink = appliedProxyContext.getStore();
+      const sink = getAppliedProxyContext().getStore();
       if (sink) sink.proxy = effectiveProxyConfig;
     }
 
@@ -758,6 +795,9 @@ async function patchedFetchUnrecorded(
   options: FetchWithDispatcherOptions = {},
   deps: ProxyFetchDeps = {}
 ) {
+  // #13593: a hop back to this listener carries the process self-hop token
+  // so admission does not shed it with public traffic.
+  stampOwnListenerSelfHop(input, options);
   // Explicit direct contexts must win even when a caller supplied a stale
   // dispatcher. Native fetch preserves direct streaming semantics.
   if (proxyContext.getStore() === DIRECT_PROXY_CONTEXT) {
@@ -792,7 +832,7 @@ async function patchedFetchUnrecorded(
     if (
       isTlsFingerprintEnabled() &&
       activeTlsClient.available &&
-      tlsFingerprintProviderAllowed(tlsStore?.provider, false) &&
+      tlsFingerprintProviderAllowed(tlsStore?.provider, false, targetUrl) &&
       isTlsRequestEligible(input, options)
     ) {
       try {
@@ -815,7 +855,7 @@ async function patchedFetchUnrecorded(
           typeof error === "object" &&
           "sessionHadCookies" in error &&
           error.sessionHadCookies === true;
-        if (!isTlsFallbackReplaySafe(input, options) || sessionHadCookies) {
+        if (!isAmbiguousFailureReplaySafe(input, options) || sessionHadCookies) {
           throw sanitizeTransportError(
             error,
             sessionHadCookies
@@ -840,15 +880,31 @@ async function patchedFetchUnrecorded(
       return _nativeFetch(input, options);
     }
     // Direct undici path: bound response-start, fresh-socket retry, and body guard.
+    const directOptions = { ...options, signal: getEffectiveSignal(input, options) };
     const hasNonReplayableBody = requestHasNonReplayableBody(input, options);
+    // Method gating covers response-start ambiguity; connection-error retries remain below.
+    const canReplayResponseStartTimeout = isAmbiguousFailureReplaySafe(input, options);
     const maxAttempts = hasNonReplayableBody ? 1 : 2;
     const _undiciDirect =
       deps.undiciFetch ?? (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>);
     const _nativeFallback =
       (deps.nativeFetch as FetchWithDispatcher | undefined) ?? originalFetchWithDispatcher;
+
+    // Loopback self-requests must not inherit remote-egress response-start replay:
+    // replaying against our own listener only doubles inbound-slot occupancy and
+    // can starve live traffic until Cloudflare's 120s read timeout (#10214).
+    let isLoopbackTarget = false;
+    try {
+      isLoopbackTarget = isLoopbackHost(new URL(targetUrl).hostname);
+    } catch {
+      // ignore — a non-parseable target keeps the default egress policy
+    }
+    if (isLoopbackTarget) {
+      return _nativeFallback(input, options);
+    }
+
     let lastDispatcherError: unknown = null;
-    const directBodyForTimeout = typeof options.body === "string" ? options.body : null;
-    const directHeadersTimeoutMs = resolveDirectHeadersTimeoutMs(undefined, directBodyForTimeout);
+    const timeoutFor = directHeadersTimeoutResolver(directOptions, targetUrl);
     let targetHostForLogs = "";
     try {
       targetHostForLogs = new URL(targetUrl).host;
@@ -857,20 +913,28 @@ async function patchedFetchUnrecorded(
     }
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
+        let hostnameForDispatcher: string | undefined;
+        try {
+          hostnameForDispatcher = new URL(targetUrl).hostname;
+        } catch {}
         return await directFetchWithBoundedResponseStart(
           input,
           {
-            ...options,
-            dispatcher: attempt === 0 ? getDefaultDispatcher() : getRetryDispatcher(),
+            ...directOptions,
+            dispatcher:
+              attempt === 0
+                ? getDefaultDispatcher(hostnameForDispatcher)
+                : getRetryDispatcher(hostnameForDispatcher),
           },
           _undiciDirect,
-          resolveDirectHeadersTimeoutMs(undefined, directBodyForTimeout, attempt, !!options.signal)
+          timeoutFor(attempt === 0 && canReplayResponseStartTimeout ? 0 : 1)
         );
       } catch (dispatcherError) {
+        if (isCallerAbort(dispatcherError, directOptions.signal)) throw dispatcherError;
         if (isDirectResponseStartTimeout(dispatcherError)) {
-          if (attempt === 0 && maxAttempts > 1) {
+          if (attempt === 0 && maxAttempts > 1 && canReplayResponseStartTimeout) {
             console.warn(
-              `[ProxyFetch] Direct response-start timeout (${directHeadersTimeoutMs}ms) on pooled dispatcher — retrying on fresh no-keep-alive dispatcher: ${targetHostForLogs}`
+              `[ProxyFetch] Direct response-start timeout (${timeoutFor(0)}ms) on pooled dispatcher — retrying on fresh no-keep-alive dispatcher: ${targetHostForLogs}`
             );
             lastDispatcherError = dispatcherError;
             continue;
@@ -908,7 +972,10 @@ async function patchedFetchUnrecorded(
             continue;
           }
           if (hasNonReplayableBody) {
-            const detail = `dispatcher=[${describeFetchCause(dispatcherError)}] native=[skipped: non-replayable request body]`;
+            const detail = describeFallbackFailure(
+              describeFetchCause(dispatcherError),
+              "skipped: non-replayable request body"
+            );
             console.warn(
               `[ProxyFetch] skipping native fetch fallback for non-replayable body: ${detail}`
             );
@@ -948,11 +1015,26 @@ async function patchedFetchUnrecorded(
           console.warn(
             `[ProxyFetch] Undici dispatcher failed, falling back to native fetch (after retry): ${describeFetchCause(dispatcherError)}`
           );
+          // On PROXY_UNREACHABLE for local-egress hostnames (host.docker.internal,
+          // *.internal, *.local), drop the cached dispatcher pool: Docker
+          // Desktop's NAT silently drops idle keep-alive sockets inside the
+          // round-robin pool's keepAliveMaxTimeout window, and the pool never
+          // reaps them on PROXY_UNREACHABLE, so the next request must rebuild
+          // with fresh sockets (#4252-style stale-socket burst mitigation).
+          if (
+            isLocalEgressHostname(targetHostForLogs) &&
+            isProxyUnreachableError(dispatcherError)
+          ) {
+            clearDispatcherCache();
+          }
           try {
             return await _nativeFallback(input, options);
           } catch (nativeError) {
             // Surface both dispatcher and native causes immediately.
-            const detail = `dispatcher=[${describeFetchCause(dispatcherError)}] native=[${describeFetchCause(nativeError)}]`;
+            const detail = describeFallbackFailure(
+              describeFetchCause(dispatcherError),
+              describeFetchCause(nativeError)
+            );
             console.warn(`[ProxyFetch] native fetch fallback ALSO failed: ${detail}`);
             if (nativeError instanceof Error) {
               (nativeError as Error & { proxyFetchDetail?: string }).proxyFetchDetail = detail;
@@ -1085,7 +1167,7 @@ async function patchedFetchUnrecorded(
     typeof tlsStore?.sessionScope === "string" &&
     tlsStore.sessionScope.trim().length > 0 &&
     activeTlsClient.available &&
-    tlsFingerprintProviderAllowed(tlsStore?.provider, true) &&
+    tlsFingerprintProviderAllowed(tlsStore?.provider, true, targetUrl) &&
     isTlsRequestEligible(input, options) &&
     isWreqProxySupported(proxyUrl)
   ) {
@@ -1109,7 +1191,7 @@ async function patchedFetchUnrecorded(
         typeof error === "object" &&
         "sessionHadCookies" in error &&
         error.sessionHadCookies === true;
-      if (!isTlsFallbackReplaySafe(input, options) || sessionHadCookies) {
+      if (!isAmbiguousFailureReplaySafe(input, options) || sessionHadCookies) {
         throw sanitizeTransportError(
           error,
           sessionHadCookies
@@ -1135,11 +1217,13 @@ async function patchedFetchUnrecorded(
   let lastProxyError: unknown = null;
   for (let attempt = 0; attempt < maxProxyAttempts; attempt++) {
     try {
-      return await _undiciProxy(input, {
+      const response = await _undiciProxy(input, {
         ...options,
         dispatcher:
           attempt === 0 ? createProxyDispatcher(proxyUrl) : getProxyRetryDispatcher(proxyUrl),
       });
+      recordProxiedSuccess(proxyUrl, targetUrl); // completed response, any status
+      return response;
     } catch (error) {
       if (isCallerAbort(error, getEffectiveSignal(input, options))) throw error;
       const msg = error instanceof Error ? error.message : String(error);
@@ -1171,8 +1255,15 @@ async function patchedFetchUnrecorded(
         originalMsg ? `Proxy request failed: ${originalMsg}` : "Proxy request failed",
         "PROXY_REQUEST_FAILED"
       );
+      // Read the code off the thrown sanitized error (tag survives the
+      // sanitize as errorCode passthrough; untagged reads undefined).
+      if (sanitized.errorCode === "proxy_unreachable")
+        recordFinalTransportOutcome(proxyUrl, targetUrl);
+      if (sanitized.causeCode) {
+        sanitized.message += ` (cause ${sanitized.causeCode})`;
+      }
       console.error(
-        `[ProxyFetch] Proxy request failed (${source}, fail-closed; code=${sanitized.code})`
+        `[ProxyFetch] Proxy request failed (${source}, fail-closed; code=${sanitized.code}${sanitized.causeCode ? `; cause=${sanitized.causeCode}` : ""})`
       );
       throw sanitized;
     }
@@ -1180,7 +1271,7 @@ async function patchedFetchUnrecorded(
   throw lastProxyError;
 }
 
-const getAppliedProxySink = () => appliedProxyContext.getStore();
+const getAppliedProxySink = () => getAppliedProxyContext().getStore();
 const patchedFetch = withUpstreamStatusCapture(patchedFetchUnrecorded, getAppliedProxySink);
 
 /**

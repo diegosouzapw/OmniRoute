@@ -240,7 +240,9 @@ match_command = "^scope-tool"
 
     assert.equal(installed.installedPath, "rtk/filters.toml");
     assert.equal(fs.readFileSync(target, "utf8"), SAMPLE);
-    assert.equal(fs.statSync(target).mode & 0o777, 0o600);
+    if (process.platform !== "win32") {
+      assert.equal(fs.statSync(target).mode & 0o777, 0o600);
+    }
     assert.throws(
       () => installGlobalRtkTomlV1(SAMPLE),
       (error: unknown) =>

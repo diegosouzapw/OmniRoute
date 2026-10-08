@@ -1,7 +1,10 @@
+import { CHATPLAYGROUND_WEB_COOKIE_ENTRY } from "./web-cookie-chatplayground";
+
 /**
  * Provider catalog data — extracted from providers.ts (god-file decomposition).
  * Pure data literal; re-exported by the providers.ts barrel. No behavior change.
  */
+import { NOTRACK_WEB_COOKIE_ENTRY } from "./web-cookie-notrack";
 export const WEB_COOKIE_PROVIDERS = {
   "chatgpt-web": {
     id: "chatgpt-web",
@@ -353,21 +356,6 @@ export const WEB_COOKIE_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },
-  "gemini-business": {
-    id: "gemini-business",
-    serviceKinds: ["llm"],
-    alias: "gembiz",
-    name: "Gemini Business (Enterprise)",
-    icon: "business_center",
-    color: "#4285F4",
-    textIcon: "GB",
-    website: "https://business.gemini.google",
-    hasFree: true,
-    freeNote:
-      "Free for Google Workspace enterprise accounts — enterprise Gemini models (Pro, Flash, image, video) via direct StreamGenerate HTTP API. No subscription required, just enterprise SSO.",
-    authHint:
-      "From your enterprise account: open business.gemini.google/home/cid/{your-cid}, then copy __Secure-1PSID and __Secure-1PSIDTS cookies from DevTools → Application → Cookies. Paste as a cookie header below.",
-  },
   "zenmux-free": {
     id: "zenmux-free",
     serviceKinds: ["llm"],
@@ -477,6 +465,7 @@ export const WEB_COOKIE_PROVIDERS = {
     authHint:
       "Paste the full Cookie header from hyperagent.com (DevTools → Network → any request → Request Headers → Cookie). Session cookies power chat + billing usage.",
   },
+  ...NOTRACK_WEB_COOKIE_ENTRY,
   "conol-web": {
     id: "conol-web",
     serviceKinds: ["llm"],
@@ -490,6 +479,36 @@ export const WEB_COOKIE_PROVIDERS = {
     riskNoticeVariant: "webCookie",
     authHint:
       "Use browser sign-in, or paste the full Cookie header from conol.ai. The __Secure-better-auth.session_token cookie is required.",
+  },
+  twinmind: {
+    id: "twinmind",
+    serviceKinds: ["llm"],
+    alias: "tm",
+    name: "Twinmind (Unofficial/Experimental)",
+    icon: "auto_awesome",
+    color: "#4F46E5",
+    textIcon: "TM",
+    website: "https://app.twinmind.com",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+    toolCalling: "emulated",
+    authHint:
+      "Paste the stsTokenManager JSON from app.twinmind.com IndexedDB (accessToken + refreshToken). Chat uses accessToken; refreshToken mints a new JWT when it expires.",
+  },
+  syntx: {
+    id: "syntx",
+    serviceKinds: ["llm"],
+    alias: "stx",
+    name: "SYNTX.ai (Unofficial/Experimental)",
+    icon: "auto_awesome",
+    color: "#FF4D00",
+    textIcon: "SX",
+    website: "https://syntx.ai",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+    toolCalling: "emulated",
+    authHint:
+      "Paste the Authorization Bearer JWT from syntx.ai (DevTools → Network → api.syntx.ai → Request Headers). Chat, models, Limits, and media use this token.",
   },
   maxai: {
     id: "maxai",
@@ -531,6 +550,7 @@ export const WEB_COOKIE_PROVIDERS = {
     authHint:
       "Sign in once with an email code to bootstrap a UC (uncensored.com) subscription session. OmniRoute mints a fresh short-lived token per request browserlessly, so the connection renews on its own; you only re-run the email login about once a month when the subscription session rolls over.",
   },
+  ...CHATPLAYGROUND_WEB_COOKIE_ENTRY,
 };
 
 /** Resolved public site for a web-session provider (href + display host). */

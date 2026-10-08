@@ -4,6 +4,7 @@ import net from "node:net";
 import { OpencodeExecutor } from "../../open-sse/executors/opencode.ts";
 import type { ExecutorLog, ProviderCredentials } from "../../open-sse/executors/base.ts";
 import { resolveProxyForRequest } from "../../open-sse/utils/proxyFetch.ts";
+import { __resetProxyRefusalMemoryForTesting } from "../../open-sse/utils/proxyRefusalMemory.ts";
 
 const log: ExecutorLog = { debug() {}, info() {}, warn() {}, error() {} };
 
@@ -67,6 +68,9 @@ describe("OpencodeExecutor transient-failure rotation", () => {
   let observed: string[];
 
   beforeEach(() => {
+    // PROXY_SKIP_RECENTLY_FAILED is on by default (#14688): a refusal recorded by one
+    // case would otherwise set its proxy aside for the next case.
+    __resetProxyRefusalMemoryForTesting();
     originalFetch = globalThis.fetch;
     observed = [];
   });
@@ -103,6 +107,15 @@ describe("OpencodeExecutor transient-failure rotation", () => {
   it("rotates past a 500 to the healthy proxy without cooldown", async () => {
     const exec = new OpencodeExecutor("opencode-zen");
     installFetch([{ status: 500 }, { status: 200 }]);
+    const warns: string[] = [];
+    const spyLog: ExecutorLog = {
+      debug() {},
+      info() {},
+      warn(_tag, message) {
+        warns.push(String(message));
+      },
+      error() {},
+    };
 
     const result = await exec.execute({
       model: "muse-spark-1.3-contributor-free",
@@ -110,12 +123,20 @@ describe("OpencodeExecutor transient-failure rotation", () => {
       stream: false,
       signal: null,
       credentials: credentialsFor([FP_A, FP_B]),
-      log,
+      log: spyLog,
     });
 
     assert.strictEqual((result as { response: Response }).response.status, 200);
     assert.strictEqual(observed.length, 2);
     assert.strictEqual(observed[0], String(portA));
+    assert.ok(
+      warns.some((l) => new RegExp(`\\(proxy 127\\.0\\.0\\.1:${portA}\\)`).test(l)),
+      `transient 500 warn must name the applied egress, got=${JSON.stringify(warns)}`
+    );
+    assert.ok(
+      warns.every((l) => !l.includes("@") || l.includes("connectionId=@")),
+      "rotation warns must never leak user info"
+    );
     assert.strictEqual(
       CloneCountingResponse.clones,
       1,
@@ -502,7 +523,7 @@ describe("OpencodeExecutor transient-failure rotation", () => {
     }
     assert.ok(
       plainRotation.some((l) =>
-        /transient upstream 500 on account .* \(proxy .*\), rotating to next…/.test(l)
+        /transient upstream 500 on account .*, rotating to next… \(proxy .*\)/.test(l)
       ),
       "existing 5xx rotation motif byte-identical when no id is present"
     );

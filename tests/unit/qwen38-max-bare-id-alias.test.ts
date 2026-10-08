@@ -43,13 +43,16 @@ test("the canonical id is a no-op through the alias map (no double rewrite)", ()
   assert.equal(resolveModelAlias(CANONICAL), CANONICAL);
 });
 
-test("the alias target carries the real 1M window, not the 128k fallback", () => {
-  const spec = MODEL_SPECS[CANONICAL];
-  assert.ok(spec, `MODEL_SPECS is missing ${CANONICAL}`);
-  assert.equal(spec.contextWindow, 1_000_000);
-  // The bare id must NOT gain its own spec entry — a second source of truth for the
-  // same model is what lets the two ids drift apart again.
-  assert.equal(MODEL_SPECS[BARE], undefined);
+test("both ids carry the real 1M window, not the 128k fallback", () => {
+  // #14181 (83a6e9a5): the bare id is no longer an alias of the preview — opencode-go
+  // serves a GA `qwen3.8-max` that the upstream rejects under the preview id, so the GA
+  // model owns its own spec row. The drift this test was written to catch is therefore
+  // no longer "the bare id has a spec" but "one of the two silently falls back to 128k".
+  for (const id of [CANONICAL, BARE]) {
+    const spec = MODEL_SPECS[id];
+    assert.ok(spec, `MODEL_SPECS is missing ${id}`);
+    assert.equal(spec.contextWindow, 1_000_000, `${id} must not fall back to the 128k window`);
+  }
 });
 
 // The catalogs have since split. `qwen-cloud-token-plan` now lists the BARE

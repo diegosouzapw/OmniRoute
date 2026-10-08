@@ -109,6 +109,7 @@ export function getCooldownAwareRetryDecision({
   settings,
   attempt,
   budgetLeftMs,
+  lastErrorCode,
 }: {
   retryAfter: unknown;
   settings: CooldownAwareRetrySettings;
@@ -120,6 +121,12 @@ export function getCooldownAwareRetryDecision({
    * across attempts (#7360 follow-up).
    */
   budgetLeftMs?: number;
+  /**
+   * errorCode of the connection whose cooldown ends first. An auth cooldown (401) has no
+   * known end: waiting for it re-sends the request into the same 401 and another token
+   * refresh on every retry, turning a ~3 s failure into minutes.
+   */
+  lastErrorCode?: unknown;
 }): {
   shouldRetry: boolean;
   retryAfter: string | null;
@@ -133,7 +140,8 @@ export function getCooldownAwareRetryDecision({
     settings.maxRetries <= 0 ||
     settings.maxRetryWaitMs <= 0 ||
     attempt >= settings.maxRetries ||
-    closest.waitMs === null
+    closest.waitMs === null ||
+    Number(lastErrorCode) === 401
   ) {
     return {
       shouldRetry: false,

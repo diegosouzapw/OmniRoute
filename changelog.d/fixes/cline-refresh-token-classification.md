@@ -1,1 +1,0 @@
-- **fix(oauth):** classify embedded `invalid_grant` in Cline token refresh error bodies so permanently consumed refresh tokens trigger re-authentication instead of indefinite transient retry loops, and add `cline` to `ROTATION_LOCK_GROUP` to serialize concurrent sibling refreshes ([#13466](https://github.com/diegosouzapw/OmniRoute/pull/13466))

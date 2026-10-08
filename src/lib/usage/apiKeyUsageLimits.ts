@@ -2,7 +2,16 @@ import { getDbInstance } from "@/lib/db/core";
 import type { ProviderLimitsCacheEntry } from "@/lib/db/providerLimits";
 import { getProviderQuotaWindowStartIso } from "@/lib/db/quotaResetEvents";
 import { calculateCostDetailed } from "./costCalculator";
-import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+import {
+  calendarWeekWindowMs,
+  isValidIanaTimeZone,
+} from "@omniroute/open-sse/services/dailyQuotaReset.ts";
+import {
+  errorResponse,
+  resolveRetryAfterInstant,
+  sanitizeErrorMessage,
+} from "@omniroute/open-sse/utils/error.ts";
 
 const FORTALEZA_UTC_OFFSET_MS = 3 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -382,6 +391,64 @@ async function getProviderWeeklyWindow(
   };
 }
 
+export type ApiKeyWeeklyWindowMode = "provider" | "calendar";
+
+export interface ApiKeyWeeklyWindowSetting {
+  mode: ApiKeyWeeklyWindowMode;
+  timeZone: string;
+}
+
+const warnedWeeklyWindowValues = new Set<string>();
+
+function warnWeeklyWindowValueOnce(message: string): void {
+  if (warnedWeeklyWindowValues.has(message)) return;
+  warnedWeeklyWindowValues.add(message);
+  console.warn(`[apiKeyUsageLimits] ${message}`);
+}
+
+function getProcessTimeZone(): string {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+}
+
+/**
+ * Weekly window used by per-key USD limits.
+ * - `provider` (default): end at the earliest weekly reset among the upstream
+ *   connections the key can reach; rolling 7 days when none is known.
+ * - `calendar`: the local week starting Monday 00:00 in
+ *   OMNIROUTE_API_KEY_WEEKLY_WINDOW_TIMEZONE, or in the process timezone when unset.
+ */
+export function getApiKeyWeeklyWindowSetting(
+  env: Record<string, string | undefined> = process.env
+): ApiKeyWeeklyWindowSetting {
+  const rawMode = (env.OMNIROUTE_API_KEY_WEEKLY_WINDOW ?? "").trim().toLowerCase();
+  if (rawMode && rawMode !== "provider" && rawMode !== "calendar") {
+    warnWeeklyWindowValueOnce(
+      `OMNIROUTE_API_KEY_WEEKLY_WINDOW="${rawMode}" is not provider|calendar; using provider`
+    );
+  }
+  const rawTimeZone = (env.OMNIROUTE_API_KEY_WEEKLY_WINDOW_TIMEZONE ?? "").trim();
+  if (rawTimeZone && !isValidIanaTimeZone(rawTimeZone)) {
+    warnWeeklyWindowValueOnce(
+      `OMNIROUTE_API_KEY_WEEKLY_WINDOW_TIMEZONE="${rawTimeZone}" is not an IANA timezone; using the process timezone`
+    );
+  }
+  return {
+    mode: rawMode === "calendar" ? "calendar" : "provider",
+    timeZone: rawTimeZone && isValidIanaTimeZone(rawTimeZone) ? rawTimeZone : getProcessTimeZone(),
+  };
+}
+
+function getCalendarWeeklyWindow(
+  timeZone: string,
+  nowMs: number
+): { resetAtIso: string; windowStartIso: string } {
+  const { startMs, resetMs } = calendarWeekWindowMs(timeZone, nowMs);
+  return {
+    resetAtIso: new Date(resetMs).toISOString(),
+    windowStartIso: new Date(startMs).toISOString(),
+  };
+}
+
 interface ApiKeyUsdSpend {
   totalUsd: number;
   /** True when at least one (provider, model) group had no pricing row at all (#12341). */
@@ -438,8 +505,9 @@ async function getApiKeyUsdSpendSince(apiKeyId: string, sinceIso: string): Promi
     if (!priced) {
       hasUnpricedUsage = true;
       console.warn(
-        `[apiKeyUsageLimits] no pricing found for ${provider}/${model} — usage counted as $0 ` +
-          "and enforcement is failing closed for this window (#12341)"
+        `[apiKeyUsageLimits] no pricing found for ${provider}/${model} — usage counted as $0; ` +
+          "a configured USD quota fails closed for this window unless " +
+          "USAGE_LIMIT_IGNORE_UNPRICED is on (#12341)"
       );
     }
     total += costUsd;
@@ -456,7 +524,11 @@ export async function getApiKeyUsageLimitStatus(
   const now = resolvedDeps.now();
   const dailyWindowStartIso = getFortalezaDayStartIso(now);
   const dailyResetAtIso = getFortalezaDayResetIso(now);
-  const weeklyWindow = await getProviderWeeklyWindow(metadata, resolvedDeps, now);
+  const weeklySetting = getApiKeyWeeklyWindowSetting();
+  const weeklyWindow =
+    weeklySetting.mode === "calendar"
+      ? getCalendarWeeklyWindow(weeklySetting.timeZone, now)
+      : await getProviderWeeklyWindow(metadata, resolvedDeps, now);
   const weeklyResetAtIso = weeklyWindow.resetAtIso;
   const weeklyWindowStartIso = weeklyWindow.windowStartIso
     ? weeklyWindow.windowStartIso
@@ -480,14 +552,17 @@ export async function getApiKeyUsageLimitStatus(
   // as an invisible $0 — treat the limit as exceeded rather than trust an
   // undercounted spend total. A window with no configured limit was never
   // enforced, so unpriced usage there is only logged, not blocking.
+  // USAGE_LIMIT_IGNORE_UNPRICED is the operator opt-out: unpriced usage then
+  // stays at $0 and only priced spend counts toward the limit.
+  const failClosedOnUnpriced = !isFeatureFlagEnabled("USAGE_LIMIT_IGNORE_UNPRICED");
   const dailyExceeded =
     enabled &&
     dailyLimitUsd !== null &&
-    (dailySpentUsd >= dailyLimitUsd || dailySpend.hasUnpricedUsage);
+    (dailySpentUsd >= dailyLimitUsd || (failClosedOnUnpriced && dailySpend.hasUnpricedUsage));
   const weeklyExceeded =
     enabled &&
     weeklyLimitUsd !== null &&
-    (weeklySpentUsd >= weeklyLimitUsd || weeklySpend.hasUnpricedUsage);
+    (weeklySpentUsd >= weeklyLimitUsd || (failClosedOnUnpriced && weeklySpend.hasUnpricedUsage));
 
   return {
     enabled,
@@ -587,13 +662,26 @@ export function buildApiKeyUsageLimitRejection(
   options: { showUsd?: boolean } = {}
 ): Response {
   const message = sanitizeErrorMessage(buildUsageLimitExceededMessage(status, now, options));
+  // Whichever window actually tripped drives the reset timing below (daily is
+  // checked first, matching buildUsageLimitExceededMessage's own precedence).
+  const trippedResetAtIso = status.dailyExceeded
+    ? status.dailyResetAtIso
+    : status.weeklyExceeded
+      ? status.weeklyResetAtIso
+      : null;
   if (isAnthropicMessagesRequest(request)) {
+    // Claude Code treats a non-400 /v1/messages error as an auth failure and triggers
+    // a re-login prompt — this branch's status MUST stay 400 (see the "does not trigger
+    // login" regression test). The reset timing is still worth surfacing, so it rides
+    // along as extra fields on the same Anthropic-shaped error envelope.
+    const resolved = resolveRetryAfterInstant(trippedResetAtIso);
     return new Response(
       JSON.stringify({
         type: "error",
         error: {
           type: "invalid_request_error",
           message,
+          ...resolved,
         },
       }),
       {
@@ -603,9 +691,11 @@ export function buildApiKeyUsageLimitRejection(
     );
   }
 
-  return new Response(JSON.stringify(buildErrorBody(400, message)), {
-    status: 400,
-    headers: { "Content-Type": "application/json" },
+  // Non-Anthropic clients: 429 is the semantically correct status for a quota/rate
+  // condition (every sibling budget/token/rate-limit check already uses it).
+  return errorResponse(429, message, {
+    code: "usage_limit_exceeded",
+    retryAfter: trippedResetAtIso,
   });
 }
 

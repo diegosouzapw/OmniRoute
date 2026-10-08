@@ -1,54 +1,58 @@
 # Admission lanes (#9654) — two lane systems, what gates each, where each reports (Čeština)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/admission-lanes.md) · 🇪🇹 [am](../../../am/docs/architecture/admission-lanes.md) · 🇸🇦 [ar](../../../ar/docs/architecture/admission-lanes.md) · 🇦🇿 [az](../../../az/docs/architecture/admission-lanes.md) · 🇧🇬 [bg](../../../bg/docs/architecture/admission-lanes.md) · 🇧🇩 [bn](../../../bn/docs/architecture/admission-lanes.md) · 🇩🇰 [da](../../../da/docs/architecture/admission-lanes.md) · 🇩🇪 [de](../../../de/docs/architecture/admission-lanes.md) · 🇬🇷 [el](../../../el/docs/architecture/admission-lanes.md) · 🇪🇸 [es](../../../es/docs/architecture/admission-lanes.md) · 🇪🇪 [et](../../../et/docs/architecture/admission-lanes.md) · 🇮🇷 [fa](../../../fa/docs/architecture/admission-lanes.md) · 🇫🇮 [fi](../../../fi/docs/architecture/admission-lanes.md) · 🇫🇷 [fr](../../../fr/docs/architecture/admission-lanes.md) · 🇮🇪 [ga](../../../ga/docs/architecture/admission-lanes.md) · 🇮🇳 [gu](../../../gu/docs/architecture/admission-lanes.md) · 🇳🇬 [ha](../../../ha/docs/architecture/admission-lanes.md) · 🇮🇱 [he](../../../he/docs/architecture/admission-lanes.md) · 🇮🇳 [hi](../../../hi/docs/architecture/admission-lanes.md) · 🇭🇷 [hr](../../../hr/docs/architecture/admission-lanes.md) · 🇭🇺 [hu](../../../hu/docs/architecture/admission-lanes.md) · 🇦🇲 [hy](../../../hy/docs/architecture/admission-lanes.md) · 🇮🇩 [id](../../../id/docs/architecture/admission-lanes.md) · 🇳🇬 [ig](../../../ig/docs/architecture/admission-lanes.md) · 🇮🇹 [it](../../../it/docs/architecture/admission-lanes.md) · 🇯🇵 [ja](../../../ja/docs/architecture/admission-lanes.md) · 🇬🇪 [ka](../../../ka/docs/architecture/admission-lanes.md) · 🇰🇭 [km](../../../km/docs/architecture/admission-lanes.md) · 🇮🇳 [kn](../../../kn/docs/architecture/admission-lanes.md) · 🇰🇷 [ko](../../../ko/docs/architecture/admission-lanes.md) · 🇱🇹 [lt](../../../lt/docs/architecture/admission-lanes.md) · 🇱🇻 [lv](../../../lv/docs/architecture/admission-lanes.md) · 🇮🇳 [ml](../../../ml/docs/architecture/admission-lanes.md) · 🇮🇳 [mr](../../../mr/docs/architecture/admission-lanes.md) · 🇲🇾 [ms](../../../ms/docs/architecture/admission-lanes.md) · 🇲🇹 [mt](../../../mt/docs/architecture/admission-lanes.md) · 🇲🇲 [my](../../../my/docs/architecture/admission-lanes.md) · 🇳🇵 [ne](../../../ne/docs/architecture/admission-lanes.md) · 🇳🇱 [nl](../../../nl/docs/architecture/admission-lanes.md) · 🇳🇴 [no](../../../no/docs/architecture/admission-lanes.md) · 🇮🇳 [or](../../../or/docs/architecture/admission-lanes.md) · 🇮🇳 [pa](../../../pa/docs/architecture/admission-lanes.md) · 🇵🇭 [phi](../../../phi/docs/architecture/admission-lanes.md) · 🇵🇱 [pl](../../../pl/docs/architecture/admission-lanes.md) · 🇵🇹 [pt](../../../pt/docs/architecture/admission-lanes.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/admission-lanes.md) · 🇷🇴 [ro](../../../ro/docs/architecture/admission-lanes.md) · 🇷🇺 [ru](../../../ru/docs/architecture/admission-lanes.md) · 🇱🇰 [si](../../../si/docs/architecture/admission-lanes.md) · 🇸🇰 [sk](../../../sk/docs/architecture/admission-lanes.md) · 🇸🇮 [sl](../../../sl/docs/architecture/admission-lanes.md) · 🇷🇸 [sr](../../../sr/docs/architecture/admission-lanes.md) · 🇸🇪 [sv](../../../sv/docs/architecture/admission-lanes.md) · 🇰🇪 [sw](../../../sw/docs/architecture/admission-lanes.md) · 🇮🇳 [ta](../../../ta/docs/architecture/admission-lanes.md) · 🇮🇳 [te](../../../te/docs/architecture/admission-lanes.md) · 🇹🇭 [th](../../../th/docs/architecture/admission-lanes.md) · 🇹🇷 [tr](../../../tr/docs/architecture/admission-lanes.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/admission-lanes.md) · 🇵🇰 [ur](../../../ur/docs/architecture/admission-lanes.md) · 🇺🇿 [uz](../../../uz/docs/architecture/admission-lanes.md) · 🇻🇳 [vi](../../../vi/docs/architecture/admission-lanes.md) · 🇳🇬 [yo](../../../yo/docs/architecture/admission-lanes.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/admission-lanes.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/admission-lanes.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/admission-lanes.md) · 🇪🇹 [am](../../../am/docs/architecture/admission-lanes.md) · 🇸🇦 [ar](../../../ar/docs/architecture/admission-lanes.md) · 🇦🇿 [az](../../../az/docs/architecture/admission-lanes.md) · 🇧🇬 [bg](../../../bg/docs/architecture/admission-lanes.md) · 🇧🇩 [bn](../../../bn/docs/architecture/admission-lanes.md) · 🇧🇦 [bs](../../../bs/docs/architecture/admission-lanes.md) · 🇩🇰 [da](../../../da/docs/architecture/admission-lanes.md) · 🇩🇪 [de](../../../de/docs/architecture/admission-lanes.md) · 🇬🇷 [el](../../../el/docs/architecture/admission-lanes.md) · 🇪🇸 [es](../../../es/docs/architecture/admission-lanes.md) · 🇪🇪 [et](../../../et/docs/architecture/admission-lanes.md) · 🇮🇷 [fa](../../../fa/docs/architecture/admission-lanes.md) · 🇫🇮 [fi](../../../fi/docs/architecture/admission-lanes.md) · 🇫🇷 [fr](../../../fr/docs/architecture/admission-lanes.md) · 🇮🇪 [ga](../../../ga/docs/architecture/admission-lanes.md) · 🇮🇳 [gu](../../../gu/docs/architecture/admission-lanes.md) · 🇳🇬 [ha](../../../ha/docs/architecture/admission-lanes.md) · 🇮🇱 [he](../../../he/docs/architecture/admission-lanes.md) · 🇮🇳 [hi](../../../hi/docs/architecture/admission-lanes.md) · 🇭🇷 [hr](../../../hr/docs/architecture/admission-lanes.md) · 🇭🇺 [hu](../../../hu/docs/architecture/admission-lanes.md) · 🇦🇲 [hy](../../../hy/docs/architecture/admission-lanes.md) · 🇮🇩 [id](../../../id/docs/architecture/admission-lanes.md) · 🇳🇬 [ig](../../../ig/docs/architecture/admission-lanes.md) · 🇮🇹 [it](../../../it/docs/architecture/admission-lanes.md) · 🇯🇵 [ja](../../../ja/docs/architecture/admission-lanes.md) · 🇬🇪 [ka](../../../ka/docs/architecture/admission-lanes.md) · 🇰🇭 [km](../../../km/docs/architecture/admission-lanes.md) · 🇮🇳 [kn](../../../kn/docs/architecture/admission-lanes.md) · 🇰🇷 [ko](../../../ko/docs/architecture/admission-lanes.md) · 🇱🇹 [lt](../../../lt/docs/architecture/admission-lanes.md) · 🇱🇻 [lv](../../../lv/docs/architecture/admission-lanes.md) · 🇮🇳 [ml](../../../ml/docs/architecture/admission-lanes.md) · 🇮🇳 [mr](../../../mr/docs/architecture/admission-lanes.md) · 🇲🇾 [ms](../../../ms/docs/architecture/admission-lanes.md) · 🇲🇹 [mt](../../../mt/docs/architecture/admission-lanes.md) · 🇲🇲 [my](../../../my/docs/architecture/admission-lanes.md) · 🇳🇵 [ne](../../../ne/docs/architecture/admission-lanes.md) · 🇳🇱 [nl](../../../nl/docs/architecture/admission-lanes.md) · 🇳🇴 [no](../../../no/docs/architecture/admission-lanes.md) · 🇮🇳 [or](../../../or/docs/architecture/admission-lanes.md) · 🇮🇳 [pa](../../../pa/docs/architecture/admission-lanes.md) · 🇵🇭 [phi](../../../phi/docs/architecture/admission-lanes.md) · 🇵🇱 [pl](../../../pl/docs/architecture/admission-lanes.md) · 🇵🇹 [pt](../../../pt/docs/architecture/admission-lanes.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/admission-lanes.md) · 🇷🇴 [ro](../../../ro/docs/architecture/admission-lanes.md) · 🇷🇺 [ru](../../../ru/docs/architecture/admission-lanes.md) · 🇱🇰 [si](../../../si/docs/architecture/admission-lanes.md) · 🇸🇰 [sk](../../../sk/docs/architecture/admission-lanes.md) · 🇸🇮 [sl](../../../sl/docs/architecture/admission-lanes.md) · 🇷🇸 [sr](../../../sr/docs/architecture/admission-lanes.md) · 🇸🇪 [sv](../../../sv/docs/architecture/admission-lanes.md) · 🇰🇪 [sw](../../../sw/docs/architecture/admission-lanes.md) · 🇮🇳 [ta](../../../ta/docs/architecture/admission-lanes.md) · 🇮🇳 [te](../../../te/docs/architecture/admission-lanes.md) · 🇹🇭 [th](../../../th/docs/architecture/admission-lanes.md) · 🇹🇷 [tr](../../../tr/docs/architecture/admission-lanes.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/admission-lanes.md) · 🇵🇰 [ur](../../../ur/docs/architecture/admission-lanes.md) · 🇺🇿 [uz](../../../uz/docs/architecture/admission-lanes.md) · 🇻🇳 [vi](../../../vi/docs/architecture/admission-lanes.md) · 🇳🇬 [yo](../../../yo/docs/architecture/admission-lanes.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/admission-lanes.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/admission-lanes.md)
 
 ---
 
 OmniRoute má **dva** procesně lokální systémy drah s odlišným rozsahem působnosti. Tyto systémy se
 doplňují; provozovatelé by měli vědět, na který z nich se dívají.
 
-## 1. Přijímání na úrovni bajtů pro celý proces (`chatBodyAdmission.ts`)
+## 1. Přijímání na úrovni bajtů v rámci celého procesu (`chatBodyAdmission.ts`)
 
-- **Rozsah působnosti:** cesta zpracování těla ukládaného do vyrovnávací paměti / haldy pro `POST /v1/chat/completions`,
+- **Rozsah:** cesta zpracování těla ukládaného do vyrovnávací paměti / haldy pro `POST /v1/chat/completions`,
   `/v1/messages`, `/v1/responses` a další trasy ve formátu chatu. Chrání
-  před znásobením využití haldy způsobeným velkými těly požadavků kódovacích agentů (#4380).
-- **Jeden globální řadič pro celý proces, nikoli dráhy pro jednotlivé klíče (#10110).** Každý API klíč
-  (hashovaný) nebo relace `anonymous` se přijímá v rámci **stejného** sdíleného rozpočtu —
-  hashované ID relace se používá POUZE jako plánovací klíč pro spravedlivé rozdělování (odesílání
-  čekajících metodou round-robin), nikdy jako oddíl kapacity. Předchozí verze této
-  dokumentace popisovala dráhy pro jednotlivé klíče s nezávislou kapacitou; tento model byl
-  v #10110 odstraněn, protože umožňoval neověřeným falešným přihlašovacím údajům násobit
-  limit platný pro celý proces.
-- **Brána (#503-fanout): automaticky odvozený BAJTOVÝ rozpočet pro příjem, nikoli pevný počet
-  požadavků.** Starší limit počtu požadavků `CHAT_MAX_HEAVY_IN_FLIGHT` (před touto opravou
-  ve výchozím nastavení `1`) omezoval větvení kódovacích agentů (více podřízených agentů / CLI,
-  těla běžně > 256 KB) na efektivní souběžnost ~1, což při zcela běžném zatížení
-  vedlo k odpovědím 503. Nyní se uplatní pouze tehdy, když provozovatel explicitně nastaví
-  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Pokud není nastavena, je přijímání místo toho
-  řízeno pomocí `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — rozpočtu automaticky odvozeného od
+  před násobením využití haldy velkými těly požadavků od programovacích agentů (#4380).
+- **Jeden globální řadič pro celý proces, nikoli samostatné větve pro jednotlivé klíče (#10110).** Každý klíč API
+  (ve formě hashe) nebo relace `anonymous` je přijímána v rámci **stejného** sdíleného rozpočtu —
+  hashované ID relace se používá POUZE jako klíč pro spravedlivé plánování (distribuce
+  čekajících metodou round-robin), nikdy jako oddělený kapacitní segment. Předchozí verze této
+  dokumentace popisovala samostatné větve pro jednotlivé klíče s nezávislou kapacitou; tento model byl
+  v #10110 odstraněn, protože neověřeným falešným přihlašovacím údajům umožňoval
+  násobit limit platný pro celý proces.
+- **Brána (#503-fanout): automaticky odvozený BAJTOVÝ rozpočet příjmu, nikoli pevný počet
+  požadavků.** Původní limit počtu požadavků `CHAT_MAX_HEAVY_IN_FLIGHT` (před touto opravou
+  ve výchozím nastavení `1`) omezoval souběžné větvení programovacích agentů (více subagentů/CLI,
+  těla běžně > 256 KB) na efektivní souběžnost přibližně 1, což při zcela běžné zátěži
+  vedlo k odpovědím 503. Nyní se uplatní pouze tehdy, když operátor výslovně
+  nastaví `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Pokud zůstane nenastavený, přijímání je namísto toho
+  řízeno pomocí `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — rozpočtu automaticky odvozeného ze
   skutečného paměťového limitu procesu (`src/shared/middleware/admissionBudget.ts`):
   25 % z přísnějšího limitu mezi limitem haldy V8 a případným limitem cgroup/kontejneru,
-  vydělených osminásobným faktorem přechodného znásobení, s omezením na rozsah od 8 MiB do
-  2 GiB. Explicitní přepsání používají stejná omezení. Tím se rozpočet bez ladění
-  proměnných prostředí sám škáluje od kontejneru s 512 MB až po stolní počítač s 32 GB. Tělo, které se
+  vyděleno osminásobným faktorem přechodného násobení, s omezením na rozsah od 8 MiB do
+  2 GiB. Explicitní přepsání používají stejná omezení. Rozpočet se automaticky přizpůsobí
+  od kontejneru s 512 MB až po stolní počítač s 32 GB, bez nutnosti nastavovat proměnné prostředí. Tělo, které se
   nevejde do efektivního rozpočtu, okamžitě selže s `413 body_exceeds_budget`;
-  do omezené spravedlivé fronty vstupuje pouze soupeření mezi těly, z nichž každé lze samostatně
-  obsloužit. Průběžný nástroj pro sledování tlaku na prostředky pomocí více signálů (poměr haldy V8,
-  cgroup, PSI, události OOM — `open-sse/utils/resourcePressurePolicy.ts`) zkracuje
-  omezenou dobu čekání při tlaku `high` a při tlaku `critical` okamžitě odmítá požadavky pomocí
-  `503 resource_pressure`, ještě před přijetím jakýchkoli bajtů.
+  do omezené fronty se spravedlivým plánováním se zařadí pouze vzájemně soupeřící těla,
+  z nichž každé lze samostatně obsloužit. Průběžný sledovač zatížení prostředků využívající více signálů (poměr využití
+  haldy V8, cgroup, PSI, události OOM — `open-sse/utils/resourcePressurePolicy.ts`) zkracuje
+  omezenou dobu čekání při zatížení `high` a při zatížení `critical` požadavky okamžitě odmítá
+  pomocí `503 resource_pressure`, ještě před přijetím jakýchkoli bajtů.
+  PSI se načítá ze souboru `memory.pressure` cgroup této jednotky, pokud je k dispozici
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` platí
+  pro celý hostitelský systém a používá se pouze jako záložní možnost na fyzických serverech / cgroup v1, takže hostitel
+  využívající odkládací prostor nemůže způsobit odpovědi 503 u nečinného kontejneru.
 - **Ladění:**
   - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — přepsání automaticky odvozeného bajtového rozpočtu
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — starší limit počtu požadavků, pouze po explicitním zapnutí
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — čekání ve frontě před odpovědí 503 (výchozí hodnota 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — pojistka haldy podle počtu bajtů ve frontě (výchozí hodnota 4 MB)
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — původní limit počtu požadavků, pouze na vyžádání
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — doba čekání ve frontě před odpovědí 503 (výchozí hodnota je `RATE_LIMIT_MAX_WAIT_MS`)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — pojistka haldy pro bajty ve frontě (výchozí hodnota 4 MB)
   - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — zastaralé
-    volby bez účinku od #10110 (přijímané kvůli kompatibilitě konfigurace, ale ignorované)
-- **Hlášení:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — včetně
-  doplnění z #503-fanout: `inflightBytes`, `maxInflightBytes`, `budgetSource`
+    parametry bez účinku od #10110 (jsou přijímány kvůli kompatibilitě konfigurace, ale ignorují se)
+- **Reportování:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — včetně
+  položek přidaných v rámci #503-fanout: `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity` a `countCapEnabled`
-  (ve výchozím nasazení false — potvrzuje, že se skutečně uplatňuje bajtový rozpočet,
-  nikoli starší limit počtu požadavků).
+  (ve výchozím nasazení hodnota false — potvrzuje, že se skutečně uplatňuje bajtový rozpočet,
+  nikoli původní limit počtu požadavků).
 
 ## 2. Adaptivní virtuální pruhy za běhu (`open-sse/services/admission`)
 

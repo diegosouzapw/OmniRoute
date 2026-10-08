@@ -1,6 +1,6 @@
 # AgentBridge (සිංහල)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/AGENTBRIDGE.md) · 🇪🇹 [am](../../../am/docs/frameworks/AGENTBRIDGE.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/AGENTBRIDGE.md) · 🇦🇿 [az](../../../az/docs/frameworks/AGENTBRIDGE.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/AGENTBRIDGE.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/AGENTBRIDGE.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/AGENTBRIDGE.md) · 🇩🇰 [da](../../../da/docs/frameworks/AGENTBRIDGE.md) · 🇩🇪 [de](../../../de/docs/frameworks/AGENTBRIDGE.md) · 🇬🇷 [el](../../../el/docs/frameworks/AGENTBRIDGE.md) · 🇪🇸 [es](../../../es/docs/frameworks/AGENTBRIDGE.md) · 🇪🇪 [et](../../../et/docs/frameworks/AGENTBRIDGE.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/AGENTBRIDGE.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/AGENTBRIDGE.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/AGENTBRIDGE.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/AGENTBRIDGE.md) · 🇮🇱 [he](../../../he/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/AGENTBRIDGE.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/AGENTBRIDGE.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/AGENTBRIDGE.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/AGENTBRIDGE.md) · 🇮🇩 [id](../../../id/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/AGENTBRIDGE.md) · 🇮🇹 [it](../../../it/docs/frameworks/AGENTBRIDGE.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/AGENTBRIDGE.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/AGENTBRIDGE.md) · 🇰🇭 [km](../../../km/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/AGENTBRIDGE.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/AGENTBRIDGE.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/AGENTBRIDGE.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/AGENTBRIDGE.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/AGENTBRIDGE.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/AGENTBRIDGE.md) · 🇲🇲 [my](../../../my/docs/frameworks/AGENTBRIDGE.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/AGENTBRIDGE.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/AGENTBRIDGE.md) · 🇳🇴 [no](../../../no/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [or](../../../or/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/AGENTBRIDGE.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/AGENTBRIDGE.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/AGENTBRIDGE.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/AGENTBRIDGE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/AGENTBRIDGE.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/AGENTBRIDGE.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/AGENTBRIDGE.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/AGENTBRIDGE.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/AGENTBRIDGE.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/AGENTBRIDGE.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/AGENTBRIDGE.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [te](../../../te/docs/frameworks/AGENTBRIDGE.md) · 🇹🇭 [th](../../../th/docs/frameworks/AGENTBRIDGE.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/AGENTBRIDGE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/AGENTBRIDGE.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/AGENTBRIDGE.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/AGENTBRIDGE.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/AGENTBRIDGE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/AGENTBRIDGE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/AGENTBRIDGE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/AGENTBRIDGE.md) · 🇪🇹 [am](../../../am/docs/frameworks/AGENTBRIDGE.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/AGENTBRIDGE.md) · 🇦🇿 [az](../../../az/docs/frameworks/AGENTBRIDGE.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/AGENTBRIDGE.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/AGENTBRIDGE.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/AGENTBRIDGE.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/AGENTBRIDGE.md) · 🇩🇰 [da](../../../da/docs/frameworks/AGENTBRIDGE.md) · 🇩🇪 [de](../../../de/docs/frameworks/AGENTBRIDGE.md) · 🇬🇷 [el](../../../el/docs/frameworks/AGENTBRIDGE.md) · 🇪🇸 [es](../../../es/docs/frameworks/AGENTBRIDGE.md) · 🇪🇪 [et](../../../et/docs/frameworks/AGENTBRIDGE.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/AGENTBRIDGE.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/AGENTBRIDGE.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/AGENTBRIDGE.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/AGENTBRIDGE.md) · 🇮🇱 [he](../../../he/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/AGENTBRIDGE.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/AGENTBRIDGE.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/AGENTBRIDGE.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/AGENTBRIDGE.md) · 🇮🇩 [id](../../../id/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/AGENTBRIDGE.md) · 🇮🇹 [it](../../../it/docs/frameworks/AGENTBRIDGE.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/AGENTBRIDGE.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/AGENTBRIDGE.md) · 🇰🇭 [km](../../../km/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/AGENTBRIDGE.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/AGENTBRIDGE.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/AGENTBRIDGE.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/AGENTBRIDGE.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/AGENTBRIDGE.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/AGENTBRIDGE.md) · 🇲🇲 [my](../../../my/docs/frameworks/AGENTBRIDGE.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/AGENTBRIDGE.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/AGENTBRIDGE.md) · 🇳🇴 [no](../../../no/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [or](../../../or/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/AGENTBRIDGE.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/AGENTBRIDGE.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/AGENTBRIDGE.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/AGENTBRIDGE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/AGENTBRIDGE.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/AGENTBRIDGE.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/AGENTBRIDGE.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/AGENTBRIDGE.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/AGENTBRIDGE.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/AGENTBRIDGE.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/AGENTBRIDGE.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [te](../../../te/docs/frameworks/AGENTBRIDGE.md) · 🇹🇭 [th](../../../th/docs/frameworks/AGENTBRIDGE.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/AGENTBRIDGE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/AGENTBRIDGE.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/AGENTBRIDGE.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/AGENTBRIDGE.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/AGENTBRIDGE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/AGENTBRIDGE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/AGENTBRIDGE.md)
 
 ---
 
@@ -188,18 +188,18 @@ Traffic Inspector buffer එකට හෝ ඕනෑම log එකකට ඇත�
 
 `/dashboard/tools/agent-bridge` හි ඇති AgentBridge සේවාදායක කාඩ්පත භාවිත කරන්න:
 
-| ක්රියාව                   | විස්තරය                                                                       |
-| ------------------------- | ----------------------------------------------------------------------------- |
-| සේවාදායකය ආරම්භ කරන්න     | 443 පෝට් එකෙහි `src/mitm/server.cjs` උප ක්රියාවලියක් ලෙස ආරම්භ කරයි           |
-| සේවාදායකය නවත්වන්න        | උප ක්රියාවලිය නිසි ලෙස වසා දමයි                                               |
-| සේවාදායකය යළි අරඹන්න      | නැවැත්වීම + ආරම්භ කිරීම (ඉලක්ක වෙනස්කම් යොදා ගනී)                             |
-| සහතිකය විශ්වාස කරන්න      | `DATA_DIR/mitm/ca.crt` මෙහෙයුම් පද්ධතියේ විශ්වාස ගබඩාව තුළ ස්ථාපනය කරයි       |
-| සහතිකය බාගන්න             | අතින් ස්ථාපනය කිරීම සඳහා `ca.crt` බාගනී                                       |
-| සහතිකය යළි උත්පාදනය කරන්න | නව CA යතුරු යුගලයක් සාදයි (දැනට පවතින නියෝජිත-විශේෂිත සහතික සියල්ල අවලංගු වේ) |
+| ක්රියාව                | විස්තරය                                                                      |
+| ---------------------- | ---------------------------------------------------------------------------- |
+| සේවාදායකය අරඹන්න       | 443 පෝට් එකෙහි `src/mitm/server.cjs` දියත් කරයි                              |
+| සේවාදායකය නවත්වන්න     | අනු ක්රියාවලිය ක්රමානුකූලව වසා දමයි                                          |
+| සේවාදායකය යළි අරඹන්න   | නැවැත්වීම + ආරම්භ කිරීම (ඉලක්ක වෙනස්කම් ලබාගනී)                              |
+| සහතිකය විශ්වාස කරන්න   | `DATA_DIR/mitm/ca.crt` මෙහෙයුම් පද්ධතියේ විශ්වාස ගබඩාවට ස්ථාපනය කරයි         |
+| සහතිකය බාගන්න          | අතින් ස්ථාපනය කිරීම සඳහා `ca.crt` බාගනී                                      |
+| සහතිකය නැවත ජනනය කරන්න | නව CA යතුරු යුගලයක් සාදයි (දැනට පවතින සියලු නියෝජිත-විශේෂිත සහතික අවලංගු වේ) |
 
 ### 3.2 සහතිකය විශ්වාස කිරීම
 
-IDE මඟින් MITM සම්බන්ධතාව පිළිගැනීමට පෙර AgentBridge CA සහතිකය මෙහෙයුම් පද්ධතිය විසින් විශ්වාස කළ යුතුය.
+IDEs විසින් MITM සම්බන්ධතාව පිළිගැනීමට පෙර AgentBridge CA සහතිකය මෙහෙයුම් පද්ධතිය විසින් විශ්වාස කළ යුතුය.
 
 **Linux (NSS — Chrome/Firefox):**
 
@@ -222,32 +222,32 @@ certutil -addstore -f Root $env:USERPROFILE\.omniroute\mitm\ca.crt
 
 නැතහොත් උපකරණ පුවරුවේ ඇති "සහතිකය විශ්වාස කරන්න" බොත්තම භාවිත කරන්න (අවශ්ය නම් sudo විමසුමක් සමඟ, ඔබේ මෙහෙයුම් පද්ධතියට සුදුසු විධානය ක්රියාත්මක කරයි).
 
-#### Electron-පදනම් වූ IDE මෙහෙයුම් පද්ධතියේ විශ්වාස ගබඩාව නොසලකා හරියි (`NODE_EXTRA_CA_CERTS`)
+#### Electron-පාදක IDEs මෙහෙයුම් පද්ධතියේ විශ්වාස ගබඩාව නොසලකා හරියි (`NODE_EXTRA_CA_CERTS`)
 
-සමහර IDE — විශේෂයෙන් **Antigravity IDE**, සහ අනෙකුත් Electron / VS Code-ව්යුත්පන්න යෙදුම් — පිටතට යන
-`fetch`/HTTPS සඳහා **මෙහෙයුම් පද්ධතියේ විශ්වාස ගබඩාව පරිශීලනය නොකරන** තමන්ගේම Node.js ධාවන පරිසරයක්
-ඇතුළත් කරයි. මෙහෙයුම් පද්ධති/NSS මට්ටමින් CA විශ්වාස කිරීම IDE හි ස්වදේශීය **පසුඅන්තය**
-(උදා. මෙහෙයුම් පද්ධතියේ CA කට්ටලය භාවිත කරන Go භාෂා සේවාදායකයක්) සඳහා ප්රමාණවත් වුවද, **Electron ඉදිරිඅන්තය**
-තුළ TLS තවමත් අසාර්ථක වනු ඇත — MITM ලොගය තුළ පසුඅන්තයේ bootstrap ඇමතුම් `200` ලබා දෙන බව පෙන්වුවත්,
-එය යෙදුමෙන් _පිටවී ඇති_ ලෙස හෝ _"සම්බන්ධතා දෝෂයක්"_ ලෙස දිස් වේ. පියවර දෙකක්
-අවශ්ය වන අතර, දෙකම වැදගත්ය:
+සමහර IDEs — විශේෂයෙන් **Antigravity IDE**, සහ වෙනත් Electron / VS Code වෙතින් ව්යුත්පන්න වූ යෙදුම් — පිටතට යන
+`fetch`/HTTPS සඳහා **මෙහෙයුම් පද්ධතියේ විශ්වාස ගබඩාව පරීක්ෂා නොකරන** තමන්ගේම Node.js ධාවන පරිසරයක් ඇතුළත් කරයි.
+මෙහෙයුම් පද්ධති/NSS මට්ටමේදී CA විශ්වාස කිරීම IDE හි ස්වදේශීය **පසුඅන්තය** සඳහා ප්රමාණවත් වේ
+(උදා. මෙහෙයුම් පද්ධතියේ CA කට්ටලය භාවිත කරන Go භාෂා සේවාදායකයක්), නමුත් **Electron ඉදිරිඅන්තය**
+තවමත් TLS අසාර්ථක කරයි — MITM ලොගය පසුඅන්තයේ bootstrap ඇමතුම් `200` ආපසු ලබා දෙන බව පෙන්වුවද,
+එය යෙදුමෙන් _පිටවී ඇති_ ලෙස හෝ _"සම්බන්ධතා දෝෂයක්"_ පෙන්වන ලෙස දිස් වේ. පියවර දෙකක්
+අවශ්ය වන අතර, දෙකම වැදගත් වේ:
 
-1. ධාවන පරිසරය පැහැදිලිවම CA වෙත යොමු කරන්න:
+1. CA වෙත ධාවන පරිසරය පැහැදිලිව යොමු කරන්න:
    ```bash
    export NODE_EXTRA_CA_CERTS=/path/to/omniroute-agentbridge-ca.crt
    ```
-2. **එම shell එකෙන් IDE දියත් කරන්න.** ඩෙස්ක්ටොප් අයිකනය / Dock / Start මෙනුවෙන් එය ආරම්භ කිරීමේදී
-   shell exports උරුම නොවන අතර, `~/.config/environment.d/*.conf` අදාළ වන්නේ
-   නව චිත්රක පිවිසීමකින් පසුව පමණි. පළමුව IDE සම්පූර්ණයෙන්ම වසා දමන්න — Electron හි singleton අගුල නිසා දෙවන
-   දියත් කිරීමක් සිදු කළ විට පවතින ක්රියාවලියට අවධානය යොමු කිරීම පමණක් සිදු වන අතර නව පරිසරය නොසලකා හැරේ.
+2. **එම shell එකෙන් IDE දියත් කරන්න.** ඩෙස්ක්ටොප් අයිකනයෙන් / Dock වෙතින් / Start මෙනුවෙන්
+   එය ආරම්භ කිරීමේදී shell exports උරුම නොවන අතර, `~/.config/environment.d/*.conf` අදාළ වන්නේ
+   නව චිත්රක පිවිසුමකින් පසුව පමණි. පළමුව IDE සම්පූර්ණයෙන්ම වසා දමන්න — Electron හි singleton lock නිසා දෙවන
+   දියත් කිරීමක් සිදු වූ විට පවතින ක්රියාවලිය වෙත පමණක් අවධානය යොමු වන අතර නව පරිසරය නොසලකා හැරේ.
 
 ඉහත මෙහෙයුම් පද්ධති විශ්වාසය + NSS පියවර තවමත් අවශ්ය වේ (සමහර සත්යාපන
-ප්රවාහ භාවිත කරන Chromium ජාල තොගය එක්-පරිශීලක NSS ගබඩාව කියවන අතර, දේශීයව විශ්වාස කළ CA එකක් මඟින්
-අභිබවා යන `*.googleapis.com` සඳහා වූ එහිම ස්ථිතික pins ද ඇත). ඊට අමතරව Node `fetch` මාර්ගය `NODE_EXTRA_CA_CERTS` මඟින් ආවරණය කරයි.
+ප්රවාහ භාවිත කරන Chromium ජාල තොගය එක් එක් පරිශීලකයාගේ NSS ගබඩාව කියවන අතර, `*.googleapis.com` සඳහා
+දේශීයව විශ්වාස කළ CA එකක් මඟින් අභිබවා යන එයටම අයත් ස්ථිතික pins ද ඇත). ඊට අමතරව Node `fetch` මාර්ගය `NODE_EXTRA_CA_CERTS` මඟින් ආවරණය කරයි.
 
 ### 3.3 DNS මාර්ගගත කිරීම
 
-ඔබට බාධා කර ග්රහණය කිරීමට අවශ්ය සෑම නියෝජිතයකටම, එහි API ධාරකය/ධාරක `127.0.0.1` වෙත විසඳිය යුතුය. පිහිටුවීම් විශාරදය තුළ නියෝජිතයෙකු සඳහා DNS සක්රිය හෝ අක්රිය කරන විට AgentBridge ස්වයංක්රීයව `/etc/hosts` ඇතුළත් කිරීම් කළමනාකරණය කරයි.
+ඔබට අන්තර්ග්රහණය කිරීමට අවශ්ය සෑම නියෝජිතයෙකු සඳහාම, එහි API ධාරක(ය) `127.0.0.1` වෙත resolve විය යුතුය. පිහිටුවීම් විශාරදයේදී නියෝජිතයෙකු සඳහා DNS සක්රිය හෝ අක්රිය කරන විට AgentBridge විසින් `/etc/hosts` ඇතුළත් කිරීම් ස්වයංක්රීයව කළමනාකරණය කරයි.
 
 GitHub Copilot සඳහා උදාහරණ `/etc/hosts` ඇතුළත් කිරීම්:
 
@@ -256,67 +256,76 @@ GitHub Copilot සඳහා උදාහරණ `/etc/hosts` ඇතුළත් �
 127.0.0.1 copilot-proxy.githubusercontent.com
 ```
 
-### 3.4 ආකෘති අනුරූපණය
+### 3.4 ආකෘති සිතියම්ගත කිරීම
 
-මූලාශ්ර → ඉලක්ක අනුරූපණ නිර්වචනය කිරීමට එක් එක් නියෝජිත කාඩ්පතෙහි ඇති ආකෘති අනුරූපණ වගුව භාවිත කරන්න:
+මූලාශ්ර → ඉලක්ක සිතියම්ගත කිරීම් නිර්වචනය කිරීමට එක් එක් නියෝජිත කාඩ්පතෙහි ඇති ආකෘති සිතියම්ගත කිරීමේ වගුව භාවිත කරන්න:
 
-| මූලාශ්ර ආකෘතිය (නියෝජිතයට ස්වදේශීය) | ඉලක්ක ආකෘතිය (OmniRoute) |
-| ----------------------------------- | ------------------------ |
-| `gpt-4o`                            | `claude-sonnet-4.7`      |
-| `*` (අභිචාරකය)                      | `claude-haiku-4.7`       |
+| මූලාශ්ර ආකෘතිය (නියෝජිතයාට ස්වදේශීය) | ඉලක්ක ආකෘතිය (OmniRoute) |
+| ------------------------------------ | ------------------------ |
+| `gpt-4o`                             | `claude-sonnet-4.7`      |
+| `*` (අභිචාරකය)                       | `claude-haiku-4.7`       |
 
-`*` අභිචාරකය හඳුනා නොගත් ඕනෑම ආකෘතියක් සඳහන් කළ ඉලක්කයට අනුරූප කරයි. `agent_bridge_mappings` වගුවෙහි සුරැකේ.
+`*` අභිචාරකය හඳුනා නොගත් ඕනෑම ආකෘතියක් නිශ්චිත ඉලක්කයට සිතියම්ගත කරයි. `agent_bridge_mappings` වගුවේ සුරැකේ.
 
-> **ඉඟිය — නියෝජිතයාගේ සැබෑ ආකෘති ID සොයා ගන්න.** IDE එකක් එහි UI ලේබලවලට වඩා වෙනස් සහ
-> ප්රධාන අනුවාද අතර වෙනස් වන ආකෘති නාම යැවිය හැක. උදාහරණයක් ලෙස **Antigravity 2** ජාලය හරහා
-> `gemini-3.1-pro-low`, `gemini-pro-agent`, සහ `gemini-3.1-flash-lite` යවයි — පැරණි ලේඛනවල පෙන්වන
-> `gemini-2.5-pro` නොවේ. ගැළපෙන අනුරූපණයක් නොමැතිව එක් සංවාදයක් යවන්න: MITM මඟින් පැමිණෙන නිශ්චිත
-> `model:` ලොග් කර ඉල්ලීම ඉදිරියට යවයි. එම වචනාර්ථ අගය අනුරූප කරන්න; එවිට ඊළඟ
-> ඉල්ලීම ග්රහණය කර ඔබේ ඉලක්කය වෙත මාර්ගගත කෙරේ.
+> **ඉඟිය — නියෝජිතයාගේ සැබෑ ආකෘති ID සොයාගන්න.** IDE එකක් එහි UI ලේබලවලට වෙනස් සහ
+> ප්රධාන අනුවාද අතර වෙනස් වන ආකෘති නම් යැවිය හැක. උදාහරණයක් ලෙස **Antigravity 2** රැහැන් මාර්ගයෙන්
+> `gemini-3.1-pro-low`, `gemini-pro-agent`, සහ `gemini-3.1-flash-lite` යවයි — පැරණි ලේඛනවල
+> පෙන්වන `gemini-2.5-pro` නොවේ. ගැළපෙන සිතියම්ගත කිරීමක් නොමැතිව එක් කතාබහක් යවන්න: MITM
+> විසින් පැමිණෙන නිශ්චිත `model:` ලොග් කර ඉල්ලීම ඉදිරියට යවයි. එම අක්ෂරීය අගය සිතියම්ගත කරන්න; ඉන්පසු
+> ඊළඟ ඉල්ලීම අන්තර්ග්රහණය කර ඔබේ ඉලක්කය වෙත මාර්ගගත කෙරේ.
 
-### 3.5 අවදානම් නිවේදනය
+### 3.5 අවදානම් දැන්වීම
 
-AgentBridge විසින් IDE එක ඉහළ ප්රවාහ සැපයුම්කරුවන් සමඟ සත්යාපනය වීමට භාවිත කරන අක්තපත්ර (OAuth ටෝකන, API යතුරු) ග්රහණය කරයි. මේවා **ලොග් කිරීමට පෙර ආවරණය කරනු ලැබේ** (§2.7 බලන්න), නමුත් OmniRoute හි MITM ස්තරයට දෘශ්යමාන වේ. එක් එක් නියෝජිතයා පළමු වරට සක්රිය කිරීමේදී ඉවත් කළ හැකි අවදානම් නිවේදන සංවාදයක් පෙන්වයි.
+ඉහළ-ධාරා සැපයුම්කරුවන් සමඟ සත්යාපනය වීමට IDE භාවිත කරන අක්තපත්ර (OAuth ටෝකන, API යතුරු) AgentBridge විසින් අන්තර්ග්රහණය කරයි. මේවා **ලොග් කිරීමට පෙර සඟවනු ලැබේ** (§2.7 බලන්න), නමුත් OmniRoute හි MITM ස්තරයට දෘශ්යමාන වේ. එක් එක් නියෝජිතයා පළමු වරට සක්රිය කිරීමේදී ඉවත් කළ හැකි අවදානම් දැන්වීම් modal එකක් පෙන්වයි.
 
-### 3.6 නඩත්තුව සහ රෝගනිශ්චය
+### 3.6 නඩත්තුව සහ රෝග විනිශ්චය
 
-උපකරණ පුවරුව පෙර UI එකක් නොතිබූ මෙහෙයුම් MITM මාර්ග පෙන්වන **නඩත්තුව සහ රෝගනිශ්චය** කාඩ්පතක් (`AgentBridgeMaintenanceCard`, `src/app/(dashboard)/dashboard/tools/agent-bridge/components/` තුළ) සපයයි. එහි උපසිරැසිය: _"ග්රහණ නලමාර්ගය ස්වයං-පරීක්ෂා කරන්න, ඉතිරි වී ඇති පද්ධති තත්ත්වය අහෝසි කරන්න, සහ ඔබේ පිහිටුවීම යන්ත්ර අතර ගෙන යන්න."_ කාඩ්පතේ සේවාලාභී සහායක `src/lib/inspector/agentBridgeMaintenanceApi.ts` තුළ පිහිටා ඇත.
+කලින් UI එකක් නොතිබූ ක්රියාකාරී MITM මාර්ග මතුපිටට ගෙන එන **නඩත්තුව සහ රෝග විනිශ්චය** කාඩ්පතක් (`AgentBridgeMaintenanceCard`, `src/app/(dashboard)/dashboard/tools/agent-bridge/components/` තුළ) උපකරණ පුවරුව සපයයි. එහි උපශීර්ෂය: _"ග්රහණ නල මාර්ගය ස්වයං-පරීක්ෂා කරන්න, ඉතිරිව ඇති පද්ධති තත්ත්වය අහෝසි කරන්න, සහ ඔබේ පිහිටුවීම යන්ත්ර අතර ගෙන යන්න."_ කාඩ්පත් client helpers `src/lib/inspector/agentBridgeMaintenanceApi.ts` තුළ ඇත.
 
-| බොත්තම                     | මාර්ගය                                 | එයින් සිදු වන්නේ කුමක්ද                                                                                                                                                                                                   |
-| -------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **රෝග විනිශ්චය**           | `GET /api/tools/agent-bridge/diagnose` | ග්රහණ නළ මාර්ගයේ ස්වයං-පරීක්ෂණය ධාවනය කර, එක් එක් පරීක්ෂාව සඳහා වාර්තාවක් පෙන්වයි (✓/✗ + පිළියම් යෝජනාව).                                                                                                                 |
-| **අලුත්වැඩියා කිරීම**      | `POST /api/tools/agent-bridge/repair`  | බිඳ වැටීමක් හෝ SIGKILL එකක් නිසා ඉතිරි වූ අනාථ MITM පද්ධති තත්ත්වය (DNS වංචනික ඇතුළත් කිරීම්, root CA, පද්ධති proxy) අවලංගු කරයි. Idempotent — තත්ත්වය පිරිසිදු නම් "අලුත්වැඩියා කිරීමට කිසිවක් නැත" යනුවෙන් වාර්තා කරයි. |
-| **CA ඉවත් කිරීම**          | `DELETE /api/tools/agent-bridge/cert`  | OS විශ්වාස ගබඩාවෙන් MITM root CA සඳහා ඇති විශ්වාසය ඉවත් කර එය මකා දමයි (පැහැදිලි, idempotent ක්රියාවකි). CA එක දැනට විශ්වාස කර ඇති විට පමණක් පෙන්වයි; පේළිය තුළ "CA ඉවත් කරන්නද?" තහවුරු කිරීමක් අවශ්ය වේ.                |
-| **වින්යාසය නිර්යාත කිරීම** | `GET /api/tools/agent-bridge/config`   | ගෙන යා හැකි වින්යාස JSON ගොනුව බාගත කරයි (§3.7 බලන්න).                                                                                                                                                                    |
-| **වින්යාසය ආයාත කිරීම**    | `POST /api/tools/agent-bridge/config`  | කලින් නිර්යාත කළ වින්යාස JSON ගොනුවක් උඩුගත කරයි (§3.7 බලන්න).                                                                                                                                                            |
+| බොත්තම                     | මාර්ගය                                 | එය කරන දේ                                                                                                                                                                                                                     |
+| -------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **රෝග විනිශ්චය**           | `GET /api/tools/agent-bridge/diagnose` | ග්රහණ නලමාර්ගයේ ස්වයං-පරීක්ෂණය ක්රියාත්මක කර, එක් එක් පරීක්ෂණය සඳහා වාර්තාවක් පෙන්වයි (✓/✗ + පිළියම් යෝජනාව).                                                                                                                 |
+| **අලුත්වැඩියා කිරීම**      | `POST /api/tools/agent-bridge/repair`  | බිඳවැටීමක් හෝ SIGKILL එකක් නිසා ඉතිරි වූ අනාථ MITM පද්ධති තත්ත්වය (DNS ව්යාජ ඇතුළත් කිරීම්, root CA, පද්ධති proxy) ප්රතිවර්ත කරයි. Idempotent වේ — තත්ත්වය පිරිසිදු නම් "අලුත්වැඩියා කිරීමට කිසිවක් නැත" යනුවෙන් වාර්තා කරයි. |
+| **CA ඉවත් කරන්න**          | `DELETE /api/tools/agent-bridge/cert`  | මෙහෙයුම් පද්ධතියේ විශ්වාස ගබඩාවෙන් MITM root CA වෙත ඇති විශ්වාසය ඉවත් කර එය මකා දමයි (පැහැදිලි, idempotent ක්රියාවකි). CA දැනට විශ්වාසදායකව ඇති විට පමණක් පෙන්වයි; පේළිය තුළ "CA ඉවත් කරන්නද?" යන තහවුරු කිරීමක් අවශ්ය වේ.    |
+| **වින්යාසය නිර්යාත කරන්න** | `GET /api/tools/agent-bridge/config`   | අතේ ගෙන යා හැකි වින්යාස JSON බාගත කරයි (§3.7 බලන්න).                                                                                                                                                                          |
+| **වින්යාසය ආයාත කරන්න**    | `POST /api/tools/agent-bridge/config`  | කලින් නිර්යාත කළ වින්යාස JSON එකක් උඩුගත කරයි (§3.7 බලන්න).                                                                                                                                                                   |
 
-**රෝග විනිශ්චය පරීක්ෂා** (`src/mitm/inspector/diagnostics.ts` හි `summarizeDiagnostics()`). මාර්ගය එක් එක් පරීක්ෂාව සඳහා අතුරුඵල ඇති පිරික්සුම ධාවනය කර, එම බූලියානු අගයන් ශුද්ධ සාරාංශකාරකය වෙත යවයි; එක් `healthy` තීන්දුවක් සහ එක් එක් අසමත් වීම සඳහා යෝජනාවක් ආපසු ලබා දෙයි:
+සෑම agent කාඩ්පතකටම තමන්ගේම **පෙරනිමිය ප්රතිස්ථාපනය කරන්න** බොත්තමක්ද (`POST
+/api/tools/agent-bridge/agents/{id}/reset`) ඇත — එය එක් ක්ලික් කිරීමකින්, එක් agent කෙනෙකුට අදාළව අහෝසි කිරීමක් සිදු කරමින්, එම
+agentගේ host පමණක් ව්යාජකරණයෙන් ඉවත් කර, එහි සුරැකි model සිතියම්ගත කිරීම් මකා, එහි `dns_enabled`/`setup_completed`
+තත්ත්වය යළි සකසයි; එබැවින් IDE එක සම්පූර්ණයෙන් යළි ආරම්භ කළ පසු එය නැවත සැබෑ upstream සමඟ සන්නිවේදනය කරයි. එය හවුල්
+MITM server එකට හෝ root CA එකට බලපාන්නේ **නැත** (වෙනත් agentවරු තවමත් ඒවා මත රඳා පැවතිය හැක) — ඒවාට
+Server Card එක සහ ඉහත **CA ඉවත් කරන්න** ක්රියාව හරහා දිගටම ප්රවේශ විය හැක. Windows මතදී එය හැකි උපරිමයෙන්
+`ipconfig /flushdns` ද ක්රියාත්මක කරයි; මන්ද Windows DNS Client එක hosts ගොනු ඇතුළත් කිරීම් cache කරන බැවින්, එසේ නොකළහොත්
+දැන් ඉවත් කළ ව්යාජකරණයක් අත් නොහරින බැවිනි.
 
-| පරීක්ෂාවේ නම       | එය සත්යාපනය කරන්නේ කුමක්ද                                         | අසමත් වූ විට යෝජනාව                                                                                                                                              |
-| ------------------ | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `server-running`   | MITM සේවාදායක ක්රියාවලිය සක්රියයි                                 | "MITM සේවාදායකය ධාවනය නොවේ. AgentBridge ටැබයෙන් එය ආරම්භ කරන්න."                                                                                                 |
-| `server-reachable` | MITM සේවාදායකය එහි පෝර්ට් එකෙහි සම්බන්ධතා පිළිගනී (TCP පිරික්සුම) | "MITM සේවාදායකය එහි පෝර්ට් එකෙහි සම්බන්ධතා පිළිගන්නේ නැත. පෝර්ට් එක නිදහස් බවත්, එයට bind කිරීමට ඔබට වරප්රසාද ඇති බවත් පරීක්ෂා කරන්න."                           |
-| `cert-exists`      | MITM සහතිකය තැටිය මත ජනනය කර ඇත                                   | "තවමත් MITM සහතිකයක් ජනනය කර නැත. AgentBridge ටැබයෙන් එකක් ජනනය කරන්න."                                                                                          |
-| `cert-trusted`     | MITM root CA එක OS විශ්වාස ගබඩාවේ ඇත                              | "OS ගබඩාව MITM root CA එක විශ්වාස නොකරන බැවින් TLS අන්තර්ග්රහණය අසාර්ථක වනු ඇත. AgentBridge ටැබයෙන් සහතිකය විශ්වාස කරන්න."                                       |
-| `dns-configured`   | ඉලක්ක සත්කාරක නාම `/etc/hosts` තුළ වංචනිකව සකසා ඇත                | "ඉලක්ක සත්කාරක නාම /etc/hosts තුළ වංචනිකව සකසා නොමැති බැවින් ගමනාගමනය කිසිවිටෙකත් proxy වෙත ළඟා නොවේ. ඔබට ග්රහණය කිරීමට අවශ්ය agent(යන්) සඳහා DNS සක්රීය කරන්න." |
+**රෝග විනිශ්චය පරීක්ෂණ** (`src/mitm/inspector/diagnostics.ts` හි `summarizeDiagnostics()`). මෙම මාර්ගය එක් එක් පරීක්ෂණය සඳහා අතුරු ආබාධ ඇති probe එක ක්රියාත්මක කර, boolean අගයන් පිරිසිදු summarizer එක වෙත ලබා දෙයි; තනි `healthy` තීන්දුවක් සහ එක් එක් අසාර්ථකත්වය සඳහා යෝජනාවක් ආපසු ලබා දෙයි:
 
-**අනාථ-තත්ත්ව බැනරය:** බිඳ වැටීමක් නිසා ඉතිරි වූ තත්ත්වයක් (DNS වංචනය / CA / පද්ධති proxy) පිටුව හඳුනාගත් විට, කාඩ්පත ඇම්බර් පැහැති බැනරයක් පෙන්වයි — _"පෙර සැසියක් පද්ධති තත්ත්වයක් ඉතිරි කර ඇත (DNS වංචනය, CA, හෝ පද්ධති proxy). එය පිරිසිදු කිරීමට අලුත්වැඩියා කිරීම ධාවනය කරන්න."_ — සහ **අලුත්වැඩියා කිරීම** බොත්තම උද්දීපනය කරයි. `Repair` යනු ProxyBridge හි `--cleanup` ධජයට යෙදුම්-ස්තරයේ සමානකමයි (එය `src/mitm/manager.ts` හි `repairMitm()` වෙත පැවරේ).
+| පරීක්ෂණ නාමය       | එය සත්යාපනය කරන දේ                                         | අසාර්ථක වූ විට යෝජනාව                                                                                                                                       |
+| ------------------ | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server-running`   | MITM server ක්රියාවලිය සක්රියය                             | "MITM server එක ක්රියාත්මක නොවේ. AgentBridge පටිත්තෙන් එය ආරම්භ කරන්න."                                                                                     |
+| `server-reachable` | MITM server එක තම port එක මත සම්බන්ධතා පිළිගනී (TCP probe) | "MITM server එක තම port එක මත සම්බන්ධතා පිළිගන්නේ නැත. port එක නිදහස්ද සහ එයට bind කිරීමට ඔබට වරප්රසාද තිබේදැයි පරීක්ෂා කරන්න."                             |
+| `cert-exists`      | MITM සහතිකය තැටිය මත ජනනය කර ඇත                            | "තවමත් MITM සහතිකයක් ජනනය කර නොමැත. AgentBridge පටිත්තෙන් එකක් ජනනය කරන්න."                                                                                 |
+| `cert-trusted`     | MITM root CA එක මෙහෙයුම් පද්ධතියේ විශ්වාස ගබඩාව තුළ ඇත     | "MITM root CA එක මෙහෙයුම් පද්ධති ගබඩාව විසින් විශ්වාස නොකරන බැවින් TLS අතරමැදි ග්රහණය අසාර්ථක වේ. AgentBridge පටිත්තෙන් සහතිකය විශ්වාස කරන්න."              |
+| `dns-configured`   | ඉලක්ක hostname `/etc/hosts` තුළ ව්යාජකරණය කර ඇත            | "ඉලක්ක hostname /etc/hosts තුළ ව්යාජකරණය කර නොමැති නිසා traffic එක කිසිවිටෙක proxy වෙත නොපැමිණේ. ඔබට ග්රහණය කිරීමට අවශ්ය agent(වරු) සඳහා DNS සක්රිය කරන්න." |
 
-> නැවැත්වීම/ආරම්භ කිරීම අතරතුර නැවත නැවත sudo
-> විමසුම් ඇති වීම වැළැක්වීමට MITM root CA එක ස්ථාපිතව තබා ගනී (mitmproxy/Charles හි හැසිරීමම වේ), එබැවින් එය ඉවත් කිරීම නැවැත්වීමේදී ස්වයංක්රීයව සිදු වන දෙයක් වෙනුවට පැහැදිලි
-> **CA ඉවත් කිරීම** ක්රියාවකි.
+**අනාථ-තත්ත්ව බැනරය:** බිඳවැටීමක් නිසා ඉතිරි වූ තත්ත්වයක් (DNS ව්යාජකරණය / CA / පද්ධති proxy) පිටුව හඳුනාගත් විට, කාඩ්පත ඇම්බර් පැහැති බැනරයක් පෙන්වයි — _"පෙර සැසියක් පද්ධති තත්ත්වයක් ඉතිරි කර ඇත (DNS ව්යාජකරණය, CA, හෝ පද්ධති proxy). එය පිරිසිදු කිරීමට අලුත්වැඩියා කිරීම ක්රියාත්මක කරන්න."_ — සහ **අලුත්වැඩියා කිරීම** බොත්තම ඉස්මතු කරයි. `Repair` යනු ProxyBridge හි `--cleanup` flag එකේ යෙදුම්-ස්තර ප්රතිසමයයි (එය `src/mitm/manager.ts` හි `repairMitm()` වෙත කාර්යය පවරයි).
 
-### 3.7 ගෙන යා හැකි වින්යාස ආයාතය/නිර්යාතය
+> නැවත නැවත sudo විමසුම් ඇතිවීම වැළැක්වීම සඳහා MITM root CA එක නවතා/ආරම්භ කිරීම අතරතුර ස්ථාපිතව තබා ගනී
+> (mitmproxy/Charles හි හැසිරීමද මෙයයි), එබැවින් එය නතර කරන විට ස්වයංක්රීයව සිදුවන දෙයක් වෙනුවට
+> එය ඉවත් කිරීම පැහැදිලි **CA ඉවත් කරන්න** ක්රියාවකි.
 
-යන්ත්ර හරහා සැකසුමක් ප්රතිනිර්මාණය කළ හැකි වන පරිදි AgentBridge හට **ක්රියාකරු විසින් සීරුමාරු කළ හැකි** තත්ත්වය අනුවාදගත JSON blob එකක් බවට අනුක්රමණය කළ හැක. අනුක්රමකය `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`) වන අතර, එය `AgentBridgeConfigSchema` මගින් වලංගු කෙරේ.
+### 3.7 අතේ ගෙන යා හැකි වින්යාස ආයාතය/නිර්යාතය
 
-නිර්යාතයට හරියටම කොටස් තුනක් ඇතුළත් වේ (අන්තර්ගත පෙරනිමි හිතාමතාම **නිර්යාත නොකෙරේ**, එබැවින් ආයාත කිරීමේදී ඒවා කිසිවිටෙකත් අනුපිටපත් කිරීමක් හෝ ඒවා සමඟ ගැටීමක් සිදු නොවේ):
+AgentBridge හට **ක්රියාකරුට සකස් කළ හැකි** තත්ත්වය අනුවාදගත JSON blob එකක් බවට serialize කළ හැකි අතර, එමඟින් එක් යන්ත්රයක සැකසුමක් තවත් යන්ත්රවල ප්රතිනිර්මාණය කළ හැක. serializer එක `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`) වන අතර, එය `AgentBridgeConfigSchema` මඟින් වලංගු කෙරේ.
 
-| ක්ෂේත්රය         | මූලාශ්රය                                                            | සටහන්                                                                             |
-| ---------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `bypassPatterns` | පරිශීලක-නිර්වචිත මඟහැරීමේ රටා (`agent_bridge_bypass`)               | පෙරනිමි bank/gov/okta රටා බැහැර කෙරේ                                              |
-| `customHosts`    | Traffic Inspector අභිරුචි සත්කාරක (`inspector_custom_hosts`)        | එක් එක් අයිතමය: `{ host, kind: "llm"\|"app"\|"custom", label? }`                  |
-| `agentMappings`  | එක් එක් agent සඳහා ආකෘති සිතියම්ගත කිරීම් (`agent_bridge_mappings`) | සිතියම්ගත කිරීම් ඇති සෑම agent කෙනෙකු සඳහාම `{ [agentId]: [{ source, target }] }` |
+නිර්යාතයට හරියටම කොටස් තුනක් ඇතුළත් වේ (ගොඩනඟා ඇති පෙරනිමි හිතාමතාම නිර්යාත කරන්නේ **නැත**, එබැවින් ආයාත කිරීමේදී ඒවා කිසිවිටෙක අනුපිටපත් නොවී හෝ ඒවා සමඟ ගැටුම් ඇති නොවේ):
+
+| ක්ෂේත්රය         | මූලාශ්රය                                                          | සටහන්                                                                      |
+| ---------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `bypassPatterns` | පරිශීලකයා විසින් නිර්වචනය කළ මඟහැරීම් රටා (`agent_bridge_bypass`) | පෙරනිමි bank/gov/okta රටා බැහැර කර ඇත                                      |
+| `customHosts`    | Traffic Inspector අභිරුචි සත්කාරක (`inspector_custom_hosts`)      | එක් එක් අගය: `{ host, kind: "llm"\|"app"\|"custom", label? }`              |
+| `agentMappings`  | එක් එක් නියෝජිතයා සඳහා ආකෘති සිතියම්කරණ (`agent_bridge_mappings`) | සිතියම්කරණ ඇති සෑම නියෝජිතයෙකු සඳහාම `{ [agentId]: [{ source, target }] }` |
 
 ```jsonc
 // GET /api/tools/agent-bridge/config
@@ -330,13 +339,13 @@ AgentBridge විසින් IDE එක ඉහළ ප්රවාහ සැප
 }
 ```
 
-**ආයාත හැසිරීම** (`POST /api/tools/agent-bridge/config`): මඟහැරීමේ රටා සහ එක් එක් agent සඳහා වන සිතියම්ගත කිරීම් **සම්පූර්ණයෙන් ප්රතිස්ථාපනය කෙරේ**; අභිරුචි සත්කාරක **idempotent ලෙස** එකතු කෙරේ (`INSERT OR IGNORE`). එක් එක් වර්ගයෙන් කොපමණ සංඛ්යාවක් යෙදූයේද යන්න ප්රතිචාරය වාර්තා කරයි:
+**ආයාත කිරීමේ හැසිරීම** (`POST /api/tools/agent-bridge/config`): මඟහැරීම් රටා සහ එක් එක් නියෝජිතයා සඳහා වන සිතියම්කරණ **සම්පූර්ණයෙන්ම ප්රතිස්ථාපනය කෙරේ**; අභිරුචි සත්කාරක **අනන්යතානුකූලව** එක් කෙරේ (`INSERT OR IGNORE`). එක් එක් වර්ගයෙන් කොපමණ සංඛ්යාවක් යෙදූවාදැයි ප්රතිචාරය වාර්තා කරයි:
 
 ```jsonc
 { "ok": true, "bypassPatterns": 1, "customHosts": 1, "agents": 1 }
 ```
 
-වින්යාසයෙහි **ඇතුළත් නොවන** දෑ: සේවාදායකය ක්රියාත්මක වන තත්ත්වය, සහතික මාර්ග, එක් එක් නියෝජිතයාට අදාළ DNS තත්ත්වය, උඩුගං CA මාර්ගය සහ TPROXY සැකසුම් — ඒවා අතේ ගෙන යා හැකි අභිරුචි නොව, සත්කාරක/ධාවනකාල තත්ත්වයන් වේ.
+වින්යාසයට **ඇතුළත් නොවන** දෑ: සේවාදායකයේ ධාවන තත්ත්වය, සහතික මාර්ග, එක් එක් නියෝජිතයා සඳහා DNS තත්ත්වය, upstream CA මාර්ගය සහ TPROXY සැකසුම් — ඒවා අතේ ගෙන යා හැකි අභිරුචි නොව, සත්කාරක/ධාවනකාල තත්ත්වය වේ.
 
 ---
 
@@ -496,39 +505,40 @@ AgentBridge ඉල්ලීම් අන්තර්ග්රහණය කළත
 
 ## §7 API යොමුව
 
-සියලු මාර්ග `LOCAL_ONLY` (loopback සඳහා පමණි, සත්යාපනයට පෙර බලාත්මක කර ඇත) සහ `SPAWN_CAPABLE` වේ. `src/server/authz/routeGuard.ts` බලන්න.
+සියලුම මාර්ග `LOCAL_ONLY` (loopback සඳහා පමණි, සත්යාපනයට පෙර බලාත්මක කෙරේ) සහ `SPAWN_CAPABLE` වේ. `src/server/authz/routeGuard.ts` බලන්න.
 
 මූලික මාර්ගය: `/api/tools/agent-bridge/`
 
-| ක්රමය               | මාර්ගය                                         | විස්තරය                                                                                                                 |
-| ------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| GET                 | `/api/tools/agent-bridge/state`                | ගෝලීය සේවාදායක තත්ත්වය + එක් එක් නියෝජිතයා සඳහා හඳුනාගැනීම/තත්ත්වය                                                      |
-| GET                 | `/api/tools/agent-bridge/agents`               | ලියාපදිංචි නියෝජිතයන් ලැයිස්තුගත කරයි (id, නම, ධාරක, භාවිත ශක්යතාව, තත්ත්වය)                                            |
-| GET                 | `/api/tools/agent-bridge/agents/{id}`          | එක් නියෝජිතයෙකුගේ තත්ත්වය (ඉලක්ක වින්යාසය + හඳුනාගැනීම + ගබඩා කළ තත්ත්වය)                                               |
-| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | නියෝජිතයා සඳහා `setup_completed` යාවත්කාලීන කරයි                                                                        |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | නියෝජිතයා සඳහා හඳුනාගැනීමේ පරීක්ෂණයක් ධාවනය කරයි (`installed`, `version?`, `path?`)                                     |
-| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | නියෝජිතයා සඳහා DNS සක්රිය/අක්රිය කරයි (`{enabled: boolean}`)                                                            |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | නියෝජිතයා සඳහා ආකෘති සිතියම්ගත කිරීම්                                                                                   |
-| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | ආකෘති සිතියම්ගත කිරීම් ප්රතිස්ථාපනය කරයි                                                                                |
-| POST                | `/api/tools/agent-bridge/server`               | සේවාදායකය ආරම්භ/නවත්වන්න/නැවත ආරම්භ කරයි (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)        |
-| GET                 | `/api/tools/agent-bridge/cert`                 | සහතික තත්ත්වය (`exists`, `trusted`, `path`)                                                                             |
-| POST                | `/api/tools/agent-bridge/cert`                 | MITM මූල CA විශ්වාසදායක කරයි (ස්ථාපනය කරයි)                                                                             |
-| DELETE              | `/api/tools/agent-bridge/cert`                 | MITM මූල CA විශ්වාසදායක නොවන බවට පත් කරයි (ඉවත් කරයි) — පුනරාවර්තනව යෙදිය හැකිය (§3.6 බලන්න)                            |
-| POST                | `/api/tools/agent-bridge/cert/regenerate`      | ස්වයං-අත්සන් කළ MITM සහතිකය නැවත ජනනය කරයි                                                                              |
-| GET                 | `/api/tools/agent-bridge/cert/download`        | බාගැනීම සඳහා PEM සහතිකය ප්රවාහ කරයි                                                                                     |
-| GET                 | `/api/tools/agent-bridge/bypass`               | මඟහැරීම් රටා ලැයිස්තුගත කරයි (`default` + `user`)                                                                       |
-| POST                | `/api/tools/agent-bridge/bypass`               | පරිශීලකයා අර්ථ දැක්වූ මඟහැරීම් රටා සියල්ල එකවර ප්රතිස්ථාපනය කරයි                                                        |
-| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | පරිශීලකයා අර්ථ දැක්වූ එක් මඟහැරීම් රටාවක් ඉවත් කරයි                                                                     |
-| GET                 | `/api/tools/agent-bridge/diagnose`             | ග්රහණ නළ මාර්ගයේ ස්වයං-පරීක්ෂණය (§3.6 බලන්න)                                                                            |
-| POST                | `/api/tools/agent-bridge/repair`               | අනාථ වූ MITM පද්ධති තත්ත්වය අහෝසි කරයි (§3.6 බලන්න)                                                                     |
-| GET                 | `/api/tools/agent-bridge/config`               | ගෙන යා හැකි වින්යාස JSON නිර්යාත කරයි (§3.7 බලන්න)                                                                      |
-| POST                | `/api/tools/agent-bridge/config`               | ගෙන යා හැකි වින්යාස JSON ආයාත කරයි (§3.7 බලන්න)                                                                         |
-| GET                 | `/api/tools/agent-bridge/upstream-ca`          | වින්යාස කළ උඩුගං CA මාර්ගය ලබා ගනී                                                                                      |
-| POST                | `/api/tools/agent-bridge/upstream-ca`          | උඩුගං CA මාර්ගය වලංගු කර + සුරකියි                                                                                      |
-| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | උඩුගං CA මාර්ගයක් වලංගු කිරීම පමණක් (අත්හදා බැලීමක් ලෙස) සිදු කරයි — සුරකින්නේ නැත                                      |
-| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | TPROXY පාරදෘශ්ය-විකේතන ග්රහණ ප්රකාරය — `docs/security/MITM-TPROXY-DECRYPT.md` බලන්න (git; `/docs` තුළට සම්පාදනය කර නැත) |
+| ක්රමය               | මාර්ගය                                         | විස්තරය                                                                                                                       |
+| ------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| GET                 | `/api/tools/agent-bridge/state`                | ගෝලීය සේවාදායක තත්ත්වය + එක් එක් agent සඳහා හඳුනාගැනීම/තත්ත්වය                                                                |
+| GET                 | `/api/tools/agent-bridge/agents`               | ලියාපදිංචි කළ agents ලැයිස්තුගත කරයි (id, නම, hosts, ශක්යතාව, තත්ත්වය)                                                        |
+| GET                 | `/api/tools/agent-bridge/agents/{id}`          | එක් agent කෙනෙකුගේ තත්ත්වය (ඉලක්ක වින්යාසය + හඳුනාගැනීම + ගබඩා කළ තත්ත්වය)                                                    |
+| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | agent සඳහා `setup_completed` යාවත්කාලීන කරයි                                                                                  |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | agent සඳහා හඳුනාගැනීමේ පරීක්ෂණය ක්රියාත්මක කරයි (`installed`, `version?`, `path?`)                                            |
+| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | agent සඳහා DNS සබල/අබල කරයි (`{enabled: boolean}`)                                                                            |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | agent සඳහා ආකෘති අනුරූපණ                                                                                                      |
+| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | ආකෘති අනුරූපණ ප්රතිස්ථාපනය කරයි                                                                                               |
+| POST                | `/api/tools/agent-bridge/agents/{id}/reset`    | පෙරනිමිය ප්රතිසාධනය කරයි: මෙම agentගේ DNS ව්යාජකරණය ඉවත් කර, එහි අනුරූපණ මකා, එහි තත්ත්වය යළි සකසයි (§3.6 බලන්න)              |
+| POST                | `/api/tools/agent-bridge/server`               | සේවාදායකය අරඹයි/නවත්වයි/යළි අරඹයි (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                     |
+| GET                 | `/api/tools/agent-bridge/cert`                 | සහතිකයේ තත්ත්වය (`exists`, `trusted`, `path`)                                                                                 |
+| POST                | `/api/tools/agent-bridge/cert`                 | MITM මූල CA විශ්වාස කරයි (ස්ථාපනය කරයි)                                                                                       |
+| DELETE              | `/api/tools/agent-bridge/cert`                 | MITM මූල CA සඳහා විශ්වාසය ඉවත් කරයි (ඉවත් කරයි) — idempotent (§3.6 බලන්න)                                                     |
+| POST                | `/api/tools/agent-bridge/cert/regenerate`      | ස්වයං-අත්සන් කළ MITM සහතිකය යළි ජනනය කරයි                                                                                     |
+| GET                 | `/api/tools/agent-bridge/cert/download`        | බාගැනීම සඳහා PEM සහතිකය stream කරයි                                                                                           |
+| GET                 | `/api/tools/agent-bridge/bypass`               | මඟහැරීමේ රටා ලැයිස්තුගත කරයි (`default` + `user`)                                                                             |
+| POST                | `/api/tools/agent-bridge/bypass`               | පරිශීලක-නිර්වචිත මඟහැරීමේ රටා සියල්ල එකවර ප්රතිස්ථාපනය කරයි                                                                   |
+| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | එක් පරිශීලක-නිර්වචිත මඟහැරීමේ රටාවක් ඉවත් කරයි                                                                                |
+| GET                 | `/api/tools/agent-bridge/diagnose`             | ග්රහණ නළමාර්ගයේ ස්වයං-පරීක්ෂණය (§3.6 බලන්න)                                                                                   |
+| POST                | `/api/tools/agent-bridge/repair`               | අනාථ වූ MITM පද්ධති තත්ත්වය අහෝසි කරයි (§3.6 බලන්න)                                                                           |
+| GET                 | `/api/tools/agent-bridge/config`               | අතේ ගෙන යා හැකි වින්යාස JSON නිර්යාත කරයි (§3.7 බලන්න)                                                                        |
+| POST                | `/api/tools/agent-bridge/config`               | අතේ ගෙන යා හැකි වින්යාස JSON ආයාත කරයි (§3.7 බලන්න)                                                                           |
+| GET                 | `/api/tools/agent-bridge/upstream-ca`          | වින්යාස කළ upstream CA මාර්ගය ලබා ගනී                                                                                         |
+| POST                | `/api/tools/agent-bridge/upstream-ca`          | upstream CA මාර්ගය වලංගු කර + සුරකියි                                                                                         |
+| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | upstream CA මාර්ගයක් වලංගු කිරීම පමණක් (dry-run) සිදු කරයි — සුරකින්නේ නැත                                                    |
+| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | TPROXY පාරදෘශ්ය-විකේතන ග්රහණ ප්රකාරය — `docs/security/MITM-TPROXY-DECRYPT.md` බලන්න (git තුළ ඇත; `/docs` වෙත සම්පාදනය කර නැත) |
 
-සම්පූර්ණ OpenAPI යෝජනා ක්රම: `docs/openapi.yaml` → `AgentBridge` ටැගය.
+සම්පූර්ණ OpenAPI schemas: `docs/openapi.yaml` → tag `AgentBridge`.
 
 ---
 

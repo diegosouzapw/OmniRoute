@@ -2,7 +2,7 @@ import fs from "node:fs";
 
 import { DEFAULT_DATABASE_SETTINGS, type DatabaseSettings } from "@/types/databaseSettings";
 
-import { backupDbFile } from "./backup";
+import { backupDbFile, setDbBackupMaxFiles } from "./backup";
 import { DATA_DIR, SQLITE_FILE, applyDatabaseOptimizationSettings, getDbInstance } from "./core";
 import { invalidateDbCache } from "./readCache";
 import { getDatabaseStats } from "./stats";
@@ -37,6 +37,17 @@ const LEGACY_FLAT_KEYS: {
     semanticCacheEnabled: ["semanticCacheEnabled"],
     semanticCacheMaxSize: ["semanticCacheMaxSize"],
     semanticCacheTTL: ["semanticCacheTTL"],
+    semanticCacheVectorEnabled: ["semanticCacheVectorEnabled"],
+    semanticCacheBackend: ["semanticCacheBackend"],
+    semanticCacheThreshold: ["semanticCacheThreshold"],
+    semanticCacheEmbeddingProvider: ["semanticCacheEmbeddingProvider"],
+    semanticCacheEmbeddingModel: ["semanticCacheEmbeddingModel"],
+    semanticCacheEmbeddingDimension: ["semanticCacheEmbeddingDimension"],
+    semanticCacheEmbeddingBaseUrl: ["semanticCacheEmbeddingBaseUrl"],
+    semanticCacheEmbeddingApiKey: ["semanticCacheEmbeddingApiKey"],
+    semanticCacheRedisUrl: ["semanticCacheRedisUrl"],
+    semanticCacheRedisPrefix: ["semanticCacheRedisPrefix"],
+    semanticCacheRequireZeroTemp: ["semanticCacheRequireZeroTemp"],
     promptCacheEnabled: ["promptCacheEnabled"],
     promptCacheStrategy: ["promptCacheStrategy"],
     alwaysPreserveClientCache: ["alwaysPreserveClientCache"],
@@ -292,12 +303,17 @@ export function updateDatabaseSettings(
   const pipelineEnabled = requestedLogs?.callLogPipelineEnabled;
   const detailedEnabled = requestedLogs?.detailedLogsEnabled;
 
+  const requestedBackup = updates.backup as Partial<UserDatabaseSettings["backup"]> | undefined;
+  if (requestedBackup?.keepLastNBackups !== undefined) {
+    setDbBackupMaxFiles(nextSettings.backup.keepLastNBackups);
+  }
+
   const tx = db.transaction(() => {
     for (const section of DATABASE_SETTINGS_SECTIONS) {
       const sectionValues = nextSettings[section] as Record<string, unknown>;
 
       for (const [key, value] of Object.entries(sectionValues)) {
-        insert.run(DATABASE_SETTINGS_NAMESPACE, `${section}.${key}`, JSON.stringify(value));
+        insert.run(DATABASE_SETTINGS_NAMESPACE, `${section}.${key}`, JSON.stringify(value ?? null));
       }
     }
 

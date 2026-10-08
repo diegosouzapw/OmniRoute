@@ -1,84 +1,86 @@
 # Management Authentication (ଓଡ଼ିଆ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇦 [bs](../../../bs/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
 
 ---
 
-OmniRoute ପରିଚାଳନା ରୁଟ୍ଗୁଡ଼ିକୁ ଅନୁମୋଦନ କରିପାରୁଥିବା **ଚାରିଟି କ୍ରେଡେନ୍ସିଆଲ୍ ପରିବାର** ରହିଛି।
-ସେଗୁଡ଼ିକ ପରସ୍ପର ବିନିମୟଯୋଗ୍ୟ ନୁହେଁ। ଇନ୍ଫରେନ୍ସ API କୀଗୁଡ଼ିକ (`sk-…`) ସ୍ପଷ୍ଟ ଭାବରେ `manage` କିମ୍ବା `admin` ସ୍କୋପ୍ ଦିଆଯାଇ ନଥିଲେ ସର୍ଭର୍କୁ ପରିଚାଳନା କରିପାରିବେ **ନାହିଁ**।
+OmniRoute ରେ **ଚାରୋଟି କ୍ରେଡେନ୍ସିଆଲ୍ ପରିବାର** ଅଛି ଯାହା ପରିଚାଳନା ରୁଟ୍ଗୁଡ଼ିକୁ ଅନୁମତି ଦେଇପାରିବ।
+ସେଗୁଡ଼ିକ ପରସ୍ପର ବଦଳରେ ବ୍ୟବହାର ହୋଇପାରିବେ ନାହିଁ। Inference API କି'ଗୁଡ଼ିକ (`sk-…`) ସର୍ଭରକୁ ପରିଚାଳନା କରନ୍ତି ନାହିଁ, ଯେପର୍ଯ୍ୟନ୍ତ ସେମାନଙ୍କୁ ସ୍ପଷ୍ଟ ଭାବରେ `manage` କିମ୍ବା `admin` ସ୍କୋପ୍ ଦିଆଯାଇ ନଥାଏ।
 
-ପ୍ରାମାଣିକ ଇମ୍ପ୍ଲିମେଣ୍ଟେସନ୍: `src/lib/api/requireManagementAuth.ts`।
+କାନୋନିକାଲ୍ ଇମ୍ପ୍ଲିମେଣ୍ଟେସନ୍: `src/lib/api/requireManagementAuth.ts`।
 
-| କ୍ରେଡେନ୍ସିଆଲ୍             | ସାଧାରଣ ରୂପ                               | କେଉଁଠାରେ ତିଆରି ହୁଏ                                           | ଉଦ୍ଦିଷ୍ଟ ବ୍ୟବହାର            | ପରିଚାଳନା କ୍ଷମତା                                                                      |
-| ------------------------- | ---------------------------------------- | ------------------------------------------------------------ | --------------------------- | ------------------------------------------------------------------------------------ |
-| ଡ୍ୟାସ୍ବୋର୍ଡ JWT ସେସନ୍     | `auth_token` କୁକି                        | ଡ୍ୟାସ୍ବୋର୍ଡ ଲଗ୍ଇନ୍                                           | ବ୍ରାଉଜର୍ UI                 | CSRF, ସ୍ଥାନୀୟତା ଏବଂ ସର୍ବଦା-ସୁରକ୍ଷିତ-ରୁଟ୍ ନିୟମ ଅଧୀନରେ ସମ୍ପୂର୍ଣ୍ଣ ଡ୍ୟାସ୍ବୋର୍ଡ ପରିଚାଳନା |
-| CLI ମେସିନ୍-id ଟୋକନ୍       | ଆଭ୍ୟନ୍ତରୀଣ / ସ୍ଥାନୀୟ                     | CLI ବୁଟ୍ଷ୍ଟ୍ରାପ୍ (ସେହି ମେସିନ୍ରେ `omniroute`)                 | ସ୍ଥାନୀୟ CLI                 | କେବଳ ସ୍ଥାନୀୟ ପରିଚାଳନା                                                                |
-| ସ୍କୋପ୍ଯୁକ୍ତ ଆକ୍ସେସ୍ ଟୋକନ୍ | `oma_live_…`                             | **ସେଟିଂସ୍ → ଆକ୍ସେସ୍ ଟୋକନ୍ଗୁଡ଼ିକ** କିମ୍ବା `omniroute connect` | ରିମୋଟ୍ CLI ଏବଂ ପରିଚାଳନା API | ରୁଟ୍ର ଆବଶ୍ୟକ `read`, `write`, କିମ୍ବା `admin` ସ୍କୋପ୍ ପୂରଣ କରିବା ଆବଶ୍ୟକ                |
-| ଇନ୍ଫରେନ୍ସ API କୀ          | `sk-…` (ଏବଂ ଅନ୍ୟ API-କୀ ପ୍ରିଫିକ୍ସଗୁଡ଼ିକ) | **API ମ୍ୟାନେଜର୍ / API କୀଗୁଡ଼ିକ**                             | `/v1/*` ଇନ୍ଫରେନ୍ସ           | କୀ ମେଟାଡାଟାରେ `manage` କିମ୍ବା `admin` ଅନ୍ତର୍ଭୁକ୍ତ ନଥିଲେ **କିଛି ନାହିଁ**               |
+| କ୍ରେଡେନ୍ସିଆଲ୍          | ସାଧାରଣ ଫର୍ମ                             | କେଉଁଠାରେ ସୃଷ୍ଟି ହୁଏ                                    | ଉଦ୍ଦିଷ୍ଟ ବ୍ୟବହାର            | ପରିଚାଳନା କ୍ଷମତା                                                                      |
+| ---------------------- | --------------------------------------- | ------------------------------------------------------ | --------------------------- | ------------------------------------------------------------------------------------ |
+| ଡ୍ୟାସବୋର୍ଡ JWT ସେସନ୍   | `auth_token` କୁକି                       | ଡ୍ୟାସବୋର୍ଡ ଲଗଇନ୍                                       | ବ୍ରାଉଜର୍ UI                 | CSRF, ଲୋକାଲିଟି, ଏବଂ ସର୍ବଦା-ସୁରକ୍ଷିତ-ରୁଟ୍ ନିୟମ ଅନୁଯାୟୀ ସମ୍ପୂର୍ଣ୍ଣ ଡ୍ୟାସବୋର୍ଡ ପରିଚାଳନା |
+| CLI ମେସିନ୍-ଆଇଡି ଟୋକେନ୍ | ଆଭ୍ୟନ୍ତରୀଣ / ସ୍ଥାନୀୟ                    | CLI ବୁଟଷ୍ଟ୍ରାପ୍ (`omniroute` ସମାନ ମେସିନରେ)             | ସ୍ଥାନୀୟ CLI                 | କେବଳ ସ୍ଥାନୀୟ ପରିଚାଳନା                                                                |
+| ସ୍କୋପ୍ଡ ଆକ୍ସେସ୍ ଟୋକେନ୍ | `oma_live_…`                            | **ସେଟିଂସ → ଆକ୍ସେସ୍ ଟୋକେନ୍** କିମ୍ବା `omniroute connect` | ରିମୋଟ୍ CLI ଏବଂ ପରିଚାଳନା API | ରୁଟ୍ର ଆବଶ୍ୟକ `read`, `write`, କିମ୍ବା `admin` ସ୍କୋପ୍ ପୂରଣ କରିବା ଆବଶ୍ୟକ                |
+| Inference API କି'      | `sk-…` (ଏବଂ ଅନ୍ୟାନ୍ୟ API-କି' ପ୍ରିଫିକ୍ସ) | **API ମ୍ୟାନେଜର୍ / API କି'ଗୁଡ଼ିକ**                      | `/v1/*` inference           | **କିଛି ନାହିଁ** ଯେପର୍ଯ୍ୟନ୍ତ କି' ମେଟାଡାଟାରେ `manage` କିମ୍ବା `admin` ଅନ୍ତର୍ଭୁକ୍ତ ନଥାଏ   |
 
-`oma_` କ୍ରେଡେନ୍ସିଆଲ୍ଗୁଡ଼ିକ ପରିଚାଳନା/CLI କ୍ରେଡେନ୍ସିଆଲ୍। ସେଗୁଡ଼ିକ ଇନ୍ଫରେନ୍ସ API କୀ **ନୁହେଁ**।
+`oma_` କ୍ରେଡେନ୍ସିଆଲ୍ଗୁଡ଼ିକ ପରିଚାଳନା/CLI କ୍ରେଡେନ୍ସିଆଲ୍ ଅଟନ୍ତି। ସେଗୁଡ଼ିକ Inference API କି' ନୁହଁନ୍ତି।
 
-ସର୍ଭର୍ ପାଇଁ ଲଗ୍ଇନ୍/API-କୀ ପ୍ରମାଣୀକରଣ ଅକ୍ଷମ ଥିଲେ, କିଛି ପରିଚାଳନା ରୁଟ୍ ପ୍ରମାଣୀକରଣ ହୋଇନଥିବା କଲ୍ଗୁଡ଼ିକୁ ଗ୍ରହଣ କରିପାରେ। କେବଳ-ସ୍ଥାନୀୟ ଏବଂ ସର୍ବଦା-ସୁରକ୍ଷିତ ରୁଟ୍ଗୁଡ଼ିକରେ ତଥାପି ସେଗୁଡ଼ିକର ନିଜସ୍ୱ ନିୟମ ଲାଗୁ ହୁଏ। ତେଣୁ ଏହି କ୍ରେଡେନ୍ସିଆଲ୍ଗୁଡ଼ିକ ମଧ୍ୟରୁ ଗୋଟିଏ ଉପସ୍ଥାପନ କରିବା ସବୁ କ୍ଷେତ୍ରରେ ବାଧ୍ୟତାମୂଳକ ନୁହେଁ, ଏବଂ ଆବଶ୍ୟକ ସ୍କୋପ୍ ଓ ରୁଟ୍ ସ୍ଥାନୀୟତା ବିନା ଗୋଟିଏ କ୍ରେଡେନ୍ସିଆଲ୍ ଥିବା ମଧ୍ୟ ସବୁ କ୍ଷେତ୍ରରେ ଯଥେଷ୍ଟ ନୁହେଁ।
+ଯଦି ସର୍ଭର ପାଇଁ ଲଗଇନ୍/API-କି' ଅଥେଣ୍ଟିକେସନ୍ ଅକ୍ଷମ ହୋଇଛି, ତେବେ କିଛି ପରିଚାଳନା ରୁଟ୍ ଅଣ-ପ୍ରମାଣିତ କଲ୍ ଗ୍ରହଣ କରିପାରନ୍ତି। କେବଳ ସ୍ଥାନୀୟ ଏବଂ ସର୍ବଦା-ସୁରକ୍ଷିତ ରୁଟ୍ଗୁଡ଼ିକ ସେମାନଙ୍କର ନିଜସ୍ୱ ନିୟମ ପ୍ରୟୋଗ କରନ୍ତି। ତେଣୁ ଏହି କ୍ରେଡେନ୍ସିଆଲ୍ଗୁଡ଼ିକ ମଧ୍ୟରୁ ଗୋଟିଏ ଉପସ୍ଥାପନ କରିବା ସର୍ବଦା ବାଧ୍ୟତାମୂଳକ ନୁହେଁ, ଏବଂ ଆବଶ୍ୟକ ସ୍କୋପ୍ ଏବଂ ରୁଟ୍ ଲୋକାଲିଟି ବିନା ଗୋଟିଏ ରଖିବା ସର୍ବଦା ଯଥେଷ୍ଟ ନୁହେଁ।
 
-ସମ୍ବନ୍ଧିତ: [ରିମୋଟ୍ ମୋଡ୍](./REMOTE-MODE.md) (ରିମୋଟ୍ CLI ପାଇଁ `oma_live_…` କିପରି ଜାରି କରାଯାଏ)।
+ସମ୍ବନ୍ଧିତ: [ରିମୋଟ୍ ମୋଡ୍](./REMOTE-MODE.md) (କିପରି `oma_live_…` ଏକ ରିମୋଟ୍ CLI ପାଇଁ ମିଣ୍ଟ୍ କରାଯାଏ)।
 
 ---
 
-## ସ୍କୋପ୍ ମ୍ୟାଟ୍ରିକ୍ସଗୁଡ଼ିକ
+## ସ୍କୋପ୍ ମାଟ୍ରିକ୍ସ
 
-ଏହି ଦୁଇଟି ସ୍କୋପ୍ ଶବ୍ଦାବଳୀ **ଭିନ୍ନ**। ସେଗୁଡ଼ିକୁ ମିଶାନ୍ତୁ ନାହିଁ।
+API-କି' ପରିଚାଳନା ସ୍କୋପ୍ ଏବଂ ଆକ୍ସେସ୍-ଟୋକେନ୍ ସ୍କୋପ୍ ଭିନ୍ନ ଶବ୍ଦାବଳୀ ଅଟନ୍ତି।
+MCP ଟୁଲ୍ ସ୍କୋପ୍ ଏକ ତୃତୀୟ ଶବ୍ଦାବଳୀ, ଯାହା ନିମ୍ନରେ ଥିବା ଟେବୁଲ୍ରେ ଥିବା କୌଣସି ଫଙ୍କସନ୍ ବଦଳରେ `scopeMatches` ସହିତ ଯାଞ୍ଚ କରାଯାଏ। ପାଖାପାଖି:
+[ତିନୋଟି ସ୍କୋପ୍ ନାମସ୍ପେସ୍](../frameworks/MCP-SERVER.md#three-scope-namespaces)।
 
-### ଆକ୍ସେସ୍ ଟୋକନ୍ ସ୍କୋପ୍ଗୁଡ଼ିକ (`oma_live_…`)
+### ଆକ୍ସେସ୍ ଟୋକେନ୍ ସ୍କୋପ୍ (`oma_live_…`)
 
-| ସ୍କୋପ୍  | ସାଧାରଣ ଅପରେସନ୍ଗୁଡ଼ିକ                                                                        |
-| ------- | ------------------------------------------------------------------------------------------- |
-| `read`  | ଟୋକନ୍କୁ ଦେଖିବା ପାଇଁ ଅନୁମତି ଥିବା ତାଲିକା/ସ୍ଥିତି GET                                           |
-| `write` | admin ଠାରୁ ନିମ୍ନସ୍ତରୀୟ ପରିବର୍ତ୍ତନଗୁଡ଼ିକ (ତିଆରି/ଅପଡେଟ୍/ଡିଲିଟ୍)                               |
-| `admin` | ସମ୍ପୂର୍ଣ୍ଣ ରିମୋଟ୍ CLI / କନେକ୍ଟ ଟୋକନ୍ (ପାସ୍ୱାର୍ଡ ବୁଟ୍ଷ୍ଟ୍ରାପ୍ ଡିଫଲ୍ଟ ଭାବେ ଏହାକୁ ବ୍ୟବହାର କରେ) |
+| ସ୍କୋପ୍  | ସାଧାରଣ କାର୍ଯ୍ୟଗୁଡ଼ିକ                                                          |
+| ------- | ----------------------------------------------------------------------------- |
+| `read`  | ତାଲିକା/ସ୍ଥିତି GETs ଯାହା ଟୋକେନ୍ ଦେଖିବାକୁ ଅନୁମତିପ୍ରାପ୍ତ                         |
+| `write` | ଆଡମିନ୍ ତଳେ ମ୍ୟୁଟେସନ୍ (ସୃଷ୍ଟି/ଅପଡେଟ୍/ଡିଲିଟ୍)                                   |
+| `admin` | ସମ୍ପୂର୍ଣ୍ଣ ରିମୋଟ୍ CLI / କନେକ୍ଟ ଟୋକେନ୍ (ପାସୱାର୍ଡ ବୁଟଷ୍ଟ୍ରାପ୍ ଏଠାରେ ଡିଫଲ୍ଟ ହୁଏ) |
 
-`read` ସହିତ ଥିବା ଟୋକନ୍ ଗୋଟିଏ `write` ରୁଟ୍କୁ କଲ୍ କରିପାରିବ ନାହିଁ। ରନ୍ଟାଇମ୍ ସନ୍ଦେଶର ରୂପ:
+`read` ସହିତ ଏକ ଟୋକେନ୍ `write` ରୁଟ୍କୁ କଲ୍ କରିପାରିବ ନାହିଁ। ରନ୍ଟାଇମ୍ ମେସେଜ୍ ଆକୃତି:
 `Access token scope '<have>' is insufficient; '<need>' required.`
 
-### API-କୀ ପରିଚାଳନା ସ୍କୋପ୍ଗୁଡ଼ିକ
+### API-କି' ପରିଚାଳନା ସ୍କୋପ୍
 
-| ସ୍କୋପ୍       | ଅର୍ଥ                                                              |
-| ------------ | ----------------------------------------------------------------- |
-| (କିଛି ନାହିଁ) | କେବଳ ଇନ୍ଫରେନ୍ସ। ପରିଚାଳନା ରୁଟ୍ଗୁଡ଼ିକ 403 ଫେରାନ୍ତି।                 |
-| `manage`     | ପରିଚାଳନା API (`requireManagementAuth` API-କୀ ଶାଖା ସହିତ ସମାନ ଗେଟ୍) |
-| `admin`      | `hasManageScope`କୁ ମଧ୍ୟ ପୂରଣ କରେ (ପରିଚାଳନା-ସକ୍ଷମ ଭାବେ ବିବେଚିତ)    |
+| ସ୍କୋପ୍       | ଅର୍ଥ                                                                        |
+| ------------ | --------------------------------------------------------------------------- |
+| (କିଛି ନାହିଁ) | କେବଳ Inference। ପରିଚାଳନା ରୁଟ୍ 403 ଫେରାଇଥାଏ।                                 |
+| `manage`     | ପରିଚାଳନା API (`requireManagementAuth` API-କି' ଶାଖା ସହିତ ସମାନ ଗେଟ୍)          |
+| `admin`      | `hasManageScope` କୁ ମଧ୍ୟ ସନ୍ତୁଷ୍ଟ କରେ (ପରିଚାଳନା-ସକ୍ଷମ ଭାବରେ ବିବେଚନା କରାଯାଏ) |
 
-API କୀଗୁଡ଼ିକ / API ମ୍ୟାନେଜର୍ UIରେ କୀ ପାଇଁ `manage` ସକ୍ଷମ କରନ୍ତୁ। ଆପଣ ଜାଣିଶୁଣି ସେହି ସ୍କୋପ୍ ଦେଇ ନଥିଲେ ଅଟୋମେସନ୍ ପାଇଁ କୌଣସି ଚାଟ୍ କ୍ଲାଏଣ୍ଟ କୀକୁ ପୁନଃବ୍ୟବହାର କରନ୍ତୁ ନାହିଁ।
+API କି' / API ମ୍ୟାନେଜର୍ UI ରେ କି' ଉପରେ `manage` ସକ୍ଷମ କରନ୍ତୁ। ଯଦି ଆପଣ ଜାଣିଶୁଣି ସେହି ସ୍କୋପ୍ ପ୍ରଦାନ କରି ନାହାଁନ୍ତି ତେବେ ଅଟୋମେସନ୍ ପାଇଁ ଏକ ଚାଟ୍ କ୍ଲାଏଣ୍ଟ କି' ପୁନଃ ବ୍ୟବହାର କରନ୍ତୁ ନାହିଁ।
 
 ---
 
-## କିପରି ତିଆରି ଏବଂ ପ୍ରତ୍ୟାହାର କରିବେ
+## କିପରି ସୃଷ୍ଟି କରିବେ ଏବଂ ରଦ୍ଦ କରିବେ
 
-### ଡ୍ୟାସ୍ବୋର୍ଡ JWT ସେସନ୍
+### ଡ୍ୟାସବୋର୍ଡ JWT ସେସନ୍
 
-1. `/login` ଖୋଲନ୍ତୁ, ପରିଚାଳନା ପାସ୍ୱାର୍ଡ ସହିତ ସାଇନ୍ ଇନ୍ କରନ୍ତୁ (ପ୍ରଥମ ବୁଟ୍ରେ `INITIAL_PASSWORD`)।
-2. `auth_token` କୁକି HttpOnly ଅଟେ। ବ୍ରାଉଜର୍ ଡ୍ୟାସ୍ବୋର୍ଡ ଏହାକୁ ସ୍ୱୟଂଚାଳିତ ଭାବେ ବ୍ୟବହାର କରେ।
-3. `/api/auth/logout` ମାଧ୍ୟମରେ ଲଗ୍ ଆଉଟ୍ କରନ୍ତୁ। କପି କରିବା ପାଇଁ କୌଣସି ଦୀର୍ଘକାଳୀନ ସିକ୍ରେଟ୍ ନାହିଁ।
+1.  `/login` ଖୋଲନ୍ତୁ, ମ୍ୟାନେଜମେଣ୍ଟ ପାସୱାର୍ଡ (`INITIAL_PASSWORD` ପ୍ରଥମ ବୁଟ୍ ସମୟରେ) ସହିତ ସାଇନ୍ ଇନ୍ କରନ୍ତୁ।
+2.  କୁକି `auth_token` ହେଉଛି HttpOnly। ବ୍ରାଉଜର୍ ଡ୍ୟାସବୋର୍ଡ ଏହାକୁ ସ୍ୱୟଂଚାଳିତ ଭାବରେ ବ୍ୟବହାର କରେ।
+3.  `/api/auth/logout` ମାଧ୍ୟମରେ ଲଗ୍ ଆଉଟ୍ କରନ୍ତୁ। କପି କରିବା ପାଇଁ କୌଣସି ଦୀର୍ଘକାଳୀନ ସିକ୍ରେଟ୍ ନାହିଁ।
 
-### CLI ମେସିନ୍-id ଟୋକନ୍
+### CLI ମେସିନ୍-ଆଇଡି ଟୋକେନ୍
 
-1. ସର୍ଭର୍ ଥିବା **ସେହି ହୋଷ୍ଟ୍ରେ** `omniroute` ଚଲାନ୍ତୁ (ଲୁପ୍ବ୍ୟାକ୍)।
-2. CLI, `~/.omniroute/` ଅଧୀନରେ ଗୋଟିଏ ମେସିନ୍-id ଟୋକନ୍ ବୁଟ୍ଷ୍ଟ୍ରାପ୍ କରେ (chmod 600)।
-3. ଏହା ଅନ୍ୟ ମେସିନ୍ରୁ କାମ କରେ **ନାହିଁ**। ରିମୋଟ୍ CLI ପାଇଁ ଗୋଟିଏ ଆକ୍ସେସ୍ ଟୋକନ୍ ବ୍ୟବହାର କରନ୍ତୁ।
+1.  ସର୍ଭର (ଲୁପବ୍ୟାକ୍) ସହିତ **ସମାନ ହୋଷ୍ଟ** ରେ `omniroute` ଚଲାନ୍ତୁ।
+2.  CLI `~/.omniroute/` ତଳେ ଏକ ମେସିନ୍-ଆଇଡି ଟୋକେନ୍ ବୁଟଷ୍ଟ୍ରାପ୍ କରେ (chmod 600)।
+3.  ଏହା ଅନ୍ୟ ମେସିନରୁ କାମ କରେ **ନାହିଁ**। ରିମୋଟ୍ CLI ପାଇଁ ଏକ ଆକ୍ସେସ୍ ଟୋକେନ୍ ବ୍ୟବହାର କରନ୍ତୁ।
 
-### ସ୍କୋପ୍ଯୁକ୍ତ ଆକ୍ସେସ୍ ଟୋକନ୍ (`oma_live_…`)
+### ସ୍କୋପ୍ଡ ଆକ୍ସେସ୍ ଟୋକେନ୍ (`oma_live_…`)
 
-1. ଡ୍ୟାସ୍ବୋର୍ଡ: **ସେଟିଂସ୍ → ଆକ୍ସେସ୍ ଟୋକନ୍ଗୁଡ଼ିକ** → ତିଆରି କରନ୍ତୁ (ନାମ + ସ୍କୋପ୍)। **ସିକ୍ରେଟ୍ଟି କେବଳ ଥରେ ଦେଖାଯାଏ।**
-2. କିମ୍ବା CLI: `omniroute connect <host>` (ପାସ୍ୱାର୍ଡ → ଟୋକନ୍)। [ରିମୋଟ୍ ମୋଡ୍](./REMOTE-MODE.md) ଦେଖନ୍ତୁ।
-3. ହେଡର୍: `Authorization: Bearer oma_live_…`
-4. ସେହି ଆକ୍ସେସ୍ ଟୋକନ୍ ପୃଷ୍ଠାରୁ ପ୍ରତ୍ୟାହାର କରନ୍ତୁ (କିମ୍ବା CLI କଣ୍ଟେକ୍ସ୍ଟ ଡିଲିଟ୍ କରନ୍ତୁ)।
-5. ସର୍ଭର୍ କେବଳ ଗୋଟିଏ ହ୍ୟାସ୍ ସଂରକ୍ଷଣ କରେ। ପ୍ଲେନ୍ଟେକ୍ସ୍ଟକୁ ପାସ୍ୱାର୍ଡ ପରି ସୁରକ୍ଷିତ ରଖନ୍ତୁ।
+1.  ଡ୍ୟାସବୋର୍ଡ: **ସେଟିଂସ → ଆକ୍ସେସ୍ ଟୋକେନ୍ସ** → ସୃଷ୍ଟି କରନ୍ତୁ (ନାମ + ସ୍କୋପ୍)। **ସିକ୍ରେଟ୍ ଥରେ ଦେଖାଯାଏ।**
+2.  କିମ୍ବା CLI: `omniroute connect <host>` (ପାସୱାର୍ଡ → ଟୋକେନ୍)। [ରିମୋଟ୍ ମୋଡ୍](./REMOTE-MODE.md) ଦେଖନ୍ତୁ।
+3.  ହେଡର୍: `Authorization: Bearer oma_live_…`
+4.  ସମାନ ଆକ୍ସେସ୍ ଟୋକେନ୍ସ ପୃଷ୍ଠାରୁ ରଦ୍ଦ କରନ୍ତୁ (କିମ୍ବା CLI କଣ୍ଟେକ୍ସଟ୍ ଡିଲିଟ୍ କରନ୍ତୁ)।
+5.  ସର୍ଭର କେବଳ ଏକ ହ୍ୟାସ୍ ସଂରକ୍ଷଣ କରେ। ପ୍ଲେନ୍ଟେକ୍ସଟ୍ କୁ ଏକ ପାସୱାର୍ଡ ପରି ବ୍ୟବହାର କରନ୍ତୁ।
 
-### `manage`-ସ୍କୋପ୍ଯୁକ୍ତ API କୀ
+### ମ୍ୟାନେଜ୍-ସ୍କୋପ୍ଡ API କି
 
-1. ଡ୍ୟାସ୍ବୋର୍ଡ: **API ମ୍ୟାନେଜର୍ / API କୀଗୁଡ଼ିକ** → ଗୋଟିଏ କୀ ତିଆରି କିମ୍ବା ଏଡିଟ୍ କରନ୍ତୁ → `manage` (କିମ୍ବା `admin`) ସକ୍ଷମ କରନ୍ତୁ।
-2. ହେଡର୍: `Authorization: Bearer sk-…` (କୀର ପ୍ରକୃତ ପ୍ରିଫିକ୍ସ)।
-3. ସେହି UIରେ ପ୍ରତ୍ୟାହାର କରନ୍ତୁ କିମ୍ବା `manage`କୁ ହଟାନ୍ତୁ।
-4. CLI ନୁହେଁ ଏପରି ଅଟୋମେସନ୍ ପାଇଁ ସର୍ବନିମ୍ନ ବିଶେଷାଧିକାର: କେବଳ-GET କାର୍ଯ୍ୟଗୁଡ଼ିକ ପାଇଁ ଗୋଟିଏ `read` ଆକ୍ସେସ୍ ଟୋକନ୍କୁ ପ୍ରାଥମିକତା ଦିଅନ୍ତୁ; କଲର୍କୁ `/v1` ଏବଂ ପରିଚାଳନା ଉଭୟ ସହିତ ଯୋଗାଯୋଗ କରିବା ଆବଶ୍ୟକ ହେଲେ ମାତ୍ର API କୀରେ `manage` ବ୍ୟବହାର କରନ୍ତୁ।
+1.  ଡ୍ୟାସବୋର୍ଡ: **API ମ୍ୟାନେଜର୍ / API କିଜ୍** → ଏକ କି ସୃଷ୍ଟି କରନ୍ତୁ କିମ୍ବା ଏଡିଟ୍ କରନ୍ତୁ → `manage` (କିମ୍ବା `admin`) ସକ୍ଷମ କରନ୍ତୁ।
+2.  ହେଡର୍: `Authorization: Bearer sk-…` (କି'ର ପ୍ରକୃତ ପ୍ରିଫିକ୍ସ)।
+3.  ସମାନ UI ରେ `manage` ରଦ୍ଦ କରନ୍ତୁ କିମ୍ବା ହଟାନ୍ତୁ।
+4.  CLI ନଥିବା ଅଟୋମେସନ୍ ପାଇଁ ସର୍ବନିମ୍ନ ସୁବିଧା: GET-କେବଳ କାର୍ଯ୍ୟ ପାଇଁ ଏକ `read` ଆକ୍ସେସ୍ ଟୋକେନ୍ ପସନ୍ଦ କରନ୍ତୁ; କଲର୍ ଯେତେବେଳେ `/v1` ଏବଂ ମ୍ୟାନେଜମେଣ୍ଟ୍ ସହିତ କଥା ହେବା ଆବଶ୍ୟକ କରେ, ସେତେବେଳେ କେବଳ ଏକ API କି ଉପରେ `manage` ବ୍ୟବହାର କରନ୍ତୁ।
 
 ---
 
@@ -90,22 +92,20 @@ Authorization: Bearer sk-<secret>
 Cookie: auth_token=<dashboard-jwt>
 ```
 
-ପରିଚାଳନା କ୍ରେଡେନ୍ସିଆଲ୍ଗୁଡ଼ିକୁ URL ପାଥ୍ କିମ୍ବା କ୍ୱେରୀ ଷ୍ଟ୍ରିଙ୍ଗ୍ରେ ରଖନ୍ତୁ ନାହିଁ। ପରିଚାଳନା
-ପ୍ରମାଣୀକରଣ କେବଳ ହେଡର୍/କୁକି ମାଧ୍ୟମରେ ହୁଏ।
+URL ପାଥ୍ କିମ୍ବା କ୍ୱେରୀ ଷ୍ଟ୍ରିଙ୍ଗରେ ମ୍ୟାନେଜମେଣ୍ଟ୍ କ୍ରେଡେନ୍ସିଆଲ୍ ରଖନ୍ତୁ ନାହିଁ। ମ୍ୟାନେଜମେଣ୍ଟ୍ ଅଥ୍ କେବଳ ହେଡର୍/କୁକି ଅଟେ।
 
 ---
 
 ## କପି-ପେଷ୍ଟ ଉଦାହରଣ
 
-କେବଳ-ପଠନୀୟ (ପ୍ରଦାନକାରୀମାନଙ୍କ ତାଲିକା)। ଏକ `read` ଆକ୍ସେସ୍ ଟୋକନ୍ ବ୍ୟବହାର କରନ୍ତୁ:
+କେବଳ ପଢିବା (ପ୍ରୋଭାଇଡର୍ ତାଲିକାଭୁକ୍ତ କରନ୍ତୁ)। ଏକ `read` ଆକ୍ସେସ୍ ଟୋକେନ୍ ବ୍ୟବହାର କରନ୍ତୁ:
 
 ```bash
 curl -sS "$OMNIROUTE_URL/api/providers" \
   -H "Authorization: Bearer oma_live_<read-token>"
 ```
 
-ପରିବର୍ତ୍ତନକାରୀ (ଏକ ପ୍ରଦାନକାରୀ ସଂଯୋଗ ସୃଷ୍ଟି କରିବା)। `write`/`admin` ଆକ୍ସେସ୍ ଟୋକନ୍ କିମ୍ବା ଏକ
-manage-ସ୍କୋପ୍ API କି ବ୍ୟବହାର କରନ୍ତୁ:
+ସଂଶୋଧନ କରିବା (ଏକ ପ୍ରୋଭାଇଡର୍ କନେକ୍ସନ୍ ସୃଷ୍ଟି କରନ୍ତୁ)। `write`/`admin` ଆକ୍ସେସ୍ ଟୋକେନ୍ କିମ୍ବା ଏକ ମ୍ୟାନେଜ୍-ସ୍କୋପ୍ଡ API କି ବ୍ୟବହାର କରନ୍ତୁ:
 
 ```bash
 curl -sS -X POST "$OMNIROUTE_URL/api/providers" \
@@ -114,7 +114,7 @@ curl -sS -X POST "$OMNIROUTE_URL/api/providers" \
   -d '{"provider":"openai","apiKey":"<upstream-key>"}'
 ```
 
-ଇନଫରେନ୍ସ (ପରିଚାଳନା ନୁହେଁ)। ସାଧାରଣ API କି, `manage` ଆବଶ୍ୟକ ନୁହେଁ:
+ଇନଫରେନ୍ସ (ମ୍ୟାନେଜମେଣ୍ଟ୍ ନୁହେଁ)। ସାଧାରଣ API କି, `manage` ଆବଶ୍ୟକ ନାହିଁ:
 
 ```bash
 curl -sS "$OMNIROUTE_URL/v1/models" \
@@ -123,29 +123,24 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## ବର୍ତ୍ତମାନର ରନ୍ଟାଇମ୍ ତ୍ରୁଟିଗୁଡ଼ିକ (ଗୁପ୍ତ ତଥ୍ୟ ପୁନରାବୃତ୍ତି କରନ୍ତୁ ନାହିଁ)
+## ବର୍ତ୍ତମାନର ରନ୍ଟାଇମ୍ ତ୍ରୁଟି (ସିକ୍ରେଟ୍ସ ପ୍ରତିଧ୍ୱନିତ କରନ୍ତୁ ନାହିଁ)
 
-| ପରିସ୍ଥିତି                             | ସାଧାରଣ ସ୍ଥିତି | ବାର୍ତ୍ତା (ସାନିଟାଇଜ୍ କରାଯାଇଛି)                                        |
-| ------------------------------------- | ------------- | -------------------------------------------------------------------- |
-| କୌଣସି କ୍ରେଡେନ୍ସିଆଲ୍ ନାହିଁ             | 401           | `Authentication required`                                            |
-| ଅବୈଧ/ମିଆଦ ଶେଷ ହୋଇଥିବା `oma_live_…`    | 401           | `Invalid or expired access token`                                    |
-| `manage`/`admin` ବିନା ବୈଧ API କି      | 403           | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
-| ଏକ ପରିଚାଳନା ରୁଟ୍ରେ ଅବୈଧ ସାଧାରଣ API କି | 403           | `Invalid management token`                                           |
-| ଆକ୍ସେସ୍ ଟୋକନ୍ ସ୍କୋପ୍ ଅତ୍ୟନ୍ତ କମ୍      | 403           | `Access token scope '<have>' is insufficient; '<need>' required.`    |
+| ପରିସ୍ଥିତି                                     | ସାଧାରଣ ସ୍ଥିତି | ବାର୍ତ୍ତା (ସାନିଟାଇଜ୍ଡ)                                                |
+| :-------------------------------------------- | :------------ | :------------------------------------------------------------------- |
+| କୌଣସି କ୍ରେଡେନ୍ସିଆଲ୍ ନାହିଁ                     | 401           | `Authentication required`                                            |
+| ଅବୈଧ/ମିଆଦ ସରିଯାଇଥିବା `oma_live_…`             | 401           | `Invalid or expired access token`                                    |
+| `manage`/`admin` ବିନା ବୈଧ API କି              | 403           | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
+| ଏକ ମ୍ୟାନେଜମେଣ୍ଟ୍ ରୁଟ୍ ଉପରେ ଅବୈଧ ସାଧାରଣ API କି | 403           | `Invalid management token`                                           |
+| ଆକ୍ସେସ୍ ଟୋକେନ୍ ସ୍କୋପ୍ ବହୁତ କମ୍                | 403           | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-"Invalid management token"ର ଅର୍ଥ ହେଉଛି ବିୟରର୍କୁ ଏକ ପରିଚାଳନା
-କ୍ରେଡେନ୍ସିଆଲ୍ ଭାବରେ **ଗ୍ରହଣ କରାଯାଇନଥିଲା**। ଏହା ଆପଣଙ୍କୁ କେଉଁ ଶ୍ରେଣୀର କ୍ରେଡେନ୍ସିଆଲ୍ ସୃଷ୍ଟି କରିବାକୁ ହେବ ତାହା **କହେ ନାହିଁ**। ଉପରୋକ୍ତ ସାରଣୀ ବ୍ୟବହାର କରନ୍ତୁ:
-ଇନଫରେନ୍ସ କିଗୁଡ଼ିକ ପାଇଁ `manage` ସ୍କୋପ୍ ଆବଶ୍ୟକ; ରିମୋଟ୍ CLI ପାଇଁ `oma_live_…` ଆବଶ୍ୟକ; ଡ୍ୟାସ୍ବୋର୍ଡ
-ସେସନ୍ କୁକି ବ୍ୟବହାର କରେ।
+`Invalid management token` ର ଅର୍ଥ ହେଉଛି ବେୟରର୍ ଏକ ମ୍ୟାନେଜମେଣ୍ଟ୍ କ୍ରେଡେନ୍ସିଆଲ୍ ଭାବରେ ଗ୍ରହଣ କରାଯାଇ ନଥିଲା। ଏହା ଆପଣଙ୍କୁ କେଉଁ ଫ୍ୟାମିଲି ମିଣ୍ଟ୍ କରିବାକୁ ହେବ ତାହା କୁହେ **ନାହିଁ**। ଉପରୋକ୍ତ ଟେବୁଲ୍ ବ୍ୟବହାର କରନ୍ତୁ: ଇନଫରେନ୍ସ କି'ଗୁଡ଼ିକୁ `manage` ସ୍କୋପ୍ ଆବଶ୍ୟକ; ରିମୋଟ୍ CLI କୁ `oma_live_…` ଆବଶ୍ୟକ; ଡ୍ୟାସବୋର୍ଡ ସେସନ୍ କୁକି ବ୍ୟବହାର କରେ।
 
----
+## ସର୍ବନିମ୍ନ-ସୁବିଧା ପାଇଁ ପସନ୍ଦ
 
-## ସୁପାରିସ୍ କରାଯାଇଥିବା ସର୍ବନିମ୍ନ-ଅଧିକାର ବିକଳ୍ପ
-
-| କଲର୍                                                    | ବ୍ୟବହାର                                             |
-| ------------------------------------------------------- | --------------------------------------------------- |
-| ବ୍ରାଉଜର୍                                                | ଡ୍ୟାସ୍ବୋର୍ଡ ସେସନ୍                                   |
-| ସର୍ଭର୍ ହୋଷ୍ଟରେ CLI                                      | ମେସିନ୍ ଟୋକନ୍                                        |
-| ଏକ ରିମୋଟ୍ ସର୍ଭର୍ ସହ କଥାବାର୍ତ୍ତା କରୁଥିବା ଲ୍ୟାପ୍ଟପ୍ରେ CLI | `omniroute connect`ରୁ `oma_live_…`                  |
-| CI / ସ୍କ୍ରିପ୍ଟଗୁଡ଼ିକ (କେବଳ ପରିଚାଳନା)                    | କାର୍ଯ୍ୟକ୍ଷମ ସବୁଠାରୁ ଛୋଟ ସ୍କୋପ୍ ସହିତ `oma_live_…`    |
-| `/v1` ଏବଂ `/api` ଉଭୟକୁ କଲ୍ କରିବାକୁ ଥିବା CI              | `manage` ସହିତ API କି **କିମ୍ବା** ଦୁଇଟି କ୍ରେଡେନ୍ସିଆଲ୍ |
+| କଲର୍                                              | ବ୍ୟବହାର                                              |
+| ------------------------------------------------- | ---------------------------------------------------- |
+| ବ୍ରାଉଜର୍                                          | ଡ୍ୟାସବୋର୍ଡ ସେସନ୍                                     |
+| ସର୍ଭର ହୋଷ୍ଟରେ CLI                                 | ମେସିନ୍ ଟୋକେନ୍                                        |
+| ରିମୋଟ୍ ସର୍ଭର ସହିତ କଥାବାର୍ତ୍ତା କରୁଥିବା ଲାପଟପରେ CLI | `omniroute connect` ରୁ `oma_live_…`                  |
+| CI / ସ୍କ୍ରିପ୍ଟ (କେବଳ ପରିଚାଳନା)                    | ସର୍ବନିମ୍ନ ସ୍କୋପ୍ ସହିତ `oma_live_…` ଯାହା କାର୍ଯ୍ୟ କରେ  |
+| CI ଯାହାକୁ `/v1` ଏବଂ `/api` ଉଭୟକୁ କଲ୍ କରିବାକୁ ପଡିବ | `manage` ସହିତ API କି' **କିମ୍ବା** ଦୁଇଟି କ୍ରେଡେନ୍ସିଆଲ୍ |

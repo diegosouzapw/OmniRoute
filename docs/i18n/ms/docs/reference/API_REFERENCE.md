@@ -1,10 +1,10 @@
 # API Reference (Bahasa Melayu)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 ---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 Rujukan teras untuk API OmniRoute. Ia merangkumi permukaan awam `/v1` dan titik akhir pengurusan yang paling kerap digunakan; fail [`docs/openapi.yaml`](../openapi.yaml) yang boleh dibaca mesin dan pepohon laluan di bawah `src/app/api/` merupakan sumber yang lengkap.
 
@@ -88,13 +88,9 @@ Content-Type: application/json
 
 ## Pajakan Sesi Terurus Eksklusif
 
-Pajakan sesi terurus eksklusif ialah kontrak penghalaan ikut serta yang neutral terhadap klien: satu pemilik aktif
-memegang satu sambungan OmniRoute yang layak. Ia tidak memajak model, memerlukan OAuth, mengenal pasti
-klien tertentu atau memerlukan penyedia tertentu.
+Pajakan sesi terurus eksklusif ialah kontrak penghalaan opt-in, neutral-klien: satu pemilik aktif memegang satu sambungan OmniRoute yang layak. Ia tidak memajak model, memerlukan OAuth, mengenal pasti klien tertentu, atau memerlukan penyedia tertentu.
 
-Kunci API yang mengesahkan identiti mesti mempunyai skop `lease:exclusive` dan senarai
-`allowedConnections` eksplisit yang tidak kosong. Sempadan mutasi pangkalan data menguatkuasakan kedua-dua medan
-secara bersama ketika penciptaan kunci dan kemas kini separa.
+Kunci API pengesahan mesti mempunyai skop `lease:exclusive` dan senarai `allowedConnections` yang eksplisit dan tidak kosong. Sempadan mutasi pangkalan data menguatkuasakan kedua-dua medan bersama-sama pada penciptaan kunci dan kemas kini separa.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Respons pemerolehan, pembaharuan dan pelepasan yang berjaya mendedahkan cap masa, `state` dan nilai positif tepat
-`generation`, tetapi tidak pernah mendedahkan sambungan atau bukti kelayakan yang dipilih. Pembaharuan dan pelepasan membekalkan
-generasi dalam badan JSON:
+Respons pemerolehan, pembaharuan, dan pelepasan yang berjaya mendedahkan cap masa, `state`, dan `generation` positif yang tepat, tetapi tidak pernah sambungan atau kelayakan yang dipilih. Pembaharuan dan pelepasan membekalkan generasi dalam badan JSON:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +111,7 @@ generasi dalam badan JSON:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Pemilik pajakan aktif boleh meminta secara eksplisit metadata paparan yang selamat dari segi privasi untuk pengikatan semasanya:
+Pemilik pajakan aktif boleh secara eksplisit meminta metadata paparan selamat privasi untuk pengikatan semasanya:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,35 +131,20 @@ Pemilik pajakan aktif boleh meminta secara eksplisit metadata paparan yang selam
 }
 ```
 
-Tindakan status ikut serta ini dipagari oleh pemilik legap, kunci API terurus yang disahkan dan generasi aktif
-yang tepat dalam satu transaksi pangkalan data. `displayName` hanyalah nama sambungan dikonfigurasikan yang telah dirapikan;
-nilainya ialah `null` apabila tiada nama dikonfigurasikan yang selamat. OmniRoute tidak pernah menggantikannya dengan
-e-mel atau identiti akaun yang dijana. Nilai penyedia ialah label paparan tidak sensitif dan tidak pernah merupakan
-pengecam penyedia serasi yang dijana. Bukti kelayakan, token, kuki, ID sambungan atau kunci API mentah,
-cincangan pemilik, rahsia pemagaran dan data penghalaan dalaman dikecualikan.
+Tindakan status opt-in ini dipagari oleh pemilik legap, kunci API terurus yang disahkan, dan generasi aktif yang tepat dalam satu transaksi pangkalan data. `displayName` hanyalah nama sambungan yang dikonfigurasi yang dipangkas; ia adalah `null` apabila tiada nama yang dikonfigurasi yang selamat wujud. OmniRoute tidak pernah menggantikan e-mel atau identiti akaun yang dijana. Nilai penyedia adalah label paparan yang tidak sensitif dan tidak pernah menjadi pengecam penyedia serasi yang dijana. Kelayakan, token, kuki, id sambungan mentah atau kunci API, hash pemilik, rahsia pagar, dan data penghalaan dalaman dikecualikan.
 
-Carian dengan kunci salah, pemilik salah, generasi lapuk, tiada, tamat tempoh, dilepaskan atau dibatalkan semuanya
-mengembalikan ralat `409 LEASE_FENCE_STALE` yang sama tanpa metadata sambungan. Klien yang menerima respons menunggu kapasiti tidak mempunyai pengikatan aktif untuk diperiksa. Apabila penghalaan mengalihkan pajakan aktif,
-generasi yang sama kekal sah dan status mengembalikan pengikatan baharu secara atomik, bukan yang lama.
-Klien sedia ada kekal tidak berubah kerana respons pemerolehan, pembaharuan, pelepasan dan penantian mengekalkan
-bentuknya yang terdahulu.
+Carian kunci salah, pemilik salah, generasi lapuk, hilang, tamat tempoh, dilepaskan, dan tidak sah semuanya mengembalikan ralat `409 LEASE_FENCE_STALE` yang sama tanpa metadata sambungan. Klien yang menerima respons menunggu kapasiti tidak mempunyai pengikatan aktif untuk diperiksa. Apabila penghalaan mengubah pajakan aktif, generasi yang sama kekal sah dan status secara atomik mengembalikan pengikatan baharu, tidak pernah yang lama. Klien sedia ada kekal tidak berubah kerana respons pemerolehan, pembaharuan, pelepasan, dan menunggu mengekalkan bentuk sebelumnya.
 
-Kontrak pelayan ini tidak mengubah `/status` OpenAI Codex standard. Codex standard pada masa ini melaporkan
-penyedia modelnya serta keadaan pengesahan/akaun terbina dalam tetapi tidak memaparkan metadata akaun
-penyedia tersuai sewenang-wenangnya; penyepaduan klien pada masa hadapan mesti memanggil tindakan ini dan menentukan cara
-untuk memaparkan `connection.displayName`.
+Kontrak pelayan ini tidak mengubah stok OpenAI Codex `/status`. Stok Codex pada masa ini melaporkan penyedia modelnya dan keadaan pengesahan/akaun terbina dalam tetapi tidak memaparkan metadata akaun penyedia tersuai sewenang-wenangnya; integrasi klien kemudian mesti memanggil tindakan ini dan memutuskan cara memaparkan `connection.displayName`.
 
-Setiap permintaan inferens terurus kemudiannya membekalkan kedua-dua pengepala kawalan:
+Setiap permintaan inferens terurus kemudian membekalkan kedua-dua pengepala kawalan:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Pemilik tepat, generasi, sambungan aktif dan kunci API yang disahkan dipagari serta-merta
-sebelum setiap percubaan huluan yang disokong. Memainkan semula pemilik dan generasi dengan kunci lain akan gagal walaupun
-kunci tersebut membenarkan sambungan yang sama. Pemilik mentah tidak disimpan secara berterusan, dilog, dikekalkan dalam
-petikan permintaan atau dimajukan ke huluan.
+Pemilik, generasi, sambungan aktif, dan kunci API yang disahkan yang tepat dipagari serta-merta sebelum setiap percubaan hulu yang disokong. Mengulang pemilik dan generasi dengan kunci lain gagal walaupun kunci tersebut membenarkan sambungan yang sama. Pemilik mentah tidak dikekalkan, dicatat, disimpan dalam tangkapan permintaan, atau diteruskan ke hulu.
 
 Pertikaian sementara mengembalikan HTTP `429` dengan `Retry-After` dan:
 
@@ -178,36 +157,35 @@ Pertikaian sementara mengembalikan HTTP `429` dengan `Retry-After` dan:
 }
 ```
 
-Respons ini hanya bermaksud bahawa set layak biasa tidak kosong dan setiap calon bebas sedang
-dipegang oleh pajakan aktif asing. Model/penyedia yang tidak disokong, ketidakpadanan dasar, tempoh bertenang, kuota,
-kesihatan dan kegagalan kelayakan biasa yang lain mengekalkan respons OmniRoute sedia ada.
+Respons ini hanya bermaksud bahawa set layak biasa tidak kosong dan setiap calon bebas dipegang oleh pajakan aktif asing. Model/penyedia yang tidak disokong, ketidakpadanan polisi, tempoh bertenang, kuota, kesihatan, dan kegagalan kelayakan biasa yang lain mengekalkan respons OmniRoute sedia ada mereka.
 
 ### `x-omniroute-compression`
 
-Penggantian pelan pemampatan bagi setiap permintaan. Keutamaan tertinggi — mengatasi penggantian gabungan penghalaan,
-profil aktif, pencetus automatik dan Lalai panel. Nilai:
+Penggantian setiap permintaan bagi pelan pemampatan. Keutamaan tertinggi — mengatasi penggantian gabungan penghalaan, profil aktif, pencetus automatik, dan panel Lalai. Nilai:
 
-| Nilai         | Kesan                                                                                                                |
-| ------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Tiada pemampatan untuk permintaan ini.                                                                               |
-| `default`     | Profil Lalai yang diperoleh daripada panel (mengabaikan profil aktif).                                               |
-| `engine:<id>` | Satu enjin apabila didayakan, cth. `engine:rtk`.                                                                     |
-| `<combo>`     | Gabungan bernama, dipadankan mengikut nama (tidak sensitif huruf besar/kecil) terlebih dahulu, kemudian mengikut ID. |
+| Nilai         | Kesan                                                                                                   |
+| ------------- | ------------------------------------------------------------------------------------------------------- |
+| `off`         | Tiada pemampatan untuk permintaan ini.                                                                  |
+| `default`     | Profil Lalai terbitan panel (mengabaikan profil aktif). Enjin lossy dibiarkan mati.                     |
+| `safe`        | Dedup dan lipatan ruang putih sahaja.                                                                   |
+| `allow-lossy` | Kekalkan pelan operator untuk permintaan ini, termasuk ringkasan dan penulisan semula gaya.             |
+| `engine:<id>` | Satu enjin apabila diaktifkan, cth. `engine:rtk`. Opt-in setiap permintaan untuk enjin tersebut.        |
+| `<combo>`     | Gabungan bernama, dipadankan mengikut nama (tidak peka huruf besar/kecil) dahulu, kemudian mengikut id. |
 
 Nota:
 
-- Nilai yang tidak diketahui diabaikan (permintaan tidak pernah ditolak); penyelesaian diteruskan mengikut keutamaan operator biasa.
-- Jika berbilang gabungan berkongsi nama, berikan **id** gabungan untuk padanan deterministik.
-- Gabungan yang namanya ialah `off` atau `default` tidak boleh dipilih mengikut nama (kata kunci tersebut ditafsirkan terlebih dahulu); rujuk gabungan tersebut melalui ID-nya.
-- Suis pemampatan induk ialah gerbang mutlak: apabila pemampatan dilumpuhkan secara global, pengepala ini tidak boleh mendayakannya.
+- Nilai yang tidak diketahui diabaikan (permintaan tidak pernah ditolak); penyelesaian jatuh kepada keutamaan operator biasa.
+- Jika berbilang gabungan berkongsi nama, hantar **id** gabungan untuk padanan yang ditentukan.
+- Gabungan yang namanya `off` atau `default` tidak boleh dipilih mengikut nama (kata kunci tersebut ditafsirkan dahulu); rujuk gabungan tersebut mengikut idnya.
+- Suis pemampatan utama adalah pintu keras: apabila pemampatan dilumpuhkan secara global, pengepala ini tidak boleh mengaktifkannya.
 
-Pelan yang digunakan dicerminkan kembali dalam pengepala respons:
+Pelan yang digunakan digemakan kembali dalam pengepala respons:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-dengan `<source>` ialah salah satu daripada `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` atau `off`.
+di mana `<source>` adalah salah satu daripada `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, atau `off`.
 
 ---
 
@@ -446,10 +424,10 @@ Gunakan titik akhir ini apabila sidecar berjalan di luar proses dan tidak dapat 
 | POST   | `/v1/music/generations`                   | Penjanaan muzik gaya OpenAI          |
 | POST   | `/v1/audio/transcriptions`                | Audio OpenAI (STT)                   |
 | POST   | `/v1/audio/speech`                        | TTS OpenAI (mengembalikan isi audio) |
-| POST   | `/v1/rerank`                              | Penyusunan semula gaya Cohere/Voyage |
+| POST   | `/v1/rerank`                              | Pengelasan semula gaya Cohere/Voyage |
 | POST   | `/v1/classify`                            | Pengelasan Jina (`api.jina.ai`)      |
 | POST   | `/v1/segment`                             | Pensegmen Jina (`segment.jina.ai`)   |
-| POST   | `/v1/moderations`                         | Moderasi OpenAI                      |
+| POST   | `/v1/moderations`                         | Penyederhanaan OpenAI                |
 | GET    | `/v1/models`                              | OpenAI                               |
 | POST   | `/v1/messages/count_tokens`               | Anthropic                            |
 | GET    | `/v1beta/models`                          | Gemini                               |
@@ -457,17 +435,17 @@ Gunakan titik akhir ini apabila sidecar berjalan di luar proses dan tidak dapat 
 | POST   | `/v1/api/chat`                            | Ollama                               |
 | GET    | `/api/v1/vscode/{token}/`                 | Alias katalog OpenAI                 |
 | GET    | `/api/v1/vscode/{token}/models`           | Alias model OpenAI                   |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | Alias bertoken OpenAI                |
-| POST   | `/api/v1/vscode/{token}/responses`        | Alias bertoken Respons OpenAI        |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | Alias bertoken Ollama                |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | Alias teg bertoken Ollama            |
+| POST   | `/api/v1/vscode/{token}/chat/completions` | Alias OpenAI bertoken                |
+| POST   | `/api/v1/vscode/{token}/responses`        | Alias Respons OpenAI bertoken        |
+| POST   | `/api/v1/vscode/{token}/api/chat`         | Alias Ollama bertoken                |
+| GET    | `/api/v1/vscode/{token}/api/tags`         | Alias tag Ollama bertoken            |
 
-Semua laluan POST mengikut bentuk yang sama: `Bearer your-api-key` + isi JSON yang disahkan oleh Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` dan sebagainya, lihat `src/shared/validation/schemas.ts`). 4xx dikembalikan apabila pengesahan skema gagal.
+Semua laluan POST mengikut bentuk yang sama: `Bearer your-api-key` + isi JSON yang disahkan oleh Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, dsb., lihat `src/shared/validation/schemas.ts`). 4xx dikembalikan apabila pengesahan skema gagal.
 
 Bagi klien yang tidak dapat melampirkan `Authorization: Bearer ...`, OmniRoute turut menerima kunci API dalam URL sama ada melalui keserasian rentetan pertanyaan (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) atau titik akhir khusus `/api/v1/vscode/{token}/...` yang didokumenkan di bawah.
 
 ```bash
-# Susun semula
+# Pengelasan semula (penyedia daftar awan atau nod penyedia serasi OpenAI sebagai "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Pengelasan Jina (kelayakan API Foundation)
@@ -479,19 +457,45 @@ POST /v1/segment     { "content": "...", "return_chunks": true }
 # Carian Jina (s.jina.ai; alias penyedia: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Moderasi
+# Penyederhanaan
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
 # TTS — mengembalikan isi audio/mpeg (atau format yang diminta)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
+
+# TTS Soniox memerlukan bahasa dan suara: `language` menggunakan "en" secara lalai; suara yang tiada
+# atau nama suara stok OpenAI (alloy, nova, …) akan menjadi "Adrian"
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
 
 # Edit imej (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
 # Penjanaan video / muzik (ID model berawalan penyedia)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
+
+> **Nod penyedia pengelasan semula:** `POST /v1/rerank` turut menghala ke nod penyedia yang serasi dengan OpenAI
+> (oMLX, vLLM, Infinity, TEI di belakang get laluan, …) yang dialamatkan sebagai `<node-prefix>/<model>`. Nod gelung balik
+> (`localhost`, `127.0.0.1`, `172.16.0.0/12`) sentiasa layak. Nod pada mana-mana hos lain
+> — mesin LAN atau rakan Tailscale — hanya layak apabila pengendali mendayakan bendera ciri
+> `RERANK_REMOTE_PROVIDER_NODES` **dan** URL asas nod itu melepasi dasar URL keluar penyedia
+> (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> hos metadata awan tidak pernah dijadikan destinasi laluan. Langkah pengelasan semula enjin memori memanggil laluan ini melalui
+> gelung balik, maka peraturan yang sama mengawal `rerankProviderModel` dalam tetapan Memori.
+>
+> **Bentuk pelayan setempat:** nod dipanggil pada `<base>/v1/rerank` dan, apabila menerima 404, pada `<base>/rerank`
+> (Infinity, TEI). Isi huluan membawa kedua-dua ejaan Cohere/OpenAI (`documents`,
+> `return_documents`) dan ejaan TEI (`texts`, `return_text`), manakala respons huluan
+> dinormalkan kepada sampul Cohere: bentuk kosong TEI `[{index, score, text}]`, `{results: [{index, score}]}`
+> daripada get laluan nipis dan gaya Voyage `{data: [...]}` semuanya dikembalikan kepada klien sebagai
+> `{results: [{index, relevance_score, document?}]}`, diisih mengikut skor dan dihadkan kepada `top_n`.
+
+> **Penemuan nod penyedia:** model pada nod penyedia yang serasi dengan OpenAI muncul dalam `GET /v1/models`
+> di bawah awalan nod. Baris tanpa metadata titik akhir (lazim bagi penyenaraian `/v1/models` setempat)
+> mewarisi `apiType` nod tersebut, maka model bagi nod `embeddings` ialah `type: "embedding"` dan model bagi
+> nod `rerank` ialah `type: "rerank"` dan bukannya ditetapkan secara lalai kepada sembang; `supportedEndpoints` yang dinyatakan secara eksplisit
+> pada baris yang disegerakkan atau ditambahkan secara manual masih diutamakan.
 
 ### Laluan Penyedia Khusus
 
@@ -795,31 +799,32 @@ X-OmniRoute-No-Cache: true
 
 ## Papan Pemuka & Pengurusan
 
-Laluan pengurusan (`/api/*` kecuali pengesahan/log masuk awam) **tidak** dibenarkan menggunakan
+Laluan pengurusan (`/api/*` kecuali pengesahan/log masuk awam) **tidak** dibenarkan oleh
 kunci API inferens biasa. Keluarga kelayakan, skop dan contoh curl:
 [Pengesahan Pengurusan](../guides/MANAGEMENT-AUTH.md).
 
 ### Pengesahan
 
-| Titik Akhir                   | Kaedah  | Penerangan                |
-| ----------------------------- | ------- | ------------------------- |
-| `/api/auth/login`             | POST    | Log masuk                 |
-| `/api/auth/logout`            | POST    | Log keluar                |
-| `/api/settings/require-login` | GET/PUT | Togol keperluan log masuk |
+| Titik Akhir                   | Kaedah  | Penerangan                      |
+| ----------------------------- | ------- | ------------------------------- |
+| `/api/auth/login`             | POST    | Log masuk                       |
+| `/api/auth/logout`            | POST    | Log keluar                      |
+| `/api/settings/require-login` | GET/PUT | Togol keperluan untuk log masuk |
 
 ### Pengurusan Penyedia
 
-| Titik Akhir                  | Kaedah                | Penerangan                                                                                                                      |
-| ---------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/providers`             | GET/POST              | Senaraikan / cipta penyedia                                                                                                     |
-| `/api/providers/[id]`        | GET/PUT/DELETE        | Urus penyedia                                                                                                                   |
-| `/api/providers/[id]/test`   | POST                  | Uji sambungan penyedia                                                                                                          |
-| `/api/providers/[id]/models` | GET                   | Senaraikan model penyedia                                                                                                       |
-| `/api/providers/validate`    | POST                  | Sahkan konfigurasi penyedia                                                                                                     |
-| `/api/providers/bulk`        | POST                  | Tambah kunci API secara pukal untuk SATU penyedia                                                                               |
-| `/api/providers/import`      | POST                  | Import SENARAI penyedia beraneka daripada fail CSV/JSON yang telah dihuraikan (#6836); hasil kegagalan separa bagi setiap baris |
-| `/api/provider-nodes*`       | Pelbagai              | Pengurusan nod penyedia                                                                                                         |
-| `/api/provider-models`       | GET/POST/PATCH/DELETE | Model tersuai (tambah, kemas kini, sembunyikan/tunjukkan, padam)                                                                |
+| Titik Akhir                             | Kaedah                | Penerangan                                                                                                                                                                                |
+| --------------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST              | Senaraikan / cipta penyedia                                                                                                                                                               |
+| `/api/providers/[id]`                   | GET/PUT/DELETE        | Urus penyedia                                                                                                                                                                             |
+| `/api/providers/[id]/test`              | POST                  | Uji sambungan penyedia                                                                                                                                                                    |
+| `/api/providers/[id]/models`            | GET                   | Senaraikan model penyedia                                                                                                                                                                 |
+| `/api/providers/validate`               | POST                  | Sahkan konfigurasi penyedia                                                                                                                                                               |
+| `/api/providers/bulk`                   | POST                  | Tambah secara pukal kunci API untuk SATU penyedia                                                                                                                                         |
+| `/api/providers/import`                 | POST                  | Import SENARAI penyedia heterogen daripada fail CSV/JSON yang telah dihuraikan (#6836); hasil kegagalan separa bagi setiap baris                                                          |
+| `/api/provider-nodes*`                  | Pelbagai              | Pengurusan nod penyedia                                                                                                                                                                   |
+| `/api/provider-models`                  | GET/POST/PATCH/DELETE | Model tersuai (tambah, kemas kini, sembunyikan/tunjukkan, padam)                                                                                                                          |
+| `/api/provider-models/validate-and-add` | POST                  | Pengesahan sambungan ketat yang disahkan oleh pengurusan dan memerlukan penyertaan serta pendaftaran model tersuai secara atomik; lihat [Pengesahan model](../guides/MODEL-VALIDATION.md) |
 
 ### Aliran OAuth
 
@@ -837,34 +842,34 @@ kunci API inferens biasa. Keluarga kelayakan, skop dan contoh curl:
 | `/api/keys*`          | Pelbagai | Pengurusan kunci API                  |
 | `/api/pricing`        | GET      | Harga model                           |
 
-### Penggunaan & Analitis
+### Penggunaan & Analitik
 
-| Titik akhir                      | Kaedah          | Penerangan                                                                                                                                                                                                                                                                                                                 |
-| -------------------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/usage/history`             | GET             | Sejarah penggunaan                                                                                                                                                                                                                                                                                                         |
-| `/api/usage/logs`                | GET             | Log penggunaan                                                                                                                                                                                                                                                                                                             |
-| `/api/usage/request-logs`        | GET             | Log peringkat permintaan                                                                                                                                                                                                                                                                                                   |
-| `/api/usage/[connectionId]`      | GET             | Penggunaan bagi setiap sambungan                                                                                                                                                                                                                                                                                           |
-| `/api/usage/token-limits`        | GET/POST/DELETE | Belanjawan had token bagi setiap kunci API                                                                                                                                                                                                                                                                                 |
-| `/api/usage/model-latency-stats` | GET             | Agregat kependaman berterusan bagi setiap penyedia/model (purata/p50/p95/p99, kadar kejayaan); penapis: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                    |
-| `/api/usage/cache-health`        | GET             | Ringkasan kesihatan cache gesaan berdasarkan `call_logs` — nisbah tulis/baca, taburan saiz tulis p50/p90/p99, kepekatan penulisan berat, pecahan bagi setiap model dan keputusan `healthy`/`degraded`/`thrash`/`no-data`; parameter pertanyaan `range` (`1h`\|`24h`\|`7d`\|`30d`, lalai `24h`) dan `model` pilihan (#8827) |
+| Titik akhir                      | Kaedah          | Penerangan                                                                                                                                                                                                                                                                                                               |
+| -------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/api/usage/history`             | GET             | Sejarah penggunaan                                                                                                                                                                                                                                                                                                       |
+| `/api/usage/logs`                | GET             | Log penggunaan                                                                                                                                                                                                                                                                                                           |
+| `/api/usage/request-logs`        | GET             | Log peringkat permintaan                                                                                                                                                                                                                                                                                                 |
+| `/api/usage/[connectionId]`      | GET             | Penggunaan bagi setiap sambungan                                                                                                                                                                                                                                                                                         |
+| `/api/usage/token-limits`        | GET/POST/DELETE | Belanjawan had token bagi setiap kunci API                                                                                                                                                                                                                                                                               |
+| `/api/usage/model-latency-stats` | GET             | Agregat kependaman bergulir bagi setiap penyedia/model (purata/p50/p95/p99, kadar kejayaan); penapis: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                    |
+| `/api/usage/cache-health`        | GET             | Ringkasan kesihatan cache gesaan merentas `call_logs` — nisbah tulis/baca, taburan saiz tulis p50/p90/p99, kepekatan penulisan berat, pecahan bagi setiap model, dan keputusan `healthy`/`degraded`/`thrash`/`no-data`; parameter pertanyaan `range` (`1h`\|`24h`\|`7d`\|`30d`, lalai `24h`) dan `model` pilihan (#8827) |
 
 ### Tetapan
 
-| Titik akhir                           | Kaedah        | Penerangan                                                                                                                                                                                           |
-| ------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/settings`                       | GET/PUT/PATCH | Tetapan umum                                                                                                                                                                                         |
-| `/api/settings/proxy`                 | GET/PUT       | Konfigurasi proksi rangkaian                                                                                                                                                                         |
-| `/api/settings/proxy/test`            | POST          | Uji sambungan proksi                                                                                                                                                                                 |
-| `/api/settings/ip-filter`             | GET/PUT       | Senarai dibenarkan/senarai disekat IP                                                                                                                                                                |
-| `/api/settings/thinking-budget`       | GET/PUT       | Mod penulisan semula **permintaan** pemikiran/penaakulan (passthrough / auto-strip / custom / adaptive). Tidak bergantung pada pemampatan. Lihat [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
-| `/api/settings/system-prompt`         | GET/PUT       | Gesaan sistem global                                                                                                                                                                                 |
-| `/api/settings/compression`           | GET/PUT       | Konfigurasi pemampatan global                                                                                                                                                                        |
-| `/api/settings/purge-request-history` | POST          | Kosongkan baris log permintaan dan artifak log panggilan setempat                                                                                                                                    |
+| Titik akhir                           | Kaedah        | Penerangan                                                                                                                                                                                                             |
+| ------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/settings`                       | GET/PUT/PATCH | Tetapan umum                                                                                                                                                                                                           |
+| `/api/settings/proxy`                 | GET/PUT       | Konfigurasi proksi rangkaian                                                                                                                                                                                           |
+| `/api/settings/proxy/test`            | POST          | Uji sambungan proksi                                                                                                                                                                                                   |
+| `/api/settings/ip-filter`             | GET/PUT       | Senarai dibenarkan/senarai disekat IP                                                                                                                                                                                  |
+| `/api/settings/thinking-budget`       | GET/PUT       | Mod penulisan semula **permintaan** bagi pemikiran/penaakulan (laluan terus / buang secara automatik / tersuai / adaptif). Tidak bergantung pada pemampatan. Lihat [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
+| `/api/settings/system-prompt`         | GET/PUT       | Gesaan sistem global                                                                                                                                                                                                   |
+| `/api/settings/compression`           | GET/PUT       | Konfigurasi pemampatan global                                                                                                                                                                                          |
+| `/api/settings/purge-request-history` | POST          | Kosongkan baris log permintaan dan artifak log panggilan setempat                                                                                                                                                      |
 
 ### Konteks & Pemampatan
 
-| Titik Akhir                            | Kaedah         | Penerangan                                                                |
+| Titik akhir                            | Kaedah         | Penerangan                                                                |
 | -------------------------------------- | -------------- | ------------------------------------------------------------------------- |
 | `/api/compression/preview`             | POST           | Pratonton pemampatan off/lite/standard/aggressive/ultra/RTK/stacked       |
 | `/api/compression/language-packs`      | GET            | Senaraikan pek bahasa Caveman yang tersedia                               |
@@ -873,23 +878,23 @@ kunci API inferens biasa. Keluarga kelayakan, skop dan contoh curl:
 | `/api/context/rtk/config`              | GET/PUT        | Tetapan khusus RTK, termasuk penapis tersuai dan pengekalan output mentah |
 | `/api/context/rtk/filters`             | GET            | Katalog penapis RTK dan diagnostik penapis tersuai                        |
 | `/api/context/rtk/test`                | POST           | Jalankan pratonton/ujian RTK terhadap muatan teks                         |
-| `/api/context/rtk/raw-output/[id]`     | GET            | Baca output mentah tersunting yang dikekalkan mengikut ID penuding        |
-| `/api/context/combos`                  | GET/POST       | Senaraikan/cipta kombo pemampatan                                         |
-| `/api/context/combos/[id]`             | GET/PUT/DELETE | Butiran/kemas kini/padam kombo pemampatan                                 |
-| `/api/context/combos/[id]/assignments` | GET/PUT        | Tetapkan kombo pemampatan kepada kombo penghalaan                         |
+| `/api/context/rtk/raw-output/[id]`     | GET            | Baca output mentah disunting yang dikekalkan mengikut ID penuding         |
+| `/api/context/combos`                  | GET/POST       | Senarai/cipta gabungan pemampatan                                         |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | Butiran/kemas kini/padam gabungan pemampatan                              |
+| `/api/context/combos/[id]/assignments` | GET/PUT        | Tetapkan gabungan pemampatan kepada gabungan penghalaan                   |
 | `/api/context/analytics`               | GET            | Alias analitik pemampatan                                                 |
 
 ### Pemantauan
 
-| Titik Akhir                          | Kaedah     | Penerangan                                                                                                                                                                                                                                                                                                                                                                                                       |
-| ------------------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/sessions`                      | GET        | Penjejakan sesi aktif                                                                                                                                                                                                                                                                                                                                                                                            |
-| `/api/rate-limits`                   | GET        | Had kadar bagi setiap akaun                                                                                                                                                                                                                                                                                                                                                                                      |
-| `/api/monitoring/health`             | GET        | Semakan kesihatan + ringkasan penyedia (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Paparan pengurusan merangkumi `credentialHealth`: nilai skalar cache prob, `failedConnections` apabila `failed>0`, dan `staleDbNonOkCount` (`test_status` melekat SQLite, bukan tolok). Lihat [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
-| `/api/cache/stats`                   | GET/DELETE | Statistik cache / kosongkan                                                                                                                                                                                                                                                                                                                                                                                      |
-| `/api/modality-bridge/stats`         | GET        | `attempts` dalam memori, kejayaan/`bridged`, kegagalan, capaian cache, `totalLatencyMs`, `latencySamples`, `averageLatencyMs` berasaskan bilangan sampel, dan masa penggunaan terakhir (ditetapkan semula apabila dimulakan semula; pengesahan pengurusan)                                                                                                                                                       |
-| `/api/modality-bridge/video/runtime` | GET        | Semakan gelung balik dipercayai yang ketat sebelum pengesahan/prob pengurusan; ketersediaan dan versi FFmpeg/ffprobe yang disanitasi (no-store)                                                                                                                                                                                                                                                                  |
-| `/api/modality-bridge/video/extract` | POST       | Broker bait gelung balik dipercayai dalaman yang disahkan; input 50 MiB, baris gilir terhad/output 32 MiB, kapasiti `503`, pemutusan sambungan `499`, tarikh akhir `504`; bukan API muat naik awam                                                                                                                                                                                                               |
+| Titik akhir                          | Kaedah     | Penerangan                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ------------------------------------ | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/sessions`                      | GET        | Penjejakan sesi aktif                                                                                                                                                                                                                                                                                                                                                                                                |
+| `/api/rate-limits`                   | GET        | Had kadar bagi setiap akaun                                                                                                                                                                                                                                                                                                                                                                                          |
+| `/api/monitoring/health`             | GET        | Pemeriksaan kesihatan + ringkasan penyedia (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Paparan pengurusan merangkumi `credentialHealth`: nilai skalar cache prob, `failedConnections` apabila `failed>0`, dan `staleDbNonOkCount` (`test_status` melekat SQLite, bukan tolok). Lihat [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
+| `/api/cache/stats`                   | GET/DELETE | Statistik cache / kosongkan                                                                                                                                                                                                                                                                                                                                                                                          |
+| `/api/modality-bridge/stats`         | GET        | `attempts` dalam memori, kejayaan/`bridged`, kegagalan, kena cache, `totalLatencyMs`, `latencySamples`, `averageLatencyMs` berpenyebut sampel, dan masa penggunaan terakhir (ditetapkan semula apabila dimulakan semula; pengesahan pengurusan)                                                                                                                                                                      |
+| `/api/modality-bridge/video/runtime` | GET        | Pemeriksaan loopback dipercayai yang ketat sebelum pengesahan/prob pengurusan; ketersediaan dan versi FFmpeg/ffprobe yang disanitasi (no-store)                                                                                                                                                                                                                                                                      |
+| `/api/modality-bridge/video/extract` | POST       | Broker bait loopback dipercayai dalaman yang disahkan; input 50 MiB, baris gilir terhad/output 32 MiB, kapasiti `503`, pemutusan sambungan `499`, tarikh akhir `504`; bukan API muat naik awam                                                                                                                                                                                                                       |
 
 ### Sandaran & Eksport/Import
 
@@ -923,10 +928,10 @@ kunci API inferens biasa. Keluarga kelayakan, skop dan contoh curl:
 
 | Titik Akhir                        | Kaedah | Penerangan          |
 | ---------------------------------- | ------ | ------------------- |
-| `/api/cli-tools/claude-settings`   | GET    | Status CLI Claude   |
-| `/api/cli-tools/codex-settings`    | GET    | Status CLI Codex    |
-| `/api/cli-tools/droid-settings`    | GET    | Status CLI Droid    |
-| `/api/cli-tools/openclaw-settings` | GET    | Status CLI OpenClaw |
+| `/api/cli-tools/claude-settings`   | GET    | Status Claude CLI   |
+| `/api/cli-tools/codex-settings`    | GET    | Status Codex CLI    |
+| `/api/cli-tools/droid-settings`    | GET    | Status Droid CLI    |
+| `/api/cli-tools/openclaw-settings` | GET    | Status OpenClaw CLI |
 | `/api/cli-tools/runtime/[toolId]`  | GET    | Masa jalan CLI umum |
 
 Respons CLI merangkumi: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.
@@ -936,8 +941,8 @@ Respons CLI merangkumi: `installed`, `runnable`, `command`, `commandPath`, `runt
 | Titik Akhir       | Kaedah | Penerangan                                                                   |
 | ----------------- | ------ | ---------------------------------------------------------------------------- |
 | `/api/acp/agents` | GET    | Senaraikan semua ejen yang dikesan (terbina dalam + tersuai) berserta status |
-| `/api/acp/agents` | POST   | Tambah ejen tersuai atau segarkan semula cache pengesanan                    |
-| `/api/acp/agents` | DELETE | Alih keluar ejen tersuai menggunakan parameter pertanyaan `id`               |
+| `/api/acp/agents` | POST   | Tambah ejen tersuai atau segar semula cache pengesanan                       |
+| `/api/acp/agents` | DELETE | Alih keluar ejen tersuai mengikut parameter pertanyaan `id`                  |
 
 Respons GET merangkumi `agents[]` (id, name, binary, version, installed, protocol, isCustom) dan `summary` (total, installed, notFound, builtIn, custom).
 
@@ -947,18 +952,18 @@ Respons GET merangkumi `agents[]` (id, name, binary, version, installed, protoco
 | --------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------- |
 | `/api/resilience`                 | GET/PATCH | Dapatkan/kemas kini baris gilir permintaan, tempoh bertenang sambungan, pemutus penyedia dan tetapan menunggu |
 | `/api/resilience/reset`           | POST      | Tetapkan semula pemutus litar penyedia                                                                        |
-| `/api/resilience/model-cooldowns` | GET       | Senaraikan sekatan aktif bagi setiap (penyedia, sambungan, model), disusun mengikut baki masa                 |
-| `/api/resilience/model-cooldowns` | DELETE    | Kosongkan sekatan model — isi `{provider, model}` atau `{all: true}` untuk memadamkan semuanya                |
+| `/api/resilience/model-cooldowns` | GET       | Senaraikan penguncian aktif bagi setiap (penyedia, sambungan, model), diisih mengikut baki masa               |
+| `/api/resilience/model-cooldowns` | DELETE    | Kosongkan penguncian model — isi `{provider, model}` atau `{all: true}` untuk mengosongkan semuanya           |
 | `/api/rate-limits`                | GET       | Status had kadar bagi setiap akaun                                                                            |
 | `/api/rate-limit`                 | GET       | Konfigurasi had kadar global                                                                                  |
 
-> Keempat-empat laluan `/api/resilience/*` memerlukan **pengesahan pengurusan** (`requireManagementAuth`). Lihat [Ketahanan (lanjutan)](#resilience-extended) untuk huraian penuh tentang pemutus penyedia berbanding tempoh bertenang sambungan berbanding sekatan model.
+> Keempat-empat laluan `/api/resilience/*` memerlukan **pengesahan pengurusan** (`requireManagementAuth`). Lihat [Ketahanan (lanjutan)](#resilience-extended) untuk pecahan penuh tentang pemutus penyedia berbanding tempoh bertenang sambungan berbanding penguncian model.
 
 ### Penilaian
 
-| Titik Akhir  | Kaedah   | Penerangan                                     |
-| ------------ | -------- | ---------------------------------------------- |
-| `/api/evals` | GET/POST | Senaraikan suit penilaian / jalankan penilaian |
+| Titik Akhir  | Kaedah   | Penerangan                                    |
+| ------------ | -------- | --------------------------------------------- |
+| `/api/evals` | GET/POST | Senaraikan set penilaian / jalankan penilaian |
 
 ### Dasar
 
@@ -977,19 +982,19 @@ Respons GET merangkumi `agents[]` (id, name, binary, version, installed, protoco
 | Titik Akhir                | Kaedah | Penerangan                           |
 | -------------------------- | ------ | ------------------------------------ |
 | `/v1beta/models`           | GET    | Senaraikan model dalam format Gemini |
-| `/v1beta/models/{...path}` | POST   | Titik akhir `generateContent` Gemini |
+| `/v1beta/models/{...path}` | POST   | Titik akhir Gemini `generateContent` |
 
-Titik akhir ini mencerminkan format API Gemini untuk klien yang memerlukan keserasian SDK Gemini natif.
+Titik akhir ini mencerminkan format API Gemini untuk klien yang memerlukan keserasian SDK Gemini asli.
 
 ### API Dalaman / Sistem
 
-| Titik akhir              | Kaedah | Penerangan                                                      |
-| ------------------------ | ------ | --------------------------------------------------------------- |
-| `/api/init`              | GET    | Semakan permulaan aplikasi (digunakan pada pelaksanaan pertama) |
-| `/api/tags`              | GET    | Tag model yang serasi dengan Ollama (untuk klien Ollama)        |
-| `/api/restart`           | POST   | Cetuskan mula semula pelayan secara tertib                      |
-| `/api/shutdown`          | POST   | Cetuskan penutupan pelayan secara tertib                        |
-| `/api/system/env/repair` | POST   | Baiki pemboleh ubah persekitaran penyedia OAuth                 |
+| Titik Akhir              | Kaedah | Penerangan                                                           |
+| ------------------------ | ------ | -------------------------------------------------------------------- |
+| `/api/init`              | GET    | Semakan pengawalan aplikasi (digunakan pada kali pertama dijalankan) |
+| `/api/tags`              | GET    | Tag model yang serasi dengan Ollama (untuk klien Ollama)             |
+| `/api/restart`           | POST   | Mencetuskan mula semula pelayan secara terkawal                      |
+| `/api/shutdown`          | POST   | Mencetuskan penutupan pelayan secara terkawal                        |
+| `/api/system/env/repair` | POST   | Membaiki pemboleh ubah persekitaran penyedia OAuth                   |
 
 > **Nota:** Titik akhir ini digunakan secara dalaman oleh sistem atau untuk keserasian klien Ollama. Titik akhir ini biasanya tidak dipanggil oleh pengguna akhir.
 
@@ -1429,22 +1434,24 @@ Mengembalikan kad ejen A2A awam (nama, penerangan, keupayaan, katalog kemahiran,
 
 ---
 
-## Awan, Penilaian & Pentaksiran
+## Awan, Eval & Penilaian
 
 | Kaedah | Laluan | Penerangan |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
 | POST | `/api/cloud/auth` | Sahkan kunci Bearer dan kembalikan sambungan penyedia yang disamarkan + alias model untuk klien penyegerakan awan |
 | POST | `/api/cloud/credentials/update` | Kemas kini kelayakan yang disulitkan untuk penyedia yang disegerakkan dengan awan |
-| POST | `/api/cloud/model/resolve` | Petakan ID model logik kepada penyedia/model konkrit menggunakan jadual penghalaan setempat |
+| POST | `/api/cloud/model/resolve` | Petakan id model logik kepada penyedia/model tertentu menggunakan jadual penghalaan setempat |
 | GET | `/api/cloud/models/alias` | Senaraikan alias model seperti yang didedahkan kepada penyegerakan awan |
-| GET | `/api/assess` | Baca pengkategorian pentaksiran terkini (mengikut penyedia/model) |
-| POST | `/api/assess` | Jalankan pentaksiran — isi: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | Senaraikan suit penilaian terbina dalam + pelaksanaan terkini |
-| POST | `/api/evals` | Cetuskan pelaksanaan penilaian |
-| POST | `/api/evals/suites` | Cipta suit penilaian tersuai — isi disahkan oleh `evalSuiteSaveSchema` |
-| GET | `/api/evals/suites/[id]` | Dapatkan suit penilaian tersuai |
+| GET | `/api/assess` | Baca pengkategorian penilaian terkini (bagi setiap penyedia/model) |
+| POST | `/api/assess` | Jalankan penilaian — badan: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| GET | `/api/evals` | Senaraikan suit eval terbina dalam + pelaksanaan terkini |
+| POST | `/api/evals` | Cetuskan pelaksanaan eval |
+| POST | `/api/evals/suites` | Cipta suit eval tersuai — badan disahkan oleh `evalSuiteSaveSchema` |
+| GET | `/api/evals/suites/[id]` | Dapatkan suit eval tersuai |
 
-**Pengesahan:** `/api/cloud/auth` mengesahkan kunci Bearer secara langsung; laluan `/api/cloud/*`, `/api/evals/*`, dan `/api/assess` yang lain memerlukan sesi pengurusan/kunci API. POST `/api/assess` menggunakan `validateBody` dengan skema skop kesatuan berbeza.
+**Pengesahan:** `/api/cloud/auth` mengesahkan kunci Bearer secara langsung dan mengembalikan kunci yang disamarkan serta `projectId` bagi setiap sambungan hanya untuk kunci dengan skop `manage` / `admin`; laluan `/api/cloud/*`, `/api/evals/*` dan `/api/assess` yang lain memerlukan sesi pengurusan/kunci API. POST `/api/assess` menggunakan `validateBody` dengan skema skop kesatuan berpenghurai.
+
+---
 
 ## Pengurusan ACP (Agent Client Protocol)
 

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { getCachedProviderConnectionById } from "@/lib/db/readCache";
-import { updateProviderConnection } from "@/lib/db/providers";
+import { getProviderConnectionById, updateProviderConnection } from "@/lib/db/providers";
 import { isCloudEnabled, resolveProxyForConnection } from "@/lib/db/settings";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
@@ -31,7 +31,7 @@ import { recoverKeyHealth } from "@omniroute/open-sse/services/apiKeyRotator.ts"
 import { lockModelIfPerModelQuota } from "@omniroute/open-sse/services/accountFallback.ts";
 import { shouldClearErrorStateOnValidProbe } from "@/lib/usage/providerLimits";
 import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLeaseIsolation";
-import { buildApiKeyConnectionTestResult } from "./apiKeyTestResult";
+import * as apiKeyTestResult from "./apiKeyTestResult";
 import { classifyOAuthProbeInconclusive, OAUTH_TEST_CONFIG } from "./oauthTestConfig";
 import { isGeoBlockedError } from "@omniroute/open-sse/services/errorClassifier.ts";
 import * as retirement from "@/lib/providers/chatgptWebRetirementResponse";
@@ -49,6 +49,8 @@ export { classifyFailure, projectProviderRuntimeForPublicResponse } from "./publ
 const OAUTH_TEST_TIMEOUT_MS = 30_000;
 
 import { CLI_RUNTIME_PROVIDER_MAP } from "./cliRuntimeProviderMap";
+import { isOperatorDisabled } from "@/lib/providers/operatorDisable";
+import { getRequestPeerLocality } from "@/shared/utils/apiAuth";
 
 /** POST body is optional; when present, only known fields are validated. */
 const providerConnectionTestBodySchema = z.object({
@@ -68,7 +70,27 @@ function hasQoderToken(connection: any): boolean {
   return false;
 }
 
-async function getProviderRuntimeStatus(connection: any) {
+// GHSA-jmq6-8j86-8xqj: getCliRuntimeStatus() spawns on the host (LOCAL_ONLY capability),
+// but these routes stay remote-reachable — only loopback/LAN callers and the scheduler probe.
+export type ConnectionTestOptions = {
+  allowLocalRuntimeProbe?: boolean;
+  /**
+   * S-01 (#15159): whether a provider validator reached from this test may spawn a
+   * local child process (currently only the devin cloud-agent CLI fallback). These
+   * routes stay remote-reachable for legitimate dashboard use, so the spawn is gated
+   * here at its call site on the trusted peer-locality header — the same shape as
+   * allowLocalRuntimeProbe above. Defaults to permissive for the internal scheduler.
+   */
+  allowLocalSpawn?: boolean;
+};
+
+export async function getProviderRuntimeStatus(
+  connection: any,
+  {
+    allowLocalRuntimeProbe = true,
+    probe = getCliRuntimeStatus,
+  }: ConnectionTestOptions & { probe?: typeof getCliRuntimeStatus } = {}
+) {
   const provider = typeof connection?.provider === "string" ? connection.provider : "";
   let toolId = CLI_RUNTIME_PROVIDER_MAP[provider];
 
@@ -95,9 +117,10 @@ async function getProviderRuntimeStatus(connection: any) {
     toolId = null;
   }
   if (!toolId) return null;
+  if (!allowLocalRuntimeProbe) return null;
 
   try {
-    const runtime = await getCliRuntimeStatus(toolId);
+    const runtime = await probe(toolId);
     if (runtime.installed && runtime.runnable) {
       return runtime;
     }
@@ -881,7 +904,7 @@ export async function testOAuthConnection(
 /**
  * Test API key connection
  */
-async function testApiKeyConnection(connection: any) {
+async function testApiKeyConnection(connection: any, allowLocalSpawn = true) {
   const requiresApiKey = !providerAllowsOptionalApiKey(connection.provider);
   if (requiresApiKey && !connection.apiKey) {
     const error = "Missing API key";
@@ -897,6 +920,7 @@ async function testApiKeyConnection(connection: any) {
       provider: connection.provider,
       apiKey: connection.apiKey,
       providerSpecificData: connection.providerSpecificData,
+      allowLocalSpawn,
     })
   );
 
@@ -915,7 +939,7 @@ async function testApiKeyConnection(connection: any) {
     ? makeDiagnosis("ok", "upstream", null, null)
     : classifyFailure({ error, statusCode: result.statusCode, provider: connection.provider });
 
-  return buildApiKeyConnectionTestResult(result, error, diagnosis);
+  return apiKeyTestResult.buildApiKeyConnectionTestResult(result, error, diagnosis);
 }
 
 /**
@@ -924,7 +948,11 @@ async function testApiKeyConnection(connection: any) {
  * @param {string} validationModelId Optional custom model ID to test connection with
  * @returns {Promise<object>} Test result (same shape as the JSON response)
  */
-export async function testSingleConnection(connectionId: string, validationModelId?: string) {
+export async function testSingleConnection(
+  connectionId: string,
+  validationModelId?: string,
+  options: ConnectionTestOptions = {}
+) {
   const connection = await getCachedProviderConnectionById(connectionId);
 
   if (!connection) {
@@ -970,7 +998,7 @@ export async function testSingleConnection(connectionId: string, validationModel
 
   let result;
   const startTime = Date.now();
-  const runtime = await getProviderRuntimeStatus(connection);
+  const runtime = await getProviderRuntimeStatus(connection, options);
 
   // Codex app-server connections carry no validatable OpenAI token (the codex
   // app-server process self-manages its own OAuth). Probe the app-server's
@@ -1001,7 +1029,7 @@ export async function testSingleConnection(connectionId: string, validationModel
         }
       : connection;
     result = await runWithProxyContext(proxyInfo?.proxy || null, () =>
-      testApiKeyConnection(enrichedConnection)
+      testApiKeyConnection(enrichedConnection, options.allowLocalSpawn ?? true)
     );
   } else {
     result = await runWithProxyContext(proxyInfo?.proxy || null, () =>
@@ -1028,16 +1056,19 @@ export async function testSingleConnection(connectionId: string, validationModel
     lockModelIfPerModelQuota(provider, connectionId, probedModelId, "credits", 60 * 60 * 1000);
   }
 
-  // Unsupported validation capability is neutral: the probe established that
-  // this provider cannot be verified through the generic test surface, not
-  // that its credential is invalid. Do not mutate persisted credential health
-  // (testStatus/lastError/etc.) — but DO activate it if it isn't already: a
-  // connection that can never be health-checked would otherwise stay hidden
-  // from /v1/models forever under the "only advertise tested connections"
-  // default (isActive starts false on creation — see POST /api/providers),
-  // silently regressing every provider without a test surface.
+  // Activation/PSD writes use the row as it is NOW (uncached): an operator may have switched the
+  // connection off during the probe, and the pre-probe snapshot would switch it back on.
+  const latest = ((await getProviderConnectionById(connectionId)) ??
+    connection) as typeof connection;
+  const operatorDisabled = isOperatorDisabled(latest);
+
+  // Unsupported validation capability is neutral: the provider cannot be verified through the
+  // generic test surface, which says nothing about its credential. Do not mutate persisted
+  // credential health (testStatus/lastError/etc.) — but DO activate it if it isn't already: under
+  // the "only advertise tested connections" default (connections start isActive:false, see
+  // POST /api/providers) it would stay hidden from /v1/models forever. Operator-disabled stays off.
   if (result.skipped === true) {
-    if (connection.isActive !== true) {
+    if (latest.isActive !== true && !operatorDisabled) {
       try {
         await updateProviderConnection(connectionId, { isActive: true });
       } catch (activateError) {
@@ -1091,14 +1122,12 @@ export async function testSingleConnection(connectionId: string, validationModel
 
   const updateData: Record<string, any> = {
     testStatus: clearErrorState ? "active" : result.valid ? connection.testStatus : "error",
-    // A passing test is the sole activation signal under the "only advertise
-    // tested-working connections" default — see POST /api/providers, which
-    // now creates connections isActive:false. Only ever flips ON here: a
-    // failing test intentionally leaves isActive untouched (a transient
-    // failure on an already-active, already-working connection must not take
-    // it out of rotation — that's what the cooldown/rateLimitedUntil below is
-    // for), so this never deactivates anything.
-    ...(result.valid ? { isActive: true } : {}),
+    // A passing test is the sole activation signal under the "only advertise tested-working
+    // connections" default (POST /api/providers creates connections isActive:false). Only ever
+    // flips ON: a failing test leaves isActive untouched (a transient failure must not take a
+    // working connection out of rotation — the cooldown/rateLimitedUntil below handles that), so
+    // this never deactivates anything, nor re-enables an operator-disabled one.
+    ...(result.valid && !operatorDisabled ? { isActive: true } : {}),
     lastError: clearErrorState ? null : result.valid ? connection.lastError : result.error,
     lastErrorAt: clearErrorState ? null : result.valid ? connection.lastErrorAt : now,
     lastTested: now,
@@ -1127,10 +1156,10 @@ export async function testSingleConnection(connectionId: string, validationModel
   }
 
   if (result.valid && (connection.apiKey || connection.accessToken)) {
-    const recovered = recoverKeyHealth(connectionId, "primary", connection.providerSpecificData);
+    const recovered = recoverKeyHealth(connectionId, "primary", latest.providerSpecificData);
     if (recovered) updateData.providerSpecificData = recovered;
   }
-
+  apiKeyTestResult.applyDetectedControlUpdate(updateData, latest.providerSpecificData, result);
   if (result.refreshed && result.newTokens) {
     updateData.accessToken = result.newTokens.accessToken;
     if (result.newTokens.refreshToken) {
@@ -1215,7 +1244,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     }
     const { validationModelId } = validation.data;
 
-    const data = await testSingleConnection(id, validationModelId);
+    const data = await testSingleConnection(id, validationModelId, {
+      allowLocalRuntimeProbe: getRequestPeerLocality(request) !== "remote",
+      allowLocalSpawn: getRequestPeerLocality(request) !== "remote",
+    });
 
     if (data.error === "Connection not found") {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });

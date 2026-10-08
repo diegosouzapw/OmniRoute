@@ -856,7 +856,11 @@ test("sanitizeReasoningEffortForProvider: command-code preserves nested literal 
   assert.equal(result.reasoning?.effort, "max");
 });
 
-test("sanitizeReasoningEffortForProvider: command-code maps normalized xhigh back to max", () => {
+test("sanitizeReasoningEffortForProvider: command-code preserves native xhigh on every carrier", () => {
+  // Command Code's own validator advertises `low|medium|high|xhigh|max`, so
+  // `xhigh` is a native and distinct tier there. It must survive on both the
+  // top-level `reasoning_effort` and the nested `reasoning.effort` that the
+  // Responses path reads.
   const body = { reasoning_effort: "xhigh", reasoning: { effort: "xhigh" } };
   const result = sanitizeReasoningEffortForProvider(
     body,
@@ -864,8 +868,42 @@ test("sanitizeReasoningEffortForProvider: command-code maps normalized xhigh bac
     "gpt-5.6-luna",
     null
   ) as EffortCarrierResult;
+  assert.equal(result.reasoning_effort, "xhigh");
+  assert.equal(result.reasoning?.effort, "xhigh");
+});
+
+test("sanitizeReasoningEffortForProvider: command-code still passes literal max through", () => {
+  const result = sanitizeReasoningEffortForProvider(
+    { reasoning_effort: "max" },
+    "command-code",
+    "gpt-5.6-luna",
+    null
+  ) as EffortCarrierResult;
   assert.equal(result.reasoning_effort, "max");
-  assert.equal(result.reasoning?.effort, "max");
+});
+
+test("sanitizeReasoningEffortForProvider: max-tier model families still map xhigh to max on command-code", () => {
+  // The provider-wide rule is gone; the MODEL-level ceiling is not. Those
+  // families genuinely top out at `max` in their native API.
+  for (const model of ["z-ai/glm-5.3-flash", "deepseek/deepseek-v4-flash", "kimi-k3"]) {
+    const result = sanitizeReasoningEffortForProvider(
+      { reasoning_effort: "xhigh" },
+      "command-code",
+      model,
+      null
+    ) as EffortCarrierResult;
+    assert.equal(result.reasoning_effort, "max", `${model} keeps its max ceiling`);
+  }
+});
+
+test("sanitizeReasoningEffortForProvider: ollama-cloud still maps xhigh to max", () => {
+  const result = sanitizeReasoningEffortForProvider(
+    { reasoning_effort: "xhigh" },
+    "ollama-cloud",
+    "llama-4-scout",
+    null
+  ) as EffortCarrierResult;
+  assert.equal(result.reasoning_effort, "max");
 });
 
 test("sanitizeReasoningEffortForProvider: command-code maps unsupported minimal to low", () => {
@@ -887,13 +925,15 @@ test("sanitizeReasoningEffortForProvider: command-code maps unsupported minimal 
 
 test("sanitizeReasoningEffortForProvider: opencode-go with non-DeepSeek model passes max through (new default)", () => {
   // opencode-go non-DeepSeek models are not explicitly flagged as rejecting max,
-  // so max passes through unchanged under the new default.
+  // so max passes through unchanged under the new default. MiMo V2.5/V2.6 are
+  // the exception (high ceiling) and are covered separately — this fixture is
+  // kimi-k2.6, which the Go registry does not declare a lower ceiling for.
   const body = {
-    model: "mimo-v2.5-pro",
+    model: "kimi-k2.6",
     reasoning_effort: "max",
     messages: [],
   };
-  const result = sanitizeReasoningEffortForProvider(body, "opencode-go", "mimo-v2.5-pro", null);
+  const result = sanitizeReasoningEffortForProvider(body, "opencode-go", "kimi-k2.6", null);
   assert.equal(result, body, "max passes through unchanged");
   assert.equal((result as Record<string, unknown>).reasoning_effort, "max");
 });

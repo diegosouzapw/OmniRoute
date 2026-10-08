@@ -1,6 +1,6 @@
 # Contributing to OmniRoute (Ελληνικά)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CONTRIBUTING.md) · 🇪🇹 [am](../am/CONTRIBUTING.md) · 🇸🇦 [ar](../ar/CONTRIBUTING.md) · 🇦🇿 [az](../az/CONTRIBUTING.md) · 🇧🇬 [bg](../bg/CONTRIBUTING.md) · 🇧🇩 [bn](../bn/CONTRIBUTING.md) · 🇨🇿 [cs](../cs/CONTRIBUTING.md) · 🇩🇰 [da](../da/CONTRIBUTING.md) · 🇩🇪 [de](../de/CONTRIBUTING.md) · 🇪🇸 [es](../es/CONTRIBUTING.md) · 🇪🇪 [et](../et/CONTRIBUTING.md) · 🇮🇷 [fa](../fa/CONTRIBUTING.md) · 🇫🇮 [fi](../fi/CONTRIBUTING.md) · 🇫🇷 [fr](../fr/CONTRIBUTING.md) · 🇮🇪 [ga](../ga/CONTRIBUTING.md) · 🇮🇳 [gu](../gu/CONTRIBUTING.md) · 🇳🇬 [ha](../ha/CONTRIBUTING.md) · 🇮🇱 [he](../he/CONTRIBUTING.md) · 🇮🇳 [hi](../hi/CONTRIBUTING.md) · 🇭🇷 [hr](../hr/CONTRIBUTING.md) · 🇭🇺 [hu](../hu/CONTRIBUTING.md) · 🇦🇲 [hy](../hy/CONTRIBUTING.md) · 🇮🇩 [id](../id/CONTRIBUTING.md) · 🇳🇬 [ig](../ig/CONTRIBUTING.md) · 🇮🇹 [it](../it/CONTRIBUTING.md) · 🇯🇵 [ja](../ja/CONTRIBUTING.md) · 🇬🇪 [ka](../ka/CONTRIBUTING.md) · 🇰🇭 [km](../km/CONTRIBUTING.md) · 🇮🇳 [kn](../kn/CONTRIBUTING.md) · 🇰🇷 [ko](../ko/CONTRIBUTING.md) · 🇱🇹 [lt](../lt/CONTRIBUTING.md) · 🇱🇻 [lv](../lv/CONTRIBUTING.md) · 🇮🇳 [ml](../ml/CONTRIBUTING.md) · 🇮🇳 [mr](../mr/CONTRIBUTING.md) · 🇲🇾 [ms](../ms/CONTRIBUTING.md) · 🇲🇹 [mt](../mt/CONTRIBUTING.md) · 🇲🇲 [my](../my/CONTRIBUTING.md) · 🇳🇵 [ne](../ne/CONTRIBUTING.md) · 🇳🇱 [nl](../nl/CONTRIBUTING.md) · 🇳🇴 [no](../no/CONTRIBUTING.md) · 🇮🇳 [or](../or/CONTRIBUTING.md) · 🇮🇳 [pa](../pa/CONTRIBUTING.md) · 🇵🇭 [phi](../phi/CONTRIBUTING.md) · 🇵🇱 [pl](../pl/CONTRIBUTING.md) · 🇵🇹 [pt](../pt/CONTRIBUTING.md) · 🇧🇷 [pt-BR](../pt-BR/CONTRIBUTING.md) · 🇷🇴 [ro](../ro/CONTRIBUTING.md) · 🇷🇺 [ru](../ru/CONTRIBUTING.md) · 🇱🇰 [si](../si/CONTRIBUTING.md) · 🇸🇰 [sk](../sk/CONTRIBUTING.md) · 🇸🇮 [sl](../sl/CONTRIBUTING.md) · 🇷🇸 [sr](../sr/CONTRIBUTING.md) · 🇸🇪 [sv](../sv/CONTRIBUTING.md) · 🇰🇪 [sw](../sw/CONTRIBUTING.md) · 🇮🇳 [ta](../ta/CONTRIBUTING.md) · 🇮🇳 [te](../te/CONTRIBUTING.md) · 🇹🇭 [th](../th/CONTRIBUTING.md) · 🇹🇷 [tr](../tr/CONTRIBUTING.md) · 🇺🇦 [uk-UA](../uk-UA/CONTRIBUTING.md) · 🇵🇰 [ur](../ur/CONTRIBUTING.md) · 🇺🇿 [uz](../uz/CONTRIBUTING.md) · 🇻🇳 [vi](../vi/CONTRIBUTING.md) · 🇳🇬 [yo](../yo/CONTRIBUTING.md) · 🇨🇳 [zh-CN](../zh-CN/CONTRIBUTING.md) · 🇹🇼 [zh-TW](../zh-TW/CONTRIBUTING.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CONTRIBUTING.md) · 🇪🇹 [am](../am/CONTRIBUTING.md) · 🇸🇦 [ar](../ar/CONTRIBUTING.md) · 🇦🇿 [az](../az/CONTRIBUTING.md) · 🇧🇬 [bg](../bg/CONTRIBUTING.md) · 🇧🇩 [bn](../bn/CONTRIBUTING.md) · 🇧🇦 [bs](../bs/CONTRIBUTING.md) · 🇨🇿 [cs](../cs/CONTRIBUTING.md) · 🇩🇰 [da](../da/CONTRIBUTING.md) · 🇩🇪 [de](../de/CONTRIBUTING.md) · 🇪🇸 [es](../es/CONTRIBUTING.md) · 🇪🇪 [et](../et/CONTRIBUTING.md) · 🇮🇷 [fa](../fa/CONTRIBUTING.md) · 🇫🇮 [fi](../fi/CONTRIBUTING.md) · 🇫🇷 [fr](../fr/CONTRIBUTING.md) · 🇮🇪 [ga](../ga/CONTRIBUTING.md) · 🇮🇳 [gu](../gu/CONTRIBUTING.md) · 🇳🇬 [ha](../ha/CONTRIBUTING.md) · 🇮🇱 [he](../he/CONTRIBUTING.md) · 🇮🇳 [hi](../hi/CONTRIBUTING.md) · 🇭🇷 [hr](../hr/CONTRIBUTING.md) · 🇭🇺 [hu](../hu/CONTRIBUTING.md) · 🇦🇲 [hy](../hy/CONTRIBUTING.md) · 🇮🇩 [id](../id/CONTRIBUTING.md) · 🇳🇬 [ig](../ig/CONTRIBUTING.md) · 🇮🇹 [it](../it/CONTRIBUTING.md) · 🇯🇵 [ja](../ja/CONTRIBUTING.md) · 🇬🇪 [ka](../ka/CONTRIBUTING.md) · 🇰🇭 [km](../km/CONTRIBUTING.md) · 🇮🇳 [kn](../kn/CONTRIBUTING.md) · 🇰🇷 [ko](../ko/CONTRIBUTING.md) · 🇱🇹 [lt](../lt/CONTRIBUTING.md) · 🇱🇻 [lv](../lv/CONTRIBUTING.md) · 🇮🇳 [ml](../ml/CONTRIBUTING.md) · 🇮🇳 [mr](../mr/CONTRIBUTING.md) · 🇲🇾 [ms](../ms/CONTRIBUTING.md) · 🇲🇹 [mt](../mt/CONTRIBUTING.md) · 🇲🇲 [my](../my/CONTRIBUTING.md) · 🇳🇵 [ne](../ne/CONTRIBUTING.md) · 🇳🇱 [nl](../nl/CONTRIBUTING.md) · 🇳🇴 [no](../no/CONTRIBUTING.md) · 🇮🇳 [or](../or/CONTRIBUTING.md) · 🇮🇳 [pa](../pa/CONTRIBUTING.md) · 🇵🇭 [phi](../phi/CONTRIBUTING.md) · 🇵🇱 [pl](../pl/CONTRIBUTING.md) · 🇵🇹 [pt](../pt/CONTRIBUTING.md) · 🇧🇷 [pt-BR](../pt-BR/CONTRIBUTING.md) · 🇷🇴 [ro](../ro/CONTRIBUTING.md) · 🇷🇺 [ru](../ru/CONTRIBUTING.md) · 🇱🇰 [si](../si/CONTRIBUTING.md) · 🇸🇰 [sk](../sk/CONTRIBUTING.md) · 🇸🇮 [sl](../sl/CONTRIBUTING.md) · 🇷🇸 [sr](../sr/CONTRIBUTING.md) · 🇸🇪 [sv](../sv/CONTRIBUTING.md) · 🇰🇪 [sw](../sw/CONTRIBUTING.md) · 🇮🇳 [ta](../ta/CONTRIBUTING.md) · 🇮🇳 [te](../te/CONTRIBUTING.md) · 🇹🇭 [th](../th/CONTRIBUTING.md) · 🇹🇷 [tr](../tr/CONTRIBUTING.md) · 🇺🇦 [uk-UA](../uk-UA/CONTRIBUTING.md) · 🇵🇰 [ur](../ur/CONTRIBUTING.md) · 🇺🇿 [uz](../uz/CONTRIBUTING.md) · 🇻🇳 [vi](../vi/CONTRIBUTING.md) · 🇳🇬 [yo](../yo/CONTRIBUTING.md) · 🇨🇳 [zh-CN](../zh-CN/CONTRIBUTING.md) · 🇹🇼 [zh-TW](../zh-TW/CONTRIBUTING.md)
 
 ---
 
@@ -392,22 +392,24 @@ docs/
 
 ---
 
-## Λίστα Ελέγχου Pull Request
+## Λίστα ελέγχου Pull Request
 
-- [ ] Τα tests περνούν (`npm test`)
-- [ ] Το linting περνά (`npm run lint`)
+- [ ] Οι δοκιμές ολοκληρώνονται επιτυχώς (`npm test`)
+- [ ] Ο έλεγχος lint ολοκληρώνεται επιτυχώς (`npm run lint`)
 - [ ] Το build ολοκληρώνεται επιτυχώς (`npm run build`)
-- [ ] Προστέθηκαν TypeScript types για νέες δημόσιες συναρτήσεις και interfaces
-- [ ] Δεν υπάρχουν hardcoded secrets ή fallback τιμές
-- [ ] Τα δημόσια upstream διαπιστευτήρια ενσωματώνονται μέσω `resolvePublicCred()` (δείτε [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), ποτέ ως literals
-- [ ] Οι αποκρίσεις σφαλμάτων δρομολογούνται μέσω `buildErrorBody()` / `sanitizeErrorMessage()` — χωρίς raw stack traces στα σώματα απόκρισης (δείτε [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Οι εντολές shell (`exec` / `spawn`) μεταβιβάζουν τιμές runtime μέσω `env`, όχι μέσω string interpolation
-- [ ] Όλες οι εισόδοι επικυρώνονται με Zod schemas
-- [ ] Προστέθηκε **fragment** Changelog στο `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` για αλλαγές που επηρεάζουν τον χρήστη (δείτε [`changelog.d/README.md`](./changelog.d/README.md)) — **μην** επεξεργάζεστε απευθείας το `CHANGELOG.md`· τα fragments συγκεντρώνονται κατά την έκδοση και δεν δημιουργούν ποτέ συγκρούσεις μεταξύ PRs
-- [ ] Η τεκμηρίωση ενημερώθηκε (εάν απαιτείται)
-- [ ] Δεν ανοίχτηκαν νέες ειδοποιήσεις CodeQL / Secret-Scanning, ή κάθε μία απορρίφθηκε με τεχνική αιτιολόγηση που παραπέμπει στο σχετικό έγγραφο `docs/security/`
-- [ ] Τα routes που εκκινούν child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) ταξινομούνται ως `isLocalOnlyPath()` στο `src/server/authz/routeGuard.ts` — δείτε [Κανόνα #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Δεν υπάρχουν trailers `Co-Authored-By` στα μηνύματα commit — τα commits πρέπει να εμφανίζονται αποκλειστικά υπό την Git ταυτότητα του ιδιοκτήτη του αποθετηρίου (Κανόνας #16)
+- [ ] Προστέθηκαν τύποι TypeScript για νέες δημόσιες συναρτήσεις και διεπαφές
+- [ ] Δεν υπάρχουν hardcoded μυστικά ή εφεδρικές τιμές
+- [ ] Τα δημόσια διαπιστευτήρια upstream ενσωματώνονται μέσω `resolvePublicCred()` (βλ. [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)) και ποτέ ως literals
+- [ ] Οι αποκρίσεις σφαλμάτων δρομολογούνται μέσω `buildErrorBody()` / `sanitizeErrorMessage()` — δεν υπάρχουν ανεπεξέργαστα stack traces στα σώματα αποκρίσεων (βλ. [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Οι εντολές shell (`exec` / `spawn`) μεταβιβάζουν τις τιμές χρόνου εκτέλεσης μέσω `env` και όχι μέσω παρεμβολής συμβολοσειρών
+- [ ] Όλες οι είσοδοι επικυρώνονται με σχήματα Zod
+- [ ] Προστέθηκε **τμήμα** changelog στον κατάλογο `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` για αλλαγές που επηρεάζουν τους χρήστες (βλ. [`changelog.d/README.md`](./changelog.d/README.md)) — **μην** επεξεργάζεστε απευθείας το `CHANGELOG.md`· τα τμήματα συγκεντρώνονται κατά την έκδοση και δεν δημιουργούν ποτέ διενέξεις μεταξύ PR
+- [ ] Η τεκμηρίωση ενημερώθηκε (εφόσον απαιτείται)
+- [ ] Δεν δημιουργήθηκαν νέες ειδοποιήσεις CodeQL / Secret-Scanning ή καθεμία απορρίφθηκε με τεχνική αιτιολόγηση που παραπέμπει στο σχετικό έγγραφο του `docs/security/`
+- [ ] Οι διαδρομές που εκκινούν θυγατρικές διεργασίες (`/api/mcp/`, `/api/cli-tools/runtime/`) ταξινομούνται ως `isLocalOnlyPath()` στο `src/server/authz/routeGuard.ts` — βλ. [Αυστηρός κανόνας #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Δεν υπάρχουν trailers `Co-authored-by` από AI/bot στα μηνύματα commit (Αυστηρός κανόνας #16) — οι άνθρωποι συνεργάτες των οποίων η εργασία επαναχρησιμοποιείται αναφέρονται με τα τυπικά trailers `Co-authored-by: Name <email>`
+
+---
 
 ## Κυκλοφορία Εκδόσεων
 
@@ -419,11 +421,10 @@ docs/
 
 ---
 
-## Λήψη Βοήθειας
+## Λήψη βοήθειας
 
-- **Αρχιτεκτονική**: Δείτε [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **Αναφορά API**: Δείτε [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **Έγγραφα ασφαλείας**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Έγγραφα λειτουργίας**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Αρχιτεκτονική**: Δείτε το [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- **Αναφορά API**: Δείτε το [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **Τεκμηρίωση ασφαλείας**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **Τεκμηρίωση λειτουργίας**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Ζητήματα**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: Δείτε τον φάκελο `docs/adr/` για αρχεία αποφάσεων αρχιτεκτονικής

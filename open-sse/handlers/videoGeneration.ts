@@ -19,6 +19,7 @@ import { handleXaiVideoGeneration } from "./videoGeneration/xaiGrokImagineHandle
 import { handleSegmindVideoGeneration } from "./videoGeneration/providers/segmind.ts";
 import { handleUcVideoGeneration } from "./videoGeneration/providers/ucVideo.ts";
 import { handleAdobeFireflyVideoGeneration } from "./videoGeneration/adobeFireflyHandler.ts";
+import { handleSyntxVideoGeneration } from "./videoGeneration/syntxHandler.ts";
 import { handleOpenAIVideoGeneration } from "./videoGeneration/openai.ts";
 import { getVideoJobPreset, handleVideoJobGeneration } from "./videoGeneration/job.ts";
 import {
@@ -61,7 +62,8 @@ import { handleFalVideoGeneration } from "./mediaGeneration/fal.ts";
 export function resolveVideoBaseUrl(
   credentials:
     { baseUrl?: unknown; providerSpecificData?: { baseUrl?: unknown } | null } | null | undefined,
-  fallback: string
+  fallback: string,
+  failClosed = false
 ): string {
   const psd = credentials?.providerSpecificData;
   const psdBaseUrl =
@@ -74,7 +76,7 @@ export function resolveVideoBaseUrl(
       : null;
   const nodeBaseUrl = psdBaseUrl || topLevelBaseUrl;
 
-  if (!nodeBaseUrl) return fallback;
+  if (!nodeBaseUrl) return failClosed ? "" : fallback;
 
   // Trim trailing slashes
   let normalized = nodeBaseUrl;
@@ -116,6 +118,20 @@ async function getCustomModelVideoPreset(
   } catch {
     return null;
   }
+}
+
+function resolveVideoJobPollingOverrides(body: Record<string, unknown>): {
+  maxPolls?: number;
+  pollIntervalMs?: number;
+} {
+  const maxPolls = Number(body.max_polls);
+  const pollIntervalMs = Number(body.poll_interval_ms);
+  return {
+    ...(Number.isFinite(maxPolls) && maxPolls > 0 ? { maxPolls: Math.floor(maxPolls) } : {}),
+    ...(Number.isFinite(pollIntervalMs) && pollIntervalMs > 0
+      ? { pollIntervalMs: Math.floor(pollIntervalMs) }
+      : {}),
+  };
 }
 
 /**
@@ -172,20 +188,26 @@ export async function handleVideoGeneration({ body, credentials, log, resolvedPr
         body,
         credentials,
         log,
+        ...resolveVideoJobPollingOverrides(body),
       });
     }
     if (log)
       log.info("VIDEO", `Custom model ${provider}/${model} — using OpenAI-compatible handler`);
     const syntheticConfig = {
       id: provider,
-      baseUrl: resolveVideoBaseUrl(
-        credentials,
-        "http://generative.language.googleapis.com/v1beta/openai/videos/generations"
-      ),
+      baseUrl: resolveVideoBaseUrl(credentials, "", true),
       authType: "apikey",
       authHeader: "bearer",
       format: "openai-video",
     };
+    if (!syntheticConfig.baseUrl) {
+      return {
+        success: false,
+        status: 501,
+        error: `Video generation is not configured for custom provider: ${provider}`,
+      };
+    }
+
     return handleOpenAIVideoGeneration({
       model,
       body,
@@ -205,6 +227,7 @@ export async function handleVideoGeneration({ body, credentials, log, resolvedPr
       body,
       credentials,
       log,
+      ...resolveVideoJobPollingOverrides(body),
     });
   }
   if (providerConfig.format === "openai-video") {
@@ -313,6 +336,16 @@ export async function handleVideoGeneration({ body, credentials, log, resolvedPr
   }
   if (providerConfig.format === "adobe-firefly-video") {
     return handleAdobeFireflyVideoGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+  if (providerConfig.format === "syntx-video") {
+    return handleSyntxVideoGeneration({
       model,
       provider,
       providerConfig,

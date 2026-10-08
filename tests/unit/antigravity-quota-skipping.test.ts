@@ -114,7 +114,7 @@ test("isQuotaExhaustedForRequest scopes gemini exhaustion to the requested model
   quotaCache.setQuotaCache(connectionId, "antigravity", {
     "gemini-3.7-flash-medium": { remainingPercentage: 0, resetAt: null },
     "gemini-pro-agent": { remainingPercentage: 100, resetAt: null },
-    gemini_weekly: { remainingPercentage: 0, resetAt: null },
+    gemini_weekly: { remainingPercentage: 100, resetAt: null },
   });
 
   assert.equal(
@@ -137,7 +137,7 @@ test("isQuotaExhaustedForRequest scopes gemini exhaustion to the requested model
   );
 });
 
-test("isQuotaExhaustedForRequest keeps reported positive remaining available", () => {
+test("isQuotaExhaustedForRequest treats near-zero remaining as exhausted at default threshold", () => {
   const connectionId = "conn-near-zero-test";
   quotaCache.setQuotaCache(connectionId, "antigravity", {
     "gemini-3.7-flash-medium": { remainingPercentage: 0.00000167, resetAt: null },
@@ -149,28 +149,40 @@ test("isQuotaExhaustedForRequest keeps reported positive remaining available", (
       "antigravity",
       "antigravity/gemini-3.7-flash-medium"
     ),
-    false,
-    "positive quota is not exhaustion; explicit usage cutoffs are evaluated separately"
+    true,
+    "effectively-zero remaining should count as exhausted"
   );
 });
 
-test("isQuotaExhaustedForRequest does not skip Claude extra-usage connections", () => {
-  const connectionId = "conn-claude-extra-usage";
-  quotaCache.setQuotaCache(connectionId, "claude", {
-    "session (5h)": { remainingPercentage: 0, resetAt: null },
-  });
+test("Antigravity 429 exhaustion expires after the fixed TTL", () => {
+  quotaCache.__clearForTests();
+  const originalNow = Date.now;
+  let now = 1_000_000;
+  Date.now = () => now;
 
-  assert.equal(quotaCache.isQuotaExhaustedForRequest(connectionId, "claude"), true);
-  assert.equal(
-    quotaCache.isQuotaExhaustedForRequest(connectionId, "claude", null, { blockExtraUsage: true }),
-    true
-  );
-  assert.equal(
-    quotaCache.isQuotaExhaustedForRequest(connectionId, "claude", null, { blockExtraUsage: false }),
-    false
-  );
-  assert.equal(
-    quotaCache.isQuotaExhaustedForRequest(connectionId, "codex", null, { blockExtraUsage: false }),
-    true
-  );
+  try {
+    for (const [provider, model] of [
+      ["antigravity", "antigravity/claude-sonnet-4-6"],
+      ["agy", "agy/claude-sonnet-4-6"],
+    ] as const) {
+      const connectionId = `conn-${provider}-429-ttl`;
+      quotaCache.markAccountExhaustedFrom429(connectionId, provider);
+
+      assert.equal(
+        quotaCache.isQuotaExhaustedForRequest(connectionId, provider, model),
+        true,
+        `${provider} should be exhausted during the fixed TTL`
+      );
+
+      now += 5 * 60 * 1000 + 1;
+
+      assert.equal(
+        quotaCache.isQuotaExhaustedForRequest(connectionId, provider, model),
+        false,
+        `${provider} should recover after the fixed TTL`
+      );
+    }
+  } finally {
+    Date.now = originalNow;
+  }
 });

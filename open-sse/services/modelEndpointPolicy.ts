@@ -7,7 +7,8 @@
  * provider knowledge here so discovery, import, and catalog projection agree.
  */
 
-export type ModelEndpointKind = "chat" | "image" | "video" | "non-chat" | "unknown";
+export type ModelEndpointKind =
+  "chat" | "image" | "video" | "embedding" | "rerank" | "non-chat" | "unknown";
 
 export type ModelEndpointDecision = {
   kind: ModelEndpointKind;
@@ -27,6 +28,8 @@ const CHAT_ENDPOINTS = new Set([
   "messages",
   "responses",
 ]);
+const EMBEDDING_ENDPOINTS = new Set(["embeddings", "embedding"]);
+const RERANK_ENDPOINTS = new Set(["rerank", "reranking"]);
 const IMAGE_ENDPOINTS = new Set(["image", "images", "images/generations"]);
 const VIDEO_ENDPOINTS = new Set(["video", "videos", "videos/generations"]);
 
@@ -43,6 +46,12 @@ function classifyExplicitEndpoints(
   if (endpoints.some((endpoint) => CHAT_ENDPOINTS.has(endpoint))) {
     return { kind: "chat", chatSelectable: true, reason: "explicit-endpoints" };
   }
+  if (endpoints.some((endpoint) => EMBEDDING_ENDPOINTS.has(endpoint))) {
+    return { kind: "embedding", chatSelectable: false, reason: "explicit-endpoints" };
+  }
+  if (endpoints.some((endpoint) => RERANK_ENDPOINTS.has(endpoint))) {
+    return { kind: "rerank", chatSelectable: false, reason: "explicit-endpoints" };
+  }
   if (endpoints.some((endpoint) => IMAGE_ENDPOINTS.has(endpoint))) {
     return { kind: "image", chatSelectable: false, reason: "explicit-endpoints" };
   }
@@ -58,6 +67,9 @@ function normalizeOpenAiModelId(modelId: string): string {
 
 function classifyOpenAiModel(modelId: string): ModelEndpointDecision | null {
   const normalized = normalizeOpenAiModelId(modelId).toLowerCase();
+  if (normalized.startsWith("text-embedding-")) {
+    return { kind: "embedding", chatSelectable: false, reason: "provider-policy" };
+  }
   if (
     normalized.startsWith("gpt-image-") ||
     normalized.startsWith("dall-e-") ||
@@ -129,6 +141,20 @@ export function getModelEndpointDecision(
 
   if (explicit) return explicit;
   return { kind: "unknown", chatSelectable: true, reason: "unclassified" };
+}
+
+/**
+ * True when a model's own endpoint list names only non-chat endpoints
+ * (`["audio-speech"]`, `["images-generations"]`, …). Unlike
+ * `isChatSelectableModel`, provider id rules are not consulted, so a row stored
+ * with the synthetic `["chat"]` default is never reported as non-chat here.
+ */
+export function declaresOnlyNonChatEndpoints(supportedEndpoints: unknown): boolean {
+  if (!Array.isArray(supportedEndpoints)) return false;
+  const endpoints = supportedEndpoints.filter(
+    (endpoint): endpoint is string => typeof endpoint === "string"
+  );
+  return classifyExplicitEndpoints(endpoints)?.chatSelectable === false;
 }
 
 export function isChatSelectableModel(

@@ -114,10 +114,19 @@ test("contexts export --no-secrets leaves the token and API key out", async () =
   });
 });
 
-test("contexts export without --no-secrets keeps the full config", async () => {
-  await withDataDir("ctx-secrets-", async (dir) => {
+test("contexts export without flags omits credentials by default", async () => {
+  await withDataDir("ctx-default-secrets-", async (dir) => {
     const json = await exportContexts(dir, []);
+    assert.doesNotMatch(json, /oma_SECRET_TOKEN|sk-SECRET-KEY/);
+    assert.equal(JSON.parse(json).contexts.remote.baseUrl, "https://omniroute.example");
+  });
+});
+
+test("contexts export --include-secrets keeps the full config", async () => {
+  await withDataDir("ctx-secrets-", async (dir) => {
+    const json = await exportContexts(dir, ["--include-secrets"]);
     assert.match(json, /sk-SECRET-KEY/);
+    assert.match(json, /oma_SECRET_TOKEN/);
   });
 });
 

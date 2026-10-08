@@ -1,6 +1,7 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync, chmodSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { resolveDataDir } from "./data-dir.mjs";
+import { writePrivateFileAtomic } from "./private-file.mjs";
 
 const CONFIG_VERSION = 1;
 const KEYCHAIN_SERVICE = "omniroute-cli";
@@ -125,16 +126,43 @@ export function loadContexts() {
 }
 
 /**
+ * Load contexts for an explicit export operation.
+ *
+ * The persisted file intentionally contains only `credentialRef` for
+ * keychain-backed contexts. Secret-bearing exports therefore have to hydrate
+ * every referenced credential first. Fail closed when any reference cannot be
+ * resolved so `--include-secrets` never produces a silently incomplete backup.
+ */
+export async function loadContextsForExport({ includeSecrets = false } = {}) {
+  const cfg = readConfigFile();
+  if (!includeSecrets) return cfg;
+
+  await hydrateCredentialCache(cfg);
+  const out = JSON.parse(JSON.stringify(cfg));
+  const contexts = out.contexts || out.profiles || {};
+  const unresolved = [];
+  for (const [name, context] of Object.entries(contexts)) {
+    if (!context || typeof context !== "object" || !context.credentialRef) continue;
+    const credential = credentialForContext(context);
+    if (!credential) {
+      unresolved.push(name);
+      continue;
+    }
+    Object.assign(context, credential);
+  }
+  if (unresolved.length > 0) {
+    throw new Error(`Cannot include keychain credentials for context(s): ${unresolved.join(", ")}`);
+  }
+  return out;
+}
+
+/**
  * Synchronous compatibility writer. New credential-bearing code should use
  * `saveContextsSecure()` so tokens are moved to the OS keychain when possible.
  */
 export function saveContexts(cfg) {
   const path = configPath();
-  mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, JSON.stringify(cfg, null, 2));
-  try {
-    chmodSync(path, 0o600);
-  } catch {}
+  writePrivateFileAtomic(path, JSON.stringify(cfg, null, 2));
 }
 
 /** Stable keychain reference; the reference itself is safe to persist in JSON. */

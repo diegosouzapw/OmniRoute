@@ -16,9 +16,14 @@ const {
   matchesIPv4Cidr,
   matchesIPv6Cidr,
   isCloudflareIP,
+  isTrustedProxyPeer,
+  resolveClientIp,
+  CLIENT_IP_HEADER,
 } = peerStamp;
+const { isPrivateLanHost } = await import("../../../src/server/authz/routeGuard.ts");
 
 const ORIGINAL_STAMP_TOKEN = process.env.OMNIROUTE_PEER_STAMP_TOKEN;
+const ORIGINAL_TRUSTED_PROXIES = process.env.OMNIROUTE_TRUSTED_PROXIES;
 
 function makeReq(remoteAddress: string, headers: Record<string, string> = {}) {
   return {
@@ -36,11 +41,14 @@ function getViaProxy(req: ReturnType<typeof makeReq>) {
 }
 
 test.after(() => {
+  if (ORIGINAL_TRUSTED_PROXIES === undefined) delete process.env.OMNIROUTE_TRUSTED_PROXIES;
+  else process.env.OMNIROUTE_TRUSTED_PROXIES = ORIGINAL_TRUSTED_PROXIES;
   if (ORIGINAL_STAMP_TOKEN === undefined) delete process.env.OMNIROUTE_PEER_STAMP_TOKEN;
   else process.env.OMNIROUTE_PEER_STAMP_TOKEN = ORIGINAL_STAMP_TOKEN;
 });
 
 test.beforeEach(() => {
+  delete process.env.OMNIROUTE_TRUSTED_PROXIES;
   delete process.env.OMNIROUTE_PEER_STAMP_TOKEN;
   process.env.OMNIROUTE_PEER_STAMP_TOKEN = "stamp-tok";
 });
@@ -96,14 +104,32 @@ test("Cloudflare bypass guard: direct forger sending cf-connecting-ip keeps via-
   );
 });
 
-test("x-forwarded-for still wins via-proxy=1 even when cf-connecting-ip is forged", () => {
+test("x-forwarded-for from a public, non-proxy peer keeps via-proxy=0", () => {
+  // Anyone can write x-forwarded-for, so from a peer that is neither this host, a private
+  // network nor a Cloudflare edge it must not make the middleware trust the header over the peer.
   const req = makeReq("203.0.113.7", {
     "x-forwarded-for": "203.0.113.99",
+    "x-real-ip": "203.0.113.99",
     "cf-connecting-ip": "198.51.100.1",
   });
   stampPeerIp(req);
 
-  assert.equal(getViaProxy(req), "stamp-tok|1", "x-forwarded-for must still set via-proxy=1");
+  assert.equal(getPeerIp(req), "stamp-tok|203.0.113.7", "peer-ip must stay the real direct IP");
+  assert.equal(getViaProxy(req), "stamp-tok|0", "forged forwarding headers must not set via-proxy");
+});
+
+test("x-forwarded-for from a private-network proxy sets via-proxy=1", () => {
+  for (const peer of ["10.1.2.3", "172.18.0.2", "192.168.1.5", "100.64.0.9", "fd00::2"]) {
+    const req = makeReq(peer, { "x-forwarded-for": "203.0.113.99" });
+    stampPeerIp(req);
+    assert.equal(getViaProxy(req), "stamp-tok|1", peer);
+  }
+});
+
+test("x-forwarded-for from a Cloudflare edge sets via-proxy=1", () => {
+  const req = makeReq("172.71.150.1", { "x-forwarded-for": "203.0.113.99" });
+  stampPeerIp(req);
+  assert.equal(getViaProxy(req), "stamp-tok|1");
 });
 
 test("F-05: non-Cloudflare proxy (x-forwarded-for only, no cf-connecting-ip) marks via-proxy=1", () => {
@@ -177,4 +203,142 @@ test("F2-03: full-form IPv4-mapped address is normalized", () => {
     false,
     "full-form IPv4-mapped non-Cloudflare address must not match"
   );
+});
+
+const getClient = (req: ReturnType<typeof makeReq>) => req.headers[CLIENT_IP_HEADER] ?? null;
+
+test("the trusted-proxy address classes agree with the LAN classes the route guard uses", () => {
+  const samples = [
+    "10.0.0.1",
+    "10.255.255.254",
+    "100.64.0.1",
+    "100.127.255.254",
+    "100.63.255.255",
+    "100.128.0.1",
+    "172.15.255.255",
+    "172.16.0.1",
+    "172.31.255.254",
+    "172.32.0.1",
+    "192.167.1.1",
+    "192.168.0.1",
+    "fc00::1",
+    "fd12:3456::1",
+    "fe80::1",
+    "fec0::1",
+    "2001:db8::1",
+    "8.8.8.8",
+    "::ffff:10.1.2.3",
+    "::ffff:8.8.8.8",
+  ];
+  for (const ip of samples) {
+    const plain = ip.replace(/^::ffff:/i, "");
+    // isTrustedProxyPeer also accepts loopback, Cloudflare and configured proxies, none of
+    // which are in the samples, so for these it must equal the route guard's LAN verdict.
+    assert.equal(isTrustedProxyPeer(ip), isPrivateLanHost(plain), ip);
+  }
+});
+
+test("a proxy on an address the operator names is trusted, one that is not named is not", () => {
+  const forwarded = { "x-forwarded-for": "203.0.113.99" };
+  const unnamed = makeReq("198.51.100.7", forwarded);
+  stampPeerIp(unnamed);
+  assert.equal(getViaProxy(unnamed), "stamp-tok|0");
+  assert.equal(getClient(unnamed), "stamp-tok|198.51.100.7");
+
+  process.env.OMNIROUTE_TRUSTED_PROXIES =
+    "192.0.2.1, 198.51.100.0/24 ,2001:db8::/32,not-an-ip,10.0.0.0/99";
+  for (const peer of ["198.51.100.7", "2001:db8::42"]) {
+    const req = makeReq(peer, forwarded);
+    stampPeerIp(req);
+    assert.equal(getViaProxy(req), "stamp-tok|1", peer);
+    assert.equal(getClient(req), "stamp-tok|203.0.113.99", peer);
+  }
+  assert.equal(isTrustedProxyPeer("192.0.2.1"), true);
+  assert.equal(isTrustedProxyPeer("192.0.2.2"), false);
+  assert.equal(isTrustedProxyPeer("2001:db9::1"), false);
+});
+
+test("the client address stamp is the peer itself unless a trusted proxy fronts the request", () => {
+  const direct = makeReq("203.0.113.9", {
+    "x-forwarded-for": "203.0.113.10",
+    "x-real-ip": "203.0.113.10",
+  });
+  stampPeerIp(direct);
+  assert.equal(getClient(direct), "stamp-tok|203.0.113.9");
+
+  const noHeaders = makeReq("::ffff:203.0.113.9");
+  stampPeerIp(noHeaders);
+  assert.equal(getClient(noHeaders), "stamp-tok|203.0.113.9");
+});
+
+test("a client-supplied client address header is replaced", () => {
+  const req = makeReq("203.0.113.9", { [CLIENT_IP_HEADER]: "stamp-tok|203.0.113.10" });
+  stampPeerIp(req);
+  assert.equal(getClient(req), "stamp-tok|203.0.113.9");
+});
+
+test("behind a trusted proxy the client is the right-most forwarded address that is not a proxy", () => {
+  // nginx appends the connecting address to whatever the client sent.
+  assert.equal(
+    resolveClientIp({ "x-forwarded-for": "203.0.113.10, 203.0.113.9" }, "127.0.0.1"),
+    "203.0.113.9"
+  );
+  assert.equal(
+    resolveClientIp({ "x-forwarded-for": "6.6.6.6, 203.0.113.9, 10.0.0.4" }, "172.18.0.2"),
+    "203.0.113.9"
+  );
+  assert.equal(
+    resolveClientIp({ "x-forwarded-for": "junk, 203.0.113.9" }, "127.0.0.1"),
+    "203.0.113.9"
+  );
+  assert.equal(
+    resolveClientIp({ "x-forwarded-for": "203.0.113.9:51234" }, "127.0.0.1"),
+    "203.0.113.9"
+  );
+  assert.equal(
+    resolveClientIp({ "x-forwarded-for": "[2001:db8::7]:443" }, "127.0.0.1"),
+    "2001:db8::7"
+  );
+});
+
+test("when every forwarded address is a proxy, the outermost one is the client", () => {
+  assert.equal(resolveClientIp({ "x-forwarded-for": "10.1.1.5" }, "172.18.0.2"), "10.1.1.5");
+  assert.equal(
+    resolveClientIp({ "x-forwarded-for": "192.168.1.9, 10.0.0.2" }, "127.0.0.1"),
+    "192.168.1.9"
+  );
+});
+
+test("a forwarded header with nothing usable leaves the peer as the client", () => {
+  for (const headers of [
+    { "x-forwarded-for": "x" },
+    { "x-forwarded-for": "unknown" },
+    { "x-real-ip": "not-an-ip" },
+    {},
+  ]) {
+    assert.equal(resolveClientIp(headers, "192.168.1.50"), "192.168.1.50", JSON.stringify(headers));
+  }
+});
+
+test("x-real-ip is only read when there is no usable x-forwarded-for", () => {
+  assert.equal(resolveClientIp({ "x-real-ip": "203.0.113.9" }, "127.0.0.1"), "203.0.113.9");
+  assert.equal(
+    resolveClientIp({ "x-real-ip": "6.6.6.6", "x-forwarded-for": "203.0.113.9" }, "127.0.0.1"),
+    "203.0.113.9"
+  );
+});
+
+test("cf-connecting-ip is believed only from a Cloudflare edge", () => {
+  assert.equal(
+    resolveClientIp({ "cf-connecting-ip": "203.0.113.9" }, "172.71.150.1"),
+    "203.0.113.9"
+  );
+  assert.equal(
+    resolveClientIp(
+      { "cf-connecting-ip": "6.6.6.6", "x-forwarded-for": "203.0.113.9" },
+      "127.0.0.1"
+    ),
+    "203.0.113.9"
+  );
+  assert.equal(resolveClientIp({ "cf-connecting-ip": "6.6.6.6" }, "127.0.0.1"), "127.0.0.1");
 });

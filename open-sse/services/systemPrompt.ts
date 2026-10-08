@@ -207,19 +207,19 @@ function markInjected(body: Record<string, unknown>): void {
  * @param {object} [opts] - `{ targetFormat }` from the resolved wire target
  * @returns {object} Modified body
  */
-export function injectSystemPromptPostTranslation(body, opts?: { targetFormat?: string }) {
+export function injectSystemPromptPostTranslation<T>(body: T, opts?: { targetFormat?: string }): T {
   const cfg = getConfig();
   if (!cfg.enabled) return body;
   const prefix = cfg.prefixPrompt || "";
   const suffix = cfg.suffixPrompt || "";
   if (!prefix && !suffix) return body;
-  if (!body || typeof body !== "object") return body;
+  if (!isRecord(body)) return body;
   if (body._skipSystemPrompt) return body;
   if (body._systemPromptInjected) return body;
   const targetFormat = opts?.targetFormat || "";
   const combined = [prefix, suffix].filter(Boolean).join("\n\n");
 
-  const result = { ...body };
+  const result: Record<string, unknown> = { ...body };
 
   // Claude-format body (separate `system` field, or a claude target whose
   // translated body has no system-role message to carry the prompt): inject
@@ -228,9 +228,7 @@ export function injectSystemPromptPostTranslation(body, opts?: { targetFormat?: 
   // it (combined) — previously this body shape fell through the messages[]
   // early-return and silently got zero injection.
   if (targetFormat === "claude" || result.system !== undefined) {
-    const hasSystemRole =
-      Array.isArray(result.messages) &&
-      result.messages.some((m) => m && (m.role === "system" || m.role === "developer"));
+    const hasSystemRole = Array.isArray(result.messages) && result.messages.some(isSystemMessage);
     if (!hasSystemRole) {
       if (typeof result.system === "string") {
         let sys = result.system;
@@ -246,7 +244,7 @@ export function injectSystemPromptPostTranslation(body, opts?: { targetFormat?: 
         result.system = combined;
       }
       markInjected(result);
-      return result;
+      return result as unknown as T;
     }
   }
 
@@ -271,7 +269,7 @@ export function injectSystemPromptPostTranslation(body, opts?: { targetFormat?: 
       result.systemInstruction = { role: "system", parts: texts.map((text) => ({ text })) };
     }
     markInjected(result);
-    return result;
+    return result as unknown as T;
   }
 
   // OpenAI Responses-format body (input + instructions): instructions is a
@@ -282,50 +280,52 @@ export function injectSystemPromptPostTranslation(body, opts?: { targetFormat?: 
     const parts = [prefix, base, suffix].filter(Boolean);
     result.instructions = parts.join("\n\n");
     markInjected(result);
-    return result;
+    return result as unknown as T;
   }
 
-  // Kiro (conversationState/.../userInputMessage) has NO system carrier at all:
-  // openai-to-kiro.ts folds system messages into user turns wrapped in
-  // <system-reminder> tags (#2306) and the executor keeps no system slot.
-  // Injection here would require inventing a carrier kiro upstreams reject —
-  // so kiro intentionally receives no global-prompt injection at this seam.
-  if (targetFormat === "kiro") {
-    return result;
-  }
+  // KiRO targets receive their system prompt at the pre-translation stage
+  // (openai-to-kiro.ts folds system messages into user turns wrapped in
+  // <system-reminder> tags (#2306) — post-translation KiRO payload has no
+  // messages array and no system slot). Early-return to avoid writing an
+  // unused messages[] into the final KiRO payload.
+  if (targetFormat === "kiro") return body;
 
-  if (!result.messages || !Array.isArray(result.messages)) return result;
+  // Fallthrough: OpenAI/Codex format (messages[]). Targets with no system slot
+  // in their translated body must not receive a newly synthesized messages
+  // array (would be rejected by upstream schema validation).
+  if (!Array.isArray(result.messages)) return body;
 
-  result.messages = [...result.messages];
+  const messages = [...result.messages];
   const indices: number[] = [];
-  for (let i = 0; i < result.messages.length; i++) {
-    const m = result.messages[i] as { role?: string };
-    if (m && (m.role === "system" || m.role === "developer")) indices.push(i);
+  for (let i = 0; i < messages.length; i++) {
+    const m = messages[i];
+    if (isSystemMessage(m)) indices.push(i);
   }
 
   if (indices.length === 0) {
     // No system message — combine both into one at the front (same as injectSystemPrompt).
     if (combined) {
-      result.messages = [{ role: "system", content: combined }, ...result.messages];
+      result.messages = [{ role: "system", content: combined }, ...messages];
     }
     markInjected(result);
-    return result;
+    return result as unknown as T;
   }
 
   if (prefix) {
     const firstIdx = indices[0];
-    result.messages[firstIdx] = { ...result.messages[firstIdx] };
-    prependToContent(result.messages[firstIdx] as Record<string, unknown>, prefix);
+    const firstMsg = { ...(messages[firstIdx] as Record<string, unknown>) };
+    prependToContent(firstMsg, prefix);
+    messages[firstIdx] = firstMsg;
   }
   if (suffix) {
     const lastIdx = indices[indices.length - 1];
-    if (lastIdx !== indices[0]) {
-      result.messages[lastIdx] = { ...result.messages[lastIdx] };
-    }
-    appendToContent(result.messages[lastIdx] as Record<string, unknown>, suffix);
+    const lastMsg = { ...(messages[lastIdx] as Record<string, unknown>) };
+    appendToContent(lastMsg, suffix);
+    messages[lastIdx] = lastMsg;
   }
+  result.messages = messages;
   markInjected(result);
-  return result;
+  return result as unknown as T;
 }
 
 /**
@@ -358,13 +358,13 @@ export function injectSystemPromptPostTranslation(body, opts?: { targetFormat?: 
  * @param {object} [opts] - `{ targetFormat }` of the resolved wire target
  * @returns {object} Modified body (or the original when gated out)
  */
-export function injectSystemPromptPreTranslation(body, opts?: { targetFormat?: string }) {
+export function injectSystemPromptPreTranslation<T>(body: T, opts?: { targetFormat?: string }): T {
   const cfg = getConfig();
   if (!cfg.enabled) return body;
   const prefix = cfg.prefixPrompt || "";
   const suffix = cfg.suffixPrompt || "";
   if (!prefix && !suffix) return body;
-  if (!body || typeof body !== "object") return body;
+  if (!isRecord(body)) return body;
   if (body._skipSystemPrompt) return body;
   if (body._systemPromptInjected) return body;
 
@@ -376,7 +376,7 @@ export function injectSystemPromptPreTranslation(body, opts?: { targetFormat?: s
   if (!CARRIERLESS_TARGETS.has(targetFormat)) return body;
 
   const combined = [prefix, suffix].filter(Boolean).join("\n\n");
-  const result = { ...body };
+  const result: Record<string, unknown> = { ...body };
 
   // Claude-source client body: the `system` field is the authoritative carrier
   // (#2468 ordering — prefix → client content → suffix). Checked FIRST so a
@@ -388,7 +388,7 @@ export function injectSystemPromptPreTranslation(body, opts?: { targetFormat?: s
     if (suffix) sys = sys + "\n\n" + suffix;
     result.system = sys;
     markInjected(result);
-    return result;
+    return result as T;
   }
   if (Array.isArray(result.system)) {
     let arr = [...result.system];
@@ -396,7 +396,7 @@ export function injectSystemPromptPreTranslation(body, opts?: { targetFormat?: s
     if (suffix) arr = [...arr, { type: "text", text: suffix }];
     result.system = arr;
     markInjected(result);
-    return result;
+    return result as T;
   }
 
   // Responses-source client body (input + instructions): wrap the instructions
@@ -407,7 +407,7 @@ export function injectSystemPromptPreTranslation(body, opts?: { targetFormat?: s
     const base = typeof result.instructions === "string" ? result.instructions : "";
     result.instructions = [prefix, base, suffix].filter(Boolean).join("\n\n");
     markInjected(result);
-    return result;
+    return result as T;
   }
 
   // Gemini-source client body (contents + systemInstruction): inject into the
@@ -424,29 +424,29 @@ export function injectSystemPromptPreTranslation(body, opts?: { targetFormat?: s
       result.systemInstruction = { role: "system", parts: texts.map((text) => ({ text })) };
     }
     markInjected(result);
-    return result;
+    return result as T;
   }
 
   // OpenAI-style client body: write into the system/developer message only.
   if (Array.isArray(result.messages)) {
-    result.messages = [...result.messages];
-    const sysIdx = result.messages.findIndex(
-      (m) => m && (m.role === "system" || m.role === "developer")
-    );
+    const messages = [...result.messages];
+    const sysIdx = messages.findIndex(isSystemMessage);
     if (sysIdx >= 0) {
-      result.messages[sysIdx] = { ...result.messages[sysIdx] };
-      if (prefix) prependToContent(result.messages[sysIdx] as Record<string, unknown>, prefix);
-      if (suffix) appendToContent(result.messages[sysIdx] as Record<string, unknown>, suffix);
+      const msg = { ...(messages[sysIdx] as Record<string, unknown>) };
+      if (prefix) prependToContent(msg, prefix);
+      if (suffix) appendToContent(msg, suffix);
+      messages[sysIdx] = msg;
     } else {
       if (combined) {
-        result.messages = [{ role: "system", content: combined }, ...result.messages];
+        messages.unshift({ role: "system", content: combined });
       }
     }
+    result.messages = messages;
     markInjected(result);
-    return result;
+    return result as unknown as T;
   }
 
-  return result;
+  return result as unknown as T;
 }
 
 /**

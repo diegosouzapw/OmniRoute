@@ -7,6 +7,7 @@
  * @internal — not part of the public combo.ts barrel.
  */
 import type { PerTargetAdmissionHook } from "../admission/types.ts";
+import type { CliproxyManagementHealthCache } from "../../../src/lib/services/cliproxyManagementPreflight.ts";
 import type { ResilienceSettings } from "../../../src/lib/resilience/settings";
 import type { ContextRelayConfig, UniversalHandoffConfig } from "../contextHandoff.ts";
 import type { ComboErrorEntry } from "./comboErrorAggregation.ts";
@@ -47,6 +48,9 @@ export type AttemptLoopState = {
   /** Quota-trust accumulators; persist across set retries and cooldown re-dispatch. */
   observedFailure: boolean;
   allObservedFailuresQuota: boolean;
+  requestScopedFailureSeen: boolean;
+  /** Normalized provider/model keys already refused request-scoped this dispatch. */
+  requestScopedRejectedModelKeys?: Set<string>;
   observeFailure(quotaExhausted: boolean, targetExecutionKey?: string): void;
 };
 
@@ -80,6 +84,8 @@ export type AttemptLoopDeps = {
   handleSingleModelWithTimeout: HandleSingleModel;
   isModelAvailable?: IsModelAvailable;
   perTargetAdmission?: PerTargetAdmissionHook | null;
+  /** Optional only to permit deterministic management-health gate tests. */
+  cliproxyManagementHealthCache?: CliproxyManagementHealthCache;
   signal?: AbortSignal | null;
   body: Record<string, unknown>;
   startTime: number;
@@ -92,13 +98,17 @@ export type AttemptLoopDeps = {
     executionKey: string | undefined,
     comboId: string | undefined,
     log: ComboLogger,
-    tag: string
+    tag: string,
+    /** Test seam, unused on the routing path; see staleLkgpClear.ts. */
+    clearLKGP?: ((comboName: string, modelKey: string) => Promise<void>) | undefined,
+    failed?: { provider?: string | null; connectionId?: string | null } | null
   ) => void;
   /**
    * Closed-over setup values from handleComboChatInner. Optional so Task 2
    * gate tests keep compiling; attempt uses defaults when absent.
    */
   clientManagedResponsesContext?: boolean;
+  nativeCodexAutoResume?: boolean;
   reasoningTokenBufferEnabled?: boolean;
   stickyWeightedLimit?: number;
   getWeightedStepKeyForTarget?: (target: ResolvedComboTarget) => string | null;

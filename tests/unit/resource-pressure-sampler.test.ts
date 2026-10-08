@@ -160,6 +160,7 @@ describe("sampleResourceSignals", () => {
     });
     assert.equal(signals.psi?.someAvg10, 1.5);
     assert.equal(signals.psi?.fullAvg10, 0.25);
+    assert.equal(signals.psi?.psiSource, "host");
   });
 
   it("prefers cgroup memory.pressure over host-wide /proc/pressure/memory", async () => {
@@ -173,11 +174,11 @@ describe("sampleResourceSignals", () => {
       ["/sys/fs/cgroup/slice/service/memory.stat", "anon 268435456\nfile 0\n"],
       [
         "/sys/fs/cgroup/slice/service/memory.pressure",
-        "some avg10=0.00 avg60=0.00 avg300=0.00 total=1\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=1\n",
+        "some avg10=41.00 avg60=20.00 avg300=10.00 total=9\nfull avg10=40.00 avg60=10.00 avg300=5.00 total=1\n",
       ],
       [
         "/proc/pressure/memory",
-        "some avg10=41.00 avg60=20.00 avg300=10.00 total=9\nfull avg10=40.00 avg60=10.00 avg300=5.00 total=1\n",
+        "some avg10=0.00 avg60=0.00 avg300=0.00 total=9\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=1\n",
       ],
     ]);
     const signals = await sampleResourceSignals({
@@ -186,8 +187,9 @@ describe("sampleResourceSignals", () => {
       heapStatistics: () => ({ heap_size_limit: GiB, used_heap_size: 250 * MiB }),
       fs,
     });
-    assert.equal(signals.psi?.someAvg10, 0);
-    assert.equal(signals.psi?.fullAvg10, 0);
+    assert.equal(signals.psi?.someAvg10, 41);
+    assert.equal(signals.psi?.fullAvg10, 40);
+    assert.equal(signals.psi?.psiSource, "cgroup");
   });
 
   it("falls back to /proc/pressure/memory when the cgroup pressure file is absent", async () => {
@@ -212,6 +214,28 @@ describe("sampleResourceSignals", () => {
     });
     assert.equal(signals.psi?.someAvg10, 1.5);
     assert.equal(signals.psi?.fullAvg10, 0.25);
+    assert.equal(signals.psi?.psiSource, "host");
+  });
+
+  it("leaves psi null when no pressure source parses", async () => {
+    const fs = mapFs([
+      ["/proc/self/cgroup", "0::/slice/service\n"],
+      ["/proc/self/mountinfo", "43 34 0:35 / /sys/fs/cgroup rw - cgroup2 cgroup2 rw\n"],
+      ["/sys/fs/cgroup/slice/service/memory.current", `${800 * MiB}\n`],
+      ["/sys/fs/cgroup/slice/service/memory.max", `${GiB}\n`],
+      ["/sys/fs/cgroup/slice/service/memory.high", "max\n"],
+      ["/sys/fs/cgroup/slice/service/memory.events", "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\n"],
+      ["/sys/fs/cgroup/slice/service/memory.stat", "anon 268435456\nfile 0\n"],
+      ["/sys/fs/cgroup/slice/service/memory.pressure", "malformed\n"],
+      ["/proc/pressure/memory", "malformed\n"],
+    ]);
+    const signals = await sampleResourceSignals({
+      nowMs: () => 42,
+      memoryUsage: () => memoryUsage(250 * MiB),
+      heapStatistics: () => ({ heap_size_limit: GiB, used_heap_size: 250 * MiB }),
+      fs,
+    });
+    assert.equal(signals.psi, null);
   });
 
   it("fails open when platform reads fail or return malformed values", async () => {

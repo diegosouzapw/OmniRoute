@@ -120,11 +120,113 @@ export function resolveSudoSpawn(
   return { finalCommand, finalArgs, stripSudo, needsPassword };
 }
 
-export function execFileWithPassword(
+/** One process to spawn: argv plus exactly what is written to its stdin. */
+export interface SudoStep {
+  command: string;
+  args: string[];
+  stdin: string;
+}
+
+type SpawnLike = typeof spawn;
+
+/**
+ * GHSA-cqwr-7mqw-chr9: plan the processes for a `sudo -S <cmd>` call so the password
+ * never shares a stdin with the elevated command.
+ *
+ * The old single call wrote `password\n<data>` to `sudo -S <cmd>`. When sudo does not
+ * prompt (NOPASSWD, or a cached credential — which `sudo -n true` probes refresh), it never
+ * reads stdin, so `<cmd>` received the password as data: `sudo -S tee -a /etc/hosts`
+ * appended the operator's sudo password to the world-readable hosts file.
+ *
+ * Now the password goes only to `sudo -S -v` (validate, runs no command; if sudo does
+ * not prompt, the unread line dies with that process), and the command runs as
+ * `sudo -n <cmd>` with only its own data on stdin. Returns a single plain step when sudo
+ * is stripped (root / no sudo / OMNIROUTE_NO_SUDO), exactly as before.
+ */
+export function planSudoSteps(
   command: string,
   args: string[],
   password: string,
-  stdinAfterPassword = ""
+  stdinAfterPassword = "",
+  overrides: { root?: boolean; sudoAvailable?: boolean; noSudo?: boolean } = {}
+): { steps: SudoStep[]; fallback: SudoStep | null } {
+  const { finalCommand, finalArgs, needsPassword } = resolveSudoSpawn(command, args, overrides);
+  if (!needsPassword) {
+    return {
+      steps: [{ command: finalCommand, args: finalArgs, stdin: stdinAfterPassword || "" }],
+      fallback: null,
+    };
+  }
+  let firstReal = 0;
+  while (firstReal < args.length && args[firstReal] === "-S") firstReal++;
+  const commandArgs = args.slice(firstReal);
+  return {
+    steps: [
+      { command: "sudo", args: ["-S", "-p", "", "-v"], stdin: `${password}\n` },
+      { command: "sudo", args: ["-n", ...commandArgs], stdin: stdinAfterPassword || "" },
+    ],
+    // Hosts with `timestamp_timeout=0` never keep the credential from `-v`, so
+    // `sudo -n` refuses. There sudo is certain to prompt, so it consumes the
+    // password line itself and nothing reaches the command.
+    fallback: {
+      command: "sudo",
+      args: ["-S", ...commandArgs],
+      stdin: `${password}\n${stdinAfterPassword}`,
+    },
+  };
+}
+
+function runStep(
+  step: SudoStep,
+  spawnImpl: SpawnLike
+): Promise<{ code: number | null; stdout: string; stderr: string; error: Error | null }> {
+  return new Promise((resolve) => {
+    // `command` and `args` are never user-controlled. This helper is a
+    // controlled wrapper called only from src/mitm/cert/install.ts with a
+    // fixed allowlist of executables: "sudo", "certutil", "security",
+    // "update-ca-certificates", "update-ca-trust", "cp", "mkdir", "rm".
+    // `spawn` is used (not `exec`) so each arg is a separate argv entry and
+    // shell metacharacters do not expand. See docs/security/SOCKET_DEV_FINDINGS.md §3.
+    // nosemgrep
+    const child = spawnImpl(step.command, step.args, {
+      // nosemgrep
+      windowsHide: true,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    let stdout = "";
+    let stderr = "";
+    let settled = false;
+    const settle = (code: number | null, error: Error | null) => {
+      if (settled) return;
+      settled = true;
+      resolve({ code, stdout, stderr, error });
+    };
+    child.stdout?.on("data", (chunk) => {
+      stdout += chunk.toString();
+    });
+    child.stderr?.on("data", (chunk) => {
+      stderr += chunk.toString();
+    });
+    child.on("error", (error) => settle(null, error));
+    child.on("close", (code) => settle(code, null));
+    if (step.stdin) {
+      child.stdin?.write(step.stdin);
+    }
+    child.stdin?.end();
+  });
+}
+
+const SUDO_PASSWORD_REQUIRED = /a password is required/i;
+
+export async function execFileWithPassword(
+  command: string,
+  args: string[],
+  password: string,
+  stdinAfterPassword = "",
+  deps: {
+    spawnImpl?: SpawnLike;
+    sudoOverrides?: { root?: boolean; sudoAvailable?: boolean; noSudo?: boolean };
+  } = {}
 ): Promise<string> {
   // When running as root, when `sudo` is not installed on the host (slim
   // Docker images / containerized non-root runtime), OR when the operator sets
@@ -133,60 +235,46 @@ export function execFileWithPassword(
   // elevation. This lets MITM operations triggered from inside `node:*-slim`
   // containers succeed for any command that does not actually require root
   // (everything but writing to /etc/hosts or the system trust store).
-  const { finalCommand, finalArgs, needsPassword } = resolveSudoSpawn(command, args);
+  const spawnImpl = deps.spawnImpl ?? spawn;
+  const { steps, fallback } = planSudoSteps(
+    command,
+    args,
+    password,
+    stdinAfterPassword,
+    deps.sudoOverrides
+  );
 
-  return new Promise((resolve, reject) => {
-    // `command` and `args` are never user-controlled. This helper is a
-    // controlled wrapper called only from src/mitm/cert/install.ts with a
-    // fixed allowlist of executables: "sudo", "certutil", "security",
-    // "update-ca-certificates", "update-ca-trust", "cp", "mkdir", "rm".
-    // `spawn` is used (not `exec`) so each arg is a separate argv entry and
-    // shell metacharacters do not expand. See docs/security/SOCKET_DEV_FINDINGS.md §3.
-    // nosemgrep
-    const child = spawn(finalCommand, finalArgs, {
-      // nosemgrep
-      windowsHide: true,
-      stdio: ["pipe", "pipe", "pipe"],
-    });
-    let stdout = "";
-    let stderr = "";
-    let settled = false;
-
-    const settle = (error: Error | null) => {
-      if (settled) return;
-      settled = true;
-      if (error) {
-        reject(error);
-        return;
-      }
-      resolve(stdout);
-    };
-
-    child.stdout?.on("data", (chunk) => {
-      stdout += chunk.toString();
-    });
-    child.stderr?.on("data", (chunk) => {
-      stderr += chunk.toString();
-    });
-    child.on("error", (error) => {
-      settle(new Error(`Command failed: ${getErrorMessage(error)}\n${stderr}`));
-    });
-    child.on("close", (code) => {
-      if (code === 0) {
-        settle(null);
-        return;
-      }
-      settle(new Error(`Command failed with code ${code}\n${stderr}`));
-    });
-
-    const stdinInput = needsPassword
-      ? `${password}\n${stdinAfterPassword}`
-      : stdinAfterPassword || "";
-    if (stdinInput) {
-      child.stdin?.write(stdinInput);
+  let stdout = "";
+  for (let i = 0; i < steps.length; i++) {
+    const result = await runStep(steps[i], spawnImpl);
+    const canFallBack = i === steps.length - 1 && fallback !== null;
+    if (canFallBack && needsSudoPasswordFallback(result)) {
+      return runStepOrThrow(fallback, spawnImpl);
     }
-    child.stdin?.end();
-  });
+    stdout = stepOutputOrThrow(result);
+  }
+  return stdout;
+}
+
+type StepResult = Awaited<ReturnType<typeof runStep>>;
+
+/** `sudo -n` refused because this host never keeps a credential (`timestamp_timeout=0`). */
+function needsSudoPasswordFallback(result: StepResult): boolean {
+  return !result.error && result.code !== 0 && SUDO_PASSWORD_REQUIRED.test(result.stderr);
+}
+
+function stepOutputOrThrow(result: StepResult): string {
+  if (result.error) {
+    throw new Error(`Command failed: ${getErrorMessage(result.error)}\n${result.stderr}`);
+  }
+  if (result.code !== 0) {
+    throw new Error(`Command failed with code ${result.code}\n${result.stderr}`);
+  }
+  return result.stdout;
+}
+
+async function runStepOrThrow(step: SudoStep, spawnImpl: SpawnLike): Promise<string> {
+  return stepOutputOrThrow(await runStep(step, spawnImpl));
 }
 
 export function quotePowerShell(value: string): string {

@@ -243,15 +243,39 @@ export function sanitizeResponsesInputItems(
   return sanitized;
 }
 
+// Grok Build (grok-cli) names its reasoning items `rs_<uuid>` and its server-side tool
+// reasoning `tco_…` (whose encrypted_content starts with `tco_` too). A combo that falls back
+// from grok-cli to Codex replays them, and Codex refuses the whole request ("The encrypted
+// content for item … could not be verified"). Codex can neither decrypt the blob nor look the
+// id up, so these items are dropped.
+const GROK_BUILD_REASONING_ID_RE =
+  /^rs_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const GROK_BUILD_TOOL_REASONING_PREFIX = "tco_";
+
+function isGrokBuildReasoningItem(item: unknown): boolean {
+  const record = toRecord(item);
+  if (!record || record.type !== "reasoning") return false;
+  const id = typeof record.id === "string" ? record.id : "";
+  const blob = typeof record.encrypted_content === "string" ? record.encrypted_content : "";
+  return (
+    GROK_BUILD_REASONING_ID_RE.test(id) ||
+    id.startsWith(GROK_BUILD_TOOL_REASONING_PREFIX) ||
+    blob.startsWith(GROK_BUILD_TOOL_REASONING_PREFIX)
+  );
+}
+
 // Codex-specific call site (#13698): the native Codex/ChatGPT passthrough path is the only
 // caller that needs both flags derived from one boolean, kept here (not in the frozen
 // open-sse/executors/codex.ts) so a per-property change never grows that file's line count.
+// Grok Build reasoning is dropped first, while the `tco_` ids the shared sanitizer deletes
+// are still there.
 export function sanitizeCodexResponsesInput(
   body: Record<string, unknown>,
   nativeCodexPassthrough: boolean
 ): void {
   if (!Array.isArray(body.input)) return;
-  body.input = sanitizeResponsesInputItems(body.input, false, {
+  const input = body.input.filter((item) => !isGrokBuildReasoningItem(item));
+  body.input = sanitizeResponsesInputItems(input, false, {
     dropInternalAssistantMessages: !nativeCodexPassthrough,
     preserveAgentMessages: nativeCodexPassthrough,
   });

@@ -141,7 +141,12 @@ export function readNativeBinaryTarget(binaryPath) {
 
 export function isNativeBinaryCompatible(
   binaryPath,
-  { runtimePlatform = process.platform, runtimeArch = process.arch, dlopen = process.dlopen } = {}
+  {
+    runtimePlatform = process.platform,
+    runtimeArch = process.arch,
+    dlopen = process.dlopen,
+    skipDlopen = false,
+  } = {}
 ) {
   const target = readNativeBinaryTarget(binaryPath);
 
@@ -155,6 +160,10 @@ export function isNativeBinaryCompatible(
     }
   } else if (runtimePlatform !== PUBLISHED_BUILD_PLATFORM || runtimeArch !== PUBLISHED_BUILD_ARCH) {
     return false;
+  }
+
+  if (skipDlopen) {
+    return true;
   }
 
   try {

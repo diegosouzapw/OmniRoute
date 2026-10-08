@@ -30,6 +30,7 @@ const core = await import("../../src/lib/db/core.ts");
 const { invalidateDbCache } = await import("../../src/lib/db/readCache.ts");
 const { createProviderNode, createProviderConnection } =
   await import("../../src/lib/db/providers.ts");
+const { createCombo } = await import("../../src/lib/db/combos.ts");
 const { POST } = await import("../../src/app/api/v1/rerank/route.ts");
 
 const LOOPBACK_NODE = {
@@ -49,6 +50,12 @@ const LAN_NODE = {
   prefix: "skilled-mini",
   baseUrl: "http://10.10.50.19:8888/v1",
   apiType: "embeddings",
+};
+const BACKUP_NODE = {
+  id: "openai-compatible-rerank-backup",
+  prefix: "hosted-rerank",
+  baseUrl: "http://127.0.0.1:8999/v1",
+  apiType: "rerank",
 };
 const METADATA_NODE = {
   id: "openai-compatible-rerank-imds",
@@ -210,6 +217,33 @@ test.describe("POST /v1/rerank routes to a LAN provider node only when opted in"
       createdAt: now,
       updatedAt: now,
     });
+    await createProviderNode({
+      id: BACKUP_NODE.id,
+      name: "hosted-rerank",
+      type: "openai",
+      prefix: BACKUP_NODE.prefix,
+      baseUrl: BACKUP_NODE.baseUrl,
+      apiType: BACKUP_NODE.apiType,
+      createdAt: now,
+      updatedAt: now,
+    });
+    await createProviderConnection({
+      id: "conn-hosted-rerank-1",
+      provider: BACKUP_NODE.id,
+      authType: "apikey",
+      name: "hosted-rerank",
+      apiKey: "backup-token",
+      createdAt: now,
+      updatedAt: now,
+    });
+    await createCombo({
+      name: "memory-rerank",
+      strategy: "priority",
+      models: [
+        { provider: LAN_NODE.prefix, model: "bge-reranker-v2-m3" },
+        { provider: BACKUP_NODE.prefix, model: "jina-reranker-v2-base-multilingual" },
+      ],
+    });
     invalidateDbCache("nodes");
     invalidateDbCache("connections");
   });
@@ -304,5 +338,42 @@ test.describe("POST /v1/rerank routes to a LAN provider node only when opted in"
     const res = await POST(rerankRequest(), {});
     assert.equal(res.status, 400);
     assert.equal(upstreamCalled, false);
+  });
+
+  test("a rerank combo falls back from the LAN primary to its hosted target", async () => {
+    process.env[RERANK_REMOTE_NODES_FLAG] = "true";
+    delete process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS;
+    const calls: string[] = [];
+    globalThis.fetch = async (url: string | URL | Request) => {
+      const requestUrl = String(url);
+      calls.push(requestUrl);
+      if (requestUrl.includes("10.10.50.19")) {
+        return new Response(JSON.stringify({ message: "primary unavailable" }), {
+          status: 503,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ results: [{ index: 1, relevance_score: 0.97 }] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    };
+
+    const req = new Request("http://localhost/v1/rerank", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        model: "memory-rerank",
+        query: "what is a cat",
+        documents: ["the stock market fell", "a cat is a small animal"],
+      }),
+    });
+
+    const res = await POST(req, {});
+    const data = (await res.json()) as { results: Array<{ index: number }> };
+    assert.equal(res.status, 200);
+    assert.equal(data.results[0]?.index, 1);
+    assert.ok(calls.some((url) => url.includes("10.10.50.19:8888/v1/rerank")));
+    assert.ok(calls.some((url) => url.includes("127.0.0.1:8999/v1/rerank")));
   });
 });

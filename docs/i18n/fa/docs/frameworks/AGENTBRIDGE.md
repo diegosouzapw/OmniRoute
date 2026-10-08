@@ -1,6 +1,6 @@
 # AgentBridge (فارسی)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/AGENTBRIDGE.md) · 🇪🇹 [am](../../../am/docs/frameworks/AGENTBRIDGE.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/AGENTBRIDGE.md) · 🇦🇿 [az](../../../az/docs/frameworks/AGENTBRIDGE.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/AGENTBRIDGE.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/AGENTBRIDGE.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/AGENTBRIDGE.md) · 🇩🇰 [da](../../../da/docs/frameworks/AGENTBRIDGE.md) · 🇩🇪 [de](../../../de/docs/frameworks/AGENTBRIDGE.md) · 🇬🇷 [el](../../../el/docs/frameworks/AGENTBRIDGE.md) · 🇪🇸 [es](../../../es/docs/frameworks/AGENTBRIDGE.md) · 🇪🇪 [et](../../../et/docs/frameworks/AGENTBRIDGE.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/AGENTBRIDGE.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/AGENTBRIDGE.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/AGENTBRIDGE.md) · 🇮🇱 [he](../../../he/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/AGENTBRIDGE.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/AGENTBRIDGE.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/AGENTBRIDGE.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/AGENTBRIDGE.md) · 🇮🇩 [id](../../../id/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/AGENTBRIDGE.md) · 🇮🇹 [it](../../../it/docs/frameworks/AGENTBRIDGE.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/AGENTBRIDGE.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/AGENTBRIDGE.md) · 🇰🇭 [km](../../../km/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/AGENTBRIDGE.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/AGENTBRIDGE.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/AGENTBRIDGE.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/AGENTBRIDGE.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/AGENTBRIDGE.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/AGENTBRIDGE.md) · 🇲🇲 [my](../../../my/docs/frameworks/AGENTBRIDGE.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/AGENTBRIDGE.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/AGENTBRIDGE.md) · 🇳🇴 [no](../../../no/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [or](../../../or/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/AGENTBRIDGE.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/AGENTBRIDGE.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/AGENTBRIDGE.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/AGENTBRIDGE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/AGENTBRIDGE.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/AGENTBRIDGE.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/AGENTBRIDGE.md) · 🇱🇰 [si](../../../si/docs/frameworks/AGENTBRIDGE.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/AGENTBRIDGE.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/AGENTBRIDGE.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/AGENTBRIDGE.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/AGENTBRIDGE.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [te](../../../te/docs/frameworks/AGENTBRIDGE.md) · 🇹🇭 [th](../../../th/docs/frameworks/AGENTBRIDGE.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/AGENTBRIDGE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/AGENTBRIDGE.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/AGENTBRIDGE.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/AGENTBRIDGE.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/AGENTBRIDGE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/AGENTBRIDGE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/AGENTBRIDGE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/AGENTBRIDGE.md) · 🇪🇹 [am](../../../am/docs/frameworks/AGENTBRIDGE.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/AGENTBRIDGE.md) · 🇦🇿 [az](../../../az/docs/frameworks/AGENTBRIDGE.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/AGENTBRIDGE.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/AGENTBRIDGE.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/AGENTBRIDGE.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/AGENTBRIDGE.md) · 🇩🇰 [da](../../../da/docs/frameworks/AGENTBRIDGE.md) · 🇩🇪 [de](../../../de/docs/frameworks/AGENTBRIDGE.md) · 🇬🇷 [el](../../../el/docs/frameworks/AGENTBRIDGE.md) · 🇪🇸 [es](../../../es/docs/frameworks/AGENTBRIDGE.md) · 🇪🇪 [et](../../../et/docs/frameworks/AGENTBRIDGE.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/AGENTBRIDGE.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/AGENTBRIDGE.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/AGENTBRIDGE.md) · 🇮🇱 [he](../../../he/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/AGENTBRIDGE.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/AGENTBRIDGE.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/AGENTBRIDGE.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/AGENTBRIDGE.md) · 🇮🇩 [id](../../../id/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/AGENTBRIDGE.md) · 🇮🇹 [it](../../../it/docs/frameworks/AGENTBRIDGE.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/AGENTBRIDGE.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/AGENTBRIDGE.md) · 🇰🇭 [km](../../../km/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/AGENTBRIDGE.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/AGENTBRIDGE.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/AGENTBRIDGE.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/AGENTBRIDGE.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/AGENTBRIDGE.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/AGENTBRIDGE.md) · 🇲🇲 [my](../../../my/docs/frameworks/AGENTBRIDGE.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/AGENTBRIDGE.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/AGENTBRIDGE.md) · 🇳🇴 [no](../../../no/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [or](../../../or/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/AGENTBRIDGE.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/AGENTBRIDGE.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/AGENTBRIDGE.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/AGENTBRIDGE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/AGENTBRIDGE.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/AGENTBRIDGE.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/AGENTBRIDGE.md) · 🇱🇰 [si](../../../si/docs/frameworks/AGENTBRIDGE.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/AGENTBRIDGE.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/AGENTBRIDGE.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/AGENTBRIDGE.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/AGENTBRIDGE.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [te](../../../te/docs/frameworks/AGENTBRIDGE.md) · 🇹🇭 [th](../../../th/docs/frameworks/AGENTBRIDGE.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/AGENTBRIDGE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/AGENTBRIDGE.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/AGENTBRIDGE.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/AGENTBRIDGE.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/AGENTBRIDGE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/AGENTBRIDGE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/AGENTBRIDGE.md)
 
 ---
 
@@ -191,18 +191,18 @@ AGENTBRIDGE_UPSTREAM_CA_CERT=/path/to/corporate-ca.pem
 
 از کارت سرور AgentBridge در `/dashboard/tools/agent-bridge` استفاده کنید:
 
-| عملیات              | توضیحات                                                                          |
-| ------------------- | -------------------------------------------------------------------------------- |
-| راهاندازی سرور      | `src/mitm/server.cjs` را روی پورت 443 اجرا میکند                                 |
-| توقف سرور           | فرایند فرزند را بهشکل صحیح متوقف میکند                                           |
-| راهاندازی مجدد سرور | توقف + راهاندازی (تغییرات مقصد را اعمال میکند)                                   |
-| اعتماد به گواهی     | `DATA_DIR/mitm/ca.crt` را در مخزن اعتماد سیستمعامل نصب میکند                     |
-| دانلود گواهی        | `ca.crt` را برای نصب دستی دانلود میکند                                           |
-| بازتولید گواهی      | یک جفتکلید CA جدید ایجاد میکند (تمام گواهیهای موجود مختص هر عامل نامعتبر میشوند) |
+| عملیات              | توضیحات                                                                           |
+| ------------------- | --------------------------------------------------------------------------------- |
+| راهاندازی سرور      | `src/mitm/server.cjs` را روی پورت 443 اجرا میکند                                  |
+| توقف سرور           | پردازهٔ فرزند را بهصورت کنترلشده متوقف میکند                                      |
+| راهاندازی مجدد سرور | توقف + راهاندازی (تغییرات مقصد را اعمال میکند)                                    |
+| اعتماد به گواهی     | `DATA_DIR/mitm/ca.crt` را در مخزن گواهیهای مورد اعتماد سیستمعامل نصب میکند        |
+| دانلود گواهی        | `ca.crt` را برای نصب دستی دانلود میکند                                            |
+| بازتولید گواهی      | یک جفتکلید CA جدید ایجاد میکند (تمام گواهیهای موجودِ مختص هر عامل نامعتبر میشوند) |
 
 ### 3.2 اعتماد به گواهی
 
-پیش از آنکه IDEها اتصال MITM را بپذیرند، گواهی CA متعلق به AgentBridge باید مورد اعتماد سیستمعامل قرار گیرد.
+پیش از آنکه IDEها اتصال MITM را بپذیرند، سیستمعامل باید به گواهی CA مربوط به AgentBridge اعتماد داشته باشد.
 
 **Linux (NSS — Chrome/Firefox):**
 
@@ -223,34 +223,23 @@ sudo security add-trusted-cert -d -r trustRoot \
 certutil -addstore -f Root $env:USERPROFILE\.omniroute\mitm\ca.crt
 ```
 
-یا از دکمه «اعتماد به گواهی» در داشبورد استفاده کنید (این دکمه فرمان مناسب سیستمعامل شما را اجرا میکند و در صورت نیاز، اعلان sudo را نمایش میدهد).
+یا از دکمهٔ «اعتماد به گواهی» در داشبورد استفاده کنید (این دکمه فرمان مناسب سیستمعامل شما را اجرا میکند و در صورت نیاز، اعلان sudo را نمایش میدهد).
 
-#### IDEهای مبتنی بر Electron مخزن اعتماد سیستمعامل را نادیده میگیرند (`NODE_EXTRA_CA_CERTS`)
+#### IDEهای مبتنی بر Electron مخزن گواهیهای مورد اعتماد سیستمعامل را نادیده میگیرند (`NODE_EXTRA_CA_CERTS`)
 
-برخی IDEها — بهویژه **Antigravity IDE** و دیگر برنامههای مبتنی بر Electron / VS Code — محیط اجرایی
-Node.js مخصوص خود را همراه دارند که برای درخواستهای خروجی `fetch`/HTTPS، **به مخزن اعتماد سیستمعامل مراجعه نمیکند**.
-اعتماد به CA در سطح سیستمعامل/NSS برای **بکاند** بومی IDE کافی است
-(برای مثال، یک سرور زبان Go که از مجموعه CA سیستمعامل استفاده میکند)، اما **فرانتاند Electron** همچنان
-در TLS شکست خواهد خورد — این وضعیت بهصورت _خارج شدن از حساب_ برنامه یا نمایش یک _«خطای اتصال»_
-بروز میکند، حتی اگر گزارش MITM نشان دهد فراخوانیهای راهاندازی اولیه بکاند پاسخ `200` دریافت کردهاند. دو مرحله
-لازم است و هر دو اهمیت دارند:
+برخی IDEها — بهویژه **Antigravity IDE** و سایر برنامههای مشتقشده از Electron / VS Code — محیط اجرای Node.js مخصوص خود را بهصورت داخلی ارائه میکنند که برای درخواستهای خروجی `fetch`/HTTPS، **به مخزن گواهیهای مورد اعتماد سیستمعامل مراجعه نمیکند**. اعتماد به CA در سطح سیستمعامل/NSS برای **بکاند** بومی IDE کافی است (برای مثال، یک سرور زبان Go که از مجموعهٔ CA سیستمعامل استفاده میکند)، اما **فرانتاند Electron** همچنان با خطای TLS مواجه خواهد شد — این وضعیت بهشکل _خارج شدن از حساب_ برنامه یا نمایش _«خطای اتصال»_ ظاهر میشود، حتی با وجود اینکه گزارش MITM نشان میدهد فراخوانیهای راهاندازی اولیهٔ بکاند پاسخ `200` دریافت میکنند. انجام دو مرحله الزامی است و هر دو اهمیت دارند:
 
-1. محیط اجرایی را بهطور صریح به CA هدایت کنید:
+1. محیط اجرا را بهطور صریح به CA هدایت کنید:
    ```bash
    export NODE_EXTRA_CA_CERTS=/path/to/omniroute-agentbridge-ca.crt
    ```
-2. **IDE را از همان پوسته اجرا کنید.** اجرای آن از طریق نماد دسکتاپ / Dock / منوی Start
-   متغیرهای exportشده پوسته را به ارث **نمیبرد** و `~/.config/environment.d/*.conf` تنها پس از
-   ورود گرافیکی مجدد اعمال میشود. ابتدا IDE را کاملاً ببندید — قفل تکنمونهای Electron باعث میشود اجرای
-   دوم فقط پنجره فرایند موجود را فعال کند و محیط جدید نادیده گرفته شود.
+2. **IDE را از همان پوسته اجرا کنید.** اجرای آن از طریق نماد دسکتاپ / Dock / منوی Start، متغیرهای exportشدهٔ پوسته را به ارث **نمیبرد** و `~/.config/environment.d/*.conf` نیز تنها پس از یک ورود گرافیکی جدید اعمال میشود. ابتدا IDE را بهطور کامل ببندید — قفل تکنمونهای Electron باعث میشود اجرای دوم فقط پردازهٔ موجود را در کانون توجه قرار دهد و محیط جدید نادیده گرفته شود.
 
-مرحله اعتماد در سطح سیستمعامل + NSS که در بالا آمده، همچنان ضروری است (پشته شبکه Chromium که برخی جریانهای
-احراز هویت از آن استفاده میکنند، مخزن NSS هر کاربر را میخواند و برای `*.googleapis.com` نیز پینهای ایستای
-خود را دارد که یک CA مورد اعتماد محلی آنها را بازنویسی میکند). `NODE_EXTRA_CA_CERTS` نیز مسیر `fetch` در Node را پوشش میدهد.
+مرحلهٔ اعتماد در سطح سیستمعامل + NSS که در بالا آمده همچنان ضروری است (پشتهٔ شبکهٔ Chromium که برخی جریانهای احراز هویت از آن استفاده میکنند، مخزن NSS مختص کاربر را میخواند و برای `*.googleapis.com` نیز پینهای ایستای مخصوص خود را دارد که یک CA مورد اعتماد محلی آنها را بازنویسی میکند). علاوه بر آن، `NODE_EXTRA_CA_CERTS` مسیر `fetch` مربوط به Node را پوشش میدهد.
 
 ### 3.3 مسیریابی DNS
 
-برای هر عاملی که میخواهید رهگیری کنید، میزبان یا میزبانهای API آن باید به `127.0.0.1` تفکیک شوند. هنگامی که DNS یک عامل را در راهنمای راهاندازی فعال یا غیرفعال میکنید، AgentBridge ورودیهای `/etc/hosts` را بهطور خودکار مدیریت میکند.
+برای هر عاملی که میخواهید رهگیری کنید، میزبان یا میزبانهای API آن باید به `127.0.0.1` نگاشت شوند. هنگامی که DNS یک عامل را در راهنمای راهاندازی فعال یا غیرفعال میکنید، AgentBridge ورودیهای `/etc/hosts` را بهطور خودکار مدیریت میکند.
 
 نمونه ورودیهای `/etc/hosts` برای GitHub Copilot:
 
@@ -261,65 +250,75 @@ Node.js مخصوص خود را همراه دارند که برای درخواس�
 
 ### 3.4 نگاشت مدل
 
-برای تعریف نگاشتهای مبدأ → مقصد، از جدول نگاشت مدل در کارت هر عامل استفاده کنید:
+از جدول نگاشت مدل در کارت هر عامل برای تعریف نگاشتهای مبدأ → مقصد استفاده کنید:
 
 | مدل مبدأ (بومی عامل) | مدل مقصد (OmniRoute) |
 | -------------------- | -------------------- |
 | `gpt-4o`             | `claude-sonnet-4.7`  |
-| `*` (نویسه عام)      | `claude-haiku-4.7`   |
+| `*` (نویسهٔ عام)     | `claude-haiku-4.7`   |
 
-نویسه عام `*` هر مدل ناشناخته را به مقصد مشخصشده نگاشت میکند. این تنظیم در جدول `agent_bridge_mappings` ذخیره میشود.
+نویسهٔ عام `*` هر مدل ناشناختهای را به مقصد مشخصشده نگاشت میکند. این تنظیمات در جدول `agent_bridge_mappings` ذخیره میشوند.
 
-> **نکته — شناسههای واقعی مدل عامل را کشف کنید.** ممکن است یک IDE نام مدلهایی را ارسال کند که با
+> **نکته — شناسههای واقعی مدل عامل را پیدا کنید.** ممکن است یک IDE نام مدلهایی را ارسال کند که با
 > برچسبهای رابط کاربری آن متفاوتاند و بین نسخههای اصلی تغییر میکنند. برای مثال، **Antigravity 2**
-> مقادیر `gemini-3.1-pro-low`، `gemini-pro-agent` و `gemini-3.1-flash-lite` را روی شبکه ارسال میکند — نه
-> `gemini-2.5-pro` که در مستندات قدیمیتر نمایش داده شده است. درحالیکه هیچ نگاشت منطبقی وجود ندارد، یک پیام گفتگو
-> ارسال کنید: MITM مقدار دقیق `model:` ورودی را ثبت میکند و درخواست را بدون تغییر عبور میدهد. همان مقدار
-> دقیق را نگاشت کنید؛ سپس درخواست بعدی رهگیری شده و به مقصد شما هدایت میشود.
+> مقادیر `gemini-3.1-pro-low`، `gemini-pro-agent` و `gemini-3.1-flash-lite` را از طریق شبکه ارسال
+> میکند — نه `gemini-2.5-pro` که در مستندات قدیمیتر نشان داده شده است. در حالی که هیچ نگاشت منطبقی
+> وجود ندارد، یک پیام چت ارسال کنید: MITM مقدار دقیق `model:` ورودی را ثبت میکند و درخواست را
+> بدون تغییر عبور میدهد. همان مقدار عینی را نگاشت کنید؛ سپس درخواست بعدی رهگیری شده و به مقصد شما
+> مسیریابی میشود.
 
-### 3.5 اطلاعیه خطر
+### 3.5 هشدار ریسک
 
-AgentBridge اطلاعات احراز هویت (توکنهای OAuth و کلیدهای API) را که IDE برای احراز هویت نزد ارائهدهندگان بالادستی استفاده میکند، رهگیری میکند. این اطلاعات **پیش از ثبت در گزارش پوشانده میشوند** (بخش §2.7 را ببینید)، اما برای لایه MITM متعلق به OmniRoute قابل مشاهدهاند. هنگام نخستین فعالسازی هر عامل، یک پنجره اطلاعیه خطر قابلبستن نمایش داده میشود.
+AgentBridge اعتبارنامههایی (توکنهای OAuth و کلیدهای API) را که IDE برای احراز هویت نزد ارائهدهندگان بالادستی استفاده میکند، رهگیری میکند. این مقادیر **پیش از ثبت در گزارش پوشانده میشوند** (به §2.7 مراجعه کنید)، اما برای لایهٔ MITM در OmniRoute قابل مشاهدهاند. هنگام نخستین فعالسازی هر عامل، یک پنجرهٔ هشدار ریسک نمایش داده میشود که امکان بستن آن وجود دارد.
 
 ### 3.6 نگهداری و عیبیابی
 
-داشبورد یک کارت **نگهداری و عیبیابی** (`AgentBridgeMaintenanceCard`، در `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`) ارائه میکند که مسیرهای عملیاتی MITM را که پیشتر رابط کاربری نداشتند، در دسترس قرار میدهد. زیرعنوان آن: _«خط لوله ثبت را خودآزمایی کنید، وضعیت باقیمانده سیستم را بازگردانید و راهاندازی خود را بین دستگاهها جابهجا کنید.»_ توابع کمکی سمت کلاینت این کارت در `src/lib/inspector/agentBridgeMaintenanceApi.ts` قرار دارند.
+داشبورد یک کارت **نگهداری و عیبیابی** (`AgentBridgeMaintenanceCard`، در `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`) ارائه میکند که مسیرهای عملیاتی MITM را نمایش میدهد؛ مسیرهایی که پیشتر هیچ رابط کاربریای نداشتند. زیرعنوان آن چنین است: _«خط لولهٔ دریافت را خودآزمایی کنید، وضعیت باقیماندهٔ سیستم را بازگردانید و تنظیمات خود را بین دستگاهها جابهجا کنید.»_ توابع کمکی کلاینت این کارت در `src/lib/inspector/agentBridgeMaintenanceApi.ts` قرار دارند.
 
-| دکمه                  | مسیر                                   | کاری که انجام میدهد                                                                                                                                                                                              |
-| --------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **عیبیابی**           | `GET /api/tools/agent-bridge/diagnose` | خودآزمایی خط لولهٔ ضبط را اجرا میکند و گزارشی برای هر بررسی نمایش میدهد (✓/✗ بههمراه راهنمای رفع مشکل).                                                                                                          |
-| **تعمیر**             | `POST /api/tools/agent-bridge/repair`  | وضعیت سیستمی MITM رهاشده در اثر خرابی یا SIGKILL را برمیگرداند (ورودیهای جعل DNS، مرجع صدور گواهی ریشه و پراکسی سیستم). همتوان — وقتی وضعیت پاک باشد، «چیزی برای تعمیر وجود ندارد» را گزارش میکند.               |
-| **حذف CA**            | `DELETE /api/tools/agent-bridge/cert`  | اعتماد به مرجع صدور گواهی ریشهٔ MITM را لغو و آن را از مخزن اعتماد سیستمعامل حذف میکند (صریح و همتوان). فقط زمانی نمایش داده میشود که CA در حال حاضر مورد اعتماد باشد؛ به تأیید درونخطی «CA حذف شود؟» نیاز دارد. |
-| **برونبری پیکربندی**  | `GET /api/tools/agent-bridge/config`   | فایل JSON پیکربندی قابلانتقال را دانلود میکند (بخش §3.7 را ببینید).                                                                                                                                              |
-| **درونریزی پیکربندی** | `POST /api/tools/agent-bridge/config`  | یک فایل JSON پیکربندی را که قبلاً برونبری شده است بارگذاری میکند (بخش §3.7 را ببینید).                                                                                                                           |
+| دکمه                  | مسیر                                   | کاری که انجام میدهد                                                                                                                                                                                                        |
+| --------------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **تشخیص**             | `GET /api/tools/agent-bridge/diagnose` | آزمون خودکار خط لولهٔ ضبط را اجرا میکند و گزارشی برای هر بررسی نمایش میدهد (✓/✗ + راهنمای رفع مشکل).                                                                                                                       |
+| **تعمیر**             | `POST /api/tools/agent-bridge/repair`  | وضعیت سیستمی یتیم MITM (ورودیهای جعل DNS، گواهی ریشهٔ CA، پروکسی سیستم) را که بر اثر خرابی یا SIGKILL باقی مانده است، لغو میکند. این عملیات همتوان است — وقتی وضعیت پاک باشد، «چیزی برای تعمیر وجود ندارد» را گزارش میکند. |
+| **حذف CA**            | `DELETE /api/tools/agent-bridge/cert`  | اعتماد به گواهی ریشهٔ CA مربوط به MITM را لغو و آن را از مخزن اعتماد سیستمعامل حذف میکند (صریح و همتوان). فقط زمانی نمایش داده میشود که CA در حال حاضر مورد اعتماد باشد؛ به تأیید درونخطی «CA حذف شود؟» نیاز دارد.         |
+| **برونبری پیکربندی**  | `GET /api/tools/agent-bridge/config`   | فایل JSON پیکربندی قابلحمل را دانلود میکند (بخش §3.7 را ببینید).                                                                                                                                                           |
+| **درونریزی پیکربندی** | `POST /api/tools/agent-bridge/config`  | یک فایل JSON پیکربندی را که قبلاً برونبری شده است بارگذاری میکند (بخش §3.7 را ببینید).                                                                                                                                     |
 
-**بررسیهای عیبیابی** (`summarizeDiagnostics()` در `src/mitm/inspector/diagnostics.ts`). مسیر، کاوش اثرگذار را برای هر مورد اجرا میکند و مقادیر بولی را به خلاصهساز خالص میدهد؛ یک نتیجهٔ کلی `healthy` بههمراه راهنمایی برای هر شکست بازگردانده میشود:
+هر کارت عامل، دکمهٔ **بازیابی پیشفرض** مخصوص خود را نیز دارد (`POST
+/api/tools/agent-bridge/agents/{id}/reset`) — یک بازگردانی تککلیکی برای هر عامل که فقط جعل میزبانهای همان
+عامل را لغو میکند، نگاشتهای مدل ذخیرهشدهٔ آن را پاک میکند و وضعیت `dns_enabled`/`setup_completed`
+آن را بازنشانی میکند تا پس از راهاندازی مجدد کامل، IDE دوباره با بالادست واقعی ارتباط برقرار کند. این کار به
+سرور مشترک MITM یا گواهی ریشهٔ CA دست نمیزند (ممکن است عاملهای دیگر همچنان به آنها وابسته باشند) — این موارد از طریق
+کارت سرور و اقدام **حذف CA** در بالا همچنان در دسترس میمانند. در Windows همچنین در حد توان
+`ipconfig /flushdns` را اجرا میکند، زیرا سرویسگیرندهٔ DNS ویندوز ورودیهای فایل hosts را در حافظهٔ نهان نگه میدارد و در غیر این صورت
+ورودی جعلی تازهحذفشده را کنار نمیگذارد.
 
-| نام بررسی          | آنچه تأیید میکند                                              | راهنمای هنگام شکست                                                                                                                             |
-| ------------------ | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `server-running`   | فرایند سرور MITM فعال است                                     | «سرور MITM در حال اجرا نیست. آن را از زبانهٔ AgentBridge راهاندازی کنید.»                                                                      |
-| `server-reachable` | سرور MITM اتصالها را روی پورت خود میپذیرد (کاوش TCP)          | «سرور MITM اتصالها را روی پورت خود نمیپذیرد. بررسی کنید که پورت آزاد باشد و مجوز لازم برای اتصال به آن را داشته باشید.»                        |
-| `cert-exists`      | گواهی MITM روی دیسک ایجاد شده است                             | «هنوز هیچ گواهی MITM ایجاد نشده است. یکی را از زبانهٔ AgentBridge ایجاد کنید.»                                                                 |
-| `cert-trusted`     | مرجع صدور گواهی ریشهٔ MITM در مخزن اعتماد سیستمعامل قرار دارد | «مرجع صدور گواهی ریشهٔ MITM مورد اعتماد مخزن سیستمعامل نیست، بنابراین رهگیری TLS شکست خواهد خورد. از زبانهٔ AgentBridge به گواهی اعتماد کنید.» |
-| `dns-configured`   | نامهای میزبان هدف در `/etc/hosts` جعل شدهاند                  | «نامهای میزبان هدف در /etc/hosts جعل نشدهاند، بنابراین ترافیک هرگز به پراکسی نمیرسد. DNS را برای عاملهایی که میخواهید ضبط کنید فعال کنید.»     |
+**بررسیهای عیبیابی** (`summarizeDiagnostics()` در `src/mitm/inspector/diagnostics.ts`). مسیر، کاوش اثرگذار را برای هر مورد اجرا میکند و مقادیر بولی را به خلاصهساز خالص میدهد؛ یک نتیجهٔ واحد `healthy` بههمراه راهنمایی برای هر شکست بازگردانده میشود:
 
-**نوار وضعیت رهاشده:** وقتی صفحه وضعیتی را تشخیص دهد که در اثر خرابی باقی مانده است (جعل DNS / CA / پراکسی سیستم)، کارت یک نوار کهربایی نمایش میدهد — _«یک نشست قبلی وضعیت سیستمی بر جای گذاشته است (جعل DNS،‏ CA یا پراکسی سیستم). برای پاکسازی آن، تعمیر را اجرا کنید.»_ — و دکمهٔ **تعمیر** را برجسته میکند. `Repair` همتای لایهٔ کاربرد پرچم `--cleanup` در ProxyBridge است (به `repairMitm()` در `src/mitm/manager.ts` واگذار میشود).
+| نام بررسی          | چیزی که تأیید میکند                                       | راهنما هنگام شکست                                                                                                                                 |
+| ------------------ | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server-running`   | فرایند سرور MITM فعال است                                 | «سرور MITM در حال اجرا نیست. آن را از زبانهٔ AgentBridge راهاندازی کنید.»                                                                         |
+| `server-reachable` | سرور MITM اتصالها را روی درگاه خود میپذیرد (کاوش TCP)     | «سرور MITM اتصالها را روی درگاه خود نمیپذیرد. بررسی کنید که درگاه آزاد باشد و مجوزهای لازم برای اتصال به آن را داشته باشید.»                      |
+| `cert-exists`      | گواهی MITM روی دیسک تولید شده است                         | «هنوز هیچ گواهی MITM تولید نشده است. یکی را از زبانهٔ AgentBridge تولید کنید.»                                                                    |
+| `cert-trusted`     | گواهی ریشهٔ CA مربوط به MITM در مخزن اعتماد سیستمعامل است | «گواهی ریشهٔ CA مربوط به MITM مورد اعتماد مخزن سیستمعامل نیست؛ بنابراین رهگیری TLS ناموفق خواهد بود. از زبانهٔ AgentBridge به گواهی اعتماد کنید.» |
+| `dns-configured`   | نامهای میزبان هدف در `/etc/hosts` جعل شدهاند              | «نامهای میزبان هدف در /etc/hosts جعل نشدهاند؛ بنابراین ترافیک هرگز به پروکسی نمیرسد. DNS را برای عاملهایی که میخواهید ضبط کنید فعال کنید.»        |
 
-> مرجع صدور گواهی ریشهٔ MITM در طول توقف/شروع همچنان نصبشده باقی میماند تا از
-> درخواستهای مکرر sudo جلوگیری شود (همان رفتار mitmproxy/Charles)، بنابراین حذف آن
-> یک عمل صریح **حذف CA** است، نه کاری که هنگام توقف بهصورت خودکار انجام شود.
+**بنر وضعیت یتیم:** وقتی صفحه، وضعیت باقیمانده از یک خرابی را تشخیص دهد (جعل DNS / گواهی CA / پروکسی سیستم)، کارت یک بنر کهربایی نمایش میدهد — _«یک نشست قبلی، وضعیت سیستمی را باقی گذاشته است (جعل DNS، گواهی CA یا پروکسی سیستم). برای پاکسازی آن، تعمیر را اجرا کنید.»_ — و دکمهٔ **تعمیر** را برجسته میکند. `Repair` همتای لایهٔ کاربردی پرچم `--cleanup` در ProxyBridge است (آن را به `repairMitm()` در `src/mitm/manager.ts` واگذار میکند).
 
-### 3.7 درونریزی/برونبری پیکربندی قابلانتقال
+> گواهی ریشهٔ CA مربوط به MITM بین توقف و راهاندازی مجدد، نصبشده باقی میماند تا از نمایش مکرر
+> درخواستهای sudo جلوگیری شود (همان رفتار mitmproxy/Charles)؛ بنابراین حذف آن یک اقدام صریح
+> **حذف CA** است، نه عملی که هنگام توقف بهطور خودکار انجام شود.
 
-AgentBridge میتواند وضعیت **قابلتنظیم توسط اپراتور** را در قالب یک شیء JSON نسخهبندیشده سریالسازی کند تا یک تنظیمات را بتوان در چندین دستگاه تکرار کرد. سریالساز `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`) است که توسط `AgentBridgeConfigSchema` اعتبارسنجی میشود.
+### 3.7 درونریزی/برونبری پیکربندی قابلحمل
 
-برونبری دقیقاً شامل سه بخش است (پیشفرضهای داخلی عمداً برونبری **نمیشوند** تا درونریزی هرگز باعث تکرار یا تداخل با آنها نشود):
+AgentBridge میتواند وضعیت **قابلتنظیم توسط اپراتور** را در یک دادهٔ JSON نسخهبندیشده سریالسازی کند تا بتوان یک راهاندازی را در چند دستگاه تکثیر کرد. سریالساز `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`) است که توسط `AgentBridgeConfigSchema` اعتبارسنجی میشود.
 
-| فیلد             | منبع                                                          | نکات                                                                   |
+خروجی برونبری دقیقاً شامل سه بخش است (مقادیر پیشفرض داخلی عمداً برونبری **نمیشوند** تا درونریزی هرگز آنها را تکرار نکند یا با آنها تداخل نداشته باشد):
+
+| فیلد             | منبع                                                          | توضیحات                                                                |
 | ---------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | `bypassPatterns` | الگوهای عبور تعریفشده توسط کاربر (`agent_bridge_bypass`)      | الگوهای پیشفرض بانک/دولت/okta مستثنا هستند                             |
 | `customHosts`    | میزبانهای سفارشی Traffic Inspector (`inspector_custom_hosts`) | هر مورد: `{ host, kind: "llm"\|"app"\|"custom", label? }`              |
-| `agentMappings`  | نگاشت مدل برای هر عامل (`agent_bridge_mappings`)              | `{ [agentId]: [{ source, target }] }` برای هر عاملی که دارای نگاشت است |
+| `agentMappings`  | نگاشتهای مدل برای هر عامل (`agent_bridge_mappings`)           | `{ [agentId]: [{ source, target }] }` برای هر عاملی که دارای نگاشت است |
 
 ```jsonc
 // GET /api/tools/agent-bridge/config
@@ -333,13 +332,13 @@ AgentBridge میتواند وضعیت **قابلتنظیم توسط اپراتو
 }
 ```
 
-**رفتار درونریزی** (`POST /api/tools/agent-bridge/config`): الگوهای عبور و نگاشتهای هر عامل **بهطور کامل جایگزین میشوند**؛ میزبانهای سفارشی بهشکل **همتوان** افزوده میشوند (`INSERT OR IGNORE`). پاسخ گزارش میدهد که چه تعداد از هر مورد اعمال شدهاند:
+**رفتار واردسازی** (`POST /api/tools/agent-bridge/config`): الگوهای عبور و نگاشتهای هر عامل **بهطور کامل جایگزین میشوند**؛ میزبانهای سفارشی بهصورت **همتوان** اضافه میشوند (`INSERT OR IGNORE`). پاسخ گزارش میدهد که چه تعداد از هر مورد اعمال شده است:
 
 ```jsonc
 { "ok": true, "bypassPatterns": 1, "customHosts": 1, "agents": 1 }
 ```
 
-مواردی که در پیکربندی **وجود ندارند**: وضعیت اجرای سرور، مسیرهای گواهی، وضعیت DNS هر عامل، مسیر CA بالادستی و تنظیمات TPROXY — اینها وضعیت میزبان/زمان اجرا هستند، نه ترجیحات قابلانتقال.
+مواردی که **در پیکربندی نیستند**: وضعیت اجرای سرور، مسیرهای گواهی، وضعیت DNS هر عامل، مسیر CA بالادستی و تنظیمات TPROXY — اینها وضعیت میزبان/زمان اجرا هستند، نه ترجیحات قابلانتقال.
 
 ---
 
@@ -499,37 +498,38 @@ ipconfig /flushdns
 
 ## §7 مرجع API
 
-همه مسیرها `LOCAL_ONLY` (فقط loopback، اعمالشده پیش از احراز هویت) و `SPAWN_CAPABLE` هستند. به `src/server/authz/routeGuard.ts` مراجعه کنید.
+همهٔ مسیرها `LOCAL_ONLY` (فقط loopback، که پیش از احراز هویت اعمال میشود) و `SPAWN_CAPABLE` هستند. به `src/server/authz/routeGuard.ts` مراجعه کنید.
 
 مسیر پایه: `/api/tools/agent-bridge/`
 
-| متد                 | مسیر                                           | توضیحات                                                                                                             |
-| ------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| GET                 | `/api/tools/agent-bridge/state`                | وضعیت کلی سرور + تشخیص/وضعیت هر عامل                                                                                |
-| GET                 | `/api/tools/agent-bridge/agents`               | فهرست عاملهای ثبتشده (شناسه، نام، میزبانها، قابلیت استفاده، وضعیت)                                                  |
-| GET                 | `/api/tools/agent-bridge/agents/{id}`          | وضعیت یک عامل (پیکربندی هدف + تشخیص + وضعیت ذخیرهشده)                                                               |
-| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | بهروزرسانی `setup_completed` برای عامل                                                                              |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | اجرای کاوش تشخیص برای عامل (`installed`، `version?`، `path?`)                                                       |
-| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | فعال/غیرفعالکردن DNS برای عامل (`{enabled: boolean}`)                                                               |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | نگاشتهای مدل برای عامل                                                                                              |
-| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | جایگزینی نگاشتهای مدل                                                                                               |
-| POST                | `/api/tools/agent-bridge/server`               | راهاندازی/توقف/راهاندازی مجدد سرور (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)          |
-| GET                 | `/api/tools/agent-bridge/cert`                 | وضعیت گواهی (`exists`، `trusted`، `path`)                                                                           |
-| POST                | `/api/tools/agent-bridge/cert`                 | اعتماد (نصب) CA ریشهٔ MITM                                                                                          |
-| DELETE              | `/api/tools/agent-bridge/cert`                 | لغو اعتماد (حذف) CA ریشهٔ MITM — تکرارپذیر (بخش §3.6 را ببینید)                                                     |
-| POST                | `/api/tools/agent-bridge/cert/regenerate`      | تولید مجدد گواهی خودامضای MITM                                                                                      |
-| GET                 | `/api/tools/agent-bridge/cert/download`        | پخش جریانی گواهی PEM برای دانلود                                                                                    |
-| GET                 | `/api/tools/agent-bridge/bypass`               | فهرست الگوهای دور زدن (`default` + `user`)                                                                          |
-| POST                | `/api/tools/agent-bridge/bypass`               | جایگزینی کامل الگوهای دور زدن تعریفشده توسط کاربر                                                                   |
-| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | حذف یک الگوی دور زدن تعریفشده توسط کاربر                                                                            |
-| GET                 | `/api/tools/agent-bridge/diagnose`             | خودآزمایی خط لولهٔ ضبط (بخش §3.6 را ببینید)                                                                         |
-| POST                | `/api/tools/agent-bridge/repair`               | بازگردانی وضعیت سیستمی باقیماندهٔ MITM (بخش §3.6 را ببینید)                                                         |
-| GET                 | `/api/tools/agent-bridge/config`               | برونبری پیکربندی قابلانتقال JSON (بخش §3.7 را ببینید)                                                               |
-| POST                | `/api/tools/agent-bridge/config`               | درونریزی پیکربندی قابلانتقال JSON (بخش §3.7 را ببینید)                                                              |
-| GET                 | `/api/tools/agent-bridge/upstream-ca`          | دریافت مسیر CA بالادستی پیکربندیشده                                                                                 |
-| POST                | `/api/tools/agent-bridge/upstream-ca`          | اعتبارسنجی + ذخیرهٔ مسیر CA بالادستی                                                                                |
-| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | فقط اعتبارسنجی (اجرای آزمایشی) مسیر CA بالادستی — ذخیره نمیشود                                                      |
-| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | حالت ضبط رمزگشایی شفاف TPROXY — `docs/security/MITM-TPROXY-DECRYPT.md` را ببینید (git؛ در `/docs` کامپایل نشده است) |
+| متد                 | مسیر                                           | توضیحات                                                                                                                     |
+| ------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| GET                 | `/api/tools/agent-bridge/state`                | وضعیت سراسری سرور + تشخیص/وضعیت هر عامل                                                                                     |
+| GET                 | `/api/tools/agent-bridge/agents`               | فهرست عاملهای ثبتشده (شناسه، نام، میزبانها، قابلیت استفاده، وضعیت)                                                          |
+| GET                 | `/api/tools/agent-bridge/agents/{id}`          | وضعیت یک عامل (پیکربندی هدف + تشخیص + وضعیت ذخیرهشده)                                                                       |
+| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | بهروزرسانی `setup_completed` برای عامل                                                                                      |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | اجرای کاوش تشخیص برای عامل (`installed`، `version?`، `path?`)                                                               |
+| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | فعال/غیرفعالکردن DNS برای عامل (`{enabled: boolean}`)                                                                       |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | نگاشتهای مدل برای عامل                                                                                                      |
+| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | جایگزینی نگاشتهای مدل                                                                                                       |
+| POST                | `/api/tools/agent-bridge/agents/{id}/reset`    | بازگردانی به حالت پیشفرض: لغو جعل DNS این عامل، پاککردن نگاشتهای آن و بازنشانی وضعیت آن (بخش §3.6 را ببینید)                |
+| POST                | `/api/tools/agent-bridge/server`               | شروع/توقف/راهاندازی مجدد سرور (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                       |
+| GET                 | `/api/tools/agent-bridge/cert`                 | وضعیت گواهی (`exists`، `trusted`، `path`)                                                                                   |
+| POST                | `/api/tools/agent-bridge/cert`                 | اعتماد (نصب) CA ریشهٔ MITM                                                                                                  |
+| DELETE              | `/api/tools/agent-bridge/cert`                 | لغو اعتماد (حذف) CA ریشهٔ MITM — ایدمپوتنت (بخش §3.6 را ببینید)                                                             |
+| POST                | `/api/tools/agent-bridge/cert/regenerate`      | تولید مجدد گواهی خودامضای MITM                                                                                              |
+| GET                 | `/api/tools/agent-bridge/cert/download`        | پخش جریانی گواهی PEM برای دانلود                                                                                            |
+| GET                 | `/api/tools/agent-bridge/bypass`               | فهرست الگوهای دور زدن (`default` + `user`)                                                                                  |
+| POST                | `/api/tools/agent-bridge/bypass`               | جایگزینی کامل الگوهای دور زدن تعریفشده توسط کاربر                                                                           |
+| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | حذف یک الگوی دور زدن تعریفشده توسط کاربر                                                                                    |
+| GET                 | `/api/tools/agent-bridge/diagnose`             | خودآزمایی خط لولهٔ ضبط (بخش §3.6 را ببینید)                                                                                 |
+| POST                | `/api/tools/agent-bridge/repair`               | خنثیسازی وضعیت سیستمی MITM رهاشده (بخش §3.6 را ببینید)                                                                      |
+| GET                 | `/api/tools/agent-bridge/config`               | برونبری پیکربندی قابلانتقال JSON (بخش §3.7 را ببینید)                                                                       |
+| POST                | `/api/tools/agent-bridge/config`               | درونریزی پیکربندی قابلانتقال JSON (بخش §3.7 را ببینید)                                                                      |
+| GET                 | `/api/tools/agent-bridge/upstream-ca`          | دریافت مسیر CA بالادستی پیکربندیشده                                                                                         |
+| POST                | `/api/tools/agent-bridge/upstream-ca`          | اعتبارسنجی + ذخیرهٔ پایدار مسیر CA بالادستی                                                                                 |
+| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | فقط اعتبارسنجی (اجرای آزمایشی) مسیر CA بالادستی — ذخیره نمیشود                                                              |
+| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | حالت ضبط رمزگشایی شفاف TPROXY — به `docs/security/MITM-TPROXY-DECRYPT.md` مراجعه کنید (در git؛ در `/docs` کامپایل نشده است) |
 
 طرحوارههای کامل OpenAPI: `docs/openapi.yaml` ← برچسب `AgentBridge`.
 

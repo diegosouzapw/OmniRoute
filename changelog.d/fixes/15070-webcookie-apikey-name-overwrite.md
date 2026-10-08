@@ -1,0 +1,1 @@
+- fix(providers): adding a second web-cookie provider account under an already-used connection name no longer overwrites the first account's session (#15070)

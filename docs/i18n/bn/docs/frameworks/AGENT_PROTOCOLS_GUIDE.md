@@ -1,6 +1,6 @@
 # Agent Protocols Guide (বাংলা)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇪🇹 [am](../../../am/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇦🇿 [az](../../../az/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇩🇰 [da](../../../da/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇩🇪 [de](../../../de/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇬🇷 [el](../../../el/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇪🇸 [es](../../../es/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇪🇪 [et](../../../et/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇱 [he](../../../he/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇩 [id](../../../id/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇹 [it](../../../it/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇰🇭 [km](../../../km/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇲🇲 [my](../../../my/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇳🇴 [no](../../../no/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [or](../../../or/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇱🇰 [si](../../../si/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [te](../../../te/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇹🇭 [th](../../../th/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇪🇹 [am](../../../am/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇦🇿 [az](../../../az/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇩🇰 [da](../../../da/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇩🇪 [de](../../../de/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇬🇷 [el](../../../el/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇪🇸 [es](../../../es/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇪🇪 [et](../../../et/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇱 [he](../../../he/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇩 [id](../../../id/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇹 [it](../../../it/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇰🇭 [km](../../../km/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇲🇲 [my](../../../my/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇳🇴 [no](../../../no/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [or](../../../or/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇱🇰 [si](../../../si/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [te](../../../te/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇹🇭 [th](../../../th/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md)
 
 ---
 
@@ -74,13 +74,17 @@ OmniRoute এজেন্ট-সম্পর্কিত তিনটি ভি�
 
 ### এটি কী
 
-ACP হলো OmniRoute-এর **স্থানীয় CLI এজেন্ট ইনভেন্টরি**। এটি হোস্টে কোন কোন কোডিং CLI ইনস্টল করা আছে (Cursor, Cline, Claude Code, Codex CLI, Continue ইত্যাদি) তা শনাক্ত করে, সেগুলোর সংস্করণ নির্ধারণ করে এবং ড্যাশবোর্ডে প্রদর্শন করে, যাতে ব্যবহারকারী প্রতিটি CLI-কে OmniRoute-এর দিকে নির্দেশ করার জন্য সংযুক্ত করতে পারেন।
+ACP হলো OmniRoute-এর **স্থানীয় CLI এজেন্ট তালিকা**। এটি হোস্টে কোন কোন কোডিং CLI ইনস্টল করা আছে (Cursor, Cline, Claude Code, Codex CLI, Continue ইত্যাদি) তা শনাক্ত করে, সেগুলোর সংস্করণ নির্ধারণ করে এবং ড্যাশবোর্ডে প্রদর্শন করে, যাতে ব্যবহারকারী প্রতিটি CLI-কে OmniRoute-এর দিকে নির্দেশ করতে পারেন।
 
-এটি কোনো বাহ্যিক প্রোটোকল নয় — এটি একটি অভ্যন্তরীণ রেজিস্ট্রি, যা "CLI Tools" UI এবং CLI ফিঙ্গারপ্রিন্ট ট্র্যাকিং পরিচালনা করে ([CLI-TOOLS.md](../reference/CLI-TOOLS.md) দেখুন)।
+HTTP ইন্টারফেসটি একটি অভ্যন্তরীণ তালিকা, যা "CLI Tools" UI এবং
+CLI ফিঙ্গারপ্রিন্ট ট্র্যাকিং পরিচালনা করে ([CLI-TOOLS.md](../reference/CLI-TOOLS.md) দেখুন)। আলাদাভাবে,
+অভ্যন্তরীণ প্রসেস ম্যানেজার নিবন্ধিত Gemini লঞ্চারের জন্য নেটিভ Agent Client Protocol এবং
+অন্যান্য কন্ট্র্যাক্টের জন্য লিগ্যাসি stdio অ্যাডাপ্টার সমর্থন করে।
+এই স্বতন্ত্র মোড ও সীমাবদ্ধতাগুলোর জন্য [ACP রেজিস্ট্রি ও লঞ্চারসমূহ](./ACP.md) দেখুন।
 
 ### এটি কী করে
 
-- ইনস্টল করা CLI বাইনারির জন্য হোস্ট পরীক্ষা করে (OS অনুযায়ী `which` / `where` ব্যবহার করে)
+- ইনস্টল করা CLI বাইনারিগুলোর জন্য হোস্ট অনুসন্ধান করে (OS অনুযায়ী `which` / `where` ব্যবহার করে)
 - প্রতিটি CLI-এর সংস্করণ পড়ে (`<bin> --version` কল করে)
 - ঐচ্ছিকভাবে ব্যবহারকারী-সংজ্ঞায়িত কাস্টম এজেন্ট গ্রহণ করে (বাইনারি পাথ + সংস্করণ অনুসন্ধান + স্পন আর্গুমেন্ট)
 - সেটিংসে কাস্টম এজেন্ট সংরক্ষণ করে
@@ -88,10 +92,10 @@ ACP হলো OmniRoute-এর **স্থানীয় CLI এজেন্ট
 
 ### REST API
 
-| এন্ডপয়েন্ট       | মেথড | বিবরণ                                                            | অথ     |
-| ----------------- | ---- | ---------------------------------------------------------------- | ------ |
-| `/api/acp/agents` | GET  | শনাক্ত করা + কাস্টম এজেন্টের তালিকা (ইনস্টল করা/মোট সংখ্যা)      | API কী |
-| `/api/acp/agents` | POST | কাস্টম এজেন্ট যোগ/আপডেট/অপসারণ করে (বডিতে অ্যাকশন ডিসক্রিমিনেটর) | API কী |
+| এন্ডপয়েন্ট       | মেথড | বিবরণ                                                            | প্রমাণীকরণ |
+| ----------------- | ---- | ---------------------------------------------------------------- | ---------- |
+| `/api/acp/agents` | GET  | শনাক্ত করা + কাস্টম এজেন্টের তালিকা (ইনস্টল করা/মোট সংখ্যা)      | API কী     |
+| `/api/acp/agents` | POST | কাস্টম এজেন্ট যোগ/আপডেট/অপসারণ করে (বডিতে অ্যাকশন ডিসক্রিমিনেটর) | API কী     |
 
 POST-এর বডি কাঠামো (`src/app/api/acp/agents/route.ts`-এ `customAgentBodySchema`):
 
@@ -110,13 +114,16 @@ POST-এর বডি কাঠামো (`src/app/api/acp/agents/route.ts`-এ 
 
 ### ব্যবহারের ক্ষেত্র
 
-- ড্যাশবোর্ডের "CLI Tools" পৃষ্ঠা কোনগুলো ইনস্টল করা আছে তা তালিকাভুক্ত করে এবং প্রতিটিকে OmniRoute-এর দিকে নির্দেশ করতে সহায়তা করে
-- কাস্টম এজেন্টের মাধ্যমে অভিজ্ঞ ব্যবহারকারীরা এমন অভ্যন্তরীণ/মালিকানাধীন CLI নিবন্ধন করতে পারেন, যেগুলো সম্পর্কে OmniRoute ডিফল্টভাবে জানে না
+- ড্যাশবোর্ডের "CLI Tools" পৃষ্ঠাটি কী কী ইনস্টল করা আছে তা দেখায় এবং প্রতিটিকে OmniRoute-এর দিকে নির্দেশ করতে সহায়তা করে
+- কাস্টম এজেন্টের মাধ্যমে দক্ষ ব্যবহারকারীরা এমন অভ্যন্তরীণ/মালিকানাধীন CLI নিবন্ধন করতে পারেন, যেগুলো সম্পর্কে OmniRoute ডিফল্টভাবে জানে না
 - শনাক্তকরণের ফলাফল `cli-tools` ফিঙ্গারপ্রিন্ট ম্যাট্রিক্সে তথ্য সরবরাহ করে
 
 ### কখন ACP ব্যবহার করবেন না
 
-- ACP কোনো টাস্ক _চালায়_ না। এটি শুধু CLI শনাক্ত ও কনফিগার করে। বাস্তবে কোনো CLI আহ্বান করতে, OmniRoute-এর দেওয়া এনভায়রনমেন্ট ভেরিয়েবল (`OPENAI_BASE_URL`, `OPENAI_API_KEY` ইত্যাদি) ব্যবহার করে আপনাকেই সেটি চালু করতে হবে।
+- HTTP রেজিস্ট্রি টাস্ক গ্রহণ করে না বা প্রসেস স্পনিং উন্মুক্ত করে না। অভ্যন্তরীণ
+  ম্যানেজার একটি নিবন্ধিত CLI চালু করতে পারে, তবে এটি স্বয়ংক্রিয় প্রোভাইডার
+  ফলব্যাক হিসেবে সংযুক্ত নয়। সাধারণ ইন্টার্যাক্টিভ ব্যবহারের জন্য কনফিগার করা CLI নিজে চালু করুন অথবা
+  `omniroute run` ব্যবহার করুন।
 
 ## 3. ক্লাউড এজেন্ট
 

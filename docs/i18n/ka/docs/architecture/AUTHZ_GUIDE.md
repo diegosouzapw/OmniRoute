@@ -1,73 +1,75 @@
 # Authorization Guide (ქართული)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
 
 ---
 
-> **ჭეშმარიტების წყარო:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **ბოლო განახლება:** 2026-06-28 — v3.8.40
+> **სიმართლის წყარო:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **ბოლოს განახლდა:** 2026-09-22 — scope namespaces point at MCP-SERVER.md
 
-OmniRoute-ს აქვს მარშრუტის გათვალისწინებით მოქმედი ავტორიზაციის კონვეიერი, რომელიც ყველა API მოთხოვნას აკონტროლებს. კლასიფიკაცია **დეტერმინისტული** და **უარისკენ ნაგულისხმევი**ა — ყველაფერი, რისი კლასიფიცირებაც ვერ ხერხდება, `MANAGEMENT` კატეგორიაში ხვდება და სესიას ან მართვის დონის ტოკენს მოითხოვს. ამ გვერდზე აღწერილია მოდელი ინჟინრებისთვის, რომლებიც მარშრუტებს უვლიან ან ახალ საბოლოო წერტილებს აპროექტებენ.
+OmniRoute-ს აქვს მარშრუტის ამომცნობი ავტორიზაციის კონვეიერი, რომელიც ყველა API მოთხოვნას აკონტროლებს. კლასიფიკაცია არის **დეტერმინისტული** და **ჩავარდნისას იკეტება** — ყველაფერი, რისი კლასიფიცირებაც შეუძლებელია, ხვდება `MANAGEMENT` კატეგორიაში და მოითხოვს სესიას ან მენეჯმენტის დონის ტოკენს. ეს გვერდი განმარტავს მოდელს ინჟინრებისთვის, რომლებიც მარშრუტებს ინარჩუნებენ ან ახალ ენდპოინტებს აპროექტებენ.
 
-![AuthZ კონვეიერი (მარშრუტების 3 კლასი + პოლიტიკის შეფასება)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ კონვეიერი (3 მარშრუტის კლასი + პოლიტიკის შეფასება)](../diagrams/exported/authz-pipeline.svg)
 
 > წყარო: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
-## ავთენტიფიკაციის ორი რეჟიმი
+## ავტორიზაციის ორი რეჟიმი
 
 ### 1. API გასაღები (Bearer)
 
-გამოიყენება OpenAI/Anthropic/Gemini-თან თავსებადი კლიენტის API-ებისთვის და რამდენიმე მართვის მარშრუტისთვის, როდესაც გასაღებს `manage` წვდომის არე აქვს.
+გამოიყენება OpenAI/Anthropic/Gemini-თან თავსებადი კლიენტის API-ებისთვის და მართვის რამდენიმე მარშრუტისთვის, როდესაც გასაღებს `manage` scope აქვს.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-მოწმდება `isValidApiKey()` / `extractApiKey()` ფუნქციებით `src/sse/services/auth.ts`-ში და ხელახლა ექსპორტირდება `src/shared/utils/apiAuth.ts`-ის მეშვეობით. ვალიდატორი ასევე იღებს `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` გარემოს ცვლადებს, როგორც მუდმივ გამტარ გასაღებებს (საკითხი #1350).
+ვალიდაცია ხდება `isValidApiKey()` / `extractApiKey()` ფუნქციებით `src/sse/services/auth.ts`-ში და მათი ხელახალი ექსპორტი ხდება `src/shared/utils/apiAuth.ts`-ის მეშვეობით. ვალიდატორი ასევე იღებს `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` გარემოს ცვლადებს, როგორც მუდმივ გამჭოლ გასაღებებს (issue #1350).
 
-### 2. მართვის პანელის სესია (auth_token cookie)
+### 2. დაფის სესია (auth_token cookie)
 
-მართვის პანელის გვერდებისა და ადმინისტრაციული ოპერაციებისთვის.
+დაფის გვერდებისა და ადმინისტრაციული ოპერაციებისთვის.
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-cookie სესიად მხოლოდ მაშინ ითვლება, როდესაც JWT წარმატებით მოწმდება **და** შეიცავს `authenticated: true`-ს
-(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). cookie-ს ყველა
-მომხმარებელი (მარშრუტის დამცველი, authz კონვეიერის განახლება, WebSocket ხელის ჩამორთმევა, პირდაპირი
+cookie სესიად ითვლება მხოლოდ მაშინ, როდესაც JWT წარმატებით გადის შემოწმებას **და** შეიცავს `authenticated: true`-ს
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). cookie-ის ყველა
+მომხმარებელი (დაფის მარშრუტის დამცავი (`isDashboardSessionAuthenticated()`), ავტორიზაციის pipeline-ის განახლება, WebSocket-ის კავშირის დამყარება, live
 სერვერი, `/api/settings/require-login`, `/api/auth/status`) ამ დამხმარე ფუნქციას იყენებს.
-არსებობს `JWT_SECRET`-ით ხელმოწერილი სხვა JWT-ებიც — Cursor CLI-ის გამტარი რეჟიმი გასაღების
-მფლობელებისთვის ქმნის `iss "omniroute" / aud "cursor-cli"` ტოკენებს — და ისინი არასოდეს ითვლება სესიებად
+არსებობს `JWT_SECRET`-ით ხელმოწერილი სხვა JWT-ებიც — Cursor CLI-ის გამჭოლი მექანიზმი გასაღების მფლობელებისთვის ქმნის
+`iss "omniroute" / aud "cursor-cli"` ტოკენებს — და ისინი არასდროს ითვლება სესიებად
 (#13298).
 
-მოწმდება `isDashboardSessionAuthenticated()` ფუნქციით `src/shared/utils/apiAuth.ts`-ში. კონვეიერი ავტომატურად განაახლებს JWT-ს, როდესაც მისი 30-დღიანი მოქმედების ვადის ამოწურვამდე 7 დღეზე ნაკლები რჩება.
+შემოწმება ხდება `isDashboardSessionAuthenticated()`-ით `src/shared/utils/apiAuth.ts`-ში. pipeline ავტომატურად განაახლებს JWT-ს, როდესაც მისი 30-დღიანი მოქმედების ვადის ამოწურვამდე 7 დღეზე ნაკლებია დარჩენილი.
 
-ზოგიერთი მართვის მარშრუტი იღებს **ნებისმიერ** რეჟიმს: cookie-ს ან `Bearer <key>`-ს, როდესაც API გასაღებს აქვს `manage` (ან `admin`) წვდომის არე. სწორედ ეს იძლევა v3.8-ში დამატებული „API გამოძახებების მეშვეობით კონფიგურირებადი“ სამუშაო პროცესის გამოყენების შესაძლებლობას.
+სესია შეიძლება 30 დღის გასვლამდეც დასრულდეს, რადგან ყველა გამომცემი იყენებს `mintDashboardSessionToken`-ს (გამოცემის დრო `iat` და იდენტიფიკატორი `jti`), ხოლო შემმოწმებელი ორ პარამეტრს ამოწმებს: `sessionsValidAfter`, რომელიც პაროლის შეცვლისას დაყენდება, რის შედეგადაც მანამდე გამოცემული ყველა სესია შემოწმებას ვეღარ გაივლის (ბრაუზერი, რომელშიც პაროლი შეიცვალა, ახალ cookie-ს იღებს), და `revokedDashboardSessions`, რომელსაც `POST /api/auth/logout`-ის მეშვეობით ემატება სისტემიდან გასული სესიის `jti`. ძველი რელიზის მიერ შექმნილი სესიები არცერთ ამ claim-ს არ შეიცავს და პაროლის პირველ შეცვლამდე ძალაში რჩება. თუ პარამეტრების წაკითხვა შეუძლებელია, სესია სანდოდ არ მიიჩნევა.
+
+მართვის ზოგიერთი მარშრუტი იღებს **ორივე** რეჟიმიდან ერთ-ერთს: cookie ან `Bearer <key>`, როდესაც API გასაღებს `manage` (ან `admin`) scope აქვს. სწორედ ეს უზრუნველყოფს v3.8-ში დამატებულ „API გამოძახებებით კონფიგურირებად“ სამუშაო პროცესს.
 
 #### არასავალდებულო OIDC შესვლის ბარიერი (#6973)
 
-მართვის პანელის ადმინისტრატორის შესვლა ნაგულისხმევ პაროლით შესვლასთან ერთად ასევე მხარს უჭერს **სურვილისამებრ ჩასართავ** OIDC (OpenID Connect) პროცესს — პაროლით შესვლა არასოდეს იშლება, მხოლოდ
-ივსება დამატებითი მეთოდით:
+დაფის ადმინისტრატორის შესვლა, პაროლის ნაგულისხმევ მეთოდთან ერთად, ასევე მხარს უჭერს **სურვილისამებრ ჩასართავ** OIDC (OpenID Connect) პროცესს — პაროლით შესვლა არასდროს უქმდება, მას მხოლოდ
+ემატება დამატებითი შესაძლებლობა:
 
-- გამორთულია, თუ `settings.oidcEnabled === true` **და** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` ყველა კონფიგურირებული არ არის (პარამეტრები → ავთენტიფიკაცია).
+- გათიშულია, თუ `settings.oidcEnabled === true` **და** `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` ერთდროულად არ არის კონფიგურირებული (Settings → Auth).
   წინააღმდეგ შემთხვევაში `GET /api/auth/oidc/login` აბრუნებს `400`-ს.
-- `GET /api/auth/oidc/login` გამომცემლის
-  `/.well-known/openid-configuration`-იდან აღმოაჩენს `authorization_endpoint`-ს (სარეზერვო ვარიანტად იყენებს
+- `GET /api/auth/oidc/login` ემიტენტის
+  `/.well-known/openid-configuration`-იდან პოულობს `authorization_endpoint`-ს (თუ ვერ იპოვა, იყენებს
   `<issuer>/authorize`-ს), შემომავალი მოთხოვნის საფუძველზე აგებს გადამისამართების URI-ს
-  (`x-forwarded-proto`-ს გათვალისწინებით) და IdP-ზე გადაამისამართებს შემთხვევით `state`-თან ერთად,
-  რომელიც `httpOnly` `oidc_state` cookie-ში ინახება.
-- `GET /api/auth/oidc/callback` ამოწმებს `state`-ს, ავტორიზაციის
-  კოდს ცვლის და გამომცემლის JWKS-ის მეშვეობით ამოწმებს ID ტოკენის ხელმოწერას
-  (`jose`-ის `createRemoteJWKSet`, დაკეშილი თითოეული JWKS URI-სთვის), `issuer`/`audience`
+  (`x-forwarded-proto`-ს გათვალისწინებით) და მომხმარებელს IdP-ზე გადაამისამართებს შემთხვევითი `state`-ით,
+  რომელიც ინახება `httpOnly` `oidc_state` cookie-ში.
+- `GET /api/auth/oidc/callback` ამოწმებს `state`-ს, authorization
+  code-ს ცვლის და ID ტოკენის ხელმოწერას ემიტენტის JWKS-ის მეშვეობით ამოწმებს
+  (`jose`-ის `createRemoteJWKSet`, რომელიც თითოეული JWKS URI-სთვის კეშირდება), `issuer`/`audience`
   შემოწმებებით. არასავალდებულო `oidcAllowedSubjects` ნებადართული მნიშვნელობების სია შესაბამისობას ამოწმებს ტოკენის
-  `sub` მოთხოვნასთან ან მის `email` მოთხოვნასთან — ელფოსტის მოთხოვნა მხოლოდ მაშინ მიიღება, როდესაც
-  `email_verified === true`, ამიტომ IdP-ზე დაუდასტურებელი ელფოსტა ბარიერს ვერასოდეს გაივლის.
+  `sub` claim-თან ან მის `email` claim-თან — email claim მხედველობაში მიიღება მხოლოდ მაშინ, როდესაც
+  `email_verified === true`, ამიტომ IdP-ზე დაუდასტურებელი email ამ ბარიერს ვერასდროს გადალახავს.
 - წარმატების შემთხვევაში იქმნება **ზუსტად იგივე** 30-დღიანი `auth_token` JWT, რომელსაც პაროლით
-  შესვლის პროცესი გასცემს (`src/app/api/auth/login/route.ts`), ამიტომ მართვის პანელის
-  სესიის დანარჩენი კონვეიერი (ავტომატური განახლება, cookie-ს ალმები) უცვლელი რჩება —
-  OIDC მხოლოდ cookie-ს შექმნის მეთოდს ცვლის და არა მის მიერ მინიჭებულ უფლებებს.
+  შესვლა გასცემს (`src/app/api/auth/login/route.ts`), ამიტომ დაფის სესიის
+  pipeline-ის დანარჩენი ნაწილი (ავტომატური განახლება, cookie-ის ალმები) უცვლელი რჩება —
+  OIDC მხოლოდ cookie-ის შექმნის გზას ცვლის და არა მის მიერ მინიჭებულ უფლებებს.
 
 ## მარშრუტების კლასები
 
@@ -197,28 +199,29 @@ export async function POST(request: Request) {
 
 სიმრავლე აირჩიეთ ფორმის მიხედვით და არა მოხერხებულობისთვის. ერთი მარშრუტი უნდა მოთავსდეს `PUBLIC_API_ROUTES_EXACT`-ში (ან მხოლოდ GET-ისთვის — `PUBLIC_READONLY_CORS_API_ROUTES`-ში); მხოლოდ ნამდვილი ქვეხე უნდა მოთავსდეს `PUBLIC_API_ROUTE_PREFIXES`-ში და ის **აუცილებლად უნდა მთავრდებოდეს `/`-ით**. ერთი მარშრუტის პრეფიქსების სიაში მოთავსება ასევე საჯაროს ხდის ყველა მომიჯნავე ბილიკს, რომელსაც იგივე საწყისი სიმბოლოები აქვს — მათ შორის მოგვიანებით დამატებულ დინამიკური სეგმენტების მქონე მეზობელ მარშრუტებსაც (GHSA-74g9-q8f6-793h). განაახლეთ მოდულური ტესტები ფაილებში `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` და `tests/unit/authz/classify.test.ts`.
 
-## მოქმედების არეები
+## ფარგლები
 
-API გასაღებები შეიცავს `scopes` მასივს (ინახება JSON-ის სახით `api_keys.scopes`-ში, იხილეთ `src/lib/db/apiKeys.ts`).
+სამი სახელთა სივრცე. თითოეული შემმოწმებელი კითხულობს მხოლოდ საკუთარ სტრიქონებს. გვერდიგვერდ შედარება, მათ შორის, თუ რატომ ვერ ახერხებს `manage` `scopeMatches`-ს `read:compression`-ისთვის და რატომ არ შეუძლია `read` წვდომის ტოკენს `PATCH /api/keys/{id}`-ის შესრულება, მოცემულია [სამი ფარგლის სახელთა სივრცეში](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### მართვის მოქმედების არე
+API გასაღებები შეიცავს `scopes` მასივს (შენახულია JSON ფორმატში `api_keys.scopes`-ში, იხილეთ `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — Bearer-ის სახით გაგზავნისას გასაღებს მართვის API-ის საბოლოო წერტილებზე წვდომას ანიჭებს.
+### მართვის ფარგლები
 
-### MCP-ის მოქმედების არეები (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Bearer წვდომა მართვის API მარშრუტებზე.
+- `mcp:connect`, `self:usage`, `self:account-quota` და
+  `policy:bypass-provider-quota` არის დამატებითი ზუსტი შესატყვისობის ფარგლები. ისინი `MANAGEMENT_API_KEY_SCOPES`-ის გარეთ არიან. `mcp:connect` ხსნის მხოლოდ `/api/mcp/` არა-loopback ნაწილს.
 
-თითოეული MCP ინსტრუმენტი `MCP_TOOL_SCOPES`-ის მეშვეობით კონკრეტულ მოქმედების არეებს მოითხოვს. სრული სია (`MCP_SCOPE_LIST`):
+### MCP ხელსაწყოს ფარგლები
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+კატალოგი და შესატყვისობის წესები (იდენტური სტრიქონი, ან მინიჭებული ფარგალი, რომელიც მთავრდება `*`-ით): [MCP ხელსაწყოს ფარგლები](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` `src/shared/constants/mcpScopes.ts`-ში არის ორიგინალური ტიპის ქვეჯგუფი და არა სრული კატალოგი. აღსრულება ხორციელდება
+`open-sse/mcp-server/scopeEnforcement.ts`-ში მას შემდეგ, რაც `resolveCallerScopeContext()` გადაწყვეტს ფარგლებს MCP ავთენტიფიკაციის ინფორმაციიდან, მოთხოვნის მეტამონაცემებიდან, ან `OMNIROUTE_MCP_SCOPES`-დან.
+ის გამორთული რჩება, თუ `OMNIROUTE_MCP_ENFORCE_SCOPES=true` არ არის.
 
-`open-sse/mcp-server/server.ts`-ში მოქმედების არეების აღსრულება თითოეული ინსტრუმენტის მოქმედების არეების სიას გადასცემს
-`evaluateToolScopes()`-ს მას შემდეგ, რაც `resolveCallerScopeContext()` მოქმედების არეებს MCP ავთენტიფიკაციის ინფორმაციიდან,
-მოთხოვნის მეტამონაცემებიდან ან `OMNIROUTE_MCP_SCOPES`-იდან განსაზღვრავს.
+### წვდომის ტოკენის ფარგლები
+
+`read` / `write` / `admin` `oma_live_…` ტოკენებზე, რანჟირებული `scopeSatisfies`-ის მიხედვით
+(`src/lib/accessTokens/scopes.ts`). ეს რანგი ვრცელდება მხოლოდ წვდომის ტოკენის სერთიფიკატზე. იხილეთ [მართვის ავთენტიფიკაცია](../guides/MANAGEMENT-AUTH.md).
 
 ## ავთენტიფიკაციის მოთხოვნის გადამრთველი
 
@@ -264,9 +267,9 @@ x-omniroute-auth-scopes:    მძიმით გამოყოფილი �
 
 დამმუშავებლებში გამოიყენეთ `assertAuth(req, expectedClass)` — თუ შუამავალი პროგრამული შრე გამოტოვებულია, ის აგენერირებს `AuthzAssertionError`-ს კოდით `AUTHZ_NOT_INITIALIZED` (სასარგებლოა ტესტებში კონფიგურაციის რეგრესიების აღმოსაჩენად).
 
-## აგრეთვე იხილეთ
+## იხილეთ აგრეთვე
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — ავთენტიფიკაციის მარკერი თითოეული საბოლოო წერტილისთვის
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — ავთენტიფიკაციის მოვლენების აუდიტის ჟურნალი
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP-ის მოქმედების ფარგლების აღსრულების დეტალები
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — ავთენტიფიკაციის მარკერი თითოეული ენდპოინტისთვის
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — აუდიტის ჟურნალი ავთენტიფიკაციის მოვლენებისთვის
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — სამი სკოპის სახელთა სივრცე და MCP ინსტრუმენტების სკოპის კატალოგი
 - წყარო: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

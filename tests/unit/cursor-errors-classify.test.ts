@@ -28,13 +28,21 @@ test("classifyCursorErrorKind: auth cues", () => {
   assert.equal(classifyCursorErrorKind("unauthenticated"), "auth");
 });
 
-test("classifyCursorErrorKind: AI Model Not Found is rate_limit (Cursor out-of-usage)", () => {
+test("classifyCursorErrorKind: AI Model Not Found is rate_limit only with a reset hint", () => {
   assert.equal(
     classifyCursorErrorKind("not_found: AI Model Not Found (reset after 109h 9s)"),
     "rate_limit"
   );
-  assert.equal(classifyCursorErrorKind("not_found: AI Model Not Found"), "rate_limit");
-  assert.equal(classifyCursorErrorKind("model not found"), "invalid");
+  assert.equal(classifyCursorErrorKind("not_found: AI Model Not Found"), "not_found");
+  assert.equal(classifyCursorErrorKind("model not found"), "not_found");
+});
+
+test("classifyCursorError: an unknown Cursor model is a 404 invalid request, not a rate limit", () => {
+  const out = classifyCursorError("not_found: AI Model Not Found");
+  assert.equal(out.status, 404);
+  assert.equal(out.type, "invalid_request_error");
+  assert.match(out.message, /^Cursor model not found: /);
+  assert.doesNotMatch(out.message, /rate limit/i);
 });
 
 test("classifyCursorError redacts credentials and paths", () => {

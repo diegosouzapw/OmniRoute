@@ -1,0 +1,1 @@
+- **fix(db):** enforce `autoBackupFrequency` schedules and `keepLastNBackups` retention to prevent unbounded disk growth from automatic snapshots, with Windows file-lock retry backoff ([#15550](https://github.com/diegosouzapw/OmniRoute/issues/15550))

@@ -10,7 +10,7 @@
  *
  * Schedule:
  *   - Initial delay: 30s after server boot (allows DB migrations to complete)
- *   - Interval: configurable via CREDENTIAL_HEALTH_CHECK_INTERVAL (default 5 min)
+ *   - Interval: configurable via CREDENTIAL_HEALTH_CHECK_INTERVAL (default 60 min)
  *   - Per-connection override: provider_connections.healthCheckInterval (minutes,
  *     0 = never test this connection) paces each connection individually
  *   - Backoff on failure: 5min -> 10min -> 30min -> max 2h
@@ -24,6 +24,7 @@ import { getProviderConnections } from "@/lib/db/providers";
 import { getCachedSettings } from "@/lib/db/readCache";
 import { setCredentialHealth, initCredentialCache } from "@/lib/credentialHealth/cache";
 import {
+  DEFAULT_SWEEP_INTERVAL_MS,
   isCredentialProbeInconclusive,
   resolveInconclusiveProbeRecheckDelayMs,
 } from "@/lib/credentialHealth/probePolicy";
@@ -129,7 +130,7 @@ export function resolveCredentialHealthSweepInterval(
     const parsed = parseInt(envVal, 10);
     if (!isNaN(parsed) && parsed >= 10_000) return parsed;
   }
-  return 3_600_000; // default 60 min
+  return DEFAULT_SWEEP_INTERVAL_MS;
 }
 
 /**
@@ -142,7 +143,7 @@ function getSweepInterval(): number {
     const parsed = parseInt(envVal, 10);
     if (!isNaN(parsed) && parsed >= 10_000) return parsed;
   }
-  return 3_600_000; // default 60 min
+  return DEFAULT_SWEEP_INTERVAL_MS;
 }
 
 /**
@@ -151,9 +152,9 @@ function getSweepInterval(): number {
  * - `healthCheckInterval <= 0` → null (never test this connection — opt-out)
  * - absent → global sweep cadence (operator resilience setting, else env, else default)
  */
-function getConnIntervalMs(
+export function getConnIntervalMs(
   conn: { healthCheckInterval?: number | null },
-  globalIntervalMs = 300_000
+  globalIntervalMs = DEFAULT_SWEEP_INTERVAL_MS
 ): number | null {
   const minutes = conn.healthCheckInterval;
   if (minutes === null || minutes === undefined) return globalIntervalMs;

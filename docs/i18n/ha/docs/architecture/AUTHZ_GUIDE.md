@@ -1,29 +1,29 @@
 # Authorization Guide (Hausa)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
 
 ---
 
 > **Tushen gaskiya:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Sabuntawa ta ƙarshe:** 2026-06-28 — v3.8.40
+> **An sabunta ta ƙarshe:** 2026-09-22 — sararin samaniya na iyakoki suna nuni zuwa MCP-SERVER.md
 
-OmniRoute yana da bututun ba da izini mai la’akari da hanya wanda ke tantance kowace buƙatar API. Rarrabawar **tabbatacciya ce** kuma tana **rufe damar shiga idan an kasa tantancewa** — duk abin da ba za a iya rarrabawa ba yana komawa `MANAGEMENT` kuma yana buƙatar zaman mai amfani ko token na matakin gudanarwa. Wannan shafin yana bayyana tsarin ga injiniyoyin da ke kula da hanyoyi ko ƙirƙira sabbin maƙurar shiga.
+OmniRoute yana da tsarin izini mai sanin hanya wanda ke hana kowane buƙatar API. Rarraba yana da **ƙayyadaddun** kuma **mai rufe-kuskure** — duk abin da ba za a iya rarraba shi ba yana ƙarewa a matsayin `MANAGEMENT` kuma yana buƙatar zama ko alamar matakin gudanarwa. Wannan shafin yana bayyana tsarin ga injiniyoyi masu kula da hanyoyi ko masu tsara sabbin wuraren ƙarshe.
 
-![Bututun AuthZ (rukunin hanyoyi 3 + kimanta manufofi)](../diagrams/exported/authz-pipeline.svg)
+![Tsarin AuthZ (ajiye hanyoyi 3 + kimanta manufofi)](../diagrams/exported/authz-pipeline.svg)
 
 > Tushe: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
-## Hanyoyin Tabbatar da Shaida Biyu
+## Hanyoyin Tantancewa Biyu
 
-### 1. Maɓallin API (Bearer)
+### 1. API Key (Bearer)
 
-Ana amfani da shi don API na abokan hulɗa masu dacewa da OpenAI/Anthropic/Gemini da kuma wasu hanyoyin gudanarwa kaɗan idan maɓallin yana da iyakar izinin `manage`.
+Ana amfani da shi don API ɗin abokan hulɗa masu dacewa da OpenAI/Anthropic/Gemini da kuma wasu hanyoyin gudanarwa idan maɓallin yana da izinin `manage`.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Ana inganta shi ta `isValidApiKey()` / `extractApiKey()` a cikin `src/sse/services/auth.ts`, sannan a sake fitar da su ta `src/shared/utils/apiAuth.ts`. Mai ingantawar yana kuma karɓar env vars na `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` a matsayin maɓallan wucewa masu ɗorewa (batun #1350).
+Ana inganta shi ta `isValidApiKey()` / `extractApiKey()` a cikin `src/sse/services/auth.ts`, sannan a sake fitar da su ta `src/shared/utils/apiAuth.ts`. Mai ingantawar yana kuma karɓar env vars na `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` a matsayin maɓallan wucewa na dindindin (issue #1350).
 
 ### 2. Zaman Dashboard (cookie na auth_token)
 
@@ -35,40 +35,42 @@ Cookie: auth_token=<JWT signed with JWT_SECRET>
 
 Ana ɗaukar cookie a matsayin zama ne kawai idan an tabbatar da JWT ɗin **kuma** yana ɗauke da `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Duk
-mai amfani da cookie ɗin (mai gadin hanya, sabunta bututun authz, musayar hannun WebSocket, sabar
-kai-tsaye, `/api/settings/require-login`, `/api/auth/status`) yana bi ta wannan mataimakin.
-Akwai wasu JWT da aka sanya wa hannu da `JWT_SECRET` — wucewar Cursor CLI tana ƙirƙirar
-tokens na `iss "omniroute" / aud "cursor-cli"` ga masu riƙe da maɓalli — kuma ba a taɓa ɗaukar su a matsayin zaman mai amfani
+mai amfani da cookie ɗin (mai gadin hanyar dashboard (`isDashboardSessionAuthenticated()`), sabuntawar tsarin authz, musayar farko ta WebSocket, live
+server, `/api/settings/require-login`, `/api/auth/status`) yana bi ta wannan helper.
+Akwai wasu JWT da aka sanya wa hannu da `JWT_SECRET` — hanyar wucewa ta Cursor CLI tana ƙirƙirar
+tokens na `iss "omniroute" / aud "cursor-cli"` ga masu maɓalli — kuma ba a taɓa ɗaukar su a matsayin zaman shiga ba
 (#13298).
 
-Ana tabbatar da shi ta `isDashboardSessionAuthenticated()` a cikin `src/shared/utils/apiAuth.ts`. Bututun yana sabunta JWT ta atomatik idan kwanakin da suka rage masa sun ƙasa da 7 daga tsawon rayuwarsa na kwanaki 30.
+Ana tabbatar da shi ta `isDashboardSessionAuthenticated()` a cikin `src/shared/utils/apiAuth.ts`. Tsarin yana sabunta JWT ta atomatik idan kwanaki ƙasa da 7 suka rage daga tsawon rayuwarsa na kwanaki 30.
 
-Wasu hanyoyin gudanarwa suna karɓar **ɗaya daga cikin** hanyoyin biyu: cookie KO `Bearer <key>` idan maɓallin API yana da iyakar izinin `manage` (ko `admin`). Wannan ne ke ba da damar tsarin aiki na “daidaitawa ta hanyar kiran API” da aka ƙara a v3.8.
+Zama na iya ƙarewa kafin kwanaki 30 su cika, domin kowane mai ƙirƙira yana bi ta `mintDashboardSessionToken` (lokacin ƙirƙira `iat` da ID `jti`) kuma mai tabbatarwa yana bincika saituna biyu: `sessionsValidAfter`, wanda sauya kalmar sirri ke saita shi domin duk zaman da aka bayar kafin lokacin ya daina ingantuwa (browser ɗin da ya sauya kalmar sirri zai sami sabon cookie), da `revokedDashboardSessions`, inda `POST /api/auth/logout` ke ƙara `jti` na zaman da aka fita daga gare shi. Zaman da tsohuwar sigar software ta ƙirƙira ba su ɗauke da ɗayan waɗannan claims ɗin kuma suna ci gaba da aiki har sai an fara sauya kalmar sirri. Idan ba za a iya karanta saitunan ba, ba za a amince da zaman ba.
 
-#### Ƙofar shiga ta OIDC mai zaɓi (#6973)
+Wasu hanyoyin gudanarwa suna karɓar **ɗaya daga cikin** hanyoyin biyu: cookie KO `Bearer <key>` idan API key ɗin yana da izinin `manage` (ko `admin`). Wannan ne ke ba da damar tsarin aiki na “iya daidaitawa ta hanyar kiran API” da aka ƙara a v3.8.
 
-Shigar admin na dashboard yana kuma tallafa wa tsarin OIDC (OpenID Connect) na **zaɓin shiga**
-tare da tsohuwar hanyar shiga da kalmar sirri — ba a taɓa cire hanyar shiga da kalmar sirri, ana
-ƙara mata wata hanya ne kawai:
+#### Ƙofar shiga ta OIDC ta zaɓi (#6973)
 
-- A kashe take sai idan `settings.oidcEnabled === true` **kuma** an daidaita
-  `oidcIssuer` / `oidcClientId` / `oidcClientSecret` duka (Settings → Auth).
+Shigar admin na dashboard yana kuma goyon bayan tsarin OIDC (OpenID Connect) na **zaɓin amfani**
+tare da shigar tsoho ta kalmar sirri — ba a taɓa cire shigar ta kalmar sirri ba, ana
+kawai ƙara mata wani zaɓi:
+
+- Yana kashe sai dai idan `settings.oidcEnabled === true` **kuma** an saita dukkan `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` (Settings → Auth).
   In ba haka ba, `GET /api/auth/oidc/login` yana mayar da `400`.
 - `GET /api/auth/oidc/login` yana gano `authorization_endpoint` daga
-  `/.well-known/openid-configuration` na mai bayarwa (yana komawa
-  `<issuer>/authorize` idan hakan ya gaza), yana gina URI na turawa daga buƙatar da ta shigo
-  (tare da la’akari da `x-forwarded-proto`), sannan ya tura zuwa IdP tare da `state` bazuwar
-  da aka adana a cikin cookie na `oidc_state` mai `httpOnly`.
-- `GET /api/auth/oidc/callback` yana tabbatar da `state`, yana musanya lambar ba da izini,
-  sannan yana tabbatar da sa hannun ID token ta hanyar JWKS na mai bayarwa
-  (`createRemoteJWKSet` na `jose`, wanda ake cache bisa kowane JWKS URI) tare da binciken
-  `issuer`/`audience`. Jerin izini na `oidcAllowedSubjects` mai zaɓi yana daidaita da iƙirarin
-  `sub` na token ko iƙirarin `email` — ana amincewa da iƙirarin email ne kawai idan
-  `email_verified === true`, saboda haka email da ba a tabbatar da shi ba a IdP ba zai taɓa
-  wuce ƙofar ba.
-- Idan an yi nasara, yana ƙirƙirar **daidai wannan** JWT na `auth_token` na kwanaki 30 da hanyar
-  shiga da kalmar sirri ke bayarwa (`src/app/api/auth/login/route.ts`), don haka sauran
-  bututun zaman dashboard (sabuntawa ta atomatik, tutocin cookie) bai canza ba —
+  `/.well-known/openid-configuration` na issuer (idan hakan ya gaza, yana komawa zuwa
+  `<issuer>/authorize`), yana gina redirect URI daga request mai shigowa
+  (tare da la'akari da `x-forwarded-proto`), sannan ya tura zuwa IdP da `state`
+  na bazuwar da aka adana a cikin cookie na `httpOnly` mai suna `oidc_state`.
+- `GET /api/auth/oidc/callback` yana inganta `state`, yana musanya authorization
+  code, sannan yana tabbatar da sa hannun ID token ta hanyar JWKS na issuer
+  (`createRemoteJWKSet` na `jose`, wanda ake adanawa a cache bisa kowane JWKS URI) tare da binciken `issuer`/`audience`.
+  Jerin izini na zaɓi `oidcAllowedSubjects` yana daidaita claim na `sub`
+  na token ko claim ɗinsa na `email` — ana girmama claim na email ne kawai idan
+  `email_verified === true`, don haka email da ba a tabbatar da shi ba a IdP ba zai taɓa
+  iya wuce ƙofar ba.
+- Idan an yi nasara, yana ƙirƙirar **ainihin irin** JWT na `auth_token` mai kwanaki 30 da shigar
+  ta kalmar sirri ke bayarwa (`src/app/api/auth/login/route.ts`), don haka sauran
+  tsarin zaman dashboard (sabuntawa ta atomatik, flags na cookie) bai canza ba —
   OIDC yana maye gurbin yadda ake ƙirƙirar cookie ne kawai, ba abin da yake ba da izini ba.
 
 ## Rukunonin Hanya
@@ -198,28 +200,32 @@ export async function POST(request: Request) {
 
 Zaɓi set bisa ga siffa, ba bisa ga sauƙi ba. Hanya guda tana shiga `PUBLIC_API_ROUTES_EXACT` (ko `PUBLIC_READONLY_CORS_API_ROUTES` idan GET-kawai ce); babban reshen hanyoyi na ainihi ne kawai zai shiga `PUBLIC_API_ROUTE_PREFIXES`, kuma **dole ne ya ƙare da `/`**. Sanya hanya guda a jerin prefix yana kuma wallafa kowace hanya da ke kusa wadda take da haruffan farko iri ɗaya — har da 'yan'uwan dynamic-segment da za a ƙara daga baya (GHSA-74g9-q8f6-793h). Sabunta gwaje-gwajen unit a `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` da `tests/unit/authz/classify.test.ts`.
 
-## Iyakokin izini
+## Fadukan Aiki
 
-Maɓallan API suna ɗauke da jerin `scopes` (ana adana shi a matsayin JSON a cikin `api_keys.scopes`, duba `src/lib/db/apiKeys.ts`).
+Fadukan suna uku. Kowane mai dubawa yana karanta nasa zaren ne kawai. Kwatancen,
+ciki har da dalilin da yasa `manage` ke kasa `scopeMatches` don `read:compression` da kuma dalilin da yasa alamar shiga `read` ba zai iya `PATCH /api/keys/{id}` ba, yana nan a
+[Fadukan suna uku](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Iyakokin izinin gudanarwa
+Mabudan API suna ɗauke da jeri na `scopes` (an adana su a matsayin JSON a `api_keys.scopes`, duba `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — yana bai wa maɓallin damar shiga wuraren ƙarshen API na gudanarwa idan an aika shi a matsayin Bearer.
+### Fadukan Aiki na Gudanarwa
 
-### Iyakokin izinin MCP (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Samun damar shiga hanyoyin API na gudanarwa.
+- `mcp:connect`, `self:usage`, `self:account-quota`, da
+  `policy:bypass-provider-quota` fadukan aiki ne masu ƙari, masu daidai-daidai. Suna waje da `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` yana buɗe kawai `/api/mcp/` wanda ba na madauki ba.
 
-Kowane kayan aikin MCP yana buƙatar takamaiman iyakokin izini ta hanyar `MCP_TOOL_SCOPES`. Cikakken jeri (`MCP_SCOPE_LIST`):
+### Fadukan Aiki na Kayan Aikin MCP
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Katalog da ka'idojin daidaitawa (zaren daidai, ko fadukan aiki da aka bayar wanda ya ƙare da `*`):
+[Fadukan Aiki na Kayan Aikin MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` a `src/shared/constants/mcpScopes.ts` shine ainihin ƙaramin saitin da aka rubuta, ba cikakken katalog ɗin ba. Aiwatarwa yana gudana a
+`open-sse/mcp-server/scopeEnforcement.ts` bayan `resolveCallerScopeContext()` ya warware fadukan aiki daga bayanan shiga na MCP, metadata na buƙata, ko `OMNIROUTE_MCP_SCOPES`.
+Yana kashe sai dai idan `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-Tilasta iyakokin izini a cikin `open-sse/mcp-server/server.ts` yana miƙa jerin iyakokin izinin kowane kayan aiki zuwa
-`evaluateToolScopes()` bayan `resolveCallerScopeContext()` ya gano iyakokin izini daga bayanan tantancewar MCP,
-metadata na buƙata, ko `OMNIROUTE_MCP_SCOPES`.
+### Fadukan Aiki na Alamar Shiga
+
+`read` / `write` / `admin` akan alamomin `oma_live_…`, an jera su ta `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Wannan matsayi yana aiki ne kawai ga takardar shaidar alamar shiga. Duba [Tabbatar da Gudanarwa](../guides/MANAGEMENT-AUTH.md).
 
 ## Maɓallin Buƙatar Tantancewa
 
@@ -267,7 +273,7 @@ Yi amfani da `assertAuth(req, expectedClass)` a cikin handlers — yana jefa `Au
 
 ## Duba Kuma
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — alamar auth ga kowane endpoint
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — kundin bincike na abubuwan da suka shafi auth
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — cikakkun bayanai kan tilasta iyakar MCP
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — alama ta izini ga kowane maƙasudi
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — rajistan bincike na abubuwan izini
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — sararin suna mai iyakoki uku da kundin kayan aikin MCP
 - Tushe: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

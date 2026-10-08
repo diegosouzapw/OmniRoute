@@ -1,6 +1,6 @@
 # CORS Configuration & Security (മലയാളം)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../security/CORS.md) · 🇪🇹 [am](../../../am/docs/security/CORS.md) · 🇸🇦 [ar](../../../ar/docs/security/CORS.md) · 🇦🇿 [az](../../../az/docs/security/CORS.md) · 🇧🇬 [bg](../../../bg/docs/security/CORS.md) · 🇧🇩 [bn](../../../bn/docs/security/CORS.md) · 🇨🇿 [cs](../../../cs/docs/security/CORS.md) · 🇩🇰 [da](../../../da/docs/security/CORS.md) · 🇩🇪 [de](../../../de/docs/security/CORS.md) · 🇬🇷 [el](../../../el/docs/security/CORS.md) · 🇪🇸 [es](../../../es/docs/security/CORS.md) · 🇪🇪 [et](../../../et/docs/security/CORS.md) · 🇮🇷 [fa](../../../fa/docs/security/CORS.md) · 🇫🇮 [fi](../../../fi/docs/security/CORS.md) · 🇫🇷 [fr](../../../fr/docs/security/CORS.md) · 🇮🇪 [ga](../../../ga/docs/security/CORS.md) · 🇮🇳 [gu](../../../gu/docs/security/CORS.md) · 🇳🇬 [ha](../../../ha/docs/security/CORS.md) · 🇮🇱 [he](../../../he/docs/security/CORS.md) · 🇮🇳 [hi](../../../hi/docs/security/CORS.md) · 🇭🇷 [hr](../../../hr/docs/security/CORS.md) · 🇭🇺 [hu](../../../hu/docs/security/CORS.md) · 🇦🇲 [hy](../../../hy/docs/security/CORS.md) · 🇮🇩 [id](../../../id/docs/security/CORS.md) · 🇳🇬 [ig](../../../ig/docs/security/CORS.md) · 🇮🇹 [it](../../../it/docs/security/CORS.md) · 🇯🇵 [ja](../../../ja/docs/security/CORS.md) · 🇬🇪 [ka](../../../ka/docs/security/CORS.md) · 🇰🇭 [km](../../../km/docs/security/CORS.md) · 🇮🇳 [kn](../../../kn/docs/security/CORS.md) · 🇰🇷 [ko](../../../ko/docs/security/CORS.md) · 🇱🇹 [lt](../../../lt/docs/security/CORS.md) · 🇱🇻 [lv](../../../lv/docs/security/CORS.md) · 🇮🇳 [mr](../../../mr/docs/security/CORS.md) · 🇲🇾 [ms](../../../ms/docs/security/CORS.md) · 🇲🇹 [mt](../../../mt/docs/security/CORS.md) · 🇲🇲 [my](../../../my/docs/security/CORS.md) · 🇳🇵 [ne](../../../ne/docs/security/CORS.md) · 🇳🇱 [nl](../../../nl/docs/security/CORS.md) · 🇳🇴 [no](../../../no/docs/security/CORS.md) · 🇮🇳 [or](../../../or/docs/security/CORS.md) · 🇮🇳 [pa](../../../pa/docs/security/CORS.md) · 🇵🇭 [phi](../../../phi/docs/security/CORS.md) · 🇵🇱 [pl](../../../pl/docs/security/CORS.md) · 🇵🇹 [pt](../../../pt/docs/security/CORS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/CORS.md) · 🇷🇴 [ro](../../../ro/docs/security/CORS.md) · 🇷🇺 [ru](../../../ru/docs/security/CORS.md) · 🇱🇰 [si](../../../si/docs/security/CORS.md) · 🇸🇰 [sk](../../../sk/docs/security/CORS.md) · 🇸🇮 [sl](../../../sl/docs/security/CORS.md) · 🇷🇸 [sr](../../../sr/docs/security/CORS.md) · 🇸🇪 [sv](../../../sv/docs/security/CORS.md) · 🇰🇪 [sw](../../../sw/docs/security/CORS.md) · 🇮🇳 [ta](../../../ta/docs/security/CORS.md) · 🇮🇳 [te](../../../te/docs/security/CORS.md) · 🇹🇭 [th](../../../th/docs/security/CORS.md) · 🇹🇷 [tr](../../../tr/docs/security/CORS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/CORS.md) · 🇵🇰 [ur](../../../ur/docs/security/CORS.md) · 🇺🇿 [uz](../../../uz/docs/security/CORS.md) · 🇻🇳 [vi](../../../vi/docs/security/CORS.md) · 🇳🇬 [yo](../../../yo/docs/security/CORS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/CORS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/CORS.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../security/CORS.md) · 🇪🇹 [am](../../../am/docs/security/CORS.md) · 🇸🇦 [ar](../../../ar/docs/security/CORS.md) · 🇦🇿 [az](../../../az/docs/security/CORS.md) · 🇧🇬 [bg](../../../bg/docs/security/CORS.md) · 🇧🇩 [bn](../../../bn/docs/security/CORS.md) · 🇧🇦 [bs](../../../bs/docs/security/CORS.md) · 🇨🇿 [cs](../../../cs/docs/security/CORS.md) · 🇩🇰 [da](../../../da/docs/security/CORS.md) · 🇩🇪 [de](../../../de/docs/security/CORS.md) · 🇬🇷 [el](../../../el/docs/security/CORS.md) · 🇪🇸 [es](../../../es/docs/security/CORS.md) · 🇪🇪 [et](../../../et/docs/security/CORS.md) · 🇮🇷 [fa](../../../fa/docs/security/CORS.md) · 🇫🇮 [fi](../../../fi/docs/security/CORS.md) · 🇫🇷 [fr](../../../fr/docs/security/CORS.md) · 🇮🇪 [ga](../../../ga/docs/security/CORS.md) · 🇮🇳 [gu](../../../gu/docs/security/CORS.md) · 🇳🇬 [ha](../../../ha/docs/security/CORS.md) · 🇮🇱 [he](../../../he/docs/security/CORS.md) · 🇮🇳 [hi](../../../hi/docs/security/CORS.md) · 🇭🇷 [hr](../../../hr/docs/security/CORS.md) · 🇭🇺 [hu](../../../hu/docs/security/CORS.md) · 🇦🇲 [hy](../../../hy/docs/security/CORS.md) · 🇮🇩 [id](../../../id/docs/security/CORS.md) · 🇳🇬 [ig](../../../ig/docs/security/CORS.md) · 🇮🇹 [it](../../../it/docs/security/CORS.md) · 🇯🇵 [ja](../../../ja/docs/security/CORS.md) · 🇬🇪 [ka](../../../ka/docs/security/CORS.md) · 🇰🇭 [km](../../../km/docs/security/CORS.md) · 🇮🇳 [kn](../../../kn/docs/security/CORS.md) · 🇰🇷 [ko](../../../ko/docs/security/CORS.md) · 🇱🇹 [lt](../../../lt/docs/security/CORS.md) · 🇱🇻 [lv](../../../lv/docs/security/CORS.md) · 🇮🇳 [mr](../../../mr/docs/security/CORS.md) · 🇲🇾 [ms](../../../ms/docs/security/CORS.md) · 🇲🇹 [mt](../../../mt/docs/security/CORS.md) · 🇲🇲 [my](../../../my/docs/security/CORS.md) · 🇳🇵 [ne](../../../ne/docs/security/CORS.md) · 🇳🇱 [nl](../../../nl/docs/security/CORS.md) · 🇳🇴 [no](../../../no/docs/security/CORS.md) · 🇮🇳 [or](../../../or/docs/security/CORS.md) · 🇮🇳 [pa](../../../pa/docs/security/CORS.md) · 🇵🇭 [phi](../../../phi/docs/security/CORS.md) · 🇵🇱 [pl](../../../pl/docs/security/CORS.md) · 🇵🇹 [pt](../../../pt/docs/security/CORS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/CORS.md) · 🇷🇴 [ro](../../../ro/docs/security/CORS.md) · 🇷🇺 [ru](../../../ru/docs/security/CORS.md) · 🇱🇰 [si](../../../si/docs/security/CORS.md) · 🇸🇰 [sk](../../../sk/docs/security/CORS.md) · 🇸🇮 [sl](../../../sl/docs/security/CORS.md) · 🇷🇸 [sr](../../../sr/docs/security/CORS.md) · 🇸🇪 [sv](../../../sv/docs/security/CORS.md) · 🇰🇪 [sw](../../../sw/docs/security/CORS.md) · 🇮🇳 [ta](../../../ta/docs/security/CORS.md) · 🇮🇳 [te](../../../te/docs/security/CORS.md) · 🇹🇭 [th](../../../th/docs/security/CORS.md) · 🇹🇷 [tr](../../../tr/docs/security/CORS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/CORS.md) · 🇵🇰 [ur](../../../ur/docs/security/CORS.md) · 🇺🇿 [uz](../../../uz/docs/security/CORS.md) · 🇻🇳 [vi](../../../vi/docs/security/CORS.md) · 🇳🇬 [yo](../../../yo/docs/security/CORS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/CORS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/CORS.md)
 
 ---
 
@@ -130,25 +130,28 @@ CORS_ALLOWED_ORIGINS="http://localhost:5173, http://localhost:3000"
   ഏതെങ്കിലും പെർമിസീവ് കോൺഫിഗിൽ നിന്ന് മാനേജ്മെന്റ്/ഡാഷ്ബോർഡ് ഒറിജിനുകൾ
   ഒഴിവാക്കുക; അവ കൃത്യമായി fail-closed ആയി തന്നെ തുടരേണ്ടതാണ്.
 
-## ഉദാഹരണം: OmniRoute-ന് മുന്നിലുള്ള റിവേഴ്സ് പ്രോക്സി
+## ഉദാഹരണം: OmniRoute-ന്റെ മുന്നിലുള്ള റിവേഴ്സ് പ്രോക്സി
 
-CORS നടപ്പാക്കുന്നത് OmniRoute തന്നെയാണ്, അതിനാൽ പ്രോക്സി സാധാരണയായി
-`Access-Control-*` ഹെഡറുകൾ ചേർക്കാനോ തിരുത്തിയെഴുതാനോ **പാടില്ല** (ഇരട്ട ഹെഡറുകൾ
-ബ്രൗസറുകളുടെ പ്രവർത്തനം തകരാറിലാക്കും). TLS ടെർമിനേറ്റ് ചെയ്ത് ഫോർവേഡ് ചെയ്യുക —
-preflight-ന് OmniRoute മറുപടി നൽകട്ടെ:
+CORS നടപ്പിലാക്കുന്നത് OmniRoute തന്നെയാണ്, അതിനാൽ പ്രോക്സി സാധാരണയായി
+`Access-Control-*` ഹെഡറുകൾ ചേർക്കുകയോ മാറ്റിയെഴുതുകയോ **ചെയ്യരുത്** (ഇരട്ട ഹെഡറുകൾ ബ്രൗസറുകളുടെ പ്രവർത്തനം തകരാറിലാക്കും). TLS അവസാനിപ്പിച്ച്
+അഭ്യർത്ഥന ഫോർവേഡ് ചെയ്യുക — പ്രീഫ്ലൈറ്റിന് OmniRoute മറുപടി നൽകട്ടെ:
 
 ```nginx
-# nginx — OmniRoute-ലേക്ക് ഫോർവേഡ് ചെയ്യുക; ഇവിടെ Access-Control-* ഇൻജക്റ്റ് ചെയ്യരുത്
+# nginx — OmniRoute-ലേക്ക് ഫോർവേഡ് ചെയ്യുക; ഇവിടെ Access-Control-* ഉൾപ്പെടുത്തരുത്
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # X-Forwarded-For എന്നത് 127.0.0.1 ആയി സജ്ജീകരിക്കരുത് — അത് loopback route guard-നെ പരാജയപ്പെടുത്തും.
+    # ഫോർവേഡിംഗ് ഹെഡറുകൾ നിലനിർത്തുക: അതേ ഹോസ്റ്റിലുള്ള ഒരു പ്രോക്സി ലൂപ്പ്ബാക്കിൽ നിന്നാണ് കണക്റ്റ് ചെയ്യുന്നത്, അവയാണ്
+    # കോളർ ലോക്കൽ ഓപ്പറേറ്ററല്ലെന്ന് OmniRoute-നെ അറിയിക്കുന്നത്. അവയൊന്നും ചേർക്കാത്ത പ്രോക്സി
+    # ഓരോ റിമോട്ട് കോളറെയും ലോക്കലായി തോന്നിപ്പിക്കും. X-Forwarded-For ഒരിക്കലും 127.0.0.1 ആയി സജ്ജീകരിക്കരുത്.
 }
 ```
 
-അനുവദിച്ചിട്ടുള്ള ബ്രൗസർ ഒറിജിനുകൾ പ്രോക്സിയിൽ അല്ല, OmniRoute-ൽ
-(`CORS_ALLOWED_ORIGINS` അല്ലെങ്കിൽ Security ടാബ്) സജ്ജീകരിക്കുക.
+അനുവദനീയമായ ബ്രൗസർ ഒറിജിനുകൾ പ്രോക്സിയിലല്ല, OmniRoute-ൽ (`CORS_ALLOWED_ORIGINS` അല്ലെങ്കിൽ
+Security ടാബ്) സജ്ജീകരിക്കുക.
 
 ## സോഴ്സ് ഫയലുകൾ
 

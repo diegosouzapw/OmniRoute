@@ -1,25 +1,48 @@
 # Chaos Mode (Hausa)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/CHAOS-MODE.md) · 🇪🇹 [am](../../../am/docs/guides/CHAOS-MODE.md) · 🇸🇦 [ar](../../../ar/docs/guides/CHAOS-MODE.md) · 🇦🇿 [az](../../../az/docs/guides/CHAOS-MODE.md) · 🇧🇬 [bg](../../../bg/docs/guides/CHAOS-MODE.md) · 🇧🇩 [bn](../../../bn/docs/guides/CHAOS-MODE.md) · 🇨🇿 [cs](../../../cs/docs/guides/CHAOS-MODE.md) · 🇩🇰 [da](../../../da/docs/guides/CHAOS-MODE.md) · 🇩🇪 [de](../../../de/docs/guides/CHAOS-MODE.md) · 🇬🇷 [el](../../../el/docs/guides/CHAOS-MODE.md) · 🇪🇸 [es](../../../es/docs/guides/CHAOS-MODE.md) · 🇪🇪 [et](../../../et/docs/guides/CHAOS-MODE.md) · 🇮🇷 [fa](../../../fa/docs/guides/CHAOS-MODE.md) · 🇫🇮 [fi](../../../fi/docs/guides/CHAOS-MODE.md) · 🇫🇷 [fr](../../../fr/docs/guides/CHAOS-MODE.md) · 🇮🇪 [ga](../../../ga/docs/guides/CHAOS-MODE.md) · 🇮🇳 [gu](../../../gu/docs/guides/CHAOS-MODE.md) · 🇮🇱 [he](../../../he/docs/guides/CHAOS-MODE.md) · 🇮🇳 [hi](../../../hi/docs/guides/CHAOS-MODE.md) · 🇭🇷 [hr](../../../hr/docs/guides/CHAOS-MODE.md) · 🇭🇺 [hu](../../../hu/docs/guides/CHAOS-MODE.md) · 🇦🇲 [hy](../../../hy/docs/guides/CHAOS-MODE.md) · 🇮🇩 [id](../../../id/docs/guides/CHAOS-MODE.md) · 🇳🇬 [ig](../../../ig/docs/guides/CHAOS-MODE.md) · 🇮🇹 [it](../../../it/docs/guides/CHAOS-MODE.md) · 🇯🇵 [ja](../../../ja/docs/guides/CHAOS-MODE.md) · 🇬🇪 [ka](../../../ka/docs/guides/CHAOS-MODE.md) · 🇰🇭 [km](../../../km/docs/guides/CHAOS-MODE.md) · 🇮🇳 [kn](../../../kn/docs/guides/CHAOS-MODE.md) · 🇰🇷 [ko](../../../ko/docs/guides/CHAOS-MODE.md) · 🇱🇹 [lt](../../../lt/docs/guides/CHAOS-MODE.md) · 🇱🇻 [lv](../../../lv/docs/guides/CHAOS-MODE.md) · 🇮🇳 [ml](../../../ml/docs/guides/CHAOS-MODE.md) · 🇮🇳 [mr](../../../mr/docs/guides/CHAOS-MODE.md) · 🇲🇾 [ms](../../../ms/docs/guides/CHAOS-MODE.md) · 🇲🇹 [mt](../../../mt/docs/guides/CHAOS-MODE.md) · 🇲🇲 [my](../../../my/docs/guides/CHAOS-MODE.md) · 🇳🇵 [ne](../../../ne/docs/guides/CHAOS-MODE.md) · 🇳🇱 [nl](../../../nl/docs/guides/CHAOS-MODE.md) · 🇳🇴 [no](../../../no/docs/guides/CHAOS-MODE.md) · 🇮🇳 [or](../../../or/docs/guides/CHAOS-MODE.md) · 🇮🇳 [pa](../../../pa/docs/guides/CHAOS-MODE.md) · 🇵🇭 [phi](../../../phi/docs/guides/CHAOS-MODE.md) · 🇵🇱 [pl](../../../pl/docs/guides/CHAOS-MODE.md) · 🇵🇹 [pt](../../../pt/docs/guides/CHAOS-MODE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/CHAOS-MODE.md) · 🇷🇴 [ro](../../../ro/docs/guides/CHAOS-MODE.md) · 🇷🇺 [ru](../../../ru/docs/guides/CHAOS-MODE.md) · 🇱🇰 [si](../../../si/docs/guides/CHAOS-MODE.md) · 🇸🇰 [sk](../../../sk/docs/guides/CHAOS-MODE.md) · 🇸🇮 [sl](../../../sl/docs/guides/CHAOS-MODE.md) · 🇷🇸 [sr](../../../sr/docs/guides/CHAOS-MODE.md) · 🇸🇪 [sv](../../../sv/docs/guides/CHAOS-MODE.md) · 🇰🇪 [sw](../../../sw/docs/guides/CHAOS-MODE.md) · 🇮🇳 [ta](../../../ta/docs/guides/CHAOS-MODE.md) · 🇮🇳 [te](../../../te/docs/guides/CHAOS-MODE.md) · 🇹🇭 [th](../../../th/docs/guides/CHAOS-MODE.md) · 🇹🇷 [tr](../../../tr/docs/guides/CHAOS-MODE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/CHAOS-MODE.md) · 🇵🇰 [ur](../../../ur/docs/guides/CHAOS-MODE.md) · 🇺🇿 [uz](../../../uz/docs/guides/CHAOS-MODE.md) · 🇻🇳 [vi](../../../vi/docs/guides/CHAOS-MODE.md) · 🇳🇬 [yo](../../../yo/docs/guides/CHAOS-MODE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/CHAOS-MODE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/CHAOS-MODE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/CHAOS-MODE.md) · 🇪🇹 [am](../../../am/docs/guides/CHAOS-MODE.md) · 🇸🇦 [ar](../../../ar/docs/guides/CHAOS-MODE.md) · 🇦🇿 [az](../../../az/docs/guides/CHAOS-MODE.md) · 🇧🇬 [bg](../../../bg/docs/guides/CHAOS-MODE.md) · 🇧🇩 [bn](../../../bn/docs/guides/CHAOS-MODE.md) · 🇧🇦 [bs](../../../bs/docs/guides/CHAOS-MODE.md) · 🇨🇿 [cs](../../../cs/docs/guides/CHAOS-MODE.md) · 🇩🇰 [da](../../../da/docs/guides/CHAOS-MODE.md) · 🇩🇪 [de](../../../de/docs/guides/CHAOS-MODE.md) · 🇬🇷 [el](../../../el/docs/guides/CHAOS-MODE.md) · 🇪🇸 [es](../../../es/docs/guides/CHAOS-MODE.md) · 🇪🇪 [et](../../../et/docs/guides/CHAOS-MODE.md) · 🇮🇷 [fa](../../../fa/docs/guides/CHAOS-MODE.md) · 🇫🇮 [fi](../../../fi/docs/guides/CHAOS-MODE.md) · 🇫🇷 [fr](../../../fr/docs/guides/CHAOS-MODE.md) · 🇮🇪 [ga](../../../ga/docs/guides/CHAOS-MODE.md) · 🇮🇳 [gu](../../../gu/docs/guides/CHAOS-MODE.md) · 🇮🇱 [he](../../../he/docs/guides/CHAOS-MODE.md) · 🇮🇳 [hi](../../../hi/docs/guides/CHAOS-MODE.md) · 🇭🇷 [hr](../../../hr/docs/guides/CHAOS-MODE.md) · 🇭🇺 [hu](../../../hu/docs/guides/CHAOS-MODE.md) · 🇦🇲 [hy](../../../hy/docs/guides/CHAOS-MODE.md) · 🇮🇩 [id](../../../id/docs/guides/CHAOS-MODE.md) · 🇳🇬 [ig](../../../ig/docs/guides/CHAOS-MODE.md) · 🇮🇹 [it](../../../it/docs/guides/CHAOS-MODE.md) · 🇯🇵 [ja](../../../ja/docs/guides/CHAOS-MODE.md) · 🇬🇪 [ka](../../../ka/docs/guides/CHAOS-MODE.md) · 🇰🇭 [km](../../../km/docs/guides/CHAOS-MODE.md) · 🇮🇳 [kn](../../../kn/docs/guides/CHAOS-MODE.md) · 🇰🇷 [ko](../../../ko/docs/guides/CHAOS-MODE.md) · 🇱🇹 [lt](../../../lt/docs/guides/CHAOS-MODE.md) · 🇱🇻 [lv](../../../lv/docs/guides/CHAOS-MODE.md) · 🇮🇳 [ml](../../../ml/docs/guides/CHAOS-MODE.md) · 🇮🇳 [mr](../../../mr/docs/guides/CHAOS-MODE.md) · 🇲🇾 [ms](../../../ms/docs/guides/CHAOS-MODE.md) · 🇲🇹 [mt](../../../mt/docs/guides/CHAOS-MODE.md) · 🇲🇲 [my](../../../my/docs/guides/CHAOS-MODE.md) · 🇳🇵 [ne](../../../ne/docs/guides/CHAOS-MODE.md) · 🇳🇱 [nl](../../../nl/docs/guides/CHAOS-MODE.md) · 🇳🇴 [no](../../../no/docs/guides/CHAOS-MODE.md) · 🇮🇳 [or](../../../or/docs/guides/CHAOS-MODE.md) · 🇮🇳 [pa](../../../pa/docs/guides/CHAOS-MODE.md) · 🇵🇭 [phi](../../../phi/docs/guides/CHAOS-MODE.md) · 🇵🇱 [pl](../../../pl/docs/guides/CHAOS-MODE.md) · 🇵🇹 [pt](../../../pt/docs/guides/CHAOS-MODE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/CHAOS-MODE.md) · 🇷🇴 [ro](../../../ro/docs/guides/CHAOS-MODE.md) · 🇷🇺 [ru](../../../ru/docs/guides/CHAOS-MODE.md) · 🇱🇰 [si](../../../si/docs/guides/CHAOS-MODE.md) · 🇸🇰 [sk](../../../sk/docs/guides/CHAOS-MODE.md) · 🇸🇮 [sl](../../../sl/docs/guides/CHAOS-MODE.md) · 🇷🇸 [sr](../../../sr/docs/guides/CHAOS-MODE.md) · 🇸🇪 [sv](../../../sv/docs/guides/CHAOS-MODE.md) · 🇰🇪 [sw](../../../sw/docs/guides/CHAOS-MODE.md) · 🇮🇳 [ta](../../../ta/docs/guides/CHAOS-MODE.md) · 🇮🇳 [te](../../../te/docs/guides/CHAOS-MODE.md) · 🇹🇭 [th](../../../th/docs/guides/CHAOS-MODE.md) · 🇹🇷 [tr](../../../tr/docs/guides/CHAOS-MODE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/CHAOS-MODE.md) · 🇵🇰 [ur](../../../ur/docs/guides/CHAOS-MODE.md) · 🇺🇿 [uz](../../../uz/docs/guides/CHAOS-MODE.md) · 🇻🇳 [vi](../../../vi/docs/guides/CHAOS-MODE.md) · 🇳🇬 [yo](../../../yo/docs/guides/CHAOS-MODE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/CHAOS-MODE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/CHAOS-MODE.md)
 
 ---
 
-> **Allon Sarrafawa:** **Yanayin Chaos** (maɓallin gefe) → `/dashboard/chaos`  
-> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (zaman dashboard) · `POST /api/skills/collect/chaos` (maɓallin API)  
+> **Dashboard:** **Yanayin Chaos** (gefen menu) → `/dashboard/chaos`  
+> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (zaman dashboard) · `POST /api/skills/collect/chaos` (makullin API)  
 > **Tushe:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
-Yanayin Chaos yana aika **aiki guda ɗaya zuwa masu samarwa da dama a lokaci guda** — kowane mai samarwa da ke shiga
-yana bayar da samfurin ƙira guda ɗaya, kuma za ka samu duk amsoshin a jere kusa da juna (ko a sarƙafe). Wannan
-fage ne na aiwatar da ƙirarraki da dama, ba dabarar zaɓar hanya ba ce: zirga-zirgar `/v1/chat/completions`
+Yanayin Chaos yana aika **aiki guda ɗaya zuwa masu samarwa da yawa a lokaci guda** — kowane mai samarwa da ke shiga
+yana ba da gudummawar kwafin model guda ɗaya, kuma za ka sami duk amsoshin gefe da gefe (ko a jere). Wannan
+fagen aiwatar da model da yawa ne, ba dabarar turawa ba: zirga-zirgar `/v1/chat/completions`
 ta yau da kullum ba ta taɓa shafuwa da shi.
 
-**Bambance-bambance — akwai abubuwa daban-daban guda uku masu ɗauke da "chaos" a sunansu:**
+**Bambancewa — akwai abubuwa uku daban-daban da ake fitarwa tare da "chaos" a cikin sunansu:**
 
-| Abu                   | Mene ne shi                                                                                                                    | Inda aka rubuta bayaninsa                    |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
-| **Yanayin Chaos**     | Shafin dashboard + API da aka bayyana a nan: rarraba aiki guda ɗaya zuwa masu samarwa da yawa (a layi ɗaya ko na haɗin gwiwa). | Wannan jagorar                               |
-| `auto/chaos`          | Id na ƙirar Auto-Combo mai nauyin ƙididdigar shigar da kurakurai, don gwajin juriya. Babu abin da za a saita.                  | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Saitin combo na Chaos | Combo da aka adana wanda `config.chaos.enabled` ke rarrabawa zuwa kwamiti tare da ƙirar alƙali ta zaɓi (API kawai).            | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Abu                   | Mene ne                                                                                                                                                                                             | Inda aka rubuta bayaninsa                    |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Yanayin Chaos**     | Shafin dashboard + API da aka bayyana a nan: aika aiki guda ɗaya zuwa masu samarwa da yawa (a layi ɗaya ko cikin haɗin gwiwa).                                                                      | Wannan jagorar                               |
+| `auto/chaos`          | ID ɗin model na Auto-Combo: aikawa a layi ɗaya, model guda ɗaya ga kowane mai samarwa, kiran upstream guda ɗaya kowanne. Ba shigar da matsala ba ([cikakkun bayanai](#autochaos-parallel-fan-out)). | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Saitin combo na Chaos | Combo da aka adana wanda ke da `config.chaos.enabled` yana aikawa iri ɗaya (API kawai); `judgeModel` yana zaɓar amsar ƙarshe ne kawai, babu kiran haɗa amsoshi.                                     | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: aikawa a layi ɗaya
+
+`auto/chaos` **ba** maɓallin shigar da matsala ko gwajin juriya ba ne. Neman
+`model: "auto/chaos"` a kan `/v1/chat/completions` yana:
+
+1. Gina rukunin **model guda ɗaya ga kowane mai samarwa**: ɗan takara na farko daga kowane
+   mai samarwa da aka haɗa, bisa tsarin jerin ƴan takara, har zuwa mambobi 5
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, wanda aka iyakance zuwa 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). Kunshin nauyi na `chaos-mode`
+   yana saita `weight` na kowane mamba ne kawai; tsarin aikawa ba ya karanta shi.
+2. Aika buƙata iri ɗaya zuwa kowane mamban rukuni **a layi ɗaya**, don haka buƙata guda ɗaya
+   tana cin kiran upstream guda ɗaya ga kowane mamban rukuni
+   (`open-sse/services/autoCombo/chaosEngine.ts`, ana aika shi daga
+   `open-sse/services/combo.ts`).
+3. Watsa layin matsayi guda ɗaya ga kowane mamban rukuni yayin da ya iso: sharhin SSE
+   (`: chaos <index> ok|fail <model>`) ta tsohuwa, tare da event na `omni-chaos-part`
+   (`model`, `index`, `ok`, `error`) idan buƙatar ta saita
+   `stream_options.include_chaos_parts: true`. Waɗannan ba sa ɗauke da rubutun amsa.
+4. Aika amsar rukuni **guda ɗaya** a matsayin chunk na ƙarshe irin na OpenAI: ta mamban rukuni
+   na farko (`auto/chaos` yana saita shi a matsayin `judgeModel`) idan ya yi nasara, in ba haka ba
+   ta mamba na ƙarshe da ya yi nasara. Ba a dawo da sauran amsoshin rukunin, don haka
+   za ka biya kuɗin kira N kuma ka karɓi completion guda ɗaya.
 
 ## Saitawa
 

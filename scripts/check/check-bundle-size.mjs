@@ -12,31 +12,43 @@
 //   e soma os bytes. Mesmas entradas, mesma métrica. Emite `bundleSize=<bytes>`.
 //
 // MODO SKIP — entradas inexistentes:
-//   Se nenhuma das entradas do .size-limit.json existir (ex: build não rodou e os
-//   arquivos apontados são artefatos gerados), emite `bundleSize=SKIP reason=no-build`
-//   e sai 0.
+//   Se nenhuma das entradas do .size-limit.json existir, emite
+//   `bundleSize=SKIP reason=no-build`. Sob --ratchet isso é exit 1 (G-04): sem
+//   medição não há veredito. Sem --ratchet, sai 0.
 //
 // Por default é ADVISORY: sempre sai 0 independente do resultado. Passe --ratchet
 // para tornar BLOQUEANTE: lê metrics.bundleSize.value de
 // config/quality/quality-baseline.json, compara o total MEDIDO e SAI 1 SE — E SOMENTE
 // SE — o medido for MAIOR que o baseline (regressão real, direction:down).
 //
-// IMPORTANTE: o baseline (5601) é o valor GZIP do size-limit + @size-limit/file
+// IMPORTANTE: o baseline (10384) é o valor GZIP do size-limit + @size-limit/file
 // (instalado por 'npm ci' no CI). O modo FALLBACK-stat lê bytes CRUS (uma métrica
 // DIFERENTE e maior) — comparar fallback-stat contra o baseline gzip seria um falso-
-// positivo. Por isso o --ratchet SÓ bloqueia quando a medição veio do size-limit
-// REAL (plugin presente); o fallback-stat e o no-build são SKIP gracioso (exit 0)
-// mesmo com --ratchet — falta de plugin/build nunca bloqueia, só uma regressão
-// medida na MESMA métrica do baseline bloqueia.
+// positivo, então o fallback não pode produzir veredito de ratchet.
+//
+// #15159 / G-04 — ANTES, todos os caminhos de "não medível" (binário ausente, sem
+// plugins, erro inesperado, baseline ausente, métrica não-comparável) saíam 0,
+// inclusive sob --ratchet, com comentários explicitando isso. Um ratchet que não
+// mede e reporta OK converte "desconhecido" em "verificado" — e o passo do ci.yml
+// se chamava "Bundle size (ratchet, blocking)". Agora a regra é uma só:
+//
+//   --ratchet + medição comparável  → compara e bloqueia numa regressão real
+//   --ratchet + NÃO MEDIDO          → exit 1, com o motivo e o remédio
+//   sem --ratchet (advisory)         → sempre exit 0, medido ou não
 //
 // Uso:
 //   node scripts/check/check-bundle-size.mjs
 //   node scripts/check/check-bundle-size.mjs --json     (força saída JSON de size-limit se possível)
-//   node scripts/check/check-bundle-size.mjs --ratchet   (falha exit 1 numa regressão)
+//   node scripts/check/check-bundle-size.mjs --ratchet   (bloqueia numa regressão OU numa falha de medição)
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { pathToFileURL, fileURLToPath } from "node:url";
+import {
+  resolveLocalBinEntry,
+  isNativeExecutable,
+  planBuildToolSpawn,
+} from "../build/buildToolRunner.mjs";
 
 const ROOT = process.cwd();
 const SIZE_LIMIT_CONFIG = path.join(ROOT, ".size-limit.json");
@@ -45,22 +57,63 @@ const BASELINE_PATH = path.join(ROOT, "config/quality/quality-baseline.json");
 const RATCHET = process.argv.includes("--ratchet");
 
 /**
- * Tenta rodar size-limit --json e retorna o array de resultados.
- * Lança se size-limit não tiver plugins instalados (plugins.isEmpty).
+ * Decide COMO invocar o size-limit local.
  *
+ * G-04: antes isto era `execFileSync("node", ["node_modules/.bin/size-limit",
+ * "--json"])`. Em Windows esse caminho é um shim de shell (e não JavaScript), então
+ * `node <shim>` morria com "SyntaxError: missing ) after argument list" em TODA
+ * invocação — o modo de medição preferido era inalcançável numa máquina Windows.
+ * Isso era invisível enquanto a falha saía 0; ao tornar "não medido" não-zero
+ * (o resto de G-04), o "aqui nunca dá para medir" ficou visível.
+ *
+ * Reusamos o resolvedor já testado de scripts/build/buildToolRunner.mjs (o mesmo
+ * que corrigiu o ENOENT do esbuild no postbuild Windows) em vez de inventar um
+ * segundo resolvedor: ele prefere a entry JS do próprio pacote, detecta binário
+ * nativo e cai para o shim `.cmd` com shell no win32.
+ *
+ * @param {readonly string[]} args
+ * @param {string} [root] repo root to resolve `node_modules` from
+ * @returns {{file: string, args: string[], shell: boolean}}
+ */
+export function resolveSizeLimitInvocation(args, root = ROOT) {
+  const entryPath = resolveLocalBinEntry("size-limit", "size-limit", root);
+  if (entryPath) {
+    return planBuildToolSpawn({
+      binName: "size-limit",
+      args,
+      entryPath,
+      entryIsNative: isNativeExecutable(entryPath),
+      root,
+    });
+  }
+  // Sem a entry do pacote: cai no shim, que em win32 precisa de shell.
+  return planBuildToolSpawn({ binName: "size-limit", args, entryPath: null, root });
+}
+
+/**
+ * Tenta rodar size-limit --json e retorna o array de resultados.
+ * Lança se size-limit não estiver instalado, ou não tiver plugins (plugins.isEmpty).
+ *
+ * @param {string} [cwd] repo root — usado tanto como cwd do processo quanto para
+ *   resolver `node_modules/size-limit`.
  * @returns {Array<{name: string, size: number, sizeLimit?: number, passed?: boolean}>}
  * @throws {SizeLimitNoPluginsError}
  */
-export function runSizeLimit(cwd = ROOT, binPath = SIZE_LIMIT_BIN) {
-  if (!fs.existsSync(binPath)) {
+export function runSizeLimit(cwd = ROOT) {
+  const entryPath = resolveLocalBinEntry("size-limit", "size-limit", cwd);
+  // Sem o pacote instalado, nem o shim existe — sinaliza o fallback-stat.
+  if (!entryPath && !fs.existsSync(path.join(cwd, "node_modules", ".bin", "size-limit"))) {
     throw Object.assign(new Error("size-limit binary not found"), { code: "SL_NO_BIN" });
   }
+
+  const plan = resolveSizeLimitInvocation(["--json"], cwd);
   let stdout;
   try {
-    stdout = execFileSync("node", [binPath, "--json"], {
+    stdout = execFileSync(plan.file, plan.args, {
       encoding: "utf8",
       cwd,
       maxBuffer: 8 * 1024 * 1024,
+      ...(plan.shell ? { shell: true } : {}),
     });
   } catch (err) {
     const combined = (err.stdout || "") + (err.stderr || "");
@@ -191,8 +244,13 @@ function applyRatchet(totalBytes) {
 
   const baselineValue = readBaselineBundleSizeValue(BASELINE_PATH);
   if (baselineValue === null) {
-    console.log("[bundle-size] --ratchet: baseline ausente (metrics.bundleSize) — SKIP, sai 0.");
-    process.exitCode = 0;
+    // G-04: um ratchet sem baseline não impõe nada — e antes ele saía 0 em
+    // silêncio, deixando o passo de CI verde sem ter verificado nada.
+    exitUnmeasurable(
+      "no-baseline",
+      "metrics.bundleSize.value não existe em config/quality/quality-baseline.json — " +
+        "sem baseline congelado não há regressão possível de detectar."
+    );
     return;
   }
 
@@ -212,6 +270,43 @@ function applyRatchet(totalBytes) {
   process.exitCode = 0;
 }
 
+/**
+ * G-04 (#15159) — um ratchet que NÃO conseguiu medir e mesmo assim sai 0 não é
+ * um ratchet: converte "desconhecido" em "verificado". Antes desta função, todos
+ * os caminhos de "não medível" (binário ausente, sem plugins, erro inesperado,
+ * baseline ausente, métrica não-comparável) imprimiam uma linha informativa e
+ * retornavam com exit 0 — inclusive sob --ratchet, e o passo correspondente no
+ * ci.yml se chama "Bundle size (ratchet, blocking)".
+ *
+ * Regra agora: em modo ADVISORY continua saindo 0 (um dev local sem build não
+ * deve ser bloqueado). Sob --ratchet, "não consegui medir" é exit 1 com motivo e
+ * remédio — porque --ratchet é um pedido explícito de veredito, e o único veredito
+ * honesto quando a medição é impossível é "não pude verificar isto".
+ *
+ * @param {string} reason - token estável para logs/annotations (bundleSize=SKIP reason=…)
+ * @param {string} hint - o que fazer para tornar a medição possível.
+ */
+function exitUnmeasurable(reason, hint) {
+  // Mantido em stdout: é o token que os logs de CI leem.
+  console.log(`bundleSize=SKIP reason=${reason}`);
+
+  if (!RATCHET) {
+    console.log(`[bundle-size] ${reason} — modo advisory, seguindo com exit 0.`);
+    process.exitCode = 0;
+    return;
+  }
+
+  console.error(
+    `[bundle-size] NÃO MEDIDO (${reason}) — o ratchet não pode verificar a métrica.\n` +
+      `  → ${hint}\n` +
+      "  'não consegui medir' não é 'sem regressão'. Sob --ratchet isto é exit 1."
+  );
+  if (process.env.CI) {
+    console.error(`::error title=bundle-size ratchet could not measure::${reason} — ${hint}`);
+  }
+  process.exitCode = 1;
+}
+
 function main() {
   // Step 1: tenta com size-limit + plugin instalado
   let totalBytes = null;
@@ -227,14 +322,12 @@ function main() {
       const { total, entries, allMissing } = measureViaFileStat(SIZE_LIMIT_CONFIG, ROOT);
 
       if (allMissing) {
-        // Step 3: skip gracioso — entradas não existem (build necessário).
-        // SKIP sai 0 mesmo com --ratchet (build ausente nunca bloqueia).
-        console.log("bundleSize=SKIP reason=no-build");
-        if (process.env.CI) {
-          console.log(
-            "::notice::check-bundle-size skipped — entradas do .size-limit.json não encontradas (build necessário)"
-          );
-        }
+        // Step 3: nenhuma entrada do .size-limit.json existe — não há o que medir.
+        exitUnmeasurable(
+          "no-build",
+          "os arquivos apontados por .size-limit.json não existem; rode o build " +
+            "(ou restaure os entrypoints de bin/) antes do gate."
+        );
         return;
       }
 
@@ -248,10 +341,11 @@ function main() {
         }
       }
     } else {
-      // Erro inesperado — reporta mas não falha (advisory).
-      // SKIP sai 0 mesmo com --ratchet (erro de medição nunca bloqueia).
-      console.error(`[bundle-size] Aviso: size-limit retornou erro inesperado: ${err.message}`);
-      console.log("bundleSize=SKIP reason=size-limit-error");
+      exitUnmeasurable(
+        "size-limit-error",
+        `size-limit falhou com "${err.message}" — rode \`npm ci\` para reinstalar ` +
+          "size-limit + @size-limit/file, ou corrija a configuração."
+      );
       return;
     }
   }
@@ -261,15 +355,16 @@ function main() {
 
   // O ratchet só pode comparar a MESMA métrica que congelou o baseline (gzip via
   // size-limit + @size-limit/file). O fallback-stat lê bytes CRUS — uma métrica
-  // diferente e maior — então com --ratchet ele faz SKIP gracioso (exit 0) em vez
-  // de um falso-positivo. Sem --ratchet, ambos os modos só reportam (advisory).
+  // diferente e maior — então compará-lo ao baseline gzip seria um falso
+  // positivo. Isso não é um veredito de "sem regressão", é ausência de veredito:
+  // sob --ratchet é exit 1 (G-04), senão o ratchet fica inerte em silêncio.
   if (mode !== "size-limit") {
     if (RATCHET) {
-      console.log(
-        `[bundle-size] ${mode}: total ${kb} KB (${totalBytes} bytes) — ` +
-          "--ratchet SKIP (medição não-comparável ao baseline gzip; instale @size-limit/file)."
+      exitUnmeasurable(
+        "non-comparable-metric",
+        `a medição veio de ${mode} (bytes crus), que não é comparável ao baseline ` +
+          "gzip do size-limit. Instale @size-limit/file para que o ratchet funcione."
       );
-      process.exitCode = 0;
       return;
     }
     console.log(`[bundle-size] ${mode}: total ${kb} KB (${totalBytes} bytes) — advisory, saindo 0`);

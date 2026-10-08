@@ -14,10 +14,37 @@ test("responses previous_response_id policy defaults to auto", () => {
   assert.equal(normalizeResponsesPreviousResponseIdMode("preserve"), "preserve");
 });
 
-test("auto strips previous_response_id for stateless Responses upstreams", () => {
+test("auto strips previous_response_id for stateless Responses upstreams when input is non-empty", () => {
+  const result = applyResponsesPreviousResponseIdPolicy(
+    {
+      model: "gpt-5.5",
+      previous_response_id: "resp_prev_123",
+      input: [{ type: "message", role: "user", content: [{ type: "input_text", text: "hi" }] }],
+    },
+    { mode: "auto", sourceFormat: "openai-responses", targetFormat: "openai-responses" }
+  );
+
+  assert.equal(result.stripped, true);
+  assert.equal((result.body as Record<string, unknown>).previous_response_id, undefined);
+});
+
+test("auto keeps previous_response_id when input would be empty (GitHub 400 continuity)", () => {
+  // GitHub Copilot /responses: "One of input or previous_response_id or 'prompt'
+  // or 'conversation' must be provided." Stripping the id while input stays []
+  // ships a body with neither field.
   const result = applyResponsesPreviousResponseIdPolicy(
     { model: "gpt-5.5", previous_response_id: "resp_prev_123", input: [] },
     { mode: "auto", sourceFormat: "openai-responses", targetFormat: "openai-responses" }
+  );
+
+  assert.equal(result.stripped, false);
+  assert.equal((result.body as Record<string, unknown>).previous_response_id, "resp_prev_123");
+});
+
+test("explicit strip mode still strips previous_response_id even when input is empty", () => {
+  const result = applyResponsesPreviousResponseIdPolicy(
+    { model: "gpt-5.5", previous_response_id: "resp_prev_123", input: [] },
+    { mode: "strip", sourceFormat: "openai-responses", targetFormat: "openai-responses" }
   );
 
   assert.equal(result.stripped, true);

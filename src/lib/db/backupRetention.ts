@@ -52,21 +52,89 @@ function getStoredInteger(
   }
 }
 
+function getDatabaseSettingsKeepLastNBackups(
+  db: Pick<SqliteAdapter, "prepare">
+): number | undefined {
+  try {
+    const rows = db
+      .prepare(
+        "SELECT namespace, key, value FROM key_value WHERE (namespace = 'databaseSettings' AND key IN ('backup.keepLastNBackups', 'keepLastNBackups')) OR (namespace = 'settings' AND key = 'databaseSettings')"
+      )
+      .all() as Array<{ namespace: string; key: string; value: string }>;
+
+    let fromSettingsNested: number | undefined = undefined;
+    let fromDbFlat: number | undefined = undefined;
+    let fromDbNested: number | undefined = undefined;
+
+    for (const row of rows) {
+      if (!row.value) continue;
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(row.value);
+      } catch {
+        continue;
+      }
+
+      if (row.namespace === "settings") {
+        if (row.key === "databaseSettings" && typeof parsed === "object" && parsed !== null) {
+          const backup = (parsed as Record<string, unknown>).backup;
+          if (typeof backup === "object" && backup !== null) {
+            const val = (backup as Record<string, unknown>).keepLastNBackups;
+            if (typeof val === "number" && Number.isInteger(val) && val >= 1) {
+              fromSettingsNested = val;
+            }
+          }
+        }
+      } else if (row.namespace === "databaseSettings") {
+        if (row.key === "backup.keepLastNBackups") {
+          if (typeof parsed === "number" && Number.isInteger(parsed) && parsed >= 1) {
+            fromDbNested = parsed;
+          }
+        } else if (row.key === "keepLastNBackups") {
+          if (typeof parsed === "number" && Number.isInteger(parsed) && parsed >= 1) {
+            fromDbFlat = parsed;
+          }
+        }
+      }
+    }
+
+    if (fromDbNested !== undefined) return fromDbNested;
+    if (fromSettingsNested !== undefined) return fromSettingsNested;
+
+    // Legacy flat key: migration 046 seeded uncustomized '3' into key_value
+    // for all fresh installations. A fresh installation with nothing set by the
+    // operator must fall through to MAX_DB_BACKUPS (20) (#13308).
+    // Therefore, only honor the legacy flat key if it differs from the migration 046 default.
+    if (fromDbFlat !== undefined && fromDbFlat !== 3) {
+      return fromDbFlat;
+    }
+
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * Resolve the operator's backup retention settings with the same precedence
- * `backup.ts` uses for manual/API/auto backups: env override (ops) → persisted
- * Storage-page setting → default. Callers that only had the env-only fallback
- * (e.g. the health-check-repair path in `core.ts`) silently ignored the
- * persisted setting — this is the single source of truth for both (#13308).
+ * `backup.ts` uses for manual/API/auto backups:
+ * 1. env override (ops)
+ * 2. persisted Storage-page setting (`dbBackup.maxFiles`)
+ * 3. persisted Database-page setting (`databaseSettings.backup.keepLastNBackups`) (#15550)
+ * 4. default `MAX_DB_BACKUPS`
  */
 export function resolveDbBackupRetention(
   db: Pick<SqliteAdapter, "prepare">,
   env: NodeJS.ProcessEnv = process.env
 ): { maxFiles: number; retentionDays: number } {
+  const maxFiles =
+    (env.DB_BACKUP_MAX_FILES ? parsePositiveInt(env.DB_BACKUP_MAX_FILES, MAX_DB_BACKUPS) : undefined) ??
+    getStoredInteger(db, DB_BACKUP_MAX_FILES_KEY, 1) ??
+    getDatabaseSettingsKeepLastNBackups(db) ??
+    MAX_DB_BACKUPS;
+
   return {
-    maxFiles: env.DB_BACKUP_MAX_FILES
-      ? parsePositiveInt(env.DB_BACKUP_MAX_FILES, MAX_DB_BACKUPS)
-      : (getStoredInteger(db, DB_BACKUP_MAX_FILES_KEY, 1) ?? MAX_DB_BACKUPS),
+    maxFiles,
     retentionDays: env.DB_BACKUP_RETENTION_DAYS
       ? parseNonNegativeInt(env.DB_BACKUP_RETENTION_DAYS, DEFAULT_DB_BACKUP_RETENTION_DAYS)
       : (getStoredInteger(db, DB_BACKUP_RETENTION_DAYS_KEY, 0) ?? DEFAULT_DB_BACKUP_RETENTION_DAYS),
@@ -138,6 +206,53 @@ export type PruneResult = {
   retentionDays: number;
 };
 
+function syncSleep(ms: number): void {
+  if (typeof SharedArrayBuffer !== "undefined" && typeof Atomics !== "undefined") {
+    try {
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+      return;
+    } catch {
+      // Atomics.wait may throw on restricted runtimes — fall through to busy-wait
+    }
+  }
+  const deadline = Date.now() + ms;
+  while (Date.now() < deadline) {
+    /* busy-wait */
+  }
+}
+
+/**
+ * Synchronous file unlinker with retry backoff for Windows EBUSY / EPERM locks (#15550).
+ * Avoids crashing the process or swallowing permanent failures silently while keeping
+ * `pruneBackupDirectory()` completely synchronous.
+ */
+export function unlinkSyncWithRetry(
+  filePath: string,
+  options?: { maxAttempts?: number; baseDelayMs?: number }
+): boolean {
+  const maxAttempts = Math.max(1, options?.maxAttempts ?? 5);
+  const baseDelayMs = Math.max(0, options?.baseDelayMs ?? 25);
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+      return true;
+    } catch (err: unknown) {
+      const code =
+        err && typeof err === "object" && "code" in err ? (err as NodeJS.ErrnoException).code : "";
+      if (code === "ENOENT") return true;
+      if ((code === "EBUSY" || code === "EPERM") && attempt < maxAttempts - 1) {
+        syncSleep(baseDelayMs * (attempt + 1));
+      } else {
+        return false;
+      }
+    }
+  }
+  return false;
+}
+
 /**
  * Delete backup families beyond `maxFiles` (newest kept), older than `retentionDays`
  * (0 disables the age rule), or orphaned (sidecars whose primary is already gone).
@@ -177,14 +292,16 @@ export function pruneBackupDirectory(options: {
     const isOrphan = !family.hasPrimary;
     if (!isOverflowPrimary && !isExpired && !isOrphan) continue;
 
-    deletedBackupFamilies += 1;
+    let anyDeletedInFamily = false;
     for (const name of family.files) {
-      try {
-        fs.unlinkSync(path.join(backupDir, name));
+      const deleted = unlinkSyncWithRetry(path.join(backupDir, name));
+      if (deleted) {
         deletedFiles += 1;
-      } catch {
-        /* ignore */
+        anyDeletedInFamily = true;
       }
+    }
+    if (anyDeletedInFamily) {
+      deletedBackupFamilies += 1;
     }
   }
 

@@ -1,1 +1,0 @@
-- **fix(sse):** forward Anthropic prompt-cache-creation tokens through the `/v1/responses` usage hop so cache-write counts stop logging as zero (#13472) — thanks @fidelix

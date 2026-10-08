@@ -40,10 +40,19 @@ test("Claude CLI version constants are in lockstep across all 4 sources", () => 
   );
 });
 
-test("Claude CLI wire versions match the captured 2.1.258 binary", () => {
-  assert.equal(canonical.CLAUDE_CODE_CLIENT_VERSION, "2.1.258");
+test("Claude CLI pin clears Anthropic's Opus 5.5 model gate (>= 2.1.280)", () => {
+  const [major, minor, patch] = canonical.CLAUDE_CODE_CLIENT_VERSION.split(".").map(Number);
+  const meetsGate = major > 2 || (major === 2 && (minor > 1 || (minor === 1 && patch >= 280)));
+  assert.ok(
+    meetsGate,
+    `claude-cli pin ${canonical.CLAUDE_CODE_CLIENT_VERSION} < 2.1.280 — Anthropic rejects claude-opus-5-5 with 400 "Claude Code ${canonical.CLAUDE_CODE_CLIENT_VERSION} does not support this model"`
+  );
+});
+
+test("Claude CLI wire versions match the captured 2.1.280 binary", () => {
+  assert.equal(canonical.CLAUDE_CODE_CLIENT_VERSION, "2.1.280");
   assert.equal(canonical.CLAUDE_CODE_CLIENT_BUILD_REVISION, "1e2");
-  assert.equal(canonical.CLAUDE_CODE_CLIENT_BILLING_VERSION, "2.1.258.1e2");
+  assert.equal(canonical.CLAUDE_CODE_CLIENT_BILLING_VERSION, "2.1.280.1e2");
   assert.equal(canonical.CLAUDE_CODE_SDK_PACKAGE_VERSION, "0.112.1");
   assert.equal(canonical.CLAUDE_CODE_RUNTIME_VERSION, "v26.3.0");
   assert.equal(
@@ -94,10 +103,7 @@ test("Codex client version locksteps Dockerfile @openai/codex", () => {
   assert.equal(codexCfg.DEFAULT_CODEX_CLIENT_VERSION, pinned);
   assert.equal(codexCfg.getCodexClientVersion(), pinned);
   assert.equal(codexCfg.getCodexDefaultHeaders().Version, pinned);
-  assert.equal(
-    codexCfg.getCodexCliRsHeaders()["User-Agent"],
-    `codex_cli_rs/${pinned}`,
-  );
+  assert.equal(codexCfg.getCodexCliRsHeaders()["User-Agent"], `codex_cli_rs/${pinned}`);
 });
 
 test("Codex client version env override still wins", async () => {
@@ -107,25 +113,35 @@ test("Codex client version env override still wins", async () => {
   });
 });
 
-test("test 7: live-empty GitHub catalog path does not call persist", () => {
+// contract changed by #15132: the Codex route now prefers the saved account inventory
+// (cache) over the GitHub manifest when live discovery fails, so the GitHub fallback moved
+// AFTER the cache branch, and the live branch persists via persistDiscoveredModels() +
+// buildResponse() instead of buildApiDiscoveryResponse(). The invariant is unchanged: only
+// the live branch may persist; the GitHub-catalog fallback must never write the cache.
+function assertGithubFallbackDoesNotPersist() {
   const src = fs.readFileSync(
     path.join(process.cwd(), "src/app/api/providers/[id]/models/route.ts"),
-    "utf8",
+    "utf8"
   );
-  // The githubCatalogModels fallback must use buildResponse, not buildApiDiscoveryResponse.
   const idx = src.indexOf("Codex live catalog unavailable — using GitHub model catalog");
   assert.ok(idx > 0);
-  const start = src.lastIndexOf("if (githubCatalogModels", idx);
-  const end = src.indexOf("if (cachedDiscoveryModels", idx);
+  const start = src.lastIndexOf("if (githubCatalogModels && githubCatalogModels.length > 0)", idx);
+  const end = src.indexOf("Codex live and GitHub catalogs unavailable", idx);
   assert.ok(start > 0 && end > start);
   const window = src.slice(start, end);
   assert.match(window, /buildResponse\s*\(/);
   assert.doesNotMatch(window, /buildApiDiscoveryResponse\s*\(/);
+  assert.doesNotMatch(window, /persistDiscoveredModels\s*\(/);
 
-  const liveIdx = src.lastIndexOf("if (liveModels && liveModels.length > 0)");
-  assert.ok(liveIdx > 0 && liveIdx < start);
-  const liveWindow = src.slice(liveIdx, start);
-  assert.match(liveWindow, /buildApiDiscoveryResponse\s*\(/);
+  const liveIdx = src.lastIndexOf("if (liveModels && liveModels.length > 0)", start);
+  const cacheIdx = src.lastIndexOf("Codex live catalog unavailable — using cached catalog", start);
+  assert.ok(liveIdx > 0 && liveIdx < cacheIdx && cacheIdx < start);
+  const liveWindow = src.slice(liveIdx, cacheIdx);
+  assert.match(liveWindow, /persistDiscoveredModels\s*\(/);
+}
+
+test("test 7: live-empty GitHub catalog path does not call persist", () => {
+  assertGithubFallbackDoesNotPersist();
 });
 
 test("Codex client version locksteps Dockerfile @openai/codex and env override", () => {
@@ -137,29 +153,9 @@ test("Codex client version locksteps Dockerfile @openai/codex and env override",
   assert.equal(codexCfg.DEFAULT_CODEX_CLIENT_VERSION, pinned);
   assert.equal(codexCfg.getCodexClientVersion(), pinned);
   assert.equal(codexCfg.getCodexDefaultHeaders().Version, pinned);
-  assert.equal(
-    codexCfg.getCodexCliRsHeaders()["User-Agent"],
-    `codex_cli_rs/${pinned}`,
-  );
+  assert.equal(codexCfg.getCodexCliRsHeaders()["User-Agent"], `codex_cli_rs/${pinned}`);
 });
 
 test("test 7: live-empty GitHub catalog path does not call persist", () => {
-  const src = fs.readFileSync(
-    path.join(process.cwd(), "src/app/api/providers/[id]/models/route.ts"),
-    "utf8",
-  );
-  // The githubCatalogModels fallback must use buildResponse, not buildApiDiscoveryResponse.
-  const idx = src.indexOf("Codex live catalog unavailable — using GitHub model catalog");
-  assert.ok(idx > 0);
-  const start = src.lastIndexOf("if (githubCatalogModels", idx);
-  const end = src.indexOf("if (cachedDiscoveryModels", idx);
-  assert.ok(start > 0 && end > start);
-  const window = src.slice(start, end);
-  assert.match(window, /buildResponse\s*\(/);
-  assert.doesNotMatch(window, /buildApiDiscoveryResponse\s*\(/);
-
-  const liveIdx = src.lastIndexOf("if (liveModels && liveModels.length > 0)");
-  assert.ok(liveIdx > 0 && liveIdx < start);
-  const liveWindow = src.slice(liveIdx, start);
-  assert.match(liveWindow, /buildApiDiscoveryResponse\s*\(/);
+  assertGithubFallbackDoesNotPersist();
 });
