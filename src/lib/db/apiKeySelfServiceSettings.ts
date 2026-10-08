@@ -1,5 +1,5 @@
 /**
- * db/apiKeySelfServiceSettings.ts — Per-API-key self-service settings (migration 197).
+ * db/apiKeySelfServiceSettings.ts — Per-API-key self-service settings (migration 207).
  *
  * One optional row per key on `api_key_self_service_settings`:
  *   - shared_quota_providers: JSON array of provider ids whose account quotas the
@@ -7,7 +7,7 @@
  *     reaches (default, back-compat); [] = none.
  *   - anthropic_ratelimit_headers: "auto" | "forward" | "strip" (default "forward").
  *
- * A missing row (or a missing table on a DB that has not run migration 197 yet)
+ * A missing row (or a missing table on a DB that has not run migration 207 yet)
  * reads as the defaults. The getter is on the chat hot path (the API key policy
  * merges it into apiKeyInfo), so reads go through a small in-memory cache that
  * every write/delete invalidates. A short TTL bounds staleness across processes.

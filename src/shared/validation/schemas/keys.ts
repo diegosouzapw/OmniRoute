@@ -50,7 +50,7 @@ const requireConsistentModelAccess = (
   }
 };
 
-// Per-key self-service settings (migration 197). null = share every provider the
+// Per-key self-service settings (migration 207). null = share every provider the
 // key reaches; [] = share none.
 const sharedQuotaProvidersField = z
   .array(z.string().trim().min(1).max(64))
