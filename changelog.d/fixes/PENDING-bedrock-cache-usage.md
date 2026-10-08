@@ -1,0 +1,1 @@
+- **fix(bedrock):** Converse prompt-cache usage is now read from the fields Bedrock returns (`cacheReadInputTokens` and `cacheWriteInputTokens`), so cache usage no longer reports 0, and `prompt_tokens` includes the cached tokens, as the cost calculator already assumes (#PENDING)
