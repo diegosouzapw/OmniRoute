@@ -11359,7 +11359,7 @@
     "bulkImportNoValidEntries": "Nisu pronađeni validni unosi. Provjerite format i pokušajte ponovo.",
     "bulkImportSuccess": "Uvoz završen: {created} kreirano, {updated} ažurirano, {failed} neuspjelo",
     "bulkImportErrorLine": "Linija {line}: {reason}",
-    "bulkImportMaxExceeded": "Maksimalno 100 proxy-ja po uvozu",
+    "bulkImportMaxExceeded": "Maksimalno {max} proxy-ja po uvozu",
     "bulkImportPreview": "Pregled",
     "clearAssignment": "(obriši dodjelu)",
     "bulkProxyAssignment": "Masovna dodjela proxy-ja",
