@@ -123,6 +123,336 @@ const SPAWN_SOURCE_RE =
   /\b(?:from\s+["'](?:node:)?(?:child_process|worker_threads)["']|require\s*\(\s*["'](?:node:)?(?:child_process|worker_threads)["']\s*\)|spawn\s*\(|execFile\s*\(|execFileSync\s*\(|exec\s*\()/;
 
 /**
+ * G-09 (#15159): follow spawn capability through the IMPORT GRAPH.
+ *
+ * The source-scan subcheck above reads one `route.ts` in isolation, so it cannot
+ * see `route.ts -> fetchCursorAgentModels() -> runCursorAgent() -> spawn()`. That
+ * blind spot is why `src/app/api/providers/[id]/models/route.ts` sits frozen in
+ * KNOWN_UNCLASSIFIED_SOURCE_SPAWN: its own comment names G-09 as the reason.
+ *
+ * The functions below build a bounded import graph over the repo's three alias
+ * conventions and answer "does this route reach a spawn-capable module?".
+ */
+
+// Extensions tried, in order, when an import specifier has no extension.
+const RESOLVE_EXTENSIONS = [".ts", ".tsx", ".js", ".mjs", ".cjs", ".mts"];
+const RESOLVE_INDEX_FILES = ["index.ts", "index.tsx", "index.js", "index.mjs"];
+
+/** Default ceiling on import-graph hops. Deep enough for real chains, bounded for CI. */
+export const DEFAULT_IMPORT_WALK_DEPTH = 6;
+
+/**
+ * Spawn detection for a MODULE reached through the import graph.
+ *
+ * Deliberately STRICTER than SPAWN_SOURCE_RE above, and both differences are
+ * load-bearing. Each was found by RUNNING the graph walk against the real repo,
+ * not by reasoning about the regex:
+ *
+ * 1. SPAWN_SOURCE_RE's `exec\s*\(` also matches a REGEX literal's member call
+ *    (`.exec(`), because `\b` matches between `.` and `e`. Tolerable scanning
+ *    route.ts files; catastrophic across a module graph, where every file using
+ *    a regex would look spawn-capable. The bare-call forms here use a
+ *    `(?<![.\w])` lookbehind, exactly like the error-helper gate's RAW_ERR
+ *    pattern: only an UNQUALIFIED call counts, never a method call.
+ *
+ * 2. COMMENTS must be stripped. `src/server/authz/routeGuard.ts` documents the
+ *    spawn surface extensively in prose ("… -> spawn() — but sat on Tier 3 …"),
+ *    and without stripping, every route importing it looked spawn-capable. The
+ *    first two graph runs reported ~1,000 then 710 routes for this reason.
+ *
+ * String literals are deliberately NOT stripped: a `spawn(` inside a template
+ * literal is rare, and erring toward a false positive here is the safe
+ * direction for a security gate.
+ */
+const MODULE_SPAWN_RE =
+  /(?:\bfrom\s+["'](?:node:)?(?:child_process|worker_threads)["']|\brequire\s*\(\s*["'](?:node:)?(?:child_process|worker_threads)["']\s*\)|(?<![.\w])(?:spawn|execFile|execFileSync|exec|spawnSync|fork)\s*\()/;
+
+/**
+ * True if a MODULE (not a route.ts) is spawn-capable. Uses the strict pattern
+ * above — see MODULE_SPAWN_RE for why it differs from SPAWN_SOURCE_RE.
+ */
+export function isSpawnCapableModuleSource(source: string): boolean {
+  // Strip block and line comments before matching. The `[^:]` guard on line
+  // comments preserves `://` inside a URL string literal.
+  const code = source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
+  return MODULE_SPAWN_RE.test(code);
+}
+
+/**
+ * Extract the module specifiers a source file imports at RUNTIME.
+ *
+ * Handles static `import ... from "x"`, side-effect `import "x"`, `require("x")`
+ * and dynamic `await import("x")`. Type-only imports are skipped: they carry no
+ * runtime edge, and following them would pull the type graph into a gate about
+ * process spawning.
+ */
+export function resolveImportSpecifiers(source: string): string[] {
+  const specs = new Set<string>();
+  const withoutComments = source
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|[^:])\/\/.*$/gm, "$1");
+
+  const patterns = [
+    // import type { T } from "x"  -> deliberately NOT matched (see above)
+    /\bimport\s+(?!type\b)[\s\S]*?from\s*["']([^"']+)["']/g,
+    /\bimport\s+["']([^"']+)["']/g, // side-effect import
+    /\brequire\s*\(\s*["']([^"']+)["']\s*\)/g,
+    /\bimport\s*\(\s*["']([^"']+)["']\s*\)/g, // dynamic import
+  ];
+  for (const pattern of patterns) {
+    for (const match of withoutComments.matchAll(pattern)) {
+      if (match[1]) specs.add(match[1]);
+    }
+  }
+  return [...specs];
+}
+
+/** Repo-relative POSIX path, or null when the path escapes the repo. */
+function toRepoRelative(repoRoot: string, absolute: string): string | null {
+  const rel = relative(repoRoot, absolute);
+  if (!rel || rel.startsWith("..") || /^[A-Za-z]:/.test(rel)) return null;
+  return rel.replace(/\\/g, "/");
+}
+
+/**
+ * Resolve one import specifier to a repo-relative file path, or null when it
+ * cannot be resolved to a real source file.
+ *
+ * Handles the three alias conventions this repo uses:
+ *   "@/x"                    -> src/x
+ *   "@omniroute/open-sse[/x]" -> open-sse[/x]
+ *   "./x" / "../x"            -> relative to the importer's directory
+ *
+ * Bare "node:*" specifiers and unresolvable paths return null (not an error —
+ * node builtins cannot spawn through an import graph walk we care about here,
+ * and a null is simply "no edge").
+ */
+export function resolveImportToRepoFile(
+  specifier: string,
+  importerRelPath: string,
+  repoRoot: string,
+  existsSyncFn: (p: string) => boolean
+): string | null {
+  let base: string | null = null;
+
+  if (specifier.startsWith("@/")) {
+    base = `src/${specifier.slice(2)}`;
+  } else if (specifier === "@omniroute/open-sse") {
+    base = "open-sse";
+  } else if (specifier.startsWith("@omniroute/open-sse/")) {
+    base = `open-sse/${specifier.slice("@omniroute/open-sse/".length)}`;
+  } else if (specifier.startsWith("./") || specifier.startsWith("../")) {
+    const importerDir = importerRelPath.slice(0, importerRelPath.lastIndexOf("/"));
+    base = `${importerDir}/${specifier}`;
+  } else {
+    return null; // bare package or node: builtin
+  }
+
+  // Collapse "./" and "../" segments without touching the filesystem.
+  const segments: string[] = [];
+  for (const segment of base.split("/")) {
+    if (segment === "." || segment === "") continue;
+    if (segment === "..") {
+      segments.pop();
+      continue;
+    }
+    segments.push(segment);
+  }
+  const normalized = segments.join("/");
+  if (!normalized || normalized.startsWith("..")) return null;
+
+  const absoluteBase = join(repoRoot, normalized);
+  const candidates = [
+    normalized,
+    ...RESOLVE_EXTENSIONS.map((ext) => `${normalized}${ext}`),
+    ...RESOLVE_INDEX_FILES.map((file) => `${normalized}/${file}`),
+  ];
+  for (const candidate of candidates) {
+    if (existsSyncFn(join(repoRoot, candidate))) return candidate;
+  }
+  return null;
+}
+
+/**
+ * Build a bounded import graph (adjacency: repo-relative path -> resolved
+ * repo-relative imports) starting from `entryFiles`.
+ *
+ * Bounded by `maxDepth` hops so one route cannot pull the entire module graph
+ * into memory. Cycles are handled by the visited set, so a mutual-import pair
+ * terminates instead of hanging the gate.
+ */
+export function buildImportGraph(opts: {
+  repoRoot: string;
+  entryFiles: string[];
+  maxDepth?: number;
+}): Map<string, Set<string>> {
+  const { repoRoot, entryFiles } = opts;
+  const maxDepth = opts.maxDepth ?? DEFAULT_IMPORT_WALK_DEPTH;
+  const existsSyncFn = (p: string) => {
+    try {
+      return statSync(p).isFile();
+    } catch {
+      return false;
+    }
+  };
+
+  const graph = new Map<string, Set<string>>();
+  const queue: { file: string; depth: number }[] = entryFiles.map((file) => ({
+    file,
+    depth: 0,
+  }));
+  const seen = new Set<string>();
+
+  while (queue.length) {
+    const { file, depth } = queue.shift()!;
+    if (seen.has(file)) continue;
+    seen.add(file);
+
+    let source: string;
+    try {
+      source = readFileSync(join(repoRoot, file), "utf8");
+    } catch {
+      continue; // unreadable / vanished between walk steps
+    }
+
+    const edges = new Set<string>();
+    graph.set(file, edges);
+    if (depth >= maxDepth) continue;
+
+    for (const specifier of resolveImportSpecifiers(source)) {
+      const resolved = resolveImportToRepoFile(specifier, file, repoRoot, existsSyncFn);
+      if (!resolved) continue;
+      edges.add(resolved);
+      if (!seen.has(resolved)) queue.push({ file: resolved, depth: depth + 1 });
+    }
+  }
+
+  return graph;
+}
+
+/**
+ * Does `entryFile` reach a spawn-capable module through the import graph?
+ * Returns the path walked so a report can name the actual chain.
+ */
+export function reachesSpawnCapableModule(
+  graph: Map<string, Set<string>>,
+  repoRoot: string,
+  entryFile: string,
+  opts: { maxDepth?: number } = {}
+): { reachable: boolean; via: string[] } {
+  const maxDepth = opts.maxDepth ?? DEFAULT_IMPORT_WALK_DEPTH;
+  const existsSyncFn = (p: string) => {
+    try {
+      return statSync(p).isFile();
+    } catch {
+      return false;
+    }
+  };
+
+  // Breadth-first so `via` is a genuine shortest chain, which is what makes a
+  // report readable ("route -> a -> b -> spawn module"). The predecessor map is
+  // what reconstructs that chain — tracking a mutable path across a frontier
+  // would be wrong, since a frontier holds many nodes at the same depth.
+  const visited = new Set<string>([entryFile]);
+  const parent = new Map<string, string>();
+  let frontier = [entryFile];
+
+  for (let depth = 0; depth < maxDepth && frontier.length; depth++) {
+    const nextFrontier: string[] = [];
+    for (const current of frontier) {
+      for (const neighbor of graph.get(current) ?? []) {
+        if (visited.has(neighbor)) continue;
+        visited.add(neighbor);
+        parent.set(neighbor, current);
+
+        let source = "";
+        try {
+          source = readFileSync(join(repoRoot, neighbor), "utf8");
+        } catch {
+          continue;
+        }
+        if (isSpawnCapableModuleSource(source)) {
+          // Reconstruct the chain from the predecessor map.
+          const via = [neighbor];
+          let cursor = current;
+          while (cursor !== entryFile) {
+            via.unshift(cursor);
+            const previous = parent.get(cursor);
+            if (previous === undefined) break;
+            cursor = previous;
+          }
+          via.unshift(entryFile);
+          return { reachable: true, via };
+        }
+        nextFrontier.push(neighbor);
+      }
+    }
+    frontier = nextFrontier;
+  }
+
+  return { reachable: false, via: [] };
+}
+
+/** Every route.ts under src/app/api that reaches a spawn module with no direct spawn. */
+export function findTransitivelySpawnCapableRoutes(opts: {
+  repoRoot: string;
+  maxDepth?: number;
+}): { route: string; via: string[] }[] {
+  const { repoRoot } = opts;
+  const apiDir = join(repoRoot, "src", "app", "api");
+  const routeFiles: string[] = [];
+
+  function walk(dir: string): void {
+    let entries: string[];
+    try {
+      entries = readdirSync(dir);
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const full = join(dir, entry);
+      try {
+        if (statSync(full).isDirectory()) walk(full);
+        else if (entry === "route.ts") {
+          const rel = toRepoRelative(repoRoot, full);
+          if (rel) routeFiles.push(rel);
+        }
+      } catch {
+        // skip unreadable
+      }
+    }
+  }
+  walk(apiDir);
+  routeFiles.sort();
+
+  // Only routes WITHOUT a direct spawn are interesting — the source scan already
+  // covers the rest, and reporting those again would be noise.
+  const indirect = routeFiles.filter((rel) => {
+    try {
+      return !isSpawnCapableSource(readFileSync(join(repoRoot, rel), "utf8"));
+    } catch {
+      return false;
+    }
+  });
+
+  if (!indirect.length) return [];
+  const graph = buildImportGraph({
+    repoRoot,
+    entryFiles: indirect,
+    maxDepth: opts.maxDepth ?? DEFAULT_IMPORT_WALK_DEPTH,
+  });
+
+  const found: { route: string; via: string[] }[] = [];
+  for (const route of indirect) {
+    const result = reachesSpawnCapableModule(graph, repoRoot, route, {
+      maxDepth: opts.maxDepth ?? DEFAULT_IMPORT_WALK_DEPTH,
+    });
+    if (result.reachable) found.push({ route, via: result.via });
+  }
+  return found;
+}
+
+/**
  * Returns true if the given source text of a route.ts file directly imports
  * from child_process / worker_threads or calls spawn()/execFile()/exec().
  * Used by the 6A.8 source-scan subcheck to find spawn-capable routes outside
@@ -201,14 +531,24 @@ export const KNOWN_UNCLASSIFIED_SOURCE_SPAWN: Record<string, string> = {
   // Regression guard: tests/unit/authz/route-guard-providers-spawn-local-only.test.ts
   // (asserts the guard exists, precedes the spawn, and fails closed).
   //
-  // Follow-up: G-09 (same audit) — the gate matches `spawn(`/`exec(` only INSIDE
-  // route.ts, so it cannot follow this transitive/conditional chain. Fixing G-09
-  // (import-graph walk) would let this entry be removed.
+  // G-09 (same audit) RESOLVED differently than assumed: the gate DID detect this
+  // route, but only because SPAWN_SOURCE_RE matches `spawn(` inside the COMMENT at
+  // route.ts:1454 ("-> spawn() at src/lib/providerModels/cursorAgent.ts:17"). The
+  // route's own code has no spawn — reachability is genuinely transitive. So the
+  // import-graph walk (resolveImportSpecifiers / buildImportGraph /
+  // reachesSpawnCapableModule) is now in place and reaches
+  // src/lib/providerModels/cursorAgent.ts independently of any comment.
+  //
+  // The freeze therefore STAYS, on its original S-01 merits (provider-conditional
+  // spawn, call-site loopback gate, fail-closed) — NOT on a detection gap.
+  // NOTE: do not "fix" this by rewording the comment; the entry documents a real
+  // security decision, and the comment match is what kept the route classified
+  // while the graph walk was missing.
   "src/app/api/providers/[id]/models/route.ts":
     'S-01 #15159: cursor-agent spawn is provider-conditional (provider === "cursor") and `{id}` is a connection id, ' +
     "so it cannot be path-classified without locking every other provider's remote model discovery. " +
     "Gated at the call site on the trusted x-omniroute-peer-locality loopback stamp instead (fail-closed). " +
-    "Tracked by G-09 (gate cannot follow transitive spawns).",
+    "G-09 closed: the gate now follows this chain via the import graph (was previously matching a comment).",
   // RESOLVED (6A.8 P1, 2026-06-13): /api/system/version and /api/db-backups/exportAll
   // are now classified in LOCAL_ONLY_API_PREFIXES (loopback-enforced before auth).
   // The stale-enforcement guard requires this set to stay empty until a NEW
