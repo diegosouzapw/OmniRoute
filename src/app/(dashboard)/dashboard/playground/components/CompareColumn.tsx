@@ -2,8 +2,9 @@
 
 // src/app/(dashboard)/dashboard/playground/components/CompareColumn.tsx
 
-import type { StreamMetrics } from "@/shared/schemas/playground";
 import { useTranslations } from "next-intl";
+import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
+import type { StreamMetrics } from "@/shared/schemas/playground";
 import MarkdownMessage from "./MarkdownMessage";
 import ProviderMetrics from "./ProviderMetrics";
 
@@ -30,6 +31,7 @@ interface CompareColumnProps {
  */
 export default function CompareColumn({ column, onCancel, onRemove }: CompareColumnProps) {
   const t = useTranslations("playground");
+  const { copied, copy } = useCopyToClipboard();
   const { id, model, status, metrics, response, errorMessage } = column;
 
   return (
@@ -65,6 +67,17 @@ export default function CompareColumn({ column, onCancel, onRemove }: CompareCol
               {t("cancel")}
             </button>
           )}
+          <button
+            onClick={() => void copy(response, id)}
+            disabled={response === ""}
+            className="p-0.5 rounded text-text-muted hover:text-text-main transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            title={copied === id ? t("copiedCode") : t("copy")}
+            aria-label={copied === id ? t("copiedCode") : t("copy")}
+          >
+            <span className="material-symbols-outlined text-[14px]">
+              {copied === id ? "check" : "content_copy"}
+            </span>
+          </button>
           <button
             onClick={() => onRemove(id)}
             className="p-0.5 rounded text-text-muted hover:text-destructive transition-colors"

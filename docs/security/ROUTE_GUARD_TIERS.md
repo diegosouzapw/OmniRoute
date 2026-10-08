@@ -71,7 +71,7 @@ spawn-capable prefixes and fails CI if any is not classified local-only.
 | `/api/discovery/`                                                                                        | Local network/provider discovery probes                                                  |
 | `/api/vnc-session` (`VNC_ROUTE_PREFIX`)                                                                  | Spawns a headful browser + VNC session for interactive logins                            |
 | `/api/acp/agents`                                                                                        | ACP — discovers and spawns local CLI agent binaries                                      |
-| `/api/resilience/connections`, `/dashboard/resilience/connections`                                       | Connection maintenance actions that can touch local CLI state                            |
+| `/api/resilience/connections`                                                                            | Per-account resilience JSON (cooldown, breaker, lockout). The dashboard HTML is not local-only. |
 | `/api/providers/cursor/agent-availability`                                                               | Dashboard install-nudge check — spawns `cursor-agent status --format json`               |
 | `/api/providers/{id}/login` (regex)                                                                      | Launches a headful Playwright Chromium for web-cookie login                              |
 | `/api/providers/volcengine-plan/connect` (regex)                                                         | Manual headful flow + session-based phone/SMS auto-login (spawns Playwright)             |

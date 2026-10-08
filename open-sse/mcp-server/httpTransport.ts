@@ -12,6 +12,7 @@
 import { randomUUID } from "node:crypto";
 import { createMcpServer } from "./server.ts";
 import { resolveMcpCallerAuthInfo, withMcpHttpAuthContext } from "./httpAuthContext.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -152,11 +153,24 @@ async function handleRequestWithAuthInfo(
   return transport.handleRequest(request, { authInfo });
 }
 
+/**
+ * JSON-RPC 2.0 transport-level error envelope.
+ *
+ * S-05 (#15159): this is NOT the canonical `errorResponse` from
+ * `open-sse/utils/error.ts` — it is a local builder for the JSON-RPC shape that MCP
+ * clients parse, so it cannot be replaced by the canonical helper without breaking
+ * the protocol. It did, however, interpolate `message` with no sanitization.
+ *
+ * Both current call sites pass static literals, so nothing leaks today — but the
+ * next caller forwarding an `err.message` would put it on the wire unredacted,
+ * reintroducing S-02's leak on the JSON-RPC surface. Sanitizing here makes the
+ * builder safe by default rather than safe by caller discipline.
+ */
 function errorResponse(message: string, code: number, status = 400): Response {
   return new Response(
     JSON.stringify({
       jsonrpc: "2.0",
-      error: { code, message },
+      error: { code, message: sanitizeErrorMessage(message) },
       id: null,
     }),
     {

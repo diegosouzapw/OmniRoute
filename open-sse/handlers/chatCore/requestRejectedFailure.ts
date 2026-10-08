@@ -3,6 +3,7 @@ import { shouldIsolateProbeFailures } from "@/shared/utils/probeOrigin";
 import { writeTerminalStatus } from "@/shared/utils/terminalStatus";
 
 import { PROVIDER_ERROR_TYPES } from "../../services/errorClassifier.ts";
+import { sanitizeErrorMessage } from "../../utils/error.ts";
 import {
   hasRequestRejectedStreak,
   recordRequestRejected,
@@ -29,11 +30,16 @@ export async function handleRequestRejectedFailure(params: {
 }): Promise<void> {
   const { connectionId, statusCode, message } = params;
   const nowIso = new Date().toISOString();
+  // Sanitize at the write, not only at the caller: chatCore already hands in its
+  // projected persistentMessage, but every `lastError` persistence branch must be
+  // safe on its own (docs/security/ERROR_SANITIZATION.md) so a future caller that
+  // forwards a raw upstream body cannot leak it into the stored connection state.
+  const persistentMessage = sanitizeErrorMessage(message) || "Provider request failed";
 
   if (await shouldIsolateProbeFailures()) {
     await updateProviderConnection(connectionId, {
       lastErrorType: PROVIDER_ERROR_TYPES.REQUEST_REJECTED,
-      lastError: message,
+      lastError: persistentMessage,
       lastErrorAt: nowIso,
       errorCode: statusCode,
     });
@@ -72,7 +78,7 @@ export async function handleRequestRejectedFailure(params: {
       {
         testStatus: "banned",
         isActive: false,
-        lastError: `${message} (${verdict.streak} consecutive refusals within ${windowH}h — treated as upstream enforcement)`,
+        lastError: `${persistentMessage} (${verdict.streak} consecutive refusals within ${windowH}h — treated as upstream enforcement)`,
         lastErrorType: PROVIDER_ERROR_TYPES.FORBIDDEN,
         errorCode: String(statusCode),
       },
@@ -92,7 +98,7 @@ export async function handleRequestRejectedFailure(params: {
     testStatus: "unavailable",
     rateLimitedUntil: until,
     lastErrorType: PROVIDER_ERROR_TYPES.REQUEST_REJECTED,
-    lastError: message,
+    lastError: persistentMessage,
     lastErrorAt: nowIso,
     errorCode: statusCode,
   });

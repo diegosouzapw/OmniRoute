@@ -25,6 +25,22 @@ function futureTimestampMs(value: unknown, maxMs: number): number | null {
   return waitMs > 0 ? Math.min(waitMs, maxMs) : null;
 }
 
+/**
+ * Meta Muse / CLIProxyAPI subscription quota uses `error.resets_at` as a unix
+ * epoch (seconds). Accept seconds, milliseconds, numeric strings, and ISO.
+ */
+function futureResetAtMs(value: unknown, maxMs: number): number | null {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    const ms = value < 1e12 ? value * 1000 : value;
+    const waitMs = ms - Date.now();
+    return waitMs > 0 ? Math.min(waitMs, maxMs) : null;
+  }
+  if (typeof value === "string" && /^\d+(?:\.\d+)?$/.test(value.trim())) {
+    return futureResetAtMs(Number(value), maxMs);
+  }
+  return futureTimestampMs(value, maxMs);
+}
+
 // RetryInfo.retryDelay / "please retry in Ns" are short per-request throttling
 // hints (Gemini free-tier RPM/TPM), not long-lived quota resets like Antigravity's
 // "Resets in 160h" — cap them independently of the caller's maxMs so a malformed or
@@ -89,6 +105,12 @@ export function parseDetailedRetryHintFromJsonBody(
   if (retryInfoMs !== null) {
     return { retryAfterMs: retryInfoMs, provenance: "google_rpc_retry_info" };
   }
+
+  const resetAtHint = futureResetAtMs(
+    errorObj.resets_at ?? root.resets_at ?? errorObj.resetsAt ?? root.resetsAt,
+    maxMs
+  );
+  if (resetAtHint !== null) return { retryAfterMs: resetAtHint, provenance: "body" };
 
   const isoHint = futureTimestampMs(errorObj.retryAfter ?? root.retryAfter, maxMs);
   if (isoHint !== null) return { retryAfterMs: isoHint, provenance: "body" };

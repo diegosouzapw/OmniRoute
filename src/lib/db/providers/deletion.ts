@@ -12,6 +12,7 @@ import { getDbInstance } from "../core";
 import { backupDbFile } from "../backup";
 import { cleanupComboConnectionRefs } from "../combos";
 import { deleteLKGPByConnectionIds } from "../settings/lkgp";
+import { deleteProviderLimitsCache } from "../providerLimits";
 import {
   removeConnectionHealth,
   removeConnectionIndex,
@@ -78,6 +79,20 @@ async function _cleanupDeletedLKGPConnectionRefs(connectionIds: string | string[
   }
 }
 
+// Purge the provider limits cache of the deleted connections (#15531): orphan
+// cache entries otherwise keep serving quotas for provider_connections that no
+// longer exist. Do not turn a leftover purge into a failed delete.
+function _purgeProviderLimitsCacheForConnections(ids: string[]) {
+  if (ids.length === 0) return;
+  for (const id of ids) {
+    try {
+      deleteProviderLimitsCache(id);
+    } catch (error) {
+      console.error("Failed to purge provider limits cache for deleted connection:", error);
+    }
+  }
+}
+
 export async function deleteProviderConnection(id: string) {
   const db = getDbInstance() as unknown as DbLike;
   const existing = db.prepare("SELECT provider FROM provider_connections WHERE id = ?").get(id);
@@ -100,6 +115,7 @@ export async function deleteProviderConnection(id: string) {
 
   removeConnectionHealth(id);
   removeConnectionIndex(id);
+  _purgeProviderLimitsCacheForConnections([id]);
   bumpProxyConfigGeneration();
   const existingRecord = toRecord(existing);
   const providerId =
@@ -138,6 +154,7 @@ export async function deleteProviderConnections(ids: string[]): Promise<number> 
     _cleanupDeletedLKGPConnectionRefs(existingIds),
   ]);
 
+  _purgeProviderLimitsCacheForConnections(ids);
   for (const id of ids) {
     removeConnectionHealth(id);
     removeConnectionIndex(id);
@@ -180,6 +197,7 @@ export async function deleteProviderConnectionsByProvider(providerId: string) {
     _cleanupDeletedLKGPConnectionRefs(connectionIds),
   ]);
 
+  _purgeProviderLimitsCacheForConnections(connectionIds);
   for (const connectionId of connectionIds) {
     removeConnectionHealth(connectionId);
     removeConnectionIndex(connectionId);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import ConnectionTestSettings from "../components/ConnectionTestSettings";
 import ThinkingBudgetTab from "../components/ThinkingBudgetTab";
 import ModalityBridgeMovedCard from "../components/ModalityBridgeMovedCard";
 import SystemPromptTab from "../components/SystemPromptTab";
@@ -24,6 +25,7 @@ export default function SettingsAiPage() {
       <ResponsesStatePolicyTab />
       <UsageTokenBufferTab />
       <CodexFastTierTab />
+      <ConnectionTestSettings />
       <CodexAutoPingTab />
       <ClaudeFastModeTab />
       <MemorySkillsTab />

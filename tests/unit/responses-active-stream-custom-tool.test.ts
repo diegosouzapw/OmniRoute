@@ -52,6 +52,8 @@ test("active Responses stream restores declared custom tool metadata", async () 
     null,
     false,
     false,
+    // #12905 inserted `requestedThinking` as the 14th positional; customToolNames is 15th.
+    undefined,
     new Set(["exec"])
   );
 

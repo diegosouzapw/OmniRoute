@@ -1,13 +1,13 @@
 ---
 title: "Embedded Services"
-description: "Reference for 9Router, CLIProxyAPI, Mux, and Bifrost"
+description: "Reference for 9Router, CLIProxyAPI, Mux, Bifrost, and open-wa"
 ---
 
 # Embedded Services
 
 > **Version:** v3.8.44
-> **Last updated:** 2026-07-03
-> **Audience:** Engineers adding, maintaining, or debugging embedded services (9Router, CLIProxyAPI, Mux, Bifrost).
+> **Last updated:** 2026-09-09
+> **Audience:** Engineers adding, maintaining, or debugging embedded services (9Router, CLIProxyAPI, Mux, Bifrost, open-wa).
 
 Embedded services are locally-installed process sidecar tools that OmniRoute installs, supervises, and
 exposes as first-class routing targets. Unlike external providers (which are reached over the internet
@@ -32,7 +32,7 @@ via API keys), embedded services run on the same machine as OmniRoute and commun
 
 ### Why embedded services?
 
-Five services are embedded:
+Six services are embedded:
 
 | Service         | npm package                        | Default port | Purpose                                                                                                                                                                                |
 | --------------- | ---------------------------------- | :----------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -41,8 +41,9 @@ Five services are embedded:
 | **Mux**         | `mux` (headless `mux server`)      |     8322     | Local agent-orchestration daemon (coder/mux). Lifecycle-managed only — not a routing target (no LLM proxying).                                                                         |
 | **Bifrost**     | `@maximhq/bifrost`                 |     8080     | Go AI-gateway relay backend. When running, auto-selected by the relay route (`/v1/relay/`)                                                                                             |
 | **Dario**       | `@askalf/dario`                    |     3456     | Claude-subscription proxy — alternative/failover to CLIProxyAPI for Claude-Code-shaped traffic; the injected key becomes `DARIO_ADMIN_TOKEN` gating its `/admin/*` OAuth control plane |
+| **open-wa**     | `@open-wa/wa-automate`             |     8323     | WhatsApp Web automation (headless Chromium via Puppeteer). Lifecycle-managed only — not a routing target.                                                                              |
 
-All five follow the same supervisory model:
+All six follow the same supervisory model:
 
 - OmniRoute installs them under `DATA_DIR/services/{name}/` (isolated from OmniRoute's own `package.json`)
 - OmniRoute spawns and monitors them as child processes
@@ -112,7 +113,7 @@ All five follow the same supervisory model:
 │  modelSync.ts       Periodic GET /v1/models → service_models table │
 │  ringBuffer.ts      Circular log buffer (5 MB per service)         │
 │  healthCheck.ts     Polling HTTP health probe                      │
-│  installers/        ninerouter.ts, cliproxy.ts, mux.ts             │
+│  installers/        ninerouter.ts, cliproxy.ts, mux.ts, openwa.ts  │
 │                      (installer adapters)                          │
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ OpenAI-compatible HTTP (loopback)
@@ -151,6 +152,7 @@ All five follow the same supervisory model:
 | `src/lib/services/installers/ninerouter.ts` | npm install/update/uninstall for 9Router         |
 | `src/lib/services/installers/cliproxy.ts`   | npm install/update/uninstall for CLIProxyAPI     |
 | `src/lib/services/installers/mux.ts`        | npm install/update/uninstall for Mux             |
+| `src/lib/services/installers/openwa.ts`     | npm install/update/uninstall for open-wa         |
 | `src/app/api/services/9router/_lib.ts`      | `getOrInitSupervisor()` helper                   |
 | `src/app/api/services/[name]/logs/route.ts` | Shared SSE logs endpoint                         |
 | `open-sse/executors/ninerouter.ts`          | Provider executor (Layer 4)                      |
@@ -503,7 +505,42 @@ Same lifecycle shape as the other services (`install`, `start`, `stop`, `restart
 control plane under `admin/`: `admin/accounts`, `admin/import-from-omniroute`,
 `admin/login-start`, `admin/login-complete` (all behind `DARIO_ADMIN_TOKEN`).
 
-### 4.6 Reverse proxy (9Router dashboard embed)
+### 4.6 open-wa endpoints (7 routes)
+
+open-wa (`@open-wa/wa-automate`) drives a headless Chromium instance (via
+Puppeteer) to automate WhatsApp Web. It uses the same endpoint shape as Mux (no
+`rotate-key` route yet). It is lifecycle-managed only — not a routing target,
+no Layer 4 executor/provider entry.
+
+| Method | Path                              | Description                                           |
+| ------ | --------------------------------- | ----------------------------------------------------- |
+| `POST` | `/api/services/openwa/install`    | Install open-wa from npm (`@open-wa/wa-automate`)     |
+| `POST` | `/api/services/openwa/start`      | Start open-wa on port 8323 (default)                  |
+| `POST` | `/api/services/openwa/stop`       | Stop open-wa                                          |
+| `POST` | `/api/services/openwa/restart`    | Restart open-wa                                       |
+| `POST` | `/api/services/openwa/update`     | Update to newer version                               |
+| `GET`  | `/api/services/openwa/status`     | Live + DB status                                      |
+| `POST` | `/api/services/openwa/auto-start` | Toggle auto-start                                     |
+| `GET`  | `/api/services/openwa/logs`       | SSE log tail (via shared `[name]/logs` dynamic route) |
+
+**API key:** injected as `WA_KEY` — open-wa's generic `WA_*`-prefixed env
+override maps it onto the `--key`/`-k` CLI option
+(`dist/cli/setup.js::envArgs()`, verified against the installed 4.76.0
+package). Prefixed `ow_` when generated by `generateServiceApiKey()`. open-wa
+reads the key back from a `key`/`api_key` HTTP header (not `Authorization:
+Bearer`); `/api-docs*` is explicitly exempted from the check
+(`setupAuthenticationLayer` in `dist/cli/server.js`), so the health probe
+needs no auth header.
+
+**Pairing:** open-wa is unofficial and unaffiliated with WhatsApp — the
+connected number carries a ban risk from WhatsApp's own automation detection.
+On first start, the pairing QR code is printed to stdout and surfaced through
+the existing Logs panel/SSE stream — there is no dedicated QR-image endpoint
+in this integration yet.
+
+---
+
+### 4.7 Reverse proxy (9Router dashboard embed)
 
 The dashboard embeds the 9Router web UI inside an iframe via an internal reverse
 proxy at:

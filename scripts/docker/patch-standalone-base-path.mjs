@@ -138,6 +138,55 @@ export function patchBakedAssetUrls(content, basePath) {
 }
 
 /**
+ * Rewrite the client chunk-loader base (#9124). The root-built bundle bakes
+ * the lazy-chunk base as a bare "/_next/" literal:
+ *   - webpack runtime: `i.p="/_next/"` (`__webpack_require__.p`, publicPath);
+ *   - Turbopack runtime: `TURBOPACK_CHUNK_BASE_PATH:"/_next/"` fallback;
+ *   - webpack client-reference manifests: `"moduleLoading":{"prefix":"/_next/"}`
+ *     (SSR emits the client-chunk <script> tags from this prefix, not from
+ *     assetPrefix).
+ * Left unpatched, the <script> tags are prefixed but every lazily loaded chunk
+ * is requested from `/_next/...`, which 404s behind a non-stripping subpath
+ * proxy and leaves the dashboard un-hydrated with no console error (Turbopack)
+ * or a MIME-type refusal (webpack). Only these two assignment shapes are
+ * touched: the `indexOf("/_next/")` probe that derives the asset prefix from a
+ * script src and `assetPrefix + "/_next/"` joins must stay as they are.
+ *
+ * @param {string} content
+ * @param {string} basePath
+ */
+export function patchChunkLoaderBase(content, basePath) {
+  const escaped = basePath.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  return content
+    .replace(
+      /(\b[A-Za-z_$][\w$]*\.p\s*=\s*)(["'])\/_next\/\2/g,
+      (_match, lhs, quote) => `${lhs}${quote}${escaped}/_next/${quote}`
+    )
+    .replace(
+      /(TURBOPACK_CHUNK_BASE_PATH\s*:\s*)(["'])\/_next\/\2/g,
+      (_match, lhs, quote) => `${lhs}${quote}${escaped}/_next/${quote}`
+    )
+    .replace(
+      /("moduleLoading"\s*:\s*\{\s*"prefix"\s*:\s*)"\/_next\/"/g,
+      (_match, lhs) => `${lhs}"${escaped}/_next/"`
+    );
+}
+
+/**
+ * Rewrite `url(/_next/static/...)` references in compiled CSS (fonts, images).
+ * CSS minifiers drop the quotes, so `patchBakedAssetUrls` never sees them.
+ *
+ * @param {string} content
+ * @param {string} basePath
+ */
+export function patchCssAssetUrls(content, basePath) {
+  return content.replace(
+    /url\((\s*["']?)\/_next\/static/g,
+    (_match, open) => `url(${open}${basePath}/_next/static`
+  );
+}
+
+/**
  * @param {string} rootDir
  * @param {string} basePath
  */
@@ -153,12 +202,13 @@ function walkAndPatchTextFiles(rootDir, basePath) {
         stack.push(full);
         continue;
       }
-      if (!/\.(?:js|json|cjs|mjs|html)$/.test(entry.name)) continue;
+      const isCss = entry.name.endsWith(".css");
+      if (!isCss && !/\.(?:js|json|cjs|mjs|html)$/.test(entry.name)) continue;
       const before = fs.readFileSync(full, "utf8");
-      const after = [patchBasePathLiterals, patchProcessEnvShim, patchBakedAssetUrls].reduce(
-        (content, patch) => patch(content, basePath),
-        before
-      );
+      const patches = isCss
+        ? [patchCssAssetUrls, patchBakedAssetUrls]
+        : [patchBasePathLiterals, patchProcessEnvShim, patchBakedAssetUrls, patchChunkLoaderBase];
+      const after = patches.reduce((content, patch) => patch(content, basePath), before);
       if (after !== before) {
         fs.writeFileSync(full, after);
         patchedFiles += 1;

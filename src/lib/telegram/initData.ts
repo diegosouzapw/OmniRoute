@@ -12,7 +12,7 @@
  * directly unit-testable. Never trust the client-side `initData` alone —
  * verification MUST happen server-side.
  */
-import { createHash, createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 /** Parse a URLSearchParams-style initData string into a record. */
 export function parseInitData(initData: string): Record<string, string> {
@@ -21,8 +21,17 @@ export function parseInitData(initData: string): Record<string, string> {
   for (const pair of initData.split("&")) {
     const eq = pair.indexOf("=");
     if (eq <= 0) continue;
-    const key = decodeURIComponent(pair.slice(0, eq));
-    const value = decodeURIComponent(pair.slice(eq + 1));
+    let key: string;
+    let value: string;
+    try {
+      key = decodeURIComponent(pair.slice(0, eq));
+      value = decodeURIComponent(pair.slice(eq + 1));
+    } catch {
+      // A malformed percent escape is not a valid initData field. Skip the pair
+      // so the caller gets a signature mismatch (401) instead of an uncaught
+      // URIError (500).
+      continue;
+    }
     if (key && !(key in out)) out[key] = value;
   }
   return out;

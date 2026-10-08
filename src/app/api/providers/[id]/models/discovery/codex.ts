@@ -2,8 +2,17 @@ import {
   CODEX_CLI_RS_ORIGINATOR,
   getCodexClientVersion,
   getCodexDefaultHeaders,
+  refreshCodexClientVersion,
+  type CodexClientVersionFetch,
 } from "@omniroute/open-sse/config/codexClient.ts";
-import { isCodexDiscoveryModelExcluded } from "@/shared/services/codexDiscoveryPolicy";
+import { readCodexReasoningMetadata } from "@/shared/reasoning/codexEfforts";
+import {
+  classifyCodexDiscoveryModel,
+  isCodexDiscoveryModelExcluded,
+  type CodexDiscoveryMode,
+  type CodexDiscoverySource,
+  type CodexDiscoveryStatus,
+} from "@/shared/services/codexDiscoveryPolicy";
 
 export {
   CODEX_DISCOVERY_EXCLUDED_IDS,
@@ -27,17 +36,19 @@ export type CodexDiscoveryModel = {
   inputTokenLimit?: number;
   outputTokenLimit?: number;
   description?: string;
+  supportedThinkingEfforts?: string[];
+  defaultThinkingEffort?: string;
   supportsThinking?: boolean;
   supportsVision?: boolean;
+  visibility?: string;
+  supportedInApi?: boolean;
+  minimalClientVersion?: string;
+  discoverySource?: CodexDiscoverySource;
+  discoveryStatus?: CodexDiscoveryStatus;
+  compatibilityReason?: string;
 };
 
-export type CodexModelsFetch = (
-  input: string,
-  init: {
-    method: "GET";
-    headers: Record<string, string>;
-  }
-) => Promise<Response>;
+export type CodexModelsFetch = CodexClientVersionFetch;
 
 type CodexGithubCatalogCache = {
   models: CodexDiscoveryModel[];
@@ -64,30 +75,6 @@ function firstPositiveNumber(...candidates: unknown[]): number | undefined {
   return undefined;
 }
 
-function parseVersionParts(version: string): number[] | null {
-  const parts = version
-    .trim()
-    .split(".")
-    .map((part) => Number(part));
-  return parts.length > 0 && parts.every((part) => Number.isInteger(part) && part >= 0)
-    ? parts
-    : null;
-}
-
-function compareVersions(left: string, right: string): number {
-  const leftParts = parseVersionParts(left);
-  const rightParts = parseVersionParts(right);
-  if (!leftParts || !rightParts) return 0;
-
-  const length = Math.max(leftParts.length, rightParts.length);
-  for (let index = 0; index < length; index += 1) {
-    const a = leftParts[index] || 0;
-    const b = rightParts[index] || 0;
-    if (a !== b) return a - b;
-  }
-  return 0;
-}
-
 export function buildCodexModelsUrl(clientVersion = getCodexClientVersion()): string {
   const url = new URL(CODEX_MODELS_URL);
   url.searchParams.set("client_version", clientVersion);
@@ -106,18 +93,27 @@ function getCodexModelItems(payload: unknown): unknown[] {
   return objectItems.length > 0 ? objectItems : [];
 }
 
-function shouldImportCodexModel(record: JsonRecord): boolean {
-  if (toNonEmptyString(record.visibility)?.toLowerCase() === "hide") return false;
-  if (record.supported_in_api === false || record.supportedInApi === false) return false;
-
+function getCodexModelMetadata(record: JsonRecord): {
+  visibility?: string;
+  supportedInApi?: boolean;
+  minimalClientVersion?: string;
+} {
+  const visibility = toNonEmptyString(record.visibility)?.toLowerCase();
+  const supportedInApi =
+    typeof record.supported_in_api === "boolean"
+      ? record.supported_in_api
+      : typeof record.supportedInApi === "boolean"
+        ? record.supportedInApi
+        : undefined;
   const minimalClientVersion =
     toNonEmptyString(record.minimal_client_version) ||
-    toNonEmptyString(record.minimalClientVersion);
-  if (minimalClientVersion && compareVersions(minimalClientVersion, getCodexClientVersion()) > 0) {
-    return false;
-  }
-
-  return true;
+    toNonEmptyString(record.minimalClientVersion) ||
+    undefined;
+  return {
+    ...(visibility ? { visibility } : {}),
+    ...(typeof supportedInApi === "boolean" ? { supportedInApi } : {}),
+    ...(minimalClientVersion ? { minimalClientVersion } : {}),
+  };
 }
 
 function getCodexModelId(record: JsonRecord): string | null {
@@ -150,11 +146,15 @@ function recordSupportsVision(record: JsonRecord): boolean {
   return Array.isArray(record.input_modalities) && record.input_modalities.some(isImageModality);
 }
 
-function buildCodexDiscoveryModel(record: JsonRecord): CodexDiscoveryModel | null {
-  if (!shouldImportCodexModel(record)) return null;
-
+function buildCodexDiscoveryModel(
+  record: JsonRecord,
+  source: CodexDiscoverySource = "live"
+): CodexDiscoveryModel | null {
   const id = getCodexModelId(record);
   if (!id) return null;
+
+  const metadata = getCodexModelMetadata(record);
+  if (metadata.visibility === "hide" || metadata.supportedInApi === false) return null;
 
   const topProvider = asRecord(record.top_provider);
   const limits = asRecord(record.limits);
@@ -164,6 +164,9 @@ function buildCodexDiscoveryModel(record: JsonRecord): CodexDiscoveryModel | nul
     owned_by: "codex",
     apiFormat: "responses",
     supportedEndpoints: ["responses"],
+    ...(source === "github" ? { discoverySource: source } : {}),
+    ...metadata,
+    ...readCodexReasoningMetadata(record),
   };
   // The live Codex OAuth catalog reports BOTH `context_window` (the first
   // pricing tier, ~272K) and `max_context_window` (the real usable window,
@@ -203,11 +206,14 @@ function buildCodexDiscoveryModel(record: JsonRecord): CodexDiscoveryModel | nul
   return model;
 }
 
-export function normalizeCodexModelsResponse(payload: unknown): CodexDiscoveryModel[] {
+export function normalizeCodexModelsResponse(
+  payload: unknown,
+  source: CodexDiscoverySource = "live"
+): CodexDiscoveryModel[] {
   const deduped = new Map<string, CodexDiscoveryModel>();
 
   for (const item of getCodexModelItems(payload)) {
-    const model = buildCodexDiscoveryModel(asRecord(item));
+    const model = buildCodexDiscoveryModel(asRecord(item), source);
     if (model) deduped.set(model.id, model);
   }
 
@@ -215,7 +221,7 @@ export function normalizeCodexModelsResponse(payload: unknown): CodexDiscoveryMo
 }
 
 export function normalizeCodexGithubCatalogResponse(payload: unknown): CodexDiscoveryModel[] {
-  return normalizeCodexModelsResponse(payload);
+  return normalizeCodexModelsResponse(payload, "github");
 }
 
 export function clearCodexGithubCatalogCacheForTests(): void {
@@ -371,13 +377,19 @@ export function mergeCodexLiveModelsWithLocalCatalog(
     if (!localModel.id) continue;
     const normalizedLocal = localCatalogModelToCodexDiscoveryModel(localModel);
     const existing = merged.get(localModel.id);
-    merged.set(
-      localModel.id,
-      existing ? mergeLiveAndLocalCodexModel(existing, normalizedLocal) : normalizedLocal
-    );
+    if (existing) {
+      merged.set(localModel.id, mergeLiveAndLocalCodexModel(existing, normalizedLocal));
+    }
   }
 
   return Array.from(merged.values());
+}
+
+/** Static entries are only a fallback when no remote or cached inventory exists. */
+export function buildCodexLocalFallbackCatalog(
+  localCatalogModels: CodexLocalCatalogModel[]
+): CodexDiscoveryModel[] {
+  return applyCodexDiscoveryFilters(localCatalogModels.map(localCatalogModelToCodexDiscoveryModel));
 }
 
 /** Return true to KEEP the model. */
@@ -397,16 +409,62 @@ export function applyCodexDiscoveryFilters(
   });
 }
 
-/** Convenience: merge live/local then apply default (+ optional) filters. */
+export type CodexDiscoveryCatalogResult = {
+  activeModels: CodexDiscoveryModel[];
+  candidateModels: CodexDiscoveryModel[];
+};
+
+/** Reconciles remote metadata with the pinned local fallback without auto-trusting it. */
+export function reconcileCodexDiscoveryCatalog(
+  remoteModels: CodexDiscoveryModel[],
+  localCatalogModels: CodexLocalCatalogModel[],
+  mode: CodexDiscoveryMode = "all",
+  implementedClientVersion = getCodexClientVersion(),
+  extraFilters: readonly CodexDiscoveryModelFilter[] = []
+): CodexDiscoveryCatalogResult {
+  const activeRemoteModels: CodexDiscoveryModel[] = [];
+  const candidateModels: CodexDiscoveryModel[] = [];
+
+  for (const remoteModel of remoteModels) {
+    const compatibility = classifyCodexDiscoveryModel(remoteModel, {
+      source: remoteModel.discoverySource || "live",
+      mode,
+      implementedClientVersion,
+    });
+    if (compatibility.status === "active") {
+      activeRemoteModels.push({ ...remoteModel, discoveryStatus: "active" });
+    } else if (compatibility.status === "candidate") {
+      candidateModels.push({
+        ...remoteModel,
+        discoveryStatus: "candidate",
+        compatibilityReason: compatibility.reason,
+      });
+    }
+  }
+
+  return {
+    activeModels: applyCodexDiscoveryFilters(
+      mergeCodexLiveModelsWithLocalCatalog(activeRemoteModels, localCatalogModels),
+      extraFilters
+    ),
+    candidateModels,
+  };
+}
+
+/** Convenience: return only the active models for existing callers. */
 export function buildCodexDiscoveryCatalog(
   remoteModels: CodexDiscoveryModel[],
   localCatalogModels: CodexLocalCatalogModel[],
-  extraFilters: readonly CodexDiscoveryModelFilter[] = []
+  extraFilters: readonly CodexDiscoveryModelFilter[] = [],
+  mode: CodexDiscoveryMode = "all"
 ): CodexDiscoveryModel[] {
-  return applyCodexDiscoveryFilters(
-    mergeCodexLiveModelsWithLocalCatalog(remoteModels, localCatalogModels),
+  return reconcileCodexDiscoveryCatalog(
+    remoteModels,
+    localCatalogModels,
+    mode,
+    undefined,
     extraFilters
-  );
+  ).activeModels;
 }
 
 export type CuratedCodexCatalogResult = {
@@ -443,10 +501,15 @@ export function enrichCodexModelsFromGithubCatalog(
   githubCatalogModels: CodexDiscoveryModel[]
 ): CodexDiscoveryModel[] {
   const byId = new Map(githubCatalogModels.map((model) => [model.id, model]));
-  return models.map((model) => {
+  const enriched = models.map((model) => {
     const githubModel = byId.get(model.id);
     return githubModel ? { ...githubModel, ...model } : model;
   });
+  // A non-empty live entitlement list is authoritative for membership and
+  // order. GitHub rows may only fill metadata on those ids. Catalog models
+  // the account did not return are used only when there is no live list.
+  if (models.length > 0) return enriched;
+  return [...githubCatalogModels];
 }
 
 export async function fetchCodexDiscoveryModels({
@@ -461,6 +524,7 @@ export async function fetchCodexDiscoveryModels({
   if (!accessToken) return null;
 
   try {
+    await refreshCodexClientVersion(fetchImpl);
     const workspaceId =
       toNonEmptyString(providerSpecificData?.workspaceId) ||
       toNonEmptyString(providerSpecificData?.chatgptAccountId) ||

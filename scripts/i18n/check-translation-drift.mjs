@@ -26,6 +26,24 @@ const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(SCRIPT_DIR, "..", "..");
 const STATE_PATH = path.join(ROOT, ".i18n-state.json");
 
+// A mirror is stale when its locale record was written from an older version
+// of the source than the one the top-level source_hash now records — that is
+// what a partial run leaves behind (17 of 65 locales refreshed, the rest
+// interrupted by an upstream quota 429): the source no longer reads as
+// changed, the stale mirrors' target hashes still match, and the gate said
+// PASS for 45 stale mirrors. Pure over the `sources` map of .i18n-state.json.
+export function findStaleTargets(sources) {
+  const stale = [];
+  for (const [rel, entry] of Object.entries(sources || {})) {
+    for (const [locale, info] of Object.entries(entry.locales || {})) {
+      if (info?.source_hash && entry.source_hash && info.source_hash !== entry.source_hash) {
+        stale.push({ rel, locale, recorded: info.source_hash, current: entry.source_hash });
+      }
+    }
+  }
+  return stale;
+}
+
 function parseArgs(argv) {
   const opts = { mode: "strict", json: false };
   for (const arg of argv.slice(2)) {
@@ -121,6 +139,12 @@ async function main() {
     }
   }
 
+  // Stale targets are reported but do not fail the gate: they only appear
+  // after a refresh run was interrupted (upstream quota 429 on 2026-09-18
+  // left 45 locales behind for ~6 days), and failing every PR's CI for a
+  // backend outage nobody can fix in-branch helps no one. The list is the
+  // work order for `npm run i18n:run -- --locale=<code> --files=<sources>`.
+  const staleTargets = findStaleTargets(sources);
   const ok =
     driftedSources.length === 0 && missingTargets.length === 0 && driftedTargets.length === 0;
 
@@ -134,6 +158,7 @@ async function main() {
           driftedSources,
           missingTargets,
           driftedTargets,
+          staleTargets,
         },
         null,
         2
@@ -152,6 +177,12 @@ async function main() {
     if (driftedTargets.length) {
       console.log(`[i18n-check] drifted targets (${driftedTargets.length}):`);
       for (const t of driftedTargets) console.log(`  - ${t.rel} [${t.locale}]`);
+    }
+    if (staleTargets.length) {
+      console.log(
+        `[i18n-check] WARN stale targets (${staleTargets.length}) — translated from an older source (not blocking; refresh with npm run i18n:run):`
+      );
+      for (const t of staleTargets) console.log(`  - ${t.rel} [${t.locale}] (stale)`);
     }
     if (ok) {
       console.log("[i18n-check] PASS — all sources and targets match recorded hashes.");

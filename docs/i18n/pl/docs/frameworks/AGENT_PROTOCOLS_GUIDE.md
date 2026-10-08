@@ -1,4 +1,9 @@
+# Agent Protocols Guide (Polski)
+
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇪🇹 [am](../../../am/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇦🇿 [az](../../../az/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇩🇰 [da](../../../da/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇩🇪 [de](../../../de/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇬🇷 [el](../../../el/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇪🇸 [es](../../../es/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇪🇪 [et](../../../et/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇱 [he](../../../he/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇩 [id](../../../id/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇹 [it](../../../it/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇰🇭 [km](../../../km/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇲🇲 [my](../../../my/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇳🇴 [no](../../../no/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [or](../../../or/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇱🇰 [si](../../../si/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇮🇳 [te](../../../te/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇹🇭 [th](../../../th/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/AGENT_PROTOCOLS_GUIDE.md)
+
 ---
+
 title: "Przewodnik po protokołach agentów"
 version: 3.8.40
 lastUpdated: 2026-06-28
@@ -21,20 +26,20 @@ OmniRoute udostępnia trzy różne powierzchnie związane z agentami. Na pierwsz
 
 Te trzy są niezależne — wybierz dowolny podzbiór.
 
-## Decision Tree
+## Drzewo decyzyjne
 
 ```
-Do you need a cloud service to do work outside this machine (Codex Cloud / Devin / Jules)?
-├─ YES → Cloud Agents (POST /api/v1/agents/tasks)
-└─ NO → Continue
+Czy potrzebujesz usługi chmurowej do wykonywania pracy poza tym komputerem (Codex Cloud / Cursor Cloud / Devin / Jules)?
+├─ TAK → Agenci chmurowi (POST /api/v1/agents/tasks)
+└─ NIE → Kontynuuj
     │
-    Do you have a peer agent that speaks A2A and wants to collaborate?
-    ├─ YES → A2A (POST /a2a)
-    └─ NO → Continue
+    Czy masz równorzędnego agenta, który obsługuje A2A i chce współpracować?
+    ├─ TAK → A2A (POST /a2a)
+    └─ NIE → Kontynuuj
         │
-        Do you need to list / configure CLI coding agents installed locally?
-        ├─ YES → ACP (GET /api/acp/agents)
-        └─ NO → Use plain /v1/chat/completions
+        Czy potrzebujesz wyświetlić listę lokalnie zainstalowanych agentów programistycznych CLI lub je skonfigurować?
+        ├─ TAK → ACP (GET /api/acp/agents)
+        └─ NIE → Użyj standardowego /v1/chat/completions
 ```
 
 ## 1. A2A — Agent-to-Agent
@@ -69,33 +74,37 @@ Do you need a cloud service to do work outside this machine (Codex Cloud / Devin
 
 Zobacz [A2A-SERVER.md](./A2A-SERVER.md) po szczegóły transportu, strukturę agent card, konfigurację TTL tasków oraz szablon dodawania nowych skills.
 
-## 2. ACP — CLI Agents Registry
+## 2. ACP — rejestr agentów CLI
 
-**OmniRoute endpoint:** `GET /api/acp/agents`
-**Source:** `src/lib/acp/{index,manager,registry}.ts`
+**Endpoint OmniRoute:** `GET /api/acp/agents`
+**Źródło:** `src/lib/acp/{index,manager,registry}.ts`
 
 ### Czym jest
 
-ACP to **lokalny inwentarz agentów CLI** OmniRoute. Wykrywa, które CLI do kodowania są zainstalowane na hoście (Cursor, Cline, Claude Code, Codex CLI, Continue itd.), ustala ich wersje i udostępnia je w dashboardzie, aby użytkownik mógł skonfigurować każde CLI tak, by wskazywało na OmniRoute.
+ACP to **lokalny rejestr agentów CLI** OmniRoute. Wykrywa, które narzędzia CLI do programowania są zainstalowane na hoście (Cursor, Cline, Claude Code, Codex CLI, Continue itd.), ustala ich wersje i udostępnia te informacje w panelu, aby użytkownik mógł skonfigurować każde narzędzie CLI tak, by wskazywało na OmniRoute.
 
-To NIE jest zewnętrzny protokół — to wewnętrzny rejestr napędzający UI „CLI Tools” oraz śledzenie fingerprintów CLI (zobacz [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+Interfejs HTTP jest wewnętrznym rejestrem obsługującym interfejs „CLI Tools” oraz
+śledzenie odcisków CLI (zobacz [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Niezależnie od tego
+wewnętrzny menedżer procesów obsługuje natywny Agent Client Protocol dla
+zarejestrowanego programu uruchamiającego Gemini oraz starsze adaptery stdio dla innych kontraktów.
+Informacje o tych odrębnych trybach i ograniczeniach znajdują się w dokumencie [Rejestr ACP i programy uruchamiające](./ACP.md).
 
 ### Co robi
 
-- Sondowanie hosta pod kątem zainstalowanych binarek CLI (używa `which` / `where` per OS)
-- Odczyt wersji każdego CLI (wywołanie `<bin> --version`)
-- Opcjonalnie przyjmuje zdefiniowanych przez użytkownika custom agentów (ścieżka binary + probe wersji + spawn args)
-- Utrwala custom agentów w settings
-- Zwraca ujednoliconą listę do dashboardu
+- Sprawdza hosta pod kątem zainstalowanych plików binarnych CLI (używa `which` / `where` zależnie od systemu operacyjnego)
+- Odczytuje wersję każdego narzędzia CLI (wywołuje `<bin> --version`)
+- Opcjonalnie akceptuje niestandardowych agentów zdefiniowanych przez użytkownika (ścieżka do pliku binarnego + polecenie sprawdzające wersję + argumenty uruchomieniowe)
+- Trwale zapisuje niestandardowych agentów w ustawieniach
+- Zwraca ujednoliconą listę do panelu
 
 ### REST API
 
-| Endpoint          | Method | Description                                                       | Auth    |
-| ----------------- | ------ | ----------------------------------------------------------------- | ------- |
-| `/api/acp/agents` | GET    | Lista wykrytych + custom agentów (liczniki installed/total)       | API key |
-| `/api/acp/agents` | POST   | Dodaj/aktualizuj/usuń custom agenta (dyskryminator action w body) | API key |
+| Endpoint          | Metoda | Opis                                                                            | Uwierzytelnianie |
+| ----------------- | ------ | ------------------------------------------------------------------------------- | ---------------- |
+| `/api/acp/agents` | GET    | Wyświetla wykrytych i niestandardowych agentów (liczba zainstalowanych/ogółem)  | Klucz API        |
+| `/api/acp/agents` | POST   | Dodaje/aktualizuje/usuwa niestandardowego agenta (dyskryminator akcji w treści) | Klucz API        |
 
-Kształt body dla POST (`customAgentBodySchema` w `src/app/api/acp/agents/route.ts`):
+Struktura treści żądania POST (`customAgentBodySchema` w `src/app/api/acp/agents/route.ts`):
 
 ```json
 {
@@ -112,13 +121,16 @@ Kształt body dla POST (`customAgentBodySchema` w `src/app/api/acp/agents/route.
 
 ### Przypadki użycia
 
-- Strona dashboardu „CLI Tools” listuje, co jest zainstalowane, i pomaga wskazać każde CLI na OmniRoute
-- Custom agenci pozwalają power userom rejestrować wewnętrzne/własnościowe CLI, o których OmniRoute domyślnie nie wie
-- Wynik detekcji zasila macierz fingerprintów `cli-tools`
+- Strona „CLI Tools” w panelu wyświetla zainstalowane narzędzia i pomaga skonfigurować każde z nich tak, aby wskazywało na OmniRoute
+- Niestandardowi agenci umożliwiają zaawansowanym użytkownikom rejestrowanie wewnętrznych/własnościowych narzędzi CLI, których OmniRoute domyślnie nie rozpoznaje
+- Wynik wykrywania zasila macierz odcisków `cli-tools`
 
 ### Kiedy NIE używać ACP
 
-- ACP nie _uruchamia_ tasków. Tylko wykrywa + konfiguruje CLI. Aby faktycznie wywołać CLI, uruchamiasz je sam z env vars, które dostarcza OmniRoute (`OPENAI_BASE_URL`, `OPENAI_API_KEY` itd.).
+- Rejestr HTTP nie przyjmuje zadań ani nie udostępnia funkcji uruchamiania procesów. Wewnętrzny
+  menedżer może uruchomić zarejestrowane narzędzie CLI, ale nie jest ono podłączone jako automatyczny
+  mechanizm zastępczy dostawcy. W przypadku zwykłego użycia interaktywnego uruchom samodzielnie skonfigurowane narzędzie CLI albo
+  użyj `omniroute run`.
 
 ## 3. Cloud Agents
 
@@ -262,15 +274,15 @@ curl http://localhost:20128/api/v1/agents/tasks/<task-id> \
         ┌─────────┘       │        └─────────┐
         │                 │                  │
     ┌───────┐        ┌─────────┐       ┌────────────┐
-    │  A2A  │        │   ACP   │       │  Cloud     │
-    │ (/a2a)│        │ (/acp)  │       │  Agents    │
+    │  A2A  │        │   ACP   │       │  Agenci    │
+    │ (/a2a)│        │ (/acp)  │       │  chmurowi  │
     └───────┘        └─────────┘       │ (/v1/agents│
         │                 │            │  /tasks)   │
         ↓                 ↓            └────────────┘
-   External peer    Local CLI               │
-   agents that      binaries on             ↓
-   speak A2A v0.3   the host           Codex Cloud,
-                                        Devin, Jules
+   Zewnętrzni       Lokalne pliki            │
+   agenci           wykonywalne CLI          ↓
+   obsługujący      na hoście           Codex Cloud, Cursor,
+   A2A v0.3                             Devin, Jules
 ```
 
 ## Zobacz też

@@ -3,9 +3,12 @@ import { FORMATS } from "../formats.ts";
 // CLAUDE_SYSTEM_PROMPT import removed — no longer injected unconditionally (#1966/#2130)
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../../config/providerModels.ts";
 import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
-import { sanitizeToolId } from "../helpers/schemaCoercion.ts";
+import { normalizeClaudeToolInputSchema, sanitizeToolId } from "../helpers/schemaCoercion.ts";
 import { safeParseJSON } from "../helpers/jsonUtil.ts";
-import { applyKimiCodingThinking } from "../helpers/claudeHelper.ts";
+import {
+  applyKimiCodingThinking,
+  createDefaultClaudeCacheControl,
+} from "../helpers/claudeHelper.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import {
   getDefaultThinkingBudget,
@@ -434,10 +437,13 @@ export function openaiToClaudeRequest(model, body, stream, credentials = null) {
         // MCP tools (e.g. pencil, computer_use) may omit properties on object-type schemas.
         const rawSchema: Record<string, unknown> = toolData.parameters ||
           toolData.input_schema || { type: "object", properties: {}, required: [] };
-        const normalizedSchema =
+        const withProperties =
           rawSchema.type === "object" && !rawSchema.properties
             ? { ...rawSchema, properties: {} }
             : rawSchema;
+        // Flatten a root-level anyOf/oneOf/allOf: Anthropic refuses it outright with
+        // "input_schema does not support oneOf, allOf, or anyOf at the top level" (#13552).
+        const normalizedSchema = normalizeClaudeToolInputSchema(withProperties);
 
         return {
           name: toolName,
@@ -454,7 +460,7 @@ export function openaiToClaudeRequest(model, body, stream, credentials = null) {
     // rejects cache_control on defer_loading tools.
     for (let i = result.tools.length - 1; i >= 0; i--) {
       if (!result.tools[i].defer_loading) {
-        result.tools[i].cache_control = { type: "ephemeral", ttl: "1h" };
+        result.tools[i].cache_control = createDefaultClaudeCacheControl(routedProvider);
         break;
       }
     }
@@ -491,7 +497,7 @@ export function openaiToClaudeRequest(model, body, stream, credentials = null) {
     const systemBlock = {
       type: "text",
       text: systemText,
-      cache_control: { type: "ephemeral", ttl: "1h" },
+      cache_control: createDefaultClaudeCacheControl(routedProvider),
     };
     // Merge with existing body.system if present
     if (Array.isArray(body.system)) {
@@ -549,6 +555,10 @@ function getContentBlocksFromMessage(
       type: "tool_result",
       tool_use_id: sanitizedToolUseId,
       content: toolContent,
+      // Zed's cloud proxy (cloud.zed.dev/completions) strictly requires
+      // `is_error` on every Anthropic tool_result block. OpenAI tool messages
+      // carry no such flag, so default to false unless the caller set it.
+      is_error: msg.is_error === true,
     });
   } else if (msg.role === "user") {
     if (typeof msg.content === "string") {
@@ -571,7 +581,9 @@ function getContentBlocksFromMessage(
             type: "tool_result",
             tool_use_id: sanitizeToolId(part.tool_use_id), // #7705
             content: resultContent,
-            ...(part.is_error && { is_error: part.is_error }),
+            // Always emit a boolean: Zed's strict Anthropic parser rejects
+            // tool_result blocks with a missing `is_error` field.
+            is_error: part.is_error === true,
           });
         } else if (part.type === "image_url" || part.type === "image") {
           const imageBlock = openAiImagePartToClaudeBlock(part);
@@ -672,7 +684,7 @@ function getContentBlocksFromMessage(
             type: "tool_use",
             id: sanitizeToolId(tc.id),
             name: toolName,
-            input: tryParseJSON(tc.function.arguments),
+            input: parseToolInput(tc.function.arguments),
           });
         }
       }
@@ -760,9 +772,10 @@ function extractTextContent(content) {
   return "";
 }
 
-// Try parse JSON (passthrough fallback: return the raw input string on parse error).
-function tryParseJSON(str: unknown): unknown {
-  return safeParseJSON(str, str);
+function parseToolInput(args: unknown): Record<string, unknown> {
+  const parsed = safeParseJSON(args, null);
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+  return parsed as Record<string, unknown>;
 }
 
 function stripCacheControl(value: unknown): unknown {

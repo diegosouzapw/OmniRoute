@@ -191,6 +191,20 @@ function buildExpressGeminiUrl(
   return `https://aiplatform.googleapis.com/v1/publishers/google/models/${canonicalModel}:${op}key=${expressKey}`;
 }
 
+/**
+ * Resolve the endpoint host for a project-scoped Vertex call.
+ *
+ * Multi-region endpoints use the representative-endpoint (`.rep.`) hostname form and MUST be
+ * paired with their own location in the path (`aiplatform.eu.rep.googleapis.com` +
+ * `locations/eu`); the host and location cannot be mixed. All other regions (and the `global`
+ * location) keep the legacy global host, which is what this executor used before the EU routing
+ * fix and is still correct for them.
+ */
+function getVertexHost(region: string): string {
+  if (region === "eu") return "aiplatform.eu.rep.googleapis.com";
+  return "aiplatform.googleapis.com";
+}
+
 function buildProjectScopedVertexUrl(
   canonicalModel: string,
   stream: boolean,
@@ -198,24 +212,72 @@ function buildProjectScopedVertexUrl(
   region: string,
   opaqueApiKey: string | null
 ): string {
+  const host = getVertexHost(region);
   const apiKeySuffix = opaqueApiKey ? `?key=${opaqueApiKey}` : "";
   if (isClaudeModel(canonicalModel)) {
     // streamRawPredict?alt=sse was verified to return a single plain JSON body (not real SSE
     // framing) rather than actual chunked events, which breaks the SSE parser upstream
     // ("stream ended before producing a non-ping SSE event"). rawPredict is confirmed reliable
     // for both streaming and non-streaming requests; always use it here.
-    return `https://aiplatform.googleapis.com/v1/projects/${project}/locations/${region}/publishers/anthropic/models/${canonicalModel}:rawPredict${apiKeySuffix}`;
+    return `https://${host}/v1/projects/${project}/locations/${region}/publishers/anthropic/models/${canonicalModel}:rawPredict${apiKeySuffix}`;
   }
   if (isMistralModel(canonicalModel)) {
     const operation = stream ? "streamRawPredict" : "rawPredict";
-    return `https://aiplatform.googleapis.com/v1/projects/${project}/locations/${region}/publishers/mistralai/models/${canonicalModel}:${operation}${apiKeySuffix}`;
+    return `https://${host}/v1/projects/${project}/locations/${region}/publishers/mistralai/models/${canonicalModel}:${operation}${apiKeySuffix}`;
   }
   if (isPartnerModel(canonicalModel)) {
+    // Partner / open-weight models (xAI, DeepSeek, ...) are served by the OpenAI-compatible MaaS
+    // path, which is a `locations/global` route. Keep it on the global host: a multi-region host
+    // must be paired with ITS OWN location (aiplatform.eu.rep.googleapis.com + locations/eu), so
+    // pointing this path at the EU host mismatches host and location and is served by neither.
+    // Multi-region partner access exists only per model (e.g. Grok 4.6 on the US multi-region),
+    // so it is deliberately not generalized here. Consequence for projects under
+    // constraints/gcp.restrictEndpointUsage: partner models stay unreachable until a supported
+    // multi-region partner route exists for the model in question.
     return `https://aiplatform.googleapis.com/v1/projects/${project}/locations/global/endpoints/openapi/chat/completions${apiKeySuffix}`;
   }
   const operation = stream ? "streamGenerateContent?alt=sse" : "generateContent";
   const querySeparator = opaqueApiKey ? (stream ? "&" : "?") : "";
-  return `https://aiplatform.googleapis.com/v1/projects/${project}/locations/${region}/publishers/google/models/${canonicalModel}:${operation}${querySeparator}${opaqueApiKey ? `key=${opaqueApiKey}` : ""}`;
+  return `https://${host}/v1/projects/${project}/locations/${region}/publishers/google/models/${canonicalModel}:${operation}${querySeparator}${opaqueApiKey ? `key=${opaqueApiKey}` : ""}`;
+}
+
+// Vertex does not support Anthropic's optional one-hour prompt-cache TTL on these
+// legacy Claude models. Keep the breakpoint, but omit ttl so Vertex uses its
+// documented five-minute ephemeral cache instead of rejecting the request.
+const VERTEX_ONE_HOUR_TTL_UNSUPPORTED = new Set([
+  "claude-3-7-sonnet",
+  "claude-3-5-sonnet-v2",
+  "claude-3-5-sonnet",
+  "claude-3-opus",
+]);
+
+function downgradeUnsupportedVertexClaudeTtl(body: Record<string, unknown>, model: string): void {
+  const normalizedModel = model.toLowerCase().split("@", 1)[0];
+  if (!VERTEX_ONE_HOUR_TTL_UNSUPPORTED.has(normalizedModel)) return;
+
+  const normalizeBlock = (block: unknown) => {
+    if (!block || typeof block !== "object" || Array.isArray(block)) return;
+    const record = block as Record<string, unknown>;
+    const cacheControl = record.cache_control;
+    if (!cacheControl || typeof cacheControl !== "object" || Array.isArray(cacheControl)) return;
+    const control = cacheControl as Record<string, unknown>;
+    if (control.type === "ephemeral" && control.ttl === "1h") delete control.ttl;
+  };
+
+  const system = body.system;
+  if (Array.isArray(system)) system.forEach(normalizeBlock);
+
+  const messages = body.messages;
+  if (Array.isArray(messages)) {
+    for (const message of messages) {
+      if (!message || typeof message !== "object" || Array.isArray(message)) continue;
+      const content = (message as Record<string, unknown>).content;
+      if (Array.isArray(content)) content.forEach(normalizeBlock);
+    }
+  }
+
+  const tools = body.tools;
+  if (Array.isArray(tools)) tools.forEach(normalizeBlock);
 }
 
 // Defensive normalizer: target-format resolution for manually-added custom Claude models under
@@ -260,6 +322,16 @@ function synthesizeClaudeSse(response: Record<string, unknown>): string {
   const stopReason = typeof response.stop_reason === "string" ? response.stop_reason : "end_turn";
   const stopSequence = (response.stop_sequence as string | null | undefined) ?? null;
   const content = Array.isArray(response.content) ? response.content : [];
+  const inputUsage: Record<string, unknown> = {
+    input_tokens: usage.input_tokens || 0,
+    output_tokens: 0,
+  };
+  if (typeof usage.cache_creation_input_tokens === "number") {
+    inputUsage.cache_creation_input_tokens = usage.cache_creation_input_tokens;
+  }
+  if (typeof usage.cache_read_input_tokens === "number") {
+    inputUsage.cache_read_input_tokens = usage.cache_read_input_tokens;
+  }
 
   const events: Array<{ event: string; data: Record<string, unknown> }> = [];
 
@@ -275,7 +347,7 @@ function synthesizeClaudeSse(response: Record<string, unknown>): string {
         model,
         stop_reason: null,
         stop_sequence: null,
-        usage: { input_tokens: usage.input_tokens || 0, output_tokens: 0 },
+        usage: inputUsage,
       },
     },
   });
@@ -408,6 +480,7 @@ export class VertexExecutor extends BaseExecutor {
       // "model: Extra inputs are not permitted" if the translated request body still carries
       // one (the openai→claude request translator copies the client's model field over).
       delete body.model;
+      downgradeUnsupportedVertexClaudeTtl(body, model);
     }
 
     const result = await super.execute(input);

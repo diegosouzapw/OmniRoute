@@ -55,13 +55,36 @@ test("parseCliProxyAuthRecord returns null for unknown type or missing access to
 });
 
 test("every CLIPROXY_TYPE_TO_PROVIDER target is a real OAuth provider id", () => {
-  // codex/antigravity/claude/kimi are all OmniRoute providers
+  // codex/antigravity/claude/kimi/muse-code are all OmniRoute providers
   for (const provider of Object.values(CLIPROXY_TYPE_TO_PROVIDER)) {
     assert.ok(
-      ["claude", "codex", "antigravity", "kimi"].includes(provider),
+      ["claude", "codex", "antigravity", "kimi", "muse-code"].includes(provider),
       `unexpected provider mapping: ${provider}`
     );
   }
+});
+
+test("parseCliProxyAuthRecord maps a Meta Muse OAuth file keeping dca + minted key", () => {
+  const parsed = parseCliProxyAuthRecord(
+    {
+      type: "meta",
+      auth_kind: "oauth",
+      access_token: "LLM|minted",
+      api_key: "LLM|minted",
+      dca_token: "dca:durable",
+      base_url: "https://api.meta.ai/v1",
+      email: "muse@example.com",
+      name: "Muse User",
+      expired: "2030-01-01T00:00:00Z",
+    },
+    T0
+  );
+  assert.equal(parsed?.provider, "muse-code");
+  assert.equal(parsed?.accessToken, "LLM|minted");
+  assert.equal(parsed?.refreshToken, "dca:durable");
+  assert.equal(parsed?.expiresAt, null);
+  assert.equal(parsed?.providerSpecificData?.dcaToken, "dca:durable");
+  assert.equal(parsed?.providerSpecificData?.baseUrl, "https://api.meta.ai/v1");
 });
 
 test("resolveCliProxyExpiry handles absolute `expired` (string + unix) and relative `expires_in`", () => {

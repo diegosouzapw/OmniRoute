@@ -7,6 +7,7 @@ import { FORMATS } from "../formats.ts";
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 import { projectCompletedStreamError } from "../../utils/streamErrorFormat.ts";
 import { fallbackToolCallId } from "../helpers/toolCallHelper.ts";
+import { finalizeResponsesTerminalStatus } from "../helpers/responsesTerminalStatus.ts";
 import { shouldParseTextualReasoningTags } from "../../handlers/responseSanitizer.ts";
 import { getReadableReasoningValue } from "../../utils/reasoningFields.ts";
 import { resolveResponsesCacheUsageDetails } from "../../utils/resolveResponsesCacheUsageDetails.ts";
@@ -25,12 +26,23 @@ import {
 import { createEventEmitter } from "./openai-responses/eventEmitter.ts";
 import { buildResponsesToolCallItem } from "./responsesToolItem.ts";
 import { resolveRequestToolIdentity } from "./openai-responses/requestToolIdentity.ts";
+import { applyFunctionCallIdentity } from "./openai-responses/functionCallIdentity.ts";
 import { resolveLocalToolCallIndex } from "./openai-responses/toolCallLocalIndex.ts";
 import {
-  synthesizeCompletedToolCalls,
+  synthesizeCompletedToolItem,
+  buildFinalChunk,
   computeFinishReason,
   withAssistantRoleOnFirstDelta,
 } from "./openai-responses/synthesizeCompletedToolCalls.ts";
+import {
+  bindResponsesTextItem,
+  buildTextSnapshotChunk,
+  closeResponsesTextSnapshots,
+  recordResponsesTextDelta,
+  reconcileResponsesTextDone,
+  synthesizeTextItemSnapshot,
+  recoverTextSnapshotsByOutputIndex,
+} from "./openai-responses/synthesizeTextSnapshots.ts";
 // normalizeUpstreamFailure is re-exported for external importers (tests).
 export { normalizeUpstreamFailure } from "./openai-responses/pureHelpers.ts";
 
@@ -115,6 +127,49 @@ function escapeJsonStringValues(json: string, escapeState: JsonStringEscapeState
 }
 
 /**
+ * Collapse double-escaped tab sequences inside JSON string values.
+ * Some providers (e.g. gpt-5.6-luna-xhigh, #12831) over-escape a tab when
+ * emitting tool call argument JSON: instead of the single valid JSON escape
+ * `\t` (backslash + t), they emit `\\t` (backslash + backslash + t) inside
+ * the string value. JSON.parse then decodes that to a literal two-character
+ * `\t` text (backslash followed by the letter t) instead of an actual tab
+ * character, which breaks consumers (e.g. editor patches) expecting real
+ * tabs. This only rewrites the over-escaped form and leaves an
+ * already-correct single escape untouched.
+ */
+function fixDoubleEscapedTabs(json: string): string {
+  let result = "";
+  let inString = false;
+
+  for (let i = 0; i < json.length; i++) {
+    const ch = json[i];
+
+    if (inString && ch === "\\" && json[i + 1] === "\\" && json[i + 2] === "t") {
+      result += "\\t";
+      i += 2;
+      continue;
+    }
+
+    // Inside a string, leave any other escape sequence untouched.
+    if (inString && ch === "\\") {
+      result += ch + (json[i + 1] ?? "");
+      i++;
+      continue;
+    }
+
+    if (ch === '"') {
+      result += ch;
+      inString = !inString;
+      continue;
+    }
+
+    result += ch;
+  }
+
+  return result;
+}
+
+/**
  * Translate OpenAI chunk to Responses API events
  * @returns {Array} Array of events with { event, data } structure
  */
@@ -128,20 +183,24 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     const u = chunk.usage;
     const input_tokens = u.input_tokens ?? u.prompt_tokens ?? 0;
     const output_tokens = u.output_tokens ?? u.completion_tokens ?? 0;
+    const cacheDetails = resolveResponsesCacheUsageDetails(u);
+    const rawReasoning =
+      u.output_tokens_details?.reasoning_tokens ?? u.completion_tokens_details?.reasoning_tokens;
+    const reasoningTokens =
+      typeof rawReasoning === "number" && Number.isFinite(rawReasoning) ? rawReasoning : 0;
+
     state.usage = {
       input_tokens,
+      input_tokens_details: {
+        cached_tokens: 0,
+        ...(cacheDetails || {}),
+      },
       output_tokens,
+      output_tokens_details: {
+        reasoning_tokens: reasoningTokens,
+      },
       total_tokens: u.total_tokens ?? input_tokens + output_tokens,
     };
-    const cacheDetails = resolveResponsesCacheUsageDetails(u);
-    if (cacheDetails) {
-      state.usage.input_tokens_details = cacheDetails;
-    }
-    const reasoningTokens =
-      u.output_tokens_details?.reasoning_tokens ?? u.completion_tokens_details?.reasoning_tokens;
-    if (reasoningTokens) {
-      state.usage.output_tokens_details = { reasoning_tokens: reasoningTokens };
-    }
   }
 
   if (!chunk.choices?.length) {
@@ -225,6 +284,9 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
       object: "response",
       created_at: state.created,
       status: "in_progress",
+      background: false,
+      error: null,
+      output: [],
     };
     if (state.model) inProgressResponse.model = state.model;
     emit("response.in_progress", {
@@ -303,6 +365,7 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
 
   // Handle finish_reason
   if (choice.finish_reason) {
+    state.finishReason = choice.finish_reason; // read by sendCompleted() → finalizeResponsesTerminalStatus
     for (const i in state.msgItemAdded) closeMessage(state, emit, i);
     closeReasoning(state, emit);
     for (const i in state.funcCallIds) closeToolCall(state, emit, i);
@@ -352,7 +415,7 @@ function startReasoning(state, emit, idx) {
     emit("response.output_item.added", {
       type: "response.output_item.added",
       output_index: idx,
-      item: { id: state.reasoningId, type: "reasoning", summary: [] },
+      item: { id: state.reasoningId, type: "reasoning", summary: [], status: "in_progress" },
     });
 
     emit("response.reasoning_summary_part.added", {
@@ -402,6 +465,7 @@ function closeReasoning(state, emit) {
       id: state.reasoningId,
       type: "reasoning",
       summary: [{ type: "summary_text", text: state.reasoningBuf }],
+      status: "completed",
     };
 
     emit("response.output_item.done", {
@@ -414,7 +478,30 @@ function closeReasoning(state, emit) {
   }
 }
 
+// Some upstreams (deepseek-v4, Kimi-style) interleave plain text deltas AFTER
+// a real tool_call has closed the message item. Emitting those onto the
+// already-done output_index violates the Responses item lifecycle (#13693):
+// Codex CLI aborts on "OutputTextDelta without active item" and the tail text
+// is silently dropped from response.completed. Re-home post-close content onto
+// a FRESH message item at the next free output_index instead — the text keeps
+// flowing and every done item stays immutable. The fresh index must also stay
+// clear of the tool-call block (toolCallOutputIndexBase), hence the scan past
+// reasoning/message AND allocated function-call indexes.
+function nextFreeMessageIndex(state, requestedIdx) {
+  let candidate = normalizeOutputIndex(requestedIdx);
+  const allocatedToolIndexes = state.funcAllocatedOutputIndexes || {};
+  const claimed = (i) =>
+    state.msgItemAdded[i] ||
+    allocatedToolIndexes[i] !== undefined ||
+    (state.reasoningId && i === normalizeOutputIndex(state.reasoningIndex));
+  while (claimed(candidate)) candidate += 1;
+  return candidate;
+}
+
 function emitTextContent(state, emit, idx, content) {
+  if (state.msgItemDone[idx]) {
+    idx = nextFreeMessageIndex(state, idx);
+  }
   if (!state.msgItemAdded[idx]) {
     state.msgItemAdded[idx] = true;
     const msgId = `msg_${state.responseId}_${idx}`;
@@ -422,7 +509,7 @@ function emitTextContent(state, emit, idx, content) {
     emit("response.output_item.added", {
       type: "response.output_item.added",
       output_index: idx,
-      item: { id: msgId, type: "message", content: [], role: "assistant" },
+      item: { id: msgId, type: "message", content: [], role: "assistant", status: "in_progress" },
     });
   }
 
@@ -480,6 +567,7 @@ function closeMessage(state, emit, idx) {
       type: "message",
       content: [{ type: "output_text", annotations: [], logprobs: [], text: fullText }],
       role: "assistant",
+      status: "completed",
     };
 
     emit("response.output_item.done", {
@@ -508,6 +596,10 @@ function toolCallOutputIndexBase(state) {
 function emitToolCall(state, emit, tc) {
   const tcIdx = tc.index ?? 0;
   const outputIndex = toolCallOutputIndexBase(state) + resolveLocalToolCallIndex(state, tcIdx);
+  // Record every allocated tool-call output_index so a post-close text
+  // relocation (nextFreeMessageIndex) can never collide with it.
+  if (!state.funcAllocatedOutputIndexes) state.funcAllocatedOutputIndexes = {};
+  state.funcAllocatedOutputIndexes[outputIndex] = true;
   const newCallId = tc.id;
   const funcName = tc.function?.name;
 
@@ -589,7 +681,7 @@ function emitToolCall(state, emit, tc) {
       state.funcArgsEscapeState[tcIdx] = createJsonStringEscapeState();
     }
     const sanitized = escapeJsonStringValues(
-      tc.function.arguments,
+      fixDoubleEscapedTabs(tc.function.arguments),
       state.funcArgsEscapeState[tcIdx]
     );
     const nextArgs = appendToolCallArgumentDelta(existingArgs, sanitized);
@@ -689,18 +781,8 @@ function closeToolCall(state, emit, idx, recordAsCompleted = true) {
         status: "completed",
       };
 
-      // #7936 identity closure: rewrite the function_call item's `name` back to
-      // its bare leaf and stamp the original `namespace` alongside it, matching
-      // the codex ResponseItem::FunctionCall schema (independent `namespace`
-      // field, NOT a `__` split on `name`).
-      const fnIdentity = resolveRequestToolIdentity(
-        state.requestToolIdentityMap,
-        state.funcNames[idx] || ""
-      );
-      if (fnIdentity) {
-        funcItem.namespace = fnIdentity.namespace;
-        funcItem.name = fnIdentity.name;
-      }
+      // #7936/#14154 identity closure + collaboration plaintext marker.
+      applyFunctionCallIdentity(funcItem, state.requestToolIdentityMap, state.funcNames[idx] || "");
 
       emit("response.output_item.done", {
         type: "response.output_item.done",
@@ -742,7 +824,7 @@ function sendCompleted(state, emit) {
     const output = buildDenseOutput(state);
 
     // Surface upstream mid-stream errors (e.g. Gemini 503) in the
-    // Responses-API `response.completed` event instead of silently emitting
+    // Responses-API `response.failed` event instead of silently emitting
     // `status: "completed"`. The error is set by the Gemini-to-OpenAI
     // translator or the OpenAI-Responses translator itself when the upstream
     // SSE stream emits a JSON error object after partial content.
@@ -768,10 +850,8 @@ function sendCompleted(state, emit) {
       response.usage = state.usage;
     }
 
-    emit("response.completed", {
-      type: "response.completed",
-      response,
-    });
+    const eventType = finalizeResponsesTerminalStatus(response, state.finishReason, !!upstreamErr);
+    emit(eventType, { type: eventType, response });
   }
 }
 
@@ -779,6 +859,17 @@ function flushEvents(state) {
   if (state.completedSent) return [];
 
   const { events, emit } = createEventEmitter(state);
+
+  // EOF is not a Chat Completions finish signal. Preserve partial items, but
+  // surface the missing upstream terminal instead of manufacturing success.
+  if (!state.finishReason && !state.upstreamError) {
+    state.upstreamError = {
+      status: 502,
+      type: "server_error",
+      code: "stream_early_eof",
+      message: "Upstream stream ended without a terminal marker",
+    };
+  }
 
   for (const i in state.msgItemAdded) closeMessage(state, emit, i);
   closeReasoning(state, emit);
@@ -865,7 +956,9 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
 }
 
 function openaiResponsesToOpenAIResponseStream(chunk, state) {
+  if (state.responsesTextSnapshots?.closed) return null;
   if (!chunk) {
+    closeResponsesTextSnapshots(state);
     // Iterate every still-open call with a buffered argument payload — argument
     // deltas are buffered for every tool, so an incomplete stream must flush every
     // buffered call, not only the historical uppercase Agent path.
@@ -974,27 +1067,23 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
 
   // Text content delta
   if (eventType === "response.output_text.delta") {
-    const delta = data.delta || "";
-    if (!delta) return null;
-
-    return {
-      id: state.chatId,
-      object: "chat.completion.chunk",
-      created: state.created,
-      model: state.model || "gpt-4",
-      choices: [
-        {
-          index: 0,
-          delta: { content: delta },
-          finish_reason: null,
-        },
-      ],
-    };
+    const delta = data.delta;
+    if (typeof delta !== "string" || !delta) return null;
+    recordResponsesTextDelta(state, data, delta);
+    return buildTextSnapshotChunk(state, delta);
   }
 
-  // Text content done (ignore, we handle via delta)
   if (eventType === "response.output_text.done") {
+    const suffix = reconcileResponsesTextDone(state, data, data.text);
+    return suffix ? buildTextSnapshotChunk(state, suffix) : null;
+  }
+  if (eventType === "response.output_item.added" && data.item?.type === "message") {
+    bindResponsesTextItem(state, data.item, data.output_index);
     return null;
+  }
+  if (eventType === "response.output_item.done" && data.item?.type === "message") {
+    const recovered = synthesizeTextItemSnapshot(state, data.item, data.output_index);
+    return recovered.length ? recovered : null;
   }
 
   // Function call started
@@ -1349,45 +1438,22 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
       }
     }
 
-    // #fix: synthesize tool call chunks from response.completed output[] for
-    // providers that batch everything into response.completed without prior
-    // incremental output_item.* events — including the dedup guard against
-    // providers that DO stream incrementally and also echo the same
-    // function_call items here. See synthesizeCompletedToolCalls's own
-    // doc-comment for the full rationale.
-    const synthesized = synthesizeCompletedToolCalls(state, data.response?.output);
-    if (synthesized) return synthesized;
-
-    if (!state.finishReasonSent) {
-      state.finishReasonSent = true;
-      const reason = computeFinishReason(state);
-      state.finishReason = reason; // Mark for usage injection in stream.js
-
-      const finalChunk: Record<string, unknown> = {
-        id: state.chatId,
-        object: "chat.completion.chunk",
-        created: state.created,
-        model: state.model || "gpt-4",
-        choices: [
-          {
-            index: 0,
-            delta: {},
-            finish_reason: reason,
-          },
-        ],
-      };
-
-      // Include usage in final chunk if available
-      if (state.usage && typeof state.usage === "object") {
-        finalChunk.usage = state.usage;
-      }
-
-      return finalChunk;
-    }
-    return null;
+    // Bind text identities across the whole snapshot, then emit unseen content in
+    // output order. Tools do not finalize individually: one terminal follows all items.
+    const output: unknown[] = Array.isArray(data.response?.output) ? data.response.output : [];
+    const textByIndex = recoverTextSnapshotsByOutputIndex(state, output);
+    closeResponsesTextSnapshots(state);
+    if (state.finishReasonSent) return null;
+    const recovered = output.flatMap((item, index) => [
+      ...(textByIndex.get(index) ?? []),
+      ...synthesizeCompletedToolItem(state, item),
+    ]);
+    const finalChunk = buildFinalChunk(state);
+    return recovered.length ? [...recovered, finalChunk] : finalChunk;
   }
 
   if (eventType === "response.failed" || eventType === "error") {
+    closeResponsesTextSnapshots(state);
     state.upstreamError = normalizeUpstreamFailure(data);
     state.finishReasonSent = true;
     return null;

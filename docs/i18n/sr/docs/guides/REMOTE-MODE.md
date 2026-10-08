@@ -1,0 +1,473 @@
+# Remote Mode (Српски)
+
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/REMOTE-MODE.md) · 🇪🇹 [am](../../../am/docs/guides/REMOTE-MODE.md) · 🇸🇦 [ar](../../../ar/docs/guides/REMOTE-MODE.md) · 🇦🇿 [az](../../../az/docs/guides/REMOTE-MODE.md) · 🇧🇬 [bg](../../../bg/docs/guides/REMOTE-MODE.md) · 🇧🇩 [bn](../../../bn/docs/guides/REMOTE-MODE.md) · 🇧🇦 [bs](../../../bs/docs/guides/REMOTE-MODE.md) · 🇨🇿 [cs](../../../cs/docs/guides/REMOTE-MODE.md) · 🇩🇰 [da](../../../da/docs/guides/REMOTE-MODE.md) · 🇩🇪 [de](../../../de/docs/guides/REMOTE-MODE.md) · 🇬🇷 [el](../../../el/docs/guides/REMOTE-MODE.md) · 🇪🇸 [es](../../../es/docs/guides/REMOTE-MODE.md) · 🇪🇪 [et](../../../et/docs/guides/REMOTE-MODE.md) · 🇮🇷 [fa](../../../fa/docs/guides/REMOTE-MODE.md) · 🇫🇮 [fi](../../../fi/docs/guides/REMOTE-MODE.md) · 🇫🇷 [fr](../../../fr/docs/guides/REMOTE-MODE.md) · 🇮🇪 [ga](../../../ga/docs/guides/REMOTE-MODE.md) · 🇮🇳 [gu](../../../gu/docs/guides/REMOTE-MODE.md) · 🇳🇬 [ha](../../../ha/docs/guides/REMOTE-MODE.md) · 🇮🇱 [he](../../../he/docs/guides/REMOTE-MODE.md) · 🇮🇳 [hi](../../../hi/docs/guides/REMOTE-MODE.md) · 🇭🇷 [hr](../../../hr/docs/guides/REMOTE-MODE.md) · 🇭🇺 [hu](../../../hu/docs/guides/REMOTE-MODE.md) · 🇦🇲 [hy](../../../hy/docs/guides/REMOTE-MODE.md) · 🇮🇩 [id](../../../id/docs/guides/REMOTE-MODE.md) · 🇳🇬 [ig](../../../ig/docs/guides/REMOTE-MODE.md) · 🇮🇹 [it](../../../it/docs/guides/REMOTE-MODE.md) · 🇯🇵 [ja](../../../ja/docs/guides/REMOTE-MODE.md) · 🇬🇪 [ka](../../../ka/docs/guides/REMOTE-MODE.md) · 🇰🇭 [km](../../../km/docs/guides/REMOTE-MODE.md) · 🇮🇳 [kn](../../../kn/docs/guides/REMOTE-MODE.md) · 🇰🇷 [ko](../../../ko/docs/guides/REMOTE-MODE.md) · 🇱🇹 [lt](../../../lt/docs/guides/REMOTE-MODE.md) · 🇱🇻 [lv](../../../lv/docs/guides/REMOTE-MODE.md) · 🇮🇳 [ml](../../../ml/docs/guides/REMOTE-MODE.md) · 🇮🇳 [mr](../../../mr/docs/guides/REMOTE-MODE.md) · 🇲🇾 [ms](../../../ms/docs/guides/REMOTE-MODE.md) · 🇲🇹 [mt](../../../mt/docs/guides/REMOTE-MODE.md) · 🇲🇲 [my](../../../my/docs/guides/REMOTE-MODE.md) · 🇳🇵 [ne](../../../ne/docs/guides/REMOTE-MODE.md) · 🇳🇱 [nl](../../../nl/docs/guides/REMOTE-MODE.md) · 🇳🇴 [no](../../../no/docs/guides/REMOTE-MODE.md) · 🇮🇳 [or](../../../or/docs/guides/REMOTE-MODE.md) · 🇮🇳 [pa](../../../pa/docs/guides/REMOTE-MODE.md) · 🇵🇭 [phi](../../../phi/docs/guides/REMOTE-MODE.md) · 🇵🇱 [pl](../../../pl/docs/guides/REMOTE-MODE.md) · 🇵🇹 [pt](../../../pt/docs/guides/REMOTE-MODE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/REMOTE-MODE.md) · 🇷🇴 [ro](../../../ro/docs/guides/REMOTE-MODE.md) · 🇷🇺 [ru](../../../ru/docs/guides/REMOTE-MODE.md) · 🇱🇰 [si](../../../si/docs/guides/REMOTE-MODE.md) · 🇸🇰 [sk](../../../sk/docs/guides/REMOTE-MODE.md) · 🇸🇮 [sl](../../../sl/docs/guides/REMOTE-MODE.md) · 🇸🇪 [sv](../../../sv/docs/guides/REMOTE-MODE.md) · 🇰🇪 [sw](../../../sw/docs/guides/REMOTE-MODE.md) · 🇮🇳 [ta](../../../ta/docs/guides/REMOTE-MODE.md) · 🇮🇳 [te](../../../te/docs/guides/REMOTE-MODE.md) · 🇹🇭 [th](../../../th/docs/guides/REMOTE-MODE.md) · 🇹🇷 [tr](../../../tr/docs/guides/REMOTE-MODE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/REMOTE-MODE.md) · 🇵🇰 [ur](../../../ur/docs/guides/REMOTE-MODE.md) · 🇺🇿 [uz](../../../uz/docs/guides/REMOTE-MODE.md) · 🇻🇳 [vi](../../../vi/docs/guides/REMOTE-MODE.md) · 🇳🇬 [yo](../../../yo/docs/guides/REMOTE-MODE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/REMOTE-MODE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/REMOTE-MODE.md)
+
+---
+
+Покрените `omniroute` CLI на свом лаптопу док сам OmniRoute ради негде другде
+(на VPS-у, кућном серверу или другом рачунару у вашем Tailnet-у). Пријавите се једном помоћу
+`omniroute connect`, а након тога **свака** CLI команда циља тај удаљени
+сервер — исте команде, исти излаз, само се извршавају над удаљеним сервером.
+
+Нема другог алата који треба инсталирати: удаљени режим користи стандардни `omniroute` CLI
+заједно са **приступним токенима** ограниченог опсега.
+
+```bash
+npm install -g omniroute                 # стандардни CLI
+omniroute connect 192.168.0.15           # пријава (лозинка → токен ограниченог опсега)
+omniroute models list                    # ← сада приказује моделе УДАЉЕНОГ сервера
+omniroute configure codex                # ← прави локални Codex профил из удаљеног каталога
+```
+
+---
+
+## Како функционише
+
+```
+ваш лаптоп                               удаљени OmniRoute (VPS)
+┌────────────────────┐                   ┌───────────────────────────────┐
+│ omniroute CLI      │  POST /api/cli/connect  (лозинка → токен)          │
+│  контекст: vps     │ ───────────────►  │ издаје приступни токен         │
+│  baseUrl, токен    │  Authorization: Bearer oma_live_…                  │
+│                    │ ───────────────►  │ свака управљачка рута, провера │
+│ уписује конфигурације│ ◄───────────────  │ према опсегу токена            │
+│ ЛОКАЛНО            │                   └───────────────────────────────┘
+└────────────────────┘
+```
+
+- **Контексти** чувају по један сервер (`~/.omniroute/config.json`, `chmod 600`).
+  `omniroute contexts use <name>` мења активни сервер; `default` је локални.
+- **Приступни токени** (`oma_live_…`) овлашћују управљачке команде. Они се
+  разликују од API кључева за извођење модела (`sk-…`, који се користе за `/v1/chat/completions`).
+- На серверској страни чува се само SHA-256 хеш токена. Токен у отвореном тексту приказује се
+  **једном**, приликом креирања.
+
+---
+
+## Повезивање
+
+### Помоћу управљачке лозинке (почетно подешавање)
+
+```bash
+omniroute connect 192.168.0.15
+# Управљачка лозинка за http://192.168.0.15:20128: ********
+# ✔ Повезано са http://192.168.0.15:20128 — контекст '192.168.0.15' (опсег: admin)
+```
+
+Ток лозинке подразумевано издаје **admin** токен (пошто имате лозинку,
+већ имате потпуну контролу). Ограничите опсег помоћу `--scope`:
+
+```bash
+omniroute connect 192.168.0.15 --scope write
+```
+
+Опције: `--port <p>` (када порт није наведен уз хост), `--name <ctx>` (назив контекста),
+`--scope read|write|admin`. Комплетан URL се користи без измена:
+`omniroute connect https://omni.example.com`.
+
+### Помоћу унапред генерисаног токена
+
+Генеришите токен ограниченог опсега на контролној табли (или помоћу `omniroute tokens create`) и
+налепите га — лозинка није потребна:
+
+```bash
+omniroute connect 192.168.0.15 --key oma_live_xxxxxxxx
+```
+
+CLI га проверава путем `GET /api/cli/whoami` и чува као активни контекст.
+
+---
+
+## Опсези
+
+Три хијерархијска нивоа (`admin ⊃ write ⊃ read`):
+
+| Опсег   | Дозвољене радње                                                                         |
+| ------- | --------------------------------------------------------------------------------------- |
+| `read`  | приказ/преглед — `models list`, `providers status`, `logs`, `usage`, `cost`             |
+| `write` | read **+** конфигурисање/примена — `setup-codex`, `keys add`, `config set`, комбинације |
+| `admin` | write **+** управљање — CRUD за `tokens`, додавање добављача, сервиси, смернице, oauth  |
+
+Сервер закључује који је опсег потребан за сваку руту на основу HTTP метода
+(`GET`→read, измене→write), уз admin листу дозвољених осетљивих површина
+(`/api/cli/tokens`, измене `/api/providers`, `/api/oauth`, `/api/services`, …).
+Токен са недовољним опсегом добија `403` са јасном поруком.
+
+> Руте које покрећу процесе (`/api/services/*`, `/api/mcp/*`, …) остају
+> доступне **само преко loopback интерфејса** — удаљени токен никада не може да им приступи, без обзира на опсег.
+
+---
+
+## Повезивање Antigravity-ја на удаљеној инсталацији
+
+Antigravity користи Google-ов екран за сагласност типа first-party/nativeapp. Google
+издаје ауторизациони кôд само када је **повратно преусмеравање на loopback адресу**
+(`http://127.0.0.1:<port>/callback`) **доступно из прегледача који
+одобрава пријављивање**. Код инсталације на удаљеном VPS-у, та loopback адреса се
+налази на серверу, а не на вашем рачунару, па екран за сагласност **остаје заувек
+заглављен и никада не издаје кôд** — уобичајена резервна опција „налепите URL
+повратног позива“ нема шта да налепи. (Ово је ограничење на страни Google-а: исто
+заглављивање се дешава у сваком проксију који користи приложени Antigravity
+десктоп клијент, а не само у OmniRoute-у.)
+
+Контролна табла то открива пре него што се заглавите: отварање ставке **Providers → Antigravity →
+Connect** са адресе која није localhost замењује опште обавештење „копирајте URL повратног позива“
+са два решења у наставку, при чему су ваш хост и порт већ попуњени.
+(И LAN адреса се рачуна — `192.168.x.x` није localhost када је реч о овом повратном
+позиву.)
+
+Постоје два подржана начина за повезивање Antigravity-ја са удаљеним OmniRoute-ом.
+
+### Опција A — локални помоћник за пријављивање (препоручено)
+
+Покрените OAuth на **свом рачунару**, где је `127.0.0.1` доступан. Помоћник
+комуницира директно са Google-ом, тако да се поступак давања сагласности завршава тамо где
+верзија са контролне табле то не може.
+
+**Ако сте већ повезани** (`omniroute connect <host>`), нема потребе ништа да
+копирате — помоћник ће вам доставити акредитиве тој инсталацији:
+
+```bash
+# На вашем ЛОКАЛНОМ рачунару (потребни су Node.js и прегледач):
+omniroute connect 192.168.0.15        # једном — генерише контекстуални токен са администраторским опсегом
+npx omniroute login antigravity
+#   ↳ отвара Google-ов екран за сагласност, хвата повратни позив на локалном loopback порту,
+#     размењује га и шаље акредитив активном контексту путем POST захтева:
+#
+#   Antigravity је повезан на http://192.168.0.15:20128 (веза abc123).
+#   Нема потребе ништа да налепите — можете затворити овај терминал.
+```
+
+Слање се одвија аутоматски кад год активни контекст показује на други
+рачунар. Принудно га омогућите или онемогућите помоћу `--push` / `--no-push`, или циљајте одређени
+контекст помоћу `--context <name>`.
+
+**Ако ваш рачунар не може да приступи VPS-у** (заштитни зид, нема SSH-а, физички изолована радна станица),
+помоћник и даље ради — потребан му је само Google. Користите `--no-push` или једноставно пустите да
+слање не успе: уместо одбацивања ауторизације коју сте већ довршили, прећи ће на
+исписивање блока.
+
+```bash
+npx omniroute login antigravity --no-push
+#   omniroute-cred-v1.eyJ2IjoxLCJ...
+```
+
+Затим на **удаљеној** контролној табли отворите **Providers → Antigravity → Connect** и налепите
+`omniroute-cred-v1.…` блок у поље **Step 2** (оно прихвата или URL повратног позива
+или блок са акредитивима). OmniRoute га декодира, покреће увођење у Cloud Code
+на страни сервера и трајно чува везу.
+
+> Блок садржи токен за освежавање — поступајте с њим као са лозинком. При директном слању,
+> шаље се једном преко аутентификоване везе вашег контекста; при ручном лепљењу, преко
+> везе са контролном таблом. У оба случаја чува се шифрован, а успешно
+> слање га никада не исписује у вашем терминалу.
+
+Опције: `--no-browser` (исписује URL уместо аутоматског отварања), `--port <n>`
+(фиксира loopback порт), `--timeout <ms>`, `--push` / `--no-push` (замењује
+аутоматски избор начина испоруке), `--context <name>` (циља одређени контекст).
+
+### Опција B — SSH тунел са локалним прослеђивањем
+
+Ако имате SSH приступ VPS-у, проследите порт контролне табле тако да се
+loopback повратни позив усмери назад на сервер кроз тунел:
+
+```bash
+# На вашем ЛОКАЛНОМ рачунару:
+ssh -L 20128:127.0.0.1:20128 user@your-vps
+# затим отворите http://localhost:20128 у свом ЛОКАЛНОМ прегледачу и повежите Antigravity
+# на уобичајен начин — преусмеравање на 127.0.0.1:20128/callback сада стиже до VPS-а преко SSH-а.
+```
+
+Пошто контролној табли приступате преко `localhost:20128`, поступак давања Google
+сагласности се завршава, а повратни позив се испоручује серверу кроз исти тунел —
+блок није потребан. Држите тунел отвореним док се веза не прикаже као активна.
+
+За разлику од добављача са фиксним loopback адресама наведених испод, овде је **једно прослеђивање
+довољно**: Antigravity повратни позив користи сам порт контролне табле, па нема другог
+порта специфичног за добављача који треба проследити кроз тунел.
+
+> Потпуно безглавна алтернатива (без помоћника и без тунела) јесте да конфигуришете **сопствене**
+> Google OAuth веб-акредитиве и јавни основни URL; погледајте OAuth променљиве
+> окружења за тог добављача. Две горенаведене опције не захтевају додатно подешавање Google-а.
+
+---
+
+## Повезивање Codex-а / Grok-а са удаљеном инсталацијом (провајдери са фиксном loopback адресом)
+
+Codex, xAI (`xai-oauth`) и Grok CLI (`grok-cli`) региструју **фиксни** loopback
+`redirect_uri` у својој OAuth апликацији. OmniRoute не може да га промени — провајдер
+увек враћа прегледач на исту, унапред дефинисану адресу:
+
+| Провајдер   | Фиксни callback на који провајдер преусмерава |
+| ----------- | --------------------------------------------- |
+| `codex`     | `http://localhost:1455/auth/callback`         |
+| `xai-oauth` | `http://127.0.0.1:56121/callback`             |
+| `grok-cli`  | `http://127.0.0.1:56122/callback`             |
+
+`localhost` овде означава **рачунар на којем је покренут прегледач**, док OmniRoute-ов PKCE
+callback сервер слуша на loopback адреси **сервера**. Ако отворите контролну таблу преко LAN
+адресе као што је `http://192.168.0.15:20128`, они се никада неће повезати: ауторизациони
+код се испоручује на `localhost:1455` вашег лаптопа, где ништа не слуша,
+па провајдер неуспешно завршава пријављивање без приказивања грешке.
+
+Контролна табла открива ово пре отварања искачућег прозора и приказује команду за тунел
+уместо да дозволи да пријављивање неуспешно прође без обавештења (#8046).
+
+### Решење — проследите **оба** порта
+
+```bash
+# На рачунару на којем је покренут ПРЕГЛЕДАЧ:
+ssh -L 20128:127.0.0.1:20128 -L 1455:127.0.0.1:1455 <user>@192.168.0.15
+# затим отворите http://localhost:20128 и одатле повежите Codex
+```
+
+Потребна су два прослеђивања, а прослеђивање само једног порта и даље неће радити:
+
+- **`20128`** (порт контролне табле) чини origin правим localhost-ом, што
+  омогућава OmniRoute-у да уопште покрене PKCE callback сервер — LAN origin никада
+  не стиже до те гране.
+- **`1455`** (фиксни callback порт провајдера) јесте место на које се прегледач враћа;
+  он мора да буде прослеђен кроз тунел до loopback адресе сервера.
+
+Замените `1455` са `56121`/`56122` када повезујете xAI или Grok CLI, а `20128` са
+стварним портом ваше контролне табле. Држите тунел отвореним док се веза не прикаже као
+активна.
+
+> **Немате SSH приступ?** Codex и Grok CLI такође прихватају налепљени токен — картица **Налепи API
+> кључ** / **Увези auth.json** у дијалогу за повезивање. Тај начин не користи loopback
+> callback, па ради са било ког origin-а. Codex додатно прихвата и самостални приступни
+> токен или blob сесије из `~/.codex/auth.json`.
+
+---
+
+## Управљање токенима
+
+```bash
+omniroute tokens create --name "laptop" --scope write [--expires 30]
+#   ↳ исписује тајну САМО ЈЕДНОМ — копирајте је одмах
+omniroute tokens list                 # маскирано: id, назив, опсег, префикс, статус, истек
+omniroute tokens revoke <id|prefix>   # опозовите одмах
+omniroute tokens scopes               # објашњава три опсега
+```
+
+Команде `tokens` захтевају **администраторски** акредитив. Токенима такође можете управљати у
+контролној табли у одељку **Подешавања → Приступни токени** (креирање, опозив, једнократно копирање).
+
+---
+
+## Подешавање CLI алата за програмирање из удаљеног каталога
+
+`omniroute configure` чита актуелни каталог модела **активног сервера** и уписује
+конфигурацију на **ваш** рачунар.
+
+```bash
+omniroute configure codex
+#   Провајдери: glm, kmc, ollamacloud, opencode-go, …
+#   Провајдер: glm
+#   ID модела: glm/glm-5.2
+#   ✔ Уписано у ~/.codex/glm52.config.toml
+#   Користите овако:  codex --profile glm52
+
+# неинтерактивно
+omniroute configure codex --provider glm --model glm/glm-5.2 --name glm52
+
+# задржите често коришћени модел на врху интерактивног бирача
+omniroute configure codex --provider glm --model glm/glm-5.2 --favorite --yes
+```
+
+Бирач чува само ID-ове модела (никада URL адресе или акредитиве) у локалној
+датотеци `model-preferences.json`, разврстане према контексту и циљном CLI-ју. Омиљени модели се
+приказују пре недавно изабраних; употребите `--unfavorite` да бисте уклонили изабрани модел
+са листе за тај контекст/циљ.
+
+Уписани профил упућује на кључ за инференцију преко променљиве окружења
+(`OMNIROUTE_API_KEY`) — тајна се никада не уписује на диск. За једнократно
+основно подешавање Codex-а (блок `[model_providers.omniroute]`) погледајте
+[CODEX-CLI-CONFIGURATION.md](./CODEX-CLI-CONFIGURATION.md).
+
+### Покретање CLI-ја према удаљеном серверу (без уписивања конфигурације)
+
+`omniroute run <target>` такође поштује активни контекст: основни URL удаљеног сервера
+и акредитив контекста прослеђују се само покренутом процесу.
+
+```bash
+omniroute connect 192.168.0.15
+omniroute run claude   --model openai/gpt-5.4          # Claude Code → удаљени сервер
+omniroute run gemini   --model glm/glm-5.2 -- --skip-trust -p "hello"
+omniroute run opencode --model glm/glm-5.2 -- run "reply OK"
+
+# Прегледајте тачно шта би било покренуто (само НАЗИВИ КЉУЧЕВА окружења, никада вредности):
+omniroute run codex --dry-run --json
+```
+
+Циљеви: `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen`, `gemini`
+(једини извор: `bin/cli/cli-manifest.mjs`). Qwen и Gemini се покрећу са
+привременим изолованим матичним директоријумом који се уклања при изласку, тако да покретање никада не мења —
+нити пропушта податке у — вашу личну конфигурацију алата.
+
+### Команде за подешавање по CLI-ју
+
+Сваки подржани CLI има команду за подешавање која узима у обзир удаљени сервер (све поштују активни
+контекст или `--remote <url> --api-key <key>`):
+
+| CLI         | Команда                    | Шта уписује                                                                                                                                                                                                 |
+| ----------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Codex       | `omniroute setup-codex`    | `~/.codex/<name>.config.toml` профиле (по моделу)                                                                                                                                                           |
+| Claude Code | `omniroute setup-claude`   | `~/.claude/profiles/<name>/settings.json` (по моделу)                                                                                                                                                       |
+| OpenCode    | `omniroute setup-opencode` | `~/.config/opencode/opencode.json` — `omniroute` провајдер компатибилан са OpenAI-јем, са сваким моделом из каталога (покрените `opencode -m omniroute/<model>`)                                            |
+| Cline       | `omniroute setup-cline`    | `~/.cline/data/{globalState,secrets}.json` (CLI режим) + исписује подешавања проширења за VS Code која треба налепити (компатибилно са OpenAI-јем, основни URL **без** `/v1`)                               |
+| Kilo Code   | `omniroute setup-kilo`     | `~/.local/share/kilo/auth.json` (CLI) + VS Code `kilocode.*` подешавања — компатибилно са OpenAI-јем, основни URL **са** `/v1`                                                                              |
+| Continue    | `omniroute setup-continue` | `~/.continue/config.yaml` (VS Code/JetBrains + `cn` CLI) — `provider: openai`, `apiBase` **са** `/v1`, кључ преко `${{ secrets.OMNIROUTE_API_KEY }}`                                                        |
+| Cursor      | `omniroute setup-cursor`   | исписује кораке у апликацији (Settings → Models → Override OpenAI Base URL **са** `/v1` + кључ + модел). Cursor конфигурација је непрозирна SQLite база — само панел за ћаскање                             |
+| Roo Code    | `omniroute setup-roo`      | уписује Roo JSON за увоз (`~/.omniroute/roo-settings.json`) + поставља `roo-cline.autoImportSettingsPath` + исписује кораке у корисничком интерфејсу (компатибилно са OpenAI-јем, основни URL **са** `/v1`) |
+| Crush       | `omniroute setup-crush`    | `~/.config/crush/crush.json` — `openai-compat` провајдер, `base_url` **са** `/v1`, кључ преко `$OMNIROUTE_API_KEY`                                                                                          |
+| Goose       | `omniroute setup-goose`    | `~/.config/goose/config.yaml` (`GOOSE_PROVIDER=openai` + `OPENAI_HOST` **без** `/v1` + `GOOSE_MODEL`) + упутство за променљиве окружења                                                                     |
+| Aider       | `omniroute setup-aider`    | `~/.aider.conf.yml` (`openai-api-base` **без** `/v1` + `model: openai/<id>`) + упутство за променљиве окружења (`aider --message --yes`)                                                                    |
+| Qwen Code   | `omniroute setup-qwen`     | `~/.qwen/settings.json` V4 унос `modelProviders.openai` + `OMNIROUTE_API_KEY` у `~/.qwen/.env`                                                                                                              |
+
+```bash
+# OpenCode (провајдер компатибилан са OpenAI-јем, сви модели из каталога, удаљени VPS)
+omniroute setup-opencode --remote http://192.168.0.15:20128 --api-key oma_live_xxx
+omniroute setup-opencode --only glm,kimi        # задржи само одговарајуће моделе
+opencode -m omniroute/glm/glm-5.2 "..."          # прво извези OMNIROUTE_API_KEY
+```
+
+> OpenCode такође има богатију интеграцију путем **додатка**: `omniroute setup opencode`
+> (сада подржава удаљене системе преко `--remote`) инсталира `@omniroute/opencode-plugin`.
+> `setup-opencode` је једноставнија алтернатива компатибилна са OpenAI-јем. На API кључ
+> се упућује преко `{env:OMNIROUTE_API_KEY}` — никада се не уписује на диск.
+>
+> На OpenCode v2 уместо тога користите `@omniroute/opencode-plugin-v2`: исти каталог,
+> другачији уговор учитавача. Он чита кључ из OpenCode-овог сопственог складишта
+> акредитива када је интеграција повезана, тако да удаљеном мрежном пролазу уопште није потребан кључ у
+> `opencode.json`.
+
+---
+
+## Upravljanje kontekstima (prebacivanje između servera)
+
+**Kontekst** je sačuvani server (baseUrl + akreditiv + opseg). `omniroute connect`
+kreira jedan i čini ga aktivnim; od tada svaka komanda cilja na njega. Upravljajte i
+prebacujte se između njih pomoću `omniroute contexts`:
+
+```bash
+omniroute contexts list            # svi konteksti; aktivni je označen sa ●
+omniroute contexts current         # aktivni server, status autentifikacije, opseg
+```
+
+```text
+  | Ime     | Osnovni URL                 | Autentifikacija | Opseg | Opis
+● | vps     | http://100.67.86.91:20128 | token           | admin | Udaljeni OmniRoute (…)
+  | default | http://localhost:20128    | ✗               |       |
+```
+
+**Prebacivanje servera** — svaka naredna komanda prati aktivni kontekst:
+
+```bash
+omniroute contexts use vps         # → sve komande sada pogađaju udaljeni VPS
+omniroute tokens list              #   (izvršava se na VPS-u)
+
+omniroute contexts use default     # → nazad na localhost
+omniroute tokens list              #   (izvršava se na lokalnom serveru)
+```
+
+**Ručno dodavanje konteksta** (umesto `connect`), pregledanje ili preimenovanje:
+
+```bash
+omniroute contexts add staging --url https://staging.example.com:20128 \
+  --access-token oma_live_xxxx --scope write --description "staging box"
+omniroute contexts show staging    # potpuni detalji za jedan kontekst
+omniroute contexts rename staging stg
+```
+
+**Uklanjanje konteksta** — traži potvrdu; prosledite `--yes` da biste je preskočili
+(potrebno za skripte / neinteraktivne shell-ove, koji bi inače bezbedno odbili):
+
+```bash
+omniroute contexts remove stg --yes
+```
+
+> `default` (localhost) se ne može ukloniti. Uklanjanje aktivnog konteksta vraća na
+> `default`. Savet: uklanjanje konteksta samo odbacuje **lokalno** sačuvani akreditiv —
+> opozovite token na serveru pomoću `omniroute tokens revoke <id>` da biste zaista
+> prekinuli pristup.
+
+**Izvoz / uvoz** konteksta (npr. za premeštanje između mašina). Izvozi izostavljaju
+akreditive podrazumevano, uključujući akreditive sačuvane putem rezervnog fajla. Koristite
+`--include-secrets` eksplicitno kada je potrebna prenosiva rezervna kopija koja sadrži akreditive:
+
+```bash
+omniroute contexts export --out contexts.json     # redigovano; podrazumevana destinacija: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # prepiši; --merge da bi se zadržali postojeći
+omniroute contexts migrate --yes                  # premeštanje starih plaintext tokena u keychain
+```
+
+`--include-secrets` rešava reference na keychain pre izvoza i ne uspeva ako se bilo koji
+referencirani akreditiv ne može pročitati. `--no-secrets` uvek ima prednost.
+Izvozni fajlovi se pišu atomski sa modom `0600`. Eksplicitni izvoz koji sadrži tajne
+tretirajte kao tajni materijal. Na sistemima bez glave (headless) bez upotrebljivog OS
+keychain-a, CLI se vraća na `config.json` sa modom `0600` i štampa
+jednokratno upozorenje; podrazumevani izvoz ostaje redigovan u ovom režimu.
+
+---
+
+## Брза провера целокупног процеса
+
+Животни циклус који можете директно копирати и налепити ради провере удаљеног подешавања
+од почетка — повежите се, направите токен ограниченог опсега, усмерите команду, вратите
+се назад и уклоните подешавање. Замените `192.168.0.15` адресом хоста/IP адресом свог
+сервера (Tailscale, LAN или јавни `https://…` URL).
+
+```bash
+# 1. Повезивање (лозинка → администраторски токен, сачуван као контекст који постаје активан)
+omniroute connect 192.168.0.15                 # или: --key oma_live_xxxx  (без лозинке)
+omniroute contexts current                     # приказује удаљени сервер + опсег
+
+# 2. Коришћење — команде за управљање сада се извршавају на удаљеном серверу
+omniroute tokens create --name laptop --scope read   # прави токен ужег опсега
+omniroute tokens list                                 # маскирана листа са удаљеног сервера
+
+# 3. Пребацивање у оба смера
+omniroute contexts use default                 # → локално
+omniroute contexts use 192-168-0-15            # → поново удаљено (назив из `contexts list`)
+
+# 4. Уклањање. НАПОМЕНА: `contexts remove` брише само ЛОКАЛНИ акредитив —
+#    НЕ опозива токен на серверу. Прво га опозовите на серверу ако желите
+#    да заиста онемогућите приступ.
+omniroute tokens revoke <id|prefix>            # онемогућава приступ на серверу
+omniroute contexts remove 192-168-0-15 --yes   # уклања локални контекст (чак и ако је активан → враћа се на default), без упита
+```
+
+> `--yes` чини `contexts remove` неинтерактивним (обавезно у скриптама/CI окружењу;
+> без њега неинтерактивна љуска безбедно одбија радњу уместо да се заглави). Уклањањем
+> **активног** контекста аутоматски се прелази на `default`.
+
+---
+
+## Безбедносне напомене
+
+- Отворени текст токена приказује се само једном; чува се само SHA-256 хеш (исто као код API кључева).
+- `omniroute connect` поново користи закључавање услед покушаја пријаве методом грубе силе и евидентирање активности.
+- За пренос је пожељно користити HTTPS или Tailnet; за самостални назив хоста подразумевано се користи `http://`
+  ради једноставније употребе на LAN/Tailscale мрежама — проследите пуну `https://…` URL адресу да бисте користили TLS.
+- Препоручена локална контекстуална датотека је `~/.omniroute/config.json` (`chmod 600`)
+  и садржи само `credentialRef`; сам токен се чува у системском
+  складишту акредитива (`keytar`) и никада се не исписује у евиденцијама. Инсталације без графичког окружења и без
+  функционалног изворног складишта акредитива користе исту датотеку са дозволама `0600` као експлицитну резервну опцију и
+  једном приказују упозорење. Након инсталирања позадинског система за складиште акредитива користите
+  `omniroute contexts migrate --yes`.
+
+---
+
+## API крајње тачке (референца)
+
+| Метод  | Рута                  | Аутентификација      | Опсег                         |
+| ------ | --------------------- | -------------------- | ----------------------------- |
+| POST   | `/api/cli/connect`    | лозинка за управљање | — (јавно, заштићено лозинком) |
+| GET    | `/api/cli/whoami`     | приступни токен      | read                          |
+| GET    | `/api/cli/tokens`     | приступни токен      | admin                         |
+| POST   | `/api/cli/tokens`     | приступни токен      | admin                         |
+| DELETE | `/api/cli/tokens/:id` | приступни токен      | admin                         |
+
+Погледајте [openapi.yaml](../openapi.yaml) за комплетне шеме.

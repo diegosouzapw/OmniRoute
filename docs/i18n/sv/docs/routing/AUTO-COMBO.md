@@ -1,6 +1,6 @@
 # OmniRoute Auto-Combo Engine (Svenska)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇪🇹 [am](../../../am/docs/routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇪🇪 [et](../../../et/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ha](../../../ha/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇦🇲 [hy](../../../hy/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ig](../../../ig/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇬🇪 [ka](../../../ka/docs/routing/AUTO-COMBO.md) · 🇰🇭 [km](../../../km/docs/routing/AUTO-COMBO.md) · 🇮🇳 [kn](../../../kn/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇱🇻 [lv](../../../lv/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ml](../../../ml/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇲🇲 [my](../../../my/docs/routing/AUTO-COMBO.md) · 🇳🇵 [ne](../../../ne/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇮🇳 [or](../../../or/docs/routing/AUTO-COMBO.md) · 🇮🇳 [pa](../../../pa/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇱🇰 [si](../../../si/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇷🇸 [sr](../../../sr/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../../ur/docs/routing/AUTO-COMBO.md) · 🇺🇿 [uz](../../../uz/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇳🇬 [yo](../../../yo/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇪🇹 [am](../../../am/docs/routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇧🇦 [bs](../../../bs/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇪🇪 [et](../../../et/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ha](../../../ha/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇦🇲 [hy](../../../hy/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ig](../../../ig/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇬🇪 [ka](../../../ka/docs/routing/AUTO-COMBO.md) · 🇰🇭 [km](../../../km/docs/routing/AUTO-COMBO.md) · 🇮🇳 [kn](../../../kn/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇱🇻 [lv](../../../lv/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ml](../../../ml/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇲🇲 [my](../../../my/docs/routing/AUTO-COMBO.md) · 🇳🇵 [ne](../../../ne/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇮🇳 [or](../../../or/docs/routing/AUTO-COMBO.md) · 🇮🇳 [pa](../../../pa/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇱🇰 [si](../../../si/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇷🇸 [sr](../../../sr/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../../ur/docs/routing/AUTO-COMBO.md) · 🇺🇿 [uz](../../../uz/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇳🇬 [yo](../../../yo/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
 
 ---
 
@@ -8,51 +8,51 @@
 
 > Självhanterande modellkedjor med adaptiv poängsättning + automatisk dirigering utan konfiguration
 
-## Automatisk dirigering utan konfiguration (prefixet `auto/`)
+## Automatisk routing utan konfiguration (`auto/`-prefix)
 
-> **NYTT:** Inget combo-skapande krävs. Använd prefixet `auto/` direkt i valfri klient.
+> **NYTT:** Ingen kombination behöver skapas. Använd prefixet `auto/` direkt i valfri klient.
 
 ### Snabba exempel
 
-| Modell-ID      | Variant  | Beteende                                                                        |
-| -------------- | -------- | ------------------------------------------------------------------------------- |
-| `auto`         | standard | Alla anslutna leverantörer, LKGP-strategi, balanserade vikter                   |
-| `auto/coding`  | coding   | Kvalitetsprioriterade vikter, lämpligt för kodgenerering                        |
-| `auto/fast`    | fast     | Viktat val med låg latens                                                       |
-| `auto/cheap`   | cheap    | Kostnadsoptimerad dirigering (lägsta kostnad först)                             |
-| `auto/offline` | offline  | Prioriterar leverantörer med högst tillgänglig kvot                             |
-| `auto/smart`   | smart    | Kvalitetsprioritering + högre utforskningsgrad (10 %) för bättre modellupptäckt |
-| `auto/lkgp`    | lkgp     | Explicit LKGP (samma som standardalternativet `auto`)                           |
-| `auto/chaos`   | chaos    | Vikter för felinjektion vid resiliensstestning (chaos engineering)              |
+| Modell-ID      | Variant  | Beteende                                                                      |
+| -------------- | -------- | ----------------------------------------------------------------------------- |
+| `auto`         | standard | Alla anslutna leverantörer, LKGP-strategi, balanserade vikter                 |
+| `auto/coding`  | coding   | Kvalitetsprioriterade vikter, lämpligt för kodgenerering                      |
+| `auto/fast`    | fast     | Viktat val med låg latens                                                     |
+| `auto/cheap`   | cheap    | Kostnadsoptimerad routing (lägsta kostnad först)                              |
+| `auto/offline` | offline  | Föredrar leverantörer med högst tillgänglig kvot                              |
+| `auto/smart`   | smart    | Kvalitet först + högre utforskningsgrad (10 %) för bättre modellidentifiering |
+| `auto/lkgp`    | lkgp     | Explicit LKGP (samma som standardvärdet `auto`)                               |
+| `auto/chaos`   | chaos    | Parallell distribution, en modell per leverantör (inte felinjektion)          |
 
 ### Sammansättning av kategori × nivå (`auto/<category>:<tier>`)
 
 Suffix i OpenRouter-stil separerar **vilken typ av rutt** (kategori) från **hur den ska optimeras** (nivå), så att du kan kombinera dem fritt (#4235 fas B, `open-sse/services/autoCombo/suffixComposition.ts`):
 
-- **Kategorier** (filtrerar kandidatpoolen efter kapacitet): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` behåller modeller med stöd för bildbehandling; `reasoning` behåller modeller för resonemang/tänkande.
-- **Nivåer** (väljer poängvikter/poolfilter): `fast` (snabb leverans) · `cheap` (alias `floor`, kostnadsbesparande) · `reliable` (hälsostatus för kretsbrytare + latensstabilitet) · `free` / `pro` (filtrerar poolen efter modellnivå via `classifyTier` — kostnadsfri nivå kontra premiumnivå).
+- **Kategorier** (filtrerar kandidatpoolen efter kapacitet): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` behåller modeller med stöd för bilddata; `reasoning` behåller modeller för resonemang/tänkande.
+- **Nivåer** (väljer poängvikter/poolfilter): `fast` (snabb leverans) · `cheap` (alias `floor`, kostnadsbesparande) · `reliable` (kretsbrytarhälsa + latensstabilitet) · `free` / `pro` (filtrerar poolen efter modellnivå via `classifyTier` — kostnadsfri nivå jämfört med premiumnivå).
 
-| Exempel                | Matchas mot                                                            |
-| ---------------------- | ---------------------------------------------------------------------- |
-| `auto/coding:fast`     | kodningspool, vikter för låg latens                                    |
-| `auto/coding:cheap`    | kodningspool, kostnadsoptimerad (alias `auto/coding:floor`)            |
-| `auto/reasoning:pro`   | endast modeller för resonemang/tänkande, premiumnivå                   |
-| `auto/vision`          | modeller med stöd för bildbehandling (ingen nivå → balanserade vikter) |
-| `auto/multimodal:free` | multimodala modeller, endast kostnadsfri nivå                          |
+| Exempel                | Matchas mot                                                      |
+| ---------------------- | ---------------------------------------------------------------- |
+| `auto/coding:fast`     | kodningspool, vikter för låg latens                              |
+| `auto/coding:cheap`    | kodningspool, kostnadsoptimerad (alias `auto/coding:floor`)      |
+| `auto/reasoning:pro`   | endast modeller för resonemang/tänkande, premiumnivå             |
+| `auto/vision`          | modeller med stöd för bilddata (ingen nivå → balanserade vikter) |
+| `auto/multimodal:free` | modeller med multimodalt stöd, endast kostnadsfri nivå           |
 
-Alla giltiga `auto/<category>[:<tier>]` matchas vid behov. Ett utvalt delmängd annonseras i `/v1/models` och instrumentpanelen (`AUTO_SUFFIX_VARIANTS` i `open-sse/services/autoCombo/builtinCatalog.ts`). Filtreringen är **fail-open** — om ett villkor inte matchar några anslutna modeller används hela poolen, så att dirigeringen aldrig slutar fungera. Kärnpoängsättaren (`combo.ts`) är oförändrad; kategori-/nivåfiltret tillämpas i `buildAutoCandidates`.
+Alla giltiga `auto/<category>[:<tier>]` matchas vid behov; en utvald delmängd annonseras i `/v1/models` och på kontrollpanelen (`AUTO_SUFFIX_VARIANTS` i `open-sse/services/autoCombo/builtinCatalog.ts`). Filtreringen är **fail-open** — om ett villkor inte matchar några anslutna modeller används hela poolen, så att routingen aldrig slutar fungera. Kärnpoängsättaren (`combo.ts`) är oförändrad; kategori-/nivåfiltret tillämpas i `buildAutoCandidates`.
 
-> **Aktuell modellinformation:** lämpligheten för automatisk dirigering baseras på aktuella rankningar från **Arena ELO** + nivådata från **models.dev** när flaggan `ARENA_ELO_SYNC_ENABLED` är aktiverad (annars används den statiska lämplighetskartan som reserv).
+> **Livebaserad modellinformation:** automatisk routings lämplighetsbedömning baseras på aktuella **Arena ELO**-rankningar + nivådata från **models.dev** när flaggan `ARENA_ELO_SYNC_ENABLED` är aktiverad (annars används den statiska lämplighetskartan som reserv).
 
 **Så här använder du funktionen:**
 
 ```bash
-# Valfritt IDE- eller CLI-verktyg som stöder OpenAI-formatet
-Base URL: http://localhost:20128/v1
-API Key:  <din-slutpunktsnyckel>
+# Valfri IDE eller valfritt CLI-verktyg som stöder OpenAI-formatet
+Bas-URL: http://localhost:20128/v1
+API-nyckel:  <din-slutpunktsnyckel>
 
-# Ange följande modell i din kod/konfiguration:
-model: "auto"                 # balanserat standardalternativ
+# Ange modellen så här i din kod/konfiguration:
+model: "auto"                 # balanserat standardvärde
 model: "auto/coding"          # bäst för kodningsuppgifter
 model: "auto/fast"            # snabbast tillgängliga
 model: "auto/cheap"           # billigast per token
@@ -62,44 +62,44 @@ model: "auto/cheap"           # billigast per token
 
 1. OmniRoute identifierar prefixet `auto/` i `src/sse/handlers/chat.ts`
 2. Hämtar alla **aktiva leverantörsanslutningar** från databasen
-3. Filtrerar fram dem som har giltiga autentiseringsuppgifter (API-nyckel eller OAuth-token)
+3. Filtrerar fram de som har giltiga autentiseringsuppgifter (API-nyckel eller OAuth-token)
 4. Fastställer modellen per anslutning (`connection.defaultModel` eller leverantörens första modell)
-5. Skapar en **virtuell combo** i minnet (lagras inte i databasen)
-6. Dirigerar med den valda variantens viktprofil + LKGP-strategi
+5. Skapar en **virtuell kombination** i minnet (lagras inte i databasen)
+6. Utför routing med den valda variantens viktprofil + LKGP-strategi
 
 **Viktiga egenskaper:**
 
-- ✅ **Alltid aktiverad:** Ingen växlingsknapp, inget combo-skapande och ingen konfiguration behövs
+- ✅ **Alltid aktiv:** Ingen växling, ingen kombination behöver skapas och ingen konfiguration krävs
 - ✅ **Dynamisk:** Återspeglar automatiskt de leverantörer som för närvarande är anslutna
-- ✅ **Sessionsaffinitet:** LKGP säkerställer att den senast fungerande leverantören prioriteras
+- ✅ **Sessionsbeständighet:** LKGP säkerställer att den senast framgångsrika leverantören prioriteras
 - ✅ **Stöd för flera konton:** Varje leverantörsanslutning blir en separat kandidat
-- ✅ **Inga databasskrivningar:** Den virtuella combon finns endast under begäran, utan beständig lagringskostnad
+- ✅ **Inga databasskrivningar:** Den virtuella kombinationen finns endast under begäran, utan beständighetskostnad
 
-### Kandidatstyrning per nyckel (#7819, nivå 1+2)
+### Kandidatkontroll per nyckel (#7819, nivå 1+2)
 
 `GET /v1/auto-combo/{channel}/candidates` (`{channel}` = suffixet efter `auto/`, eller
 det literala värdet `auto` för baskanalen) är en **skrivskyddad** slutpunkt som listar
-den aktuella kandidatpoolen för en `auto/*`-kanal, kompletterad med aktuell nåbarhet genom
-återanvändning av befintliga resiliensavläsningar (aldrig det råa `state`-värdet från kretsbrytaren):
+den aktuella kandidatpoolen för en `auto/*`-kanal, kompletterad med aktuell nåbarhet, genom
+att återanvända befintliga resiliensavläsningar (aldrig rå `state` från kretsbrytaren):
 
 - leverantörens kretsbrytare — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
-- nedkylningsperiod för anslutningen — `rateLimitedUntil` / `testStatus` på den matchade
-  raden i `provider_connections`
+- anslutningens nedkylningsperiod — `rateLimitedUntil` / `testStatus` på den matchade
+  `provider_connections`-raden
 - modellspärr — `isModelLocked(provider, connectionId, model)`
 
 Varje kandidat innehåller även den här API-nyckelns `excluded`-flagga. Undantag lagras
-per API-nyckel (tabellen `auto_candidate_overrides`, migrering `128`) — OmniRoute är
-single-tenant och saknar tabellen `users`, så `apiKeyId` är den närmaste verkliga identiteten
-per anropare — och tillämpas vid kandidatpoolens centrala kontrollpunkt i
+per API-nyckel (`auto_candidate_overrides`-tabellen, migrering `128`) — OmniRoute är
+en klientinstans utan någon `users`-tabell, så `apiKeyId` är den närmaste verkliga identiteten
+per anropare — och tillämpas vid kandidatpoolens kontrollpunkt i
 `open-sse/services/autoCombo/virtualFactory.ts` via den rena, enhetstestade
 `filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`).
-Filtret är **fail-open**: ett ej angivet apiKeyId/en ej angiven kanal eller ett misslyckat databasuppslag
-lämnar båda poolen ofiltrerad, så en operatör utan konfigurerade undantag får en dirigering
+Filtret är **fail-open**: ett ej angivet apiKeyId/channel eller ett misslyckat databasuppslag
+lämnar poolen ofiltrerad, så en operatör utan konfigurerade undantag får routing
 som är identisk byte för byte med beteendet före den här funktionen.
 
 **Skjuts upp till ett uppföljningsärende:** vikter per kandidat + explicit ordning (nivå 3
-— matas in i de befintliga strategiflödena för viktning/prioritering) och fästning av en specifik
-`combo.ts`-strategi per `auto/*`-kanal (nivå 4). Se planen för #7819 angående den öppna
+— integreras i de befintliga viktade/prioritetsbaserade strategiflödena) samt låsning till en specifik
+`combo.ts`-strategi per `auto/*`-kanal (nivå 4). Se planen för #7819 för den öppna
 frågan om åsidosättningar ska förbli per API-nyckel eller bli globala med tanke på
 modellen med en enda klientorganisation.
 
@@ -114,18 +114,18 @@ createVirtualAutoCombo('coding') → candidatePool från aktiva anslutningar
    ↓
 handleComboChat (samma motor som för beständiga kombinationer)
    ↓
-Automatisk poängsättning väljer den bästa leverantören/modellen per begäran
+Automatisk poängsättning väljer bästa leverantör/modell per begäran
 ```
 
-**Implementeringsfiler:**
+**Implementationsfiler:**
 
-| Fil                                                       | Syfte                                          |
-| --------------------------------------------------------- | ---------------------------------------------- |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Prefixtolk (`parseAutoPrefix`)                 |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Skapar virtuella `AutoComboConfig`-objekt      |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testkrok för att simulera leverantörsregistret |
-| `src/sse/handlers/chat.ts`                                | Integrering: genväg för auto-prefix            |
-| `src/shared/constants/providers.ts`                       | Systemposten `SYSTEM_PROVIDERS.auto`           |
+| Fil                                                       | Syfte                                       |
+| --------------------------------------------------------- | ------------------------------------------- |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | Prefixtolk (`parseAutoPrefix`)              |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Skapar virtuella `AutoComboConfig`-objekt   |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testkrok för att mocka leverantörsregistret |
+| `src/sse/handlers/chat.ts`                                | Integrering: genväg för automatiskt prefix  |
+| `src/shared/constants/providers.ts`                       | Systemposten `SYSTEM_PROVIDERS.auto`        |
 
 ## Combo-namn som matchar ett verkligt modell-id
 
@@ -217,7 +217,7 @@ Auto-Combo-motorn väljer dynamiskt den bästa leverantören/modellen för varje
 
 ## Lägespaket
 
-6 fördefinierade viktprofiler i `open-sse/services/autoCombo/modePacks.ts`. Varje paket ersätter standardvikterna helt för att styra urvalet mot ett mål. Varje paket summerar redan till `1.0` (`0.9999` vid utskrift med fyra decimaler), så `normalizeScoringWeights()` har inget meningsfullt att korrigera när ett paket är aktivt — värdena nedan är, med hänsyn till avrundning, de som poängsättaren tillämpar.
+6 fördefinierade viktprofiler i `open-sse/services/autoCombo/modePacks.ts`. Varje paket ersätter standardvikterna helt för att styra valet mot ett visst mål. Varje paket summerar redan till `1.0` (`0.9999` när det visas med fyra decimaler), så `normalizeScoringWeights()` har inget meningsfullt att korrigera när ett paket är aktivt — värdena nedan är, med avrundning, de som poängsättaren använder.
 
 | Faktor                | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
@@ -239,29 +239,29 @@ Auto-Combo-motorn väljer dynamiskt den bästa leverantören/modellen för varje
 
 Anmärkningar:
 
-- **Paketen innehåller `quality` och `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) och ersätter viktmappningen i sin helhet (`weights = pack`, inte en sammanslagning). `DEFAULT_WEIGHTS` innehåller `quality 0.03 / reliability 0`; om `balanced`/`default` väljs behålls dessa standardvärden, medan valet av ett paket använder paketets värden ovan. I en kall pool (inga observationer ännu, alltså `quality 0.5` och `reliability 1`) bidrar dessa två faktorer med `+0.04` för ett generiskt paket (`0.03 + 0.01`), `+0.045` för `quality-first` och `+0.05` för `reliability-first`.
+- **Paketen innehåller `quality` och `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) och ersätter viktmappningen i sin helhet (`weights = pack`, inte en sammanslagning). `DEFAULT_WEIGHTS` innehåller `quality 0.03 / reliability 0`; om `balanced`/`default` väljs behålls dessa standardvärden, medan ett valt paket använder paketets värden ovan. För en kall pool (inga observationer ännu, alltså `quality 0.5` och `reliability 1`) lägger dessa två faktorer till `+0.04` med ett generiskt paket (`0.03 + 0.01`), `+0.045` med `quality-first` och `+0.05` med `reliability-first`.
 - `tierAffinity`, `specificityMatch` och `resetWindowAffinity` är uttryckligen `0` i varje paket.
 - En snabb överblick över vad varje paket betonar:
   - **ship-fast** → latencyInv 0.3048 + health 0.2667 (anslutningar med låg latens och god hälsa)
-  - **cost-saver** → costInv 0.3324 (de billigaste tokenen vinner)
-  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, högst av alla paket (bästa modellen för uppgiften, konsekvent)
+  - **cost-saver** → costInv 0.3324 (de billigaste token vinner)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, det högsta värdet bland alla paket (bästa modellen för uppgiften, konsekvent)
   - **offline-friendly** → quota 0.3324 + health 0.2667 (maximalt utrymme oavsett hastighet/kostnad)
-  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, högst av alla paket (minst antal överraskningar)
-  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (profil för felinjektion)
+  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, det högsta värdet bland alla paket (minst antal överraskningar)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (viktpaketet som `auto/chaos` tilldelar sina panelmedlemmar; den parallella fan-out-processen läser inte dessa vikter, och detta är inte en profil för felinjicering, se [CHAOS-MODE.md](../guides/CHAOS-MODE.md#autochaos-parallel-fan-out))
 
 ### Kontroller per begäran (headers) — #6023 / #6024 / #6025 / #3470
 
 En `auto`-kombination kan styras **per begäran** via tre headers, utan att ändra kombinationens
-lagrade konfiguration. Dessa gäller endast för strategin `auto` och endast för begäran
+lagrade konfiguration. Dessa gäller endast för strategin `auto` och endast för den begäran
 som innehåller dem; kombinationens sparade `modePack`/`budgetCap`/`budgetFallback` används
 när headern saknas.
 
-| Header                        | Accepterar                                                                                                                                                                                                 | Effekt                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| :---------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-Mode`            | ett förinställt alias (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) eller ett obearbetat paketnamn (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Åsidosätter poängsättningsvikterna för denna begäran. `balanced`/`default` framtvingar standardvikterna (inget paket). Okända värden ignoreras (konfigurationen bevaras).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `X-OmniRoute-Budget`          | ett positivt tal (maximalt antal USD per begäran)                                                                                                                                                          | Hård kostnadsgräns: kandidater vars uppskattade kostnad överskrider den filtreras bort före valet. Vad som händer när **alla** kandidater överskrider den styrs av `X-OmniRoute-Budget-Fallback` nedan.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `X-OmniRoute-Budget-Fallback` | `cheapest` (standard, alias: `cheapest-viable`, `soft`) eller `strict` (alias: `block`, `hard`)                                                                                                            | `cheapest`: återgår till den totalt sett billigaste kandidaten trots att den fortfarande överskrider gränsen (tidigare beteende). `strict`: vägrar att göra ett val — begäran misslyckas omedelbart med `HTTP 402` i stället för att tyst överskrida budgeten. Okända värden ignoreras.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `X-OmniRoute-Effort`          | `auto` (andra värden är reserverade)                                                                                                                                                                       | Adaptiv tankebudget: när begäran **inte** innehåller något resonemangsfält av någon form (`reasoning_effort`, `reasoning`, `thinking`) omvandlar gatewayen `auto` till `low`/`medium`/`high` utifrån deterministiska signaler i begärans struktur (längden på det senaste användarmeddelandet, kontextstorleken fram till och med det senaste användarmeddelandet, tidigare verktygsresultat, verktygsloopens djup). Signalerna är avgränsade till den aktuella turen — allt efter det senaste användarmeddelandet ignoreras — så varje begäran i en verktygsloop får samma nivå (tillståndslös låsning per tur, inget sessionstillstånd, ingen eskalering mitt i loopen som skulle bryta prefixen i uppströms promptcache). Ett explicit resonemangsfält från klienten har alltid företräde. Begränsat till begäranden vars uppströmsdirigering resulterar i formatet OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` är ett OpenAI-formatfält, så headern har ingen effekt på en begäran riktad till Claude eller Gemini (se `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
+| Rubrik                        | Accepterar                                                                                                                                                                                           | Effekt                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| :---------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`            | ett förinställt alias (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) eller ett rått paketnamn (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Åsidosätter viktningen för poängberäkningen för denna begäran. `balanced`/`default` framtvingar standardviktningen (inget paket). Okända värden ignoreras (konfigurationen bevaras).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `X-OmniRoute-Budget`          | ett positivt tal (maximalt antal USD per begäran)                                                                                                                                                    | Fast kostnadstak: kandidater vars uppskattade kostnad överstiger det filtreras bort före valet. Vad som händer när **alla** kandidater överstiger det styrs av `X-OmniRoute-Budget-Fallback` nedan.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (standard, alias: `cheapest-viable`, `soft`) eller `strict` (alias: `block`, `hard`)                                                                                                      | `cheapest`: återgår till den totalt sett billigaste kandidaten även om den fortfarande överstiger taket (äldre beteende). `strict`: vägrar att göra ett val – begäran avbryts omedelbart med `HTTP 402` i stället för att kostnadsgränsen överskrids utan meddelande. Okända värden ignoreras.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `X-OmniRoute-Effort`          | `auto` (andra värden är reserverade)                                                                                                                                                                 | Adaptiv beräkningsbudget: när begäran **inte** innehåller något resonemangsfält i någon form (`reasoning_effort`, `reasoning`, `thinking`) omvandlar gatewayen `auto` till `low`/`medium`/`high` utifrån deterministiska signaler från begärans struktur (längden på det senaste användarmeddelandet, kontextstorleken fram till och med det senaste användarmeddelandet, tidigare verktygsresultat, verktygsslingans djup). Signalerna är begränsade till den aktuella turen — allt efter det senaste användarmeddelandet ignoreras — så varje begäran i en verktygsslinga får samma nivå (tillståndslös låsning per tur, inget sessionstillstånd och ingen eskalering mitt i slingan som skulle bryta prefixen i den uppströms promptcachen). Ett explicit resonemangsfält från klienten har alltid företräde. Begränsat till begäranden vars uppströmsdirigering använder formatet OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` är ett fält i OpenAI-format, så headern har ingen effekt på en begäran riktad till Claude eller Gemini (se `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
 
 ```bash
 # Tvinga fram den snabbaste profilen, begränsa denna begäran till 0,05 USD och blockera helt i stället för att överskrida budgeten
@@ -273,58 +273,108 @@ curl -sS http://localhost:20128/v1/chat/completions \
   -d '{"model":"auto","messages":[{"role":"user","content":"hi"}]}'
 ```
 
-Upplösningen är en ren funktion (`open-sse/services/autoCombo/requestControls.ts`); de
-upplösta värdena matas in i motorns befintliga indata `config.modePack` / `config.budgetCap` /
+Upplösningen är en ren funktion (`open-sse/services/autoCombo/requestControls.ts`);
+de upplösta värdena matas in i motorns befintliga indata `config.modePack` / `config.budgetCap` /
 `config.budgetFallback`. En kombinations lagrade `config.budgetFallback` ("strict" |
 "cheapest") anger den beständiga policyn; headern åsidosätter den för en enskild begäran.
 
 ## Alla routningsstrategier
 
-OmniRoutes kombinationsmotor stöder **19 routningsstrategier** (deklarerade i `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Själva Auto Combo-motorn exponeras genom strategin `auto`; de övriga är tillgängliga för beständiga kombinationer.
+OmniRoutes kombinationsmotor stöder **19 routningsstrategier** (deklarerade i `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Själva Auto Combo-motorn exponeras under strategin `auto`; de övriga är tillgängliga för beständiga kombinationer.
 
-| Strategi            | Beskrivning                                                                                                                                                                                    |
-| :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `priority`          | Ordnad lista där det första målet prioriteras, med uttrycklig prioritet                                                                                                                        |
-| `weighted`          | Viktat slumpmässigt val baserat på vikt per mål                                                                                                                                                |
-| `round-robin`       | Växla mellan målen i tur och ordning                                                                                                                                                           |
-| `context-relay`     | Överför kontext mellan mål (långa konversationer)                                                                                                                                              |
-| `fill-first`        | Fyll varje måls kvot innan nästa mål används                                                                                                                                                   |
-| `p2c`               | Slumpmässig lastbalansering enligt principen power-of-2-choices                                                                                                                                |
-| `random`            | Likformigt slumpmässigt val                                                                                                                                                                    |
-| `least-used`        | Välj målet med lägst aktuell belastning                                                                                                                                                        |
-| `cost-optimized`    | Minimera kostnaden per begäran utifrån katalogpriser                                                                                                                                           |
-| `reset-aware` ⭐    | Prioritera efter tidpunkt för kvotåterställning — korta återställningsfönster rankas högre                                                                                                     |
-| `reset-window`      | Föredra mål vars kvotfönster återställs tidigast                                                                                                                                               |
-| `headroom`          | Välj målet med störst återstående kvotmarginal                                                                                                                                                 |
-| `strict-random`     | Slumpmässigt val utan deduplicering av upprepningar                                                                                                                                            |
-| `auto`              | Använd Auto Combo-poängsättning (16 faktorer) — **rekommenderas**                                                                                                                              |
-| `lkgp`              | Senast kända fungerande väg (låser till den senaste leverantören som lyckades och faller sedan tillbaka på reglerna)                                                                           |
-| `context-optimized` | Välj målet som passar bäst för den aktuella kontextstorleken                                                                                                                                   |
-| `cache-optimized`   | Ordna om mål efter affinitet till promptcache — anslutningen som mest sannolikt redan har denna begärans cachade prefix provas först (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
-| `fusion` 🧬         | Skicka parallellt till en panel av modeller och sammanställ sedan ett svar via en bedömningsmodell (se nedan)                                                                                  |
-| `pipeline`          | Kör målen sekventiellt och vidarebefordra varje stegs utdata som indata till nästa steg; endast det slutliga svaret returneras (#6396)                                                         |
+| Strategi            | Beskrivning                                                                                                                                                                                      |
+| :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `priority`          | Ordnad lista med första mål och uttrycklig prioritet                                                                                                                                             |
+| `weighted`          | Viktat slumpmässigt val baserat på vikt per mål                                                                                                                                                  |
+| `round-robin`       | Växla mellan målen i turordning (i batcher; se nedan)                                                                                                                                            |
+| `context-relay`     | Överför kontext mellan mål (långa konversationer)                                                                                                                                                |
+| `fill-first`        | Fyll varje måls kvot innan nästa mål används                                                                                                                                                     |
+| `p2c`               | Slumpmässig lastbalansering med Power-of-2-choices                                                                                                                                               |
+| `random`            | Enhetligt slumpmässigt val                                                                                                                                                                       |
+| `least-used`        | Välj målet med lägst aktuell belastning                                                                                                                                                          |
+| `cost-optimized`    | Minimera kostnaden per begäran utifrån katalogpriser                                                                                                                                             |
+| `reset-aware` ⭐    | Prioritera efter tidpunkt för kvotåterställning — korta återställningsfönster rankas högre                                                                                                       |
+| `reset-window`      | Föredra mål vars kvotfönster återställs först                                                                                                                                                    |
+| `headroom`          | Välj målet med störst återstående kvotmarginal                                                                                                                                                   |
+| `strict-random`     | Slumpmässigt val utan deduplicering av upprepningar                                                                                                                                              |
+| `auto`              | Använd Auto Combo-poängsättning (16 faktorer) — **rekommenderas**                                                                                                                                |
+| `lkgp`              | Senast kända fungerande väg (låser till den senast framgångsrika leverantören och faller sedan tillbaka på reglerna)                                                                             |
+| `context-optimized` | Välj målet som bäst passar den aktuella kontextstorleken                                                                                                                                         |
+| `cache-optimized`   | Ordna om mål efter affinitet till promptcache — anslutningen som sannolikast redan har denna begärans cachelagrade prefix provas först (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
+| `fusion` 🧬         | Skicka parallellt till en panel av modeller och syntetisera sedan ett svar via en bedömare (se nedan)                                                                                            |
+| `pipeline`          | Kör målen sekventiellt och skicka varje stegs utdata som indata till nästa steg; endast det slutliga svaret returneras (#6396)                                                                   |
 
 ⭐ = Nytt i v3.8.0 · 🧬 = Nytt i v3.8.36
 
 ### Semantik för `weighted`
 
 `weighted` är ett **proportionellt slumpmässigt val per begäran**
-(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), inte en utjämningsmekanism:
+(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), inte en utjämnare:
 
-- För varje begäran väljs **ett** steg med sannolikheten `weight / totalWeight`; de återstående stegen
-  ordnas efter fallande vikt som reservkedja för den aktuella begäran.
+- Varje begäran väljer **ett** steg med sannolikheten `weight / totalWeight`; de återstående stegen
+  ordnas efter fallande vikt som reservkedja för den begäran.
 - Ett steg vars vikt är `0` (eller saknas) **väljs aldrig** så länge något annat steg har en
-  vikt > 0 — det kan endast fungera som reserv efter att det valda steget har misslyckats. Endast när **alla**
-  vikter är 0 blir valet likformigt.
+  vikt > 0 — det kan endast fungera som reserv efter att det valda steget misslyckas. Endast när **alla**
+  vikter är 0 blir valet enhetligt.
 - Steg vars mål inte är tillgängliga — leverantörens kretsbrytare är `OPEN`, anslutningen
-  befinner sig i en nedkylningsperiod eller modellen är spärrad — tas bort från urvalet innan det görs
+  befinner sig i en nedkylningsperiod eller modellen är spärrad — tas bort från urvalet innan det sker
   (`open-sse/services/combo/targetResolution.ts`), så ett enda fungerande steg kan tillfälligt
-  vinna varje begäran.
+  väljas för varje begäran.
 - `stickyWeightedLimit` (kombinationskonfiguration, standardvärde `1` = av) låser det valda steget under så många
-  lyckade körningar i följd innan ett nytt val görs.
+  på varandra följande lyckade körningar innan ett nytt val görs.
 
 Använd `round-robin` för strikt rotation; lika vikter med `weighted` ger statistisk — inte
 strikt — balans.
+
+### Agentbaserat pipeline-läge
+
+En tvåstegs-`pipeline`-kombination kan aktivera dirigering mellan planerare och exekverare med
+`config.agenticOrchestration.enabled`. Det första målet ansvarar för planering och slutsvar;
+det andra målet genererar verktygsanrop i klientens eget format. OmniRoute identifierar
+fortsättningar med verktygsresultat utifrån förfrågningsprotokollet, frågar planeraren om
+ytterligare en verktygsomgång behövs och väljer dynamiskt antingen exekveraren eller
+planeraren som det slutliga klientvända steget.
+
+```json
+{
+  "strategy": "pipeline",
+  "models": [{ "model": "provider/planner" }, { "model": "provider/executor" }],
+  "config": {
+    "agenticOrchestration": { "enabled": true, "maxToolRounds": 8 }
+  }
+}
+```
+
+Exekveraren kan generera flera oberoende anrop i ett enda svar. Beroende anrop
+hanteras i senare klientomgångar med verktygsresultat, där planeraren granskar varje resultat.
+`maxToolRounds` är som standard `8` och accepterar `1`–`32`; när gränsen har nåtts måste
+planeraren producera bästa möjliga slutsvar. Interna planerarbeslut buffras, medan
+det valda klientvända svaret behåller den ursprungliga strömningsinställningen.
+
+### Beständig batch och kontoexpansion för `round-robin`
+
+Round-robin körs i batcher, inte med en förfrågan per steg:
+
+- `stickyRoundRobinLimit` (kombinationskonfiguration, sedan `comboStickyRoundRobinLimit`, sedan
+  `settings.stickyRoundRobinLimit`, standardvärde **3**) behåller samma mål under så många
+  lyckade körningar i följd innan rotation sker. Ange kombinationens åsidosättning till `1` för
+  rotation efter varje förfrågan. Kombinationsredigeraren visar det effektiva värdet och vilket
+  lager det kommer från.
+- `connectionAwareExpansion` (kombinationskonfiguration, sedan inställningar, standardvärde **false**) expanderar
+  varje steg på leverantörsnivå till mål per konto före rotation. Grupp B-strategier
+  (priority, weighted, round-robin, random, p2c, least-used, cost-optimized, lkgp,
+  fill-first, strict-random, context-optimized, cache-optimized, context-relay, fusion,
+  pipeline) behåller en vy på leverantörsnivå tills detta aktiveras. Kombinationsredigeraren erbjuder
+  ärv / på / av; ärv använder det globala standardvärdet (av).
+- Dirigering baserad på promptcache-lokalitet (`promptCacheAffinityEnabled`, standardvärde **true**) ändrar ordningen på
+  fästa anslutningar så att matchande cachenycklar stannar på ett och samma konto. Den har företräde framför
+  round-robin- och viktad rotation mellan fästa steg per konto. Stäng av den under
+  Inställningar → Standardvärden för kombinationer om du behöver strikt rotation. Det finns ingen åsidosättning per kombination.
+
+För rotation mellan flera konton för en modell bör du föredra **ett steg med dynamiskt konto** (tomt
+`connectionId`, hela poolen) med beständighetsgränsen `1`, inte tre fästa `connectionId`.
+Fästa steg tillsammans med affinitet sammanförs till samma konto även när RR-räknaren
+ökar.
 
 ## Fusionsstrategi
 
@@ -719,11 +769,12 @@ Inklusive enbart `auto` (standard) samt de 6 `AutoVariant`-värdena som deklarer
 
 ## Hur nivåer passar in i Auto-Combo
 
-Poängfunktionen med 16 faktorer (`open-sse/services/autoCombo/scoring.ts`) behandlar nivåmedlemskap som två signaler: `tierPriority` (0.0476) och `tierAffinity` (0.0476). Se den kanoniska [tabellen över poängfaktorer](#how-it-works-persisted-auto-combos) ovan för hela uppsättningen `DEFAULT_WEIGHTS` — åsidosättningarna per paket (ship-fast/cost-saver/quality-first/offline-friendly) anges i tabellen ”Viktprofiler per paket”.
+Poängfunktionen med 16 faktorer (`open-sse/services/autoCombo/scoring.ts`) behandlar nivåtillhörighet som två signaler: `tierPriority` (0.0476) och `tierAffinity` (0.0476). Se den kanoniska [tabellen över poängfaktorer](#how-it-works-persisted-auto-combos) ovan för den fullständiga uppsättningen `DEFAULT_WEIGHTS` — åsidosättningarna per paket (ship-fast/cost-saver/quality-first/
+offline-friendly) anges i tabellen ”Weight profiles per pack”.
 
-Enbart nivå tvingar **inte** nivå 1 att väljas först — om latensen för nivå 1 är dålig eller förhållandet mellan kostnad och kvalitet är suboptimalt vinner nivå 2. Om du vill tvinga fram nivåordning använder du kombinationsstrategin `priority` och ordnar leverantörerna efter nivå.
+Enbart nivån gör **inte** att nivå 1 alltid kommer först — om latensen för nivå 1 är dålig eller förhållandet mellan kostnad och kvalitet är suboptimalt vinner nivå 2. Om du vill tvinga fram nivåordningen använder du kombinationsstrategin `priority` och ordnar leverantörerna efter nivå.
 
-Öka vikten för `tierPriority` för att tydligt prioritera nivå 1 (prenumeration):
+Om du tydligt vill prioritera nivå 1 (prenumeration) ökar du vikten för `tierPriority`:
 
 ```json
 {
@@ -732,7 +783,7 @@ Enbart nivå tvingar **inte** nivå 1 att väljas först — om latensen för ni
 }
 ```
 
-Se `docs/marketing/TIERS.md` för nivådefinitioner och leverantörsklassificering.
+Se [`docs/guides/TIERS.md`](../guides/TIERS.md) för nivådefinitioner och klassificering av leverantörer.
 
 ## Testning och täckning
 

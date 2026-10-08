@@ -136,12 +136,18 @@ export function runFuzzyPass(
   messages: MessageLike[],
   stepConfig: Record<string, unknown>,
   minBlockChars: number,
-  principalId?: string
+  principalId?: string,
+  callerCanRetrieve = false
 ): FuzzyPassResult {
   const raw = stepConfig["fuzzy"] as
     boolean | { enabled?: boolean; minJaccard?: number; shingleSize?: number } | undefined;
   const cfg = typeof raw === "boolean" ? { enabled: raw } : raw;
   if (!cfg?.enabled) return { messages, fuzzyCount: 0 };
+  // The replacement is a [CCR retrieve] marker. A caller that does not advertise
+  // omniroute_ccr_retrieve cannot expand it, so the near-duplicate text would be
+  // stranded. Skip the whole pass for them; exact dedup (a [dedup:ref] marker the
+  // model resolves by looking back) does not need a tool and stays unaffected.
+  if (!callerCanRetrieve) return { messages, fuzzyCount: 0 };
   return applyFuzzyPass(messages, {
     minJaccard: typeof cfg.minJaccard === "number" ? cfg.minJaccard : 0.85,
     shingleSize: typeof cfg.shingleSize === "number" ? cfg.shingleSize : 3,

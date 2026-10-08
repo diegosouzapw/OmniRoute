@@ -475,9 +475,70 @@ export function fetchPr(repo, n) {
   }
 }
 
+/**
+ * Map every `changelog.d/**` path that ever existed under `cwd` to the OLDEST commit that added it
+ * (`{ hash, subject }`). One history walk instead of one `git log --diff-filter=A` per fragment: the
+ * per-fragment form cost ~4.5 s each on a loaded devbox (364 fragments ≈ 30 min in the v3.8.51 r3 pass).
+ */
+export function fragmentOrigins(cwd = ROOT, dirs = Object.keys(SECTION_HEADINGS)) {
+  const origins = new Map();
+  let log = "";
+  try {
+    log = git(
+      [
+        "log",
+        "--diff-filter=A",
+        "--name-only",
+        "--format=%x01%H%x09%s",
+        "--",
+        ...dirs.map((d) => `changelog.d/${d}/`),
+      ],
+      cwd
+    );
+  } catch {
+    return origins;
+  }
+  let current = null;
+  for (const line of log.split("\n")) {
+    if (line.startsWith("\u0001")) {
+      const [hash, subject = ""] = line.slice(1).split("\t");
+      current = { hash, subject };
+      continue;
+    }
+    // newest-first → the last write for a path is its oldest adding commit (re-added phantoms keep
+    // the original origin, exactly as the per-file `.pop()` did).
+    if (line && current) origins.set(line, current);
+  }
+  return origins;
+}
+
+/** Read several `ref:path` blobs in one `git cat-file --batch` call → Map(path → text). */
+function readBlobs(ref, paths, cwd = ROOT) {
+  const texts = new Map();
+  if (!paths.length) return texts;
+  const out = execFileSync("git", ["cat-file", "--batch"], {
+    cwd,
+    encoding: "utf8",
+    maxBuffer: 1 << 28,
+    input: paths.map((p) => `${ref}:${p}`).join("\n") + "\n",
+  });
+  let pos = 0;
+  for (const p of paths) {
+    const nl = out.indexOf("\n", pos);
+    const header = out.slice(pos, nl);
+    pos = nl + 1;
+    if (header.endsWith(" missing")) continue;
+    const size = Number(header.split(" ")[2]);
+    texts.set(p, out.slice(pos, pos + size));
+    pos += size + 1; // trailing newline after each object
+  }
+  return texts;
+}
+
 /** Fragment files at `ref` + the commit that ADDED each one (definitive origin of the credit). */
 export function readFragments(ref = "HEAD", cwd = ROOT) {
   const out = [];
+  const origins = fragmentOrigins(cwd);
   for (const dir of Object.keys(SECTION_HEADINGS)) {
     let files = "";
     try {
@@ -485,24 +546,20 @@ export function readFragments(ref = "HEAD", cwd = ROOT) {
     } catch {
       continue;
     }
-    for (const f of files
+    const paths = files
       .split("\n")
       .filter((x) => x && !/README\.md$|\.gitkeep$/.test(x))
-      .sort()) {
-      const text = git(["show", `${ref}:${f}`], cwd);
-      const origin =
-        git(["log", "--diff-filter=A", "--format=%h%x09%s", "--", f], cwd)
-          .split("\n")
-          .filter(Boolean)
-          .pop() || "";
-      const [ohash, osubject = ""] = origin.split("\t");
-      const om = osubject.match(/\(#(\d+)\)\s*$/);
+      .sort();
+    const texts = readBlobs(ref, paths, cwd);
+    for (const f of paths) {
+      const origin = origins.get(f) || { hash: "", subject: "" };
+      const om = origin.subject.match(/\(#(\d+)\)\s*$/);
       const pm = f.match(/\/(\d{4,6})-/);
       out.push({
         path: f,
         section: dir,
-        text,
-        originHash: ohash ? ohash.slice(0, 9) : null,
+        text: (texts.get(f) ?? "").trim(),
+        originHash: origin.hash ? origin.hash.slice(0, 9) : null,
         originPr: om ? Number(om[1]) : null,
         prefixPr: pm ? Number(pm[1]) : null,
       });

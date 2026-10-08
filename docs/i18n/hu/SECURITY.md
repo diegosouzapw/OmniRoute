@@ -1,6 +1,6 @@
 # Security Policy (Magyar)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇧🇦 [bs](../bs/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -220,35 +220,41 @@ Ezeket a szabályokat az eszközök és az ellenőrzést végző személyek érv
 10. **Az `exec()` / `spawn()` futásidejű értékeit az `env` opción keresztül adja át** — soha ne illesszen be külső elérési utakat vagy nem megbízható értékeket karakterlánc-interpolációval shellen keresztül futtatott szkriptekbe. Hivatkozás: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Részesítse előnyben az alapértelmezés szerint biztonságos könyvtárakat** — lásd: [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Saját megoldás készítése előtt ezeket használja.
 
-## Ellátásilánc-ellenőrzők megállapításai (Socket.dev / Snyk / hasonlók)
+## Az ellátási lánc ellenőrzőjének megállapításai (Socket.dev / Snyk / hasonlók)
 
-A közzétett `omniroute` npm-összetevő tartalmazza a Next.js `output: "standalone"`
-buildjét, ami azt jelenti, hogy minden útvonalkezelő — beleértve a dokumentált, emelt jogosultságú
-funkciókat (MITM, Zed-importálás, Cloud Sync, beágyazott szolgáltatásfelügyelő) — bekerül
-a `.next/server/*.js` minifikált darabjaiba. A heurisztikus ellátásilánc-ellenőrzők
-gyakran kártevőszignatúrákkal vetik össze ezeket a darabokat.
+> **Hatókörre vonatkozó megjegyzés:** A tároló gyökerében található `socket.yml` kizárólag a `projectIgnorePaths` beállítást határozza meg a Socket.dev által a közzétett npm-artifacton, a közzététel után végzett regisztrációs oldali vizsgálathoz — ez nem kikényszerített CI-/PR-egyesítési kapu. A `.github/workflows` egyetlen munkafolyamata, a `package.json` egyetlen szkriptje és a `Makefile` egyetlen célja sem hívja meg a Socket.dev szolgáltatást.
 
-Az általunk használt ellenőrző konfigurációja a repository gyökerében található
-[`socket.yml`](socket.yml) fájlban van (Socket.dev GitHub App v2 formátum — lásd:
-<https://docs.socket.dev/docs/socket-yml>). Kifejezetten kizárja a
-nem terjesztett könyvtárakat (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
-`_mono_repo/`, `docs/` stb.), így az ellenőrző csak azokról a kódútvonalakról
-készít jelentést, amelyek ténylegesen eljutnak a közzétett csomag felhasználóihoz — magát az ellenőrzést a fájlt
-beolvasó Socket GitHub App végzi, nem pedig a repository valamelyik munkafolyamata.
+A közzétett `omniroute` npm-artifact tartalmazza a Next.js `output: "standalone"`
+buildjét, ami azt jelenti, hogy minden útvonalkezelő — beleértve a dokumentált,
+emelt jogosultságú funkciókat (MITM, Zed-importálás, Cloud Sync, beágyazott
+szolgáltatásfelügyelő) — a `.next/server/*.js` minimalizált darabjaiba kerül.
+A heurisztikus ellátásilánc-ellenőrzők gyakran kártevőszignatúrákkal vetik össze
+ezeket a darabokat mintázatillesztéssel.
 
-Minden megállapítási kategóriához megállapításonkénti karbantartói tanúsítást vezetünk:
+Az általunk használt ellenőrzőkonfiguráció a tároló gyökerében található
+[`socket.yml`](socket.yml) fájlban van (Socket.dev GitHub App v2-formátum — lásd:
+<https://docs.socket.dev/docs/socket-yml>). Kifejezetten kizárja a nem terjesztett
+könyvtárakat (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`,
+`docs/` stb.), így az ellenőrző csak azokról a kódútvonalakról készít jelentést,
+amelyek ténylegesen eljutnak a közzétett verzió felhasználóihoz — magát az
+ellenőrzést az ezt a fájlt beolvasó Socket GitHub App végzi, nem pedig a jelen
+tároló valamelyik munkafolyamata.
+
+Minden megállapítási kategóriához megállapításonként karbantartói igazolást
+tartunk fenn:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  megállapításonkénti leképezés: forrásfájl ↔ megjelölt darab ↔ viselkedés ↔
+  megállapításonkénti megfeleltetés: forrásfájl ↔ megjelölt darab ↔ viselkedés ↔
   a v3.8.6 verzióban alkalmazott kockázatcsökkentés.
-- A forrásban található `SECURITY-AUDITOR-NOTE:` blokkok minden megjelölt függvénynél
-  ugyanerre a dokumentumra hivatkoznak.
+- A forráskódban minden megjelölt függvénynél található `SECURITY-AUDITOR-NOTE:`
+  blokk ugyanarra a dokumentumra hivatkozik vissza.
 
-Azoknak a felhasználóknak, akiknek a folyamatában nem enyhíthető a riasztás: a buildet az
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build` paranccsal kell elkészíteni. Ez a négy
-érzékeny modult olyan helyettesítő modulokra cseréli, amelyek futásidőben HTTP 503
-`feature-disabled` választ adnak vissza, így az emelt jogosultságú kódútvonalak fizikailag
-hiányoznak a csomagból. A közzétételi eljárást lásd a
+Azoknak a felhasználóknak, akiknek a pipeline-ja nem tudja enyhíteni a riasztást:
+végezzék el a buildet az `OMNIROUTE_BUILD_PROFILE=minimal npm run build`
+paranccsal. Ez a négy érzékeny modult olyan helyettesítő modulokra cseréli,
+amelyek futásidőben HTTP 503 `feature-disabled` választ adnak, így az emelt
+jogosultságú kódútvonalak fizikailag hiányoznak a csomagból. A közzétételi
+eljárást lásd a
 [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
 dokumentumban.
 

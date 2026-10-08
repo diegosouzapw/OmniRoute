@@ -1,7 +1,7 @@
 ---
 title: "OmniRoute MCP Server Documentation"
-version: 3.8.50
-lastUpdated: 2026-08-08
+version: 3.8.51
+lastUpdated: 2026-09-22
 ---
 
 # OmniRoute MCP Server Documentation
@@ -293,8 +293,108 @@ Both SSE and Streamable HTTP transports are blocked until the MCP server is enab
 
 ## Authentication & Scopes
 
-MCP tools are authenticated through API key scopes. Scope enforcement is centralized in
-`open-sse/mcp-server/scopeEnforcement.ts`. Each tool requires specific scopes:
+MCP tool calls read scope strings from the caller. That check is one of three
+independent namespaces. A pass from one checker is not a pass from the others.
+The rules are [Three scope namespaces](#three-scope-namespaces).
+The tool catalog is [MCP tool scopes](#mcp-tool-scopes).
+
+### Three scope namespaces
+
+`manage` on an API key, `read:compression` on an MCP tool, and `read` on an
+`oma_live_…` access token are three different grants. Callers who send a `read`
+access token to a mutating management route get HTTP 403
+`Access token scope 'read' is insufficient; 'write' required.`
+That rank is `scopeSatisfies`. It does not consult the MCP table, and the MCP
+matcher does not consult it.
+
+| Namespace          | Credential                                                | Checker                | A pass allows                                                |
+| :----------------- | :-------------------------------------------------------- | :--------------------- | :----------------------------------------------------------- |
+| API-key management | `api_keys.scopes`                                         | `hasManageScope`       | Management REST for that Bearer key                          |
+| API-key additive   | same array, one exact string                              | the helper named below | Only that one capability                                     |
+| MCP tool scopes    | same array, else MCP `_meta`, else `OMNIROUTE_MCP_SCOPES` | `scopeMatches`         | That tool, once enforcement is on                            |
+| Access token       | `oma_live_…`                                              | `scopeSatisfies`       | The management route whose method and path require that rank |
+
+Minting each credential is covered in
+[Management Authentication](../guides/MANAGEMENT-AUTH.md).
+
+#### API-key scopes
+
+One `api_keys.scopes` array feeds two jobs. They use different functions.
+
+**Management REST.** `manage` and `admin` are the members of
+`MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`).
+`hasManageScope` is what authorizes management routes for that key. `admin` is
+management-capable on those routes. The word `admin` here is not the
+access-token rank and it does not expand into MCP tool scopes.
+
+**Additive strings.** Each one is an exact membership test, and each one stays
+outside `MANAGEMENT_API_KEY_SCOPES`.
+
+| Scope                          | A pass allows                                                                                                                                                   |
+| :----------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | The non-loopback `/api/mcp/` LOCAL_ONLY carve-out only (`hasMcpConnectOrManageScope`). A key with `manage` or `admin` still passes that carve-out.              |
+| `self:usage`                   | `GET /api/v1/me/status` for this key (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` adds this scope on create (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | Upstream account quotas inside that status payload (`src/lib/usage/apiKeySelfService.ts`). The status route still requires `self:usage`.                        |
+| `policy:bypass-provider-quota` | This key's inference calls skip the provider-quota policy (`hasProviderQuotaBypassScope` in `src/sse/handlers/chat.ts`).                                        |
+
+#### Matching
+
+The catalog is the table under [MCP tool scopes](#mcp-tool-scopes). Do not
+treat `MCP_SCOPE_LIST` in `src/shared/constants/mcpScopes.ts` as that catalog:
+it is the original typed subset. Later tools declare further scopes beside it
+(`read:notion`, `read:skills`, `read:local-corpus`, and the rest of the table).
+
+`evaluateToolScopes` in `open-sse/mcp-server/scopeEnforcement.ts` allows a call
+when every required scope matches some granted scope:
+
+- `*` matches every required scope.
+- A granted scope that ends in `*` matches a required scope that starts with
+  the prefix before the star. `read:*` matches `read:compression`.
+- Every other granted scope matches only the identical required string.
+
+A key whose scopes are `["manage"]` fails `scopeMatches` for `read:compression`.
+The same call fails for `admin`, `mcp:connect`, `read`, and `write` when those
+are the only granted strings. There is no hierarchy among MCP tool scopes
+beyond the trailing `*`.
+
+Enforcement is off unless `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (default
+`false`). While it is off, `evaluateToolScopes` allows the call and skips the
+catalog. While it is on, HTTP uses the Bearer key's `api_keys.scopes` as
+`authInfo` (see [Per-key HTTP scope binding](#per-key-http-scope-binding-7895)).
+When no key scopes resolve, the granted set falls through to MCP `_meta`, then
+`OMNIROUTE_MCP_SCOPES`.
+
+#### Access-token scopes
+
+`oma_live_…` tokens (`src/lib/accessTokens/scopes.ts`) carry `read`, `write`,
+or `admin`. `scopeSatisfies` is a rank: `admin` covers `write` and `read`, and
+`write` covers `read`. Unknown scopes cover nothing.
+
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) compares that
+rank with `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
+
+- `GET`, `HEAD`, and `OPTIONS` require `read`.
+- Every other method requires `write`.
+- Paths in `ADMIN_SCOPE_PREFIXES` require `admin` for every method. `/api/mcp`
+  is on that list, so a `write` access token still cannot call the MCP HTTP
+  surface.
+- Paths in `ADMIN_MUTATION_PREFIXES` require `admin` only for mutations.
+
+`PATCH /api/keys/{id}` is a mutation and is not on those admin lists, so a
+`read` token receives 403
+`Access token scope 'read' is insufficient; 'write' required.`
+A `write` or `admin` access token satisfies that route. A dashboard JWT, the
+loopback CLI machine-id token, and an API key with `manage` or `admin` take
+other branches and are not narrowed by this rank.
+
+An access token that passes `scopeSatisfies` for `/api/mcp` has cleared the
+management gate only. Tool calls still run `scopeMatches` against API-key
+scopes. The access-token rank is not an input to `scopeMatches`.
+
+### MCP tool scopes
+
+Scope enforcement is centralized in `open-sse/mcp-server/scopeEnforcement.ts`.
+Each tool requires specific scopes:
 
 | Scope                 | Tools                                                                                                                                                                        |
 | :-------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

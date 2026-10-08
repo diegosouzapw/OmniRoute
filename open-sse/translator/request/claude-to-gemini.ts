@@ -2,6 +2,7 @@ import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import {
   DEFAULT_SAFETY_SETTINGS,
+  buildGeminiThinkingConfig,
   cleanJSONSchemaForAntigravity,
 } from "../helpers/geminiHelper.ts";
 import { buildGeminiTools, sanitizeGeminiToolName } from "../helpers/geminiToolsSanitizer.ts";
@@ -11,6 +12,8 @@ import {
 } from "../../services/geminiThoughtSignatureStore.ts";
 import { capMaxOutputTokens, capThinkingBudget } from "../../../src/lib/modelCapabilities.ts";
 import { getModelSpec } from "../../../src/shared/constants/modelSpecs.ts";
+import { gemini38ThinkingConfig, isGemini38Model } from "../../services/thinkingBudget.ts";
+
 import {
   buildChangedToolNameMap,
   buildHistoricalToolResultContext,
@@ -18,6 +21,32 @@ import {
   ensureHistoryDoesNotOpenWithFunctionCall,
   type GeminiContent,
 } from "./openai-to-gemini/helpers.ts";
+
+/**
+ * A Claude `image` block whose source is an HTTPS URL (`{ type: "url", url }`), the shape
+ * Claude accepts next to base64. HTTPS only, as `shared/validation/schemas/apiV1.ts` already
+ * requires of every media URL ("media URLs must use HTTPS") and as Gemini documents for an
+ * external fileUri. Anything else — an empty url, `http:`, a `data:` or `file:` URI — keeps
+ * falling through and being dropped, rather than reaching Gemini as a fileUri it will reject.
+ */
+function isUrlImageBlock(block) {
+  return (
+    block?.type === "image" &&
+    block.source?.type === "url" &&
+    typeof block.source.url === "string" &&
+    /^https:\/\//i.test(block.source.url)
+  );
+}
+
+/**
+ * Gemini cannot take a remote image as inlineData, which is base64-only, but its Part schema
+ * accepts `fileData: { fileUri }` and fetches the asset itself — the same mapping
+ * `helpers/geminiHelper.ts` uses for an OpenAI `image_url` that is a URL (#2807), including its
+ * `image/*` MIME placeholder, since a Claude URL source carries no media type.
+ */
+function urlImagePart(url) {
+  return { fileData: { fileUri: url, mimeType: "image/*" } };
+}
 
 /**
  * Direct Claude → Gemini request translator.
@@ -82,6 +111,10 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
     if (maxOutputTokens !== null) {
       result.generationConfig.maxOutputTokens = maxOutputTokens;
     }
+  }
+  if (body.stop_sequences !== undefined || body.stop !== undefined) {
+    const rawStop = body.stop_sequences ?? body.stop;
+    result.generationConfig.stopSequences = Array.isArray(rawStop) ? rawStop : [rawStop];
   }
 
   // ── System instruction ─────────────────────────────────────────
@@ -196,6 +229,9 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
                       inlineData: { mimeType: c.source.media_type, data: c.source.data },
                     });
                     hasImage = true;
+                  } else if (isUrlImageBlock(c)) {
+                    toolResultImageParts.push(urlImagePart(c.source.url));
+                    hasImage = true;
                   } else {
                     textParts.push(c.type === "text" ? c.text : JSON.stringify(c));
                   }
@@ -238,6 +274,8 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
                     data: block.source.data,
                   },
                 });
+              } else if (isUrlImageBlock(block)) {
+                parts.push(urlImagePart(block.source.url));
               }
               break;
           }
@@ -284,14 +322,14 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
     // but thinkingBudgetCap:24576, meaning it supports thinking via budget).
     // Models not in MODEL_SPECS (thinkingBudgetCap=undefined) default to allowed.
     if (cappedBudget > 0 || getModelSpec(model)?.thinkingBudgetCap !== 0) {
-      result.generationConfig.thinkingConfig = {
-        thinkingBudget: cappedBudget,
-        // #6813: `budget_tokens: 0` on this explicit path is the client's dynamic-thinking
-        // sentinel, not an off-switch — includeThoughts stays true regardless of the
-        // (possibly cap-clamped) budget value. Only the reasoning_effort/output_config.effort
-        // paths below treat a resulting budget of 0 as "thinking disabled".
-        includeThoughts: true,
-      };
+      // #6813: `budget_tokens: 0` on this explicit path is the client's dynamic-thinking
+      // sentinel, not an off-switch — includeThoughts stays true regardless of the
+      // (possibly cap-clamped) budget value. Only the reasoning_effort/output_config.effort
+      // paths below treat a resulting budget of 0 as "thinking disabled".
+      // Flash-Lite models 400 on thinkingBudget 0, so it is omitted for them.
+      result.generationConfig.thinkingConfig = isGemini38Model(model)
+        ? gemini38ThinkingConfig(model, cappedBudget, body)
+        : buildGeminiThinkingConfig(model, cappedBudget, true);
     }
   } else if (typeof body.output_config?.effort === "string") {
     const effort = body.output_config.effort.toLowerCase();
@@ -315,10 +353,12 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
       // Models with thinkingBudgetCap:0 (e.g. gemini-3-flash) reject
       // thinkingConfig even for effort-based paths.
       if (getModelSpec(model)?.thinkingBudgetCap !== 0) {
-        result.generationConfig.thinkingConfig = {
-          thinkingBudget: budget,
-          includeThoughts: true,
-        };
+        result.generationConfig.thinkingConfig = isGemini38Model(model)
+          ? gemini38ThinkingConfig(model, budget, body)
+          : {
+              thinkingBudget: budget,
+              includeThoughts: true,
+            };
       }
     }
   }

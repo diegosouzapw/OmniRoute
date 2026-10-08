@@ -7,7 +7,9 @@
  */
 
 import { hashInput, summarizeOutput } from "./schemas/audit.ts";
+import { runtimeRequire } from "../../src/lib/db/adapters/runtimeRequire.ts";
 import { isNativeSqliteLoadError } from "../../src/lib/db/core.ts";
+import { resolveMcpCallerApiKeyId } from "./mcpCallerIdentity.ts";
 
 // ============ Database Connection ============
 
@@ -207,14 +209,25 @@ function toString(value: unknown): string {
 }
 
 /**
- * Test-only seam: the production load path uses `createRequire()` (so the
- * Electron/global-install resolution works — #8959), which `vi.doMock` cannot
- * intercept (it only patches Vitest's ESM module graph). Tests inject a
- * throwing/mocked loader here to exercise the node:sqlite fallback.
+ * Test-only seam: tests inject a throwing/mocked loader here to exercise the
+ * node:sqlite fallback without depending on a native binding.
  */
 let betterSqliteLoaderForTests: (() => unknown) | null = null;
 export function __setBetterSqliteLoaderForTests(loader: (() => unknown) | null): void {
   betterSqliteLoaderForTests = loader;
+}
+
+let auditCallerIdResolverForTests: (() => Promise<string | undefined>) | null = null;
+export function __setAuditCallerIdResolverForTests(
+  resolver: (() => Promise<string | undefined>) | null
+): void {
+  auditCallerIdResolverForTests = resolver;
+}
+
+async function resolveAuditCallerId(): Promise<string | null> {
+  const resolver = auditCallerIdResolverForTests ?? resolveMcpCallerApiKeyId;
+  const raw = await resolver();
+  return raw ? raw : null;
 }
 
 async function openBetterSqliteAuditDb(dbPath: string): Promise<AuditDatabase> {
@@ -222,9 +235,7 @@ async function openBetterSqliteAuditDb(dbPath: string): Promise<AuditDatabase> {
   if (betterSqliteLoaderForTests) {
     mod = betterSqliteLoaderForTests();
   } else {
-    const { createRequire } = await import("node:module");
-    const _require = createRequire(import.meta.url);
-    mod = _require("better-sqlite3");
+    mod = runtimeRequire("better-sqlite3");
   }
   const Database = ((mod as { default?: unknown })?.default || mod) as unknown;
   if (typeof Database !== "function") {
@@ -383,7 +394,7 @@ export async function logToolCall(
 
     const inputHash = await hashInput(input);
     const outputSummary = summarizeOutput(output);
-    const apiKeyId = process.env.OMNIROUTE_API_KEY_ID || null;
+    const apiKeyId = await resolveAuditCallerId();
 
     database
       .prepare(

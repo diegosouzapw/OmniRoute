@@ -392,7 +392,7 @@
         "output": {
           "Cache-Control": "no-cache, no-transform",
           "Connection": "keep-alive",
-          "Content-Type": "text/event-stream",
+          "Content-Type": "text/event-stream; charset=utf-8",
           "X-Accel-Buffering": "no",
           "X-OmniRoute-Cache": "MISS",
           "X-OmniRoute-Cache-Hit": "false",
@@ -416,7 +416,7 @@
         "output": {
           "Cache-Control": "no-cache, no-transform",
           "Connection": "keep-alive",
-          "Content-Type": "text/event-stream",
+          "Content-Type": "text/event-stream; charset=utf-8",
           "X-Accel-Buffering": "no",
           "X-OmniRoute-Cache": "MISS",
           "X-OmniRoute-Cache-Hit": "false",

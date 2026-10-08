@@ -352,6 +352,42 @@ describe("BatchListTab — rendering", () => {
     expect(text).toContain("batchListProviderOther");
     expect(text).toContain("batchListProviderUnknown");
   });
+
+  it("21. 'Remove completed' button drains multi-chunk sweeps via hasMore", async () => {
+    let fetchCallCount = 0;
+    const fetchMock = vi.fn().mockImplementation(async (url, options) => {
+      if (url === "/api/v1/batches/delete-completed" && options?.method === "DELETE") {
+        fetchCallCount++;
+        // First call hasMore: true, second call hasMore: false
+        return { ok: true, json: async () => ({ hasMore: fetchCallCount < 2 }) };
+      }
+      return { ok: true, json: async () => ({}) };
+    });
+
+    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("alert", vi.fn()); // Mock window.alert to prevent blocking
+
+    const onRefresh = vi.fn();
+    const batches = [makeBatch({ id: "batch-multi", status: "completed" })];
+
+    const el = render(
+      <BatchListTab batches={batches} files={[]} loading={false} onRefresh={onRefresh} />
+    );
+
+    const btn = Array.from(el.querySelectorAll("button")).find((b) =>
+      b.textContent?.includes("batchListRemoveCompleted")
+    );
+    expect(btn).not.toBeNull();
+
+    await act(async () => {
+      btn!.click();
+      // Allow the while loop's microtasks to resolve
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(onRefresh).toHaveBeenCalled();
+  });
 });
 
 // ── FilesListTab ──────────────────────────────────────────────────────────────

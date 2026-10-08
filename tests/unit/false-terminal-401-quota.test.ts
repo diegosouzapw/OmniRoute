@@ -24,6 +24,35 @@ test.after(() => {
 
 test("401 credits-exhausted body is credits_exhausted, not expired", async () => {
   await resetStorage();
+  // Account-level provider (not passthrough): a credits-exhausted 401 parks the
+  // whole connection as credits_exhausted — never as expired (#12452).
+  const conn = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    apiKey: "sk-openai-live",
+    isActive: true,
+    testStatus: "active",
+  });
+  const connId = String(conn.id);
+  await auth.markAccountUnavailable(
+    connId,
+    401,
+    "[openai] All 3 connection(s) credits exhausted — please reconnect in the dashboard",
+    "openai",
+    "gpt-4o"
+  );
+  const after = await providersDb.getProviderConnectionById(connId);
+  assert.equal(after.testStatus, "credits_exhausted");
+  assert.notEqual(after.testStatus, "expired");
+});
+
+test("401 credits-exhausted on a passthrough provider locks only the model, not expired", async () => {
+  await resetStorage();
+  // #13548 made credit exhaustion on passthrough/aggregator providers (chutes is one)
+  // model-scoped: the connection stays active and only the requested model is locked
+  // out. The #12452 guarantee — never park it as expired — still holds.
+  const accountFallback = await import("../../open-sse/services/accountFallback.ts");
+  accountFallback.clearAllModelLockouts();
   const conn = await providersDb.createProviderConnection({
     provider: "chutes",
     authType: "apikey",
@@ -40,8 +69,13 @@ test("401 credits-exhausted body is credits_exhausted, not expired", async () =>
     "moonshotai/Kimi-K3-TEE"
   );
   const after = await providersDb.getProviderConnectionById(connId);
-  assert.equal(after.testStatus, "credits_exhausted");
   assert.notEqual(after.testStatus, "expired");
+  assert.notEqual(after.testStatus, "credits_exhausted");
+  assert.equal(after.testStatus, "active");
+  const lockout = accountFallback.getModelLockoutInfo("chutes", connId, "moonshotai/Kimi-K3-TEE");
+  assert.ok(lockout, "the exhausted model must be locked out");
+  assert.equal(lockout?.reason, "quota_exhausted");
+  accountFallback.clearAllModelLockouts();
 });
 
 test("billing-cycle quota 403 stays unavailable until the cached reset", async () => {

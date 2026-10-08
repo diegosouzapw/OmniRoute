@@ -260,6 +260,160 @@ describe("EngineConfigPage", () => {
     expect(container.textContent).toContain("duplicated details and verbose wording");
   });
 
+  it("preview strips empty-string form values from the sent config (ultra.modelPath default '')", async () => {
+    // The engine schema seeds modelPath with defaultValue "" (ultraConfigSchema
+    // requires min(1) when present), so sending the raw form state makes the
+    // preview request 400 before dispatch — the page must omit empty values.
+    const ULTRA_PAYLOAD = {
+      engines: [
+        {
+          id: "ultra",
+          name: "Ultra",
+          description: "Ultra engine",
+          icon: "⚡",
+          stackable: true,
+          stackPriority: 40,
+          metadata: { description: "Ultra metadata" },
+          configSchema: [
+            { key: "compressionRate", type: "number", label: "Rate", defaultValue: 0.5 },
+            { key: "modelPath", type: "string", label: "Model path", defaultValue: "" },
+          ],
+        },
+      ],
+    };
+    const previewBodies: Record<string, unknown>[] = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = input.toString();
+        if (url.includes("/api/compression/preview")) {
+          previewBodies.push(JSON.parse(String(init?.body ?? "{}")) as Record<string, unknown>);
+          return new Response(
+            JSON.stringify({
+              original: "o",
+              compressed: "c",
+              originalTokens: 1,
+              compressedTokens: 1,
+              savingsPct: 0,
+              diff: [],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          );
+        }
+        if (url.includes("/api/compression/engines")) {
+          return new Response(JSON.stringify(ULTRA_PAYLOAD), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        if (url.includes("/api/settings/compression")) {
+          return new Response(JSON.stringify({}), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(JSON.stringify({}), { status: 404 });
+      }
+    );
+    const { EngineConfigPage } =
+      await import("../../../src/shared/components/compression/EngineConfigPage");
+
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<EngineConfigPage engineId="ultra" />);
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const previewButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Preview"
+    );
+    expect(previewButton).toBeTruthy();
+
+    await act(async () => {
+      previewButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await Promise.resolve();
+    });
+
+    expect(previewBodies).toHaveLength(1);
+    const sentConfig = (previewBodies[0].config as { ultra?: Record<string, unknown> }).ultra;
+    expect(sentConfig).toBeTruthy();
+    expect(sentConfig?.modelPath).toBeUndefined();
+  });
+
+  it("save strips empty-string form values from the PUT body (ultra.modelPath default '')", async () => {
+    // Same schema constraint as the preview case: settings PUT validates the
+    // ultra sub-object with ultraConfigSchema, so a default-state save with
+    // modelPath "" would 400 before the operator changes anything.
+    const ULTRA_PAYLOAD = {
+      engines: [
+        {
+          id: "ultra",
+          name: "Ultra",
+          description: "Ultra engine",
+          icon: "⚡",
+          stackable: true,
+          stackPriority: 40,
+          metadata: { description: "Ultra metadata" },
+          configSchema: [
+            { key: "compressionRate", type: "number", label: "Rate", defaultValue: 0.5 },
+            { key: "modelPath", type: "string", label: "Model path", defaultValue: "" },
+          ],
+        },
+      ],
+    };
+    const settingsPuts: Record<string, unknown>[] = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = input.toString();
+        if (url.includes("/api/settings/compression")) {
+          if (init?.method === "PUT") {
+            settingsPuts.push(JSON.parse(init.body as string) as Record<string, unknown>);
+          }
+          return new Response(JSON.stringify({}), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        if (url.includes("/api/compression/engines")) {
+          return new Response(JSON.stringify(ULTRA_PAYLOAD), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(JSON.stringify({}), { status: 404 });
+      }
+    );
+    const { EngineConfigPage } =
+      await import("../../../src/shared/components/compression/EngineConfigPage");
+
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<EngineConfigPage engineId="ultra" />);
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const saveButton = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Save") || b.textContent?.includes("Salvar")
+    );
+    expect(saveButton).toBeTruthy();
+    await act(async () => {
+      saveButton?.click();
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(settingsPuts.length).toBeGreaterThan(0);
+    const ultraPut = settingsPuts.find((c) => typeof c.ultra === "object" && c.ultra !== null);
+    expect(ultraPut).toBeTruthy();
+    expect((ultraPut?.ultra as Record<string, unknown>).modelPath).toBeUndefined();
+  });
+
   it("shows empty-state text when analytics returns runs=0", async () => {
     setupFetchMock();
     const { EngineConfigPage } =

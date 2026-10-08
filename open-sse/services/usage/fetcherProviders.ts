@@ -41,6 +41,8 @@ export const USAGE_FETCHER_PROVIDERS = [
   "minimax",
   "minimax-cn",
   "crof",
+  // ClinePass 5-hour / weekly / monthly limits (GET /api/v1/users/me/plan/usage-limits)
+  "clinepass",
   "bailian-coding-plan",
   "qwen-cloud-token-plan",
   "nanogpt",
@@ -50,6 +52,7 @@ export const USAGE_FETCHER_PROVIDERS = [
   "opencode",
   "opencode-zen",
   "xiaomi-mimo",
+  "xiaomi-mimo-token-plan",
   "xai",
   "xai-oauth",
   "xao",
@@ -58,6 +61,10 @@ export const USAGE_FETCHER_PROVIDERS = [
   "vertex-partner",
   "codebuddy-cn",
   "openrouter",
+  // LLM Gateway DevPass allowance (GET /v1/key → monthly + weekly premium)
+  "llmgateway",
+  // Lyceum credit balance (GET /api/v2/external/billing/credits)
+  "lyceum",
   // PromptQL playground credits (data.pro.ql.app getCreditSummary)
   "promptql",
   "pql",
@@ -74,6 +81,14 @@ export const USAGE_FETCHER_PROVIDERS = [
   "ha",
   // Firecrawl team credits (GET /v2/team/credit-usage)
   "firecrawl",
+  "context7",
+  // Tavily monthly credits & quota (GET /usage)
+  "tavily-search",
+  "tavily",
+  "jina-search",
+  "jina",
+  "jina-ai",
+  "jina-reader",
   // Volcano Ark Plan subscriptions (agent-plan / coding-plan)
   "volcengine-agent-plan",
   "volcengine-coding-plan",

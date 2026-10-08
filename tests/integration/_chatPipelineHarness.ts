@@ -285,6 +285,16 @@ export async function createChatPipelineHarness(prefix) {
     invalidateMemorySettingsCache();
     clearSkillState();
     await new Promise((resolve) => setTimeout(resolve, 20));
+    // Call-log persistence is fire-and-forget and the first cold artifact-worker
+    // spawn can take ~2.4s, so the previous test's saves may still be in flight.
+    // Drain before the DB reset so they land in the DB being torn down, not in the
+    // next test's fresh database (#12780).
+    const drained = await callLogsDb.waitForCallLogSaves(10_000);
+    if (!drained) {
+      console.warn(
+        `[chat-pipeline-harness:${prefix}] call-log saves did not drain within 10s; resetting anyway`
+      );
+    }
     core.resetDbInstance();
     fs.rmSync(testDataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     fs.mkdirSync(testDataDir, { recursive: true });
@@ -299,6 +309,7 @@ export async function createChatPipelineHarness(prefix) {
     semanticCacheModule.clearCache();
     clearSkillState();
     resetAllCircuitBreakers();
+    await callLogsDb.waitForCallLogSaves(10_000);
     core.resetDbInstance();
     fs.rmSync(testDataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }

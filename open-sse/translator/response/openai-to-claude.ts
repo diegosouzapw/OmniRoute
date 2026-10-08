@@ -224,20 +224,41 @@ function stopTextBlock(state, results) {
   state.textBlockStarted = false;
 }
 
+// First numeric value among `candidates`, else 0. Used to read usage fields
+// that upstreams report under either Chat Completions or Responses naming.
+function firstNumber(...candidates: unknown[]): number {
+  for (const value of candidates) {
+    if (typeof value === "number") return value;
+  }
+  return 0;
+}
+
+// Normalize an upstream usage block to prompt/output/cache counters, accepting
+// both OpenAI chat-completions naming (prompt_tokens / completion_tokens /
+// prompt_tokens_details) and Responses naming (input_tokens / output_tokens /
+// input_tokens_details): several OpenAI-compatible upstreams report the latter,
+// and the rest of the pipeline (stream.ts usage aggregation, usageTracking.ts,
+// openai-responses.ts) already reads both.
+function readUsageCounters(usage) {
+  const promptDetails = usage.prompt_tokens_details;
+  const inputDetails = usage.input_tokens_details;
+  return {
+    promptTokens: firstNumber(usage.prompt_tokens, usage.input_tokens),
+    outputTokens: firstNumber(usage.completion_tokens, usage.output_tokens),
+    cacheReadTokens: firstNumber(promptDetails?.cached_tokens ?? inputDetails?.cached_tokens),
+    cacheCreateTokens: firstNumber(
+      promptDetails?.cache_creation_tokens ?? inputDetails?.cache_creation_tokens
+    ),
+  };
+}
+
 // Harvest the upstream usage block from any chunk, including trailing
 // usage-only chunks that carry `choices: []` (#11817).
 function trackUsageFromChunk(chunk, state) {
   if (!chunk.usage || typeof chunk.usage !== "object") return;
-  const promptTokens =
-    typeof chunk.usage.prompt_tokens === "number" ? chunk.usage.prompt_tokens : 0;
-  const outputTokens =
-    typeof chunk.usage.completion_tokens === "number" ? chunk.usage.completion_tokens : 0;
-
-  // Extract cache tokens from prompt_tokens_details
-  const cachedTokens = chunk.usage.prompt_tokens_details?.cached_tokens;
-  const cacheCreationTokens = chunk.usage.prompt_tokens_details?.cache_creation_tokens;
-  const cacheReadTokens = typeof cachedTokens === "number" ? cachedTokens : 0;
-  const cacheCreateTokens = typeof cacheCreationTokens === "number" ? cacheCreationTokens : 0;
+  const { promptTokens, outputTokens, cacheReadTokens, cacheCreateTokens } = readUsageCounters(
+    chunk.usage
+  );
 
   // input_tokens = prompt_tokens - cached_tokens - cache_creation_tokens
   // Because OpenAI's prompt_tokens includes all prompt-side tokens
@@ -346,12 +367,16 @@ export function openaiToClaudeResponse(chunk, state) {
     reasoningContent !== "" &&
     !isInternalReasoningPlaceholder(reasoningContent);
   if (hasReasoning) {
-    // Re-gate the thinking block EMISSION on requestedThinking === true. The
-    // _reasoningAccum accumulation below stays OUTSIDE the gate and always runs,
-    // so fix B still synthesizes a text block for reasoning-only responses (no
-    // 502, compact applies). Gating the whole block including accumulation
-    // breaks fix B => 502/compact loop.
-    if (state.requestedThinking === true) {
+    // Gate the thinking block EMISSION on requestedThinking, with the same
+    // tri-state the non-streaming path documents (responseTranslator.ts):
+    // `false` = client opted out, suppress; `true` = client opted in, relay;
+    // `undefined` = legacy caller that never passed it, keep the original
+    // "always a thinking block" relay. Only an explicit opt-out suppresses —
+    // `=== true` here silently dropped reasoning for every legacy caller while
+    // the JSON path kept relaying it (#12905 follow-up). The _reasoningAccum
+    // accumulation below stays OUTSIDE the gate and always runs, so fix B still
+    // synthesizes a text block for reasoning-only opt-out responses (no 502).
+    if (state.requestedThinking !== false) {
       stopTextBlock(state, results);
 
       if (!state.thinkingBlockStarted) {
@@ -662,9 +687,11 @@ export function openaiToClaudeResponse(chunk, state) {
     // text content block from the accumulated reasoning. Claude Code's
     // autocompact parser extracts the summary from a TEXT content block — a
     // thinking block alone is judged "empty response" and the compact is
-    // rejected, looping the session. When requestedThinking===true, skip this so
-    // reasoning is not double-exposed (thinking block + text block both carrying it).
-    if (!state.textBlockStarted && state._reasoningAccum && state.requestedThinking !== true) {
+    // rejected, looping the session. Only when the client explicitly opted OUT
+    // (requestedThinking === false): for `true` and for legacy `undefined` the
+    // reasoning already went out as a thinking block above, and synthesizing a
+    // text block too would double-expose it.
+    if (!state.textBlockStarted && state._reasoningAccum && state.requestedThinking === false) {
       state.textBlockIndex = state.nextBlockIndex++;
       state.textBlockStarted = true;
       state.textBlockClosed = false;

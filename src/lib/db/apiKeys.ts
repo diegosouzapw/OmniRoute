@@ -10,6 +10,8 @@ import { registerDbStateResetter } from "./stateReset";
 import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
 import { getKeyGroupsForApiKey, checkKeyModelAccess } from "./apiKeyGroups";
 import { API_KEY_COLUMN_FALLBACKS } from "./apiKeyColumnFallbacks";
+import { SYNTHETIC_ENV_API_KEY_ID } from "@/shared/constants/apiKeyIdentities";
+import { timingSafeCompare } from "@/shared/utils/timingSafeCompare";
 import {
   appendUsageLimitUpdates,
   hasUsageLimitUpdate,
@@ -18,7 +20,12 @@ import {
 import { setNoLog } from "../compliance/noLog";
 import { resolveModelAlias } from "@omniroute/open-sse/services/modelDeprecation.ts";
 import { getProviderAlias, resolveProviderId } from "@/shared/constants/providers";
-import { getSyncedAvailableModelsByConnection, getCustomModels, getModelIsHidden } from "./models";
+import { isSelfLoopBearer, selfLoopKeyOverrides } from "./apiKeys/selfLoopKey";
+import {
+  findPublishedModel,
+  isDeniedUnderCanonicalProvider,
+  isPublishedModelHidden,
+} from "./apiKeys/publishedModelLookup";
 import {
   CLAUDE_CODE_PROVIDER_PREFIXES,
   preferClaudeCodeForUnprefixedClaudeModels,
@@ -85,6 +92,7 @@ interface CreateApiKeyOptions {
   allowedModels?: string[];
   allowedCombos?: string[];
   allowedConnections?: string[];
+  expiresAt?: string | null;
 }
 
 export type { AccessSchedule, RateLimitRule } from "./apiKeys/types";
@@ -278,7 +286,7 @@ function toRecord(value: unknown): JsonRecord {
 
 function isConfiguredEnvApiKey(key: string): boolean {
   const envKey = process.env.OMNIROUTE_API_KEY || process.env.ROUTER_API_KEY;
-  return Boolean(envKey && key === envKey);
+  return Boolean(envKey && timingSafeCompare(key, envKey));
 }
 
 function isRedisAuthCacheEnabled(): boolean {
@@ -374,6 +382,15 @@ async function getModelPermissionCandidates(modelId: string): Promise<string[]> 
   return Array.from(candidates);
 }
 
+export async function isModelBlockedByPatterns(
+  blockedModels: string[] | null | undefined,
+  modelId: string
+): Promise<boolean> {
+  if (!blockedModels?.length) return false;
+  const candidates = await getModelPermissionCandidates(modelId);
+  return blockedModels.some((pattern) => modelPatternMatches(pattern, candidates));
+}
+
 async function getPublishedModelLookupTarget(
   modelId: string
 ): Promise<{ providerId: string; modelId: string } | null> {
@@ -450,7 +467,7 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
       "SELECT id, name, machine_id, model_access_mode, allowed_models, blocked_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode, cache_default_mode, disable_non_public_models, allow_usage_command, usage_limit_enabled, daily_usage_limit_usd, weekly_usage_limit_usd, chaos_mode_enabled, compression_enabled, allow_auto_combos, catalog_scope, proxy_id FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtInsertKey = db.prepare(
-      "INSERT INTO api_keys (id, name, key, machine_id, model_access_mode, allowed_models, allowed_combos, allowed_connections, no_log, created_at, key_prefix, key_hash, scopes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      "INSERT INTO api_keys (id, name, key, machine_id, model_access_mode, allowed_models, allowed_combos, allowed_connections, no_log, created_at, key_prefix, key_hash, scopes, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
     _stmtDeleteKey = db.prepare("DELETE FROM api_keys WHERE id = ?");
   }
@@ -710,6 +727,7 @@ export async function createApiKey(
     noLog: false,
     allowUsageCommand: false,
     createdAt: now,
+    expiresAt: options.expiresAt ?? null,
     scopes,
   };
 
@@ -727,7 +745,8 @@ export async function createApiKey(
     apiKey.createdAt,
     apiKey.key.slice(0, 12),
     await hashKey(apiKey.key),
-    JSON.stringify(scopes)
+    JSON.stringify(scopes),
+    apiKey.expiresAt
   );
   setNoLog(apiKey.id, false);
 
@@ -1251,7 +1270,7 @@ export async function setApiKeyExpiry(id: string, expiresAt: string | null): Pro
 export async function validateApiKey(key: string | null | undefined) {
   if (!key || typeof key !== "string") return false;
 
-  if (isConfiguredEnvApiKey(key)) return true;
+  if (isConfiguredEnvApiKey(key) || isSelfLoopBearer(key)) return true;
 
   const now = Date.now();
   const hashedKey = await hashKey(key);
@@ -1262,34 +1281,10 @@ export async function validateApiKey(key: string | null | undefined) {
     return cached.valid;
   }
 
-  if (isRedisAuthCacheEnabled()) {
-    // Try Redis cache for multi-instance consistency
-    try {
-      const { getRedisClient, isRedisConfigured } = await import("@/shared/utils/rateLimiter");
-      if (isRedisConfigured()) {
-        const redis = await getRedisClient();
-        const redisKey = `auth:api_key:${hashedKey}`;
-        const redisData = await redis.get(redisKey);
-        if (redisData) {
-          const data = JSON.parse(redisData);
-          const isBanned = !!data.isBanned;
-          const isActive = !!data.isActive;
-          const revokedAt = data.revokedAt;
-          const expiresAt = data.expiresAt;
-
-          if (isBanned || !isActive) return false;
-          if (typeof revokedAt === "string" && revokedAt.trim() !== "") return false;
-          if (typeof expiresAt === "string" && expiresAt.trim() !== "") {
-            const expiresMs = Date.parse(expiresAt);
-            if (Number.isFinite(expiresMs) && expiresMs <= now) return false;
-          }
-          return true;
-        }
-      }
-    } catch {
-      // Redis lookup failures fall through to SQLite.
-    }
-  }
+  // A Redis hit never authorizes on its own (GHSA-66vh-35g3-78qv): eviction on regenerate/revoke
+  // is best-effort and a late SET can resurrect an evicted entry, so the entry could keep a
+  // retired credential valid for its whole TTL. SQLite is the source of truth for identity and
+  // lifecycle; the lookup below is a single indexed read.
 
   const db = getDbInstance() as ApiKeysDbLike;
   const stmt = getPreparedStatements(db);
@@ -1356,7 +1351,7 @@ export async function getApiKeyMetadata(
   const now = Date.now();
 
   // persistent env-var key support (persistent passthrough keys) (#1350)
-  if (isConfiguredEnvApiKey(key)) {
+  if (isConfiguredEnvApiKey(key) || isSelfLoopBearer(key)) {
     // ─── Env-key management-scope bypass ──────────────────────────────────
     // The deployment-time env key (`OMNIROUTE_API_KEY` / `ROUTER_API_KEY`)
     // is granted the "manage" scope unconditionally. This is intentional:
@@ -1380,7 +1375,7 @@ export async function getApiKeyMetadata(
     // / CI / first-boot scenarios. If you need to disable env-key access,
     // unset the env var instead.
     return {
-      id: "env-key",
+      id: SYNTHETIC_ENV_API_KEY_ID,
       name: "Environment Key",
       machineId: "server-env",
       modelAccessMode: "all",
@@ -1417,6 +1412,7 @@ export async function getApiKeyMetadata(
       compressionEnabled: true,
       allowAutoCombos: true,
       catalogScope: "all",
+      ...selfLoopKeyOverrides(key),
     };
   }
 
@@ -1573,24 +1569,27 @@ export async function isModelAllowedForKey(
 
     if (!hasClaudeCodeWildcardPermission(allowedModels, modelPermissionCandidates)) {
       const lookupTarget = await getPublishedModelLookupTarget(effectiveModelId);
-      const providerId = lookupTarget?.providerId || effectiveModelId.split("/")[0];
+      const providerOrAlias = lookupTarget?.providerId || effectiveModelId.split("/")[0];
       const shortModelId = lookupTarget?.modelId || effectiveModelId.split("/").slice(1).join("/");
-      if (!providerId || !shortModelId) return false;
+      if (!providerOrAlias || !shortModelId) return false;
 
-      const [syncedModelsByConnection, customModels] = await Promise.all([
-        getSyncedAvailableModelsByConnection(providerId),
-        getCustomModels(providerId),
-      ]);
+      const published = await findPublishedModel(providerOrAlias, shortModelId);
+      if (!published) return false;
+      const { providerId, publishedModelId } = published;
 
-      // Combine synced and custom models
-      const allDiscoveredModels = Object.values(syncedModelsByConnection)
-        .flat()
-        .concat(customModels);
-      const discovered = allDiscoveredModels.some((m) => m.id === shortModelId);
-      if (!discovered) return false;
+      // An effort variant dispatches to its base model, so a deny rule on the
+      // base model must also deny the variant.
+      if (publishedModelId !== shortModelId && blockedModels?.length) {
+        const baseCandidates = await getModelPermissionCandidates(
+          `${providerId}/${publishedModelId}`
+        );
+        if (blockedModels.some((pattern) => modelPatternMatches(pattern, baseCandidates))) {
+          return false;
+        }
+      }
 
-      const isPublic = !getModelIsHidden(providerId, shortModelId);
-      if (!isPublic) return false;
+      // A model hidden under the alias the client used stays hidden.
+      if (isPublishedModelHidden(providerId, providerOrAlias, publishedModelId)) return false;
     }
   }
 
@@ -1614,6 +1613,10 @@ export async function isModelAllowedForKey(
     const targetOk = checkKeyModelAccess(metadata.id, modelTarget, provider).allowed;
     const fullOk = checkKeyModelAccess(metadata.id, modelId || "", provider).allowed;
     if (!targetOk || !fullOk) allowed = false;
+
+    if (allowed && (await isDeniedUnderCanonicalProvider(metadata.id, provider, modelTarget))) {
+      allowed = false;
+    }
   }
   // Cache the result
   if (!usesSettingDependentClaudeRouting) {

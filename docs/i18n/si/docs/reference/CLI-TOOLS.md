@@ -1,6 +1,6 @@
 # CLI Tools — OmniRoute (සිංහල)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
 
@@ -43,11 +43,9 @@ ACP නියෝජිතයන් (ප්රතිවිරුද්ධ ආර�
 
 ---
 
-## `setup-*` සමඟ ස්වයංක්රීයව වින්යාස කිරීම
+## `setup-*` සමඟ ස්වයංක්රීයව වින්යාස කරන්න
 
-ඔබට එක් එක් මෙවලමෙහි වින්යාසය අතින් ලිවීමට අවශ්ය නොවේ. OmniRoute සහාය දක්වන සෑම CLI එකක් සඳහාම `setup-*`
-විධානයක් සපයයි. එය ක්රියාත්මක වන OmniRoute එකකින් (දේශීය හෝ දුරස්ථ) **සජීවී** ආකෘති නාමාවලිය කියවා,
-ඔබේ යන්ත්රයේ එම මෙවලමෙහිම වින්යාසය ලියයි:
+ඔබට එක් එක් මෙවලමෙහි වින්යාසය අතින් ලිවීමට අවශ්ය නැත. OmniRoute මඟින් සහාය දක්වන සෑම CLI එකක් සඳහාම `setup-*` විධානයක් සපයයි, එය ක්රියාත්මක වන OmniRoute (දේශීය හෝ දුරස්ථ) වෙතින් **සජීවී** මාදිලි නාමාවලිය කියවා ඔබේ යන්ත්රයේ මෙවලමෙහිම වින්යාසය ලියයි:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
@@ -57,45 +55,15 @@ omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 omniroute setup-5dive
 ```
 
-සෑම එකක්ම `--remote <url> --api-key <key>` (දුරස්ථ OmniRoute එකක් සඳහා දේශීය මෙවලමක්
-වින්යාස කිරීම), `--dry-run` (ලිවීමකින් තොරව පෙරදසුන් කිරීම), සහ `--port` පිළිගනී. ආකෘති
-ස්වයංක්රීය සොයාගැනීම නොමැති මෙවලම් (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) සඳහා
-`--model <id>` (සහ අන්තර්ක්රියාකාරී නොවන ධාවනයන් සඳහා `--yes`) ලබා දිය යුතුය. `$HOME` යටතේ
-නොලියන එකම ක්රමලේඛය `setup-5dive` වේ: එය fleet ධාරකයේ root හිමිකාරිත්වය ඇති සත්යාපන පැතිකඩක්
-ලිවීමෙන් 5dive නියෝජිත සමූහයක් වින්යාස කරයි. එබැවින් එය `sudo` හරහා නැවත ක්රියාත්මක වන අතර
-එයටම දුරස්ථ ප්රකාරයක් නොමැත. නිවැරදි පරිසර විචල්ය ඇතුළත් කර කිසිදු වින්යාසයක් නොලියා CLI එකක්
-ආරම්භ කිරීමට, පොදු `omniroute run <target>` ආරම්භකය භාවිත කරන්න (claude, codex, aider, goose, opencode, qwen,
-gemini — ඉලක්ක සහ අන්වර්ථ නාම `bin/cli/cli-manifest.mjs` වෙතින් පැමිණේ); පැරණි
-එක් එක් මෙවලමට අදාළ ආරම්භකයන් වන `omniroute launch` (Claude Code) සහ `omniroute launch-codex`
-(Codex) තවමත් ලබා ගත හැකිය. Gemini CLI ආරම්භ කිරීමට පමණි: එය `omniroute run`
-ඉලක්කයක් වන නමුත් `setup-*`/`configure` ක්රමලේඛයක් නොමැත.
+සෑම එකක්ම `--remote <url> --api-key <key>` (දුරස්ථ OmniRoute එකකට එරෙහිව දේශීය මෙවලමක් වින්යාස කරන්න), `--dry-run` (නොලියා පෙරදසුන් කරන්න), සහ `--port` පිළිගනී. මාදිලි ස්වයං-සොයාගැනීමක් නොමැති මෙවලම් (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) `--model <id>` (සහ අන්තර්ක්රියාකාරී නොවන ධාවනයන් සඳහා `--yes`) ගනී. `setup-5dive` යනු `$HOME` යටතේ නොලියන එකම වට්ටෝරුවයි: එය බලඇණි සත්කාරකයේ root-හිමි auth profile එකක් ලිවීමෙන් 5dive නියෝජිත බලඇණියක් වින්යාස කරයි, එබැවින් එය `sudo` හරහා නැවත ක්රියාත්මක වන අතර එයට තමන්ගේම දුරස්ථ මාදිලියක් නොමැත. නිවැරදි env එන්නත් කර කිසිදු වින්යාසයක් නොලියා CLI එකක් දියත් කිරීමට, සාමාන්ය `omniroute run <target>` දියත් කිරීම භාවිතා කරන්න (claude, codex, aider, goose, opencode, qwen, gemini — ඉලක්ක සහ අන්වර්ථ නාම `bin/cli/cli-manifest.mjs` වෙතින් පැමිණේ); පැරණි මෙවලම්-ප්රති-දියත් කිරීම් `omniroute launch` (Claude Code) සහ `omniroute launch-codex` (Codex) තවමත් පවතී. Gemini CLI යනු දියත් කිරීම-පමණි: එය `omniroute run` ඉලක්කයක් වන නමුත් `setup-*`/`configure` වට්ටෝරුවක් නොමැත.
 
-> **සම්පූර්ණ යොමුව:** ප්රධාන වගුව — එක් එක් විධානය ලියන්නේ කුමක්ද, සෑම ධජයක්ම,
-> දේශීය සහ දුරස්ථ අතර වෙනස, සහ `/v1` උපසර්ගයක් අවශ්ය මෙවලම් —
-> **[CLI ඒකාබද්ධ කිරීම්](../guides/CLI-INTEGRATIONS.md)** තුළ ඇත.
+> **සම්පූර්ණ යොමුව:** ප්රධාන වගුව — එක් එක් විධානය ලියන දේ, සෑම ධජයක්ම, දේශීය එදිරිව දුරස්ථ, සහ කුමන මෙවලම් `/v1` උපසර්ගයක් අවශ්යද — **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)** හි ඇත.
 
 ### මේවා කන්ටේනරයක් තුළ ධාවනය කිරීම
 
-OmniRoute කන්ටේනරය තුළ ක්රියාත්මක කරන `setup-*` විධානයක් කන්ටේනරයේම home වෙත ලියයි.
-කිසිදු ධාරක CLI එකක් එය නොකියවන අතර කන්ටේනරය සමඟ එය අතුරුදහන් වේ. OmniRoute එය හඳුනාගෙන
-ලිවීම වෙනුවට උපදෙස් සමඟ `2` කේතයෙන් පිටවෙයි. ඉදිරියට යාමට සහාය දක්වන ක්රම දෙකක් ඇත —
-ධාරකයේ CLI ස්ථාපනය කර කන්ටේනරයට `omniroute connect` කිරීම, හෝ වින්යාස නාමාවලි bind-mount කර
-`CLI_CONFIG_HOME` සැකසීම (compose `host` පැතිකඩ). සෑම `setup-*` විධානයක්ම, මෙන්ම
-`omniroute configure` සහ `omniroute config set`, කන්ටේනරයේම CLI වින්යාස කිරීම ඔබ සැබවින්ම
-අදහස් කළ දෙය නම් `--allow-container-write` පිළිගනී; සේවාදායකය සඳහා
-`OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` ද එයම කරයි. බලන්න:
-[Docker මාර්ගෝපදේශය → ධාරක CLI මෙවලම් වින්යාස කිරීම](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+OmniRoute කන්ටේනරය තුළ ක්රියාත්මක වන `setup-*` විධානයක් කන්ටේනරයේම නිවසට ලියයි, එය කිසිදු සත්කාරක CLI එකක් කියවන්නේ නැති අතර කන්ටේනරය සමඟ අතුරුදහන් වේ. OmniRoute එය හඳුනාගෙන ලිවීමට වඩා උපදෙස් සමඟ `2` පිටවේ. ඉදිරියට යාමට සහාය දක්වන ක්රම දෙකක් — සත්කාරකයේ CLI ස්ථාපනය කර කන්ටේනරයට `omniroute connect` කරන්න, නැතහොත් වින්යාස නාමාවලි බන්ධනය කර `CLI_CONFIG_HOME` සකසන්න (compose `host` profile). සෑම `setup-*` විධානයක්ම, `omniroute configure` සහ `omniroute config set` සමඟ, කන්ටේනරයේම CLIs වින්යාස කිරීම ඔබට ඇත්ත වශයෙන්ම අදහස් කළ විට `--allow-container-write` පිළිගනී; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` සේවාදායකය සඳහාද එයම කරයි. [Docker Guide → Configuring host CLI tools](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker) බලන්න.
 
-උපකරණ පුවරුවේ **යෙදුම් අන්ත ලක්ෂ්යය** (`POST /api/cli-tools/apply`) ද එම ආරක්ෂණයම බලාත්මක කරයි:
-කන්ටේනරයක් තුළ, ධාරකයෙන් bind-mount කර නොමැති ඉලක්කයකට ලිවීමක් සිදු කරන විට
-**`422`**, `containerEphemeralTarget: true`, ආරක්ෂිත දෝෂ පෙළ සහ — ධාරක ක්රමලේඛයක් ඇති
-මෙවලම් සඳහා (claude, codex, opencode, cline, kilo, continue) — ඒ වෙනුවට ධාරකය මත ක්රියාත්මක කිරීමට
-`hostSetupCommand` එකක් (උදා. `omniroute setup-opencode`) සමඟ පිළිතුරු දෙයි; කිසිවක් ලියනු නොලැබේ.
-`dryRun: true` කන්ටේනර් ප්රකාරයේදී දිගටම ක්රියා කරන අතර තැටියට අත නොතබා උත්පාදිත අන්තර්ගතය +
-ඉලක්ක මාර්ගය ආපසු ලබා දෙයි. එබැවින් ඔබට උපකරණ පුවරුවෙන් පෙරදසුන් කර ධාරකයේ යෙදිය හැකිය.
-මෙම හැසිරීම හිතාමතාම ක්රියාත්මක කර ඇති අතර
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` මඟින් ප්රතිගමනවලින් ආරක්ෂා කර ඇත —
-ආරක්ෂණය ඉවත් කිරීමෙන් 422 දෝෂයක් කිසිවිටෙකත් "නිවැරදි" නොකරන්න.
+පාලක පැනලයේ **apply endpoint** (`POST /api/cli-tools/apply`) එකම ආරක්ෂාව ක්රියාත්මක කරයි: කන්ටේනරයක, සත්කාරකයෙන් බන්ධනය නොකළ ඉලක්කයක් සහිත ලිවීමක් `containerEphemeralTarget: true`, ආරක්ෂිත දෝෂ පෙළ සහ — සත්කාරක වට්ටෝරුවක් සහිත මෙවලම් සඳහා (claude, codex, opencode, cline, kilo, continue) — සත්කාරකයේ ධාවනය කිරීමට `hostSetupCommand` (උදා: `omniroute setup-opencode`) සමඟ **`422`** පිළිතුරු දෙයි; කිසිවක් ලියා නැත. `dryRun: true` කන්ටේනර මාදිලියේ දිගටම ක්රියා කරන අතර තැටියට ස්පර්ශ නොකර සංස්කරණය කළ පෙරදසුනක් + ඉලක්ක මාර්ගයක් ආපසු ලබා දෙයි. පෙරදසුන් අන්තර්ගතය පිටපත් කිරීමට හෝ ආයාත කිරීමට අක්තපත්ර දරන වින්යාසයක් නොවේ. සත්කාරකයේ මුල් මෙවලම/මූල URL/API යතුර/මාදිලි ආදාන සමඟ යොදන්න, නැතහොත් දක්වා ඇති සත්කාරක-පැති සැකසුම් විධානය භාවිතා කරන්න. පෙරදසුන් ශීර්ෂය සහ ඉල්ලීම් ගිවිසුම සඳහා [CLI configuration security](../security/CLI-CONFIGURATION.md) බලන්න. මෙම හැසිරීම හිතාමතා වන අතර `tests/unit/api/cli-tools/apply-container-guard.test.ts` මඟින් ප්රතිගාමී-ආරක්ෂිත වේ — කිසිවිටෙක ආරක්ෂාව ඉවත් කිරීමෙන් 422 "නිවැරදි" නොකරන්න.
 
 ---
 
@@ -133,56 +101,56 @@ OmniRoute කන්ටේනරය තුළ ක්රියාත්මක ක�
 
 ## 1. CLI Code මෙවලම් නාමාවලිය (මෙවලම් 26ක්)
 
-`/dashboard/cli-code` තුළ දිස්වන සියලුම මෙවලම්. `baseUrlSupport: none` සහිත ඒවා අභිරුචි පාදක URL එකක් වෙනුවට MITM හෝ අතින් අනුගමනය කළ යුතු මාර්ගෝපදේශයක් හරහා සම්බන්ධ කර ඇත:
+`/dashboard/cli-code` තුළ දිස්වන සියලුම මෙවලම්. `baseUrlSupport: none` සහිත ඒවා අභිරුචි මූලික URL එකක් වෙනුවට MITM හෝ අතින් අනුගමනය කළ යුතු මාර්ගෝපදේශයක් හරහා සම්බන්ධ කර ඇත:
 
-| id           | නම                      | සැපයුම්කරු          | baseUrlSupport | configType     | acpSpawnable |
-| ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
-| claude       | Claude Code             | Anthropic           | full           | env            | true         |
-| codex        | OpenAI Codex CLI        | OpenAI              | full           | custom         | true         |
-| zcode        | ZCode (GLM Coding Plan) | Z.ai                | none           | custom         | false        |
-| cline        | Cline                   | OSS (ex-Claude Dev) | full           | custom         | true         |
-| kilo         | Kilo Code               | Kilo-Org            | full           | custom         | false        |
-| roo          | Roo Code                | Roo (OSS)           | full           | guide          | false        |
-| continue     | Continue                | continue.dev        | full           | guide          | false        |
-| aider        | Aider                   | OSS (P. Gauthier)   | full           | guide          | true         |
-| forge        | ForgeCode               | Antinomy HQ         | full           | custom         | true         |
-| jcode        | jcode                   | 1jehuang (OSS)      | full           | custom         | false        |
-| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)   | full           | custom         | false        |
-| codewhale    | CodeWhale               | Hmbown (OSS)        | full           | custom         | false        |
-| opencode     | OpenCode                | Anomaly (ex-SST)    | full           | guide          | true         |
-| droid        | Factory Droid           | Factory AI          | partial        | guide          | false        |
-| copilot      | GitHub Copilot CLI      | GitHub/MS           | full           | custom         | false        |
-| cursor-cli   | Cursor CLI              | Anysphere           | partial        | guide          | true         |
-| smelt        | Smelt                   | leonardcser (OSS)   | full           | custom         | false        |
-| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)    | full           | custom         | false        |
-| grok-build   | Grok Build              | xAI                 | full           | custom         | false        |
-| crush        | Crush                   | OSS (Charm)         | full           | custom         | false        |
-| qwen         | Qwen Code               | Alibaba             | full           | guide          | true         |
-| cursor       | Cursor                  | Anysphere           | none           | guide          | false        |
-| antigravity  | Antigravity             | Google              | none           | mitm           | false        |
-| hermes       | Hermes                  | Nous Research       | none           | guide          | false        |
-| kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
-| custom       | Custom CLI              | —                   | full           | custom-builder | false        |
+| id           | නම                      | සැපයුම්කරු             | මූලික URL සහාය | වින්යාස වර්ගය     | ACP මඟින් ආරම්භ කළ හැකිද |
+| ------------ | ----------------------- | ---------------------- | -------------- | ----------------- | ------------------------ |
+| claude       | Claude Code             | Anthropic              | පූර්ණ          | පරිසරය            | ඔව්                      |
+| codex        | OpenAI Codex CLI        | OpenAI                 | පූර්ණ          | අභිරුචි           | ඔව්                      |
+| zcode        | ZCode (GLM Coding Plan) | Z.ai                   | නැත            | අභිරුචි           | නැත                      |
+| cline        | Cline                   | OSS (හිටපු Claude Dev) | පූර්ණ          | අභිරුචි           | ඔව්                      |
+| kilo         | Kilo Code               | Kilo-Org               | පූර්ණ          | අභිරුචි           | නැත                      |
+| roo          | Roo Code                | Roo (OSS)              | පූර්ණ          | මාර්ගෝපදේශය       | නැත                      |
+| continue     | Continue                | continue.dev           | පූර්ණ          | මාර්ගෝපදේශය       | නැත                      |
+| aider        | Aider                   | OSS (P. Gauthier)      | පූර්ණ          | මාර්ගෝපදේශය       | ඔව්                      |
+| forge        | ForgeCode               | Antinomy HQ            | පූර්ණ          | අභිරුචි           | ඔව්                      |
+| jcode        | jcode                   | 1jehuang (OSS)         | පූර්ණ          | අභිරුචි           | නැත                      |
+| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)      | පූර්ණ          | අභිරුචි           | නැත                      |
+| codewhale    | CodeWhale               | Hmbown (OSS)           | පූර්ණ          | අභිරුචි           | නැත                      |
+| opencode     | OpenCode                | Anomaly (හිටපු SST)    | පූර්ණ          | මාර්ගෝපදේශය       | ඔව්                      |
+| droid        | Factory Droid           | Factory AI             | අර්ධ           | මාර්ගෝපදේශය       | නැත                      |
+| copilot      | GitHub Copilot CLI      | GitHub/MS              | පූර්ණ          | අභිරුචි           | නැත                      |
+| cursor-cli   | Cursor CLI              | Anysphere              | අර්ධ           | මාර්ගෝපදේශය       | ඔව්                      |
+| smelt        | Smelt                   | leonardcser (OSS)      | පූර්ණ          | අභිරුචි           | නැත                      |
+| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)       | පූර්ණ          | අභිරුචි           | නැත                      |
+| grok-build   | Grok Build              | xAI                    | පූර්ණ          | අභිරුචි           | නැත                      |
+| crush        | Crush                   | OSS (Charm)            | පූර්ණ          | අභිරුචි           | නැත                      |
+| qwen         | Qwen Code               | Alibaba                | පූර්ණ          | මාර්ගෝපදේශය       | ඔව්                      |
+| cursor       | Cursor                  | Anysphere              | නැත            | මාර්ගෝපදේශය       | නැත                      |
+| antigravity  | Antigravity             | Google                 | නැත            | MITM              | නැත                      |
+| hermes       | Hermes                  | Nous Research          | නැත            | මාර්ගෝපදේශය       | නැත                      |
+| kiro         | Kiro AI                 | Amazon                 | නැත            | MITM              | නැත                      |
+| custom       | අභිරුචි CLI             | —                      | පූර්ණ          | අභිරුචි නිර්මාපකය | නැත                      |
 
-`baseUrlSupport: "partial"` සහිත මෙවලම් උපකරණ පුවරු කාඩ්පතෙහි "⚠ අර්ධ Base URL" ලාංඡනයක් පෙන්වයි.
+`baseUrlSupport: "partial"` සහිත මෙවලම් උපකරණ පුවරු කාඩ්පතෙහි "⚠ අර්ධ මූලික URL" ලාංඡනයක් පෙන්වයි.
 ---
 
 ## 2. CLI නියෝජිත නාමාවලිය (මෙවලම් 10ක්)
 
 `/dashboard/cli-agents` තුළ දිස්වන ස්වයංක්රීය නියෝජිතයන්:
 
-| id           | name             | vendor                   | baseUrlSupport | acpSpawnable |
+| id           | නම               | සැපයුම්කරු               | baseUrlSupport | acpSpawnable |
 | ------------ | ---------------- | ------------------------ | -------------- | ------------ |
-| hermes-agent | Hermes Agent     | Nous Research            | full           | false        |
-| openclaw     | OpenClaw         | OSS (P. Steinberger)     | full           | true         |
-| goose        | Goose            | Block / Linux Foundation | full           | true         |
-| interpreter  | Open Interpreter | OSS                      | full           | true         |
-| warp         | Warp AI          | Warp Inc.                | partial        | true         |
-| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | full           | false        |
-| omp          | Oh My Pi         | OSS                      | full           | true         |
-| letta        | Letta CLI        | Letta                    | full           | false        |
-| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | full           | false        |
-| 5dive        | 5dive            | OSS (5dive-ai)           | full           | false        |
+| hermes-agent | Hermes Agent     | Nous Research            | පූර්ණ          | අසත්ය        |
+| openclaw     | OpenClaw         | OSS (P. Steinberger)     | පූර්ණ          | සත්ය         |
+| goose        | Goose            | Block / Linux Foundation | පූර්ණ          | සත්ය         |
+| interpreter  | Open Interpreter | OSS                      | පූර්ණ          | සත්ය         |
+| warp         | Warp AI          | Warp Inc.                | අර්ධ           | සත්ය         |
+| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | පූර්ණ          | අසත්ය        |
+| omp          | Oh My Pi         | OSS                      | පූර්ණ          | සත්ය         |
+| letta        | Letta CLI        | Letta                    | පූර්ණ          | අසත්ය        |
+| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | පූර්ණ          | අසත්ය        |
+| 5dive        | 5dive            | OSS (5dive-ai)           | පූර්ණ          | අසත්ය        |
 
 ---
 
@@ -592,67 +560,67 @@ kiro-cli status
 
 ## 10. අභ්යන්තර OmniRoute CLI
 
-`omniroute` ද්විමය ගොනුව සේවාදායක ජීවන චක්රය, සැකසුම, රෝග විනිශ්චය සහ සැපයුම්කරු කළමනාකරණය සඳහා විධාන සපයයි. ප්රවේශ ස්ථානය: `bin/omniroute.mjs`.
+`omniroute` ද්විමය ගොනුව සේවාදායක ජීවන චක්රය, පිහිටුවීම, රෝග විනිශ්චය සහ සපයන්නන් කළමනාකරණය සඳහා විධාන සපයයි. ප්රවේශ ලක්ෂ්යය: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # සේවාදායකය ආරම්භ කරන්න (පෙරනිමි port එක 20128)
-omniroute setup                        # අන්තර්ක්රියාකාරී සැකසුම් විශාරදය
-omniroute doctor                       # config, DB, ports සහ runtime පරීක්ෂා කරන්න
-omniroute providers list               # වින්යාස කළ සැපයුම්කරු සම්බන්ධතා
+omniroute                              # සේවාදායකය ආරම්භ කරන්න (පෙරනිමි පෝට් එක 20128)
+omniroute setup                        # අන්තර්ක්රියාකාරී පිහිටුවීම් විශාරදය
+omniroute doctor                       # වින්යාසය, DB, පෝට් සහ ධාවන පරිසරය පරීක්ෂා කරන්න
+omniroute providers list               # වින්යාස කළ සපයන්නා සම්බන්ධතා
 omniroute providers test-all           # සෑම සක්රිය සම්බන්ධතාවක්ම පරීක්ෂා කරන්න
 omniroute reset-password               # පරිපාලක මුරපදය යළි සකසන්න
-omniroute logs                         # ඉල්ලීම් logs ප්රවාහනය කරන්න
-omniroute health                       # සවිස්තරාත්මක සෞඛ්ය තොරතුරු (breakers, cache, memory)
+omniroute logs                         # ඉල්ලීම් ලොග් ප්රවාහගත කරන්න
+omniroute health                       # සවිස්තරාත්මක සෞඛ්ය තත්ත්වය (බ්රේකර්, හැඹිලිය, මතකය)
 omniroute --version                    # අනුවාදය මුද්රණය කරන්න
 omniroute --help                       # සියලු විධාන පෙන්වන්න
 ```
 
-### සැකසුම සහ ආරම්භකරණය
+### පිහිටුවීම සහ ආරම්භකරණය
 
 ```bash
-omniroute setup                        # අන්තර්ක්රියාකාරී සැකසුම් විශාරදය
-omniroute setup --non-interactive      # CI/ස්වයංක්රීයකරණ ප්රකාරය (env vars + flags කියවයි)
+omniroute setup                        # අන්තර්ක්රියාකාරී පිහිටුවීම් විශාරදය
+omniroute setup --non-interactive      # CI/ස්වයංක්රීයකරණ ප්රකාරය (පරිසර විචල්ය + ධජ කියවයි)
 omniroute setup --password '<value>'   # පරිපාලක මුරපදය සෘජුව සකසන්න
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # එක් වරකදී සැපයුම්කරුවෙකු එක් කර පරීක්ෂා කරන්න
+  --test-provider                      # එක් වරකින් සපයන්නෙකු එකතු කර පරීක්ෂා කරන්න
 ```
 
-අන්තර්ක්රියාකාරී නොවන සැකසුම සඳහා හඳුනාගන්නා පරිසර විචල්ය:
+අන්තර්ක්රියාකාරී නොවන පිහිටුවීම සඳහා හඳුනාගන්නා පරිසර විචල්ය:
 
-| විචල්යය             | අරමුණ                                                                 |
-| ------------------- | --------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | සැපයුම්කරු API යතුර (Commander `.env()` හරහා `--api-key` වෙත බැඳී ඇත) |
-| `DATA_DIR`          | OmniRoute දත්ත නාමාවලිය අතික්රමණය කරන්න                               |
+| විචල්යය             | අරමුණ                                                                |
+| ------------------- | -------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | සපයන්නාගේ API යතුර (Commander `.env()` හරහා `--api-key` වෙත බැඳී ඇත) |
+| `DATA_DIR`          | OmniRoute දත්ත නාමාවලිය අභිබවා සකසන්න                                |
 
-අනෙකුත් සියලුම අන්තර්ක්රියාකාරී නොවන ආදාන පරිසර විචල්ය ලෙස නොව flags ලෙස ලබා දෙයි:
+අනෙකුත් සියලු අන්තර්ක්රියාකාරී නොවන ආදාන පරිසර විචල්ය ලෙස නොව, ධජ ලෙස ලබා දෙයි:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (ඉහත `omniroute setup` විකල්ප බලන්න).
 
 ### රෝග විනිශ්චය
 
 ```bash
-omniroute doctor                       # config, DB, ports, runtime, memory සහ liveness පරීක්ෂා කරන්න
-omniroute doctor --json                # යන්ත්රයෙන් කියවිය හැකි JSON
-omniroute doctor --no-liveness         # HTTP සෞඛ්ය පිරික්සුම මඟ හරින්න
-omniroute doctor --host 0.0.0.0        # liveness host එක අතික්රමණය කරන්න
-omniroute doctor --liveness-url <url>  # සම්පූර්ණ සෞඛ්ය endpoint URL එක අතික්රමණය කරන්න
+omniroute doctor                       # වින්යාසය, DB, පෝට්, ධාවන පරිසරය, මතකය සහ සජීවී බව පරීක්ෂා කරන්න
+omniroute doctor --json                # යන්ත්රයකට කියවිය හැකි JSON
+omniroute doctor --no-liveness         # HTTP සෞඛ්ය පරීක්ෂණය මඟ හරින්න
+omniroute doctor --host 0.0.0.0        # සජීවී බව පරීක්ෂා කරන ධාරකය අභිබවා සකසන්න
+omniroute doctor --liveness-url <url>  # සම්පූර්ණ සෞඛ්ය අන්ත ලක්ෂ්ය URL එක අභිබවා සකසන්න
 ```
 
-doctor මඟින් මෙම පරීක්ෂණ ක්රියාත්මක කරයි: `Config`, `Database`, `Storage/encryption`,
+doctor පහත පරීක්ෂණ ධාවනය කරයි: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory`, සහ `Server liveness`. කිසියම් පරීක්ෂණයක ප්රතිඵලය `fail` නම් එය ශූන්ය නොවන කේතයකින් පිටවේ.
+`Memory`, සහ `Server liveness`. කිසියම් පරීක්ෂණයක් `fail` නම් එය ශුන්ය නොවන කේතයකින් පිටවෙයි.
 
-### සැපයුම්කරු කළමනාකරණය
+### සපයන්නන් කළමනාකරණය
 
 ```bash
-omniroute providers available                       # OmniRoute සැපයුම්කරු නාමාවලිය
-omniroute providers available --search openai       # id/name/alias/category අනුව නාමාවලිය පෙරහන් කරන්න
-omniroute providers available --category api-key    # category අනුව පෙරහන් කරන්න (api-key, oauth, free, ...)
-omniroute providers available --json                # යන්ත්රයෙන් කියවිය හැකි JSON
+omniroute providers available                       # OmniRoute සපයන්නන් නාමාවලිය
+omniroute providers available --search openai       # id/නම/අන්වර්ථ නාමය/ප්රවර්ගය අනුව නාමාවලිය පෙරහන් කරන්න
+omniroute providers available --category api-key    # ප්රවර්ගය අනුව පෙරහන් කරන්න (api-key, oauth, free, ...)
+omniroute providers available --json                # යන්ත්රයකට කියවිය හැකි JSON
 
-omniroute providers list                            # වින්යාස කළ සැපයුම්කරු සම්බන්ධතා
+omniroute providers list                            # වින්යාස කළ සපයන්නා සම්බන්ධතා
 omniroute providers list --json
 
 omniroute providers test <id|name>                  # වින්යාස කළ එක් සම්බන්ධතාවක් පරීක්ෂා කරන්න
@@ -665,59 +633,60 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` API-ප්රමුඛ වන අතර, එබැවින් සක්රිය දේශීය හෝ දුරස්ථ context එකට එරෙහිව ක්රියා කරයි. අක්තපත්ර ආදානය සඳහා
+`providers add/import/auth/edit/remove` API-ප්රමුඛ වන අතර, එබැවින් ඒවා සක්රිය
+දේශීය හෝ දුරස්ථ සන්දර්භයට එරෙහිව ක්රියා කරයි. අක්තපත්ර ආදානය සඳහා
 `--credential-stdin` හෝ `--credential-env` භාවිත කළ යුතුය; `--dry-run --json` වාර්තා කරන්නේ
-සංවේදී කොටස් සඟවා ඇති පැවැත්ම/හැඩය පමණි. `providers available` OmniRoute නාමාවලිය කියවයි;
-`providers list/test/test-all/validate` ඒවායේ දේශීය SQLite හැසිරීම රඳවා ගන්නා අතර
-සේවාදායකය ක්රියාත්මක වෙමින් තිබීම අවශ්ය නොවේ.
+සඟවන ලද පැවැත්ම/හැඩය පමණි. `providers available` OmniRoute නාමාවලිය කියවයි;
+`providers list/test/test-all/validate` ඒවායේ දේශීය SQLite හැසිරීම පවත්වාගෙන යන අතර
+සේවාදායකය ක්රියාත්මක වීම අවශ්ය නොවේ.
 
 ### ප්රතිසාධනය සහ යළි සැකසීම
 
 ```bash
 omniroute reset-password                # පරිපාලක මුරපදය යළි සකසන්න (මෙලෙසද: omniroute-reset-password)
-omniroute reset-encrypted-columns       # සංකේතනය කළ අක්තපත්ර යළි සැකසීම සඳහා අනතුරු ඇඟවීම + dry-run පෙන්වන්න
+omniroute reset-encrypted-columns       # සංකේතනය කළ අක්තපත්ර යළි සැකසීම සඳහා අනතුරු ඇඟවීම + අත්හදා බැලීම පෙන්වන්න
 omniroute reset-encrypted-columns --force  # SQLite තුළ සංකේතනය කළ අක්තපත්ර සැබැවින්ම null කරන්න
 ```
 
-### අක්තපත්ර අපනයනය (⚠ ප්රවේශමෙන් හසුරුවන්න)
+### අක්තපත්ර නිර්යාතය (⚠ ප්රවේශමෙන් හසුරුවන්න)
 
 ```bash
-omniroute auth export                                 # අනතුරු ඇඟවීම + තහවුරු කිරීමේ දොරටුව පෙන්වන්න — DB ප්රවේශයක් නැත
-omniroute auth export --force                          # සියලු සම්බන්ධතාවල විකේතනය කළ අක්තපත්ර JSON ලෙස stdout වෙත අපනයනය කරන්න
-omniroute auth export --force --id <id>                 # ගැළපෙන සම්බන්ධතාව පමණක් අපනයනය කරන්න
+omniroute auth export                                 # අනතුරු ඇඟවීම + තහවුරු කිරීමේ ද්වාරය පෙන්වන්න — DB ප්රවේශයක් නැත
+omniroute auth export --force                          # සියලු සම්බන්ධතාවල විකේතනය කළ අක්තපත්ර JSON ලෙස stdout වෙත නිර්යාත කරන්න
+omniroute auth export --force --id <id>                 # ගැළපෙන සම්බන්ධතාව පමණක් නිර්යාත කරන්න
 omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> පේළි නිකුත් කරන්න
-omniroute auth export --force --out creds.json           # ගොනුවකට ලියන්න (0600 අවසර සහිතව සාදනු ලැබේ)
+omniroute auth export --force --out creds.json           # ගොනුවකට ලියන්න (0600 අවසර සහිතව සාදයි)
 ```
 
-`auth export` **දේශීය-පමණක්** වේ (සෘජු SQLite කියවීමක්, HTTP route එකක් නැත) සහ හිතාමතාම
-**සරල පාඨ** `apiKey`/`accessToken`/`refreshToken`/`idToken` අගයන් මුද්රණය/ලියයි — එය දෝෂයක් නොව,
-විශේෂාංගයයි. `--force` නොමැතිව database එකෙන් කිසිවක් කියවන්නේ හෝ කිසිවක් විකේතනය කරන්නේ නැත. ඕනෑම සරල පාඨයක් නිකුත් කිරීමට පෙර
-stderr අනතුරු ඇඟවීමේ බැනරයක් සැමවිටම මුද්රණය වේ. `STORAGE_ENCRYPTION_KEY`
-සකසා තිබීම අවශ්ය වේ. විකේතනය කිරීමට අසමත් වන field එකක් (යල් පැන ගිය යතුරක්, දූෂිත ciphertext එකක්) සම්පූර්ණ අපනයනය නවතා දැමීම හෝ යටින් පවතින දෝෂය අනාවරණය කිරීම වෙනුවට
-`<field>DecryptFailed: true` ලෙස වාර්තා කරයි.
+`auth export` **දේශීය-පමණක්** වේ (සෘජු SQLite කියවීමක්, HTTP මාර්ගයක් නැත) සහ හිතාමතාම
+**සරල පෙළ** `apiKey`/`accessToken`/`refreshToken`/`idToken` අගයන් මුද්රණය/ලියයි — එය දෝෂයක් නොව,
+මෙම විශේෂාංගයයි. `--force` නොමැතිව දත්ත සමුදායෙන් කිසිවක් කියවන්නේ නැති අතර කිසිවක් විකේතනය නොකරයි. කිසියම් සරල පෙළක්
+නිකුත් කිරීමට පෙර අනතුරු ඇඟවීමේ බැනරයක් සැමවිටම stderr වෙත මුද්රණය වේ. `STORAGE_ENCRYPTION_KEY`
+සකසා තිබීම අවශ්ය වේ. විකේතනය කිරීමට අසමත් වන ක්ෂේත්රයක් (පැරණි යතුරක්, දූෂිත කේතාංක පෙළක්), සම්පූර්ණ නිර්යාතය
+අවලංගු කිරීම හෝ යටින් ඇති දෝෂය හෙළි කිරීම වෙනුවට `<field>DecryptFailed: true` ලෙස වාර්තා කරයි.
 
-### අනෙකුත් උපවිධාන
+### වෙනත් උපවිධාන
 
-වෙනත් ආකාරයකින් සඳහන් කර නොමැති නම්, මේවා OmniRoute සේවාදායකයක් ක්රියාත්මක වෙමින් ඇතැයි උපකල්පනය කරයි:
+වෙනත් ආකාරයකින් සඳහන් කර නොමැති නම්, මේවා ක්රියාත්මක වන OmniRoute සේවාදායකයක් උපකල්පනය කරයි:
 
 ```bash
 omniroute status                       # සවිස්තරාත්මක ධාවනකාල තත්ත්වය
 omniroute logs                         # ඉල්ලීම් ලොග් ප්රවාහ කරන්න (--json, --search, --follow)
-omniroute config show                  # වත්මන් වින්යාසය පෙන්වන්න
+omniroute config list                  # වින්යාස කර ඇති CLI මෙවලම් පෙන්වන්න
 
-omniroute provider list                # ලබාගත හැකි සැපයුම්කරුවන් ලැයිස්තුගත කරන්න (providers list සඳහා අන්වර්ථයකි)
-omniroute provider add                 # මෙවලමක සැපයුම්කරුවෙකු ලෙස OmniRoute ලියාපදිංචි කරන්න
+omniroute provider list                # ලබා ගත හැකි සපයන්නන් ලැයිස්තුගත කරන්න (providers list සඳහා අන්වර්ථයකි)
+omniroute provider add                 # මෙවලමක සපයන්නෙකු ලෙස OmniRoute ලියාපදිංචි කරන්න
 omniroute keys add | list | remove     # API යතුරු කළමනාකරණය කරන්න
 omniroute models [provider]            # ආකෘති ලැයිස්තුගත කරන්න (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # වින්යාසයේ + DB හි සැණරුවක් ගන්න
+omniroute backup                       # වින්යාසයේ සහ DB හි සැණරුවක් සාදන්න
 omniroute restore                      # පෙර සැණරුවකින් ප්රතිසාධනය කරන්න
 
 omniroute health                       # සවිස්තරාත්මක සෞඛ්ය තත්ත්වය (බිඳුම් පාලක, හැඹිලිය, මතකය)
-omniroute quota                        # සැපයුම්කරුගේ කෝටා භාවිතය
+omniroute quota                        # සපයන්නාගේ කෝටා භාවිතය
 omniroute cache                        # හැඹිලි තත්ත්වය
-omniroute cache clear                  # අර්ථකථන + අත්සන් හැඹිලි හිස් කරන්න
+omniroute cache clear                  # අර්ථමය සහ අත්සන් හැඹිලි හිස් කරන්න
 
 omniroute mcp status | restart         # MCP සේවාදායක තත්ත්වය / නැවත ආරම්භ කිරීම
 omniroute a2a status | card            # A2A සේවාදායක තත්ත්වය / නියෝජිත කාඩ්පත
@@ -725,19 +694,19 @@ omniroute a2a status | card            # A2A සේවාදායක තත්�
 omniroute tunnel list | create | stop  # උමං කළමනාකරණය කරන්න (cloudflare/tailscale/ngrok)
 omniroute env show | get <k> | set <k> <v>  # පරිසර විචල්ය පරීක්ෂා කරන්න / සකසන්න (තාවකාලික)
 
-omniroute test                         # සැපයුම්කරුගේ සම්බන්ධතාව සඳහා මූලික පරීක්ෂණය
+omniroute test                         # සපයන්නාගේ සම්බන්ධතාව සඳහා මූලික පරීක්ෂණය
 omniroute update                       # යාවත්කාලීන සඳහා පරීක්ෂා කරන්න
-omniroute completion                   # shell ස්වයංපූරණය ජනනය කරන්න
+omniroute completion                   # shell ස්වයං-සම්පූර්ණ කිරීම ජනනය කරන්න
 ```
 
 ### පොදු සලකුණු
 
 | සලකුණ               | විස්තරය                                                       |
 | ------------------- | ------------------------------------------------------------- |
-| `--no-open`         | ආරම්භයේදී බ්රවුසරය ස්වයංක්රීයව විවෘත නොකරන්න                  |
-| `--port <n>`        | API පෝට් එක අතික්රමණය කරන්න (පෙරනිමිය 20128)                  |
+| `--no-open`         | ආරම්භයේදී browser එක ස්වයංක්රීයව විවෘත නොකරන්න                |
+| `--port <n>`        | API port එක අතික්රමණය කරන්න (පෙරනිමිය 20128)                  |
 | `--mcp`             | stdio හරහා MCP සේවාදායකයක් ලෙස ධාවනය කරන්න (IDE සඳහා)         |
-| `--non-interactive` | CI ප්රකාරය (විමසුම් නැත; env/flags වෙතින් කියවයි)             |
+| `--non-interactive` | CI ප්රකාරය (විමසීම් නැත; env/flags වෙතින් කියවයි)             |
 | `--json`            | යන්ත්රයට කියවිය හැකි JSON ප්රතිදානය (doctor, providers, ආදිය) |
 | `--help`, `-h`      | විධානයට විශේෂිත උපකාර පෙන්වන්න                                |
 | `--version`, `-v`   | ස්ථාපිත අනුවාදය මුද්රණය කරන්න                                 |

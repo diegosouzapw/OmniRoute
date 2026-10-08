@@ -1,0 +1,1 @@
+- **fix(qoder):** Qoder PAT validation accepts any exit-0 model catalog instead of requiring the literal `MODEL` header, and queued/busy (`10605`) qodercli responses are classified as a retryable `503` instead of a long-cooldown `502` ([#15559](https://github.com/diegosouzapw/OmniRoute/pull/15559)) — thanks @christianmahardhika

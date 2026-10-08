@@ -14,6 +14,7 @@ const {
   settingsDb,
 } = harness;
 const providersDb = await import("../../src/lib/db/providers.ts");
+const quotaCache = await import("../../src/domain/quotaCache.ts");
 
 function toPlainHeaders(headers: any): Record<string, string> {
   if (!headers) return {};
@@ -55,7 +56,7 @@ test("fast-skip on quota-exhausted 429: first same-provider target causes remain
     models: [
       "openai/gpt-4o-mini",
       "openai/gpt-3.5-turbo", // Same provider as first target
-      "anthropic/claude-3-5-sonnet-20241022",
+      "anthropic/claude-sonnet-4-6",
     ],
   });
 
@@ -133,7 +134,7 @@ test("fast-skip on credits-exhausted 429: same-provider targets are skipped (#17
     name: "credits-exhausted-combo",
     strategy: "priority",
     config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
-    models: ["openai/gpt-4o-mini", "openai/gpt-3.5-turbo", "anthropic/claude-3-5-sonnet-20241022"],
+    models: ["openai/gpt-4o-mini", "openai/gpt-3.5-turbo", "anthropic/claude-sonnet-4-6"],
   });
 
   let openaiCalls = 0;
@@ -203,7 +204,7 @@ test("no skip on transient 429: plain rate-limit does not skip same-provider tar
     name: "transient-429-combo",
     strategy: "priority",
     config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
-    models: ["openai/gpt-4o-mini", "openai/gpt-3.5-turbo", "anthropic/claude-3-5-sonnet-20241022"],
+    models: ["openai/gpt-4o-mini", "openai/gpt-3.5-turbo", "anthropic/claude-sonnet-4-6"],
   });
 
   let openaiCalls = 0;
@@ -272,11 +273,7 @@ test("cross-provider not affected: different providers both return 429, both are
     name: "cross-provider-combo",
     strategy: "priority",
     config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
-    models: [
-      "openai/gpt-4o-mini",
-      "anthropic/claude-3-5-sonnet-20241022",
-      "claude/claude-3-5-sonnet-20241022",
-    ],
+    models: ["openai/gpt-4o-mini", "anthropic/claude-sonnet-4-6", "claude/claude-sonnet-4-6"],
   });
 
   let openaiCalls = 0;
@@ -357,7 +354,7 @@ test("exhaustion does not persist across requests: second request starts fresh (
     name: "persistence-test-combo",
     strategy: "priority",
     config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
-    models: ["openai/gpt-4o-mini", "openai/gpt-3.5-turbo", "anthropic/claude-3-5-sonnet-20241022"],
+    models: ["openai/gpt-4o-mini", "openai/gpt-3.5-turbo", "anthropic/claude-sonnet-4-6"],
   });
 
   let requestCount = 0;
@@ -413,6 +410,11 @@ test("exhaustion does not persist across requests: second request starts fresh (
   assert.equal(body1.choices[0].message.content, "anthropic handled first request");
   assert.equal(openaiCalls, 1, "first request: openai called once");
   assert.equal(anthropicCalls, 1, "first request: anthropic called once");
+  assert.equal(
+    quotaCache.isQuotaExhaustedForRequest(openaiConn.id, "openai"),
+    true,
+    "the first 429 also records persistent account quota exhaustion"
+  );
 
   // Clear the connection-level cooldown left by the first 429 — we are testing
   // the request-scoped exhaustion sets, not the (persistent-by-design) cooldown.
@@ -424,6 +426,13 @@ test("exhaustion does not persist across requests: second request starts fresh (
     errorCode: null,
     backoffLevel: 0,
   });
+
+  // Model a real account replenishment, not just the connection cooldown expiring.
+  // The quota cache is a separate persistent-by-design selection boundary.
+  quotaCache.setQuotaCache(openaiConn.id, "openai", {
+    requests: { remainingPercentage: 100, resetAt: null },
+  });
+  assert.equal(quotaCache.isQuotaExhaustedForRequest(openaiConn.id, "openai"), false);
 
   // Second request: exhaustedProviders should be reset, openai should be tried again
   requestCount = 1;
@@ -460,7 +469,7 @@ test("round-robin path fast-skip: round-robin combo also skips exhausted provide
     name: "rr-exhaustion-combo",
     strategy: "round-robin",
     config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
-    models: ["openai/gpt-4o-mini", "openai/gpt-3.5-turbo", "anthropic/claude-3-5-sonnet-20241022"],
+    models: ["openai/gpt-4o-mini", "openai/gpt-3.5-turbo", "anthropic/claude-sonnet-4-6"],
   });
 
   let openaiCalls = 0;
@@ -533,10 +542,7 @@ test("allow rate-limited connections after transient 429 on subsequent targets i
     name: "rate-limit-reuse-combo",
     strategy: "priority",
     config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
-    models: [
-      "openai/gpt-4o-mini",
-      "openai/gpt-3.5-turbo",
-    ],
+    models: ["openai/gpt-4o-mini", "openai/gpt-3.5-turbo"],
   });
 
   let openaiCalls = 0;
@@ -655,4 +661,3 @@ test("emergency fallback never sends the failing provider's credentials to anoth
     `no unauthenticated emergency call should reach upstream either: ${JSON.stringify(upstreamCalls)}`
   );
 });
-

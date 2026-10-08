@@ -13,8 +13,8 @@
  * Part of: Group B — Quota Sharing Engine (plan 22, frente F7).
  */
 
-import type { EnforceDecision, EnforceInput, RecordConsumptionInput } from "./types";
-import type { QuotaUnit } from "./dimensions";
+import type { EnforceDecision, EnforceInput, QuotaStore, RecordConsumptionInput } from "./types";
+import type { ProviderPlan, QuotaUnit } from "./dimensions";
 import { dimensionKeyToString } from "./dimensions";
 import { decideFairShare } from "./fairShare";
 import { resolvePlan } from "./planResolver";
@@ -22,6 +22,15 @@ import { getSaturation } from "./saturationSignals";
 import { getQuotaStore } from "./QuotaStore";
 import { listAllocationsForApiKey, getPool } from "@/lib/db/quotaPools";
 import { getModelCap } from "@/lib/db/quotaModelCaps";
+import { listEnabledSchedules } from "@/lib/db/quotaSchedules";
+import {
+  failingReserve,
+  reservedWindows,
+  resolveActiveSchedule,
+  scheduleBucketPoolId,
+  type QuotaSchedule,
+  type SaturationByWindow,
+} from "./schedules";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -112,7 +121,23 @@ export async function enforceQuotaShare(input: EnforceInput): Promise<EnforceDec
   const store = await getQuotaStore();
 
   // 3. Resolve the provider plan (dimensions).
-  const plan = resolvePlan(input.connectionId, input.provider);
+  //
+  // Resolved from the pool's canonical (primary) connection — NOT
+  // input.connectionId — because the wizard's "Limite" step only ever PUTs a
+  // manual plan override to the pool's primary connection (connectionIds[0]).
+  // A request served through a different pool member must still be checked
+  // against that same plan/limit, or a non-primary connection silently falls
+  // back to a different (catalog/empty) plan shape (#13876).
+  const plan = resolvePlan(pool.connectionId, input.provider);
+
+  // 3a-bis. Time-aware schedule gate.
+  //
+  // Runs before the per-model and per-dimension work because a closed window is
+  // the cheapest possible denial: one indexed read of quota_schedules, and no
+  // saturation signal at all. A pool without schedules returns null here and the
+  // rest of this function behaves exactly as it did before.
+  const scheduleDecision = await checkSchedules(pool.id, plan, input, store);
+  if (scheduleDecision) return scheduleDecision;
 
   // 3b. Per-(key, model) model-cap pre-check (Fase 3 #7).
   //
@@ -302,8 +327,10 @@ export async function recordConsumption(input: RecordConsumptionInput): Promise<
 
   if (!allocations.length) return;
 
-  // Find the pool matching this connection
-  let poolId: string | null = null;
+  // Find the pool matching this connection.
+  // Keep the matched pool object (not just its id) so plan resolution below
+  // can use the pool's canonical primary connection — see (#13876).
+  let matchedPool: import("@/lib/db/quotaPools").QuotaPool | null = null;
   for (const { poolId: pid } of allocations) {
     let p: import("@/lib/db/quotaPools").QuotaPool | null = null;
     try {
@@ -318,14 +345,18 @@ export async function recordConsumption(input: RecordConsumptionInput): Promise<
         ? p.connectionIds.includes(input.connectionId)
         : p.connectionId === input.connectionId)
     ) {
-      poolId = pid;
+      matchedPool = p;
       break;
     }
   }
 
-  if (!poolId) return;
+  if (!matchedPool) return;
+  const poolId = matchedPool.id;
 
-  const plan = resolvePlan(input.connectionId, input.provider);
+  // Resolved from the pool's canonical (primary) connection so writes always
+  // land under the same dimension shape the dashboard reads back via
+  // resolvePlan(pool.connectionId, ...) — see enforceQuotaShare above (#13876).
+  const plan = resolvePlan(matchedPool.connectionId, input.provider);
   const store = await getQuotaStore();
 
   // Pool-level dimension consumption (existing behaviour).
@@ -365,6 +396,185 @@ export async function recordConsumption(input: RecordConsumptionInput): Promise<
       }
     }
   }
+
+  // Scheduled own-consumption budget tracking.
+  // The counter lives in its own dimension-key namespace so it measures exactly
+  // what OmniRoute spent inside this window — never what the account spent in
+  // total. Only maintained while a window with a budget is open; outside one
+  // there is no bucket to keep.
+  const budgetSchedule = activeBudgetSchedule(poolId);
+  if (budgetSchedule?.budgetUnit) {
+    const cost = costForUnit(input.cost, budgetSchedule.budgetUnit);
+    if (cost > 0) {
+      const scheduleDimKey = {
+        poolId: scheduleBucketPoolId(poolId, budgetSchedule.id),
+        unit: budgetSchedule.budgetUnit,
+        window: budgetSchedule.budgetWindow,
+      };
+      await store.consume(input.apiKeyId, scheduleDimKey, cost).catch(() => {
+        // Fail-open per B29
+      });
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Schedule gate
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolve the pool's enabled schedules and, when one applies, enforce it.
+ *
+ * Returns a block decision, or `null` to mean "schedules have nothing to say —
+ * carry on with the regular fair-share path". Fail-open per B16 throughout: the
+ * DB read is already guarded inside listEnabledSchedules, and the two signal
+ * lookups below each fall back to the permissive value.
+ *
+ * Three ways a schedule can deny a request:
+ *   outside-window / blackout — the clock is not inside a permitted window.
+ *   schedule-reserve — the account's REMAINING upstream quota has fallen under
+ *                      the floor this window insists on leaving behind. The
+ *                      signal covers the whole account, so a human burning the
+ *                      same credentials pushes OmniRoute out first.
+ *   schedule-budget  — OmniRoute's OWN consumption inside the window has reached
+ *                      the allowance. Read from a schedule-scoped counter, so it
+ *                      is unaffected by whoever else is on the account.
+ */
+async function checkSchedules(
+  poolId: string,
+  plan: ProviderPlan,
+  input: EnforceInput,
+  store: QuotaStore
+): Promise<EnforceDecision | null> {
+  const schedules = listEnabledSchedules(poolId);
+  if (schedules.length === 0) return null;
+
+  const verdict = resolveActiveSchedule(schedules, Date.now());
+  if (verdict.kind === "unscheduled") return null;
+
+  if (verdict.kind === "closed") {
+    await notifyQuotaExceeded(input, verdict.reason, verdict.schedule?.id);
+    return {
+      kind: "block",
+      reason:
+        verdict.reason === "blackout"
+          ? `Provider ${input.provider} is in a scheduled blackout window [schedule]`
+          : `Provider ${input.provider} is outside its permitted quota window [schedule]`,
+      httpStatus: 429,
+      ...(verdict.retryAfterSeconds !== undefined
+        ? { retryAfterSeconds: verdict.retryAfterSeconds }
+        : {}),
+    };
+  }
+
+  const { schedule } = verdict;
+
+  // "How much must be LEFT" — measured on the whole-account saturation signal,
+  // one floor per quota window so a weekly reserve does not throttle every burst.
+  if (schedule.reserves.length > 0) {
+    const saturation = await planSaturation(plan, input, schedule);
+    const breached = failingReserve(schedule, saturation);
+    if (breached) {
+      await notifyQuotaExceeded(input, "schedule-reserve", schedule.id);
+      const scope = breached.window === "any" ? "quota" : `${breached.window} quota`;
+      return {
+        kind: "block",
+        reason: `Provider ${input.provider} is below the ${breached.percent}% ${scope} reserve this window protects [schedule-reserve]`,
+        httpStatus: 429,
+      };
+    }
+  }
+
+  // "How much may OMNIROUTE use" — measured on OmniRoute's own consumption only.
+  if (schedule.budgetValue !== undefined && schedule.budgetUnit !== undefined) {
+    const dimKey = {
+      poolId: scheduleBucketPoolId(poolId, schedule.id),
+      unit: schedule.budgetUnit,
+      window: schedule.budgetWindow,
+    };
+    const consumed = await store.poolConsumedTotal(poolId, dimKey).catch(() => 0);
+    if (consumed >= schedule.budgetValue) {
+      await notifyQuotaExceeded(input, "schedule-budget", schedule.id);
+      return {
+        kind: "block",
+        reason: `Scheduled ${schedule.budgetUnit} budget for ${input.provider} is spent for this window [schedule-budget]`,
+        httpStatus: 429,
+      };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Utilization (0..1) per quota window, for the windows this schedule's reserves
+ * actually name — an "any" rule needs them all, a `weekly` rule needs only that
+ * one, and no signal is fetched for a window nobody reserved.
+ *
+ * Placeholder dimensions (limit ≤ EPSILON) are skipped exactly as the main loop
+ * skips them, and a failed lookup leaves the window absent so `failingReserve`
+ * treats it as satisfied rather than as exhausted (B16).
+ */
+async function planSaturation(
+  plan: ProviderPlan,
+  input: EnforceInput,
+  schedule: QuotaSchedule
+): Promise<SaturationByWindow> {
+  const wanted = reservedWindows(schedule);
+  const needsEveryWindow = wanted.includes("any");
+  const saturation: SaturationByWindow = {};
+
+  for (const dim of plan.dimensions) {
+    if (!(dim.limit > Number.EPSILON)) continue;
+    if (!needsEveryWindow && !wanted.includes(dim.window)) continue;
+
+    const used = await getSaturation(input.connectionId, input.provider, dim).catch(
+      () => undefined
+    );
+    if (used === undefined || !Number.isFinite(used)) continue;
+
+    // A provider can meter the same window under several units; the most
+    // consumed one is what actually limits the account.
+    const previous = saturation[dim.window];
+    saturation[dim.window] = previous === undefined ? used : Math.max(previous, used);
+  }
+
+  return saturation;
+}
+
+/** Fire the quota.exceeded webhook. Best-effort — never blocks the decision. */
+async function notifyQuotaExceeded(
+  input: EnforceInput,
+  reason: string,
+  scheduleId?: string
+): Promise<void> {
+  try {
+    const { notifyWebhookEvent } = await import("@/lib/webhookDispatcher");
+    notifyWebhookEvent("quota.exceeded", {
+      apiKeyId: input.apiKeyId,
+      provider: input.provider,
+      connectionId: input.connectionId,
+      reason,
+      ...(scheduleId ? { scheduleId } : {}),
+    });
+  } catch {
+    // webhook is best-effort
+  }
+}
+
+/**
+ * The schedule whose own-consumption budget `recordConsumption` must increment,
+ * or null when no window is open or the open one has no budget. Kept separate
+ * from `checkSchedules` because the POST path must never block or signal — it
+ * only needs to know which counter to bump.
+ */
+function activeBudgetSchedule(poolId: string): QuotaSchedule | null {
+  const schedules = listEnabledSchedules(poolId);
+  if (schedules.length === 0) return null;
+  const verdict = resolveActiveSchedule(schedules, Date.now());
+  if (verdict.kind !== "active") return null;
+  const { schedule } = verdict;
+  return schedule.budgetValue !== undefined && schedule.budgetUnit !== undefined ? schedule : null;
 }
 
 // ---------------------------------------------------------------------------

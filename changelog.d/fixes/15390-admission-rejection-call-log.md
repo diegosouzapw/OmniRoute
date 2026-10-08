@@ -1,0 +1,1 @@
+- **fix(api):** log admission rejections on the chat and responses routes to the request journal with their status and reason ([#15390](https://github.com/diegosouzapw/OmniRoute/pull/15390)) — thanks @maxmad64bis

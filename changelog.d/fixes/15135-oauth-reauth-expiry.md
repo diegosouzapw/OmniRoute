@@ -1,0 +1,1 @@
+- **fix(oauth):** replace both token expiry fields on reauthentication and clear stale OAuth errors, preventing an immediate background refresh from disabling a freshly signed-in account (#15135 — thanks @JxnLexn)

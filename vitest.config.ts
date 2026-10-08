@@ -37,14 +37,6 @@ export default defineConfig({
       // in this jsdom job. They have their own runners + vitest.e2e-live.config.ts.
       "tests/e2e/ecosystem.test.ts",
       "tests/e2e/protocol-clients.test.ts",
-      // ── Pre-existing failures tracked by #8618 ───────────────────────────────
-      "tests/unit/ui/logs-page-detail-modal-reopen-on-close.test.tsx", // #13204 — falha real; remover esta exclusão quando consertado
-      "tests/unit/ui/agent-card.test.tsx", // #13204 — falha real; remover esta exclusão quando consertado
-      "src/app/(dashboard)/dashboard/cache/__tests__/CacheTrends.test.tsx", // #13204 — falha real; remover esta exclusão quando consertado
-      "src/app/(dashboard)/dashboard/cache/__tests__/IdempotencyLayer.test.tsx", // #13204 — falha real; remover esta exclusão quando consertado
-      "src/app/(dashboard)/dashboard/cache/__tests__/CachePerformance.test.tsx", // #13204 — falha real; remover esta exclusão quando consertado
-      "tests/unit/ui/combos-page-smoke.test.tsx", // #13204 — falha real; remover esta exclusão quando consertado
-      "tests/unit/ui/evals-tab-smoke.test.tsx", // #13204 — falha real; remover esta exclusão quando consertado
     ],
 
     coverage: {
@@ -54,6 +46,11 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
+      // Optional native embeddings are outside the UI unit-test runtime.
+      "@huggingface/transformers": path.resolve(
+        __dirname,
+        "./tests/_setup/transformersUnavailable.ts"
+      ),
       "@": path.resolve(__dirname, "./src"),
       // Mirrors tsconfig paths. Without it, a UI test importing from open-sse
       // resolves to undefined instead of failing loudly — which silently made

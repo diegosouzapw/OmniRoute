@@ -1,0 +1,1 @@
+- **fix(codex):** Preserve discovered native reasoning levels and defaults through synchronization, dashboard/catalog variants, and request dispatch; keep Max unchanged and protect exact upstream model IDs from suffix parsing ([#13224](https://github.com/diegosouzapw/OmniRoute/pull/13224)) — thanks @TPOHH

@@ -64,7 +64,7 @@
   <text x="60" y="228" font-family="Consolas, 'Courier New', monospace" font-size="104" font-weight="800" fill="url(#gradBrandF)">~1.62B</text>
   <text x="62" y="266" font-family="Consolas, 'Courier New', monospace" font-size="15" letter-spacing="3" font-weight="700" fill="#a1a1aa">FREE TOKENS / MONTH &#183; <tspan fill="#22c55e">STEADY</tspan></text>
   <text x="62" y="298" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="16" fill="#F7F6FC">up to <tspan font-weight="800" fill="#22c55e">~2.22B</tspan> in your first month &#8212; signup credits</text>
-  <text x="62" y="326" font-family="Consolas, 'Courier New', monospace" font-size="12" fill="#71717a">documented free tiers &#183; <tspan fill="#8b5cf6">35 recurring pools</tspan> &#183; <tspan fill="#8b5cf6">491 catalog entries</tspan> &#183; one endpoint</text>
+  <text x="62" y="326" font-family="Consolas, 'Courier New', monospace" font-size="12" fill="#71717a">documented free tiers &#183; <tspan fill="#8b5cf6">35 recurring pools</tspan> &#183; <tspan fill="#8b5cf6">489 catalog entries</tspan> &#183; one endpoint</text>
 
   <!-- ═══ Panel · The honest math ═══ -->
   <rect x="680" y="84" width="460" height="216" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>

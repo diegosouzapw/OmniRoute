@@ -1,0 +1,1 @@
+- **fix(speech):** Xiaomi MiMo TTS now sends `audio.format` as the `mp3`/`wav` enum instead of an IANA media type, so `POST /v1/audio/speech` no longer fails upstream with `Param Incorrect`

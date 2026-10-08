@@ -20,11 +20,27 @@ describe("CLIProxyAPI account health", () => {
           unavailable: true,
           created_at: "2026-08-23T10:00:00Z",
           updated_at: "2026-08-23T11:00:00Z",
+          next_retry_after: "2026-08-23T12:00:00Z",
           success: 9,
           failed: 2,
           recent_requests: [
             { time: "2026-08-23T11:00:00Z", success: 3, failed: 1, token: "secret" },
           ],
+          model_quotas: {
+            "claude-opus-4-6": {
+              observed_at: "2026-08-23T11:00:00Z",
+              signals: {
+                "Anthropic-Ratelimit-Unified-Status": "rejected",
+                "Retry-After": "120",
+                "X-Codex-Plan-Type": "Bearer private-token",
+                Authorization: "Bearer secret",
+              },
+            },
+            "private@example.com": {
+              observed_at: "2026-08-23T11:00:00Z",
+              signals: { "Retry-After": "120" },
+            },
+          },
           path: "/home/user/.cli-proxy-api/acct.json",
           access_token: "secret",
           metadata: { refresh_token: "secret" },
@@ -44,13 +60,29 @@ describe("CLIProxyAPI account health", () => {
         unavailable: true,
         createdAt: "2026-08-23T10:00:00Z",
         updatedAt: "2026-08-23T11:00:00Z",
+        nextRetryAfter: "2026-08-23T12:00:00Z",
         success: 9,
         failed: 2,
         recentRequests: [{ time: "2026-08-23T11:00:00Z", success: 3, failed: 1 }],
+        modelQuotas: {
+          "claude-opus-4-6": {
+            observedAt: "2026-08-23T11:00:00Z",
+            signals: {
+              "Anthropic-Ratelimit-Unified-Status": "rejected",
+              "Retry-After": "120",
+            },
+          },
+        },
       },
     ]);
     const serialized = JSON.stringify(accounts);
-    for (const secret of ["path", "access_token", "refresh_token", "private@example.com"]) {
+    for (const secret of [
+      "path",
+      "access_token",
+      "refresh_token",
+      "private@example.com",
+      "private-token",
+    ]) {
       assert.equal(serialized.includes(secret), false);
     }
   });
@@ -144,5 +176,39 @@ describe("CLIProxyAPI account health", () => {
     });
     assert.equal(result.state, "unreachable");
     assert.ok(Date.now() - started < 1_000);
+  });
+
+  it("an external key without CLIPROXYAPI_HOST targets the documented 127.0.0.1 default", async () => {
+    // Before this, `host` was `options.host ?? externalHost` with externalHost undefined, so the
+    // health probe went to http://undefined:8317 and the dashboard showed "unreachable" for a
+    // correctly configured local CLIProxyAPI (also the typecheck:core TS2322 at this line).
+    const saved = {
+      host: process.env.CLIPROXYAPI_HOST,
+      key: process.env.CLIPROXYAPI_MANAGEMENT_KEY,
+      port: process.env.CLIPROXYAPI_PORT,
+    };
+    delete process.env.CLIPROXYAPI_HOST;
+    delete process.env.CLIPROXYAPI_PORT;
+    process.env.CLIPROXYAPI_MANAGEMENT_KEY = "external-key";
+    try {
+      let url = "";
+      const result = await getCliproxyAccountHealth({
+        fetchImpl: async (input) => {
+          url = String(input);
+          return Response.json({ files: [] });
+        },
+      });
+      assert.equal(url, "http://127.0.0.1:8317/v0/management/auth-files");
+      assert.equal(result.state, "ready");
+    } finally {
+      for (const [name, value] of [
+        ["CLIPROXYAPI_HOST", saved.host],
+        ["CLIPROXYAPI_MANAGEMENT_KEY", saved.key],
+        ["CLIPROXYAPI_PORT", saved.port],
+      ] as const) {
+        if (value === undefined) delete process.env[name];
+        else process.env[name] = value;
+      }
+    }
   });
 });

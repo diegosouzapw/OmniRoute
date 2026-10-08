@@ -40,7 +40,7 @@ const proxyHealthInflight = new Map<string, Promise<boolean>>();
 type TcpCheck = (host: string, port: number, timeoutMs: number) => Promise<boolean>;
 let tcpCheckImpl: TcpCheck = tcpCheck;
 
-// Feed a real probe verdict to proxy selection (opt-in, PROXY_SKIP_RECENTLY_FAILED): a proxy
+// Feed a real probe verdict to proxy selection (PROXY_SKIP_RECENTLY_FAILED, default on): a proxy
 // that refused the TCP connection is set aside by pools and account rotation, and taken back
 // as soon as it answers again. With the flag off nothing is ever written.
 function noteProbeVerdict(proxyUrl: string, healthy: boolean): void {
@@ -169,7 +169,12 @@ function defaultPortForScheme(protocol: string): string {
     case "socks5":
     case "socks5h":
       return "1080";
+    // #14157: the WHATWG URL parser drops the port when it equals the scheme
+    // default, so `http://host:80` reaches this fallback with port === "".
+    // The default http proxy port is 80; probing 8080 fast-failed every
+    // default-port http proxy and pushed healthy connections into cooldown.
     case "http":
+      return "80";
     default:
       return "8080";
   }

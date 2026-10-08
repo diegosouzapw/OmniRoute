@@ -127,21 +127,24 @@ test("DefaultExecutor(openrouter) self-corrects the free window from X-RateLimit
   });
 
   const status = getFreeWindowStatus(accountKey);
-  assert.equal(status.dailyRemaining, 0, "server-reported remaining should override the local count");
+  assert.equal(
+    status.dailyRemaining,
+    0,
+    "server-reported remaining should override the local count"
+  );
   assert.equal(status.dailyLimit, 50, "server-reported limit should be adopted");
 });
 
 // ─── 2. ENFORCE: exhausted free window short-circuits the quota preflight ─
 
-test("fetchOpenrouterQuotaWithFreeWindowPreflight returns limitReached for an exhausted :free model WITHOUT calling fetch (RED without wiring)", async () => {
+test("fetchOpenrouterQuotaWithFreeWindowPreflight returns limitReached for an exhausted :free model after a tier-refresh fetch (RED without wiring)", async () => {
   const connectionId = `openrouter-enforce-${Date.now()}`;
   const accountKey = resolveAccountKey(connectionId, {});
 
   // Exhaust the daily window (default cap: 50/day at $0 purchased-tier).
   for (let i = 0; i < 50; i++) {
-    const { recordFreeWindowAttempt } = await import(
-      "../../open-sse/services/openrouterFreeWindow.ts"
-    );
+    const { recordFreeWindowAttempt } =
+      await import("../../open-sse/services/openrouterFreeWindow.ts");
     recordFreeWindowAttempt(accountKey);
   }
   assert.equal(getFreeWindowStatus(accountKey).dailyRemaining, 0, "precondition: window exhausted");
@@ -157,9 +160,21 @@ test("fetchOpenrouterQuotaWithFreeWindowPreflight returns limitReached for an ex
     requestedModel: "x-ai/grok-4-fast:free",
   });
 
-  assert.equal(fetchCalls, 0, "an exhausted free window must short-circuit BEFORE any /key or /credits call");
+  // Tier-refresh behavior: an exhausted window refreshes the $10+ purchase
+  // tier from quota (cached when fresh, fetched otherwise) before verdict —
+  // otherwise a stale 50-counter hides the signal that would un-exhaust it
+  // (stuck until UTC midnight). This mock returns no purchase signal, so the
+  // verdict stays exhausted after the refresh round-trip.
+  assert.ok(
+    fetchCalls > 0,
+    "an exhausted free window must refresh the purchase tier from quota before verdict"
+  );
   assert.ok(quota, "quota should be a limitReached result, not null");
-  assert.equal(quota!.limitReached, true, "combo preflight must see limitReached to skip this target");
+  assert.equal(
+    quota!.limitReached,
+    true,
+    "combo preflight must see limitReached to skip this target"
+  );
   invalidateOpenrouterQuotaCache(connectionId);
 });
 
@@ -193,9 +208,8 @@ test("fetchOpenrouterQuotaWithFreeWindowPreflight proceeds to the normal /key+/c
 test("fetchOpenrouterQuotaWithFreeWindowPreflight ignores free-window state for non-:free requestedModel", async () => {
   const connectionId = `openrouter-enforce-nonfree-${Date.now()}`;
   const accountKey = resolveAccountKey(connectionId, {});
-  const { recordFreeWindowAttempt } = await import(
-    "../../open-sse/services/openrouterFreeWindow.ts"
-  );
+  const { recordFreeWindowAttempt } =
+    await import("../../open-sse/services/openrouterFreeWindow.ts");
   for (let i = 0; i < 50; i++) recordFreeWindowAttempt(accountKey);
 
   let fetchCalls = 0;
@@ -217,7 +231,10 @@ test("fetchOpenrouterQuotaWithFreeWindowPreflight ignores free-window state for 
     requestedModel: "x-ai/grok-4-fast", // paid variant — exhausted free window is irrelevant
   });
 
-  assert.ok(fetchCalls > 0, "a paid model must never be short-circuited by the free-window counter");
+  assert.ok(
+    fetchCalls > 0,
+    "a paid model must never be short-circuited by the free-window counter"
+  );
   assert.ok(quota);
   invalidateOpenrouterQuotaCache(connectionId);
 });

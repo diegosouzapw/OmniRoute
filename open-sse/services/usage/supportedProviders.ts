@@ -39,6 +39,7 @@ export const USAGE_SUPPORTED_PROVIDERS: readonly string[] = [
   "minimax",
   "minimax-cn",
   "crof",
+  "clinepass",
   "nanogpt",
   "deepseek",
   "moonshot",
@@ -63,6 +64,14 @@ export const USAGE_SUPPORTED_PROVIDERS: readonly string[] = [
   "grok-cli",
   // Firecrawl team credits (GET /v2/team/credit-usage)
   "firecrawl",
+  "context7",
+  // Tavily monthly credits & quota (GET /usage)
+  "tavily-search",
+  "tavily",
+  "jina-search",
+  "jina",
+  "jina-ai",
+  "jina-reader",
   // Volcano Ark Plan subscriptions (agent-plan / coding-plan)
   "volcengine-agent-plan",
   "volcengine-coding-plan",
@@ -80,6 +89,10 @@ export const USAGE_SUPPORTED_PROVIDERS: readonly string[] = [
   "kilocode",
   // OpenRouter key limits + account credits (GET /api/v1/key + /api/v1/credits)
   "openrouter",
+  // LLM Gateway DevPass allowance (GET /v1/key → monthly + weekly premium)
+  "llmgateway",
+  // Lyceum credit balance (GET /api/v2/external/billing/credits)
+  "lyceum",
   // Devin CLI agentic quota (Codeium seat-management GetUserStatus, protobuf)
   "devin-cli",
 ];

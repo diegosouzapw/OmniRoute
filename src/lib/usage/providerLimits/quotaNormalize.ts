@@ -2,13 +2,23 @@ import {
   isUserCallableAntigravityModelId,
   toClientAntigravityModelId,
 } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
-import { isUserCallableAgyModelId } from "@omniroute/open-sse/config/agyModels.ts";
+import { isDiscoverableAgyModelId } from "@omniroute/open-sse/config/agyModels.ts";
 
 type JsonRecord = Record<string, unknown>;
 
 export function isRecord(value: unknown): value is JsonRecord {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
+
+// Family aggregate buckets from retrieveUserQuotaSummary are not model ids. Dropping
+// them here is why Token Monitor only ever saw the 5-hour bar (#15359); the session
+// windows are the family 5-hour pools (#13739).
+const ANTIGRAVITY_FAMILY_QUOTA_KEYS = new Set([
+  "gemini_session",
+  "gemini_weekly",
+  "claude_gpt_session",
+  "claude_gpt_weekly",
+]);
 
 /**
  * Whether a quota bucket may be shown for `provider`.
@@ -25,9 +35,10 @@ export function isUsageQuotaKeyAllowed(
 ): boolean {
   if (quotaKey === "credits" || quotaKey === "models") return true;
   if (provider !== "antigravity" && provider !== "agy") return true;
+  if (ANTIGRAVITY_FAMILY_QUOTA_KEYS.has(quotaKey)) return true;
   if (liveModelIds?.has(quotaKey)) return true;
   if (provider === "antigravity") return isUserCallableAntigravityModelId(quotaKey);
-  return isUserCallableAgyModelId(quotaKey);
+  return isDiscoverableAgyModelId(quotaKey);
 }
 
 export function normalizeUsageQuotaKey(
@@ -36,6 +47,12 @@ export function normalizeUsageQuotaKey(
   liveModelIds?: ReadonlySet<string>
 ): string | null {
   if (quotaKey === "credits" || quotaKey === "models") return quotaKey;
+  if (
+    (provider === "antigravity" || provider === "agy") &&
+    ANTIGRAVITY_FAMILY_QUOTA_KEYS.has(quotaKey)
+  ) {
+    return quotaKey;
+  }
   if (provider === "antigravity" || provider === "agy") {
     const clientKey = toClientAntigravityModelId(quotaKey);
     return isUsageQuotaKeyAllowed(provider, clientKey, liveModelIds) ? clientKey : null;

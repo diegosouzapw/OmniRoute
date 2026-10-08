@@ -1,1 +1,0 @@
-- **fix(security):** default the published Docker image and `fly.toml` deployment to `REQUIRE_API_KEY=true` (npm/CLI local-dev default unchanged), and stop `/api/free-tier/summary`'s wildcard CORS from leaking the operator's local token usage to unauthenticated callers (#13679)

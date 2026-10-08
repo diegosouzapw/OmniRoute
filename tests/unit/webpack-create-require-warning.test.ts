@@ -80,6 +80,9 @@ async function compileRuntimeRequireModules(): Promise<string[]> {
         // erroring "Can't resolve './obscura.ts'".
         "./obscura.ts",
         "./tlsFirstByteWatchdog.ts",
+        // machineToken.ts imports `./dataPaths` since #13909 (random per-install
+        // CLI token salt reads the data dir). Same isolated-compile reason.
+        "./dataPaths",
       ],
       externalsPresets: { node: true },
       mode: "development",

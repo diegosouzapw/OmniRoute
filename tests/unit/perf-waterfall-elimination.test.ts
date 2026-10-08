@@ -50,10 +50,16 @@ test("A1: home page fetches settings + machineId concurrently (#11396)", () => {
 
   const pair = src.match(/const \[settings, machineId\] = await Promise\.all\(\[([\s\S]*?)\]\);/s);
   assert.ok(pair, "expected `[settings, machineId] = await Promise.all([...])`");
-  assert.match(pair![1], /\bgetSettings\(\)/);
+  // #14421 (#14060) routes the settings read through loadHomeSettings(), which degrades a
+  // corrupted key_value table to defaults and reads getSettings() by default.
+  assert.match(pair![1], /\bloadHomeSettings\(\)/);
   assert.match(pair![1], /\bgetMachineId\(\)/);
+  assert.match(
+    readSource("src/app/(dashboard)/home/loadHomeSettings.ts"),
+    /load: \(\) => Promise<HomeSettings> = getSettings/
+  );
   // destructuring order must stay (settings → machineId), or values swap
-  assert.ok(pair![1].indexOf("getSettings()") < pair![1].indexOf("getMachineId()"));
+  assert.ok(pair![1].indexOf("loadHomeSettings()") < pair![1].indexOf("getMachineId()"));
 
   // both values are still consumed exactly as before the batching
   assert.match(src, /setupComplete=\{Boolean\(settings\.setupComplete\)\}/);
@@ -241,7 +247,8 @@ test("F1: cache GET returns correct shapes + trend window after batching (#11396
 
 // ─── N1: apiKeys permission probe ───────────────────────────────────────────
 test("N1: apiKeys fetches synced + custom models in parallel (#11396)", () => {
-  const src = readSource("src/lib/db/apiKeys.ts");
+  // The published-model lookup behind isModelAllowedForKey lives in its own module.
+  const src = readSource("src/lib/db/apiKeys/publishedModelLookup.ts");
 
   const pair = src.match(
     /const \[syncedModelsByConnection, customModels\] = await Promise\.all\(\[([\s\S]*?)\]\);/s
@@ -258,7 +265,7 @@ test("N1: apiKeys fetches synced + custom models in parallel (#11396)", () => {
   // the merged view feeding the deny/allow decision is unchanged
   assert.match(
     src,
-    /allDiscoveredModels = Object\.values\(syncedModelsByConnection\)\s*\.flat\(\)\s*\.concat\(customModels\)/
+    /syncedModels = Object\.values\(syncedModelsByConnection\)\.flat\(\);[\s\S]*?syncedModels\s*\.concat\(customModels\)/
   );
 
   // no serial awaits left behind

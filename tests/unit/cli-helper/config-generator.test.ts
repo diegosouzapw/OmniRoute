@@ -163,19 +163,17 @@ describe("config-generator", () => {
       assert.ok(ids.includes("delegation"));
       assert.ok(ids.includes("vision"));
       assert.ok(ids.includes("approval"));
-      // Full catalog, including the 11 auxiliary roles added alongside HERMES_AGENT_ROLES
-      // (mcp, title_generation, memory_query_rewrite, tts_audio_tags, triage_specifier,
-      // kanban_decomposer, profile_describer, goal_judge, curator, monitor,
-      // background_review). Listed explicitly (not just parity-diffed against the UI
+      // Full catalog, kept in sync with Hermes Agent's current auxiliary schema.
+      // Listed explicitly (not just parity-diffed against the UI
       // below) so a role dropped from BOTH catalogs at once still fails this test.
       const expectedIds = [
         "default",
         "delegation",
         "vision",
-        "web_extract",
         "compression",
         "skills_hub",
         "approval",
+        "review",
         "mcp",
         "title_generation",
         "memory_query_rewrite",
@@ -187,6 +185,8 @@ describe("config-generator", () => {
         "curator",
         "monitor",
         "background_review",
+        "moa_reference",
+        "moa_aggregator",
       ];
       assert.deepStrictEqual([...ids].sort(), [...expectedIds].sort());
     });
@@ -339,8 +339,8 @@ describe("config-generator", () => {
         selections: [{ role: "default", model: "new-model" }],
       });
 
-      // Should still contain providers block and the new model
-      assert.ok(result.yaml.includes("providers:"));
+      // Should still contain the custom provider declaration and the new model.
+      assert.ok(result.yaml.includes("custom_providers:"));
       assert.ok(result.yaml.includes("new-model"));
     });
   });

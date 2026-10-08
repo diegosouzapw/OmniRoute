@@ -1,10 +1,10 @@
 # User Guide (Lietuvių)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 ---
 
-🌐 **Kalbos:** 🇺🇸 [English](./USER_GUIDE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/guides/USER_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/USER_GUIDE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/guides/USER_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/USER_GUIDE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/guides/USER_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/USER_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/USER_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/USER_GUIDE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/guides/USER_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/guides/USER_GUIDE.md) | 🇪🇪 [Eesti](../i18n/et/docs/guides/USER_GUIDE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/guides/USER_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/USER_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/USER_GUIDE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/guides/USER_GUIDE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/guides/USER_GUIDE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/guides/USER_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/USER_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/guides/USER_GUIDE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/guides/USER_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/USER_GUIDE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/guides/USER_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/USER_GUIDE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/guides/USER_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/USER_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/USER_GUIDE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/guides/USER_GUIDE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/guides/USER_GUIDE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/guides/USER_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/USER_GUIDE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/guides/USER_GUIDE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/guides/USER_GUIDE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/guides/USER_GUIDE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/guides/USER_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/USER_GUIDE.md) | 🇲🇹 [Malti](../i18n/mt/docs/guides/USER_GUIDE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/guides/USER_GUIDE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/guides/USER_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/USER_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/USER_GUIDE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/guides/USER_GUIDE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/guides/USER_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/USER_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/USER_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/USER_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/USER_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/USER_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/USER_GUIDE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/guides/USER_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/USER_GUIDE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/guides/USER_GUIDE.md) | 🇷🇸 [Српски](../i18n/sr/docs/guides/USER_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/USER_GUIDE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/guides/USER_GUIDE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/guides/USER_GUIDE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/guides/USER_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/USER_GUIDE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/guides/USER_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/USER_GUIDE.md) | 🇵🇰 [اردو](../i18n/ur/docs/guides/USER_GUIDE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/guides/USER_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/USER_GUIDE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/guides/USER_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/USER_GUIDE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 Išsamus paslaugų teikėjų konfigūravimo, derinių kūrimo, CLI įrankių integravimo ir „OmniRoute“ diegimo vadovas.
 
@@ -118,7 +118,9 @@ Prieiga per: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ---
 
-## 📖 Teikėjų nustatymas
+## 📖 Teikėjų konfigūravimas
+
+Norėdami masiškai pridėti API rakto ryšius iš CSV arba JSON failo, naudokite **Valdymo skydas → Teikėjai → Importuoti iš failo**. Stulpeliai nustatomi pagal jų poziciją (`provider,name,apiKey,baseUrl,priority`); `provider` jau turi egzistuoti kaip valdomas teikėjas arba suderinamas mazgas. Žr. [Teikėjų importavimas iš CSV arba JSON failo](../providers/CSV-IMPORT.md).
 
 ### 🔐 Prenumeratos teikėjai
 
@@ -135,11 +137,13 @@ Modeliai:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Profesionalo patarimas:** Sudėtingoms užduotims naudokite Opus, o kai svarbi sparta – Sonnet. OmniRoute stebi kiekvieno modelio kvotą!
+**Profesionalo patarimas:** sudėtingoms užduotims naudokite Opus, o kai svarbus greitis – Sonnet. OmniRoute stebi kiekvieno modelio kvotą!
 
-Su Claude ir Claude Code suderinami maršrutai išlaiko `max` mąstymo pastangų lygį Opus ir Sonnet
-modeliams. Haiku modeliai nepalaiko `max` pastangų lygio, todėl prieš siųsdama užklausą pirminiam
-teikėjui OmniRoute sumažina jį iki didelio mąstymo biudžeto.
+OmniRoute pagrindiniame kompiuteryje nėra naršyklės? Paleiskite `claude setup-token` bet kur, kur prisijungta prie Claude Code, ir įklijuokite vienus metus galiojantį prieigos raktą skirtuke **Sąrankos prieigos raktas**. Žr. [Claude Code naudojimas su sąrankos prieigos raktu](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Claude ir su Claude Code suderinami maršrutai išsaugo `max` samprotavimo pastangų lygį Opus ir Sonnet
+modeliams. Haiku modeliai nepriima `max` pastangų lygio, todėl prieš siųsdama užklausą pirminiam
+teikėjui OmniRoute sumažina jį iki didelio samprotavimo biudžeto.
 
 #### OpenAI Codex (Plus/Pro)
 
@@ -172,39 +176,39 @@ Modeliai:
 
 ### 💰 Pigūs teikėjai
 
-#### GLM-4.7 (nustatoma iš naujo kasdien, $0.6/1M)
+#### GLM-4.7 (nustatymas iš naujo kasdien, $0.6/1M)
 
 1. Užsiregistruokite: [Zhipu AI](https://open.bigmodel.cn)
 2. Gaukite API raktą iš Coding Plan
 3. Valdymo skydas → Pridėti API raktą: Teikėjas: `glm`, API raktas: `your-key`
 
-**Naudojimas:** `glm/glm-4.7` — **Profesionalo patarimas:** Coding Plan suteikia 3× didesnę kvotą už 1/7 kainos! Nustatoma iš naujo kasdien 10:00 val.
+**Naudojimas:** `glm/glm-4.7` — **Profesionalo patarimas:** Coding Plan suteikia 3 kartus didesnę kvotą už 7 kartus mažesnę kainą! Kvota nustatoma iš naujo kasdien 10:00 val.
 
-#### MiniMax M2.1 (nustatoma iš naujo kas 5 val., $0.20/1M)
+#### MiniMax M2.1 (nustatymas iš naujo kas 5 val., $0.20/1M)
 
 1. Užsiregistruokite: [MiniMax](https://www.minimax.io)
 2. Gaukite API raktą → Valdymo skydas → Pridėti API raktą
 
-**Naudojimas:** `minimax/MiniMax-M2.1` — **Profesionalo patarimas:** Pigiausias variantas ilgam kontekstui (1M prieigos raktų)!
+**Naudojimas:** `minimax/MiniMax-M2.1` — **Profesionalo patarimas:** pigiausias variantas ilgam kontekstui (1M žetonų)!
 
 #### Kimi K2 (fiksuotas $9/mėn. mokestis)
 
-1. Užsisakykite prenumeratą: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
+1. Užsiprenumeruokite: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. Gaukite API raktą → Valdymo skydas → Pridėti API raktą
 
-**Naudojimas:** `kimi/kimi-k2.5` — **Profesionalo patarimas:** Fiksuotas $9/mėn. mokestis už 10M prieigos raktų = faktinė $0.90/1M kaina!
+**Naudojimas:** `kimi/kimi-k2.5` — **Profesionalo patarimas:** fiksuotas $9/mėn. mokestis už 10M žetonų = faktinė $0.90/1M kaina!
 
 #### Baidu Qianfan / ERNIE
 
 1. Užsiregistruokite: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
 2. Sukurkite Qianfan API raktą → Valdymo skydas → Pridėti API raktą: Teikėjas: `qianfan`
 
-**Naudojimas:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` arba kitas su OpenAI suderinamo Qianfan modelio ID.
+**Naudojimas:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` arba kitas su OpenAI suderinamas Qianfan modelio ID.
 
 ### 🆓 NEMOKAMI teikėjai
 
 Teikėjų, kuriems nereikia autentifikavimo, puslapyje šalia **Autentifikavimas nereikalingas** yra jungiklis.
-Jį išjungus teikėjas išjungiamas, pašalinamas iš sukonfigūruotų teikėjų bei glaustųjų rodinių ir
+Jį išjungus teikėjas išjungiamas, pašalinamas iš sukonfigūruotų ir glaustų Teikėjų rodinių, o
 jo modeliai pašalinami iš `/v1/models`.
 
 #### Qoder (9 NEMOKAMI modeliai)
@@ -668,7 +672,7 @@ Visą aplinkos kintamųjų žinyną rasite [README](../README.md).
 
 ### Pasirinktiniai modeliai
 
-Pridėkite bet kokį modelio ID prie bet kurio teikėjo nelaukdami programos atnaujinimo:
+Pridėkite bet kurio modelio ID prie bet kurio teikėjo nelaukdami programos atnaujinimo:
 
 ```bash
 # Per API
@@ -684,15 +688,52 @@ Arba naudokite valdymo skydelį: **Teikėjai → [Teikėjas] → Pasirinktiniai 
 
 Pastabos:
 
-- OpenRouter ir su OpenAI/Anthropic suderinami teikėjai valdomi tik skiltyje **Galimi modeliai**. Rankinis pridėjimas, importavimas ir automatinis sinchronizavimas atliekami tame pačiame galimų modelių sąraše, todėl šiems teikėjams nėra atskiros pasirinktinių modelių skilties.
-- Skiltis **Pasirinktiniai modeliai** skirta teikėjams, kurie nesiūlo valdomo galimų modelių importavimo.
+- OpenRouter ir su OpenAI/Anthropic suderinami teikėjai valdomi tik skiltyje **Prieinami modeliai**. Rankiniu būdu pridėti, importuoti ir automatiškai sinchronizuoti modeliai patenka į tą patį prieinamų modelių sąrašą, todėl šiems teikėjams nėra atskiros Pasirinktinių modelių skilties.
+- Skiltis **Pasirinktiniai modeliai** skirta teikėjams, kurie nesiūlo valdomo prieinamų modelių importavimo.
 
-### OmniRoute lygiaverčių mazgų grandinės
+### Pasirinktiniai su OpenAI suderinami teikėjai
 
-Kitą OmniRoute šliuzą galima pridėti kaip **pasirinktinį su OpenAI suderinamą** teikėją. Naudokite
-lygiaverčio mazgo bazinį `/v1` URL ir specialų, mažiausių būtinų teisių API raktą, išduotą to mazgo.
+Bet kurį tinklų sietuvą, naudojantį OpenAI API (savarankiškai talpinamą tarpinį serverį, vLLM ar trečiosios šalies agregatorių),
+galima pridėti kaip atskirą teikėjo mazgą:
 
-Abipusėms arba kelių šuolių grandinėms kiekviename šliuze įjunkite pasirenkamąją ciklų apsaugą:
+1. **Teikėjai → Pridėti su OpenAI suderinamą teikėją**.
+2. **Pavadinimas**: mazgo rodomas pavadinimas.
+3. **Prefiksas**: maršruto pavadinimas. Klientai modelius iškviečia kaip `<prefix>/<model>`, todėl mazgas su
+   prefiksu `mygw` aptarnauja `mygw/gpt-4o-mini`. Privalomas; simbolių apribojimų nėra.
+4. **API tipas**: galinių taškų grupė, kurią aptarnauja tinklų sietuvas (pokalbių užbaigimai, atsakymai,
+   įterpiniai, garsas, vaizdai).
+5. **Bazinis URL**: API šakninis adresas iki `/v1` imtinai (pavyzdžiui,
+   `https://gateway.example.com/v1`), o ne visas `/chat/completions` kelias. Nestandartinius
+   kelius naudojantys tinklų sietuvai juos nustato skiltyje **Išplėstiniai nustatymai** (pokalbių kelias, modelių kelias).
+6. Laukas **API raktas (patikrai)** skirtas tik ryšiui patikrinti. Sukūrę mazgą,
+   atidarykite jį ir naudokite **Pridėti ryšį**, kad išsaugotumėte užklausoms naudojamą raktą.
+
+Mazgui suteikiamas vidinis ID, kurio forma yra `openai-compatible-<apiType>-<uuid>`; jo niekada
+nereikia įvesti, nes viešasis pavadinimas yra prefiksas.
+
+#### Rezervuoti prefiksai
+
+Prefiksas negali būti integruoto teikėjo ID ar pseudonimas (pavyzdžiui, `openai`, `cf`) arba
+nebenaudojamo teikėjo ID. Modelių parinkiklis tikrina integruotus ID ir pseudonimus prieš
+pasirinktinius mazgus, todėl vieną iš šių prefiksų naudojantis mazgas niekada negautų srauto:
+`<prefix>/model` būtų nukreiptas integruotam teikėjui arba užblokuotas, jei tas teikėjas
+nebenaudojamas. Bandant sukurti arba redaguoti mazgą su tokiu prefiksu pateikiama ši klaida:
+
+```text
+prefix: „<prefix>“ yra rezervuotas teikėjo prefiksas — pasirinkite kitą prefiksą (rezervuotų ID ar pseudonimų negalima naudoti pasirinktiniams mazgams, nes tokios užklausos kaip <prefix>/model nukreipiamos integruotam teikėjui arba užblokuojamos, kai teikėjas nebenaudojamas)
+```
+
+Pasirinkite unikalų prefiksą (`mygw`, `acme-proxy`). Jei užklausos pasirinktiniam mazgui nepavyksta ir
+klaidoje nurodomas integruotas teikėjas ar jo prisijungimo duomenys, patikrinkite, ar mazgo prefiksas nėra
+rezervuotas: mazgai, išsaugoti iki šios taisyklės įvedimo, tebėra saugomi, tačiau jų prefiksas nukreipia į
+integruotą teikėją. Redaguokite mazgą ir suteikite jam naują prefiksą.
+
+### OmniRoute lygiaverčių mazgų grandinės kūrimas
+
+Kitą OmniRoute tinklų sietuvą galima pridėti kaip **pasirinktinį su OpenAI suderinamą** teikėją. Naudokite
+lygiaverčio mazgo bazinį `/v1` URL ir tam mazgui išduotą atskirą, mažiausių būtinų teisių API raktą.
+
+Dvikryptėms arba kelių etapų grandinėms kiekviename tinklų sietuve įjunkite pasirenkamąją ciklų apsaugą:
 
 ```bash
 # gateway-a
@@ -708,13 +749,14 @@ OMNIROUTE_PEER_URLS=http://gateway-a:20128/v1
 OMNIROUTE_PEER_MAX_HOPS=4
 ```
 
-Tik užklausos, siunčiamos į aiškiai leidžiamų lygiaverčių mazgų URL sąraše esantį adresą, gauna
-`X-OmniRoute-Peer-Trace` antraštę. Šliuzas atmeta pasikartojantį egzemplioriaus ID arba išnaudotą šuolių
-limitą pateikdamas HTTP `508 Loop Detected`; įprasti aukštesnio lygio teikėjai negauna jokių lygiaverčių mazgų metaduomenų.
+Tik užklausos, siunčiamos aiškiai į leidžiamų lygiaverčių mazgų URL sąrašą įtrauktu adresu, gauna
+`X-OmniRoute-Peer-Trace` antraštę. Tinklų sietuvas atmeta pasikartojantį egzemplioriaus ID arba išnaudotą perėjimų
+limitą, pateikdamas HTTP `508 Loop Detected`; įprasti aukštesnio lygio teikėjai negauna jokių lygiaverčių mazgų metaduomenų.
 
-Lygiaverčių mazgų grandinės nėra duomenų bazės replikavimas ar pagrindinio kompiuterio perjungimas gedimo atveju. Kiekvienas šliuzas turi nepriklausomą
-SQLite būseną, podėlius, dažnio skaitiklius ir seansus. Aktyviam / pasyviam arba aktyviam / aktyviam pasiekiamumui naudokite būklę tikrinantį atvirkštinį tarpinį serverį arba kliento
-perjungimą gedimo atveju ir niekada neprijunkite vienos SQLite duomenų bazės prie kelių veikiančių OmniRoute egzempliorių.
+Lygiaverčių mazgų grandinė nėra duomenų bazės replikavimas ar pagrindinio kompiuterio rezervinis perjungimas. Kiekvienas tinklų sietuvas turi nepriklausomą
+SQLite būseną, podėlius, dažnio skaitiklius ir seansus. Aktyviam / pasyviam arba aktyviam / aktyviam pasiekiamumui užtikrinti naudokite
+atvirkštinį tarpinį serverį su būklės patikromis arba kliento rezervinį perjungimą ir niekada neprijunkite vienos SQLite duomenų bazės
+prie kelių veikiančių OmniRoute egzempliorių.
 
 ### Specialieji teikėjų maršrutai
 
@@ -744,7 +786,7 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
 ```
 
-**Pirmenybės tvarka:** Konkrečiam raktui → Konkrečiam deriniui → Konkrečiam teikėjui → Visuotinis → Aplinka.
+**Pirmenybės tvarka:** konkretaus rakto → konkretaus derinio → konkretaus teikėjo → visuotinis → aplinkos.
 
 ### Modelių katalogo API
 
@@ -752,44 +794,44 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
 curl http://localhost:20128/api/models/catalog
 ```
 
-Grąžina pagal teikėją sugrupuotus modelius su tipais (`chat`, `embedding`, `image`).
+Grąžinami pagal teikėją sugrupuoti modeliai su tipais (`chat`, `embedding`, `image`).
 
 ### Sinchronizavimas debesyje
 
-- Sinchronizuokite teikėjus, derinius ir nuostatas tarp įrenginių
-- Automatinis foninis sinchronizavimas su skirtuoju laiku ir greitu nutraukimu
-- Gamybinėje aplinkoje pirmenybę teikite serverio pusės `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL`
+- Sinchronizuokite teikėjus, derinius ir nustatymus skirtinguose įrenginiuose
+- Automatinis foninis sinchronizavimas su skirtuoju laiku ir greitu nutraukimu aptikus klaidą
+- Produkcinėje aplinkoje pirmenybę teikite serverio pusės `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL`
 
 ### Cloudflare spartusis tunelis
 
-- Pasiekiamas skiltyje **Valdymo skydelis → Galiniai taškai**, skirtoje Docker ir kitoms savarankiškai talpinamoms diegtims
-- Sukuria laikiną `https://*.trycloudflare.com` URL, kuris persiunčia užklausas į dabartinį su OpenAI suderinamą `/v1` galinį tašką
-- Pirmą kartą įjungus `cloudflared` įdiegiamas tik tada, kai jo reikia; vėlesni paleidimai iš naujo naudoja tą patį valdomą dvejetainį failą
-- Spartieji tuneliai automatiškai neatkuriami iš naujo paleidus OmniRoute ar konteinerį; prireikus vėl įjunkite juos valdymo skydelyje
-- Tunelių URL yra laikini ir pasikeičia kiekvieną kartą sustabdžius bei paleidus tunelį
-- Valdomi spartieji tuneliai pagal numatytąsias nuostatas naudoja HTTP/2 transportą, kad ribotuose konteineriuose būtų išvengta triukšmingų QUIC UDP buferio įspėjimų
+- Pasiekiama skiltyje **Valdymo skydas → Galiniai taškai**, kai naudojamas Docker ir kitos savarankiškai prieglobojamos diegtys
+- Sukuria laikiną `https://*.trycloudflare.com` URL, kuris nukreipia į dabartinį su OpenAI suderinamą `/v1` galinį tašką
+- Pirmą kartą įjungus, `cloudflared` įdiegiamas tik tada, kai jo reikia; vėliau paleidžiant iš naujo naudojamas tas pats valdomas vykdomasis failas
+- „Quick Tunnels“ nėra automatiškai atkuriami iš naujo paleidus OmniRoute arba konteinerį; prireikus juos vėl įjunkite valdymo skydelyje
+- Tunelių URL yra laikini ir pasikeičia kiekvieną kartą sustabdžius arba paleidus tunelį
+- Valdomuose „Quick Tunnels“ pagal numatytąsias nuostatas naudojamas HTTP/2 transportas, kad ribotų išteklių konteineriuose būtų išvengta triukšmingų QUIC UDP buferio įspėjimų
 - Jei norite pakeisti valdomo transporto pasirinkimą, nustatykite `CLOUDFLARED_PROTOCOL=quic` arba `auto`
-- Jei vietoj valdomo atsisiuntimo norite naudoti iš anksto įdiegtą `cloudflared` dvejetainį failą, nustatykite `CLOUDFLARED_BIN`
-- Cloudflare spartiojo tunelio, Tailscale Funnel ir ngrok tunelio skydelius galima rodyti arba slėpti skiltyje **Nuostatos → Išvaizda**. Paslėpus skydelį veikiantis tunelis nesustabdomas.
+- Jei vietoje valdomo atsisiuntimo norite naudoti iš anksto įdiegtą `cloudflared` vykdomąjį failą, nustatykite `CLOUDFLARED_BIN`
+- Cloudflare „Quick Tunnel“, Tailscale „Funnel“ ir ngrok „Tunnel“ skydelius galima rodyti arba slėpti skiltyje **Nustatymai → Išvaizda**. Paslėpus skydelį veikiantis tunelis nesustabdomas.
 
-### LLM šliuzo intelektika (9 etapas)
+### LLM šliuzo intelektas (9 etapas)
 
-- **Semantinis podėlis** — Automatiškai įrašo į podėlį nesrautinius atsakymus, kurių temperature=0 (apeikite naudodami `X-OmniRoute-No-Cache: true`)
-- **Užklausų idempotentiškumas** — Pašalina pasikartojančias užklausas per 5 s naudodamas `Idempotency-Key` arba `X-Request-Id` antraštę
-- **Eigos stebėjimas** — Pasirenkamieji SSE `event: progress` įvykiai naudojant `X-OmniRoute-Progress: true` antraštę
+- **Semantinė podėlio atmintinė** — Automatiškai talpykloje išsaugo ne srautiniu būdu perduodamus atsakymus, kurių temperature=0 (apeikite naudodami `X-OmniRoute-No-Cache: true`)
+- **Užklausų idempotentiškumas** — Per 5 sek. pašalina pasikartojančias užklausas pagal `Idempotency-Key` arba `X-Request-Id` antraštę
+- **Eigos stebėjimas** — Pasirenkami SSE `event: progress` įvykiai, įjungiami naudojant `X-OmniRoute-Progress: true` antraštę
 
 ---
 
 ### Vertėjo bandymų aplinka
 
-Pasiekite per **Valdymo skydelis → Vertėjas**. Derinkite ir vizualizuokite, kaip OmniRoute verčia API užklausas tarp teikėjų.
+Pasiekiama per **Valdymo skydas → Vertėjas**. Derinkite ir vizualizuokite, kaip OmniRoute verčia API užklausas tarp teikėjų.
 
-| Režimas                    | Paskirtis                                                                                                    |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **Bandymų aplinka**        | Pasirinkite šaltinio / paskirties formatus, įklijuokite užklausą ir iškart pamatykite išverstą išvestį       |
-| **Pokalbių bandyklė**      | Siųskite tiesioginius pokalbių pranešimus per tarpinį serverį ir nagrinėkite visą užklausos / atsakymo ciklą |
-| **Testavimo stendas**      | Vykdykite paketinius kelių formatų derinių testus, kad patikrintumėte vertimo teisingumą                     |
-| **Tiesioginis stebėjimas** | Stebėkite vertimus realiuoju laiku, kai užklausos perduodamos per tarpinį serverį                            |
+| Režimas                    | Paskirtis                                                                                                     |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| **Bandymų aplinka**        | Pasirinkite šaltinio ir paskirties formatus, įklijuokite užklausą ir iškart peržiūrėkite išverstą išvestį     |
+| **Pokalbių testuoklė**     | Siųskite tiesioginius pokalbio pranešimus per tarpinį serverį ir tikrinkite visą užklausos bei atsakymo ciklą |
+| **Testavimo stendas**      | Vykdykite paketinius įvairių formatų derinių testus, kad patikrintumėte vertimo teisingumą                    |
+| **Tiesioginis stebėjimas** | Stebėkite vertimus realiuoju laiku, kai užklausos perduodamos per tarpinį serverį                             |
 
 **Naudojimo atvejai:**
 
@@ -801,65 +843,65 @@ Pasiekite per **Valdymo skydelis → Vertėjas**. Derinkite ir vizualizuokite, k
 
 ### Maršruto parinkimo strategijos
 
-Konfigūruokite skiltyje **Valdymo skydelis → Nuostatos → Maršruto parinkimas**. Valdymo skydelyje pateikiamos šešios dažniausiai naudojamos strategijos; deriniai ir automatinis maršrutizatorius viduje palaiko platesnį strategijų rinkinį.
+Konfigūruokite skiltyje **Valdymo skydas → Nustatymai → Maršruto parinkimas**. Valdymo skydelyje pateikiamos šešios dažniausiai naudojamos strategijos; deriniai ir automatinis maršruto parinkiklis viduje palaiko platesnį jų rinkinį.
 
 **Valdymo skydelyje matomos strategijos (paskyros lygmens maršruto parinkimas):**
 
-| Strategija                         | Aprašymas                                                                                                                 |
+| Strategija                         | Aprašas                                                                                                                   |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **Pirmojo užpildymas**             | Naudoja paskyras prioriteto tvarka — pagrindinė paskyra apdoroja visas užklausas, kol tampa nepasiekiama                  |
-| **Ciklinis paskirstymas**          | Cikliškai naudoja visas paskyras su konfigūruojamu prieraišumo limitu (numatytoji reikšmė: 3 iškvietimai vienai paskyrai) |
-| **P2C (dviejų pasirinkimų galia)** | Parenka 2 atsitiktines paskyras ir nukreipia į geresnės būklės paskyrą — subalansuoja apkrovą atsižvelgdamas į būklę      |
-| **Atsitiktinis**                   | Atsitiktinai parenka paskyrą kiekvienai užklausai naudodamas Fisher-Yates maišymą                                         |
-| **Mažiausiai naudotas**            | Nukreipia į paskyrą su seniausia `lastUsedAt` laiko žyma, tolygiai paskirstydamas srautą                                  |
-| **Optimizuotas pagal kainą**       | Nukreipia į paskyrą su mažiausia prioriteto reikšme, optimizuodamas pigiausiems teikėjams                                 |
+| **Pirmojo užpildymas**             | Paskyros naudojamos prioriteto tvarka — pagrindinė paskyra apdoroja visas užklausas, kol tampa nepasiekiama               |
+| **Ciklinis paskirstymas**          | Cikliškai pereinama per visas paskyras, taikant konfigūruojamą susiejimo ribą (numatytoji: 3 iškvietimai vienai paskyrai) |
+| **P2C (dviejų pasirinkimų galia)** | Atsitiktinai parenkamos 2 paskyros ir užklausa nukreipiama į stabilesnę — apkrova subalansuojama atsižvelgiant į būklę    |
+| **Atsitiktinis**                   | Kiekvienai užklausai paskyra parenkama atsitiktinai, naudojant Fisher-Yates maišymą                                       |
+| **Mažiausiai naudota**             | Užklausa nukreipiama į paskyrą su seniausia `lastUsedAt` laiko žyma, taip tolygiai paskirstant srautą                     |
+| **Optimizuota pagal kainą**        | Užklausa nukreipiama į paskyrą, kurios prioriteto reikšmė mažiausia, optimizuojant mažiausios kainos teikėjų naudojimą    |
 
-**Išplėstinės derinių ir automatinės strategijos** (konfigūruojamos kiekvienam deriniui arba naudojant `auto/*` prefiksus — žr. [AUTO-COMBO.md](../routing/AUTO-COMBO.md)):
+**Išplėstinės derinių ir automatinės strategijos** (konfigūruojamos kiekvienam deriniui arba naudojant `auto/*` priešdėlius — žr. [AUTO-COMBO.md](../routing/AUTO-COMBO.md)):
 
 - `priority` — griežta tvarka, ciklinis paskirstymas niekada nenaudojamas
 - `weighted` — proporcingas srauto paskirstymas pagal kiekvieno modelio svorį
-- `fill-first` — pirmasis modelis naudojamas tol, kol pasiekiami limitai
+- `fill-first` — pirmasis modelis naudojamas tol, kol pasiekiami apribojimai
 - `round-robin` / `strict-random` / `random`
 - `p2c` (dviejų pasirinkimų galia)
 - `least-used` ir `cost-optimized`
-- `auto` — visų kandidatų parinkimas pagal įvertį
-- `lkgp` (paskutinis žinomas geras teikėjas) — fiksuoja paskutinį sėkmingą teikėją, tada pereina prie taisyklių
-- `context-optimized` — parenka modelį su didžiausiu laisvu konteksto langu
-- `context-relay` — sujungia didelio konteksto modelius tolesniems dialogo žingsniams
+- `auto` — visi kandidatai vertinami pagal balus
+- `lkgp` (paskutinis sėkmingai naudotas teikėjas) — naudojamas paskutinis sėkmingas teikėjas, o jam netinkant pereinama prie taisyklių
+- `context-optimized` — parenkamas modelis, turintis didžiausią laisvą konteksto langą
+- `context-relay` — tolesnėms užklausoms sujungiami ilgą kontekstą palaikantys modeliai
 
-#### Išorinė prieraišaus seanso antraštė
+#### Išorinės susietosios sesijos antraštė
 
-Išoriniam seanso susiejimui (pavyzdžiui, Claude Code/Codex agentams už atvirkštinių tarpinių serverių) siųskite:
+Norėdami užtikrinti išorinį sesijos susiejimą (pavyzdžiui, Claude Code/Codex agentams už atvirkštinių tarpinių serverių), siųskite:
 
 ```http
 X-Session-Id: your-session-key
 ```
 
-OmniRoute taip pat priima `x_session_id` ir grąžina faktiškai naudojamą seanso raktą antraštėje `X-OmniRoute-Session-Id`.
+OmniRoute taip pat priima `x_session_id` ir grąžina galiojantį sesijos raktą antraštėje `X-OmniRoute-Session-Id`.
 
-Jei naudojate Nginx ir siunčiate antraštes su pabraukimo brūkšniais, įjunkite:
+Jei naudojate Nginx ir siunčiate antraštes su apatiniais brūkšniais, įjunkite:
 
 ```nginx
 underscores_in_headers on;
 ```
 
-#### Modelių pseudonimai su pakaitos simboliais
+#### Modelių pakaitos simbolių alternatyvieji vardai
 
-Sukurkite šablonus su pakaitos simboliais, kad pakeistumėte modelių pavadinimų susiejimą:
+Sukurkite pakaitos simbolių šablonus modelių pavadinimams persieti:
 
 ```
-Pattern: claude-sonnet-*     →  Target: cc/claude-sonnet-4-6
-Pattern: gpt-*               →  Target: gh/gpt-5.3-codex
+Šablonas: claude-sonnet-*     →  Paskirtis: cc/claude-sonnet-4-6
+Šablonas: gpt-*               →  Paskirtis: gh/gpt-5.3-codex
 ```
 
-Pakaitos simbolių šablonai palaiko `*` (bet kokie simboliai) ir `?` (vienas simbolis).
+Pakaitos simboliuose palaikomi `*` (bet kokie simboliai) ir `?` (vienas simbolis).
 
 #### Atsarginių variantų grandinės
 
 Apibrėžkite visuotines atsarginių variantų grandines, taikomas visoms užklausoms:
 
 ```
-Chain: production-fallback
+Grandinė: production-fallback
   1. cc/claude-opus-4-7
   2. gh/gpt-5.3-codex
   3. glm/glm-4.7
@@ -869,137 +911,136 @@ Chain: production-fallback
 
 ### Atsparumas ir grandinės pertraukikliai
 
-Konfigūruokite skiltyje **Valdymo skydelis → Nuostatos → Atsparumas**.
+Konfigūruokite skiltyje **Valdymo skydas → Nustatymai → Atsparumas**.
 
-OmniRoute įgyvendina teikėjo lygmens atsparumą naudodamas penkis komponentus:
+OmniRoute užtikrina teikėjo lygmens atsparumą naudodama penkis komponentus:
 
 1. **Užklausų eilė ir tempo valdymas** — Sistemos lygmens užklausų srauto formavimas:
    - **Užklausos per minutę (RPM)** — Didžiausias užklausų skaičius per minutę vienai paskyrai
-   - **Minimalus laikas tarp užklausų** — Minimalus tarpas milisekundėmis tarp užklausų
-   - **Didžiausias vienalaikių užklausų skaičius** — Didžiausias vienu metu vykdomų užklausų skaičius vienai paskyrai
+   - **Minimalus laikas tarp užklausų** — Minimalus intervalas milisekundėmis tarp užklausų
+   - **Didžiausias lygiagrečių užklausų skaičius** — Didžiausias vienu metu vykdomų užklausų skaičius vienai paskyrai
+2. **Ryšio atvėsimo laikotarpis** — Kiekvienam autentifikavimo tipui skirta vieno ryšio konfigūracija po pakartotinai bandyti leidžiančių klaidų:
+   - **Bazinis atvėsimo laikotarpis** — Numatytasis atvėsimo laikotarpis po pakartotinai bandyti leidžiančių aukštesnio lygmens paslaugos klaidų
+   - **Naudoti aukštesnio lygmens paslaugos pakartojimo užuominas** — Atsižvelgiama į patikimas `Retry-After` arba atkūrimo užuominas, kai jos pateikiamos
+   - **Didžiausias eksponentinio delsimo žingsnių skaičius** — Didžiausias eksponentinio delsimo lygis pasikartojančių klaidų atveju
 
-2. **Ryšio atvėsimo laikotarpis** — Kiekvienam autentifikavimo tipui skirta vieno ryšio konfigūracija po klaidų, kurias galima bandyti iš naujo:
-   - **Bazinis atvėsimo laikotarpis** — Numatytasis atvėsimo intervalas po aukštesnio lygio teikėjo klaidų, kurias galima bandyti iš naujo
-   - **Naudoti aukštesnio lygio teikėjo pakartojimo užuominas** — Atsižvelgiama į patikimas `Retry-After` arba nustatymo iš naujo užuominas, kai jos pateikiamos
-   - **Didžiausias atidėjimo žingsnių skaičius** — Didžiausias eksponentinio atidėjimo lygis pasikartojančioms klaidoms
-
-3. **Teikėjo grandinės pertraukiklis** — Stebi visą teikėjo klaidų kelią, pažymi teikėją kaip sutrikusį pasiekus sukonfigūruotą įspėjimo slenkstį ir atveria pertraukiklį pasiekus sukonfigūruotą klaidų slenkstį:
-   - **Sutrikimo slenkstis** — Nuoseklių teikėjo klaidų skaičius prieš pereinant į `DEGRADED`
-   - **Klaidų slenkstis** — Nuoseklių teikėjo klaidų skaičius prieš pereinant į `OPEN`
-   - **Nustatymo iš naujo skirtasis laikas** — Laiko tarpas iki kito teikėjo patikrinimo
+3. **Teikėjo grandinės pertraukiklis** — Stebi viso kelio teikėjo klaidas, pažymi teikėją kaip sutrikusį pasiekus sukonfigūruotą įspėjimo slenkstį ir atveria pertraukiklį pasiekus sukonfigūruotą klaidų slenkstį:
+   - **Sutrikimo slenkstis** — Iš eilės įvykusių teikėjo klaidų skaičius prieš pereinant į būseną `DEGRADED`
+   - **Klaidų slenkstis** — Iš eilės įvykusių teikėjo klaidų skaičius prieš pereinant į būseną `OPEN`
+   - **Atkūrimo skirtasis laikas** — Laikotarpis, po kurio teikėjas tikrinamas iš naujo
    - **CLOSED** (veikia tinkamai) — Užklausos perduodamos įprastai
-   - **DEGRADED** — Užklausos vis dar perduodamos, kol stebimas padidėjęs klaidų skaičius
+   - **DEGRADED** — Užklausos vis dar perduodamos, o padidėjęs klaidų skaičius stebimas
    - **OPEN** — Po pasikartojančių klaidų teikėjas laikinai blokuojamas
-   - **HALF_OPEN** — Tikrinama, ar teikėjas atsigavo
+   - **HALF_OPEN** — Tikrinama, ar teikėjo veikimas atsikūrė
 
-   Konkretaus ryšio `429` dažnio apribojimai lieka skiltyje **Ryšio atvėsimo laikotarpis** ir neįskaičiuojami į teikėjo pertraukiklio klaidas.
+   Konkrečiam ryšiui taikomi `429` spartos apribojimai lieka **ryšio atvėsimo laikotarpio** mechanizme ir neįskaičiuojami į teikėjo grandinės pertraukiklio klaidas.
 
-   Teikėjo pertraukiklio vykdymo būsena rodoma tik skiltyje **Valdymo skydelis → Būklė**.
+   Teikėjo grandinės pertraukiklio vykdymo būsena rodoma tik puslapyje **Valdymo skydelis → Būklė**.
 
-4. **Laukti atvėsimo laikotarpio** — Jei visi galimi ryšiai jau yra atvėsimo būsenoje, OmniRoute gali palaukti, kol pasibaigs anksčiausias atvėsimo laikotarpis, ir automatiškai pakartoti tą pačią kliento užklausą.
+4. **Laukti atvėsimo laikotarpio pabaigos** — Jei visi galimi ryšiai jau yra atvėsimo būsenoje, OmniRoute gali palaukti, kol pasibaigs trumpiausias atvėsimo laikotarpis, ir automatiškai pakartoti tą pačią kliento užklausą.
 
-5. **Automatinis dažnio apribojimų aptikimas** — Kai aukštesnio lygio teikėjai grąžina aiškius laukimo intervalus, įjungus šią nuostatą tos užuominos pakeičia vietinį ryšio atvėsimo laikotarpį.
+5. **Automatinis spartos apribojimo aptikimas** — Kai aukštesnio lygmens paslaugų teikėjai grąžina aiškiai nurodytus laukimo laikotarpius, įjungus šį nustatymą šios užuominos pakeičia vietinį ryšio atvėsimo laikotarpį.
 
-**Profesionalo patarimas:** Naudokite puslapį **Būklė**, kad po sutrikimo patikrintumėte ir iš naujo nustatytumėte veikiančius teikėjų pertraukiklius. Puslapyje „Atsparumas“ keičiama tik konfigūracija.
+**Profesionalo patarimas:** Puslapyje **Būklė** galite peržiūrėti ir iš naujo nustatyti aktyvius teikėjų grandinės pertraukiklius po veikimo sutrikimo. Atsparumo puslapyje keičiama tik konfigūracija.
 
 ---
 
 ### Duomenų bazės eksportavimas / importavimas
 
-Tvarkykite duomenų bazės atsargines kopijas skiltyje **Valdymo skydelis → Nuostatos → Sistema ir saugykla**.
+Tvarkykite duomenų bazės atsargines kopijas dalyje **Valdymo skydelis → Nustatymai → Sistema ir saugykla**.
 
-| Veiksmas                        | Aprašymas                                                                                                                                                                       |
+| Veiksmas                        | Aprašas                                                                                                                                                                         |
 | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Eksportuoti duomenų bazę**    | Atsisiunčia dabartinę SQLite duomenų bazę kaip `.sqlite` failą                                                                                                                  |
-| **Eksportuoti viską (.tar.gz)** | Atsisiunčia visą atsarginės kopijos archyvą, įskaitant duomenų bazę, nuostatas, derinius, ryšius su teikėjais (be prisijungimo duomenų) ir API raktų metaduomenis               |
+| **Eksportuoti duomenų bazę**    | Atsiunčia dabartinę SQLite duomenų bazę kaip `.sqlite` failą                                                                                                                    |
+| **Eksportuoti viską (.tar.gz)** | Atsiunčia visą atsarginės kopijos archyvą, kuriame yra: duomenų bazė, nustatymai, deriniai, teikėjų ryšiai (be prisijungimo duomenų), API raktų metaduomenys                    |
 | **Importuoti duomenų bazę**     | Įkelia `.sqlite` failą, kuriuo pakeičiama dabartinė duomenų bazė. Jei nenustatyta `DISABLE_SQLITE_AUTO_BACKUP=true`, prieš importuojant automatiškai sukuriama atsarginė kopija |
 
 ```bash
-# API: Eksportuoti duomenų bazę
+# API: eksportuoti duomenų bazę
 curl -o backup.sqlite http://localhost:20128/api/db-backups/export
 
-# API: Eksportuoti viską (visas archyvas)
+# API: eksportuoti viską (visą archyvą)
 curl -o backup.tar.gz http://localhost:20128/api/db-backups/exportAll
 
-# API: Importuoti duomenų bazę
+# API: importuoti duomenų bazę
 curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**Importavimo tikrinimas:** Tikrinamas importuoto failo vientisumas (SQLite pragma patikra), privalomos lentelės (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) ir dydis (ne daugiau kaip 100 MB).
+**Importavimo patikra:** Tikrinamas importuoto failo vientisumas (SQLite pragma patikra), privalomos lentelės (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) ir dydis (ne daugiau kaip 100 MB).
 
 **Naudojimo atvejai:**
 
-- Perkelkite OmniRoute iš vieno įrenginio į kitą
-- Kurkite išorines atsargines kopijas atkūrimui po nelaimės
-- Bendrinkite konfigūracijas su komandos nariais (eksportuokite viską → bendrinkite archyvą)
+- Perkelti OmniRoute iš vieno įrenginio į kitą
+- Kurti išorines atsargines kopijas, skirtas atkūrimui po incidentų
+- Bendrinti konfigūracijas su komandos nariais (eksportuoti viską → bendrinti archyvą)
 
 ---
 
-### Nuostatų valdymo skydelis
+### Nustatymų valdymo skydelis
 
-Kad būtų lengviau naršyti, nuostatų puslapis suskirstytas į **7 korteles**:
+Kad būtų patogu naršyti, nustatymų puslapis suskirstytas į **7 skirtukus**:
 
-| Kortelė                 | Turinys                                                                                                                                                                                                                                                               |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Bendra**              | Sistemos saugyklos įrankiai, numatytoji elgsena, galinių taškų tunelių matomumas                                                                                                                                                                                      |
-| **Išvaizda**            | Temos valdikliai (šviesi / tamsi / sistemos), šoninės juostos matomumas, Cloudflare/Tailscale/ngrok tunelių kortelių skydelių jungikliai                                                                                                                              |
-| **DI**                  | Mąstymo biudžetas (perduoti nepakeistą / automatiškai pašalinti / pasirinktinis / adaptyvus — žr. [THINKING_BUDGET.md](./THINKING_BUDGET.md)), visuotinis sistemos raginimas, raginimų podėlio statistika                                                             |
-| **Sauga**               | Prisijungimo / slaptažodžio nuostatos, IP prieigos valdymas, `/models` API autentifikavimas, teikėjų blokavimas, apsauga nuo raginimų injekcijos                                                                                                                      |
-| **Maršruto parinkimas** | Visuotinė maršruto parinkimo strategija (pirmojo užpildymas / ciklinis paskirstymas / P2C / atsitiktinis / mažiausiai naudotas / optimizuotas pagal kainą), modelių pseudonimai su pakaitos simboliais, atsarginių variantų grandinės, derinių numatytosios nuostatos |
-| **Atsparumas**          | Užklausų eilė, ryšio atvėsimo laikotarpis, teikėjo pertraukiklio konfigūracija ir laukimo, kol pasibaigs atvėsimo laikotarpis, elgsena                                                                                                                                |
-| **Išplėstinės**         | Visuotinio tarpinio serverio konfigūracija (HTTP/SOCKS5), atskirų teikėjų tarpinio serverio perrašymai                                                                                                                                                                |
+| Skirtukas               | Turinys                                                                                                                                                                                                                                                |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Bendra**              | Sistemos saugyklos įrankiai, numatytoji elgsena, galinio taško tunelio matomumas                                                                                                                                                                       |
+| **Išvaizda**            | Temos valdikliai (šviesi / tamsi / sistemos), šoninės juostos matomumas, Cloudflare/Tailscale/ngrok tunelių kortelių skydelių perjungikliai                                                                                                            |
+| **DI**                  | Samprotavimo biudžetas (perduoti nepakeistą / automatiškai pašalinti / pasirinktinis / adaptyvusis — žr. [THINKING_BUDGET.md](./THINKING_BUDGET.md)), visuotinis sistemos raginimas, raginimų podėlio statistika                                       |
+| **Sauga**               | Prisijungimo / slaptažodžio nustatymai, IP prieigos valdymas, `/models` API autentifikavimas, teikėjų blokavimas, apsauga nuo raginimų įterpimo                                                                                                        |
+| **Maršruto parinkimas** | Visuotinė maršruto parinkimo strategija (pirmiausia užpildyti / ciklinė / P2C / atsitiktinė / rečiausiai naudota / optimizuota pagal kainą), modelių pseudonimai su pakaitos simboliais, atsarginių variantų grandinės, numatytieji derinių nustatymai |
+| **Atsparumas**          | Užklausų eilė, ryšio atvėsimo laikotarpis, teikėjo grandinės pertraukiklio konfigūracija ir laukimo, kol pasibaigs atvėsimo laikotarpis, elgsena                                                                                                       |
+| **Išplėstiniai**        | Visuotinė tarpinio serverio konfigūracija (HTTP/SOCKS5), kiekvienam teikėjui skirti tarpinio serverio pakeitimai                                                                                                                                       |
 
-Skiltyje „Bendra“ nebedubliuojamos tik skaityti skirtos žurnalų ir podėlio pastabos. Duomenų bazės saugojimo ir
-optimizavimo nuostatos išsaugomos per `/api/settings/database`; podėlis rankiniu būdu išvalomas naudojant
-`DELETE /api/cache`. Užklausų ir tarpinio serverio žurnalų eilučių limitai valdomi naudojant
+Skirtuke Bendra nebekartojamos tik skaityti skirtos registravimo ir podėlio pastabos. Duomenų bazės saugojimo ir
+optimizavimo nustatymai išsaugomi per `/api/settings/database`; podėliui išvalyti rankiniu būdu naudojama
+`DELETE /api/cache`. Užklausų ir tarpinio serverio žurnalų eilučių skaičiaus ribos valdomos naudojant
 `CALL_LOGS_TABLE_MAX_ROWS` ir `PROXY_LOGS_TABLE_MAX_ROWS`.
 
 ---
 
 ### Išlaidų ir biudžeto valdymas
 
-Pasiekite per **Valdymo skydelis → Išlaidos**.
+Pasiekiama per **Valdymo skydelis → Išlaidos**.
 
-| Kortelė       | Paskirtis                                                                                                                         |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Biudžetas** | Nustatykite kiekvieno API rakto išlaidų limitus su dienos / savaitės / mėnesio biudžetais ir stebėjimu realiuoju laiku            |
-| **Kainodara** | Peržiūrėkite ir redaguokite modelių kainodaros įrašus — kaina už 1 tūkst. įvesties / išvesties prieigos raktų kiekvienam teikėjui |
+| Skirtukas     | Paskirtis                                                                                                                |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **Biudžetas** | Nustatyti kiekvieno API rakto išlaidų limitus su dienos / savaitės / mėnesio biudžetais ir stebėjimu realiuoju laiku     |
+| **Kainodara** | Peržiūrėti ir redaguoti modelių kainodaros įrašus — kiekvieno teikėjo 1 tūkst. įvesties / išvesties prieigos raktų kaina |
 
 ```bash
-# API: Nustatyti biudžetą
+# API: nustatyti biudžetą
 curl -X POST http://localhost:20128/api/usage/budget \
   -H "Content-Type: application/json" \
   -d '{"keyId": "key-123", "limit": 50.00, "period": "monthly"}'
 
-# API: Gauti dabartinę biudžeto būseną
+# API: gauti dabartinę biudžeto būseną
 curl http://localhost:20128/api/usage/budget
 ```
 
-**Išlaidų stebėjimas:** Kiekvienai užklausai registruojamas prieigos raktų naudojimas ir pagal kainodaros lentelę apskaičiuojama kaina. Peržiūrėkite suskirstymą pagal teikėją, modelį ir API raktą skiltyje **Valdymo skydelis → Naudojimas**.
+**Išlaidų stebėjimas:** kiekvienai užklausai registruojamas žetonų naudojimas ir pagal kainodaros lentelę apskaičiuojamos išlaidos. Išsamią informaciją pagal teikėją, modelį ir API raktą galite peržiūrėti skiltyje **Valdymo skydelis → Naudojimas**.
 
 ---
 
-### Garso transkribavimas
+### Garso transkripcija
 
-OmniRoute palaiko garso transkribavimą per su OpenAI suderinamą galinį tašką:
+OmniRoute palaiko garso transkripciją per su OpenAI suderinamą galinį tašką:
 
 ```bash
 POST /v1/audio/transcriptions
 Authorization: Bearer your-api-key
 Content-Type: multipart/form-data
 
-# Pavyzdys su curl
+# Pavyzdys naudojant curl
 curl -X POST http://localhost:20128/v1/audio/transcriptions \
   -H "Authorization: Bearer your-api-key" \
   -F "file=@audio.mp3" \
   -F "model=openai/whisper-1"
 ```
 
-`deepgram/nova-3` yra savasis Deepgram maršrutas, kuriam reikia Deepgram API rakto.
+`deepgram/nova-3` yra savasis Deepgram maršrutas, kuriam reikalingas Deepgram API raktas.
 Jei sukonfigūruotas tik OpenRouter, naudokite `openrouter/deepgram/nova-3`.
 
-**Kalbos vertimo tekstu (transkribavimo)** teikėjai:
+**Kalbos vertimo į tekstą (transkripcijos)** teikėjai:
 
 - `openai/` (suderinama su whisper)
 - `groq/` (Groq Whisper Turbo)
@@ -1009,7 +1050,7 @@ Jei sukonfigūruotas tik OpenRouter, naudokite `openrouter/deepgram/nova-3`.
 - `huggingface/` (whisper variantai)
 - `qwen/`
 
-**Teksto vertimo kalba (`POST /v1/audio/speech`)** teikėjai:
+**Teksto vertimo į kalbą (`POST /v1/audio/speech`)** teikėjai:
 
 - `openai/` (tts-1, tts-1-hd)
 - `hyperbolic/`
@@ -1026,7 +1067,7 @@ Jei sukonfigūruotas tik OpenRouter, naudokite `openrouter/deepgram/nova-3`.
 - `coqui/`, `tortoise/`
 - `qwen/`
 
-Palaikomi transkribavimo garso formatai: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`. TTS išvesties formatai priklauso nuo teikėjo (mp3, wav, opus, pcm, mulaw).
+Palaikomi transkripcijos garso formatai: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`. TTS išvesties formatai priklauso nuo teikėjo (mp3, wav, opus, pcm, mulaw).
 
 ---
 
@@ -1034,48 +1075,48 @@ Palaikomi transkribavimo garso formatai: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `we
 
 Kiekvieno derinio balansavimą konfigūruokite skiltyje **Valdymo skydelis → Deriniai → Kurti / redaguoti → Strategija**.
 
-| Strategija                   | Aprašymas                                                                             |
-| ---------------------------- | ------------------------------------------------------------------------------------- |
-| **Ciklinis paskirstymas**    | Nuosekliai kaitalioja modelius                                                        |
-| **Prioritetas**              | Visada pirmiausia bando pirmąjį modelį; atsarginį variantą naudoja tik įvykus klaidai |
-| **Atsitiktinis**             | Kiekvienai užklausai parenka atsitiktinį modelį iš derinio                            |
-| **Svertinis**                | Nukreipia proporcingai pagal kiekvienam modeliui priskirtus svorius                   |
-| **Mažiausiai naudotas**      | Nukreipia į modelį, gavusį mažiausiai naujausių užklausų (naudoja derinio metrikas)   |
-| **Optimizuotas pagal kainą** | Nukreipia į pigiausią pasiekiamą modelį (naudoja kainodaros lentelę)                  |
+| Strategija                     | Aprašymas                                                                                  |
+| ------------------------------ | ------------------------------------------------------------------------------------------ |
+| **Ciklinė**                    | Nuosekliai kaitalioja modelius                                                             |
+| **Prioritetinė**               | Visada pirmiausia bando pirmąjį modelį; atsarginį modelį naudoja tik įvykus klaidai        |
+| **Atsitiktinė**                | Kiekvienai užklausai parenka atsitiktinį modelį iš derinio                                 |
+| **Svertinė**                   | Maršrutizuoja proporcingai pagal kiekvienam modeliui priskirtus svorius                    |
+| **Mažiausiai naudoto modelio** | Maršrutizuoja į modelį, kuriam neseniai teko mažiausiai užklausų (naudoja derinio metriką) |
+| **Optimizuota pagal išlaidas** | Maršrutizuoja į pigiausią pasiekiamą modelį (naudoja kainodaros lentelę)                   |
 
-Visuotines derinių numatytąsias nuostatas galima nustatyti skiltyje **Valdymo skydelis → Nuostatos → Maršruto parinkimas → Derinių numatytosios nuostatos**.
-Derinio paskirties skirtieji laikai pagal numatytąsias nuostatas paveldi dabartinės užklausos skirtąjį laiką. Naudokite **Paskirties skirtasis laikas
-(sekundėmis)** derinių numatytosiose nuostatose arba atskirame derinyje tik tada, kai trumpesnis kiekvienos paskirties limitas turėtų
-greičiau suaktyvinti atsarginį variantą.
+Visuotines numatytąsias derinių nuostatas galima nustatyti skiltyje **Valdymo skydelis → Nuostatos → Maršrutizavimas → Numatytosios derinių nuostatos**.
+Pagal numatytąją nuostatą derinio paskirties objektų skirtasis laikas paveldi dabartinės užklausos skirtąjį laiką. Numatytosiose derinio nuostatose arba atskirame derinyje naudokite **Paskirties objekto skirtasis laikas
+(sekundėmis)** tik tada, kai trumpesnė kiekvieno paskirties objekto riba turėtų
+greičiau aktyvuoti atsarginį variantą.
 
 Nulinės delsos derinių optimizavimas yra pasirenkamas. Palikite **Nulinės delsos optimizavimas** išjungtą, kad
-šios delsos funkcijos nelenktyniautų su atsarginėmis paskirtimis, nepraleistų paskirčių pagal TTFT
-istoriją ir neglaudintų atsarginių užklausų; jį įjungus, sukonfigūruotas lygiagretusis dubliavimas, prognozuojamasis TTFT
-praleidimas ir iniciatyvus atsarginių užklausų glaudinimas gali sumažinti didžiausią delsą maršruto parinkimo / užklausų tikslumo
-sąskaita.
+šios delsos funkcijos nepradėtų lygiagrečiai varžytis su atsarginiais paskirties objektais, nepraleistų paskirties objektų pagal TTFT
+istoriją ar neglaudintų atsarginių užklausų; įjungus šią parinktį leidžiama naudoti sukonfigūruotą dubliavimą, prognozuojamąjį TTFT
+praleidimą ir išankstinį atsarginių užklausų glaudinimą, iškeičiant maršrutizavimo / užklausų tikslumą į mažesnę
+kraštutinę delsą.
 
-Išjunkite **Samprotavimo prieigos raktų buferį**, kai aukštesnio lygio teikėjams reikia griežtų
-`max_tokens` / `maxOutputTokens` limitų. Kai ši funkcija įjungta, derinių maršruto parinkimas papildomą samprotavimo modelio
-rezervą prideda tik modeliams su žinomu išvesties limitu ir nekeičia kliento prieigos raktų limito, kai
-saugi reikšmė su buferiu viršytų tą limitą. Jei kliento limitas jau viršija žinomą ribą,
-prieš siųsdamas užklausą aukštesnio lygio teikėjui OmniRoute sumažina jį iki tos ribos.
+Išjunkite **Samprotavimo žetonų buferis**, kai pirminiai teikėjai reikalauja griežtų
+`max_tokens` / `maxOutputTokens` ribų. Kai ši parinktis įjungta, derinių maršrutizavimas papildomą vietą samprotavimo modeliams
+prideda tik tiems modeliams, kurių išvesties riba yra žinoma, ir palieka kliento žetonų ribą nepakeistą, jei
+saugi reikšmė su buferiu viršytų tą ribą. Jei kliento riba jau viršija žinomą ribą,
+prieš siųsdama užklausą pirminiam teikėjui OmniRoute sumažina ją iki tos ribos.
 
 ---
 
-### Būklės valdymo skydelis
+### Sistemos būklės valdymo skydelis
 
-Pasiekite per **Valdymo skydelis → Būklė**. Sistemos būklės apžvalga realiuoju laiku su 6 kortelėmis:
+Pasiekiamas per **Valdymo skydelis → Sistemos būklė**. Sistemos būklės apžvalga realiuoju laiku su 6 kortelėmis:
 
-| Kortelė                | Kas joje rodoma                                                                      |
-| ---------------------- | ------------------------------------------------------------------------------------ |
-| **Sistemos būsena**    | Veikimo trukmė, versija, atminties naudojimas, duomenų katalogas                     |
-| **Teikėjų būklė**      | Visuotinė teikėjo grandinės pertraukiklio vykdymo būsena                             |
-| **Dažnio apribojimai** | Aktyvūs kiekvienos paskyros ryšio atvėsimo laikotarpiai ir likęs laikas              |
-| **Aktyvūs blokavimai** | Aktyvūs konkrečių modelių blokavimai ir laikinos išimtys                             |
-| **Parašų podėlis**     | Pasikartojančių įrašų šalinimo podėlio statistika (aktyvūs raktai, pataikymų dažnis) |
-| **Delsos telemetrija** | p50/p95/p99 delsos agregavimas kiekvienam teikėjui                                   |
+| Kortelė                | Kas joje rodoma                                                           |
+| ---------------------- | ------------------------------------------------------------------------- |
+| **Sistemos būsena**    | Veikimo trukmė, versija, atminties naudojimas, duomenų katalogas          |
+| **Teikėjų būklė**      | Visuotinių teikėjų grandinės pertraukiklių vykdymo būsena                 |
+| **Spartos ribos**      | Aktyvūs kiekvienos paskyros ryšio atvėsimo laikotarpiai ir likęs laikas   |
+| **Aktyvūs blokavimai** | Aktyvūs konkretiems modeliams taikomi blokavimai ir laikinosios išimtys   |
+| **Parašų podėlis**     | Dubliavimo šalinimo podėlio statistika (aktyvūs raktai, pataikymo dažnis) |
+| **Delsos telemetrija** | Kiekvieno teikėjo p50/p95/p99 delsos agregavimas                          |
 
-**Profesionalo patarimas:** Būklės puslapis automatiškai atnaujinamas kas 10 sekundžių. Naudokite grandinės pertraukiklio kortelę, kad nustatytumėte, kuriems teikėjams kyla problemų.
+**Profesionalo patarimas:** sistemos būklės puslapis automatiškai atnaujinamas kas 10 sekundžių. Naudodami grandinės pertraukiklio kortelę nustatykite, kurie teikėjai susiduria su problemomis.
 
 ---
 

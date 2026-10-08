@@ -32,6 +32,17 @@ curl https://localhost:20128/api/usage/call-logs \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
+### GET /api/usage/call-logs/filters
+
+Get call log filter options
+
+Distinct providers, models, accounts and API keys seen in call logs, plus every configured API key (id and name only). Feeds the Logs tab filter dropdowns.
+
+```bash
+curl https://localhost:20128/api/usage/call-logs/filters \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
 ### GET /api/usage/call-logs/{id}
 
 Get a specific call log
@@ -297,6 +308,8 @@ curl https://localhost:20128/api/usage/token-limits \
 ### POST /api/usage/token-limits
 
 POST usage › token limits
+
+Save a per-key token limit. A key holds one limit per scope and reset interval, so daily, weekly and monthly limits for the same scope coexist. Without `id`, a new limit is added (or the key's limit for the same scope and interval is updated); with `id`, that limit is updated.
 
 ```bash
 curl -X POST https://localhost:20128/api/usage/token-limits \

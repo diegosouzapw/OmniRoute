@@ -43,7 +43,14 @@ export function supportsApiKeyOnFreeProvider(providerId: unknown): boolean {
 
 // Providers presented as one dashboard card with OAuth as the primary action
 // and a direct API-key alternative. Keep these out of FREE_APIKEY_PROVIDER_IDS.
-const DUAL_AUTH_PROVIDER_IDS = new Set(["clinepass", "codebuddy-cn", "xai"]);
+const DUAL_AUTH_PROVIDER_IDS = new Set([
+  "clinepass",
+  "codebuddy-cn",
+  "xai",
+  "muse-code",
+  "cline",
+  "kilocode",
+]);
 
 export function supportsDualAuthProvider(providerId: unknown): boolean {
   return typeof providerId === "string" && DUAL_AUTH_PROVIDER_IDS.has(providerId);
@@ -122,9 +129,13 @@ export const AGGREGATOR_PROVIDER_IDS = new Set([
   "anyapi",
   "electronhub",
   "llmgateway",
+  "lyceum",
   "llm-kiwi",
   "literouter",
+  "onomeo",
   "eurouter",
+  "unifically",
+  "y-api",
   "mnn-ai",
   "meganova-ai",
   "mixlayer",

@@ -218,6 +218,19 @@ function parsePsi(text: string | null): ResourceSignals["psi"] {
   return matched ? result : null;
 }
 
+function firstParseablePsi(
+  ...samples: Array<string | null>
+): { text: string; psiSource: "cgroup" | "host" } | null {
+  const sources = ["cgroup", "host"] as const;
+  for (let index = 0; index < samples.length; index += 1) {
+    const sample = samples[index];
+    if (sample != null && parsePsi(sample)) {
+      return { text: sample, psiSource: sources[Math.min(index, sources.length - 1)] };
+    }
+  }
+  return null;
+}
+
 export async function sampleResourceSignals(
   deps: SampleResourceSignalsDeps = {}
 ): Promise<ResourceSignals> {
@@ -249,6 +262,7 @@ export async function sampleResourceSignals(
         readText(path.join(cgroupDirectory, "memory.high")),
         readText(path.join(cgroupDirectory, "memory.events")),
         readText(path.join(cgroupDirectory, "memory.stat")),
+        readText(path.join(cgroupDirectory, "memory.pressure")),
       ])
     : null;
   // Named bindings instead of positional indices: the read order above is
@@ -260,8 +274,16 @@ export async function sampleResourceSignals(
     high: cgroupReads?.[2] ?? null,
     events: cgroupReads?.[3] ?? null,
     stat: cgroupReads?.[4] ?? null,
+    pressure: cgroupReads?.[5] ?? null,
   };
-  const psi = await readText("/proc/pressure/memory").catch(() => null);
+  // /proc/pressure/memory is host-wide. Inside Docker/cgroup that stalls the
+  // chat admission gate (503 resource_pressure) when the *machine* is swapping
+  // even if this container is idle. Prefer this unit's cgroup PSI; fall back
+  // to the host file only when the cgroup sample is missing or unparseable
+  // (bare metal, cgroup v1, or a stub filesystem).
+  const hostPsi = await readText("/proc/pressure/memory").catch(() => null);
+  const psiWinner = firstParseablePsi(cgroupFiles.pressure, hostPsi);
+  const parsedPsi = psiWinner ? parsePsi(psiWinner.text) : null;
 
   return {
     observedAtMs: (deps.nowMs ?? Date.now)(),
@@ -280,6 +302,6 @@ export async function sampleResourceSignals(
       fileBytes: parseMemoryStatFileBytes(cgroupFiles.stat),
       events: parseMemoryEvents(cgroupFiles.events),
     },
-    psi: parsePsi(psi),
+    psi: parsedPsi ? { ...parsedPsi, psiSource: psiWinner?.psiSource ?? null } : null,
   };
 }

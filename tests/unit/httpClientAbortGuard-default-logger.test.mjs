@@ -19,14 +19,14 @@ test("installProcessCrashGuard() with no argument swallows a client abort withou
     installProcessCrashGuard();
     const handlers = process
       .listeners("uncaughtException")
-      .filter((fn) => fn.toString().includes("swallowed client-abort"));
+      .filter((fn) => fn.toString().includes("swallowed benign uncaughtException"));
     assert.ok(handlers.length > 0, "guard handler must be registered");
     const abortErr = Object.assign(new Error("aborted"), { code: "ECONNRESET" });
     // A broken default logger (console is an object, not a function) throws
     // TypeError here — that is what took the production process down.
     assert.doesNotThrow(() => handlers[0](abortErr, "uncaughtException"));
     assert.equal(warnings.length, 1, "the swallowed abort must be logged once");
-    assert.ok(String(warnings[0][1]).includes("swallowed client-abort"));
+    assert.ok(String(warnings[0][1]).includes("swallowed benign uncaughtException"));
   } finally {
     console.warn = originalWarn;
   }

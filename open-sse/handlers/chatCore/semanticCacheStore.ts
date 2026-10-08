@@ -10,11 +10,13 @@
  */
 import {
   generateSignature as defaultGenerateSignature,
+  outputContractOf,
   setCachedResponse as defaultSetCachedResponse,
   isCacheableForWrite as defaultIsCacheableForWrite,
   isTruncatedCompletion as defaultIsTruncatedCompletion,
 } from "@/lib/semanticCache";
 import { isSmallEnoughForSemanticCache as defaultIsSmallEnough } from "../../utils/estimateSize.ts";
+import { getSemanticCacheManager } from "../../services/cache/semanticCacheManager.ts";
 
 type LoggerLike = { debug?: (...args: unknown[]) => void } | null | undefined;
 
@@ -23,9 +25,6 @@ type CacheBody = {
   input?: unknown;
   temperature?: number;
   top_p?: number;
-  tool_choice?: unknown;
-  tools?: unknown;
-  response_format?: unknown;
 };
 
 type UsageLike = { prompt_tokens?: number; completion_tokens?: number } | null | undefined;
@@ -54,13 +53,16 @@ export function storeSemanticCacheResponse(
     headers: unknown;
     translatedResponse: unknown;
     model: string;
+    provider?: string;
     apiKeyId?: string;
     usage?: UsageLike;
     log?: LoggerLike;
+    videoTranscriptSensitive?: boolean;
   },
   deps: SemanticCacheStoreDeps = DEFAULT_DEPS
 ): void {
   if (
+    args.videoTranscriptSensitive ||
     !args.enabled ||
     !deps.isCacheableForWrite(args.body, args.headers) ||
     (deps.isTruncatedCompletion ?? defaultIsTruncatedCompletion)(args.translatedResponse) ||
@@ -74,13 +76,27 @@ export function storeSemanticCacheResponse(
     args.body.temperature,
     args.body.top_p,
     args.apiKeyId ?? undefined,
-    {
-      toolChoice: args.body.tool_choice,
-      tools: args.body.tools,
-      responseFormat: args.body.response_format,
-    }
+    outputContractOf(args.body)
   );
   const tokensSaved = args.usage?.prompt_tokens + args.usage?.completion_tokens || 0;
   deps.setCachedResponse(signature, args.model, args.translatedResponse, tokensSaved);
   args.log?.debug?.("CACHE", `Stored response for ${args.model} (${tokensSaved} tokens)`);
+
+  if (args.translatedResponse && typeof args.translatedResponse === "object") {
+    getSemanticCacheManager()
+      .store({
+        body: args.body as Record<string, unknown>,
+        headers: args.headers,
+        response: args.translatedResponse as Record<string, unknown>,
+        model: args.model,
+        provider:
+          args.provider ||
+          ((args.translatedResponse as Record<string, unknown>).provider as string) ||
+          "",
+        apiKeyId: args.apiKeyId,
+        signature,
+        tokensSaved,
+      })
+      .catch(() => {});
+  }
 }

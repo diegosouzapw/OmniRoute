@@ -3,8 +3,12 @@ import type { RegistryEntry } from "../../shared.ts";
 export const clineProvider: RegistryEntry = {
   id: "cline",
   alias: "cl",
+  // #DUAL-AUTH: cline is OAuth-primary (WorkOS auth-code) but also accepts
+  // a direct Bearer API key from app.cline.bot. Both paths reuse this
+  // baseUrl + authPrefix. Direct API keys are stored as authType:"apikey"
+  // and rotated automatically. See DUAL_AUTH_PROVIDER_IDS in providers.ts.
   format: "openai",
-  executor: "openai",
+  executor: "default",
   // Cline's API only implements streaming (streamText). A non-streaming request
   // returns "generateText is not implemented" / an empty body, so force upstream
   // streaming and let chatCore convert the SSE back to JSON for stream:false
@@ -74,6 +78,7 @@ export const clineProvider: RegistryEntry = {
       contextLength: 1000000,
       maxInputTokens: 1000000,
       maxOutputTokens: 128000,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
     },
     {
       id: "openrouter/free",

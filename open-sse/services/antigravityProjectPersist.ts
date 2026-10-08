@@ -13,6 +13,7 @@
  */
 
 import { updateProviderConnection } from "@/lib/db/providers";
+import { isUsableAntigravityProjectId } from "./antigravityProjectBootstrap.ts";
 
 /**
  * Write `discoveredProjectId` onto both the `projectId` column and
@@ -39,7 +40,7 @@ export function preferAntigravityConnectionsWithStoredProject<T extends Record<s
 ): T[] {
   if (!Array.isArray(connections) || connections.length === 0) return connections;
   const hasStoredProject = (connection: T): boolean => {
-    if (typeof connection.projectId === "string" && connection.projectId.trim()) return true;
+    if (isUsableAntigravityProjectId(connection.projectId)) return true;
     let psd = connection.providerSpecificData;
     if (typeof psd === "string") {
       try {
@@ -49,8 +50,7 @@ export function preferAntigravityConnectionsWithStoredProject<T extends Record<s
       }
     }
     if (!psd || typeof psd !== "object") return false;
-    const projectId = (psd as Record<string, unknown>).projectId;
-    return typeof projectId === "string" && projectId.trim().length > 0;
+    return isUsableAntigravityProjectId((psd as Record<string, unknown>).projectId);
   };
   // #11284: rows whose missing Cloud Code project was CONFIRMED at request
   // time (errorCode="missing_project_id") are dead weight — drop them when a
@@ -76,7 +76,7 @@ export async function persistDiscoveredAntigravityProjectId(
   discoveredProjectId: string | undefined | null,
   existingProviderSpecificData?: Record<string, unknown> | null
 ): Promise<void> {
-  if (!connectionId || !discoveredProjectId) return;
+  if (!connectionId || !isUsableAntigravityProjectId(discoveredProjectId)) return;
   try {
     await updateProviderConnection(connectionId, {
       projectId: discoveredProjectId,

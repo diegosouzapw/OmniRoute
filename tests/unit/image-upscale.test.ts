@@ -34,6 +34,7 @@ import { handleImageUpscale } from "../../open-sse/handlers/imageUpscale.ts";
 import { handleStabilityImageUpscale } from "../../open-sse/handlers/imageUpscale/stability.ts";
 import { handleTopazImageUpscale } from "../../open-sse/handlers/imageUpscale/topaz.ts";
 import { IMAGE_PROVIDERS } from "../../open-sse/config/imageRegistry.ts";
+import { setPinnedFetchTestOverride } from "../../src/shared/network/remoteImageFetch.ts";
 
 // ── Fixtures ───────────────────────────────────────────────────────────────
 
@@ -758,10 +759,15 @@ for (const privateUrl of ["http://127.0.0.1:1/x.png", "http://192.168.1.50/x.png
 test("resolveUpscaleImageSource still downloads a public URL whose DNS resolves to a public IP (GHSA-34rg-3pqj-35g9)", async () => {
   const originalFetch = globalThis.fetch;
   const fetchedUrls: string[] = [];
-  globalThis.fetch = (async (url: string | URL | Request) => {
+  const mockFetchImpl = (async (url: string | URL | Request) => {
     fetchedUrls.push(String(url));
     return new Response(bytes(PNG_1X1), { status: 200, headers: { "content-type": "image/png" } });
   }) as unknown as typeof fetch;
+  // #13883: resolveUpscaleImageSource now sets `pinDns: true`, which pins the connection
+  // via a real undici socket and would bypass this mocked globalThis.fetch — route it
+  // through the test-only pinned-fetch override instead (src/shared/network/remoteImageFetch.ts).
+  globalThis.fetch = mockFetchImpl;
+  setPinnedFetchTestOverride(mockFetchImpl);
 
   try {
     const source = await withPublicDns(() =>
@@ -772,5 +778,6 @@ test("resolveUpscaleImageSource still downloads a public URL whose DNS resolves 
     assert.deepEqual(fetchedUrls, ["https://cdn.example.com/public.png"]);
   } finally {
     globalThis.fetch = originalFetch;
+    setPinnedFetchTestOverride(undefined);
   }
 });

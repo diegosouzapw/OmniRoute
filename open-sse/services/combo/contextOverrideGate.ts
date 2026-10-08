@@ -91,6 +91,22 @@ function resolveContextOverrideVerdict(
 }
 
 /**
+ * Resolve a target's raw persisted `model_context_override` value (effort-suffix
+ * inheritance included), or `null` when none is set.
+ *
+ * #13870: exposed so the combo compat-filter reorder step (comboStructure.ts)
+ * can tell an operator-verified override apart from a catalog-advisory limit —
+ * an override is a stronger trust signal than an unconfirmed catalog number,
+ * so it must not be unconditionally outranked by one when the chars/4 estimate
+ * that rejected it is itself known to overstate real usage (issue #13870
+ * measured a ~3.7x overestimate on a repetitive agent-session body).
+ */
+export function getModelContextOverrideValue(modelStr: string | undefined): number | null {
+  if (!modelStr) return null;
+  return lookupOverrideWithEffortInheritance(modelStr);
+}
+
+/**
  * Decide whether a target's known context limit accommodates the request.
  *
  * `maxInputTokens` is an **input-only** cap — the requested output reserve is

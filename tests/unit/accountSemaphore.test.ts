@@ -116,13 +116,13 @@ describe("accountSemaphore acquireMany", () => {
     (await queued)();
   });
 
-  it("fails immediately when maxQueueSize is zero", async () => {
+  it("fails immediately when failFast is set", async () => {
     const release = await acquire("codex:account-a", { maxConcurrency: 1 });
 
     await assert.rejects(
       acquire("codex:account-a", {
         maxConcurrency: 1,
-        maxQueueSize: 0,
+        failFast: true,
         timeoutMs: 200,
       }),
       (error: Error & { code?: string }) => error.code === "SEMAPHORE_QUEUE_FULL"
@@ -130,6 +130,25 @@ describe("accountSemaphore acquireMany", () => {
     assert.equal(getStats()["codex:account-a"]?.queued ?? 0, 0);
 
     release();
+  });
+
+  it("maxQueueSize 0 means no queue limit, not fail-fast (#6593 contract)", async () => {
+    // chatCore forwards resilienceSettings.requestQueue.maxQueueDepth, whose documented
+    // default is `0 = disabled`. #12911 briefly read 0 as "reject when busy", which
+    // turned every busy account slot into a 429 under default settings.
+    const release = await acquire("codex:account-b", { maxConcurrency: 1 });
+
+    const queued = acquire("codex:account-b", {
+      maxConcurrency: 1,
+      maxQueueSize: 0,
+      timeoutMs: 500,
+    });
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    assert.equal(getStats()["codex:account-b"]?.queued ?? 0, 1, "must wait in the queue");
+
+    release();
+    const releaseQueued = await queued;
+    releaseQueued();
   });
 });
 

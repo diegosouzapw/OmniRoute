@@ -24,6 +24,7 @@ import { vertexGenerateSpeech } from "../executors/vertexMedia.ts";
 import { handleGeminiTtsSpeech } from "../executors/geminiTts.ts";
 import { handleAwsPollySpeech } from "../executors/awsPollyTts.ts";
 import { GttsUpstreamError, normalizeGttsLang, synthesizeGtts } from "../executors/gtts.ts";
+import { handleFishAudioSpeech } from "../executors/fishAudioTts.ts";
 import { errorResponse } from "../utils/error.ts";
 import { resolveElevenLabsVoiceId } from "./elevenLabsVoiceMap.ts";
 import { audioStreamResponse, upstreamErrorResponse } from "../utils/audioResponse.ts";
@@ -160,6 +161,29 @@ function normalizeXiaomiMimoMimeType(format) {
   }
 }
 
+/**
+ * The Xiaomi MiMo upstream expects `audio.format` to be the enum `mp3` | `wav`
+ * (not an IANA media type). A missing `response_format` defaults to `mp3`.
+ */
+function normalizeXiaomiMimoRequestFormat(format) {
+  switch (getStringValue(format)?.toLowerCase()) {
+    case undefined:
+    case null:
+    case "mp3":
+    case "mpeg":
+    case "audio/mp3":
+    case "audio/mpeg":
+      return "mp3";
+    case "wav":
+    case "wave":
+    case "audio/wav":
+    case "audio/wave":
+      return "wav";
+    default:
+      return null;
+  }
+}
+
 function getXiaomiMimoAudioData(data) {
   const messageAudio = data?.choices?.[0]?.message?.audio;
   const directAudio = data?.audio || data?.output_audio;
@@ -239,12 +263,42 @@ export function normalizeSpeechResponseFormat(fmt) {
   return lower === "ogg" ? "opus" : lower;
 }
 
+// Soniox /tts requires `language` and `voice`. Every Soniox voice speaks every
+// supported language, so a fixed default voice is safe; OpenAI stock voice names
+// are not Soniox voices and fall back to it. Defaults match the Soniox SDK/docs.
+const SONIOX_DEFAULT_VOICE = "Adrian";
+const SONIOX_DEFAULT_LANGUAGE = "en";
+const OPENAI_STOCK_VOICES = new Set([
+  "alloy",
+  "ash",
+  "ballad",
+  "cedar",
+  "coral",
+  "echo",
+  "fable",
+  "marin",
+  "nova",
+  "onyx",
+  "sage",
+  "shimmer",
+  "verse",
+]);
+
+function resolveSonioxVoice(voice: unknown): string {
+  const value = typeof voice === "string" ? voice.trim() : "";
+  return value && !OPENAI_STOCK_VOICES.has(value) ? value : SONIOX_DEFAULT_VOICE;
+}
+
 /**
  * Handle Soniox TTS (OpenAI speech shape → Soniox /tts, returns raw audio bytes)
  */
 async function handleSonioxSpeech(providerConfig, body, modelId, token) {
   const fmt = typeof body.response_format === "string" ? body.response_format : "mp3";
   const audioFormat = fmt === "pcm" ? "pcm_s16le" : fmt;
+  const language =
+    typeof body.language === "string" && body.language.trim()
+      ? body.language.trim()
+      : SONIOX_DEFAULT_LANGUAGE;
 
   const res = await fetch(providerConfig.baseUrl, {
     method: "POST",
@@ -255,7 +309,8 @@ async function handleSonioxSpeech(providerConfig, body, modelId, token) {
     body: JSON.stringify({
       text: body.input,
       model: modelId,
-      ...(body.voice ? { voice: body.voice } : {}),
+      language,
+      voice: resolveSonioxVoice(body.voice),
       audio_format: audioFormat,
     }),
   });
@@ -453,35 +508,6 @@ async function handleCartesiaSpeech(providerConfig, body, modelId, token) {
 }
 
 /**
- * Handle Fish Audio TTS
- * POST { text, format, reference_id, prosody } → binary audio bytes
- * Auth: Authorization: Bearer <api-key>, model as an HTTP header
- * Docs: https://docs.fish.audio/api-reference/endpoint/openapi-v1/text-to-speech
- */
-async function handleFishAudioSpeech(providerConfig, body, modelId, token) {
-  const res = await fetch(providerConfig.baseUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      model: modelId,
-    },
-    body: JSON.stringify({
-      text: body.input,
-      format: body.response_format || "mp3",
-      ...(body.voice ? { reference_id: body.voice } : {}),
-      ...(body.speed ? { prosody: { speed: body.speed } } : {}),
-    }),
-  });
-
-  if (!res.ok) {
-    return upstreamErrorResponse(res, await res.text());
-  }
-
-  return audioStreamResponse(res);
-}
-
-/**
  * Handle PlayHT TTS
  * POST { text, voice, voice_engine, output_format } → audio stream
  * Auth: X-USER-ID header (from token string "userId:apiKey")
@@ -619,10 +645,12 @@ async function pollKieAudioResult(baseUrl, modelId, taskId, token) {
 async function handleXiaomiMimoSpeech(providerConfig, body, modelId, token, credentials) {
   const providerSpecificData = getProviderSpecificData(credentials);
   const url = normalizeXiaomiMimoSpeechUrl(providerSpecificData.baseUrl || providerConfig.baseUrl);
-  const audioMimeType = normalizeXiaomiMimoMimeType(body.response_format);
-  if (!audioMimeType) {
+  const requestFormat = normalizeXiaomiMimoRequestFormat(body.response_format);
+  if (!requestFormat) {
     return errorResponse(400, "Xiaomi MiMo TTS supports response_format mp3 or wav only");
   }
+  // IANA media type for the response Content-Type; the upstream body takes the enum.
+  const audioMimeType = normalizeXiaomiMimoMimeType(requestFormat) || "audio/mpeg";
 
   const res = await fetch(url, {
     method: "POST",
@@ -634,7 +662,7 @@ async function handleXiaomiMimoSpeech(providerConfig, body, modelId, token, cred
       model: modelId,
       messages: [{ role: "assistant", content: body.input }],
       audio: {
-        format: audioMimeType,
+        format: requestFormat,
         voice: body.voice || getStringValue(providerSpecificData.defaultVoice) || "mimo_default",
       },
     }),

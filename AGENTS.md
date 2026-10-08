@@ -18,7 +18,8 @@ npm run typecheck:core         # TypeScript check (should be clean)
 npm run typecheck:noimplicit:core  # Strict check (no implicit any)
 npm run test:coverage          # Unit tests + coverage gate (60/60/60/60 — statements/lines/functions/branches)
 npm run check                  # lint + test combined
-npm run check:cycles           # Detect circular dependencies
+npm run check:cycles           # Detect circular dependencies (advisory — lists the SCCs)
+npm run check:cycles:ratchet   # Same scan, blocking above the quality-baseline ceiling
 npm run check:docs-all         # Run after changing documentation (includes fabricated-docs validation)
 ```
 
@@ -46,7 +47,7 @@ Repository map and Reference Documentation sections below.
 
 ## Project at a Glance
 
-**OmniRoute** — unified AI proxy/router. One endpoint, 359 LLM providers, auto-fallback.
+**OmniRoute** — unified AI proxy/router. One endpoint, 360 LLM providers, auto-fallback.
 
 | Layer         | Location                | Purpose                                                                                                                                                                   |
 | ------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -56,7 +57,7 @@ Repository map and Reference Documentation sections below.
 | Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)                                                                                                                                  |
 | Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions                                                                                                                                          |
 | Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                                                                                                                                  |
-| Database      | `src/lib/db/`           | SQLite domain modules (176 migrations)                                                                                                                                    |
+| Database      | `src/lib/db/`           | SQLite domain modules (200 migrations)                                                                                                                                    |
 | Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                                                                                                                                 |
 | MCP Server    | `open-sse/mcp-server/`  | 110 tools (45 canonical + memory/skill/GitHub/pool/gamification/plugin/Notion/Obsidian/local-corpus/RTK modules), 3 transports (stdio / SSE / Streamable HTTP), 33 scopes |
 | A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                                                                                                                               |
@@ -83,7 +84,7 @@ Client → /v1/chat/completions (Next.js route)
 
 API routes follow a consistent pattern: `Route → CORS preflight → Zod body validation → Optional auth (extractApiKey/isValidApiKey) → API key policy enforcement → Handler delegation (open-sse)`. No global Next.js middleware — interception is route-specific.
 
-**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()` which wraps `handleChatCore()` with per-target error handling and circuit breaker checks. The `fusion` strategy is the exception: it fans out to a panel of models in parallel, then a judge model synthesizes one final answer (`open-sse/services/fusion.ts`). See `docs/routing/AUTO-COMBO.md` for the 16-factor Auto-Combo scoring + the full strategy table and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
+**Combo routing** (`open-sse/services/combo.ts`): 20 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()` which wraps `handleChatCore()` with per-target error handling and circuit breaker checks. The `fusion` strategy is the exception: it fans out to a panel of models in parallel, then a judge model synthesizes one final answer (`open-sse/services/fusion.ts`). See `docs/routing/AUTO-COMBO.md` for the 16-factor Auto-Combo scoring + the full strategy table and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -351,6 +352,12 @@ Documentation must describe verified behavior, not plausible behavior.
 5. Register models in `open-sse/config/providerRegistry.ts`
 6. Write tests in `tests/unit/` (include the publicCreds shape assertion if you added a new embedded default)
 
+### Enabling Dual Auth (Multiple API Keys) for a Provider
+
+1. Add the provider's ID to the `DUAL_AUTH_PROVIDER_IDS` set in `src/shared/constants/providers.ts`. This flags the frontend to render the multi-key textarea input instead of a single-line password input.
+2. Update the `authHint` for the provider (in `src/shared/constants/providers.ts` or `src/shared/constants/providers/oauth.ts`) to inform users that they can provide multiple keys separated by commas.
+3. Each key is stored as its own provider connection row (the bulk-add flow parses one key per line via `parseBulkApiKeys()` in `src/shared/utils/bulkApiKeyParser.ts`). At request time, `getProviderCredentials()` in `src/sse/services/auth.ts` automatically selects and rotates/falls back between a provider's connections — see "Connection Cooldown" above for the fallback mechanics.
+
 ### Adding a New API Route
 
 1. Create directory under `src/app/api/v1/your-route/`
@@ -423,7 +430,7 @@ For any non-trivial change, read the matching deep-dive first:
 | Repo navigation                               | `docs/architecture/REPOSITORY_MAP.md`                   |
 | Architecture                                  | `docs/architecture/ARCHITECTURE.md`                     |
 | Engineering reference                         | `docs/architecture/CODEBASE_DOCUMENTATION.md`           |
-| Auto-Combo (16-factor scoring, 19 strategies) | `docs/routing/AUTO-COMBO.md`                            |
+| Auto-Combo (16-factor scoring, 20 strategies) | `docs/routing/AUTO-COMBO.md`                            |
 | Resilience (3 mechanisms)                     | `docs/architecture/RESILIENCE_GUIDE.md`                 |
 | Reasoning replay                              | `docs/routing/REASONING_REPLAY.md`                      |
 | Skills framework                              | `docs/frameworks/SKILLS.md`                             |
@@ -542,6 +549,7 @@ git push -u origin feat/your-feature
 **Husky hooks**:
 
 - **pre-commit**: lint-staged + `check-docs-sync` + `check:any-budget:t11` + `check:tracked-artifacts`
+- **commit-msg**: `check:ai-attribution` — rejects AI/bot `Co-Authored-By` trailers and AI-generation footers in the message (Hard Rule #16; human co-authors allowed; also in the `quality.yml` fast-gates loop (PR→`release/**`) and a PR-only `ci.yml` lint step (PR→`main`) — #14436)
 - **pre-push**: intentionally light (PATH/npm sanity only). `any-budget` + `tracked-artifacts`
   already run on pre-commit; re-running them on every push was pure double-pay. CI still
   enforces both. (Was Fase 6A.12 full pre-push gate; folded into pre-commit in #6716.)
@@ -664,7 +672,7 @@ focused checks, and use a Conventional Commit message (for example, `docs: slim 
 ## Environment
 
 - **Runtime**: Node.js ≥22.22.2 <23 || ≥24.0.0 <27, ES Modules. This is the **only supported** runtime for the published `omniroute` CLI, the server, and the test suites (`node:test` + vitest) — `engines.node` is authoritative and end users never need Bun. A **best-effort `bun:sqlite` compatibility path** exists so a global Bun install (`bun install -g omniroute`) can start without `better-sqlite3` (driver adapter + Bun-aware process spawning); it is **not** a supported runtime — no support guarantees — and every Bun-specific runtime change MUST preserve the Node driver/fallback chain and ship a Bun test (`test:bun:db`) or an explicit reason why the path is Node-only.
-- **Bun (build/dev script runner + compatibility smoke only)**: Bun `1.4.2` is pinned as an **exact devDependency** (provisioned through the existing `npm ci` via the lockfile's `@oven/bun-*` platform binaries — no `setup-bun`/ad-hoc install). It is used **only** to execute a small, allow-listed set of TypeScript **gate/generator scripts** (replacing `node --import tsx` for startup speed): the CI checks `check:provider-consistency`, `check:compression-budget`, `check:known-symbols`, and the non-CI `gen:provider-reference`, `bench:compression` — plus the focused `test:bun:db` compatibility smoke suite for the best-effort `bun:sqlite` path. **Do NOT** widen Bun to `npm install`, the build (`build:cli*`), `check:pack-artifact`, the supported published runtime, or the main test runners — those stay on Node. Any new Bun-invoking gate/generator script must be validated byte-identical against its `node --import tsx` output first. After pulling the lockfile change, run `npm install` so `bun` resolves locally (a stale `node_modules` will fail those scripts with `bun: not found`).
+- **Bun (build/dev script runner + compatibility smoke only)**: Bun `1.4.2` is pinned as an **exact devDependency** (provisioned through the existing `npm ci` via the lockfile's `@oven/bun-*` platform binaries — no `setup-bun`/ad-hoc install). It is used **only** to execute a small, allow-listed set of TypeScript **gate/generator scripts** (replacing `node --import tsx` for startup speed): the CI checks `check:provider-consistency`, `check:compression-budget`, `check:known-symbols`, and the non-CI `gen:provider-reference`, `bench:compression` — plus the focused `test:bun:db` compatibility smoke suite for the best-effort `bun:sqlite` path. **Do NOT** widen Bun to `npm install`, the build (`build:cli*`), `check:pack-artifact`, the supported published runtime, or the main test runners — those stay on Node. Any new Bun-invoking gate/generator script must be validated byte-identical against its `node --import tsx` output first. After pulling the lockfile change, run `npm install` so `bun` resolves locally (a stale `node_modules` will fail those scripts with `bun: not found`). **Two distinct Bun failures, two different fixes — do not confuse them.** (a) `bun: not found` → the tree is stale; `npm install`. (b) Bun exists but refuses to run → `node_modules/bun/bin/bun.exe` is still the ~450-byte **bash placeholder** the package ships, because its `postinstall` was skipped (`npm install --ignore-scripts`, or a package manager that skips lifecycle scripts). The real binary is already on disk in the platform package (e.g. `node_modules/@oven/bun-windows-x64/bin/bun.exe`, ~86 MB), so nothing is missing and re-running `npm install` on an already-satisfied tree may not fix it. Fix: `cd node_modules/bun && node install.js`. **On Windows the error is actively misleading** — `cmd.exe` asks the loader to run a bash script, which reports `This version of … is not compatible with the version of Windows you're running`, which reads like an OS/architecture problem but means "this is not a Windows executable". Confirm the real cause with `ls -l node_modules/bun/bin/bun.exe` (a few hundred bytes = placeholder). Either way `node --import tsx <script>` is the validated byte-identical fallback for all four scripts.
 - **TypeScript**: 6.0+, target ES2022, module esnext, resolution bundler
 - **Path aliases**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **Default port**: 20128 (API + dashboard on same port)

@@ -145,6 +145,45 @@ test("OpenAI -> Cursor converts tool role messages using remembered tool metadat
   assert.match(result.messages[1].content, /<result>found it<\/result>/);
 });
 
+test("native Cursor keeps tool-result roles and contents for inline exec replies", async () => {
+  const messages = [
+    {
+      role: "assistant",
+      tool_calls: [
+        {
+          id: "call_grep",
+          type: "function",
+          function: { name: "grep", arguments: '{"pattern":"cursor_probe_alpha"}' },
+        },
+      ],
+    },
+    {
+      role: "tool",
+      tool_call_id: "call_grep",
+      content: "Found 2 matches\n/tmp/fixture.txt:\n  Line 1: cursor_probe_alpha",
+    },
+    { role: "user", content: "Give the exact lines" },
+  ];
+  const direct = buildCursorRequest("grok-4.7", { messages }, true, { _provider: "cursor" });
+  assert.deepEqual(direct.messages[1], messages[1]);
+
+  const { translateRequest } = await import("../../open-sse/translator/index.ts");
+  const { FORMATS } = await import("../../open-sse/translator/formats.ts");
+  const translated = translateRequest(
+    FORMATS.OPENAI,
+    FORMATS.CURSOR,
+    "grok-4.7",
+    { messages: structuredClone(messages) },
+    true,
+    null,
+    "cursor"
+  );
+  const results = translated.messages.filter((message) => message.role === "tool");
+  assert.equal(results.length, 1, "no empty placeholder tool response may replace the real one");
+  assert.equal(results[0].tool_call_id, "call_grep");
+  assert.equal(results[0].content, messages[1].content);
+});
+
 test("OpenAI -> Cursor preserves image_url parts so vision input survives", () => {
   const dataUri = "data:image/png;base64,iVBORw0KGgo=";
   const result = buildCursorRequest(

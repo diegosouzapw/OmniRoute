@@ -1,10 +1,10 @@
 # User Guide (Dansk)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 ---
 
-🌐 **Sprog:** 🇺🇸 [English](./USER_GUIDE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/guides/USER_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/USER_GUIDE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/guides/USER_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/USER_GUIDE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/guides/USER_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/USER_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/USER_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/USER_GUIDE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/guides/USER_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/guides/USER_GUIDE.md) | 🇪🇪 [Eesti](../i18n/et/docs/guides/USER_GUIDE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/guides/USER_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/USER_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/USER_GUIDE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/guides/USER_GUIDE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/guides/USER_GUIDE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/guides/USER_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/USER_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/guides/USER_GUIDE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/guides/USER_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/USER_GUIDE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/guides/USER_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/USER_GUIDE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/guides/USER_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/USER_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/USER_GUIDE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/guides/USER_GUIDE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/guides/USER_GUIDE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/guides/USER_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/USER_GUIDE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/guides/USER_GUIDE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/guides/USER_GUIDE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/guides/USER_GUIDE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/guides/USER_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/USER_GUIDE.md) | 🇲🇹 [Malti](../i18n/mt/docs/guides/USER_GUIDE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/guides/USER_GUIDE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/guides/USER_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/USER_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/USER_GUIDE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/guides/USER_GUIDE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/guides/USER_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/USER_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/USER_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/USER_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/USER_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/USER_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/USER_GUIDE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/guides/USER_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/USER_GUIDE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/guides/USER_GUIDE.md) | 🇷🇸 [Српски](../i18n/sr/docs/guides/USER_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/USER_GUIDE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/guides/USER_GUIDE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/guides/USER_GUIDE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/guides/USER_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/USER_GUIDE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/guides/USER_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/USER_GUIDE.md) | 🇵🇰 [اردو](../i18n/ur/docs/guides/USER_GUIDE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/guides/USER_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/USER_GUIDE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/guides/USER_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/USER_GUIDE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 Komplet vejledning til konfiguration af udbydere, oprettelse af kombinationer, integration af CLI-værktøjer og implementering af OmniRoute.
 
@@ -120,15 +120,15 @@ Adgang via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ## 📖 Opsætning af udbydere
 
-Hvis du vil massetilføje API-nøgleforbindelser fra en CSV- eller JSON-fil, skal du bruge **Kontrolpanel → Udbydere → Importér fra fil**. Kolonnerne er positionsbestemte (`provider,name,apiKey,baseUrl,priority`); `provider` skal allerede eksistere som en administreret udbyder eller en kompatibel node. Se [Importér udbydere fra en CSV- eller JSON-fil](../providers/CSV-IMPORT.md).
+Hvis du vil massetilføje forbindelser med API-nøgler fra en CSV- eller JSON-fil, skal du bruge **Kontrolpanel → Udbydere → Importér fra fil**. Kolonnerne er positionsbestemte (`provider,name,apiKey,baseUrl,priority`); `provider` skal allerede eksistere som en administreret udbyder eller en kompatibel node. Se [Importér udbydere fra en CSV- eller JSON-fil](../providers/CSV-IMPORT.md).
 
 ### 🔐 Abonnementsudbydere
 
 #### Claude Code (Pro/Max)
 
 ```bash
-Kontrolpanel → Udbydere → Forbind Claude Code
-→ OAuth-login → Automatisk tokenfornyelse
+Kontrolpanel → Udbydere → Tilslut Claude Code
+→ OAuth-login → Automatisk opdatering af token
 → Sporing af 5-timerskvote og ugentlig kvote
 
 Modeller:
@@ -137,14 +137,16 @@ Modeller:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Professionelt tip:** Brug Opus til komplekse opgaver og Sonnet til hastighed. OmniRoute sporer kvoten pr. model!
+**Pro-tip:** Brug Opus til komplekse opgaver og Sonnet, når hastighed er vigtig. OmniRoute sporer kvoten for hver model!
 
-Claude- og Claude Code-kompatible ruter bevarer `max`-niveauet for ræsonneringsindsats for Opus- og Sonnet-modeller. Haiku-modeller accepterer ikke indsatsniveauet `max`, så OmniRoute nedjusterer anmodningen til et højt ræsonneringsbudget, før den sendes videre til den overordnede tjeneste.
+Ingen browser på OmniRoute-værten? Kør `claude setup-token` et hvilket som helst sted, hvor Claude Code er logget ind, og indsæt det etårige token på fanen **Setup Token**. Se [Claude Code med et setup-token](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Ruter, der er kompatible med Claude og Claude Code, bevarer tænkeindsatsen `max` for Opus- og Sonnet-modeller. Haiku-modeller accepterer ikke indsatsniveauet `max`, så OmniRoute nedgraderer denne anmodning til et højt tænkebudget, før den sendes videre til upstream-udbyderen.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-Kontrolpanel → Udbydere → Forbind Codex
+Kontrolpanel → Udbydere → Tilslut Codex
 → OAuth-login (port 1455)
 → Nulstilling hver 5. time og ugentligt
 
@@ -158,7 +160,7 @@ Modeller:
 #### GitHub Copilot
 
 ```bash
-Kontrolpanel → Udbydere → Forbind GitHub
+Kontrolpanel → Udbydere → Tilslut GitHub
 → OAuth via GitHub
 → Månedlig nulstilling (den 1. i måneden)
 
@@ -178,21 +180,21 @@ Modeller:
 2. Hent en API-nøgle fra Coding Plan
 3. Kontrolpanel → Tilføj API-nøgle: Udbyder: `glm`, API-nøgle: `your-key`
 
-**Brug:** `glm/glm-4.7` — **Professionelt tip:** Coding Plan tilbyder 3× kvote til 1/7 af prisen! Nulstilles dagligt kl. 10:00.
+**Brug:** `glm/glm-4.7` — **Pro-tip:** Coding Plan giver 3× kvote til 1/7 af prisen! Nulstilles dagligt kl. 10.00.
 
 #### MiniMax M2.1 (Nulstilling hver 5. time, $0.20/1M)
 
 1. Tilmeld dig: [MiniMax](https://www.minimax.io)
 2. Hent en API-nøgle → Kontrolpanel → Tilføj API-nøgle
 
-**Brug:** `minimax/MiniMax-M2.1` — **Professionelt tip:** Den billigste mulighed til lang kontekst (1M tokens)!
+**Brug:** `minimax/MiniMax-M2.1` — **Pro-tip:** Den billigste mulighed til lang kontekst (1M tokens)!
 
-#### Kimi K2 (Fast pris på $9/måned)
+#### Kimi K2 ($9/måned fast pris)
 
 1. Abonnér: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. Hent en API-nøgle → Kontrolpanel → Tilføj API-nøgle
 
-**Brug:** `kimi/kimi-k2.5` — **Professionelt tip:** Fast pris på $9/måned for 10M tokens = en effektiv pris på $0.90/1M!
+**Brug:** `kimi/kimi-k2.5` — **Pro-tip:** Fast pris på $9/måned for 10M tokens = en effektiv pris på $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
@@ -204,12 +206,13 @@ Modeller:
 ### 🆓 GRATIS udbydere
 
 Gratis udbydere uden godkendelse har en kontakt ud for **Ingen godkendelse påkrævet** på deres udbyderside.
-Hvis den slås fra, deaktiveres udbyderen, den fjernes fra de konfigurerede og kompakte visninger under Udbydere, og dens modeller fjernes fra `/v1/models`.
+Hvis den slås fra, deaktiveres udbyderen, den fjernes fra de konfigurerede og kompakte visninger under Udbydere, og
+dens modeller fjernes fra `/v1/models`.
 
 #### Qoder (9 GRATIS modeller)
 
 ```bash
-Kontrolpanel → Forbind Qoder → OAuth-login → Adgang er underlagt udbyderens aktuelle grænser
+Kontrolpanel → Tilslut Qoder → OAuth-login → Adgangen er underlagt udbyderens aktuelle begrænsninger
 
 Modeller: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
@@ -217,7 +220,7 @@ Modeller: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, i
 #### Kiro (Claude GRATIS)
 
 ```bash
-Kontrolpanel → Forbind Kiro → AWS Builder ID eller Google/GitHub → ~50 kreditter/måned
+Kontrolpanel → Tilslut Kiro → AWS Builder ID eller Google/GitHub → ~50 kreditter/måned
 
 Modeller: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
@@ -683,15 +686,52 @@ Eller brug kontrolpanelet: **Udbydere → [Udbyder] → Brugerdefinerede modelle
 
 Bemærkninger:
 
-- OpenRouter og OpenAI/Anthropic-kompatible udbydere administreres kun fra **Tilgængelige modeller**. Manuel tilføjelse, import og automatisk synkronisering ender alle på den samme liste over tilgængelige modeller, så der er ingen separat sektion til brugerdefinerede modeller for disse udbydere.
-- Sektionen **Brugerdefinerede modeller** er beregnet til udbydere, som ikke tilbyder administrerede importer af tilgængelige modeller.
+- OpenRouter og OpenAI/Anthropic-kompatible udbydere administreres kun fra **Tilgængelige modeller**. Manuel tilføjelse, import og automatisk synkronisering føjes alle til den samme liste over tilgængelige modeller, så der findes ikke en separat sektion til brugerdefinerede modeller for disse udbydere.
+- Sektionen **Brugerdefinerede modeller** er beregnet til udbydere, som ikke tilbyder administreret import af tilgængelige modeller.
+
+### Brugerdefinerede OpenAI-kompatible udbydere
+
+Enhver gateway, der bruger OpenAI-API'en (en selvhostet proxy, vLLM eller en tredjepartsaggregator),
+kan tilføjes som sin egen udbydernode:
+
+1. **Udbydere → Tilføj OpenAI-kompatibel**.
+2. **Navn**: En visningsetiket for noden.
+3. **Præfiks**: Navnet, der bruges til routing. Klienter kalder modeller som `<prefix>/<model>`, så en node med
+   præfikset `mygw` leverer `mygw/gpt-4o-mini`. Påkrævet; der er ingen tegnbegrænsning.
+4. **API-type**: Den endpointfamilie, som gatewayen leverer (Chat Completions, Responses,
+   Embeddings, lyd, billeder).
+5. **Basis-URL**: API-roden til og med `/v1` (f.eks.
+   `https://gateway.example.com/v1`), ikke den fulde sti `/chat/completions`. Gateways med
+   ikke-standardiserede stier angiver dem under **Avancerede indstillinger** (chatsti, modelsti).
+6. Feltet **API-nøgle (til kontrol)** tester kun forbindelsen. Når noden er oprettet,
+   skal du åbne den og bruge **Tilføj forbindelse** til at gemme den nøgle, som anmodninger skal bruge.
+
+Noden får et internt id i formatet `openai-compatible-<apiType>-<uuid>`; du behøver aldrig
+at indtaste det, da præfikset er det offentlige navn.
+
+#### Reserverede præfikser
+
+Et præfiks må ikke være id'et eller aliasset for en indbygget udbyder (f.eks. `openai`, `cf`) eller
+id'et for en udfaset udbyder. Modelresolveren kontrollerer indbyggede id'er og aliasser før
+brugerdefinerede noder, så en node, der bruger et af disse præfikser, aldrig vil modtage trafik:
+`<prefix>/model` vil i stedet gå til den indbyggede udbyder eller blive afvist, hvis den pågældende udbyder
+er udfaset. Oprettelse eller redigering af en node med et sådant præfiks afvises med:
+
+```text
+prefix: "<prefix>" er et reserveret udbyderpræfiks — vælg et andet præfiks (reserverede id'er/aliasser kan ikke bruges til brugerdefinerede noder, fordi anmodninger som <prefix>/model dirigeres til en indbygget udbyder eller afvises, når udbyderen er udfaset)
+```
+
+Vælg et særskilt præfiks (`mygw`, `acme-proxy`). Hvis anmodninger til en brugerdefineret node mislykkes med en
+fejl, der nævner en indbygget udbyder eller dennes legitimationsoplysninger, skal du kontrollere, om nodens præfiks er
+reserveret: Noder, der blev gemt, før denne regel fandtes, er stadig gemt, men deres præfiks dirigerer til
+den indbyggede udbyder. Rediger noden, og giv den et nyt præfiks.
 
 ### Sammenkædning af OmniRoute-peers
 
-En anden OmniRoute-gateway kan tilføjes som en **brugerdefineret OpenAI-kompatibel** udbyder. Brug peerens
-`/v1`-basis-URL og en dedikeret API-nøgle med færrest mulige rettigheder, som er udstedt af den pågældende peer.
+En anden OmniRoute-gateway kan tilføjes som en **brugerdefineret OpenAI-kompatibel** udbyder. Brug
+peerens `/v1`-basis-URL og en dedikeret API-nøgle med færrest mulige rettigheder, som er udstedt af den pågældende peer.
 
-Ved gensidige kæder eller kæder med flere hop skal den valgfrie løkkebeskyttelse aktiveres på hver gateway:
+Ved gensidige kæder eller kæder med flere hop skal den valgfrie sløjfebeskyttelse aktiveres på hver gateway:
 
 ```bash
 # gateway-a
@@ -707,18 +747,18 @@ OMNIROUTE_PEER_URLS=http://gateway-a:20128/v1
 OMNIROUTE_PEER_MAX_HOPS=4
 ```
 
-Kun anmodninger, der sendes til en peer-URL på den udtrykkelige tilladelsesliste, modtager
-`X-OmniRoute-Peer-Trace`-headeren. En gateway afviser et gentaget instans-id eller et opbrugt
+Kun anmodninger, der sendes til en eksplicit tilladt peer-URL, modtager
+headeren `X-OmniRoute-Peer-Trace`. En gateway afviser et gentaget instans-id eller et opbrugt
 hopbudget med HTTP `508 Loop Detected`; almindelige upstream-udbydere modtager ingen peer-metadata.
 
-Peer-sammenkædning er ikke databasereplikering eller værtsfailover. Hver gateway har sin egen uafhængige
-SQLite-tilstand, caches, hastighedstællere og sessioner. Brug en tilstandskontrolleret reverse proxy eller klientbaseret
+Peer-sammenkædning er ikke databasereplikering eller værtsfailover. Hver gateway har sin egen
+uafhængige SQLite-tilstand, caches, frekvenstællere og sessioner. Brug en tilstandsovervåget reverse proxy eller klientbaseret
 failover til aktiv/passiv eller aktiv/aktiv tilgængelighed, og montér aldrig én SQLite-database
 i flere kørende OmniRoute-instanser.
 
 ### Dedikerede udbyderruter
 
-Send anmodninger direkte til en bestemt udbyder med modelvalidering:
+Diriger anmodninger direkte til en bestemt udbyder med modelvalidering:
 
 ```bash
 POST http://localhost:20128/v1/providers/openai/chat/completions
@@ -744,7 +784,7 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
 ```
 
-**Prioritetsrækkefølge:** Nøglespecifik → Kombinationsspecifik → Udbyderspecifik → Global → Miljø.
+**Prioritet:** Nøglespecifik → Kombinationsspecifik → Udbyderspecifik → Global → Miljø.
 
 ### API til modelkatalog
 
@@ -752,90 +792,90 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
 curl http://localhost:20128/api/models/catalog
 ```
 
-Returnerer modeller grupperet efter udbyder med typerne (`chat`, `embedding`, `image`).
+Returnerer modeller grupperet efter udbyder med typer (`chat`, `embedding`, `image`).
 
 ### Cloudsynkronisering
 
 - Synkroniser udbydere, kombinationer og indstillinger på tværs af enheder
-- Automatisk baggrundssynkronisering med timeout og fail-fast
+- Automatisk baggrundssynkronisering med timeout og hurtig afbrydelse ved fejl
 - Foretræk `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` på serversiden i produktion
 
 ### Cloudflare Quick Tunnel
 
-- Tilgængelig under **Kontrolpanel → Slutpunkter** for Docker og andre selvhostede implementeringer
+- Tilgængelig under **Dashboard → Endpoints** for Docker og andre selvhostede installationer
 - Opretter en midlertidig `https://*.trycloudflare.com`-URL, som videresender til dit aktuelle OpenAI-kompatible `/v1`-slutpunkt
-- Første aktivering installerer kun `cloudflared`, når det er nødvendigt; senere genstarter genbruger den samme administrerede binære fil
-- Quick Tunnels gendannes ikke automatisk efter genstart af OmniRoute eller containeren; genaktivér dem fra kontrolpanelet efter behov
+- Første aktivering installerer kun `cloudflared`, når det er nødvendigt; efterfølgende genstarter genbruger den samme administrerede binære fil
+- Quick Tunnels gendannes ikke automatisk efter genstart af OmniRoute eller containeren; genaktivér dem fra dashboardet efter behov
 - Tunnel-URL'er er midlertidige og ændres, hver gang du stopper eller starter tunnelen
-- Administrerede Quick Tunnels bruger som standard HTTP/2-transport for at undgå støjende advarsler om QUIC UDP-buffere i containere med begrænsede ressourcer
+- Administrerede Quick Tunnels bruger som standard HTTP/2-transport for at undgå støjende QUIC-advarsler om UDP-buffere i ressourcebegrænsede containere
 - Indstil `CLOUDFLARED_PROTOCOL=quic` eller `auto`, hvis du vil tilsidesætte det administrerede transportvalg
-- Indstil `CLOUDFLARED_BIN`, hvis du foretrækker at bruge en forudinstalleret binær `cloudflared`-fil i stedet for den administrerede download
-- Panelerne Cloudflare Quick Tunnel, Tailscale Funnel og ngrok Tunnel kan vises eller skjules under **Indstillinger → Udseende**. Hvis et panel skjules, stopper det ikke en kørende tunnel.
+- Indstil `CLOUDFLARED_BIN`, hvis du foretrækker at bruge en allerede installeret binær `cloudflared`-fil i stedet for den administrerede download
+- Panelerne Cloudflare Quick Tunnel, Tailscale Funnel og ngrok Tunnel kan vises eller skjules under **Settings → Appearance**. Hvis et panel skjules, stopper det ikke en tunnel, der kører.
 
 ### LLM-gatewayintelligens (fase 9)
 
-- **Semantisk cache** — Gemmer automatisk ikke-streamede svar med temperature=0 i cachen (omgå med `X-OmniRoute-No-Cache: true`)
-- **Idempotens for anmodninger** — Dubletfjerner anmodninger inden for 5 sek. via headeren `Idempotency-Key` eller `X-Request-Id`
+- **Semantisk cache** — Gemmer automatisk ikke-streamede svar med temperature=0 i cachen (tilsidesæt med `X-OmniRoute-No-Cache: true`)
+- **Idempotens for anmodninger** — Deduplicerer anmodninger inden for 5 sek. via headeren `Idempotency-Key` eller `X-Request-Id`
 - **Statussporing** — Valgfrie SSE-`event: progress`-hændelser via headeren `X-OmniRoute-Progress: true`
 
 ---
 
-### Legeplads til oversættelse
+### Oversætter-sandkasse
 
-Åbn via **Kontrolpanel → Oversætter**. Fejlfind og visualiser, hvordan OmniRoute oversætter API-anmodninger mellem udbydere.
+Åbn via **Dashboard → Translator**. Fejlfind og visualiser, hvordan OmniRoute oversætter API-anmodninger mellem udbydere.
 
-| Tilstand            | Formål                                                                                               |
-| ------------------- | ---------------------------------------------------------------------------------------------------- |
-| **Legeplads**       | Vælg kilde-/målformater, indsæt en anmodning, og se straks det oversatte output                      |
-| **Chattester**      | Send livechatbeskeder gennem proxyen, og undersøg hele anmodnings-/svarcyklussen                     |
-| **Testmiljø**       | Kør batchtests på tværs af flere formatkombinationer for at kontrollere, at oversættelsen er korrekt |
-| **Liveovervågning** | Se oversættelser i realtid, mens anmodninger strømmer gennem proxyen                                 |
+| Tilstand            | Formål                                                                                |
+| ------------------- | ------------------------------------------------------------------------------------- |
+| **Sandkasse**       | Vælg kilde-/målformater, indsæt en anmodning, og se straks det oversatte output       |
+| **Chattester**      | Send livechatbeskeder gennem proxyen, og inspicér hele anmodnings-/svarcyklussen      |
+| **Testmiljø**       | Kør batchtests på tværs af flere formatkombinationer for at kontrollere oversættelsen |
+| **Liveovervågning** | Se oversættelser i realtid, mens anmodninger strømmer gennem proxyen                  |
 
-**Anvendelsesområder:**
+**Anvendelsestilfælde:**
 
-- Fejlfind, hvorfor en bestemt kombination af klient og udbyder mislykkes
-- Kontrollér, at tænketags, værktøjskald og systemprompter oversættes korrekt
+- Fejlfind, hvorfor en bestemt klient-/udbyderkombination mislykkes
+- Kontrollér, at tænkningstags, værktøjskald og systemprompter oversættes korrekt
 - Sammenlign formatforskelle mellem OpenAI-, Claude-, Gemini- og Responses API-formater
 
 ---
 
 ### Routingstrategier
 
-Konfigurer via **Dashboard → Indstillinger → Routing**. Dashboardet viser de seks mest anvendte strategier; kombinationer og auto-routeren understøtter internt et bredere udvalg.
+Konfigurer via **Dashboard → Settings → Routing**. Dashboardet viser de seks mest anvendte strategier; kombinationer og auto-routeren understøtter internt et bredere udvalg.
 
-**Strategier, der er synlige i dashboardet (routing på kontoniveau):**
+**Strategier, der vises i dashboardet (routing på kontoniveau):**
 
-| Strategi                       | Beskrivelse                                                                                                          |
-| ------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| **Udfyld først**               | Bruger konti i prioriteret rækkefølge — den primære konto håndterer alle anmodninger, indtil den ikke er tilgængelig |
-| **Round Robin**                | Skifter mellem alle konti med en konfigurerbar grænse for fastholdelse (standard: 3 kald pr. konto)                  |
-| **P2C (Power of Two Choices)** | Vælger 2 tilfældige konti og router til den mest velfungerende — balancerer belastningen med hensyn til tilstand     |
-| **Tilfældig**                  | Vælger tilfældigt en konto for hver anmodning ved hjælp af Fisher-Yates-blanding                                     |
-| **Mindst anvendt**             | Router til kontoen med det ældste `lastUsedAt`-tidsstempel og fordeler trafikken jævnt                               |
-| **Omkostningsoptimeret**       | Router til kontoen med den laveste prioritetsværdi og optimerer dermed for udbydere med de laveste omkostninger      |
+| Strategi                       | Beskrivelse                                                                                                             |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| **Udfyld første**              | Bruger konti i prioritetsrækkefølge — den primære konto håndterer alle anmodninger, indtil den ikke er tilgængelig      |
+| **Round Robin**                | Skifter mellem alle konti med en konfigurerbar fastholdelsesgrænse (standard: 3 kald pr. konto)                         |
+| **P2C (Power of Two Choices)** | Vælger 2 tilfældige konti og sender anmodningen til den sundeste — balancerer belastning under hensyntagen til tilstand |
+| **Tilfældig**                  | Vælger tilfældigt en konto for hver anmodning ved hjælp af Fisher-Yates-blanding                                        |
+| **Mindst anvendt**             | Sender anmodningen til kontoen med det ældste `lastUsedAt`-tidsstempel og fordeler trafikken jævnt                      |
+| **Omkostningsoptimeret**       | Sender anmodningen til kontoen med den laveste prioritetsværdi og optimerer efter udbydere med lavest omkostning        |
 
 **Avancerede kombinations- og autostrategier** (kan konfigureres pr. kombination eller via `auto/*`-præfikser — se [AUTO-COMBO.md](../routing/AUTO-COMBO.md)):
 
-- `priority` — fast rækkefølge, bruger aldrig round-robin
+- `priority` — streng rækkefølge, bruger aldrig Round Robin
 - `weighted` — proportional trafikfordeling baseret på vægte pr. model
-- `fill-first` — bruger den første model, indtil dens grænser nås
+- `fill-first` — udnytter den første model, indtil grænserne nås
 - `round-robin` / `strict-random` / `random`
 - `p2c` (Power of Two Choices)
 - `least-used` og `cost-optimized`
-- `auto` — pointbaseret valg blandt alle kandidater
-- `lkgp` (senest kendte fungerende udbyder) — fastholder den senest fungerende udbyder og falder derefter tilbage til reglerne
+- `auto` — pointbaseret valg på tværs af alle kandidater
+- `lkgp` (senest kendte fungerende udbyder) — fastholder den senest succesfulde udbyder og falder derefter tilbage på regler
 - `context-optimized` — vælger modellen med det største ledige kontekstvindue
-- `context-relay` — sammenkæder modeller med lang kontekst til efterfølgende interaktioner
+- `context-relay` — sammenkæder modeller med lang kontekst til opfølgende interaktioner
 
-#### Ekstern header til fastholdelse af session
+#### Ekstern header til fast session
 
-For ekstern sessionstilknytning (f.eks. Claude Code/Codex-agenter bag reverse proxies) skal du sende:
+For ekstern sessionstilknytning (f.eks. Claude Code-/Codex-agenter bag reverse proxyer) skal du sende:
 
 ```http
-X-Session-Id: din-sessionsnøgle
+X-Session-Id: your-session-key
 ```
 
-OmniRoute accepterer også `x_session_id` og returnerer den gældende sessionsnøgle i `X-OmniRoute-Session-Id`.
+OmniRoute accepterer også `x_session_id` og returnerer den effektive sessionsnøgle i `X-OmniRoute-Session-Id`.
 
 Hvis du bruger Nginx og sender headers med understregningstegn, skal du aktivere:
 
@@ -856,7 +896,7 @@ Jokertegn understøtter `*` (vilkårlige tegn) og `?` (ét enkelt tegn).
 
 #### Fallback-kæder
 
-Definer globale fallback-kæder, der gælder for alle anmodninger:
+Definér globale fallback-kæder, der gælder for alle anmodninger:
 
 ```
 Kæde: production-fallback
@@ -867,52 +907,51 @@ Kæde: production-fallback
 
 ---
 
-### Robusthed og circuit breakers
+### Robusthed og kredsløbsafbrydere
 
-Konfigurer via **Dashboard → Indstillinger → Robusthed**.
+Konfigurer via **Dashboard → Settings → Resilience**.
 
 OmniRoute implementerer robusthed på udbyderniveau med fem komponenter:
 
-1. **Anmodningskø og hastighedsstyring** — styring af anmodninger på systemniveau:
-   - **Anmodninger pr. minut (RPM)** — maksimalt antal anmodninger pr. minut pr. konto
-   - **Minimumstid mellem anmodninger** — minimumsinterval i millisekunder mellem anmodninger
-   - **Maksimalt antal samtidige anmodninger** — maksimalt antal samtidige anmodninger pr. konto
+1. **Anmodningskø og tempo** — Formning af anmodningstrafik på systemniveau:
+   - **Anmodninger pr. minut (RPM)** — Maksimalt antal anmodninger pr. minut pr. konto
+   - **Minimumstid mellem anmodninger** — Minimumsinterval i millisekunder mellem anmodninger
+   - **Maksimalt antal samtidige anmodninger** — Maksimalt antal samtidige anmodninger pr. konto
+2. **Forbindelsesnedkøling** — Konfiguration pr. godkendelsestype for en enkelt forbindelse efter fejl, der kan forsøges igen:
+   - **Grundlæggende nedkøling** — Standardnedkølingsperiode for upstream-fejl, der kan forsøges igen
+   - **Brug upstream-anvisninger om gentagelse** — Respekterer autoritative `Retry-After`- eller nulstillingsanvisninger, når de angives
+   - **Maks. antal backoff-trin** — Maksimalt eksponentielt backoff-niveau ved gentagne fejl
 
-2. **Forbindelses-cooldown** — konfiguration pr. godkendelsestype for en enkelt forbindelse efter fejl, der kan forsøges igen:
-   - **Grundlæggende cooldown** — standardperiode for cooldown ved upstream-fejl, der kan forsøges igen
-   - **Brug upstream-anvisninger om nyt forsøg** — respekterer autoritative `Retry-After`- eller nulstillingsanvisninger, når de angives
-   - **Maksimalt antal backoff-trin** — maksimalt eksponentielt backoff-niveau ved gentagne fejl
+3. **Kredsløbsafbryder for udbyder** — Sporer udbyderfejl fra ende til anden, markerer en udbyder som forringet ved den konfigurerede advarselstærskel og åbner kredsløbsafbryderen, når den konfigurerede fejltærskel nås:
+   - **Forringelsestærskel** — Antal på hinanden følgende udbyderfejl, før tilstanden `DEGRADED` aktiveres
+   - **Fejltærskel** — Antal på hinanden følgende udbyderfejl, før tilstanden `OPEN` aktiveres
+   - **Timeout for nulstilling** — Tidsrum, før udbyderen testes igen
+   - **CLOSED** (Sund) — Anmodninger behandles normalt
+   - **DEGRADED** — Anmodninger behandles fortsat, mens det forhøjede antal fejl spores
+   - **OPEN** — Udbyderen blokeres midlertidigt efter gentagne fejl
+   - **HALF_OPEN** — Tester, om udbyderen er kommet sig
 
-3. **Circuit breaker for udbyder** — sporer komplette udbyderfejl, markerer en udbyder som forringet ved den konfigurerede advarselstærskel og åbner circuit breakeren, når den konfigurerede fejltærskel nås:
-   - **Tærskel for forringelse** — antal på hinanden følgende udbyderfejl, før tilstanden `DEGRADED` aktiveres
-   - **Fejltærskel** — antal på hinanden følgende udbyderfejl, før tilstanden `OPEN` aktiveres
-   - **Timeout for nulstilling** — tidsrum, før udbyderen testes igen
-   - **CLOSED** (velfungerende) — anmodninger behandles normalt
-   - **DEGRADED** — anmodninger behandles fortsat, mens det forhøjede antal fejl spores
-   - **OPEN** — udbyderen blokeres midlertidigt efter gentagne fejl
-   - **HALF_OPEN** — tester, om udbyderen er kommet sig
+   Forbindelsesspecifikke `429`-hastighedsbegrænsninger forbliver i **Forbindelsesnedkøling** og tæller ikke med i udbyderens kredsløbsafbryder.
 
-   Forbindelsesspecifikke `429`-hastighedsgrænser forbliver i **Forbindelses-cooldown** og tæller ikke med i udbyderens circuit breaker.
+   Kørselstilstanden for udbyderens kredsløbsafbryder vises kun under **Dashboard → Tilstand**.
 
-   Driftstilstanden for udbyderens circuit breaker vises kun under **Dashboard → Tilstand**.
+4. **Vent på nedkøling** — Hvis alle kandidatforbindelser allerede er under nedkøling, kan OmniRoute vente på, at den tidligste nedkøling udløber, og automatisk forsøge den samme klientanmodning igen.
 
-4. **Vent på cooldown** — hvis alle kandidatforbindelser allerede er i cooldown, kan OmniRoute vente på den cooldown, der udløber først, og automatisk forsøge den samme klientanmodning igen.
+5. **Automatisk registrering af hastighedsbegrænsning** — Når upstream-udbydere returnerer eksplicitte ventetider, tilsidesætter disse anvisninger den lokale forbindelsesnedkøling, når indstillingen er aktiveret.
 
-5. **Automatisk registrering af hastighedsgrænser** — når upstream-udbydere returnerer eksplicitte ventetider, tilsidesætter disse anvisninger den lokale forbindelses-cooldown, når indstillingen er aktiveret.
-
-**Pro-tip:** Brug siden **Tilstand** til at inspicere og nulstille aktive circuit breakers for udbydere efter en driftsafbrydelse. Siden Robusthed ændrer kun konfigurationen.
+**Tip:** Brug siden **Tilstand** til at inspicere og nulstille aktive kredsløbsafbrydere for udbydere efter et driftsudfald. Siden Robusthed ændrer kun konfigurationen.
 
 ---
 
 ### Eksport/import af database
 
-Administrer databasesikkerhedskopier under **Dashboard → Indstillinger → System og lager**.
+Administrer sikkerhedskopier af databasen under **Dashboard → Indstillinger → System og lager**.
 
-| Handling                    | Beskrivelse                                                                                                                                                                      |
-| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Eksportér database**      | Downloader den aktuelle SQLite-database som en `.sqlite`-fil                                                                                                                     |
-| **Eksportér alt (.tar.gz)** | Downloader et komplet sikkerhedskopiarkiv, der indeholder: database, indstillinger, kombinationer, udbyderforbindelser (ingen legitimationsoplysninger), metadata for API-nøgler |
-| **Importér database**       | Overfører en `.sqlite`-fil for at erstatte den aktuelle database. Der oprettes automatisk en sikkerhedskopi før importen, medmindre `DISABLE_SQLITE_AUTO_BACKUP=true`            |
+| Handling                    | Beskrivelse                                                                                                                                                                        |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Eksportér database**      | Downloader den aktuelle SQLite-database som en `.sqlite`-fil                                                                                                                       |
+| **Eksportér alt (.tar.gz)** | Downloader et komplet sikkerhedskopiarkiv, der indeholder: database, indstillinger, kombinationer, udbyderforbindelser (ingen legitimationsoplysninger) og metadata for API-nøgler |
+| **Importér database**       | Upload en `.sqlite`-fil for at erstatte den aktuelle database. Der oprettes automatisk en sikkerhedskopi før importen, medmindre `DISABLE_SQLITE_AUTO_BACKUP=true`                 |
 
 ```bash
 # API: Eksportér database
@@ -926,45 +965,45 @@ curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**Importvalidering:** Den importerede fil valideres for integritet (SQLite-pragma-kontrol), påkrævede tabeller (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) og størrelse (maks. 100 MB).
+**Importvalidering:** Den importerede fil valideres for integritet (SQLite-pragma-kontrol), påkrævede tabeller (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) og størrelse (maks. 100MB).
 
-**Anvendelsesmuligheder:**
+**Anvendelsestilfælde:**
 
 - Migrer OmniRoute mellem maskiner
 - Opret eksterne sikkerhedskopier til katastrofegendannelse
-- Del konfigurationer mellem teammedlemmer (eksportér alt → del arkiv)
+- Del konfigurationer mellem teammedlemmer (eksportér alt → del arkivet)
 
 ---
 
-### Indstillingspanel
+### Indstillingsdashboard
 
-Indstillingssiden er organiseret i **7 faner** for nem navigation:
+Indstillingssiden er organiseret i **7 faner**, så det er nemt at navigere:
 
-| Fane          | Indhold                                                                                                                                                                                                 |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Generelt**  | Værktøjer til systemlagring, standardadfærd, synlighed af slutpunktstunneler                                                                                                                            |
-| **Udseende**  | Temastyring (lys/mørk/system), sidebjælkens synlighed, panelindstillinger for Cloudflare-/Tailscale-/ngrok-tunnelkort                                                                                   |
-| **AI**        | Tænkebudget (videresendelse / automatisk fjernelse / brugerdefineret / adaptivt — se [THINKING_BUDGET.md](./THINKING_BUDGET.md)), global systemprompt, statistik for promptcache                        |
-| **Sikkerhed** | Indstillinger for login/adgangskode, IP-adgangskontrol, API-godkendelse for `/models`, blokering af udbydere, beskyttelse mod promptinjektion                                                           |
-| **Routing**   | Global routingstrategi (udfyld først / Round Robin / P2C / tilfældig / mindst anvendt / omkostningsoptimeret), jokertegnsaliasser for modeller, fallback-kæder, standardindstillinger for kombinationer |
-| **Robusthed** | Anmodningskø, nedkøling af forbindelser, konfiguration af udbyderafbryder og adfærd for venten på nedkøling                                                                                             |
-| **Avanceret** | Global proxykonfiguration (HTTP/SOCKS5), proxyelementer, der tilsidesættes pr. udbyder                                                                                                                  |
+| Fane          | Indhold                                                                                                                                                                                              |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Generelt**  | Værktøjer til systemlager, standardadfærd og synlighed af endpoint-tunnel                                                                                                                            |
+| **Udseende**  | Temastyring (lys/mørk/system), synlighed af sidepanel og panelindstillinger for tunnelkort til Cloudflare/Tailscale/ngrok                                                                            |
+| **AI**        | Tænkebudget (uændret videregivelse / automatisk fjernelse / brugerdefineret / adaptivt — se [THINKING_BUDGET.md](./THINKING_BUDGET.md)), global systemprompt og statistik for promptcache            |
+| **Sikkerhed** | Indstillinger for login/adgangskode, IP-adgangskontrol, API-godkendelse for `/models`, blokering af udbydere og beskyttelse mod promptinjektion                                                      |
+| **Routing**   | Global routingstrategi (Udfyld første / Round Robin / P2C / Tilfældig / Mindst brugt / Omkostningsoptimeret), modelaliasser med jokertegn, fallback-kæder og standardindstillinger for kombinationer |
+| **Robusthed** | Anmodningskø, forbindelsesnedkøling, konfiguration af kredsløbsafbryder for udbydere og adfærd for venten på nedkøling                                                                               |
+| **Avanceret** | Global proxykonfiguration (HTTP/SOCKS5) og udbyderspecifikke proxytilsidesættelser                                                                                                                   |
 
 Generelt indeholder ikke længere duplikerede skrivebeskyttede noter om logføring og cache. Indstillinger for databaseopbevaring og
--optimering gemmes via `/api/settings/database`; manuel rydning af cachen bruger
-`DELETE /api/cache`. Grænser for antallet af rækker i anmodnings- og proxylogfiler styres af
+-optimering gemmes via `/api/settings/database`; manuel rydning af cache anvender
+`DELETE /api/cache`. Grænser for antallet af rækker i anmodnings- og proxylogge styres af
 `CALL_LOGS_TABLE_MAX_ROWS` og `PROXY_LOGS_TABLE_MAX_ROWS`.
 
 ---
 
-### Omkostnings- og budgetstyring
+### Administration af omkostninger og budgetter
 
-Åbnes via **Kontrolpanel → Omkostninger**.
+Tilgå via **Dashboard → Omkostninger**.
 
-| Fane       | Formål                                                                                                    |
-| ---------- | --------------------------------------------------------------------------------------------------------- |
-| **Budget** | Angiv forbrugsgrænser pr. API-nøgle med daglige, ugentlige eller månedlige budgetter og sporing i realtid |
-| **Priser** | Se og rediger modelpriser — pris pr. 1.000 input-/outputtokens pr. udbyder                                |
+| Fane       | Formål                                                                                             |
+| ---------- | -------------------------------------------------------------------------------------------------- |
+| **Budget** | Angiv forbrugsgrænser pr. API-nøgle med daglige/ugentlige/månedlige budgetter og sporing i realtid |
+| **Priser** | Se og rediger modelpriser — omkostning pr. 1K input-/outputtokens pr. udbyder                      |
 
 ```bash
 # API: Angiv et budget
@@ -976,13 +1015,13 @@ curl -X POST http://localhost:20128/api/usage/budget \
 curl http://localhost:20128/api/usage/budget
 ```
 
-**Omkostningssporing:** Hver anmodning registrerer tokenforbruget og beregner omkostningen ved hjælp af pristabellen. Se opdelinger i **Kontrolpanel → Forbrug** efter udbyder, model og API-nøgle.
+**Omkostningssporing:** Hver anmodning logger tokenforbruget og beregner omkostningen ved hjælp af pristabellen. Se fordelinger i **Dashboard → Usage** efter udbyder, model og API-nøgle.
 
 ---
 
 ### Lydtransskription
 
-OmniRoute understøtter lydtransskription via det OpenAI-kompatible slutpunkt:
+OmniRoute understøtter lydtransskription via det OpenAI-kompatible endpoint:
 
 ```bash
 POST /v1/audio/transcriptions
@@ -996,17 +1035,17 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
   -F "model=openai/whisper-1"
 ```
 
-`deepgram/nova-3` er den native Deepgram-rute og kræver en Deepgram API-nøgle.
+`deepgram/nova-3` er den oprindelige Deepgram-rute og kræver en Deepgram API-nøgle.
 Hvis kun OpenRouter er konfigureret, skal du bruge `openrouter/deepgram/nova-3`.
 
 Udbydere af **tale-til-tekst (transskription)**:
 
-- `openai/` (Whisper-kompatibel)
+- `openai/` (whisper-kompatibel)
 - `groq/` (Groq Whisper Turbo)
 - `deepgram/` (Nova-familien)
 - `assemblyai/`
 - `nvidia/` (Parakeet, Canary)
-- `huggingface/` (Whisper-varianter)
+- `huggingface/` (whisper-varianter)
 - `qwen/`
 
 Udbydere af **tekst-til-tale (`POST /v1/audio/speech`)**:
@@ -1030,52 +1069,52 @@ Understøttede lydformater til transskription: `mp3`, `wav`, `m4a`, `flac`, `ogg
 
 ---
 
-### Strategier til afbalancering af kombinationer
+### Strategier til balancering af kombinationer
 
-Konfigurer afbalancering pr. kombination under **Kontrolpanel → Kombinationer → Opret/rediger → Strategi**.
+Konfigurer balancering pr. kombination i **Dashboard → Combos → Create/Edit → Strategy**.
 
-| Strategi                 | Beskrivelse                                                                          |
-| ------------------------ | ------------------------------------------------------------------------------------ |
-| **Round-Robin**          | Skifter sekventielt mellem modeller                                                  |
-| **Prioritet**            | Forsøger altid den første model; falder kun tilbage ved fejl                         |
-| **Tilfældig**            | Vælger en tilfældig model fra kombinationen for hver anmodning                       |
-| **Vægtet**               | Dirigerer proportionalt baseret på de tildelte vægte pr. model                       |
-| **Mindst anvendt**       | Dirigerer til modellen med færrest nylige anmodninger (bruger kombinationsmetrikker) |
-| **Omkostningsoptimeret** | Dirigerer til den billigste tilgængelige model (bruger pristabellen)                 |
+| Strategi                 | Beskrivelse                                                                      |
+| ------------------------ | -------------------------------------------------------------------------------- |
+| **Round-Robin**          | Roterer sekventielt gennem modeller                                              |
+| **Prioritet**            | Forsøger altid den første model; skifter kun til en reservemodel ved fejl        |
+| **Tilfældig**            | Vælger en tilfældig model fra kombinationen for hver anmodning                   |
+| **Vægtet**               | Router proportionalt ud fra de tildelte vægte pr. model                          |
+| **Mindst anvendt**       | Router til modellen med færrest nylige anmodninger (bruger kombinationsmålinger) |
+| **Omkostningsoptimeret** | Router til den billigste tilgængelige model (bruger pristabellen)                |
 
-Globale standardindstillinger for kombinationer kan angives under **Dashboard → Indstillinger → Routing → Standardindstillinger for kombinationer**.
-Timeouts for kombinationsmål arver som standard timeoutværdien for den aktuelle anmodning. Brug kun **Timeout for mål
-(sekunder)** i standardindstillingerne for kombinationer eller for en individuel kombination, når en kortere grænse pr. mål skal
+Globale standardindstillinger for kombinationer kan angives i **Dashboard → Settings → Routing → Combo Defaults**.
+Timeouts for mål i kombinationer arver som standard timeouten for den aktuelle anmodning. Brug **Target timeout
+(seconds)** i standardindstillingerne for kombinationer eller i en individuel kombination, men kun når en kortere grænse pr. mål skal
 udløse hurtigere fallback.
 
-Kombinationsoptimeringer uden ekstra latenstid er valgfrie. Lad **Optimeringer uden ekstra latenstid** være deaktiveret for at
-forhindre disse latensfunktioner i at lade fallback-mål konkurrere, springe mål over baseret på historik for TTFT
-eller komprimere fallback-anmodninger. Aktivering tillader konfigureret hedging, forudsigende TTFT-
-overspringelser og proaktiv fallback-komprimering for at opnå lavere halelatens på bekostning af routingens/anmodningens
-nøjagtighed.
+Kombinationsoptimeringer uden latenstid er valgfrie. Lad **Zero-latency optimizations** være deaktiveret for at
+forhindre, at disse latensfunktioner konkurrerer med fallback-mål, springer mål over baseret på TTFT-
+historik eller komprimerer fallback-anmodninger. Aktivering tillader konfigureret hedging, prædiktive TTFT-
+overspringninger og proaktiv fallback-komprimering for at bytte routing-/anmodningsnøjagtighed mod lavere
+halelatenstid.
 
-Deaktiver **Buffer til ræsonneringstokens**, når upstream-udbydere kræver strenge grænser for
-`max_tokens` / `maxOutputTokens`. Når den er aktiveret, tilføjer kombinationsrouting kun ekstra kapacitet til ræsonneringsmodeller
-for modeller med en kendt outputgrænse og lader klientens tokengrænse være uændret, når den
-sikre bufferbaserede værdi ville overstige denne grænse. Hvis klientens grænse allerede overstiger en kendt grænse,
-reducerer OmniRoute den til denne grænse, før upstream-anmodningen sendes.
+Deaktiver **Reasoning token buffer**, når upstream-udbydere kræver strenge
+`max_tokens`- / `maxOutputTokens`-grænser. Når funktionen er aktiveret, tilføjer kombinationsrouting kun ekstra kapacitet til ræsonneringsmodeller
+for modeller med et kendt outputloft og lader klientens tokengrænse være uændret, når den
+sikre bufferjusterede værdi ville overskride dette loft. Hvis klientgrænsen allerede ligger over et kendt loft,
+reducerer OmniRoute den til dette loft, før upstream-anmodningen sendes.
 
 ---
 
-### Sundhedsdashboard
+### Tilstandsdashboard
 
-Tilgås via **Dashboard → Sundhed**. Realtidsoversigt over systemets sundhed med 6 kort:
+Tilgå via **Dashboard → Health**. Realtidsoversigt over systemets tilstand med 6 kort:
 
-| Kort                   | Det viser                                                       |
+| Kort                   | Hvad det viser                                                  |
 | ---------------------- | --------------------------------------------------------------- |
 | **Systemstatus**       | Oppetid, version, hukommelsesforbrug, datamappe                 |
-| **Udbydersundhed**     | Global runtimestatus for udbydernes kredsløbsafbrydere          |
-| **Hastighedsgrænser**  | Aktive forbindelsesnedkølinger pr. konto med resterende tid     |
+| **Udbydertilstand**    | Kørselstilstand for den globale circuit breaker pr. udbyder     |
+| **Hastighedsgrænser**  | Aktive forbindelsespauser pr. konto med resterende tid          |
 | **Aktive blokeringer** | Aktive modelspecifikke blokeringer og midlertidige udelukkelser |
 | **Signaturcache**      | Statistik for deduplikeringscache (aktive nøgler, træfprocent)  |
-| **Latenstelemetri**    | Aggregering af p50/p95/p99-latens pr. udbyder                   |
+| **Latenstelemetri**    | Aggregering af p50-/p95-/p99-latenstid pr. udbyder              |
 
-**Tip:** Sundhedssiden opdateres automatisk hvert 10. sekund. Brug kortet for kredsløbsafbryderen til at identificere, hvilke udbydere der oplever problemer.
+**Pro-tip:** Tilstandssiden opdateres automatisk hvert 10. sekund. Brug circuit breaker-kortet til at identificere, hvilke udbydere der oplever problemer.
 
 ---
 

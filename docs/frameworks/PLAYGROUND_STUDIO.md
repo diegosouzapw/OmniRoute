@@ -192,14 +192,14 @@ Auth: optional (`REQUIRE_API_KEY`). Errors via `buildErrorBody()` (Hard Rule #12
 
 ## Troubleshooting
 
-| Symptom                                | Cause                         | Fix                                                                             |
-| -------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------- |
-| Monaco editor not rendering in API tab | SSR loaded Monaco             | Verify `ApiTab` uses `dynamic(..., { ssr: false })`                             |
-| Compare streams fire sequentially      | Wrong `Promise.all` usage     | All stream starts must be dispatched in one `Promise.all` call                  |
-| Metrics show `null` TTFT               | First chunk handler not wired | Check `useStreamMetrics.onFirstChunk()` is called in the SSE reader loop        |
-| Preset not persisting                  | DB migration not run          | Run `npm run db:migrate` or restart the server (migration auto-runs on startup) |
-| Improve prompt returns 502             | Model not set in Config       | User must enter a model name in the Config pane before improving                |
-| Export code shows `MISSING_API_KEY`    | Placeholder not inserted      | `codeExport.ts` always uses `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`        |
+| Symptom                                | Cause                         | Fix                                                                      |
+| -------------------------------------- | ----------------------------- | ------------------------------------------------------------------------ |
+| Monaco editor not rendering in API tab | SSR loaded Monaco             | Verify `ApiTab` uses `dynamic(..., { ssr: false })`                      |
+| Compare streams fire sequentially      | Wrong `Promise.all` usage     | All stream starts must be dispatched in one `Promise.all` call           |
+| Metrics show `null` TTFT               | First chunk handler not wired | Check `useStreamMetrics.onFirstChunk()` is called in the SSE reader loop |
+| Preset not persisting                  | DB migration not run          | Restart the server: migrations run automatically on startup              |
+| Improve prompt returns 502             | Model not set in Config       | User must enter a model name in the Config pane before improving         |
+| Export code shows `MISSING_API_KEY`    | Placeholder not inserted      | `codeExport.ts` always uses `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"` |
 
 ---
 

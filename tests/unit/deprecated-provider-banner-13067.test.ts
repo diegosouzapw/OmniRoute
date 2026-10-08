@@ -30,9 +30,9 @@ test("providers page mounts the leftover banner", () => {
   assert.match(source, /DeprecatedProviderBanner/);
 });
 
-test("providers page stays frozen at 2025 lines", () => {
+test("providers page stays frozen at 2020 lines", () => {
   const lines = fs.readFileSync(pagePath, "utf8").split("\n").length;
-  assert.equal(lines, 2025);
+  assert.equal(lines, 2020);
 });
 
 test("purge surfaces notify.error when POST is not ok", () => {
@@ -62,9 +62,6 @@ test("purge surfaces notify.success when POST is ok", () => {
 test("banner leftover type comes from the classifier module", () => {
   const source = fs.readFileSync(bannerPath, "utf8");
   assert.match(source, /DeprecatedProviderLeftoverGroup/);
-  assert.match(
-    source,
-    /from\s+["']@\/lib\/providers\/deprecatedProviderCleanup["']/
-  );
+  assert.match(source, /from\s+["']@\/lib\/providers\/deprecatedProviderCleanup["']/);
   assert.equal(source.includes("type LeftoverGroup = {"), false);
 });

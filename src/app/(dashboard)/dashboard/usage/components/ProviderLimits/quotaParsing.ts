@@ -251,9 +251,18 @@ function parseCodex(data: any) {
   return quotas;
 }
 
+// #15635: extra_usage amounts arrive in minor units; decimal_places gives the exponent.
+function claudeExtraUsageScale(extraUsage: any): number {
+  const decimalPlaces = Number(extraUsage?.decimal_places);
+  return Number.isInteger(decimalPlaces) && decimalPlaces > 0 && decimalPlaces <= 6
+    ? 10 ** decimalPlaces
+    : 1;
+}
+
 function buildClaudeExtraUsageQuota(extraUsage: any) {
-  const monthlyLimit = Number(extraUsage?.monthly_limit ?? 0);
-  const usedCredits = Number(extraUsage?.used_credits ?? 0);
+  const scale = claudeExtraUsageScale(extraUsage);
+  const monthlyLimit = Number(extraUsage?.monthly_limit ?? 0) / scale;
+  const usedCredits = Number(extraUsage?.used_credits ?? 0) / scale;
   const utilization = Number(extraUsage?.utilization ?? 0);
   const remainingPercentage = Number.isFinite(utilization)
     ? Math.max(0, 100 - utilization)
@@ -275,9 +284,15 @@ function parseClaude(data: any) {
   if (data?.message)
     return [{ name: "error", used: 0, total: 0, resetAt: null, message: data.message }];
 
-  const quotas = quotaEntries({ quotas: { ...data.quotas, ...data.modelQuotas } }).map(
-    ([name, quota]) => normalizeQuotaEntry(name, quota, { isPercentageOnly: true })
-  );
+  const visibleQuotas = (
+    quotas: Record<string, { fractionReported?: boolean } | null> | null | undefined
+  ) =>
+    Object.fromEntries(
+      Object.entries(quotas ?? {}).filter(([, quota]) => quota?.fractionReported !== false)
+    );
+  const quotas = quotaEntries({
+    quotas: { ...visibleQuotas(data.quotas), ...visibleQuotas(data.modelQuotas) },
+  }).map(([name, quota]) => normalizeQuotaEntry(name, quota, { isPercentageOnly: true }));
 
   if (data?.extraUsage?.is_enabled) {
     quotas.push(buildClaudeExtraUsageQuota(data.extraUsage));
@@ -331,13 +346,26 @@ function parseAgentrouter(data: any) {
 // USD. Free-tier request windows keep the generic percentage treatment.
 function parseOpenrouterQuota(quotaKey: string, quota: any) {
   if (quotaKey !== "credits") return normalizeQuotaEntry(quotaKey, quota);
+  // OpenRouter backend (PRs #12256 + #12468) reports a positive-denominator
+  // PAYG payload (used, total, remaining, remainingPercentage) and a
+  // balance-only payload under legacy keys. The credits renderer in
+  // QuotaCardExpanded short-circuits when `isCredits: true` and only shows
+  // the remaining balance as USD - so a positive-denominator PAYG row
+  // must NOT take that branch. Positive denominators go through the regular
+  // normalizeQuotaEntry() path (which keeps currency as an extra); only a
+  // missing/non-positive denominator falls back to buildCreditsQuota() so
+  // the balance row stays renderable without inventing a 100% percentage.
+  const total = Number(quota?.total ?? 0);
+  if (Number.isFinite(total) && total > 0) {
+    return normalizeQuotaEntry(quotaKey, quota, {
+      currency: quota?.currency ?? "USD",
+    });
+  }
   const remaining = Math.max(0, Number(quota?.remaining ?? 0));
-  const currency = quota?.currency || "USD";
-  const remainingPercentage =
-    safePercentage(quota?.remainingPercentage) ?? (remaining > 0 ? 100 : 0);
+  const currency = quota?.currency ?? "USD";
+  const remainingPercentage = safePercentage(quota?.remainingPercentage) ?? 0;
   return buildCreditsQuota("credits", remaining, remainingPercentage, { currency });
 }
-
 function parseOpenrouter(data: any) {
   return quotaEntries(data).map(([quotaKey, quota]) => parseOpenrouterQuota(quotaKey, quota));
 }

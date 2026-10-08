@@ -16,6 +16,7 @@ import {
 } from "../../services/modelFamilyFallback.ts";
 import { COOLDOWN_MS } from "../../config/errorConfig.ts";
 import { normalizeHeaders } from "../../utils/headers.ts";
+import { shouldSkipCredentialRefresh } from "./skipCredentialRefresh.ts";
 
 export interface ChatCoreExecutorResult {
   response: Response;
@@ -438,7 +439,8 @@ export async function runProviderExecutionPipeline(
     if (
       !authRefreshed &&
       (status === 401 || status === 403) &&
-      typeof connection.refreshCredentials === "function"
+      typeof connection.refreshCredentials === "function" &&
+      !(await shouldSkipCredentialRefresh(target.provider, attempt.response))
     ) {
       const refreshed = await connection.refreshCredentials(connection.getCredentials());
       if (refreshed && (refreshed.accessToken || refreshed.copilotToken)) {

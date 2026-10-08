@@ -3,6 +3,13 @@ import { getDbInstance } from "../core";
 export const PROXY_ALIVE_PREDICATE =
   "(p.status IS NULL OR LOWER(p.status) NOT IN ('inactive','error','disabled','dead','down'))";
 
+const PROXY_UNAVAILABLE_STATUSES = new Set(["inactive", "error", "disabled", "dead", "down"]);
+
+/** Keep by-id account proxy resolution aligned with the pool alive predicate above. */
+export function isProxyRegistryStatusAlive(status: unknown): boolean {
+  return status == null || !PROXY_UNAVAILABLE_STATUSES.has(String(status).toLowerCase());
+}
+
 export function isGlobalProxyEnabled(db: ReturnType<typeof getDbInstance>): boolean {
   try {
     const row = db

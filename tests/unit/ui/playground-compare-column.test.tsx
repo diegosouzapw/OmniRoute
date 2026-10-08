@@ -148,6 +148,38 @@ describe("CompareColumn", () => {
     expect(onRemove).toHaveBeenCalledWith("col-1");
   });
 
+  it("copies this column response from the button beside remove", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+
+    const el = renderColumn(makeColumn({ status: "done", response: "Column-specific answer" }));
+    const copyBtn = el.querySelector("[aria-label='Copy']") as HTMLButtonElement;
+    const removeBtn = el.querySelector(
+      "[aria-label='Remove column for openai/gpt-4o']"
+    ) as HTMLButtonElement;
+
+    expect(copyBtn).not.toBeNull();
+    expect(copyBtn.nextElementSibling).toBe(removeBtn);
+
+    await act(async () => {
+      copyBtn.click();
+    });
+
+    expect(writeText).toHaveBeenCalledWith("Column-specific answer");
+    expect(copyBtn.textContent).toContain("check");
+  });
+
+  it("disables response copy while the column has no response", () => {
+    const el = renderColumn(makeColumn({ response: "" }));
+    const copyBtn = el.querySelector("[aria-label='Copy']") as HTMLButtonElement;
+
+    expect(copyBtn).not.toBeNull();
+    expect(copyBtn.disabled).toBe(true);
+  });
+
   it("updates metrics displayed when metrics change (TTFT after first chunk)", () => {
     const metricsWithTtft = { ...BASE_METRICS, ttftMs: 187 };
     const el = renderColumn(

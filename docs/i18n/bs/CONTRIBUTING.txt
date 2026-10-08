@@ -1,0 +1,436 @@
+# Contributing to OmniRoute (Bosanski)
+
+🌐 **Languages:** 🇺🇸 [English](../../../CONTRIBUTING.md) · 🇪🇹 [am](../am/CONTRIBUTING.md) · 🇸🇦 [ar](../ar/CONTRIBUTING.md) · 🇦🇿 [az](../az/CONTRIBUTING.md) · 🇧🇬 [bg](../bg/CONTRIBUTING.md) · 🇧🇩 [bn](../bn/CONTRIBUTING.md) · 🇨🇿 [cs](../cs/CONTRIBUTING.md) · 🇩🇰 [da](../da/CONTRIBUTING.md) · 🇩🇪 [de](../de/CONTRIBUTING.md) · 🇬🇷 [el](../el/CONTRIBUTING.md) · 🇪🇸 [es](../es/CONTRIBUTING.md) · 🇪🇪 [et](../et/CONTRIBUTING.md) · 🇮🇷 [fa](../fa/CONTRIBUTING.md) · 🇫🇮 [fi](../fi/CONTRIBUTING.md) · 🇫🇷 [fr](../fr/CONTRIBUTING.md) · 🇮🇪 [ga](../ga/CONTRIBUTING.md) · 🇮🇳 [gu](../gu/CONTRIBUTING.md) · 🇳🇬 [ha](../ha/CONTRIBUTING.md) · 🇮🇱 [he](../he/CONTRIBUTING.md) · 🇮🇳 [hi](../hi/CONTRIBUTING.md) · 🇭🇷 [hr](../hr/CONTRIBUTING.md) · 🇭🇺 [hu](../hu/CONTRIBUTING.md) · 🇦🇲 [hy](../hy/CONTRIBUTING.md) · 🇮🇩 [id](../id/CONTRIBUTING.md) · 🇳🇬 [ig](../ig/CONTRIBUTING.md) · 🇮🇹 [it](../it/CONTRIBUTING.md) · 🇯🇵 [ja](../ja/CONTRIBUTING.md) · 🇬🇪 [ka](../ka/CONTRIBUTING.md) · 🇰🇭 [km](../km/CONTRIBUTING.md) · 🇮🇳 [kn](../kn/CONTRIBUTING.md) · 🇰🇷 [ko](../ko/CONTRIBUTING.md) · 🇱🇹 [lt](../lt/CONTRIBUTING.md) · 🇱🇻 [lv](../lv/CONTRIBUTING.md) · 🇮🇳 [ml](../ml/CONTRIBUTING.md) · 🇮🇳 [mr](../mr/CONTRIBUTING.md) · 🇲🇾 [ms](../ms/CONTRIBUTING.md) · 🇲🇹 [mt](../mt/CONTRIBUTING.md) · 🇲🇲 [my](../my/CONTRIBUTING.md) · 🇳🇵 [ne](../ne/CONTRIBUTING.md) · 🇳🇱 [nl](../nl/CONTRIBUTING.md) · 🇳🇴 [no](../no/CONTRIBUTING.md) · 🇮🇳 [or](../or/CONTRIBUTING.md) · 🇮🇳 [pa](../pa/CONTRIBUTING.md) · 🇵🇭 [phi](../phi/CONTRIBUTING.md) · 🇵🇱 [pl](../pl/CONTRIBUTING.md) · 🇵🇹 [pt](../pt/CONTRIBUTING.md) · 🇧🇷 [pt-BR](../pt-BR/CONTRIBUTING.md) · 🇷🇴 [ro](../ro/CONTRIBUTING.md) · 🇷🇺 [ru](../ru/CONTRIBUTING.md) · 🇱🇰 [si](../si/CONTRIBUTING.md) · 🇸🇰 [sk](../sk/CONTRIBUTING.md) · 🇸🇮 [sl](../sl/CONTRIBUTING.md) · 🇷🇸 [sr](../sr/CONTRIBUTING.md) · 🇸🇪 [sv](../sv/CONTRIBUTING.md) · 🇰🇪 [sw](../sw/CONTRIBUTING.md) · 🇮🇳 [ta](../ta/CONTRIBUTING.md) · 🇮🇳 [te](../te/CONTRIBUTING.md) · 🇹🇭 [th](../th/CONTRIBUTING.md) · 🇹🇷 [tr](../tr/CONTRIBUTING.md) · 🇺🇦 [uk-UA](../uk-UA/CONTRIBUTING.md) · 🇵🇰 [ur](../ur/CONTRIBUTING.md) · 🇺🇿 [uz](../uz/CONTRIBUTING.md) · 🇻🇳 [vi](../vi/CONTRIBUTING.md) · 🇳🇬 [yo](../yo/CONTRIBUTING.md) · 🇨🇳 [zh-CN](../zh-CN/CONTRIBUTING.md) · 🇹🇼 [zh-TW](../zh-TW/CONTRIBUTING.md)
+
+---
+
+Hvala vam na interesu za doprinos! Ovaj vodič pokriva sve što vam je potrebno za početak.
+
+Za službeni tijek rada nakon promjene, počnite sa
+[Zlatni put doprinosa](docs/ops/CONTRIBUTION_GOLDEN_PATH.md). Mapira promjene u pružateljima usluga, usmjeravanju,
+UI/UX-a, i18n-a, CLI-ja, baze podataka i izgradnje/postavljanja na njihove ugovore, fokusirane testove, CI
+koraci pokrivanja i poravnanja.
+
+---
+
+## Postavljanje razvojnog okruženja
+
+### Preduslovi
+
+- **Node.js** `>=22.22.3 <23`, ili `>=24.0.0 <27` (preporučeno: 24 LTS)
+- **npm** 10+
+
+> **npm v11+ (Node 24+) korisnici:** Nakon `npm instalacije`, provjerite jesu li izvorni moduli instalirani:
+> `node -e "require('better-sqlite3')"`. Ako ne uspije s greškom `MODULE_NOT_FOUND`,
+> pokrenite `npm approve-scripts better-sqlite3 && npm install`. Pogledajte
+> [Rješavanje problema](docs/guides/TROUBLESHOOTING.md#npm-v11-better-sqlite3-not-installed-cannot-find-module).
+
+- **Git**
+
+### Kloniranje i instalacija
+
+bash
+git klon https://github.com/diegosouzapw/OmniRoute.git
+cd OmniRoute
+instalacija npm-a
+```
+
+### Varijable okruženja
+
+bash
+# Kreirajte .env datoteku iz predloška
+cp .env.primjer .env
+
+# Generirajte potrebne tajne ključeve
+echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
+echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
+```
+
+Ključne varijable za razvoj:
+
+| Varijabla | Zadana vrijednost za razvoj | Opis |
+| ---------------------- | --------------------------- | --------------- |
+| `PORT` | `20128` | Port servera |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Osnovni URL za interfejs |
+| `JWT_SECRET` | (generiraj gore) | Tajni ključ za JWT potpisivanje |
+| `INITIAL_PASSWORD` | `CHANGEME` | Lozinka za prvu prijavu |
+| `APP_LOG_LEVEL` | `info` | Nivo detaljnosti zapisa |
+
+### Postavke kontrolne ploče
+
+Kontrolna ploča pruža prekidače korisničkog interfejsa za funkcije koje se također mogu konfigurirati putem varijabli okruženja:
+
+| Lokacija postavke | Prekidač | Opis |
+| ------------------- | --------------------------- | -------------------------------------------------------- |
+| Postavke → Napredno | Način rada za otklanjanje grešaka | Omogući zapisnike zahtjeva za otklanjanje grešaka (UI) |
+| Postavke → Općenito | Vidljivost bočne trake | Prikaži/Sakrij dijelove bočne trake |
+
+Ove postavke se pohranjuju u bazu podataka i ostaju važeće nakon ponovnog pokretanja sistema, poništavajući zadane vrijednosti varijabli okruženja kada su postavljene.
+
+### Pokreće se lokalno
+
+bash
+# Razvojni način rada (vruće ponovno pokretanje)
+npm pokretanje razvoja
+
+# Izgradnja proizvodnje
+npm pokrenuti build # sljedeća izrada → .build/next/ zatim assembleStandalone → dist/
+početak izvršavanja npm-a
+
+# Brzo kompajlirajte samo backend/API za promjene saradnika
+npm run build:contributor
+
+# Izrada za objavljivanje (čista ponovna izrada + HEAD sentinel — potrebno za implementaciju)
+npm run build:release # rm -rf .build dist && build + zapisuje dist/BUILD_SHA
+
+# Uobičajena konfiguracija porta
+PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
+```
+
+Izrada za saradnike vrši samo provjere kompajliranja: ne kompajlira samostalnu verziju.
+distribuciju niti gradi neobavezne izvorne pakete. Koristite regularnu produkcijsku izgradnju kada
+Potrebno je provjeriti da li je paket spreman za dostavu.
+
+### Raspored izlaznih direktorija za izgradnju
+
+| Direktorij | Sadržaj | Praćeno |
+| ---------- | ------------------------------------------------------------------------ | ------ |
+| `src/`     | Izvorni kod aplikacije (TypeScript / TSX)                                | Da     |
+| `.build/` | Međuproizvodi — ispis `sljedeća izrada` (gitignored, `distDir = .build/next`) | Ne |
+| `dist/` | Paket spreman za isporuku — kompajlira `assembleStandalone` (gitignored) | Ne |
+
+Cjevovod izgradnje je jednoprolazni:
+
+```
+npm pokretanje izgradnje
+└─ sljedeća verzija → .build/next/standalone (Next.js izlaz)
+└─ assembleStandalone() (kopira samostalne + statičke + javne + izvorne resurse)
+└─ izlaz: dist/ (server.js, .next/static/, public/, node_modules/)
+```
+
+`npm run build:release` dodatno čisti oba direktorija prije toga i upisuje
+`dist/BUILD_SHA` (= `git rev-parse --short HEAD`) kao čuvar integriteta implementacije.
+
+`npm run build:contributor` koristi profil izgradnje samo za pozadinski dio. Privremeno zamjenjuje
+Datoteke UI kontrolne ploče prebacuju u zaustavljene datoteke tokom izgradnje, čuvaju API rukovaoce rutama i vraćaju izvorne datoteke
+nakon izgradnje. Koristite `npm run build` za promjene koje utiču na korisnički interfejs kontrolne ploče ili za kompletnu
+Recenzija objave; profil saradnika nije zamjena za kreiranje objave.
+
+> **Napomena za implementaciju na VPS-u:** udaljeni direktorij slika `/usr/lib/node_modules/omniroute/app/`
+> ostaje nepromijenjen. Vještine podešavanja sinhronizuju sadržaj `dist/` u njega.
+> Samo je putanja izlaza izgradnje u repozitoriju premještena (`app/` → `dist/`).
+
+Zadani URL-ovi:
+
+- **Nadzorna ploča**: `http://localhost:20128/nadzorna ploča`
+- **API**: `http://localhost:20128/v1`
+
+---
+
+## Gitov tok rada
+
+> ⚠️ **NIKADA se ne pozivajte direktno na `main`.** Uvijek koristite feature grane.
+>
+> **Baza PR-a:** ciljajte na aktivnu `release/vX.Y.Z` granu (ne `main`). Pogledajte
+> [`docs/ops/BRANCHING_MODEL.md`](docs/ops/BRANCHING_MODEL.md) za model jedne grane izdanja po izdanju + označavanje prilikom isporuke.
+
+"bash"
+# Grana sa aktivnog vrha grane za izdanje (primjer: release/v3.8.49)
+git fetch porijeklo
+git checkout -b feat/naziv-vaše-funkcije origin/release/v3.8.49
+# ... napravite promjene ...
+git commit -m "feat: opišite svoju promjenu"
+git push -u origin feat/naziv-vaše-funkcije
+# Otvorite Pull Request sa base = release/v3.8.49
+```
+
+### Zakazivanje termina u poslovnici
+
+| Prefiks | Svrha |
+| ----------- | ------------------------- |
+| `feat/` | Nove funkcionalnosti |
+| `ispravka/` | Ispravke grešaka |
+| `refaktorisanje/` | Kod za refaktorisanje |
+| `docs/`     | Izmjene dokumentacije      |
+| `test/` | Dodavanje/Ispravljanje testova |
+| `zadatak/` | Alati, CI, zavisnosti |
+
+### Poruke potvrđivanja
+
+Pratite [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+podvig: dodavanje prekidača za pozive provajdera
+ispravka: rješavanje graničnog slučaja JWT tajne validacije
+dokumentacija: ažuriranje SECURITY.md sa zaštitom od PII podataka
+test: dodajte testove jedinica za uočljivost
+refactor(db): konsolidacija tabela ograničenja brzine
+```
+
+Operativni sistemi (v3.8): `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memorija`, `vještine`, `cloud-agent`, `guardrails`, `kompresija`, `automatsko kombinovanje`, `otpornost`, `pružaoci usluga`, `izvršivači`, `prevodilac`, `domena`, `authz`.
+
+---
+
+## Pokretanje testova
+
+"bash"
+# Svi testovi (unit + vitest + ecosystem + e2e)
+npm run test:sve
+
+# Jedna testna datoteka (Node.js izvorni testni engine — većina testova ga koristi)
+čvor --import tsx/esm --test testovi/jedinica/vaša-datoteka.test.ts
+
+# Samo jedinični testovi na koje utiče vaša promjena (isti TIA selektor kao i CI passer, #8084)
+npm run test:scoped # promjene u posljednjem commitu (ili radnom stablu)
+npm run test:scoped:staged # samo promjene u fazi obrade — dobro se kombinuje sa pre-commit run-om
+npm run test:scoped:full       # prvo ponovo izgradi mapu import-grafa (nakon dodavanja/premještanja datoteka)
+# Izlaz 1 + "pokrenite cijelu kolekciju" znači da se promijenila hub datoteka (tsconfig, package.json, …) ili
+# nemapiran izvor — selektor sigurno ne uspijeva, nikad tiho ne preskače.
+
+# Vitest (MCP server, autoCombo, keš)
+npm pokretanje testa:vitest
+
+# E2E testovi (zahtijeva dramski pisac)
+npm pokretanje testa:e2e
+
+# Testovi klijenata E2E protokola (MCP transporti, A2A)
+npm run test:protocols:e2e
+
+# Testovi kompatibilnosti ekosistema
+npm run test:ekosistem
+
+# Prag pokrivenosti: 60% naredbi/linija/funkcija/grana
+npm run test:pokrivenost
+npm run coverage:report
+
+# Provjerite linting + formatiranje
+npm run lint
+provjera pokretanja npm-a
+
+# Zaštićena kombinacija stvarnog uzvodnog dima (zahtijeva pristup VPS-u + kredite stvarnog provajdera)
+# Pogađa PRAVE dobavljače — košta malo. NIKADA ne radi u CI. Preskače čisto bez prolaznika.
+# Obavezno: ssh root@192.168.0.15 pristup (učitava snimak baze podataka samo za čitanje sa VPS-a).
+RUN_COMBO_LIVE=1 npm pokrenuti test:combo:live
+
+# Phase-3 VPS live smoke — jednostavni Node ESM skripti, koji direktno pogađaju aktivni .15 server.
+# Obavezno: ssh root@192.168.0.15 pristup (kombinacije se kreiraju/brišu putem SSH sqlite-a).
+# Pogađa PRAVE provajdere (niski troškovi). Kreira/briše samo __live_test__* kombinacije. NIKADA se ne pokreće u CI.
+# REQUIRE_API_KEY=false na .15 tako da API ključ nije potreban, ali se poštuje COMBO_LIVE_BASE_URL / COMBO_LIVE_API_KEY ako je postavljen.
+npm run test:combo:live:vps # 7 HTTP scenario (prioritet/kružni sistem/ponderisano/trošak/fuzija/automatski + stanje)
+npm run test:combo:live:vps:failover # dodaje pravi scenario prebacivanja na drugi provajder (ukupno 8)
+```
+
+Bilješke o pokrivenosti:
+
+- `npm run test:coverage` mjeri pokrivenost izvornog koda za glavni skup unit testova, isključuje `tests/**` i uključuje `open-sse/**`
+- Zahtjevi za povlačenje moraju održavati prag pokrivenosti od **60%+** komandi/linija/funkcija/grana
+- Ako PR promijeni produkcijski kod u `src/`, `open-sse/`, `electron/` ili `bin/`, mora dodati ili ažurirati automatizirane testove u istom PR-u.
+- `npm run coverage:report` ispisuje detaljno izvješće po datotekama iz zadnjeg pokretanja pokrivenosti
+- `npm run test:coverage:legacy` čuva starije metrike za historijsko poređenje
+- Pogledajte `docs/ops/COVERAGE_PLAN.md` za plan poboljšanja pokrivenosti u fazama
+
+### Zahtjevi za povlačenje
+
+Prije otvaranja PR-a, koristite
+[Doprinos Zlatni put](docs/ops/CONTRIBUTION_GOLDEN_PATH.md) za pokretanje fokusiranog ciklusa za
+Šta ste promijenili. Potpuni set jediničnih testova (4 CI sharda), Vitest, prag pokrivenosti **60%+** i
+Produkcijske verzije su odgovornost CI-ja — lokalno pokretanje ne dodaje nikakav signal koji PR provjere već neće dati, a na manjim mašinama može preopteretiti host (#8084):
+
+- Pokrenite testne datoteke koje pokrivaju vašu izmjenu: `node --import tsx/esm --test tests/unit/<file>.test.ts`
+- Pokreni `npm run lint`
+- Uključite ili ažurirajte automatizirane testove u istom PR-u kad god se promijeni produkcijski kod
+- Uključite promijenjene ili dodane testne datoteke u PR opis kada se promijenio produkcijski kod
+- Provjerite rezultat SonarQube na PR-u kada su tajne konfigurirane projekta u CI-u
+
+Trenutni status testova: **122 datoteke jediničnih testova** koje pokrivaju:
+
+- Pružaoci usluga prevodilaca i konverzije formata
+- Ograničenje brzine, prekidač i otpor
+- Semantički keš, idempotencija, praćenje napretka
+- Operacije s bazom podataka i shemu (21 DB modul)
+- OAuth tokove i autentifikaciju
+- Validaciju API krajnjih točaka (Zod v4)
+- Implementacija alata i opsega MCP servera
+- Sistemi pamćenja i vještina
+
+---
+
+## Stil koda
+
+- **ESLint** — Pokreni `npm run lint` prije potvrđivanja (commit-a)
+- **Prettier** — Automatsko formatiranje putem `lint-staged` pri commitu (2 razmaka, točka-zarez, dvostruki navodnici, širina 100 znakova, es5 trailing zarezi)
+- **TypeScript** — Sav kod u `src/` koristi `.ts`/`.tsx`; `open-sse/` koristi `.ts`/`.js`; dokument sa TSDoc (`@param`, `@returns`, `@throws`)
+- **Bez `eval()`** — ESLint pruža `no-eval`, `no-implicirana-eval`, `no-new-func`
+- **Zod validacija** — Koristite Zod v4 sheme za svu validaciju API ulaza
+- **Imenovanje**: Datoteke = camelCase/kebab-case, komponente = PascalCase, konstante = UPPER_SNAKE
+
+### Obrada grešaka / prazni catch blokovi
+
+Nikada ne ostavljajte `catch` bez objašnjenja. Svrstajte ga u jednu od dvije kategorije (operacionalizira
+strogo pravilo "nikada tiho ne gutajte greške u SSE streamovima"):
+
+- **Namjerno (naše vlastito čišćenje/telemetrija u skladu s našim mogućnostima)** — kvar ovdje je očekivan i
+bezopasno; dodajte komentar od jednog reda s objašnjenjem, bez evidentiranja (bilježenje svakog zahtjeva je
+buka koju ova konvencija izbjegava).
+
+```ts
+} catch {} // očekuje se zatvaranje već zatvorenog kontrolera nakon odspajanja s klijentom
+```
+
+- **Potrebna je prijava (eksterni/kod koji je dostavio pozivalac ili tok kontrole promjena unosa)** — čekanje
+uhvati (nikada ne dozvoli da prekine stream) ali emitiraj kontekstualni `console.debug`/`warn` za
+otkriven je kvar.
+
+```ts
+uhvati (e) {
+console.debug("[STREAM] onFailure greška povratnog poziva:", e);
+}
+```
+
+Pogledajte `open-sse/utils/stream.ts` i `open-sse/utils/streamHandler.ts` za primjere primjene.
+
+---
+
+## Struktura projekta
+
+```
+src/ # TypeScript (.ts / .tsx)
+├── aplikacija/ # Next.js 16 Ruter aplikacija
+│ ├── (kontrolna ploča)/ # stranica kontrolne ploče (23 odjeljka)
+│ ├── api/ # API ruta (51 direktorij)
+│   └── login/              # Stranice autentikacije (.tsx)
+├── domena/ # Mehanizam za pravila (policyEngine, comboResolver, costRules, itd.)
+├── lib/ # Osnovna poslovna logika (.ts)
+│ ├── a2a/ # Agent-to-Agent protokol server v0.3
+│ ├── acp/ # Registar protokola komunikacije agenta
+│ ├── usklađenost/ # Mehanizam za politiku usklađenosti
+│ ├── db/ # SQLite domenski moduli + 130 migracija
+│   ├── memory/             # Trajno konverzacijsko pamćenje
+│ ├── oauth/ # OAuth provajderi, usluge i uslužni programi
+│ ├── vještine/ # Okvir proširivih vještina
+│ ├── upotreba/ # Praćenje upotrebe i obračun troškova
+│ └── localDb.ts # Samo sloj za ponovni izvoz — nikad ne dodavati logiku ovdje
+├── middleware/ # Zahtjev za middleware (promptInjectionGuard)
+├── mitm/ # MITM proxy (certifikat, DNS, usmjeravanje cilja)
+├── podijeljeno/
+│ ├── komponente/ # React komponente (.tsx)
+│ ├── konstante/ # Definicije provajdera (329), MCP rasponi, 19 strategija usmjeravanja
+│   ├── utils/              # Circuit breaker, sanitizer, pomoćni programi za autentikaciju
+│ └── validacija/ # Zod v4 shema
+└── sse/ # SSE proxy cjevovod
+
+open-sse/ # @omniroute/open-sse radni prostor
+├── executors/              # 89 modula implementacije executora
+├── obrađivači/ # 11 obrađivači zahtjeva (chat, odgovori, ugrađivanja, slike, itd.)
+├── mcp-server/ # MCP server (110 jedinstvenih alata, 3 transporta, 33 opsega)
+├── usluge/ # 178 usluge najvišeg nivoa (combo, autoCombo, rateLimitManager, itd.)
+├── prevodilac/ # Prevodioci formata (OpenAI ↔ Claude ↔ Gemini ↔ Odgovori ↔ Ollama)
+├── transformator/ # Odgovori API transformator
+└── utils/ # 22 uslužni moduli (stream, TLS, proxy, logging)
+
+electron/ # Electron desktop aplikacija (višeplatformska)
+
+testovi/
+├── jedinica/ # Node.js pokretač testova (1.574 testne datoteke)
+├── integracija/ # Testovi integracije
+├── e2e/ # Testovi za dramske pisce
+├── sigurnost/ # Sigurnosni testovi
+├── prevodilac/ # Testovi specifični za prevodioce
+└── opterećenje/ # Testovi opterećenja
+
+dokumenti/
+├── adr/ # Zapisi o arhitektonskim odlukama
+├── arhitektura/ # Arhitektura sistema i otpornost
+├── poređenje/ # OmniRoute vs alternativa
+├── kompresija/ # Vodiči i pravila za kompresiju
+├── dev/ # Vodiči za razvoj
+├── dijagrami/ # Arhitektonski dijagrami
+├── okviri/ # MCP, A2A, OpenCode, Memorija, Vještine
+├── vodiči/ # Korisnički vodič, Docker, podešavanje, rješavanje problema
+├── i18n/ # Internacionalizirani README prijevodi
+├── marketing/ # Marketinški materijali
+├── ops/                     # Implementacija, proxy, pokrivenost, izdanja
+├── providers/               # Dokumentacija specifična za pružatelje
+├── reference/ # API referenca, env varijable, CLI alati, besplatni planovi
+├── izdanja/ # Bilješke o izdanju
+├── usmjeravanje/ # Mehanizam za automatsko kombiniranje, ponavljanje zaključivanja
+├── snimci ekrana/ # snimaka ekrana kontrolne ploče
+├── sigurnost/ # Zaštitne mjere, usklađenost, prikrivenost, tokeni
+└── specs/                   # Dizajnerske specifikacije
+```
+
+---
+
+## Dodavanje novog pružatelja usluga
+
+### Korak 1: Registrujte konstante provajdera
+
+Dodajte u `src/shared/constants/providers.ts` — Zod-validacija se izvodi pri učitavanju modula.
+
+### Korak 2: Dodavanje izvršitelja (ako je potrebna prilagođena logika)
+
+Kreirajte izvršitelj u `open-sse/executors/your-provider.ts` nasljeđivanjem osnovnog izvršitelja.
+
+### Korak 3: Dodavanje prevodioca (ako format nije OpenAI)
+
+Kreirajte prevodioce zahtjeva/odgovora u `open-sse/translator/`.
+
+### Korak 4: Dodavanje OAuth Konfiguracije (ako se temelji na OAuth-u)
+
+Dodajte OAuth vjerodajnice u `src/lib/oauth/constants/oauth.ts` i servis u `src/lib/oauth/services/`.
+
+Ako uzvodni provajder distribuira javni OAuth `client_id`/secret ili Firebase Web API ključ unutar svog javnog CLI / pregledničkog paketa, **nemojte** ga ugrađivati ​​kao string literal. Koristite `resolvePublicCred()` iz `open-sse/utils/publicCreds.ts` i dodajte maskirani bajtni unos u `EMBEDDED_DEFAULTS`. Potpuni obavezni tijek rada dokumentiran je u [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md).
+
+Unutar rukovatelja/izvršavatelja, poruke o grešci koje stižu do klijenta moraju proći kroz `buildErrorBody()` / `sanitizeErrorMessage()` iz `open-sse/utils/error.ts` — nikada ne stavljajte sirove `err.stack` ili `err.message` u tijelo odgovora. Pogledajte [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md).
+
+### Korak 5: Registracija modela
+
+Dodajte definicije modela u `open-sse/config/providerRegistry.ts`.
+
+### Korak 6: Dodavanje testova
+
+Napišite jedinične testove u `tests/unit/` koji pokrivaju minimalno:
+
+- Registracija pružatelja usluga
+- Prevod zahtjeva/odgovora
+- Rješavanje grešaka
+
+---
+
+## Kontrolna lista zahtjeva za povlačenje
+
+- [ ] Testovi su prošli (`npm test`)
+- [ ] Prolazi za linkanje (`npm run lint`)
+- [ ] Izgradnja uspješna (`npm run build`)
+- [ ] Dodani TypeScript tipovi za nove javne funkcije i interfejse
+- [ ] Nema fiksno kodiranih tajni ili sigurnosnih kopija
+- [ ] Javni uzvodni akreditivi ugrađeni putem `resolvePublicCred()` (pogledajte [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), nikada kao literali
+- [ ] Odgovori na greške prolaze kroz `buildErrorBody()` / `sanitizeErrorMessage()` — nema sirovih tragova steka u tijelima odgovora (pogledajte [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Shell komande (`exec` / `spawn`) prosljeđuju vrijednosti na izvršenje putem `env`, a ne putem interpolacije stringova
+- [ ] Svi ulazni podaci su validirani pomoću Zod shema
+- [ ] Dodan je fragment dnevnika promjena pod `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` za promjene vidljive korisniku (pogledajte [`changelog.d/README.md`](./changelog.d/README.md)) — **nemojte** direktno uređivati ​​`CHANGELOG.md`; fragmenti se agregiraju prilikom objavljivanja i nikada nisu u sukobu između zahtjeva za povlačenjem
+- [ ] Dokumentacija ažurirana (ako je primjenjivo)
+- [ ] Nema novih CodeQL / Secret-Scanning upozorenja, ili je svako odbačeno s tehničkim obrazloženjem koje upućuje na odgovarajući dokument iz `docs/security/`
+- [ ] Rute koje pokreću podprocese (`/api/mcp/`, `/api/cli-tools/runtime/`) su klasifikovane kao `isLocalOnlyPath()` u `src/server/authz/routeGuard.ts` — pogledajte [Strogo pravilo #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Nema `Co-Authored-By` oznaka u porukama commita — commiti moraju biti isključivo pod Git identitetom vlasnika repozitorija (Strogo Pravilo #16)
+
+## Izdavaštvo
+
+Izdanjima se upravlja putem radnog procesa `/generate-release`. Kada se kreira novo GitHub izdanje, paket se **automatski objavljuje na npm** putem GitHub akcija.
+
+Za VPS implementaciju, koristite `npm run build:release` (ne `npm run build`) — radi čisto
+rebuild, kompajlira paket u `dist/` i zapisuje sentinel datoteku `dist/BUILD_SHA`.
+Zatim koristite vještine `/deploy-vps-*-cc` koje rsynciraju `dist/` s udaljenim direktorijem `app/`.
+
+---
+
+## Dobijanje pomoći
+
+- **Arhitektura**: Pogledajte [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- **API referenca**: Pogledajte [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **Sigurnosna dokumentacija**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **Operativna dokumentacija**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Problemi**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **ADR-ovi**: Pogledajte `docs/adr/` za zapise o arhitektonskim odlukama
+
+

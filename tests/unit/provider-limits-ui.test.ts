@@ -43,6 +43,37 @@ test("paid individual tiers use non-gray badge variants", () => {
   assert.equal(providerLimitUtils.normalizePlanTier("Free").variant, "default");
 });
 
+test("Codex Pro plan variants (prolite, pro, promax) normalize to Pro tier (#15161)", () => {
+  const prolite = providerLimitUtils.normalizePlanTier("prolite", "codex");
+  assert.equal(prolite.key, "pro");
+  assert.equal(prolite.label, "Pro Standard");
+  assert.equal(prolite.variant, "success");
+
+  const pro = providerLimitUtils.normalizePlanTier("pro", "codex");
+  assert.equal(pro.key, "pro");
+  assert.equal(pro.label, "Pro Extra");
+  assert.equal(pro.variant, "success");
+
+  const promax = providerLimitUtils.normalizePlanTier("promax", "codex");
+  assert.equal(promax.key, "pro");
+  assert.equal(promax.label, "Pro Max");
+  assert.equal(promax.variant, "success");
+});
+
+test("Codex Pro variants are scoped to Codex: other providers keep the generic Pro label (#15161)", () => {
+  for (const provider of ["github", "gemini", "minimax", undefined]) {
+    for (const plan of ["Pro", "pro", "PRO"]) {
+      const tier = providerLimitUtils.normalizePlanTier(plan, provider);
+      assert.equal(tier.key, "pro", `${provider}/${plan} key`);
+      assert.equal(tier.label, "Pro", `${provider}/${plan} label`);
+    }
+  }
+  assert.equal(providerLimitUtils.normalizePlanTier("Claude Pro", "claude").label, "Pro");
+  // Codex-only vocabulary does not leak into other providers either.
+  assert.notEqual(providerLimitUtils.normalizePlanTier("prolite", "github").label, "Pro Standard");
+  assert.notEqual(providerLimitUtils.normalizePlanTier("promax", "github").label, "Pro Max");
+});
+
 test("Codex workspacePlanType is used when live plan is missing or unknown", () => {
   const resolvedPlan = providerLimitUtils.resolvePlanValue("unknown", {
     workspacePlanType: "plus",

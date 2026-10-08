@@ -3,13 +3,14 @@
  * Tests: classifyTier, setTierConfig, clearTierCache, getTierStats, classifyTiers
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   classifyTier,
   setTierConfig,
   clearTierCache,
   getTierStats,
   classifyTiers,
+  setTierPricingSnapshot,
 } from "../tierResolver.ts";
 import { PROVIDER_TIER } from "../tierTypes.ts";
 import {
@@ -20,8 +21,15 @@ import {
 import { NOAUTH_PROVIDERS } from "@/shared/constants/providers.ts";
 
 describe("TierResolver", () => {
-  // Reset cache between tests
-  beforeEach(() => clearTierCache());
+  // Reset cache and pricing snapshot between tests
+  beforeEach(() => {
+    clearTierCache();
+    setTierPricingSnapshot(null);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
 
   describe("classifyTier - free providers", () => {
     it("classifies Kiro as free", () => {
@@ -197,7 +205,7 @@ describe("TierResolver", () => {
         { provider: "openai", model: "gpt-4o" },
         { provider: "openai", model: "gpt-4o" },
       ]);
-// Observable effect of the cache: the duplicate resolves to the same tier and only
+      // Observable effect of the cache: the duplicate resolves to the same tier and only
       // ONE entry is memoized (getTierStats counts cache entries, not classify calls).
       expect(results).toHaveLength(2);
       expect(results[0].tier).toBe(results[1].tier);
@@ -214,6 +222,59 @@ describe("TierResolver", () => {
       const stats = getTierStats();
       expect(stats[PROVIDER_TIER.FREE]).toBeGreaterThanOrEqual(1);
       expect(stats[PROVIDER_TIER.CHEAP]).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  describe("sync pricing snapshot", () => {
+    it("classifies a hardcoded paid model as free when the snapshot carries $0", () => {
+      setTierPricingSnapshot({ openai: { "gpt-4o": { input: 0, output: 0 } } });
+      const result = classifyTier("openai", "gpt-4o");
+      expect(result.tier).toBe(PROVIDER_TIER.FREE);
+      expect(result.reason).toContain("DB cost-based");
+    });
+
+    it("falls back to the hardcoded table when the snapshot is empty", () => {
+      const result = classifyTier("openai", "gpt-4o");
+      expect(result.tier).toBe(PROVIDER_TIER.PREMIUM);
+    });
+
+    it("matches snapshot entries regardless of provider casing", () => {
+      setTierPricingSnapshot({ openai: { "gpt-4o": { input: 0, output: 0 } } });
+      const result = classifyTier("OpenAI", "gpt-4o");
+      expect(result.tier).toBe(PROVIDER_TIER.FREE);
+    });
+
+    it("reclassifies after the snapshot changes and the cache is cleared", () => {
+      setTierPricingSnapshot({ openai: { "gpt-9-never-existed": { input: 2.5, output: 10 } } });
+      expect(classifyTier("openai", "gpt-9-never-existed").tier).toBe(PROVIDER_TIER.PREMIUM);
+      setTierPricingSnapshot({ openai: { "gpt-9-never-existed": { input: 0, output: 0 } } });
+      clearTierCache();
+      expect(classifyTier("openai", "gpt-9-never-existed").tier).toBe(PROVIDER_TIER.FREE);
+    });
+
+    it("keeps serving the cached tier until the cache is cleared", () => {
+      setTierPricingSnapshot({ openai: { "gpt-9-never-existed": { input: 2.5, output: 10 } } });
+      expect(classifyTier("openai", "gpt-9-never-existed").tier).toBe(PROVIDER_TIER.PREMIUM);
+      setTierPricingSnapshot({ openai: { "gpt-9-never-existed": { input: 0, output: 0 } } });
+      expect(classifyTier("openai", "gpt-9-never-existed").tier).toBe(PROVIDER_TIER.PREMIUM);
+      clearTierCache();
+      expect(classifyTier("openai", "gpt-9-never-existed").tier).toBe(PROVIDER_TIER.FREE);
+    });
+  });
+
+  describe("sync/async pricing parity", () => {
+    it("lands free on a zero price through the same thresholds the async path uses", async () => {
+      // The async path reads the database through a chain (settings ->
+      // read cache -> sqlite driver) that the jsdom bundle cannot load
+      // (node:sqlite has no browser build), so a live async round-trip is
+      // covered by tests/unit/tier-pricing-cache.test.ts on the node runner.
+      // This pins the shared half of the parity here: the same zero-price
+      // fixture lands FREE through the snapshot lookup and sits below the
+      // free threshold both paths compare against.
+      setTierPricingSnapshot({ openai: { "gpt-4o": { input: 0, output: 0 } } });
+      expect(classifyTier("openai", "gpt-4o").tier).toBe(PROVIDER_TIER.FREE);
+      const { DEFAULT_TIER_CONFIG: cfg } = await import("../tierConfig.ts");
+      expect(0).toBeLessThanOrEqual(cfg.defaults.freeThreshold);
     });
   });
 

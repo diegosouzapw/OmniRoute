@@ -34,11 +34,30 @@ export const VISION_MODEL_ID_FRAGMENTS = [
   "minicpm-v",
   "moondream",
   "mimo-vl",
+  // #13847: MiMo V2.5 is multimodal across the provider aliases that expose it
+  // (including `*-free` variants). Keep the known text-only Pro siblings out in
+  // isVisionModelId() below so this shared heuristic stays safe for routing,
+  // `/v1/models`, combo projection and lite compression alike.
+  "mimo-v2.5",
+  // #14587: the v2.6 generation flips the `*-pro` rule — models.dev lists
+  // `mimo-v2.6-pro` / `mimo-v2.6-flash` with image input, while `mimo-v2.5-pro`
+  // and `mimo-v2-pro` stay text-only. Keep the fragments scoped to the
+  // documented pro/flash family so unrelated future v2.6 ids (a hypothetical
+  // `mimo-v2.6-distill-qwen-9b` or `mimo-v2.6-tts`) do not inherit the vision
+  // verdict; they can be added here if Xiaomi ever documents image input for
+  // them. Matches the provider-qualified ids from the report
+  // (`opencode-go/mimo-v2.6-pro`, `command-code/xiaomi/mimo-v2.6-pro`) and
+  // cannot over-match the older generations, whose ids never contain `v2.6`.
+  "mimo-v2.6-pro",
+  "mimo-v2.6-flash",
+  // #13847: Step 3.7 Flash is exposed through provider-qualified `:free` routes
+  // as well as direct registry entries. The capability must survive that suffix.
+  "step-3.7-flash",
   "kimi-vl",
   "glm-4v",
   "glm-4.5v",
   "glm-4.6v",
-  "glm-5.3-flash",
+  "glm-5.3",
   "gpt-4o",
   "gpt-4.1",
   "gpt-4-turbo",
@@ -74,5 +93,13 @@ export const VISION_MODEL_ID_FRAGMENTS = [
 export function isVisionModelId(modelId: string | null | undefined): boolean {
   if (!modelId) return false;
   const normalized = String(modelId).toLowerCase();
+
+  // Xiaomi documents the Pro chat variants as text-only even though the base
+  // MiMo V2.5 model is multimodal. Keep these exclusions beside the shared
+  // heuristic so every consumer gets the same verdict instead of relying on a
+  // resolver-specific exception.
+  if (/(?:^|\/)mimo-v2\.5-pro(?:$|[:/])/i.test(normalized)) return false;
+  if (/(?:^|\/)mimo-v2-pro(?:$|[:/])/i.test(normalized)) return false;
+
   return VISION_MODEL_ID_FRAGMENTS.some((fragment) => normalized.includes(fragment));
 }

@@ -118,6 +118,37 @@ test("GET /api/usage/analytics includes dailyTrend array with cost data", async 
   assertClose(dailyCostTotal, body.summary.totalCost);
 });
 
+test("GET /api/usage/analytics zero-fills inactive models in dailyByModel", async () => {
+  const db = core.getDbInstance();
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+  const dates = [yesterday, today].map((date) => date.toISOString().slice(0, 10));
+
+  db.prepare(
+    `INSERT INTO usage_history (provider, model, connection_id, tokens_input, tokens_output, success, latency_ms, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run("openai", "model-a", "openai-conn", 100, 50, 1, 200, `${dates[0]}T12:00:00.000Z`);
+  db.prepare(
+    `INSERT INTO usage_history (provider, model, connection_id, tokens_input, tokens_output, success, latency_ms, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run("anthropic", "model-b", "anthropic-conn", 200, 20, 1, 250, `${dates[1]}T12:00:00.000Z`);
+
+  const response = await analyticsRoute.GET(makeRequest("http://localhost/api/usage/analytics"));
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(body.modelNames, ["model-a", "model-b"]);
+  assert.deepEqual(body.dailyByModel, [
+    { date: dates[0], "model-a": 150, "model-b": 0 },
+    { date: dates[1], "model-a": 0, "model-b": 220 },
+  ]);
+  assert.deepEqual(
+    body.dailyByModel.map((row) => body.modelNames.reduce((sum, model) => sum + row[model], 0)),
+    body.dailyTrend.map((row) => row.totalTokens)
+  );
+});
+
 test("GET /api/usage/analytics includes byModel array with cost calculations", async () => {
   await seedAnalyticsData();
 

@@ -1,0 +1,1 @@
+- **fix(resilience):** settle acquired provider probes once under their generation lease, normalize provider aliases, and advance priority and round-robin combos immediately on local circuit refusals while preserving upstream 503 accounting ([#15588](https://github.com/diegosouzapw/OmniRoute/issues/15588)).

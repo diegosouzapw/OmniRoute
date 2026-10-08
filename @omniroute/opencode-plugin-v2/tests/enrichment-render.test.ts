@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { applyEnrichment } from "../src/shared/enrich.js";
-import type { Model as ModelV2 } from "@opencode-ai/sdk/v2";
+import type { LegacyModel as ModelV2 } from "../src/legacy-model.js";
 
 function model(id: string, name = id): ModelV2 {
   return {
