@@ -678,11 +678,11 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 | Àyípadà | Iye Àìyípadà | Ìgbà láti Ṣàfikún |
 | -------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CLAUDE_USER_AGENT` | `claude-cli/2.1.258 (external, cli)` | Nígbà tí Anthropic bá ṣe ìtújáde ẹ̀yà CLI tuntun |
+| `CLAUDE_USER_AGENT` | `claude-cli/2.1.280 (external, cli)` | Nígbà tí Anthropic bá ṣe ìtújáde ẹ̀yà CLI tuntun |
 | `CLAUDE_DISABLE_TOOL_NAME_CLOAK` | `false` | `executors/base.ts` + `executors/cliproxyapi.ts` | Ṣètò sí `1`/`true` láti fi àwọn orúkọ irinṣẹ́ harness ẹni-kẹta ránṣẹ́ gẹ́gẹ́ bí wọ́n ṣe rí sí Anthropic lórí àwọn ọ̀nà méjèèjì tó lọ sí Anthropic (OAuth abinibi àti CLIProxyAPI). Ní àìyípadà, executor máa ń fún àwọn orúkọ irinṣẹ́ tí kì í ṣe ti Claude Code ní àpèlé lọ́nà tí a lè sọ tẹ́lẹ̀ (ìbámu Claude Code canonical níbi tí ọ̀kan bá wà, tàbí PascalCase bí kò bá sí), ó sì máa ń dá wọn padà lórí èsì nípasẹ̀ `_toolNameMap`, kí àwọn harness tó ní irinṣẹ́ snake_case má bàa jẹ́ kíkọ̀ nítorí a dá wọn mọ̀ gẹ́gẹ́ bí oníbàárà ẹni-kẹta. Fún ìṣàwárí àṣìṣe nìkan. |
 | `CODEX_USER_AGENT` | `codex-cli/0.155.0 (Windows 10.0.26200; x64)` | Nígbà tí OpenAI bá ṣe àfikún Codex CLI |
 | `CODEX_CLIENT_VERSION` | `0.155.0` | Ṣàtúnṣe ẹ̀yà oníbàárà Codex lọ́tọ̀ sí odidi ọ̀rọ̀ UA |
-| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.258` | Ṣàtúnṣe ẹ̀yà Claude Code tí a ń polówó lọ́tọ̀ sí `CLAUDE_USER_AGENT`. Anthropic ń fi iye yìí dín àyè sí àwọn model kan (#12417). |
+| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.280` | Ṣàtúnṣe ẹ̀yà Claude Code tí a ń polówó lọ́tọ̀ sí `CLAUDE_USER_AGENT`. Anthropic ń fi iye yìí dín àyè sí àwọn model kan (#12417). |
 | `CLAUDE_CODE_CLIENT_BUILD_REVISION` | `1e2` | Ṣàtúnṣe àsopọ̀ oníàmì mẹ́ta tí OmniRoute ń fi kún `cc_version=` nínú abala ìṣírò owó Claude. Ṣe àfikún rẹ̀ papọ̀ pẹ̀lú `CLAUDE_CODE_CLIENT_VERSION` — fífi ẹ̀yà nìkan dì mọ́lẹ̀ ń polówó tọkọtaya `version.revision` tí kò sí binary gidi kankan tó ń ṣe jáde. |
 | `GITHUB_COPILOT_CLI_VERSION` | `1.0.81-6` | Ṣàtúnṣe ẹ̀yà Copilot CLI tí a ń polówó lọ́tọ̀ sí `GITHUB_USER_AGENT` |
 | `GITHUB_USER_AGENT` | `GitHubCopilotChat/0.54.0` | Nígbà tí GitHub Copilot Chat bá ṣe àfikún |

@@ -671,11 +671,11 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 | 变量 | 默认值 | 何时更新 |
 | -------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CLAUDE_USER_AGENT` | `claude-cli/2.1.258 (external, cli)` | Anthropic 发布新的 CLI 版本时 |
+| `CLAUDE_USER_AGENT` | `claude-cli/2.1.280 (external, cli)` | Anthropic 发布新的 CLI 版本时 |
 | `CLAUDE_DISABLE_TOOL_NAME_CLOAK` | `false` | `executors/base.ts` + `executors/cliproxyapi.ts` | 设置为 `1`/`true`，以便在两个发往 Anthropic 的路径（原生 OAuth 和 CLIProxyAPI）上，将第三方工具框架的工具名称原样转发给 Anthropic。默认情况下，执行器会确定性地为非 Claude Code 工具名称创建别名（如果存在 Claude Code 规范映射，则使用该映射；否则转换为 PascalCase），并通过 `_toolNameMap` 在响应中将其还原，从而避免使用 snake_case 工具的框架因被识别为具有指纹特征的第三方客户端而遭到拒绝。仅用于调试。 |
 | `CODEX_USER_AGENT` | `codex-cli/0.155.0 (Windows 10.0.26200; x64)` | OpenAI 更新 Codex CLI 时 |
 | `CODEX_CLIENT_VERSION` | `0.155.0` | 独立于完整的 UA 字符串覆盖 Codex 客户端版本 |
-| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.258` | 独立于 `CLAUDE_USER_AGENT` 覆盖声明的 Claude Code 版本。Anthropic 会根据此值限制某些模型（#12417）。 |
+| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.280` | 独立于 `CLAUDE_USER_AGENT` 覆盖声明的 Claude Code 版本。Anthropic 会根据此值限制某些模型（#12417）。 |
 | `CLAUDE_CODE_CLIENT_BUILD_REVISION` | `1e2` | 覆盖 OmniRoute 附加到 Claude 计费块中 `cc_version=` 后面的 3 字符后缀。应与 `CLAUDE_CODE_CLIENT_VERSION` 一同递增——仅固定版本会声明一个实际二进制文件从未生成过的 `version.revision` 组合。 |
 | `GITHUB_COPILOT_CLI_VERSION` | `1.0.81-6` | 独立于 `GITHUB_USER_AGENT` 覆盖声明的 Copilot CLI 版本 |
 | `GITHUB_USER_AGENT` | `GitHubCopilotChat/0.54.0` | GitHub Copilot Chat 更新时 |

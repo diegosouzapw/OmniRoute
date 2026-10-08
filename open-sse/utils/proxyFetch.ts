@@ -19,6 +19,7 @@ import {
 import tlsClient, { type TlsFetchOptions, guardTlsFirstByte } from "./tlsClient.ts";
 import { withUpstreamStatusCapture } from "./upstreamStatusCapture.ts";
 import { stampOwnListenerSelfHop } from "./selfHop.ts";
+import { tlsFingerprintProviderAllowed } from "./tlsFingerprintExclusions.ts";
 import { describeFallbackFailure, redactProxyDetailsInMessage } from "./proxyFetchRedaction.ts";
 import { recordFinalTransportOutcome, recordProxiedSuccess } from "./proxyTransportOutcome.ts";
 import { sanitizeTransportError } from "./proxyTransportError.ts";
@@ -90,21 +91,6 @@ const RETRY_BACKOFF_MS = Math.max(Number(process.env.OMNIROUTE_RETRY_BACKOFF_MS)
 
 function isTlsFingerprintEnabled() {
   return process.env.ENABLE_TLS_FINGERPRINT === "true";
-}
-
-function tlsFingerprintProviderAllowed(
-  provider: string | null | undefined,
-  proxied: boolean
-): boolean {
-  const configured = process.env.TLS_FINGERPRINT_PROVIDERS?.trim();
-  // Preserve the legacy direct-only opt-in. The new proxied transport requires
-  // an explicit allowlist so enabling TLS cannot silently change proxy traffic.
-  if (!configured) return !proxied;
-  if (!provider) return false;
-  const normalizedProvider = provider.trim().toLowerCase();
-  return configured
-    .split(",")
-    .some((candidate) => candidate.trim().toLowerCase() === normalizedProvider);
 }
 
 /**
@@ -869,7 +855,7 @@ async function patchedFetchUnrecorded(
     if (
       isTlsFingerprintEnabled() &&
       activeTlsClient.available &&
-      tlsFingerprintProviderAllowed(tlsStore?.provider, false) &&
+      tlsFingerprintProviderAllowed(tlsStore?.provider, false, targetUrl) &&
       isTlsRequestEligible(input, options)
     ) {
       try {
@@ -1207,7 +1193,7 @@ async function patchedFetchUnrecorded(
     typeof tlsStore?.sessionScope === "string" &&
     tlsStore.sessionScope.trim().length > 0 &&
     activeTlsClient.available &&
-    tlsFingerprintProviderAllowed(tlsStore?.provider, true) &&
+    tlsFingerprintProviderAllowed(tlsStore?.provider, true, targetUrl) &&
     isTlsRequestEligible(input, options) &&
     isWreqProxySupported(proxyUrl)
   ) {

@@ -17,6 +17,7 @@ import {
   getDefaultThinkingBudget,
 } from "../../../src/lib/modelCapabilities.ts";
 import { getModelSpec } from "../../../src/shared/constants/modelSpecs.ts";
+import { gemini38ThinkingConfig, isGemini38Model } from "../../services/thinkingBudget.ts";
 
 import {
   DEFAULT_SAFETY_SETTINGS,
@@ -288,7 +289,9 @@ function openaiToGeminiBase(
       // only include thinkingBudget when no explicit level was supplied.
       result.generationConfig.thinkingConfig = explicitThinkingLevel
         ? { includeThoughts: budget !== 0 }
-        : buildGeminiThinkingConfig(model, budget, budget !== 0);
+        : isGemini38Model(model)
+          ? gemini38ThinkingConfig(model, budget, body)
+          : buildGeminiThinkingConfig(model, budget, budget !== 0);
     }
     // 2. Claude format: thinking (type: enabled, budget_tokens)
     // Use an explicit numeric check (not truthy) so an explicit `budget_tokens: 0` — the
@@ -310,7 +313,9 @@ function openaiToGeminiBase(
       if (cappedBudget > 0 || getModelSpec(model)?.thinkingBudgetCap !== 0) {
         result.generationConfig.thinkingConfig = explicitThinkingLevel
           ? { includeThoughts: cappedBudget !== 0 }
-          : buildGeminiThinkingConfig(model, cappedBudget, cappedBudget !== 0);
+          : isGemini38Model(model)
+            ? gemini38ThinkingConfig(model, cappedBudget, body)
+            : buildGeminiThinkingConfig(model, cappedBudget, cappedBudget !== 0);
       }
     }
   }
@@ -358,7 +363,9 @@ function openaiToGeminiBase(
       }
       result.generationConfig.thinkingConfig = explicitThinkingLevel
         ? { includeThoughts: true }
-        : { thinkingBudget: defaultBudget, includeThoughts: true };
+        : isGemini38Model(model)
+          ? gemini38ThinkingConfig(model, defaultBudget, body)
+          : { thinkingBudget: defaultBudget, includeThoughts: true };
     }
   }
 

@@ -370,9 +370,15 @@ export function detectMalformedNonStream(
     // thinking model can burn a 1-token probe budget and return no visible
     // text. Rejecting the translated form reintroduces the 502 the exemption
     // removed. "stop" with no output stays empty_choices.
+    // #13560: tool_calls / content_filter are likewise terminal stops that
+    // isEmptyContentResponse already accepts, not silent fake-successes.
     const truncated = choices.some((choice) => {
       const c = choice as Record<string, unknown>;
-      return c?.finish_reason === "length";
+      return (
+        c?.finish_reason === "length" ||
+        c?.finish_reason === "tool_calls" ||
+        c?.finish_reason === "content_filter"
+      );
     });
     if (truncated) return null;
     return "empty_choices";

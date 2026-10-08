@@ -674,11 +674,11 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 | Kintamasis | Numatytoji reikšmė | Kada atnaujinti |
 | -------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CLAUDE_USER_AGENT` | `claude-cli/2.1.258 (external, cli)` | Kai Anthropic išleidžia naują CLI versiją |
+| `CLAUDE_USER_AGENT` | `claude-cli/2.1.280 (external, cli)` | Kai Anthropic išleidžia naują CLI versiją |
 | `CLAUDE_DISABLE_TOOL_NAME_CLOAK` | `false` | `executors/base.ts` + `executors/cliproxyapi.ts` | Nustatykite į `1`/`true`, kad trečiųjų šalių vykdymo aplinkų įrankių pavadinimai būtų pažodžiui perduodami Anthropic abiem į Anthropic nukreiptais keliais (vietiniu OAuth ir CLIProxyAPI). Pagal numatytuosius nustatymus vykdyklė deterministiškai suteikia ne Claude Code įrankių pavadinimams alternatyvius vardus (naudoja kanoninę Claude Code atitiktį, jei tokia yra, kitu atveju – PascalCase) ir atsakyme juos atkuria naudodama `_toolNameMap`, todėl vykdymo aplinkos su snake_case įrankiais nėra atmetamos kaip pagal skaitmeninį pėdsaką atpažinti trečiųjų šalių klientai. Tik derinimui. |
 | `CODEX_USER_AGENT` | `codex-cli/0.155.0 (Windows 10.0.26200; x64)` | Kai OpenAI atnaujina Codex CLI |
 | `CODEX_CLIENT_VERSION` | `0.155.0` | Perrašyti Codex kliento versiją nepriklausomai nuo visos UA eilutės |
-| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.258` | Perrašyti skelbiamą Claude Code versiją nepriklausomai nuo `CLAUDE_USER_AGENT`. Anthropic riboja kai kuriuos modelius pagal šią reikšmę (#12417). |
+| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.280` | Perrašyti skelbiamą Claude Code versiją nepriklausomai nuo `CLAUDE_USER_AGENT`. Anthropic riboja kai kuriuos modelius pagal šią reikšmę (#12417). |
 | `CLAUDE_CODE_CLIENT_BUILD_REVISION` | `1e2` | Perrašyti 3 simbolių priesagą, kurią OmniRoute prideda prie `cc_version=` Claude atsiskaitymo bloke. Didinkite kartu su `CLAUDE_CODE_CLIENT_VERSION` — užfiksavus tik versiją skelbiama `version.revision` pora, kurios nesiunčia joks tikras dvejetainis failas. |
 | `GITHUB_COPILOT_CLI_VERSION` | `1.0.81-6` | Perrašyti skelbiamą Copilot CLI versiją nepriklausomai nuo `GITHUB_USER_AGENT` |
 | `GITHUB_USER_AGENT` | `GitHubCopilotChat/0.54.0` | Kai atnaujinamas GitHub Copilot Chat |
