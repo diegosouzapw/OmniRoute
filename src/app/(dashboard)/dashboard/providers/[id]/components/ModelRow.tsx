@@ -400,6 +400,17 @@ export default function ModelRow({
         </button>
       </div>
       <div className="flex shrink-0 items-center gap-1">
+        {onToggleHidden && testStatus === "error" && (
+          <button
+            onClick={() => onToggleHidden(model.id, true)}
+            disabled={togglingHidden}
+            className={`flex items-center gap-1 rounded p-0.5 text-[11px] text-red-500 hover:bg-sidebar transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${togglingHidden ? "animate-pulse" : ""}`}
+            title={providerText(t, "blacklistModelTooltip", "Blacklist this model — hide it from the catalog")}
+          >
+            <span className="material-symbols-outlined text-sm">{togglingHidden ? "progress_activity" : "block"}</span>
+            <span>{providerText(t, "blacklistModel", "Blacklist")}</span>
+          </button>
+        )}
         {onTestModel && (
           <button
             onClick={() => onTestModel(model.id, fullModel)}

@@ -5406,6 +5406,8 @@
     "modelsActive": "Active",
     "showModel": "Show model",
     "hideModel": "Hide model",
+    "blacklistModel": "Blacklist",
+    "blacklistModelTooltip": "Blacklist this model — hide it from the catalog",
     "removeModel": "Remove model",
     "rateLimitProtected": "Protected",
     "rateLimitUnprotected": "Unprotected",
