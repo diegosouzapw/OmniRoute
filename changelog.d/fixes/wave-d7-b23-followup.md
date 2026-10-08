@@ -1,0 +1,1 @@
+- Release-branch hygiene: freeze the file-size ceilings grown by #15132, #15756 and #14103 after the d7 board-2/3 merge waves.

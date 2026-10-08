@@ -3,6 +3,10 @@ import type { RegistryEntry } from "../../shared.ts";
 export const kilocodeProvider: RegistryEntry = {
   id: "kilocode",
   alias: "kc",
+  // #DUAL-AUTH: kilocode is OAuth-primary (device-code) but also accepts a
+  // direct Bearer API key from app.kilo.ai. Both paths use the same authPrefix
+  // and baseUrl. Direct API keys are stored as authType:"apikey" connections
+  // and rotated automatically. See DUAL_AUTH_PROVIDER_IDS in providers.ts.
   format: "openai",
   executor: "default",
   baseUrl: "https://api.kilo.ai/api/openrouter/chat/completions",

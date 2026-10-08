@@ -51,10 +51,10 @@ const {
 // PROXY_POOL_SHARED_EGRESS_ORDER (shared-egress pool ordering, default off)
 // takes it to 80.
 // PROXY_OPERATOR_EGRESS_ENABLED (operator-pushed dated observed addresses per
-// pool member, default off) takes it to 81.
-// Tip catalog is 82 live definitions (snapshot on origin/release/v3.8.52
-// still reads 81). REASONING_REPLAY_ENABLED adds the unique flag → 83.
-const EXPECTED_FEATURE_FLAG_COUNT = 83;
+// pool member, default off) takes it to 82; USAGE_LIMIT_IGNORE_UNPRICED (#14799,
+// opt-in flag to count unpriced usage as $0 in USD quotas, default off) to 83;
+// REASONING_REPLAY_ENABLED (#12486, default on) to 84.
+const EXPECTED_FEATURE_FLAG_COUNT = 84;
 
 // ──────────────────────────────────────────────────────
 // Test group 1 — Flag definitions registry

@@ -424,7 +424,7 @@ test("handleAudioSpeech maps Xiaomi MiMo TTS to chat completions audio payload",
     assert.deepEqual(captured.body, {
       model: "mimo-v2.5-tts",
       messages: [{ role: "assistant", content: "mimo text" }],
-      audio: { format: "audio/wav", voice: "default_zh" },
+      audio: { format: "wav", voice: "default_zh" },
     });
     assert.equal(response.status, 200);
     assert.equal(response.headers.get("content-type"), "audio/wav");
@@ -447,6 +447,74 @@ test("handleAudioSpeech rejects unsupported Xiaomi MiMo TTS audio formats", asyn
 
   assert.equal(response.status, 400);
   assert.equal(payload.error.message, "Xiaomi MiMo TTS supports response_format mp3 or wav only");
+});
+
+test("handleAudioSpeech sends the Xiaomi MiMo audio.format enum, not an IANA media type", async () => {
+  const originalFetch = globalThis.fetch;
+  const capturedFormats: Array<string | undefined> = [];
+
+  globalThis.fetch = async (_url, options = {}) => {
+    const body = JSON.parse(String(options.body || "{}"));
+    capturedFormats.push(body?.audio?.format);
+
+    return new Response(JSON.stringify({ choices: [{ message: { audio: { data: "AQID" } } }] }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  };
+
+  try {
+    const mp3Response = await handleAudioSpeech({
+      body: {
+        model: "xiaomi-mimo/mimo-v2.5-tts",
+        input: "mimo text",
+        response_format: "mp3",
+      },
+      credentials: { apiKey: "xm-key" },
+    });
+    // Regression: without response_format the upstream default must be the enum "mp3",
+    // never an IANA media type such as "audio/mpeg" (Xiaomi rejects it with 400).
+    const defaultResponse = await handleAudioSpeech({
+      body: {
+        model: "xiaomi-mimo/mimo-v2.5-tts",
+        input: "mimo text",
+      },
+      credentials: { apiKey: "xm-key" },
+    });
+
+    assert.equal(mp3Response.status, 200);
+    assert.equal(defaultResponse.status, 200);
+    assert.deepEqual(capturedFormats, ["mp3", "mp3"]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleAudioSpeech rejects an invalid Xiaomi MiMo response_format without calling upstream", async () => {
+  const originalFetch = globalThis.fetch;
+  let called = false;
+  globalThis.fetch = async () => {
+    called = true;
+    throw new Error("should not fetch");
+  };
+
+  try {
+    const response = await handleAudioSpeech({
+      body: {
+        model: "xiaomi-mimo/mimo-v2.5-tts",
+        input: "mimo text",
+        response_format: "ogg",
+      },
+      credentials: { apiKey: "xm-key" },
+    });
+    const payload = (await response.json()) as { error: { message: string } };
+
+    assert.equal(response.status, 400);
+    assert.equal(payload.error.message, "Xiaomi MiMo TTS supports response_format mp3 or wav only");
+    assert.equal(called, false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("handleAudioSpeech requires credentials for authenticated providers", async () => {

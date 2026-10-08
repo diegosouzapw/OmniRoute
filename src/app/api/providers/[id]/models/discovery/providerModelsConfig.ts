@@ -1,10 +1,10 @@
 import { getAntigravityModelsDiscoveryUrls } from "@omniroute/open-sse/config/antigravityUpstream.ts";
 import {
-  GROK_BUILD_DEFAULT_CONTEXT_WINDOW,
   getGrokBuildModelsHeaders,
   GROK_BUILD_MODELS_URL,
   GROK_BUILD_SUPPORTED_REASONING_EFFORTS,
 } from "@omniroute/open-sse/config/grokBuild.ts";
+import { grok_cliProvider } from "@omniroute/open-sse/config/providers/registry/grok-cli/index.ts";
 import { getAntigravityContentHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { parseGeminiModelsList } from "@/lib/providerModels/geminiModelsParser";
 import { buildClaudeModelsHeaders } from "@/lib/providerModels/claudeModelsHeaders";
@@ -28,6 +28,7 @@ import { isDashscopeTextModelId } from "@omniroute/open-sse/services/dashscopeTe
 import { extractZaiToken } from "@omniroute/open-sse/services/zaiWebCredentials.ts";
 import { buildOpencodeBackgroundHeaders } from "@omniroute/open-sse/utils/opencodeHeaders.ts";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+import { buildChatPlaygroundModelsDiscoveryEntry } from "@omniroute/open-sse/services/chatplaygroundModels.ts";
 import { normalizeOpenAiLikeModelsResponse } from "./normalizers";
 
 const QWEN_CLOUD_TEXT_MODEL_IDS = new Set(QWEN_CLOUD_TEXT_MODELS.map((model) => model.id));
@@ -248,6 +249,37 @@ function grokBuildPositiveNumber(...values: unknown[]): number | undefined {
   );
 }
 
+const GROK_CLI_REGISTRY_CONTEXT_BY_ID = new Map<string, number>(
+  grok_cliProvider.models.flatMap((model) => {
+    const window = model.contextLength;
+    return typeof window === "number" && Number.isInteger(window) && window > 0
+      ? ([[model.id, window]] as Array<[string, number]>)
+      : [];
+  })
+);
+
+function resolveGrokBuildInputTokenLimit(
+  model: GrokBuildModelRecord,
+  metadata: GrokBuildModelRecord,
+  id: string
+): number | undefined {
+  // Registry first. Grok Build's /v1/models advertises contextWindow 256000 for every
+  // model, yet the backend serves grok-4.6 up to 500k (prod: 88 successful requests
+  // with 256k-485k input; upstream rejects at "> 500000 tokens"). Trusting the
+  // advertised number pinned 256k auto:discovery overrides over the verified window.
+  // Models the registry does not know keep the upstream number — under-advertising
+  // only makes clients compact early — and never get an invented default.
+  return (
+    GROK_CLI_REGISTRY_CONTEXT_BY_ID.get(id) ??
+    grokBuildPositiveNumber(
+      model.contextWindow,
+      model.context_window,
+      metadata.contextWindow,
+      metadata.totalContextTokens
+    )
+  );
+}
+
 function getGrokBuildModelItems(data: unknown): unknown[] {
   const envelope = asGrokBuildRecord(data);
   if (Array.isArray(data)) return data;
@@ -351,13 +383,7 @@ function normalizeGrokBuildModel(value: unknown): GrokBuildModelRecord | null {
   // here would route their request shape to the wrong upstream endpoint.
   if (backend !== "responses") return null;
 
-  const inputTokenLimit =
-    grokBuildPositiveNumber(
-      model.contextWindow,
-      model.context_window,
-      metadata.contextWindow,
-      metadata.totalContextTokens
-    ) || GROK_BUILD_DEFAULT_CONTEXT_WINDOW;
+  const inputTokenLimit = resolveGrokBuildInputTokenLimit(model, metadata, id);
   const outputTokenLimit = grokBuildPositiveNumber(
     model.maxCompletionTokens,
     model.max_completion_tokens
@@ -371,7 +397,7 @@ function normalizeGrokBuildModel(value: unknown): GrokBuildModelRecord | null {
     name: grokBuildString(model.name, id) || id,
     owned_by: "grok-cli",
     ...(description ? { description } : {}),
-    inputTokenLimit,
+    ...(typeof inputTokenLimit === "number" ? { inputTokenLimit } : {}),
     ...(outputTokenLimit ? { outputTokenLimit } : {}),
     ...(supportsThinking ? { supportsThinking: true } : {}),
     ...(supportedThinkingEfforts.length > 0 ? { supportedThinkingEfforts } : {}),
@@ -904,4 +930,6 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
   },
+  chatplayground: buildChatPlaygroundModelsDiscoveryEntry(),
+  cpl: buildChatPlaygroundModelsDiscoveryEntry(),
 };

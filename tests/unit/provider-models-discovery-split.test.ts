@@ -661,7 +661,7 @@ test("codex.mergeCodexLiveModelsWithLocalCatalog merges capacity limits conserva
   const ids = merged.map((model) => model.id);
   assert.ok(ids.includes("future-codex-model"));
   assert.ok(ids.includes("gpt-5.6-sol"));
-  assert.ok(ids.includes("gpt-5.6-sol-low"));
+  assert.ok(!ids.includes("gpt-5.6-sol-low"));
   const sol = merged.find((model) => model.id === "gpt-5.6-sol");
   assert.equal(sol?.name, "Live Sol");
   // Live (272000) is SMALLER than the pinned contract (372000) here — the
@@ -729,7 +729,7 @@ test("codex.buildCodexDiscoveryCatalog merges then filters in one step", () => {
   const ids = catalog.map((model) => model.id);
   assert.ok(ids.includes("brand-new-codex"));
   assert.ok(ids.includes("gpt-5.6-sol"));
-  assert.ok(ids.includes("gpt-5.6-sol-max"));
+  assert.ok(!ids.includes("gpt-5.6-sol-max"));
   assert.equal(
     ids.some((id) => String(id).startsWith("gpt-5.4")),
     false
