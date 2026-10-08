@@ -15,6 +15,7 @@ import {
 import {
   getProviderConnections,
   updateProviderConnection,
+  mergeConnectionProviderSpecificData,
   getProviderConnectionById,
   resetConnectionBackoff,
   touchConnectionLastUsed,
@@ -3194,8 +3195,12 @@ export async function markAccountUnavailable(
           connProviderSpecificData,
           model
         );
+        // Split write: drained-models is account state (never read by the
+        // catalog builder) → model-catalog-safe writer; runtime error fields
+        // take the whitelisted path. A combined payload would fail the
+        // runtime-state whitelist and drop the /v1/models catalog cache.
+        await mergeConnectionProviderSpecificData(connectionId, persistedProviderSpecificData);
         await updateProviderConnection(connectionId, {
-          providerSpecificData: persistedProviderSpecificData,
           lastErrorType: "free_quota_exhausted",
           lastError: `Model ${model} free quota exhausted`,
           lastErrorAt: new Date().toISOString(),
