@@ -1,7 +1,9 @@
+import { gondolaGateway } from "./gondola";
 import { onomeoGateway } from "./onomeo";
 import { unificallyGateway } from "./unifically";
 /** APIKEY provider catalog — gateways family. Pure data; merged by apikey/index.ts via spread. */
 export const APIKEY_PROVIDERS_GATEWAYS = {
+  ...gondolaGateway,
   ...onomeoGateway,
   ...unificallyGateway,
   // 1min.ai (https://docs.1min.ai) — multi-model chat aggregator with its own
@@ -300,23 +302,6 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
       "API subscription is free to create; inference is billed per token. No free inference allowance is published.",
     apiHint:
       "Create a GreenPT API key, then use https://api.greenpt.ai/v1 as the OpenAI-compatible base URL. Review jurisdiction, privacy and regional data-transfer requirements before use.",
-  },
-  gondola: {
-    id: "gondola",
-    serviceKinds: ["llm"],
-    alias: "gondola",
-    name: "Gondola",
-    icon: "sailing",
-    color: "#C9A96A",
-    textIcon: "GD",
-    passthroughModels: true,
-    website: "https://gondola-ai.com",
-    // Prepaid, not a free tier. Requests draw down a USDC balance, so the
-    // picker must not show a "Free" badge.
-    hasFree: false,
-    freeNote: "No free allowance. Credit is prepaid in USDC on Base and billed per request.",
-    apiHint:
-      "Top up with USDC on Base and create a key at https://gondola-ai.com/keys, then use https://api.gondola-ai.com/v1 as the OpenAI-compatible base URL.",
   },
   eurouter: {
     id: "eurouter",
