@@ -14,6 +14,7 @@ import {
 import { isProviderInCooldown } from "../providerCooldownTracker.ts";
 import { checkCredentialGate, logCredentialSkip } from "../credentialGate.ts";
 import { buildProtectedPriorityStopResponse } from "./executeTargetClassify.ts";
+import { errorResponse } from "../../utils/error.ts";
 import {
   getCircuitBreaker,
   type CircuitBreakerStatus,
