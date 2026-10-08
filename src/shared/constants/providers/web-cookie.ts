@@ -1,4 +1,4 @@
-import { CHATPLAYGROUND_WEB_COOKIE_ENTRY } from "./web-cookie-chatplayground.ts";
+import { CHATPLAYGROUND_WEB_COOKIE_ENTRY } from "./web-cookie-chatplayground";
 
 /**
  * Provider catalog data — extracted from providers.ts (god-file decomposition).
