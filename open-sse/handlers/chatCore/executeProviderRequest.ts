@@ -30,11 +30,16 @@ import {
   readCodexTurnStateHeader,
 } from "../../config/codexTurnState.ts";
 import { HTTP_STATUS, STREAM_RECOVERY } from "../../config/constants.ts";
+import { parseRetryAfterMs } from "../../services/apiKeyRotator.ts";
 import { createRecoverableStream, makeContinuationBody } from "../../services/streamRecovery.ts";
 import { persistCodexChildQuotaResponse } from "../../services/codexAccount/index.ts";
 import { invalidateCodexQuotaCache } from "../../services/codexQuotaFetcher.ts";
 import { invalidateGenericQuotaCacheOnStatus } from "../../services/genericQuotaFetcher.ts";
-import { withRateLimit, resolveRequestQueueMaxWaitMs } from "../../services/rateLimitManager.ts";
+import {
+  isRateLimitEnabled,
+  withRateLimit,
+  resolveRequestQueueMaxWaitMs,
+} from "../../services/rateLimitManager.ts";
 import { acquireMany as acquireConcurrencyGates } from "../../services/accountSemaphore.ts";
 import { rethrowAdmissionError, remainingQueueBudgetMs } from "./queueBudget.ts";
 import { deduplicate } from "../../services/requestDedup.ts";
@@ -125,7 +130,8 @@ export type ExecuteProviderRequestDeps = {
     status: number,
     creds: Record<string, unknown> | null | undefined,
     transport?: string,
-    failureDetail?: string
+    failureDetail?: string,
+    retryAfterMs?: number | null
   ) => void;
   requestedModel: string;
   resilienceSettings: ResilienceSettings;
@@ -239,7 +245,10 @@ export async function executeProviderRequest(
           const execCreds = getExecutionCredentials();
           const executionConnectionId = getExecutionConnectionId(execCreds);
           const attemptConnectionId = executionConnectionId || connectionId;
-          const accountSemaphoreMaxConcurrency = resolveAccountSemaphoreMaxConcurrency(execCreds);
+          const accountSemaphoreMaxConcurrency = resolveAccountSemaphoreMaxConcurrency(
+            execCreds,
+            typeof attemptConnectionId === "string" && isRateLimitEnabled(attemptConnectionId)
+          );
           const accountSemaphoreKey = resolveAccountSemaphoreKey({
             provider,
             model: modelToCall,
@@ -405,7 +414,8 @@ export async function executeProviderRequest(
               stream &&
               (res.response.ok ||
                 res.response.status === HTTP_STATUS.UNAUTHORIZED ||
-                res.response.status === HTTP_STATUS.FORBIDDEN) &&
+                res.response.status === HTTP_STATUS.FORBIDDEN ||
+                res.response.status === HTTP_STATUS.RATE_LIMITED) &&
               executionConnectionId &&
               !(await shouldIsolateProbeFailures())
             ) {
@@ -415,7 +425,15 @@ export async function executeProviderRequest(
                     .clone()
                     .text()
                     .catch(() => "");
-              recordKeyHealthStatus(res.response.status, execCreds, res.transport, failureDetail);
+              recordKeyHealthStatus(
+                res.response.status,
+                execCreds,
+                res.transport,
+                failureDetail,
+                res.response.status === HTTP_STATUS.RATE_LIMITED
+                  ? parseRetryAfterMs(res.response.headers.get("retry-after"))
+                  : null
+              );
             }
 
             if (isModelScope() && res.response.status === 429 && attempts < maxAttempts - 1) {
@@ -650,7 +668,10 @@ export async function executeProviderRequest(
           status,
           rawResult._executionCredentials,
           rawResult.transport,
-          status >= 400 ? payload : ""
+          status >= 400 ? payload : "",
+          status === HTTP_STATUS.RATE_LIMITED
+            ? parseRetryAfterMs(responseHeaders.get("retry-after"))
+            : null
         );
       }
       releaseRawResultAccountSemaphore();

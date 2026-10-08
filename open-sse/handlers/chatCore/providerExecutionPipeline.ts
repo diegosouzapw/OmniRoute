@@ -10,6 +10,7 @@ import type {
 import { createErrorResult } from "../../utils/error.ts";
 import { applyStatusRestatement } from "../../config/upstreamStatusRestatement.ts";
 import { recoverAnthropicThinkingSignature } from "./thinkingSignatureRecovery.ts";
+import { isAnthropicThinkingSignatureError } from "./passthroughHelpers.ts";
 import {
   isModelUnavailableError,
   getNextFamilyFallback as defaultGetNextFamilyFallback,
@@ -120,6 +121,16 @@ export interface ProviderExecutionPipelineInput {
   wire: PipelineWireState;
   state: PipelineStateHooks;
   sendProviderAttempt: (model: string, allowDedup: boolean) => Promise<ChatCoreExecutorResult>;
+  getLastOutboundBody?: (attempt: ChatCoreExecutorResult) => unknown;
+  onSignatureFailure?: (failure: {
+    status: number;
+    message: string;
+    outboundBody: unknown;
+    outboundBodyCaptured: boolean;
+    model: string;
+    recoveryAttempted: boolean;
+    recoverySucceeded: boolean;
+  }) => void;
   getNextFamilyFallback?: (
     currentModel: string,
     triedModels: Set<string>,
@@ -469,35 +480,77 @@ export async function runProviderExecutionPipeline(
       } catch {
         // keep statusText
       }
-      const signatureRecovery = await recoverAnthropicThinkingSignature({
+      // Snapshot the first failed wire body before recovery sends a second request.
+      // The caller receives it only for the explicit signature-validation 400.
+      const signatureFailure = isAnthropicThinkingSignatureError({
         provider: target.provider,
-        statusCode: status,
+        status,
         message: signatureMessage,
-        body: wire.body,
-        execute: async (recoveryBody) => {
-          if (recoveryBody && typeof recoveryBody === "object" && !Array.isArray(recoveryBody)) {
-            wire.setBodyAndModel(recoveryBody as Record<string, unknown>, wire.currentModel);
-          }
-          return sendProviderAttempt(wire.currentModel, false);
-        },
-        parseError: async (response) => {
-          let message = response.statusText || "upstream error";
-          let responseBody: unknown = null;
-          try {
-            responseBody = JSON.parse(await response.clone().text());
-            const err = (responseBody as { error?: { message?: unknown } } | null)?.error;
-            if (typeof err?.message === "string" && err.message) message = err.message;
-          } catch {
-            // keep statusText
-          }
-          return {
-            statusCode: response.status,
-            message,
-            retryAfterMs: null,
-            responseBody,
-          };
-        },
       });
+      const capturedOutboundBody = signatureFailure
+        ? input.getLastOutboundBody?.(attempt)
+        : undefined;
+      const failedOutboundBody = capturedOutboundBody ?? attempt.transformedBody;
+      const outboundBodyCaptured = capturedOutboundBody !== undefined;
+      const failedModel = wire.currentModel;
+      let recoveryDispatchStarted = false;
+      let signatureRecovery;
+      try {
+        signatureRecovery = await recoverAnthropicThinkingSignature({
+          provider: target.provider,
+          statusCode: status,
+          message: signatureMessage,
+          body: wire.body,
+          execute: async (recoveryBody) => {
+            recoveryDispatchStarted = true;
+            if (recoveryBody && typeof recoveryBody === "object" && !Array.isArray(recoveryBody)) {
+              wire.setBodyAndModel(recoveryBody as Record<string, unknown>, wire.currentModel);
+            }
+            return sendProviderAttempt(wire.currentModel, false);
+          },
+          parseError: async (response) => {
+            let message = response.statusText || "upstream error";
+            let responseBody: unknown = null;
+            try {
+              responseBody = JSON.parse(await response.clone().text());
+              const err = (responseBody as { error?: { message?: unknown } } | null)?.error;
+              if (typeof err?.message === "string" && err.message) message = err.message;
+            } catch {
+              // keep statusText
+            }
+            return {
+              statusCode: response.status,
+              message,
+              retryAfterMs: null,
+              responseBody,
+            };
+          },
+        });
+      } catch (error) {
+        if (signatureFailure) {
+          input.onSignatureFailure?.({
+            status,
+            message: signatureMessage,
+            outboundBody: failedOutboundBody,
+            outboundBodyCaptured,
+            model: failedModel,
+            recoveryAttempted: recoveryDispatchStarted,
+            recoverySucceeded: false,
+          });
+        }
+        throw error;
+      }
+      if (signatureFailure) {
+        input.onSignatureFailure?.({
+          status,
+          message: signatureMessage,
+          outboundBody: failedOutboundBody,
+          outboundBodyCaptured,
+          model: failedModel,
+          recoveryAttempted: signatureRecovery.attempted,
+          recoverySucceeded: signatureRecovery.succeeded,
+        });
+      }
       if (
         signatureRecovery.attempted &&
         signatureRecovery.succeeded &&

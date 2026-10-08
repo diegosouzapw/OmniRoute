@@ -68,7 +68,8 @@ export async function loadOptionalNoAuthApiKeyCredentials(
   lastErrorSource: null;
   errorCode: null;
   rateLimitedUntil: null;
-  maxConcurrent: null;
+  maxConcurrent: number | null;
+  rateLimitMaxConcurrent: number | null;
 } | null> {
   if (!noAuthProviderAcceptsOptionalApiKey(providerId)) return null;
 
@@ -122,6 +123,7 @@ export async function loadOptionalNoAuthApiKeyCredentials(
     lastErrorSource: null,
     errorCode: null,
     rateLimitedUntil: null,
-    maxConcurrent: null,
+    maxConcurrent: connection.maxConcurrent,
+    rateLimitMaxConcurrent: connection.rateLimitMaxConcurrent,
   };
 }

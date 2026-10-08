@@ -5,6 +5,7 @@
 import {
   GPT_6_ASTRA_PRICING,
   CLAUDE_FABLE_5_1_PRICING,
+  CLAUDE_OPUS_5_5_PRICING,
   CLAUDE_OPUS_5_PRICING,
   GEMINI_3_7_FLASH_PROMO_PRICING,
   GPT_5_3_CODEX_PRICING,
@@ -31,6 +32,14 @@ const GPT_6_SOL_CODEX_PRICING = {
   reasoning: 10.0,
   cache_creation: 2.5,
 };
+// GPT-6.1 Sol Standard: 50 / 2.5 / 250 credits per MTok (input / cached / output).
+// Keep GPT-6 Sol's 5-credit cached rate separate. Dollar equivalents below use
+// this table's existing 25 credits/USD convention, not included-plan usage.
+// https://learn.chatgpt.com/docs/pricing#token-rates (checked 2026-10-07)
+const GPT_6_1_SOL_CODEX_PRICING = {
+  ...GPT_6_SOL_CODEX_PRICING,
+  cached: 0.1,
+};
 const GPT_6_LUNA_CODEX_PRICING = {
   input: 0.1,
   output: 0.5,
@@ -49,6 +58,7 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 50.0,
       cache_creation: 12.5,
     },
+    "claude-opus-5-5": CLAUDE_OPUS_5_5_PRICING,
     "claude-opus-5": CLAUDE_OPUS_5_PRICING,
     "claude-opus-4-8": {
       input: 5.0,
@@ -122,6 +132,13 @@ export const DEFAULT_PRICING_OAUTH = {
     "gpt-6-sol-high": GPT_6_SOL_CODEX_PRICING,
     "gpt-6-sol-medium": GPT_6_SOL_CODEX_PRICING,
     "gpt-6-sol-low": GPT_6_SOL_CODEX_PRICING,
+    "gpt-6.1-sol": GPT_6_1_SOL_CODEX_PRICING,
+    "gpt-6.1-sol-ultra": GPT_6_1_SOL_CODEX_PRICING,
+    "gpt-6.1-sol-max": GPT_6_1_SOL_CODEX_PRICING,
+    "gpt-6.1-sol-xhigh": GPT_6_1_SOL_CODEX_PRICING,
+    "gpt-6.1-sol-high": GPT_6_1_SOL_CODEX_PRICING,
+    "gpt-6.1-sol-medium": GPT_6_1_SOL_CODEX_PRICING,
+    "gpt-6.1-sol-low": GPT_6_1_SOL_CODEX_PRICING,
     "gpt-6-luna": GPT_6_LUNA_CODEX_PRICING,
     "gpt-6-luna-max": GPT_6_LUNA_CODEX_PRICING,
     "gpt-6-luna-xhigh": GPT_6_LUNA_CODEX_PRICING,

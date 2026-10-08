@@ -556,7 +556,7 @@ export default function ProviderLimits({
   const tierByConnection = useMemo(() => {
     const out: Record<string, ReturnType<typeof normalizePlanTier>> = {};
     for (const conn of sortedConnections) {
-      out[conn.id] = normalizePlanTier(resolvedPlanByConnection[conn.id]);
+      out[conn.id] = normalizePlanTier(resolvedPlanByConnection[conn.id], conn.provider);
     }
     return out;
   }, [sortedConnections, resolvedPlanByConnection]);

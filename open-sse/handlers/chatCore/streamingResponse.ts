@@ -186,6 +186,7 @@ export async function runStreamingResponse(deps: StreamingDeps) {
     triedModels,
     trustedEffortContext,
     upstreamStream,
+    reportSignatureFailure,
   } = deps;
 
   let claudePromptCacheLogMeta,
@@ -310,6 +311,8 @@ export async function runStreamingResponse(deps: StreamingDeps) {
       },
       sendProviderAttempt: (modelToCall, allowDedup) =>
         executeProviderRequest(modelToCall, allowDedup),
+      getLastOutboundBody: () => providerRequestCapture.latest()?.body,
+      onSignatureFailure: reportSignatureFailure,
     });
 
     pipelineRecovered = true;
@@ -842,20 +845,44 @@ export async function runStreamingResponse(deps: StreamingDeps) {
       );
     }
 
-    const signatureRecovery = pipelineRecovered
-      ? { attempted: false, succeeded: false, execution: null, error: null, recoveryBody: null }
-      : await recoverAnthropicThinkingSignature({
-          provider,
-          statusCode,
-          message,
-          body: translatedBody,
-          execute: async (recoveryBody) => {
-            translatedBody = recoveryBody as typeof translatedBody;
-            syncExecuteTranslatedBody(translatedBody);
-            return executeProviderRequest(currentModel, false);
-          },
-          parseError: (response) => parseUpstreamError(response, provider),
+    // Capture the first failure before the recovery callback mutates translatedBody.
+    // providerRequestCapture holds the exact wire body of the failed attempt.
+    const capturedSignatureFailureBody = providerRequestCapture.latest()?.body;
+    const signatureFailureBody = capturedSignatureFailureBody ?? finalBody ?? translatedBody;
+    const signatureFailureStatus = statusCode;
+    const signatureFailureMessage = message;
+    let recoveryDispatchStarted = false;
+    let signatureRecovery;
+    try {
+      signatureRecovery = pipelineRecovered
+        ? { attempted: false, succeeded: false, execution: null, error: null, recoveryBody: null }
+        : await recoverAnthropicThinkingSignature({
+            provider,
+            statusCode,
+            message,
+            body: translatedBody,
+            execute: async (recoveryBody) => {
+              recoveryDispatchStarted = true;
+              translatedBody = recoveryBody as typeof translatedBody;
+              syncExecuteTranslatedBody(translatedBody);
+              return executeProviderRequest(currentModel, false);
+            },
+            parseError: (response) => parseUpstreamError(response, provider),
+          });
+    } catch (error) {
+      if (!pipelineRecovered) {
+        reportSignatureFailure?.({
+          status: signatureFailureStatus,
+          message: signatureFailureMessage,
+          outboundBody: signatureFailureBody,
+          outboundBodyCaptured: capturedSignatureFailureBody !== undefined,
+          model: currentModel,
+          recoveryAttempted: recoveryDispatchStarted,
+          recoverySucceeded: false,
         });
+      }
+      throw error;
+    }
     if (!pipelineRecovered && signatureRecovery.attempted && signatureRecovery.execution) {
       providerResponse = signatureRecovery.execution.response;
       upstreamDiagnostic = signatureRecovery.execution.upstreamDiagnostic;
@@ -887,6 +914,19 @@ export async function runStreamingResponse(deps: StreamingDeps) {
             ? signatureRecovery.error.errorType
             : undefined;
       }
+    }
+
+    // The pipeline reports at its own recovery boundary; avoid a duplicate.
+    if (!pipelineRecovered) {
+      reportSignatureFailure?.({
+        status: signatureFailureStatus,
+        message: signatureFailureMessage,
+        outboundBody: signatureFailureBody,
+        outboundBodyCaptured: capturedSignatureFailureBody !== undefined,
+        model: currentModel,
+        recoveryAttempted: signatureRecovery.attempted,
+        recoverySucceeded: signatureRecovery.succeeded,
+      });
     }
 
     if (signatureRecovery.succeeded) break providerFailure;

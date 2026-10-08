@@ -31,11 +31,13 @@ import {
 } from "@/shared/constants/sidebarGroupVisibility";
 import {
   HIDDEN_SIDEBAR_ITEMS_SETTING_KEY,
+  HIDDEN_SIDEBAR_SECTIONS_SETTING_KEY,
   SIDEBAR_SETTINGS_UPDATED_EVENT,
   SIDEBAR_SECTION_ORDER_KEY,
   SIDEBAR_ITEM_ORDER_KEY,
   SIDEBAR_SECTIONS,
   normalizeHiddenSidebarItems,
+  normalizeHiddenSidebarSections,
   applySectionOrder,
   applyItemOrder,
   getSidebarIconAccent,
@@ -137,6 +139,7 @@ export default function Sidebar({
   const [isDisconnected, setIsDisconnected] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [hiddenSidebarItems, setHiddenSidebarItems] = useState<string[]>([]);
+  const [hiddenSidebarSections, setHiddenSidebarSections] = useState<SidebarSectionId[]>([]);
   const [hiddenSidebarGroupLabels, setHiddenSidebarGroupLabels] = useState<string[]>([]);
   // Feature-flag map for flag-gated items (e.g. "radar" -> RADAR_ENABLED).
   // Fails open (see isSidebarItemVisibleForFlags) so a missing key never
@@ -207,6 +210,9 @@ export default function Sidebar({
     const applySettings = (data) => {
       setShowDebug(data?.debugMode === true);
       setHiddenSidebarItems(normalizeHiddenSidebarItems(data?.[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]));
+      setHiddenSidebarSections(
+        normalizeHiddenSidebarSections(data?.[HIDDEN_SIDEBAR_SECTIONS_SETTING_KEY])
+      );
       setHiddenSidebarGroupLabels(
         normalizeHiddenSidebarGroupLabels(data?.[HIDDEN_SIDEBAR_GROUP_LABELS_SETTING_KEY])
       );
@@ -237,6 +243,11 @@ export default function Sidebar({
       if (HIDDEN_SIDEBAR_ITEMS_SETTING_KEY in detail) {
         setHiddenSidebarItems(
           normalizeHiddenSidebarItems(detail[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY])
+        );
+      }
+      if (HIDDEN_SIDEBAR_SECTIONS_SETTING_KEY in detail) {
+        setHiddenSidebarSections(
+          normalizeHiddenSidebarSections(detail[HIDDEN_SIDEBAR_SECTIONS_SETTING_KEY])
         );
       }
       if (HIDDEN_SIDEBAR_GROUP_LABELS_SETTING_KEY in detail) {
@@ -370,9 +381,12 @@ export default function Sidebar({
   const activeHref = getActiveSidebarHref(pathname, allVisibleItems);
 
   const isSearching = searchQuery.trim().length > 0;
+  // Section master toggle ("隔断"): hidden sections drop out of the normal
+  // display, but stay searchable — mirroring hidden items.
+  const hiddenSectionSet = new Set<SidebarSectionId>(hiddenSidebarSections);
   const displaySections = isSearching
     ? filterSidebarSectionsByQuery(sectionsWithPinned, searchQuery)
-    : sectionsWithPinned;
+    : sectionsWithPinned.filter((s) => !hiddenSectionSet.has(s.id));
 
   // Keep the active page visible while preserving accordion semantics for
   // unpinned sections. Render-time adjustment (react.dev "You Might Not Need

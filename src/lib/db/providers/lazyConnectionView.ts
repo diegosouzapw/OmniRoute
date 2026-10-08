@@ -61,6 +61,7 @@ export interface ProviderConnectionView {
   errorCode: string | number | null;
   backoffLevel: number;
   maxConcurrent: number | null;
+  rateLimitMaxConcurrent: number | null;
   quotaWindowThresholds: Record<string, number> | null;
 }
 
@@ -70,6 +71,7 @@ export interface ProviderConnectionView {
  */
 export function toProviderConnection(value: unknown): ProviderConnectionView {
   const row = asRecord(value);
+  const rateLimitMaxConcurrent = toNullableNumber(asRecord(row.rateLimitOverrides).maxConcurrent);
   const rawThresholds = row.quotaWindowThresholds;
   const quotaWindowThresholds: Record<string, number> | null =
     rawThresholds && typeof rawThresholds === "object" && !Array.isArray(rawThresholds)
@@ -101,6 +103,8 @@ export function toProviderConnection(value: unknown): ProviderConnectionView {
       typeof row.errorCode === "string" || typeof row.errorCode === "number" ? row.errorCode : null,
     backoffLevel: toNumber(row.backoffLevel, 0),
     maxConcurrent: toNullableNumber(row.maxConcurrent),
+    rateLimitMaxConcurrent:
+      rateLimitMaxConcurrent !== null && rateLimitMaxConcurrent > 0 ? rateLimitMaxConcurrent : null,
     quotaWindowThresholds,
   };
 }
@@ -167,7 +171,11 @@ export function createLazyRowProxy(row: Record<string, unknown>): Record<string,
       decrypted = {
         apiKey: lazyDecrypt(row.apiKey, { connectionId, provider, field: "apiKey" }),
         accessToken: lazyDecrypt(row.accessToken, { connectionId, provider, field: "accessToken" }),
-        refreshToken: lazyDecrypt(row.refreshToken, { connectionId, provider, field: "refreshToken" }),
+        refreshToken: lazyDecrypt(row.refreshToken, {
+          connectionId,
+          provider,
+          field: "refreshToken",
+        }),
         idToken: lazyDecrypt(row.idToken, { connectionId, provider, field: "idToken" }),
       };
     }

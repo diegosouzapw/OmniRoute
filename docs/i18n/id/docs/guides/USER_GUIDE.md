@@ -139,7 +139,9 @@ Model:
 
 **Kiat Pro:** Gunakan Opus untuk tugas kompleks, Sonnet untuk kecepatan. OmniRoute melacak kuota per model!
 
-Rute yang kompatibel dengan Claude dan Claude Code mempertahankan upaya berpikir `max` untuk model Opus dan Sonnet. Model Haiku tidak menerima tingkat upaya `max`, sehingga OmniRoute menurunkan permintaan tersebut ke anggaran berpikir tinggi sebelum mengirimkannya ke penyedia upstream.
+Tidak ada browser pada host OmniRoute? Jalankan `claude setup-token` di mana pun Claude Code sudah login, lalu tempelkan token satu tahun ke tab **Token Penyiapan**. Lihat [Claude Code dengan token penyiapan](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Rute Claude dan yang kompatibel dengan Claude Code mempertahankan upaya penalaran `max` untuk model Opus dan Sonnet. Model Haiku tidak menerima tingkat upaya `max`, sehingga OmniRoute menurunkan permintaan tersebut ke anggaran penalaran tinggi sebelum mengirimkannya ke upstream.
 
 #### OpenAI Codex (Plus/Pro)
 
@@ -178,32 +180,34 @@ Model:
 2. Dapatkan kunci API dari Coding Plan
 3. Dasbor → Tambahkan Kunci API: Penyedia: `glm`, Kunci API: `your-key`
 
-**Penggunaan:** `glm/glm-4.7` — **Kiat Pro:** Coding Plan menawarkan kuota 3× dengan biaya 1/7! Direset setiap hari pukul 10.00.
+**Gunakan:** `glm/glm-4.7` — **Kiat Pro:** Coding Plan menawarkan kuota 3× dengan biaya 1/7! Reset setiap hari pukul 10.00.
 
 #### MiniMax M2.1 (Reset 5 jam, $0.20/1M)
 
 1. Daftar: [MiniMax](https://www.minimax.io)
 2. Dapatkan kunci API → Dasbor → Tambahkan Kunci API
 
-**Penggunaan:** `minimax/MiniMax-M2.1` — **Kiat Pro:** Opsi termurah untuk konteks panjang (1 juta token)!
+**Gunakan:** `minimax/MiniMax-M2.1` — **Kiat Pro:** Opsi termurah untuk konteks panjang (1 juta token)!
 
 #### Kimi K2 (Tarif tetap $9/bulan)
 
 1. Berlangganan: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. Dapatkan kunci API → Dasbor → Tambahkan Kunci API
 
-**Penggunaan:** `kimi/kimi-k2.5` — **Kiat Pro:** Tarif tetap $9/bulan untuk 10 juta token = biaya efektif $0.90/1M!
+**Gunakan:** `kimi/kimi-k2.5` — **Kiat Pro:** Tarif tetap $9/bulan untuk 10 juta token = biaya efektif $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
 1. Daftar: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
 2. Buat kunci API Qianfan → Dasbor → Tambahkan Kunci API: Penyedia: `qianfan`
 
-**Penggunaan:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, atau ID model lain yang kompatibel dengan OpenAI dari Qianfan.
+**Gunakan:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, atau ID model Qianfan lain yang kompatibel dengan OpenAI.
 
 ### 🆓 Penyedia GRATIS
 
-Penyedia gratis tanpa autentikasi memiliki sakelar di samping **Tidak memerlukan autentikasi** pada halaman penyedianya. Menonaktifkannya akan menonaktifkan penyedia tersebut, menghapusnya dari tampilan Penyedia yang dikonfigurasi/ringkas, dan menghapus modelnya dari `/v1/models`.
+Penyedia gratis tanpa autentikasi memiliki sakelar di samping **Tidak memerlukan autentikasi** pada halaman penyedianya.
+Menonaktifkannya akan menonaktifkan penyedia tersebut, menghapusnya dari tampilan Penyedia yang dikonfigurasi/ringkas, dan
+menghapus modelnya dari `/v1/models`.
 
 #### Qoder (9 model GRATIS)
 

@@ -58,6 +58,9 @@ export async function POST(request: Request) {
         category: resolved.category,
         ...(resolved.tier ? { tier: resolved.tier } : {}),
       };
+    } else if ("family" in resolved) {
+      // Family path (e.g. auto/glm, auto/claude-opus → { family })
+      spec = { family: resolved.family };
     } else if (resolved.variant !== undefined) {
       // Variant path (e.g. auto/best-coding → variant "coding")
       variant = resolved.variant ?? undefined;

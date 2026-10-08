@@ -1,0 +1,1 @@
+- fix(chatgpt-web): `__Host-` cookies from imported storage state or a Cookie header are now injected host-only (no leading-dot domain), so the ChatGPT Web browser session is no longer rejected (#15500)

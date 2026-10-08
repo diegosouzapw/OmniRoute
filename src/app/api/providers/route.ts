@@ -20,6 +20,7 @@ import {
   isClaudeCodeCompatibleProvider,
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
+  providerAllowsOptionalApiKey,
   resolveProviderId,
 } from "@/shared/constants/providers";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
@@ -408,8 +409,11 @@ export async function POST(request: Request) {
     // 201 response. testSingleConnection() persists testStatus/lastError/etc.
     // itself, so nothing further is needed here beyond logging failures.
     // GHSA-jmq6-8j86-8xqj: the local CLI probe spawns on the host — only for local callers.
+    // S-01 (#15159): allowLocalSpawn covers the devin cloud-agent validator's CLI
+    // fallback, which also spawns. Same gate, same reason.
     void testSingleConnection(newConnection.id, undefined, {
       allowLocalRuntimeProbe: getRequestPeerLocality(request) !== "remote",
+      allowLocalSpawn: getRequestPeerLocality(request) !== "remote",
     }).catch((testError: unknown) => {
       console.log(
         `[providers] Auto-test failed for ${newConnection.id}:`,

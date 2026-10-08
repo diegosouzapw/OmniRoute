@@ -6,6 +6,8 @@
 // credit-balance cache itself stays in antigravity.ts; callers inject the
 // update function below so the two modules don't import each other.
 
+import { createByteLengthQueueStrategies } from "../../utils/byteQueueStrategy.ts";
+
 /** Shape of one entry in a Gemini `remainingCredits` SSE payload array. */
 export type AntigravityCreditEntry = {
   creditType?: string;
@@ -102,8 +104,7 @@ export function createCreditsExtractionTransform(
         buffer = "";
       },
     },
-    { highWaterMark: 16384 },
-    { highWaterMark: 16384 }
+    ...createByteLengthQueueStrategies(16 * 1024)
   );
 }
 
@@ -116,15 +117,64 @@ export type SsePassthroughResult = {
   upstreamDiagnostic?: Record<string, unknown>;
 };
 
-/** Cancel `body` when `signal` aborts, releasing the upstream connection. */
-function cancelBodyOnAbort(body: ReadableStream<Uint8Array>, signal: AbortSignal): void {
-  signal.addEventListener(
-    "abort",
-    () => {
-      body.cancel().catch(() => {});
+/**
+ * Bind an upstream body to a client abort signal without letting a completed
+ * turn keep the request/Undici stream reachable through a once-only listener.
+ * Native Codex turns commonly finish normally, so cleanup must happen on EOF,
+ * cancel and error as well as on abort.
+ */
+export function bindAbortLifecycle(
+  body: ReadableStream<Uint8Array>,
+  signal: AbortSignal | null | undefined
+): ReadableStream<Uint8Array> {
+  if (!signal) return body;
+
+  const reader = body.getReader();
+  let detached = false;
+  let cancelled = false;
+
+  const detach = (): void => {
+    if (detached) return;
+    detached = true;
+    signal.removeEventListener("abort", onAbort);
+  };
+
+  const cancelReader = (reason?: unknown): void => {
+    if (cancelled) return;
+    cancelled = true;
+    void reader.cancel(reason).catch(() => {});
+  };
+
+  const onAbort = (): void => {
+    detach();
+    cancelReader(signal.reason);
+  };
+
+  signal.addEventListener("abort", onAbort, { once: true });
+  if (signal.aborted) onAbort();
+
+  return new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      try {
+        const { done, value } = await reader.read();
+        if (done) {
+          detach();
+          controller.close();
+          return;
+        }
+        controller.enqueue(value);
+      } catch (error) {
+        detach();
+        controller.error(error);
+      }
     },
-    { once: true }
-  );
+    async cancel(reason) {
+      detach();
+      if (cancelled) return;
+      cancelled = true;
+      await reader.cancel(reason).catch(() => {});
+    },
+  });
 }
 
 /**
@@ -158,10 +208,8 @@ export function buildSsePassthroughResult(
       transformedBody: null,
     };
   }
-  // Cancel upstream body on client disconnect
-  if (signal) cancelBodyOnAbort(body, signal);
-
-  const tapped = body.pipeThrough(
+  const abortAwareBody = bindAbortLifecycle(body, signal);
+  const tapped = abortAwareBody.pipeThrough(
     createCreditsExtractionTransform(accountId, onCreditsUpdate, 16 * 1024)
   );
   return {

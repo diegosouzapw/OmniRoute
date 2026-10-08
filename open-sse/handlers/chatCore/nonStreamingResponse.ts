@@ -144,6 +144,7 @@ export async function runNonStreamingResponse(deps: NonStreamingDeps) {
     provider,
     providerHeaders: _providerHeaders,
     providerRequestCapture,
+    reportSignatureFailure,
     providerResponse: _providerResponse,
     reasoningReplayHistory: _reasoningReplayHistory,
     recordChatCallCost,
@@ -315,6 +316,8 @@ export async function runNonStreamingResponse(deps: NonStreamingDeps) {
         },
         sendProviderAttempt: (modelToCall, allowDedup) =>
           executeProviderRequest(modelToCall, allowDedup),
+        getLastOutboundBody: () => providerRequestCapture.latest()?.body,
+        onSignatureFailure: reportSignatureFailure,
       });
     };
 
@@ -940,7 +943,7 @@ export async function runNonStreamingResponse(deps: NonStreamingDeps) {
     // ── Phase 9.2: Save for idempotency ──
     // Reuse the key resolved by checkIdempotencyCache() above (single derivation per
     // request). (#3821-review LEDGER-6)
-    saveIdempotency(idempotencyKey, translatedResponse, 200);
+    await saveIdempotency(idempotencyKey, translatedResponse, 200);
     reqLogger.logConvertedResponse(translatedResponse);
     persistAttemptLogs({
       status: 200,

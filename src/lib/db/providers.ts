@@ -14,7 +14,7 @@ import {
 } from "./encryption";
 import { createLazyRowProxy } from "./providers/lazyConnectionView";
 import { invalidateDbCache, getCachedRawProviderConnections } from "./readCache";
-import { invalidateConnectionUpdate } from "./readCache";
+import { invalidateConnectionUpdate, type UpdateOpts } from "./readCache";
 import { reorderConnections } from "./providers/deletion";
 import {
   removeConnectionHealth,
@@ -35,6 +35,7 @@ import {
   webSessionCredentialKey,
   parseProviderSpecificData,
   isMatchingOauthIdentity,
+  isWebCookieProviderId,
 } from "./webSessionDedup";
 import { LOCAL_PROVIDERS } from "@/shared/constants/providers";
 import { pickCodexConnectionForUser } from "@/lib/oauth/utils/codexConnectionSelection";
@@ -597,8 +598,7 @@ export async function createProviderConnection(data: JsonRecord) {
         ) || null;
     }
   } else if (data.authType === "apikey") {
-    // Name-based upsert (existing behavior): same provider + same name → update.
-    if (data.name) {
+    if (data.name && !isWebCookieProviderId(data.provider)) {
       existing =
         (db
           .prepare(
@@ -1007,7 +1007,7 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
   ).run(_buildUpdateConnectionRowParams(id, data, now));
 }
 
-export async function updateProviderConnection(id: string, data: JsonRecord) {
+export async function updateProviderConnection(id: string, data: JsonRecord, opts?: UpdateOpts) {
   const db = getDbInstance() as unknown as DbLike;
   const existing = db.prepare("SELECT * FROM provider_connections WHERE id = ?").get(id);
   if (!existing) return null;
@@ -1066,7 +1066,7 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
     _updateConnectionRow(db, id, encryptConnectionFields({ ...merged }));
   })();
   backupDbFile("pre-write");
-  invalidateConnectionUpdate(id, data);
+  invalidateConnectionUpdate(id, data, opts);
   bumpProxyConfigGeneration();
 
   // Zero is the internal move-to-top sentinel. Explicit positive priorities

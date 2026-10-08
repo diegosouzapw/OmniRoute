@@ -404,6 +404,11 @@
       "disposition": "separately-invoked"
     },
     {
+      "name": "check:ui-icu",
+      "command": "node scripts/i18n/check-ui-icu.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
       "name": "check:vitest-exclusions",
       "command": "node scripts/check/check-vitest-exclusions.mjs",
       "disposition": "separately-invoked"

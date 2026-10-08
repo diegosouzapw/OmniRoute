@@ -134,6 +134,19 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     ...GPT_5_6_MODEL_SPEC,
     aliases: ["openai/gpt-6-astra"],
   },
+  // #15023: Sol and Luna were missing from the spec map; the public API context
+  // window is 1,050,000 (same as Astra). Without an entry, getModelSpec() returned
+  // undefined and any spec-aware path (capability filter, compaction guard) fell
+  // back to 128k, the same wrong value advertised by the importer.
+  "gpt-6-sol": {
+    ...GPT_5_6_MODEL_SPEC,
+    aliases: ["openai/gpt-6-sol"],
+  },
+  "gpt-6-luna": {
+    ...GPT_5_6_MODEL_SPEC,
+    aliases: ["openai/gpt-6-luna"],
+  },
+  "gpt-6.1-sol": GPT_5_6_MODEL_SPEC,
   "gpt-5.6": {
     ...GPT_5_6_MODEL_SPEC,
     aliases: ["openai/gpt-5.6"],
@@ -483,6 +496,22 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     // …and, like Opus 4.7+, rejects manual budgets/`type:"enabled"` (adaptive-only).
     adaptiveThinkingOnly: true,
     aliases: BEDROCK_CLAUDE_ALIASES("claude-fable-5"),
+  },
+
+  // ── Claude Opus 5.5 ─────────────────────────────────────────────
+  "claude-opus-5-5": {
+    maxOutputTokens: 128000,
+    contextWindow: 1000000,
+    defaultThinkingBudget: 32000,
+    thinkingBudgetCap: 120000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    rejectsThinkingDisabled: true,
+    adaptiveThinkingOnly: true,
+    rejectsForcedToolChoice: true,
+    defaultReasoningEffort: "medium",
+    aliases: BEDROCK_CLAUDE_ALIASES("claude-opus-5-5", "claude-opus-5.5"),
   },
 
   // ── Claude Opus 5 ───────────────────────────────────────────────
