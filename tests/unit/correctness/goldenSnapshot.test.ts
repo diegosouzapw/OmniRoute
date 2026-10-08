@@ -8,7 +8,16 @@ import { goldenSnapshot } from "../../helpers/goldenSnapshot.ts";
 // Use an isolated tmpdir so the selftest does not pollute tests/snapshots/
 let tmpDir: string;
 
-test("goldenSnapshot writes on first run then matches", (t) => {
+test.beforeEach((t) => {
+  const previous = process.env.UPDATE_GOLDEN;
+  delete process.env.UPDATE_GOLDEN;
+  t.after(() => {
+    if (previous === undefined) delete process.env.UPDATE_GOLDEN;
+    else process.env.UPDATE_GOLDEN = previous;
+  });
+});
+
+test("goldenSnapshot writes only with explicit update then validates without rewriting", () => {
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "golden-selftest-"));
 
   // First run: UPDATE_GOLDEN=1 → writes
@@ -26,15 +35,18 @@ test("goldenSnapshot writes on first run then matches", (t) => {
   fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
-test("goldenSnapshot first-run (no UPDATE_GOLDEN) writes and passes", () => {
+test("goldenSnapshot fails closed when an expected snapshot is missing", () => {
   const td = fs.mkdtempSync(path.join(os.tmpdir(), "golden-first-run-"));
   try {
-    // File does not exist yet: should write and not throw
-    assert.doesNotThrow(() => goldenSnapshot("test/value", { x: 42 }, td));
-    // File now exists: same value should pass
-    assert.doesNotThrow(() => goldenSnapshot("test/value", { x: 42 }, td));
-    // File exists: different value should throw
-    assert.throws(() => goldenSnapshot("test/value", { x: 99 }, td));
+    for (const flag of [undefined, "0", "false"]) {
+      if (flag === undefined) delete process.env.UPDATE_GOLDEN;
+      else process.env.UPDATE_GOLDEN = flag;
+      assert.throws(
+        () => goldenSnapshot("test/value", { x: 42 }, td),
+        /missing golden snapshot.*UPDATE_GOLDEN=1/i
+      );
+      assert.deepEqual(fs.readdirSync(td), [], "validation must not create or approve evidence");
+    }
   } finally {
     fs.rmSync(td, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }

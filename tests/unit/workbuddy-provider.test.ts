@@ -45,6 +45,19 @@ function toolResult(id: string, content: string) {
   return { role: "tool", tool_call_id: id, content };
 }
 
+type ChatMessage = {
+  role?: string;
+  content?: unknown;
+  tool_calls?: unknown;
+  tool_call_id?: string;
+};
+
+type ChatBody = {
+  model?: string;
+  messages: ChatMessage[];
+  [key: string]: unknown;
+};
+
 function bodyWith(messages: unknown[]) {
   return { model: "deepseek-v4.1-flash", stream: true, tools: TOOLS, messages };
 }
@@ -84,7 +97,10 @@ describe("workbuddy registry entry", () => {
       );
     }
     // The legacy reasoner family has the inverse contract and must stay off.
-    assert.equal(requiresReasoningReplay({ provider: "workbuddy", model: "deepseek-reasoner" }), false);
+    assert.equal(
+      requiresReasoningReplay({ provider: "workbuddy", model: "deepseek-reasoner" }),
+      false
+    );
   });
 });
 
@@ -94,7 +110,10 @@ describe("strictChatHistory helpers", () => {
     assert.equal(combineContent("", "b"), "b");
     assert.equal(combineContent(undefined, "b"), "b");
     const parts = combineContent([{ type: "image_url", image_url: { url: "u" } }], "caption");
-    assert.deepEqual(parts, [{ type: "image_url", image_url: { url: "u" } }, { type: "text", text: "caption" }]);
+    assert.deepEqual(parts, [
+      { type: "image_url", image_url: { url: "u" } },
+      { type: "text", text: "caption" },
+    ]);
   });
 
   it("merges an assistant turn the client split in two", () => {
@@ -164,7 +183,13 @@ describe("strictChatHistory helpers", () => {
   });
 
   it("folds a trailing assistant message onto the turn's tool results", () => {
-    const messages = [SYSTEM, USER, assistantWithCall("call_1", ""), toolResult("call_1", "hi"), { role: "assistant", content: "Done." }];
+    const messages = [
+      SYSTEM,
+      USER,
+      assistantWithCall("call_1", ""),
+      toolResult("call_1", "hi"),
+      { role: "assistant", content: "Done." },
+    ];
     const out = foldTrailingCommentary(messages, true) as Array<Record<string, unknown>>;
     assert.equal(out.length, 4);
     assert.equal(out[out.length - 1].role, "tool");
@@ -172,20 +197,35 @@ describe("strictChatHistory helpers", () => {
   });
 
   it("drops the trailing assistant message when there is no tool-call turn to fold into", () => {
-    const messages = [SYSTEM, { role: "user", content: "hi" }, { role: "assistant", content: "Commentary." }];
+    const messages = [
+      SYSTEM,
+      { role: "user", content: "hi" },
+      { role: "assistant", content: "Commentary." },
+    ];
     const out = foldTrailingCommentary(messages, true) as Array<Record<string, unknown>>;
     assert.equal(out.length, 2);
     assert.equal(out[out.length - 1].role, "user");
   });
 
   it("leaves a payload alone when tools are not declared", () => {
-    const messages = [SYSTEM, { role: "user", content: "hi" }, { role: "assistant", content: "Commentary." }];
+    const messages = [
+      SYSTEM,
+      { role: "user", content: "hi" },
+      { role: "assistant", content: "Commentary." },
+    ];
     assert.equal(foldTrailingCommentary(messages, false), messages);
   });
 
   it("replaces strings throughout the body without touching keys or structure", () => {
-    const body = { model: "m", "Codex": 1, messages: [{ role: "user", content: "Codex CLI said OpenAI" }] };
-    const out = replaceBodyStrings(body, [["Codex CLI", "the assistant"], ["OpenAI", "the provider"]]) as Record<string, any>;
+    const body = {
+      model: "m",
+      Codex: 1,
+      messages: [{ role: "user", content: "Codex CLI said OpenAI" }],
+    };
+    const out = replaceBodyStrings(body, [
+      ["Codex CLI", "the assistant"],
+      ["OpenAI", "the provider"],
+    ]) as ChatBody;
     assert.equal(out.messages[0].content, "the assistant said the provider");
     // The key is untouched: only string values are rewritten.
     assert.equal(out["Codex"], 1);
@@ -214,18 +254,18 @@ describe("repairChatHistory", () => {
     const out = repairChatHistory(replayed, {
       bodyStringReplacements: REGISTRY.workbuddy.bodyStringReplacements,
       repairSequence: true,
-    }) as Record<string, any>;
+    }) as ChatBody;
 
     // 1. The channel-identifying string is neutralized.
     assert.equal(out.messages[0].content, "You are the assistant.");
     // 2. Every call group is one result per call, in call order, with the real payload kept.
-    const callIndex = out.messages.findIndex((m: any) => Array.isArray(m.tool_calls));
+    const callIndex = out.messages.findIndex((m) => Array.isArray(m.tool_calls));
     assert.equal(out.messages[callIndex + 1].role, "tool");
     assert.equal(out.messages[callIndex + 1].content, "file contents");
     // 3. The payload no longer ends on an assistant message.
     assert.notEqual(out.messages[out.messages.length - 1].role, "assistant");
     // 4. Exactly one result survived for the single call.
-    assert.equal(out.messages.filter((m: any) => m.role === "tool").length, 1);
+    assert.equal(out.messages.filter((m) => m.role === "tool").length, 1);
   });
 });
 
@@ -243,11 +283,11 @@ describe("executor wiring", () => {
       ]),
       true,
       { accessToken: "oauth-token", providerSpecificData: {} }
-    )) as Record<string, any>;
+    )) as ChatBody;
 
     assert.equal(transformed.messages[0].content, "You are the assistant.");
     assert.notEqual(transformed.messages[transformed.messages.length - 1].role, "assistant");
-    assert.equal(transformed.messages.filter((m: any) => m.role === "tool").length, 1);
+    assert.equal(transformed.messages.filter((m) => m.role === "tool").length, 1);
   });
 });
 
@@ -390,8 +430,16 @@ describe("model discovery", () => {
       data: {
         models: [
           { id: "deepseek-v4.1-flash", name: "DeepSeek V4.1 Flash" },
-          { id: "gemini-3.0-pro-image", name: "Gemini-3.0-Pro-Image", tags: ["text-to-image", "image-to-image"] },
-          { id: "hunyuan-video-art", name: "Hunyuan-Video-Art", tags: ["text-to-video", "image-to-video"] },
+          {
+            id: "gemini-3.0-pro-image",
+            name: "Gemini-3.0-Pro-Image",
+            tags: ["text-to-image", "image-to-image"],
+          },
+          {
+            id: "hunyuan-video-art",
+            name: "Hunyuan-Video-Art",
+            tags: ["text-to-video", "image-to-video"],
+          },
         ],
       },
     };
@@ -435,7 +483,9 @@ describe("model discovery", () => {
     ];
     assert.equal(catalogue.length, 26);
 
-    const models = PROVIDER_MODELS_CONFIG.workbuddy.parseResponse({ data: { models: catalogue } }) as Array<{
+    const models = PROVIDER_MODELS_CONFIG.workbuddy.parseResponse({
+      data: { models: catalogue },
+    }) as Array<{
       id: string;
     }>;
     assert.equal(models.length, 20);
@@ -448,10 +498,7 @@ describe("model discovery", () => {
       "hunyuan-image-v2.0-general-edit",
       "hunyuan-video-art",
     ]) {
-      assert.ok(
-        !models.some((m) => m.id === dropped),
-        `${dropped} must not reach a chat roster`
-      );
+      assert.ok(!models.some((m) => m.id === dropped), `${dropped} must not reach a chat roster`);
     }
   });
 
@@ -531,7 +578,7 @@ describe("blast radius", () => {
     const transformed = (await executor.transformRequest("gpt-5.5", body, true, {
       apiKey: "sk-test",
       providerSpecificData: {},
-    })) as Record<string, any>;
+    })) as ChatBody;
 
     // Neither the channel string nor the message shape is rewritten for a
     // provider that never asked for it.

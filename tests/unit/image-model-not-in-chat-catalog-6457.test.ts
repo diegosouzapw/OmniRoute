@@ -102,7 +102,7 @@ test("#6457 image/diffusion model discovered via live sync is NOT listed as a ch
   }
 });
 
-test("registered image model with explicit chat endpoints keeps both catalog entries", async () => {
+test("Codex Responses and image entries keep distinct public IDs for the same upstream model", async () => {
   const connection = await seedProviderConnection("codex");
 
   await modelsDb.replaceSyncedAvailableModelsForConnection("codex", connection.id, [
@@ -130,7 +130,11 @@ test("registered image model with explicit chat endpoints keeps both catalog ent
     "explicit responses support must keep the synced chat entry"
   );
   assert.ok(
-    entries.some((model) => model.type === "image"),
-    "the registered image entry must remain available under the same model id"
+    entries.every((model) => model.type !== "image"),
+    "an image entry must not shadow the Responses model ID"
+  );
+  assert.ok(
+    body.data.some((model) => model.id === "codex/gpt-5.6-sol-image" && model.type === "image"),
+    "the image surface must remain available under its distinct catalog ID"
   );
 });

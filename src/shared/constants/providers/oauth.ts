@@ -221,7 +221,7 @@ export const OAUTH_PROVIDERS = {
     textIcon: "KC",
     // Kimi official-partnership aff link (2026-07) — the "Kimi Coding Plan"
     // tracking link. Was previously unset (no header link rendered at all).
-    website: "https://www.kimi.com/code?aff=omniroute",
+    website: "https://www.kimi.ai/code?aff=omniroute",
     subscriptionRisk: true,
     riskNoticeVariant: "oauth",
     authHint:
@@ -323,5 +323,20 @@ export const OAUTH_PROVIDERS = {
     // CodeBuddy account does not work here.
     authHint:
       "Tencent WorkBuddy (www.workbuddy.ai). Authorize the CLI device flow in the popup; OmniRoute then polls for the token and attaches the required X-Product: SaaS header. The model roster is served by the authenticated catalogue, so it is discovered live rather than listed here. WorkBuddy only accepts streaming requests, which OmniRoute accumulates back into a JSON response for non-streaming callers.",
+  },
+  "muse-code": {
+    id: "muse-code",
+    serviceKinds: ["llm"],
+    alias: "mc",
+    name: "Muse Code (Meta)",
+    icon: "auto_awesome",
+    color: "#0866FF",
+    textIcon: "MC",
+    website: "https://ai.developer.meta.com/docs/muse-code/auth",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    passthroughModels: true,
+    authHint:
+      "Sign in with the Muse Code device flow (same as `muse login` / CLIProxyAPI `-meta-login`) to use a Muse subscription, or paste a META_API_KEY. Device login keeps the durable dca token and mints the inference key; a 401 remints that key. Wire format is OpenAI Responses (POST /responses).",
   },
 };

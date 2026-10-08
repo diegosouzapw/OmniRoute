@@ -14,6 +14,8 @@ const { parseQuotaData } =
 const { GET } = await import("../../src/app/api/usage/[connectionId]/route.ts");
 const { createProviderConnection } = await import("../../src/lib/db/providers.ts");
 const { getProviderLimitsCache } = await import("../../src/lib/db/providerLimits.ts");
+const { mergeProviderLimitsCacheEntry } =
+  await import("../../src/lib/usage/providerLimitsCache.ts");
 const { getQuotaCache } = await import("../../src/domain/quotaCache.ts");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 const originalFetch = globalThis.fetch;
@@ -27,6 +29,8 @@ function scopedLimit(percent: unknown = 100) {
     group: "weekly",
     percent,
     resets_at: resetAt,
+    is_active: percent === 100,
+    severity: percent === 100 ? "critical" : "normal",
     scope: { model: { display_name: "Fable" } },
   };
 }
@@ -87,16 +91,69 @@ test("missing or invalid Fable telemetry never becomes a zero or unlimited quota
     [scopedLimit(101)],
     [{ ...scopedLimit(), kind: "weekly_all" }],
     [{ ...scopedLimit(), scope: null }],
-    [{ ...scopedLimit(), scope: { model: { display_name: "Something else" } } }],
   ]) {
     mockUsage(limits);
     const rows = parseQuotaData("claude", await getClaudeUsage("fable-test-token"));
-    assert.equal(rows.length, 2);
     assert.equal(
       rows.some((row) => row.name === fableKey),
       false
     );
   }
+});
+
+test("unreported Fable percentages stay cached for routing but hidden from display", async () => {
+  mockUsage([{ ...scopedLimit(), percent: undefined }]);
+  const usage = await getClaudeUsage("fable-test-token");
+
+  assert.equal(usage.modelQuotas[fableKey].fractionReported, false);
+  assert.equal(
+    parseQuotaData("claude", usage).some((row) => row.name === fableKey),
+    false
+  );
+});
+
+test("unreported account-wide Claude percentages stay cached but hidden from display", async () => {
+  mockUsage([
+    {
+      kind: "session",
+      resets_at: resetAt,
+      is_active: false,
+      severity: "normal",
+      scope: null,
+    },
+    {
+      kind: "weekly_all",
+      resets_at: resetAt,
+      is_active: false,
+      severity: "normal",
+      scope: null,
+    },
+  ]);
+  const usage = await getClaudeUsage("account-wide-unreported-token");
+
+  assert.deepEqual(
+    Object.values(usage.quotas).map((quota) => quota.fractionReported),
+    [false, false]
+  );
+  assert.equal(parseQuotaData("claude", usage).length, 0);
+});
+
+test("model-only Claude cache data remains usable across a message-only refresh failure", () => {
+  const previous = {
+    quotas: null,
+    modelQuotas: { [fableKey]: { remainingPercentage: 0, resetAt } },
+    plan: "Claude",
+    message: null,
+    fetchedAt: "2099-09-10T00:00:00.000Z",
+  };
+  const failure = {
+    quotas: null,
+    plan: null,
+    message: "Claude usage unavailable",
+    fetchedAt: "2099-09-10T00:01:00.000Z",
+  };
+
+  assert.equal(mergeProviderLimitsCacheEntry("claude", failure, previous), previous);
 });
 
 test("Fable reset data stays independent and missing resets stay unknown", async () => {
@@ -143,6 +200,7 @@ test("usage API persists per-account Fable rows without changing account-wide ro
       "session (5h)",
       "weekly (7d)",
     ]);
+    assert.deepEqual(Object.keys(getQuotaCache(id)?.modelQuotas ?? {}), [fableKey]);
   }
   assert.equal(
     parseQuotaData("claude", getProviderLimitsCache(ids[0])).find((row) => row.name === fableKey)

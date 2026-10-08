@@ -1,4 +1,26 @@
-import { WORKBUDDY_CONFIG } from "../constants/oauth";
+/**
+ * WorkBuddy (Tencent — www.workbuddy.ai) OAuth configuration.
+ *
+ * Separate product from CodeBuddy CN: own host, own account, own catalog.
+ * Same plugin-auth protocol shape (POST stateUrl → open authUrl → GET
+ * tokenUrl?state=), but the two credentials are not interchangeable.
+ *
+ * Verified against the live gateway (2026-09-19):
+ *   POST {stateUrl}?platform=CLI  -> { code: 0, data: { state, authUrl } }
+ *   GET  {tokenUrl}?state=<state> -> code 11217 while pending, code 0 + data.accessToken when done
+ *   POST {refreshUrl}             -> token in the X-Refresh-Token header, not the body.
+ *                                    A malformed token answers 12153 "token format error".
+ *
+ * No client_id/secret: the upstream CLI ships none.
+ */
+export const WORKBUDDY_CONFIG = {
+  baseUrl: "https://www.workbuddy.ai",
+  stateUrl: "https://www.workbuddy.ai/v2/plugin/auth/state",
+  tokenUrl: "https://www.workbuddy.ai/v2/plugin/auth/token",
+  refreshUrl: "https://www.workbuddy.ai/v2/plugin/auth/token/refresh",
+  platform: "CLI",
+  pollInterval: 5000,
+};
 
 /**
  * WorkBuddy (Tencent — www.workbuddy.ai) — custom device-auth flow.
@@ -67,7 +89,11 @@ export const workbuddy = {
       throw new Error(`WorkBuddy state request failed (${response.status})`);
     }
 
-    const json = (await response.json()) as { code?: number; data?: any; msg?: string };
+    const json = (await response.json()) as {
+      code?: number;
+      data?: { state?: unknown; authUrl?: unknown; url?: unknown };
+      msg?: string;
+    };
     if (json.code !== 0 || !json.data?.state) {
       throw new Error(`WorkBuddy state error: ${json.msg || "no state in response"}`);
     }
@@ -84,10 +110,7 @@ export const workbuddy = {
     };
   },
 
-  pollToken: async (
-    config: WorkBuddyConfig,
-    deviceCode: string
-  ): Promise<WorkBuddyPollResult> => {
+  pollToken: async (config: WorkBuddyConfig, deviceCode: string): Promise<WorkBuddyPollResult> => {
     // GET with `state` as a query param (not POST/body) — matches the gateway's
     // /v2/plugin/auth/token?state=... shape.
     const response = await fetch(`${config.tokenUrl}?state=${encodeURIComponent(deviceCode)}`, {
@@ -99,15 +122,24 @@ export const workbuddy = {
     });
     if (!response.ok) return { ok: false, data: { error: "request_failed" } };
 
-    const data = (await response.json()) as { code?: number; data?: any; msg?: string };
+    const data = (await response.json()) as {
+      code?: number;
+      data?: {
+        accessToken?: unknown;
+        refreshToken?: unknown;
+        tokenType?: unknown;
+        expiresIn?: number;
+      };
+      msg?: string;
+    };
     // code 11217 = pending, code 0 = success (token is one-shot).
     if (data.code === 0 && data.data?.accessToken) {
       return {
         ok: true,
         data: {
-          access_token: data.data.accessToken,
-          refresh_token: data.data.refreshToken || "",
-          token_type: data.data.tokenType || "Bearer",
+          access_token: String(data.data.accessToken),
+          refresh_token: data.data.refreshToken ? String(data.data.refreshToken) : "",
+          token_type: data.data.tokenType ? String(data.data.tokenType) : "Bearer",
           expires_in: data.data.expiresIn,
         },
       };

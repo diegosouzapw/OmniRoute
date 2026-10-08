@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
   getInternalServiceAuthHeaders,
@@ -14,6 +15,7 @@ import { AUTHZ_HEADER_PEER_LOCALITY } from "../../src/server/authz/headers.ts";
 
 const originalInline = process.env.OMNIROUTE_INTERNAL_SERVICE_TOKEN;
 const originalFile = process.env.OMNIROUTE_INTERNAL_SERVICE_TOKEN_FILE;
+const repoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
 test.afterEach(() => {
   if (originalInline === undefined) delete process.env.OMNIROUTE_INTERNAL_SERVICE_TOKEN;
@@ -63,4 +65,21 @@ test("internal service token file is read without exposing it to process env", (
   } finally {
     fs.rmSync(directory, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
+});
+
+test("cache API accepts internal auth only through the trusted loopback verifier", () => {
+  const source = fs.readFileSync(path.join(repoRoot, "src/app/api/cache/route.ts"), "utf8");
+  const trustedGuard =
+    /if \(\s*!isTrustedLoopbackInternalServiceRequest\(req\) && !\(await isAuthenticated\(req\)\)\s*\)/g;
+
+  assert.equal(
+    [...source.matchAll(trustedGuard)].length,
+    2,
+    "GET and DELETE must accept the internal token only after loopback locality is verified"
+  );
+  assert.doesNotMatch(
+    source,
+    /isInternalServiceRequest\(req\)/,
+    "the cache route must not trust the service token without the loopback guard"
+  );
 });

@@ -1,30 +1,34 @@
 # CLI Integrations (Yorùbá)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/CLI-INTEGRATIONS.md) · 🇪🇹 [am](../../../am/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇦 [ar](../../../ar/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇿 [az](../../../az/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇬 [bg](../../../bg/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇩 [bn](../../../bn/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇿 [cs](../../../cs/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇰 [da](../../../da/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇪 [de](../../../de/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇷 [el](../../../el/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇸 [es](../../../es/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇪 [et](../../../et/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇷 [fa](../../../fa/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇮 [fi](../../../fi/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇷 [fr](../../../fr/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇪 [ga](../../../ga/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [gu](../../../gu/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ha](../../../ha/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇱 [he](../../../he/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [hi](../../../hi/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇷 [hr](../../../hr/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇺 [hu](../../../hu/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇲 [hy](../../../hy/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇩 [id](../../../id/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ig](../../../ig/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇹 [it](../../../it/docs/guides/CLI-INTEGRATIONS.md) · 🇯🇵 [ja](../../../ja/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇪 [ka](../../../ka/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇭 [km](../../../km/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [kn](../../../kn/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇷 [ko](../../../ko/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇹 [lt](../../../lt/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇻 [lv](../../../lv/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ml](../../../ml/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [mr](../../../mr/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇾 [ms](../../../ms/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇹 [mt](../../../mt/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇲 [my](../../../my/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇵 [ne](../../../ne/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇱 [nl](../../../nl/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇴 [no](../../../no/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [or](../../../or/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [pa](../../../pa/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇭 [phi](../../../phi/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇱 [pl](../../../pl/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇹 [pt](../../../pt/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇴 [ro](../../../ro/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇺 [ru](../../../ru/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇰 [si](../../../si/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇰 [sk](../../../sk/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇮 [sl](../../../sl/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇸 [sr](../../../sr/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇪 [sv](../../../sv/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇪 [sw](../../../sw/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ta](../../../ta/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [te](../../../te/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇭 [th](../../../th/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇷 [tr](../../../tr/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇰 [ur](../../../ur/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇿 [uz](../../../uz/docs/guides/CLI-INTEGRATIONS.md) · 🇻🇳 [vi](../../../vi/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/CLI-INTEGRATIONS.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/CLI-INTEGRATIONS.md) · 🇪🇹 [am](../../../am/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇦 [ar](../../../ar/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇿 [az](../../../az/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇬 [bg](../../../bg/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇩 [bn](../../../bn/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇦 [bs](../../../bs/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇿 [cs](../../../cs/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇰 [da](../../../da/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇪 [de](../../../de/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇷 [el](../../../el/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇸 [es](../../../es/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇪 [et](../../../et/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇷 [fa](../../../fa/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇮 [fi](../../../fi/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇷 [fr](../../../fr/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇪 [ga](../../../ga/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [gu](../../../gu/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ha](../../../ha/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇱 [he](../../../he/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [hi](../../../hi/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇷 [hr](../../../hr/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇺 [hu](../../../hu/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇲 [hy](../../../hy/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇩 [id](../../../id/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ig](../../../ig/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇹 [it](../../../it/docs/guides/CLI-INTEGRATIONS.md) · 🇯🇵 [ja](../../../ja/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇪 [ka](../../../ka/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇭 [km](../../../km/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [kn](../../../kn/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇷 [ko](../../../ko/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇹 [lt](../../../lt/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇻 [lv](../../../lv/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ml](../../../ml/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [mr](../../../mr/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇾 [ms](../../../ms/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇹 [mt](../../../mt/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇲 [my](../../../my/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇵 [ne](../../../ne/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇱 [nl](../../../nl/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇴 [no](../../../no/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [or](../../../or/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [pa](../../../pa/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇭 [phi](../../../phi/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇱 [pl](../../../pl/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇹 [pt](../../../pt/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇴 [ro](../../../ro/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇺 [ru](../../../ru/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇰 [si](../../../si/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇰 [sk](../../../sk/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇮 [sl](../../../sl/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇸 [sr](../../../sr/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇪 [sv](../../../sv/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇪 [sw](../../../sw/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ta](../../../ta/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [te](../../../te/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇭 [th](../../../th/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇷 [tr](../../../tr/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇰 [ur](../../../ur/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇿 [uz](../../../uz/docs/guides/CLI-INTEGRATIONS.md) · 🇻🇳 [vi](../../../vi/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/CLI-INTEGRATIONS.md)
 
 ---
 
-OmniRoute ní àkójọpọ̀ àwọn àṣẹ `setup-*` tí ń ṣètò CLI fún kíkọ kóòdù
-(Codex, Claude Code, OpenCode, Cline, …) láti lo OmniRoute gẹ́gẹ́ bí ẹ̀yìn rẹ̀ — nítorí náà,
-irinṣẹ́ náà máa ń bá ibi ìwọlé **kan ṣoṣo** sọ̀rọ̀, OmniRoute sì máa ń darí rẹ̀ sí olùpèsè tó yẹ
-pẹ̀lú ìyípadà aládàáṣe nígbà ìkùnà. Àṣẹ kọ̀ọ̀kan máa ń ka àkójọ awoṣe **tó ń ṣiṣẹ́ lọ́wọ́lọ́wọ́** láti inú
-OmniRoute tó ń ṣiṣẹ́ (ti agbègbè tàbí ti jíjìnnà), ó sì máa ń kọ fáìlì ìṣètò ti irinṣẹ́ náà fúnra rẹ̀ sórí ẹ̀rọ
-**rẹ**. A máa ń tọ́ka sí kọ́kọ́rọ́ API pẹ̀lú oníyí àyíká níbi gbogbo tí irinṣẹ́ náà bá
-ṣe àtìlẹ́yìn fún un. Àwọn àṣẹ tó ń tọ́jú fáìlì àyíká abẹ́lé irinṣẹ́ kan wà lábẹ́ yìí.
+Fún àtòjọ ìṣàfihàn executable tí a ń pín, àwọn àyíká ọmọ tí a fi òfin dè àti ìṣètò
+Gemini tí ó wà pẹ́ títí, wo [àwọn àdéhùn ìfilọ́lẹ̀ CLI](./CLI-LAUNCH-CONTRACTS.md).
 
-Olùpilẹ̀ṣẹ̀ gbogbogbò kan tún wà — `omniroute run <target>` — tó máa ń dá
-`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` tàbí `gemini` sílẹ̀ pẹ̀lú
-àyíká tó yẹ tí a ti fi sínú rẹ̀, láì kọ ìṣètò kankan rárá. Àwọn ibi-afẹ́ àti
-àwọn orúkọ ìnagijẹ wọn wá láti inú àkọsílẹ̀ àṣẹ `bin/cli/cli-manifest.mjs`
+OmniRoute ní ìdílé àwọn àṣẹ `setup-*` tí ń ṣètò CLI fún kíkọ kóòdù
+(Codex, Claude Code, OpenCode, Cline, …) láti lo OmniRoute gẹ́gẹ́ bí backend rẹ̀ — kí
+irinṣẹ́ náà lè bá endpoint **kan ṣoṣo** sọ̀rọ̀, kí OmniRoute sì darí rẹ̀ sí provider tó
+yẹ pẹ̀lú auto-fallback. Àṣẹ kọ̀ọ̀kan máa ń ka àkójọ model **tí ó ń ṣiṣẹ́ lọ́wọ́lọ́wọ́** láti
+OmniRoute tí ó ń ṣiṣẹ́ (local tàbí remote), ó sì máa ń kọ fáìlì config ti irinṣẹ́ náà
+fúnra rẹ̀ sórí ẹ̀rọ **rẹ**. A máa ń tọ́ka sí API key nípasẹ̀ environment variable ní
+ibikíbi tí irinṣẹ́ náà bá ti ṣe àtìlẹ́yìn fún un. Àwọn àṣẹ tí ń tọ́jú fáìlì environment
+ti irinṣẹ́ náà fúnra rẹ̀ ní ìbẹ̀rẹ̀ ni a ti ṣàkíyèsí ní ìsàlẹ̀.
+
+Launcher gbogbogbò kan tún wà — `omniroute run <target>` — tí ń ṣe ìfilọ́lẹ̀
+`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` tàbí `gemini` pẹ̀lú
+env tó yẹ tí a ti fi sínú rẹ̀, láì kọ config kankan rárá. Àwọn target àti
+aliases wọn wá láti inú àtòjọ ìṣàfihàn àṣẹ `bin/cli/cli-manifest.mjs`
 (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
-`open-code`, `qwen-code`, `gemini-cli`), àti `omniroute completion` ń pèsè
-àwọn ọ̀rọ̀ ibi-afẹ́ kan náà tí a mú jáde láti inú àkọsílẹ̀ náà. Àwọn olùpilẹ̀ṣẹ̀ ẹyọ-ẹ̀rọ ti àtijọ́ —
-`omniroute launch` (Claude Code) àti `omniroute launch-codex` (Codex) — ṣì wà
-fún lílò.
+`open-code`, `qwen-code`, `gemini-cli`), `omniroute completion` sì ń pèsè
+àwọn ọ̀rọ̀ target kan náà tí a mú jáde láti inú àtòjọ ìṣàfihàn náà. Àwọn launcher
+ọwọ́kọ̀ọ̀kan ti àtijọ́ — `omniroute launch` (Claude Code) àti
+`omniroute launch-codex` (Codex) — ṣì wà fún lílò.
 
-Fífi olùpèsè tuntun bẹ̀rẹ̀ tún wà láti inú àyíká agbègbè/jíjìnnà kan náà. Àwọn
-àṣẹ tó fi API sí ipò àkọ́kọ́ tó wà nísàlẹ̀ yìí máa ń ya ìfàṣẹsí ìṣàkóso sọ́tọ̀ kúrò lára àwọn ẹ̀rí ìdánimọ̀
-olùpèsè, wọn kì í sì í tẹ ẹ̀rí ìdánimọ̀ jáde nínú àbájáde tó ní ìṣètò:
+Ìforúkọsílẹ̀ provider tún wà láti inú context local/remote kan náà. Àwọn
+àṣẹ API-first tó wà ní ìsàlẹ̀ ń pa ìfàṣẹ̀sí ìṣàkóso mọ́ lọ́tọ̀ sí àwọn credential
+provider, wọn kì í sì í tẹ credential jáde nínú structured output:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -34,19 +38,26 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Fún àwọn ìwé-àṣẹ, yan `--credential-stdin` tàbí `--credential-env`; a ṣì dá
-`--credential` dúró fún lílò agbègbè tí a ń ṣàkóso. `providers remove` nílò `--yes` lórí
-tẹ́mínà tí kì í ṣe ti ìbánisọ̀rọ̀, gbogbo àṣẹ márùn-ún sì máa ń tẹ̀lé àyíká tó ń ṣiṣẹ́ tàbí
-àwọn àṣàyàn gbogbogbò `--base-url`/`--api-key`.
+Fún àwọn script, yan `--credential-stdin` tàbí `--credential-env`; a ṣì pa
+`--credential` mọ́ fún lílò local tí a ń ṣàkóso. `providers remove` nílò `--yes` lórí
+terminal tí kì í ṣe interactive, gbogbo àṣẹ márùn-ún náà sì ń tẹ̀lé context tó ń ṣiṣẹ́
+tàbí àwọn option gbogbogbò `--base-url`/`--api-key`.
 
-Fún ìṣètò ìpìlẹ̀ ọlọ́wọ́ tí a kọ lẹ́ẹ̀kan ṣoṣo fún àwọn ìṣọ̀kan méjì tó péye jù lọ, wo
-àwọn àlàyé jíjinlẹ̀ fún irinṣẹ́ kọ̀ọ̀kan:
+Àwọn selector provider kì í gba àwọn ìbẹ̀rẹ̀ ID, orúkọ tàbí orúkọ provider tí ìtumọ̀
+wọn kò ṣe kedere; lo connection ID kíkún nígbà tí ọ̀pọ̀ connection bá bá a mu. Àwọn
+àṣẹ create àti edit máa ń tún ka connection tí a fipamọ́ padà, removal sì máa ń
+jẹ́rìí pé a kò lè kà á mọ́. Import kan máa ń fo provider/name pair tó ti wà tẹ́lẹ̀.
+Àwọn entry tí a import kò lè kọjá endpoint ìṣàkóso, context tàbí credential ìṣàkóso
+tí a fi fún CLI.
+
+Fún ìṣètò ìpìlẹ̀ tí a kọ ní ọwọ́ lẹ́ẹ̀kan ṣoṣo fún integration méjì tó ní ẹ̀kúnrẹ́rẹ́ jù,
+wo àlàyé jinlẹ̀ fún irinṣẹ́ kọ̀ọ̀kan:
 
 - [Ìṣètò Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
 - [Ìṣètò Codex CLI](./CODEX-CLI-CONFIGURATION.md)
-- [Ìpo Jíjìnnà](./REMOTE-MODE.md) — ṣàkóso OmniRoute jíjìnnà kan (VPS / Tailnet) láti kọ̀ǹpútà alágbèéká rẹ
-- [Ìfọ̀rọ̀wérọ̀ VS Code Copilot](./VSCODE-COPILOT.md) — àfikún OmniCopilot; ó tún lè ṣiṣẹ́ àwọn
-  àṣẹ `setup-*` wọ̀nyí fún ọ láti inú olóòtú náà
+- [Remote Mode](./REMOTE-MODE.md) — ṣàkóso OmniRoute remote kan (VPS / Tailnet) láti laptop rẹ
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — extension OmniCopilot; ó tún lè ṣiṣẹ́ àwọn
+  àṣẹ `setup-*` wọ̀nyí fún ọ láti inú editor
 
 ---
 

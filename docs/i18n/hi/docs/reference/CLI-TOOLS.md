@@ -1,6 +1,6 @@
 # CLI Tools — OmniRoute (हिन्दी)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
 
@@ -43,32 +43,27 @@ ACP एजेंट (विपरीत उत्पन्न प्रवाह
 
 ---
 
-## `setup-*` के साथ स्वचालित कॉन्फ़िगर करें
+## `setup-*` के साथ स्वतः-कॉन्फ़िगर करें
 
-आपको प्रत्येक उपकरण की कॉन्फ़िगरेशन हाथ से लिखने की आवश्यकता नहीं है। OmniRoute एक `setup-*`
-कमांड प्रदान करता है जो एक चल रहे OmniRoute (स्थानीय या दूरस्थ) से **लाइव** मॉडल कैटलॉग पढ़ता है
-और आपके मशीन पर उपकरण की अपनी कॉन्फ़िगरेशन लिखता है:
+आपको प्रत्येक टूल का कॉन्फ़िग हाथ से लिखने की आवश्यकता नहीं है। OmniRoute प्रति समर्थित CLI एक `setup-*` कमांड भेजता है जो चल रहे OmniRoute (स्थानीय या दूरस्थ) से **लाइव** मॉडल कैटलॉग पढ़ता है और आपकी मशीन पर टूल का अपना कॉन्फ़िग लिखता है:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
-प्रत्येक `--remote <url> --api-key <key>` स्वीकार करता है (एक दूरस्थ OmniRoute के खिलाफ एक स्थानीय उपकरण कॉन्फ़िगर करें), `--dry-run` (लिखे बिना पूर्वावलोकन), और `--port`। मॉडल स्वचालित खोज के बिना उपकरण (Cline, Kilo, Roo, Goose, Aider, Qwen) `--model <id>` लेते हैं (और गैर-इंटरैक्टिव रन के लिए `--yes`)। CLI को सही वातावरण के साथ लॉन्च करने के लिए और बिना किसी कॉन्फ़िगरेशन के, सामान्य `omniroute run <target>` लॉन्चर का उपयोग करें (claude, codex, aider, goose, opencode, qwen, gemini — लक्ष्य और उपनाम `bin/cli/cli-manifest.mjs` से आते हैं); विरासत प्रति-उपकरण लॉन्चर `omniroute launch` (Claude Code) और `omniroute launch-codex` (Codex) उपलब्ध रहते हैं। Gemini CLI केवल लॉन्च-केवल है: यह एक `omniroute run` लक्ष्य है लेकिन इसका कोई `setup-*`/`configure` नुस्खा नहीं है।
+प्रत्येक `--remote <url> --api-key <key>` (एक दूरस्थ OmniRoute के विरुद्ध एक स्थानीय टूल कॉन्फ़िगर करें), `--dry-run` (बिना लिखे पूर्वावलोकन करें), और `--port` स्वीकार करता है। मॉडल स्वतः-खोज के बिना टूल (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) `--model <id>` (और गैर-इंटरैक्टिव रन के लिए `--yes`) लेते हैं। `setup-5dive` एकमात्र ऐसी रेसिपी है जो `$HOME` के तहत नहीं लिखती है: यह फ्लीट होस्ट पर एक रूट-स्वामित्व वाली प्रमाणीकरण प्रोफ़ाइल लिखकर 5dive एजेंट फ्लीट को कॉन्फ़िगर करती है, इसलिए यह `sudo` के माध्यम से फिर से निष्पादित होती है और इसका अपना कोई दूरस्थ मोड नहीं होता है। सही env इंजेक्टेड और बिना किसी कॉन्फ़िग के CLI लॉन्च करने के लिए, जेनेरिक `omniroute run <target>` लॉन्चर का उपयोग करें (claude, codex, aider, goose, opencode, qwen, gemini — लक्ष्य और उपनाम `bin/cli/cli-manifest.mjs` से आते हैं); लेगेसी प्रति-टूल लॉन्चर `omniroute launch` (Claude Code) और `omniroute launch-codex` (Codex) उपलब्ध रहते हैं। Gemini CLI केवल लॉन्च-योग्य है: यह एक `omniroute run` लक्ष्य है लेकिन इसमें कोई `setup-*`/`configure` रेसिपी नहीं है।
 
-> **पूर्ण संदर्भ:** मास्टर तालिका — प्रत्येक कमांड क्या लिखता है, हर ध्वज,
-> स्थानीय बनाम दूरस्थ, और कौन से उपकरण `/v1` उपसर्ग चाहते हैं —
-> **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)** में उपलब्ध है।
+> **पूर्ण संदर्भ:** मास्टर तालिका — प्रत्येक कमांड क्या लिखता है, प्रत्येक फ़्लैग, स्थानीय बनाम दूरस्थ, और कौन से टूल को `/v1` प्रत्यय चाहिए — **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)** में रहता है।
 
-### कंटेनर के अंदर इन्हें चलाना
+### इन्हें कंटेनर के अंदर चलाना
 
-OmniRoute कंटेनर के अंदर निष्पादित `setup-*` कमांड कंटेनर के अपने होम में लिखता है, जिसे कोई होस्ट CLI नहीं पढ़ता है और जो कंटेनर के साथ गायब हो जाता है। OmniRoute इसे पहचानता है और लिखने के बजाय निर्देशों के साथ `2` के साथ बाहर निकलता है। आगे बढ़ने के दो समर्थित तरीके हैं — होस्ट पर CLI स्थापित करें और कंटेनर से `omniroute connect` करें, या कॉन्फ़िगरेशन डायरियों को बाइंड-माउंट करें और `CLI_CONFIG_HOME` सेट करें (कॉम्पोज़ `host` प्रोफ़ाइल)। प्रत्येक `setup-*` कमांड, साथ ही `omniroute configure` और `omniroute config set`, `--allow-container-write` स्वीकार करता है जब आप वास्तव में कंटेनर के अपने CLIs को कॉन्फ़िगर करना चाहते थे; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` सर्वर के लिए वही करता है। देखें
-[Docker Guide → होस्ट CLI उपकरणों को कॉन्फ़िगर करना](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker)।
+OmniRoute कंटेनर के अंदर निष्पादित एक `setup-*` कमांड कंटेनर के अपने होम में लिखता है, जिसे कोई होस्ट CLI नहीं पढ़ता है और जो कंटेनर के साथ गायब हो जाता है। OmniRoute इसका पता लगाता है और लिखने के बजाय निर्देशों के साथ `2` से बाहर निकलता है। आगे बढ़ने के दो समर्थित तरीके — होस्ट पर CLI स्थापित करें और कंटेनर से `omniroute connect` करें, या कॉन्फ़िग निर्देशिकाओं को बाइंड-माउंट करें और `CLI_CONFIG_HOME` सेट करें (कम्पोज़ `host` प्रोफ़ाइल)। प्रत्येक `setup-*` कमांड, साथ ही `omniroute configure` और `omniroute config set`, `--allow-container-write` स्वीकार करता है जब कंटेनर के अपने CLI को कॉन्फ़िगर करना वास्तव में आपका मतलब था; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` सर्वर के लिए भी ऐसा ही करता है। [Docker Guide → Configuring host CLI tools](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker) देखें।
 
-डैशबोर्ड का **apply endpoint** (`POST /api/cli-tools/apply`) वही सुरक्षा लागू करता है: एक कंटेनर में, एक लिखना जिसका लक्ष्य होस्ट से बाइंड-माउंट नहीं किया गया है, **`422`** के साथ उत्तर देता है जिसमें `containerEphemeralTarget: true`, सुरक्षित त्रुटि पाठ और — उन उपकरणों के लिए जिनका होस्ट नुस्खा है (claude, codex, opencode, cline, kilo, continue) — एक `hostSetupCommand` (जैसे `omniroute setup-opencode`) जो होस्ट पर चलाने के लिए है; कुछ भी नहीं लिखा गया है। `dryRun: true` कंटेनर मोड में काम करता रहता है और उत्पन्न सामग्री + लक्ष्य पथ को बिना डिस्क को छुए लौटाता है, ताकि आप डैशबोर्ड से पूर्वावलोकन कर सकें और होस्ट पर लागू कर सकें। यह व्यवहार जानबूझकर है और
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` द्वारा पुनरावृत्ति-रक्षा की गई है — कभी भी "फिक्स" न करें 422 को सुरक्षा को हटाकर।
+डैशबोर्ड का **एप्लाई एंडपॉइंट** (`POST /api/cli-tools/apply`) उसी गार्ड को लागू करता है: एक कंटेनर में, एक राइट जिसका लक्ष्य होस्ट से बाइंड-माउंटेड नहीं है, `containerEphemeralTarget: true`, सुरक्षित त्रुटि टेक्स्ट और — होस्ट रेसिपी वाले टूल (claude, codex, opencode, cline, kilo, continue) के लिए — एक `hostSetupCommand` (जैसे `omniroute setup-opencode`) के साथ **`422`** का जवाब देता है जिसे होस्ट पर चलाना है; कुछ भी नहीं लिखा जाता है। `dryRun: true` कंटेनर मोड में काम करता रहता है और डिस्क को छुए बिना एक संपादित पूर्वावलोकन + लक्ष्य पथ लौटाता है। पूर्वावलोकन सामग्री कॉपी या आयात करने के लिए एक क्रेडेंशियल-असर कॉन्फ़िगरेशन नहीं है। होस्ट पर मूल टूल/बेस URL/API कुंजी/मॉडल इनपुट के साथ लागू करें, या इंगित होस्ट-साइड सेटअप कमांड का उपयोग करें। पूर्वावलोकन हेडर और अनुरोध अनुबंध के लिए [CLI configuration security](../security/CLI-CONFIGURATION.md) देखें। यह व्यवहार जानबूझकर है और `tests/unit/api/cli-tools/apply-container-guard.test.ts` द्वारा प्रतिगमन-संरक्षित है — गार्ड को हटाकर कभी भी 422 को "ठीक" न करें।
 
 ---
 
@@ -560,72 +555,72 @@ kiro-cli status
 
 ## 10. आंतरिक OmniRoute CLI
 
-`omniroute` बाइनरी सर्वर जीवनचक्र, सेटअप, डायग्नोस्टिक्स, और प्रदाता प्रबंधन के लिए कमांड प्रदान करता है। प्रवेश बिंदु: `bin/omniroute.mjs`।
+`omniroute` बाइनरी सर्वर जीवनचक्र, सेटअप, निदान और प्रदाता प्रबंधन के लिए कमांड प्रदान करती है। प्रवेश बिंदु: `bin/omniroute.mjs`।
 
 ```bash
 omniroute                              # सर्वर शुरू करें (डिफ़ॉल्ट पोर्ट 20128)
 omniroute setup                        # इंटरैक्टिव सेटअप विज़ार्ड
-omniroute doctor                       # कॉन्फ़िग, DB, पोर्ट, रनटाइम की जांच करें
+omniroute doctor                       # कॉन्फ़िगरेशन, DB, पोर्ट और रनटाइम जाँचें
 omniroute providers list               # कॉन्फ़िगर किए गए प्रदाता कनेक्शन
-omniroute providers test-all           # हर सक्रिय कनेक्शन का परीक्षण करें
-omniroute reset-password               # व्यवस्थापक पासवर्ड रीसेट करें
+omniroute providers test-all           # प्रत्येक सक्रिय कनेक्शन का परीक्षण करें
+omniroute reset-password               # एडमिन पासवर्ड रीसेट करें
 omniroute logs                         # अनुरोध लॉग स्ट्रीम करें
-omniroute health                       # विस्तृत स्वास्थ्य (ब्रेकर्स, कैश, मेमोरी)
-omniroute --version                    # संस्करण प्रिंट करें
-omniroute --help                       # सभी कमांड दिखाएं
+omniroute health                       # विस्तृत स्वास्थ्य स्थिति (ब्रेकर, कैश, मेमोरी)
+omniroute --version                    # संस्करण प्रदर्शित करें
+omniroute --help                       # सभी कमांड दिखाएँ
 ```
 
-### सेटअप और प्रारंभिककरण
+### सेटअप और आरंभीकरण
 
 ```bash
 omniroute setup                        # इंटरैक्टिव सेटअप विज़ार्ड
-omniroute setup --non-interactive      # CI/स्वचालन मोड (env vars + फ्लैग पढ़ता है)
-omniroute setup --password '<value>'   # सीधे व्यवस्थापक पासवर्ड सेट करें
+omniroute setup --non-interactive      # CI/ऑटोमेशन मोड (env vars + फ़्लैग पढ़ता है)
+omniroute setup --password '<value>'   # एडमिन पासवर्ड सीधे सेट करें
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # एक ही बार में प्रदाता जोड़ें और परीक्षण करें
+  --test-provider                      # एक ही बार में प्रदाता जोड़ें और उसका परीक्षण करें
 ```
 
-गैर-इंटरैक्टिव सेटअप के लिए मान्यता प्राप्त पर्यावरण चर:
+गैर-इंटरैक्टिव सेटअप के लिए मान्य पर्यावरण चर:
 
-| Var                 | उद्देश्य                                                             |
-| ------------------- | -------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | प्रदाता API कुंजी (कमांडर `.env()` के माध्यम से `--api-key` से बंधी) |
-| `DATA_DIR`          | OmniRoute डेटा निर्देशिका को ओवरराइड करें                            |
+| चर                  | उद्देश्य                                                                  |
+| ------------------- | ------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | प्रदाता API कुंजी (Commander `.env()` के माध्यम से `--api-key` से संबद्ध) |
+| `DATA_DIR`          | OmniRoute डेटा डायरेक्टरी को ओवरराइड करें                                 |
 
-अन्य सभी गैर-इंटरैक्टिव इनपुट को फ्लैग के रूप में पास किया जाता है, पर्यावरण चर के रूप में नहीं:
+अन्य सभी गैर-इंटरैक्टिव इनपुट पर्यावरण चर के बजाय फ़्लैग के रूप में पास किए जाते हैं:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(ऊपर `omniroute setup` विकल्प देखें)।
+(ऊपर दिए गए `omniroute setup` विकल्प देखें)।
 
-### डायग्नोस्टिक्स
+### निदान
 
 ```bash
-omniroute doctor                       # कॉन्फ़िग, DB, पोर्ट, रनटाइम, मेमोरी, जीवितता की जांच करें
+omniroute doctor                       # कॉन्फ़िगरेशन, DB, पोर्ट, रनटाइम, मेमोरी और लाइवनेस जाँचें
 omniroute doctor --json                # मशीन-पठनीय JSON
-omniroute doctor --no-liveness         # HTTP स्वास्थ्य जांच छोड़ें
-omniroute doctor --host 0.0.0.0        # जीवितता होस्ट को ओवरराइड करें
-omniroute doctor --liveness-url <url>  # पूर्ण स्वास्थ्य एंडपॉइंट URL ओवरराइड
+omniroute doctor --no-liveness         # HTTP स्वास्थ्य प्रोब छोड़ें
+omniroute doctor --host 0.0.0.0        # लाइवनेस होस्ट को ओवरराइड करें
+omniroute doctor --liveness-url <url>  # संपूर्ण स्वास्थ्य एंडपॉइंट URL को ओवरराइड करें
 ```
 
-डॉक्टर ये जांच करता है: `कॉन्फ़िग`, `डेटाबेस`, `स्टोरेज/एन्क्रिप्शन`,
-`पोर्ट उपलब्धता`, `नोड रनटाइम`, `नेटिव बाइनरी` (better-sqlite3),
-`मेमोरी`, और `सर्वर जीवितता`। यदि कोई जांच `फेल` है तो यह गैर-शून्य पर समाप्त होता है।
+doctor ये जाँचें चलाता है: `Config`, `Database`, `Storage/encryption`,
+`Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
+`Memory`, और `Server liveness`। यदि कोई भी जाँच `fail` होती है, तो यह गैर-शून्य स्थिति के साथ बाहर निकलता है।
 
 ### प्रदाता प्रबंधन
 
 ```bash
 omniroute providers available                       # OmniRoute प्रदाता कैटलॉग
-omniroute providers available --search openai       # आईडी/नाम/उपनाम/श्रेणी द्वारा कैटलॉग को फ़िल्टर करें
-omniroute providers available --category api-key    # श्रेणी द्वारा फ़िल्टर करें (api-key, oauth, free, ...)
+omniroute providers available --search openai       # कैटलॉग को id/name/alias/category के आधार पर फ़िल्टर करें
+omniroute providers available --category api-key    # श्रेणी के आधार पर फ़िल्टर करें (api-key, oauth, free, ...)
 omniroute providers available --json                # मशीन-पठनीय JSON
 
 omniroute providers list                            # कॉन्फ़िगर किए गए प्रदाता कनेक्शन
 omniroute providers list --json
 
 omniroute providers test <id|name>                  # एक कॉन्फ़िगर किए गए कनेक्शन का परीक्षण करें
-omniroute providers test-all                        # हर सक्रिय कनेक्शन का परीक्षण करें
-omniroute providers validate                        # स्थानीय-केवल संरचनात्मक मान्यता
+omniroute providers test-all                        # प्रत्येक सक्रिय कनेक्शन का परीक्षण करें
+omniroute providers validate                        # केवल-स्थानीय संरचनात्मक सत्यापन
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # मौजूदा OAuth प्रवाह
@@ -633,73 +628,83 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` API-प्रथम हैं और इसलिए सक्रिय स्थानीय या दूरस्थ संदर्भ के खिलाफ काम करते हैं। क्रेडेंशियल इनपुट को `--credential-stdin` या `--credential-env` का उपयोग करना चाहिए; `--dry-run --json` केवल छिपी हुई उपस्थिति/आकार की रिपोर्ट करता है। `providers available` OmniRoute कैटलॉग को पढ़ता है; `providers list/test/test-all/validate` अपनी स्थानीय SQLite व्यवहार को बनाए रखते हैं और सर्वर के चलने की आवश्यकता नहीं होती है।
+`providers add/import/auth/edit/remove` API-प्रथम हैं और इसलिए सक्रिय स्थानीय या दूरस्थ संदर्भ पर
+काम करते हैं। क्रेडेंशियल इनपुट के लिए `--credential-stdin` या `--credential-env` का उपयोग करना चाहिए;
+`--dry-run --json` केवल संशोधित उपस्थिति/संरचना की रिपोर्ट करता है। `providers available` OmniRoute
+कैटलॉग को पढ़ता है; `providers list/test/test-all/validate` अपना स्थानीय SQLite व्यवहार बनाए रखते हैं
+और इनके लिए सर्वर का चलना आवश्यक नहीं है।
 
 ### पुनर्प्राप्ति और रीसेट
 
 ```bash
-omniroute reset-password                # व्यवस्थापक पासवर्ड रीसेट करें (अन्य: omniroute-reset-password)
-omniroute reset-encrypted-columns       # एन्क्रिप्टेड क्रेडेंशियल रीसेट के लिए चेतावनी + ड्राई-रन दिखाएं
-omniroute reset-encrypted-columns --force  # वास्तव में SQLite में एन्क्रिप्टेड क्रेडेंशियल को शून्य करें
+omniroute reset-password                # एडमिन पासवर्ड रीसेट करें (यह भी: omniroute-reset-password)
+omniroute reset-encrypted-columns       # एन्क्रिप्टेड क्रेडेंशियल रीसेट के लिए चेतावनी + ड्राई-रन दिखाएँ
+omniroute reset-encrypted-columns --force  # SQLite में एन्क्रिप्टेड क्रेडेंशियल वास्तव में null करें
 ```
 
 ### क्रेडेंशियल निर्यात (⚠ सावधानी से संभालें)
 
 ```bash
-omniroute auth export                                 # चेतावनी + पुष्टि गेट दिखाएं — कोई DB एक्सेस नहीं
-omniroute auth export --force                          # सभी कनेक्शनों के DECRYPTED क्रेडेंशियल को stdout पर JSON के रूप में निर्यात करें
-omniroute auth export --force --id <id>                 # केवल मिलान करने वाले कनेक्शन को निर्यात करें
+omniroute auth export                                 # चेतावनी + पुष्टिकरण चरण दिखाएँ — DB एक्सेस नहीं
+omniroute auth export --force                          # सभी कनेक्शनों के डिक्रिप्ट किए गए क्रेडेंशियल JSON के रूप में stdout पर निर्यात करें
+omniroute auth export --force --id <id>                 # केवल मेल खाने वाला कनेक्शन निर्यात करें
 omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> पंक्तियाँ उत्पन्न करें
-omniroute auth export --force --out creds.json           # एक फ़ाइल में लिखें (0600 अनुमतियों के साथ बनाई गई)
+omniroute auth export --force --out creds.json           # फ़ाइल में लिखें (0600 अनुमतियों के साथ बनाई जाती है)
 ```
 
-`auth export` **स्थानीय-केवल** है (प्रत्यक्ष SQLite पढ़ें, कोई HTTP मार्ग नहीं) और जानबूझकर **प्लेनटेक्स्ट** `apiKey`/`accessToken`/`refreshToken`/`idToken` मानों को प्रिंट/लिखता है — यह विशेषता है, बग नहीं। बिना `--force` के कुछ भी डेटाबेस से नहीं पढ़ा जाता है, और कुछ भी डिक्रिप्ट नहीं किया जाता है। किसी भी प्लेनटेक्स्ट को उत्पन्न करने से पहले हमेशा एक stderr चेतावनी बैनर प्रिंट होता है। `STORAGE_ENCRYPTION_KEY` सेट होना आवश्यक है। एक फ़ील्ड जो डिक्रिप्ट करने में विफल होती है (पुराना कुंजी, भ्रष्ट ciphertext) को `"<field>DecryptFailed: true"` के रूप में रिपोर्ट किया जाता है, न कि पूरे निर्यात को रोकने या अंतर्निहित त्रुटि को लीक करने के लिए।
+`auth export` **केवल-स्थानीय** है (प्रत्यक्ष SQLite रीड, कोई HTTP रूट नहीं) और जानबूझकर
+**प्लेनटेक्स्ट** `apiKey`/`accessToken`/`refreshToken`/`idToken` मान प्रिंट/लिखता है — यह सुविधा है,
+बग नहीं। `--force` के बिना डेटाबेस से कुछ भी नहीं पढ़ा जाता और कुछ भी डिक्रिप्ट नहीं किया जाता।
+कोई भी प्लेनटेक्स्ट उत्सर्जित होने से पहले stderr पर हमेशा एक चेतावनी बैनर प्रिंट होता है।
+इसके लिए `STORAGE_ENCRYPTION_KEY` का सेट होना आवश्यक है। जो फ़ील्ड डिक्रिप्ट नहीं हो पाता
+(पुरानी कुंजी, दूषित सिफ़रटेक्स्ट), उसकी रिपोर्ट संपूर्ण निर्यात को रोकने या अंतर्निहित त्रुटि को
+उजागर करने के बजाय `<field>DecryptFailed: true` के रूप में की जाती है।
 
 ### अन्य उपकमांड
 
-ये एक चल रहे OmniRoute सर्वर को मानते हैं, जब तक कि अन्यथा नोट न किया गया हो:
+जब तक अन्यथा उल्लेख न किया गया हो, ये मानते हैं कि OmniRoute सर्वर चल रहा है:
 
 ```bash
 omniroute status                       # व्यापक रनटाइम स्थिति
 omniroute logs                         # अनुरोध लॉग स्ट्रीम करें (--json, --search, --follow)
-omniroute config show                  # वर्तमान कॉन्फ़िगरेशन प्रदर्शित करें
+omniroute config list                  # कॉन्फ़िगर किए गए CLI टूल प्रदर्शित करें
 
-omniroute provider list                # उपलब्ध प्रदाताओं की सूची (providers list का उपनाम)
-omniroute provider add                 # एक उपकरण पर प्रदाता के रूप में OmniRoute को पंजीकृत करें
-omniroute keys add | list | remove     # API कुंजी प्रबंधित करें
+omniroute provider list                # उपलब्ध प्रोवाइडर सूचीबद्ध करें (providers list का उपनाम)
+omniroute provider add                 # किसी टूल पर OmniRoute को प्रोवाइडर के रूप में पंजीकृत करें
+omniroute keys add | list | remove     # API कुंजियाँ प्रबंधित करें
 omniroute models [provider]            # मॉडल सूचीबद्ध करें (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # कॉन्फ़िग + DB का स्नैपशॉट
+omniroute backup                       # कॉन्फ़िगरेशन + DB का स्नैपशॉट बनाएँ
 omniroute restore                      # पिछले स्नैपशॉट से पुनर्स्थापित करें
 
-omniroute health                       # विस्तृत स्वास्थ्य (ब्रेकर्स, कैश, मेमोरी)
-omniroute quota                        # प्रदाता कोटा उपयोग
+omniroute health                       # विस्तृत स्वास्थ्य स्थिति (ब्रेकर्स, कैश, मेमोरी)
+omniroute quota                        # प्रोवाइडर कोटा उपयोग
 omniroute cache                        # कैश स्थिति
-omniroute cache clear                  # सेमांटिक + सिग्नेचर कैश साफ करें
+omniroute cache clear                  # सिमैंटिक + सिग्नेचर कैश साफ़ करें
 
-omniroute mcp status | restart         # MCP सर्वर स्थिति / पुनः प्रारंभ
-omniroute a2a status | card            # A2A सर्वर स्थिति / एजेंट कार्ड
+omniroute mcp status | restart         # MCP सर्वर की स्थिति / पुनः प्रारंभ
+omniroute a2a status | card            # A2A सर्वर की स्थिति / एजेंट कार्ड
 
 omniroute tunnel list | create | stop  # टनल प्रबंधित करें (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # env vars का निरीक्षण / सेट करें (अस्थायी)
+omniroute env show | get <k> | set <k> <v>  # पर्यावरण वेरिएबल देखें / सेट करें (अस्थायी)
 
-omniroute test                         # प्रदाता कनेक्टिविटी स्मोक टेस्ट
-omniroute update                       # अपडेट के लिए जांचें
-omniroute completion                   # शेल पूर्णता उत्पन्न करें
+omniroute test                         # प्रोवाइडर कनेक्टिविटी का त्वरित परीक्षण
+omniroute update                       # अपडेट की जाँच करें
+omniroute completion                   # शेल कम्प्लीशन जनरेट करें
 ```
 
-### सामान्य फ्लैग
+### सामान्य फ़्लैग
 
-| फ्लैग               | विवरण                                                      |
-| ------------------- | ---------------------------------------------------------- |
-| `--no-open`         | प्रारंभ पर ब्राउज़र को स्वचालित रूप से न खोलें             |
-| `--port <n>`        | API पोर्ट को ओवरराइड करें (डिफ़ॉल्ट 20128)                 |
-| `--mcp`             | stdio के माध्यम से MCP सर्वर के रूप में चलाएँ (IDE के लिए) |
-| `--non-interactive` | CI मोड (कोई संकेत नहीं; env/flags से पढ़ता है)             |
-| `--json`            | मशीन-पठनीय JSON आउटपुट (doctor, providers, आदि)            |
-| `--help`, `-h`      | कमांड-विशिष्ट सहायता दिखाएं                                |
-| `--version`, `-v`   | स्थापित संस्करण प्रिंट करें                                |
+| फ़्लैग              | विवरण                                               |
+| ------------------- | --------------------------------------------------- |
+| `--no-open`         | प्रारंभ होने पर ब्राउज़र अपने-आप न खोलें            |
+| `--port <n>`        | API पोर्ट को ओवरराइड करें (डिफ़ॉल्ट 20128)          |
+| `--mcp`             | stdio पर MCP सर्वर के रूप में चलाएँ (IDE के लिए)    |
+| `--non-interactive` | CI मोड (कोई प्रॉम्प्ट नहीं; env/फ़्लैग से पढ़ता है) |
+| `--json`            | मशीन-पठनीय JSON आउटपुट (doctor, providers आदि)      |
+| `--help`, `-h`      | कमांड-विशिष्ट सहायता दिखाएँ                         |
+| `--version`, `-v`   | इंस्टॉल किया गया संस्करण प्रिंट करें                |
 
 ---
 

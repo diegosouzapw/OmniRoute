@@ -1,270 +1,256 @@
 # Compression Engines (Igbo)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_ENGINES.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_ENGINES.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_ENGINES.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_ENGINES.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_ENGINES.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_ENGINES.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_ENGINES.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_ENGINES.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_ENGINES.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_ENGINES.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_ENGINES.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_ENGINES.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_ENGINES.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_ENGINES.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_ENGINES.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_ENGINES.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_ENGINES.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_ENGINES.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_ENGINES.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_ENGINES.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_ENGINES.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_ENGINES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_ENGINES.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_ENGINES.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_ENGINES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_ENGINES.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_ENGINES.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_ENGINES.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇦 [bs](../../../bs/docs/compression/COMPRESSION_ENGINES.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_ENGINES.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_ENGINES.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_ENGINES.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_ENGINES.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_ENGINES.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_ENGINES.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_ENGINES.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_ENGINES.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_ENGINES.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_ENGINES.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇩 [id](../../../id/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_ENGINES.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_ENGINES.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_ENGINES.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_ENGINES.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_ENGINES.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_ENGINES.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_ENGINES.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_ENGINES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_ENGINES.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_ENGINES.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_ENGINES.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_ENGINES.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_ENGINES.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_ENGINES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_ENGINES.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_ENGINES.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_ENGINES.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_ENGINES.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_ENGINES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_ENGINES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_ENGINES.md)
 
 ---
 
-Mkpakọ OmniRoute gbadoro ụkwụ na nkwekọrịta engine. Mode nwere ike ịgba otu engine ozugbo
-(`caveman` ma ọ bụ `rtk`) ma ọ bụ pipeline a haziri n'ụzọ a na-agbanweghi agbanwe nke na-agba ọtụtụ engine n'usoro.
+Mkpachịkọta OmniRoute e wuru ya gburugburu nkwekọrịta injin. Ụdị nwere ike ịgba otu injin ozugbo (`caveman` ma ọ bụ `rtk`) ma ọ bụ usoro pipeline a chịkọtara ọnụ nke na-eme ọtụtụ injin n'usoro.
 
-## Mode
+## Ụdị
 
-| Mode         | Ụzọ engine                          | Ntinye e zubere                                        |
-| ------------ | ----------------------------------- | ------------------------------------------------------ |
-| `off`        | enweghị                             | Ichekwa prompt kpọmkwem                                |
-| `lite`       | Ndị enyemaka Caveman lite           | Nhicha ihe ize ndụ ya dị ala nke na-arụ ọrụ mgbe niile |
-| `standard`   | Caveman                             | Mkpokọta prompt e dere n'asụsụ mmadụ                   |
-| `aggressive` | Caveman + ndị nchịkọta history/tool | Oge nkata dị ogologo                                   |
-| `ultra`      | Caveman + ndị enyemaka pruning      | Iweghachite mgbe e ruru oke context                    |
-| `rtk`        | RTK                                 | Mmepụta terminal, shell, build, test, na git           |
-| `omniglyph`  | OmniGlyph                           | Context-dịka-image na waya provider nke ala ya         |
-| `stacked`    | Pipeline, ndabara `rtk -> caveman`  | Tool log na prose agwakọtara, nchekwa kachasị          |
+| Ụdị          | Ụzọ injin                                                                           | Ntinye e bu n'obi                                 |
+| ------------ | ----------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `off`        | ọ dịghị                                                                             | Nchekwa ozugbo nke nkwanye                        |
+| `lite`       | Ndị enyemaka Caveman lite                                                           | Ndozi dị ala, na-arụ ọrụ mgbe niile               |
+| `standard`   | Caveman                                                                             | Mkpachịkọta nkwanye asụsụ eke                     |
+| `aggressive` | Caveman + ndị na-achịkọta akụkọ ihe mere eme/ngwaọrụ                                | Nzukọ nkata ogologo                               |
+| `ultra`      | Caveman + ndị enyemaka pruning                                                      | Mgbake oke ọnọdụ                                  |
+| `rtk`        | RTK                                                                                 | Nsonaazụ Terminal, shell, build, test, na git     |
+| `omniglyph`  | OmniGlyph                                                                           | Ọnọdụ dị ka onyonyo na waya onye na-enye ọrụ ala  |
+| `stacked`    | Pipeline. Nke ndabara arịrịọ bụ `session-dedup -> lite`. `rtk -> caveman` bụ nhọrọ. | Njikọta ndekọ ngwaọrụ na ederede, nchekwa kachasị |
 
-### Profaịlụ mkpakọ OmniGlyph
+### Profaịlụ mkpachịkọta OmniGlyph
 
-Engine `omniglyph` (ngwugwu `omniglyph`, 1.4.0+) na-anabata profaịlụ semantic nwere aha, nke a na-ahazi
-n'ozuzu site na `omniglyph.profile` n'ime ntọala mkpakọ ma ọ bụ maka nzọụkwụ ọ bụla site na
-nhazi nzọụkwụ nke pipeline stacked:
+Injin `omniglyph` (ngwugwu `omniglyph`, 1.4.0+) na-anabata profaịlụ semantic akpọrọ aha, edobere n'ụwa niile site na `omniglyph.profile` na ntọala mkpachịkọta ma ọ bụ site na nzọụkwụ ọ bụla site na nhazi nzọụkwụ nke pipeline ahụ a chịkọtara ọnụ:
 
-| Profaịlụ      | Oke                                                                                                            |
-| ------------- | -------------------------------------------------------------------------------------------------------------- |
-| `aggressive`  | Ndabara. Iwu ndị receipt e bipụtara tụrụ — na-eme system, tool docs na history jupụtara n'ime ka ha bụrụ image |
-| `balanced`    | Na-edobe live state ka ọ bụrụ native, na-echekwa turn 8 ikpeazụ, ma na-achịkọta history ochie emechiri emechi  |
-| `coding-safe` | Na-edobe authority, tool schemas na live tool output ka ha bụrụ native, na-echekwa turn 12 ikpeazụ             |
-| `passthrough` | Na-ebufe n'enweghị mgbanwe; a na-amafe engine ahụ                                                              |
+| Profaịlụ      | Oke                                                                                                                |
+| ------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `aggressive`  | Nke ndabara. Iwu akwụkwọ nnata e bipụtara tụrụ — sistemụ onyonyo, akwụkwọ ngwaọrụ na akụkọ ihe mere eme jupụtara   |
+| `balanced`    | Na-edebe ọnọdụ dị ndụ dị ka ọ dị, na-echebe ntụgharị 8 ikpeazụ, na-agbada akụkọ ihe mere eme ochie emechiri emechi |
+| `coding-safe` | Na-edebe ikike, schemas ngwaọrụ na nsonaazụ ngwaọrụ dị ndụ dị ka ọ dị, na-echebe ntụgharị 12 ikpeazụ               |
+| `passthrough` | Na-eduzi n'enweghị mgbanwe; a na-awụfe injin ahụ                                                                   |
 
-Profaịlụ ahụ bụ **uko, ọ bụghị ala**: `mergeCompressionProfileOptions` dị na ngwugwu ahụ
-na-ajụ ikwe ka override nke onye kpọrọ ya mepee ọzọ lane na-efunahụ data nke profaịlụ mechiri, ya mere
-`preserveSystemPrompt: false` nke nzọụkwụ ọ bụla enweghị ike ime ka mkpakọ system rụọ ọrụ ọzọ n'okpuru `coding-safe`.
+Profaịlụ ahụ bụ **elu ụlọ, ọ bụghị ala**: `mergeCompressionProfileOptions` n'ime ngwugwu ahụ jụrụ ikwe ka onye na-akpọ oku mepee ụzọ mfu profaịlụ ahụ mechiri, ya mere `preserveSystemPrompt: false` nke nzọụkwụ ọ bụla enweghị ike ịmegharị mkpachịkọta sistemụ n'okpuru `coding-safe`.
 
-Dịka a tụrụ na codebase a: `coding-safe` na `balanced` na-ebuli `minCompressChars` ruo
-oke ya kachasị elu ma na-edobe system, tool schemas na tool results ka ha bụrụ native, ya mere session nke na-enwebeghị
-history zuru ezu na-akwụsị na `below_min_chars`, engine ahụ anaghị agbanwekwa ihe ọ bụla. Ọ bụ
-ya mere ndabara ji bụrụ `aggressive` kama profaịlụ kachasị nchebe.
+Atụnyere na codebase a: `coding-safe` na `balanced` na-ebuli `minCompressChars` ruo n'oke ya ma na-edebe sistemụ, schemas ngwaọrụ na nsonaazụ ngwaọrụ dị ka ọ dị, ya mere nnọkọ nke na-anakọtabeghị akụkọ ihe mere eme na-akwụsị na `below_min_chars` ma injin ahụ anaghị agbanwe ihe ọ bụla. Nke ahụ bụ ihe mere ndabara ji bụrụ `aggressive` kama ịbụ profaịlụ kachasị mma.
 
-Ngwugwu ahụ na-ekpebi scope model na profaịlụ nke ya site na nhazi environment ya.
-OmniRoute anaghị enyefe mkpebi ahụ: adapter ahụ na-akpọgide model gate na scope kachasị
-mmachi nke ngwugwu ahụ, ya mere ntọala environment nke host nwere ike naanị ime ka allowlist dị warara, ọ gaghị
-eme ka ọ gbasaa gafee receipt OmniRoute tụrụ.
+Ngwugwu ahụ na-edozi oke ihe nlereanya ya na profaịlụ ya site na nhazi gburugburu ya. OmniRoute anaghị enyefe mkpebi ahụ: ihe nkwụnye ahụ na-ejikọta ọnụ ụzọ ihe nlereanya na oke kachasị njedebe nke ngwugwu ahụ, ya mere ntọala gburugburu ebe obibi nwere ike naanị ime ka ndepụta ikike dị warara, ọ dịghị mgbe ọ ga-eme ka ọ gbasaa gafere akwụkwọ nnata OmniRoute tụrụ.
 
-## Ndebanye Injin
+## Ndebanye aha injin
 
-Ndebanye ahụ dị na `open-sse/services/compression/engines/registry.ts`. Injin niile na-ekpughe otu
-nkwekọrịta a na-ekekọrịta:
+Ndebanye aha ahụ dị na `open-sse/services/compression/engines/registry.ts`. Injin na-ekpughe
+nkwekọrịta ekekọrịtara:
 
-- `id`: id injin na-adịghị agbanwe agbanwe dịka `caveman` ma ọ bụ `rtk`
-- `apply(text, config)`: ụzọ mmezu ochie nke pipeline ndị a kwakọtara ọnụ na-eji
-- `compress(input, config)`: ụzọ mmezu bụ isi nke na-eweghachi ederede + ọnụ ọgụgụ
-- `getConfigSchema()`: na-eweghachi ọdịdị yiri JSON-Schema nke config ziri ezi
+- `id`: njirimara injin kwụsiri ike dị ka `caveman` ma ọ bụ `rtk`
+- `apply(text, config)`: ụzọ mmezu ochie nke pipeline agbakọtara na-eji
+- `compress(input, config)`: ụzọ mmezu bụ isi na-eweghachi ederede + stats
+- `getConfigSchema()`: na-eweghachi ọdịdị JSON-Schema-dị ka nke nhazi ziri ezi
 - `validateConfig(config)`: na-eweghachi `{ valid, errors[] }`
 
-Ndebanye na-eji `registerCompressionEngine(engine)` (ma ọ bụ `registerEngine` maka ọnọdụ ndị dị elu),
-nke na-akpọ `assertValidEngine()` na `validateConfig(defaultConfig)` tupu ọ nabata ya.
-Jiri `unregisterCompressionEngine(id)` wepụ injin n'oge ọ na-arụ ọrụ.
+Ndebanye aha na-eji `registerCompressionEngine(engine)` (ma ọ bụ `registerEngine` maka ikpe dị elu),
+nke na-akpọ `assertValidEngine()` na `validateConfig(defaultConfig)` tupu anabata.
+Jiri `unregisterCompressionEngine(id)` wepụ injin n'oge ọrụ.
 
-`strategySelector.ts` na-edebanye injin ndị arụnyere n'ime sistemụ tupu mkpakọ amalite. Nke a na-eme ka nlele tupu oge,
-mkpakọ n'oge arụmọrụ, ọnọdụ nkwakọ, ule, na injin ndị ga-abịa n'ọdịnihu jiri otu ụzọ mmezu ahụ.
+`strategySelector.ts` na-edebanye aha injin ndị arụnyere tupu mkpakọ agba. Nke a na-enye ohere nlele,
+mkpakọ oge ọrụ, ọnọdụ agbakọtara, ule, na injin ndị ga-abịa n'ọdịnihu iji otu ụzọ mmezu ahụ.
 
-### Mkpakọ nkọwa MCP (nke metụtara ya)
+### Mkpakọ nkọwa MCP (nke metụtara)
 
-Ndebanye ọzọ dị iche na-akpakọ metadata nkọwa ngwaọrụ MCP n'ogo ndebanye — lee
-`open-sse/mcp-server/descriptionCompressor.ts` na [MCP-SERVER.md](../frameworks/MCP-SERVER.md). Ọ na-ejigharị
-iwu Caveman mana ọ na-arụ ọrụ na metadata ngwaọrụ, ọ bụghị payload arịrịọ.
+Ndebanye aha dị iche na-akpakọ metadata nkọwa ngwaọrụ MCP na ọkwa ndebanye aha — lee
+`open-sse/mcp-server/descriptionCompressor.ts` na [MCP-SERVER.md](../frameworks/MCP-SERVER.md). Ọ na-eji
+iwu Caveman eme ihe ọzọ mana ọ na-arụ ọrụ na metadata ngwaọrụ, ọ bụghị ibu arịrịọ.
 
-### Injin ndị ọzọ arụnyere n'ime sistemụ
+### Injin ndị ọzọ arụnyere
 
-Na mgbakwunye na Caveman, RTK, na LLMLingua-2, ndebanye ahụ nwere ọtụtụ injin pụrụ iche na-adịghị atụfu data /
-nke nhazi (nke pipeline ndị a kwakọtara ọnụ, ebe nnwale, na ule na-eji):
+Na mgbakwunye na Caveman, RTK, na LLMLingua-2, ndebanye aha na-ebufe ọtụtụ injin na-enweghị mfu /
+nhazi pụrụ iche (nke pipeline agbakọtara, ebe egwuregwu, na ule na-eji):
 
-| Injin         | Id              | Ihe ọ na-eme                                                                                                                                                                                                              |
-| ------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CCR           | `ccr`           | Content-Compress-Retrieve (H4): na-eji ntụaka dabere na ọdịnaya dochie nnukwu ngọngọ ederede ndị na-esochi ibe ha, ka e wee zipụ ngọngọ ndị a na-emegharị/ndị buru ibu naanị otu ugboro ma jiri ntụaka kpọtụrụ ha emesịa. |
-| headroom      | `headroom`      | SmartCrusher (H3 + N5): mkpakọ tabular na-adịghị atụfu data nke payload JSON-array yiri ibe ha ka ọ bụrụ ụdị columnar `[N rows]`.                                                                                         |
-| ionizer       | `ionizer`       | Ịhọrọ ahịrị nlele site n'isi/etiti/ọdụ maka nnukwu ngọngọ yiri ibe ha, na-echekwa etiti e wepụrụ dịka ntụaka CCR dabere na ọdịnaya.                                                                                       |
-| session-dedup | `session-dedup` | Mwepụ oyiri gafee ntụgharị nke dabere na ọdịnaya (nke TokenMizer kpaliri): na-ewepụ ederede a hụlarị na ntụgharị mbụ nke otu nnọkọ ahụ.                                                                                   |
+| Injin         | Id              | Ihe ọ na-eme                                                                                                                                                                       |
+| ------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CCR           | `ccr`           | Content-Compress-Retrieve (H4): na-edochi nnukwu ngọngọ ederede na-aga n'ihu na ntụaka adreesị ọdịnaya, yabụ a na-eziga ngọngọ ugboro ugboro/nnukwu otu ugboro wee zoro aka na ya. |
+| headroom      | `headroom`      | SmartCrusher (H3 + N5): mkpakọ tebụl na-enweghị mfu nke ibu JSON-array homogeneous n'ime ụdị `[N rows]` kọlụm.                                                                     |
+| ionizer       | `ionizer`       | Nlele ahịrị isi/etiti/ọdụ maka nnukwu ngọngọ homogeneous, na-echekwa etiti ahụ agbagọ dị ka ntụaka adreesị ọdịnaya CCR.                                                            |
+| session-dedup | `session-dedup` | Mwepụta oyiri n'ofe ntụgharị adreesị ọdịnaya (TokenMizer-inspired): na-agbagọ ederede ahụ ahụlarị na ntụgharị mbụ nke otu nnọkọ ahụ.                                               |
 
-**Ntụziaka protokol iweghachite CCR (#8033):** oge mbụ CCR dochiri ≥1 ngọngọ n'ime
-arịrịọ, injin ahụ na-etinye otu ozi `system` na mbido, nke anaghị agbanwe ma e tinye ya ọzọ (na-amalite na
-ihe njirimara `[CCR protocol]`) iji kuziere onye na-akpọ ya nkwekọrịta marker → ngwaọrụ: ihe
-marker `[CCR retrieve hash=<24hex> chars=N]` pụtara, na a ga-edepụtarịrị hash ahụ otu ọ dị
-(mkpụrụ hex 24 niile — hash ndị edepụtaghị nke ọma nwere ike ịbụ ihe kpatara njehie "ahụghị ngọngọ"
-), nakwa na marker `[dedup:ref sha=...]` pụtara "laghachi leba anya n'akụkọ ihe mere eme", ọ bụghị "kpọọ
-ngwaọrụ". A na-etinye ndetu ahụ **naanị mgbe `tools[]` onye na-akpọ ya kwupụtara gosiri na ọ nwere ike
-irute `omniroute_ccr_retrieve` n'ezie** (`callerSupportsCcrRetrieve()` dị na
-`open-sse/services/compression/engines/ccr/protocolInstruction.ts`) — onye na-akpọ ya nke kwekọrọ naanị na
-OpenAI ma na-enweghị ngwaọrụ ahụ agaghị enweta ntụziaka ka ọ kpọọ ihe ọ na-enweghị ike
-irute. A na-ahụ na ọ naghị agbanwe ma e tinye ya ọzọ site n'ịchọ ihe njirimara ahụ n'akụkọ ozi
-tupu etinye ya, ka arịrịọ ọtụtụ ntụgharị (nke na-akpọghachi ozi ndị gara aga) ghara ịkwakọba
-ndetu otu ugboro n'otu ntụgharị.
+**Ntụziaka usoro nwetaghachi CCR (#8033):** oge mbụ CCR dochie ≥1 ngọngọ n'ime
+arịrịọ, injin ahụ na-agbakwunye otu ozi `system` na-enweghị mgbanwe (na-eduga na
+`[CCR protocol]` sentinel) na-akụziri onye na-akpọ oku akara → nkwekọrịta ngwaọrụ: ihe
+`[CCR retrieve hash=<24hex> chars=N]` akara pụtara, na a ga-edegharị hash ahụ n'ụzọ ziri ezi
+(mkpụrụedemede hex 24 niile — hashes e degharịrị ezighi ezi bụ ihe kpatara "ngọngọ ahụ ahụghị"
+mmejọ), na akara `[dedup:ref sha=...]` pụtara "leghachi anya n'akụkọ ihe mere eme", ọ bụghị "kpọọ
+ngwaọrụ ahụ". A na-agbakwunye ndetu ahụ **naanị mgbe `tools[]` onye na-akpọ oku kwupụtara na ọ nwere ike
+ịbanye `omniroute_ccr_retrieve`** (`callerSupportsCcrRetrieve()` na
+`open-sse/services/compression/engines/ccr/protocolInstruction.ts`) — onye na-akpọ oku dakọtara na OpenAI
+na-enweghị ngwaọrụ ahụ anaghị anata ntụziaka ịkpọ ihe ọ na-enweghị ike ịbanye. A na-amanye enweghị mgbanwe site na
+ịlele akụkọ ozi maka sentinel tupu agbakwunye, yabụ arịrịọ ọtụtụ ntụgharị (nke na-egwu ozi ndị gara aga)
+anaghị agbakọta ndetu ahụ otu ugboro kwa ntụgharị.
 
 ## Caveman
 
-Ụdị Caveman na-elekwasị anya n'ịchịkọta nkọwa nkịtị n'ụzọ semantic:
+Ụdị Caveman na-elekwasị anya na nkwụsị semantic nke ederede nkịtị:
 
-- na-echekwa ngọngọ koodu, URL, JSON, ụzọ faịlụ, na data ahaziri ahazi
-- na-ewepụ okwu ndoju, okwu mgbagharị, ọnọdụ e kwughachiri, na ahịrịokwu njikọ dị ogologo
-- na-akwado nchịkọta iwu faịlụ na-eburu asụsụ n'uche na `open-sse/services/compression/rules/`
-- ka dị site n'ụdị ochie `standard`, `aggressive`, na `ultra`
+- na-echekwa ngọngọ koodu, URL, JSON, ụzọ, na data ahaziri ahazi
+- na-ewepụ ihe ndochi, nchekwa, ihe gbasara ugboro ugboro, na ahịrịokwu njikọ okwu
+- na-akwado ngwugwu iwu faịlụ na-amata asụsụ na `open-sse/services/compression/rules/`
+- ka dị site na ụdị `standard`, `aggressive`, na `ultra` ochie
 
-Ebe ya na dashboard bụ `Dashboard -> Context & Cache -> Caveman`.
+Elu dashboard bụ `Dashboard -> Context & Cache -> Caveman`.
 
-Caveman upstream na-akọ token mmepụta pere mpe site na `~75%`, nkezi nchekwa mmepụta `65%` na benchmark
-nke nwere oke `22-87%`, yana ngwa mkpakọ ntinye `~46%`. OmniRoute na-eji ọnụọgụ Caveman nke akụkụ ntinye
-mgbe ọ na-edekọ nchekwa prompt/context ndị agbakọtara; ụdị mmepụta Caveman ka bụ njirimara
-omume nzaghachi dị iche.
+Caveman na-akọ na `~75%` obere akara ngosi mmepụta, `65%` nkezi nchekwa mmepụta na benchmarks
+nwere oke `22-87%`, yana ngwaọrụ mkpakọ ntinye `~46%`. OmniRoute na-eji nọmba ntinye Caveman
+mgbe ọ na-edekọ nchekwa ngwa ngwa/ihe gbasara; ụdị mmepụta Caveman ka bụ njirimara omume nzaghachi dị iche.
 
 ## RTK
 
-Ụdị RTK na-elekwasị anya na mmepụta iwu na ngwa:
+Ụdị RTK na-elekwasị anya na iwu na mmepụta ngwaọrụ:
 
-- na-achọpụta klas mmepụta dịka `git status`, `git branch`, `git diff`, Vitest/Jest/Pytest,
-  ule Cargo/Go, build TypeScript/Vite/Webpack, ESLint, audit/nwụnye npm, ndekọ Docker,
-  `find`/`grep` nke shell, stack trace, na ndekọ izugbe
-- na-etinye ihe nzacha JSON 49 sitere na `open-sse/services/compression/engines/rtk/filters/`
-- na-akwado pipeline nkwupụta ụdị RTK: iwepụ ANSI, nnọchi, nkwụsị mkpirisi match-output,
-  iwepụ/idebe ahịrị, mbelata n'ahịrị ọ bụla, mbelata head/tail/max-line, na fallback mgbe ọ tọgbọ chakoo
-- na-akwado ihe nzacha project e ji ntụkwasị obi achịkwa na `.rtk/filters.json` yana ihe nzacha zuru ụwa ọnụ na
+- na-achọpụta klaasị mmepụta dị ka `git status`, `git branch`, `git diff`, Vitest/Jest/Pytest,
+  Cargo/Go tests, TypeScript/Vite/Webpack builds, ESLint, npm audit/installs, Docker logs,
+  shell `find`/`grep`, stack traces, na ndekọ izugbe
+- na-etinye ihe nzacha JSON 49 site na `open-sse/services/compression/engines/rtk/filters/`
+- na-akwado pipeline nkwupụta ụdị RTK: mwepụ ANSI, dochie, mkpụmkpụ mmepụta dakọtara,
+  wepụ/debe ahịrị, mkpụmkpụ kwa ahịrị, mkpụmkpụ isi/ọdụ/ahịrị kachasị, na ndabere na-enweghị ihe ọ bụla
+- na-akwado ihe nzacha ọrụ nwere ntụkwasị obi na `.rtk/filters.json` na ihe nzacha zuru ụwa ọnụ na
   `DATA_DIR/rtk/filters.json`
-- na-ewepụ usoro ANSI, mkpọtụ ọganihu, ahịrị e kwughachiri, na boilerplate na-abaghị uru
-- na-echekwa ọdịda ndị a pụrụ ime ihe banyere ha, ịdọ aka ná ntị, nchịkọta, faịlụ ndị gbanwere, na ọnọdụ tail
-- nwere ike idebe mmepụta raw e zoro ozi nzuzo n'ime ya maka iweghachite/debugging site na route njikwa
-  e nyere nkwenye njirimara
+- na-ewepụ usoro ANSI, mkpọtụ ọganihu, ahịrị ugboro ugboro, na ihe ndochi na-enweghị isi
+- na-echekwa ọdịda nwere ike ime, ịdọ aka ná ntị, nchịkọta, faịlụ agbanweela, na ihe gbasara ọdụ
+- nwere ike idobe mmepụta raw eweghachitere maka mgbake/ịchọpụta nsogbu site na njikwa nwere ikike
+  ụzọ
 
-Ebe ya na dashboard bụ `Dashboard -> Context & Cache -> RTK`.
+Elu dashboard bụ `Dashboard -> Context & Cache -> RTK`.
 
-Nkọwa arụmọrụ maka ihe nzacha ahaziri iche, ntụkwasị obi, verify, na iweghachite raw-output dị na
+Nkọwa ọrụ maka ihe nzacha omenala, ntụkwasị obi, nyocha, na mgbake mmepụta raw dị na
 [`RTK_COMPRESSION.md`](./RTK_COMPRESSION.md).
 
-RTK upstream na-akọ nchekwa `60-90%` maka mkpakọ mmepụta iwu. Ihe atụ README ya na-egosi session
-Claude Code nke nkeji 30 si na token `~118,000` ruo `~23,900`, ya bụ nchekwa `79.7%`.
+RTK na-akọ na `60-90%` nchekwa maka mkpakọ mmepụta iwu. Ihe atụ README ya na-egosi
+nnọkọ Claude Code nkeji 30 na-aga site na `~118,000` akara ngosi gaa na `~23,900`, ma ọ bụ `79.7%` echekwa.
 
-## LLMLingua-2 (Semantic Pruning)
+## LLMLingua-2 (Mkpụmkpụ Semantic)
 
-Ụdị LLMLingua-2 na-eme **semantic token pruning** na prose site n'iji classifier token ONNX
-dị nta, iji kwado engine Caveman na RTK ndị dabere na iwu:
+Ụdị LLMLingua-2 na-eme **mkpụmkpụ akara ngosi semantic** na ederede site na iji obere ONNX akara ngosi
+classifier, na-agbakwunye Caveman na RTK engines dabere na iwu:
 
-- na-akpakọ prose naanị n'ozi ndị na-abụghị system; a naghị agbanwe ngọngọ koodu fenced na construct
-  ndị ọzọ echekwara
-- na-agba backend `@atjsh/llmlingua-2` (ONNX site na `@huggingface/transformers`) n'ime
-  worker thread, ka inference model ghara igbochi event loop nke arịrịọ
-- bụ nke **a pụrụ ịgbakọta** (`stackPriority` 35): n'ime pipeline agbakọtara, ọ na-agba mgbe
-  engine nhazi (CCR, session-dedup, headroom, Caveman) gasịrị mana tupu `ultra`, ebe ọ bụ na
-  semantic pruning na-arụ ọrụ nke ọma karịa na ederede e jirila nhazi kwakọba — dịka
+- na-akpakọ ederede na ozi na-abụghị sistemụ naanị; ngọngọ koodu echedoro na ihe ndị ọzọ echekwara
+  anaghị agbanwe agbanwe
+- na-agba ọsọ `@atjsh/llmlingua-2` backend (ONNX site na `@huggingface/transformers`) na
+  eriri ọrụ, yabụ nkwubi okwu ihe nlereanya anaghị egbochi loop ihe omume arịrịọ
+- bụ **stackable** (`stackPriority` 35): na pipeline stacked ọ na-agba ọsọ mgbe
+  engines nhazi (CCR, session-dedup, headroom, Caveman) mana tupu `ultra`, ebe ọ bụ na
+  mkpụmkpụ semantic kacha dị irè na ederede echekwara na nhazi — dịka ọmụmaatụ
   `rtk -> caveman -> llmlingua`
-- **na-eme fail-open ma njehie ọ bụla mee** (optional deps na-efu, worker spawn, ibu model, inference,
-  ma ọ bụ timeout) → a na-eweghachi ederede mbụ n'enweghị mgbanwe, ọ bụghị njehie
+- **na-emeghe na-ada ada na njehie ọ bụla** (deps nhọrọ na-efu, ọrụ spawn, nbudata ihe nlereanya, nkwubi okwu,
+  ma ọ bụ oge agwụla) → a na-eweghachi ederede mbụ na-agbanweghị, ọ dịghị njehie
 
-Ebe engine dị: `open-sse/services/compression/engines/llmlingua/`. Ebe ya na dashboard
+Ebe engine: `open-sse/services/compression/engines/llmlingua/`. Elu dashboard
 bụ `Dashboard -> Context & Cache -> LLMLingua`.
 
-### Model
+### Ihe Nlereanya
 
-Model ndabara bụ **TinyBERT** (`atjsh/llmlingua-2-js-tinybert-meetingbank`, ~57 MB,
-ngwa ngwa). Model **BERT-base** nwere izi ezi ka elu (`Arcoldd/llmlingua4j-bert-base-onnx`,
-~710 MB) dị site na field `model` nke nhazi engine. `@huggingface/transformers`
-na-ebudata model ahọpụtara nwayọ naanị mgbe achọrọ ya site na HuggingFace Hub banye na
-`${DATA_DIR}/models/llmlingua` na oku mbụ (`modelStore.ts`); override nhazi `modelPath`
-na-atụ ya aka na oyiri local kama (nwụnye offline / air-gapped).
+Ihe nlereanya ndabara bụ **TinyBERT** (`atjsh/llmlingua-2-js-tinybert-meetingbank`, ~57 MB,
+ngwa ngwa). Ihe nlereanya **BERT-base** nwere izi ezi dị elu (`Arcoldd/llmlingua4j-bert-base-onnx`,
+~710 MB) dị site na nhazi engine `model` field. `@huggingface/transformers`
+na-ebudata ihe nlereanya ahọpụtara n'ụzọ dị nwayọ site na HuggingFace Hub n'ime
+`${DATA_DIR}/models/llmlingua` na oku mbụ (`modelStore.ts`); nhazi `modelPath`
+na-emeri na-atụ aka na nnomi mpaghara kama (offline / air-gapped installs).
 
-### Dependency nhọrọ & nrụnye mgbe achọrọ ya
+### Nkwado nhọrọ & ntinye na-achọ
 
-Runtime peer stack LLMLingua nke a pụrụ iwepụ bụ **nhọrọ**. E kwupụtara package abụọ dịka
-`optionalDependencies` na `package.json` ma debe ha **external** site na production build
-(`scripts/build/prepublish.ts` anaghị etinye ha n'ime bundle):
+Stack peer runtime LLMLingua nwere ike ịkpụcha bụ **nhọrọ**. A na-ekwupụta ngwugwu abụọ dị ka
+`optionalDependencies` na `package.json` ma debe ya **n'èzí** site na nrụpụta mmepụta
+(`scripts/build/prepublish.ts` anaghị agbakọta ha):
 
-| Package              | Version (pin) | Nkọwa                                        |
-| -------------------- | ------------- | -------------------------------------------- |
-| `@atjsh/llmlingua-2` | `2.0.5`       | Package mbata; na-ekwupụta ndị ọzọ dịka peer |
-| `js-tiktoken`        | `^1.0.20`     | Tokenizer                                    |
+| Ngwugwu              | Ụdị (pin) | Ihe edeturu                                     |
+| -------------------- | --------- | ----------------------------------------------- |
+| `@atjsh/llmlingua-2` | `2.0.5`   | Ngwugwu ntinye; na-ekwupụta ndị ọzọ dị ka peers |
+| `js-tiktoken`        | `^1.0.20` | Tokenizer                                       |
 
-A kpọgidere `@huggingface/transformers` na `^4.2.0` (ya na ụzọ embeddings local na-ekerịta ya,
-a na-etinyekwa ya na standalone bundle); `@atjsh/llmlingua-2@2.0.5` na-adabere na ya dịka peer site na
-`"^3.5.2 || ^4.0.0"`, ya mere a na-akwado Transformers.js v3 na v4. Kemgbe 2.0.4,
-`@atjsh/llmlingua-2` anaghịzi achọ `@tensorflow/tfjs`, nke wepụrụ ihe kacha enye ibu
-(TensorFlow.js) na stack SLM. Naanị package abụọ dị n'elu bụ peer SLM a pụrụ iwepụ.
-`npm install` ọkọlọtọ (dev) na-etinye stack nhọrọ ahụ na-akpaghị aka ma ọ bụrụ na ewepụghị
-dependency nhọrọ.
+`@huggingface/transformers` ka etinyere na `^4.2.0` (ekekọrịtara ya na ụzọ ntinye mpaghara na
+nke a na-achọpụtakwa n'ime ngwugwu kwụ ọtọ); `@atjsh/llmlingua-2@2.0.5` peers na ya na
+`"^3.5.2 || ^4.0.0"`, yabụ a na-akwado ma Transformers.js v3 na v4. Kemgbe 2.0.4,
+`@atjsh/llmlingua-2` anaghịzi achọ `@tensorflow/tfjs`, nke wepụrụ onye kacha enye aka (TensorFlow.js)
+site na stack SLM. Naanị ngwugwu abụọ dị n'elu bụ peers SLM nwere ike ịkpụcha. `npm install` ọkọlọtọ
+(dev) na-etinye stack nhọrọ na-akpaghị aka ma ọ bụrụ na ewepụghị nkwado nhọrọ.
 
-**Ihe mere o ji bụrụ mgbe achọrọ ya:** package e bipụtara na npm, standalone bundle, na image Docker
-na-abịa **na-enweghị** dep ndị a ka ha ghara ibu ibu. Mgbe ha na-anọghị, ọnụ ụzọ dependency
-nke worker (nnwale resolve `@atjsh/llmlingua-2` na `worker.ts`) na-ada, engine ahụ wee
-**mee fail-open n'ekwughị ihe ọ bụla** — ịhọrọ LLMLingua aghọọ no-op (a na-eweghachi ederede n'enweghị mgbanwe,
-a naghị edekọ njehie). Iji mee ka ọ rụọ ọrụ na gburugburu ebe e wepụrụ ihe ndị na-adịghị mkpa, wụnye stack nhọrọ:
+**Kedu ihe kpatara na-achọ:** ngwugwu npm e bipụtara, ngwugwu kwụ ọtọ, na onyonyo Docker
+na-ebufe **na-enweghị** deps ndị a ka ọ dị gịrịgịrị. Mgbe ha na-anọghị, ọnụ ụzọ nkwado onye ọrụ
+(nnyocha mkpebi `@atjsh/llmlingua-2` na `worker.ts`) na-ada ada na engine
+**na-emeghe na-ada ada n'ụzọ dị jụụ** — ịhọrọ LLMLingua na-aghọ no-op (ederede eweghachitere na-agbanweghị, ọ dịghị
+njehie edere). Iji mee ka ọ rụọ ọrụ na gburugburu ebe a kpụchara, tinye stack nhọrọ:
 
 ```bash
-# kpọgide na version ndị ekwuputara na package.json optionalDependencies
+# pin na ụdị e kwupụtara na package.json optionalDependencies
 npm install @atjsh/llmlingua-2@2.0.5 js-tiktoken
 ```
 
-Mwepụ `@tensorflow/tfjs` (2.0.4+) na-ewepụ ihe nyere ihe dịka ~800 MB nke kacha ibu
-na mbụ — footprint fọdụrụ bụ runtime transformers.js + onnxruntime-node,
-gbakwunyere model TinyBERT (~57 MB) a na-ebudata mgbe e jiri ya mee ihe nke mbụ (ọ bụghị site na npm).
+Mwepụ `@tensorflow/tfjs` (2.0.4+) na-ewepụ onye kacha enye aka na mbụ ~800 MB
+— akara ukwu fọdụrụ bụ transformers.js + onnxruntime-node runtimes,
+gbakwunyere ihe nlereanya TinyBERT (~57 MB) ebudatara na ojiji mbụ (ọ bụghị site na npm).
 
-Maka gburugburu ọ bụla:
+Kwa gburugburu:
 
-- **Mmepe / `npm install`** — a na-etinye ya na-akpaghị aka belụsọ ma i tinyere `--omit=optional`
-  (ma ọ bụ `--no-optional`). Ọ dịghị ihe ọzọ a chọrọ ime.
-- **npm zuru ụwa ọnụ (`npm i -g omniroute`) / nke kwụụrụ onwe ya** — mee iwu nrụnye dị n'elu n'ime
-  ndekọ ngwugwu arụnyere, ma ọ bụ wụnye ya ọzọ n'ahapụghị deps nhọrọ.
-- **Docker** — tinye iwu nrụnye ahụ na layer nke image e wepụtara site na nke ọzọ; image e bipụtara
-  dị mfe n'ebumnuche.
-- **VPS (PM2)** — wụnye ya n'ime `node_modules` nke app ahụ, wee malitegharịa process ahụ ka
-  worker ahụ nwee ike inyochagharị gate ahụ.
-- **Raw Next standalone (`npm run build` → `.build/next/standalone/server.js`)** — trace
-  standalone ahụ anaghị ebute worker MA Ọ BỤ deps nhọrọ, ya mere engine ahụ na-emepe nwayọ
-  mgbe ọ dara. `scripts/build/colocate-standalone.mjs` na-etinye ha abụọ ọzọ (worker esbuild +
-  optional-dep closure n'ime standalone tree); ọ na-agba ọsọ na-akpaghị aka site na
-  `postbuild` npm hook mgbe build ọ bụla gasịrị. Ọ bụ idempotent, ma na-ada nwayọ mgbe deps adịghị.
+- **Dev / `npm install`** — arụnyere ya na-akpaghị aka ma ọ bụrụ na ị gafere `--omit=optional`
+  (ma ọ bụ `--no-optional`). Ọ dịghị ihe ọ bụla a ga-eme.
+- **Global npm (`npm i -g omniroute`) / standalone** — mee iwu ntinye n'elu n'ime
+  ndekọ ngwugwu arụnyere, ma ọ bụ tinyegharịa ya na-ewepụghị ihe ndị na-abụghị iwu.
+- **Docker** — tinye iwu ntinye n'ime oyi akwa onyonyo ewepụtara; onyonyo e bipụtara
+  na-abịa dị gịrịgịrị site na nhazi.
+- **VPS (PM2)** — tinye n'ime `node_modules` nke ngwa, wee malitegharịa usoro ahụ ka
+  onye ọrụ wee nyochaa ọnụ ụzọ ahụ ọzọ.
+- **Raw Next standalone (`npm run build` → `.build/next/standalone/server.js`)** —
+  trace standalone anaghị ebupu onye ọrụ ma ọ bụ ihe ndị na-abụghị iwu, ya mere injin ahụ na-emeghe na-agbachi nkịtị.
+  `scripts/build/colocate-standalone.mjs` na-etinyeghachi ha abụọ (esbuild onye ọrụ +
+  mmechi ihe na-abụghị iwu n'ime osisi standalone); ọ na-agba ọsọ na-akpaghị aka site na
+  nko npm `postbuild` mgbe emechara ihe owuwu ọ bụla. Idempotent, na-ada ada nwayọ mgbe ihe ndị dị mkpa na-adịghị.
 
-**Nyochaa na ọ na-arụ ọrụ:** mgbe ahọpụtara LLMLingua, prose n'ezie na-ebelata (engine ahụ
-na-akwụsị imepe mgbe ọ dara), arịrịọ mbụ ahụ na-akpalite nbudata model n'ime
-`${DATA_DIR}/models/llmlingua`. Gate ahụ na-ama ụma na-enyocha naanị `@atjsh/llmlingua-2` —
-peers ndị ọzọ bụ naanị ESM, `require.resolve` na-atụkwa exception na ha ọbụna mgbe ha dị — ya mere
-worker ahụ ka ga-emepe mgbe ọ dara ma ọ bụrụ na peer ọ bụla adịghị n'ezie n'oge `import()`.
+**Chọpụta na ọ na-arụ ọrụ:** mgbe ahọpụtara LLMLingua, ezigbo ederede na-ebelata (injin
+ahụ na-akwụsị imeghe na-ada ada), na arịrịọ mbụ na-ebute nbudata ihe nlereanya ahụ n'ime
+`${DATA_DIR}/models/llmlingua`. Ọnụ ụzọ ahụ na-achọpụta naanị `@atjsh/llmlingua-2` —
+ndị ọzọ bụ naanị ESM na `require.resolve` na-atụfu ha ọbụlagodi mgbe ha dị — ya mere
+onye ọrụ ka na-emeghe na-ada ada ma ọ bụrụ na onye ọ bụla na-efu n'ezie n'oge `import()` ahụ.
 
-## Pipeline ndị A Haziri N'elu Ibe Ha
+## Pipelines Ndị E Kpokọtara
 
-Ụdị stacked na-eme usoro pipeline n'usoro. Nke ndabara bụ:
+Ụdị e kpokọtara na-agba usoro pipeline n'usoro. Nke ndabara bụ:
 
 ```txt
 rtk -> caveman
 ```
 
-Jiri nke a maka nnọkọ coding-agent ebe prompt jikọtara mmepụta command na ederede mmadụ ma ọ bụ nke assistant. RTK na-ebu ụzọ belata ndekọ tool ndị nwere mkpọtụ, Caveman emesịa akpakọkwa asụsụ nkịtị fọdụrụnụ.
+Jiri nke a maka nnọkọ koodu-agent ebe ngwa ngwa na-ejikọta nsonaazụ iwu na ederede mmadụ ma ọ bụ onye enyemaka. RTK na-ebelata ndekọ ngwaọrụ na-eme mkpọtụ na mbụ, mgbe ahụ Caveman na-agbanye asụsụ okike fọdụrụnụ.
 
-A na-ahazi usoro pipeline site na `stackedPipeline` n'ime ntọala mkpakọ ma ọ bụ site na combo mkpakọ.
+A na-ahazi usoro pipeline site na `stackedPipeline` na ntọala mkpakọ ma ọ bụ site na nchikota mkpakọ.
 
-Mgbe engine abụọ ahụ belatara otu payload tozuru etozu, ego a zọpụtara na-abawanye n'usoro:
+Mgbe igwe abụọ ahụ belatara otu ibu ruru eru, nchekwa na-agbakọta:
 
 ```txt
-ngụkọta   = 1 - (1 - ego RTK zọpụtara) * (1 - ego ntinye Caveman zọpụtara)
-nkezi     = 1 - (1 - 0.80) * (1 - 0.46) = 89.2%
-oke       = 1 - (1 - 0.60..0.90) * (1 - 0.46) = 78.4-94.6%
+combined = 1 - (1 - RTK savings) * (1 - Caveman input savings)
+average  = 1 - (1 - 0.80) * (1 - 0.46) = 89.2%
+range    = 1 - (1 - 0.60..0.90) * (1 - 0.46) = 78.4-94.6%
 ```
 
-## Nzacha Accessibility Tree nke MCP
+## Ihe Nyocha Osisi Nnweta MCP
 
-Nzacha amamihe accessibility-tree nke MCP bụ oyi akwa mkpakọ nke na-arụ ọrụ mgbe emechara ihe, nke na-arụ ọrụ na **nsonaazụ tool** MCP, ọ bụghị na prompt ma ọ bụ context. Ọ na-elekwasị anya na payload accessibility-tree na snapshot browser ndị nwere ọtụtụ nkọwa nke tool dị ka Playwright, computer-use, na server MCP browser-automation na-eweghachi.
+Ihe nyocha smart nke osisi nnweta MCP bụ oyi akwa mkpakọ mgbe e gbuchara ya nke na-agba ọsọ na **nsonaazụ ngwaọrụ** MCP, ọ bụghị na ngwa ngwa ma ọ bụ ọnọdụ. Ọ na-elekwasị anya na osisi nnweta zuru oke na ibu nseta ihuenyo ihe nchọgharị nke ngwaọrụ dị ka Playwright, ojiji kọmputa, na sava MCP na-akpaghị aka ihe nchọgharị na-eweghachi.
 
 ### Ihe ọ na-eme
 
-1. **Iwepụ mkpọtụ** — na-ewepụ ndenye generic/text efu (`- generic:`, `- text: ""`)
-2. **Ịchịkọta ụmụnne** — mgbe ahịrị ndị na-esochi ibe ha ruru ma ọ bụ gafee `collapseThreshold` (ndabara 30) ma bụrụ nkwughachi nhazi, ọ na-achịkọta ha ka ha bụrụ ahịrị mbụ `collapseKeepHead` (ndabara 10) + nchịkọta ọnụọgụ + ahịrị ikpeazụ `collapseKeepTail` (ndabara 5)
-3. **Idobe ref** — a naghị emetụ arịlịka `[ref=eXX]` ndị Playwright/computer-use chọrọ aka ma ọlị
-4. **Mbepụ siri ike** — ọ bụrụ na ederede ahụ ka gafere `maxTextChars` (ndabara 50,000) mgbe a chịkọtachara ya, ọ na-ebipụ ya ma tinye ntụnye ngagharị ka agent nwee ike ịga n'ihu n'ọrụ
+1.  **Mwepụ mkpọtụ** — na-ewepụ ntinye generic/ederede efu (`- generic:`, `- text: ""`)
+2.  **Mgbada nwanne** — mgbe ≥ `collapseThreshold` (ndabara 30) ahịrị na-esote bụ nkwughachi nhazi, na-agbada ha n'ime ahịrị `collapseKeepHead` (ndabara 10) mbụ + nchịkọta ọnụọgụ + ahịrị `collapseKeepTail` (ndabara 5) ikpeazụ
+3.  **Nchekwa ntụaka** — `[ref=eXX]` arịlịka ndị Playwright/ojiji kọmputa chọrọ anaghị emetụ aka
+4.  **Mbelata siri ike** — ọ bụrụ na ederede mgbe mgbada ka gafere `maxTextChars` (ndabara 50,000), na-ebelata ya na ndụmọdụ igodo ka onye nnọchi anya wee nwee ike ịga n'ihu na-arụ ọrụ
 
-### Ebe engine dị
+### Ebe igwe dị
 
 ```txt
 open-sse/services/compression/engines/mcpAccessibility/
-  index.ts            ← ebe mbata smartFilterText()
-  collapseRepeated.ts ← algọridim ịchịkọta ụmụnne
+  index.ts            ← smartFilterText() entry point
+  collapseRepeated.ts ← sibling-collapse algorithm
   constants.ts        ← DEFAULT_MCP_ACCESSIBILITY_CONFIG
 ```
 
 ### Nhazi
 
-`compression.mcpAccessibility` dị na ntọala zuru ụwa ọnụ (migration 056) na-achịkwa ya. Nhazi ndabara:
+Nke `compression.mcpAccessibility` na ntọala zuru ụwa ọnụ na-achịkwa (mbata 056). Nhazi ndabara:
 
 ```json
 {
@@ -277,118 +263,85 @@ open-sse/services/compression/engines/mcpAccessibility/
 }
 ```
 
-A na-etinye nzacha ahụ naanị na payload nsonaazụ tool nke `type` ya bụ `"text"` ma ogologo ya gafee `minLengthToProcess`. Ọ naghị emetụta mkpakọ prompt ma ọ bụ payload arịrịọ.
+A na-etinye ihe nyocha ahụ naanị na ibu nsonaazụ ngwaọrụ nke `type` ya bụ `"text"` na ogologo ya gafere `minLengthToProcess`. Ọ naghị emetụta mkpakọ ngwa ngwa ma ọ bụ ibu arịrịọ.
 
-### Ego a tụrụ anya na a ga-azọpụta
+### Nchekwa a na-atụ anya ya
 
-60–80% na nsonaazụ tool snapshot browser, dabere na mgbagwoju anya peeji ahụ. Algọridim ịchịkọta ahụ bụ O(n) n'ọnụọgụ ahịrị ma na-agbakwunye latency pere mpe nke a na-apụghị ịtụle.
+60–80% na nsonaazụ ngwaọrụ nseta ihuenyo ihe nchọgharị, dabere na mgbagwoju anya ibe. Algọridim mgbada bụ O(n) na ọnụọgụ ahịrị ma na-agbakwunye obere oge igbu oge.
 
-### Nzacha a ma e jiri ya tụnyere engine mkpakọ ndị dị n'elu
+### Ihe nyocha a ma e jiri ya tụnyere igwe mkpakọ ndị dị n'elu
 
-| Akụkụ              | Caveman / RTK / Stacked | Nzacha accessibility MCP               |
-| ------------------ | ----------------------- | -------------------------------------- |
-| Ebumnuche          | Prompt / context arịrịọ | Nsonaazụ tool MCP                      |
-| Ihe na-akpalite ya | Ntọala ụdị mkpakọ       | `compression.mcpAccessibility.enabled` |
-| Oke                | Ozi SSE niile           | Naanị nsonaazụ tool                    |
-| Arịlịka ref        | Ọ daghị                 | A na-edobe ha n'enweghị ọnọdụ ọ bụla   |
+| Akụkụ          | Caveman / RTK / Ndị E Kpokọtara | Ihe nyocha nnweta MCP                  |
+| -------------- | ------------------------------- | -------------------------------------- |
+| Ebumnuche      | Ngwa ngwa arịrịọ / ọnọdụ        | Nsonaazụ ngwaọrụ MCP                   |
+| Ihe na-akpata  | Ntọala ụdị mkpakọ               | `compression.mcpAccessibility.enabled` |
+| Oke            | Ozi SSE niile                   | Nsonaazụ ngwaọrụ naanị                 |
+| Arịlịka ntụaka | Adịghị                          | Echekwara n'enweghị ihe ọ bụla         |
 
 ---
 
 ## Ngwakọta Mkpakọ
 
-Ngwakọta mkpakọ bụ profaịlụ mkpakọ ndị nwere aha nke enwere ike ikenye na ngwakọta ntụgharị ụzọ:
+Ngwakọta mkpakọ bụ profaịlụ mkpakọ akpọrọ aha enwere ike itinye na ngwakọta ụzọ:
 
-- `compression_combos`: na-echekwa mode, pipeline, nhazi RTK, nhazi asụsụ, na akara ndabara
-- `compression_combo_assignments`: na-ejikọta ngwakọta mkpakọ na ngwakọta ntụgharị ụzọ
-- njikọta runtime na-achọpụta ngwakọta mkpakọ e kenyere tupu ngbanwe ngwakọta izugbe
-- analytics gụnyere `compression_combo_id` na `engine`
+- `compression_combos`: na-echekwa ọnọdụ, pipeline, nhazi RTK, nhazi asụsụ, na akara ndabara
+- `compression_combo_assignments`: na-ejikọta ngwakọta mkpakọ na ngwakọta ụzọ
+- njikọta oge ọrụ na-edozi ngwakọta mkpakọ e kenyere tupu ngwakọta izugbe agbanwe
+- nyocha gụnyere `compression_combo_id` na `engine`
 
-Ebe ọ dị na Dashboard: `Dashboard -> Context & Cache -> Compression Combos`.
+Ebe ngosi Dashboard: `Dashboard -> Context & Cache -> Compression Combos`.
 
-## Mpaghara API
+## Ebe API
 
-| Ụzọ                                    | Ebumnuche                                                          |
-| -------------------------------------- | ------------------------------------------------------------------ |
-| `/api/settings/compression`            | Ntọala mkpakọ zuru ụwa ọnụ (gụnyere nhazi `mcpAccessibility`)      |
-| `/api/compression/preview`             | Lelee mode mkpakọ ọ bụla tupu oge eruo                             |
-| `/api/compression/language-packs`      | Depụta ngwugwu asụsụ Caveman ndị dị                                |
-| `/api/context/caveman/config`          | Aha ọzọ maka ntọala Caveman                                        |
-| `/api/context/rtk/config`              | Ndabara na ntọala RTK                                              |
-| `/api/context/rtk/filters`             | Katalọgụ nzacha RTK                                                |
-| `/api/context/rtk/test`                | Endpoint maka nlele/ule RTK                                        |
-| `/api/context/rtk/raw-output/[id]`     | Nweghachite raw-output e zoro akụkụ ya nke chọrọ nkwenye njirimara |
-| `/api/context/combos`                  | CRUD nke ngwakọta mkpakọ                                           |
-| `/api/context/combos/[id]/assignments` | CRUD nke ikenye ngwakọta ntụgharị ụzọ                              |
-| `/api/context/analytics`               | Aha ọzọ maka analytics mkpakọ                                      |
+| Ụzọ                                    | Ebumnuche                                                     |
+| :------------------------------------- | :------------------------------------------------------------ |
+| `/api/settings/compression`            | Ntọala mkpakọ zuru ụwa ọnụ (gụnyere nhazi `mcpAccessibility`) |
+| `/api/compression/preview`             | Lelee ọnọdụ mkpakọ ọ bụla                                     |
+| `/api/compression/language-packs`      | Depụta ngwugwu asụsụ Caveman dị                               |
+| `/api/context/caveman/config`          | Ntọala Caveman ọzọ                                            |
+| `/api/context/rtk/config`              | RTK ndabara na ntọala                                         |
+| `/api/context/rtk/filters`             | Ndepụta nzacha RTK                                            |
+| `/api/context/rtk/test`                | Ebe nlele/nnwale RTK                                          |
+| `/api/context/rtk/raw-output/[id]`     | Mgbake mmepụta raw-output e wepụrụ ebe a na-enyocha           |
+| `/api/context/combos`                  | CRUD ngwakọta mkpakọ                                          |
+| `/api/context/combos/[id]/assignments` | CRUD nkekọta ngwakọta ụzọ                                     |
+| `/api/context/analytics`               | Nyocha mkpakọ ọzọ                                             |
 
-Ụzọ njikwa chọrọ nkwenye njirimara njikwa ma ọ bụ nyocha iwu API-key.
+Ụzọ njikwa chọrọ nyocha njikwa ma ọ bụ nyocha iwu API-key.
 
-## Ngwaọrụ MCP
+## Ngwa MCP
 
-Mkpakọ na-enye ngwaọrụ MCP ise:
+Mkpakọ na-egosipụta ngwa MCP ise:
 
-| Ngwaọrụ                             | Oke                 | Ebumnuche                             |
-| ----------------------------------- | ------------------- | ------------------------------------- |
-| `omniroute_compression_status`      | `read:compression`  | Ntọala, analytics, na ọnụ ọgụgụ cache |
-| `omniroute_compression_configure`   | `write:compression` | Melite ntọala zuru ụwa ọnụ            |
-| `omniroute_set_compression_engine`  | `write:compression` | Tọọ mode na pipeline nhọrọ            |
-| `omniroute_list_compression_combos` | `read:compression`  | Depụta ngwakọta mkpakọ                |
-| `omniroute_compression_combo_stats` | `read:compression`  | Gụọ analytics ngwakọta/engine         |
+| Ngwa                                | Oke                 | Ebumnuche                    |
+| :---------------------------------- | :------------------ | :--------------------------- |
+| `omniroute_compression_status`      | `read:compression`  | Ntọala, nyocha, ọnụọgụ cache |
+| `omniroute_compression_configure`   | `write:compression` | Melite ntọala zuru ụwa ọnụ   |
+| `omniroute_set_compression_engine`  | `write:compression` | Tọọ ọnọdụ na pipeline nhọrọ  |
+| `omniroute_list_compression_combos` | `read:compression`  | Depụta ngwakọta mkpakọ       |
+| `omniroute_compression_combo_stats` | `read:compression`  | Gụọ nyocha ngwakọta/engine   |
 
-## Oke na mwepu
+## Oke & mwepu
 
-**A naghị emetụ embeddings mkpakọ ma ọlị.** `open-sse/handlers/embeddings.ts` anaghị akpọ
-engine mkpakọ ọ bụla — ahụ request/response na-agafe ozugbo na executor n’enweghị mgbanwe.
-Nke a bụ nhazi usoro ugbu a (embeddings na chat completions nwere handlers dị iche iche), ọ bụghị
-nnyocha runtime, mana nke a pụtara na nchegbu mgbagọ vector dị na #8034 enweghị ebe ọ bụla
-ọ ga-apụta n’ụzọ embeddings.
+**A naghị amịpụta embeddings ma ọlị.** `open-sse/handlers/embeddings.ts` anaghị akpọ engine mkpakọ ọ bụla — ahụ arịrịọ/nzaghachi na-aga ozugbo na onye na-eme ihe n'enweghị mmetụ. Nke a bụ nhazi taa (embeddings na mmecha nkata bụ ndị na-ejikwa dị iche iche), ọ bụghị nyocha oge ọrụ, mana ọ pụtara na nchegbu vector-distortion na #8034 enweghị ebe ngosi na ụzọ embeddings.
 
-**Nzacha mwepu kwa-model/endpoint (#8034).** Maka chat completions, onye na-ahụ maka usoro nwere ike ịkpọ
-model ids / ebumnuche `provider/model` ndị a na-agaghị emetụ mkpakọ ma ọlị — ihe nchebe bara uru ma ọ bụrụ na
-e mesịa jikọọ mkpakọ nso n’ụzọ dị n'akụkụ embeddings, ma bakwa uru n’ozuzu
-maka model ọ bụla nke prompt ya ga-adị kpọmkwem byte-for-byte (deterministic evals, prefixes
-ndị cache na-emetụta, wdg.).
+**Nzacha mwepu kwa-model/endpoint (#8034).** Maka mmecha nkata, onye ọrụ nwere ike ịkpọ aha model ids / `provider/model` ebumnuche na a gaghị amịpụta ma ọlị — ihe nchebe bara uru ma ọ bụrụ na a ga-ejikọta mkpakọ nso na ụzọ dị n'akụkụ embeddings ma emechaa, ma bara uru n'ozuzu maka model ọ bụla nke kpọmkwem byte-for-byte prompt dị mkpa (ntụle aka doro anya, prefixes na-emetụta cache, wdg.).
 
-- Field ntọala: `exclusions?: string[]` na nhazi mkpakọ zuru ụwa ọnụ
-  (`GET`/`PUT /api/settings/compression`), nke a na-echekwa site na namespace mkpakọ `key_value`
-  dị ugbu a (`src/lib/db/compression.ts`) — enweghị table ọhụrụ.
-- Taabụ Dashboard: **Dashboard → Mkpakọ → Mwepu**
-  (`/dashboard/compression/exclusions`).
-- Syntax pattern: `*` bụ naanị wildcard. A na-escape regex metacharacter ọ bụla ọzọ dị na pattern
-  tupu matching, ya mere `gpt-5.6` na-adakọ naanị na literal string ahụ, ọ naghị adakọ na `gpt-5x6`
-  (ReDoS-safe, bounded, enweghị nested quantifiers). Patterns na-eme matching n’enweghị mmetụta nke mkpụrụedemede ukwu ma ọ bụ nta
-  megide ma bare model id ma composite `provider/model` — `gpt-5-6`, `openai/gpt-5-6`,
-  na `openai/*` niile na-arụ ọrụ, ebe `*` naanị ya na-ewepu model niile.
-- Matching: `isCompressionExcluded()` / `normalizeCompressionExclusions()` dị na
-  `open-sse/services/compression/exclusions.ts`. `chatCore.ts` na-enyocha ebumnuche e wepụrụ
-  ozugbo o chọpụtara ntọala mkpakọ, **tupu engine ọ bụla arụ ọrụ**, ma na-emeso matching
-  kpọmkwem dịka mgbe agbanyụrụ mkpakọ zuru ụwa ọnụ — ahụ request ahụ bụ
-  byte-identical n'ụzọ a pụrụ igosi. A na-edekọ ịwụfe ahụ site na `writeCompressionSkip(..., "excluded")` maka
-  ịhụ ya na analytics.
-- Ndabara (ndepụta efu/adịghị): ọ bụ otu ihe ahụ dịka omume tupu #8034 — ọ dịghị ihe a na-ewepu.
+- Ebe ntọala: `exclusions?: string[]` na nhazi mkpakọ zuru ụwa ọnụ (`GET`/`PUT /api/settings/compression`), echekwara site na oghere mkpakọ `key_value` dị adị (`src/lib/db/compression.ts`) — enweghị tebụl ọhụrụ.
+- Taabụ Dashboard: **Dashboard → Compression → Exclusions** (`/dashboard/compression/exclusions`).
+- Usoro syntax: `*` bụ naanị wildcard. A na-agbanarị metacharacter regex ọ bụla ọzọ na usoro tupu ijikọta, yabụ `gpt-5.6` na-ejikọta naanị eriri nkịtị, ọ dịghị mgbe `gpt-5x6` (ReDoS-safe, bounded, enweghị quantifiers agbakwunyere). Usoro na-ejikọta n'enweghị mmetụta ikpe megide ma model id nkịtị na `provider/model` composite — `gpt-5-6`, `openai/gpt-5-6`, na `openai/*` niile na-arụ ọrụ, na `*` naanị na-ewepụ model ọ bụla.
+- Njikọta: `isCompressionExcluded()` / `normalizeCompressionExclusions()` na `open-sse/services/compression/exclusions.ts`. `chatCore.ts` na-enyocha ebumnuche ewepụrụ ozugbo edozi ntọala mkpakọ, **tupu engine ọ bụla arụ ọrụ**, ma na-emeso njikọta kpọmkwem dị ka mkpakọ na-agbanyụ zuru ụwa ọnụ — ahụ arịrịọ bụ byte-identical n'ụzọ doro anya. A na-edekọ mwụfu ahụ site na `writeCompressionSkip(..., "excluded")` maka nyocha.
+- Ndabara (ndepụta efu/anọghị): yiri omume tupu #8034 — ọ nweghị ihe ewepụrụ.
 
-## Oke ndị amaara
+## Ihe Ndị Nwere Oke
 
-- **LLMLingua-2 (SLM) chọrọ deps nhọrọ ndị dị n'otu ebe.** Worker ahụ na-arụ ọrụ naanị na
-  production build mgbe e tinyere `@atjsh/llmlingua-2` + peers n'otu ebe n'ime
-  `dist/node_modules` (lee `scripts/build/colocateOptionals.mjs`, #4286). Ọ bụrụ na ha adịghị,
-  engine ahụ na-eme fail-open (na-eweghachi ederede mbụ). Mkpebi ebe worker dị adịkwaghị adabere na
-  `import.meta.url` (ọ na-akwụsị ịrụ ọrụ n'ime standalone bundle) — ọ na-eji runtime
-  cwd / `argv[1]` dị ka ebe mgbakwasị ụkwụ.
-- **Ngwugwu asụsụ Caveman `de` / `fr` / `ja` ezughị ezu.** Ha nwere iwu `context` +
-  `filler` + `structural` mana ha enweghị ngwugwu `dedup` / `ultra`, ya mere ike `ultra`
-  anaghị akarị `full` maka asụsụ ndị ahụ (ha na-eji naanị iwu nke ha — enweghị
-  nlọghachi ndabara na nzuzo gaa n'iwu Bekee `dedup`/`ultra`, nke ga-emebi ederede asụsụ ọzọ).
-  `en` / `es` / `id` / `pt-BR` zuru ezu. A na-anabata onyinye nke `dedup.json` + `ultra.json`
-  maka ngwugwu ndị na-ezughị ezu.
-- **Telemetry agbakọtara ọnụ na-edepụta naanị engine ndị mere mkpakọ.** Nzọụkwụ stacked-pipeline nke
-  engine ya rụrụ ọrụ mana nweta nchekwa 0 % na-eweghachi `stats:null`, ya mere ọ naghị apụta na
-  `engineBreakdown` — a pụghị ịmata ọdịiche ya na nzọụkwụ a mafere. Ịmata ọdịiche dị n'etiti
-  "rụrụ ọrụ, 0 %" na "a mafere" ga-achọ mgbanwe n'ụdị breakdown ma yigharịrị ya.
+- **LLMLingua-2 (SLM) chọrọ ihe ndị ọzọ nhọrọ dị n'otu ebe.** Onye ọrụ ahụ na-agba ọsọ naanị na nrụpụta mmepụta mgbe `@atjsh/llmlingua-2` + ndị ọgbọ dị n'otu ebe n'ime `dist/node_modules` (lee `scripts/build/colocateOptionals.mjs`, #4286). Na-enweghị ha, injin ahụ na-emeghe (na-eweghachi ederede mbụ). Mkpebi onye ọrụ anaghịzi adabere na `import.meta.url` (ọ na-anwụ na ngwugwu kwụụrụ onwe ya) — ọ na-adabere na oge ịgba ọsọ cwd / `argv[1]`.
+- **Ngwugwu asụsụ Caveman `de` / `fr` / `ja` ezughị ezu.** Ha na-ebufe iwu `context` + `filler` + `structural` mana enweghị ngwugwu `dedup` / `ultra`, ya mere ike `ultra` adịghị ike karịa `full` maka asụsụ ndị ahụ (ha na-eji naanị iwu nke ha — enweghị ndabere na-agbachi nkịtị na iwu `dedup`/`ultra` Bekee, nke ga-emebi ederede mba ọzọ). `en` / `es` / `id` / `pt-BR` zuru ezu. A na-anabata onyinye nke `dedup.json` + `ultra.json` maka ngwugwu ndị ezughị ezu.
+- **Telemetry agbakọtara na-edepụta naanị injin ndị ejikọtara.** Nzọụkwụ pipeline agbakọtara nke injin ya gbara ọsọ mana o mepụtara nchekwa 0 % na-eweghachi `stats:null` ma yabụ na ọ pụtaghị na `engineBreakdown` — enweghị ike ịmata ya na nzọụkwụ a wụpụrụ. Ịmata ọdịiche dị n'etiti "gbaa ọsọ, 0 %" na "wụpụrụ" ga-achọ mgbanwe ụdị nbibi ma yigharịrị ya.
 
-## Nnwale nkwado
+## Nkwenye
 
-Ọnụ ụzọ nnwale e lekwasịrị anya maka mpaghara a bụ:
+Ọnụ ụzọ ndị a na-elekwasị anya maka mpaghara a bụ:
 
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts

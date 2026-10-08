@@ -1,6 +1,6 @@
 # CLI Tools — OmniRoute (Yorùbá)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
 
@@ -43,11 +43,10 @@ ACP Agents (ìṣàn ìdásílẹ̀ òdìkejì):
 
 ---
 
-## Ṣe àgbékalẹ̀ aládàáṣe pẹ̀lú `setup-*`
+## Ṣe atunto laifọwọyi pẹlu `setup-*`
 
-O kò nílò láti kọ àgbékalẹ̀ irinṣẹ́ kọ̀ọ̀kan pẹ̀lú ọwọ́. OmniRoute ní àṣẹ `setup-*`
-kan fún CLI kọ̀ọ̀kan tí a ṣe àtìlẹ́yìn fún, èyí tó ń ka àkójọ awoṣe **tó ń ṣiṣẹ́ lọ́wọ́lọ́wọ́** láti inú
-OmniRoute tó ń ṣiṣẹ́ (ní agbègbè tàbí ní jíjìn), tó sì ń kọ àgbékalẹ̀ irinṣẹ́ náà fúnra rẹ̀ sórí ẹ̀rọ rẹ:
+O ko nilo lati kọ atunto irinṣẹ kọọkan pẹlu ọwọ. OmniRoute n pese aṣẹ `setup-*`
+fun CLI kọọkan ti o ni atilẹyin ti o ka katalogi awoṣe **laaye** lati OmniRoute ti n ṣiṣẹ (agbegbe tabi latọna jijin) ati kọ atunto irinṣẹ funrararẹ sori ẹrọ rẹ:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
@@ -57,49 +56,22 @@ omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 omniroute setup-5dive
 ```
 
-Ọ̀kọ̀ọ̀kan gba `--remote <url> --api-key <key>` (ṣètò irinṣẹ́ agbègbè kan láti lo
-OmniRoute jíjìn), `--dry-run` (ṣàgbéyẹ̀wò láìkọ ohunkóhun), àti `--port`. Àwọn irinṣẹ́
-tí kò ní ìṣàwárí awoṣe aládàáṣe (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) gba
-`--model <id>` (àti `--yes` fún ìṣiṣẹ́ tí kò nílò ìbáṣepọ̀). `setup-5dive` ni
-ìlànà kan ṣoṣo tí kì í kọ sábẹ́ `$HOME`: ó ń ṣètò ẹgbẹ́ àwọn aṣojú 5dive nípasẹ̀
-kíkọ prófáìlì ìfàṣẹsí tí root ni lórí olupin ẹgbẹ́ náà, nítorí náà ó tún ara rẹ̀ ṣiṣẹ́ nípasẹ̀ `sudo`
-kò sì ní ipò jíjìn tirẹ̀. Láti ṣe ìfilọ́lẹ̀ CLI kan pẹ̀lú
-env tó yẹ tí a ti fi sínú rẹ̀ láìkọ àgbékalẹ̀ kankan rárá, lo olùfilọ́lẹ̀ gbogbogbò
-`omniroute run <target>` (claude, codex, aider, goose, opencode, qwen,
-gemini — àwọn ibi-àfojúsùn àti àwọn orúkọ ìnagijẹ wá láti `bin/cli/cli-manifest.mjs`); àwọn
-olùfilọ́lẹ̀ irinṣẹ́-kọ̀ọ̀kan àtijọ́ `omniroute launch` (Claude Code) àti `omniroute launch-codex`
-(Codex) ṣì wà. Gemini CLI jẹ́ fún ìfilọ́lẹ̀ nìkan: ó jẹ́ ibi-àfojúsùn `omniroute run`
-ṣùgbọ́n kò ní ìlànà `setup-*`/`configure`.
+Ọkọọkan gba `--remote <url> --api-key <key>` (ṣeto irinṣẹ agbegbe kan si OmniRoute latọna jijin), `--dry-run` (wo tẹlẹ laisi kikọ), ati `--port`. Awọn irinṣẹ laisi wiwa awoṣe laifọwọyi (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) gba `--model <id>` (ati `--yes` fun awọn ṣiṣe ti kii ṣe ibaraenisepo). `setup-5dive` jẹ ohunelo kanṣoṣo ti ko kọ labẹ `$HOME`: o ṣeto ọkọ oju-omi aṣoju 5dive nipa kikọ profaili ijẹrisi ti gbongbo ni agbalejo ọkọ oju-omi, nitorinaa o tun ṣe nipasẹ `sudo` ati pe ko ni ipo latọna jijin tirẹ. Lati ṣe ifilọlẹ CLI pẹlu env ti o tọ ti a fi sii ati pe ko si atunto ti a kọ rara, lo ifilọlẹ gbogbogbo `omniroute run <target>` (claude, codex, aider, goose, opencode, qwen, gemini — awọn ibi-afẹde ati awọn orukọ apeso wa lati `bin/cli/cli-manifest.mjs`); awọn ifilọlẹ atijọ fun irinṣẹ kọọkan `omniroute launch` (Claude Code) ati `omniroute launch-codex` (Codex) wa sibẹ. Gemini CLI jẹ ifilọlẹ nikan: o jẹ ibi-afẹde `omniroute run` ṣugbọn ko ni ohunelo `setup-*`/`configure`.
 
-> **Ìtọ́kasí kíkún:** tábìlì àkọ́kọ́ — ohun tí àṣẹ kọ̀ọ̀kan ń kọ, gbogbo àsìá,
-> ti agbègbè sí ti jíjìn, àti àwọn irinṣẹ́ wo ló nílò ìfikún `/v1` — wà nínú
-> **[Àwọn Ìṣopọ̀ CLI](../guides/CLI-INTEGRATIONS.md)**.
+> **Itọkasi kikun:** tabili akọkọ — ohun ti aṣẹ kọọkan kọ, gbogbo asia,
+> agbegbe vs latọna jijin, ati iru awọn irinṣẹ ti o fẹ suffix `/v1` — wa ninu
+> **[Awọn Isopọ CLI](../guides/CLI-INTEGRATIONS.md)**.
 
-### Ṣíṣe àwọn wọ̀nyí nínú container kan
+### Ṣiṣe iwọnyi ninu apoti kan
 
-Àṣẹ `setup-*` tí a ṣe nínú container OmniRoute máa ń kọ sínú
-home ti container náà fúnra rẹ̀, èyí tí kò sí CLI kankan lórí host tó máa kà, tí yóò sì pòórá pẹ̀lú
-container náà. OmniRoute máa ń ṣàwárí èyí, yóò sì jáde pẹ̀lú `2` àti àwọn ìtọ́nisọ́nà dípò
-kíkọ. Ọ̀nà méjì tí a ṣe àtìlẹ́yìn fún láti tẹ̀síwájú ni — fi CLI sori host kí o sì lo
-`omniroute connect` láti sopọ̀ mọ́ container náà, tàbí ṣe bind-mount àwọn àkójọpọ̀ àgbékalẹ̀ kí o sì ṣètò
-`CLI_CONFIG_HOME` (prófáìlì compose `host`). Gbogbo àṣẹ `setup-*`, pẹ̀lú
-`omniroute configure` àti `omniroute config set`, gba
-`--allow-container-write` nígbà tí ṣíṣe àgbékalẹ̀ àwọn CLI ti container náà fúnra rẹ̀ ni ohun tí o
-túmọ̀ sí gan-an; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` ṣe ohun kan náà fún
-olupin náà. Wo
-[Ìtọ́sọ́nà Docker → Ṣíṣe àgbékalẹ̀ àwọn irinṣẹ́ CLI host](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+Aṣẹ `setup-*` ti a ṣe ninu apoti OmniRoute kọ sinu ile ti apoti funrararẹ, eyiti ko si CLI agbalejo ti o ka ati eyiti o parẹ pẹlu apoti naa. OmniRoute ṣe awari iyẹn o si jade `2` pẹlu awọn ilana dipo kikọ. Awọn ọna meji ti o ni atilẹyin siwaju — fi CLI sori ẹrọ agbalejo ati `omniroute connect` si apoti, tabi so-gbe awọn itọsọna atunto ati ṣeto `CLI_CONFIG_HOME` (profaili `host` ti o ṣajọ). Gbogbo aṣẹ `setup-*`, pẹlu `omniroute configure` ati `omniroute config set`, gba `--allow-container-write` nigbati ṣiṣeto awọn CLI ti apoti funrararẹ jẹ ohun ti o tumọ si gangan; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` ṣe kanna fun olupin naa. Wo
+[Itọsọna Docker → Ṣiṣeto awọn irinṣẹ CLI agbalejo](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
-**Ojú-ọ̀nà ìmúlò** dasibodu náà (`POST /api/cli-tools/apply`) ń fipá mú
-ààbò kan náà: nínú container kan, ìkọ̀wé tí ibi-àfojúsùn rẹ̀ kò jẹ́ bind-mounted láti
-host máa dáhùn pẹ̀lú **`422`** àti `containerEphemeralTarget: true`, ọ̀rọ̀ àṣìṣe
-ààbò náà àti — fún àwọn irinṣẹ́ tó ní ìlànà host (claude, codex, opencode, cline,
-kilo, continue) — `hostSetupCommand` kan (fún àpẹẹrẹ `omniroute setup-opencode`) láti ṣiṣẹ́
-lórí host dípò rẹ̀; kò sí ohun tí a kọ. `dryRun: true` ṣì ń ṣiṣẹ́ ní ipò container
-ó sì máa ń dá àkóónú tí a ṣẹ̀dá + ọ̀nà ibi-àfojúsùn padà láìfọwọ́ kan disiki, kí
-o lè ṣàgbéyẹ̀wò láti dasibodu kí o sì fi sílò lórí host. Ìhùwàsí yìí jẹ́
-ìmọ̀ọ́mọ̀, a sì ń dáàbò bo ó lọ́wọ́ ìpadàsẹ́yìn nípasẹ̀
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` — má ṣe “tún” 422 ṣe
-nípa yíyọ ààbò náà kúrò.
+Ipari **ohun elo** dasibodu (`POST /api/cli-tools/apply`) n fi ipa mu aabo kanna: ninu apoti kan, kikọ ti ibi-afẹde rẹ ko ni asopọ-gbe lati agbalejo dahun **`422`** pẹlu `containerEphemeralTarget: true`, ọrọ aṣiṣe ailewu ati — fun awọn irinṣẹ pẹlu ohunelo agbalejo (claude, codex, opencode, cline, kilo, continue) — `hostSetupCommand` (fun apẹẹrẹ `omniroute setup-opencode`) lati ṣiṣe lori agbalejo dipo; ko si ohun ti a kọ. `dryRun: true` tẹsiwaju lati ṣiṣẹ ni ipo apoti ati da pada awotẹlẹ ti a ti yọkuro + ọna ibi-afẹde laisi fifọwọkan disiki. Akoonu awotẹlẹ kii ṣe atunto ti o ni ijẹrisi lati daakọ tabi gbe wọle. Waye pẹlu irinṣẹ atilẹba/URL ipilẹ/bọtini API/awọn igbewọle awoṣe lori agbalejo, tabi lo aṣẹ iṣeto ẹgbẹ agbalejo ti a tọka. Wo [aabo atunto CLI](../security/CLI-CONFIGURATION.md)
+fun akọsori awotẹlẹ ati adehun ibeere. Ihuwasi yii jẹ
+ipinnu ati aabo idinku nipasẹ
+`tests/unit/api/cli-tools/apply-container-guard.test.ts` — maṣe "ṣe atunṣe" 422
+nipa yiyọ aabo naa kuro.
 
 ---
 
@@ -142,9 +114,9 @@ ojú-ọ̀nà kan láì ṣàfikún rẹ̀ sí àwọn yòókù yóò mú kí à
 
 ---
 
-## 1. Àkójọ Ohun Èlò CLI Code (ohun èlò 26)
+## 1. Àtòjọ Koodu CLI (irinṣẹ́ 26)
 
-Gbogbo ohun èlò tí ó farahàn nínú `/dashboard/cli-code`. Àwọn tí ó ní `baseUrlSupport: none` ni a so nípasẹ̀ MITM tàbí ìtọ́sọ́nà àfọwọ́ṣe dípò URL ìpìlẹ̀ àkànṣe:
+Gbogbo àwọn irinṣẹ́ tí ó farahàn ní `/dashboard/cli-code`. Àwọn tí ó ní `baseUrlSupport: none` ni a so pọ̀ nípasẹ̀ MITM tàbí ìtọ́sọ́nà àfọwọ́kọ dípò URL ìpìlẹ̀ àṣà:
 
 | id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
 | ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
@@ -175,25 +147,25 @@ Gbogbo ohun èlò tí ó farahàn nínú `/dashboard/cli-code`. Àwọn tí ó n
 | kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
 | custom       | Custom CLI              | —                   | full           | custom-builder | false        |
 
-Àwọn ohun èlò tí ó ní `baseUrlSupport: "partial"` máa ń ṣàfihàn àmì "⚠ URL ìpìlẹ̀ aláìpé" lórí káàdì dashboard náà.
+Àwọn irinṣẹ́ tí ó ní `baseUrlSupport: "partial"` máa ń fi àmì kan hàn "⚠ Base URL parcial" nínú káàdì dasíbọ́ọ̀dù.
 ---
 
 ## 2. Àkójọ Àwọn Aṣojú CLI (irinṣẹ́ 10)
 
-Àwọn aṣojú aládàáṣe tí ó hàn nínú `/dashboard/cli-agents`:
+Àwọn aṣojú aládàáṣiṣẹ́ tí ó hàn ní `/dashboard/cli-agents`:
 
 | id           | name             | vendor                   | baseUrlSupport | acpSpawnable |
 | ------------ | ---------------- | ------------------------ | -------------- | ------------ |
-| hermes-agent | Hermes Agent     | Nous Research            | full           | false        |
-| openclaw     | OpenClaw         | OSS (P. Steinberger)     | full           | true         |
-| goose        | Goose            | Block / Linux Foundation | full           | true         |
-| interpreter  | Open Interpreter | OSS                      | full           | true         |
-| warp         | Warp AI          | Warp Inc.                | partial        | true         |
-| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | full           | false        |
-| omp          | Oh My Pi         | OSS                      | full           | true         |
-| letta        | Letta CLI        | Letta                    | full           | false        |
-| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | full           | false        |
-| 5dive        | 5dive            | OSS (5dive-ai)           | full           | false        |
+| hermes-agent | Hermes Agent     | Nous Research            | kíkún          | irọ́          |
+| openclaw     | OpenClaw         | OSS (P. Steinberger)     | kíkún          | òótọ́         |
+| goose        | Goose            | Block / Linux Foundation | kíkún          | òótọ́         |
+| interpreter  | Open Interpreter | OSS                      | kíkún          | òótọ́         |
+| warp         | Warp AI          | Warp Inc.                | apá kan        | òótọ́         |
+| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | kíkún          | irọ́          |
+| omp          | Oh My Pi         | OSS                      | kíkún          | òótọ́         |
+| letta        | Letta CLI        | Letta                    | kíkún          | irọ́          |
+| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | kíkún          | irọ́          |
+| 5dive        | 5dive            | OSS (5dive-ai)           | kíkún          | irọ́          |
 
 ---
 
@@ -602,20 +574,20 @@ ní abẹ́ `/dashboard/cli-tools → Kiro`.
 
 ---
 
-## 10. OmniRoute CLI Abẹ́nú
+## 10. CLI OmniRoute Abẹ́nú
 
-Fáìlì aláṣẹ `omniroute` ń pèsè àwọn àṣẹ fún ìṣàkóso ìgbésí-ayé server, ìṣètò, àyẹ̀wò ìṣòro, àti ìṣàkóso provider. Ibi ìbẹ̀rẹ̀: `bin/omniroute.mjs`.
+Fáìlì alakomeji `omniroute` ń pèsè àwọn àṣẹ fún ìṣàkóso ìgbésí-ayé olupin, ìṣètò, àyẹ̀wò ìṣòro, àti ìṣàkóso olùpèsè. Ojú-ọ̀nà ìbẹ̀rẹ̀: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # Bẹ̀rẹ̀ server (port àiyípadà 20128)
+omniroute                              # Bẹ̀rẹ̀ olupin (pọ́ọ̀tù àìyípadà 20128)
 omniroute setup                        # Olùrànlọ́wọ́ ìṣètò alábàáṣiṣẹ́pọ̀
-omniroute doctor                       # Ṣàyẹ̀wò config, DB, ports, runtime
-omniroute providers list               # Àwọn ìsopọ̀ provider tí a ti ṣètò
-omniroute providers test-all           # Dán gbogbo ìsopọ̀ tó ń ṣiṣẹ́ wò
-omniroute reset-password               # Tún ọ̀rọ̀ aṣínà admin ṣe
-omniroute logs                         # Ṣàn àwọn àkọsílẹ̀ request
-omniroute health                       # Ìlera alálàyé (breakers, cache, memory)
-omniroute --version                    # Tẹ version jáde
+omniroute doctor                       # Ṣàyẹ̀wò àtòpọ̀, DB, àwọn pọ́ọ̀tù, àti àyíká ìṣiṣẹ́
+omniroute providers list               # Àwọn àsopọ̀ olùpèsè tí a ti ṣètò
+omniroute providers test-all           # Dán gbogbo àsopọ̀ tó ń ṣiṣẹ́ wò
+omniroute reset-password               # Tún ọ̀rọ̀ aṣínà alábòójútó ṣe
+omniroute logs                         # Ṣàn àwọn àkọsílẹ̀ ìbéèrè
+omniroute health                       # Ìlera ẹ̀kúnrẹ́rẹ́ (àwọn olùdáwọ́dúró, cache, memory)
+omniroute --version                    # Ṣàfihàn ẹ̀yà
 omniroute --help                       # Ṣàfihàn gbogbo àwọn àṣẹ
 ```
 
@@ -623,52 +595,52 @@ omniroute --help                       # Ṣàfihàn gbogbo àwọn àṣẹ
 
 ```bash
 omniroute setup                        # Olùrànlọ́wọ́ ìṣètò alábàáṣiṣẹ́pọ̀
-omniroute setup --non-interactive      # Ipò CI/automation (ń ka env vars + flags)
-omniroute setup --password '<value>'   # Ṣètò ọ̀rọ̀ aṣínà admin ní tààrà
+omniroute setup --non-interactive      # Ìpo CI/adaṣiṣẹ́ (ń ka àwọn env vars + flags)
+omniroute setup --password '<value>'   # Ṣètò ọ̀rọ̀ aṣínà alábòójútó ní tààrà
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Ṣàfikún provider kan kí o sì dán an wò lẹ́ẹ̀kan náà
+  --test-provider                      # Ṣàfikún olùpèsè kan kí o sì dán an wò lẹ́ẹ̀kan náà
 ```
 
-Àwọn environment variables tí a mọ̀ fún ìṣètò tí kì í ṣe alábàáṣiṣẹ́pọ̀:
+Àwọn àyípadà àyíká tí a mọ̀ fún ìṣètò tí kì í ṣe alábàáṣiṣẹ́pọ̀:
 
-| Var                 | Ìdí                                                                    |
-| ------------------- | ---------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | Kọ́kọ́rọ́ API provider (tí a so mọ́ `--api-key` nípasẹ̀ Commander `.env()`) |
-| `DATA_DIR`          | Rọ́pò ibi ìpamọ́ data OmniRoute                                          |
+| Var                 | Ète                                                                   |
+| ------------------- | --------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | Kọ́kọ́rọ́ API olùpèsè (tí a so mọ́ `--api-key` nípasẹ̀ Commander `.env()`) |
+| `DATA_DIR`          | Ṣàtúnkọ ìtọ́sọ́nà dátà OmniRoute                                        |
 
-Gbogbo àwọn ìwọlé míì tí kì í ṣe alábàáṣiṣẹ́pọ̀ ni a ń fi ránṣẹ́ gẹ́gẹ́ bí flags, kì í ṣe environment variables:
+Gbogbo àwọn ìwọlé mìíràn tí kì í ṣe alábàáṣiṣẹ́pọ̀ ni a ń fi ránṣẹ́ gẹ́gẹ́ bí flags, kì í ṣe àwọn àyípadà àyíká:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(wo àwọn options `omniroute setup` lókè).
+(wo àwọn àṣàyàn `omniroute setup` lókè).
 
 ### Àyẹ̀wò Ìṣòro
 
 ```bash
-omniroute doctor                       # Ṣàyẹ̀wò config, DB, ports, runtime, memory, liveness
+omniroute doctor                       # Ṣàyẹ̀wò àtòpọ̀, DB, àwọn pọ́ọ̀tù, àyíká ìṣiṣẹ́, memory, àti bóyá olupin ń ṣiṣẹ́
 omniroute doctor --json                # JSON tí ẹ̀rọ lè kà
-omniroute doctor --no-liveness         # Fò àyẹ̀wò ìlera HTTP kọjá
-omniroute doctor --host 0.0.0.0        # Rọ́pò host liveness
-omniroute doctor --liveness-url <url>  # Rọ́pò URL endpoint ìlera ní ẹ̀kúnrẹ́rẹ́
+omniroute doctor --no-liveness         # Foju ìwádìí ìlera HTTP kọjá
+omniroute doctor --host 0.0.0.0        # Ṣàtúnkọ host ìwádìí bóyá olupin ń ṣiṣẹ́
+omniroute doctor --liveness-url <url>  # Ṣàtúnkọ URL kíkún fún health endpoint
 ```
 
 Doctor náà ń ṣe àwọn àyẹ̀wò wọ̀nyí: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory`, àti `Server liveness`. Ó máa jáde pẹ̀lú iye tí kì í ṣe òdo bí àyẹ̀wò èyíkéyìí bá jẹ́ `fail`.
+`Memory`, àti `Server liveness`. Yóò jáde pẹ̀lú kóòdù tí kì í ṣe òdo bí àyẹ̀wò èyíkéyìí bá jẹ́ `fail`.
 
-### Ìṣàkóso Provider
+### Ìṣàkóso Olùpèsè
 
 ```bash
-omniroute providers available                       # Kátálọ́ọ̀gù provider OmniRoute
-omniroute providers available --search openai       # Ṣe àlẹ̀mọ́ kátálọ́ọ̀gù nípasẹ̀ id/orúkọ/alias/category
-omniroute providers available --category api-key    # Ṣe àlẹ̀mọ́ nípasẹ̀ category (api-key, oauth, free, ...)
+omniroute providers available                       # Àkójọ àwọn olùpèsè OmniRoute
+omniroute providers available --search openai       # Ṣe àsẹ àkójọ nípa id/orúkọ/alias/ẹ̀ka
+omniroute providers available --category api-key    # Ṣe àsẹ nípa ẹ̀ka (api-key, oauth, free, ...)
 omniroute providers available --json                # JSON tí ẹ̀rọ lè kà
 
-omniroute providers list                            # Àwọn ìsopọ̀ provider tí a ti ṣètò
+omniroute providers list                            # Àwọn àsopọ̀ olùpèsè tí a ti ṣètò
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # Dán ìsopọ̀ kan tí a ti ṣètò wò
-omniroute providers test-all                        # Dán gbogbo ìsopọ̀ tó ń ṣiṣẹ́ wò
+omniroute providers test <id|name>                  # Dán àsopọ̀ kan tí a ti ṣètò wò
+omniroute providers test-all                        # Dán gbogbo àsopọ̀ tó ń ṣiṣẹ́ wò
 omniroute providers validate                        # Ìfọwọ́sí ìgbékalẹ̀ ti agbègbè nìkan
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
@@ -677,83 +649,83 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` ń lo API lákọ̀ọ́kọ́, nítorí náà wọ́n ń ṣiṣẹ́ lòdì sí
-context agbègbè tàbí jíjìn tó ń ṣiṣẹ́. Fún ìwọlé credential, lo
-`--credential-stdin` tàbí `--credential-env`; `--dry-run --json` ń jabo
-ìfarahàn/ìrísí tí a ti fi ààbò bo nìkan. `providers available` ń ka kátálọ́ọ̀gù OmniRoute;
-`providers list/test/test-all/validate` ṣì ń pa ìhùwàsí SQLite agbègbè wọn mọ́, wọn kò sì
-béèrè pé kí server máa ṣiṣẹ́.
+`providers add/import/auth/edit/remove` ń lo API ní àkọ́kọ́, nítorí náà wọ́n ń ṣiṣẹ́ lòdì sí
+àkóónú agbègbè tàbí àkóónú jíjìnnà tó ń ṣiṣẹ́. Ìwọlé ẹ̀rí yẹ kí ó lo
+`--credential-stdin` tàbí `--credential-env`; `--dry-run --json` ń jábọ̀ nípa
+wíwà/ìrísí tí a ti bo mọ́lẹ̀ nìkan. `providers available` ń ka àkójọ OmniRoute;
+`providers list/test/test-all/validate` ń pa ìhùwàsí SQLite agbègbè wọn mọ́, wọn kò sì
+béèrè pé kí olupin máa ṣiṣẹ́.
 
 ### Ìmúpadàbọ̀sípò & Àtúntò
 
 ```bash
-omniroute reset-password                # Tún ọ̀rọ̀ aṣínà admin ṣe (bákan náà: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Ṣàfihàn ìkìlọ̀ + dry-run fún àtúntò credential tí a ti encrypt
-omniroute reset-encrypted-columns --force  # Mú àwọn credential tí a ti encrypt di null ní SQLite ní tòótọ́
+omniroute reset-password                # Tún ọ̀rọ̀ aṣínà alábòójútó ṣe (bákannáà: omniroute-reset-password)
+omniroute reset-encrypted-columns       # Ṣàfihàn ìkìlọ̀ + dry-run fún àtúntò ẹ̀rí tí a paroko
+omniroute reset-encrypted-columns --force  # Mú àwọn ẹ̀rí tí a paroko di null ní SQLite ní tòótọ́
 ```
 
-### Ìkójáde Credential (⚠ lò ó pẹ̀lú ìṣọ́ra)
+### Ìkójáde Ẹ̀rí (⚠ bójú tó pẹ̀lú ìṣọ́ra)
 
 ```bash
-omniroute auth export                                 # Ṣàfihàn ìkìlọ̀ + ìdènà ìjẹ́rìísí — kò ráyè wọ DB
-omniroute auth export --force                          # Kó credential tí a ti DECRYPT ti GBOGBO ìsopọ̀ jáde sí stdout gẹ́gẹ́ bí JSON
-omniroute auth export --force --id <id>                 # Kó ìsopọ̀ tó bá mu nìkan jáde
-omniroute auth export --force --format env               # Ṣe ìtẹ̀jáde àwọn ìlà OMNIROUTE_<PROVIDER>_<FIELD>=<value>
-omniroute auth export --force --out creds.json           # Kọ sínú fáìlì kan (tí a dá pẹ̀lú àwọn ìyọ̀nda 0600)
+omniroute auth export                                 # Ṣàfihàn ìkìlọ̀ + ìdánilójú — kò sí ìráàyèsí DB
+omniroute auth export --force                          # Kó àwọn ẹ̀rí tí a TI ṢÍ PAROKO fún GBOGBO àsopọ̀ jáde sí stdout gẹ́gẹ́ bí JSON
+omniroute auth export --force --id <id>                 # Kó àsopọ̀ tó báamu nìkan jáde
+omniroute auth export --force --format env               # Ṣàgbéjáde àwọn ìlà OMNIROUTE_<PROVIDER>_<FIELD>=<value>
+omniroute auth export --force --out creds.json           # Kọ sínú fáìlì kan (tí a ṣẹ̀dá pẹ̀lú àwọn àṣẹ 0600)
 ```
 
-`auth export` jẹ́ ti **agbègbè nìkan** (kíka SQLite ní tààrà, kò sí route HTTP) ó sì mọ̀ọ́mọ̀ tẹ̀/Kọ
-àwọn iye `apiKey`/`accessToken`/`refreshToken`/`idToken` **plaintext** jáde — èyí ni iṣẹ́ náà, kì í ṣe
-àṣìṣe. A kò ka ohunkóhun láti database, a kò sì decrypt ohunkóhun láìsí `--force`. Àmi ìkìlọ̀ stderr
-máa ń tẹ̀ jáde nígbà gbogbo kí plaintext èyíkéyìí tó jáde. Ó nílò kí a ṣètò `STORAGE_ENCRYPTION_KEY`.
-Field tí decrypt rẹ̀ bá kùnà (kọ́kọ́rọ́ àtijọ́, ciphertext tó bàjẹ́) ni a máa jabo gẹ́gẹ́ bí
-`<field>DecryptFailed: true` dípò fífi òpin sí gbogbo ìkójáde náà tàbí jíjẹ́ kí àṣìṣe inú rẹ̀ tú síta.
+`auth export` jẹ́ ti **agbègbè nìkan** (kíkà SQLite ní tààrà, kò sí ọ̀nà HTTP), ó sì mọ̀ọ́mọ̀ tẹ̀/jẹ́kọ
+àwọn iye `apiKey`/`accessToken`/`refreshToken`/`idToken` ní **plaintext** — ẹ̀yà iṣẹ́ náà gan-an nìyẹn, kì í ṣe
+àṣìṣe. Kò sí ohun tí a máa kà láti ibi ìpamọ́ dátà, kò sì sí ohun tí a máa ṣí paroko, láìsí `--force`. Àmì ìkìlọ̀
+máa ń tẹ̀ jáde sí stderr nígbà gbogbo kí plaintext èyíkéyìí tó jáde. Ó nílò kí a ṣètò `STORAGE_ENCRYPTION_KEY`.
+Pápá kan tí ṣíṣí paroko rẹ̀ kùnà (kọ́kọ́rọ́ àtijọ́, ciphertext tó bàjẹ́) ni a máa jábọ̀ gẹ́gẹ́ bí
+`<field>DecryptFailed: true` dípò kí a fòpin sí gbogbo ìkójáde náà tàbí tú àṣìṣe abẹ́lẹ̀ jáde.
 
-### Àwọn subcommands míì
+### Àwọn àṣẹ abẹ́ mìíràn
 
-Àwọn wọ̀nyí gbà pé server OmniRoute kan ń ṣiṣẹ́, àyàfi bí a bá sọ ohun mìíràn:
+Àwọn wọ̀nyí rò pé olupin OmniRoute kan ń ṣiṣẹ́, àyàfi bí a bá sọ pé ó yàtọ̀:
 
 ```bash
 omniroute status                       # Ipò àkókò-ṣiṣe tó péye
-omniroute logs                         # Ṣàfihàn àwọn àkọsílẹ̀ ìbéèrè lọ́wọ́lọ́wọ́ (--json, --search, --follow)
-omniroute config show                  # Ṣàfihàn àtòpọ̀ lọ́wọ́lọ́wọ́
+omniroute logs                         # Ṣàfihàn àwọn àkọọ́lẹ̀ ìbéèrè lọ́wọ́lọ́wọ́ (--json, --search, --follow)
+omniroute config list                  # Ṣàfihàn àwọn irinṣẹ́ CLI tí a ti ṣètò
 
-omniroute provider list                # Ṣàkọsílẹ̀ àwọn olùpèsè tó wà (orúkọ-àfirọ́ ti providers list)
-omniroute provider add                 # Forúkọsílẹ̀ OmniRoute gẹ́gẹ́ bí olùpèsè lórí irinṣẹ́ kan
+omniroute provider list                # Ṣàkójọ àwọn olupèsè tó wà (orúkọ ìnagijẹ fún providers list)
+omniroute provider add                 # Forúkọsílẹ̀ OmniRoute gẹ́gẹ́ bí olupèsè lórí irinṣẹ́ kan
 omniroute keys add | list | remove     # Ṣàkóso àwọn kọ́kọ́rọ́ API
-omniroute models [provider]            # Ṣàkọsílẹ̀ àwọn àwòṣe (--json, --search)
+omniroute models [provider]            # Ṣàkójọ àwọn àwòṣe (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Ya àwòrán-ipò àtòpọ̀ + DB
-omniroute restore                      # Mú padà láti inú àwòrán-ipò tẹ́lẹ̀
+omniroute backup                       # Ya àwòrán-àkókò config + DB
+omniroute restore                      # Mú padà láti inú àwòrán-àkókò tẹ́lẹ̀
 
-omniroute health                       # Ìlera tó kúnrẹ́rẹ́ (àwọn olùdádúró, cache, memory)
-omniroute quota                        # Ìlò ìpín olùpèsè
+omniroute health                       # Àlàyé ìlera kíkún (breakers, cache, memory)
+omniroute quota                        # Ìlò ìpín olupèsè
 omniroute cache                        # Ipò cache
-omniroute cache clear                  # Pa àwọn cache semantic + signature rẹ́
+omniroute cache clear                  # Pa semantic + signature caches rẹ́
 
 omniroute mcp status | restart         # Ipò olupin MCP / tún bẹ̀rẹ̀
 omniroute a2a status | card            # Ipò olupin A2A / káàdì aṣojú
 
 omniroute tunnel list | create | stop  # Ṣàkóso àwọn tunnel (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Ṣàyẹ̀wò / ṣètò àwọn env vars (fún ìgbà díẹ̀)
+omniroute env show | get <k> | set <k> <v>  # Ṣàyẹ̀wò / ṣètò àwọn oníyípadà env (fún ìgbà díẹ̀)
 
-omniroute test                         # Ìdánwò smoke fún àsopọ̀ olùpèsè
+omniroute test                         # Ìdánwò kíákíá fún ìsopọ̀ olupèsè
 omniroute update                       # Ṣàyẹ̀wò àwọn ìmúdójúìwọ̀n
-omniroute completion                   # Ṣẹ̀dá ìparí shell
+omniroute completion                   # Ṣẹ̀dá ìparí-àṣẹ shell
 ```
 
-### Àwọn àsíá tí a sábà máa ń lò
+### Àwọn àsìá tí a sábà máa ń lò
 
-| Àsíá                | Àpèjúwe                                                       |
-| ------------------- | ------------------------------------------------------------- |
-| `--no-open`         | Má ṣe ṣí browser fúnra rẹ̀ nígbà ìbẹ̀rẹ̀                         |
-| `--port <n>`        | Rọ́pò port API (àiyípadà 20128)                                |
-| `--mcp`             | Ṣiṣẹ́ gẹ́gẹ́ bí olupin MCP lórí stdio (fún àwọn IDE)             |
-| `--non-interactive` | Ipo CI (kò sí ìbéèrè; ó ń kà láti env/àwọn àsíá)              |
-| `--json`            | Àbájáde JSON tí ẹ̀rọ lè kà (doctor, providers, àti bẹ́ẹ̀ bẹ́ẹ̀ lọ) |
-| `--help`, `-h`      | Ṣàfihàn ìrànlọ́wọ́ pàtó fún àṣẹ                                 |
-| `--version`, `-v`   | Tẹ ẹ̀yà tí a ti fi sílẹ̀ jáde                                   |
+| Àsìá                | Àpèjúwe                                              |
+| ------------------- | ---------------------------------------------------- |
+| `--no-open`         | Má ṣe ṣí aṣàwákiri fúnra rẹ̀ nígbà ìbẹ̀rẹ̀              |
+| `--port <n>`        | Rọ́pò port API (àìyípadà 20128)                       |
+| `--mcp`             | Ṣiṣẹ́ gẹ́gẹ́ bí olupin MCP lórí stdio (fún àwọn IDE)    |
+| `--non-interactive` | Ipò CI (kò sí ìbéèrè; ó ń kà láti env/àwọn àsìá)     |
+| `--json`            | Àbájáde JSON tí ẹ̀rọ lè kà (doctor, providers, abbl.) |
+| `--help`, `-h`      | Ṣàfihàn ìrànlọ́wọ́ pàtó fún àṣẹ                        |
+| `--version`, `-v`   | Tẹ ẹ̀yà tí a ti fi sílẹ̀ jáde                          |
 
 ---
 

@@ -246,6 +246,12 @@ export const OAUTH_TEST_CONFIG: Record<string, OAuthTestConfigEntry> = {
     checkExpiry: true,
     refreshable: true,
   },
+  "muse-code": {
+    // Minted Muse inference keys have no advertised expiry. Validate presence;
+    // remint from the stored dca token is the refresh path (CLIProxyAPI parity).
+    checkExpiry: true,
+    refreshable: true,
+  },
   kilocode: {
     // Kilo OAuth does not expose a stable user-info endpoint in all environments.
     // Validate using token presence/expiry as a lightweight auth check.

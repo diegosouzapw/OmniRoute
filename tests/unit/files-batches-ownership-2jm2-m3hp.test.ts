@@ -182,16 +182,31 @@ function assertInvalidKey401(res: Response, body: ErrorBody, label: string) {
 }
 
 describe("canAccessOwnedRecord — the shared 3-way ownership rule", () => {
-  it("a dashboard session may act on any record, owned or not", () => {
+  it("a PURE dashboard session (no apiKeyId override) may act on any record, owned or not", () => {
     assert.strictEqual(
       canAccessOwnedRecord({ isSessionAuth: true, apiKeyId: null }, "key-1"),
       true
     );
-    assert.strictEqual(canAccessOwnedRecord({ isSessionAuth: true, apiKeyId: "k" }, "key-1"), true);
     assert.strictEqual(canAccessOwnedRecord({ isSessionAuth: true, apiKeyId: null }, null), true);
     assert.strictEqual(
       canAccessOwnedRecord({ isSessionAuth: true, apiKeyId: null }, undefined),
       true
+    );
+  });
+
+  // #14481 item 4/LEDGER-19: a session that ALSO carries an apiKeyId override
+  // (e.g. a dashboard session cookie alongside a presented API key) used to
+  // bypass ownership entirely — isSessionAuth short-circuited to true BEFORE
+  // the apiKeyId override was ever checked, so this shape was authorized
+  // against ANY tenant's record even though the record it acts on is
+  // attributed to the KEY, not the session. Fixed: the override is checked
+  // FIRST, so a session+key only reaches its OWN records — a genuine
+  // regression test lives in apikey-scope-manage-demotion-14481.test.ts.
+  it("a session+key request is scoped to that KEY's own records, not every tenant", () => {
+    assert.strictEqual(canAccessOwnedRecord({ isSessionAuth: true, apiKeyId: "k" }, "k"), true);
+    assert.strictEqual(
+      canAccessOwnedRecord({ isSessionAuth: true, apiKeyId: "k" }, "key-1"),
+      false
     );
   });
 

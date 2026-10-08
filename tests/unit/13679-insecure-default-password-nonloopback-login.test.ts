@@ -22,6 +22,8 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-13679d-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.JWT_SECRET = "test-jwt-secret-13679d";
+const ORIGINAL_STAMP_TOKEN = process.env.OMNIROUTE_PEER_STAMP_TOKEN;
+process.env.OMNIROUTE_PEER_STAMP_TOKEN = "test-peer-stamp-13679d";
 
 const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
 
@@ -48,6 +50,8 @@ test.afterEach(() => {
 });
 
 test.after(() => {
+  if (ORIGINAL_STAMP_TOKEN === undefined) delete process.env.OMNIROUTE_PEER_STAMP_TOKEN;
+  else process.env.OMNIROUTE_PEER_STAMP_TOKEN = ORIGINAL_STAMP_TOKEN;
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (ORIGINAL_INITIAL_PASSWORD === undefined) {
@@ -57,13 +61,18 @@ test.after(() => {
   }
 });
 
+// The authz pipeline stamps the socket peer's locality on the request; the forwarded-for
+// value only mirrors it here, since a caller-supplied header must not decide the outcome.
 function postLogin(password: string, forwardedFor: string) {
+  const local = forwardedFor === "127.0.0.1";
   return loginRoute.POST(
     new Request("http://localhost/api/auth/login", {
       method: "POST",
       headers: {
         "content-type": "application/json",
         "x-forwarded-for": forwardedFor,
+        "x-omniroute-peer-locality": local ? "loopback" : "remote",
+        "x-omniroute-trusted-peer-ip": forwardedFor,
       },
       body: JSON.stringify({ password }),
     })

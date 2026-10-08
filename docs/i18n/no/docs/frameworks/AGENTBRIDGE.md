@@ -1,6 +1,6 @@
 # AgentBridge (Norsk)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/AGENTBRIDGE.md) · 🇪🇹 [am](../../../am/docs/frameworks/AGENTBRIDGE.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/AGENTBRIDGE.md) · 🇦🇿 [az](../../../az/docs/frameworks/AGENTBRIDGE.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/AGENTBRIDGE.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/AGENTBRIDGE.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/AGENTBRIDGE.md) · 🇩🇰 [da](../../../da/docs/frameworks/AGENTBRIDGE.md) · 🇩🇪 [de](../../../de/docs/frameworks/AGENTBRIDGE.md) · 🇬🇷 [el](../../../el/docs/frameworks/AGENTBRIDGE.md) · 🇪🇸 [es](../../../es/docs/frameworks/AGENTBRIDGE.md) · 🇪🇪 [et](../../../et/docs/frameworks/AGENTBRIDGE.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/AGENTBRIDGE.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/AGENTBRIDGE.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/AGENTBRIDGE.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/AGENTBRIDGE.md) · 🇮🇱 [he](../../../he/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/AGENTBRIDGE.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/AGENTBRIDGE.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/AGENTBRIDGE.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/AGENTBRIDGE.md) · 🇮🇩 [id](../../../id/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/AGENTBRIDGE.md) · 🇮🇹 [it](../../../it/docs/frameworks/AGENTBRIDGE.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/AGENTBRIDGE.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/AGENTBRIDGE.md) · 🇰🇭 [km](../../../km/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/AGENTBRIDGE.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/AGENTBRIDGE.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/AGENTBRIDGE.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/AGENTBRIDGE.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/AGENTBRIDGE.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/AGENTBRIDGE.md) · 🇲🇲 [my](../../../my/docs/frameworks/AGENTBRIDGE.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/AGENTBRIDGE.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [or](../../../or/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/AGENTBRIDGE.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/AGENTBRIDGE.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/AGENTBRIDGE.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/AGENTBRIDGE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/AGENTBRIDGE.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/AGENTBRIDGE.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/AGENTBRIDGE.md) · 🇱🇰 [si](../../../si/docs/frameworks/AGENTBRIDGE.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/AGENTBRIDGE.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/AGENTBRIDGE.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/AGENTBRIDGE.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/AGENTBRIDGE.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [te](../../../te/docs/frameworks/AGENTBRIDGE.md) · 🇹🇭 [th](../../../th/docs/frameworks/AGENTBRIDGE.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/AGENTBRIDGE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/AGENTBRIDGE.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/AGENTBRIDGE.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/AGENTBRIDGE.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/AGENTBRIDGE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/AGENTBRIDGE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/AGENTBRIDGE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/AGENTBRIDGE.md) · 🇪🇹 [am](../../../am/docs/frameworks/AGENTBRIDGE.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/AGENTBRIDGE.md) · 🇦🇿 [az](../../../az/docs/frameworks/AGENTBRIDGE.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/AGENTBRIDGE.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/AGENTBRIDGE.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/AGENTBRIDGE.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/AGENTBRIDGE.md) · 🇩🇰 [da](../../../da/docs/frameworks/AGENTBRIDGE.md) · 🇩🇪 [de](../../../de/docs/frameworks/AGENTBRIDGE.md) · 🇬🇷 [el](../../../el/docs/frameworks/AGENTBRIDGE.md) · 🇪🇸 [es](../../../es/docs/frameworks/AGENTBRIDGE.md) · 🇪🇪 [et](../../../et/docs/frameworks/AGENTBRIDGE.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/AGENTBRIDGE.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/AGENTBRIDGE.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/AGENTBRIDGE.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/AGENTBRIDGE.md) · 🇮🇱 [he](../../../he/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/AGENTBRIDGE.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/AGENTBRIDGE.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/AGENTBRIDGE.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/AGENTBRIDGE.md) · 🇮🇩 [id](../../../id/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/AGENTBRIDGE.md) · 🇮🇹 [it](../../../it/docs/frameworks/AGENTBRIDGE.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/AGENTBRIDGE.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/AGENTBRIDGE.md) · 🇰🇭 [km](../../../km/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/AGENTBRIDGE.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/AGENTBRIDGE.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/AGENTBRIDGE.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/AGENTBRIDGE.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/AGENTBRIDGE.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/AGENTBRIDGE.md) · 🇲🇲 [my](../../../my/docs/frameworks/AGENTBRIDGE.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/AGENTBRIDGE.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [or](../../../or/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/AGENTBRIDGE.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/AGENTBRIDGE.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/AGENTBRIDGE.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/AGENTBRIDGE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/AGENTBRIDGE.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/AGENTBRIDGE.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/AGENTBRIDGE.md) · 🇱🇰 [si](../../../si/docs/frameworks/AGENTBRIDGE.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/AGENTBRIDGE.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/AGENTBRIDGE.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/AGENTBRIDGE.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/AGENTBRIDGE.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [te](../../../te/docs/frameworks/AGENTBRIDGE.md) · 🇹🇭 [th](../../../th/docs/frameworks/AGENTBRIDGE.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/AGENTBRIDGE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/AGENTBRIDGE.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/AGENTBRIDGE.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/AGENTBRIDGE.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/AGENTBRIDGE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/AGENTBRIDGE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/AGENTBRIDGE.md)
 
 ---
 
@@ -189,14 +189,14 @@ delte blokkeringslisten for hop-by-hop-/innrammingsheadere (inkludert proxy-aute
 
 Bruk AgentBridge-serverkortet på `/dashboard/tools/agent-bridge`:
 
-| Handling                     | Beskrivelse                                                                             |
-| ---------------------------- | --------------------------------------------------------------------------------------- |
-| Start server                 | Starter `src/mitm/server.cjs` på port 443                                               |
-| Stopp server                 | Avslutter underprosessen på en kontrollert måte                                         |
-| Start server på nytt         | Stopper og starter serveren (tar i bruk endringer i målkonfigurasjonen)                 |
-| Klarer sertifikatet          | Installerer `DATA_DIR/mitm/ca.crt` i operativsystemets klarerte sertifikatlager         |
-| Last ned sertifikatet        | Laster ned `ca.crt` for manuell installasjon                                            |
-| Generer sertifikatet på nytt | Oppretter et nytt CA-nøkkelpar (alle eksisterende sertifikater per agent blir ugyldige) |
+| Handling                   | Beskrivelse                                                                             |
+| -------------------------- | --------------------------------------------------------------------------------------- |
+| Start server               | Starter `src/mitm/server.cjs` på port 443                                               |
+| Stopp server               | Avslutter underprosessen på en kontrollert måte                                         |
+| Start server på nytt       | Stopper + starter (tar i bruk målendringer)                                             |
+| Klarer sertifikat          | Installerer `DATA_DIR/mitm/ca.crt` i operativsystemets klareringslager                  |
+| Last ned sertifikat        | Laster ned `ca.crt` for manuell installasjon                                            |
+| Generer sertifikat på nytt | Oppretter et nytt CA-nøkkelpar (alle eksisterende sertifikater per agent blir ugyldige) |
 
 ### 3.2 Klarer sertifikatet
 
@@ -221,36 +221,36 @@ sudo security add-trusted-cert -d -r trustRoot \
 certutil -addstore -f Root $env:USERPROFILE\.omniroute\mitm\ca.crt
 ```
 
-Du kan også bruke knappen «Klarer sertifikatet» i kontrollpanelet (den kjører riktig kommando for operativsystemet ditt, med en sudo-forespørsel om nødvendig).
+Du kan også bruke knappen «Klarer sertifikat» i kontrollpanelet (den kjører riktig kommando for operativsystemet ditt, med spørsmål om sudo ved behov).
 
-#### Electron-baserte IDE-er ignorerer operativsystemets klarerte sertifikatlager (`NODE_EXTRA_CA_CERTS`)
+#### Electron-baserte IDE-er ignorerer operativsystemets klareringslager (`NODE_EXTRA_CA_CERTS`)
 
-Enkelte IDE-er — særlig **Antigravity IDE** og andre apper basert på Electron / VS Code — leveres med
-sin egen Node.js-kjøretid som **ikke bruker operativsystemets klarerte sertifikatlager** for utgående
-`fetch`/HTTPS. Det er tilstrekkelig å klarere CA-en på OS-/NSS-nivå for IDE-ens innebygde **bakende**
-(f.eks. en Go-språkserver som bruker operativsystemets CA-pakke), men **Electron-grensesnittet** vil
-fortsatt mislykkes med TLS — dette vises som at appen er _logget ut_ eller viser en _«tilkoblingsfeil»_,
-selv om MITM-loggen viser at bakendens oppstartskall returnerer `200`. To trinn er
+Enkelte IDE-er — særlig **Antigravity IDE** og andre apper basert på Electron / VS Code — inkluderer
+sitt eget Node.js-kjøremiljø som **ikke bruker operativsystemets klareringslager** for utgående
+`fetch`/HTTPS. Det er tilstrekkelig å klarere CA-en på OS-/NSS-nivå for IDE-ens opprinnelige **backend**
+(f.eks. en Go-språkserver, som bruker operativsystemets CA-pakke), men **Electron-frontenddelen** vil
+fortsatt få TLS-feil — dette vises som at appen er _logget ut_ eller viser en _«tilkoblingsfeil»_,
+selv om MITM-loggen viser at backendens oppstartskall returnerer `200`. To trinn er
 nødvendige, og begge er viktige:
 
-1. Pek kjøretiden eksplisitt til CA-en:
+1. Pek kjøremiljøet eksplisitt til CA-en:
    ```bash
    export NODE_EXTRA_CA_CERTS=/path/to/omniroute-agentbridge-ca.crt
    ```
 2. **Start IDE-en fra dette skallet.** Hvis den startes fra skrivebordsikonet / Dock / Start-menyen,
-   arver den **ikke** skallvariablene, og `~/.config/environment.d/*.conf` trer først i kraft etter
-   en ny grafisk innlogging. Avslutt IDE-en helt først — Electrons singleton-lås gjør at en ny
+   arver den **ikke** skalleksportene, og `~/.config/environment.d/*.conf` gjelder først etter
+   en ny grafisk innlogging. Avslutt IDE-en helt først — Electrons singleton-lås betyr at en ny
    oppstart bare fokuserer den eksisterende prosessen, og det nye miljøet ignoreres.
 
-Trinnet ovenfor for klarering i operativsystemet + NSS er fortsatt nødvendig (Chromium-nettverksstakken som brukes av enkelte
-autentiseringsflyter, leser NSS-lageret per bruker og har sine egne statiske pins for `*.googleapis.com` som en
+Trinnet ovenfor med OS-klarering + NSS er fortsatt nødvendig (Chromium-nettverksstakken som brukes av enkelte
+autentiseringsflyter, leser NSS-lageret per bruker og har sine egne statiske pins for `*.googleapis.com`, som en
 lokalt klarert CA overstyrer). `NODE_EXTRA_CA_CERTS` dekker i tillegg Node-banen for `fetch`.
 
 ### 3.3 DNS-ruting
 
-For hver agent du vil avskjære, må API-verten(e) dens løses til `127.0.0.1`. AgentBridge administrerer oppføringer i `/etc/hosts` automatisk når du slår DNS av eller på for en agent i oppsettsveiviseren.
+For hver agent du vil avskjære, må API-verten(e) løses til `127.0.0.1`. AgentBridge administrerer oppføringer i `/etc/hosts` automatisk når du slår DNS av eller på for en agent i oppsettsveiviseren.
 
-Eksempel på `/etc/hosts`-oppføringer for GitHub Copilot:
+Eksempel på oppføringer i `/etc/hosts` for GitHub Copilot:
 
 ```
 127.0.0.1 api.githubcopilot.com
@@ -259,63 +259,73 @@ Eksempel på `/etc/hosts`-oppføringer for GitHub Copilot:
 
 ### 3.4 Modelltilordning
 
-Bruk modelltilordningstabellen i hvert agentkort til å definere kilde → mål-tilordninger:
+Bruk modelltilordningstabellen i hvert agentkort for å definere tilordninger fra kilde → mål:
 
-| Kildemodell (agentens opprinnelige) | Målmodell (OmniRoute) |
-| ----------------------------------- | --------------------- |
-| `gpt-4o`                            | `claude-sonnet-4.7`   |
-| `*` (jokertegn)                     | `claude-haiku-4.7`    |
+| Kildemodell (agentens egen) | Målmodell (OmniRoute) |
+| --------------------------- | --------------------- |
+| `gpt-4o`                    | `claude-sonnet-4.7`   |
+| `*` (jokertegn)             | `claude-haiku-4.7`    |
 
-Jokertegnet `*` tilordner enhver ukjent modell til det angitte målet. Lagres i tabellen `agent_bridge_mappings`.
+Jokertegnet `*` tilordner alle ukjente modeller til det angitte målet. Lagres i tabellen `agent_bridge_mappings`.
 
 > **Tips — finn agentens faktiske modell-ID-er.** En IDE kan sende modellnavn som avviker fra
 > etikettene i brukergrensesnittet, og som endres mellom hovedversjoner. **Antigravity 2** sender for eksempel
 > `gemini-3.1-pro-low`, `gemini-pro-agent` og `gemini-3.1-flash-lite` over forbindelsen — ikke
-> `gemini-2.5-pro`, som vises i eldre dokumentasjon. Send én chatmelding uten en samsvarende tilordning: MITM
-> logger den nøyaktige innkommende `model:`-verdien og videresender forespørselen. Tilordne denne bokstavelige verdien, så blir
-> den neste forespørselen avskåret og rutet til målet ditt.
+> `gemini-2.5-pro`, som vises i eldre dokumentasjon. Send én chat uten en samsvarende tilordning: MITM
+> logger den nøyaktige innkommende `model:`-verdien og videresender forespørselen uendret. Tilordne denne bokstavelige verdien, så
+> blir den neste forespørselen avskåret og rutet til målet ditt.
 
 ### 3.5 Risikovarsel
 
-AgentBridge avskjærer legitimasjon (OAuth-tokener, API-nøkler) som IDE-en bruker til å autentisere seg mot oppstrømsleverandører. Disse blir **maskert før logging** (se §2.7), men er synlige for OmniRoutes MITM-lag. Første aktivering av hver agent viser et risikovarsel i et modalt vindu som kan lukkes.
+AgentBridge avskjærer legitimasjon (OAuth-tokener, API-nøkler) som IDE-en bruker til å autentisere seg mot oppstrømsleverandører. Disse blir **maskert før logging** (se §2.7), men er synlige for OmniRoutes MITM-lag. Første aktivering av hver agent viser et risikovarsel i et modalvindu som kan lukkes.
 
 ### 3.6 Vedlikehold og diagnostikk
 
-Kontrollpanelet viser et kort for **vedlikehold og diagnostikk** (`AgentBridgeMaintenanceCard`, i `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`) som gjør operative MITM-ruter som tidligere ikke hadde noe brukergrensesnitt, tilgjengelige. Undertittelen er: _«Selvtest innhentingsflyten, fjern gjenværende systemtilstand og flytt oppsettet ditt mellom maskiner.»_ Klienthjelperne for kortet ligger i `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
+Kontrollpanelet inneholder et kort for **vedlikehold og diagnostikk** (`AgentBridgeMaintenanceCard`, i `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`) som viser operative MITM-ruter som tidligere ikke hadde noe brukergrensesnitt. Undertittelen er: _«Selvtest innsamlingsprosessen, tilbakestill gjenværende systemtilstand, og flytt oppsettet mellom maskiner.»_ Klienthjelperne for kortet ligger i `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
 
 | Knapp                       | Rute                                   | Hva den gjør                                                                                                                                                                                            |
 | --------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Diagnostiser**            | `GET /api/tools/agent-bridge/diagnose` | Kjører selvtesten for opptakspipelinen og viser en rapport for hver kontroll (✓/✗ + utbedringstips).                                                                                                    |
+| **Diagnostiser**            | `GET /api/tools/agent-bridge/diagnose` | Kjører en selvtest av innsamlingskjeden og viser en rapport for hver kontroll (✓/✗ + utbedringstips).                                                                                                   |
 | **Reparer**                 | `POST /api/tools/agent-bridge/repair`  | Tilbakestiller foreldreløs MITM-systemtilstand (DNS-forfalskningsoppføringer, rot-CA, systemproxy) etter et krasj eller SIGKILL. Idempotent — rapporterer «Ingenting å reparere» når tilstanden er ren. |
-| **Fjern CA**                | `DELETE /api/tools/agent-bridge/cert`  | Fjerner tilliten til og sletter MITM-rot-CA-en fra operativsystemets tillitslager (eksplisitt, idempotent). Vises bare når CA-en er klarert; krever en innebygd «Fjern CA?»-bekreftelse.                |
-| **Eksporter konfigurasjon** | `GET /api/tools/agent-bridge/config`   | Laster ned den portable konfigurasjons-JSON-en (se §3.7).                                                                                                                                               |
-| **Importer konfigurasjon**  | `POST /api/tools/agent-bridge/config`  | Laster opp en tidligere eksportert konfigurasjons-JSON (se §3.7).                                                                                                                                       |
+| **Fjern CA**                | `DELETE /api/tools/agent-bridge/cert`  | Fjerner tilliten til og sletter MITM-rot-CA-en fra operativsystemets klareringslager (eksplisitt, idempotent). Vises bare når CA-en er klarert, og krever en innebygd «Fjern CA?»-bekreftelse.          |
+| **Eksporter konfigurasjon** | `GET /api/tools/agent-bridge/config`   | Laster ned den portable konfigurasjonen som JSON (se §3.7).                                                                                                                                             |
+| **Importer konfigurasjon**  | `POST /api/tools/agent-bridge/config`  | Laster opp en tidligere eksportert JSON-konfigurasjon (se §3.7).                                                                                                                                        |
 
-**Diagnostikkontroller** (`summarizeDiagnostics()` i `src/mitm/inspector/diagnostics.ts`). Ruten kjører den effektfulle testen for hver kontroll og mater de boolske verdiene inn i den rene oppsummeringsfunksjonen. Én samlet `healthy`-vurdering samt et tips for hver feil returneres:
+Hvert agentkort har også sin egen **Gjenopprett standardinnstillinger**-knapp (`POST
+/api/tools/agent-bridge/agents/{id}/reset`) — en ettklikks angrehandling per agent som bare fjerner
+forfalskningen av denne agentens verter, sletter de lagrede modelltilordningene og tilbakestiller
+tilstanden for `dns_enabled`/`setup_completed`, slik at IDE-en kommuniserer med den virkelige
+oppstrømstjenesten igjen etter en fullstendig omstart. Den berører **ikke** den delte MITM-serveren
+eller rot-CA-en (andre agenter kan fortsatt være avhengige av dem) — disse forblir tilgjengelige
+via serverkortet og handlingen **Fjern CA** ovenfor. På Windows forsøker den også etter beste evne
+å kjøre `ipconfig /flushdns`, fordi Windows DNS Client mellomlagrer oppføringer i hosts-filen og
+ellers ikke fjerner en forfalskning som nettopp er slettet.
 
-| Kontrollnavn       | Hva den verifiserer                                        | Tips ved feil                                                                                                                                   |
-| ------------------ | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `server-running`   | MITM-serverprosessen er aktiv                              | «MITM-serveren kjører ikke. Start den fra AgentBridge-fanen.»                                                                                   |
-| `server-reachable` | MITM-serveren godtar tilkoblinger på porten sin (TCP-test) | «MITM-serveren godtar ikke tilkoblinger på porten sin. Kontroller at porten er ledig, og at du har rettigheter til å binde den.»                |
-| `cert-exists`      | MITM-sertifikatet er generert på disken                    | «Det er ennå ikke generert noe MITM-sertifikat. Generer et fra AgentBridge-fanen.»                                                              |
-| `cert-trusted`     | MITM-rot-CA-en finnes i operativsystemets tillitslager     | «MITM-rot-CA-en er ikke klarert av operativsystemets tillitslager, så TLS-avskjæring vil mislykkes. Klarer sertifikatet fra AgentBridge-fanen.» |
-| `dns-configured`   | Målvertsnavn er forfalsket i `/etc/hosts`                  | «Målvertsnavn er ikke forfalsket i /etc/hosts, så trafikken når aldri proxyen. Aktiver DNS for agenten(e) du vil fange opp.»                    |
+**Diagnostikkontroller** (`summarizeDiagnostics()` i `src/mitm/inspector/diagnostics.ts`). Ruten kjører den effektfulle testen for hver kontroll og sender de boolske verdiene til den rene oppsummeringsfunksjonen. Resultatet inneholder én `healthy`-vurdering samt et tips for hver feil:
 
-**Banner for foreldreløs tilstand:** Når siden oppdager tilstand som er etterlatt etter et krasj (DNS-forfalskning / CA / systemproxy), viser kortet et gult banner — _«En tidligere økt etterlot systemtilstand (DNS-forfalskning, CA eller systemproxy). Kjør Reparer for å rydde opp.»_ — og fremhever **Reparer**-knappen. `Repair` er applikasjonslagets motstykke til ProxyBridges `--cleanup`-flagg (det delegerer til `repairMitm()` i `src/mitm/manager.ts`).
+| Kontrollnavn       | Hva den kontrollerer                                       | Tips ved feil                                                                                                                                      |
+| ------------------ | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server-running`   | MITM-serverprosessen er aktiv                              | «MITM-serveren kjører ikke. Start den fra AgentBridge-fanen.»                                                                                      |
+| `server-reachable` | MITM-serveren godtar tilkoblinger på porten sin (TCP-test) | «MITM-serveren godtar ikke tilkoblinger på porten sin. Kontroller at porten er ledig, og at du har rettigheter til å binde den.»                   |
+| `cert-exists`      | MITM-sertifikatet er generert på disken                    | «Det er ennå ikke generert noe MITM-sertifikat. Generer et fra AgentBridge-fanen.»                                                                 |
+| `cert-trusted`     | MITM-rot-CA-en finnes i operativsystemets klareringslager  | «MITM-rot-CA-en er ikke klarert av operativsystemets klareringslager, så TLS-avskjæring vil mislykkes. Klarer sertifikatet fra AgentBridge-fanen.» |
+| `dns-configured`   | Målvertsnavn er forfalsket i `/etc/hosts`                  | «Målvertsnavnene er ikke forfalsket i /etc/hosts, så trafikken når aldri proxyen. Aktiver DNS for agenten(e) du vil registrere trafikk fra.»       |
 
-> MITM-rot-CA-en forblir installert på tvers av stopp/start for å unngå gjentatte sudo-
-> forespørsler (samme virkemåte som mitmproxy/Charles), så fjerning av den er en eksplisitt
-> **Fjern CA**-handling i stedet for noe som skjer automatisk ved stopp.
+**Banner for foreldreløs tilstand:** Når siden oppdager tilstand etterlatt av et krasj (DNS-forfalskning / CA / systemproxy), viser kortet et gult banner — _«En tidligere økt etterlot systemtilstand (DNS-forfalskning, CA eller systemproxy). Kjør Reparer for å rydde opp.»_ — og fremhever knappen **Reparer**. `Repair` er analogien på applikasjonslaget til ProxyBridges `--cleanup`-flagg (den delegerer til `repairMitm()` i `src/mitm/manager.ts`).
+
+> MITM-rot-CA-en forblir installert ved stopp/start for å unngå gjentatte sudo-
+> forespørsler (samme virkemåte som mitmproxy/Charles), så fjerning skjer gjennom
+> den eksplisitte handlingen **Fjern CA**, ikke automatisk ved stopp.
 
 ### 3.7 Import/eksport av portabel konfigurasjon
 
-AgentBridge kan serialisere den **operatørjusterbare** tilstanden til en versjonert JSON-blokk, slik at et oppsett kan replikeres på tvers av maskiner. Serialiseringsfunksjonen er `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`), validert av `AgentBridgeConfigSchema`.
+AgentBridge kan serialisere den **operatørjusterbare** tilstanden til en versjonert JSON-blobb, slik at et oppsett kan replikeres på tvers av maskiner. Serialiseringsfunksjonen er `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`), validert av `AgentBridgeConfigSchema`.
 
-Eksporten inneholder nøyaktig tre deler (innebygde standardverdier eksporteres med hensikt **IKKE**, slik at import aldri dupliserer dem eller kommer i konflikt med dem):
+Eksporten inneholder nøyaktig tre deler (innebygde standardverdier eksporteres med hensikt **IKKE**, slik at import aldri dupliserer dem eller skaper konflikt med dem):
 
 | Felt             | Kilde                                                               | Merknader                                                                 |
 | ---------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `bypassPatterns` | brukerdefinerte omgåelsesmønstre (`agent_bridge_bypass`)            | standardmønstre for banker/myndigheter/okta er utelatt                    |
+| `bypassPatterns` | brukerdefinerte omgåelsesmønstre (`agent_bridge_bypass`)            | standardmønstre for bank/gov/okta er ekskludert                           |
 | `customHosts`    | egendefinerte verter i Traffic Inspector (`inspector_custom_hosts`) | hver: `{ host, kind: "llm"\|"app"\|"custom", label? }`                    |
 | `agentMappings`  | modelltilordninger per agent (`agent_bridge_mappings`)              | `{ [agentId]: [{ source, target }] }` for hver agent som har tilordninger |
 
@@ -331,13 +341,13 @@ Eksporten inneholder nøyaktig tre deler (innebygde standardverdier eksporteres 
 }
 ```
 
-**Importvirkemåte** (`POST /api/tools/agent-bridge/config`): Omgåelsesmønstre og tilordninger per agent **erstattes i sin helhet**; egendefinerte verter legges til **idempotent** (`INSERT OR IGNORE`). Responsen rapporterer hvor mange av hver type som ble brukt:
+**Importatferd** (`POST /api/tools/agent-bridge/config`): Omgåelsesmønstre og tilordninger per agent **erstattes i sin helhet**; egendefinerte verter legges til **idempotent** (`INSERT OR IGNORE`). Responsen rapporterer hvor mange av hver som ble brukt:
 
 ```jsonc
 { "ok": true, "bypassPatterns": 1, "customHosts": 1, "agents": 1 }
 ```
 
-Dette er **IKKE** med i konfigurasjonen: serverens kjørestatus, sertifikatbaner, DNS-status per agent, banen til den overordnede CA-en og TPROXY-innstillinger – dette er verts-/kjøretidstilstand, ikke portable innstillinger.
+Dette er **IKKE** med i konfigurasjonen: serverens kjørestatus, sertifikatbaner, DNS-status per agent, banen til oppstrøms-CA og TPROXY-innstillinger – dette er verts-/kjøretidstilstand, ikke portable innstillinger.
 
 ---
 
@@ -497,37 +507,38 @@ Hvis AgentBridge avskjærer forespørsler, men alle forespørsler mislykkes:
 
 ## §7 API-referanse
 
-Alle ruter er `LOCAL_ONLY` (kun tilbakekobling, håndhevet før autentisering) og `SPAWN_CAPABLE`. Se `src/server/authz/routeGuard.ts`.
+Alle ruter er `LOCAL_ONLY` (kun loopback, håndheves før autentisering) og `SPAWN_CAPABLE`. Se `src/server/authz/routeGuard.ts`.
 
-Basisbane: `/api/tools/agent-bridge/`
+Basissti: `/api/tools/agent-bridge/`
 
-| Metode              | Bane                                           | Beskrivelse                                                                                                                      |
-| ------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| GET                 | `/api/tools/agent-bridge/state`                | Global servertilstand + deteksjon/status per agent                                                                               |
-| GET                 | `/api/tools/agent-bridge/agents`               | Liste over registrerte agenter (id, navn, verter, brukbarhet, tilstand)                                                          |
-| GET                 | `/api/tools/agent-bridge/agents/{id}`          | Tilstanden til én agent (målkonfigurasjon + deteksjon + lagret tilstand)                                                         |
-| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Oppdater `setup_completed` for agenten                                                                                           |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Kjør deteksjonssjekk for agenten (`installed`, `version?`, `path?`)                                                              |
-| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Aktiver/deaktiver DNS for agenten (`{enabled: boolean}`)                                                                         |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Modelltilordninger for agenten                                                                                                   |
-| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Erstatt modelltilordninger                                                                                                       |
-| POST                | `/api/tools/agent-bridge/server`               | Start/stopp/start serveren på nytt (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                       |
-| GET                 | `/api/tools/agent-bridge/cert`                 | Sertifikatstatus (`exists`, `trusted`, `path`)                                                                                   |
-| POST                | `/api/tools/agent-bridge/cert`                 | Klarer som pålitelig (installer) MITM-rot-CA-en                                                                                  |
-| DELETE              | `/api/tools/agent-bridge/cert`                 | Fjern klarering (fjern) av MITM-rot-CA-en — idempotent (se §3.6)                                                                 |
-| POST                | `/api/tools/agent-bridge/cert/regenerate`      | Generer det selvsignerte MITM-sertifikatet på nytt                                                                               |
-| GET                 | `/api/tools/agent-bridge/cert/download`        | Strøm PEM-sertifikatet for nedlasting                                                                                            |
-| GET                 | `/api/tools/agent-bridge/bypass`               | Vis liste over omgåelsesmønstre (`default` + `user`)                                                                             |
-| POST                | `/api/tools/agent-bridge/bypass`               | Erstatt alle brukerdefinerte omgåelsesmønstre                                                                                    |
-| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Fjern ett enkelt brukerdefinert omgåelsesmønster                                                                                 |
-| GET                 | `/api/tools/agent-bridge/diagnose`             | Selvtest av registreringsrørledningen (se §3.6)                                                                                  |
-| POST                | `/api/tools/agent-bridge/repair`               | Tilbakestill foreldreløs MITM-systemtilstand (se §3.6)                                                                           |
-| GET                 | `/api/tools/agent-bridge/config`               | Eksporter portabel konfigurasjons-JSON (se §3.7)                                                                                 |
-| POST                | `/api/tools/agent-bridge/config`               | Importer portabel konfigurasjons-JSON (se §3.7)                                                                                  |
-| GET                 | `/api/tools/agent-bridge/upstream-ca`          | Hent den konfigurerte banen til oppstrøms-CA-en                                                                                  |
-| POST                | `/api/tools/agent-bridge/upstream-ca`          | Valider + lagre banen til oppstrøms-CA-en                                                                                        |
-| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Valider uten å lagre (prøvekjøring) en bane til oppstrøms-CA-en                                                                  |
-| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | TPROXY-opptaksmodus for transparent dekryptering — se `docs/security/MITM-TPROXY-DECRYPT.md` (git; ikke kompilert inn i `/docs`) |
+| Metode              | Sti                                            | Beskrivelse                                                                                                                             |
+| ------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| GET                 | `/api/tools/agent-bridge/state`                | Global servertilstand + deteksjon/status per agent                                                                                      |
+| GET                 | `/api/tools/agent-bridge/agents`               | Vis registrerte agenter (id, navn, verter, brukbarhet, tilstand)                                                                        |
+| GET                 | `/api/tools/agent-bridge/agents/{id}`          | Tilstanden til én agent (målkonfigurasjon + deteksjon + lagret tilstand)                                                                |
+| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Oppdater `setup_completed` for agenten                                                                                                  |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Kjør deteksjonssjekk for agenten (`installed`, `version?`, `path?`)                                                                     |
+| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Aktiver/deaktiver DNS for agenten (`{enabled: boolean}`)                                                                                |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Modelltilordninger for agenten                                                                                                          |
+| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Erstatt modelltilordninger                                                                                                              |
+| POST                | `/api/tools/agent-bridge/agents/{id}/reset`    | Gjenopprett standardinnstillingene: opphev DNS-forfalskning for denne agenten, fjern tilordningene og tilbakestill tilstanden (se §3.6) |
+| POST                | `/api/tools/agent-bridge/server`               | Start/stopp/start serveren på nytt (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                              |
+| GET                 | `/api/tools/agent-bridge/cert`                 | Sertifikatstatus (`exists`, `trusted`, `path`)                                                                                          |
+| POST                | `/api/tools/agent-bridge/cert`                 | Klarerér som klarert (installer) MITM-rotsertifiseringsinstansen                                                                        |
+| DELETE              | `/api/tools/agent-bridge/cert`                 | Fjern klarering (fjern) av MITM-rotsertifiseringsinstansen — idempotent (se §3.6)                                                       |
+| POST                | `/api/tools/agent-bridge/cert/regenerate`      | Generer det selvsignerte MITM-sertifikatet på nytt                                                                                      |
+| GET                 | `/api/tools/agent-bridge/cert/download`        | Strøm PEM-sertifikatet for nedlasting                                                                                                   |
+| GET                 | `/api/tools/agent-bridge/bypass`               | Vis omgåelsesmønstre (`default` + `user`)                                                                                               |
+| POST                | `/api/tools/agent-bridge/bypass`               | Erstatt alle brukerdefinerte omgåelsesmønstre                                                                                           |
+| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Fjern ett brukerdefinert omgåelsesmønster                                                                                               |
+| GET                 | `/api/tools/agent-bridge/diagnose`             | Selvtest av innsamlingskjeden (se §3.6)                                                                                                 |
+| POST                | `/api/tools/agent-bridge/repair`               | Tilbakestill foreldreløs MITM-systemtilstand (se §3.6)                                                                                  |
+| GET                 | `/api/tools/agent-bridge/config`               | Eksporter portabel konfigurasjon som JSON (se §3.7)                                                                                     |
+| POST                | `/api/tools/agent-bridge/config`               | Importer portabel konfigurasjon som JSON (se §3.7)                                                                                      |
+| GET                 | `/api/tools/agent-bridge/upstream-ca`          | Hent konfigurert oppstrøms CA-sti                                                                                                       |
+| POST                | `/api/tools/agent-bridge/upstream-ca`          | Valider + lagre oppstrøms CA-sti                                                                                                        |
+| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Valider kun (prøvekjøring) en oppstrøms CA-sti — lagres ikke                                                                            |
+| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | TPROXY-innsamlingsmodus med transparent dekryptering — se `docs/security/MITM-TPROXY-DECRYPT.md` (git; ikke kompilert inn i `/docs`)    |
 
 Fullstendige OpenAPI-skjemaer: `docs/openapi.yaml` → taggen `AgentBridge`.
 

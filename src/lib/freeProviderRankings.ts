@@ -9,10 +9,12 @@
  */
 
 import { NOAUTH_PROVIDERS, OAUTH_PROVIDERS, APIKEY_PROVIDERS } from "@/shared/constants/providers";
+import { providerHasFreeModels } from "@/shared/utils/freeModels";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
 import { listModelIntelligence } from "./db/modelIntelligence";
 import { getProviderConnections } from "./db/providers";
 import { getProviderUsageSince, type ProviderUsageRow } from "./db/callLogStats";
+import { familyCanonicalOf } from "./providerFamilyAgg";
 import { getCustomModels } from "./db/models";
 // Type-only: reuse the health vocabulary instead of forking it.
 import { RANGE_MS } from "./monitoring/providerHealthMatrix";
@@ -81,29 +83,35 @@ function getFreeProviders() {
     });
   }
 
-  // OAuth providers with free tier
+  // OAuth providers with a documented free tier
   for (const [id, p] of Object.entries(OAUTH_PROVIDERS)) {
-    if ("hasFree" in p && p.hasFree) {
+    if (providerHasFreeModels(id)) {
       providers.push({
         id,
         name: p.name,
         icon: p.icon,
         color: p.color,
-        textIcon: "textIcon" in p ? (p as any).textIcon : undefined,
+        textIcon:
+          typeof p === "object" && p !== null && "textIcon" in p
+            ? ((p as { textIcon?: unknown }).textIcon as string | undefined)
+            : undefined,
         category: "oauth",
       });
     }
   }
 
-  // API key providers with free tier
+  // API key providers with a documented free tier
   for (const [id, p] of Object.entries(APIKEY_PROVIDERS)) {
-    if ("hasFree" in p && p.hasFree) {
+    if (providerHasFreeModels(id)) {
       providers.push({
         id,
         name: p.name,
         icon: p.icon,
         color: p.color,
-        textIcon: "textIcon" in p ? (p as any).textIcon : undefined,
+        textIcon:
+          typeof p === "object" && p !== null && "textIcon" in p
+            ? ((p as { textIcon?: unknown }).textIcon as string | undefined)
+            : undefined,
         category: "apikey",
       });
     }
@@ -475,7 +483,7 @@ export function attachProviderUsage(
 ): FreeProviderRanking[] {
   const byProvider = new Map(usageRows.map((row) => [row.provider, row]));
   return rankings.map((ranking) => {
-    const row = byProvider.get(ranking.id);
+    const row = byProvider.get(ranking.id) ?? byProvider.get(familyCanonicalOf(ranking.id));
     if (!row || !ranking.reliability) return ranking;
     return {
       ...ranking,

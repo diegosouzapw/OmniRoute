@@ -8,6 +8,8 @@ import { OpencodeExecutor } from "../../open-sse/executors/opencode.ts";
 import type { ExecutorLog, ProviderCredentials } from "../../open-sse/executors/base.ts";
 import { resolveProxyForRequest } from "../../open-sse/utils/proxyFetch.ts";
 import { BURST_PARK_THRESHOLD } from "../../open-sse/executors/opencodeParkResume.ts";
+import * as throttle from "../../open-sse/executors/opencodeEgressThrottle.ts";
+import { __resetProxyRefusalMemoryForTesting } from "../../open-sse/utils/proxyRefusalMemory.ts";
 
 const FLAG = "OPENCODE_PARK_AND_RESUME";
 const MARKER_ENV = "OPENCODE_POOL_STRAIN_MARKER_PATH";
@@ -62,6 +64,9 @@ describe("opencode 429 park-and-resume", () => {
   let markerDir: string;
 
   beforeEach(() => {
+    // PROXY_SKIP_RECENTLY_FAILED is on by default (#14688): a refusal recorded by one
+    // case would otherwise set its proxy aside for the next case.
+    __resetProxyRefusalMemoryForTesting();
     originalFetch = globalThis.fetch;
     priorFlag = process.env[FLAG];
     priorMarker = process.env[MARKER_ENV];
@@ -97,7 +102,12 @@ describe("opencode 429 park-and-resume", () => {
   }
 
   function writeMarker(payload: Record<string, unknown>): void {
-    fs.writeFileSync(process.env[MARKER_ENV] as string, JSON.stringify(payload));
+    const markerPath = process.env[MARKER_ENV] as string;
+    fs.writeFileSync(markerPath, JSON.stringify(payload));
+    // #14487: the marker is only trusted when it is owner-locked-down (no
+    // group/other write bit) — the fixture must reflect that, not just the
+    // umask-derived default mode.
+    fs.chmodSync(markerPath, 0o600);
   }
 
   async function run(count: number, stream: boolean, signal: AbortSignal | null = null) {
@@ -198,6 +208,27 @@ describe("opencode 429 park-and-resume", () => {
     const text = await response.text();
     assert.ok(!text.includes(":ping"), "no park when the flag is off");
     assert.strictEqual(observed.length, BURST_PARK_THRESHOLD);
+  });
+
+  it("a fleet-suspect slot budget hands over to park-and-replay", async () => {
+    // A "park" arm from the throttle must run the park-and-replay,
+    // not surface the last 429.
+    process.env.OPENCODE_EGRESS_THROTTLE_ENABLED = "1";
+    process.env.OPENCODE_EGRESS_THROTTLE_FLEET_THRESHOLD = "1";
+    process.env.OPENCODE_EGRESS_THROTTLE_SUSPECT_SLOTS = "1";
+    throttle._clearEgressThrottleForTest();
+    throttle.configureFleetFromConfig(throttle.resolveEgressThrottleConfig(process.env));
+    throttle.noteEgress429(Date.now());
+    installFetch([{ status: 429, body: BURST_BODY }, { status: 200 }]);
+    const result = await run(4, true);
+    const response = (result as { response: Response }).response;
+    assert.strictEqual(response.status, 200);
+    const text = await response.text();
+    assert.ok(text.includes(":ping"), "throttle park runs the heartbeat + replay");
+    delete process.env.OPENCODE_EGRESS_THROTTLE_ENABLED;
+    delete process.env.OPENCODE_EGRESS_THROTTLE_FLEET_THRESHOLD;
+    delete process.env.OPENCODE_EGRESS_THROTTLE_SUSPECT_SLOTS;
+    throttle._clearEgressThrottleForTest();
   });
 
   it("a client abort mid-park stops without any further route call", async () => {

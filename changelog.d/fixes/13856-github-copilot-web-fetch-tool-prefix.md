@@ -1,1 +1,0 @@
-- **fix(translator):** Third-party tool names (e.g. GitHub Copilot's own `web_fetch` function tool) are no longer sent unprefixed to Claude-wire-format providers outside genuine first-party Anthropic traffic, fixing a `rejected tool(s): web_fetch` 400 for any `gh/claude-*` model ([#13856](https://github.com/diegosouzapw/OmniRoute/pull/13856)) — thanks @dylanhaskins

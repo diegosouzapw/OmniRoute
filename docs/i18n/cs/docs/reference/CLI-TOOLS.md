@@ -1,6 +1,6 @@
 # CLI Tools — OmniRoute (Čeština)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
 
@@ -43,58 +43,64 @@ ACP Agenti (obrácený tok spuštění):
 
 ---
 
-## Automatická konfigurace s `setup-*`
+## Automatická konfigurace pomocí `setup-*`
 
-Nemusíte psát konfiguraci každého nástroje ručně. OmniRoute dodává příkaz `setup-*`
-pro každý podporovaný CLI, který čte **živý** katalog modelů z běžícího
-OmniRoute (lokálního nebo vzdáleného) a zapisuje vlastní konfiguraci nástroje na vašem stroji:
+Nemusíte ručně psát konfiguraci pro každý nástroj. OmniRoute dodává příkaz `setup-*`
+pro každé podporované CLI, který čte **živý** katalog modelů z běžícího
+OmniRoute (lokálního nebo vzdáleného) a zapisuje vlastní konfiguraci nástroje do vašeho počítače:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
-Každý přijímá `--remote <url> --api-key <key>` (konfigurovat lokální nástroj proti
+Každý z nich přijímá `--remote <url> --api-key <key>` (konfigurace lokálního nástroje proti
 vzdálenému OmniRoute), `--dry-run` (náhled bez zápisu) a `--port`. Nástroje
-bez automatického objevování modelu (Cline, Kilo, Roo, Goose, Aider, Qwen) berou
-`--model <id>` (a `--yes` pro neinteraktivní běhy). Pro spuštění CLI s
-odpovídajícím prostředím a bez jakéhokoli zápisu konfigurace použijte generický
-`omniroute run <target>` launcher (claude, codex, aider, goose, opencode, qwen,
-gemini — cíle a aliasy pocházejí z `bin/cli/cli-manifest.mjs`); zastaralé
-per-tool launchery `omniroute launch` (Claude Code) a `omniroute launch-codex`
-(Codex) zůstávají k dispozici. Gemini CLI je pouze pro spuštění: je to cíl
-`omniroute run`, ale nemá žádný `setup-*`/`configure` recept.
+bez automatického zjišťování modelů (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) přijímají
+`--model <id>` (a `--yes` pro neinteraktivní spuštění). `setup-5dive` je jediný
+recept, který nezapisuje pod `$HOME`: konfiguruje flotilu agentů 5dive
+zápisem profilu ověřování vlastněného rootem na hostiteli flotily, takže se znovu spustí přes `sudo`
+a nemá vlastní vzdálený režim. Pro spuštění CLI s
+vloženým správným prostředím a bez jakékoli zapsané konfigurace použijte generický
+spouštěč `omniroute run <target>` (claude, codex, aider, goose, opencode, qwen,
+gemini – cíle a aliasy pocházejí z `bin/cli/cli-manifest.mjs`); starší
+spouštěče pro jednotlivé nástroje `omniroute launch` (Claude Code) a `omniroute launch-codex`
+(Codex) zůstávají k dispozici. Gemini CLI je pouze pro spouštění: je to cíl `omniroute run`,
+ale nemá recept `setup-*`/`configure`.
 
-> **Úplná reference:** hlavní tabulka — co každý příkaz zapisuje, každý příznak,
-> lokální vs vzdálený, a které nástroje chtějí příponu `/v1` — se nachází v
-> **[CLI Integrace](../guides/CLI-INTEGRATIONS.md)**.
+> **Úplná reference:** hlavní tabulka – co každý příkaz zapisuje, každý příznak,
+> lokální vs. vzdálené a které nástroje vyžadují příponu `/v1` – se nachází v
+> **[Integrace CLI](../guides/CLI-INTEGRATIONS.md)**.
 
-### Spuštění těchto příkazů uvnitř kontejneru
+### Spouštění uvnitř kontejneru
 
-Příkaz `setup-*` provedený uvnitř kontejneru OmniRoute zapisuje do
-vlastního domova kontejneru, který žádný hostitelský CLI nečte a který zmizí s
-kontejnerem. OmniRoute to detekuje a ukončuje s kódem `2` s instrukcemi místo
-zápisu. Dva podporované způsoby vpřed — nainstalovat CLI na hostiteli a
-`omniroute connect` do kontejneru, nebo bind-mount adresáře konfigurace a nastavit
-`CLI_CONFIG_HOME` (profil compose `host`). Každý příkaz `setup-*`, plus
+Příkaz `setup-*` spuštěný uvnitř kontejneru OmniRoute zapisuje do
+vlastního domovského adresáře kontejneru, který žádné hostitelské CLI nečte a který zmizí s
+kontejnerem. OmniRoute to detekuje a ukončí se s kódem `2` s instrukcemi, namísto
+zápisu. Dva podporované způsoby, jak pokračovat – nainstalujte CLI na hostitele a
+`omniroute connect` do kontejneru, nebo připojte konfigurační adresáře a nastavte
+`CLI_CONFIG_HOME` (profil `host` v compose). Každý příkaz `setup-*`, plus
 `omniroute configure` a `omniroute config set`, přijímá
-`--allow-container-write`, když je skutečně zamýšleno konfigurovat vlastní CLIs
-kontejneru; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` dělá to samé pro
-server. Viz
-[Docker Průvodce → Konfigurace hostitelských CLI nástrojů](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+`--allow-container-write`, pokud jste skutečně chtěli konfigurovat vlastní CLI kontejneru;
+`OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` dělá totéž pro server. Viz
+[Průvodce Dockerem → Konfigurace hostitelských nástrojů CLI](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
-**apply endpoint** dashboardu (`POST /api/cli-tools/apply`) vynucuje
-stejnou ochranu: v kontejneru, zápis, jehož cíl není bind-mounted z hostitele,
-odpovídá **`422`** s `containerEphemeralTarget: true`, bezpečným chybovým
-textem a — pro nástroje s hostitelským receptem (claude, codex, opencode, cline,
-kilo, continue) — `hostSetupCommand` (např. `omniroute setup-opencode`), který
-se má spustit na hostiteli místo; nic není zapsáno. `dryRun: true` stále funguje
-v režimu kontejneru a vrací vygenerovaný obsah + cílovou cestu bez dotyku disku,
-takže si můžete prohlédnout z dashboardu a aplikovat na hostiteli. Toto chování je
-úmyslné a chráněné regresí pomocí
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` — nikdy "neopravujte" 422
+Endpoint **apply** na dashboardu (`POST /api/cli-tools/apply`) vynucuje
+stejnou ochranu: v kontejneru, zápis, jehož cíl není připojen z
+hostitele, odpoví **`422`** s `containerEphemeralTarget: true`, bezpečným chybovým
+textem a – pro nástroje s hostitelským receptem (claude, codex, opencode, cline,
+kilo, continue) – `hostSetupCommand` (např. `omniroute setup-opencode`), který se má spustit
+místo toho na hostiteli; nic se nezapisuje. `dryRun: true` stále funguje v režimu kontejneru
+a vrací redigovaný náhled + cílovou cestu bez dotyku disku. Obsah náhledu
+není konfigurační soubor obsahující pověření, který by se dal kopírovat nebo importovat. Aplikujte
+s původním nástrojem/základní URL/API klíčem/vstupy modelu na hostiteli, nebo použijte
+uvedený příkaz pro nastavení na straně hostitele. Viz [zabezpečení konfigurace CLI](../security/CLI-CONFIGURATION.md)
+pro hlavičku náhledu a kontrakt požadavku. Toto chování je
+záměrné a chráněné proti regresi testem
+`tests/unit/api/cli-tools/apply-container-guard.test.ts` – nikdy „neopravujte“ 422
 odstraněním ochrany.
 
 ---
@@ -136,11 +142,11 @@ a zapojení příznaku `--model` z něj. Ochrana proti odchylkám
 katalog, UI katalog a každý spotřebitelský povrch zůstávají synchronizovány — cíl přidaný do
 jednoho povrchu bez ostatních způsobí selhání testu místo tichého odchýlení.
 
-## 1. Katalog kódu CLI (26 nástrojů)
+## 1. Katalog CLI kódů (26 nástrojů)
 
-Všechny nástroje, které se objevují v `/dashboard/cli-code`. Ty, které mají `baseUrlSupport: none`, jsou propojeny prostřednictvím MITM nebo manuálního průvodce místo vlastního základního URL:
+Všechny nástroje, které se objevují v `/dashboard/cli-code`. Ty s `baseUrlSupport: none` jsou zapojeny přes MITM nebo manuální průvodce namísto vlastní základní URL:
 
-| id           | název                   | dodavatel           | baseUrlSupport | typKonfigurace | acpSpawnable |
+| id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
 | ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
 | claude       | Claude Code             | Anthropic           | full           | env            | true         |
 | codex        | OpenAI Codex CLI        | OpenAI              | full           | custom         | true         |
@@ -169,7 +175,8 @@ Všechny nástroje, které se objevují v `/dashboard/cli-code`. Ty, které maj�
 | kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
 | custom       | Custom CLI              | —                   | full           | custom-builder | false        |
 
-Nástroje s `baseUrlSupport: "partial"` zobrazují odznak "⚠ Částečná základní URL" na kartě řídicího panelu.
+Nástroje s `baseUrlSupport: "partial"` zobrazují na kartě panelu odznak "⚠ Base URL parcial".
+---
 
 ## 2. Katalog CLI agentů (8 nástrojů)
 
@@ -589,158 +596,158 @@ pod `/dashboard/cli-tools → Kiro`.
 
 ---
 
-## 10. Interní OmniRoute CLI
+## 10. Interní CLI OmniRoute
 
-Binární soubor `omniroute` poskytuje příkazy pro životní cyklus serveru, nastavení, diagnostiku a správu poskytovatelů. Vstupní bod: `bin/omniroute.mjs`.
+Binární soubor `omniroute` poskytuje příkazy pro správu životního cyklu serveru, nastavení, diagnostiku a správu poskytovatelů. Vstupní bod: `bin/omniroute.mjs`.
 
 ```bash
 omniroute                              # Spustit server (výchozí port 20128)
-omniroute setup                        # Interaktivní nastavení
-omniroute doctor                       # Zkontrolovat konfiguraci, DB, porty, runtime
-omniroute providers list               # Seznam nakonfigurovaných připojení poskytovatelů
-omniroute providers test-all           # Otestovat každé aktivní připojení
-omniroute reset-password               # Resetovat heslo administrátora
-omniroute logs                         # Streamovat logy požadavků
-omniroute health                       # Podrobný stav (přerušovače, cache, paměť)
-omniroute --version                    # Vytisknout verzi
+omniroute setup                        # Interaktivní průvodce nastavením
+omniroute doctor                       # Zkontrolovat konfiguraci, DB, porty a běhové prostředí
+omniroute providers list               # Nakonfigurovaná připojení k poskytovatelům
+omniroute providers test-all           # Otestovat všechna aktivní připojení
+omniroute reset-password               # Obnovit heslo správce
+omniroute logs                         # Průběžně zobrazovat protokoly požadavků
+omniroute health                       # Podrobný stav (jističe, mezipaměť, paměť)
+omniroute --version                    # Vypsat verzi
 omniroute --help                       # Zobrazit všechny příkazy
 ```
 
 ### Nastavení a inicializace
 
 ```bash
-omniroute setup                        # Interaktivní nastavení
-omniroute setup --non-interactive      # CI/automatizační režim (čte proměnné prostředí + příznaky)
-omniroute setup --password '<value>'   # Nastavit heslo administrátora přímo
+omniroute setup                        # Interaktivní průvodce nastavením
+omniroute setup --non-interactive      # Režim CI/automatizace (načítá proměnné prostředí a příznaky)
+omniroute setup --password '<value>'   # Nastavit heslo správce přímo
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Přidat a otestovat poskytovatele v jednom kroku
+  --test-provider                      # Přidat a otestovat poskytovatele v jediném kroku
 ```
 
-Rozpoznané proměnné prostředí pro neinteraktivní nastavení:
+Rozpoznávané proměnné prostředí pro neinteraktivní nastavení:
 
-| Var                 | Účel                                                                   |
-| ------------------- | ---------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | API klíč poskytovatele (svázaný s `--api-key` přes Commander `.env()`) |
-| `DATA_DIR`          | Přepsat adresář dat OmniRoute                                          |
+| Proměnná            | Účel                                                                       |
+| ------------------- | -------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | Klíč API poskytovatele (navázaný na `--api-key` pomocí Commander `.env()`) |
+| `DATA_DIR`          | Přepsání datového adresáře OmniRoute                                       |
 
-Všechny ostatní neinteraktivní vstupy jsou předávány jako příznaky, nikoli jako proměnné prostředí:
+Všechny ostatní neinteraktivní vstupy se předávají jako příznaky, nikoli jako proměnné prostředí:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(podívejte se na možnosti `omniroute setup` výše).
+(viz možnosti příkazu `omniroute setup` výše).
 
 ### Diagnostika
 
 ```bash
-omniroute doctor                       # Zkontrolovat konfiguraci, DB, porty, runtime, paměť, životnost
+omniroute doctor                       # Zkontrolovat konfiguraci, DB, porty, běhové prostředí, paměť a dostupnost
 omniroute doctor --json                # Strojově čitelný JSON
-omniroute doctor --no-liveness         # Přeskočit HTTP health probe
-omniroute doctor --host 0.0.0.0        # Přepsat hostitele životnosti
-omniroute doctor --liveness-url <url>  # Úplné přepsání URL koncového bodu zdraví
+omniroute doctor --no-liveness         # Přeskočit kontrolu stavu přes HTTP
+omniroute doctor --host 0.0.0.0        # Přepsat hostitele kontroly dostupnosti
+omniroute doctor --liveness-url <url>  # Přepsat úplnou URL koncového bodu stavu
 ```
 
-Doktor provádí tyto kontroly: `Konfigurace`, `Databáze`, `Úložiště/šifrování`,
-`Dostupnost portu`, `Node runtime`, `Nativní binární` (better-sqlite3),
-`Paměť` a `Životnost serveru`. Ukončí se s nenulovým kódem, pokud jakákoli kontrola selže.
+Příkaz doctor provádí tyto kontroly: `Config`, `Database`, `Storage/encryption`,
+`Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
+`Memory` a `Server liveness`. Pokud má kterákoli kontrola stav `fail`, příkaz skončí s nenulovým návratovým kódem.
 
 ### Správa poskytovatelů
 
 ```bash
 omniroute providers available                       # Katalog poskytovatelů OmniRoute
-omniroute providers available --search openai       # Filtrovat katalog podle id/název/alias/kategorie
+omniroute providers available --search openai       # Filtrovat katalog podle ID/názvu/aliasu/kategorie
 omniroute providers available --category api-key    # Filtrovat podle kategorie (api-key, oauth, free, ...)
 omniroute providers available --json                # Strojově čitelný JSON
 
-omniroute providers list                            # Seznam nakonfigurovaných připojení poskytovatelů
+omniroute providers list                            # Nakonfigurovaná připojení k poskytovatelům
 omniroute providers list --json
 
 omniroute providers test <id|name>                  # Otestovat jedno nakonfigurované připojení
-omniroute providers test-all                        # Otestovat každé aktivní připojení
-omniroute providers validate                        # Lokální strukturovaná validace
+omniroute providers test-all                        # Otestovat všechna aktivní připojení
+omniroute providers validate                        # Pouze místní strukturální validace
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
-omniroute providers auth <provider>                 # Existující OAuth tok
+omniroute providers auth <provider>                 # Stávající tok OAuth
 omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` jsou API-first a proto fungují proti
-aktivnímu místnímu nebo vzdálenému kontextu. Vstup pro pověření by měl používat
-`--credential-stdin` nebo `--credential-env`; `--dry-run --json` hlásí pouze
-redigovanou přítomnost/tvar. `providers available` čte katalog OmniRoute;
-`providers list/test/test-all/validate` si zachovávají své místní SQLite chování a
-nevyžadují, aby server běžel.
+Příkazy `providers add/import/auth/edit/remove` primárně používají API, a proto fungují vůči
+aktivnímu místnímu nebo vzdálenému kontextu. Přihlašovací údaje je vhodné zadávat pomocí
+`--credential-stdin` nebo `--credential-env`; `--dry-run --json` uvádí pouze
+redigované informace o přítomnosti a struktuře. `providers available` načítá katalog OmniRoute;
+`providers list/test/test-all/validate` zachovávají své místní chování se SQLite a
+nevyžadují spuštěný server.
 
-### Obnova a reset
+### Obnova a resetování
 
 ```bash
-omniroute reset-password                # Resetovat heslo administrátora (také: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Zobrazit varování + dry-run pro reset šifrovaných pověření
-omniroute reset-encrypted-columns --force  # Opravuji šifrovaná pověření v SQLite
+omniroute reset-password                # Obnovit heslo správce (také: omniroute-reset-password)
+omniroute reset-encrypted-columns       # Zobrazit varování a zkušební běh resetování šifrovaných přihlašovacích údajů
+omniroute reset-encrypted-columns --force  # Skutečně nastavit šifrované přihlašovací údaje v SQLite na hodnotu null
 ```
 
-### Export pověření (⚠ zacházejte opatrně)
+### Export přihlašovacích údajů (⚠ zacházejte opatrně)
 
 ```bash
-omniroute auth export                                 # Zobrazit varování + potvrzovací bránu — žádný přístup k DB
-omniroute auth export --force                          # ExportOVAT VŠECHNA DEŠIFROVANÁ pověření připojení do stdout jako JSON
+omniroute auth export                                 # Zobrazit varování a vyžádat potvrzení — bez přístupu k DB
+omniroute auth export --force                          # Exportovat DEŠIFROVANÉ přihlašovací údaje VŠECH připojení do stdout jako JSON
 omniroute auth export --force --id <id>                 # Exportovat pouze odpovídající připojení
-omniroute auth export --force --format env               # Vydat řádky OMNIROUTE_<PROVIDER>_<FIELD>=<value>
-omniroute auth export --force --out creds.json           # Zapsat do souboru (vytvořeno s 0600 oprávněními)
+omniroute auth export --force --format env               # Vypsat řádky OMNIROUTE_<PROVIDER>_<FIELD>=<value>
+omniroute auth export --force --out creds.json           # Zapsat do souboru (vytvořeného s oprávněními 0600)
 ```
 
-`auth export` je **pouze lokální** (přímé čtení SQLite, žádná HTTP trasa) a záměrně tiskne/zapisuje
-**čistý text** `apiKey`/`accessToken`/`refreshToken`/`idToken` hodnoty — to je funkce, nikoli
-chyba. Nic není čteno z databáze a nic není dešifrováno, bez `--force`. Varovný banner na stderr
-se vždy tiskne před jakýmkoli čistým textem. Vyžaduje nastavení `STORAGE_ENCRYPTION_KEY`.
-Pole, které se nepodaří dešifrovat (stará klíč, poškozený ciphertext), je hlášeno jako
-`<field>DecryptFailed: true` místo přerušení celého exportu nebo úniku základní chyby.
+`auth export` funguje **pouze místně** (přímé čtení ze SQLite, bez trasy HTTP) a záměrně vypisuje/zapisuje
+hodnoty `apiKey`/`accessToken`/`refreshToken`/`idToken` jako **prostý text** — jde o funkci, nikoli o
+chybu. Bez příznaku `--force` se z databáze nic nenačte ani nedešifruje. Před vypsáním jakéhokoli prostého textu
+se na stderr vždy zobrazí varovný banner. Vyžaduje nastavení proměnné `STORAGE_ENCRYPTION_KEY`.
+Pole, které se nepodaří dešifrovat (zastaralý klíč, poškozený šifrovaný text), je namísto přerušení celého exportu nebo odhalení původní chyby
+ohlášeno jako `<field>DecryptFailed: true`.
 
-### Další podpříkazy
+### Ostatní dílčí příkazy
 
-Tyto předpokládají běžící server OmniRoute, pokud není uvedeno jinak:
+Pokud není uvedeno jinak, tyto příkazy předpokládají spuštěný server OmniRoute:
 
 ```bash
-omniroute status                       # Komplexní stav runtime
-omniroute logs                         # Streamovat logy požadavků (--json, --search, --follow)
-omniroute config show                  # Zobrazit aktuální konfiguraci
+omniroute status                       # Souhrnný stav běhu
+omniroute logs                         # Průběžné protokoly požadavků (--json, --search, --follow)
+omniroute config list                  # Zobrazit nakonfigurované nástroje CLI
 
-omniroute provider list                # Seznam dostupných poskytovatelů (alias poskytovatelů seznam)
-omniroute provider add                 # Registrovat OmniRoute jako poskytovatele na nástroji
-omniroute keys add | list | remove     # Spravovat API klíče
-omniroute models [provider]            # Seznam modelů (--json, --search)
+omniroute provider list                # Vypsat dostupné poskytovatele (alias příkazu providers list)
+omniroute provider add                 # Zaregistrovat OmniRoute jako poskytovatele v nástroji
+omniroute keys add | list | remove     # Spravovat klíče API
+omniroute models [provider]            # Vypsat modely (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Snapshot konfigurace + DB
-omniroute restore                      # Obnovit z předchozího snapshotu
+omniroute backup                       # Vytvořit snímek konfigurace a databáze
+omniroute restore                      # Obnovit z předchozího snímku
 
-omniroute health                       # Podrobný stav (přerušovače, cache, paměť)
+omniroute health                       # Podrobné informace o stavu (jističe, mezipaměť, paměť)
 omniroute quota                        # Využití kvóty poskytovatele
-omniroute cache                        # Stav cache
-omniroute cache clear                  # Vymazat sémantické + podpisové cache
+omniroute cache                        # Stav mezipaměti
+omniroute cache clear                  # Vymazat sémantickou mezipaměť a mezipaměť signatur
 
-omniroute mcp status | restart         # Stav serveru MCP / restart
-omniroute a2a status | card            # Stav serveru A2A / agent karta
+omniroute mcp status | restart         # Stav / restart serveru MCP
+omniroute a2a status | card            # Stav serveru A2A / karta agenta
 
 omniroute tunnel list | create | stop  # Spravovat tunely (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Zkontrolovat / nastavit proměnné prostředí (dočasné)
+omniroute env show | get <k> | set <k> <v>  # Zkontrolovat / nastavit proměnné prostředí (dočasně)
 
-omniroute test                         # Test připojení poskytovatele
+omniroute test                         # Rychlý test připojení k poskytovateli
 omniroute update                       # Zkontrolovat aktualizace
-omniroute completion                   # Generovat shell completion
+omniroute completion                   # Vygenerovat automatické doplňování pro shell
 ```
 
 ### Běžné příznaky
 
-| Příznak             | Popis                                                       |
-| ------------------- | ----------------------------------------------------------- |
-| `--no-open`         | Neotevírat automaticky prohlížeč při spuštění               |
-| `--port <n>`        | Přepsat API port (výchozí 20128)                            |
-| `--mcp`             | Spustit jako MCP server přes stdio (pro IDE)                |
-| `--non-interactive` | CI režim (žádné výzvy; čte z proměnných prostředí/příznaků) |
-| `--json`            | Strojově čitelný JSON výstup (doktor, poskytovatelé, atd.)  |
-| `--help`, `-h`      | Zobrazit konkrétní pomoc pro příkaz                         |
-| `--version`, `-v`   | Vytisknout nainstalovanou verzi                             |
+| Příznak             | Popis                                                     |
+| ------------------- | --------------------------------------------------------- |
+| `--no-open`         | Při spuštění automaticky neotevírat prohlížeč             |
+| `--port <n>`        | Přepsat port API (výchozí 20128)                          |
+| `--mcp`             | Spustit jako server MCP přes stdio (pro IDE)              |
+| `--non-interactive` | Režim CI (bez výzev; načítá hodnoty z prostředí/příznaků) |
+| `--json`            | Strojově čitelný výstup JSON (doctor, providers atd.)     |
+| `--help`, `-h`      | Zobrazit nápovědu pro konkrétní příkaz                    |
+| `--version`, `-v`   | Vypsat nainstalovanou verzi                               |
 
 ---
 

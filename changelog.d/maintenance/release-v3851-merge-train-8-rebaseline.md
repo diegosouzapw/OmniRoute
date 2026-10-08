@@ -1,1 +1,0 @@
-- **quality:** owner-approved file-size rebaseline for the 2026-09-18 merge-train 8 (32 contributor PRs whose irreducible growth lands in already-frozen files — 28 ceilings raised to the measured combined sizes; per-PR attribution in `config/quality/file-size-baseline.json`).

@@ -1,1 +1,0 @@
-- Fixed a security issue where a revoked, expired, or banned API key could still resolve an owner scope in `getApiKeyRequestScope()` and keep accessing its own `/v1/files` and `/v1/batches` records instead of being rejected with 401 (#13881).

@@ -1,53 +1,55 @@
 # Management Authentication (فارسی)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇦 [bs](../../../bs/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
 
 ---
 
-OmniRoute دارای **چهار خانوادهٔ اعتبارنامه** است که میتوانند مسیرهای مدیریتی را مجاز کنند.
-این اعتبارنامهها قابلجایگزینی با یکدیگر نیستند. کلیدهای API استنتاج (`sk-…`) سرور را مدیریت **نمیکنند**، مگر اینکه صراحتاً دامنهٔ `manage` یا `admin` به آنها اعطا شده باشد.
+OmniRoute دارای **چهار خانواده اعتبارنامه** است که میتوانند مسیرهای مدیریتی را احراز هویت کنند.
+آنها قابل تعویض نیستند. کلیدهای API استنتاجی (`sk-…`) سرور را **مدیریت نمیکنند** مگر اینکه صراحتاً دامنه `manage` یا `admin` به آنها اعطا شده باشد.
 
-پیادهسازی مرجع: `src/lib/api/requireManagementAuth.ts`.
+پیادهسازی متعارف: `src/lib/api/requireManagementAuth.ts`.
 
-| اعتبارنامه               | شکل متداول                         | محل ایجاد                                           | کاربرد موردنظر           | قابلیت مدیریتی                                                               |
-| ------------------------ | ---------------------------------- | --------------------------------------------------- | ------------------------ | ---------------------------------------------------------------------------- |
-| نشست JWT داشبورد         | کوکی `auth_token`                  | ورود به داشبورد                                     | رابط کاربری مرورگر       | مدیریت کامل داشبورد، مشروط به قوانین CSRF، محلیبودن و مسیرهای همیشهمحافظتشده |
-| توکن machine-id برای CLI | داخلی / محلی                       | راهاندازی اولیهٔ CLI (`omniroute` روی همان دستگاه)  | CLI محلی                 | فقط مدیریت محلی                                                              |
-| Access Token دامنهدار    | `oma_live_…`                       | **Settings → Access Tokens** یا `omniroute connect` | CLI راهدور و API مدیریتی | باید دامنهٔ الزامی مسیر، یعنی `read`، `write` یا `admin` را برآورده کند      |
-| کلید API استنتاج         | `sk-…` (و سایر پیشوندهای کلید API) | **API Manager / API Keys**                          | استنتاج `/v1/*`          | **هیچکدام**، مگر اینکه فرادادهٔ کلید شامل `manage` یا `admin` باشد           |
+| اعتبارنامه           | فرم معمول                          | محل ایجاد                                           | کاربرد مورد نظر             | قابلیت مدیریت                                                               |
+| :------------------- | :--------------------------------- | :-------------------------------------------------- | :-------------------------- | :-------------------------------------------------------------------------- |
+| نشست JWT داشبورد     | `auth_token` کوکی                  | ورود به داشبورد                                     | رابط کاربری مرورگر          | مدیریت کامل داشبورد، مشروط به CSRF، محلیت، و قوانین مسیرهای همیشه محافظتشده |
+| توکن شناسه ماشین CLI | داخلی / محلی                       | راهاندازی CLI (`omniroute` روی همان ماشین)          | CLI محلی                    | فقط مدیریت محلی                                                             |
+| توکن دسترسی محدود    | `oma_live_…`                       | **تنظیمات ← توکنهای دسترسی** یا `omniroute connect` | CLI از راه دور و API مدیریت | باید دامنه `read`، `write` یا `admin` مورد نیاز مسیر را برآورده کند         |
+| کلید API استنتاجی    | `sk-…` (و سایر پیشوندهای کلید API) | **مدیر API / کلیدهای API**                          | استنتاج `/v1/*`             | **هیچکدام** مگر اینکه فراداده کلید شامل `manage` یا `admin` باشد            |
 
-اعتبارنامههای `oma_` مخصوص مدیریت/CLI هستند. آنها کلیدهای API استنتاج **نیستند**.
+اعتبارنامههای `oma_` اعتبارنامههای مدیریتی/CLI هستند. آنها کلیدهای API استنتاجی **نیستند**.
 
-اگر احراز هویت از طریق ورود/کلید API برای سرور غیرفعال باشد، برخی مسیرهای مدیریتی ممکن است درخواستهای بدون احراز هویت را بپذیرند. مسیرهای صرفاً محلی و همیشهمحافظتشده همچنان قوانین خود را اعمال میکنند. بنابراین ارائهٔ یکی از این اعتبارنامهها در همهجا الزامی نیست و داشتن آن نیز بدون دامنهٔ موردنیاز و رعایت محلیبودن مسیر، در همهجا کافی نیست.
+اگر احراز هویت با ورود/کلید API برای سرور غیرفعال باشد، برخی مسیرهای مدیریتی ممکن است تماسهای احراز هویت نشده را بپذیرند. مسیرهای فقط محلی و همیشه محافظتشده همچنان قوانین خود را اعمال میکنند. بنابراین، ارائه یکی از این اعتبارنامهها به طور جهانی اجباری نیست، و داشتن یکی از آنها بدون دامنه مورد نیاز و محلیت مسیر به طور جهانی کافی نیست.
 
-مرتبط: [حالت راهدور](./REMOTE-MODE.md) (نحوهٔ صدور `oma_live_…` برای یک CLI راهدور).
+مرتبط: [حالت از راه دور](./REMOTE-MODE.md) (نحوه ایجاد `oma_live_…` برای یک CLI از راه دور).
 
 ---
 
-## ماتریسهای دامنه
+## ماتریسهای اسکوپ
 
-این دو واژگان دامنه **متفاوتاند**. آنها را با هم ترکیب نکنید.
+اسکوپهای مدیریت کلید API و اسکوپهای توکن دسترسی، واژگان متفاوتی هستند.
+اسکوپهای ابزار MCP یک واژگان سوم هستند که با `scopeMatches` بررسی میشوند، نه با هیچ یک از توابع موجود در جداول زیر.
+مقایسه جانبی: [سه فضای نام اسکوپ](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### دامنههای Access Token (`oma_live_…`)
+### اسکوپهای توکن دسترسی (`oma_live_…`)
 
-| دامنه   | عملیات متداول                                                                                            |
-| ------- | -------------------------------------------------------------------------------------------------------- |
-| `read`  | درخواستهای GET برای فهرست/وضعیت که توکن اجازهٔ مشاهدهٔ آنها را دارد                                      |
-| `write` | تغییرات سطح پایینتر از مدیر (ایجاد/بهروزرسانی/حذف)                                                       |
-| `admin` | دسترسی کامل CLI راهدور / توکن اتصال (راهاندازی اولیه با گذرواژه بهطور پیشفرض از این دامنه استفاده میکند) |
+| اسکوپ   | عملیات معمول                                                                        |
+| ------- | ----------------------------------------------------------------------------------- |
+| `read`  | دریافتهای (GET) لیست/وضعیت که توکن مجاز به مشاهده آنها است                          |
+| `write` | تغییرات (ایجاد/بهروزرسانی/حذف) پایینتر از سطح ادمین                                 |
+| `admin` | توکن کامل CLI از راه دور / اتصال (پیشفرضهای راهاندازی رمز عبور در اینجا قرار دارند) |
 
-توکنی با دامنهٔ `read` نمیتواند یک مسیر `write` را فراخوانی کند. قالب پیام زمان اجرا:
-`دامنهٔ توکن دسترسی '<have>' کافی نیست؛ '<need>' الزامی است.`
+یک توکن با `read` نمیتواند یک مسیر `write` را فراخوانی کند. شکل پیام زمان اجرا:
+`Access token scope '<have>' is insufficient; '<need>' required.`
 
-### دامنههای مدیریتی کلید API
+### اسکوپهای مدیریت کلید API
 
-| دامنه     | معنا                                                                       |
-| --------- | -------------------------------------------------------------------------- |
-| (هیچکدام) | فقط استنتاج. مسیرهای مدیریتی کد 403 را برمیگردانند.                        |
-| `manage`  | API مدیریتی (همان دروازهٔ شاخهٔ کلید API در `requireManagementAuth`)       |
-| `admin`   | شرط `hasManageScope` را نیز برآورده میکند (دارای قابلیت مدیریت تلقی میشود) |
+| اسکوپ     | معنی                                                                                 |
+| --------- | ------------------------------------------------------------------------------------ |
+| (هیچکدام) | فقط استنتاج. مسیرهای مدیریتی کد 403 را برمیگردانند.                                  |
+| `manage`  | API مدیریتی (همان دروازه شاخه کلید API `requireManagementAuth`)                      |
+| `admin`   | همچنین `hasManageScope` را برآورده میکند (به عنوان قابلیت مدیریت در نظر گرفته میشود) |
 
-`manage` را برای کلید در رابط کاربری API Keys / API Manager فعال کنید. از کلید یک کلاینت چت برای خودکارسازی مجدداً استفاده نکنید، مگر اینکه عمداً آن دامنه را به کلید اعطا کرده باشید.
+اسکوپ `manage` را روی کلید در رابط کاربری API Keys / API Manager فعال کنید. کلید یک کلاینت چت را برای اتوماسیون مجدداً استفاده نکنید، مگر اینکه عمداً آن اسکوپ را اعطا کرده باشید.
 
 ---
 
@@ -123,29 +125,26 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## خطاهای فعلی زمان اجرا (مقادیر محرمانه را بازتاب ندهید)
+## خطاهای زمان اجرا فعلی (اسرار را بازتاب ندهید)
 
-| وضعیت                                      | کد وضعیت معمول | پیام (پاکسازیشده)                                                            |
-| ------------------------------------------ | -------------- | ---------------------------------------------------------------------------- |
-| بدون اعتبارنامه                            | 401            | `احراز هویت الزامی است`                                                      |
-| `oma_live_…` نامعتبر/منقضیشده              | 401            | `توکن دسترسی نامعتبر یا منقضیشده است`                                        |
-| کلید API معتبر بدون `manage`/`admin`       | 403            | `کلید API فاقد دامنهٔ 'manage' است. آن را در داشبورد کلیدهای API فعال کنید.` |
-| کلید API معمولی نامعتبر در یک مسیر مدیریتی | 403            | `توکن مدیریتی نامعتبر است`                                                   |
-| ناکافیبودن سطح دسترسی Access Token         | 403            | `سطح دسترسی توکن '<have>' کافی نیست؛ سطح '<need>' لازم است.`                 |
+| وضعیت                                       | وضعیت معمول | پیام (پاکسازی شده)                                                          |
+| :------------------------------------------ | :---------- | :-------------------------------------------------------------------------- |
+| عدم وجود اعتبارنامه                         | 401         | `احراز هویت لازم است`                                                       |
+| `oma_live_…` نامعتبر/منقضی شده              | 401         | `توکن دسترسی نامعتبر یا منقضی شده`                                          |
+| کلید API معتبر بدون دسترسی `manage`/`admin` | 403         | `کلید API فاقد دامنه 'manage' است. آن را در داشبورد کلیدهای API فعال کنید.` |
+| کلید API عادی نامعتبر در یک مسیر مدیریتی    | 403         | `توکن مدیریتی نامعتبر`                                                      |
+| دامنه توکن دسترسی بسیار پایین است           | 403         | `دامنه توکن دسترسی '<have>' کافی نیست؛ '<need>' لازم است.`                  |
 
-«توکن مدیریتی نامعتبر است» یعنی توکن bearer بهعنوان یک اعتبارنامهٔ مدیریتی
-پذیرفته **نشده** است. این پیام مشخص نمیکند که باید کدام نوع را ایجاد کنید. از جدول بالا استفاده کنید:
-کلیدهای استنتاج به دامنهٔ `manage` نیاز دارند؛ CLI راهدور به `oma_live_…` نیاز دارد؛ و داشبورد
-از کوکی نشست استفاده میکند.
+"توکن مدیریتی نامعتبر" به این معنی است که حامل به عنوان یک اعتبارنامه مدیریتی **پذیرفته نشده است**. این به شما نمیگوید که کدام خانواده را ایجاد کنید. از جدول بالا استفاده کنید: کلیدهای استنتاج به دامنه `manage` نیاز دارند؛ CLI از راه دور به `oma_live_…` نیاز دارد؛ داشبورد از کوکی نشست استفاده میکند.
 
 ---
 
-## انتخاب پیشنهادی با کمترین سطح دسترسی
+## انتخاب توصیه شده با حداقل امتیاز
 
-| فراخواننده                                      | مورد استفاده                               |
-| ----------------------------------------------- | ------------------------------------------ |
-| مرورگر                                          | نشست داشبورد                               |
-| CLI روی میزبان سرور                             | توکن ماشین                                 |
-| CLI روی لپتاپی که با سرور راهدور ارتباط دارد    | `oma_live_…` از `omniroute connect`        |
-| CI / اسکریپتها (فقط مدیریتی)                    | `oma_live_…` با کمترین سطح دسترسی موردنیاز |
-| CI که باید هم `/v1` و هم `/api` را فراخوانی کند | کلید API با `manage` **یا** دو اعتبارنامه  |
+| فراخواننده                                      | کاربرد                                    |
+| :---------------------------------------------- | :---------------------------------------- |
+| مرورگر                                          | نشست داشبورد                              |
+| CLI روی میزبان سرور                             | توکن ماشین                                |
+| CLI روی لپتاپ در حال ارتباط با سرور راه دور     | `oma_live_…` از `omniroute connect`       |
+| CI / اسکریپتها (فقط مدیریت)                     | `oma_live_…` با کوچکترین دامنه کاری       |
+| CI که باید هر دو `/v1` و `/api` را فراخوانی کند | کلید API با `manage` **یا** دو اعتبارنامه |

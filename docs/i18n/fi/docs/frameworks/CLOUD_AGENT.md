@@ -1,6 +1,6 @@
 # Cloud Agents (Suomi)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/CLOUD_AGENT.md) · 🇪🇹 [am](../../../am/docs/frameworks/CLOUD_AGENT.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/CLOUD_AGENT.md) · 🇦🇿 [az](../../../az/docs/frameworks/CLOUD_AGENT.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/CLOUD_AGENT.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/CLOUD_AGENT.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/CLOUD_AGENT.md) · 🇩🇰 [da](../../../da/docs/frameworks/CLOUD_AGENT.md) · 🇩🇪 [de](../../../de/docs/frameworks/CLOUD_AGENT.md) · 🇬🇷 [el](../../../el/docs/frameworks/CLOUD_AGENT.md) · 🇪🇸 [es](../../../es/docs/frameworks/CLOUD_AGENT.md) · 🇪🇪 [et](../../../et/docs/frameworks/CLOUD_AGENT.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/CLOUD_AGENT.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/CLOUD_AGENT.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/CLOUD_AGENT.md) · 🇮🇱 [he](../../../he/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/CLOUD_AGENT.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/CLOUD_AGENT.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/CLOUD_AGENT.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/CLOUD_AGENT.md) · 🇮🇩 [id](../../../id/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/CLOUD_AGENT.md) · 🇮🇹 [it](../../../it/docs/frameworks/CLOUD_AGENT.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/CLOUD_AGENT.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/CLOUD_AGENT.md) · 🇰🇭 [km](../../../km/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/CLOUD_AGENT.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/CLOUD_AGENT.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/CLOUD_AGENT.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/CLOUD_AGENT.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/CLOUD_AGENT.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/CLOUD_AGENT.md) · 🇲🇲 [my](../../../my/docs/frameworks/CLOUD_AGENT.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/CLOUD_AGENT.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/CLOUD_AGENT.md) · 🇳🇴 [no](../../../no/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [or](../../../or/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/CLOUD_AGENT.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/CLOUD_AGENT.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/CLOUD_AGENT.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/CLOUD_AGENT.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/CLOUD_AGENT.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/CLOUD_AGENT.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/CLOUD_AGENT.md) · 🇱🇰 [si](../../../si/docs/frameworks/CLOUD_AGENT.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/CLOUD_AGENT.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/CLOUD_AGENT.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/CLOUD_AGENT.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/CLOUD_AGENT.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [te](../../../te/docs/frameworks/CLOUD_AGENT.md) · 🇹🇭 [th](../../../th/docs/frameworks/CLOUD_AGENT.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/CLOUD_AGENT.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/CLOUD_AGENT.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/CLOUD_AGENT.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/CLOUD_AGENT.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/CLOUD_AGENT.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/CLOUD_AGENT.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/CLOUD_AGENT.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/CLOUD_AGENT.md) · 🇪🇹 [am](../../../am/docs/frameworks/CLOUD_AGENT.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/CLOUD_AGENT.md) · 🇦🇿 [az](../../../az/docs/frameworks/CLOUD_AGENT.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/CLOUD_AGENT.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/CLOUD_AGENT.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/CLOUD_AGENT.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/CLOUD_AGENT.md) · 🇩🇰 [da](../../../da/docs/frameworks/CLOUD_AGENT.md) · 🇩🇪 [de](../../../de/docs/frameworks/CLOUD_AGENT.md) · 🇬🇷 [el](../../../el/docs/frameworks/CLOUD_AGENT.md) · 🇪🇸 [es](../../../es/docs/frameworks/CLOUD_AGENT.md) · 🇪🇪 [et](../../../et/docs/frameworks/CLOUD_AGENT.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/CLOUD_AGENT.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/CLOUD_AGENT.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/CLOUD_AGENT.md) · 🇮🇱 [he](../../../he/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/CLOUD_AGENT.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/CLOUD_AGENT.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/CLOUD_AGENT.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/CLOUD_AGENT.md) · 🇮🇩 [id](../../../id/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/CLOUD_AGENT.md) · 🇮🇹 [it](../../../it/docs/frameworks/CLOUD_AGENT.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/CLOUD_AGENT.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/CLOUD_AGENT.md) · 🇰🇭 [km](../../../km/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/CLOUD_AGENT.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/CLOUD_AGENT.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/CLOUD_AGENT.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/CLOUD_AGENT.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/CLOUD_AGENT.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/CLOUD_AGENT.md) · 🇲🇲 [my](../../../my/docs/frameworks/CLOUD_AGENT.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/CLOUD_AGENT.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/CLOUD_AGENT.md) · 🇳🇴 [no](../../../no/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [or](../../../or/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/CLOUD_AGENT.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/CLOUD_AGENT.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/CLOUD_AGENT.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/CLOUD_AGENT.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/CLOUD_AGENT.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/CLOUD_AGENT.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/CLOUD_AGENT.md) · 🇱🇰 [si](../../../si/docs/frameworks/CLOUD_AGENT.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/CLOUD_AGENT.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/CLOUD_AGENT.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/CLOUD_AGENT.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/CLOUD_AGENT.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [te](../../../te/docs/frameworks/CLOUD_AGENT.md) · 🇹🇭 [th](../../../th/docs/frameworks/CLOUD_AGENT.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/CLOUD_AGENT.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/CLOUD_AGENT.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/CLOUD_AGENT.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/CLOUD_AGENT.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/CLOUD_AGENT.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/CLOUD_AGENT.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/CLOUD_AGENT.md)
 
 ---
 
@@ -110,15 +110,15 @@ export abstract class CloudAgentBase {
     c: AgentCredentials
   ): Promise<{ name: string; url: string; branch?: string }[]>;
 
-  protected mapStatus(raw: string): CloudAgentStatus; // heuristinen palveluntarjoajan merkkijono → enumeraatio
+  protected mapStatus(raw: string): CloudAgentStatus; // heuristinen ylävirran merkkijono → enumeraatio
   protected generateTaskId(): string; // `task_<ts>_<rand>`
   protected generateActivityId(): string; // `act_<ts>_<rand>`
 }
 ```
 
-`CodexCloudAgent.approvePlan` aiheuttaa tarkoituksella poikkeuksen — Codex Cloud luo suunnitelmat automaattisesti, eikä siinä ole hyväksyntävaihetta. `CodexCloudAgent.listSources` palauttaa arvon `[]`.
+`CodexCloudAgent.approvePlan` aiheuttaa tarkoituksella poikkeuksen — Codex Cloud suunnittelee automaattisesti eikä siinä ole hyväksyntävaihetta. `CodexCloudAgent.listSources` palauttaa arvon `[]`.
 
-`CursorCloudAgent` ohjaa Cursorin Background / Cloud Agents -agentteja virallisen REST-rajapinnan (`api.cursor.com/v0`) kautta käyttäen **käyttäjän tai palvelutilin API-avainta** — tämä on turvallisempi, ensisijaisen osapuolen vaihtoehto Cursor IDE:n OAuth-istunnon uudelleenkäytölle (palveluntarjoaja `cursor`, johon liittyy varoitus porttikiellon riskistä). Se on tavallinen REST-sovitin (ei natiivia `@cursor/sdk`-riippuvuutta). `approvePlan` aiheuttaa poikkeuksen (Cursor-agentit toimivat itsenäisesti); `listSources` luettelee avaimella käytettävissä olevat tietovarastot. Cursor palauttaa SUURAAKKOSIN kirjoitetut tilaenumeraatiot (`CREATING`/`RUNNING`/`FINISHED`/`ERROR`), jotka yhdistetään eksplisiittisesti yhteiseen `CloudAgentStatus`-enumeraatioon. `baseUrl` voidaan ohittaa tunnistetietokohtaisesti, joten API-versio tai -polku voidaan korjata ilman koodimuutosta.
+`CursorCloudAgent` ohjaa Cursorin Background / Cloud Agents -agentteja sen virallisen REST-rajapinnan (`api.cursor.com/v0`) kautta käyttäen **käyttäjän tai palvelutilin API-avainta** — tämä on turvallisempi, Cursorin oma vaihtoehto Cursor IDE:n OAuth-istunnon uudelleenkäytölle (palveluntarjoaja `cursor`, johon liittyy varoitus käyttökiellon riskistä). Se on tavallinen REST-sovitin (ei natiivia `@cursor/sdk`-riippuvuutta). `approvePlan` aiheuttaa poikkeuksen (Cursor-agentit toimivat itsenäisesti); `listSources` luettelee avaimella käytettävissä olevat tietovarastot. Cursor palauttaa suuraakkosin kirjoitetut tilaluettelot (`CREATING`/`RUNNING`/`FINISHED`/`ERROR`), jotka muunnetaan eksplisiittisesti yhteiseen `CloudAgentStatus`-tyyppiin. `baseUrl` voidaan ohittaa tunnistetietokohtaisesti, joten API-versio tai -polku voidaan korjata ilman koodimuutosta.
 
 ## Toimialatyypit
 
@@ -295,24 +295,31 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 ulkoista palveluntarjoajaa — `CloudAgentBase` ei sisällä keskeytyksen RPC-kutsua. Lopeta tehtävä
 palveluntarjoajan omassa hallintakonsolissa, jotta ulkoisen palvelun laskutus päättyy.
 
-## REST API — pilvipalveluntarjoajien integrointi
+## REST API — Pilvipalveluntarjoajien integrointi
 
-Näitä hakemiston `src/app/api/cloud/` alla olevia avustavia päätepisteitä käyttävät etäasiakkaat
-(CLI, Electron-sovellus tai synkronointityöntekijät) palveluntarjoajan yhteysmetatietojen
-lukemiseen ja mallialiasten selvittämiseen. Todennus tehdään **tavallisella API-avaimella**
-(`validateApiKey`-toiminnon kautta), ei tehtäväpäätepisteiden käyttämällä hallintatodennuksella.
+Näitä hakemiston `src/app/api/cloud/` alla olevia apupäätepisteitä käyttävät etäasiakkaat
+(CLI, Electron-sovellus tai synkronointityöntekijät) palveluntarjoajien yhteysmetatietojen
+lukemiseen ja mallialiasten selvittämiseen. Ne todennetaan **API-avaimella**
+(`validateApiKey`-toiminnon kautta), ei tehtäväpäätepisteiden käyttämällä hallintatodennuksella;
+`/api/cloud/auth`-päätepisteen palauttama sisältö riippuu avaimen käyttöalueesta (katso alta).
 
-| Menetelmä | Polku                           | Tarkoitus                                                                 |
-| --------- | ------------------------------- | ------------------------------------------------------------------------- |
-| POST      | `/api/cloud/auth`               | Validoi API-avain ja palauta peitetyt yhteysmetatiedot sekä mallialiakset |
-| PUT       | `/api/cloud/credentials/update` | Päivitä `accessToken` / `refreshToken` / `expiresAt`                      |
-| POST      | `/api/cloud/model/resolve`      | Selvitä mallialias muotoon `{ provider, model }`                          |
-| GET       | `/api/cloud/models/alias`       | Listaa kaikki mallialiakset                                               |
-| PUT       | `/api/cloud/models/alias`       | Aseta mallialias (ja synkronoi se automaattisesti Cloudiin, jos käytössä) |
+| Menetelmä | Polku                           | Tarkoitus                                                                  |
+| --------- | ------------------------------- | -------------------------------------------------------------------------- |
+| POST      | `/api/cloud/auth`               | Vahvista API-avain ja palauta peitetyt yhteysmetatiedot sekä mallialiakset |
+| PUT       | `/api/cloud/credentials/update` | Päivitä `accessToken` / `refreshToken` / `expiresAt`                       |
+| POST      | `/api/cloud/model/resolve`      | Selvitä mallialias muotoon `{ provider, model }`                           |
+| GET       | `/api/cloud/models/alias`       | Luettele kaikki mallialiakset                                              |
+| PUT       | `/api/cloud/models/alias`       | Aseta mallialias (ja synkronoi automaattisesti Cloudiin, jos käytössä)     |
 
-`/api/cloud/auth` ei koskaan palauta käsittelemättömiä `apiKey`- / `accessToken`- / `refreshToken`-arvoja. Se
-palauttaa arvot `hasApiKey`, `hasAccessToken`, `hasRefreshToken` sekä peitetyn esikatselun
-(`maskedApiKey`: ensimmäiset 4 + `****` + viimeiset 4).
+`/api/cloud/auth` ei koskaan palauta käsittelemättömiä `apiKey`- / `accessToken`- /
+`refreshToken`-arvoja. Se palauttaa arvot `hasApiKey`, `hasAccessToken` ja `hasRefreshToken`
+aktiivisille yhteyksille, joita avain saa käyttää (avaimelle, jota on rajoitettu
+`allowedConnections`-asetuksella, näytetään vain kyseiset yhteydet). Jos API-avaimen
+käyttöalueena on `manage` tai `admin`, mukaan lukien `OMNIROUTE_API_KEY`-muuttujasta saatu
+käyttöönottoavain, vastaus sisältää myös peitetyn esikatselun (`maskedApiKey`: enintään 4
+merkkiä kummastakin päästä, lyhyestä avaimesta vähemmän eikä yhtään, jos avaimessa on
+enintään 8 merkkiä) sekä yhteyden `projectId`-arvon. Molemmat kentät jätetään pois vastauksesta
+kaikkien muiden avainten kohdalla.
 
 ## Tunnistetietojen selvittäminen
 

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getTranslations } from "next-intl/server";
-import { createProviderConnection } from "@/models";
-import { parseTraeCallbackQuery } from "./parseCallback";
+import { handleTraeCallback } from "./handleCallback";
 
 /**
  * GET /authorize
@@ -26,9 +25,11 @@ import { parseTraeCallbackQuery } from "./parseCallback";
  * opening window before closing itself — that's how TraeAuthModal knows
  * the import succeeded.
  *
- * State validation: the caller passes its UUID as `login_trace_id` in the
- * authorize URL; Trae echoes it back as `loginTraceID`. The modal verifies
- * the echoed state before trusting the postMessage.
+ * State validation: the dashboard requests a one-time state from
+ * POST /api/oauth/trae/authorize-state and passes it as `login_trace_id` in the
+ * authorize URL; Trae echoes it back as `loginTraceID`. The callback is only
+ * honoured for a state issued that way, and the modal checks the echoed value
+ * before trusting the postMessage.
  */
 function htmlClose(message: Record<string, unknown>, t: (key: string) => string): NextResponse {
   // Embedding values: only emit the small/sanitized status payload — never the
@@ -68,24 +69,19 @@ function htmlClose(message: Record<string, unknown>, t: (key: string) => string)
 
 export async function GET(request: Request) {
   const t = await getTranslations("auth");
-  const url = new URL(request.url);
-  const q = url.searchParams;
-  const parsed = parseTraeCallbackQuery(q);
-  if (!parsed.ok) {
-    return htmlClose({ success: false, error: parsed.error }, t);
-  }
+  const q = new URL(request.url).searchParams;
   try {
-    const connection: any = await createProviderConnection(parsed.record);
+    const result = await handleTraeCallback(q);
+    return htmlClose(result, t);
+  } catch (err: any) {
+    console.error("[trae callback] error:", err);
     return htmlClose(
       {
-        success: true,
-        connectionId: connection.id,
-        loginTraceId: q.get("loginTraceID") || null,
+        success: false,
+        error: "Internal error during callback",
+        loginTraceId: q.get("loginTraceID") ?? undefined,
       },
       t
     );
-  } catch (err: any) {
-    console.error("[trae callback] error:", err);
-    return htmlClose({ success: false, error: "Internal error during callback" }, t);
   }
 }

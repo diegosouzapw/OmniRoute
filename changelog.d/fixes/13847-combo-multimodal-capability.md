@@ -1,1 +1,0 @@
-- **fix(combos):** Keep vision capability consistent for MiMo V2.5 and Step 3.7 Flash provider/free variants so `/v1/combos` no longer under-reports multimodal combos whose members are already advertised as vision-capable by `/v1/models` ([#13847](https://github.com/diegosouzapw/OmniRoute/issues/13847)).

@@ -90,12 +90,15 @@ export function composeIdempotencyKey({
   model,
   messages,
   body,
+  apiKeyId,
 }: {
   rawKey: string | null | undefined;
   provider: string;
   model: string;
   messages: unknown;
   body?: unknown;
+  /** The calling API key: keeps one caller's replay from being served to another caller. */
+  apiKeyId?: string | null;
 }): string | null {
   if (!rawKey) return null;
   let digest = "";
@@ -107,7 +110,7 @@ export function composeIdempotencyKey({
   } catch {
     digest = "nodigest";
   }
-  return `${rawKey}|${provider}|${model}|${digest}`;
+  return `${rawKey}|${apiKeyId ?? ""}|${provider}|${model}|${digest}`;
 }
 
 /**
@@ -121,18 +124,26 @@ export async function checkIdempotencyCache({
   provider,
   model,
   body,
+  apiKeyId,
   effectiveServiceTier,
   startTime,
   log,
+  videoTranscriptSensitive,
 }: {
   clientRawRequest: IdempotencyRequest;
   provider: string;
   model: string;
   body?: unknown;
+  /** The calling API key, so replays are never shared across callers. */
+  apiKeyId?: string | null;
   effectiveServiceTier: EffectiveServiceTier | null | undefined;
   startTime: number;
   log: LoggerLike;
+  videoTranscriptSensitive?: boolean;
 }): Promise<{ hit: { success: true; response: Response } | null; idempotencyKey: string | null }> {
+  // A response may quote the video transcript. No key means neither a replay
+  // from a previous entry nor a write at chatCore's later save site.
+  if (videoTranscriptSensitive) return { hit: null, idempotencyKey: null };
   // NEXA fusion-idempotency fix: namespace the raw header key (see composeIdempotencyKey).
   const rawIdempotencyKey = getIdempotencyKey(clientRawRequest?.headers);
   const idempotencyKey = composeIdempotencyKey({
@@ -141,6 +152,7 @@ export async function checkIdempotencyCache({
     model,
     messages: (body as { messages?: unknown } | undefined)?.messages,
     body,
+    apiKeyId,
   });
   const cachedIdemp = checkIdempotency(idempotencyKey);
   if (cachedIdemp) {

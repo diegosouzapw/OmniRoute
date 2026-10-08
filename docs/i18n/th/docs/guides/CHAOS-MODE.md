@@ -1,6 +1,6 @@
 # Chaos Mode (ไทย)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/CHAOS-MODE.md) · 🇪🇹 [am](../../../am/docs/guides/CHAOS-MODE.md) · 🇸🇦 [ar](../../../ar/docs/guides/CHAOS-MODE.md) · 🇦🇿 [az](../../../az/docs/guides/CHAOS-MODE.md) · 🇧🇬 [bg](../../../bg/docs/guides/CHAOS-MODE.md) · 🇧🇩 [bn](../../../bn/docs/guides/CHAOS-MODE.md) · 🇨🇿 [cs](../../../cs/docs/guides/CHAOS-MODE.md) · 🇩🇰 [da](../../../da/docs/guides/CHAOS-MODE.md) · 🇩🇪 [de](../../../de/docs/guides/CHAOS-MODE.md) · 🇬🇷 [el](../../../el/docs/guides/CHAOS-MODE.md) · 🇪🇸 [es](../../../es/docs/guides/CHAOS-MODE.md) · 🇪🇪 [et](../../../et/docs/guides/CHAOS-MODE.md) · 🇮🇷 [fa](../../../fa/docs/guides/CHAOS-MODE.md) · 🇫🇮 [fi](../../../fi/docs/guides/CHAOS-MODE.md) · 🇫🇷 [fr](../../../fr/docs/guides/CHAOS-MODE.md) · 🇮🇪 [ga](../../../ga/docs/guides/CHAOS-MODE.md) · 🇮🇳 [gu](../../../gu/docs/guides/CHAOS-MODE.md) · 🇳🇬 [ha](../../../ha/docs/guides/CHAOS-MODE.md) · 🇮🇱 [he](../../../he/docs/guides/CHAOS-MODE.md) · 🇮🇳 [hi](../../../hi/docs/guides/CHAOS-MODE.md) · 🇭🇷 [hr](../../../hr/docs/guides/CHAOS-MODE.md) · 🇭🇺 [hu](../../../hu/docs/guides/CHAOS-MODE.md) · 🇦🇲 [hy](../../../hy/docs/guides/CHAOS-MODE.md) · 🇮🇩 [id](../../../id/docs/guides/CHAOS-MODE.md) · 🇳🇬 [ig](../../../ig/docs/guides/CHAOS-MODE.md) · 🇮🇹 [it](../../../it/docs/guides/CHAOS-MODE.md) · 🇯🇵 [ja](../../../ja/docs/guides/CHAOS-MODE.md) · 🇬🇪 [ka](../../../ka/docs/guides/CHAOS-MODE.md) · 🇰🇭 [km](../../../km/docs/guides/CHAOS-MODE.md) · 🇮🇳 [kn](../../../kn/docs/guides/CHAOS-MODE.md) · 🇰🇷 [ko](../../../ko/docs/guides/CHAOS-MODE.md) · 🇱🇹 [lt](../../../lt/docs/guides/CHAOS-MODE.md) · 🇱🇻 [lv](../../../lv/docs/guides/CHAOS-MODE.md) · 🇮🇳 [ml](../../../ml/docs/guides/CHAOS-MODE.md) · 🇮🇳 [mr](../../../mr/docs/guides/CHAOS-MODE.md) · 🇲🇾 [ms](../../../ms/docs/guides/CHAOS-MODE.md) · 🇲🇹 [mt](../../../mt/docs/guides/CHAOS-MODE.md) · 🇲🇲 [my](../../../my/docs/guides/CHAOS-MODE.md) · 🇳🇵 [ne](../../../ne/docs/guides/CHAOS-MODE.md) · 🇳🇱 [nl](../../../nl/docs/guides/CHAOS-MODE.md) · 🇳🇴 [no](../../../no/docs/guides/CHAOS-MODE.md) · 🇮🇳 [or](../../../or/docs/guides/CHAOS-MODE.md) · 🇮🇳 [pa](../../../pa/docs/guides/CHAOS-MODE.md) · 🇵🇭 [phi](../../../phi/docs/guides/CHAOS-MODE.md) · 🇵🇱 [pl](../../../pl/docs/guides/CHAOS-MODE.md) · 🇵🇹 [pt](../../../pt/docs/guides/CHAOS-MODE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/CHAOS-MODE.md) · 🇷🇴 [ro](../../../ro/docs/guides/CHAOS-MODE.md) · 🇷🇺 [ru](../../../ru/docs/guides/CHAOS-MODE.md) · 🇱🇰 [si](../../../si/docs/guides/CHAOS-MODE.md) · 🇸🇰 [sk](../../../sk/docs/guides/CHAOS-MODE.md) · 🇸🇮 [sl](../../../sl/docs/guides/CHAOS-MODE.md) · 🇷🇸 [sr](../../../sr/docs/guides/CHAOS-MODE.md) · 🇸🇪 [sv](../../../sv/docs/guides/CHAOS-MODE.md) · 🇰🇪 [sw](../../../sw/docs/guides/CHAOS-MODE.md) · 🇮🇳 [ta](../../../ta/docs/guides/CHAOS-MODE.md) · 🇮🇳 [te](../../../te/docs/guides/CHAOS-MODE.md) · 🇹🇷 [tr](../../../tr/docs/guides/CHAOS-MODE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/CHAOS-MODE.md) · 🇵🇰 [ur](../../../ur/docs/guides/CHAOS-MODE.md) · 🇺🇿 [uz](../../../uz/docs/guides/CHAOS-MODE.md) · 🇻🇳 [vi](../../../vi/docs/guides/CHAOS-MODE.md) · 🇳🇬 [yo](../../../yo/docs/guides/CHAOS-MODE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/CHAOS-MODE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/CHAOS-MODE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/CHAOS-MODE.md) · 🇪🇹 [am](../../../am/docs/guides/CHAOS-MODE.md) · 🇸🇦 [ar](../../../ar/docs/guides/CHAOS-MODE.md) · 🇦🇿 [az](../../../az/docs/guides/CHAOS-MODE.md) · 🇧🇬 [bg](../../../bg/docs/guides/CHAOS-MODE.md) · 🇧🇩 [bn](../../../bn/docs/guides/CHAOS-MODE.md) · 🇧🇦 [bs](../../../bs/docs/guides/CHAOS-MODE.md) · 🇨🇿 [cs](../../../cs/docs/guides/CHAOS-MODE.md) · 🇩🇰 [da](../../../da/docs/guides/CHAOS-MODE.md) · 🇩🇪 [de](../../../de/docs/guides/CHAOS-MODE.md) · 🇬🇷 [el](../../../el/docs/guides/CHAOS-MODE.md) · 🇪🇸 [es](../../../es/docs/guides/CHAOS-MODE.md) · 🇪🇪 [et](../../../et/docs/guides/CHAOS-MODE.md) · 🇮🇷 [fa](../../../fa/docs/guides/CHAOS-MODE.md) · 🇫🇮 [fi](../../../fi/docs/guides/CHAOS-MODE.md) · 🇫🇷 [fr](../../../fr/docs/guides/CHAOS-MODE.md) · 🇮🇪 [ga](../../../ga/docs/guides/CHAOS-MODE.md) · 🇮🇳 [gu](../../../gu/docs/guides/CHAOS-MODE.md) · 🇳🇬 [ha](../../../ha/docs/guides/CHAOS-MODE.md) · 🇮🇱 [he](../../../he/docs/guides/CHAOS-MODE.md) · 🇮🇳 [hi](../../../hi/docs/guides/CHAOS-MODE.md) · 🇭🇷 [hr](../../../hr/docs/guides/CHAOS-MODE.md) · 🇭🇺 [hu](../../../hu/docs/guides/CHAOS-MODE.md) · 🇦🇲 [hy](../../../hy/docs/guides/CHAOS-MODE.md) · 🇮🇩 [id](../../../id/docs/guides/CHAOS-MODE.md) · 🇳🇬 [ig](../../../ig/docs/guides/CHAOS-MODE.md) · 🇮🇹 [it](../../../it/docs/guides/CHAOS-MODE.md) · 🇯🇵 [ja](../../../ja/docs/guides/CHAOS-MODE.md) · 🇬🇪 [ka](../../../ka/docs/guides/CHAOS-MODE.md) · 🇰🇭 [km](../../../km/docs/guides/CHAOS-MODE.md) · 🇮🇳 [kn](../../../kn/docs/guides/CHAOS-MODE.md) · 🇰🇷 [ko](../../../ko/docs/guides/CHAOS-MODE.md) · 🇱🇹 [lt](../../../lt/docs/guides/CHAOS-MODE.md) · 🇱🇻 [lv](../../../lv/docs/guides/CHAOS-MODE.md) · 🇮🇳 [ml](../../../ml/docs/guides/CHAOS-MODE.md) · 🇮🇳 [mr](../../../mr/docs/guides/CHAOS-MODE.md) · 🇲🇾 [ms](../../../ms/docs/guides/CHAOS-MODE.md) · 🇲🇹 [mt](../../../mt/docs/guides/CHAOS-MODE.md) · 🇲🇲 [my](../../../my/docs/guides/CHAOS-MODE.md) · 🇳🇵 [ne](../../../ne/docs/guides/CHAOS-MODE.md) · 🇳🇱 [nl](../../../nl/docs/guides/CHAOS-MODE.md) · 🇳🇴 [no](../../../no/docs/guides/CHAOS-MODE.md) · 🇮🇳 [or](../../../or/docs/guides/CHAOS-MODE.md) · 🇮🇳 [pa](../../../pa/docs/guides/CHAOS-MODE.md) · 🇵🇭 [phi](../../../phi/docs/guides/CHAOS-MODE.md) · 🇵🇱 [pl](../../../pl/docs/guides/CHAOS-MODE.md) · 🇵🇹 [pt](../../../pt/docs/guides/CHAOS-MODE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/CHAOS-MODE.md) · 🇷🇴 [ro](../../../ro/docs/guides/CHAOS-MODE.md) · 🇷🇺 [ru](../../../ru/docs/guides/CHAOS-MODE.md) · 🇱🇰 [si](../../../si/docs/guides/CHAOS-MODE.md) · 🇸🇰 [sk](../../../sk/docs/guides/CHAOS-MODE.md) · 🇸🇮 [sl](../../../sl/docs/guides/CHAOS-MODE.md) · 🇷🇸 [sr](../../../sr/docs/guides/CHAOS-MODE.md) · 🇸🇪 [sv](../../../sv/docs/guides/CHAOS-MODE.md) · 🇰🇪 [sw](../../../sw/docs/guides/CHAOS-MODE.md) · 🇮🇳 [ta](../../../ta/docs/guides/CHAOS-MODE.md) · 🇮🇳 [te](../../../te/docs/guides/CHAOS-MODE.md) · 🇹🇷 [tr](../../../tr/docs/guides/CHAOS-MODE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/CHAOS-MODE.md) · 🇵🇰 [ur](../../../ur/docs/guides/CHAOS-MODE.md) · 🇺🇿 [uz](../../../uz/docs/guides/CHAOS-MODE.md) · 🇻🇳 [vi](../../../vi/docs/guides/CHAOS-MODE.md) · 🇳🇬 [yo](../../../yo/docs/guides/CHAOS-MODE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/CHAOS-MODE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/CHAOS-MODE.md)
 
 ---
 
@@ -8,15 +8,41 @@
 > **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (เซสชันแดชบอร์ด) · `POST /api/skills/collect/chaos` (คีย์ API)  
 > **ซอร์ส:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
-Chaos Mode ส่ง **งานหนึ่งงานไปยังผู้ให้บริการหลายรายพร้อมกัน** — ผู้ให้บริการแต่ละรายที่เข้าร่วมจะส่งอินสแตนซ์โมเดลหนึ่งรายการ และคุณจะได้รับคำตอบทั้งหมดเรียงแสดงเคียงข้างกัน (หรือเชื่อมต่อเป็นลำดับ) นี่คือพื้นผิวการทำงานแบบหลายโมเดล ไม่ใช่กลยุทธ์การกำหนดเส้นทาง: ทราฟฟิก `/v1/chat/completions` ตามปกติของคุณจะไม่ได้รับผลกระทบจากโหมดนี้
+Chaos Mode ส่ง **งานหนึ่งงานไปยังผู้ให้บริการหลายรายพร้อมกัน** — ผู้ให้บริการแต่ละรายที่เข้าร่วม
+จะส่งอินสแตนซ์ของโมเดลหนึ่งรายการ และคุณจะได้รับคำตอบทั้งหมดเรียงเคียงข้างกัน (หรือเชื่อมต่อกันเป็นลำดับ) นี่คือ
+พื้นผิวการประมวลผลแบบหลายโมเดล ไม่ใช่กลยุทธ์การกำหนดเส้นทาง: ทราฟฟิกตามปกติของคุณที่ส่งไปยัง `/v1/chat/completions`
+จะไม่ได้รับผลกระทบจากโหมดนี้
 
-**การแยกความแตกต่าง — มีสามสิ่งที่ใช้คำว่า "chaos" ในชื่อ:**
+**การแยกความแตกต่าง — มีสามสิ่งที่ใช้คำว่า "chaos" อยู่ในชื่อ:**
 
-| สิ่ง                   | คืออะไร                                                                                                                       | เอกสารอ้างอิง                                |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Chaos Mode**         | หน้าแดชบอร์ด + API ที่อธิบายไว้ที่นี่: กระจายงานหนึ่งงานไปยังผู้ให้บริการหลายราย (แบบขนานหรือทำงานร่วมกัน)                    | คู่มือนี้                                    |
-| `auto/chaos`           | รหัสโมเดล Auto-Combo ที่มีค่าน้ำหนักการให้คะแนนแบบฉีดข้อผิดพลาด สำหรับการทดสอบความทนทาน ไม่ต้องกำหนดค่าใดๆ                    | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| การกำหนดค่าคอมโบ Chaos | คอมโบที่บันทึกถาวรซึ่งมี `config.chaos.enabled` จะกระจายงานไปยังกลุ่มโมเดล พร้อมโมเดลผู้ตัดสินซึ่งเป็นตัวเลือก (API เท่านั้น) | `open-sse/services/autoCombo/chaosEngine.ts` |
+| สิ่ง                   | คืออะไร                                                                                                                                                                      | เอกสารอยู่ที่                                |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Chaos Mode**         | หน้าแดชบอร์ด + API ที่อธิบายไว้ที่นี่: กระจายงานหนึ่งงานไปยังผู้ให้บริการหลายราย (แบบขนานหรือแบบทำงานร่วมกัน)                                                                | คู่มือนี้                                    |
+| `auto/chaos`           | รหัสโมเดล Auto-Combo: กระจายงานแบบขนาน โดยใช้หนึ่งโมเดลต่อผู้ให้บริการ และเรียกอัปสตรีมหนึ่งครั้งต่อราย ไม่ใช่การจำลองข้อผิดพลาด ([รายละเอียด](#autochaos-parallel-fan-out)) | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| การกำหนดค่าคอมโบ Chaos | คอมโบที่บันทึกถาวรซึ่งมี `config.chaos.enabled` จะกระจายงานในลักษณะเดียวกัน (เฉพาะ API); `judgeModel` มีหน้าที่เพียงเลือกคำตอบสุดท้าย โดยไม่มีการเรียกเพื่อสังเคราะห์คำตอบ   | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: การกระจายงานแบบขนาน
+
+`auto/chaos` **ไม่ใช่** ตัวเลือกสำหรับการจำลองข้อผิดพลาดหรือการทดสอบความทนทาน การร้องขอ
+`model: "auto/chaos"` บน `/v1/chat/completions` จะ:
+
+1. สร้างพาเนลที่มี **หนึ่งโมเดลต่อผู้ให้บริการ**: ตัวเลือกแรกของผู้ให้บริการ
+   แต่ละรายที่เชื่อมต่ออยู่ ตามลำดับในพูลตัวเลือก สูงสุด 5 สมาชิก
+   (`OMNIROUTE_CHAOS_MAX_PANEL` โดยจำกัดเพดานไว้ที่ 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`) แพ็กน้ำหนัก `chaos-mode`
+   จะกำหนดเพียง `weight` ของสมาชิกแต่ละรายเท่านั้น การกระจายงานจะไม่อ่านค่านี้
+2. ส่งคำขอเดียวกันไปยังสมาชิกทุกคนในพาเนล **แบบขนาน** ดังนั้นหนึ่งคำขอ
+   จะมีค่าใช้จ่ายเท่ากับการเรียกอัปสตรีมหนึ่งครั้งต่อสมาชิกพาเนลหนึ่งราย
+   (`open-sse/services/autoCombo/chaosEngine.ts` ซึ่งถูกส่งต่อมาจาก
+   `open-sse/services/combo.ts`)
+3. สตรีมบรรทัดสถานะหนึ่งบรรทัดต่อสมาชิกพาเนลเมื่อได้รับผลลัพธ์: โดยค่าเริ่มต้นจะเป็นคอมเมนต์ SSE
+   (`: chaos <index> ok|fail <model>`) พร้อมกับอีเวนต์ `omni-chaos-part`
+   (`model`, `index`, `ok`, `error`) เมื่อคำขอกำหนด
+   `stream_options.include_chaos_parts: true` ข้อมูลเหล่านี้ไม่มีข้อความคำตอบ
+4. ส่งคำตอบจากพาเนล **หนึ่งรายการ** เป็นชังก์สุดท้ายในรูปแบบ OpenAI: คำตอบของสมาชิก
+   รายแรกในพาเนล (`auto/chaos` กำหนดให้เป็น `judgeModel`) เมื่อทำงานสำเร็จ มิฉะนั้น
+   จะใช้คำตอบของสมาชิกรายสุดท้ายที่ทำงานสำเร็จ คำตอบอื่น ๆ จากพาเนลจะไม่ถูกส่งกลับ ดังนั้น
+   คุณจึงต้องจ่ายสำหรับการเรียก N ครั้ง แต่ได้รับผลลัพธ์การเติมข้อความเพียงหนึ่งรายการ
 
 ## การตั้งค่า
 

@@ -1,6 +1,8 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import type { BlockedHistoryEntry } from "@/lib/proxyHealth/blockedHistory";
+import type { SweepVerdict } from "@/lib/proxyHealth/sweepVerdict";
 
 interface TestResult {
   success: boolean;
@@ -10,8 +12,20 @@ interface TestResult {
 }
 
 interface HealthInfo {
-  successRate?: number;
-  avgLatencyMs?: number;
+  successRate?: number | null;
+  avgLatencyMs?: number | null;
+  transportRate?: number | null;
+  measured?: boolean;
+  transportOk?: number;
+  transportFailures?: number;
+  slowAbandoned?: number;
+  clientAborted?: number;
+  upstream4xx?: number;
+  upstream5xx?: number;
+  connectionTests?: number;
+  connectionTestSuccess?: number;
+  sweep?: SweepVerdict & { ageMs: number };
+  blockedHistory?: BlockedHistoryEntry & { ageMs: number };
 }
 
 interface ProxyHealthCellProps {
@@ -19,8 +33,30 @@ interface ProxyHealthCellProps {
   health?: HealthInfo | null;
 }
 
+function formatSweepAge(ageMs: number, locale: string): string {
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+  const minutes = Math.floor(Math.max(0, ageMs) / 60000);
+  if (minutes < 1) return rtf.format(0, "second");
+  if (minutes < 60) return rtf.format(-minutes, "minute");
+  return rtf.format(-Math.floor(minutes / 60), "hour");
+}
+
+type SweepLabelKey =
+  | "sweepLabel.unproven"
+  | "sweepLabel.unclassified"
+  | "sweepLabel.ok"
+  | "sweepLabel.fail"
+  | "sweepLabel.hang"
+  | "sweepLabel.inconclusive";
+
+function sweepLabelKey(sweep: { verdict: string; cause: string }): SweepLabelKey {
+  if (sweep.verdict !== "blocked") return `sweepLabel.${sweep.verdict}` as SweepLabelKey;
+  return sweep.cause === "unproven" ? "sweepLabel.unproven" : "sweepLabel.unclassified";
+}
+
 export function ProxyHealthCell({ testResult, health }: ProxyHealthCellProps) {
   const t = useTranslations("proxyRegistry");
+  const locale = useLocale();
 
   if (testResult) {
     if (testResult.success) {
@@ -43,16 +79,50 @@ export function ProxyHealthCell({ testResult, health }: ProxyHealthCellProps) {
         </div>
       );
     }
-    return (
-      <span className="text-red-400">✗ {testResult.error || t("failed")}</span>
-    );
+    return <span className="text-red-400">✗ {testResult.error || t("failed")}</span>;
   }
 
   if (health) {
+    const sweep = health.sweep;
+    const blockedHistory = health.blockedHistory;
     return (
       <div className="flex flex-col gap-0.5">
-        <span>{t("successRate", { rate: health.successRate ?? 0 })}</span>
+        <span title={t("previousSuccessRate", { rate: health.successRate ?? 0 })}>
+          {health.measured === false
+            ? t("notMeasured")
+            : t("transportRate", { rate: health.transportRate ?? 0 })}
+        </span>
+        <span title={t("slowAbandonedHint")}>
+          {t("slowAbandoned", { count: health.slowAbandoned ?? 0 })}
+        </span>
+        <span>{t("clientAborted", { count: health.clientAborted ?? 0 })}</span>
+        <span>{t("upstream4xx", { count: health.upstream4xx ?? 0 })}</span>
+        <span>{t("upstream5xx", { count: health.upstream5xx ?? 0 })}</span>
+        <span>{t("connectionTestsCount", { count: health.connectionTests ?? 0 })}</span>
         <span>{t("avgLatency", { latency: health.avgLatencyMs ?? "-" })}</span>
+        {sweep ? (
+          <span title={`${sweep.verdict}/${sweep.cause} ${sweep.status ?? "-"} ${sweep.ageMs}ms`}>
+            {t("sweepVerdict", {
+              cause: t(sweepLabelKey(sweep)),
+              code: sweep.status ?? "-",
+              age: formatSweepAge(sweep.ageMs, locale),
+            })}
+          </span>
+        ) : (
+          <span>{t("sweepNoData")}</span>
+        )}
+        {blockedHistory && (
+          <span
+            title={`blocked×${blockedHistory.count} ${blockedHistory.lastCause} ${blockedHistory.lastStatus ?? "-"} ${blockedHistory.ageMs}ms`}
+          >
+            {t("blockedHistory", {
+              count: blockedHistory.count,
+              cause: t(sweepLabelKey({ verdict: "blocked", cause: blockedHistory.lastCause })),
+              code: blockedHistory.lastStatus ?? "-",
+              age: formatSweepAge(blockedHistory.ageMs, locale),
+            })}
+          </span>
+        )}
       </div>
     );
   }

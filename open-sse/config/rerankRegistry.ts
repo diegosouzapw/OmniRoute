@@ -1,3 +1,5 @@
+import { hasUnsafeModelIdSyntax } from "../utils/modelIdSafety.ts";
+
 /**
  * Rerank Provider Registry
  *
@@ -168,7 +170,7 @@ export function getRerankProvider(providerId) {
  * Returns { provider, model }
  */
 export function parseRerankModel(modelStr) {
-  if (!modelStr) return { provider: null, model: null };
+  if (!modelStr || hasUnsafeModelIdSyntax(modelStr)) return { provider: null, model: null };
 
   const slashIdx = modelStr.indexOf("/");
   if (slashIdx > 0) {

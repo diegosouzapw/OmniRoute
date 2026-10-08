@@ -6,6 +6,8 @@
 // #7879: re-export the canonical helper so existing consumers of this module
 // keep importing `toNumber` from here unchanged.
 export { toNumber } from "@/shared/utils/numeric";
+// #13130: shared TPS math (generation-time denominator, reasoning-aware numerator).
+import { resolveGenerationMs, resolveTpsOutputTokens } from "@/shared/utils/logTps";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -64,22 +66,37 @@ export interface LatencySampleBuckets {
  * sample when both latencyMs and tokensOutput are positive; rows with
  * latencyMs <= 0 are skipped entirely, mirroring the pre-existing
  * allLatencies/successfulLatencies guard.
+ *
+ * #13130: the TPS sample measures GENERATION throughput, per the rule in
+ * open-sse/utils/generationThroughput.ts ("tok/s MUST exclude TTFT"):
+ *   - denominator: latencyMs - ttftMs when TTFT is known and sane, else the
+ *     full latency (a degraded denominator is better than no sample);
+ *   - numerator: max(tokensOutput, tokensReasoning) — providers are expected
+ *     to fold reasoning into output tokens, but a provider that excludes them
+ *     while still reporting tokens_reasoning would otherwise undercount.
  */
 export function accumulateLatencySample(
   buckets: LatencySampleBuckets,
   latencyMs: number,
   ttftMs: number,
   tokensOutput: number,
-  isSuccess: boolean
+  isSuccess: boolean,
+  tokensReasoning = 0
 ): void {
   if (latencyMs <= 0) return;
   buckets.allLatencies.push(latencyMs);
   if (ttftMs > 0) buckets.allTtfts.push(ttftMs);
-  if (tokensOutput > 0) buckets.allTps.push(tokensOutput / (latencyMs / 1000));
+  const tpsTokens = resolveTpsOutputTokens(tokensOutput, tokensReasoning);
+  const generationMs = resolveGenerationMs(latencyMs, ttftMs);
+  const tps =
+    tpsTokens > 0 && generationMs !== null && generationMs > 0
+      ? tpsTokens / (generationMs / 1000)
+      : null;
+  if (tps !== null) buckets.allTps.push(tps);
   if (!isSuccess) return;
   buckets.successfulLatencies.push(latencyMs);
   if (ttftMs > 0) buckets.successfulTtfts.push(ttftMs);
-  if (tokensOutput > 0) buckets.successfulTps.push(tokensOutput / (latencyMs / 1000));
+  if (tps !== null) buckets.successfulTps.push(tps);
 }
 
 /** Per-provider/model accumulator for getModelLatencyStats() (#6875). */
@@ -179,33 +196,37 @@ export const MAX_PREVIEW_STRING = 1200;
 export const MAX_PREVIEW_ARRAY_ITEMS = 12;
 export const MAX_PREVIEW_OBJECT_KEYS = 24;
 
-export function truncatePendingPreview(value: unknown, depth = 0): unknown {
+function truncatePreviewString(value: string): string {
+  return value.length > MAX_PREVIEW_STRING ? `${value.slice(0, MAX_PREVIEW_STRING)}...` : value;
+}
+
+function previewTree(value: unknown, depth: number, cutStrings: boolean): unknown {
   if (depth >= MAX_PREVIEW_DEPTH) {
     return "[TRUNCATED_DEPTH]";
   }
 
   if (typeof value === "string") {
-    return value.length > MAX_PREVIEW_STRING ? `${value.slice(0, MAX_PREVIEW_STRING)}...` : value;
+    return cutStrings ? truncatePreviewString(value) : value;
   }
 
   if (Array.isArray(value)) {
     const preview = value
       .slice(0, MAX_PREVIEW_ARRAY_ITEMS)
-      .map((item) => truncatePendingPreview(item, depth + 1));
+      .map((item) => previewTree(item, depth + 1, cutStrings));
     if (value.length > MAX_PREVIEW_ARRAY_ITEMS) {
       preview.push({ _truncatedItems: value.length - MAX_PREVIEW_ARRAY_ITEMS });
     }
     return preview;
   }
 
-  if (!value || typeof value !== "object") {
+  if (!value || typeof value !== "object" || ArrayBuffer.isView(value)) {
     return value;
   }
 
   const entries = Object.entries(value as JsonRecord);
   const truncatedEntries = entries
     .slice(0, MAX_PREVIEW_OBJECT_KEYS)
-    .map(([key, entryValue]) => [key, truncatePendingPreview(entryValue, depth + 1)]);
+    .map(([key, entryValue]) => [key, previewTree(entryValue, depth + 1, cutStrings)]);
   const preview = Object.fromEntries(truncatedEntries);
 
   if (entries.length > MAX_PREVIEW_OBJECT_KEYS) {
@@ -213,4 +234,24 @@ export function truncatePendingPreview(value: unknown, depth = 0): unknown {
   }
 
   return preview;
+}
+
+export function truncatePendingPreview(value: unknown): unknown {
+  return previewTree(value, 0, true);
+}
+
+export function prunePendingPreview(value: unknown): unknown {
+  return previewTree(value, 0, false);
+}
+
+export function truncatePendingPreviewStrings(value: unknown): unknown {
+  if (typeof value === "string") return truncatePreviewString(value);
+  if (Array.isArray(value)) return value.map(truncatePendingPreviewStrings);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.entries(value as JsonRecord).map(([key, entryValue]) => [
+      key,
+      truncatePendingPreviewStrings(entryValue),
+    ])
+  );
 }

@@ -173,12 +173,10 @@ export function parseEventFrame(data: Uint8Array): EventFrame | null {
 
       try {
         payload = JSON.parse(payloadStr);
-      } catch (parseError) {
-        const err = parseError instanceof Error ? parseError : new Error(String(parseError));
-        // Log parse error for debugging
-        console.warn(
-          `[Kiro] Failed to parse payload: ${err.message} | payload: ${payloadStr.substring(0, 100)}`
-        );
+      } catch {
+        // JSON parser diagnostics can quote the invalid input. Keep the frame
+        // useful to the caller, but never echo upstream content to retained logs.
+        console.warn(`[Kiro] Failed to parse payload (${payloadEnd - payloadStart} bytes)`);
         payload = { raw: payloadStr };
       }
     }

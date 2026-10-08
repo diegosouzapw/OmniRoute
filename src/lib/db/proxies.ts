@@ -19,6 +19,7 @@ import type {
   ProxyRotationStrategy,
 } from "./proxies/types";
 import {
+  isScopeIdMissing,
   mapProxyRow,
   mapAssignmentRow,
   normalizeScope,
@@ -45,12 +46,14 @@ import {
   clearRotationState,
   resetRotationCursor,
   normalizeRotationStrategy,
+  getScopePoolEgressRows,
   getScopeProxyPool,
   getScopeRotationStrategy,
   resolveProxyForConnectionFromRegistry,
   resolveProxyForScopeFromRegistry,
 } from "./proxies/rotation";
 export {
+  getScopePoolEgressRows,
   getScopeProxyPool,
   getScopeRotationStrategy,
   resolveProxyForConnectionFromRegistry,
@@ -205,7 +208,8 @@ function upsertAssignmentRow(
 ) {
   const normalizedScope = normalizeScope(assignment.scope);
   const normalizedScopeId = normalizeAssignmentScopeId(normalizedScope, assignment.scopeId);
-  if (normalizedScope !== "global" && !normalizedScopeId) {
+  // Contract: normalizedScope is already normalized — the raw-scope guard applies to it directly.
+  if (isScopeIdMissing(normalizedScope, normalizedScopeId)) {
     throw new Error("scopeId is required for non-global proxy assignments");
   }
 
@@ -516,9 +520,51 @@ export async function getProxyWhereUsed(proxyId: string) {
     .all(proxyId)
     .map(mapAssignmentRow);
 
+  const connectionRows = db
+    .prepare("SELECT id, provider, provider_specific_data FROM provider_connections ORDER BY rowid")
+    .all() as Array<{
+    id?: string;
+    provider?: string;
+    provider_specific_data?: string | null;
+  }>;
+  const accountReferences: Array<{
+    connectionId: string;
+    provider: string;
+    accountCount: number;
+  }> = [];
+  let accountReferenceCount = 0;
+  for (const connection of connectionRows) {
+    if (typeof connection.id !== "string" || typeof connection.provider !== "string") continue;
+    let providerSpecificData: unknown;
+    try {
+      providerSpecificData = connection.provider_specific_data
+        ? JSON.parse(connection.provider_specific_data)
+        : null;
+    } catch {
+      continue;
+    }
+    if (!providerSpecificData || typeof providerSpecificData !== "object") continue;
+    const accountProxies = (providerSpecificData as { accountProxies?: unknown }).accountProxies;
+    if (!Array.isArray(accountProxies)) continue;
+    const accountCount = accountProxies.filter(
+      (entry) =>
+        !!entry && typeof entry === "object" && (entry as { proxyId?: unknown }).proxyId === proxyId
+    ).length;
+    if (accountCount === 0) continue;
+    accountReferenceCount += accountCount;
+    accountReferences.push({
+      connectionId: connection.id,
+      provider: connection.provider,
+      accountCount,
+    });
+  }
+
   return {
-    count: rows.length,
+    count: rows.length + accountReferenceCount,
+    assignmentCount: rows.length,
     assignments: rows,
+    accountReferenceCount,
+    accountReferences,
   };
 }
 
@@ -529,6 +575,10 @@ export async function assignProxyToScope(
 ): Promise<ProxyAssignmentRecord | null> {
   const normalizedScope = normalizeScope(scope);
   const normalizedScopeId = normalizeAssignmentScopeId(normalizedScope, scopeId);
+  // Contract: scope already normalized above — the raw-scope guard applies to it directly.
+  if (isScopeIdMissing(normalizedScope, normalizedScopeId)) {
+    throw new Error("scopeId is required for non-global proxy assignments");
+  }
   const db = getDbInstance();
 
   if (!proxyId) {
@@ -578,7 +628,8 @@ export async function addProxyToScopePool(
 ): Promise<ProxyAssignmentRecord | null> {
   const normalizedScope = normalizeScope(scope);
   const normalizedScopeId = normalizeAssignmentScopeId(normalizedScope, scopeId);
-  if (normalizedScope !== "global" && !normalizedScopeId) {
+  // Contract: normalizedScope is already normalized — the raw-scope guard applies to it directly.
+  if (isScopeIdMissing(normalizedScope, normalizedScopeId)) {
     throw new Error("scopeId is required for non-global proxy assignments");
   }
 
@@ -695,17 +746,22 @@ export async function deleteProxyById(id: string, options?: { force?: boolean })
 
   if (!force && usage.count > 0) {
     const err = new Error(
-      "Proxy is still assigned. Remove assignments first or use force=true"
+      "Proxy is still in use. Remove assignments or account references first, or use force=true"
     ) as Error & {
       status?: number;
       code?: string;
+      details?: unknown;
     };
     err.status = 409;
     err.code = "proxy_in_use";
+    err.details = usage;
     throw err;
   }
 
   if (force && usage.count > 0) {
+    // Account proxyId references intentionally remain as unresolved required bindings.
+    // Only an explicit account edit may unbind them; clearing them here would make
+    // the next request silently fall back to direct egress.
     db.prepare("DELETE FROM proxy_assignments WHERE proxy_id = ?").run(id);
   }
 
@@ -786,6 +842,72 @@ export async function migrateLegacyProxyConfigToRegistry(options?: { force?: boo
   return { migrated, skipped: false as const };
 }
 
+/**
+ * Upstream failure spread grouped by provider, read from the proxy log. One row
+ * per provider with real (non connection-test) requests since `since`, and per
+ * exit (distinct proxy host + port) the attempts and 5xx counts behind that
+ * provider. Providers with a null or blank name are excluded: they can never
+ * own a regime line. Only numbers leave this function.
+ */
+export type ProviderUpstreamExit = { exit: string; attempts: number; serverErrors: number };
+
+export type ProviderUpstreamRow = {
+  provider: string;
+  attempts: number;
+  measured: number;
+  serverErrors: number;
+  exits: ProviderUpstreamExit[];
+};
+
+export function getProviderUpstreamSummary(since: string): ProviderUpstreamRow[] {
+  const db = getDbInstance();
+  const rows = db
+    .prepare(
+      `SELECT
+         provider,
+         proxy_host AS exit_host,
+         proxy_port AS exit_port,
+         COUNT(*) AS attempts,
+         SUM(CASE WHEN upstream_status IS NOT NULL THEN 1 ELSE 0 END) AS measured,
+         SUM(CASE WHEN upstream_status >= 500 AND upstream_status < 600 THEN 1 ELSE 0 END) AS server_errors
+       FROM proxy_logs
+       WHERE timestamp >= ?
+         AND provider IS NOT NULL AND TRIM(provider) <> ''
+         AND (target_url NOT LIKE '%/connection-test' OR target_url IS NULL)
+       GROUP BY provider, exit_host, exit_port`
+    )
+    .all(since) as Array<{
+    provider: string;
+    exit_host: string | null;
+    exit_port: number | null;
+    attempts: number;
+    measured: number;
+    server_errors: number;
+  }>;
+
+  const byProvider = new Map<string, ProviderUpstreamRow>();
+  for (const row of rows) {
+    const provider = row.provider;
+    let entry = byProvider.get(provider);
+    if (!entry) {
+      entry = { provider, attempts: 0, measured: 0, serverErrors: 0, exits: [] };
+      byProvider.set(provider, entry);
+    }
+    const attempts = Number(row.attempts || 0);
+    const measured = Number(row.measured || 0);
+    const serverErrors = Number(row.server_errors || 0);
+    entry.attempts += attempts;
+    entry.measured += measured;
+    entry.serverErrors += serverErrors;
+    entry.exits.push({
+      exit: `${row.exit_host ?? "?"}:${row.exit_port ?? "?"}`,
+      attempts,
+      serverErrors,
+    });
+  }
+  return [...byProvider.values()].sort((a, b) => a.provider.localeCompare(b.provider));
+}
+
 export async function getProxyHealthStats(options?: { hours?: number }) {
   const db = getDbInstance();
   const hours = Math.max(1, Math.min(24 * 30, Number(options?.hours || 24)));
@@ -804,6 +926,16 @@ export async function getProxyHealthStats(options?: { hours?: number }) {
          SUM(CASE WHEN l.status = 'success' THEN 1 ELSE 0 END) as success_count,
          SUM(CASE WHEN l.status = 'error' THEN 1 ELSE 0 END) as error_count,
          SUM(CASE WHEN l.status = 'timeout' THEN 1 ELSE 0 END) as timeout_count,
+         SUM(CASE WHEN l.id IS NOT NULL AND l.target_url LIKE '%/connection-test' THEN 1 ELSE 0 END) as connection_tests,
+         SUM(CASE WHEN l.id IS NOT NULL AND l.target_url LIKE '%/connection-test' AND l.status = 'success' THEN 1 ELSE 0 END) as connection_test_success,
+         SUM(CASE WHEN l.id IS NOT NULL AND (l.target_url NOT LIKE '%/connection-test' OR l.target_url IS NULL) THEN 1 ELSE 0 END) as real_requests,
+         SUM(CASE WHEN l.id IS NOT NULL AND (l.target_url NOT LIKE '%/connection-test' OR l.target_url IS NULL) AND l.upstream_status IS NOT NULL THEN 1 ELSE 0 END) as measured_requests,
+         SUM(CASE WHEN l.id IS NOT NULL AND (l.target_url NOT LIKE '%/connection-test' OR l.target_url IS NULL) AND (l.upstream_status IS NOT NULL OR l.status = 'success') THEN 1 ELSE 0 END) as transport_ok,
+         SUM(CASE WHEN l.id IS NOT NULL AND (l.target_url NOT LIKE '%/connection-test' OR l.target_url IS NULL) AND l.status IN ('error', 'timeout') AND l.upstream_status IS NULL AND NOT (COALESCE(l.attempt_issue, '') = 'abandoned' AND COALESCE(l.error, '') LIKE 'OpencodeHeadersWaitTimeout:%') AND NOT (l.attempt_issue IS NOT NULL AND COALESCE(l.error, '') LIKE '%Request aborted%') THEN 1 ELSE 0 END) as transport_failures,
+         SUM(CASE WHEN l.id IS NOT NULL AND (l.target_url NOT LIKE '%/connection-test' OR l.target_url IS NULL) AND l.status IN ('error', 'timeout') AND l.upstream_status IS NULL AND COALESCE(l.attempt_issue, '') = 'abandoned' AND COALESCE(l.error, '') LIKE 'OpencodeHeadersWaitTimeout:%' THEN 1 ELSE 0 END) as slow_abandoned,
+         SUM(CASE WHEN l.id IS NOT NULL AND (l.target_url NOT LIKE '%/connection-test' OR l.target_url IS NULL) AND l.status IN ('error', 'timeout') AND l.upstream_status IS NULL AND l.attempt_issue IS NOT NULL AND COALESCE(l.error, '') LIKE '%Request aborted%' THEN 1 ELSE 0 END) as client_aborted,
+         SUM(CASE WHEN l.id IS NOT NULL AND (l.target_url NOT LIKE '%/connection-test' OR l.target_url IS NULL) AND l.upstream_status >= 400 AND l.upstream_status < 500 THEN 1 ELSE 0 END) as upstream_4xx,
+         SUM(CASE WHEN l.id IS NOT NULL AND (l.target_url NOT LIKE '%/connection-test' OR l.target_url IS NULL) AND l.upstream_status >= 500 AND l.upstream_status < 600 THEN 1 ELSE 0 END) as upstream_5xx,
          AVG(CASE WHEN l.latency_ms IS NOT NULL THEN l.latency_ms END) as avg_latency_ms,
          MAX(l.timestamp) as last_seen_at
        FROM proxy_registry p
@@ -823,6 +955,16 @@ export async function getProxyHealthStats(options?: { hours?: number }) {
     const error = Number(row.error_count || 0);
     const timeout = Number(row.timeout_count || 0);
     const successRate = total > 0 ? Math.round((success / total) * 10000) / 100 : null;
+    const realRequests = Number(row.real_requests || 0);
+    const transportOk = Number(row.transport_ok || 0);
+    const transportFailures = Number(row.transport_failures || 0);
+    const slowAbandoned = Number(row.slow_abandoned || 0);
+    const clientAborted = Number(row.client_aborted || 0);
+    const measuredRequests = Number(row.measured_requests || 0);
+    const transportRate =
+      !measuredRequests || transportOk + transportFailures === 0
+        ? null
+        : Math.round((transportOk / (transportOk + transportFailures)) * 10000) / 100;
 
     return {
       proxyId: String(row.proxy_id || ""),
@@ -836,6 +978,18 @@ export async function getProxyHealthStats(options?: { hours?: number }) {
       errorCount: error,
       timeoutCount: timeout,
       successRate,
+      connectionTests: Number(row.connection_tests || 0),
+      connectionTestSuccess: Number(row.connection_test_success || 0),
+      realRequests,
+      measuredRequests,
+      measured: measuredRequests > 0,
+      transportOk,
+      transportFailures,
+      slowAbandoned,
+      clientAborted,
+      transportRate,
+      upstream4xx: Number(row.upstream_4xx || 0),
+      upstream5xx: Number(row.upstream_5xx || 0),
       avgLatencyMs:
         row.avg_latency_ms === null || row.avg_latency_ms === undefined
           ? null

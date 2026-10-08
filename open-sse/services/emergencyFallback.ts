@@ -36,7 +36,7 @@ export interface EmergencyFallbackConfig {
 
 export const EMERGENCY_FALLBACK_CONFIG: EmergencyFallbackConfig = {
   enabled: true,
-  provider: "groq",
+  provider: "nvidia",
   model: "openai/gpt-oss-120b",
   triggerOn402: true,
   triggerOnBudgetKeywords: true,

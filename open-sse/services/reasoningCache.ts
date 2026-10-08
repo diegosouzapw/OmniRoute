@@ -143,6 +143,7 @@ type AssistantMessageLike = {
 type AssistantMessageCacheContext = {
   scope?: string;
   historyMessages?: AssistantMessageLike[];
+  videoTranscriptSensitive?: boolean;
 };
 
 type ToolCallLike = {
@@ -337,6 +338,7 @@ export function cacheReasoningFromAssistantMessage(
   model: string,
   context?: AssistantMessageCacheContext
 ): number {
+  if (context?.videoTranscriptSensitive) return 0;
   if (!message || message.role !== "assistant") {
     return 0;
   }

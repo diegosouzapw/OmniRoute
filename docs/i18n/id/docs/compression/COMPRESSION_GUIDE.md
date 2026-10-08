@@ -1,14 +1,14 @@
 # 🗜️ Prompt Compression Guide — OmniRoute (Bahasa Indonesia)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/COMPRESSION_GUIDE.md) · 🇪🇹 [am](../../../am/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇿 [az](../../../az/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇰 [da](../../../da/docs/compression/COMPRESSION_GUIDE.md) · 🇩🇪 [de](../../../de/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇷 [el](../../../el/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇸 [es](../../../es/docs/compression/COMPRESSION_GUIDE.md) · 🇪🇪 [et](../../../et/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/compression/COMPRESSION_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇱 [he](../../../he/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/compression/COMPRESSION_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/compression/COMPRESSION_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇹 [it](../../../it/docs/compression/COMPRESSION_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/compression/COMPRESSION_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇭 [km](../../../km/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/compression/COMPRESSION_GUIDE.md) · 🇲🇲 [my](../../../my/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇴 [no](../../../no/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [or](../../../or/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/compression/COMPRESSION_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/compression/COMPRESSION_GUIDE.md) · 🇱🇰 [si](../../../si/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/compression/COMPRESSION_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/compression/COMPRESSION_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/compression/COMPRESSION_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/compression/COMPRESSION_GUIDE.md) · 🇮🇳 [te](../../../te/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇭 [th](../../../th/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/COMPRESSION_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/compression/COMPRESSION_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/compression/COMPRESSION_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/compression/COMPRESSION_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/compression/COMPRESSION_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/COMPRESSION_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/COMPRESSION_GUIDE.md)
 
 ---
 
 > Hemat 15-95% pada konteks yang memenuhi syarat secara otomatis. Untuk ringkasan singkat, lihat [bagian Kompresi README](../README.md#%EF%B8%8F-prompt-compression--save-15-95-eligible-tokens-automatically).
 
-## Ikhtisar
+## Ringkasan
 
-OmniRoute mengimplementasikan pipeline kompresi prompt modular yang berjalan **secara proaktif** sebelum permintaan mencapai penyedia upstream. Artinya, penghematan token berlangsung secara transparan — tidak diperlukan perubahan pada alur kerja Anda.
+OmniRoute mengimplementasikan pipeline kompresi prompt modular yang berjalan secara **proaktif** sebelum permintaan mencapai penyedia upstream. Artinya, penghematan token berlangsung secara transparan — tidak perlu mengubah alur kerja Anda.
 
 ```
 Permintaan Klien
@@ -19,12 +19,12 @@ Permintaan Klien
     → Nonaktif? → Lewati kompresi
   → Mode Kompresi yang Dipilih
     → Nonaktif: Tanpa kompresi
-    → Ringan: Pembersihan spasi kosong/pemformatan yang aman (~15%)
+    → Ringan: Pembersihan spasi/format yang aman (~15%)
     → Standar: Penghapusan kata pengisi bergaya manusia gua (~30%)
-    → Agresif: Pengusangan riwayat + peringkasan (~50%)
-    → Ultra: Pemangkasan heuristik + perampingan blok kode (~75%)
-    → RTK: Pemfilteran output terminal/alat yang mempertimbangkan perintah (rentang upstream 60-90%)
-    → Bertumpuk: Pipeline multi-engine berurutan, biasanya RTK lalu Caveman (rentang yang memenuhi syarat 78-95%)
+    → Agresif: Penuaan riwayat + peringkasan (~50%)
+    → Ultra: Pemangkasan heuristik + penipisan blok kode (~75%)
+    → RTK: Pemfilteran output terminal/alat yang memahami perintah (rentang upstream 60-90%)
+    → Bertumpuk: Pipeline multi-mesin berurutan, biasanya RTK lalu Caveman (rentang yang memenuhi syarat 78-95%)
   → Permintaan Terkompresi → Penyedia
 ```
 
@@ -38,35 +38,36 @@ Tidak ada kompresi yang diterapkan. Semua pesan diteruskan tanpa perubahan.
 
 ### Mode Ringan (penghematan ~15%, latensi <1ms)
 
-Mode paling aman — tanpa perubahan semantik, hanya pembersihan pemformatan:
+Mode paling aman — tanpa perubahan semantik, hanya pembersihan format:
 
 | Teknik                   | Deskripsi                                               |
 | ------------------------ | ------------------------------------------------------- |
 | `collapseWhitespace`     | Menggabungkan baris kosong berurutan dan spasi di akhir |
 | `dedupSystemPrompt`      | Menghapus pesan sistem duplikat                         |
-| `compressToolResults`    | Mengompresi output alat/fungsi yang panjang             |
+| `compressToolResults`    | Mengompresi output alat/fungsi yang bertele-tele        |
 | `removeRedundantContent` | Menghapus instruksi yang berulang                       |
 | `replaceImageUrls`       | Memperpendek URI data gambar base64                     |
 
-**Paling cocok untuk:** Penggunaan yang selalu aktif dan alur kerja yang mengutamakan keamanan.
+**Paling cocok untuk:** Penggunaan yang selalu aktif dan alur kerja yang sangat mengutamakan keselamatan.
 
 ### Mode Standar (penghematan ~30%)
 
 Terinspirasi oleh [Caveman](https://github.com/JuliusBrussee/caveman) — menghapus kata pengisi dan frasa bertele-tele sambil mempertahankan makna:
 
 - Menghapus kata pengisi ("please", "I think", "basically", "actually")
-- Memadatkan frasa bertele-tele ("in order to" → "to", "as a result of" → "because")
-- Menghapus ungkapan sopan yang memperhalus permintaan ("Would you mind...", "If you could possibly...")
-- 30+ aturan regex yang disesuaikan untuk prompt pengodean
+- Meringkas frasa bertele-tele ("in order to" → "to", "as a result of" → "because")
+- Menghapus ungkapan sopan yang tidak tegas ("Would you mind...", "If you could possibly...")
+- 30+ aturan regex yang disesuaikan untuk prompt pemrograman
 
-**Paling cocok untuk:** Alur kerja pengodean harian dan tim yang sadar biaya.
+**Paling cocok untuk:** Alur kerja pemrograman sehari-hari dan tim yang sadar biaya.
 
 ### Mode Agresif (penghematan ~50%)
 
 Pengelolaan riwayat cerdas untuk sesi panjang:
 
-- **Pengusangan Pesan** — pesan lama dikompresi secara progresif
-- **Peringkasan Hasil Alat** — output alat yang panjang diganti dengan ringkasan
+- **Penuaan Pesan** — pesan lama dikompresi secara progresif
+- **Kompresi Hasil Alat** — output alat yang panjang dipotong atau dihilangkan (baris pertama/terakhir,
+  pemfilteran baris yang cocok, pemadatan kunci JSON)
 - **Pelindung Integritas Struktural** — memastikan pasangan `tool_use` + `tool_result` tetap konsisten
 - **Kesadaran Jendela Konteks** — mematuhi batas token per model
 
@@ -74,35 +75,38 @@ Pengelolaan riwayat cerdas untuk sesi panjang:
 
 ### Mode Ultra (penghematan ~75%)
 
-Kompresi maksimum untuk skenario yang sangat dibatasi token:
+Kompresi maksimum untuk skenario yang sangat terbatas oleh token:
 
-- **Pemangkasan Heuristik** — menghapus pesan di bawah ambang relevansi
-- **Perampingan Blok Kode** — mengompresi contoh kode yang berulang
-- **Pemotongan dengan Pencarian Biner** — menemukan titik potong optimal untuk jendela konteks
-- Mencakup semua fitur mode Agresif
+- **Pemangkasan Heuristik** — pemangkasan token prosa berbasis skor
+- **Pelestarian Struktur** — blok kode berpagar, kode inline, URL, dan pengidentifikasi
+  diberi penanda sementara dan disusun kembali secara verbatim, tidak pernah dipangkas
+- **Tingkat SLM opsional** — model lokal kecil dapat menyempurnakan pemangkasan jika dikonfigurasi
+- Independen dari mode Agresif: mode ini tidak menjalankan penuaan pesan, kompresi hasil alat,
+  atau peringkas fallback (hanya kegagalan pada tingkat SLM yang dapat mengarahkan proses fallback melalui
+  mode agresif)
 
 **Paling cocok untuk:** Saat Anda berulang kali mencapai batas konteks.
 
 ### Mode RTK (rentang upstream 60-90%)
 
-Mode RTK dioptimalkan untuk output alat yang panjang dalam sesi agen pengodean:
+Mode RTK dioptimalkan untuk output alat bertele-tele yang muncul dalam sesi agen pemrograman:
 
-- Mendeteksi kelas perintah/output seperti `git status`, `git diff`, `git log`, test runner,
+- Mendeteksi kelas perintah/output seperti `git status`, `git diff`, `git log`, eksekutor pengujian,
   build TypeScript/Vite/Webpack, ESLint/Biome/Prettier, audit/instalasi npm, log Docker, output
   infrastruktur, dan output shell generik
 - Menerapkan paket filter JSON dari `open-sse/services/compression/engines/rtk/filters/`
-- Mengimpor filter schema RTK TOML v1 dari file `filters.toml` proyek atau global, dengan validasi
-  pengujian inline dan pembatasan berdasarkan kepercayaan untuk file proyek
-- Menyediakan 49 filter bawaan dengan sampel verifikasi inline
-- Menghapus urutan kontrol ANSI, bilah progres, baris berulang, dan derau yang tidak dapat ditindaklanjuti
-- Mempertahankan kegagalan, kesalahan, peringatan, file yang berubah, ringkasan, dan bagian akhir output panjang
-- Mendukung filter proyek dengan pembatasan berdasarkan kepercayaan, filter global, dan pemulihan opsional untuk output mentah yang telah disunting
+- Mengimpor filter skema TOML RTK v1 dari file `filters.toml` proyek atau global, dengan validasi
+  pengujian inline dan pembatasan berbasis kepercayaan untuk file proyek
+- Menyertakan 55 filter bawaan dengan sampel verifikasi inline
+- Menghapus urutan kontrol ANSI, bilah kemajuan, baris berulang, dan derau yang tidak dapat ditindaklanjuti
+- Mempertahankan kegagalan, error, peringatan, file yang berubah, ringkasan, dan bagian akhir output panjang
+- Mendukung filter proyek berbasis kepercayaan, filter global, dan pemulihan opsional untuk output mentah yang telah disunting
 
 **Paling cocok untuk:** Sesi agen dengan transkrip shell, build, pengujian, git, grep, dan output file.
 
 ### Mode Bertumpuk (rentang yang memenuhi syarat 78-95%)
 
-Mode Bertumpuk menjalankan beberapa engine kompresi dalam urutan deterministik. Pipeline default-nya adalah:
+Mode Bertumpuk menjalankan beberapa mesin kompresi dalam urutan deterministik. Pipeline default-nya adalah:
 
 ```txt
 RTK -> Caveman
@@ -112,19 +116,19 @@ Urutan tersebut memadatkan output terminal/alat terlebih dahulu, lalu menerapkan
 prompt bahasa alami yang tersisa. Pipeline bertumpuk dapat dikonfigurasi secara global atau melalui
 combo kompresi yang ditetapkan ke combo perutean.
 
-**Paling cocok untuk:** Konteks campuran dengan log alat berukuran besar serta instruksi manusia atau ringkasan asisten.
+**Paling cocok untuk:** Konteks campuran dengan log alat berukuran besar beserta instruksi manusia atau ringkasan asisten.
 
 ---
 
 ## Perhitungan Penghematan Upstream
 
-OmniRoute mendokumentasikan penghematan kompresi dari dua sumber: benchmark proyek upstream dan
+OmniRoute mendokumentasikan penghematan kompresi dari dua sumber: tolok ukur proyek upstream dan
 komposisi mesin OmniRoute sendiri.
 
-| Sumber  | Angka README upstream yang digunakan di sini                                                                                            |
-| ------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Caveman | `~75%` lebih sedikit token keluaran, rata-rata benchmark penghematan keluaran `65%`, rentang `22-87%`, dan alat kompresi masukan `~46%` |
-| RTK     | Penghematan keluaran perintah sebesar `60-90%`; sesi sampel `~118,000 -> ~23,900` token, atau penghematan `79.7%` (`~80%`)              |
+| Sumber  | Angka README upstream yang digunakan di sini                                                                                       |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Caveman | `~75%` lebih sedikit token output, rata-rata penghematan output tolok ukur `65%`, rentang `22-87%`, dan alat kompresi input `~46%` |
+| RTK     | Penghematan output perintah sebesar `60-90%`; sesi contoh `~118,000 -> ~23,900` token, atau penghematan `79.7%` (`~80%`)           |
 
 Untuk payload alat/konteks yang tumpang tindih, kombinasi default OmniRoute menumpuk mesin-mesin tersebut:
 
@@ -135,47 +139,47 @@ RTK -> Caveman
 Penghematan gabungannya bersifat multiplikatif, bukan aditif:
 
 ```txt
-gabungan  = 1 - (1 - penghematan RTK) * (1 - penghematan masukan Caveman)
+gabungan  = 1 - (1 - penghematan RTK) * (1 - penghematan input Caveman)
 rata-rata = 1 - (1 - 0.80) * (1 - 0.46) = 89.2%
 rentang   = 1 - (1 - 0.60..0.90) * (1 - 0.46) = 78.4-94.6%
 ```
 
-Angka `78-95%` tersebut berlaku ketika RTK dan Caveman sama-sama dapat mengurangi payload masukan/konteks yang sama.
-Mode keluaran respons Caveman bersifat terpisah: ketika diaktifkan, gunakan penghematan keluaran Caveman sendiri (rata-rata `65%`,
-angka utama `~75%`, rentang `22-87%`). Total penghematan biaya bergantung pada komposisi prompt/keluaran Anda.
+Angka `78-95%` tersebut berlaku ketika RTK dan Caveman sama-sama dapat mengurangi payload input/konteks yang sama.
+Mode output respons Caveman bersifat terpisah: ketika diaktifkan, gunakan penghematan output Caveman sendiri (rata-rata
+`65%`, angka utama `~75%`, rentang `22-87%`). Total penghematan biaya bergantung pada komposisi prompt/output Anda.
 
-### Apa arti sebenarnya dari "memenuhi syarat"
+### Arti sebenarnya dari "eligible"
 
-Rentang utama 15-95% memang nyata, tetapi hanya berlaku untuk konten yang **redundan atau terlalu panjang** — baris
-kesalahan berulang, log build yang terus mengeluarkan peringatan yang sama, dump `grep`/pembacaan file yang terlalu besar. Ini
+Rentang utama 15-95% memang nyata, tetapi hanya berlaku untuk konten yang **redundan atau bertele-tele** — baris
+error yang berulang, log build yang membanjiri output dengan peringatan yang sama, dump `grep`/pembacaan file yang terlalu besar. Ini
 **bukan** berarti setiap permintaan menghemat sebanyak itu.
 
-Diverifikasi secara empiris (`tests/unit/compression/stacked-compression-tool-result-savings.test.ts`): proses
+Terverifikasi secara empiris (`tests/unit/compression/stacked-compression-tool-result-savings.test.ts`): proses
 `stacked` (RTK + Caveman) terhadap blok `tool_result` berbentuk Anthropic yang berisi 300 baris
-kesalahan identik menghasilkan **penghematan token 95.93% / penghematan karakter 96.26%** — tepat dalam rentang yang
-diiklankan. Namun, pipeline yang sama ketika dijalankan terhadap keluaran alat yang normal dan tidak redundan (daftar kecocokan `grep` yang bersih,
-pembacaan file singkat, teks percakapan biasa) dengan tepat menghasilkan **penghematan mendekati nol**, karena
-tidak ada pengulangan yang dapat dihapus dan `validateCompression()` (`validation.ts`) menolak mengirim
-penulisan ulang yang akan menghilangkan atau mengubah blok kode, URL, judul, versi, atau pengidentifikasi konstanta ALL-CAPS.
+error identik menghasilkan **penghematan token 95.93% / penghematan karakter 96.26%** — tepat di dalam rentang yang diiklankan.
+Namun, pipeline yang sama saat dijalankan terhadap output alat yang normal dan tidak redundan (daftar kecocokan `grep` yang bersih,
+pembacaan file singkat, teks percakapan biasa) dengan benar menghasilkan **penghematan mendekati nol**, karena
+tidak ada pengulangan yang perlu dihapus dan `validateCompression()` (`validation.ts`) menolak mengirim
+penulisan ulang yang akan menghilangkan atau mengubah blok kode, URL, judul, versi, atau identifier konstanta ALL-CAPS.
 
-Ini adalah perilaku aman yang diharapkan, bukan bug: sesi pengodean yang sebagian besar membaca/mencari dengan grep pada file bersih akan
-menghasilkan total penghematan yang moderat meskipun kompresi diaktifkan sepenuhnya, sedangkan sesi yang mengalami
-loop gagal atau linter yang terlalu cerewet akan menghasilkan rentang penuh 78-95% pada lalu lintas tersebut. Jangan gunakan
-persentase penghematan agregat yang rendah dari satu sesi sebagai bukti bahwa kompresi salah dikonfigurasi — periksa terlebih dahulu apakah
-keluaran alat yang mendasarinya benar-benar redundan.
+Ini adalah perilaku aman yang diharapkan, bukan bug: sesi pemrograman yang sebagian besar membaca/melakukan grep pada file bersih akan
+menghasilkan total penghematan yang tidak besar meskipun kompresi sepenuhnya diaktifkan, sedangkan sesi yang mengalami loop gagal
+atau linter yang cerewet akan menghasilkan rentang penuh 78-95% pada lalu lintas tersebut. Jangan gunakan rendahnya
+persentase penghematan agregat dari satu sesi sebagai bukti bahwa kompresi salah dikonfigurasi — periksa terlebih dahulu apakah
+output alat yang mendasarinya benar-benar redundan.
 
 ---
 
 ## Visualisasi Penghematan Token
 
 ```
-Tanpa kompresi:     47K token dikirim ke LLM
-Dengan Lite:        40K token dikirim          (hemat 15% — aman, selalu aktif)
-Dengan Standard:    33K token dikirim          (hemat 30% — aturan caveman-speak)
-Dengan Aggressive:  24K token dikirim          (hemat 50% — penuaan + peringkasan)
-Dengan Ultra:       12K token dikirim          (hemat 75% — pemangkasan heuristik)
-Dengan RTK:         19K-5K token dikirim       (hemat 60-90% pada keluaran perintah/alat)
-Dengan Stacked:     10K-2.5K token dikirim     (rentang RTK+Caveman 78-95% yang memenuhi syarat)
+Tanpa kompresi:      47K token dikirim ke LLM
+Dengan Lite:         40K token dikirim          (hemat 15% — aman, selalu aktif)
+Dengan Standard:     33K token dikirim          (hemat 30% — aturan caveman-speak)
+Dengan Aggressive:   24K token dikirim          (hemat 50% — penuaan + peringkasan)
+Dengan Ultra:        12K token dikirim          (hemat 75% — pemangkasan heuristik)
+Dengan RTK:          19K-5K token dikirim       (hemat 60-90% pada output perintah/alat)
+Dengan Stacked:      10K-2.5K token dikirim     (rentang RTK+Caveman yang memenuhi syarat 78-95%)
 ```
 
 ---
@@ -186,40 +190,60 @@ Dengan Stacked:     10K-2.5K token dikirim     (rentang RTK+Caveman 78-95% yang 
 
 Buka `Dashboard → Context & Cache`:
 
-- **Caveman** — pemilihan mode, paket bahasa, pratinjau, dan pengaturan default global
+- **Caveman** — pemilihan mode, paket bahasa, pratinjau, dan pengaturan bawaan global
 - **RTK** — pratinjau filter perintah, pengaturan keamanan RTK, dan katalog filter
-- **Compression Combos** — pipeline mesin bernama yang ditetapkan ke kombo perutean
-- **Auto-Trigger Threshold** — mengaktifkan kompresi secara otomatis saat jumlah token melampaui ambang batas
+- **Kombinasi Kompresi** — pipeline mesin bernama yang ditetapkan ke kombinasi perutean
+- **Ambang Pemicu Otomatis** — secara otomatis mengaktifkan kompresi ketika jumlah token melebihi ambang batas
 
-### Penggantian Per Kombo
+### Penggantian Per Kombinasi
 
-Di `Dashboard → Context & Cache → Compression Combos`, tetapkan kombo kompresi ke kombo perutean:
+Di `Dashboard → Context & Cache → Compression Combos`, tetapkan kombinasi kompresi ke kombinasi
+perutean:
 
 ```txt
-Kombo: "free-tier-fallback"
-  Kombo Kompresi: "coding-agent-stack"
+Kombinasi: "free-tier-fallback"
+  Kombinasi Kompresi: "coding-agent-stack"
   Pipeline: RTK -> Caveman
   Target:
     1. if/kimi-k2.7-code
     2. if/qwen3.8-max-preview
 ```
 
-Hal ini memungkinkan Anda menggunakan kompresi bertumpuk pada penyedia gratis/coding sambil tetap menggunakan mode ringan pada langganan berbayar.
+Hal ini memungkinkan Anda menggunakan kompresi bertumpuk pada penyedia gratis/pemrograman sambil mempertahankan mode ringan pada
+langganan berbayar.
 
-Penetapan "Penggantian Per Kombo" ini merupakan kontrol yang berbeda dari penggantian **mode kompresi kombo perutean** (Default/Off/Lite/Standard/Aggressive/Ultra) — penggantian tersebut tidak memilih pipeline kombo kompresi bernama; penggantian itu hanya mengatur bidang `compressionMode` yang digunakan oleh `resolveCompressionPlan`. Penggantian ini dapat diatur pada kartu kombo (`Dashboard → Combos`) atau, sejak #6760, per kombo perutean dalam daftar "Assign to routing" di `Dashboard → Context & Cache → Compression Combos`, tepat di sebelah kotak centang penetapan pipeline yang didokumentasikan di atas. Kedua antarmuka menyimpan perubahan melalui endpoint `PUT /api/combos/{id}` yang sama.
+Penetapan "Penggantian Per Kombinasi" ini merupakan kontrol yang berbeda dari penggantian **mode kompresi
+kombinasi perutean** (Default/Off/Lite/Standard/Aggressive/Ultra/Codex Responses — skema bidang tersebut
+juga menerima `rtk`, `stacked`, dan `omniglyph`) — penggantian tersebut tidak memilih pipeline
+kombinasi kompresi bernama; penggantian itu hanya menetapkan bidang `compressionMode` yang digunakan oleh
+`resolveCompressionPlan`. Penggantian ini dapat ditetapkan pada kartu kombinasi (`Dashboard → Combos`) atau, sejak
+#6760, per kombinasi perutean dalam daftar "Assign to routing" di
+`Dashboard → Context & Cache → Compression Combos`, tepat di sebelah kotak centang penetapan pipeline
+yang didokumentasikan di atas. Kedua antarmuka menyimpan perubahan melalui endpoint `PUT /api/combos/{id}` yang sama.
 
 ### Penggantian per permintaan
 
-Kirim header permintaan `x-omniroute-compression` untuk mengganti rencana kompresi bagi satu permintaan. Header ini memiliki prioritas tertinggi — mengungguli penggantian kombo perutean, profil aktif, pemicu otomatis, dan Default pada panel. Nilai yang tidak dikenal akan diabaikan (permintaan tidak pernah ditolak), dan sakelar utama global tetap mengontrol semuanya: saat kompresi dinonaktifkan secara global, header tidak dapat mengaktifkannya. Nilai:
+Kirim header permintaan `x-omniroute-compression` untuk mengganti rencana kompresi bagi satu
+permintaan. Header ini memiliki prioritas tertinggi — mengesampingkan penggantian kombinasi perutean, profil aktif,
+pemicu otomatis, dan pengaturan Default pada panel. Nilai yang tidak dikenal akan diabaikan (permintaan tidak pernah ditolak) dan
+sakelar utama global tetap mengendalikan semuanya: ketika kompresi dinonaktifkan secara global, header tidak dapat
+mengaktifkannya. Nilai:
 
-| Nilai         | Efek                                                                                                                  |
-| ------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Tanpa kompresi untuk permintaan ini.                                                                                  |
-| `default`     | Profil Default yang berasal dari panel (mengabaikan profil aktif).                                                    |
-| `engine:<id>` | Satu mesin ketika diaktifkan, misalnya `engine:rtk`.                                                                  |
-| `<combo>`     | Kombo bernama, dicocokkan berdasarkan nama (tanpa membedakan huruf besar-kecil) terlebih dahulu, lalu berdasarkan id. |
+| Nilai         | Efek                                                                                                                |
+| ------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `off`         | Tidak ada kompresi untuk permintaan ini.                                                                            |
+| `default`     | Profil Default yang berasal dari panel (mengabaikan profil aktif). Mesin lossy tetap dinonaktifkan.                 |
+| `safe`        | Sama seperti tidak menyertakan header: hanya deduplikasi dan peringkasan spasi kosong.                              |
+| `allow-lossy` | Pertahankan rencana operator permintaan ini, termasuk ringkasan, filter relevansi, dan penulisan ulang gaya.        |
+| `engine:<id>` | Satu mesin ketika diaktifkan, misalnya `engine:rtk`. Ini adalah persetujuan per permintaan untuk mesin tersebut.    |
+| `<combo>`     | Kombinasi bernama, dicocokkan terlebih dahulu berdasarkan nama (tidak peka huruf besar/kecil), lalu berdasarkan id. |
 
-Rencana yang diterapkan dikembalikan dalam header respons `X-OmniRoute-Compression: <mode>; source=<source>`, dengan `<source>` berupa salah satu dari `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, atau `off`.
+Tanpa `allow-lossy`, `engine:<id>`, atau kombinasi bernama, mesin lossy tidak diterapkan.
+Permintaan tetap mendapatkan deduplikasi sesi dan peringkasan spasi kosong ketika kompresi diaktifkan.
+
+Rencana yang diterapkan dikembalikan dalam header respons `X-OmniRoute-Compression: <mode>; source=<source>`,
+dengan `<source>` berupa salah satu dari `request-header`, `routing-override`, `active-profile`,
+`auto-trigger`, `default`, atau `off`.
 
 ### API
 
@@ -248,19 +272,19 @@ curl -X POST http://localhost:20128/api/context/rtk/test \
 
 ---
 
-## Yang Dilindungi
+## Apa yang Dilindungi
 
 Mesin kompresi **selalu mempertahankan:**
 
 - ✅ Blok kode (berpagar dan sebaris)
 - ✅ URL dan jalur file
 - ✅ Struktur JSON dan data terstruktur
-- ✅ Pengidentifikasi dan token teknis yang dilindungi
+- ✅ Identifier dan token teknis yang dilindungi
 - ✅ Ekspresi matematika
 - ✅ Definisi pemanggilan alat/fungsi
 - ✅ Prompt sistem (dalam mode lite)
 
-Pemulihan keluaran mentah RTK menyamarkan kunci API umum, bearer token, token Slack, kunci akses AWS,
+Pemulihan output mentah RTK menyunting kunci API umum, bearer token, token Slack, kunci akses AWS,
 kata sandi, token, dan rahasia sebelum apa pun disimpan.
 
 ---
@@ -291,42 +315,50 @@ Setiap permintaan yang dikompresi menyertakan statistik dalam log server:
 | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
 | Fase 1  | Off, Lite                                                                                                                                        | ✅ Dirilis |
 | Fase 2  | Standard, Aggressive, Ultra                                                                                                                      | ✅ Dirilis |
-| Fase 3  | RTK, Stacked, Kombinasi Kompresi                                                                                                                 | ✅ Dirilis |
-| Fase 4  | Gaya Keluaran, Ultra tingkat SLM, perangkat evaluasi                                                                                             | ✅ Dirilis |
+| Fase 3  | RTK, Stacked, Compression Combos                                                                                                                 | ✅ Dirilis |
+| Fase 4  | Output Styles, SLM-tier Ultra, harness evaluasi                                                                                                  | ✅ Dirilis |
 | Fase 4C | Anggaran konteks adaptif ("dial") — mesin komputasi + API (`contextBudget` pada `PUT /api/settings/compression`) + kontrol mode/kebijakan dasbor | ✅ Dirilis |
 
 ---
 
 ## Ucapan Terima Kasih
 
-Aturan kompresi mode Standard terinspirasi oleh **[Caveman](https://github.com/JuliusBrussee/caveman)** karya **[JuliusBrussee](https://github.com/JuliusBrussee)** (⭐ 51K+) — proyek viral "mengapa menggunakan banyak token ketika sedikit token sudah cukup". Caveman melaporkan keluaran dengan token `~75%` lebih sedikit, penghematan keluaran rata-rata tolok ukur sebesar `65%`, rentang keluaran `22-87%`, dan alat kompresi masukan sebesar `~46%`.
+Aturan kompresi mode Standard terinspirasi oleh **[Caveman](https://github.com/JuliusBrussee/caveman)** karya **[JuliusBrussee](https://github.com/JuliusBrussee)** (⭐ 51K+) — proyek viral "mengapa menggunakan banyak token ketika sedikit token sudah cukup". Caveman melaporkan token output `~75%` lebih sedikit, penghematan output rata-rata tolok ukur sebesar `65%`, rentang output `22-87%`, dan alat kompresi input sebesar `~46%`.
 
-Mode RTK terinspirasi oleh **[RTK - Rust Token Killer](https://github.com/rtk-ai/rtk)** karya **[RTK AI](https://github.com/rtk-ai)** — proyek kompresi keluaran perintah berkinerja tinggi untuk terminal, build, pengujian, git, dan pemfilteran keluaran alat. RTK melaporkan penghematan `60-90%`, dengan contoh sesi README-nya menunjukkan penghematan `~80%`.
+Mode RTK terinspirasi oleh **[RTK - Rust Token Killer](https://github.com/rtk-ai/rtk)** karya **[RTK AI](https://github.com/rtk-ai)** — proyek kompresi output perintah berkinerja tinggi untuk pemfilteran output terminal, build, pengujian, git, dan alat. RTK melaporkan penghematan sebesar `60-90%`, dengan contoh sesi dalam README-nya menunjukkan penghematan `~80%`.
 
 ---
 
 ## Sistem Kompresi Lanjutan
 
-Selain 7 mode standar, OmniRoute mencakup beberapa sistem kompresi
-lanjutan yang bekerja secara otomatis berdasarkan konteks.
+Selain 7 mode yang dijelaskan di atas (sumbernya juga menerima mode `codex-responses` dan
+`omniglyph`, yang tidak dibahas dalam panduan ini), bagian-bagian berikut membahas fitur
+yang bekerja di dalam atau berdampingan dengan mode-mode tersebut: Tool Result Compression dan Progressive Aging
+merupakan langkah 1 dan 2 dari mesin aggressive (mode Aggressive dan langkah `aggressive` dari
+pipeline bertumpuk), Stacked Pipeline adalah cara mode Stacked dijalankan, Cache-Aware Compression
+menurunkan `aggressive` dan `ultra` menjadi `standard` untuk penyedia caching saat kompresi
+aktif, sedangkan Caveman Output Mode dan Output Styles adalah instruksi prompt sistem opsional,
+yang secara default nonaktif, yang membentuk output model alih-alih mengompresi permintaan.
 
-### Kompresi yang Mempertimbangkan Cache
+### Kompresi Sadar Cache
 
 Beberapa penyedia (seperti Anthropic dengan caching prompt) mendukung **caching prompt**,
-yang memungkinkan mereka menyimpan sebagian prompt ke cache untuk mengurangi biaya dan latensi. Ketika
-caching diaktifkan, kompresi agresif justru dapat **merugikan** kinerja
-karena kompresi tersebut mengubah token yang di-cache, sehingga membatalkan cache.
+yang memungkinkan mereka menyimpan bagian-bagian prompt dalam cache untuk mengurangi biaya dan latensi. Ketika
+caching diaktifkan, kompresi agresif justru dapat **merugikan** performa
+karena mengubah token yang di-cache sehingga membatalkan cache.
 
 Modul `cachingAware.ts` mengatasi hal ini dengan **mendeteksi konteks caching** dan
 **menyesuaikan strategi kompresi** sebagaimana mestinya.
 
 #### Cara kerjanya
 
-1. **Mendeteksi konteks caching** — Memindai badan permintaan untuk penanda `cache_control`
+1. **Mendeteksi konteks caching** — Memindai isi permintaan untuk penanda `cache_control`
 2. **Mengidentifikasi penyedia caching** — Memeriksa apakah penyedia target mendukung caching
 3. **Menyesuaikan strategi** — Menurunkan `aggressive`/`ultra` menjadi `standard` untuk penyedia caching
 4. **Melewati prompt sistem** — Prompt sistem biasanya di-cache, jadi jangan mengompresinya
-5. **Menggunakan transformasi deterministik** — Hanya menggunakan transformasi yang menghasilkan keluaran konsisten
+
+Pembantu strategi juga mengembalikan flag `deterministicOnly`, tetapi penyusun rencana hanya menggunakan
+strateginya — saat ini tidak ada proses hilir yang membaca flag tersebut.
 
 #### Contoh kode
 
@@ -343,7 +375,7 @@ const body = {
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
-// → { hasCacheControl: true, provider: "anthropic", isCachingProvider: true }
+// → { hasCacheControl: true, provider: "anthropic", targetFormat: null, isCachingProvider: true }
 
 const strategy = getCacheAwareStrategy("aggressive", ctx);
 // → { strategy: "standard", skipSystemPrompt: true, deterministicOnly: true }
@@ -351,21 +383,26 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### Kapan digunakan
 
-Kompresi yang mempertimbangkan cache **selalu aktif** — tidak diperlukan konfigurasi. Kompresi ini hanya mulai bekerja
-ketika:
-
-- Permintaan memiliki penanda `cache_control`
-- Penyedia target mendukung caching prompt (Anthropic, OpenAI, dll.)
+Kompresi sadar cache **selalu aktif** — tidak diperlukan konfigurasi. Fitur ini mulai bekerja setiap kali
+kompresi aktif dan penyedia target mendukung caching prompt (Anthropic, OpenAI,
+dan lain-lain); penanda `cache_control` eksplisit tidak diperlukan — penyedia caching saja sudah
+memicu penurunan mode, sedangkan penanda saja tidak pernah melakukannya (deteksi penanda memasok telemetri
+cache, bukan keputusan strategi).
 
 ### Penuaan Progresif
 
 Percakapan panjang mengakumulasi banyak giliran pesan, tetapi giliran yang lebih lama menjadi kurang
-relevan. Modul `progressiveAging.ts` **menurunkan detail pesan berdasarkan jarak giliran**:
+relevan. Modul `progressiveAging.ts` **menurunkan detail pesan berdasarkan jarak giliran**
+(jarak diukur dari akhir percakapan). Dengan nilai default yang disertakan
+(`verbatim: 2, light: 2, moderate: 3`):
 
-- **Giliran terbaru (0-3)**: Dipertahankan apa adanya (detail lengkap)
-- **Giliran menengah (4-8)**: Kompresi Lite (pembersihan spasi kosong dan pemformatan)
-- **Giliran lama (9+)**: Kompresi Caveman (penghapusan pengisi dan peringkasan)
-- **Giliran sangat lama (20+)**: Diringkas secara intensif atau dibuang
+- **2 giliran terakhir (jarak ≤ 2)**: Dipertahankan apa adanya
+- **Jarak 3**: Kompresi manusia gua (penghapusan kata pengisi)
+- **Jarak 4+**: Pesan asisten diringkas; pesan pengguna dipangkas menjadi baris pertama,
+  dibatasi hingga 120 karakter; peran lain tidak diubah. Prompt sistem, pesan yang sudah
+  mengalami aging, dan pesan pengguna terbaru selalu dipertahankan apa adanya terlepas
+  dari jaraknya. Tidak ada yang dihapus sepenuhnya, dan band `light`
+  tidak dapat dicapai dengan nilai default yang disertakan (`light` sama dengan `verbatim`).
 
 #### Contoh kode
 
@@ -380,10 +417,11 @@ const messages = [
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // 3 giliran pertama: apa adanya
-  light: 8, // Giliran 4-8: kompresi lite
-  moderate: 20, // Giliran 9-20: kompresi caveman
-  // Giliran 21+: peringkasan intensif
+  verbatim: 3, // 3 giliran terakhir: apa adanya
+  light: 8, // jarak <= 8: kompresi ringan
+  moderate: 20, // jarak <= 20: kompresi manusia gua
+  fullSummary: 5, // diwajibkan oleh tipe, tidak dibaca oleh kode banding
+  // jarak > 20: diringkas (asisten) / baris pertama dipertahankan (pengguna)
 });
 
 // saved = jumlah token yang dihemat
@@ -391,80 +429,151 @@ const { messages: aged, saved } = applyAging(messages, {
 
 #### Kapan digunakan
 
-Penuaan progresif **selalu aktif** untuk mode `aggressive` dan `ultra`. Fitur ini
+Progressive aging **selalu aktif** untuk mode `aggressive` — ini adalah langkah ke-2 dari
+`compressAggressive()`. Mode Ultra tidak menjalankannya. Fitur ini
 sangat efektif untuk:
 
-- Sesi pemrograman yang berlangsung lama
+- Sesi pengodean jangka panjang
 - Percakapan selama beberapa hari
-- Alur kerja agen dengan banyak pemanggilan alat
+- Alur kerja agentik dengan banyak pemanggilan alat
 
-### Mode Output Caveman
+### Mode Output Manusia Gua
 
-Modul `outputMode.ts` menyisipkan **instruksi prompt sistem** agar model
-menghasilkan output yang ringkas dan padat (gaya "caveman").
+Mode output manusia gua menambahkan **instruksi prompt sistem** yang meminta model itu sendiri
+menghasilkan output ringkas — level `lite` meminta jawaban singkat yang tetap menggunakan kalimat lengkap, `full`
+memintanya untuk "merespons ringkas seperti manusia gua cerdas", dan `ultra` meminta output telegrafis;
+instruksi hanya meminta, bukan menjaminnya. Permintaan menerimanya melalui
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`):
+`open-sse/handlers/chatCore.ts` terlebih dahulu menentukan pilihan dengan shim kompatibilitas mundur
+(`resolveOutputStyleSelection()` dalam
+`open-sse/services/compression/outputStyles/backCompat.ts`), yang, ketika `outputStyles`
+kosong, memetakan `cavemanOutputMode` yang diaktifkan ke gaya output `terse-prose` pada
+`cavemanOutputMode.intensity` (lihat Kompatibilitas mundur di bawah); pilihan `outputStyles`
+yang tidak kosong digunakan apa adanya, lalu `cavemanOutputMode.enabled` dan `intensity` tidak
+berpengaruh, sementara tombol `autoClarity` tetap berlaku. `outputMode.ts` menyimpan
+teks instruksi (`CAVEMAN_INSTRUCTION_BY_LANGUAGE`), bypass konten, dan
+helper penempatan yang digunakan injeksi; injektor `applyCavemanOutputMode()` miliknya sendiri tidak memiliki
+pemanggil produksi.
 
 #### Cara kerjanya
 
-Alih-alih mengompresi input, mode ini menambahkan prompt sistem seperti:
+Mode ini tidak mengompresi input. Mode ini menambahkan blok instruksi ke prompt sistem
+(lihat Cara kerja injeksi di bawah), dan mode kompresi input apa pun yang dipilih untuk permintaan
+tetap dijalankan setelahnya, pada isi yang kini memuat blok tersebut. Sebelum
+klausa batasan bersama yang mengakhiri setiap level, level `full` dalam bahasa Inggris berbunyi:
 
-> "Balas dengan kata seminimal mungkin. Lewati basa-basi. Gunakan kalimat pendek."
+> "Respond terse like smart caveman. Drop articles (a/an/the), filler (just/really/basically/actually/simply), pleasantries, hedging. Fragments OK. Short synonyms (big not extensive, fix not implement). Keep all technical substance, code, errors, URLs, identifiers exact."
 
-Ini sangat efektif untuk:
+Ini bekerja sangat baik untuk:
 
 - Pembuatan kode (output lebih ringkas = lebih sedikit token)
-- Tanya jawab singkat (tidak memerlukan penjelasan panjang lebar)
+- Tanya jawab singkat (tidak perlu penjelasan panjang lebar)
 - Pemrosesan batch (memaksimalkan throughput)
 
 #### Kapan digunakan
 
-Mode output Caveman bersifat **opsional** — atur melalui konfigurasi combo:
+Mode output manusia gua bersifat **opsional**. Dengan kompresi aktif (`enabled: true`, tombol utama
+pada halaman Compression Settings), aktifkan dengan `cavemanOutputMode.enabled`; `intensity`
+memilih `lite`, `full`, atau `ultra`:
 
 ```json
 {
-  "strategy": "auto",
-  "config": {
-    "auto": {
-      "outputMode": "caveman"
-    }
+  "enabled": true,
+  "cavemanOutputMode": {
+    "enabled": true,
+    "intensity": "full"
   }
 }
 ```
 
+Tombol **Output Mode** milik sebuah kombinasi kompresi (`outputMode`, dengan level di `outputModeIntensity`)
+mengatur sakelar yang sama untuk permintaan tempat kombinasi tersebut diterapkan, dan alat MCP
+`omniroute_set_compression_engine` menuliskannya melalui argumen boolean `outputMode`.
+Pilihan `outputStyles` yang tidak kosong lebih diutamakan daripada sakelar ini. Di
+dasbor, mengaktifkan gaya output **Terse prose** akan menyuntikkan blok yang sama (lihat Output
+Styles di bawah).
+
 ### Gaya Output (katalog)
 
-Mode output Caveman di atas merupakan **jalur gaya tunggal lama**. Fase 4 mengembangkannya
-menjadi katalog gaya output yang dapat dikombinasikan: `OUTPUT_STYLE_CATALOG` di
-`open-sse/services/compression/outputStyles/catalog.ts`. Setiap gaya merupakan instruksi
-prompt sistem yang membuat model menghasilkan output yang lebih hemat; beberapa gaya dapat
-diaktifkan sekaligus dan disisipkan sesuai urutan katalog.
+Mode output manusia gua di atas adalah **jalur gaya tunggal lama**. Fase 4 menggeneralisasikannya
+menjadi katalog gaya output yang dapat dikomposisikan: `OUTPUT_STYLE_CATALOG` dalam
+`open-sse/services/compression/outputStyles/catalog.ts`. Setiap gaya merupakan instruksi prompt sistem
+yang meminta model itu sendiri menghasilkan output yang lebih hemat; beberapa gaya dapat diaktifkan
+bersamaan dan disuntikkan sesuai urutan katalog.
 
-| Gaya                                        | `id`          | Fungsinya                                                                                                                                                                                                                                        | Bahasa instruksi                                                                             |
-| ------------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
-| Prosa ringkas                               | `terse-prose` | Menghilangkan kata pengisi/artikel/ungkapan keraguan; mempertahankan substansi teknis secara akurat. Teksnya sama dengan mode output caveman lama (dirujuk, bukan diketik ulang).                                                                | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                |
-| Lebih sedikit kode                          | `less-code`   | Tangga YAGNI: perubahan berfungsi yang paling kecil, tanpa abstraksi yang tidak diminta.                                                                                                                                                         | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                |
-| Ponytail (pengembang senior yang malas)     | `ponytail`    | "Kode terbaik adalah kode yang tidak pernah ditulis": penggunaan ulang > penulisan ulang, akar masalah > gejala, diff berfungsi yang paling singkat.                                                                                             | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                |
-| Saya menderita ADHD (tindakan lebih dahulu) | `i-have-adhd` | Tindakan lebih dahulu (perintah/path/cuplik sebelum prosa), langkah bernomor yang terbatas, SATU langkah konkret berikutnya, tanpa pembuka/rangkuman/penutup. Diadaptasi dari [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                |
-| CJK ringkas (文言)                          | `terse-cjk`   | Gaya bahasa Tionghoa klasik yang sangat ringkas.                                                                                                                                                                                                 | zh (dibatasi berdasarkan locale: hanya ditawarkan ketika bahasa yang ditentukan adalah `zh`) |
+| Gaya                          | `id`          | Fungsinya                                                                                                                                                                                                                             | Bahasa instruksi                              |
+| ----------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Prosa ringkas                 | `terse-prose` | Hilangkan kata pengisi/artikel/ungkapan keraguan; pertahankan substansi teknis secara tepat. Teksnya sama dengan mode keluaran caveman lama (dirujuk, tidak diketik ulang).                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| Lebih sedikit kode            | `less-code`   | Tangga YAGNI: perubahan terkecil yang berfungsi, tanpa abstraksi yang tidak diminta.                                                                                                                                                  | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| Ponytail (dev senior malas)   | `ponytail`    | "Kode terbaik adalah kode yang tidak pernah ditulis": gunakan kembali > tulis ulang, akar masalah > gejala, diff berfungsi yang terpendek.                                                                                            | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| Saya punya ADHD (aksi dahulu) | `i-have-adhd` | Aksi dahulu (perintah/path/cuplik sebelum prosa), langkah bernomor dan terbatas, SATU langkah konkret berikutnya, tanpa pembuka/rangkuman/penutup. Diadaptasi dari [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| CJK ringkas (文言)            | `terse-cjk`   | Jawaban `full`/`ultra` dalam bahasa Tionghoa Klasik (文言); `lite` hanya meminta jawaban singkat tanpa kata tugas, basa-basi, atau hiasan.                                                                                            | zh (dibatasi lokal, lihat di bawah)           |
 
 Setiap gaya menyediakan tiga tingkat intensitas — `lite`, `full`, `ultra` — dan setiap tingkat
-diakhiri dengan klausa batasan bersama, yang mempertahankan blok kode, path file, perintah,
-string kesalahan, URL, dan identifier apa adanya.
+diakhiri dengan klausul batas bersama (`SHARED_BOUNDARIES` di `outputMode.ts`), yang
+mempertahankan blok kode, path file, perintah, galat, dan URL secara tepat. Teks tingkat
+`terse-prose` dan `terse-cjk` menambahkan identifier ke daftar tersebut.
+
+`terse-cjk` dibatasi ke lokal `zh` di dua tempat. Halaman Pengaturan Kompresi hanya menampilkan
+barisnya ketika bahasa UI dasbor adalah bahasa Tionghoa (`zh-CN` atau `zh-TW`), dan
+`applyOutputStyles()` hanya menyisipkannya ketika bahasa yang ditentukan untuk permintaan (lihat Pemilihan
+bahasa di bawah) adalah `zh`. Menyembunyikan baris tidak menghapus pilihan `terse-cjk` yang tersimpan:
+API pengaturan menerima id gaya apa pun, dan menyimpan gaya lain di halaman akan mempertahankannya. Saat
+permintaan diproses, pemeriksaan bahasa `applyOutputStyles()` adalah satu-satunya pembatas lokal.
 
 #### Cara kerja penyisipan
 
 `applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) mencocokkan
-pilihan dengan katalog (`id` yang tidak dikenal dan gaya yang tidak sesuai dengan locale
-dihapus, tanpa pernah menghasilkan kesalahan), menggabungkan instruksi yang dipilih sesuai
-urutan katalog, menambahkan klausa batasan **satu kali**, dan menempatkan hasilnya di awal
-prompt sistem setelah satu penanda idempotensi (`[OmniRoute Output Styles]`) — penerapan
-ulang tidak melakukan apa pun. Jika bahasa permintaan yang terdeteksi memiliki terjemahan,
-instruksi yang telah dilokalkan akan disisipkan sebagai pengganti bahasa Inggris.
+pilihan dengan katalog (id yang tidak dikenal dan gaya yang tidak cocok dengan lokal
+dihapus, tidak pernah menjadi galat; pilihan yang tidak menghasilkan gaya apa pun membiarkan body
+tidak berubah, dilewati sebagai `no_styles`), menggabungkan instruksi yang dipilih sesuai urutan katalog,
+menambahkan klausul batas **sekali** (beserta klausul keamanan, `SAFETY_BOUNDARIES` atau
+terjemahannya, ketika `less-code` atau `ponytail` dipilih), dan mengawali blok dengan satu
+penanda idempotensi (`[OmniRoute Output Styles]`), sehingga penerapan ulang tidak melakukan apa pun. Ketika
+bahasa yang ditentukan (lihat Pemilihan bahasa di bawah) memiliki terjemahan, instruksi yang dilokalkan
+disisipkan sebagai pengganti bahasa Inggris.
+
+Pada body dengan array `messages` yang tidak kosong, pemeriksaan idempotensi dijalankan sebelum
+pengabaian berdasarkan konten: ketika penanda `[OmniRoute Output Styles]` sudah ada di field
+`system` tingkat atas (berupa string atau array blok konten) atau di pesan sistem dengan konten
+string, body dibiarkan tidak berubah sebagai `already_applied` dan pemeriksaan kata kunci tidak dijalankan.
+Jika tidak, pengabaian berdasarkan konten (`shouldBypassCavemanOutputMode()` di
+`open-sse/services/compression/outputMode.ts`) memeriksa teks dari tiga pesan terakhir,
+apa pun perannya, dan melewati gaya untuk seluruh giliran ketika teks tersebut
+cocok dengan kata kunci keamanan, tindakan yang tidak dapat dibatalkan, atau klarifikasi, maupun
+urutan yang peka terhadap susunan: `first`, `then`, `after that`, `before`, `rollback`, atau
+`backup` yang dalam jarak 240 karakter diikuti oleh `delete`, `drop`, `migrate`, `deploy`, atau
+`release`. Pengabaian ini berjalan selama tombol **Auto-Clarity Bypass**
+(`cavemanOutputMode.autoClarity`, aktif secara default) menyala; menonaktifkan tombol ini akan melewati
+pemeriksaan kata kunci.
+
+Ketika pengabaian mengizinkan giliran tersebut diproses, `placeSystemInstruction()` (file yang sama), yang
+tidak pernah membuat `messages[0]` baru, menempatkan blok pada lokasi pertama yang ditemukan berikut ini:
+
+1. Pesan sistem awal dengan konten string: blok ditambahkan setelah teksnya.
+2. Field `system` tingkat atas: blok ditambahkan setelah teks string, atau
+   ditambahkan sebagai blok teks baru ke array blok konten.
+3. Pesan sistem berikutnya yang pertama dengan konten string: blok ditambahkan setelah
+   teksnya.
+4. Jika tidak ada satu pun di atas: blok dimasukkan ke pesan sistem baru di akhir `messages`.
+
+Pada body tanpa array `messages` (atau dengan array kosong), pengabaian berdasarkan konten tidak dijalankan dan
+field `system` tingkat atas tidak diperiksa. Blok ditambahkan setelah teks pada field
+`instructions` bertipe string, kecuali field tersebut sudah berisi penanda
+`[OmniRoute Output Styles]`; dalam hal itu, body dibiarkan tidak berubah sebagai
+`already_applied`. Ketika body tidak memiliki field `instructions` bertipe string tetapi memuat `input`
+(string atau array), blok menjadi `instructions`, menggantikan nilai non-string apa pun
+yang sebelumnya tersimpan di field tersebut. Body yang tidak memiliki field `instructions` bertipe string maupun
+`input` bertipe string atau array dibiarkan tidak berubah dan dilewati sebagai `no_messages`.
 
 #### Cara mengaktifkan
 
-Di dasbor: **Konteks → Pengaturan → Kompresi** — satu baris per gaya dengan tombol
-aktif/nonaktif dan pemilih tingkat. Secara terprogram, konfigurasi kompresi menyimpan
-pilihan sebagai:
+Di dasbor: **Konteks Kompresi → Pengaturan Kompresi**
+(`/dashboard/context/settings`), bagian Gaya output: satu baris per gaya dengan tombol
+aktif/nonaktif dan pemilih tingkat. Gaya disisipkan selama kompresi itu sendiri aktif
+(tombol utama halaman, `enabled`). Tombol **Lewati Kejelasan Otomatis** berada di halaman
+**Manusia Gua** (`/dashboard/context/caveman`), dalam kartu **Mode Output**. Secara
+programatis, konfigurasi kompresi menyimpan pilihan sebagai:
 
 ```json
 {
@@ -475,76 +584,147 @@ pilihan sebagai:
 }
 ```
 
-Kompatibilitas mundur: pengaturan combo lama `outputMode: "caveman"` tetap berfungsi dan
-dipetakan ke `terse-prose`, identik byte demi byte dengan penyisipan lama dalam setiap bahasa lama.
+Kompatibilitas mundur: ketika `outputStyles` kosong, pengaturan lama
+`cavemanOutputMode.enabled` dipetakan ke `terse-prose` pada
+`cavemanOutputMode.intensity`. Blok kemudian dimulai dengan penanda
+`[OmniRoute Output Styles]`, sedangkan injektor lama `applyCavemanOutputMode()`
+menuliskan `[OmniRoute Caveman Output Mode]`. Di bawah penanda tersebut, teksnya sama
+dengan injeksi lama dalam en, pt-BR, es, de, fr, it, ru, id, dan vi; dalam ja dan zh,
+terdapat satu spasi tambahan sebelum klausa batas. `terse-prose` diterjemahkan ke
+pt-BR, es, de, fr, it, ru, zh, ja, id, dan vi, sehingga permintaan yang bahasa hasil
+resolusinya adalah `hu` akan mendapatkan teks bahasa Inggris, sementara injektor lama
+menggunakan teks bahasa Hungaria.
 
-Pemilihan bahasa: saat `languageConfig.enabled` aktif, `autoDetect` memilih
-bahasa pesan pengguna terbaru (menggunakan detektor yang sama dengan mesin input);
-menonaktifkan `autoDetect` akan menetapkan `defaultLanguage`. Nonaktif → bahasa Inggris.
+Pemilihan bahasa gaya output (`resolveOutputStyleLanguage()` dalam
+`outputStyles/apply.ts`): saat `languageConfig.enabled` aktif, `autoDetect` mengambil
+sampel pesan pengguna terbaru dalam array `messages` milik permintaan yang memiliki
+teks (konten string, atau `text` dari bagian kontennya), lalu menjalankan detektor
+mesin Caveman (`detectCompressionLanguage()`) terhadapnya. Detektor mengembalikan `zh`
+untuk teks dengan karakter Han tanpa kana; jika tidak, detektor mengembalikan bahasa
+mana pun dari `it`, `pt-BR`, `es`, `de`, `fr`, `ru`, `ja`, `hu`, dan `id` yang memiliki
+kecocokan petunjuk terbanyak, serta `en` jika tidak ada yang cocok — teks yang tidak
+dapat diklasifikasikan akan menggunakan bahasa Inggris, tidak pernah
+`defaultLanguage`, dan `vi` tidak pernah terdeteksi meskipun gaya menyediakan teks
+`vi`. Isi permintaan Responses API menyimpan giliran percakapannya dalam `input`, yang
+tidak diambil sebagai sampel, sehingga menggunakan `defaultLanguage`, lalu bahasa
+Inggris. Ketika tidak ada pesan pengguna dalam `messages` yang memiliki teks, atau
+ketika `autoDetect` nonaktif, `defaultLanguage` diterapkan, lalu bahasa Inggris. Ketika
+`languageConfig.enabled` nonaktif, bahasanya adalah bahasa Inggris — kecuali kombinasi
+kompresi diterapkan pada permintaan (kombinasi yang ditetapkan ke kombinasi perutean
+permintaan, atau kombinasi kompresi default yang digunakan chatCore sebagai fallback
+untuk pipeline bertumpuk bawaan): penerapan kombinasi akan mengaktifkan
+`languageConfig.enabled` untuk permintaan tersebut dan menetapkan `defaultLanguage`
+dari paket bahasa kombinasi (nilai tersimpan jika merupakan salah satu paket dalam
+kombinasi tersebut, atau paket pertama kombinasi jika bukan, yang secara default
+adalah `en`), sementara nilai `autoDetect` yang tersimpan (aktif secara default) tetap
+berlaku. Mesin input Caveman memilih bahasa paket aturannya secara berbeda — per bagian
+teks dan, ketika deteksi otomatis nonaktif, dibatasi berdasarkan `enabledPacks`.
 
 Matriks gaya × bahasa ditetapkan oleh
-`tests/unit/compression/output-styles-i18n-matrix.test.ts`: gaya baru tidak dapat dirilis
-tanpa setidaknya terjemahan pt-BR (atau pengecualian terlacak yang eksplisit), dan gaya
-yang sudah ada tidak dapat kehilangan locale secara diam-diam. Untuk menambahkan gaya, lihat
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: setiap gaya katalog harus
+memiliki entri dalam `BASELINE_LANGUAGES` milik pengujian; gaya yang tidak dibatasi
+berdasarkan lokal harus menyediakan terjemahan pt-BR (`terse-cjk` yang dibatasi
+berdasarkan lokal dikecualikan dari aturan ini), kecuali gaya tersebut tercantum dalam
+`KNOWN_ENGLISH_ONLY`, yang hanya boleh memuat gaya tanpa terjemahan sama sekali —
+gaya yang tercantum tetapi memiliki terjemahan apa pun akan menggagalkan pengujian;
+dan suatu gaya akan menggagalkan pengujian ketika kehilangan bahasa yang tercantum
+dalam entri `BASELINE_LANGUAGES` miliknya. Untuk menambahkan gaya, lihat
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
 ### Kompresi Hasil Alat
 
-Modul `toolResultCompressor.ts` menyediakan **5 strategi kompresi khusus**
-untuk hasil alat (pemanggilan fungsi, output agen, hasil pencarian, dan sebagainya):
+`compressToolResult()` dalam `open-sse/services/compression/toolResultCompressor.ts`
+mengompresi teks hasil alat menggunakan **5 strategi**. Fungsi ini mencobanya dalam
+urutan berikut, dan strategi aktif pertama yang pemeriksaannya cocok dengan konten
+akan menentukan hasilnya:
 
-1. **Kompresi hasil pencarian** — Menghapus hasil redundan, mempertahankan N teratas
-2. **Kompresi pembacaan file** — Memotong file besar, mempertahankan header/import
-3. **Kompresi eksekusi kode** — Hanya mempertahankan stdout/stderr yang esensial
-4. **Kompresi kueri database** — Membatasi baris, menghapus metadata yang panjang
-5. **Kompresi respons API** — Menghapus field null, meringkas array
+1. **`fileContent`**: konten yang terdiri dari 3 baris atau lebih, dengan setidaknya satu baris yang, setelah
+   indentasi awal diabaikan, diawali dengan `import `, `export `, `function `, `class `,
+   `const `, `let `, `var ` atau `return ` (kata kunci diikuti spasi), atau dengan `if`,
+   `for` atau `while` yang diikuti oleh `(` atau ` (`, mempertahankan 20 baris pertama dan 5 baris terakhirnya, dengan
+   bagian tengah yang dihilangkan diberi penanda.
+2. **`grepSearch`**: konten dengan setidaknya satu baris berformat `<path>:<digits>:`,
+   dengan teks sebelum titik dua pertama tidak mengandung spasi, hanya mempertahankan baris-baris tersebut, paling
+   banyak 30, diikuti jumlah kecocokan lainnya dan daftar file yang cocok;
+   semua baris lainnya dibuang. Satu baris seperti itu sudah cukup untuk memicu strategi, sehingga
+   baris log yang diawali stempel waktu seperti `12:30:45` juga dihitung.
+3. **`shellOutput`**: output yang mengandung urutan ANSI CSI (`ESC[` lalu angka atau
+   titik koma, kemudian sebuah huruf, seperti pada kode warna) atau `$` yang diikuti spasi
+   di mana pun dalam teks akan kehilangan urutan tersebut (escape lain, seperti `ESC[?25l` atau
+   urutan judul jendela OSC, tetap dipertahankan) dan mempertahankan 50 baris terakhirnya, dengan baris
+   identik yang berurutan diciutkan. Karena pemeriksaan ini dijalankan sebelum `json` dan `errorMessage`,
+   output JSON atau error yang mengandung `$` seperti itu tidak pernah mencapai keduanya selama
+   `shellOutput` aktif.
+4. **`json`**: payload JSON yang panjangnya lebih dari 2.000 karakter, diawali dengan `{` atau `[` (setelah
+   spasi opsional), dan berhasil diurai akan diringkas: array dengan lebih dari 7 item mempertahankan
+   5 item pertama dan 2 item terakhir beserta jumlah totalnya, sedangkan objek mempertahankan 20
+   key pertamanya, dengan setiap nilai objek atau array bertingkat diganti oleh placeholder `{…N keys}`
+   (untuk array, N adalah panjangnya) dan penanda `_remaining_<N>_keys` yang menghitung key yang
+   dibuang setelah 20 key pertama. Nilai skalar disalin seluruhnya, sehingga objek dengan 20 key
+   atau kurang tanpa nilai bertingkat hanya diindentasi ulang — objek yang diminifikasi justru bertambah
+   karakternya dan tetap tidak berubah.
+5. **`errorMessage`**: output yang mengandung, di mana pun dan tanpa memedulikan kapitalisasi, `error:`,
+   `error ` (kata tersebut diikuti spasi, seperti dalam `no error found`), `[error]`,
+   `exception:`, `exception `, `[exception]` atau `traceback` mempertahankan baris pertamanya,
+   10 baris berikutnya, dan 3 baris terakhir, dengan penanda `… [N frames elided] …` menggantikan
+   baris-baris di antaranya. Penanda hanya muncul jika ada lebih dari 13 baris setelah baris pertama,
+   sehingga output error yang terdiri dari 14 baris atau kurang tidak diperpendek (pada 12 atau 13 baris,
+   3 baris terakhir mengulangi baris yang sudah dipertahankan).
+
+Setelah suatu strategi cocok, bahkan strategi yang tidak menghemat apa pun, strategi berikutnya tidak
+dicoba. Ketika strategi yang cocok tidak menghemat estimasi token (panjang ÷ 4, dibulatkan ke atas) —
+misalnya file menyerupai kode yang terdiri dari 25 baris atau kurang, atau array JSON dengan panjang lebih dari 2.000
+karakter yang memiliki 7 item atau kurang — engine agresif mempertahankan hasil tool asli:
+kedua pemanggil (`compressAggressive()` dan `compressAnthropicToolResultBlock()`)
+mempertahankan hasil asli ketika `saved` bernilai 0 atau kurang, sedangkan `compressToolResult()` sendiri tetap
+mengembalikan output strategi tersebut. Langkah hasil tool bukanlah penentu akhir:
+perangkum fallback milik engine masih dapat memperpendek pesan `tool` atau `function` yang panjangnya melebihi
+8.192 karakter (`maxTokensPerMessage`, 2.048, dikalikan 4).
 
 #### Kapan digunakan
 
-Kompresi hasil alat **selalu aktif** ketika terdapat pemanggilan alat. Tidak memerlukan
-konfigurasi.
+Kompresi hasil tool adalah langkah 1 dari engine agresif (`compressAggressive()` di
+`open-sse/services/compression/aggressive.ts`), sehingga dijalankan dalam mode Aggressive dan dalam
+langkah `aggressive` pada pipeline bertumpuk. Fitur ini mengompresi pesan `tool` dan `function`
+berformat OpenAI serta teks di dalam blok `tool_result` Anthropic. Setiap strategi memiliki
+saklarnya sendiri di bawah `aggressive.toolStrategies`, semuanya aktif secara default. Di dashboard,
+saklar tersebut berada di tampilan **Advanced** pada halaman Caveman saat kompresi aktif dan
+mode defaultnya adalah Aggressive.
 
 ### Pipeline Bertumpuk
 
-Mode bertumpuk menjalankan **beberapa mesin secara berurutan** — biasanya RTK terlebih dahulu
-(penghematan 60-90% pada output alat), kemudian Caveman (penghematan tambahan 30% pada
-teks yang tersisa). Ini menghasilkan **penghematan total 78-95%**.
+Mode bertumpuk menjalankan **beberapa engine secara berurutan** — biasanya RTK terlebih dahulu
+(penghematan 60-90% pada output tool), kemudian Caveman pada teks yang tersisa (~46% penghematan
+input). Jika digabungkan, hasilnya adalah **rentang kelayakan 78-95%** (lihat Perhitungan Penghematan Upstream
+di atas): `1 - (1 - 0.60..0.90) × (1 - 0.46)` menghasilkan rata-rata ≈89%.
 
 #### Cara kerjanya
 
 ```
 Input (1000 token)
-  → RTK (filter berbasis perintah) → 200 token
-    → Caveman (penghapusan kata pengisi) → 140 token
-  → Output (140 token, penghematan 86%)
+  → RTK (filter yang memahami perintah) → 200 token
+    → Caveman (penghapusan kata pengisi) → 108 token
+  → Output (108 token, penghematan ~89%)
 ```
 
 #### Kapan digunakan
 
 Gunakan mode bertumpuk untuk:
 
-- Alur kerja yang banyak menggunakan alat (pemrograman berbasis agen, riset)
+- Alur kerja yang banyak menggunakan tool (coding agentik, riset)
 - Pemrosesan batch yang sensitif terhadap biaya
-- Saat Anda memerlukan penghematan token maksimal
+- Ketika Anda membutuhkan penghematan token maksimum
 
-Konfigurasikan melalui combo:
-
-```json
-{
-  "strategy": "auto",
-  "config": {
-    "auto": {
-      "modePack": "stacked"
-    }
-  }
-}
-```
+Pipeline bertumpuk dikonfigurasi melalui pengaturan kompresi global `stackedPipeline`,
+atau melalui combo kompresi bernama yang ditetapkan ke combo routing (lihat
+Penimpaan Per Combo di atas) — bukan melalui `modePack` milik auto-combo (field tersebut hanya
+membobot ulang pemilihan model auto-combo, dan `stacked` bukan nama pack yang valid).
 
 ---
 
-## Penggantian Kombo Kompresi
+## Penggantian Kombinasi Kompresi
 
-Anda dapat mengganti mode kompresi global **untuk setiap kombo** guna menyempurnakan perilaku
+Anda dapat mengganti mode kompresi global **per kombinasi** untuk menyempurnakan perilaku
 bagi berbagai kasus penggunaan:
 
 ```json
@@ -552,25 +732,21 @@ bagi berbagai kasus penggunaan:
   "id": "coding-combo",
   "strategy": "priority",
   "config": {
-    "auto": {
-      "weights": { "taskFit": 0.5 },
-      "modePack": "quality-first"
-    }
+    "weights": { "taskFit": 0.5 },
+    "modePack": "quality-first"
   },
-  "compressionOverride": {
-    "mode": "aggressive",
-    "stackedPipelines": ["rtk", "caveman"],
-    "preserveToolDefinitions": true
-  }
+  "compressionOverride": "aggressive"
 }
 ```
 
 Ini berguna untuk:
 
-- **Kombo pemrograman**: Gunakan mode `aggressive` untuk sesi panjang
-- **Kombo tanya jawab singkat**: Gunakan mode `lite` untuk respons cepat
-- **Kombo dengan banyak alat**: Gunakan mode `stacked` untuk penghematan maksimal
-- **Kombo produksi**: Gunakan mode `cache-aware` untuk penyedia caching
+- **Kombinasi pengodean**: Gunakan mode `aggressive` untuk sesi panjang
+- **Kombinasi tanya jawab cepat**: Gunakan mode `lite` untuk respons cepat
+- **Kombinasi dengan penggunaan alat intensif**: Gunakan mode `stacked` untuk penghematan maksimal
+- **Kombinasi produksi**: biarkan penggantian dinonaktifkan untuk penyedia caching — penyesuaian
+  yang selalu aktif dan sadar-cache menurunkan `aggressive`/`ultra` menjadi `standard` secara otomatis
+  (tidak ada mode `cache-aware` yang dapat dipilih)
 
 ---
 

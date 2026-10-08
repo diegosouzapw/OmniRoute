@@ -119,31 +119,9 @@ export const CODEBUDDY_CN_CONFIG = {
   pollInterval: 5000,
 };
 
-// WorkBuddy (Tencent — www.workbuddy.ai) OAuth Configuration.
-//
-// WorkBuddy is a SEPARATE product from CodeBuddy CN above: its own host, its own
-// account system, its own model catalog. It reuses the same *plugin-auth
-// protocol shape* (POST stateUrl → open authUrl → GET tokenUrl?state=), which is
-// why the config looks similar, but every host below is WorkBuddy's own and the
-// two credentials are not interchangeable in either direction.
-//
-// Verified against the live gateway (2026-09-19):
-//   POST {stateUrl}?platform=CLI  -> { code: 0, data: { state, authUrl } }
-//   GET  {tokenUrl}?state=<state> -> code 11217 while pending, code 0 + data.accessToken when done
-//   POST {refreshUrl}             -> carries the token in the X-Refresh-Token header,
-//                                    not the body. A malformed token answers
-//                                    12153 "refresh token failed: token format error",
-//                                    which is how the carrier was confirmed.
-//
-// No client_id/secret: the upstream CLI ships none.
-export const WORKBUDDY_CONFIG = {
-  baseUrl: "https://www.workbuddy.ai",
-  stateUrl: "https://www.workbuddy.ai/v2/plugin/auth/state",
-  tokenUrl: "https://www.workbuddy.ai/v2/plugin/auth/token",
-  refreshUrl: "https://www.workbuddy.ai/v2/plugin/auth/token/refresh",
-  platform: "CLI",
-  pollInterval: 5000,
-};
+// WorkBuddy config lives with its device-flow module so this god-file only
+// re-exports. Do not alias CODEBUDDY_CN_CONFIG — different host and account.
+export { WORKBUDDY_CONFIG } from "../providers/workbuddy";
 
 // Grok Build (xAI) OAuth Configuration (Device Code + import-token fallback)
 // Public client_id resolved through resolvePublicCred so it is never a literal.
@@ -196,6 +174,15 @@ export const OPENFERENCE_CONFIG = {
   loopbackPort: 56123,
   callbackPath: "/callback",
   callbackHost: "127.0.0.1",
+};
+
+// Muse Code (Meta) OAuth — RFC 8628 device grant + subscription key mint.
+// Public CLI client id (Muse Code CLI); PKCE is not used on this grant.
+export const MUSE_CODE_CONFIG = {
+  clientId: resolvePublicCred("muse_id", "MUSE_CODE_OAUTH_CLIENT_ID"),
+  deviceCodeUrl: "https://auth.meta.com/oidc/device/authorization/",
+  tokenUrl: "https://auth.meta.com/oidc/device/token/",
+  mintUrl: "https://api.meta.ai/muse-code/key",
 };
 
 // Kimi Coding OAuth Configuration (Device Code Flow)
@@ -543,4 +530,5 @@ export const PROVIDERS = {
   OPENFERENCE: "openference",
   ZED: "zed",
   ZED_HOSTED: "zed-hosted",
+  MUSE_CODE: "muse-code",
 };

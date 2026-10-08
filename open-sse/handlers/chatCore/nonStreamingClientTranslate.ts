@@ -32,6 +32,7 @@ import {
 import { isStripReasoningRequested } from "./headers.ts";
 import { applyClientUsageBuffer } from "./clientUsageBuffer.ts";
 import { resolveRequestToolIdentity } from "../../translator/response/openai-responses/requestToolIdentity.ts";
+import { plaintextCollaborationFields } from "../../translator/response/openai-responses/collaborationPlaintextMarker.ts";
 
 export type { NonStreamingClientTranslateInput, NonStreamingClientTranslateResult };
 
@@ -119,6 +120,7 @@ export function translateNonStreamingClientResponse(
       cacheReasoningFromAssistantMessage(msg, provider, model, {
         scope: reasoningCacheScope,
         historyMessages: Array.isArray(historyMessages) ? historyMessages : [],
+        videoTranscriptSensitive: input.videoTranscriptSensitive,
       });
     }
   } catch {
@@ -179,6 +181,12 @@ export function translateNonStreamingClientResponse(
         if (identity) {
           item.namespace = identity.namespace;
           item.name = identity.name;
+        }
+        // #15088 - the empty marker means "this call was translated from
+        // plaintext Chat Completions". A native Responses body already carries
+        // the protocol's own encrypted_function_args (present or absent).
+        if (responsePayloadFormat !== FORMATS.OPENAI_RESPONSES) {
+          Object.assign(item, plaintextCollaborationFields(item.namespace, item.name));
         }
       }
     }

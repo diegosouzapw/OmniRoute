@@ -1,20 +1,30 @@
 # Account-Ban / Banned-Keyword Detection (Tiếng Việt)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../security/BAN_DETECTION.md) · 🇪🇹 [am](../../../am/docs/security/BAN_DETECTION.md) · 🇸🇦 [ar](../../../ar/docs/security/BAN_DETECTION.md) · 🇦🇿 [az](../../../az/docs/security/BAN_DETECTION.md) · 🇧🇬 [bg](../../../bg/docs/security/BAN_DETECTION.md) · 🇧🇩 [bn](../../../bn/docs/security/BAN_DETECTION.md) · 🇨🇿 [cs](../../../cs/docs/security/BAN_DETECTION.md) · 🇩🇰 [da](../../../da/docs/security/BAN_DETECTION.md) · 🇩🇪 [de](../../../de/docs/security/BAN_DETECTION.md) · 🇬🇷 [el](../../../el/docs/security/BAN_DETECTION.md) · 🇪🇸 [es](../../../es/docs/security/BAN_DETECTION.md) · 🇪🇪 [et](../../../et/docs/security/BAN_DETECTION.md) · 🇮🇷 [fa](../../../fa/docs/security/BAN_DETECTION.md) · 🇫🇮 [fi](../../../fi/docs/security/BAN_DETECTION.md) · 🇫🇷 [fr](../../../fr/docs/security/BAN_DETECTION.md) · 🇮🇪 [ga](../../../ga/docs/security/BAN_DETECTION.md) · 🇮🇳 [gu](../../../gu/docs/security/BAN_DETECTION.md) · 🇳🇬 [ha](../../../ha/docs/security/BAN_DETECTION.md) · 🇮🇱 [he](../../../he/docs/security/BAN_DETECTION.md) · 🇮🇳 [hi](../../../hi/docs/security/BAN_DETECTION.md) · 🇭🇷 [hr](../../../hr/docs/security/BAN_DETECTION.md) · 🇭🇺 [hu](../../../hu/docs/security/BAN_DETECTION.md) · 🇦🇲 [hy](../../../hy/docs/security/BAN_DETECTION.md) · 🇮🇩 [id](../../../id/docs/security/BAN_DETECTION.md) · 🇳🇬 [ig](../../../ig/docs/security/BAN_DETECTION.md) · 🇮🇹 [it](../../../it/docs/security/BAN_DETECTION.md) · 🇯🇵 [ja](../../../ja/docs/security/BAN_DETECTION.md) · 🇬🇪 [ka](../../../ka/docs/security/BAN_DETECTION.md) · 🇰🇭 [km](../../../km/docs/security/BAN_DETECTION.md) · 🇮🇳 [kn](../../../kn/docs/security/BAN_DETECTION.md) · 🇰🇷 [ko](../../../ko/docs/security/BAN_DETECTION.md) · 🇱🇹 [lt](../../../lt/docs/security/BAN_DETECTION.md) · 🇱🇻 [lv](../../../lv/docs/security/BAN_DETECTION.md) · 🇮🇳 [ml](../../../ml/docs/security/BAN_DETECTION.md) · 🇮🇳 [mr](../../../mr/docs/security/BAN_DETECTION.md) · 🇲🇾 [ms](../../../ms/docs/security/BAN_DETECTION.md) · 🇲🇹 [mt](../../../mt/docs/security/BAN_DETECTION.md) · 🇲🇲 [my](../../../my/docs/security/BAN_DETECTION.md) · 🇳🇵 [ne](../../../ne/docs/security/BAN_DETECTION.md) · 🇳🇱 [nl](../../../nl/docs/security/BAN_DETECTION.md) · 🇳🇴 [no](../../../no/docs/security/BAN_DETECTION.md) · 🇮🇳 [or](../../../or/docs/security/BAN_DETECTION.md) · 🇮🇳 [pa](../../../pa/docs/security/BAN_DETECTION.md) · 🇵🇭 [phi](../../../phi/docs/security/BAN_DETECTION.md) · 🇵🇱 [pl](../../../pl/docs/security/BAN_DETECTION.md) · 🇵🇹 [pt](../../../pt/docs/security/BAN_DETECTION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/BAN_DETECTION.md) · 🇷🇴 [ro](../../../ro/docs/security/BAN_DETECTION.md) · 🇷🇺 [ru](../../../ru/docs/security/BAN_DETECTION.md) · 🇱🇰 [si](../../../si/docs/security/BAN_DETECTION.md) · 🇸🇰 [sk](../../../sk/docs/security/BAN_DETECTION.md) · 🇸🇮 [sl](../../../sl/docs/security/BAN_DETECTION.md) · 🇷🇸 [sr](../../../sr/docs/security/BAN_DETECTION.md) · 🇸🇪 [sv](../../../sv/docs/security/BAN_DETECTION.md) · 🇰🇪 [sw](../../../sw/docs/security/BAN_DETECTION.md) · 🇮🇳 [ta](../../../ta/docs/security/BAN_DETECTION.md) · 🇮🇳 [te](../../../te/docs/security/BAN_DETECTION.md) · 🇹🇭 [th](../../../th/docs/security/BAN_DETECTION.md) · 🇹🇷 [tr](../../../tr/docs/security/BAN_DETECTION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/BAN_DETECTION.md) · 🇵🇰 [ur](../../../ur/docs/security/BAN_DETECTION.md) · 🇺🇿 [uz](../../../uz/docs/security/BAN_DETECTION.md) · 🇳🇬 [yo](../../../yo/docs/security/BAN_DETECTION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/BAN_DETECTION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/BAN_DETECTION.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../security/BAN_DETECTION.md) · 🇪🇹 [am](../../../am/docs/security/BAN_DETECTION.md) · 🇸🇦 [ar](../../../ar/docs/security/BAN_DETECTION.md) · 🇦🇿 [az](../../../az/docs/security/BAN_DETECTION.md) · 🇧🇬 [bg](../../../bg/docs/security/BAN_DETECTION.md) · 🇧🇩 [bn](../../../bn/docs/security/BAN_DETECTION.md) · 🇧🇦 [bs](../../../bs/docs/security/BAN_DETECTION.md) · 🇨🇿 [cs](../../../cs/docs/security/BAN_DETECTION.md) · 🇩🇰 [da](../../../da/docs/security/BAN_DETECTION.md) · 🇩🇪 [de](../../../de/docs/security/BAN_DETECTION.md) · 🇬🇷 [el](../../../el/docs/security/BAN_DETECTION.md) · 🇪🇸 [es](../../../es/docs/security/BAN_DETECTION.md) · 🇪🇪 [et](../../../et/docs/security/BAN_DETECTION.md) · 🇮🇷 [fa](../../../fa/docs/security/BAN_DETECTION.md) · 🇫🇮 [fi](../../../fi/docs/security/BAN_DETECTION.md) · 🇫🇷 [fr](../../../fr/docs/security/BAN_DETECTION.md) · 🇮🇪 [ga](../../../ga/docs/security/BAN_DETECTION.md) · 🇮🇳 [gu](../../../gu/docs/security/BAN_DETECTION.md) · 🇳🇬 [ha](../../../ha/docs/security/BAN_DETECTION.md) · 🇮🇱 [he](../../../he/docs/security/BAN_DETECTION.md) · 🇮🇳 [hi](../../../hi/docs/security/BAN_DETECTION.md) · 🇭🇷 [hr](../../../hr/docs/security/BAN_DETECTION.md) · 🇭🇺 [hu](../../../hu/docs/security/BAN_DETECTION.md) · 🇦🇲 [hy](../../../hy/docs/security/BAN_DETECTION.md) · 🇮🇩 [id](../../../id/docs/security/BAN_DETECTION.md) · 🇳🇬 [ig](../../../ig/docs/security/BAN_DETECTION.md) · 🇮🇹 [it](../../../it/docs/security/BAN_DETECTION.md) · 🇯🇵 [ja](../../../ja/docs/security/BAN_DETECTION.md) · 🇬🇪 [ka](../../../ka/docs/security/BAN_DETECTION.md) · 🇰🇭 [km](../../../km/docs/security/BAN_DETECTION.md) · 🇮🇳 [kn](../../../kn/docs/security/BAN_DETECTION.md) · 🇰🇷 [ko](../../../ko/docs/security/BAN_DETECTION.md) · 🇱🇹 [lt](../../../lt/docs/security/BAN_DETECTION.md) · 🇱🇻 [lv](../../../lv/docs/security/BAN_DETECTION.md) · 🇮🇳 [ml](../../../ml/docs/security/BAN_DETECTION.md) · 🇮🇳 [mr](../../../mr/docs/security/BAN_DETECTION.md) · 🇲🇾 [ms](../../../ms/docs/security/BAN_DETECTION.md) · 🇲🇹 [mt](../../../mt/docs/security/BAN_DETECTION.md) · 🇲🇲 [my](../../../my/docs/security/BAN_DETECTION.md) · 🇳🇵 [ne](../../../ne/docs/security/BAN_DETECTION.md) · 🇳🇱 [nl](../../../nl/docs/security/BAN_DETECTION.md) · 🇳🇴 [no](../../../no/docs/security/BAN_DETECTION.md) · 🇮🇳 [or](../../../or/docs/security/BAN_DETECTION.md) · 🇮🇳 [pa](../../../pa/docs/security/BAN_DETECTION.md) · 🇵🇭 [phi](../../../phi/docs/security/BAN_DETECTION.md) · 🇵🇱 [pl](../../../pl/docs/security/BAN_DETECTION.md) · 🇵🇹 [pt](../../../pt/docs/security/BAN_DETECTION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/BAN_DETECTION.md) · 🇷🇴 [ro](../../../ro/docs/security/BAN_DETECTION.md) · 🇷🇺 [ru](../../../ru/docs/security/BAN_DETECTION.md) · 🇱🇰 [si](../../../si/docs/security/BAN_DETECTION.md) · 🇸🇰 [sk](../../../sk/docs/security/BAN_DETECTION.md) · 🇸🇮 [sl](../../../sl/docs/security/BAN_DETECTION.md) · 🇷🇸 [sr](../../../sr/docs/security/BAN_DETECTION.md) · 🇸🇪 [sv](../../../sv/docs/security/BAN_DETECTION.md) · 🇰🇪 [sw](../../../sw/docs/security/BAN_DETECTION.md) · 🇮🇳 [ta](../../../ta/docs/security/BAN_DETECTION.md) · 🇮🇳 [te](../../../te/docs/security/BAN_DETECTION.md) · 🇹🇭 [th](../../../th/docs/security/BAN_DETECTION.md) · 🇹🇷 [tr](../../../tr/docs/security/BAN_DETECTION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/BAN_DETECTION.md) · 🇵🇰 [ur](../../../ur/docs/security/BAN_DETECTION.md) · 🇺🇿 [uz](../../../uz/docs/security/BAN_DETECTION.md) · 🇳🇬 [yo](../../../yo/docs/security/BAN_DETECTION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/BAN_DETECTION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/BAN_DETECTION.md)
 
 ---
 
-OmniRoute quét các phản hồi lỗi từ upstream để tìm những tín hiệu cho biết **tài khoản của nhà cung cấp đã ngừng hoạt động vĩnh viễn** (bị đình chỉ / vô hiệu hóa / cấm do vi phạm Điều khoản dịch vụ) và khi khớp, chuyển kết nối đó sang **trạng thái `banned` cuối cùng** để kết nối không còn được chọn cho các yêu cầu. Đây là nội dung được cấu hình trong thẻ cài đặt **Bảo mật → Từ khóa cấm** ("Các từ khóa bổ sung kích hoạt việc phát hiện tài khoản bị cấm vĩnh viễn. Các từ khóa tích hợp sẵn luôn được áp dụng.").
+OmniRoute quét các phản hồi lỗi từ upstream để tìm các tín hiệu cho biết một
+**tài khoản của nhà cung cấp đã ngừng hoạt động vĩnh viễn** (bị đình chỉ / vô hiệu hóa / cấm do vi phạm ToS) và khi
+khớp, chuyển kết nối đó sang **trạng thái `banned` cuối cùng** để kết nối này không
+còn được chọn cho các yêu cầu. Đây là nội dung được cấu hình bởi thẻ cài đặt
+**Security → Banned Keywords** ("Các từ khóa bổ sung kích hoạt việc phát hiện tài khoản
+bị cấm vĩnh viễn. Các từ khóa tích hợp sẵn luôn được áp dụng.").
 
-Trang này ghi lại danh sách tích hợp sẵn, luồng phát hiện, phạm vi áp dụng, cách thêm từ khóa tùy chỉnh một cách an toàn và cách khôi phục một kết nối đã bị gắn cờ. Bản thân trạng thái cuối cùng là một phần của mô hình khả năng phục hồi — xem
-[RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("Trạng thái cuối cùng").
+Trang này trình bày danh sách tích hợp sẵn, luồng phát hiện, phạm vi áp dụng, cách thêm
+từ khóa tùy chỉnh một cách an toàn và cách khôi phục một kết nối bị gắn cờ. Bản thân trạng thái
+cuối cùng là một phần của mô hình khả năng phục hồi — xem
+[RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("Các trạng thái cuối cùng").
 
-**Nguồn chuẩn:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+**Nguồn tham chiếu chính xác:** `open-sse/services/accountFallback.ts`
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+cùng với `open-sse/services/errorClassifier.ts` cho lớp xác minh không phải trạng thái cuối cùng
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) và cho
+nhánh 403 sử dụng lớp này.
 
 ## Từ khóa tích hợp sẵn
 
-8 chuỗi con sau luôn được áp dụng (không phân biệt chữ hoa chữ thường), bất kể danh sách tùy chỉnh:
+7 chuỗi con này luôn được áp dụng (không phân biệt chữ hoa chữ thường), bất kể danh sách tùy chỉnh nào:
 
 ```
 account_deactivated
@@ -22,24 +32,46 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
 > Danh sách này thay đổi khi các nhà cung cấp thay đổi cách diễn đạt thông báo cấm. Bản
 > chính thức là `ACCOUNT_DEACTIVATED_SIGNALS` trong `open-sse/services/accountFallback.ts`;
-> hãy coi khối bên trên là một bản chụp tại thời điểm hiện tại.
+> hãy xem khối ở trên như một bản chụp nhanh.
 
-Hai bảng tín hiệu liền kề, **tách biệt** nằm trong cùng tệp và _không_ thuộc về
-cơ chế phát hiện từ khóa cấm:
+### Không phải lệnh cấm: lời nhắc xác minh mà người vận hành có thể xử lý
 
-- `CREDITS_EXHAUSTED_SIGNALS` — khoản thanh toán/hạn ngạch đã cạn (`insufficient_quota`,
-  `credit_balance_too_low`, `payment required`, …) → trạng thái cuối cùng `credits_exhausted`.
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **không phải trạng thái cuối cùng**; việc làm mới token có thể khôi phục.
+`verify your account to continue` **trước đây từng** nằm trong danh sách trên. Đây không phải
+tín hiệu cấm và hiện nằm trong `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS`, được phân loại là
+`PROJECT_ROUTE_ERROR` có thể khôi phục thay vì chấm dứt kết nối.
+
+Google Cloud Code / Antigravity trả về thông báo này dưới dạng `403 VALIDATION_REQUIRED`. Đây là
+lỗi **tạm thời và xảy ra trên các tài khoản bình thường, còn đầy đủ hạn ngạch** — theo số liệu
+đo trên một bản triển khai thực tế (2026-09-25, `proxy_logs`): một kết nối Antigravity đã trả về 33
+lỗi 403 như vậy trong vòng 10 phút và vẫn ở trạng thái `active`, trong khi một kết nối cùng cấp
+đang giữ 100 % hạn ngạch trên cả 17 cửa sổ đã bị cấm vĩnh viễn chỉ bởi **một** lỗi như vậy. Điểm
+khác biệt duy nhất là lần thử nào tình cờ được phục vụ.
+
+Sự phân biệt này rất quan trọng vì một kết quả khớp dạng chấm dứt sẽ có `permanent: true` (thời gian
+chờ 1 năm, không bao giờ tự động khôi phục), trong khi người vận hành có thể xử lý lời nhắc xác minh
+trong trình duyệt. Việc giữ cụm từ này trong danh sách cấm cũng khiến nhánh xử lý 403 của cloud-code
+có thể khôi phục trong `classifyProviderError` không thể được thực thi đối với cách diễn đạt này, vì
+`accountDeactivated` được đánh giá trước — do đó cơ chế khôi phục tuyến dự án được thêm cho Gemini
+Code Assist trong [#868](https://github.com/diegosouzapw/OmniRoute/pull/868) và
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) không bao giờ có thể chạy.
+
+Ba bảng tín hiệu liền kề nhưng **tách biệt** sau đây _không_ thuộc cơ chế phát hiện từ khóa cấm:
+
+- `CREDITS_EXHAUSTED_SIGNALS` — tín dụng/hạn ngạch đã cạn (`insufficient_quota`,
+  `credit_balance_too_low`, `payment required`, …) → `credits_exhausted` dạng chấm dứt.
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **không chấm dứt**; việc làm mới token có thể khôi phục.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **không chấm dứt**; người vận hành phải
+  xác minh lại tài khoản ở phía nhà cung cấp. Nằm trong `open-sse/services/errorClassifier.ts`
+  (hai bảng còn lại nằm trong `accountFallback.ts`). Xem phần ở trên.
 
 Lưu ý: các cụm từ tạm thời phổ biến như **`rate limit`** / `429` được xử lý bởi
-luồng giới hạn tốc độ / thời gian chờ của kết nối và **không** phải là tín hiệu cấm.
+luồng giới hạn tốc độ / thời gian chờ kết nối và **không** phải là tín hiệu cấm.
 
 ## Luồng phát hiện
 

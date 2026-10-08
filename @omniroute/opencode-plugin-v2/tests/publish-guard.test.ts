@@ -5,11 +5,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import plugin from "../src/index.js";
 
-// Guard around `publishCatalog` in the catalog transform: fetcher-level
-// fail-open covers fetch rejections, but a mapper throw or a host throw in
-// `draft.update` would reject the transform callback (unhandled rejection).
-// The guard must warn + resolve instead.
-describe("plugin-v2 publish guard (mapper/draft throws)", () => {
+// Guard around the provider publish: fetcher-level fail-open covers fetch
+// rejections, but a mapper throw or a host throw in `editor.add` would reject
+// the setup (unhandled rejection). The guard must warn + resolve instead.
+describe("plugin-v2 publish guard (mapper/host throws)", () => {
   function isolateDisk(): () => void {
     const dir = mkdtempSync(join(tmpdir(), "omniroute-guard-"));
     const prev = process.env.OPENCODE_DATA_DIR;
@@ -19,32 +18,31 @@ describe("plugin-v2 publish guard (mapper/draft throws)", () => {
       else process.env.OPENCODE_DATA_DIR = prev;
     };
   }
-  function setupCtx(): {
-    catalogCallbacks: Array<(draft: unknown) => Promise<void>>;
+  function setupCtx(add: (input: unknown) => void): {
     ctx: Record<string, unknown>;
   } {
-    const catalogCallbacks: Array<(draft: unknown) => Promise<void>> = [];
     const ctx = {
       options: { baseURL: "https://gw.example.com", providerId: "omniroute", apiKey: "k" },
-      catalog: {
-        transform: (cb: (draft: unknown) => Promise<void>) => {
-          catalogCallbacks.push(cb);
+      provider: {
+        transform: (cb: (editor: { add: (input: unknown) => void }) => void) => {
+          cb({ add });
           return Promise.resolve({ dispose: async () => {} });
         },
+        reload: async () => {},
+      },
+      model: {
+        transform: () => Promise.resolve({ dispose: async () => {} }),
       },
       integration: {
         transform: () => Promise.resolve({ dispose: async () => {} }),
       },
     };
-    return { catalogCallbacks, ctx };
+    return { ctx };
   }
 
   function stubFetch(): typeof fetch {
     return (async (url: unknown) => {
       const href = String(url);
-      if (href.includes("/api/combos/auto")) {
-        return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
-      }
       if (href.includes("/api/combos")) {
         return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
       }
@@ -74,25 +72,17 @@ describe("plugin-v2 publish guard (mapper/draft throws)", () => {
     }
   }
 
-  it("host throw in draft.model.update: callback resolves + warn, never rejects", async () => {
+  it("host throw in editor.add: setup resolves + warns, never rejects", async () => {
     const restoreDisk = isolateDisk();
-    const { catalogCallbacks, ctx } = setupCtx();
+    const { ctx } = setupCtx(() => {
+      throw new Error("host boom");
+    });
     const origFetch = globalThis.fetch;
     globalThis.fetch = stubFetch();
     try {
       const { warns } = await silenceConsole(async () => {
-        await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(ctx);
-        assert.equal(catalogCallbacks.length, 1);
-        const draft = {
-          provider: { update: (_id: string, fn: (p: Record<string, unknown>) => void) => fn({}) },
-          model: {
-            update: () => {
-              throw new Error("host boom");
-            },
-          },
-        };
         // MUST resolve — without the guard this rejects with "host boom".
-        await catalogCallbacks[0](draft);
+        await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(ctx);
       });
       assert.ok(
         warns.some((w) => w.includes("catalog publish failed") && w.includes("host boom")),
@@ -104,31 +94,40 @@ describe("plugin-v2 publish guard (mapper/draft throws)", () => {
     }
   });
 
-  it("host throw in draft.provider.update: callback resolves + warn, never rejects", async () => {
+  it("requests exactly the declared refresh routes, never the retired one", async () => {
+    const { isDeclaredRefreshPath } = await import("../src/catalog.js");
     const restoreDisk = isolateDisk();
-    const { catalogCallbacks, ctx } = setupCtx();
+    const { ctx } = setupCtx(() => {});
+    const requested: string[] = [];
     const origFetch = globalThis.fetch;
-    globalThis.fetch = stubFetch();
+    globalThis.fetch = (async (url: unknown) => {
+      const href = String(url);
+      requested.push(new URL(href).pathname);
+      if (href.includes("/api/combos")) {
+        return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
+      }
+      if (href.includes("/api/pricing") || href.includes("/api/free-tier")) {
+        return { ok: true, status: 200, statusText: "OK", json: async () => ({}) };
+      }
+      return {
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        json: async () => ({ data: [{ id: "m1" }] }),
+      };
+    }) as typeof fetch;
     try {
-      const { warns } = await silenceConsole(async () => {
+      await silenceConsole(async () => {
         await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(ctx);
-        const draft = {
-          provider: {
-            update: () => {
-              throw new Error("provider host boom");
-            },
-          },
-          model: {
-            update: (_pid: string, _mid: string, fn: (m: Record<string, unknown>) => void) =>
-              fn({}),
-          },
-        };
-        await catalogCallbacks[0](draft);
       });
-      assert.ok(
-        warns.some((w) => w.includes("catalog publish failed")),
-        `expected a publish-guard warn, got: ${JSON.stringify(warns)}`
-      );
+      assert.ok(requested.length > 0, "setup must issue refresh requests");
+      for (const pathname of requested) {
+        assert.equal(
+          isDeclaredRefreshPath(pathname),
+          true,
+          `unexpected refresh path ${pathname} in ${JSON.stringify(requested)}`
+        );
+      }
     } finally {
       globalThis.fetch = origFetch;
       restoreDisk();

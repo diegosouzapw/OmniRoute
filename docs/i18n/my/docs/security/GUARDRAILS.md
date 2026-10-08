@@ -1,6 +1,6 @@
 # Guardrails (မြန်မာ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../security/GUARDRAILS.md) · 🇪🇹 [am](../../../am/docs/security/GUARDRAILS.md) · 🇸🇦 [ar](../../../ar/docs/security/GUARDRAILS.md) · 🇦🇿 [az](../../../az/docs/security/GUARDRAILS.md) · 🇧🇬 [bg](../../../bg/docs/security/GUARDRAILS.md) · 🇧🇩 [bn](../../../bn/docs/security/GUARDRAILS.md) · 🇨🇿 [cs](../../../cs/docs/security/GUARDRAILS.md) · 🇩🇰 [da](../../../da/docs/security/GUARDRAILS.md) · 🇩🇪 [de](../../../de/docs/security/GUARDRAILS.md) · 🇬🇷 [el](../../../el/docs/security/GUARDRAILS.md) · 🇪🇸 [es](../../../es/docs/security/GUARDRAILS.md) · 🇪🇪 [et](../../../et/docs/security/GUARDRAILS.md) · 🇮🇷 [fa](../../../fa/docs/security/GUARDRAILS.md) · 🇫🇮 [fi](../../../fi/docs/security/GUARDRAILS.md) · 🇫🇷 [fr](../../../fr/docs/security/GUARDRAILS.md) · 🇮🇪 [ga](../../../ga/docs/security/GUARDRAILS.md) · 🇮🇳 [gu](../../../gu/docs/security/GUARDRAILS.md) · 🇳🇬 [ha](../../../ha/docs/security/GUARDRAILS.md) · 🇮🇱 [he](../../../he/docs/security/GUARDRAILS.md) · 🇮🇳 [hi](../../../hi/docs/security/GUARDRAILS.md) · 🇭🇷 [hr](../../../hr/docs/security/GUARDRAILS.md) · 🇭🇺 [hu](../../../hu/docs/security/GUARDRAILS.md) · 🇦🇲 [hy](../../../hy/docs/security/GUARDRAILS.md) · 🇮🇩 [id](../../../id/docs/security/GUARDRAILS.md) · 🇳🇬 [ig](../../../ig/docs/security/GUARDRAILS.md) · 🇮🇹 [it](../../../it/docs/security/GUARDRAILS.md) · 🇯🇵 [ja](../../../ja/docs/security/GUARDRAILS.md) · 🇬🇪 [ka](../../../ka/docs/security/GUARDRAILS.md) · 🇰🇭 [km](../../../km/docs/security/GUARDRAILS.md) · 🇮🇳 [kn](../../../kn/docs/security/GUARDRAILS.md) · 🇰🇷 [ko](../../../ko/docs/security/GUARDRAILS.md) · 🇱🇹 [lt](../../../lt/docs/security/GUARDRAILS.md) · 🇱🇻 [lv](../../../lv/docs/security/GUARDRAILS.md) · 🇮🇳 [ml](../../../ml/docs/security/GUARDRAILS.md) · 🇮🇳 [mr](../../../mr/docs/security/GUARDRAILS.md) · 🇲🇾 [ms](../../../ms/docs/security/GUARDRAILS.md) · 🇲🇹 [mt](../../../mt/docs/security/GUARDRAILS.md) · 🇳🇵 [ne](../../../ne/docs/security/GUARDRAILS.md) · 🇳🇱 [nl](../../../nl/docs/security/GUARDRAILS.md) · 🇳🇴 [no](../../../no/docs/security/GUARDRAILS.md) · 🇮🇳 [or](../../../or/docs/security/GUARDRAILS.md) · 🇮🇳 [pa](../../../pa/docs/security/GUARDRAILS.md) · 🇵🇭 [phi](../../../phi/docs/security/GUARDRAILS.md) · 🇵🇱 [pl](../../../pl/docs/security/GUARDRAILS.md) · 🇵🇹 [pt](../../../pt/docs/security/GUARDRAILS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/GUARDRAILS.md) · 🇷🇴 [ro](../../../ro/docs/security/GUARDRAILS.md) · 🇷🇺 [ru](../../../ru/docs/security/GUARDRAILS.md) · 🇱🇰 [si](../../../si/docs/security/GUARDRAILS.md) · 🇸🇰 [sk](../../../sk/docs/security/GUARDRAILS.md) · 🇸🇮 [sl](../../../sl/docs/security/GUARDRAILS.md) · 🇷🇸 [sr](../../../sr/docs/security/GUARDRAILS.md) · 🇸🇪 [sv](../../../sv/docs/security/GUARDRAILS.md) · 🇰🇪 [sw](../../../sw/docs/security/GUARDRAILS.md) · 🇮🇳 [ta](../../../ta/docs/security/GUARDRAILS.md) · 🇮🇳 [te](../../../te/docs/security/GUARDRAILS.md) · 🇹🇭 [th](../../../th/docs/security/GUARDRAILS.md) · 🇹🇷 [tr](../../../tr/docs/security/GUARDRAILS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/GUARDRAILS.md) · 🇵🇰 [ur](../../../ur/docs/security/GUARDRAILS.md) · 🇺🇿 [uz](../../../uz/docs/security/GUARDRAILS.md) · 🇻🇳 [vi](../../../vi/docs/security/GUARDRAILS.md) · 🇳🇬 [yo](../../../yo/docs/security/GUARDRAILS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/GUARDRAILS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/GUARDRAILS.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../security/GUARDRAILS.md) · 🇪🇹 [am](../../../am/docs/security/GUARDRAILS.md) · 🇸🇦 [ar](../../../ar/docs/security/GUARDRAILS.md) · 🇦🇿 [az](../../../az/docs/security/GUARDRAILS.md) · 🇧🇬 [bg](../../../bg/docs/security/GUARDRAILS.md) · 🇧🇩 [bn](../../../bn/docs/security/GUARDRAILS.md) · 🇧🇦 [bs](../../../bs/docs/security/GUARDRAILS.md) · 🇨🇿 [cs](../../../cs/docs/security/GUARDRAILS.md) · 🇩🇰 [da](../../../da/docs/security/GUARDRAILS.md) · 🇩🇪 [de](../../../de/docs/security/GUARDRAILS.md) · 🇬🇷 [el](../../../el/docs/security/GUARDRAILS.md) · 🇪🇸 [es](../../../es/docs/security/GUARDRAILS.md) · 🇪🇪 [et](../../../et/docs/security/GUARDRAILS.md) · 🇮🇷 [fa](../../../fa/docs/security/GUARDRAILS.md) · 🇫🇮 [fi](../../../fi/docs/security/GUARDRAILS.md) · 🇫🇷 [fr](../../../fr/docs/security/GUARDRAILS.md) · 🇮🇪 [ga](../../../ga/docs/security/GUARDRAILS.md) · 🇮🇳 [gu](../../../gu/docs/security/GUARDRAILS.md) · 🇳🇬 [ha](../../../ha/docs/security/GUARDRAILS.md) · 🇮🇱 [he](../../../he/docs/security/GUARDRAILS.md) · 🇮🇳 [hi](../../../hi/docs/security/GUARDRAILS.md) · 🇭🇷 [hr](../../../hr/docs/security/GUARDRAILS.md) · 🇭🇺 [hu](../../../hu/docs/security/GUARDRAILS.md) · 🇦🇲 [hy](../../../hy/docs/security/GUARDRAILS.md) · 🇮🇩 [id](../../../id/docs/security/GUARDRAILS.md) · 🇳🇬 [ig](../../../ig/docs/security/GUARDRAILS.md) · 🇮🇹 [it](../../../it/docs/security/GUARDRAILS.md) · 🇯🇵 [ja](../../../ja/docs/security/GUARDRAILS.md) · 🇬🇪 [ka](../../../ka/docs/security/GUARDRAILS.md) · 🇰🇭 [km](../../../km/docs/security/GUARDRAILS.md) · 🇮🇳 [kn](../../../kn/docs/security/GUARDRAILS.md) · 🇰🇷 [ko](../../../ko/docs/security/GUARDRAILS.md) · 🇱🇹 [lt](../../../lt/docs/security/GUARDRAILS.md) · 🇱🇻 [lv](../../../lv/docs/security/GUARDRAILS.md) · 🇮🇳 [ml](../../../ml/docs/security/GUARDRAILS.md) · 🇮🇳 [mr](../../../mr/docs/security/GUARDRAILS.md) · 🇲🇾 [ms](../../../ms/docs/security/GUARDRAILS.md) · 🇲🇹 [mt](../../../mt/docs/security/GUARDRAILS.md) · 🇳🇵 [ne](../../../ne/docs/security/GUARDRAILS.md) · 🇳🇱 [nl](../../../nl/docs/security/GUARDRAILS.md) · 🇳🇴 [no](../../../no/docs/security/GUARDRAILS.md) · 🇮🇳 [or](../../../or/docs/security/GUARDRAILS.md) · 🇮🇳 [pa](../../../pa/docs/security/GUARDRAILS.md) · 🇵🇭 [phi](../../../phi/docs/security/GUARDRAILS.md) · 🇵🇱 [pl](../../../pl/docs/security/GUARDRAILS.md) · 🇵🇹 [pt](../../../pt/docs/security/GUARDRAILS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/GUARDRAILS.md) · 🇷🇴 [ro](../../../ro/docs/security/GUARDRAILS.md) · 🇷🇺 [ru](../../../ru/docs/security/GUARDRAILS.md) · 🇱🇰 [si](../../../si/docs/security/GUARDRAILS.md) · 🇸🇰 [sk](../../../sk/docs/security/GUARDRAILS.md) · 🇸🇮 [sl](../../../sl/docs/security/GUARDRAILS.md) · 🇷🇸 [sr](../../../sr/docs/security/GUARDRAILS.md) · 🇸🇪 [sv](../../../sv/docs/security/GUARDRAILS.md) · 🇰🇪 [sw](../../../sw/docs/security/GUARDRAILS.md) · 🇮🇳 [ta](../../../ta/docs/security/GUARDRAILS.md) · 🇮🇳 [te](../../../te/docs/security/GUARDRAILS.md) · 🇹🇭 [th](../../../th/docs/security/GUARDRAILS.md) · 🇹🇷 [tr](../../../tr/docs/security/GUARDRAILS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/GUARDRAILS.md) · 🇵🇰 [ur](../../../ur/docs/security/GUARDRAILS.md) · 🇺🇿 [uz](../../../uz/docs/security/GUARDRAILS.md) · 🇻🇳 [vi](../../../vi/docs/security/GUARDRAILS.md) · 🇳🇬 [yo](../../../yo/docs/security/GUARDRAILS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/GUARDRAILS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/GUARDRAILS.md)
 
 ---
 
@@ -17,129 +17,61 @@ upstream response များကို (`postCall`) စစ်ဆေးနို
 error ကို မှတ်တမ်းတင်ပြီး request ကို ပျက်ကွက်စေမည့်အစား နောက် guardrail ဖြင့်
 ဆက်လက်လုပ်ဆောင်သည်။ ပိတ်ဆို့ခြင်းသည် မတော်တဆဖြစ်ပေါ်ခြင်း မဟုတ်ဘဲ တိကျရှင်းလင်းသော ဆုံးဖြတ်ချက် (`block: true`) ဖြစ်သည်။
 
-## အသင့်ပါ Guardrail များ
+## ထည့်သွင်းတည်ဆောက်ထားသော Guardrails များ
 
-Import ပြုလုပ်သည့်အခါ registry သည် ဦးစားပေးအစီအစဉ်အလိုက် guardrail ခြောက်ခုကို အလိုအလျောက်တင်သွင်းသည်
-(`registry.ts` → `registerDefaultGuardrails()` ကို ကြည့်ပါ):
+registry သည် import လုပ်သည့်အခါ ဦးစားပေးအစီအစဥ်အတိုင်း guardrail ခြောက်ခုကို အလိုအလျောက် တင်ပေးသည် (ကြည့်ရန် `registry.ts` → `registerDefaultGuardrails()`):
 
-| ဦးစားပေးမှု | အမည်                | အဆင့်(များ)    | ဖိုင်                 |
-| ----------- | ------------------- | -------------- | --------------------- |
-| `5`         | `vision-bridge`     | `preCall`      | `visionBridge.ts`     |
-| `6`         | `audio-bridge`      | `preCall`      | `audioBridge.ts`      |
-| `7`         | `video-bridge`      | `preCall`      | `videoBridge.ts`      |
-| `10`        | `pii-masker`        | `pre` + `post` | `piiMasker.ts`        |
-| `20`        | `prompt-injection`  | `preCall`      | `promptInjection.ts`  |
-| `95`        | `credential-masker` | `pre` + `post` | `credentialMasker.ts` |
+| ဦးစားပေး | အမည်                | အဆင့်များ      | ဖိုင်                 |
+| -------- | ------------------- | -------------- | --------------------- |
+| `5`      | `vision-bridge`     | `preCall`      | `visionBridge.ts`     |
+| `6`      | `audio-bridge`      | `preCall`      | `audioBridge.ts`      |
+| `7`      | `video-bridge`      | `preCall`      | `videoBridge.ts`      |
+| `10`     | `pii-masker`        | `pre` + `post` | `piiMasker.ts`        |
+| `20`     | `prompt-injection`  | `preCall`      | `promptInjection.ts`  |
+| `95`     | `credential-masker` | `pre` + `post` | `credentialMasker.ts` |
 
-ဦးစားပေးနံပါတ် နိမ့်သောအရာများကို **ဦးစွာ** လုပ်ဆောင်သည်။
+ဦးစားပေးနံပါတ် နည်းလေလေ **အရင်ဆုံး** အလုပ်လုပ်လေလေ ဖြစ်သည်။
 
 ### Vision Bridge (`visionBridge.ts`) — Modality Bridge PR-1
 
-**Vision မပံ့ပိုးသော model များ** သို့ ဦးတည်ထားသည့် image ပါဝင်သော request များကို ကြားဖြတ်ပြီး
-request တစ်ခုလုံးကို vision အသုံးပြုနိုင်သော model တစ်ခုသို့ လမ်းကြောင်းပြောင်းပေးသည် သို့မဟုတ်
-upstream call မပြုလုပ်မီ image အပိုင်းများကို စိတ်ကြိုက်ပြင်ဆင်နိုင်သော vision model တစ်ခုမှ ထုတ်လုပ်ပေးသည့်
-စာသားဖော်ပြချက်များဖြင့် အစားထိုးသည်။ ဤနည်းအားဖြင့် text-only provider များသည်
-multimodal payload များကို ပွင့်လင်းမြင်သာစွာ ကိုင်တွယ်နိုင်သည်။
+**vision မဟုတ်သော မော်ဒယ်များ** ကို ရည်ရွယ်သည့် ပုံပါသော တောင်းဆိုမှုများကို ကြားဖြတ်ပြီး တောင်းဆိုမှုတစ်ခုလုံးကို vision-capable မော်ဒယ်သို့ ပြန်လည်လမ်းကြောင်းပြောင်းခြင်း သို့မဟုတ် upstream ခေါ်ဆိုမှုမပြုမီ စီစဉ်သတ်မှတ်နိုင်သော vision မော်ဒယ်မှ ထုတ်လုပ်ထားသော စာသားဖော်ပြချက်များဖြင့် ပုံအစိတ်အပိုင်းများကို အစားထိုးခြင်း ပြုလုပ်သည်။ ၎င်းသည် စာသားသက်သက် ပံ့ပိုးပေးသူများအား multimodal payloads များကို ပွင့်လင်းမြင်သာစွာ ကိုင်တွယ်နိုင်စေသည်။
 
-လုပ်ငန်းစဉ်:
+လုပ်ဆောင်ပုံ:
 
-1. ပစ်မှတ် model သည် vision ကို ပံ့ပိုးပြီးသားဖြစ်ပါက ကျော်သွားသည် (၎င်းသည်
-   အတင်းအကျပ် bridge လုပ်ရန် စာရင်း `isVisionBridgeForcedModel` တွင် ပါဝင်နေခြင်းမှလွဲ၍)။
-2. `extractImageParts(messages)` မှတစ်ဆင့် image အပိုင်းများကို ထုတ်ယူသည်
-   (`visionBridgeHelpers.ts`)။ ၎င်းသည် combo compatibility filter နှင့် မျှဝေအသုံးပြုသော
-   တစ်ခုတည်းသော အမှန်တရားရင်းမြစ်ဖြစ်သည့် `open-sse/utils/mediaParts.ts` ထဲရှိ **ပေါင်းစည်းထားသော media
-   detector** `detectMediaParts()` သို့ လွှဲအပ်သည်။
-   ထုတ်ယူမှုကို `replaceImageParts` က ပြန်လည်ထည့်သွင်းပေါင်းစပ်နိုင်သည့် ပုံစံများ၏
-   top-level အပိုင်းများသာ ပါဝင်သော allowlist ဖြင့် ကန့်သတ်ထားသည် (extract↔replace သဘောတူစာချုပ်): OpenAI
-   `image_url`, Anthropic base64 `source.type:"base64"`, Anthropic URL
-   `source.type:"url"` နှင့် Responses API `input_image`။ အတွင်းပိုင်းတွင် ထပ်ဆင့်ပါဝင်နေသော ကိုက်ညီမှုများနှင့်
-   indicator-only ပုံစံများသည် combo-filter အတွက်သာဖြစ်ပြီး မည်သည့်အခါမျှ ထုတ်ယူခြင်းမပြုပါ။
-   တစ်ခုမျှမတွေ့ပါက ကျော်သွားသည်။
-3. `resolveVisionBridgeRuntimeSettings()` မှတစ်ဆင့် runtime config ကို ဖြေရှင်းသတ်မှတ်သည်
-   (`src/shared/constants/modalityBridgeDefaults.ts`): `modalityBridge*`
-   settings key အသစ်များကို ဦးစားပေးသည်။ အဟောင်း `visionBridge*` key များသည် **စက်ဝန်းတစ်ခုစာ
-   fallback** (rollback window) အဖြစ် ဆက်လက်တည်ရှိသည်။ Bridge ကို ပိတ်ထားပါက
-   media traversal တစ်ခုခု မပြုလုပ်မီ ကျော်သွားသည်။
-4. Mode selector (`modalityBridgeVisionMode`၊ အောက်ပါဇယားကို ကြည့်ပါ) သည်
-   reroute လုပ်မည်လား describe လုပ်မည်လား ဆုံးဖြတ်သည်။ Reroute သည် `model` ကိုသာ
-   ပြောင်းထားသော `modifiedPayload` နှင့်အတူ meta `{ rerouted, fromModel, toModel, imagesKept }` ကို ပြန်ပေးသည်။
-5. Describe လမ်းကြောင်း: Image များကို `maxImages` အရေအတွက်အထိ ကန့်သတ်ပြီး၊ task-aware prompt ကို ဖွဲ့စည်းကာ၊
-   describe cache ကို စစ်ဆေးပြီး vision model ကို **တစ်ပြိုင်နက်တည်း**
-   (`Promise.allSettled`) ခေါ်ယူကာ ၎င်းတို့၏နေရာတွင် `[Image N]: <description>` စာသားအပိုင်းများကို
-   ထည့်သွင်းသည်။ Describe မအောင်မြင်ပါက `null` ကို ထုတ်ပေးပြီး မူရင်း image အပိုင်းကို
-   **ဆက်လက်ထိန်းသိမ်းထားသည်** (#4012) — သို့သော် describe အားလုံး မအောင်မြင်သည့် combo describe လမ်းကြောင်းတွင်မူ
-   vision မပံ့ပိုးကြောင်း အတည်ပြုထားသည့် upstream အတွက်
-   `(မရရှိနိုင်ပါ — vision အသုံးပြုနိုင်သော provider ချိတ်ဆက်ထားခြင်းမရှိပါ)` stub ကို အစားထိုးအသုံးပြုသည် (#8430)။
-6. `modifiedPayload` + meta (`imagesProcessed`, `descriptions`,
-   `processingTimeMs`, `visionModel`) ကို ပြန်ပေးသည်။
+1.  ပစ်မှတ်မော်ဒယ်သည် vision ကို ပံ့ပိုးပြီးသားဖြစ်ပါက (အတင်းအကျပ်-bridge စာရင်း `isVisionBridgeForcedModel` တွင် မပါဝင်ပါက) ကျော်သွားပါ။
+2.  `extractImageParts(messages)` (`visionBridgeHelpers.ts`) မှတစ်ဆင့် ပုံအစိတ်အပိုင်းများကို ထုတ်ယူသည်။ ၎င်းသည် combo compatibility filter နှင့် မျှဝေထားသော တစ်ခုတည်းသော အမှန်တရားဖြစ်သည့် `open-sse/utils/mediaParts.ts` ရှိ **unified media detector** `detectMediaParts()` သို့ လွှဲပြောင်းပေးသည်။ ထုတ်ယူခြင်းကို `replaceImageParts` ပြန်လည်ထည့်သွင်းနိုင်သည့် ပုံစံများ၏ ထိပ်တန်းအစိတ်အပိုင်းများ (extract↔replace contract) အတွက် ခွင့်ပြုထားသည်- OpenAI `image_url`, Anthropic base64 `source.type:"base64"`, Anthropic URL `source.type:"url"`, နှင့် Responses API `input_image` တို့ဖြစ်သည်။ အဆင့်ဆင့်ရှိသော hits များနှင့် indicator-only ပုံစံများသည် combo-filter material များဖြစ်ပြီး ဘယ်တော့မှ ထုတ်ယူခြင်းမပြုပါ။ မတွေ့ရှိပါက ကျော်သွားပါ။
+3.  `resolveVisionBridgeRuntimeSettings()` (`src/shared/constants/modalityBridgeDefaults.ts`) မှတစ်ဆင့် runtime config ကို ဖြေရှင်းသည်။ အသစ်သော `modalityBridge*` settings keys များက အနိုင်ရပြီး၊ အဟောင်း `visionBridge*` keys များသည် **တစ်ကြိမ်သာ အသုံးပြုနိုင်သော အရန်** (rollback window) အဖြစ် ကျန်ရှိနေသည်။ bridge ကို ပိတ်ထားပါက မည်သည့် media traversal မပြုလုပ်မီ ကျော်သွားပါ။
+4.  မုဒ်ရွေးချယ်သူ (`modalityBridgeVisionMode`၊ အောက်ပါဇယားကို ကြည့်ပါ) သည် reroute သို့မဟုတ် describe ကို ဆုံးဖြတ်သည်။ Reroute သည် `model` သက်သက်ကိုသာ လဲလှယ်ထားသော `modifiedPayload` ကို ပြန်ပေးပြီး၊ meta `{ rerouted, fromModel, toModel, imagesKept }` ကိုပါ ပူးတွဲပေးသည်။
+5.  ဖော်ပြချက်လမ်းကြောင်း- ပုံများကို `maxImages` တွင် ကန့်သတ်ထားပြီး၊ task-aware prompt ကို ပေါင်းစပ်ကာ၊ describe cache ကို တိုင်ပင်ပြီး၊ vision မော်ဒယ်ကို **တစ်ပြိုင်နက်တည်း** (`Promise.allSettled`) ခေါ်ဆိုကာ ၎င်းတို့၏နေရာတွင် `[Image N]: <description>` စာသားအစိတ်အပိုင်းများကို ထည့်သွင်းသည်။ ဖော်ပြချက် မအောင်မြင်ပါက `null` ကို ပြန်ပေးပြီး မူရင်းပုံအစိတ်အပိုင်းကို **ထိန်းသိမ်းထားသည်** (#4012) — combo describe လမ်းကြောင်းတွင် ဖော်ပြချက်တိုင်း မအောင်မြင်သည့်အခါမှလွဲ၍၊ ထိုအခါ အတည်ပြုထားသော non-vision upstream သည် `(unavailable — no vision-capable provider connected)` stub ကို အစားရရှိသည် (#8430)။
+6.  `modifiedPayload` + meta (`imagesProcessed`, `descriptions`, `processingTimeMs`, `visionModel`) ကို ပြန်ပေးသည်။
 
-#### Mode selector (`modalityBridgeVisionMode`)
+#### မုဒ်ရွေးချယ်သူ (`modalityBridgeVisionMode`)
 
-| Mode       | မူလသတ်မှတ်ချက် | အပြုအမူ                                                                                                                                                                                                                                                                                                                                |
-| ---------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `auto`     | ✔              | ပြင်ဆင်မထားသော အဟောင်း heuristic (#6640/#7204): မူရင်း model တွင် အသုံးပြုနိုင်သော credential များရှိပြီးသား မဟုတ်လျှင် non-combo/`auto/` model များကို အကောင်းဆုံး vision model သို့ reroute လုပ်သည် (credential များရှိပြီးသားဆိုလျှင် describe လုပ်သည်)။ Combo ပစ်မှတ်များကို အမြဲ describe လုပ်သည်။                                |
-| `describe` |                | အမြဲ describe လုပ်သည် — reroute block တစ်ခုလုံးကို ကျော်သွားသည်။ အသုံးပြုသူရွေးချယ်ထားသော model က အမြဲတမ်း အဖြေပေးသည်။                                                                                                                                                                                                                 |
-| `reroute`  |                | Reroute ကို အတင်းသတ်မှတ်သည်။ credential ရှိသော model ကို ထိန်းသိမ်းထားသည့် guard ကို ကျော်လွှားသည်။ Reroute **ပစ်မှတ်** credential guard သည် ဆက်လက်သက်ရောက်သည် — အသုံးပြုနိုင်သော vision ပစ်မှတ်မရှိပါက raw image များသည် text-only backend သို့ မည်သည့်အခါမျှ မရောက်ရှိစေရန် request သည် describe သို့ ဆက်လက်ရောက်ရှိသွားသည် (#8430)။ |
+| မုဒ်       | မူရင်း | အပြုအမူ                                                                                                                                                                                                                                                                                                  |
+| ---------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `auto`     | ✔      | အဟောင်း heuristic၊ မထိမခိုက် (#6640/#7204)- မူရင်းမော်ဒယ်တွင် အသုံးပြုနိုင်သော credentials များ မရှိပါက (ထိုအခါ ဖော်ပြသည်) non-combo/`auto/` မော်ဒယ်များသည် အကောင်းဆုံး vision မော်ဒယ်သို့ ပြန်လည်လမ်းကြောင်းပြောင်းသည်။ combo targets များသည် အမြဲတမ်း ဖော်ပြသည်။                                       |
+| `describe` |        | အမြဲတမ်း ဖော်ပြသည် — reroute block ကို လုံးဝကျော်သွားသည်; အသုံးပြုသူရွေးချယ်ထားသော မော်ဒယ်က အမြဲတမ်း အဖြေပေးသည်။                                                                                                                                                                                         |
+| `reroute`  |        | အတင်းအကျပ် reroute- keep-credentialed-model guard ကို ကျော်လွှားသည်။ reroute-**target** credential guard သည် ဆက်လက်အကျုံးဝင်သည် — အသုံးပြုနိုင်သော vision target မရှိသည့်အခါ၊ တောင်းဆိုမှုသည် describe သို့ ရောက်ရှိသွားပြီး raw images များသည် text-only backend သို့ ဘယ်တော့မှ မရောက်ရှိစေရန် (#8430)။ |
 
-အတင်းသတ်မှတ်ထားသော mode များသည် auto heuristic မလုပ်ဆောင်မီ **short-circuit** လုပ်သည်။
-`auto` အပြုအမူသည် PR-1 မတိုင်မီ guardrail နှင့် byte အလိုက် တစ်ထပ်တည်းဖြစ်သည်။
+အတင်းအကျပ်မုဒ်များသည် auto heuristic မလည်ပတ်မီ **ကြိုတင်** ရပ်တန့်သည်။ `auto` ၏ အပြုအမူသည် pre-PR-1 guardrail နှင့် byte-identical ဖြစ်သည်။
 
 #### Task-aware describe prompt (`modalityBridgeVisionTaskAware`)
 
-မူလသတ်မှတ်ချက်မှာ **true** ဖြစ်သည်။ `composeVisionPrompt()` (`visionBridgeHelpers.ts`) သည်
-**နောက်ဆုံး user message** ၏ စာသားကို (စာလုံး 500 အထိ ဖြတ်တောက်ထားပြီး) အခြေခံ
-describe prompt တွင် ထပ်ပေါင်းသည်။ ထိုသို့ပြုလုပ်ခြင်းဖြင့် ဖော်ပြချက်ကို အသုံးပြုသူ အမှန်တကယ် မေးမြန်းထားသည့်အရာဆီသို့
-ဦးတည်စေပြီး (codex-vision-proxy ပုံစံ) မြင်ရသောစာသားကို ကူးရေးပေးရန် vision model ကို တောင်းဆိုသည်။
-Flag ကို ပိတ်ထားပါက — သို့မဟုတ် user စာသားမရှိပါက — အခြေခံ prompt ကို မပြောင်းလဲဘဲ အသုံးပြုသည်။
+မူရင်းအားဖြင့် **မှန်**သည်။ `composeVisionPrompt()` (`visionBridgeHelpers.ts`) သည် **နောက်ဆုံးအသုံးပြုသူ မက်ဆေ့ချ်** (စာလုံး ၅၀၀ အထိ ဖြတ်တောက်ထားသည်) ၏ စာသားကို base describe prompt တွင် ထည့်သွင်းပြီး၊ ဖော်ပြချက်ကို အသုံးပြုသူ တကယ်တောင်းဆိုသည့်အရာ (codex-vision-proxy pattern) ဘက်သို့ ဦးတည်စေကာ၊ မြင်နိုင်သော စာသားများကို ကူးယူရန် vision မော်ဒယ်ကို တောင်းဆိုသည်။ အလံကို ပိတ်ထားပါက — သို့မဟုတ် အသုံးပြုသူ စာသားမရှိပါက — base prompt ကို မပြောင်းလဲဘဲ အသုံးပြုသည်။
 
-describe self-loop ၏ ကိုယ်ပိုင် OpenAI-compatible request (`visionBridgeHelpers.ts`
-ရှိ `callVisionModelSingle()`) သည် `image_url.detail: "high"` ကို အမြဲတမ်း
-တောင်းဆိုသည် — caller/provider တိုင်းအတွက် ခြွင်းချက်မရှိ တောင်းဆိုပြီး မည်သည့်
-client signal ပေါ်တွင်မျှ မူတည်ကန့်သတ်ထားခြင်း မရှိပါ။
-Low-detail sampling သည် ဤ prompt က တောင်းဆိုထားသည့် စာသားကူးရေးခြင်း
-လုပ်ငန်းအတွက် OCR တိကျမှုကို လျော့ကျစေသောကြောင့် မူလ inbound request က
-မည်သည့် detail level ကို အသုံးပြုထားသည်ဖြစ်စေ describe call ကိုယ်တိုင်က high
-detail ကို အမြဲတမ်း တောင်းဆိုသည်။ ဤအရာသည် internal describe request body ကိုသာ
-သက်ရောက်ပြီး primary request တွင် caller ၏ ကိုယ်ပိုင် `image_url.detail` ကို
-OmniRoute က forward လုပ်ပုံကို မပြောင်းလဲပါ — ထို default ကို
-`defaultImageDetail()` (`open-sse/handlers/chatCore/upstreamBody.ts`) တွင်
-သီးခြား အသုံးချပြီး detect လုပ်ထားသော OpenCode clients များအတွက်သာ အသုံးပြုသည်။
-describe self-loop ၏ Anthropic wire-format branch တွင် `detail` field မရှိသဖြင့်
-မည်သည့် default ကြောင့်မျှ သက်ရောက်မှု မရှိပါ။
+`visionBridgeHelpers.ts` ရှိ self-loop ၏ OpenAI-compatible တောင်းဆိုမှု (`callVisionModelSingle()`) သည် `image_url.detail: "high"` ကို အမြဲတမ်း တောင်းဆိုပါသည်။ မည်သည့်ခေါ်ဆိုသူ/ပံ့ပိုးသူအတွက်မဆို အခြေအနေမရှိဘဲ၊ မည်သည့် client signal ကိုမျှ အခြေခံခြင်းမရှိပါ။ အသေးစိတ်အချက်အလက်နည်းသော နမူနာယူခြင်းသည် ဤ prompt တောင်းဆိုသည့် စာသားကူးယူခြင်းလုပ်ငန်းအတွက် OCR တိကျမှုကို လျှော့ချပေးသောကြောင့်၊ describe call ကိုယ်တိုင်က မူလဝင်လာသော တောင်းဆိုမှုတွင် မည်သည့်အသေးစိတ်အဆင့်ကို အသုံးပြုသည်ဖြစ်စေ အမြဲတမ်း အသေးစိတ်အချက်အလက်မြင့်မားစွာ တောင်းဆိုပါသည်။ ၎င်းသည် အတွင်းပိုင်း describe တောင်းဆိုမှု body ကိုသာ သက်ရောက်မှုရှိပြီး၊ OmniRoute မှ ခေါ်ဆိုသူ၏ `image_url.detail` ကို မူလတောင်းဆိုမှုတွင် မည်သို့ပို့ဆောင်သည်ကို မပြောင်းလဲပါ။ ထို default ကို သီးခြားစီ အသုံးပြုပြီး OpenCode client များကို တွေ့ရှိမှသာ `defaultImageDetail()` (`open-sse/handlers/chatCore/upstreamBody.ts`) တွင် အသုံးပြုပါသည်။ describe self-loop ၏ Anthropic wire-format branch တွင် `detail` field မရှိသောကြောင့် မည်သည့် default မှ သက်ရောက်မှုမရှိပါ။
 
-#### Describe output ကန့်သတ်ချက် (`modalityBridgeVisionMaxChars`)
+#### ဖော်ပြချက် output ကန့်သတ်ချက် (`modalityBridgeVisionMaxChars`)
 
-| Key                            | Default | Range                   |
-| ------------------------------ | ------- | ----------------------- |
-| `modalityBridgeVisionMaxChars` | `0`     | `0` သို့မဟုတ် 100–50000 |
+| Key                            | Default | Range            |
+| ------------------------------ | ------- | ---------------- |
+| `modalityBridgeVisionMaxChars` | `0`     | `0` or 100–50000 |
 
-`0` (default) သည် **ကန့်သတ်ချက်မရှိ** ဟု ဆိုလိုသည် — `callVisionModel()` က
-ပြန်ပေးသော description ကို ပြုပြင်ခြင်းမရှိဘဲ ဆက်လက်ပေးပို့သောကြောင့် လက်ရှိ
-အပြုအမူကို ထိန်းသိမ်းထားသည်။ 100–50000 အပိုင်းအခြားအတွင်းရှိ မည်သည့်တန်ဖိုးမဆို
-description ကို `[Image N]: <description>` အဖြစ် ပြန်လည်ထည့်သွင်းခြင်းမပြုမီ
-`…` suffix ဖြင့် ဖြတ်တောက်သည်
-(`src/lib/guardrails/visionBridge.ts` ရှိ `VisionBridgeGuardrail.preCall()`)။
-downstream model က စာသားကူးရေးချက် အပြည့်အစုံကို လိုအပ်သည့်
-အသေးစိတ်အချက်အလက်များသော OCR လုပ်ငန်းများအတွက် ဤတန်ဖိုးကို မြှင့်ပါ။
-စကားများသော vision models များ၏ token အသုံးပြုမှုကို ကန့်သတ်ရန် ၎င်းကို လျှော့ပါ။
-dashboard field သည် Vision tab ၏ Advanced panel
-(`ModalityBridgeVisionTab.tsx` ရှိ `modality-bridge-max-chars`) တွင် ရှိပြီး
-အတိအလင်း သတ်မှတ်ထားသော `0` ကို မပြောင်းလဲဘဲ 1 မှ 99 အတွင်းရှိ မည်သည့်တန်ဖိုးကိုမဆို
-အနိမ့်ဆုံး 100 အထိ မြှင့်ကန့်သတ်သည် — `0` သည် "unset" default သက်သက်မဟုတ်ဘဲ
-၎င်းကိုယ်တိုင် တရားဝင် Zod value ဖြစ်သည်
-(`z.union([z.literal(0), z.number().int().min(100).max(50000)])`)။
+`0` (default) သည် **ကန့်သတ်ချက်မရှိခြင်း** ကို ဆိုလိုသည် — `callVisionModel()` မှ ပြန်လာသော ဖော်ပြချက်ကို မည်သည့်ပြင်ဆင်မှုမှမရှိဘဲ ပေးပို့ပြီး လက်ရှိအပြုအမူကို ထိန်းသိမ်းထားသည်။ 100–50000 ကြားရှိ မည်သည့်တန်ဖိုးမဆို ဖော်ပြချက်ကို `…` နောက်ဆက်တွဲဖြင့် ဖြတ်တောက်ပြီးနောက် `[Image N]: <description>` (`VisionBridgeGuardrail.preCall()` in `src/lib/guardrails/visionBridge.ts`) အဖြစ် ပြန်လည်ထည့်သွင်းသည်။ အောက်ပိုင်း model သည် စာသားကူးယူခြင်းအပြည့်အစုံ လိုအပ်သော အသေးစိတ်အချက်အလက်များစွာပါဝင်သည့် OCR လုပ်ငန်းများအတွက် ၎င်းကို မြှင့်တင်ပါ။ စကားပြောဆိုမှုများသော vision model များတွင် token အသုံးပြုမှုကို ကန့်သတ်ရန် ၎င်းကို လျှော့ချပါ။ dashboard field သည် Vision tab ၏ Advanced panel (`modality-bridge-max-chars` in `ModalityBridgeVisionTab.tsx`) တွင် ရှိပြီး 1 မှ 99 ကြားရှိ မည်သည့်တန်ဖိုးကိုမဆို 100 အထိ ကန့်သတ်ထားပြီး ရှင်းလင်းသော `0` ကို မထိဘဲ ထားရှိသည် — `0` သည် ၎င်းကိုယ်တိုင်က တရားဝင် Zod တန်ဖိုးဖြစ်သည် (`z.union([z.literal(0), z.number().int().min(100).max(50000)])`)၊ "unset" default သက်သက်မဟုတ်ပါ။
 
-#### Describe cache (`modalityBridge/bridgeCache.ts`)
+#### ဖော်ပြချက် cache (`modalityBridge/bridgeCache.ts`)
 
-describe outputs များအတွက် process တစ်ခုလုံးတွင် မျှဝေသုံးစွဲသော in-memory
-LRU + TTL cache ဖြစ်သည်။
-Key = `sha256(imageRef + composedPrompt + configuredBridgeModel)` ဖြစ်ပြီး
-length-prefix framing ကို အသုံးပြုသည် (field-boundary collisions မရှိပါ)။
-model component သည် အမှန်တကယ် ဖြေကြားခဲ့သော model မဟုတ်ဘဲ **configure
-လုပ်ထားသော** bridge model ဖြစ်သည် — `callVisionModel` သည် အတွင်းပိုင်းတွင်
-fallback လုပ်နိုင်ပြီး attempt တစ်ခုချင်းအလိုက် key သတ်မှတ်ပါက cache ကို
-အပိုင်းပိုင်း ကွဲစေမည်ဖြစ်သည်။ မအောင်မြင်သော describes များကို မည်သည့်အခါမျှ
-cache မလုပ်ပါ။ Settings များမှာ-
+ဖော်ပြချက် outputs များအတွက် in-memory LRU + TTL cache ဖြစ်ပြီး process တစ်ခုလုံးတွင် မျှဝေအသုံးပြုသည်။ Key = `sha256(imageRef + composedPrompt + configuredBridgeModel)` သည် length-prefix framing (field-boundary collisions မရှိ) ဖြင့် ဖြစ်သည်။ model component သည် **configured** bridge model ဖြစ်ပြီး၊ အမှန်တကယ် အဖြေပေးသော model မဟုတ်ပါ။ `callVisionModel` သည် အတွင်းပိုင်းတွင် ပြန်လည်ကျဆင်းနိုင်ပြီး၊ ကြိုးစားမှုတစ်ခုစီအတွက် key ထားခြင်းသည် cache ကို ကွဲပြားစေမည်ဖြစ်သည်။ မအောင်မြင်သော ဖော်ပြချက်များကို cache မလုပ်ပါ။ ဆက်တင်များ:
 
 | Key                             | Default | Range   |
 | ------------------------------- | ------- | ------- |
@@ -149,440 +81,265 @@ cache မလုပ်ပါ။ Settings များမှာ-
 
 #### Remote image normalization (self-loop describe/base64 fetch)
 
-bridge က **remote** image တစ်ခုကို ကိုယ်တိုင် fetch လုပ်သည့်အခါ — Anthropic
-describe self-call နှင့် claude-wire-format base64 conversion
-(`ensureBase64ImagesForClaudeWire`) နှစ်ခုစလုံးသည် `visionBridgeHelpers.ts` ရှိ
-`fetchRemoteImageAsDataUri()` မှတစ်ဆင့် လုပ်ဆောင်သည် — ရရှိလာသော data URI ကို
-vision-model request ထဲတွင် embed မလုပ်မီ `normalizeDataUri()`
-(`open-sse/utils/imageNormalize.ts`) မှတစ်ဆင့် ဖြတ်သန်းစေသည်။ အရွယ်အစား
-အလွန်ကြီးသော images များကို **2048px long edge** အထိ လျှော့ချသည်
-(OpenAI/Anthropic က server-side တွင် အသုံးပြုထားပြီးဖြစ်သော resize cap နှင့်
-ကိုက်ညီသည်)။ ထို့ကြောင့် vision model မြင်ရသည့်အရာကို မပြောင်းလဲဘဲ upload
-bytes/latency ကို လျှော့ချပေးသည်။ Resizing သည် dynamic import မှတစ်ဆင့် load
-လုပ်ထားသော `sharp` ကို အသုံးပြုသည်။ ၎င်း၏ native binary ကို load လုပ်ရန်
-မအောင်မြင်သည့် platform တွင် `normalizeDataUri()` သည် **မည်သည့်အခါမျှ
-မပစ်လွှတ်ပါ** — မူလ bytes များကို မပြောင်းလဲဘဲ ဆက်လက်ပေးပို့သည့် fallback ကို
-အသုံးပြုသဖြင့် describe/base64-conversion လမ်းကြောင်းသည် အမြဲတမ်း ဆက်လက်
-အလုပ်လုပ်နိုင်သည်။ Non-image bytes (decode လုပ်နိုင်သော image ကို ပြန်မပေးသည့်
-fetch) များကိုလည်း မပြောင်းလဲဘဲ ဆက်လက်ပေးပို့သည်။ ဤ normalization သည် bridge
-က ၎င်း၏ ကိုယ်ပိုင် self-call အတွက် fetch လုပ်သော images များအတွက်သာ
-ကန့်သတ်ထားသည် — opt-in-only mutation principle (Hard Rule #20) နှင့်
-ကိုက်ညီစွာ caller ၏ raw passthrough payload တွင် မည်သည့်အခါမျှ အသုံးမပြုပါ။
+bridge သည် **remote** ပုံတစ်ပုံကို ကိုယ်တိုင် fetch လုပ်သောအခါ — Anthropic describe self-call နှင့် claude-wire-format base64 ပြောင်းလဲခြင်း (`ensureBase64ImagesForClaudeWire`) နှစ်ခုလုံးသည် `visionBridgeHelpers.ts` ရှိ `fetchRemoteImageAsDataUri()` မှတဆင့် — ရရှိလာသော data URI ကို `normalizeDataUri()` (`open-sse/utils/imageNormalize.ts`) မှတဆင့် vision-model တောင်းဆိုမှုတွင် ထည့်သွင်းခြင်းမပြုမီ ပေးပို့သည်။ အရွယ်အစားကြီးမားသော ပုံများကို **2048px long edge** (OpenAI/Anthropic မှ server-side တွင် အသုံးပြုပြီးသား resize cap နှင့် ကိုက်ညီသည်) အထိ downscale လုပ်ပြီး၊ vision model မြင်ရသည့်အရာကို မပြောင်းလဲဘဲ upload bytes/latency ကို လျှော့ချပေးသည်။ Resizing သည် `sharp` ကို dynamic import မှတဆင့် အသုံးပြုသည်- ၎င်း၏ native binary load မလုပ်နိုင်သော platform တစ်ခုတွင် `normalizeDataUri()` သည် **ဘယ်တော့မှ error မဖြစ်ပါ** — ၎င်းသည် မူလ bytes များကို passthrough အဖြစ် ပြန်လည်ကျဆင်းသွားသောကြောင့် describe/base64-conversion path သည် အမြဲတမ်း ဆက်လက်အလုပ်လုပ်သည်။ ပုံမဟုတ်သော bytes (decodable image ကို ပြန်မပေးသော fetch) များကိုလည်း မထိဘဲ ပေးပို့သည်။ ဤ normalization သည် bridge မှ ၎င်း၏ self-call အတွက် fetch လုပ်သော ပုံများအတွက်သာ သက်ရောက်မှုရှိသည် — ၎င်းကို ခေါ်ဆိုသူ၏ raw passthrough payload တွင် ဘယ်တော့မှ အသုံးမပြုပါ၊ opt-in-only mutation principle (Hard Rule #20) နှင့် ကိုက်ညီသည်။
 
 #### Settings schema + migration
 
-`updateSettingsSchema` (`src/shared/validation/settingsSchemas.ts`) တွင်
-`modalityBridge*` keys အသစ်များကို Zod ဖြင့် validate လုပ်ထားသည်-
-`modalityBridgeVisionEnabled`,
-`modalityBridgeVisionMode`, `modalityBridgeVisionModel`,
-`modalityBridgeVisionTaskAware`, `modalityBridgeVisionPrompt`,
-`modalityBridgeVisionTimeout`, `modalityBridgeVisionMaxImages`,
-`modalityBridgeVisionMaxChars`, `modalityBridgeCache*` သုံးခုနှင့် Audio Bridge
-က အသုံးပြုသော `modalityBridgeAudio*` အုပ်စုတို့ ဖြစ်သည်။ Migration
-`141_modality_bridge_settings.sql` သည် ရှိပြီးသား legacy
-`visionBridge*` values များကို ကိုက်ညီသော keys အသစ်များသို့ ကူးယူသည်
-(idempotent ဖြစ်ပြီး operator က သတ်မှတ်ထားသော `modalityBridge*` value ကို
-မည်သည့်အခါမျှ overwrite မလုပ်ပါ)။ legacy keys များကို release cycle
-တစ်ကြိမ်အတွက် read fallback အဖြစ် ဆက်လက် လက်ခံထားသည်။
+အသစ်သော `modalityBridge*` keys များကို `updateSettingsSchema` (`src/shared/validation/settingsSchemas.ts`) တွင် Zod-validated လုပ်ထားသည်- `modalityBridgeVisionEnabled`, `modalityBridgeVisionMode`, `modalityBridgeVisionModel`, `modalityBridgeVisionTaskAware`, `modalityBridgeVisionPrompt`, `modalityBridgeVisionTimeout`, `modalityBridgeVisionMaxImages`, `modalityBridgeVisionMaxChars`, `modalityBridgeCache*` သုံးခု၊ နှင့် Audio Bridge မှ အသုံးပြုသော `modalityBridgeAudio*` အုပ်စု။ Migration `141_modality_bridge_settings.sql` သည် ရှိပြီးသား legacy `visionBridge*` တန်ဖိုးများကို ကိုက်ညီသော အသစ်သော keys များသို့ ကူးယူသည် (idempotent၊ operator-set `modalityBridge*` တန်ဖိုးကို ဘယ်တော့မှ မ overwrite ပါ)။ legacy keys များကို read fallback အဖြစ် release cycle တစ်ခုအတွက် ဆက်လက်လက်ခံထားသည်။
 
 #### Transparency header + stats
 
-Describe ဖြင့် ပြောင်းလဲထားသော responses များတွင်
-`x-omniroute-modality-bridge: image->text;model=<visionModel>;parts=<n>`
-ပါဝင်သည် (`modalityBridge/bridgeStats.ts` ရှိ
-`buildModalityBridgeHeader()` က တည်ဆောက်ပြီး
-`src/sse/handlers/chatHelpers.ts` ရှိ `withModalityBridgeHeader()` က
-ထည့်သွင်းသည်)။ Reroute လုပ်ထားသော requests များတွင် header **မပါဝင်ပါ** —
-payload ကို မပြောင်းလဲထားသည့်အပြင် model ပြောင်းထားမှုကို response body ၏
-`model` field တွင် မြင်နိုင်ပြီးဖြစ်သည်။
+Describe-transformed responses များသည် `x-omniroute-modality-bridge: image->text;model=<visionModel>;parts=<n>` ( `modalityBridge/bridgeStats.ts` ရှိ `buildModalityBridgeHeader()` မှ တည်ဆောက်ပြီး `src/sse/handlers/chatHelpers.ts` ရှိ `withModalityBridgeHeader()` မှ တံဆိပ်တုံးထုသည်) ကို သယ်ဆောင်သည်။ ပြန်လည်လမ်းကြောင်းပြောင်းထားသော တောင်းဆိုမှုများတွင် header **မပါရှိပါ** — payload ကို မထိဘဲ model swap သည် response body ၏ `model` field တွင် မြင်သာနေပြီးသားဖြစ်သည်။
 
-`GET /api/modality-bridge/stats` (management auth၊ `GET /api/settings` နှင့်
-tier တူညီသည်) သည် `vision`, `audio` နှင့် `video` တို့အတွက် in-memory
-per-modality counters
-`{ attempts, successes, bridged, cacheHits, failures, totalLatencyMs,
-latencySamples, averageLatencyMs, lastUsedAt }` ကို ပြန်ပေးသည်။
-`averageLatencyMs` သည် attempts အားလုံးကို denominator အဖြစ် မသုံးဘဲ
-`latencySamples` ကို အသုံးပြုသည်။ timing မရှိသော operation တစ်ခုအတွက်
-zero-millisecond sample အတုကို မဖန်တီးပါ။ `bridged` သည် အောင်မြင်သော
-conversions များအတွက် backward-compatible alias အဖြစ် ဆက်လက်ထားရှိသည်။
-မအောင်မြင်သော attempts များသည် ၎င်းကို တိုးမပေးပါ။
-Counters များသည် ဒီဇိုင်းအရ process restart လုပ်သည့်အခါ reset ဖြစ်သည်
-(စာရင်းအင်းတွက်ချက်မှု မဟုတ်ဘဲ telemetry ဖြစ်သည်)။
+`GET /api/modality-bridge/stats` (management auth, `GET /api/settings` နှင့် တူညီသော tier) သည် `vision`, `audio`, နှင့် `video` အတွက် in-memory per-modality counters `{ attempts, successes, bridged, cacheHits, failures, totalLatencyMs, latencySamples, averageLatencyMs, lastUsedAt }` ကို ပြန်ပေးသည်။ `averageLatencyMs` သည် ၎င်း၏ denominator အဖြစ် `latencySamples` ကို အသုံးပြုပြီး၊ ကြိုးစားမှုအားလုံးကို မဟုတ်ပါ။ အချိန်တိုင်းတာခြင်းမရှိသော လုပ်ဆောင်ချက်သည် သုည-millisecond နမူနာကို ဖန်တီးမည်မဟုတ်ပါ။ `bridged` သည် အောင်မြင်သော ပြောင်းလဲမှုများအတွက် backward-compatible alias အဖြစ် ဆက်လက်တည်ရှိသည်။ မအောင်မြင်သော ကြိုးစားမှုများသည် ၎င်းကို မတိုးမြှင့်ပါ။ Counters များသည် process restart တွင် ဒီဇိုင်းအရ ပြန်လည်သတ်မှတ်သည် (telemetry၊ accounting မဟုတ်ပါ)။
 
 #### Dashboard configuration
 
-သီးသန့် dashboard စာမျက်နှာမှာ
-`/dashboard/settings/modality-bridge` ဖြစ်သည်။ ၎င်း၏ URL မှ တိုက်ရိုက်ဝင်ရောက်နိုင်သော `Vision`, `Audio`,
-နှင့် `Video` tab များသည် `tab` တန်ဖိုးကို ပြောင်းလဲသည့်အချိန်တွင် query parameter များကို မပြောင်းလဲဘဲ ထိန်းသိမ်းထားသည်။
-Vision tab တွင် ဖွင့်/ပိတ်လုပ်ဆောင်နိုင်မှု၊ mode၊ model ရွေးချယ်မှု (အလိုအလျောက်
-မူလတန်ဖိုးအပါအဝင်)၊ task ကိုသိရှိသော prompt ပေးခြင်း၊ အဆင့်မြင့် timeout/image/description-length/cache
+သီးသန့် dashboard စာမျက်နှာသည်
+`/dashboard/settings/modality-bridge` ဖြစ်သည်။ ၎င်း၏ URL-addressable `Vision`, `Audio`,
+နှင့် `Video` tab များသည် `tab` တန်ဖိုးကို ပြောင်းလဲနေစဉ် query parameters များကို ထိန်းသိမ်းထားသည်။
+Vision tab သည် ဖွင့်ခြင်း၊ mode၊ model ရွေးချယ်ခြင်း (အလိုအလျောက်
+default အပါအဝင်)၊ task-aware prompting၊ အဆင့်မြင့် timeout/image/description-length/cache
 ကန့်သတ်ချက်များ၊ runtime
-counter များနှင့် အကာအကွယ်ပါသော နမူနာ request တစ်ခုကို အသုံးပြုနိုင်သည်။ Audio tab သည်လည်း အပြည့်အဝ အသုံးပြုနိုင်ပြီး၊
-ဖွင့်/ပိတ်လုပ်ဆောင်နိုင်မှု၊ Auto ပါဝင်သော STT သီးသန့် model ရွေးချယ်ကိရိယာ၊ timeout/max-clip ကန့်သတ်ချက်များ၊ audio
-counter များနှင့် `input_audio` နမူနာစမ်းသပ်မှုကို ပံ့ပိုးထားသည်။ Video tab သည်လည်း အလုပ်လုပ်သည်။ ၎င်းသည်
-FFmpeg/ffprobe runtime အခြေအနေကို ရှင်းလင်းသော UI အခြေအနေလေးမျိုးထဲမှ တစ်မျိုးအဖြစ် ဖော်ပြသည် — probe
-လုပ်ဆောင်နေဆဲ သို့မဟုတ် ပြီးမြောက်နိုင်ခြင်းမရှိသည့်အခါ `unknown`၊ loopback မဟုတ်သော
-dashboard host တစ်ခုပေါ်တွင် probe ကို client ဘက်မှ ကျော်သွားသည့်အခါ `restricted`၊ probe ပြုလုပ်ပြီး
-မရှိကြောင်း အတည်ပြုပြီးသည်နှင့် `unavailable`၊ သို့မဟုတ် FFmpeg/ffprobe version များနှင့်အတူ
-`available` — ထို့ပြင် ဖွင့်/ပိတ်လုပ်ဆောင်မှု၊ model/frame/video/timeout ကန့်သတ်ချက်များကို
-အမြဲတမ်းသိမ်းဆည်းထားပြီး၊ model ရွေးချယ်ကိရိယာကို vision ကို ပံ့ပိုးနိုင်သော
-model များသာ ပါဝင်အောင် စစ်ထုတ်ကာ video counter များကို ဖော်ပြပေးသည်။
+عدادများ၊ နှင့် ကာကွယ်ထားသော sample request တို့ကို ဖော်ပြသည်။ Audio tab သည်လည်း အသက်ဝင်နေသည်- ၎င်းသည်
+ဖွင့်ခြင်း၊ Auto ပါသော STT-only model picker၊ timeout/max-clip ကန့်သတ်ချက်များ၊ audio
+عدادများ၊ နှင့် `input_audio` sample test တို့ကို ဖော်ပြသည်။ Video tab သည် အလုပ်လုပ်သည်- ၎င်းသည်
+FFmpeg/ffprobe runtime အခြေအနေကို အစီရင်ခံသည် — ရှင်းလင်းသော UI အခြေအနေလေးခုအနက်မှ တစ်ခု (`unknown`
+probe သည် လည်ပတ်နေစဉ် သို့မဟုတ် မပြီးမြောက်နိုင်ပါက၊ `restricted` non-loopback
+dashboard host တွင် probe ကို client-side တွင် ကျော်သွားပါက၊ `unavailable`
+probe လုပ်ပြီးနောက် ပျောက်ဆုံးနေကြောင်း အတည်ပြုပါက၊ သို့မဟုတ် `available` FFmpeg/ffprobe versions များနှင့်အတူ) —
+enable/model/frame/video/timeout ကန့်သတ်ချက်များကို ထိန်းသိမ်းထားသည်၊ model picker ကို vision-capable
+models များသို့ စစ်ထုတ်သည်၊ နှင့် video عدادများကို ဖော်ပြသည်။
 
-AI settings အောက်ရှိ ယခင် Vision Bridge card သည် စာမျက်နှာအသစ်သို့ ချိတ်ဆက်သော
-လိုက်ဖက်ညီမှု link တစ်ခုဖြစ်သည်။ ၎င်းတွင် form ၏ ဒုတိယမိတ္တူတစ်ခု မရှိတော့ပါ။ Media Providers သည်လည်း
-ရှိပြီးသား Speech-to-Text playground ကို မဖယ်ရှားဘဲ Image-to-Text နှင့် Speech-to-Text workflow များကို
-သက်ဆိုင်ရာ Modality
-Bridge tab များသို့ ချိတ်ဆက်ပေးသည်။
+AI settings အောက်ရှိ ယခင် Vision Bridge ကတ်သည်
+စာမျက်နှာအသစ်သို့ တွဲဖက်သုံးနိုင်သော link တစ်ခုဖြစ်သည်။ ၎င်းသည် form ၏ ဒုတိယမိတ္တူကို
+ပိုင်ဆိုင်တော့မည်မဟုတ်ပါ။ Media Providers သည် Image-to-Text နှင့် Speech-to-Text workflows များကို
+သက်ဆိုင်ရာ Modality Bridge tabs များသို့ ချိတ်ဆက်ပေးပြီး ရှိပြီးသား Speech-to-Text playground ကို
+မဖယ်ရှားပါ။
 
-**Self-loop admission ကျော်ဖြတ်မှု:** describe call သည် OmniRoute ၏
-ကိုယ်ပိုင် `/v1` self-loop (ပုံမှန်မဟုတ်သော provider model) မှတစ်ဆင့် route လုပ်သည့်အခါ sub-request သည်
-`x-omniroute-admission-bypass: internal` ကို ပေးပို့ပြီး ဖြေရှင်းသတ်မှတ်ထားသော
-self-loop credential ဖြင့် authentication ပြုလုပ်သည် — local mode တွင် ဒေသတွင်း `sk_omniroute` sentinel သို့မဟုတ်
-operator က သတ်မှတ်ထားသော `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` env key (#1350) ကို အသုံးပြုသဖြင့်
-`REQUIRE_API_KEY=true` deployment များတွင်လည်း describe call ကို ဆက်လက်လုပ်ဆောင်နိုင်သည်။ ဤ bypass ကို
-အဆိုပါ credential အတိအကျများအတွက်သာ လက်ခံသဖြင့် ပြင်ပ client များက admission ကို ကျော်ရန်
-header ကို အသုံးပြု၍ မရနိုင်ပါ။
+**Self-loop admission bypass:** describe call သည် OmniRoute ၏
+ကိုယ်ပိုင် `/v1` self-loop (စံမဟုတ်သော provider model) မှတစ်ဆင့် လမ်းကြောင်းပြောင်းသောအခါ၊
+sub-request သည် `x-omniroute-admission-bypass: internal` ကို ပေးပို့ပြီး
+ဖြေရှင်းပြီးသော self-loop credential ဖြင့် အတည်ပြုသည် — local mode တွင် local `sk_omniroute` sentinel၊
+သို့မဟုတ် operator-configured `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` env key (#1350)
+ထို့ကြောင့် `REQUIRE_API_KEY=true` deployments များသည် describe call ကို ဆက်လက်လုပ်ဆောင်နိုင်သည်။
+bypass ကို ထိုအတိအကျ credentials များအတွက်သာ အသိအမှတ်ပြုသည်၊ ထို့ကြောင့် ပြင်ပ clients များသည်
+header ကို အသုံးပြု၍ admission ကို ကျော်သွား၍မရပါ။
 
-Legacy default များကို `src/shared/constants/visionBridgeDefaults.ts` တွင် ထားရှိပြီး၊
-mode/task-aware/cache default အသစ်များနှင့် settings resolver ကို
-`src/shared/constants/modalityBridgeDefaults.ts` တွင် ထားရှိသည်။ Guardrail တွင်
-`deps` constructor option ကို ပံ့ပိုးထားသဖြင့် test များက `getSettings` နှင့်
-`callVisionModel` implementation အတုများကို inject လုပ်နိုင်သည်။
+Legacy defaults များသည် `src/shared/constants/visionBridgeDefaults.ts` တွင် ရှိပြီး၊
+mode/task-aware/cache defaults အသစ်များနှင့် settings resolver များသည်
+`src/shared/constants/modalityBridgeDefaults.ts` တွင် ရှိသည်။ guardrail သည်
+`deps` constructor option ကို ဖော်ပြထားပြီး စမ်းသပ်မှုများက fake `getSettings` နှင့်
+`callVisionModel` implementations များကို ထည့်သွင်းနိုင်သည်။
 
 ### Audio Bridge (`audioBridge.ts`) — Modality Bridge PR-3
 
-Audio input ကို လက်ခံနိုင်ကြောင်း မသိရှိရသေးသော target တစ်ခုသို့ audio ပါဝင်သည့် chat request များ
-မရောက်မီ ကြားဖြတ်သည်။ ၎င်းသည် chat request ကို မည်သည့်အခါမျှ reroute မလုပ်ပါ။ Audio part များကို
-ရှိပြီးသား OpenAI-compatible multipart endpoint မှတစ်ဆင့် transcription ပြုလုပ်ပြီး
-ရွေးချယ်ထားသော chat model သည် စာသား transcript များဖြင့် ဆက်လက်လုပ်ဆောင်သည်။
+အသံပါဝင်သော chat requests များကို အသံ input ကို လက်ခံသည်ဟု မသိသော target သို့ မရောက်မီ
+ကြားဖြတ်သည်။ ၎င်းသည် chat request ကို ဘယ်တော့မှ ပြန်လည်လမ်းကြောင်းပြောင်းခြင်းမရှိပါ- အသံအပိုင်းများကို
+ရှိပြီးသား OpenAI-compatible multipart endpoint မှတစ်ဆင့် ကူးယူပြီး
+ရွေးချယ်ထားသော chat model သည် text transcripts များနှင့် ဆက်လက်လုပ်ဆောင်သည်။
 
-လုပ်ငန်းစဉ်:
+စီးဆင်းမှု-
 
-1. `getResolvedModelCapabilities()` မှတစ်ဆင့် `supportsAudio` ကို ဖြေရှင်းသတ်မှတ်သည်။ အတိအလင်း
-   provider-registry metadata ကို ဦးစားပေးပြီး၊ ထို့နောက် static model metadata၊ ထို့နောက် sync လုပ်ထားသော
-   `modalities_input` ကို အသုံးပြုသည်။ ကြေညာထားသော input စာရင်းတွင် `audio` မပါလျှင် `false` ဖြစ်ပြီး၊
-   capability အထောက်အထား မရှိလျှင် `null` အဖြစ် ကျန်ရှိသည်။ `false` နှင့် `null` နှစ်ခုစလုံးသည်
-   အန္တရာယ်ကင်းရေးကို ဦးစားပေးသော bridge ကို အသက်သွင်းပြီး `true` ဖြစ်လျှင် ၎င်းကို ကျော်သွားသည်။
-2. `modalityBridgeAudio*` setting များကို ဖြေရှင်းသတ်မှတ်ပြီး မျှဝေထားသော `detectMediaParts()`
-   detector မှတစ်ဆင့် message တိုင်းမှ splice လုပ်နိုင်သော top-level
-   audio part များကို ထုတ်ယူသည်။ ပံ့ပိုးထားသော wire shape များမှာ OpenAI `input_audio`, `audio_url` နှင့်
-   `source.media_type: "audio/*"` တို့ဖြစ်သည်။ အဆင့်ဆင့်ထည့်သွင်းထားသော audio ကို routing အတွက် ရှာဖွေတွေ့ရှိသော်လည်း
-   splice path က မဖယ်ရှားပါ။ လုပ်ဆောင်မှုကို `modalityBridgeAudioMaxClips` ဖြင့် ကန့်သတ်ထားပြီး၊
-   နောက်ပိုင်း part များကို မပြောင်းလဲဘဲ ထားရှိသည်။
-3. သတ်မှတ်ထားသော `provider/model` ကို အသုံးပြုပါ၊ သို့မဟုတ် `selectAudioBridgeModel()` က
-   `AUDIO_TRANSCRIPTION_PROVIDERS` ကို တည်ငြိမ်သော catalog အစီအစဉ်အတိုင်း လှည့်လည်ကြည့်ရှုပြီး အသုံးပြုနိုင်သော
-   active provider credential ရှိသည့် ပထမဆုံး model ကို ရွေးချယ်စေသည်။
+1. `getResolvedModelCapabilities()` မှတစ်ဆင့် `supportsAudio` ကို ဖြေရှင်းပါ။ ရှင်းလင်းသော
+   provider-registry metadata က အနိုင်ရသည်၊ ထို့နောက် static model metadata၊ ထို့နောက် synced
+   `modalities_input`။ `audio` မပါသော ကြေညာထားသော input list သည် `false` ဖြစ်သည်၊
+   စွမ်းရည်အထောက်အထားမရှိခြင်းသည် `null` အဖြစ် ကျန်ရှိနေသည်။ `false` နှင့် `null` နှစ်ခုလုံးသည်
+   conservative bridge ကို အသက်သွင်းသည်၊ `true` က ၎င်းကို ကျော်သွားသည်။
+2. `modalityBridgeAudio*` settings များကို ဖြေရှင်းပြီး spliceable top-level
+   အသံအပိုင်းများကို မက်ဆေ့ချ်တိုင်းမှ shared `detectMediaParts()`
+   detector မှတစ်ဆင့် ထုတ်ယူပါ။ ပံ့ပိုးထားသော wire shapes များသည် OpenAI `input_audio`, `audio_url`, နှင့်
+   `source.media_type: "audio/*"` ဖြစ်သည်။ Nested audio ကို routing အတွက် ရှာဖွေတွေ့ရှိသော်လည်း
+   splice path မှ ဖယ်ရှားခြင်းမရှိပါ။ အလုပ်ကို `modalityBridgeAudioMaxClips` ဖြင့် ကန့်သတ်ထားသည်၊
+   နောက်ပိုင်းအပိုင်းများသည် မထိမခိုက်ဘဲ ကျန်ရှိနေသည်။
+3. သတ်မှတ်ထားသော `provider/model` ကို လိုက်နာပါ၊ သို့မဟုတ် `selectAudioBridgeModel()` ကို
+   `AUDIO_TRANSCRIPTION_PROVIDERS` ကို stable catalog order ဖြင့် လမ်းလျှောက်ပြီး
+   အသုံးပြုနိုင်သော active provider credential ပါသော ပထမဆုံး model ကို ရွေးချယ်ခွင့်ပြုပါ။
 4. `callAudioTranscription()` သည် base64/data-URI audio ကို multipart
-   `file` အဖြစ် ပြောင်းလဲခြင်း သို့မဟုတ် DNS pinning နှင့် 25 MB ကန့်သတ်ချက်ပါသော public-only outbound
-   guard မှတစ်ဆင့် remote `audio_url` ကို download လုပ်ခြင်း ပြုလုပ်သည်။ ထို့နောက် file နှင့် ရွေးချယ်ထားသော
-   model ကို ဒေသတွင်း `/v1/audio/transcriptions` self-loop သို့ POST လုပ်ပြီး
-   `resolveSelfLoopBearer()` ဖြင့် authentication ပြုလုပ်သည်။ ရှိပြီးသား transcription route သည် ပုံမှန်
-   credential ရှာဖွေမှု၊ cooldown/rate-limit ကိုင်တွယ်မှုနှင့် provider dispatch ကို လုပ်ဆောင်သည်။
-5. အောင်မြင်သော call များသည် သက်ဆိုင်ရာ part များကို `[Audio N]: <transcript>` ဖြင့် အစားထိုးသည်။ Call များကို
-   `Promise.allSettled` ဖြင့် လုပ်ဆောင်သည်။ တစ်ခုချင်းစီ မအောင်မြင်ပါက မူလ
-   audio part ကို ထိန်းသိမ်းထားသည် (#4012 contract)။ Call အားလုံး မအောင်မြင်ဘဲ target သည်
-   `supportsAudio === false` ဖြစ်ကြောင်း သက်သေပြထားပါက part များသည်
-   `[Audio N]: (မရရှိနိုင်ပါ — ချိတ်ဆက်ထားသော STT provider မရှိပါ)` ဖြစ်လာသည် (#8430 contract)။ အမည်မသိ
-   target (`null`) တစ်ခုအတွက် အားလုံးမအောင်မြင်သော ရလဒ်ကို မပြောင်းလဲဘဲ ထားရှိသည်။ အသုံးပြုနိုင်သော
-   STT credential မရှိသည့် စာသားသီးသန့် target အဖြစ် သက်သေပြထားပါက network call မပြုလုပ်ဘဲ တူညီသော ရှင်းလင်းသည့်
-   stub ကို ရရှိသည်။
+   `file` သို့ ပြောင်းလဲသည်၊ သို့မဟုတ် remote `audio_url` ကို public-only outbound
+   guard မှတစ်ဆင့် DNS pinning နှင့် 25 MB ကန့်သတ်ချက်ဖြင့် download လုပ်သည်။
+   ထို့နောက် ၎င်းသည် file နှင့် ရွေးချယ်ထားသော model ကို local `/v1/audio/transcriptions` self-loop သို့
+   POST လုပ်ပြီး `resolveSelfLoopBearer()` ဖြင့် အတည်ပြုသည်။ ရှိပြီးသား transcription route သည်
+   ပုံမှန် credential lookup၊ cooldown/rate-limit handling၊ နှင့် provider dispatch တို့ကို လုပ်ဆောင်သည်။
+5. အောင်မြင်သော calls များသည် ၎င်းတို့၏ အပိုင်းများကို `[Audio N]: <transcript>` ဖြင့် အစားထိုးသည်။ Calls
+   များကို `Promise.allSettled` ဖြင့် လုပ်ဆောင်သည်- တစ်ဦးချင်းစီ ကျရှုံးမှုသည် မူရင်း
+   အသံအပိုင်းကို ထိန်းသိမ်းထားသည် (#4012 contract)။ အကယ်၍ call တိုင်း ကျရှုံးပြီး target သည်
+   `supportsAudio === false` ဖြစ်ကြောင်း သက်သေပြပါက၊ အပိုင်းများသည်
+   `[Audio N]: (unavailable — no STT provider connected)` ဖြစ်လာသည် (#8430 contract)။
+   မသိသော target (`null`) အတွက်၊ အားလုံးကျရှုံးသော ရလဒ်သည် မထိမခိုက်ဘဲ ကျန်ရှိနေသည်။
+   အသုံးပြုနိုင်သော STT credential မရှိသော သက်သေပြထားသော text-only target သည်
+   network call မပြုလုပ်ဘဲ တူညီသော ရှင်းလင်းသော stub ကို လက်ခံရရှိသည်။
 
-အောင်မြင်သော transcript များသည် process တစ်ခုလုံးတွင် မျှဝေသုံးစွဲသော Modality Bridge LRU/TTL cache ကို အသုံးပြုသည်။
-Key သည် audio reference၊ တည်ငြိမ်သော `audio-transcription` operation
-label နှင့် ရွေးချယ်ထားသော STT model တို့ကို ပေါင်းစပ်ထားသည်။ မအောင်မြင်မှုများကို မည်သည့်အခါမျှ cache မလုပ်ပါ။ Audio attempt များသည်
-မျှဝေထားသော `bridged`, `cacheHits`, `failures` နှင့် `lastUsedAt` counter များကို update လုပ်သည်။
-ပြောင်းလဲထားသော response များတွင်
-`x-omniroute-modality-bridge: audio->text;model=<sttModel>;parts=<n>` ပါဝင်ပြီး၊ မပြောင်းလဲထားသော
-request များတွင် Audio Bridge segment မပါဝင်ပါ။
+အောင်မြင်သော transcripts များသည် process-wide Modality Bridge LRU/TTL cache ကို အသုံးပြုသည်။
+key သည် audio reference၊ stable `audio-transcription` operation label၊
+နှင့် ရွေးချယ်ထားသော STT model တို့ကို ပေါင်းစပ်သည်၊ ကျရှုံးမှုများကို ဘယ်တော့မှ cache မလုပ်ပါ။
+Audio ကြိုးစားမှုများသည် shared `bridged`, `cacheHits`, `failures`, နှင့် `lastUsedAt`
+عدادများကို update လုပ်သည်။ ပြောင်းလဲထားသော responses များသည်
+`x-omniroute-modality-bridge: audio->text;model=<sttModel>;parts=<n>` ကို သယ်ဆောင်သည်၊
+မထိမခိုက်ရသေးသော requests များသည် Audio Bridge segment ကို လက်ခံရရှိခြင်းမရှိပါ။
 
-Runtime setting များကို DB တွင် သိမ်းဆည်းပြီး Zod ဖြင့် စစ်ဆေးအတည်ပြုထားသည်:
+Runtime settings များသည် DB-backed နှင့် Zod-validated ဖြစ်သည်-
 
-| Key                           | မူလတန်ဖိုး | အပိုင်းအခြား          |
-| ----------------------------- | ---------- | --------------------- |
-| `modalityBridgeAudioEnabled`  | `true`     | —                     |
-| `modalityBridgeAudioModel`    | `""`       | Auto သို့မဟုတ် STT ID |
-| `modalityBridgeAudioTimeout`  | `60000`    | 1000–300000           |
-| `modalityBridgeAudioMaxClips` | `3`        | 1–10                  |
+| Key                           | Default | Range          |
+| ----------------------------- | ------- | -------------- |
+| `modalityBridgeAudioEnabled`  | `true`  | —              |
+| `modalityBridgeAudioModel`    | `""`    | Auto or STT ID |
+| `modalityBridgeAudioTimeout`  | `60000` | 1000–300000    |
+| `modalityBridgeAudioMaxClips` | `3`     | 1–10           |
 
-မျှဝေထားသော cache ကို `modalityBridgeCacheEnabled`,
-`modalityBridgeCacheTtlMinutes` နှင့် `modalityBridgeCacheMaxEntries` တို့ဖြင့် ဆက်လက်ထိန်းချုပ်သည်။
+shared cache သည် `modalityBridgeCacheEnabled`,
+`modalityBridgeCacheTtlMinutes`, နှင့် `modalityBridgeCacheMaxEntries` တို့ဖြင့် ဆက်လက်ထိန်းချုပ်ထားသည်။
 
 ### Video Bridge (`videoBridge.ts`, `videoBridgePipeline.ts`)
 
-မူလ video ပံ့ပိုးမှုရှိကြောင်း မသိရသေးသော ပစ်မှတ်တစ်ခုကို ခေါ်ယူခြင်းမပြုမီ Chat Completions `messages` နှင့် Responses
-API `input` တို့အတွင်းရှိ အပေါ်ဆုံးအဆင့် video အစိတ်အပိုင်းများကို ကြားဖြတ်ရယူသည်။
-ပံ့ပိုးထားသော ပုံစံများမှာ `input_video`, `video_url`, `video_source`, HTTPS URLs
-နှင့် `data:video/*;base64,...` data URIs တို့ဖြစ်သည်။ စာသားအတွင်းရှိ သာမန် filename များကို
-video အဖြစ် မသတ်မှတ်ပါ။
+Chat Completions `messages` နှင့် Responses API `input` ရှိ ထိပ်တန်းအဆင့် ဗီဒီယို အစိတ်အပိုင်းများကို မူရင်းဗီဒီယို ပံ့ပိုးမှု မရှိသေးသော ပစ်မှတ်တစ်ခု မခေါ်ဆိုမီ ကြားဖြတ်ဟန့်တားသည်။ ပံ့ပိုးထားသော ပုံစံများမှာ `input_video`၊ `video_url`၊ `video_source`၊ HTTPS URL များ၊ နှင့် `data:video/*;base64,...` data URI များ ဖြစ်ကြသည်။ စာသားပါ သိုးရိုးချွတ် ဖိုင်နာမည်များကို ဗီဒီယိုအဖြစ် မသတ်မှတ်ပါ။
 
-`VideoBridgeGuardrail.preCall` (`videoBridge.ts`) သည် request traversal၊
-capability/policy စစ်ဆေးမှု၊ request တစ်ခုချင်းအလိုက် စုစည်းမှုနှင့် response payload တို့ကို တာဝန်ယူသည်။
-Video တစ်ခုချင်းစီအတွက် လုပ်ဆောင်မှုများ — ရယူခြင်း၊ ရလဒ်တစ်ခုလုံးဆိုင်ရာ cache၊
-frame sequence ကို ဖော်ပြခြင်း (ခေါ်ယူသူက ကြေညာထားသည့် audio transcript ရှိပါက ၎င်းကို ပေါင်းစပ်သည်)
-နှင့် ကြိုးပမ်းမှုတစ်ကြိမ်ချင်းစီဆိုင်ရာ metrics/abort/cleanup — ကို
-`videoBridgePipeline.ts` ရှိ `processVideoPart` နောက်ကွယ်တွင် ဝှက်ထားပြီး `preCall` ၏ loop အတွင်း
-video အစိတ်အပိုင်းတစ်ခုလျှင် တစ်ကြိမ်ခေါ်သည်။
-ထို module သည် ရှင်းလင်းစွာ သတ်မှတ်ထားသော port boundary များဖြစ်သည့် `VideoMediaBrokerPort`
-(bytes များရယူခြင်းနှင့် နမူနာယူထားသော frames များ ထုတ်ယူခြင်း)၊ `VideoAudioTranscriptionPort`
-(ခေါ်ယူသူက ကြေညာထားသည့် audio transcript ကို နမူနာယူထားသော caption များနှင့် ပေါင်းစပ်ခြင်း) နှင့်
-`VideoDrilldownPort` (frame drill-down persistence boundary; `processVideoPart` နှင့် မချိတ်ဆက်ရသေးပါ —
-လက်ရှိတွင် သီးခြား `/api/modality-bridge/video/drilldown` route ကသာ drill-down entry များကို ရေးသားသည်)
-တို့ကိုလည်း သတ်မှတ်သည်။
+`VideoBridgeGuardrail.preCall` (`videoBridge.ts`) သည် တောင်းဆိုချက် ဖြတ်သန်းမှု၊ စွမ်းဆောင်ရည်/မူဝါဒ စစ်ဆေးမှု၊ တောင်းဆိုချက် တစ်ခုချင်းအလိုက် စုစည်းမှုနှင့် တုန့်ပြန်မှု တင်ပို့ချက် (payload) တို့ကို တာဝန်ယူဆောင်ရွက်သည်။ ဗီဒီယို တစ်ခုချင်းအလိုက် လုပ်ဆောင်မှုများ — ရယူခြင်း၊ ရလဒ်တစ်ခုလုံးအတွက် ကက်ရှ် (cache) လုပ်ခြင်း၊ ဖရိန် အစဉ်လိုက်ကို ဖော်ပြခြင်း (ခေါ်ဆိုသူ ကြေညာထားသော အသံစာသားမှတ်တမ်းကို ပေါင်းစပ်ပေးသည်) နှင့် ကြိုးပမ်းမှု တစ်ခုချင်းအလိုက် မက်ထရစ်များ/ ရပ်ဆိုင်းခြင်း/ သန့်စင်ခြင်း — တို့ကို `videoBridgePipeline.ts` ရှိ `processVideoPart` ၏ နောက်ကွယ်တွင် ဖုံးကွယ်ထားပြီး `preCall` ၏ ကွင်းဆက် (loop) အတွင်း ဗီဒီယို အစိတ်အပိုင်း တစ်ခုလျှင် တစ်ကြိမ် ခေါ်ဆိုသည်။ ထိုမော်ဂျူးသည် တိကျသော ပေါ့တ် နယ်နိမိတ်များဖြစ်သည့် `VideoMediaBrokerPort` (ဘိုက်များကို ရယူခြင်းနှင့် နမူနာယူထားသော ဖရိန်များကို ထုတ်ယူခြင်း)၊ `VideoAudioTranscriptionPort` (ခေါ်ဆိုသူ ကြေညာထားသော အသံစာသားမှတ်တမ်းကို နမူနာယူထားသော စာတန်းထိုးများနှင့် ပေါင်းစပ်ခြင်း) နှင့် `VideoDrilldownPort` (ဖရိန် အသေးစိတ် ဆင်းသက်မှု တည်မြဲရေး နယ်နိမိတ်၊ ယနေ့အထိ `processVideoPart` ထဲသို့ ချိတ်ဆက်ထားခြင်း မရှိသေးပါ - သီးခြား `/api/modality-bridge/video/drilldown` လမ်းကြောင်း တစ်ခုတည်းကသာ အသေးစိတ် ဆင်းသက်မှု အဝင်အထွက်များကို ရေးသားသည်) တို့ကိုလည်း သတ်မှတ်ပေးသည်။
 
-အများသုံး `/v1` request path သည် subprocess ကို မည်သည့်အခါမျှ import သို့မဟုတ် invoke မလုပ်ပါ။
-Remote video များကို 50 MiB ကန့်သတ်ချက်အောက်တွင် download လုပ်သည်။ Inline base64 video များအတွက်မူ
-model/messages/framing envelope သည် အများသုံး JSON request လက်ခံမှုကန့်သတ်ချက် 50 MiB အတွင်း
-ဆက်လက်ရှိနေနိုင်စေရန် video တစ်ခုလျှင် decode လုပ်ပြီး အရွယ်အစားကို သတိထားကန့်သတ်ထားသော 36 MiB cap
-သတ်မှတ်ထားသည်။ Memory ခွဲဝေမှုမပြုမီ inline အရှည်နှင့် decode လုပ်ပြီး အရွယ်အစား ခန့်မှန်းချက်များကို
-စစ်ဆေးသည်။ အစပိုင်း remote URL နှင့် redirect တစ်ခုချင်းစီတွင် HTTPS ကို မဖြစ်မနေ အသုံးပြုရပြီး
-DNS pinning ပါရှိသော လက်ရှိ public-only outbound guard ကို အသုံးပြုသည်။ ထို့နောက် bytes များသည် တိကျသော
-အတွင်းပိုင်း `POST /api/modality-bridge/video/extract` broker boundary ကို ဖြတ်သန်းသည်။ ထို route သည်
-`LOCAL_ONLY` နှင့် `SPAWN_CAPABLE` နှစ်မျိုးစလုံးဖြစ်ပြီး process တစ်ခုချင်းစီအလိုက် အထောက်အထားစစ်ပြီးသား
-ယုံကြည်ရသော loopback request ကိုသာ လက်ခံကာ URL၊ filesystem path၊ executable သို့မဟုတ် argument list
-တို့ကို မည်သည့်အခါမျှ လက်မခံပါ။ API body-size pipeline နှင့် handler ၏ incremental body reader တို့သည်
-50 MiB broker input cap ကို သီးခြားစီ ပြဋ္ဌာန်းသည်။ ၎င်း၏ ကန့်သတ်ထားသော queue သည် extraction တစ်ခုကိုသာ
-တစ်ကြိမ်လျှင် လုပ်ဆောင်ပြီး စောင့်ဆိုင်းနေသော job လေးခုအထိ ခွင့်ပြုကာ စောင့်ဆိုင်းနေသော input ကို
-100 MiB အထိ ကန့်သတ်ထားသည်။
+အများပြည်သူသုံး `/v1` တောင်းဆိုချက် လမ်းကြောင်းသည် လုပ်ငန်းခွဲငယ် (subprocess) ကို မည်သည့်အခါမျှ တင်သွင်းခြင်း (import) သို့မဟုတ် ခေါ်ဆိုခြင်း မရှိပါ။ အဝေးရောက် ဗီဒီယိုများကို 50 MiB ကန့်သတ်ချက်အောက်တွင် ဒေါင်းလုဒ်လုပ်သည်။ တွဲလျက်ပါရှိသော base64 ဗီဒီယိုများတွင် မော်ဂျယ်/မက်ဆေ့ချ်များ/ဖရိန်အမိုးအကာသည် အများပြည်သူသုံး JSON တောင်းဆိုချက် လက်ခံမှု ကန့်သတ်ချက် 50 MiB အတွင်းတွင် ရှိနေစေရန် ဗီဒီယို တစ်ခုလျှင် သတိရှိရှိဖြင့် ကုဒ်ဖြည့်ထားသော 36 MiB ကန့်သတ်ချက် ရှိသည်။ တွဲလျက်ပါရှိသော အရှည်နှင့် ကုဒ်ဖြည့်ပြီးသား အရွယ်အစား ခန့်မှန်းချက်များကို ခွဲဝေမှု (allocation) မပြုလုပ်မီ စစ်ဆေးသည်။ DNS pinning ပါရှိသော လက်ရှိ အများပြည်သူသုံးအတွက်သာဖြစ်သော ထွက်ခွာသည့် အစောင့်အကြပ်ကို အသုံးပြု၍ မူလအဝေးရောက် URL နှင့် ပြန်ညွှန်းမှု (redirect) တိုင်းတွင် HTTPS ကို လိုအပ်သည်။ ထို့နောက် ဘိုက်များသည် တိကျသော အတွင်းပိုင်း `POST /api/modality-bridge/video/extract` ဘရိုကာ နယ်နိမိတ်ကို ဖြတ်ကျော်သည်။ ထိုလမ်းကြောင်းသည် `LOCAL_ONLY` နှင့် `SPAWN_CAPABLE` ဖြစ်ပြီး လုပ်ငန်းစဉ်တစ်ခုချင်းအလိုက် အတည်ပြုထားသော၊ ယုံကြည်ရသော loopback တောင်းဆိုချက်ကိုသာ လက်ခံကာ URL၊ ဖိုင်စနစ် လမ်းကြောင်း၊ လုပ်ဆောင်နိုင်သော ဖိုင် (executable) သို့မဟုတ် အာဂြူးမင့် စာရင်းကို မည်သည့်အခါမျှ လက်ခံမည် မဟုတ်ပါ။ API ကိုယ်ထည် အရွယ်အစား ပိုက်လိုင်းနှင့် ဟန်းဒ်လာ၏ တိုးမြင့်လာသော ကိုယ်ထည် ဖတ်ရှုသူတို့သည် ဘရိုကာ အဝင်အထွက် ကန့်သတ်ချက် 50 MiB ကို သီးခြားစီ အဓမ္မကျင့်သုံးကြသည်။ ၎င်း၏ ကန့်သတ်ထားသော တန်းစီစနစ် (queue) သည် တစ်ကြိမ်လျှင် ထုတ်ယူမှု တစ်ခုနှုန်းဖြင့် လုပ်ဆောင်ပြီး၊ ဆိုင်းငံ့ထားသော အလုပ် (job) လေးခုကို ခွင့်ပြုကာ၊ ဆိုင်းငံ့ထားသော အဝင်အထွက်ကို 100 MiB ဖြင့် ကန့်သတ်ထားသည်။
 
-Broker အတွင်းတွင် `ffprobe` သည် သီးသန့် local file တစ်ခုကို ဖတ်သည်။ သတ်မှတ်ထားသော format allowlist သည်
-playlist နှင့် manifest format များကို ဖယ်ထုတ်ထားသည်။ ခွင့်ပြုထားသော MOV-family container များအတွက်
-ပြင်ပ MOV data reference များကို မူလအတိုင်း ပိတ်ထားပြီး သတ်မှတ်ထားသော command သည် ၎င်းတို့ကို
-ဖွင့်အသုံးပြုရန် ရွေးချယ်ထားခြင်းမရှိပါ။ `ffprobe` နှင့် `ffmpeg` နှစ်ခုစလုံးသည် `file`-only protocol
-whitelist၊ thread တစ်ခု၊ သတ်မှတ်ထားသော argument array များ၊ shell မပါဝင်ခြင်းတို့ကို အသုံးပြုပြီး
-executable များကို `PATH` မှ ရှာဖွေသတ်မှတ်သည်။ Attached-picture cover stream များသည် ပြန်ဖွင့်နိုင်သော
-candidate များ မဟုတ်ပါ။ ပြန်ဖွင့်နိုင်သော stream အားလုံးသည် ကန့်သတ်ချက်များနှင့် ကိုက်ညီရမည်ဖြစ်ပြီး
-deterministic အနိမ့်ဆုံး index fallback မတိုင်မီ ရှင်းလင်းစွာ သတ်မှတ်ထားသော default stream ကို ဦးစားပေးသည်။
-Video များကို 600 စက္ကန့်၊ dimension တစ်ခုလျှင် 8,192 pixels နှင့် source pixels 33,554,432 အထိ
-ကန့်သတ်ထားသည်။ FFmpeg သည် midpoint JPEG frame 1–16 ခုကို နမူနာယူပြီး ပိုသေးသော input များကို
-အရွယ်အစားမမြှင့်ဘဲ အရှည်ဆုံး edge ကို အများဆုံး 1,024 pixels အထိ လျှော့ချကာ URL ကို မည်သည့်အခါမျှ
-လက်ခံရရှိခြင်းမရှိပါ။ မူလအားဖြင့် နမူနာယူမှုသည် `uniform` ဖြစ်သည်။ ရွေးချယ်နိုင်သော `scene_aware` နှင့်
-စမ်းသပ်ဆဲ `segment_aware` policy များသည် စစ်ဆေးအတည်ပြုပြီးသား local stream ပေါ်တွင် သတ်မှတ်ထားသော
-FFmpeg pass နောက်ထပ်တစ်ကြိမ်ကို လုပ်ဆောင်ပြီး ကန့်သတ်ထားသော `showinfo` scene timestamp များကို ရွေးချယ်ကာ
-detector ပျက်ကွက်ခြင်း၊ timeout ဖြစ်ခြင်း၊ output ပုံစံမှားယွင်းခြင်း သို့မဟုတ် candidate set ဗလာဖြစ်ခြင်းတို့တွင်
-တူညီသော uniform midpoint များသို့ deterministic နည်းလမ်းဖြင့် fallback လုပ်သည်။ Segment-aware mode သည်
-စစ်ဆေးအတည်ပြုပြီးသော scene interval များ၏ အချိုးအစားအလိုက် midpoint နမူနာများကို ခွဲဝေသည်။
-Segment-aware evidence နှင့် fallback အပြုအမူတို့ကို အောက်တွင် အသေးစိတ်ဖော်ပြထားသည်။ Policy တိုင်းတွင်
-ရွေးချယ်မှုပြီးနောက် ခိုင်မာသော 16-frame cap ကို အသုံးပြုသည်။ Scene-aware request တစ်ခုတွင် frame တစ်ခုစာ
-budget သာရှိပါက လက်ရှိ full-video သို့မဟုတ် focus window ၏ uniform midpoint ကို အသုံးပြုပြီး
-`policyEffective: uniform` ဟု အစီရင်ခံသည်။ ရွေးချယ်ထားသော scene frame တစ်ခုတည်းသည် အချိန်ကာလဆိုင်ရာ
-အစွန်းနှစ်ဖက်လုံးကို မထိန်းသိမ်းနိုင်ပါ။ ခေါ်ယူသူသည် အဆုံးရှိသော focus window (`start`/`end` စက္ကန့်)
-ကို ရွေးချယ်ပေးနိုင်သည်။ Bound များကို media duration အတွင်းသို့ clamp လုပ်ပြီး ပြောင်းပြန်ဖြစ်နေသော
-သို့မဟုတ် အဆုံးမရှိသော window များကို ပယ်ချကာ sampling policy အားလုံးကို normalized interval အတွင်း၌သာ
-လုပ်ဆောင်သည်။ ရလဒ် window ကို sampling metadata နှင့် မယုံကြည်ရသော description prefix ထဲတွင်
-ထည့်သွင်းထားသောကြောင့် downstream model များသည် focus လုပ်ထားသော အပိုင်းကို timeline အပြည့်နှင့်
-ခွဲခြားနိုင်သည်။
+ဘရိုကာအတွင်းတွင် `ffprobe` သည် သီးသန့် ဒေသတွင်း ဖိုင်တစ်ခုကို ဖတ်ရှုသည်။ တည်ငြိမ်သော ဖော်မတ် ခွင့်ပြုစာရင်း (allowlist) သည် ပလေလစ်နှင့် မန်နီဖက် ဖော်မတ်များကို ဖယ်ထုတ်ထားသည်။ ခွင့်ပြုထားသော MOV-family ကွန်တိန်နာများအတွက်၊ ပြင်ပ MOV ဒေတာ ကိုးကားချက်များကို မူလအားဖြင့် ပိတ်ထားဆဲဖြစ်ပြီး တည်ငြိမ်သော အာဂြူးမင့် ကွန်မန်းက ၎င်းတို့ကို ရွေးချယ်အသုံးပြုခြင်း မရှိပါ။ `ffprobe` နှင့် `ffmpeg` နှစ်ခုစလုံးသည် `file`-only ပရိုတိုကော ဝိုက်ထ်လစ် (whitelist)၊ ကြိုးဝိုင်း (thread) တစ်ခု၊ တည်ငြိမ်သော အာဂြူးမင့် အာရေးများ၊ ရှဲလ် (shell) မပါရှိခြင်းနှင့် `PATH` မှ ဖြေရှင်းထားသော လုပ်ဆောင်နိုင်သော ဖိုင်များကို အသုံးပြုကြသည်။ တွဲလျက်ပါရှိသော ရုပ်ပုံ အဖုံး တိုက်ရိုက်ထုတ်လွှင့်မှုများ (cover streams) သည် ဖွင့်၍ရနိုင်သော ကိုယ်စားလှယ်လောင်းများ မဟုတ်ပါ။ ဖွင့်၍ရနိုင်သော တိုက်ရိုက်ထုတ်လွှင့်မှု အားလုံးသည် ကန့်သတ်ချက်များနှင့် ကိုက်ညီရမည်ဖြစ်ပြီး တည်ငြိမ်သော အညွှန်းအနိမ့်ဆုံး အစားထိုးစနစ် (fallback) မတိုင်မီ တိကျသေချာသော မူလ တိုက်ရိုက်ထုတ်လွှင့်မှုကို ဦးစားပေးသည်။ ဗီဒီယိုများကို စက္ကန့် 600၊ အတိုင်းအတာတစ်ခုလျှင် ပစ်ဇယ် 8,192 နှင့် ရရင်း ပစ်ဇယ် 33,554,432 ဖြင့် ကန့်သတ်ထားသည်။ FFmpeg သည် အလယ်အလတ် JPEG ဖရိန် 1-16 ခုကို နမူနာယူပြီး၊ ပိုသေးငယ်သော အသွင်းအထွက်များကို ပိုကြီးအောင် မလုပ်ဘဲ ရှည်လျားသော အစွန်းကို အများဆုံး ပစ်ဇယ် 1,024 သို့ လျှော့ချကာ URL ကို မည်သည့်အခါမျှ လက်ခံရရှိခြင်း မရှိပါ။ နမူနာယူခြင်းသည် မူလအားဖြင့် `uniform` ဖြစ်သည်။ ရွေးချယ်နိုင်သော `scene_aware` နှင့် စမ်းသပ်ဆဲ `segment_aware` မူဝါဒများသည် အတည်ပြုပြီးသား ဒေသတွင်း တိုက်ရိုက်ထုတ်လွှင့်မှုအပေါ်တွင် တည်ငြိမ်သော FFmpeg ကြိမ်နှုန်း တစ်ကြိမ်ကို လုပ်ဆောင်ပြီး၊ ကန့်သတ်ထားသော `showinfo`မြင်ကွင်း အချိန်တံဆိပ်များကို ရွေးချယ်ကာ၊ ထောက်လှမ်းကိရိယာ ပشلသွားခြင်း၊ အချိန်ကုန်သွားခြင်း (timeout)၊ ပုံစံမမှန်သော အထွက် သို့မဟုတ် အချည်းနှီး ဖြစ်နေသော ကိုယ်စားလှယ်လောင်း စုစည်းမှုတို့ ဖြစ်ပေါ်လာပါက အဆိုပါ ယူနီဖောင်း အလယ်အလတ် အချက်များဆီသို့ တိကျသေချာစွာ ပြန်လည်ရောက်ရှိသွားမည် ဖြစ်သည်။ Segment-aware မူဝါဒသည် အတည်ပြုထားသော မြင်ကွင်း ကြားကာလများနှင့်အညီ အလယ်အလတ် နမူနာများကို အချိုးကျ ခွဲဝေပေးသည်။ Segment-aware အထောက်အထားနှင့် ပြန်လည်ရောက်ရှိမှု အပြုအမူတို့ကို အောက်တွင် အသေးစိတ် ဖော်ပြထားသည်။ တင်းကျပ်သော 16-ဖရိန် ကန့်သတ်ချက်ကို မူဝါဒတိုင်းရှိ ရွေးချယ်မှုအပြီးတွင် ကျင့်သုံးသည်။ မြင်ကွင်းအသိရှိသော တောင်းဆိုချက်တွင် တစ်ဖရိန် ဘတ်ဂျက်သာ ရှိသောအခါ၊ ၎င်းသည် တက်ကြွနေသော ဗီဒီယိုအပြည့် သို့မဟုတ် အာရုံစိုက် ဝင်းဒိုး၏ ယူနီဖောင်း အလယ်အလတ်အချက်ကို အသုံးပြုပြီး `policyEffective: uniform` ဟု တင်ပြသည် - ရွေးချယ်ထားသော တစ်ခုတည်းသော မြင်ကွင်း ဖရိန်သည် အချိန်ကာလ အစွန်းနှစ်ဖက်စလုံးကို ထိန်းသိမ်းထားနိုင်မည် မဟုတ်ပါ။ ခေါ်ဆိုသူသည် အဆုံးအစရှိသော အာရုံစိုက် ဝင်းဒိုးတစ်ခုကို (`start`/`end` စက္ကန့်များ) ရွေးချယ် ပံ့ပိုးပေးနိုင်သည် - အစွန်းများကို မီဒီယာ ကြာချိန်နှင့်အညီ ကန့်သတ်ထားပြီး၊ ပြောင်းပြန်လှန်ထားသော သို့မဟုတ် အဆုံးအစ မရှိသော ဝင်းဒိုးများကို ပယ်ချကာ၊ နမူနာယူမှု မူဝါဒ အားလုံးကို ပုံမှန်ဖြစ်အောင် လုပ်ဆောင်ထားသော ကြားကာလအတွင်းသာ လုပ်ဆောင်သည်။ ရလာသည့် ဝင်းဒိုးကို နမူနာယူမှု မက်ထရဒေတာနှင့် ယုံကြည်စိတ်ချရမှု မရှိသော ဖော်ပြချက် ရှေ့ဆက် (prefix) တို့တွင် ထည့်သွင်းထားသောကြောင့် အောက်ပိုင်း မော်ဂျယ်များသည် အာရုံစိုက်ထားသော ထုတ်နုတ်ချက်ကို အချိန်ဇယား အပြည့်အစုံမှ ခွဲခြားသိမြင်နိုင်မည် ဖြစ်သည်။
 
-Semantic caption focus သည် သီးခြားဖြစ်ပြီး ရှင်းလင်းစွာ သတ်မှတ်ရသော setting တစ်ခုဖြစ်သည်။ မူလ `full`
-analysis mode သည် လက်ရှိ frame prompt ကို ထိန်းသိမ်းထားပြီး request စာသားကို caption model ထံ
-မည်သည့်အခါမျှ မပို့ပါ။ `focused` mode တွင် bridge သည် Chat သို့မဟုတ် Responses container တစ်ခုတည်းအတွင်းမှ
-နောက်ဆုံးပေါ်၊ ဗလာမဟုတ်သော၊ user ရေးသားထားသည့် `text`/`input_text` ကိုသာ ဖတ်ပြီး NFC သို့ normalize လုပ်ကာ
-control character များနှင့် whitespace များကို ပေါင်းစည်းပြီး Unicode code point 500 အထိ ကန့်သတ်သည်။
-ရလဒ်ဗလာဖြစ်ပါက တိကျသော `full` prompt သို့ fallback လုပ်သည်။ အသုံးပြုနိုင်သော hint ကို သီးသန့်
-untrusted-user-context block တစ်ခုအတွင်း JSON အဖြစ် serialize လုပ်ပြီး မြင်တွေ့နိုင်သော အသေးစိတ်အချက်များကိုသာ
-ဦးစားပေးနိုင်သည်။ Media အတွင်း မြင်ရသော သို့မဟုတ် ကြားရသော ညွှန်ကြားချက်များကို မလိုက်နာရန် သီးခြား
-သတိပေးချက်ကို ၎င်းက လွှမ်းမိုးပယ်ဖျက်၍ မရပါ။ Textual focus သည် `start`/`end` ကို မည်သည့်အခါမျှ
-ခန့်မှန်းသတ်မှတ်ခြင်းမပြုသကဲ့သို့ temporal sampler ကိုလည်း မပြောင်းလဲပါ။
+မြန်မာစာ အဓိပ္ပာယ်ဖော် ဖရိန် အာရုံစိုက်မှုသည် သီးခြားဖြစ်ပြီး တိကျသေချာသော ဆက်တင်တစ်ခု ဖြစ်သည်။ မူလ `full` ခွဲခြမ်းစိတ်ဖြာမှု မူဝါဒသည် ရှိပြီးသား ဖရိန် ပုံစံခွက် (prompt) ကို ထိန်းသိမ်းထားပြီး မည်သည့်အခါမျှ တောင်းဆိုချက် စာသားကို ဖရိန် မော်ဂျယ်ဆီသို့ ပို့ဆောင်ပေးမည် မဟုတ်ပါ။ `focused` မူဝါဒတွင် ဘရိုကာသည် တူညီသော Chat သို့မဟုတ် Responses ကွန်တိန်နာအတွင်းရှိ သုံးစွဲသူ ဖန်တီးထားသော နောက်ဆုံးပေါ် အလွတ်မဟုတ်သော `text`/`input_text` ကိုသာ ဖတ်ရှုပြီး၊ ၎င်းကို NFC သို့ ပုံမှန်ဖြစ်အောင် လုပ်ဆောင်ကာ၊ ထိန်းချုပ် စာလုံးများနှင့် စာသားကွက်လပ်များကို ပေါင်းစည်းကာ Unicode ကုဒ် အမှတ် 500 သို့ ကန့်သတ်ထားသည်။ အလွတ်ဖြစ်နေသော ရလဒ်သည် တိကျသော `full` ပုံစံခွက်ဆီသို့ ပြန်လည်ရောက်ရှိသွားမည် ဖြစ်သည်။ အသုံးဝင်သော အရိပ်အမြွက်ကို ယုံကြည်စိတ်ချရမှု မရှိသော သုံးစွဲသူ အခြေအနေ ဘလောက် သီးသန့်တစ်ခုတွင် JSON အဖြစ် စီးရီးလိုက် လုပ်ဆောင်ပြီး မြင်တွေ့နိုင်သော အသေးစိတ် အချက်အလက်များကိုသာ ဦးစားပေး လုပ်ဆောင်နိုင်သည်။ မီဒီယာတွင် မြင်ရ သို့မဟုတ် ကြားရသော ညွှန်ကြားချက်များကို လိုက်နာရန် သီးခြား သတိပေးချက်ကို ၎င်းက ကျော်လွန်လုပ်ဆောင်ခွင့် မရှိပါ။ စာသား အာရုံစိုက်မှုသည် `start`/`end` ကို မည်သည့်အခါမျှ မှန်းဆခြင်း သို့မဟုတ် အချိန်အလိုက် နမူနာယူသူကို ပြောင်းလဲခြင်း မရှိပါ။
 
-#### FU-07 ဖွဲ့စည်းပုံဆိုင်ရာ segment evidence
+#### FU-07 တည်ဆောက်ပုံဆိုင်ရာ ဆက်စပ် အထောက်အထား
 
-`segment_aware` သည် စစ်ဆေးအတည်ပြုပြီးသား local video stream ပေါ်တွင် ကန့်သတ်ထားသော pre-analysis pass
-တစ်ကြိမ်ကို အသုံးပြုသည်။ သတ်မှတ်ထားသော filter chain သည် ဦးစွာ အကျယ်ကို အများဆုံး 320 pixels အထိ
-လျှော့ချပြီး scene အပြောင်းအလဲများနှင့် ရပ်တန့်နေသော interval များကို ရှာဖွေကာ ထို့နောက် blur၊ ပျမ်းမျှ luma
-နှင့် spatial/temporal information တို့အတွက် တစ်စက္ကန့်လျှင် frame 1 ခုနှုန်းဖြင့် နမူနာယူသည်။ Pass ကို
-ဖွဲ့စည်းပုံဆိုင်ရာ နမူနာ 600 ခု၊ FFmpeg/filter thread တစ်ခု၊ တူညီသော `file`-only protocol နှင့် container
-allowlist များ၊ process output 1 MiB နှင့် broker ၏ မျှဝေထားသော abort/deadline အတွင်း အများဆုံး 30 စက္ကန့်ဟူ၍
-ကန့်သတ်ထားသည်။ ၎င်းသည် request မှ command၊ filter၊ path သို့မဟုတ် URL ကို မည်သည့်အခါမျှ လက်မခံပါ။
+`segment_aware` သည် အတည်ပြုပြီးသား ဒေသတွင်း ဗီဒီယို တိုက်ရိုက်ထုတ်လွှင့်မှုအပေါ်တွင် ကန့်သတ်ထားသော ကြိုတင်ခွဲခြမ်းစိတ်ဖြာမှု ကြိမ်နှုန်း တစ်ကြိမ်ကို အသုံးပြုသည်။ တည်ငြိမ်သော စစ်ထုတ်သည့် ကွင်းဆက် (filter chain) သည် ပထမဦးစွာ အကျယ်အများဆုံး ပစ်ဇယ် 320 သို့ ချုံ့ချဲ့ခြင်း၊ မြင်ကွင်း အပြောင်းအလဲများနှင့် ရပ်တန့်နေသော ကြားကာလများကို ထောက်လှမ်းခြင်းတို့ကို လုပ်ဆောင်ပြီး၊ ထို့နောက် အမှောင်ပျောက်ကင်းမှု၊ ပျမ်းမျှ လူမာ (luma) နှင့် နေရာဒေသ/အချိန်အလိုက် အချက်အလက်များအတွက် တစ်စက္ကန့်လျှင် ဖရိန် 1 ခုနှုန်းဖြင့် နမူနာယူသည်။ ကြိမ်နှုန်းကို တည်ဆောက်ပုံဆိုင်ရာ နမူနာ 600 ခု၊ FFmpeg/filter ကြိုးဝိုင်း တစ်ခု၊ တူညီသော `file`-only ပရိုတိုကောနှင့် ကွန်တိန်နာ ခွင့်ပြုစာရင်းများ၊ လုပ်ငန်းစဉ် အထွက် ကန့်သတ်ချက် 1 MiB နှင့် ဘရိုကာ၏ မျှဝေထားသော ရပ်ဆိုင်းမှု/နောက်ဆုံးအချိန် အတွင်း အများဆုံး စက္ကန့် 30 ဖြင့် ကန့်သတ်ထားသည်။ ၎င်းသည် တောင်းဆိုချက်မှ ကွန်မန်း၊ စစ်ထုတ်မှု၊ လမ်းကြောင်း သို့မဟုတ် URL ကို မည်သည့်အခါမျှ လက်ခံမည် မဟုတ်ပါ။
 
-ဖွဲ့စည်းပုံဆိုင်ရာ တန်ဖိုးများသည် အဓိပ္ပာယ်အခြေပြု ဗီဒီယိုနားလည်မှု မဟုတ်ဘဲ အတိအကျ ပြန်လည်ရရှိနိုင်သော နမူနာရွေးချယ်မှုဆိုင်ရာ အထောက်အထားများသာ ဖြစ်သည်။ ၎င်းတို့သည် အကြောင်းအရာရှိ ပုဂ္ဂိုလ်/အရာဝတ္ထုများ၊ လုပ်ဆောင်ချက်များ၊ စာတန်းများ၊ စကားပြောဆိုမှု သို့မဟုတ် အသုံးပြုသူ၏ ရည်ရွယ်ချက်ကို ကောက်ချက်မချပါ။ Scene နှင့် freeze boundary များက segment များကို ဖွဲ့စည်းပြီး၊ freeze coverage၊ blur၊ exposure၊ spatial detail နှင့် temporal change တို့သည် ရှိပြီးသား frame 1–16 ခု budget ကို မည်သို့ခွဲဝေမည်ကိုသာ သက်ရောက်စေသည်။ လုံးဝ ရပ်တန့်နေသော segment တစ်ခုကို frame တစ်ခုအထိသာ ကန့်သတ်ပြီး၊ ရပ်တန့်မနေသော segment များသည် ကျန်ရှိသည့် budget ကို ရရှိရန် ယှဉ်ပြိုင်ကြသည်။ Boundary အရေအတွက်က frame အရေအတွက်ထက် များနေသည့်အခါ အစပိုင်းရှိ လျင်မြန်သော cut များကြောင့် နောက်ဆုံးရှိ ရှည်လျားသော segment ကို မဖုံးကွယ်နိုင်စေရန် timeline တစ်လျှောက် တစ်ပြေးညီ coverage ကို ဆက်လက်ထိန်းသိမ်းထားသည်။ Freeze boundary ၏ 1-second analysis resolution အတွင်းရှိ scene boundary များကို ပေါင်းစည်းသည်။
+ဖွဲ့စည်းပုံဆိုင်ရာတန်ဖိုးများသည် ဆုံးဖြတ်နိုင်သော နမူနာယူမှုအထောက်အထားများဖြစ်ပြီး အဓိပ္ပာယ်ရှိသော ဗီဒီယိုနားလည်မှုမဟုတ်ပါ။ ၎င်းတို့သည် အကြောင်းအရာများ၊ လုပ်ဆောင်ချက်များ၊ စာတန်းများ၊ စကားပြောများ သို့မဟုတ် အသုံးပြုသူ၏ရည်ရွယ်ချက်များကို ခန့်မှန်းမထားပါ။ မြင်ကွင်းနှင့် ရပ်တန့်ထားသော အပိုင်းများသည် အပိုင်းများကို ဖွဲ့စည်းသည်။ ရပ်တန့်ထားသော အပိုင်းများ၏ လွှမ်းခြုံမှု၊ မှုန်ဝါးမှု၊ ထိတွေ့မှု၊ နေရာဆိုင်ရာအသေးစိတ်နှင့် အချိန်နှင့်အမျှ ပြောင်းလဲမှုများသည် ရှိပြီးသား ၁-၁၆ ဖရိမ်ဘတ်ဂျက်ကို မည်သို့ခွဲဝေပေးသည်ကိုသာ လွှမ်းမိုးသည်။ လုံးဝရပ်တန့်ထားသော အပိုင်းကို ဖရိမ်တစ်ခုအထိ ကန့်သတ်ထားပြီး၊ မရပ်တန့်ထားသော အပိုင်းများသည် ကျန်ရှိသောဘတ်ဂျက်အတွက် ယှဉ်ပြိုင်ကြသည်။ အပိုင်းများက ဖရိမ်များထက် ပိုများသောအခါ၊ အချိန်ဇယား၏ ညီညာသောလွှမ်းခြုံမှုကို ထိန်းသိမ်းထားသောကြောင့် အစောပိုင်းဖြတ်တောက်မှုများသည် ရှည်လျားသော နောက်ဆုံးအပိုင်းကို ဖုံးကွယ်ထားနိုင်မည်မဟုတ်ပေ။ ရပ်တန့်ထားသော အပိုင်း၏ ၁ စက္ကန့်ခွဲခြမ်းစိတ်ဖြာမှု resolution အတွင်းရှိ မြင်ကွင်းအပိုင်းများကို ပေါင်းစည်းထားသည်။
 
-Filter မရှိခြင်း၊ ပုံစံမမှန်သော/ဗလာဖြစ်သော အထောက်အထား၊ detector error သို့မဟုတ် အချိန်ကန့်သတ်ထားသည့် pre-analysis timeout တို့ ဖြစ်ပေါ်ပါက တိကျသည့် uniform midpoint policy သို့ fail open လုပ်သည်။ Caller abort သို့မဟုတ် broker deadline သည် fail open မလုပ်ပါ။ ၎င်းသည် လက်ရှိလုပ်ဆောင်နေသော subprocess ကို ရပ်တန့်စေပြီး၊ နောက်ဆက်တွဲ frame extraction ကို တားဆီးကာ private temporary tree ကို `finally` တွင် ဖယ်ရှားသည်။
+ပျောက်ဆုံးနေသော filter များ၊ ပုံပျက်နေသော/ဗလာဖြစ်နေသော အထောက်အထားများ၊ detector အမှားတစ်ခု သို့မဟုတ် ကန့်သတ်ထားသော ကြိုတင်ခွဲခြမ်းစိတ်ဖြာမှုအချိန်ကုန်ဆုံးမှုတို့သည် တိကျသော ညီညာသော အလယ်မှတ်မူဝါဒသို့ ပွင့်လင်းစွာ ပျက်ကွက်သည်။ ခေါ်ဆိုသူ၏ ပယ်ဖျက်မှု သို့မဟုတ် broker ၏ သတ်မှတ်ရက်သည် ပွင့်လင်းစွာ ပျက်ကွက်ခြင်းမရှိပါ။ ၎င်းသည် လုပ်ဆောင်နေသော subprocess ကို ရပ်ဆိုင်းစေပြီး နောက်ပိုင်းဖရိမ်ထုတ်ယူခြင်းကို တားဆီးကာ `finally` တွင် သီးသန့်ယာယီသစ်ပင်ကို ဖယ်ရှားသည်။
 
-`scripts/perf/video-bridge-fu07-eval.ts` သည် deduplication ပြီးနောက် caption call လျှော့ချနိုင်မှု၊ dense-motion budget ခွဲဝေမှု၊ blur/exposure/SI-TI အထောက်အထား၊ ရှည်လျားသော နောက်ဆုံးပိုင်းပါသည့် လျင်မြန်သော cut များနှင့် တဖြည်းဖြည်း fade ဖြစ်မှုကြောင့် ဖြစ်ပေါ်သော false positive များအတွက် အတိအကျ ပြန်လည်ရရှိနိုင်သည့် အမှန်တကယ် FFmpeg fixture များကို ထုတ်လုပ်သည်။ ၎င်းသည် pre-analysis wall time ကို မှတ်တမ်းတင်ပြီး `/usr/bin/time` ရရှိနိုင်သည့်နေရာတွင် child CPU နှင့် peak RSS ကိုလည်း မှတ်တမ်းတင်သည်။ ၎င်း၏ quality check များသည် ဖွဲ့စည်းပုံဆိုင်ရာ oracle များသာ ဖြစ်သည်။ ဤ harness တွင် ခွင့်ပြုထားသော endpoint သို့မဟုတ် freeze လုပ်ထားသည့် judge မရှိသောကြောင့် အမှန်တကယ် caption model အရည်အသွေးသည် `HOLD` အဖြစ် ဆက်လက်ရှိသည်။ `--caption-cost-per-call-usd` ဖြင့် call တစ်ခုလျှင် အပြုသဘောဆောင်သော ခန့်မှန်းကုန်ကျစရိတ်ကို တိတိကျကျ မပေးထားပါက ငွေကြေးဆိုင်ရာ ချွေတာမှုသည်လည်း `HOLD` အဖြစ် ဆက်လက်ရှိသည်။ Script သည် ရလဒ်နှစ်မျိုးစလုံးကို ဘယ်သောအခါမျှ လုပ်ကြံဖန်တီးခြင်း မပြုပါ။
+`scripts/perf/video-bridge-fu07-eval.ts` သည် post-dedup စာတန်းခေါ်ဆိုမှုချွေတာမှုများ၊ သိပ်သည်းသောရွေ့လျားမှုဘတ်ဂျက်ခွဲဝေမှု၊ မှုန်ဝါးမှု/ထိတွေ့မှု/SI-TI အထောက်အထားများ၊ ရှည်လျားသောနောက်ဆုံးအပိုင်းနှင့်အတူ လျင်မြန်သောဖြတ်တောက်မှုများနှင့် တဖြည်းဖြည်းမှေးမှိန်သွားသော မှားယွင်းသော အပြုသဘောဆောင်မှုများအတွက် ဆုံးဖြတ်နိုင်သော စစ်မှန်သော FFmpeg fixtures များကို ထုတ်ပေးသည်။ ၎င်းသည် ကြိုတင်ခွဲခြမ်းစိတ်ဖြာမှု နံရံအချိန်နှင့် `/usr/bin/time` ရရှိနိုင်သည့်နေရာတွင် child CPU နှင့် peak RSS ကို မှတ်တမ်းတင်သည်။ ၎င်း၏ အရည်အသွေးစစ်ဆေးမှုများသည် ဖွဲ့စည်းပုံဆိုင်ရာ oracles များသာဖြစ်သည်။ စစ်မှန်သော စာတန်း-မော်ဒယ်အရည်အသွေးသည် `HOLD` အဖြစ် ဆက်လက်တည်ရှိနေသည်၊ အဘယ်ကြောင့်ဆိုသော် ဤ harness တွင် ခွင့်ပြုထားသော endpoint သို့မဟုတ် ရပ်တန့်ထားသော judge မရှိသောကြောင့်ဖြစ်သည်။ ငွေကြေးချွေတာမှုများသည်လည်း `--caption-cost-per-call-usd` က ခေါ်ဆိုမှုတစ်ခုလျှင် ရှင်းလင်းသော အပြုသဘောဆောင်သော ခန့်မှန်းချက်ကို မပေးမချင်း `HOLD` အဖြစ် ဆက်လက်တည်ရှိနေသည်။ script သည် မည်သည့်ရလဒ်ကိုမျှ ဖန်တီးမထားပါ။
 
-Frame တစ်ခုစီကို 4 MiB အထိ၊ raw frame အားလုံးပေါင်းကို 23 MiB အထိနှင့် serialized broker response ကို 32 MiB အထိ ကန့်သတ်ထားသည်။ Private temporary directory ကို `finally` တွင် ဖယ်ရှားသည်။ OmniRoute တွင် FFmpeg ကို ပူးတွဲထည့်သွင်းထားခြင်း မရှိသလို custom executable path ကိုလည်း လက်မခံပါ။ Caption မပြုလုပ်မီ bridge သည် ရှေးရိုးဆန်သော visual deduplication pass တစ်ခုကို အသုံးပြုသည်။ JPEG တစ်ခုစီကို 16×16 grayscale buffer အဖြစ် လျှော့ချပြီး နောက်ဆုံး ထိန်းသိမ်းထားသော frame နှင့်သာ နှိုင်းယှဉ်သည်။ တောင်းဆိုထားသော caption budget သည် frame တစ်ခုထက်များပါက extraction သည် ထို budget ၏ နှစ်ဆအထိဖြစ်ပြီး frame 16 ခုထက် ဘယ်သောအခါမျှ မပိုသော ကန့်သတ်ထားသည့် candidate pool ကို ပေးသည်။ တောင်းဆိုထားသော cap ကို deduplication ပြီးနောက်မှသာ အသုံးချပြီး၊ budget သည် အနည်းဆုံး နှစ်ခုရှိပါက နောက်ဆုံး thinning လုပ်စဉ် ပထမဆုံးနှင့် နောက်ဆုံး ရွေးချယ်ထားသော candidate များကို ထိန်းသိမ်းထားသည်။ Version သတ်မှတ်ထားသော `grayscale-16x16-mean-cells-v2` policy သည် mean luma delta နှင့် normalized delta အနည်းဆုံး 0.05 ရှိသော thumbnail cell များ၏ အချိုးတို့အနက် ပိုကြီးသည့်တန်ဖိုးကို အသုံးပြုသည်။ Duplicate threshold သည် constant 0.04 ဖြစ်ပြီး runtime setting အဖြစ် ဖော်ထုတ်ပေးရန်ထက် ကြိုတင်ခန့်မှန်းနိုင်မှုအတွက် ရွေးချယ်ထားခြင်း ဖြစ်သည်။ ဤ ဒုတိယ high-contrast signal သည် mean-only comparison ကြောင့် ဖုံးကွယ်သွားနိုင်သည့် သေးငယ်သော လှုပ်ရှားမှုနှင့် မြင်နိုင်သောစာသား ပြောင်းလဲမှုများကို ထိန်းသိမ်းပေးသည်။ Comparator သို့မဟုတ် decoder error များ ဖြစ်ပေါ်ပါက fail open လုပ်ပြီး coverage ကို ထိန်းသိမ်းထားသည်။ Output metadata တွင် extracted candidate များ၊ အောင်မြင်စွာ အသုံးပြုခဲ့သော frame များနှင့် ဖယ်ရှားခဲ့သော visual duplicate များကို သီးခြားခွဲပြထားသည်။
+ဖရိမ်တစ်ခုစီကို 4 MiB အထိ ကန့်သတ်ထားပြီး၊ ကုန်ကြမ်းဖရိမ်အားလုံးကို 23 MiB အထိ ကန့်သတ်ထားကာ၊ serialized broker တုံ့ပြန်မှုကို 32 MiB အထိ ကန့်သတ်ထားသည်။ သီးသန့်ယာယီ directory ကို `finally` တွင် ဖယ်ရှားသည်။ OmniRoute သည် FFmpeg ကို မပေါင်းစည်းထားဘဲ စိတ်ကြိုက် executable path ကို လက်မခံပါ။ စာတန်းမထိုးမီ၊ bridge သည် ထိန်းသိမ်းထားသော visual deduplication pass ကို အသုံးပြုသည်။ JPEG တစ်ခုစီကို 16x16 grayscale buffer သို့ လျှော့ချပြီး နောက်ဆုံးထိန်းသိမ်းထားသော ဖရိမ်နှင့်သာ နှိုင်းယှဉ်သည်။ တောင်းဆိုထားသော စာတန်းဘတ်ဂျက်သည် ဖရိမ်တစ်ခုထက် ပိုများပါက၊ ထုတ်ယူခြင်းသည် ထိုဘတ်ဂျက်၏ နှစ်ဆအထိနှင့် ၁၆ ဖရိမ်ထက် မပိုသော ကန့်သတ်ထားသော candidate pool ကို ပံ့ပိုးပေးသည်။ တောင်းဆိုထားသော ကန့်သတ်ချက်ကို deduplication ပြီးနောက်မှသာ အသုံးပြုပြီး၊ ဘတ်ဂျက်သည် အနည်းဆုံး နှစ်ခုဖြစ်သောအခါ ပထမနှင့် နောက်ဆုံးရွေးချယ်ထားသော candidate များကို နောက်ဆုံးပါးလွှာအောင်ပြုလုပ်စဉ်တွင် ထိန်းသိမ်းထားသည်။ versioned `grayscale-16x16-mean-cells-v2` မူဝါဒသည် mean luma delta နှင့် normalized delta သည် အနည်းဆုံး 0.05 ဖြစ်သော thumbnail cells များ၏ အချိုးတို့အနက် ပိုကြီးသောတန်ဖိုးကို အသုံးပြုသည်။ duplicate threshold သည် 0.04 ဖြစ်ပြီး၊ runtime setting အဖြစ် ထုတ်ဖော်မထားဘဲ ခန့်မှန်းနိုင်မှုအတွက် ရွေးချယ်ထားသည်။ ဤဒုတိယမြောက် high-contrast signal သည် mean-only နှိုင်းယှဉ်မှုက ဖုံးကွယ်ထားနိုင်သော သေးငယ်သောရွေ့လျားမှုနှင့် မြင်နိုင်သောစာသားပြောင်းလဲမှုများကို ထိန်းသိမ်းထားသည်။ Comparator သို့မဟုတ် decoder အမှားများသည် ပွင့်လင်းစွာ ပျက်ကွက်ပြီး လွှမ်းခြုံမှုကို ထိန်းသိမ်းထားသည်။ Output metadata သည် ထုတ်ယူထားသော candidate များ၊ အောင်မြင်စွာအသုံးပြုခဲ့သော ဖရိမ်များနှင့် ဖယ်ရှားထားသော visual duplicates များကို ခွဲခြားထားသည်။
 
-အတိအလင်း အမှတ်အသားပြုထားသော video part တစ်ခုသည် timestamp ပါသည့် contact sheet ကို တောင်းဆိုနိုင်သည်။ Bridge သည် column 4 ခုနှင့် frame 16 ခုအထိပါဝင်သော JPEG grid ကို တည်ဆောက်သည်။ 512-pixel cell တစ်ခုစီသည် ၎င်း၏ source timestamp ကို high-contrast အောက်ခြေ band ထဲတွင် ပုံပေါ်သို့ အမြဲတမ်းထည့်သွင်းပြီး၊ downstream association နှင့် audit အတွက် ထို timestamp များကို textual metadata ထဲတွင်လည်း ဆက်လက်ထားရှိသည်။ JPEG အပြည့်အစုံကို 32 MiB အထိသာ ကန့်သတ်ထားသည်။ `sharp` သည် grid ကို decode သို့မဟုတ် compose မလုပ်နိုင်ပါက bridge သည် JPEG frame တစ်ခုချင်းစီသို့ fallback လုပ်သည်။ Client abort ဖြစ်ပါက sheet operation တစ်လျှောက် ဆက်လက် propagate ဖြစ်သည်။
+ရှင်းလင်းစွာမှတ်သားထားသော ဗီဒီယိုအပိုင်းသည် အချိန်တံဆိပ်တပ်ထားသော contact sheet ကို တောင်းဆိုနိုင်သည်။ bridge သည် အများဆုံး ၄ ကော်လံ၊ ၁၆ ဖရိမ် JPEG grid ကို တည်ဆောက်သည်။ ၅၁၂ ပစ်ဆယ်ဆဲလ်တိုင်းသည် ၎င်း၏ source timestamp ကို high-contrast အောက်ခြေ band ထဲသို့ ထည့်သွင်းပြီး၊ တူညီသော timestamps များသည် downstream association နှင့် audit အတွက် စာသား metadata တွင် ဆက်လက်တည်ရှိနေသည်။ ပြီးပြည့်စုံသော JPEG ကို 32 MiB အထိ ကန့်သတ်ထားသည်။ `sharp` က grid ကို decode သို့မဟုတ် compose မလုပ်နိုင်ပါက၊ bridge သည် တစ်ဦးချင်း JPEG ဖရိမ်များသို့ ပြန်လည်ရောက်ရှိသည်။ client abort သည် sheet operation မှတဆင့် ဆက်လက်ပျံ့နှံ့နေဆဲဖြစ်သည်။
 
-Promotion အထောက်အထားကို synthetic composition microbenchmark နှင့် ရည်ရွယ်ချက်ရှိရှိ သီးခြားခွဲထားသည်။ `scripts/perf/video-bridge-contact-sheet-eval.ts` သည် အမှန်တကယ် OpenAI-compatible vision model များအတွက် schema version သတ်မှတ်ထားသော A/B harness တစ်ခုကို သတ်မှတ်သည်။ ၎င်းသည် provider က အစီရင်ခံသော token များ၊ end-to-end wall latency (sheet composition အပါအဝင်)၊ model call အရေအတွက်နှင့် manifest က သတ်မှတ်ထားသော fact retention တို့ကို တိုင်းတာသည်။ Raw model response များကို report ထဲသို့ မရေးဘဲ SHA-256 digest များနှင့် ကိုက်ညီသော fact ID များကိုသာ ထိန်းသိမ်းထားသည်။ `--execute-real` ကို ပေးထားပြီး `--model`၊ `OMNIROUTE_BASE_URL` နှင့် `OMNIROUTE_API_KEY` တို့ကို configure လုပ်ထားမှသာ harness သည် network call သို့မဟုတ် အခကြေးငွေပေးရသော model call ကို ပြုလုပ်သည်။ ထိုကဲ့သို့ အတိအလင်း သတ်မှတ်ထားသော အမှန်တကယ် run မရှိပါက ၎င်း၏ machine-readable verdict သည် `HOLD` အဖြစ် ဆက်လက်ရှိသည်။ Synthetic payload/call-count တိုင်းတာမှုများသာရှိခြင်းသည် promotion အထောက်အထား မဟုတ်ပါ။
+မြှင့်တင်ရေးအထောက်အထားသည် synthetic composition microbenchmark မှ သီးခြားစီဖြစ်သည်။ `scripts/perf/video-bridge-contact-sheet-eval.ts` သည် စစ်မှန်သော OpenAI-compatible vision models များအတွက် schema-versioned A/B harness ကို သတ်မှတ်သည်။ ၎င်းသည် provider-reported tokens များ၊ end-to-end wall latency (sheet composition အပါအဝင်)၊ model-call count နှင့် manifest-defined fact retention တို့ကို တိုင်းတာသည်။ ကုန်ကြမ်း model တုံ့ပြန်မှုများကို report သို့ မရေးပါ။ SHA-256 digests နှင့် ကိုက်ညီသော fact IDs များကိုသာ ထိန်းသိမ်းထားသည်။ harness သည် `--execute-real` ကို ပေးပို့ပြီး `--model`, `OMNIROUTE_BASE_URL` နှင့် `OMNIROUTE_API_KEY` တို့ကို configure မလုပ်မချင်း network သို့မဟုတ် paid model call ကို မလုပ်ပါ။ ထိုရှင်းလင်းသော စစ်မှန်သော run မရှိဘဲ၊ ၎င်း၏ machine-readable verdict သည် `HOLD` အဖြစ် ဆက်လက်တည်ရှိနေသည်။ synthetic payload/call-count တိုင်းတာမှုများသာလျှင် မြှင့်တင်ရေးအထောက်အထားမဟုတ်ပါ။
 
-Caller များတွင် ချိန်ညှိပြီးသား စာသားရှိပါက ပံ့ပိုးထားသော video part တစ်ခုသို့ optional `transcript.cues` array ကို ထည့်သွင်းနိုင်သည်။ Cue တစ်ခုစီတွင် `text`၊ probe လုပ်ထားသော duration အတွင်းရှိ အကန့်အသတ်ရှိသည့် `start`/`end` interval နှင့် whitelist လုပ်ထားသော `source` (`client`၊ `embedded` သို့မဟုတ် `audio-bridge`) တို့ ပါရှိရမည်။ `confidence` ၏ default တန်ဖိုးမှာ `1` ဖြစ်ပြီး `0` နှင့် `1` ကြားတွင်သာ ရှိရမည်။ လုံးဝတူညီသော cue များကို ပေါင်းစည်းသည်။ OmniRoute သည် ဤ metadata မှ transcription ကို ဘယ်သောအခါမျှ စတင်ခြင်းမပြုပါ။ Validate လုပ်ပြီးသော cue များကို source၊ confidence နှင့် interval တို့နှင့်အတူ ဖော်ပြထားသော result ထဲသို့ ကူးယူပြီး frame caption များနှင့်အတူ မယုံကြည်ရသေးသော observation များအဖြစ် render လုပ်သည်။ မမှန်ကန်သော၊ range ပြင်ပရောက်နေသော သို့မဟုတ် provenance မရှိသော စာသားကို caption stream ထဲသို့ ရောနှောမည့်အစား ငြင်းပယ်သည်။ လက်ရှိတွင် `source` field ကို server က အတည်ပြုထားခြင်း မဟုတ်ဘဲ caller က ကြေညာထားခြင်းသာ ဖြစ်သည်။ OmniRoute သည် တန်ဖိုးက ခွင့်ပြုထားသော string သုံးခုအနက် တစ်ခုဖြစ်ကြောင်း အတည်ပြုသော်လည်း `embedded` သို့မဟုတ် `audio-bridge` label သည် server ပိုင် extraction တစ်ခုမှ အမှန်တကယ် ရရှိလာကြောင်း cryptographic နည်းဖြင့် အတည်မပြုရသေးပါ။ ထိုအတည်ပြုမှု မရရှိမချင်း `source` ကို မယုံကြည်ရသေးသော hint တစ်ခုအဖြစ် သဘောထားပါ။ ၎င်းကို အခြေခံ၍ authorization ဆုံးဖြတ်ချက်များ မတည်ဆောက်ပါနှင့်။
+ခေါ်ဆိုသူများသည် ၎င်းတို့တွင် ချိန်ညှိထားသော စာသားများရှိပြီးသားဖြစ်ပါက ပံ့ပိုးထားသော ဗီဒီယိုအပိုင်းသို့ ရွေးချယ်နိုင်သော `transcript.cues` array ကို ပူးတွဲနိုင်သည်။ cue တစ်ခုစီတွင် `text`၊ စစ်ဆေးထားသော ကြာချိန်အတွင်း ကန့်သတ်ထားသော `start`/`end` ကြားကာလနှင့် whitelisted `source` (`client`, `embedded` သို့မဟုတ် `audio-bridge`) တို့ ပါဝင်ရမည်။ `confidence` သည် `1` သို့ ပုံသေဖြစ်ပြီး `0` နှင့် `1` ကြားတွင် ရှိနေရမည်။ တိကျသော duplicate cues များကို ပေါင်းစည်းထားသည်။ OmniRoute သည် ဤ metadata မှ ကူးယူခြင်းကို ဘယ်တော့မှ မစတင်ပါ။ အတည်ပြုထားသော cues များကို source၊ confidence နှင့် interval တို့နှင့်အတူ ဖော်ပြထားသော ရလဒ်ထဲသို့ ကူးယူပြီး ဖရိမ်စာတန်းများနှင့်အတူ ယုံကြည်စိတ်ချရမှုမရှိသော လေ့လာတွေ့ရှိချက်များအဖြစ် ပြသသည်။ မမှန်ကန်သော၊ အကွာအဝေးပြင်ပရှိ သို့မဟုတ် မူရင်းမရှိသော စာသားများကို caption stream ထဲသို့ ရောနှောမထည့်ဘဲ ပယ်ချသည်။ `source` field သည် လက်ရှိတွင် ခေါ်ဆိုသူမှ ကြေညာထားပြီး server မှ အတည်ပြုထားခြင်းမဟုတ်ပါ။ OmniRoute သည် တန်ဖိုးသည် ခွင့်ပြုထားသော string သုံးခုအနက် တစ်ခုဖြစ်ကြောင်း အတည်ပြုသော်လည်း `embedded` သို့မဟုတ် `audio-bridge` label သည် server-owned extraction မှ အမှန်တကယ်လာခြင်းဟုတ်မဟုတ်ကို cryptographic အနေဖြင့် အတည်ပြုခြင်းမရှိသေးပါ။ ထိုအတည်ပြုချက် မရောက်မချင်း `source` ကို ယုံကြည်စိတ်ချရမှုမရှိသော အရိပ်အမြွက်အဖြစ် သဘောထားပါ။ ၎င်းပေါ်တွင် ခွင့်ပြုချက်ဆုံးဖြတ်ချက်များကို မတည်ဆောက်ပါနှင့်။
 
-အဆင့်မြင့် caller တစ်ခုသည် တူညီသော ဗီဒီယိုအတွက် ခွင့်ပြုချက်ရရှိပြီးသား `audioTranscript` track တစ်ခုကို
-ပေးနိုင်သည်။ ပေါင်းစပ်မှု seam သည် visual နှင့် audio observation များကို
-deadline နှင့် abort signal တစ်ခုတည်းအောက်တွင် လုပ်ဆောင်ပြီး ၎င်းတို့ကို ဘုံ timeline တစ်ခုပေါ်တွင် အစဉ်လိုက်စီကာ
-လုံးဝတူညီသော မိတ္တူများကို ပေါင်းစည်းပြီး တစ်ဖက်တည်းသာ အောင်မြင်သည့်အခါ
-တစ်စိတ်တစ်ပိုင်းရလဒ်ကို အစီရင်ခံသည်။
-မမှန်ကန်သော `audioTranscript` သည် ဗီဒီယိုတစ်ခုလုံးကို မအောင်မြင်စေဘဲ ထိုတစ်စိတ်တစ်ပိုင်းရလဒ်သို့ အဆင့်လျှော့သွားသည် — visual
-ဖော်ပြချက်ကို ဆက်လက်ထားရှိပြီး audio branch က သန့်စင်ထားသော failure code တစ်ခုကို မှတ်တမ်းတင်သည်။
-branch တစ်ခုချင်းစီ၏ ရရှိနိုင်မှု၊ partial flag နှင့် သန့်စင်ထားသော failure code များကို ဖော်ပြထားသည့်ရလဒ်၊
-guardrail metadata (`audioFusionRuns`/`audioFusionPartials`/
-`audioFusionFailureCodes`)၊ result-cache metadata နှင့် bridge
-fusion counter များထဲတွင် ဆက်လက်ထိန်းသိမ်းထားသည်။ ပုံသေ Video Bridge လမ်းကြောင်းသည် speech-to-text ကို မခေါ်ဆိုသကဲ့သို့
-ဒုတိယ media မိတ္တူတစ်ခုကိုလည်း download မလုပ်ပါ။ ထို track ကို အတိအလင်း မပေးထားလျှင်
-၎င်းသည် video-only အဖြစ် ဆက်ရှိနေသည်။
+အဆင့်မြင့်ခေါ်ဆိုသူသည် တူညီသောဗီဒီယိုအတွက် ကြိုတင်ခွင့်ပြုထားသော `audioTranscript` track ကို ပေးနိုင်ပါသည်။ fusion seam သည် visual နှင့် audio observations များကို သတ်မှတ်ထားသောအချိန်နှင့် abort signal အောက်တွင် လုပ်ဆောင်ပြီး၊ ၎င်းတို့ကို ဘုံအချိန်ဇယားတစ်ခုပေါ်တွင် စီစဉ်ကာ၊ တိကျသော ထပ်နေမှုများကို ဖယ်ရှားပြီး၊ တစ်ဖက်တည်း အောင်မြင်သောအခါတွင် တစ်စိတ်တစ်ပိုင်းရလဒ်ကို အစီရင်ခံပါသည်။ မမှန်ကန်သော `audioTranscript` သည် ထိုတစ်စိတ်တစ်ပိုင်းရလဒ်သို့ ကျဆင်းသွားသည် — visual description ကို ထိန်းသိမ်းထားပြီး audio branch သည် သန့်စင်ထားသော failure code ကို မှတ်တမ်းတင်သည် — ဗီဒီယိုတစ်ခုလုံးကို ပျက်စီးစေမည့်အစား။ per-branch availability၊ partial flag နှင့် သန့်စင်ထားသော failure codes များကို ဖော်ပြထားသောရလဒ်တွင်၊ guardrail metadata (`audioFusionRuns`/`audioFusionPartials`/`audioFusionFailureCodes`) တွင်၊ result-cache metadata တွင်၊ နှင့် bridge fusion counters တွင် ထိန်းသိမ်းထားပါသည်။ ပုံမှန် Video Bridge လမ်းကြောင်းသည် speech-to-text ကို ခေါ်ဆိုခြင်း သို့မဟုတ် ဒုတိယ media copy ကို ဒေါင်းလုဒ်လုပ်ခြင်း မရှိပါ; ထို explicit track မပါဘဲ၊ ၎င်းသည် video-only အဖြစ်သာ ရှိနေပါသည်။
 
-**Transcript ထိန်းသိမ်းမှု (#12150 P1)။** Video Bridge (၎င်းကိုယ်တိုင်က opt-in ဖြစ်သည်) က transcript cue တစ်ခုကို
-render လုပ်သည့်အခါတိုင်း ၎င်းကို အလိုအလျောက် အသုံးချသည် — သီးခြား
-retention flag မရှိပါ။ request တစ်ခုက transcript cue တစ်ခုခု (caller က ကြေညာထားသော
-`transcript` သို့မဟုတ် ပေါင်းစပ်ထားသော `audioTranscript`) ကို render လုပ်သည့်အခါ guardrail က ၎င်းကို
-`videoBridgeObserved` ဟု အမှတ်အသားပြုပြီး ဗီဒီယိုဖော်ပြချက်၏ redacted shadow တစ်ခုကို ထုတ်ပေးသည် —
-cue တစ်ခုချင်းစီ၏ လွတ်လပ်သောစာသား body ကို
-`[redacted-video-transcript]` ဖြင့် အစားထိုးထားသည့် တစ်ထပ်တည်း render လုပ်ထားမှုဖြစ်ပြီး string ကို မစုစည်းမီ structured cue field ကို အစားထိုးခြင်းဖြင့်
-တည်ဆောက်ထားသည် (flatten လုပ်ထားသောစာသားကို parse လုပ်ခြင်းဖြင့် ဘယ်တော့မှ မတည်ဆောက်သောကြောင့် cue
-အကြောင်းအရာ — တိုက်ခိုက်ရန်ရည်ရွယ်ထားသည်ဖြစ်စေ၊ သာမန်ဖြစ်စေ၊ `]` ပါဝင်သော body များဖြစ်သည့်
-`[inaudible]`/`[music]` အပါအဝင် — မည်သည့်အရာမျှ ကျန်မနေနိုင်ပါ)။ သိမ်းဆည်းထားသော call-log request body သည်
-အကြောင်းအရာတူညီမှုဖြင့် တိုက်ဆိုင်စစ်ဆေးပြီး ဗီဒီယိုမှ ဆင်းသက်လာသော text part တစ်ခုချင်းစီကို ထို redacted shadow ဖြင့် အစားထိုးသည်။
-`fullText` anchor ကို အပြီးသတ်ထားသော pre-call guardrail
-payload မှ ပြန်လည်ဖတ်ယူသောကြောင့် နောက်ပိုင်း chain guardrail များ (PII နှင့်
-credential masker များ၊ priorities 10/95) က ဖော်ပြချက်စာသားကို နေရာတင် ပြန်ရေးပြီးနောက်နှင့်
-system-prompt/handoff/memory injection က message array ကို ပုံသဏ္ဌာန်ပြောင်းပြီးနောက်တွင်လည်း
-တိုက်ဆိုင်မှုက အောင်မြင်ဆဲဖြစ်သည်။ model ထံ upstream ပို့သော body သည် မပြောင်းလဲပါ။ Observation ပြုလုပ်ထားသော request တစ်ခုသည်လည်း
-အမြဲတမ်းတည်ရှိမည့် Memory ကို မဖြည့်သွင်းပါ (request နှင့် response မှ ဆင်းသက်လာသော extraction နှစ်မျိုးလုံးကို ကျော်သွားသည်)။
-ထို့ကြောင့် model ၏ ကိုယ်ပိုင် reply က transcript စာသားကို Memory ထဲသို့ ပဲ့တင်ကူးယူ၍ မရနိုင်ပါ။
+**Transcript retention (#12150 P1).** ၎င်းသည် Video Bridge (၎င်းကိုယ်တိုင် opt-in) သည် transcript cue ကို render လုပ်သည့်အခါတိုင်း အလိုအလျောက် အကျုံးဝင်သည် — သီးခြား retention flag မရှိပါ။ တောင်းဆိုမှုတစ်ခုသည် မည်သည့် transcript cue (caller-declared `transcript` သို့မဟုတ် fused `audioTranscript`) ကိုမဆို render လုပ်သောအခါ၊ guardrail သည် ၎င်းကို `videoBridgeObserved` ဟု မှတ်သားပြီး ဗီဒီယိုဖော်ပြချက်၏ redacted shadow ကို ထုတ်လုပ်သည် — cue တစ်ခုစီ၏ free-text body ကို `[redacted-video-transcript]` ဖြင့် အစားထိုးထားသော တူညီသော rendering ဖြစ်ပြီး၊ string ကို စုစည်းခြင်းမပြုမီ structured cue field ကို အစားထိုးခြင်းဖြင့် တည်ဆောက်ထားသည် (flattened text ကို parse လုပ်ခြင်းဖြင့် ဘယ်တော့မှ မဟုတ်ပါ၊ ထို့ကြောင့် မည်သည့် cue content — adversarial သို့မဟုတ် သာမန်၊ `]` ပါဝင်သော bodies များဖြစ်သည့် `[inaudible]`/`[music]` အပါအဝင် — မည်သည့်အရာမှ မကျန်ရှိနိုင်ပါ)။ ထိန်းသိမ်းထားသော call-log request body သည် ဗီဒီယိုမှ ဆင်းသက်လာသော text အစိတ်အပိုင်းတစ်ခုစီကို ထို redacted shadow ဖြင့် အစားထိုးပြီး၊ content equality ဖြင့် ကိုက်ညီသည်; `fullText` anchor ကို ပြီးစီးပြီးသော pre-call guardrail payload မှ ပြန်လည်ဖတ်ရှုသည်၊ ထို့ကြောင့် နောက်ပိုင်း chain guardrails (PII နှင့် credential maskers, priorities 10/95) များသည် description text ကို နေရာတွင် ပြန်လည်ရေးသားပြီးနောက်နှင့် system-prompt/handoff/memory injection သည် message array ကို ပြန်လည်ပုံဖော်ပြီးနောက်တွင်ပင် ကိုက်ညီမှုသည် အောင်မြင်နေဆဲဖြစ်သည်။ model သို့ upstream ပေးပို့သော body သည် မပြောင်းလဲပါ။ observed request တစ်ခုသည် မည်သည့် durable Memory ကိုမျှ မဖြည့်ဆည်းပေးပါ (request- နှင့် response-derived extraction နှစ်ခုလုံးကို ကျော်သွားသည်)၊ ထို့ကြောင့် model ၏ ကိုယ်ပိုင် reply သည် transcript text ကို Memory ထဲသို့ ပြန်လည်ထည့်သွင်းနိုင်မည် မဟုတ်ပါ။
 
-ဆက်လက်ဖွင့်ထားဆဲဖြစ်ပြီး နောက်ဆက်တွဲအတွက် ခြေရာခံထားသော retention surface များ (**P2**, #12430) မှာ-
-detailed-log artifact ထဲရှိ guardrail မလုပ်မီ raw client-request snapshot၊
-`previous_response_id` continuation fail-closed၊ ပေါင်းစပ်ဖန်တီးထားသော string prompt တစ်ခုအတွင်း transcript ကို ထည့်သွင်းထားသည့်
-derived-prompt internal dispatch များ
-(pipeline stage များ၊ context-handoff) နှင့် transcript ကို ကိုးကားထားသော model reply တစ်ခု၏
-response body / semantic-cache မိတ္တူတို့ ဖြစ်သည်။ ၎င်းတို့သည် P1 ၏ persisted-request-body + Memory နယ်ပယ်အပြင်ဘက်ရှိ
-raw/response-class သို့မဟုတ် opt-in surface များဖြစ်သည်။
+နောက်ထပ် ထိန်းသိမ်းထားသော copies များသည် တူညီသော observed-request signal ကို အသုံးပြုသည်။ raw pre-guardrail client-request snapshot၊ in-memory pending request နှင့် early rejected-request log တို့သည် ဗီဒီယိုအစိတ်အပိုင်းများရှိ transcript fields များကို ဖွဲ့စည်းပုံအရ အစားထိုးသည်; pipeline stages များမှ ထုတ်လုပ်သော string prompts များနှင့် context handoff များကို persisted-request-body sink တွင် redacted လုပ်ထားသည်။ ထိန်းသိမ်းထားသော `video_content_removed` marker သည် `previous_response_id` ဆက်လက်လုပ်ဆောင်မှုကို ရည်ရွယ်ချက်ရှိရှိ ဖယ်ရှားထားသော text ကို ပြန်လည်တည်ဆောက်မည့်အစား fail closed ဖြစ်စေသည်။ observed request တစ်ခုသည် ၎င်း၏ per-part redaction shadow ကို log မလုပ်မီ ပျောက်ဆုံးသွားပါက၊ သို့မဟုတ် ဗီဒီယို shadows အများအပြားထဲမှ တစ်ခုပင် နောက်ပိုင်း request mutations များပြီးနောက် ကိုက်ညီမှုမရှိပါက၊ ထိန်းသိမ်းထားသော request body ကို တစ်စိတ်တစ်ပိုင်း redacted transcript ကို ထိန်းသိမ်းမည့်အစား လုံးဝချန်လှပ်ထားသည်။
 
-အတွင်းပိုင်း `/api/modality-bridge/video/drilldown` lifecycle သည် သီးခြားဖြစ်ပြီး
-loopback/token-authenticated cache အခြေခံအလွှာတစ်ခုဖြစ်သည်။ လုပ်ဆောင်ချက်တိုင်းအတွက် canonical opaque principal ID တစ်ခုလည်း
-လိုအပ်သည်။ production caller တစ်ခုကို ဖွင့်ပေးခြင်းမပြုမီ ၎င်းသည်
-authenticated tenant မှ ထို ID ကို derive လုပ်ရမည်ဖြစ်ပြီး
-client က ရွေးချယ်ထားသောတန်ဖိုးကို ဘယ်တော့မှ forward မလုပ်ရပါ။ Cache key များက ထို principal ကို canonical session နှင့်
-video-reference ID များနှင့် ချိတ်ဆက်ကာ ၎င်းတို့၏ SHA-256 မှ ဆင်းသက်လာသော key များကိုသာ သိမ်းဆည်းပြီး read နှင့်
-deletion နှစ်မျိုးလုံးကို တူညီသော principal အတွင်း ကန့်သတ်ထားသည်။ Cache သည် entry တစ်ခုလျှင် ဆင်းသက်ဖန်တီးထားသော JPEG
-frame အများဆုံး 16 ခုကို သိမ်းဆည်းကာ ဆယ်မိနစ်အကြာတွင် သက်တမ်းကုန်ဆုံးစေပြီး ကန့်သတ်ထားသော
-`start`/`end` read များ သို့မဟုတ် အတိအလင်း session deletion ကို ပံ့ပိုးသည်။
+observed request တစ်ခုအတွက်၊ model response တစ်ခုသည် structured cue boundary မပါဘဲ transcript ၏ မည်သည့်အစိတ်အပိုင်းကိုမဆို ကိုးကားနိုင်ပါသည်။ ၎င်း၏ ထိန်းသိမ်းထားသော call-log `responseBody` ကို ထို့ကြောင့် omission marker ဖြင့် အစားထိုးသည်; အသေးစိတ် pipeline artifact (upstream/client bodies နှင့် stream chunks များ ပါဝင်နိုင်သည်) ကို ထိန်းသိမ်းထားခြင်း မရှိပါ။ Semantic၊ idempotency နှင့် reasoning-replay caches များသည် ထို request အတွက် reads နှင့် writes များကို ကျော်သွားသည်။ provider request နှင့် client-visible response များသည် မပြောင်းလဲဘဲ ရှိနေသည်။ အသေးစိတ် artifact ကို ချန်လှပ်ထားသောအခါတွင် early keepalive bytes များကို temporary buffer မှ ထုတ်ပစ်သည်။ Kiro ၏ malformed EventStream warning သည် payload byte count ကိုသာ အစီရင်ခံပြီး ၎င်း၏ contents သို့မဟုတ် JSON parser ၏ raw error ကို ဘယ်တော့မှ မဟုတ်ပါ။
+၎င်းသည် ဆက်စပ်မှုမရှိသော provider/plugin diagnostic တိုင်းကို စစ်ဆေးပြီးပြီဟု မဆိုလိုပါ; ပိုမိုကျယ်ပြန့်သော retained-sink sweep ကို #11658 တွင် ခြေရာခံထားသည်။
 
-principal တစ်ခုချင်းစီကို entry 16 ခုနှင့် canonical JPEG data 64 MiB အထိ ကန့်သတ်ထားသည်။ ထို
-ကန့်သတ်ချက်များသည် global 64-entry/256 MiB အမြင့်ဆုံးကန့်သတ်ချက်နှင့် သီးခြားဖြစ်သည်။ principal quota
-ဖိအားသည် global LRU eviction ကို မစဉ်းစားမီ ထို principal ၏ မကြာသေးမီက အနည်းဆုံးအသုံးပြုထားသော entry များကိုသာ
-ဖယ်ရှားသည်။ Cache လုပ်ဆောင်မှုရှိချိန်တွင် သက်တမ်းကုန်ဆုံးသွားသော entry များကို principal နှင့်
-global accounting နှစ်ခုလုံးမှ ရှင်းလင်းပစ်ပြီး cancellation နှင့် validation failure တို့သည်
-မပြည့်စုံသော အစားထိုးမှုတစ်ခုကို commit မလုပ်ပါ။
+အတွင်းပိုင်း `/api/modality-bridge/video/drilldown` lifecycle သည် သီးခြား၊ loopback/token-authenticated cache substrate တစ်ခုဖြစ်သည်။ လုပ်ဆောင်မှုတိုင်းသည် canonical opaque principal ID လည်း လိုအပ်သည်။ ထုတ်လုပ်မှုခေါ်ဆိုသူကို မဖွင့်မီ၊ ၎င်းသည် authenticated tenant မှ ထို ID ကို ဆင်းသက်ရမည်ဖြစ်ပြီး client-selected value ကို ဘယ်တော့မှ forward မလုပ်ရပါ။ Cache keys များသည် ထို principal ကို canonical session နှင့် video-reference IDs များနှင့် ချိတ်ဆက်ပြီး၊ ၎င်းတို့၏ SHA-256-derived keys များကိုသာ သိမ်းဆည်းကာ၊ reads နှင့် deletion နှစ်ခုလုံးကို တူညီသော principal သို့ scope လုပ်သည်။ cache သည် entry တစ်ခုလျှင် အများဆုံး 16 derived JPEG frames ကို သိမ်းဆည်းပြီး၊ ဆယ်မိနစ်အကြာတွင် သက်တမ်းကုန်ဆုံးစေကာ၊ bounded `start`/`end` reads သို့မဟုတ် explicit session deletion ကို ထောက်ပံ့သည်။
 
-Cache သည် canonical မဟုတ်သော Base64၊ အလွန်အကျွံ padding၊ JPEG မဟုတ်သော media၊ ပုံစံမှားယွင်းသော သို့မဟုတ်
-ဖြတ်တောက်ထားသော JPEG များနှင့် ကန့်သတ်ထားသော full-image `sharp`
-decode ပြုလုပ်စဉ် warning တစ်ခု ဖြစ်ပေါ်စေသော JPEG များကို ငြင်းပယ်သည်။ လက်ခံထားသော image တစ်ခုချင်းစီကို canonical JPEG အဖြစ် ပြန်လည် encode လုပ်ပြီး caller field များကို မယုံကြည်ဘဲ decoded byte များမှ width နှင့် height ကို
-derive လုပ်ကာ နောက်တွဲ polyglot byte များကို ထိန်းသိမ်းမထားဘဲ
-စွန့်ပစ်သည်။ ကန့်သတ်ထားသော canonical compressed buffer ကိုသာ
-quota နှစ်ခုလုံးတွင် ထည့်တွက်သည်။ JSON wire limit တွင် 32 MiB
-decoded-input အမြင့်ဆုံးကန့်သတ်ချက်အတွက် Base64 overhead ပါဝင်သည်။
-သိမ်းဆည်းထားသော derivation တစ်ခုချင်းစီသည် validation ပြုလုပ်ထားသော JPEG format/resolution၊ sampling policy၊
-derivation version၊ ဖန်တီးချိန်၊ server က တွက်ချက်ထားသော content hash နှင့် hashed parent
-reference အပြင် ယုံကြည်ရသော caller ၏ parent-content hash ကို မှတ်တမ်းတင်သည်။ Atomic cache commit မလုပ်မီ asynchronous decode/hash phase များကြားတွင်
-cancellation ကို စစ်ဆေးသည်။
+principal တစ်ခုစီသည် 16 entries နှင့် 64 MiB of canonical JPEG data သို့ ကန့်သတ်ထားသည်။ ထိုကန့်သတ်ချက်များသည် global 64-entry/256 MiB ceiling မှ သီးခြားဖြစ်သည်။ principal quota pressure သည် global LRU eviction ကို ထည့်သွင်းစဉ်းစားခြင်းမပြုမီ ထို principal ၏ least-recently-used entries များကိုသာ ဖယ်ရှားသည်။ သက်တမ်းကုန်ဆုံးသွားသော entries များကို cache activity တွင် principal နှင့် global accounting နှစ်ခုလုံးမှ ဖယ်ရှားပြီး၊ cancellation နှင့် validation failure တို့သည် တစ်စိတ်တစ်ပိုင်းအစားထိုးမှုကို မပြုလုပ်ပါ။
 
-ဤ tranche သည် production producer တစ်ခုကို route နှင့် မချိတ်ဆက်ရသေးသကဲ့သို့
-multi-resolution variant ရွေးချယ်မှုကိုလည်း မပံ့ပိုးသေးပါ။ ထို့ကြောင့် transparent Video Bridge request
-လမ်းကြောင်းသည် ထပ်တိုးလုပ်ဆောင်မှု မရှိဘဲ ဆက်လက်အလုပ်လုပ်ပြီး tenant-bound principal derivation နှင့်
-FU-08 multi-resolution lifecycle အပြည့်အစုံသည် ပြီးစီးသော behavior အဖြစ် မှတ်တမ်းတင်မထားဘဲ
-အတိအလင်း နောက်ဆက်တွဲလုပ်ငန်းအဖြစ် ဆက်ရှိနေသည်။
+cache သည် non-canonical Base64၊ ပိုလျှံနေသော padding၊ non-JPEG media၊ ပုံပျက်နေသော သို့မဟုတ် ဖြတ်တောက်ထားသော JPEGs နှင့် bounded full-image `sharp` decode ပြုလုပ်နေစဉ် သတိပေးချက်ပေးသော JPEGs များကို ပယ်ချသည်။ ၎င်းသည် လက်ခံထားသော ပုံတစ်ခုစီကို canonical JPEG အဖြစ် ပြန်လည် encode လုပ်ပြီး၊ ခေါ်ဆိုသူ fields များကို ယုံကြည်မည့်အစား decode လုပ်ထားသော bytes များမှ width နှင့် height ကို ဆင်းသက်ကာ၊ မည်သည့် trailing polyglot bytes များကိုမဆို ထိန်းသိမ်းမည့်အစား ဖယ်ရှားပစ်သည်။ bounded canonical compressed buffer ကိုသာ quotas နှစ်ခုလုံးသို့ ကောက်ခံသည်။ JSON wire limit တွင် 32 MiB decoded-input ceiling အတွက် Base64 overhead ပါဝင်သည်။ သိမ်းဆည်းထားသော derivation တိုင်းသည် ၎င်း၏ validate လုပ်ထားသော JPEG format/resolution၊ sampling policy၊ derivation version၊ creation time၊ server-computed content hash နှင့် hashed parent reference အပြင် trusted caller ၏ parent-content hash ကို မှတ်တမ်းတင်သည်။ cancellation ကို atomic cache commit မပြုမီ asynchronous decode/hash phases များကြားတွင် စစ်ဆေးသည်။
 
-သတ်မှတ်ပြင်ဆင်ထားသော Video မော်ဒယ်ဖြင့် frame များကို အစဉ်လိုက် စာတန်းဖော်ပြသည်။ Video override ကို အလွတ်ထားပါက Vision ဆက်တင်ကို ဆက်ခံအသုံးပြုသည်။ နှစ်ခုစလုံး အလွတ်ဖြစ်ပါက Vision auto-router က အမှန်တကယ်အသုံးပြုမည့် vision-capable မော်ဒယ်ကို ရွေးချယ်သည်။ အောင်မြင်စွာ ဖန်တီးထားသော စာတန်းများသည် မူလ part ကို တည်ငြိမ်သော `[Video description:` prefix ဖြင့် အစားထိုးသည်။ ထို prefix သည် စာသားကို ယုံကြည်စိတ်ချ၍မရသော မီဒီယာမှ ရရှိသည့် လေ့လာချက်တစ်ခုအဖြစ်လည်း မှတ်သားပြီး မီဒီယာအတွင်း တွေ့ရှိသော ညွှန်ကြားချက်များကို မလိုက်နာရန် downstream မော်ဒယ်များအား အသိပေးသည်။ Frame-caption cache key များတွင် JPEG bytes၊ prompt၊ timestamp နှင့် အမှန်တကယ်အသုံးပြုသည့် မော်ဒယ်တို့ ပါဝင်ပြီး အောင်မြင်သော caption များကိုသာ cache လုပ်သည်။ Cache entry များတွင် fallback မော်ဒယ်အပါအဝင် အမှန်တကယ်အောင်မြင်စွာ ထုတ်လုပ်ပေးခဲ့သည့် မော်ဒယ်ကို ထိန်းသိမ်းထားသည်။ မတူညီသော frame များကို မတူညီသော မော်ဒယ်များက ထုတ်လုပ်ထားသည့်အခါ bridge သည် `mixed` ဟု အစီရင်ခံသည်။ Cache hit ဖြစ်ပါက တောင်းဆိုထားသော routing plan အဖြစ် label ပြန်တပ်ခြင်းမပြုဘဲ ထို producer identity ကို ပြန်လည်အသုံးပြုသည်။ ဗီဒီယိုတစ်ခုလုံး၏ result cache ကို output ပြောင်းလဲစေနိုင်သည့် input အားလုံး — prompt၊ အမှန်တကယ်အသုံးပြုသည့် မော်ဒယ်၊ sampling policy၊ frame အရေအတွက်၊ semantic analysis mode၊ normalized focus hint ၏ SHA-256 fingerprint၊ focus window၊ `transcript`၊ `audioTranscript` နှင့် contact-sheet flag — ဖြင့် key သတ်မှတ်ထားသည်။ ထို့ကြောင့် ထို dimension များအနက် တစ်ခုခု ပြောင်းလဲပါက cache miss ဖြစ်ပြီး ဟောင်းနေသောရလဒ်ကို မည်သည့်အခါမျှ ပြန်လည်အသုံးမပြုပါ။ Visual dedup policy version၊ threshold နှင့် ကန့်သတ်ထားသော candidate-frame အရေအတွက်တို့ကိုလည်း result-cache key နှင့် metadata တွင် အတိအလင်း ထည့်သွင်းထားသည်။ ထို့ကြောင့် policy ပြောင်းလဲမှုတစ်ခုသည် ဟောင်းနေသော ဗီဒီယိုတစ်ခုလုံး၏ ဖော်ပြချက်ကို ပြန်လည်အသုံးမပြုနိုင်ပါ။ Result-cache v4 metadata သည် mode နှင့် fingerprint ကို ထိန်းသိမ်းထားသော်လည်း အသုံးပြုသူ၏ task အကြမ်းကို မည်သည့်အခါမျှ မသိမ်းဆည်းပါ။ Guardrail metadata သည် တောင်းဆိုထားသော analysis mode နှင့် အမှန်တကယ်အသုံးပြုသော analysis mode နှစ်ခုစလုံးကို အစီရင်ခံသည်။ အသုံးပြုနိုင်သော user text မရှိဘဲ `focused` mode ကို တောင်းဆိုထားပါက အမှန်တကယ် `full` အဖြစ် အသုံးပြုကြောင်း အစီရင်ခံသည်။
+ဤအပိုင်းသည် ထုတ်လုပ်မှုထုတ်လုပ်သူကို လမ်းကြောင်းသို့ မချိတ်ဆက်ရသေးဘဲ multi-resolution variant ရွေးချယ်မှုကို မပေးသေးပါ။ ထို့ကြောင့် ပွင့်လင်းမြင်သာသော Video Bridge တောင်းဆိုမှုလမ်းကြောင်းသည် အပိုလုပ်ဆောင်စရာများ မရှိစေဘဲ၊ tenant-bound principal derivation နှင့် FU-08 multi-resolution lifecycle အပြည့်အစုံသည် ပြီးပြည့်စုံသော အပြုအမူအဖြစ် မှတ်တမ်းတင်ထားခြင်းထက် ထင်ရှားသော နောက်ဆက်တွဲလုပ်ဆောင်စရာများအဖြစ် ကျန်ရှိနေပါသည်။
 
-Guardrail သည် ပံ့ပိုးထားသော video part အားလုံးကို ထုတ်ယူသော်လည်း `modalityBridgeVideoMaxVideos` ထက်ပို၍ မဖော်ပြပါ။ `supportsVideo === false` ဖြစ်ကြောင်း အတည်ပြုထားသော target အတွက် မအောင်မြင်သော ဗီဒီယိုများနှင့် သတ်မှတ်အရေအတွက်ကျော်လွန်သော ဗီဒီယိုများကို ရှင်းလင်းသော ဘေးကင်းသည့် စာသား marker များအဖြစ် ပြောင်းလဲပေးသဖြင့် raw video မကျန်ရှိပါ။ Capability ကို မသိရသည့်အခါ ထို part များကို မပြောင်းလဲဘဲ ထားရှိသည်။ `supportsVideo === true` ဖြစ်သော target များသည် bridge ကို ကျော်သွားသည်။ Client request abort signal သည် download၊ broker queue၊ subprocess များနှင့် caption call များတစ်လျှောက် ဆက်လက်သက်ရောက်သည်။ Abort များသည် ဗီဒီယိုတစ်ခုနှင့်တစ်ခုကြားတွင် လုပ်ဆောင်မှုကို ရပ်တန့်စေပြီး raw media ကို ခွင့်ပြု၍ ဆက်လက်လုပ်ဆောင်ခြင်း မရှိပါ။
+ဖရိမ်များကို စီစဉ်ထားသော Video မော်ဒယ်ဖြင့် အစဉ်လိုက် စာတန်းထိုးထားသည်။ ဗလာဖြစ်သော Video override သည် Vision setting ကို အမွေဆက်ခံသည်။ နှစ်ခုလုံး ဗလာဖြစ်ပါက Vision auto-router သည် ထိရောက်သော vision-capable မော်ဒယ်ကို ရွေးချယ်သည်။ အောင်မြင်သော စာတန်းထိုးများသည် မူရင်းအပိုင်းကို တည်ငြိမ်သော `[Video description:` prefix ဖြင့် အစားထိုးပြီး ၎င်းသည် စာသားကို ယုံကြည်စိတ်ချရမှုမရှိသော မီဒီယာမှ ဆင်းသက်လာသော လေ့လာမှုအဖြစ် မှတ်သားကာ အောက်ပိုင်းမော်ဒယ်များကို မီဒီယာတွင် တွေ့ရှိရသော ညွှန်ကြားချက်များကို မလိုက်နာရန် ပြောကြားသည်။ ဖရိမ်-စာတန်းထိုး cache keys များတွင် JPEG bytes၊ prompt၊ timestamp နှင့် ထိရောက်သော မော်ဒယ်တို့ ပါဝင်သည်။ အောင်မြင်သော စာတန်းထိုးများကိုသာ cache လုပ်သည်။ Cache entries များသည် အမှန်တကယ် အောင်မြင်သော ထုတ်လုပ်သူမော်ဒယ်ကို ထိန်းသိမ်းထားပြီး၊ fallback မော်ဒယ်လည်း ပါဝင်သည်။ မတူညီသော ဖရိမ်များကို မတူညီသော မော်ဒယ်များဖြင့် ထုတ်လုပ်ပါက bridge က `mixed` ဟု အစီရင်ခံသည်။ Cache hit သည် တောင်းဆိုထားသော routing plan အဖြစ် ပြန်လည်တံဆိပ်ကပ်ခြင်းအစား ထိုထုတ်လုပ်သူ၏ အမှတ်အသားကို ပြန်လည်အသုံးပြုသည်။ ဗီဒီယိုတစ်ခုလုံး၏ ရလဒ် cache ကို အထွက်ကို ပြောင်းလဲစေသော ထည့်သွင်းမှုတိုင်း — prompt၊ ထိရောက်သော မော်ဒယ်၊ sampling policy၊ ဖရိမ်အရေအတွက်၊ semantic analysis mode၊ normalized focus hint ၏ SHA-256 fingerprint၊ focus window၊ `transcript`၊ `audioTranscript` နှင့် contact-sheet flag — တို့ဖြင့် key လုပ်ထားသည်။ ထို့ကြောင့် ထိုအတိုင်းအတာများထဲမှ တစ်ခုခုကို ပြောင်းလဲခြင်းသည် cache miss ဖြစ်ပြီး၊ ခေတ်နောက်ကျသော ပြန်လည်အသုံးပြုမှု မဟုတ်ပါ။ visual dedup policy version၊ threshold နှင့် bounded candidate-frame count တို့သည်လည်း result-cache key နှင့် metadata တွင် ထင်ရှားသည်။ ထို့ကြောင့် policy ပြောင်းလဲခြင်းသည် ခေတ်နောက်ကျသော ဗီဒီယိုတစ်ခုလုံး၏ ဖော်ပြချက်ကို ပြန်လည်အသုံးပြု၍ မရပါ။ Result-cache v4 metadata သည် mode နှင့် fingerprint ကို ထိန်းသိမ်းထားပြီး၊ မူရင်း user task ကို ဘယ်တော့မှ မထိန်းသိမ်းပါ။ Guardrail metadata သည် တောင်းဆိုထားသော နှင့် ထိရောက်သော analysis modes နှစ်ခုလုံးကို အစီရင်ခံသည်။ အသုံးပြုနိုင်သော user text မပါဘဲ တောင်းဆိုထားသော `focused` mode ကို ထိရောက်စွာ `full` အဖြစ် အစီရင်ခံသည်။
 
-Runtime ဆက်တင်များကို DB တွင် သိမ်းဆည်းထားပြီး Zod ဖြင့် validate လုပ်ထားသည်-
+guardrail သည် ပံ့ပိုးထားသော ဗီဒီယိုအပိုင်းတိုင်းကို ထုတ်ယူသော်လည်း `modalityBridgeVideoMaxVideos` ထက် ပို၍ ဖော်ပြခြင်းမရှိပါ။ `supportsVideo === false` ဟု သက်သေပြထားသော ပစ်မှတ်တစ်ခုအတွက်၊ ကျရှုံးပြီး ကန့်သတ်ချက်ကျော်လွန်သော ဗီဒီယိုများသည် ထင်ရှားသော ဘေးကင်းသော စာသားအမှတ်အသားများ ဖြစ်လာသောကြောင့် မည်သည့် raw ဗီဒီယိုမျှ မကျန်ရှိပါ။ စွမ်းဆောင်ရည်ကို မသိရှိပါက ထိုအပိုင်းများသည် မထိမခိုက်ဘဲ ကျန်ရှိနေပါသည်။ `supportsVideo === true` ရှိသော ပစ်မှတ်များသည် bridge ကို ကျော်ဖြတ်သည်။ client request abort signal သည် download၊ broker queue၊ subprocesses နှင့် caption calls များမှတဆင့် ပျံ့နှံ့သည်။ aborts များသည် ဗီဒီယိုများကြားတွင် ရပ်တန့်ပြီး raw media သို့ ဘယ်တော့မှ မအောင်မြင်ပါ။
 
-| Key                                 | ပုံသေတန်ဖိုး | အပိုင်းအခြား / လုပ်ဆောင်ပုံ                                                                                                              |
-| ----------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `modalityBridgeVideoEnabled`        | `false`      | ရွေးချယ်နိုင်သော runtime၊ opt-in လုပ်မှသာ အသုံးပြုသည်                                                                                    |
-| `modalityBridgeVideoAnalysisMode`   | `"full"`     | `full` သည် ယေဘုယျ caption များကို ထိန်းသိမ်းသည်။ `focused` သည် ကန့်သတ်ထားပြီး ယုံကြည်စိတ်ချ၍မရသော နောက်ဆုံး user context ကို အသုံးပြုသည် |
-| `modalityBridgeVideoModel`          | `""`         | Vision Bridge မော်ဒယ်ကို ဆက်ခံအသုံးပြုသည်                                                                                                |
-| `modalityBridgeVideoFrameCount`     | `8`          | 1–16                                                                                                                                     |
-| `modalityBridgeVideoSamplingPolicy` | `"uniform"`  | `uniform`၊ `scene_aware` သို့မဟုတ် အချိုးကျ `segment_aware`။ detector မအောင်မြင်ပါက `uniform` သို့ ပြန်ပြောင်းသည်                        |
-| `modalityBridgeVideoMaxVideos`      | `1`          | 1–4                                                                                                                                      |
-| `modalityBridgeVideoTimeout`        | `120000`     | 1000–120000 ms                                                                                                                           |
+Runtime settings များကို DB-backed နှင့် Zod-validated လုပ်ထားသည်-
 
-ယခင်က သိမ်းဆည်းထားသော စက္ကန့် 120 အထက် Video timeout တန်ဖိုးများကို broker deadline အထိ ကန့်သတ်လျှော့ချသည်။ ထိုကန့်သတ်ချက်ထက်ကျော်သော ဆက်တင်အသစ်များကို သိမ်းဆည်းရန် ကြိုးပမ်းပါက ပယ်ချသည်။ `GET /api/modality-bridge/video/runtime` သည် authentication သို့မဟုတ် runtime probing မပြုလုပ်မီ ယုံကြည်စိတ်ချရသော stamped loopback locality ကို လိုအပ်ပြီး ထို့နောက် management auth ကို လိုအပ်သည်။ ၎င်းသည် `available`၊ သန့်စင်ထားသော FFmpeg/ffprobe version များနှင့် runtime မရနိုင်သည့်အခါ သတ်မှတ်ထားသော reason တစ်ခုကိုသာ ပြန်ပေးသည်။ Internal extraction endpoint သည် အများသုံး upload API မဟုတ်ပါ။ Queue ပြည့်ကျပ်နေပါက `503` နှင့် `Retry-After` ကို ပြန်ပေးသည်၊ caller disconnect ဖြစ်ပါက `499` ကို ပြန်ပေးပြီး သတ်မှတ်ထားသော broker deadline ပြည့်ပါက `504` ကို ပြန်ပေးသည်။ ပြောင်းလဲပြီးသော response များသည် Vision သို့မဟုတ် Audio segment များကို မဖယ်ရှားဘဲ ဗဟို `x-omniroute-modality-bridge` header ထဲသို့ `video->text;model=<visionModel>;parts=<videos>` ကို ထည့်သွင်းသည်။
+| Key                                 | Default     | Range / behavior                                                                                                                                        |
+| ----------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modalityBridgeVideoEnabled`        | `false`     | Optional runtime, opt-in                                                                                                                                |
+| `modalityBridgeVideoAnalysisMode`   | `"full"`    | `full` သည် ယေဘုယျစာတန်းများကို ထိန်းသိမ်းထားသည်။ `focused` သည် ကန့်သတ်ထားသော၊ ယုံကြည်စိတ်ချရမှုမရှိသော နောက်ဆုံးအသုံးပြုသူ၏ အကြောင်းအရာကို အသုံးပြုသည်။ |
+| `modalityBridgeVideoModel`          | `""`        | Vision Bridge မော်ဒယ်ကို အမွေဆက်ခံသည်။                                                                                                                  |
+| `modalityBridgeVideoFrameCount`     | `8`         | 1–16                                                                                                                                                    |
+| `modalityBridgeVideoSamplingPolicy` | `"uniform"` | `uniform`၊ `scene_aware` သို့မဟုတ် proportional `segment_aware`။ detector ကျရှုံးပါက `uniform` သို့ ပြန်လည်ရောက်ရှိသည်။                                 |
+| `modalityBridgeVideoMaxVideos`      | `1`         | 1–4                                                                                                                                                     |
+| `modalityBridgeVideoTimeout`        | `120000`    | 1000–120000 ms                                                                                                                                          |
 
-### PII ဖုံးကွယ်ကိရိယာ (`piiMasker.ts`)
+၁၂၀ စက္ကန့်အထက်ရှိသော Legacy persisted Video timeout တန်ဖိုးများကို broker deadline သို့ ကန့်သတ်ထားသည်။ ထိုကန့်သတ်ချက်အထက်ရှိသော setting အသစ်များကို ငြင်းပယ်သည်။ `GET /api/modality-bridge/video/runtime` သည် authentication သို့မဟုတ် runtime probing မပြုလုပ်မီ trusted stamped loopback locality လိုအပ်ပြီးနောက် management auth လိုအပ်သည်။ ၎င်းသည် `available`၊ sanitized FFmpeg/ffprobe versions များနှင့် runtime မရရှိနိုင်သည့်အခါ သတ်မှတ်ထားသော အကြောင်းပြချက်ကိုသာ ပြန်ပေးသည်။ internal extraction endpoint သည် public upload API မဟုတ်ပါ။ queue ပြည့်လျှံပါက `503` နှင့် `Retry-After` ကို ပြန်ပေးသည်။ caller ချိတ်ဆက်မှုပြတ်တောက်ပါက `499` ကို ပြန်ပေးပြီး သတ်မှတ်ထားသော broker deadline သည် `504` ကို ပြန်ပေးသည်။ ပြောင်းလဲထားသော တုံ့ပြန်မှုများသည် Vision သို့မဟုတ် Audio segments များကို ဖယ်ရှားခြင်းမရှိဘဲ `video->text;model=<visionModel>;parts=<videos>` ကို ဗဟို `x-omniroute-modality-bridge` header သို့ ထည့်သွင်းသည်။
 
-Stage **နှစ်ခုစလုံး** တွင် လုပ်ဆောင်သည်။
+### PII Masker (`piiMasker.ts`)
 
-- **`preCall`** သည် payload ကို clone လုပ်ပြီး `system`၊ `messages`၊ `input` နှင့် `prompt` တို့ကို (သာမန် string item များအပါအဝင်) လှည့်လည်စစ်ဆေးကာ string `content`/`text` field များတွင် (`@/shared/utils/inputSanitizer` မှ) `processPII()` ကို အသုံးပြုသည်။ `PII_REDACTION_ENABLED=true` ဖြစ်ပါက တွေ့ရှိထားသော PII ကို outbound payload တွင် ဖျက်ကွယ်သည်။ ၎င်းသည် prompt-injection policy ကိုသာ ထိန်းချုပ်သည့် `INPUT_SANITIZER_MODE` နှင့် သီးခြားဖြစ်သည်။ ဖျက်ကွယ်မှုကို ပိတ်ထားပါက content ကို ပြန်မရေးဘဲ တွေ့ရှိမှုအရေအတွက်များကို call က မှတ်တမ်းတင်သည်။
-- **`postCall`** သည် response ကို deep-clone လုပ်ပြီး `sanitizePIIResponse()` နှင့် Responses-API-shape masker (`maskResponsesOutput` — `output_text` နှင့် `output[].content[].text` တို့ကို အကျုံးဝင်သည်) ကို လုပ်ဆောင်သည်။ ဖျက်ကွယ်မှုတစ်ခုခု ဖြစ်ပေါ်ပါက ပြုပြင်ထားသော response ဖြင့် မူလ response ကို အစားထိုးသည်။
+**အဆင့်နှစ်ခုလုံး** တွင် လုပ်ဆောင်သည်။
 
-Guardrail သည် မည်သည့်အခါမျှ ပိတ်ဆို့ခြင်းမပြုပါ။ ၎င်းသည် annotation (`meta.detections`၊ `meta.redacted`) ထည့်ခြင်း သို့မဟုတ် ပြန်လည်ရေးသားခြင်းသာ ပြုလုပ်သည်။
+- **`preCall`** သည် payload ကို clone လုပ်ပြီး `system`၊ `messages`၊ `input` နှင့် `prompt` (plain string items များအပါအဝင်) ကို လှည့်ပတ်ကာ string `content`/`text` fields များသို့ `processPII()` (from `@/shared/utils/inputSanitizer`) ကို အသုံးပြုသည်။ `PII_REDACTION_ENABLED=true` ဖြစ်သောအခါ၊ တွေ့ရှိရသော PII ကို outbound payload တွင် ဖျက်သိမ်းသည်။ ၎င်းသည် `INPUT_SANITIZER_MODE` (prompt-injection policy ကိုသာ ထိန်းချုပ်သည်) နှင့် သီးခြားဖြစ်သည်။ redaction ပိတ်ထားသောအခါ၊ call သည် content ကို ပြန်လည်ရေးသားခြင်းမရှိဘဲ detection counts များကို မှတ်တမ်းတင်သည်။
+- **`postCall`** သည် response ကို deep-clone လုပ်ပြီး `sanitizePIIResponse()` နှင့် Responses-API-shape masker (`maskResponsesOutput` — `output_text` နှင့် `output[].content[].text` ကို အကျုံးဝင်သည်) ကို လုပ်ဆောင်သည်။ မည်သည့် redaction မဆို ဖြစ်ပေါ်ပါက၊ ပြောင်းလဲထားသော response သည် မူရင်းကို အစားထိုးသည်။
+
+guardrail သည် ဘယ်တော့မှ ပိတ်ဆို့ခြင်းမရှိပါ။ ၎င်းသည် မှတ်စုများ (`meta.detections`၊ `meta.redacted`) သို့မဟုတ် ပြန်လည်ရေးသားခြင်းသာ လုပ်ဆောင်သည်။
 
 ### Prompt Injection (`promptInjection.ts`)
 
-အသုံးပြုသူပေးပို့သော content အတွင်းရှိ တိုက်ခိုက်ရန်ရည်ရွယ်သည့် structure များကို ရှာဖွေပြီး သတ်မှတ်ပြင်ဆင်ထားသော policy ကို မဖြစ်မနေ လိုက်နာစေသည်။ လုပ်ဆောင်ပုံကို environment variable များနှင့် constructor option များက ထိန်းချုပ်သည်-
+အသုံးပြုသူမှ ပေးပို့သော အကြောင်းအရာရှိ adversarial structures များကို ရှာဖွေပြီး စီစဉ်ထားသော policy ကို အကောင်အထည်ဖော်သည်။ အပြုအမူကို environment variables နှင့် constructor options များဖြင့် မောင်းနှင်သည်။
 
-| ဆက်တင်                      | Env var                                                                                               | ပုံသေ  | သက်ရောက်မှု                                                                                                                                                                                                                       |
-| --------------------------- | ----------------------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ဖွင့်ထားခြင်း               | `INPUT_SANITIZER_ENABLED`                                                                             | `true` | `false` ဖြစ်သည့်အခါ guardrail သည် ချက်ချင်းကျော်သွားသည်။                                                                                                                                                                          |
-| မုဒ်                        | `INJECTION_GUARD_MODE` / `INPUT_SANITIZER_MODE`                                                       | `warn` | Injection မူဝါဒ- `block`, `warn` သို့မဟုတ် `log`။ (`redact` ကို နောက်ကြောင်းပြန်လိုက်ဖက်မှုအတွက် လက်ခံသော်လည်း injection စာသားကို **မ**ဖယ်ရှားပါ။ request PII ပြန်လည်ရေးသားခြင်းကို `PII_REDACTION_ENABLED` ဖြင့် ထိန်းချုပ်သည်။) |
-| ပိတ်ဆို့မှု အနိမ့်ဆုံးအဆင့် | `blockThreshold` option / `INPUT_SANITIZER_BLOCK_THRESHOLD` (alias `INJECTION_GUARD_BLOCK_THRESHOLD`) | `high` | ပိတ်ဆို့ရန် လိုအပ်သည့် အနိမ့်ဆုံး ပြင်းထန်မှုအဆင့်။ ပုံသေဆက်တင်တွင် Medium သည် စောင့်ကြည့်ရုံသာ ဖြစ်သည်။                                                                                                                          |
+| Setting         | Env var                                                                                               | Default | Effect                                                                                                                                                                                                                         |
+| --------------- | ----------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Enabled         | `INPUT_SANITIZER_ENABLED`                                                                             | `true`  | `false` ဖြစ်ပါက guardrail သည် short-circuit ဖြစ်သည်။                                                                                                                                                                           |
+| Mode            | `INJECTION_GUARD_MODE` / `INPUT_SANITIZER_MODE`                                                       | `warn`  | Injection policy: `block`, `warn`, သို့မဟုတ် `log`။ (`redact` ကို back-compat အတွက် လက်ခံသော်လည်း injection text ကို ဖယ်ရှားခြင်း **မရှိပါ**; PII ပြန်လည်ရေးသားခြင်း တောင်းဆိုမှုကို `PII_REDACTION_ENABLED` က ထိန်းချုပ်သည်။) |
+| Block threshold | `blockThreshold` option / `INPUT_SANITIZER_BLOCK_THRESHOLD` (alias `INJECTION_GUARD_BLOCK_THRESHOLD`) | `high`  | ပိတ်ဆို့ရန် လိုအပ်သော အနိမ့်ဆုံး ပြင်းထန်မှု။ ပုံမှန်အားဖြင့် Medium သည် စောင့်ကြည့်ရန်သာ ဖြစ်သည်။                                                                                                                             |
 
-**မုဒ် ဦးစားပေးအစီအစဉ်** (`getMode`)- ခေါ်ယူသူ၏ `options.mode` →
+**Mode precedence** (`getMode`) (မုဒ် ဦးစားပေး): ခေါ်ဆိုသူ `options.mode` →
 `INJECTION_GUARD_MODE` **DB feature-flag override** (Dashboard → Settings →
 Feature Flags) → `INJECTION_GUARD_MODE` env → `INPUT_SANITIZER_MODE` env →
-`warn`။ ထို့ကြောင့် dashboard override သည် env vars များထက် ဦးစားပေးသဖြင့် Feature
-Flags UI မှ လက်ရှိလည်ပတ်နေသော guard ကို တိုက်ရိုက်ထိန်းချုပ်နိုင်သည် (ပြန်လည်စတင်ရန် မလိုပါ)။ DB ဖတ်ရှုမှုသည် fail-safe
-ဖြစ်သည်- error ဖြစ်ပါက guard သည် env အခြေခံ အပြုအမူသို့ ပြန်လည်အသုံးပြုပြီး
-override သတ်မှတ်ထားခြင်းမရှိပါက အပြုအမူသည် env-only ဖြေရှင်းမှုနှင့် အတူတူပင်
-ဖြစ်သည်။
+`warn`။ ထို့ကြောင့် dashboard override သည် env vars များထက် သာလွန်ပြီး Feature
+Flags UI သည် guard ကို တိုက်ရိုက် ထိန်းချုပ်သည် (ပြန်လည်စတင်ရန် မလိုပါ)။ DB
+ဖတ်ခြင်းသည် fail-safe ဖြစ်သည်- အကယ်၍ အမှားအယွင်း ဖြစ်ပေါ်ပါက guard သည်
+env-based behavior သို့ ပြန်လည်ရောက်ရှိပြီး override မသတ်မှတ်ထားပါက env-only
+resolution နှင့် အတူတူပင် ဖြစ်သည်။
 
-ရှာဖွေသတ်မှတ်မှု ရင်းမြစ်များ-
+ထောက်လှမ်းမှု အရင်းအမြစ်များ-
 
-1. `@/shared/utils/inputSanitizer` မှ `sanitizeRequest()` (pipeline ၏ အခြားနေရာများတွင်
-   အသုံးပြုသည့် မျှဝေ detector အစု)။
-2. Built-in `DEFAULT_GUARD_PATTERNS` (လက်ရှိတွင် `system_override_inline` နှင့်
-   `markdown_system_block` ဖြစ်ပြီး နှစ်ခုစလုံး၏ ပြင်းထန်မှုမှာ `high` ဖြစ်သည်)။
-3. Constructor options မှတစ်ဆင့် ပေးပို့သော ရွေးချယ်နိုင်သည့် `customPatterns` (strings, regex
-   သို့မဟုတ် `{ name, pattern, severity }` records)။
+1.  `@/shared/utils/inputSanitizer` မှ `sanitizeRequest()` (pipeline ၏ အခြားနေရာများတွင် အသုံးပြုသော shared detector set)။
+2.  Built-in `DEFAULT_GUARD_PATTERNS` (လက်ရှိတွင် `system_override_inline` နှင့်
+    `markdown_system_block`၊ နှစ်ခုလုံး `high` ပြင်းထန်မှု)။
+3.  constructor options မှတဆင့် ပေးပို့သော ရွေးချယ်နိုင်သည့် `customPatterns` (strings, regex,
+    သို့မဟုတ် `{ name, pattern, severity }` records)။
 
-`mode === "block"` ဖြစ်ပြီး **ထို့အပြင်** အနည်းဆုံး ရှာဖွေတွေ့ရှိမှုတစ်ခုသည် ပြင်းထန်မှု
-အနိမ့်ဆုံးအဆင့်နှင့် ကိုက်ညီပါက `preCall` က `{ block: true, message: "Request rejected:
-suspicious content detected" }` ကို ပြန်ပေးသည်။ `warn`/`log` မုဒ်များတွင် guardrail သည် log
-မှတ်တမ်းတင်သော်လည်း ခေါ်ယူမှုကို ခွင့်ပြုသည်။ Registry မှတစ်ဆင့် မလုပ်ဆောင်ဘဲ prompt များကို
-အကဲဖြတ်ရန် လိုအပ်သော ခေါ်ယူသူများအတွက် မျှဝေ helper `evaluatePromptInjection()` ကိုလည်း export
-လုပ်ထားသည်။
+`mode === "block"` ဖြစ်ပြီး အနည်းဆုံး ထောက်လှမ်းမှုတစ်ခုသည် ပြင်းထန်မှု
+ကန့်သတ်ချက်နှင့် ကိုက်ညီပါက `preCall` သည် `{ block: true, message: "Request rejected:
+suspicious content detected" }` ကို ပြန်ပေးသည်။ `warn`/`log` မုဒ်များတွင်
+guardrail သည် မှတ်တမ်းတင်သော်လည်း ခေါ်ဆိုမှုကို ခွင့်ပြုသည်။ registry ကို
+ဖြတ်သန်းခြင်းမရှိဘဲ prompts များကို အကဲဖြတ်ရန် လိုအပ်သော ခေါ်ဆိုသူများအတွက်
+shared helper `evaluatePromptInjection()` ကိုလည်း export လုပ်ထားသည်။
 
-**စစ်ဆေးမှု အကန့်အသတ် (v3.8.20)-** detector သည် ပေါင်းစပ်ထားသော prompt စာသား၏ **ပထမ 16 KB** ကိုသာ
-စစ်ဆေးသည် — `src/shared/utils/inputSanitizer.ts` ရှိ
-`MAX_INJECTION_SCAN_BYTES = 16 * 1024` (16 384 bytes)။ `detectInjection()` နှင့်
-`evaluatePromptInjection()` နှစ်ခုစလုံးသည် pattern loop ကို မလုပ်ဆောင်မီ
-`slice(0, MAX_INJECTION_SCAN_BYTES)` ပြုလုပ်သည်။ Injection directives များသည် input တစ်ခု၏ အပေါ်ပိုင်းအနီးတွင်
-ရှိတတ်သောကြောင့် multi-hundred-KB payloads များတွင် ရှာဖွေတွေ့ရှိမှုကို အားနည်းစေခြင်းမရှိဘဲ regex CPU/GC ကို
-ကန့်သတ်ပေးသည် (cf.
-#3932, #4041)။
+**Scan bound (v3.8.20):** detector သည် ပေါင်းစပ်ထားသော prompt text ၏
+**ပထမဆုံး 16 KB** ကိုသာ စစ်ဆေးသည် — `src/shared/utils/inputSanitizer.ts` တွင်
+`MAX_INJECTION_SCAN_BYTES = 16 * 1024` (16 384 bytes)။ `detectInjection()`
+နှင့် `evaluatePromptInjection()` နှစ်ခုလုံးသည် pattern loop ကို မ run ခင်
+`slice(0, MAX_INJECTION_SCAN_BYTES)` လုပ်သည်။ Injection directives များသည်
+input ၏ ထိပ်ပိုင်းနားတွင် ရှိနေသောကြောင့် ၎င်းသည် ထောက်လှမ်းမှုကို
+အားနည်းစေခြင်းမရှိဘဲ ရာနှင့်ချီသော KB ပမာဏရှိသော payloads များပေါ်တွင် regex
+CPU/GC ကို ကန့်သတ်သည် (cf. #3932, #4041)။
 
-### အထောက်အထား ဖုံးကွယ်ကိရိယာ (`credentialMasker.ts`)
+### Credential Masker (`credentialMasker.ts`)
 
-အဆင့် **နှစ်ခုစလုံး** တွင် ပုံသေ chain ၏ နောက်ဆုံး (ဦးစားပေး `95`) အဖြစ် လုပ်ဆောင်သည်။ Outbound payload (message
-content, tool-call arguments, tool results) **နှင့်** provider response တို့မှ
-လူသိများသော API-key / secret-token pattern များကို ဖုံးကွယ်သည်။ ထို့ကြောင့် prompt ထဲသို့ paste လုပ်ထားသော
-credential (သို့မဟုတ် tool result မှ ပြန်လည်ထုတ်ပြသော credential) သည် upstream provider သို့မဟုတ် client ထံ
-ပြန်လည်ပေါက်ကြားခြင်း မရှိပါ။
+အဆင့်နှစ်ခုလုံးတွင် လုပ်ဆောင်ပြီး default chain တွင် နောက်ဆုံး (priority `95`)
+ဖြစ်သည်။ outbound payload (message content, tool-call arguments, tool results)
+**နှင့်** provider response မှ လူသိများသော API-key / secret-token ပုံစံများကို
+ဖယ်ရှားသည်။ ထို့ကြောင့် prompt ထဲသို့ ကူးထည့်ထားသော credential (သို့မဟုတ် tool
+result မှ ပြန်လည် echo လုပ်ထားသော) သည် upstream provider သို့မဟုတ် client သို့
+ပေါက်ကြားခြင်း မရှိစေရန် ဖြစ်သည်။
 
-- **ကိုယ်တိုင်ဖွင့်မှသာ အသုံးပြုသည်**၊ PII redaction နှင့် တူညီသော သဘောတူညီချက် (Hard Rule #20 နှင့်ဆက်စပ်)-
-  `settings.credentialRedactionEnabled === true` **သို့မဟုတ်**
-  `CREDENTIAL_REDACTION_ENABLED=true` မဖြစ်ပါက ပိတ်ထားသည်။ ၎င်းကို ပိတ်ထားလျှင် guardrail သည် no-op ဖြစ်သည် —
-  မည်သည့်အခါမျှ ပိတ်ဆို့ခြင်း သို့မဟုတ် ပြန်လည်ရေးသားခြင်း မပြုပါ။
-- `redactCredentials()` သည် payload/response tree တစ်ခုလုံးကို ဖြတ်သန်းသည် (`walkValue()`,
-  prototype-pollution-safe ဖြစ်ပြီး `WeakSet` ဖြင့် cycle-safe ဖြစ်သည်)။ တွေ့ရှိသော ကိုက်ညီမှုများကို
-  `[REDACTED:<type>]` placeholder ဖြင့် အစားထိုးပြီး အမှန်တကယ်
-  ပြောင်းလဲခဲ့သော branch များကိုသာ clone လုပ်သည်။
-- `CREDENTIAL_PATTERNS` သည် LLM provider keys (OpenAI, OpenAI-proj,
-  Anthropic, Google, Hugging Face, Replicate)၊ VCS/SaaS tokens (GitHub, Slack,
-  Linear, Notion, npm, Postman, Discord)၊ payment keys (Stripe, Square)၊ cloud
-  keys (AWS access key, Twilio, SendGrid, Mailgun)၊ private keys / JWTs၊
-  credential ပါဝင်သော connection strings (`mongodb://user:pass@...` စသည်) နှင့်
-  ယေဘုယျ `Authorization`/`x-api-key`/`api-key`/`apikey` header-value
-  pattern တို့ကို လွှမ်းခြုံသည်။ Header ပုံစံ keys (`authorization`, `x-api-key`, `api-key`,
-  `apikey`) များကို ယေဘုယျ text regex ဖြင့်မဟုတ်ဘဲ ဖွဲ့စည်းပုံအလိုက် ဖုံးကွယ်သည် (value ကိုသာ ဖုံးကွယ်ပြီး
-  `Bearer `/`Basic ` ကဲ့သို့သော scheme prefix ကို မူလအတိုင်း ထိန်းသိမ်းထားသည်)။
-- Guardrail သည် မည်သည့်အခါမျှ မပိတ်ဆို့ဘဲ ပြန်လည်ရေးသားခြင်း (`modifiedPayload` /
-  `modifiedResponse`) နှင့် annotation ထည့်ခြင်း (`meta.credentialsRedacted`, `meta.count`) တို့ကိုသာ ပြုလုပ်သည်။
+- **Opt-in သာ**၊ PII redaction နှင့် တူညီသော သဘောတူညီချက် (Hard Rule
+  #20-adjacent): `settings.credentialRedactionEnabled === true` **သို့မဟုတ်**
+  `CREDENTIAL_REDACTION_ENABLED=true` မဟုတ်ပါက ပိတ်ထားသည်။ ၎င်းကို ပိတ်ထားပါက
+  guardrail သည် no-op ဖြစ်သည် — ၎င်းသည် ဘယ်တော့မှ ပိတ်ဆို့ခြင်းမရှိဘဲ
+  ဘယ်တော့မှ ပြန်လည်ရေးသားခြင်းမရှိပါ။
+- `redactCredentials()` သည် full payload/response tree (`walkValue()`,
+  prototype-pollution-safe, `WeakSet` မှတဆင့် cycle-safe) ကို လှည့်ပတ်ပြီး
+  ကိုက်ညီမှုများကို `[REDACTED:<type>]` placeholder ဖြင့် အစားထိုးကာ
+  အမှန်တကယ် ပြောင်းလဲသွားသော branches များကိုသာ clone လုပ်သည်။
+- `CREDENTIAL_PATTERNS` တွင် LLM provider keys (OpenAI, OpenAI-proj, Anthropic,
+  Google, Hugging Face, Replicate), VCS/SaaS tokens (GitHub, Slack, Linear,
+  Notion, npm, Postman, Discord), payment keys (Stripe, Square), cloud keys
+  (AWS access key, Twilio, SendGrid, Mailgun), private keys / JWTs,
+  credential-bearing connection strings (`mongodb://user:pass@...`, စသည်ဖြင့်),
+  နှင့် generic `Authorization`/`x-api-key`/`api-key`/`apikey` header-value
+  pattern တို့ ပါဝင်သည်။ Header-shaped keys (`authorization`, `x-api-key`,
+  `api-key`, `apikey`) များကို generic text regex မှတဆင့် မဟုတ်ဘဲ ဖွဲ့စည်းပုံအရ
+  (value သာ၊ `Bearer `/`Basic ` ကဲ့သို့သော scheme prefix ကို ထိန်းသိမ်းထားသည်)
+  ဖယ်ရှားသည်။
+- guardrail သည် ဘယ်တော့မှ ပိတ်ဆို့ခြင်းမရှိပါ; ၎င်းသည် ပြန်လည်ရေးသားခြင်း
+  (`modifiedPayload` / `modifiedResponse`) နှင့် မှတ်စုထိုးခြင်း
+  (`meta.credentialsRedacted`, `meta.count`) သာ လုပ်ဆောင်သည်။
 
-Regression guard- `tests/unit/credential-masker-guardrail.test.ts`။
+Regression guard: `tests/unit/credential-masker-guardrail.test.ts`။
 
 ## အခြေခံ Contract (`base.ts`)
 

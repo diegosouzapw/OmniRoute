@@ -1,1 +1,0 @@
-- **fix(security):** the internal self-loop admission-bypass bearer is now a random per-process secret instead of the checked-in literal `"sk_omniroute"` when no `OMNIROUTE_API_KEY`/`ROUTER_API_KEY` is configured (#13679)

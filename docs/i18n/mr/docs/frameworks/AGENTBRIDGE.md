@@ -1,6 +1,6 @@
 # AgentBridge (मराठी)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/AGENTBRIDGE.md) · 🇪🇹 [am](../../../am/docs/frameworks/AGENTBRIDGE.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/AGENTBRIDGE.md) · 🇦🇿 [az](../../../az/docs/frameworks/AGENTBRIDGE.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/AGENTBRIDGE.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/AGENTBRIDGE.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/AGENTBRIDGE.md) · 🇩🇰 [da](../../../da/docs/frameworks/AGENTBRIDGE.md) · 🇩🇪 [de](../../../de/docs/frameworks/AGENTBRIDGE.md) · 🇬🇷 [el](../../../el/docs/frameworks/AGENTBRIDGE.md) · 🇪🇸 [es](../../../es/docs/frameworks/AGENTBRIDGE.md) · 🇪🇪 [et](../../../et/docs/frameworks/AGENTBRIDGE.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/AGENTBRIDGE.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/AGENTBRIDGE.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/AGENTBRIDGE.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/AGENTBRIDGE.md) · 🇮🇱 [he](../../../he/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/AGENTBRIDGE.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/AGENTBRIDGE.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/AGENTBRIDGE.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/AGENTBRIDGE.md) · 🇮🇩 [id](../../../id/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/AGENTBRIDGE.md) · 🇮🇹 [it](../../../it/docs/frameworks/AGENTBRIDGE.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/AGENTBRIDGE.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/AGENTBRIDGE.md) · 🇰🇭 [km](../../../km/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/AGENTBRIDGE.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/AGENTBRIDGE.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/AGENTBRIDGE.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/AGENTBRIDGE.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/AGENTBRIDGE.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/AGENTBRIDGE.md) · 🇲🇲 [my](../../../my/docs/frameworks/AGENTBRIDGE.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/AGENTBRIDGE.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/AGENTBRIDGE.md) · 🇳🇴 [no](../../../no/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [or](../../../or/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/AGENTBRIDGE.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/AGENTBRIDGE.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/AGENTBRIDGE.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/AGENTBRIDGE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/AGENTBRIDGE.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/AGENTBRIDGE.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/AGENTBRIDGE.md) · 🇱🇰 [si](../../../si/docs/frameworks/AGENTBRIDGE.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/AGENTBRIDGE.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/AGENTBRIDGE.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/AGENTBRIDGE.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/AGENTBRIDGE.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [te](../../../te/docs/frameworks/AGENTBRIDGE.md) · 🇹🇭 [th](../../../th/docs/frameworks/AGENTBRIDGE.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/AGENTBRIDGE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/AGENTBRIDGE.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/AGENTBRIDGE.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/AGENTBRIDGE.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/AGENTBRIDGE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/AGENTBRIDGE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/AGENTBRIDGE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/AGENTBRIDGE.md) · 🇪🇹 [am](../../../am/docs/frameworks/AGENTBRIDGE.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/AGENTBRIDGE.md) · 🇦🇿 [az](../../../az/docs/frameworks/AGENTBRIDGE.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/AGENTBRIDGE.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/AGENTBRIDGE.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/AGENTBRIDGE.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/AGENTBRIDGE.md) · 🇩🇰 [da](../../../da/docs/frameworks/AGENTBRIDGE.md) · 🇩🇪 [de](../../../de/docs/frameworks/AGENTBRIDGE.md) · 🇬🇷 [el](../../../el/docs/frameworks/AGENTBRIDGE.md) · 🇪🇸 [es](../../../es/docs/frameworks/AGENTBRIDGE.md) · 🇪🇪 [et](../../../et/docs/frameworks/AGENTBRIDGE.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/AGENTBRIDGE.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/AGENTBRIDGE.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/AGENTBRIDGE.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/AGENTBRIDGE.md) · 🇮🇱 [he](../../../he/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/AGENTBRIDGE.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/AGENTBRIDGE.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/AGENTBRIDGE.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/AGENTBRIDGE.md) · 🇮🇩 [id](../../../id/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/AGENTBRIDGE.md) · 🇮🇹 [it](../../../it/docs/frameworks/AGENTBRIDGE.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/AGENTBRIDGE.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/AGENTBRIDGE.md) · 🇰🇭 [km](../../../km/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/AGENTBRIDGE.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/AGENTBRIDGE.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/AGENTBRIDGE.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/AGENTBRIDGE.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/AGENTBRIDGE.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/AGENTBRIDGE.md) · 🇲🇲 [my](../../../my/docs/frameworks/AGENTBRIDGE.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/AGENTBRIDGE.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/AGENTBRIDGE.md) · 🇳🇴 [no](../../../no/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [or](../../../or/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/AGENTBRIDGE.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/AGENTBRIDGE.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/AGENTBRIDGE.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/AGENTBRIDGE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/AGENTBRIDGE.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/AGENTBRIDGE.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/AGENTBRIDGE.md) · 🇱🇰 [si](../../../si/docs/frameworks/AGENTBRIDGE.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/AGENTBRIDGE.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/AGENTBRIDGE.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/AGENTBRIDGE.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/AGENTBRIDGE.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/AGENTBRIDGE.md) · 🇮🇳 [te](../../../te/docs/frameworks/AGENTBRIDGE.md) · 🇹🇭 [th](../../../th/docs/frameworks/AGENTBRIDGE.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/AGENTBRIDGE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/AGENTBRIDGE.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/AGENTBRIDGE.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/AGENTBRIDGE.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/AGENTBRIDGE.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/AGENTBRIDGE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/AGENTBRIDGE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/AGENTBRIDGE.md)
 
 ---
 
@@ -184,20 +184,20 @@ AGENTBRIDGE_UPSTREAM_CA_CERT=/path/to/corporate-ca.pem
 
 ### 3.1 MITM सर्व्हर सुरू/बंद करणे
 
-`/dashboard/tools/agent-bridge` वरील AgentBridge सर्व्हर कार्ड वापरा:
+`/dashboard/tools/agent-bridge` येथील AgentBridge Server Card वापरा:
 
 | कृती                          | वर्णन                                                                           |
 | ----------------------------- | ------------------------------------------------------------------------------- |
 | सर्व्हर सुरू करा              | पोर्ट 443 वर `src/mitm/server.cjs` सुरू करते                                    |
-| सर्व्हर बंद करा               | चाइल्ड प्रोसेस योग्य पद्धतीने बंद करते                                          |
-| सर्व्हर रीस्टार्ट करा         | बंद + सुरू करते (लक्ष्यांमधील बदल लागू करते)                                    |
-| प्रमाणपत्रावर विश्वास ठेवा    | `DATA_DIR/mitm/ca.crt` हे OS ट्रस्ट स्टोअरमध्ये इंस्टॉल करते                    |
+| सर्व्हर बंद करा               | चाइल्ड प्रोसेस व्यवस्थितपणे बंद करते                                            |
+| सर्व्हर रीस्टार्ट करा         | बंद करून पुन्हा सुरू करते (टार्गेटमधील बदल लागू करते)                           |
+| प्रमाणपत्र विश्वसनीय करा      | `DATA_DIR/mitm/ca.crt` हे OS ट्रस्ट स्टोअरमध्ये इंस्टॉल करते                    |
 | प्रमाणपत्र डाउनलोड करा        | मॅन्युअल इंस्टॉलेशनसाठी `ca.crt` डाउनलोड करते                                   |
-| प्रमाणपत्र पुन्हा निर्माण करा | नवीन CA कीपेअर तयार करते (प्रत्येक एजंटची सर्व विद्यमान प्रमाणपत्रे अवैध ठरतात) |
+| प्रमाणपत्र पुन्हा निर्माण करा | नवीन CA कीपेअर तयार करते (प्रत्येक एजंटची सर्व विद्यमान प्रमाणपत्रे अवैध होतात) |
 
-### 3.2 प्रमाणपत्रावर विश्वास ठेवणे
+### 3.2 प्रमाणपत्र विश्वसनीय करणे
 
-IDE नी MITM कनेक्शन स्वीकारण्यापूर्वी AgentBridge CA प्रमाणपत्रावर OS ने विश्वास ठेवणे आवश्यक आहे.
+IDE ने MITM कनेक्शन स्वीकारण्यापूर्वी AgentBridge CA प्रमाणपत्र OS द्वारे विश्वसनीय मानले जाणे आवश्यक आहे.
 
 **Linux (NSS — Chrome/Firefox):**
 
@@ -218,35 +218,36 @@ sudo security add-trusted-cert -d -r trustRoot \
 certutil -addstore -f Root $env:USERPROFILE\.omniroute\mitm\ca.crt
 ```
 
-किंवा डॅशबोर्डमधील "प्रमाणपत्रावर विश्वास ठेवा" बटण वापरा (हे तुमच्या OS साठी योग्य कमांड चालवते आणि आवश्यक असल्यास sudo प्रॉम्प्ट दाखवते).
+किंवा डॅशबोर्डमधील "प्रमाणपत्र विश्वसनीय करा" बटण वापरा (हे तुमच्या OS साठी योग्य कमांड चालवते आणि आवश्यकता असल्यास sudo प्रॉम्प्ट दाखवते).
 
-#### Electron-आधारित IDE, OS ट्रस्ट स्टोअरकडे (`NODE_EXTRA_CA_CERTS`) दुर्लक्ष करतात
+#### Electron-आधारित IDE, OS ट्रस्ट स्टोअरकडे दुर्लक्ष करतात (`NODE_EXTRA_CA_CERTS`)
 
-काही IDE — विशेषतः **Antigravity IDE** आणि इतर Electron / VS Code-व्युत्पन्न अॅप्स — स्वतःचा
-Node.js रनटाइम समाविष्ट करतात, जो आउटबाउंड `fetch`/HTTPS साठी **OS ट्रस्ट स्टोअर तपासत नाही**.
-OS/NSS स्तरावर CA वर विश्वास ठेवणे IDE च्या मूळ **बॅकएंडसाठी** पुरेसे असते
-(उदा. Go लँग्वेज सर्व्हर, जो OS CA बंडल वापरतो), परंतु **Electron फ्रंटएंडमध्ये**
-TLS तरीही अयशस्वी होईल — MITM लॉगमध्ये बॅकएंडचे बूटस्ट्रॅप कॉल `200` परत करत असल्याचे
-दिसत असले, तरी अॅपमध्ये _लॉग आउट झालेले_ दिसते किंवा _"कनेक्शन त्रुटी"_ दाखवली जाते.
+काही IDE — विशेषतः **Antigravity IDE** आणि इतर Electron / VS Code-आधारित अॅप्स — स्वतःचा
+Node.js रनटाइम समाविष्ट करतात, जो आउटबाउंड `fetch`/HTTPS साठी **OS ट्रस्ट स्टोअरचा वापर करत
+नाही**. OS/NSS स्तरावर CA विश्वसनीय करणे IDE च्या नेटिव्ह **बॅकएंडसाठी** पुरेसे असते
+(उदा. OS CA बंडल वापरणारा Go लँग्वेज सर्व्हर), परंतु **Electron फ्रंटएंडवर** तरीही
+TLS अयशस्वी होईल — MITM लॉगमध्ये बॅकएंडचे बूटस्ट्रॅप कॉल `200` परत करताना दिसत असले तरी,
+अॅपमधून _लॉग आउट_ झाल्याप्रमाणे किंवा _"कनेक्शन त्रुटी"_ दिसण्याच्या स्वरूपात हे जाणवते.
 दोन पायऱ्या आवश्यक आहेत आणि दोन्ही महत्त्वाच्या आहेत:
 
 1. रनटाइमला CA स्पष्टपणे निर्देशित करा:
    ```bash
    export NODE_EXTRA_CA_CERTS=/path/to/omniroute-agentbridge-ca.crt
    ```
-2. **त्या शेलमधून IDE सुरू करा.** डेस्कटॉप आयकॉन / Dock / Start मेनूमधून ते सुरू केल्यास
+2. **त्या शेलमधून IDE सुरू करा.** डेस्कटॉप आयकॉन / Dock / Start मेनूमधून सुरू केल्यास
    शेल एक्सपोर्ट्स वारशाने मिळत **नाहीत**, आणि `~/.config/environment.d/*.conf` फक्त
-   नव्याने ग्राफिकल लॉगिन केल्यानंतरच लागू होते. आधी IDE पूर्णपणे बंद करा — Electron च्या
-   सिंगलटन लॉकमुळे दुसऱ्यांदा सुरू केल्यास फक्त विद्यमान प्रोसेसवर फोकस होते आणि नवीन एन्व्हायर्नमेंट दुर्लक्षित केले जाते.
+   नवीन ग्राफिकल लॉगिननंतरच लागू होते. प्रथम IDE पूर्णपणे बंद करा — Electron च्या सिंगलटन
+   लॉकमुळे दुसऱ्यांदा सुरू करण्याचा प्रयत्न केवळ विद्यमान प्रोसेसवर फोकस करतो आणि नवीन
+   एन्व्हायर्नमेंट दुर्लक्षित केले जाते.
 
-वरील OS-trust + NSS पायरी अजूनही आवश्यक आहे (काही प्रमाणीकरण प्रवाहांद्वारे वापरला जाणारा Chromium
-नेटवर्क स्टॅक प्रति-वापरकर्ता NSS स्टोअर वाचतो आणि `*.googleapis.com` साठी त्याचे स्वतःचे स्थिर पिन
-असतात, ज्यांना स्थानिकरीत्या विश्वासार्ह CA अधिलिखित करते). याव्यतिरिक्त `NODE_EXTRA_CA_CERTS` हे
-Node `fetch` मार्गासाठी लागू होते.
+वरील OS-ट्रस्ट + NSS पायरी तरीही आवश्यक आहे (काही प्रमाणीकरण फ्लोमध्ये वापरला जाणारा
+Chromium नेटवर्क स्टॅक प्रत्येक वापरकर्त्याचे NSS स्टोअर वाचतो आणि `*.googleapis.com` साठी
+त्याचे स्वतःचे स्थिर पिन असतात, जे स्थानिकरीत्या विश्वसनीय केलेला CA ओव्हरराइड करतो).
+याव्यतिरिक्त, `NODE_EXTRA_CA_CERTS` हे Node `fetch` पाथ व्यापते.
 
 ### 3.3 DNS राउटिंग
 
-तुम्हाला इंटरसेप्ट करायच्या प्रत्येक एजंटसाठी, त्याचे API होस्ट `127.0.0.1` वर रिझॉल्व्ह झाले पाहिजेत. तुम्ही Setup Wizard मध्ये एखाद्या एजंटसाठी DNS टॉगल करता तेव्हा AgentBridge `/etc/hosts` नोंदी स्वयंचलितपणे व्यवस्थापित करते.
+तुम्हाला इंटरसेप्ट करायच्या प्रत्येक एजंटसाठी, त्याचे API होस्ट `127.0.0.1` वर रिझॉल्व्ह होणे आवश्यक आहे. तुम्ही Setup Wizard मध्ये एखाद्या एजंटसाठी DNS टॉगल करता तेव्हा AgentBridge आपोआप `/etc/hosts` नोंदी व्यवस्थापित करते.
 
 GitHub Copilot साठी `/etc/hosts` नोंदींचे उदाहरण:
 
@@ -257,59 +258,69 @@ GitHub Copilot साठी `/etc/hosts` नोंदींचे उदाह�
 
 ### 3.4 मॉडेल मॅपिंग
 
-स्रोत → लक्ष्य मॅपिंग परिभाषित करण्यासाठी प्रत्येक एजंट कार्डमधील मॉडेल मॅपिंग तक्ता वापरा:
+स्रोत → टार्गेट मॅपिंग निश्चित करण्यासाठी प्रत्येक एजंट कार्डमधील Model Mapping Table वापरा:
 
-| स्रोत मॉडेल (एजंटचे मूळ) | लक्ष्य मॉडेल (OmniRoute) |
-| ------------------------ | ------------------------ |
-| `gpt-4o`                 | `claude-sonnet-4.7`      |
-| `*` (वाइल्डकार्ड)        | `claude-haiku-4.7`       |
+| स्रोत मॉडेल (एजंटचे नेटिव्ह) | टार्गेट मॉडेल (OmniRoute) |
+| ---------------------------- | ------------------------- |
+| `gpt-4o`                     | `claude-sonnet-4.7`       |
+| `*` (वाइल्डकार्ड)            | `claude-haiku-4.7`        |
 
-वाइल्डकार्ड `*` कोणतेही न ओळखलेले मॉडेल निर्दिष्ट लक्ष्याशी मॅप करते. हे `agent_bridge_mappings` तक्त्यात कायमस्वरूपी जतन केले जाते.
+वाइल्डकार्ड `*` कोणतेही अपरिचित मॉडेल निर्दिष्ट टार्गेटशी मॅप करते. हे `agent_bridge_mappings` टेबलमध्ये कायमस्वरूपी जतन केले जाते.
 
-> **टीप — एजंटचे वास्तविक मॉडेल ID शोधा.** एखादे IDE त्याच्या UI लेबलांपेक्षा वेगळी मॉडेल नावे
-> पाठवू शकते आणि ती प्रमुख आवृत्त्यांदरम्यान बदलू शकतात. उदाहरणार्थ, **Antigravity 2**
-> नेटवर्कवरून `gemini-3.1-pro-low`, `gemini-pro-agent`, आणि `gemini-3.1-flash-lite` पाठवते —
-> जुन्या दस्तऐवजांमध्ये दाखवलेले `gemini-2.5-pro` नाही. जुळणारे मॅपिंग नसताना एक चॅट पाठवा:
-> MITM अचूक इनकमिंग `model:` लॉग करते आणि विनंती पुढे पाठवते. त्या अक्षरशः मूल्याचे मॅपिंग करा;
-> त्यानंतर पुढील विनंती इंटरसेप्ट केली जाते आणि तुमच्या लक्ष्याकडे रूट केली जाते.
+> **टीप — एजंटचे वास्तविक मॉडेल ID शोधा.** एखादा IDE त्याच्या UI लेबलपेक्षा वेगळी मॉडेल नावे
+> पाठवू शकतो आणि प्रमुख आवृत्त्यांदरम्यान ही नावे बदलू शकतात. उदाहरणार्थ, **Antigravity 2**
+> प्रत्यक्ष नेटवर्कवर `gemini-3.1-pro-low`, `gemini-pro-agent`, आणि
+> `gemini-3.1-flash-lite` पाठवतो — जुन्या दस्तऐवजांमध्ये दाखवलेले `gemini-2.5-pro` नाही.
+> कोणतेही जुळणारे मॅपिंग न ठेवता एक चॅट पाठवा: MITM अचूक इनकमिंग `model:` लॉग करतो आणि
+> विनंती पुढे पाठवतो. त्या अक्षरशः मूल्याचे मॅपिंग करा; त्यानंतर पुढील विनंती इंटरसेप्ट केली
+> जाईल आणि तुमच्या टार्गेटकडे रूट केली जाईल.
 
 ### 3.5 जोखमीची सूचना
 
-AgentBridge ती क्रेडेन्शियल्स (OAuth टोकन, API की) इंटरसेप्ट करते जी IDE अपस्ट्रीम प्रदात्यांकडे प्रमाणीकरण करण्यासाठी वापरते. लॉगिंग करण्यापूर्वी ती **मास्क केली जातात** (§2.7 पहा), परंतु OmniRoute च्या MITM स्तराला ती दृश्यमान असतात. प्रत्येक एजंट प्रथमच सक्रिय केल्यावर बंद करता येणारा जोखमीच्या सूचनेचा मोडल दिसतो.
+अपस्ट्रीम प्रदात्यांसोबत प्रमाणीकरण करण्यासाठी IDE वापरत असलेली क्रेडेन्शियल्स (OAuth टोकन, API की) AgentBridge इंटरसेप्ट करते. लॉग करण्यापूर्वी ती **मास्क केली जातात** (§2.7 पाहा), परंतु ती OmniRoute च्या MITM स्तराला दृश्यमान असतात. प्रत्येक एजंट प्रथम सक्रिय केल्यावर बंद करता येणारी जोखमीची सूचना मोडल दाखवली जाते.
 
 ### 3.6 देखभाल आणि निदान
 
-डॅशबोर्डमध्ये **देखभाल आणि निदान** कार्ड (`AgentBridgeMaintenanceCard`, `src/app/(dashboard)/dashboard/tools/agent-bridge/components/` मध्ये) उपलब्ध आहे, जे यापूर्वी UI नसलेले कार्यात्मक MITM रूट्स दाखवते. त्याचे उपशीर्षक: _"कॅप्चर पाइपलाइनची स्व-चाचणी करा, शिल्लक राहिलेली सिस्टम स्थिती पूर्ववत करा आणि तुमचा सेटअप मशीनदरम्यान हलवा."_ कार्डचे क्लायंट हेल्पर्स `src/lib/inspector/agentBridgeMaintenanceApi.ts` मध्ये आहेत.
+डॅशबोर्डमध्ये **Maintenance & Diagnostics** कार्ड (`AgentBridgeMaintenanceCard`, `src/app/(dashboard)/dashboard/tools/agent-bridge/components/` मध्ये) उपलब्ध आहे, जे यापूर्वी कोणताही UI नसलेले कार्यरत MITM रूट दाखवते. त्याचे उपशीर्षक: _"कॅप्चर पाइपलाइनची स्वतः चाचणी करा, शिल्लक राहिलेली सिस्टम स्थिती पूर्ववत करा आणि तुमचा सेटअप मशीनदरम्यान हलवा."_ या कार्डचे क्लायंट हेल्पर `src/lib/inspector/agentBridgeMaintenanceApi.ts` मध्ये आहेत.
 
-| बटण                     | रूट                                    | ते काय करते                                                                                                                                                                                                    |
-| ----------------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **निदान करा**           | `GET /api/tools/agent-bridge/diagnose` | कॅप्चर-पाइपलाइनची स्व-चाचणी चालवते आणि प्रत्येक तपासणीचा अहवाल दाखवते (✓/✗ + निराकरणाची सूचना).                                                                                                                |
-| **दुरुस्ती करा**        | `POST /api/tools/agent-bridge/repair`  | क्रॅश किंवा SIGKILL मुळे मागे राहिलेली अनाथ MITM प्रणाली स्थिती (DNS स्पूफ नोंदी, रूट CA, सिस्टम प्रॉक्सी) पूर्ववत करते. आयडेम्पोटंट — स्थिती स्वच्छ असल्यास "दुरुस्त करण्यासारखे काहीही नाही" असा अहवाल देते. |
-| **CA काढून टाका**       | `DELETE /api/tools/agent-bridge/cert`  | OS ट्रस्ट स्टोअरमधून MITM रूट CA वरील विश्वास काढून ते हटवते (स्पष्ट, आयडेम्पोटंट). CA सध्या विश्वसनीय असेल तेव्हाच दाखवले जाते; इनलाइन "CA काढून टाकायचे?" पुष्टीकरण आवश्यक असते.                             |
-| **कॉन्फिग निर्यात करा** | `GET /api/tools/agent-bridge/config`   | पोर्टेबल कॉन्फिग JSON डाउनलोड करते (§3.7 पहा).                                                                                                                                                                 |
-| **कॉन्फिग आयात करा**    | `POST /api/tools/agent-bridge/config`  | यापूर्वी निर्यात केलेला कॉन्फिग JSON अपलोड करते (§3.7 पहा).                                                                                                                                                    |
+| बटण                     | रूट                                    | ते काय करते                                                                                                                                                                                                   |
+| ----------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **निदान करा**           | `GET /api/tools/agent-bridge/diagnose` | कॅप्चर-पाइपलाइनची स्वयं-चाचणी चालवते आणि प्रत्येक तपासणीचा अहवाल दाखवते (✓/✗ + निराकरणाची सूचना).                                                                                                             |
+| **दुरुस्ती करा**        | `POST /api/tools/agent-bridge/repair`  | क्रॅश किंवा SIGKILL मुळे मागे राहिलेली अनाथ MITM सिस्टम स्थिती (DNS स्पूफ नोंदी, रूट CA, सिस्टम प्रॉक्सी) पूर्ववत करते. आयडेम्पोटंट — स्थिती स्वच्छ असल्यास "दुरुस्त करण्यासारखे काहीही नाही" असा अहवाल देते. |
+| **CA काढून टाका**       | `DELETE /api/tools/agent-bridge/cert`  | OS ट्रस्ट स्टोअरमधील MITM रूट CA वरील विश्वास काढून तो हटवते (स्पष्ट, आयडेम्पोटंट). CA सध्या विश्वसनीय असेल तेव्हाच दाखवले जाते; इनलाइन "CA काढून टाकायचा?" पुष्टीकरण आवश्यक असते.                            |
+| **कॉन्फिग निर्यात करा** | `GET /api/tools/agent-bridge/config`   | पोर्टेबल कॉन्फिग JSON डाउनलोड करते (§3.7 पाहा).                                                                                                                                                               |
+| **कॉन्फिग आयात करा**    | `POST /api/tools/agent-bridge/config`  | यापूर्वी निर्यात केलेला कॉन्फिग JSON अपलोड करते (§3.7 पाहा).                                                                                                                                                  |
 
-**निदान तपासण्या** (`src/mitm/inspector/diagnostics.ts` मधील `summarizeDiagnostics()`). रूट प्रत्येकासाठी परिणामकारक प्रोब चालवतो आणि बूलियन मूल्ये शुद्ध सारांशकाराकडे पाठवतो; एकच `healthy` निकाल आणि प्रत्येक अपयशासाठी सूचना परत केली जाते:
+प्रत्येक एजंट कार्डवर त्याचे स्वतःचे **डीफॉल्ट पुनर्स्थापित करा** बटणदेखील असते (`POST
+/api/tools/agent-bridge/agents/{id}/reset`) — एका क्लिकमध्ये, प्रत्येक एजंटसाठी केलेले बदल पूर्ववत करणारी ही क्रिया केवळ त्या
+एजंटच्या होस्टचे स्पूफिंग काढून टाकते, त्याची जतन केलेली मॉडेल मॅपिंग साफ करते आणि त्याची `dns_enabled`/`setup_completed`
+स्थिती रीसेट करते, जेणेकरून पूर्णपणे रीस्टार्ट केल्यानंतर IDE पुन्हा वास्तविक अपस्ट्रीमशी संवाद साधेल. ती सामायिक
+MITM सर्व्हर किंवा रूट CA ला स्पर्श **करत नाही** (इतर एजंट अजूनही त्यांच्यावर अवलंबून असू शकतात) — ते
+सर्व्हर कार्ड आणि वरील **CA काढून टाका** क्रियेद्वारे उपलब्ध राहतात. Windows वर ती सर्वोत्तम प्रयत्न म्हणून
+`ipconfig /flushdns` देखील चालवते, कारण Windows DNS Client होस्ट्स-फाइलमधील नोंदी कॅश करतो आणि अन्यथा
+नुकतेच काढलेले स्पूफिंग सोडत नाही.
 
-| तपासणीचे नाव       | ते काय सत्यापित करते                                        | अपयश आल्यास सूचना                                                                                                                                                |
-| ------------------ | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `server-running`   | MITM सर्व्हर प्रक्रिया सक्रिय आहे                           | "MITM सर्व्हर चालू नाही. तो AgentBridge टॅबमधून सुरू करा."                                                                                                       |
-| `server-reachable` | MITM सर्व्हर त्याच्या पोर्टवर कनेक्शन स्वीकारतो (TCP प्रोब) | "MITM सर्व्हर त्याच्या पोर्टवर कनेक्शन स्वीकारत नाही. पोर्ट मोकळा आहे आणि त्याच्याशी बाइंड करण्यासाठी आपल्याकडे विशेषाधिकार आहेत याची खात्री करा."               |
-| `cert-exists`      | MITM प्रमाणपत्र डिस्कवर निर्माण केले गेले आहे               | "अद्याप कोणतेही MITM प्रमाणपत्र निर्माण केलेले नाही. AgentBridge टॅबमधून एक प्रमाणपत्र निर्माण करा."                                                             |
-| `cert-trusted`     | MITM रूट CA OS ट्रस्ट स्टोअरमध्ये आहे                       | "MITM रूट CA वर OS स्टोअरचा विश्वास नाही, त्यामुळे TLS इंटरसेप्शन अयशस्वी होईल. AgentBridge टॅबमधून प्रमाणपत्रावर विश्वास ठेवा."                                 |
-| `dns-configured`   | लक्ष्य होस्टनावे `/etc/hosts` मध्ये स्पूफ केलेली आहेत       | "लक्ष्य होस्टनावे /etc/hosts मध्ये स्पूफ केलेली नाहीत, त्यामुळे ट्रॅफिक प्रॉक्सीपर्यंत कधीच पोहोचत नाही. आपण कॅप्चर करू इच्छित असलेल्या एजंटसाठी DNS सक्षम करा." |
+**निदान तपासण्या** (`src/mitm/inspector/diagnostics.ts` मधील `summarizeDiagnostics()`). रूट प्रत्येक तपासणीसाठी परिणामकारक प्रोब चालवतो आणि बूलीयन मूल्ये शुद्ध सारांशकाला पुरवतो; एकच `healthy` निकाल आणि प्रत्येक अपयशासाठी सूचना परत केली जाते:
 
-**अनाथ स्थितीचा बॅनर:** पृष्ठाला क्रॅशमुळे मागे राहिलेली स्थिती (DNS स्पूफ / CA / सिस्टम प्रॉक्सी) आढळल्यास, कार्डवर अंबर रंगाचा बॅनर दिसतो — _"मागील सत्राने प्रणाली स्थिती मागे सोडली आहे (DNS स्पूफ, CA किंवा सिस्टम प्रॉक्सी). ती साफ करण्यासाठी दुरुस्ती चालवा."_ — आणि **दुरुस्ती करा** बटण ठळक केले जाते. `Repair` हे ProxyBridge च्या `--cleanup` फ्लॅगचे ॲप्लिकेशन-स्तरीय समतुल्य आहे (ते `src/mitm/manager.ts` मधील `repairMitm()` कडे कार्य सोपवते).
+| तपासणीचे नाव       | ते काय सत्यापित करते                                        | अपयश आल्यास सूचना                                                                                                                                                  |
+| ------------------ | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `server-running`   | MITM सर्व्हर प्रक्रिया सक्रिय आहे                           | "MITM सर्व्हर चालू नाही. तो AgentBridge टॅबमधून सुरू करा."                                                                                                         |
+| `server-reachable` | MITM सर्व्हर त्याच्या पोर्टवर कनेक्शन स्वीकारतो (TCP प्रोब) | "MITM सर्व्हर त्याच्या पोर्टवर कनेक्शन स्वीकारत नाही. पोर्ट मोकळा आहे आणि तो बाइंड करण्यासाठी तुमच्याकडे विशेषाधिकार आहेत हे तपासा."                               |
+| `cert-exists`      | MITM प्रमाणपत्र डिस्कवर व्युत्पन्न केले गेले आहे            | "अद्याप कोणतेही MITM प्रमाणपत्र व्युत्पन्न केलेले नाही. AgentBridge टॅबमधून एक प्रमाणपत्र व्युत्पन्न करा."                                                         |
+| `cert-trusted`     | MITM रूट CA हा OS ट्रस्ट स्टोअरमध्ये आहे                    | "MITM रूट CA वर OS स्टोअरचा विश्वास नाही, त्यामुळे TLS इंटरसेप्शन अयशस्वी होईल. AgentBridge टॅबमधून प्रमाणपत्र विश्वसनीय म्हणून चिन्हांकित करा."                   |
+| `dns-configured`   | लक्ष्य होस्टनावे `/etc/hosts` मध्ये स्पूफ केली आहेत         | "लक्ष्य होस्टनावे /etc/hosts मध्ये स्पूफ केलेली नाहीत, त्यामुळे ट्रॅफिक कधीही प्रॉक्सीपर्यंत पोहोचत नाही. तुम्हाला कॅप्चर करायचे असलेल्या एजंटसाठी DNS सक्षम करा." |
 
-> वारंवार sudo प्रॉम्प्ट टाळण्यासाठी MITM रूट CA थांबवणे/सुरू करणे यांदरम्यानही स्थापित ठेवला जातो
-> (mitmproxy/Charles प्रमाणेच वर्तन), त्यामुळे तो काढणे ही थांबवल्यावर
-> आपोआप घडणारी गोष्ट नसून स्पष्ट **CA काढून टाका** क्रिया आहे.
+**अनाथ स्थितीचा बॅनर:** पृष्ठाला क्रॅशमुळे मागे राहिलेली स्थिती (DNS स्पूफ / CA / सिस्टम प्रॉक्सी) आढळल्यास, कार्डवर अंबर रंगाचा बॅनर दिसतो — _"मागील सत्रामुळे सिस्टमची स्थिती मागे राहिली आहे (DNS स्पूफ, CA किंवा सिस्टम प्रॉक्सी). ती साफ करण्यासाठी दुरुस्ती चालवा."_ — आणि **दुरुस्ती करा** बटण ठळक केले जाते. `Repair` हे ProxyBridge च्या `--cleanup` फ्लॅगचे ॲप्लिकेशन-स्तरीय समतुल्य आहे (ते `src/mitm/manager.ts` मधील `repairMitm()` कडे कार्य सोपवते).
+
+> वारंवार sudo प्रॉम्प्ट टाळण्यासाठी MITM रूट CA हा थांबवणे/सुरू करणे या क्रियांदरम्यानही स्थापित ठेवला जातो
+> (mitmproxy/Charles प्रमाणेच वर्तन), त्यामुळे थांबवल्यावर आपोआप घडणाऱ्या क्रियेऐवजी तो काढणे ही स्पष्ट
+> **CA काढून टाका** क्रिया आहे.
 
 ### 3.7 पोर्टेबल कॉन्फिग आयात/निर्यात
 
-AgentBridge **ऑपरेटरद्वारे समायोजित करता येणारी** स्थिती आवृत्तीयुक्त JSON ब्लॉबमध्ये क्रमबद्ध करू शकते, ज्यामुळे सेटअपची इतर मशीनवर प्रतिकृती तयार करता येते. सिरियलायझर `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`) आहे, ज्याचे प्रमाणीकरण `AgentBridgeConfigSchema` द्वारे केले जाते.
+AgentBridge **ऑपरेटरला समायोजित करता येणारी** स्थिती आवृत्तीयुक्त JSON ब्लॉबमध्ये सिरियलाइझ करू शकतो, जेणेकरून एखादे सेटअप विविध मशीनवर प्रतिकृत करता येईल. सिरियलायझर `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`) आहे, ज्याचे प्रमाणीकरण `AgentBridgeConfigSchema` द्वारे केले जाते.
 
-निर्यातीमध्ये नेमके तीन भाग समाविष्ट असतात (अंगभूत डीफॉल्ट्स हेतुपुरस्सर निर्यात केले जात **नाहीत**, त्यामुळे आयात केल्याने त्यांची कधीही पुनरावृत्ती होत नाही किंवा त्यांच्याशी संघर्ष होत नाही):
+निर्यातीमध्ये नेमके तीन घटक समाविष्ट असतात (अंगभूत डीफॉल्ट्स हेतुपुरस्सर निर्यात केले जात **नाहीत**, त्यामुळे आयात केल्याने त्यांची कधीही नक्कल होत नाही किंवा त्यांच्याशी संघर्ष होत नाही):
 
 | फील्ड            | स्रोत                                                               | नोंदी                                                                   |
 | ---------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------- |
@@ -329,13 +340,13 @@ AgentBridge **ऑपरेटरद्वारे समायोजित क�
 }
 ```
 
-**आयात वर्तन** (`POST /api/tools/agent-bridge/config`): बायपास पॅटर्न आणि प्रत्येक एजंटसाठीची मॅपिंग **पूर्णपणे बदलली जातात**; कस्टम होस्ट **आयडेम्पोटंट पद्धतीने** जोडले जातात (`INSERT OR IGNORE`). प्रत्येक प्रकारातील किती लागू केले गेले हे प्रतिसादात कळवले जाते:
+**इम्पोर्टची कार्यपद्धती** (`POST /api/tools/agent-bridge/config`): बायपास पॅटर्न आणि प्रत्येक एजंटची मॅपिंग **पूर्णपणे बदलली जातात**; कस्टम होस्ट **आयडेम्पोटंट पद्धतीने** जोडले जातात (`INSERT OR IGNORE`). प्रत्येक प्रकारातील किती नोंदी लागू केल्या गेल्या, हे प्रतिसादात नमूद केले जाते:
 
 ```jsonc
 { "ok": true, "bypassPatterns": 1, "customHosts": 1, "agents": 1 }
 ```
 
-कॉन्फिगमध्ये काय **नाही**: सर्व्हर चालू असल्याची स्थिती, प्रमाणपत्र पथ, प्रत्येक एजंटची DNS स्थिती, अपस्ट्रीम CA पथ आणि TPROXY सेटिंग्ज — या होस्ट/रनटाइम स्थिती आहेत, पोर्टेबल प्राधान्ये नाहीत.
+कॉन्फिगमध्ये **समाविष्ट नसलेल्या** गोष्टी: सर्व्हरची चालू स्थिती, प्रमाणपत्र पथ, प्रत्येक एजंटची DNS स्थिती, अपस्ट्रीम CA पथ आणि TPROXY सेटिंग्ज — या पोर्टेबल प्राधान्ये नसून होस्ट/रनटाइम स्थिती आहेत.
 
 ---
 
@@ -495,39 +506,40 @@ AgentBridge विनंत्या इंटरसेप्ट करत अ�
 
 ## §7 API संदर्भ
 
-सर्व रूट `LOCAL_ONLY` (केवळ लूपबॅक, प्रमाणीकरणापूर्वी लागू केलेले) आणि `SPAWN_CAPABLE` आहेत. `src/server/authz/routeGuard.ts` पहा.
+सर्व routes `LOCAL_ONLY` (केवळ loopback, auth पूर्वी लागू केलेले) आणि `SPAWN_CAPABLE` आहेत. `src/server/authz/routeGuard.ts` पहा.
 
-मूळ पथ: `/api/tools/agent-bridge/`
+मूळ path: `/api/tools/agent-bridge/`
 
-| पद्धत               | पथ                                             | वर्णन                                                                                                                     |
-| ------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| GET                 | `/api/tools/agent-bridge/state`                | जागतिक सर्व्हर स्थिती + प्रत्येक एजंटची शोध/स्थिती                                                                        |
-| GET                 | `/api/tools/agent-bridge/agents`               | नोंदणीकृत एजंटची सूची (id, नाव, होस्ट, व्यवहार्यता, स्थिती)                                                               |
-| GET                 | `/api/tools/agent-bridge/agents/{id}`          | एका एजंटची स्थिती (लक्ष्य कॉन्फिगरेशन + शोध + संग्रहित स्थिती)                                                            |
-| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | एजंटसाठी `setup_completed` अद्ययावत करा                                                                                   |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | एजंटसाठी शोध तपासणी चालवा (`installed`, `version?`, `path?`)                                                              |
-| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | एजंटसाठी DNS सक्षम/अक्षम करा (`{enabled: boolean}`)                                                                       |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | एजंटसाठी मॉडेल मॅपिंग                                                                                                     |
-| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | मॉडेल मॅपिंग बदला                                                                                                         |
-| POST                | `/api/tools/agent-bridge/server`               | सर्व्हर सुरू/बंद/पुनः सुरू करा (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                    |
-| GET                 | `/api/tools/agent-bridge/cert`                 | प्रमाणपत्र स्थिती (`exists`, `trusted`, `path`)                                                                           |
-| POST                | `/api/tools/agent-bridge/cert`                 | MITM मूळ CA वर विश्वास ठेवा (स्थापित करा)                                                                                 |
-| DELETE              | `/api/tools/agent-bridge/cert`                 | MITM मूळ CA वरील विश्वास काढा (काढून टाका) — आयडेम्पोटंट (§3.6 पहा)                                                       |
-| POST                | `/api/tools/agent-bridge/cert/regenerate`      | स्व-स्वाक्षरी केलेले MITM प्रमाणपत्र पुन्हा निर्माण करा                                                                   |
-| GET                 | `/api/tools/agent-bridge/cert/download`        | डाउनलोडसाठी PEM प्रमाणपत्र प्रवाहित करा                                                                                   |
-| GET                 | `/api/tools/agent-bridge/bypass`               | बायपास नमुन्यांची सूची (`default` + `user`)                                                                               |
-| POST                | `/api/tools/agent-bridge/bypass`               | वापरकर्त्याने परिभाषित केलेले बायपास नमुने पूर्णपणे बदला                                                                  |
-| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | वापरकर्त्याने परिभाषित केलेला एकच बायपास नमुना काढा                                                                       |
-| GET                 | `/api/tools/agent-bridge/diagnose`             | कॅप्चर-पाइपलाइन स्व-चाचणी (§3.6 पहा)                                                                                      |
-| POST                | `/api/tools/agent-bridge/repair`               | अनाथ झालेली MITM प्रणाली स्थिती पूर्ववत करा (§3.6 पहा)                                                                    |
-| GET                 | `/api/tools/agent-bridge/config`               | पोर्टेबल कॉन्फिगरेशन JSON निर्यात करा (§3.7 पहा)                                                                          |
-| POST                | `/api/tools/agent-bridge/config`               | पोर्टेबल कॉन्फिगरेशन JSON आयात करा (§3.7 पहा)                                                                             |
-| GET                 | `/api/tools/agent-bridge/upstream-ca`          | कॉन्फिगर केलेला अपस्ट्रीम CA पथ मिळवा                                                                                     |
-| POST                | `/api/tools/agent-bridge/upstream-ca`          | अपस्ट्रीम CA पथ सत्यापित करा + कायमस्वरूपी जतन करा                                                                        |
-| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | अपस्ट्रीम CA पथाचे केवळ सत्यापन (ड्राय-रन) करा — तो कायमस्वरूपी जतन केला जात नाही                                         |
-| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | TPROXY पारदर्शक-डिक्रिप्ट कॅप्चर मोड — `docs/security/MITM-TPROXY-DECRYPT.md` पहा (git; `/docs` मध्ये संकलित केलेले नाही) |
+| पद्धत               | Path                                           | वर्णन                                                                                                                         |
+| ------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| GET                 | `/api/tools/agent-bridge/state`                | जागतिक server state + प्रत्येक agent चे detection/status                                                                      |
+| GET                 | `/api/tools/agent-bridge/agents`               | नोंदणीकृत agents ची यादी (id, नाव, hosts, व्यवहार्यता, state)                                                                 |
+| GET                 | `/api/tools/agent-bridge/agents/{id}`          | एका agent ची state (target config + detection + संग्रहित state)                                                               |
+| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | agent साठी `setup_completed` अद्ययावत करा                                                                                     |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | agent साठी detection probe चालवा (`installed`, `version?`, `path?`)                                                           |
+| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | agent साठी DNS सक्षम/अक्षम करा (`{enabled: boolean}`)                                                                         |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | agent साठी model mappings                                                                                                     |
+| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | model mappings बदला                                                                                                           |
+| POST                | `/api/tools/agent-bridge/agents/{id}/reset`    | डीफॉल्ट पुनर्स्थापित करा: या agent चे DNS un-spoof करा, त्याची mappings साफ करा आणि त्याची state reset करा (§3.6 पहा)         |
+| POST                | `/api/tools/agent-bridge/server`               | server सुरू/बंद/restart करा (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                           |
+| GET                 | `/api/tools/agent-bridge/cert`                 | Cert status (`exists`, `trusted`, `path`)                                                                                     |
+| POST                | `/api/tools/agent-bridge/cert`                 | MITM root CA वर विश्वास ठेवा (install करा)                                                                                    |
+| DELETE              | `/api/tools/agent-bridge/cert`                 | MITM root CA वरील विश्वास काढा (remove करा) — idempotent (§3.6 पहा)                                                           |
+| POST                | `/api/tools/agent-bridge/cert/regenerate`      | self-signed MITM cert पुन्हा निर्माण करा                                                                                      |
+| GET                 | `/api/tools/agent-bridge/cert/download`        | download करण्यासाठी PEM cert stream करा                                                                                       |
+| GET                 | `/api/tools/agent-bridge/bypass`               | bypass patterns ची यादी (`default` + `user`)                                                                                  |
+| POST                | `/api/tools/agent-bridge/bypass`               | वापरकर्त्याने परिभाषित केलेले bypass patterns पूर्णपणे बदला                                                                   |
+| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | वापरकर्त्याने परिभाषित केलेला एक bypass pattern काढा                                                                          |
+| GET                 | `/api/tools/agent-bridge/diagnose`             | capture-pipeline self-test (§3.6 पहा)                                                                                         |
+| POST                | `/api/tools/agent-bridge/repair`               | अनाथ MITM system state पूर्ववत करा (§3.6 पहा)                                                                                 |
+| GET                 | `/api/tools/agent-bridge/config`               | portable config JSON export करा (§3.7 पहा)                                                                                    |
+| POST                | `/api/tools/agent-bridge/config`               | portable config JSON import करा (§3.7 पहा)                                                                                    |
+| GET                 | `/api/tools/agent-bridge/upstream-ca`          | कॉन्फिगर केलेला upstream CA path मिळवा                                                                                        |
+| POST                | `/api/tools/agent-bridge/upstream-ca`          | upstream CA path validate करा + कायम जतन करा                                                                                  |
+| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | upstream CA path चे केवळ validation (dry-run) करा — कायम जतन करत नाही                                                         |
+| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | TPROXY transparent-decrypt capture mode — `docs/security/MITM-TPROXY-DECRYPT.md` पहा (git; `/docs` मध्ये compile केलेले नाही) |
 
-संपूर्ण OpenAPI स्कीमा: `docs/openapi.yaml` → टॅग `AgentBridge`.
+संपूर्ण OpenAPI schemas: `docs/openapi.yaml` → tag `AgentBridge`.
 
 ---
 

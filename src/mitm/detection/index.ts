@@ -23,6 +23,8 @@ export const DETECTORS: Record<AgentId, () => DetectionResult> = {
   antigravity: detectAntigravity,
   kiro: detectKiro,
   copilot: detectCopilot,
+  // Enterprise and public Copilot use the same locally installed extension.
+  "ghe-copilot": detectCopilot,
   codex: detectCodex,
   cursor: detectCursor,
   zed: detectZed,

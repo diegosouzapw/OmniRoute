@@ -3,6 +3,17 @@ import assert from "node:assert/strict";
 
 const { extractUsageFromResponse } = await import("../../open-sse/handlers/usageExtractor.ts");
 const { extractUsage, normalizeUsage } = await import("../../open-sse/utils/usageTracking.ts");
+const { parseSSEToClaudeResponse } = await import("../../open-sse/handlers/sseParser.ts");
+const { translateNonStreamingResponse } =
+  await import("../../open-sse/handlers/responseTranslator.ts");
+const {
+  getLoggedInputTokens,
+  getPromptCacheReadTokens,
+  getPromptCacheCreationTokens,
+  getPromptCacheReadTokensOrNull,
+  getPromptCacheCreationTokensOrNull,
+} = await import("../../src/lib/usage/tokenAccounting.ts");
+const { computeCostFromPricing } = await import("../../src/lib/usage/costCalculator.ts");
 
 test("normalizeUsage keeps finite nested cache-read fields for stream cost calculation", () => {
   assert.deepEqual(
@@ -552,4 +563,317 @@ test("extractUsage reads Antigravity usageMetadata wrapped inside a response env
   assert.equal(usage.total_tokens, 275);
   assert.equal(usage.cached_tokens, 40);
   assert.equal(usage.reasoning_tokens, 18);
+});
+
+// ── Anthropic-shaped usage is recognised by shape, not by provider id ──
+// Anthropic `input_tokens` EXCLUDES prompt-cache reads and writes, while the stored
+// `prompt_tokens` convention INCLUDES them (costCalculator subtracts both caches to get
+// the fresh input). Every Claude-format provider must therefore store
+// input + cache_read + cache_creation, not only the ids `claude`/`anthropic`/`vertex*`.
+
+// One request: 100 fresh input tokens, 9 000 cache reads, 900 cache writes, 50 output.
+const ANTHROPIC_USAGE = {
+  input_tokens: 100,
+  output_tokens: 50,
+  cache_read_input_tokens: 9_000,
+  cache_creation_input_tokens: 900,
+};
+const TOTAL_PROMPT_TOKENS = 10_000;
+
+function anthropicMessageBody(usage: Record<string, unknown> = ANTHROPIC_USAGE) {
+  return {
+    id: "msg_shape",
+    type: "message",
+    role: "assistant",
+    model: "any-model",
+    content: [{ type: "text", text: "ok" }],
+    stop_reason: "end_turn",
+    stop_sequence: null,
+    usage: { ...usage },
+  };
+}
+
+// The rule keys on the body shape, not on a provider list, so one non-native id stands
+// for every Claude-format provider (kimi-coding, deepseek, zai, github /v1/messages, ...).
+test("extractUsageFromResponse totals Anthropic cache tokens for a non-native provider id", () => {
+  const usage = extractUsageFromResponse(anthropicMessageBody(), "kimi-coding");
+
+  assert.deepEqual(usage, {
+    prompt_tokens: TOTAL_PROMPT_TOKENS,
+    completion_tokens: 50,
+    cache_read_input_tokens: 9_000,
+    cache_creation_input_tokens: 900,
+  });
+  assert.equal(getLoggedInputTokens(usage), TOTAL_PROMPT_TOKENS);
+});
+
+test("Anthropic-shaped non-streaming usage matches the native claude id and the streaming path", () => {
+  const native = extractUsageFromResponse(anthropicMessageBody(), "claude");
+  const shaped = extractUsageFromResponse(anthropicMessageBody(), "kimi-coding");
+  const streamed = extractUsage({
+    type: "message_start",
+    message: { usage: { ...ANTHROPIC_USAGE, output_tokens: 0 } },
+  });
+
+  assert.deepEqual(shaped, native);
+  assert.equal(getLoggedInputTokens(shaped), getLoggedInputTokens(streamed));
+  assert.equal(getPromptCacheReadTokens(shaped), getPromptCacheReadTokens(streamed));
+  assert.equal(getPromptCacheCreationTokens(shaped), getPromptCacheCreationTokens(streamed));
+});
+
+test("Anthropic SSE buffered for a non-streaming request is totalled once", () => {
+  // parseSSEToClaudeResponse keeps the raw Anthropic usage (cache excluded), so the
+  // extractor must add the cache exactly once for a non-Anthropic provider id.
+  const rawSSE = [
+    "event: message_start",
+    `data: ${JSON.stringify({
+      type: "message_start",
+      message: {
+        id: "msg_sse",
+        model: "any-model",
+        role: "assistant",
+        usage: { ...ANTHROPIC_USAGE, output_tokens: 1 },
+      },
+    })}`,
+    "",
+    "event: content_block_delta",
+    'data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"ok"}}',
+    "",
+    "event: message_delta",
+    'data: {"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":50}}',
+    "",
+    "event: message_stop",
+    'data: {"type":"message_stop"}',
+    "",
+  ].join("\n");
+
+  const body = parseSSEToClaudeResponse(rawSSE, "any-model");
+  const usage = extractUsageFromResponse(body, "deepseek");
+
+  assert.equal(usage.prompt_tokens, TOTAL_PROMPT_TOKENS);
+  assert.equal(usage.completion_tokens, 50);
+  assert.equal(getLoggedInputTokens(usage), TOTAL_PROMPT_TOKENS);
+});
+
+test("Anthropic-shaped usage without cache keys keeps input as the prompt total", () => {
+  const usage = extractUsageFromResponse(
+    anthropicMessageBody({ input_tokens: 42, output_tokens: 7 }),
+    "kimi-coding"
+  );
+
+  assert.equal(usage.prompt_tokens, 42);
+  assert.equal(usage.completion_tokens, 7);
+});
+
+test("a Claude-format provider with no prompt cache keeps the cache counters N/A", () => {
+  // devin-cli-agentic builds Anthropic bodies with input/output only
+  // (open-sse/executors/devin-agentic/anthropicResponse.ts): no cache concept.
+  const usage = extractUsageFromResponse(
+    anthropicMessageBody({ input_tokens: 42, output_tokens: 7 }),
+    "devin-cli-agentic"
+  );
+
+  assert.equal(usage.prompt_tokens, 42);
+  assert.equal(usage.cache_read_input_tokens, undefined);
+  assert.equal(usage.cache_creation_input_tokens, undefined);
+  assert.equal(getPromptCacheReadTokensOrNull(usage), null);
+  assert.equal(getPromptCacheCreationTokensOrNull(usage), null);
+});
+
+test("a native Claude id still reports unreported cache counters as 0", () => {
+  const usage = extractUsageFromResponse(
+    anthropicMessageBody({ input_tokens: 42, output_tokens: 7 }),
+    "anthropic"
+  );
+
+  assert.equal(getPromptCacheReadTokensOrNull(usage), 0);
+  assert.equal(getPromptCacheCreationTokensOrNull(usage), 0);
+});
+
+test("a Claude-format provider reporting only one cache counter keeps the other N/A", () => {
+  const usage = extractUsageFromResponse(
+    anthropicMessageBody({ input_tokens: 100, output_tokens: 7, cache_read_input_tokens: 900 }),
+    "zai"
+  );
+
+  assert.equal(usage.prompt_tokens, 1_000);
+  assert.equal(getPromptCacheReadTokensOrNull(usage), 900);
+  assert.equal(getPromptCacheCreationTokensOrNull(usage), null);
+});
+
+test("Anthropic-shaped usage keeps reasoning tokens reported by Claude-format providers", () => {
+  const thinking = extractUsageFromResponse(
+    anthropicMessageBody({ ...ANTHROPIC_USAGE, output_tokens_details: { thinking_tokens: 20 } }),
+    "kimi-coding"
+  );
+  const nested = extractUsageFromResponse(
+    anthropicMessageBody({ ...ANTHROPIC_USAGE, output_tokens_details: { reasoning_tokens: 25 } }),
+    "kimi-coding"
+  );
+  const flat = extractUsageFromResponse(
+    anthropicMessageBody({ ...ANTHROPIC_USAGE, reasoning_tokens: 30 }),
+    "deepseek"
+  );
+
+  assert.equal(thinking.reasoning_tokens, 20);
+  assert.equal(nested.reasoning_tokens, 25);
+  assert.equal(nested.prompt_tokens, TOTAL_PROMPT_TOKENS);
+  assert.equal(flat.reasoning_tokens, 30);
+});
+
+test("an OpenAI answer translated for a Claude client totals back to prompt_tokens", () => {
+  // Semantic-cache replays store the client-format body. For a Claude client served by
+  // an OpenAI provider, responseTranslator sets input_tokens = prompt - cache, so the
+  // extractor must add the cache back to recover the original prompt total.
+  const openAiAnswer = {
+    id: "chatcmpl-translated",
+    object: "chat.completion",
+    model: "gpt-test",
+    choices: [{ index: 0, message: { role: "assistant", content: "ok" }, finish_reason: "stop" }],
+    usage: {
+      prompt_tokens: TOTAL_PROMPT_TOKENS,
+      completion_tokens: 50,
+      total_tokens: TOTAL_PROMPT_TOKENS + 50,
+      prompt_tokens_details: { cached_tokens: 9_000, cache_creation_tokens: 900 },
+    },
+  };
+
+  const claudeBody = translateNonStreamingResponse(openAiAnswer, "openai", "claude");
+  assert.equal(claudeBody.type, "message");
+  assert.equal(claudeBody.usage.input_tokens, 100);
+
+  const usage = extractUsageFromResponse(claudeBody, "openai");
+  assert.equal(usage.prompt_tokens, TOTAL_PROMPT_TOKENS);
+  assert.equal(getLoggedInputTokens(usage), TOTAL_PROMPT_TOKENS);
+  assert.equal(getPromptCacheReadTokens(usage), 9_000);
+  assert.equal(getPromptCacheCreationTokens(usage), 900);
+});
+
+// Controls: bodies whose prompt total already includes cached tokens must not be
+// re-totalled, whatever the provider id.
+
+test("every usage shape stores the same prompt total for the same request", () => {
+  const cases: Array<[string, Record<string, unknown>, string]> = [
+    ["native claude non-streaming", anthropicMessageBody(), "claude"],
+    [
+      "OpenAI chat with cached_tokens",
+      {
+        object: "chat.completion",
+        choices: [],
+        usage: {
+          prompt_tokens: TOTAL_PROMPT_TOKENS,
+          completion_tokens: 50,
+          prompt_tokens_details: { cached_tokens: 9_000, cache_creation_tokens: 900 },
+        },
+      },
+      "deepseek",
+    ],
+    [
+      "Responses API with input_tokens_details",
+      {
+        object: "response",
+        output: [],
+        usage: {
+          input_tokens: TOTAL_PROMPT_TOKENS,
+          output_tokens: 50,
+          input_tokens_details: { cached_tokens: 9_000 },
+        },
+      },
+      "kimi-coding",
+    ],
+    [
+      "Responses API nested under response",
+      {
+        response: {
+          usage: {
+            input_tokens: TOTAL_PROMPT_TOKENS,
+            output_tokens: 50,
+            input_tokens_details: { cached_tokens: 9_000 },
+          },
+        },
+      },
+      "deepseek",
+    ],
+    [
+      "Gemini usageMetadata",
+      {
+        usageMetadata: {
+          promptTokenCount: TOTAL_PROMPT_TOKENS,
+          candidatesTokenCount: 50,
+          cachedContentTokenCount: 9_000,
+        },
+      },
+      "gemini",
+    ],
+  ];
+
+  for (const [label, body, provider] of cases) {
+    const usage = extractUsageFromResponse(body, provider);
+    assert.equal(usage.prompt_tokens, TOTAL_PROMPT_TOKENS, label);
+    assert.equal(getLoggedInputTokens(usage), TOTAL_PROMPT_TOKENS, label);
+    assert.equal(getPromptCacheReadTokens(usage), 9_000, label);
+  }
+});
+
+test("flat Anthropic cache keys without a message body stay on the Responses branch", () => {
+  // MiniMax / Bedrock Responses usage carries flat cache_read_input_tokens next to an
+  // input_tokens that already includes them (responseSanitizer.ts maps the flat key to
+  // input_tokens_details.cached_tokens). Only the `type: "message"` body selects the
+  // Anthropic rule, so this usage must keep its reported input as the prompt total.
+  const usage = extractUsageFromResponse(
+    {
+      id: "resp_flat_cache",
+      output: [],
+      usage: {
+        input_tokens: TOTAL_PROMPT_TOKENS,
+        output_tokens: 50,
+        cache_read_input_tokens: 9_000,
+        cache_creation_input_tokens: 900,
+      },
+    },
+    "minimax"
+  );
+
+  assert.equal(usage.prompt_tokens, TOTAL_PROMPT_TOKENS);
+  assert.equal(usage.cached_tokens, 9_000);
+  assert.equal(getLoggedInputTokens(usage), TOTAL_PROMPT_TOKENS);
+});
+
+test("a message-typed body carrying Responses cached-token details is not re-totalled", () => {
+  // input_tokens_details.cached_tokens means input_tokens already includes the cache.
+  const usage = extractUsageFromResponse(
+    anthropicMessageBody({
+      input_tokens: TOTAL_PROMPT_TOKENS,
+      output_tokens: 50,
+      input_tokens_details: { cached_tokens: 9_000 },
+    }),
+    "kimi-coding"
+  );
+
+  assert.equal(usage.prompt_tokens, TOTAL_PROMPT_TOKENS);
+  assert.equal(usage.cached_tokens, 9_000);
+});
+
+test("Anthropic-shaped usage bills fresh input for non-Anthropic provider ids", () => {
+  // $/1M tokens: input 3, cache read 0.3, cache write 3.75, output 15.
+  const pricing = { input: 3, cached: 0.3, cache_creation: 3.75, output: 15 };
+  const expected = (100 * 3 + 9_000 * 0.3 + 900 * 3.75 + 50 * 15) / 1_000_000;
+  const withoutFreshInput = (9_000 * 0.3 + 900 * 3.75 + 50 * 15) / 1_000_000;
+
+  for (const provider of ["kimi-coding", "deepseek"]) {
+    const cost = computeCostFromPricing(
+      pricing,
+      extractUsageFromResponse(anthropicMessageBody(), provider)
+    );
+    assert.ok(Math.abs(cost - expected) < 1e-12, `${provider}: ${cost} !== ${expected}`);
+    assert.ok(cost > withoutFreshInput + 1e-12, `${provider}: fresh input not billed`);
+  }
+
+  assert.equal(
+    computeCostFromPricing(
+      pricing,
+      extractUsageFromResponse(anthropicMessageBody(), "kimi-coding")
+    ),
+    computeCostFromPricing(pricing, extractUsageFromResponse(anthropicMessageBody(), "claude"))
+  );
 });

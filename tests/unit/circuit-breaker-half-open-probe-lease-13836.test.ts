@@ -69,6 +69,71 @@ test("#13836: an expired probe cannot settle a newer probe generation", async (t
   assert.equal(breaker.state, "CLOSED");
 });
 
+test("an occupied resolved probe settles once even when ordinary result accounting is ignored", async (t) => {
+  t.mock.timers.enable({ apis: ["Date"], now: 1_000 });
+  const breaker = new CircuitBreaker(`cb-occupied-${process.pid}-${Date.now()}`, {
+    failureThreshold: 1,
+    resetTimeout: 30_000,
+  });
+  breaker._onFailure();
+  t.mock.timers.tick(30_000);
+  let finish!: (value: { success: boolean }) => void;
+  let acquired = 0;
+  const probe = breaker.execute(
+    () =>
+      new Promise<{ success: boolean }>((resolve) => {
+        finish = resolve;
+      }),
+    {
+      classifyResult: () => "ignore",
+      classifyProbeResult: (result) => (result.success ? "success" : "failure"),
+      onProbeAcquired: () => {
+        acquired++;
+      },
+    }
+  );
+  assert.equal(breaker.canExecute(), false);
+  finish({ success: true });
+  await probe;
+  assert.equal(acquired, 1);
+  assert.equal(breaker.state, "CLOSED");
+  assert.equal(breaker.successCount, 1);
+});
+
+test("an expired classified probe cannot settle a newer probe generation", async (t) => {
+  t.mock.timers.enable({ apis: ["Date"], now: 1_000 });
+  const breaker = new CircuitBreaker(`cb-classified-stale-${process.pid}-${Date.now()}`, {
+    failureThreshold: 1,
+    resetTimeout: 30_000,
+  });
+  breaker._onFailure();
+  t.mock.timers.tick(30_000);
+  let finishOld!: (value: { success: boolean }) => void;
+  const old = breaker.execute(
+    () =>
+      new Promise<{ success: boolean }>((resolve) => {
+        finishOld = resolve;
+      }),
+    { classifyProbeResult: (result) => (result.success ? "success" : "failure") }
+  );
+  t.mock.timers.tick(30_000);
+  assert.equal(breaker.canExecute(), true);
+  let finishNew!: (value: { success: boolean }) => void;
+  const current = breaker.execute(
+    () =>
+      new Promise<{ success: boolean }>((resolve) => {
+        finishNew = resolve;
+      }),
+    { classifyProbeResult: (result) => (result.success ? "success" : "failure") }
+  );
+  finishOld({ success: true });
+  await old;
+  assert.equal(breaker.state, "HALF_OPEN");
+  finishNew({ success: false });
+  await current;
+  assert.equal(breaker.state, "OPEN");
+});
+
 test("#13836: an expired probe failure cannot fail a newer probe generation", async (t) => {
   t.mock.timers.enable({ apis: ["Date"], now: 1_000 });
 

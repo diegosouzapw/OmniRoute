@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import Modal from "./Modal";
 import Button from "./Button";
 import Input from "./Input";
+import { errorMessageFromBody } from "@/shared/utils/fetchError";
 
 type CursorAuthModalProps = {
   isOpen: boolean;
@@ -111,7 +112,7 @@ export default function CursorAuthModal({
     try {
       const res = await fetch("/api/oauth/cursor/login/start", { method: "POST" });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || t("errorLoginStart"));
+      if (!res.ok) throw new Error(errorMessageFromBody(data, t("errorLoginStart")));
       setLoginUrl(data.loginUrl);
       setSessionId(data.sessionId);
       if (typeof window !== "undefined" && data.loginUrl) {
@@ -152,7 +153,7 @@ export default function CursorAuthModal({
           onClose();
           return;
         }
-        throw new Error(data.error || t("errorLoginPoll"));
+        throw new Error(errorMessageFromBody(data, t("errorLoginPoll")));
       }
       throw new Error(t("errorLoginTimeout"));
     } catch (err) {

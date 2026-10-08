@@ -1,6 +1,6 @@
 # Cloud Agents (తెలుగు)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/CLOUD_AGENT.md) · 🇪🇹 [am](../../../am/docs/frameworks/CLOUD_AGENT.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/CLOUD_AGENT.md) · 🇦🇿 [az](../../../az/docs/frameworks/CLOUD_AGENT.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/CLOUD_AGENT.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/CLOUD_AGENT.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/CLOUD_AGENT.md) · 🇩🇰 [da](../../../da/docs/frameworks/CLOUD_AGENT.md) · 🇩🇪 [de](../../../de/docs/frameworks/CLOUD_AGENT.md) · 🇬🇷 [el](../../../el/docs/frameworks/CLOUD_AGENT.md) · 🇪🇸 [es](../../../es/docs/frameworks/CLOUD_AGENT.md) · 🇪🇪 [et](../../../et/docs/frameworks/CLOUD_AGENT.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/CLOUD_AGENT.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/CLOUD_AGENT.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/CLOUD_AGENT.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/CLOUD_AGENT.md) · 🇮🇱 [he](../../../he/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/CLOUD_AGENT.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/CLOUD_AGENT.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/CLOUD_AGENT.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/CLOUD_AGENT.md) · 🇮🇩 [id](../../../id/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/CLOUD_AGENT.md) · 🇮🇹 [it](../../../it/docs/frameworks/CLOUD_AGENT.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/CLOUD_AGENT.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/CLOUD_AGENT.md) · 🇰🇭 [km](../../../km/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/CLOUD_AGENT.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/CLOUD_AGENT.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/CLOUD_AGENT.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/CLOUD_AGENT.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/CLOUD_AGENT.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/CLOUD_AGENT.md) · 🇲🇲 [my](../../../my/docs/frameworks/CLOUD_AGENT.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/CLOUD_AGENT.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/CLOUD_AGENT.md) · 🇳🇴 [no](../../../no/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [or](../../../or/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/CLOUD_AGENT.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/CLOUD_AGENT.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/CLOUD_AGENT.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/CLOUD_AGENT.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/CLOUD_AGENT.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/CLOUD_AGENT.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/CLOUD_AGENT.md) · 🇱🇰 [si](../../../si/docs/frameworks/CLOUD_AGENT.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/CLOUD_AGENT.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/CLOUD_AGENT.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/CLOUD_AGENT.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/CLOUD_AGENT.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/CLOUD_AGENT.md) · 🇹🇭 [th](../../../th/docs/frameworks/CLOUD_AGENT.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/CLOUD_AGENT.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/CLOUD_AGENT.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/CLOUD_AGENT.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/CLOUD_AGENT.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/CLOUD_AGENT.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/CLOUD_AGENT.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/CLOUD_AGENT.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/CLOUD_AGENT.md) · 🇪🇹 [am](../../../am/docs/frameworks/CLOUD_AGENT.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/CLOUD_AGENT.md) · 🇦🇿 [az](../../../az/docs/frameworks/CLOUD_AGENT.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/CLOUD_AGENT.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/CLOUD_AGENT.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/CLOUD_AGENT.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/CLOUD_AGENT.md) · 🇩🇰 [da](../../../da/docs/frameworks/CLOUD_AGENT.md) · 🇩🇪 [de](../../../de/docs/frameworks/CLOUD_AGENT.md) · 🇬🇷 [el](../../../el/docs/frameworks/CLOUD_AGENT.md) · 🇪🇸 [es](../../../es/docs/frameworks/CLOUD_AGENT.md) · 🇪🇪 [et](../../../et/docs/frameworks/CLOUD_AGENT.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/CLOUD_AGENT.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/CLOUD_AGENT.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/CLOUD_AGENT.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/CLOUD_AGENT.md) · 🇮🇱 [he](../../../he/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/CLOUD_AGENT.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/CLOUD_AGENT.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/CLOUD_AGENT.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/CLOUD_AGENT.md) · 🇮🇩 [id](../../../id/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/CLOUD_AGENT.md) · 🇮🇹 [it](../../../it/docs/frameworks/CLOUD_AGENT.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/CLOUD_AGENT.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/CLOUD_AGENT.md) · 🇰🇭 [km](../../../km/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/CLOUD_AGENT.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/CLOUD_AGENT.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/CLOUD_AGENT.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/CLOUD_AGENT.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/CLOUD_AGENT.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/CLOUD_AGENT.md) · 🇲🇲 [my](../../../my/docs/frameworks/CLOUD_AGENT.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/CLOUD_AGENT.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/CLOUD_AGENT.md) · 🇳🇴 [no](../../../no/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [or](../../../or/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/CLOUD_AGENT.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/CLOUD_AGENT.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/CLOUD_AGENT.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/CLOUD_AGENT.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/CLOUD_AGENT.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/CLOUD_AGENT.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/CLOUD_AGENT.md) · 🇱🇰 [si](../../../si/docs/frameworks/CLOUD_AGENT.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/CLOUD_AGENT.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/CLOUD_AGENT.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/CLOUD_AGENT.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/CLOUD_AGENT.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/CLOUD_AGENT.md) · 🇹🇭 [th](../../../th/docs/frameworks/CLOUD_AGENT.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/CLOUD_AGENT.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/CLOUD_AGENT.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/CLOUD_AGENT.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/CLOUD_AGENT.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/CLOUD_AGENT.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/CLOUD_AGENT.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/CLOUD_AGENT.md)
 
 ---
 
@@ -192,7 +192,9 @@ export interface CloudAgentTask {
 
 ## డేటాబేస్
 
-మూలం: `src/lib/cloudAgent/db.ts` — పట్టిక `createCloudAgentTaskTable()` ద్వారా అవసరమైనప్పుడు సృష్టించబడుతుంది (`src/lib/cloudAgent/index.ts`లో మాడ్యూల్ దిగుమతి సమయంలో కూడా ఇది కాల్ చేయబడుతుంది).
+మూలం: `src/lib/cloudAgent/db.ts` — పట్టిక
+`createCloudAgentTaskTable()` ద్వారా అవసరమైనప్పుడు సృష్టించబడుతుంది (`src/lib/cloudAgent/index.ts` నుండి
+మాడ్యూల్ దిగుమతి సమయంలో కూడా పిలవబడుతుంది).
 
 ```sql
 CREATE TABLE IF NOT EXISTS cloud_agent_tasks (
@@ -304,21 +306,27 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 
 ## REST API — క్లౌడ్ ప్రొవైడర్ ప్లంబింగ్
 
-`src/app/api/cloud/` కింద ఉన్న ఈ సహాయక ఎండ్పాయింట్లు, ప్రొవైడర్ కనెక్షన్ మెటాడేటాను చదవడానికి మరియు మోడల్ అలియాస్లను పరిష్కరించడానికి రిమోట్ క్లయింట్లు
-(CLI, Electron యాప్ లేదా సింక్ వర్కర్లు) ఉపయోగిస్తాయి. టాస్క్ ఎండ్పాయింట్లు ఉపయోగించే మేనేజ్మెంట్ ఆథ్తో కాకుండా, ఇవి **సాధారణ API కీ**
-ద్వారా (`validateApiKey` ఉపయోగించి) ప్రామాణీకరించబడతాయి.
+`src/app/api/cloud/` కింద ఉన్న ఈ సహాయక ఎండ్పాయింట్లు రిమోట్ క్లయింట్లు
+(CLI, Electron యాప్ లేదా సింక్ వర్కర్లు) ప్రొవైడర్ కనెక్షన్ మెటాడేటాను చదవడానికి
+మరియు మోడల్ అలియాస్లను పరిష్కరించడానికి ఉపయోగిస్తాయి. ఇవి టాస్క్ ఎండ్పాయింట్లు ఉపయోగించే మేనేజ్మెంట్ ప్రమాణీకరణతో కాకుండా, **API కీ**
+(`validateApiKey` ద్వారా)తో ప్రమాణీకరించబడతాయి; `/api/cloud/auth`
+ఏమి తిరిగి ఇస్తుందనేది కీ స్కోప్పై ఆధారపడి ఉంటుంది (క్రింద చూడండి).
 
-| పద్ధతి | పాత్                            | ఉద్దేశ్యం                                                                            |
-| ------ | ------------------------------- | ------------------------------------------------------------------------------------ |
-| POST   | `/api/cloud/auth`               | API కీని ధృవీకరించి, మాస్క్ చేసిన కనెక్షన్ మెటాడేటా + మోడల్ అలియాస్లను తిరిగి ఇవ్వడం |
-| PUT    | `/api/cloud/credentials/update` | `accessToken` / `refreshToken` / `expiresAt`లను రీఫ్రెష్ చేయడం                       |
-| POST   | `/api/cloud/model/resolve`      | మోడల్ అలియాస్ను `{ provider, model }`గా పరిష్కరించడం                                 |
-| GET    | `/api/cloud/models/alias`       | అన్ని మోడల్ అలియాస్లను జాబితా చేయడం                                                  |
-| PUT    | `/api/cloud/models/alias`       | మోడల్ అలియాస్ను సెట్ చేయడం (ప్రారంభించబడి ఉంటే Cloudకు ఆటో-సింక్ చేయడం)              |
+| పద్ధతి | పాత్                            | ఉద్దేశ్యం                                                                              |
+| ------ | ------------------------------- | -------------------------------------------------------------------------------------- |
+| POST   | `/api/cloud/auth`               | API కీని ధ్రువీకరించి, మాస్క్ చేసిన కనెక్షన్ మెటాడేటా + మోడల్ అలియాస్లను తిరిగి ఇవ్వడం |
+| PUT    | `/api/cloud/credentials/update` | `accessToken` / `refreshToken` / `expiresAt`లను రిఫ్రెష్ చేయడం                         |
+| POST   | `/api/cloud/model/resolve`      | మోడల్ అలియాస్ను `{ provider, model }`గా పరిష్కరించడం                                   |
+| GET    | `/api/cloud/models/alias`       | అన్ని మోడల్ అలియాస్లను జాబితా చేయడం                                                    |
+| PUT    | `/api/cloud/models/alias`       | మోడల్ అలియాస్ను సెట్ చేయడం (ప్రారంభించబడి ఉంటే క్లౌడ్కు స్వయంచాలకంగా సింక్ చేయడం)      |
 
-`/api/cloud/auth` ముడి `apiKey` / `accessToken` / `refreshToken`లను ఎప్పుడూ తిరిగి ఇవ్వదు. ఇది
-`hasApiKey`, `hasAccessToken`, `hasRefreshToken` మరియు మాస్క్ చేసిన ప్రివ్యూను
-(`maskedApiKey`: మొదటి 4 + `****` + చివరి 4) తిరిగి ఇస్తుంది.
+`/api/cloud/auth` ముడి `apiKey` / `accessToken` / `refreshToken`లను ఎప్పటికీ తిరిగి ఇవ్వదు. కీ
+ఉపయోగించగల సక్రియ కనెక్షన్ల కోసం ఇది `hasApiKey`, `hasAccessToken`, `hasRefreshToken`లను
+తిరిగి ఇస్తుంది (`allowedConnections`తో పరిమితం చేసిన కీకి అవి మాత్రమే కనిపిస్తాయి). `manage`
+లేదా `admin` స్కోప్ ఉన్న API కీకి, `OMNIROUTE_API_KEY` నుండి వచ్చే డిప్లాయ్మెంట్ కీతో సహా, ఇది
+మాస్క్ చేసిన ప్రివ్యూ (`maskedApiKey`: ప్రతి చివర గరిష్ఠంగా 4 అక్షరాలు, చిన్న కీకి అంతకంటే తక్కువ,
+8 లేదా అంతకంటే తక్కువ అక్షరాలు ఉన్న కీకి ఏవీ కాదు) మరియు కనెక్షన్కు చెందిన `projectId`ను కూడా
+తిరిగి ఇస్తుంది. ఇతర కీ ఏదైనా ఉపయోగించినప్పుడు ఈ రెండు ఫీల్డ్లు ప్రతిస్పందనలో చేర్చబడవు.
 
 ## క్రెడెన్షియల్స్ పరిష్కారం
 

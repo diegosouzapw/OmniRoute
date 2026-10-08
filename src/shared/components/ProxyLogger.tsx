@@ -13,8 +13,11 @@ import {
 import {
   formatTime,
   formatDuration as formatLatency,
+  maskAccount,
+  maskSegment,
   truncateUrl,
 } from "@/shared/utils/formatting";
+import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
 import {
   LOG_TABLE_CLASS,
@@ -32,21 +35,39 @@ const PROXY_COLUMN_KEYS = [
   "type",
   "level",
   "provider",
+  "upstream",
+  "egress",
+  "correlation",
+  "servedBy",
   "target",
   "latency",
   "ip",
   "time",
 ];
 
+/**
+ * A proxy log row is a connection test when the writer marked it as such:
+ * the `provider-test` level fallback (no proxy resolved) or the
+ * `/connection-test` target suffix (a proxy was resolved, so `level` carries
+ * the real level). Both markers are written by the connection-test route.
+ */
+function isProviderTestLog(log) {
+  if (!log) return false;
+  if (log.level === "provider-test") return true;
+  return typeof log.targetUrl === "string" && log.targetUrl.endsWith("/connection-test");
+}
+
 const DEFAULT_VISIBLE = Object.fromEntries(PROXY_COLUMN_KEYS.map((key) => [key, true]));
 
 export default function ProxyLogger() {
   const t = useTranslations("proxyLogger");
+  const { emailsVisible } = useEmailPrivacyStore();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [recording, setRecording] = useState(true);
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState("all");
   const [selectedType, setSelectedType] = useState("");
   const [selectedProvider, setSelectedProvider] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("");
@@ -69,6 +90,15 @@ export default function ProxyLogger() {
     [t]
   );
 
+  const sourceFilters = useMemo(
+    () => [
+      { key: "all", label: t("filterAll") },
+      { key: "traffic", label: t("filterTraffic") },
+      { key: "tests", label: t("filterTests") },
+    ],
+    [t]
+  );
+
   const columns = useMemo(
     () => [
       { key: "status", label: t("colStatus") },
@@ -77,6 +107,10 @@ export default function ProxyLogger() {
       { key: "type", label: t("colType") },
       { key: "level", label: t("colLevel") },
       { key: "provider", label: t("colProvider") },
+      { key: "upstream", label: t("colUpstream") },
+      { key: "egress", label: t("colEgress") },
+      { key: "correlation", label: t("colCorrelation") },
+      { key: "servedBy", label: t("colServedBy") },
       { key: "target", label: t("colTarget") },
       { key: "latency", label: t("colLatency") },
       { key: "ip", label: t("colClientIp") },
@@ -164,7 +198,13 @@ export default function ProxyLogger() {
 
   const sortedLogs = useMemo(() => {
     const arr = [...logs];
-    arr.sort((a, b) => {
+    const filtered =
+      sourceFilter === "tests"
+        ? arr.filter(isProviderTestLog)
+        : sourceFilter === "traffic"
+          ? arr.filter((l) => !isProviderTestLog(l))
+          : arr;
+    filtered.sort((a, b) => {
       switch (sortBy) {
         case "oldest":
           return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
@@ -177,8 +217,8 @@ export default function ProxyLogger() {
           return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
       }
     });
-    return arr;
-  }, [logs, sortBy]);
+    return filtered;
+  }, [logs, sortBy, sourceFilter]);
 
   const uniqueProviders = [...new Set(logs.map((l) => l.provider).filter(Boolean))].sort();
   const uniqueTypes = [...new Set(logs.map((l) => l.proxy?.type).filter(Boolean))].sort();
@@ -190,6 +230,7 @@ export default function ProxyLogger() {
   const timeoutCount = logs.filter((l) => l.status === "timeout").length;
   const directCount = logs.filter((l) => l.level === "direct").length;
   const tlsCount = logs.filter((l) => l.tlsFingerprint).length;
+  const testsCount = logs.filter(isProviderTestLog).length;
 
   return (
     <div className="flex flex-col gap-4">
@@ -297,6 +338,11 @@ export default function ProxyLogger() {
               🔒 {tlsCount} TLS
             </span>
           )}
+          {testsCount > 0 && (
+            <span className="px-2 py-1 rounded bg-violet-500/10 text-violet-400 font-mono">
+              {testsCount} {t("filterTests")}
+            </span>
+          )}
         </div>
 
         {/* Sort */}
@@ -340,6 +386,25 @@ export default function ProxyLogger() {
             }`}
           >
             {f.icon && <span className="material-symbols-outlined text-[14px]">{f.icon}</span>}
+            {f.label}
+          </button>
+        ))}
+
+        {uniqueProviders.length > 0 && <span className="w-px h-5 bg-border mx-1" />}
+
+        <span className="text-[10px] text-text-muted uppercase tracking-wider mr-1">
+          {t("filterSource")}
+        </span>
+        {sourceFilters.map((f) => (
+          <button
+            key={`source-${f.key}`}
+            onClick={() => setSourceFilter(sourceFilter === f.key ? "all" : f.key)}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-all ${
+              sourceFilter === f.key
+                ? "bg-primary text-white border-primary"
+                : "bg-bg-subtle border-border text-text-muted hover:border-text-muted"
+            }`}
+          >
             {f.label}
           </button>
         ))}
@@ -424,6 +489,18 @@ export default function ProxyLogger() {
                   )}
                   {visibleColumns.provider && (
                     <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("colProvider")}</th>
+                  )}
+                  {visibleColumns.upstream && (
+                    <th className={LOG_TABLE_HEADER_CELL_RIGHT_CLASS}>{t("colUpstream")}</th>
+                  )}
+                  {visibleColumns.egress && (
+                    <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("colEgress")}</th>
+                  )}
+                  {visibleColumns.correlation && (
+                    <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("colCorrelation")}</th>
+                  )}
+                  {visibleColumns.servedBy && (
+                    <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("colServedBy")}</th>
                   )}
                   {visibleColumns.target && (
                     <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("colTarget")}</th>
@@ -534,6 +611,39 @@ export default function ProxyLogger() {
                           ) : (
                             <span className="text-text-muted text-[10px]">—</span>
                           )}
+                        </td>
+                      )}
+                      {visibleColumns.upstream && (
+                        <td className="px-3 py-2 text-right text-text-muted font-mono">
+                          {typeof log.upstreamStatus === "number"
+                            ? String(log.upstreamStatus)
+                            : "—"}
+                        </td>
+                      )}
+                      {visibleColumns.egress && (
+                        <td className="px-3 py-2 font-mono text-[11px] text-emerald-400">
+                          {maskSegment(log.egressIp) || "—"}
+                        </td>
+                      )}
+                      {visibleColumns.correlation && (
+                        <td className="px-3 py-2 font-mono text-[11px]">
+                          {log.correlationId ? (
+                            <a
+                              href={`/dashboard/logs?correlationId=${encodeURIComponent(log.correlationId)}`}
+                              onClick={(e) => e.stopPropagation()}
+                              title={log.correlationId}
+                              className="text-primary hover:underline"
+                            >
+                              {log.correlationId.slice(0, 12)}…
+                            </a>
+                          ) : (
+                            <span className="text-text-muted text-[10px]">—</span>
+                          )}
+                        </td>
+                      )}
+                      {visibleColumns.servedBy && (
+                        <td className="px-3 py-2 font-mono text-[11px] text-text-muted">
+                          {maskAccount(log.rotationAccount ?? log.account, emailsVisible) || "—"}
                         </td>
                       )}
                       {visibleColumns.target && (

@@ -1,59 +1,59 @@
 # Management Authentication (Hausa)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇦 [bs](../../../bs/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
 
 ---
 
-OmniRoute na da **rukunin bayanan shaida guda huɗu** waɗanda za su iya ba da izini ga hanyoyin gudanarwa.
-Ba za a iya amfani da su a madadin juna ba. Maɓallan Inference API (`sk-…`) ba sa **gudanar da**
-uwar garken sai idan an ba su izinin `manage` ko `admin` kai tsaye.
+OmniRoute yana da **iyalai huɗu na takardun shaida** waɗanda zasu iya ba da izinin hanyoyin gudanarwa.
+Ba za a iya musanya su ba. Maɓallan API na Inference (`sk-…`) ba sa sarrafa
+sabar sai dai idan an ba su izini a fili `manage` ko `admin` scope.
 
 Aiwatarwa ta asali: `src/lib/api/requireManagementAuth.ts`.
 
-| Bayanan shaida             | Siffar da aka saba                     | Inda ake ƙirƙira                                    | Amfanin da aka nufa           | Ƙarfin gudanarwa                                                                                          |
-| -------------------------- | -------------------------------------- | --------------------------------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Zaman Dashboard JWT        | cookie na `auth_token`                 | Shiga Dashboard                                     | Browser UI                    | Cikakken gudanarwar dashboard, bisa ƙa'idojin CSRF, kasancewar gida, da hanyoyin da ake karewa a koyaushe |
-| Token na machine-id na CLI | na ciki / na gida                      | Fara CLI (`omniroute` a kan na'ura ɗaya)            | CLI na gida                   | Gudanarwa ta gida kawai                                                                                   |
-| Scoped Access Token        | `oma_live_…`                           | **Settings → Access Tokens** ko `omniroute connect` | CLI na nesa da management API | Dole ne ya cika izinin `read`, `write`, ko `admin` da hanyar ke buƙata                                    |
-| Maɓallin Inference API     | `sk-…` (da sauran farkon maɓallan API) | **API Manager / API Keys**                          | inference na `/v1/*`          | **Babu** sai idan metadata na maɓallin ya ƙunshi `manage` ko `admin`                                      |
+| Takardar Shaida             | Tsarin yau da kullun                        | An ƙirƙira shi a ina                                   | Amfani da aka nufa               | Ƙarfin Gudanarwa                                                                                |
+| --------------------------- | ------------------------------------------- | ------------------------------------------------------ | -------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Zaman JWT na Dashboard      | `auth_token` kuki                           | Shiga Dashboard                                        | UI na Browser                    | Cikakken gudanarwar dashboard, ƙarƙashin CSRF, wuri, da ƙa'idodin hanyoyin da aka kare koyaushe |
+| Alamar ID na Injin CLI      | na ciki / na gida                           | Fara CLI (`omniroute` akan inji ɗaya)                  | CLI na gida                      | Gudanarwa na gida kawai                                                                         |
+| Alamar Samun Dama Mai Iyaka | `oma_live_…`                                | **Saituna → Alamar Samun Dama** ko `omniroute connect` | CLI mai nisa da API na gudanarwa | Dole ne ya gamsar da `read`, `write`, ko `admin` scope da ake buƙata na hanya                   |
+| Maɓallin API na Inference   | `sk-…` (da sauran prefixes na maɓallin API) | **Manajan API / Maɓallan API**                         | `/v1/*` inference                | **Babu** sai dai idan metadata na maɓallin ya haɗa da `manage` ko `admin`                       |
 
-Bayanan shaida na `oma_` bayanan shaidar gudanarwa/CLI ne. **Ba** maɓallan inference API ba ne.
+Takardun shaida na `oma_` takardun shaida ne na gudanarwa/CLI. Ba maɓallan API na inference ba ne.
 
-Idan an kashe tantancewar shiga/maɓallin API ga uwar garken, wasu hanyoyin gudanarwa za su iya
-karɓar kira marasa tantancewa. Hanyoyin gida-kawai da hanyoyin da ake karewa a koyaushe har yanzu suna
-bin nasu ƙa'idojin. Saboda haka, gabatar da ɗaya daga cikin waɗannan bayanan shaida ba wajibi ba ne a
-kowane yanayi, kuma mallakar ɗaya ba ya wadatarwa a kowane yanayi ba tare da izinin da ake buƙata
-da kasancewar hanyar a gida ba.
+Idan an kashe shiga/API-key auth don sabar, wasu hanyoyin gudanarwa na iya
+karɓar kira marasa inganci. Hanyoyin da ke na gida kawai da waɗanda aka kare koyaushe har yanzu suna amfani da nasu ƙa'idodin. Gabatar da ɗaya daga cikin waɗannan takardun shaida saboda haka ba wajibi bane a ko'ina, kuma mallakar ɗaya bai isa ba a ko'ina ba tare da scope da wuri na hanya da ake buƙata ba.
 
-Mai alaƙa: [Yanayin Nesa](./REMOTE-MODE.md) (yadda ake samar da `oma_live_…` don CLI na nesa).
+Mai alaƙa: [Yanayin Nesa](./REMOTE-MODE.md) (yadda ake ƙirƙirar `oma_live_…` don CLI mai nisa).
 
 ---
 
-## Jadawalan izini
+## Ma'aunan fannoni
 
-Waɗannan ƙamus na izini guda biyu **sun bambanta**. Kada a gauraya su.
+Fannonin sarrafa maɓallin API da fannonin alamar shiga (access-token) kalmomi ne daban-daban.
+Fannonin kayan aikin MCP kalma ce ta uku, ana bincika ta da `scopeMatches` maimakon
+kowane aiki a cikin teburin da ke ƙasa. Gefe da gefe:
+[Fannoni uku na iyakoki](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Izinin Access Token (`oma_live_…`)
+### Fannonin Alamar Shiga (Access Token) (`oma_live_…`)
 
-| Izini   | Ayyukan da aka saba                                                                               |
-| ------- | ------------------------------------------------------------------------------------------------- |
-| `read`  | Jerin/halin buƙatun GET waɗanda aka ba token damar gani                                           |
-| `write` | Sauye-sauye (ƙirƙira/sabuntawa/sharewa) da ke ƙasa da admin                                       |
-| `admin` | Cikakken CLI na nesa / connect token (fara aiki ta kalmar sirri yana amfani da wannan ta tsohuwa) |
+| Fanni   | Ayyuka na yau da kullun                                              |
+| ------- | -------------------------------------------------------------------- |
+| `read`  | Jerin/matakin GETs da alamar shiga ke da izinin gani                 |
+| `write` | Canje-canje (ƙirƙira/sabunta/share) ƙarƙashin mai gudanarwa          |
+| `admin` | Cikakken CLI mai nisa / alamar haɗi (kalmar sirri ta asali tana nan) |
 
-Token mai `read` ba zai iya kiran hanyar `write` ba. Siffar saƙon lokacin aiki:
+Alamar shiga mai `read` ba za ta iya kiran hanyar `write` ba. Siffar saƙon lokacin aiki:
 `Access token scope '<have>' is insufficient; '<need>' required.`
 
-### Izinin gudanarwar maɓallin API
+### Fannonin sarrafa maɓallin API
 
-| Izini    | Ma'ana                                                                            |
-| -------- | --------------------------------------------------------------------------------- |
-| (babu)   | Inference kawai. Hanyoyin gudanarwa suna mayar da 403.                            |
-| `manage` | Management API (ƙofa ɗaya da reshen maɓallin API na `requireManagementAuth`)      |
-| `admin`  | Haka kuma yana cika `hasManageScope` (ana ɗaukarsa a matsayin mai ikon gudanarwa) |
+| Fanni    | Ma'ana                                                                         |
+| -------- | ------------------------------------------------------------------------------ |
+| `(babu)` | Hasashe kawai. Hanyoyin sarrafawa suna dawo da 403.                            |
+| `manage` | API na sarrafawa (ƙofa ɗaya da reshen maɓallin API na `requireManagementAuth`) |
+| `admin`  | Hakanan yana gamsar da `hasManageScope` (ana ɗaukar shi mai iya sarrafawa)     |
 
-Kunna `manage` a kan maɓallin cikin UI na API Keys / API Manager. Kada a sake amfani da
-maɓallin manhajar taɗi don sarrafa kansa sai idan da gangan ka ba shi wannan izinin.
+Kunna `manage` akan maɓallin a cikin API Keys / API Manager UI. Kada a sake amfani da
+maɓallin abokin ciniki na hira don sarrafa kai sai dai idan da gangan ka ba da wannan fannin.
 
 ---
 
@@ -129,29 +129,29 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## Kurakuran runtime na yanzu (kada a maimaita sirrika)
+## Kurakuran lokacin aiki na yanzu (kada a nuna sirri)
 
-| Yanayi                                                   | Matsayin da aka saba gani | Saƙo (an tsabtace shi)                                               |
-| -------------------------------------------------------- | ------------------------- | -------------------------------------------------------------------- |
-| Babu bayanan shaida                                      | 401                       | `Authentication required`                                            |
-| `oma_live_…` mara inganci/wa'adinsa ya ƙare              | 401                       | `Invalid or expired access token`                                    |
-| API key mai inganci ba tare da `manage`/`admin` ba       | 403                       | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
-| API key na yau da kullum mara inganci a hanyar gudanarwa | 403                       | `Invalid management token`                                           |
-| Scope na Access Token ya yi ƙasa sosai                   | 403                       | `Access token scope '<have>' is insufficient; '<need>' required.`    |
+| Halin da ake ciki                                                | Matsayin da aka saba | Saƙo (an tsarkake)                                                   |
+| :--------------------------------------------------------------- | :------------------- | :------------------------------------------------------------------- |
+| Babu takardar shaidda                                            | 401                  | `Authentication required`                                            |
+| `oma_live_…` mara inganci/ya ƙare                                | 401                  | `Invalid or expired access token`                                    |
+| Maɓallin API mai inganci ba tare da `manage`/`admin` ba          | 403                  | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
+| Maɓallin API na yau da kullun mara inganci akan hanyar gudanarwa | 403                  | `Invalid management token`                                           |
+| Iyakar shiga ta Access Token ta yi ƙasa                          | 403                  | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-"Invalid management token" na nufin cewa **ba a** karɓi bearer ɗin a matsayin bayanan shaidar
-gudanarwa ba. Wannan **ba ya** bayyana irin wanda ya kamata ka ƙirƙira. Yi amfani da teburin da ke sama:
-inference keys suna buƙatar scope na `manage`; CLI na nesa yana buƙatar `oma_live_…`; dashboard
-yana amfani da session cookie.
+"Invalid management token" yana nufin cewa ba a karɓi mai ɗauka ba a matsayin
+takardar shaidda ta gudanarwa. Ba ya gaya muku wane iyali za ku ƙirƙira. Yi amfani da teburin da ke sama:
+maɓallan inference suna buƙatar iyakar `manage`; CLI mai nisa yana buƙatar `oma_live_…`; dashboard
+yana amfani da kuki na zaman.
 
 ---
 
-## Zaɓin mafi ƙarancin izini da aka ba da shawara
+## Zaɓin mafi ƙarancin gata da aka ba da shawarar
 
-| Mai kira                                         | Abin da za a yi amfani da shi                        |
-| ------------------------------------------------ | ---------------------------------------------------- |
-| Browser                                          | Session na dashboard                                 |
-| CLI a kan host ɗin server                        | Token na na'ura                                      |
-| CLI a kan laptop da ke sadarwa da server na nesa | `oma_live_…` daga `omniroute connect`                |
-| CI / scripts (gudanarwa kawai)                   | `oma_live_…` mai mafi ƙarancin scope da zai yi aiki  |
-| CI da dole ne ya kira duka `/v1` da `/api`       | API key mai `manage` **ko** bayanan shaida guda biyu |
+| Mai kira                                                     | Amfani                                                         |
+| :----------------------------------------------------------- | :------------------------------------------------------------- |
+| Mai bincike                                                  | Zaman Dashboard                                                |
+| CLI akan mai masaukin sabar                                  | Alamar inji                                                    |
+| CLI akan kwamfutar tafi-da-gidanka yana magana da sabar nesa | `oma_live_…` daga `omniroute connect`                          |
+| CI / rubutun (sarrafawa kawai)                               | `oma_live_…` tare da mafi ƙarancin iyakacin aiki               |
+| CI wanda dole ne ya kira `/v1` da `/api`                     | Maɓallin API tare da `manage` **ko** takardun shaida guda biyu |

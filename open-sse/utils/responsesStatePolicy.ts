@@ -73,6 +73,17 @@ export function applyResponsesPreviousResponseIdPolicy(
     return { body, stripped: false, mode };
   }
 
+  // Under auto, never strip the only continuity field: if input would ship
+  // empty, GitHub Copilot /responses answers
+  //   400 One of "input" or "previous_response_id" or 'prompt' or 'conversation'
+  //       must be provided.
+  // Explicit mode "strip" still wins (operator chose statelessness).
+  const input = record.input;
+  const inputIsEmpty = input === undefined || (Array.isArray(input) && input.length === 0);
+  if (mode === "auto" && inputIsEmpty) {
+    return { body, stripped: false, mode };
+  }
+
   const next = { ...record };
   delete next.previous_response_id;
   return { body: next, stripped: true, mode };

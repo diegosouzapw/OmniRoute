@@ -1,58 +1,62 @@
 # Management Authentication (Eesti)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇦 [bs](../../../bs/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
 
 ---
 
-OmniRoute'il on **neli mandaadiperekonda**, millega saab haldusmarsruutidele juurdepääsu autoriseerida.
-Need ei ole omavahel asendatavad. Järeldusliidese API-võtmed (`sk-…`) **ei** halda
-serverit, välja arvatud juhul, kui neile on sõnaselgelt antud ulatus `manage` või `admin`.
+OmniRoute'il on **neli mandaatide perekonda**, mis saavad autoriseerida haldusmarsruute.
+Need ei ole omavahel asendatavad. Järeldus-API võtmed (`sk-…`) **ei** halda
+serverit, välja arvatud juhul, kui neile on selgesõnaliselt antud `manage` või `admin` ulatus.
 
-Kanooniline teostus: `src/lib/api/requireManagementAuth.ts`.
+Kanooniline implementatsioon: `src/lib/api/requireManagementAuth.ts`.
 
-| Mandaat                  | Tüüpiline vorm                       | Kus luuakse                                       | Ettenähtud kasutus       | Haldusvõimekus                                                                                              |
-| ------------------------ | ------------------------------------ | ------------------------------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------- |
-| Juhtpaneeli JWT-seanss   | `auth_token` küpsis                  | Juhtpaneelile sisselogimine                       | Brauseri kasutajaliides  | Täielik haldus juhtpaneeli kaudu, arvestades CSRF-i, asukohapõhisuse ja alati kaitstud marsruutide reegleid |
-| CLI masina ID token      | sisemine / kohalik                   | CLI algseadistus (`omniroute` samas masinas)      | Kohalik CLI              | Ainult kohalik haldus                                                                                       |
-| Ulatusega pääsutoken     | `oma_live_…`                         | **Seaded → Pääsutokenid** või `omniroute connect` | Kaug-CLI ja haldus-API   | Peab vastama marsruudi nõutavale ulatusele `read`, `write` või `admin`                                      |
-| Järeldusliidese API-võti | `sk-…` (ja muud API-võtme prefiksid) | **API-haldur / API-võtmed**                       | `/v1/*` järelduspäringud | **Puudub**, välja arvatud juhul, kui võtme metaandmed sisaldavad ulatust `manage` või `admin`               |
+| Mandaat                 | Tüüpiline vorm                       | Loodud kus                                         | Kavandatud kasutusala   | Haldusvõimekus                                                                                       |
+| :---------------------- | :----------------------------------- | :------------------------------------------------- | :---------------------- | :--------------------------------------------------------------------------------------------------- |
+| Armatuurlaua JWT seanss | `auth_token` küpsis                  | Armatuurlaua sisselogimine                         | Brauseri kasutajaliides | Täielik armatuurlaua haldus, vastavalt CSRF-ile, lokaalsusele ja alati kaitstud marsruudi reeglitele |
+| CLI masina-ID token     | sisemine / lokaalne                  | CLI alglaadimine (`omniroute` samal masinal)       | Kohalik CLI             | Ainult kohalik haldus                                                                                |
+| Ulatuslik pääsmetoken   | `oma_live_…`                         | **Seaded → Pääsmetokenid** või `omniroute connect` | Kaug-CLI ja haldus-API  | Peab vastama marsruudi nõutavale `read`, `write` või `admin` ulatusele                               |
+| Järeldus-API võti       | `sk-…` (ja muud API-võtme prefiksid) | **API haldur / API võtmed**                        | `/v1/*` järeldus        | **Puudub**, välja arvatud juhul, kui võtme metaandmed sisaldavad `manage` või `admin`                |
 
-`oma_` mandaadid on halduse/CLI mandaadid. Need **ei ole** järeldusliidese API-võtmed.
+`oma_` mandaadid on haldus-/CLI-mandaadid. Need **ei ole** järeldus-API võtmed.
 
-Kui serveris on sisselogimise/API-võtmega autentimine keelatud, võivad mõned haldusmarsruudid
-aktsepteerida autentimata kutseid. Ainult kohalikele kutsetele mõeldud ja alati kaitstud marsruutidele
-kehtivad siiski nende endi reeglid. Seetõttu ei ole ühe neist mandaatidest esitamine alati
-kohustuslik ning mandaadi omamine ei ole ilma nõutava ulatuse ja marsruudi asukohanõude täitmiseta alati piisav.
+Kui serveri jaoks on sisselogimine/API-võtme autentimine keelatud, võivad mõned haldusmarsruudid
+aktsepteerida autentimata kõnesid. Ainult kohalikud ja alati kaitstud marsruudid rakendavad
+endiselt oma reegleid. Seetõttu ei ole ühegi mandaadi esitamine universaalselt
+kohustuslik ja selle omamine ei ole universaalselt piisav ilma nõutava
+ulatuse ja marsruudi lokaalsuseta.
 
-Seotud teema: [Kaugrežiim](./REMOTE-MODE.md) (kuidas `oma_live_…` kaug-CLI jaoks väljastatakse).
+Seotud: [Kaugrežiim](./REMOTE-MODE.md) (kuidas `oma_live_…` kaug-CLI jaoks vermitakse).
 
 ---
 
-## Ulatuste maatriksid
+## Ulatuse maatriksid
 
-Need kaks ulatuste sõnavara on **erinevad**. Ärge ajage neid omavahel segamini.
+API-võtme halduse ulatused ja pääsutokeni ulatused on erinevad sõnavarad.
+MCP tööriista ulatused on kolmas sõnavara, mida kontrollitakse `scopeMatches` abil, mitte
+kummagi allolevas tabelis oleva funktsiooniga. Kõrvuti:
+[Kolm ulatuse nimeruumi](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
 ### Pääsutokeni ulatused (`oma_live_…`)
 
-| Ulatus  | Tüüpilised toimingud                                                              |
-| ------- | --------------------------------------------------------------------------------- |
-| `read`  | Loendi-/oleku-GET-päringud, mida tokenil on lubatud näha                          |
-| `write` | Administraatori tasemest madalamad muudatused (loomine/värskendamine/kustutamine) |
-| `admin` | Täielik kaug-CLI / ühendustoken (parooliga algseadistus kasutab seda vaikimisi)   |
+| Ulatus  | Tüüpilised toimingud                                                         |
+| ------- | ---------------------------------------------------------------------------- |
+| `read`  | Nimekirja/oleku GET-päringud, mida tokenil on lubatud näha                   |
+| `write` | Mutatsioonid (loomine/uuendamine/kustutamine) allpool administraatori taset  |
+| `admin` | Täielik kaug-CLI / ühenduse token (siin on parooli alglaadimise vaikeseaded) |
 
-Ulatusega `read` token ei saa kutsuda `write`-marsruuti. Käitusaegse teate kuju:
+Token, millel on `read` ulatus, ei saa kutsuda `write` marsruuti. Käitusaja sõnumi kuju:
 `Access token scope '<have>' is insufficient; '<need>' required.`
 
-### API-võtme haldusulatused
+### API-võtme halduse ulatused
 
-| Ulatus   | Tähendus                                                                |
-| -------- | ----------------------------------------------------------------------- |
-| (puudub) | Ainult järelduspäringud. Haldusmarsruudid tagastavad 403.               |
-| `manage` | Haldus-API (sama kontroll nagu `requireManagementAuth` API-võtme harus) |
-| `admin`  | Vastab ka kontrollile `hasManageScope` (käsitletakse haldusvõimelisena) |
+| Ulatus   | Tähendus                                                             |
+| -------- | -------------------------------------------------------------------- |
+| (puudub) | Ainult järeldus. Halduse marsruudid tagastavad 403.                  |
+| `manage` | Halduse API (sama värav nagu `requireManagementAuth` API-võtme haru) |
+| `admin`  | Rahuldab ka `hasManageScope` (käsitletakse haldusvõimelisena)        |
 
-Lubage võtmel API-võtmete / API-halduri kasutajaliideses `manage`. Ärge kasutage
-vestluskliendi võtit automatiseerimiseks, kui te pole sellele ulatusele teadlikult õigust andnud.
+Luba `manage` võtmel API Keys / API Manageri kasutajaliideses. Ära kasuta
+vestlusrakenduse kliendi võtit automatiseerimiseks uuesti, välja arvatud juhul, kui olete selle ulatuse teadlikult andnud.
 
 ---
 
@@ -128,29 +132,26 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## Praegused käitusaegsed vead (ärge väljastage saladusi)
+## Praegused käitusaja vead (ära kajasta saladusi)
 
-| Olukord                                         | Tüüpiline olekukood | Teade (puhastatud)                                                        |
-| ----------------------------------------------- | ------------------- | ------------------------------------------------------------------------- |
-| Autentimisandmed puuduvad                       | 401                 | `Autentimine on nõutav`                                                   |
-| Kehtetu/aegunud `oma_live_…`                    | 401                 | `Kehtetu või aegunud juurdepääsuluba`                                     |
-| Kehtiv API-võti ilma `manage`/`admin` ulatuseta | 403                 | `API-võtmel puudub 'manage'-ulatus. Lubage see API-võtmete juhtpaneelil.` |
-| Kehtetu tavaline API-võti haldusmarsruudil      | 403                 | `Kehtetu haldusluba`                                                      |
-| Juurdepääsuloa ulatus on liiga piiratud         | 403                 | `Juurdepääsuloa ulatus '<have>' pole piisav; nõutav on '<need>'.`         |
+| Olukord                                        | Tavaline staatus | Sõnum (puhastatud)                                                   |
+| :--------------------------------------------- | :--------------- | :------------------------------------------------------------------- |
+| Puuduvad mandaadid                             | 401              | `Authentication required`                                            |
+| Kehtetu/aegunud `oma_live_…`                   | 401              | `Invalid or expired access token`                                    |
+| Kehtiv API võti ilma `manage`/`admin` õiguseta | 403              | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
+| Kehtetu tavaline API võti haldusmarsruudil     | 403              | `Invalid management token`                                           |
+| Pääsutõendi ulatus liiga madal                 | 403              | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-„Kehtetu haldusluba” tähendab, et kandjaluba **ei** aktsepteeritud halduse
-autentimisandmena. See **ei** näita, millist tüüpi luba tuleb luua. Kasutage ülalolevat tabelit:
-järeldamisvõtmed vajavad `manage`-ulatust; kaug-CLI vajab `oma_live_…`; juhtpaneel
-kasutab seansiküpsist.
+"Invalid management token" tähendab, et kandjat **ei** aktsepteeritud haldusmandaadina. See **ei** ütle teile, millist perekonda luua. Kasutage ülaltoodud tabelit: järeldusvõtmed vajavad `manage` ulatust; kaug-CLI vajab `oma_live_…`; armatuurlaud kasutab seansiküpsist.
 
 ---
 
-## Soovitatav vähimate õiguste valik
+## Soovitatav vähima privileegi valik
 
-| Kutsuja                                      | Kasutage                                                             |
-| -------------------------------------------- | -------------------------------------------------------------------- |
-| Brauser                                      | Juhtpaneeli seanss                                                   |
-| CLI serveri hostis                           | Masinaluba                                                           |
-| CLI sülearvutis, mis suhtleb kaugserveriga   | `oma_live_…` käsust `omniroute connect`                              |
-| CI / skriptid (ainult haldus)                | `oma_live_…` väikseima toimiva ulatusega                             |
-| CI, mis peab kutsuma nii `/v1` kui ka `/api` | API-võti `manage`-ulatusega **või** kaks autentimisandmete komplekti |
+| Kutsuja                                      | Kasutus                                          |
+| -------------------------------------------- | ------------------------------------------------ |
+| Brauser                                      | Armatuurlaua seanss                              |
+| CLI serveri hostis                           | Masina token                                     |
+| CLI sülearvutis, mis suhtleb kaugserveriga   | `oma_live_…` käsust `omniroute connect`          |
+| CI / skriptid (ainult haldamiseks)           | `oma_live_…` väikseima toimiva ulatusega         |
+| CI, mis peab kutsuma nii `/v1` kui ka `/api` | API võti `manage` õigusega **või** kaks mandaati |

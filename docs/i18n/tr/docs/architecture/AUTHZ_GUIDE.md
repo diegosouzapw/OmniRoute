@@ -1,15 +1,15 @@
 # Authorization Guide (Türkçe)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
 
 ---
 
-> **Doğruluk kaynağı:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Son güncelleme:** 2026-06-28 — v3.8.40
+> **Doğruluk Kaynağı:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **Son Güncelleme:** 2026-09-22 — kapsam ad alanları `MCP-SERVER.md`'yi işaret ediyor
 
-OmniRoute, her API isteğini denetleyen, rota farkındalığına sahip bir yetkilendirme işlem hattına sahiptir. Sınıflandırma **deterministiktir** ve **başarısızlık durumunda erişimi reddeder** — sınıflandırılamayan her şey `MANAGEMENT` olarak değerlendirilir ve bir oturum veya yönetim düzeyinde belirteç gerektirir. Bu sayfa, rotaların bakımını yapan veya yeni uç noktalar tasarlayan mühendisler için modeli açıklar.
+OmniRoute, her API isteğini denetleyen rota-farkındalıklı bir yetkilendirme hattına sahiptir. Sınıflandırma **deterministik** ve **kapalı-güvenli**dir — sınıflandırılamayan her şey `MANAGEMENT` olarak sonuçlanır ve bir oturum veya yönetim düzeyinde bir jeton gerektirir. Bu sayfa, rotaları sürdüren veya yeni uç noktalar tasarlayan mühendisler için modeli açıklar.
 
-![AuthZ işlem hattı (3 rota sınıfı + politika değerlendirmesi)](../diagrams/exported/authz-pipeline.svg)
+![Yetkilendirme hattı (3 rota sınıfı + politika değerlendirmesi)](../diagrams/exported/authz-pipeline.svg)
 
 > Kaynak: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -17,58 +17,59 @@ OmniRoute, her API isteğini denetleyen, rota farkındalığına sahip bir yetki
 
 ### 1. API Anahtarı (Bearer)
 
-OpenAI/Anthropic/Gemini uyumlu istemci API'leri ve anahtarın `manage` kapsamına sahip olduğu birkaç yönetim rotası için kullanılır.
+OpenAI/Anthropic/Gemini uyumlu istemci API'leri ve anahtarın `manage` kapsamına sahip olduğu bazı yönetim rotaları için kullanılır.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-`src/sse/services/auth.ts` içindeki `isValidApiKey()` / `extractApiKey()` tarafından doğrulanır ve `src/shared/utils/apiAuth.ts` üzerinden yeniden dışa aktarılır. Doğrulayıcı ayrıca `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` ortam değişkenlerini kalıcı doğrudan geçiş anahtarları olarak kabul eder (sorun #1350).
+`src/sse/services/auth.ts` içindeki `isValidApiKey()` / `extractApiKey()` tarafından doğrulanır ve `src/shared/utils/apiAuth.ts` üzerinden yeniden dışa aktarılır. Doğrulayıcı, kalıcı doğrudan geçiş anahtarları olarak `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` ortam değişkenlerini de kabul eder (sorun #1350).
 
 ### 2. Pano Oturumu (auth_token çerezi)
 
-Pano sayfaları ve yönetici işlemleri için kullanılır.
+Pano sayfaları ve yönetici işlemleri içindir.
 
 ```
 Cookie: auth_token=<JWT_SECRET ile imzalanmış JWT>
 ```
 
-Bir çerez yalnızca JWT doğrulandığında **ve** `authenticated: true` taşıdığında oturum olarak kabul edilir
-(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Çerezin her
-tüketicisi (rota koruması, authz işlem hattı yenilemesi, WebSocket el sıkışması, canlı
+Bir çerez, yalnızca JWT doğrulandığında **ve** `authenticated: true` taşıdığında oturum olarak kabul edilir
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Çerezi
+kullanan her bileşen (pano rota koruması (`isDashboardSessionAuthenticated()`), yetkilendirme işlem hattı yenilemesi, WebSocket el sıkışması, canlı
 sunucu, `/api/settings/require-login`, `/api/auth/status`) bu yardımcıdan geçer.
 `JWT_SECRET` ile imzalanmış başka JWT'ler de vardır — Cursor CLI doğrudan geçişi,
-anahtar sahipleri için `iss "omniroute" / aud "cursor-cli"` belirteçleri oluşturur — ve bunlar hiçbir zaman oturum
-olarak kabul edilmez (#13298).
+anahtar sahipleri için `iss "omniroute" / aud "cursor-cli"` belirteçleri oluşturur — ve bunlar hiçbir zaman oturum olarak kabul edilmez
+(#13298).
 
-`src/shared/utils/apiAuth.ts` içindeki `isDashboardSessionAuthenticated()` tarafından doğrulanır. İşlem hattı, 30 günlük kullanım ömrünün bitmesine 7 günden az kaldığında JWT'yi otomatik olarak yeniler.
+`src/shared/utils/apiAuth.ts` içindeki `isDashboardSessionAuthenticated()` tarafından doğrulanır. İşlem hattı, 30 günlük kullanım süresinin bitmesine 7 günden az kaldığında JWT'yi otomatik olarak yeniler.
 
-Bazı yönetim rotaları **iki** modu da kabul eder: API anahtarı `manage` (veya `admin`) kapsamına sahipse çerez VEYA `Bearer <key>`. v3.8'de eklenen “API çağrıları aracılığıyla yapılandırılabilir” iş akışını mümkün kılan budur.
+Her belirteç oluşturucu `mintDashboardSessionToken` üzerinden geçtiği (bir oluşturulma zamanı `iat` ve bir kimlik `jti`) ve doğrulayıcı iki ayarı kontrol ettiği için bir oturum 30 günlük süresi dolmadan da sona erebilir: `sessionsValidAfter`, parola değişikliğiyle ayarlanır ve bu tarihten önce oluşturulan tüm oturumların artık doğrulanmamasını sağlar (parolayı değiştiren tarayıcıya yeni bir çerez verilir); `revokedDashboardSessions` ise `POST /api/auth/logout` tarafından çıkış yapılan oturumun `jti` değerinin eklendiği listedir. Daha eski bir sürüm tarafından oluşturulan oturumlar bu istemlerin hiçbirini taşımaz ve ilk parola değişikliğine kadar geçerli kalır. Ayarlar okunamazsa oturuma güvenilmez.
+
+Bazı yönetim rotaları **iki** modu da kabul eder: çerez VEYA API anahtarı `manage` (ya da `admin`) kapsamına sahip olduğunda `Bearer <key>`. v3.8 sürümünde eklenen "API çağrılarıyla yapılandırılabilir" iş akışını mümkün kılan budur.
 
 #### İsteğe bağlı OIDC oturum açma geçidi (#6973)
 
-Pano yöneticisi oturum açma işlemi, varsayılan parola ile oturum açma yönteminin yanında
-**isteğe bağlı** bir OIDC (OpenID Connect) akışını da destekler — parola ile oturum açma hiçbir zaman
-kaldırılmaz, yalnızca desteklenir:
+Pano yönetici oturum açma işlemi, varsayılan parola ile oturum açmanın yanında **isteğe bağlı olarak etkinleştirilebilen** bir OIDC (OpenID Connect) akışını da destekler — parola ile oturum açma hiçbir zaman kaldırılmaz, yalnızca
+tamamlanır:
 
 - Yalnızca `settings.oidcEnabled === true` olduğunda **ve** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` değerlerinin tümü yapılandırıldığında etkinleştirilir (Ayarlar → Kimlik Doğrulama).
-  Aksi durumda `GET /api/auth/oidc/login`, `400` döndürür.
+  `oidcClientId` / `oidcClientSecret` değerlerinin tümü yapılandırıldığında etkindir (Ayarlar → Kimlik Doğrulama).
+  Aksi takdirde `GET /api/auth/oidc/login`, `400` döndürür.
 - `GET /api/auth/oidc/login`, sağlayıcının
-  `/.well-known/openid-configuration` adresinden `authorization_endpoint` değerini keşfeder (bulamazsa
-  `<issuer>/authorize` değerini kullanır), yönlendirme URI'sini gelen istekten
-  (`x-forwarded-proto` dikkate alınarak) oluşturur ve rastgele bir `state`
-  değerini `httpOnly` özellikli `oidc_state` çerezinde saklayarak IdP'ye yönlendirir.
+  `/.well-known/openid-configuration` adresinden `authorization_endpoint` değerini keşfeder (bulunamazsa
+  `<issuer>/authorize` kullanılır), yönlendirme URI'sini gelen istekten
+  (`x-forwarded-proto` dikkate alınarak) oluşturur ve bir `httpOnly` `oidc_state` çerezinde saklanan rastgele bir `state`
+  ile IdP'ye yönlendirir.
 - `GET /api/auth/oidc/callback`, `state` değerini doğrular, yetkilendirme
   kodunu takas eder ve ID belirtecinin imzasını sağlayıcının JWKS'si aracılığıyla
-  (`jose` paketinin `createRemoteJWKSet` işlevi; her JWKS URI'si için önbelleğe alınır), `issuer`/`audience`
+  (`jose` paketinin `createRemoteJWKSet` işlevi; JWKS URI'si başına önbelleğe alınır), `issuer`/`audience`
   kontrolleriyle doğrular. İsteğe bağlı `oidcAllowedSubjects` izin listesi, belirtecin
-  `sub` talebiyle veya `email` talebiyle eşleşir — e-posta talebi yalnızca
-  `email_verified === true` olduğunda dikkate alınır; böylece IdP'deki doğrulanmamış bir e-posta
-  bu geçitten hiçbir zaman geçemez.
-- Başarılı olduğunda, parola ile oturum açma işleminin oluşturduğu **tamamen aynı** 30 günlük `auth_token`
-  JWT'sini oluşturur (`src/app/api/auth/login/route.ts`); dolayısıyla
-  pano oturum işlem hattının geri kalanı (otomatik yenileme, çerez bayrakları) değişmeden kalır —
+  `sub` istemiyle veya `email` istemiyle eşleşir — e-posta istemi yalnızca
+  `email_verified === true` olduğunda dikkate alınır; dolayısıyla IdP'deki doğrulanmamış bir e-posta hiçbir zaman
+  geçidi aşamaz.
+- Başarılı olduğunda, parola ile oturum açma işleminin oluşturduğu **tam olarak aynı** 30 günlük `auth_token` JWT'sini
+  oluşturur (`src/app/api/auth/login/route.ts`); böylece pano
+  oturum işlem hattının geri kalanı (otomatik yenileme, çerez bayrakları) değişmeden kalır —
   OIDC yalnızca çerezin nasıl oluşturulduğunu değiştirir, verdiği yetkileri değil.
 
 ## Rota Sınıfları
@@ -202,24 +203,22 @@ Kümeyi kullanım kolaylığına göre değil, şekle göre seçin. Tek bir rota
 
 ## Kapsamlar
 
-API anahtarları bir `scopes` dizisi taşır (`api_keys.scopes` içinde JSON olarak saklanır; bkz. `src/lib/db/apiKeys.ts`).
+Üç ad alanı. Her denetleyici yalnızca kendi dizelerini okur. Yan yana karşılaştırma, `manage`'in `read:compression` için `scopeMatches`'i neden başarısız kıldığını ve bir `read` erişim belirtecinin neden `/api/keys/{id}` adresine `PATCH` yapamadığını içeren detaylar [Üç kapsam ad alanı](../frameworks/MCP-SERVER.md#three-scope-namespaces) bölümündedir.
+
+API anahtarları bir `scopes` dizisi taşır (`api_keys.scopes` içinde JSON olarak saklanır, bkz. `src/lib/db/apiKeys.ts`).
 
 ### Yönetim kapsamı
 
-- `manage` / `admin` — Bearer olarak gönderildiğinde anahtara yönetim API uç noktalarına erişim izni verir.
+- `manage` / `admin` — `hasManageScope`. Yönetim API rotalarına taşıyıcı erişimi.
+- `mcp:connect`, `self:usage`, `self:account-quota` ve `policy:bypass-provider-quota` eklemeli tam eşleşen kapsamlardır. Bunlar `MANAGEMENT_API_KEY_SCOPES` dışında yer alır. `mcp:connect` yalnızca `/api/mcp/` döngüsel olmayan ayrılmış bölümünü açar.
 
-### MCP kapsamları (`src/shared/constants/mcpScopes.ts`)
+### MCP araç kapsamları
 
-Her MCP aracı, `MCP_TOOL_SCOPES` aracılığıyla belirli kapsamlar gerektirir. Tam liste (`MCP_SCOPE_LIST`):
+Katalog ve eşleştirme kuralları (aynı dize veya `*` ile biten verilmiş bir kapsam): [MCP araç kapsamları](../frameworks/MCP-SERVER.md#mcp-tool-scopes). `src/shared/constants/mcpScopes.ts` içindeki `MCP_SCOPE_LIST`, tam katalog değil, orijinal yazılmış alt kümedir. Uygulama, `resolveCallerScopeContext()` MCP kimlik doğrulama bilgisinden, istek meta verilerinden veya `OMNIROUTE_MCP_SCOPES`'tan kapsamları çözümledikten sonra `open-sse/mcp-server/scopeEnforcement.ts` içinde çalışır. `OMNIROUTE_MCP_ENFORCE_SCOPES=true` olmadığı sürece kapalı kalır.
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### Erişim belirteci kapsamları
 
-`open-sse/mcp-server/server.ts` içindeki kapsam zorlaması, `resolveCallerScopeContext()` MCP kimlik doğrulama bilgilerinden, istek meta verilerinden veya `OMNIROUTE_MCP_SCOPES` değerinden kapsamları çözümledikten sonra her aracın kapsam listesini `evaluateToolScopes()` işlevine aktarır.
+`oma_live_…` belirteçlerinde `read` / `write` / `admin`, `scopeSatisfies` (`src/lib/accessTokens/scopes.ts`) tarafından sıralanır. Bu sıralama yalnızca erişim belirteci kimlik bilgisi için geçerlidir. Bkz. [Yönetim Kimlik Doğrulaması](../guides/MANAGEMENT-AUTH.md).
 
 ## Kimlik Doğrulama Gereksinimi Anahtarı
 
@@ -267,7 +266,7 @@ x-omniroute-auth-scopes:    virgülle ayrılmış liste
 
 ## Ayrıca Bakınız
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — uç nokta başına kimlik doğrulama işareti
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — uç nokta başına kimlik doğrulama işaretçisi
 - [COMPLIANCE.md](../security/COMPLIANCE.md) — kimlik doğrulama olayları için denetim günlüğü
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP kapsamı uygulama ayrıntıları
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — üç kapsam ad alanı ve MCP araç kapsamı kataloğu
 - Kaynak: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`
