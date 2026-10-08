@@ -166,11 +166,14 @@ export async function POST(request) {
     const CONCURRENCY = 5; // max parallel tests
 
     // GHSA-jmq6-8j86-8xqj: the local CLI probe spawns on the host — only for local callers.
+    // S-01 (#15159): allowLocalSpawn covers the devin cloud-agent validator's CLI
+    // fallback, which also spawns. Same gate, same reason.
     const allowLocalRuntimeProbe = getRequestPeerLocality(request) !== "remote";
+    const allowLocalSpawn = getRequestPeerLocality(request) !== "remote";
     const testOne = async (conn: Record<string, unknown>) => {
       try {
         const result = await Promise.race([
-          testSingleConnection(conn.id, undefined, { allowLocalRuntimeProbe }),
+          testSingleConnection(conn.id, undefined, { allowLocalRuntimeProbe, allowLocalSpawn }),
           new Promise((_, reject) =>
             setTimeout(
               () => reject(new Error("Connection test timed out after 30s")),

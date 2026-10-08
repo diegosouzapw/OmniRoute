@@ -221,6 +221,7 @@ function dropCatalogCacheIfStateChanged(): void {
   if (currentVersion === lastSeenCatalogCacheVersion) return;
   lastSeenCatalogCacheVersion = currentVersion;
   catalogCache.clear();
+  catalogLastGood.clear();
   // Deliberately NOT clearing catalogInFlight: an in-flight build bound to the
   // previous generation is left to finish for its original caller, but the
   // generation check in the join path (below) keeps new requests from joining

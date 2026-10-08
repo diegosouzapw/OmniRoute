@@ -251,6 +251,19 @@ function formatUnknownPlanLabel(raw: string) {
     .join(" ");
 }
 
+function matchCodexPlanTier(raw: string, upper: string) {
+  if (upper === "PROLITE") {
+    return { key: "pro", label: "Pro Standard", variant: "success", rank: 3, raw };
+  }
+  if (upper === "PRO" || upper === "PROEXTRA" || upper === "PRO_EXTRA") {
+    return { key: "pro", label: "Pro Extra", variant: "success", rank: 3, raw };
+  }
+  if (upper === "PROMAX" || upper === "PRO_MAX") {
+    return { key: "pro", label: "Pro Max", variant: "success", rank: 3, raw };
+  }
+  return null;
+}
+
 function matchClaudePlanTier(raw: string, upper: string) {
   const match = upper.match(/(?:DEFAULT_)?CLAUDE_(MAX|PRO|TEAM|ENTERPRISE|FREE)(?:_(\d+X))?/);
   if (!match) return null;
@@ -308,8 +321,10 @@ function matchFreePlanTier(raw: string, upper: string) {
 /**
  * Normalize provider-specific plan labels into a shared tier taxonomy.
  * Supported tiers: enterprise, business, team, ultra, pro, plus, lite, free, unknown.
+ * Codex's Pro Standard/Extra/Max variants are only recognized when `provider === "codex"`;
+ * a plain "Pro" of any other provider keeps the generic "Pro" label.
  */
-export function normalizePlanTier(plan) {
+export function normalizePlanTier(plan, provider?: string | null) {
   const raw = typeof plan === "string" ? plan.trim() : "";
   if (!raw) return unknownPlanTier(null);
 
@@ -321,6 +336,7 @@ export function normalizePlanTier(plan) {
   // Match Anthropic bootstrap strings (claude_max, default_claude_max_20x, etc.)
   // before the generic PRO/TEAM checks so underscored values don't fall through.
   const matched =
+    (provider === "codex" ? matchCodexPlanTier(raw, upper) : null) ||
     matchClaudePlanTier(raw, upper) ||
     matchKeywordPlanTier(raw, upper) ||
     matchTokenPlanTier(raw, upper) ||

@@ -69,7 +69,7 @@ export function mergeProviderModelListing(
       (providerUsesExclusiveSyncedListing(input.providerId) && synced.length > 0));
 
   if (exclusive) {
-    const cursor = providerUsesExclusiveSyncedListing(input.providerId);
+    const cursor = ["cursor", "cu"].includes(input.providerId.trim().toLowerCase());
     const registryById = new Map(input.registryModels.map((model) => [model.id, model]));
     const liveModels = synced.map((model) => ({
       ...(registryById.get(model.id) || {}),
@@ -90,7 +90,15 @@ export function mergeProviderModelListing(
         name: model.name || model.id,
         source: normalizeCustomSource(model.source),
       }));
-    return dedupeById(mergeModelsWithCustomPrecedence(withAuto, normalizedCustom));
+    const exclusiveMerged = dedupeById(mergeModelsWithCustomPrecedence(withAuto, normalizedCustom));
+    // Codex is exclusive since #15132, but the tier variants #13224 derives from the
+    // account's own discovered reasoning levels are live data, not static aliases:
+    // keep them, as /v1/models does.
+    return input.providerId === "codex"
+      ? appendSyncedEffortVariants(
+          exclusiveMerged.map((model) => ({ ...model, owned_by: "codex" }))
+        )
+      : exclusiveMerged;
   }
 
   const syncedById = new Map(synced.map((model) => [model.id, model]));

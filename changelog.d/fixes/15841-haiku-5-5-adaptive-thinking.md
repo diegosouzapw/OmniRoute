@@ -1,0 +1,1 @@
+- **fix(claude):** `claude-haiku-5-5` requests keep `thinking.type: "adaptive"` instead of being downgraded to `"enabled"`, which Anthropic rejected with HTTP 400 ([#15841](https://github.com/diegosouzapw/OmniRoute/pull/15841)) — thanks @aldoeliacim

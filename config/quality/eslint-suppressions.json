@@ -39,11 +39,6 @@
       "count": 1
     }
   },
-  "open-sse/executors/antigravity.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "open-sse/executors/awsPollyTts.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -213,9 +208,6 @@
     }
   },
   "open-sse/handlers/responseTranslator.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    },
     "no-restricted-syntax": {
       "count": 1
     }
@@ -279,12 +271,6 @@
   "open-sse/mcp-server/server.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    },
-    "no-restricted-syntax": {
-      "count": 1
     }
   },
   "open-sse/mcp-server/tools/advancedTools.ts": {
@@ -700,11 +686,6 @@
       "count": 1
     }
   },
-  "src/app/(dashboard)/dashboard/api-manager/ApiManagerPageClient.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/app/(dashboard)/dashboard/batch/components/wizard/InputStep.tsx": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -738,11 +719,6 @@
   "src/app/(dashboard)/dashboard/cli-code/components/KiloToolCard.tsx": {
     "@typescript-eslint/no-unused-vars": {
       "count": 2
-    }
-  },
-  "src/app/(dashboard)/dashboard/combos/page.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 6
     }
   },
   "src/app/(dashboard)/dashboard/costs/CostOverviewTab.tsx": {
@@ -897,11 +873,6 @@
   },
   "src/app/(dashboard)/dashboard/settings/components/MitmProxyTab.tsx": {
     "@next/next/no-html-link-for-pages": {
-      "count": 1
-    }
-  },
-  "src/app/(dashboard)/dashboard/settings/components/ModelCapabilityOverridesTab.tsx": {
-    "@typescript-eslint/no-unused-vars": {
       "count": 1
     }
   },
@@ -1371,11 +1342,6 @@
   "src/lib/db/prompts.ts": {
     "no-restricted-syntax": {
       "count": 1
-    }
-  },
-  "src/lib/db/providers.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 4
     }
   },
   "src/lib/db/providers/lazyConnectionView.ts": {
@@ -4314,11 +4280,6 @@
   "tests/unit/proxySubscription.service.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 2
-    }
-  },
-  "tests/unit/proxyfetch-direct-response-start-timeout-10214.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 3
     }
   },
   "tests/unit/qoder-executor.test.ts": {

@@ -407,7 +407,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
 
-  // ──────────────── Policies (5) ────────────────
+  // ──────────────── Policies (6) ────────────────
   {
     key: "TOOL_POLICY_MODE",
     label: "Tool Policy Mode",
@@ -456,6 +456,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "caution",
   },
   {
+    key: "USAGE_LIMIT_IGNORE_UNPRICED",
+    label: "Ignore Unpriced Usage in USD Quotas",
+    description:
+      "Count usage of models that have no price as $0 in per-key USD usage quotas instead of treating the quota as exceeded. Off by default: an unpriced model or routing alias can hide real spend, so the quota fails closed.",
+    descriptionI18nKey: "featureFlagUsageLimitIgnoreUnpricedDescription",
+    category: "policies",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
     key: "RADAR_ENABLED",
     label: "Radar",
     description:
@@ -468,13 +480,25 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
 
-  // ──────────────── Runtime (17) ────────────────
+  // ──────────────── Runtime (18) ────────────────
   {
     key: "UNIVERSAL_CONTEXT_HANDOFF_ENABLED",
     label: "Universal Context Handoff",
     description:
       "Generate and inject conversation summaries when combo routing switches models. Disable to treat model switches independently and prevent background handoff requests for all existing and future combos.",
     descriptionI18nKey: "featureFlagUniversalContextHandoffEnabledDescription",
+    category: "runtime",
+    defaultValue: "true",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "info",
+  },
+  {
+    key: "REASONING_REPLAY_ENABLED",
+    label: "Reasoning Replay",
+    description:
+      "Cache and replay model reasoning across multi-turn conversations. Disable to stop storing and re-injecting reasoning.",
+    descriptionI18nKey: "featureFlagReasoningReplayEnabledDescription",
     category: "runtime",
     defaultValue: "true",
     type: "boolean",
