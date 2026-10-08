@@ -597,16 +597,12 @@ export class DefaultExecutor extends BaseExecutor {
         }
         applyClineAuthHeaders(headers, credentials, effectiveKey, clientHeaders, true);
         break;
-      case "cline":
-        // Cline's OAuth flow requires the bearer token prefixed with `workos:` plus a
-        // set of Cline client-identification headers. However, BYOK API keys must NOT
-        // have the `workos:` prefix.
-        if (credentials?.authType === "apikey" || credentials?.authType === "api_key") {
-          applyClineAuthHeaders(headers, credentials, effectiveKey, clientHeaders, true);
-        } else {
-          applyClineAuthHeaders(headers, credentials, effectiveKey, clientHeaders, false);
-        }
+      case "cline": {
+        // OAuth: `workos:`-prefixed bearer + Cline client headers. BYOK API key: plain Bearer.
+        const byok = credentials?.authType === "apikey" || credentials?.authType === "api_key";
+        applyClineAuthHeaders(headers, credentials, effectiveKey, clientHeaders, byok);
         break;
+      }
       default:
         if (this.usesClaudeCodeProtocol(credentials)) {
           const ccRequestDefaults = getClaudeCodeCompatibleRequestDefaults(
