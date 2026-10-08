@@ -69,7 +69,7 @@ OmniRoute-ന്റെ നിലവിലുള്ള വിന്യാസഘ�
 | ------------------------------------ | -------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | **Dragonfly**                        | **ഒഴിവാക്കുക** | production scale-ലെ rate-limit workload-ന് `redis:7-alpine` ഇതിനകം മതിയായതാണ്; മറികടക്കേണ്ട പരിധിയൊന്നുമില്ല.             |
 | **NATS**                             | **ഒഴിവാക്കുക** | ഓരോ `omniroute` replica-യും ഒരൊറ്റ Node.js process ആണ്; multi-process pub/sub workload നിലവിലില്ല.                        |
-| **PostgreSQL**                       | **ഒഴിവാക്കുക** | SQLite + sqlite-vec + FTS5 എന്നിവ 3 use case-കളും ഉൾക്കൊള്ളുന്നു; 97 migrations + Electron packaging migration തടയുന്നു.  |
+| **PostgreSQL**                       | **ഒഴിവാക്കുക** | SQLite + sqlite-vec + FTS5 എന്നിവ 3 use case-കളും ഉൾക്കൊള്ളുന്നു; 97 migrations packaging migration തടയുന്നു.             |
 | **Neo4j**                            | **ഒഴിവാക്കുക** | Routing ഒരു 5-table join ആണ്; SQLite-ലെ recursive CTE മതിയാകും.                                                           |
 | **MinIO**                            | **ഒഴിവാക്കുക** | multi-MB blob workload ഇല്ല; images/audio passthrough proxies ആണ്.                                                        |
 | **pgvector / pg_ai / pg_textsearch** | **ഒഴിവാക്കുക** | PostgreSQL-ന്റെ അതേ SQLite-ceiling കാരണമാണ്; pgvector ecosystem വിഘടിച്ചിരിക്കുന്നു.                                      |

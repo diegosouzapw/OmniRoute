@@ -29,7 +29,7 @@ Comparación objetiva de funcionalidades frente a routers de IA populares de có
 | **Ocultación de huella TLS (JA3/JA4)**                                 |                     ✅ wreq-js                     |      ❌       |          ❌           |     ❌      |
 | **Marco de evaluación**                                                |                    ✅ integrado                    |      ❌       |          ❌           |  ⚠ de pago  |
 | **Proxy MITM (intercepta Cursor/Antigravity)**                         |                 ✅ multiplataforma                 |      ❌       |          ❌           |     ❌      |
-| **CLI con bandeja del sistema (sin Electron)**                         |                         ✅                         |      ❌       |          n/d          |     n/d     |
+| **CLI con bandeja del sistema **                                       |                         ✅                         |      ❌       |          n/d          |     n/d     |
 | **Autenticación automática por ID de máquina en la CLI**               |                         ✅                         |      ❌       |          n/d          |     n/d     |
 | **Panel de control**                                                   |                     Next.js 16                     |    básico     |      propietario      | propietario |
 | **i18n**                                                               |                   **42 idiomas**                   |      ❌       |          ❌           |      ⚠      |

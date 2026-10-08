@@ -197,7 +197,7 @@ docker run -d \
 
 ## Asılılıqlar
 
-- `npm audit` əmrini müntəzəm icra edin (`npm run audit:deps` əsas hissəni + electron hissəsini əhatə edir)
+- `npm audit` əmrini müntəzəm icra edin (`npm run audit:deps` əsas hissəni hissəsini əhatə edir)
 - Asılılıqları yenilənmiş saxlayın
 - Layihə commit öncəsi yoxlamalar üçün `husky` + `lint-staged` istifadə edir (lint-staged + check-docs-sync + check:any-budget:t11)
 - CI konveyeri hər push zamanı ESLint təhlükəsizlik qaydalarını işə salır (`no-eval`, `no-implied-eval`, `no-new-func` = xəta)

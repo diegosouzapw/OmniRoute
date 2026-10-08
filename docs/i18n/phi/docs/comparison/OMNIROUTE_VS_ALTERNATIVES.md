@@ -29,7 +29,7 @@ Obhetibong paghahambing ng mga feature laban sa mga sikat na open-source AI rout
 | **Stealth ng TLS fingerprint (JA3/JA4)**              |                 ✅ wreq-js                  |         ❌          |        ❌         |      ❌      |
 | **Framework sa eval**                                 |                 ✅ built-in                 |         ❌          |        ❌         | ⚠ may bayad  |
 | **MITM proxy (ini-intercept ang Cursor/Antigravity)** |              ✅ cross-platform              |         ❌          |        ❌         |      ❌      |
-| **CLI na may system tray (walang Electron)**          |                     ✅                      |         ❌          |        n/a        |     n/a      |
+| **CLI na may system tray**                            |                     ✅                      |         ❌          |        n/a        |     n/a      |
 | **Awtomatikong auth ng machine-ID sa CLI**            |                     ✅                      |         ❌          |        n/a        |     n/a      |
 | **Dashboard**                                         |                 Next.js 16                  |        basic        |    proprietary    | proprietary  |
 | **i18n**                                              |                **42 locale**                |         ❌          |        ❌         |      ⚠       |

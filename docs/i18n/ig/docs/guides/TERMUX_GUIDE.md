@@ -118,7 +118,6 @@ omniroute
 
 ## Mmachi
 
-- Electron anaghị arụ ọrụ na Termux.
 - Enweghị system tray ma ọ bụ njikọta desktọọpụ.
 - Nhazi a bụ naanị maka sava: jiri dashboard ihe nchọgharị.
 - Dependency native nwere ike ịchọ mkpokọta n'ime ngwaọrụ ahụ.

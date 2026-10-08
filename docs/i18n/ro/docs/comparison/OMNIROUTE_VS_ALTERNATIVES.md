@@ -29,7 +29,7 @@ Comparație obiectivă a funcționalităților cu rutere AI open-source populare
 | **Mascarea amprentei TLS (JA3/JA4)**                       |                   ✅ wreq-js                    |         ❌          |        ❌         |     ❌      |
 | **Cadru de evaluare**                                      |                  ✅ încorporat                  |         ❌          |        ❌         | ⚠ cu plată  |
 | **Proxy MITM (interceptează Cursor/Antigravity)**          |                ✅ multiplatformă                |         ❌          |        ❌         |     ❌      |
-| **CLI cu pictogramă în bara de sistem (fără Electron)**    |                       ✅                        |         ❌          |        n/a        |     n/a     |
+| **CLI cu pictogramă în bara de sistem**                    |                       ✅                        |         ❌          |        n/a        |     n/a     |
 | **Autentificare automată CLI prin ID-ul dispozitivului**   |                       ✅                        |         ❌          |        n/a        |     n/a     |
 | **Panou de control**                                       |                   Next.js 16                    |       de bază       |    proprietar     | proprietar  |
 | **i18n**                                                   |                 **42 de limbi**                 |         ❌          |        ❌         |      ⚠      |

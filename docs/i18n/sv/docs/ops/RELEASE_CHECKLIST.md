@@ -122,7 +122,6 @@ matrisen, utan någon etikett.
 ### Version och ändringslogg
 
 - [ ] Kör `/version-bump-cc <patch|minor|major>` (Claude Code-färdighet)
-  - Höjer versionen i `package.json`, `electron/package.json`
   - Genererar om `CHANGELOG.md` från git-commits sedan den senaste taggen
   - Uppdaterar märken i README.md
 - [ ] Granska CHANGELOG.md manuellt och rensa commit-meddelanden vid behov
@@ -216,104 +215,6 @@ Brytande ändringar: lägg till sidfoten `BREAKING CHANGE:` eller `!` efter omfa
 - [ ] Modeller registrerade i `open-sse/config/providerRegistry.ts`
 - [ ] Enhetstester i `tests/unit/` täcker leverantörsklassificering och dirigering
 
-### Skrivbord (Electron)
-
-Om `electron/` har ändrats:
-
-- [ ] `npm run electron:smoke:packaged` godkänns
-- [ ] Byggen har testats för minst ett av `:win`, `:mac`, `:linux`
-- [ ] Certifikat för kodsignering har inte gått ut (om signering används)
-- [ ] Versionen i `electron/package.json` matchar rotens `package.json`
-- [ ] Pekaren för den automatiska uppdateringskanalen har uppdaterats vid lansering till `stable`
-
-### Bygglayout
-
-Kodbasen använder tre separata utdatakataloger — blanda aldrig ihop dem:
-
-| Katalog   | Syfte                                                              | Versionshanterad? |
-| --------- | ------------------------------------------------------------------ | ----------------- |
-| `src/`    | Applikationens källkod (TypeScript / TSX)                          | Ja                |
-| `.build/` | Mellanprodukter från bygget — utdata från `next build` (`distDir`) | Nej (gitignored)  |
-| `dist/`   | Levererbart npm-paket — sammanställt av `assembleStandalone`       | Nej (gitignored)  |
-
-> **Driftanteckning:** bildkatalogen på fjärr-VPS:en är fortfarande `/usr/lib/node_modules/omniroute/app/`.
-> Endast byggutdata **i kodbasen** har flyttats (`app/` → `dist/`). Driftsättningsfunktionerna synkroniserar
-> innehållet i `dist/` via rsync till fjärrkatalogen `app/` — inga ändringar av VPS-sökvägar krävs.
-
-**Flöde med ett enda bygge:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (clean)
-  └─ next build → .build/next/   (intermediates)
-  └─ assembleStandalone          (copies standalone + static + public + natives → dist/)
-  └─ writes dist/BUILD_SHA       (HEAD sentinel)
-```
-
-Kör INTE `npm run build` följt av ett separat `npm run build:cli` för driftsättning — använd
-`npm run build:release`, som utför ett rent ombygge + kontrollmarkör med ett enda kommando.
-
-### Validering av artefakter
-
-- [ ] `npm run build:release` slutförs och `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` är ren — ingen `app.__qa_backup`, `scripts/scratch`, `package-lock.json` eller andra lokala rester
-- [ ] `dist/server.js` finns efter bygget
-
-### Taggning och lansering
-
-- [ ] Kör `/generate-release-cc` (Claude Code-funktion):
-  - Skapar taggen `vX.Y.Z`
-  - Pushar taggen och grenen
-  - Skapar en GitHub-version med ändringsloggen som beskrivning
-  - Bifogar Electron-installationsfiler (om de har byggts)
-- [ ] Eller manuellt:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Driftsättning
-
-Driftsättningsfunktionerna använder det lätta rsync-flödet — inget `npm pack`, inget `npm i -g`:
-
-- [ ] Använd den driftsättningsfunktion som matchar målet:
-  - `/deploy-vps-local-cc` — lokal VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai-VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — båda
-- [ ] Bekräfta före driftsättning att `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Bygget måste köras där `node_modules` är verklig (huvudutcheckningen eller ett worktree där `npm ci` har körts — INTE ett symlänkat worktree)
-- [ ] Röktesta den driftsatta instansen:
-  - Öppna `/dashboard/health` → kontrollera att versionssträngen matchar versionen
-  - Kör en `/v1/chat/completions`-begäran mot en känd leverantör
-  - Verifiera att `/api/monitoring/health` returnerar kretsbrytare med statusen `CLOSED`
-  - Bekräfta att MCP-transporterna svarar (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Efter lansering
-
-- [ ] Kör `/capture-release-evidences-cc` (Claude Code-skill)
-  - Tar WebP-skärmbilder/inspelningar av nya funktioner
-  - Bifogar dem till versionskommentarerna/blogginlägget
-- [ ] Uppdatera GitHub Discussions/Discord med versionsmeddelandet
-- [ ] Öppna en milstolpe för nästa version
-- [ ] Om kritiskt: fäst diskussionen eller publicera i `news.json` för en banner i appen
-
-### Villkor för offentlig lansering av Radar
-
-Radar-meddelandet checkas avsiktligt in med `active: false`. Aktivering sker genom en separat
-ändring efter att det finns belägg för varje punkt nedan:
-
-- [ ] Alla staplade Radar-PR:er har slagits samman och CI för release-tip är grön
-- [ ] Driftsätt och smoke-testa OSS-rutterna för Radar med `RADAR_ENABLED` fortfarande avstängt som standard
-- [ ] Smoke-testa `GET /planos`, `/termos`, `/privacidade` och `/reembolso` på den angivna Radar-värden
-- [ ] Registrera operatörens identitet/kontaktuppgifter/adress och ägargodkänd juridisk granskning i den privata tjänsten
-- [ ] Testa Stripe Checkout och den signerade webhooken endast i testläge
-- [ ] Testa en krypterad leverans av transaktionsmejl med den godkända avsändaren/domänen
-- [ ] Verifiera återställning från säkerhetskopia och en övervakad forskningskörning med budgettak
-- [ ] Godkänn granskningspolicyn för BRL/PIX innan donationsunderlag accepteras
-- [ ] Aktivera offentlig Checkout först efter föregående villkor och aktivera sedan det nya `news.json`-ID:t
-- [ ] Verifiera att bannern på startsidan använder lokaliserad text och att ett nytt ID visas igen efter att ett äldre ID har avfärdats
-
 ## Röktest för inbäddade tjänster (v3.8.4+)
 
 Innan en version som innehåller ändringar av inbäddade tjänster släpps, verifiera följande:
@@ -399,7 +300,7 @@ Om en release har ett kritiskt problem:
 - Hoppa aldrig över Husky-hooks (`--no-verify`)
 - Checka aldrig in hemligheter, autentiseringsuppgifter eller `.env`-filer
 - Täckningsgraden måste förbli ≥60/60/60/60 (satser/rader/funktioner/grenar)
-- Inkludera eller uppdatera alltid tester när produktionskod ändras i `src/`, `open-sse/`, `electron/` eller `bin/`
+- Inkludera eller uppdatera alltid tester när produktionskod ändras i `src/`, `open-sse/` eller `bin/`
 
 ## Automatisk synkroniseringskontroll
 

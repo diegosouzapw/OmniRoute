@@ -197,7 +197,7 @@ docker run -d \
 
 ## Függőségek
 
-- Futtassa rendszeresen az `npm audit` parancsot (az `npm run audit:deps` a fő és az electron részt is lefedi)
+- Futtassa rendszeresen az `npm audit` parancsot ()
 - Tartsa naprakészen a függőségeket
 - A projekt a `husky` + `lint-staged` eszközöket használja a commit előtti ellenőrzésekhez (lint-staged + check-docs-sync + check:any-budget:t11)
 - A CI-folyamat minden push során futtatja az ESLint biztonsági szabályait (`no-eval`, `no-implied-eval`, `no-new-func` = hiba)

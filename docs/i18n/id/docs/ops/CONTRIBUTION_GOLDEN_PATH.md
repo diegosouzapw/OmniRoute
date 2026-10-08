@@ -16,7 +16,7 @@ jenis perubahan umum dengan kontrak, pemeriksaan terfokus, dan cakupan CI-nya.
    [Model Branching & Rilis](BRANCHING_MODEL.md).
 2. **Sebutkan kontraknya.** Identifikasi setiap katalog, skema, artefak yang dihasilkan, API publik, atau antarmuka
    pengguna yang terdampak oleh perubahan. Tabel di bawah memberikan kumpulan awal minimum.
-3. **Tulis atau perbarui pengujian terfokus.** Perubahan produksi di `src/`, `open-sse/`, `electron/`, atau
+3. **Tulis atau perbarui pengujian terfokus.** Perubahan produksi di `src/`, `open-sse/`, atau
    `bin/` memerlukan pengujian otomatis dalam PR yang sama. Jalankan file pengujian terkecil yang membuktikan
    perilaku tersebut, lalu gerbang terfokus yang tercantum.
 4. **Biarkan CI menjalankan matriks yang luas.** Seluruh shard unit, Vitest, ratchet cakupan, dan

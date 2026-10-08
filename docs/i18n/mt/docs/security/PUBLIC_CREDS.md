@@ -91,7 +91,7 @@ Meta jkollok bżonn tinkorpora valur ġdid ipprovdut minn upstream li:
 
 ### 3. Mudelli pprojbiti
 
-❌ **Qatt** tagħmel xi waħda minn dawn li ġejjin fil-kodiċi tal-produzzjoni (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ **Qatt** tagħmel xi waħda minn dawn li ġejjin fil-kodiċi tal-produzzjoni (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // ĦAŻIN: il-valur litterali jattiva Secret Scanning + Semgrep

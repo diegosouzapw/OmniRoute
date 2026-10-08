@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Feidhmchlár Next.js 16 (comhéadan úsáideora + bealaí API + leabharlanna + fearann + freastalaí)
 ├── open-sse/             # Spás oibre an innill sruthaithe (láimhseálaithe, riteoirí, aistritheoir, freastalaí MCP)
-├── electron/             # Cumhdach deisce (Electron 41 + electron-builder 26.10)
 ├── bin/                  # Pointe iontrála CLI agus láimhseálaithe orduithe
 ├── scripts/              # Scripteanna tógála, seiceála, sioncronaithe agus aonuaire
 ├── docs/                 # Cáipéisíocht phoiblí (tá tú anseo)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Cumhdach Deisce
-
-| Comhad           | Cuspóir                                                                                         |
-| ---------------- | ----------------------------------------------------------------------------------------------- |
-| `main.js`        | Príomhphróiseas Electron (BrowserWindow, freastalaí leabaithe Next.js, tráidire, uathnuashonrú) |
-| `preload.js`     | Droichead IPC (contextBridge → `window.omniroute`)                                              |
-| `package.json`   | Cumraíocht electron-builder + spleáchais Electron 41 + electron-builder 26.10                   |
-| `assets/`        | Deilbhíní aipe (Windows .ico, macOS .icns, Linux .png)                                          |
-| `dist-electron/` | Aschur tógála (faoi neamhaird ag git)                                                           |
-| `types.d.ts`     | Dearbhuithe cineáil do dhroichead an rindreálaí                                                 |
-| `README.md`      | README inmheánach Electron (féach freisin `docs/guides/ELECTRON_GUIDE.md`)                      |
-
----
-
 ## `bin/` — CLI
 
 | Comhad                                                                                                      | Cuspóir                                                                                                                                |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | Riteoir E2E MCP/A2A                                                                                    |
 | `run-ecosystem-tests.mjs`           | Tástálacha éiceachórais (comhtháthú soláthraithe)                                                      |
 | `test-report-summary.mjs`           | Gin markdown achoimre cumhdaigh                                                                        |
-| `smoke-electron-packaged.mjs`       | Deatachthástáil tógáil phacáistithe Electron                                                           |
-| `native-binary-compat.mjs`          | Deimhnigh go meaitseálann spleáchais dhúchasacha (`better-sqlite3`) Node Electron                      |
 | `validate-pack-artifact.ts`         | Bailíochtaigh aschur pacáiste npm                                                                      |
 | `responses-ws-proxy.mjs`            | Droichead WebSocket do Codex Responses API                                                             |
 | `v1-ws-bridge.mjs`                  | Droichead WebSocket do chríochphointe `/api/v1/ws`                                                     |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Lámhleabhar don úsáideoir deiridh (socrú, samhlacha, teaglamaí, CLIanna, fuaim, srl.)    |
 | `API_REFERENCE.md`          | Tagairt do chríochphointí API leis an tsamhail fíordheimhnithe                           |
 | `openapi.yaml`              | Sonraíocht OpenAPI 3.0 (121 chonair)                                                     |
-| `SETUP_GUIDE.md`            | Modhanna suiteála (npm, npx, Docker, Electron, Termux, foinse)                           |
+| `SETUP_GUIDE.md`            | Modhanna suiteála (npm, npx, Docker, Termux, foinse)                                     |
 | `ENVIRONMENT.md`            | Gach athróg timpeallachta (~800 doiciméadaithe, ~3,050 líne in `.env.example`)           |
 | `TROUBLESHOOTING.md`        | Earráidí coitianta + fadhbanna aitheanta v3.8.0                                          |
 | `RELEASE_CHECKLIST.md`      | Sreabhadh iomlán eisiúna (scileanna, husky, tiomantais choinbhinsiúnacha, imscaradh)     |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Imscaradh Fly.io (i Sínis amháin faoi láthair)                        |
 | `TERMUX_GUIDE.md`            | Android gan chomhéadan trí Termux                                     |
 | `PWA_GUIDE.md`               | Suiteáil Aip Ghréasáin Fhorásach + oibrí seirbhíse                    |
-| `ELECTRON_GUIDE.md`          | Tógáil + síniú + dáileadh aip deisce                                  |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                |
 | `PROXY_GUIDE.md`             | Seachfhreastalaí amach 4 leibhéal + margadh 1proxy                    |
 

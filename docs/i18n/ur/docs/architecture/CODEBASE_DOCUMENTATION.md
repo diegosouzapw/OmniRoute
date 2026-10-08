@@ -27,7 +27,6 @@
 | زبان         | **TypeScript 6.0+** — ہدف `ES2022`، `module: esnext`، `moduleResolution: bundler`، `strict: false`                  |
 | رن ٹائم      | **Node.js** `>=22.22.2 <23` یا `>=24.0.0 <27` (`engines` + `SUPPORTED_NODE_RANGE` کے ذریعے نافذ)                    |
 | ڈیٹابیس      | `better-sqlite3` کے ذریعے **SQLite** (سنگلٹن، WAL جرنلنگ)                                                           |
-| ڈیسک ٹاپ     | **Electron 41** + `electron-builder` 26.10 (`electron/` میں علیحدہ ورک اسپیس)                                       |
 | ٹیسٹس        | **Node کا مقامی ٹیسٹ رنر** (یونٹ/انٹیگریشن)، **Vitest** (MCP، autoCombo، کیش)، **Playwright** (e2e + protocols-e2e) |
 | بلڈ          | `scripts/build/build-next-isolated.mjs` کے ذریعے Next.js اسٹینڈ الون                                                |
 | لنٹ/فارمیٹ   | ESLint فلیٹ کنفیگ + Prettier (Husky پری کمیٹ کے ذریعے `lint-staged`)                                                |
@@ -51,7 +50,6 @@
 OmniRoute/
 ├── src/                  Next.js ایپلیکیشن (App Router، لائبریریاں، ڈومین، سرور، مشترکہ اجزا)
 ├── open-sse/             اسٹریمنگ انجن ورک اسپیس (@omniroute/open-sse)
-├── electron/             ڈیسک ٹاپ ریپر (Electron 41 مین + پری لوڈ)
 ├── bin/                  CLI انٹری پوائنٹس (omniroute، reset-password)
 ├── tests/                یونٹ، انٹیگریشن، e2e، protocols-e2e، ٹرانسلیٹر، سیکیورٹی، فکسچرز
 ├── scripts/              بلڈ، سنک، چیک، مائیگریشن، اور رن ٹائم معاون اسکرپٹس
@@ -575,26 +573,6 @@ Hub-and-spoke ترجمہ (OpenAI مرکز ہے)۔
 
 ---
 
-## 5. `electron/` — ڈیسک ٹاپ ریپر
-
-```
-electron/
-├── main.js                  Electron کا مرکزی پراسیس
-├── preload.js               پری لوڈ برج (contextIsolation فعال ہے)
-├── types.d.ts
-├── package.json             electron-builder کنفیگریشن، ورژن 3.8.51
-├── README.md
-├── assets/                  بلڈ وسائل (آئیکنز، استحقاقات، …)
-├── node_modules/            مخصوص node_modules (better-sqlite3، electron-updater)
-└── dist-electron/           بلڈ آؤٹ پٹ (کمیٹ نہیں کیا جاتا)
-```
-
-ورک اسپیس روٹ پر پانچ npm اسکرپٹس ہیں: `electron:dev`، `electron:build`،
-`electron:build:{win,mac,linux}`، `electron:smoke:packaged`۔ خودکار اپ ڈیٹ
-`electron-updater` کے ذریعے ہوتی ہے، جو GitHub ریلیز فیڈ کی جانب اشارہ کرتا ہے۔
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -659,13 +637,11 @@ bin/
 مقصد کے لحاظ سے 6 ذیلی فولڈرز میں منظم ہے۔
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`۔
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`۔
@@ -844,7 +820,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A پروٹوکول کی مہارتیں اور دریافت۔
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK + Caveman کمپریشن۔
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI انضمامات۔
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (اگر موجود ہو)، [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md)، [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md)، [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md)، [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md)، [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — تعیناتی کے اہداف۔
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md)، [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md)، [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md)، [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md)، [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — تعیناتی کے اہداف۔
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — عام آپریشنل مسائل۔
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — معاونین کا ورک فلو۔
 - [CLAUDE.md](../../CLAUDE.md) — Claude Code کے لیے ریپوزٹری کے قواعد (اوپر دیے گئے

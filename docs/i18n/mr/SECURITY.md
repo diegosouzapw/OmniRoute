@@ -197,7 +197,7 @@ docker run -d \
 
 ## अवलंबने
 
-- `npm audit` नियमितपणे चालवा (`npm run audit:deps` मुख्य + electron समाविष्ट करते)
+- `npm audit` नियमितपणे चालवा (`npm run audit:deps` मुख्य समाविष्ट करते)
 - अवलंबने अद्ययावत ठेवा
 - हा प्रकल्प pre-commit तपासण्यांसाठी `husky` + `lint-staged` वापरतो (lint-staged + check-docs-sync + check:any-budget:t11)
 - CI pipeline प्रत्येक push वर ESLint सुरक्षा नियम चालवते (`no-eval`, `no-implied-eval`, `no-new-func` = त्रुटी)

@@ -29,7 +29,7 @@ Objektiivne funktsioonide võrdlus populaarsete avatud lähtekoodiga AI-marsruut
 | **TLS-sõrmejälje varjamine (JA3/JA4)**                          |                   ✅ wreq-js                    |        ❌         |         ❌          |     ❌      |
 | **Hindamisraamistik**                                           |                ✅ sisseehitatud                 |        ❌         |         ❌          | ⚠ tasuline  |
 | **MITM-puhverserver (püüab kinni Cursor/Antigravity liikluse)** |               ✅ platvormideülene               |        ❌         |         ❌          |     ❌      |
-| **CLI süsteemisalve toega (ilma Electronita)**                  |                       ✅                        |        ❌         |     ei kohaldu      | ei kohaldu  |
+| **CLI süsteemisalve toega**                                     |                       ✅                        |        ❌         |     ei kohaldu      | ei kohaldu  |
 | **CLI automaatne autentimine masina ID-ga**                     |                       ✅                        |        ❌         |     ei kohaldu      | ei kohaldu  |
 | **Juhtpaneel**                                                  |                   Next.js 16                    |      lihtne       |     omanduslik      | omanduslik  |
 | **i18n**                                                        |                 **42 lokaati**                  |        ❌         |         ❌          |      ⚠      |

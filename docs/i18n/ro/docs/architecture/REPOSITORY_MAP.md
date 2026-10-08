@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Aplicație Next.js 16 (interfață + rute API + biblioteci + domeniu + server)
 ├── open-sse/             # Spațiu de lucru pentru motorul de streaming (gestionari, executori, translator, server MCP)
-├── electron/             # Înveliș desktop (Electron 41 + electron-builder 26.10)
 ├── bin/                  # Punct de intrare CLI și gestionari de comenzi
 ├── scripts/              # Scripturi pentru compilare, verificare, sincronizare și operațiuni punctuale
 ├── docs/                 # Documentație publică (vă aflați aici)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Wrapper pentru desktop
-
-| Fișier           | Scop                                                                                                         |
-| ---------------- | ------------------------------------------------------------------------------------------------------------ |
-| `main.js`        | Procesul principal Electron (BrowserWindow, server Next.js încorporat, tavă de sistem, actualizare automată) |
-| `preload.js`     | Punte IPC (contextBridge → `window.omniroute`)                                                               |
-| `package.json`   | Configurația electron-builder + dependențele Electron 41 + electron-builder 26.10                            |
-| `assets/`        | Pictogramele aplicației (Windows .ico, macOS .icns, Linux .png)                                              |
-| `dist-electron/` | Rezultatul compilării (ignorat de git)                                                                       |
-| `types.d.ts`     | Declarații de tipuri pentru puntea rendererului                                                              |
-| `README.md`      | README intern pentru Electron (consultați și `docs/guides/ELECTRON_GUIDE.md`)                                |
-
----
-
 ## `bin/` — CLI
 
 | Fișier                                                                                                      | Scop                                                                                                                                        |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | Rulare a testelor E2E MCP/A2A                                                                      |
 | `run-ecosystem-tests.mjs`           | Teste de ecosistem (integrarea furnizorilor)                                                       |
 | `test-report-summary.mjs`           | Generează un rezumat Markdown al acoperirii                                                        |
-| `smoke-electron-packaged.mjs`       | Test rapid al compilării Electron împachetate                                                      |
-| `native-binary-compat.mjs`          | Validează că dependențele native (`better-sqlite3`) corespund versiunii Node din Electron          |
 | `validate-pack-artifact.ts`         | Validează rezultatul împachetării npm                                                              |
 | `responses-ws-proxy.mjs`            | Punte WebSocket pentru API-ul Codex Responses                                                      |
 | `v1-ws-bridge.mjs`                  | Punte WebSocket pentru endpoint-ul `/api/v1/ws`                                                    |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Manual pentru utilizatorii finali (configurare, modele, combinații, CLI-uri, audio etc.)       |
 | `API_REFERENCE.md`          | Referință pentru endpoint-urile API, inclusiv modelul de autentificare                         |
 | `openapi.yaml`              | Specificație OpenAPI 3.0 (121 de căi)                                                          |
-| `SETUP_GUIDE.md`            | Metode de instalare (npm, npx, Docker, Electron, Termux, din sursă)                            |
+| `SETUP_GUIDE.md`            | Metode de instalare (npm, npx, Docker, Termux, din sursă)                                      |
 | `ENVIRONMENT.md`            | Toate variabilele de mediu (~800 documentate, ~3.050 de linii în `.env.example`)               |
 | `TROUBLESHOOTING.md`        | Erori frecvente + probleme cunoscute în v3.8.0                                                 |
 | `RELEASE_CHECKLIST.md`      | Flux complet de lansare (abilități, husky, commituri convenționale, implementare)              |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Implementare pe Fly.io (momentan disponibilă doar în chineză)                    |
 | `TERMUX_GUIDE.md`            | Android fără interfață grafică prin Termux                                       |
 | `PWA_GUIDE.md`               | Instalarea aplicației web progresive + service worker                            |
-| `ELECTRON_GUIDE.md`          | Compilarea + semnarea + distribuirea aplicației desktop                          |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                           |
 | `PROXY_GUIDE.md`             | Proxy de ieșire pe 4 niveluri + marketplace-ul 1proxy                            |
 

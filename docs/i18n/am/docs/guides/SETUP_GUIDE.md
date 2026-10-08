@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 የCompose መገለጫዎችን እና Caddy HTTPSን ጨምሮ ለተሟላ የDocker ማዋቀር [የDocker መመሪያውን](./DOCKER_GUIDE.md) ይመልከቱ።
 
-### የዴስክቶፕ መተግበሪያ (Electron)
-
-OmniRoute በElectron 41 + electron-builder 26.10 ላይ የተገነባ የዴስክቶፕ መጠቅለያ ይዞ ይመጣል። የሚገኙ ስክሪፕቶች (የworkspace ሥር)፦
-
-```bash
-npm run electron:dev          # ዴስክቶፕን በቀጥታ ዳግም መጫን ያስኪዱ
-npm run electron:build        # ለአሁኑ OS ይገንቡ (በራስ-ሰር የሚታወቅ)
-npm run electron:build:win    # የWindows ጫኝ (NSIS + ተንቀሳቃሽ)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # የታሸገውን ግንባታ የsmoke ሙከራ ያድርጉ
-```
-
-የዴስክቶፕ ጫኞች ልቀቶች ከGitHub Releases ጋር ተያይዘዋል። ስለElectron ዝርዝር መረጃ (ፊርማ፣ IPC bridge፣ ስርጭቶች)፣ [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md)ን ይመልከቱ _(በኋለኛ ደረጃ የተፈጠረ)_።
-
 ### ማሳያ አልባ አገልጋይ (CI/አውቶሜሽን)
 
 ክትትል ለማያስፈልጋቸው ማዋቀሪያዎች (Docker፣ Kubernetes፣ CI)፣ የሚከተለውን ይጠቀሙ፦

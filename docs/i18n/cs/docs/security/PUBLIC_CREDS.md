@@ -91,7 +91,7 @@ Pokud potřebujete vložit novou hodnotu poskytnutou upstreamem, která:
 
 ### 3. Zakázané vzory
 
-❌ V produkčním kódu (`src/`, `open-sse/`, `electron/`, `bin/`) **nikdy** neprovádějte nic z následujícího:
+❌ V produkčním kódu (`src/`, `open-sse/`, `bin/`) **nikdy** neprovádějte nic z následujícího:
 
 ```ts
 // ŠPATNĚ: doslovná hodnota aktivuje Secret Scanning + Semgrep

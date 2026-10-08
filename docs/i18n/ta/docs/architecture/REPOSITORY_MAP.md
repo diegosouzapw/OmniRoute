@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16 பயன்பாடு (UI + API வழித்தடங்கள் + நூலகங்கள் + களம் + சேவையகம்)
 ├── open-sse/             # ஸ்ட்ரீமிங் எஞ்சின் பணியிடம் (கையாளிகள், செயல்படுத்திகள், மொழிபெயர்ப்பி, MCP சேவையகம்)
-├── electron/             # டெஸ்க்டாப் உறை (Electron 41 + electron-builder 26.10)
 ├── bin/                  # CLI நுழைவுப் புள்ளி மற்றும் கட்டளைக் கையாளிகள்
 ├── scripts/              # உருவாக்கம், சரிபார்ப்பு, ஒத்திசைவு மற்றும் ஒருமுறைப் பயன்பாட்டு ஸ்கிரிப்ட்கள்
 ├── docs/                 # பொது ஆவணங்கள் (நீங்கள் இங்கே உள்ளீர்கள்)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — மேசைக்கணினி உறை
-
-| கோப்பு           | நோக்கம்                                                                                                          |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `main.js`        | Electron முதன்மைச் செயல்முறை (BrowserWindow, உட்பொதிக்கப்பட்ட Next.js சேவையகம், தட்டு, தானியங்குப் புதுப்பிப்பு) |
-| `preload.js`     | IPC பாலம் (contextBridge → `window.omniroute`)                                                                   |
-| `package.json`   | electron-builder உள்ளமைவு + Electron 41 + electron-builder 26.10 சார்புகள்                                       |
-| `assets/`        | செயலி சின்னங்கள் (Windows .ico, macOS .icns, Linux .png)                                                         |
-| `dist-electron/` | கட்டுமான வெளியீடு (gitignored)                                                                                   |
-| `types.d.ts`     | ரெண்டரர் பாலத்திற்கான வகை அறிவிப்புகள்                                                                           |
-| `README.md`      | அக Electron README (`docs/guides/ELECTRON_GUIDE.md`-ஐயும் பார்க்கவும்)                                           |
-
----
-
 ## `bin/` — CLI
 
 | கோப்பு                                                                                                      | நோக்கம்                                                                                                                                   |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | MCP/A2A E2E runner                                                                                     |
 | `run-ecosystem-tests.mjs`           | Ecosystem (provider integration) tests                                                                 |
 | `test-report-summary.mjs`           | coverage சுருக்க markdown-ஐ உருவாக்குதல்                                                               |
-| `smoke-electron-packaged.mjs`       | தொகுக்கப்பட்ட Electron build-ஐ smoke-test செய்தல்                                                      |
-| `native-binary-compat.mjs`          | native deps (`better-sqlite3`) Electron-இன் Node உடன் பொருந்துவதைச் சரிபார்த்தல்                       |
 | `validate-pack-artifact.ts`         | npm pack output-ஐச் சரிபார்த்தல்                                                                       |
 | `responses-ws-proxy.mjs`            | Codex Responses API-க்கான WebSocket bridge                                                             |
 | `v1-ws-bridge.mjs`                  | `/api/v1/ws` endpoint-க்கான WebSocket bridge                                                           |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | இறுதிப் பயனர் கையேடு (அமைப்பு, மாதிரிகள், சேர்க்கைகள், CLIs, ஒலி போன்றவை)                              |
 | `API_REFERENCE.md`          | அங்கீகார மாதிரியுடன் கூடிய API முனைப்புப் புள்ளி மேற்கோள்                                              |
 | `openapi.yaml`              | OpenAPI 3.0 விவரக்குறிப்பு (121 பாதைகள்)                                                               |
-| `SETUP_GUIDE.md`            | நிறுவல் முறைகள் (npm, npx, Docker, Electron, Termux, மூலக் குறியீடு)                                   |
+| `SETUP_GUIDE.md`            | நிறுவல் முறைகள் (npm, npx, Docker, Termux, மூலக் குறியீடு)                                             |
 | `ENVIRONMENT.md`            | அனைத்து சூழல் மாறிகளும் (~800 ஆவணப்படுத்தப்பட்டவை, `.env.example`-இல் ~3,050 வரிகள்)                   |
 | `TROUBLESHOOTING.md`        | பொதுவான பிழைகள் + v3.8.0-இன் அறியப்பட்ட சிக்கல்கள்                                                     |
 | `RELEASE_CHECKLIST.md`      | முழுமையான வெளியீட்டுப் பணிப்பாய்வு (திறன்கள், husky, மரபுசார் commits, வரிசைப்படுத்தல்)                |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io வரிசைப்படுத்தல் (தற்போது சீன மொழியில் மட்டும்)                          |
 | `TERMUX_GUIDE.md`            | Termux வழியாக திரையற்ற Android இயக்கம்                                         |
 | `PWA_GUIDE.md`               | Progressive Web App நிறுவல் + service worker                                   |
-| `ELECTRON_GUIDE.md`          | Desktop app உருவாக்கம் + கையொப்பமிடல் + விநியோகம்                              |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                         |
 | `PROXY_GUIDE.md`             | 4-நிலை வெளிச்செல்லும் proxy + 1proxy சந்தைத்தளம்                               |
 

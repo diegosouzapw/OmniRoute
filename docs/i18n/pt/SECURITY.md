@@ -197,7 +197,7 @@ docker run -d \
 
 ## Dependências
 
-- Execute `npm audit` regularmente (`npm run audit:deps` abrange main + electron)
+- Execute `npm audit` regularmente (`npm run audit:deps` abrange main)
 - Mantenha as dependências atualizadas
 - O projeto utiliza `husky` + `lint-staged` para verificações de pré-commit (lint-staged + check-docs-sync + check:any-budget:t11)
 - O pipeline de CI executa regras de segurança do ESLint em cada push (`no-eval`, `no-implied-eval`, `no-new-func` = erro)

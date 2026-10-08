@@ -220,7 +220,7 @@ npm run test:combo:live:vps:failover     # يضيف سيناريو تجاوز ف
 
 - يقيس `npm run test:coverage` تغطية المصدر لمجموعة اختبارات الوحدة الرئيسية، ويستبعد `tests/**`، ويتضمن `open-sse/**`
 - يجب أن تحافظ طلبات السحب على بوابة التغطية عند **60%+** من العبارات/الأسطر/الدوال/الفروع
-- إذا غيّر طلب سحب شيفرة الإنتاج في `src/`، أو `open-sse/`، أو `electron/`، أو `bin/`، فيجب أن يضيف اختبارات آلية أو يحدّثها ضمن طلب السحب نفسه
+- إذا غيّر طلب سحب شيفرة الإنتاج في `src/`، أو `open-sse/`، ، أو `bin/`، فيجب أن يضيف اختبارات آلية أو يحدّثها ضمن طلب السحب نفسه
 - يطبع `npm run coverage:report` التقرير المفصّل ملفًا بملف من أحدث تشغيل للتغطية
 - يحافظ `npm run test:coverage:legacy` على المقياس الأقدم للمقارنة التاريخية
 - راجع `docs/ops/COVERAGE_PLAN.md` للاطلاع على خارطة الطريق المرحلية لتحسين التغطية
@@ -325,7 +325,6 @@ open-sse/                   # @omniroute/open-sse workspace
 ├── transformer/            # Responses API transformer
 └── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron desktop app (cross-platform)
 
 tests/
 ├── unit/                   # Node.js test runner (122 test files)

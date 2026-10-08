@@ -197,7 +197,7 @@ docker run -d \
 
 ## निर्भरताहरू
 
-- नियमित रूपमा `npm audit` चलाउनुहोस् (`npm run audit:deps` ले मुख्य + electron समेट्छ)
+- नियमित रूपमा `npm audit` चलाउनुहोस् (`npm run audit:deps` ले मुख्य समेट्छ)
 - निर्भरताहरू अद्यावधिक राख्नुहोस्
 - परियोजनाले pre-commit जाँचहरूका लागि `husky` + `lint-staged` प्रयोग गर्छ (lint-staged + check-docs-sync + check:any-budget:t11)
 - CI पाइपलाइनले प्रत्येक push मा ESLint सुरक्षा नियमहरू चलाउँछ (`no-eval`, `no-implied-eval`, `no-new-func` = त्रुटि)

@@ -220,7 +220,7 @@ Kattavuushuomautukset:
 
 - `npm run test:coverage` mittaa päälähdekoodin kattavuuden pääasialliselle yksikkötestikokonaisuudelle, jättää `tests/**` pois ja sisältää `open-sse/**`
 - Vetopyyntöjen on pidettävä kattavuusportti vähintään **60 %:ssa** lauseista/riveistä/funktioista/haaroista
-- Jos PR muuttaa tuotantokoodia hakemistossa `src/`, `open-sse/`, `electron/` tai `bin/`, samassa PR:ssä on lisättävä tai päivitettävä automaattisia testejä
+- Jos PR muuttaa tuotantokoodia hakemistossa `src/`, `open-sse/` tai `bin/`, samassa PR:ssä on lisättävä tai päivitettävä automaattisia testejä
 - `npm run coverage:report` tulostaa viimeisimmän kattavuusajon yksityiskohtaisen tiedostokohtaisen raportin
 - `npm run test:coverage:legacy` säilyttää vanhemman mittarin historiallista vertailua varten
 - Vaiheittainen kattavuuden parannussuunnitelma on tiedostossa `docs/ops/COVERAGE_PLAN.md`
@@ -324,7 +324,6 @@ open-sse/                   # @omniroute/open-sse workspace
 ├── transformer/            # Responses API transformer
 └── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron desktop app (cross-platform)
 
 tests/
 ├── unit/                   # Node.js test runner (122 test files)

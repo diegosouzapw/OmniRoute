@@ -25,7 +25,6 @@ Ushbu fayl yangi muhandis kataloglar tuzilmasida yoʻl topishi, bajarilish vaqti
 | Dasturlash tili    | **TypeScript 6.0+** — maqsad `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                             |
 | Bajarilish muhiti  | **Node.js** `>=22.22.2 <23` yoki `>=24.0.0 <27` (`engines` + `SUPPORTED_NODE_RANGE` orqali majburiy belgilanadi)                  |
 | Maʼlumotlar bazasi | `better-sqlite3` orqali **SQLite** (yagona nusxa, WAL jurnallash)                                                                 |
-| Ish stoli          | **Electron 41** + `electron-builder` 26.10 (`electron/` ichidagi alohida ish maydoni)                                             |
 | Testlar            | **Node mahalliy test bajaruvchisi** (modul/integratsiya), **Vitest** (MCP, autoCombo, kesh), **Playwright** (e2e + protocols-e2e) |
 | Yigʻish            | `scripts/build/build-next-isolated.mjs` orqali Next.js mustaqil yigʻilishi                                                        |
 | Lint/formatlash    | ESLint yassi konfiguratsiyasi + Prettier (Husky pre-commit orqali `lint-staged`)                                                  |
@@ -49,7 +48,6 @@ katalogi `DATA_DIR` muhit oʻzgaruvchisi orqali belgilanadi; standart qiymati `~
 OmniRoute/
 ├── src/                  Next.js ilovasi (App Router, kutubxonalar, domen, server, umumiy qismlar)
 ├── open-sse/             Oqimli uzatish mexanizmi ish maydoni (@omniroute/open-sse)
-├── electron/             Ish stoli qobigʻi (Electron 41 asosiy jarayoni + preload)
 ├── bin/                  CLI kirish nuqtalari (omniroute, reset-password)
 ├── tests/                Modul, integratsiya, e2e, protocols-e2e, tarjimon, xavfsizlik testlari va sinov maʼlumotlari
 ├── scripts/              Yigʻish, sinxronlash, tekshirish, migratsiya va bajarilish muhiti yordamchi skriptlari
@@ -573,26 +571,6 @@ Oqim primitivlari va provayder yordamchi vositalari: `stream.ts`, `streamHandler
 
 ---
 
-## 5. `electron/` — Ish stoli ilovasi qobigʻi
-
-```
-electron/
-├── main.js                  Electron asosiy jarayoni
-├── preload.js               Oldindan yuklash koʻprigi (contextIsolation yoqilgan)
-├── types.d.ts
-├── package.json             electron-builder konfiguratsiyasi, 3.8.51 versiyasi
-├── README.md
-├── assets/                  Yigʻish resurslari (ikonalar, ruxsatlar, …)
-├── node_modules/            Alohida node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           Yigʻish natijasi (repozitoriyga kiritilmaydi)
-```
-
-Ish maydoni ildizida beshta npm skripti mavjud: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Avtomatik yangilash
-GitHub relizlar tasmasiga yoʻnaltirilgan `electron-updater` orqali amalga oshiriladi.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -657,13 +635,11 @@ Koʻp ishlatiladigan buyruqlar:
 Maqsadiga ko‘ra 6 ta quyi jildga ajratilgan.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -842,7 +818,7 @@ Mijoz so‘rovi
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A protokoli imkoniyatlari va aniqlash mexanizmi.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK va Caveman siqish mexanizmlari.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI integratsiyalari.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (agar mavjud boʻlsa), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — joylashtirish maqsadlari.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — joylashtirish maqsadlari.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — keng tarqalgan operatsion muammolar.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — hissa qoʻshuvchilar uchun ish jarayoni.
 - [CLAUDE.md](../../CLAUDE.md) — Claude Code uchun repo qoidalari (yuqoridagi koʻplab

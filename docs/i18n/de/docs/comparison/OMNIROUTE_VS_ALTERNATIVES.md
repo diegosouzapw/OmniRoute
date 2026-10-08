@@ -29,7 +29,7 @@ Objektiver Funktionsvergleich mit beliebten Open-Source-KI-Routern.
 | **TLS-Fingerprint-Tarnung (JA3/JA4)**                          |                 ✅ wreq-js                  |        ❌         |        ❌         |         ❌         |
 | **Evaluierungsframework**                                      |                ✅ integriert                |        ❌         |        ❌         | ⚠ kostenpflichtig  |
 | **MITM-Proxy (fängt Cursor/Antigravity ab)**                   |          ✅ plattformübergreifend           |        ❌         |        ❌         |         ❌         |
-| **CLI mit System-Tray (ohne Electron)**                        |                     ✅                      |        ❌         |       k. A.       |       k. A.        |
+| **CLI mit System-Tray**                                        |                     ✅                      |        ❌         |       k. A.       |       k. A.        |
 | **Automatische CLI-Authentifizierung per Maschinen-ID**        |                     ✅                      |        ❌         |       k. A.       |       k. A.        |
 | **Dashboard**                                                  |                 Next.js 16                  |    grundlegend    |    proprietär     |     proprietär     |
 | **i18n**                                                       |               **42 Locales**                |        ❌         |        ❌         |         ⚠          |

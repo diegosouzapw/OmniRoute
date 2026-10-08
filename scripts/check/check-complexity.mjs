@@ -21,7 +21,7 @@ const BASELINE_PATH = path.resolve(
 );
 const UPDATE = process.argv.includes("--update");
 
-// Re-export for tests that lock scan scope (src+open-sse+electron+bin).
+// Re-export for tests that lock scan scope (src+open-sse+bin).
 export { ESLINT_ARGS };
 
 /** Avalia a contagem atual de violações contra o baseline. */

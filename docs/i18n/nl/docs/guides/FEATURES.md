@@ -265,25 +265,6 @@ Registratie van beheerdersacties met filters op actietype, actor, doel, IP-adres
 
 ---
 
-## 🖥️ Desktopapplicatie
-
-Native Electron-desktopapp voor Windows, macOS en Linux. Voer OmniRoute uit als zelfstandige applicatie met integratie in het systeemvak, offlineondersteuning, automatische updates en installatie met één klik.
-
-Belangrijkste functies:
-
-- Polling van de servergereedheid (geen leeg scherm bij een koude start)
-- Systeemvak met poortbeheer
-- Content Security Policy
-- Vergrendeling tot één instantie
-- Automatische update bij opnieuw opstarten
-- Platformafhankelijke gebruikersinterface (macOS-verkeerslichten, standaardtitelbalk van Windows/Linux)
-- Versterkte verpakking van Electron-builds — symbolisch gekoppelde `node_modules` in de zelfstandige bundel worden vóór het verpakken gedetecteerd en geweigerd, waardoor runtime-afhankelijkheid van de buildmachine wordt voorkomen (v2.5.5+)
-- **Gecontroleerd afsluiten** — Electron `before-quit` sluit Next.js netjes af, waardoor vergrendelingen van SQLite WAL-databases worden voorkomen (v3.6.2+)
-
-📖 Raadpleeg [`electron/README.md`](../../electron/README.md) voor de volledige documentatie.
-
----
-
 ## 🌐 V1 WebSocket-bridge _(v3.6.6+)_
 
 OmniRoute ondersteunt nu **OpenAI-compatibele WebSocket-clients** via het `/v1/ws`-upgrade-eindpunt. De aangepaste `scripts/dev/v1-ws-bridge.mjs`-server verpakt Next.js en voert upgrades van WS-verbindingen uit naar volledig bidirectionele streamingsessies. Authenticatie gebruikt dezelfde API-sleutel of sessiecookie als HTTP-aanvragen.

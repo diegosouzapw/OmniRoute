@@ -27,7 +27,6 @@ bila kubuni moduli mpya.
 | Lugha                    | **TypeScript 6.0+** — lengo `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                                    |
 | Mazingira ya utekelezaji | **Node.js** `>=22.22.2 <23` au `>=24.0.0 <27` (inatekelezwa kupitia `engines` + `SUPPORTED_NODE_RANGE`)                                 |
 | Hifadhidata              | **SQLite** kupitia `better-sqlite3` (nakala moja, uhifadhi wa kumbukumbu wa WAL)                                                        |
-| Kompyuta ya mezani       | **Electron 41** + `electron-builder` 26.10 (eneo tofauti la kazi katika `electron/`)                                                    |
 | Majaribio                | **Kiendesha majaribio asilia cha Node** (vitengo/ujumuishaji), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | Uundaji                  | Next.js inayojitegemea kupitia `scripts/build/build-next-isolated.mjs`                                                                  |
 | Ukaguzi/uumbizaji        | Usanidi tambarare wa ESLint + Prettier (`lint-staged` kupitia Husky pre-commit)                                                         |
@@ -51,7 +50,6 @@ data ni kigezo cha mazingira cha `DATA_DIR`, ambacho kwa chaguo-msingi ni `~/.om
 OmniRoute/
 ├── src/                  Programu ya Next.js (App Router, maktaba, kikoa, seva, vipengele vya pamoja)
 ├── open-sse/             Eneo la kazi la injini ya utiririshaji (@omniroute/open-sse)
-├── electron/             Kifuniko cha kompyuta ya mezani (mchakato mkuu wa Electron 41 + upakiaji wa awali)
 ├── bin/                  Vituo vya kuingilia vya CLI (omniroute, reset-password)
 ├── tests/                Majaribio ya vitengo, ujumuishaji, e2e, protocols-e2e, kitafsiri, usalama, data za majaribio
 ├── scripts/              Hati saidizi za uundaji, ulandanishaji, ukaguzi, uhamishaji na utekelezaji
@@ -575,26 +573,6 @@ Vipengele vya msingi vya utiririshaji na visaidizi vya watoa huduma: `stream.ts`
 
 ---
 
-## 5. `electron/` — Kifungashio cha eneo-kazi
-
-```
-electron/
-├── main.js                  Mchakato mkuu wa Electron
-├── preload.js               Daraja la upakiaji wa awali (contextIsolation imewezeshwa)
-├── types.d.ts
-├── package.json             Usanidi wa electron-builder, toleo la 3.8.51
-├── README.md
-├── assets/                  Rasilimali za uundaji (ikoni, ruhusa, …)
-├── node_modules/            node_modules mahususi (better-sqlite3, electron-updater)
-└── dist-electron/           Matokeo ya uundaji (hayajawekwa kwenye hazina)
-```
-
-Hati tano za npm kwenye mzizi wa workspace: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Usasishaji kiotomatiki hufanywa kupitia
-`electron-updater` inayoelekezwa kwenye mkondo wa matoleo wa GitHub.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -659,13 +637,11 @@ Amri za kawaida:
 Imepangwa katika folda ndogo 6 kulingana na madhumuni.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -844,7 +820,7 @@ Tazama [A2A-SERVER.md § Kuongeza Ujuzi Mpya](../frameworks/A2A-SERVER.md). Ujuz
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — ujuzi na ugunduzi wa itifaki ya A2A.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — ubanaji wa RTK + Caveman.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — miunganisho ya CLI.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (ikiwa ipo), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — mazingira lengwa ya usambazaji.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — mazingira lengwa ya usambazaji.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — matatizo ya kawaida ya uendeshaji.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — mtiririko wa kazi wa wachangiaji.
 - [CLAUDE.md](../../CLAUDE.md) — kanuni za repo kwa Claude Code (chanzo cha ukweli

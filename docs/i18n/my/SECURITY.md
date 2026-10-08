@@ -197,7 +197,7 @@ docker run -d \
 
 ## Dependency များ
 
-- `npm audit` ကို ပုံမှန် run ပါ (`npm run audit:deps` သည် main + electron ကို လွှမ်းခြုံသည်)
+- `npm audit` ကို ပုံမှန် run ပါ (`npm run audit:deps` သည် main ကို လွှမ်းခြုံသည်)
 - Dependency များကို နောက်ဆုံးဗားရှင်းအဖြစ် ထိန်းသိမ်းပါ
 - Project သည် pre-commit စစ်ဆေးမှုများအတွက် `husky` + `lint-staged` ကို အသုံးပြုသည် (lint-staged + check-docs-sync + check:any-budget:t11)
 - CI pipeline သည် push တိုင်းတွင် ESLint လုံခြုံရေးစည်းမျဉ်းများကို run သည် (`no-eval`, `no-implied-eval`, `no-new-func` = error)

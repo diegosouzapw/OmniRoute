@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Manhajar Next.js 16 (UI + hanyoyin API + ɗakunan karatu + yanki + sabar)
 ├── open-sse/             # Wurin aikin injin yaɗawa (masu sarrafawa, masu aiwatarwa, mai fassara, sabar MCP)
-├── electron/             # Kundin manhajar tebur (Electron 41 + electron-builder 26.10)
 ├── bin/                  # Mashigar CLI da masu sarrafa umarni
 ├── scripts/              # Rubutun ginawa, dubawa, daidaitawa, da ayyuka na lokaci guda
 ├── docs/                 # Takardun bayani na jama'a (kana nan)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Kundin Manhajar Tebur
-
-| Fayil            | Manufa                                                                                              |
-| ---------------- | --------------------------------------------------------------------------------------------------- |
-| `main.js`        | Babban tsarin Electron (BrowserWindow, sabar Next.js da aka saka ciki, tray, sabuntawa ta atomatik) |
-| `preload.js`     | Gadar IPC (contextBridge → `window.omniroute`)                                                      |
-| `package.json`   | Saitin electron-builder + Electron 41 + dogarorin electron-builder 26.10                            |
-| `assets/`        | Gumakan manhaja (Windows .ico, macOS .icns, Linux .png)                                             |
-| `dist-electron/` | Sakamakon ginawa (gitignored)                                                                       |
-| `types.d.ts`     | Bayanin nau'ikan gadar renderer                                                                     |
-| `README.md`      | README na cikin gida na Electron (duba kuma `docs/guides/ELECTRON_GUIDE.md`)                        |
-
----
-
 ## `bin/` — CLI
 
 | Fayil                                                                                                       | Manufa                                                                                                                                      |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | Mai gudanar da gwajin E2E na MCP/A2A                                                          |
 | `run-ecosystem-tests.mjs`           | Gwaje-gwajen muhalli (haɗin mai samarwa)                                                      |
 | `test-report-summary.mjs`           | Samar da taƙaitaccen rahoton ɗaukar gwaji a markdown                                          |
-| `smoke-electron-packaged.mjs`       | Gwajin gaggawa ga ginannen fakitin Electron                                                   |
-| `native-binary-compat.mjs`          | Tabbatar da cewa native deps (`better-sqlite3`) sun dace da Node na Electron                  |
 | `validate-pack-artifact.ts`         | Tabbatar da ingancin sakamakon npm pack                                                       |
 | `responses-ws-proxy.mjs`            | Gadar WebSocket don Codex Responses API                                                       |
 | `v1-ws-bridge.mjs`                  | Gadar WebSocket don endpoint na `/api/v1/ws`                                                  |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Jagorar mai amfani (saiti, models, combos, CLIs, sauti, da sauransu)                               |
 | `API_REFERENCE.md`          | Manazartar API endpoints tare da tsarin auth                                                       |
 | `openapi.yaml`              | Bayanin OpenAPI 3.0 (paths 121)                                                                    |
-| `SETUP_GUIDE.md`            | Hanyoyin girkawa (npm, npx, Docker, Electron, Termux, source)                                      |
+| `SETUP_GUIDE.md`            | Hanyoyin girkawa (npm, npx, Docker, Termux, source)                                                |
 | `ENVIRONMENT.md`            | Duk env vars (~800 da aka rubuta bayaninsu, ~layuka 3,050 na `.env.example`)                       |
 | `TROUBLESHOOTING.md`        | Kurakurai na yau da kullum + sanannun matsalolin v3.8.0                                            |
 | `RELEASE_CHECKLIST.md`      | Cikakken tsarin fitarwa (skills, husky, conventional commits, deploy)                              |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Turawa zuwa Fly.io (a halin yanzu da Sinanci kawai)              |
 | `TERMUX_GUIDE.md`            | Android marar GUI ta hanyar Termux                               |
 | `PWA_GUIDE.md`               | Girka Progressive Web App + service worker                       |
-| `ELECTRON_GUIDE.md`          | Gina manhajar desktop + sanya hannu + rarrabawa                  |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                           |
 | `PROXY_GUIDE.md`             | Outbound proxy mai matakai 4 + 1proxy marketplace                |
 

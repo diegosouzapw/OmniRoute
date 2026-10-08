@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Xem [Hướng dẫn Docker](./DOCKER_GUIDE.md) để biết cách thiết lập Docker đầy đủ, bao gồm các cấu hình Compose và Caddy HTTPS.
 
-### Ứng dụng máy tính (Electron)
-
-OmniRoute đi kèm một trình bao ứng dụng máy tính được xây dựng trên Electron 41 + electron-builder 26.10. Các tập lệnh khả dụng (thư mục gốc của workspace):
-
-```bash
-npm run electron:dev          # Chạy ứng dụng máy tính với tính năng tải lại nóng
-npm run electron:build        # Build cho hệ điều hành hiện tại (được tự động phát hiện)
-npm run electron:build:win    # Trình cài đặt Windows (NSIS + bản portable)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # Kiểm thử nhanh bản build đã đóng gói
-```
-
-Các bản phát hành của trình cài đặt ứng dụng máy tính được đính kèm vào GitHub Releases. Để tìm hiểu chuyên sâu đầy đủ về Electron (ký mã, cầu nối IPC, các bản phân phối), hãy xem [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _(được tạo ở giai đoạn sau)_.
-
 ### Máy chủ không giao diện (CI/tự động hóa)
 
 Đối với các thiết lập không cần giám sát (Docker, Kubernetes, CI), hãy sử dụng:

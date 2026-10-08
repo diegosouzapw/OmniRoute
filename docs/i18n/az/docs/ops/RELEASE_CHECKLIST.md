@@ -122,7 +122,6 @@ heç bir etiket olmadan E2E matrisini avtomatik ötürür.
 ### Versiya və Dəyişiklik Jurnalı
 
 - [ ] `/version-bump-cc <patch|minor|major>` əmrini icra edin (Claude Code bacarığı)
-  - `package.json`, `electron/package.json` versiyalarını artırır
   - Son teqdən bəri git commit-ləri əsasında `CHANGELOG.md` faylını yenidən yaradır
   - README.md nişanlarını yeniləyir
 - [ ] CHANGELOG.md faylını əl ilə nəzərdən keçirin və lazım olduqda commit mesajlarını təmizləyin
@@ -216,103 +215,6 @@ Geriyə uyğunluğu pozan dəyişikliklər: `BREAKING CHANGE:` alt qeydini və y
 - [ ] Modellər `open-sse/config/providerRegistry.ts` daxilində qeydiyyatdan keçirilib
 - [ ] `tests/unit/` daxilindəki vahid testləri provayder təsnifatını və yönləndirməni əhatə edir
 
-### Masaüstü (Electron)
-
-`electron/` dəyişibsə:
-
-- [ ] `npm run electron:smoke:packaged` uğurla tamamlanır
-- [ ] Yığımlar `:win`, `:mac`, `:linux` variantlarından ən azı biri üçün sınaqdan keçirilib
-- [ ] Kod imzalama sertifikatlarının müddəti bitməyib (imzalama aparılırsa)
-- [ ] `electron/package.json` versiyası kök `package.json` versiyası ilə eynidir
-- [ ] `stable` kanalına buraxılış edilirsə, avtomatik yeniləmə kanalının göstəricisi yenilənib
-
-### Yığım Strukturu
-
-Repozitoriya üç fərqli çıxış kataloqundan istifadə edir — onları heç vaxt qarışdırmayın:
-
-| Kataloq   | Məqsəd                                                         | İzlənilir?        |
-| --------- | -------------------------------------------------------------- | ----------------- |
-| `src/`    | Tətbiqin mənbə kodu (TypeScript / TSX)                         | Bəli              |
-| `.build/` | Yığımın aralıq faylları — `next build` çıxışı (`distDir`)      | Xeyr (gitignored) |
-| `dist/`   | Paylanmağa hazır npm paketi — `assembleStandalone` ilə yığılır | Xeyr (gitignored) |
-
-> **Operator qeydi:** uzaq VPS təsvirindəki kataloq `/usr/lib/node_modules/omniroute/app/` olaraq qalır.
-> Yalnız **repozitoriya daxilindəki** yığım çıxışı köçürülüb (`app/` → `dist/`). Deploy bacarıqları
-> `dist/` məzmununu uzaq `app/` kataloquna rsync edir — VPS yollarında dəyişiklik tələb olunmur.
-
-**Tək yığım axını:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (təmizləmə)
-  └─ next build → .build/next/   (aralıq fayllar)
-  └─ assembleStandalone          (standalone + static + public + natives fayllarını → dist/ kataloquna köçürür)
-  └─ dist/BUILD_SHA yazır        (HEAD nəzarət göstəricisi)
-```
-
-Deploy üçün `npm run build` əmrindən sonra ayrıca `npm run build:cli` əmrini işə salmayın — bir əmrlə təmiz yenidən yığım və nəzarət göstəricisi yaradan
-`npm run build:release` əmrindən istifadə edin.
-
-### Artefaktın Doğrulanması
-
-- [ ] `npm run build:release` uğurla tamamlanır və `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` təmiz nəticə verir — `app.__qa_backup`, `scripts/scratch`, `package-lock.json` və ya başqa lokal qalıqlar yoxdur
-- [ ] Yığımdan sonra `dist/server.js` mövcuddur
-
-### Teqləmə və Buraxılış
-
-- [ ] `/generate-release-cc` əmrini işə salın (Claude Code bacarığı):
-  - `vX.Y.Z` teqi yaradır
-  - Teqi və budağı göndərir
-  - Dəyişiklik jurnalı mətni ilə GitHub Release açır
-  - Electron quraşdırıcılarını əlavə edir (yığılıbsa)
-- [ ] Və ya əl ilə:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Yerləşdirmə
-
-Deploy bacarıqları yüngül rsync axınından istifadə edir — `npm pack` və `npm i -g` istifadə olunmur:
-
-- [ ] Hədəfə uyğun deploy bacarığından istifadə edin:
-  - `/deploy-vps-local-cc` — lokal VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — hər ikisi
-- [ ] Yerləşdirmədən əvvəl `dist/BUILD_SHA` == `git rev-parse --short HEAD` olduğunu təsdiqləyin
-- [ ] Yığım `node_modules` qovluğunun real olduğu yerdə işlədilməlidir (əsas checkout və ya `npm ci` icra edilmiş worktree — simvolik keçidlə qoşulmuş worktree DEYİL)
-- [ ] Yerləşdirilmiş instansiyada smoke test aparın:
-  - `/dashboard/health` səhifəsini açın → versiya sətrinin buraxılışla uyğun olduğunu yoxlayın
-  - Məlum provayderə qarşı `/v1/chat/completions` sorğusu göndərin
-  - `/api/monitoring/health` cavabının `CLOSED` vəziyyətindəki circuit breaker-ləri qaytardığını yoxlayın
-  - MCP nəqliyyatlarının cavab verdiyini təsdiqləyin (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Buraxılışdan Sonra
-
-- [ ] `/capture-release-evidences-cc` əmrini işə salın (Claude Code bacarığı)
-  - Yeni funksiyaların WebP ekran görüntülərini/yazılarını çəkir
-  - Buraxılış qeydlərinə / bloq yazısına əlavə edir
-- [ ] GitHub Discussions / Discord platformalarını buraxılış elanı ilə yeniləyin
-- [ ] Növbəti versiya üçün mərhələ açın
-- [ ] Kritikdirsə: müzakirəni bərkidin və ya tətbiqdaxili banner üçün `news.json` faylında paylaşın
-
-### Radar-ın ictimai istifadəyə verilməsi üçün keçid şərtləri
-
-Radar elanı qəsdən `active: false` ilə kommit edilib. Aktivləşdirmə aşağıdakı hər bir bənd üzrə sübut təqdim edildikdən sonra ayrıca dəyişiklik kimi həyata keçirilir:
-
-- [ ] Üst-üstə yığılmış bütün Radar PR-ları birləşdirilib və buraxılışın son versiyası üçün CI uğurla tamamlanıb
-- [ ] `RADAR_ENABLED` defolt olaraq hələ də söndürülmüş vəziyyətdə OSS Radar marşrutlarını yerləşdirin və ilkin yoxlamadan keçirin
-- [ ] Göstərilən Radar hostunda `GET /planos`, `/termos`, `/privacidade` və `/reembolso` üçün ilkin yoxlama aparın
-- [ ] Operatorun şəxsiyyətini/əlaqə məlumatlarını/ünvanını və sahib tərəfindən təsdiqlənmiş hüquqi yoxlamanı özəl xidmətdə qeydə alın
-- [ ] Stripe Checkout-u və imzalanmış webhook-u yalnız test rejimində sınaqdan keçirin
-- [ ] Təsdiqlənmiş göndərən/domendən bir şifrələnmiş tranzaksiya e-poçtunun çatdırılmasını sınaqdan keçirin
-- [ ] Ehtiyat nüsxədən bərpanı və nəzarət altında, büdcəsi məhdudlaşdırılmış bir tədqiqat icrasını təsdiqləyin
-- [ ] İanə sübutlarını qəbul etməzdən əvvəl BRL/PIX yoxlama siyasətini təsdiqləyin
-- [ ] İctimai Checkout-u yalnız əvvəlki keçid şərtləri yerinə yetirildikdən sonra aktivləşdirin, ardınca yeni `news.json` ID-sini aktivləşdirin
-- [ ] Home bannerinin lokallaşdırılmış mətndən istifadə etdiyini və köhnə ID rədd edildikdən sonra yeni ID-nin yenidən göründüyünü yoxlayın
-
 ## Daxili xidmətlərin tüstü testi (v3.8.4+)
 
 Daxili xidmətlərlə bağlı dəyişiklikləri ehtiva edən hər hansı buraxılışı yayımlamazdan əvvəl yoxlayın:
@@ -398,7 +300,7 @@ Buraxılışda kritik problem varsa:
 - Heç vaxt Husky hook-larını (`--no-verify`) keçməyin
 - Heç vaxt məxfi məlumatları, giriş məlumatlarını və ya `.env` fayllarını commit etməyin
 - Əhatə səviyyəsi ≥60/60/60/60 (ifadələr/sətirlər/funksiyalar/budaqlar) olaraq qalmalıdır
-- `src/`, `open-sse/`, `electron/` və ya `bin/` daxilindəki istehsal kodunu dəyişdirərkən həmişə testlər əlavə edin və ya yeniləyin
+- `src/`, `open-sse/` və ya `bin/` daxilindəki istehsal kodunu dəyişdirərkən həmişə testlər əlavə edin və ya yeniləyin
 
 ## Avtomatlaşdırılmış sinxronizasiya yoxlaması
 

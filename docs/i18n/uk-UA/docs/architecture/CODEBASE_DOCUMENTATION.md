@@ -21,18 +21,17 @@
 
 ## 1. Технологічний стек
 
-| Аспект                | Вибір                                                                                                                                    |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Вебфреймворк          | **Next.js 16** (App Router, автономний вихідний пакет, без глобального проміжного ПЗ)                                                    |
-| Мова                  | **TypeScript 6.0+** — ціль `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                                      |
-| Середовище виконання  | **Node.js** `>=22.22.2 <23` або `>=24.0.0 <27` (забезпечується через `engines` + `SUPPORTED_NODE_RANGE`)                                 |
-| База даних            | **SQLite** через `better-sqlite3` (єдиний екземпляр, журналювання WAL)                                                                   |
-| Настільний застосунок | **Electron 41** + `electron-builder` 26.10 (окремий робочий простір у `electron/`)                                                       |
-| Тести                 | **Вбудований засіб запуску тестів Node** (модульні/інтеграційні), **Vitest** (MCP, autoCombo, кеш), **Playwright** (e2e + protocols-e2e) |
-| Збірка                | Автономна збірка Next.js через `scripts/build/build-next-isolated.mjs`                                                                   |
-| Лінтинг/форматування  | Плоска конфігурація ESLint + Prettier (`lint-staged` через Husky перед комітом)                                                          |
-| Система модулів       | ESM усюди (`"type": "module"`)                                                                                                           |
-| Робочі простори       | Робочий простір npm — `open-sse` є єдиним вкладеним робочим простором                                                                    |
+| Аспект               | Вибір                                                                                                                                    |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Вебфреймворк         | **Next.js 16** (App Router, автономний вихідний пакет, без глобального проміжного ПЗ)                                                    |
+| Мова                 | **TypeScript 6.0+** — ціль `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                                      |
+| Середовище виконання | **Node.js** `>=22.22.2 <23` або `>=24.0.0 <27` (забезпечується через `engines` + `SUPPORTED_NODE_RANGE`)                                 |
+| База даних           | **SQLite** через `better-sqlite3` (єдиний екземпляр, журналювання WAL)                                                                   |
+| Тести                | **Вбудований засіб запуску тестів Node** (модульні/інтеграційні), **Vitest** (MCP, autoCombo, кеш), **Playwright** (e2e + protocols-e2e) |
+| Збірка               | Автономна збірка Next.js через `scripts/build/build-next-isolated.mjs`                                                                   |
+| Лінтинг/форматування | Плоска конфігурація ESLint + Prettier (`lint-staged` через Husky перед комітом)                                                          |
+| Система модулів      | ESM усюди (`"type": "module"`)                                                                                                           |
+| Робочі простори      | Робочий простір npm — `open-sse` є єдиним вкладеним робочим простором                                                                    |
 
 Псевдоніми шляхів (`tsconfig.json`):
 
@@ -51,7 +50,6 @@
 OmniRoute/
 ├── src/                  Застосунок Next.js (App Router, бібліотеки, домен, сервер, спільні компоненти)
 ├── open-sse/             Робочий простір потокового рушія (@omniroute/open-sse)
-├── electron/             Обгортка настільного застосунку (основний процес Electron 41 + попереднє завантаження)
 ├── bin/                  Точки входу CLI (omniroute, reset-password)
 ├── tests/                Модульні, інтеграційні, e2e, protocols-e2e, транслятор, безпека, фікстури
 ├── scripts/              Допоміжні скрипти для збірки, синхронізації, перевірки, міграції та виконання
@@ -574,26 +572,6 @@ open-sse/
 
 ---
 
-## 5. `electron/` — Обгортка для настільних систем
-
-```
-electron/
-├── main.js                  Головний процес Electron
-├── preload.js               Міст попереднього завантаження (contextIsolation увімкнено)
-├── types.d.ts
-├── package.json             Конфігурація electron-builder, версія 3.8.51
-├── README.md
-├── assets/                  Ресурси збірки (піктограми, дозволи, …)
-├── node_modules/            Окремий каталог node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           Результати збірки (не додаються до репозиторію)
-```
-
-П’ять npm-скриптів у корені робочого простору: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Автоматичне оновлення виконується через
-`electron-updater`, спрямований на стрічку релізів GitHub.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -658,13 +636,11 @@ bin/
 Організовано в 6 підпапок за призначенням.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -844,7 +820,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — навички та виявлення протоколу A2A.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — стиснення RTK + Caveman.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — інтеграції CLI.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (якщо є), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — цільові середовища розгортання.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — цільові середовища розгортання.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — поширені операційні проблеми.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — робочий процес для учасників проєкту.
 - [CLAUDE.md](../../CLAUDE.md) — правила репозиторію для Claude Code (основне джерело

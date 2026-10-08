@@ -91,7 +91,7 @@ Kada trebate ugraditi novu vrijednost koju je pružio vanjski pružatelj i koja:
 
 ### 3. Zabranjeni obrasci
 
-❌ U produkcijskom kodu (`src/`, `open-sse/`, `electron/`, `bin/`) **nikada** nemojte raditi ništa od sljedećeg:
+❌ U produkcijskom kodu (`src/`, `open-sse/`, `bin/`) **nikada** nemojte raditi ništa od sljedećeg:
 
 ```ts
 // LOŠE: doslovna vrijednost aktivira Secret Scanning + Semgrep

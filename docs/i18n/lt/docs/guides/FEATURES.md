@@ -265,25 +265,6 @@ Administracinių veiksmų stebėjimas su filtravimu pagal veiksmo tipą, vykdyto
 
 ---
 
-## 🖥️ Darbalaukio programa
-
-Savoji Electron darbalaukio programa, skirta Windows, macOS ir Linux. Paleiskite OmniRoute kaip atskirą programą su integracija į sistemos dėklą, veikimu neprisijungus, automatiniu naujinimu ir diegimu vienu spustelėjimu.
-
-Pagrindinės funkcijos:
-
-- Serverio parengties tikrinimas (šaltojo paleidimo metu nerodomas tuščias ekranas)
-- Sistemos dėklas su prievadų valdymu
-- Turinio saugos politika
-- Vieno egzemplioriaus užraktas
-- Automatinis naujinimas paleidus iš naujo
-- Nuo platformos priklausanti naudotojo sąsaja (macOS „šviesoforo“ mygtukai, Windows/Linux numatytoji antraštės juosta)
-- Sustiprintas Electron versijos paketų kūrimas — prieš kuriant paketą aptinkamas ir atmetamas atskiro paketo simbolinėmis nuorodomis susietas `node_modules`, taip išvengiant vykdymo aplinkos priklausomybės nuo komponavimo įrenginio (v2.5.5+)
-- **Sklandus išjungimas** — Electron `before-quit` tinkamai išjungia Next.js, neleisdamas užrakinti SQLite WAL duomenų bazės (v3.6.2+)
-
-📖 Išsamią dokumentaciją žr. [`electron/README.md`](../../electron/README.md).
-
----
-
 ## 🌐 V1 WebSocket tiltas _(v3.6.6+)_
 
 Dabar OmniRoute palaiko **su OpenAI suderinamus WebSocket klientus** per `/v1/ws` naujovinimo galinį tašką. Pasirinktinis `scripts/dev/v1-ws-bridge.mjs` serveris apgaubia Next.js ir naujovina WS ryšius į visiškai dvikrypčio srautinio perdavimo seansus. Autentifikavimui naudojamas tas pats API raktas arba seanso slapukas kaip ir HTTP užklausoms.

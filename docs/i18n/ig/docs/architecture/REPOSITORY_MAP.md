@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Ngwa Next.js 16 (UI + ụzọ API + ọba akwụkwọ + ngalaba + sava)
 ├── open-sse/             # Ebe ọrụ injin nkwanye data (ndị njikwa, ndị mmebe, onye ntụgharị, sava MCP)
-├── electron/             # Ihe mkpuchi desktọpụ (Electron 41 + electron-builder 26.10)
 ├── bin/                  # Ebe mbido CLI na ndị njikwa iwu
 ├── scripts/              # Skript maka iwulite, inyocha, imekọrịta, na ọrụ otu oge
 ├── docs/                 # Akwụkwọ nkọwa ọha (ị nọ ebe a)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Ihe Mkpuchi Desktọpụ
-
-| Faịlụ            | Ebumnuche                                                                            |
-| ---------------- | ------------------------------------------------------------------------------------ |
-| `main.js`        | Usoro isi Electron (BrowserWindow, sava Next.js agbakwunyere, tray, mmelite akpaaka) |
-| `preload.js`     | Àkwà mmiri IPC (contextBridge → `window.omniroute`)                                  |
-| `package.json`   | Nhazi electron-builder + Electron 41 + ndabere electron-builder 26.10                |
-| `assets/`        | Akara ngosi ngwa (Windows .ico, macOS .icns, Linux .png)                             |
-| `dist-electron/` | Nsonaazụ nrụpụta (gitignored)                                                        |
-| `types.d.ts`     | Nkwupụta ụdị maka àkwà mmiri renderer                                                |
-| `README.md`      | README Electron nke ime (leekwa `docs/guides/ELECTRON_GUIDE.md`)                     |
-
----
-
 ## `bin/` — CLI
 
 | Faịlụ                                                                                                       | Ebumnuche                                                                                                                        |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | Ihe na-agba ule MCP/A2A E2E                                                         |
 | `run-ecosystem-tests.mjs`           | Ule ecosystem (njikọ provider)                                                      |
 | `test-report-summary.mjs`           | Mepụta nchịkọta coverage n'ụdị markdown                                             |
-| `smoke-electron-packaged.mjs`       | Mee smoke-test nke mwube Electron etinyere na ngwugwu                               |
-| `native-binary-compat.mjs`          | Nyochaa na deps native (`better-sqlite3`) dabara na Node nke Electron               |
 | `validate-pack-artifact.ts`         | Nyochaa nsonaazụ npm pack                                                           |
 | `responses-ws-proxy.mjs`            | Àkwà mmiri WebSocket maka Codex Responses API                                       |
 | `v1-ws-bridge.mjs`                  | Àkwà mmiri WebSocket maka endpoint `/api/v1/ws`                                     |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Akwụkwọ ntuziaka onye ọrụ (nhazi, model, combo, CLI, ọdịyo, wdg.)                                   |
 | `API_REFERENCE.md`          | Ntụaka endpoint API nwere model auth                                                                |
 | `openapi.yaml`              | Nkọwapụta OpenAPI 3.0 (ụzọ 121)                                                                     |
-| `SETUP_GUIDE.md`            | Usoro nrụnye (npm, npx, Docker, Electron, Termux, source)                                           |
+| `SETUP_GUIDE.md`            | Usoro nrụnye (npm, npx, Docker, Termux, source)                                                     |
 | `ENVIRONMENT.md`            | Env var niile (~800 edekọtara, ahịrị `.env.example` ~3,050)                                         |
 | `TROUBLESHOOTING.md`        | Njehie ndị a na-ahụkarị + nsogbu ndị amaara na v3.8.0                                               |
 | `RELEASE_CHECKLIST.md`      | Usoro mwepụta zuru ezu (skills, husky, conventional commits, deploy)                                |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Mbugharị Fly.io (ugbu a ọ dị naanị n'asụsụ Chinese)               |
 | `TERMUX_GUIDE.md`            | Android na-enweghị interface site na Termux                       |
 | `PWA_GUIDE.md`               | Nrụnye Progressive Web App + service worker                       |
-| `ELECTRON_GUIDE.md`          | Mwube ngwa desktọọpụ + mbinye aka + nkesa                         |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                            |
 | `PROXY_GUIDE.md`             | Proxy ọpụpụ ọkwa 4 + marketplace 1proxy                           |
 

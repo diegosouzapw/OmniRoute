@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Compose പ്രൊഫൈലുകളും Caddy HTTPS-ഉം ഉൾപ്പെടെയുള്ള സമ്പൂർണ്ണ Docker സജ്ജീകരണത്തിനായി [Docker ഗൈഡ്](./DOCKER_GUIDE.md) കാണുക.
 
-### ഡെസ്ക്ടോപ്പ് ആപ്പ് (Electron)
-
-Electron 41 + electron-builder 26.10 അടിസ്ഥാനമാക്കി നിർമ്മിച്ച ഒരു ഡെസ്ക്ടോപ്പ് റാപ്പറോടെയാണ് OmniRoute വിതരണം ചെയ്യുന്നത്. ലഭ്യമായ സ്ക്രിപ്റ്റുകൾ (വർക്ക്സ്പേസ് റൂട്ട്):
-
-```bash
-npm run electron:dev          # ഹോട്ട്-റീലോഡോടെ ഡെസ്ക്ടോപ്പ് പ്രവർത്തിപ്പിക്കുക
-npm run electron:build        # നിലവിലെ OS-നായി ബിൽഡ് ചെയ്യുക (സ്വയമേവ കണ്ടെത്തുന്നു)
-npm run electron:build:win    # Windows ഇൻസ്റ്റാളർ (NSIS + പോർട്ടബിൾ)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # പാക്കേജ് ചെയ്ത ബിൽഡ് സ്മോക്ക്-ടെസ്റ്റ് ചെയ്യുക
-```
-
-ഡെസ്ക്ടോപ്പ് ഇൻസ്റ്റാളറുകളുടെ റിലീസുകൾ GitHub Releases-ൽ അറ്റാച്ച് ചെയ്തിട്ടുണ്ട്. Electron-നെക്കുറിച്ചുള്ള സമഗ്ര വിശദീകരണത്തിനായി (സൈനിംഗ്, IPC ബ്രിഡ്ജ്, ഡിസ്ട്രോകൾ), [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) കാണുക _(പിന്നീടുള്ള ഘട്ടത്തിൽ സൃഷ്ടിച്ചത്)_.
-
 ### ഹെഡ്ലെസ് സെർവർ (CI/ഓട്ടോമേഷൻ)
 
 മേൽനോട്ടമില്ലാത്ത സജ്ജീകരണങ്ങൾക്ക് (Docker, Kubernetes, CI), ഇവ ഉപയോഗിക്കുക:

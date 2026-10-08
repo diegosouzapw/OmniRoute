@@ -220,7 +220,7 @@ npm run test:combo:live:vps:failover     # یک سناریوی واقعی failov
 
 - `npm run test:coverage` پوشش کد منبع را برای مجموعهٔ اصلی آزمونهای واحد اندازهگیری میکند، `tests/**` را کنار میگذارد و `open-sse/**` را شامل میشود
 - درخواستهای ادغام باید دروازهٔ پوشش را برای دستورها/خطوط/توابع/شاخهها در سطح **60%+** نگه دارند
-- اگر یک PR کد عملیاتی را در `src/`، `open-sse/`، `electron/` یا `bin/` تغییر دهد، باید در همان PR آزمونهای خودکار را اضافه یا بهروزرسانی کند
+- اگر یک PR کد عملیاتی را در `src/`، `open-sse/` یا `bin/` تغییر دهد، باید در همان PR آزمونهای خودکار را اضافه یا بهروزرسانی کند
 - `npm run coverage:report` گزارش تفصیلی فایلبهفایل را از آخرین اجرای پوشش نمایش میدهد
 - `npm run test:coverage:legacy` معیار قدیمیتر را برای مقایسهٔ تاریخی حفظ میکند
 - برای نقشهٔ راه مرحلهای بهبود پوشش، `docs/ops/COVERAGE_PLAN.md` را ببینید
@@ -320,7 +320,6 @@ open-sse/                   # @omniroute/open-sse workspace
 ├── transformer/            # Responses API transformer
 └── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron desktop app (cross-platform)
 
 tests/
 ├── unit/                   # Node.js test runner (122 test files)

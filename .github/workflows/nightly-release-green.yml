@@ -27,7 +27,6 @@ on:
       - "src/**"
       - "open-sse/**"
       - "bin/**"
-      - "electron/**"
       - "scripts/**"
       - "tests/**"
       - "config/**"

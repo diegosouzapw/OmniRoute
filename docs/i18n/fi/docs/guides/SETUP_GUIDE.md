@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Katso täydelliset Docker-asennusohjeet, mukaan lukien Compose-profiilit ja Caddy HTTPS, [Docker-oppaasta](./DOCKER_GUIDE.md).
 
-### Työpöytäsovellus (Electron)
-
-OmniRoute sisältää Electron 41:n ja electron-builder 26.10:n avulla rakennetun työpöytäkääreen. Käytettävissä olevat komentosarjat (työtilan juuressa):
-
-```bash
-npm run electron:dev          # Suorita työpöytäsovellus automaattisella uudelleenlatauksella
-npm run electron:build        # Koosta nykyiselle käyttöjärjestelmälle (tunnistetaan automaattisesti)
-npm run electron:build:win    # Windows-asennusohjelma (NSIS + siirrettävä versio)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # Savutestaa pakattu koontiversio
-```
-
-Työpöytäsovelluksen asennusohjelmien julkaisut liitetään GitHub Releases -julkaisuihin. Kattava Electron-opas (allekirjoitus, IPC-silta, jakelut) löytyy tiedostosta [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _(luotu myöhemmässä vaiheessa)_.
-
 ### Käyttöliittymätön palvelin (CI/automaatio)
 
 Käytä valvomattomissa asennuksissa (Docker, Kubernetes, CI):

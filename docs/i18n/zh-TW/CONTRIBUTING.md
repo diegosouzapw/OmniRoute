@@ -224,7 +224,7 @@ npm run test:combo:live:vps:failover     # 新增真實的跨 provider 容錯移
 
 - `npm run test:coverage` 會測量主要單元測試套件的原始碼覆蓋率，排除 `tests/**`，並包含 `open-sse/**`
 - Pull Request 必須讓覆蓋率閘門維持在 **60%+** 語句/行/函式/分支
-- 如果 PR 變更了 `src/`、`open-sse/`、`electron/` 或 `bin/` 中的正式程式碼，就必須在同一個 PR 中新增或更新自動化測試
+- 如果 PR 變更了 `src/`、`open-sse/` 或 `bin/` 中的正式程式碼，就必須在同一個 PR 中新增或更新自動化測試
 - `npm run coverage:report` 會列印最近一次覆蓋率執行的詳細逐檔報告
 - `npm run test:coverage:legacy` 會保留舊指標，以供歷史比較
 - 請參閱 `docs/ops/COVERAGE_PLAN.md` 以了解分階段的覆蓋率改善藍圖
@@ -324,7 +324,6 @@ open-sse/                   # @omniroute/open-sse 工作區
 ├── transformer/            # Responses API 轉換器
 └── utils/                  # 22 個工具模組（stream、TLS、proxy、logging）
 
-electron/                   # Electron 桌面應用程式（跨平台）
 
 tests/
 ├── unit/                   # Node.js 測試執行器（1,574 個測試檔案）

@@ -220,7 +220,7 @@ Pārklājuma piezīmes:
 
 - `npm run test:coverage` mēra avota pārklājumu galvenajai unit testu kopai, izslēdz `tests/**` un ietver `open-sse/**`
 - Pull Request ir jāsaglabā pārklājuma vārteja vismaz **60%+** apmērā statements/lines/functions/branches
-- Ja PR maina produkcijas kodu mapēs `src/`, `open-sse/`, `electron/` vai `bin/`, tajā pašā PR ir jāpievieno vai jāatjaunina automatizētie testi
+- Ja PR maina produkcijas kodu mapēs `src/`, `open-sse/` vai `bin/`, tajā pašā PR ir jāpievieno vai jāatjaunina automatizētie testi
 - `npm run coverage:report` izvada detalizētu pārskatu par katru failu no jaunākās pārklājuma palaišanas
 - `npm run test:coverage:legacy` saglabā vecāko metriku vēsturiskai salīdzināšanai
 - Skatiet `docs/ops/COVERAGE_PLAN.md`, lai iepazītos ar pakāpenisku pārklājuma uzlabošanas ceļvedi
@@ -320,7 +320,6 @@ open-sse/                   # @omniroute/open-sse workspace
 ├── transformer/            # Responses API pārveidotājs
 └── utils/                  # 22 utilītas moduļi (straume, TLS, starpniekserveris, reģistrēšana)
 
-electron/                   # Electron darbvirsmas lietotne (daudzplatformu)
 
 tests/
 ├── unit/                   # Node.js testu palaidējs (1,574 testu faili)

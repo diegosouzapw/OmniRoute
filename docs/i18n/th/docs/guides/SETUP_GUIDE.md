@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 โปรดดู [คู่มือ Docker](./DOCKER_GUIDE.md) สำหรับการตั้งค่า Docker ฉบับสมบูรณ์ รวมถึงโปรไฟล์ Compose และ Caddy HTTPS
 
-### แอปเดสก์ท็อป (Electron)
-
-OmniRoute มาพร้อมแรปเปอร์เดสก์ท็อปที่สร้างด้วย Electron 41 + electron-builder 26.10 สคริปต์ที่ใช้งานได้ (ที่รากของ workspace):
-
-```bash
-npm run electron:dev          # เรียกใช้เดสก์ท็อปพร้อมการโหลดซ้ำอัตโนมัติ
-npm run electron:build        # บิลด์สำหรับ OS ปัจจุบัน (ตรวจหาอัตโนมัติ)
-npm run electron:build:win    # ตัวติดตั้ง Windows (NSIS + แบบพกพา)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # ทดสอบเบื้องต้นสำหรับบิลด์แบบแพ็กเกจ
-```
-
-ตัวติดตั้งเดสก์ท็อปแต่ละรุ่นจะแนบมากับ GitHub Releases สำหรับรายละเอียดเชิงลึกทั้งหมดเกี่ยวกับ Electron (การลงนาม บริดจ์ IPC และดิสโทรต่างๆ) โปรดดู [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _(สร้างขึ้นในระยะถัดไป)_
-
 ### เซิร์ฟเวอร์แบบ Headless (CI/ระบบอัตโนมัติ)
 
 สำหรับการตั้งค่าแบบไม่ต้องมีผู้ดูแล (Docker, Kubernetes, CI) ให้ใช้:

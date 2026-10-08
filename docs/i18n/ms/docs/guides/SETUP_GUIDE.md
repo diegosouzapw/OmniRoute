@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Lihat [Panduan Docker](./DOCKER_GUIDE.md) untuk persediaan Docker lengkap, termasuk profil Compose dan HTTPS Caddy.
 
-### Aplikasi Desktop (Electron)
-
-OmniRoute disertakan dengan pembalut desktop yang dibina menggunakan Electron 41 + electron-builder 26.10. Skrip yang tersedia (akar ruang kerja):
-
-```bash
-npm run electron:dev          # Jalankan desktop dengan muat semula pantas
-npm run electron:build        # Bina untuk OS semasa (dikesan secara automatik)
-npm run electron:build:win    # Pemasang Windows (NSIS + mudah alih)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # Ujian ringkas binaan berpakej
-```
-
-Keluaran pemasang desktop dilampirkan pada GitHub Releases. Untuk penerangan terperinci tentang Electron (penandatanganan, jambatan IPC, distro), lihat [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _(dicipta pada fasa kemudian)_.
-
 ### Pelayan tanpa antara muka (CI/automasi)
 
 Untuk persediaan tanpa pengawasan (Docker, Kubernetes, CI), gunakan:

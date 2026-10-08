@@ -27,7 +27,6 @@ nekuriant naujų modulių.
 | Kalba                          | **TypeScript 6.0+** — tikslas `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                                           |
 | Vykdymo aplinka                | **Node.js** `>=22.22.2 <23` arba `>=24.0.0 <27` (užtikrinama naudojant `engines` + `SUPPORTED_NODE_RANGE`)                                       |
 | Duomenų bazė                   | **SQLite** per `better-sqlite3` (vienintelis egzempliorius, WAL žurnalizavimas)                                                                  |
-| Darbalaukis                    | **Electron 41** + `electron-builder` 26.10 (atskira darbo sritis kataloge `electron/`)                                                           |
 | Testai                         | **Node integruota testų vykdymo priemonė** (vienetų / integraciniai), **Vitest** (MCP, autoCombo, podėlis), **Playwright** (e2e + protocols-e2e) |
 | Kūrimas                        | Autonominis Next.js kūrimas per `scripts/build/build-next-isolated.mjs`                                                                          |
 | Kodo tikrinimas / formatavimas | ESLint plokščioji konfigūracija + Prettier (`lint-staged` per Husky prieš įrašant pakeitimą)                                                     |
@@ -51,7 +50,6 @@ katalogas nurodomas aplinkos kintamuoju `DATA_DIR`; numatytoji reikšmė yra `~/
 OmniRoute/
 ├── src/                  Next.js programa (App Router, bibliotekos, domenas, serveris, bendrasis kodas)
 ├── open-sse/             Srautinio perdavimo variklio darbo sritis (@omniroute/open-sse)
-├── electron/             Darbalaukio apvalkalas (Electron 41 pagrindinis procesas + išankstinis įkėlimas)
 ├── bin/                  CLI įvesties taškai (omniroute, reset-password)
 ├── tests/                Vienetų, integraciniai, e2e, protocols-e2e, vertimo, saugumo testai ir fikstūros
 ├── scripts/              Kūrimo, sinchronizavimo, tikrinimo, migravimo ir vykdymo aplinkos pagalbiniai scenarijai
@@ -575,26 +573,6 @@ Srautinio perdavimo primityvai ir teikėjo pagalbinės priemonės: `stream.ts`, 
 
 ---
 
-## 5. `electron/` — Darbalaukio programos apvalkalas
-
-```
-electron/
-├── main.js                  Pagrindinis Electron procesas
-├── preload.js               Išankstinio įkėlimo sąsaja (contextIsolation įjungta)
-├── types.d.ts
-├── package.json             electron-builder konfigūracija, versija 3.8.51
-├── README.md
-├── assets/                  Komponavimo ištekliai (piktogramos, teisės, …)
-├── node_modules/            Atskiras node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           Komponavimo išvestis (neįtraukiama į repozitoriją)
-```
-
-Darbo srities šaknyje yra penki npm scenarijai: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Automatinis naujinimas vykdomas per
-`electron-updater`, nukreiptą į GitHub leidimų kanalą.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -659,13 +637,11 @@ Dažniausiai naudojamos komandos:
 Pagal paskirtį suskirstytas į 6 poaplankius.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -844,7 +820,7 @@ Kliento užklausa
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A protokolo gebėjimai ir aptikimas.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK ir Caveman glaudinimas.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI integracijos.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (jei yra), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — diegimo tikslinės aplinkos.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — diegimo tikslinės aplinkos.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — dažnos eksploatavimo problemos.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — bendradarbių darbo eiga.
 - [CLAUDE.md](../../CLAUDE.md) — Claude Code saugyklos taisyklės (pagrindinis daugelio pirmiau pateiktų

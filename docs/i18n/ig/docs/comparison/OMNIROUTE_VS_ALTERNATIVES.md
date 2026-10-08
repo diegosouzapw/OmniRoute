@@ -29,7 +29,7 @@ Ntụnyere atụmatụ n'ụzọ ebumnobi megide ndị rawụta AI mepere emepe 
 | **Nzuzo akara mkpịsịaka TLS (JA3/JA4)**                |                  ✅ wreq-js                   |       ❌       |        ❌         |      ❌      |
 | **Usoro eval**                                         |             ✅ arụnyere n'ime ya              |       ❌       |        ❌         | ⚠ akwụ ụgwọ  |
 | **Proksi MITM (na-egbochi Cursor/Antigravity)**        |    ✅ na-arụ n'elu ikpo okwu dị iche iche     |       ❌       |        ❌         |      ❌      |
-| **CLI nwere tray sistemụ (enweghị Electron)**          |                      ✅                       |       ❌       |        n/a        |     n/a      |
+| **CLI nwere tray sistemụ**                             |                      ✅                       |       ❌       |        n/a        |     n/a      |
 | **Njirimara akpaka site na machine-ID nke CLI**        |                      ✅                       |       ❌       |        n/a        |     n/a      |
 | **Dashboard**                                          |                  Next.js 16                   |   nke bụ isi   |    nke nweonwe    | nke nweonwe  |
 | **i18n**                                               |                **locales 42**                 |       ❌       |        ❌         |      ⚠       |

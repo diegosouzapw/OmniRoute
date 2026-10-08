@@ -91,7 +91,7 @@ När du behöver bädda in ett nytt värde från en extern leverantör som:
 
 ### 3. Förbjudna mönster
 
-❌ Gör **aldrig** något av följande i produktionskod (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ Gör **aldrig** något av följande i produktionskod (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // DÅLIGT: literalvärdet utlöser Secret Scanning + Semgrep

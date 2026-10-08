@@ -1,6 +1,6 @@
 // eslint.complexity-ratchets.config.mjs
 // STANDALONE flat config for BOTH complexity ratchets in ONE ESLint walk:
-//   - ESLint core: complexity + max-lines-per-function  (src, open-sse, electron, bin)
+//   - ESLint core: complexity + max-lines-per-function  (src, open-sse, bin)
 //   - sonarjs/cognitive-complexity                     (src, open-sse only)
 //
 // Existence reason: two independent baselines (complexity-baseline.json +
@@ -33,8 +33,6 @@ const SHARED_IGNORES = {
     "**/__tests__/**",
     "**/*.d.ts",
     "node_modules/**",
-    "electron/node_modules/**",
-    "electron/dist-electron/**",
     ".next/**",
     ".build/**",
     "dist/**",
@@ -45,20 +43,12 @@ const SHARED_IGNORES = {
 /** @type {import("eslint").Linter.Config[]} */
 const config = [
   {
-    files: [
-      "src/**/*.{ts,tsx}",
-      "open-sse/**/*.{ts,tsx}",
-      "electron/**/*.{ts,tsx}",
-      "bin/**/*.{ts,tsx}",
-    ],
+    files: ["src/**/*.{ts,tsx}", "open-sse/**/*.{ts,tsx}", "bin/**/*.{ts,tsx}"],
     languageOptions: SHARED_LANGUAGE,
     linterOptions: SHARED_LINTER,
     rules: {
       complexity: ["error", 15],
-      "max-lines-per-function": [
-        "error",
-        { max: 80, skipBlankLines: true, skipComments: true },
-      ],
+      "max-lines-per-function": ["error", { max: 80, skipBlankLines: true, skipComments: true }],
     },
   },
   {

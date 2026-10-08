@@ -225,7 +225,7 @@ Noti dwar Coverage:
 
 - `npm run test:coverage` jikkalcola source coverage għall-main unit test suite, jieħu barra `tests/**`, u jinkludi `open-sse/**`
 - Pull requests għandhom jibqgħu l-coverage gate b'**60%+**' statements/lines/functions/branches
-- Jekk PR tibdel production code f'`src/`', `open-sse/`', `electron/`', jew `bin/`', għandha tżid jew tagħmel update għat-testijiet awtomatiċi fil-istess PR
+- Jekk PR tibdel production code f'`src/`', `open-sse/`'', jew `bin/`', għandha tżid jew tagħmel update għat-testijiet awtomatiċi fil-istess PR
 - `npm run coverage:report` tipprinta d-dettaljat file-by-file report mill-aħħar coverage run
 - `npm run test:coverage:legacy` tħalli l-metric l-qadima għal komparazzjoni storika
 - Ara `docs/ops/COVERAGE_PLAN.md` għall-roadmap ta' phased coverage improvement
@@ -323,7 +323,6 @@ open-sse/                   # Spazju ta' @omniroute/open-sse
 ├── transformer/            # Traduttur tar-Risposti API
 └── utils/                  # 22 modulu tal-għodod (stream, TLS, proxy, logging)
 
-electron/                   # App desktop tal-Electron (pjanforma multipla)
 
 tests/
 ├── unit/                   # Test runner Node.js (1,574 fajls tal-test)

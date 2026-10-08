@@ -225,7 +225,7 @@ Coverage सम्बन्धी टिप्पणीहरू:
 
 - `npm run test:coverage` ले मुख्य unit test suite को source coverage मापन गर्छ, `tests/**` लाई समावेश गर्दैन, र `open-sse/**` लाई समावेश गर्छ
 - Pull request हरूले statements/lines/functions/branches का लागि coverage gate **60%+** मा कायम राख्नुपर्छ
-- कुनै PR ले `src/`, `open-sse/`, `electron/`, वा `bin/` भित्रको production code परिवर्तन गर्छ भने, त्यसै PR मा automated test थप्न वा अद्यावधिक गर्नुपर्छ
+- कुनै PR ले `src/`, `open-sse/`, वा `bin/` भित्रको production code परिवर्तन गर्छ भने, त्यसै PR मा automated test थप्न वा अद्यावधिक गर्नुपर्छ
 - `npm run coverage:report` ले पछिल्लो coverage run बाट विस्तृत file-by-file report प्रिन्ट गर्छ
 - `npm run test:coverage:legacy` ले ऐतिहासिक तुलनाका लागि पुरानो metric सुरक्षित राख्छ
 - चरणबद्ध coverage सुधार roadmap का लागि `docs/ops/COVERAGE_PLAN.md` हेर्नुहोस्
@@ -331,7 +331,6 @@ open-sse/                   # @omniroute/open-sse वर्कस्पेस
 ├── transformer/            # Responses API ट्रान्सफर्मर
 └── utils/                  # 22 उपयोगिता मोड्युल (स्ट्रिम, TLS, प्रोक्सी, लगिङ)
 
-electron/                   # Electron डेस्कटप एप (बहु-प्लेटफर्म)
 
 tests/
 ├── unit/                   # Node.js परीक्षण रनर (1,574 परीक्षण फाइल)

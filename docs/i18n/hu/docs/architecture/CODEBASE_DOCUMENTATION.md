@@ -27,7 +27,6 @@ eligazodhasson a könyvtárstruktúrában, megérthesse a futásidejű rétegző
 | Nyelv               | **TypeScript 6.0+** — cél: `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                               |
 | Futtatókörnyezet    | **Node.js** `>=22.22.2 <23` vagy `>=24.0.0 <27` (az `engines` + `SUPPORTED_NODE_RANGE` kényszeríti ki)                            |
 | Adatbázis           | **SQLite** a `better-sqlite3` használatával (singleton, WAL-naplózás)                                                             |
-| Asztali alkalmazás  | **Electron 41** + `electron-builder` 26.10 (külön munkaterület az `electron/` könyvtárban)                                        |
 | Tesztek             | **Node natív tesztfuttató** (egység-/integrációs), **Vitest** (MCP, autoCombo, gyorsítótár), **Playwright** (e2e + protocols-e2e) |
 | Build               | Önálló Next.js-build a `scripts/build/build-next-isolated.mjs` használatával                                                      |
 | Lint/formázás       | ESLint flat config + Prettier (`lint-staged` a Husky pre-commit hookján keresztül)                                                |
@@ -51,7 +50,6 @@ a `DATA_DIR` környezeti változó határozza meg; alapértelmezett értéke `~/
 OmniRoute/
 ├── src/                  Next.js-alkalmazás (App Router, könyvtárak, tartomány, kiszolgáló, megosztott elemek)
 ├── open-sse/             Streamelési motor munkaterülete (@omniroute/open-sse)
-├── electron/             Asztali alkalmazásburkoló (Electron 41 főfolyamat + preload)
 ├── bin/                  CLI-belépési pontok (omniroute, reset-password)
 ├── tests/                Egység-, integrációs, e2e-, protocols-e2e-, fordító- és biztonsági tesztek, valamint tesztadatok
 ├── scripts/              Build-, szinkronizálási, ellenőrzési, migrációs és futásidejű segédszkriptek
@@ -575,26 +573,6 @@ Streamelési primitívek és szolgáltatói segédfüggvények: `stream.ts`, `st
 
 ---
 
-## 5. `electron/` — Asztali burkolóalkalmazás
-
-```
-electron/
-├── main.js                  Electron főfolyamat
-├── preload.js               Előtöltési híd (contextIsolation engedélyezve)
-├── types.d.ts
-├── package.json             electron-builder konfiguráció, 3.8.51-es verzió
-├── README.md
-├── assets/                  Buildelési erőforrások (ikonok, jogosultságok, …)
-├── node_modules/            Dedikált node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           Buildelési kimenet (nincs verziókezelésbe beküldve)
-```
-
-Öt npm-szkript található a munkaterület gyökerében: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Az automatikus frissítést az
-`electron-updater` végzi, amely a GitHub kiadási hírcsatornájára mutat.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -659,13 +637,11 @@ Gyakori parancsok:
 Rendeltetés szerint 6 almappába rendezve.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -844,7 +820,7 @@ Lásd: [A2A-SERVER.md § Új képesség hozzáadása](../frameworks/A2A-SERVER.m
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — az A2A protokoll képességei és felderítése.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK- és Caveman-tömörítés.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI-integrációk.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (ha elérhető), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — telepítési célkörnyezetek.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — telepítési célkörnyezetek.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — gyakori üzemeltetési problémák.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — közreműködői munkafolyamat.
 - [CLAUDE.md](../../CLAUDE.md) — a Claude Code adattárra vonatkozó szabályai (a fenti

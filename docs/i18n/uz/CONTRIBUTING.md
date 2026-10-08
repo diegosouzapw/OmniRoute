@@ -225,7 +225,7 @@ Qamrov boʻyicha izohlar:
 
 - `npm run test:coverage` asosiy unit-test toʻplami uchun manba qamrovini oʻlchaydi, `tests/**` ni istisno qiladi va `open-sse/**` ni oʻz ichiga oladi
 - Pull requestlar operatorlar/satrlar/funksiyalar/tarmoqlar boʻyicha qamrov darvozasini **60%+** darajasida saqlashi kerak
-- Agar PR `src/`, `open-sse/`, `electron/` yoki `bin/` ichidagi ishlab chiqarish kodini oʻzgartirsa, ayni PR ichida avtomatlashtirilgan testlarni qoʻshishi yoki yangilashi kerak
+- Agar PR `src/`, `open-sse/` yoki `bin/` ichidagi ishlab chiqarish kodini oʻzgartirsa, ayni PR ichida avtomatlashtirilgan testlarni qoʻshishi yoki yangilashi kerak
 - `npm run coverage:report` soʻnggi qamrov ishga tushirilishidan olingan, har bir fayl boʻyicha batafsil hisobotni chiqaradi
 - `npm run test:coverage:legacy` tarixiy taqqoslash uchun eski metrikani saqlab qoladi
 - Qamrovni bosqichma-bosqich yaxshilash yoʻl xaritasi uchun `docs/ops/COVERAGE_PLAN.md` fayliga qarang
@@ -330,7 +330,6 @@ open-sse/                   # @omniroute/open-sse ish maydoni
 ├── transformer/            # Responses API transformeri
 └── utils/                  # 22 ta yordamchi modul (oqim, TLS, proksi, jurnalga yozish)
 
-electron/                   # Electron ish stoli ilovasi (turli platformalar uchun)
 
 tests/
 ├── unit/                   # Node.js test bajaruvchisi (1 574 ta test fayli)

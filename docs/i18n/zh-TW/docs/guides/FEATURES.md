@@ -265,25 +265,6 @@ OAuth 帳戶的電子郵件地址預設會被遮蔽（例如 `di*****@g****.com`
 
 ---
 
-## 🖥️ 桌面應用程式
-
-適用於 Windows、macOS 及 Linux 的原生 Electron 桌面應用程式。將 OmniRoute 作為獨立應用程式執行，並支援系統匣整合、離線使用、自動更新及一鍵安裝。
-
-主要功能：
-
-- 伺服器就緒狀態輪詢（冷啟動時不會出現空白畫面）
-- 具備連接埠管理功能的系統匣
-- 內容安全政策
-- 單一執行個體鎖定
-- 重新啟動時自動更新
-- 依平台調整的 UI（macOS 紅綠燈按鈕、Windows/Linux 預設標題列）
-- 強化的 Electron 建置封裝——在封裝前偵測並拒絕獨立套件組合中以符號連結連接的 `node_modules`，避免執行階段依賴建置機器 (v2.5.5+)
-- **優雅關閉**——Electron `before-quit` 會正常關閉 Next.js，避免 SQLite WAL 資料庫鎖定 (v3.6.2+)
-
-📖 如需完整文件，請參閱 [`electron/README.md`](../../electron/README.md)。
-
----
-
 ## 🌐 V1 WebSocket 橋接器 _(v3.6.6+)_
 
 OmniRoute 現在可透過 `/v1/ws` 升級端點支援**與 OpenAI 相容的 WebSocket 用戶端**。自訂的 `scripts/dev/v1-ws-bridge.mjs` 伺服器會封裝 Next.js，並將 WS 連線升級為完整的雙向串流工作階段。驗證會使用與 HTTP 請求相同的 API 金鑰或工作階段 Cookie。

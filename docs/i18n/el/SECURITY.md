@@ -197,7 +197,7 @@ docker run -d \
 
 ## Εξαρτήσεις
 
-- Εκτελείτε `npm audit` τακτικά (`npm run audit:deps` καλύπτει main + electron)
+- Εκτελείτε `npm audit` τακτικά (`npm run audit:deps` καλύπτει main)
 - Διατηρείτε τις εξαρτήσεις ενημερωμένες
 - Το έργο χρησιμοποιεί `husky` + `lint-staged` για ελέγχους πριν από κάθε commit (lint-staged + check-docs-sync + check:any-budget:t11)
 - Το CI pipeline εκτελεί κανόνες ασφαλείας ESLint σε κάθε push (`no-eval`, `no-implied-eval`, `no-new-func` = error)

@@ -91,7 +91,7 @@ Lorsque vous devez intégrer une nouvelle valeur fournie par un service en amont
 
 ### 3. Modèles interdits
 
-❌ Ne faites **jamais** ce qui suit dans le code de production (`src/`, `open-sse/`, `electron/`, `bin/`) :
+❌ Ne faites **jamais** ce qui suit dans le code de production (`src/`, `open-sse/`, `bin/`) :
 
 ```ts
 // MAUVAIS : la valeur littérale déclenche Secret Scanning et Semgrep

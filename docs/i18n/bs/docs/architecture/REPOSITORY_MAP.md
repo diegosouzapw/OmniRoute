@@ -17,7 +17,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16 aplikacija (UI + API rute + biblioteke + domen + server)
 ├── open-sse/             # Radni prostor mehanizma za strimovanje (handler-i, izvršioci, prevodilac, MCP server)
-├── electron/             # Desktop wrapper (Electron 41 + electron-builder 26.10)
 ├── bin/                  # CLI ulazna tačka i handler-i komandi
 ├── scripts/              # Skripte za build, provjeru, sinhronizaciju i jednokratne zadatke
 ├── docs/                 # Javna dokumentacija (nalazite se ovdje)
@@ -296,20 +295,6 @@ open-sse/
 
 ---
 
-## `electron/` — Desktop omotač
-
-| Datoteka         | Svrha                                                                                         |
-| ---------------- | --------------------------------------------------------------------------------------------- |
-| `main.js`        | Glavni proces Electrona (BrowserWindow, ugrađeni Next.js server, tray, automatsko ažuriranje) |
-| `preload.js`     | IPC most (contextBridge → `window.omniroute`)                                                 |
-| `package.json`   | konfiguracija electron-builder + Electron 41 + zavisnosti electron-builder 26.10              |
-| `assets/`        | Ikone aplikacije (Windows .ico, macOS .icns, Linux .png)                                      |
-| `dist-electron/` | Izlaz gradnje (gitignored)                                                                    |
-| `types.d.ts`     | Deklaracije tipova za renderer most                                                           |
-| `README.md`      | Interni Electron README (pogledajte i `docs/guides/ELECTRON_GUIDE.md`)                        |
-
----
-
 ## `bin/` — CLI
 
 | Datoteka                                                                                                    | Namjena                                                                                                                     |
@@ -365,8 +350,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | MCP/A2A E2E pokretač                                                                              |
 | `run-ecosystem-tests.mjs`           | Testovi ekosustava (integracija pružatelja usluga)                                                |
 | `test-report-summary.mjs`           | Generiranje markdown sažetka pokrivenosti                                                         |
-| `smoke-electron-packaged.mjs`       | Smoke-test za zapakiranu Electron verziju                                                         |
-| `native-binary-compat.mjs`          | Provjera odgovaraju li nativne ovisnosti (`better-sqlite3`) Electronovom Node-u                   |
 | `validate-pack-artifact.ts`         | Validacija `npm pack` izlaza                                                                      |
 | `responses-ws-proxy.mjs`            | WebSocket most za Codex Responses API                                                             |
 | `v1-ws-bridge.mjs`                  | WebSocket most za `/api/v1/ws` krajnju točku                                                      |
@@ -389,7 +372,7 @@ open-sse/
 | `USER_GUIDE.md`             | Priručnik za krajnjeg korisnika (postavljanje, modeli, kombinacije, CLI-jevi, audio, itd.)                 |
 | `API_REFERENCE.md`          | Referenca API krajnjih tačaka sa modelom autentifikacije                                                   |
 | `openapi.yaml`              | OpenAPI 3.0 specifikacija (121 putanja)                                                                    |
-| `SETUP_GUIDE.md`            | Metode instalacije (npm, npx, Docker, Electron, Termux, source)                                            |
+| `SETUP_GUIDE.md`            | Metode instalacije (npm, npx, Docker, Termux, source)                                                      |
 | `ENVIRONMENT.md`            | Sve varijable okruženja (~800 dokumentovanih, ~3.050 linija .env.example)                                  |
 | `TROUBLESHOOTING.md`        | Uobičajene greške + poznati problemi v3.8.0                                                                |
 | `RELEASE_CHECKLIST.md`      | Potpuni tok izdavanja (vještine, husky, konvencionalni commit-ovi, raspoređivanje)                         |
@@ -440,7 +423,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io raspoređivanje (trenutno samo na kineskom)                 |
 | `TERMUX_GUIDE.md`            | Android headless putem Termux-a                                   |
 | `PWA_GUIDE.md`               | Instalacija progresivne web aplikacije + service worker           |
-| `ELECTRON_GUIDE.md`          | Build, potpisivanje i distribucija desktop aplikacije             |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                            |
 | `PROXY_GUIDE.md`             | 4-nivoa odlaznog proxy-ja + 1proxy tržište                        |
 

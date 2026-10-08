@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Compose சுயவிவரங்கள் மற்றும் Caddy HTTPS உட்பட முழுமையான Docker அமைப்புக்கு [Docker வழிகாட்டி](./DOCKER_GUIDE.md) என்பதைப் பார்க்கவும்.
 
-### டெஸ்க்டாப் செயலி (Electron)
-
-Electron 41 + electron-builder 26.10 அடிப்படையில் உருவாக்கப்பட்ட டெஸ்க்டாப் உறையுடன் OmniRoute வழங்கப்படுகிறது. கிடைக்கக்கூடிய ஸ்கிரிப்ட்கள் (பணியிட மூலக் கோப்பகம்):
-
-```bash
-npm run electron:dev          # உடனடி மறுஏற்றத்துடன் டெஸ்க்டாப்பை இயக்கவும்
-npm run electron:build        # தற்போதைய OS-க்காகக் கட்டமைக்கவும் (தானாகக் கண்டறியப்படும்)
-npm run electron:build:win    # Windows நிறுவி (NSIS + கையடக்கப் பதிப்பு)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # தொகுக்கப்பட்ட கட்டமைப்பை அடிப்படைச் சோதனை செய்யவும்
-```
-
-டெஸ்க்டாப் நிறுவிகளின் வெளியீடுகள் GitHub Releases-இல் இணைக்கப்பட்டுள்ளன. Electron குறித்த முழுமையான ஆழமான விளக்கத்திற்கு (கையொப்பமிடுதல், IPC பாலம், விநியோகங்கள்), [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) என்பதைப் பார்க்கவும் _(பின்னர் ஒரு கட்டத்தில் உருவாக்கப்பட்டது)_.
-
 ### திரையற்ற சேவையகம் (CI/தானியக்கம்)
 
 கவனிப்பில்லாத அமைப்புகளுக்கு (Docker, Kubernetes, CI), இதைப் பயன்படுத்தவும்:

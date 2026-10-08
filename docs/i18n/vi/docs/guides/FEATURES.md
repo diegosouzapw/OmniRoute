@@ -265,25 +265,6 @@ Theo dõi các thao tác quản trị với khả năng lọc theo loại thao t
 
 ---
 
-## 🖥️ Ứng dụng máy tính
-
-Ứng dụng Electron gốc dành cho Windows, macOS và Linux. Chạy OmniRoute dưới dạng ứng dụng độc lập với khả năng tích hợp khay hệ thống, hỗ trợ ngoại tuyến, tự động cập nhật và cài đặt bằng một cú nhấp.
-
-Các tính năng chính:
-
-- Thăm dò trạng thái sẵn sàng của máy chủ (không hiển thị màn hình trống khi khởi động nguội)
-- Khay hệ thống với tính năng quản lý cổng
-- Chính sách bảo mật nội dung
-- Khóa đơn phiên bản
-- Tự động cập nhật khi khởi động lại
-- Giao diện người dùng tùy theo nền tảng (các nút điều khiển cửa sổ của macOS, thanh tiêu đề mặc định của Windows/Linux)
-- Đóng gói bản dựng Electron được tăng cường bảo mật — `node_modules` được liên kết tượng trưng trong gói độc lập sẽ bị phát hiện và từ chối trước khi đóng gói, ngăn chặn việc phụ thuộc khi chạy vào máy dựng bản dựng (v2.5.5+)
-- **Tắt an toàn** — `before-quit` của Electron tắt Next.js đúng cách, ngăn khóa cơ sở dữ liệu SQLite WAL (v3.6.2+)
-
-📖 Xem [`electron/README.md`](../../electron/README.md) để biết tài liệu đầy đủ.
-
----
-
 ## 🌐 Cầu nối WebSocket V1 _(v3.6.6+)_
 
 OmniRoute hiện hỗ trợ **các máy khách WebSocket tương thích với OpenAI** thông qua điểm cuối nâng cấp `/v1/ws`. Máy chủ `scripts/dev/v1-ws-bridge.mjs` tùy chỉnh bao bọc Next.js và nâng cấp các kết nối WS thành các phiên truyền phát hai chiều đầy đủ. Quá trình xác thực sử dụng cùng khóa API hoặc cookie phiên như các yêu cầu HTTP.

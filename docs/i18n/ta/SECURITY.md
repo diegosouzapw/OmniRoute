@@ -197,7 +197,7 @@ docker run -d \
 
 ## சார்புகள்
 
-- `npm audit`-ஐத் தவறாமல் இயக்கவும் (`npm run audit:deps` முதன்மை + electron ஆகியவற்றை உள்ளடக்கும்)
+- `npm audit`-ஐத் தவறாமல் இயக்கவும் (`npm run audit:deps` முதன்மை ஆகியவற்றை உள்ளடக்கும்)
 - சார்புகளைப் புதுப்பித்த நிலையில் வைத்திருக்கவும்
 - commit செய்வதற்கு முந்தைய சரிபார்ப்புகளுக்காகத் திட்டம் `husky` + `lint-staged`-ஐப் பயன்படுத்துகிறது (lint-staged + check-docs-sync + check:any-budget:t11)
 - ஒவ்வொரு push-இலும் CI pipeline, ESLint பாதுகாப்பு விதிகளை இயக்குகிறது (`no-eval`, `no-implied-eval`, `no-new-func` = பிழை)

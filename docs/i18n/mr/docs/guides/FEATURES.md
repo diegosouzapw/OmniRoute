@@ -265,25 +265,6 @@ Action type, actor, target, IP address आणि timestamp नुसार filte
 
 ---
 
-## 🖥️ Desktop Application
-
-Windows, macOS आणि Linux साठी native Electron desktop app. System tray integration, offline support, auto-update आणि one-click install सह OmniRoute स्वतंत्र application म्हणून चालवा.
-
-प्रमुख वैशिष्ट्ये:
-
-- Server readiness polling (cold start वेळी रिकामी screen दिसत नाही)
-- Port management सह system tray
-- Content Security Policy
-- Single-instance lock
-- Restart केल्यावर auto-update
-- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
-- अधिक सुरक्षित Electron build packaging — standalone bundle मधील symlink केलेले `node_modules` packaging करण्यापूर्वी शोधून नाकारले जाते, ज्यामुळे build machine वरील runtime dependency टाळली जाते (v2.5.5+)
-- **सुरळीत shutdown** — Electron `before-quit`, Next.js स्वच्छपणे बंद करते आणि SQLite WAL database locks टाळते (v3.6.2+)
-
-📖 संपूर्ण दस्तऐवजीकरणासाठी [`electron/README.md`](../../electron/README.md) पहा.
-
----
-
 ## 🌐 V1 WebSocket Bridge _(v3.6.6+)_
 
 OmniRoute आता `/v1/ws` upgrade endpoint द्वारे **OpenAI-सुसंगत WebSocket clients** ना समर्थन देते. सानुकूल `scripts/dev/v1-ws-bridge.mjs` server, Next.js ला wrap करतो आणि WS connections ना पूर्ण द्विदिशात्मक streaming sessions मध्ये upgrade करतो. Authentication साठी HTTP requests प्रमाणेच API key किंवा session cookie वापरली जाते.

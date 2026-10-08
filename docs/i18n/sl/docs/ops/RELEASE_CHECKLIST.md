@@ -123,7 +123,6 @@ preskočijo matriko E2E brez kakršne koli oznake.
 ### Različica in dnevnik sprememb
 
 - [ ] Zaženite `/version-bump-cc <patch|minor|major>` (veščina Claude Code)
-  - Poviša različico v `package.json`, `electron/package.json`
   - Ponovno ustvari `CHANGELOG.md` iz zapisov git od zadnje oznake
   - Posodobi značke v README.md
 - [ ] Ročno preglejte CHANGELOG.md in po potrebi uredite sporočila potrditev
@@ -217,104 +216,6 @@ Prelomne spremembe: dodajte nogo `BREAKING CHANGE:` ali `!` za obsegom (npr. `fe
 - [ ] Modeli so registrirani v `open-sse/config/providerRegistry.ts`
 - [ ] Enotni testi v `tests/unit/` pokrivajo razvrščanje ponudnikov in usmerjanje
 
-### Namizna aplikacija (Electron)
-
-Če je bil spremenjen `electron/`:
-
-- [ ] `npm run electron:smoke:packaged` je uspešen
-- [ ] Gradnje so preizkušene za vsaj eno od možnosti `:win`, `:mac`, `:linux`
-- [ ] Potrdila za podpisovanje kode niso potekla (če se uporablja podpisovanje)
-- [ ] Različica v `electron/package.json` se ujema s korenskim `package.json`
-- [ ] Kazalec kanala samodejnih posodobitev je posodobljen, če se izdaja v `stable`
-
-### Razporeditev gradnje
-
-Repozitorij uporablja tri različne izhodne imenike — nikoli jih ne zamenjajte:
-
-| Imenik    | Namen                                                       | Sleden?         |
-| --------- | ----------------------------------------------------------- | --------------- |
-| `src/`    | Izvorna koda aplikacije (TypeScript / TSX)                  | Da              |
-| `.build/` | Vmesni rezultati gradnje — izhod `next build` (`distDir`)   | Ne (gitignored) |
-| `dist/`   | Paket npm za distribucijo — sestavi ga `assembleStandalone` | Ne (gitignored) |
-
-> **Opomba za operaterja:** imenik slike na oddaljenem VPS ostaja `/usr/lib/node_modules/omniroute/app/`.
-> Premaknjen je bil samo izhod gradnje **znotraj repozitorija** (`app/` → `dist/`). Veščine za uvajanje z rsync
-> prenesejo vsebino `dist/` v oddaljeni imenik `app/` — spremembe poti VPS niso potrebne.
-
-**Potek z eno gradnjo:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (čiščenje)
-  └─ next build → .build/next/   (vmesni rezultati)
-  └─ assembleStandalone          (kopira standalone + static + public + natives → dist/)
-  └─ writes dist/BUILD_SHA       (kontrolna vrednost HEAD)
-```
-
-Za uvajanje NE zaženite `npm run build`, ki mu sledi ločen `npm run build:cli` — uporabite
-`npm run build:release`, ki v enem ukazu izvede čisto ponovno gradnjo in zapiše kontrolno vrednost.
-
-### Preverjanje artefakta
-
-- [ ] `npm run build:release` uspe in `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` je brez napak — brez `app.__qa_backup`, `scripts/scratch`, `package-lock.json` ali drugih lokalnih ostankov
-- [ ] Po gradnji obstaja `dist/server.js`
-
-### Označevanje in izdaja
-
-- [ ] Zaženite `/generate-release-cc` (veščina Claude Code):
-  - Ustvari oznako `vX.Y.Z`
-  - Potisne oznako in vejo
-  - Odpre izdajo GitHub z vsebino dnevnika sprememb
-  - Priloži namestitvene programe Electron (če so bili zgrajeni)
-- [ ] Ali ročno:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Uvajanje
-
-Veščine za uvajanje uporabljajo lahki potek rsync — brez `npm pack`, brez `npm i -g`:
-
-- [ ] Uporabite veščino za uvajanje, ki ustreza cilju:
-  - `/deploy-vps-local-cc` — lokalni VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — VPS Akamai (69.164.221.35)
-  - `/deploy-vps-both-cc` — oba
-- [ ] Pred uvajanjem potrdite, da je `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Gradnja se mora izvajati tam, kjer je `node_modules` dejanski imenik (glavna delovna kopija ali delovno drevo z izvedenim `npm ci` — NE delovno drevo s simbolno povezavo)
-- [ ] Izvedite preizkus uvedenega primerka:
-  - Odprite `/dashboard/health` → preverite, ali se niz različice ujema z izdajo
-  - Izvedite zahtevo `/v1/chat/completions` proti znanemu ponudniku
-  - Preverite, ali `/api/monitoring/health` vrne odklopnike v stanju `CLOSED`
-  - Potrdite, da se transporti MCP odzivajo (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Po izdaji
-
-- [ ] Zaženite `/capture-release-evidences-cc` (veščina Claude Code)
-  - Zajame posnetke zaslona/posnetke novih funkcionalnosti v obliki WebP
-  - Priloži jih opombam ob izdaji / objavi v spletnem dnevniku
-- [ ] Posodobite GitHub Discussions / Discord z obvestilom o izdaji
-- [ ] Odprite mejnik za naslednjo različico
-- [ ] Če je kritično: pripnite razpravo ali objavite v `news.json` za pasico v aplikaciji
-
-### Kontrolna točka za javno objavo Radarja
-
-Obvestilo Radar je namenoma potrjeno z `active: false`. Aktivacija je ločena
-sprememba, potem ko so dokazani vsi spodnji elementi:
-
-- [ ] Vsi naloženi PR-ji Radar so združeni in CI na vrhu izdaje je uspešen
-- [ ] Uvedite in preizkusite odprtokodne poti Radar, pri čemer `RADAR_ENABLED` privzeto ostane izklopljen
-- [ ] Preizkusite `GET /planos`, `/termos`, `/privacidade` in `/reembolso` na imenovanem gostitelju Radar
-- [ ] V zasebni storitvi zabeležite identiteto/kontakt/naslov operaterja in pravni pregled, ki ga je odobril lastnik
-- [ ] Preizkusite Stripe Checkout in podpisani webhook samo v preizkusnem načinu
-- [ ] Preizkusite eno šifrirano dostavo transakcijske e-pošte z odobrenim pošiljateljem/domeno
-- [ ] Dokažite obnovitev varnostne kopije in eno nadzorovano raziskovalno izvajanje z omejenim proračunom
-- [ ] Pred sprejemanjem dokazil o donacijah odobrite pravilnik pregleda BRL/PIX
-- [ ] Javni Checkout omogočite šele po predhodnih preverjanjih, nato aktivirajte novi ID v `news.json`
-- [ ] Preverite, ali domača pasica uporablja lokalizirano besedilo in ali se novi ID ponovno prikaže po zavrnitvi starejšega ID-ja
-
 ## Preizkus delovanja vdelanih storitev (v3.8.4+)
 
 Pred izdajo katere koli različice, ki vključuje spremembe vdelanih storitev, preverite:
@@ -400,7 +301,7 @@ Pred izdajo katere koli različice v3.8.x preverite še naslednje:
 - Nikoli ne preskočite kavljev Husky (`--no-verify`)
 - Nikoli ne potrjujte skrivnosti, poverilnic ali datotek `.env`
 - Pokritost mora ostati ≥60/60/60/60 (stavki/vrstice/funkcije/veje)
-- Pri spreminjanju produkcijske kode v `src/`, `open-sse/`, `electron/` ali `bin/` vedno vključite ali posodobite teste
+- Pri spreminjanju produkcijske kode v `src/`, `open-sse/` ali `bin/` vedno vključite ali posodobite teste
 
 ## Samodejno preverjanje sinhronizacije
 

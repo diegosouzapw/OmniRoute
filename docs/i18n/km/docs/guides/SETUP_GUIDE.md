@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 សូមមើល [មគ្គុទ្ទេសក៍ Docker](./DOCKER_GUIDE.md) សម្រាប់ការដំឡើង Docker ពេញលេញ រួមទាំងប្រូហ្វាល់ Compose និង Caddy HTTPS។
 
-### កម្មវិធីផ្ទៃតុ (Electron)
-
-OmniRoute ផ្ដល់ជូនកម្មវិធីគ្របសម្រាប់ផ្ទៃតុដែលបង្កើតឡើងលើ Electron 41 + electron-builder 26.10។ ស្គ្រីបដែលអាចប្រើបាន (ថតឫសរបស់ workspace)៖
-
-```bash
-npm run electron:dev          # ដំណើរការកម្មវិធីផ្ទៃតុជាមួយការផ្ទុកឡើងវិញដោយស្វ័យប្រវត្តិ
-npm run electron:build        # Build សម្រាប់ OS បច្ចុប្បន្ន (រកឃើញដោយស្វ័យប្រវត្តិ)
-npm run electron:build:win    # កម្មវិធីដំឡើង Windows (NSIS + portable)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # សាកល្បង smoke លើ build ដែលបានវេចខ្ចប់
-```
-
-កំណែចេញផ្សាយនៃកម្មវិធីដំឡើងផ្ទៃតុត្រូវបានភ្ជាប់ជាមួយ GitHub Releases។ សម្រាប់ព័ត៌មានលម្អិតស៊ីជម្រៅពេញលេញអំពី Electron (ការចុះហត្ថលេខា, ស្ពាន IPC, ការចែកចាយ) សូមមើល [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _(បានបង្កើតនៅដំណាក់កាលក្រោយ)_។
-
 ### ម៉ាស៊ីនមេគ្មានចំណុចប្រទាក់ (CI/ស្វ័យប្រវត្តិកម្ម)
 
 សម្រាប់ការដំឡើងដោយមិនត្រូវការអ្នកមើលការខុសត្រូវ (Docker, Kubernetes, CI) សូមប្រើ៖

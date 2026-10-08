@@ -8,7 +8,7 @@ import { dirname, resolve } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { extractApiErrorMessage } from "../../../../../shared/http/apiErrorMessage.ts";
+import { extractApiErrorMessage } from "../../../src/shared/http/apiErrorMessage.ts";
 
 const LOCAL_ONLY_BODY = {
   error: {
@@ -25,7 +25,10 @@ function tunnelNoticeText(body: unknown): string {
 }
 
 const source = readFileSync(
-  resolve(dirname(fileURLToPath(import.meta.url)), "../EndpointPageClient.tsx"),
+  resolve(
+    dirname(fileURLToPath(import.meta.url)),
+    "../../../src/app/(dashboard)/dashboard/endpoint/EndpointPageClient.tsx"
+  ),
   "utf8"
 );
 

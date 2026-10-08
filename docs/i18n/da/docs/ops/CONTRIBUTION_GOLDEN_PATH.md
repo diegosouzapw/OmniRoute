@@ -11,7 +11,7 @@ Brug denne vejledning til at vælge den mindst omfattende, pålidelige udvikling
 1. **Vælg basisgrenen, før du redigerer.** Find den højeste aktive `release/v*`-gren, og opret din gren fra dens seneste commit. Brug denne gren som mål, ikke `main`. Hvis der er et aktivt release-freeze, må du ikke bruge den frosne gren som mål; brug den næste aktive cyklus, der er beskrevet i
    [Forgrenings- og releasemodel](BRANCHING_MODEL.md).
 2. **Angiv kontrakterne.** Identificer alle kataloger, skemaer, genererede artefakter, offentlige API'er eller brugergrænseflader, som ændringen påvirker. Tabellen nedenfor angiver det minimale udgangspunkt.
-3. **Skriv eller opdater fokuserede tests.** Produktionsændringer i `src/`, `open-sse/`, `electron/` eller
+3. **Skriv eller opdater fokuserede tests.** Produktionsændringer i `src/`, `open-sse/` eller
    `bin/` kræver en automatiseret test i samme PR. Kør de mindst omfattende testfiler, der dokumenterer adfærden, og derefter de angivne fokuserede kontroller.
 4. **Lad CI køre den brede matrix.** De komplette enhedstest-shards, Vitest, dækningsratchet og
    produktionsbuild køres på PR'en. Kør kun en bred testsuite lokalt, når en fokuseret fejl peger på en bredere påvirkning, eller når ændringen berører flere undersystemer.

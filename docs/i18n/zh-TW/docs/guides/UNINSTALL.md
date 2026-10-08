@@ -83,23 +83,6 @@ docker compose down
 docker compose down -v
 ```
 
-### Electron 桌面應用程式
-
-**Windows：**
-
-- 開啟 `設定 → 應用程式 → OmniRoute → 解除安裝`
-- 或從安裝目錄執行 NSIS 解除安裝程式
-
-**macOS：**
-
-- 將 `/Applications` 中的 `OmniRoute.app` 拖入垃圾桶
-- 移除資料：`rm -rf ~/Library/Application Support/omniroute`
-
-**Linux：**
-
-- 刪除 AppImage 檔案
-- 移除資料：`rm -rf ~/.omniroute`
-
 ### 原始碼安裝（git clone）
 
 ```bash

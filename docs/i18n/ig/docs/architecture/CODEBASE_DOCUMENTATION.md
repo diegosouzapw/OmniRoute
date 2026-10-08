@@ -27,7 +27,6 @@ n’emeghị modulu ọhụrụ.
 | Asụsụ            | **TypeScript 6.0+** — ebumnuche `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                  |
 | Oge ọrụ          | **Node.js** `>=22.22.2 <23` ma ọ bụ `>=24.0.0 <27` (a na-amanye ya site na `engines` + `SUPPORTED_NODE_RANGE`)            |
 | Ebe nchekwa data | **SQLite** site na `better-sqlite3` (singleton, ndekọ WAL)                                                                |
-| Desktọọpụ        | **Electron 41** + `electron-builder` 26.10 (ebe ọrụ dị iche na `electron/`)                                               |
 | Nnwale           | **Ngwa nnwale mbụ nke Node** (unit/integration), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | Mwube            | Next.js standalone site na `scripts/build/build-next-isolated.mjs`                                                        |
 | Lint/nhazi       | Nhazi kwụ ọtọ ESLint + Prettier (`lint-staged` site na Husky pre-commit)                                                  |
@@ -51,7 +50,6 @@ data bụ env var `DATA_DIR`, nke ndabara ya bụ `~/.omniroute/`.
 OmniRoute/
 ├── src/                  Ngwa Next.js (App Router, libs, domain, server, shared)
 ├── open-sse/             Ebe ọrụ injin nkwanye data (@omniroute/open-sse)
-├── electron/             Ihe mkpuchi desktọọpụ (Electron 41 main + preload)
 ├── bin/                  Ebe mbido CLI (omniroute, reset-password)
 ├── tests/                Unit, integration, e2e, protocols-e2e, translator, security, fixtures
 ├── scripts/              Skripụ enyemaka maka mwube, mmekọrịta, nyocha, mbugharị, na oge ọrụ
@@ -573,26 +571,6 @@ Ihe ndị bụ isi maka nkwanye data na ihe enyemaka ndị na-eweta ọrụ: `st
 
 ---
 
-## 5. `electron/` — Ihe mkpuchi desktọọpụ
-
-```
-electron/
-├── main.js                  Usoro isi nke Electron
-├── preload.js               Njikọ preload (agbanyere contextIsolation)
-├── types.d.ts
-├── package.json             Nhazi electron-builder, ụdị 3.8.51
-├── README.md
-├── assets/                  Akụrụngwa build (akara ngosi, ikike, …)
-├── node_modules/            node_modules pụrụ iche (better-sqlite3, electron-updater)
-└── dist-electron/           Nsonaazụ build (etinyeghị ya na commit)
-```
-
-E nwere script npm ise na mgbọrọgwụ workspace: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. A na-eme mmelite akpaaka site na
-`electron-updater` nke na-arụtụ aka na feed release GitHub.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -657,13 +635,11 @@ Iwu ndị a na-ejikarị:
 A haziri ya n'ime obere folda 6 dịka ebumnuche ha si dị.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -843,7 +819,7 @@ Lee [A2A-SERVER.md § Ịtinye Nka Ọhụrụ](../frameworks/A2A-SERVER.md). Nk
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — nka protocol A2A na discovery.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — compression RTK + Caveman.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — njikọta CLI.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (ọ bụrụ na ọ dị), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — ebe e bu n'obi ime deployment.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — ebe e bu n'obi ime deployment.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — nsogbu arụmọrụ ndị a na-ahụkarị.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — usoro ọrụ onye na-enye aka.
 - [CLAUDE.md](../../CLAUDE.md) — iwu repo maka Claude Code (isi mmalite eziokwu

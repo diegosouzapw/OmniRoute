@@ -27,7 +27,6 @@
 | ენა                  | **TypeScript 6.0+** — სამიზნე `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                                  |
 | შესრულების გარემო    | **Node.js** `>=22.22.2 <23` ან `>=24.0.0 <27` (`engines` + `SUPPORTED_NODE_RANGE`-ის მეშვეობით იძულებით უზრუნველყოფილი)                 |
 | მონაცემთა ბაზა       | **SQLite** `better-sqlite3`-ის მეშვეობით (ერთეული ეგზემპლარი, WAL-ჟურნალირება)                                                          |
-| დესკტოპი             | **Electron 41** + `electron-builder` 26.10 (ცალკე სამუშაო სივრცე `electron/`-ში)                                                        |
 | ტესტები              | **Node-ის ნატიური ტესტების გამშვები** (მოდულური/ინტეგრაციული), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | აგება                | Next.js-ის დამოუკიდებელი გამომავალი `scripts/build/build-next-isolated.mjs`-ის მეშვეობით                                                |
 | ლინტინგი/ფორმატირება | ESLint-ის ბრტყელი კონფიგურაცია + Prettier (`lint-staged` Husky-ის pre-commit-ის მეშვეობით)                                              |
@@ -51,7 +50,6 @@
 OmniRoute/
 ├── src/                  Next.js აპლიკაცია (App Router, ბიბლიოთეკები, დომენი, სერვერი, საზიარო რესურსები)
 ├── open-sse/             ნაკადური გადაცემის ძრავის სამუშაო სივრცე (@omniroute/open-sse)
-├── electron/             დესკტოპ-გარსი (Electron 41-ის მთავარი ნაწილი + preload)
 ├── bin/                  CLI-ის შესვლის წერტილები (omniroute, reset-password)
 ├── tests/                მოდულური, ინტეგრაციული, e2e, protocols-e2e, მთარგმნელის, უსაფრთხოების ტესტები და ფიქსტურები
 ├── scripts/              აგების, სინქრონიზაციის, შემოწმების, მიგრაციისა და შესრულების გარემოს დამხმარე სკრიპტები
@@ -575,26 +573,6 @@ open-sse/
 
 ---
 
-## 5. `electron/` — დესკტოპის გარსი
-
-```
-electron/
-├── main.js                  Electron-ის მთავარი პროცესი
-├── preload.js               წინასწარი ჩატვირთვის ხიდი (contextIsolation ჩართულია)
-├── types.d.ts
-├── package.json             electron-builder-ის კონფიგურაცია, ვერსია 3.8.51
-├── README.md
-├── assets/                  აგების რესურსები (ხატულები, უფლებები, …)
-├── node_modules/            გამოყოფილი node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           აგების შედეგი (რეპოზიტორიაში არ ინახება)
-```
-
-სამუშაო სივრცის ძირში არის ხუთი npm-სკრიპტი: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. ავტომატური განახლება
-ხორციელდება `electron-updater`-ის მეშვეობით, რომელიც GitHub-ის გამოშვებების არხზე მიუთითებს.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -659,13 +637,11 @@ bin/
 დანიშნულების მიხედვით ორგანიზებულია 6 ქვეცნობარად.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -844,7 +820,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A პროტოკოლის უნარები და აღმოჩენა.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK და Caveman შეკუმშვა.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI ინტეგრაციები.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (თუ არსებობს), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — განთავსების სამიზნეები.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — განთავსების სამიზნეები.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — გავრცელებული საოპერაციო პრობლემები.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — კონტრიბუტორის სამუშაო პროცესი.
 - [CLAUDE.md](../../CLAUDE.md) — რეპოზიტორიის წესები Claude Code-ისთვის (ზემოთ მოცემული

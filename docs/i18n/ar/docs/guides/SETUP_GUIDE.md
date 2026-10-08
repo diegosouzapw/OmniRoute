@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 راجع [دليل Docker](./DOCKER_GUIDE.md) للحصول على إعداد Docker الكامل، بما في ذلك ملفات تعريف Compose وHTTPS باستخدام Caddy.
 
-### تطبيق سطح المكتب (Electron)
-
-يتضمن OmniRoute غلافًا لسطح المكتب مبنيًا باستخدام Electron 41 وelectron-builder 26.10. النصوص البرمجية المتاحة (في جذر مساحة العمل):
-
-```bash
-npm run electron:dev          # تشغيل تطبيق سطح المكتب مع إعادة التحميل الفوري
-npm run electron:build        # البناء لنظام التشغيل الحالي (يُكتشف تلقائيًا)
-npm run electron:build:win    # مثبّت Windows ‏(NSIS + نسخة محمولة)
-npm run electron:build:mac    # macOS ‏(dmg + zip، ‏arm64+x64)
-npm run electron:build:linux  # Linux ‏(AppImage + deb + rpm)
-npm run electron:smoke:packaged  # اختبار تمهيدي سريع للحزمة المبنية
-```
-
-تُرفق إصدارات مثبّتات سطح المكتب بإصدارات GitHub. للاطلاع على شرح متعمق وكامل لـ Electron (التوقيع وجسر IPC والتوزيعات)، راجع [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _(أُنشئ في مرحلة لاحقة)_.
-
 ### خادم دون واجهة رسومية (CI/الأتمتة)
 
 للإعدادات غير الخاضعة للإشراف (Docker وKubernetes وCI)، استخدم:

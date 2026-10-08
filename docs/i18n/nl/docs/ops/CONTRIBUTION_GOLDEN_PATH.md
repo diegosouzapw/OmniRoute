@@ -18,7 +18,7 @@ en CI-dekking.
 2. **Benoem de contracten.** Identificeer elke catalogus, elk schema, elk gegenereerd artefact, elke openbare
    API en elke gebruikersinterface waarop de wijziging van invloed is. De onderstaande tabel geeft de
    minimale uitgangsset.
-3. **Schrijf gerichte tests of werk ze bij.** Productiewijzigingen in `src/`, `open-sse/`, `electron/` of
+3. **Schrijf gerichte tests of werk ze bij.** Productiewijzigingen in `src/`, `open-sse/` of
    `bin/` vereisen een geautomatiseerde test in dezelfde PR. Voer de kleinst mogelijke testbestanden uit
    die het gedrag aantonen en voer vervolgens de vermelde gerichte controles uit.
 4. **Laat CI de brede matrix uitvoeren.** De volledige unitshards, Vitest, de dekkingsdrempel en de

@@ -29,7 +29,7 @@ Ulinganisho wa vipengele kwa njia yenye lengo dhidi ya vipanga-njia maarufu vya 
 | **Ufichaji wa alama ya kidole ya TLS (JA3/JA4)**             |                   ✅ wreq-js                   |           ❌            |             ❌              |      ❌      |
 | **Mfumo wa tathmini**                                        |              ✅ umejengewa ndani               |           ❌            |             ❌              | ⚠ inalipiwa  |
 | **Proksi ya MITM (hunasa Cursor/Antigravity)**               |               ✅ majukwaa mengi                |           ❌            |             ❌              |      ❌      |
-| **CLI yenye trei ya mfumo (bila Electron)**                  |                       ✅                       |           ❌            |             n/a             |     n/a      |
+| **CLI yenye trei ya mfumo**                                  |                       ✅                       |           ❌            |             n/a             |     n/a      |
 | **Uthibitishaji kiotomatiki wa CLI kwa machine-ID**          |                       ✅                       |           ❌            |             n/a             |     n/a      |
 | **Dashibodi**                                                |                   Next.js 16                   |         msingi          |         ya umiliki          |  ya umiliki  |
 | **i18n**                                                     |                  **lugha 42**                  |           ❌            |             ❌              |      ⚠       |

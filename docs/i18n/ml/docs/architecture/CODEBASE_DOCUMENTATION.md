@@ -27,7 +27,6 @@
 | ഭാഷ                | **TypeScript 6.0+** — ലക്ഷ്യം `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                           |
 | റൺടൈം              | **Node.js** `>=22.22.2 <23` അല്ലെങ്കിൽ `>=24.0.0 <27` (`engines` + `SUPPORTED_NODE_RANGE` വഴി നിർബന്ധമാക്കുന്നു)                 |
 | ഡാറ്റാബേസ്         | `better-sqlite3` വഴിയുള്ള **SQLite** (സിംഗിൾട്ടൺ, WAL ജേണലിംഗ്)                                                                  |
-| ഡെസ്ക്ടോപ്പ്       | **Electron 41** + `electron-builder` 26.10 (`electron/`-ലുള്ള പ്രത്യേക വർക്ക്സ്പേസ്)                                             |
 | ടെസ്റ്റുകൾ         | **Node നേറ്റീവ് ടെസ്റ്റ് റണ്ണർ** (യൂണിറ്റ്/ഇന്റഗ്രേഷൻ), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | ബിൽഡ്              | `scripts/build/build-next-isolated.mjs` വഴിയുള്ള Next.js സ്റ്റാൻഡ്എലോൺ                                                           |
 | ലിന്റ്/ഫോർമാറ്റ്   | ESLint ഫ്ലാറ്റ് കോൺഫിഗ് + Prettier (Husky pre-commit വഴി `lint-staged`)                                                          |
@@ -51,7 +50,6 @@
 OmniRoute/
 ├── src/                  Next.js ആപ്ലിക്കേഷൻ (App Router, ലൈബ്രറികൾ, ഡൊമെയ്ൻ, സെർവർ, പങ്കിട്ടവ)
 ├── open-sse/             സ്ട്രീമിംഗ് എൻജിൻ വർക്ക്സ്പേസ് (@omniroute/open-sse)
-├── electron/             ഡെസ്ക്ടോപ്പ് റാപ്പർ (Electron 41 മെയിൻ + പ്രീലോഡ്)
 ├── bin/                  CLI എൻട്രി പോയിന്റുകൾ (omniroute, reset-password)
 ├── tests/                യൂണിറ്റ്, ഇന്റഗ്രേഷൻ, e2e, protocols-e2e, ട്രാൻസ്ലേറ്റർ, സുരക്ഷ, ഫിക്സ്ചറുകൾ
 ├── scripts/              ബിൽഡ്, സിങ്ക്, പരിശോധന, മൈഗ്രേഷൻ, റൺടൈം സഹായക സ്ക്രിപ്റ്റുകൾ
@@ -576,26 +574,6 @@ open-sse/
 
 ---
 
-## 5. `electron/` — ഡെസ്ക്ടോപ്പ് റാപ്പർ
-
-```
-electron/
-├── main.js                  Electron പ്രധാന പ്രോസസ്
-├── preload.js               പ്രീലോഡ് ബ്രിഡ്ജ് (contextIsolation പ്രവർത്തനക്ഷമമാക്കിയിരിക്കുന്നു)
-├── types.d.ts
-├── package.json             electron-builder കോൺഫിഗറേഷൻ, പതിപ്പ് 3.8.51
-├── README.md
-├── assets/                  ബിൽഡ് റിസോഴ്സുകൾ (ഐക്കണുകൾ, എൻടൈറ്റിൽമെന്റുകൾ, …)
-├── node_modules/            സമർപ്പിത node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           ബിൽഡ് ഔട്ട്പുട്ട് (കമ്മിറ്റ് ചെയ്തിട്ടില്ല)
-```
-
-വർക്ക്സ്പേസ് റൂട്ടിൽ അഞ്ച് npm സ്ക്രിപ്റ്റുകളുണ്ട്: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. GitHub റിലീസ് ഫീഡിലേക്ക്
-ചൂണ്ടുന്ന `electron-updater` വഴിയാണ് സ്വയമേവയുള്ള അപ്ഡേറ്റ് നടപ്പാക്കുന്നത്.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -660,13 +638,11 @@ bin/
 ഉദ്ദേശ്യമനുസരിച്ച് 6 ഉപഫോൾഡറുകളായി ക്രമീകരിച്ചിരിക്കുന്നു.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -845,7 +821,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A protocol skills-ഉം discovery-ഉം.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK + Caveman compression.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI integrations.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (നിലവിലുണ്ടെങ്കിൽ), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — deployment targets.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — deployment targets.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — സാധാരണ operational issues.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — contributor workflow.
 - [CLAUDE.md](../../CLAUDE.md) — Claude Code-നുള്ള repo നിയമങ്ങൾ (മുകളിലുള്ള പല

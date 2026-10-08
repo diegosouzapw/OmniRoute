@@ -118,7 +118,6 @@ omniroute
 
 ## मर्यादा
 
-- Electron हे Termux मध्ये चालत नाही.
 - System tray किंवा desktop integration उपलब्ध नाही.
 - ही रचना केवळ server साठी आहे: browser dashboard वापरा.
 - Native dependencies चे local compilation करावे लागू शकते.

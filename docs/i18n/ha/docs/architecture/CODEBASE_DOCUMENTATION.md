@@ -27,7 +27,6 @@ ba tare da ƙirƙiro sabbin modules ba.
 | Harshe            | **TypeScript 6.0+** — target `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                    |
 | Muhallin aiki     | **Node.js** `>=22.22.2 <23` ko `>=24.0.0 <27` (ana tilasta shi ta `engines` + `SUPPORTED_NODE_RANGE`)                    |
 | Ma'ajiyar bayanai | **SQLite** ta hanyar `better-sqlite3` (singleton, WAL journaling)                                                        |
-| Manhajar tebur    | **Electron 41** + `electron-builder` 26.10 (wurin aiki na daban a `electron/`)                                           |
 | Gwaje-gwaje       | **Node native test runner** (unit/integration), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | Ginawa            | Next.js standalone ta hanyar `scripts/build/build-next-isolated.mjs`                                                     |
 | Lint/tsarawa      | ESLint flat config + Prettier (`lint-staged` ta hanyar Husky pre-commit)                                                 |
@@ -51,7 +50,6 @@ bayanai shi ne env var `DATA_DIR`, kuma tsohuwar ƙimarsa ita ce `~/.omniroute/`
 OmniRoute/
 ├── src/                  Manhajar Next.js (App Router, libs, domain, server, shared)
 ├── open-sse/             Wurin aikin injin streaming (@omniroute/open-sse)
-├── electron/             Marufin manhajar tebur (Electron 41 main + preload)
 ├── bin/                  Wuraren shigar CLI (omniroute, reset-password)
 ├── tests/                Unit, integration, e2e, protocols-e2e, translator, security, fixtures
 ├── scripts/              Rubutun taimako na build, sync, check, migration, da runtime
@@ -575,26 +573,6 @@ Abubuwan asali na streaming da mataimakan masu samarwa: `stream.ts`, `streamHand
 
 ---
 
-## 5. `electron/` — Kundin naɗe na Desktop
-
-```
-electron/
-├── main.js                  Babban tsarin aikin Electron
-├── preload.js               Gadar preload (an kunna contextIsolation)
-├── types.d.ts
-├── package.json             Saitin electron-builder, siga 3.8.51
-├── README.md
-├── assets/                  Albarkatun ginawa (gumaka, izini, …)
-├── node_modules/            Keɓantaccen node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           Sakamakon ginawa (ba a commit ba)
-```
-
-Akwai rubutun npm guda biyar a tushen workspace: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Ana yin sabuntawa ta atomatik ta
-`electron-updater` wanda yake nuni zuwa tushen sakin GitHub.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -659,13 +637,11 @@ Umarni na gama-gari:
 An tsara su cikin ƙananan manyan fayiloli 6 bisa ga manufarsu.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -844,7 +820,7 @@ Duba [A2A-SERVER.md § Ƙara Sabuwar Ƙwarewa](../frameworks/A2A-SERVER.md). Ƙw
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — ƙwarewar A2A protocol da discovery.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK + Caveman compression.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — haɗaɗɗun CLI.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (idan yana nan), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — wuraren deployment.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — wuraren deployment.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — matsalolin aiki da aka saba fuskanta.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — tsarin aikin masu ba da gudummawa.
 - [CLAUDE.md](../../CLAUDE.md) — dokokin repo na Claude Code (asalin ingantaccen bayani

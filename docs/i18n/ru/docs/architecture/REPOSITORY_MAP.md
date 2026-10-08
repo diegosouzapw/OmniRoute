@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Приложение Next.js 16 (интерфейс + маршруты API + библиотеки + предметная область + сервер)
 ├── open-sse/             # Рабочее пространство потокового движка (обработчики, исполнители, транслятор, сервер MCP)
-├── electron/             # Обёртка настольного приложения (Electron 41 + electron-builder 26.10)
 ├── bin/                  # Точка входа CLI и обработчики команд
 ├── scripts/              # Скрипты сборки, проверки, синхронизации и разовых задач
 ├── docs/                 # Общедоступная документация (вы находитесь здесь)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Оболочка настольного приложения
-
-| Файл             | Назначение                                                                                                      |
-| ---------------- | --------------------------------------------------------------------------------------------------------------- |
-| `main.js`        | Основной процесс Electron (BrowserWindow, встроенный сервер Next.js, системный трей, автоматическое обновление) |
-| `preload.js`     | Мост IPC (contextBridge → `window.omniroute`)                                                                   |
-| `package.json`   | Конфигурация electron-builder + зависимости Electron 41 + electron-builder 26.10                                |
-| `assets/`        | Значки приложения (Windows .ico, macOS .icns, Linux .png)                                                       |
-| `dist-electron/` | Результаты сборки (игнорируются Git)                                                                            |
-| `types.d.ts`     | Объявления типов для моста рендерера                                                                            |
-| `README.md`      | Внутренний файл README Electron (см. также `docs/guides/ELECTRON_GUIDE.md`)                                     |
-
----
-
 ## `bin/` — CLI
 
 | Файл                                                                                                        | Назначение                                                                                                                             |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | Средство запуска E2E-тестов MCP/A2A                                                                              |
 | `run-ecosystem-tests.mjs`           | Тесты экосистемы (интеграции с провайдерами)                                                                     |
 | `test-report-summary.mjs`           | Создание сводки покрытия в формате Markdown                                                                      |
-| `smoke-electron-packaged.mjs`       | Дымовое тестирование упакованной сборки Electron                                                                 |
-| `native-binary-compat.mjs`          | Проверка соответствия нативных зависимостей (`better-sqlite3`) версии Node в Electron                            |
 | `validate-pack-artifact.ts`         | Проверка результата упаковки npm                                                                                 |
 | `responses-ws-proxy.mjs`            | WebSocket-мост для Codex Responses API                                                                           |
 | `v1-ws-bridge.mjs`                  | WebSocket-мост для конечной точки `/api/v1/ws`                                                                   |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Руководство пользователя (настройка, модели, комбинации, CLI, аудио и т. д.)                                     |
 | `API_REFERENCE.md`          | Справочник по конечным точкам API с моделью аутентификации                                                       |
 | `openapi.yaml`              | Спецификация OpenAPI 3.0 (121 маршрут)                                                                           |
-| `SETUP_GUIDE.md`            | Способы установки (npm, npx, Docker, Electron, Termux, из исходного кода)                                        |
+| `SETUP_GUIDE.md`            | Способы установки (npm, npx, Docker, Termux, из исходного кода)                                                  |
 | `ENVIRONMENT.md`            | Все переменные окружения (документировано ~800, ~3 050 строк в `.env.example`)                                   |
 | `TROUBLESHOOTING.md`        | Распространённые ошибки + известные проблемы v3.8.0                                                              |
 | `RELEASE_CHECKLIST.md`      | Полный процесс выпуска (навыки, husky, conventional commits, развёртывание)                                      |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Развёртывание на Fly.io (в настоящее время только на китайском)   |
 | `TERMUX_GUIDE.md`            | Работа без графического интерфейса на Android через Termux        |
 | `PWA_GUIDE.md`               | Установка Progressive Web App + сервис-воркер                     |
-| `ELECTRON_GUIDE.md`          | Сборка + подписание + распространение настольного приложения      |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                            |
 | `PROXY_GUIDE.md`             | Четырёхуровневый исходящий прокси + маркетплейс 1proxy            |
 

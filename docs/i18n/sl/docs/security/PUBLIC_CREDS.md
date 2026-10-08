@@ -91,7 +91,7 @@ Ko morate vgraditi novo vrednost, ki jo zagotavlja zunanji ponudnik in ki:
 
 ### 3. Prepovedani vzorci
 
-❌ V produkcijski kodi (`src/`, `open-sse/`, `electron/`, `bin/`) **nikoli** ne naredite ničesar od naslednjega:
+❌ V produkcijski kodi (`src/`, `open-sse/`, `bin/`) **nikoli** ne naredite ničesar od naslednjega:
 
 ```ts
 // SLABO: dobesedna vrednost sproži Secret Scanning in Semgrep

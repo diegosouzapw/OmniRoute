@@ -16,7 +16,7 @@ endringstype til tilhørende kontrakter, fokuserte kontroller og CI-dekning.
    [Modell for grener og utgivelser](BRANCHING_MODEL.md).
 2. **Navngi kontraktene.** Identifiser alle kataloger, skjemaer, genererte artefakter, offentlige API-er eller
    brukergrensesnitt som endringen påvirker. Tabellen nedenfor viser det minste anbefalte utgangspunktet.
-3. **Skriv eller oppdater fokuserte tester.** Produksjonsendringer i `src/`, `open-sse/`, `electron/` eller
+3. **Skriv eller oppdater fokuserte tester.** Produksjonsendringer i `src/`, `open-sse/` eller
    `bin/` krever en automatisert test i samme PR. Kjør de minste testfilene som beviser
    virkemåten, og deretter de oppførte fokuserte kontrollene.
 4. **La CI kjøre den brede matrisen.** De fullstendige enhetstestdelene, Vitest, dekningssperren og

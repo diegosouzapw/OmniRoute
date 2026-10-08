@@ -117,7 +117,6 @@ A kizárólag teszteket érintő diffek (minden fájl a `tests/` alatt, egyik se
 ### Verzió és változásnapló
 
 - [ ] Futtasd a `/version-bump-cc <patch|minor|major>` parancsot (Claude Code skill)
-  - Frissíti a verziót a `package.json` és az `electron/package.json` fájlban
   - Újragenerálja a `CHANGELOG.md` fájlt az utolsó címke óta létrejött git commitokból
   - Frissíti a README.md jelvényeit
 - [ ] Manuálisan ellenőrizd a CHANGELOG.md fájlt, és szükség esetén tisztázd a commitüzeneteket
@@ -211,104 +210,6 @@ Visszamenőleg nem kompatibilis módosítások: adj hozzá `BREAKING CHANGE:` l�
 - [ ] A modellek regisztrálva vannak az `open-sse/config/providerRegistry.ts` fájlban
 - [ ] A `tests/unit/` egységtesztjei lefedik a szolgáltatók osztályozását és az útválasztást
 
-### Asztali alkalmazás (Electron)
-
-Ha az `electron/` megváltozott:
-
-- [ ] Az `npm run electron:smoke:packaged` sikeresen lefut
-- [ ] A buildek tesztelve vannak legalább az alábbiak egyikére: `:win`, `:mac`, `:linux`
-- [ ] A kódaláírási tanúsítványok nem jártak le (ha van aláírás)
-- [ ] Az `electron/package.json` verziója megegyezik a gyökérszintű `package.json` verziójával
-- [ ] Automatikus frissítési csatorna mutatója frissítve, ha a kiadás a `stable` csatornára történik
-
-### Buildelési elrendezés
-
-A repository három különálló kimeneti könyvtárat használ — soha ne keverd össze őket:
-
-| Könyvtár  | Rendeltetés                                                     | Verziókövetett?  |
-| --------- | --------------------------------------------------------------- | ---------------- |
-| `src/`    | Alkalmazás forráskódja (TypeScript / TSX)                       | Igen             |
-| `.build/` | Build köztes fájljai — a `next build` kimenete (`distDir`)      | Nem (gitignored) |
-| `dist/`   | Terjeszthető npm-csomag — az `assembleStandalone` állítja össze | Nem (gitignored) |
-
-> **Üzemeltetői megjegyzés:** a távoli VPS lemezképkönyvtára továbbra is `/usr/lib/node_modules/omniroute/app/`.
-> Csak a repositoryn **belüli** buildkimenet került át (`app/` → `dist/`). A telepítési készségek rsync használatával
-> másolják a `dist/` tartalmát a távoli `app/` könyvtárba — nincs szükség a VPS elérési útjainak módosítására.
-
-**Egyszeri buildelési folyamat:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (tisztítás)
-  └─ next build → .build/next/   (köztes fájlok)
-  └─ assembleStandalone          (az önálló csomagot, a statikus és nyilvános fájlokat, valamint a natív komponenseket a dist/ könyvtárba másolja)
-  └─ writes dist/BUILD_SHA       (HEAD őrérték)
-```
-
-Telepítéshez NE futtasd az `npm run build`, majd külön az `npm run build:cli` parancsot — használd
-az `npm run build:release` parancsot, amely egyetlen parancsban végez tiszta újrabuildelést és hozza létre az őrértéket.
-
-### Műtermék validálása
-
-- [ ] Az `npm run build:release` sikeresen lefut, és a `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Az `npm run check:pack-artifact` tiszta eredményt ad — nincs `app.__qa_backup`, `scripts/scratch`, `package-lock.json` vagy más helyi maradvány
-- [ ] A build után létezik a `dist/server.js`
-
-### Címkézés és kiadás
-
-- [ ] Futtasd a `/generate-release-cc` parancsot (Claude Code-készség):
-  - Létrehozza a `vX.Y.Z` címkét
-  - Feltölti a címkét és az ágat
-  - Létrehozza a GitHub-kiadást a változásnapló tartalmával
-  - Csatolja az Electron-telepítőket (ha elkészültek)
-- [ ] Vagy manuálisan:
-  ```bash
-  git tag -a vX.Y.Z -m "Kiadás vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Telepítés
-
-A telepítési készségek az egyszerűsített rsync-folyamatot használják — nincs `npm pack`, nincs `npm i -g`:
-
-- [ ] Használd a célkörnyezetnek megfelelő telepítési készséget:
-  - `/deploy-vps-local-cc` — helyi VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — mindkettő
-- [ ] Telepítés előtt ellenőrizd, hogy a `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] A buildet olyan helyen kell futtatni, ahol a `node_modules` valódi (fő munkapéldány vagy `npm ci` használatával előkészített worktree — NEM szimbolikus hivatkozással csatolt worktree)
-- [ ] A telepített példány gyors ellenőrzése:
-  - Nyisd meg a `/dashboard/health` útvonalat → ellenőrizd, hogy a verziószöveg megegyezik a kiadással
-  - Küldj egy `/v1/chat/completions` kérést egy ismert szolgáltatónak
-  - Ellenőrizd, hogy az `/api/monitoring/health` `CLOSED` állapotú megszakítókat ad vissza
-  - Győződj meg róla, hogy az MCP-átvitelek válaszolnak (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Kiadás után
-
-- [ ] Futtassa a `/capture-release-evidences-cc` parancsot (Claude Code-képesség)
-  - WebP-képernyőképeket/-felvételeket készít az új funkciókról
-  - Csatolja őket a kiadási megjegyzésekhez / blogbejegyzéshez
-- [ ] Frissítse a GitHub Discussions / Discord felületeket a kiadási bejelentéssel
-- [ ] Nyisson mérföldkövet a következő verzióhoz
-- [ ] Kritikus esetben: rögzítse a beszélgetést, vagy tegye közzé a `news.json` fájlban az alkalmazáson belüli szalagcímhez
-
-### A Radar nyilvános bevezetési ellenőrzőkapuja
-
-A Radar bejelentése szándékosan `active: false` beállítással lett véglegesítve. Az aktiválás külön
-módosítás, amelyre csak az alábbi elemek mindegyikének igazolása után kerülhet sor:
-
-- [ ] Az összes egymásra épülő Radar PR egyesítve van, és a release-tip CI sikeresen lefutott
-- [ ] Telepítse és végezzen gyors működési tesztet az OSS Radar-útvonalakon úgy, hogy a `RADAR_ENABLED` alapértelmezés szerint továbbra is ki legyen kapcsolva
-- [ ] Végezzen gyors működési tesztet a `GET /planos`, `/termos`, `/privacidade` és `/reembolso` útvonalakon a megnevezett Radar-gazdagépen
-- [ ] Rögzítse az üzemeltető személyazonosságát/kapcsolattartási adatait/címét, valamint a tulajdonos által jóváhagyott jogi felülvizsgálatot a privát szolgáltatásban
-- [ ] Kizárólag tesztmódban próbálja ki a Stripe Checkout folyamatot és az aláírt webhookot
-- [ ] Próbáljon ki egy titkosított tranzakciós e-mail-kézbesítést a jóváhagyott feladóval/domainnel
-- [ ] Igazolja a biztonsági mentés visszaállítását és egy felügyelt, költségkerettel korlátozott kutatási futtatást
-- [ ] Hagyja jóvá a BRL/PIX felülvizsgálati szabályzatot, mielőtt adományigazolásokat fogadna el
-- [ ] Csak az előző ellenőrzőkapuk teljesítése után engedélyezze a nyilvános Checkout folyamatot, majd aktiválja az új `news.json`-azonosítót
-- [ ] Ellenőrizze, hogy a kezdőlapi szalagcím lokalizált szöveget használ-e, és hogy egy új azonosító ismét megjelenik-e egy régebbi azonosító bezárása után
-
 ## Beágyazott szolgáltatások füsttesztje (v3.8.4+)
 
 A beágyazott szolgáltatásokat érintő módosításokat tartalmazó kiadások közzététele előtt ellenőrizze a következőket:
@@ -394,7 +295,7 @@ Ha a kiadás kritikus hibát tartalmaz:
 - Soha ne hagyd ki a Husky-hookokat (`--no-verify`)
 - Soha ne véglegesíts titkos adatokat, hitelesítő adatokat vagy `.env`-fájlokat
 - A lefedettségnek ≥60/60/60/60 szinten kell maradnia (utasítások/sorok/függvények/elágazások)
-- Mindig adj hozzá vagy frissíts teszteket, amikor a `src/`, `open-sse/`, `electron/` vagy `bin/` könyvtárban lévő éles kódot módosítod
+- Mindig adj hozzá vagy frissíts teszteket, amikor a `src/`, `open-sse/` vagy `bin/` könyvtárban lévő éles kódot módosítod
 
 ## Automatizált szinkronizálási ellenőrzés
 

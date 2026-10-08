@@ -197,7 +197,7 @@ docker run -d \
 
 ## Կախվածություններ
 
-- Պարբերաբար գործարկեք `npm audit` (`npm run audit:deps`-ը ներառում է հիմնական մասը + electron-ը)
+- Պարբերաբար գործարկեք `npm audit` (`npm run audit:deps`-ը ներառում է հիմնական մասը-ը)
 - Կախվածությունները պահեք արդիական
 - Նախքան commit-ը կատարվող ստուգումների համար նախագիծն օգտագործում է `husky` + `lint-staged` (lint-staged + check-docs-sync + check:any-budget:t11)
 - CI կոնվեյերը յուրաքանչյուր push-ի ժամանակ գործարկում է ESLint-ի անվտանգության կանոնները (`no-eval`, `no-implied-eval`, `no-new-func` = սխալ)

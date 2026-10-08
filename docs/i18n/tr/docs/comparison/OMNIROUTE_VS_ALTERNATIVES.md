@@ -29,7 +29,7 @@ Popüler açık kaynaklı yapay zekâ yönlendiricileriyle nesnel özellik karş
 | **TLS parmak izi gizleme (JA3/JA4)**                |                  ✅ wreq-js                  |       ❌        |        ❌         |     ❌     |
 | **Değerlendirme çerçevesi**                         |                 ✅ yerleşik                  |       ❌        |        ❌         | ⚠ ücretli  |
 | **MITM proxy (Cursor/Antigravity'yi yakalar)**      |             ✅ platformlar arası             |       ❌        |        ❌         |     ❌     |
-| **Sistem tepsili CLI (Electron olmadan)**           |                      ✅                      |       ❌        |        yok        |    yok     |
+| **Sistem tepsili CLI**                              |                      ✅                      |       ❌        |        yok        |    yok     |
 | **CLI makine kimliğiyle otomatik doğrulama**        |                      ✅                      |       ❌        |        yok        |    yok     |
 | **Kontrol paneli**                                  |                  Next.js 16                  |      temel      |     tescilli      |  tescilli  |
 | **i18n**                                            |              **42 yerel ayar**               |       ❌        |        ❌         |     ⚠      |

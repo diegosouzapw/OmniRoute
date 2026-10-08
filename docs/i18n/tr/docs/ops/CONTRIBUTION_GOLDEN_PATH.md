@@ -16,7 +16,7 @@ türlerinin her birini ilgili sözleşmelere, odaklı kontrollere ve CI kapsamı
    bir sonraki etkin döngüyü kullanın.
 2. **Sözleşmeleri belirtin.** Değişikliğin etkilediği her kataloğu, şemayı, oluşturulmuş yapıyı, herkese açık API'yi veya kullanıcı
    arayüzünü belirleyin. Aşağıdaki tablo, gerekli asgari başlangıç kümesini sunar.
-3. **Odaklı testler yazın veya mevcut testleri güncelleyin.** `src/`, `open-sse/`, `electron/` veya
+3. **Odaklı testler yazın veya mevcut testleri güncelleyin.** `src/`, `open-sse/` veya
    `bin/` altındaki üretim değişiklikleri, aynı PR'da otomatik bir test gerektirir. Davranışı
    doğrulayan en küçük test dosyalarını, ardından listelenen odaklı kontrolleri çalıştırın.
 4. **Geniş matrisi CI'ın çalıştırmasına izin verin.** Eksiksiz birim testi parçaları, Vitest, kapsam eşiği ve

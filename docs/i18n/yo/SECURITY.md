@@ -197,7 +197,7 @@ docker run -d \
 
 ## Àwọn Nǹkan Tí Ó Gbára Lé
 
-- Ṣiṣe `npm audit` déédéé (`npm run audit:deps` ń bo apá pàtàkì + electron)
+- Ṣiṣe `npm audit` déédéé (`npm run audit:deps` ń bo apá pàtàkì)
 - Máa ṣe ìmúdójúìwọ̀n àwọn nǹkan tí iṣẹ́ náà gbára lé
 - Iṣẹ́ náà ń lo `husky` + `lint-staged` fún àwọn àyẹ̀wò ṣáájú commit (lint-staged + check-docs-sync + check:any-budget:t11)
 - Pipeline CI ń ṣiṣẹ́ àwọn òfin ààbò ESLint lórí gbogbo push (`no-eval`, `no-implied-eval`, `no-new-func` = àṣìṣe)

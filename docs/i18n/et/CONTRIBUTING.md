@@ -225,7 +225,7 @@ Märkused katvuse kohta:
 
 - `npm run test:coverage` mõõdab peamise ühiktestide komplekti lähtekoodi katvust, välistab `tests/**` ja hõlmab `open-sse/**`
 - Pull Requestid peavad säilitama katvuse kontrollis lausete/ridade/funktsioonide/harude katvuse tasemel **60%+**
-- Kui PR muudab tootmiskoodi kataloogis `src/`, `open-sse/`, `electron/` või `bin/`, tuleb samas PR-is lisada või värskendada automatiseeritud teste
+- Kui PR muudab tootmiskoodi kataloogis `src/`, `open-sse/` või `bin/`, tuleb samas PR-is lisada või värskendada automatiseeritud teste
 - `npm run coverage:report` väljastab viimase katvuskäituse üksikasjaliku failipõhise aruande
 - `npm run test:coverage:legacy` säilitab ajalooliseks võrdluseks vanema mõõdiku
 - Katvuse parandamise etapiviisilist tegevuskava kirjeldab `docs/ops/COVERAGE_PLAN.md`
@@ -328,7 +328,6 @@ open-sse/                   # @omniroute/open-sse tööruum
 ├── transformer/            # Responses API transformeri
 └── utils/                  # 22 utiliidi moodulit (voog, TLS, proksi, logimine)
 
-electron/                   # Electroni töölauarakendus (cross-platform)
 
 tests/
 ├── unit/                   # Node.js test runner (1,574 testifaili)

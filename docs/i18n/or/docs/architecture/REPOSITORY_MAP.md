@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16 ଆପ୍ଲିକେସନ୍ (UI + API ରୁଟ୍ + ଲାଇବ୍ରେରୀ + ଡୋମେନ୍ + ସର୍ଭର୍)
 ├── open-sse/             # ଷ୍ଟ୍ରିମିଂ ଇଞ୍ଜିନ୍ ୱର୍କସ୍ପେସ୍ (ହ୍ୟାଣ୍ଡଲର୍, ଏକ୍ସିକ୍ୟୁଟର୍, ଅନୁବାଦକ, MCP ସର୍ଭର୍)
-├── electron/             # ଡେସ୍କଟପ୍ ରାପର୍ (Electron 41 + electron-builder 26.10)
 ├── bin/                  # CLI ପ୍ରବେଶ ବିନ୍ଦୁ ଏବଂ କମାଣ୍ଡ୍ ହ୍ୟାଣ୍ଡଲର୍
 ├── scripts/              # ବିଲ୍ଡ୍, ଯାଞ୍ଚ, ସିଙ୍କ୍ ଏବଂ ଏକକାଳୀନ ସ୍କ୍ରିପ୍ଟ
 ├── docs/                 # ସାର୍ବଜନୀନ ଡକ୍ୟୁମେଣ୍ଟେସନ୍ (ଆପଣ ଏଠାରେ ଅଛନ୍ତି)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — ଡେସ୍କଟପ୍ ରାପର୍
-
-| ଫାଇଲ୍            | ଉଦ୍ଦେଶ୍ୟ                                                                                    |
-| ---------------- | ------------------------------------------------------------------------------------------- |
-| `main.js`        | Electron ମୁଖ୍ୟ ପ୍ରକ୍ରିୟା (BrowserWindow, ଏମ୍ବେଡେଡ୍ Next.js ସର୍ଭର୍, ଟ୍ରେ, ସ୍ୱୟଂଚାଳିତ ଅଦ୍ୟତନ) |
-| `preload.js`     | IPC ବ୍ରିଜ୍ (contextBridge → `window.omniroute`)                                             |
-| `package.json`   | electron-builder କନଫିଗ୍ + Electron 41 + electron-builder 26.10 ନିର୍ଭରତା                     |
-| `assets/`        | ଆପ୍ ଆଇକନ୍ଗୁଡ଼ିକ (Windows .ico, macOS .icns, Linux .png)                                     |
-| `dist-electron/` | ବିଲ୍ଡ ଆଉଟପୁଟ୍ (gitignored)                                                                  |
-| `types.d.ts`     | ରେଣ୍ଡରର୍ ବ୍ରିଜ୍ ପାଇଁ ଟାଇପ୍ ଘୋଷଣା                                                            |
-| `README.md`      | ଆଭ୍ୟନ୍ତରୀଣ Electron README (`docs/guides/ELECTRON_GUIDE.md` ମଧ୍ୟ ଦେଖନ୍ତୁ)                   |
-
----
-
 ## `bin/` — CLI
 
 | ଫାଇଲ୍                                                                                                       | ଉଦ୍ଦେଶ୍ୟ                                                                                                                              |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | MCP/A2A E2E ରନର୍                                                                                   |
 | `run-ecosystem-tests.mjs`           | ଇକୋସିଷ୍ଟମ୍ (ପ୍ରଦାତା ଏକୀକରଣ) ପରୀକ୍ଷାଗୁଡ଼ିକ                                                          |
 | `test-report-summary.mjs`           | କଭରେଜ୍ ସାରାଂଶ ମାର୍କଡାଉନ୍ ସୃଷ୍ଟି କରେ                                                                |
-| `smoke-electron-packaged.mjs`       | ପ୍ୟାକେଜ୍ ହୋଇଥିବା Electron ବିଲ୍ଡର ସ୍ମୋକ୍-ଟେଷ୍ଟ କରେ                                                  |
-| `native-binary-compat.mjs`          | ନେଟିଭ୍ ନିର୍ଭରଶୀଳତାଗୁଡ଼ିକ (`better-sqlite3`) Electronର Node ସହିତ ମେଳ ଖାଉଛି କି ଯାଞ୍ଚ କରେ             |
 | `validate-pack-artifact.ts`         | npm pack ଆଉଟପୁଟ୍ ଯାଞ୍ଚ କରେ                                                                         |
 | `responses-ws-proxy.mjs`            | Codex Responses API ପାଇଁ WebSocket ବ୍ରିଜ୍                                                          |
 | `v1-ws-bridge.mjs`                  | `/api/v1/ws` ଏଣ୍ଡପଏଣ୍ଟ ପାଇଁ WebSocket ବ୍ରିଜ୍                                                       |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | ଶେଷ-ବ୍ୟବହାରକାରୀ ମାନୁଆଲ୍ (ସେଟ୍ଅପ୍, ମଡେଲ୍, କମ୍ବୋ, CLI, ଅଡିଓ ଇତ୍ୟାଦି)                                               |
 | `API_REFERENCE.md`          | ପ୍ରମାଣୀକରଣ ମଡେଲ୍ ସହିତ API ଏଣ୍ଡପଏଣ୍ଟ ସନ୍ଦର୍ଭ                                                                      |
 | `openapi.yaml`              | OpenAPI 3.0 ସ୍ପେସିଫିକେସନ୍ (121ଟି ପାଥ୍)                                                                           |
-| `SETUP_GUIDE.md`            | ଇନ୍ଷ୍ଟଲ୍ ପଦ୍ଧତିଗୁଡ଼ିକ (npm, npx, Docker, Electron, Termux, ସୋର୍ସ)                                                |
+| `SETUP_GUIDE.md`            | ଇନ୍ଷ୍ଟଲ୍ ପଦ୍ଧତିଗୁଡ଼ିକ (npm, npx, Docker, Termux, ସୋର୍ସ)                                                          |
 | `ENVIRONMENT.md`            | ସମସ୍ତ ପରିବେଶ ଭେରିଏବଲ୍ (~800ଟି ଡକ୍ୟୁମେଣ୍ଟେଡ୍, `.env.example`ର ~3,050ଟି ଲାଇନ୍)                                     |
 | `TROUBLESHOOTING.md`        | ସାଧାରଣ ତ୍ରୁଟି + v3.8.0ର ଜଣାଶୁଣା ସମସ୍ୟା                                                                           |
 | `RELEASE_CHECKLIST.md`      | ସମ୍ପୂର୍ଣ୍ଣ ରିଲିଜ୍ ପ୍ରବାହ (ସ୍କିଲ୍, husky, ପ୍ରଚଳିତ କମିଟ୍, ଡିପ୍ଲୟ)                                                  |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io ଡିପ୍ଲୟମେଣ୍ଟ୍ (ବର୍ତ୍ତମାନ କେବଳ ଚୀନୀ ଭାଷାରେ)                     |
 | `TERMUX_GUIDE.md`            | Termux ମାଧ୍ୟମରେ Android ହେଡ୍ଲେସ୍                                     |
 | `PWA_GUIDE.md`               | ପ୍ରୋଗ୍ରେସିଭ୍ ୱେବ୍ ଆପ୍ ଇନ୍ଷ୍ଟଲ୍ + ସର୍ଭିସ୍ ୱାର୍କର୍                     |
-| `ELECTRON_GUIDE.md`          | ଡେସ୍କଟପ୍ ଆପ୍ ବିଲ୍ଡ + ସାଇନ୍ + ବିତରଣ                                   |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                               |
 | `PROXY_GUIDE.md`             | 4-ସ୍ତରୀୟ ଆଉଟ୍ବାଉଣ୍ଡ ପ୍ରକ୍ସି + 1proxy ମାର୍କେଟ୍ପ୍ଲେସ୍                  |
 

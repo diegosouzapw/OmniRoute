@@ -91,7 +91,7 @@ Kai reikia įterpti naują išorinio teikėjo pateiktą reikšmę, kuri:
 
 ### 3. Draudžiami šablonai
 
-❌ Gamybiniame kode (`src/`, `open-sse/`, `electron/`, `bin/`) **niekada** nedarykite nieko iš toliau nurodytų dalykų:
+❌ Gamybiniame kode (`src/`, `open-sse/`, `bin/`) **niekada** nedarykite nieko iš toliau nurodytų dalykų:
 
 ```ts
 // BLOGAI: pažodinė reikšmė suaktyvina Secret Scanning ir Semgrep

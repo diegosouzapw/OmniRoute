@@ -225,7 +225,7 @@ Nótaí cumhdaigh:
 
 - Tomhaiseann `npm run test:coverage` cumhdach foinse don phríomhshraith tástálacha aonaid, fágann sé `tests/**` as an áireamh, agus cuireann sé `open-sse/**` san áireamh
 - Ní mór d'iarratais tarraingthe an geata cumhdaigh a choinneáil ag **60%+** do ráitis/línte/feidhmeanna/brainsí
-- Má athraíonn PR cód táirgthe in `src/`, `open-sse/`, `electron/`, nó `bin/`, ní mór dó tástálacha uathoibrithe a chur leis nó a nuashonrú sa PR céanna
+- Má athraíonn PR cód táirgthe in `src/`, `open-sse/`, nó `bin/`, ní mór dó tástálacha uathoibrithe a chur leis nó a nuashonrú sa PR céanna
 - Priontálann `npm run coverage:report` an tuairisc mhionsonraithe comhad ar chomhad ón rith cumhdaigh is déanaí
 - Caomhnaíonn `npm run test:coverage:legacy` an mhéadracht níos sine le haghaidh comparáid stairiúil
 - Féach `docs/ops/COVERAGE_PLAN.md` don treochlár céimnithe chun cumhdach a fheabhsú
@@ -331,7 +331,6 @@ open-sse/                   # Spás oibre @omniroute/open-sse
 ├── transformer/            # Claochladán Responses API
 └── utils/                  # 22 modúl fóntais (sruth, TLS, seachfhreastalaí, logáil)
 
-electron/                   # Aip deisce Electron (tras-ardán)
 
 tests/
 ├── unit/                   # Riteoir tástálacha Node.js (1,574 comhad tástála)

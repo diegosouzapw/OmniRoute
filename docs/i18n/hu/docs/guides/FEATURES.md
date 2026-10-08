@@ -265,25 +265,6 @@ Adminisztratív műveletek nyomon követése művelettípus, végrehajtó, cél,
 
 ---
 
-## 🖥️ Asztali alkalmazás
-
-Natív Electron asztali alkalmazás Windows, macOS és Linux rendszerekhez. Az OmniRoute önálló alkalmazásként futtatható rendszertálca-integrációval, offline támogatással, automatikus frissítéssel és egykattintásos telepítéssel.
-
-Főbb funkciók:
-
-- A szerver készenléti állapotának lekérdezése (nincs üres képernyő hidegindításkor)
-- Rendszertálca portkezeléssel
-- Tartalombiztonsági szabályzat
-- Egyetlen példányra vonatkozó zárolás
-- Automatikus frissítés újraindításkor
-- Platformfüggő felhasználói felület (macOS-jelzőlámpák, Windows/Linux alapértelmezett címsáv)
-- Megerősített Electron-buildcsomagolás — a rendszer észleli és elutasítja az önálló csomagban található szimbolikusan hivatkozott `node_modules` könyvtárat a csomagolás előtt, megelőzve a buildgéptől való futásidejű függést (v2.5.5+)
-- **Szabályos leállítás** — az Electron `before-quit` szabályosan leállítja a Next.js rendszert, megelőzve az SQLite WAL-adatbázis zárolását (v3.6.2+)
-
-📖 A teljes dokumentációért lásd az [`electron/README.md`](../../electron/README.md) fájlt.
-
----
-
 ## 🌐 V1 WebSocket-híd _(v3.6.6+)_
 
 Az OmniRoute mostantól támogatja az **OpenAI-kompatibilis WebSocket-klienseket** a `/v1/ws` frissítési végponton keresztül. Az egyedi `scripts/dev/v1-ws-bridge.mjs` szerver körülveszi a Next.js rendszert, és a WS-kapcsolatokat teljes, kétirányú streamelési munkamenetekké frissíti. A hitelesítés ugyanazt az API-kulcsot vagy munkamenet-sütit használja, mint a HTTP-kérelmek.

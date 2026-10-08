@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Programu ya Next.js 16 (UI + njia za API + maktaba + kikoa + seva)
 ├── open-sse/             # Nafasi ya kazi ya injini ya utiririshaji (vishughulikiaji, vitekelezaji, kitafsiri, seva ya MCP)
-├── electron/             # Kifungashio cha eneo-kazi (Electron 41 + electron-builder 26.10)
 ├── bin/                  # Sehemu ya kuanzia ya CLI na vishughulikiaji vya amri
 ├── scripts/              # Hati za kujenga, kukagua, kusawazisha na matumizi ya mara moja
 ├── docs/                 # Nyaraka za umma (upo hapa)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Kifungashio cha Eneo-kazi
-
-| Faili            | Kusudi                                                                                               |
-| ---------------- | ---------------------------------------------------------------------------------------------------- |
-| `main.js`        | Mchakato mkuu wa Electron (BrowserWindow, seva iliyopachikwa ya Next.js, trei, usasishaji otomatiki) |
-| `preload.js`     | Daraja la IPC (contextBridge → `window.omniroute`)                                                   |
-| `package.json`   | Usanidi wa electron-builder + utegemezi wa Electron 41 + electron-builder 26.10                      |
-| `assets/`        | Ikoni za programu (Windows .ico, macOS .icns, Linux .png)                                            |
-| `dist-electron/` | Tokeo la ujenzi (limepuuzwa na git)                                                                  |
-| `types.d.ts`     | Matamko ya aina kwa daraja la renderer                                                               |
-| `README.md`      | README ya ndani ya Electron (tazama pia `docs/guides/ELECTRON_GUIDE.md`)                             |
-
----
-
 ## `bin/` — CLI
 
 | Faili                                                                                                       | Madhumuni                                                                                                                                            |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | Kiendeshaji cha E2E cha MCP/A2A                                                                     |
 | `run-ecosystem-tests.mjs`           | Majaribio ya mfumo ikolojia (ujumuishaji wa mtoa huduma)                                            |
 | `test-report-summary.mjs`           | Kuzalisha markdown ya muhtasari wa ufunikaji                                                        |
-| `smoke-electron-packaged.mjs`       | Kufanya jaribio la msingi la ujenzi wa Electron uliofungashwa                                       |
-| `native-binary-compat.mjs`          | Kuthibitisha kuwa utegemezi asilia (`better-sqlite3`) unalingana na Node ya Electron                |
 | `validate-pack-artifact.ts`         | Kuthibitisha matokeo ya kifurushi cha npm                                                           |
 | `responses-ws-proxy.mjs`            | Daraja la WebSocket kwa Codex Responses API                                                         |
 | `v1-ws-bridge.mjs`                  | Daraja la WebSocket kwa endpoint ya `/api/v1/ws`                                                    |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Mwongozo wa mtumiaji wa mwisho (usanidi, modeli, michanganyiko, CLI, sauti, n.k.)                           |
 | `API_REFERENCE.md`          | Rejeleo la endpoint za API lenye modeli ya uthibitishaji                                                    |
 | `openapi.yaml`              | Vipimo vya OpenAPI 3.0 (njia 121)                                                                           |
-| `SETUP_GUIDE.md`            | Mbinu za usakinishaji (npm, npx, Docker, Electron, Termux, msimbo chanzo)                                   |
+| `SETUP_GUIDE.md`            | Mbinu za usakinishaji (npm, npx, Docker, Termux, msimbo chanzo)                                             |
 | `ENVIRONMENT.md`            | Vigeu vyote vya mazingira (~800 vimeandikwa, ~mistari 3,050 katika `.env.example`)                          |
 | `TROUBLESHOOTING.md`        | Hitilafu za kawaida + matatizo yanayojulikana ya v3.8.0                                                     |
 | `RELEASE_CHECKLIST.md`      | Mtiririko kamili wa utoaji (ujuzi, husky, conventional commits, usambazaji)                                 |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Usambazaji wa Fly.io (kwa sasa unapatikana kwa Kichina pekee)           |
 | `TERMUX_GUIDE.md`            | Android isiyo na kiolesura kupitia Termux                               |
 | `PWA_GUIDE.md`               | Usakinishaji wa Progressive Web App + service worker                    |
-| `ELECTRON_GUIDE.md`          | Uundaji + utiaji saini + usambazaji wa programu ya eneo-kazi            |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                  |
 | `PROXY_GUIDE.md`             | Proksi ya kutoka ya viwango 4 + soko la 1proxy                          |
 

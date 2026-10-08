@@ -197,7 +197,7 @@ docker run -d \
 
 ## Dépendances
 
-- Exécutez régulièrement `npm audit` (`npm run audit:deps` couvre l’application principale et Electron)
+- Exécutez régulièrement `npm audit` ()
 - Maintenez les dépendances à jour
 - Le projet utilise `husky` + `lint-staged` pour les vérifications avant commit (lint-staged + check-docs-sync + check:any-budget:t11)
 - Le pipeline CI exécute les règles de sécurité ESLint à chaque push (`no-eval`, `no-implied-eval`, `no-new-func` = erreur)

@@ -310,7 +310,7 @@ upstream, terminate the task in the provider's own console.
 ## REST API — Cloud Provider Plumbing
 
 These auxiliary endpoints under `src/app/api/cloud/` are used by remote clients
-(the CLI, the Electron app, or sync workers) to read provider connection metadata
+(the CLI, the dashboard, or sync workers) to read provider connection metadata
 and resolve model aliases. They are authenticated with an **API key**
 (via `validateApiKey`), not the management auth used by the task endpoints; what
 `/api/cloud/auth` returns depends on the key's scope (see below).

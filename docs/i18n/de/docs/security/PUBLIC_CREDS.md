@@ -91,7 +91,7 @@ Wenn ein neuer, vom Upstream-Anbieter bereitgestellter Wert eingebettet werden m
 
 ### 3. Verbotene Muster
 
-❌ Führen Sie im Produktionscode (`src/`, `open-sse/`, `electron/`, `bin/`) **niemals** einen der folgenden Schritte aus:
+❌ Führen Sie im Produktionscode (`src/`, `open-sse/`, `bin/`) **niemals** einen der folgenden Schritte aus:
 
 ```ts
 // SCHLECHT: Literaler Wert löst Secret Scanning und Semgrep aus

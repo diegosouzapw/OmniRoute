@@ -34,8 +34,10 @@ import { fileURLToPath } from "node:url";
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const workflowDir = path.join(repoRoot, ".github/workflows");
 
-/** The only owner whose namespaces this repository may publish to or gate on. */
-const OWNER = "diegosouzapw";
+/** The only owners whose namespaces this repository may publish to or gate on:
+ *  the upstream repo (diegosouzapw) and this fork (paulohsoliveira — production-publish.yml
+ *  legitimately pushes to ghcr.io/paulohsoliveira). */
+const OWNERS = new Set(["diegosouzapw", "paulohsoliveira"]);
 
 function workflowFiles(): string[] {
   return fs
@@ -53,7 +55,7 @@ test("no workflow publishes to another owner's container registry", () => {
     // right after the registry host.
     for (const m of text.matchAll(/\b(?:ghcr\.io|(?:index\.)?docker\.io)\/([A-Za-z0-9_.-]+)/g)) {
       const owner = m[1];
-      if (owner.toLowerCase() !== OWNER) {
+      if (!OWNERS.has(owner.toLowerCase())) {
         offenders.push(`${path.basename(file)} → ${m[0]}`);
       }
     }
@@ -62,7 +64,7 @@ test("no workflow publishes to another owner's container registry", () => {
   assert.deepEqual(
     offenders,
     [],
-    `workflow(s) target a registry namespace that is not ${OWNER}'s:\n  ${offenders.join("\n  ")}\n` +
+    `workflow(s) target a registry namespace outside the allowed owners (${[...OWNERS].join(", ")}):\n  ${offenders.join("\n  ")}\n` +
       `A fork's publish workflow does not belong in the canonical repository — it cannot ` +
       `authenticate anyway, and it pollutes every release check board.`
   );
@@ -77,7 +79,7 @@ test("no workflow job is gated on a different repository", () => {
     // the workflow was written for a fork.
     for (const m of text.matchAll(/github\.repository\s*[=!]=\s*['"]([^'"]+)['"]/g)) {
       const [owner] = m[1].split("/");
-      if (owner.toLowerCase() !== OWNER) {
+      if (!OWNERS.has(owner.toLowerCase())) {
         offenders.push(`${path.basename(file)} → ${m[0]}`);
       }
     }
@@ -86,7 +88,7 @@ test("no workflow job is gated on a different repository", () => {
   assert.deepEqual(
     offenders,
     [],
-    `workflow(s) gate on a foreign repository:\n  ${offenders.join("\n  ")}\n` +
+    `workflow(s) gate on a repository outside the allowed owners (${[...OWNERS].join(", ")}):\n  ${offenders.join("\n  ")}\n` +
       `Note the failure mode: a job-level guard still instantiates a run on every ` +
       `matching trigger, so the workflow shows up as a skipped check forever.`
   );

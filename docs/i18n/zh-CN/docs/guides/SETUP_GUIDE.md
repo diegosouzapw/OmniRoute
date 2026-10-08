@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 有关包括 Compose 配置文件和 Caddy HTTPS 在内的完整 Docker 设置，请参阅 [Docker 指南](./DOCKER_GUIDE.md)。
 
-### 桌面应用（Electron）
-
-OmniRoute 提供基于 Electron 41 + electron-builder 26.10 构建的桌面封装程序。可用脚本（工作区根目录）：
-
-```bash
-npm run electron:dev          # 使用热重载运行桌面应用
-npm run electron:build        # 为当前操作系统构建（自动检测）
-npm run electron:build:win    # Windows 安装程序（NSIS + 便携版）
-npm run electron:build:mac    # macOS（dmg + zip，arm64+x64）
-npm run electron:build:linux  # Linux（AppImage + deb + rpm）
-npm run electron:smoke:packaged  # 对打包后的构建执行冒烟测试
-```
-
-桌面安装程序会附加到 GitHub Releases 中。如需深入了解 Electron（签名、IPC 桥接、发行版），请参阅 [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _（在后续阶段创建）_。
-
 ### 无头服务器（CI/自动化）
 
 对于无人值守设置（Docker、Kubernetes、CI），请使用：

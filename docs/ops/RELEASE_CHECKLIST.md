@@ -124,7 +124,7 @@ matrix automatically, without any label.
 ### Version & Changelog
 
 - [ ] Run `/version-bump-cc <patch|minor|major>` (Claude Code skill)
-  - Bumps `package.json`, `electron/package.json`
+  - Bumps `package.json`
   - Regenerates `CHANGELOG.md` from git commits since last tag
   - Updates README.md badges
 - [ ] Manually review CHANGELOG.md and clean up commit messages if needed
@@ -218,104 +218,6 @@ Breaking changes: add `BREAKING CHANGE:` footer or `!` after the scope (e.g. `fe
 - [ ] Models registered in `open-sse/config/providerRegistry.ts`
 - [ ] Unit tests in `tests/unit/` cover provider classification and routing
 
-### Desktop (Electron)
-
-If `electron/` changed:
-
-- [ ] `npm run electron:smoke:packaged` passes
-- [ ] Builds tested for at least one of `:win`, `:mac`, `:linux`
-- [ ] Code signing certs not expired (if signing)
-- [ ] `electron/package.json` version matches root `package.json`
-- [ ] Auto-update channel pointer updated if releasing to `stable`
-
-### Build Layout
-
-The repository uses three distinct output directories — never mix them up:
-
-| Directory | Purpose                                                  | Tracked?        |
-| --------- | -------------------------------------------------------- | --------------- |
-| `src/`    | Application source (TypeScript / TSX)                    | Yes             |
-| `.build/` | Build intermediates — `next build` output (`distDir`)    | No (gitignored) |
-| `dist/`   | Shippable npm bundle — assembled by `assembleStandalone` | No (gitignored) |
-
-> **Operator note:** the remote VPS image directory remains `/usr/lib/node_modules/omniroute/app/`.
-> Only the **in-repo** build output moved (`app/` → `dist/`). The deploy skills rsync
-> `dist/` contents into the remote `app/` dir — no VPS path changes required.
-
-**Single-build flow:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (clean)
-  └─ next build → .build/next/   (intermediates)
-  └─ assembleStandalone          (copies standalone + static + public + natives → dist/)
-  └─ writes dist/BUILD_SHA       (HEAD sentinel)
-```
-
-Do NOT run `npm run build` followed by a separate `npm run build:cli` for deploy — use
-`npm run build:release` which does a clean rebuild + sentinel in one command.
-
-### Artifact Validation
-
-- [ ] `npm run build:release` succeeds and `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` clean — no `app.__qa_backup`, `scripts/scratch`, `package-lock.json`, or other local residue
-- [ ] `dist/server.js` exists after build
-
-### Tagging & Release
-
-- [ ] Run `/generate-release-cc` (Claude Code skill):
-  - Creates tag `vX.Y.Z`
-  - Pushes tag and branch
-  - Opens GitHub Release with changelog body
-  - Attaches Electron installers (if built)
-- [ ] Or manually:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deploy
-
-Deploy skills use the light rsync flow — no `npm pack`, no `npm i -g`:
-
-- [ ] Use deploy skill that matches target:
-  - `/deploy-vps-local-cc` — local VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — both
-- [ ] Before deploying, confirm `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Build must run where `node_modules` is real (main checkout or `npm ci`'d worktree — NOT a symlinked worktree)
-- [ ] Smoke test deployed instance:
-  - Open `/dashboard/health` → check version string matches release
-  - Run a `/v1/chat/completions` request against a known provider
-  - Verify `/api/monitoring/health` returns `CLOSED` circuit breakers
-  - Confirm MCP transports respond (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Post-release
-
-- [ ] Run `/capture-release-evidences-cc` (Claude Code skill)
-  - Captures WebP screenshots/recordings of new features
-  - Attaches to release notes / blog post
-- [ ] Update GitHub Discussions / Discord with release announcement
-- [ ] Open milestone for next version
-- [ ] If critical: pin discussion or post in `news.json` for in-app banner
-
-### Radar public-launch gate
-
-The Radar announcement is intentionally committed with `active: false`. Activation is a separate
-change after every item below is evidenced:
-
-- [ ] All stacked Radar PRs are merged and the release-tip CI is green
-- [ ] Deploy and smoke the OSS Radar routes with `RADAR_ENABLED` still off by default
-- [ ] Smoke `GET /planos`, `/termos`, `/privacidade`, and `/reembolso` on the named Radar host
-- [ ] Record operator identity/contact/address and owner-approved legal review in the private service
-- [ ] Exercise Stripe Checkout and the signed webhook in test mode only
-- [ ] Exercise one encrypted transactional-email delivery with the approved sender/domain
-- [ ] Prove backup restore and one supervised, budget-capped research run
-- [ ] Approve the BRL/PIX review policy before accepting donation evidence
-- [ ] Enable public Checkout only after the preceding gates, then activate the new `news.json` ID
-- [ ] Verify the Home banner uses localized copy and a new ID reappears after an older ID is dismissed
-
 ## Embedded Services smoke (v3.8.4+)
 
 Before shipping any release that includes embedded services changes, verify:
@@ -401,7 +303,7 @@ If release has critical issue:
 - Never skip Husky hooks (`--no-verify`)
 - Never commit secrets, credentials, or `.env` files
 - Coverage must stay ≥60/60/60/60 (statements/lines/functions/branches)
-- Always include or update tests when changing production code in `src/`, `open-sse/`, `electron/`, or `bin/`
+- Always include or update tests when changing production code in `src/`, `open-sse/`, or `bin/`
 
 ## Automated Sync Check
 

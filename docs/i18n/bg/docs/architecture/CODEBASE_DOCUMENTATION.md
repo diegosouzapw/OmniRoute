@@ -27,7 +27,6 @@
 | Език                 | **TypeScript 6.0+** — цел `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                                        |
 | Среда за изпълнение  | **Node.js** `>=22.22.2 <23` или `>=24.0.0 <27` (наложено чрез `engines` + `SUPPORTED_NODE_RANGE`)                                         |
 | База данни           | **SQLite** чрез `better-sqlite3` (единичен екземпляр, WAL журнал)                                                                         |
-| Настолно приложение  | **Electron 41** + `electron-builder` 26.10 (отделно работно пространство в `electron/`)                                                   |
 | Тестове              | **Вграден инструмент за тестове на Node** (модулни/интеграционни), **Vitest** (MCP, autoCombo, кеш), **Playwright** (e2e + protocols-e2e) |
 | Компилиране          | Самостоятелна версия на Next.js чрез `scripts/build/build-next-isolated.mjs`                                                              |
 | Проверка/форматиране | Плоска конфигурация на ESLint + Prettier (`lint-staged` чрез Husky pre-commit)                                                            |
@@ -51,7 +50,6 @@ HTTP порт по подразбиране: **`20128`** (API и таблото 
 OmniRoute/
 ├── src/                  Next.js приложение (App Router, библиотеки, домейн, сървър, споделени компоненти)
 ├── open-sse/             Работно пространство на системата за поточно предаване (@omniroute/open-sse)
-├── electron/             Обвивка за настолното приложение (основен процес на Electron 41 + preload)
 ├── bin/                  Входни точки на CLI (omniroute, reset-password)
 ├── tests/                Модулни, интеграционни, e2e, protocols-e2e, преводачески, защитни тестове и фикстури
 ├── scripts/              Помощни скриптове за компилиране, синхронизиране, проверки, миграция и изпълнение
@@ -574,26 +572,6 @@ open-sse/
 
 ---
 
-## 5. `electron/` — Обвивка за настолно приложение
-
-```
-electron/
-├── main.js                  Основен процес на Electron
-├── preload.js               Мост за предварително зареждане (contextIsolation е активирано)
-├── types.d.ts
-├── package.json             Конфигурация на electron-builder, версия 3.8.51
-├── README.md
-├── assets/                  Ресурси за компилацията (икони, права, …)
-├── node_modules/            Самостоятелна директория node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           Резултат от компилацията (не се включва в хранилището)
-```
-
-Пет npm скрипта в корена на работното пространство: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Автоматичното актуализиране се извършва чрез
-`electron-updater`, насочен към канала за издания в GitHub.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -658,13 +636,11 @@ bin/
 Организирана е в 6 подпапки според предназначението им.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -844,7 +820,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — умения и откриване в A2A протокола.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — компресия с RTK и Caveman.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI интеграции.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (ако е наличен), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — цели за внедряване.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — цели за внедряване.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — често срещани оперативни проблеми.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — работен процес за сътрудници.
 - [CLAUDE.md](../../CLAUDE.md) — правила на хранилището за Claude Code (основният достоверен източник

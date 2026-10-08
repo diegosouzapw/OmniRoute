@@ -122,7 +122,6 @@ unit shards፣ integration፣ vitest፣ lint/typecheck፣ docs-sync፣ `check:pa
 ### Version እና Changelog
 
 - [ ] `/version-bump-cc <patch|minor|major>` ያስኪዱ (Claude Code skill)
-  - `package.json`፣ `electron/package.json`ን ያሳድጋል
   - ከመጨረሻው tag በኋላ ካሉ git commits `CHANGELOG.md`ን ዳግም ያመነጫል
   - የREADME.md badgesን ያዘምናል
 - [ ] CHANGELOG.mdን በእጅ ይገምግሙ እና ካስፈለገ commit messagesን ያጽዱ
@@ -216,104 +215,6 @@ Breaking changes፦ የ`BREAKING CHANGE:` footer ወይም ከscope በኋላ `!
 - [ ] Models በ `open-sse/config/providerRegistry.ts` ውስጥ ተመዝግበዋል
 - [ ] በ `tests/unit/` ውስጥ ያሉ unit tests የprovider ምደባን እና routingን ይሸፍናሉ
 
-### ዴስክቶፕ (Electron)
-
-`electron/` ከተቀየረ፦
-
-- [ ] `npm run electron:smoke:packaged` ያልፋል
-- [ ] Builds ቢያንስ ለ`:win`፣ `:mac`፣ `:linux` ከሚሉት ለአንዱ ተፈትሸዋል
-- [ ] የኮድ መፈረሚያ certs ጊዜያቸው አላለፈም (ፊርማ ከሚደረግ)
-- [ ] የ`electron/package.json` version ከዋናው `package.json` ጋር ይዛመዳል
-- [ ] ወደ `stable` release የሚደረግ ከሆነ የራስ-ሰር ማዘመኛ channel pointer ተዘምኗል
-
-### የBuild አቀማመጥ
-
-Repositoryው ሦስት የተለያዩ የውጤት directories ይጠቀማል — ፈጽሞ አታደባልቋቸው፦
-
-| Directory | ዓላማ                                               | ይከታተላል?         |
-| --------- | ------------------------------------------------- | --------------- |
-| `src/`    | የመተግበሪያ ምንጭ (TypeScript / TSX)                    | አዎ              |
-| `.build/` | የBuild መካከለኛ ውጤቶች — የ`next build` ውጤት (`distDir`) | አይ (gitignored) |
-| `dist/`   | ለመላክ ዝግጁ የnpm ጥቅል — በ`assembleStandalone` የሚዋቀር   | አይ (gitignored) |
-
-> **የኦፕሬተር ማስታወሻ፦** የርቀት VPS image directory አሁንም `/usr/lib/node_modules/omniroute/app/` ነው።
-> የተንቀሳቀሰው **በrepository ውስጥ ያለው** የbuild ውጤት ብቻ ነው (`app/` → `dist/`)። የdeploy skills
-> የ`dist/` ይዘቶችን ወደ ርቀት `app/` dir በrsync ያስተላልፋሉ — የVPS path ለውጥ አያስፈልግም።
-
-**የአንድ-build ፍሰት፦**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (ማጽዳት)
-  └─ next build → .build/next/   (መካከለኛ ውጤቶች)
-  └─ assembleStandalone          (standalone + static + public + nativesን ወደ dist/ ይቀዳል)
-  └─ writes dist/BUILD_SHA       (የHEAD መጠበቂያ ምልክት)
-```
-
-ለdeploy `npm run build`ን ካስኬዱ በኋላ የተለየ `npm run build:cli` አያሂዱ — ይልቁንም
-በአንድ command ንጹሕ ዳግም build + sentinel የሚያከናውነውን `npm run build:release` ይጠቀሙ።
-
-### የArtifact ማረጋገጫ
-
-- [ ] `npm run build:release` በተሳካ ሁኔታ ይጠናቀቃል እና `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` ንጹሕ ነው — `app.__qa_backup`፣ `scripts/scratch`፣ `package-lock.json` ወይም ሌላ የአካባቢ ቅሪት የለም
-- [ ] ከbuild በኋላ `dist/server.js` አለ
-
-### Tag ማድረግ እና Release
-
-- [ ] `/generate-release-cc`ን ያሂዱ (Claude Code skill)፦
-  - `vX.Y.Z` tag ይፈጥራል
-  - Tagን እና branchን ይገፋል
-  - የchangelog ይዘት ያለው GitHub Release ይከፍታል
-  - Electron installersን ያያይዛል (ከተገነቡ)
-- [ ] ወይም በእጅ፦
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deploy
-
-የDeploy skills ቀላሉን የrsync ፍሰት ይጠቀማሉ — `npm pack` የለም፣ `npm i -g` የለም፦
-
-- [ ] ከዒላማው ጋር የሚዛመደውን deploy skill ይጠቀሙ፦
-  - `/deploy-vps-local-cc` — የአካባቢ VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — ሁለቱም
-- [ ] Deploy ከማድረግዎ በፊት `dist/BUILD_SHA` == `git rev-parse --short HEAD` መሆኑን ያረጋግጡ
-- [ ] Build የሚከናወነው `node_modules` እውነተኛ በሆነበት ቦታ መሆን አለበት (ዋና checkout ወይም `npm ci` የተካሄደበት worktree — symlink የተደረገ worktree አይደለም)
-- [ ] Deploy የተደረገውን instance smoke test ያድርጉ፦
-  - `/dashboard/health`ን ይክፈቱ → የversion string ከreleaseው ጋር መዛመዱን ያረጋግጡ
-  - በሚታወቅ provider ላይ የ`/v1/chat/completions` request ያሂዱ
-  - `/api/monitoring/health` `CLOSED` circuit breakersን እንደሚመልስ ያረጋግጡ
-  - MCP transports ምላሽ እንደሚሰጡ ያረጋግጡ (`/mcp` HTTP፣ `/mcp-sse` SSE)
-
-### ከRelease በኋላ
-
-- [ ] `/capture-release-evidences-cc`ን ያስኪዱ (Claude Code ክህሎት)
-  - የአዳዲስ ባህሪያትን WebP ቅጽበታዊ ምስሎች/ቀረጻዎች ይይዛል
-  - ከልቀት ማስታወሻዎች / የብሎግ ልጥፍ ጋር ያያይዛል
-- [ ] GitHub Discussions / Discordን በልቀት ማስታወቂያው ያዘምኑ
-- [ ] ለሚቀጥለው ስሪት የጊዜ ምዕራፍ ይክፈቱ
-- [ ] ወሳኝ ከሆነ፦ ውይይቱን ከላይ ይሰኩ ወይም ለመተግበሪያ ውስጥ ባነር በ`news.json` ውስጥ ይለጥፉ
-
-### የRadar ይፋዊ ማስጀመሪያ መግቢያ መስፈርት
-
-የRadar ማስታወቂያው ሆን ተብሎ `active: false` በሚል ተመዝግቧል። ማግበር ከታች ያለው እያንዳንዱ ንጥል
-በማስረጃ ከተረጋገጠ በኋላ የሚደረግ የተለየ ለውጥ ነው፦
-
-- [ ] ሁሉም ተደራራቢ የRadar PRዎች ተዋህደዋል፣ እና የrelease-tip CI አረንጓዴ ነው
-- [ ] `RADAR_ENABLED` በነባሪ እንደተዘጋ ሆኖ የOSS Radar መስመሮችን ያሰማሩ እና የጭስ ሙከራ ያድርጉ
-- [ ] በተሰየመው የRadar አስተናጋጅ ላይ `GET /planos`፣ `/termos`፣ `/privacidade` እና `/reembolso` የጭስ ሙከራ ያድርጉ
-- [ ] በግል አገልግሎቱ ውስጥ የኦፕሬተሩን ማንነት/የመገኛ መረጃ/አድራሻ እና በባለቤቱ የጸደቀ ሕጋዊ ግምገማ ይመዝግቡ
-- [ ] Stripe Checkoutን እና የተፈረመውን webhook በሙከራ ሁነታ ብቻ ይሞክሩ
-- [ ] በተፈቀደው ላኪ/ዶሜይን አንድ የተመሰጠረ የግብይት ኢሜይል መላክን ይሞክሩ
-- [ ] የመጠባበቂያ ቅጂ መልሶ ማግኘትን እና አንድ ክትትል የሚደረግበት፣ በበጀት ጣሪያ የተገደበ የምርምር አሂድን በማስረጃ ያረጋግጡ
-- [ ] የልገሳ ማስረጃን ከመቀበልዎ በፊት የBRL/PIX ግምገማ ፖሊሲን ያጽድቁ
-- [ ] ይፋዊ Checkoutን ከዚህ በፊት ያሉት መግቢያ መስፈርቶች ከተሟሉ በኋላ ብቻ ያንቁ፣ ከዚያም አዲሱን የ`news.json` ID ያግብሩ
-- [ ] የHome ባነሩ አካባቢያዊ የተደረገ ጽሑፍ እንደሚጠቀም እና አሮጌ ID ውድቅ ከተደረገ በኋላ አዲስ ID እንደገና እንደሚታይ ያረጋግጡ
-
 ## የተካተቱ አገልግሎቶች ፈጣን ሙከራ (v3.8.4+)
 
 የተካተቱ አገልግሎቶች ለውጦችን የሚያካትት ማንኛውንም ልቀት ከማሰራጨትዎ በፊት የሚከተሉትን ያረጋግጡ፦
@@ -399,7 +300,7 @@ npm run build:release
 - የHusky hooks (`--no-verify`) ፈጽሞ አይዝለሉ
 - ሚስጥሮችን፣ የመግቢያ ማረጋገጫዎችን ወይም `.env` filesን ፈጽሞ commit አታድርጉ
 - የሙከራ ሽፋን ≥60/60/60/60 (መግለጫዎች/መስመሮች/ፈንክሽኖች/ቅርንጫፎች) ሆኖ መቆየት አለበት
-- በ`src/`፣ `open-sse/`፣ `electron/` ወይም `bin/` ውስጥ ያለውን የምርት ኮድ ሲቀይሩ ሁልጊዜ ሙከራዎችን ያካትቱ ወይም ያዘምኑ
+- በ`src/`፣ `open-sse/` ወይም `bin/` ውስጥ ያለውን የምርት ኮድ ሲቀይሩ ሁልጊዜ ሙከራዎችን ያካትቱ ወይም ያዘምኑ
 
 ## ራስ-ሰር የማመሳሰል ምርመራ
 

@@ -197,7 +197,7 @@ docker run -d \
 
 ## নির্ভরতা
 
-- নিয়মিত `npm audit` চালান (`npm run audit:deps` মূল অংশ + electron কভার করে)
+- নিয়মিত `npm audit` চালান (`npm run audit:deps` মূল অংশ কভার করে)
 - নির্ভরতাগুলো হালনাগাদ রাখুন
 - প্রি-কমিট পরীক্ষার জন্য প্রকল্পটি `husky` + `lint-staged` ব্যবহার করে (lint-staged + check-docs-sync + check:any-budget:t11)
 - প্রতিটি push-এ CI pipeline ESLint নিরাপত্তা বিধি চালায় (`no-eval`, `no-implied-eval`, `no-new-func` = error)

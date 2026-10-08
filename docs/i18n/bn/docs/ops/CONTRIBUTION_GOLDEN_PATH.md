@@ -16,7 +16,7 @@
    [Branching & Release Model](BRANCHING_MODEL.md)-এ বর্ণিত পরবর্তী সক্রিয় cycle ব্যবহার করুন।
 2. **Contract-গুলোর নাম উল্লেখ করুন।** পরিবর্তনটি প্রভাবিত করে এমন প্রতিটি catalog, schema, generated artifact, public API অথবা user
    interface শনাক্ত করুন। নিচের table-এ ন্যূনতম প্রারম্ভিক set দেওয়া আছে।
-3. **Focused test লিখুন বা হালনাগাদ করুন।** `src/`, `open-sse/`, `electron/` অথবা
+3. **Focused test লিখুন বা হালনাগাদ করুন।** `src/`, `open-sse/` অথবা
    `bin/`-এ production পরিবর্তনের জন্য একই PR-এ একটি automated test আবশ্যক। প্রথমে behavior প্রমাণ করে এমন সবচেয়ে ছোট test file-গুলো চালান,
    তারপর তালিকাভুক্ত focused gate-গুলো চালান।
 4. **CI-কে বিস্তৃত matrix চালাতে দিন।** সম্পূর্ণ unit shard, Vitest, coverage ratchet এবং

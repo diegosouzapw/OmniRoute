@@ -224,7 +224,7 @@ npm run test:combo:live:vps:failover     # προσθέτει ένα πραγμ�
 
 - Το `npm run test:coverage` μετρά κάλυψη πηγαίου κώδικα για την κύρια σουίτα unit δοκιμών, εξαιρεί τα `tests/**` και συμπεριλαμβάνει το `open-sse/**`
 - Τα Pull Requests πρέπει να διατηρούν την πύλη κάλυψης στο **60%+** statements/lines/functions/branches
-- Εάν ένα PR αλλάζει κώδικα παραγωγής στα `src/`, `open-sse/`, `electron/` ή `bin/`, πρέπει να προσθέσει ή να ενημερώσει αυτοματοποιημένες δοκιμές στο ίδιο PR
+- Εάν ένα PR αλλάζει κώδικα παραγωγής στα `src/`, `open-sse/` ή `bin/`, πρέπει να προσθέσει ή να ενημερώσει αυτοματοποιημένες δοκιμές στο ίδιο PR
 - Το `npm run coverage:report` εκτυπώνει την αναλυτική αναφορά ανά αρχείο από την τελευταία εκτέλεση κάλυψης
 - Το `npm run test:coverage:legacy` διατηρεί την παλαιότερη μέτρηση για ιστορική σύγκριση
 - Δείτε `docs/ops/COVERAGE_PLAN.md` για τον οδικό χάρτη βελτίωσης κάλυψης σε φάσεις
@@ -323,7 +323,6 @@ open-sse/                   # Χώρος εργασίας @omniroute/open-sse
 ├── transformer/            # Μετασχηματιστής Responses API
 └── utils/                  # 22 ενότητες βοηθητικών εργαλείων (stream, TLS, proxy, logging)
 
-electron/                   # Εφαρμογή desktop Electron (cross-platform)
 
 tests/
 ├── unit/                   # Εκτελεστής δοκιμών Node.js (1.574 αρχεία δοκιμών)

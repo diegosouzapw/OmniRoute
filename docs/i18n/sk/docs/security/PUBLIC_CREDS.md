@@ -91,7 +91,7 @@ Keď potrebujete vložiť novú hodnotu poskytnutú externým poskytovateľom, k
 
 ### 3. Zakázané vzory
 
-❌ V produkčnom kóde (`src/`, `open-sse/`, `electron/`, `bin/`) **nikdy** nerobte nič z nasledujúceho:
+❌ V produkčnom kóde (`src/`, `open-sse/`, `bin/`) **nikdy** nerobte nič z nasledujúceho:
 
 ```ts
 // ZLE: doslovná hodnota aktivuje Secret Scanning + Semgrep

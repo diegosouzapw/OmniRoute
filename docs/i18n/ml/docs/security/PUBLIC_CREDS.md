@@ -91,7 +91,7 @@
 
 ### 3. നിരോധിച്ച പാറ്റേണുകൾ
 
-❌ Production code-ൽ (`src/`, `open-sse/`, `electron/`, `bin/`) താഴെപ്പറയുന്നവയിൽ ഒന്നും **ഒരിക്കലും** ചെയ്യരുത്:
+❌ Production code-ൽ (`src/`, `open-sse/`, `bin/`) താഴെപ്പറയുന്നവയിൽ ഒന്നും **ഒരിക്കലും** ചെയ്യരുത്:
 
 ```ts
 // തെറ്റ്: literal value Secret Scanning + Semgrep ട്രിഗർ ചെയ്യുന്നു

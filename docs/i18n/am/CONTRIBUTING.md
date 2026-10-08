@@ -225,7 +225,7 @@ npm run test:combo:live:vps:failover     # እውነተኛ cross-provider failov
 
 - `npm run test:coverage` ለዋናው unit test suite የsource coverageን ይለካል፣ `tests/**`ን ያስወግዳል፣ እና `open-sse/**`ን ያካትታል
 - Pull requests የcoverage gateን በ**60%+** statements/lines/functions/branches ማቆየት አለባቸው
-- PR በ`src/`፣ `open-sse/`፣ `electron/`፣ ወይም `bin/` ውስጥ ያለ production codeን ከለወጠ፣ በዚያው PR ውስጥ automated testsን ማከል ወይም ማዘመን አለበት
+- PR በ`src/`፣ `open-sse/`፣ ወይም `bin/` ውስጥ ያለ production codeን ከለወጠ፣ በዚያው PR ውስጥ automated testsን ማከል ወይም ማዘመን አለበት
 - `npm run coverage:report` ከቅርብ ጊዜው coverage run የተገኘውን ዝርዝር የፋይል-በ-ፋይል ሪፖርት ያትማል
 - `npm run test:coverage:legacy` ለታሪካዊ ንጽጽር የቀድሞውን metric ይጠብቃል
 - ደረጃ በደረጃ የcoverage ማሻሻያ roadmapን ለማየት `docs/ops/COVERAGE_PLAN.md`ን ይመልከቱ
@@ -327,7 +327,6 @@ open-sse/                   # @omniroute/open-sse workspace
 ├── transformer/            # Responses API transformer
 └── utils/                  # 22 የመገልገያ ሞጁሎች (ዥረት፣ TLS፣ ፕሮክሲ፣ ሎግ ማድረግ)
 
-electron/                   # Electron የዴስክቶፕ መተግበሪያ (ብዙ-መድረክ)
 
 tests/
 ├── unit/                   # Node.js test runner (1,574 የሙከራ ፋይሎች)

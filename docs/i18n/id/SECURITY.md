@@ -197,7 +197,7 @@ docker run -d \
 
 ## Dependensi
 
-- Jalankan `npm audit` secara rutin (`npm run audit:deps` mencakup aplikasi utama + electron)
+- Jalankan `npm audit` secara rutin (`npm run audit:deps` mencakup aplikasi utama)
 - Pastikan dependensi selalu diperbarui
 - Proyek ini menggunakan `husky` + `lint-staged` untuk pemeriksaan pra-commit (lint-staged + check-docs-sync + check:any-budget:t11)
 - Pipeline CI menjalankan aturan keamanan ESLint pada setiap push (`no-eval`, `no-implied-eval`, `no-new-func` = error)

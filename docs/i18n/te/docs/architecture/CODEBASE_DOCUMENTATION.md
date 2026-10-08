@@ -27,7 +27,6 @@
 | భాష              | **TypeScript 6.0+** — లక్ష్యం `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                        |
 | రన్టైమ్          | **Node.js** `>=22.22.2 <23` లేదా `>=24.0.0 <27` (`engines` + `SUPPORTED_NODE_RANGE` ద్వారా అమలు చేయబడుతుంది)                  |
 | డేటాబేస్         | `better-sqlite3` ద్వారా **SQLite** (సింగిల్టన్, WAL జర్నలింగ్)                                                                |
-| డెస్క్టాప్       | **Electron 41** + `electron-builder` 26.10 (`electron/` వద్ద ప్రత్యేక వర్క్స్పేస్)                                            |
 | పరీక్షలు         | **Node స్థానిక టెస్ట్ రన్నర్** (యూనిట్/ఇంటిగ్రేషన్), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | బిల్డ్           | `scripts/build/build-next-isolated.mjs` ద్వారా Next.js స్వతంత్ర బిల్డ్                                                        |
 | లింట్/ఫార్మాట్   | ESLint ఫ్లాట్ కాన్ఫిగ్ + Prettier (Husky ప్రీ-కమిట్ ద్వారా `lint-staged`)                                                     |
@@ -51,7 +50,6 @@
 OmniRoute/
 ├── src/                  Next.js అప్లికేషన్ (App Router, లైబ్రరీలు, డొమైన్, సర్వర్, భాగస్వామ్య అంశాలు)
 ├── open-sse/             స్ట్రీమింగ్ ఇంజిన్ వర్క్స్పేస్ (@omniroute/open-sse)
-├── electron/             డెస్క్టాప్ ర్యాపర్ (Electron 41 మెయిన్ + ప్రీలోడ్)
 ├── bin/                  CLI ఎంట్రీ పాయింట్లు (omniroute, reset-password)
 ├── tests/                యూనిట్, ఇంటిగ్రేషన్, e2e, protocols-e2e, ట్రాన్స్లేటర్, సెక్యూరిటీ, ఫిక్చర్లు
 ├── scripts/              బిల్డ్, సింక్, తనిఖీ, మైగ్రేషన్ మరియు రన్టైమ్ సహాయక స్క్రిప్ట్లు
@@ -574,26 +572,6 @@ open-sse/
 
 ---
 
-## 5. `electron/` — డెస్క్టాప్ ర్యాపర్
-
-```
-electron/
-├── main.js                  Electron ప్రధాన ప్రాసెస్
-├── preload.js               ప్రీలోడ్ బ్రిడ్జ్ (contextIsolation ప్రారంభించబడింది)
-├── types.d.ts
-├── package.json             electron-builder కాన్ఫిగ్, వెర్షన్ 3.8.51
-├── README.md
-├── assets/                  బిల్డ్ వనరులు (ఐకాన్లు, అర్హతలు, …)
-├── node_modules/            ప్రత్యేక node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           బిల్డ్ అవుట్పుట్ (కమిట్ చేయబడదు)
-```
-
-వర్క్స్పేస్ రూట్లో ఐదు npm స్క్రిప్ట్లు: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. స్వయంచాలక అప్డేట్
-GitHub విడుదల ఫీడ్ను సూచించే `electron-updater` ద్వారా జరుగుతుంది.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -658,13 +636,11 @@ bin/
 ఉద్దేశం ఆధారంగా 6 ఉపఫోల్డర్లుగా నిర్వహించబడింది.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -844,7 +820,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A ప్రోటోకాల్ నైపుణ్యాలు మరియు డిస్కవరీ.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK + Caveman కంప్రెషన్.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI ఇంటిగ్రేషన్లు.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (ఉంటే), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — డిప్లాయ్మెంట్ లక్ష్యాలు.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — డిప్లాయ్మెంట్ లక్ష్యాలు.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — సాధారణ నిర్వహణ సమస్యలు.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — కంట్రిబ్యూటర్ వర్క్ఫ్లో.
 - [CLAUDE.md](../../CLAUDE.md) — Claude Code కోసం రిపో నియమాలు (పైన పేర్కొన్న అనేక సంప్రదాయాలకు

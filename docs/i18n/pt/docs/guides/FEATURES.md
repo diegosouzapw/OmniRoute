@@ -265,25 +265,6 @@ Monitorização de ações administrativas, com filtragem por tipo de ação, in
 
 ---
 
-## 🖥️ Aplicação de ambiente de trabalho
-
-Aplicação nativa de ambiente de trabalho Electron para Windows, macOS e Linux. Execute o OmniRoute como uma aplicação autónoma, com integração na área de notificação, suporte offline, atualização automática e instalação com um clique.
-
-Funcionalidades principais:
-
-- Sondagem do estado de prontidão do servidor (sem ecrã em branco no arranque a frio)
-- Área de notificação com gestão de portas
-- Política de Segurança de Conteúdos
-- Bloqueio de instância única
-- Atualização automática ao reiniciar
-- IU condicionada pela plataforma (semáforos do macOS, barra de título predefinida do Windows/Linux)
-- Empacotamento reforçado da compilação Electron — os `node_modules` ligados simbolicamente no pacote autónomo são detetados e rejeitados antes do empacotamento, impedindo a dependência, em tempo de execução, da máquina de compilação (v2.5.5+)
-- **Encerramento controlado** — o evento `before-quit` do Electron encerra o Next.js corretamente, evitando bloqueios da base de dados WAL do SQLite (v3.6.2+)
-
-📖 Consulte [`electron/README.md`](../../electron/README.md) para obter a documentação completa.
-
----
-
 ## 🌐 Ponte WebSocket V1 _(v3.6.6+)_
 
 O OmniRoute suporta agora **clientes WebSocket compatíveis com OpenAI** através do endpoint de atualização `/v1/ws`. O servidor personalizado `scripts/dev/v1-ws-bridge.mjs` envolve o Next.js e atualiza as ligações WS para sessões completas de transmissão bidirecional. A autenticação utiliza a mesma chave de API ou cookie de sessão que os pedidos HTTP.

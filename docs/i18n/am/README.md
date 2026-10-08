@@ -89,7 +89,6 @@
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![ፈቃድ፦ MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![Docker ማውረዶች](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![Electron ማውረዶች](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
 
 <table>
   <tr>
@@ -744,7 +743,6 @@ omniroute configure codex          # እነዚህም፦ claude opencode qwen aid
   <tr><th align="left">መድረክ</th><th align="left">ጭነት</th><th align="left">ዋና ባህሪያት</th></tr>
   <tr><td align="left" nowrap>📦 <b>npm (ዓለም አቀፍ)</b></td><td align="left" nowrap><code>npm install -g omniroute</code></td><td align="left">አንድ ትዕዛዝ፣ ማንኛውም OS</td></tr>
   <tr><td align="left" nowrap>🐳 <b>Docker</b></td><td align="left" nowrap><code>docker run … diegosouzapw/omniroute</code></td><td align="left">ባለብዙ አርክቴክቸር <b>AMD64 + ARM64</b></td></tr>
-  <tr><td align="left" nowrap>🖥️ <b>ዴስክቶፕ (Electron)</b></td><td align="left" nowrap><code>npm run electron:build</code></td><td align="left">ቤተኛ መስኮት + የስርዓት ትሪ — <b>Windows / macOS / Linux</b></td></tr>
   <tr><td align="left" nowrap>🎩 <b>ምናሌ አሞሌ (OmniRouteTray)</b></td><td align="left" nowrap><code>brew install --cask zoispag/tap/omniroute-tray</code></td><td align="left">አገልጋዩን ይቆጣጠራል &amp; በራስ-ሰር ያዘምናል — <b>macOS</b></td></tr>
   <tr><td align="left" nowrap>💪 <b>ARM</b></td><td align="left" nowrap>ቤተኛ <code>arm64</code></td><td align="left">Raspberry Pi፣ ARM አገልጋዮች፣ Apple Silicon</td></tr>
   <tr><td align="left" nowrap>📱 <b>Android (Termux)</b></td><td align="left" nowrap><code>pkg install nodejs && npx -y omniroute</code></td><td align="left"><b>በስልክዎ ላይ</b> 24/7 ይሰራል፣ root አያስፈልግም</td></tr>
@@ -754,7 +752,7 @@ omniroute configure codex          # እነዚህም፦ claude opencode qwen aid
   <tr><td align="left" nowrap>🛠️ <b>ከምንጭ ኮድ</b></td><td align="left" nowrap><code>npm install && npm run dev</code></td><td align="left">ያሻሽሉት፣ አስተዋጽኦ ያድርጉ</td></tr>
 </table>
 
-<sub>📖 [የDocker መመሪያ](docs/guides/DOCKER_GUIDE.md) · [ዴስክቶፕ](electron/README.md) · [የምናሌ አሞሌ ትሪ](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
+<sub>📖 [የDocker መመሪያ](docs/guides/DOCKER_GUIDE.md) · [የምናሌ አሞሌ ትሪ](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
 
 <br/>
 
@@ -1275,7 +1273,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1ም ይዘለዋ�
   <tr><td nowrap><b>የመቋቋም ችሎታ</b></td><td>የወረዳ መቆራረጫ፣ ኤክስፖነንሻል የድጋሚ ሙከራ መዘግየት፣ የተቀናጀ የጥያቄ መጥለቅለቅ መከላከያ፣ በራስ-ሰር የሚጣመር ራስን የመጠገን ስርዓት</td></tr>
   <tr><td nowrap><b>ምዝገባ</b></td><td>pino — የጥያቄ ዐውድ ያላቸው የተዋቀሩ JSON ምዝግቦች</td></tr>
   <tr><td nowrap><b>ሙከራ</b></td><td>የNode.js ሙከራ አስኬጅ + Vitest — በ5,100+ ክትትል በሚደረግባቸው የሙከራ ፋይሎች ውስጥ <b>39,000+ የማይለዋወጡ የሙከራ መግለጫዎች</b> (አሃድ፣ ውህደት፣ E2E፣ ደህንነት፣ ሥነ-ምህዳር)</td></tr>
-  <tr><td nowrap><b>መድረኮች</b></td><td>ዴስክቶፕ (Electron) · Android (Termux) · PWA (ማንኛውም አሳሽ)</td></tr>
+  <tr><td nowrap><b>መድረኮች</b></td><td>Android (Termux) · PWA (ማንኛውም አሳሽ)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — በልቀት ጊዜ በራስ-ሰር ወደ npm ማተም + Docker Hub</td></tr>
   <tr><td nowrap><b>አገናኞች</b></td><td><a href="https://omniroute.online">ድረ-ገጽ</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>

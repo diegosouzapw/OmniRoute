@@ -122,7 +122,6 @@ E2E-matrixen over uden nogen label.
 ### Version og ændringslog
 
 - [ ] Kør `/version-bump-cc <patch|minor|major>` (Claude Code-skill)
-  - Opdaterer versionen i `package.json`, `electron/package.json`
   - Genererer `CHANGELOG.md` igen ud fra git-commits siden det seneste tag
   - Opdaterer badges i README.md
 - [ ] Gennemgå CHANGELOG.md manuelt, og ryd op i commit-beskeder efter behov
@@ -216,104 +215,6 @@ Breaking changes: tilføj footeren `BREAKING CHANGE:` eller `!` efter scopet (f.
 - [ ] Modeller er registreret i `open-sse/config/providerRegistry.ts`
 - [ ] Enhedstests i `tests/unit/` dækker udbyderklassificering og routing
 
-### Desktop (Electron)
-
-Hvis `electron/` er ændret:
-
-- [ ] `npm run electron:smoke:packaged` består
-- [ ] Builds er testet for mindst én af `:win`, `:mac`, `:linux`
-- [ ] Certifikater til kodesignering er ikke udløbet (hvis der signeres)
-- [ ] Versionen i `electron/package.json` matcher rodfilens `package.json`
-- [ ] Markøren for den automatiske opdateringskanal er opdateret, hvis der udgives til `stable`
-
-### Buildstruktur
-
-Repositoryet bruger tre separate outputmapper — bland dem aldrig sammen:
-
-| Mappe     | Formål                                                        | Versionsstyret?  |
-| --------- | ------------------------------------------------------------- | ---------------- |
-| `src/`    | Applikationskilde (TypeScript / TSX)                          | Ja               |
-| `.build/` | Midlertidige buildfiler — output fra `next build` (`distDir`) | Nej (gitignored) |
-| `dist/`   | Distribuerbar npm-pakke — samlet af `assembleStandalone`      | Nej (gitignored) |
-
-> **Driftsnote:** Mappen i det eksterne VPS-image er fortsat `/usr/lib/node_modules/omniroute/app/`.
-> Kun buildoutputtet **i repositoryet** blev flyttet (`app/` → `dist/`). Deploy-funktionerne rsync'er
-> indholdet af `dist/` til den eksterne `app/`-mappe — der kræves ingen ændringer af VPS-stier.
-
-**Flow med ét build:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (oprydning)
-  └─ next build → .build/next/   (mellemprodukter)
-  └─ assembleStandalone          (kopierer standalone + static + public + natives → dist/)
-  └─ skriver dist/BUILD_SHA      (HEAD-sentinel)
-```
-
-Kør IKKE `npm run build` efterfulgt af en separat `npm run build:cli` ved deployment — brug
-`npm run build:release`, som udfører et rent rebuild + sentinel i én kommando.
-
-### Validering af artefakter
-
-- [ ] `npm run build:release` lykkes, og `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` er ren — ingen `app.__qa_backup`, `scripts/scratch`, `package-lock.json` eller andre lokale rester
-- [ ] `dist/server.js` findes efter buildet
-
-### Tagging og udgivelse
-
-- [ ] Kør `/generate-release-cc` (Claude Code-funktion):
-  - Opretter tagget `vX.Y.Z`
-  - Pusher tagget og branchen
-  - Opretter en GitHub-udgivelse med ændringsloggen som brødtekst
-  - Vedhæfter Electron-installationsprogrammer (hvis de er bygget)
-- [ ] Eller gør det manuelt:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deployment
-
-Deploy-funktionerne bruger et let rsync-flow — ingen `npm pack`, ingen `npm i -g`:
-
-- [ ] Brug den deploy-funktion, der matcher destinationen:
-  - `/deploy-vps-local-cc` — lokal VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — begge
-- [ ] Før deployment skal det bekræftes, at `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Buildet skal køre et sted, hvor `node_modules` er reel (primær checkout eller en worktree, hvor `npm ci` er kørt — IKKE en worktree med symlink)
-- [ ] Kør en smoke-test af den deployede instans:
-  - Åbn `/dashboard/health` → kontrollér, at versionsstrengen matcher udgivelsen
-  - Kør en `/v1/chat/completions`-anmodning mod en kendt udbyder
-  - Verificér, at `/api/monitoring/health` returnerer `CLOSED` circuit breakers
-  - Bekræft, at MCP-transporter svarer (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Efter udgivelsen
-
-- [ ] Kør `/capture-release-evidences-cc` (Claude Code-skill)
-  - Indsamler WebP-skærmbilleder/-optagelser af nye funktioner
-  - Vedhæfter dem til udgivelsesnoter/blogindlæg
-- [ ] Opdater GitHub Discussions/Discord med udgivelsesmeddelelsen
-- [ ] Opret en milepæl for den næste version
-- [ ] Hvis kritisk: Fastgør diskussionen, eller tilføj et opslag i `news.json` til et banner i appen
-
-### Gate for offentlig lancering af Radar
-
-Radar-meddelelsen er med vilje committed med `active: false`. Aktivering er en separat
-ændring, efter at der er dokumentation for hvert punkt nedenfor:
-
-- [ ] Alle stablede Radar-PR'er er flettet, og CI for release-tip er grøn
-- [ ] Udrul og smoketest OSS Radar-ruterne med `RADAR_ENABLED` fortsat deaktiveret som standard
-- [ ] Smoketest `GET /planos`, `/termos`, `/privacidade` og `/reembolso` på den navngivne Radar-vært
-- [ ] Registrer operatørens identitet/kontaktoplysninger/adresse og den ejer-godkendte juridiske gennemgang i den private tjeneste
-- [ ] Afprøv Stripe Checkout og den signerede webhook udelukkende i testtilstand
-- [ ] Afprøv én krypteret levering af transaktionsmail med den godkendte afsender/det godkendte domæne
-- [ ] Dokumenter gendannelse fra backup og én overvåget, budgetbegrænset research-kørsel
-- [ ] Godkend gennemgangspolitikken for BRL/PIX, før dokumentation for donationer accepteres
-- [ ] Aktivér først offentlig Checkout efter de foregående gates, og aktivér derefter det nye `news.json`-ID
-- [ ] Kontrollér, at Home-banneret bruger lokaliseret tekst, og at et nyt ID vises igen, efter at et ældre ID er blevet afvist
-
 ## Smoke-test af integrerede tjenester (v3.8.4+)
 
 Før en udgivelse, der indeholder ændringer til integrerede tjenester, udsendes, skal følgende verificeres:
@@ -399,7 +300,7 @@ Hvis en udgivelse har et kritisk problem:
 - Spring aldrig Husky-hooks over (`--no-verify`)
 - Commit aldrig hemmeligheder, loginoplysninger eller `.env`-filer
 - Kodedækningen skal forblive ≥60/60/60/60 (statements/lines/functions/branches)
-- Inkluder eller opdater altid tests, når produktionskode i `src/`, `open-sse/`, `electron/` eller `bin/` ændres
+- Inkluder eller opdater altid tests, når produktionskode i `src/`, `open-sse/` eller `bin/` ændres
 
 ## Automatisk synkroniseringskontrol
 

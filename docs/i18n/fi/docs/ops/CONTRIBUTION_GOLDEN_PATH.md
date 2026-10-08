@@ -17,7 +17,7 @@ yleisen muutostyypin sen sopimuksiin, kohdennettuihin tarkistuksiin ja CI-kattav
 2. **Nimeä sopimukset.** Tunnista kaikki katalogit, skeemat, generoidut artefaktit, julkiset API:t ja
    käyttöliittymät, joihin muutos vaikuttaa. Alla olevassa taulukossa annetaan vähimmäislähtöjoukko.
 3. **Kirjoita tai päivitä kohdennetut testit.** Tuotantokoodin muutokset hakemistoissa `src/`,
-   `open-sse/`, `electron/` tai `bin/` edellyttävät automatisoitua testiä samassa PR:ssä. Suorita
+   `open-sse/` tai `bin/` edellyttävät automatisoitua testiä samassa PR:ssä. Suorita
    pienimmät testitiedostot, jotka todentavat toiminnan, ja sen jälkeen luetellut kohdennetut portit.
 4. **Anna CI:n suorittaa laaja matriisi.** Täydelliset yksikkötestien osiot, Vitest,
    kattavuuskynnyksen tarkistus ja tuotantokoonti suoritetaan PR:lle. Suorita laaja testikokonaisuus

@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Aplicação Next.js 16 (interface + rotas de API + bibliotecas + domínio + servidor)
 ├── open-sse/             # Workspace do mecanismo de streaming (manipuladores, executores, tradutor, servidor MCP)
-├── electron/             # Wrapper para desktop (Electron 41 + electron-builder 26.10)
 ├── bin/                  # Ponto de entrada da CLI e manipuladores de comandos
 ├── scripts/              # Scripts de compilação, verificação, sincronização e execução única
 ├── docs/                 # Documentação pública (você está aqui)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Wrapper para desktop
-
-| Arquivo          | Finalidade                                                                                                  |
-| ---------------- | ----------------------------------------------------------------------------------------------------------- |
-| `main.js`        | Processo principal do Electron (BrowserWindow, servidor Next.js integrado, bandeja, atualização automática) |
-| `preload.js`     | Ponte IPC (contextBridge → `window.omniroute`)                                                              |
-| `package.json`   | Configuração do electron-builder + dependências Electron 41 + electron-builder 26.10                        |
-| `assets/`        | Ícones do aplicativo (Windows .ico, macOS .icns, Linux .png)                                                |
-| `dist-electron/` | Saída da compilação (ignorada pelo git)                                                                     |
-| `types.d.ts`     | Declarações de tipos para a ponte do renderer                                                               |
-| `README.md`      | README interno do Electron (consulte também `docs/guides/ELECTRON_GUIDE.md`)                                |
-
----
-
 ## `bin/` — CLI
 
 | Arquivo                                                                                                     | Finalidade                                                                                                                                   |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | Executor de testes E2E de MCP/A2A                                                                            |
 | `run-ecosystem-tests.mjs`           | Testes do ecossistema (integração com provedores)                                                            |
 | `test-report-summary.mjs`           | Gera um resumo de cobertura em markdown                                                                      |
-| `smoke-electron-packaged.mjs`       | Executa teste de fumaça do build empacotado do Electron                                                      |
-| `native-binary-compat.mjs`          | Valida se as dependências nativas (`better-sqlite3`) correspondem ao Node do Electron                        |
 | `validate-pack-artifact.ts`         | Valida a saída do empacotamento npm                                                                          |
 | `responses-ws-proxy.mjs`            | Ponte WebSocket para a API Codex Responses                                                                   |
 | `v1-ws-bridge.mjs`                  | Ponte WebSocket para o endpoint `/api/v1/ws`                                                                 |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Manual do usuário final (configuração, modelos, combos, CLIs, áudio etc.)                           |
 | `API_REFERENCE.md`          | Referência dos endpoints da API com modelo de autenticação                                          |
 | `openapi.yaml`              | Especificação OpenAPI 3.0 (121 caminhos)                                                            |
-| `SETUP_GUIDE.md`            | Métodos de instalação (npm, npx, Docker, Electron, Termux, código-fonte)                            |
+| `SETUP_GUIDE.md`            | Métodos de instalação (npm, npx, Docker, Termux, código-fonte)                                      |
 | `ENVIRONMENT.md`            | Todas as variáveis de ambiente (~800 documentadas, ~3.050 linhas em `.env.example`)                 |
 | `TROUBLESHOOTING.md`        | Erros comuns + problemas conhecidos da v3.8.0                                                       |
 | `RELEASE_CHECKLIST.md`      | Fluxo completo de lançamento (skills, husky, commits convencionais, implantação)                    |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Implantação no Fly.io (atualmente disponível somente em chinês)    |
 | `TERMUX_GUIDE.md`            | Android sem interface gráfica via Termux                           |
 | `PWA_GUIDE.md`               | Instalação do Progressive Web App + service worker                 |
-| `ELECTRON_GUIDE.md`          | Build + assinatura + distribuição do aplicativo para desktop       |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                             |
 | `PROXY_GUIDE.md`             | Proxy de saída em 4 níveis + marketplace 1proxy                    |
 

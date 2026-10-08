@@ -197,7 +197,7 @@ docker run -d \
 
 ## Avhengigheter
 
-- Kjør `npm audit` regelmessig (`npm run audit:deps` dekker hovedprosjektet + electron)
+- Kjør `npm audit` regelmessig (`npm run audit:deps` dekker hovedprosjektet)
 - Hold avhengighetene oppdatert
 - Prosjektet bruker `husky` + `lint-staged` for kontroller før commit (lint-staged + check-docs-sync + check:any-budget:t11)
 - CI-rørledningen kjører ESLint-sikkerhetsregler ved hver push (`no-eval`, `no-implied-eval`, `no-new-func` = feil)

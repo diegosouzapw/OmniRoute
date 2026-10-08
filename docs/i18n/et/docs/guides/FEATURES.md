@@ -264,25 +264,6 @@ Administratiivsete toimingute jälgimine filtreerimisega toimingu tüübi, tegij
 
 ---
 
-## 🖥️ Töölauarakendus
-
-Natiivne Electron töölauarakendus Windowsile, macOS-ile ja Linuxile. Käivita OmniRoute iseseisva rakendusena süsteemisalve (system tray) integratsiooniga, võrguühenduseta toega, automaatse uuendamisega ja ühe klõpsuga installimisega.
-
-Põhifunktsioonid:
-
-- Serveri valmisoleku küsitlus (polling) (ei jää tühja ekraani külmkäivitusel)
-- Süsteemisalv koos pordihaldusega
-- Sisuturbe põhimõte (Content Security Policy)
-- Ainueksemplari lukustus (single-instance lock)
-- Automaatne uuendamine taaskäivitamisel
-- Platvormist sõltuv kasutajaliides (macOS liiklustuled, Windows/Linux vaikimisi tiitliriba)
-- Karastatud Electron'i ehitusprotsess (packaging) — sümboollingitud `node_modules` iseseisvas paketis tuvastatakse ja lükatakse tagasi enne pakendamist, vältides käitusaegset sõltuvust ehitusmasinast (v2.5.5+)
-- **Sujuv väljalülitamine** — Electron'i `before-quit` lõpetab Next.js protsessi korrektselt, vältides SQLite WAL andmebaasi lukustusi (v3.6.2+)
-
-📖 Täieliku dokumentatsiooni leiate failist [`electron/README.md`](../../electron/README.md).
-
----
-
 ## 🌐 V1 WebSocket sild _(v3.6.6+)_
 
 OmniRoute toetab nüüd **OpenAI-ühilduvaid WebSocket kliente** `/v1/ws` uuenduspunkti (upgrade endpoint) kaudu. Kohandatud `scripts/dev/v1-ws-bridge.mjs` server mähib Next.js'i ja uuendab WS ühendused täielikeks kahesuunalisteks voogesitussessioonideks. Autentimine kasutab sama API võtit või sessiooniküpsist (session cookie) mis HTTP päringud.

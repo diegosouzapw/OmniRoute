@@ -265,25 +265,6 @@ Twórz, ograniczaj zakres i unieważniaj klucze API. Każdy klucz można ogranic
 
 ---
 
-## 🖥️ Aplikacja komputerowa
-
-Natywna aplikacja komputerowa Electron dla systemów Windows, macOS i Linux. Uruchamiaj OmniRoute jako samodzielną aplikację z integracją z zasobnikiem systemowym, obsługą trybu offline, automatycznymi aktualizacjami i instalacją jednym kliknięciem.
-
-Najważniejsze funkcje:
-
-- Sprawdzanie gotowości serwera (brak pustego ekranu podczas uruchamiania od zera)
-- Zasobnik systemowy z zarządzaniem portami
-- Polityka bezpieczeństwa treści
-- Blokada pojedynczej instancji
-- Automatyczna aktualizacja po ponownym uruchomieniu
-- Interfejs zależny od platformy (przyciski sterowania oknem w systemie macOS, domyślny pasek tytułu w systemach Windows/Linux)
-- Wzmocnione zabezpieczenia podczas pakowania kompilacji Electron — dowiązany symbolicznie katalog `node_modules` w samodzielnym pakiecie jest wykrywany i odrzucany przed pakowaniem, co zapobiega zależności środowiska uruchomieniowego od maszyny kompilującej (v2.5.5+)
-- **Łagodne zamykanie** — zdarzenie Electron `before-quit` poprawnie zamyka Next.js, zapobiegając blokadom bazy danych SQLite WAL (v3.6.2+)
-
-📖 Pełna dokumentacja znajduje się w pliku [`electron/README.md`](../../electron/README.md).
-
----
-
 ## 🌐 Most WebSocket V1 _(v3.6.6+)_
 
 OmniRoute obsługuje teraz **klientów WebSocket zgodnych z OpenAI** za pośrednictwem punktu końcowego aktualizacji `/v1/ws`. Niestandardowy serwer `scripts/dev/v1-ws-bridge.mjs` opakowuje Next.js i aktualizuje połączenia WS do pełnych, dwukierunkowych sesji strumieniowych. Uwierzytelnianie korzysta z tego samego klucza API lub pliku cookie sesji co żądania HTTP.

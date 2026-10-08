@@ -224,7 +224,7 @@ Bilješke o pokrivenosti:
 
 - `npm run test:coverage` mjeri pokrivenost izvornog koda za glavni skup unit testova, isključuje `tests/**` i uključuje `open-sse/**`
 - Zahtjevi za povlačenje moraju održavati prag pokrivenosti od **60%+** komandi/linija/funkcija/grana
-- Ako PR promijeni produkcijski kod u `src/`, `open-sse/`, `electron/` ili `bin/`, mora dodati ili ažurirati automatizirane testove u istom PR-u.
+- Ako PR promijeni produkcijski kod u `src/`, `open-sse/` ili `bin/`, mora dodati ili ažurirati automatizirane testove u istom PR-u.
 - `npm run coverage:report` ispisuje detaljno izvješće po datotekama iz zadnjeg pokretanja pokrivenosti
 - `npm run test:coverage:legacy` čuva starije metrike za historijsko poređenje
 - Pogledajte `docs/ops/COVERAGE_PLAN.md` za plan poboljšanja pokrivenosti u fazama
@@ -328,7 +328,6 @@ open-sse/ # @omniroute/open-sse radni prostor
 ├── transformator/ # Odgovori API transformator
 └── utils/ # 22 uslužni moduli (stream, TLS, proxy, logging)
 
-electron/ # Electron desktop aplikacija (višeplatformska)
 
 testovi/
 ├── jedinica/ # Node.js pokretač testova (1.574 testne datoteke)

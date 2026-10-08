@@ -122,7 +122,6 @@ láìfọwọ́yí, láìsí àmì kankan.
 ### Version àti Changelog
 
 - [ ] Ṣiṣe `/version-bump-cc <patch|minor|major>` (ọgbọ́n Claude Code)
-  - Ó ń gbé version `package.json`, `electron/package.json` sókè
   - Ó ń tún `CHANGELOG.md` ṣe láti inú àwọn git commit láti tag tó kẹ́yìn
   - Ó ń ṣe àfikún ìgbàlódé sí àwọn badge README.md
 - [ ] Ṣàyẹ̀wò CHANGELOG.md pẹ̀lú ọwọ́, kí o sì tún àwọn commit message ṣe bí ó bá yẹ
@@ -216,104 +215,6 @@ Gbogbo commit tí yóò wọ release gbọ́dọ̀ tẹ̀lé fọ́ọ̀mù `typ
 - [ ] A forúkọsílẹ̀ àwọn model nínú `open-sse/config/providerRegistry.ts`
 - [ ] Àwọn unit test nínú `tests/unit/` bo ìpínsọ̀rí àti routing provider
 
-### Desktop (Electron)
-
-Bí `electron/` bá yí padà:
-
-- [ ] `npm run electron:smoke:packaged` kọjá
-- [ ] A dán àwọn build wò fún ó kéré tán ọ̀kan lára `:win`, `:mac`, `:linux`
-- [ ] Àwọn cert fífi ìbuwọ́lu sí kóòdù kò tíì parí (bí a bá ń fi ìbuwọ́lu sí i)
-- [ ] Version `electron/package.json` bá ti root `package.json` mu
-- [ ] A ṣe ìmúdójúìwọ̀n atọ́ka channel ìmúdójúìwọ̀n aládàáṣe bí a bá ń tú sí `stable`
-
-### Ìṣètò Build
-
-Repository náà ń lo directory àbájáde mẹ́ta ọ̀tọ̀ọ̀tọ̀ — má ṣe dà wọ́n pọ̀ láéláé:
-
-| Directory | Ète                                                         | A ń tọ́pinpin?     |
-| --------- | ----------------------------------------------------------- | ----------------- |
-| `src/`    | Orísun application (TypeScript / TSX)                       | Bẹ́ẹ̀ ni            |
-| `.build/` | Àwọn ohun àárín build — àbájáde `next build` (`distDir`)    | Rárá (gitignored) |
-| `dist/`   | Bundle npm tí a lè fi ránṣẹ́ — tí `assembleStandalone` kó jọ | Rárá (gitignored) |
-
-> **Àkọsílẹ̀ fún olùdarí:** directory image VPS jíjìn ṣì jẹ́ `/usr/lib/node_modules/omniroute/app/`.
-> Àbájáde build **inú repo** nìkan ló ṣí (`app/` → `dist/`). Àwọn skill deploy máa ń fi rsync gbe
-> àwọn àkóónú `dist/` sínú dir `app/` jíjìn — kò sí ìyípadà path VPS tí a nílò.
-
-**Ìṣàn build-ẹyọkan:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (fọ́ ọ mọ́)
-  └─ next build → .build/next/   (àwọn ohun àárín)
-  └─ assembleStandalone          (ń da standalone + static + public + natives kọ sínú dist/)
-  └─ writes dist/BUILD_SHA       (àmì ìṣọ́ HEAD)
-```
-
-MÁ ṢE ṣiṣẹ́ `npm run build` tí o sì tẹ̀lé e pẹ̀lú `npm run build:cli` lọ́tọ̀ fún deploy — lo
-`npm run build:release` tí ó ṣe àtúnkọ́ mímọ́ + àmì ìṣọ́ nínú command kan.
-
-### Ìfìdí Artifact Múlẹ̀
-
-- [ ] `npm run build:release` ṣàṣeyọrí, `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` mọ́ — kò sí `app.__qa_backup`, `scripts/scratch`, `package-lock.json`, tàbí ìyókù local mìíràn
-- [ ] `dist/server.js` wà lẹ́yìn build
-
-### Fífi Tag Sí & Ìtújáde
-
-- [ ] Ṣiṣẹ́ `/generate-release-cc` (skill Claude Code):
-  - Ṣẹ̀dá tag `vX.Y.Z`
-  - Push tag àti branch
-  - Ṣí GitHub Release pẹ̀lú àkóónú changelog
-  - So àwọn installer Electron mọ́ ọn (bí a bá kọ́ wọn)
-- [ ] Tàbí ṣe é lọ́wọ́:
-  ```bash
-  git tag -a vX.Y.Z -m "Ìtújáde vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deploy
-
-Àwọn skill deploy ń lo ìṣàn rsync fẹ́ẹrẹ́ — kò sí `npm pack`, kò sí `npm i -g`:
-
-- [ ] Lo skill deploy tí ó bá ibi àfojúsùn mu:
-  - `/deploy-vps-local-cc` — VPS local (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — méjèèjì
-- [ ] Kí o tó deploy, jẹ́rìí pé `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Build gbọ́dọ̀ ṣiṣẹ́ níbi tí `node_modules` ti jẹ́ ojúlówó (checkout àkọ́kọ́ tàbí worktree tí a ti ṣe `npm ci` sí — KÌ Í ṢE worktree tí a fi symlink ṣe)
-- [ ] Ṣe smoke test fún instance tí a deploy:
-  - Ṣí `/dashboard/health` → ṣàyẹ̀wò pé string version bá ìtújáde mu
-  - Ṣiṣẹ́ request `/v1/chat/completions` sí provider tí a mọ̀
-  - Jẹ́rìí pé `/api/monitoring/health` dá àwọn circuit breaker `CLOSED` padà
-  - Jẹ́rìí pé àwọn transport MCP ń dáhùn (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Lẹ́yìn ìtújáde
-
-- [ ] Ṣiṣe `/capture-release-evidences-cc` (ọgbọ́n Claude Code)
-  - Yíya àwọn àwòrán ojú-iboju/àwọn àkọsílẹ̀ WebP ti àwọn ẹ̀yà tuntun
-  - So wọ́n mọ́ àwọn àkọsílẹ̀ ìtújáde / àpilẹ̀kọ búlọọ́gì
-- [ ] Ṣe ìmúdójúìwọ̀n GitHub Discussions / Discord pẹ̀lú ìkéde ìtújáde
-- [ ] Ṣí àmì-ìpele fún ẹ̀yà tó kàn
-- [ ] Tí ó bá ṣe pàtàkì: lẹ ìjíròrò mọ́ òkè tàbí fi ránṣẹ́ sínú `news.json` fún báńnà inú-ìṣàfilọ́lẹ̀
-
-### Ẹnu-ọ̀nà ìfilọ́lẹ̀ Radar fún gbogbo ènìyàn
-
-A mọ̀ọ́mọ̀ ṣe ìfipamọ́ ìkéde Radar pẹ̀lú `active: false`. Ṣíṣe é jẹ́ alágbára jẹ́ ìyípadà ọ̀tọ̀
-lẹ́yìn tí ẹ̀rí bá wà fún gbogbo ohun tó wà nísàlẹ̀:
-
-- [ ] Gbogbo àwọn Radar PR tí a tò léra ni a ti darapọ̀, CI release-tip sì jẹ́ àwọ̀ ewé
-- [ ] Ṣàgbékalẹ̀ kí o sì ṣe ìdánwò smoke lórí àwọn ipa-ọ̀nà OSS Radar, pẹ̀lú `RADAR_ENABLED` tí ó ṣì wà ní pípa gẹ́gẹ́ bí àtìlẹ́yìn
-- [ ] Ṣe ìdánwò smoke fún `GET /planos`, `/termos`, `/privacidade`, àti `/reembolso` lórí olùgbàlejò Radar tí a dárúkọ
-- [ ] Ṣàkọsílẹ̀ ìdánimọ̀/alátagbà/àdírẹ́sì olùṣiṣẹ́ àti àyẹ̀wò òfin tí olówó fọwọ́ sí nínú iṣẹ́ aládàáni
-- [ ] Dán Stripe Checkout àti webhook tí a fọwọ́ sí wò ní ipò ìdánwò nìkan
-- [ ] Dán ìfiránṣẹ́ ímeèlì ìbánisọ̀rọ̀ oníṣírò kan wò pẹ̀lú olùfiránṣẹ́/agbegbe tí a fọwọ́ sí
-- [ ] Ṣe ẹ̀rí ìmúpadàbọ̀sípò afẹ́yìntì àti ìṣiṣẹ́ ìwádìí kan tí a ń ṣọ́, tí a sì fi òpin ìnáwó sí
-- [ ] Fọwọ́ sí ìlànà àyẹ̀wò BRL/PIX kí a tó gba ẹ̀rí ọrẹ
-- [ ] Jẹ́ kí Checkout gbogbogbò ṣiṣẹ́ lẹ́yìn àwọn ẹnu-ọ̀nà tó ṣáájú nìkan, lẹ́yìn náà sì mú ID tuntun `news.json` ṣiṣẹ́
-- [ ] Ṣàyẹ̀wò pé báńnà Home ń lo ẹ̀dà tí a ṣe sí èdè agbègbè àti pé ID tuntun máa ń tún farahàn lẹ́yìn tí a bá ti pa ID àgbà kan tì
-
 ## Ìdánwò smoke fún Àwọn Iṣẹ́ Àfikún (v3.8.4+)
 
 Ṣáájú fífi ìtújáde èyíkéyìí tí ó ní àwọn àyípadà sí àwọn iṣẹ́ àfikún jáde, ṣàyẹ̀wò pé:
@@ -399,7 +300,7 @@ Tí ìtújáde bá ní ìṣòro tó ṣe pàtàkì:
 - Má ṣe fo àwọn Husky hooks (`--no-verify`)
 - Má ṣe commit àwọn àṣírí, ẹ̀rí ìdánimọ̀, tàbí àwọn fáìlì `.env`
 - Ìbora ìdánwò gbọ́dọ̀ wà ní ≥60/60/60/60 (àwọn gbólóhùn/àwọn ìlà/àwọn iṣẹ́/àwọn ẹ̀ka)
-- Fi àwọn ìdánwò kún un tàbí ṣe àfikún sí wọn nígbà gbogbo tí o bá ń yí kóòdù iṣẹ́ gidi padà nínú `src/`, `open-sse/`, `electron/`, tàbí `bin/`
+- Fi àwọn ìdánwò kún un tàbí ṣe àfikún sí wọn nígbà gbogbo tí o bá ń yí kóòdù iṣẹ́ gidi padà nínú `src/`, `open-sse/`, tàbí `bin/`
 
 ## Àyẹ̀wò Ìmúdójúìwọ̀n Aládàáṣiṣẹ́
 

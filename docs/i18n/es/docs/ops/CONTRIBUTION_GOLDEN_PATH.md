@@ -16,7 +16,7 @@ de cambio habitual con sus contratos, comprobaciones específicas y cobertura de
    [Modelo de ramas y versiones](BRANCHING_MODEL.md).
 2. **Enumera los contratos.** Identifica cada catálogo, esquema, artefacto generado, API pública o interfaz
    de usuario que afecte el cambio. La tabla siguiente proporciona el conjunto inicial mínimo.
-3. **Escribe o actualiza pruebas específicas.** Los cambios de producción en `src/`, `open-sse/`, `electron/` o
+3. **Escribe o actualiza pruebas específicas.** Los cambios de producción en `src/`, `open-sse/` o
    `bin/` requieren una prueba automatizada en la misma PR. Ejecuta los archivos de prueba mínimos que demuestren el
    comportamiento y, después, las comprobaciones específicas indicadas.
 4. **Deja que CI ejecute la matriz amplia.** Los fragmentos completos de pruebas unitarias, Vitest, el ajuste progresivo de cobertura y

@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Compose ప్రొఫైల్లు మరియు Caddy HTTPSతో సహా పూర్తి Docker సెటప్ కోసం [Docker గైడ్](./DOCKER_GUIDE.md) చూడండి.
 
-### డెస్క్టాప్ యాప్ (Electron)
-
-OmniRoute, Electron 41 + electron-builder 26.10పై నిర్మించిన డెస్క్టాప్ ర్యాపర్తో వస్తుంది. అందుబాటులో ఉన్న స్క్రిప్ట్లు (వర్క్స్పేస్ రూట్):
-
-```bash
-npm run electron:dev          # హాట్-రీలోడ్తో డెస్క్టాప్ను అమలు చేయండి
-npm run electron:build        # ప్రస్తుత OS కోసం బిల్డ్ చేయండి (స్వయంచాలకంగా గుర్తించబడుతుంది)
-npm run electron:build:win    # Windows ఇన్స్టాలర్ (NSIS + పోర్టబుల్)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # ప్యాకేజ్ చేసిన బిల్డ్ను స్మోక్-టెస్ట్ చేయండి
-```
-
-డెస్క్టాప్ ఇన్స్టాలర్ల విడుదలలు GitHub Releasesకు జోడించబడతాయి. పూర్తి Electron వివరణాత్మక సమాచారం (సైనింగ్, IPC బ్రిడ్జ్, డిస్ట్రోలు) కోసం, [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) చూడండి _(తరువాతి దశలో సృష్టించబడింది)_.
-
 ### హెడ్లెస్ సర్వర్ (CI/ఆటోమేషన్)
 
 పర్యవేక్షణ అవసరం లేని సెటప్ల కోసం (Docker, Kubernetes, CI), వీటిని ఉపయోగించండి:

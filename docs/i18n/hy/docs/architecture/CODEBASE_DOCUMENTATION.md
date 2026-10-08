@@ -27,7 +27,6 @@
 | Լեզու                  | **TypeScript 6.0+** — թիրախ՝ `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                                       |
 | Կատարման միջավայր      | **Node.js** `>=22.22.2 <23` կամ `>=24.0.0 <27` (պարտադրվում է `engines` + `SUPPORTED_NODE_RANGE`-ի միջոցով)                                 |
 | Տվյալների բազա         | **SQLite**՝ `better-sqlite3`-ի միջոցով (միակ օրինակ, WAL մատենավարում)                                                                      |
-| Սեղանադիր հավելված     | **Electron 41** + `electron-builder` 26.10 (առանձին աշխատանքային տարածք՝ `electron/`)                                                       |
 | Թեստեր                 | **Node-ի ներկառուցված թեստային գործարկիչ** (մոդուլային/ինտեգրացիոն), **Vitest** (MCP, autoCombo, քեշ), **Playwright** (e2e + protocols-e2e) |
 | Կառուցում              | Next.js-ի ինքնուրույն կառուցվածք՝ `scripts/build/build-next-isolated.mjs`-ի միջոցով                                                         |
 | Լինտինգ/ձևաչափում      | ESLint-ի հարթ կազմաձև + Prettier (`lint-staged`՝ Husky pre-commit-ի միջոցով)                                                                |
@@ -51,7 +50,6 @@
 OmniRoute/
 ├── src/                  Next.js հավելված (App Router, գրադարաններ, տիրույթ, սերվեր, համօգտագործվող բաղադրիչներ)
 ├── open-sse/             Հոսքային մշակման շարժիչի աշխատանքային տարածք (@omniroute/open-sse)
-├── electron/             Սեղանադիր պատյան (Electron 41-ի հիմնական գործընթաց + preload)
 ├── bin/                  CLI մուտքի կետեր (omniroute, reset-password)
 ├── tests/                Մոդուլային, ինտեգրացիոն, e2e, protocols-e2e, թարգմանիչի, անվտանգության թեստեր և ֆիքստուրաներ
 ├── scripts/              Կառուցման, համաժամացման, ստուգման, միգրացիայի և կատարման միջավայրի օժանդակ սկրիպտներ
@@ -574,26 +572,6 @@ open-sse/
 
 ---
 
-## 5. `electron/` — Սեղանադիր հավելվածի փաթեթավորում
-
-```
-electron/
-├── main.js                  Electron-ի հիմնական գործընթաց
-├── preload.js               Նախաբեռնման կամուրջ (contextIsolation-ը միացված է)
-├── types.d.ts
-├── package.json             electron-builder-ի կազմաձևում, տարբերակ 3.8.51
-├── README.md
-├── assets/                  Կառուցման ռեսուրսներ (պատկերակներ, թույլտվություններ, …)
-├── node_modules/            Առանձին node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           Կառուցման արդյունք (չի ներառվում պահոցում)
-```
-
-Աշխատանքային տարածքի արմատում առկա է հինգ npm սկրիպտ՝ `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`։ Ավտոմատ թարմացումն իրականացվում է
-`electron-updater`-ի միջոցով՝ հղվելով GitHub-ի թողարկումների հոսքին։
-
----
-
 ## 6. `bin/` — Հրամանային տողի միջերես
 
 ```
@@ -658,13 +636,11 @@ bin/
 Ըստ նշանակության կազմակերպված է 6 ենթապանակների մեջ։
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`։
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`։
@@ -844,7 +820,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A արձանագրության հմտությունները և հայտնաբերումը։
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK + Caveman սեղմում։
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI ինտեգրումներ։
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (եթե առկա է), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — տեղակայման թիրախներ։
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — տեղակայման թիրախներ։
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — շահագործման տարածված խնդիրներ։
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — ներդրողների աշխատանքային հոսքը։
 - [CLAUDE.md](../../CLAUDE.md) — Claude Code-ի համար պահոցի կանոնները (վերը նշված

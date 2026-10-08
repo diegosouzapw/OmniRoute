@@ -220,7 +220,7 @@ Kommentarer om täckning:
 
 - `npm run test:coverage` mäter källtäckningen för huvudsviten med enhetstester, exkluderar `tests/**` och inkluderar `open-sse/**`
 - Pull requests måste hålla täckningsgrinden på **60 %+** för satser/rader/funktioner/grenar
-- Om en PR ändrar produktionskod i `src/`, `open-sse/`, `electron/` eller `bin/` måste automatiserade tester läggas till eller uppdateras i samma PR
+- Om en PR ändrar produktionskod i `src/`, `open-sse/` eller `bin/` måste automatiserade tester läggas till eller uppdateras i samma PR
 - `npm run coverage:report` skriver ut en detaljerad rapport fil för fil från den senaste täckningskörningen
 - `npm run test:coverage:legacy` bevarar det äldre mätvärdet för historisk jämförelse
 - Se `docs/ops/COVERAGE_PLAN.md` för den stegvisa planen för förbättrad täckning
@@ -325,7 +325,6 @@ open-sse/                   # @omniroute/open-sse workspace
 ├── transformer/            # Responses API transformer
 └── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron desktop app (cross-platform)
 
 tests/
 ├── unit/                   # Node.js test runner (122 test files)

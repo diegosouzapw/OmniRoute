@@ -91,7 +91,7 @@ OmniRoute-কে এই মানগুলো এম্বেড করতে �
 
 ### 3. নিষিদ্ধ pattern
 
-❌ production code-এ (`src/`, `open-sse/`, `electron/`, `bin/`) নিচের কোনোটি **কখনোই** করবেন না:
+❌ production code-এ (`src/`, `open-sse/`, `bin/`) নিচের কোনোটি **কখনোই** করবেন না:
 
 ```ts
 // খারাপ: literal মান Secret Scanning + Semgrep সক্রিয় করে

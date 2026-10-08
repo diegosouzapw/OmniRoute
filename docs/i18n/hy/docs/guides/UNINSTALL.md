@@ -83,23 +83,6 @@ docker compose down
 docker compose down -v
 ```
 
-### Electron-ի աշխատասեղանի հավելված
-
-**Windows.**
-
-- Բացեք `Settings → Apps → OmniRoute → Uninstall`
-- Կամ տեղադրման գրացուցակից գործարկեք NSIS ապատեղադրիչը
-
-**macOS.**
-
-- `/Applications`-ից `OmniRoute.app`-ը քաշեք Աղբարկղ
-- Հեռացրեք տվյալները՝ `rm -rf ~/Library/Application Support/omniroute`
-
-**Linux.**
-
-- Հեռացրեք AppImage ֆայլը
-- Հեռացրեք տվյալները՝ `rm -rf ~/.omniroute`
-
 ### Աղբյուրային կոդից տեղադրում (git clone)
 
 ```bash

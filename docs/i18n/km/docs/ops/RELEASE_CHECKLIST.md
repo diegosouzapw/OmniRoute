@@ -122,7 +122,6 @@ Diff ដែលមានតែ test (ឯកសារទាំងអស់នៅ�
 ### Version និង Changelog
 
 - [ ] រត់ `/version-bump-cc <patch|minor|major>` (Claude Code skill)
-  - បង្កើន version នៅក្នុង `package.json`, `electron/package.json`
   - បង្កើត `CHANGELOG.md` ឡើងវិញពី git commit ចាប់តាំងពី tag ចុងក្រោយ
   - ធ្វើបច្ចុប្បន្នភាព badge នៅក្នុង README.md
 - [ ] ពិនិត្យ CHANGELOG.md ដោយដៃ និងសម្អាតសារ commit ប្រសិនបើចាំបាច់
@@ -216,104 +215,6 @@ Commit ទាំងអស់ដែលត្រូវបញ្ចូលក្ន�
 - [ ] បានចុះឈ្មោះ model ក្នុង `open-sse/config/providerRegistry.ts`
 - [ ] unit test ក្នុង `tests/unit/` គ្របដណ្តប់ការចាត់ថ្នាក់ និង routing របស់ provider
 
-### Desktop (Electron)
-
-ប្រសិនបើ `electron/` បានផ្លាស់ប្តូរ៖
-
-- [ ] `npm run electron:smoke:packaged` ឆ្លងកាត់
-- [ ] បានសាកល្បង build សម្រាប់យ៉ាងហោចណាស់មួយក្នុងចំណោម `:win`, `:mac`, `:linux`
-- [ ] វិញ្ញាបនបត្រចុះហត្ថលេខាលើកូដមិនទាន់ផុតកំណត់ (ប្រសិនបើមានការចុះហត្ថលេខា)
-- [ ] version របស់ `electron/package.json` ត្រូវគ្នានឹង `package.json` នៅ root
-- [ ] បានធ្វើបច្ចុប្បន្នភាព pointer របស់ channel សម្រាប់ការធ្វើបច្ចុប្បន្នភាពស្វ័យប្រវត្តិ ប្រសិនបើចេញផ្សាយទៅ `stable`
-
-### ប្លង់ Build
-
-repository ប្រើថត output បីផ្សេងគ្នា — កុំច្រឡំលាយពួកវាឱ្យសោះ៖
-
-| ថត        | គោលបំណង                                                    | តាមដាន?         |
-| --------- | ---------------------------------------------------------- | --------------- |
-| `src/`    | ប្រភពកម្មវិធី (TypeScript / TSX)                           | បាទ/ចាស         |
-| `.build/` | ឯកសារកណ្ដាលនៃ build — output របស់ `next build` (`distDir`) | ទេ (gitignored) |
-| `dist/`   | bundle npm ដែលអាចចែកចាយបាន — រៀបចំដោយ `assembleStandalone` | ទេ (gitignored) |
-
-> **កំណត់ចំណាំសម្រាប់ប្រតិបត្តិករ៖** ថត image របស់ VPS ពីចម្ងាយនៅតែជា `/usr/lib/node_modules/omniroute/app/`។
-> មានតែ output របស់ build **ក្នុង repository** ប៉ុណ្ណោះដែលបានផ្លាស់ទី (`app/` → `dist/`)។ ជំនាញ deploy ប្រើ rsync
-> ដើម្បីផ្ទេរមាតិកា `dist/` ទៅថត `app/` ពីចម្ងាយ — មិនតម្រូវឱ្យផ្លាស់ប្តូរ path របស់ VPS ទេ។
-
-**លំហូរ build តែមួយ៖**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (សម្អាត)
-  └─ next build → .build/next/   (ឯកសារកណ្ដាល)
-  └─ assembleStandalone          (ចម្លង standalone + static + public + natives → dist/)
-  └─ writes dist/BUILD_SHA       (HEAD sentinel)
-```
-
-កុំដំណើរការ `npm run build` ហើយបន្ទាប់មកដំណើរការ `npm run build:cli` ដាច់ដោយឡែកសម្រាប់ deploy — សូមប្រើ
-`npm run build:release` ដែលធ្វើការសាងសង់ឡើងវិញដោយស្អាត + sentinel ក្នុង command តែមួយ។
-
-### ការផ្ទៀងផ្ទាត់ Artifact
-
-- [ ] `npm run build:release` ជោគជ័យ ហើយ `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` ស្អាត — គ្មាន `app.__qa_backup`, `scripts/scratch`, `package-lock.json` ឬសំណល់ local ផ្សេងទៀត
-- [ ] `dist/server.js` មានវត្តមានបន្ទាប់ពី build
-
-### ការដាក់ស្លាក និងការចេញផ្សាយ
-
-- [ ] ដំណើរការ `/generate-release-cc` (ជំនាញ Claude Code)៖
-  - បង្កើត tag `vX.Y.Z`
-  - push tag និង branch
-  - បើក GitHub Release ជាមួយខ្លឹមសារ changelog
-  - ភ្ជាប់ installer របស់ Electron (ប្រសិនបើបាន build)
-- [ ] ឬធ្វើដោយដៃ៖
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deploy
-
-ជំនាញ deploy ប្រើលំហូរ rsync ស្រាល — មិនមាន `npm pack` និងមិនមាន `npm i -g`៖
-
-- [ ] ប្រើជំនាញ deploy ដែលត្រូវគ្នានឹងគោលដៅ៖
-  - `/deploy-vps-local-cc` — VPS ក្នុង local (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — ទាំងពីរ
-- [ ] មុនពេល deploy សូមបញ្ជាក់ថា `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] build ត្រូវតែដំណើរការនៅកន្លែងដែល `node_modules` ជាថតពិតប្រាកដ (checkout មេ ឬ worktree ដែលបានដំណើរការ `npm ci` — មិនមែន worktree ដែលប្រើ symlink ទេ)
-- [ ] ធ្វើ smoke test លើ instance ដែលបាន deploy៖
-  - បើក `/dashboard/health` → ពិនិត្យថា version string ត្រូវគ្នានឹង release
-  - ដំណើរការ request ទៅ `/v1/chat/completions` ជាមួយ provider ដែលស្គាល់ច្បាស់
-  - ផ្ទៀងផ្ទាត់ថា `/api/monitoring/health` ត្រឡប់ circuit breaker ជា `CLOSED`
-  - បញ្ជាក់ថា MCP transport ឆ្លើយតប (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### ក្រោយការចេញផ្សាយ
-
-- [ ] ដំណើរការ `/capture-release-evidences-cc` (ជំនាញ Claude Code)
-  - ថតរូបអេក្រង់/ការថត WebP នៃមុខងារថ្មីៗ
-  - ភ្ជាប់ទៅនឹងកំណត់សម្គាល់ការចេញផ្សាយ / ប្រកាសប្លុក
-- [ ] ធ្វើបច្ចុប្បន្នភាព GitHub Discussions / Discord ជាមួយសេចក្តីប្រកាសការចេញផ្សាយ
-- [ ] បើក milestone សម្រាប់កំណែបន្ទាប់
-- [ ] ប្រសិនបើសំខាន់ខ្លាំង៖ ខ្ទាស់ការពិភាក្សា ឬបង្ហោះក្នុង `news.json` សម្រាប់បដាក្នុងកម្មវិធី
-
-### ច្រកត្រួតពិនិត្យការដាក់ឱ្យប្រើប្រាស់ Radar ជាសាធារណៈ
-
-សេចក្តីប្រកាស Radar ត្រូវបាន commit ដោយចេតនាជាមួយ `active: false`។ ការធ្វើឱ្យសកម្មគឺជាការផ្លាស់ប្តូរដាច់ដោយឡែក
-បន្ទាប់ពីធាតុទាំងអស់ខាងក្រោមមានភស្តុតាងបញ្ជាក់៖
-
-- [ ] Radar PRs ដែលដាក់ជាជង់ទាំងអស់ត្រូវបាន merge ហើយ release-tip CI មានស្ថានភាពបៃតង
-- [ ] Deploy និងធ្វើ smoke test លើ OSS Radar routes ដោយនៅតែបិទ `RADAR_ENABLED` តាមលំនាំដើម
-- [ ] ធ្វើ smoke test លើ `GET /planos`, `/termos`, `/privacidade`, និង `/reembolso` នៅលើ Radar host ដែលបានកំណត់ឈ្មោះ
-- [ ] កត់ត្រាអត្តសញ្ញាណ/ព័ត៌មានទំនាក់ទំនង/អាសយដ្ឋានរបស់ប្រតិបត្តិករ និងការត្រួតពិនិត្យផ្នែកច្បាប់ដែលម្ចាស់បានអនុម័ត នៅក្នុងសេវាឯកជន
-- [ ] សាកល្បង Stripe Checkout និង signed webhook ក្នុងរបៀបសាកល្បងតែប៉ុណ្ណោះ
-- [ ] សាកល្បងការផ្ញើអ៊ីមែលប្រតិបត្តិការដែលបានអ៊ិនគ្រីបមួយ ជាមួយអ្នកផ្ញើ/ដែនដែលបានអនុម័ត
-- [ ] បញ្ជាក់ការស្ដារទិន្នន័យបម្រុង និងការដំណើរការស្រាវជ្រាវក្រោមការត្រួតពិនិត្យដែលកំណត់ពិដានថវិកាចំនួនមួយ
-- [ ] អនុម័តគោលការណ៍ត្រួតពិនិត្យ BRL/PIX មុនពេលទទួលយកភស្តុតាងនៃការបរិច្ចាគ
-- [ ] បើក Checkout ជាសាធារណៈតែបន្ទាប់ពីឆ្លងកាត់ច្រកត្រួតពិនិត្យខាងលើ រួចធ្វើឱ្យ ID ថ្មីក្នុង `news.json` សកម្ម
-- [ ] ផ្ទៀងផ្ទាត់ថាបដា Home ប្រើខ្លឹមសារដែលបានធ្វើមូលដ្ឋានីយកម្ម ហើយ ID ថ្មីនឹងបង្ហាញឡើងវិញ បន្ទាប់ពី ID ចាស់ត្រូវបានបិទចោល
-
 ## ការធ្វើតេស្ត smoke សម្រាប់សេវាដែលបានបង្កប់ (v3.8.4+)
 
 មុនពេលចេញផ្សាយកំណែណាមួយដែលរួមបញ្ចូលការផ្លាស់ប្តូរសេវាដែលបានបង្កប់ សូមផ្ទៀងផ្ទាត់៖
@@ -399,7 +300,7 @@ npm run build:release
 - កុំរំលង Husky hooks (`--no-verify`)
 - កុំ commit ព័ត៌មានសម្ងាត់ អត្តសញ្ញាណសម្គាល់ ឬឯកសារ `.env`
 - Coverage ត្រូវរក្សាឱ្យនៅ ≥60/60/60/60 (statements/lines/functions/branches)
-- ត្រូវបញ្ចូល ឬធ្វើបច្ចុប្បន្នភាពតេស្តជានិច្ច នៅពេលផ្លាស់ប្តូរកូដ production ក្នុង `src/`, `open-sse/`, `electron/` ឬ `bin/`
+- ត្រូវបញ្ចូល ឬធ្វើបច្ចុប្បន្នភាពតេស្តជានិច្ច នៅពេលផ្លាស់ប្តូរកូដ production ក្នុង `src/`, `open-sse/` ឬ `bin/`
 
 ## ការត្រួតពិនិត្យសមកាលកម្មដោយស្វ័យប្រវត្តិ
 

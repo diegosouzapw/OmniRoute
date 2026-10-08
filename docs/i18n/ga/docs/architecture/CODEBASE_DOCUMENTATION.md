@@ -27,7 +27,6 @@ gan modúil nua a cheapadh.
 | Teanga          | **TypeScript 6.0+** — sprioc `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                            |
 | Rith-am         | **Node.js** `>=22.22.2 <23` nó `>=24.0.0 <27` (forfheidhmithe trí `engines` + `SUPPORTED_NODE_RANGE`)                            |
 | Bunachar Sonraí | **SQLite** trí `better-sqlite3` (singleton, dialann WAL)                                                                         |
-| Deasc           | **Electron 41** + `electron-builder` 26.10 (spás oibre ar leith ag `electron/`)                                                  |
 | Tástálacha      | **Ritheoir tástála dúchais Node** (aonaid/chomhtháthú), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | Tógáil          | Next.js neamhspleách trí `scripts/build/build-next-isolated.mjs`                                                                 |
 | Lint/formáid    | Cumraíocht chomhréidh ESLint + Prettier (`lint-staged` trí Husky pre-commit)                                                     |
@@ -51,7 +50,6 @@ sonraí is ea athróg timpeallachta `DATA_DIR`, agus is é `~/.omniroute/` an r�
 OmniRoute/
 ├── src/                  Feidhmchlár Next.js (App Router, leabharlanna, fearann, freastalaí, comhroinnte)
 ├── open-sse/             Inneall sruthaithe spás oibre (@omniroute/open-sse)
-├── electron/             Timfhilleadh deisce (Electron 41 príomh + preload)
 ├── bin/                  Pointí iontrála CLI (omniroute, reset-password)
 ├── tests/                Aonaid, comhtháthú, e2e, protocols-e2e, aistritheoir, slándáil, daingneáin
 ├── scripts/              Scriptí cúnta tógála, sioncronaithe, seiceála, imirce, agus rite ama
@@ -573,26 +571,6 @@ Primitíbh sruthaithe agus cúntóirí soláthraí: `stream.ts`, `streamHandler.
 
 ---
 
-## 5. `electron/` — Cumhdach deisce
-
-```
-electron/
-├── main.js                  Príomhphróiseas Electron
-├── preload.js               Droichead réamhlódála (contextIsolation cumasaithe)
-├── types.d.ts
-├── package.json             Cumraíocht electron-builder, leagan 3.8.51
-├── README.md
-├── assets/                  Acmhainní tógála (deilbhíní, teidlíochtaí, …)
-├── node_modules/            node_modules tiomnaithe (better-sqlite3, electron-updater)
-└── dist-electron/           Aschur tógála (gan tiomantas)
-```
-
-Cúig script npm ag fréamh an spás oibre: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Déantar nuashonrú uathoibríoch trí
-`electron-updater` ag díriú ar fhotha scaoilte GitHub.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -657,13 +635,11 @@ Orduithe coitianta:
 Eagraithe i 6 fhofhillteán de réir cuspóra.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -841,7 +817,7 @@ Féach [A2A-SERVER.md § Adding a New Skill](../frameworks/A2A-SERVER.md). Tá s
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — scileanna agus fionnachtain phrótacal A2A.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — comhbhrú RTK + Caveman.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — comhtháthú CLI.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (má tá sé i láthair), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — spriocanna imlonnaithe.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — spriocanna imlonnaithe.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — saincheisteanna oibríochtúla coitianta.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — sreabhadh oibre rannpháirtithe.
 - [CLAUDE.md](../../CLAUDE.md) — rialacha stór do Claude Code (an fhoinse fírinne do go leor de na coinbhinsiúin thuas).

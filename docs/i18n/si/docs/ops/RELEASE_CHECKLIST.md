@@ -122,7 +122,6 @@ E2E න්යාසය ස්වයංක්රීයව මඟහරී.
 ### අනුවාදය සහ වෙනස්කම් ලේඛනය
 
 - [ ] `/version-bump-cc <patch|minor|major>` ධාවනය කරන්න (Claude Code skill)
-  - `package.json`, `electron/package.json` අනුවාද ඉහළ නංවයි
   - අවසන් tag එකෙන් පසු git commits මත පදනම්ව `CHANGELOG.md` නැවත ජනනය කරයි
   - README.md badges යාවත්කාලීන කරයි
 - [ ] CHANGELOG.md අතින් සමාලෝචනය කර අවශ්ය නම් commit messages පිරිසිදු කරන්න
@@ -216,104 +215,6 @@ hook එකක් අසමත් වුවහොත්: මූලික ගැ�
 - [ ] Models `open-sse/config/providerRegistry.ts` තුළ ලියාපදිංචි කර ඇත
 - [ ] `tests/unit/` තුළ unit tests provider වර්ගීකරණය සහ routing ආවරණය කරයි
 
-### Desktop (Electron)
-
-`electron/` වෙනස් වූයේ නම්:
-
-- [ ] `npm run electron:smoke:packaged` සමත් වේ
-- [ ] `:win`, `:mac`, `:linux` අතරින් අවම වශයෙන් එකක් සඳහා builds පරීක්ෂා කර ඇත
-- [ ] Code signing certificates කල් ඉකුත් වී නොමැත (signing භාවිත කරන්නේ නම්)
-- [ ] `electron/package.json` version එක root `package.json` සමඟ ගැළපේ
-- [ ] `stable` වෙත නිකුත් කරන්නේ නම් auto-update channel pointer එක යාවත්කාලීන කර ඇත
-
-### Build සැකැස්ම
-
-Repository එක එකිනෙකට වෙනස් output directories තුනක් භාවිත කරයි — ඒවා කිසිවිටෙක පටලවා නොගන්න:
-
-| Directory | අරමුණ                                                              | Track කර තිබේද?  |
-| --------- | ------------------------------------------------------------------ | ---------------- |
-| `src/`    | යෙදුම් මූලාශ්රය (TypeScript / TSX)                                 | ඔව්              |
-| `.build/` | Build අතරමැදි ගොනු — `next build` output (`distDir`)               | නැත (gitignored) |
-| `dist/`   | බෙදාහැරිය හැකි npm bundle එක — `assembleStandalone` මඟින් සකසන ලදී | නැත (gitignored) |
-
-> **මෙහෙයුම්කරුගේ සටහන:** දුරස්ථ VPS image directory එක `/usr/lib/node_modules/omniroute/app/` ලෙසම පවතී.
-> වෙනස් වූයේ repository එක **තුළ ඇති** build output එක පමණි (`app/` → `dist/`). Deploy skills මඟින්
-> `dist/` හි අන්තර්ගතය දුරස්ථ `app/` dir එක වෙත rsync කරයි — VPS path වෙනස්කම් අවශ්ය නොවේ.
-
-**තනි-build ප්රවාහය:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (පිරිසිදු කිරීම)
-  └─ next build → .build/next/   (අතරමැදි ගොනු)
-  └─ assembleStandalone          (standalone + static + public + natives → dist/ වෙත පිටපත් කරයි)
-  └─ writes dist/BUILD_SHA       (HEAD sentinel)
-```
-
-Deploy කිරීම සඳහා `npm run build` ධාවනය කර ඉන්පසු වෙනම `npm run build:cli` ධාවනය නොකරන්න — එක් command එකකින් පිරිසිදු rebuild එකක් + sentinel එකක් සිදු කරන
-`npm run build:release` භාවිත කරන්න.
-
-### Artifact වලංගුකරණය
-
-- [ ] `npm run build:release` සාර්ථක වන අතර `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` පිරිසිදුය — `app.__qa_backup`, `scripts/scratch`, `package-lock.json`, හෝ වෙනත් local residue නොමැත
-- [ ] Build කිරීමෙන් පසු `dist/server.js` පවතී
-
-### Tag කිරීම සහ නිකුතුව
-
-- [ ] `/generate-release-cc` ධාවනය කරන්න (Claude Code skill):
-  - `vX.Y.Z` tag එක සාදයි
-  - Tag එක සහ branch එක push කරයි
-  - Changelog අන්තර්ගතය සමඟ GitHub Release එකක් විවෘත කරයි
-  - Electron installers අමුණයි (build කර ඇත්නම්)
-- [ ] නැතහොත් අතින්:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deploy කිරීම
-
-Deploy skills සැහැල්ලු rsync ප්රවාහය භාවිත කරයි — `npm pack` නැත, `npm i -g` නැත:
-
-- [ ] ඉලක්කයට ගැළපෙන deploy skill එක භාවිත කරන්න:
-  - `/deploy-vps-local-cc` — local VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — දෙකම
-- [ ] Deploy කිරීමට පෙර, `dist/BUILD_SHA` == `git rev-parse --short HEAD` බව තහවුරු කරන්න
-- [ ] `node_modules` සැබෑවටම පවතින ස්ථානයක build එක ධාවනය විය යුතුය (ප්රධාන checkout එක හෝ `npm ci` ධාවනය කළ worktree එකක් — symlink කළ worktree එකක් නොවේ)
-- [ ] Deploy කළ instance එක smoke test කරන්න:
-  - `/dashboard/health` විවෘත කරන්න → version string එක නිකුතුව සමඟ ගැළපෙන බව පරීක්ෂා කරන්න
-  - දන්නා provider එකකට එරෙහිව `/v1/chat/completions` request එකක් ධාවනය කරන්න
-  - `/api/monitoring/health` මඟින් `CLOSED` circuit breakers ආපසු ලබා දෙන බව සත්යාපනය කරන්න
-  - MCP transports ප්රතිචාර දක්වන බව තහවුරු කරන්න (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### නිකුතුවෙන් පසු
-
-- [ ] `/capture-release-evidences-cc` ධාවනය කරන්න (Claude Code skill)
-  - නව විශේෂාංගවල WebP තිර රූ/පටිගත කිරීම් ග්රහණය කරයි
-  - ඒවා නිකුතු සටහන් / බ්ලොග් සටහනට අමුණයි
-- [ ] නිකුතු නිවේදනය සමඟ GitHub Discussions / Discord යාවත්කාලීන කරන්න
-- [ ] ඊළඟ අනුවාදය සඳහා milestone එකක් විවෘත කරන්න
-- [ ] තීරණාත්මක නම්: යෙදුම තුළ බැනරය සඳහා සාකච්ඡාව අමුණා තබන්න හෝ `news.json` තුළ පළ කරන්න
-
-### Radar පොදු දියත් කිරීමේ දොරටුව
-
-Radar නිවේදනය චේතාන්විතව `active: false` සමඟ commit කර ඇත. පහත සෑම අයිතමයක් සඳහාම සාක්ෂි ලබා දීමෙන් පසු සක්රිය කිරීම වෙනම
-වෙනස් කිරීමකි:
-
-- [ ] අට්ටිගත කළ සියලුම Radar PR ඒකාබද්ධ කර ඇති අතර release-tip CI සාර්ථකය
-- [ ] පෙරනිමියෙන් `RADAR_ENABLED` තවමත් අක්රියව තබා OSS Radar මාර්ග deploy කර smoke-test කරන්න
-- [ ] නම් කළ Radar සත්කාරකයේ `GET /planos`, `/termos`, `/privacidade`, සහ `/reembolso` smoke-test කරන්න
-- [ ] ක්රියාකරුගේ අනන්යතාව/සම්බන්ධතා තොරතුරු/ලිපිනය සහ හිමිකරු විසින් අනුමත කළ නීතිමය සමාලෝචනය පුද්ගලික සේවාව තුළ සටහන් කරන්න
-- [ ] Stripe Checkout සහ අත්සන් කළ webhook එක පරීක්ෂණ ප්රකාරයේදී පමණක් අත්හදා බලන්න
-- [ ] අනුමත යවන්නා/වසම භාවිතයෙන් සංකේතනය කළ ගනුදෙනුමය ඊමේල් බෙදාහැරීමක් අත්හදා බලන්න
-- [ ] උපස්ථ ප්රතිසාධනය සහ අධීක්ෂණය කළ, අයවැය-සීමා කළ පර්යේෂණ ධාවනයක් සාර්ථක බව තහවුරු කරන්න
-- [ ] පරිත්යාග සාක්ෂි පිළිගැනීමට පෙර BRL/PIX සමාලෝචන ප්රතිපත්තිය අනුමත කරන්න
-- [ ] ඉහත දොරටු සම්පූර්ණ කිරීමෙන් පසුව පමණක් පොදු Checkout සක්රිය කර, අනතුරුව නව `news.json` ID එක සක්රිය කරන්න
-- [ ] Home බැනරය දේශීයකරණය කළ පෙළ භාවිත කරන බවත්, පැරණි ID එකක් ඉවත දැමූ පසු නව ID එකක් නැවත දිස්වන බවත් තහවුරු කරන්න
-
 ## Embedded Services ස්මෝක් පරීක්ෂාව (v3.8.4+)
 
 Embedded services වෙනස්කම් ඇතුළත් ඕනෑම නිකුතුවක් නිකුත් කිරීමට පෙර, පහත දෑ තහවුරු කරන්න:
@@ -399,7 +300,7 @@ Embedded services වෙනස්කම් ඇතුළත් ඕනෑම න�
 - කිසිවිටෙකත් Husky hooks (`--no-verify`) මඟ නොහරින්න
 - කිසිවිටෙකත් රහස්, ප්රවේශ අක්තපත්ර, හෝ `.env` ගොනු commit නොකරන්න
 - ආවරණය ≥60/60/60/60 (ප්රකාශ/පේළි/ශ්රිත/ශාඛා) ලෙස පවත්වා ගත යුතුය
-- `src/`, `open-sse/`, `electron/`, හෝ `bin/` තුළ නිෂ්පාදන කේතය වෙනස් කරන විට සෑමවිටම පරීක්ෂණ ඇතුළත් කරන්න හෝ යාවත්කාලීන කරන්න
+- `src/`, `open-sse/`, හෝ `bin/` තුළ නිෂ්පාදන කේතය වෙනස් කරන විට සෑමවිටම පරීක්ෂණ ඇතුළත් කරන්න හෝ යාවත්කාලීන කරන්න
 
 ## ස්වයංක්රීය සමමුහුර්ත පරීක්ෂාව
 

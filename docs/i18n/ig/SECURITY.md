@@ -197,7 +197,7 @@ docker run -d \
 
 ## Dependencies
 
-- Na-agba `npm audit` mgbe niile (`npm run audit:deps` na-ekpuchi main + electron)
+- Na-agba `npm audit` mgbe niile (`npm run audit:deps` na-ekpuchi main)
 - Na-emelite dependencies mgbe niile
 - Project ahụ na-eji `husky` + `lint-staged` eme nyocha tupu commit (lint-staged + check-docs-sync + check:any-budget:t11)
 - CI pipeline na-agba iwu nchekwa ESLint na push ọ bụla (`no-eval`, `no-implied-eval`, `no-new-func` = njehie)

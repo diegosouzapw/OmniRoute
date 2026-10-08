@@ -29,7 +29,7 @@ So sánh tính năng khách quan với các bộ định tuyến AI mã nguồn 
 | **Ẩn dấu vân tay TLS (JA3/JA4)**                           |                ✅ wreq-js                 |       ❌        |        ❌         |     ❌      |
 | **Khung đánh giá**                                         |                ✅ tích hợp                |       ❌        |        ❌         |  ⚠ trả phí  |
 | **Proxy MITM (chặn Cursor/Antigravity)**                   |              ✅ đa nền tảng               |       ❌        |        ❌         |     ❌      |
-| **CLI có khay hệ thống (không dùng Electron)**             |                    ✅                     |       ❌        |        n/a        |     n/a     |
+| **CLI có khay hệ thống**                                   |                    ✅                     |       ❌        |        n/a        |     n/a     |
 | **CLI tự động xác thực bằng ID máy**                       |                    ✅                     |       ❌        |        n/a        |     n/a     |
 | **Bảng điều khiển**                                        |                Next.js 16                 |     cơ bản      |     độc quyền     |  độc quyền  |
 | **i18n**                                                   |              **42 ngôn ngữ**              |       ❌        |        ❌         |      ⚠      |

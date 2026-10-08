@@ -16,7 +16,7 @@
    [מודל הענפים והגרסאות](BRANCHING_MODEL.md).
 2. **ציינו את החוזים.** זהו כל קטלוג, סכמה, ארטיפקט שנוצר, API ציבורי או ממשק
    משתמש שהשינוי משפיע עליו. הטבלה שלהלן מציגה את ערכת ההתחלה המינימלית.
-3. **כתבו או עדכנו בדיקות ממוקדות.** שינויים בקוד הייצור תחת `src/`,‏ `open-sse/`,‏ `electron/` או
+3. **כתבו או עדכנו בדיקות ממוקדות.** שינויים בקוד הייצור תחת `src/`,‏ `open-sse/`,‏ או
    `bin/` מחייבים בדיקה אוטומטית באותה בקשת משיכה. הריצו את קובצי הבדיקה המצומצמים ביותר שמוכיחים את
    ההתנהגות, ולאחר מכן את שערי הבדיקה הממוקדים המפורטים.
 4. **אפשרו ל-CI להריץ את המטריצה הרחבה.** רסיסי בדיקות היחידה המלאים, Vitest, מנגנון ההחמרה של הכיסוי
@@ -54,7 +54,7 @@ npm run check:provider-consistency
 npm run check:provider-assets
 node --import tsx/esm --test tests/unit/provider-translate-path-golden.test.ts
 node --import tsx/esm --test tests/unit/<provider-or-executor>.test.ts
-npm run gen:provider-reference   # כאשר הקטלוג משתנה; בצעו commit להבדלים שנוצרו
+npm run gen:provider-reference # כאשר הקטלוג משתנה; בצעו commit להבדלים שנוצרו
 npm run lint
 ```
 
@@ -74,8 +74,8 @@ npm run lint
 
 ```bash
 node --import tsx/esm --test tests/unit/combo-<behavior>.test.ts
-npm run test:combo:matrix        # שינויי אסטרטגיה או שיגור
-npm run check:known-symbols      # שינויי רישום אסטרטגיה
+npm run test:combo:matrix # שינויי אסטרטגיה או שיגור
+npm run check:known-symbols # שינויי רישום אסטרטגיה
 npm run lint
 ```
 
@@ -123,7 +123,7 @@ npm run i18n:sync-ui:dry
 npm run i18n:check-ui-coverage
 npm run i18n:check-value-drift
 npm run i18n:check-glossary
-npm run check:cli-i18n          # כאשר מחרוזות/קטלוגים של CLI משתנים
+npm run check:cli-i18n # כאשר מחרוזות/קטלוגים של CLI משתנים
 npm run lint
 ```
 
@@ -146,8 +146,8 @@ npm run lint
 ```bash
 node --import tsx/esm --test tests/unit/cli/<command>.test.ts
 npm run check:cli-i18n
-npm run build:cli             # שינויים ב-CLI שנוצר/נארז
-npm run check:pack-policy     # שינויים בממשק החבילה
+npm run build:cli # שינויים ב-CLI שנוצר/נארז
+npm run check:pack-policy # שינויים בממשק החבילה
 npm run lint
 ```
 
@@ -191,8 +191,8 @@ npm run lint
 ```bash
 node --import tsx/esm --test tests/unit/build/<behavior>.test.ts
 npm run check:build-scope
-npm run check:lockfile         # שינויים בתלויות או בקובץ הנעילה
-npm run check:pack-policy      # שינויים בממשק החבילה שפורסמה
+npm run check:lockfile # שינויים בתלויות או בקובץ הנעילה
+npm run check:pack-policy # שינויים בממשק החבילה שפורסמה
 npm run lint
 ```
 

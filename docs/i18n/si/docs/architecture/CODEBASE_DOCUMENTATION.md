@@ -25,7 +25,6 @@
 | භාෂාව           | **TypeScript 6.0+** — ඉලක්කය `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                  |
 | ධාවනකාලය        | **Node.js** `>=22.22.2 <23` හෝ `>=24.0.0 <27` (`engines` + `SUPPORTED_NODE_RANGE` හරහා බලාත්මක කෙරේ)                   |
 | දත්ත සමුදාය     | `better-sqlite3` හරහා **SQLite** (තනි අවස්ථාවක්, WAL ජර්නල්කරණය)                                                       |
-| ඩෙස්ක්ටොප්      | **Electron 41** + `electron-builder` 26.10 (`electron/` හි වෙනම workspace එකක්)                                        |
 | පරීක්ෂණ         | **Node ස්වදේශීය පරීක්ෂණ ධාවකය** (ඒකක/අනුකලන), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | ගොඩනැඟීම        | `scripts/build/build-next-isolated.mjs` හරහා Next.js ස්වාධීන ගොඩනැඟීම                                                  |
 | Lint/ආකෘතිය     | ESLint පැතලි වින්යාසය + Prettier (Husky pre-commit හරහා `lint-staged`)                                                 |
@@ -49,7 +48,6 @@
 OmniRoute/
 ├── src/                  Next.js යෙදුම (App Router, පුස්තකාල, domain, server, බෙදාගත් සංරචක)
 ├── open-sse/             Streaming engine workspace (@omniroute/open-sse)
-├── electron/             ඩෙස්ක්ටොප් ආවරණය (Electron 41 main + preload)
 ├── bin/                  CLI ප්රවේශ ස්ථාන (omniroute, reset-password)
 ├── tests/                ඒකක, අනුකලන, e2e, protocols-e2e, translator, security, fixtures
 ├── scripts/              ගොඩනැඟීමේ, සමමුහුර්ත කිරීමේ, පරීක්ෂා කිරීමේ, migration සහ ධාවනකාල සහායක scripts
@@ -572,26 +570,6 @@ Hub-and-spoke පරිවර්තනය (OpenAI යනු hub එකයි).
 
 ---
 
-## 5. `electron/` — ඩෙස්ක්ටොප් ආවරණය
-
-```
-electron/
-├── main.js                  Electron ප්රධාන ක්රියාවලිය
-├── preload.js               පූර්ව පූරණ පාලම (contextIsolation සක්රීය කර ඇත)
-├── types.d.ts
-├── package.json             electron-builder වින්යාසය, අනුවාදය 3.8.51
-├── README.md
-├── assets/                  ගොඩනැගීමේ සම්පත් (අයිකන, හිමිකම්, …)
-├── node_modules/            කැපවූ node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           ගොඩනැගීමේ ප්රතිදානය (commit කර නැත)
-```
-
-වැඩබිම් මූලයේ npm ස්ක්රිප්ට් පහක් ඇත: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. ස්වයංක්රීය යාවත්කාලීන කිරීම
-GitHub නිකුතු සංග්රහය වෙත යොමු වන `electron-updater` හරහා සිදු වේ.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -656,13 +634,11 @@ bin/
 අරමුණ අනුව උපෆෝල්ඩර 6කට සංවිධානය කර ඇත.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -841,7 +817,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A ප්රොටෝකෝල කුසලතා සහ සොයාගැනීම.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK + Caveman සම්පීඩනය.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI ඒකාබද්ධ කිරීම්.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (තිබේ නම්), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — යෙදවුම් ඉලක්ක.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — යෙදවුම් ඉලක්ක.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — පොදු මෙහෙයුම් ගැටලු.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — දායකත්ව කාර්ය ප්රවාහය.
 - [CLAUDE.md](../../CLAUDE.md) — Claude Code සඳහා repo නීති (ඉහත සම්මුතීන් බොහොමයක

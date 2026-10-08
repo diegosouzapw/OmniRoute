@@ -91,7 +91,7 @@ Când trebuie să încorporezi o nouă valoare furnizată din amonte care:
 
 ### 3. Tipare interzise
 
-❌ **Nu** face niciodată nimic din cele de mai jos în codul de producție (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ **Nu** face niciodată nimic din cele de mai jos în codul de producție (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // INCORECT: valoarea literală declanșează Secret Scanning + Semgrep

@@ -265,25 +265,6 @@ Ufuatiliaji wa vitendo vya kiutawala wenye uchujaji kwa aina ya kitendo, mtendaj
 
 ---
 
-## 🖥️ Programu ya Eneo-kazi
-
-Programu asilia ya eneo-kazi ya Electron kwa Windows, macOS na Linux. Endesha OmniRoute kama programu inayojitegemea yenye muunganisho wa trei ya mfumo, usaidizi wa nje ya mtandao, usasishaji kiotomatiki na usakinishaji wa mbofyo mmoja.
-
-Vipengele muhimu:
-
-- Ukaguzi wa mara kwa mara wa utayari wa seva (hakuna skrini tupu wakati wa kuanzisha kutoka hali baridi)
-- Trei ya mfumo yenye usimamizi wa porti
-- Sera ya Usalama wa Maudhui
-- Kufuli la instansi moja
-- Usasishaji kiotomatiki wakati wa kuwasha upya
-- UI inayotegemea mfumo (vitufe vya dirisha vya macOS, upau-msingi wa kichwa wa Windows/Linux)
-- Ufungashaji ulioimarishwa wa toleo la Electron — `node_modules` zilizounganishwa kwa viungo vya kiishara katika kifurushi kinachojitegemea hugunduliwa na kukataliwa kabla ya kufungasha, hivyo kuzuia utegemezi wa wakati wa utekelezaji kwa mashine ya ujenzi (v2.5.5+)
-- **Uzimaji salama** — `before-quit` ya Electron huzima Next.js kwa usahihi, hivyo kuzuia kufungwa kwa hifadhidata ya SQLite WAL (v3.6.2+)
-
-📖 Tazama [`electron/README.md`](../../electron/README.md) kwa nyaraka kamili.
-
----
-
 ## 🌐 Daraja la WebSocket la V1 _(v3.6.6+)_
 
 OmniRoute sasa inatumia **viteja vya WebSocket vinavyooana na OpenAI** kupitia endpoint ya uboreshaji ya `/v1/ws`. Seva maalum ya `scripts/dev/v1-ws-bridge.mjs` hufunika Next.js na kuboresha miunganisho ya WS kuwa vipindi kamili vya utiririshaji wa pande mbili. Uthibitishaji hutumia ufunguo uleule wa API au kidakuzi cha kipindi kama maombi ya HTTP.

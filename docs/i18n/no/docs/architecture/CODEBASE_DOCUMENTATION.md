@@ -27,7 +27,6 @@ uten å opprette nye moduler.
 | Språk          | **TypeScript 6.0+** — mål `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                                    |
 | Kjøremiljø     | **Node.js** `>=22.22.2 <23` eller `>=24.0.0 <27` (håndheves via `engines` + `SUPPORTED_NODE_RANGE`)                                   |
 | Database       | **SQLite** via `better-sqlite3` (singleton, WAL-journalføring)                                                                        |
-| Skrivebord     | **Electron 41** + `electron-builder` 26.10 (separat arbeidsområde i `electron/`)                                                      |
 | Tester         | **Nodes innebygde testkjører** (enhets-/integrasjonstester), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | Bygging        | Frittstående Next.js via `scripts/build/build-next-isolated.mjs`                                                                      |
 | Lint/format    | Flat ESLint-konfigurasjon + Prettier (`lint-staged` via Husky før commit)                                                             |
@@ -51,7 +50,6 @@ mappen angis med miljøvariabelen `DATA_DIR`, med `~/.omniroute/` som standard.
 OmniRoute/
 ├── src/                  Next.js-applikasjon (App Router, biblioteker, domene, server, delt kode)
 ├── open-sse/             Arbeidsområde for strømmemotoren (@omniroute/open-sse)
-├── electron/             Skrivebordsinnpakning (Electron 41-hovedprosess + preload)
 ├── bin/                  CLI-inngangspunkter (omniroute, reset-password)
 ├── tests/                Enhets-, integrasjons-, e2e-, protocols-e2e-, oversetter- og sikkerhetstester samt testdata
 ├── scripts/              Hjelpeskript for bygging, synkronisering, kontroller, migrering og kjøring
@@ -575,26 +573,6 @@ Strømmingsprimitiver og hjelpefunksjoner for leverandører: `stream.ts`, `strea
 
 ---
 
-## 5. `electron/` — Skrivebordsinnpakning
-
-```
-electron/
-├── main.js                  Electron-hovedprosess
-├── preload.js               Forhåndslastingsbro (contextIsolation aktivert)
-├── types.d.ts
-├── package.json             electron-builder-konfigurasjon, versjon 3.8.51
-├── README.md
-├── assets/                  Byggeressurser (ikoner, rettigheter, …)
-├── node_modules/            Dedikert node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           Byggresultat (ikke sjekket inn)
-```
-
-Fem npm-skript i roten av arbeidsområdet: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Automatisk oppdatering skjer via
-`electron-updater`, som peker til utgivelsesfeeden på GitHub.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -659,13 +637,11 @@ Vanlige kommandoer:
 Organisert i 6 undermapper etter formål.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -845,7 +821,7 @@ Se [A2A-SERVER.md § Legge til en ny ferdighet](../frameworks/A2A-SERVER.md). Fe
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — ferdigheter og oppdagelse i A2A-protokollen.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK- og Caveman-komprimering.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI-integrasjoner.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (hvis den finnes), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — distribusjonsmål.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — distribusjonsmål.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — vanlige driftsproblemer.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — arbeidsflyt for bidragsytere.
 - [CLAUDE.md](../../CLAUDE.md) — regler for Claude Code i kodebasen (den autoritative kilden

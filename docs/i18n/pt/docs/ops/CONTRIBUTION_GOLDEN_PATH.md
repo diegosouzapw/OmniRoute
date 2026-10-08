@@ -16,7 +16,7 @@ comum de alteração aos respetivos contratos, verificações específicas e cob
    [Modelo de branching e versões](BRANCHING_MODEL.md).
 2. **Identifique os contratos.** Identifique todos os catálogos, esquemas, artefactos gerados, APIs públicas ou
    interfaces de utilizador afetados pela alteração. A tabela abaixo apresenta o conjunto inicial mínimo.
-3. **Crie ou atualize testes específicos.** As alterações de produção em `src/`, `open-sse/`, `electron/` ou
+3. **Crie ou atualize testes específicos.** As alterações de produção em `src/`, `open-sse/` ou
    `bin/` requerem um teste automatizado no mesmo PR. Execute os ficheiros de teste mínimos que comprovem o
    comportamento e, em seguida, as verificações específicas indicadas.
 4. **Deixe o CI executar a matriz abrangente.** Os segmentos completos de testes unitários, o Vitest, o controlo

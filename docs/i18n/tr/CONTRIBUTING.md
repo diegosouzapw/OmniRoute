@@ -225,7 +225,7 @@ Kapsam notları:
 
 - `npm run test:coverage`, ana birim testi paketi için kaynak kapsamını ölçer, `tests/**` öğesini hariç tutar ve `open-sse/**` öğesini dahil eder
 - Pull request'ler; ifadeler/satırlar/fonksiyonlar/dallar için kapsam geçidini **%60+** seviyesinde tutmalıdır
-- Bir PR, `src/`, `open-sse/`, `electron/` veya `bin/` içindeki üretim kodunu değiştiriyorsa aynı PR'da otomatik testler eklemeli veya mevcut testleri güncellemelidir
+- Bir PR, `src/`, `open-sse/` veya `bin/` içindeki üretim kodunu değiştiriyorsa aynı PR'da otomatik testler eklemeli veya mevcut testleri güncellemelidir
 - `npm run coverage:report`, en son kapsam çalıştırmasından dosya bazında ayrıntılı raporu yazdırır
 - `npm run test:coverage:legacy`, geçmiş karşılaştırmalar için eski metriği korur
 - Aşamalı kapsam iyileştirme yol haritası için `docs/ops/COVERAGE_PLAN.md` belgesine bakın
@@ -325,7 +325,6 @@ open-sse/                   # @omniroute/open-sse çalışma alanı
 ├── transformer/            # Responses API dönüştürücüsü
 └── utils/                  # 22 yardımcı modül (akış, TLS, proxy, günlük kaydı)
 
-electron/                   # Electron masaüstü uygulaması (platformlar arası)
 
 tests/
 ├── unit/                   # Node.js test çalıştırıcısı (1.574 test dosyası)

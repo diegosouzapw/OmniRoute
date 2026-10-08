@@ -220,7 +220,7 @@ Ghi chú về độ bao phủ:
 
 - `npm run test:coverage` đo độ bao phủ mã nguồn cho bộ kiểm thử đơn vị chính, loại trừ `tests/**` và bao gồm `open-sse/**`
 - Các pull request phải duy trì ngưỡng độ bao phủ ở mức **60%+** đối với câu lệnh/dòng/hàm/nhánh
-- Nếu một PR thay đổi mã production trong `src/`, `open-sse/`, `electron/` hoặc `bin/`, PR đó phải thêm hoặc cập nhật các kiểm thử tự động trong cùng PR
+- Nếu một PR thay đổi mã production trong `src/`, `open-sse/` hoặc `bin/`, PR đó phải thêm hoặc cập nhật các kiểm thử tự động trong cùng PR
 - `npm run coverage:report` in báo cáo chi tiết theo từng tệp từ lần chạy độ bao phủ gần nhất
 - `npm run test:coverage:legacy` giữ lại chỉ số cũ để so sánh theo lịch sử
 - Xem `docs/ops/COVERAGE_PLAN.md` để biết lộ trình cải thiện độ bao phủ theo từng giai đoạn
@@ -325,7 +325,6 @@ open-sse/                   # @omniroute/open-sse workspace
 ├── transformer/            # Responses API transformer
 └── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron desktop app (cross-platform)
 
 tests/
 ├── unit/                   # Node.js test runner (122 test files)

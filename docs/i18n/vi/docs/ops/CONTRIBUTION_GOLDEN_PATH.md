@@ -16,7 +16,7 @@ thay đổi phổ biến với các hợp đồng, bước kiểm tra tập trun
    [Mô hình phân nhánh & phát hành](BRANCHING_MODEL.md).
 2. **Xác định các hợp đồng.** Xác định mọi danh mục, lược đồ, tạo tác được tạo tự động, API công khai hoặc giao diện
    người dùng mà thay đổi này ảnh hưởng. Bảng bên dưới cung cấp tập hợp khởi đầu tối thiểu.
-3. **Viết hoặc cập nhật các kiểm thử tập trung.** Các thay đổi trong mã dùng cho môi trường production tại `src/`, `open-sse/`, `electron/` hoặc
+3. **Viết hoặc cập nhật các kiểm thử tập trung.** Các thay đổi trong mã dùng cho môi trường production tại `src/`, `open-sse/` hoặc
    `bin/` yêu cầu một kiểm thử tự động trong cùng PR. Chạy các tệp kiểm thử nhỏ nhất chứng minh được
    hành vi, sau đó chạy các cổng kiểm tra tập trung được liệt kê.
 4. **Để CI chạy ma trận toàn diện.** Toàn bộ các shard kiểm thử đơn vị, Vitest, ngưỡng bao phủ tăng dần và

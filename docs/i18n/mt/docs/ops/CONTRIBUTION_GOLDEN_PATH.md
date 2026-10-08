@@ -16,7 +16,7 @@ komuni ta’ bidla mal-kuntratti, il-verifiki ffukati, u l-kopertura tas-CI tieg
    [Mudell tal-Branches u tar-Rilaxxi](BRANCHING_MODEL.md).
 2. **Semmi l-kuntratti.** Identifika kull katalgu, schema, artefatt iġġenerat, API pubblika, jew interfaċċa
    tal-utent li l-bidla taffettwa. It-tabella ta’ hawn taħt tagħti s-sett minimu inizjali.
-3. **Ikteb jew aġġorna testijiet iffukati.** Bidliet fil-produzzjoni f’`src/`, `open-sse/`, `electron/`, jew
+3. **Ikteb jew aġġorna testijiet iffukati.** Bidliet fil-produzzjoni f’`src/`, `open-sse/`, jew
    `bin/` jeħtieġu test awtomatizzat fl-istess PR. Ħaddem l-iżgħar fajls tat-test li jagħtu prova tal-
    imġiba, imbagħad il-verifiki ffukati elenkati.
 4. **Ħalli lis-CI tħaddem il-matriċi wiesgħa.** Ix-shards sħaħ tal-unit tests, Vitest, il-livell progressiv tal-kopertura, u

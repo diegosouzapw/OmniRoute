@@ -197,7 +197,7 @@ docker run -d \
 
 ## Dipendenzi
 
-- Uża `npm audit` regolarment (`npm run audit:deps` jinkludi l-primarja + electron)
+- Uża `npm audit` regolarment (`npm run audit:deps` jinkludi l-primarja)
 - Żomm id-dipendenzi aġġornati
 - Il-proġett juża `husky` + `lint-staged` għal kontrolli ta' qabel l-impenn (lint-staged + check-docs-sync + check:any-budget:t11)
 - Il-pipeline CI jittraqqas regoli ta' sigurtà tal-ESLint fuq kull push (`no-eval`, `no-implied-eval`, `no-new-func` = żball)

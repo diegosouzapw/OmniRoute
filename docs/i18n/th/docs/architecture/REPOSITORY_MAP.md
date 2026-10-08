@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # แอปพลิเคชัน Next.js 16 (UI + เส้นทาง API + ไลบรารี + โดเมน + เซิร์ฟเวอร์)
 ├── open-sse/             # เวิร์กสเปซเอนจินสตรีมมิง (ตัวจัดการ ตัวดำเนินการ ตัวแปล และเซิร์ฟเวอร์ MCP)
-├── electron/             # ตัวครอบเดสก์ท็อป (Electron 41 + electron-builder 26.10)
 ├── bin/                  # จุดเริ่มต้น CLI และตัวจัดการคำสั่ง
 ├── scripts/              # สคริปต์สำหรับบิลด์ ตรวจสอบ ซิงก์ และงานเฉพาะกิจ
 ├── docs/                 # เอกสารสาธารณะ (คุณอยู่ที่นี่)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — ตัวครอบแอปเดสก์ท็อป
-
-| ไฟล์             | วัตถุประสงค์                                                                                    |
-| ---------------- | ----------------------------------------------------------------------------------------------- |
-| `main.js`        | โปรเซสหลักของ Electron (BrowserWindow, เซิร์ฟเวอร์ Next.js แบบฝังตัว, ถาดระบบ, อัปเดตอัตโนมัติ) |
-| `preload.js`     | บริดจ์ IPC (contextBridge → `window.omniroute`)                                                 |
-| `package.json`   | การกำหนดค่า electron-builder + การอ้างอิง Electron 41 + electron-builder 26.10                  |
-| `assets/`        | ไอคอนแอป (Windows .ico, macOS .icns, Linux .png)                                                |
-| `dist-electron/` | เอาต์พุตการบิลด์ (ถูกละเว้นโดย git)                                                             |
-| `types.d.ts`     | การประกาศชนิดข้อมูลสำหรับบริดจ์เรนเดอเรอร์                                                      |
-| `README.md`      | README ภายในของ Electron (ดูเพิ่มเติมที่ `docs/guides/ELECTRON_GUIDE.md`)                       |
-
----
-
 ## `bin/` — CLI
 
 | ไฟล์                                                                                                        | วัตถุประสงค์                                                                                                                     |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | ตัวรัน E2E สำหรับ MCP/A2A                                                       |
 | `run-ecosystem-tests.mjs`           | การทดสอบระบบนิเวศ (การผสานรวม provider)                                         |
 | `test-report-summary.mjs`           | สร้างสรุป coverage ในรูปแบบ markdown                                            |
-| `smoke-electron-packaged.mjs`       | ทดสอบ smoke test สำหรับบิลด์ Electron ที่แพ็กเกจแล้ว                            |
-| `native-binary-compat.mjs`          | ตรวจสอบว่า native deps (`better-sqlite3`) ตรงกับ Node ของ Electron              |
 | `validate-pack-artifact.ts`         | ตรวจสอบผลลัพธ์จาก npm pack                                                      |
 | `responses-ws-proxy.mjs`            | บริดจ์ WebSocket สำหรับ Codex Responses API                                     |
 | `v1-ws-bridge.mjs`                  | บริดจ์ WebSocket สำหรับ endpoint `/api/v1/ws`                                   |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | คู่มือผู้ใช้ปลายทาง (การตั้งค่า โมเดล คอมโบ CLI เสียง ฯลฯ)                                              |
 | `API_REFERENCE.md`          | เอกสารอ้างอิงเอนด์พอยต์ API พร้อมโมเดลการยืนยันตัวตน                                                    |
 | `openapi.yaml`              | ข้อกำหนด OpenAPI 3.0 (121 พาธ)                                                                          |
-| `SETUP_GUIDE.md`            | วิธีติดตั้ง (npm, npx, Docker, Electron, Termux, ซอร์สโค้ด)                                             |
+| `SETUP_GUIDE.md`            | วิธีติดตั้ง (npm, npx, Docker, Termux, ซอร์สโค้ด)                                                       |
 | `ENVIRONMENT.md`            | ตัวแปรสภาพแวดล้อมทั้งหมด (จัดทำเอกสารแล้ว ~800 รายการ, `.env.example` ~3,050 บรรทัด)                    |
 | `TROUBLESHOOTING.md`        | ข้อผิดพลาดที่พบบ่อย + ปัญหาที่ทราบแล้วใน v3.8.0                                                         |
 | `RELEASE_CHECKLIST.md`      | ขั้นตอนการเผยแพร่ฉบับเต็ม (ทักษะ, husky, conventional commits, การปรับใช้)                              |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | การปรับใช้ Fly.io (ขณะนี้มีเฉพาะภาษาจีน)                              |
 | `TERMUX_GUIDE.md`            | Android แบบไร้ส่วนติดต่อผ่าน Termux                                   |
 | `PWA_GUIDE.md`               | การติดตั้ง Progressive Web App + service worker                       |
-| `ELECTRON_GUIDE.md`          | การบิลด์ + ลงนาม + แจกจ่ายแอปเดสก์ท็อป                                |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                |
 | `PROXY_GUIDE.md`             | พร็อกซีขาออก 4 ระดับ + มาร์เก็ตเพลส 1proxy                            |
 

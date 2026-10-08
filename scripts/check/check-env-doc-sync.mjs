@@ -254,6 +254,13 @@ const IGNORE_FROM_CODE = new Set([
   // Test-only escape hatch: makes getMachineIdRaw() skip the macOS ioreg strategy so
   // machineId tests reach the fallback strategies on darwin (#13539). Not user config.
   "DISABLE_IOREG_STRATEGY",
+  // Ad-hoc audit script login (scripts/ad-hoc/omniroute-audit.mjs) — operator-supplied
+  // dashboard password for a one-off audit run, not product config.
+  "AUDIT_PASSWORD",
+  // Signal-ownership plumbing set BY scripts/dev/standalone-server-ws.mjs for the Next
+  // child process (Next skips installing its own handlers when set) — internal, never
+  // operator config.
+  "NEXT_MANUAL_SIG_HANDLE",
 ]);
 
 // Vars documented in ENVIRONMENT.md but intentionally absent from .env.example.
@@ -357,7 +364,7 @@ function scanCodeVars({ cwd } = {}) {
   const repoRoot = cwd ?? REPO_ROOT;
   const stdout = execSync(
     "grep -rhoE 'process\\.env\\.[A-Z][A-Z0-9_]+' " +
-      "src/ open-sse/ bin/ scripts/ electron/main.js electron/preload.js 2>/dev/null || true",
+      "src/ open-sse/ bin/ scripts/ 2>/dev/null || true",
     { cwd: repoRoot, encoding: "utf8", maxBuffer: 20 * 1024 * 1024 }
   );
   const vars = new Set();

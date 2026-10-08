@@ -91,7 +91,7 @@ Når du må bygge inn en ny verdi fra en oppstrømsleverandør som:
 
 ### 3. Forbudte mønstre
 
-❌ Gjør **aldri** noe av følgende i produksjonskode (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ Gjør **aldri** noe av følgende i produksjonskode (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // FEIL: bokstavverdi utløser Secret Scanning + Semgrep

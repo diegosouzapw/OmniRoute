@@ -11,7 +11,7 @@
 1. **ਸੰਪਾਦਨ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ base ਚੁਣੋ।** ਸਭ ਤੋਂ ਉੱਚੀ ਸਰਗਰਮ `release/v*` branch ਲੱਭੋ ਅਤੇ ਉਸਦੇ ਸਿਰੇ ਤੋਂ branch ਬਣਾਓ। ਉਸ branch ਨੂੰ target ਕਰੋ, `main` ਨੂੰ ਨਹੀਂ। ਜੇ release freeze ਸਰਗਰਮ ਹੈ, ਤਾਂ frozen branch ਨੂੰ target ਨਾ ਕਰੋ; ਇਸ ਦੀ ਬਜਾਏ
    [Branching & Release Model](BRANCHING_MODEL.md) ਵਿੱਚ ਦਰਸਾਏ ਅਗਲੇ ਸਰਗਰਮ ਚੱਕਰ ਦੀ ਵਰਤੋਂ ਕਰੋ।
 2. **ਇਕਰਾਰਨਾਮਿਆਂ ਦੇ ਨਾਮ ਦਿਓ।** ਹਰ ਉਸ catalog, schema, generated artifact, public API ਜਾਂ user interface ਦੀ ਪਛਾਣ ਕਰੋ ਜਿਸਨੂੰ ਤਬਦੀਲੀ ਪ੍ਰਭਾਵਿਤ ਕਰਦੀ ਹੈ। ਹੇਠਾਂ ਦਿੱਤੀ ਸਾਰਣੀ ਘੱਟੋ-ਘੱਟ ਸ਼ੁਰੂਆਤੀ ਸਮੂਹ ਦਿੰਦੀ ਹੈ।
-3. **ਕੇਂਦ੍ਰਿਤ ਟੈਸਟ ਲਿਖੋ ਜਾਂ ਅੱਪਡੇਟ ਕਰੋ।** `src/`, `open-sse/`, `electron/`, ਜਾਂ
+3. **ਕੇਂਦ੍ਰਿਤ ਟੈਸਟ ਲਿਖੋ ਜਾਂ ਅੱਪਡੇਟ ਕਰੋ।** `src/`, `open-sse/`, ਜਾਂ
    `bin/` ਵਿੱਚ production ਤਬਦੀਲੀਆਂ ਲਈ ਉਸੇ PR ਵਿੱਚ ਇੱਕ automated test ਲਾਜ਼ਮੀ ਹੈ। ਪਹਿਲਾਂ ਉਹ ਸਭ ਤੋਂ ਛੋਟੀਆਂ test files ਚਲਾਓ ਜੋ ਵਿਹਾਰ ਨੂੰ ਸਾਬਤ ਕਰਦੀਆਂ ਹਨ, ਫਿਰ ਸੂਚੀਬੱਧ ਕੇਂਦ੍ਰਿਤ gates ਚਲਾਓ।
 4. **CI ਨੂੰ ਵਿਆਪਕ matrix ਚਲਾਉਣ ਦਿਓ।** ਪੂਰੇ unit shards, Vitest, coverage ratchet, ਅਤੇ
    production build PR ਉੱਤੇ ਚਲਦੇ ਹਨ। ਕੋਈ ਵਿਆਪਕ suite ਸਥਾਨਕ ਤੌਰ ’ਤੇ ਕੇਵਲ ਉਦੋਂ ਚਲਾਓ ਜਦੋਂ ਕੇਂਦ੍ਰਿਤ failure ਵੱਡੇ ਪ੍ਰਭਾਵ ਵੱਲ ਇਸ਼ਾਰਾ ਕਰੇ ਜਾਂ ਜਦੋਂ ਤਬਦੀਲੀ ਕਈ subsystems ਤੱਕ ਫੈਲੀ ਹੋਵੇ।

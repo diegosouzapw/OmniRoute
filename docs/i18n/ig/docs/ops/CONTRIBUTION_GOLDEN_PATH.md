@@ -16,7 +16,7 @@ mgbanwe ọ bụla a na-ahụkarị na nkwekọrịta ya, nyocha ndị e lekwas�
    [Branching & Release Model](BRANCHING_MODEL.md).
 2. **Kpọọ nkwekọrịta ndị ahụ aha.** Chọpụta catalog, schema, artifact emepụtara, public API, ma ọ bụ user
    interface ọ bụla mgbanwe ahụ na-emetụta. Tebụl dị n'okpuru na-enye otu kacha nta a ga-eji malite.
-3. **Dee ma ọ bụ melite ule ndị e lekwasịrị anya na ha.** Mgbanwe production na `src/`, `open-sse/`, `electron/`, ma ọ bụ
+3. **Dee ma ọ bụ melite ule ndị e lekwasịrị anya na ha.** Mgbanwe production na `src/`, `open-sse/`, ma ọ bụ
    `bin/` chọrọ automated test n'otu PR ahụ. Gbaa faịlụ ule kacha nta ndị na-egosi
    behavior ahụ, emesịa gbaa focused gates ndị e depụtara.
 4. **Hapụ CI ka ọ gbaa matrix sara mbara.** Unit shards zuru ezu, Vitest, coverage ratchet, na

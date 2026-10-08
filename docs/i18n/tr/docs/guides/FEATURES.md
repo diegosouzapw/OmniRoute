@@ -265,25 +265,6 @@ API anahtarları oluşturun, kapsamlandırın ve iptal edin. Her anahtar, tam er
 
 ---
 
-## 🖥️ Masaüstü Uygulaması
-
-Windows, macOS ve Linux için yerel Electron masaüstü uygulaması. OmniRoute'u sistem tepsisi entegrasyonu, çevrimdışı destek, otomatik güncelleme ve tek tıklamayla kurulum özelliklerine sahip bağımsız bir uygulama olarak çalıştırın.
-
-Temel özellikler:
-
-- Sunucu hazırlık durumu yoklaması (soğuk başlatmada boş ekran oluşmaz)
-- Port yönetimine sahip sistem tepsisi
-- İçerik Güvenliği Politikası
-- Tek örnek kilidi
-- Yeniden başlatmada otomatik güncelleme
-- Platforma koşullu kullanıcı arayüzü (macOS trafik ışıkları, Windows/Linux varsayılan başlık çubuğu)
-- Güçlendirilmiş Electron derleme paketlemesi — bağımsız pakette sembolik bağlantılı `node_modules`, paketlemeden önce algılanıp reddedilir ve çalışma zamanında derleme makinesine bağımlılık önlenir (v2.5.5+)
-- **Düzgün kapatma** — Electron `before-quit`, Next.js'i düzgün bir şekilde kapatarak SQLite WAL veritabanı kilitlerini önler (v3.6.2+)
-
-📖 Belgelerin tamamı için [`electron/README.md`](../../electron/README.md) dosyasına bakın.
-
----
-
 ## 🌐 V1 WebSocket Köprüsü _(v3.6.6+)_
 
 OmniRoute artık `/v1/ws` yükseltme uç noktası üzerinden **OpenAI uyumlu WebSocket istemcilerini** destekliyor. Özel `scripts/dev/v1-ws-bridge.mjs` sunucusu Next.js'i sarmalar ve WS bağlantılarını tam çift yönlü akış oturumlarına yükseltir. Kimlik doğrulama, HTTP istekleriyle aynı API anahtarını veya oturum çerezini kullanır.

@@ -19,7 +19,7 @@ dírithe, agus lena chumhdach CI.
 2. **Ainmnigh na conarthaí.** Sainaithin gach catalóg, scéimre, déantán ginte, API poiblí, nó comhéadan
    úsáideora a mbíonn tionchar ag an athrú air. Tugann an tábla thíos an tacar tosaigh íosta.
 3. **Scríobh nó nuashonraigh tástálacha dírithe.** Éilíonn athruithe táirgeachta in `src/`, `open-sse/`,
-   `electron/`, nó `bin/` tástáil uathoibrithe san iarratas tarraingthe céanna. Rith na comhaid
+   nó `bin/` tástáil uathoibrithe san iarratas tarraingthe céanna. Rith na comhaid
    tástála is lú a chruthaíonn an t-iompar, agus ansin na geataí dírithe liostaithe.
 4. **Lig do CI an mhaitrís leathan a rith.** Ritheann na deighiltí iomlána tástálacha aonaid, Vitest,
    an raicín cumhdaigh, agus an tógáil táirgeachta ar an iarratas tarraingthe. Ná rith sraith leathan

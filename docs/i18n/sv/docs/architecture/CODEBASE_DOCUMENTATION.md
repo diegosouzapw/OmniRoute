@@ -27,7 +27,6 @@ utan att skapa nya moduler.
 | Språk        | **TypeScript 6.0+** — mål `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                                   |
 | Körtidsmiljö | **Node.js** `>=22.22.2 <23` eller `>=24.0.0 <27` (framtvingas via `engines` + `SUPPORTED_NODE_RANGE`)                                |
 | Databas      | **SQLite** via `better-sqlite3` (singleton, WAL-journalföring)                                                                       |
-| Skrivbord    | **Electron 41** + `electron-builder` 26.10 (separat arbetsyta i `electron/`)                                                         |
 | Tester       | **Nodes inbyggda testkörare** (enhets-/integrationstester), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | Bygge        | Fristående Next.js via `scripts/build/build-next-isolated.mjs`                                                                       |
 | Lint/format  | Platt ESLint-konfiguration + Prettier (`lint-staged` via Husky före incheckning)                                                     |
@@ -51,7 +50,6 @@ katalogen anges med miljövariabeln `DATA_DIR` och är som standard `~/.omnirout
 OmniRoute/
 ├── src/                  Next.js-applikation (App Router, bibliotek, domän, server, delat)
 ├── open-sse/             Arbetsyta för strömningsmotorn (@omniroute/open-sse)
-├── electron/             Skrivbordsomslag (Electron 41, huvudprocess + förinläsning)
 ├── bin/                  CLI-startpunkter (omniroute, reset-password)
 ├── tests/                Enhets-, integrations-, e2e-, protocols-e2e-, översättnings- och säkerhetstester samt fixturer
 ├── scripts/              Hjälpskript för bygge, synkronisering, kontroller, migrering och körning
@@ -575,26 +573,6 @@ Strömningsprimitiver och hjälpfunktioner för leverantörer: `stream.ts`, `str
 
 ---
 
-## 5. `electron/` — Skrivbordsomslag
-
-```
-electron/
-├── main.js                  Electron-huvudprocess
-├── preload.js               Preload-brygga (contextIsolation aktiverat)
-├── types.d.ts
-├── package.json             electron-builder-konfiguration, version 3.8.51
-├── README.md
-├── assets/                  Byggresurser (ikoner, rättigheter, …)
-├── node_modules/            Dedikerad node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           Byggutdata (inte incheckat)
-```
-
-Fem npm-skript i arbetsytans rot: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Automatisk uppdatering sker via
-`electron-updater`, som pekar på GitHub-flödet för utgåvor.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -659,13 +637,11 @@ Vanliga kommandon:
 Organiserad i 6 undermappar efter syfte.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -845,7 +821,7 @@ Se [A2A-SERVER.md § Lägga till en ny färdighet](../frameworks/A2A-SERVER.md).
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — färdigheter och identifiering i A2A-protokollet.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK- och Caveman-komprimering.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI-integrationer.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (om den finns), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — distributionsmål.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — distributionsmål.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — vanliga driftsproblem.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — arbetsflöde för bidragsgivare.
 - [CLAUDE.md](../../CLAUDE.md) — regler för Claude Code i kodförrådet (den auktoritativa källan

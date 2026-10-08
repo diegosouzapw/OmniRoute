@@ -29,7 +29,7 @@ Objektīvs funkciju salīdzinājums ar populāriem atvērtā pirmkoda MI maršru
 | **TLS digitālā nospieduma maskēšana (JA3/JA4)**            |                  ✅ wreq-js                  |       ❌        |        ❌         |     ❌      |
 | **Novērtēšanas ietvars**                                   |                 ✅ iebūvēts                  |       ❌        |        ❌         |  ⚠ maksas   |
 | **MITM starpniekserveris (pārtver Cursor/Antigravity)**    |              ✅ vairākplatformu              |       ❌        |        ❌         |     ❌      |
-| **CLI ar sistēmas tekni (bez Electron)**                   |                      ✅                      |       ❌        |        n/a        |     n/a     |
+| **CLI ar sistēmas tekni **                                 |                      ✅                      |       ❌        |        n/a        |     n/a     |
 | **CLI automātiska autentifikācija ar ierīces ID**          |                      ✅                      |       ❌        |        n/a        |     n/a     |
 | **Informācijas panelis**                                   |                  Next.js 16                  |     pamata      |    proprietārs    | proprietārs |
 | **i18n**                                                   |             **42 lokalizācijas**             |       ❌        |        ❌         |      ⚠      |

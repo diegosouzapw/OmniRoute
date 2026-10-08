@@ -125,7 +125,6 @@ Compose 快速入門使用 `:latest`；GitOps 應繼續固定使用 `X.Y.Z`。�
 ### 版本與變更日誌
 
 - [ ] 執行 `/version-bump-cc <patch|minor|major>`（Claude Code 技能）
-  - 更新 `package.json`、`electron/package.json` 中的版本
   - 根據自上一個標籤以來的 git 提交重新產生 `CHANGELOG.md`
   - 更新 README.md 徽章
 - [ ] 手動檢閱 CHANGELOG.md，並視需要整理提交訊息
@@ -219,104 +218,6 @@ Husky hook 位於 `.husky/`，並會在執行 git 操作時自動執行。
 - [ ] 模型已在 `open-sse/config/providerRegistry.ts` 中註冊
 - [ ] `tests/unit/` 中的單元測試涵蓋提供者分類與路由
 
-### 桌面版（Electron）
-
-若 `electron/` 有變更：
-
-- [ ] `npm run electron:smoke:packaged` 通過
-- [ ] 已針對 `:win`、`:mac`、`:linux` 中至少一個進行建置測試
-- [ ] 程式碼簽署憑證尚未過期（若進行簽署）
-- [ ] `electron/package.json` 的版本與根目錄 `package.json` 相符
-- [ ] 若發行至 `stable`，已更新自動更新通道指標
-
-### 建置版面配置
-
-儲存庫使用三個不同的輸出目錄——切勿混用：
-
-| 目錄      | 用途                                                | 是否追蹤？          |
-| --------- | --------------------------------------------------- | ------------------- |
-| `src/`    | 應用程式原始碼（TypeScript / TSX）                  | 是                  |
-| `.build/` | 建置中間產物——`next build` 輸出（`distDir`）        | 否（已由 git 忽略） |
-| `dist/`   | 可發布的 npm 套件組合——由 `assembleStandalone` 組裝 | 否（已由 git 忽略） |
-
-> **操作人員注意事項：**遠端 VPS 映像目錄仍為 `/usr/lib/node_modules/omniroute/app/`。
-> 僅**儲存庫內**的建置輸出已移動（`app/` → `dist/`）。部署技能會透過 rsync 將
-> `dist/` 的內容同步至遠端 `app/` 目錄——無須變更 VPS 路徑。
-
-**單次建置流程：**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (清理)
-  └─ next build → .build/next/   (中間產物)
-  └─ assembleStandalone          (將獨立版本 + 靜態檔案 + 公開檔案 + 原生模組複製至 dist/)
-  └─ writes dist/BUILD_SHA       (HEAD 哨兵值)
-```
-
-部署時請勿先執行 `npm run build`，再另外執行 `npm run build:cli`——請使用
-`npm run build:release`，它會以單一命令執行全新建置並寫入哨兵值。
-
-### 成品驗證
-
-- [ ] `npm run build:release` 成功，且 `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` 檢查結果乾淨——沒有 `app.__qa_backup`、`scripts/scratch`、`package-lock.json` 或其他本機殘留項目
-- [ ] 建置後 `dist/server.js` 存在
-
-### 標記與發行
-
-- [ ] 執行 `/generate-release-cc`（Claude Code 技能）：
-  - 建立標籤 `vX.Y.Z`
-  - 推送標籤與分支
-  - 建立含變更記錄內容的 GitHub Release
-  - 附加 Electron 安裝程式（若已建置）
-- [ ] 或手動執行：
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### 部署
-
-部署技能使用輕量 rsync 流程——不使用 `npm pack`，也不使用 `npm i -g`：
-
-- [ ] 使用與目標相符的部署技能：
-  - `/deploy-vps-local-cc`——本機 VPS（192.168.0.15）
-  - `/deploy-vps-akamai-cc`——Akamai VPS（69.164.221.35）
-  - `/deploy-vps-both-cc`——兩者
-- [ ] 部署前，確認 `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] 建置必須在具有實際 `node_modules` 的位置執行（主要簽出目錄或已執行 `npm ci` 的工作樹——不得使用符號連結的工作樹）
-- [ ] 對已部署的執行個體進行煙霧測試：
-  - 開啟 `/dashboard/health` → 檢查版本字串是否與發行版本相符
-  - 對已知提供者執行一次 `/v1/chat/completions` 請求
-  - 確認 `/api/monitoring/health` 傳回 `CLOSED` 斷路器
-  - 確認 MCP 傳輸端點有回應（`/mcp` HTTP、`/mcp-sse` SSE）
-
-### 發行後
-
-- [ ] 執行 `/capture-release-evidences-cc`（Claude Code 技能）
-  - 擷取新功能的 WebP 螢幕截圖／錄影
-  - 附加至發行說明／部落格文章
-- [ ] 在 GitHub Discussions／Discord 發布發行公告
-- [ ] 為下一個版本建立里程碑
-- [ ] 若屬重大事項：置頂討論，或在 `news.json` 中發布應用程式內橫幅
-
-### Radar 公開發布關卡
-
-Radar 公告刻意以 `active: false` 提交。只有在以下每個項目皆有證據後，
-才另行進行啟用變更：
-
-- [ ] 所有堆疊式 Radar PR 均已合併，且發行端點的 CI 狀態為綠色
-- [ ] 在 `RADAR_ENABLED` 預設仍關閉的情況下，部署 OSS Radar 路由並進行煙霧測試
-- [ ] 在指定的 Radar 主機上，對 `GET /planos`、`/termos`、`/privacidade` 及 `/reembolso` 進行煙霧測試
-- [ ] 在私有服務中記錄操作人員的身分／聯絡方式／地址，以及經擁有者核准的法律審查
-- [ ] 僅在測試模式下測試 Stripe Checkout 與已簽署的 webhook
-- [ ] 使用已核准的寄件者／網域測試一次加密的交易型電子郵件傳送
-- [ ] 驗證備份還原，並執行一次有人監督且設有預算上限的研究作業
-- [ ] 在接受捐款證明前，核准 BRL／PIX 審查政策
-- [ ] 僅在上述關卡皆通過後啟用公開 Checkout，接著啟用新的 `news.json` ID
-- [ ] 確認首頁橫幅使用本地化文案，且在較舊的 ID 被關閉後，新 ID 會重新出現
-
 ## 內嵌服務冒煙測試（v3.8.4+）
 
 在發布任何包含內嵌服務變更的版本前，請確認：
@@ -402,7 +303,7 @@ Radar 公告刻意以 `active: false` 提交。只有在以下每個項目皆有
 - 絕不跳過 Husky hooks（`--no-verify`）
 - 絕不提交機密、憑證或 `.env` 檔案
 - 覆蓋率必須維持 ≥60/60/60/60（statements／lines／functions／branches）
-- 在變更 `src/`、`open-sse/`、`electron/` 或 `bin/` 中的正式程式碼時，務必包含或更新測試
+- 在變更 `src/`、`open-sse/` 或 `bin/` 中的正式程式碼時，務必包含或更新測試
 
 ## 自動化同步檢查
 

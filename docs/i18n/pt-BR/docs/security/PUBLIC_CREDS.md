@@ -91,7 +91,7 @@ Quando você precisar incorporar um novo valor fornecido pelo upstream que:
 
 ### 3. Padrões proibidos
 
-❌ **Nunca** faça nenhuma das ações a seguir no código de produção (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ **Nunca** faça nenhuma das ações a seguir no código de produção (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // RUIM: o valor literal aciona o Secret Scanning + Semgrep

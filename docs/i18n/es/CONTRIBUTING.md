@@ -220,7 +220,7 @@ Notas sobre la cobertura:
 
 - `npm run test:coverage` mide la cobertura del código fuente para la suite principal de pruebas unitarias, excluye `tests/**` e incluye `open-sse/**`
 - Las solicitudes de incorporación de cambios deben mantener el umbral de cobertura en **60 % o más** de sentencias/líneas/funciones/ramas
-- Si un PR cambia código de producción en `src/`, `open-sse/`, `electron/` o `bin/`, debe añadir o actualizar pruebas automatizadas en el mismo PR
+- Si un PR cambia código de producción en `src/`, `open-sse/` o `bin/`, debe añadir o actualizar pruebas automatizadas en el mismo PR
 - `npm run coverage:report` muestra el informe detallado archivo por archivo de la última ejecución de cobertura
 - `npm run test:coverage:legacy` conserva la métrica anterior para realizar comparaciones históricas
 - Consulta `docs/ops/COVERAGE_PLAN.md` para ver la hoja de ruta por fases destinada a mejorar la cobertura
@@ -325,7 +325,6 @@ open-sse/                   # @omniroute/open-sse workspace
 ├── transformer/            # Responses API transformer
 └── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron desktop app (cross-platform)
 
 tests/
 ├── unit/                   # Node.js test runner (122 test files)

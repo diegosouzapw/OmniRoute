@@ -122,7 +122,6 @@ matrix, nang walang anumang label.
 ### Bersyon at Changelog
 
 - [ ] Patakbuhin ang `/version-bump-cc <patch|minor|major>` (Claude Code skill)
-  - Ina-update ang bersyon sa `package.json`, `electron/package.json`
   - Muling binubuo ang `CHANGELOG.md` mula sa mga git commit simula sa huling tag
   - Ina-update ang mga badge sa README.md
 - [ ] Manu-manong suriin ang CHANGELOG.md at ayusin ang mga commit message kung kinakailangan
@@ -216,104 +215,6 @@ Mga breaking change: magdagdag ng footer na `BREAKING CHANGE:` o `!` pagkatapos 
 - [ ] Nakarehistro ang mga model sa `open-sse/config/providerRegistry.ts`
 - [ ] Sinasaklaw ng mga unit test sa `tests/unit/` ang pag-uuri at routing ng provider
 
-### Desktop (Electron)
-
-Kung nagbago ang `electron/`:
-
-- [ ] Pumapasa ang `npm run electron:smoke:packaged`
-- [ ] Nasubukan ang mga build para sa kahit isa sa `:win`, `:mac`, `:linux`
-- [ ] Hindi pa paso ang mga certificate sa pag-sign ng code (kung gumagamit ng signing)
-- [ ] Tugma ang bersyon ng `electron/package.json` sa root na `package.json`
-- [ ] Na-update ang pointer ng auto-update channel kung magre-release sa `stable`
-
-### Layout ng Build
-
-Gumagamit ang repository ng tatlong magkakaibang output directory — huwag kailanman paghalu-haluin ang mga ito:
-
-| Directory | Layunin                                                        | Sinusubaybayan?    |
-| --------- | -------------------------------------------------------------- | ------------------ |
-| `src/`    | Source ng application (TypeScript / TSX)                       | Oo                 |
-| `.build/` | Mga intermediate ng build — output ng `next build` (`distDir`) | Hindi (gitignored) |
-| `dist/`   | Naipapamahaging npm bundle — binuo ng `assembleStandalone`     | Hindi (gitignored) |
-
-> **Tala para sa operator:** nananatiling `/usr/lib/node_modules/omniroute/app/` ang directory ng image sa remote VPS.
-> Tanging ang output ng build **sa loob ng repo** ang inilipat (`app/` → `dist/`). Ini-rsync ng mga deploy skill
-> ang mga nilalaman ng `dist/` papunta sa remote na `app/` dir — walang kailangang baguhin sa path ng VPS.
-
-**Daloy ng iisang build:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (paglilinis)
-  └─ next build → .build/next/   (mga intermediate)
-  └─ assembleStandalone          (kinokopya ang standalone + static + public + natives → dist/)
-  └─ writes dist/BUILD_SHA       (HEAD sentinel)
-```
-
-HUWAG patakbuhin ang `npm run build` na susundan ng hiwalay na `npm run build:cli` para sa deploy — gamitin ang
-`npm run build:release`, na nagsasagawa ng malinis na rebuild + sentinel sa iisang command.
-
-### Pagpapatunay ng Artifact
-
-- [ ] Matagumpay ang `npm run build:release` at `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Malinis ang `npm run check:pack-artifact` — walang `app.__qa_backup`, `scripts/scratch`, `package-lock.json`, o iba pang lokal na residue
-- [ ] Umiiral ang `dist/server.js` pagkatapos ng build
-
-### Pag-tag at Release
-
-- [ ] Patakbuhin ang `/generate-release-cc` (Claude Code skill):
-  - Gumagawa ng tag na `vX.Y.Z`
-  - Itinutulak ang tag at branch
-  - Gumagawa ng GitHub Release na may changelog body
-  - Inilalakip ang mga Electron installer (kung binuo)
-- [ ] O gawin nang manu-mano:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deploy
-
-Ginagamit ng mga deploy skill ang magaan na daloy ng rsync — walang `npm pack`, walang `npm i -g`:
-
-- [ ] Gamitin ang deploy skill na tumutugma sa target:
-  - `/deploy-vps-local-cc` — lokal na VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — pareho
-- [ ] Bago mag-deploy, kumpirmahing `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Dapat tumakbo ang build kung saan tunay ang `node_modules` (pangunahing checkout o worktree na pinatakbuhan ng `npm ci` — HINDI naka-symlink na worktree)
-- [ ] I-smoke test ang naka-deploy na instance:
-  - Buksan ang `/dashboard/health` → tiyaking tugma sa release ang string ng bersyon
-  - Magpatakbo ng `/v1/chat/completions` request laban sa isang kilalang provider
-  - Beripikahing nagbabalik ang `/api/monitoring/health` ng mga circuit breaker na `CLOSED`
-  - Kumpirmahing tumutugon ang mga MCP transport (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Pagkatapos ng Release
-
-- [ ] Patakbuhin ang `/capture-release-evidences-cc` (Claude Code skill)
-  - Kumukuha ng mga WebP screenshot/recording ng mga bagong feature
-  - Inilalakip ang mga ito sa mga tala sa release / post sa blog
-- [ ] I-update ang GitHub Discussions / Discord gamit ang anunsyo ng release
-- [ ] Magbukas ng milestone para sa susunod na bersyon
-- [ ] Kung kritikal: i-pin ang talakayan o mag-post sa `news.json` para sa in-app na banner
-
-### Gate para sa pampublikong paglulunsad ng Radar
-
-Ang anunsyo ng Radar ay sadyang na-commit nang may `active: false`. Ang pag-activate ay isang hiwalay na
-pagbabago pagkatapos mapatunayan ang bawat item sa ibaba:
-
-- [ ] Naka-merge na ang lahat ng magkakapatong na Radar PR at berde ang release-tip CI
-- [ ] I-deploy at i-smoke test ang mga OSS Radar route habang naka-off pa rin bilang default ang `RADAR_ENABLED`
-- [ ] I-smoke test ang `GET /planos`, `/termos`, `/privacidade`, at `/reembolso` sa itinakdang Radar host
-- [ ] Itala ang pagkakakilanlan/contact/address ng operator at ang legal na pagsusuring inaprubahan ng may-ari sa pribadong serbisyo
-- [ ] Subukan ang Stripe Checkout at ang nilagdaang webhook sa test mode lamang
-- [ ] Subukan ang isang naka-encrypt na pagpapadala ng transactional email gamit ang inaprubahang sender/domain
-- [ ] Patunayan ang pag-restore ng backup at ang isang pinangangasiwaan at may limitasyon sa badyet na research run
-- [ ] Aprubahan ang patakaran sa pagsusuri ng BRL/PIX bago tumanggap ng ebidensya ng donasyon
-- [ ] I-enable ang pampublikong Checkout pagkatapos lamang ng mga naunang gate, pagkatapos ay i-activate ang bagong `news.json` ID
-- [ ] Tiyaking gumagamit ang Home banner ng naka-localize na kopya at muling lumilitaw ang bagong ID pagkatapos i-dismiss ang mas lumang ID
-
 ## Smoke test ng Embedded Services (v3.8.4+)
 
 Bago maglabas ng anumang release na may kasamang mga pagbabago sa embedded services, tiyaking:
@@ -399,7 +300,7 @@ Kung may kritikal na problema ang release:
 - Huwag kailanman laktawan ang mga Husky hook (`--no-verify`)
 - Huwag kailanman mag-commit ng mga secret, credential, o `.env` file
 - Dapat manatiling ≥60/60/60/60 ang coverage (mga statement/linya/function/branch)
-- Palaging magsama o mag-update ng mga test kapag binabago ang production code sa `src/`, `open-sse/`, `electron/`, o `bin/`
+- Palaging magsama o mag-update ng mga test kapag binabago ang production code sa `src/`, `open-sse/`, o `bin/`
 
 ## Awtomatikong Pagsusuri sa Pag-sync
 

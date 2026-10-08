@@ -16,7 +16,7 @@ pakeitimo tipą su jo sutartimis, tikslinėmis patikromis ir CI aprėptimi.
    [Šakų ir leidimų modelis](BRANCHING_MODEL.md).
 2. **Įvardykite sutartis.** Nustatykite kiekvieną katalogą, schemą, sugeneruotą artefaktą, viešąją API ar naudotojo
    sąsają, kurią paveikia pakeitimas. Toliau pateiktoje lentelėje nurodytas minimalus pradinis rinkinys.
-3. **Parašykite arba atnaujinkite tikslinius testus.** Produkcinės aplinkos pakeitimams kataloguose `src/`, `open-sse/`, `electron/` arba
+3. **Parašykite arba atnaujinkite tikslinius testus.** Produkcinės aplinkos pakeitimams kataloguose `src/`, `open-sse/` arba
    `bin/` tame pačiame PR būtinas automatinis testas. Paleiskite mažiausią testų failų rinkinį, įrodantį
    veikimą, tada – nurodytas tikslines patikras.
 4. **Leiskite CI vykdyti plačią matricą.** PR vykdomos visos vienetinių testų dalys, Vitest, aprėpties kartelės patikra ir

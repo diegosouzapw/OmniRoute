@@ -122,7 +122,6 @@ mà không cần bất kỳ nhãn nào.
 ### Phiên bản & Nhật ký thay đổi
 
 - [ ] Chạy `/version-bump-cc <patch|minor|major>` (kỹ năng Claude Code)
-  - Tăng phiên bản trong `package.json`, `electron/package.json`
   - Tạo lại `CHANGELOG.md` từ các git commit kể từ tag gần nhất
   - Cập nhật các badge trong README.md
 - [ ] Xem xét thủ công CHANGELOG.md và chỉnh sửa các commit message nếu cần
@@ -216,104 +215,6 @@ Thay đổi không tương thích ngược: thêm footer `BREAKING CHANGE:` ho�
 - [ ] Các mô hình được đăng ký trong `open-sse/config/providerRegistry.ts`
 - [ ] Các kiểm thử đơn vị trong `tests/unit/` bao phủ việc phân loại và định tuyến nhà cung cấp
 
-### Ứng dụng máy tính (Electron)
-
-Nếu `electron/` thay đổi:
-
-- [ ] `npm run electron:smoke:packaged` đạt
-- [ ] Đã kiểm thử bản dựng cho ít nhất một trong các nền tảng `:win`, `:mac`, `:linux`
-- [ ] Chứng chỉ ký mã chưa hết hạn (nếu có ký)
-- [ ] Phiên bản trong `electron/package.json` khớp với `package.json` gốc
-- [ ] Con trỏ kênh tự động cập nhật đã được cập nhật nếu phát hành lên `stable`
-
-### Bố cục bản dựng
-
-Kho lưu trữ sử dụng ba thư mục đầu ra riêng biệt — tuyệt đối không được nhầm lẫn:
-
-| Thư mục   | Mục đích                                                         | Được theo dõi?         |
-| --------- | ---------------------------------------------------------------- | ---------------------- |
-| `src/`    | Mã nguồn ứng dụng (TypeScript / TSX)                             | Có                     |
-| `.build/` | Tệp trung gian của bản dựng — đầu ra `next build` (`distDir`)    | Không (được gitignore) |
-| `dist/`   | Gói npm có thể phát hành — được tập hợp bởi `assembleStandalone` | Không (được gitignore) |
-
-> **Lưu ý dành cho người vận hành:** thư mục image trên VPS từ xa vẫn là `/usr/lib/node_modules/omniroute/app/`.
-> Chỉ đầu ra bản dựng **trong kho lưu trữ** được chuyển (`app/` → `dist/`). Các kỹ năng triển khai rsync
-> nội dung `dist/` vào thư mục `app/` từ xa — không cần thay đổi đường dẫn VPS.
-
-**Luồng dựng một lần:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (dọn dẹp)
-  └─ next build → .build/next/   (tệp trung gian)
-  └─ assembleStandalone          (sao chép standalone + static + public + natives → dist/)
-  └─ ghi dist/BUILD_SHA          (dấu kiểm HEAD)
-```
-
-KHÔNG chạy `npm run build` rồi chạy riêng `npm run build:cli` để triển khai — hãy dùng
-`npm run build:release`, lệnh này thực hiện bản dựng sạch + dấu kiểm trong một lệnh.
-
-### Xác thực artifact
-
-- [ ] `npm run build:release` thành công và `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` sạch — không có `app.__qa_backup`, `scripts/scratch`, `package-lock.json` hoặc phần dư cục bộ khác
-- [ ] `dist/server.js` tồn tại sau khi dựng
-
-### Gắn thẻ & phát hành
-
-- [ ] Chạy `/generate-release-cc` (kỹ năng Claude Code):
-  - Tạo thẻ `vX.Y.Z`
-  - Đẩy thẻ và nhánh
-  - Mở GitHub Release với nội dung changelog
-  - Đính kèm các trình cài đặt Electron (nếu đã dựng)
-- [ ] Hoặc thực hiện thủ công:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Triển khai
-
-Các kỹ năng triển khai sử dụng luồng rsync gọn nhẹ — không dùng `npm pack`, không dùng `npm i -g`:
-
-- [ ] Sử dụng kỹ năng triển khai phù hợp với đích:
-  - `/deploy-vps-local-cc` — VPS cục bộ (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — VPS Akamai (69.164.221.35)
-  - `/deploy-vps-both-cc` — cả hai
-- [ ] Trước khi triển khai, xác nhận `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Bản dựng phải chạy tại nơi `node_modules` là thư mục thực (checkout chính hoặc worktree đã chạy `npm ci` — KHÔNG phải worktree dùng symlink)
-- [ ] Kiểm thử nhanh phiên bản đã triển khai:
-  - Mở `/dashboard/health` → kiểm tra chuỗi phiên bản khớp với bản phát hành
-  - Chạy một yêu cầu `/v1/chat/completions` với một nhà cung cấp đã biết
-  - Xác minh `/api/monitoring/health` trả về các circuit breaker ở trạng thái `CLOSED`
-  - Xác nhận các transport MCP phản hồi (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Sau phát hành
-
-- [ ] Chạy `/capture-release-evidences-cc` (kỹ năng Claude Code)
-  - Chụp ảnh/quay màn hình WebP về các tính năng mới
-  - Đính kèm vào ghi chú phát hành / bài đăng blog
-- [ ] Cập nhật GitHub Discussions / Discord với thông báo phát hành
-- [ ] Mở milestone cho phiên bản tiếp theo
-- [ ] Nếu nghiêm trọng: ghim thảo luận hoặc đăng trong `news.json` để hiển thị biểu ngữ trong ứng dụng
-
-### Cổng kiểm soát phát hành công khai Radar
-
-Thông báo Radar được chủ đích commit với `active: false`. Việc kích hoạt là một thay đổi riêng biệt
-sau khi có bằng chứng cho mọi mục dưới đây:
-
-- [ ] Tất cả PR Radar xếp chồng đã được hợp nhất và CI của bản phát hành mới nhất đang ở trạng thái xanh
-- [ ] Triển khai và kiểm tra nhanh các route Radar OSS trong khi `RADAR_ENABLED` vẫn mặc định bị tắt
-- [ ] Kiểm tra nhanh `GET /planos`, `/termos`, `/privacidade` và `/reembolso` trên máy chủ Radar được chỉ định
-- [ ] Ghi lại danh tính/thông tin liên hệ/địa chỉ của đơn vị vận hành và kết quả rà soát pháp lý đã được chủ sở hữu phê duyệt trong dịch vụ riêng tư
-- [ ] Kiểm thử Stripe Checkout và webhook có chữ ký chỉ trong chế độ thử nghiệm
-- [ ] Kiểm thử một lần gửi email giao dịch được mã hóa bằng người gửi/tên miền đã được phê duyệt
-- [ ] Chứng minh khả năng khôi phục bản sao lưu và thực hiện một lượt nghiên cứu có giám sát, với ngân sách được giới hạn
-- [ ] Phê duyệt chính sách rà soát BRL/PIX trước khi chấp nhận bằng chứng quyên góp
-- [ ] Chỉ bật Checkout công khai sau khi hoàn thành các cổng kiểm soát trước đó, rồi kích hoạt ID `news.json` mới
-- [ ] Xác minh biểu ngữ Home sử dụng nội dung đã bản địa hóa và ID mới sẽ xuất hiện lại sau khi một ID cũ bị bỏ qua
-
 ## Kiểm thử nhanh Dịch vụ Nhúng (v3.8.4+)
 
 Trước khi phát hành bất kỳ bản phát hành nào có thay đổi đối với dịch vụ nhúng, hãy xác minh:
@@ -399,7 +300,7 @@ Nếu bản phát hành gặp sự cố nghiêm trọng:
 - Không bao giờ bỏ qua các hook của Husky (`--no-verify`)
 - Không bao giờ commit các secret, thông tin xác thực hoặc tệp `.env`
 - Độ bao phủ mã phải luôn ≥60/60/60/60 (câu lệnh/dòng/hàm/nhánh)
-- Luôn bổ sung hoặc cập nhật các bài kiểm thử khi thay đổi mã production trong `src/`, `open-sse/`, `electron/` hoặc `bin/`
+- Luôn bổ sung hoặc cập nhật các bài kiểm thử khi thay đổi mã production trong `src/`, `open-sse/` hoặc `bin/`
 
 ## Kiểm tra đồng bộ tự động
 

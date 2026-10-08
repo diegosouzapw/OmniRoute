@@ -26,7 +26,6 @@ body:
       options:
         - npm (global)
         - Docker / Docker Compose
-        - Electron desktop app
         - Built from source
     validations:
       required: true

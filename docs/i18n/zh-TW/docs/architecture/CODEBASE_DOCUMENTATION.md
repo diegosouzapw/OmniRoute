@@ -29,7 +29,6 @@ lastUpdated: 2026-06-28
 | 語言       | **TypeScript 6.0+** — 目標 `ES2022`，`module: esnext`，`moduleResolution: bundler`，`strict: false`                 |
 | 執行時期   | **Node.js** `>=22.22.2 <23` 或 `>=24.0.0 <27`（透過 `engines` + `SUPPORTED_NODE_RANGE` 強制）                       |
 | 資料庫     | **SQLite** 透過 `better-sqlite3`（單例，WAL 日誌模式）                                                              |
-| 桌面應用   | **Electron 41** + `electron-builder` 26.10（獨立 workspace 位於 `electron/`）                                       |
 | 測試       | **Node 原生測試執行器**（單元/整合測試），**Vitest**（MCP、autoCombo、快取），**Playwright**（e2e + protocols-e2e） |
 | 建置       | Next.js standalone 透過 `scripts/build/build-next-isolated.mjs`                                                     |
 | 程式碼風格 | ESLint flat config + Prettier（`lint-staged` 透過 Husky pre-commit）                                                |
@@ -53,7 +52,6 @@ lastUpdated: 2026-06-28
 OmniRoute/
 ├── src/                  Next.js 應用程式（App Router、函式庫、領域、伺服器、共用）
 ├── open-sse/             串流引擎 workspace（@omniroute/open-sse）
-├── electron/             桌面包裝程式（Electron 41 main + preload）
 ├── bin/                  CLI 進入點（omniroute、reset-password）
 ├── tests/                單元、整合、e2e、protocols-e2e、翻譯器、安全性、測試用 fixture
 ├── scripts/              建置、同步、檢查、遷移及執行時期輔助腳本
@@ -574,26 +572,6 @@ open-sse/
 
 ---
 
-## 5. `electron/` — 桌面包裝程式
-
-```
-electron/
-├── main.js                  Electron 主程序
-├── preload.js               預載橋接（啟用 contextIsolation）
-├── types.d.ts
-├── package.json             electron-builder 設定，版本 3.8.0
-├── README.md
-├── assets/                  建置資源（圖示、授權檔案……）
-├── node_modules/            專屬 node_modules（better-sqlite3、electron-updater）
-└── dist-electron/           建置輸出（不提交）
-```
-
-五個 npm 腳本位於 workspace 根目錄：`electron:dev`、`electron:build`、
-`electron:build:{win,mac,linux}`、`electron:smoke:packaged`。自動更新透過
-`electron-updater` 指向 GitHub 發布 feed。
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -658,13 +636,11 @@ bin/
 按用途分為 6 個子資料夾。
 
 - **`scripts/build/`** — `build-next-isolated.mjs`、`prepublish.ts`、
-  `prepare-electron-standalone.mjs`、`pack-artifact-policy.ts`、
   `validate-pack-artifact.ts`、`postinstall.mjs`、`postinstallSupport.mjs`、
   `uninstall.mjs`、`bootstrap-env.mjs`、`runtime-env.mjs`、
   `native-binary-compat.mjs`。
 - **`scripts/dev/`** — `run-next.mjs`、`run-next-playwright.mjs`、
   `run-standalone.mjs`、`standalone-server-ws.mjs`、`responses-ws-proxy.mjs`、
-  `v1-ws-bridge.mjs`、`smoke-electron-packaged.mjs`、
   `run-playwright-tests.mjs`、`run-ecosystem-tests.mjs`、
   `run-protocol-clients-tests.mjs`、`sync-env.mjs`、`healthcheck.mjs`、
   `system-info.mjs`。
@@ -810,7 +786,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A 協定技能與探索。
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK + Caveman 壓縮。
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI 整合。
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md)（若存在）、[DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md)、[FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md)、[VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md)、[TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md)、[PWA_GUIDE.md](../guides/PWA_GUIDE.md) — 部署目標。
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md)、[FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md)、[VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md)、[TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md)、[PWA_GUIDE.md](../guides/PWA_GUIDE.md) — 部署目標。
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — 常見運維問題。
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — 貢獻者工作流程。
 - [CLAUDE.md](../../CLAUDE.md) — 給 Claude Code 的儲存庫規則（上述許多慣例的真實來源）。

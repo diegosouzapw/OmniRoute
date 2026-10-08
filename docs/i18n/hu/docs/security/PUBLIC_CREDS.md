@@ -91,7 +91,7 @@ Ha olyan új, upstream által biztosított értéket kell beágyaznod, amely:
 
 ### 3. Tiltott minták
 
-❌ Éles kódban (`src/`, `open-sse/`, `electron/`, `bin/`) **soha** ne tedd a következők egyikét sem:
+❌ Éles kódban (`src/`, `open-sse/`, `bin/`) **soha** ne tedd a következők egyikét sem:
 
 ```ts
 // ROSSZ: a literális érték aktiválja a Secret Scanning és a Semgrep ellenőrzését

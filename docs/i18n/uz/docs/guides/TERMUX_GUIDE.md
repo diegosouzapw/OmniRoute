@@ -118,7 +118,6 @@ omniroute
 
 ## Cheklovlar
 
-- Electron Termux muhitida ishlamaydi.
 - Tizim treyi yoki ish stoli bilan integratsiya mavjud emas.
 - Bu faqat server uchun moʻljallangan sozlama: brauzerdagi boshqaruv panelidan foydalaning.
 - Mahalliy bogʻliqliklarni qurilmaning oʻzida kompilyatsiya qilish talab etilishi mumkin.

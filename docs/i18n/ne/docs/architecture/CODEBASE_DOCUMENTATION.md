@@ -27,7 +27,6 @@
 | भाषा            | **TypeScript 6.0+** — लक्ष्य `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                  |
 | रनटाइम          | **Node.js** `>=22.22.2 <23` वा `>=24.0.0 <27` (`engines` + `SUPPORTED_NODE_RANGE` मार्फत लागू गरिएको)                  |
 | डेटाबेस         | `better-sqlite3` मार्फत **SQLite** (सिङ्गलटन, WAL जर्नलिङ)                                                             |
-| डेस्कटप         | **Electron 41** + `electron-builder` 26.10 (`electron/` मा छुट्टै वर्कस्पेस)                                           |
 | परीक्षणहरू      | **Node नेटिभ टेस्ट रनर** (युनिट/इन्टिग्रेसन), **Vitest** (MCP, autoCombo, क्यास), **Playwright** (e2e + protocols-e2e) |
 | बिल्ड           | `scripts/build/build-next-isolated.mjs` मार्फत Next.js स्ट्यान्डअलोन                                                   |
 | लिन्ट/ढाँचा     | ESLint फ्ल्याट कन्फिग + Prettier (Husky pre-commit मार्फत `lint-staged`)                                               |
@@ -51,7 +50,6 @@
 OmniRoute/
 ├── src/                  Next.js अनुप्रयोग (App Router, लाइब्रेरीहरू, डोमेन, सर्भर, साझा)
 ├── open-sse/             स्ट्रिमिङ इन्जिन वर्कस्पेस (@omniroute/open-sse)
-├── electron/             डेस्कटप र्यापर (Electron 41 मुख्य + प्रिलोड)
 ├── bin/                  CLI प्रवेश बिन्दुहरू (omniroute, reset-password)
 ├── tests/                युनिट, इन्टिग्रेसन, e2e, protocols-e2e, अनुवादक, सुरक्षा, फिक्स्चरहरू
 ├── scripts/              बिल्ड, सिङ्क, जाँच, माइग्रेसन, र रनटाइम सहायक स्क्रिप्टहरू
@@ -575,26 +573,6 @@ Hub-and-spoke translation (OpenAI hub हो)।
 
 ---
 
-## 5. `electron/` — डेस्कटप र्यापर
-
-```
-electron/
-├── main.js                  Electron मुख्य प्रक्रिया
-├── preload.js               प्रिलोड ब्रिज (contextIsolation सक्षम)
-├── types.d.ts
-├── package.json             electron-builder कन्फिगरेसन, संस्करण 3.8.51
-├── README.md
-├── assets/                  बिल्ड स्रोतहरू (आइकन, इन्टाइटलमेन्ट, …)
-├── node_modules/            समर्पित node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           बिल्ड आउटपुट (कमिट नगरिएको)
-```
-
-वर्कस्पेस रुटमा पाँचवटा npm स्क्रिप्ट छन्: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`। स्वतः-अपडेट
-GitHub रिलिज फिडतर्फ औँल्याइएको `electron-updater` मार्फत हुन्छ।
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -659,13 +637,11 @@ bin/
 उद्देश्यअनुसार 6 वटा उपफोल्डरमा व्यवस्थित गरिएको छ।
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`।
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`।
@@ -844,7 +820,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A प्रोटोकलका सीपहरू र डिस्कभरी।
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK + Caveman कम्प्रेसन।
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI एकीकरणहरू।
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (उपलब्ध भएमा), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — डिप्लोयमेन्ट लक्ष्यहरू।
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — डिप्लोयमेन्ट लक्ष्यहरू।
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — सञ्चालनसम्बन्धी सामान्य समस्याहरू।
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — योगदानकर्ताको कार्यप्रवाह।
 - [CLAUDE.md](../../CLAUDE.md) — Claude Code का लागि रिपोजिटरी नियमहरू (माथिका धेरै परिपाटीहरूको

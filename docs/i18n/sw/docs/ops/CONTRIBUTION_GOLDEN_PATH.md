@@ -16,7 +16,7 @@ mabadiliko na mikataba yake, ukaguzi mahususi, na ufunikaji wa CI.
    [Muundo wa Matawi na Matoleo](BRANCHING_MODEL.md).
 2. **Taja mikataba.** Tambua kila katalogi, schema, artifact iliyozalishwa, API ya umma, au kiolesura cha
    mtumiaji kinachoathiriwa na badiliko. Jedwali lililo hapa chini linaonyesha seti ya chini kabisa ya kuanzia.
-3. **Andika au sasisha majaribio mahususi.** Mabadiliko ya uzalishaji katika `src/`, `open-sse/`, `electron/`, au
+3. **Andika au sasisha majaribio mahususi.** Mabadiliko ya uzalishaji katika `src/`, `open-sse/`, au
    `bin/` yanahitaji jaribio la kiotomatiki katika PR hiyo hiyo. Endesha faili chache zaidi za majaribio zinazothibitisha
    tabia, kisha ukaguzi mahususi ulioorodheshwa.
 4. **Ruhusu CI iendeshe matriki pana.** Sehemu kamili za majaribio ya unit, Vitest, kizingiti cha ufunikaji, na

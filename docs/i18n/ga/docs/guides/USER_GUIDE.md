@@ -27,7 +27,6 @@ Treoir iomlán maidir le soláthraithe a chumrú, teaglamaí a chruthú, uirlis�
 - [Gníomhairí Scáileáin](#gníomhairí-scáileáin)
 - [Bainisteoireacht Clárlathasach](#bainisteoireacht-clárlathasach)
 - [CLI Inmheánach](#cli-inmheánach)
-- [Feidhmchlár Deisce (Electron)](#feidhmchlár-deisce-electron)
 
 ## 💰 Praghsáil go Sracfhéachaint
 
@@ -1280,55 +1279,3 @@ omniroute --port 3000              # Tosaigh an freastalaí ar phort saincheapth
 ```
 
 Leid: páirigh `omniroute doctor --json` le d'fheirm monatóireachta chun a chur ar bun le haghaidh naisc soláthraí neamhshláintiúil.
-
----
-
-## 💻 Feidhmchlár Deisce (Electron)
-
-Tá OmniRoute ar fáil mar fheidhmchlár deisce dúchasach le haghaidh Windows, macOS, agus Linux.
-
-### Suiteáil
-
-```bash
-# Ón eolaire electron:
-cd electron
-npm install
-
-# Mód forbartha (ceangail le freastalaí forbartha Next.js ag rith):
-npm run dev
-
-# Mód táirgíochta (úsáideann tógáil neamhspleách):
-npm start
-```
-
-### Tógáil Suiteálaithe
-
-```bash
-cd electron
-npm run build          # Ardán reatha
-npm run build:win      # Windows (.exe NSIS)
-npm run build:mac      # macOS (.dmg uilíoch)
-npm run build:linux    # Linux (.AppImage)
-```
-
-Aschur → `electron/dist-electron/`
-
-### Príomhghnéithe
-
-| Gné                                                                                    | Cur Síos                                                                             |
-| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| **Ullmhacht Freastalaí**                                                               | Polallú roimh an fhuinneog a thaispeáint (gan scáileán folamh)                       |
-| **Trá idir na fóin** # Íoslaghdigh go dtí an trá, athraigh port, scoir ó roghchlár trá |
-| **Bainistíocht Poirt**                                                                 | Athraigh port an fhreastalaí ón trá (aththosaíonn sé an freastalaí go huathoibríoch) |
-| **Beartas Slándála Ábhair**                                                            | CSP teann trí cheannteidil seisiún                                                   |
-| **Inneamh Aonair**                                                                     | Ní fhéadann ach aon instainc amháin den fheidhmchlár rith ag an am céanna            |
-| **Mód Aslíne**                                                                         | Oibríonn freastalaí Next.js páisteáilte gan idirlíon                                 |
-
-### Athróganna Timpeallachta
-
-| Athróg                | Réamhshocrú | Cur Síos                               |
-| --------------------- | ----------- | -------------------------------------- |
-| `OMNIROUTE_PORT`      | `20128`     | Port an fhreastalaí                    |
-| `OMNIROUTE_MEMORY_MB` | `512`       | Teorainn cuimhne Node.js (64–16384 MB) |
-
-📖 Doiciméadú iomlán: [`electron/README.md`](../../electron/README.md)

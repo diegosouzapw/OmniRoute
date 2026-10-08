@@ -17,7 +17,7 @@ muudatuse tüübi selle lepingute, sihitud kontrollide ja CI-katvusega.
 2. **Nimetage lepingud.** Tuvastage kõik kataloogid, skeemid, genereeritud artefaktid, avalikud API-d
    või kasutajaliidesed, mida muudatus mõjutab. Allolev tabel annab minimaalse lähtekomplekti.
 3. **Kirjutage või värskendage sihitud teste.** Tootmiskoodi muudatused kataloogides `src/`,
-   `open-sse/`, `electron/` või `bin/` nõuavad samas PR-is automatiseeritud testi. Käivitage esmalt
+   `open-sse/` või `bin/` nõuavad samas PR-is automatiseeritud testi. Käivitage esmalt
    kõige väiksemad käitumist tõendavad testifailid ja seejärel loetletud sihitud kontrollid.
 4. **Laske CI-l käitada laia maatriksit.** PR-is käivitatakse kõik üksustestide jaotised, Vitest,
    katvuse lävendi kontroll ja tootmisjärk. Käivitage lai testikogum kohalikult ainult siis, kui

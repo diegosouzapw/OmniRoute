@@ -197,7 +197,7 @@ docker run -d \
 
 ## 依存関係
 
-- `npm audit` を定期的に実行する（`npm run audit:deps` はメインと electron の両方を対象とします）
+- `npm audit` を定期的に実行する（）
 - 依存関係を最新の状態に保つ
 - このプロジェクトでは、コミット前チェックに `husky` + `lint-staged` を使用しています（lint-staged + check-docs-sync + check:any-budget:t11）
 - CI パイプラインでは、プッシュのたびに ESLint のセキュリティルールを実行します（`no-eval`、`no-implied-eval`、`no-new-func` = error）

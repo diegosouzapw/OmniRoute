@@ -27,7 +27,6 @@
 | Язык                   | **TypeScript 6.0+** — цель `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                                       |
 | Среда выполнения       | **Node.js** `>=22.22.2 <23` или `>=24.0.0 <27` (ограничение применяется через `engines` + `SUPPORTED_NODE_RANGE`)                         |
 | База данных            | **SQLite** через `better-sqlite3` (одиночный экземпляр, журналирование WAL)                                                               |
-| Настольное приложение  | **Electron 41** + `electron-builder` 26.10 (отдельное рабочее пространство в `electron/`)                                                 |
 | Тесты                  | **Встроенный исполнитель тестов Node** (модульные/интеграционные), **Vitest** (MCP, autoCombo, кеш), **Playwright** (e2e + protocols-e2e) |
 | Сборка                 | Автономная сборка Next.js через `scripts/build/build-next-isolated.mjs`                                                                   |
 | Линтинг/форматирование | Плоская конфигурация ESLint + Prettier (`lint-staged` через предкоммитный хук Husky)                                                      |
@@ -51,7 +50,6 @@ HTTP-порт по умолчанию: **`20128`** (API и панель упра
 OmniRoute/
 ├── src/                  Приложение Next.js (App Router, библиотеки, предметная область, сервер, общий код)
 ├── open-sse/             Рабочее пространство потокового движка (@omniroute/open-sse)
-├── electron/             Обёртка настольного приложения (основной процесс Electron 41 + предварительная загрузка)
 ├── bin/                  Точки входа CLI (omniroute, reset-password)
 ├── tests/                Модульные, интеграционные, e2e, protocols-e2e, переводческие тесты, тесты безопасности, фикстуры
 ├── scripts/              Вспомогательные скрипты для сборки, синхронизации, проверок, миграций и среды выполнения
@@ -575,26 +573,6 @@ open-sse/
 
 ---
 
-## 5. `electron/` — Обёртка для настольных систем
-
-```
-electron/
-├── main.js                  Основной процесс Electron
-├── preload.js               Мост предварительной загрузки (contextIsolation включён)
-├── types.d.ts
-├── package.json             Конфигурация electron-builder, версия 3.8.51
-├── README.md
-├── assets/                  Ресурсы сборки (значки, разрешения, …)
-├── node_modules/            Выделенный каталог node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           Результаты сборки (не включены в репозиторий)
-```
-
-Пять npm-скриптов в корне рабочего пространства: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Автоматическое обновление выполняется через
-`electron-updater`, настроенный на ленту релизов GitHub.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -659,13 +637,11 @@ bin/
 Организованы в 6 подпапок по назначению.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -846,7 +822,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — возможности и обнаружение протокола A2A.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — сжатие RTK и Caveman.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — интеграции CLI.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (если имеется), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — целевые среды развёртывания.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — целевые среды развёртывания.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — распространённые эксплуатационные проблемы.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — рабочий процесс участника проекта.
 - [CLAUDE.md](../../CLAUDE.md) — правила репозитория для Claude Code (основной источник

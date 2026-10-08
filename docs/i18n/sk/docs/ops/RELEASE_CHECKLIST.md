@@ -122,7 +122,6 @@ automaticky, bez akéhokoľvek štítka.
 ### Verzia a denník zmien
 
 - [ ] Spustite `/version-bump-cc <patch|minor|major>` (zručnosť Claude Code)
-  - Zvýši verziu v `package.json`, `electron/package.json`
   - Znova vygeneruje `CHANGELOG.md` z commitov git od poslednej značky
   - Aktualizuje odznaky v README.md
 - [ ] Manuálne skontrolujte CHANGELOG.md a v prípade potreby upravte správy commitov
@@ -216,104 +215,6 @@ Nekompatibilné zmeny: pridajte pätu `BREAKING CHANGE:` alebo `!` za rozsah (na
 - [ ] Modely sú zaregistrované v `open-sse/config/providerRegistry.ts`
 - [ ] Jednotkové testy v `tests/unit/` pokrývajú klasifikáciu poskytovateľov a smerovanie
 
-### Desktopová aplikácia (Electron)
-
-Ak sa zmenil adresár `electron/`:
-
-- [ ] `npm run electron:smoke:packaged` prejde úspešne
-- [ ] Zostavenia boli otestované aspoň pre jednu z možností `:win`, `:mac`, `:linux`
-- [ ] Certifikáty na podpisovanie kódu nie sú exspirované (ak sa používa podpisovanie)
-- [ ] Verzia v `electron/package.json` sa zhoduje s koreňovým súborom `package.json`
-- [ ] Ukazovateľ kanála automatických aktualizácií bol pri vydávaní do kanála `stable` aktualizovaný
-
-### Rozloženie zostavenia
-
-Repozitár používa tri samostatné výstupné adresáre — nikdy ich navzájom nezamieňajte:
-
-| Adresár   | Účel                                                            | Sledovaný?       |
-| --------- | --------------------------------------------------------------- | ---------------- |
-| `src/`    | Zdrojový kód aplikácie (TypeScript / TSX)                       | Áno              |
-| `.build/` | Medzivýstupy zostavenia — výstup `next build` (`distDir`)       | Nie (gitignored) |
-| `dist/`   | Distribuovateľný balík npm — zostavený cez `assembleStandalone` | Nie (gitignored) |
-
-> **Poznámka pre operátora:** vzdialený adresár obrazu VPS zostáva `/usr/lib/node_modules/omniroute/app/`.
-> Presunul sa iba výstup zostavenia **v repozitári** (`app/` → `dist/`). Nástroje na nasadenie synchronizujú
-> obsah `dist/` pomocou rsync do vzdialeného adresára `app/` — nie sú potrebné žiadne zmeny ciest na VPS.
-
-**Postup jedného zostavenia:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (vyčistenie)
-  └─ next build → .build/next/   (medzivýstupy)
-  └─ assembleStandalone          (skopíruje samostatné zostavenie + statické súbory + verejné súbory + natívne moduly → dist/)
-  └─ writes dist/BUILD_SHA       (kontrolná hodnota HEAD)
-```
-
-Pri nasadzovaní NEspúšťajte `npm run build` a následne samostatne `npm run build:cli` — použite
-`npm run build:release`, ktorý vykoná čisté opätovné zostavenie + vytvorenie kontrolnej hodnoty jediným príkazom.
-
-### Overenie artefaktu
-
-- [ ] `npm run build:release` prebehne úspešne a `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` prejde bez nálezov — neobsahuje `app.__qa_backup`, `scripts/scratch`, `package-lock.json` ani iné lokálne pozostatky
-- [ ] Po zostavení existuje `dist/server.js`
-
-### Označenie verzie a vydanie
-
-- [ ] Spustite `/generate-release-cc` (nástroj Claude Code):
-  - Vytvorí značku `vX.Y.Z`
-  - Odošle značku a vetvu
-  - Vytvorí vydanie GitHub s obsahom zoznamu zmien
-  - Pripojí inštalátory Electron (ak boli zostavené)
-- [ ] Alebo manuálne:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Nasadenie
-
-Nástroje na nasadenie používajú odľahčený postup rsync — bez `npm pack` a bez `npm i -g`:
-
-- [ ] Použite nástroj na nasadenie zodpovedajúci cieľu:
-  - `/deploy-vps-local-cc` — lokálny VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — oba
-- [ ] Pred nasadením potvrďte, že `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Zostavenie sa musí spustiť tam, kde je `node_modules` skutočný adresár (hlavná pracovná kópia alebo worktree pripravený pomocou `npm ci` — NIE worktree so symbolickým odkazom)
-- [ ] Vykonajte základný test nasadenej inštancie:
-  - Otvorte `/dashboard/health` → skontrolujte, či reťazec verzie zodpovedá vydaniu
-  - Spustite požiadavku `/v1/chat/completions` voči známemu poskytovateľovi
-  - Overte, že `/api/monitoring/health` vracia ističe v stave `CLOSED`
-  - Potvrďte, že transporty MCP odpovedajú (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Po vydaní
-
-- [ ] Spustite `/capture-release-evidences-cc` (skill Claude Code)
-  - Zachytí snímky obrazovky/nahrávky nových funkcií vo formáte WebP
-  - Pripojí ich k poznámkam k vydaniu / blogovému príspevku
-- [ ] Aktualizujte GitHub Discussions / Discord oznámením o vydaní
-- [ ] Otvorte míľnik pre ďalšiu verziu
-- [ ] Ak je to kritické: pripnite diskusiu alebo uverejnite príspevok v `news.json` pre banner v aplikácii
-
-### Kontrolná brána verejného spustenia Radaru
-
-Oznámenie Radaru je zámerne commitnuté s `active: false`. Aktivácia predstavuje samostatnú
-zmenu po zdokumentovaní všetkých položiek uvedených nižšie:
-
-- [ ] Všetky nadväzujúce Radar PR sú zlúčené a CI pre špičku vydania je úspešné
-- [ ] Nasaďte a vykonajte základnú kontrolu OSS trás Radaru, pričom `RADAR_ENABLED` zostane predvolene vypnuté
-- [ ] Vykonajte základnú kontrolu `GET /planos`, `/termos`, `/privacidade` a `/reembolso` na určenom hostiteľovi Radaru
-- [ ] Zaznamenajte identitu/kontakt/adresu prevádzkovateľa a vlastníkom schválenú právnu kontrolu v súkromnej službe
-- [ ] Otestujte Stripe Checkout a podpísaný webhook výhradne v testovacom režime
-- [ ] Otestujte jedno šifrované doručenie transakčného e-mailu so schváleným odosielateľom/doménou
-- [ ] Preukážte obnovenie zo zálohy a jedno kontrolované spustenie výskumu s rozpočtovým limitom
-- [ ] Pred prijatím dokladu o dare schváľte zásady kontroly BRL/PIX
-- [ ] Verejný Checkout povoľte až po splnení predchádzajúcich brán a potom aktivujte nové ID v `news.json`
-- [ ] Overte, že banner na domovskej stránke používa lokalizovaný text a že nové ID sa znova zobrazí po zavretí staršieho ID
-
 ## Rýchly test vstavaných služieb (v3.8.4+)
 
 Pred vydaním akejkoľvek verzie, ktorá zahŕňa zmeny vstavaných služieb, overte:
@@ -399,7 +300,7 @@ Ak má vydanie kritický problém:
 - Nikdy nepreskakujte hooky Husky (`--no-verify`)
 - Nikdy nevkladajte do commitov tajné údaje, prihlasovacie údaje ani súbory `.env`
 - Pokrytie musí zostať ≥60/60/60/60 (príkazy/riadky/funkcie/vetvy)
-- Pri zmene produkčného kódu v `src/`, `open-sse/`, `electron/` alebo `bin/` vždy pridajte alebo aktualizujte testy
+- Pri zmene produkčného kódu v `src/`, `open-sse/` alebo `bin/` vždy pridajte alebo aktualizujte testy
 
 ## Automatizovaná kontrola synchronizácie
 

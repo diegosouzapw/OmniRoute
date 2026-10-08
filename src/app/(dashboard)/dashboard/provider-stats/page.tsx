@@ -351,11 +351,7 @@ export default function ProviderStatsPage() {
                       <td className="py-2.5 px-3 text-right tabular-nums">
                         <span
                           className={
-                            rate >= 99
-                              ? "text-success"
-                              : provider.status === "warning"
-                                ? "text-warning"
-                                : "text-error"
+                            rate >= 99 ? "text-success" : rate >= 95 ? "text-warning" : "text-error"
                           }
                         >
                           {rate.toFixed(1)}%

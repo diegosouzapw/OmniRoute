@@ -83,23 +83,6 @@ docker compose down
 docker compose down -v
 ```
 
-### Electron ish stoli ilovasi
-
-**Windows:**
-
-- `Settings → Apps → OmniRoute → Uninstall` bo‘limini oching
-- Yoki o‘rnatish katalogidan NSIS o‘chirish dasturini ishga tushiring
-
-**macOS:**
-
-- `/Applications` ichidagi `OmniRoute.app` faylini chiqindilar qutisiga olib o‘ting
-- Ma’lumotlarni o‘chirish: `rm -rf ~/Library/Application Support/omniroute`
-
-**Linux:**
-
-- AppImage faylini o‘chiring
-- Ma’lumotlarni o‘chirish: `rm -rf ~/.omniroute`
-
 ### Manba kodidan o‘rnatish (git clone)
 
 ```bash

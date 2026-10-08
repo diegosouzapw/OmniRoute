@@ -748,7 +748,7 @@ jobs:
         # Use tar so the archive preserves paths relative to CWD (.build/next/...).
         # upload-artifact path-stripping is ambiguous when exclude patterns are used;
         # an explicit tar avoids the double-nesting issue (.build/next/next/...).
-        # Keep standalone/node_modules intact: package/electron jobs consume the
+        # Keep standalone/node_modules intact: the package job consumes the
         # Next-traced standalone tree and must not replace it with root node_modules.
         run: |
           tar -czf "$RUNNER_TEMP/e2e-build.tar.gz" \
@@ -784,10 +784,8 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: next-build
-          # Workspace-relative on purpose: the matrix below includes windows-latest, whose
-          # default shell is pwsh, where $RUNNER_TEMP is empty (it is $env:RUNNER_TEMP) —
-          # #11896's first cut broke the Electron smoke on exactly that. A relative path
-          # works in bash and pwsh alike; hosted workspaces are ephemeral.
+          # Workspace-relative on purpose: a relative path works in bash and pwsh
+          # alike; hosted workspaces are ephemeral.
           path: next-build-artifact
       - name: Extract Next.js build artifact
         run: |
@@ -1222,7 +1220,7 @@ jobs:
               echo ""
               echo "## PR Test Policy"
               echo ""
-              echo "This PR changes production code in \`src/\`, \`open-sse/\`, \`electron/\`, or \`bin/\` without accompanying automated tests."
+              echo "This PR changes production code in \`src/\`, \`open-sse/\`, or \`bin/\` without accompanying automated tests."
             fi
           } > .artifacts/pr-coverage-comment.md
       - uses: actions/github-script@v9
@@ -1305,10 +1303,8 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: next-build
-          # Workspace-relative on purpose: the matrix below includes windows-latest, whose
-          # default shell is pwsh, where $RUNNER_TEMP is empty (it is $env:RUNNER_TEMP) —
-          # #11896's first cut broke the Electron smoke on exactly that. A relative path
-          # works in bash and pwsh alike; hosted workspaces are ephemeral.
+          # Workspace-relative on purpose: a relative path works in bash and pwsh
+          # alike; hosted workspaces are ephemeral.
           path: next-build-artifact
       - name: Extract Next.js build artifact
         run: |

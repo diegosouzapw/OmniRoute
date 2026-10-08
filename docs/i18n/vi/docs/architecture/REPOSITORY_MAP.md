@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Ứng dụng Next.js 16 (giao diện người dùng + tuyến API + thư viện + miền nghiệp vụ + máy chủ)
 ├── open-sse/             # Không gian làm việc của công cụ truyền luồng (trình xử lý, trình thực thi, trình biên dịch, máy chủ MCP)
-├── electron/             # Trình bao bọc ứng dụng máy tính để bàn (Electron 41 + electron-builder 26.10)
 ├── bin/                  # Điểm vào CLI và các trình xử lý lệnh
 ├── scripts/              # Các tập lệnh xây dựng, kiểm tra, đồng bộ và dùng một lần
 ├── docs/                 # Tài liệu công khai (bạn đang ở đây)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Trình bao bọc máy tính để bàn
-
-| Tệp              | Mục đích                                                                                              |
-| ---------------- | ----------------------------------------------------------------------------------------------------- |
-| `main.js`        | Tiến trình chính của Electron (BrowserWindow, máy chủ Next.js nhúng, khay hệ thống, tự động cập nhật) |
-| `preload.js`     | Cầu nối IPC (contextBridge → `window.omniroute`)                                                      |
-| `package.json`   | Cấu hình electron-builder + phần phụ thuộc Electron 41 + electron-builder 26.10                       |
-| `assets/`        | Biểu tượng ứng dụng (Windows .ico, macOS .icns, Linux .png)                                           |
-| `dist-electron/` | Đầu ra bản dựng (được git bỏ qua)                                                                     |
-| `types.d.ts`     | Khai báo kiểu cho cầu nối trình kết xuất                                                              |
-| `README.md`      | README Electron nội bộ (xem thêm `docs/guides/ELECTRON_GUIDE.md`)                                     |
-
----
-
 ## `bin/` — CLI
 
 | Tệp                                                                                                         | Mục đích                                                                                                                       |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | Trình chạy kiểm thử E2E MCP/A2A                                                      |
 | `run-ecosystem-tests.mjs`           | Kiểm thử hệ sinh thái (tích hợp nhà cung cấp)                                        |
 | `test-report-summary.mjs`           | Tạo báo cáo tóm tắt độ bao phủ ở định dạng markdown                                  |
-| `smoke-electron-packaged.mjs`       | Kiểm thử nhanh bản dựng Electron đã đóng gói                                         |
-| `native-binary-compat.mjs`          | Xác thực các phụ thuộc native (`better-sqlite3`) khớp với Node của Electron          |
 | `validate-pack-artifact.ts`         | Xác thực đầu ra của npm pack                                                         |
 | `responses-ws-proxy.mjs`            | Cầu nối WebSocket cho Codex Responses API                                            |
 | `v1-ws-bridge.mjs`                  | Cầu nối WebSocket cho endpoint `/api/v1/ws`                                          |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Hướng dẫn sử dụng cho người dùng cuối (thiết lập, mô hình, combo, CLI, âm thanh, v.v.)         |
 | `API_REFERENCE.md`          | Tài liệu tham khảo endpoint API cùng mô hình xác thực                                          |
 | `openapi.yaml`              | Đặc tả OpenAPI 3.0 (121 đường dẫn)                                                             |
-| `SETUP_GUIDE.md`            | Các phương thức cài đặt (npm, npx, Docker, Electron, Termux, mã nguồn)                         |
+| `SETUP_GUIDE.md`            | Các phương thức cài đặt (npm, npx, Docker, Termux, mã nguồn)                                   |
 | `ENVIRONMENT.md`            | Tất cả biến môi trường (~800 biến được ghi lại, `.env.example` dài ~3.050 dòng)                |
 | `TROUBLESHOOTING.md`        | Các lỗi thường gặp + sự cố đã biết của v3.8.0                                                  |
 | `RELEASE_CHECKLIST.md`      | Quy trình phát hành đầy đủ (kỹ năng, husky, conventional commits, triển khai)                  |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Triển khai Fly.io (hiện chỉ có tiếng Trung)                         |
 | `TERMUX_GUIDE.md`            | Chạy Android không giao diện qua Termux                             |
 | `PWA_GUIDE.md`               | Cài đặt Progressive Web App + service worker                        |
-| `ELECTRON_GUIDE.md`          | Xây dựng + ký + phân phối ứng dụng máy tính                         |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                              |
 | `PROXY_GUIDE.md`             | Proxy đầu ra 4 cấp + chợ 1proxy                                     |
 

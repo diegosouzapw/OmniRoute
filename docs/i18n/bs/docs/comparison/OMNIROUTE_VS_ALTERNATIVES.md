@@ -31,7 +31,7 @@ Objektivno poređenje funkcija u odnosu na popularne open-source AI rutere.
 | **TLS fingerprint stealth (JA3/JA4)**                 |                 ✅ wreq-js                  |           ❌           |        ❌         |     ❌      |
 | **Eval framework**                                    |                 ✅ ugrađeno                 |           ❌           |        ❌         |  ⚠ plaćeno  |
 | **MITM proxy (presreće Cursor/Antigravity)**          |              ✅ cross-platform              |           ❌           |        ❌         |     ❌      |
-| **CLI sa system tray-om (bez Electron-a)**            |                     ✅                      |           ❌           |        n/a        |     n/a     |
+| **CLI sa system tray-om**                             |                     ✅                      |           ❌           |        n/a        |     n/a     |
 | **CLI machine-ID auto-auth**                          |                     ✅                      |           ❌           |        n/a        |     n/a     |
 | **Kontrolna tabla**                                   |                 Next.js 16                  |        osnovno         |     vlasničko     |  vlasničko  |
 | **i18n**                                              |                **42 lokala**                |           ❌           |        ❌         |      ⚠      |

@@ -122,7 +122,6 @@ E2E matrix ಅನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಬಿಟ�
 ### Version ಮತ್ತು Changelog
 
 - [ ] `/version-bump-cc <patch|minor|major>` ಅನ್ನು ಚಲಾಯಿಸಿ (Claude Code skill)
-  - `package.json`, `electron/package.json` ಅನ್ನು bump ಮಾಡುತ್ತದೆ
   - ಕೊನೆಯ tagನ ನಂತರದ git commitsನಿಂದ `CHANGELOG.md` ಅನ್ನು ಮರುಸೃಷ್ಟಿಸುತ್ತದೆ
   - README.md badges ಅನ್ನು ನವೀಕರಿಸುತ್ತದೆ
 - [ ] CHANGELOG.md ಅನ್ನು ಕೈಯಾರೆ ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಅಗತ್ಯವಿದ್ದರೆ commit messages ಅನ್ನು ಸ್ವಚ್ಛಗೊಳಿಸಿ
@@ -216,104 +215,6 @@ Breaking changes: `BREAKING CHANGE:` footer ಅಥವಾ scopeನ ನಂತರ `
 - [ ] Models ಅನ್ನು `open-sse/config/providerRegistry.ts`ನಲ್ಲಿ ನೋಂದಾಯಿಸಲಾಗಿದೆ
 - [ ] `tests/unit/`ನಲ್ಲಿನ unit tests provider classification ಮತ್ತು routing ಅನ್ನು ಒಳಗೊಂಡಿವೆ
 
-### Desktop (Electron)
-
-`electron/` ಬದಲಾಗಿದ್ದರೆ:
-
-- [ ] `npm run electron:smoke:packaged` pass ಆಗುತ್ತದೆ
-- [ ] ಕನಿಷ್ಠ `:win`, `:mac`, `:linux`ಗಳಲ್ಲಿ ಒಂದಕ್ಕಾದರೂ builds ಪರೀಕ್ಷಿಸಲಾಗಿದೆ
-- [ ] Code signing certs ಅವಧಿ ಮೀರಿಲ್ಲ (signing ಇದ್ದರೆ)
-- [ ] `electron/package.json` version root `package.json`ಗೆ ಹೊಂದುತ್ತದೆ
-- [ ] `stable`ಗೆ release ಮಾಡುತ್ತಿದ್ದರೆ auto-update channel pointer ನವೀಕರಿಸಲಾಗಿದೆ
-
-### Build ವಿನ್ಯಾಸ
-
-Repository ಮೂರು ಪ್ರತ್ಯೇಕ output directories ಅನ್ನು ಬಳಸುತ್ತದೆ — ಅವುಗಳನ್ನು ಎಂದಿಗೂ ಗೊಂದಲಗೊಳಿಸಬೇಡಿ:
-
-| Directory | ಉದ್ದೇಶ                                                          | Track ಮಾಡಲಾಗಿದೆಯೇ? |
-| --------- | --------------------------------------------------------------- | ------------------ |
-| `src/`    | Application source (TypeScript / TSX)                           | ಹೌದು               |
-| `.build/` | Build intermediates — `next build` output (`distDir`)           | ಇಲ್ಲ (gitignored)  |
-| `dist/`   | ವಿತರಿಸಬಹುದಾದ npm bundle — `assembleStandalone` ಮೂಲಕ ಜೋಡಿಸಲಾಗಿದೆ | ಇಲ್ಲ (gitignored)  |
-
-> **Operator ಟಿಪ್ಪಣಿ:** remote VPS image directory `/usr/lib/node_modules/omniroute/app/` ಆಗಿಯೇ ಉಳಿದಿದೆ.
-> **Repository ಒಳಗಿನ** build output ಮಾತ್ರ ಸ್ಥಳಾಂತರಗೊಂಡಿದೆ (`app/` → `dist/`). Deploy skills,
-> `dist/` contents ಅನ್ನು remote `app/` dirಗೆ rsync ಮಾಡುತ್ತವೆ — VPS path ಬದಲಾವಣೆಗಳ ಅಗತ್ಯವಿಲ್ಲ.
-
-**Single-build flow:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (ಸ್ವಚ್ಛಗೊಳಿಸುವಿಕೆ)
-  └─ next build → .build/next/   (ಮಧ್ಯಂತರಗಳು)
-  └─ assembleStandalone          (standalone + static + public + natives ಅನ್ನು dist/ಗೆ ನಕಲಿಸುತ್ತದೆ)
-  └─ dist/BUILD_SHA ಬರೆಯುತ್ತದೆ   (HEAD sentinel)
-```
-
-Deployಗಾಗಿ `npm run build` ಚಲಾಯಿಸಿ ನಂತರ ಪ್ರತ್ಯೇಕವಾಗಿ `npm run build:cli` ಚಲಾಯಿಸಬೇಡಿ —
-ಒಂದೇ commandನಲ್ಲಿ clean rebuild + sentinel ಮಾಡುವ `npm run build:release` ಬಳಸಿ.
-
-### Artifact ಮೌಲ್ಯೀಕರಣ
-
-- [ ] `npm run build:release` ಯಶಸ್ವಿಯಾಗುತ್ತದೆ ಮತ್ತು `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` clean — `app.__qa_backup`, `scripts/scratch`, `package-lock.json` ಅಥವಾ ಇತರ local residue ಇಲ್ಲ
-- [ ] build ನಂತರ `dist/server.js` ಅಸ್ತಿತ್ವದಲ್ಲಿದೆ
-
-### Tagging ಮತ್ತು Release
-
-- [ ] `/generate-release-cc` ಚಲಾಯಿಸಿ (Claude Code skill):
-  - `vX.Y.Z` tag ಸೃಷ್ಟಿಸುತ್ತದೆ
-  - tag ಮತ್ತು branch ಅನ್ನು push ಮಾಡುತ್ತದೆ
-  - changelog body ಜೊತೆ GitHub Release ತೆರೆಯುತ್ತದೆ
-  - Electron installers ಅನ್ನು attach ಮಾಡುತ್ತದೆ (build ಮಾಡಿದ್ದರೆ)
-- [ ] ಅಥವಾ ಕೈಯಾರೆ:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deploy
-
-Deploy skills ಹಗುರವಾದ rsync flow ಬಳಸುತ್ತವೆ — `npm pack` ಇಲ್ಲ, `npm i -g` ಇಲ್ಲ:
-
-- [ ] targetಗೆ ಹೊಂದುವ deploy skill ಬಳಸಿ:
-  - `/deploy-vps-local-cc` — local VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — ಎರಡೂ
-- [ ] Deploy ಮಾಡುವ ಮೊದಲು `dist/BUILD_SHA` == `git rev-parse --short HEAD` ಎಂದು ಖಚಿತಪಡಿಸಿ
-- [ ] `node_modules` ನೈಜವಾಗಿರುವ ಸ್ಥಳದಲ್ಲಿ build ಚಲಿಸಬೇಕು (main checkout ಅಥವಾ `npm ci` ಮಾಡಿದ worktree — symlinked worktree ಅಲ್ಲ)
-- [ ] Deploy ಮಾಡಿದ instance ಅನ್ನು smoke test ಮಾಡಿ:
-  - `/dashboard/health` ತೆರೆಯಿರಿ → version string releaseಗೆ ಹೊಂದುತ್ತದೆಯೇ ಪರಿಶೀಲಿಸಿ
-  - ಪರಿಚಿತ provider ವಿರುದ್ಧ `/v1/chat/completions` request ಚಲಾಯಿಸಿ
-  - `/api/monitoring/health`, `CLOSED` circuit breakers ಹಿಂತಿರುಗಿಸುತ್ತದೆ ಎಂದು ಪರಿಶೀಲಿಸಿ
-  - MCP transports ಪ್ರತಿಕ್ರಿಯಿಸುತ್ತವೆ ಎಂದು ಖಚಿತಪಡಿಸಿ (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Release ನಂತರ
-
-- [ ] `/capture-release-evidences-cc` ಚಲಾಯಿಸಿ (Claude Code skill)
-  - ಹೊಸ featuresನ WebP screenshots/recordings ಸೆರೆಹಿಡಿಯುತ್ತದೆ
-  - release notes / blog postಗೆ attach ಮಾಡುತ್ತದೆ
-- [ ] Release announcement ಮೂಲಕ GitHub Discussions / Discord ನವೀಕರಿಸಿ
-- [ ] ಮುಂದಿನ versionಗಾಗಿ milestone ತೆರೆಯಿರಿ
-- [ ] Critical ಆಗಿದ್ದರೆ: discussion ಅನ್ನು pin ಮಾಡಿ ಅಥವಾ in-app bannerಗಾಗಿ `news.json`ನಲ್ಲಿ post ಮಾಡಿ
-
-### Radar ಸಾರ್ವಜನಿಕ-launch gate
-
-Radar announcement ಅನ್ನು ಉದ್ದೇಶಪೂರ್ವಕವಾಗಿ `active: false` ಜೊತೆ commit ಮಾಡಲಾಗಿದೆ. ಕೆಳಗಿನ ಪ್ರತಿಯೊಂದು itemಗೂ
-ಸಾಕ್ಷ್ಯ ದೊರೆತ ನಂತರ activation ಅನ್ನು ಪ್ರತ್ಯೇಕ change ಆಗಿ ಮಾಡಬೇಕು:
-
-- [ ] ಎಲ್ಲಾ stacked Radar PRಗಳು merge ಆಗಿವೆ ಮತ್ತು release-tip CI green ಆಗಿದೆ
-- [ ] `RADAR_ENABLED` default ಆಗಿ ಇನ್ನೂ off ಇರುವಾಗ OSS Radar routes ಅನ್ನು deploy ಮಾಡಿ smoke ಮಾಡಿ
-- [ ] ಹೆಸರಿಸಲಾದ Radar hostನಲ್ಲಿ `GET /planos`, `/termos`, `/privacidade`, ಮತ್ತು `/reembolso` ಅನ್ನು smoke ಮಾಡಿ
-- [ ] Private serviceನಲ್ಲಿ operator identity/contact/address ಮತ್ತು owner-approved legal review ಅನ್ನು ದಾಖಲಿಸಿ
-- [ ] Test modeನಲ್ಲಿ ಮಾತ್ರ Stripe Checkout ಮತ್ತು signed webhook ಅನ್ನು ಪರೀಕ್ಷಿಸಿ
-- [ ] ಅನುಮೋದಿತ sender/domain ಜೊತೆ ಒಂದು encrypted transactional-email delivery ಅನ್ನು ಪರೀಕ್ಷಿಸಿ
-- [ ] Backup restore ಮತ್ತು ಮೇಲ್ವಿಚಾರಣೆಯಲ್ಲಿನ, budget-capped research run ಒಂದನ್ನು ಸಾಬೀತುಪಡಿಸಿ
-- [ ] Donation evidence ಸ್ವೀಕರಿಸುವ ಮೊದಲು BRL/PIX review policy ಅನ್ನು ಅನುಮೋದಿಸಿ
-- [ ] ಹಿಂದಿನ gates ಪೂರ್ಣಗೊಂಡ ನಂತರವೇ public Checkout ಸಕ್ರಿಯಗೊಳಿಸಿ, ನಂತರ ಹೊಸ `news.json` ID ಅನ್ನು activate ಮಾಡಿ
-- [ ] Home banner localized copy ಬಳಸುತ್ತದೆ ಮತ್ತು ಹಳೆಯ ID dismiss ಮಾಡಿದ ನಂತರ ಹೊಸ ID ಮತ್ತೆ ಕಾಣಿಸುತ್ತದೆ ಎಂದು ಪರಿಶೀಲಿಸಿ
-
 ## ಎಂಬೆಡೆಡ್ ಸೇವೆಗಳ ಸ್ಮೋಕ್ ಪರೀಕ್ಷೆ (v3.8.4+)
 
 ಎಂಬೆಡೆಡ್ ಸೇವೆಗಳ ಬದಲಾವಣೆಗಳನ್ನು ಒಳಗೊಂಡ ಯಾವುದೇ ಬಿಡುಗಡೆಯನ್ನು ರವಾನಿಸುವ ಮೊದಲು, ಇವುಗಳನ್ನು ಪರಿಶೀಲಿಸಿ:
@@ -399,7 +300,7 @@ Radar announcement ಅನ್ನು ಉದ್ದೇಶಪೂರ್ವಕವಾಗ
 - Husky ಹುಕ್ಗಳನ್ನು (`--no-verify`) ಎಂದಿಗೂ ಬಿಟ್ಟುಬಿಡಬೇಡಿ
 - ರಹಸ್ಯಗಳು, ರುಜುವಾತುಗಳು ಅಥವಾ `.env` ಫೈಲ್ಗಳನ್ನು ಎಂದಿಗೂ ಕಮಿಟ್ ಮಾಡಬೇಡಿ
 - ಕವರೇಜ್ ≥60/60/60/60 (ಸ್ಟೇಟ್ಮೆಂಟ್ಗಳು/ಲೈನ್ಗಳು/ಫಂಕ್ಷನ್ಗಳು/ಬ್ರಾಂಚ್ಗಳು) ಆಗಿಯೇ ಉಳಿಯಬೇಕು
-- `src/`, `open-sse/`, `electron/`, ಅಥವಾ `bin/` ನಲ್ಲಿನ ಪ್ರೊಡಕ್ಷನ್ ಕೋಡ್ ಅನ್ನು ಬದಲಾಯಿಸುವಾಗ ಯಾವಾಗಲೂ ಪರೀಕ್ಷೆಗಳನ್ನು ಸೇರಿಸಿ ಅಥವಾ ನವೀಕರಿಸಿ
+- `src/`, `open-sse/`, ಅಥವಾ `bin/` ನಲ್ಲಿನ ಪ್ರೊಡಕ್ಷನ್ ಕೋಡ್ ಅನ್ನು ಬದಲಾಯಿಸುವಾಗ ಯಾವಾಗಲೂ ಪರೀಕ್ಷೆಗಳನ್ನು ಸೇರಿಸಿ ಅಥವಾ ನವೀಕರಿಸಿ
 
 ## ಸ್ವಯಂಚಾಲಿತ ಸಿಂಕ್ ಪರಿಶೀಲನೆ
 

@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Docker-ի ամբողջական կարգավորման, ներառյալ Compose պրոֆիլների և Caddy HTTPS-ի մասին տե՛ս [Docker-ի ուղեցույցը](./DOCKER_GUIDE.md)։
 
-### Սեղանադիր հավելված (Electron)
-
-OmniRoute-ը տրամադրվում է Electron 41 + electron-builder 26.10-ի հիման վրա ստեղծված սեղանադիր պատյանով։ Հասանելի սկրիպտները (աշխատատարածքի արմատում)՝
-
-```bash
-npm run electron:dev          # Գործարկել սեղանադիր հավելվածը՝ թարմ փոփոխությունների ինքնաշխատ վերաբեռնմամբ
-npm run electron:build        # Կառուցել ընթացիկ ՕՀ-ի համար (ինքնաշխատ հայտնաբերվում է)
-npm run electron:build:win    # Windows-ի տեղադրիչ (NSIS + շարժական տարբերակ)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # Արագ ստուգել փաթեթավորված կառուցվածքը
-```
-
-Սեղանադիր տեղադրիչների թողարկումները կցվում են GitHub Releases-ին։ Electron-ի ամբողջական մանրամասն ուղեցույցի համար (ստորագրում, IPC կամուրջ, դիստրիբուտիվներ) տե՛ս [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _(ստեղծվել է ավելի ուշ փուլում)_։
-
 ### Առանց գրաֆիկական միջերեսի սերվեր (CI/ավտոմատացում)
 
 Չվերահսկվող կարգավորումների համար (Docker, Kubernetes, CI) օգտագործեք՝

@@ -91,7 +91,7 @@ Unapohitaji kupachika thamani mpya iliyotolewa na chanzo asili ambayo:
 
 ### 3. Ruwaza zilizokatazwa
 
-❌ **Kamwe** usifanye lolote kati ya yafuatayo katika msimbo wa uzalishaji (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ **Kamwe** usifanye lolote kati ya yafuatayo katika msimbo wa uzalishaji (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // MBAYA: thamani halisi huanzisha Secret Scanning + Semgrep

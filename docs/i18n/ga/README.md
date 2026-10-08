@@ -89,7 +89,6 @@
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![Ceadúnas: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![Íoslódálacha Docker](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![Íoslódálacha Electron](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
 
 <table>
   <tr>
@@ -754,7 +753,6 @@ as stair do bhlaoisce. → [Comhtháthuithe CLI](docs/guides/CLI-INTEGRATIONS.md
   <tr><th align="left">Ardán</th><th align="left">Suiteáil</th><th align="left">Buaicphointí</th></tr>
   <tr><td align="left" nowrap>📦 <b>npm (domhanda)</b></td><td align="left" nowrap><code>npm install -g omniroute</code></td><td align="left">Ordú amháin, aon OS</td></tr>
   <tr><td align="left" nowrap>🐳 <b>Docker</b></td><td align="left" nowrap><code>docker run … diegosouzapw/omniroute</code></td><td align="left">Il-ailtireacht <b>AMD64 + ARM64</b></td></tr>
-  <tr><td align="left" nowrap>🖥️ <b>Deasc (Electron)</b></td><td align="left" nowrap><code>npm run electron:build</code></td><td align="left">Fuinneog dhúchasach + tráidire córais — <b>Windows / macOS / Linux</b></td></tr>
   <tr><td align="left" nowrap>🎩 <b>Barra roghchláir (OmniRouteTray)</b></td><td align="left" nowrap><code>brew install --cask zoispag/tap/omniroute-tray</code></td><td align="left">Déanann sé maoirseacht ar an bhfreastalaí &amp; nuashonraíonn sé go huathoibríoch é — <b>macOS</b></td></tr>
   <tr><td align="left" nowrap>💪 <b>ARM</b></td><td align="left" nowrap><code>arm64</code> dúchasach</td><td align="left">Raspberry Pi, freastalaithe ARM, Apple Silicon</td></tr>
   <tr><td align="left" nowrap>📱 <b>Android (Termux)</b></td><td align="left" nowrap><code>pkg install nodejs && npx -y omniroute</code></td><td align="left">Ritheann sé <b>ar do ghuthán</b>, 24/7, gan root</td></tr>
@@ -764,7 +762,7 @@ as stair do bhlaoisce. → [Comhtháthuithe CLI](docs/guides/CLI-INTEGRATIONS.md
   <tr><td align="left" nowrap>🛠️ <b>Ón bhfoinse</b></td><td align="left" nowrap><code>npm install && npm run dev</code></td><td align="left">Déan forbairt air, rannchuidigh leis</td></tr>
 </table>
 
-<sub>📖 [Treoir Docker](docs/guides/DOCKER_GUIDE.md) · [Deasc](electron/README.md) · [Tráidire an bharra roghchláir](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
+<sub>📖 [Treoir Docker](docs/guides/DOCKER_GUIDE.md) · [Tráidire an bharra roghchláir](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
 
 <br/>
 
@@ -1292,7 +1290,7 @@ Méadrachtaí canónacha ar 2026-08-24: **1.029 físeán uathúil** · **11.132.
   <tr><td nowrap><b>Athléimneacht</b></td><td>Scoradán ciorcaid, cúlú easpónantúil, cosaint ar thréad toirniúil, féinleighis uath-theaglama</td></tr>
   <tr><td nowrap><b>Logáil</b></td><td>pino — logaí struchtúrtha JSON le comhthéacs iarratais</td></tr>
   <tr><td nowrap><b>Tástáil</b></td><td>Reathaí tástála Node.js + Vitest — <b>39,000+ dearbhú tástála statach</b> thar 5,100+ comhad tástála rianaithe (aonaid, comhtháthú, E2E, slándáil, éiceachóras)</td></tr>
-  <tr><td nowrap><b>Ardáin</b></td><td>Deasc (Electron) · Android (Termux) · PWA (aon bhrabhsálaí)</td></tr>
+  <tr><td nowrap><b>Ardáin</b></td><td>Android (Termux) · PWA (aon bhrabhsálaí)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — foilsiú uathoibríoch chuig npm + Docker Hub tráth eisiúna</td></tr>
   <tr><td nowrap><b>Naisc</b></td><td><a href="https://omniroute.online">Suíomh Gréasáin</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>

@@ -29,7 +29,7 @@ Objektív funkció-összehasonlítás népszerű, nyílt forráskódú AI-router
 | **TLS-ujjlenyomat elrejtése (JA3/JA4)**                        |                  ✅ wreq-js                   |       ❌       |        ❌         |      ❌      |
 | **Kiértékelési keretrendszer**                                 |                 ✅ beépített                  |       ❌       |        ❌         |  ⚠ fizetős   |
 | **MITM-proxy (elfogja a Cursor/Antigravity forgalmát)**        |               ✅ többplatformos               |       ❌       |        ❌         |      ❌      |
-| **CLI rendszertálcával (Electron nélkül)**                     |                      ✅                       |       ❌       |        n/a        |     n/a      |
+| **CLI rendszertálcával**                                       |                      ✅                       |       ❌       |        n/a        |     n/a      |
 | **CLI gépazonosító-alapú automatikus hitelesítése**            |                      ✅                       |       ❌       |        n/a        |     n/a      |
 | **Irányítópult**                                               |                  Next.js 16                   |   alapszintű   |   zárt forrású    | zárt forrású |
 | **i18n**                                                       |           **42 területi beállítás**           |       ❌       |        ❌         |      ⚠       |

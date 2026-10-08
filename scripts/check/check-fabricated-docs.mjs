@@ -125,6 +125,14 @@ const ENV_VAR_ALLOWLIST = new Set([
   "PROMPTFOO_PROVIDER_KEY", // promptfoo's own provider-key env var, used by the red-team suite (GUARDRAILS.md)
   "REDIS_PORT", // docker-compose host-port override (DOCKER_GUIDE.md)
   "AUTO_UPDATE_HOST_REPO_DIR", // docker-compose self-update mount (DOCKER_GUIDE.md)
+  // Coolify stack interpolation vars — consumed by docker-compose.coolify.yml's own
+  // ${VAR:-default} placeholders (image ref, host bind, mem/cpu/pids limits), never
+  // read via process.env in Node code. Documented in COOLIFY_DEPLOYMENT.md §3/§4.
+  "OMNIROUTE_IMAGE",
+  "OMNIROUTE_BIND_HOST",
+  "OMNIROUTE_MEMORY_LIMIT",
+  "OMNIROUTE_CPUS",
+  "OMNIROUTE_PIDS_LIMIT",
   "LINUX_GPG_KEY", // electron AppImage signing key, CI/build only (ELECTRON_GUIDE.md)
   "BRANCH_LOCK_TOKEN", // release branch-protection ops token (QUALITY_GATE_PLAYBOOK.md)
   "NEXT_LOCALE", // next-intl locale cookie name (I18N.md)

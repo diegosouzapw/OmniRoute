@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16 መተግበሪያ (UI + API መስመሮች + ላይብረሪዎች + ዶሜይን + አገልጋይ)
 ├── open-sse/             # የዥረት ሞተር የሥራ ቦታ (ተቆጣጣሪዎች፣ አስፈጻሚዎች፣ ተርጓሚ፣ MCP አገልጋይ)
-├── electron/             # የዴስክቶፕ መጠቅለያ (Electron 41 + electron-builder 26.10)
 ├── bin/                  # የCLI መግቢያ ነጥብ እና የትዕዛዝ ተቆጣጣሪዎች
 ├── scripts/              # የግንባታ፣ የማረጋገጫ፣ የማመሳሰል እና የአንድ ጊዜ ስክሪፕቶች
 ├── docs/                 # ይፋዊ ሰነዶች (እዚህ ይገኛሉ)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — የDesktop Wrapper
-
-| ፋይል              | ዓላማ                                                                           |
-| ---------------- | ----------------------------------------------------------------------------- |
-| `main.js`        | የElectron ዋና process (BrowserWindow፣ የተካተተ Next.js server፣ tray፣ auto-update) |
-| `preload.js`     | IPC bridge (contextBridge → `window.omniroute`)                               |
-| `package.json`   | electron-builder config + Electron 41 + electron-builder 26.10 deps           |
-| `assets/`        | የመተግበሪያ አዶዎች (Windows .ico፣ macOS .icns፣ Linux .png)                          |
-| `dist-electron/` | የBuild output (gitignored)                                                    |
-| `types.d.ts`     | የrenderer bridge type declarations                                            |
-| `README.md`      | ውስጣዊ የElectron README (`docs/guides/ELECTRON_GUIDE.md`ንም ይመልከቱ)               |
-
----
-
 ## `bin/` — CLI
 
 | ፋይል                                                                                                         | ዓላማ                                                                                                                       |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | የMCP/A2A E2E ሙከራ አስኬጅ                                                          |
 | `run-ecosystem-tests.mjs`           | የሥነ-ምህዳር (የአቅራቢ ውህደት) ሙከራዎች                                                    |
 | `test-report-summary.mjs`           | የሽፋን ማጠቃለያ markdown ማመንጨት                                                      |
-| `smoke-electron-packaged.mjs`       | በጥቅል የቀረበውን Electron ግንባታ የጭስ ሙከራ ማድረግ                                         |
-| `native-binary-compat.mjs`          | ቤተኛ ጥገኞች (`better-sqlite3`) ከElectron Node ጋር መዛመዳቸውን ማረጋገጥ                    |
 | `validate-pack-artifact.ts`         | የnpm pack ውጤትን ማረጋገጥ                                                           |
 | `responses-ws-proxy.mjs`            | ለCodex Responses API የWebSocket ድልድይ                                           |
 | `v1-ws-bridge.mjs`                  | ለ`/api/v1/ws` መጨረሻ ነጥብ የWebSocket ድልድይ                                         |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | የዋና ተጠቃሚ መመሪያ (ማዋቀር፣ ሞዴሎች፣ ጥምረቶች፣ CLIዎች፣ ድምፅ፣ ወዘተ)                                 |
 | `API_REFERENCE.md`          | የማረጋገጫ ሞዴልን ያካተተ የAPI መጨረሻ ነጥቦች ማጣቀሻ                                               |
 | `openapi.yaml`              | OpenAPI 3.0 ዝርዝር መግለጫ (121 መንገዶች)                                                  |
-| `SETUP_GUIDE.md`            | የመጫኛ ዘዴዎች (npm፣ npx፣ Docker፣ Electron፣ Termux፣ የምንጭ ኮድ)                            |
+| `SETUP_GUIDE.md`            | የመጫኛ ዘዴዎች (npm፣ npx፣ Docker፣ Termux፣ የምንጭ ኮድ)                                      |
 | `ENVIRONMENT.md`            | ሁሉም የአካባቢ ተለዋዋጮች (~800 የተሰነዱ፣ ~3,050 የ`.env.example` መስመሮች)                        |
 | `TROUBLESHOOTING.md`        | የተለመዱ ስህተቶች + የv3.8.0 የታወቁ ችግሮች                                                    |
 | `RELEASE_CHECKLIST.md`      | ሙሉ የልቀት ሂደት (ክህሎቶች፣ husky፣ መደበኛ ኮሚቶች፣ ማሰማራት)                                       |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io ማሰማራት (በአሁኑ ጊዜ በቻይንኛ ብቻ)                                |
 | `TERMUX_GUIDE.md`            | ማሳያ-አልባ Android በTermux በኩል                                    |
 | `PWA_GUIDE.md`               | የProgressive Web App ጭነት + የአገልግሎት ሠራተኛ                        |
-| `ELECTRON_GUIDE.md`          | የዴስክቶፕ መተግበሪያ ግንባታ + መፈረም + ማሰራጨት                              |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                         |
 | `PROXY_GUIDE.md`             | ባለ4-ደረጃ ወደ ውጭ የሚወጣ ፕሮክሲ + 1proxy የገበያ ቦታ                       |
 

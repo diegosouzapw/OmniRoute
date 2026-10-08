@@ -197,7 +197,7 @@ docker run -d \
 
 ## การพึ่งพา
 
-- เรียกใช้ `npm audit` เป็นประจำ (`npm run audit:deps` ครอบคลุมทั้งส่วนหลักและ electron)
+- เรียกใช้ `npm audit` เป็นประจำ ()
 - อัปเดตการพึ่งพาให้เป็นปัจจุบันอยู่เสมอ
 - โปรเจกต์ใช้ `husky` + `lint-staged` สำหรับการตรวจสอบก่อนคอมมิต (lint-staged + check-docs-sync + check:any-budget:t11)
 - ไปป์ไลน์ CI เรียกใช้กฎความปลอดภัยของ ESLint ในทุก push (`no-eval`, `no-implied-eval`, `no-new-func` = ข้อผิดพลาด)

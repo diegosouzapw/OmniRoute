@@ -16,7 +16,7 @@ uri ng pagbabago sa mga contract, nakatuong pagsusuri, at saklaw ng CI nito.
    [Modelo ng Branching at Release](BRANCHING_MODEL.md).
 2. **Tukuyin ang mga contract.** Tukuyin ang bawat catalog, schema, nabuong artifact, pampublikong API, o user
    interface na naaapektuhan ng pagbabago. Ibinibigay ng talahanayan sa ibaba ang minimum na panimulang hanay.
-3. **Sumulat o mag-update ng mga nakatuong test.** Ang mga pagbabago sa production sa `src/`, `open-sse/`, `electron/`, o
+3. **Sumulat o mag-update ng mga nakatuong test.** Ang mga pagbabago sa production sa `src/`, `open-sse/`, o
    `bin/` ay nangangailangan ng automated test sa parehong PR. Patakbuhin ang pinakamaliliit na test file na nagpapatunay sa
    gawi, pagkatapos ay ang mga nakalistang nakatuong gate.
 4. **Hayaang patakbuhin ng CI ang malawak na matrix.** Tumatakbo sa PR ang kumpletong unit shard, Vitest, coverage ratchet, at

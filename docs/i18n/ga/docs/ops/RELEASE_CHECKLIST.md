@@ -128,7 +128,6 @@ E2E go huathoibríoch, gan aon lipéad.
 ### Leagan & Changelog
 
 - [ ] Rith `/version-bump-cc <patch|minor|major>` (scil Claude Code)
-  - Ardaíonn `package.json`, `electron/package.json`
   - Athghiníonn `CHANGELOG.md` ó thiomantais git ón tag deireanach
   - Nuashonraíonn suaitheantais README.md
 - [ ] Athbhreithnigh CHANGELOG.md de láimh agus glan suas teachtaireachtaí tiomantais más gá
@@ -222,104 +221,6 @@ Athruithe briste: cuir `BREAKING CHANGE:` i gcóirín nó `!` tar éis an scóip
 - [ ] Múnlaí cláraithe in `open-sse/config/providerRegistry.ts`
 - [ ] Clúdaíonn tástálacha aonad in `tests/unit/` aicmiú soláthróirí agus ródú
 
-### Deisce (Electron)
-
-Má athraíodh `electron/`:
-
-- [ ] Ritheann `npm run electron:smoke:packaged`
-- [ ] Tástáladh tógálacha do cheann amháin ar a laghad de `:win`, `:mac`, `:linux`
-- [ ] Deimhnithe síniúcháin chóid gan dul in éag (má tá síniú)
-- [ ] Meaitseálann leagan `electron/package.json` fréamh `package.json`
-- [ ] Pointeoir cainéil nuashonraithe uathoibríoch má scaoiltear go `stable`
-
-### Leagan Amach Tógála
-
-Úsáideann an stór trí eolaire aschuir ar leith — ná measc riamh iad:
-
-| Eolaire   | Cuspóir                                                  | Rianaithe?       |
-| --------- | -------------------------------------------------------- | ---------------- |
-| `src/`    | Foinse feidhmchláir (TypeScript / TSX)                   | Tá               |
-| `.build/` | Idirmheánacha tógála — aschur `next build` (`distDir`)   | Níl (gitignored) |
-| `dist/`   | Bundle npm inseolta — cóimeáilte ag `assembleStandalone` | Níl (gitignored) |
-
-> **Nóta oibreora:** fanann eolaire íomhá cianda VPS mar `/usr/lib/node_modules/omniroute/app/`.
-> Níor bhog ach aschur tógála **in-stórais** (`app/` → `dist/`). Déanann na scileanna imlonnaithe rsync
-> ábhar `dist/` isteach san eolaire cianda `app/` — gan aon athruithe cosáin VPS ag teastáil.
-
-**Sreabhadh aon-tógála:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (glan)
-  └─ next build → .build/next/   (idirmheánacha)
-  └─ assembleStandalone          (cóipeálann standalone + static + public + natives → dist/)
-  └─ scríobhann dist/BUILD_SHA       (sentinel HEAD)
-```
-
-NÁ rith `npm run build` agus ansin `npm run build:cli` ar leithligh le haghaidh imlonnaithe — úsáid
-`npm run build:release` a dhéanann atógáil ghlan + sentinel in aon ordú amháin.
-
-### Bailíochtú Saothar
-
-- [ ] Éiríonn le `npm run build:release` agus `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` glan — gan aon `app.__qa_backup`, `scripts/scratch`, `package-lock.json`, nó iarmhar áitiúil eile
-- [ ] Tá `dist/server.js` ann tar éis tógála
-
-### Tagáil & Scaoileadh
-
-- [ ] Rith `/generate-release-cc` (scil Claude Code):
-  - Cruthaíonn tag `vX.Y.Z`
-  - Brúigh tag agus brainse
-  - Osclaíonn Scaoileadh GitHub le comhlacht changelog
-  - Ceanglaíonn suiteálaithe Electron (má tógadh iad)
-- [ ] Nó de láimh:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Imlonnaithe
-
-Úsáideann scileanna imlonnaithe an sreabhadh éadrom rsync — gan `npm pack`, gan `npm i -g`:
-
-- [ ] Úsáid scil imlonnaithe a mheaitseálann an sprioc:
-  - `/deploy-vps-local-cc` — VPS áitiúil (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — VPS Akamai (69.164.221.35)
-  - `/deploy-vps-both-cc` — an dá cheann
-- [ ] Roimh imlonnaithe, deimhnigh `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Ní mór tógáil a rith áit a bhfuil `node_modules` fíor (príomhsheiceáil nó worktree `npm ci`'d — NÍ worktree symlinked)
-- [ ] Tástáil smoke ar an gcás imlonnaithe:
-  - Oscail `/dashboard/health` → seiceáil go meaitseálann teaghrán leagan an scaoileadh
-  - Rith iarratas `/v1/chat/completions` i gcoinne soláthróir aitheanta
-  - Fíoraigh go bhfillfidh `/api/monitoring/health` scoradáin chiorcaid `CLOSED`
-  - Deimhnigh go bhfreagraíonn iompar MCP (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Iar-scaoileadh
-
-- [ ] Rith `/capture-release-evidences-cc` (scil Claude Code)
-  - Gabhann scáileáin/thaifeadtaí WebP de ghnéithe nua
-  - Ceanglaíonn le nótaí scaoilte / phost bhlag
-- [ ] Nuashonraigh Plé GitHub / Discord le fógra scaoilte
-- [ ] Oscail míleáiste don chéad leagan eile
-- [ ] Má tá sé criticiúil: pionnaigh plé nó postáil in `news.json` le haghaidh meirge in-app
-
-### Geata seolta poiblí Radar
-
-Tá an fógra Radar tiomnaithe d'aon ghnó le `active: false`. Is athrú ar leithligh é gníomhachtú
-tar éis gach mír thíos a bheith fianaise:
-
-- [ ] Tá gach PR Radar cruachta cumhdaithe agus tá CI barr-scaoilte glas
-- [ ] Imlonnaigh agus déan smoke ar bhealaí OSS Radar le `RADAR_ENABLED` fós as de réir réamhshocraithe
-- [ ] Déan smoke ar `GET /planos`, `/termos`, `/privacidade`, agus `/reembolso` ar an óstach Radar ainmnithe
-- [ ] Taifead aitheantas/teagmháil/seoladh oibreora agus athbhreithniú dlíthiúil ceadaithe úinéara sa tseirbhís phríobháideach
-- [ ] Cleachtaigh Stripe Checkout agus an webhook sínithe i mód tástála amháin
-- [ ] Cleachtaigh seachadadh ríomhphoist criptithe idirbheartaithe amháin leis an seoltóir/ainm fearainn ceadaithe
-- [ ] Cruthaigh athchóiriú cúltaca agus rith taighde maoirsithe amháin, buiséad-chaipínithe
-- [ ] Ceadaigh polasaí athbhreithnithe BRL/PIX sula nglactar le fianaise síntiúis
-- [ ] Cumasaigh Checkout poiblí ach amháin tar éis na geataí roimhe seo, ansin gníomhachtaigh an t-aitheantas nua `news.json`
-- [ ] Fíoraigh go n-úsáideann an mheirge Baile cóip logánta agus go bhfeictear aitheantas nua arís tar éis aitheantas níos sine a dhíbhe
-
 ## Seirbhísí ionsáite (smoke) (v3.8.4+)
 
 Sula seoladh aon eisiúin ina bhfuil athruithe ar sheirbhísí ionsáite, déan é seo a bhailíochtú:
@@ -401,7 +302,7 @@ Má tá fadhb thromchúiseach le scaoileadh:
 - Ná déan dearmad riamh ar crua-earraí Husky (`--no-verify`)
 - Ná coinnigh riamh rúin, creidmheachtaí, nó comhaid `.env`
 - Caithfidh clúdach fanacht ≥60/60/60/60 (rátaí/línte/fuinneoga/brainseanna)
-- Bíonn tástálacha san áireamh nó á nuashonrú i gcónaí nuair a athraítear cód táirgíochta i `src/`, `open-sse/`, `electron/`, nó `bin/`
+- Bíonn tástálacha san áireamh nó á nuashonrú i gcónaí nuair a athraítear cód táirgíochta i `src/`, `open-sse/`, nó `bin/`
 
 ## Seiceáil Sioncronú Uathoibrithe
 

@@ -27,7 +27,6 @@
 | ಭಾಷೆ              | **TypeScript 6.0+** — ಗುರಿ `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                |
 | ರನ್ಟೈಮ್           | **Node.js** `>=22.22.2 <23` ಅಥವಾ `>=24.0.0 <27` (`engines` + `SUPPORTED_NODE_RANGE` ಮೂಲಕ ಕಡ್ಡಾಯಗೊಳಿಸಲಾಗಿದೆ)        |
 | ಡೇಟಾಬೇಸ್          | `better-sqlite3` ಮೂಲಕ **SQLite** (singleton, WAL journaling)                                                       |
-| ಡೆಸ್ಕ್ಟಾಪ್        | **Electron 41** + `electron-builder` 26.10 (`electron/`ನಲ್ಲಿ ಪ್ರತ್ಯೇಕ workspace)                                   |
 | ಪರೀಕ್ಷೆಗಳು        | **Node native test runner** (ಘಟಕ/ಏಕೀಕರಣ), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | ಬಿಲ್ಡ್            | `scripts/build/build-next-isolated.mjs` ಮೂಲಕ Next.js standalone                                                    |
 | ಲಿಂಟ್/ಫಾರ್ಮ್ಯಾಟ್  | ESLint flat config + Prettier (Husky pre-commit ಮೂಲಕ `lint-staged`)                                                |
@@ -51,7 +50,6 @@
 OmniRoute/
 ├── src/                  Next.js ಅಪ್ಲಿಕೇಶನ್ (App Router, ಲೈಬ್ರರಿಗಳು, ಡೊಮೇನ್, ಸರ್ವರ್, ಹಂಚಿದ ಸಂಪನ್ಮೂಲಗಳು)
 ├── open-sse/             ಸ್ಟ್ರೀಮಿಂಗ್ ಎಂಜಿನ್ ವರ್ಕ್ಸ್ಪೇಸ್ (@omniroute/open-sse)
-├── electron/             ಡೆಸ್ಕ್ಟಾಪ್ ರ್ಯಾಪರ್ (Electron 41 main + preload)
 ├── bin/                  CLI ಪ್ರವೇಶ ಬಿಂದುಗಳು (omniroute, reset-password)
 ├── tests/                ಘಟಕ, ಏಕೀಕರಣ, e2e, protocols-e2e, ಅನುವಾದಕ, ಭದ್ರತೆ, fixtures
 ├── scripts/              ಬಿಲ್ಡ್, ಸಿಂಕ್, ಪರಿಶೀಲನೆ, migration ಮತ್ತು ರನ್ಟೈಮ್ ಸಹಾಯಕ ಸ್ಕ್ರಿಪ್ಟ್ಗಳು
@@ -575,26 +573,6 @@ open-sse/
 
 ---
 
-## 5. `electron/` — ಡೆಸ್ಕ್ಟಾಪ್ ರ್ಯಾಪರ್
-
-```
-electron/
-├── main.js                  Electron ಮುಖ್ಯ ಪ್ರಕ್ರಿಯೆ
-├── preload.js               ಪ್ರೀಲೋಡ್ ಬ್ರಿಡ್ಜ್ (contextIsolation ಸಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ)
-├── types.d.ts
-├── package.json             electron-builder ಸಂರಚನೆ, ಆವೃತ್ತಿ 3.8.51
-├── README.md
-├── assets/                  ಬಿಲ್ಡ್ ಸಂಪನ್ಮೂಲಗಳು (ಐಕಾನ್ಗಳು, ಅರ್ಹತೆಗಳು, …)
-├── node_modules/            ಮೀಸಲಾದ node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           ಬಿಲ್ಡ್ ಔಟ್ಪುಟ್ (ಕಮಿಟ್ ಮಾಡಲಾಗಿಲ್ಲ)
-```
-
-ವರ್ಕ್ಸ್ಪೇಸ್ ರೂಟ್ನಲ್ಲಿ ಐದು npm ಸ್ಕ್ರಿಪ್ಟ್ಗಳಿವೆ: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. ಸ್ವಯಂ-ನವೀಕರಣವು
-GitHub ರಿಲೀಸ್ ಫೀಡ್ ಅನ್ನು ಸೂಚಿಸುವ `electron-updater` ಮೂಲಕ ನಡೆಯುತ್ತದೆ.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -659,13 +637,11 @@ bin/
 ಉದ್ದೇಶದ ಆಧಾರದ ಮೇಲೆ 6 ಉಪಫೋಲ್ಡರ್ಗಳಾಗಿ ವ್ಯವಸ್ಥಿತಗೊಳಿಸಲಾಗಿದೆ.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -842,7 +818,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A ಪ್ರೋಟೋಕಾಲ್ ಕೌಶಲ್ಯಗಳು ಮತ್ತು ಅನ್ವೇಷಣೆ.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK + Caveman ಕಂಪ್ರೆಷನ್.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI ಏಕೀಕರಣಗಳು.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (ಲಭ್ಯವಿದ್ದರೆ), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — ನಿಯೋಜನಾ ಗುರಿಗಳು.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — ನಿಯೋಜನಾ ಗುರಿಗಳು.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — ಸಾಮಾನ್ಯ ಕಾರ್ಯಾಚರಣಾ ಸಮಸ್ಯೆಗಳು.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — ಕೊಡುಗೆದಾರರ ಕಾರ್ಯಪ್ರವಾಹ.
 - [CLAUDE.md](../../CLAUDE.md) — Claude Code ಗಾಗಿ ರೆಪೊ ನಿಯಮಗಳು (ಮೇಲಿನ ಅನೇಕ ಸಂಪ್ರದಾಯಗಳಿಗೆ

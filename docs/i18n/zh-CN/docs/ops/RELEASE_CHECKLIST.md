@@ -122,7 +122,6 @@ quality-gate、quality-extended），并保留快速且高信号的门禁：构�
 ### 版本与变更日志
 
 - [ ] 运行 `/version-bump-cc <patch|minor|major>`（Claude Code 技能）
-  - 更新 `package.json`、`electron/package.json` 中的版本
   - 根据自上一个标签以来的 git 提交重新生成 `CHANGELOG.md`
   - 更新 README.md 徽章
 - [ ] 手动审查 CHANGELOG.md，并在需要时清理提交消息
@@ -216,103 +215,6 @@ Husky 钩子位于 `.husky/` 中，并在 git 操作时自动运行。
 - [ ] 模型已在 `open-sse/config/providerRegistry.ts` 中注册
 - [ ] `tests/unit/` 中的单元测试涵盖提供者分类和路由
 
-### 桌面端（Electron）
-
-如果 `electron/` 已更改：
-
-- [ ] `npm run electron:smoke:packaged` 通过
-- [ ] 已至少针对 `:win`、`:mac`、`:linux` 之一测试构建
-- [ ] 代码签名证书未过期（如果进行签名）
-- [ ] `electron/package.json` 的版本与根目录 `package.json` 一致
-- [ ] 如果发布到 `stable`，已更新自动更新通道指针
-
-### 构建目录布局
-
-仓库使用三个不同的输出目录 — 切勿混淆：
-
-| 目录      | 用途                                               | 是否跟踪             |
-| --------- | -------------------------------------------------- | -------------------- |
-| `src/`    | 应用程序源代码（TypeScript / TSX）                 | 是                   |
-| `.build/` | 构建中间产物 — `next build` 输出（`distDir`）      | 否（已被 gitignore） |
-| `dist/`   | 可发布的 npm 软件包 — 由 `assembleStandalone` 组装 | 否（已被 gitignore） |
-
-> **运维人员注意：**远程 VPS 镜像目录仍为 `/usr/lib/node_modules/omniroute/app/`。
-> 只有**仓库内**的构建输出发生了移动（`app/` → `dist/`）。部署技能会通过 rsync 将
-> `dist/` 的内容同步到远程 `app/` 目录 — 无需更改 VPS 路径。
-
-**单次构建流程：**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          （清理）
-  └─ next build → .build/next/   （中间产物）
-  └─ assembleStandalone          （将 standalone + static + public + natives 复制到 dist/）
-  └─ 写入 dist/BUILD_SHA         （HEAD 哨兵文件）
-```
-
-部署时请勿先运行 `npm run build`，再单独运行 `npm run build:cli` — 请使用
-`npm run build:release`，它会通过一条命令完成干净的重新构建并生成哨兵文件。
-
-### 构建产物验证
-
-- [ ] `npm run build:release` 成功，并且 `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` 检查无误 — 不存在 `app.__qa_backup`、`scripts/scratch`、`package-lock.json` 或其他本地残留内容
-- [ ] 构建后 `dist/server.js` 存在
-
-### 标签与发布
-
-- [ ] 运行 `/generate-release-cc`（Claude Code 技能）：
-  - 创建标签 `vX.Y.Z`
-  - 推送标签和分支
-  - 使用变更日志正文创建 GitHub Release
-  - 附加 Electron 安装程序（如果已构建）
-- [ ] 或手动执行：
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### 部署
-
-部署技能使用轻量级 rsync 流程 — 不使用 `npm pack`，也不使用 `npm i -g`：
-
-- [ ] 使用与目标匹配的部署技能：
-  - `/deploy-vps-local-cc` — 本地 VPS（192.168.0.15）
-  - `/deploy-vps-akamai-cc` — Akamai VPS（69.164.221.35）
-  - `/deploy-vps-both-cc` — 两者
-- [ ] 部署前，确认 `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] 必须在 `node_modules` 为真实目录的位置运行构建（主检出目录或已执行 `npm ci` 的 worktree — 不得使用符号链接的 worktree）
-- [ ] 对已部署实例执行冒烟测试：
-  - 打开 `/dashboard/health` → 检查版本字符串是否与发布版本一致
-  - 针对一个已知提供者发送 `/v1/chat/completions` 请求
-  - 验证 `/api/monitoring/health` 返回状态为 `CLOSED` 的断路器
-  - 确认 MCP 传输端点能够响应（`/mcp` HTTP、`/mcp-sse` SSE）
-
-### 发布后
-
-- [ ] 运行 `/capture-release-evidences-cc`（Claude Code skill）
-  - 捕获新功能的 WebP 截图/录屏
-  - 附加到发布说明/博客文章
-- [ ] 在 GitHub Discussions / Discord 上发布版本公告
-- [ ] 为下一版本创建里程碑
-- [ ] 如果是关键发布：置顶讨论，或在 `news.json` 中发布应用内横幅
-
-### Radar 公开发布门禁
-
-Radar 公告特意以 `active: false` 的状态提交。只有在以下每一项都提供证据后，才能通过单独的更改来激活：
-
-- [ ] 所有堆叠的 Radar PR 均已合并，且发布顶端版本的 CI 为绿色
-- [ ] 在 `RADAR_ENABLED` 仍默认关闭的情况下，部署并对 OSS Radar 路由执行冒烟测试
-- [ ] 在指定的 Radar 主机上对 `GET /planos`、`/termos`、`/privacidade` 和 `/reembolso` 执行冒烟测试
-- [ ] 在私有服务中记录运营方身份/联系方式/地址，以及经所有者批准的法律审查
-- [ ] 仅在测试模式下验证 Stripe Checkout 和已签名的 webhook
-- [ ] 使用获批的发件人/域名验证一次加密的交易邮件投递
-- [ ] 证明备份可恢复，并完成一次有人监督且设有预算上限的研究运行
-- [ ] 在接受捐赠证据之前，批准 BRL/PIX 审核政策
-- [ ] 仅在通过上述门禁后启用公开 Checkout，然后激活新的 `news.json` ID
-- [ ] 验证 Home 横幅使用本地化文案，并且在较旧的 ID 被关闭后，新的 ID 会重新出现
-
 ## 嵌入式服务冒烟测试 (v3.8.4+)
 
 发布任何包含嵌入式服务变更的版本之前，请验证：
@@ -398,7 +300,7 @@ Radar 公告特意以 `active: false` 的状态提交。只有在以下每一项
 - 切勿跳过 Husky 钩子（`--no-verify`）
 - 切勿提交密钥、凭据或 `.env` 文件
 - 覆盖率必须保持 ≥60/60/60/60（语句/行/函数/分支）
-- 更改 `src/`、`open-sse/`、`electron/` 或 `bin/` 中的生产代码时，始终需要添加或更新测试
+- 更改 `src/`、`open-sse/` 或 `bin/` 中的生产代码时，始终需要添加或更新测试
 
 ## 自动同步检查
 

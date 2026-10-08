@@ -122,7 +122,6 @@ matricu bez jebkādas etiķetes.
 ### Versija un izmaiņu žurnāls
 
 - [ ] Izpildiet `/version-bump-cc <patch|minor|major>` (Claude Code prasme)
-  - Atjaunina versiju failos `package.json`, `electron/package.json`
   - No jauna ģenerē `CHANGELOG.md` no git komitiem kopš pēdējā taga
   - Atjaunina README.md emblēmas
 - [ ] Manuāli pārskatiet CHANGELOG.md un, ja nepieciešams, sakārtojiet komitu ziņojumus
@@ -216,104 +215,6 @@ Lauzošas izmaiņas: pievienojiet kājeni `BREAKING CHANGE:` vai `!` aiz tvērum
 - [ ] Modeļi ir reģistrēti failā `open-sse/config/providerRegistry.ts`
 - [ ] Vienību testi direktorijā `tests/unit/` aptver pakalpojumu sniedzēju klasifikāciju un maršrutēšanu
 
-### Darbvirsma (Electron)
-
-Ja `electron/` ir mainīts:
-
-- [ ] `npm run electron:smoke:packaged` izpildās sekmīgi
-- [ ] Būvējumi ir pārbaudīti vismaz vienai no platformām `:win`, `:mac`, `:linux`
-- [ ] Koda parakstīšanas sertifikāti nav beigušies (ja tiek veikta parakstīšana)
-- [ ] `electron/package.json` versija atbilst saknes `package.json` versijai
-- [ ] Ja laidiens paredzēts kanālam `stable`, automātiskās atjaunināšanas kanāla rādītājs ir atjaunināts
-
-### Būvējuma izkārtojums
-
-Repozitorijā tiek izmantotas trīs atsevišķas izvades direktorijas — nekad nesajauciet tās:
-
-| Direktorija | Nolūks                                                        | Tiek izsekota?   |
-| ----------- | ------------------------------------------------------------- | ---------------- |
-| `src/`      | Lietotnes avota kods (TypeScript / TSX)                       | Jā               |
-| `.build/`   | Būvējuma starprezultāti — `next build` izvade (`distDir`)     | Nē (gitignorēta) |
-| `dist/`     | Izplatāmais npm komplekts — izveidots ar `assembleStandalone` | Nē (gitignorēta) |
-
-> **Operatora piezīme:** attālā VPS attēla direktorija joprojām ir `/usr/lib/node_modules/omniroute/app/`.
-> Mainīta ir tikai **repozitorijā esošā** būvējuma izvade (`app/` → `dist/`). Izvietošanas prasmes ar rsync
-> kopē `dist/` saturu attālajā `app/` direktorijā — VPS ceļi nav jāmaina.
-
-**Vienas būvēšanas plūsma:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (tīrīšana)
-  └─ next build → .build/next/   (starprezultāti)
-  └─ assembleStandalone          (kopē savrupo komplektu + statiskos failus + publiskos failus + vietējos moduļus → dist/)
-  └─ writes dist/BUILD_SHA       (HEAD kontrolatzīme)
-```
-
-Izvietošanai NEPALAIDIET `npm run build`, pēc tam atsevišķi palaižot `npm run build:cli` — izmantojiet
-`npm run build:release`, kas ar vienu komandu veic tīru atkārtotu būvēšanu un izveido kontrolatzīmi.
-
-### Artefakta validācija
-
-- [ ] `npm run build:release` izpildās sekmīgi, un `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` rezultāts ir tīrs — nav `app.__qa_backup`, `scripts/scratch`, `package-lock.json` vai citu lokālu atlikumu
-- [ ] Pēc būvēšanas pastāv `dist/server.js`
-
-### Taga izveide un laidiens
-
-- [ ] Palaidiet `/generate-release-cc` (Claude Code prasme):
-  - Izveido tagu `vX.Y.Z`
-  - Nosūta tagu un zaru
-  - Izveido GitHub laidienu ar izmaiņu žurnāla saturu
-  - Pievieno Electron instalētājus (ja tie ir izveidoti)
-- [ ] Vai manuāli:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Izvietošana
-
-Izvietošanas prasmes izmanto vieglo rsync plūsmu — bez `npm pack` un bez `npm i -g`:
-
-- [ ] Izmantojiet mērķim atbilstošo izvietošanas prasmi:
-  - `/deploy-vps-local-cc` — lokālais VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — abi
-- [ ] Pirms izvietošanas pārbaudiet, ka `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Būvēšana jāveic vietā, kur `node_modules` ir īsta direktorija (galvenajā darba kopijā vai ar `npm ci` sagatavotā worktree — NEVIS worktree ar simbolisko saiti)
-- [ ] Veiciet izvietotās instances ātro pārbaudi:
-  - Atveriet `/dashboard/health` → pārbaudiet, vai versijas virkne atbilst laidienam
-  - Izpildiet `/v1/chat/completions` pieprasījumu, izmantojot zināmu pakalpojumu sniedzēju
-  - Pārbaudiet, vai `/api/monitoring/health` atgriež `CLOSED` ķēdes pārtraucējus
-  - Pārliecinieties, ka MCP transporti atbild (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Pēc laidiena
-
-- [ ] Palaidiet `/capture-release-evidences-cc` (Claude Code prasme)
-  - Uzņem jauno funkciju WebP ekrānuzņēmumus/ierakstus
-  - Pievieno tos laidiena piezīmēm / emuāra ierakstam
-- [ ] Atjauniniet GitHub Discussions / Discord ar paziņojumu par laidienu
-- [ ] Atveriet atskaites punktu nākamajai versijai
-- [ ] Ja kritiski svarīgi: piespraudiet diskusiju vai publicējiet to failā `news.json`, lai parādītu reklāmkarogu lietotnē
-
-### Radar publiskās palaišanas pārbaudes nosacījumi
-
-Radar paziņojums ir apzināti komitēts ar `active: false`. Aktivizēšana ir atsevišķa
-izmaiņa pēc tam, kad ir dokumentāri apstiprināts katrs tālāk norādītais punkts:
-
-- [ ] Visi secīgie Radar PR ir sapludināti, un release-tip CI statuss ir sekmīgs
-- [ ] Izvietojiet un veiciet OSS Radar maršrutu pamatpārbaudi, kamēr `RADAR_ENABLED` pēc noklusējuma joprojām ir izslēgts
-- [ ] Veiciet `GET /planos`, `/termos`, `/privacidade` un `/reembolso` pamatpārbaudi norādītajā Radar resursdatorā
-- [ ] Privātajā pakalpojumā reģistrējiet operatora identitāti/kontaktinformāciju/adresi un īpašnieka apstiprinātu juridisko pārbaudi
-- [ ] Tikai testa režīmā pārbaudiet Stripe Checkout un parakstīto tīmekļa aizķeri
-- [ ] Pārbaudiet vienu šifrētu transakciju e-pasta piegādi, izmantojot apstiprināto sūtītāju/domēnu
-- [ ] Aplieciniet dublējuma atjaunošanu un vienu uzraudzītu izpētes izpildi ar ierobežotu budžetu
-- [ ] Pirms ziedojuma apliecinājumu pieņemšanas apstipriniet BRL/PIX pārbaudes politiku
-- [ ] Iespējojiet publisko Checkout tikai pēc iepriekšējo nosacījumu izpildes un pēc tam aktivizējiet jauno `news.json` ID
-- [ ] Pārbaudiet, vai sākumlapas reklāmkarogā tiek izmantots lokalizēts teksts un vai jaunais ID atkal tiek parādīts pēc vecāka ID noraidīšanas
-
 ## Iegulto pakalpojumu pamatpārbaude (v3.8.4+)
 
 Pirms jebkura laidiena, kurā iekļautas iegulto pakalpojumu izmaiņas, pārbaudiet:
@@ -399,7 +300,7 @@ Ja laidienā ir kritiska problēma:
 - Nekad neizlaidiet Husky āķus (`--no-verify`)
 - Nekad neiekļaujiet komitos noslēpumus, akreditācijas datus vai `.env` failus
 - Testu pārklājumam jāsaglabājas ≥60/60/60/60 (priekšraksti/rindas/funkcijas/zari)
-- Mainot produkcijas kodu direktorijos `src/`, `open-sse/`, `electron/` vai `bin/`, vienmēr iekļaujiet vai atjauniniet testus
+- Mainot produkcijas kodu direktorijos `src/`, `open-sse/` vai `bin/`, vienmēr iekļaujiet vai atjauniniet testus
 
 ## Automatizēta sinhronizācijas pārbaude
 

@@ -197,7 +197,7 @@ docker run -d \
 
 ## التبعيات
 
-- شغّل `npm audit` بانتظام (`npm run audit:deps` يشمل التطبيق الرئيسي وelectron)
+- شغّل `npm audit` بانتظام ()
 - حافظ على تحديث التبعيات
 - يستخدم المشروع `husky` + `lint-staged` لإجراء فحوصات ما قبل الالتزام (lint-staged + check-docs-sync + check:any-budget:t11)
 - يشغّل مسار CI قواعد أمان ESLint عند كل عملية دفع (`no-eval` و`no-implied-eval` و`no-new-func` = خطأ)

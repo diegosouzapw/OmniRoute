@@ -91,7 +91,7 @@ Khi bạn cần nhúng một giá trị mới do upstream cung cấp mà:
 
 ### 3. Các mẫu bị cấm
 
-❌ **Không bao giờ** thực hiện bất kỳ điều nào sau đây trong mã production (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ **Không bao giờ** thực hiện bất kỳ điều nào sau đây trong mã production (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // KHÔNG TỐT: giá trị trực tiếp kích hoạt Secret Scanning + Semgrep

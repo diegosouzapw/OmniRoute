@@ -16,7 +16,7 @@ módosítástípust összekapcsol a hozzá tartozó szerződésekkel, célzott e
    [Ág- és kiadási modellben](BRANCHING_MODEL.md) leírt következő aktív ciklust.
 2. **Nevezze meg a szerződéseket.** Azonosítson minden katalógust, sémát, generált műterméket, nyilvános API-t vagy felhasználói
    felületet, amelyet a módosítás érint. Az alábbi táblázat megadja a minimális kiindulási készletet.
-3. **Írjon vagy frissítsen célzott teszteket.** A `src/`, `open-sse/`, `electron/` vagy
+3. **Írjon vagy frissítsen célzott teszteket.** A `src/`, `open-sse/` vagy
    `bin/` alatti éles kód módosításaihoz ugyanabban a PR-ben automatizált teszt szükséges. Először a viselkedést igazoló
    legkisebb tesztfájlokat futtassa, majd a felsorolt célzott ellenőrzéseket.
 4. **A széles körű mátrixot bízza a CI-re.** A teljes egységteszt-szegmensek, a Vitest, a lefedettségi küszöb fokozatos szigorítása és

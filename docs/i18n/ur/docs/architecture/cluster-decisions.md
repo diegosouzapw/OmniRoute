@@ -69,7 +69,7 @@ OmniRoute کی موجودہ تعیناتی ساخت پہلے ہی ہلکی پھ�
 | ------------------------------------ | -------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | **Dragonfly**                        | **خارج** | production scale پر rate-limit workload کے لیے `redis:7-alpine` پہلے ہی کافی ہے؛ توڑنے کے لیے کوئی حد موجود نہیں۔                |
 | **NATS**                             | **خارج** | ہر `omniroute` replica ایک واحد Node.js process ہے؛ کوئی multi-process pub/sub workload موجود نہیں۔                              |
-| **PostgreSQL**                       | **خارج** | SQLite + sqlite-vec + FTS5 تینوں use cases کو پورا کرتے ہیں؛ 97 migrations + Electron packaging منتقلی میں رکاوٹ ہیں۔            |
+| **PostgreSQL**                       | **خارج** | SQLite + sqlite-vec + FTS5 تینوں use cases کو پورا کرتے ہیں؛ 97 migrations packaging منتقلی میں رکاوٹ ہیں۔                       |
 | **Neo4j**                            | **خارج** | Routing ایک 5-table join ہے؛ SQLite پر recursive CTE کافی ہے۔                                                                    |
 | **MinIO**                            | **خارج** | کوئی multi-MB blob workload نہیں؛ images/audio passthrough proxies ہیں۔                                                          |
 | **pgvector / pg_ai / pg_textsearch** | **خارج** | وہی SQLite کی حد والی وجہ جو PostgreSQL کے لیے ہے؛ pgvector ecosystem بکھرا ہوا ہے۔                                              |

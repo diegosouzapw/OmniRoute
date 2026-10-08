@@ -118,7 +118,6 @@ omniroute
 
 ## పరిమితులు
 
-- Electron Termuxలో అమలు కాదు.
 - System tray లేదా desktop integration ఉండదు.
 - ఈ setup server-only: browser dashboardను ఉపయోగించండి.
 - Native dependenciesకు స్థానిక compilation అవసరం కావచ్చు.

@@ -89,7 +89,6 @@
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![লাইসেন্স: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![Docker পুল](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![Electron ডাউনলোড](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
 
 <table>
   <tr>
@@ -744,7 +743,6 @@ omniroute configure codex          # আরও রয়েছে: claude openco
   <tr><th align="left">প্ল্যাটফর্ম</th><th align="left">ইনস্টল</th><th align="left">বিশেষত্ব</th></tr>
   <tr><td align="left" nowrap>📦 <b>npm (গ্লোবাল)</b></td><td align="left" nowrap><code>npm install -g omniroute</code></td><td align="left">একটি কমান্ড, যেকোনো OS</td></tr>
   <tr><td align="left" nowrap>🐳 <b>Docker</b></td><td align="left" nowrap><code>docker run … diegosouzapw/omniroute</code></td><td align="left">মাল্টি-আর্ক <b>AMD64 + ARM64</b></td></tr>
-  <tr><td align="left" nowrap>🖥️ <b>ডেস্কটপ (Electron)</b></td><td align="left" nowrap><code>npm run electron:build</code></td><td align="left">নেটিভ উইন্ডো + সিস্টেম ট্রে — <b>Windows / macOS / Linux</b></td></tr>
   <tr><td align="left" nowrap>🎩 <b>মেনু-বার (OmniRouteTray)</b></td><td align="left" nowrap><code>brew install --cask zoispag/tap/omniroute-tray</code></td><td align="left">সার্ভার তত্ত্বাবধান ও স্বয়ংক্রিয়ভাবে আপডেট করে — <b>macOS</b></td></tr>
   <tr><td align="left" nowrap>💪 <b>ARM</b></td><td align="left" nowrap>নেটিভ <code>arm64</code></td><td align="left">Raspberry Pi, ARM সার্ভার, Apple Silicon</td></tr>
   <tr><td align="left" nowrap>📱 <b>Android (Termux)</b></td><td align="left" nowrap><code>pkg install nodejs && npx -y omniroute</code></td><td align="left"><b>আপনার ফোনে</b> চলে, ২৪/৭, root ছাড়াই</td></tr>
@@ -754,7 +752,7 @@ omniroute configure codex          # আরও রয়েছে: claude openco
   <tr><td align="left" nowrap>🛠️ <b>সোর্স থেকে</b></td><td align="left" nowrap><code>npm install && npm run dev</code></td><td align="left">পরিবর্তন করুন, অবদান রাখুন</td></tr>
 </table>
 
-<sub>📖 [Docker নির্দেশিকা](docs/guides/DOCKER_GUIDE.md) · [ডেস্কটপ](electron/README.md) · [মেনু-বার ট্রে](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
+<sub>📖 [Docker নির্দেশিকা](docs/guides/DOCKER_GUIDE.md) · [মেনু-বার ট্রে](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
 
 <br/>
 
@@ -1276,7 +1274,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1-ও এটি এ
   <tr><td nowrap><b>স্থিতিস্থাপকতা</b></td><td>সার্কিট ব্রেকার, এক্সপোনেনশিয়াল ব্যাকঅফ, অ্যান্টি-থান্ডারিং-হার্ড, স্বয়ংক্রিয়-কম্বো স্ব-মেরামত</td></tr>
   <tr><td nowrap><b>লগিং</b></td><td>pino — রিকোয়েস্ট কনটেক্সটসহ কাঠামোবদ্ধ JSON লগ</td></tr>
   <tr><td nowrap><b>টেস্টিং</b></td><td>Node.js টেস্ট রানার + Vitest — 5,100টিরও বেশি ট্র্যাক করা টেস্ট ফাইলজুড়ে <b>39,000টিরও বেশি স্ট্যাটিক টেস্ট ডিক্লারেশন</b> (ইউনিট, ইন্টিগ্রেশন, E2E, নিরাপত্তা, ইকোসিস্টেম)</td></tr>
-  <tr><td nowrap><b>প্ল্যাটফর্ম</b></td><td>ডেস্কটপ (Electron) · Android (Termux) · PWA (যেকোনো ব্রাউজার)</td></tr>
+  <tr><td nowrap><b>প্ল্যাটফর্ম</b></td><td>Android (Termux) · PWA (যেকোনো ব্রাউজার)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — রিলিজের সময় স্বয়ংক্রিয়ভাবে npm-এ প্রকাশ + Docker Hub</td></tr>
   <tr><td nowrap><b>লিংক</b></td><td><a href="https://omniroute.online">ওয়েবসাইট</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>

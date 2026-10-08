@@ -91,7 +91,7 @@ Quyidagi shartlarga mos keladigan, yuqori oqim tomonidan taqdim etilgan yangi qi
 
 ### 3. Taqiqlangan andozalar
 
-❌ Ishlab chiqarish kodida (`src/`, `open-sse/`, `electron/`, `bin/`) quyidagilardan birortasini **hech qachon** qilmang:
+❌ Ishlab chiqarish kodida (`src/`, `open-sse/`, `bin/`) quyidagilardan birortasini **hech qachon** qilmang:
 
 ```ts
 // YOMON: literal qiymat Secret Scanning + Semgrep ni ishga tushiradi

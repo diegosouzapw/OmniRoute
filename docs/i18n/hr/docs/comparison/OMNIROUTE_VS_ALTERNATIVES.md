@@ -29,7 +29,7 @@ Objektivna usporedba značajki s popularnim AI usmjerivačima otvorenog koda.
 | **Prikrivanje TLS otiska (JA3/JA4)**                        |                    ✅ wreq-js                     |        ❌        |        ❌         |        ❌        |
 | **Okvir za evaluaciju**                                     |                    ✅ ugrađen                     |        ❌        |        ❌         |  ⚠ uz plaćanje   |
 | **MITM proxy (presreće Cursor/Antigravity)**                |                ✅ višeplatformski                 |        ❌        |        ❌         |        ❌        |
-| **CLI sa sistemskom trakom (bez Electrona)**                |                        ✅                         |        ❌        | nije primjenjivo  | nije primjenjivo |
+| **CLI sa sistemskom trakom**                                |                        ✅                         |        ❌        | nije primjenjivo  | nije primjenjivo |
 | **CLI automatska autentikacija putem ID-ja stroja**         |                        ✅                         |        ❌        | nije primjenjivo  | nije primjenjivo |
 | **Nadzorna ploča**                                          |                    Next.js 16                     |     osnovna      |     vlasnička     |    vlasnička     |
 | **i18n**                                                    |                **42 lokalizacije**                |        ❌        |        ❌         |        ⚠         |

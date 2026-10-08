@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Повні інструкції з налаштування Docker, зокрема профілі Compose і Caddy HTTPS, див. у [Посібнику з Docker](./DOCKER_GUIDE.md).
 
-### Настільний застосунок (Electron)
-
-OmniRoute постачається з настільною оболонкою, створеною на основі Electron 41 + electron-builder 26.10. Доступні сценарії (корінь робочого простору):
-
-```bash
-npm run electron:dev          # Запустити настільний застосунок із гарячим перезавантаженням
-npm run electron:build        # Зібрати для поточної ОС (визначається автоматично)
-npm run electron:build:win    # Інсталятор Windows (NSIS + portable)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # Виконати швидке тестування упакованої збірки
-```
-
-Випуски інсталяторів настільного застосунку додаються до релізів GitHub. Повний детальний огляд Electron (підписування, міст IPC, дистрибутиви) див. у [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _(створено на пізнішому етапі)_.
-
 ### Безголовий сервер (CI/автоматизація)
 
 Для автоматичних налаштувань без участі користувача (Docker, Kubernetes, CI) використовуйте:

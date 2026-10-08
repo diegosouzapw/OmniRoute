@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16 uygulaması (UI + API rotaları + kütüphaneler + etki alanı + sunucu)
 ├── open-sse/             # Akış motoru çalışma alanı (işleyiciler, yürütücüler, çevirici, MCP sunucusu)
-├── electron/             # Masaüstü sarmalayıcısı (Electron 41 + electron-builder 26.10)
 ├── bin/                  # CLI giriş noktası ve komut işleyicileri
 ├── scripts/              # Derleme, kontrol, eşitleme ve tek seferlik betikler
 ├── docs/                 # Herkese açık dokümantasyon (şu anda buradasınız)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Masaüstü Sarmalayıcısı
-
-| Dosya            | Amaç                                                                                              |
-| ---------------- | ------------------------------------------------------------------------------------------------- |
-| `main.js`        | Electron ana süreci (BrowserWindow, gömülü Next.js sunucusu, sistem tepsisi, otomatik güncelleme) |
-| `preload.js`     | IPC köprüsü (contextBridge → `window.omniroute`)                                                  |
-| `package.json`   | electron-builder yapılandırması + Electron 41 + electron-builder 26.10 bağımlılıkları             |
-| `assets/`        | Uygulama simgeleri (Windows .ico, macOS .icns, Linux .png)                                        |
-| `dist-electron/` | Derleme çıktısı (git tarafından yok sayılır)                                                      |
-| `types.d.ts`     | İşleyici köprüsü için tür bildirimleri                                                            |
-| `README.md`      | Dahili Electron README'si (ayrıca bkz. `docs/guides/ELECTRON_GUIDE.md`)                           |
-
----
-
 ## `bin/` — CLI
 
 | Dosya                                                                                                       | Amaç                                                                                                                            |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | MCP/A2A E2E çalıştırıcısı                                                                           |
 | `run-ecosystem-tests.mjs`           | Ekosistem (sağlayıcı entegrasyonu) testleri                                                         |
 | `test-report-summary.mjs`           | Kapsam özeti markdown'ı oluşturur                                                                   |
-| `smoke-electron-packaged.mjs`       | Paketlenmiş Electron derlemesine duman testi uygular                                                |
-| `native-binary-compat.mjs`          | Yerel bağımlılıkların (`better-sqlite3`) Electron'ın Node sürümüyle eşleştiğini doğrular            |
 | `validate-pack-artifact.ts`         | npm pack çıktısını doğrular                                                                         |
 | `responses-ws-proxy.mjs`            | Codex Responses API için WebSocket köprüsü                                                          |
 | `v1-ws-bridge.mjs`                  | `/api/v1/ws` uç noktası için WebSocket köprüsü                                                      |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Son kullanıcı kılavuzu (kurulum, modeller, kombinasyonlar, CLI'lar, ses vb.)                                    |
 | `API_REFERENCE.md`          | Kimlik doğrulama modeliyle birlikte API uç noktası referansı                                                    |
 | `openapi.yaml`              | OpenAPI 3.0 belirtimi (121 yol)                                                                                 |
-| `SETUP_GUIDE.md`            | Kurulum yöntemleri (npm, npx, Docker, Electron, Termux, kaynak kod)                                             |
+| `SETUP_GUIDE.md`            | Kurulum yöntemleri (npm, npx, Docker, Termux, kaynak kod)                                                       |
 | `ENVIRONMENT.md`            | Tüm ortam değişkenleri (~800 belgelenmiş, `.env.example` ~3.050 satır)                                          |
 | `TROUBLESHOOTING.md`        | Yaygın hatalar + v3.8.0 için bilinen sorunlar                                                                   |
 | `RELEASE_CHECKLIST.md`      | Eksiksiz sürüm süreci (beceriler, husky, conventional commits, dağıtım)                                         |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io dağıtımı (şu anda yalnızca Çince)                                 |
 | `TERMUX_GUIDE.md`            | Termux aracılığıyla başsız Android kullanımı                             |
 | `PWA_GUIDE.md`               | Progressive Web App kurulumu + service worker                            |
-| `ELECTRON_GUIDE.md`          | Masaüstü uygulamasını derleme + imzalama + dağıtma                       |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                   |
 | `PROXY_GUIDE.md`             | 4 seviyeli giden proxy + 1proxy pazar yeri                               |
 

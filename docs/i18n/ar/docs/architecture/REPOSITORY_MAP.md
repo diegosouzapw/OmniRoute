@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # تطبيق Next.js 16 (واجهة المستخدم + مسارات API + المكتبات + النطاق + الخادم)
 ├── open-sse/             # مساحة عمل محرك البث (المعالجات، والمنفّذات، والمترجم، وخادم MCP)
-├── electron/             # غلاف سطح المكتب (Electron 41 + electron-builder 26.10)
 ├── bin/                  # نقطة دخول CLI ومعالجات الأوامر
 ├── scripts/              # سكربتات البناء، والتحقق، والمزامنة، والمهام المخصصة لمرة واحدة
 ├── docs/                 # الوثائق العامة (أنت هنا)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — غلاف سطح المكتب
-
-| الملف            | الغرض                                                                                        |
-| ---------------- | -------------------------------------------------------------------------------------------- |
-| `main.js`        | عملية Electron الرئيسية (BrowserWindow، وخادم Next.js مضمن، وعلبة النظام، والتحديث التلقائي) |
-| `preload.js`     | جسر IPC‏ (contextBridge → `window.omniroute`)                                                |
-| `package.json`   | إعدادات electron-builder + تبعيات Electron 41 وelectron-builder 26.10                        |
-| `assets/`        | أيقونات التطبيق (Windows .ico، وmacOS .icns، وLinux .png)                                    |
-| `dist-electron/` | مخرجات البناء (متجاهلة بواسطة git)                                                           |
-| `types.d.ts`     | تعريفات الأنواع لجسر العارض                                                                  |
-| `README.md`      | ملف README داخلي لـElectron (راجع أيضًا `docs/guides/ELECTRON_GUIDE.md`)                     |
-
----
-
 ## `bin/` — واجهة سطر الأوامر
 
 | الملف                                                                                                       | الغرض                                                                                                                                               |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | مشغّل اختبارات MCP/A2A من البداية إلى النهاية                                                  |
 | `run-ecosystem-tests.mjs`           | اختبارات المنظومة (تكامل المزوّد)                                                              |
 | `test-report-summary.mjs`           | إنشاء ملخص التغطية بتنسيق markdown                                                             |
-| `smoke-electron-packaged.mjs`       | إجراء اختبار دخاني لبنية Electron المحزّمة                                                     |
-| `native-binary-compat.mjs`          | التحقق من تطابق التبعيات الأصلية (`better-sqlite3`) مع إصدار Node الخاص بـ Electron            |
 | `validate-pack-artifact.ts`         | التحقق من مخرجات حزمة npm                                                                      |
 | `responses-ws-proxy.mjs`            | جسر WebSocket لواجهة Codex Responses API                                                       |
 | `v1-ws-bridge.mjs`                  | جسر WebSocket لنقطة النهاية `/api/v1/ws`                                                       |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | دليل المستخدم النهائي (الإعداد، والنماذج، والتركيبات، وواجهات CLI، والصوت، وغيرها)         |
 | `API_REFERENCE.md`          | مرجع نقاط نهاية API مع نموذج المصادقة                                                      |
 | `openapi.yaml`              | مواصفة OpenAPI 3.0 ‏(121 مسارًا)                                                           |
-| `SETUP_GUIDE.md`            | طرق التثبيت (npm، وnpx، وDocker، وElectron، وTermux، ومن المصدر)                           |
+| `SETUP_GUIDE.md`            | طرق التثبيت (npm، وnpx، وDocker، ووTermux، ومن المصدر)                                     |
 | `ENVIRONMENT.md`            | جميع متغيرات البيئة (نحو 800 موثّق، ونحو 3,050 سطرًا في `.env.example`)                    |
 | `TROUBLESHOOTING.md`        | الأخطاء الشائعة + المشكلات المعروفة في v3.8.0                                              |
 | `RELEASE_CHECKLIST.md`      | مسار الإصدار الكامل (المهارات، وhusky، والالتزامات التقليدية، والنشر)                      |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | النشر على Fly.io (متوفر حاليًا بالصينية فقط)                                   |
 | `TERMUX_GUIDE.md`            | تشغيل Android دون واجهة عبر Termux                                             |
 | `PWA_GUIDE.md`               | تثبيت تطبيق الويب التقدمي + عامل الخدمة                                        |
-| `ELECTRON_GUIDE.md`          | بناء تطبيق سطح المكتب + توقيعه + توزيعه                                        |
 | `TUNNELS_GUIDE.md`           | ‏Cloudflared + ngrok + Tailscale Funnel                                        |
 | `PROXY_GUIDE.md`             | وكيل صادر من 4 مستويات + سوق 1proxy                                            |
 

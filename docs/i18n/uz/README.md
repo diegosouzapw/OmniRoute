@@ -89,7 +89,6 @@
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![Litsenziya: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![Docker orqali yuklab olishlar](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![Electron orqali yuklab olishlar](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
 
 <table>
   <tr>
@@ -744,7 +743,6 @@ qobiq tarixiga yozilishidan saqlaydi. → [CLI integratsiyalari](docs/guides/CLI
   <tr><th align="left">Platforma</th><th align="left">Oʻrnatish</th><th align="left">Asosiy afzalliklar</th></tr>
   <tr><td align="left" nowrap>📦 <b>npm (global)</b></td><td align="left" nowrap><code>npm install -g omniroute</code></td><td align="left">Bitta buyruq, istalgan OS</td></tr>
   <tr><td align="left" nowrap>🐳 <b>Docker</b></td><td align="left" nowrap><code>docker run … diegosouzapw/omniroute</code></td><td align="left">Koʻp arxitekturali: <b>AMD64 + ARM64</b></td></tr>
-  <tr><td align="left" nowrap>🖥️ <b>Ish stoli (Electron)</b></td><td align="left" nowrap><code>npm run electron:build</code></td><td align="left">Mahalliy oyna + tizim treyi — <b>Windows / macOS / Linux</b></td></tr>
   <tr><td align="left" nowrap>🎩 <b>Menyu paneli (OmniRouteTray)</b></td><td align="left" nowrap><code>brew install --cask zoispag/tap/omniroute-tray</code></td><td align="left">Serverni nazorat qiladi va avtomatik yangilaydi — <b>macOS</b></td></tr>
   <tr><td align="left" nowrap>💪 <b>ARM</b></td><td align="left" nowrap>mahalliy <code>arm64</code></td><td align="left">Raspberry Pi, ARM serverlari, Apple Silicon</td></tr>
   <tr><td align="left" nowrap>📱 <b>Android (Termux)</b></td><td align="left" nowrap><code>pkg install nodejs && npx -y omniroute</code></td><td align="left"><b>Telefoningizda</b> 24/7 ishlaydi, root talab qilinmaydi</td></tr>
@@ -754,7 +752,7 @@ qobiq tarixiga yozilishidan saqlaydi. → [CLI integratsiyalari](docs/guides/CLI
   <tr><td align="left" nowrap>🛠️ <b>Manba kodidan</b></td><td align="left" nowrap><code>npm install && npm run dev</code></td><td align="left">Oʻzgartiring, hissa qoʻshing</td></tr>
 </table>
 
-<sub>📖 [Docker qoʻllanmasi](docs/guides/DOCKER_GUIDE.md) · [Ish stoli](electron/README.md) · [Menyu paneli treyi](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
+<sub>📖 [Docker qoʻllanmasi](docs/guides/DOCKER_GUIDE.md) · [Menyu paneli treyi](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
 
 <br/>
 
@@ -1276,7 +1274,7 @@ bitta jarayon xizmat koʻrsatadi, shu sababli hozircha faqat CLI uchun alohida p
   <tr><td nowrap><b>Barqarorlik</b></td><td>Avtomatik uzgich, eksponensial kechiktirish, bir vaqtdagi ommaviy so‘rovlarni oldini olish, avtomatik kombinatsiyali o‘z-o‘zini tiklash</td></tr>
   <tr><td nowrap><b>Jurnallash</b></td><td>pino — so‘rov kontekstiga ega tuzilmaviy JSON jurnallari</td></tr>
   <tr><td nowrap><b>Sinov</b></td><td>Node.js test ishga tushirgichi + Vitest — kuzatuvdagi 5,100+ ta test fayli bo‘ylab <b>39,000+ ta statik test deklaratsiyasi</b> (modul, integratsion, E2E, xavfsizlik, ekotizim)</td></tr>
-  <tr><td nowrap><b>Platformalar</b></td><td>Stol kompyuteri (Electron) · Android (Termux) · PWA (istalgan brauzer)</td></tr>
+  <tr><td nowrap><b>Platformalar</b></td><td>Android (Termux) · PWA (istalgan brauzer)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — relizda npm va Docker Hub’ga avtomatik nashr qilish</td></tr>
   <tr><td nowrap><b>Havolalar</b></td><td><a href="https://omniroute.online">Veb-sayt</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>

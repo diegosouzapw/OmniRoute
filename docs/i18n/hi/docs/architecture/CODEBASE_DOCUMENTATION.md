@@ -27,7 +27,6 @@
 | भाषा           | **TypeScript 6.0+** — लक्ष्य `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                 |
 | रनटाइम         | **Node.js** `>=22.22.2 <23` या `>=24.0.0 <27` (`engines` + `SUPPORTED_NODE_RANGE` के माध्यम से लागू)                  |
 | डेटाबेस        | `better-sqlite3` के माध्यम से **SQLite** (सिंगलटन, WAL जर्नलिंग)                                                      |
-| डेस्कटॉप       | **Electron 41** + `electron-builder` 26.10 (`electron/` में अलग वर्कस्पेस)                                            |
 | परीक्षण        | **Node नेटिव टेस्ट रनर** (यूनिट/इंटीग्रेशन), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | बिल्ड          | `scripts/build/build-next-isolated.mjs` के माध्यम से Next.js स्टैंडअलोन                                               |
 | लिंट/फ़ॉर्मैट  | ESLint फ़्लैट कॉन्फ़िग + Prettier (Husky प्री-कमिट के माध्यम से `lint-staged`)                                        |
@@ -51,7 +50,6 @@
 OmniRoute/
 ├── src/                  Next.js एप्लिकेशन (App Router, लाइब्रेरी, डोमेन, सर्वर, साझा कोड)
 ├── open-sse/             स्ट्रीमिंग इंजन वर्कस्पेस (@omniroute/open-sse)
-├── electron/             डेस्कटॉप रैपर (Electron 41 मेन + प्रीलोड)
 ├── bin/                  CLI एंट्री पॉइंट (omniroute, reset-password)
 ├── tests/                यूनिट, इंटीग्रेशन, e2e, protocols-e2e, ट्रांसलेटर, सुरक्षा, फ़िक्स्चर
 ├── scripts/              बिल्ड, सिंक, जाँच, माइग्रेशन और रनटाइम सहायक स्क्रिप्ट
@@ -575,26 +573,6 @@ open-sse/
 
 ---
 
-## 5. `electron/` — डेस्कटॉप रैपर
-
-```
-electron/
-├── main.js                  Electron मुख्य प्रोसेस
-├── preload.js               प्रीलोड ब्रिज (contextIsolation सक्षम)
-├── types.d.ts
-├── package.json             electron-builder कॉन्फ़िगरेशन, संस्करण 3.8.51
-├── README.md
-├── assets/                  बिल्ड संसाधन (आइकन, एंटाइटलमेंट, …)
-├── node_modules/            समर्पित node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           बिल्ड आउटपुट (कमिट नहीं किया गया)
-```
-
-वर्कस्पेस रूट पर पाँच npm स्क्रिप्ट हैं: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`। स्वचालित अपडेट
-GitHub रिलीज़ फ़ीड की ओर इंगित करने वाले `electron-updater` के माध्यम से होता है।
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -659,13 +637,11 @@ bin/
 उद्देश्य के आधार पर 6 सबफ़ोल्डर में व्यवस्थित।
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`।
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`।
@@ -844,7 +820,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A प्रोटोकॉल स्किल्स और डिस्कवरी।
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK + Caveman कम्प्रेशन।
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI इंटीग्रेशंस।
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (यदि उपलब्ध हो), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — डिप्लॉयमेंट लक्ष्य।
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — डिप्लॉयमेंट लक्ष्य।
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — सामान्य संचालन संबंधी समस्याएँ।
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — योगदानकर्ता वर्कफ़्लो।
 - [CLAUDE.md](../../CLAUDE.md) — Claude Code के लिए रेपो नियम (ऊपर दिए गए कई

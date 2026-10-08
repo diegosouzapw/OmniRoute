@@ -121,7 +121,6 @@ unit shards, integration, vitest, lint/typecheck, docs-sync, `check:pack-artifac
 ### Version ও Changelog
 
 - [ ] `/version-bump-cc <patch|minor|major>` চালান (Claude Code skill)
-  - `package.json`, `electron/package.json`-এর version bump করে
   - সর্বশেষ tag-এর পরের git commit থেকে `CHANGELOG.md` পুনরায় তৈরি করে
   - README.md badge হালনাগাদ করে
 - [ ] CHANGELOG.md ম্যানুয়ালি পর্যালোচনা করুন এবং প্রয়োজন হলে commit message পরিষ্কার করুন
@@ -215,103 +214,6 @@ Breaking change: `BREAKING CHANGE:` footer অথবা scope-এর পরে `
 - [ ] Model-গুলো `open-sse/config/providerRegistry.ts`-এ নিবন্ধিত
 - [ ] `tests/unit/`-এর unit test-গুলো provider classification এবং routing কভার করে
 
-### ডেস্কটপ (Electron)
-
-যদি `electron/` পরিবর্তিত হয়ে থাকে:
-
-- [ ] `npm run electron:smoke:packaged` সফল হয়
-- [ ] `:win`, `:mac`, `:linux`-এর মধ্যে অন্তত একটির build পরীক্ষা করা হয়েছে
-- [ ] Code signing certificate-এর মেয়াদ শেষ হয়নি (signing করা হলে)
-- [ ] `electron/package.json`-এর version, root `package.json`-এর সঙ্গে মেলে
-- [ ] `stable`-এ release করা হলে auto-update channel pointer হালনাগাদ করা হয়েছে
-
-### Build বিন্যাস
-
-Repository-টি তিনটি স্বতন্ত্র output directory ব্যবহার করে — এগুলো কখনো গুলিয়ে ফেলবেন না:
-
-| Directory | উদ্দেশ্য                                                     | ট্র্যাক করা হয়? |
-| --------- | ------------------------------------------------------------ | ---------------- |
-| `src/`    | Application source (TypeScript / TSX)                        | হ্যাঁ            |
-| `.build/` | Build-এর মধ্যবর্তী ফাইল — `next build` output (`distDir`)    | না (gitignored)  |
-| `dist/`   | বিতরণযোগ্য npm bundle — `assembleStandalone` দ্বারা প্রস্তুত | না (gitignored)  |
-
-> **অপারেটরের নোট:** remote VPS image directory এখনও `/usr/lib/node_modules/omniroute/app/`।
-> কেবল **repository-এর ভেতরের** build output সরানো হয়েছে (`app/` → `dist/`)। Deploy skill-গুলো
-> `dist/`-এর বিষয়বস্তু remote `app/` directory-তে rsync করে — VPS path-এ কোনো পরিবর্তন প্রয়োজন নেই।
-
-**একক-build প্রবাহ:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (পরিষ্কার)
-  └─ next build → .build/next/   (মধ্যবর্তী ফাইল)
-  └─ assembleStandalone          (standalone + static + public + natives → dist/-এ কপি করে)
-  └─ writes dist/BUILD_SHA       (HEAD sentinel লেখে)
-```
-
-Deploy-এর জন্য `npm run build` চালিয়ে পরে আলাদাভাবে `npm run build:cli` চালাবেন না — এর পরিবর্তে
-`npm run build:release` ব্যবহার করুন, যা একটি command-এই clean rebuild + sentinel সম্পন্ন করে।
-
-### Artifact যাচাইকরণ
-
-- [ ] `npm run build:release` সফল হয় এবং `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` পরিষ্কার — কোনো `app.__qa_backup`, `scripts/scratch`, `package-lock.json` বা অন্য কোনো স্থানীয় অবশিষ্টাংশ নেই
-- [ ] Build-এর পর `dist/server.js` বিদ্যমান
-
-### Tagging ও Release
-
-- [ ] `/generate-release-cc` (Claude Code skill) চালান:
-  - `vX.Y.Z` tag তৈরি করে
-  - Tag এবং branch push করে
-  - Changelog body-সহ GitHub Release খোলে
-  - Electron installer সংযুক্ত করে (build করা থাকলে)
-- [ ] অথবা ম্যানুয়ালি:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deploy
-
-Deploy skill-গুলো হালকা rsync প্রবাহ ব্যবহার করে — কোনো `npm pack` বা `npm i -g` নয়:
-
-- [ ] Target-এর সঙ্গে মেলে এমন deploy skill ব্যবহার করুন:
-  - `/deploy-vps-local-cc` — local VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — উভয়টি
-- [ ] Deploy করার আগে নিশ্চিত করুন `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] যেখানে `node_modules` বাস্তব, সেখানেই build চালাতে হবে (মূল checkout অথবা `npm ci` চালানো worktree — symlink করা worktree নয়)
-- [ ] Deploy করা instance-এর smoke test করুন:
-  - `/dashboard/health` খুলুন → version string release-এর সঙ্গে মেলে কি না পরীক্ষা করুন
-  - পরিচিত একটি provider-এর বিপরীতে `/v1/chat/completions` request চালান
-  - যাচাই করুন যে `/api/monitoring/health`, `CLOSED` circuit breaker ফেরত দেয়
-  - MCP transport-গুলো সাড়া দেয় কি না নিশ্চিত করুন (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Release-পরবর্তী
-
-- [ ] `/capture-release-evidences-cc` চালান (Claude Code skill)
-  - নতুন ফিচারগুলোর WebP স্ক্রিনশট/রেকর্ডিং ধারণ করে
-  - রিলিজ নোট / ব্লগ পোস্টে সংযুক্ত করে
-- [ ] রিলিজ ঘোষণাসহ GitHub Discussions / Discord আপডেট করুন
-- [ ] পরবর্তী সংস্করণের জন্য milestone খুলুন
-- [ ] গুরুত্বপূর্ণ হলে: আলোচনাটি pin করুন অথবা অ্যাপের অভ্যন্তরীণ ব্যানারের জন্য `news.json`-এ পোস্ট করুন
-
-### Radar-এর সর্বজনীন লঞ্চ গেট
-
-Radar ঘোষণাটি ইচ্ছাকৃতভাবে `active: false` সহ commit করা হয়েছে। নিচের প্রতিটি আইটেমের প্রমাণ পাওয়ার পর আলাদা একটি পরিবর্তনের মাধ্যমে এটি সক্রিয় করতে হবে:
-
-- [ ] সব stacked Radar PR merge করা হয়েছে এবং release-tip CI সবুজ রয়েছে
-- [ ] `RADAR_ENABLED` ডিফল্টভাবে বন্ধ রেখেই OSS Radar routes deploy ও smoke test করুন
-- [ ] নির্দিষ্ট Radar host-এ `GET /planos`, `/termos`, `/privacidade`, এবং `/reembolso` smoke test করুন
-- [ ] private service-এ operator-এর পরিচয়/যোগাযোগ/ঠিকানা এবং owner-অনুমোদিত আইনি পর্যালোচনা রেকর্ড করুন
-- [ ] শুধু test mode-এ Stripe Checkout এবং signed webhook পরীক্ষা করুন
-- [ ] অনুমোদিত sender/domain দিয়ে একটি encrypted transactional-email delivery পরীক্ষা করুন
-- [ ] backup restore এবং তত্ত্বাবধানে পরিচালিত, budget-capped একটি research run সফলভাবে প্রমাণ করুন
-- [ ] donation evidence গ্রহণের আগে BRL/PIX review policy অনুমোদন করুন
-- [ ] আগের gate-গুলো সম্পন্ন হওয়ার পরেই public Checkout সক্রিয় করুন, তারপর নতুন `news.json` ID সক্রিয় করুন
-- [ ] যাচাই করুন যে Home banner স্থানীয়কৃত copy ব্যবহার করে এবং পুরোনো কোনো ID dismiss করার পর নতুন একটি ID আবার প্রদর্শিত হয়
-
 ## এমবেডেড সার্ভিসেস স্মোক পরীক্ষা (v3.8.4+)
 
 এম্বেডেড সার্ভিসে পরিবর্তন অন্তর্ভুক্ত রয়েছে—এমন কোনো রিলিজ প্রকাশের আগে যাচাই করুন:
@@ -397,7 +299,7 @@ Radar ঘোষণাটি ইচ্ছাকৃতভাবে `active: false`
 - কখনোই Husky হুক (`--no-verify`) এড়িয়ে যাবেন না
 - কখনোই সিক্রেট, ক্রেডেনশিয়াল বা `.env` ফাইল কমিট করবেন না
 - কভারেজ অবশ্যই ≥60/60/60/60 (স্টেটমেন্ট/লাইন/ফাংশন/ব্রাঞ্চ) থাকতে হবে
-- `src/`, `open-sse/`, `electron/` বা `bin/`-এর প্রোডাকশন কোড পরিবর্তন করার সময় সর্বদা টেস্ট অন্তর্ভুক্ত বা আপডেট করুন
+- `src/`, `open-sse/` বা `bin/`-এর প্রোডাকশন কোড পরিবর্তন করার সময় সর্বদা টেস্ট অন্তর্ভুক্ত বা আপডেট করুন
 
 ## স্বয়ংক্রিয় সিঙ্ক যাচাই
 

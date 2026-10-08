@@ -45,10 +45,10 @@ const BASELINE_PATH = path.join(ROOT, "config/quality/quality-baseline.json");
 //     timeout in CI (confirmed: ETIMEDOUT) → the gate silently never produces a
 //     value. Scoping the scan to the source dirs keeps it fast (~6s) while still
 //     covering every place an embedded secret would actually be a risk (the same
-//     dirs Hard Rule #8 governs: src/open-sse/electron/bin, plus scripts/).
+//     dirs Hard Rule #8 governs: src/open-sse/bin, plus scripts/).
 //   • We also drop git-history mode (scanning 4500+ commits is slow and grows
 //     unbounded); the current working tree is what ships.
-const SECRET_SCAN_DIRS = ["src", "open-sse", "bin", "electron", "scripts"];
+const SECRET_SCAN_DIRS = ["src", "open-sse", "bin", "scripts"];
 
 // ---------------------------------------------------------------------------
 // Pure parsing function (exported for tests)

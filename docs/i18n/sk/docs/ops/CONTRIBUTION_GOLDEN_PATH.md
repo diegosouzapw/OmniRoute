@@ -17,8 +17,7 @@ každý bežný typ zmeny s jeho kontraktmi, cielenými kontrolami a pokrytím v
 2. **Pomenujte kontrakty.** Identifikujte každý katalóg, schému, generovaný artefakt, verejné API
    alebo používateľské rozhranie, ktoré zmena ovplyvňuje. Tabuľka nižšie uvádza minimálnu počiatočnú
    množinu.
-3. **Napíšte alebo aktualizujte cielené testy.** Zmeny produkčného kódu v `src/`, `open-sse/`,
-   `electron/` alebo `bin/` vyžadujú automatizovaný test v tom istom PR. Spustite najmenšie testovacie
+3. **Napíšte alebo aktualizujte cielené testy.** Zmeny produkčného kódu v `src/`, `open-sse/` alebo `bin/` vyžadujú automatizovaný test v tom istom PR. Spustite najmenšie testovacie
    súbory, ktoré dokazujú dané správanie, a potom uvedené cielené kontroly.
 4. **Nechajte CI spustiť širokú maticu.** V PR sa spustia všetky časti jednotkových testov, Vitest,
    kontrola pokrytia a produkčné zostavenie. Širokú súpravu testov spúšťajte lokálne iba vtedy, keď

@@ -17,7 +17,7 @@ This guide is the operator-facing companion to:
 
 > **Scope.** This is a fork deployment layout. Upstream publishing workflows
 > (`Publish to Docker Hub`, `Publish to npm`, `Deploy to VPS`, `Wiki Sync`,
-> `Radar Export`, Electron/nightly release jobs) are repository-guarded to
+> `Radar Export`, nightly release jobs) are repository-guarded to
 > `diegosouzapw/OmniRoute` and will no-op in this fork. Only
 > `production-publish.yml` publishes here.
 

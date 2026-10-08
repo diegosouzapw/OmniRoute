@@ -197,7 +197,7 @@ docker run -d \
 
 ## Vitegemezi
 
-- Endesha `npm audit` mara kwa mara (`npm run audit:deps` hushughulikia sehemu kuu + electron)
+- Endesha `npm audit` mara kwa mara (`npm run audit:deps` hushughulikia sehemu kuu)
 - Sasisha vitegemezi
 - Mradi hutumia `husky` + `lint-staged` kwa ukaguzi wa kabla ya commit (lint-staged + check-docs-sync + check:any-budget:t11)
 - Mtiririko wa CI huendesha kanuni za usalama za ESLint kwa kila push (`no-eval`, `no-implied-eval`, `no-new-func` = hitilafu)

@@ -3,7 +3,7 @@
 // background. Windows' NotifyIcon paints bitmap pixel colors literally — unlike macOS
 // there is no "template image" auto-tinting — so a pure-white glyph with no outline is
 // effectively invisible there. See bin/cli/tray/tray.ts::getIconPath() (prefers icon.ico
-// on win32, falling back to icon.png) and electron/main.js (darwin-only setTemplateImage).
+// on win32, falling back to icon.png).
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
@@ -14,7 +14,6 @@ import sharp from "sharp";
 const repoRoot = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 const ICON_PNG_PATH = join(repoRoot, "bin", "cli", "tray", "icon.png");
 const ICON_ICO_PATH = join(repoRoot, "bin", "cli", "tray", "icon.ico");
-const ELECTRON_TRAY_ICON_PATH = join(repoRoot, "electron", "assets", "tray-icon.png");
 
 // Windows 11 Fluent "hidden icons" overflow flyout / light-theme taskbar background.
 const LIGHT_BG = { r: 243, g: 243, b: 243 };
@@ -94,11 +93,4 @@ test("icon.ico now ships next to icon.png so the win32 tray path uses the native
 
 test("bin/cli/tray/icon.png has a dark outline visible on both light and dark Windows tray backgrounds", async () => {
   await assertHasVisibleContrastAgainstBothThemes(ICON_PNG_PATH, "bin/cli/tray/icon.png");
-});
-
-test("electron/assets/tray-icon.png has a dark outline visible on both light and dark tray backgrounds (Windows/Linux Electron tray, no template-image auto-tint)", async () => {
-  await assertHasVisibleContrastAgainstBothThemes(
-    ELECTRON_TRAY_ICON_PATH,
-    "electron/assets/tray-icon.png"
-  );
 });

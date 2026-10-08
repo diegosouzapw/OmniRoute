@@ -16,7 +16,7 @@ sastopamo izmaiņu veidu ar tā līgumiem, mērķētajām pārbaudēm un CI pār
    [Zarošanas un laidienu modelī](BRANCHING_MODEL.md).
 2. **Nosauciet līgumus.** Identificējiet katru katalogu, shēmu, ģenerēto artefaktu, publisko API vai lietotāja
    saskarni, ko ietekmē izmaiņas. Tālāk esošajā tabulā ir norādīts minimālais sākuma komplekts.
-3. **Uzrakstiet vai atjauniniet mērķētos testus.** Ražošanas koda izmaiņām mapēs `src/`, `open-sse/`, `electron/` vai
+3. **Uzrakstiet vai atjauniniet mērķētos testus.** Ražošanas koda izmaiņām mapēs `src/`, `open-sse/` vai
    `bin/` ir nepieciešams automatizēts tests tajā pašā PR. Palaidiet mazāko testu failu kopu, kas pierāda
    darbību, un pēc tam norādītās mērķētās pārbaudes.
 4. **Ļaujiet CI izpildīt plašo matricu.** Pilnie vienībtestu segmenti, Vitest, pārklājuma sliekšņa pārbaude un

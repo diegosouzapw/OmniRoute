@@ -91,7 +91,7 @@ Kun sinun täytyy upottaa uusi ulkopuolisen palveluntarjoajan toimittama arvo, j
 
 ### 3. Kielletyt toimintamallit
 
-❌ **Älä koskaan** tee mitään seuraavista tuotantokoodissa (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ **Älä koskaan** tee mitään seuraavista tuotantokoodissa (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // HUONO: literaaliarvo laukaisee Secret Scanningin ja Semgrepin

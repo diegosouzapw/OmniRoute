@@ -24,7 +24,7 @@ const BASELINE_PATH = path.resolve(
 );
 const UPDATE = process.argv.includes("--update");
 const BASE_REF = getArg("--base-ref"); // SHA for PR base-relative mode (#8522)
-const SCAN_DIRS = ["src", "open-sse", "electron", "bin"];
+const SCAN_DIRS = ["src", "open-sse", "bin"];
 // Test files live under tests/ plus co-located *.test.ts(x) inside the source dirs.
 const TEST_SCAN_DIRS = ["tests", ...SCAN_DIRS];
 // Directories to skip when walking — build artifacts and installed packages.

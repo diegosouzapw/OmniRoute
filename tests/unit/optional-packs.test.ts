@@ -99,22 +99,6 @@ test("manifest and runtime pack lists stay in sync", async () => {
   );
 });
 
-test("wiring: electron main prepends installed pack node_modules to the server NODE_PATH", () => {
-  const mainJs = readFileSync(path.join(process.cwd(), "electron/main.js"), "utf8");
-  assert.ok(
-    mainJs.includes("resolvePackNodePaths(dataDir)"),
-    "startNextServer must pass pack dirs into resolveServerNodePath"
-  );
-  // Packs must be prepended BEFORE existing entries so an installed pack can
-  // never be shadowed by a stale bundled duplicate.
-  const extraIdx = mainJs.indexOf("for (const packDir of extraDirs)");
-  const unpackedIdx = mainJs.indexOf("app.asar.unpacked");
-  assert.ok(
-    extraIdx !== -1 && extraIdx < unpackedIdx,
-    "pack dirs take precedence over bundle-resident copies"
-  );
-});
-
 test("wiring: the LLMLingua gate also probes installed packs", () => {
   const worker = readFileSync(
     path.join(process.cwd(), "open-sse/services/compression/engines/llmlingua/worker.ts"),

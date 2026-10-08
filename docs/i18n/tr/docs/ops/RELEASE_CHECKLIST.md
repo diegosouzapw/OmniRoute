@@ -125,7 +125,6 @@ herhangi bir etiket olmadan E2E matrisini otomatik olarak atlar.
 ### Sürüm ve Değişiklik Günlüğü
 
 - [ ] `/version-bump-cc <patch|minor|major>` komutunu çalıştırın (Claude Code becerisi)
-  - `package.json`, `electron/package.json` sürümlerini artırır
   - Son etiketten bu yana yapılan git commit'lerinden `CHANGELOG.md` dosyasını yeniden oluşturur
   - README.md rozetlerini günceller
 - [ ] CHANGELOG.md dosyasını elle inceleyin ve gerekirse commit mesajlarını düzenleyin
@@ -219,103 +218,6 @@ Geriye dönük uyumsuz değişiklikler: `BREAKING CHANGE:` altbilgisi veya kapsa
 - [ ] Modeller `open-sse/config/providerRegistry.ts` içinde kayıtlı
 - [ ] `tests/unit/` içindeki birim testleri sağlayıcı sınıflandırmasını ve yönlendirmeyi kapsıyor
 
-### Masaüstü (Electron)
-
-`electron/` değiştiyse:
-
-- [ ] `npm run electron:smoke:packaged` başarılı
-- [ ] Derlemeler `:win`, `:mac`, `:linux` hedeflerinden en az biri için test edildi
-- [ ] Kod imzalama sertifikalarının süresi dolmamış (imzalama yapılıyorsa)
-- [ ] `electron/package.json` sürümü kök dizindeki `package.json` ile eşleşiyor
-- [ ] `stable` kanalına sürüm yayımlanıyorsa otomatik güncelleme kanalı işaretçisi güncellendi
-
-### Derleme Düzeni
-
-Depo üç farklı çıktı dizini kullanır — bunları asla birbirine karıştırmayın:
-
-| Dizin     | Amaç                                                           | İzleniyor mu?      |
-| --------- | -------------------------------------------------------------- | ------------------ |
-| `src/`    | Uygulama kaynağı (TypeScript / TSX)                            | Evet               |
-| `.build/` | Derleme ara dosyaları — `next build` çıktısı (`distDir`)       | Hayır (gitignored) |
-| `dist/`   | Dağıtılabilir npm paketi — `assembleStandalone` ile hazırlanır | Hayır (gitignored) |
-
-> **Operatör notu:** uzak VPS görüntü dizini `/usr/lib/node_modules/omniroute/app/` olarak kalır.
-> Yalnızca **depo içindeki** derleme çıktısı taşındı (`app/` → `dist/`). Dağıtım becerileri, `dist/`
-> içeriğini uzaktaki `app/` dizinine rsync ile aktarır — VPS yollarında değişiklik gerekmez.
-
-**Tek derlemeli akış:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (temizle)
-  └─ next build → .build/next/   (ara dosyalar)
-  └─ assembleStandalone          (standalone + static + public + natives içeriklerini → dist/ dizinine kopyalar)
-  └─ dist/BUILD_SHA dosyasını yazar       (HEAD doğrulama işareti)
-```
-
-Dağıtım için `npm run build` ve ardından ayrı olarak `npm run build:cli` çalıştırMAYIN —
-tek komutta temiz bir yeniden derleme + doğrulama işareti oluşturan `npm run build:release` komutunu kullanın.
-
-### Artefakt Doğrulaması
-
-- [ ] `npm run build:release` başarılı ve `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` temiz — `app.__qa_backup`, `scripts/scratch`, `package-lock.json` veya başka yerel kalıntı yok
-- [ ] Derlemeden sonra `dist/server.js` mevcut
-
-### Etiketleme ve Sürüm Yayımlama
-
-- [ ] `/generate-release-cc` komutunu çalıştırın (Claude Code becerisi):
-  - `vX.Y.Z` etiketini oluşturur
-  - Etiketi ve dalı gönderir
-  - Değişiklik günlüğü içeriğiyle GitHub Release açar
-  - Electron yükleyicilerini ekler (oluşturulduysa)
-- [ ] Veya manuel olarak:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Dağıtım
-
-Dağıtım becerileri hafif rsync akışını kullanır — `npm pack` veya `npm i -g` kullanılmaz:
-
-- [ ] Hedefle eşleşen dağıtım becerisini kullanın:
-  - `/deploy-vps-local-cc` — yerel VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — her ikisi
-- [ ] Dağıtımdan önce `dist/BUILD_SHA` == `git rev-parse --short HEAD` olduğunu doğrulayın
-- [ ] Derleme, `node_modules` dizininin gerçek olduğu bir yerde çalıştırılmalıdır (ana çalışma kopyası veya `npm ci` çalıştırılmış worktree — sembolik bağlantılı bir worktree DEĞİL)
-- [ ] Dağıtılan örnekte hızlı doğrulama testi yapın:
-  - `/dashboard/health` sayfasını açın → sürüm dizesinin sürümle eşleştiğini kontrol edin
-  - Bilinen bir sağlayıcıya karşı `/v1/chat/completions` isteği çalıştırın
-  - `/api/monitoring/health` yanıtının `CLOSED` devre kesiciler döndürdüğünü doğrulayın
-  - MCP aktarımlarının yanıt verdiğini doğrulayın (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Sürüm Sonrası
-
-- [ ] `/capture-release-evidences-cc` komutunu çalıştırın (Claude Code becerisi)
-  - Yeni özelliklerin WebP ekran görüntülerini/kayıtlarını alır
-  - Sürüm notlarına / blog gönderisine ekler
-- [ ] GitHub Discussions / Discord'u sürüm duyurusuyla güncelleyin
-- [ ] Sonraki sürüm için kilometre taşı açın
-- [ ] Kritikse: uygulama içi banner için tartışmayı sabitleyin veya `news.json` içinde yayımlayın
-
-### Radar genel kullanıma sunma geçidi
-
-Radar duyurusu kasıtlı olarak `active: false` ile commit edilmiştir. Etkinleştirme, aşağıdaki her maddeye ilişkin kanıt sunulduktan sonra yapılacak ayrı bir değişikliktir:
-
-- [ ] Yığınlanmış tüm Radar PR'ları birleştirildi ve sürüm ucu CI durumu yeşil
-- [ ] `RADAR_ENABLED` varsayılan olarak hâlâ kapalıyken açık kaynaklı Radar rotalarını dağıtın ve temel işlev testinden geçirin
-- [ ] Belirtilen Radar ana makinesinde `GET /planos`, `/termos`, `/privacidade` ve `/reembolso` uç noktalarını temel işlev testinden geçirin
-- [ ] Operatörün kimliğini/iletişim bilgilerini/adresini ve sahibi tarafından onaylanmış hukuki incelemeyi özel hizmete kaydedin
-- [ ] Stripe Checkout'u ve imzalı webhook'u yalnızca test modunda sınayın
-- [ ] Onaylı gönderen/alan adıyla şifrelenmiş bir işlemsel e-posta teslimatını sınayın
-- [ ] Yedekten geri yüklemenin çalıştığını ve gözetimli, bütçesi sınırlandırılmış bir araştırma çalıştırmasını kanıtlayın
-- [ ] Bağış kanıtını kabul etmeden önce BRL/PIX inceleme politikasını onaylayın
-- [ ] Herkese açık Checkout'u yalnızca önceki geçitler tamamlandıktan sonra etkinleştirin, ardından yeni `news.json` kimliğini etkinleştirin
-- [ ] Ana Sayfa banner'ının yerelleştirilmiş metin kullandığını ve eski bir kimlik kapatıldıktan sonra yeni bir kimliğin yeniden göründüğünü doğrulayın
-
 ## Gömülü Hizmetler duman testi (v3.8.4+)
 
 Gömülü hizmet değişiklikleri içeren herhangi bir sürümü yayımlamadan önce şunları doğrulayın:
@@ -401,7 +303,7 @@ Sürümde kritik bir sorun varsa:
 - Husky hook'larını asla atlamayın (`--no-verify`)
 - Gizli bilgileri, kimlik bilgilerini veya `.env` dosyalarını asla commit etmeyin
 - Kapsam ≥60/60/60/60 (ifadeler/satırlar/fonksiyonlar/dallar) seviyesinde kalmalıdır
-- `src/`, `open-sse/`, `electron/` veya `bin/` içindeki üretim kodunu değiştirirken her zaman test ekleyin veya mevcut testleri güncelleyin
+- `src/`, `open-sse/` veya `bin/` içindeki üretim kodunu değiştirirken her zaman test ekleyin veya mevcut testleri güncelleyin
 
 ## Otomatik Senkronizasyon Kontrolü
 

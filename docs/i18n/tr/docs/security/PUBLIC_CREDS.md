@@ -91,7 +91,7 @@ Bu, **gizleme işlemidir; şifreleme değildir.** Kaynak kodu okuyan herkes değ
 
 ### 3. Yasak örüntüler
 
-❌ Üretim kodunda (`src/`, `open-sse/`, `electron/`, `bin/`) aşağıdakilerden herhangi birini **asla** yapmayın:
+❌ Üretim kodunda (`src/`, `open-sse/`, `bin/`) aşağıdakilerden herhangi birini **asla** yapmayın:
 
 ```ts
 // KÖTÜ: değişmez değer Secret Scanning + Semgrep'i tetikler

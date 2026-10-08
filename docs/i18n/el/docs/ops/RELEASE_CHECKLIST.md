@@ -122,7 +122,6 @@ unit shards, integration, vitest, lint/typecheck, docs-sync, `check:pack-artifac
 ### Έκδοση & Αρχείο Αλλαγών
 
 - [ ] Εκτελέστε `/version-bump-cc <patch|minor|major>` (Claude Code skill)
-  - Ανεβάζει `package.json`, `electron/package.json`
   - Αναγεννά `CHANGELOG.md` από τα git commits από την τελευταία ετικέτα
   - Ενημερώνει τα badges README.md
 - [ ] Ελέγξτε χειροκίνητα το CHANGELOG.md και καθαρίστε τα μηνύματα commits αν χρειάζεται
@@ -216,104 +215,6 @@ unit shards, integration, vitest, lint/typecheck, docs-sync, `check:pack-artifac
 - [ ] Τα μοντέλα είναι εγγεγραμμένα στο `open-sse/config/providerRegistry.ts`
 - [ ] Τα unit tests στο `tests/unit/` καλύπτουν ταξινόμηση παρόχου και δρομολόγηση
 
-### Desktop (Electron)
-
-Αν το `electron/` άλλαξε:
-
-- [ ] Το `npm run electron:smoke:packaged` περνά
-- [ ] Builds δοκιμασμένα για τουλάχιστον ένα από `:win`, `:mac`, `:linux`
-- [ ] Τα πιστοποιητικά υπογραφής κώδικα δεν έχουν λήξει (αν υπογράφετε)
-- [ ] Η έκδοση `electron/package.json` ταιριάζει με την έκδοση root `package.json`
-- [ ] Ο δείκτης καναλιού auto-update ενημερώθηκε αν εκδίδεται στο `stable`
-
-### Διάταξη Build
-
-Το αποθετήριο χρησιμοποιεί τρεις ξεχωριστούς καταλόγους εξόδου — μην τους μπερδεύετε:
-
-| Κατάλογος | Σκοπός                                                            | Παρακολουθείται; |
-| --------- | ----------------------------------------------------------------- | ---------------- |
-| `src/`    | Πηγαίος κώδικας εφαρμογής (TypeScript / TSX)                      | Ναι              |
-| `.build/` | Ενδιάμεσα build — έξοδος `next build` (`distDir`)                 | Όχι (gitignored) |
-| `dist/`   | Δέσμη npm για αποστολή — συναρμολογείται από `assembleStandalone` | Όχι (gitignored) |
-
-> **Σημείωση χειριστή:** ο κατάλογος εικόνων στο απομακρυσμένο VPS παραμένει `/usr/lib/node_modules/omniroute/app/`.
-> Μόνο η έξοδος build **εντός αποθετηρίου** μετακινήθηκε (`app/` → `dist/`). Τα deploy skills rsync
-> περιεχόμενα `dist/` στον απομακρυσμένο κατάλογο `app/` — δεν απαιτούνται αλλαγές VPS path.
-
-**Ροή μονής κατασκευής:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (καθαρισμός)
-  └─ next build → .build/next/   (ενδιάμεσα)
-  └─ assembleStandalone          (αντιγράφει standalone + static + public + natives → dist/)
-  └─ γράφει dist/BUILD_SHA       (sentinel HEAD)
-```
-
-ΜΗΝ εκτελέσετε `npm run build` ακολουθούμενο από ξεχωριστό `npm run build:cli` για deploy — χρησιμοποιήστε
-`npm run build:release` που κάνει καθαρή ανακατασκευή + sentinel σε μία εντολή.
-
-### Επικύρωση Artifact
-
-- [ ] Το `npm run build:release` επιτυγχάνει και `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Το `npm run check:pack-artifact` καθαρό — χωρίς `app.__qa_backup`, `scripts/scratch`, `package-lock.json` ή άλλα τοπικά υπολείμματα
-- [ ] Το `dist/server.js` υπάρχει μετά το build
-
-### Tagging & Έκδοση
-
-- [ ] Εκτελέστε `/generate-release-cc` (Claude Code skill):
-  - Δημιουργεί ετικέτα `vX.Y.Z`
-  - Κάνει push ετικέτα και κλάδο
-  - Ανοίγει GitHub Release με σώμα changelog
-  - Επισυνάπτει installers Electron (αν κατασκευάστηκαν)
-- [ ] Ή χειροκίνητα:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deploy
-
-Τα deploy skills χρησιμοποιούν τη ελαφριά ροή rsync — χωρίς `npm pack`, χωρίς `npm i -g`:
-
-- [ ] Χρησιμοποιήστε το deploy skill που ταιριάζει στον στόχο:
-  - `/deploy-vps-local-cc` — τοπικό VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — και τα δύο
-- [ ] Πριν το deploy, επιβεβαιώστε ότι `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Το build πρέπει να εκτελείται εκεί που το `node_modules` είναι πραγματικό (κύρια checkout ή worktree με `npm ci` — ΟΧΙ symlinked worktree)
-- [ ] Smoke test της αναπτυγμένης περίπτωσης:
-  - Ανοίξτε `/dashboard/health` → ελέγξτε ότι το string έκδοσης ταιριάζει με την έκδοση
-  - Εκτελέστε αίτημα `/v1/chat/completions` έναντι γνωστού παρόχου
-  - Επαληθεύστε ότι το `/api/monitoring/health` επιστρέφει `CLOSED` circuit breakers
-  - Επιβεβαιώστε ότι τα MCP transports ανταποκρίνονται (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Μετά την Έκδοση
-
-- [ ] Εκτελέστε `/capture-release-evidences-cc` (Claude Code skill)
-  - Λαμβάνει WebP screenshots/recordings νέων χαρακτηριστικών
-  - Επισυνάπτει στις σημειώσεις έκδοσης / ανάρτηση blog
-- [ ] Ενημερώστε GitHub Discussions / Discord με ανακοίνωση έκδοσης
-- [ ] Ανοίξτε milestone για την επόμενη έκδοση
-- [ ] Αν κρίσιμο: καρφιτσώστε συζήτηση ή δημοσιεύστε στο `news.json` για in-app banner
-
-### Πύλη δημόσιας έναρξης Radar
-
-Η ανακοίνωση Radar δεσμεύεται σκόπιμα με `active: false`. Η ενεργοποίηση είναι ξεχωριστή
-αλλαγή αφού κάθε στοιχείο παρακάτω τεκμηριωθεί:
-
-- [ ] Όλα τα στοιβαγμένα Radar PRs έχουν συγχωνευτεί και το CI tip έκδοσης είναι πράσινο
-- [ ] Αναπτύξτε και κάντε smoke τις OSS Radar routes με το `RADAR_ENABLED` ακόμα απενεργοποιημένο από προεπιλογή
-- [ ] Smoke `GET /planos`, `/termos`, `/privacidade`, και `/reembolso` στον ονοματοδοτημένο Radar host
-- [ ] Καταγράψτε ταυτότητα/επικοινωνία/διεύθυνση χειριστή και εγκεκριμένη νομική ανασκόπηση από τον ιδιοκτήτη στην ιδιωτική υπηρεσία
-- [ ] Δοκιμάστε Stripe Checkout και υπογεγραμμένο webhook σε test mode μόνο
-- [ ] Δοκιμάστε μία κρυπτογραφημένη συναλλακτική αποστολή email με τον εγκεκριμένο αποστολέα/domain
-- [ ] Αποδείξτε επαναφορά αντιγράφου ασφαλείας και μία εποπτευόμενη εκτέλεση έρευνας με περιορισμό προϋπολογισμού
-- [ ] Εγκρίνετε την πολιτική ανασκόπησης BRL/PIX πριν αποδεχτείτε αποδεικτικά δωρεάς
-- [ ] Ενεργοποιήστε δημόσιο Checkout μόνο μετά τις προηγούμενες πύλες, έπειτα ενεργοποιήστε το νέο ID `news.json`
-- [ ] Επαληθεύστε ότι το Home banner χρησιμοποιεί τοπικοποιημένο αντίγραφο και ότι ένα νέο ID εμφανίζεται ξανά αφού ένα παλαιότερο ID απορριφθεί
-
 ## Καπνός ενσωματωμένων υπηρεσιών (v3.8.4+)
 
 Πριν από την αποστολή οποιασδήποτε έκδοσης που περιλαμβάνει αλλαγές σε ενσωματωμένες υπηρεσίες, επαληθεύστε:
@@ -399,7 +300,7 @@ npm run build:release
 - Ποτέ μην παρακάμπτετε τα Husky hooks (`--no-verify`)
 - Ποτέ μην κάνετε commit μυστικά, διαπιστευτήρια ή αρχεία `.env`
 - Η κάλυψη πρέπει να παραμένει ≥60/60/60/60 (εντολές/γραμμές/συναρτήσεις/κλάδοι)
-- Πάντα να συμπεριλαμβάνετε ή να ενημερώνετε τα tests όταν αλλάζετε κώδικα παραγωγής στα `src/`, `open-sse/`, `electron/` ή `bin/`
+- Πάντα να συμπεριλαμβάνετε ή να ενημερώνετε τα tests όταν αλλάζετε κώδικα παραγωγής στα `src/`, `open-sse/` ή `bin/`
 
 ## Αυτοματοποιημένος Έλεγχος Συγχρονισμού
 

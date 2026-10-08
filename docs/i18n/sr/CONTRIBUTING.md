@@ -225,7 +225,7 @@ Napomene o coverage-u:
 
 - `npm run test:coverage` mери source coverage za glavni unit test suite, isključuje `tests/**`, i uključuje `open-sse/**`
 - Pull request-ovi moraju održati coverage gate na **60%+** statements/lines/functions/branches
-- Ako PR menja production kod u `src/`, `open-sse/`, `electron/` ili `bin/`, mora dodati ili ažurirati automatizovane testove u istom PR-u
+- Ako PR menja production kod u `src/`, `open-sse/` ili `bin/`, mora dodati ili ažurirati automatizovane testove u istom PR-u
 - `npm run coverage:report` ispisuje detaljan izveštaj po fajlovima iz poslednjeg coverage pokretanja
 - `npm run test:coverage:legacy` čuva starije metrike za istorijsko poređenje
 - Pogledajte `docs/ops/COVERAGE_PLAN.md` za fazni plan poboljšanja coverage-a
@@ -330,7 +330,6 @@ open-sse/                   # @omniroute/open-sse workspace
 ├── transformer/            # Трансформатор Responses API
 └── utils/                  # 22 помоćна модула (stream, TLS, proxy, логовање)
 
-electron/                   # Electron десктоп апликација (мултиплатформска)
 
 tests/
 ├── unit/                   # Node.js test runner (1.574 тест фајлова)

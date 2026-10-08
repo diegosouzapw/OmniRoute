@@ -83,23 +83,6 @@ docker compose down
 docker compose down -v
 ```
 
-### Electron darbalaukio programa
-
-**Windows:**
-
-- Atidarykite `Nustatymai → Programėlės → OmniRoute → Pašalinti`
-- Arba paleiskite NSIS šalinimo programą iš diegimo katalogo
-
-**macOS:**
-
-- Nuvilkite `OmniRoute.app` iš `/Applications` į šiukšlinę
-- Pašalinkite duomenis: `rm -rf ~/Library/Application Support/omniroute`
-
-**Linux:**
-
-- Pašalinkite AppImage failą
-- Pašalinkite duomenis: `rm -rf ~/.omniroute`
-
 ### Diegimas iš šaltinio kodo (git clone)
 
 ```bash

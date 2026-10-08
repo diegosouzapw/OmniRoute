@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Aplikácia Next.js 16 (UI + API trasy + knižnice + doména + server)
 ├── open-sse/             # Pracovný priestor streamovacieho jadra (obslužné moduly, vykonávacie moduly, prekladač, MCP server)
-├── electron/             # Obal pre počítačovú aplikáciu (Electron 41 + electron-builder 26.10)
 ├── bin/                  # Vstupný bod CLI a obslužné moduly príkazov
 ├── scripts/              # Skripty na zostavenie, kontrolu, synchronizáciu a jednorazové úlohy
 ├── docs/                 # Verejná dokumentácia (nachádzate sa tu)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Desktopový obal
-
-| Súbor            | Účel                                                                                                        |
-| ---------------- | ----------------------------------------------------------------------------------------------------------- |
-| `main.js`        | Hlavný proces Electronu (BrowserWindow, vstavaný server Next.js, systémová lišta, automatická aktualizácia) |
-| `preload.js`     | Most IPC (contextBridge → `window.omniroute`)                                                               |
-| `package.json`   | Konfigurácia electron-builder + závislosti Electron 41 + electron-builder 26.10                             |
-| `assets/`        | Ikony aplikácie (Windows .ico, macOS .icns, Linux .png)                                                     |
-| `dist-electron/` | Výstup zostavenia (ignorovaný systémom git)                                                                 |
-| `types.d.ts`     | Deklarácie typov pre most vykresľovacieho procesu                                                           |
-| `README.md`      | Interný súbor README Electronu (pozrite si aj `docs/guides/ELECTRON_GUIDE.md`)                              |
-
----
-
 ## `bin/` — CLI
 
 | Súbor                                                                                                       | Účel                                                                                                                              |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | Spúšťač E2E testov MCP/A2A                                                                      |
 | `run-ecosystem-tests.mjs`           | Testy ekosystému (integrácie poskytovateľov)                                                    |
 | `test-report-summary.mjs`           | Generovanie súhrnu pokrytia vo formáte Markdown                                                 |
-| `smoke-electron-packaged.mjs`       | Základný test zabaleného zostavenia Electron                                                    |
-| `native-binary-compat.mjs`          | Overenie, že natívne závislosti (`better-sqlite3`) zodpovedajú Node v Electron                  |
 | `validate-pack-artifact.ts`         | Overenie výstupu balíka npm                                                                     |
 | `responses-ws-proxy.mjs`            | Most WebSocket pre Codex Responses API                                                          |
 | `v1-ws-bridge.mjs`                  | Most WebSocket pre koncový bod `/api/v1/ws`                                                     |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Používateľská príručka (nastavenie, modely, kombinácie, CLI, zvuk atď.)                               |
 | `API_REFERENCE.md`          | Referencia koncových bodov API s modelom autentifikácie                                               |
 | `openapi.yaml`              | Špecifikácia OpenAPI 3.0 (121 ciest)                                                                  |
-| `SETUP_GUIDE.md`            | Spôsoby inštalácie (npm, npx, Docker, Electron, Termux, zo zdrojového kódu)                           |
+| `SETUP_GUIDE.md`            | Spôsoby inštalácie (npm, npx, Docker, Termux, zo zdrojového kódu)                                     |
 | `ENVIRONMENT.md`            | Všetky premenné prostredia (~800 zdokumentovaných, ~3 050 riadkov v `.env.example`)                   |
 | `TROUBLESHOOTING.md`        | Bežné chyby + známe problémy verzie v3.8.0                                                            |
 | `RELEASE_CHECKLIST.md`      | Kompletný proces vydania (skills, husky, conventional commits, nasadenie)                             |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Nasadenie na Fly.io (momentálne iba v čínštine)                       |
 | `TERMUX_GUIDE.md`            | Android bez grafického rozhrania prostredníctvom Termux               |
 | `PWA_GUIDE.md`               | Inštalácia progresívnej webovej aplikácie + service worker            |
-| `ELECTRON_GUIDE.md`          | Zostavenie desktopovej aplikácie + podpisovanie + distribúcia         |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                |
 | `PROXY_GUIDE.md`             | 4-úrovňový odchádzajúci proxy server + marketplace 1proxy             |
 

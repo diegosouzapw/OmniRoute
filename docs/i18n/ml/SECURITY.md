@@ -197,7 +197,7 @@ docker run -d \
 
 ## ഡിപെൻഡൻസികൾ
 
-- `npm audit` പതിവായി പ്രവർത്തിപ്പിക്കുക (`npm run audit:deps` പ്രധാന ഭാഗവും electron-ഉം ഉൾക്കൊള്ളുന്നു)
+- `npm audit` പതിവായി പ്രവർത്തിപ്പിക്കുക ()
 - ഡിപെൻഡൻസികൾ കാലികമായി നിലനിർത്തുക
 - pre-commit പരിശോധനകൾക്കായി പ്രോജക്റ്റ് `husky` + `lint-staged` ഉപയോഗിക്കുന്നു (lint-staged + check-docs-sync + check:any-budget:t11)
 - ഓരോ push-ലും CI പൈപ്പ്ലൈൻ ESLint സുരക്ഷാ നിയമങ്ങൾ പ്രവർത്തിപ്പിക്കുന്നു (`no-eval`, `no-implied-eval`, `no-new-func` = പിശക്)

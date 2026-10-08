@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Ìṣàfilọ́lẹ̀ Next.js 16 (UI + àwọn ipa-ọ̀nà API + àwọn ilé-ìkàwé + àgbègbè iṣẹ́ + server)
 ├── open-sse/             # Àyè iṣẹ́ ẹ́ńjìnnì ṣiṣàn (àwọn olùṣàkóso, àwọn olùṣiṣẹ́, olùtumọ̀, server MCP)
-├── electron/             # Ìkarahun kọ̀ǹpútà alágbèéká (Electron 41 + electron-builder 26.10)
 ├── bin/                  # Ojú-ọ̀nà ìwọlé CLI àti àwọn olùṣàkóso àṣẹ
 ├── scripts/              # Àwọn skripti ìkọ́lé, àyẹ̀wò, ìmúdọ́gba, àti iṣẹ́ ẹ̀ẹ̀kan
 ├── docs/                 # Ìwé àkọsílẹ̀ gbogbogbò (ibí ni o wà)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Ìdìpọ̀ Ojú-iṣẹ́
-
-| File             | Ète                                                                                           |
-| ---------------- | --------------------------------------------------------------------------------------------- |
-| `main.js`        | Ìlànà àkọ́kọ́ Electron (BrowserWindow, sẹ́fà Next.js tí a fi sínú rẹ̀, atẹ, ìmúdójúìwọ̀n aládàáṣe) |
-| `preload.js`     | Afárá IPC (contextBridge → `window.omniroute`)                                                |
-| `package.json`   | Àtòpọ̀ electron-builder + Electron 41 + àwọn ìgbẹ́kẹ̀lé electron-builder 26.10                   |
-| `assets/`        | Àwọn àwòrán àmì ìṣàfilọ́lẹ̀ (Windows .ico, macOS .icns, Linux .png)                             |
-| `dist-electron/` | Àbájáde ìkọ́lé (gitignored)                                                                    |
-| `types.d.ts`     | Àwọn ìkéde irú fún afárá olùfihàn                                                             |
-| `README.md`      | README Electron abẹ́nú (tún wo `docs/guides/ELECTRON_GUIDE.md`)                                |
-
----
-
 ## `bin/` — CLI
 
 | Fáìlì                                                                                                       | Ìdí                                                                                                                                      |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | Olùṣiṣẹ́ MCP/A2A E2E                                                                        |
 | `run-ecosystem-tests.mjs`           | Àwọn ìdánwò ecosystem (ìṣọ̀kan provider)                                                    |
 | `test-report-summary.mjs`           | Ṣe àgbéjáde àkótán coverage ní markdown                                                    |
-| `smoke-electron-packaged.mjs`       | Ṣe smoke-test sí ìkọ́lé Electron tí a ti dì sínú package                                    |
-| `native-binary-compat.mjs`          | Ṣàrídájú pé àwọn deps abinibi (`better-sqlite3`) bá Node ti Electron mu                    |
 | `validate-pack-artifact.ts`         | Ṣàrídájú àbájáde npm pack                                                                  |
 | `responses-ws-proxy.mjs`            | Afárá WebSocket fún Codex Responses API                                                    |
 | `v1-ws-bridge.mjs`                  | Afárá WebSocket fún endpoint `/api/v1/ws`                                                  |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Ìwé ìtọ́sọ́nà olùlò ìkẹyìn (ètò, àwọn àwòṣe, combos, àwọn CLI, ohùn, àti bẹ́ẹ̀ bẹ́ẹ̀ lọ)             |
 | `API_REFERENCE.md`          | Ìtọ́kasí àwọn endpoint API pẹ̀lú àwòṣe ìfàṣẹsí                                                   |
 | `openapi.yaml`              | Ìlànà OpenAPI 3.0 (àwọn path 121)                                                              |
-| `SETUP_GUIDE.md`            | Àwọn ọ̀nà fífi sori ẹrọ (npm, npx, Docker, Electron, Termux, kóòdù orísun)                      |
+| `SETUP_GUIDE.md`            | Àwọn ọ̀nà fífi sori ẹrọ (npm, npx, Docker, Termux, kóòdù orísun)                                |
 | `ENVIRONMENT.md`            | Gbogbo àwọn env var (~800 tí a ṣe àkọsílẹ̀, ~3,050 ìlà `.env.example`)                          |
 | `TROUBLESHOOTING.md`        | Àwọn àṣìṣe tí ó wọ́pọ̀ + àwọn ìṣòro v3.8.0 tí a mọ̀                                               |
 | `RELEASE_CHECKLIST.md`      | Ìṣàn ìtújáde kíkún (skills, husky, conventional commits, ìmúṣiṣẹ́)                              |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Ìmúṣiṣẹ́ Fly.io (Lọ́wọ́lọ́wọ́, èdè Ṣáínà nìkan)                           |
 | `TERMUX_GUIDE.md`            | Android láìsí ojú-àwòrán nípasẹ̀ Termux                               |
 | `PWA_GUIDE.md`               | Fífi Progressive Web App sori ẹrọ + service worker                   |
-| `ELECTRON_GUIDE.md`          | Kíkó app desktop + fífi ìbùwọ́lu sí i + pínpín                        |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                               |
 | `PROXY_GUIDE.md`             | Proxy àbájáde ipele 4 + marketplace 1proxy                           |
 

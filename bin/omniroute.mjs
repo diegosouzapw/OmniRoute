@@ -111,8 +111,8 @@ await import("../open-sse/utils/setupPolyfill.ts");
 const { registerAliasResolver } = await import("./aliasResolver.mjs");
 await registerAliasResolver(ROOT);
 
-// Electron persists secrets (JWT_SECRET, API_KEY_SECRET, STORAGE_ENCRYPTION_KEY) to
-// `<DATA_DIR>/server.env` (electron/main.js), never `.env`. Migrating an existing
+// The desktop app persisted secrets (JWT_SECRET, API_KEY_SECRET, STORAGE_ENCRYPTION_KEY) to
+// `<DATA_DIR>/server.env`, never `.env`. Migrating an existing
 // install (storage.sqlite + server.env) to the CLI left those secrets undiscoverable —
 // the CLI only ever looked for `.env`, so the STORAGE_ENCRYPTION_KEY needed to decrypt
 // the migrated database was silently dropped (#7302). One-time, one-directory migration:

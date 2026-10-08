@@ -189,7 +189,7 @@ docker run -d \
 
 ## 相依套件
 
-- 定期執行 `npm audit`（`npm run audit:deps` 涵蓋主程式 + Electron）
+- 定期執行 `npm audit`（`npm run audit:deps` 涵蓋主程式）
 - 保持相依套件更新
 - 本專案使用 `husky` + `lint-staged` 進行提交前檢查（lint-staged + check-docs-sync + check:any-budget:t11）
 - CI 管線每次推送時皆執行 ESLint 安全規則（`no-eval`、`no-implied-eval`、`no-new-func` 設為 error）

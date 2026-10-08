@@ -29,7 +29,7 @@ Tqabbil oġġettiv tal-karatteristiċi ma’ routers tal-IA popolari u open-sour
 | **Ħabi tal-fingerprint TLS (JA3/JA4)**                    |                     ✅ wreq-js                      |         ❌         |        ❌         |      ❌      |
 | **Qafas ta’ evalwazzjoni**                                |                     ✅ integrat                     |         ❌         |        ❌         |  ⚠ bi ħlas   |
 | **Proxy MITM (jinterċetta Cursor/Antigravity)**           |               ✅ bejn il-pjattaformi                |         ❌         |        ❌         |      ❌      |
-| **CLI bit-trej tas-sistema (mingħajr Electron)**          |                         ✅                          |         ❌         |        n/a        |     n/a      |
+| **CLI bit-trej tas-sistema**                              |                         ✅                          |         ❌         |        n/a        |     n/a      |
 | **Awtentikazzjoni awtomatika tas-CLI bl-ID tal-magna**    |                         ✅                          |         ❌         |        n/a        |     n/a      |
 | **Dashboard**                                             |                     Next.js 16                      |       bażiku       |   proprjetarju    | proprjetarju |
 | **i18n**                                                  |                   **42 lokalità**                   |         ❌         |        ❌         |      ⚠       |

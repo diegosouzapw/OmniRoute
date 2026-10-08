@@ -118,7 +118,6 @@ omniroute
 
 ## Hạn chế
 
-- Electron không chạy trong Termux.
 - Không có khay hệ thống hoặc tích hợp với môi trường máy tính để bàn.
 - Thiết lập này chỉ dành cho máy chủ: hãy sử dụng bảng điều khiển trên trình duyệt.
 - Các phần phụ thuộc native có thể cần được biên dịch cục bộ.

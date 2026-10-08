@@ -83,23 +83,6 @@ docker compose down
 docker compose down -v
 ```
 
-### Programu ya Eneo-kazi ya Electron
-
-**Windows:**
-
-- Fungua `Settings → Apps → OmniRoute → Uninstall`
-- Au endesha kiondoaji cha NSIS kutoka kwenye saraka ya usakinishaji
-
-**macOS:**
-
-- Buruta `OmniRoute.app` kutoka `/Applications` hadi kwenye Tupio
-- Ondoa data: `rm -rf ~/Library/Application Support/omniroute`
-
-**Linux:**
-
-- Ondoa faili ya AppImage
-- Ondoa data: `rm -rf ~/.omniroute`
-
 ### Usakinishaji kutoka Chanzo (git clone)
 
 ```bash

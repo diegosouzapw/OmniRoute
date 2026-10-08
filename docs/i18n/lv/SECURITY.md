@@ -81,7 +81,7 @@ Pielāgoti aizsargmehānismi tiek reģistrēti, izmantojot `registerGuardrail(ne
 
 ### 🧠 Uzvedņu injekciju aizsargs
 
-Heiristisks starpprogrammatūras risinājums ar labāko iespējamo efektivitāti, kas nosaka uzvedņu injekciju modeļus LLM pieprasījumos.  
+Heiristisks starpprogrammatūras risinājums ar labāko iespējamo efektivitāti, kas nosaka uzvedņu injekciju modeļus LLM pieprasījumos.
 **Tas nav pilnīgs uzvedņu injekciju ugunsmūris** — var rasties kļūdaini pozitīvi rezultāti (nekaitīgas
 personas/RPG uzvednes) un kļūdaini negatīvi rezultāti (leetspeak, atstarpes, modeļi citās valodās).
 
@@ -197,7 +197,7 @@ docker run -d \
 
 ## Atkarības
 
-- Regulāri palaidiet `npm audit` (`npm run audit:deps` pārbauda galveno projektu + electron)
+- Regulāri palaidiet `npm audit` (`npm run audit:deps` pārbauda galveno projektu)
 - Uzturiet atkarības atjauninātas
 - Projekts priekšpiegādes pārbaudēm izmanto `husky` + `lint-staged` (lint-staged + check-docs-sync + check:any-budget:t11)
 - CI konveijers katrā nosūtīšanā palaiž ESLint drošības noteikumus (`no-eval`, `no-implied-eval`, `no-new-func` = error)

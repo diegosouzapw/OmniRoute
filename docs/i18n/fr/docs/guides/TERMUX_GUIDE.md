@@ -118,7 +118,6 @@ omniroute
 
 ## Limitations
 
-- Electron ne fonctionne pas dans Termux.
 - Il n’y a pas de zone de notification ni d’intégration au bureau.
 - Cette configuration est réservée au serveur : utilisez le tableau de bord dans le navigateur.
 - Les dépendances natives peuvent nécessiter une compilation locale.

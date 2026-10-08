@@ -29,7 +29,7 @@ Comparação objetiva de recursos com roteadores de IA populares de código aber
 | **Disfarce de impressão digital TLS (JA3/JA4)**           |                     ✅ wreq-js                     |       ❌       |        ❌         |      ❌      |
 | **Framework de avaliação**                                |                    ✅ integrado                    |       ❌       |        ❌         |    ⚠ pago    |
 | **Proxy MITM (intercepta Cursor/Antigravity)**            |                 ✅ multiplataforma                 |       ❌       |        ❌         |      ❌      |
-| **CLI com bandeja do sistema (sem Electron)**             |                         ✅                         |       ❌       |        n/d        |     n/d      |
+| **CLI com bandeja do sistema **                           |                         ✅                         |       ❌       |        n/d        |     n/d      |
 | **Autenticação automática da CLI por ID da máquina**      |                         ✅                         |       ❌       |        n/d        |     n/d      |
 | **Painel**                                                |                     Next.js 16                     |     básico     |   proprietário    | proprietário |
 | **i18n**                                                  |                 **42 localidades**                 |       ❌       |        ❌         |      ⚠       |

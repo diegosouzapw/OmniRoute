@@ -118,7 +118,6 @@ omniroute
 
 ## Rajoitukset
 
-- Electron ei toimi Termuxissa.
 - Järjestelmäpalkkia tai työpöytäintegraatiota ei ole.
 - Tämä kokoonpano on tarkoitettu vain palvelinkäyttöön: käytä hallintapaneelia selaimella.
 - Natiivit riippuvuudet saatetaan joutua kääntämään paikallisesti.

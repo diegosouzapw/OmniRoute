@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Täieliku Dockeri seadistuse, sealhulgas Compose’i profiilide ja Caddy HTTPS-i kohta vaadake [Dockeri juhendit](./DOCKER_GUIDE.md).
 
-### Töölauarakendus (Electron)
-
-OmniRoute sisaldab töölauaümbrist, mis põhineb Electron 41-l ja electron-builder 26.10-l. Saadaolevad skriptid (tööruumi juurkaustas):
-
-```bash
-npm run electron:dev          # Käivita töölauarakendus automaatse uuesti laadimisega
-npm run electron:build        # Ehita praeguse operatsioonisüsteemi jaoks (tuvastatakse automaatselt)
-npm run electron:build:win    # Windowsi paigaldusprogramm (NSIS + kaasaskantav)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # Pakendatud versiooni suitsutest
-```
-
-Töölauarakenduse paigaldusprogrammid lisatakse GitHubi väljalasetele. Electroni täieliku süvakäsitluse (allkirjastamine, IPC-sild, distributsioonid) leiate failist [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _(loodud hilisemas etapis)_.
-
 ### Graafilise liideseta server (CI/automatiseerimine)
 
 Järelevalveta seadistuste (Docker, Kubernetes, CI) jaoks kasutage:

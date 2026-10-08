@@ -91,7 +91,7 @@ Cuando necesite incluir un nuevo valor proporcionado por un proveedor original q
 
 ### 3. Patrones prohibidos
 
-❌ **Nunca** haga nada de lo siguiente en el código de producción (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ **Nunca** haga nada de lo siguiente en el código de producción (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // MAL: el valor literal activa Secret Scanning y Semgrep

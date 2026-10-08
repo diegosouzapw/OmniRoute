@@ -26,7 +26,6 @@
 | 언어          | **TypeScript 6.0+** — 대상 `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                |
 | 런타임        | **Node.js** `>=22.22.2 <23` 또는 `>=24.0.0 <27` (`engines` + `SUPPORTED_NODE_RANGE`로 강제 적용)                   |
 | 데이터베이스  | `better-sqlite3`를 통한 **SQLite** (싱글턴, WAL 저널링)                                                            |
-| 데스크톱      | **Electron 41** + `electron-builder` 26.10 (`electron/`의 별도 워크스페이스)                                       |
 | 테스트        | **Node 네이티브 테스트 러너** (단위/통합), **Vitest** (MCP, autoCombo, 캐시), **Playwright** (e2e + protocols-e2e) |
 | 빌드          | `scripts/build/build-next-isolated.mjs`를 통한 Next.js 독립 실행형 빌드                                            |
 | 린트/포맷     | ESLint 플랫 구성 + Prettier (Husky 사전 커밋 훅을 통한 `lint-staged`)                                              |
@@ -50,7 +49,6 @@
 OmniRoute/
 ├── src/                  Next.js 애플리케이션(App Router, 라이브러리, 도메인, 서버, 공유 코드)
 ├── open-sse/             스트리밍 엔진 워크스페이스(@omniroute/open-sse)
-├── electron/             데스크톱 래퍼(Electron 41 메인 + 프리로드)
 ├── bin/                  CLI 진입점(omniroute, reset-password)
 ├── tests/                단위, 통합, e2e, protocols-e2e, 변환기, 보안, 픽스처
 ├── scripts/              빌드, 동기화, 검사, 마이그레이션 및 런타임 도우미 스크립트
@@ -573,26 +571,6 @@ ID 헬퍼(`codexIdentity.ts`, `codexInstructions.ts`,
 
 ---
 
-## 5. `electron/` — 데스크톱 래퍼
-
-```
-electron/
-├── main.js                  Electron 메인 프로세스
-├── preload.js               프리로드 브리지(contextIsolation 활성화)
-├── types.d.ts
-├── package.json             electron-builder 구성, 버전 3.8.51
-├── README.md
-├── assets/                  빌드 리소스(아이콘, 권한 설정, …)
-├── node_modules/            전용 node_modules(better-sqlite3, electron-updater)
-└── dist-electron/           빌드 출력(커밋되지 않음)
-```
-
-워크스페이스 루트에는 `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`의 5개 npm 스크립트가 있습니다. 자동 업데이트는
-GitHub 릴리스 피드를 가리키는 `electron-updater`를 통해 수행됩니다.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -657,13 +635,11 @@ bin/
 용도에 따라 6개의 하위 폴더로 구성되어 있습니다.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -842,7 +818,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A 프로토콜 스킬 및 검색.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK 및 Caveman 압축.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI 통합.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md)(있는 경우), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — 배포 대상.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — 배포 대상.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — 일반적인 운영 문제.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — 기여자 워크플로.
 - [CLAUDE.md](../../CLAUDE.md) — Claude Code용 저장소 규칙(위 규칙 중 다수의

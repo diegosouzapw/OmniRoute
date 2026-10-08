@@ -122,7 +122,6 @@ unit shards, integration, vitest, lint/typecheck, docs-sync, `check:pack-artifac
 ### संस्करण र परिवर्तन विवरण
 
 - [ ] `/version-bump-cc <patch|minor|major>` चलाउनुहोस् (Claude Code skill)
-  - `package.json`, `electron/package.json` को संस्करण बढाउँछ
   - पछिल्लो tag यताका git commit हरूबाट `CHANGELOG.md` पुनः उत्पन्न गर्छ
   - README.md badge हरू अद्यावधिक गर्छ
 - [ ] CHANGELOG.md लाई म्यानुअल रूपमा समीक्षा गर्नुहोस् र आवश्यक भए commit message हरू सफा गर्नुहोस्
@@ -216,104 +215,6 @@ Breaking change हरू: `BREAKING CHANGE:` footer वा scope पछि `!` 
 - [ ] Model हरू `open-sse/config/providerRegistry.ts` मा दर्ता गरिएका छन्
 - [ ] `tests/unit/` का unit test हरूले provider classification र routing समेट्छन्
 
-### Desktop (Electron)
-
-यदि `electron/` परिवर्तन भएको छ भने:
-
-- [ ] `npm run electron:smoke:packaged` सफल हुन्छ
-- [ ] `:win`, `:mac`, `:linux` मध्ये कम्तीमा एउटाका लागि build परीक्षण गरिएको छ
-- [ ] Code signing certificate हरूको म्याद सकिएको छैन (signing गरिँदै छ भने)
-- [ ] `electron/package.json` को version मूल `package.json` सँग मेल खान्छ
-- [ ] `stable` मा release गरिँदै छ भने auto-update channel pointer अद्यावधिक गरिएको छ
-
-### Build संरचना
-
-Repository ले तीनवटा भिन्न output directory प्रयोग गर्छ — तिनलाई कहिल्यै नमिसाउनुहोस्:
-
-| Directory | उद्देश्य                                                    | ट्र्याक गरिएको?   |
-| --------- | ----------------------------------------------------------- | ----------------- |
-| `src/`    | Application source (TypeScript / TSX)                       | हो                |
-| `.build/` | Build intermediate हरू — `next build` output (`distDir`)    | होइन (gitignored) |
-| `dist/`   | वितरणयोग्य npm bundle — `assembleStandalone` द्वारा संयोजित | होइन (gitignored) |
-
-> **Operator टिप्पणी:** remote VPS image directory `/usr/lib/node_modules/omniroute/app/` नै रहन्छ।
-> केवल **in-repo** build output सरेको हो (`app/` → `dist/`)। Deploy skill हरूले
-> `dist/` का सामग्री remote `app/` dir मा rsync गर्छन् — VPS path परिवर्तन गर्न आवश्यक छैन।
-
-**एकल-build प्रवाह:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (clean)
-  └─ next build → .build/next/   (intermediates)
-  └─ assembleStandalone          (copies standalone + static + public + natives → dist/)
-  └─ writes dist/BUILD_SHA       (HEAD sentinel)
-```
-
-Deploy का लागि `npm run build` चलाएर त्यसपछि छुट्टै `npm run build:cli` नचलाउनुहोस् — एउटै command मा clean rebuild + sentinel गर्ने
-`npm run build:release` प्रयोग गर्नुहोस्।
-
-### Artifact प्रमाणीकरण
-
-- [ ] `npm run build:release` सफल हुन्छ र `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` सफा छ — कुनै `app.__qa_backup`, `scripts/scratch`, `package-lock.json`, वा अन्य स्थानीय अवशेष छैन
-- [ ] Build पछि `dist/server.js` अवस्थित छ
-
-### Tagging र Release
-
-- [ ] `/generate-release-cc` (Claude Code skill) चलाउनुहोस्:
-  - `vX.Y.Z` tag सिर्जना गर्छ
-  - Tag र branch push गर्छ
-  - Changelog body सहित GitHub Release खोल्छ
-  - Electron installer हरू संलग्न गर्छ (build गरिएको भए)
-- [ ] वा manually:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deploy
-
-Deploy skill हरूले हल्का rsync प्रवाह प्रयोग गर्छन् — `npm pack` छैन, `npm i -g` छैन:
-
-- [ ] Target सँग मेल खाने deploy skill प्रयोग गर्नुहोस्:
-  - `/deploy-vps-local-cc` — स्थानीय VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — दुवै
-- [ ] Deploy गर्नुअघि, `dist/BUILD_SHA` == `git rev-parse --short HEAD` पुष्टि गर्नुहोस्
-- [ ] Build त्यहीँ चल्नुपर्छ जहाँ `node_modules` वास्तविक छ (मुख्य checkout वा `npm ci` गरिएको worktree — symlink गरिएको worktree होइन)
-- [ ] Deploy गरिएको instance को smoke test गर्नुहोस्:
-  - `/dashboard/health` खोल्नुहोस् → version string release सँग मेल खान्छ भनी जाँच गर्नुहोस्
-  - ज्ञात provider विरुद्ध `/v1/chat/completions` request चलाउनुहोस्
-  - `/api/monitoring/health` ले `CLOSED` circuit breaker हरू फर्काउँछ भनी प्रमाणित गर्नुहोस्
-  - MCP transport हरूले प्रतिक्रिया दिन्छन् भनी पुष्टि गर्नुहोस् (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Release पछिका कार्यहरू
-
-- [ ] `/capture-release-evidences-cc` चलाउनुहोस् (Claude Code skill)
-  - नयाँ सुविधाहरूका WebP स्क्रिनसट/रेकर्डिङहरू सङ्कलन गर्छ
-  - रिलिज नोटहरू / ब्लग पोस्टमा संलग्न गर्छ
-- [ ] रिलिज घोषणासहित GitHub Discussions / Discord अद्यावधिक गर्नुहोस्
-- [ ] अर्को संस्करणका लागि माइलस्टोन खोल्नुहोस्
-- [ ] गम्भीर भएमा: छलफललाई पिन गर्नुहोस् वा इन-एप ब्यानरका लागि `news.json` मा पोस्ट गर्नुहोस्
-
-### Radar सार्वजनिक-लन्च गेट
-
-Radar घोषणा जानाजानी `active: false` सहित कमिट गरिएको छ। तलका प्रत्येक बुँदाको प्रमाण उपलब्ध भएपछि सक्रियकरण छुट्टै
-परिवर्तनका रूपमा गरिन्छ:
-
-- [ ] स्ट्याक गरिएका सबै Radar PR हरू मर्ज भएका छन् र release-tip CI हरियो छ
-- [ ] `RADAR_ENABLED` लाई पूर्वनिर्धारित रूपमा अझै बन्द राखेर OSS Radar रुटहरू डिप्लोय र स्मोक-टेस्ट गर्नुहोस्
-- [ ] तोकिएको Radar होस्टमा `GET /planos`, `/termos`, `/privacidade`, र `/reembolso` स्मोक-टेस्ट गर्नुहोस्
-- [ ] निजी सेवामा अपरेटरको पहिचान/सम्पर्क/ठेगाना र मालिकद्वारा स्वीकृत कानुनी समीक्षाको अभिलेख राख्नुहोस्
-- [ ] Stripe Checkout र हस्ताक्षरित वेबहुकलाई परीक्षण मोडमा मात्र प्रयोग गरी जाँच गर्नुहोस्
-- [ ] स्वीकृत प्रेषक/डोमेनबाट एउटा इन्क्रिप्ट गरिएको कारोबारसम्बन्धी इमेल डेलिभरी परीक्षण गर्नुहोस्
-- [ ] ब्याकअप पुनर्स्थापना र एउटा पर्यवेक्षित, बजेट-सीमित अनुसन्धान रन सफल भएको प्रमाणित गर्नुहोस्
-- [ ] चन्दाको प्रमाण स्वीकार गर्नुअघि BRL/PIX समीक्षा नीति स्वीकृत गर्नुहोस्
-- [ ] अघिल्ला गेटहरू पूरा भएपछि मात्र सार्वजनिक Checkout सक्षम गर्नुहोस्, त्यसपछि नयाँ `news.json` ID सक्रिय गर्नुहोस्
-- [ ] Home ब्यानरले स्थानीयकृत पाठ प्रयोग गरेको र पुरानो ID खारेज गरिएपछि नयाँ ID पुनः देखा पर्ने कुरा प्रमाणित गर्नुहोस्
-
 ## Embedded Services स्मोक परीक्षण (v3.8.4+)
 
 Embedded services सम्बन्धी परिवर्तनहरू समावेश भएको कुनै पनि रिलीज पठाउनुअघि, निम्न कुरा प्रमाणित गर्नुहोस्:
@@ -399,7 +300,7 @@ Embedded services सम्बन्धी परिवर्तनहरू स
 - Husky हुकहरू (`--no-verify`) कहिल्यै नछोड्नुहोस्
 - गोप्य जानकारी, क्रेडेन्सियलहरू वा `.env` फाइलहरू कहिल्यै कमिट नगर्नुहोस्
 - कभरेज ≥60/60/60/60 (स्टेटमेन्टहरू/लाइनहरू/फङ्सनहरू/ब्रान्चहरू) कायम रहनुपर्छ
-- `src/`, `open-sse/`, `electron/`, वा `bin/` मा प्रोडक्सन कोड परिवर्तन गर्दा सधैँ परीक्षणहरू समावेश वा अद्यावधिक गर्नुहोस्
+- `src/`, `open-sse/`, वा `bin/` मा प्रोडक्सन कोड परिवर्तन गर्दा सधैँ परीक्षणहरू समावेश वा अद्यावधिक गर्नुहोस्
 
 ## स्वचालित सिङ्क जाँच
 

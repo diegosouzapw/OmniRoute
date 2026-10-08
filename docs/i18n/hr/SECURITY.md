@@ -197,7 +197,7 @@ docker run -d \
 
 ## Ovisnosti
 
-- Redovito pokretajte `npm audit` (`npm run audit:deps` pokriva main + electron)
+- Redovito pokretajte `npm audit` (`npm run audit:deps` pokriva main)
 - Održavajte ovisnosti ažurnima
 - Projekt koristi `husky` + `lint-staged` za provjere prije commita (lint-staged + check-docs-sync + check:any-budget:t11)
 - CI cjevovod pokreće ESLint sigurnosna pravila pri svakom guranju (`no-eval`, `no-implied-eval`, `no-new-func` = greška)

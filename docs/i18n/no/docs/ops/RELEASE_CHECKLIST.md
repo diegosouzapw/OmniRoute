@@ -122,7 +122,6 @@ matrisen automatisk, uten noen etikett.
 ### Versjon og endringslogg
 
 - [ ] Kjør `/version-bump-cc <patch|minor|major>` (Claude Code-ferdighet)
-  - Oppdaterer versjonen i `package.json`, `electron/package.json`
   - Regenererer `CHANGELOG.md` fra git-commits siden siste tagg
   - Oppdaterer merkene i README.md
 - [ ] Gå manuelt gjennom CHANGELOG.md og rydd opp i commit-meldinger ved behov
@@ -216,104 +215,6 @@ Inkompatible endringer: legg til bunnteksten `BREAKING CHANGE:` eller `!` etter 
 - [ ] Modeller er registrert i `open-sse/config/providerRegistry.ts`
 - [ ] Enhetstester i `tests/unit/` dekker klassifisering og ruting av leverandører
 
-### Skrivebord (Electron)
-
-Hvis `electron/` er endret:
-
-- [ ] `npm run electron:smoke:packaged` består
-- [ ] Bygg er testet for minst ett av `:win`, `:mac`, `:linux`
-- [ ] Sertifikater for kodesignering er ikke utløpt (hvis signering brukes)
-- [ ] Versjonen i `electron/package.json` samsvarer med rotens `package.json`
-- [ ] Pekeren til kanalen for automatiske oppdateringer er oppdatert ved utgivelse til `stable`
-
-### Byggoppsett
-
-Repoet bruker tre separate utdatakataloger — bland dem aldri:
-
-| Katalog   | Formål                                                            | Sporet?               |
-| --------- | ----------------------------------------------------------------- | --------------------- |
-| `src/`    | Applikasjonskilde (TypeScript / TSX)                              | Ja                    |
-| `.build/` | Mellomprodukter fra bygging — utdata fra `next build` (`distDir`) | Nei (ignorert av git) |
-| `dist/`   | Distribuerbar npm-pakke — satt sammen av `assembleStandalone`     | Nei (ignorert av git) |
-
-> **Merknad til operatøren:** bildekatalogen på den eksterne VPS-en forblir `/usr/lib/node_modules/omniroute/app/`.
-> Bare byggutdataene **i repoet** er flyttet (`app/` → `dist/`). Distribusjonsfunksjonene bruker rsync til å
-> kopiere innholdet i `dist/` til den eksterne `app/`-katalogen — ingen endringer i VPS-baner er nødvendige.
-
-**Flyt med ett bygg:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (opprydding)
-  └─ next build → .build/next/   (mellomprodukter)
-  └─ assembleStandalone          (kopierer standalone + statiske filer + public + native komponenter → dist/)
-  └─ skriver dist/BUILD_SHA      (HEAD-kontrollmarkør)
-```
-
-IKKE kjør `npm run build` etterfulgt av en separat `npm run build:cli` for distribusjon — bruk
-`npm run build:release`, som utfører en ren ombygging + kontrollmarkør i én kommando.
-
-### Validering av artefakter
-
-- [ ] `npm run build:release` fullføres, og `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` er ren — ingen `app.__qa_backup`, `scripts/scratch`, `package-lock.json` eller andre lokale rester
-- [ ] `dist/server.js` finnes etter bygging
-
-### Tagging og utgivelse
-
-- [ ] Kjør `/generate-release-cc` (Claude Code-funksjon):
-  - Oppretter taggen `vX.Y.Z`
-  - Pusher taggen og grenen
-  - Oppretter en GitHub-utgivelse med endringsloggen i beskrivelsen
-  - Legger ved Electron-installasjonsfiler (hvis de er bygget)
-- [ ] Eller manuelt:
-  ```bash
-  git tag -a vX.Y.Z -m "Utgivelse vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Distribusjon
-
-Distribusjonsfunksjonene bruker en lettvektsflyt med rsync — ingen `npm pack`, ingen `npm i -g`:
-
-- [ ] Bruk distribusjonsfunksjonen som samsvarer med målet:
-  - `/deploy-vps-local-cc` — lokal VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai-VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — begge
-- [ ] Før distribusjon må du bekrefte at `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Bygget må kjøres der `node_modules` er reell (hovedutsjekking eller et arbeidsområde der `npm ci` er kjørt — IKKE et symlenket arbeidsområde)
-- [ ] Kjør en enkel funksjonstest av den distribuerte instansen:
-  - Åpne `/dashboard/health` → kontroller at versjonsstrengen samsvarer med utgivelsen
-  - Kjør en `/v1/chat/completions`-forespørsel mot en kjent leverandør
-  - Kontroller at `/api/monitoring/health` returnerer `CLOSED`-effektbrytere
-  - Bekreft at MCP-transportene svarer (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Etter utgivelsen
-
-- [ ] Kjør `/capture-release-evidences-cc` (Claude Code-ferdighet)
-  - Tar WebP-skjermbilder/-opptak av nye funksjoner
-  - Legger dem ved versjonsmerknadene/blogginnlegget
-- [ ] Oppdater GitHub Discussions / Discord med lanseringskunngjøringen
-- [ ] Opprett en milepæl for neste versjon
-- [ ] Hvis kritisk: fest diskusjonen eller publiser i `news.json` for banneret i appen
-
-### Kontrollpunkt for offentlig lansering av Radar
-
-Radar-kunngjøringen er med hensikt lagt inn med `active: false`. Aktivering er en separat
-endring etter at det foreligger dokumentasjon for hvert punkt nedenfor:
-
-- [ ] Alle stablede Radar-PR-er er slått sammen, og CI-en for release-tip er grønn
-- [ ] Distribuer og utfør en røykprøve av OSS-rutene for Radar mens `RADAR_ENABLED` fortsatt er av som standard
-- [ ] Utfør en røykprøve av `GET /planos`, `/termos`, `/privacidade` og `/reembolso` på den angitte Radar-verten
-- [ ] Registrer operatørens identitet/kontaktinformasjon/adresse og eiergodkjent juridisk gjennomgang i den private tjenesten
-- [ ] Test Stripe Checkout og den signerte webhooken kun i testmodus
-- [ ] Test én kryptert levering av transaksjons-e-post med den godkjente avsenderen/domenet
-- [ ] Dokumenter gjenoppretting fra sikkerhetskopi og én overvåket forskningskjøring med budsjetttak
-- [ ] Godkjenn gjennomgangspolicyen for BRL/PIX før donasjonsdokumentasjon godtas
-- [ ] Aktiver offentlig Checkout først etter de foregående kontrollpunktene, og aktiver deretter den nye `news.json`-ID-en
-- [ ] Kontroller at Home-banneret bruker lokalisert tekst, og at en ny ID vises igjen etter at en eldre ID er avvist
-
 ## Røyktest for innebygde tjenester (v3.8.4+)
 
 Før en utgivelse som inneholder endringer i innebygde tjenester publiseres, må du kontrollere:
@@ -399,7 +300,7 @@ Hvis utgivelsen har et kritisk problem:
 - Aldri hopp over Husky-hooks (`--no-verify`)
 - Aldri legg inn hemmeligheter, påloggingsinformasjon eller `.env`-filer i en commit
 - Kodedekningen må forbli ≥60/60/60/60 (setninger/linjer/funksjoner/grener)
-- Inkluder eller oppdater alltid tester når du endrer produksjonskode i `src/`, `open-sse/`, `electron/` eller `bin/`
+- Inkluder eller oppdater alltid tester når du endrer produksjonskode i `src/`, `open-sse/` eller `bin/`
 
 ## Automatisert synkroniseringskontroll
 

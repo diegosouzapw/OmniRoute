@@ -122,7 +122,6 @@ secara otomatis, tanpa label apa pun.
 ### Versi & Changelog
 
 - [ ] Jalankan `/version-bump-cc <patch|minor|major>` (skill Claude Code)
-  - Menaikkan versi `package.json`, `electron/package.json`
   - Membuat ulang `CHANGELOG.md` dari commit git sejak tag terakhir
   - Memperbarui badge README.md
 - [ ] Tinjau CHANGELOG.md secara manual dan rapikan pesan commit jika diperlukan
@@ -216,104 +215,6 @@ Perubahan breaking: tambahkan footer `BREAKING CHANGE:` atau `!` setelah scope (
 - [ ] Model terdaftar di `open-sse/config/providerRegistry.ts`
 - [ ] Pengujian unit di `tests/unit/` mencakup klasifikasi dan perutean penyedia
 
-### Desktop (Electron)
-
-Jika `electron/` berubah:
-
-- [ ] `npm run electron:smoke:packaged` berhasil
-- [ ] Build diuji setidaknya untuk salah satu dari `:win`, `:mac`, `:linux`
-- [ ] Sertifikat penandatanganan kode belum kedaluwarsa (jika melakukan penandatanganan)
-- [ ] Versi `electron/package.json` cocok dengan `package.json` root
-- [ ] Pointer kanal pembaruan otomatis diperbarui jika merilis ke `stable`
-
-### Tata Letak Build
-
-Repositori menggunakan tiga direktori output yang berbeda — jangan pernah tertukar:
-
-| Direktori | Tujuan                                                      | Dilacak?              |
-| --------- | ----------------------------------------------------------- | --------------------- |
-| `src/`    | Sumber aplikasi (TypeScript / TSX)                          | Ya                    |
-| `.build/` | Perantara build — output `next build` (`distDir`)           | Tidak (diabaikan git) |
-| `dist/`   | Bundel npm siap dikirim — dirakit oleh `assembleStandalone` | Tidak (diabaikan git) |
-
-> **Catatan operator:** direktori image VPS jarak jauh tetap `/usr/lib/node_modules/omniroute/app/`.
-> Hanya output build **di dalam repositori** yang dipindahkan (`app/` → `dist/`). Skill deploy melakukan rsync
-> terhadap isi `dist/` ke direktori `app/` jarak jauh — tidak diperlukan perubahan path VPS.
-
-**Alur build tunggal:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (bersihkan)
-  └─ next build → .build/next/   (perantara)
-  └─ assembleStandalone          (menyalin standalone + static + public + native → dist/)
-  └─ menulis dist/BUILD_SHA      (sentinel HEAD)
-```
-
-JANGAN jalankan `npm run build` yang diikuti oleh `npm run build:cli` terpisah untuk deploy — gunakan
-`npm run build:release` yang melakukan build ulang bersih + sentinel dalam satu perintah.
-
-### Validasi Artefak
-
-- [ ] `npm run build:release` berhasil dan `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` bersih — tidak ada `app.__qa_backup`, `scripts/scratch`, `package-lock.json`, atau residu lokal lainnya
-- [ ] `dist/server.js` tersedia setelah build
-
-### Pemberian Tag & Rilis
-
-- [ ] Jalankan `/generate-release-cc` (skill Claude Code):
-  - Membuat tag `vX.Y.Z`
-  - Mendorong tag dan branch
-  - Membuka GitHub Release dengan isi changelog
-  - Melampirkan installer Electron (jika dibuat)
-- [ ] Atau secara manual:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deploy
-
-Skill deploy menggunakan alur rsync ringan — tanpa `npm pack`, tanpa `npm i -g`:
-
-- [ ] Gunakan skill deploy yang sesuai dengan target:
-  - `/deploy-vps-local-cc` — VPS lokal (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — VPS Akamai (69.164.221.35)
-  - `/deploy-vps-both-cc` — keduanya
-- [ ] Sebelum melakukan deploy, konfirmasikan `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Build harus dijalankan di tempat `node_modules` benar-benar tersedia (checkout utama atau worktree yang telah menjalankan `npm ci` — BUKAN worktree yang menggunakan symlink)
-- [ ] Lakukan smoke test pada instance yang telah di-deploy:
-  - Buka `/dashboard/health` → periksa apakah string versi cocok dengan rilis
-  - Jalankan permintaan `/v1/chat/completions` terhadap penyedia yang diketahui
-  - Verifikasi `/api/monitoring/health` mengembalikan circuit breaker `CLOSED`
-  - Konfirmasikan transport MCP merespons (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Pascarilis
-
-- [ ] Jalankan `/capture-release-evidences-cc` (skill Claude Code)
-  - Mengambil tangkapan layar/rekaman WebP dari fitur-fitur baru
-  - Melampirkannya ke catatan rilis / postingan blog
-- [ ] Perbarui GitHub Discussions / Discord dengan pengumuman rilis
-- [ ] Buka milestone untuk versi berikutnya
-- [ ] Jika kritis: sematkan diskusi atau posting di `news.json` untuk banner dalam aplikasi
-
-### Gerbang peluncuran publik Radar
-
-Pengumuman Radar sengaja di-commit dengan `active: false`. Aktivasi merupakan perubahan terpisah
-setelah bukti untuk setiap item di bawah ini tersedia:
-
-- [ ] Semua PR Radar bertumpuk telah di-merge dan CI release-tip berstatus hijau
-- [ ] Deploy dan lakukan uji asap pada rute Radar OSS dengan `RADAR_ENABLED` tetap nonaktif secara default
-- [ ] Lakukan uji asap pada `GET /planos`, `/termos`, `/privacidade`, dan `/reembolso` di host Radar yang ditentukan
-- [ ] Catat identitas/kontak/alamat operator dan tinjauan hukum yang disetujui pemilik di layanan privat
-- [ ] Uji Stripe Checkout dan webhook bertanda tangan hanya dalam mode pengujian
-- [ ] Uji satu pengiriman email transaksional terenkripsi dengan pengirim/domain yang disetujui
-- [ ] Buktikan pemulihan cadangan dan satu proses riset yang diawasi serta dibatasi anggaran
-- [ ] Setujui kebijakan peninjauan BRL/PIX sebelum menerima bukti donasi
-- [ ] Aktifkan Checkout publik hanya setelah gerbang sebelumnya terpenuhi, lalu aktifkan ID `news.json` yang baru
-- [ ] Verifikasi bahwa banner Home menggunakan teks yang dilokalkan dan ID baru muncul kembali setelah ID lama ditutup
-
 ## Smoke test Layanan Tertanam (v3.8.4+)
 
 Sebelum merilis versi apa pun yang menyertakan perubahan layanan tertanam, verifikasi:
@@ -399,7 +300,7 @@ Jika rilis memiliki masalah kritis:
 - Jangan pernah melewati hook Husky (`--no-verify`)
 - Jangan pernah melakukan commit terhadap secret, kredensial, atau file `.env`
 - Coverage harus tetap ≥60/60/60/60 (statement/baris/fungsi/branch)
-- Selalu sertakan atau perbarui pengujian saat mengubah kode produksi di `src/`, `open-sse/`, `electron/`, atau `bin/`
+- Selalu sertakan atau perbarui pengujian saat mengubah kode produksi di `src/`, `open-sse/`, atau `bin/`
 
 ## Pemeriksaan Sinkronisasi Otomatis
 

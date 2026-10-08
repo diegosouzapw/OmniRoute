@@ -264,25 +264,6 @@ Amal turi, bajaruvchi, nishon, IP manzil va vaqt belgisi bo‘yicha filtrlash im
 
 ---
 
-## 🖥️ Ish stoli ilovasi
-
-Windows, macOS va Linux uchun mahalliy Electron ish stoli ilovasi. OmniRoute’ni tizim treyi integratsiyasi, oflayn qo‘llab-quvvatlash, avtomatik yangilanish va bir bosishli o‘rnatishga ega mustaqil ilova sifatida ishga tushiring.
-
-Asosiy imkoniyatlar:
-
-- Server tayyorligini davriy tekshirish (sovuq ishga tushirishda bo‘sh ekran yo‘q)
-- Portlarni boshqarish imkoniyatiga ega tizim treyi
-- Kontent xavfsizligi siyosati
-- Bitta nusxada ishlash qulfi
-- Qayta ishga tushirilganda avtomatik yangilanish
-- Platformaga mos shartli interfeys (macOS boshqaruv tugmalari, Windows/Linux standart sarlavha paneli)
-- Mustahkamlangan Electron tuzilmasini paketlash — mustaqil to‘plamdagi ramziy havola bilan bog‘langan `node_modules` paketlashdan oldin aniqlanadi va rad etiladi, bu bajarilish vaqtida tuzish kompyuteriga bog‘liqlikning oldini oladi (v2.5.5+)
-- **Xavfsiz o‘chirish** — Electron `before-quit` Next.js’ni toza tarzda o‘chiradi va SQLite WAL ma’lumotlar bazasi qulflarining oldini oladi (v3.6.2+)
-
-📖 To‘liq hujjatlar uchun [`electron/README.md`](../../electron/README.md) faylini ko‘ring.
-
----
-
 ## 🌐 V1 WebSocket ko‘prigi _(v3.6.6+)_
 
 OmniRoute endi `/v1/ws` yangilash so‘nggi nuqtasi orqali **OpenAI bilan mos WebSocket mijozlarini** qo‘llab-quvvatlaydi. Maxsus `scripts/dev/v1-ws-bridge.mjs` serveri Next.js’ni o‘rab, WS ulanishlarini to‘liq ikki tomonlama oqimli seanslarga yangilaydi. Autentifikatsiya HTTP so‘rovlaridagi kabi bir xil API kaliti yoki seans cookie faylidan foydalanadi.

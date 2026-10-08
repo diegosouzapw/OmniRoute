@@ -91,7 +91,7 @@ Apabila anda perlu membenamkan nilai baharu yang disediakan oleh pihak huluan ya
 
 ### 3. Corak yang dilarang
 
-❌ **Jangan sekali-kali** lakukan mana-mana perkara berikut dalam kod pengeluaran (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ **Jangan sekali-kali** lakukan mana-mana perkara berikut dalam kod pengeluaran (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // BURUK: nilai literal mencetuskan Secret Scanning + Semgrep

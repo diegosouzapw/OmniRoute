@@ -264,25 +264,6 @@ API açarları yaradın, onların əhatə dairəsini müəyyənləşdirin və on
 
 ---
 
-## 🖥️ Masaüstü Tətbiqi
-
-Windows, macOS və Linux üçün yerli Electron masaüstü tətbiqi. OmniRoute-u sistem treyi inteqrasiyası, oflayn dəstək, avtomatik yeniləmə və bir kliklə quraşdırma imkanları ilə müstəqil tətbiq kimi işlədin.
-
-Əsas xüsusiyyətlər:
-
-- Serverin hazır olma vəziyyətinin sorğulanması (soyuq başlanğıc zamanı boş ekran yoxdur)
-- Port idarəetməsi ilə sistem treyi
-- Məzmun Təhlükəsizlik Siyasəti
-- Tək instansiya kilidi
-- Yenidən başlatma zamanı avtomatik yeniləmə
-- Platformaya uyğun şərti UI (macOS idarəetmə düymələri, Windows/Linux standart başlıq paneli)
-- Gücləndirilmiş Electron yığım paketləməsi — müstəqil paketdə simvolik keçidlə bağlanmış `node_modules` paketləmədən əvvəl aşkarlanır və rədd edilir; bu, icra zamanı yığım maşınından asılılığın qarşısını alır (v2.5.5+)
-- **Təhlükəsiz dayandırma** — Electron `before-quit` Next.js-i düzgün şəkildə dayandıraraq SQLite WAL verilənlər bazası kilidlərinin yaranmasının qarşısını alır (v3.6.2+)
-
-📖 Tam sənədlər üçün [`electron/README.md`](../../electron/README.md) faylına baxın.
-
----
-
 ## 🌐 V1 WebSocket Körpüsü _(v3.6.6+)_
 
 OmniRoute artıq `/v1/ws` təkmilləşdirmə son nöqtəsi vasitəsilə **OpenAI ilə uyğun WebSocket müştərilərini** dəstəkləyir. Fərdi `scripts/dev/v1-ws-bridge.mjs` serveri Next.js-i əhatə edir və WS bağlantılarını tam ikitərəfli axın sessiyalarına təkmilləşdirir. Autentifikasiya HTTP sorğuları ilə eyni API açarından və ya sessiya kukisindən istifadə edir.

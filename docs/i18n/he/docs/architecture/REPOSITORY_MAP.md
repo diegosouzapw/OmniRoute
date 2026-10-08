@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # יישום Next.js 16‏ (ממשק משתמש + נתיבי API + ספריות + תחום + שרת)
 ├── open-sse/             # סביבת העבודה של מנוע ההזרמה (מטפלים, מבצעים, מתרגם, שרת MCP)
-├── electron/             # מעטפת שולחן עבודה (Electron 41 + electron-builder 26.10)
 ├── bin/                  # נקודת הכניסה של ה-CLI ומטפלי הפקודות
 ├── scripts/              # סקריפטים לבנייה, בדיקה, סנכרון ומשימות חד-פעמיות
 ├── docs/                 # תיעוד ציבורי (אתם כאן)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — מעטפת שולחן עבודה
-
-| קובץ             | מטרה                                                                                   |
-| ---------------- | -------------------------------------------------------------------------------------- |
-| `main.js`        | התהליך הראשי של Electron ‏(BrowserWindow, שרת Next.js מוטמע, מגש מערכת, עדכון אוטומטי) |
-| `preload.js`     | גשר IPC ‏(contextBridge → `window.omniroute`)                                          |
-| `package.json`   | תצורת electron-builder + תלויות Electron 41 + electron-builder 26.10                   |
-| `assets/`        | סמלי יישום (Windows .ico, macOS .icns, Linux .png)                                     |
-| `dist-electron/` | פלט בנייה (לא במעקב של git)                                                            |
-| `types.d.ts`     | הצהרות טיפוסים עבור גשר הרינדור                                                        |
-| `README.md`      | README פנימי של Electron (ראו גם `docs/guides/ELECTRON_GUIDE.md`)                      |
-
----
-
 ## `bin/` — CLI
 
 | קובץ                                                                                                        | מטרה                                                                                                                                    |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | מריץ בדיקות E2E של MCP/A2A                                                |
 | `run-ecosystem-tests.mjs`           | בדיקות אקוסיסטם (אינטגרציית ספקים)                                        |
 | `test-report-summary.mjs`           | יצירת סיכום כיסוי בפורמט markdown                                         |
-| `smoke-electron-packaged.mjs`       | בדיקת עשן לבניית Electron ארוזה                                           |
-| `native-binary-compat.mjs`          | אימות שתלויות מקוריות (`better-sqlite3`) תואמות ל-Node של Electron        |
 | `validate-pack-artifact.ts`         | אימות פלט האריזה של npm                                                   |
 | `responses-ws-proxy.mjs`            | גשר WebSocket עבור Codex Responses API                                    |
 | `v1-ws-bridge.mjs`                  | גשר WebSocket עבור נקודת הקצה `/api/v1/ws`                                |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | מדריך למשתמש הקצה (הגדרה, מודלים, שילובים, ממשקי CLI, שמע וכו׳)                      |
 | `API_REFERENCE.md`          | חומר עזר לנקודות קצה של API עם מודל אימות                                            |
 | `openapi.yaml`              | מפרט OpenAPI 3.0 ‏(121 נתיבים)                                                       |
-| `SETUP_GUIDE.md`            | שיטות התקנה (npm, npx, Docker, Electron, Termux, קוד מקור)                           |
+| `SETUP_GUIDE.md`            | שיטות התקנה (npm, npx, Docker, Termux, קוד מקור)                                     |
 | `ENVIRONMENT.md`            | כל משתני הסביבה (כ־800 מתועדים, כ־3,050 שורות ב־`.env.example`)                      |
 | `TROUBLESHOOTING.md`        | שגיאות נפוצות + בעיות ידועות ב־v3.8.0                                                |
 | `RELEASE_CHECKLIST.md`      | תהליך הפצה מלא (מיומנויות, husky, קומיטים קונבנציונליים, פריסה)                      |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | פריסה ב־Fly.io (כרגע בסינית בלבד)                                     |
 | `TERMUX_GUIDE.md`            | Android ללא ממשק גרפי באמצעות Termux                                  |
 | `PWA_GUIDE.md`               | התקנת יישום אינטרנט מתקדם + service worker                            |
-| `ELECTRON_GUIDE.md`          | בנייה + חתימה + הפצה של יישום שולחני                                  |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                |
 | `PROXY_GUIDE.md`             | proxy יוצא ב־4 רמות + זירת המסחר 1proxy                               |
 

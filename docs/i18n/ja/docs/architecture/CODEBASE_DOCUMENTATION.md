@@ -27,7 +27,6 @@
 | 言語                 | **TypeScript 6.0+** — ターゲット `ES2022`、`module: esnext`、`moduleResolution: bundler`、`strict: false`                           |
 | ランタイム           | **Node.js** `>=22.22.2 <23` または `>=24.0.0 <27`（`engines` + `SUPPORTED_NODE_RANGE` によって強制）                                |
 | データベース         | `better-sqlite3` 経由の **SQLite**（シングルトン、WALジャーナリング）                                                               |
-| デスクトップ         | **Electron 41** + `electron-builder` 26.10（`electron/` に独立したワークスペース）                                                  |
 | テスト               | **Nodeネイティブテストランナー**（ユニット／統合）、**Vitest**（MCP、autoCombo、キャッシュ）、**Playwright**（e2e + protocols-e2e） |
 | ビルド               | `scripts/build/build-next-isolated.mjs` による Next.js スタンドアロン                                                               |
 | リント／フォーマット | ESLint フラット設定 + Prettier（Husky の pre-commit による `lint-staged`）                                                          |
@@ -51,7 +50,6 @@
 OmniRoute/
 ├── src/                  Next.jsアプリケーション（App Router、ライブラリ、ドメイン、サーバー、共有コード）
 ├── open-sse/             ストリーミングエンジンのワークスペース（@omniroute/open-sse）
-├── electron/             デスクトップラッパー（Electron 41のメイン + preload）
 ├── bin/                  CLIエントリーポイント（omniroute、reset-password）
 ├── tests/                ユニット、統合、e2e、protocols-e2e、トランスレーター、セキュリティ、フィクスチャ
 ├── scripts/              ビルド、同期、チェック、マイグレーション、ランタイム用の補助スクリプト
@@ -573,26 +571,6 @@ open-sse/
 
 ---
 
-## 5. `electron/` — デスクトップラッパー
-
-```
-electron/
-├── main.js                  Electron メインプロセス
-├── preload.js               プリロードブリッジ（contextIsolation 有効）
-├── types.d.ts
-├── package.json             electron-builder の設定、バージョン 3.8.51
-├── README.md
-├── assets/                  ビルド用リソース（アイコン、エンタイトルメントなど）
-├── node_modules/            専用の node_modules（better-sqlite3、electron-updater）
-└── dist-electron/           ビルド出力（コミット対象外）
-```
-
-ワークスペースルートには、`electron:dev`、`electron:build`、
-`electron:build:{win,mac,linux}`、`electron:smoke:packaged` の5つの npm スクリプトがあります。自動更新には、
-GitHub のリリースフィードを参照する `electron-updater` を使用します。
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -657,13 +635,11 @@ bin/
 目的別に6つのサブフォルダーに整理されています。
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`。
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`。
@@ -842,7 +818,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A プロトコルのスキルとディスカバリー。
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK + Caveman 圧縮。
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI 連携。
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md)（存在する場合）、[DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md)、[FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md)、[VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md)、[TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md)、[PWA_GUIDE.md](../guides/PWA_GUIDE.md) — デプロイ先。
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md)、[FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md)、[VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md)、[TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md)、[PWA_GUIDE.md](../guides/PWA_GUIDE.md) — デプロイ先。
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — 運用上の一般的な問題。
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — コントリビューター向けワークフロー。
 - [CLAUDE.md](../../CLAUDE.md) — Claude Code 向けのリポジトリルール（上記の規約の多くに

@@ -29,7 +29,7 @@
 | **Ìfarapamọ́ ìtẹ̀wọ́-ọ́ TLS (JA3/JA4)**                     |                  ✅ wreq-js                  |      ❌      |        ❌         |        ❌         |
 | **Ìlànà eval**                                          |                  ✅ inú-ẹ̀rọ                  |      ❌      |        ❌         |      ⚠ ọlọ́wọ́      |
 | **Aṣojú MITM (ń dá Cursor/Antigravity dúró)**           |             ✅ orí ọ̀pọ̀ platform              |      ❌      |        ❌         |        ❌         |
-| **CLI pẹ̀lú àpótí ètò (kò sí Electron)**                 |                      ✅                      |      ❌      |        n/a        |        n/a        |
+| **CLI pẹ̀lú àpótí ètò**                                  |                      ✅                      |      ❌      |        n/a        |        n/a        |
 | **Ìfàṣẹsí aládàáṣe CLI pẹ̀lú machine-ID**                |                      ✅                      |      ❌      |        n/a        |        n/a        |
 | **Pátákó ìṣàkóso**                                      |                  Next.js 16                  |    ìpìlẹ̀     | ohun-ìní aládàáni | ohun-ìní aládàáni |
 | **i18n**                                                |              **agbègbè èdè 42**              |      ❌      |        ❌         |         ⚠         |

@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16 programa (NS + API maršrutai + bibliotekos + domenas + serveris)
 ├── open-sse/             # Srautinio perdavimo variklio darbo sritis (apdorojimo programos, vykdyklės, vertimo priemonė, MCP serveris)
-├── electron/             # Darbalaukio apvalkalas (Electron 41 + electron-builder 26.10)
 ├── bin/                  # CLI pradinis taškas ir komandų apdorojimo programos
 ├── scripts/              # Kompiliavimo, tikrinimo, sinchronizavimo ir vienkartiniai scenarijai
 ├── docs/                 # Viešoji dokumentacija (esate čia)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Darbalaukio aplankas
-
-| Failas           | Paskirtis                                                                                                            |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `main.js`        | Pagrindinis Electron procesas (BrowserWindow, įtaisytasis Next.js serveris, sistemos dėklas, automatinis naujinimas) |
-| `preload.js`     | IPC tiltas (contextBridge → `window.omniroute`)                                                                      |
-| `package.json`   | electron-builder konfigūracija + Electron 41 + electron-builder 26.10 priklausomybės                                 |
-| `assets/`        | Programos piktogramos (Windows .ico, macOS .icns, Linux .png)                                                        |
-| `dist-electron/` | Kompiliavimo išvestis (neįtraukiama į git)                                                                           |
-| `types.d.ts`     | Atvaizdavimo proceso tilto tipų deklaracijos                                                                         |
-| `README.md`      | Vidinis Electron README (taip pat žr. `docs/guides/ELECTRON_GUIDE.md`)                                               |
-
----
-
 ## `bin/` — CLI
 
 | Failas                                                                                                      | Paskirtis                                                                                                                                  |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | MCP / A2A E2E testų vykdyklė                                                                      |
 | `run-ecosystem-tests.mjs`           | Ekosistemos (teikėjų integracijos) testai                                                         |
 | `test-report-summary.mjs`           | Aprėpties suvestinės generavimas Markdown formatu                                                 |
-| `smoke-electron-packaged.mjs`       | Supakuotos Electron versijos bazinis patikrinimas                                                 |
-| `native-binary-compat.mjs`          | Tikrinimas, ar vietinės priklausomybės (`better-sqlite3`) atitinka Electron naudojamą Node        |
 | `validate-pack-artifact.ts`         | `npm pack` išvesties validacija                                                                   |
 | `responses-ws-proxy.mjs`            | WebSocket tiltas, skirtas Codex Responses API                                                     |
 | `v1-ws-bridge.mjs`                  | WebSocket tiltas, skirtas `/api/v1/ws` galiniam taškui                                            |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Galutinio naudotojo vadovas (sąranka, modeliai, deriniai, CLI, garsas ir kt.)                                |
 | `API_REFERENCE.md`          | API galinių taškų žinynas su autentifikavimo modeliu                                                         |
 | `openapi.yaml`              | OpenAPI 3.0 specifikacija (121 kelias)                                                                       |
-| `SETUP_GUIDE.md`            | Diegimo būdai (npm, npx, Docker, Electron, Termux, iš šaltinio kodo)                                         |
+| `SETUP_GUIDE.md`            | Diegimo būdai (npm, npx, Docker, Termux, iš šaltinio kodo)                                                   |
 | `ENVIRONMENT.md`            | Visi aplinkos kintamieji (~800 dokumentuotų, ~3 050 eilučių `.env.example`)                                  |
 | `TROUBLESHOOTING.md`        | Dažnos klaidos + žinomos v3.8.0 problemos                                                                    |
 | `RELEASE_CHECKLIST.md`      | Visa leidimo eiga (įgūdžiai, husky, sutartiniai įsipareigojimai, diegimas)                                   |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io diegimas (šiuo metu tik kinų kalba)                                               |
 | `TERMUX_GUIDE.md`            | Android veikimas be grafinės sąsajos naudojant Termux                                    |
 | `PWA_GUIDE.md`               | Progresyviosios žiniatinklio programos diegimas + tarnybinė programa                     |
-| `ELECTRON_GUIDE.md`          | Darbalaukio programos komponavimas + pasirašymas + platinimas                            |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                                   |
 | `PROXY_GUIDE.md`             | 4 lygių išeinantysis tarpinis serveris + 1proxy prekyvietė                               |
 

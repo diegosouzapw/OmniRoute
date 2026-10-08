@@ -93,7 +93,7 @@ Kada trebate ugraditi novu vrijednost koju je obezbijedio uzvodni provajder, a k
 
 ### 3. Zabranjeni obrasci
 
-❌ **Nikada** ne radite ništa od sljedećeg u produkcijskom kodu (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ **Nikada** ne radite ništa od sljedećeg u produkcijskom kodu (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // LOŠE: literalna vrijednost aktivira Secret Scanning + Semgrep

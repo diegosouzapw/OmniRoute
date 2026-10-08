@@ -265,25 +265,6 @@ Seguimiento de acciones administrativas con filtrado por tipo de acción, autor,
 
 ---
 
-## 🖥️ Aplicación de escritorio
-
-Aplicación de escritorio nativa basada en Electron para Windows, macOS y Linux. Ejecuta OmniRoute como una aplicación independiente con integración en la bandeja del sistema, compatibilidad sin conexión, actualización automática e instalación con un solo clic.
-
-Características principales:
-
-- Sondeo de disponibilidad del servidor (sin pantalla en blanco durante un arranque en frío)
-- Bandeja del sistema con gestión de puertos
-- Política de seguridad de contenido
-- Bloqueo de instancia única
-- Actualización automática al reiniciar
-- Interfaz condicional según la plataforma (controles de ventana de macOS y barra de título predeterminada de Windows/Linux)
-- Empaquetado reforzado de compilaciones de Electron: los `node_modules` con enlaces simbólicos del paquete independiente se detectan y rechazan antes del empaquetado, lo que evita la dependencia en tiempo de ejecución respecto a la máquina de compilación (v2.5.5+)
-- **Cierre ordenado**: `before-quit` de Electron cierra Next.js de forma limpia, lo que evita bloqueos de la base de datos WAL de SQLite (v3.6.2+)
-
-📖 Consulta [`electron/README.md`](../../electron/README.md) para obtener la documentación completa.
-
----
-
 ## 🌐 Puente WebSocket V1 _(v3.6.6+)_
 
 OmniRoute ahora admite **clientes WebSocket compatibles con OpenAI** mediante el endpoint de actualización `/v1/ws`. El servidor personalizado `scripts/dev/v1-ws-bridge.mjs` encapsula Next.js y actualiza las conexiones WS a sesiones completas de transmisión bidireccional. La autenticación utiliza la misma clave de API o cookie de sesión que las solicitudes HTTP.

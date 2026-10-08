@@ -550,7 +550,6 @@
       "tests/unit/sudo-password-never-reaches-command-stdin.test.ts",
       "tests/unit/middleware-hook-realm-isolation.test.ts",
       "tests/unit/bootstrap-env-private-modes.test.ts",
-      "tests/unit/electron-server-env-private-modes.test.ts",
       "tests/unit/provider-test-local-runtime-probe.test.ts",
       "tests/unit/flagship-0day-discovery.test.ts",
       "tests/unit/combo-responses-sse-failure-fallback.test.ts",
@@ -677,7 +676,6 @@
   "ignorePatterns": [
     ".next",
     "dist",
-    "dist-electron",
     ".build",
     "coverage",
     "playwright-report",

@@ -118,7 +118,6 @@ omniroute
 
 ## Omejitve
 
-- Electron se v Termuxu ne izvaja.
 - Sistemska vrstica in integracija z namizjem nista na voljo.
 - Ta nastavitev je namenjena samo strežniku: uporabljajte nadzorno ploščo v brskalniku.
 - Izvorne odvisnosti bo morda treba prevesti lokalno.

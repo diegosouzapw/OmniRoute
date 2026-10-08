@@ -16,7 +16,7 @@ canji da aka saba yi da ƙa'idojinsa, takamaiman bincike, da ɗaukar nauyin CI.
    [Tsarin Reshe da Fitarwa](BRANCHING_MODEL.md).
 2. **Ambaci ƙa'idojin.** Gano kowane katalog, schema, abin da aka samar, API na jama'a, ko mahaɗin
    mai amfani da canjin zai shafa. Teburin da ke ƙasa yana ba da mafi ƙarancin saitin farawa.
-3. **Rubuta ko sabunta takamaiman gwaje-gwaje.** Canje-canjen samarwa a `src/`, `open-sse/`, `electron/`, ko
+3. **Rubuta ko sabunta takamaiman gwaje-gwaje.** Canje-canjen samarwa a `src/`, `open-sse/`, ko
    `bin/` suna buƙatar gwaji mai sarrafa kansa a PR ɗin guda. Gudanar da mafi ƙanƙantar fayilolin gwaji da ke tabbatar da
    halayen, sannan ka gudanar da takamaiman matakan tantancewa da aka lissafa.
 4. **Bar CI ya gudanar da faffadan matrix.** Cikakkun sassan unit, Vitest, matakin coverage, da

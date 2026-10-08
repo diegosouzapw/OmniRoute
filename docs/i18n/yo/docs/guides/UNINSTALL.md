@@ -83,23 +83,6 @@ docker compose down
 docker compose down -v
 ```
 
-### Ohun Èlò Ojú-iṣẹ́ Electron
-
-**Windows:**
-
-- Ṣí `Settings → Apps → OmniRoute → Uninstall`
-- Tàbí ṣiṣẹ́ ohun èlò NSIS uninstaller láti inú àkọsílẹ̀ fífìsílẹ̀
-
-**macOS:**
-
-- Fa `OmniRoute.app` láti `/Applications` sínú Trash
-- Yọ dátà kúrò: `rm -rf ~/Library/Application Support/omniroute`
-
-**Linux:**
-
-- Yọ fáìlì AppImage kúrò
-- Yọ dátà kúrò: `rm -rf ~/.omniroute`
-
 ### Fífì Láti Orísun Sílẹ̀ (git clone)
 
 ```bash

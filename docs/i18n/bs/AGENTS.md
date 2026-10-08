@@ -67,7 +67,7 @@ Repository map i Reference Documentation u nastavku.
 | Skills        | `src/lib/skills/`       | Proširivi framework vještina                                                                                                                                              |
 | Memory        | `src/lib/memory/`       | Persistent konverzacijska memorija                                                                                                                                        |
 
-Monorepo: `src/` (Next.js 16 app), `open-sse/` (streaming engine workspace), `electron/` (desktop app), `tests/`, `bin/` (CLI ulazna tačka).
+Monorepo: `src/` (Next.js 16 app), `open-sse/` (streaming engine workspace) (desktop app), `tests/`, `bin/` (CLI ulazna tačka).
 
 ---
 
@@ -245,7 +245,6 @@ Pročitajte najbliži `AGENTS.md` i povezanu detaljnu dokumentaciju prije nego �
 | MCP i A2A                       | `open-sse/mcp-server/`, `src/lib/a2a/`                  | [`docs/frameworks/MCP-SERVER.md`](docs/frameworks/MCP-SERVER.md), [`docs/frameworks/A2A-SERVER.md`](docs/frameworks/A2A-SERVER.md)               |
 | Agent funkcionalnosti           | `src/lib/{acp,memory,skills,cloudAgent}/`               | [`docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`](docs/frameworks/AGENT_PROTOCOLS_GUIDE.md), [`docs/frameworks/SKILLS.md`](docs/frameworks/SKILLS.md) |
 | Sigurnost i upravljanje         | `src/lib/{guardrails,compliance}/`, `src/server/authz/` | [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md), [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md)             |
-| Operacije                       | `src/mitm/`, tunnel moduli, `electron/`                 | [`docs/ops/TUNNELS_GUIDE.md`](docs/ops/TUNNELS_GUIDE.md), [`docs/guides/ELECTRON_GUIDE.md`](docs/guides/ELECTRON_GUIDE.md)                       |
 
 ---
 
@@ -433,7 +432,6 @@ Za svaku značajniju izmjenu, prvo pročitajte odgovarajući detaljni vodič:
 | API referenca + OpenAPI                             | `docs/reference/API_REFERENCE.md` + `docs/openapi.yaml` |
 | Katalog provajdera (automatski generisano)          | `docs/reference/PROVIDER_REFERENCE.md`                  |
 | Tuneli                                              | `docs/ops/TUNNELS_GUIDE.md`                             |
-| Electron desktop aplikacija                         | `docs/guides/ELECTRON_GUIDE.md`                         |
 | VS Code Copilot Chat (OmniCopilot ekstenzija)       | `docs/guides/VSCODE-COPILOT.md`                         |
 | Release flow                                        | `docs/ops/RELEASE_CHECKLIST.md`                         |
 | Embedded servisi                                    | `docs/frameworks/EMBEDDED-SERVICES.md`                  |
@@ -454,7 +452,7 @@ Za svaku značajniju izmjenu, prvo pročitajte odgovarajući detaljni vodič:
 | Coverage gate            | `npm run test:coverage` (60/60/60/60 — statements/lines/functions/branches)   |
 | Izvještaj o pokrivenosti | `npm run coverage:report`                                                     |
 
-**PR pravilo**: Ako promijenite produkcijski kod u `src/`, `open-sse/`, `electron/` ili `bin/`, morate uključiti ili ažurirati testove u istom PR-u.
+**PR pravilo**: Ako promijenite produkcijski kod u `src/`, `open-sse/` ili `bin/`, morate uključiti ili ažurirati testove u istom PR-u.
 
 **Preferencija slojeva testiranja**: prvo unit → integracijski (multi-modul ili DB stanje) → e2e (samo UI/workflow). Kodirajte reprodukcije bagova kao automatizovane testove prije ili uz samu ispravku.
 

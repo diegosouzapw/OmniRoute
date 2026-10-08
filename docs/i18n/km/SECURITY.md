@@ -197,7 +197,7 @@ docker run -d \
 
 ## ភាពអាស្រ័យ
 
-- ដំណើរការ `npm audit` ជាប្រចាំ (`npm run audit:deps` គ្របដណ្ដប់លើ main + electron)
+- ដំណើរការ `npm audit` ជាប្រចាំ (`npm run audit:deps` គ្របដណ្ដប់លើ main)
 - រក្សាភាពអាស្រ័យឱ្យទាន់សម័យ
 - គម្រោងប្រើ `husky` + `lint-staged` សម្រាប់ការត្រួតពិនិត្យមុន commit (lint-staged + check-docs-sync + check:any-budget:t11)
 - Pipeline របស់ CI ដំណើរការច្បាប់សុវត្ថិភាព ESLint រាល់ពេល push (`no-eval`, `no-implied-eval`, `no-new-func` = កំហុស)

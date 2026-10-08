@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Compose प्रोफ़ाइल और Caddy HTTPS सहित संपूर्ण Docker सेटअप के लिए [Docker मार्गदर्शिका](./DOCKER_GUIDE.md) देखें।
 
-### डेस्कटॉप ऐप (Electron)
-
-OmniRoute के साथ Electron 41 + electron-builder 26.10 पर निर्मित एक डेस्कटॉप रैपर मिलता है। उपलब्ध स्क्रिप्ट (वर्कस्पेस रूट):
-
-```bash
-npm run electron:dev          # हॉट-रीलोड के साथ डेस्कटॉप चलाएँ
-npm run electron:build        # वर्तमान OS के लिए बिल्ड करें (स्वतः पहचाना गया)
-npm run electron:build:win    # Windows इंस्टॉलर (NSIS + पोर्टेबल)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # पैकेज किए गए बिल्ड का स्मोक-टेस्ट करें
-```
-
-डेस्कटॉप इंस्टॉलर के रिलीज़ GitHub Releases से संलग्न होते हैं। Electron के संपूर्ण गहन विवरण (साइनिंग, IPC ब्रिज, डिस्ट्रो) के लिए, [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) देखें _(बाद के चरण में बनाया गया)_।
-
 ### हेडलेस सर्वर (CI/ऑटोमेशन)
 
 बिना निगरानी वाले सेटअप (Docker, Kubernetes, CI) के लिए, इसका उपयोग करें:

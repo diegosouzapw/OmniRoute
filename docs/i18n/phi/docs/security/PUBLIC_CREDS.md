@@ -91,7 +91,7 @@ Kapag kailangan mong mag-embed ng bagong value na ibinigay ng upstream at:
 
 ### 3. Mga ipinagbabawal na pattern
 
-❌ **Huwag kailanman** gawin ang alinman sa mga sumusunod sa production code (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ **Huwag kailanman** gawin ang alinman sa mga sumusunod sa production code (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // MALI: tini-trigger ng literal na value ang Secret Scanning + Semgrep

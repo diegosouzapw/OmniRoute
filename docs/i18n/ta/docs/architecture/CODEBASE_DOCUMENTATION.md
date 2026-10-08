@@ -27,7 +27,6 @@
 | மொழி             | **TypeScript 6.0+** — இலக்கு `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                    |
 | இயக்கநேரம்       | **Node.js** `>=22.22.2 <23` அல்லது `>=24.0.0 <27` (`engines` + `SUPPORTED_NODE_RANGE` வழியாகக் கட்டாயப்படுத்தப்படுகிறது) |
 | தரவுத்தளம்       | `better-sqlite3` வழியான **SQLite** (singleton, WAL பதிவேடு)                                                              |
-| கணினிப் பயன்பாடு | **Electron 41** + `electron-builder` 26.10 (`electron/`-இல் தனி workspace)                                               |
 | சோதனைகள்         | **Node native test runner** (unit/integration), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | கட்டமைப்பு       | `scripts/build/build-next-isolated.mjs` வழியான Next.js standalone                                                        |
 | Lint/வடிவமைப்பு  | ESLint flat config + Prettier (Husky pre-commit வழியாக `lint-staged`)                                                    |
@@ -51,7 +50,6 @@
 OmniRoute/
 ├── src/                  Next.js பயன்பாடு (App Router, நூலகங்கள், domain, server, பகிரப்பட்டவை)
 ├── open-sse/             Streaming engine workspace (@omniroute/open-sse)
-├── electron/             கணினிப் பயன்பாட்டு wrapper (Electron 41 main + preload)
 ├── bin/                  CLI நுழைவுப் புள்ளிகள் (omniroute, reset-password)
 ├── tests/                Unit, integration, e2e, protocols-e2e, translator, security, fixtures
 ├── scripts/              Build, sync, check, migration மற்றும் runtime உதவி scripts
@@ -574,26 +572,6 @@ open-sse/
 
 ---
 
-## 5. `electron/` — டெஸ்க்டாப் உறை
-
-```
-electron/
-├── main.js                  Electron முதன்மை செயல்முறை
-├── preload.js               முன்ஏற்றப் பாலம் (contextIsolation இயக்கப்பட்டுள்ளது)
-├── types.d.ts
-├── package.json             electron-builder உள்ளமைவு, பதிப்பு 3.8.51
-├── README.md
-├── assets/                  உருவாக்க ஆதாரங்கள் (சின்னங்கள், உரிமைகள், …)
-├── node_modules/            பிரத்யேக node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           உருவாக்க வெளியீடு (commit செய்யப்படவில்லை)
-```
-
-பணியிட மூலத்தில் ஐந்து npm ஸ்கிரிப்ட்கள்: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. தானியங்குப் புதுப்பிப்பு,
-GitHub வெளியீட்டு ஊட்டத்தைச் சுட்டும் `electron-updater` வழியாக நடைபெறுகிறது.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -658,13 +636,11 @@ bin/
 நோக்கத்தின் அடிப்படையில் 6 துணைக் கோப்புறைகளாக ஒழுங்கமைக்கப்பட்டுள்ளது.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -843,7 +819,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A நெறிமுறைத் திறன்கள் மற்றும் கண்டறிதல்.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK + Caveman சுருக்கம்.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI ஒருங்கிணைப்புகள்.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (இருந்தால்), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — நிறுவல் இலக்குகள்.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — நிறுவல் இலக்குகள்.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — பொதுவான செயல்பாட்டுச் சிக்கல்கள்.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — பங்களிப்பாளர் பணிப்பாய்வு.
 - [CLAUDE.md](../../CLAUDE.md) — Claude Code-க்கான களஞ்சிய விதிகள் (மேலே உள்ள பல மரபுகளுக்கான

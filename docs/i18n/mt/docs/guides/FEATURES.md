@@ -251,25 +251,6 @@ Traċċar ta' azzjonijiet amministrattivi b'filtrazzjoni skont it-tip ta' azzjon
 
 ---
 
-## 🖥️ Applikazzjoni Desktop
-
-App desktop nattiva Electron għal Windows, macOS, u Linux. Mexxi OmniRoute bħala applikazzjoni waħedha b'integrazzjoni mat-trej tas-sistema, appoġġ offline, aġġornament awtomatiku, u installazzjoni b'klikk waħda.
-
-Karatteristiċi ewlenin:
-
-- Polling tal-prontezza tas-server (l-ebda skrin vojt fuq bidu kiesaħ)
-- Trej tas-sistema b'ġestjoni tal-port
-- Politika tas-Sigurtà tal-Kontenut
-- Lock ta' istanza waħda
-- Aġġornament awtomatiku mal-bidu mill-ġdid
-- UI kondizzjonali għall-pjattaforma (traffic lights macOS, titlebar default Windows/Linux)
-- Ippakkjar imsaħħaħ tal-bini Electron — `node_modules` b'links simboliċi fil-bundle standalone jinstab u jiġi rrifjutat qabel l-ippakkjar, jipprevjeni dipendenza fuq il-magna tal-bini fil-ħin tal-eżekuzzjoni (v2.5.5+)
-- **Għeluq grazzjuż** — Electron `before-quit` jagħlaq Next.js b'mod nadif, jipprevjeni lockijiet tad-database SQLite WAL (v3.6.2+)
-
-📖 Ara [`electron/README.md`](../../electron/README.md) għad-dokumentazzjoni sħiħa.
-
----
-
 ## 🌐 Pont WebSocket V1 _(v3.6.6+)_
 
 OmniRoute issa jappoġġja **klijenti WebSocket kompatibbli mal-OpenAI** permezz tal-endpoint ta' aġġornament `/v1/ws`. Is-server personalizzat `scripts/dev/v1-ws-bridge.mjs` jgeżwer Next.js u jaġġorna konnessjonijiet WS għal sessjonijiet ta' streaming bidirezzjonali sħaħ. L-awtentikazzjoni tuża l-istess ċavetta tal-API jew cookie tas-sessjoni bħat-talbiet HTTP.

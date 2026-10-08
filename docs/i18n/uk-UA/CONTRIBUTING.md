@@ -220,7 +220,7 @@ npm run test:combo:live:vps:failover     # додає реальний сцен�
 
 - `npm run test:coverage` вимірює покриття вихідного коду основним набором модульних тестів, виключає `tests/**` і включає `open-sse/**`
 - Запити на злиття мають зберігати поріг покриття на рівні **60%+** інструкцій/рядків/функцій/гілок
-- Якщо PR змінює робочий код у `src/`, `open-sse/`, `electron/` або `bin/`, у тому самому PR потрібно додати або оновити автоматизовані тести
+- Якщо PR змінює робочий код у `src/`, `open-sse/` або `bin/`, у тому самому PR потрібно додати або оновити автоматизовані тести
 - `npm run coverage:report` виводить докладний звіт за кожним файлом з останнього запуску перевірки покриття
 - `npm run test:coverage:legacy` зберігає старішу метрику для історичного порівняння
 - Поетапний план покращення покриття див. у `docs/ops/COVERAGE_PLAN.md`
@@ -320,7 +320,6 @@ open-sse/                   # @omniroute/open-sse workspace
 ├── transformer/            # Responses API transformer
 └── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron desktop app (cross-platform)
 
 tests/
 ├── unit/                   # Node.js test runner (122 test files)
