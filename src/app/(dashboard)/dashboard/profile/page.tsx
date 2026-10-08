@@ -225,7 +225,7 @@ export default function ProfilePage() {
                 {tg("levelProgress", { current: level, next: level + 1 })}
               </span>
               <span className="text-text-muted">
-                {xpInCurrentLevel.toLocaleString()} / {xpForNext.toLocaleString()} XP
+                {xpInCurrentLevel.toLocaleString(locale)} / {xpForNext.toLocaleString(locale)} XP
               </span>
             </div>
             <div
@@ -242,7 +242,7 @@ export default function ProfilePage() {
               />
             </div>
             <p className="text-xs text-text-muted mt-1">
-              {tg("totalXpEarned", { count: totalXp.toLocaleString() })}
+              {tg("totalXpEarned", { count: totalXp.toLocaleString(locale) })}
             </p>
           </div>
         </div>
