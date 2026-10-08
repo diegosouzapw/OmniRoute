@@ -1,1 +1,0 @@
-- **fix(embeddings):** llama.cpp connections discovered through model sync (the synced local-endpoint route) keep accepting canonical image/audio/video embedding items — the route rebuilt the provider config and dropped the multimodal capabilities added in #15758 — thanks @hartmark
