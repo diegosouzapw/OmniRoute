@@ -30,9 +30,19 @@ import { applyFunctionCallIdentity } from "./openai-responses/functionCallIdenti
 import { resolveLocalToolCallIndex } from "./openai-responses/toolCallLocalIndex.ts";
 import {
   synthesizeCompletedToolCalls,
+  buildFinalChunk,
   computeFinishReason,
   withAssistantRoleOnFirstDelta,
 } from "./openai-responses/synthesizeCompletedToolCalls.ts";
+import {
+  bindResponsesTextItem,
+  buildTextSnapshotChunk,
+  closeResponsesTextSnapshots,
+  recordResponsesTextDelta,
+  reconcileResponsesTextDone,
+  synthesizeTextItemSnapshot,
+  synthesizeTextSnapshots,
+} from "./openai-responses/synthesizeTextSnapshots.ts";
 // normalizeUpstreamFailure is re-exported for external importers (tests).
 export { normalizeUpstreamFailure } from "./openai-responses/pureHelpers.ts";
 
@@ -946,7 +956,9 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
 }
 
 function openaiResponsesToOpenAIResponseStream(chunk, state) {
+  if (state.responsesTextSnapshots?.closed) return null;
   if (!chunk) {
+    closeResponsesTextSnapshots(state);
     // Iterate every still-open call with a buffered argument payload — argument
     // deltas are buffered for every tool, so an incomplete stream must flush every
     // buffered call, not only the historical uppercase Agent path.
@@ -1055,27 +1067,23 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
 
   // Text content delta
   if (eventType === "response.output_text.delta") {
-    const delta = data.delta || "";
-    if (!delta) return null;
-
-    return {
-      id: state.chatId,
-      object: "chat.completion.chunk",
-      created: state.created,
-      model: state.model || "gpt-4",
-      choices: [
-        {
-          index: 0,
-          delta: { content: delta },
-          finish_reason: null,
-        },
-      ],
-    };
+    const delta = data.delta;
+    if (typeof delta !== "string" || !delta) return null;
+    recordResponsesTextDelta(state, data, delta);
+    return buildTextSnapshotChunk(state, delta);
   }
 
-  // Text content done (ignore, we handle via delta)
   if (eventType === "response.output_text.done") {
+    const suffix = reconcileResponsesTextDone(state, data, data.text);
+    return suffix ? buildTextSnapshotChunk(state, suffix) : null;
+  }
+  if (eventType === "response.output_item.added" && data.item?.type === "message") {
+    bindResponsesTextItem(state, data.item, data.output_index);
     return null;
+  }
+  if (eventType === "response.output_item.done" && data.item?.type === "message") {
+    const recovered = synthesizeTextItemSnapshot(state, data.item, data.output_index);
+    return recovered.length ? recovered : null;
   }
 
   // Function call started
@@ -1436,39 +1444,18 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
     // providers that DO stream incrementally and also echo the same
     // function_call items here. See synthesizeCompletedToolCalls's own
     // doc-comment for the full rationale.
+    const recovered = synthesizeTextSnapshots(state, data.response?.output);
+    closeResponsesTextSnapshots(state);
     const synthesized = synthesizeCompletedToolCalls(state, data.response?.output);
-    if (synthesized) return synthesized;
-
-    if (!state.finishReasonSent) {
-      state.finishReasonSent = true;
-      const reason = computeFinishReason(state);
-      state.finishReason = reason; // Mark for usage injection in stream.js
-
-      const finalChunk: Record<string, unknown> = {
-        id: state.chatId,
-        object: "chat.completion.chunk",
-        created: state.created,
-        model: state.model || "gpt-4",
-        choices: [
-          {
-            index: 0,
-            delta: {},
-            finish_reason: reason,
-          },
-        ],
-      };
-
-      // Include usage in final chunk if available
-      if (state.usage && typeof state.usage === "object") {
-        finalChunk.usage = state.usage;
-      }
-
-      return finalChunk;
-    }
-    return null;
+    // Tool synthesis already appends its terminal chunk; never add another.
+    if (synthesized) return recovered.length ? [...recovered, ...synthesized] : synthesized;
+    if (state.finishReasonSent) return null;
+    const finalChunk = buildFinalChunk(state);
+    return recovered.length ? [...recovered, finalChunk] : finalChunk;
   }
 
   if (eventType === "response.failed" || eventType === "error") {
+    closeResponsesTextSnapshots(state);
     state.upstreamError = normalizeUpstreamFailure(data);
     state.finishReasonSent = true;
     return null;

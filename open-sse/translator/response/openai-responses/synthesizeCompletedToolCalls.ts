@@ -150,7 +150,7 @@ function buildToolCallChunks(state, fcItem): Record<string, unknown>[] {
 }
 
 /** Build the terminal chunk (finish_reason + usage) once all tool calls are synthesized. */
-function buildFinalChunk(state): Record<string, unknown> {
+export function buildFinalChunk(state): Record<string, unknown> {
   state.finishReasonSent = true;
   const reason = computeFinishReason(state);
   state.finishReason = reason;
