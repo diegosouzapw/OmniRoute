@@ -2,6 +2,7 @@ import { translateResponse, initState } from "../translator/index.ts";
 import { FORMATS } from "../translator/formats.ts";
 import { appendRequestLog } from "@/lib/usageDb";
 import { clearPendingRequestOnce } from "./pendingRequestCleanup.ts";
+import { createByteLengthQueueStrategies } from "./byteQueueStrategy.ts";
 import {
   extractUsage,
   hasValidUsage,
@@ -3252,8 +3253,7 @@ export function createSSEStream(options: StreamOptions = {}) {
         clearIdleTimer();
       },
     },
-    { highWaterMark: streamBufferBytes },
-    { highWaterMark: streamBufferBytes }
+    ...createByteLengthQueueStrategies(streamBufferBytes)
   );
   return registerStreamTiming(sseStream, timing);
 }

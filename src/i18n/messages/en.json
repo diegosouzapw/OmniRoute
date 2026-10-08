@@ -6034,6 +6034,8 @@
     "cpaModeEnabledTitle": "CLIProxyAPI compatibility mode is enabled",
     "customUserAgentHint": "Custom User Agent Hint",
     "customUserAgentLabel": "Custom User Agent Label",
+    "huggingfaceBillToHint": "Optional. Your Hugging Face billing account identifier, sent as the X-HF-Bill-To header for cost attribution.",
+    "huggingfaceBillToLabel": "Hugging Face Bill-To Account",
     "databricksBaseUrlHint": "Databricks Base Url Hint",
     "defaultThinkingStrengthHint": "Used when a request does not specify reasoning effort.",
     "defaultThinkingStrengthLabel": "Default thinking strength",
@@ -6969,6 +6971,8 @@
     "sidebarVisibility": "Hide sidebar items",
     "sidebarVisibilityDesc": "Hide any sidebar navigation entry to reduce visual clutter without disabling any features",
     "sidebarVisibilityHint": "Any sidebar section is hidden automatically when all of its entries are hidden",
+    "sidebarSectionShow": "Show all items in this section",
+    "sidebarSectionHide": "Hide all items in this section",
     "presetAll": "All",
     "presetAllDesc": "Show everything",
     "presetEssentials": "Essentials",
@@ -14640,5 +14644,27 @@
     "partnerLinkNote": "Partner link",
     "dismissAriaLabel": "Dismiss"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Disable the generation of thinking level variants (e.g. -low, -medium, -high) in the /v1/models catalog."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Disable the generation of thinking level variants (e.g. -low, -medium, -high) in the /v1/models catalog.",
+  "connectionTest": {
+    "title": "Test message",
+    "description": "Send one real request through this account. This uses a small amount of quota and can start a usage window, depending on the provider.",
+    "loading": "Loading account models…",
+    "model": "Test model for this account",
+    "chooseModel": "Choose a model",
+    "unavailable": "not in the current catalog",
+    "noModels": "No chat models available. Sync the models for this account first.",
+    "message": "Message",
+    "settingsLink": "Change the message in AI Settings",
+    "activateFirst": "Activate this account before sending a message.",
+    "saveModel": "Save model",
+    "send": "Send test message",
+    "saved": "Saved",
+    "answer": "Model response",
+    "failed": "The request failed. Please try again.",
+    "settingsTitle": "Manual account test messages",
+    "settingsDescription": "This message is used by the test buttons under Connections and Provider Quota. Choose the model separately for each account. Saving does not send a message or enable automatic pings.",
+    "saveMessage": "Save message",
+    "defaultModel": "Default test model",
+    "defaultModelHint": "Used automatically by the Test message buttons for this account. Saved with the connection; no message is sent."
+  }
 }

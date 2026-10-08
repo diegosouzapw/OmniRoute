@@ -681,11 +681,11 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 | Variabel | Standardvärde | När den ska uppdateras |
 | -------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CLAUDE_USER_AGENT` | `claude-cli/2.1.258 (external, cli)` | När Anthropic släpper en ny CLI-version |
+| `CLAUDE_USER_AGENT` | `claude-cli/2.1.280 (external, cli)` | När Anthropic släpper en ny CLI-version |
 | `CLAUDE_DISABLE_TOOL_NAME_CLOAK` | `false` | `executors/base.ts` + `executors/cliproxyapi.ts` | Sätt till `1`/`true` för att vidarebefordra verktygsnamn från tredjepartsramverk ordagrant till Anthropic via båda Anthropic-vägarna (inbyggd OAuth och CLIProxyAPI). Som standard tilldelar exekveraren deterministiskt alias till verktygsnamn som inte kommer från Claude Code (Claude Codes kanoniska mappning där en sådan finns, annars PascalCase) och återställer dem i svaret via `_toolNameMap`, så att ramverk med verktyg i snake_case inte avvisas som identifierade tredjepartsklienter. Endast för felsökning. |
 | `CODEX_USER_AGENT` | `codex-cli/0.155.0 (Windows 10.0.26200; x64)` | När OpenAI uppdaterar Codex CLI |
 | `CODEX_CLIENT_VERSION` | `0.155.0` | Åsidosätt Codex-klientversionen oberoende av den fullständiga UA-strängen |
-| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.258` | Åsidosätt den annonserade Claude Code-versionen oberoende av `CLAUDE_USER_AGENT`. Anthropic begränsar vissa modeller baserat på detta värde (#12417). |
+| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.280` | Åsidosätt den annonserade Claude Code-versionen oberoende av `CLAUDE_USER_AGENT`. Anthropic begränsar vissa modeller baserat på detta värde (#12417). |
 | `CLAUDE_CODE_CLIENT_BUILD_REVISION` | `1e2` | Åsidosätt suffixet på tre tecken som OmniRoute lägger till efter `cc_version=` i Claudes faktureringsblock. Höj det tillsammans med `CLAUDE_CODE_CLIENT_VERSION` — om endast versionen låses annonseras ett `version.revision`-par som ingen verklig binärfil genererar. |
 | `GITHUB_COPILOT_CLI_VERSION` | `1.0.81-6` | Åsidosätt den annonserade Copilot CLI-versionen oberoende av `GITHUB_USER_AGENT` |
 | `GITHUB_USER_AGENT` | `GitHubCopilotChat/0.54.0` | När GitHub Copilot Chat uppdateras |

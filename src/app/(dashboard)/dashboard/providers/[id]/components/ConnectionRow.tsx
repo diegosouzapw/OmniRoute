@@ -1,5 +1,7 @@
 "use client";
 
+import ConnectionTestButton from "@/shared/components/ConnectionTestButton";
+
 // Phase 1d extraction — Issue #3501
 // ConnectionRow (and its local helpers CooldownTimer, inferErrorType,
 // getStatusPresentation) moved out of ProviderDetailPageClient.tsx.
@@ -885,6 +887,10 @@ export default function ConnectionRow({
         </div>
       </div>
       <div className="flex items-center gap-2">
+        <ConnectionTestButton
+          connectionId={connection.id}
+          disabled={connection.isActive === false}
+        />
         <Button
           size="sm"
           variant="ghost"

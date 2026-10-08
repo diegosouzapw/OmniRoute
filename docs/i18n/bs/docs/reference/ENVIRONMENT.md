@@ -681,11 +681,11 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 | Varijabla | Zadana vrijednost | Kada ažurirati |
 | -------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CLAUDE_USER_AGENT` | `claude-cli/2.1.258 (external, cli)` | Kada Anthropic objavi novu verziju CLI-ja |
+| `CLAUDE_USER_AGENT` | `claude-cli/2.1.280 (external, cli)` | Kada Anthropic objavi novu verziju CLI-ja |
 | `CLAUDE_DISABLE_TOOL_NAME_CLOAK` | `false` | `executors/base.ts` + `executors/cliproxyapi.ts` | Postavite na `1`/`true` kako bi se nazivi alata okruženja treće strane doslovno prosljeđivali Anthropicu na obje putanje prema Anthropicu (izvorni OAuth i CLIProxyAPI). Izvršitelj prema zadanim postavkama deterministički dodjeljuje pseudonime nazivima alata koji nisu iz Claude Codea (koristeći kanonsko mapiranje Claude Codea gdje ono postoji, a u suprotnom PascalCase) te ih u odgovoru vraća pomoću `_toolNameMap`, tako da okruženja s alatima imenovanim u snake_case formatu ne budu odbijena kao prepoznati klijenti treće strane. Samo za otklanjanje grešaka. |
 | `CODEX_USER_AGENT` | `codex-cli/0.155.0 (Windows 10.0.26200; x64)` | Kada OpenAI ažurira Codex CLI |
 | `CODEX_CLIENT_VERSION` | `0.155.0` | Nadjačajte verziju Codex klijenta nezavisno od punog UA niza |
-| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.258` | Nadjačajte oglašenu verziju Claude Codea nezavisno od `CLAUDE_USER_AGENT`. Anthropic ograničava neke modele na osnovu ove vrijednosti (#12417). |
+| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.280` | Nadjačajte oglašenu verziju Claude Codea nezavisno od `CLAUDE_USER_AGENT`. Anthropic ograničava neke modele na osnovu ove vrijednosti (#12417). |
 | `CLAUDE_CODE_CLIENT_BUILD_REVISION` | `1e2` | Nadjačajte troslovni sufiks koji OmniRoute dodaje vrijednosti `cc_version=` u Claudeovom bloku za naplatu. Povećajte ga zajedno s `CLAUDE_CODE_CLIENT_VERSION` — fiksiranje samo verzije oglašava par `version.revision` koji nijedna stvarna binarna datoteka ne emituje. |
 | `GITHUB_COPILOT_CLI_VERSION` | `1.0.81-6` | Nadjačajte oglašenu verziju Copilot CLI-ja nezavisno od `GITHUB_USER_AGENT` |
 | `GITHUB_USER_AGENT` | `GitHubCopilotChat/0.54.0` | Kada se GitHub Copilot Chat ažurira |

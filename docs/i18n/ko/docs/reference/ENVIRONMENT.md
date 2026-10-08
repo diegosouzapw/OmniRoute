@@ -681,11 +681,11 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 | 변수 | 기본값 | 업데이트 시점 |
 | -------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CLAUDE_USER_AGENT` | `claude-cli/2.1.258 (external, cli)` | Anthropic이 새 CLI 버전을 출시할 때 |
+| `CLAUDE_USER_AGENT` | `claude-cli/2.1.280 (external, cli)` | Anthropic이 새 CLI 버전을 출시할 때 |
 | `CLAUDE_DISABLE_TOOL_NAME_CLOAK` | `false` | `executors/base.ts` + `executors/cliproxyapi.ts` | Anthropic으로 연결되는 두 경로(네이티브 OAuth 및 CLIProxyAPI) 모두에서 서드 파티 하네스 도구 이름을 수정 없이 Anthropic에 전달하려면 `1`/`true`로 설정합니다. 기본적으로 실행기는 Claude Code 이외의 도구 이름에 결정론적으로 별칭을 지정하고(해당하는 Claude Code 표준 매핑이 있으면 이를 사용하고, 그렇지 않으면 PascalCase 사용), 응답에서 `_toolNameMap`을 통해 원래 이름으로 되돌립니다. 따라서 snake_case 도구를 사용하는 하네스가 지문 식별된 서드 파티 클라이언트로 간주되어 거부되지 않습니다. 디버깅 전용입니다. |
 | `CODEX_USER_AGENT` | `codex-cli/0.155.0 (Windows 10.0.26200; x64)` | OpenAI가 Codex CLI를 업데이트할 때 |
 | `CODEX_CLIENT_VERSION` | `0.155.0` | 전체 UA 문자열과 별도로 Codex 클라이언트 버전 재정의 |
-| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.258` | `CLAUDE_USER_AGENT`와 별도로 명시되는 Claude Code 버전을 재정의합니다. Anthropic은 이 값을 기준으로 일부 모델에 대한 접근을 제한합니다(#12417). |
+| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.280` | `CLAUDE_USER_AGENT`와 별도로 명시되는 Claude Code 버전을 재정의합니다. Anthropic은 이 값을 기준으로 일부 모델에 대한 접근을 제한합니다(#12417). |
 | `CLAUDE_CODE_CLIENT_BUILD_REVISION` | `1e2` | OmniRoute가 Claude 결제 블록의 `cc_version=`에 추가하는 3자 접미사를 재정의합니다. `CLAUDE_CODE_CLIENT_VERSION`과 함께 올리십시오. 버전만 고정하면 실제 바이너리에서 생성되지 않는 `version.revision` 쌍이 명시됩니다. |
 | `GITHUB_COPILOT_CLI_VERSION` | `1.0.81-6` | `GITHUB_USER_AGENT`와 별도로 명시되는 Copilot CLI 버전 재정의 |
 | `GITHUB_USER_AGENT` | `GitHubCopilotChat/0.54.0` | GitHub Copilot Chat이 업데이트될 때 |

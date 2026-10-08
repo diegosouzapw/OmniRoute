@@ -10,7 +10,7 @@ lastUpdated: 2026-10-08
 > Regenerate with: `npm run gen:provider-reference`
 > **Last generated:** 2026-10-08
 
-Total providers: **359**. See category breakdown below.
+Total providers: **360**. See category breakdown below.
 
 ## Categories
 
@@ -117,7 +117,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `zai-web` | `zw` | Z.ai Web | Web cookie | [link](https://chat.z.ai) | Copy the "token" value from chat.z.ai → DevTools → Application → Local Storage. Do not copy cookies; OmniRoute handles the per-request CAPTCHA through its browser transport. | — |
 | `zenmux-free` | `zmf` | ZenMux Free (Web) | Web cookie | [link](https://zenmux.ai) | Login at zenmux.ai, then export all cookies using EditThisCookie or Cookie-Editor and paste the full Cookie header string here. Refresh every ~30 days. | — |
 
-## API Key Providers (paid / paid-with-free-credits) (242)
+## API Key Providers (paid / paid-with-free-credits) (243)
 
 | ID | Alias | Name | Tags | Website | Notes |
 |----|-------|------|------|---------|-------|
@@ -276,6 +276,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `ofoxai` | `ofoxai` | OfoxAI | API key, aggregator | [link](https://ofox.ai) | The current catalog advertises 10+ free models without a public numeric quota; review upstream provenance, retention and training terms before production use. |
 | `ollama-cloud` | `ollamacloud` | Ollama Cloud | API key | [link](https://ollama.com/settings/keys) | — |
 | `oneminai` | `1min` | 1min.AI | API key | [link](https://1min.ai) | Create an API key at https://docs.1min.ai/docs/api/create-api-key, then paste it here. |
+| `onomeo` | `onomeo` | onomeo | API key, aggregator | [link](https://onomeo.com) | Sign in (email code, Google or GitHub, no card). About 30 free models are metered by calls: 30 calls per 5 hours per account and 12 requests/min per key, within a site-wide pool shared by all accounts. Claude, GPT and other large models are paid from a USD balance at per-model prices; during the beta an account can spend at most $0.50/day on them. Optional top-up from $5 (balance never expires, no auto-renewal) raises the free-model limit to 90 calls per 5 hours for 35 days. |
 | `openadapter` | `oad` | OpenAdapter | API key | [link](https://openadapter.dev) | Use your OpenAdapter API key in Authorization: Bearer sk-cv-<key>. Fully OpenAI-compatible. API base URL: https://api.openadapter.in/v1. |
 | `openai` | `openai` | OpenAI | API key | [link](https://platform.openai.com) | — |
 | `opencode-go` | `opencode-go` | OpenCode Go | API key | [link](https://opencode.ai/go) | — |
@@ -447,7 +448,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 
 - Catalog: [`src/shared/constants/providers.ts`](../../src/shared/constants/providers.ts)
 - Registry (per-model details): [`open-sse/config/providerRegistry.ts`](../../open-sse/config/providerRegistry.ts)
-- Executors: [`open-sse/executors/`](../../open-sse/executors/) (138 implementations)
+- Executors: [`open-sse/executors/`](../../open-sse/executors/) (140 implementations)
 - Translators: [`open-sse/translator/`](../../open-sse/translator/)
 
 ## See Also

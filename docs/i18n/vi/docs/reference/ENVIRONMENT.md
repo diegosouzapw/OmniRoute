@@ -680,11 +680,11 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 | Biến | Giá trị mặc định | Khi nào cần cập nhật |
 | -------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CLAUDE_USER_AGENT` | `claude-cli/2.1.258 (external, cli)` | Khi Anthropic phát hành phiên bản CLI mới |
+| `CLAUDE_USER_AGENT` | `claude-cli/2.1.280 (external, cli)` | Khi Anthropic phát hành phiên bản CLI mới |
 | `CLAUDE_DISABLE_TOOL_NAME_CLOAK` | `false` | `executors/base.ts` + `executors/cliproxyapi.ts` | Đặt thành `1`/`true` để chuyển nguyên văn tên công cụ của harness bên thứ ba đến Anthropic trên cả hai luồng hướng đến Anthropic (OAuth gốc và CLIProxyAPI). Theo mặc định, bộ thực thi tạo bí danh một cách xác định cho các tên công cụ không thuộc Claude Code (sử dụng ánh xạ chuẩn của Claude Code khi có, nếu không thì dùng PascalCase) và đảo ngược chúng trong phản hồi thông qua `_toolNameMap`, nhờ đó các harness có công cụ dạng snake_case không bị từ chối vì bị nhận diện là ứng dụng bên thứ ba qua fingerprint. Chỉ dùng để gỡ lỗi. |
 | `CODEX_USER_AGENT` | `codex-cli/0.155.0 (Windows 10.0.26200; x64)` | Khi OpenAI cập nhật Codex CLI |
 | `CODEX_CLIENT_VERSION` | `0.155.0` | Ghi đè phiên bản ứng dụng Codex độc lập với chuỗi UA đầy đủ |
-| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.258` | Ghi đè phiên bản Claude Code được công bố độc lập với `CLAUDE_USER_AGENT`. Anthropic giới hạn một số model dựa trên giá trị này (#12417). |
+| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.280` | Ghi đè phiên bản Claude Code được công bố độc lập với `CLAUDE_USER_AGENT`. Anthropic giới hạn một số model dựa trên giá trị này (#12417). |
 | `CLAUDE_CODE_CLIENT_BUILD_REVISION` | `1e2` | Ghi đè hậu tố 3 ký tự mà OmniRoute nối vào `cc_version=` trong khối thanh toán của Claude. Hãy tăng giá trị này cùng với `CLAUDE_CODE_CLIENT_VERSION` — nếu chỉ ghim phiên bản, hệ thống sẽ công bố một cặp `version.revision` mà không có tệp nhị phân thực tế nào phát ra. |
 | `GITHUB_COPILOT_CLI_VERSION` | `1.0.81-6` | Ghi đè phiên bản Copilot CLI được công bố độc lập với `GITHUB_USER_AGENT` |
 | `GITHUB_USER_AGENT` | `GitHubCopilotChat/0.54.0` | Khi GitHub Copilot Chat được cập nhật |

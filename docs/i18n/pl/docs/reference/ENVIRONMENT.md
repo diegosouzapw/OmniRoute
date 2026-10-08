@@ -675,11 +675,11 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 | Zmienna | Wartość domyślna | Kiedy aktualizować |
 | -------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CLAUDE_USER_AGENT` | `claude-cli/2.1.258 (external, cli)` | Gdy Anthropic wyda nową wersję CLI |
+| `CLAUDE_USER_AGENT` | `claude-cli/2.1.280 (external, cli)` | Gdy Anthropic wyda nową wersję CLI |
 | `CLAUDE_DISABLE_TOOL_NAME_CLOAK` | `false` | `executors/base.ts` + `executors/cliproxyapi.ts` | Ustaw na `1`/`true`, aby przekazywać do Anthropic nazwy narzędzi zewnętrznych mechanizmów bez zmian na obu ścieżkach prowadzących do Anthropic (natywne OAuth i CLIProxyAPI). Domyślnie executor deterministycznie nadaje aliasy nazwom narzędzi spoza Claude Code (używając kanonicznego mapowania Claude Code, jeśli istnieje, a w przeciwnym razie konwencji PascalCase) i przywraca je w odpowiedzi za pomocą `_toolNameMap`, dzięki czemu mechanizmy używające narzędzi z nazwami w konwencji snake_case nie są odrzucane jako rozpoznani klienci zewnętrzni. Tylko do debugowania. |
 | `CODEX_USER_AGENT` | `codex-cli/0.155.0 (Windows 10.0.26200; x64)` | Gdy OpenAI zaktualizuje Codex CLI |
 | `CODEX_CLIENT_VERSION` | `0.155.0` | Nadpisz wersję klienta Codex niezależnie od pełnego ciągu UA |
-| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.258` | Nadpisz ogłaszaną wersję Claude Code niezależnie od `CLAUDE_USER_AGENT`. Anthropic uzależnia dostępność niektórych modeli od tej wartości (#12417). |
+| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.280` | Nadpisz ogłaszaną wersję Claude Code niezależnie od `CLAUDE_USER_AGENT`. Anthropic uzależnia dostępność niektórych modeli od tej wartości (#12417). |
 | `CLAUDE_CODE_CLIENT_BUILD_REVISION` | `1e2` | Nadpisz 3-znakowy sufiks dołączany przez OmniRoute do `cc_version=` w bloku rozliczeniowym Claude. Zwiększaj go wraz z `CLAUDE_CODE_CLIENT_VERSION` — przypięcie wyłącznie wersji powoduje ogłaszanie pary `version.revision`, której nie emituje żaden rzeczywisty plik binarny. |
 | `GITHUB_COPILOT_CLI_VERSION` | `1.0.81-6` | Nadpisz ogłaszaną wersję Copilot CLI niezależnie od `GITHUB_USER_AGENT` |
 | `GITHUB_USER_AGENT` | `GitHubCopilotChat/0.54.0` | Gdy GitHub Copilot Chat zostanie zaktualizowany |

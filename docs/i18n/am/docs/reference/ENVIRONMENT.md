@@ -680,11 +680,11 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 | ተለዋዋጭ | ነባሪ እሴት | መቼ እንደሚዘመን |
 | -------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CLAUDE_USER_AGENT` | `claude-cli/2.1.258 (external, cli)` | Anthropic አዲስ የCLI ስሪት ሲያወጣ |
+| `CLAUDE_USER_AGENT` | `claude-cli/2.1.280 (external, cli)` | Anthropic አዲስ የCLI ስሪት ሲያወጣ |
 | `CLAUDE_DISABLE_TOOL_NAME_CLOAK` | `false` | `executors/base.ts` + `executors/cliproxyapi.ts` | የሶስተኛ ወገን harness መሣሪያ ስሞችን በሁለቱም ወደ Anthropic በሚያመሩ መንገዶች (native OAuth እና CLIProxyAPI) ላይ ሳይቀየሩ ወደ Anthropic ለማስተላለፍ ወደ `1`/`true` ያዋቅሩት። በነባሪ፣ አስፈጻሚው Claude-Code ያልሆኑ የመሣሪያ ስሞችን በወሳኝ ሁኔታ ተለዋጭ ስም ይሰጣቸዋል (የClaude Code መደበኛ ካርታ ባለበት ቦታ ያንን፣ ካልሆነ PascalCase)፣ እና በምላሹ ላይ `_toolNameMap`ን በመጠቀም ወደ መጀመሪያ ስማቸው ይመልሳቸዋል፤ በዚህም snake_case መሣሪያዎች ያሏቸው harnesses በአሻራ እንደታወቁ የሶስተኛ ወገን ደንበኞች ተብለው እንዳይ拒否 ያደርጋል። ለማረም ብቻ። |
 | `CODEX_USER_AGENT` | `codex-cli/0.155.0 (Windows 10.0.26200; x64)` | OpenAI የCodex CLIን ሲያዘምን |
 | `CODEX_CLIENT_VERSION` | `0.155.0` | የCodex ደንበኛ ስሪትን ከሙሉው UA ሕብረቁምፊ በተናጠል ይሻሩ |
-| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.258` | የሚታወጀውን የClaude Code ስሪት ከ`CLAUDE_USER_AGENT` በተናጠል ይሻሩ። Anthropic አንዳንድ ሞዴሎችን በዚህ እሴት መሠረት ይገድባል (#12417)። |
+| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.280` | የሚታወጀውን የClaude Code ስሪት ከ`CLAUDE_USER_AGENT` በተናጠል ይሻሩ። Anthropic አንዳንድ ሞዴሎችን በዚህ እሴት መሠረት ይገድባል (#12417)። |
 | `CLAUDE_CODE_CLIENT_BUILD_REVISION` | `1e2` | OmniRoute በClaude የክፍያ ብሎክ ውስጥ ከ`cc_version=` ጋር የሚያያይዘውን ባለ3-ቁምፊ ቅጥያ ይሻሩ። ከ`CLAUDE_CODE_CLIENT_VERSION` ጋር አብረው ያሳድጉት — ስሪቱን ብቻ መሰካት ምንም እውነተኛ binary የማያወጣውን `version.revision` ጥንድ ያስተዋውቃል። |
 | `GITHUB_COPILOT_CLI_VERSION` | `1.0.81-6` | የሚታወጀውን የCopilot CLI ስሪት ከ`GITHUB_USER_AGENT` በተናጠል ይሻሩ |
 | `GITHUB_USER_AGENT` | `GitHubCopilotChat/0.54.0` | GitHub Copilot Chat ሲዘመን |

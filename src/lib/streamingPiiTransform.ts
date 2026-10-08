@@ -220,9 +220,17 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
 
     // 3. Responses API
     if (typeof lastJson.type === "string" && lastJson.type.startsWith("response.")) {
-      const finalJson = JSON.parse(JSON.stringify(lastJson));
-      const idx = typeof finalJson.output_index === "number" ? finalJson.output_index : 0;
+      const idx = typeof lastJson.output_index === "number" ? lastJson.output_index : 0;
       const buffers = getBuffers(`${idx}_0`);
+      // Never clone a terminal event (output_item.done etc.) — that replays it with the same
+      // sequence_number (#15507). Emit the buffered text as a fresh text delta instead.
+      if (!lastJson.type.endsWith(".delta")) {
+        if (!buffers.content) return null;
+        const delta = buffers.content;
+        buffers.content = "";
+        return { type: "response.output_text.delta", output_index: idx, delta };
+      }
+      const finalJson = JSON.parse(JSON.stringify(lastJson));
       if (buffers.content) {
         finalJson.delta = buffers.content;
         buffers.content = "";

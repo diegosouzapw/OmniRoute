@@ -674,11 +674,11 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 | 変数 | デフォルト値 | 更新するタイミング |
 | -------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CLAUDE_USER_AGENT` | `claude-cli/2.1.258 (external, cli)` | Anthropic が新しい CLI バージョンをリリースしたとき |
+| `CLAUDE_USER_AGENT` | `claude-cli/2.1.280 (external, cli)` | Anthropic が新しい CLI バージョンをリリースしたとき |
 | `CLAUDE_DISABLE_TOOL_NAME_CLOAK` | `false` | `executors/base.ts` + `executors/cliproxyapi.ts` | Anthropic 向けの両方の経路（ネイティブ OAuth および CLIProxyAPI）で、サードパーティ製ハーネスのツール名をそのまま Anthropic に転送するには、`1`/`true` に設定します。デフォルトでは、executor は Claude Code 以外のツール名に決定論的なエイリアスを割り当て（Claude Code の正規マッピングが存在する場合はそれを使用し、それ以外の場合は PascalCase を使用）、レスポンスでは `_toolNameMap` を介して元に戻します。これにより、snake_case のツールを使用するハーネスが、フィンガープリントされたサードパーティクライアントとして拒否されることを防ぎます。デバッグ専用です。 |
 | `CODEX_USER_AGENT` | `codex-cli/0.155.0 (Windows 10.0.26200; x64)` | OpenAI が Codex CLI を更新したとき |
 | `CODEX_CLIENT_VERSION` | `0.155.0` | 完全な UA 文字列とは独立して Codex クライアントのバージョンをオーバーライドする |
-| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.258` | `CLAUDE_USER_AGENT` とは独立して、通知される Claude Code のバージョンをオーバーライドします。Anthropic は、この値に基づいて一部のモデルへのアクセスを制御します（#12417）。 |
+| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.280` | `CLAUDE_USER_AGENT` とは独立して、通知される Claude Code のバージョンをオーバーライドします。Anthropic は、この値に基づいて一部のモデルへのアクセスを制御します（#12417）。 |
 | `CLAUDE_CODE_CLIENT_BUILD_REVISION` | `1e2` | OmniRoute が Claude の課金ブロック内の `cc_version=` に付加する3文字のサフィックスをオーバーライドします。`CLAUDE_CODE_CLIENT_VERSION` と併せて更新してください。バージョンのみを固定すると、実在するバイナリが生成しない `version.revision` の組み合わせが通知されます。 |
 | `GITHUB_COPILOT_CLI_VERSION` | `1.0.81-6` | `GITHUB_USER_AGENT` とは独立して、通知される Copilot CLI のバージョンをオーバーライドする |
 | `GITHUB_USER_AGENT` | `GitHubCopilotChat/0.54.0` | GitHub Copilot Chat が更新されたとき |

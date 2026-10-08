@@ -2225,6 +2225,70 @@ paths:
         "200":
           description: Test result
 
+  /api/providers/{id}/test-message:
+    get:
+      tags: [Providers]
+      summary: Read an account's saved test model and the global test message
+      description: Requires management authentication. Returns modelId and prompt without credentials.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Saved modelId and effective prompt
+        "404":
+          description: Connection not found
+    put:
+      tags: [Providers]
+      summary: Save the chat model used by this account's test-message button
+      description: Requires management authentication. Saving never sends an inference request.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [modelId]
+              additionalProperties: false
+              properties:
+                modelId:
+                  type: string
+                  minLength: 1
+                  maxLength: 256
+      responses:
+        "200":
+          description: Saved modelId
+        "400":
+          description: Invalid model selection
+        "404":
+          description: Connection not found
+    post:
+      tags: [Providers]
+      summary: Send one real test message through the selected account
+      description: >-
+        Requires management authentication. Uses the account's saved model and the global
+        connectionTestPrompt setting (default: What is 1 + 1? Reply with only the number.).
+        The prompt is configurable through PATCH /api/settings and limited to 500 characters.
+        This manual request bypasses the response cache, uses only this connection and
+        never falls back to another account. It consumes quota; usage-window behavior
+        is determined by the provider. Saving settings does not schedule requests.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: modelId, prompt, responseText and latencyMs
+        "400":
+          description: Missing model selection or invalid chat model
+        "403":
+          description: Paid model blocked by settings
+        "404":
+          description: Connection not found
+        "409":
+          description: Account inactive or a test message is already running
+        "504":
+          description: No completed response within the test deadline
+
   /api/providers/{id}/models:
     get:
       tags: [Providers]
@@ -2562,6 +2626,122 @@ paths:
           description: Authentication required
         "404":
           description: Key not found
+
+  /api/keys/{id}/access:
+    post:
+      tags: [API Keys]
+      summary: Add or remove allowed models and combos on an API key atomically
+      description: |
+        Adds or removes allowed models and combos on an API key without lost updates.
+        Serialized per key ID using an in-process async lock.
+        Keys allowing all models (modelAccessMode: all) or all combos (allowedCombos containing 'combo/*')
+        require switchToRestricted: true when adding new models or combos, otherwise returning a 409 Conflict.
+        When switching to restricted mode, the allowlist becomes exactly the net added items (at least one required).
+        Direct concurrent PATCH calls to /api/keys/{id} completely overwrite the policy outside this lock.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                add:
+                  type: object
+                  properties:
+                    models:
+                      type: array
+                      minItems: 1
+                      maxItems: 1000
+                      items:
+                        type: string
+                        minLength: 1
+                    combos:
+                      type: array
+                      minItems: 1
+                      maxItems: 500
+                      items:
+                        type: string
+                        minLength: 1
+                remove:
+                  type: object
+                  properties:
+                    models:
+                      type: array
+                      minItems: 1
+                      maxItems: 1000
+                      items:
+                        type: string
+                        minLength: 1
+                    combos:
+                      type: array
+                      minItems: 1
+                      maxItems: 500
+                      items:
+                        type: string
+                        minLength: 1
+                switchToRestricted:
+                  type: boolean
+      responses:
+        "200":
+          description: API key access updated
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - modelAccessMode
+                  - allowedModels
+                  - allowedCombos
+                  - changed
+                properties:
+                  id:
+                    type: string
+                  modelAccessMode:
+                    type: string
+                    enum: [all, restricted]
+                  allowedModels:
+                    type: array
+                    items:
+                      type: string
+                  allowedCombos:
+                    type: array
+                    items:
+                      type: string
+                  changed:
+                    type: boolean
+        "400":
+          description: Invalid request, caps exceeded, or empty restricted list
+        "401":
+          description: Authentication required
+        "403":
+          description: API key lacks 'manage' scope
+        "404":
+          description: Key not found
+        "409":
+          description: Key allows all models or all combos and switchToRestricted was not set
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: object
+                    required:
+                      - code
+                      - message
+                    properties:
+                      code:
+                        type: string
+                        enum:
+                          - key_allows_all_models
+                          - key_allows_all_combos
+                      message:
+                        type: string
 
   /api/combos:
     get:

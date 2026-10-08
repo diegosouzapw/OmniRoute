@@ -39,6 +39,7 @@ export const USAGE_SUPPORTED_PROVIDERS: readonly string[] = [
   "minimax",
   "minimax-cn",
   "crof",
+  "clinepass",
   "nanogpt",
   "deepseek",
   "moonshot",

@@ -680,11 +680,11 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 | Variable | Uru Ndabara | Mgbe a ga-emelite ya |
 | -------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CLAUDE_USER_AGENT` | `claude-cli/2.1.258 (external, cli)` | Mgbe Anthropic wepụtara ụdị CLI ọhụrụ |
+| `CLAUDE_USER_AGENT` | `claude-cli/2.1.280 (external, cli)` | Mgbe Anthropic wepụtara ụdị CLI ọhụrụ |
 | `CLAUDE_DISABLE_TOOL_NAME_CLOAK` | `false` | `executors/base.ts` + `executors/cliproxyapi.ts` | Tọọ ya ka ọ bụrụ `1`/`true` iji zipụ aha tool nke harness ndị ọzọ kpọmkwem na Anthropic n'ụzọ abụọ ahụ na-aga Anthropic (OAuth nke mbụ na CLIProxyAPI). Na ndabara, executor na-enye aha ọzọ n'ụzọ a kapịrị ọnụ nye aha tool ndị na-abụghị nke Claude Code (Claude Code canonical mapping ebe otu dị, ma ọ bụghị ya PascalCase), ma gbanwee ha azụ na response site na `_toolNameMap`, ka a ghara ịjụ harness nwere tool ndị dị na snake_case dịka third-party client ndị amata site na fingerprint. Maka debugging naanị. |
 | `CODEX_USER_AGENT` | `codex-cli/0.155.0 (Windows 10.0.26200; x64)` | Mgbe OpenAI melitere Codex CLI |
 | `CODEX_CLIENT_VERSION` | `0.155.0` | Gbanwee ụdị Codex client n'adabereghị na eriri UA zuru ezu |
-| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.258` | Gbanwee ụdị Claude Code a na-egosi n'adabereghị na `CLAUDE_USER_AGENT`. Anthropic na-amachibido ụfọdụ model dabere na uru a (#12417). |
+| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.280` | Gbanwee ụdị Claude Code a na-egosi n'adabereghị na `CLAUDE_USER_AGENT`. Anthropic na-amachibido ụfọdụ model dabere na uru a (#12417). |
 | `CLAUDE_CODE_CLIENT_BUILD_REVISION` | `1e2` | Gbanwee suffix mkpụrụedemede atọ OmniRoute na-agbakwunye na `cc_version=` n'ime Claude billing block. Bulie ya tinyere `CLAUDE_CODE_CLIENT_VERSION` — ịkpọgide naanị version ahụ na-egosi otu ụzọ `version.revision` nke binary ọ bụla n'ezie anaghị ewepụta. |
 | `GITHUB_COPILOT_CLI_VERSION` | `1.0.81-6` | Gbanwee ụdị Copilot CLI a na-egosi n'adabereghị na `GITHUB_USER_AGENT` |
 | `GITHUB_USER_AGENT` | `GitHubCopilotChat/0.54.0` | Mgbe GitHub Copilot Chat melitere |
