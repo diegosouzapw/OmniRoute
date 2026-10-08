@@ -1,1 +1,0 @@
-- **fix(sse):** Include GPT-6 Astra, Sol, and Luna in the built-in Codex Fast/Flex model selection while preserving explicit request tiers and custom model lists ([#14986](https://github.com/diegosouzapw/OmniRoute/pull/14986)) — thanks @xiaoyaner0201

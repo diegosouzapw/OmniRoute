@@ -4,11 +4,34 @@
 
 ---
 
-OmniRoute `setup-*` buyruqlari oilasini yetkazib beradi, ular kodlash CLI (Codex, Claude Code, OpenCode, Cline, …) ni OmniRoute'ni o'zining backend'i sifatida ishlatish uchun sozlaydi — shunda vosita **bitta** yakuniy nuqta bilan bog'lanadi va OmniRoute avtomatik zaxira bilan to'g'ri provayderga yo'naltiradi. Har bir buyruq ishlayotgan OmniRoute'dan (mahalliy yoki masofaviy) **jonli** model katalogini o'qiydi va vositaning o'z konfiguratsiya faylini **sizning** kompyuteringizga yozadi. API kaliti vosita qo'llab-quvvatlaydigan joyda muhit o'zgaruvchisi orqali ko'rsatiladi. Vosita-mahalliy muhit faylini saqlovchi buyruqlar quyida qayd etilgan.
+Umumiy bajariluvchi fayl manifesti, cheklangan ichki jarayon muhitlari va doimiy
+Gemini sozlamalari haqida [CLI ishga tushirish shartnomalari](./CLI-LAUNCH-CONTRACTS.md) sahifasiga qarang.
 
-Shuningdek, umumiy ishga tushiruvchi — `omniroute run <target>` — mavjud bo'lib, u `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` yoki `gemini` ni to'g'ri muhit bilan in'ektsiya qilib ishga tushiradi, hech qanday konfiguratsiya yozmasdan. Maqsadlar va ularning taxalluslari kanonik manifest `bin/cli/cli-manifest.mjs` dan keladi (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), va `omniroute completion` xuddi shu manifestdan olingan maqsad so'zlarni taklif qiladi. Eski vosita-bo'yicha ishga tushiruvchilar — `omniroute launch` (Claude Code) va `omniroute launch-codex` (Codex) — mavjudligicha qoladi.
+OmniRoute kod yozish CLI vositasini (Codex, Claude Code, OpenCode, Cline, …)
+OmniRouteʼdan backend sifatida foydalanishga sozlaydigan `setup-*` buyruqlari
+toʻplamini taqdim etadi — natijada vosita **bitta** soʻnggi nuqta bilan bogʻlanadi,
+OmniRoute esa avtomatik zaxira mexanizmi yordamida soʻrovlarni tegishli provayderga
+yoʻnaltiradi. Har bir buyruq ishlayotgan OmniRouteʼdan (mahalliy yoki masofaviy)
+**joriy** modellar katalogini oʻqiydi va vositaning oʻz konfiguratsiya faylini
+**sizning** kompyuteringizga yozadi. Vosita qoʻllab-quvvatlagan barcha holatlarda
+API kalitiga muhit oʻzgaruvchisi orqali murojaat qilinadi. Vositaning mahalliy
+muhit faylini doimiy saqlaydigan buyruqlar quyida qayd etilgan.
 
-Provayderlarni ishga tushirish xuddi shu mahalliy/masofaviy kontekstdan mavjud. Quyidagi API-birinchi buyruqlar boshqaruv autentifikatsiyasini provayder ma'lumotlaridan alohida saqlaydi va hech qachon tuzilgan chiqishda ma'lumotlarni chop etmaydi:
+Shuningdek, umumiy ishga tushirgich — `omniroute run <target>` — mavjud boʻlib,
+u hech qanday konfiguratsiya yozmasdan, kerakli muhit kiritilgan holda `claude`,
+`codex`, `aider`, `goose`, `opencode`, `qwen` yoki `gemini` vositasini ishga
+tushiradi. Maqsadlar va ularning taxalluslari kanonik
+`bin/cli/cli-manifest.mjs` manifestidan olinadi
+(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
+`open-code`, `qwen-code`, `gemini-cli`), `omniroute completion` esa shu
+manifestdan olingan maqsad soʻzlarini taklif qiladi. Har bir vosita uchun eski
+ishga tushirgichlar — `omniroute launch` (Claude Code) va `omniroute launch-codex`
+(Codex) — foydalanish uchun mavjudligicha qoladi.
+
+Provayderni ulash ham ayni mahalliy/masofaviy kontekstdan amalga oshirilishi
+mumkin. Quyidagi API-ga yoʻnaltirilgan buyruqlar boshqaruv autentifikatsiyasini
+provayder hisob maʼlumotlaridan alohida saqlaydi va tuzilmaviy chiqishda hisob
+maʼlumotlarini hech qachon koʻrsatmaydi:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -18,16 +41,29 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Skriptlar uchun `--credential-stdin` yoki `--credential-env` ni afzal ko'ring; `--credential` nazorat qilinadigan mahalliy foydalanish uchun saqlanib qolgan. `providers remove` interaktiv bo'lmagan terminalda `--yes` ni talab qiladi va barcha beshta buyruq faol kontekstni yoki global `--base-url`/`--api-key` opsiyalarini hurmat qiladi.
+Skriptlar uchun `--credential-stdin` yoki `--credential-env` parametrlarini
+afzal koʻring; `--credential` boshqariladigan mahalliy foydalanish uchun saqlab
+qolingan. `providers remove` nointeraktiv terminalda `--yes` parametrini talab
+qiladi va barcha beshta buyruq faol kontekstga yoki global
+`--base-url`/`--api-key` parametrlariga amal qiladi.
 
-Provayder selektorlari noaniq ID prefikslarini, nomlarni yoki provayder nomlarini rad etadi; bir nechta ulanish mos kelganda to'liq ulanish ID'sini ishlating. Yaratish va tahrirlash buyruqlari saqlangan ulanishni qayta o'qiydi va o'chirish uning endi o'qilmasligini tekshiradi. Import mavjud provayder/nom juftligini o'tkazib yuboradi. Import qilingan yozuvlar CLI'ga taqdim etilgan boshqaruv yakuniy nuqtasini, kontekstni yoki boshqaruv ma'lumotlarini bekor qila olmaydi.
+Provayder selektorlari noaniq ID prefikslari, nomlar yoki provayder nomlarini
+rad etadi; bir nechta ulanish mos kelsa, toʻliq ulanish ID-sidan foydalaning.
+Yaratish va tahrirlash buyruqlari saqlangan ulanishni qayta oʻqiydi, oʻchirish
+esa uni boshqa oʻqib boʻlmasligini tekshiradi. Import qilishda mavjud
+provayder/nom juftligi oʻtkazib yuboriladi. Import qilingan yozuvlar CLI-ga
+taqdim etilgan boshqaruv soʻnggi nuqtasi, konteksti yoki boshqaruv hisob
+maʼlumotlarini qayta belgilay olmaydi.
 
-Ikki eng boy integratsiyaning bir martalik, qo'lda yozilgan asosiy sozlamalari uchun, vosita bo'yicha chuqur tahlillarni ko'ring:
+Eng keng imkoniyatli ikkita integratsiyani bir martalik, qoʻlda yoziladigan
+asosiy sozlash boʻyicha batafsil maʼlumot uchun har bir vositaga bagʻishlangan
+qoʻllanmalarga qarang:
 
 - [Claude Code konfiguratsiyasi](./CLAUDE-CODE-CONFIGURATION.md)
 - [Codex CLI konfiguratsiyasi](./CODEX-CLI-CONFIGURATION.md)
-- [Masofaviy rejim](./REMOTE-MODE.md) — noutbukingizdan masofaviy OmniRoute'ni (VPS / Tailnet) boshqaring
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot kengaytmasi; u bu `setup-*` buyruqlarini muharrir ichidan siz uchun ham ishga tushirishi mumkin
+- [Masofaviy rejim](./REMOTE-MODE.md) — noutbukingizdan masofaviy OmniRouteʼni (VPS / Tailnet) boshqaring
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot kengaytmasi; u ushbu
+  `setup-*` buyruqlarini siz uchun bevosita muharrir ichidan ham ishga tushira oladi
 
 ---
 

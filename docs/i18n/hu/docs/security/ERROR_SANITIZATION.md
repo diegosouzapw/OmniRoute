@@ -126,15 +126,49 @@ const safe = String(err).split("\n")[0];
 
 ## Lefedettség a CI-ben
 
-A `tests/unit/error-message-sanitization.test.ts` a következőket ellenőrzi:
+A `tests/unit/error-message-sanitization.test.ts` a következőket kényszeríti ki:
 
-- A `/api/model-combo-mappings/*` alatti összes útvonal megtisztított választörzset ad vissza 4xx/5xx válaszok esetén.
-- A `sanitizeErrorMessage` eltávolítja a többsoros veremkivonatokat.
-- A `sanitizeErrorMessage` a POSIX és Windows abszolút elérési útvonalakat `<path>` értékre cseréli.
+- A `/api/model-combo-mappings/*` alatti összes útvonal megtisztított törzset ad vissza 4xx/5xx válaszok esetén.
+- A `sanitizeErrorMessage` eltávolítja a többsoros veremkövetéseket.
+- A `sanitizeErrorMessage` a POSIX és Windows abszolút elérési utakat `<path>` értékre cseréli.
 - A `sanitizeErrorMessage` biztonságosan kezeli a `null`/`undefined`/`Error` példány bemeneteket.
-- A `buildErrorBody` soha nem tesz közzé veremkivonatokat a `message` mezőjében.
+- A `buildErrorBody` soha nem tesz közzé veremkövetést a `message` mezőjében.
 
-Új útvonal vagy végrehajtó hozzáadásakor másolja az ellenőrzési mintát ebből a fájlból. A lefedettségi korlát (`npm run test:coverage`) legalább 60%-os utasítás-/sor-/függvény-/áglefedettséget követel meg — a hibautakat is le kell fedni.
+Új útvonal vagy végrehajtó hozzáadásakor másolja a vizsgálati mintát ebből a fájlból. A lefedettségi kapu (`npm run test:coverage`) legalább 60%-os utasítás-/sor-/függvény-/áglefedettséget követel meg — a hibautakat is le kell fedni.
+
+### A statikus kapu: `npm run check:error-helper`
+
+A `scripts/check/check-error-helper.mjs` átvizsgálja az `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` könyvtárakat és minden `src/app/api/**/route.ts` fájlt, hogy észlelje, ha egy nyersen elfogott hiba (`err.message` / `err.stack`) vagy egy nyers upstream `body.error.message` ügyfélnek szánt törzsbe kerül.
+
+**A bizalom híváshoz kötött, soha nem fájlhoz kötött** (G-03, #15159). A kapu korábban egy teljes fájlt kihagyott, amint bármilyen importot talált egy `utils/error` elérési útról — így fájlszintű kivételt alkalmazott egy hívásszintű veszélyre. Egyetlen helyes `import { sanitizeErrorMessage }` végleg felmentette a fájl összes többi kimeneti pontját, ezért kerülhetett éles környezetbe egy adatszivárgás annak ellenére, hogy az ellenőrzés sikeres volt. Mostantól egy sor csak akkor megbízható, ha ténylegesen egy engedélyezett összeállítón vagy megtisztítón keresztül halad:
+
+| Sor alakja                                                                                                                              | Megbízható?             |
+| --------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| meghívja a `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / … egyikét                        | igen                    |
+| meghív egy kanonikus összeállítót, **amelyet ez a fájl importál** az `open-sse/utils/error` vagy a `src/lib/api/errorResponse` modulból | igen                    |
+| egy engedélyezett összeállító hívása **többsoros**, ezért a `message:` mező egy későbbi sorban található                                | igen                    |
+| meghív egy fájlon belüli `function errorResponse(...)` függvényt, amelynek saját törzse elvégzi a megtisztítást                         | igen                    |
+| bárhol máshol továbbítja az `err.message` / `err.stack` értéket                                                                         | **nem — szabálysértés** |
+
+Két fontos következmény:
+
+- Az `errorResponse` importálása _nem_ jelent általános bizalmat. Az olyan fájlokat, amelyek saját `errorResponse` függvényt definiálnak, továbbra is megjelöli a kapu a hívás helyén, mert a bizalmat szimbólumonként, nem pedig fájlonként oldja fel. Ugyanez vonatkozik a `createErrorResponse` elemre is.
+- A `const body = buildErrorBody(status, sanitizeErrorMessage(msg))`, majd az azt követő `error: body.error.message` a `*-fetch.ts` végrehajtókban általánosan használt **megtisztított** megoldás, ezért nem kerül megjelölésre.
+
+Mindkét engedélyezett összeállítómodul számít: `open-sse/utils/error.ts` és `src/lib/api/errorResponse.ts`. A másodikat használja az `open-sse` modulon kívüli mintegy 54 útvonalkezelő, és ez mindkét exportját megtisztítja.
+
+Két alak, amelyek **nem** minősülnek szabálysértésnek, noha a kapu korábban mindkettőt adatszivárgásként jelentette:
+
+- nyers hiba egy **auditbejegyzésben** — `saveCallLog({ error: err.message })`, `logToolCall(...)`, vagy egy olyan naplózó, amely először üzenetet fogad (`log.error("BATCHES", "sweep failed", { error: err.message })`). A következő sorokban lévő, ügyfélnek szánt válasz ettől még lehet statikus `buildErrorBody`.
+- **többsoros** engedélyezett összeállítóhívás, amelyben maga a `message:` mező egyetlen összeállítót sem nevez meg:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+A `KNOWN_MISSING_ERROR_HELPER` rögzíti a már meglévő szabálysértéseket, így a kapu csak az _újakat_ blokkolja. Az `assertNoStale` automatikusan eltávolít egy bejegyzést, amint a hozzá tartozó szabálysértést kijavítják, így a rögzített lista nem merevedhet be. Regresszió elleni védelmek: `tests/unit/check-error-helper.test.ts` és `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Kapcsolódó vezérlők
 

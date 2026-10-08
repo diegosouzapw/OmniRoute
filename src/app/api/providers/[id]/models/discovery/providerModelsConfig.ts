@@ -26,6 +26,7 @@ import { filterAlibabaFreeEligibleModels } from "@omniroute/open-sse/services/al
 import { shouldUseLiveAlibabaFreeModelDiscovery } from "@omniroute/open-sse/services/alibabaFreeTier.ts";
 import { isDashscopeTextModelId } from "@omniroute/open-sse/services/dashscopeTextModels.ts";
 import { extractZaiToken } from "@omniroute/open-sse/services/zaiWebCredentials.ts";
+import { buildOpencodeBackgroundHeaders } from "@omniroute/open-sse/utils/opencodeHeaders.ts";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import { parseChatPlaygroundDiscoveryModels } from "@omniroute/open-sse/services/chatplaygroundModels.ts";
 import { normalizeOpenAiLikeModelsResponse } from "./normalizers";
@@ -107,6 +108,7 @@ export function parsePerplexitySonarModels(data: any): any[] {
   );
 }
 export type ProviderModelsHeaderContext = {
+  id?: string;
   authType?: string;
   providerSpecificData?: unknown;
   email?: string | null;
@@ -407,6 +409,50 @@ const KIMI_CODING_MODELS_CONFIG: ProviderModelsConfigEntry = {
   parseResponse: parseKimiCodingModels,
 };
 
+const OPENCODE_DISCOVERY_PARSE = (data: any) => data.data || data.models || [];
+
+/**
+ * Stable background-identity seed for one connection. Prefers the workspace id
+ * (all three spellings the providerSpecificData validator accepts) so
+ * connections sharing a workspace group under one upstream identity, then
+ * falls back to the connection id so a workspace-less connection still gets a
+ * deterministic session instead of a fresh anonymous UUID per discovery call.
+ */
+function readOpencodeBackgroundSeed(connection?: ProviderModelsHeaderContext): string | null {
+  const psd = connection?.providerSpecificData;
+  if (psd && typeof psd === "object") {
+    const record = psd as Record<string, unknown>;
+    for (const key of ["openCodeGoWorkspaceId", "opencodeGoWorkspaceId", "workspaceId"] as const) {
+      const value = record[key];
+      if (typeof value === "string" && value.trim().length > 0) return value.trim();
+    }
+  }
+  const id = connection?.id;
+  return typeof id === "string" && id.trim().length > 0 ? id.trim() : null;
+}
+
+/**
+ * Discovery entry for the opencode-family providers with the OpenCode CLI
+ * identity headers attached (User-Agent + x-opencode-session/request/client/
+ * project). Bare runtime fetches (UA "Bun fetch", no session header) are
+ * exactly the shape OpenCode's operator warning names — enforcement of the
+ * header is announced from 2026-09-06. The session id is a stable
+ * per-workspace/connection fingerprint so background discovery groups under
+ * one identity upstream instead of a fresh anonymous client per call.
+ */
+function buildOpencodeModelsDiscoveryEntry(url: string): ProviderModelsConfigEntry {
+  return {
+    url,
+    method: "GET",
+    headers: { Accept: "application/json" },
+    buildHeaders: (token, connection) => ({
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+      ...buildOpencodeBackgroundHeaders({ seed: readOpencodeBackgroundSeed(connection) }),
+    }),
+    parseResponse: OPENCODE_DISCOVERY_PARSE,
+  };
+}
 // Also used, behind the XAI_OAUTH_LIVE_MODEL_DISCOVERY flag, to fetch a live
 // catalog for xai-oauth (see getXaiOauthLiveModelsConfig below). Whether x.ai
 // accepts an OAuth bearer at this endpoint is unverified — that is why
@@ -829,22 +875,12 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
   },
-  "opencode-zen": {
-    url: "https://opencode.ai/zen/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  "opencode-go": {
-    url: "https://opencode.ai/zen/go/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
+  // OpenCode CLI identity headers on all three opencode-family entries (see
+  // buildOpencodeModelsDiscoveryEntry above for why — bare "Bun fetch" calls
+  // without x-opencode-session are what OpenCode's operator warning names).
+  opencode: buildOpencodeModelsDiscoveryEntry("https://opencode.ai/zen/v1/models"),
+  "opencode-zen": buildOpencodeModelsDiscoveryEntry("https://opencode.ai/zen/v1/models"),
+  "opencode-go": buildOpencodeModelsDiscoveryEntry("https://opencode.ai/zen/go/v1/models"),
   "glm-cn": {
     url: "https://open.bigmodel.cn/api/coding/paas/v4/models",
     method: "GET",

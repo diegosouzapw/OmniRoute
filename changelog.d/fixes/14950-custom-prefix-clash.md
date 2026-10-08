@@ -1,1 +1,0 @@
-- **fix(providers):** the Add / Edit compatible-provider modals now show the validation reason (e.g. `prefix: "openai" is a reserved provider prefix …`) instead of the generic "Invalid request", and the user guide documents the custom OpenAI-compatible flow and the reserved-prefix rule ([#14950](https://github.com/diegosouzapw/OmniRoute/pull/14950)) — thanks @shipsfromrio

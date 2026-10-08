@@ -186,9 +186,15 @@ let idleTimer: NodeJS.Timeout | null = null;
 export function resolveWorkerFile(): { workerFile: string; execArgv: string[] } {
   const anchors = runtimeAnchors();
 
-  // Prod first: the esbuild'd .js under the install root.
+  // The tracked .js file is only a Turbopack build-time placeholder in the source tree.
+  // A colocated bundle has its own ESM scope, written by colocate-standalone.mjs.
   const jsRoot = firstAncestorWith(anchors, WORKER_JS_REL);
-  if (jsRoot) return { workerFile: path.join(jsRoot, WORKER_JS_REL), execArgv: [] };
+  if (
+    jsRoot &&
+    (!fs.existsSync(path.join(jsRoot, WORKER_TS_REL)) ||
+      fs.existsSync(path.join(path.dirname(path.join(jsRoot, WORKER_JS_REL)), "package.json")))
+  )
+    return { workerFile: path.join(jsRoot, WORKER_JS_REL), execArgv: [] };
 
   // Dev: the .ts source (tsx loader).
   const tsRoot = firstAncestorWith(anchors, WORKER_TS_REL);
@@ -266,15 +272,20 @@ function ensureWorker(): Worker {
     pump();
   });
 
-  const failOpenAndRespawn = () => {
+  const failOpenAndRespawn = (detail: string) => {
     // Resolve every pending entry fail-open, then drop the worker so the next call respawns.
+    if (pending.size > 0) notifyCompressionFailOpen(detail);
     failAllPending();
     if (worker === w) worker = null;
     busy = false;
   };
 
-  w.on("error", failOpenAndRespawn);
-  w.on("exit", failOpenAndRespawn);
+  w.on("error", (error: Error) => {
+    failOpenAndRespawn(`llmlingua worker error: ${sanitizeErrorMessage(error.message)}`);
+  });
+  w.on("exit", (code: number) => {
+    failOpenAndRespawn(`llmlingua worker exit: ${code}`);
+  });
 
   worker = w;
   return w;

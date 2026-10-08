@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "A proxykészletek és az opencode fiókonkénti rotációja egy folyamatonként meghatározott időszakig nem választja újra az éppen meghibásodott proxyt (elutasított TCP-próba vagy rajta keresztül kapott 429-es válasz); ez az időszak minden ismétlődéskor megduplázódik egy felső korlátig. A proxy állapota nem kerül rögzítésre; ha minden jelölt félre van téve, a választás változatlan marad. Alapértelmezés szerint bekapcsolva; a `false` visszaállítja az egyszerű kiválasztást.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Azoknál a szolgáltatóknál, amelyek kvótája kimenő (egress) cím szerint oszlik meg, a pool azon tagját, amely egy nemrég elutasított tag megfigyelt egress címén osztozik, közvetlenül az egészséges tagok alá sorolja. Csak sorrend, soha nem zár ki. Szükséges hozzá a PROXY_SKIP_RECENTLY_FAILED, amely az általa olvasott elutasítási jelet előállítja. Alapértelmezetten ki: a kiválasztási sorrend pontosan az egyszerű rotáció.",
   "featureFlagProxyPoolEgressObservationDescription": "A vezérlőpulton jelenjen meg egy proxykészlet alatt, hogy az elmúlt 24 órában hány megfigyelt kimenő IP-cím szolgálta ki a tagjait, hány kapcsolat használta ezeket, és legfeljebb hány kapcsolat volt megfigyelhető egyetlen IP-cím mögött. Csak olvasható, a proxynaplóból számított adat, amelyet a rendszer soha nem használ útválasztásra. Alapértelmezés szerint kikapcsolva: a készletszerkesztő változatlan, a megfigyelési útvonal pedig null értékkel válaszol.",
+  "featureFlagProxyOperatorEgressDescription": "Operátor által beküldött dátumozott megfigyelt címek elfogadása pool-tagonként, és összevonásuk a naplóolvasással a megjelenítéshez és a pool-sorrendhez. Alapértelmezés szerint kikapcsolva: a push-útvonal 404-gyel válaszol, és a pool-olvasások pontosan úgy viselkednek, mint korábban.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "A proxyk állapotellenőrzése során a cél által elutasított próba (401/403/429: a proxy továbbította a kérést, a cél pedig elutasította ezt a kimenő IP-címet) a kiszolgált próbához hasonlóan nullázza a proxy egymást követő hibáinak számlálóját. Alapértelmezés szerint kikapcsolva: az elutasítás semleges marad, és nem változtatja meg a sorozatot. Az 5xx válasz mindkét esetben eldönthetetlen marad, és egy elutasítás soha nem távolít el, nem tilt le és nem aktivál újra proxyt.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Az automatikus tisztítás törölje az OMNIROUTE_BATCH_RETENTION_DAYS napnál régebbi, végleges állapotú (befejezett/sikertelen/megszakított/lejárt) Batch API-feladatokat a soronkénti ellenőrzőpontjaikkal együtt, valamint törölje a saját expires_at időpontjukon túli feltöltött fájlok BLOB-tartalmát. Alapértelmezés szerint kikapcsolva: minden meglévő telepítés pontosan ugyanúgy őrzi meg ezeket az adatokat, amíg egy üzemeltető be nem kapcsolja ezt a funkciót. Az üzemeltető által indított DELETE /api/v1/batches/delete-completed útvonal egyik esetben sem változik – ez egy különálló, feltétel nélküli nyilvános API-szerződés.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Az xai-oauth kapcsolatokhoz az élő xAI-modellkatalógus lekérése a https://api.x.ai/v1/models címről az OAuth bearer token használatával, a rögzített statikus alapadatok helyett. Alapértelmezés szerint kikapcsolva: az xai-oauth továbbra is változatlanul a statikus alapadatokat szolgáltatja. Bármilyen feloldási hiba esetén a felderítés visszaáll az alapadatokra.",
@@ -5692,7 +5693,7 @@
     "claudeImportBulkModePaste": "JSON tömb beillesztése",
     "claudeImportBulkModeZip": "ZIP feltöltése",
     "claudeImportBulkUploadHint": "Dobjon fel vagy vegyen fel legfeljebb 50 .credentials.json fájlt (egyenként 256 KB, összesen 10 MB).",
-    "claudeImportBulkPasteHint": "Illesszen be egy objektumtömböt: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "Illesszen be egy objektumtömböt: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": ".json bejegyzéseket tartalmazó ZIP. Maximum 50 bejegyzés, 10 MB kicsomagolva.",
     "claudeImportBulkSubmit": "Az összes importálása",
     "claudeImportBulkSuccess": "Importált {count} Claude kapcsolatok",
@@ -5724,7 +5725,7 @@
     "geminiImportBulkModePaste": "JSON tömb beillesztése",
     "geminiImportBulkModeZip": "ZIP feltöltése",
     "geminiImportBulkUploadHint": "Dobjon fel vagy vegyen fel legfeljebb 50 oauth_creds.json fájlt (egyenként 256 KB, összesen 10 MB).",
-    "geminiImportBulkPasteHint": "Illesszen be egy objektumtömböt: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "Illesszen be egy objektumtömböt: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "oauth_creds.json bejegyzéseket tartalmazó ZIP. Maximum 50 bejegyzés, 10 MB kicsomagolva.",
     "geminiImportBulkSubmit": "Az összes importálása",
     "geminiImportBulkSuccess": "Importált {count} Gemini kapcsolatok",
@@ -5773,7 +5774,7 @@
     "codexImportBulkModePaste": "Lista beillesztése",
     "codexImportBulkModeZip": "ZIP archívum",
     "codexImportBulkUploadHint": "Válasszon ki több .json fájlt, vagy húzza át őket",
-    "codexImportBulkPasteHint": "JSON-tömb [ {...}, {...} ] vagy több JSON, amelyeket --- választ el a saját sorában",
+    "codexImportBulkPasteHint": "JSON-tömb [ '{...}', '{...}' ] vagy több JSON, amelyeket --- választ el a saját sorában",
     "codexImportBulkZipHint": "Auth.json fájlokat tartalmazó .zip fájl feltöltése (maximum 50 fájl, 10 MB)",
     "codexImportBulkSubmit": "{count} fiók importálása",
     "codexImportBulkLimit": "Maximum 50 fájl importálásonként",
@@ -6011,7 +6012,7 @@
     "validationModelIdPlaceholder": "pl. meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "API-kulcs vagy szolgáltatásfiók JSON-ja",
     "vertexCredentialHint": "Az API-kulcsok a válogatott projektkatalógust használják. A szolgáltatásfiók JSON-ja lehetővé teszi a Model Garden élő feltérképezését.",
-    "vertexServiceAccountPlaceholder": "Illesszen be egy API-kulcsot, egy szolgáltatásfiók JSON-ját ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) vagy egy OAuth-hozzáférési tokent",
+    "vertexServiceAccountPlaceholder": "Illesszen be egy API-kulcsot, egy szolgáltatásfiók JSON-ját ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') vagy egy OAuth-hozzáférési tokent",
     "webCookieProviders": "Webes sütiket használó szolgáltatók",
     "weeklyShort": "Heti",
     "xiaomiMimoBaseUrlHint": "Súgó a Xiaomi Mimo alap-URL-jéhez",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "A helyi proxy-core végpont érvénytelen; az SS/VMess/Trojan/VLESS csomópontok figyelmen kívül lettek hagyva.",
         "NEEDS_CORE_NOT_CONFIGURED": "Ez az előfizetés olyan csomópontokat tartalmaz, amelyeknek helyi proxy-core-ra (SS/VMess/Trojan/VLESS) van szükségük; ezek nincsenek irányítva, amíg be nem állítja a helyi core SOCKS5 végpontot.",
         "NO_USABLE_NODES": "Az előfizetés nem eredményezett használható csomópontokat (http/https/socks5 vagy helyi core végponttal rendelkező csomópontok).",
-        "SELECTOR_SWITCH_FAILED": "A proxy-core vezérlőhívása sikertelen; az előző útvonal aktív marad. Ellenőrizze a vezérlő URL-t és titkot, majd frissítsen."
+        "SELECTOR_SWITCH_FAILED": "A proxy-core vezérlőhívása sikertelen; az előző útvonal aktív marad. Ellenőrizze a vezérlő URL-t és titkot, majd frissítsen.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "A generált alapkonfiguráció nem tudta helyettesíteni az elfogadott fájlt; helyette a mellette lévő másolat maradt meg.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Néhány bejegyzés kimaradt a generálás során. Lásd a kiszolgáló naplóját."
       },
       "description": "Illessze be a proxy előfizetési linkjét. Ha engedélyezve van, a forgalom a proxykészleten keresztül globális vagy szabály (meghatározott szolgáltató) módban kerül átirányításra. Az előfizetési csomópontok automatikusan szinkronizálódnak a proxykészlettel, és újra felhasználják a meglévő lekérdezési, állapot-ellenőrzési és szivárgásgátló mechanizmusokat.",
       "addSubscription": "Előfizetés hozzáadása",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Még nincs rögzített váltás",
       "lastSwitchMember": "Kiszolgáló tag",
       "nextSwitch": "Következő lehetséges váltás",
-      "nextSwitchNow": "Most"
+      "nextSwitchNow": "Most",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Alapbináris elérési út",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Opcionális: ellenőrzi a generált fájlt a binárissal az elfogadott fájl cseréje előtt. Hagyja üresen, ha mellette szeretné továbbra is írni. A könyvtár hiányzóan jön létre."
     },
     "bulkHealthcheck": "Tömeges állapotellenőrzés",
     "bulkHealthcheckDesc": "Az összes beállított proxy tesztelése egy cél-URL-en annak megállapításához, hogy melyek működnek.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP leírás tömörítés",
     "mcpAccessibilityTitle": "MCP akadálymentességi kimenet",
     "compressionSettingsCavemanIntensity": "Barlangos ember intenzitása",
-    "compressionSettingsCavemanOutputMode": "Caveman kimeneti mód",
     "compressionSettingsOutputStyles": "Kimeneti stílusok",
     "compressionStylesTileTitle": "Kimeneti stílusok",
     "compressionSettingsOutputIntensity": "Kimeneti intenzitás",
-    "compressionSettingsAutoClarityBypass": "Automatikus tisztaság bypass",
     "compressionEffectivePipeline": "Érvényes pipeline:",
     "compressionDerivedOff": "kikapcsolva",
     "compressionDerivedRuns": "futtatás: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "Amit a GET /v1/models ennél a kulcsnál elérhetőként jelez. A lista szűkítése soha nem módosítja, hogy a kulcs mely modelleket hívhatja meg.",
     "catalogScopeAll": "Mindkettő",
     "catalogScopeCombos": "Csak kombinációk",
-    "catalogScopeModels": "Csak modellek"
+    "catalogScopeModels": "Csak modellek",
+    "resilienceTokenRefreshTitle": "Token frissítési megszakító",
+    "resilienceTokenRefreshDesc": "Leállítja a token frissítésének újrapróbálását több kudarc után. Kapcsolatonkénti hatókör elszigetel egy elhalt fiókot, hogy a szolgáltató egészséges fiókjai továbbra is frissüljenek.",
+    "resilienceTokenRefreshScope": "Token-frissítési kísérletek egyetlen szolgáltató számára",
+    "resilienceTokenRefreshTrigger": "Egymást követő sikertelen frissítési kísérletek",
+    "resilienceTokenRefreshEffect": "Szünetelteti a frissítési kísérleteket a hűtési időszak alatt",
+    "resilienceTokenRefreshScopeLabel": "Hatókör",
+    "resilienceTokenRefreshScopeProvider": "Szolgáltató (minden fiók egyetlen megszakítót oszt meg)",
+    "resilienceTokenRefreshScopeConnection": "Kapcsolat (minden fióknak saját megszakítója van)",
+    "resilienceTokenRefreshThreshold": "Sikertelen próbálkozások a szüneteltetés előtt",
+    "resilienceTokenRefreshCooldown": "Szünet a kioldás után"
   },
   "contextRtk": {
     "title": "RTK-motor",
@@ -8544,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Betöltés…",
     "loadFailed": "Nem sikerült betölteni a motorinformációkat.",
+    "settingsLoadFailed": "Nem sikerült betölteni a mentett beállításokat. A mezők az alapértelmezett értékeket mutatják, és a Mentés letiltva marad az oldal újratöltéséig.",
     "engineNotFound": "A(z) \"{engine}\" motor nem található.",
     "saveFailed": "Nem sikerült menteni a konfigurációt.",
     "previewFailed": "Az előnézet sikertelen.",
@@ -8638,9 +8667,6 @@
       "minRows": {
         "label": "Tömörítendő sorok minimális száma",
         "description": "Egy homogén JSON-tömb minimális sorszáma a táblázatos tömörítés indításához. Alapértelmezett: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Rendszerüzenet megőrzése"
       },
       "summarizerEnabled": {
         "label": "Összegző engedélyezése"
@@ -9029,12 +9055,7 @@
     "tooltipMinLength": "Az ennél rövidebb üzenetek nincsenek tömörítve. Alacsonyabb = nagyobb tömörítés.",
     "tooltipMinSavings": "Csak akkor tömörítse, ha legalább ennyi tokent megtakarít.",
     "ultraSettings": "Ultra beállítások",
-    "ultraSettingsDesc": "SLM-alapú szemantikai tömörítés",
-    "preview": {
-      "lite": "Válaszolj tömören. Őrizd meg a technikai kifejezéseket, kódokat, hibákat, URL-eket és azonosítókat.",
-      "full": "Válaszolj röviden és tömören. Őrizd meg a teljes technikai tartalmat.",
-      "ultra": "Válaszolj rendkívül tömören, általános technikai rövidítésekkel. Őrizd meg pontosan a szimbólumokat."
-    }
+    "ultraSettingsDesc": "SLM-alapú szemantikai tömörítés"
   },
   "translator": {
     "title": "Fordító",
@@ -9653,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "pl. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "pl. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderExact": "Illessze be a pontos várt választ",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "pl. ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "pl. ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "Használjon JavaScript reguláris kifejezést perjelek tördelése nélkül.",
     "suiteBuilderNamePlaceholder": "pl. Kódminőségi tesztcsomag",
     "suiteBuilderAddCase": "Eset hozzáadása",
@@ -10862,7 +10883,7 @@
     "grokAuthJsonDescription": "Illeszd be a ~/.grok/auth.json TELJES tartalmát (nem csak a JWT \"key\" mezőt). Egy üres JWT-nek nincs refresh_token-je, így a kapcsolat a lejárat után megszűnik (#7610). Amikor elérhető, részesítsd előnyben a dedikált Import auth.json modált.",
     "devinDesktopPasteDescription": "Illessze be egy meglévő Devin API kulcsot egy hitelesített Devin munkamenetből. A kulcsexportálás elérhetősége és lépései a Devin verziójától és a fióktól függően változnak.",
     "devinPasteDescription": "Kérjük, adja meg a WINDSURF_API_KEY-jét (amelyet a `devin auth login` parancs segítségével, vagy a Windsurf IDE \"Windsurf: Provide Auth Token\" parancsával szerzett be).",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "Grok Build auth.json",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "API Kulcs / Token",
@@ -10875,7 +10896,10 @@
     "gitlabDuoSetupTitle": "GitLab Duo OAuth beállítása",
     "gitlabDuoSetupMessage": "A GitLab Duo OAuth nincs konfigurálva. Regisztráljon egy OAuth alkalmazást a {applicationsUrl} címen a {redirectUri} átirányítási URI-val és a \"{scopes}\" jogosultságokkal, majd állítsa be a {clientIdEnv} (és opcionálisan a {clientSecretEnv}) értékét, és indítsa újra.",
     "gitlabDuoSetupDescription": "Miután az alkalmazás regisztrálva lett és az env változók beállítva lettek ezen az OmniRoute példányon, kattintson a Tovább gombra az OAuth bejelentkezés megkezdéséhez.",
-    "continue": "Folytatás"
+    "continue": "Folytatás",
+    "tabPasteSetupToken": "Beállítási token",
+    "claudeSetupTokenDescription": "Futtassa a `claude setup-token` parancsot egy terminálban, és illessze be a kiírt tokent. Egy évig érvényes, és nincs frissítési tokenje. Mentés előtt az OmniRoute egy tesztkérést küld az Anthropicnak.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Csatlakoztassa a kurzor IDE-t",
@@ -11073,6 +11097,7 @@
     "poolEgressFailuresUnattributed": "Hibák hozzárendelt kilépési pont nélkül: {count}",
     "poolMemberEgress": "{host}:{port} kimenő forgalma a(z) {egressIp} címen keresztül haladt · elmúlt {hours} óra",
     "poolMemberEgressEmpty": "{host}:{port}: az elmúlt {hours} órában nem volt észlelhető forgalom",
+    "poolMemberEgressOperator": "{host}:{port} kilépett ezen keresztül: {egressIp} · operátor által megadott, {date}",
     "poolMemberEgressHint": "Az időablakban a készlet ezen tagján keresztül legutóbb észlelt kimenő IP-cím, a proxy naplójából kiolvasva. Ha egy tagnál nem volt forgalom az időablakban, a forgalom hiányát jelző sor jelenik meg.",
     "poolRemove": "Eltávolítás",
     "poolRemoveFailed": "Nem sikerült eltávolítani a proxyt a készletből",
@@ -11086,6 +11111,7 @@
     "poolSetAsideKindProxyUnreachable": "a proxy nem érhető el",
     "poolSetAsideKindIpQuota429": "IP-alapú sebességkorlát (429)",
     "poolSetAsideKindSlow": "lassú válaszok",
+    "poolSetAsideKindGeoBlocked": "régió blokkolva (403/451)",
     "poolSetAsideUntil": "Vissza a rotációba {endsAt}",
     "poolSetAsideRepeat": "Félretéve {count, plural, one {# alkalommal} other {# alkalommal}}",
     "poolUnknownAddress": "Ismeretlen cím",
@@ -11094,10 +11120,15 @@
     "poolSignalPosition": "Pozíciósorrend",
     "poolHealthRankingOff": "Állapot-rangsorolás kikapcsolva",
     "transportRate": "{rate}% átvitel",
+    "slowAbandoned": "{count} lassú elhagyás",
+    "clientAborted": "{count} kliens által megszakítva",
+    "slowAbandonedHint": "A fejlécek várakozási időkorlát után elhagyva, kizárva a szállítási sebességből",
     "previousSuccessRate": "Korábban {rate}% siker",
-    "upstreamRefusals": "{count} upstream-elutasítás",
     "connectionTestsCount": "{count} kapcsolati teszt",
-    "notMeasured": "Nem mért"
+    "notMeasured": "Nem mért",
+    "upstream4xx": "{count} upstream klienshiba",
+    "upstream5xx": "{count} upstream szerverhiba",
+    "uniformEgressLine": "{affected} a {exits} exit közül együtt meghibásodik a {provider} szolgáltatónál (utolsó {hours} órában) — nem exit-hiba"
   },
   "playground": {
     "title": "Title",
@@ -12871,7 +12902,10 @@
     "inheritedPool": "Örökölt kapcsolati készlet ({count})",
     "poolEmptyBlocked": "A készlet üres — a kérések meghiúsulnak (nem közvetlen)",
     "directEgress": "Közvetlen (proxy nélkül)",
-    "ownProxy": "Saját proxy"
+    "ownProxy": "Saját proxy",
+    "freeTierPause": "{model} modell szüneteltetve (429), visszatér: {time}",
+    "freeTierPauseProvider": "Szüneteltetve (429), visszatér: {time}",
+    "freeTierPauseNote": "Folyamatban lévő szüneteltetés ezen a példányon"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13052,6 +13086,10 @@
     "inactiveCount": "{count} inaktív",
     "dbOverrideCount": "{count} DB-felülbírálás",
     "searchPlaceholder": "Flag-ek keresése...",
+    "descriptionModeLabel": "Leírás nézet",
+    "descriptionModeHint": "Hover idején: a kártyák kompaktok maradnak, és a leírásra hoverelve megjelenik a teljes szöveg. Teljes szöveg: mindig jelenítse meg a teljes leírást.",
+    "descriptionModeHover": "Hover idején",
+    "descriptionModeFull": "Teljes szöveg",
     "categories": {
       "all": "Összes",
       "security": "Biztonság",
@@ -13679,7 +13717,7 @@
     "secondaryNote": "Elérhető az Open VSX-en is (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "Elvetés"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Hirdesse a <gateway-alias>/<model> tükör azonosítókat a /v1/models-on olyan modellekhez, amelyek kanonikus tulajdonosa nem rendelkezik aktív hitelesítő adatokkal, de egy átjáró, amelynek aktív hitelesítő adatai vannak, irányítja őket. Figyelmeztetés: globális engedélyezés esetén a katalógus bejegyzéseket ad hozzá az összes klienshez.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Hirdesse a '<gateway-alias>'/'<model>' tükör azonosítókat a /v1/models-on olyan modellekhez, amelyek kanonikus tulajdonosa nem rendelkezik aktív hitelesítő adatokkal, de egy átjáró, amelynek aktív hitelesítő adatai vannak, irányítja őket. Figyelmeztetés: globális engedélyezés esetén a katalógus bejegyzéseket ad hozzá az összes klienshez.",
   "radarPage": {
     "title": "Radar Katalógus",
     "subtitle": "Közösségi intelligenciával gazdagított ingyenes modell katalógus",

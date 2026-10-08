@@ -1,1 +1,0 @@
-- **fix(dashboard):** Aggregate provider usage by connection family and remove the duplicate xai dashboard entry ([#15005](https://github.com/diegosouzapw/OmniRoute/pull/15005)) — thanks @maxmad64bis

@@ -1,1 +1,0 @@
-- **fix(cli):** the `serve` port preflight's bind probe now also tries `0.0.0.0`, `127.0.0.1` and `::1`, so on macOS it sees an instance already listening on the default host or on loopback instead of reporting the port free ([#0000](https://github.com/diegosouzapw/OmniRoute/pull/0000)) — thanks @peterbussch

@@ -72,24 +72,31 @@ och anger endpointen och vad som gick förlorat — så en försämrad modellvä
 
 ## Alternativ
 
-| Nyckel                           | Standard                                                  | Anmärkningar                                                                                                       |
-| -------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `providerId`                     | `"omniroute"`                                             | Leverantörs-id, integrations-id och prefixet som modeller visas under                                              |
-| `baseURL`                        | obligatoriskt                                             | Gateway-rot, endast `http(s)`; suffixet `/v1` läggs till där det behövs                                            |
-| `apiKey`                         | ansluten autentiseringsuppgift, sedan `OMNIROUTE_API_KEY` | Chattnyckel för `/v1/*`                                                                                            |
-| `managementReadToken`            | använder `apiKey` som reserv                              | Nyckel för `/api/*` — vanligtvis **inte** samma nyckel                                                             |
-| `displayName`                    | `"OmniRoute"`                                             | Leverantörsnamn i modellväljaren                                                                                   |
-| `timeoutMs`                      | `10000`                                                   | Tidsgräns per endpoint vid hämtning (automatiska kombinationer använder 5 s)                                       |
-| `modelCacheTtlMs`                | `300000`                                                  | TTL för katalogcachen; en ögonblicksbild på disk snabbar upp kallstarter                                           |
-| `timeouts`                       | använder `timeoutMs` som reserv                           | Tidsbudgetar per endpoint i ms: `models`, `combos`, `autoCombos`, `enrichment`                                     |
-| `enrichment`                     | `true`                                                    | Hämta namn, priser och budgetar för kostnadsfria nivåer                                                            |
-| `providerTag`                    | `true`                                                    | Lägg till den vidarebefordrade leverantören som prefix i visningsnamnet                                            |
-| `usableOnly`                     | `false`                                                   | Behåll endast leverantörer som gatewayen rapporterar som konfigurerade                                             |
-| `visibleModels` / `hiddenModels` | `[]`                                                      | Tillåtelselistor med exakt matchning eller suffixmatchning; nekande regler har företräde                           |
-| `geminiSanitization`             | `true`                                                    | Ta bort JSON-Schema-nyckelord som Gemini avvisar från verktygsscheman (`$ref`-verktyg vidarebefordras oförändrade) |
-| `apiFormat.allowAnthropic`       | `false`                                                   | Dirigera tillåtelselistade id:n via Anthropic API-blocket                                                          |
-| `apiFormat.anthropicModels`      | `[]`                                                      | Fullständiga modell-id:n som dirigeras till Anthropic                                                              |
-| `logLevel` / `startupDebug`      | `warn` / `false`                                          | Loggningsnivå                                                                                                      |
+| Nyckel                           | Standardvärde                                             | Kommentarer                                                                                                           |
+| -------------------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `providerId`                     | `"omniroute"`                                             | Leverantörs-id, integrations-id och prefixet som modeller visas under                                                 |
+| `baseURL`                        | obligatoriskt                                             | Gateway-rot, endast `http(s)`; suffixet `/v1` läggs till där det behövs                                               |
+| `apiKey`                         | ansluten autentiseringsuppgift, sedan `OMNIROUTE_API_KEY` | Chattnyckel för `/v1/*`                                                                                               |
+| `managementReadToken`            | använder `apiKey` som reserv                              | Nyckel för `/api/*` — vanligtvis **inte** samma nyckel                                                                |
+| `displayName`                    | `"OmniRoute"`                                             | Leverantörsnamn i väljaren                                                                                            |
+| `timeoutMs`                      | `10000`                                                   | Tidsgräns per slutpunkt för hämtning (automatiska kombinationer använder 5 s)                                         |
+| `modelCacheTtlMs`                | `300000`                                                  | TTL för katalogcachen; en ögonblicksbild på disk snabbar upp kallstarter                                              |
+| `timeouts`                       | använder `timeoutMs` som reserv                           | Tidsbudgetar per slutpunkt i ms: `models`, `combos`, `autoCombos`, `enrichment`                                       |
+| `enrichment`                     | `true`                                                    | Hämta namn, priser och budgetar för kostnadsfria nivåer                                                               |
+| `providerTag`                    | `true`                                                    | Lägg till den överordnade leverantören som trafiken dirigeras till som prefix i visningsnamnet                        |
+| `usableOnly`                     | `false`                                                   | Behåll endast leverantörer som gatewayen rapporterar som etablerade                                                   |
+| `showcasePerOwner`               | `10`                                                      | Poster per leverantör som behålls i standardvyn                                                                       |
+| `freshPerOwner`                  | `10`                                                      | Nya poster per leverantör som behålls i standardvyn                                                                   |
+| `freshWindowDays`                | `90`                                                      | Aktualitetsfönster i dagar för grenen med nya poster                                                                  |
+| `usageMemory`                    | `true`                                                    | Återställ statiskt borttagna poster som identifieras av användningsanalys för 30 dagar (kräver en hanteringstoken)    |
+| `visibleModels` / `hiddenModels` | `[]`                                                      | Tillåtelselistor med exakt matchning eller suffixmatchning; nekande regel har företräde                               |
+| `geminiSanitization`             | `true`                                                    | Ta bort de JSON Schema-nyckelord som Gemini avvisar från verktygsscheman (`$ref`-verktyg vidarebefordras oförändrade) |
+| `apiFormat.allowAnthropic`       | `false`                                                   | Dirigera tillåtelselistade id:n genom Anthropics API-block                                                            |
+| `apiFormat.anthropicModels`      | `[]`                                                      | Fullständiga modell-id:n som dirigeras till Anthropic                                                                 |
+| `logLevel` / `startupDebug`      | `warn` / `false`                                          | Loggningsdetaljnivå                                                                                                   |
+
+Användningsminnet är aktiverat som standard. Utan en hanteringstoken förblir det inaktivt
+(ett meddelande loggas vid start) och ingenting återställs.
 
 ## Så hålls katalogen aktuell
 

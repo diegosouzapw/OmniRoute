@@ -57,6 +57,8 @@ function baseDeps(overrides = {}) {
     // #11904: real callers get this from createDefaultQuotaAutoPingDeps(); the fixture
     // mirrors it so tests exercise the gated path without a real timer.
     throttleQuotaFetch: async () => {},
+    resolveProxyForConnection: async () => ({ proxy: null, level: "direct", levelId: null }),
+    runWithProxyContext: async (_proxy, callback) => callback(),
     getExecutor: (provider) => {
       calls.getExecutor.push(provider);
       return {

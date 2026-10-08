@@ -43,6 +43,7 @@ import {
 import { getCursorUsage } from "./usage/cursor.ts";
 import { getKimiUsage } from "./usage/kimi.ts";
 import { getCodexUsage } from "./usage/codex.ts";
+import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
 import { getClaudeUsage, getClaudePlanLabel } from "./usage/claude.ts";
 import { getKiroUsage, buildKiroUsageResult, discoverKiroProfileArn } from "./usage/kiro.ts";
 // Re-exported para os testes kiro-* (importam de services/usage).
@@ -155,6 +156,11 @@ export async function getUsageForProvider(
     case "claude":
       return await getClaudeUsage(accessToken);
     case "codex":
+      // /me/status and the quota-cache refresh reach this fetch with no
+      // caller-side pacing. Gate the start here so those paths, and any later
+      // one, cannot burst the usage endpoint. Callers that already acquired the
+      // shared gate wait at most one more interval.
+      await throttleQuotaFetch();
       return await getCodexUsage(accessToken, providerSpecificData);
     case "cursor":
       return await getCursorUsage(accessToken || "", providerSpecificData);

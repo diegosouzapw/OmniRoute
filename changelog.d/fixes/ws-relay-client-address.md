@@ -1,1 +1,0 @@
-- **fix(ws):** the `/v1/ws` and Responses WebSocket relays report each remote client to the app by its own address and drop the forwarding headers it sent, so a remote WebSocket client is no longer treated as the host itself; a Cloudflare edge, or a private-network proxy with `OMNIROUTE_TRUST_PROXY=private`, keeps its `X-Forwarded-For`

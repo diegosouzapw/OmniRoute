@@ -1,1 +1,0 @@
-- **fix(auth):** a password change now ends every dashboard session issued before it (the browser that changed it keeps a fresh one), and signing out revokes that session on the server instead of only clearing the cookie

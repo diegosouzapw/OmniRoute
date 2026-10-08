@@ -1,0 +1,1 @@
+- **docs:** `QUALITY_GATES.md` describes the `check:file-size` PR mode as the whole-tree, base-relative check it runs, and its gate-table row states the source and test-file caps ([#15345](https://github.com/diegosouzapw/OmniRoute/pull/15345)) — thanks @woodsonl

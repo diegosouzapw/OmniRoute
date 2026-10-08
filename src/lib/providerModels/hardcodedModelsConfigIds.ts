@@ -38,6 +38,7 @@ export const HARDCODED_MODELS_CONFIG_IDS: ReadonlySet<string> = new Set([
   "nvidia",
   "ollama-cloud",
   "openai",
+  "opencode",
   "opencode-go",
   "opencode-zen",
   "openference",

@@ -12,6 +12,8 @@ import {
   __clearForTests as clearQuotaCache,
   setQuotaCache,
 } from "../../../src/domain/quotaCache.ts";
+import { modelCooldownResponse } from "../../../open-sse/utils/error.ts";
+import { LOCAL_MODEL_COOLDOWN_HEADER } from "../../../open-sse/utils/localCooldownHeader.ts";
 
 const log = { info() {}, warn() {}, error() {}, debug() {} };
 
@@ -1045,4 +1047,41 @@ test("403 on vertex with connection-wide permission denial DOES exhaust connecti
   );
   assert.equal(exhausted, true);
   assert.ok(s.exhaustedConnections.has("vertex:vertex-conn-1"));
+});
+
+test("OmniRoute's own local model_cooldown 429 never exhausts the provider (#1731 vs #14190)", () => {
+  // #14190 classifies CLIProxyAPI's `model_cooldown` body as quota. OmniRoute's own local
+  // cooldown response (modelCooldownResponse) carries the identical body, so it is told apart
+  // by the X-OmniRoute-Local-Cooldown header and must keep same-provider targets eligible.
+  const cooldownText = "All credentials for model m1 are cooling down";
+  const quotaFallback = { reason: "quota_exhausted", quotaResetHintMs: 3000 };
+
+  // The real local cooldown response carries the marker.
+  const localResponse = modelCooldownResponse({ model: "m1", retryAfter: 3 });
+  assert.equal(localResponse.headers.get(LOCAL_MODEL_COOLDOWN_HEADER), "model");
+
+  const local = sets();
+  const localResult = applyComboTargetExhaustion(target(), {
+    ...baseOpts,
+    errorText: cooldownText,
+    structuredError: { code: "model_cooldown", type: "rate_limit_error" },
+    result: { status: 429, headers: localResponse.headers },
+    fallbackResult: quotaFallback,
+    sets: local,
+  });
+  assert.equal(localResult.providerExhausted, false);
+  assert.equal(local.exhaustedProviders.size, 0);
+
+  // Same body WITHOUT the marker = a real upstream (CLIProxyAPI) cooldown: still exhausts.
+  const upstream = sets();
+  const upstreamResult = applyComboTargetExhaustion(target(), {
+    ...baseOpts,
+    errorText: cooldownText,
+    structuredError: { code: "model_cooldown", type: "rate_limit_error" },
+    result: { status: 429, headers: new Headers() },
+    fallbackResult: quotaFallback,
+    sets: upstream,
+  });
+  assert.equal(upstreamResult.providerExhausted, true);
+  assert.ok(upstream.exhaustedProviders.has("test-dedup-provider"));
 });

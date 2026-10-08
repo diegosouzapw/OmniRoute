@@ -94,7 +94,11 @@ export function buildPerplexityRequest(
     url: config.baseUrl,
     init: {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${params.token}` },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${params.token}`,
+        "X-Pplx-Integration": "omniroute",
+      },
       body: JSON.stringify(body),
     },
   };

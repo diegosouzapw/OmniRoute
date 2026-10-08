@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Pool-urile de proxy-uri și rotația per cont din opencode nu mai reutilizează un proxy care tocmai a eșuat (sondă TCP refuzată sau un răspuns 429 primit prin acesta) pentru o perioadă per proces care se dublează la fiecare repetare, până la o limită maximă. Nu este înregistrată nicio stare a proxy-ului; dacă toți candidații sunt puși deoparte, alegerea rămâne neschimbată. Activat în mod implicit; `false` restabilește selecția simplă.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Pentru furnizorii a căror cotă este împărțită pe adresă de egress, plasează un membru al pool-ului care partajează adresa de egress observată a unui membru refuzat recent imediat sub membrii sănătoși. Doar ordine, niciodată excludere. Necesită PROXY_SKIP_RECENTLY_FAILED, care produce semnalul de refuz pe care îl citește. Dezactivat implicit: ordinea de selecție este exact rotația simplă.",
   "featureFlagProxyPoolEgressObservationDescription": "Afișează, sub un pool de proxy-uri din panoul de control, câte IP-uri de ieșire observate au deservit membrii acestuia în ultimele 24 h, câte conexiuni le-au folosit și numărul maxim de conexiuni observate în spatele unui singur IP. Doar pentru citire, calculat din jurnalul proxy-ului și niciodată utilizat pentru rutare. Dezactivat în mod implicit: editorul pool-ului rămâne neschimbat, iar ruta de observare returnează null.",
+  "featureFlagProxyOperatorEgressDescription": "Acceptă adresele observate cu dată trimise de operator pentru fiecare membru al grupei și le îmbină cu citirea jurnalului pentru afișare și ordonare a grupei. Dezactivat implicit: ruta de push răspunde cu 404 și citirile grupei se comportă exact ca înainte.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "În verificarea periodică a stării proxy-urilor, permite unei sonde refuzate de destinație (401/403/429: proxy-ul a retransmis, iar destinația a refuzat acest IP de ieșire) să reseteze seria de eșecuri consecutive a proxy-ului, la fel ca o sondă procesată cu succes. Dezactivat în mod implicit: un refuz rămâne neutru și păstrează seria. Un răspuns 5xx rămâne neconcludent în ambele cazuri, iar un refuz nu elimină, nu dezactivează și nu reactivează niciodată un proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Permite procesului automat de curățare să șteargă sarcinile Batch API în stare terminală (finalizate/eșuate/anulate/expirate) mai vechi decât OMNIROUTE_BATCH_RETENTION_DAYS, împreună cu punctele de control pentru fiecare linie, și să golească conținutul BLOB al fișierelor încărcate care și-au depășit propria valoare expires_at. Dezactivată implicit: fiecare instalare existentă păstrează aceste date exact ca înainte, până când un operator activează opțiunea. Ruta DELETE /api/v1/batches/delete-completed declanșată de operator nu este afectată în niciun caz — aceasta este un contract API public separat și necondiționat.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Preia catalogul actualizat de modele xAI pentru conexiunile xai-oauth de la https://api.x.ai/v1/models, utilizând tokenul bearer OAuth, în locul setului inițial static. Dezactivată implicit: xai-oauth continuă să furnizeze fără modificări setul inițial static. La orice eroare de rezolvare, descoperirea revine la setul inițial.",
@@ -5692,7 +5693,7 @@
     "claudeImportBulkModePaste": "Lipiți matricea JSON",
     "claudeImportBulkModeZip": "Încărcați ZIP",
     "claudeImportBulkUploadHint": "Aruncă sau ridică până la 50 de fișiere .credentials.json (256 KB fiecare, 10 MB în total).",
-    "claudeImportBulkPasteHint": "Lipiți o serie de obiecte: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "Lipiți o serie de obiecte: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": "ZIP care conține intrări .json. Max 50 de intrări, 10 MB despachetat.",
     "claudeImportBulkSubmit": "Importă toate",
     "claudeImportBulkSuccess": "Importate {count} conexiuni Claude",
@@ -5724,7 +5725,7 @@
     "geminiImportBulkModePaste": "Lipiți matricea JSON",
     "geminiImportBulkModeZip": "Încărcați ZIP",
     "geminiImportBulkUploadHint": "Aruncă sau ridică până la 50 de fișiere oauth_creds.json (256 KB fiecare, 10 MB în total).",
-    "geminiImportBulkPasteHint": "Lipiți o serie de obiecte: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "Lipiți o serie de obiecte: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "ZIP care conține intrări oauth_creds.json. Max 50 de intrări, 10 MB despachetat.",
     "geminiImportBulkSubmit": "Importă toate",
     "geminiImportBulkSuccess": "Importate {count} conexiuni Gemini",
@@ -5773,7 +5774,7 @@
     "codexImportBulkModePaste": "Lipiți lista",
     "codexImportBulkModeZip": "Arhiva ZIP",
     "codexImportBulkUploadHint": "Selectați mai multe fișiere .json sau trageți și plasați",
-    "codexImportBulkPasteHint": "Matrice JSON [ {...}, {...} ] sau mai multe JSON separate prin --- pe propria linie",
+    "codexImportBulkPasteHint": "Matrice JSON [ '{...}', '{...}' ] sau mai multe JSON separate prin --- pe propria linie",
     "codexImportBulkZipHint": "Încărcați un .zip care conține fișiere auth.json (maximum 50 de fișiere, 10 MB)",
     "codexImportBulkSubmit": "Importați {count} conturi",
     "codexImportBulkLimit": "Maxim 50 de fișiere per import",
@@ -6011,7 +6012,7 @@
     "validationModelIdPlaceholder": "de ex. meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "Cheie API sau JSON pentru contul de serviciu",
     "vertexCredentialHint": "Cheile API utilizează catalogul de proiecte selecționat. JSON pentru contul de serviciu permite descoperirea în timp real în Model Garden.",
-    "vertexServiceAccountPlaceholder": "Lipește o cheie API, JSON-ul contului de serviciu ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) sau un token de acces OAuth",
+    "vertexServiceAccountPlaceholder": "Lipește o cheie API, JSON-ul contului de serviciu ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') sau un token de acces OAuth",
     "webCookieProviders": "Furnizori de cookie-uri web",
     "weeklyShort": "Săptămânal – scurt",
     "xiaomiMimoBaseUrlHint": "Indiciu pentru URL-ul de bază Xiaomi Mimo",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Endpoint-ul local proxy-core este invalid; nodurile SS/VMess/Trojan/VLESS au fost ignorate.",
         "NEEDS_CORE_NOT_CONFIGURED": "Acest abonament are noduri care necesită un proxy-core local (SS/VMess/Trojan/VLESS); acestea nu sunt rutate până când nu configurați endpoint-ul SOCKS5 local-core.",
         "NO_USABLE_NODES": "Abonamentul nu a returnat noduri utilizabile (http/https/socks5 sau noduri cu un endpoint local-core).",
-        "SELECTOR_SWITCH_FAILED": "Apelul de control al proxy-core a eșuat; ruta anterioară rămâne activă. Verificați URL-ul și secretul de control, apoi reîmprospătați."
+        "SELECTOR_SWITCH_FAILED": "Apelul de control al proxy-core a eșuat; ruta anterioară rămâne activă. Verificați URL-ul și secretul de control, apoi reîmprospătați.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Configurația generată nu a putut înlocui fișierul adoptat; copia de alături a fost păstrată în schimb.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Unele intrări au fost omise în timpul generării. Consultați jurnalul serverului."
       },
       "description": "Lipiți linkul de abonare proxy. Odată activat, traficul este direcționat prin grupul de proxy în modul global sau cu reguli (furnizor specificat). Nodurile de abonament sunt sincronizate automat în pool-ul de proxy și reutilizează mecanismele existente de sondare, verificare a stării de sănătate și anti-scurgere.",
       "addSubscription": "Adăugați abonament",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Nicio comutare înregistrată",
       "lastSwitchMember": "Membrul care deservește",
       "nextSwitch": "Următoarea comutare posibilă",
-      "nextSwitchNow": "Acum"
+      "nextSwitchNow": "Acum",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Cale binar de bază",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Opțional: verifică fișierul generat cu binarul de bază înainte de a înlocui fișierul adoptat. Lăsați gol pentru a scrie în continuare alături. Directorul este creat dacă lipsește."
     },
     "bulkHealthcheck": "Verificare în bloc a stării",
     "bulkHealthcheckDesc": "Testează toate proxy-urile configurate folosind un URL țintă pentru a identifica proxy-urile funcționale.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "Comprimarea descrierii MCP",
     "mcpAccessibilityTitle": "Ieșire accesibilitate MCP",
     "compressionSettingsCavemanIntensity": "Intensitatea cavernelor",
-    "compressionSettingsCavemanOutputMode": "Modul de ieșire Caveman",
     "compressionSettingsOutputStyles": "Stiluri de ieșire",
     "compressionStylesTileTitle": "Stiluri de ieșire",
     "compressionSettingsOutputIntensity": "Intensitatea ieșirii",
-    "compressionSettingsAutoClarityBypass": "Ocolire automată a clarității",
     "compressionEffectivePipeline": "Pipeline efectiv:",
     "compressionDerivedOff": "dezactivat",
     "compressionDerivedRuns": "rulări: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "Ce afișează GET /v1/models pentru această cheie. Restrângerea listei nu modifică niciodată ce poate apela cheia.",
     "catalogScopeAll": "Ambele",
     "catalogScopeCombos": "Doar combinații",
-    "catalogScopeModels": "Doar modele"
+    "catalogScopeModels": "Doar modele",
+    "resilienceTokenRefreshTitle": "Întrerupător de reîmprospătare a tokenului",
+    "resilienceTokenRefreshDesc": "Oprește reîncercarea reînnoirii tokenului după eșecuri repetate. Domeniul per-connection izolează un cont mort, astfel încât conturile sănătoase de pe același furnizor să continue reînnoirea.",
+    "resilienceTokenRefreshScope": "Încercări de reîmprospătare a tokenului pentru un furnizor",
+    "resilienceTokenRefreshTrigger": "Încercări consecutive de reîmprospătare eșuate",
+    "resilienceTokenRefreshEffect": "Oprește temporar încercările de reîmprospătare pe durata perioadei de așteptare",
+    "resilienceTokenRefreshScopeLabel": "Domeniu",
+    "resilienceTokenRefreshScopeProvider": "Furnizor (toate conturile împart un singur întrerupător)",
+    "resilienceTokenRefreshScopeConnection": "Conexiune (fiecare cont are propriul său întrerupător)",
+    "resilienceTokenRefreshThreshold": "Eșecuri înainte de pauză",
+    "resilienceTokenRefreshCooldown": "Pauză după declanșare"
   },
   "contextRtk": {
     "title": "Motor RTK",
@@ -8544,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Se încarcă…",
     "loadFailed": "Nu s-au putut încărca informațiile despre motor.",
+    "settingsLoadFailed": "Nu s-au putut încărca setările salvate. Câmpurile afișează valorile implicite, iar butonul Salvare rămâne dezactivat până la reîncărcarea paginii.",
     "engineNotFound": "Motorul \"{engine}\" nu a fost găsit.",
     "saveFailed": "Nu s-a putut salva configurația.",
     "previewFailed": "Previzualizarea a eșuat.",
@@ -8638,9 +8667,6 @@
       "minRows": {
         "label": "Număr minim de rânduri de compactat",
         "description": "Numărul minim de rânduri dintr-un tablou JSON omogen necesar pentru a declanșa compactarea tabulară. Implicit: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Păstrează promptul de sistem"
       },
       "summarizerEnabled": {
         "label": "Activează rezumatorul"
@@ -9029,12 +9055,7 @@
     "tooltipMinLength": "Mesajele mai scurte decât aceasta nu sunt comprimate. Mai jos = compresie mai mare.",
     "tooltipMinSavings": "Comprimați doar dacă salvează cel puțin atât de multe jetoane.",
     "ultraSettings": "Setări Ultra",
-    "ultraSettingsDesc": "Compresie semantică alimentată de SLM",
-    "preview": {
-      "lite": "Răspundeți concis. Păstrați termenii tehnici, codul, erorile, URL-urile și identificatorii.",
-      "full": "Răspundeți succint și compact. Păstrați integral conținutul tehnic.",
-      "ultra": "Răspundeți extrem de succint, folosind abrevieri tehnice uzuale. Păstrați simbolurile exacte."
-    }
+    "ultraSettingsDesc": "Compresie semantică alimentată de SLM"
   },
   "translator": {
     "title": "Traducător",
@@ -9653,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "de ex. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "de ex. def Fibonacci",
     "suiteBuilderCaseExpectedPlaceholderExact": "Lipiți răspunsul exact așteptat",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "de ex. ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "de ex. ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "Utilizați o expresie regulată JavaScript fără a încheia barele oblice.",
     "suiteBuilderNamePlaceholder": "de ex. Suită pentru calitatea codului",
     "suiteBuilderAddCase": "Adăugați un caz",
@@ -10862,7 +10883,7 @@
     "grokAuthJsonDescription": "Lipește conținutul COMPLET al ~/.grok/auth.json (nu doar câmpul JWT \"key\"). Un JWT simplu nu are refresh_token, așa că conexiunea se întrerupe după expirare (#7610). Preferă modalul dedicat Import auth.json când este disponibil.",
     "devinDesktopPasteDescription": "Lipiți o cheie API Devin existentă dintr-o sesiune Devin autentificată. Disponibilitatea exportului cheii și pașii variază în funcție de versiunea și contul Devin.",
     "devinPasteDescription": "Furnizați cheia dumneavoastră WINDSURF_API_KEY (obținută prin `devin auth login`, sau prin comanda \"Windsurf: Provide Auth Token\" din Windsurf IDE).",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "auth.json pentru Grok Build",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "Cheie API / Token",
@@ -10875,7 +10896,10 @@
     "gitlabDuoSetupTitle": "Configurarea OAuth Duo pentru GitLab",
     "gitlabDuoSetupMessage": "GitLab Duo OAuth nu este configurat. Înregistrează o aplicație OAuth la {applicationsUrl} cu URI de redirecționare {redirectUri} și scope-uri \"{scopes}\", apoi setează {clientIdEnv} (și opțional {clientSecretEnv}) și repornește.",
     "gitlabDuoSetupDescription": "După ce aplicația este înregistrată și variabilele de mediu sunt setate pe această instanță OmniRoute, faceți clic pe Continuare pentru a începe autentificarea OAuth.",
-    "continue": "Continuă"
+    "continue": "Continuă",
+    "tabPasteSetupToken": "Token de configurare",
+    "claudeSetupTokenDescription": "Rulați `claude setup-token` într-un terminal și lipiți tokenul afișat. Este valabil un an și nu are token de reîmprospătare. OmniRoute trimite o cerere de test către Anthropic înainte de a-l salva.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Conectați Cursor IDE",
@@ -11073,6 +11097,7 @@
     "poolEgressFailuresUnattributed": "Eșecuri fără ieșire atribuită: {count}",
     "poolMemberEgress": "{host}:{port} a ieșit prin {egressIp} · ultimele {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: nu s-a observat trafic în ultimele {hours} h",
+    "poolMemberEgressOperator": "{host}:{port} a ieșit prin {egressIp} · de la operator, {date}",
     "poolMemberEgressHint": "Ultimul IP de ieșire observat prin acest membru al poolului în intervalul selectat, preluat din jurnalul proxy. Pentru un membru fără trafic în acest interval se afișează mesajul privind absența traficului.",
     "poolRemove": "Elimină",
     "poolRemoveFailed": "Nu s-a putut elimina proxy-ul din pool",
@@ -11086,6 +11111,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy inaccesibil",
     "poolSetAsideKindIpQuota429": "limită de rată pe IP (429)",
     "poolSetAsideKindSlow": "răspunsuri lente",
+    "poolSetAsideKindGeoBlocked": "blocare regiune (403/451)",
     "poolSetAsideUntil": "Înapoi în rotație {endsAt}",
     "poolSetAsideRepeat": "Pus deoparte {count, plural, one {# dată} other {# ori}}",
     "poolUnknownAddress": "Adresă necunoscută",
@@ -11094,10 +11120,15 @@
     "poolSignalPosition": "Ordinea pozițiilor",
     "poolHealthRankingOff": "Clasificarea stării dezactivată",
     "transportRate": "{rate} % transport",
+    "slowAbandoned": "{count} abandonări lente",
+    "clientAborted": "{count} abandonări ale clientului",
+    "slowAbandonedHint": "Abandonat după pragul de așteptare a antetelor, exclus din rata de transport",
     "previousSuccessRate": "Anterior {rate} % succes",
-    "upstreamRefusals": "{count} refuzuri upstream",
     "connectionTestsCount": "{count} teste de conexiune",
-    "notMeasured": "Nemăsurat"
+    "notMeasured": "Nemăsurat",
+    "upstream4xx": "{count} erori de client upstream",
+    "upstream5xx": "{count} erori de server upstream",
+    "uniformEgressLine": "{affected} din {exits} exit-uri eșuează împreună pe {provider} (ultimele {hours}h) — nu este o problemă de exit"
   },
   "playground": {
     "title": "Title",
@@ -12871,7 +12902,10 @@
     "inheritedPool": "Moștenește pool-ul de conexiuni ({count})",
     "poolEmptyBlocked": "Pool gol — cererile eșuează (nu direct)",
     "directEgress": "Direct (fără proxy)",
-    "ownProxy": "Proxy propriu"
+    "ownProxy": "Proxy propriu",
+    "freeTierPause": "Modelul {model} este pus în pauză (429), revine la {time}",
+    "freeTierPauseProvider": "Pus în pauză (429), revine la {time}",
+    "freeTierPauseNote": "Pauză în proces pe această instanță"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13052,6 +13086,10 @@
     "inactiveCount": "{count} inactive",
     "dbOverrideCount": "{count} suprascrieri DB",
     "searchPlaceholder": "Caută flaguri...",
+    "descriptionModeLabel": "Vizualizare descriere",
+    "descriptionModeHint": "La trecerea mouse-ului: cardurile rămân compacte, iar trecerea peste o descriere afișează textul complet. Text complet: afișați întotdeauna descrierea completă.",
+    "descriptionModeHover": "La trecerea mouse-ului",
+    "descriptionModeFull": "Text complet",
     "categories": {
       "all": "Toate",
       "security": "Securitate",
@@ -13679,7 +13717,7 @@
     "secondaryNote": "Disponibil și pe Open VSX (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "Închide"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Publica ID-urile oglinzii <gateway-alias>/<model> pe /v1/models pentru modelele al căror proprietar canonical nu are un acreditiv activ, dar un gateway passthrough cu un acreditiv activ le rotește. Atenție: adaugă intrări în catalog pentru toți clienții când este activat global.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Publica ID-urile oglinzii '<gateway-alias>'/'<model>' pe /v1/models pentru modelele al căror proprietar canonical nu are un acreditiv activ, dar un gateway passthrough cu un acreditiv activ le rotește. Atenție: adaugă intrări în catalog pentru toți clienții când este activat global.",
   "radarPage": {
     "title": "Catalog Radar",
     "subtitle": "Catalog gratuit de modele îmbogățit cu inteligență comunitară",

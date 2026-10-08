@@ -120,16 +120,16 @@
 
 ## 📖 የአቅራቢ ማዋቀር
 
-ከCSV ወይም JSON ፋይል ብዙ API-key ግንኙነቶችን በአንድ ጊዜ ለማከል፣ **ዳሽቦርድ → አቅራቢዎች → ከፋይል አስመጣ**ን ይጠቀሙ። ዓምዶቹ በቦታ ቅደም ተከተል የሚወሰኑ ናቸው (`provider,name,apiKey,baseUrl,priority`)፤ `provider` አስቀድሞ እንደሚተዳደር አቅራቢ ወይም ተኳሃኝ ኖድ መኖር አለበት። [አቅራቢዎችን ከCSV ወይም JSON ፋይል ማስመጣት](../providers/CSV-IMPORT.md)ን ይመልከቱ።
+ከCSV ወይም JSON ፋይል ብዙ API-key ግንኙነቶችን በአንድ ጊዜ ለመጨመር፣ **Dashboard → Providers → Import from file** ይጠቀሙ። ዓምዶቹ በቦታ ቅደም ተከተል ይወሰናሉ (`provider,name,apiKey,baseUrl,priority`)፤ `provider` አስቀድሞ እንደሚተዳደር አቅራቢ ወይም ተኳሃኝ ኖድ መኖር አለበት። [አቅራቢዎችን ከCSV ወይም JSON ፋይል ማስመጣት](../providers/CSV-IMPORT.md)ን ይመልከቱ።
 
 ### 🔐 የደንበኝነት ምዝገባ አቅራቢዎች
 
 #### Claude Code (Pro/Max)
 
 ```bash
-ዳሽቦርድ → አቅራቢዎች → Claude Codeን አገናኝ
-→ በOAuth ይግቡ → ራስ-ሰር የቶከን እድሳት
-→ የ5-ሰዓት + ሳምንታዊ ኮታ ክትትል
+Dashboard → Providers → Claude Codeን ያገናኙ
+→ በOAuth ይግቡ → ቶከን በራስ-ሰር ይታደሳል
+→ የ5 ሰዓት + ሳምንታዊ ኮታ ክትትል
 
 ሞዴሎች:
   cc/claude-opus-4-7
@@ -137,18 +137,20 @@
   cc/claude-haiku-4-5-20251001
 ```
 
-**የባለሙያ ምክር:** ለውስብስብ ተግባራት Opusን፣ ለፍጥነት Sonnetን ይጠቀሙ። OmniRoute ኮታን በየሞዴሉ ይከታተላል!
+**የባለሙያ ምክር:** ለውስብስብ ተግባራት Opusን፣ ለፍጥነት Sonnetን ይጠቀሙ። OmniRoute ኮታውን በየሞዴሉ ይከታተላል!
+
+በOmniRoute ሆስት ላይ ብራውዘር የለም? Claude Code በገባበት በማንኛውም ቦታ `claude setup-token`ን ያስኪዱና የአንድ ዓመቱን ቶከን በ**Setup Token** ትር ውስጥ ይለጥፉ። [Claude Codeን በsetup token መጠቀም](../providers/CLAUDE_CODE_SETUP_TOKEN.md)ን ይመልከቱ።
 
 ከClaude እና Claude Code ጋር ተኳሃኝ የሆኑ መስመሮች ለOpus እና Sonnet
-ሞዴሎች የ`max` የማሰብ ጥረትን እንዳለ ያቆያሉ። Haiku ሞዴሎች የ`max` የጥረት ደረጃን ስለማይቀበሉ፣ OmniRoute
+ሞዴሎች የ`max` የማሰብ ጥረትን እንዳለ ያቆያሉ። Haiku ሞዴሎች የ`max` ጥረት ደረጃን አይቀበሉም፤ ስለዚህ OmniRoute
 ጥያቄውን ወደ ላይኛው አቅራቢ ከመላኩ በፊት ወደ ከፍተኛ የማሰብ በጀት ዝቅ ያደርገዋል።
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-ዳሽቦርድ → አቅራቢዎች → Codexን አገናኝ
+Dashboard → Providers → Codexን ያገናኙ
 → በOAuth ይግቡ (port 1455)
-→ የ5-ሰዓት + ሳምንታዊ ዳግም ማስጀመር
+→ የ5 ሰዓት + ሳምንታዊ ዳግም ማስጀመር
 
 ሞዴሎች:
   cx/gpt-5.5
@@ -160,7 +162,7 @@
 #### GitHub Copilot
 
 ```bash
-ዳሽቦርድ → አቅራቢዎች → GitHubን አገናኝ
+Dashboard → Providers → GitHubን ያገናኙ
 → በGitHub በኩል OAuth
 → ወርሃዊ ዳግም ማስጀመር (በየወሩ 1ኛ ቀን)
 
@@ -174,53 +176,53 @@
 
 ### 💰 ርካሽ አቅራቢዎች
 
-#### GLM-4.7 (ዕለታዊ ዳግም ማስጀመር፣ $0.6/1M)
+#### GLM-4.7 (በየቀኑ ዳግም ማስጀመር፣ $0.6/1M)
 
 1. ይመዝገቡ፦ [Zhipu AI](https://open.bigmodel.cn)
-2. ከCoding Plan የAPI ቁልፍ ያግኙ
-3. ዳሽቦርድ → የAPI ቁልፍ አክል፦ አቅራቢ፦ `glm`፣ የAPI ቁልፍ፦ `your-key`
+2. ከCoding Plan API key ያግኙ
+3. Dashboard → Add API Key፦ Provider፦ `glm`፣ API Key፦ `your-key`
 
-**አጠቃቀም:** `glm/glm-4.7` — **የባለሙያ ምክር:** Coding Plan በ1/7 ወጪ 3× ኮታ ያቀርባል! በየቀኑ 10:00 AM ዳግም ይጀምራል።
+**አጠቃቀም:** `glm/glm-4.7` — **የባለሙያ ምክር:** Coding Plan በ1/7 ወጪ 3× ኮታ ይሰጣል! በየቀኑ 10:00 AM ዳግም ይጀምራል።
 
-#### MiniMax M2.1 (የ5 ሰዓት ዳግም ማስጀመር፣ $0.20/1M)
+#### MiniMax M2.1 (በ5 ሰዓት ዳግም ማስጀመር፣ $0.20/1M)
 
 1. ይመዝገቡ፦ [MiniMax](https://www.minimax.io)
-2. የAPI ቁልፍ ያግኙ → ዳሽቦርድ → የAPI ቁልፍ አክል
+2. API key ያግኙ → Dashboard → Add API Key
 
-**አጠቃቀም:** `minimax/MiniMax-M2.1` — **የባለሙያ ምክር:** ለረጅም አውድ በጣም ርካሹ አማራጭ (1M ቶከኖች)!
+**አጠቃቀም:** `minimax/MiniMax-M2.1` — **የባለሙያ ምክር:** ለረጅም አውድ (1M ቶከኖች) በጣም ርካሹ አማራጭ ነው!
 
-#### Kimi K2 (በወር ቋሚ $9)
+#### Kimi K2 (ቋሚ $9/ወር)
 
-1. ደንበኛ ይሁኑ፦ [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. የAPI ቁልፍ ያግኙ → ዳሽቦርድ → የAPI ቁልፍ አክል
+1. ይመዝገቡ፦ [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
+2. API key ያግኙ → Dashboard → Add API Key
 
-**አጠቃቀም:** `kimi/kimi-k2.5` — **የባለሙያ ምክር:** ለ10M ቶከኖች በወር ቋሚ $9 = ውጤታማ ወጪ $0.90/1M!
+**አጠቃቀም:** `kimi/kimi-k2.5` — **የባለሙያ ምክር:** ለ10M ቶከኖች ቋሚ $9/ወር = በተግባር $0.90/1M ወጪ!
 
 #### Baidu Qianfan / ERNIE
 
 1. ይመዝገቡ፦ [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. የQianfan API ቁልፍ ይፍጠሩ → ዳሽቦርድ → የAPI ቁልፍ አክል፦ አቅራቢ፦ `qianfan`
+2. የQianfan API key ይፍጠሩ → Dashboard → Add API Key፦ Provider፦ `qianfan`
 
 **አጠቃቀም:** `qianfan/ernie-5.1`፣ `qianfan/ernie-x1.1`፣ ወይም ሌላ ከQianfan OpenAI ጋር ተኳሃኝ የሆነ የሞዴል ID።
 
 ### 🆓 ነፃ አቅራቢዎች
 
-ማረጋገጫ የማይፈልጉ ነፃ አቅራቢዎች በአቅራቢ ገጻቸው ላይ ከ**ማረጋገጫ አያስፈልግም** አጠገብ መቀየሪያ አላቸው።
-መቀየሪያውን ማጥፋት ያንን አቅራቢ ያሰናክላል፣ ከተዋቀሩ/ከታመቁ የአቅራቢዎች እይታዎች ያስወግደዋል፣ እና
+ማረጋገጫ የማይፈልጉ ነፃ አቅራቢዎች በአቅራቢ ገጻቸው ላይ ከ**No authentication required** ጎን መቀየሪያ አላቸው።
+ማጥፋት ያንን አቅራቢ ያሰናክላል፣ ከProviders የተዋቀሩ/የታመቁ እይታዎች ያስወግደዋል፣ እንዲሁም
 ሞዴሎቹን ከ`/v1/models` ያስወግዳል።
 
 #### Qoder (9 ነፃ ሞዴሎች)
 
 ```bash
-ዳሽቦርድ → Qoderን አገናኝ → በOAuth ይግቡ → መዳረሻው አሁን ባሉት የአቅራቢ ገደቦች ይወሰናል
+Dashboard → Qoderን ያገናኙ → በOAuth ይግቡ → መዳረሻው አሁን ባሉት የአቅራቢው ገደቦች ይወሰናል
 
 ሞዴሎች: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
-#### Kiro (Claude ነፃ)
+#### Kiro (Claude በነፃ)
 
 ```bash
-ዳሽቦርድ → Kiroን አገናኝ → AWS Builder ID ወይም Google/GitHub → ~50 ክሬዲቶች/ወር
+Dashboard → Kiroን ያገናኙ → AWS Builder ID ወይም Google/GitHub → ~50 ክሬዲቶች/ወር
 
 ሞዴሎች: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
@@ -1233,7 +1235,7 @@ OmniRoute ረጅም ጊዜ የሚወስዱ ተግባራትን የአካባቢዎ
 
 ## 🛠️ ፕሮግራማዊ አስተዳደር
 
-በHTTP በኩል **የ`manage` ወሰን ያለውን Bearer ቁልፍ** በመጠቀም እያንዳንዱን የOmniRoute ሀብት (አቅራቢዎች፣ ጥምረቶች፣ ቁልፎች፣ ቅንብሮች) ማስተዳደር ይችላሉ።
+**`manage` ወሰን ያለውን Bearer ቁልፍ** በመጠቀም እያንዳንዱን የOmniRoute ሀብት (አቅራቢዎች፣ ጥምረቶች፣ ቁልፎች፣ ቅንብሮች) በHTTP ማስተዳደር ይችላሉ።
 
 ቁልፉን በ**ዳሽቦርድ → API ቁልፎች → አዲስ ቁልፍ → ወሰን፦ manage** ውስጥ ይፍጠሩ፣ ከዚያ፦
 
@@ -1260,7 +1262,7 @@ curl -X POST http://localhost:20128/api/keys -H "Authorization: Bearer $OMNIROUT
   -d '{ "name": "ci-bot", "scopes": ["chat"] }'
 ```
 
-የተሟላውን የመጨረሻ ነጥቦች ካታሎግ እና የጥያቄ/ምላሽ ንድፎች ለማየት [API_REFERENCE.md](../reference/API_REFERENCE.md)ን ይመልከቱ።
+ሙሉውን የendpoint ካታሎግ እና የጥያቄ/ምላሽ ንድፎች ለማየት [API_REFERENCE.md](../reference/API_REFERENCE.md)ን ይመልከቱ።
 
 ---
 

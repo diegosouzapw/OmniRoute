@@ -4,61 +4,61 @@
 
 ---
 
-# Keš za ponavljanje rezonovanja (Reasoning Replay Cache)
-
 > **Izvor istine:** `src/lib/db/reasoningCache.ts`, `open-sse/services/reasoningCache.ts`
-> **Posljednje ažurirano:** 2026-06-28 — v3.8.40
+> **Posljednje ažuriranje:** 2026-06-28 — v3.8.40
 
-OmniRoute hvata `reasoning_content` asistenta koji generišu modeli sa režimom razmišljanja (thinking-mode) i transparentno ga ponavlja pri zahtjevima sa više okreta (multi-turn) kada to zahtijeva upstream provajder. Ovo eliminiše HTTP 400 greške koje strogi provajderi izbacuju kada u istoriji razgovora klijenta nedostaje rezonovanje iz prethodnog okreta.
+OmniRoute bilježi `reasoning_content` asistenta koji generišu modeli s načinom razmišljanja i transparentno ga ponovo koristi u zahtjevima s više poteza kada to zahtijeva nadređeni pružalac usluge. Time se uklanjaju HTTP 400 greške koje strogi pružaoci usluga prijavljuju kada u historiji razgovora klijenta nedostaje obrazloženje iz prethodnog poteza.
 
 ## Zašto ovo postoji
 
-Nekoliko provajdera sa režimom razmišljanja odbija naknadni okret (follow-up turn) osim ako **prethodna poruka asistenta ne uključuje originalni `reasoning_content`**. Upstream vraća 400 sa porukama poput:
+Nekoliko pružalaca usluga s načinom razmišljanja odbija naredni potez osim ako **prethodna poruka asistenta sadrži izvorni `reasoning_content`**. Nadređeni servis vraća 400 s porukama poput:
 
 ```
 Param Incorrect: The reasoning_content in the thinking mode must be passed back to the API.
 ```
 
-Ali tipični klijenti (Cursor, Cline, Roo Code, OpenAI SDK) uklanjaju `reasoning_content` iz istorije koju ponavljaju. OmniRoute ga vraća iz keša na strani servera tako da je zahtjev koji upstream vidi konzistentan. Issue #1628 je uveo hibridnu memorijsku/SQLite perzistenciju tako da keš preživljava ponovna pokretanja procesa.
+Međutim, uobičajeni klijenti (Cursor, Cline, Roo Code, OpenAI SDK) uklanjaju `reasoning_content` iz historije koju ponovo šalju. OmniRoute ga vraća iz predmemorije na strani servera kako bi zahtjev koji nadređeni servis vidi bio dosljedan. Problem #1628 uveo je hibridnu postojanost u memoriji/SQLite-u kako bi predmemorija preživjela ponovna pokretanja procesa.
 
 ## Arhitektura
 
 ```
-Turn N (asistent generiše):
+Potez N (asistent generiše):
   → odgovor sadrži reasoning_content + tool_calls
   → ako requiresReasoningReplay(provider, model): cacheReasoningFromAssistantMessage()
-      upisuje (memorija + DB), ključirano prema svakom tool_call.id
-  → prosljeđuje odgovor klijentu (koji može, a ne mora zadržati rezonovanje)
+      upisuje (memorija + baza podataka), koristeći svaki tool_call.id kao ključ
+  → prosljeđuje odgovor klijentu (koji može, ali ne mora zadržati obrazloženje)
 
-Turn N+1 (klijent šalje nastavak):
-  → translator detektuje: requiresReasoningReplay(provider, model) === true
-  → za svaku poruku asistenta sa tool_calls i bez reasoning_content:
-      lookupReasoning(toolCalls[0].id) → memorija → DB
-      hit  → msg.reasoning_content = cached; recordReplay()
-      miss → msg.reasoning_content = "" (naslijeđeni fallback za stariji DeepSeek)
-  → upstream vidi konzistentnu istoriju → nema 400
+Potez N+1 (klijent šalje naredni zahtjev):
+  → prevodilac otkriva: requiresReasoningReplay(provider, model) === true
+  → za svaku poruku asistenta s tool_calls i bez reasoning_content:
+      lookupReasoning(toolCalls[0].id) → memorija → baza podataka
+      pronađeno    → msg.reasoning_content = cached; recordReplay()
+      nije pronađeno → msg.reasoning_content = "" (naslijeđena rezervna opcija za stariji DeepSeek)
+  → nadređeni servis vidi dosljednu historiju → nema greške 400
 ```
 
-Hvatanje se dešava u `open-sse/handlers/chatCore.ts` (dvije lokacije, na dvije `cacheReasoningFromAssistantMessage` pozivne lokacije). Ponavljanje se dešava u `open-sse/translator/index.ts` nakon prinude šeme (schema coercion), ali prije dispečiranja.
+Bilježenje se odvija u `open-sse/handlers/chatCore.ts` (na dva mjesta, na dvije lokacije poziva `cacheReasoningFromAssistantMessage`). Ponovna upotreba odvija se u `open-sse/translator/index.ts` nakon usklađivanja sa shemom, ali prije slanja.
 
-## Skladištenje — Hibridna memorija + SQLite
+Obični potezi asistenta (bez poziva alata) koriste drugačije ključeve: `buildAssistantMessageCacheKey()` sažima opseg sesije zajedno s normaliziranim transkriptom u OpenAI formatu do tog poteza, jer DeepSeek zahtijeva obrazloženje _svakog_ prethodnog poteza čim je prisutan `tools`. Za odredišta Responses API-ja (naprimjer `opencode-go/deepseek-v4-flash`, usmjeren na `/responses`) tijelo nadređenog zahtjeva sadrži `input`, a ne `messages`, pa `translateRequest()` (`open-sse/translator/index.ts`) putem opcije povratnog poziva prijavljuje pivotni transkript koji je sažeo, a mjesta bilježenja sažimaju taj isti transkript. Prolaz ponovne upotrebe za Responses izvršava se nad OpenAI pivotom za svaki izvorni format, pa se ona primjenjuje i na klijente Anthropic Messages (Claude → OpenAI → Responses).
 
-Hot path koristi `Map` u memoriji (LRU-po-kreiranju) podržan SQLite tabelom za oporavak od pada i vidljivost na kontrolnoj tabli.
+## Pohrana — hibridna memorija + SQLite
 
-| Sloj     | Implementacija                                | Svrha                                             |
-| -------- | --------------------------------------------- | ------------------------------------------------- |
-| Memorija | `Map` u `open-sse/services/reasoningCache.ts` | Brze pretrage, izbacuje najstarije na 200         |
-| DB       | `reasoning_cache` tabela (`src/lib/db/`)      | Traje kroz ponovna pokretanja, pokreće statistiku |
+Kritična putanja koristi `Map` u memoriji (LRU prema vremenu kreiranja), podržan SQLite tabelom radi oporavka nakon pada i vidljivosti na nadzornoj ploči.
 
-Upisi idu na oba. Čitanja prvo konsultuju memoriju, zatim se vraćaju na DB (DB pogoci se promovišu nazad u memoriju). Neuspjesi DB-a nisu fatalni — keš u memoriji nastavlja da služi hot path.
+| Sloj     | Implementacija                                | Namjena                                                           |
+| -------- | --------------------------------------------- | ----------------------------------------------------------------- |
+| Memorija | `Map` u `open-sse/services/reasoningCache.ts` | Brze pretrage, uklanja najstarije nakon 200 unosa                 |
+| BP       | tabela `reasoning_cache` (`src/lib/db/`)      | Zadržava podatke nakon ponovnih pokretanja i omogućava statistiku |
+
+Upisi se vrše u oba sloja. Čitanja prvo provjeravaju memoriju, a zatim bazu podataka (pogoci u bazi podataka ponovo se učitavaju u memoriju). Greške baze podataka nisu fatalne — predmemorija u memoriji nastavlja opsluživati kritičnu putanju.
 
 **Zadane vrijednosti:**
 
 - TTL: `2h` (`TTL_MS = 2 * 60 * 60 * 1000`)
-- Maksimalan broj memorijskih unosa: `200` (`MAX_MEMORY_ENTRIES`)
-- Izbacivanje: najstariji `createdAt` prvi
+- Maksimalan broj unosa u memoriji: `200` (`MAX_MEMORY_ENTRIES`)
+- Uklanjanje: prvo najstariji `createdAt`
 
-## Šema baze podataka
+## Shema baze podataka
 
 Migracija: `src/lib/db/migrations/033_create_reasoning_cache.sql`
 
@@ -74,13 +74,13 @@ CREATE TABLE IF NOT EXISTS reasoning_cache (
 );
 ```
 
-Indeksi: `expires_at`, `provider`, `model`, `created_at`. `expires_at` se pohranjuje kao Unix epoch sekunde; SELECT sloj normalizuje naslijeđene tekstualne vrijednosti putem `EXPIRES_AT_EPOCH_SQL`.
+Indeksi: `expires_at`, `provider`, `model`, `created_at`. `expires_at` se pohranjuje kao broj sekundi Unix epohe; SELECT sloj normalizira naslijeđene tekstualne vrijednosti putem `EXPIRES_AT_EPOCH_SQL`.
 
-## Detekcija provajdera / modela
+## Otkrivanje pružaoca / modela
 
-Replay je omogućena kada `requiresReasoningReplay(provider, model)` vrati `true`. Funkcija provjerava dvije liste u `open-sse/services/reasoningCache.ts`.
+Ponovno reproduciranje je omogućeno kada `requiresReasoningReplay(provider, model)` vrati `true`. Funkcija provjerava dvije liste u `open-sse/services/reasoningCache.ts`.
 
-**ID-ovi provajdera (tačno podudaranje, neosjetljivo na velika/mala slova):**
+**ID-ovi pružalaca (tačno podudaranje, bez razlikovanja velikih i malih slova):**
 
 - `deepseek`
 - `opencode-go`
@@ -94,12 +94,12 @@ Replay je omogućena kada `requiresReasoningReplay(provider, model)` vrati `true
 - `kimi-coding-apikey`
 - `xiaomi-mimo`
 
-**Regex šabloni modela (neosjetljivo na velika/mala slova):**
+**Regex obrasci modela (bez razlikovanja velikih i malih slova):**
 
 - `/deepseek-r1/i`
 - `/deepseek-reasoner/i`
 - `/deepseek-chat/i`
-- `/deepseek[-/]?v4[-.]flash/i` i `/deepseek[-/]?v4[-.]pro/i` (V4 Flash / Pro, opcioni `-free` sufiks)
+- `/deepseek[-/]?v4[-.]flash/i` i `/deepseek[-/]?v4[-.]pro/i` (V4 Flash / Pro, opcionalni sufiks `-free`)
 - `/(deepseek|zen\/deepseek)-v4/i`
 - `/kimi[-/]k\d/i`
 - `/qwq/i`
@@ -107,21 +107,21 @@ Replay je omogućena kada `requiresReasoningReplay(provider, model)` vrati `true
 - `/glm.*think/i`
 - `/^mimo[-.]?v\d/i`
 
-Dodavanje novog strogog provajdera/modela znači dodavanje na jednu od ovih lista i pisanje jediničnog testa koji potvrđuje replay injekciju. PR opis treba citirati tačan upstream 400 string koji je motivisao promjenu.
+Dodavanje novog strogog pružaoca/modela podrazumijeva dodavanje u jednu od ovih lista i pisanje jediničnog testa koji potvrđuje ubacivanje ponovne reprodukcije. Opis PR-a treba navesti tačan uzvodni tekst greške 400 koji je motivirao promjenu.
 
 ## REST API
 
-Keš izlaže dvije krajnje tačke (endpoints) pod `src/app/api/cache/reasoning/route.ts`. Obje zahtijevaju upravljačku autentifikaciju (`isAuthenticated` iz `@/shared/utils/apiAuth`).
+Keš izlaže dvije krajnje tačke u `src/app/api/cache/reasoning/route.ts`. Obje zahtijevaju upravljačku autentifikaciju (`isAuthenticated` iz `@/shared/utils/apiAuth`).
 
-| Metoda | Endpoint                                                  | Opis                                                                      |
-| ------ | --------------------------------------------------------- | ------------------------------------------------------------------------- |
-| GET    | `/api/cache/reasoning`                                    | Statistika + paginirani unosi                                             |
-| GET    | `/api/cache/reasoning?provider=deepseek&model=...&limit=` | Filtrirani ispis (limit ograničen na `[1, 200]`)                          |
-| DELETE | `/api/cache/reasoning`                                    | Brisanje svega (memorija + baza) i resetovanje brojača pogodaka/promašaja |
-| DELETE | `/api/cache/reasoning?provider=deepseek`                  | Brisanje samo unosa za jednog provajdera                                  |
-| DELETE | `/api/cache/reasoning?toolCallId=call_abc`                | Brisanje jednog unosa                                                     |
+| Metoda | Krajnja tačka                                             | Opis                                                                     |
+| ------ | --------------------------------------------------------- | ------------------------------------------------------------------------ |
+| GET    | `/api/cache/reasoning`                                    | Statistika + straničeni unosi                                            |
+| GET    | `/api/cache/reasoning?provider=deepseek&model=...&limit=` | Filtrirani prikaz (`limit` ograničen na raspon `[1, 200]`)               |
+| DELETE | `/api/cache/reasoning`                                    | Briše sve (memoriju + bazu podataka) i resetuje brojače pogodaka/promaja |
+| DELETE | `/api/cache/reasoning?provider=deepseek`                  | Briše samo unose za jednog pružaoca                                      |
+| DELETE | `/api/cache/reasoning?toolCallId=call_abc`                | Briše jedan unos                                                         |
 
-**Oblik GET odgovora:**
+**Struktura GET odgovora:**
 
 ```json
 {
@@ -155,17 +155,17 @@ Keš izlaže dvije krajnje tačke (endpoints) pod `src/app/api/cache/reasoning/r
 
 ## Operativne napomene
 
-- **Čišćenje:** `cleanupReasoningCache()` briše istekle memorijske unose i pokreće `DELETE FROM reasoning_cache WHERE expires_at <= unixepoch('now')`. Radnici za provjeru ispravnosti (health-check workers) ovo pozivaju periodično.
-- **Oporavak od pada:** Nakon ponovnog pokretanja, memorija je prazna, ali baza podataka i dalje sadrži neistekle unose. Prva pretraga za dati `tool_call_id` je pogodak u bazi podataka; naknadne pretrage su pogoci u memoriji.
-- **Bez rezonovanja, bez keša:** `cacheReasoningFromAssistantMessage` vraća `0` kada poruka asistenta nema polje `reasoning_content` / `reasoning`, tako da odgovori bez razmišljanja ne koštaju ništa.
-- **Upis je također ograničen:** oba mjesta poziva u `chatCore.ts` (nestriming i striming) pozivaju `cacheReasoningFromAssistantMessage()` samo kada je `requiresReasoningReplay(provider, model)` jednako `true` — isti predikat koji provjerava strana za čitanje. Instalacije koje nikada ne koriste provajder za ponovnu reprodukciju (replay provider) prestaju plaćati cijenu upisa, ažuriranja indeksa i try/catch bloka pri svakom odgovoru koji sadrži rezonovanje.
-- **Nestriktni provajderi:** Kada je `requiresReasoningReplay` `false` i ciljni format je OpenAI, prevodilac **uklanja** svako polje `reasoning_content` iz odlaznih poruka — OpenAI Chat Completions ga ne prihvata.
+- **Čišćenje:** `cleanupReasoningCache()` uklanja istekle unose iz memorije i izvršava `DELETE FROM reasoning_cache WHERE expires_at <= unixepoch('now')`. Procesi za provjeru stanja periodično pozivaju ovu funkciju.
+- **Oporavak nakon pada:** Nakon ponovnog pokretanja memorija je prazna, ali baza podataka i dalje sadrži unose koji nisu istekli. Prvo traženje za dati `tool_call_id` pristupa bazi podataka; naredna traženja pristupaju memoriji.
+- **Bez rezonovanja nema ni keširanja:** `cacheReasoningFromAssistantMessage` vraća `0` kada poruka asistenta nema polje `reasoning_content` / `reasoning`, tako da odgovori bez rezonovanja ne troše resurse.
+- **I upis je uslovljen:** obje lokacije poziva u `chatCore.ts` (bez streaminga i sa streamingom) pozivaju `cacheReasoningFromAssistantMessage()` samo kada je `requiresReasoningReplay(provider, model)` jednako `true` — isti predikat koji provjerava strana za čitanje. Instalacije koje nikada ne koriste pružaoca s ponovnom reprodukcijom više ne snose trošak upisa, ažuriranja indeksa i try/catch bloka za svaki odgovor koji sadrži rezonovanje.
+- **Pružaoci bez strogih zahtjeva:** Kada je `requiresReasoningReplay` jednako `false`, a ciljni format je OpenAI, prevodilac **uklanja** svako polje `reasoning_content` iz odlaznih poruka — OpenAI Chat Completions ga ne prihvata.
 
-## Vidi također
+## Pogledajte također
 
-- [RESILIENCE_GUIDE.md](../architecture/RESILIENCE_GUIDE.md) — prekidači strujnog kola (circuit breakers), periodi hlađenja (cooldowns), blokade modela
-- [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — dijagnosticiranje uzvodnih 400 grešaka
+- [RESILIENCE_GUIDE.md](../architecture/RESILIENCE_GUIDE.md) — prekidači strujnog kola, periodi hlađenja, zaključavanja modela
+- [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — dijagnosticiranje uzvodnih grešaka 400
 - Izvor: `src/lib/db/reasoningCache.ts`, `open-sse/services/reasoningCache.ts`, `open-sse/translator/index.ts`
 - Migracija: `src/lib/db/migrations/033_create_reasoning_cache.sql`
 - API ruta: `src/app/api/cache/reasoning/route.ts`
-- Originalni problem: #1628
+- Izvorni problem: #1628

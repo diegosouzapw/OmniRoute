@@ -118,7 +118,7 @@ type RuntimeModelMeta = {
 // Providers that already own a native `-{effort}` suffix mechanism — never
 // double-resolve the generic synced suffix on top of theirs (#7694, mirrors the
 // catalog-side skip list in `open-sse/utils/syncedEffortVariants.ts`).
-const SYNCED_EFFORT_SKIP_PROVIDER_PREFIXES = ["codex", "kimi"];
+const SYNCED_EFFORT_SKIP_PROVIDER_PREFIXES = ["kimi"];
 
 function isSyncedEffortSkippedProvider(providerId: string): boolean {
   return SYNCED_EFFORT_SKIP_PROVIDER_PREFIXES.some((prefix) => providerId.startsWith(prefix));
@@ -186,6 +186,9 @@ function resolveSyncedModelIdAndEffort(
   modelId: string,
   syncedModels: unknown
 ): { modelId: string; effort: string | null } {
+  if (providerId === "codex" && findRegistryModel(providerId, modelId)) {
+    return { modelId, effort: null };
+  }
   if (isSyncedEffortSkippedProvider(providerId) || !Array.isArray(syncedModels)) {
     return { modelId, effort: null };
   }

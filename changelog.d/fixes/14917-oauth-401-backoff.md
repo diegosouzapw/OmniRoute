@@ -1,1 +1,0 @@
-- **fix(auth):** back off an OAuth connection that keeps failing with 401 (still-valid or invalid-token class) instead of re-selecting it with cooldown 0 and refreshing the token on every request; the single-model cooldown retry no longer waits out an auth cooldown ([#14917](https://github.com/diegosouzapw/OmniRoute/pull/14917))

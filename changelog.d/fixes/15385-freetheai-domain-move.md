@@ -1,0 +1,1 @@
+- **fix(providers):** the `freetheai` gateway now points at `freetheai.org` — `api.freetheai.xyz` is retired (answers HTTP 530), signup moved off Discord, and model ids are namespaced `fta/<group>/<model>` and must be sent in full ([#15385](https://github.com/diegosouzapw/OmniRoute/issues/15385)) — thanks Vibhek Soni (FreeTheAI)

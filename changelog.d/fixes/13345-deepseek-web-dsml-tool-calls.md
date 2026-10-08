@@ -1,0 +1,1 @@
+- **fix(deepseek-web):** handle native DeepSeek Web DSML tool calls (`<calls>` / `<invoke>` / `<parameter>`, including root-level invokes) so they parse into tool calls instead of leaking as plain text ([#13345](https://github.com/diegosouzapw/OmniRoute/pull/13345)) — thanks @espokaos-ops

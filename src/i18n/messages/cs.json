@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Fondy proxy serverů a rotace opencode pro jednotlivé účty dočasně přestanou znovu nabízet proxy server, který právě selhal (odmítnutá sonda TCP nebo odpověď 429 přijatá přes tento server), a to na dobu platnou pro daný proces, která se při každém opakování zdvojnásobí až do stanoveného maxima. Stav proxy serveru se nezapisuje; pokud jsou odloženi všichni kandidáti, volba se nemění. Ve výchozím nastavení zapnuto; `false` obnoví prostý výběr.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "U poskytovatelů, jejichž kvóta se počítá podle výstupní (egress) adresy, zařadí člena poolu sdílejícího pozorovanou egress adresu nedávno odmítnutého člena těsně pod zdravé členy. Pouze pořadí, nikdy nevyřazuje. Vyžaduje PROXY_SKIP_RECENTLY_FAILED, který vytváří signál odmítnutí, jejž čte. Ve výchozím stavu vypnuto: pořadí výběru je přesně prostá rotace.",
   "featureFlagProxyPoolEgressObservationDescription": "Zobrazit pod fondem proxy serverů na řídicím panelu, kolik pozorovaných odchozích IP adres obsluhovalo jeho členy za posledních 24 h, kolik připojení je použilo a jaký byl nejvyšší počet připojení zaznamenaný za jednou IP adresou. Pouze pro čtení, vypočítáváno z protokolu proxy serveru a nikdy nepoužíváno ke směrování. Ve výchozím nastavení vypnuto: editor fondu zůstává beze změny a trasa pozorování vrací null.",
+  "featureFlagProxyOperatorEgressDescription": "Přijmout datumované pozorované adresy odeslané operátorem pro každého člena fondu a sloučit je s čtením denního záznamu pro zobrazení a pořadí fondu. Ve výchozím nastavení je vypnuto: push trasa vrací chybu 404 a čtení fondu se chovají přesně jako dříve.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Při kontrole stavu proxy serveru umožnit, aby sonda odmítnutá cílem (401/403/429: proxy server požadavek předal, ale cíl odmítl tuto odchozí IP adresu) vynulovala řadu po sobě jdoucích selhání proxy serveru stejně jako úspěšně obsloužená sonda. Ve výchozím nastavení vypnuto: odmítnutí zůstává neutrální a řadu zachovává. Odpověď 5xx zůstává v obou případech neprůkazná a odmítnutí nikdy neodebere, nezakáže ani znovu neaktivuje proxy server.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Povolit automatickému čištění odstraňovat úlohy Batch API v koncovém stavu (dokončené/neúspěšné/zrušené/expirované), které jsou starší než OMNIROUTE_BATCH_RETENTION_DAYS, spolu s jejich kontrolními body pro jednotlivé řádky a mazat obsah BLOB nahraných souborů po uplynutí jejich vlastního expires_at. Ve výchozím nastavení vypnuto: každá stávající instalace uchovává tato data přesně jako dříve, dokud správce tuto funkci nepovolí. Trasa DELETE /api/v1/batches/delete-completed spouštěná správcem zůstává v obou případech beze změny – jde o samostatný, nepodmíněný veřejný kontrakt API.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Načítat aktuální katalog modelů xAI pro připojení xai-oauth z https://api.x.ai/v1/models pomocí tokenu OAuth typu Bearer namísto neměnného statického základu. Ve výchozím nastavení vypnuto: xai-oauth nadále beze změny poskytuje statický základ. Při jakékoli chybě zjišťování se použije statický základ.",
@@ -5692,7 +5693,7 @@
     "claudeImportBulkModePaste": "Vložte pole JSON",
     "claudeImportBulkModeZip": "Nahrajte ZIP",
     "claudeImportBulkUploadHint": "Uložte nebo vyzvedněte až 50 souborů .credentials.json (každý 256 kB, celkem 10 MB).",
-    "claudeImportBulkPasteHint": "Vložte pole objektů: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "Vložte pole objektů: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": "ZIP obsahující položky .json. Maximálně 50 záznamů, 10 MB rozbaleno.",
     "claudeImportBulkSubmit": "Importovat vše",
     "claudeImportBulkSuccess": "Importováno {count} připojení Claude",
@@ -5724,7 +5725,7 @@
     "geminiImportBulkModePaste": "Vložte pole JSON",
     "geminiImportBulkModeZip": "Nahrajte ZIP",
     "geminiImportBulkUploadHint": "Odložte nebo vyzvedněte až 50 souborů oauth_creds.json (každý 256 kB, celkem 10 MB).",
-    "geminiImportBulkPasteHint": "Vložte pole objektů: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "Vložte pole objektů: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "ZIP obsahující záznamy oauth_creds.json. Maximálně 50 záznamů, 10 MB rozbaleno.",
     "geminiImportBulkSubmit": "Importovat vše",
     "geminiImportBulkSuccess": "Importováno {count} spojení Gemini",
@@ -5773,7 +5774,7 @@
     "codexImportBulkModePaste": "Vložit seznam",
     "codexImportBulkModeZip": "ZIP archiv",
     "codexImportBulkUploadHint": "Vyberte více souborů .json nebo je přetáhněte",
-    "codexImportBulkPasteHint": "Pole JSON [ {...}, {...} ] nebo více JSON oddělených --- na vlastním řádku",
+    "codexImportBulkPasteHint": "Pole JSON [ '{...}', '{...}' ] nebo více JSON oddělených --- na vlastním řádku",
     "codexImportBulkZipHint": "Nahrajte soubor .zip obsahující soubory auth.json (max. 50 souborů, 10 MB)",
     "codexImportBulkSubmit": "Importovat {count} účty",
     "codexImportBulkLimit": "Maximálně 50 souborů na import",
@@ -6011,7 +6012,7 @@
     "validationModelIdPlaceholder": "např. meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "Klíč API nebo JSON účtu služby",
     "vertexCredentialHint": "Klíče API používají spravovaný katalog projektů. JSON účtu služby umožňuje živé vyhledávání v Model Garden.",
-    "vertexServiceAccountPlaceholder": "Vložte klíč API, JSON účtu služby ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) nebo přístupový token OAuth",
+    "vertexServiceAccountPlaceholder": "Vložte klíč API, JSON účtu služby ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') nebo přístupový token OAuth",
     "webCookieProviders": "Poskytovatelé webových souborů cookie",
     "weeklyShort": "Týdně",
     "xiaomiMimoBaseUrlHint": "Tip pro základní URL Xiaomi Mimo",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Lokální koncový bod proxy jádra je neplatný; uzly SS/VMess/Trojan/VLESS byly ignorovány.",
         "NEEDS_CORE_NOT_CONFIGURED": "Tento odběr obsahuje uzly, které vyžadují lokální proxy jádro (SS/VMess/Trojan/VLESS); nebudou směrovány, dokud nenakonfigurujete SOCKS5 koncový bod lokálního jádra.",
         "NO_USABLE_NODES": "Odběr neposkytl žádné použitelné uzly (http/https/socks5 nebo uzly s koncovým bodem lokálního jádra).",
-        "SELECTOR_SWITCH_FAILED": "Řídicí volání proxy-core selhalo; předchozí trasa zůstává aktivní. Zkontrolujte řídicí URL a tajný klíč a obnovte."
+        "SELECTOR_SWITCH_FAILED": "Řídicí volání proxy-core selhalo; předchozí trasa zůstává aktivní. Zkontrolujte řídicí URL a tajný klíč a obnovte.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Vygenerovanou konfiguraci jádra se nepodařilo nahradit přijatý soubor; místo toho byla zachována kopie vedle něj.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Některé položky byly během generování přeskočeny. Viz serverový log."
       },
       "description": "Vložte odkaz na předplatné proxy. Po povolení je provoz směrován přes fond proxy v globálním režimu nebo režimu pravidel (zadaný poskytovatel). Uzly předplatného se automaticky synchronizují do fondu proxy a znovu používají existující mechanismy dotazování, kontroly stavu a ochrany proti úniku.",
       "addSubscription": "Přidat předplatné",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Zatím žádné zaznamenané přepnutí",
       "lastSwitchMember": "Obsluhující člen",
       "nextSwitch": "Další možné přepnutí",
-      "nextSwitchNow": "Nyní"
+      "nextSwitchNow": "Nyní",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Cesta k binárnímu souboru jádra",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Volitelné: ověří vygenerovaný soubor binárním souborem jádra před nahrazením přijatého souboru. Ponechte prázdné pro zápis vedle něj. Adresář se vytvoří, pokud neexistuje."
     },
     "bulkHealthcheck": "Hromadná kontrola stavu",
     "bulkHealthcheckDesc": "Otestovat všechny nakonfigurované proxy servery vůči cílové URL a zjistit, které fungují.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "Komprese popisu MCP",
     "mcpAccessibilityTitle": "Výstup přístupnosti MCP",
     "compressionSettingsCavemanIntensity": "Intenzita jeskynního muže",
-    "compressionSettingsCavemanOutputMode": "Režim výstupu Caveman",
     "compressionSettingsOutputStyles": "Styly výstupu",
     "compressionStylesTileTitle": "Styly výstupu",
     "compressionSettingsOutputIntensity": "Výstupní intenzita",
-    "compressionSettingsAutoClarityBypass": "Automatické vynechání jasnosti",
     "compressionEffectivePipeline": "Efektivní pipeline:",
     "compressionDerivedOff": "vypnuto",
     "compressionDerivedRuns": "spuštění: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "Co GET /v1/models uvádí pro tento klíč. Zúžení seznamu nikdy nezmění, které modely může klíč volat.",
     "catalogScopeAll": "Obojí",
     "catalogScopeCombos": "Pouze komba",
-    "catalogScopeModels": "Pouze modely"
+    "catalogScopeModels": "Pouze modely",
+    "resilienceTokenRefreshTitle": "Přerušovač obnovy tokenu",
+    "resilienceTokenRefreshDesc": "Po opakovaných selháních zastavuje opakované obnovování tokenu. Rozsah pro jedno připojení izoluje jeden mrtvý účet, aby zdravé účty u stejného poskytovatele mohly pokračovat v obnovování.",
+    "resilienceTokenRefreshScope": "Pokusy o obnovení tokenu pro jednoho poskytovatele",
+    "resilienceTokenRefreshTrigger": "Opakované neúspěšné pokusy o obnovení",
+    "resilienceTokenRefreshEffect": "Pozastavuje pokusy o obnovení během ochlazovacího období",
+    "resilienceTokenRefreshScopeLabel": "Rozsah",
+    "resilienceTokenRefreshScopeProvider": "Poskytovatel (všechny účty sdílejí jeden přerušovač)",
+    "resilienceTokenRefreshScopeConnection": "Připojení (každý účet má vlastní jistič)",
+    "resilienceTokenRefreshThreshold": "Neúspěchy před pozastavením",
+    "resilienceTokenRefreshCooldown": "Pauza po spuštění"
   },
   "contextRtk": {
     "title": "Modul RTK",
@@ -8544,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Načítání…",
     "loadFailed": "Nepodařilo se načíst informace o enginu.",
+    "settingsLoadFailed": "Uložená nastavení se nepodařilo načíst. Pole zobrazují výchozí hodnoty a tlačítko Uložit zůstane neaktivní, dokud se stránka znovu nenačte.",
     "engineNotFound": "Engine \"{engine}\" nebyl nalezen.",
     "saveFailed": "Nepodařilo se uložit konfiguraci.",
     "previewFailed": "Náhled selhal.",
@@ -8638,9 +8667,6 @@
       "minRows": {
         "label": "Minimální počet řádků ke komprimaci",
         "description": "Minimální počet řádků v homogenním poli JSON vyžadovaný ke spuštění tabulkové komprimace. Výchozí: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Zachovat systémový prompt"
       },
       "summarizerEnabled": {
         "label": "Povolit sumarizátor"
@@ -9029,12 +9055,7 @@
     "tooltipMinLength": "Zprávy kratší než toto nejsou komprimovány. Nižší = větší komprese.",
     "tooltipMinSavings": "Komprimujte pouze v případě, že uložíte alespoň tolik tokenů.",
     "ultraSettings": "Ultra nastavení",
-    "ultraSettingsDesc": "Sémantická komprese poháněná SLM",
-    "preview": {
-      "lite": "Odpovídej stručně. Zachovej technické termíny, kód, chyby, URL a identifikátory.",
-      "full": "Odpovídej stroze a úsporně. Zachovej veškerý technický obsah.",
-      "ultra": "Odpovídej maximálně stroze a používej běžné technické zkratky. Zachovej přesné symboly."
-    }
+    "ultraSettingsDesc": "Sémantická komprese poháněná SLM"
   },
   "translator": {
     "title": "Překladatel",
@@ -9653,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "např. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "např. def Fibonacci",
     "suiteBuilderCaseExpectedPlaceholderExact": "Vložte přesnou očekávanou odpověď",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "např. ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "např. ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "Použijte regulární výraz JavaScriptu bez zalamování lomítek.",
     "suiteBuilderNamePlaceholder": "např. Sada kvality kódu",
     "suiteBuilderAddCase": "Přidat případ",
@@ -10862,7 +10883,7 @@
     "grokAuthJsonDescription": "Vložte CELÝ obsah ~/.grok/auth.json (nejen pole JWT \"key\"). Holý JWT nemá refresh_token, takže připojení vyprší po uplynutí platnosti (#7610). Při dostupnosti upřednostněte specializovaný modální dialog pro import auth.json.",
     "devinDesktopPasteDescription": "Vložte existující API klíč Devin z ověřené relace Devin. Dostupnost exportu klíče a kroky se liší podle verze a účtu Devin.",
     "devinPasteDescription": "Zadejte svůj WINDSURF_API_KEY (získaný pomocí `devin auth login`, nebo prostřednictvím příkazu \"Windsurf: Poskytnout Auth Token\" v IDE Windsurf).",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "auth.json pro Grok Build",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "API Klíč / Token",
@@ -10875,7 +10896,10 @@
     "gitlabDuoSetupTitle": "Nastavení GitLab Duo OAuth",
     "gitlabDuoSetupMessage": "GitLab Duo OAuth není nakonfigurován. Zaregistrujte OAuth aplikaci na {applicationsUrl} s přesměrovací URI {redirectUri} a rozsahy \"{scopes}\", poté nastavte {clientIdEnv} (a volitelně {clientSecretEnv}) a restartujte.",
     "gitlabDuoSetupDescription": "Po registraci aplikace a nastavení proměnných prostředí na této instanci OmniRoute klikněte na Pokračovat pro zahájení přihlášení pomocí OAuth.",
-    "continue": "Pokračovat"
+    "continue": "Pokračovat",
+    "tabPasteSetupToken": "Token z nastavení",
+    "claudeSetupTokenDescription": "Spusťte v terminálu `claude setup-token` a vložte token, který vypíše. Platí jeden rok a nemá obnovovací token. OmniRoute před uložením odešle do Anthropic jeden testovací požadavek.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Připojte kurzorové IDE",
@@ -11073,6 +11097,7 @@
     "poolEgressFailuresUnattributed": "Selhání bez přiřazeného výstupu: {count}",
     "poolMemberEgress": "{host}:{port} odchozí přes {egressIp} · posledních {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: za posledních {hours} h nebyl zaznamenán žádný provoz",
+    "poolMemberEgressOperator": "{host}:{port} opustil přes {egressIp} · poskytované operátorem, {date}",
     "poolMemberEgressHint": "Poslední odchozí IP adresa zaznamenaná přes tohoto člena fondu během daného období, načtená z protokolu proxy. U člena bez provozu v tomto období se zobrazí řádek informující o nulovém provozu.",
     "poolRemove": "Odebrat",
     "poolRemoveFailed": "Nepodařilo se odebrat proxy z poolu",
@@ -11086,6 +11111,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy je nedostupná",
     "poolSetAsideKindIpQuota429": "omezení rychlosti podle IP (429)",
     "poolSetAsideKindSlow": "pomalé odpovědi",
+    "poolSetAsideKindGeoBlocked": "blokovaný region (403/451)",
     "poolSetAsideUntil": "Zpět v rotaci {endsAt}",
     "poolSetAsideRepeat": "Odloženo {count, plural, one {#krát} other {#krát}}",
     "poolUnknownAddress": "Neznámá adresa",
@@ -11094,10 +11120,15 @@
     "poolSignalPosition": "Pořadí pozic",
     "poolHealthRankingOff": "Hodnocení zdraví vypnuto",
     "transportRate": "{rate} % přenosu",
+    "slowAbandoned": "{count} pomalých opuštění",
+    "clientAborted": "{count} přerušení klienta",
+    "slowAbandonedHint": "Opuštěno po překročení prahu čekání na hlavičky, vyloučeno z transportní míry",
     "previousSuccessRate": "Dříve {rate} % úspěšnost",
-    "upstreamRefusals": "{count} odmítnutí upstream",
     "connectionTestsCount": "{count} testů připojení",
-    "notMeasured": "Neměřeno"
+    "notMeasured": "Neměřeno",
+    "upstream4xx": "{count} chyby klienta ve výstupním směru",
+    "upstream5xx": "{count} chyby serveru ve výstupním směru",
+    "uniformEgressLine": "{affected} z {exits} výstupů selhávají společně na {provider} (posledních {hours}h) — nejedná se o problém výstupu"
   },
   "playground": {
     "title": "Title",
@@ -12871,7 +12902,10 @@
     "inheritedPool": "Dědí fond připojení ({count})",
     "poolEmptyBlocked": "Fond prázdný — požadavky selžou (ne přímo)",
     "directEgress": "Přímo (bez proxy)",
-    "ownProxy": "Vlastní proxy"
+    "ownProxy": "Vlastní proxy",
+    "freeTierPause": "Model {model} pozastaven (429), zpět v {time}",
+    "freeTierPauseProvider": "Pozastaveno (429), zpět v {time}",
+    "freeTierPauseNote": "Pozastavení v rámci procesu na této instanci"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13052,6 +13086,10 @@
     "inactiveCount": "{count} neaktivních",
     "dbOverrideCount": "{count} přepsání v DB",
     "searchPlaceholder": "Hledat flagy...",
+    "descriptionModeLabel": "Zobrazení popisu",
+    "descriptionModeHint": "Při najetí: karty zůstávají kompaktní a najetí na popis zobrazí celý text. Celý text: vždy zobrazit celý popis.",
+    "descriptionModeHover": "Při najetí",
+    "descriptionModeFull": "Celý text",
     "categories": {
       "all": "Vše",
       "security": "Zabezpečení",
@@ -13679,7 +13717,7 @@
     "secondaryNote": "Také na Open VSX (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "Zavřít"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Inzerujte <gateway-alias>/<model> zrcadlové ID na /v1/models pro modely, jejichž kanonický vlastník nemá aktivní pověření, ale passtrhough brána s aktivním pověřením je směruje. Upozornění: při globálním povolení přidává katalogové položky pro všechny klienty.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Inzerujte '<gateway-alias>'/'<model>' zrcadlové ID na /v1/models pro modely, jejichž kanonický vlastník nemá aktivní pověření, ale passtrhough brána s aktivním pověřením je směruje. Upozornění: při globálním povolení přidává katalogové položky pro všechny klienty.",
   "radarPage": {
     "title": "Radar katalog",
     "subtitle": "Bezplatný modelový katalog obohacený komunitními informacemi",

@@ -394,22 +394,22 @@ Handler/executor-കൾക്കുള്ളിൽ, ക്ലയന്റില�
 
 ---
 
-## Pull Request ചെക്ക്ലിസ്റ്റ്
+## പുൾ റിക്വസ്റ്റ് ചെക്ക്ലിസ്റ്റ്
 
 - [ ] ടെസ്റ്റുകൾ വിജയിക്കുന്നു (`npm test`)
-- [ ] Linting വിജയിക്കുന്നു (`npm run lint`)
-- [ ] Build വിജയിക്കുന്നു (`npm run build`)
-- [ ] പുതിയ പൊതു function-ുകൾക്കും interface-ുകൾക്കും TypeScript type-ുകൾ ചേർത്തിട്ടുണ്ട്
-- [ ] Hardcode ചെയ്ത secret-ുകളോ fallback മൂല്യങ്ങളോ ഇല്ല
-- [ ] പൊതു അപ്സ്ട്രീം ക്രെഡൻഷ്യലുകൾ `resolvePublicCred()` വഴി ഉൾച്ചേർത്തിട്ടുണ്ട് ([`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) കാണുക), ഒരിക്കലും literal-ുകളായി ഉൾപ്പെടുത്തിയിട്ടില്ല
-- [ ] പിശക് response-ുകൾ `buildErrorBody()` / `sanitizeErrorMessage()` വഴി കടന്നുപോകുന്നു — response body-കളിൽ അസംസ്കൃത stack trace-ുകൾ ഇല്ല ([`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) കാണുക)
-- [ ] Shell command-ുകൾ (`exec` / `spawn`) runtime മൂല്യങ്ങൾ string interpolation വഴിയല്ല, `env` വഴിയാണ് കൈമാറുന്നത്
-- [ ] എല്ലാ input-ുകളും Zod schema-കൾ ഉപയോഗിച്ച് സാധൂകരിച്ചിട്ടുണ്ട്
-- [ ] ഉപയോക്താവിനെ ബാധിക്കുന്ന മാറ്റങ്ങൾക്ക് `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md`-ന് കീഴിൽ changelog **fragment** ചേർത്തിട്ടുണ്ട് ([`changelog.d/README.md`](./changelog.d/README.md) കാണുക) — `CHANGELOG.md` നേരിട്ട് തിരുത്തരുത്; release സമയത്ത് fragment-ുകൾ സമാഹരിക്കപ്പെടുന്നതിനാൽ PR-ുകൾക്കിടയിൽ ഒരിക്കലും conflict ഉണ്ടാകില്ല
-- [ ] ഡോക്യുമെന്റേഷൻ പുതുക്കിയിട്ടുണ്ട് (ബാധകമെങ്കിൽ)
-- [ ] പുതിയ CodeQL / Secret-Scanning alert-ുകൾ തുറന്നിട്ടില്ല, അല്ലെങ്കിൽ പ്രസക്തമായ `docs/security/` ഡോക്യുമെന്റ് പരാമർശിക്കുന്ന സാങ്കേതിക ന്യായീകരണത്തോടെ ഓരോന്നും നിരസിച്ചിട്ടുണ്ട്
-- [ ] Child process-ുകൾ spawn ചെയ്യുന്ന route-ുകൾ (`/api/mcp/`, `/api/cli-tools/runtime/`) `src/server/authz/routeGuard.ts`-ൽ `isLocalOnlyPath()` ആയി വർഗ്ഗീകരിച്ചിട്ടുണ്ട് — [Hard Rule #15](docs/security/ROUTE_GUARD_TIERS.md) കാണുക
-- [ ] Commit സന്ദേശങ്ങളിൽ `Co-Authored-By` trailer-ുകൾ ഇല്ല — commit-ുകൾ repository ഉടമയുടെ Git identity-യിൽ മാത്രം ദൃശ്യമാകണം (Hard Rule #16)
+- [ ] ലിന്റിംഗ് വിജയിക്കുന്നു (`npm run lint`)
+- [ ] ബിൽഡ് വിജയിക്കുന്നു (`npm run build`)
+- [ ] പുതിയ പൊതു ഫങ്ഷനുകൾക്കും ഇന്റർഫേസുകൾക്കും TypeScript ടൈപ്പുകൾ ചേർത്തിട്ടുണ്ട്
+- [ ] ഹാർഡ്കോഡ് ചെയ്ത രഹസ്യങ്ങളോ ഫാൾബാക്ക് മൂല്യങ്ങളോ ഇല്ല
+- [ ] പൊതു അപ്സ്ട്രീം ക്രെഡൻഷ്യലുകൾ ലിറ്ററലുകളായി ഒരിക്കലും ഉൾപ്പെടുത്താതെ `resolvePublicCred()` വഴി ഉൾപ്പെടുത്തിയിട്ടുണ്ട് ([`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) കാണുക)
+- [ ] പിശക് പ്രതികരണങ്ങൾ `buildErrorBody()` / `sanitizeErrorMessage()` വഴി റൂട്ട് ചെയ്യുന്നു — പ്രതികരണ ബോഡികളിൽ അസംസ്കൃത സ്റ്റാക്ക് ട്രെയ്സുകൾ ഇല്ല ([`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) കാണുക)
+- [ ] ഷെൽ കമാൻഡുകൾ (`exec` / `spawn`) റൺടൈം മൂല്യങ്ങൾ സ്ട്രിങ് ഇന്റർപൊളേഷൻ വഴിയല്ല, `env` വഴി കൈമാറുന്നു
+- [ ] എല്ലാ ഇൻപുട്ടുകളും Zod സ്കീമകൾ ഉപയോഗിച്ച് സാധൂകരിച്ചിട്ടുണ്ട്
+- [ ] ഉപയോക്താവിന് ദൃശ്യമാകുന്ന മാറ്റങ്ങൾക്കായി `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` എന്നതിനു കീഴിൽ ചേഞ്ച്ലോഗ് **ഫ്രാഗ്മെന്റ്** ചേർത്തിട്ടുണ്ട് ([`changelog.d/README.md`](./changelog.d/README.md) കാണുക) — `CHANGELOG.md` നേരിട്ട് എഡിറ്റ് ചെയ്യരുത്; റിലീസ് സമയത്ത് ഫ്രാഗ്മെന്റുകൾ സമാഹരിക്കപ്പെടുന്നതിനാൽ PR-കൾ തമ്മിൽ ഒരിക്കലും വൈരുദ്ധ്യമുണ്ടാകില്ല
+- [ ] ഡോക്യുമെന്റേഷൻ അപ്ഡേറ്റ് ചെയ്തിട്ടുണ്ട് (ബാധകമെങ്കിൽ)
+- [ ] പുതിയ CodeQL / Secret-Scanning അലേർട്ടുകളൊന്നും സൃഷ്ടിച്ചിട്ടില്ല, അല്ലെങ്കിൽ പ്രസക്തമായ `docs/security/` ഡോക്യുമെന്റ് പരാമർശിക്കുന്ന സാങ്കേതിക ന്യായീകരണത്തോടെ ഓരോന്നും നിരസിച്ചിട്ടുണ്ട്
+- [ ] ചൈൽഡ് പ്രോസസ്സുകൾ സൃഷ്ടിക്കുന്ന റൂട്ടുകൾ (`/api/mcp/`, `/api/cli-tools/runtime/`) `src/server/authz/routeGuard.ts`-ൽ `isLocalOnlyPath()` ആയി വർഗ്ഗീകരിച്ചിട്ടുണ്ട് — [കർശന നിയമം #15](docs/security/ROUTE_GUARD_TIERS.md) കാണുക
+- [ ] കമ്മിറ്റ് സന്ദേശങ്ങളിൽ AI/ബോട്ട് `Co-authored-by` ട്രെയിലറുകളില്ല (കർശന നിയമം #16) — വീണ്ടും ഉപയോഗിച്ചിട്ടുള്ള പ്രവൃത്തിയുടെ ഉടമകളായ മനുഷ്യ സഹപ്രവർത്തകർക്ക് സാധാരണ `Co-authored-by: Name <email>` ട്രെയിലറുകൾ ഉപയോഗിച്ച് അംഗീകാരം നൽകിയിട്ടുണ്ട്
 
 ---
 

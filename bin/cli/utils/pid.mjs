@@ -68,8 +68,11 @@ export function isPidRunning(pid) {
 // server/.pid deleted outright).
 //
 // Discovery mirrors killByPort() in bin/cli/commands/stop.mjs (netstat on
-// win32, lsof elsewhere); the two are worth consolidating next time stop.mjs
-// is touched.
+// win32, lsof elsewhere). Both now scope discovery to LISTEN sockets: a bare
+// `lsof -ti :PORT` also returns every client connected to the port, so a
+// client socket (for example a long-lived gateway connection left in
+// CLOSE_WAIT after its peer exited) made the preflight report a free port as
+// busy and drove omniroute.service into a restart crash-loop.
 export async function findListeningPids(port, deps = {}) {
   const platform = deps.platform || process.platform;
   let exec = deps.execFileAsync;
@@ -83,20 +86,12 @@ export async function findListeningPids(port, deps = {}) {
       const { stdout } = await exec("netstat", ["-ano"]);
       return parseNetstatListeningPids(stdout, port);
     }
-    const { stdout } = await exec("lsof", ["-ti", `:${port}`]);
-    return stdout
-      .trim()
-      .split("\n")
-      .map((entry) => parseInt(entry, 10))
-      .filter((entry) => Number.isFinite(entry) && entry > 0);
+    const { stdout } = await exec("lsof", ["-nP", `-iTCP:${port}`, "-sTCP:LISTEN"]);
+    return parseLsofListeningPids(stdout, port, deps.host);
   } catch (err) {
     // POSIX lsof exits 1 with empty output when there are simply no matches.
     // That is the normal "port is free" result, not a discovery failure.
-    if (
-      platform !== "win32" &&
-      err?.code === 1 &&
-      !String(err?.stdout ?? "").trim()
-    ) {
+    if (platform !== "win32" && err?.code === 1 && !String(err?.stdout ?? "").trim()) {
       return [];
     }
     // Tool missing (ENOENT) or genuinely unusable: "no listener" cannot be
@@ -129,10 +124,60 @@ export async function probePortFree(port, deps = {}) {
   // port, so a server on 0.0.0.0 (the default), 127.0.0.1 or ::1 (localhost) is
   // only visible to a probe on that same address. A host without one of these
   // addresses gets EADDRNOTAVAIL, which reads as free.
-  for (const host of [undefined, "0.0.0.0", "127.0.0.1", "::1"]) {
+  const bindHost = deps.host;
+  const hosts =
+    bindHost && bindHost !== "0.0.0.0" && bindHost !== "::" && bindHost !== "*"
+      ? [bindHost]
+      : [undefined, "0.0.0.0", "127.0.0.1", "::1"];
+  for (const host of hosts) {
     if (!(await bindable(host))) return false;
   }
   return true;
+}
+
+function parseLsofListeningPids(stdout, port, host) {
+  const pids = [];
+  for (const line of String(stdout || "").split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("COMMAND")) continue;
+    const numeric = parseInt(trimmed, 10);
+    if (String(numeric) === trimmed && numeric > 0) {
+      pids.push(numeric);
+      continue;
+    }
+    const cols = trimmed.split(/\s+/);
+    const pid = parseInt(cols[1], 10);
+    if (!Number.isFinite(pid) || pid <= 0) continue;
+    const name =
+      cols.find((col) => {
+        const at = col.lastIndexOf(":");
+        return at > 0 && col.slice(at + 1) === String(port);
+      }) || "";
+    if (!name) continue;
+    const at = name.lastIndexOf(":");
+    const listenHost = name.slice(0, at);
+    if (!listenerBlocksBind(listenHost, host)) continue;
+    pids.push(pid);
+  }
+  return pids;
+}
+
+function listenerBlocksBind(listenHost, bindHost) {
+  if (!bindHost || bindHost === "0.0.0.0" || bindHost === "::" || bindHost === "*") return true;
+  const listen = normalizeListenHost(listenHost);
+  const bind = normalizeListenHost(bindHost);
+  if (!listen) return true;
+  if (listen === "*" || listen === "0.0.0.0" || listen === "::") return true;
+  if (bind === "127.0.0.1" || bind === "::1" || bind === "localhost") {
+    return listen === "127.0.0.1" || listen === "::1" || listen === "localhost";
+  }
+  return listen === bind;
+}
+
+function normalizeListenHost(host) {
+  const value = String(host || "").trim();
+  if (value.startsWith("[") && value.endsWith("]")) return value.slice(1, -1);
+  return value;
 }
 
 function parseNetstatListeningPids(stdout, port) {

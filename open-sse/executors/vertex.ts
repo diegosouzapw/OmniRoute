@@ -191,6 +191,20 @@ function buildExpressGeminiUrl(
   return `https://aiplatform.googleapis.com/v1/publishers/google/models/${canonicalModel}:${op}key=${expressKey}`;
 }
 
+/**
+ * Resolve the endpoint host for a project-scoped Vertex call.
+ *
+ * Multi-region endpoints use the representative-endpoint (`.rep.`) hostname form and MUST be
+ * paired with their own location in the path (`aiplatform.eu.rep.googleapis.com` +
+ * `locations/eu`); the host and location cannot be mixed. All other regions (and the `global`
+ * location) keep the legacy global host, which is what this executor used before the EU routing
+ * fix and is still correct for them.
+ */
+function getVertexHost(region: string): string {
+  if (region === "eu") return "aiplatform.eu.rep.googleapis.com";
+  return "aiplatform.googleapis.com";
+}
+
 function buildProjectScopedVertexUrl(
   canonicalModel: string,
   stream: boolean,
@@ -198,24 +212,33 @@ function buildProjectScopedVertexUrl(
   region: string,
   opaqueApiKey: string | null
 ): string {
+  const host = getVertexHost(region);
   const apiKeySuffix = opaqueApiKey ? `?key=${opaqueApiKey}` : "";
   if (isClaudeModel(canonicalModel)) {
     // streamRawPredict?alt=sse was verified to return a single plain JSON body (not real SSE
     // framing) rather than actual chunked events, which breaks the SSE parser upstream
     // ("stream ended before producing a non-ping SSE event"). rawPredict is confirmed reliable
     // for both streaming and non-streaming requests; always use it here.
-    return `https://aiplatform.googleapis.com/v1/projects/${project}/locations/${region}/publishers/anthropic/models/${canonicalModel}:rawPredict${apiKeySuffix}`;
+    return `https://${host}/v1/projects/${project}/locations/${region}/publishers/anthropic/models/${canonicalModel}:rawPredict${apiKeySuffix}`;
   }
   if (isMistralModel(canonicalModel)) {
     const operation = stream ? "streamRawPredict" : "rawPredict";
-    return `https://aiplatform.googleapis.com/v1/projects/${project}/locations/${region}/publishers/mistralai/models/${canonicalModel}:${operation}${apiKeySuffix}`;
+    return `https://${host}/v1/projects/${project}/locations/${region}/publishers/mistralai/models/${canonicalModel}:${operation}${apiKeySuffix}`;
   }
   if (isPartnerModel(canonicalModel)) {
+    // Partner / open-weight models (xAI, DeepSeek, ...) are served by the OpenAI-compatible MaaS
+    // path, which is a `locations/global` route. Keep it on the global host: a multi-region host
+    // must be paired with ITS OWN location (aiplatform.eu.rep.googleapis.com + locations/eu), so
+    // pointing this path at the EU host mismatches host and location and is served by neither.
+    // Multi-region partner access exists only per model (e.g. Grok 4.6 on the US multi-region),
+    // so it is deliberately not generalized here. Consequence for projects under
+    // constraints/gcp.restrictEndpointUsage: partner models stay unreachable until a supported
+    // multi-region partner route exists for the model in question.
     return `https://aiplatform.googleapis.com/v1/projects/${project}/locations/global/endpoints/openapi/chat/completions${apiKeySuffix}`;
   }
   const operation = stream ? "streamGenerateContent?alt=sse" : "generateContent";
   const querySeparator = opaqueApiKey ? (stream ? "&" : "?") : "";
-  return `https://aiplatform.googleapis.com/v1/projects/${project}/locations/${region}/publishers/google/models/${canonicalModel}:${operation}${querySeparator}${opaqueApiKey ? `key=${opaqueApiKey}` : ""}`;
+  return `https://${host}/v1/projects/${project}/locations/${region}/publishers/google/models/${canonicalModel}:${operation}${querySeparator}${opaqueApiKey ? `key=${opaqueApiKey}` : ""}`;
 }
 
 // Vertex does not support Anthropic's optional one-hour prompt-cache TTL on these

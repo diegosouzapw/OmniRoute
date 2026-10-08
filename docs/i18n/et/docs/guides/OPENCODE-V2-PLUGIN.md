@@ -69,26 +69,33 @@ tagasi lükkab, avaldatakse kataloog siiski, kuid kuvatavate nimede asemel kasut
 kanooniliste aliaste duplikaate ei eemaldata ning hinnastus ja kombinatsioonid puuduvad. Pistikprogramm hoiatab sellisel juhul
 iga otspunkti kohta ühe korra, nimetades otspunkti ja kaotsi läinud andmed — nii ei jää piiratud funktsionaalsusega mudelivalija kunagi mõistatuseks.
 
-## Suvandid
+## Valikud
 
-| Võti                             | Vaikeväärtus                                           | Märkused                                                                                                                              |
-| -------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `providerId`                     | `"omniroute"`                                          | Pakkuja ID, integratsiooni ID ja prefiks, mille all mudelid kuvatakse                                                                 |
-| `baseURL`                        | nõutav                                                 | Lüüsi juuraadress, ainult `http(s)`; vajaduse korral lisatakse järelliide `/v1`                                                       |
-| `apiKey`                         | ühendatud identimisteave, seejärel `OMNIROUTE_API_KEY` | Vestluse võti otspunktide `/v1/*` jaoks                                                                                               |
-| `managementReadToken`            | varuvariandina kasutatakse `apiKey`                    | Võti otspunktide `/api/*` jaoks — tavaliselt **ei ole** see sama võti                                                                 |
-| `displayName`                    | `"OmniRoute"`                                          | Pakkuja nimi mudelivalijas                                                                                                            |
-| `timeoutMs`                      | `10000`                                                | Otspunktipõhise päringu ajalõpp (automaatsed kombinatsioonid kasutavad 5 s)                                                           |
-| `modelCacheTtlMs`                | `300000`                                               | Kataloogi vahemälu TTL; kettale salvestatud hetktõmmis kiirendab külmkäivitusi                                                        |
-| `timeouts`                       | varuvariandina kasutatakse `timeoutMs`                 | Otspunktipõhised ajapiirangud millisekundites: `models`, `combos`, `autoCombos`, `enrichment`                                         |
-| `enrichment`                     | `true`                                                 | Nimede, hinnastuse ja tasuta kasutustaseme limiitide hankimine                                                                        |
-| `providerTag`                    | `true`                                                 | Kuvanimele lisatakse prefiksina ülesvoolu pakkuja, kellele päring suunatakse                                                          |
-| `usableOnly`                     | `false`                                                | Säilitatakse ainult need pakkujad, mille lüüs märgib ettevalmistatuks                                                                 |
-| `visibleModels` / `hiddenModels` | `[]`                                                   | Täpse vaste või sufiksi alusel lubatud mudelite loendid; keelamine on ülimuslik                                                       |
-| `geminiSanitization`             | `true`                                                 | Eemaldatakse JSON-Schema võtmesõnad, mille Gemini tööriistaskeemides tagasi lükkab (`$ref`-iga tööriistad edastatakse muutmata kujul) |
-| `apiFormat.allowAnthropic`       | `false`                                                | Lubatud loendisse kuuluvad ID-d suunatakse Anthropicu API ploki kaudu                                                                 |
-| `apiFormat.anthropicModels`      | `[]`                                                   | Täielikud mudeli-ID-d, mis suunatakse Anthropicusse                                                                                   |
-| `logLevel` / `startupDebug`      | `warn` / `false`                                       | Logija detailsus                                                                                                                      |
+| Võti                             | Vaikeväärtus                                           | Märkused                                                                                                                     |
+| -------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| `providerId`                     | `"omniroute"`                                          | Pakkuja ID, integratsiooni ID ja prefiks, mille all mudelid kuvatakse                                                        |
+| `baseURL`                        | nõutav                                                 | Lüüsijuur, ainult `http(s)`; vajaduse korral lisatakse järelliide `/v1`                                                      |
+| `apiKey`                         | ühendatud identimisteave, seejärel `OMNIROUTE_API_KEY` | Vestluse võti `/v1/*` jaoks                                                                                                  |
+| `managementReadToken`            | kasutab varuvariandina väärtust `apiKey`               | Võti `/api/*` jaoks — tavaliselt **ei ole** see sama võti                                                                    |
+| `displayName`                    | `"OmniRoute"`                                          | Pakkuja nimi valikus                                                                                                         |
+| `timeoutMs`                      | `10000`                                                | Päringu ajalõpp lõpp-punkti kohta (automaatsed kombinatsioonid kasutavad 5 s)                                                |
+| `modelCacheTtlMs`                | `300000`                                               | Kataloogi vahemälu TTL; kettale salvestatud hetktõmmis kiirendab külmkäivitusi                                               |
+| `timeouts`                       | kasutab varuvariandina väärtust `timeoutMs`            | Lõpp-punktide ajapiirangud millisekundites: `models`, `combos`, `autoCombos`, `enrichment`                                   |
+| `enrichment`                     | `true`                                                 | Hangib nimed, hinnad ja tasuta kasutustaseme limiidid                                                                        |
+| `providerTag`                    | `true`                                                 | Lisab kuvatava nime ette ülesvoolu pakkuja nime, kellele päringud suunatakse                                                 |
+| `usableOnly`                     | `false`                                                | Säilitab ainult pakkujad, mis on lüüsi andmetel kasutamiseks seadistatud                                                     |
+| `showcasePerOwner`               | `10`                                                   | Vaikevaates säilitatavate kirjete arv pakkuja kohta                                                                          |
+| `freshPerOwner`                  | `10`                                                   | Vaikevaate värskete kirjete arv pakkuja kohta                                                                                |
+| `freshWindowDays`                | `90`                                                   | Värskete kirjete haru värskusaken päevades                                                                                   |
+| `usageMemory`                    | `true`                                                 | Taastab staatiliselt eemaldatud kirjed, millele viitab 30 päeva kasutusanalüütika (vajab haldustokenit)                      |
+| `visibleModels` / `hiddenModels` | `[]`                                                   | Täpse vaste või järelliite alusel lubatud mudelite loendid; keelamine on ülimuslik                                           |
+| `geminiSanitization`             | `true`                                                 | Eemaldab tööriistaskeemidest JSON Schema võtmesõnad, mille Gemini tagasi lükkab (`$ref`-iga tööriistad edastatakse muutmata) |
+| `apiFormat.allowAnthropic`       | `false`                                                | Suunab lubatute loendis olevad ID-d Anthropic API ploki kaudu                                                                |
+| `apiFormat.anthropicModels`      | `[]`                                                   | Anthropicusse suunatavate mudelite täielikud ID-d                                                                            |
+| `logLevel` / `startupDebug`      | `warn` / `false`                                       | Logija üksikasjalikkus                                                                                                       |
+
+Kasutusmälu on vaikimisi sisse lülitatud. Ilma haldustokenita jääb see passiivseks
+(käivitamisel logitakse sellekohane teade) ja midagi ei taastata.
 
 ## Kuidas kataloog püsib ajakohasena
 

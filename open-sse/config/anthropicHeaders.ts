@@ -250,6 +250,14 @@ export function syncSkillsBeta(
  * and `per-message-effort-2026-07-01` as aliases. Those two are deliberately
  * trimmed: no known client sends them, and OmniRoute's Bedrock executor does
  * not negotiate `anthropic_beta` at all.
+ *
+ * `timing-2026-09-09` and `inline-tools-2026-09-15` are the other two per-turn
+ * betas Claude Code puts on the wire, captured from @anthropic-ai/claude-code@2.1.284
+ * (`C("per_turn_timing","timing-2026-09-09")` and
+ * `C("inline_tools","inline-tools-2026-09-15")` in the shipped binary). The
+ * inline-tools beta gates message-level `tool_addition` blocks; without it
+ * upstream rejects the body with a 400 whose message reads
+ * "`tool_addition` blocks require anthropic-beta".
  */
 export const FORWARDABLE_CLIENT_BETAS = Object.freeze([
   "tool-search-tool-2025-10-19",
@@ -270,6 +278,8 @@ export const FORWARDABLE_CLIENT_BETAS = Object.freeze([
   "thinking-display-updates-2026-08-18",
   "dangerous-tool-use-2026-09-03",
   "afk-mode-2026-01-31",
+  "timing-2026-09-09",
+  "inline-tools-2026-09-15",
 ]);
 
 /**

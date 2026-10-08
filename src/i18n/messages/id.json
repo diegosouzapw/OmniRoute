@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Pool proxy dan rotasi per akun opencode berhenti menyajikan kembali proxy yang baru saja gagal (probe TCP ditolak atau respons 429 diterima melaluinya) selama periode per proses yang berlipat ganda setiap kali kegagalan berulang, hingga batas maksimum. Status proxy tidak ditulis; jika setiap kandidat disisihkan, pilihannya tetap tidak berubah. Aktif secara default; `false` memulihkan pemilihan biasa.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Untuk penyedia yang kuotanya dibagi berdasarkan alamat egress, menempatkan anggota pool yang berbagi alamat egress teramati dari anggota yang baru saja ditolak tepat di bawah anggota yang sehat. Hanya urutan, tidak pernah dikecualikan. Memerlukan PROXY_SKIP_RECENTLY_FAILED, yang menghasilkan sinyal penolakan yang dibacanya. Nonaktif secara default: urutan pemilihan persis rotasi biasa.",
   "featureFlagProxyPoolEgressObservationDescription": "Tampilkan, di bawah pool proxy pada dasbor, jumlah IP keluar yang teramati melayani anggotanya selama 24 jam terakhir, jumlah koneksi yang menggunakannya, dan jumlah koneksi terbanyak yang terlihat di balik satu IP. Hanya-baca, dihitung dari log proxy, dan tidak pernah digunakan untuk perutean. Nonaktif secara default: editor pool tidak berubah dan rute observasi memberikan jawaban null.",
+  "featureFlagProxyOperatorEgressDescription": "Terima alamat yang diberi tanggal oleh operator per anggota pool dan gabungkan dengan bacaan jurnal untuk tampilan dan urutan pool. Matikan secara default: rute push mengembalikan 404 dan bacaan pool berperilaku sama seperti sebelumnya.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Dalam pemeriksaan kesehatan proxy, izinkan probe yang ditolak oleh target (401/403/429: proxy meneruskan, tetapi tujuan menolak IP keluar ini) mereset rentetan kegagalan berturut-turut proxy, seperti probe yang berhasil dilayani. Nonaktif secara default: penolakan tetap netral dan mempertahankan rentetan tersebut. Respons 5xx tetap tidak meyakinkan dalam kedua kasus, dan penolakan tidak pernah menghapus, menonaktifkan, atau mengaktifkan kembali proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Izinkan pembersihan otomatis menghapus tugas Batch API berstatus akhir (selesai/gagal/dibatalkan/kedaluwarsa) yang lebih lama dari OMNIROUTE_BATCH_RETENTION_DAYS, beserta titik pemeriksaan per barisnya, serta menghapus konten BLOB dari file yang diunggah setelah melewati expires_at masing-masing. Nonaktif secara default: setiap instalasi yang ada tetap menyimpan data ini persis seperti sebelumnya hingga operator mengaktifkannya. Rute DELETE /api/v1/batches/delete-completed yang dipicu operator tidak terpengaruh dalam kondisi apa pun — rute tersebut merupakan kontrak API publik terpisah yang berlaku tanpa syarat.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Ambil katalog model xAI langsung untuk koneksi xai-oauth dari https://api.x.ai/v1/models menggunakan token bearer OAuth, bukan seed statis yang dibekukan. Nonaktif secara default: xai-oauth tetap menyajikan seed statis tanpa perubahan. Jika terjadi kesalahan resolusi, penemuan akan kembali menggunakan seed.",
@@ -5692,7 +5693,7 @@
     "claudeImportBulkModePaste": "Tempel larik JSON",
     "claudeImportBulkModeZip": "Unggah ZIP",
     "claudeImportBulkUploadHint": "Letakkan atau ambil hingga 50 file .credentials.json (masing-masing 256KB, total 10MB).",
-    "claudeImportBulkPasteHint": "Tempelkan array objek: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "Tempelkan array objek: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": "ZIP berisi entri .json. Maks 50 entri, 10MB dibongkar.",
     "claudeImportBulkSubmit": "Impor semua",
     "claudeImportBulkSuccess": "Koneksi {count} Claude yang diimpor",
@@ -5724,7 +5725,7 @@
     "geminiImportBulkModePaste": "Tempel larik JSON",
     "geminiImportBulkModeZip": "Unggah ZIP",
     "geminiImportBulkUploadHint": "Letakkan atau ambil hingga 50 file oauth_creds.json (masing-masing 256KB, total 10MB).",
-    "geminiImportBulkPasteHint": "Tempelkan array objek: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "Tempelkan array objek: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "ZIP berisi entri oauth_creds.json. Maks 50 entri, 10MB dibongkar.",
     "geminiImportBulkSubmit": "Impor semua",
     "geminiImportBulkSuccess": "Koneksi {count} Gemini yang diimpor",
@@ -5773,7 +5774,7 @@
     "codexImportBulkModePaste": "Tempel daftar",
     "codexImportBulkModeZip": "Arsip ZIP",
     "codexImportBulkUploadHint": "Pilih beberapa file .json atau seret dan lepas",
-    "codexImportBulkPasteHint": "Array JSON [ {...}, {...} ] atau beberapa JSON dipisahkan oleh --- pada barisnya sendiri",
+    "codexImportBulkPasteHint": "Array JSON [ '{...}', '{...}' ] atau beberapa JSON dipisahkan oleh --- pada barisnya sendiri",
     "codexImportBulkZipHint": "Unggah .zip yang berisi file auth.json (maks 50 file, 10 MB)",
     "codexImportBulkSubmit": "Impor akun {count}",
     "codexImportBulkLimit": "Maksimum 50 file per impor",
@@ -6011,7 +6012,7 @@
     "validationModelIdPlaceholder": "mis. meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "Kunci API atau JSON Service Account",
     "vertexCredentialHint": "Kunci API menggunakan katalog proyek yang dikurasi. JSON Service Account memungkinkan penemuan Model Garden secara langsung.",
-    "vertexServiceAccountPlaceholder": "Tempel kunci API, JSON Service Account ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}), atau token akses OAuth",
+    "vertexServiceAccountPlaceholder": "Tempel kunci API, JSON Service Account ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}'), atau token akses OAuth",
     "webCookieProviders": "Penyedia Cookie Web",
     "weeklyShort": "Mingguan Singkat",
     "xiaomiMimoBaseUrlHint": "Petunjuk URL Dasar Xiaomi Mimo",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Endpoint proxy-core lokal tidak valid; node SS/VMess/Trojan/VLESS diabaikan.",
         "NEEDS_CORE_NOT_CONFIGURED": "Langganan ini memiliki node yang memerlukan proxy core lokal (SS/VMess/Trojan/VLESS); node tersebut tidak akan dirutekan sampai Anda mengonfigurasi endpoint SOCKS5 local-core.",
         "NO_USABLE_NODES": "Langganan tidak menghasilkan node yang dapat digunakan (http/https/socks5 atau node dengan endpoint core lokal).",
-        "SELECTOR_SWITCH_FAILED": "Panggilan kontrol proxy-core gagal; rute sebelumnya tetap aktif. Periksa URL dan secret kontrol, lalu muat ulang."
+        "SELECTOR_SWITCH_FAILED": "Panggilan kontrol proxy-core gagal; rute sebelumnya tetap aktif. Periksa URL dan secret kontrol, lalu muat ulang.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Konfigurasi inti yang dihasilkan tidak dapat mengganti file yang diadopsi; salinan di sebelahnya malah disimpan.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Beberapa entri dilewati selama pembagian. Lihat log server."
       },
       "description": "Tempelkan tautan berlangganan proksi Anda. Setelah diaktifkan, lalu lintas dirutekan melalui kumpulan proksi dalam mode global atau aturan (Penyedia tertentu). Node langganan secara otomatis disinkronkan ke kumpulan proksi dan menggunakan kembali mekanisme polling, pemeriksaan kesehatan, dan anti-kebocoran yang ada.",
       "addSubscription": "Tambahkan Langganan",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Belum ada peralihan tercatat",
       "lastSwitchMember": "Anggota yang melayani",
       "nextSwitch": "Peralihan berikutnya yang mungkin",
-      "nextSwitchNow": "Sekarang"
+      "nextSwitchNow": "Sekarang",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Jalur binari inti",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Opsional: memverifikasi file yang dihasilkan dengan binari inti sebelum mengganti file yang diadopsi. Biarkan kosong untuk terus menulis di sebelahnya. Direktori dibuat jika tidak ada."
     },
     "bulkHealthcheck": "Pemeriksaan Kesehatan Massal",
     "bulkHealthcheckDesc": "Uji semua proksi yang dikonfigurasi terhadap URL target untuk mengetahui mana yang berfungsi.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "Kompresi deskripsi MCP",
     "mcpAccessibilityTitle": "Output aksesibilitas MCP",
     "compressionSettingsCavemanIntensity": "Intensitas manusia gua",
-    "compressionSettingsCavemanOutputMode": "Mode keluaran manusia gua",
     "compressionSettingsOutputStyles": "Gaya output",
     "compressionStylesTileTitle": "Gaya output",
     "compressionSettingsOutputIntensity": "Intensitas keluaran",
-    "compressionSettingsAutoClarityBypass": "Bypass kejelasan otomatis",
     "compressionEffectivePipeline": "Pipeline efektif:",
     "compressionDerivedOff": "nonaktif",
     "compressionDerivedRuns": "eksekusi: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "Yang ditampilkan oleh GET /v1/models untuk kunci ini. Mempersempit daftar tidak akan mengubah model yang dapat dipanggil oleh kunci tersebut.",
     "catalogScopeAll": "Keduanya",
     "catalogScopeCombos": "Hanya kombinasi",
-    "catalogScopeModels": "Hanya model"
+    "catalogScopeModels": "Hanya model",
+    "resilienceTokenRefreshTitle": "Pemutus Penyegaran Token",
+    "resilienceTokenRefreshDesc": "Menghentikan upaya penyegaran token setelah beberapa kali gagal. Cakupan per koneksi mengisolasi satu akun mati sehingga akun sehat pada penyedia yang sama tetap menyegarkan.",
+    "resilienceTokenRefreshScope": "Percobaan penyegaran token untuk satu penyedia",
+    "resilienceTokenRefreshTrigger": "Percobaan penyegaran berurutan yang gagal",
+    "resilienceTokenRefreshEffect": "Menjeda upaya penyegaran selama masa tunggu",
+    "resilienceTokenRefreshScopeLabel": "Cakupan",
+    "resilienceTokenRefreshScopeProvider": "Penyedia (semua akun berbagi satu pemutus)",
+    "resilienceTokenRefreshScopeConnection": "Koneksi (setiap akun memiliki pemutusnya sendiri)",
+    "resilienceTokenRefreshThreshold": "Kegagalan sebelum dijeda",
+    "resilienceTokenRefreshCooldown": "Jeda setelah terpicu"
   },
   "contextRtk": {
     "title": "Mesin RTK",
@@ -8544,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Memuat…",
     "loadFailed": "Gagal memuat informasi engine.",
+    "settingsLoadFailed": "Gagal memuat pengaturan tersimpan. Kolom menampilkan nilai bawaan, dan Simpan tetap nonaktif hingga halaman dimuat ulang.",
     "engineNotFound": "Engine \"{engine}\" tidak ditemukan.",
     "saveFailed": "Gagal menyimpan konfigurasi.",
     "previewFailed": "Pratinjau gagal.",
@@ -8638,9 +8667,6 @@
       "minRows": {
         "label": "Baris minimum untuk dipadatkan",
         "description": "Jumlah baris minimum dalam array JSON homogen yang diperlukan untuk memicu pemadatan tabular. Default: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Pertahankan prompt sistem"
       },
       "summarizerEnabled": {
         "label": "Aktifkan peringkas"
@@ -9029,12 +9055,7 @@
     "tooltipMinLength": "Pesan yang lebih pendek dari ini tidak dikompresi. Lebih rendah = lebih banyak kompresi.",
     "tooltipMinSavings": "Hanya kompres jika menyimpan setidaknya token sebanyak ini.",
     "ultraSettings": "Pengaturan Ultra",
-    "ultraSettingsDesc": "Kompresi semantik bertenaga SLM",
-    "preview": {
-      "lite": "Berikan respons ringkas. Pertahankan istilah teknis, kode, kesalahan, URL, dan pengidentifikasi.",
-      "full": "Berikan respons singkat dan padat. Pertahankan seluruh substansi teknis.",
-      "ultra": "Berikan respons sangat singkat dengan singkatan teknis umum. Pertahankan simbol secara persis."
-    }
+    "ultraSettingsDesc": "Kompresi semantik bertenaga SLM"
   },
   "translator": {
     "title": "Penerjemah",
@@ -9653,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "mis. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "misalnya def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderExact": "Tempelkan respons yang diharapkan secara tepat",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "misalnya ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "misalnya ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "Gunakan ekspresi reguler JavaScript tanpa menambahkan garis miring.",
     "suiteBuilderNamePlaceholder": "mis. Suite Kualitas Pengodean",
     "suiteBuilderAddCase": "Tambahkan Kasus",
@@ -10862,7 +10883,7 @@
     "grokAuthJsonDescription": "Tempelkan seluruh isi dari ~/.grok/auth.json (bukan hanya bidang \"key\" JWT). JWT yang kosong tidak memiliki refresh_token, jadi koneksi akan terputus setelah kedaluwarsa (#7610). Lebih baik menggunakan modal Impor auth.json yang khusus saat tersedia.",
     "devinDesktopPasteDescription": "Tempelkan kunci API Devin yang ada dari sesi Devin yang terautentikasi. Ketersediaan ekspor kunci dan langkah-langkahnya bervariasi tergantung versi Devin dan akun.",
     "devinPasteDescription": "Berikan WINDSURF_API_KEY Anda (diperoleh melalui `devin auth login`, atau melalui perintah IDE Windsurf \"Windsurf: Provide Auth Token\").",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "auth.json Grok Build",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "Kunci API / Token",
@@ -10875,7 +10896,10 @@
     "gitlabDuoSetupTitle": "Pengaturan OAuth Duo GitLab",
     "gitlabDuoSetupMessage": "GitLab Duo OAuth belum dikonfigurasi. Daftarkan aplikasi OAuth di {applicationsUrl} dengan URI pengalihan {redirectUri} dan cakupan \"{scopes}\", lalu atur {clientIdEnv} (dan opsional {clientSecretEnv}) dan mulai ulang.",
     "gitlabDuoSetupDescription": "Setelah aplikasi terdaftar dan variabel lingkungan diatur pada instance OmniRoute ini, klik Lanjutkan untuk memulai login OAuth.",
-    "continue": "Lanjutkan"
+    "continue": "Lanjutkan",
+    "tabPasteSetupToken": "Token penyiapan",
+    "claudeSetupTokenDescription": "Jalankan `claude setup-token` di terminal lalu tempel token yang dicetaknya. Token berlaku satu tahun dan tidak memiliki token penyegaran. OmniRoute mengirim satu permintaan uji ke Anthropic sebelum menyimpannya.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Hubungkan IDE Kursor",
@@ -11073,6 +11097,7 @@
     "poolEgressFailuresUnattributed": "Kegagalan tanpa exit yang teratribusi: {count}",
     "poolMemberEgress": "{host}:{port} keluar melalui {egressIp} · {hours} jam terakhir",
     "poolMemberEgressEmpty": "{host}:{port}: tidak ada lalu lintas yang teramati dalam {hours} jam terakhir",
+    "poolMemberEgressOperator": "{host}:{port} keluar melalui {egressIp} · disediakan operator, {date}",
     "poolMemberEgressHint": "IP egress terakhir yang teramati melalui anggota pool ini selama rentang waktu tersebut, dibaca dari log proxy. Anggota tanpa lalu lintas dalam rentang waktu tersebut menampilkan baris tanpa lalu lintas.",
     "poolRemove": "Hapus",
     "poolRemoveFailed": "Gagal menghapus proksi dari pool",
@@ -11086,6 +11111,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy tidak dapat dijangkau",
     "poolSetAsideKindIpQuota429": "batas laju IP (429)",
     "poolSetAsideKindSlow": "respon lambat",
+    "poolSetAsideKindGeoBlocked": "wilayah diblokir (403/451)",
     "poolSetAsideUntil": "Kembali ke rotasi {endsAt}",
     "poolSetAsideRepeat": "Disisihkan {count, plural, one {# kali} other {# kali}}",
     "poolUnknownAddress": "Alamat tidak dikenal",
@@ -11094,10 +11120,15 @@
     "poolSignalPosition": "Urutan posisi",
     "poolHealthRankingOff": "Peringkat kesehatan mati",
     "transportRate": "{rate}% transport",
+    "slowAbandoned": "{count} penghentian lambat",
+    "clientAborted": "{count} pembatalan oleh klien",
+    "slowAbandonedHint": "Ditinggalkan setelah melewati batas waktu tunggu header, tidak termasuk dalam tarif transportasi",
     "previousSuccessRate": "Sebelumnya {rate}% berhasil",
-    "upstreamRefusals": "{count} penolakan upstream",
     "connectionTestsCount": "{count} uji koneksi",
-    "notMeasured": "Belum diukur"
+    "notMeasured": "Belum diukur",
+    "upstream4xx": "{count} kesalahan klien upstream",
+    "upstream5xx": "{count} kesalahan server upstream",
+    "uniformEgressLine": "{affected} dari {exits} exit gagal bersamaan di {provider} ({hours} jam terakhir) — bukan masalah exit"
   },
   "playground": {
     "title": "Title",
@@ -12871,7 +12902,10 @@
     "inheritedPool": "Mewarisi pool koneksi ({count})",
     "poolEmptyBlocked": "Pool kosong — permintaan gagal (bukan langsung)",
     "directEgress": "Langsung (tanpa proxy)",
-    "ownProxy": "Proxy sendiri"
+    "ownProxy": "Proxy sendiri",
+    "freeTierPause": "Model {model} dijeda (429), kembali pada {time}",
+    "freeTierPauseProvider": "Dijeda (429), kembali pada {time}",
+    "freeTierPauseNote": "Jeda dalam proses pada instan ini"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13052,6 +13086,10 @@
     "inactiveCount": "{count} tidak aktif",
     "dbOverrideCount": "{count} override DB",
     "searchPlaceholder": "Cari flag...",
+    "descriptionModeLabel": "Tampilan deskripsi",
+    "descriptionModeHint": "Saat hover: kartu tetap ringkas dan menyorot deskripsi akan menampilkan teks lengkap. Teks lengkap: selalu tampilkan deskripsi secara utuh.",
+    "descriptionModeHover": "Saat hover",
+    "descriptionModeFull": "Teks lengkap",
     "categories": {
       "all": "Semua",
       "security": "Keamanan",
@@ -13679,7 +13717,7 @@
     "secondaryNote": "Juga tersedia di Open VSX (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "Tutup"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Iklankan <gateway-alias>/<model> ID cermin di /v1/models untuk model yang pemilik kanoniknya tidak memiliki kredensial aktif tetapi gateway passthrough dengan kredensial aktif mengarahkannya. Peringatan: menambahkan entri katalog untuk semua klien saat diaktifkan secara global.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Iklankan '<gateway-alias>'/'<model>' ID cermin di /v1/models untuk model yang pemilik kanoniknya tidak memiliki kredensial aktif tetapi gateway passthrough dengan kredensial aktif mengarahkannya. Peringatan: menambahkan entri katalog untuk semua klien saat diaktifkan secara global.",
   "radarPage": {
     "title": "Katalog Radar",
     "subtitle": "Katalog model gratis yang diperkaya dengan intelijen komunitas",

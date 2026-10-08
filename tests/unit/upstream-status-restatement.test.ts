@@ -112,25 +112,61 @@ test("R10: chatCore wires applyStatusRestatement into the providerFailure block"
   // (side-effectful DB/env wiring), so the wiring contract is asserted at the
   // source level: the hook must exist, run against the parsed error, and
   // reassign both statusCode and retryAfterMs BEFORE classification.
+  // The classification helper stays in the barrel; the providerFailure block
+  // moved into the streaming leg with the decomposition.
   const { readFile } = await import("node:fs/promises");
   const src = await readFile(
     new URL("../../open-sse/handlers/chatCore.ts", import.meta.url),
     "utf8"
   );
-  assert.match(src, /applyStatusRestatement\(/, "chatCore must call applyStatusRestatement");
+  const legSrc = await readFile(
+    new URL("../../open-sse/handlers/chatCore/streamingResponse.ts", import.meta.url),
+    "utf8"
+  );
+  assert.match(
+    legSrc,
+    /applyStatusRestatement\(/,
+    "streaming leg must call applyStatusRestatement"
+  );
 
   const helperIndex = src.indexOf("const applyProviderFailureClassification = async (");
-  const blockIndex = src.indexOf("providerFailure: if (!providerResponse.ok)");
-  assert.ok(helperIndex > -1 && blockIndex > helperIndex, "classification helper and block exist");
+  const helperEnd = src.indexOf("const streamingOutcome = await runStreamingResponse(");
+  assert.ok(
+    helperIndex > -1 && helperEnd > helperIndex,
+    "classification helper exists before streaming dispatch"
+  );
   const classifyCalls = src.match(/classifyProviderError\(/g) ?? [];
   assert.equal(classifyCalls.length, 1, "chatCore classifies provider errors in exactly one place");
   const classifyIndex = src.indexOf("classifyProviderError(statusCode");
   assert.ok(
-    classifyIndex > helperIndex && classifyIndex < blockIndex,
+    classifyIndex > helperIndex && classifyIndex < helperEnd,
     "classifyProviderError must live inside applyProviderFailureClassification"
   );
 
-  const block = src.slice(blockIndex);
+  const blockIndex = legSrc.indexOf("providerFailure: if (!providerResponse.ok)");
+  assert.ok(blockIndex > -1, "providerFailure block exists in streamingResponse.ts");
+  // Cross-file form of the original `classifyIndex < blockIndex` ordering: the classification
+  // helper (holding the single classifyProviderError call) must be defined before the dispatch
+  // that hands it to the leaf containing the providerFailure block, and the dispatch must
+  // actually pass it in.
+  const dispatchIndex = src.indexOf("await runStreamingResponse({");
+  assert.ok(dispatchIndex > -1, "streaming dispatch exists in chatCore.ts");
+  assert.ok(
+    classifyIndex < dispatchIndex,
+    "classifyProviderError must be classified-before the block: helper precedes the streaming dispatch"
+  );
+  assert.match(
+    src.slice(dispatchIndex, src.indexOf("});", dispatchIndex)),
+    /\bapplyProviderFailureClassification,/,
+    "streaming dispatch must pass applyProviderFailureClassification into the leaf"
+  );
+  assert.equal(
+    legSrc.indexOf("classifyProviderError("),
+    -1,
+    "streaming leg does not classify directly; it delegates to applyProviderFailureClassification"
+  );
+
+  const block = legSrc.slice(blockIndex);
   const hookIndex = block.indexOf("applyStatusRestatement(");
   const statusReassign = block.indexOf("statusCode = restatement.status;");
   const retryReassign = block.indexOf("retryAfterMs = restatement.retryAfterMs;");

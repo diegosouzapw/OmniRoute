@@ -73,24 +73,31 @@ atunci când se întâmplă acest lucru, indicând endpointul și ceea ce s-a pi
 
 ## Opțiuni
 
-| Cheie                            | Valoare implicită                               | Note                                                                                                                                  |
-| -------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `providerId`                     | `"omniroute"`                                   | Id-ul furnizorului, id-ul integrării și prefixul sub care apar modelele                                                               |
-| `baseURL`                        | obligatoriu                                     | Rădăcina gateway-ului, numai `http(s)`; sufixul `/v1` este adăugat acolo unde este necesar                                            |
-| `apiKey`                         | acreditarea conectată, apoi `OMNIROUTE_API_KEY` | Cheie de chat pentru `/v1/*`                                                                                                          |
-| `managementReadToken`            | revine la `apiKey`                              | Cheie pentru `/api/*` — de obicei **nu** este aceeași                                                                                 |
-| `displayName`                    | `"OmniRoute"`                                   | Numele furnizorului în selector                                                                                                       |
-| `timeoutMs`                      | `10000`                                         | Timpul-limită pentru preluare per endpoint (combinațiile automate folosesc 5 s)                                                       |
-| `modelCacheTtlMs`                | `300000`                                        | TTL-ul cache-ului catalogului; un instantaneu pe disc accelerează pornirile la rece                                                   |
-| `timeouts`                       | revine la `timeoutMs`                           | Limite per endpoint în ms: `models`, `combos`, `autoCombos`, `enrichment`                                                             |
-| `enrichment`                     | `true`                                          | Preia denumirile, prețurile și limitele nivelului gratuit                                                                             |
-| `providerTag`                    | `true`                                          | Prefixează denumirea afișată cu furnizorul din amonte către care direcționează                                                        |
-| `usableOnly`                     | `false`                                         | Păstrează numai furnizorii pe care gateway-ul îi raportează ca fiind configurați                                                      |
-| `visibleModels` / `hiddenModels` | `[]`                                            | Liste de permisiuni cu potrivire exactă sau după sufix; interdicția are prioritate                                                    |
-| `geminiSanitization`             | `true`                                          | Elimină din schemele instrumentelor cuvintele-cheie JSON-Schema respinse de Gemini (instrumentele `$ref` sunt transmise nemodificate) |
-| `apiFormat.allowAnthropic`       | `false`                                         | Direcționează id-urile din lista de permisiuni prin blocul API Anthropic                                                              |
-| `apiFormat.anthropicModels`      | `[]`                                            | Id-urile complete ale modelelor direcționate către Anthropic                                                                          |
-| `logLevel` / `startupDebug`      | `warn` / `false`                                | Nivelul de detaliere al jurnalizării                                                                                                  |
+| Cheie                            | Valoare implicită                             | Note                                                                                                                                          |
+| -------------------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `providerId`                     | `"omniroute"`                                 | ID-ul furnizorului, ID-ul integrării și prefixul sub care apar modelele                                                                       |
+| `baseURL`                        | obligatoriu                                   | Rădăcina gateway-ului, doar `http(s)`; sufixul `/v1` este adăugat acolo unde este necesar                                                     |
+| `apiKey`                         | credențial conectat, apoi `OMNIROUTE_API_KEY` | Cheia de chat pentru `/v1/*`                                                                                                                  |
+| `managementReadToken`            | revine la `apiKey`                            | Cheia pentru `/api/*` — de obicei **nu** este aceeași                                                                                         |
+| `displayName`                    | `"OmniRoute"`                                 | Numele furnizorului în selector                                                                                                               |
+| `timeoutMs`                      | `10000`                                       | Timpul-limită de preluare pentru fiecare endpoint (combinațiile automate utilizează 5 s)                                                      |
+| `modelCacheTtlMs`                | `300000`                                      | TTL-ul cache-ului catalogului; un instantaneu pe disc accelerează pornirile la rece                                                           |
+| `timeouts`                       | revine la `timeoutMs`                         | Limite de timp per endpoint, în ms: `models`, `combos`, `autoCombos`, `enrichment`                                                            |
+| `enrichment`                     | `true`                                        | Preia numele, prețurile și limitele nivelului gratuit                                                                                         |
+| `providerTag`                    | `true`                                        | Prefixează numele afișat cu furnizorul din amonte către care direcționează                                                                    |
+| `usableOnly`                     | `false`                                       | Păstrează doar furnizorii pe care gateway-ul îi raportează ca fiind configurați                                                               |
+| `showcasePerOwner`               | `10`                                          | Intrările din vizualizarea implicită păstrate pentru fiecare furnizor                                                                         |
+| `freshPerOwner`                  | `10`                                          | Intrările recente din vizualizarea implicită păstrate pentru fiecare furnizor                                                                 |
+| `freshWindowDays`                | `90`                                          | Fereastra de actualitate, în zile, pentru ramura de intrări recente                                                                           |
+| `usageMemory`                    | `true`                                        | Restaurează intrările eliminate static, identificate de analizele de utilizare pe 30 de zile (necesită un token de administrare)              |
+| `visibleModels` / `hiddenModels` | `[]`                                          | Liste de permisiuni bazate pe potrivire exactă sau după sufix; interdicția are prioritate                                                     |
+| `geminiSanitization`             | `true`                                        | Elimină din schemele instrumentelor cuvintele-cheie JSON-Schema respinse de Gemini (instrumentele cu `$ref` sunt redirecționate nemodificate) |
+| `apiFormat.allowAnthropic`       | `false`                                       | Direcționează ID-urile din lista de permisiuni prin blocul API Anthropic                                                                      |
+| `apiFormat.anthropicModels`      | `[]`                                          | ID-urile complete ale modelelor direcționate către Anthropic                                                                                  |
+| `logLevel` / `startupDebug`      | `warn` / `false`                              | Nivelul de detaliere al jurnalizării                                                                                                          |
+
+Memoria utilizării este activată în mod implicit. Fără un token de administrare, aceasta rămâne inactivă
+(la pornire este înregistrată o notificare) și nu se restaurează nimic.
 
 ## Cum rămâne actualizat catalogul
 

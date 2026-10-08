@@ -28,6 +28,21 @@ const scoped = new WeakMap<object, ScopedAccount[]>();
 
 const isObject = (value: unknown): value is object => typeof value === "object" && value !== null;
 
+/** Accounts whose configured proxy reference cannot provide safe egress. */
+export function requiredProxyUnavailableFingerprints(credentials: ProviderCredentials): string[] {
+  const accountProxies = credentials?.providerSpecificData?.accountProxies;
+  if (!Array.isArray(accountProxies)) return [];
+  return accountProxies
+    .filter(
+      (entry): entry is AccountProxyConfig =>
+        !!entry &&
+        typeof entry === "object" &&
+        typeof entry.fingerprint === "string" &&
+        entry.proxyUnavailable === true
+    )
+    .map((entry) => entry.fingerprint);
+}
+
 /**
  * Rebuild a request list from credentials, carrying over the shared health
  * known for each member. Empty fingerprints keep the single direct member,
@@ -43,23 +58,27 @@ export function syncFromHealth(
     : [];
 
   const accountProxies = psd?.accountProxies as AccountProxyConfig[] | undefined;
+  const unavailable = new Set(requiredProxyUnavailableFingerprints(credentials));
   const proxyMap = Array.isArray(accountProxies)
     ? new Map(accountProxies.map((ap) => [ap.fingerprint, ap.proxy ?? null] as const))
     : null;
 
   if (fingerprints.length === 0) {
+    if (unavailable.size > 0) return [];
     return [{ fingerprint: "", cooldownUntil: 0, consecutiveFails: 0, proxy: null }];
   }
 
-  return fingerprints.map((fp) => {
-    const prior = health.get(fp);
-    return {
-      fingerprint: fp,
-      cooldownUntil: prior?.cooldownUntil ?? 0,
-      consecutiveFails: prior?.consecutiveFails ?? 0,
-      proxy: proxyMap ? (proxyMap.get(fp) ?? null) : null,
-    };
-  });
+  return fingerprints
+    .filter((fp) => !unavailable.has(fp))
+    .map((fp) => {
+      const prior = health.get(fp);
+      return {
+        fingerprint: fp,
+        cooldownUntil: prior?.cooldownUntil ?? 0,
+        consecutiveFails: prior?.consecutiveFails ?? 0,
+        proxy: proxyMap ? (proxyMap.get(fp) ?? null) : null,
+      };
+    });
 }
 
 /** Fold a request list back into the shared store, keyed by member id. */

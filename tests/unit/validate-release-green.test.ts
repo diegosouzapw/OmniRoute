@@ -31,6 +31,22 @@ test("eslintCounts sums errors + warnings across files", () => {
   assert.deepEqual(eslintCounts(parsed), { errors: 2, warnings: 8 });
 });
 
+test("ESLint JSON with zero findings cannot hide a failed process", () => {
+  const results = evaluateEslintRun({ code: 42, out: '[{"errorCount":0,"warningCount":0}]' }, 0);
+  assert.equal(computeVerdict(results).releaseGreen, false);
+  assert.match(results[0].detail, /42/);
+});
+
+test("timeout diagnostics retain partial stdout and stderr", () => {
+  const result = classifyRunError(
+    { code: "ETIMEDOUT", stdout: "last completed test\n", stderr: "worker diagnostic\n" },
+    1000
+  );
+  assert.equal(result.code, 124);
+  assert.match(result.out, /last completed test/);
+  assert.match(result.out, /worker diagnostic/);
+});
+
 test("parseEslintJson tolerates a leading non-JSON banner", () => {
   const out = 'npm warn something\n[{"errorCount":0,"warningCount":1}]';
   assert.deepEqual(parseEslintJson(out), [{ errorCount: 0, warningCount: 1 }]);
@@ -221,6 +237,26 @@ test("pre-flight wires the test-masking PR-context gate against origin/main (v3.
   );
 });
 
+test("pre-flight reports pricing freshness as drift, not as a hard failure", async () => {
+  const fs = await import("node:fs");
+  const src = fs.readFileSync(
+    new URL("../../scripts/quality/validate-release-green.mjs", import.meta.url),
+    "utf8"
+  );
+  // The gate reads git history (KNOWN_MODEL_PRICING untouched for 90 days), so it turns red
+  // by itself as time passes: a drift entry keeps it visible without blocking a release.
+  assert.match(
+    src,
+    /driftCmd\(\s*"pricing-freshness"[\s\S]*?"check:pricing-freshness"/,
+    "pricing-freshness must run check:pricing-freshness as a drift check"
+  );
+  assert.doesNotMatch(
+    src,
+    /hardCmd\(\s*"pricing-freshness"/,
+    "pricing-freshness must not be a HARD gate"
+  );
+});
+
 test("pre-flight --hermetic scrubs the live-test trigger vars (2026-07-05 false-positive fix)", async () => {
   const fs = await import("node:fs");
   const src = fs.readFileSync(
@@ -246,7 +282,8 @@ test("pre-flight runs the slow suites CONCURRENTLY (v3.8.45 perf — was ~1h ser
   // main() must be async and the slow suites (unit/vitest/integration/pack-artifact)
   // must run via a single Promise.all over runAsync — not four sequential hardCmd calls.
   assert.match(src, /async function main\(\)/, "main must be async to await the parallel wave");
-  assert.match(src, /const execFileAsync = promisify\(execFile\)/, "async runner must exist");
+  assert.match(src, /await runGateProcess\(/, "commands must use the asynchronous supervisor");
+  assert.match(src, /const runAsync = run/, "slow suites must use the same supervised runner");
   assert.match(src, /await Promise\.all\(\s*slow\.map\(/, "slow suites must run concurrently");
   // The four slow-gate ids must all be present in the parallel wave.
   for (const id of ["unit", "vitest", "integration", "pack-artifact"]) {
@@ -531,4 +568,23 @@ test("the --full-ci loop classifies from the curated results, not a hardcoded ki
     /kind:\s*fullCiKindFor\(g\.id,\s*results\)/,
     "--full-ci must classify each ci.yml gate through fullCiKindFor()"
   );
+});
+
+test("extractCiGates: skips steps guarded to pull_request events (no PR range outside a PR)", () => {
+  const yaml = `
+jobs:
+  lint:
+    steps:
+      - run: npm run check:public-creds
+      - name: AI attribution
+        if: github.event_name == 'pull_request'
+        run: |
+          printf '%s' "$PR_BODY" > "$RUNNER_TEMP/pr-body.md"
+          npm run check:ai-attribution -- --range "$PR_BASE_SHA..$PR_HEAD_SHA"
+      - name: still local
+        if: github.event_name != 'pull_request'
+        run: npm run check:db-rules
+`;
+  const ids = extract(yaml).map((g) => g.id);
+  assert.deepEqual(ids, ["check:public-creds", "check:db-rules"]);
 });

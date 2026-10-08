@@ -1,0 +1,1 @@
+- **fix(combo):** a native Codex turn pinned to a model is no longer terminated with `400 NATIVE_CODEX_PINNED_MODEL_UNAVAILABLE` when the model only has a short transient lockout (e.g. a 5s `server_error` set by another client); the router waits it out and continues on the pinned model ([#15168](https://github.com/diegosouzapw/OmniRoute/pull/15168))

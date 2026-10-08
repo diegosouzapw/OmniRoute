@@ -1,1 +1,0 @@
-- **fix(network):** `safeOutboundFetch` with `guard: "public-only"` now resolves the host and refuses a name that points at a private, loopback or link-local address, and the HTTP skill connects to the address that was checked

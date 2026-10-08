@@ -20,12 +20,17 @@ import { getModelSpec } from "../../../src/shared/constants/modelSpecs.ts";
 
 import {
   DEFAULT_SAFETY_SETTINGS,
+  buildGeminiThinkingConfig,
   convertOpenAIContentToParts,
   extractTextContent,
   tryParseJSON,
   cleanJSONSchemaForAntigravity,
 } from "../helpers/geminiHelper.ts";
 import { buildGeminiTools, sanitizeGeminiToolName } from "../helpers/geminiToolsSanitizer.ts";
+import {
+  normalizeGeminiToolCallIds,
+  validateChronologicalToolCallIds,
+} from "./openai-to-gemini/toolCallIds.ts";
 import {
   type GeminiGenerationConfig,
   isVertexGeminiProvider,
@@ -276,13 +281,14 @@ function openaiToGeminiBase(
       // requested budget down to 0. Omitting thinkingConfig entirely here regressed
       // the pre-#6943 native-defaults contract (thinkingBudget 0 / includeThoughts
       // false must still be present) and crashed callers that read
-      // .thinkingConfig.thinkingBudget unconditionally.
+      // .thinkingConfig.thinkingBudget unconditionally. Flash-Lite models are the
+      // exception: AI Studio 400s on thinkingBudget 0, so it is omitted there.
       // Gemini 3.x exception: an explicit thinkingLevel makes the numeric budget
       // redundant (the deprecated field is dropped when the level is forwarded), so
       // only include thinkingBudget when no explicit level was supplied.
       result.generationConfig.thinkingConfig = explicitThinkingLevel
         ? { includeThoughts: budget !== 0 }
-        : { thinkingBudget: budget, includeThoughts: budget !== 0 };
+        : buildGeminiThinkingConfig(model, budget, budget !== 0);
     }
     // 2. Claude format: thinking (type: enabled, budget_tokens)
     // Use an explicit numeric check (not truthy) so an explicit `budget_tokens: 0` — the
@@ -304,7 +310,7 @@ function openaiToGeminiBase(
       if (cappedBudget > 0 || getModelSpec(model)?.thinkingBudgetCap !== 0) {
         result.generationConfig.thinkingConfig = explicitThinkingLevel
           ? { includeThoughts: cappedBudget !== 0 }
-          : { thinkingBudget: cappedBudget, includeThoughts: cappedBudget !== 0 };
+          : buildGeminiThinkingConfig(model, cappedBudget, cappedBudget !== 0);
       }
     }
   }
@@ -377,6 +383,7 @@ function openaiToGeminiBase(
   // OpenCode's known abort/cancel bug) reaches Google's Cloud Code envelope as an unpaired
   // functionCall, which Vertex's Claude backend rejects with HTTP 400.
   const rawMessages = body.messages as Array<Record<string, unknown>> | undefined;
+  validateChronologicalToolCallIds(rawMessages);
   const messages =
     rawMessages && Array.isArray(rawMessages)
       ? (fixToolPairs(rawMessages) as Array<Record<string, unknown>>)
@@ -655,6 +662,8 @@ function openaiToGeminiBase(
   // Guard the one alternation violation the merge above cannot reach: history
   // that opens with a functionCall-bearing turn instead of a user turn.
   result.contents = ensureHistoryDoesNotOpenWithFunctionCall(result.contents);
+  // Signatures must be resolved using client IDs before assigning unique wire IDs (#15312).
+  result.contents = normalizeGeminiToolCallIds(result.contents);
 
   // Convert tools
   const bodyTools = body.tools as Array<Record<string, unknown>> | undefined;

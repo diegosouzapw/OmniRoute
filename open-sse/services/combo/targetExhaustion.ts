@@ -40,6 +40,7 @@ import { isSharedWalletCredits402 } from "../accountFallback/sharedWalletCredits
 import { isClaudeMinuteRateLimitText, isExplicitClaudeQuota429Text } from "../usage/claudeQuota.ts";
 import { getCachedClaudeQuotaScopeDecision } from "@/domain/quotaCache";
 import { resolveProviderId } from "@/shared/constants/providers";
+import { LOCAL_MODEL_COOLDOWN_HEADER } from "../../utils/localCooldownHeader.ts";
 import type { ComboLogger, ResolvedComboTarget } from "./types.ts";
 
 // Connection-level failure statuses: the provider connection itself is likely bad (upstream
@@ -367,6 +368,7 @@ function isProviderQuotaExhausted(
   provider: string | null | undefined,
   opts: Pick<
     ApplyComboTargetExhaustionOptions,
+    | "result"
     | "rawModel"
     | "fallbackResult"
     | "structuredError"
@@ -376,6 +378,7 @@ function isProviderQuotaExhausted(
   >
 ): boolean {
   const {
+    result,
     rawModel,
     fallbackResult,
     structuredError,
@@ -384,8 +387,14 @@ function isProviderQuotaExhausted(
     requestScopedFailure,
   } = opts;
   const canonicalProvider = provider ? resolveProviderId(provider) : provider;
+  // OmniRoute's own local model cooldown reuses CLIProxyAPI's `model_cooldown`
+  // wording, which #14190 classifies as quota (both in classifyErrorText and in the
+  // fallbackResult derived from it). Ours is a local, transient cooldown — never a
+  // provider quota signal — so it must not skip the remaining same-provider targets.
+  const isLocalCooldown = Boolean(result?.headers?.get?.(LOCAL_MODEL_COOLDOWN_HEADER));
   return (
     Boolean(provider && provider !== "unknown") &&
+    !isLocalCooldown &&
     !(requestScopedFailure || isRequestScopedUpstreamFailure(structuredError)) &&
     !hasPerModelQuota(provider as string, rawModel) &&
     !(canonicalProvider === "claude" && isClaudeMinuteRateLimitText(errorText)) &&

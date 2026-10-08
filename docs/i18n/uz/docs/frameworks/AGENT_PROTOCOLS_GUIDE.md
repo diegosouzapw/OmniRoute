@@ -74,26 +74,26 @@ Transport tafsilotlari, agent kartasi tuzilishi, vazifaning TTL sozlamalari va y
 
 ### Bu nima
 
-ACP — OmniRoute’ning **mahalliy CLI agentlari inventari**. U xostda qaysi dasturlash CLI vositalari o‘rnatilganini aniqlaydi (Cursor, Cline, Claude Code, Codex CLI, Continue va boshqalar), ularning versiyalarini aniqlab, boshqaruv panelida ko‘rsatadi, shunda foydalanuvchi har bir CLI vositasini OmniRoute’ga yo‘naltirish uchun sozlashi mumkin.
+ACP — OmniRoute'ning **mahalliy CLI agentlari inventari**. U xostda qaysi dasturlash CLI'lari o‘rnatilganini aniqlaydi (Cursor, Cline, Claude Code, Codex CLI, Continue va boshqalar), ularning versiyalarini topadi va foydalanuvchi har bir CLI'ni OmniRoute'ga yo‘naltirishi uchun ularni boshqaruv panelida ko‘rsatadi.
 
-Bu tashqi protokol EMAS — bu «CLI Tools» interfeysi va CLI barmoq izi kuzatuvini ta’minlaydigan ichki reyestrdir ([CLI-TOOLS.md](../reference/CLI-TOOLS.md) fayliga qarang).
+HTTP interfeysi — “CLI Tools” foydalanuvchi interfeysi va CLI raqamli izi kuzatuvini ta’minlaydigan ichki inventar (qarang: [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Bundan tashqari, ichki jarayon menejeri ro‘yxatdan o‘tkazilgan Gemini ishga tushirgichi uchun mahalliy Agent Client Protocol'ni va boshqa shartnomalar uchun eski stdio adapterlarini qo‘llab-quvvatlaydi. Ushbu alohida rejimlar va cheklovlar haqida [ACP reyestri va ishga tushirgichlar](./ACP.md) bo‘limiga qarang.
 
 ### U nima qiladi
 
-- Xostda o‘rnatilgan CLI bajariluvchi fayllarini tekshiradi (operatsion tizimga qarab `which` / `where` dan foydalanadi)
-- Har bir CLI versiyasini o‘qiydi (`<bin> --version` ni chaqiradi)
-- Ixtiyoriy ravishda foydalanuvchi belgilagan maxsus agentlarni qabul qiladi (bajariluvchi fayl yo‘li + versiyani tekshirish buyrug‘i + ishga tushirish argumentlari)
-- Maxsus agentlarni sozlamalarda saqlaydi
+- Xostda o‘rnatilgan CLI ikkilik fayllarini qidiradi (OTga qarab `which` / `where` ishlatadi)
+- Har bir CLI versiyasini o‘qiydi (`<bin> --version` buyrug‘ini chaqiradi)
+- Ixtiyoriy ravishda foydalanuvchi belgilagan maxsus agentlarni qabul qiladi (ikkilik fayl yo‘li + versiyani tekshirish + ishga tushirish argumentlari)
+- Maxsus agentlarni sozlamalarda doimiy saqlaydi
 - Birlashtirilgan ro‘yxatni boshqaruv paneliga qaytaradi
 
 ### REST API
 
-| Endpoint          | Metod | Tavsif                                                               | Autentifikatsiya |
-| ----------------- | ----- | -------------------------------------------------------------------- | ---------------- |
-| `/api/acp/agents` | GET   | Aniqlangan + maxsus agentlar ro‘yxati (o‘rnatilgan/jami soni)        | API kaliti       |
-| `/api/acp/agents` | POST  | Maxsus agentni qo‘shish/yangilash/o‘chirish (`action` tanasi orqali) | API kaliti       |
+| Endpoint          | Metod | Tavsif                                                           | Autentifikatsiya |
+| ----------------- | ----- | ---------------------------------------------------------------- | ---------------- |
+| `/api/acp/agents` | GET   | Aniqlangan + maxsus agentlar ro‘yxati (o‘rnatilgan/jami soni)    | API kaliti       |
+| `/api/acp/agents` | POST  | Maxsus agentni qo‘shish/yangilash/o‘chirish (tanadagi amal turi) | API kaliti       |
 
-POST uchun tana shakli (`src/app/api/acp/agents/route.ts` faylidagi `customAgentBodySchema`):
+POST uchun tana tuzilishi (`src/app/api/acp/agents/route.ts` ichidagi `customAgentBodySchema`):
 
 ```json
 {
@@ -110,13 +110,13 @@ POST uchun tana shakli (`src/app/api/acp/agents/route.ts` faylidagi `customAgent
 
 ### Foydalanish holatlari
 
-- Boshqaruv panelidagi «CLI Tools» sahifasi nimalar o‘rnatilganini ko‘rsatadi va har birini OmniRoute’ga yo‘naltirishga yordam beradi
-- Maxsus agentlar tajribali foydalanuvchilarga OmniRoute sukut bo‘yicha bilmaydigan ichki/xususiy CLI vositalarini ro‘yxatdan o‘tkazish imkonini beradi
-- Aniqlash natijasi `cli-tools` barmoq izlari matritsasini ta’minlaydi
+- Boshqaruv panelidagi “CLI Tools” sahifasi nimalar o‘rnatilganini ko‘rsatadi va har birini OmniRoute'ga yo‘naltirishga yordam beradi
+- Maxsus agentlar tajribali foydalanuvchilarga OmniRoute sukut bo‘yicha bilmaydigan ichki/xususiy CLI'larni ro‘yxatdan o‘tkazish imkonini beradi
+- Aniqlash natijasi `cli-tools` raqamli iz matritsasini shakllantiradi
 
-### ACP’dan qachon foydalanmaslik kerak
+### ACP'dan qachon foydalanmaslik kerak
 
-- ACP vazifalarni _bajarmaydi_. U faqat CLI vositalarini aniqlaydi va sozlaydi. CLI vositasini amalda chaqirish uchun uni OmniRoute taqdim etadigan muhit o‘zgaruvchilari (`OPENAI_BASE_URL`, `OPENAI_API_KEY` va boshqalar) bilan o‘zingiz ishga tushirasiz.
+- HTTP reyestri vazifalarni qabul qilmaydi yoki jarayonlarni ishga tushirish imkoniyatini taqdim etmaydi. Ichki menejer ro‘yxatdan o‘tkazilgan CLI'ni ishga tushira oladi, biroq u avtomatik provayder zaxira varianti sifatida ulanmagan. Oddiy interaktiv foydalanish uchun sozlangan CLI'ni o‘zingiz ishga tushiring yoki `omniroute run` buyrug‘idan foydalaning.
 
 ## 3. Bulut agentlari
 
