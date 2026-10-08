@@ -1,1 +1,0 @@
-- **fix(cli):** OpenCode config generator preserves catalog display names — custom names win, then `display_name`/native `name` (with the `owned_by/` prefix stripped once), then a readable label for `auto/*` ids, instead of always showing the raw model id ([#13168](https://github.com/diegosouzapw/OmniRoute/pull/13168)) — thanks @domenicomassafra

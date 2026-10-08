@@ -1,24 +1,26 @@
 # Socket.dev / supply-chain finding attestation (Yorùbá)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../security/SOCKET_DEV_FINDINGS.md) · 🇪🇹 [am](../../../am/docs/security/SOCKET_DEV_FINDINGS.md) · 🇸🇦 [ar](../../../ar/docs/security/SOCKET_DEV_FINDINGS.md) · 🇦🇿 [az](../../../az/docs/security/SOCKET_DEV_FINDINGS.md) · 🇧🇬 [bg](../../../bg/docs/security/SOCKET_DEV_FINDINGS.md) · 🇧🇩 [bn](../../../bn/docs/security/SOCKET_DEV_FINDINGS.md) · 🇨🇿 [cs](../../../cs/docs/security/SOCKET_DEV_FINDINGS.md) · 🇩🇰 [da](../../../da/docs/security/SOCKET_DEV_FINDINGS.md) · 🇩🇪 [de](../../../de/docs/security/SOCKET_DEV_FINDINGS.md) · 🇬🇷 [el](../../../el/docs/security/SOCKET_DEV_FINDINGS.md) · 🇪🇸 [es](../../../es/docs/security/SOCKET_DEV_FINDINGS.md) · 🇪🇪 [et](../../../et/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇷 [fa](../../../fa/docs/security/SOCKET_DEV_FINDINGS.md) · 🇫🇮 [fi](../../../fi/docs/security/SOCKET_DEV_FINDINGS.md) · 🇫🇷 [fr](../../../fr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇪 [ga](../../../ga/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [gu](../../../gu/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇬 [ha](../../../ha/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇱 [he](../../../he/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [hi](../../../hi/docs/security/SOCKET_DEV_FINDINGS.md) · 🇭🇷 [hr](../../../hr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇭🇺 [hu](../../../hu/docs/security/SOCKET_DEV_FINDINGS.md) · 🇦🇲 [hy](../../../hy/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇩 [id](../../../id/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇬 [ig](../../../ig/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇹 [it](../../../it/docs/security/SOCKET_DEV_FINDINGS.md) · 🇯🇵 [ja](../../../ja/docs/security/SOCKET_DEV_FINDINGS.md) · 🇬🇪 [ka](../../../ka/docs/security/SOCKET_DEV_FINDINGS.md) · 🇰🇭 [km](../../../km/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [kn](../../../kn/docs/security/SOCKET_DEV_FINDINGS.md) · 🇰🇷 [ko](../../../ko/docs/security/SOCKET_DEV_FINDINGS.md) · 🇱🇹 [lt](../../../lt/docs/security/SOCKET_DEV_FINDINGS.md) · 🇱🇻 [lv](../../../lv/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [ml](../../../ml/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [mr](../../../mr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇲🇾 [ms](../../../ms/docs/security/SOCKET_DEV_FINDINGS.md) · 🇲🇹 [mt](../../../mt/docs/security/SOCKET_DEV_FINDINGS.md) · 🇲🇲 [my](../../../my/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇵 [ne](../../../ne/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇱 [nl](../../../nl/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇴 [no](../../../no/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [or](../../../or/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [pa](../../../pa/docs/security/SOCKET_DEV_FINDINGS.md) · 🇵🇭 [phi](../../../phi/docs/security/SOCKET_DEV_FINDINGS.md) · 🇵🇱 [pl](../../../pl/docs/security/SOCKET_DEV_FINDINGS.md) · 🇵🇹 [pt](../../../pt/docs/security/SOCKET_DEV_FINDINGS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/SOCKET_DEV_FINDINGS.md) · 🇷🇴 [ro](../../../ro/docs/security/SOCKET_DEV_FINDINGS.md) · 🇷🇺 [ru](../../../ru/docs/security/SOCKET_DEV_FINDINGS.md) · 🇱🇰 [si](../../../si/docs/security/SOCKET_DEV_FINDINGS.md) · 🇸🇰 [sk](../../../sk/docs/security/SOCKET_DEV_FINDINGS.md) · 🇸🇮 [sl](../../../sl/docs/security/SOCKET_DEV_FINDINGS.md) · 🇷🇸 [sr](../../../sr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇸🇪 [sv](../../../sv/docs/security/SOCKET_DEV_FINDINGS.md) · 🇰🇪 [sw](../../../sw/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [ta](../../../ta/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [te](../../../te/docs/security/SOCKET_DEV_FINDINGS.md) · 🇹🇭 [th](../../../th/docs/security/SOCKET_DEV_FINDINGS.md) · 🇹🇷 [tr](../../../tr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/SOCKET_DEV_FINDINGS.md) · 🇵🇰 [ur](../../../ur/docs/security/SOCKET_DEV_FINDINGS.md) · 🇺🇿 [uz](../../../uz/docs/security/SOCKET_DEV_FINDINGS.md) · 🇻🇳 [vi](../../../vi/docs/security/SOCKET_DEV_FINDINGS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/SOCKET_DEV_FINDINGS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/SOCKET_DEV_FINDINGS.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../security/SOCKET_DEV_FINDINGS.md) · 🇪🇹 [am](../../../am/docs/security/SOCKET_DEV_FINDINGS.md) · 🇸🇦 [ar](../../../ar/docs/security/SOCKET_DEV_FINDINGS.md) · 🇦🇿 [az](../../../az/docs/security/SOCKET_DEV_FINDINGS.md) · 🇧🇬 [bg](../../../bg/docs/security/SOCKET_DEV_FINDINGS.md) · 🇧🇩 [bn](../../../bn/docs/security/SOCKET_DEV_FINDINGS.md) · 🇧🇦 [bs](../../../bs/docs/security/SOCKET_DEV_FINDINGS.md) · 🇨🇿 [cs](../../../cs/docs/security/SOCKET_DEV_FINDINGS.md) · 🇩🇰 [da](../../../da/docs/security/SOCKET_DEV_FINDINGS.md) · 🇩🇪 [de](../../../de/docs/security/SOCKET_DEV_FINDINGS.md) · 🇬🇷 [el](../../../el/docs/security/SOCKET_DEV_FINDINGS.md) · 🇪🇸 [es](../../../es/docs/security/SOCKET_DEV_FINDINGS.md) · 🇪🇪 [et](../../../et/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇷 [fa](../../../fa/docs/security/SOCKET_DEV_FINDINGS.md) · 🇫🇮 [fi](../../../fi/docs/security/SOCKET_DEV_FINDINGS.md) · 🇫🇷 [fr](../../../fr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇪 [ga](../../../ga/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [gu](../../../gu/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇬 [ha](../../../ha/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇱 [he](../../../he/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [hi](../../../hi/docs/security/SOCKET_DEV_FINDINGS.md) · 🇭🇷 [hr](../../../hr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇭🇺 [hu](../../../hu/docs/security/SOCKET_DEV_FINDINGS.md) · 🇦🇲 [hy](../../../hy/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇩 [id](../../../id/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇬 [ig](../../../ig/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇹 [it](../../../it/docs/security/SOCKET_DEV_FINDINGS.md) · 🇯🇵 [ja](../../../ja/docs/security/SOCKET_DEV_FINDINGS.md) · 🇬🇪 [ka](../../../ka/docs/security/SOCKET_DEV_FINDINGS.md) · 🇰🇭 [km](../../../km/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [kn](../../../kn/docs/security/SOCKET_DEV_FINDINGS.md) · 🇰🇷 [ko](../../../ko/docs/security/SOCKET_DEV_FINDINGS.md) · 🇱🇹 [lt](../../../lt/docs/security/SOCKET_DEV_FINDINGS.md) · 🇱🇻 [lv](../../../lv/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [ml](../../../ml/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [mr](../../../mr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇲🇾 [ms](../../../ms/docs/security/SOCKET_DEV_FINDINGS.md) · 🇲🇹 [mt](../../../mt/docs/security/SOCKET_DEV_FINDINGS.md) · 🇲🇲 [my](../../../my/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇵 [ne](../../../ne/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇱 [nl](../../../nl/docs/security/SOCKET_DEV_FINDINGS.md) · 🇳🇴 [no](../../../no/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [or](../../../or/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [pa](../../../pa/docs/security/SOCKET_DEV_FINDINGS.md) · 🇵🇭 [phi](../../../phi/docs/security/SOCKET_DEV_FINDINGS.md) · 🇵🇱 [pl](../../../pl/docs/security/SOCKET_DEV_FINDINGS.md) · 🇵🇹 [pt](../../../pt/docs/security/SOCKET_DEV_FINDINGS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/SOCKET_DEV_FINDINGS.md) · 🇷🇴 [ro](../../../ro/docs/security/SOCKET_DEV_FINDINGS.md) · 🇷🇺 [ru](../../../ru/docs/security/SOCKET_DEV_FINDINGS.md) · 🇱🇰 [si](../../../si/docs/security/SOCKET_DEV_FINDINGS.md) · 🇸🇰 [sk](../../../sk/docs/security/SOCKET_DEV_FINDINGS.md) · 🇸🇮 [sl](../../../sl/docs/security/SOCKET_DEV_FINDINGS.md) · 🇷🇸 [sr](../../../sr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇸🇪 [sv](../../../sv/docs/security/SOCKET_DEV_FINDINGS.md) · 🇰🇪 [sw](../../../sw/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [ta](../../../ta/docs/security/SOCKET_DEV_FINDINGS.md) · 🇮🇳 [te](../../../te/docs/security/SOCKET_DEV_FINDINGS.md) · 🇹🇭 [th](../../../th/docs/security/SOCKET_DEV_FINDINGS.md) · 🇹🇷 [tr](../../../tr/docs/security/SOCKET_DEV_FINDINGS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/SOCKET_DEV_FINDINGS.md) · 🇵🇰 [ur](../../../ur/docs/security/SOCKET_DEV_FINDINGS.md) · 🇺🇿 [uz](../../../uz/docs/security/SOCKET_DEV_FINDINGS.md) · 🇻🇳 [vi](../../../vi/docs/security/SOCKET_DEV_FINDINGS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/SOCKET_DEV_FINDINGS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/SOCKET_DEV_FINDINGS.md)
 
 ---
 
-Ìwé yìí ni ìjẹ́rìísí tí olùtọ́jú kọ fún àwọn àbájáde mẹ́fà ti
-`malware tó ṣeé ṣe tí AI ṣàwárí` tí a gbé kalẹ̀ lòdì sí `omniroute@3.8.5` àti
-àwọn ìgbésẹ̀ ìdènà tí a lò nínú `omniroute@3.8.6`. Ó wà kí:
+> **Àkíyèsí ààlà:** `socket.yml` ń ṣètò àyẹ̀wò Socket.dev lẹ́yìn ìtẹ̀jáde ní ẹ̀gbẹ́ registry lórí artifact npm (àwọn ipa-ọ̀nà tí a máa foju kọ fún àkóónú tí a kò fi ránṣẹ́, bíi `tests/`, `docs/`, àti àwọn ìròyìn build). Kì í ṣe ohun tó ń so ẹnu-ọ̀nà ìdapọ̀ CI/PR pọ̀ — kò sí workflow kankan nínú `.github/workflows`, kò sí script `package.json` kankan, bẹ́ẹ̀ ni kò sí target `Makefile` kankan tó ń pe Socket.dev.
 
-1. Àwọn olùṣàkóso ọ̀nà-àbáwọlé ààbò lè ní ìtọ́kasí kan ṣoṣo láti tọ́ka sí nígbà tí wọ́n bá nílò
-   láti ṣe àyẹ̀wò àwọn àbájáde náà ní ìfiwéra pẹ̀lú kóòdù orísun gangan.
-2. Àwọn ẹ̀rọ àyẹ̀wò AI ọjọ́ iwájú lè rí ìjẹ́rìísí tí olùtọ́jú fọwọ́ sí pé ọ̀kọ̀ọ̀kan
-   àwọn ipa-ọ̀nà tí a sàmì sí jẹ́ èrò inú, ó nílò ìyọ̀ǹda láti ṣiṣẹ́, a sì ti ṣe àkọsílẹ̀ rẹ̀.
-3. A ní àkọsílẹ̀ tí a kọ sílẹ̀ nípa _ìdí_ tí ọ̀kọ̀ọ̀kan àwọn ibi ìpè fi ní ìrísí tó ní —
-   kí àtúnṣètò ọjọ́ iwájú má bàa ṣàìmọ̀ tún àpẹẹrẹ ìdánimọ̀ kan padà
-   tí a mọ̀ọ́mọ̀ yọ kúrò.
+Ìwé yìí ni ìjẹ́rìísí tí olùtọ́jú kọ fún àwọn àbájáde mẹ́fà
+`malware tó ṣeé ṣe tí AI ṣàwárí` tí a gbé dìde sí `omniroute@3.8.5`, àti
+àwọn ìgbésẹ̀ ìdínkù-ewu tí a lò nínú `omniroute@3.8.6`. Ó wà kí:
 
-Tí o bá ń ṣiṣẹ́ ẹ̀rọ àyẹ̀wò kan tí ó tún sàmì sí èyíkéyìí lára àwọn ibi ìpè tó wà nísàlẹ̀ lẹ́yìn tí
-a bá ti tú àwọn ìgbésẹ̀ ìdènà v3.8.6 jáde, jọ̀wọ́ ṣí issue kan pẹ̀lú àtẹ̀lé àyẹ̀wò náà,
-a ó sì fa ìjẹ́rìísí tó wà níbí gùn sí i.
+1. Àwọn olùṣiṣẹ́ pipeline ààbò lè ní ìtọ́kasí kan ṣoṣo láti tọ́ka sí nígbà tí wọ́n bá nílò
+   láti ṣe àyẹ̀wò àwọn àbájáde náà pẹ̀lú source gangan.
+2. Àwọn scanner AI ọjọ́ iwájú lè rí ìkéde tí olùtọ́jú fọwọ́ sí pé ọ̀kọ̀ọ̀kan
+   ipa-ọ̀nà tí a sàmì sí jẹ́ èyí tí a mọ̀ọ́mọ̀ ṣe, tí olùlò gbọ́dọ̀ yàn láti lo, tí a sì ṣàkọsílẹ̀ rẹ̀.
+3. Kí a ní àkọsílẹ̀ ní kíkọ nípa _ìdí_ tí a fi ṣe ọ̀kọ̀ọ̀kan call site ní ọ̀nà tó rí —
+   kí refactor ọjọ́ iwájú má bàa tún fingerprint kan padà láìmọ̀ọ́mọ̀,
+   èyí tí a ti mọ̀ọ́mọ̀ yọ kúrò.
+
+Tí ẹ bá ń ṣiṣẹ́ scanner kan tó tún sàmì sí èyíkéyìí nínú àwọn call site tó wà nísàlẹ̀ lẹ́yìn tí
+àwọn ìgbésẹ̀ ìdínkù-ewu v3.8.6 bá ti jáde, ẹ jọ̀wọ́ ṣí issue kan pẹ̀lú trace àyẹ̀wò náà,
+àwa yóò sì fa ìjẹ́rìísí tó wà níbí gùn sí i.
 
 ---
 
@@ -201,30 +203,29 @@ láti ṣe àkójọpọ̀ àwọn ìjẹ́rìí ẹgbẹ́ sí ibi kan. Àtún�
 
 ---
 
-## Àwòṣe ìkọ́lé: `minimal`
+## Prófáìlì ìkọ́lé: `minimal`
 
-Fún àwọn aṣàmúlò tó nílò artifact tó bá Socket mu, kọ́ ọ pẹ̀lú:
+Fún àwọn olumulo tí wọ́n nílò àkójọpọ̀ tó bá Socket mu, kọ́ ọ pẹ̀lú:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-Webpack `NormalModuleReplacementPlugin` ń so àwọn module mẹ́rin pọ̀ mọ́ àwọn stub gẹ́gẹ́ bí alias:
+`NormalModuleReplacementPlugin` ti webpack ń lo àwọn àrọ́pò fún módù mẹ́rin:
 
-| Module                                      | Stub                                             |
+| Módù                                        | Àrọ́pò                                            |
 | ------------------------------------------- | ------------------------------------------------ |
 | `src/mitm/cert/install.ts`                  | `src/mitm/cert/install.stub.ts`                  |
 | `src/lib/zed-oauth/keychain-reader.ts`      | `src/lib/zed-oauth/keychain-reader.stub.ts`      |
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Stub kọ̀ọ̀kan ń export surface kan náà, ṣùgbọ́n gbogbo function ń ju
-`featureDisabledError(name)` sílẹ̀ ní runtime. Àwọn route tó gbẹ́kẹ̀ lé module tí a pa
-máa dá HTTP 503 padà pẹ̀lú ìfiranṣẹ́ tó ṣe kedere dípò kí wọ́n mú
-code path tó ní ewu ṣiṣẹ́.
+Àrọ́pò kọ̀ọ̀kan ń ṣàgbéjáde ojú API kan náà, ṣùgbọ́n gbogbo iṣẹ́ ń ju
+`featureDisabledError(name)` jáde nígbà ìṣiṣẹ́. Àwọn ipa-ọ̀nà tí ó gbára lé módù tí a ti pa
+ń dá HTTP 503 padà pẹ̀lú ìfiranṣẹ́ tó ṣe kedere dípò kí wọ́n mú ipa-ọ̀nà kóòdù
+tó ní ìfura ṣiṣẹ́.
 
-A pète bundle tí ó yọrí sí láti tẹ̀ jáde gẹ́gẹ́ bí `omniroute-secure`. Wo
-`docs/ops/PUBLISHING_SECURE.md` fún ìlànà ìtẹ̀jáde.
+A pète àkójọpọ̀ tí ó yọrí sí láti tẹ̀ jáde gẹ́gẹ́ bí `omniroute-secure`.
 
 ---
 

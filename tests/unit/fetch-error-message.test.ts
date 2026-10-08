@@ -17,7 +17,9 @@ function jsonResponse(body: unknown, status = 500) {
 // sanitized server-side) message instead.
 
 test("reads the OpenAI-style { error: { message } } shape from buildErrorBody", async () => {
-  const res = jsonResponse({ error: { message: "Failed to compute analytics", type: "api_error" } });
+  const res = jsonResponse({
+    error: { message: "Failed to compute analytics", type: "api_error" },
+  });
   assert.equal(await readFetchErrorMessage(res, FALLBACK), "Failed to compute analytics");
 });
 
@@ -44,4 +46,49 @@ test("falls back when there is no error field", async () => {
 test("falls back on a non-JSON body without throwing", async () => {
   const res = new Response("<html>500 Internal Server Error</html>", { status: 500 });
   assert.equal(await readFetchErrorMessage(res, FALLBACK), FALLBACK);
+});
+
+// #13939: a 400 from `validateBody` carries the generic message "Invalid request"
+// and the real reason in `details`. The Add / Edit compatible-provider modals only
+// read `error.message`, so a reserved-prefix rejection surfaced as "Invalid request"
+// and the operator never saw which prefix collided or why.
+test("surfaces the first validation detail instead of the generic 'Invalid request'", async () => {
+  const res = jsonResponse(
+    {
+      error: {
+        message: "Invalid request",
+        details: [
+          {
+            field: "prefix",
+            message: '"openai" is a reserved provider prefix — choose a different prefix',
+          },
+        ],
+      },
+    },
+    400
+  );
+  assert.equal(
+    await readFetchErrorMessage(res, FALLBACK),
+    'prefix: "openai" is a reserved provider prefix — choose a different prefix'
+  );
+});
+
+test("uses a detail without a field name verbatim", async () => {
+  const res = jsonResponse(
+    {
+      error: { message: "Invalid request", details: [{ field: "", message: "Name is required" }] },
+    },
+    400
+  );
+  assert.equal(await readFetchErrorMessage(res, FALLBACK), "Name is required");
+});
+
+test("keeps error.message when details are empty or malformed", async () => {
+  const empty = jsonResponse({ error: { message: "Invalid request", details: [] } }, 400);
+  assert.equal(await readFetchErrorMessage(empty, FALLBACK), "Invalid request");
+  const junk = jsonResponse(
+    { error: { message: "Invalid request", details: [{ field: 1 }] } },
+    400
+  );
+  assert.equal(await readFetchErrorMessage(junk, FALLBACK), "Invalid request");
 });

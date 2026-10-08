@@ -64,6 +64,7 @@ export {
   refreshQoderToken,
   refreshGitHubToken,
   refreshCopilotToken,
+  refreshMuseCodeToken,
   getAccessToken,
   refreshTokenByProvider,
 } from "./services/tokenRefresh.ts";

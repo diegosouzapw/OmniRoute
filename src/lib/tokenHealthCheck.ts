@@ -11,7 +11,11 @@
  * updates the DB, and logs the result.
  */
 
-import { getProviderConnections, updateProviderConnection } from "@/lib/db/providers";
+import {
+  getProviderConnections,
+  getProviderConnectionById,
+  updateProviderConnection,
+} from "@/lib/db/providers";
 import { getCachedProviderConnectionById } from "@/lib/db/readCache";
 import { getSettings } from "@/lib/db/settings";
 import { resolveGuardedProxyConfig } from "@/lib/tokenHealthCheckProxyGuard";
@@ -42,6 +46,24 @@ const TICK_MS = 60 * 1000; // sweep interval: every 60 seconds (restored — #77
 const DEFAULT_BATCH_SIZE = 20;
 const DEFAULT_HEALTH_CHECK_INTERVAL_MIN = 60; // default per-connection interval
 const EXPIRED_RETRY_MAX = 3; // max retry attempts for expired connections before giving up
+const ROTATING_REFRESH_PROVIDERS = new Set([
+  "codex",
+  "openai",
+  "kimi-coding",
+  "cline",
+  "kiro",
+  "amazon-q",
+  "gitlab-duo",
+  "claude",
+  "openference",
+]);
+
+export function shouldNullRefreshTokenAfterUnrecoverable(provider: unknown): boolean {
+  const id = String(provider || "").toLowerCase();
+  if (id === "claude") return false;
+  return ROTATING_REFRESH_PROVIDERS.has(id);
+}
+
 const EXPIRED_RETRY_BACKOFF_MIN = 5; // backoff between expired retries (minutes)
 
 function isBuildProcess(): boolean {
@@ -65,29 +87,19 @@ export function extractResolvedProxyConfig(resolvedProxy: unknown) {
   return resolvedProxy ?? null;
 }
 
-function getEffectiveTokenExpiryIso(conn: any): string | null {
-  if (!conn || typeof conn !== "object") return null;
-  return conn.tokenExpiresAt || conn.expiresAt || null;
-}
+import {
+  getEffectiveTokenExpiryIso,
+  getEffectiveTokenExpiryMs,
+  parseTokenExpiryMs,
+  shouldMarkRefreshCapableExpired,
+} from "@/lib/tokenHealthCheckExpiry";
 
-function getEffectiveTokenExpiryMs(conn: any): number {
-  const effectiveExpiry = getEffectiveTokenExpiryIso(conn);
-  if (!effectiveExpiry) return 0;
-  const expiryMs = new Date(effectiveExpiry).getTime();
-  return Number.isFinite(expiryMs) ? expiryMs : 0;
-}
+export { parseTokenExpiryMs, shouldMarkRefreshCapableExpired };
 
 const TOKEN_EXPIRY_BUFFER = 5 * 60 * 1000; // 5 minutes
 
 function getCopilotTokenExpiryMs(expiresAt: unknown): number {
-  if (typeof expiresAt === "number" && Number.isFinite(expiresAt)) {
-    return expiresAt < 1e12 ? expiresAt * 1000 : expiresAt;
-  }
-  if (typeof expiresAt === "string" && expiresAt.trim()) {
-    const parsed = new Date(expiresAt).getTime();
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  return 0;
+  return parseTokenExpiryMs(expiresAt);
 }
 
 // Providers whose OAuth flow yields only a GitHub-style access token (no
@@ -800,11 +812,29 @@ export async function checkConnection(conn) {
     //   - Cursor access-token-only imports (refresh is optional; deep-control stores one)
     //   - connections already in a terminal/specific state (expired/banned/credits_exhausted)
     //   - transient cooldown state (unavailable) owned by the request path
-    const refreshCapableNeedsReauth =
-      supportsTokenRefresh(conn.provider) &&
-      conn.provider !== "cursor" &&
-      (!conn.testStatus || conn.testStatus === "active") &&
-      !(conn.apiKey && conn.apiKey.length > 0); // API-key-only connections don't need refresh tokens
+    //   - long-lived credentials with no KNOWN expiry (#14261; see below)
+    //
+    // #14261: the missing piece was evidence. A refresh token is how a connection
+    // RECOVERS from expiry, not proof that it HAS expired, so its absence alone must
+    // not write a terminal state. Long-lived credentials of refresh-capable providers
+    // are legitimately refresh-less by design — `claude setup-token` mints a 1-year
+    // token with no refresh token — and those were condemned within one 60s tick of a
+    // successful request, then again after every self-heal.
+    //
+    // Gate on the SAME field the badge reads: this branch exists to stop testStatus
+    // from disagreeing with the badge, and the badge derives from
+    // tokenExpiresAt||expiresAt (getEffectiveTokenExpiryMs). When that expiry is
+    // unknown (0) the badge cannot claim "Token Expired" either, so there is no
+    // mismatch to correct and condemning the row is pure loss. Checking it here makes
+    // the two agree in BOTH directions instead of only one.
+    //
+    // Deliberately NOT a live probe: this path runs once per TICK_MS (60s) for every
+    // connection, so probing would add ~1440 upstream auth calls/day/connection — and
+    // Anthropic's own /api/oauth/usage rate-limits well below that.
+    const refreshCapableNeedsReauth = shouldMarkRefreshCapableExpired(
+      conn,
+      supportsTokenRefresh(conn.provider)
+    );
     if (refreshCapableNeedsReauth) {
       const now = new Date().toISOString();
       await updateProviderConnection(conn.id, {
@@ -871,17 +901,6 @@ export async function checkConnection(conn) {
   // and is the root cause of "adding account B invalidates account A" reports.
   // The interval path is kept ONLY for non-rotating providers where token state can
   // drift silently (e.g. cookie-based, opaque sessions without expires_at).
-  const ROTATING_REFRESH_PROVIDERS = new Set([
-    "codex",
-    "openai",
-    "kimi-coding",
-    "cline",
-    "kiro",
-    "amazon-q",
-    "gitlab-duo",
-    "claude",
-    "openference",
-  ]);
   const isRotatingProvider = ROTATING_REFRESH_PROVIDERS.has(
     String(conn.provider || "").toLowerCase()
   );
@@ -1071,7 +1090,7 @@ export async function checkConnection(conn) {
   // Once used, the old token is permanently invalidated.
   // Retrying will never succeed → deactivate and stop the loop.
   if (isUnrecoverableRefreshError(result)) {
-    const currentConnection = await getCachedProviderConnectionById(conn.id);
+    const currentConnection = await getProviderConnectionById(conn.id);
     const credentialsChangedSinceSweep =
       !!currentConnection &&
       (currentConnection.refreshToken !== attemptedRefreshToken ||
@@ -1131,11 +1150,7 @@ export async function checkConnection(conn) {
       // gemini) the stored refresh_token is the user's only recovery
       // artifact — nulling it caused #3679 (the connection reports "No valid refresh
       // token available" and can never recover even after re-activation). Preserve it.
-      // PRESERVE_REFRESH_TOKEN_PROVIDERS (Claude) opt out too: nulling on the first
-      // failure makes the #11414 retry budget above unreachable (#13183).
-      ...(isRotatingProvider && !preservesRefreshTokenOnUnrecoverable(conn.provider)
-        ? { refreshToken: null }
-        : {}),
+      ...(shouldNullRefreshTokenAfterUnrecoverable(conn.provider) ? { refreshToken: null } : {}),
     });
     logError(
       `${LOG_PREFIX} ✗ ${conn.provider}/${getConnectionLogLabel(conn)} — ` +

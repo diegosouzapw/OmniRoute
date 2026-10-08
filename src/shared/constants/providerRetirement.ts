@@ -6,6 +6,7 @@
 export const RUNTIME_RETIRED_PROVIDER_IDS: ReadonlySet<string> = new Set([
   "felo-web",
   "felo",
+  "gemini-cli",
   "qwen-web",
   "qw",
 ]);

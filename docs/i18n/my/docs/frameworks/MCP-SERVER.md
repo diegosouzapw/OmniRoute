@@ -1,6 +1,6 @@
 # OmniRoute MCP Server Documentation (မြန်မာ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
@@ -287,80 +287,118 @@ Settings တွင် MCP server ကို ဖွင့်ထားခြင်�
 
 ---
 
-## စစ်မှန်ကြောင်းအတည်ပြုခြင်းနှင့် Scope များ
+## အတည်ပြုခြင်းနှင့် Scopes များ
 
-MCP tool များကို API key scope များမှတစ်ဆင့် စစ်မှန်ကြောင်းအတည်ပြုထားသည်။ Scope သတ်မှတ်ချက်များကို အတည်ပြုကျင့်သုံးခြင်းအား
-`open-sse/mcp-server/scopeEnforcement.ts` တွင် ဗဟိုပြုထားသည်။ Tool တစ်ခုစီအတွက် သီးခြား scope များ လိုအပ်သည်။
+MCP ကိရိယာသည် ခေါ်ဆိုသူထံမှ scope string များကို ဖတ်သည်။ ထိုစစ်ဆေးမှုသည် သီးခြား namespace သုံးခုအနက်မှ တစ်ခုဖြစ်သည်။ စစ်ဆေးသူတစ်ဦးထံမှ အောင်မြင်မှုသည် အခြားသူများထံမှ အောင်မြင်မှုမဟုတ်ပါ။ စည်းမျဉ်းများသည် [Three scope namespaces](#three-scope-namespaces) ဖြစ်သည်။ ကိရိယာ catalog သည် [MCP tool scopes](#mcp-tool-scopes) ဖြစ်သည်။
 
-| နယ်ပယ်                | ကိရိယာများ                                                                                                                                                                           |
-| :-------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                                    |
-| `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                            |
-| `write:combos`        | `switch_combo`, `set_routing_strategy`                                                                                                                                               |
-| `read:quota`          | `check_quota`                                                                                                                                                                        |
-| `read:usage`          | `cost_report`, `get_session_snapshot`, `explain_route`                                                                                                                               |
-| `read:models`         | `list_models_catalog`                                                                                                                                                                |
-| `execute:completions` | `route_request`, `test_combo`                                                                                                                                                        |
-| `execute:search`      | `web_search`, `x_search`, `web_fetch`                                                                                                                                                |
-| `write:budget`        | `set_budget_guard`                                                                                                                                                                   |
-| `write:resilience`    | `set_resilience_profile`, `db_health_check`                                                                                                                                          |
-| `pricing:write`       | `sync_pricing`                                                                                                                                                                       |
-| `read:cache`          | `cache_stats`                                                                                                                                                                        |
-| `write:cache`         | `cache_flush`                                                                                                                                                                        |
-| `read:compression`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                                                                                           |
-| `write:compression`   | `compression_configure`, `set_compression_engine`                                                                                                                                    |
-| `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                                                                                                |
-| `read:notion`         | `notion_search`, `notion_get_page`, `notion_list_block_children`, `notion_query_database`, `notion_get_database`                                                                     |
-| `write:notion`        | `notion_append_blocks`                                                                                                                                                               |
-| `read:memory`         | `memory_search`                                                                                                                                                                      |
-| `write:memory`        | `memory_add`, `memory_clear`                                                                                                                                                         |
-| `read:skills`         | `skills_list`, `skills_executions`                                                                                                                                                   |
-| `write:skills`        | `skills_enable`                                                                                                                                                                      |
-| `execute:skills`      | `skills_execute`                                                                                                                                                                     |
-| `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                                                                                     |
-| `read:tools`          | `omniroute_tool_search`                                                                                                                                                              |
-| `read:radar`          | `omniroute_radar_catalog`                                                                                                                                                            |
-| `read:gamification`   | `gamification_profile`, `gamification_rank`, `gamification_leaderboard`, `gamification_badges`, `gamification_servers`, `gamification_anomalies`                                     |
-| `write:gamification`  | `gamification_invite`, `gamification_transfer`                                                                                                                                       |
-| `read:plugins`        | `plugin_list`, `plugin_executions`                                                                                                                                                   |
-| `write:plugins`       | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                                      |
-| `read:obsidian`       | ဖတ်ရှုရေးကိရိယာ 13 ခု — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
-| `write:obsidian`      | ရေးသားရေးကိရိယာ 9 ခု — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                |
-| `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                                    |
+### Scope namespace သုံးခု
 
-Wildcard scope များကို ပံ့ပိုးထားသည်- `read:*` သည် read-scope အားလုံးကို ခွင့်ပြုပြီး `*` သည် အပြည့်အဝ ဝင်ရောက်အသုံးပြုခွင့်ကို ပေးသည်။
+API key ပေါ်ရှိ `manage`၊ MCP ကိရိယာပေါ်ရှိ `read:compression` နှင့် `oma_live_…` access token ပေါ်ရှိ `read` တို့သည် မတူညီသော ခွင့်ပြုချက်သုံးခုဖြစ်သည်။ ပြောင်းလဲနိုင်သော management route သို့ `read` access token ပေးပို့သော ခေါ်ဆိုသူများသည် HTTP 403 `Access token scope 'read' is insufficient; 'write' required.` ကို ရရှိမည်ဖြစ်သည်။ ထိုအဆင့်သည် `scopeSatisfies` ဖြစ်သည်။ ၎င်းသည် MCP table ကို မစစ်ဆေးဘဲ MCP matcher ကလည်း ၎င်းကို မစစ်ဆေးပါ။
 
-### `mcp:connect` — ကန့်သတ်ထားသော route လုပ်ဆောင်နိုင်စွမ်း (#7895)
+| Namespace          | Credential                                                             | Checker                      | အောင်မြင်မှုက ခွင့်ပြုသည်                                        |
+| :----------------- | :--------------------------------------------------------------------- | :--------------------------- | :--------------------------------------------------------------- |
+| API-key management | `api_keys.scopes`                                                      | `hasManageScope`             | ထို Bearer key အတွက် Management REST                             |
+| API-key additive   | တူညီသော array၊ တိကျသော string တစ်ခု                                    | အောက်တွင်ဖော်ပြထားသော helper | ထိုစွမ်းရည်တစ်ခုတည်းသာ                                           |
+| MCP tool scopes    | တူညီသော array၊ သို့မဟုတ် MCP `_meta`၊ သို့မဟုတ် `OMNIROUTE_MCP_SCOPES` | `scopeMatches`               | အတည်ပြုခြင်းစတင်သည်နှင့် ထိုကိရိယာ                               |
+| Access token       | `oma_live_…`                                                           | `scopeSatisfies`             | ၎င်း၏ method နှင့် path က ထိုအဆင့်ကို လိုအပ်သော management route |
 
-loopback မဟုတ်သော နေရာမှ HTTP/SSE MCP transport (`/api/mcp/*`) သို့ ရောက်ရှိရန်
-`/api/mcp/` LOCAL_ONLY carve-out လိုအပ်သည် (`docs/security/ROUTE_GUARD_TIERS.md` ကို ကြည့်ပါ)။ ယခင်က
-ထို carve-out သည် `manage`/`admin`-scope အပြည့်ရှိသော API key ကိုသာ လက်ခံခဲ့သည် — MCP နှင့်သာ
-ဆက်သွယ်ရန်လိုအပ်သည့် caller တစ်ခုအတွက် ယင်းသည် အလွန်ကျယ်ပြန့်လွန်းသည်။
-`src/shared/constants/managementScopes.ts` သည် ယခု
-`MCP_CONNECT_SCOPE = "mcp:connect"` ကို export လုပ်သည်- ၎င်းသည်
-`src/server/authz/policies/management.ts` ရှိ `/api/mcp/` bypass ကိုသာ ခွင့်ပြုသော
-ထပ်ပေါင်းထားသည့် ကန့်သတ် scope တစ်ခု (`SELF_USAGE_SCOPE` နှင့် တူညီသော ရှေ့သာဓက) ဖြစ်သည် — ၎င်းသည် အခြား
-management-route ဝင်ရောက်အသုံးပြုခွင့်ကို မပေးဘဲ `MANAGEMENT_API_KEY_SCOPES` ထဲမှ ရည်ရွယ်ချက်ရှိရှိ
-ချန်လှပ်ထားသည်။ `manage`/`admin` ပါရှိသော key သည် carve-out ကို မပြောင်းလဲဘဲ ဆက်လက်ဖြတ်သန်းနိုင်သည်။
-`mcp:connect` သည် remote MCP-only caller များအတွက် အခွင့်အရေးနိမ့်သော အစားထိုးရွေးချယ်မှုတစ်ခုဖြစ်ပြီး
-`hasMcpConnectOrManageScope()` မှတစ်ဆင့် စစ်ဆေးသည်။
+credential တစ်ခုစီကို ထုတ်လုပ်ခြင်းကို [Management Authentication](../guides/MANAGEMENT-AUTH.md) တွင် ဖော်ပြထားသည်။
 
-### Key တစ်ခုချင်းစီအလိုက် HTTP scope ချိတ်ဆက်သတ်မှတ်ခြင်း (#7895)
+#### API-key scopes များ
 
-HTTP/SSE မှတစ်ဆင့် `open-sse/mcp-server/httpTransport.ts` သည် ယခု caller ၏ အမှန်တကယ်
-`api_keys.scopes` ကို `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
-မှတစ်ဆင့် ရယူဖြေရှင်းပြီး MCP SDK ၏ `transport.handleRequest(req, { authInfo })` သို့ လွှဲပေးသည်။ ထို့ကြောင့်
-tool call တစ်ခုချင်းစီသို့ ရောက်ရှိသော `extra.authInfo.scopes` သည် Bearer key ကိုယ်တိုင်၏ scope များကို
-ထင်ဟပ်စေသည်။ `scopeEnforcement.ts` ၏ `resolveCallerScopeContext()` သည် `_meta` နှင့်
-`OMNIROUTE_MCP_SCOPES` env fallback ထက် `authInfo` ကို ဦးစားပေးထားပြီးဖြစ်သည် — ဤပြောင်းလဲမှုသည်
-HTTP မှတစ်ဆင့် ယခင်က data မဖြည့်သွင်းခဲ့သော ပထမဆုံးနှင့် ဦးစားပေးအမြင့်ဆုံး source ကိုသာ ဖြည့်သွင်းပေးခြင်းဖြစ်သည်။
-API key ကို ရယူဖြေရှင်း၍မရသည့်အခါ (header မရှိခြင်း၊ key မမှန်ခြင်း) `authInfo` သည်
-`undefined` အဖြစ် ဆက်ရှိနေပြီး resolution သည် လက်ရှိ `meta`/env chain သို့ မပြောင်းလဲဘဲ ဆက်လက်ကျသွားသည်။
-ဤအရာသည် `OMNIROUTE_MCP_ENFORCE_SCOPES` ၏ default ကို မပြောင်းလဲပါ — enforcement ကို
-ဆက်လက်၍ အတိအလင်း ဖွင့်ထားရန်လိုအပ်သည်။ ဤပြောင်းလဲမှုသည် ဖွင့်ထားပြီးသည့်အချိန်တွင် per-key path ကို
-ဦးစားပေးစေခြင်းသာ ဖြစ်သည်။ stdio တွင် caller တစ်ဦးချင်း၏ identity မရှိပါ
-(`mcpCallerIdentity.ts` ကို ကြည့်ပါ)၊ ထို့ကြောင့် သက်ရောက်မှုမရှိဘဲ `_meta`/env fallback chain ကိုသာ
-ဆက်လက်အသုံးပြုသည်။
+`api_keys.scopes` array တစ်ခုသည် အလုပ်နှစ်ခုကို လုပ်ဆောင်သည်။ ၎င်းတို့သည် မတူညီသော function များကို အသုံးပြုသည်။
+
+**Management REST.** `manage` နှင့် `admin` တို့သည် `MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`) ၏ အဖွဲ့ဝင်များဖြစ်သည်။ `hasManageScope` သည် ထို key အတွက် management route များကို ခွင့်ပြုပေးသည်။ `admin` သည် ထို route များပေါ်တွင် management-capable ဖြစ်သည်။ ဤနေရာရှိ `admin` ဟူသော စကားလုံးသည် access-token အဆင့်မဟုတ်ဘဲ MCP tool scope များအဖြစ်သို့ မပြောင်းလဲပါ။
+
+**Additive strings များ။** တစ်ခုစီသည် တိကျသော အဖွဲ့ဝင်စစ်ဆေးမှုဖြစ်ပြီး တစ်ခုစီသည် `MANAGEMENT_API_KEY_SCOPES` အပြင်ဘက်တွင် ရှိနေသည်။
+
+| Scope                          | အောင်မြင်မှုက ခွင့်ပြုသည်                                                                                                                                                         |
+| :----------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | non-loopback `/api/mcp/` LOCAL_ONLY carve-out သာ (`hasMcpConnectOrManageScope`)။ `manage` သို့မဟုတ် `admin` ပါသော key သည် ထို carve-out ကို ဆက်လက်ဖြတ်သန်းသည်။                    |
+| `self:usage`                   | ဤ key အတွက် `GET /api/v1/me/status` (`src/app/api/v1/me/status/route.ts`)။ `POST /api/keys` သည် ဖန်တီးချိန်တွင် ဤ scope ကို ထည့်သွင်းသည် (`normalizeSelfServiceScopesForCreate`)။ |
+| `self:account-quota`           | ထို status payload အတွင်းရှိ Upstream account quota များ (`src/lib/usage/apiKeySelfService.ts`)။ status route သည် `self:usage` ကို ဆက်လက်လိုအပ်သည်။                               |
+| `policy:bypass-provider-quota` | ဤ key ၏ inference call များသည် provider-quota policy ကို ကျော်လွှားသည် (`hasProviderQuotaBypassScope` in `src/sse/handlers/chat.ts`)။                                             |
+
+#### ကိုက်ညီခြင်း
+
+catalog သည် [MCP tool scopes](#mcp-tool-scopes) အောက်ရှိ table ဖြစ်သည်။ `src/shared/constants/mcpScopes.ts` ရှိ `MCP_SCOPE_LIST` ကို ထို catalog အဖြစ် မမှတ်ယူပါနှင့်- ၎င်းသည် မူရင်း typed subset ဖြစ်သည်။ နောက်ပိုင်းကိရိယာများသည် ၎င်းဘေးတွင် နောက်ထပ် scope များကို ကြေညာသည် (`read:notion`၊ `read:skills`၊ `read:local-corpus` နှင့် ကျန် table များ)။
+
+`open-sse/mcp-server/scopeEnforcement.ts` ရှိ `evaluateToolScopes` သည် လိုအပ်သော scope တိုင်းသည် ခွင့်ပြုထားသော scope အချို့နှင့် ကိုက်ညီသောအခါ ခေါ်ဆိုမှုကို ခွင့်ပြုသည်-
+
+- `*` သည် လိုအပ်သော scope တိုင်းနှင့် ကိုက်ညီသည်။
+- `*` ဖြင့် အဆုံးသတ်သော ခွင့်ပြုထားသော scope သည် ကြယ်ပွင့်မတိုင်မီ prefix ဖြင့် စတင်သော လိုအပ်သော scope နှင့် ကိုက်ညီသည်။ `read:*` သည် `read:compression` နှင့် ကိုက်ညီသည်။
+- အခြားခွင့်ပြုထားသော scope တိုင်းသည် တူညီသော လိုအပ်သော string နှင့်သာ ကိုက်ညီသည်။
+
+`["manage"]` ဟူသော scope များပါရှိသော key သည် `read:compression` အတွက် `scopeMatches` ကို မအောင်မြင်ပါ။ `admin`၊ `mcp:connect`၊ `read` နှင့် `write` တို့သည် ခွင့်ပြုထားသော string များသာဖြစ်သောအခါ တူညီသော ခေါ်ဆိုမှုသည် မအောင်မြင်ပါ။ MCP tool scope များအကြားတွင် နောက်ဆုံး `*` မှလွဲ၍ အဆင့်အတန်းမရှိပါ။
+
+`OMNIROUTE_MCP_ENFORCE_SCOPES=true` (default `false`) မဟုတ်ပါက အတည်ပြုခြင်းကို ပိတ်ထားသည်။ ၎င်းကို ပိတ်ထားစဉ် `evaluateToolScopes` သည် ခေါ်ဆိုမှုကို ခွင့်ပြုပြီး catalog ကို ကျော်သွားသည်။ ၎င်းကို ဖွင့်ထားစဉ် HTTP သည် Bearer key ၏ `api_keys.scopes` ကို `authInfo` အဖြစ် အသုံးပြုသည် ([Per-key HTTP scope binding](#per-key-http-scope-binding-7895) ကို ကြည့်ပါ)။ key scope များ မဖြေရှင်းနိုင်သောအခါ ခွင့်ပြုထားသော set သည် MCP `_meta` သို့၊ ထို့နောက် `OMNIROUTE_MCP_SCOPES` သို့ ကျရောက်သည်။
+
+#### Access-token scopes များ
+
+`oma_live_…` token များ (`src/lib/accessTokens/scopes.ts`) သည် `read`၊ `write` သို့မဟုတ် `admin` ကို သယ်ဆောင်သည်။ `scopeSatisfies` သည် အဆင့်တစ်ခုဖြစ်သည်- `admin` သည် `write` နှင့် `read` ကို အကျုံးဝင်ပြီး `write` သည် `read` ကို အကျုံးဝင်သည်။ မသိသော scope များသည် မည်သည့်အရာကိုမျှ အကျုံးမဝင်ပါ။
+
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) သည် ထိုအဆင့်ကို `inferRequiredScope` (`src/server/authz/accessScopes.ts`) နှင့် နှိုင်းယှဉ်သည်-
+
+- `GET`၊ `HEAD` နှင့် `OPTIONS` တို့သည် `read` ကို လိုအပ်သည်။
+- အခြား method တိုင်းသည် `write` ကို လိုအပ်သည်။
+- `ADMIN_SCOPE_PREFIXES` ရှိ path များသည် method တိုင်းအတွက် `admin` ကို လိုအပ်သည်။ `/api/mcp` သည် ထိုစာရင်းတွင် ပါဝင်သောကြောင့် `write` access token သည် MCP HTTP surface ကို ခေါ်ဆို၍ မရနိုင်သေးပါ။
+- `ADMIN_MUTATION_PREFIXES` ရှိ path များသည် mutation များအတွက်သာ `admin` ကို လိုအပ်သည်။
+
+`PATCH /api/keys/{id}` သည် ပြောင်းလဲမှုတစ်ခုဖြစ်ပြီး ထို admin စာရင်းများတွင် မပါဝင်သောကြောင့် `read` token သည် 403 ကို လက်ခံရရှိသည်
+`Access token scope 'read' is insufficient; 'write' required.`
+`write` သို့မဟုတ် `admin` access token တစ်ခုသည် ထို route ကို ဖြည့်ဆည်းပေးသည်။ dashboard JWT၊ loopback CLI machine-id token နှင့် `manage` သို့မဟုတ် `admin` ပါသော API key တစ်ခုသည် အခြား branch များသို့ သွားပြီး ဤ rank ဖြင့် ကန့်သတ်မခံရပါ။
+
+`/api/mcp` အတွက် `scopeSatisfies` ကို အောင်မြင်သော access token တစ်ခုသည် စီမံခန့်ခွဲမှု gate ကိုသာ ရှင်းလင်းပြီးဖြစ်သည်။ Tool ခေါ်ဆိုမှုများသည် API-key scopes များနှင့် `scopeMatches` ကို ဆက်လက်၍ လုပ်ဆောင်သည်။ access-token rank သည် `scopeMatches` ၏ input မဟုတ်ပါ။
+
+### MCP tool scopes များ
+
+Scope အကောင်အထည်ဖော်မှုကို `open-sse/mcp-server/scopeEnforcement.ts` တွင် ဗဟိုချုပ်ကိုင်ထားသည်။ tool တစ်ခုစီသည် သီးခြား scopes များ လိုအပ်သည်-
+
+| နယ်ပယ်                | ကိရိယာများ                                                                                                                                                                            |
+| :-------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                                     |
+| `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                             |
+| `write:combos`        | `switch_combo`, `set_routing_strategy`                                                                                                                                                |
+| `read:quota`          | `check_quota`                                                                                                                                                                         |
+| `read:usage`          | `cost_report`, `get_session_snapshot`, `explain_route`                                                                                                                                |
+| `read:models`         | `list_models_catalog`                                                                                                                                                                 |
+| `execute:completions` | `route_request`, `test_combo`                                                                                                                                                         |
+| `execute:search`      | `web_search`, `x_search`, `web_fetch`                                                                                                                                                 |
+| `write:budget`        | `set_budget_guard`                                                                                                                                                                    |
+| `write:resilience`    | `set_resilience_profile`, `db_health_check`                                                                                                                                           |
+| `pricing:write`       | `sync_pricing`                                                                                                                                                                        |
+| `read:cache`          | `cache_stats`                                                                                                                                                                         |
+| `write:cache`         | `cache_flush`                                                                                                                                                                         |
+| `read:compression`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                                                                                            |
+| `write:compression`   | `compression_configure`, `set_compression_engine`                                                                                                                                     |
+| `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                                                                                                 |
+| `read:notion`         | `notion_search`, `notion_get_page`, `notion_list_block_children`, `notion_query_database`, `notion_get_database`                                                                      |
+| `write:notion`        | `notion_append_blocks`                                                                                                                                                                |
+| `read:memory`         | `memory_search`                                                                                                                                                                       |
+| `write:memory`        | `memory_add`, `memory_clear`                                                                                                                                                          |
+| `read:skills`         | `skills_list`, `skills_executions`                                                                                                                                                    |
+| `write:skills`        | `skills_enable`                                                                                                                                                                       |
+| `execute:skills`      | `skills_execute`                                                                                                                                                                      |
+| `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                                                                                      |
+| `read:tools`          | `omniroute_tool_search`                                                                                                                                                               |
+| `read:radar`          | `omniroute_radar_catalog`                                                                                                                                                             |
+| `read:gamification`   | `gamification_profile`, `gamification_rank`, `gamification_leaderboard`, `gamification_badges`, `gamification_servers`, `gamification_anomalies`                                      |
+| `write:gamification`  | `gamification_invite`, `gamification_transfer`                                                                                                                                        |
+| `read:plugins`        | `plugin_list`, `plugin_executions`                                                                                                                                                    |
+| `write:plugins`       | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                                       |
+| `read:obsidian`       | ဖတ်ရှုရန် ကိရိယာ ၁၃ ခု — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
+| `write:obsidian`      | ရေးသားရန် ကိရိယာ ၉ ခု — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                |
+| `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                                     |
+
+Wildcard scopes များကို ပံ့ပိုးထားသည်- `read:*` သည် read-scopes အားလုံးကို ခွင့်ပြုပြီး `*` သည် အပြည့်အဝဝင်ရောက်ခွင့်ကို ခွင့်ပြုသည်။
+
+### `mcp:connect` — ကျဉ်းမြောင်းသော လမ်းကြောင်းစွမ်းရည် (#7895)
+
+HTTP/SSE MCP transport (`/api/mcp/*`) ကို non-loopback မှ ရယူရန်အတွက် `/api/mcp/` LOCAL_ONLY carve-out (ကြည့်ရန် `docs/security/ROUTE_GUARD_TIERS.md`) လိုအပ်ပါသည်။ သမိုင်းကြောင်းအရ ထို carve-out သည် `manage`/`admin`-scope API key အပြည့်အစုံကိုသာ လက်ခံခဲ့သည် — MCP နှင့်သာ ဆက်သွယ်ရန် လိုအပ်သော ခေါ်ဆိုသူအတွက် အလွန်ကျယ်ပြန့်သည်။ `src/shared/constants/managementScopes.ts` သည် ယခုအခါ `MCP_CONNECT_SCOPE = "mcp:connect"` ကို export လုပ်သည်- ၎င်းသည် `SELF_USAGE_SCOPE` ကဲ့သို့ပင် ထပ်ပေါင်းနိုင်သော၊ ကျဉ်းမြောင်းသော scope တစ်ခုဖြစ်ပြီး `/api/mcp/` bypass ကို `src/server/authz/policies/management.ts` တွင်သာ ခွင့်ပြုသည် — ၎င်းသည် အခြား management-route ဝင်ရောက်ခွင့်ကို မပေးဘဲ `MANAGEMENT_API_KEY_SCOPES` မှ တမင်တကာ ဖယ်ထုတ်ထားသည်။ `manage`/`admin` ကို ကိုင်ဆောင်ထားသော key သည် carve-out ကို မပြောင်းလဲဘဲ ကျော်ဖြတ်နိုင်ဆဲဖြစ်သည်; `mcp:connect` သည် ဝေးလံခေါင်သီသော MCP-only ခေါ်ဆိုသူများအတွက် အခွင့်အရေးနိမ့်သော ရွေးချယ်စရာတစ်ခုဖြစ်ပြီး `hasMcpConnectOrManageScope()` မှတစ်ဆင့် စစ်ဆေးသည်။
+
+### Key တစ်ခုချင်းစီအတွက် HTTP scope ချိတ်ဆက်မှု (#7895)
+
+HTTP/SSE မှတစ်ဆင့် `open-sse/mcp-server/httpTransport.ts` သည် ခေါ်ဆိုသူ၏ စစ်မှန်သော `api_keys.scopes` ကို `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) မှတစ်ဆင့် ဖြေရှင်းပြီး MCP SDK ၏ `transport.handleRequest(req, { authInfo })` သို့ ပေးပို့သည်။ ထို့ကြောင့် tool call တစ်ခုစီသို့ ရောက်ရှိလာသော `extra.authInfo.scopes` သည် Bearer key ၏ scopes များကို ထင်ဟပ်စေသည်။ `scopeEnforcement.ts` ၏ `resolveCallerScopeContext()` သည် `_meta` နှင့် `OMNIROUTE_MCP_SCOPES` env fallback ထက် `authInfo` ကို ဦးစားပေးပြီးသားဖြစ်သည် — ဤအရာသည် ယခင်က HTTP မှတစ်ဆင့် မရရှိခဲ့သော ပထမဆုံး၊ အမြင့်ဆုံး ဦးစားပေးအရင်းအမြစ်ကိုသာ ဖြည့်ဆည်းပေးသည်။ API key မဖြေရှင်းနိုင်ပါက (header မရှိခြင်း၊ key မမှန်ကန်ခြင်း)၊ `authInfo` သည် `undefined` အဖြစ် ရှိနေမည်ဖြစ်ပြီး ဖြေရှင်းချက်သည် ရှိပြီးသား `meta`/env chain သို့ မပြောင်းလဲဘဲ ဆက်လက်လုပ်ဆောင်မည်ဖြစ်သည်။ ဤအရာသည် `OMNIROUTE_MCP_ENFORCE_SCOPES` ၏ default ကို မပြောင်းလဲပါ — အတင်းအကျပ်လုပ်ဆောင်ခြင်းကို ရှင်းလင်းစွာ ဖွင့်ထားရန် လိုအပ်ဆဲဖြစ်သည်; ဤပြောင်းလဲမှုသည် ၎င်းကို ဖွင့်လိုက်သည်နှင့် key တစ်ခုချင်းစီ၏ လမ်းကြောင်းကို ဦးစားပေးစေရန်သာ ပြုလုပ်သည်။ stdio တွင် ခေါ်ဆိုသူတစ်ဦးချင်းစီ၏ အထောက်အထား (ကြည့်ရန် `mcpCallerIdentity.ts`) မရှိသောကြောင့် မထိခိုက်ပါ — ၎င်းသည် `_meta`/env fallback chain တွင် ဆက်လက်ရှိနေမည်ဖြစ်သည်။
 
 ---
 

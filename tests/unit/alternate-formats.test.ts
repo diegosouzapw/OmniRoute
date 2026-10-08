@@ -193,14 +193,14 @@ test("getAlternateFormats: provedor sem alternativas retorna lista vazia", () =>
   assert.deepEqual(getAlternateFormats(undefined), []);
 });
 
-test("DeepSeek defaults to Responses and exposes the official Anthropic endpoint", () => {
-  assert.equal(getTargetFormat("deepseek", null), "openai-responses");
+test("DeepSeek defaults to OpenAI Chat Completions and exposes Responses + Anthropic as alternates", () => {
+  assert.equal(getTargetFormat("deepseek", null), "openai");
   assert.equal(getTargetFormat("deepseek", { targetFormat: "claude" }), "claude");
 
   const defaultExecutor = new DefaultExecutor("deepseek");
   assert.equal(
     defaultExecutor.buildUrl("deepseek-v4-pro", true, 0, { apiKey: "sk-test" } as never),
-    "https://api.deepseek.com/responses"
+    "https://api.deepseek.com/chat/completions"
   );
   const defaultHeaders = defaultExecutor.buildHeaders({ apiKey: "sk-test" } as never, true);
   assert.equal(defaultHeaders.Authorization, "Bearer sk-test");
@@ -218,8 +218,9 @@ test("DeepSeek defaults to Responses and exposes the official Anthropic endpoint
   assert.equal(typeof anthropicHeaders["Anthropic-Version"], "string");
 
   const alternates = getAlternateFormats("deepseek");
-  assert.equal(alternates.length, 1);
-  assert.equal(alternates[0].format, "claude");
+  assert.equal(alternates.length, 2);
+  assert.equal(alternates[0].format, "openai-responses");
+  assert.equal(alternates[1].format, "claude");
 });
 
 test("DeepSeek reuses the generic Chat-to-Responses and Responses-to-Anthropic translators", () => {

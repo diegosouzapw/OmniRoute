@@ -19,7 +19,7 @@
  */
 
 import { randomBytes, createDecipheriv, scryptSync, createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
@@ -32,12 +32,27 @@ const OPTIONAL_OAUTH_SECRETS = [
   { keys: ["QODER_OAUTH_CLIENT_SECRET"], label: "Qoder OAuth" },
 ];
 
-// ── Resolve DATA_DIR (mirrors dataPaths.ts logic) ───────────────────────────
-function resolveDataDir(overridePath, env = process.env) {
+// ── Resolve DATA_DIR (mirrors src/lib/dataPaths.ts::getDefaultDataDir) ─────────
+// Kept self-contained on purpose: assembleStandalone.mjs copies this file alone into the
+// standalone build, so it cannot import src/lib/dataPaths.ts or bin/cli/data-dir.mjs. The
+// order MUST stay identical to those two: explicit DATA_DIR → an EXISTING legacy
+// ~/.omniroute → %APPDATA% (Windows) → $XDG_CONFIG_HOME (when set) → ~/.omniroute.
+// Skipping the legacy check made a machine with XDG_CONFIG_HOME exported persist
+// server.env (incl. STORAGE_ENCRYPTION_KEY) under ~/.config/omniroute while the app opened
+// ~/.omniroute/storage.sqlite and the CLI read ~/.omniroute/.env — two keys, one database.
+export function resolveDataDir(overridePath, env = process.env) {
   if (overridePath?.trim()) return resolve(overridePath);
 
   const configured = env.DATA_DIR?.trim();
   if (configured) return resolve(configured);
+
+  // Preserve an existing legacy dir so an upgrade never splits secrets from the database.
+  const legacyDir = join(homedir(), ".omniroute");
+  try {
+    if (statSync(legacyDir).isDirectory()) return legacyDir;
+  } catch {
+    // absent or unreadable — fall through to the platform default
+  }
 
   if (process.platform === "win32") {
     const appData = env.APPDATA || join(homedir(), "AppData", "Roaming");
@@ -47,7 +62,7 @@ function resolveDataDir(overridePath, env = process.env) {
   const xdg = env.XDG_CONFIG_HOME?.trim();
   if (xdg) return join(resolve(xdg), "omniroute");
 
-  return join(homedir(), ".omniroute");
+  return legacyDir;
 }
 
 function getPreferredEnvFilePath(env = process.env) {
@@ -183,7 +198,42 @@ function writeEnvFile(filePath, env) {
     ...Object.entries(env).map(([k, v]) => `${k}=${v}`),
     "",
   ];
-  writeFileSync(filePath, lines.join("\n"), "utf8");
+  writeFileSync(filePath, lines.join("\n"), { encoding: "utf8", mode: 0o600 });
+  // `mode` only applies when the file is created; an existing 0644 file keeps its bits.
+  chmodQuietly(filePath, 0o600);
+}
+
+// ── Private modes for the secrets (GHSA-mh4f-3xj9-4gc4) ───────────────────────
+// server.env holds JWT_SECRET, STORAGE_ENCRYPTION_KEY and API_KEY_SECRET. Without an
+// explicit mode the umask decides (0644 / 0755 under the usual 022), which leaves them
+// readable by other local accounts. Same contract as bin/cli/privateDataDir.mjs
+// (GHSA-2pg2-xm9r-8544). chmod is best-effort: a no-op on Windows, and a DATA_DIR owned
+// by someone else (a bind mount) must not stop the server from starting.
+function chmodQuietly(path, fileMode) {
+  try {
+    chmodSync(path, fileMode);
+  } catch {
+    /* best-effort — see above */
+  }
+}
+
+function ensurePrivateDataDir(dataDir) {
+  if (existsSync(dataDir)) return;
+  mkdirSync(dataDir, { recursive: true, mode: 0o700 });
+  chmodQuietly(dataDir, 0o700);
+}
+
+/** Repair an install an earlier version left world-readable. Never throws. */
+function tightenServerEnv(dataDir, serverEnvPath) {
+  try {
+    if (existsSync(dataDir)) {
+      const current = statSync(dataDir).mode & 0o777;
+      if (current & 0o007) chmodQuietly(dataDir, current & ~0o007);
+    }
+    if (existsSync(serverEnvPath)) chmodQuietly(serverEnvPath, 0o600);
+  } catch {
+    /* best-effort — see above */
+  }
 }
 
 // ── Main bootstrap function ──────────────────────────────────────────────────
@@ -200,6 +250,7 @@ export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
   const serverEnvPath = join(dataDir, "server.env");
 
   // ── Layer 1: Load persisted server.env ────────────────────────────────────
+  tightenServerEnv(dataDir, serverEnvPath);
   let persisted = parseEnvFile(serverEnvPath);
 
   // ── Layer 2: Load the same preferred .env that the CLI wrapper uses ───────
@@ -262,7 +313,7 @@ export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
   // ── Persist new secrets ────────────────────────────────────────────────────
   if (needsPersist) {
     try {
-      mkdirSync(dataDir, { recursive: true });
+      ensurePrivateDataDir(dataDir);
       // Only persist keys that we auto-generated (not .env or process.env vals)
       writeEnvFile(serverEnvPath, persisted);
       log(`📁 Secrets persisted to: ${serverEnvPath}`);
@@ -288,9 +339,32 @@ export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
     log("   These providers will not work until configured.");
   }
 
-  // ── Warn about default password ────────────────────────────────────────────
-  if (merged.INITIAL_PASSWORD === "CHANGEME" || !merged.INITIAL_PASSWORD?.trim()) {
-    log("⚠️  INITIAL_PASSWORD is not set — using default 'CHANGEME'. Change it in Settings!");
+  // ── Warn about the initial dashboard password ──────────────────────────────
+  // Bootstrap reads process.env, one .env file, and server.env. Next.js can still fill
+  // an unset INITIAL_PASSWORD from its own .env files, so the unset notice hedges.
+  const initialPassword = merged.INITIAL_PASSWORD;
+  // Placeholder variants (" changeme ", "Changeme") become equally guessable passwords,
+  // so the comparison normalizes case and surrounding whitespace.
+  const isPlaceholderLike =
+    typeof initialPassword === "string" && initialPassword.trim().toUpperCase() === "CHANGEME";
+  if (isPlaceholderLike) {
+    log("⚠️  INITIAL_PASSWORD matches the .env.example placeholder 'CHANGEME', a publicly known");
+    log("   password. If no dashboard password is saved yet, that value becomes the password.");
+    log("   Set your own INITIAL_PASSWORD before first boot. In Docker, do it before the");
+    log("   container's first start: a host browser reaches the container as a remote client,");
+    log("   and the login refuses the exact placeholder CHANGEME from remote clients (case or");
+    log("   whitespace variants are not refused remotely). Elsewhere, change the password");
+    log("   right away: sign in from localhost and use Dashboard → Settings → Security, or run");
+    log("   `omniroute reset-password` (`node bin/reset-password.mjs` in a source checkout)");
+    log("   with DATA_DIR set to this server's data directory.");
+  } else if (!initialPassword) {
+    log("ℹ️  INITIAL_PASSWORD is unset here. Unless a .env file that Next.js loads sets it,");
+    log("   a fresh install asks you to create the dashboard password in the onboarding wizard.");
+  } else if (!initialPassword.trim()) {
+    log("⚠️  INITIAL_PASSWORD is only whitespace. If no dashboard password is saved yet, that");
+    log("   whitespace becomes the password, and it works from any address. Set a real");
+    log("   INITIAL_PASSWORD before first boot, or change the password right away in");
+    log("   Dashboard → Settings → Security.");
   }
 
   // ── Decrypt-probe: verify STORAGE_ENCRYPTION_KEY matches encrypted data (#1622) ─

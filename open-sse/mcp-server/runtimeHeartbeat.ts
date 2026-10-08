@@ -45,7 +45,8 @@ async function writeHeartbeat(snapshot: McpHeartbeatSnapshot): Promise<void> {
 
 export function startMcpHeartbeat(config: {
   version: string;
-  scopesEnforced: boolean;
+  /** Read on every tick: the scope gate is a Feature Flags toggle that can change at runtime. */
+  scopesEnforced: boolean | (() => boolean);
   allowedScopes: string[];
   toolCount: number;
   intervalMs?: number;
@@ -60,23 +61,28 @@ export function startMcpHeartbeat(config: {
 
   const tick = async () => {
     if (stopped) return;
-    const snapshot: McpHeartbeatSnapshot = {
+    try {
+      await writeHeartbeat(buildSnapshot());
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("[MCP Heartbeat] Failed to write heartbeat:", message);
+    }
+  };
+
+  const buildSnapshot = (): McpHeartbeatSnapshot => {
+    return {
       pid: process.pid,
       startedAt,
       lastHeartbeatAt: new Date().toISOString(),
       version: config.version,
       transport: "stdio",
-      scopesEnforced: config.scopesEnforced,
+      scopesEnforced:
+        typeof config.scopesEnforced === "function"
+          ? config.scopesEnforced()
+          : config.scopesEnforced,
       allowedScopes: [...config.allowedScopes],
       toolCount: config.toolCount,
     };
-
-    try {
-      await writeHeartbeat(snapshot);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.error("[MCP Heartbeat] Failed to write heartbeat:", message);
-    }
   };
 
   void tick();

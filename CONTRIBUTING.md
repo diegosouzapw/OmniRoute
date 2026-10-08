@@ -410,7 +410,7 @@ Write unit tests in `tests/unit/` covering at minimum:
 - [ ] Documentation updated (if applicable)
 - [ ] No new CodeQL / Secret-Scanning alerts opened, or each one dismissed with technical justification referencing the relevant `docs/security/` doc
 - [ ] Routes that spawn child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) classified as `isLocalOnlyPath()` in `src/server/authz/routeGuard.ts` — see [Hard Rule #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] No `Co-Authored-By` trailers in commit messages — commits must appear solely under the repository owner's Git identity (Hard Rule #16)
+- [ ] No AI/bot `Co-authored-by` trailers in commit messages (Hard Rule #16) — human collaborators whose work is reused are credited with standard `Co-authored-by: Name <email>` trailers
 
 ---
 
@@ -431,4 +431,3 @@ Then use the `/deploy-vps-*-cc` skills which rsync `dist/` to the remote `app/` 
 - **Security docs**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **Ops docs**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: See `docs/adr/` for architectural decision records

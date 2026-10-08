@@ -113,7 +113,7 @@ export function processAntigravitySSEPayload(
           collected.finishReason = "tool_calls";
           continue;
         }
-        if (typeof part.text === "string" && !part.thought && !part.thoughtSignature) {
+        if (typeof part.text === "string" && !part.thought) {
           const textualToolCall = parseAntigravityTextualToolCall(part.text);
           if (textualToolCall) {
             addAntigravityTextualToolCall(collected, textualToolCall);

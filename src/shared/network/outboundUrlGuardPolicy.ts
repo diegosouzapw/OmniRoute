@@ -1,4 +1,5 @@
 import { getFeatureFlagOverride } from "@/lib/db/featureFlags";
+import { parseEnvBoolean } from "@/shared/utils/envBoolean";
 import { resolveFeatureFlag } from "@/shared/utils/featureFlags";
 import {
   OutboundUrlGuardError,
@@ -22,6 +23,7 @@ export const PRIVATE_PROVIDER_URLS_ENV = "OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS"
 // cloud-metadata endpoints stay blocked. Defaults ON (OmniRoute is local-first); operators
 // who only use public providers can disable it to restore strict SSRF blocking.
 export const LOCAL_PROVIDER_URLS_ENV = "OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS";
+const SSRF_GUARD_FLAG = "OUTBOUND_SSRF_GUARD_ENABLED";
 
 function isTrueValue(raw: unknown): boolean {
   if (typeof raw !== "string") return false;
@@ -50,12 +52,18 @@ export function arePrivateProviderUrlsAllowed() {
   }
 
   // 3) Legacy escape hatch — disabling the outbound guard implies allowing
-  //    private URLs.
-  const legacyValue = process.env["OUTBOUND_SSRF_GUARD_ENABLED"];
-  if (
-    typeof legacyValue === "string" &&
-    ["false", "0", "no", "off"].includes(legacyValue.trim().toLowerCase())
-  ) {
+  //    private URLs. "SSRF Guard" is a toggle on the Feature Flags page, so a
+  //    DB override set there comes first, then env, as in step 1.
+  let legacyValue: string | undefined;
+  try {
+    legacyValue = getFeatureFlagOverride(SSRF_GUARD_FLAG);
+  } catch {
+    // DB not initialized yet — fall through to env-only check.
+  }
+  if (legacyValue === undefined || legacyValue === "") {
+    legacyValue = process.env[SSRF_GUARD_FLAG];
+  }
+  if (!parseEnvBoolean(legacyValue, true)) {
     return true;
   }
 

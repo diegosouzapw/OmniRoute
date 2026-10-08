@@ -43,6 +43,7 @@ describe("PwaRegister", () => {
 
   beforeEach(() => {
     cleanupCallbacks.length = 0;
+    sessionStorage.clear();
   });
 
   it("unregisters leftover service workers and clears caches outside production", async () => {
@@ -79,6 +80,124 @@ describe("PwaRegister", () => {
     expect(register).not.toHaveBeenCalled();
   });
 
+  it("drops a stale worker and reloads once when the served script changed", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const reload = vi.fn();
+    vi.stubGlobal("location", { ...window.location, reload });
+
+    const unregister = vi.fn().mockResolvedValue(true);
+    const update = vi.fn().mockResolvedValue(undefined);
+    const getRegistrations = vi
+      .fn()
+      .mockResolvedValue([
+        { active: { scriptURL: "https://app.example/sw.js" }, unregister, update },
+      ]);
+    const register = vi.fn().mockResolvedValue({});
+    Object.defineProperty(navigator, "serviceWorker", {
+      value: { getRegistrations, register },
+      configurable: true,
+    });
+
+    const cachesDelete = vi.fn().mockResolvedValue(true);
+    const cachesKeys = vi.fn().mockResolvedValue(["omniroute-pwa-v3"]);
+    (globalThis as any).caches = { keys: cachesKeys, delete: cachesDelete };
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      text: () => Promise.resolve('const CACHE_NAME = "omniroute-pwa-v3-NEWBUILD";'),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    mount();
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(unregister).toHaveBeenCalledTimes(1);
+    expect(cachesDelete).toHaveBeenCalledWith("omniroute-pwa-v3");
+    expect(reload).toHaveBeenCalledTimes(1);
+    expect(register).not.toHaveBeenCalled();
+  });
+
+  it("still detects a stale cache when the served worker is minified", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const reload = vi.fn();
+    vi.stubGlobal("location", { ...window.location, reload });
+
+    const unregister = vi.fn().mockResolvedValue(true);
+    Object.defineProperty(navigator, "serviceWorker", {
+      value: {
+        getRegistrations: vi
+          .fn()
+          .mockResolvedValue([{ active: { scriptURL: "https://app.example/sw.js" }, unregister }]),
+        register: vi.fn().mockResolvedValue({}),
+      },
+      configurable: true,
+    });
+    (globalThis as any).caches = {
+      keys: vi.fn().mockResolvedValue(["omniroute-pwa-v3"]),
+      delete: vi.fn().mockResolvedValue(true),
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        text: () =>
+          Promise.resolve('const CACHE_NAME="omniroute-pwa-v3-NEW";self.addEventListener'),
+      })
+    );
+
+    mount();
+    await act(async () => {
+      for (let i = 0; i < 12; i++) await Promise.resolve();
+    });
+
+    expect(unregister).toHaveBeenCalledTimes(1);
+    expect(reload).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not reload again once the reset flag is set", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    sessionStorage.setItem("omniroute-sw-reset", "1");
+    const reload = vi.fn();
+    vi.stubGlobal("location", { ...window.location, reload });
+
+    const register = vi.fn().mockResolvedValue({});
+    Object.defineProperty(navigator, "serviceWorker", {
+      value: {
+        getRegistrations: vi
+          .fn()
+          .mockResolvedValue([
+            { active: { scriptURL: "https://app.example/sw.js" }, unregister: vi.fn() },
+          ]),
+        register,
+      },
+      configurable: true,
+    });
+    (globalThis as any).caches = {
+      keys: vi.fn().mockResolvedValue(["omniroute-pwa-v3"]),
+      delete: vi.fn().mockResolvedValue(true),
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve('const CACHE_NAME = "omniroute-pwa-v3-NEW";'),
+      })
+    );
+
+    mount();
+    await act(async () => {
+      for (let i = 0; i < 12; i++) await Promise.resolve();
+    });
+
+    expect(reload).not.toHaveBeenCalled();
+    expect(register).toHaveBeenCalledTimes(1);
+  });
+
   it("registers the service worker in production without unregistering anything", async () => {
     vi.stubEnv("NODE_ENV", "production");
 
@@ -102,6 +221,8 @@ describe("PwaRegister", () => {
     // worker generation (byte-level stamping lands in sw.js via the build
     // pipeline; the register call must match that scheme).
     expect(register).toHaveBeenCalledWith(expect.stringMatching(/^\/sw\.js\?v=.+$/));
-    expect(getRegistrations).not.toHaveBeenCalled();
+    // Production now inspects existing registrations to detect a worker left
+    // over from a previous deploy, but with none present it still registers.
+    expect(getRegistrations).toHaveBeenCalledTimes(1);
   });
 });

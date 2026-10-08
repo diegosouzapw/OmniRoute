@@ -77,9 +77,11 @@ function expandHome(p: string): string {
 
 function isConfigured(content: string, baseUrl: string): boolean {
   const normalized = baseUrl.replace(/\/+$/, "");
+  const port = process.env.PORT || process.env.DASHBOARD_PORT;
   return (
     content.includes(normalized) ||
     content.includes("localhost:20128") ||
+    (!!port && content.includes(`localhost:${port}`)) ||
     content.includes("OMNIROUTE_BASE_URL")
   );
 }
@@ -170,7 +172,9 @@ export async function detectTool(id: string): Promise<DetectedTool | null> {
       : getCliPrimaryConfigPath(tool.id) ||
         (tool.id === "opencode" ? resolveOpencodeConfigPath() : "");
   const configContents = await readConfigFile(configPath);
-  const configured = !!configContents && isConfigured(configContents, "http://localhost:20128");
+  const defaultPort = process.env.PORT || process.env.DASHBOARD_PORT || 20128;
+  const configured =
+    !!configContents && isConfigured(configContents, `http://localhost:${defaultPort}`);
 
   const result: DetectedTool = {
     id: canonicalId,
@@ -187,12 +191,14 @@ export async function detectTool(id: string): Promise<DetectedTool | null> {
     try {
       const roles = await getCurrentHermesAgentRoles();
       const richRoles: Record<string, any> = {};
+      const currentPort = String(process.env.PORT || process.env.DASHBOARD_PORT || 20128);
 
       Object.entries(roles).forEach(([role, info]) => {
         const usingOmni =
           info?.provider === "omniroute" ||
           (info?.base_url || "").includes("20128") ||
-          (info?.base_url || "").includes("localhost:20128");
+          (info?.base_url || "").includes(currentPort) ||
+          (info?.base_url || "").includes("localhost");
 
         richRoles[role] = {
           model: info.model,

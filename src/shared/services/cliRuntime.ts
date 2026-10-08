@@ -2,7 +2,7 @@ import fs from "fs/promises";
 import fsSync from "fs";
 import os from "os";
 import path from "path";
-import { spawn, execFileSync } from "child_process";
+import { spawn } from "child_process";
 import { getHermesHome } from "@/lib/cli-helper/config-generator/hermesHome";
 import { getCachedLoginShellPath, mergeShellPath } from "./loginShellPath";
 import { withSettingsFallback } from "./cliInstallFallback";
@@ -19,6 +19,11 @@ import {
 } from "../utils/containerEnv";
 import { buildContainerWriteRefusal } from "../utils/containerConfigGuard";
 import { resolveOpencodeConfigPath as resolveOpenCodeConfigPath } from "./opencodeConfigPath";
+import {
+  buildCliAliasMap,
+  getCliIntegration,
+  listCliIntegrationIds,
+} from "../constants/cliIntegrationManifest";
 const VALID_RUNTIME_MODES = new Set(["auto", "host", "container"]);
 const FALSE_VALUES = new Set(["0", "false", "no", "off"]);
 
@@ -354,20 +359,7 @@ export const getFivediveStateDir = (): string =>
  * exposed a binary name (notably `kilocode`) or launcher aliases instead of
  * that id, so normalize them at the boundary rather than duplicating entries.
  */
-export const CLI_TOOL_ALIASES: Readonly<Record<string, string>> = {
-  fivedive: "5dive",
-  "5dive-cli": "5dive",
-  kilocode: "kilo",
-  "kilo-code": "kilo",
-  kilo_cli: "kilo",
-  cc: "claude",
-  "claude-code": "claude",
-  "openai-codex": "codex",
-  openai: "codex",
-  "codex-app-server": "codex",
-  cn: "continue",
-  qodercli: "qoder",
-};
+export const CLI_TOOL_ALIASES: Readonly<Record<string, string>> = buildCliAliasMap();
 
 /** Resolve a user-facing or legacy id to the canonical runtime id. */
 export const normalizeCliToolId = (toolId: string): string => {
@@ -658,6 +650,10 @@ export const getKnownToolPaths = (toolId: string): string[] => {
       ["devin.exe", "devin"],
       ["devin.cmd", "devin"],
     ],
+    omp: [
+      ["omp.cmd", "omp"],
+      ["omp.exe", "omp"],
+    ],
   };
 
   const bins = toolBins[toolId] || [];
@@ -698,6 +694,12 @@ export const getKnownToolPaths = (toolId: string): string[] => {
       paths.push(path.join(localAppData, "devin", "cli", "bin", "devin.exe"));
     }
 
+    if (toolId === "omp") {
+      if (localAppData) {
+        paths.push(path.join(localAppData, "omp", "omp.exe"));
+      }
+      paths.push(path.join(home, ".omp", "bin", "omp.exe"));
+    }
     for (const [winName] of bins) {
       appendWindowsKnownBinPaths(paths, winName, npmPrefix, appData, nvmNodePath, validateEnvPath);
     }
@@ -724,6 +726,9 @@ export const getKnownToolPaths = (toolId: string): string[] => {
       }
       if (toolId === "claude") {
         paths.push(path.join(home, ".claude", "bin", posixName));
+      }
+      if (toolId === "omp") {
+        paths.push(path.join(home, ".omp", "bin", posixName));
       }
       // Devin CLI installs to ~/.local/share/devin/bin/devin (Linux)
       // or via shell installer to ~/.devin/bin/devin
@@ -791,14 +796,12 @@ export const getLookupEnv = () => {
 };
 
 const resolveToolCommands = (toolId: string): string[] => {
-  const tool = CLI_TOOLS[normalizeCliToolId(toolId)];
+  const canonicalToolId = normalizeCliToolId(toolId);
+  const tool = CLI_TOOLS[canonicalToolId];
   if (!tool) return [];
   const envCommand = String(process.env[tool.envBinKey] || "").trim();
   if (envCommand) return [envCommand];
-  if (Array.isArray(tool.defaultCommands) && tool.defaultCommands.length > 0) {
-    return tool.defaultCommands.filter(Boolean);
-  }
-  return tool.defaultCommand ? [tool.defaultCommand] : [];
+  return [...(getCliIntegration(canonicalToolId)?.binaries || [])];
 };
 
 /**
@@ -1169,7 +1172,11 @@ export const getCliConfigPaths = (toolId: string) => {
           }
         }
       } else {
-        resolvedPath = path.join(home, relativePath as string);
+        const declaredPath = relativePath as string;
+        // Most entries are home-relative. Platform-aware entries such as
+        // Devin already resolve to an absolute APPDATA/home path; joining an
+        // absolute value again would duplicate the home prefix on POSIX.
+        resolvedPath = path.isAbsolute(declaredPath) ? declaredPath : path.join(home, declaredPath);
       }
       return [key, resolvedPath];
     })
@@ -1262,4 +1269,4 @@ export const getCliRuntimeStatus = async (toolId: string) => {
   };
 };
 
-export const CLI_TOOL_IDS = Object.keys(CLI_TOOLS);
+export const CLI_TOOL_IDS = listCliIntegrationIds("detect");

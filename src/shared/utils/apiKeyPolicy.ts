@@ -14,6 +14,7 @@ import { getComboByName } from "@/lib/db/combos";
 import { isDashboardSessionAuthenticated } from "./apiAuth";
 import { resolveComboForModel } from "@/lib/db/modelComboMappings";
 import { checkBudget } from "@/domain/costRules";
+import { checkKeyQuota } from "@/domain/keyQuota";
 import { checkTokenLimits } from "@omniroute/open-sse/services/tokenLimitCounter.ts";
 import {
   errorResponse,
@@ -75,6 +76,7 @@ export interface ApiKeyMetadata {
   name?: string;
   modelAccessMode?: "all" | "restricted";
   allowedModels?: string[];
+  blockedModels?: string[];
   allowedCombos?: string[];
   allowedConnections?: string[];
   allowedQuotas?: string[];
@@ -269,11 +271,24 @@ async function resolveRequestedComboName(modelStr: string): Promise<string | nul
   return mappedName;
 }
 
+/**
+ * Built-in virtual routes (`auto/*`, `qtSd/*`) dispatch like combos but are not
+ * persisted combo rows, so `resolveRequestedComboName` cannot find them. They
+ * must still be matched against the key's combo allow-list; otherwise a key
+ * restricted to one named combo could reach every provider through them
+ * (GHSA-7j4q-6gx6-pg77).
+ */
+function isVirtualComboModel(modelStr: string): boolean {
+  return modelStr.startsWith("auto/") || modelStr.startsWith("qtSd/");
+}
+
 async function isComboAllowedForKey(
   allowedCombos: string[],
   modelStr: string
 ): Promise<{ allowed: boolean; comboName: string | null }> {
-  const comboName = await resolveRequestedComboName(modelStr);
+  const comboName =
+    (await resolveRequestedComboName(modelStr)) ??
+    (isVirtualComboModel(modelStr) ? modelStr : null);
   if (!comboName) return { allowed: true, comboName: null };
 
   const allowed = allowedCombos.some((rule) => matchesComboAccessRule(comboName, modelStr, rule));
@@ -320,6 +335,25 @@ async function validateQuotaRoutingTarget(
   }
 }
 
+/**
+ * Make the combo rejection actionable.
+ *
+ * The 403 below is a KEY-POLICY decision, not a routing fault — but the bare
+ * "Combo X is not allowed for this API key" reads like a routing bug, so callers
+ * (especially the AI agents that drive them) retry the same model or fall through
+ * a whole compaction cascade on every attempt. Name the two real remedies so the
+ * operator can fix it in one step instead of debugging combo routing.
+ */
+function comboCannotBeUsedMessage(modelStr: string, comboName: string | null): string {
+  const name = comboName || modelStr;
+  return (
+    `Combo "${name}" is not allowed for this API key. ` +
+    `This key's allowed combos do not include "${name}" — add "${name}" (or "combo/*") ` +
+    `to this key's allowed combos in Dashboard → API Manager, or route to a combo ` +
+    `this key already permits.`
+  );
+}
+
 async function validateStandardRoutingTarget(
   request: Request,
   apiKey: string,
@@ -334,7 +368,7 @@ async function validateStandardRoutingTarget(
       if (!comboAccess.allowed) {
         return errorResponse(
           HTTP_STATUS.FORBIDDEN,
-          `Combo "${comboAccess.comboName || modelStr}" is not allowed for this API key`
+          comboCannotBeUsedMessage(modelStr, comboAccess.comboName)
         );
       }
     } catch (error) {
@@ -346,6 +380,7 @@ async function validateStandardRoutingTarget(
   const hasModelRestrictions =
     apiKeyInfo.modelAccessMode === "restricted" ||
     Boolean(apiKeyInfo.allowedModels?.length) ||
+    Boolean(apiKeyInfo.blockedModels?.length) ||
     apiKeyInfo.disableNonPublicModels === true;
   if (!requestedComboName && hasModelRestrictions && modelStr.startsWith("auto/")) {
     requestedComboName = modelStr;
@@ -405,6 +440,25 @@ export interface ApiKeyPolicyResult {
   rejection: Response | null;
 }
 
+export interface EnforceApiKeyPolicyOptions {
+  /**
+   * Where the metered dollar budget is enforced for this request.
+   *
+   * `"enforce"` (the default) rejects here, the moment the key's allowance is
+   * spent. That is correct for every endpoint that dispatches to a single,
+   * already-determined provider.
+   *
+   * `"defer-to-candidate"` is for callers that route across several provider
+   * candidates. The budget is scoped by apiKeyId and knows nothing about which
+   * provider will serve the request, so rejecting here also rejects flat-rate
+   * subscription capacity that the allowance does not pay for. A caller passing
+   * this MUST re-apply the budget per resolved candidate — see
+   * `lib/usage/meteredBudgetPolicy` — or it drops metered-spend enforcement
+   * entirely. Every other check on this path is unaffected.
+   */
+  meteredBudget?: "enforce" | "defer-to-candidate";
+}
+
 /**
  * Enforce API key policies for a request.
  *
@@ -414,6 +468,9 @@ export interface ApiKeyPolicyResult {
  *
  * @param request - The incoming HTTP request
  * @param modelStr - The model ID from the request body
+ * @param options - See {@link EnforceApiKeyPolicyOptions}; omitted means every
+ *   check is enforced here, which is the behaviour every caller had before the
+ *   option existed.
  * @returns ApiKeyPolicyResult with apiKey, metadata, and optional rejection response
  *
  * @example
@@ -587,9 +644,10 @@ async function validateModelAccess(context: PolicyContext): Promise<Response | n
   const hasModelRestrictions =
     apiKeyInfo.modelAccessMode === "restricted" ||
     Boolean(apiKeyInfo.allowedModels?.length) ||
+    Boolean(apiKeyInfo.blockedModels?.length) ||
     apiKeyInfo.disableNonPublicModels === true;
   if (!requestedComboName && hasModelRestrictions) {
-    if (modelStr.startsWith("auto/") || modelStr.startsWith("qtSd/")) {
+    if (isVirtualComboModel(modelStr)) {
       requestedComboName = modelStr;
     } else {
       try {
@@ -623,7 +681,7 @@ async function validateComboAccess(
       comboName: comboAccess.comboName,
       rejection: errorResponse(
         HTTP_STATUS.FORBIDDEN,
-        `Combo "${comboAccess.comboName || modelStr}" is not allowed for this API key`
+        comboCannotBeUsedMessage(modelStr, comboAccess.comboName)
       ),
     };
   } catch (error) {
@@ -635,14 +693,43 @@ async function validateComboAccess(
   }
 }
 
+/** "Resets in Xh Ym."-style suffix for a known future epoch-ms reset instant. */
+function formatResetDurationSuffix(untilMs: unknown, nowMs = Date.now()): string {
+  if (typeof untilMs !== "number" || !Number.isFinite(untilMs) || untilMs <= nowMs) return "";
+  const totalMinutes = Math.max(1, Math.ceil((untilMs - nowMs) / 60_000));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return hours > 0 ? `Resets in ${hours}h ${minutes}m.` : `Resets in ${minutes}m.`;
+}
+
+/**
+ * The metered dollar budget check, skipped when the caller defers it to the
+ * resolved candidate (see {@link EnforceApiKeyPolicyOptions.meteredBudget}).
+ */
+function validateBudgetUnlessDeferred(
+  context: PolicyContext,
+  options: EnforceApiKeyPolicyOptions | undefined
+): Response | null {
+  if (options?.meteredBudget === "defer-to-candidate") return null;
+  return validateBudget(context);
+}
+
 function validateBudget(context: PolicyContext): Response | null {
   const { apiKeyInfo } = context;
   if (!apiKeyInfo.id) return null;
   try {
     const budgetOk = checkBudget(apiKeyInfo.id);
-    return budgetOk.allowed
-      ? null
-      : errorResponse(HTTP_STATUS.RATE_LIMITED, budgetOk.reason || "Budget limit exceeded");
+    if (budgetOk.allowed) return null;
+    const resetSuffix = formatResetDurationSuffix(budgetOk.budgetResetAt);
+    const reason = budgetOk.reason || "Budget limit exceeded";
+    return errorResponse(
+      HTTP_STATUS.RATE_LIMITED,
+      resetSuffix ? `${reason} ${resetSuffix}` : reason,
+      {
+        code: "budget_exceeded",
+        retryAfter: budgetOk.budgetResetAt,
+      }
+    );
   } catch (error) {
     log.error("API_POLICY", "Budget check failed. Request blocked.", { error });
     return errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "Budget policy unavailable");
@@ -657,13 +744,28 @@ function validateTokenLimit(context: PolicyContext): Response | null {
     if (!breach) return null;
     const scopeLabel =
       breach.scopeType === "global" ? "account" : `${breach.scopeType} "${breach.scopeValue}"`;
+    const resetSuffix = formatResetDurationSuffix(breach.nextResetAt) || "Please try again later.";
     return errorResponse(
       HTTP_STATUS.RATE_LIMITED,
-      `Token limit exceeded for ${scopeLabel}: ${breach.tokensUsed}/${breach.limitValue} tokens used in the current window. Please try again later.`
+      `Token limit exceeded for ${scopeLabel}: ${breach.tokensUsed}/${breach.limitValue} tokens used in the current window. ${resetSuffix}`,
+      { code: "token_limit_exceeded", retryAfter: breach.nextResetAt }
     );
   } catch (error) {
     log.error("API_POLICY", "Token limit check failed. Request blocked.", { error });
     return errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "Token limit policy unavailable");
+  }
+}
+
+function validateKeyQuota(context: PolicyContext): Response | null {
+  const { apiKeyInfo } = context;
+  if (!apiKeyInfo.id) return null;
+  try {
+    const verdict = checkKeyQuota(apiKeyInfo.id);
+    if (verdict.allowed) return null;
+    return errorResponse(HTTP_STATUS.RATE_LIMITED, verdict.reason || "API key quota exceeded");
+  } catch (error) {
+    log.error("API_POLICY", "API key quota check failed. Request blocked.", { error });
+    return errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "API key quota policy unavailable");
   }
 }
 
@@ -689,9 +791,11 @@ async function validateRateLimitAndThrottle(context: PolicyContext): Promise<Res
     const result = await checkRateLimit(apiKeyInfo.id, rules);
     if (!result.allowed) {
       const window = result.failedWindow ? ` (${result.failedWindow}s window)` : "";
+      const resetSuffix = formatResetDurationSuffix(result.resetAt) || "Please try again later.";
       return errorResponse(
         HTTP_STATUS.RATE_LIMITED,
-        `Request limit exceeded${window}. Please try again later.`
+        `Request limit exceeded${window}. ${resetSuffix}`,
+        { code: "rate_limit_exceeded", retryAfter: result.resetAt }
       );
     }
   }
@@ -722,7 +826,8 @@ function extractUngatedClientApiKey(request: Request): string | null {
 
 export async function enforceApiKeyPolicy(
   request: Request,
-  modelStr: string | null
+  modelStr: string | null,
+  options?: EnforceApiKeyPolicyOptions
 ): Promise<ApiKeyPolicyResult> {
   // A real bearer key wins; then a bare x-api-key/x-goog-api-key that auth
   // accepted but extractApiKey() gates out; otherwise an authenticated dashboard
@@ -770,8 +875,10 @@ export async function enforceApiKeyPolicy(
   const modelRejection = await validateModelAccess(context);
   if (modelRejection) return { apiKey, apiKeyInfo, rejection: modelRejection };
 
-  const budgetRejection = validateBudget(context);
+  const budgetRejection = validateBudgetUnlessDeferred(context, options);
   if (budgetRejection) return { apiKey, apiKeyInfo, rejection: budgetRejection };
+  const keyQuotaRejection = validateKeyQuota(context);
+  if (keyQuotaRejection) return { apiKey, apiKeyInfo, rejection: keyQuotaRejection };
   const tokenRejection = validateTokenLimit(context);
   if (tokenRejection) return { apiKey, apiKeyInfo, rejection: tokenRejection };
   const rateRejection = await validateRateLimitAndThrottle(context);

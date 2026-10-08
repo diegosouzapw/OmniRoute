@@ -103,9 +103,6 @@ const VALID_CHANNELS = {
     "get-autostart-status",
     "enable-autostart",
     "disable-autostart",
-    "login:start",
-    "login:cancel",
-    "login:status",
     "remote-server-prompt:get-initial-url",
   ],
   send: [
@@ -115,7 +112,7 @@ const VALID_CHANNELS = {
     "remote-server-prompt:submit",
     "remote-server-prompt:cancel",
   ],
-  receive: ["server-status", "port-changed", "update-status", "login:status"],
+  receive: ["server-status", "port-changed", "update-status"],
 };
 
 // ── Fix #16: Generic IPC wrappers ──────────────────────────
@@ -173,12 +170,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
   onServerStatus: (callback) => safeOn("server-status", callback),
   onPortChanged: (callback) => safeOn("port-changed", callback),
   onUpdateStatus: (callback) => safeOn("update-status", callback),
-
-  // ── Web-Cookie Login ──────────────────────────────────────
-  startLogin: (providerId, options) => safeInvoke("login:start", providerId, options),
-  cancelLogin: () => safeInvoke("login:cancel"),
-  getLoginStatus: () => safeInvoke("login:status"),
-  onLoginStatus: (callback) => safeOn("login:status", callback),
 
   // ── Static Properties ────────────────────────────────────
   isElectron: true,

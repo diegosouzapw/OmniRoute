@@ -393,6 +393,7 @@ test("HuggingChat partial failures reach stream finalization, persistence, and f
         message: publicErrorMessage,
         code: "stream_pipeline_error",
         type: "stream_error",
+        outputEmitted: false,
       },
     ]);
 

@@ -1,1 +1,0 @@
-- **fix(sse):** frame post-keepalive `/v1/responses` stream errors with a top-level `type` field so Responses clients (Codex) surface the real upstream error instead of reporting "stream disconnected before completion" (#13431) — thanks @andrea-kingautomation

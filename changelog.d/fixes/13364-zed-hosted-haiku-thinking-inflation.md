@@ -1,1 +1,0 @@
-- **fix(providers):** stop zed-hosted `claude-haiku-4-5` extended-thinking requests from inflating `max_tokens` past the model's real 64000 output cap (#13364) — thanks @ThiagoMafra-Integrare

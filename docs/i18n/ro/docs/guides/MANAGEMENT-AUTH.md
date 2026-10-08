@@ -1,59 +1,62 @@
 # Management Authentication (Română)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇦 [bs](../../../bs/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
 
 ---
 
-OmniRoute are **patru familii de credențiale** care pot autoriza rutele de administrare.
-Acestea nu sunt interschimbabile. Cheile API pentru inferență (`sk-…`) **nu** administrează
-serverul decât dacă li s-a acordat explicit domeniul `manage` sau `admin`.
+OmniRoute are **patru familii de credențiale** care pot autoriza rute de management.
+Acestea nu sunt interschimbabile. Cheile API de inferență (`sk-…`) **nu** gestionează
+serverul decât dacă li s-a acordat explicit domeniul de aplicare (`scope`) `manage` sau `admin`.
 
 Implementare canonică: `src/lib/api/requireManagementAuth.ts`.
 
-| Credențială                          | Formă tipică                           | Unde este creată                                       | Utilizare prevăzută                    | Capabilitate de administrare                                                                                            |
-| ------------------------------------ | -------------------------------------- | ------------------------------------------------------ | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Sesiune JWT pentru panoul de control | Cookie `auth_token`                    | Autentificare în panoul de control                     | Interfață web                          | Administrare completă prin panoul de control, supusă regulilor CSRF, de localitate și pentru rutele protejate permanent |
-| Token CLI bazat pe ID-ul mașinii     | intern / local                         | Inițializare CLI (`omniroute` pe aceeași mașină)       | CLI local                              | Doar administrare locală                                                                                                |
-| Token de acces cu domeniu            | `oma_live_…`                           | **Setări → Tokenuri de acces** sau `omniroute connect` | CLI la distanță și API de administrare | Trebuie să îndeplinească domeniul `read`, `write` sau `admin` necesar rutei                                             |
-| Cheie API pentru inferență           | `sk-…` (și alte prefixuri de chei API) | **Manager API / Chei API**                             | Inferență `/v1/*`                      | **Niciuna**, cu excepția cazului în care metadatele cheii includ `manage` sau `admin`                                   |
+| Credențial                            | Formă tipică                         | Creat unde                                             | Utilizare intenționată               | Capacitate de management                                                                                          |
+| :------------------------------------ | :----------------------------------- | :----------------------------------------------------- | :----------------------------------- | :---------------------------------------------------------------------------------------------------------------- |
+| Sesiune JWT tablou de bord            | `auth_token` cookie                  | Autentificare tablou de bord                           | Interfață de utilizator browser      | Management complet al tabloului de bord, sub rezerva regulilor CSRF, localității și rutelor întotdeauna protejate |
+| Token ID mașină CLI                   | intern / local                       | Inițializare CLI (`omniroute` pe aceeași mașină)       | CLI local                            | Doar management local                                                                                             |
+| Token de acces cu domeniu de aplicare | `oma_live_…`                         | **Setări → Tokenuri de acces** sau `omniroute connect` | CLI la distanță și API de management | Trebuie să satisfacă domeniul de aplicare (`scope`) necesar al rutei: `read`, `write` sau `admin`                 |
+| Cheie API de inferență                | `sk-…` (și alte prefixe de chei API) | **Manager API / Chei API**                             | inferență `/v1/*`                    | **Niciuna** decât dacă metadatele cheii includ `manage` sau `admin`                                               |
 
-Credențialele `oma_` sunt credențiale de administrare/CLI. Acestea **nu** sunt chei API pentru inferență.
+Credențialele `oma_` sunt credențiale de management/CLI. Acestea **nu** sunt chei API de inferență.
 
-Dacă autentificarea prin conectare/cheie API este dezactivată pentru server, unele rute de administrare pot
-accepta apeluri neautentificate. Rutele exclusiv locale și cele protejate permanent continuă să aplice
-propriile reguli. Prin urmare, prezentarea uneia dintre aceste credențiale nu este obligatorie în mod universal,
-iar deținerea uneia nu este suficientă în mod universal fără domeniul necesar și localitatea corespunzătoare
-rutei.
+Dacă autentificarea prin login/cheie API este dezactivată pentru server, unele rute de management pot
+accepta apeluri neautentificate. Rutele doar locale și cele întotdeauna protejate își aplică în continuare
+propriile reguli. Prezentarea uneia dintre aceste credențiale nu este, prin urmare, universal
+obligatorie, iar deținerea uneia nu este universal suficientă fără domeniul de aplicare (`scope`)
+necesar și localitatea rutei.
 
-Subiect asociat: [Modul la distanță](./REMOTE-MODE.md) (cum este emis `oma_live_…` pentru un CLI la distanță).
+Legat de: [Modul la distanță](./REMOTE-MODE.md) (cum `oma_live_…` este generat pentru un CLI la distanță).
 
 ---
 
-## Matrice de domenii
+## Matrice de scopuri
 
-Aceste două vocabulare de domenii sunt **diferite**. Nu le combinați.
+Scopurile de gestionare a cheilor API și scopurile token-urilor de acces sunt vocabulare diferite.
+Scopurile instrumentului MCP sunt un al treilea vocabular, verificat cu `scopeMatches` mai degrabă decât
+cu oricare dintre funcțiile din tabelele de mai jos. Alăturat:
+[Trei spații de nume de scopuri](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Domeniile tokenurilor de acces (`oma_live_…`)
+### Scopuri token de acces (`oma_live_…`)
 
-| Domeniu | Operațiuni tipice                                                                                           |
-| ------- | ----------------------------------------------------------------------------------------------------------- |
-| `read`  | Operațiuni GET de listare/stare pe care tokenul are permisiunea să le acceseze                              |
-| `write` | Modificări (creare/actualizare/ștergere) sub nivelul de administrator                                       |
-| `admin` | Token complet pentru CLI la distanță/conectare (inițializarea prin parolă folosește implicit acest domeniu) |
+| Scop    | Operațiuni tipice                                                                 |
+| ------- | --------------------------------------------------------------------------------- |
+| `read`  | Listări/stări GET pe care token-ul are permisiunea să le vadă                     |
+| `write` | Modificări (creare/actualizare/ștergere) sub nivelul de administrator             |
+| `admin` | CLI la distanță complet / token de conectare (parola de bootstrap implicită aici) |
 
-Un token cu `read` nu poate apela o rută `write`. Formatul mesajului din timpul execuției:
-`Access token scope '<have>' is insufficient; '<need>' required.`
+Un token cu `read` nu poate apela o rută `write`. Forma mesajului de rulare:
+`Scopul token-ului de acces '<have>' este insuficient; este necesar '<need>'.`
 
-### Domenii de administrare pentru cheile API
+### Scopuri de gestionare a cheilor API
 
-| Domeniu    | Semnificație                                                                                   |
-| ---------- | ---------------------------------------------------------------------------------------------- |
-| (niciunul) | Doar inferență. Rutele de administrare returnează 403.                                         |
-| `manage`   | API de administrare (aceeași verificare ca ramura pentru chei API din `requireManagementAuth`) |
-| `admin`    | Satisface și `hasManageScope` (este tratat ca având capacități de administrare)                |
+| Scop       | Semnificație                                                                 |
+| ---------- | ---------------------------------------------------------------------------- |
+| (niciunul) | Doar inferență. Rutele de gestionare returnează 403.                         |
+| `manage`   | API de gestionare (aceeași poartă ca ramura API-key `requireManagementAuth`) |
+| `admin`    | Satisfacerea și a `hasManageScope` (tratat ca fiind capabil de gestionare)   |
 
-Activați `manage` pentru cheie în interfața Chei API / Manager API. Nu reutilizați o
-cheie de client de chat pentru automatizare decât dacă i-ați acordat în mod intenționat acel domeniu.
+Activați `manage` pe cheie în interfața de utilizator API Keys / API Manager. Nu reutilizați o
+cheie de client de chat pentru automatizare decât dacă ați acordat în mod deliberat acel scop.
 
 ---
 
@@ -127,26 +130,26 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## Erori curente de execuție (nu afișați secretele)
+## Erori de rulare curente (nu afișa secrete)
 
-| Situație                                                | Stare tipică | Mesaj (secretizat)                                                   |
-| ------------------------------------------------------- | ------------ | -------------------------------------------------------------------- |
-| Nicio acreditare                                        | 401          | `Authentication required`                                            |
-| `oma_live_…` nevalid/expirat                            | 401          | `Invalid or expired access token`                                    |
-| Cheie API validă fără `manage`/`admin`                  | 403          | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
-| Cheie API obișnuită nevalidă pe o rută de administrare  | 403          | `Invalid management token`                                           |
-| Domeniu de aplicare insuficient pentru tokenul de acces | 403          | `Access token scope '<have>' is insufficient; '<need>' required.`    |
+| Situație                                             | Stare tipică | Mesaj (sanitizat)                                                    |
+| :--------------------------------------------------- | :----------- | :------------------------------------------------------------------- |
+| Fără credențial                                      | 401          | `Authentication required`                                            |
+| `oma_live_…` invalid/expirat                         | 401          | `Invalid or expired access token`                                    |
+| Cheie API validă fără `manage`/`admin`               | 403          | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
+| Cheie API obișnuită invalidă pe o rută de management | 403          | `Invalid management token`                                           |
+| Scopu tokenului de acces prea mic                    | 403          | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-„Invalid management token” înseamnă că tokenul purtător **nu** a fost acceptat drept acreditare de administrare. Mesajul **nu** indică ce tip de acreditare trebuie generat. Utilizați tabelul de mai sus: cheile de inferență necesită domeniul de aplicare `manage`; CLI-ul la distanță necesită `oma_live_…`; panoul de control utilizează cookie-ul de sesiune.
+„Invalid management token” înseamnă că bearer-ul **nu** a fost acceptat ca un credențial de management. **Nu** îți spune ce familie să generezi. Folosește tabelul de mai sus: cheile de inferență necesită scopul `manage`; CLI-ul la distanță necesită `oma_live_…`; tabloul de bord utilizează cookie-ul de sesiune.
 
 ---
 
-## Opțiunea recomandată cu privilegii minime
+## Alegerea recomandată pentru cel mai mic privilegiu
 
-| Apelant                                                 | Utilizare                                                              |
-| ------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Browser                                                 | Sesiunea panoului de control                                           |
-| CLI pe gazda serverului                                 | Token de mașină                                                        |
-| CLI pe un laptop care comunică cu un server la distanță | `oma_live_…` de la `omniroute connect`                                 |
-| CI / scripturi (doar administrare)                      | `oma_live_…` cu cel mai restrâns domeniu de aplicare care funcționează |
-| CI care trebuie să apeleze atât `/v1`, cât și `/api`    | Cheie API cu `manage` **sau** două acreditări                          |
+| Apelant                                                 | Utilizare                                          |
+| :------------------------------------------------------ | :------------------------------------------------- |
+| Browser                                                 | Sesiune de tablou de bord                          |
+| CLI pe gazda serverului                                 | Token de mașină                                    |
+| CLI pe un laptop care comunică cu un server la distanță | `oma_live_…` din `omniroute connect`               |
+| CI / scripturi (doar management)                        | `oma_live_…` cu cel mai mic scop care funcționează |
+| CI care trebuie să apeleze atât `/v1`, cât și `/api`    | Cheie API cu `manage` **sau** două credențiale     |

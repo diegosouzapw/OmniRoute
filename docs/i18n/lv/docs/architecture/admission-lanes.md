@@ -1,62 +1,58 @@
 # Admission lanes (#9654) — two lane systems, what gates each, where each reports (Latviešu)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/admission-lanes.md) · 🇪🇹 [am](../../../am/docs/architecture/admission-lanes.md) · 🇸🇦 [ar](../../../ar/docs/architecture/admission-lanes.md) · 🇦🇿 [az](../../../az/docs/architecture/admission-lanes.md) · 🇧🇬 [bg](../../../bg/docs/architecture/admission-lanes.md) · 🇧🇩 [bn](../../../bn/docs/architecture/admission-lanes.md) · 🇨🇿 [cs](../../../cs/docs/architecture/admission-lanes.md) · 🇩🇰 [da](../../../da/docs/architecture/admission-lanes.md) · 🇩🇪 [de](../../../de/docs/architecture/admission-lanes.md) · 🇬🇷 [el](../../../el/docs/architecture/admission-lanes.md) · 🇪🇸 [es](../../../es/docs/architecture/admission-lanes.md) · 🇪🇪 [et](../../../et/docs/architecture/admission-lanes.md) · 🇮🇷 [fa](../../../fa/docs/architecture/admission-lanes.md) · 🇫🇮 [fi](../../../fi/docs/architecture/admission-lanes.md) · 🇫🇷 [fr](../../../fr/docs/architecture/admission-lanes.md) · 🇮🇪 [ga](../../../ga/docs/architecture/admission-lanes.md) · 🇮🇳 [gu](../../../gu/docs/architecture/admission-lanes.md) · 🇳🇬 [ha](../../../ha/docs/architecture/admission-lanes.md) · 🇮🇱 [he](../../../he/docs/architecture/admission-lanes.md) · 🇮🇳 [hi](../../../hi/docs/architecture/admission-lanes.md) · 🇭🇷 [hr](../../../hr/docs/architecture/admission-lanes.md) · 🇭🇺 [hu](../../../hu/docs/architecture/admission-lanes.md) · 🇦🇲 [hy](../../../hy/docs/architecture/admission-lanes.md) · 🇮🇩 [id](../../../id/docs/architecture/admission-lanes.md) · 🇳🇬 [ig](../../../ig/docs/architecture/admission-lanes.md) · 🇮🇹 [it](../../../it/docs/architecture/admission-lanes.md) · 🇯🇵 [ja](../../../ja/docs/architecture/admission-lanes.md) · 🇬🇪 [ka](../../../ka/docs/architecture/admission-lanes.md) · 🇰🇭 [km](../../../km/docs/architecture/admission-lanes.md) · 🇮🇳 [kn](../../../kn/docs/architecture/admission-lanes.md) · 🇰🇷 [ko](../../../ko/docs/architecture/admission-lanes.md) · 🇱🇹 [lt](../../../lt/docs/architecture/admission-lanes.md) · 🇮🇳 [ml](../../../ml/docs/architecture/admission-lanes.md) · 🇮🇳 [mr](../../../mr/docs/architecture/admission-lanes.md) · 🇲🇾 [ms](../../../ms/docs/architecture/admission-lanes.md) · 🇲🇹 [mt](../../../mt/docs/architecture/admission-lanes.md) · 🇲🇲 [my](../../../my/docs/architecture/admission-lanes.md) · 🇳🇵 [ne](../../../ne/docs/architecture/admission-lanes.md) · 🇳🇱 [nl](../../../nl/docs/architecture/admission-lanes.md) · 🇳🇴 [no](../../../no/docs/architecture/admission-lanes.md) · 🇮🇳 [or](../../../or/docs/architecture/admission-lanes.md) · 🇮🇳 [pa](../../../pa/docs/architecture/admission-lanes.md) · 🇵🇭 [phi](../../../phi/docs/architecture/admission-lanes.md) · 🇵🇱 [pl](../../../pl/docs/architecture/admission-lanes.md) · 🇵🇹 [pt](../../../pt/docs/architecture/admission-lanes.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/admission-lanes.md) · 🇷🇴 [ro](../../../ro/docs/architecture/admission-lanes.md) · 🇷🇺 [ru](../../../ru/docs/architecture/admission-lanes.md) · 🇱🇰 [si](../../../si/docs/architecture/admission-lanes.md) · 🇸🇰 [sk](../../../sk/docs/architecture/admission-lanes.md) · 🇸🇮 [sl](../../../sl/docs/architecture/admission-lanes.md) · 🇷🇸 [sr](../../../sr/docs/architecture/admission-lanes.md) · 🇸🇪 [sv](../../../sv/docs/architecture/admission-lanes.md) · 🇰🇪 [sw](../../../sw/docs/architecture/admission-lanes.md) · 🇮🇳 [ta](../../../ta/docs/architecture/admission-lanes.md) · 🇮🇳 [te](../../../te/docs/architecture/admission-lanes.md) · 🇹🇭 [th](../../../th/docs/architecture/admission-lanes.md) · 🇹🇷 [tr](../../../tr/docs/architecture/admission-lanes.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/admission-lanes.md) · 🇵🇰 [ur](../../../ur/docs/architecture/admission-lanes.md) · 🇺🇿 [uz](../../../uz/docs/architecture/admission-lanes.md) · 🇻🇳 [vi](../../../vi/docs/architecture/admission-lanes.md) · 🇳🇬 [yo](../../../yo/docs/architecture/admission-lanes.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/admission-lanes.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/admission-lanes.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/admission-lanes.md) · 🇪🇹 [am](../../../am/docs/architecture/admission-lanes.md) · 🇸🇦 [ar](../../../ar/docs/architecture/admission-lanes.md) · 🇦🇿 [az](../../../az/docs/architecture/admission-lanes.md) · 🇧🇬 [bg](../../../bg/docs/architecture/admission-lanes.md) · 🇧🇩 [bn](../../../bn/docs/architecture/admission-lanes.md) · 🇧🇦 [bs](../../../bs/docs/architecture/admission-lanes.md) · 🇨🇿 [cs](../../../cs/docs/architecture/admission-lanes.md) · 🇩🇰 [da](../../../da/docs/architecture/admission-lanes.md) · 🇩🇪 [de](../../../de/docs/architecture/admission-lanes.md) · 🇬🇷 [el](../../../el/docs/architecture/admission-lanes.md) · 🇪🇸 [es](../../../es/docs/architecture/admission-lanes.md) · 🇪🇪 [et](../../../et/docs/architecture/admission-lanes.md) · 🇮🇷 [fa](../../../fa/docs/architecture/admission-lanes.md) · 🇫🇮 [fi](../../../fi/docs/architecture/admission-lanes.md) · 🇫🇷 [fr](../../../fr/docs/architecture/admission-lanes.md) · 🇮🇪 [ga](../../../ga/docs/architecture/admission-lanes.md) · 🇮🇳 [gu](../../../gu/docs/architecture/admission-lanes.md) · 🇳🇬 [ha](../../../ha/docs/architecture/admission-lanes.md) · 🇮🇱 [he](../../../he/docs/architecture/admission-lanes.md) · 🇮🇳 [hi](../../../hi/docs/architecture/admission-lanes.md) · 🇭🇷 [hr](../../../hr/docs/architecture/admission-lanes.md) · 🇭🇺 [hu](../../../hu/docs/architecture/admission-lanes.md) · 🇦🇲 [hy](../../../hy/docs/architecture/admission-lanes.md) · 🇮🇩 [id](../../../id/docs/architecture/admission-lanes.md) · 🇳🇬 [ig](../../../ig/docs/architecture/admission-lanes.md) · 🇮🇹 [it](../../../it/docs/architecture/admission-lanes.md) · 🇯🇵 [ja](../../../ja/docs/architecture/admission-lanes.md) · 🇬🇪 [ka](../../../ka/docs/architecture/admission-lanes.md) · 🇰🇭 [km](../../../km/docs/architecture/admission-lanes.md) · 🇮🇳 [kn](../../../kn/docs/architecture/admission-lanes.md) · 🇰🇷 [ko](../../../ko/docs/architecture/admission-lanes.md) · 🇱🇹 [lt](../../../lt/docs/architecture/admission-lanes.md) · 🇮🇳 [ml](../../../ml/docs/architecture/admission-lanes.md) · 🇮🇳 [mr](../../../mr/docs/architecture/admission-lanes.md) · 🇲🇾 [ms](../../../ms/docs/architecture/admission-lanes.md) · 🇲🇹 [mt](../../../mt/docs/architecture/admission-lanes.md) · 🇲🇲 [my](../../../my/docs/architecture/admission-lanes.md) · 🇳🇵 [ne](../../../ne/docs/architecture/admission-lanes.md) · 🇳🇱 [nl](../../../nl/docs/architecture/admission-lanes.md) · 🇳🇴 [no](../../../no/docs/architecture/admission-lanes.md) · 🇮🇳 [or](../../../or/docs/architecture/admission-lanes.md) · 🇮🇳 [pa](../../../pa/docs/architecture/admission-lanes.md) · 🇵🇭 [phi](../../../phi/docs/architecture/admission-lanes.md) · 🇵🇱 [pl](../../../pl/docs/architecture/admission-lanes.md) · 🇵🇹 [pt](../../../pt/docs/architecture/admission-lanes.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/admission-lanes.md) · 🇷🇴 [ro](../../../ro/docs/architecture/admission-lanes.md) · 🇷🇺 [ru](../../../ru/docs/architecture/admission-lanes.md) · 🇱🇰 [si](../../../si/docs/architecture/admission-lanes.md) · 🇸🇰 [sk](../../../sk/docs/architecture/admission-lanes.md) · 🇸🇮 [sl](../../../sl/docs/architecture/admission-lanes.md) · 🇷🇸 [sr](../../../sr/docs/architecture/admission-lanes.md) · 🇸🇪 [sv](../../../sv/docs/architecture/admission-lanes.md) · 🇰🇪 [sw](../../../sw/docs/architecture/admission-lanes.md) · 🇮🇳 [ta](../../../ta/docs/architecture/admission-lanes.md) · 🇮🇳 [te](../../../te/docs/architecture/admission-lanes.md) · 🇹🇭 [th](../../../th/docs/architecture/admission-lanes.md) · 🇹🇷 [tr](../../../tr/docs/architecture/admission-lanes.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/admission-lanes.md) · 🇵🇰 [ur](../../../ur/docs/architecture/admission-lanes.md) · 🇺🇿 [uz](../../../uz/docs/architecture/admission-lanes.md) · 🇻🇳 [vi](../../../vi/docs/architecture/admission-lanes.md) · 🇳🇬 [yo](../../../yo/docs/architecture/admission-lanes.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/admission-lanes.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/admission-lanes.md)
 
 ---
 
 OmniRoute ir **divas** procesa lokālas plūsmu sistēmas ar atšķirīgu tvērumu. Tās ir
 savstarpēji papildinošas; operatoriem jāzina, kuru no tām viņi aplūko.
 
-## 1. Baitu līmeņa uzņemšanas kontrole visam procesam (`chatBodyAdmission.ts`)
+## 1. Procesa mēroga pielaide baitu līmenī (`chatBodyAdmission.ts`)
 
-- **Tvērums:** buferētā pieprasījuma ķermeņa/kaudzes ceļš maršrutiem
-  `POST /v1/chat/completions`, `/v1/messages`, `/v1/responses` un citiem
-  tērzēšanas formas maršrutiem. Aizsargā pret kaudzes patēriņa pastiprināšanos,
-  ko izraisa lieli programmēšanas aģentu pieprasījumu ķermeņi (#4380).
-- **Viens globāls kontrolieris visam procesam, nevis atsevišķas plūsmas katrai atslēgai (#10110).**
-  Katra API atslēga (jaucējkodēta) vai `anonymous` sesija tiek uzņemta, izmantojot
-  **vienu un to pašu** kopīgo budžetu — jaucējkodētais sesijas ID tiek izmantots
-  TIKAI kā taisnīgas plānošanas atslēga (gaidītāju apkalpošana cikliskā secībā),
-  nekad kā jaudas nodalījums. Iepriekšējā šī dokumenta versijā bija aprakstītas
-  katrai atslēgai atsevišķas plūsmas ar neatkarīgu jaudu; šis modelis tika
-  noņemts versijā #10110, jo tas ļāva neautentificētiem viltotiem akreditācijas
-  datiem daudzkārt palielināt visa procesa ierobežojumu.
-- **Vārteja (#503-fanout): automātiski atvasināts ienākošo BAITU budžets, nevis
-  fiksēts pieprasījumu skaits.** Mantotais `CHAT_MAX_HEAVY_IN_FLIGHT`
-  pieprasījumu skaita ierobežojums (pirms šī labojuma noklusējuma vērtība bija
-  `1`) samazināja programmēšanas aģentu paralēlo sazarošanos (vairāki
-  apakšaģenti/CLI, pieprasījumu ķermeņi parasti > 256 KB) līdz faktiskai
-  paralēlībai ~1, pilnīgi normālas slodzes apstākļos izraisot 503 kļūdas. Tagad
-  tas tiek piemērots tikai tad, ja operators nepārprotami iestata
-  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Ja tas nav iestatīts, uzņemšanu tā vietā
-  ierobežo `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — budžets, kas tiek automātiski
-  atvasināts no procesa faktiskā atmiņas ierobežojuma
-  (`src/shared/middleware/admissionBudget.ts`): 25% no stingrākā ierobežojuma
-  starp V8 kaudzes limitu un jebkuru cgroup/konteinera limitu, dalot ar 8x
-  pārejošās pastiprināšanās koeficientu un ierobežojot diapazonā no 8 MiB līdz
-  2 GiB. Nepārprotami norādītām vērtībām tiek izmantoti tie paši ierobežojumi.
-  Tas automātiski mērogojas no 512 MB konteinera līdz 32 GB galddatoram bez
-  vides mainīgo pielāgošanas. Pieprasījuma ķermenis, kas neietilpst faktiskajā
-  budžetā, nekavējoties tiek noraidīts ar `413 body_exceeds_budget`; ierobežotajā
-  taisnīguma rindā nonāk tikai konkurējoši pieprasījumu ķermeņi, kurus katru
-  atsevišķi ir iespējams apkalpot. Reāllaika vairāku signālu resursu noslodzes
-  izsekotājs (V8 kaudzes attiecība, cgroup, PSI, OOM notikumi —
-  `open-sse/utils/resourcePressurePolicy.ts`) saīsina ierobežoto gaidīšanas laiku
-  `high` noslodzes apstākļos un, sasniedzot `critical` noslodzi, nekavējoties
-  noraida pieprasījumus ar `503 resource_pressure`, vēl pirms tiek saņemts kaut
-  viens baits.
+- **Tvērums:** buferētā ķermeņa/kaudzes ceļš pieprasījumiem `POST /v1/chat/completions`,
+  `/v1/messages`, `/v1/responses` un citiem tērzēšanas formas maršrutiem. Aizsargā
+  pret kaudzes apjoma pieaugumu lielu programmēšanas aģentu pieprasījumu ķermeņu dēļ (#4380).
+- **Viens procesa mēroga globāls kontrolieris, nevis joslas katrai atslēgai (#10110).** Katra API atslēga
+  (jaukta) vai `anonymous` sesija izmanto **vienu un to pašu** kopīgo budžetu —
+  jauktais sesijas ID tiek izmantots TIKAI kā taisnīgas plānošanas atslēga (cikliski
+  sadalot gaidītājus), nevis kā kapacitātes nodalījums. Iepriekšējā šī
+  dokumenta versijā bija aprakstītas joslas katrai atslēgai ar neatkarīgu kapacitāti; šis modelis tika
+  noņemts izmaiņā #10110, jo tas ļāva neautentificētiem viltus akreditācijas datiem daudzkārt palielināt
+  procesa mēroga ierobežojumu.
+- **Vārteja (#503-fanout): automātiski atvasināts uzņemšanas BAITU budžets, nevis fiksēts pieprasījumu
+  skaits.** Mantotais `CHAT_MAX_HEAVY_IN_FLIGHT` pieprasījumu skaita ierobežojums (pirms
+  šī labojuma noklusējuma vērtība bija `1`) samazināja programmēšanas aģentu paralēlo izvēršanu (vairāki apakšaģenti/CLI,
+  ķermeņi regulāri > 256 KB) līdz faktiskajai vienlaicībai ~1, kas pilnīgi normālas
+  slodzes apstākļos izraisīja 503 kļūdas. Tagad tas tiek piemērots tikai tad, ja operators nepārprotami
+  iestata `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Ja tas nav iestatīts, pielaidi tā vietā
+  ierobežo `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — budžets, kas automātiski atvasināts no
+  procesa faktiskā atmiņas ierobežojuma (`src/shared/middleware/admissionBudget.ts`):
+  25% no mazākā starp V8 kaudzes ierobežojumu un jebkuru cgroup/konteinera ierobežojumu,
+  dalīti ar 8x pārejošā apjoma pieauguma koeficientu un ierobežoti diapazonā no 8 MiB līdz
+  2 GiB. Tieši norādītām pārrakstīšanas vērtībām izmanto tos pašus ierobežojumus. Tas automātiski mērogojas no
+  512 MB konteinera līdz 32 GB galddatoram bez vides mainīgo pielāgošanas. Ķermenis, kuru nevar
+  ietilpināt faktiskajā budžetā, nekavējoties saņem kļūdu `413 body_exceeds_budget`;
+  ierobežotajā taisnīguma rindā nonāk tikai konkurence starp ķermeņiem, kurus katru atsevišķi iespējams apkalpot.
+  Aktīvs vairāku signālu resursu noslodzes izsekotājs (V8 kaudzes attiecība,
+  cgroup, PSI, OOM notikumi — `open-sse/utils/resourcePressurePolicy.ts`) saīsina
+  ierobežoto gaidīšanas laiku `high` noslodzes apstākļos un nekavējoties noraida pieprasījumus ar
+  `503 resource_pressure` `critical` noslodzes apstākļos, pirms vēl ir saņemts kaut viens baits.
+  PSI tiek nolasīts no šīs vienības cgroup `memory.pressure`, ja tas ir pieejams
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` attiecas uz
+  visu resursdatoru un tiek izmantots tikai kā rezerves variants fiziskā serverī / cgroup v1, tāpēc resursdators,
+  kas izmanto mijmaiņas atmiņu, nevar izraisīt 503 kļūdu dīkstāvē esošā konteinerā.
 - **Pielāgošana:**
   - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — automātiski atvasinātā baitu budžeta pārrakstīšana
   - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — mantotais pieprasījumu skaita ierobežojums, tikai pēc izvēles
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — gaidīšanas laiks rindā pirms 503 (noklusējums 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — rindā esošo baitu kaudzes drošības vārsts (noklusējums 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — kopš #10110 novecojušas
-    opcijas bez darbības (tiek pieņemtas konfigurācijas saderībai, bet ignorētas)
-- **Pārskati:** `GET /api/monitoring/health` → `chatAdmission` (#11244), tostarp
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — gaidīšanas laiks rindā pirms 503 (noklusējumā `RATE_LIMIT_MAX_WAIT_MS`)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — rindā esošo baitu kaudzes drošības vārsts (noklusējumā 4 MB)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — novecojuši
+    parametri bez ietekmes kopš #10110 (tiek pieņemti konfigurācijas saderības dēļ, bet ignorēti)
+- **Pārskati:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — tostarp
   #503-fanout papildinājumi `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity` un `countCapEnabled`
-  (noklusējuma izvietojumā false — apliecina, ka faktiski ierobežo baitu budžets,
-  nevis mantotais skaita ierobežojums).
+  (noklusējuma izvietojumā false — apstiprina, ka faktiski ierobežo baitu budžets, nevis mantotais
+  skaita ierobežojums).
 
 ## 2. Adaptīvas izpildlaika virtuālās joslas (`open-sse/services/admission`)
 

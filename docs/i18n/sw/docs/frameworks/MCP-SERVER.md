@@ -1,6 +1,6 @@
 # OmniRoute MCP Server Documentation (Kiswahili)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
@@ -289,12 +289,108 @@ Usafirishaji wa SSE na HTTP Inayoweza Kutiririshwa huzuiwa hadi seva ya MCP iwas
 
 ---
 
-## Uthibitishaji na Mawanda
+## Uthibitishaji & Wigo
 
-Zana za MCP huthibitishwa kupitia mawanda ya ufunguo wa API. Utekelezaji wa masharti ya mawanda umewekwa pamoja katika
-`open-sse/mcp-server/scopeEnforcement.ts`. Kila zana inahitaji mawanda mahususi:
+Zana ya MCP huita mifumo ya wigo wa kusoma kutoka kwa mpigaji. Hundi hiyo ni moja
+kati ya nafasi tatu huru. Kupita kutoka kwa kikagua kimoja si kupita kutoka kwa
+vingine. Sheria ni [Nafasi tatu za wigo](#nafasi-tatu-za-wigo). Katalogi ya zana
+ni [Wigo wa zana ya MCP](#wigo-wa-zana-ya-mcp).
 
-| Upeo                  | Zana                                                                                                                                                                             |
+### Nafasi tatu za wigo
+
+`manage` kwenye kitufe cha API, `read:compression` kwenye zana ya MCP, na `read`
+kwenye tokeni ya ufikiaji ya `oma_live_…` ni ruzuku tatu tofauti. Wapigaji
+wanaotuma tokeni ya ufikiaji ya `read` kwenye njia ya usimamizi inayobadilisha
+wanapata HTTP 403
+`Access token scope 'read' is insufficient; 'write' required.`
+Cheo hicho ni `scopeSatisfies`. Haishauri jedwali la MCP, na kilinganishi cha
+MCP hakishauri.
+
+| Nafasi               | Kitambulisho                                                         | Kikagua                        | Kupita huruhusu                                                  |
+| :------------------- | :------------------------------------------------------------------- | :----------------------------- | :--------------------------------------------------------------- |
+| Usimamizi wa API-key | `api_keys.scopes`                                                    | `hasManageScope`               | REST ya Usimamizi kwa kitufe hicho cha Bearer                    |
+| API-key nyongeza     | safu sawa, kamba moja kamili                                         | msaidizi aliyetajwa hapa chini | Uwezo huo mmoja tu                                               |
+| Wigo wa zana ya MCP  | safu sawa, vinginevyo MCP `_meta`, vinginevyo `OMNIROUTE_MCP_SCOPES` | `scopeMatches`                 | Zana hiyo, mara tu utekelezaji umewashwa                         |
+| Tokeni ya ufikiaji   | `oma_live_…`                                                         | `scopeSatisfies`               | Njia ya usimamizi ambayo njia na njia yake zinahitaji cheo hicho |
+
+Kutengeneza kila kitambulisho kimefunikwa katika
+[Uthibitishaji wa Usimamizi](../guides/MANAGEMENT-AUTH.md).
+
+#### Wigo wa API-key
+
+Safu moja ya `api_keys.scopes` inalisha kazi mbili. Zinatumia kazi tofauti.
+
+**REST ya Usimamizi.** `manage` na `admin` ni wanachama wa
+`MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`).
+`hasManageScope` ndiyo inayoidhinisha njia za usimamizi kwa kitufe hicho.
+`admin` ina uwezo wa usimamizi kwenye njia hizo. Neno `admin` hapa si cheo cha
+tokeni ya ufikiaji na halipanuki kuwa wigo wa zana ya MCP.
+
+**Kamba za nyongeza.** Kila moja ni jaribio kamili la uanachama, na kila moja
+inakaa nje ya `MANAGEMENT_API_KEY_SCOPES`.
+
+| Wigo                           | Kupita huruhusu                                                                                                                                                           |
+| :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `mcp:connect`                  | `LOCAL_ONLY` ya `/api/mcp/` isiyo ya loopback pekee (`hasMcpConnectOrManageScope`). Kitufe chenye `manage` au `admin` bado kinapita `LOCAL_ONLY` hiyo.                    |
+| `self:usage`                   | `GET /api/v1/me/status` kwa kitufe hiki (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` huongeza wigo huu kwenye uundaji (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | Vigezo vya akaunti vya juu ndani ya malipo hayo ya hali (`src/lib/usage/apiKeySelfService.ts`). Njia ya hali bado inahitaji `self:usage`.                                 |
+| `policy:bypass-provider-quota` | Simu za utambuzi za kitufe hiki huruka sera ya vigezo vya mtoa huduma (`hasProviderQuotaBypassScope` katika `src/sse/handlers/chat.ts`).                                  |
+
+#### Kulinganisha
+
+Katalogi ni jedwali chini ya [Wigo wa zana ya MCP](#wigo-wa-zana-ya-mcp). Usichukulie
+`MCP_SCOPE_LIST` katika `src/shared/constants/mcpScopes.ts` kama katalogi hiyo:
+ni subset ya asili iliyoandikwa. Zana za baadaye zinatangaza wigo zaidi kando
+yake (`read:notion`, `read:skills`, `read:local-corpus`, na jedwali lingine).
+
+`evaluateToolScopes` katika `open-sse/mcp-server/scopeEnforcement.ts` huruhusu
+simu wakati kila wigo unaohitajika unalingana na wigo fulani uliotolewa:
+
+- `*` inalingana na kila wigo unaohitajika.
+- Wigo uliotolewa unaoishia na `*` unalingana na wigo unaohitajika unaoanza na
+  kiambishi kabla ya nyota. `read:*` inalingana na `read:compression`.
+- Kila wigo mwingine uliotolewa unalingana tu na kamba inayofanana inayohitajika.
+
+Kitufe ambacho wigo wake ni `["manage"]` kinashindwa `scopeMatches` kwa
+`read:compression`. Simu hiyo hiyo inashindwa kwa `admin`, `mcp:connect`,
+`read`, na `write` wakati hizo ndizo kamba pekee zilizotolewa. Hakuna
+hierarkia kati ya wigo wa zana ya MCP zaidi ya `*` inayofuata.
+
+Utekelezaji umezimwa isipokuwa `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (chaguo-msingi
+`false`). Wakati umezimwa, `evaluateToolScopes` huruhusu simu na kuruka
+katalogi. Wakati umewashwa, HTTP hutumia `api_keys.scopes` ya kitufe cha Bearer
+kama `authInfo` (tazama [Kufunga wigo wa HTTP kwa kila kitufe](#kufunga-wigo-wa-http-kwa-kila-kitufe-7895)).
+Wakati hakuna wigo wa kitufe unaotatuliwa, seti iliyotolewa huanguka kupitia
+MCP `_meta`, kisha `OMNIROUTE_MCP_SCOPES`.
+
+#### Wigo wa tokeni ya ufikiaji
+
+Tokeni za `oma_live_…` (`src/lib/accessTokens/scopes.ts`) hubeba `read`, `write`,
+au `admin`. `scopeSatisfies` ni cheo: `admin` inafunika `write` na `read`, na
+`write` inafunika `read`. Wigo usiojulikana haufuniki chochote.
+
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) inalinganisha
+cheo hicho na `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
+
+- `GET`, `HEAD`, na `OPTIONS` zinahitaji `read`.
+- Kila njia nyingine inahitaji `write`.
+- Njia katika `ADMIN_SCOPE_PREFIXES` zinahitaji `admin` kwa kila njia. `/api/mcp`
+  iko kwenye orodha hiyo, kwa hivyo tokeni ya ufikiaji ya `write` bado haiwezi
+  kuita uso wa HTTP wa MCP.
+- Njia katika `ADMIN_MUTATION_PREFIXES` zinahitaji `admin` tu kwa mabadiliko.
+
+`PATCH /api/keys/{id}` ni mabadiliko na haipo kwenye orodha hizo za msimamizi, kwa hivyo tokeni ya `read` inapokea 403
+`Access token scope 'read' is insufficient; 'write' required.`
+Tokeni ya ufikiaji ya `write` au `admin` inakidhi njia hiyo. JWT ya dashibodi, tokeni ya kitambulisho cha mashine ya loopback CLI, na kitufe cha API chenye `manage` au `admin` huchukua matawi mengine na hazipunguzwi na cheo hiki.
+
+Tokeni ya ufikiaji inayopita `scopeSatisfies` kwa `/api/mcp` imefungua lango la usimamizi pekee. Simu za zana bado huendesha `scopeMatches` dhidi ya skopu za API-key. Cheo cha tokeni ya ufikiaji si ingizo kwa `scopeMatches`.
+
+### Skopu za zana za MCP
+
+Utekelezaji wa skopu umewekwa kati katika `open-sse/mcp-server/scopeEnforcement.ts`.
+Kila zana inahitaji skopu maalum:
+
+| Wigo                  | Zana                                                                                                                                                                             |
 | :-------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                                |
 | `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                        |
@@ -326,41 +422,19 @@ Zana za MCP huthibitishwa kupitia mawanda ya ufunguo wa API. Utekelezaji wa mash
 | `write:gamification`  | `gamification_invite`, `gamification_transfer`                                                                                                                                   |
 | `read:plugins`        | `plugin_list`, `plugin_executions`                                                                                                                                               |
 | `write:plugins`       | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                                  |
-| `read:obsidian`       | Zana 13 za kusoma — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
-| `write:obsidian`      | Zana 9 za kuandika — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …              |
+| `read:obsidian`       | zana 13 za kusoma — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
+| `write:obsidian`      | zana 9 za kuandika — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …              |
 | `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                                |
 
-Mawanda ya wildcard yanatumika: `read:*` hutoa ruhusa kwa mawanda yote ya kusoma, `*` hutoa ufikiaji kamili.
+Scopes za wildcard zinaungwa mkono: `read:*` inatoa scopes zote za kusoma, `*` inatoa ufikiaji kamili.
 
-### `mcp:connect` — uwezo finyu wa route (#7895)
+### `mcp:connect` — uwezo wa njia finyu (#7895)
 
-Kufikia usafirishaji wa HTTP/SSE MCP (`/api/mcp/*`) kutoka kwa anwani isiyo ya loopback kunahitaji
-msamaha wa LOCAL_ONLY wa `/api/mcp/` (angalia `docs/security/ROUTE_GUARD_TIERS.md`). Kihistoria,
-msamaha huo ulikubali tu API key yenye scope kamili ya `manage`/`admin` — pana mno kwa
-mpigaji anayehitaji tu kuwasiliana na MCP. `src/shared/constants/managementScopes.ts` sasa
-inasafirisha `MCP_CONNECT_SCOPE = "mcp:connect"`: scope ya nyongeza yenye wigo finyu (kwa kufuata mfano sawa na
-`SELF_USAGE_SCOPE`) ambayo huidhinisha TU upitaji wa `/api/mcp/` katika
-`src/server/authz/policies/management.ts` — haitoi ufikiaji mwingine wowote wa route za usimamizi
-na kwa makusudi haijajumuishwa katika `MANAGEMENT_API_KEY_SCOPES`. Key yenye `manage`/`admin`
-bado hupita kwenye msamaha bila mabadiliko; `mcp:connect` ni chaguo lenye upendeleo mdogo zaidi kwa
-wapigaji wa mbali wanaotumia MCP pekee, linalokaguliwa kupitia `hasMcpConnectOrManageScope()`.
+Kufikia usafiri wa HTTP/SSE MCP (`/api/mcp/*`) kutoka nje ya loopback kunahitaji `/api/mcp/` LOCAL_ONLY carve-out (tazama `docs/security/ROUTE_GUARD_TIERS.md`). Kihistoria, carve-out hiyo ilikubali tu ufunguo kamili wa API wa `manage`/`admin`-scope — pana sana kwa mpigaji simu anayehitaji tu kuongea na MCP. `src/shared/constants/managementScopes.ts` sasa inasafirisha `MCP_CONNECT_SCOPE = "mcp:connect"`: scope ya nyongeza, finyu (mfano sawa na `SELF_USAGE_SCOPE`) ambayo inaidhinisha PEKEE bypass ya `/api/mcp/` katika `src/server/authz/policies/management.ts` — haitoi ufikiaji mwingine wowote wa njia ya usimamizi na imehifadhiwa kwa makusudi NJE ya `MANAGEMENT_API_KEY_SCOPES`. Ufunguo unaoshikilia `manage`/`admin` bado unapita carve-out bila kubadilika; `mcp:connect` ni mbadala wa upendeleo wa chini kwa wapigaji simu wa mbali wa MCP pekee, unaochunguzwa kupitia `hasMcpConnectOrManageScope()`.
 
-### Ufungamanishaji wa scope za HTTP kwa kila key (#7895)
+### Ufungaji wa scope ya HTTP kwa kila ufunguo (#7895)
 
-Kupitia HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` sasa hutatua
-`api_keys.scopes` halisi za mpigaji kupitia `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
-na kuzipitisha kwa `transport.handleRequest(req, { authInfo })` ya MCP SDK, ili
-`extra.authInfo.scopes` inayofikia kila mwito wa zana iakisi scope za key yenyewe ya Bearer.
-`resolveCallerScopeContext()` ya `scopeEnforcement.ts` tayari ilipa kipaumbele `authInfo` kuliko
-fallback ya `_meta` na env ya `OMNIROUTE_MCP_SCOPES` — hili linajaza tu chanzo hicho cha kwanza,
-chenye kipaumbele cha juu zaidi, ambacho hapo awali hakikulishwa kupitia HTTP. Wakati hakuna API key inayotatuliwa
-(hakuna header, key si halali), `authInfo` hubaki `undefined` na utatuzi huendelea hadi kwenye
-mnyororo uliopo wa fallback wa `meta`/env bila mabadiliko. Hili HALIBADILISHI chaguo-msingi la
-`OMNIROUTE_MCP_ENFORCE_SCOPES` — utekelezaji bado lazima uwezeshwe waziwazi; badiliko hili linafanya tu
-njia ya kila key ipewe kipaumbele mara inapowezeshwa. stdio haina utambulisho wa kila mpigaji (angalia
-`mcpCallerIdentity.ts`) na haiathiriwi — inaendelea kutumia mnyororo wa fallback wa `_meta`/env.
-
----
+Juu ya HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` sasa inatatua `api_keys.scopes` halisi ya mpigaji simu kupitia `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) na kuipitisha kwa `transport.handleRequest(req, { authInfo })` ya MCP SDK, hivyo `extra.authInfo.scopes` inayofikia kila wito wa zana inaakisi scopes za ufunguo wa Bearer. `resolveCallerScopeContext()` ya `scopeEnforcement.ts` tayari ilipa kipaumbele `authInfo` kuliko fallback ya `_meta` na `OMNIROUTE_MCP_SCOPES` env — hii inajaza tu chanzo hicho cha kwanza, chenye kipaumbele cha juu zaidi, ambacho hapo awali hakikupewa data juu ya HTTP. Wakati hakuna ufunguo wa API unaotatuliwa (hakuna kichwa, ufunguo batili), `authInfo` inabaki `undefined` na utatuzi unaendelea hadi mlolongo uliopo wa `meta`/env bila kubadilika. Hii HAIBADILISHI default ya `OMNIROUTE_MCP_ENFORCE_SCOPES` — utekelezaji bado unapaswa kuwezeshwa waziwazi; mabadiliko haya yanafanya tu njia ya kila ufunguo kuchukua kipaumbele mara tu inapotokea. stdio haina utambulisho wa kila mpigaji simu (tazama `mcpCallerIdentity.ts`) na haiathiriwi — inabaki kwenye mlolongo wa fallback wa `_meta`/env.
 
 ## Vigezo vya Mazingira
 

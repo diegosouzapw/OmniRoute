@@ -155,6 +155,51 @@ test("getResetAwareRemainingPercent: min(session, weekly) * 100", () => {
   assert.equal(getResetAwareRemainingPercent(quota), 40);
 });
 
+test("getResetAwareRemainingPercent includes a reported monthly window", () => {
+  const quota = {
+    percentUsed: 0.5,
+    window5h: { percentUsed: 0.1, resetAt: iso() },
+    window7d: { percentUsed: 0.2, resetAt: iso() },
+    windowMonthly: { percentUsed: 0.95, resetAt: iso(30 * 86_400_000) },
+  };
+  assert.equal(getResetAwareRemainingPercent(quota), 5);
+});
+
+test("getResetAwareRemainingPercent excludes a monthly-exhausted account", () => {
+  const quota = {
+    percentUsed: 0.2,
+    window5h: { percentUsed: 0.1, resetAt: iso() },
+    window7d: { percentUsed: 0.2, resetAt: iso() },
+    windowMonthly: { percentUsed: 1, resetAt: iso(30 * 86_400_000) },
+  };
+  assert.equal(getResetAwareRemainingPercent(quota), 0);
+});
+
+test("scoreResetAwareQuota preserves session and weekly scoring without a monthly window", () => {
+  const config = resolveResetAwareConfig({});
+  const quota = {
+    percentUsed: 0.5,
+    window5h: { percentUsed: 0.5, resetAt: iso(10 * 86_400_000) },
+    window7d: { percentUsed: 0.5, resetAt: iso(14 * 86_400_000) },
+  };
+  assert.equal(scoreResetAwareQuota(quota, config).score, 0.16);
+});
+
+test("scoreResetAwareQuota accounts for monthly reset pressure", () => {
+  const config = resolveResetAwareConfig({});
+  const quotaAtMonthlyReset = (days: number) => ({
+    percentUsed: 0.5,
+    window5h: { percentUsed: 0.5, resetAt: iso(10 * 86_400_000) },
+    window7d: { percentUsed: 0.5, resetAt: iso(14 * 86_400_000) },
+    windowMonthly: { percentUsed: 0.5, resetAt: iso(days * 86_400_000) },
+  });
+
+  const nearReset = scoreResetAwareQuota(quotaAtMonthlyReset(1), config).score;
+  const farReset = scoreResetAwareQuota(quotaAtMonthlyReset(60), config).score;
+
+  assert.ok(nearReset > farReset);
+});
+
 test("getResetAwareRemainingPercent: missing windows fall back to overall percentUsed", () => {
   assert.equal(getResetAwareRemainingPercent({ percentUsed: 0.7 }), 30);
 });
@@ -413,6 +458,33 @@ test("pinned hard-empty connection stays dropped", async () => {
     null
   );
   assert.deepEqual(ordered, []);
+});
+
+test("quota-weighted excludes an account with no monthly quota remaining", async () => {
+  const provider = "agy";
+  const depleted = `monthly-depleted-${randomUUID()}`;
+  const healthy = `monthly-healthy-${randomUUID()}`;
+  registerQuotaFetcher(provider, async (id) =>
+    quotaAt(0.4, {
+      windowMonthly: {
+        percentUsed: id === depleted ? 1 : 0.2,
+        resetAt: iso(30 * 86_400_000),
+      },
+    })
+  );
+
+  const ordered = await orderTargetsByQuotaWeighted(
+    [makeTarget(provider, depleted), makeTarget(provider, healthy)],
+    "monthly-exhausted",
+    {},
+    { warn() {} },
+    null
+  );
+
+  assert.deepEqual(
+    ordered.map((target) => target.connectionId),
+    [healthy]
+  );
 });
 
 test("family filter: gemini request ignores Claude-empty windows", async () => {

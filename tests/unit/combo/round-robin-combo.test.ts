@@ -1,7 +1,7 @@
 /**
  * Source guards for the round-robin extract (PR-1).
- * handleRoundRobinCombo + resolveTargetTokenLimit must live in
- * roundRobinCombo.ts, not in the combo.ts import sandwich.
+ * handleRoundRobinCombo must live in roundRobinCombo.ts and resolveTargetTokenLimit
+ * in targetTokenLimit.ts — neither in the combo.ts import sandwich.
  */
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
@@ -26,8 +26,20 @@ describe("round-robin extract guards", () => {
   });
 
   it("moved resolveTargetTokenLimit out of the import sandwich", () => {
+    // #14585 lifted it into its own module to keep roundRobinCombo.ts under the
+    // file-size ceiling; round-robin must consume that single implementation.
     const rr = readFileSync(rrPath, "utf8");
-    assert.match(rr, /function resolveTargetTokenLimit/);
+    const tokenLimitSrc = readFileSync(
+      join(root, "open-sse/services/combo/targetTokenLimit.ts"),
+      "utf8"
+    );
+    assert.match(tokenLimitSrc, /export async function resolveTargetTokenLimit/);
+    assert.match(rr, /import \{ resolveTargetTokenLimit \} from "\.\/targetTokenLimit\.ts"/);
+    assert.equal(
+      rr.includes("function resolveTargetTokenLimit"),
+      false,
+      "roundRobinCombo.ts must not keep a second copy of resolveTargetTokenLimit"
+    );
     assert.equal(
       comboSrc.includes("function resolveTargetTokenLimit"),
       false,

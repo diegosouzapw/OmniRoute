@@ -1,6 +1,6 @@
 # Memory System (Igbo)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MEMORY.md) · 🇪🇹 [am](../../../am/docs/frameworks/MEMORY.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MEMORY.md) · 🇦🇿 [az](../../../az/docs/frameworks/MEMORY.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MEMORY.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MEMORY.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MEMORY.md) · 🇩🇰 [da](../../../da/docs/frameworks/MEMORY.md) · 🇩🇪 [de](../../../de/docs/frameworks/MEMORY.md) · 🇬🇷 [el](../../../el/docs/frameworks/MEMORY.md) · 🇪🇸 [es](../../../es/docs/frameworks/MEMORY.md) · 🇪🇪 [et](../../../et/docs/frameworks/MEMORY.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MEMORY.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MEMORY.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MEMORY.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MEMORY.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MEMORY.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MEMORY.md) · 🇮🇱 [he](../../../he/docs/frameworks/MEMORY.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MEMORY.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MEMORY.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MEMORY.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MEMORY.md) · 🇮🇩 [id](../../../id/docs/frameworks/MEMORY.md) · 🇮🇹 [it](../../../it/docs/frameworks/MEMORY.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MEMORY.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MEMORY.md) · 🇰🇭 [km](../../../km/docs/frameworks/MEMORY.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MEMORY.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MEMORY.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MEMORY.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MEMORY.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MEMORY.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MEMORY.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MEMORY.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MEMORY.md) · 🇲🇲 [my](../../../my/docs/frameworks/MEMORY.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MEMORY.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MEMORY.md) · 🇳🇴 [no](../../../no/docs/frameworks/MEMORY.md) · 🇮🇳 [or](../../../or/docs/frameworks/MEMORY.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MEMORY.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MEMORY.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MEMORY.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MEMORY.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MEMORY.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MEMORY.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MEMORY.md) · 🇱🇰 [si](../../../si/docs/frameworks/MEMORY.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MEMORY.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MEMORY.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MEMORY.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MEMORY.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MEMORY.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MEMORY.md) · 🇮🇳 [te](../../../te/docs/frameworks/MEMORY.md) · 🇹🇭 [th](../../../th/docs/frameworks/MEMORY.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MEMORY.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MEMORY.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MEMORY.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MEMORY.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MEMORY.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MEMORY.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MEMORY.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MEMORY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MEMORY.md) · 🇪🇹 [am](../../../am/docs/frameworks/MEMORY.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MEMORY.md) · 🇦🇿 [az](../../../az/docs/frameworks/MEMORY.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MEMORY.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MEMORY.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/MEMORY.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MEMORY.md) · 🇩🇰 [da](../../../da/docs/frameworks/MEMORY.md) · 🇩🇪 [de](../../../de/docs/frameworks/MEMORY.md) · 🇬🇷 [el](../../../el/docs/frameworks/MEMORY.md) · 🇪🇸 [es](../../../es/docs/frameworks/MEMORY.md) · 🇪🇪 [et](../../../et/docs/frameworks/MEMORY.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MEMORY.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MEMORY.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MEMORY.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MEMORY.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MEMORY.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MEMORY.md) · 🇮🇱 [he](../../../he/docs/frameworks/MEMORY.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MEMORY.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MEMORY.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MEMORY.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MEMORY.md) · 🇮🇩 [id](../../../id/docs/frameworks/MEMORY.md) · 🇮🇹 [it](../../../it/docs/frameworks/MEMORY.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MEMORY.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MEMORY.md) · 🇰🇭 [km](../../../km/docs/frameworks/MEMORY.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MEMORY.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MEMORY.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MEMORY.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MEMORY.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MEMORY.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MEMORY.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MEMORY.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MEMORY.md) · 🇲🇲 [my](../../../my/docs/frameworks/MEMORY.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MEMORY.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MEMORY.md) · 🇳🇴 [no](../../../no/docs/frameworks/MEMORY.md) · 🇮🇳 [or](../../../or/docs/frameworks/MEMORY.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MEMORY.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MEMORY.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MEMORY.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MEMORY.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MEMORY.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MEMORY.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MEMORY.md) · 🇱🇰 [si](../../../si/docs/frameworks/MEMORY.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MEMORY.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MEMORY.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MEMORY.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MEMORY.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MEMORY.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MEMORY.md) · 🇮🇳 [te](../../../te/docs/frameworks/MEMORY.md) · 🇹🇭 [th](../../../th/docs/frameworks/MEMORY.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MEMORY.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MEMORY.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MEMORY.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MEMORY.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MEMORY.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MEMORY.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MEMORY.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MEMORY.md)
 
 ---
 
@@ -165,35 +165,36 @@ Tebụl `memory_vec_meta` (migration `083_memory_vec.sql`) na-echekwa:
 
 ## Mgbatị ntọala
 
-E nwere mpaghara embedding na vector itoolu dị na `MemorySettingsExtended` n'ime
+E nwere oghere embedding na vector itoolu dị na `MemorySettingsExtended` n'ime
 `src/shared/schemas/memory.ts`, nke a na-echekwa site na `src/lib/db/settings.ts`:
 
-| Mpaghara                 | Ụdị                                                | Ndabara  | Nkọwa                                                                |
-| ------------------------ | -------------------------------------------------- | -------- | -------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Isi mmalite embedding a ga-eji                                       |
-| `embeddingProviderModel` | `string \| null`                                   | `null`   | Provider/model n'ụdị `provider/model`                                |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | URL ntọala endpoint dakọtara na OpenAI maka Memory naanị             |
-| `customModelId`          | `string \| null`                                   | `null`   | ID model a na-eziga na endpoint ahaziri iche                         |
-| `transformersEnabled`    | `boolean`                                          | `false`  | Nhọrọ ịbanye maka Transformers.js (MiniLM, ~400MB)                   |
-| `staticEnabled`          | `boolean`                                          | `false`  | Nhọrọ ịbanye maka model static potion-base-8M nke ime obodo          |
-| `rerankEnabled`          | `boolean`                                          | `false`  | Mee ka usoro nhazigharị pořzọ rụọ ọrụ (na-agbakwunye +200-500ms/req) |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | Provider/model maka nhazigharị n'ụdị `provider/model`                |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"` | Backend vector a ga-eji                                              |
+| Oghere                   | Ụdị                                                | Ndabara  | Nkọwa                                                                  |
+| ------------------------ | -------------------------------------------------- | -------- | ---------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Isi iyi embedding a ga-eji                                             |
+| `embeddingProviderModel` | `string \| null`                                   | `null`   | Onye na-eweta/model n'ụdị `provider/model`                             |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | URL ntọala endpoint dakọtara na OpenAI maka Memory naanị               |
+| `customModelId`          | `string \| null`                                   | `null`   | ID model a na-eziga na endpoint ahaziri iche                           |
+| `transformersEnabled`    | `boolean`                                          | `false`  | Nhọrọ iji Transformers.js (MiniLM, ~400MB)                             |
+| `staticEnabled`          | `boolean`                                          | `false`  | Nhọrọ iji model mpaghara static potion-base-8M                         |
+| `rerankEnabled`          | `boolean`                                          | `false`  | Mee ka usoro nhazigharị ọkwa rụọ ọrụ (na-agbakwunye +200-500ms/arịrịọ) |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | Onye na-eweta/model nhazigharị ọkwa n'ụdị `provider/model`             |
+
+`rerankProviderModel` na-enweta mkpebi ya site na `POST /v1/rerank` (nke a na-akpọ site na loopback), ya mere ọ na-anabata ihe ọ bụla route ahụ na-anabata: model nhazigharị ọkwa cloud ahọpụtara (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) ma ọ bụ node onye na-eweta dakọtara na OpenAI n'ụdị `<node-prefix>/<model>` (dịka `skilled-mini/bge-reranker-v2-m3` maka igbe TEI/Infinity). A na-ekwe ka node loopback rụọ ọrụ mgbe niile; node dị na host ọzọ (LAN, Tailscale) chọrọ ọkọlọtọ atụmatụ `RERANK_REMOTE_PROVIDER_NODES` ọzọ ma ga-agafekwa iwu URL ọpụpụ nke onye na-eweta — lee [Ọkọlọtọ Atụmatụ](../reference/FEATURE_FLAGS.md). Ihe nhọpụta dashboard na-egosi ndị na-eweta ahọpụtara yana node mpaghara; enwere ike ịtọ string `provider/model` ọ bụla ziri ezi ozugbo site na `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Backend vector a ga-eji |
 
 A na-eme ka ndị a dị site na `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
 
-Maka isi mmalite `remote`, Memory na-anabatakwa ntọala `customBaseUrl` na
-`customModelId` nke bụ nhọrọ. Ha abụọ na-ahọrọ endpoint `/embeddings` dakọtara
-na OpenAI na model n'agbanweghị ndekọ embedding zuru ụwa ọnụ. A na-ahazi endpoint
-ahụ ka ọ bụrụ otu ụkpụrụ tupu eji ya, a na-enyochakwa ya site na iwu URL ọpụpụ
-nke provider: HTTP(S) dị mkpa, a na-ajụ ozi nnweta etinyere n'ime URL na eriri
-ajụjụ, ebe adreesị metadata cloud ka na-anọgide na mgbochi. Uru efu na-edobe
-provider ndekọ ahọpụtara. A na-asachapụ njehie ndị e weghachiri na dashboard,
-a dịghịkwa edekọ ozi nnweta endpoint na log.
+Maka isi iyi `remote`, Memory na-anabatakwa ntọala `customBaseUrl` na
+`customModelId` ndị bụ nhọrọ. Ha abụọ na-ahọrọ endpoint `/embeddings`
+na model dakọtara na OpenAI n'agbanweghị ndekọ embedding zuru ụwa ọnụ. A na-eme ka endpoint ahụ
+dịrị n'ụdị ọkọlọtọ tupu eji ya, a na-enyochakwa ya site n'iwu URL ọpụpụ nke onye na-eweta: a chọrọ
+HTTP(S), a na-ajụ credentials agbakwunyere na query strings, adreesị metadata
+cloud ka na-adịkwa egbochiri. Uru efu na-echekwa onye na-eweta ndekọ ahọpụtara. A na-ehicha njehie
+eweghachiri na dashboard ka ozi nzuzo ghara ịpụta, a naghịkwa edekọ credentials endpoint na log.
 
-> **TODO (D20):** Scope `global` (ịkekọrịta ncheta n'etiti API keys niile)
-> arụbeghị ọrụ na mbipụta a. Ọ chọrọ mgbanwe schema na ụzọ nchọta zuru ụwa ọnụ.
-> Soro ya dị ka ọrụ dị iche.
+> **TODO (D20):** Scope `global` (ịkekọrịta memories n'etiti API keys niile) adịghị
+> arụ ọrụ na release a. Ọ chọrọ mgbanwe schema na ụzọ retrieval zuru ụwa ọnụ.
+> Soro ya dịka ọrụ dị iche.
 
 ## Ọkwa Nchekwa
 

@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { prepareConnectionModelTest } from "@/lib/providerModels/prepareConnectionModelTest";
 import { POST as postChatCompletion } from "@/app/api/v1/chat/completions/route";
 import { POST as postAudioTranscription } from "@/app/api/v1/audio/transcriptions/route";
 import { handleValidatedEmbeddingRequestBody } from "@/app/api/v1/embeddings/route";
@@ -12,6 +13,7 @@ import {
 } from "@/lib/combos/testHealth";
 import { getCustomModels } from "@/lib/db/models";
 import { getProviderNodeById } from "@/lib/db/providers";
+import { requiresWebSessionCredential } from "@/shared/providers/webSessionCredentials";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { withRateLimit } from "@omniroute/open-sse/services/rateLimitManager";
 import {
@@ -25,6 +27,7 @@ import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLease
 
 const INTERNAL_ORIGIN = "http://omniroute.internal";
 export const DEFAULT_MODEL_TEST_TIMEOUT_MS = 30_000;
+const CHATGPT_WEB_CLEAN_ROOM_PROVIDER_ID = "chatgpt-web";
 const DOLA_PRO_TEST_TIMEOUT_MS = 90_000;
 const DOUBAO_WEB_PROVIDER_ID = "doubao-web";
 const ZAI_WEB_PROVIDER_ID = "zai-web";
@@ -35,6 +38,14 @@ const STREAMING_CHAT_TEST_MAX_TOKENS = 64;
 // ignored on that endpoint, which would let a reasoning model spend the whole
 // default budget before emitting any visible text.
 const RESPONSES_TEST_MAX_OUTPUT_TOKENS = 256;
+
+export function shouldSkipWebSessionModelTest(providerId: unknown): boolean {
+  return (
+    requiresWebSessionCredential(providerId) &&
+    (typeof providerId !== "string" ||
+      providerId.trim().toLowerCase() !== CHATGPT_WEB_CLEAN_ROOM_PROVIDER_ID)
+  );
+}
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -285,12 +296,15 @@ export function detectTestKind(modelStr: string, customModel: any, nodeApiType?:
     !isRerank &&
     (apiFormat === "embeddings" ||
       nodeType === "embeddings" ||
+      customModel?.modelType === "embedding" ||
       supportedEndpoints.includes("embeddings") ||
       lowerModel.includes("embedding") ||
       lowerModel.includes("bge-") ||
       lowerModel.includes("text-embed") ||
       lowerModel.includes("jina-clip") ||
-      lowerModel.includes("colbert"));
+      lowerModel.includes("colbert") ||
+      lowerModel.includes("harrier-") ||
+      lowerModel.includes("nomic-embed"));
   // A Responses node answers on /v1/responses only. Without this the model fell
   // through to the chat branch below, which posts a Chat Completions body to
   // /v1/chat/completions: the route can still answer 200 while carrying nothing a
@@ -365,6 +379,8 @@ export interface SingleModelTestResult {
   isQuota?: boolean;
   isTimeout?: boolean;
   retryAfter?: number;
+  /** The probe was deliberately not dispatched (#14780) — not a model failure. */
+  skipped?: boolean;
 }
 
 export type ModelTestResponseText = {
@@ -471,7 +487,28 @@ export async function runSingleModelTest(
   if (!fullModelStr.includes("/")) {
     fullModelStr = `${providerId}/${modelId}`;
   }
+  if (shouldSkipWebSessionModelTest(providerId)) {
+    return {
+      modelId: fullModelStr,
+      status: "error",
+      latencyMs: 0,
+      httpStatus: 422,
+      skipped: true,
+      error:
+        "Skipped: web-session providers are excluded from chat probes to avoid creating provider conversations",
+    };
+  }
   const effectiveTimeoutMs = resolveModelTestTimeoutMs(providerId, fullModelStr, timeoutMs);
+
+  const catalogError = await prepareConnectionModelTest(providerId, connectionId, fullModelStr);
+  if (catalogError)
+    return {
+      modelId: fullModelStr,
+      status: "error",
+      latencyMs: 0,
+      httpStatus: catalogError.status,
+      error: catalogError.message,
+    };
 
   const startTime = Date.now();
   const [customModel, nodeApiType] = await Promise.all([

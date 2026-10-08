@@ -73,7 +73,10 @@ export function buildFirecrawlSearchRequest(
   const envBase = process.env.FIRECRAWL_BASE_URL?.trim().replace(/\/+$/, "");
   const providerData = params.providerSpecificData as Record<string, unknown> | undefined;
   const paramBase = typeof params.baseUrl === "string" ? params.baseUrl : providerData?.baseUrl;
-  const customBase = typeof paramBase === "string" && paramBase.trim() ? paramBase.trim().replace(/\/+$/, "") : undefined;
+  const customBase =
+    typeof paramBase === "string" && paramBase.trim()
+      ? paramBase.trim().replace(/\/+$/, "")
+      : undefined;
   const rawBase = envBase || customBase;
   // #3049: `customBase` (params.baseUrl / providerSpecificData.baseUrl) is client-controlled —
   // validate it as a public URL before it is used to build the server-side fetch target, so a

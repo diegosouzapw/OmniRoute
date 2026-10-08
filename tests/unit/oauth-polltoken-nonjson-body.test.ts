@@ -2,7 +2,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import PROVIDERS_MAP from "../../src/lib/oauth/providers/index.ts";
-import { GITHUB_CONFIG, KIMI_CODING_CONFIG } from "../../src/lib/oauth/constants/oauth.ts";
+import {
+  GITHUB_CONFIG,
+  KIMI_CODING_CONFIG,
+  MUSE_CODE_CONFIG,
+} from "../../src/lib/oauth/constants/oauth.ts";
 
 // Regression guard for the OAuth device-flow pollToken double body read.
 //
@@ -28,6 +32,7 @@ function stubFetch(body: string, init?: ResponseInit) {
 const providers = [
   { id: "kimi-coding", config: KIMI_CODING_CONFIG },
   { id: "github", config: GITHUB_CONFIG },
+  { id: "muse-code", config: MUSE_CODE_CONFIG },
 ] as const;
 
 for (const { id, config } of providers) {

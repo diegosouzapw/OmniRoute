@@ -1,21 +1,22 @@
 # Account-Ban / Banned-Keyword Detection (தமிழ்)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../security/BAN_DETECTION.md) · 🇪🇹 [am](../../../am/docs/security/BAN_DETECTION.md) · 🇸🇦 [ar](../../../ar/docs/security/BAN_DETECTION.md) · 🇦🇿 [az](../../../az/docs/security/BAN_DETECTION.md) · 🇧🇬 [bg](../../../bg/docs/security/BAN_DETECTION.md) · 🇧🇩 [bn](../../../bn/docs/security/BAN_DETECTION.md) · 🇨🇿 [cs](../../../cs/docs/security/BAN_DETECTION.md) · 🇩🇰 [da](../../../da/docs/security/BAN_DETECTION.md) · 🇩🇪 [de](../../../de/docs/security/BAN_DETECTION.md) · 🇬🇷 [el](../../../el/docs/security/BAN_DETECTION.md) · 🇪🇸 [es](../../../es/docs/security/BAN_DETECTION.md) · 🇪🇪 [et](../../../et/docs/security/BAN_DETECTION.md) · 🇮🇷 [fa](../../../fa/docs/security/BAN_DETECTION.md) · 🇫🇮 [fi](../../../fi/docs/security/BAN_DETECTION.md) · 🇫🇷 [fr](../../../fr/docs/security/BAN_DETECTION.md) · 🇮🇪 [ga](../../../ga/docs/security/BAN_DETECTION.md) · 🇮🇳 [gu](../../../gu/docs/security/BAN_DETECTION.md) · 🇳🇬 [ha](../../../ha/docs/security/BAN_DETECTION.md) · 🇮🇱 [he](../../../he/docs/security/BAN_DETECTION.md) · 🇮🇳 [hi](../../../hi/docs/security/BAN_DETECTION.md) · 🇭🇷 [hr](../../../hr/docs/security/BAN_DETECTION.md) · 🇭🇺 [hu](../../../hu/docs/security/BAN_DETECTION.md) · 🇦🇲 [hy](../../../hy/docs/security/BAN_DETECTION.md) · 🇮🇩 [id](../../../id/docs/security/BAN_DETECTION.md) · 🇳🇬 [ig](../../../ig/docs/security/BAN_DETECTION.md) · 🇮🇹 [it](../../../it/docs/security/BAN_DETECTION.md) · 🇯🇵 [ja](../../../ja/docs/security/BAN_DETECTION.md) · 🇬🇪 [ka](../../../ka/docs/security/BAN_DETECTION.md) · 🇰🇭 [km](../../../km/docs/security/BAN_DETECTION.md) · 🇮🇳 [kn](../../../kn/docs/security/BAN_DETECTION.md) · 🇰🇷 [ko](../../../ko/docs/security/BAN_DETECTION.md) · 🇱🇹 [lt](../../../lt/docs/security/BAN_DETECTION.md) · 🇱🇻 [lv](../../../lv/docs/security/BAN_DETECTION.md) · 🇮🇳 [ml](../../../ml/docs/security/BAN_DETECTION.md) · 🇮🇳 [mr](../../../mr/docs/security/BAN_DETECTION.md) · 🇲🇾 [ms](../../../ms/docs/security/BAN_DETECTION.md) · 🇲🇹 [mt](../../../mt/docs/security/BAN_DETECTION.md) · 🇲🇲 [my](../../../my/docs/security/BAN_DETECTION.md) · 🇳🇵 [ne](../../../ne/docs/security/BAN_DETECTION.md) · 🇳🇱 [nl](../../../nl/docs/security/BAN_DETECTION.md) · 🇳🇴 [no](../../../no/docs/security/BAN_DETECTION.md) · 🇮🇳 [or](../../../or/docs/security/BAN_DETECTION.md) · 🇮🇳 [pa](../../../pa/docs/security/BAN_DETECTION.md) · 🇵🇭 [phi](../../../phi/docs/security/BAN_DETECTION.md) · 🇵🇱 [pl](../../../pl/docs/security/BAN_DETECTION.md) · 🇵🇹 [pt](../../../pt/docs/security/BAN_DETECTION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/BAN_DETECTION.md) · 🇷🇴 [ro](../../../ro/docs/security/BAN_DETECTION.md) · 🇷🇺 [ru](../../../ru/docs/security/BAN_DETECTION.md) · 🇱🇰 [si](../../../si/docs/security/BAN_DETECTION.md) · 🇸🇰 [sk](../../../sk/docs/security/BAN_DETECTION.md) · 🇸🇮 [sl](../../../sl/docs/security/BAN_DETECTION.md) · 🇷🇸 [sr](../../../sr/docs/security/BAN_DETECTION.md) · 🇸🇪 [sv](../../../sv/docs/security/BAN_DETECTION.md) · 🇰🇪 [sw](../../../sw/docs/security/BAN_DETECTION.md) · 🇮🇳 [te](../../../te/docs/security/BAN_DETECTION.md) · 🇹🇭 [th](../../../th/docs/security/BAN_DETECTION.md) · 🇹🇷 [tr](../../../tr/docs/security/BAN_DETECTION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/BAN_DETECTION.md) · 🇵🇰 [ur](../../../ur/docs/security/BAN_DETECTION.md) · 🇺🇿 [uz](../../../uz/docs/security/BAN_DETECTION.md) · 🇻🇳 [vi](../../../vi/docs/security/BAN_DETECTION.md) · 🇳🇬 [yo](../../../yo/docs/security/BAN_DETECTION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/BAN_DETECTION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/BAN_DETECTION.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../security/BAN_DETECTION.md) · 🇪🇹 [am](../../../am/docs/security/BAN_DETECTION.md) · 🇸🇦 [ar](../../../ar/docs/security/BAN_DETECTION.md) · 🇦🇿 [az](../../../az/docs/security/BAN_DETECTION.md) · 🇧🇬 [bg](../../../bg/docs/security/BAN_DETECTION.md) · 🇧🇩 [bn](../../../bn/docs/security/BAN_DETECTION.md) · 🇧🇦 [bs](../../../bs/docs/security/BAN_DETECTION.md) · 🇨🇿 [cs](../../../cs/docs/security/BAN_DETECTION.md) · 🇩🇰 [da](../../../da/docs/security/BAN_DETECTION.md) · 🇩🇪 [de](../../../de/docs/security/BAN_DETECTION.md) · 🇬🇷 [el](../../../el/docs/security/BAN_DETECTION.md) · 🇪🇸 [es](../../../es/docs/security/BAN_DETECTION.md) · 🇪🇪 [et](../../../et/docs/security/BAN_DETECTION.md) · 🇮🇷 [fa](../../../fa/docs/security/BAN_DETECTION.md) · 🇫🇮 [fi](../../../fi/docs/security/BAN_DETECTION.md) · 🇫🇷 [fr](../../../fr/docs/security/BAN_DETECTION.md) · 🇮🇪 [ga](../../../ga/docs/security/BAN_DETECTION.md) · 🇮🇳 [gu](../../../gu/docs/security/BAN_DETECTION.md) · 🇳🇬 [ha](../../../ha/docs/security/BAN_DETECTION.md) · 🇮🇱 [he](../../../he/docs/security/BAN_DETECTION.md) · 🇮🇳 [hi](../../../hi/docs/security/BAN_DETECTION.md) · 🇭🇷 [hr](../../../hr/docs/security/BAN_DETECTION.md) · 🇭🇺 [hu](../../../hu/docs/security/BAN_DETECTION.md) · 🇦🇲 [hy](../../../hy/docs/security/BAN_DETECTION.md) · 🇮🇩 [id](../../../id/docs/security/BAN_DETECTION.md) · 🇳🇬 [ig](../../../ig/docs/security/BAN_DETECTION.md) · 🇮🇹 [it](../../../it/docs/security/BAN_DETECTION.md) · 🇯🇵 [ja](../../../ja/docs/security/BAN_DETECTION.md) · 🇬🇪 [ka](../../../ka/docs/security/BAN_DETECTION.md) · 🇰🇭 [km](../../../km/docs/security/BAN_DETECTION.md) · 🇮🇳 [kn](../../../kn/docs/security/BAN_DETECTION.md) · 🇰🇷 [ko](../../../ko/docs/security/BAN_DETECTION.md) · 🇱🇹 [lt](../../../lt/docs/security/BAN_DETECTION.md) · 🇱🇻 [lv](../../../lv/docs/security/BAN_DETECTION.md) · 🇮🇳 [ml](../../../ml/docs/security/BAN_DETECTION.md) · 🇮🇳 [mr](../../../mr/docs/security/BAN_DETECTION.md) · 🇲🇾 [ms](../../../ms/docs/security/BAN_DETECTION.md) · 🇲🇹 [mt](../../../mt/docs/security/BAN_DETECTION.md) · 🇲🇲 [my](../../../my/docs/security/BAN_DETECTION.md) · 🇳🇵 [ne](../../../ne/docs/security/BAN_DETECTION.md) · 🇳🇱 [nl](../../../nl/docs/security/BAN_DETECTION.md) · 🇳🇴 [no](../../../no/docs/security/BAN_DETECTION.md) · 🇮🇳 [or](../../../or/docs/security/BAN_DETECTION.md) · 🇮🇳 [pa](../../../pa/docs/security/BAN_DETECTION.md) · 🇵🇭 [phi](../../../phi/docs/security/BAN_DETECTION.md) · 🇵🇱 [pl](../../../pl/docs/security/BAN_DETECTION.md) · 🇵🇹 [pt](../../../pt/docs/security/BAN_DETECTION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/BAN_DETECTION.md) · 🇷🇴 [ro](../../../ro/docs/security/BAN_DETECTION.md) · 🇷🇺 [ru](../../../ru/docs/security/BAN_DETECTION.md) · 🇱🇰 [si](../../../si/docs/security/BAN_DETECTION.md) · 🇸🇰 [sk](../../../sk/docs/security/BAN_DETECTION.md) · 🇸🇮 [sl](../../../sl/docs/security/BAN_DETECTION.md) · 🇷🇸 [sr](../../../sr/docs/security/BAN_DETECTION.md) · 🇸🇪 [sv](../../../sv/docs/security/BAN_DETECTION.md) · 🇰🇪 [sw](../../../sw/docs/security/BAN_DETECTION.md) · 🇮🇳 [te](../../../te/docs/security/BAN_DETECTION.md) · 🇹🇭 [th](../../../th/docs/security/BAN_DETECTION.md) · 🇹🇷 [tr](../../../tr/docs/security/BAN_DETECTION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/BAN_DETECTION.md) · 🇵🇰 [ur](../../../ur/docs/security/BAN_DETECTION.md) · 🇺🇿 [uz](../../../uz/docs/security/BAN_DETECTION.md) · 🇻🇳 [vi](../../../vi/docs/security/BAN_DETECTION.md) · 🇳🇬 [yo](../../../yo/docs/security/BAN_DETECTION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/BAN_DETECTION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/BAN_DETECTION.md)
 
 ---
 
-OmniRoute, வழங்குநரின் **கணக்கு நிரந்தரமாகச் செயலிழந்துவிட்டது** (இடைநிறுத்தப்பட்டது / செயலிழக்கச் செய்யப்பட்டது / சேவை விதிமுறைகளை மீறியதால் தடைசெய்யப்பட்டது) என்பதைக் குறிக்கும் சைகைகளுக்காக மேல்நிலைப் பிழைப் பதில்களை ஸ்கேன் செய்கிறது; பொருத்தம் கண்டறியப்படும்போது, அந்த இணைப்பை **இறுதி `banned` நிலைக்கு** மாற்றுகிறது, எனவே கோரிக்கைகளுக்கு அது இனி தேர்ந்தெடுக்கப்படாது. இதைத்தான் **Security → Banned Keywords**
-அமைப்புகள் அட்டை உள்ளமைக்கிறது ("நிரந்தரக் கணக்குத் தடை கண்டறிதலைத் தூண்டும் கூடுதல் முக்கியச் சொற்கள். உள்ளமைக்கப்பட்ட முக்கியச் சொற்கள் எப்போதும் பயன்படுத்தப்படும்.").
+OmniRoute, வழங்குநரின் **கணக்கு நிரந்தரமாக செயலிழந்துள்ளது** (இடைநிறுத்தப்பட்டது / செயலிழக்கச் செய்யப்பட்டது / ToS-தடை விதிக்கப்பட்டது) என்பதைக் குறிக்கும் அறிகுறிகளுக்காக மேல்நிலைப் பிழைப் பதில்களை ஸ்கேன் செய்கிறது; பொருத்தம் கண்டறியப்படும்போது, அந்த இணைப்பை **இறுதி `banned` நிலைக்கு** மாற்றுகிறது, இதனால் கோரிக்கைகளுக்காக அது இனி தேர்ந்தெடுக்கப்படாது. இதைத்தான் **Security → Banned Keywords** அமைப்புகள் அட்டை உள்ளமைக்கிறது ("நிரந்தரக் கணக்குத் தடை கண்டறிதலைத் தூண்டும் கூடுதல் முக்கியச்சொற்கள். உள்ளமைந்த முக்கியச்சொற்கள் எப்போதும் பொருந்தும்.").
 
-இந்தப் பக்கம் உள்ளமைக்கப்பட்ட பட்டியல், கண்டறிதல் ஓட்டம், அதன் வரம்பு, தனிப்பயன் முக்கியச் சொற்களைப் பாதுகாப்பாகச் சேர்ப்பது மற்றும் குறியிடப்பட்ட இணைப்பை மீட்டெடுப்பது ஆகியவற்றை ஆவணப்படுத்துகிறது. இறுதி நிலையே மீள்திறன் மாதிரியின் ஒரு பகுதியாகும் — பார்க்கவும்
-[RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("இறுதி நிலைகள்").
+இந்தப் பக்கம் உள்ளமைந்த பட்டியல், கண்டறிதல் ஓட்டம், அதன் வரம்பு, தனிப்பயன் முக்கியச்சொற்களைப் பாதுகாப்பாகச் சேர்ப்பது எப்படி, மற்றும் குறியிடப்பட்ட இணைப்பை எவ்வாறு மீட்டெடுப்பது ஆகியவற்றை ஆவணப்படுத்துகிறது. இறுதி நிலையே மீள்திறன் மாதிரியின் ஒரு பகுதியாகும் — [RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("இறுதி நிலைகள்") என்பதைப் பார்க்கவும்.
 
-**உண்மையின் ஆதாரம்:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+**அதிகாரப்பூர்வ ஆதாரம்:** `open-sse/services/accountFallback.ts`
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+மேலும் இறுதியல்லாத சரிபார்ப்பு வகுப்பிற்காக
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) மற்றும்
+அதைப் பயன்படுத்தும் 403 கிளைக்காக `open-sse/services/errorClassifier.ts`.
 
-## உள்ளமைக்கப்பட்ட முக்கியச் சொற்கள்
+## உள்ளமைந்த முக்கியச்சொற்கள்
 
-எந்தவொரு தனிப்பயன் பட்டியலையும் பொருட்படுத்தாமல், இந்த 8 உட்சரங்கள் எப்போதும் பயன்படுத்தப்படும் (எழுத்துப் பெரிய/சிறிய வேறுபாடின்றி):
+தனிப்பயன் பட்டியல் எதுவாக இருந்தாலும், இந்த 7 துணைச்சரங்கள் எப்போதும் பொருந்தும் (எழுத்துப் பெட்டி வேறுபாடின்றி):
 
 ```
 account_deactivated
@@ -23,23 +24,46 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> வழங்குநர்கள் தங்கள் தடைச் சொற்றொடர்களை மாற்றுவதற்கேற்ப இந்தப் பட்டியல் மாறிக்கொண்டே இருக்கும். அதிகாரப்பூர்வமான
+> வழங்குநர்கள் தங்களின் தடை குறித்த சொற்றொடர்களை மாற்றும்போது இந்தப் பட்டியலும் தொடர்ந்து மாறும். அதிகாரப்பூர்வமான
 > நகல் `open-sse/services/accountFallback.ts`-இல் உள்ள `ACCOUNT_DEACTIVATED_SIGNALS`;
-> மேலே உள்ள தொகுதியை ஒரு குறிப்பிட்ட நேரத்தின் நகலாகக் கருதவும்.
+> மேலே உள்ள தொகுதியை ஒரு குறிப்பிட்ட நேரத்தின் நிலைப்படமாகக் கருதவும்.
 
-அதே கோப்பில் அருகருகே உள்ள, **தனித்தனி** இரண்டு சைகை அட்டவணைகள் தடைசெய்யப்பட்ட-முக்கியச் சொல் கண்டறிதலின் பகுதியாக _இல்லை_:
+### தடையல்ல: இயக்குநர் நடவடிக்கை எடுக்கக்கூடிய சரிபார்ப்புக் கோரிக்கைகள்
 
-- `CREDITS_EXHAUSTED_SIGNALS` — பில்லிங்/ஒதுக்கீடு தீர்ந்துவிட்டது (`insufficient_quota`,
-  `credit_balance_too_low`, `payment required`, …) → இறுதி `credits_exhausted`.
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **இறுதியற்றது**; டோக்கன் புதுப்பிப்பு மூலம் மீட்கலாம்.
+`verify your account to continue` **முன்பு** மேலே உள்ள பட்டியலில் இடம்பெற்றிருந்தது. அது ஒரு தடை
+சமிக்ஞை அல்ல; இப்போது அது `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS`-இல் உள்ளது, இது இணைப்பை
+முடிவுறச் செய்வதற்குப் பதிலாக மீட்டெடுக்கக்கூடிய `PROJECT_ROUTE_ERROR` என வகைப்படுத்துகிறது.
+
+Google Cloud Code / Antigravity இதை `403 VALIDATION_REQUIRED` ஆகத் திருப்பி அனுப்புகின்றன. இது
+**தற்காலிகமானது; நல்ல நிலையில், முழுக் கோட்டாவும் உள்ள கணக்குகளிலும் நிகழ்கிறது** — நேரடி
+வரிசைப்படுத்தலில் அளவிடப்பட்டது (2026-09-25, `proxy_logs`): ஓர் Antigravity இணைப்பு 10 நிமிடங்களுக்குள்
+இத்தகைய 403 பதில்களில் 33-ஐப் பெற்று `active` நிலையிலேயே நீடித்தது; அதே நேரத்தில், அனைத்து 17 சாளரங்களிலும்
+தனது கோட்டாவில் 100 % வைத்திருந்த மற்றொரு இணைப்பு, **ஒரே ஒரு** இத்தகைய பதிலால் நிரந்தரமாகத் தடைசெய்யப்பட்டது. எந்த
+முயற்சி சேவையளிக்கப்பட்டது என்பதே ஒரே வேறுபாடு.
+
+இந்த வேறுபாடு முக்கியமானது; ஏனெனில் முடிவுறச் செய்யும் பொருத்தம் `permanent: true` ஆகும் (1-ஆண்டு காத்திருப்பு காலம்,
+தானாக ஒருபோதும் மீளாது), ஆனால் சரிபார்ப்புக் கோரிக்கையை இயக்குநர் உலாவியில் நீக்க முடியும்.
+இந்தச் சொற்றொடரைத் தடைப் பட்டியலில் வைத்திருப்பது, `classifyProviderError`-இல் உள்ள மீட்டெடுக்கக்கூடிய cloud-code 403 கிளையை
+இந்தச் சொற்றொடருக்கு எட்ட முடியாததாகவும் ஆக்கியது; ஏனெனில் `accountDeactivated` முதலில்
+மதிப்பிடப்படுகிறது — எனவே Gemini Code Assist-க்காக
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) மற்றும்
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) ஆகியவற்றில் சேர்க்கப்பட்ட திட்ட-வழித்தட மீட்பு ஒருபோதும் இயங்க முடியவில்லை.
+
+அருகருகே உள்ள மூன்று, **தனித்தனி** சமிக்ஞை அட்டவணைகள் தடைசெய்யப்பட்ட-முக்கியச்சொல் கண்டறிதலின் பகுதியாக _இல்லை_:
+
+- `CREDITS_EXHAUSTED_SIGNALS` — பில்லிங்/கோட்டா தீர்ந்துவிட்டது (`insufficient_quota`,
+  `credit_balance_too_low`, `payment required`, …) → முடிவுறச் செய்யும் `credits_exhausted`.
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **முடிவுறச் செய்யாதது**; டோக்கனைப் புதுப்பிப்பதன் மூலம் மீட்டெடுக்க முடியும்.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **முடிவுறச் செய்யாதது**; இயக்குநர் மேல்நிலை வழங்குநரிடம்
+  கணக்கை மீண்டும் சரிபார்க்க வேண்டும். இது `open-sse/services/errorClassifier.ts`-இல் உள்ளது
+  (மற்ற இரண்டும் `accountFallback.ts`-இல் உள்ளன). மேலே உள்ள பகுதியைப் பார்க்கவும்.
 
 குறிப்பு: **`rate limit`** / `429` போன்ற பொதுவான தற்காலிகச் சொற்றொடர்கள்
-விகித-வரம்பு / இணைப்புக் காத்திருப்புப் பாதையால் கையாளப்படுகின்றன; அவை தடைச் சைகைகள் **அல்ல**.
+விகித-வரம்பு / இணைப்புக் காத்திருப்பு பாதையால் கையாளப்படுகின்றன; அவை தடைச் சமிக்ஞைகள் **அல்ல**.
 
 ## கண்டறிதல் ஓட்டம்
 

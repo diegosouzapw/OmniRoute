@@ -19,6 +19,7 @@ import {
   normaliseFreeLabel,
   resolveApiBlock,
   DEFAULT_ANTHROPIC_PREFIXES,
+  OPENAI_COMPAT_EFFORT_TIER_SUFFIXES,
   ensureV1Suffix,
   debugLogEnabled,
   debugLogSetEnabled,
@@ -36,10 +37,7 @@ test("normaliseFreeLabel: '(Free)' suffix becomes [Free] prefix", () => {
 });
 
 test("normaliseFreeLabel: trailing ' Free' word becomes [Free] prefix", () => {
-  assert.equal(
-    normaliseFreeLabel("DeepSeek V4 Flash Free"),
-    "[Free] DeepSeek V4 Flash"
-  );
+  assert.equal(normaliseFreeLabel("DeepSeek V4 Flash Free"), "[Free] DeepSeek V4 Flash");
 });
 
 test("normaliseFreeLabel: trailing '-free' (hyphen) becomes [Free] prefix", () => {
@@ -59,10 +57,7 @@ test("normaliseFreeLabel: names without 'free' pass through unchanged", () => {
 
 test("normaliseFreeLabel: 'free' in the middle of a name is NOT rewritten", () => {
   // Only trailing/standalone "free" markers count; embedded "freedom" stays
-  assert.equal(
-    normaliseFreeLabel("Freedom Model"),
-    "Freedom Model"
-  );
+  assert.equal(normaliseFreeLabel("Freedom Model"), "Freedom Model");
 });
 
 test("normaliseFreeLabel: empty / whitespace-only inputs are handled", () => {
@@ -78,6 +73,22 @@ test("resolveApiBlock: cc/* models get the Anthropic SDK block (no /v1)", () => 
   assert.equal(block.id, "anthropic");
   assert.equal(block.npm, "@ai-sdk/anthropic");
   assert.equal(block.url, "https://api.example.com"); // NO /v1 suffix
+});
+
+test("resolveApiBlock: cc/* effort-tier catalog ids stay on openai-compatible /v1", () => {
+  assert.ok(OPENAI_COMPAT_EFFORT_TIER_SUFFIXES.includes("-low"));
+  for (const id of [
+    "cc/claude-haiku-4-5-20251001-low",
+    "cc/claude-opus-5-medium",
+    "cc/claude-opus-5-high",
+    "cc/claude-opus-5-xhigh",
+    "cc/claude-opus-4-6-thinking",
+  ]) {
+    const block = resolveApiBlock(id, "https://api.example.com");
+    assert.equal(block.id, "openai-compatible", `${id} must not use Anthropic Messages`);
+    assert.equal(block.npm, "@ai-sdk/openai-compatible");
+    assert.equal(block.url, "https://api.example.com/v1");
+  }
 });
 
 test("resolveApiBlock: claude/*, anthropic/*, kiro/*, kr/* all route to Anthropic", () => {
@@ -128,13 +139,7 @@ test("resolveApiBlock: model id without '/' uses the id as prefix", () => {
 });
 
 test("DEFAULT_ANTHROPIC_PREFIXES: contains the canonical Anthropic aliases", () => {
-  assert.deepEqual(DEFAULT_ANTHROPIC_PREFIXES, [
-    "cc",
-    "claude",
-    "anthropic",
-    "kiro",
-    "kr",
-  ]);
+  assert.deepEqual(DEFAULT_ANTHROPIC_PREFIXES, ["cc", "claude", "anthropic", "kiro", "kr"]);
 });
 
 test("ensureV1Suffix: idempotent for URLs that already end in /v1", () => {
@@ -245,8 +250,7 @@ test("createDebugLoggingFetch: records error without crashing the wrapped fetch"
 test("createDebugLoggingFetch: URL instance input is captured (not 'undefined')", async () => {
   const providerId = "test-provider-url-input";
   debugLogClear(providerId);
-  const inner: typeof fetch = async () =>
-    new Response("ok", { status: 200 });
+  const inner: typeof fetch = async () => new Response("ok", { status: 200 });
   const wrapped = createDebugLoggingFetch(inner, providerId, true);
   await wrapped(new URL("https://api.example.com/v1/chat"));
   const entries = debugLogRead(providerId);
@@ -258,8 +262,7 @@ test("createDebugLoggingFetch: URL instance input is captured (not 'undefined')"
 test("createDebugLoggingFetch: Request object input captures URL and headers", async () => {
   const providerId = "test-provider-request-input";
   debugLogClear(providerId);
-  const inner: typeof fetch = async () =>
-    new Response("ok", { status: 200 });
+  const inner: typeof fetch = async () => new Response("ok", { status: 200 });
   const wrapped = createDebugLoggingFetch(inner, providerId, true);
   const req = new Request("https://api.example.com/v1/chat", {
     method: "POST",

@@ -1,10 +1,10 @@
 # User Guide (नेपाली)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 ---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 प्रदायकहरू कन्फिगर गर्ने, कम्बोहरू सिर्जना गर्ने, CLI उपकरणहरू एकीकृत गर्ने र OmniRoute परिनियोजन गर्ने पूर्ण मार्गदर्शिका।
 
@@ -120,14 +120,14 @@
 
 ## 📖 प्रदायक सेटअप
 
-CSV वा JSON फाइलबाट एकैपटक धेरै API-key जडानहरू थप्न **Dashboard → Providers → Import from file** प्रयोग गर्नुहोस्। स्तम्भहरूको क्रम निश्चित हुन्छ (`provider,name,apiKey,baseUrl,priority`); `provider` पहिले नै व्यवस्थित प्रदायक वा उपयुक्त नोडका रूपमा अवस्थित हुनुपर्छ। [CSV वा JSON फाइलबाट प्रदायकहरू आयात गर्ने](../providers/CSV-IMPORT.md) हेर्नुहोस्।
+CSV वा JSON फाइलबाट API-key जडानहरू एकैपटक थप्न, **ड्यासबोर्ड → प्रदायकहरू → फाइलबाट आयात गर्नुहोस्** प्रयोग गर्नुहोस्। स्तम्भहरू स्थानगत हुन्छन् (`provider,name,apiKey,baseUrl,priority`); `provider` पहिले नै व्यवस्थापन गरिएको प्रदायक वा उपयुक्त नोडका रूपमा अवस्थित हुनुपर्छ। [CSV वा JSON फाइलबाट प्रदायकहरू आयात गर्नुहोस्](../providers/CSV-IMPORT.md) हेर्नुहोस्।
 
 ### 🔐 सदस्यता प्रदायकहरू
 
 #### Claude Code (Pro/Max)
 
 ```bash
-Dashboard → Providers → Connect Claude Code
+ड्यासबोर्ड → प्रदायकहरू → Claude Code जडान गर्नुहोस्
 → OAuth लगइन → स्वचालित टोकन रिफ्रेस
 → ५-घण्टे + साप्ताहिक कोटा ट्र्याकिङ
 
@@ -139,12 +139,14 @@ Dashboard → Providers → Connect Claude Code
 
 **विशेष सुझाव:** जटिल कार्यहरूका लागि Opus र तीव्रताका लागि Sonnet प्रयोग गर्नुहोस्। OmniRoute ले प्रत्येक मोडेलको कोटा ट्र्याक गर्छ!
 
-Claude र Claude Code-संगत रुटहरूले Opus र Sonnet मोडेलहरूका लागि `max` सोच प्रयास कायम राख्छन्। Haiku मोडेलहरूले `max` प्रयास स्तर स्वीकार गर्दैनन्, त्यसैले OmniRoute ले उक्त अनुरोधलाई अपस्ट्रिममा पठाउनुअघि उच्च सोच बजेटमा डाउनग्रेड गर्छ।
+OmniRoute होस्टमा ब्राउजर छैन? Claude Code लगइन भएको कुनै पनि ठाउँमा `claude setup-token` चलाउनुहोस् र एक-वर्षे टोकनलाई **सेटअप टोकन** ट्याबमा पेस्ट गर्नुहोस्। [सेटअप टोकनसहित Claude Code](../providers/CLAUDE_CODE_SETUP_TOKEN.md) हेर्नुहोस्।
+
+Claude र Claude Code-संगत रुटहरूले Opus र Sonnet मोडेलहरूका लागि `max` सोचाइ प्रयासलाई कायम राख्छन्। Haiku मोडेलहरूले `max` प्रयास तह स्वीकार गर्दैनन्, त्यसैले OmniRoute ले उक्त अनुरोधलाई अपस्ट्रिममा पठाउनुअघि उच्च सोचाइ बजेटमा घटाउँछ।
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-Dashboard → Providers → Connect Codex
+ड्यासबोर्ड → प्रदायकहरू → Codex जडान गर्नुहोस्
 → OAuth लगइन (पोर्ट 1455)
 → ५-घण्टे + साप्ताहिक रिसेट
 
@@ -158,9 +160,9 @@ Dashboard → Providers → Connect Codex
 #### GitHub Copilot
 
 ```bash
-Dashboard → Providers → Connect GitHub
+ड्यासबोर्ड → प्रदायकहरू → GitHub जडान गर्नुहोस्
 → GitHub मार्फत OAuth
-→ मासिक रिसेट (महिनाको पहिलो दिन)
+→ मासिक रिसेट (महिनाको १ तारिख)
 
 मोडेलहरू:
   gh/gpt-5.5
@@ -176,41 +178,41 @@ Dashboard → Providers → Connect GitHub
 
 1. साइन अप गर्नुहोस्: [Zhipu AI](https://open.bigmodel.cn)
 2. Coding Plan बाट API key प्राप्त गर्नुहोस्
-3. Dashboard → Add API Key: Provider: `glm`, API Key: `your-key`
+3. ड्यासबोर्ड → API Key थप्नुहोस्: प्रदायक: `glm`, API Key: `your-key`
 
-**प्रयोग:** `glm/glm-4.7` — **विशेष सुझाव:** Coding Plan ले १/७ लागतमा ३× कोटा प्रदान गर्छ! दैनिक बिहान 10:00 बजे रिसेट हुन्छ।
+**प्रयोग:** `glm/glm-4.7` — **विशेष सुझाव:** Coding Plan ले १/७ लागतमा ३× कोटा प्रदान गर्छ! दैनिक बिहान १०:०० बजे रिसेट हुन्छ।
 
 #### MiniMax M2.1 (५ घण्टामा रिसेट, $0.20/1M)
 
 1. साइन अप गर्नुहोस्: [MiniMax](https://www.minimax.io)
-2. API key प्राप्त गर्नुहोस् → Dashboard → Add API Key
+2. API key प्राप्त गर्नुहोस् → ड्यासबोर्ड → API Key थप्नुहोस्
 
-**प्रयोग:** `minimax/MiniMax-M2.1` — **विशेष सुझाव:** लामो कन्टेक्स्ट (1M टोकन) का लागि सबैभन्दा सस्तो विकल्प!
+**प्रयोग:** `minimax/MiniMax-M2.1` — **विशेष सुझाव:** लामो कन्टेक्स्ट (१M टोकन) का लागि सबैभन्दा सस्तो विकल्प!
 
 #### Kimi K2 (निश्चित $9/महिना)
 
 1. सदस्यता लिनुहोस्: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. API key प्राप्त गर्नुहोस् → Dashboard → Add API Key
+2. API key प्राप्त गर्नुहोस् → ड्यासबोर्ड → API Key थप्नुहोस्
 
-**प्रयोग:** `kimi/kimi-k2.5` — **विशेष सुझाव:** 10M टोकनका लागि निश्चित $9/महिना = प्रभावकारी लागत $0.90/1M!
+**प्रयोग:** `kimi/kimi-k2.5` — **विशेष सुझाव:** १०M टोकनका लागि निश्चित $9/महिना = प्रभावकारी लागत $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
 1. साइन अप गर्नुहोस्: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. Qianfan API key सिर्जना गर्नुहोस् → Dashboard → Add API Key: Provider: `qianfan`
+2. Qianfan API key सिर्जना गर्नुहोस् → ड्यासबोर्ड → API Key थप्नुहोस्: प्रदायक: `qianfan`
 
 **प्रयोग:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, वा अर्को Qianfan OpenAI-संगत मोडेल ID।
 
 ### 🆓 निःशुल्क प्रदायकहरू
 
-प्रमाणीकरण आवश्यक नपर्ने निःशुल्क प्रदायकहरूको प्रदायक पृष्ठमा **No authentication required** को छेउमा स्विच हुन्छ।
-यसलाई बन्द गर्दा उक्त प्रदायक निष्क्रिय हुन्छ, Providers का configured/compact दृश्यहरूबाट हट्छ, र
-त्यसका मोडेलहरू `/v1/models` बाट हट्छन्।
+प्रमाणीकरण नचाहिने निःशुल्क प्रदायकहरूको प्रदायक पृष्ठमा **प्रमाणीकरण आवश्यक छैन** को छेउमा स्विच हुन्छ।
+यसलाई बन्द गर्दा उक्त प्रदायक निष्क्रिय हुन्छ, प्रदायकहरूको कन्फिगर गरिएको/कम्प्याक्ट दृश्यबाट हट्छ, र
+यसका मोडेलहरू `/v1/models` बाट हट्छन्।
 
-#### Qoder (९ निःशुल्क मोडेलहरू)
+#### Qoder (९ निःशुल्क मोडेल)
 
 ```bash
-Dashboard → Connect Qoder → OAuth लगइन → पहुँच हालका प्रदायक सीमाहरूको अधीनमा हुन्छ
+ड्यासबोर्ड → Qoder जडान गर्नुहोस् → OAuth लगइन → पहुँच हालका प्रदायक सीमाहरूको अधीनमा हुन्छ
 
 मोडेलहरू: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
@@ -218,7 +220,7 @@ Dashboard → Connect Qoder → OAuth लगइन → पहुँच हाल
 #### Kiro (Claude निःशुल्क)
 
 ```bash
-Dashboard → Connect Kiro → AWS Builder ID वा Google/GitHub → ~५० क्रेडिट/महिना
+ड्यासबोर्ड → Kiro जडान गर्नुहोस् → AWS Builder ID वा Google/GitHub → ~५० क्रेडिट/महिना
 
 मोडेलहरू: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
@@ -666,7 +668,7 @@ post_install() {
 
 ## 🧩 उन्नत सुविधाहरू
 
-### अनुकूलन मोडेलहरू
+### अनुकूल मोडेलहरू
 
 एप अद्यावधिकको प्रतीक्षा नगरी कुनै पनि प्रदायकमा कुनै पनि मोडेल ID थप्नुहोस्:
 
@@ -680,19 +682,56 @@ curl -X POST http://localhost:20128/api/provider-models \
 # हटाउनुहोस्: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
 ```
 
-वा ड्यासबोर्ड प्रयोग गर्नुहोस्: **प्रदायकहरू → [प्रदायक] → अनुकूलन मोडेलहरू**।
+वा ड्यासबोर्ड प्रयोग गर्नुहोस्: **Providers → [Provider] → Custom Models**।
 
 टिप्पणीहरू:
 
-- OpenRouter र OpenAI/Anthropic-संगत प्रदायकहरूलाई **उपलब्ध मोडेलहरू** बाट मात्र व्यवस्थापन गरिन्छ। म्यानुअल रूपमा थप्ने, आयात गर्ने र स्वतः-सिङ्क गर्ने सबै कार्य एउटै उपलब्ध-मोडेल सूचीमा समावेश हुन्छन्, त्यसैले ती प्रदायकहरूका लागि छुट्टै अनुकूलन मोडेल खण्ड हुँदैन।
-- **अनुकूलन मोडेलहरू** खण्ड व्यवस्थापित उपलब्ध-मोडेल आयातहरू प्रदान नगर्ने प्रदायकहरूका लागि हो।
+- OpenRouter र OpenAI/Anthropic-सङ्गत प्रदायकहरू **Available Models** बाट मात्र व्यवस्थापन गरिन्छन्। म्यानुअल रूपमा थपिएका, आयात गरिएका र स्वतः-सिङ्क गरिएका सबै मोडेलहरू एउटै उपलब्ध-मोडेल सूचीमा जान्छन्, त्यसैले ती प्रदायकहरूका लागि छुट्टै Custom Models खण्ड हुँदैन।
+- **Custom Models** खण्ड व्यवस्थापित उपलब्ध-मोडेल आयात उपलब्ध नगराउने प्रदायकहरूका लागि हो।
+
+### अनुकूल OpenAI-सङ्गत प्रदायकहरू
+
+OpenAI API सँग सञ्चार गर्न सक्ने कुनै पनि गेटवे (स्व-होस्ट गरिएको प्रोक्सी, vLLM, तेस्रो-पक्ष एग्रिगेटर)
+लाई यसको आफ्नै प्रदायक नोडका रूपमा थप्न सकिन्छ:
+
+1. **Providers → Add OpenAI Compatible**।
+2. **Name**: नोडका लागि प्रदर्शन लेबल।
+3. **Prefix**: राउटिङ नाम। क्लाइन्टहरूले मोडेलहरूलाई `<prefix>/<model>` का रूपमा कल गर्छन्, त्यसैले
+   `mygw` प्रिफिक्स भएको नोडले `mygw/gpt-4o-mini` सेवा दिन्छ। यो आवश्यक छ; क्यारेक्टरसम्बन्धी कुनै प्रतिबन्ध छैन।
+4. **API Type**: गेटवेले सेवा दिने एन्डपोइन्ट परिवार (Chat Completions, Responses,
+   Embeddings, अडियो, तस्बिरहरू)।
+5. **Base URL**: `/v1` सम्म र त्यसलाई समावेश गर्ने API रुट (उदाहरणका लागि
+   `https://gateway.example.com/v1`), पूर्ण `/chat/completions` पथ होइन। गैर-मानक पथ भएका
+   गेटवेहरूले तिनलाई **Advanced Settings** अन्तर्गत सेट गर्छन् (च्याट पथ, मोडेल पथ)।
+6. **API Key (for Check)** फिल्डले जडान मात्र परीक्षण गर्छ। नोड सिर्जना गरेपछि,
+   यसलाई खोल्नुहोस् र अनुरोधहरूले प्रयोग गर्ने कुञ्जी भण्डारण गर्न **Add Connection** प्रयोग गर्नुहोस्।
+
+नोडले `openai-compatible-<apiType>-<uuid>` ढाँचाको आन्तरिक id प्राप्त गर्छ; तपाईंले यसलाई कहिल्यै
+टाइप गर्नुपर्दैन, प्रिफिक्स नै सार्वजनिक नाम हो।
+
+#### आरक्षित प्रिफिक्सहरू
+
+प्रिफिक्स अन्तर्निर्मित प्रदायकको id वा उपनाम (उदाहरणका लागि `openai`, `cf`), वा
+सेवानिवृत्त प्रदायकको id हुन सक्दैन। मोडेल रिजोल्भरले अनुकूल नोडहरूभन्दा पहिले अन्तर्निर्मित id र उपनामहरू
+जाँच गर्छ, त्यसैले तीमध्ये कुनै प्रिफिक्स प्रयोग गर्ने नोडले कहिल्यै ट्राफिक प्राप्त गर्दैन:
+`<prefix>/model` अनुरोध त्यसको सट्टा अन्तर्निर्मित प्रदायकमा जान्छ, वा उक्त प्रदायक
+सेवानिवृत्त भएको भए बन्द अवस्थामा असफल हुन्छ। यस्तो प्रिफिक्स भएको नोड सिर्जना वा सम्पादन गर्दा निम्न त्रुटि देखाएर अस्वीकार गरिन्छ:
+
+```text
+prefix: "<prefix>" आरक्षित प्रदायक प्रिफिक्स हो — फरक प्रिफिक्स रोज्नुहोस् (आरक्षित ids/aliases अनुकूल नोडहरूका लागि प्रयोग गर्न सकिँदैन किनभने <prefix>/model जस्ता अनुरोधहरू अन्तर्निर्मित प्रदायकमा रुट हुन्छन् वा प्रदायक सेवानिवृत्त हुँदा बन्द अवस्थामा असफल हुन्छन्)
+```
+
+फरक प्रिफिक्स (`mygw`, `acme-proxy`) रोज्नुहोस्। यदि अनुकूल नोडतर्फका अनुरोधहरू
+अन्तर्निर्मित प्रदायक वा त्यसका प्रमाणहरू उल्लेख गर्ने त्रुटिसहित असफल भएमा, नोडको प्रिफिक्स
+आरक्षित छ कि छैन जाँच गर्नुहोस्: यो नियम लागू हुनुअघि सुरक्षित गरिएका नोडहरू अझै भण्डारित छन्, तर तिनको प्रिफिक्स
+अन्तर्निर्मित प्रदायकतर्फ रुट हुन्छ। नोड सम्पादन गरेर त्यसलाई नयाँ प्रिफिक्स दिनुहोस्।
 
 ### OmniRoute पियरहरू शृङ्खलाबद्ध गर्ने
 
-अर्को OmniRoute गेटवेलाई **अनुकूलन OpenAI-संगत** प्रदायकका रूपमा थप्न सकिन्छ। पियरको
-`/v1` आधार URL र त्यही पियरले जारी गरेको समर्पित, न्यूनतम-अधिकार भएको API कुञ्जी प्रयोग गर्नुहोस्।
+अर्को OmniRoute गेटवेलाई **Custom OpenAI-compatible** प्रदायकका रूपमा थप्न सकिन्छ। पियरको
+`/v1` आधार URL र उक्त पियरले जारी गरेको समर्पित, न्यूनतम-अधिकारयुक्त API कुञ्जी प्रयोग गर्नुहोस्।
 
-पारस्परिक वा बहु-हप शृङ्खलाहरूका लागि, प्रत्येक गेटवेमा अप्ट-इन लुप सुरक्षा सक्षम गर्नुहोस्:
+पारस्परिक वा बहु-हप शृङ्खलाहरूका लागि, प्रत्येक गेटवेमा अप्ट-इन लुप गार्ड सक्षम गर्नुहोस्:
 
 ```bash
 # gateway-a
@@ -709,16 +748,17 @@ OMNIROUTE_PEER_MAX_HOPS=4
 ```
 
 स्पष्ट रूपमा अनुमति-सूचीमा राखिएको पियर URL मा पठाइएका अनुरोधहरूले मात्र
-`X-OmniRoute-Peer-Trace` हेडर प्राप्त गर्छन्। गेटवेले दोहोरिएको इन्स्ट्यान्स ID वा समाप्त भएको हप
-बजेटलाई HTTP `508 Loop Detected` सहित अस्वीकार गर्छ; सामान्य अपस्ट्रिम प्रदायकहरूले कुनै पियर मेटाडेटा प्राप्त गर्दैनन्।
+`X-OmniRoute-Peer-Trace` हेडर प्राप्त गर्छन्। गेटवेले दोहोरिएको इन्स्टेन्स ID वा समाप्त भएको हप
+बजेटलाई HTTP `508 Loop Detected` सहित अस्वीकार गर्छ; साधारण अपस्ट्रिम प्रदायकहरूले कुनै पियर मेटाडेटा प्राप्त गर्दैनन्।
 
 पियर शृङ्खलाबद्धता डेटाबेस प्रतिकृति वा होस्ट फेलओभर होइन। प्रत्येक गेटवेले स्वतन्त्र
-SQLite अवस्था, क्यासहरू, दर काउन्टरहरू र सत्रहरू राख्छ। सक्रिय/निष्क्रिय वा सक्रिय/सक्रिय उपलब्धताका लागि स्वास्थ्य-जाँच गरिएको रिभर्स प्रोक्सी वा क्लाइन्ट
-फेलओभर प्रयोग गर्नुहोस्, र एउटै SQLite डेटाबेसलाई एकभन्दा बढी चलिरहेका OmniRoute इन्स्ट्यान्सहरूमा कहिल्यै माउन्ट नगर्नुहोस्।
+SQLite अवस्था, क्यास, दर काउन्टर र सेसनहरू राख्छ। सक्रिय/निष्क्रिय वा सक्रिय/सक्रिय उपलब्धताका लागि
+स्वास्थ्य-जाँच गरिएको रिभर्स प्रोक्सी वा क्लाइन्ट फेलओभर प्रयोग गर्नुहोस्, र एउटै SQLite डेटाबेसलाई
+चलिरहेका धेरै OmniRoute इन्स्टेन्सहरूमा कहिल्यै माउन्ट नगर्नुहोस्।
 
 ### समर्पित प्रदायक रुटहरू
 
-मोडेल प्रमाणीकरणसहित अनुरोधहरूलाई सीधै कुनै विशिष्ट प्रदायकतर्फ रुट गर्नुहोस्:
+मोडेल प्रमाणीकरणसहित अनुरोधहरू सिधै कुनै निश्चित प्रदायकतर्फ रुट गर्नुहोस्:
 
 ```bash
 POST http://localhost:20128/v1/providers/openai/chat/completions
@@ -726,12 +766,12 @@ POST http://localhost:20128/v1/providers/openai/embeddings
 POST http://localhost:20128/v1/providers/fireworks/images/generations
 ```
 
-प्रदायक उपसर्ग नभएमा स्वतः थपिन्छ। नमिलेका मोडेलहरूले `400` फर्काउँछन्।
+प्रदायक प्रिफिक्स नभएमा स्वतः थपिन्छ। नमिल्ने मोडेलहरूले `400` फर्काउँछन्।
 
 ### नेटवर्क प्रोक्सी कन्फिगरेसन
 
 ```bash
-# विश्वव्यापी प्रोक्सी सेट गर्नुहोस्
+# ग्लोबल प्रोक्सी सेट गर्नुहोस्
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"global": {"type":"http","host":"proxy.example.com","port":"8080"}}'
 
@@ -744,7 +784,7 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
 ```
 
-**प्राथमिकता क्रम:** कुञ्जी-विशिष्ट → कम्बो-विशिष्ट → प्रदायक-विशिष्ट → विश्वव्यापी → वातावरण।
+**प्राथमिकता:** कुञ्जी-विशिष्ट → कम्बो-विशिष्ट → प्रदायक-विशिष्ट → ग्लोबल → वातावरण।
 
 ### मोडेल क्याटलग API
 
@@ -756,107 +796,107 @@ curl http://localhost:20128/api/models/catalog
 
 ### क्लाउड सिङ्क
 
-- प्रदायकहरू, कम्बोहरू र सेटिङहरूलाई विभिन्न यन्त्रहरूमा सिङ्क गर्नुहोस्
-- टाइमआउट + द्रुत-विफलतासहित स्वचालित पृष्ठभूमि सिङ्क
+- विभिन्न उपकरणहरूमा प्रदायकहरू, कम्बोहरू र सेटिङहरू सिङ्क गर्नुहोस्
+- टाइमआउट + छिटो-असफल हुने सुविधासहित स्वचालित पृष्ठभूमि सिङ्क
 - उत्पादन वातावरणमा सर्भर-साइड `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` लाई प्राथमिकता दिनुहोस्
 
-### Cloudflare द्रुत टनेल
+### Cloudflare क्विक टनेल
 
-- Docker र अन्य स्व-होस्टेड डिप्लोयमेन्टहरूका लागि **ड्यासबोर्ड → एन्डपोइन्टहरू** मा उपलब्ध छ
-- तपाईंको हालको OpenAI-संगत `/v1` एन्डपोइन्टमा फर्वार्ड गर्ने अस्थायी `https://*.trycloudflare.com` URL सिर्जना गर्छ
-- पहिलोपटक सक्षम गर्दा आवश्यक परेको अवस्थामा मात्र `cloudflared` स्थापना हुन्छ; त्यसपछिका पुनःसुरुवातहरूले उही व्यवस्थापित बाइनरी पुनः प्रयोग गर्छन्
-- OmniRoute वा कन्टेनर पुनःसुरु भएपछि द्रुत टनेलहरू स्वतः पुनर्स्थापित हुँदैनन्; आवश्यक पर्दा तिनलाई ड्यासबोर्डबाट पुनः सक्षम गर्नुहोस्
-- टनेल URL हरू अस्थायी हुन्छन् र तपाईंले टनेल रोक्दा/सुरु गर्दा प्रत्येकपटक परिवर्तन हुन्छन्
-- सीमित कन्टेनरहरूमा आउने अनावश्यक QUIC UDP बफर चेतावनीहरूबाट बच्न व्यवस्थापित द्रुत टनेलहरूले पूर्वनिर्धारित रूपमा HTTP/2 ट्रान्सपोर्ट प्रयोग गर्छन्
-- व्यवस्थापित ट्रान्सपोर्ट छनोट ओभरराइड गर्न चाहनुहुन्छ भने `CLOUDFLARED_PROTOCOL=quic` वा `auto` सेट गर्नुहोस्
-- व्यवस्थापित डाउनलोडको सट्टा पहिल्यै स्थापना गरिएको `cloudflared` बाइनरी प्रयोग गर्न चाहनुहुन्छ भने `CLOUDFLARED_BIN` सेट गर्नुहोस्
-- Cloudflare द्रुत टनेल, Tailscale Funnel र ngrok Tunnel प्यानलहरूलाई **सेटिङहरू → स्वरूप** मा देखाउन वा लुकाउन सकिन्छ। प्यानल लुकाउँदा चलिरहेको टनेल रोकिन्न।
+- Docker र अन्य self-hosted deployments का लागि **Dashboard → Endpoints** मा उपलब्ध छ
+- तपाईंको हालको OpenAI-compatible `/v1` endpoint मा forward गर्ने अस्थायी `https://*.trycloudflare.com` URL सिर्जना गर्छ
+- पहिलो पटक enable गर्दा आवश्यक परेको खण्डमा मात्र `cloudflared` install हुन्छ; त्यसपछिका restarts ले सोही managed binary पुनः प्रयोग गर्छन्
+- OmniRoute वा container restart भएपछि Quick Tunnels स्वतः restore हुँदैनन्; आवश्यक पर्दा dashboard बाट तिनलाई पुनः enable गर्नुहोस्
+- Tunnel URLs अस्थायी हुन्छन् र तपाईंले tunnel stop/start गर्दा हरेक पटक परिवर्तन हुन्छन्
+- सीमित containers मा अनावश्यक QUIC UDP buffer warnings बाट बच्न Managed Quick Tunnels ले पूर्वनिर्धारित रूपमा HTTP/2 transport प्रयोग गर्छन्
+- Managed transport छनोट override गर्न चाहनुहुन्छ भने `CLOUDFLARED_PROTOCOL=quic` वा `auto` सेट गर्नुहोस्
+- Managed download को सट्टा पहिले नै install गरिएको `cloudflared` binary प्रयोग गर्न चाहनुहुन्छ भने `CLOUDFLARED_BIN` सेट गर्नुहोस्
+- Cloudflare Quick Tunnel, Tailscale Funnel, र ngrok Tunnel panels लाई **Settings → Appearance** मा देखाउन वा लुकाउन सकिन्छ। Panel लुकाउँदा चलिरहेको tunnel बन्द हुँदैन।
 
-### LLM गेटवे इन्टेलिजेन्स (चरण 9)
+### LLM Gateway Intelligence (चरण 9)
 
-- **सिम्यान्टिक क्यास** — नन-स्ट्रिमिङ, temperature=0 प्रतिक्रियाहरूलाई स्वतः क्यास गर्छ (`X-OmniRoute-No-Cache: true` मार्फत बाइपास गर्नुहोस्)
-- **अनुरोध आइडेम्पोटेन्सी** — `Idempotency-Key` वा `X-Request-Id` हेडरमार्फत 5s भित्रका अनुरोधहरूको दोहोरोपन हटाउँछ
-- **प्रगति ट्र्याकिङ** — `X-OmniRoute-Progress: true` हेडरमार्फत अप्ट-इन SSE `event: progress` घटनाहरू
+- **Semantic Cache** — Non-streaming, temperature=0 responses लाई स्वतः cache गर्छ (`X-OmniRoute-No-Cache: true` प्रयोग गरेर bypass गर्नुहोस्)
+- **Request Idempotency** — `Idempotency-Key` वा `X-Request-Id` header मार्फत 5s भित्रका requests लाई deduplicate गर्छ
+- **Progress Tracking** — `X-OmniRoute-Progress: true` header मार्फत opt-in SSE `event: progress` events उपलब्ध गराउँछ
 
 ---
 
-### अनुवादक प्लेग्राउन्ड
+### Translator Playground
 
-**ड्यासबोर्ड → अनुवादक** मार्फत पहुँच गर्नुहोस्। OmniRoute ले प्रदायकहरूबीच API अनुरोधहरू कसरी अनुवाद गर्छ भन्ने डिबग गर्नुहोस् र दृश्यात्मक रूपमा हेर्नुहोस्।
+**Dashboard → Translator** मार्फत पहुँच गर्नुहोस्। OmniRoute ले providers बीच API requests कसरी translate गर्छ भन्ने debug र visualize गर्नुहोस्।
 
-| मोड                  | उद्देश्य                                                                                               |
-| -------------------- | ------------------------------------------------------------------------------------------------------ |
-| **प्लेग्राउन्ड**     | स्रोत/लक्षित ढाँचाहरू चयन गर्नुहोस्, अनुरोध पेस्ट गर्नुहोस् र अनुवादित आउटपुट तुरुन्तै हेर्नुहोस्      |
-| **च्याट परीक्षक**    | प्रोक्सीमार्फत प्रत्यक्ष च्याट सन्देशहरू पठाउनुहोस् र पूर्ण अनुरोध/प्रतिक्रिया चक्र निरीक्षण गर्नुहोस् |
-| **परीक्षण बेन्च**    | अनुवादको शुद्धता प्रमाणित गर्न धेरै ढाँचा संयोजनहरूमा ब्याच परीक्षणहरू चलाउनुहोस्                      |
-| **प्रत्यक्ष मोनिटर** | अनुरोधहरू प्रोक्सीमार्फत प्रवाहित हुँदा वास्तविक-समयका अनुवादहरू हेर्नुहोस्                            |
+| मोड              | उद्देश्य                                                                                              |
+| ---------------- | ----------------------------------------------------------------------------------------------------- |
+| **Playground**   | Source/target formats चयन गर्नुहोस्, request paste गर्नुहोस्, र translated output तुरुन्तै हेर्नुहोस् |
+| **Chat Tester**  | Proxy मार्फत live chat messages पठाउनुहोस् र सम्पूर्ण request/response cycle निरीक्षण गर्नुहोस्       |
+| **Test Bench**   | Translation को शुद्धता प्रमाणित गर्न धेरै format combinations मा batch tests चलाउनुहोस्               |
+| **Live Monitor** | Requests proxy हुँदै प्रवाहित हुँदा real-time translations हेर्नुहोस्                                 |
 
 **प्रयोगका अवस्थाहरू:**
 
-- कुनै विशिष्ट क्लाइन्ट/प्रदायक संयोजन किन विफल हुन्छ भनेर डिबग गर्नुहोस्
-- थिङ्किङ ट्यागहरू, टुल कलहरू र प्रणाली प्रम्प्टहरू सही रूपमा अनुवाद हुन्छन् भनी प्रमाणित गर्नुहोस्
-- OpenAI, Claude, Gemini र Responses API ढाँचाहरूबीचका ढाँचा भिन्नताहरू तुलना गर्नुहोस्
+- कुनै निश्चित client/provider combination किन असफल हुन्छ भन्ने debug गर्नुहोस्
+- Thinking tags, tool calls, र system prompts सही रूपमा translate भएका छन् कि छैनन् प्रमाणित गर्नुहोस्
+- OpenAI, Claude, Gemini, र Responses API formats बीचका format भिन्नताहरू तुलना गर्नुहोस्
 
 ---
 
-### रुटिङ रणनीतिहरू
+### Routing Strategies
 
-**Dashboard → Settings → Routing** मार्फत कन्फिगर गर्नुहोस्। ड्यासबोर्डले सबैभन्दा बढी प्रयोग हुने छवटा रणनीति देखाउँछ; कम्बोहरू र अटो-राउटरले आन्तरिक रूपमा अझ विस्तृत रणनीतिहरू समर्थन गर्छन्।
+**Dashboard → Settings → Routing** मार्फत configure गर्नुहोस्। Dashboard ले सबैभन्दा धेरै प्रयोग हुने छवटा strategies देखाउँछ; combos र auto-router ले आन्तरिक रूपमा अझ विस्तृत set support गर्छन्।
 
-**ड्यासबोर्डमा देखिने रणनीतिहरू (खाता-स्तरीय राउटिङ):**
+**Dashboard मा देखिने strategies (account-level routing):**
 
-| रणनीति                       | विवरण                                                                                                             |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| **पहिले भर्नुहोस्**          | प्राथमिकताको क्रममा खाताहरू प्रयोग गर्छ — प्राथमिक खाता उपलब्ध नभएसम्म सबै अनुरोध त्यसैले सम्हाल्छ                |
-| **राउन्ड रोबिन**             | कन्फिगर गर्न मिल्ने स्टिकी सीमासहित सबै खाताहरू पालैपालो प्रयोग गर्छ (पूर्वनिर्धारित: प्रति खाता 3 कल)            |
-| **P2C (दुई विकल्पको शक्ति)** | अनियमित रूपमा 2 वटा खाता छान्छ र बढी स्वस्थ खातामा रुट गर्छ — स्वास्थ्य अवस्थालाई ध्यानमा राख्दै लोड सन्तुलन गर्छ |
-| **अनियमित**                  | Fisher-Yates shuffle प्रयोग गरी प्रत्येक अनुरोधका लागि अनियमित रूपमा एउटा खाता चयन गर्छ                           |
-| **सबैभन्दा कम प्रयोग भएको**  | सबैभन्दा पुरानो `lastUsedAt` टाइमस्ट्याम्प भएको खातामा रुट गर्छ र ट्राफिक समान रूपमा वितरण गर्छ                   |
-| **लागत अनुकूलित**            | सबैभन्दा कम प्राथमिकता मान भएको खातामा रुट गर्छ र न्यूनतम लागतका प्रदायकका लागि अनुकूलन गर्छ                      |
+| Strategy                       | विवरण                                                                                                                   |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| **Fill First**                 | Priority क्रमअनुसार accounts प्रयोग गर्छ — अनुपलब्ध नहुँदासम्म primary account ले सबै requests सम्हाल्छ                 |
+| **Round Robin**                | Configurable sticky limit सहित सबै accounts पालैपालो प्रयोग गर्छ (पूर्वनिर्धारित: प्रत्येक account मा 3 calls)          |
+| **P2C (Power of Two Choices)** | 2 वटा random accounts छनोट गरेर बढी स्वस्थ account मा route गर्छ — स्वास्थ्य अवस्थालाई ध्यानमा राख्दै load सन्तुलन गर्छ |
+| **Random**                     | Fisher-Yates shuffle प्रयोग गरी प्रत्येक request का लागि random रूपमा account चयन गर्छ                                  |
+| **Least Used**                 | सबैभन्दा पुरानो `lastUsedAt` timestamp भएको account मा route गरेर traffic समान रूपमा वितरण गर्छ                         |
+| **Cost Optimized**             | सबैभन्दा कम priority value भएको account मा route गरेर न्यूनतम लागतका providers का लागि optimize गर्छ                    |
 
-**उन्नत कम्बो र अटो रणनीतिहरू** (प्रत्येक कम्बोका लागि वा `auto/*` प्रिफिक्समार्फत कन्फिगर गर्न मिल्ने — [AUTO-COMBO.md](../routing/AUTO-COMBO.md) हेर्नुहोस्):
+**Advanced combo र auto strategies** (प्रत्येक combo का लागि वा `auto/*` prefixes मार्फत configure गर्न सकिने — [AUTO-COMBO.md](../routing/AUTO-COMBO.md) हेर्नुहोस्):
 
-- `priority` — कडा क्रम, कहिल्यै राउन्ड-रोबिन गर्दैन
-- `weighted` — प्रत्येक मोडेलको भारअनुसार समानुपातिक ट्राफिक विभाजन
-- `fill-first` — सीमामा नपुगेसम्म पहिलो मोडेल पूर्ण रूपमा प्रयोग गर्छ
+- `priority` — कडा क्रम, कहिल्यै round-robin गर्दैन
+- `weighted` — प्रत्येक model को weights अनुसार proportional traffic विभाजन
+- `fill-first` — Limits नपुग्दासम्म पहिलो model प्रयोग गर्छ
 - `round-robin` / `strict-random` / `random`
-- `p2c` (दुई विकल्पको शक्ति)
+- `p2c` (Power of Two Choices)
 - `least-used` र `cost-optimized`
-- `auto` — सबै उम्मेदवारहरूमा स्कोरद्वारा निर्देशित
-- `lkgp` (अन्तिम ज्ञात राम्रो प्रदायक) — अन्तिम सफल प्रदायकमै स्थिर रहन्छ, त्यसपछि नियमहरूमा फर्कन्छ
-- `context-optimized` — सबैभन्दा ठूलो खाली कन्टेक्स्ट विन्डो भएको मोडेल छान्छ
-- `context-relay` — त्यसपछिका पालाहरूका लागि लामो-कन्टेक्स्ट मोडेलहरूलाई शृङ्खलाबद्ध गर्छ
+- `auto` — सबै candidates मा score द्वारा सञ्चालित
+- `lkgp` (Last Known Good Provider) — पछिल्लो सफल provider मा स्थिर गर्छ, त्यसपछि rules अनुसार fallback गर्छ
+- `context-optimized` — सबैभन्दा ठूलो खाली context window भएको model चयन गर्छ
+- `context-relay` — Follow-up turns का लागि long-context models लाई श्रृंखलाबद्ध गर्छ
 
-#### बाह्य स्टिकी सेसन हेडर
+#### External Sticky Session Header
 
-बाह्य सेसन सम्बद्धताका लागि (उदाहरणका लागि, रिभर्स प्रोक्सीपछाडि रहेका Claude Code/Codex एजेन्टहरू), यो पठाउनुहोस्:
+External session affinity का लागि (उदाहरणका लागि, reverse proxies पछाडि रहेका Claude Code/Codex agents), निम्न पठाउनुहोस्:
 
 ```http
 X-Session-Id: your-session-key
 ```
 
-OmniRoute ले `x_session_id` पनि स्वीकार गर्छ र प्रभावकारी सेसन की `X-OmniRoute-Session-Id` मा फर्काउँछ।
+OmniRoute ले `x_session_id` पनि स्वीकार गर्छ र प्रभावकारी session key लाई `X-OmniRoute-Session-Id` मा फर्काउँछ।
 
-यदि तपाईं Nginx प्रयोग गर्नुहुन्छ र अन्डरस्कोर-स्वरूपका हेडर पठाउनुहुन्छ भने, यो सक्षम गर्नुहोस्:
+तपाईं Nginx प्रयोग गर्नुहुन्छ र underscore-form headers पठाउनुहुन्छ भने, निम्न enable गर्नुहोस्:
 
 ```nginx
 underscores_in_headers on;
 ```
 
-#### वाइल्डकार्ड मोडेल एलियासहरू
+#### Wildcard Model Aliases
 
-मोडेलका नामहरू पुनःम्याप गर्न वाइल्डकार्ड ढाँचाहरू सिर्जना गर्नुहोस्:
+Model names लाई remap गर्न wildcard patterns सिर्जना गर्नुहोस्:
 
 ```
 Pattern: claude-sonnet-*     →  Target: cc/claude-sonnet-4-6
 Pattern: gpt-*               →  Target: gh/gpt-5.3-codex
 ```
 
-वाइल्डकार्डले `*` (जुनसुकै वर्णहरू) र `?` (एउटा वर्ण) समर्थन गर्छ।
+Wildcards ले `*` (जुनसुकै characters) र `?` (एउटा character) support गर्छन्।
 
-#### फलब्याक शृङ्खलाहरू
+#### Fallback Chains
 
-सबै अनुरोधहरूमा लागू हुने ग्लोबल फलब्याक शृङ्खलाहरू परिभाषित गर्नुहोस्:
+सबै requests मा लागू हुने global fallback chains परिभाषित गर्नुहोस्:
 
 ```
 Chain: production-fallback
@@ -867,52 +907,51 @@ Chain: production-fallback
 
 ---
 
-### लचिलोपन र सर्किट ब्रेकरहरू
+### Resilience र Circuit Breakers
 
-**Dashboard → Settings → Resilience** मार्फत कन्फिगर गर्नुहोस्।
+**Dashboard → Settings → Resilience** मार्फत configure गर्नुहोस्।
 
-OmniRoute ले पाँचवटा कम्पोनेन्टसहित प्रदायक-स्तरीय लचिलोपन कार्यान्वयन गर्छ:
+OmniRoute ले पाँचवटा components सहित provider-level resilience कार्यान्वयन गर्छ:
 
-1. **अनुरोध पङ्क्ति र गति नियन्त्रण** — प्रणाली-स्तरीय अनुरोध आकार निर्धारण:
-   - **प्रति मिनेट अनुरोधहरू (RPM)** — प्रति खाता, प्रति मिनेट अनुरोधहरूको अधिकतम सङ्ख्या
-   - **अनुरोधहरूबीचको न्यूनतम समय** — अनुरोधहरूबीच मिलिसेकेन्डमा न्यूनतम अन्तराल
-   - **अधिकतम समवर्ती अनुरोधहरू** — प्रति खाता एकैसाथ गर्न मिल्ने अनुरोधहरूको अधिकतम सङ्ख्या
+1. **Request Queue र Pacing** — System-level request shaping:
+   - **Requests Per Minute (RPM)** — प्रत्येक account का लागि प्रति मिनेट requests को अधिकतम सङ्ख्या
+   - **Min Time Between Requests** — Requests बीचको न्यूनतम अन्तर, milliseconds मा
+   - **Max Concurrent Requests** — प्रत्येक account का लागि एकै समयमा चल्न सक्ने requests को अधिकतम सङ्ख्या
+2. **जडान कूलडाउन** — पुनः प्रयास गर्न मिल्ने विफलतापछि प्रत्येक प्रमाणीकरण प्रकारका लागि एउटै जडानको कन्फिगरेसन:
+   - **आधारभूत कूलडाउन** — पुनः प्रयास गर्न मिल्ने अपस्ट्रिम विफलताहरूका लागि पूर्वनिर्धारित कूलडाउन अवधि
+   - **अपस्ट्रिम पुनः प्रयास सङ्केतहरू प्रयोग गर्नुहोस्** — उपलब्ध गराइँदा आधिकारिक `Retry-After` वा रिसेट सङ्केतहरूको पालना गर्छ
+   - **अधिकतम ब्याकअफ चरणहरू** — दोहोरिने विफलताहरूका लागि अधिकतम एक्सपोनेन्सियल ब्याकअफ स्तर
 
-2. **कनेक्सन कूलडाउन** — पुनःप्रयास गर्न मिल्ने विफलतापछि एउटा कनेक्सनका लागि प्रत्येक प्रमाणीकरण प्रकारअनुसारको कन्फिगरेसन:
-   - **आधार कूलडाउन** — पुनःप्रयास गर्न मिल्ने अपस्ट्रिम विफलताहरूका लागि पूर्वनिर्धारित कूलडाउन अवधि
-   - **अपस्ट्रिम पुनःप्रयास सङ्केतहरू प्रयोग गर्नुहोस्** — उपलब्ध गराइँदा आधिकारिक `Retry-After` वा रिसेट सङ्केतहरूको पालना गर्छ
-   - **अधिकतम ब्याकअफ चरणहरू** — दोहोरिने विफलताहरूका लागि एक्स्पोनेन्सियल ब्याकअफको अधिकतम स्तर
-
-3. **प्रदायक सर्किट ब्रेकर** — सुरुदेखि अन्त्यसम्मका प्रदायक विफलताहरू ट्र्याक गर्छ, कन्फिगर गरिएको चेतावनी थ्रेसहोल्डमा प्रदायकलाई कमजोर अवस्थाको रूपमा चिन्ह लगाउँछ र कन्फिगर गरिएको विफलता थ्रेसहोल्ड पुगेपछि ब्रेकर खोल्छ:
-   - **कमजोरी थ्रेसहोल्ड** — `DEGRADED` मा प्रवेश गर्नुअघि प्रदायकका लगातार विफलताहरू
-   - **विफलता थ्रेसहोल्ड** — `OPEN` मा प्रवेश गर्नुअघि प्रदायकका लगातार विफलताहरू
-   - **रिसेट टाइमआउट** — प्रदायकलाई पुनः परीक्षण गर्नुअघिको समयावधि
+3. **प्रदायक सर्किट ब्रेकर** — सुरुदेखि अन्त्यसम्मका प्रदायक विफलताहरू ट्र्याक गर्छ, कन्फिगर गरिएको चेतावनी सीमा पुगेपछि प्रदायकलाई कमजोर भएको भनी चिन्ह लगाउँछ र कन्फिगर गरिएको विफलता सीमा पुगेपछि ब्रेकर खोल्छ:
+   - **कमजोरी सीमा** — `DEGRADED` अवस्थामा प्रवेश गर्नुअघिका लगातार प्रदायक विफलताहरू
+   - **विफलता सीमा** — `OPEN` अवस्थामा प्रवेश गर्नुअघिका लगातार प्रदायक विफलताहरू
+   - **रिसेट समयसीमा** — प्रदायकलाई पुनः परीक्षण गर्नुअघिको समयावधि
    - **CLOSED** (स्वस्थ) — अनुरोधहरू सामान्य रूपमा प्रवाहित हुन्छन्
    - **DEGRADED** — बढेका विफलताहरू ट्र्याक भइरहँदा पनि अनुरोधहरू प्रवाहित भइरहन्छन्
    - **OPEN** — दोहोरिएका विफलतापछि प्रदायकलाई अस्थायी रूपमा रोक लगाइन्छ
-   - **HALF_OPEN** — प्रदायक पुनः सामान्य अवस्थामा आएको छ कि छैन भनेर परीक्षण गर्दै
+   - **HALF_OPEN** — प्रदायक पुनः सामान्य भएको छ कि छैन भनेर परीक्षण गर्दै
 
-   कनेक्सन-स्कोपका `429` दर सीमाहरू **कनेक्सन कूलडाउन** मै रहन्छन् र प्रदायक ब्रेकरमा गणना हुँदैनन्।
+   जडान-स्कोपका `429` दर सीमाहरू **जडान कूलडाउन** मै रहन्छन् र प्रदायक ब्रेकरमा गणना हुँदैनन्।
 
-   प्रदायक ब्रेकरको रनटाइम अवस्था **Dashboard → Health** मा मात्र देखाइन्छ।
+   प्रदायक ब्रेकरको रनटाइम अवस्था **ड्यासबोर्ड → स्वास्थ्य** मा मात्र देखाइन्छ।
 
-4. **कूलडाउनका लागि प्रतीक्षा गर्नुहोस्** — यदि प्रत्येक उम्मेदवार कनेक्सन पहिले नै कूलडाउनमा छ भने, OmniRoute ले सबैभन्दा पहिले सकिने कूलडाउनसम्म प्रतीक्षा गरेर सोही क्लाइन्ट अनुरोधलाई स्वचालित रूपमा पुनःप्रयास गर्न सक्छ।
+4. **कूलडाउनका लागि प्रतीक्षा गर्नुहोस्** — यदि प्रत्येक उम्मेदवार जडान पहिले नै कूलडाउनमा छ भने, OmniRoute ले सबैभन्दा चाँडो सकिने कूलडाउनसम्म प्रतीक्षा गरेर सोही क्लाइन्ट अनुरोधलाई स्वचालित रूपमा पुनः प्रयास गर्न सक्छ।
 
-5. **दर सीमा स्वतः-पहिचान** — अपस्ट्रिम प्रदायकहरूले स्पष्ट प्रतीक्षा अवधि फर्काउँदा, सेटिङ सक्षम भएमा ती सङ्केतहरूले स्थानीय कनेक्सन कूलडाउनलाई ओभरराइड गर्छन्।
+5. **दर सीमा स्वतः पहिचान** — अपस्ट्रिम प्रदायकहरूले स्पष्ट प्रतीक्षा अवधि फर्काउँदा, सेटिङ सक्षम गरिएको छ भने ती सङ्केतहरूले स्थानीय जडान कूलडाउनलाई अधिलेखन गर्छन्।
 
-**उपयोगी सुझाव:** अवरोधपछि सक्रिय प्रदायक ब्रेकरहरू निरीक्षण र रिसेट गर्न **Health** पृष्ठ प्रयोग गर्नुहोस्। Resilience पृष्ठले कन्फिगरेसन मात्र परिवर्तन गर्छ।
+**विशेष सुझाव:** आउटेजपछि सक्रिय प्रदायक ब्रेकरहरू निरीक्षण र रिसेट गर्न **स्वास्थ्य** पृष्ठ प्रयोग गर्नुहोस्। लचिलोपन पृष्ठले कन्फिगरेसन मात्र परिवर्तन गर्छ।
 
 ---
 
 ### डेटाबेस निर्यात / आयात
 
-**Dashboard → Settings → System & Storage** मा डेटाबेस ब्याकअपहरू व्यवस्थापन गर्नुहोस्।
+**ड्यासबोर्ड → सेटिङहरू → प्रणाली र भण्डारण** मा डेटाबेस ब्याकअपहरू व्यवस्थापन गर्नुहोस्।
 
-| कार्य                               | विवरण                                                                                                                                     |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| **डेटाबेस निर्यात गर्नुहोस्**       | हालको SQLite डेटाबेसलाई `.sqlite` फाइलका रूपमा डाउनलोड गर्छ                                                                               |
-| **सबै निर्यात गर्नुहोस् (.tar.gz)** | निम्नसहितको पूर्ण ब्याकअप अभिलेख डाउनलोड गर्छ: डेटाबेस, सेटिङहरू, कम्बोहरू, प्रदायक जडानहरू (प्रमाणपत्रहरूबिना), API कुञ्जी मेटाडेटा      |
-| **डेटाबेस आयात गर्नुहोस्**          | हालको डेटाबेस प्रतिस्थापन गर्न `.sqlite` फाइल अपलोड गर्छ। `DISABLE_SQLITE_AUTO_BACKUP=true` नभएसम्म आयातपूर्व ब्याकअप स्वतः सिर्जना हुन्छ |
+| कार्य                               | विवरण                                                                                                                                               |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **डेटाबेस निर्यात गर्नुहोस्**       | हालको SQLite डेटाबेसलाई `.sqlite` फाइलका रूपमा डाउनलोड गर्छ                                                                                         |
+| **सबै निर्यात गर्नुहोस् (.tar.gz)** | डेटाबेस, सेटिङहरू, कम्बोहरू, प्रदायक जडानहरू (प्रमाण-पत्रबिना) र API कुञ्जी मेटाडेटासहितको पूर्ण ब्याकअप अभिलेख डाउनलोड गर्छ                        |
+| **डेटाबेस आयात गर्नुहोस्**          | हालको डेटाबेस प्रतिस्थापन गर्न `.sqlite` फाइल अपलोड गर्छ। `DISABLE_SQLITE_AUTO_BACKUP=true` नभएसम्म आयातपूर्व ब्याकअप स्वचालित रूपमा सिर्जना गरिन्छ |
 
 ```bash
 # API: डेटाबेस निर्यात गर्नुहोस्
@@ -926,45 +965,45 @@ curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**आयात प्रमाणीकरण:** आयात गरिएको फाइलको अखण्डता (SQLite pragma जाँच), आवश्यक तालिकाहरू (`provider_connections`, `provider_nodes`, `combos`, `api_keys`), र आकार (अधिकतम 100MB) प्रमाणीकरण गरिन्छ।
+**आयात प्रमाणीकरण:** आयात गरिएको फाइलको अखण्डता (SQLite pragma जाँच), आवश्यक तालिकाहरू (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) र आकार (अधिकतम 100MB) प्रमाणीकरण गरिन्छ।
 
 **प्रयोगका अवस्थाहरू:**
 
-- OmniRoute लाई मेसिनहरूबीच स्थानान्तरण गर्नुहोस्
-- विपद् पुनःप्राप्तिका लागि बाह्य ब्याकअपहरू सिर्जना गर्नुहोस्
+- OmniRoute लाई एक मेसिनबाट अर्को मेसिनमा स्थानान्तरण गर्नुहोस्
+- विपद् पुनर्प्राप्तिका लागि बाह्य ब्याकअपहरू सिर्जना गर्नुहोस्
 - टोलीका सदस्यहरूबीच कन्फिगरेसनहरू साझेदारी गर्नुहोस् (सबै निर्यात गर्नुहोस् → अभिलेख साझेदारी गर्नुहोस्)
 
 ---
 
-### सेटिङ्स ड्यासबोर्ड
+### सेटिङ ड्यासबोर्ड
 
-सजिलो नेभिगेसनका लागि सेटिङ्स पृष्ठलाई **7 ट्याबहरूमा** व्यवस्थित गरिएको छ:
+सजिलो नेभिगेसनका लागि सेटिङ पृष्ठलाई **7 वटा ट्याब** मा व्यवस्थित गरिएको छ:
 
-| ट्याब       | सामग्री                                                                                                                                                                                 |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **सामान्य** | प्रणाली भण्डारण उपकरणहरू, पूर्वनिर्धारित व्यवहार, Endpoint टनेलको दृश्यता                                                                                                               |
-| **देखावट**  | थिम नियन्त्रणहरू (उज्यालो/गाढा/प्रणाली), साइडबारको दृश्यता, Cloudflare/Tailscale/ngrok टनेल कार्डहरूका लागि प्यानल टगलहरू                                                               |
-| **AI**      | सोचाइ बजेट (पासथ्रु / स्वतः हटाउने / अनुकूलित / अनुकूली — [THINKING_BUDGET.md](./THINKING_BUDGET.md) हेर्नुहोस्), विश्वव्यापी प्रणाली प्रम्प्ट, प्रम्प्ट क्यास तथ्याङ्क                 |
-| **सुरक्षा** | लगइन/पासवर्ड सेटिङहरू, IP पहुँच नियन्त्रण, `/models` का लागि API प्रमाणीकरण, प्रदायक अवरोधन, प्रम्प्ट-इन्जेक्सन सुरक्षा                                                                 |
-| **राउटिङ**  | विश्वव्यापी राउटिङ रणनीति (पहिले भर्ने / राउन्ड रोबिन / P2C / अनियमित / न्यूनतम प्रयोग गरिएको / लागत अनुकूलित), वाइल्डकार्ड मोडेल उपनामहरू, फलब्याक शृङ्खलाहरू, कम्बो पूर्वनिर्धारितहरू |
-| **लचकता**   | अनुरोध पङ्क्ति, जडान कूलडाउन, प्रदायक ब्रेकर कन्फिगरेसन, र कूलडाउन-प्रतीक्षा व्यवहार                                                                                                    |
-| **उन्नत**   | विश्वव्यापी प्रोक्सी कन्फिगरेसन (HTTP/SOCKS5), प्रत्येक प्रदायकका प्रोक्सी ओभरराइडहरू                                                                                                   |
+| ट्याब       | सामग्री                                                                                                                                                                                         |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **सामान्य** | प्रणाली भण्डारण उपकरणहरू, पूर्वनिर्धारित व्यवहार, एन्डपोइन्ट टनेलको दृश्यता                                                                                                                     |
+| **देखावट**  | थिम नियन्त्रणहरू (उज्यालो/अँध्यारो/प्रणाली), साइडबारको दृश्यता, Cloudflare/Tailscale/ngrok टनेल कार्डहरूका लागि प्यानल टगलहरू                                                                   |
+| **AI**      | सोच बजेट (जस्ताको तस्तै पठाउने / स्वतः हटाउने / अनुकूलित / अनुकूली — [THINKING_BUDGET.md](./THINKING_BUDGET.md) हेर्नुहोस्), विश्वव्यापी प्रणाली प्रम्प्ट, प्रम्प्ट क्यास तथ्याङ्क              |
+| **सुरक्षा** | लगइन/पासवर्ड सेटिङहरू, IP पहुँच नियन्त्रण, `/models` का लागि API प्रमाणीकरण, प्रदायक अवरोध, प्रम्प्ट-इन्जेक्सन सुरक्षा                                                                          |
+| **राउटिङ**  | विश्वव्यापी राउटिङ रणनीति (पहिले भर्ने / राउन्ड रोबिन / P2C / अनियमित / सबैभन्दा कम प्रयोग भएको / लागत अनुकूलित), वाइल्डकार्ड मोडेल उपनामहरू, फलब्याक शृङ्खलाहरू, कम्बोका पूर्वनिर्धारित मानहरू |
+| **लचिलोपन** | अनुरोध पङ्क्ति, जडान कूलडाउन, प्रदायक ब्रेकर कन्फिगरेसन र कूलडाउनका लागि प्रतीक्षा गर्ने व्यवहार                                                                                                |
+| **उन्नत**   | विश्वव्यापी प्रोक्सी कन्फिगरेसन (HTTP/SOCKS5), प्रत्येक प्रदायकका लागि प्रोक्सी अधिलेखनहरू                                                                                                      |
 
-सामान्य खण्डले अब पढ्न-मात्र मिल्ने लगिङ र क्यास टिप्पणीहरू दोहोर्याउँदैन। डेटाबेस अवधारण र
-अप्टिमाइजेसन सेटिङहरू `/api/settings/database` मार्फत कायम राखिन्छन्; म्यानुअल क्यास सफाइका लागि
-`DELETE /api/cache` प्रयोग गरिन्छ। अनुरोध र प्रोक्सी लग पङ्क्ति सीमाहरू
+सामान्य ट्याबले अब पढ्न-मात्र मिल्ने लगिङ र क्याससम्बन्धी टिप्पणीहरू दोहोर्याउँदैन। डेटाबेस अवधारण र
+अनुकूलन सेटिङहरू `/api/settings/database` मार्फत सुरक्षित राखिन्छन्; म्यानुअल क्यास सफाइका लागि
+`DELETE /api/cache` प्रयोग गरिन्छ। अनुरोध र प्रोक्सी लगका पङ्क्ति सीमाहरू
 `CALL_LOGS_TABLE_MAX_ROWS` र `PROXY_LOGS_TABLE_MAX_ROWS` द्वारा नियन्त्रण गरिन्छन्।
 
 ---
 
-### लागत तथा बजेट व्यवस्थापन
+### लागत र बजेट व्यवस्थापन
 
 **ड्यासबोर्ड → लागतहरू** मार्फत पहुँच गर्नुहोस्।
 
 | ट्याब              | उद्देश्य                                                                                                       |
 | ------------------ | -------------------------------------------------------------------------------------------------------------- |
 | **बजेट**           | दैनिक/साप्ताहिक/मासिक बजेट र वास्तविक-समय ट्र्याकिङसहित प्रत्येक API कुञ्जीका लागि खर्च सीमा सेट गर्नुहोस्     |
-| **मूल्य निर्धारण** | मोडेल मूल्य प्रविष्टिहरू हेर्नुहोस् र सम्पादन गर्नुहोस् — प्रत्येक प्रदायकका प्रति 1K इनपुट/आउटपुट टोकनको लागत |
+| **मूल्य निर्धारण** | प्रदायकअनुसार प्रत्येक 1K इनपुट/आउटपुट टोकनको लागतसहित मोडेल मूल्य प्रविष्टिहरू हेर्नुहोस् र सम्पादन गर्नुहोस् |
 
 ```bash
 # API: बजेट सेट गर्नुहोस्
@@ -976,13 +1015,13 @@ curl -X POST http://localhost:20128/api/usage/budget \
 curl http://localhost:20128/api/usage/budget
 ```
 
-**लागत ट्र्याकिङ:** प्रत्येक अनुरोधले टोकन प्रयोग लग गर्छ र मूल्य तालिका प्रयोग गरेर लागत गणना गर्छ। प्रदायक, मोडेल, र API कुञ्जीअनुसारको विवरण **ड्यासबोर्ड → प्रयोग** मा हेर्नुहोस्।
+**लागत ट्र्याकिङ:** प्रत्येक अनुरोधले टोकन प्रयोग लग गर्छ र मूल्य तालिका प्रयोग गरी लागत गणना गर्छ। प्रदायक, मोडेल र API कुञ्जीअनुसारको विस्तृत विवरण **Dashboard → Usage** मा हेर्नुहोस्।
 
 ---
 
 ### अडियो ट्रान्सक्रिप्सन
 
-OmniRoute ले OpenAI-सँग मिल्दो endpoint मार्फत अडियो ट्रान्सक्रिप्सन समर्थन गर्छ:
+OmniRoute ले OpenAI-सङ्गत endpoint मार्फत अडियो ट्रान्सक्रिप्सन समर्थन गर्छ:
 
 ```bash
 POST /v1/audio/transcriptions
@@ -996,12 +1035,12 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
   -F "model=openai/whisper-1"
 ```
 
-`deepgram/nova-3` मूल Deepgram रुट हो र यसलाई Deepgram API कुञ्जी आवश्यक पर्छ।
+`deepgram/nova-3` नेटिभ Deepgram route हो र यसलाई Deepgram API कुञ्जी आवश्यक पर्छ।
 OpenRouter मात्र कन्फिगर गरिएको छ भने, `openrouter/deepgram/nova-3` प्रयोग गर्नुहोस्।
 
-**वाक्-देखि-पाठ (ट्रान्सक्रिप्सन)** प्रदायकहरू:
+**स्पिच-टु-टेक्स्ट (ट्रान्सक्रिप्सन)** प्रदायकहरू:
 
-- `openai/` (whisper-सँग मिल्दो)
+- `openai/` (whisper-सङ्गत)
 - `groq/` (Groq Whisper Turbo)
 - `deepgram/` (Nova परिवार)
 - `assemblyai/`
@@ -1009,7 +1048,7 @@ OpenRouter मात्र कन्फिगर गरिएको छ भन�
 - `huggingface/` (whisper भेरियन्टहरू)
 - `qwen/`
 
-**पाठ-देखि-वाक् (`POST /v1/audio/speech`)** प्रदायकहरू:
+**टेक्स्ट-टु-स्पिच (`POST /v1/audio/speech`)** प्रदायकहरू:
 
 - `openai/` (tts-1, tts-1-hd)
 - `hyperbolic/`
@@ -1032,49 +1071,47 @@ OpenRouter मात्र कन्फिगर गरिएको छ भन�
 
 ### कम्बो सन्तुलन रणनीतिहरू
 
-**ड्यासबोर्ड → कम्बोहरू → सिर्जना/सम्पादन → रणनीति** मा प्रत्येक कम्बोको सन्तुलन कन्फिगर गर्नुहोस्।
+प्रत्येक कम्बोको सन्तुलन **Dashboard → Combos → Create/Edit → Strategy** मा कन्फिगर गर्नुहोस्।
 
-| रणनीति                      | विवरण                                                                                      |
-| --------------------------- | ------------------------------------------------------------------------------------------ |
-| **राउन्ड-रोबिन**            | क्रमिक रूपमा मोडेलहरू पालैपालो प्रयोग गर्छ                                                 |
-| **प्राथमिकता**              | सधैँ पहिलो मोडेल प्रयास गर्छ; त्रुटि आएमा मात्र वैकल्पिक मोडेल प्रयोग गर्छ                 |
-| **अनियमित**                 | प्रत्येक अनुरोधका लागि कम्बोबाट अनियमित मोडेल चयन गर्छ                                     |
-| **भारित**                   | प्रत्येक मोडेललाई तोकिएको भारका आधारमा समानुपातिक रूपमा रुट गर्छ                           |
-| **सबैभन्दा कम प्रयोग भएको** | हालसालै सबैभन्दा कम अनुरोधहरू प्राप्त गरेको मोडेलमा रुट गर्छ (कम्बो मेट्रिक्स प्रयोग गर्छ) |
-| **लागत-अनुकूलित**           | उपलब्ध सबैभन्दा सस्तो मोडेलमा रुट गर्छ (मूल्य तालिका प्रयोग गर्छ)                          |
+| रणनीति                      | विवरण                                                                          |
+| --------------------------- | ------------------------------------------------------------------------------ |
+| **राउन्ड-रोबिन**            | मोडेलहरू पालैपालो क्रमिक रूपमा परिवर्तन गर्छ                                   |
+| **प्राथमिकता**              | सधैँ पहिलो मोडेल प्रयास गर्छ; त्रुटि हुँदा मात्र fallback गर्छ                 |
+| **अनियमित**                 | प्रत्येक अनुरोधका लागि कम्बोबाट एउटा अनियमित मोडेल छान्छ                       |
+| **भारित**                   | प्रत्येक मोडेललाई तोकिएको भारका आधारमा समानुपातिक रूपमा route गर्छ             |
+| **सबैभन्दा कम प्रयोग भएको** | हालसालै सबैभन्दा कम अनुरोध भएको मोडेलमा route गर्छ (कम्बो metrics प्रयोग गर्छ) |
+| **लागत-अनुकूलित**           | उपलब्ध सबैभन्दा सस्तो मोडेलमा route गर्छ (मूल्य तालिका प्रयोग गर्छ)            |
 
-विश्वव्यापी कम्बो पूर्वनिर्धारितहरू **Dashboard → Settings → Routing → Combo Defaults** मा सेट गर्न सकिन्छ।
-पूर्वनिर्धारित रूपमा कम्बो लक्ष्य टाइमआउटहरूले हालको अनुरोध टाइमआउट ग्रहण गर्छन्। छोटो प्रति-लक्ष्य सीमाले
-छिटो वैकल्पिक मोडेल सक्रिय गर्नुपर्ने अवस्थामा मात्र कम्बो पूर्वनिर्धारित वा व्यक्तिगत कम्बोमा **Target timeout
-(seconds)** प्रयोग गर्नुहोस्।
+ग्लोबल कम्बो पूर्वनिर्धारित मानहरू **Dashboard → Settings → Routing → Combo Defaults** मा सेट गर्न सकिन्छ।
+पूर्वनिर्धारित रूपमा कम्बो target timeout ले हालको अनुरोध timeout इनहेरिट गर्छ। छोटो प्रति-target सीमा आवश्यक हुँदा मात्र कम्बो पूर्वनिर्धारित मान वा व्यक्तिगत कम्बोमा **Target timeout
+(seconds)** प्रयोग गर्नुहोस्, जसले छिटो fallback ट्रिगर गर्छ।
 
-शून्य-विलम्बता कम्बो अनुकूलनहरू ऐच्छिक हुन्। यी विलम्बता सुविधाहरूले वैकल्पिक लक्ष्यहरूसँग प्रतिस्पर्धा गर्ने,
-TTFT इतिहासका आधारमा लक्ष्यहरू छाड्ने वा वैकल्पिक अनुरोधहरू सङ्कुचित गर्ने कार्य रोक्न **Zero-latency optimizations**
-लाई असक्षम राख्नुहोस्; यसलाई सक्षम गर्दा कन्फिगर गरिएको हेजिङ, पूर्वानुमानात्मक TTFT स्किपहरू र सक्रिय वैकल्पिक
-सङ्कुचनले न्यून टेल विलम्बताका लागि रुटिङ/अनुरोधको निष्ठासँग सम्झौता गर्न सक्छन्।
+शून्य-विलम्बता कम्बो अनुकूलनहरू opt-in हुन्। यी विलम्बता सुविधाहरूले fallback target सँग प्रतिस्पर्धा गर्न, TTFT
+इतिहासका आधारमा target छोड्न वा fallback अनुरोधहरू सङ्कुचित गर्न नदिन **Zero-latency optimizations** असक्षम राख्नुहोस्; यसलाई सक्षम गर्दा कन्फिगर गरिएको hedging, पूर्वानुमानात्मक TTFT
+skip र सक्रिय fallback compression ले न्यून tail
+latency का लागि routing/request fidelity साट्न सक्छन्।
 
-अपस्ट्रिम प्रदायकहरूले कडा `max_tokens` / `maxOutputTokens` सीमाहरू आवश्यक पार्दा
-**Reasoning token buffer** असक्षम गर्नुहोस्। सक्षम हुँदा, कम्बो रुटिङले ज्ञात आउटपुट सीमा भएका मोडेलहरूका लागि
-मात्र रिजनिङ-मोडेल हेडरुम थप्छ र सुरक्षित बफर गरिएको मानले उक्त सीमा नाघ्ने अवस्थामा क्लाइन्ट टोकन सीमा
-अपरिवर्तित राख्छ। यदि क्लाइन्ट सीमा पहिले नै ज्ञात सीमाभन्दा माथि छ भने, OmniRoute ले अपस्ट्रिम अनुरोध पठाउनुअघि
-त्यसलाई उक्त सीमासम्म घटाउँछ।
+Upstream प्रदायकहरूले कडा
+`max_tokens` / `maxOutputTokens` सीमाहरू आवश्यक पार्दा **Reasoning token buffer** असक्षम गर्नुहोस्। सक्षम हुँदा, कम्बो routing ले ज्ञात आउटपुट सीमा भएका मोडेलहरूका लागि मात्र reasoning-model
+headroom थप्छ र सुरक्षित buffered मानले त्यो सीमा नाघ्ने भएमा क्लाइन्ट token सीमा अपरिवर्तित राख्छ। यदि क्लाइन्ट सीमा पहिले नै ज्ञात सीमाभन्दा माथि छ भने,
+OmniRoute ले upstream अनुरोध पठाउनुअघि त्यसलाई उक्त सीमासम्म घटाउँछ।
 
 ---
 
 ### स्वास्थ्य ड्यासबोर्ड
 
-**Dashboard → Health** मार्फत पहुँच गर्नुहोस्। ६ वटा कार्डसहित वास्तविक-समयको प्रणाली स्वास्थ्य अवलोकन:
+**Dashboard → Health** मार्फत पहुँच गर्नुहोस्। ६ वटा कार्डसहितको वास्तविक-समय प्रणाली स्वास्थ्य अवलोकन:
 
-| कार्ड                   | यसले के देखाउँछ                                          |
-| ----------------------- | -------------------------------------------------------- |
-| **प्रणाली स्थिति**      | सञ्चालन अवधि, संस्करण, मेमोरी प्रयोग, डेटा डाइरेक्टरी    |
-| **प्रदायक स्वास्थ्य**   | विश्वव्यापी प्रदायक सर्किट ब्रेकरको रनटाइम स्थिति        |
-| **दर सीमाहरू**          | बाँकी समयसहित प्रत्येक खाताका सक्रिय जडान कुलडाउनहरू     |
-| **सक्रिय लकआउटहरू**     | सक्रिय मोडेल-स्कोप गरिएका लकआउटहरू र अस्थायी बहिष्करणहरू |
-| **सिग्नेचर क्यास**      | डिडुप्लिकेसन क्यास तथ्याङ्क (सक्रिय कुञ्जीहरू, हिट दर)   |
-| **विलम्बता टेलिमेट्री** | प्रत्येक प्रदायकका लागि p50/p95/p99 विलम्बता एकत्रीकरण   |
+| कार्ड                   | यसले के देखाउँछ                                           |
+| ----------------------- | --------------------------------------------------------- |
+| **प्रणाली स्थिति**      | अपटाइम, संस्करण, मेमोरी प्रयोग, डेटा डाइरेक्टरी           |
+| **प्रदायक स्वास्थ्य**   | ग्लोबल प्रदायक circuit breaker को runtime स्थिति          |
+| **दर सीमाहरू**          | बाँकी समयसहित प्रत्येक खाताका सक्रिय connection cooldown  |
+| **सक्रिय लकआउटहरू**     | सक्रिय मोडेल-स्कोप्ड lockout र अस्थायी exclusion          |
+| **सिग्नेचर क्यास**      | Deduplication cache तथ्याङ्क (सक्रिय कुञ्जीहरू, hit rate) |
+| **विलम्बता टेलिमेट्री** | प्रत्येक प्रदायकको p50/p95/p99 विलम्बता aggregation       |
 
-**विशेष सुझाव:** स्वास्थ्य पृष्ठ प्रत्येक १० सेकेन्डमा स्वतः रिफ्रेस हुन्छ। कुन प्रदायकहरूले समस्याहरू अनुभव गरिरहेका छन् भनी पहिचान गर्न सर्किट ब्रेकर कार्ड प्रयोग गर्नुहोस्।
+**विशेष सुझाव:** Health पृष्ठ प्रत्येक १० सेकेन्डमा स्वतः रिफ्रेस हुन्छ। कुन प्रदायकमा समस्या भइरहेको छ भनी पहिचान गर्न circuit breaker कार्ड प्रयोग गर्नुहोस्।
 
 ---
 

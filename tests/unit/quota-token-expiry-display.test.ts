@@ -33,6 +33,21 @@ test("QuotaCardHeader renders the expiry as a small blue (sky) informative line"
   assert.match(source, /tokenExpired/, "must use the tokenExpired i18n key");
 });
 
+test("token expiry label wraps instead of truncating long OAuth expiry text", () => {
+  const tokenExpirySpan = source.match(/className=\{`text-\[10px\][^`]*`\}/);
+  assert.ok(tokenExpirySpan, "must find the token-expiry span's className template");
+  assert.doesNotMatch(
+    tokenExpirySpan[0],
+    /\btruncate\b/,
+    "token-expiry label must not truncate — long expiry text was previously cut off"
+  );
+  assert.match(
+    tokenExpirySpan[0],
+    /overflow-wrap:anywhere/,
+    "token-expiry label must wrap onto multiple lines instead of clipping"
+  );
+});
+
 test("token expiry i18n keys exist in en and pt-BR", () => {
   for (const locale of ["en", "pt-BR"]) {
     const msgs = JSON.parse(

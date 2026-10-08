@@ -1,6 +1,6 @@
 # OmniRoute Auto-Combo Engine (اردو)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇪🇹 [am](../../../am/docs/routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇪🇪 [et](../../../et/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ha](../../../ha/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇦🇲 [hy](../../../hy/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ig](../../../ig/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇬🇪 [ka](../../../ka/docs/routing/AUTO-COMBO.md) · 🇰🇭 [km](../../../km/docs/routing/AUTO-COMBO.md) · 🇮🇳 [kn](../../../kn/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇱🇻 [lv](../../../lv/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ml](../../../ml/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇲🇲 [my](../../../my/docs/routing/AUTO-COMBO.md) · 🇳🇵 [ne](../../../ne/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇮🇳 [or](../../../or/docs/routing/AUTO-COMBO.md) · 🇮🇳 [pa](../../../pa/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇱🇰 [si](../../../si/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇷🇸 [sr](../../../sr/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../../sv/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇺🇿 [uz](../../../uz/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇳🇬 [yo](../../../yo/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇪🇹 [am](../../../am/docs/routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇧🇦 [bs](../../../bs/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇪🇪 [et](../../../et/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ha](../../../ha/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇦🇲 [hy](../../../hy/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ig](../../../ig/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇬🇪 [ka](../../../ka/docs/routing/AUTO-COMBO.md) · 🇰🇭 [km](../../../km/docs/routing/AUTO-COMBO.md) · 🇮🇳 [kn](../../../kn/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇱🇻 [lv](../../../lv/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ml](../../../ml/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇲🇲 [my](../../../my/docs/routing/AUTO-COMBO.md) · 🇳🇵 [ne](../../../ne/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇮🇳 [or](../../../or/docs/routing/AUTO-COMBO.md) · 🇮🇳 [pa](../../../pa/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇱🇰 [si](../../../si/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇷🇸 [sr](../../../sr/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../../sv/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇺🇿 [uz](../../../uz/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇳🇬 [yo](../../../yo/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
 
 ---
 
@@ -8,99 +8,99 @@
 
 > موافق اسکورنگ + بغیر کنفیگریشن خودکار روٹنگ کے ساتھ خود نظم ہونے والی ماڈل چینز
 
-## بغیر کنفیگریشن خودکار روٹنگ (`auto/` سابقہ)
+## زیرو-کنفگ آٹو-روٹنگ (`auto/` سابقہ)
 
-> **نیا:** کومبو بنانے کی ضرورت نہیں۔ کسی بھی کلائنٹ میں براہ راست `auto/` سابقہ استعمال کریں۔
+> **نیا:** کومبو بنانے کی ضرورت نہیں۔ کسی بھی کلائنٹ میں براہِ راست `auto/` سابقہ استعمال کریں۔
 
 ### فوری مثالیں
 
-| ماڈل ID        | ویرینٹ  | رویہ                                                              |
-| -------------- | ------- | ----------------------------------------------------------------- |
-| `auto`         | ڈیفالٹ  | تمام منسلک فراہم کنندگان، LKGP حکمتِ عملی، متوازن اوزان           |
-| `auto/coding`  | کوڈنگ   | معیار کو ترجیح دینے والے اوزان، کوڈ بنانے کے لیے موزوں            |
-| `auto/fast`    | تیز     | کم تاخیر پر مبنی وزنی انتخاب                                      |
-| `auto/cheap`   | سستا    | لاگت کے لحاظ سے بہتر بنائی گئی روٹنگ (سب سے کم لاگت پہلے)         |
-| `auto/offline` | آف لائن | سب سے زیادہ کوٹا دستیابی والے فراہم کنندگان کو ترجیح دیتا ہے      |
-| `auto/smart`   | اسمارٹ  | معیار کو ترجیح + بہتر ماڈل دریافت کے لیے زیادہ کھوج کی شرح (10%)  |
-| `auto/lkgp`    | lkgp    | واضح LKGP (ڈیفالٹ `auto` جیسا)                                    |
-| `auto/chaos`   | کیاس    | مضبوطی کی جانچ کے لیے خرابی داخل کرنے والے اوزان (کیاس انجینئرنگ) |
+| ماڈل ID        | ویریئنٹ | طرزِ عمل                                                         |
+| -------------- | ------- | ---------------------------------------------------------------- |
+| `auto`         | ڈیفالٹ  | تمام منسلک فراہم کنندگان، LKGP حکمتِ عملی، متوازن وزن            |
+| `auto/coding`  | کوڈنگ   | معیار کو ترجیح دینے والے وزن، کوڈ بنانے کے لیے موزوں             |
+| `auto/fast`    | تیز     | کم تاخیر پر مبنی وزنی انتخاب                                     |
+| `auto/cheap`   | سستا    | لاگت کے لیے بہتر بنائی گئی روٹنگ (سب سے کم لاگت پہلے)            |
+| `auto/offline` | آف لائن | سب سے زیادہ کوٹہ دستیابی والے فراہم کنندگان کو ترجیح دیتا ہے     |
+| `auto/smart`   | اسمارٹ  | معیار کو ترجیح + بہتر ماڈل دریافت کے لیے زیادہ کھوج کی شرح (10%) |
+| `auto/lkgp`    | lkgp    | واضح LKGP (ڈیفالٹ `auto` کے مساوی)                               |
+| `auto/chaos`   | chaos   | متوازی fan-out، فی فراہم کنندہ ایک ماڈل (fault injection نہیں)   |
 
-### زمرہ × ٹیئر کی ترکیب (`auto/<category>:<tier>`)
+### زمرہ × درجہ تشکیل (`auto/<category>:<tier>`)
 
-OpenRouter طرز کے لاحقے **کس قسم کا روٹ** (زمرہ) کو **اسے کس طرح بہتر بنانا ہے** (ٹیئر) سے الگ کرتے ہیں، تاکہ آپ انہیں آزادانہ طور پر یکجا کر سکیں (#4235 Phase B، `open-sse/services/autoCombo/suffixComposition.ts`):
+OpenRouter طرز کے لاحقے **روٹ کی نوعیت** (زمرہ) کو **اسے بہتر بنانے کے طریقے** (درجہ) سے الگ کرتے ہیں، تاکہ آپ انہیں آزادانہ طور پر یکجا کر سکیں (#4235 Phase B، `open-sse/services/autoCombo/suffixComposition.ts`):
 
-- **زمرے** (صلاحیت کے لحاظ سے امیدوار پول کو فلٹر کریں): `coding` · `reasoning` · `vision` · `chat` · `multimodal`۔ `vision`/`multimodal` بصری صلاحیت رکھنے والے ماڈلز برقرار رکھتے ہیں؛ `reasoning` استدلال/تفکر والے ماڈلز برقرار رکھتا ہے۔
-- **ٹیئرز** (اسکورنگ اوزان / پول فلٹر منتخب کریں): `fast` (فوری ترسیل) · `cheap` (عرف `floor`، لاگت بچانے والا) · `reliable` (سرکٹ بریکر کی صحت + تاخیر کا استحکام) · `free` / `pro` (`classifyTier` کے ذریعے ماڈل ٹیئر کے لحاظ سے پول فلٹر کریں — مفت ٹیئر بمقابلہ پریمیم)۔
+- **زمرے** (صلاحیت کے لحاظ سے امیدواروں کے مجموعے کو فلٹر کریں): `coding` · `reasoning` · `vision` · `chat` · `multimodal`۔ `vision`/`multimodal` بصارت کی صلاحیت رکھنے والے ماڈلز برقرار رکھتے ہیں؛ `reasoning` استدلال/تفکر والے ماڈلز برقرار رکھتا ہے۔
+- **درجے** (اسکورنگ کے وزن / مجموعے کا فلٹر منتخب کریں): `fast` (فوری ترسیل) · `cheap` (عرف `floor`، لاگت بچانے والا) · `reliable` (circuit-breaker کی صحت + تاخیر کا استحکام) · `free` / `pro` (`classifyTier` کے ذریعے ماڈل کے درجے کے مطابق مجموعے کو فلٹر کریں — مفت درجہ بمقابلہ پریمیم)۔
 
-| مثال                   | نتیجہ                                                               |
-| ---------------------- | ------------------------------------------------------------------- |
-| `auto/coding:fast`     | کوڈنگ پول، کم تاخیر والے اوزان                                      |
-| `auto/coding:cheap`    | کوڈنگ پول، لاگت کے لحاظ سے بہتر بنایا گیا (عرف `auto/coding:floor`) |
-| `auto/reasoning:pro`   | صرف استدلال/تفکر والے ماڈلز، پریمیم ٹیئر                            |
-| `auto/vision`          | بصری صلاحیت والے ماڈلز (کوئی ٹیئر نہیں → متوازن اوزان)              |
-| `auto/multimodal:free` | ملٹی موڈل صلاحیت والے ماڈلز، صرف مفت ٹیئر                           |
+| مثال                   | نتیجہ                                                                 |
+| ---------------------- | --------------------------------------------------------------------- |
+| `auto/coding:fast`     | کوڈنگ کا مجموعہ، کم تاخیر والے وزن                                    |
+| `auto/coding:cheap`    | کوڈنگ کا مجموعہ، لاگت کے لیے بہتر بنایا گیا (عرف `auto/coding:floor`) |
+| `auto/reasoning:pro`   | صرف استدلال/تفکر والے ماڈلز، پریمیم درجہ                              |
+| `auto/vision`          | بصارت کی صلاحیت رکھنے والے ماڈلز (کوئی درجہ نہیں → متوازن وزن)        |
+| `auto/multimodal:free` | ملٹی موڈل صلاحیت رکھنے والے ماڈلز، صرف مفت درجہ                       |
 
-ہر درست `auto/<category>[:<tier>]` طلب پر حل ہو جاتا ہے؛ ایک منتخب ذیلی مجموعہ `/v1/models` اور ڈیش بورڈ میں ظاہر کیا جاتا ہے (`open-sse/services/autoCombo/builtinCatalog.ts` میں `AUTO_SUFFIX_VARIANTS`)۔ فلٹرنگ **fail-open** ہے — اگر کوئی پابندی کسی منسلک ماڈل سے مطابقت نہ رکھے تو مکمل پول استعمال کیا جاتا ہے، تاکہ روٹنگ کبھی متاثر نہ ہو۔ بنیادی اسکورر (`combo.ts`) میں کوئی تبدیلی نہیں؛ زمرہ/ٹیئر فلٹر `buildAutoCandidates` میں لاگو ہوتا ہے۔
+کوئی بھی درست `auto/<category>[:<tier>]` حسبِ ضرورت resolve ہو جاتا ہے؛ ایک منتخب ذیلی مجموعہ `/v1/models` اور ڈیش بورڈ میں مشتہر کیا جاتا ہے (`open-sse/services/autoCombo/builtinCatalog.ts` میں `AUTO_SUFFIX_VARIANTS`)۔ فلٹرنگ **fail-open** ہے — اگر کوئی شرط کسی منسلک ماڈل سے مماثل نہ ہو تو مکمل مجموعہ استعمال کیا جاتا ہے، تاکہ روٹنگ کبھی ناکام نہ ہو۔ بنیادی اسکورر (`combo.ts`) میں کوئی تبدیلی نہیں کی گئی؛ زمرہ/درجہ فلٹر `buildAutoCandidates` میں لاگو ہوتا ہے۔
 
-> **لائیو ماڈل انٹیلیجنس:** جب `ARENA_ELO_SYNC_ENABLED` فلیگ فعال ہو تو خودکار روٹنگ کی موزونیت کے تعین میں لائیو **Arena ELO** درجہ بندیوں + **models.dev** کے ٹیئر ڈیٹا سے مدد لی جاتی ہے (بصورتِ دیگر جامد فٹنس میپ استعمال ہوتا ہے)۔
+> **لائیو ماڈل انٹیلی جنس:** جب `ARENA_ELO_SYNC_ENABLED` فلیگ فعال ہو تو آٹو-روٹنگ کی موزونیت لائیو **Arena ELO** درجہ بندیوں + **models.dev** کے درجہ جاتی ڈیٹا سے متعین ہوتی ہے (بصورتِ دیگر جامد موزونیت میپ استعمال کیا جاتا ہے)۔
 
 **استعمال کا طریقہ:**
 
 ```bash
-# کوئی بھی IDE یا CLI ٹول جو OpenAI فارمیٹ کی معاونت کرتا ہو
-بنیادی URL: http://localhost:20128/v1
-API کلید:  <your-endpoint-key>
+# کوئی بھی IDE یا CLI ٹول جو OpenAI فارمیٹ کو سپورٹ کرتا ہو
+Base URL: http://localhost:20128/v1
+API Key:  <آپ کی endpoint key>
 
-# اپنے کوڈ/کنفیگ میں ماڈل کو یوں سیٹ کریں:
+# اپنے کوڈ/config میں model کو یوں سیٹ کریں:
 model: "auto"                 # متوازن ڈیفالٹ
 model: "auto/coding"          # کوڈنگ کے کاموں کے لیے بہترین
 model: "auto/fast"            # تیز ترین دستیاب
-model: "auto/cheap"           # فی ٹوکن سب سے سستا
+model: "auto/cheap"           # فی token سب سے سستا
 ```
 
 **کیا ہوتا ہے:**
 
 1. OmniRoute، `src/sse/handlers/chat.ts` میں `auto/` سابقے کا پتہ لگاتا ہے
-2. ڈیٹابیس سے تمام **فعال فراہم کنندہ کنکشنز** دریافت کرتا ہے
-3. انہیں فلٹر کر کے صرف درست اسناد (API کلید یا OAuth ٹوکن) رکھنے والے کنکشنز رکھتا ہے
-4. ہر کنکشن کے لیے ماڈل متعین کرتا ہے (`connection.defaultModel` یا فراہم کنندہ کا پہلا ماڈل)
-5. میموری میں ایک **ورچوئل کومبو** بناتا ہے (DB میں محفوظ نہیں ہوتا)
-6. منتخب ویرینٹ کے وزنی پروفائل + LKGP حکمتِ عملی کے ذریعے روٹنگ کرتا ہے
+2. ڈیٹابیس سے تمام **فعال فراہم کنندہ کنکشنز** حاصل کرتا ہے
+3. درست اسناد (API key یا OAuth token) رکھنے والے کنکشنز کو فلٹر کرتا ہے
+4. ہر کنکشن کے لیے ماڈل کا تعین کرتا ہے (`connection.defaultModel` یا فراہم کنندہ کا پہلا ماڈل)
+5. میموری میں ایک **ورچوئل کومبو** بناتا ہے (DB میں محفوظ نہیں کیا جاتا)
+6. منتخب ویریئنٹ کے weight profile + LKGP حکمتِ عملی کے ذریعے روٹ کرتا ہے
 
 **اہم خصوصیات:**
 
-- ✅ **ہمیشہ فعال:** کسی ٹوگل، کومبو بنانے یا کنفیگریشن کی ضرورت نہیں
-- ✅ **متحرک:** موجودہ منسلک فراہم کنندگان کی خودکار طور پر عکاسی کرتا ہے
-- ✅ **سیشن وابستگی:** LKGP یقینی بناتا ہے کہ آخری کامیاب فراہم کنندہ کو ترجیح دی جائے
-- ✅ **متعدد اکاؤنٹس سے آگاہ:** ہر فراہم کنندہ کنکشن ایک الگ امیدوار بن جاتا ہے
-- ✅ **DB میں کوئی تحریر نہیں:** ورچوئل کومبو صرف درخواست کے لیے موجود رہتا ہے، مستقل ذخیرہ کاری کا کوئی اضافی بوجھ نہیں
+- ✅ **ہمیشہ فعال:** کسی toggle، کومبو بنانے یا کنفگریشن کی ضرورت نہیں
+- ✅ **متحرک:** موجودہ منسلک فراہم کنندگان کو خودکار طور پر ظاہر کرتا ہے
+- ✅ **سیشن کی وابستگی:** LKGP یقینی بناتا ہے کہ آخری کامیاب فراہم کنندہ کو ترجیح دی جائے
+- ✅ **متعدد اکاؤنٹس سے آگاہ:** ہر فراہم کنندہ کنکشن ایک علیحدہ امیدوار بن جاتا ہے
+- ✅ **DB میں کوئی تحریر نہیں:** ورچوئل کومبو صرف درخواست کے دوران موجود رہتا ہے، persistence کا کوئی اضافی خرچ نہیں
 
-### فی کلید امیدوار کنٹرول (#7819، سطح 1+2)
+### فی key امیدوار کنٹرول (#7819، سطح 1+2)
 
 `GET /v1/auto-combo/{channel}/candidates` (`{channel}` = `auto/` کے بعد آنے والا لاحقہ، یا
-بنیادی چینل کے لیے لفظی `auto`) ایک **صرف پڑھنے کا** اینڈپوائنٹ ہے جو کسی
-`auto/*` چینل کے موجودہ امیدوار پول کو لائیو رسائی پذیری کی معلومات سمیت فہرست کرتا ہے، اور
-موجودہ مضبوطی سے متعلق ریڈز کو دوبارہ استعمال کرتا ہے (کبھی بھی خام بریکر `state` نہیں):
+بنیادی چینل کے لیے بعینہٖ `auto`) ایک **صرف پڑھنے کے لیے** endpoint ہے، جو
+لائیو رسائی پذیری کی معلومات کے ساتھ `auto/*` چینل کے موجودہ امیدواروں کے مجموعے کی فہرست دیتا ہے اور
+موجودہ resilience reads کو دوبارہ استعمال کرتا ہے (خام breaker `state` کبھی استعمال نہیں کرتا):
 
-- فراہم کنندہ سرکٹ بریکر — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
-- کنکشن کول ڈاؤن — حل شدہ
-  `provider_connections` قطار پر `rateLimitedUntil` / `testStatus`
-- ماڈل لاک آؤٹ — `isModelLocked(provider, connectionId, model)`
+- فراہم کنندہ circuit breaker — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
+- کنکشن cooldown — resolve کی گئی `provider_connections` row پر `rateLimitedUntil` / `testStatus`
+- ماڈل lockout — `isModelLocked(provider, connectionId, model)`
 
-ہر امیدوار کے ساتھ اس API کلید کا `excluded` فلیگ بھی ہوتا ہے۔ اخراجات
-فی API کلید محفوظ کیے جاتے ہیں (`auto_candidate_overrides` جدول، مائیگریشن `128`) — OmniRoute
-سنگل ٹیننٹ ہے اور اس میں کوئی `users` جدول نہیں، اس لیے `apiKeyId` فی کالر حقیقی
-شناخت کا قریب ترین متبادل ہے — اور انہیں
-`open-sse/services/autoCombo/virtualFactory.ts` میں امیدوار پول کے مرکزی مرحلے پر خالص، یونٹ ٹیسٹ شدہ
+ہر امیدوار میں اس API key کا `excluded` فلیگ بھی شامل ہوتا ہے۔ استثنا
+فی API key محفوظ کیے جاتے ہیں (`auto_candidate_overrides` ٹیبل، migration `128`) — OmniRoute
+single-tenant ہے اور اس میں کوئی `users` ٹیبل نہیں، لہٰذا `apiKeyId` فی کالر
+حقیقی شناخت کا قریب ترین متبادل ہے — اور انہیں
+`open-sse/services/autoCombo/virtualFactory.ts` میں امیدواروں کے مجموعے کے مرکزی کنٹرول مقام پر خالص، unit-tested
 `filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`) کے ذریعے نافذ کیا جاتا ہے۔
-فلٹر **fail-open** ہے: غیر مقرر apiKeyId/channel یا DB تلاش کی ناکامی، دونوں صورتوں میں
-پول بغیر فلٹر کے رہتا ہے، اس لیے وہ آپریٹر جس کے لیے کوئی اوور رائیڈ کنفیگر نہیں کیا گیا، روٹنگ کو
-اس فیچر سے پہلے کی حالت سے بائٹ بہ بائٹ یکساں دیکھتا ہے۔
+فلٹر **fail-open** ہے: غیر متعین apiKeyId/channel یا DB lookup کی ناکامی، دونوں صورتوں میں
+مجموعہ بغیر فلٹر کیے رہتا ہے، لہٰذا وہ آپریٹر جس کے لیے کوئی override کنفگر نہ ہو، اس فیچر سے پہلے جیسی
+byte-identical روٹنگ دیکھتا ہے۔
 
-**فالو اَپ ایشو تک مؤخر:** فی امیدوار weights + واضح ترتیب (Level 3
-— موجودہ weighted/priority حکمتِ عملی کے راستوں میں شامل ہوتا ہے) اور ہر `auto/*` چینل کے لیے ایک مخصوص
-`combo.ts` حکمتِ عملی کو pin کرنا (Level 4)۔ اس کھلے سوال کے لیے #7819 منصوبہ دیکھیں کہ آیا
-single-tenant ماڈل کے پیشِ نظر overrides فی API کلید ہی رہنے چاہییں یا global بن جانے چاہییں۔
+**آئندہ فالو اَپ مسئلے کے لیے مؤخر:** فی امیدوار وزن + واضح ترتیب (لیول 3
+— موجودہ وزن یافتہ/ترجیحی حکمتِ عملی کے راستوں میں شامل ہوتا ہے) اور ہر `auto/*`
+چینل کے لیے ایک مخصوص `combo.ts` حکمتِ عملی کو پن کرنا (لیول 4)۔ اس کھلے سوال کے
+لیے #7819 کا منصوبہ دیکھیں کہ آیا واحد کرایہ دار ماڈل کے پیشِ نظر اوور رائیڈز کو فی API کلید
+تک محدود رہنا چاہیے یا عالمی بنا دینا چاہیے۔
 
 **پسِ پردہ:**
 
@@ -109,22 +109,22 @@ single-tenant ماڈل کے پیشِ نظر overrides فی API کلید ہی ر�
    ↓
 src/sse/handlers/chat.ts سابقے کا پتہ لگاتا ہے
    ↓
-createVirtualAutoCombo('coding') → فعال connections سے candidatePool
+createVirtualAutoCombo('coding') → فعال کنکشنز سے candidatePool
    ↓
-handleComboChat (وہی انجن جو محفوظ شدہ combos کے لیے استعمال ہوتا ہے)
+handleComboChat (وہی انجن جو مستقل محفوظ شدہ combos کے لیے استعمال ہوتا ہے)
    ↓
-Auto-scoring ہر درخواست کے لیے بہترین provider/model منتخب کرتی ہے
+خودکار اسکورنگ ہر درخواست کے لیے بہترین فراہم کنندہ/ماڈل منتخب کرتی ہے
 ```
 
 **نفاذ کی فائلیں:**
 
-| فائل                                                      | مقصد                                            |
-| --------------------------------------------------------- | ----------------------------------------------- |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | سابقہ parser (`parseAutoPrefix`)                |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | مجازی `AutoComboConfig` objects تخلیق کرتی ہے   |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | provider registry کو mock کرنے کے لیے ٹیسٹ hook |
-| `src/sse/handlers/chat.ts`                                | انضمام: auto سابقے کا short-circuit             |
-| `src/shared/constants/providers.ts`                       | `SYSTEM_PROVIDERS.auto` سسٹم entry              |
+| فائل                                                      | مقصد                                           |
+| --------------------------------------------------------- | ---------------------------------------------- |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | سابقہ پارسر (`parseAutoPrefix`)                |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | ورچوئل `AutoComboConfig` آبجیکٹس بناتی ہے      |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | فراہم کنندہ رجسٹری کو موک کرنے کے لیے ٹیسٹ ہُک |
+| `src/sse/handlers/chat.ts`                                | انضمام: خودکار سابقے کا شارٹ سرکٹ              |
+| `src/shared/constants/providers.ts`                       | `SYSTEM_PROVIDERS.auto` سسٹم اندراج            |
 
 ## ایسے کومبو نام جو کسی حقیقی ماڈل آئی ڈی سے مماثل ہوں
 
@@ -197,7 +197,7 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 ## موڈ پیکس
 
-`open-sse/services/autoCombo/modePacks.ts` میں پہلے سے متعین 6 ویٹ پروفائلز موجود ہیں۔ ہر پیک ڈیفالٹ ویٹس کو مکمل طور پر تبدیل کر دیتا ہے تاکہ انتخاب کو کسی ایک ہدف کی طرف مائل کیا جا سکے۔ ہر پیک کا مجموعہ پہلے ہی `1.0` ہے (چار اعشاری مقامات تک پرنٹ کرنے پر `0.9999`)، اس لیے جب کوئی پیک فعال ہو تو `normalizeScoringWeights()` کے پاس بامعنی طور پر درست کرنے کے لیے کچھ نہیں ہوتا — ذیل کی قدریں، راؤنڈنگ کو مدِنظر رکھتے ہوئے، وہی ہیں جنہیں اسکورر لاگو کرتا ہے۔
+`open-sse/services/autoCombo/modePacks.ts` میں پہلے سے متعین 6 وزنی پروفائلز موجود ہیں۔ ہر پیک پہلے سے طے شدہ وزنوں کو مکمل طور پر تبدیل کر دیتا ہے تاکہ انتخاب کا جھکاؤ ایک مخصوص ہدف کی جانب ہو۔ ہر پیک کا مجموعہ پہلے ہی `1.0` بنتا ہے (چار اعشاری مقامات تک دکھانے پر `0.9999`)، اس لیے جب کوئی پیک فعال ہو تو `normalizeScoringWeights()` کے پاس بامعنی طور پر درست کرنے کے لیے کچھ نہیں ہوتا — ذیل کی قدریں، راؤنڈنگ کے فرق کے ساتھ، وہی ہیں جنہیں اسکورر لاگو کرتا ہے۔
 
 | عامل                  | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
@@ -219,32 +219,29 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 نوٹس:
 
-- **پیکس میں `quality` اور `reliability` شامل ہوتے ہیں** (`quality 0.02`، `quality-first 0.03`؛ `reliability 0.03`، `reliability-first 0.04`) اور یہ ویٹ میپ کو مکمل طور پر تبدیل کرتے ہیں (`weights = pack`، مرج نہیں کرتے)۔ `DEFAULT_WEIGHTS` میں `quality 0.03 / reliability 0` ہوتا ہے؛ `balanced`/`default` منتخب کرنے سے وہ ڈیفالٹس برقرار رہتے ہیں، جبکہ کوئی پیک منتخب کرنے سے اوپر دی گئی اس پیک کی قدریں استعمال ہوتی ہیں۔ کولڈ پول میں (ابھی کوئی مشاہدات موجود نہ ہوں، لہٰذا `quality 0.5` اور `reliability 1`) یہ دونوں عوامل کسی عمومی پیک کے تحت `+0.04` (`0.03 + 0.01`)، `quality-first` کے تحت `+0.045` اور `reliability-first` کے تحت `+0.05` کا اضافہ کرتے ہیں۔
-- `tierAffinity`، `specificityMatch` اور `resetWindowAffinity` ہر پیک میں واضح طور پر `0` ہیں۔
-- ایک نظر میں ہر پیک کی ترجیح:
-  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (کم لیٹنسی، صحت مند کنکشنز)
-  - **cost-saver** → costInv 0.3324 (سب سے سستے ٹوکنز غالب رہتے ہیں)
-  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03، جو کسی بھی پیک سے زیادہ ہے (کام کے لیے بہترین اور مستقل ماڈل)
-  - **offline-friendly** → quota 0.3324 + health 0.2667 (رفتار/لاگت سے قطع نظر زیادہ سے زیادہ گنجائش)
-  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04، جو کسی بھی پیک سے زیادہ ہے (کم ترین غیر متوقع نتائج)
-  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (فالٹ انجیکشن پروفائل)
+- **پیکس میں `quality` اور `reliability` شامل ہوتے ہیں** (`quality 0.02`، `quality-first 0.03`؛ `reliability 0.03`، `reliability-first 0.04`) اور یہ وزنوں کے نقشے کو مکمل طور پر تبدیل کرتے ہیں (`weights = pack`، انضمام نہیں)۔ `DEFAULT_WEIGHTS` میں `quality 0.03 / reliability 0` ہوتا ہے؛ `balanced`/`default` منتخب کرنے سے یہ پہلے سے طے شدہ قدریں برقرار رہتی ہیں، جبکہ کسی پیک کو منتخب کرنے پر اوپر دی گئی اس پیک کی قدریں استعمال ہوتی ہیں۔ ایک کولڈ پول میں (جہاں ابھی تک کوئی مشاہدات موجود نہ ہوں، لہٰذا `quality 0.5` اور `reliability 1` ہوں) یہ دونوں عوامل کسی عمومی پیک کے تحت `+0.04` (`0.03 + 0.01`)، `quality-first` کے تحت `+0.045` اور `reliability-first` کے تحت `+0.05` کا اضافہ کرتے ہیں۔
+- ہر پیک میں `tierAffinity`، `specificityMatch` اور `resetWindowAffinity` واضح طور پر `0` ہیں۔
+- ایک نظر میں ہر پیک کا زور:
+  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (کم تاخیر والے، صحت مند کنکشنز)
+  - **cost-saver** → costInv 0.3324 (سب سے سستے ٹوکنز کو ترجیح)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03، جو تمام پیکس میں سب سے زیادہ ہے (کام کے لیے بہترین، مستقل ماڈل)
+  - **offline-friendly** → quota 0.3324 + health 0.2667 (رفتار/لاگت سے قطع نظر زیادہ سے زیادہ اضافی گنجائش)
+  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04، جو تمام پیکس میں سب سے زیادہ ہے (کم سے کم غیر متوقع نتائج)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (وزنی پیک `auto/chaos` اپنے پینل کے اراکین کو یہ وزن تفویض کرتا ہے؛ متوازی فین آؤٹ ان وزنوں کو نہیں پڑھتا، اور یہ فالٹ انجیکشن پروفائل نہیں ہے، [CHAOS-MODE.md](../guides/CHAOS-MODE.md#autochaos-parallel-fan-out) دیکھیں)
 
 ### فی درخواست کنٹرولز (ہیڈرز) — #6023 / #6024 / #6025 / #3470
 
-ایک `auto` کومبو کو تین ہیڈرز کے ذریعے **فی درخواست** کنٹرول کیا جا سکتا ہے، اور اس کے لیے
-کومبو کی محفوظ شدہ کنفیگریشن میں تبدیلی نہیں کی جاتی۔ یہ صرف `auto` حکمتِ عملی اور صرف اسی درخواست
-پر لاگو ہوتے ہیں جس میں یہ موجود ہوں؛ جب ہیڈر موجود نہ ہو تو کومبو کے محفوظ شدہ `modePack`/`budgetCap`/`budgetFallback`
-استعمال کیے جاتے ہیں۔
+کسی `auto` کومبو کو محفوظ کردہ کنفگ میں تبدیلی کیے بغیر، تین ہیڈرز کے ذریعے **فی درخواست** کنٹرول کیا جا سکتا ہے۔ یہ صرف `auto` حکمتِ عملی اور صرف اس درخواست پر لاگو ہوتے ہیں جس میں یہ موجود ہوں؛ ہیڈر موجود نہ ہونے کی صورت میں کومبو کی محفوظ شدہ `modePack`/`budgetCap`/`budgetFallback` قدریں استعمال ہوتی ہیں۔
 
-| ہیڈر                          | قابلِ قبول اقدار                                                                                                                                                                     | اثر                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| :---------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-Mode`            | ایک پیش سیٹ عرف (`fast`، `balanced`، `quality`، `cheap`، `reliable`، `offline`) یا خام پیک نام (`ship-fast`، `cost-saver`، `quality-first`، `offline-friendly`، `reliability-first`) | اس درخواست کے لیے اسکورنگ کے وزن کو اوور رائیڈ کرتا ہے۔ `balanced`/`default` ڈیفالٹ وزن نافذ کرتے ہیں (کوئی پیک نہیں)۔ نامعلوم اقدار نظر انداز کر دی جاتی ہیں (کنفیگریشن برقرار رہتی ہے)۔                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `X-OmniRoute-Budget`          | ایک مثبت عدد (فی درخواست زیادہ سے زیادہ USD)                                                                                                                                         | لاگت کی قطعی حد: جن امیدواروں کی تخمینی لاگت اس سے زیادہ ہو، انہیں انتخاب سے پہلے فلٹر کر دیا جاتا ہے۔ جب **ہر** امیدوار اس حد سے تجاوز کرے تو کیا ہوگا، اس کا تعین ذیل میں موجود `X-OmniRoute-Budget-Fallback` کرتا ہے۔                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| `X-OmniRoute-Budget-Fallback` | `cheapest` (ڈیفالٹ، عرف: `cheapest-viable`، `soft`) یا `strict` (عرف: `block`، `hard`)                                                                                               | `cheapest`: عالمی سطح پر سب سے سستے امیدوار پر واپس آتا ہے، اگرچہ وہ پھر بھی حد سے تجاوز کرتا ہو (سابقہ طرزِ عمل)۔ `strict`: انتخاب سے انکار کرتا ہے — خاموشی سے حد سے زیادہ خرچ کرنے کے بجائے درخواست `HTTP 402` کے ساتھ فوری طور پر ناکام ہو جاتی ہے۔ نامعلوم اقدار نظر انداز کر دی جاتی ہیں۔                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `X-OmniRoute-Effort`          | `auto` (دیگر اقدار محفوظ ہیں)                                                                                                                                                        | موافق سوچ کا بجٹ: جب درخواست میں کسی بھی شکل کی **کوئی** استدلالی فیلڈ (`reasoning_effort`، `reasoning`، `thinking`) موجود نہ ہو، تو گیٹ وے قطعی درخواست-ساخت کے اشاروں (آخری صارف پیغام کی لمبائی، آخری صارف پیغام تک سیاق کا حجم، سابقہ ٹول نتائج، ٹول-لوپ کی گہرائی) کی بنیاد پر `auto` کو `low`/`medium`/`high` میں تبدیل کرتا ہے۔ اشارے موجودہ ٹرن تک محدود ہوتے ہیں — آخری صارف پیغام کے بعد موجود ہر چیز نظر انداز کر دی جاتی ہے — لہٰذا ٹول لوپ میں ہر درخواست ایک ہی سطح پر تبدیل ہوتی ہے (فی ٹرن بے حالت پن، کوئی سیشن حالت نہیں، اور لوپ کے درمیان ایسی درجہ افزائی نہیں جو اپ اسٹریم پرامپٹ-کیش سابقوں کو خراب کرے)۔ کلائنٹ کی واضح استدلالی فیلڈ ہمیشہ ترجیح رکھتی ہے۔ یہ ان درخواستوں تک محدود ہے جن کی اپ اسٹریم ترسیل OpenAI Chat Completions ساخت (`targetFormat === FORMATS.OPENAI`) میں تبدیل ہوتی ہے — `reasoning_effort` ایک OpenAI ساخت والی فیلڈ ہے، اس لیے Claude یا Gemini کو ہدف بنانے والی درخواست پر یہ ہیڈر بے اثر ہوتا ہے (دیکھیے `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`)۔ |
+| ہیڈر                          | قابلِ قبول اقدار                                                                                                                                                                     | اثر                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| :---------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`            | ایک پیش سیٹ عرف (`fast`، `balanced`، `quality`، `cheap`، `reliable`، `offline`) یا خام پیک نام (`ship-fast`، `cost-saver`، `quality-first`، `offline-friendly`، `reliability-first`) | اس درخواست کے لیے اسکورنگ کے اوزان کو اوور رائیڈ کرتا ہے۔ `balanced`/`default` طے شدہ اوزان نافذ کرتے ہیں (کوئی پیک نہیں)۔ نامعلوم اقدار نظر انداز کر دی جاتی ہیں (کنفیگریشن برقرار رہتی ہے)۔                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `X-OmniRoute-Budget`          | ایک مثبت عدد (فی درخواست زیادہ سے زیادہ USD)                                                                                                                                         | لاگت کی قطعی حد: جن امیدواروں کی تخمینی لاگت اس سے زیادہ ہو، انہیں انتخاب سے پہلے فلٹر کر دیا جاتا ہے۔ جب **ہر** امیدوار اس حد سے تجاوز کرے تو کیا ہوگا، اس کا تعین ذیل میں موجود `X-OmniRoute-Budget-Fallback` کرتا ہے۔                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (طے شدہ، عرف: `cheapest-viable`، `soft`) یا `strict` (عرف: `block`، `hard`)                                                                                               | `cheapest`: مجموعی طور پر سب سے سستے امیدوار کو متبادل کے طور پر منتخب کرتا ہے، اگرچہ وہ اب بھی حد سے زیادہ ہو (سابقہ طرزِ عمل)۔ `strict`: انتخاب سے انکار کرتا ہے — خاموشی سے زائد خرچ کرنے کے بجائے درخواست فوراً `HTTP 402` کے ساتھ ناکام ہو جاتی ہے۔ نامعلوم اقدار نظر انداز کر دی جاتی ہیں۔                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `X-OmniRoute-Effort`          | `auto` (دیگر اقدار محفوظ ہیں)                                                                                                                                                        | موافقانہ سوچ کا بجٹ: جب درخواست میں کسی بھی شکل کا **کوئی** استدلالی فیلڈ (`reasoning_effort`، `reasoning`، `thinking`) موجود نہ ہو، تو گیٹ وے قطعی درخواست-ساخت سگنلز (آخری صارف کے پیغام کی طوالت، آخری صارف کے پیغام تک سیاق کا حجم، سابقہ ٹول نتائج، ٹول-لوپ کی گہرائی) کی بنیاد پر `auto` کو `low`/`medium`/`high` میں حل کرتا ہے۔ سگنلز موجودہ ٹرن تک محدود ہوتے ہیں — آخری صارف کے پیغام کے بعد کی ہر چیز نظر انداز کی جاتی ہے — لہٰذا ٹول لوپ میں ہر درخواست ایک ہی سطح پر حل ہوتی ہے (فی ٹرن بے حالت پن، کوئی سیشن حالت نہیں، اور لوپ کے درمیان ایسی کوئی درجہ افزائی نہیں جو اپ اسٹریم پرامپٹ-کیش سابقوں کو توڑ دے)۔ کلائنٹ کا واضح استدلالی فیلڈ ہمیشہ ترجیح رکھتا ہے۔ یہ ان درخواستوں تک محدود ہے جن کی اپ اسٹریم ترسیل OpenAI Chat Completions ساخت (`targetFormat === FORMATS.OPENAI`) میں حل ہوتی ہے — `reasoning_effort` ایک OpenAI ساخت کا فیلڈ ہے، اس لیے Claude یا Gemini کو ہدف بنانے والی درخواست پر یہ ہیڈر بے اثر ہے (`open-sse/handlers/chatCore/adaptiveEffortWiring.ts` دیکھیں)۔ |
 
 ```bash
-# تیز ترین پروفائل کو لازمی استعمال کریں، اس درخواست کی حد $0.05 مقرر کریں، اور حد سے زیادہ خرچ کرنے کے بجائے اسے سختی سے بلاک کریں
+# تیز ترین پروفائل لازمی استعمال کریں، اس درخواست کو $0.05 تک محدود کریں، اور حد سے زیادہ خرچ کرنے کے بجائے مکمل طور پر روک دیں
 curl -sS http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-OmniRoute-Mode: fast" \
@@ -253,58 +250,106 @@ curl -sS http://localhost:20128/v1/chat/completions \
   -d '{"model":"auto","messages":[{"role":"user","content":"hi"}]}'
 ```
 
-ریزولیوشن ایک خالص فنکشن (`open-sse/services/autoCombo/requestControls.ts`) ہے؛
+حل ایک خالص فنکشن (`open-sse/services/autoCombo/requestControls.ts`) ہے؛
 حل شدہ اقدار انجن کے موجودہ `config.modePack` / `config.budgetCap` /
-`config.budgetFallback` اِن پٹس کو فراہم کی جاتی ہیں۔ کسی کومبو کی محفوظ شدہ `config.budgetFallback` ("strict" |
+`config.budgetFallback` ان پٹس کو فراہم کی جاتی ہیں۔ کسی کومبو کی محفوظ شدہ `config.budgetFallback` ("strict" |
 "cheapest") مستقل پالیسی متعین کرتی ہے؛ ہیڈر ایک واحد درخواست کے لیے اسے اوور رائیڈ کرتا ہے۔
 
 ## تمام روٹنگ حکمتِ عملیاں
 
-OmniRoute کا کومبو انجن **19 روٹنگ حکمتِ عملیوں** کی معاونت کرتا ہے (جن کا اعلان `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` میں کیا گیا ہے)۔ Auto Combo انجن خود `auto` حکمتِ عملی کے تحت دستیاب ہے؛ دیگر محفوظ شدہ کومبوز کے لیے دستیاب ہیں۔
+OmniRoute کا کومبو انجن **19 روٹنگ حکمتِ عملیوں** کی معاونت کرتا ہے (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` میں اعلان کردہ)۔ Auto Combo انجن بذاتِ خود `auto` حکمتِ عملی کے تحت دستیاب ہے؛ دیگر حکمتِ عملیاں محفوظ شدہ کومبوز کے لیے دستیاب ہیں۔
 
-| حکمتِ عملی          | تفصیل                                                                                                                                                                                                                                     |
-| :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `priority`          | واضح ترجیح کے ساتھ پہلے ہدف کو فوقیت دینے والی مرتب فہرست                                                                                                                                                                                 |
-| `weighted`          | ہر ہدف کے وزن کی بنیاد پر وزنی بے ترتیب انتخاب                                                                                                                                                                                            |
-| `round-robin`       | اہداف کو ترتیب وار باری باری استعمال کرنا                                                                                                                                                                                                 |
-| `context-relay`     | اہداف کے درمیان سیاق منتقل کرنا (طویل گفتگوؤں کے لیے)                                                                                                                                                                                     |
-| `fill-first`        | اگلے ہدف پر جانے سے پہلے ہر ہدف کا کوٹا مکمل استعمال کرنا                                                                                                                                                                                 |
-| `p2c`               | دو اختیارات کی قوت پر مبنی بے ترتیب لوڈ بیلنسنگ                                                                                                                                                                                           |
-| `random`            | یکساں بے ترتیب انتخاب                                                                                                                                                                                                                     |
-| `least-used`        | سب سے کم موجودہ لوڈ والا ہدف منتخب کرنا                                                                                                                                                                                                   |
-| `cost-optimized`    | کیٹلاگ کی قیمتوں کے مطابق فی درخواست لاگت کو کم سے کم کرنا                                                                                                                                                                                |
-| `reset-aware` ⭐    | کوٹا ری سیٹ ہونے کے وقت کے لحاظ سے ترجیح دینا — مختصر ری سیٹ ونڈوز کو زیادہ ترجیح دی جاتی ہے                                                                                                                                              |
-| `reset-window`      | ان اہداف کو ترجیح دینا جن کی کوٹا ونڈو سب سے جلد ری سیٹ ہوتی ہے                                                                                                                                                                           |
-| `headroom`          | سب سے زیادہ باقی ماندہ کوٹا گنجائش والا ہدف منتخب کرنا                                                                                                                                                                                    |
-| `strict-random`     | تکرار کی نقلیں ہٹائے بغیر بے ترتیب انتخاب                                                                                                                                                                                                 |
-| `auto`              | Auto Combo اسکورنگ (16 عوامل) استعمال کرنا — **تجویز کردہ**                                                                                                                                                                               |
-| `lkgp`              | آخری معلوم درست راستہ (آخری کامیاب فراہم کنندہ کو برقرار رکھتا ہے، پھر قواعد کو بطور متبادل استعمال کرتا ہے)                                                                                                                              |
-| `context-optimized` | موجودہ سیاق کے حجم کے لیے بہترین مطابقت والا ہدف منتخب کرنا                                                                                                                                                                               |
-| `cache-optimized`   | اہداف کو پرامپٹ کیش سے وابستگی کے مطابق دوبارہ ترتیب دینا — جس کنکشن کے پاس اس درخواست کا کیش شدہ سابقہ حصہ پہلے سے موجود ہونے کا سب سے زیادہ امکان ہو، اسے پہلے آزمایا جاتا ہے (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
-| `fusion` 🧬         | ماڈلز کے ایک پینل کو متوازی طور پر درخواست بھیجنا، پھر ایک منصف ماڈل کے ذریعے ایک جواب مرتب کرنا (ذیل میں دیکھیں)                                                                                                                         |
-| `pipeline`          | اہداف کو ترتیب وار چلانا، ہر مرحلے کے آؤٹ پٹ کو اگلے مرحلے کے اِن پٹ میں شامل کرنا؛ صرف آخری جواب واپس کیا جاتا ہے (#6396)                                                                                                                |
+| حکمتِ عملی          | تفصیل                                                                                                                                                                                                                                  |
+| :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `priority`          | واضح ترجیح کے ساتھ پہلے ہدف پر مبنی مرتب فہرست                                                                                                                                                                                         |
+| `weighted`          | ہر ہدف کے وزن کے مطابق وزنی بے ترتیب انتخاب                                                                                                                                                                                            |
+| `round-robin`       | اہداف کو ترتیب وار باری باری استعمال کریں (بیچز کی صورت میں؛ ذیل میں دیکھیں)                                                                                                                                                           |
+| `context-relay`     | اہداف کے درمیان سیاق و سباق منتقل کریں (طویل گفتگوؤں کے لیے)                                                                                                                                                                           |
+| `fill-first`        | اگلے ہدف پر جانے سے پہلے ہر ہدف کا کوٹا مکمل کریں                                                                                                                                                                                      |
+| `p2c`               | 2 انتخابوں کی قوت پر مبنی بے ترتیب لوڈ بیلنسنگ                                                                                                                                                                                         |
+| `random`            | یکساں بے ترتیب انتخاب                                                                                                                                                                                                                  |
+| `least-used`        | سب سے کم موجودہ لوڈ والا ہدف منتخب کریں                                                                                                                                                                                                |
+| `cost-optimized`    | کیٹلاگ کی قیمتوں کے مطابق فی درخواست $ کم سے کم کریں                                                                                                                                                                                   |
+| `reset-aware` ⭐    | کوٹا ری سیٹ ہونے کے وقت کے لحاظ سے ترجیح دیں — مختصر ری سیٹ ونڈوز کو زیادہ درجہ دیا جاتا ہے                                                                                                                                            |
+| `reset-window`      | ان اہداف کو ترجیح دیں جن کی کوٹا ونڈو سب سے جلد ری سیٹ ہوگی                                                                                                                                                                            |
+| `headroom`          | سب سے زیادہ باقی ماندہ کوٹا گنجائش والا ہدف منتخب کریں                                                                                                                                                                                 |
+| `strict-random`     | تکرار کو حذف کیے بغیر بے ترتیب انتخاب                                                                                                                                                                                                  |
+| `auto`              | Auto Combo اسکورنگ (16 عوامل) استعمال کریں — **تجویز کردہ**                                                                                                                                                                            |
+| `lkgp`              | آخری معلوم کامیاب راستہ (آخری کامیاب فراہم کنندہ سے منسلک رہتا ہے، پھر قواعد کو متبادل کے طور پر استعمال کرتا ہے)                                                                                                                      |
+| `context-optimized` | موجودہ سیاق و سباق کے حجم کے لیے بہترین موزونیت والا ہدف منتخب کریں                                                                                                                                                                    |
+| `cache-optimized`   | پرامپٹ کیش سے مطابقت کے لحاظ سے اہداف کو دوبارہ ترتیب دیں — جس کنکشن میں اس درخواست کا کیش شدہ سابقہ حصہ پہلے سے موجود ہونے کا سب سے زیادہ امکان ہو، اسے پہلے آزمایا جاتا ہے (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
+| `fusion` 🧬         | ماڈلز کے ایک پینل کو متوازی طور پر چلائیں، پھر ایک جج کے ذریعے ایک جواب ترکیب دیں (ذیل میں دیکھیں)                                                                                                                                     |
+| `pipeline`          | اہداف کو ترتیب وار چلائیں، ہر مرحلے کے آؤٹ پٹ کو اگلے مرحلے کے اِن پٹ میں شامل کرتے ہوئے؛ صرف حتمی جواب واپس کیا جاتا ہے (#6396)                                                                                                       |
 
 ⭐ = v3.8.0 میں نیا · 🧬 = v3.8.36 میں نیا
 
 ### `weighted` کے معنوی اصول
 
-`weighted` **ہر درخواست کے لیے تناسبی بے ترتیب انتخاب** ہے
-(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`)، یہ برابری قائم کرنے والا طریقہ نہیں ہے:
+`weighted` **ہر درخواست کے لیے تناسبی بے ترتیب قرعہ اندازی** ہے
+(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`)، برابر تقسیم کرنے والا طریقہ نہیں:
 
 - ہر درخواست `weight / totalWeight` احتمال کے ساتھ **ایک** مرحلہ منتخب کرتی ہے؛ باقی مراحل
-  اس درخواست کے لیے متبادل سلسلے کے طور پر وزن کی نزولی ترتیب میں رکھے جاتے ہیں۔
-- وہ مرحلہ جس کا وزن `0` ہو (یا موجود نہ ہو)، اس وقت تک **کبھی منتخب نہیں ہوتا** جب تک کسی دوسرے مرحلے کا
-  وزن > 0 ہو — وہ صرف منتخب شدہ مرحلے کی ناکامی کے بعد بطور متبادل کام کر سکتا ہے۔ انتخاب صرف تب یکساں ہوتا ہے جب **تمام**
+  اس درخواست کی متبادل زنجیر کے طور پر وزن کی نزولی ترتیب میں رکھے جاتے ہیں۔
+- وہ مرحلہ جس کا وزن `0` ہو (یا موجود نہ ہو) اس وقت تک **کبھی منتخب نہیں ہوتا** جب تک کسی دوسرے مرحلے کا
+  وزن > 0 ہو — وہ صرف منتخب شدہ مرحلہ ناکام ہونے کے بعد متبادل کے طور پر کام کر سکتا ہے۔ انتخاب صرف اس وقت یکساں ہو جاتا ہے جب **تمام**
   اوزان 0 ہوں۔
 - وہ مراحل جن کے تمام اہداف غیر دستیاب ہوں — فراہم کنندہ کا سرکٹ بریکر `OPEN`، کنکشن
-  کول ڈاؤن، یا ماڈل لاک آؤٹ — انتخاب ہونے سے پہلے ہی قرعہ اندازی سے نکال دیے جاتے ہیں
-  (`open-sse/services/combo/targetResolution.ts`)، لہٰذا کوئی ایک صحت مند مرحلہ عارضی طور پر
+  کا کول ڈاؤن، ماڈل لاک آؤٹ — قرعہ اندازی سے پہلے ہی نکال دیے جاتے ہیں
+  (`open-sse/services/combo/targetResolution.ts`)، لہٰذا ایک واحد صحت مند مرحلہ عارضی طور پر
   ہر درخواست جیت سکتا ہے۔
-- `stickyWeightedLimit` (کومبو کنفیگریشن، طے شدہ قدر `1` = بند) منتخب شدہ مرحلے کو دوبارہ انتخاب کرنے سے پہلے اتنی
+- `stickyWeightedLimit` (کومبو کنفیگریشن، ڈیفالٹ `1` = بند) دوبارہ قرعہ اندازی سے پہلے منتخب شدہ مرحلے کو اتنی
   مسلسل کامیابیوں تک برقرار رکھتا ہے۔
 
-سخت گردشی ترتیب کے لیے `round-robin` استعمال کریں؛ `weighted` پر برابر اوزان شماریاتی توازن دیتے ہیں — سخت
-توازن نہیں۔
+سخت باری باری گردش کے لیے `round-robin` استعمال کریں؛ `weighted` میں برابر اوزان شماریاتی — نہ کہ
+سخت — توازن فراہم کرتے ہیں۔
+
+### ایجنٹ پر مبنی پائپ لائن موڈ
+
+دو مراحل پر مشتمل `pipeline` کومبو، `config.agenticOrchestration.enabled` کے ذریعے پلانر/ایگزیکیوٹر روٹنگ اختیار کر سکتا ہے۔ پہلا ہدف منصوبہ بندی اور حتمی جوابات کا ذمہ دار ہوتا ہے؛
+دوسرا ہدف کلائنٹ کے مقامی فارمیٹ میں ٹول کالز جاری کرتا ہے۔ OmniRoute درخواست کے پروٹوکول سے ٹول کے نتائج
+کے تسلسل کا پتہ لگاتا ہے، پلانر سے پوچھتا ہے کہ آیا ٹول کے ایک اور راؤنڈ کی
+ضرورت ہے، اور متحرک طور پر ایگزیکیوٹر یا پلانر میں سے کسی ایک کو کلائنٹ کے سامنے آنے والا حتمی
+مرحلہ بناتا ہے۔
+
+```json
+{
+  "strategy": "pipeline",
+  "models": [{ "model": "provider/planner" }, { "model": "provider/executor" }],
+  "config": {
+    "agenticOrchestration": { "enabled": true, "maxToolRounds": 8 }
+  }
+}
+```
+
+ایگزیکیوٹر ایک ہی جواب میں متعدد آزاد کالز جاری کر سکتا ہے۔ منحصر کالز کو
+بعد کی کلائنٹ ٹول-نتیجہ ٹرنز میں سنبھالا جاتا ہے، جبکہ پلانر ہر نتیجے کا جائزہ لیتا ہے۔
+`maxToolRounds` کی ڈیفالٹ قدر `8` ہے اور یہ `1`–`32` قبول کرتا ہے؛ حد پوری ہونے کے بعد، پلانر کو
+دستیاب بہترین حتمی جواب تیار کرنا لازم ہے۔ پلانر کے اندرونی فیصلے بفر کیے جاتے ہیں، جبکہ
+منتخب کردہ کلائنٹ-فیسنگ جواب اصل اسٹریمنگ ترجیح کو برقرار رکھتا ہے۔
+
+### `round-robin` اسٹکی بیچ اور اکاؤنٹ کی توسیع
+
+راؤنڈ روبن بیچز میں کام کرتا ہے، نہ کہ ہر مرحلے پر ایک درخواست کے حساب سے:
+
+- `stickyRoundRobinLimit` (پہلے کومبو کنفیگ، پھر `comboStickyRoundRobinLimit`، پھر
+  `settings.stickyRoundRobinLimit`، ڈیفالٹ **3**) روٹیشن سے پہلے اتنی ہی
+  مسلسل کامیابیوں تک اسی ہدف کو برقرار رکھتا ہے۔ ہر درخواست پر
+  روٹیشن کے لیے کومبو اوور رائیڈ کو `1` پر سیٹ کریں۔ کومبو ایڈیٹر مؤثر قدر اور یہ کہ وہ کس سطح سے آئی ہے، دکھاتا ہے۔
+- `connectionAwareExpansion` (پہلے کومبو کنفیگ، پھر سیٹنگز، ڈیفالٹ **false**) روٹیشن سے پہلے
+  ہر پرووائیڈر-سطح کے مرحلے کو فی اکاؤنٹ اہداف میں توسیع دیتا ہے۔ گروپ-B حکمت عملیاں
+  (priority، weighted، round-robin، random، p2c، least-used، cost-optimized، lkgp،
+  fill-first، strict-random، context-optimized، cache-optimized، context-relay، fusion،
+  pipeline) اسے فعال کیے جانے تک پرووائیڈر-سطح کا منظر برقرار رکھتی ہیں۔ کومبو ایڈیٹر
+  inherit / on / off کے اختیارات فراہم کرتا ہے؛ inherit عالمی ڈیفالٹ (off) استعمال کرتا ہے۔
+- پرامپٹ-کیش لوکیلٹی روٹنگ (`promptCacheAffinityEnabled`، ڈیفالٹ **true**) پن کیے گئے
+  کنکشنز کو دوبارہ ترتیب دیتی ہے تاکہ مماثل کیش کیز ایک ہی اکاؤنٹ پر رہیں۔ پن کیے گئے
+  فی اکاؤنٹ مراحل میں اسے راؤنڈ روبن اور وزنی روٹیشن پر فوقیت حاصل ہوتی ہے۔ اگر آپ کو سخت روٹیشن درکار ہو تو
+  Settings → Combo defaults میں اسے بند کر دیں۔ اس کے لیے کوئی فی کومبو اوور رائیڈ موجود نہیں ہے۔
+
+ایک ماڈل پر متعدد اکاؤنٹس کی روٹیشن کے لیے، تین پن کیے گئے `connectionId`s کے بجائے اسٹکی حد `1` کے ساتھ
+**ایک ڈائنامک-اکاؤنٹ مرحلے** (خالی `connectionId`، پورا پول) کو ترجیح دیں۔
+پن کیے گئے مراحل مع افینیٹی ایک ہی اکاؤنٹ پر مرکوز ہو جاتے ہیں، حتیٰ کہ جب RR کاؤنٹر
+آگے بڑھ رہا ہو۔
 
 ## فیوژن حکمتِ عملی
 
@@ -695,18 +740,18 @@ SLA سے آگاہ فیلڈز:
 
 (`AutoVariant` بذاتِ خود 6 اقدار شمار کرتا ہے؛ ساتواں آپشن "کوئی ویریئنٹ نہیں" — بنیادی `auto` — ہے، جسے `parseAutoPrefix()`، `variant: undefined` کے طور پر ہینڈل کرتا ہے۔)
 
-## ٹیئرز Auto-Combo میں کیسے شامل ہوتے ہیں
+## ٹئیرز Auto-Combo میں کیسے فٹ ہوتے ہیں
 
-16-فیکٹر اسکورنگ فنکشن (`open-sse/services/autoCombo/scoring.ts`) ٹیئر کی
-رکنیت کو دو سگنلز کے طور پر دیکھتا ہے: `tierPriority` (0.0476) اور `tierAffinity` (0.0476)۔ مکمل
-`DEFAULT_WEIGHTS` سیٹ کے لیے اوپر دی گئی مستند [اسکورنگ فیکٹر جدول](#how-it-works-persisted-auto-combos) دیکھیں — ہر پیک کے اوور رائیڈز (ship-fast/cost-saver/quality-first/
+16 عوامل پر مشتمل اسکورنگ فنکشن (`open-sse/services/autoCombo/scoring.ts`) ٹئیر کی
+رکنیت کو دو سگنلز کے طور پر استعمال کرتا ہے: `tierPriority` (0.0476) اور `tierAffinity` (0.0476)۔ مکمل
+`DEFAULT_WEIGHTS` سیٹ کے لیے اوپر دی گئی مستند [اسکورنگ عوامل کی جدول](#how-it-works-persisted-auto-combos) دیکھیں — ہر پیک کی مخصوص ترتیبات (ship-fast/cost-saver/quality-first/
 offline-friendly) "ہر پیک کے لیے ویٹ پروفائلز" کی جدول میں درج ہیں۔
 
-صرف ٹیئر، لازماً **Tier 1** کو پہلے نہیں رکھتا — اگر Tier 1 کی تاخیر خراب ہو یا
-لاگت بمقابلہ معیار ناموزوں ہو، تو Tier 2 منتخب ہوتا ہے۔ ٹیئر کی ترتیب لازمی نافذ کرنے کے لیے، کومبو
-حکمتِ عملی `priority` استعمال کریں اور پرووائیڈرز کو ٹیئر کے لحاظ سے ترتیب دیں۔
+صرف ٹئیر کی بنیاد پر **لازماً** Tier 1 کو پہلی ترجیح نہیں دی جاتی — اگر Tier 1 کی لیٹنسی خراب ہو یا
+لاگت بمقابلہ معیار غیر موزوں ہو، تو Tier 2 ترجیح حاصل کرتا ہے۔ ٹئیر کی ترتیب لازمی کرنے کے لیے، کومبو
+حکمتِ عملی `priority` استعمال کریں اور فراہم کنندگان کو ٹئیر کے مطابق ترتیب دیں۔
 
-Tier 1 (سبسکرپشن) کو نمایاں ترجیح دینے کے لیے، `tierPriority` کا ویٹ بڑھائیں:
+Tier 1 (سبسکرپشن) کو بھرپور ترجیح دینے کے لیے، `tierPriority` کا ویٹ بڑھائیں:
 
 ```json
 {
@@ -715,7 +760,7 @@ Tier 1 (سبسکرپشن) کو نمایاں ترجیح دینے کے لیے، `t
 }
 ```
 
-ٹیئر کی تعریفات اور پرووائیڈر کی درجہ بندی کے لیے `docs/marketing/TIERS.md` دیکھیں۔
+ٹئیر کی تعریفوں اور فراہم کنندگان کی درجہ بندی کے لیے [`docs/guides/TIERS.md`](../guides/TIERS.md) دیکھیں۔
 
 ## ٹیسٹنگ اور کوریج
 

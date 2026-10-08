@@ -35,6 +35,8 @@ import path from "node:path";
 import fs from "node:fs";
 import { pathToFileURL } from "node:url";
 
+import { notifyCompressionFailOpen } from "../../failOpenNotifier.ts";
+import { sanitizeErrorMessage } from "../../../../utils/errorSanitization.ts";
 import { LLMLINGUA_WORKER_TIMEOUT_MS, LLMLINGUA_WORKER_IDLE_MS } from "./constants.ts";
 import { resolveLlmlinguaModel } from "./modelStore.ts";
 import { packMemberInstalled } from "../../../../utils/optionalPacks.ts";
@@ -115,6 +117,10 @@ function runtimeAnchors(): string[] {
 // ─── optional-deps gate (memoized) ──────────────────────────────────────────────
 
 let _depsAvailable: boolean | null = null;
+let workerFactory: (workerFile: URL, options: { execArgv: string[] }) => Worker = (
+  workerFile,
+  options
+) => new Worker(workerFile, options);
 
 /**
  * Lazily (and once) check whether the optional LLMLingua dependency stack is installed,
@@ -180,9 +186,15 @@ let idleTimer: NodeJS.Timeout | null = null;
 export function resolveWorkerFile(): { workerFile: string; execArgv: string[] } {
   const anchors = runtimeAnchors();
 
-  // Prod first: the esbuild'd .js under the install root.
+  // The tracked .js file is only a Turbopack build-time placeholder in the source tree.
+  // A colocated bundle has its own ESM scope, written by colocate-standalone.mjs.
   const jsRoot = firstAncestorWith(anchors, WORKER_JS_REL);
-  if (jsRoot) return { workerFile: path.join(jsRoot, WORKER_JS_REL), execArgv: [] };
+  if (
+    jsRoot &&
+    (!fs.existsSync(path.join(jsRoot, WORKER_TS_REL)) ||
+      fs.existsSync(path.join(path.dirname(path.join(jsRoot, WORKER_JS_REL)), "package.json")))
+  )
+    return { workerFile: path.join(jsRoot, WORKER_JS_REL), execArgv: [] };
 
   // Dev: the .ts source (tsx loader).
   const tsRoot = firstAncestorWith(anchors, WORKER_TS_REL);
@@ -191,6 +203,15 @@ export function resolveWorkerFile(): { workerFile: string; execArgv: string[] } 
 
   // Nothing found — return a cwd-relative .js path; the spawn will fail-open.
   return { workerFile: path.join(process.cwd(), WORKER_JS_REL), execArgv: [] };
+}
+
+/**
+ * Worker entry specifier for `new Worker(...)`. Must be a URL OBJECT, never a
+ * `file://` string: Node >= 21 throws ERR_WORKER_PATH synchronously for string
+ * file:// URLs ("Wrap file:// URLs with `new URL`"). Exported for tests.
+ */
+export function llmlinguaWorkerSpecifier(workerFile: string): URL {
+  return new URL(pathToFileURL(path.resolve(workerFile)).href);
 }
 
 /** Reset the idle eviction timer; terminates the worker after the idle window. */
@@ -233,13 +254,7 @@ function ensureWorker(): Worker {
   if (worker) return worker;
 
   const { workerFile, execArgv } = resolveWorkerFile();
-  const absoluteWorkerFile = path.resolve(workerFile);
-  // Pass the URL OBJECT, not `.href`. `new Worker()` treats a plain string as a
-  // filesystem path, so a "file://..." string is looked up literally and throws
-  // ERR_WORKER_PATH (a string arg must start with ./ or ../). Only a URL instance
-  // is interpreted as a file: URL. Spawn failures are swallowed by pump()'s catch,
-  // so getting this wrong silently disables compression instead of erroring.
-  const w = new Worker(pathToFileURL(absoluteWorkerFile), { execArgv });
+  const w = workerFactory(llmlinguaWorkerSpecifier(workerFile), { execArgv });
 
   w.on("message", (reply: WorkerReply) => {
     const entry = pending.get(reply.id);
@@ -257,15 +272,20 @@ function ensureWorker(): Worker {
     pump();
   });
 
-  const failOpenAndRespawn = () => {
+  const failOpenAndRespawn = (detail: string) => {
     // Resolve every pending entry fail-open, then drop the worker so the next call respawns.
+    if (pending.size > 0) notifyCompressionFailOpen(detail);
     failAllPending();
     if (worker === w) worker = null;
     busy = false;
   };
 
-  w.on("error", failOpenAndRespawn);
-  w.on("exit", failOpenAndRespawn);
+  w.on("error", (error: Error) => {
+    failOpenAndRespawn(`llmlingua worker error: ${sanitizeErrorMessage(error.message)}`);
+  });
+  w.on("exit", (code: number) => {
+    failOpenAndRespawn(`llmlingua worker exit: ${code}`);
+  });
 
   worker = w;
   return w;
@@ -292,8 +312,11 @@ function pump(): void {
   let w: Worker;
   try {
     w = ensureWorker();
-  } catch {
+  } catch (error) {
     // Spawn failed → fail-open this item and continue draining the queue.
+    notifyCompressionFailOpen(
+      `llmlingua worker spawn failed: ${sanitizeErrorMessage(error instanceof Error ? error.message : error)}`
+    );
     busy = false;
     item.resolve(item.text);
     pump();
@@ -335,8 +358,11 @@ function pump(): void {
       compressionRate: item.opts?.compressionRate,
       modelPath: item.opts?.modelPath,
     });
-  } catch {
+  } catch (error) {
     // postMessage failed → fail-open this item and respawn.
+    notifyCompressionFailOpen(
+      `llmlingua worker postMessage failed: ${sanitizeErrorMessage(error instanceof Error ? error.message : error)}`
+    );
     clearTimeout(timer);
     pending.delete(id);
     item.resolve(item.text);
@@ -381,4 +407,21 @@ export function __resetLlmlinguaWorkerForTests(): void {
   resetWorker();
   _depsAvailable = null;
   nextId = 1;
+}
+
+/**
+ * Internal: override the worker constructor / the optional-deps gate for tests so
+ * the spawn- and postMessage-failure paths run without the real deps installed.
+ * Pass `null` to restore the defaults. Not part of the public contract.
+ */
+export function __setLlmlinguaWorkerHarnessForTests(harness: {
+  factory: ((workerFile: URL, options: { execArgv: string[] }) => Worker) | null;
+  depsAvailable: boolean | null;
+}): void {
+  if (harness.factory === null) {
+    workerFactory = (workerFile, options) => new Worker(workerFile, options);
+  } else if (harness.factory) {
+    workerFactory = harness.factory;
+  }
+  _depsAvailable = harness.depsAvailable;
 }

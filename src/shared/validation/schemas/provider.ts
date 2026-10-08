@@ -94,6 +94,7 @@ export const createProviderSchema = z
     globalPriority: z.number().int().min(1).max(100).nullable().optional(),
     defaultModel: z.string().max(200).nullable().optional(),
     testStatus: z.string().max(50).optional(),
+    allowNoCredential: z.literal(true).optional(),
     providerSpecificData: z
       .record(z.string(), z.unknown())
       .optional()
@@ -103,8 +104,15 @@ export const createProviderSchema = z
   })
   .superRefine((data, ctx) => {
     const apiKey = typeof data.apiKey === "string" ? data.apiKey.trim() : "";
-    const apiKeyOptional = providerAllowsOptionalApiKey(data.provider);
-    if (!apiKeyOptional && apiKey.length === 0) {
+    const catalogAllowsOptionalKey = providerAllowsOptionalApiKey(data.provider);
+    if (data.allowNoCredential === true && !catalogAllowsOptionalKey) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "This provider does not allow a connection without a credential",
+        path: ["allowNoCredential"],
+      });
+    }
+    if (!catalogAllowsOptionalKey && apiKey.length === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "API key is required",
@@ -298,6 +306,9 @@ export const providerModelMutationSchema = z.object({
   // the same flag flows through `getCustomVisionCapabilityFields()` in the /v1/models
   // catalog. `null` clears a manual override back to the id-based heuristic.
   supportsVision: z.boolean().nullable().optional(),
+  dimensions: z.number().int().positive().nullable().optional(),
+  supportedInputTypes: z.array(z.string()).optional(),
+  modelType: z.enum(["chat", "embedding", "image", "rerank"]).optional(),
   isFree: z.boolean().nullable().optional(),
   normalizeToolCallId: z.boolean().optional(),
   preserveOpenAIDeveloperRole: z.boolean().nullable().optional(),

@@ -37,7 +37,13 @@
 // GreenPT (#13024, 2b9e7fb3e) and EURouter (#13025, 22473dee5) each add one gateways entry — 240.
 // Agnes AI China (#13399, cdcde97c7) adds one apikey/regional entry — 241.
 // xKiro (#12648, 83fa4328f) adds one apikey entry — 242.
-// BigModel.cn (Zhipu, #12343) adds one regional API-key provider — 243.
+// Lyceum (pay-per-use OpenAI-compatible gateway, 2026-09-20) adds one apikey entry — 243.
+// Muse Code device OAuth dual-auth moves `muse-code` from frontier-labs into
+// OAUTH_PROVIDERS (same pattern as clinepass/codebuddy-cn) — 242.
+// Retiring suno (#14224, 4af4937e) removes one specialty-media apikey entry — 241.
+// Live origin/release/v3.8.52 (27b7e9528a) Object.keys(APIKEY_PROVIDERS).length is 242
+// (the frozen assertion on the tip still says 241). BigModel.cn (Zhipu, #12343) adds one
+// regional API-key provider — 243.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 

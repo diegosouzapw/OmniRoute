@@ -80,3 +80,45 @@ test("does not cache a streaming response truncated by max_tokens", () => {
   );
   assert.equal(stored.length, 0, "truncated streaming response must not be cached");
 });
+
+// #14159 (re-land of #12630): chatCore hands the streaming store the *assembled*
+// body (an object with `choices[].finish_reason`), not raw SSE text. The guard must
+// therefore also work on that shape — otherwise the streaming half of #12885 is a
+// no-op in production. The SSE-string case above is kept as-is (tip contract).
+test("does not cache an assembled streaming body truncated by max_tokens", () => {
+  const stored: unknown[] = [];
+  storeStreamingSemanticCacheResponse(
+    {
+      enabled: true,
+      streamStatus: 200,
+      streamResponseBody: {
+        choices: [{ finish_reason: "length", message: { content: "partial" } }],
+      },
+      body: { messages: [{ role: "user", content: "hi" }], temperature: 0 },
+      headers: undefined,
+      model: "gemini-3.5-flash",
+      streamUsage: { prompt_tokens: 10, completion_tokens: 93 },
+    },
+    deps(stored)
+  );
+  assert.equal(stored.length, 0, "truncated assembled streaming body must not be cached");
+});
+
+test("still caches a complete assembled streaming body", () => {
+  const stored: unknown[] = [];
+  storeStreamingSemanticCacheResponse(
+    {
+      enabled: true,
+      streamStatus: 200,
+      streamResponseBody: {
+        choices: [{ finish_reason: "stop", message: { content: "complete" } }],
+      },
+      body: { messages: [{ role: "user", content: "hi" }], temperature: 0 },
+      headers: undefined,
+      model: "gemini-3.5-flash",
+      streamUsage: { prompt_tokens: 10, completion_tokens: 239 },
+    },
+    deps(stored)
+  );
+  assert.equal(stored.length, 1, "complete streaming response must still be cached");
+});

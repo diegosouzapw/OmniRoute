@@ -1,6 +1,6 @@
 # Security Policy (ଓଡ଼ିଆ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇧🇦 [bs](../bs/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -220,38 +220,37 @@ docker run -d \
 10. **`env` ବିକଳ୍ପ ମାଧ୍ୟମରେ `exec()` / `spawn()` runtime values** — shellକୁ ପଠାଯାଉଥିବା scriptsରେ external paths କିମ୍ବା ଅବିଶ୍ୱସ୍ତ ମୂଲ୍ୟଗୁଡ଼ିକୁ କେବେ ମଧ୍ୟ string-interpolate କରନ୍ତୁ ନାହିଁ। ସନ୍ଦର୍ଭ: `src/mitm/cert/install.ts::updateNssDatabases`।
 11. **secure-by-default ଲାଇବ୍ରେରୀଗୁଡ଼ିକୁ ପ୍ରାଧାନ୍ୟ ଦିଅନ୍ତୁ** — [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) ଦେଖନ୍ତୁ (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink)। ନିଜର ସମାଧାନ ତିଆରି କରିବା ପୂର୍ବରୁ ସେଗୁଡ଼ିକୁ ବ୍ୟବହାର କରନ୍ତୁ।
 
-## ସପ୍ଲାଇ-ଚେନ୍ ସ୍କାନର୍ ନିଷ୍କର୍ଷଗୁଡ଼ିକ (Socket.dev / Snyk / ସମାନ)
+## ସପ୍ଲାଇ-ଚେନ୍ ସ୍କାନର୍ ଫଳାଫଳ (Socket.dev / Snyk / ସମାନ)
 
-ପ୍ରକାଶିତ `omniroute` npm ଆର୍ଟିଫ୍ୟାକ୍ଟ୍ Next.js `output: "standalone"`
-ବିଲ୍ଡକୁ ବଣ୍ଡଲ୍ କରେ, ଯାହାର ଅର୍ଥ ପ୍ରତ୍ୟେକ ରୁଟ୍ ହ୍ୟାଣ୍ଡଲର୍ — ଡକ୍ୟୁମେଣ୍ଟ୍ କରାଯାଇଥିବା
-ବିଶେଷାଧିକାରପ୍ରାପ୍ତ ସୁବିଧାଗୁଡ଼ିକ (MITM, Zed ଇମ୍ପୋର୍ଟ୍, Cloud Sync, ଏମ୍ବେଡେଡ୍ ସର୍ଭିସ୍
-ସୁପରଭାଇଜର୍) ସମେତ — `.next/server/*.js` ମିନିଫାଇଡ୍ ଚଙ୍କ୍ଗୁଡ଼ିକରେ
-ସାମିଲ ହୁଏ। ହ୍ୟୁରିଷ୍ଟିକ୍ ସପ୍ଲାଇ-ଚେନ୍ ସ୍କାନର୍ଗୁଡ଼ିକ ପ୍ରାୟତଃ ସେହି ଚଙ୍କ୍ଗୁଡ଼ିକୁ
-ମାଲୱେର୍ ସିଗ୍ନେଚର୍ଗୁଡ଼ିକ ସହିତ ପ୍ୟାଟର୍ନ୍-ମ୍ୟାଚ୍ କରନ୍ତି।
+> **ପରିସର ସୂଚନା:** ରିପୋଜିଟୋରି ରୁଟ୍ରେ ଥିବା `socket.yml` କେବଳ ପ୍ରକାଶିତ npm ଆର୍ଟିଫ୍ୟାକ୍ଟର Socket.dev ର ରେଜିଷ୍ଟ୍ରି-ପାର୍ଶ୍ୱ ପ୍ରକାଶନ-ପରବର୍ତ୍ତୀ ସ୍କାନ୍ ପାଇଁ `projectIgnorePaths` କୁ ବିନ୍ୟାସ କରେ — ଏହା ବାଧ୍ୟତାମୂଳକ CI/PR ମର୍ଜ୍ ଗେଟ୍ ନୁହେଁ। `.github/workflows` ରେ କୌଣସି ୱର୍କଫ୍ଲୋ, କୌଣସି `package.json` ସ୍କ୍ରିପ୍ଟ ଏବଂ କୌଣସି `Makefile` ଟାର୍ଗେଟ୍ Socket.dev କୁ ଆହ୍ୱାନ କରେ ନାହିଁ।
 
-ଆମେ ବ୍ୟବହାର କରୁଥିବା ସ୍କାନର୍ ବିନ୍ୟାସ ରିପୋଜିଟୋରିର ରୁଟ୍ରେ
-[`socket.yml`](socket.yml) ଠାରେ ରହିଛି (Socket.dev GitHub App ଫର୍ମାଟ୍ v2 — ଦେଖନ୍ତୁ
+ପ୍ରକାଶିତ `omniroute` npm ଆର୍ଟିଫ୍ୟାକ୍ଟ Next.js `output: "standalone"`
+ବିଲ୍ଡକୁ ବଣ୍ଡଲ୍ କରେ, ଯାହାର ଅର୍ଥ ପ୍ରତ୍ୟେକ ରୁଟ୍ ହ୍ୟାଣ୍ଡଲର୍ — ଡକ୍ୟୁମେଣ୍ଟ୍ କରାଯାଇଥିବା ବିଶେଷାଧିକାରପ୍ରାପ୍ତ
+ବୈଶିଷ୍ଟ୍ୟଗୁଡ଼ିକ (MITM, Zed ଇମ୍ପୋର୍ଟ୍, Cloud Sync, ଏମ୍ବେଡେଡ୍ ସର୍ଭିସ୍ ସୁପରଭାଇଜର୍) ସମେତ — ଶେଷରେ
+`.next/server/*.js` ମିନିଫାଇଡ୍ ଚଙ୍କ୍ଗୁଡ଼ିକରେ ସାମିଲ ହୁଏ। ହ୍ୟୁରିଷ୍ଟିକ୍ ସପ୍ଲାଇ-ଚେନ୍ ସ୍କାନର୍ଗୁଡ଼ିକ
+ପ୍ରାୟତଃ ସେହି ଚଙ୍କ୍ଗୁଡ଼ିକୁ ମାଲୱେର୍ ସିଗ୍ନେଚର୍ଗୁଡ଼ିକ ସହିତ ପ୍ୟାଟର୍ନ-ମ୍ୟାଚ୍ କରନ୍ତି।
+
+ଆମେ ବ୍ୟବହାର କରୁଥିବା ସ୍କାନର୍ ବିନ୍ୟାସ ରିପୋ ରୁଟ୍ରେ ଥିବା
+[`socket.yml`](socket.yml) ରେ ରହିଛି (Socket.dev GitHub App ଫର୍ମାଟ୍ v2 — ଦେଖନ୍ତୁ
 <https://docs.socket.dev/docs/socket-yml>)। ଏହା ସ୍ପଷ୍ଟ ଭାବରେ
-ବିତରଣ ହୋଇନଥିବା ଡିରେକ୍ଟୋରିଗୁଡ଼ିକୁ (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
-`_mono_repo/`, `docs/`, ଇତ୍ୟାଦି) ବାଦ ଦିଏ, ଯାହାଫଳରେ ସ୍କାନର୍ କେବଳ ସେହି କୋଡ୍ ପଥଗୁଡ଼ିକ
-ବିଷୟରେ ରିପୋର୍ଟ୍ କରେ ଯେଉଁଗୁଡ଼ିକ ପ୍ରକୃତରେ ପ୍ରକାଶିତ ସଂସ୍କରଣର ବ୍ୟବହାରକାରୀଙ୍କ ପାଖରେ
-ପହଞ୍ଚେ — ସ୍କାନ୍ଟି ଏହି ଫାଇଲ୍ ପଢ଼ୁଥିବା Socket GitHub App ଦ୍ୱାରା ପରିଚାଳିତ ହୁଏ,
-ଏହି ରିପୋଜିଟୋରିର କୌଣସି ୱାର୍କଫ୍ଲୋ ଦ୍ୱାରା ନୁହେଁ।
+ବିତରଣ କରାଯାଉ ନଥିବା ଡିରେକ୍ଟୋରିଗୁଡ଼ିକୁ (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/`, ଇତ୍ୟାଦି) ବାଦ୍ ଦିଏ, ଯାହାଫଳରେ ସ୍କାନର୍ କେବଳ ପ୍ରକାଶିତ ବ୍ୟବହାରକାରୀଙ୍କ ପାଖରେ
+ପ୍ରକୃତରେ ପହଞ୍ଚୁଥିବା କୋଡ୍ ପଥଗୁଡ଼ିକ ବିଷୟରେ ରିପୋର୍ଟ୍ କରେ — ସ୍କାନ୍ଟି ଏହି ଫାଇଲ୍ ପଢ଼ୁଥିବା Socket
+GitHub App ଦ୍ୱାରା ଚାଳିତ ହୁଏ, ଏହି ରିପୋଜିଟୋରିର କୌଣସି ୱର୍କଫ୍ଲୋ ଦ୍ୱାରା ନୁହେଁ।
 
-ପ୍ରତ୍ୟେକ ନିଷ୍କର୍ଷ ବର୍ଗ ପାଇଁ ଆମେ ପ୍ରତି-ନିଷ୍କର୍ଷ ମେଣ୍ଟେନର୍ ପ୍ରମାଣନ ରଖୁ:
+ପ୍ରତ୍ୟେକ ଫଳାଫଳ ବର୍ଗ ପାଇଁ ଆମେ ପ୍ରତି-ଫଳାଫଳ ମେଣ୍ଟେନର୍ ପ୍ରମାଣନ ରଖୁ:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  ପ୍ରତି-ନିଷ୍କର୍ଷ ମ୍ୟାପ୍: ସୋର୍ସ ଫାଇଲ୍ ↔ ଚିହ୍ନିତ ଚଙ୍କ୍ ↔ ଆଚରଣ ↔ v3.8.6ରେ
+  ପ୍ରତି-ଫଳାଫଳ ମ୍ୟାପ୍: ଉତ୍ସ ଫାଇଲ୍ ↔ ଚିହ୍ନିତ ଚଙ୍କ୍ ↔ ଆଚରଣ ↔ v3.8.6 ରେ
   ପ୍ରୟୋଗ କରାଯାଇଥିବା ପ୍ରଶମନ।
-- ପ୍ରତ୍ୟେକ ଚିହ୍ନିତ ଫଙ୍କସନ୍ରେ ଥିବା ଇନ୍-ସୋର୍ସ୍ `SECURITY-AUDITOR-NOTE:` ବ୍ଲକ୍ଗୁଡ଼ିକ
-  ସେହି ଡକ୍ୟୁମେଣ୍ଟ୍କୁ ପୁଣି ସୂଚିତ କରନ୍ତି।
+- ପ୍ରତ୍ୟେକ ଚିହ୍ନିତ ଫଙ୍କସନ୍ରେ ଥିବା ଇନ୍-ସୋର୍ସ `SECURITY-AUDITOR-NOTE:` ବ୍ଲକ୍ଗୁଡ଼ିକ
+  ସେହି ଡକ୍ୟୁମେଣ୍ଟକୁ ହିଁ ସୂଚିତ କରନ୍ତି।
 
-ଯେଉଁ ବ୍ୟବହାରକାରୀଙ୍କ ପାଇପ୍ଲାଇନ୍ ଚେତାବନୀକୁ ଶିଥିଳ କରିପାରେ ନାହିଁ:
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build` ସହିତ ବିଲ୍ଡ୍ କରନ୍ତୁ। ଏହା ଚାରୋଟି
-ସମ୍ବେଦନଶୀଳ ମଡ୍ୟୁଲ୍କୁ ଏମିତି ଷ୍ଟବ୍ରେ ପ୍ରତିସ୍ଥାପିତ କରେ, ଯାହା ରନ୍ଟାଇମ୍ରେ HTTP 503
-`feature-disabled` ଫେରାଏ; ଫଳରେ ବିଶେଷାଧିକାରପ୍ରାପ୍ତ କୋଡ୍ ପଥଗୁଡ଼ିକ ବଣ୍ଡଲ୍ରେ
-ଭୌତିକ ଭାବରେ ଅନୁପସ୍ଥିତ ରହେ। ପ୍ରକାଶନ ପ୍ରକ୍ରିୟା ପାଇଁ
-[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
+ଯେଉଁ ବ୍ୟବହାରକାରୀଙ୍କ ପାଇପଲାଇନ୍ରେ ସତର୍କତାକୁ ଶିଥିଳ କରାଯାଇପାରିବ ନାହିଁ:
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build` ସହିତ ବିଲ୍ଡ କରନ୍ତୁ। ଏହା ଚାରୋଟି
+ସମ୍ବେଦନଶୀଳ ମଡ୍ୟୁଲ୍କୁ ଏପରି ଷ୍ଟବ୍ଗୁଡ଼ିକ ସହିତ ବଦଳାଇଦିଏ, ଯେଉଁଗୁଡ଼ିକ ରନ୍ଟାଇମ୍ରେ HTTP 503
+`feature-disabled` ଫେରାନ୍ତି, ଫଳରେ ବିଶେଷାଧିକାରପ୍ରାପ୍ତ କୋଡ୍ ପଥଗୁଡ଼ିକ ବଣ୍ଡଲ୍ରେ ଭୌତିକ ଭାବରେ ଅନୁପସ୍ଥିତ ରହେ।
+ପ୍ରକାଶନ ପ୍ରଣାଳୀ ପାଇଁ [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
 ଦେଖନ୍ତୁ।
 
 ## ସନ୍ଦର୍ଭଗୁଡ଼ିକ

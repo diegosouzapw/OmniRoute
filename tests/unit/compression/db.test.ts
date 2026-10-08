@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import type { CavemanOutputModeConfig } from "../../../open-sse/services/compression/types.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-compression-db-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
@@ -119,6 +120,119 @@ describe("updateCompressionSettings", () => {
     const settings = await getCompressionSettings();
     assert.equal(settings.lite?.compressToolResults, true);
     assert.equal(settings.lite?.maxToolLength, undefined);
+  });
+
+  describe("a partial cavemanOutputMode write", () => {
+    const writeThenRead = async (cavemanOutputMode: Partial<CavemanOutputModeConfig>) => {
+      core.resetDbInstance();
+      await updateCompressionSettings({ cavemanOutputMode } as Parameters<
+        typeof updateCompressionSettings
+      >[0]);
+      core.resetDbInstance();
+      return (await getCompressionSettings()).cavemanOutputMode;
+    };
+    const seedStoredRow = (value: unknown) =>
+      core
+        .getDbInstance()
+        .prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)")
+        .run("compression", "cavemanOutputMode", value);
+
+    it("keeps the stored enabled and intensity when it only sends autoClarity", async () => {
+      await updateCompressionSettings({
+        cavemanOutputMode: { enabled: true, intensity: "ultra", autoClarity: true },
+      });
+      assert.deepEqual(await writeThenRead({ autoClarity: false }), {
+        enabled: true,
+        intensity: "ultra",
+        autoClarity: false,
+      });
+    });
+
+    it("keeps a stored autoClarity false when it only sends enabled", async () => {
+      await updateCompressionSettings({
+        cavemanOutputMode: { enabled: false, intensity: "full", autoClarity: false },
+      });
+      assert.deepEqual(await writeThenRead({ enabled: true }), {
+        enabled: true,
+        intensity: "full",
+        autoClarity: false,
+      });
+    });
+
+    it("applies each sent field over the stored row, and an empty write changes nothing", async () => {
+      await updateCompressionSettings({
+        cavemanOutputMode: { enabled: true, intensity: "ultra", autoClarity: false },
+      });
+      assert.deepEqual(await writeThenRead({ enabled: false }), {
+        enabled: false,
+        intensity: "ultra",
+        autoClarity: false,
+      });
+      assert.deepEqual(await writeThenRead({ autoClarity: true }), {
+        enabled: false,
+        intensity: "ultra",
+        autoClarity: true,
+      });
+      assert.deepEqual(await writeThenRead({ enabled: true, intensity: "lite" }), {
+        enabled: true,
+        intensity: "lite",
+        autoClarity: true,
+      });
+      assert.deepEqual(await writeThenRead({}), {
+        enabled: true,
+        intensity: "lite",
+        autoClarity: true,
+      });
+    });
+
+    it("takes each present-but-invalid field from the stored row", async () => {
+      await updateCompressionSettings({
+        cavemanOutputMode: { enabled: true, intensity: "ultra", autoClarity: false },
+      });
+      const invalid = { enabled: "yes", intensity: "mega", autoClarity: 1 };
+      assert.deepEqual(
+        await writeThenRead(invalid as unknown as Partial<CavemanOutputModeConfig>),
+        {
+          enabled: true,
+          intensity: "ultra",
+          autoClarity: false,
+        }
+      );
+    });
+
+    it("keeps the valid fields of a partially populated stored row", async () => {
+      seedStoredRow(JSON.stringify({ intensity: "ultra", autoClarity: false }));
+      assert.deepEqual(await writeThenRead({ enabled: true }), {
+        enabled: true,
+        intensity: "ultra",
+        autoClarity: false,
+      });
+    });
+
+    it("treats a non-text, unparseable, or null stored row as absent", async () => {
+      seedStoredRow(
+        Buffer.from(JSON.stringify({ enabled: true, intensity: "ultra", autoClarity: true }))
+      );
+      assert.deepEqual(await writeThenRead({ autoClarity: false }), {
+        enabled: false,
+        intensity: "lite",
+        autoClarity: false,
+      });
+
+      seedStoredRow("{not valid json");
+      assert.deepEqual(await writeThenRead({ enabled: true }), {
+        enabled: true,
+        intensity: "lite",
+        autoClarity: true,
+      });
+
+      seedStoredRow("null");
+      assert.deepEqual(await writeThenRead({ autoClarity: false }), {
+        enabled: false,
+        intensity: "lite",
+        autoClarity: false,
+      });
+    });
   });
 
   it("updates defaultMode", async () => {

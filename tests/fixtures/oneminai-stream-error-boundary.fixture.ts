@@ -361,6 +361,7 @@ test("chatCore preserves batched 1min.ai content before its terminal stream erro
       message: "1min.ai upstream stream failed",
       code: "stream_pipeline_error",
       type: "stream_error",
+      outputEmitted: true,
     },
   ]);
 
@@ -461,6 +462,7 @@ test("chatCore preserves partial 1min.ai content then finalizes and persists a s
     message: "1min.ai upstream stream failed",
     code: "stream_pipeline_error",
     type: "stream_error",
+    outputEmitted: true,
   });
   const pending = usageHistory.getPendingRequests();
   assert.deepEqual(Object.keys(pending.byModel), []);

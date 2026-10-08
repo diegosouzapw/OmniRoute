@@ -1,6 +1,6 @@
 # Cloud Agents (中文 (繁體))
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/CLOUD_AGENT.md) · 🇪🇹 [am](../../../am/docs/frameworks/CLOUD_AGENT.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/CLOUD_AGENT.md) · 🇦🇿 [az](../../../az/docs/frameworks/CLOUD_AGENT.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/CLOUD_AGENT.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/CLOUD_AGENT.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/CLOUD_AGENT.md) · 🇩🇰 [da](../../../da/docs/frameworks/CLOUD_AGENT.md) · 🇩🇪 [de](../../../de/docs/frameworks/CLOUD_AGENT.md) · 🇬🇷 [el](../../../el/docs/frameworks/CLOUD_AGENT.md) · 🇪🇸 [es](../../../es/docs/frameworks/CLOUD_AGENT.md) · 🇪🇪 [et](../../../et/docs/frameworks/CLOUD_AGENT.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/CLOUD_AGENT.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/CLOUD_AGENT.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/CLOUD_AGENT.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/CLOUD_AGENT.md) · 🇮🇱 [he](../../../he/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/CLOUD_AGENT.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/CLOUD_AGENT.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/CLOUD_AGENT.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/CLOUD_AGENT.md) · 🇮🇩 [id](../../../id/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/CLOUD_AGENT.md) · 🇮🇹 [it](../../../it/docs/frameworks/CLOUD_AGENT.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/CLOUD_AGENT.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/CLOUD_AGENT.md) · 🇰🇭 [km](../../../km/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/CLOUD_AGENT.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/CLOUD_AGENT.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/CLOUD_AGENT.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/CLOUD_AGENT.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/CLOUD_AGENT.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/CLOUD_AGENT.md) · 🇲🇲 [my](../../../my/docs/frameworks/CLOUD_AGENT.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/CLOUD_AGENT.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/CLOUD_AGENT.md) · 🇳🇴 [no](../../../no/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [or](../../../or/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/CLOUD_AGENT.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/CLOUD_AGENT.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/CLOUD_AGENT.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/CLOUD_AGENT.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/CLOUD_AGENT.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/CLOUD_AGENT.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/CLOUD_AGENT.md) · 🇱🇰 [si](../../../si/docs/frameworks/CLOUD_AGENT.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/CLOUD_AGENT.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/CLOUD_AGENT.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/CLOUD_AGENT.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/CLOUD_AGENT.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [te](../../../te/docs/frameworks/CLOUD_AGENT.md) · 🇹🇭 [th](../../../th/docs/frameworks/CLOUD_AGENT.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/CLOUD_AGENT.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/CLOUD_AGENT.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/CLOUD_AGENT.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/CLOUD_AGENT.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/CLOUD_AGENT.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/CLOUD_AGENT.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/CLOUD_AGENT.md) · 🇪🇹 [am](../../../am/docs/frameworks/CLOUD_AGENT.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/CLOUD_AGENT.md) · 🇦🇿 [az](../../../az/docs/frameworks/CLOUD_AGENT.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/CLOUD_AGENT.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/CLOUD_AGENT.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/CLOUD_AGENT.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/CLOUD_AGENT.md) · 🇩🇰 [da](../../../da/docs/frameworks/CLOUD_AGENT.md) · 🇩🇪 [de](../../../de/docs/frameworks/CLOUD_AGENT.md) · 🇬🇷 [el](../../../el/docs/frameworks/CLOUD_AGENT.md) · 🇪🇸 [es](../../../es/docs/frameworks/CLOUD_AGENT.md) · 🇪🇪 [et](../../../et/docs/frameworks/CLOUD_AGENT.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/CLOUD_AGENT.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/CLOUD_AGENT.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/CLOUD_AGENT.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/CLOUD_AGENT.md) · 🇮🇱 [he](../../../he/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/CLOUD_AGENT.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/CLOUD_AGENT.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/CLOUD_AGENT.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/CLOUD_AGENT.md) · 🇮🇩 [id](../../../id/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/CLOUD_AGENT.md) · 🇮🇹 [it](../../../it/docs/frameworks/CLOUD_AGENT.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/CLOUD_AGENT.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/CLOUD_AGENT.md) · 🇰🇭 [km](../../../km/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/CLOUD_AGENT.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/CLOUD_AGENT.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/CLOUD_AGENT.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/CLOUD_AGENT.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/CLOUD_AGENT.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/CLOUD_AGENT.md) · 🇲🇲 [my](../../../my/docs/frameworks/CLOUD_AGENT.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/CLOUD_AGENT.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/CLOUD_AGENT.md) · 🇳🇴 [no](../../../no/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [or](../../../or/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/CLOUD_AGENT.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/CLOUD_AGENT.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/CLOUD_AGENT.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/CLOUD_AGENT.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/CLOUD_AGENT.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/CLOUD_AGENT.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/CLOUD_AGENT.md) · 🇱🇰 [si](../../../si/docs/frameworks/CLOUD_AGENT.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/CLOUD_AGENT.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/CLOUD_AGENT.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/CLOUD_AGENT.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/CLOUD_AGENT.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [te](../../../te/docs/frameworks/CLOUD_AGENT.md) · 🇹🇭 [th](../../../th/docs/frameworks/CLOUD_AGENT.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/CLOUD_AGENT.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/CLOUD_AGENT.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/CLOUD_AGENT.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/CLOUD_AGENT.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/CLOUD_AGENT.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/CLOUD_AGENT.md)
 
 ---
 
@@ -110,7 +110,7 @@ export abstract class CloudAgentBase {
     c: AgentCredentials
   ): Promise<{ name: string; url: string; branch?: string }[]>;
 
-  protected mapStatus(raw: string): CloudAgentStatus; // 啟發式將上游字串 → 列舉
+  protected mapStatus(raw: string): CloudAgentStatus; // 啟發式地將上游字串 → 列舉
   protected generateTaskId(): string; // `task_<ts>_<rand>`
   protected generateActivityId(): string; // `act_<ts>_<rand>`
 }
@@ -118,7 +118,7 @@ export abstract class CloudAgentBase {
 
 `CodexCloudAgent.approvePlan` 會刻意擲出例外——Codex Cloud 會自動規劃，且沒有核准閘門。`CodexCloudAgent.listSources` 會回傳 `[]`。
 
-`CursorCloudAgent` 透過 Cursor 的官方 REST API（`api.cursor.com/v0`），使用**使用者或服務帳戶 API 金鑰**來驅動 Cursor 的 Background / Cloud Agents——相較於重複使用 Cursor IDE 的 OAuth 工作階段（提供者 `cursor`，帶有帳號遭封鎖的風險警告），這是更安全的第一方替代方案。它是純 REST 轉接器（不含 `@cursor/sdk` 原生相依套件）。`approvePlan` 會擲出例外（Cursor 代理程式會自主執行）；`listSources` 會列出該金鑰可存取的儲存庫。Cursor 會回傳大寫狀態列舉（`CREATING`/`RUNNING`/`FINISHED`/`ERROR`），這些值會明確對應至共用的 `CloudAgentStatus`。每組認證均可覆寫 `baseUrl`，因此無須變更程式碼即可修正 API 版本／路徑。
+`CursorCloudAgent` 透過 Cursor 的官方 REST API（`api.cursor.com/v0`），使用**使用者或服務帳戶 API 金鑰**來驅動 Cursor 的背景／雲端代理程式——相較於重複使用 Cursor IDE 的 OAuth 工作階段（提供者 `cursor`，並附有封鎖風險警告），這是更安全的官方替代方案。它是純 REST 轉接器（沒有 `@cursor/sdk` 原生相依性）。`approvePlan` 會擲出例外（Cursor 代理程式會自主執行）；`listSources` 會列出該金鑰可存取的儲存庫。Cursor 會回傳大寫狀態列舉（`CREATING`/`RUNNING`/`FINISHED`/`ERROR`），並將其明確對應至共用的 `CloudAgentStatus`。每組認證皆可覆寫 `baseUrl`，因此無須變更程式碼即可修正 API 版本／路徑。
 
 ## 領域類型
 
@@ -295,24 +295,29 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 上游提供者——`CloudAgentBase` 中沒有中止 RPC。若要停止上游計費，
 請在提供者自己的主控台中終止任務。
 
-## REST API — 雲端提供者基礎整合
+## REST API — 雲端提供者整合
 
-`src/app/api/cloud/` 下的這些輔助端點供遠端用戶端
-（CLI、Electron 應用程式或同步工作器）用來讀取提供者連線中繼資料
-並解析模型別名。它們使用**一般 API 金鑰**
-（透過 `validateApiKey`）進行驗證，而非任務端點所使用的管理驗證。
+位於 `src/app/api/cloud/` 下的這些輔助端點，供遠端用戶端
+（CLI、Electron 應用程式或同步工作程序）用來讀取提供者連線中繼資料
+及解析模型別名。它們使用 **API 金鑰**
+（透過 `validateApiKey`）進行驗證，而非任務端點所使用的管理驗證；
+`/api/cloud/auth` 回傳的內容取決於金鑰的作用域（請參閱下文）。
 
-| 方法 | 路徑                            | 用途                                                |
-| ---- | ------------------------------- | --------------------------------------------------- |
-| POST | `/api/cloud/auth`               | 驗證 API 金鑰，傳回遮罩處理的連線中繼資料與模型別名 |
-| PUT  | `/api/cloud/credentials/update` | 更新 `accessToken` / `refreshToken` / `expiresAt`   |
-| POST | `/api/cloud/model/resolve`      | 將模型別名解析為 `{ provider, model }`              |
-| GET  | `/api/cloud/models/alias`       | 列出所有模型別名                                    |
-| PUT  | `/api/cloud/models/alias`       | 設定模型別名（若已啟用，會自動同步至 Cloud）        |
+| 方法 | 路徑                            | 用途                                              |
+| ---- | ------------------------------- | ------------------------------------------------- |
+| POST | `/api/cloud/auth`               | 驗證 API 金鑰，回傳遮罩後的連線中繼資料及模型別名 |
+| PUT  | `/api/cloud/credentials/update` | 更新 `accessToken` / `refreshToken` / `expiresAt` |
+| POST | `/api/cloud/model/resolve`      | 將模型別名解析為 `{ provider, model }`            |
+| GET  | `/api/cloud/models/alias`       | 列出所有模型別名                                  |
+| PUT  | `/api/cloud/models/alias`       | 設定模型別名（若已啟用，則自動同步至 Cloud）      |
 
-`/api/cloud/auth` 絕不會傳回原始的 `apiKey` / `accessToken` / `refreshToken`。它會
-傳回 `hasApiKey`、`hasAccessToken`、`hasRefreshToken`，以及遮罩處理的預覽
-（`maskedApiKey`：前 4 個字元 + `****` + 後 4 個字元）。
+`/api/cloud/auth` 絕不會回傳原始的 `apiKey` / `accessToken` / `refreshToken`。它會
+針對該金鑰可使用的有效連線，回傳 `hasApiKey`、`hasAccessToken`、`hasRefreshToken`
+（受 `allowedConnections` 限制的金鑰只能看到這些連線）。對於具有
+`manage` 或 `admin` 作用域的 API 金鑰，包括來自 `OMNIROUTE_API_KEY` 的部署金鑰，它還會
+回傳遮罩後的預覽（`maskedApiKey`：首尾各最多顯示 4 個字元；較短的金鑰會顯示更少；
+若為 8 個字元或更短則完全不顯示）以及連線的 `projectId`。對於任何其他金鑰，這兩個欄位
+都不會包含在回應中。
 
 ## 憑證解析
 

@@ -6,7 +6,7 @@
  * on keeping tests in tests/unit/ui/ (both vitest configs discover it here).
  */
 import React from "react";
-import { createRoot } from "react-dom/client";
+import { createRoot, type Root } from "react-dom/client";
 import { act } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import ProviderCard, {
@@ -36,12 +36,16 @@ if (typeof Element.prototype.animate === "undefined") {
 
 describe("ProviderCardHandle imperative API", () => {
   let container: HTMLDivElement | null = null;
+  const mounted: { root: Root; container: HTMLDivElement }[] = [];
   let handle: ProviderCardHandle | null = null;
 
-  afterEach(() => {
+  afterEach(async () => {
+    for (const instance of mounted.splice(0)) {
+      await act(async () => instance.root.unmount());
+      instance.container.remove();
+    }
     handle = null;
     if (container) {
-      document.body.removeChild(container);
       container = null;
     }
   });
@@ -53,6 +57,7 @@ describe("ProviderCardHandle imperative API", () => {
     container = document.createElement("div");
     document.body.appendChild(container);
     const root = createRoot(container);
+    mounted.push({ root, container });
     act(() => {
       root.render(
         <ProviderCard
@@ -115,6 +120,7 @@ describe("ProviderCardHandle imperative API", () => {
     container = document.createElement("div");
     document.body.appendChild(container);
     const root = createRoot(container);
+    mounted.push({ root, container });
     let h: ProviderCardHandle | null = null;
     act(() => {
       root.render(

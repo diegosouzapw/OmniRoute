@@ -74,6 +74,7 @@ export const clineProvider: RegistryEntry = {
       contextLength: 1000000,
       maxInputTokens: 1000000,
       maxOutputTokens: 128000,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
     },
     {
       id: "openrouter/free",

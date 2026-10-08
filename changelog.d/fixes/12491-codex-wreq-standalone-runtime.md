@@ -1,1 +1,0 @@
-- **fix(sse):** Codex WebSocket transport (including the app-server) no longer fails to load in the Next.js standalone Docker runtime — the wreq-js loader now resolves its module name dynamically instead of a literal Turbopack could rewrite to an unreachable build-time symlink (#12491) — thanks @marshalfevzi

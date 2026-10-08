@@ -98,6 +98,14 @@ async function resolveVertexDiscoveryAuth(options: {
   return { queryKey: credential, bearerToken: null };
 }
 
+function buildExpressDiscoveryWarning(discovery: { failureStatus?: number }): string {
+  return (
+    (discovery.failureStatus
+      ? `Vertex model listing rejected the API key (HTTP ${discovery.failureStatus}). `
+      : "") + "No live catalog available for this API key — using curated Express catalog"
+  );
+}
+
 async function handleVertexApiKeyCatalog(
   options: VertexDiscoveryRouteOptions,
   queryKey: string,
@@ -105,9 +113,11 @@ async function handleVertexApiKeyCatalog(
 ): Promise<Response> {
   const { discoverVertexModelsWithApiKey } =
     await import("@/lib/providerModels/vertexModelDiscovery");
+  const { isVertexExpressModel } = await import("@omniroute/open-sse/config/vertexModels.ts");
   const discovery = await discoverVertexModelsWithApiKey({
     apiKey: queryKey,
     fetchImpl: vertexFetch(options.proxy),
+    curatedModels: catalog.filter((model) => isVertexExpressModel(model.id)),
   });
 
   if (discovery.models.length === 0 && discovery.unavailable) {
@@ -138,7 +148,6 @@ async function handleVertexApiKeyCatalog(
     await updateProviderConnection(options.connectionId, { projectId });
   }
 
-  const { isVertexExpressModel } = await import("@omniroute/open-sse/config/vertexModels.ts");
   if (projectId) {
     const liveGeminiModels = asNamedModels(discovery.models);
     const projectCatalog = mergeLocalCatalogModels(liveGeminiModels, catalog);
@@ -156,6 +165,7 @@ async function handleVertexApiKeyCatalog(
       intentional: true,
       projectIdAutoDetected,
       catalogMode: "curated_project",
+      warning: buildExpressDiscoveryWarning(discovery),
     });
   }
 
@@ -169,10 +179,7 @@ async function handleVertexApiKeyCatalog(
     models: catalog.filter((model) => isVertexExpressModel(model.id)),
     source: "local_catalog",
     intentional: true,
-    warning:
-      (discovery.failureStatus
-        ? `Generative Language model listing rejected the API key (HTTP ${discovery.failureStatus}). `
-        : "") + "No live catalog available for this API key — using curated Express catalog",
+    warning: buildExpressDiscoveryWarning(discovery),
   });
 }
 

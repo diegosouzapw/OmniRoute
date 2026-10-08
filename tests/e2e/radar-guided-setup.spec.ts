@@ -13,6 +13,7 @@ async function fulfillJson(route: Route, body: unknown, status = 200) {
 }
 
 async function installGuidedSetupApi(page: Page) {
+  const calls = { syncModels: 0 };
   await page.route("**/api/**", async (route) => {
     const request = route.request();
     const url = new URL(request.url());
@@ -79,6 +80,7 @@ async function installGuidedSetupApi(page: Page) {
     }
 
     if (/^\/api\/providers\/[^/]+\/sync-models$/.test(url.pathname) && method === "POST") {
+      calls.syncModels += 1;
       await fulfillJson(route, { syncedModels: 0, models: [], availableModelsCount: 0 });
       return;
     }
@@ -90,6 +92,7 @@ async function installGuidedSetupApi(page: Page) {
 
     await route.continue();
   });
+  return calls;
 }
 
 async function captureEvidence(page: Page, name: string) {
@@ -101,7 +104,7 @@ test.describe("Radar guided setup", () => {
   test("uses the official URL, real provider routes, isolated persistence, and real test route", async ({
     page,
   }) => {
-    await installGuidedSetupApi(page);
+    const apiCalls = await installGuidedSetupApi(page);
 
     await gotoDashboardRoute(page, "/dashboard/radar/setup?provider=groq", {
       timeoutMs: NAVIGATION_TIMEOUT_MS,
@@ -138,12 +141,11 @@ test.describe("Radar guided setup", () => {
     const connectionId = created.connection?.id;
     expect(connectionId).toBeTruthy();
 
-    const importDialog = page.getByRole("dialog").last();
-    const closeImportButton = importDialog.getByRole("button", { name: "Close" }).last();
-    await expect(closeImportButton).toBeVisible({
-      timeout: NAVIGATION_TIMEOUT_MS,
-    });
-    await closeImportButton.click();
+    // PR #11798: model auto-fetch is opt-in (`providerSpecificData.autoFetchModels`,
+    // default off). The add form does not opt in, so saving must NOT open the
+    // model-import modal nor call /sync-models — the add dialog just closes.
+    await expect(page.getByRole("dialog")).toHaveCount(0, { timeout: NAVIGATION_TIMEOUT_MS });
+    expect(apiCalls.syncModels).toBe(0);
 
     await page.goto("/dashboard/radar/setup?provider=groq", {
       waitUntil: "commit",

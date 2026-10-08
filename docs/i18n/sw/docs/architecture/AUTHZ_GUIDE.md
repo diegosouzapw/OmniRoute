@@ -1,31 +1,31 @@
 # Authorization Guide (Kiswahili)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
 
 ---
 
-> **Chanzo rasmi:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Ilisasishwa mara ya mwisho:** 2026-06-28 — v3.8.40
+> **Chanzo cha ukweli:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **Iliyosasishwa mwisho:** 2026-09-22 — majina ya nafasi za wigo yanaelekeza kwenye MCP-SERVER.md
 
-OmniRoute ina mtiririko wa uidhinishaji unaotambua njia, ambao hudhibiti kila ombi la API. Uainishaji ni **wa kuamuliwa bila utata** na **hufungwa unaposhindwa** — chochote kisichoweza kuainishwa huishia kuwa `MANAGEMENT` na huhitaji kipindi au tokeni ya kiwango cha usimamizi. Ukurasa huu unafafanua muundo huo kwa wahandisi wanaodumisha njia au kubuni endpoints mpya.
+OmniRoute ina bomba la uidhinishaji linalozingatia njia ambalo huzuia kila ombi la API. Uainishaji ni **hakika** na **hufeli-hufungwa** — chochote kisichoweza kuainishwa huishia kama `MANAGEMENT` na huhitaji kipindi au tokeni ya kiwango cha usimamizi. Ukurasa huu unaeleza mfumo kwa wahandisi wanaosimamia njia au kubuni vituo vipya.
 
-![Mtiririko wa AuthZ (madarasa 3 ya njia + tathmini ya sera)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ pipeline (3 route classes + policy evaluation)](../diagrams/exported/authz-pipeline.svg)
 
 > Chanzo: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
-## Njia Mbili za Uthibitishaji
+## Mbinu Mbili za Uthibitishaji
 
-### 1. Ufunguo wa API (Bearer)
+### 1. API Key (Bearer)
 
-Hutumika kwa API za wateja zinazooana na OpenAI/Anthropic/Gemini na kwa njia chache za usimamizi wakati ufunguo una upeo wa `manage`.
+Hutumika kwa API za mteja zinazooana na OpenAI/Anthropic/Gemini na baadhi ya njia za usimamizi wakati ufunguo una upeo wa `manage`.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Huthibitishwa na `isValidApiKey()` / `extractApiKey()` katika `src/sse/services/auth.ts` na kusafirishwa tena kupitia `src/shared/utils/apiAuth.ts`. Kithibitishaji pia hukubali vigeu vya mazingira vya `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` kama funguo endelevu za kupitishia (suala #1350).
+Huthibitishwa na `isValidApiKey()` / `extractApiKey()` katika `src/sse/services/auth.ts` na husafirishwa tena kupitia `src/shared/utils/apiAuth.ts`. Kithibitishaji pia hukubali vibadilika vya mazingira vya `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` kama funguo endelevu za kupitisha moja kwa moja (suala #1350).
 
-### 2. Kipindi cha Dashibodi (kidakuzi cha auth_token)
+### 2. Kikao cha Dashibodi (kidakuzi cha auth_token)
 
 Kwa kurasa za dashibodi na shughuli za msimamizi.
 
@@ -33,43 +33,44 @@ Kwa kurasa za dashibodi na shughuli za msimamizi.
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-Kidakuzi ni kipindi ikiwa tu JWT imethibitishwa **na** ina `authenticated: true`
+Kidakuzi ni kikao tu wakati JWT imethibitishwa **na** ina `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Kila
-mtumiaji wa kidakuzi hicho (kilinzi cha njia, uonyeshaji upya wa mtiririko wa authz, makubaliano ya awali ya WebSocket, seva
-ya moja kwa moja, `/api/settings/require-login`, `/api/auth/status`) hupitia kisaidizi hicho.
-JWT nyingine zilizotiwa saini kwa `JWT_SECRET` zipo — upitishaji wa Cursor CLI hutengeneza
-tokeni za `iss "omniroute" / aud "cursor-cli"` kwa wamiliki wa funguo — na kamwe si vipindi
+mtumiaji wa kidakuzi hicho (kilinzi cha njia ya dashibodi (`isDashboardSessionAuthenticated()`), uonyeshaji upya wa mchakato wa authz, makubaliano ya awali ya WebSocket, seva ya moja kwa moja, `/api/settings/require-login`, `/api/auth/status`) hupitia kisaidizi hicho.
+Kuna JWT nyingine zilizosainiwa kwa `JWT_SECRET` — upitishaji wa Cursor CLI hutengeneza
+tokeni za `iss "omniroute" / aud "cursor-cli"` kwa wamiliki wa funguo — na tokeni hizo kamwe si vikao
 (#13298).
 
-Huthibitishwa na `isDashboardSessionAuthenticated()` katika `src/shared/utils/apiAuth.ts`. Mtiririko huonyesha upya JWT kiotomatiki ikiwa imebakiza chini ya siku 7 katika muda wake wa matumizi wa siku 30.
+Huthibitishwa na `isDashboardSessionAuthenticated()` katika `src/shared/utils/apiAuth.ts`. Mchakato huonyesha upya JWT kiotomatiki wakati imebakiza chini ya siku 7 kati ya muda wake wa uhai wa siku 30.
 
-Baadhi ya njia za usimamizi hukubali **mojawapo** ya njia hizi: kidakuzi AU `Bearer <key>` wakati ufunguo wa API una upeo wa `manage` (au `admin`). Hili ndilo linalowezesha mtiririko wa kazi wa "kusanidi kupitia miito ya API" ulioongezwa katika v3.8.
+Kikao kinaweza pia kuisha kabla ya siku zake 30 kukamilika, kwa sababu kila kitengeneza-tokeni hupitia `mintDashboardSessionToken` (muda wa kutolewa `iat` na kitambulisho `jti`) na kithibitishaji hukagua mipangilio miwili: `sessionsValidAfter`, ambayo huwekwa baada ya nenosiri kubadilishwa ili kila kikao kilichotolewa kabla yake kisiendelee kuthibitishwa (kivinjari kilichobadilisha nenosiri hupata kidakuzi kipya), na `revokedDashboardSessions`, ambamo `POST /api/auth/logout` huongeza `jti` ya kikao kilichoondolewa. Vikao vilivyotengenezwa na toleo la zamani havina dai lolote kati ya hayo na huendelea kuwa halali hadi nenosiri libadilishwe kwa mara ya kwanza. Ikiwa mipangilio haiwezi kusomwa, kikao hakiaminiki.
+
+Baadhi ya njia za usimamizi hukubali **mojawapo** ya mbinu hizi: kidakuzi AU `Bearer <key>` wakati ufunguo wa API una upeo wa `manage` (au `admin`). Hili ndilo linalowezesha mtiririko wa kazi wa "kusanidi kupitia miito ya API" ulioongezwa katika v3.8.
 
 #### Kizuizi cha hiari cha kuingia kwa OIDC (#6973)
 
-Kuingia kwa msimamizi wa dashibodi pia kunaauni mtiririko wa **hiari** wa OIDC (OpenID Connect)
-pamoja na njia chaguomsingi ya kuingia kwa nenosiri — kuingia kwa nenosiri hakuondolewi kamwe,
-bali huongezewa tu:
+Kuingia kwa msimamizi wa dashibodi pia kunatumia mtiririko wa **hiari** wa OIDC (OpenID Connect)
+pamoja na kuingia kwa kutumia nenosiri ambako ni chaguo-msingi — kuingia kwa nenosiri hakuondolewi kamwe, bali
+huongezewa tu:
 
 - Huzimwa isipokuwa `settings.oidcEnabled === true` **na** `oidcIssuer` /
   `oidcClientId` / `oidcClientSecret` zote zimesanidiwa (Mipangilio → Uthibitishaji).
-  `GET /api/auth/oidc/login` hurejesha `400` vinginevyo.
+  Vinginevyo, `GET /api/auth/oidc/login` hurejesha `400`.
 - `GET /api/auth/oidc/login` hugundua `authorization_endpoint` kutoka kwenye
   `/.well-known/openid-configuration` ya mtoaji (na hutumia
-  `<issuer>/authorize` ikiwa hilo halipatikani), huunda URI ya kuelekeza upya kutoka kwenye ombi linaloingia
-  (kwa kuzingatia `x-forwarded-proto`), na huelekeza upya kwenda kwa IdP ikiwa na `state`
-  ya nasibu iliyohifadhiwa katika kidakuzi cha `oidc_state` cha `httpOnly`.
+  `<issuer>/authorize` kama mbadala), huunda URI ya kuelekeza upya kutokana na ombi linaloingia
+  (kwa kuzingatia `x-forwarded-proto`), na huelekeza kwa IdP ikiwa na `state` ya nasibu
+  iliyohifadhiwa katika kidakuzi cha `oidc_state` chenye `httpOnly`.
 - `GET /api/auth/oidc/callback` huthibitisha `state`, hubadilishana msimbo wa uidhinishaji,
-  na kuthibitisha saini ya tokeni ya ID kupitia JWKS ya mtoaji
+  na huthibitisha saini ya tokeni ya ID kupitia JWKS ya mtoaji
   (`createRemoteJWKSet` ya `jose`, iliyohifadhiwa kwenye akiba kwa kila URI ya JWKS) pamoja na ukaguzi wa `issuer`/`audience`.
-  Orodha ya hiari ya ruhusa ya `oidcAllowedSubjects` hulinganisha dai la `sub`
+  Orodha ya hiari ya wanaoruhusiwa ya `oidcAllowedSubjects` hulinganisha dai la `sub`
   la tokeni au dai lake la `email` — dai la barua pepe hukubaliwa tu wakati
   `email_verified === true`, kwa hivyo barua pepe ambayo haijathibitishwa katika IdP haiwezi kamwe kupita
-  kizuizi.
-- Ikifaulu, hutengeneza JWT **ileile kabisa** ya `auth_token` ya siku 30 inayotolewa na njia ya kuingia
-  kwa nenosiri (`src/app/api/auth/login/route.ts`), kwa hivyo sehemu nyingine ya
-  mtiririko wa kipindi cha dashibodi (uonyeshaji upya kiotomatiki, bendera za vidakuzi) haibadiliki —
-  OIDC hubadilisha tu jinsi kidakuzi kinavyotengenezwa, si ruhusa kinazotoa.
+  kizuizi hicho.
+- Inapofaulu, hutengeneza JWT ya `auth_token` ya siku 30 **ileile kabisa** ambayo utoaji wa kuingia
+  kwa nenosiri hutengeneza (`src/app/api/auth/login/route.ts`), hivyo sehemu iliyobaki ya
+  mchakato wa kikao cha dashibodi (uonyeshaji upya kiotomatiki, alama za kidakuzi) haibadiliki —
+  OIDC hubadilisha tu jinsi kidakuzi kinavyotengenezwa, si ruhusa inazotoa.
 
 ## Aina za Njia
 
@@ -200,28 +201,37 @@ export async function POST(request: Request) {
 
 Chagua seti kulingana na muundo, si urahisi. Njia moja huwekwa katika `PUBLIC_API_ROUTES_EXACT` (au `PUBLIC_READONLY_CORS_API_ROUTES` ikiwa ni ya GET pekee); ni kitawi halisi pekee kinachowekwa katika `PUBLIC_API_ROUTE_PREFIXES`, na **lazima kiishie kwa `/`**. Kuweka njia moja katika orodha ya viambishi awali pia hufanya kila njia iliyo karibu inayoshiriki herufi zake za mwanzo kuwa ya umma — ikijumuisha njia zinazohusiana zenye sehemu zinazobadilika ambazo zitaongezwa baadaye (GHSA-74g9-q8f6-793h). Sasisha majaribio ya kitengo katika `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` na `tests/unit/authz/classify.test.ts`.
 
-## Mawanda
+## Wigo
 
-Funguo za API zina safu ya `scopes` (iliyohifadhiwa kama JSON katika `api_keys.scopes`, angalia `src/lib/db/apiKeys.ts`).
+Nafasi tatu za majina. Kila kikagua husoma tu nyuzi zake. Ulinganisho wa kando-kando,
+ikiwemo kwa nini `manage` inashindwa `scopeMatches` kwa `read:compression` na kwa nini tokeni ya ufikiaji ya `read` haiwezi `PATCH /api/keys/{id}`, unapatikana hapa:
+[Nafasi tatu za majina ya wigo](../frameworks/MCP-SERVER.md#three-scope-namespaces).
+
+Funguo za API hubeba safu ya `scopes` (iliyohifadhiwa kama JSON katika `api_keys.scopes`, angalia `src/lib/db/apiKeys.ts`).
 
 ### Wigo wa usimamizi
 
-- `manage` / `admin` — huipa funguo ufikiaji wa vituo vya mwisho vya API ya usimamizi inapotumwa kama Bearer.
+- `manage` / `admin` — `hasManageScope`. Ufikiaji wa mbebaji kwa njia za API za usimamizi.
+- `mcp:connect`, `self:usage`, `self:account-quota`, na
+  `policy:bypass-provider-quota` ni wigo wa nyongeza unaolingana hasa. Ziko
+  nje ya `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` hufungua tu
+  sehemu ya `/api/mcp/` isiyo ya loopback.
 
-### Mawanda ya MCP (`src/shared/constants/mcpScopes.ts`)
+### Wigo wa zana za MCP
 
-Kila zana ya MCP huhitaji mawanda mahususi kupitia `MCP_TOOL_SCOPES`. Orodha kamili (`MCP_SCOPE_LIST`):
+Katalogi na sheria za kulinganisha (nyuzi zinazofanana, au wigo uliotolewa unaoishia na `*`):
+[Wigo wa zana za MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` katika `src/shared/constants/mcpScopes.ts` ni sehemu ndogo
+iliyoandikwa asili, si katalogi kamili. Utekelezaji huendeshwa katika
+`open-sse/mcp-server/scopeEnforcement.ts` baada ya `resolveCallerScopeContext()`
+kutatua wigo kutoka kwa maelezo ya uthibitishaji wa MCP, metadata ya ombi, au
+`OMNIROUTE_MCP_SCOPES`. Inabaki imezimwa isipokuwa `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### Wigo wa tokeni ya ufikiaji
 
-Utekelezaji wa mawanda katika `open-sse/mcp-server/server.ts` hupitisha orodha ya mawanda ya kila zana kwa
-`evaluateToolScopes()` baada ya `resolveCallerScopeContext()` kubaini mawanda kutoka kwenye taarifa za uthibitishaji za MCP,
-metadata ya ombi, au `OMNIROUTE_MCP_SCOPES`.
+`read` / `write` / `admin` kwenye tokeni za `oma_live_…`, zilizopangwa kwa `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Cheo hiki kinatumika tu kwa kitambulisho cha
+tokeni ya ufikiaji. Angalia [Uthibitishaji wa Usimamizi](../guides/MANAGEMENT-AUTH.md).
 
 ## Kibadilishaji cha Uhitaji wa Uthibitishaji
 
@@ -269,7 +279,7 @@ Tumia `assertAuth(req, expectedClass)` ndani ya vishughulikiaji — hutupa `Auth
 
 ## Tazama Pia
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — kiashiria cha uthibitishaji kwa kila endpoint
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — kumbukumbu ya ukaguzi wa matukio ya uthibitishaji
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — maelezo ya utekelezaji wa wigo wa MCP
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — alama ya uthibitishaji kwa kila sehemu ya mwisho
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — kumbukumbu ya ukaguzi kwa matukio ya uthibitishaji
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — nafasi tatu za majina ya wigo na katalogi ya wigo wa zana ya MCP
 - Chanzo: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

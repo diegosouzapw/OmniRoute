@@ -1,54 +1,58 @@
 # Admission lanes (#9654) — two lane systems, what gates each, where each reports (العربية)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/admission-lanes.md) · 🇪🇹 [am](../../../am/docs/architecture/admission-lanes.md) · 🇦🇿 [az](../../../az/docs/architecture/admission-lanes.md) · 🇧🇬 [bg](../../../bg/docs/architecture/admission-lanes.md) · 🇧🇩 [bn](../../../bn/docs/architecture/admission-lanes.md) · 🇨🇿 [cs](../../../cs/docs/architecture/admission-lanes.md) · 🇩🇰 [da](../../../da/docs/architecture/admission-lanes.md) · 🇩🇪 [de](../../../de/docs/architecture/admission-lanes.md) · 🇬🇷 [el](../../../el/docs/architecture/admission-lanes.md) · 🇪🇸 [es](../../../es/docs/architecture/admission-lanes.md) · 🇪🇪 [et](../../../et/docs/architecture/admission-lanes.md) · 🇮🇷 [fa](../../../fa/docs/architecture/admission-lanes.md) · 🇫🇮 [fi](../../../fi/docs/architecture/admission-lanes.md) · 🇫🇷 [fr](../../../fr/docs/architecture/admission-lanes.md) · 🇮🇪 [ga](../../../ga/docs/architecture/admission-lanes.md) · 🇮🇳 [gu](../../../gu/docs/architecture/admission-lanes.md) · 🇳🇬 [ha](../../../ha/docs/architecture/admission-lanes.md) · 🇮🇱 [he](../../../he/docs/architecture/admission-lanes.md) · 🇮🇳 [hi](../../../hi/docs/architecture/admission-lanes.md) · 🇭🇷 [hr](../../../hr/docs/architecture/admission-lanes.md) · 🇭🇺 [hu](../../../hu/docs/architecture/admission-lanes.md) · 🇦🇲 [hy](../../../hy/docs/architecture/admission-lanes.md) · 🇮🇩 [id](../../../id/docs/architecture/admission-lanes.md) · 🇳🇬 [ig](../../../ig/docs/architecture/admission-lanes.md) · 🇮🇹 [it](../../../it/docs/architecture/admission-lanes.md) · 🇯🇵 [ja](../../../ja/docs/architecture/admission-lanes.md) · 🇬🇪 [ka](../../../ka/docs/architecture/admission-lanes.md) · 🇰🇭 [km](../../../km/docs/architecture/admission-lanes.md) · 🇮🇳 [kn](../../../kn/docs/architecture/admission-lanes.md) · 🇰🇷 [ko](../../../ko/docs/architecture/admission-lanes.md) · 🇱🇹 [lt](../../../lt/docs/architecture/admission-lanes.md) · 🇱🇻 [lv](../../../lv/docs/architecture/admission-lanes.md) · 🇮🇳 [ml](../../../ml/docs/architecture/admission-lanes.md) · 🇮🇳 [mr](../../../mr/docs/architecture/admission-lanes.md) · 🇲🇾 [ms](../../../ms/docs/architecture/admission-lanes.md) · 🇲🇹 [mt](../../../mt/docs/architecture/admission-lanes.md) · 🇲🇲 [my](../../../my/docs/architecture/admission-lanes.md) · 🇳🇵 [ne](../../../ne/docs/architecture/admission-lanes.md) · 🇳🇱 [nl](../../../nl/docs/architecture/admission-lanes.md) · 🇳🇴 [no](../../../no/docs/architecture/admission-lanes.md) · 🇮🇳 [or](../../../or/docs/architecture/admission-lanes.md) · 🇮🇳 [pa](../../../pa/docs/architecture/admission-lanes.md) · 🇵🇭 [phi](../../../phi/docs/architecture/admission-lanes.md) · 🇵🇱 [pl](../../../pl/docs/architecture/admission-lanes.md) · 🇵🇹 [pt](../../../pt/docs/architecture/admission-lanes.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/admission-lanes.md) · 🇷🇴 [ro](../../../ro/docs/architecture/admission-lanes.md) · 🇷🇺 [ru](../../../ru/docs/architecture/admission-lanes.md) · 🇱🇰 [si](../../../si/docs/architecture/admission-lanes.md) · 🇸🇰 [sk](../../../sk/docs/architecture/admission-lanes.md) · 🇸🇮 [sl](../../../sl/docs/architecture/admission-lanes.md) · 🇷🇸 [sr](../../../sr/docs/architecture/admission-lanes.md) · 🇸🇪 [sv](../../../sv/docs/architecture/admission-lanes.md) · 🇰🇪 [sw](../../../sw/docs/architecture/admission-lanes.md) · 🇮🇳 [ta](../../../ta/docs/architecture/admission-lanes.md) · 🇮🇳 [te](../../../te/docs/architecture/admission-lanes.md) · 🇹🇭 [th](../../../th/docs/architecture/admission-lanes.md) · 🇹🇷 [tr](../../../tr/docs/architecture/admission-lanes.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/admission-lanes.md) · 🇵🇰 [ur](../../../ur/docs/architecture/admission-lanes.md) · 🇺🇿 [uz](../../../uz/docs/architecture/admission-lanes.md) · 🇻🇳 [vi](../../../vi/docs/architecture/admission-lanes.md) · 🇳🇬 [yo](../../../yo/docs/architecture/admission-lanes.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/admission-lanes.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/admission-lanes.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/admission-lanes.md) · 🇪🇹 [am](../../../am/docs/architecture/admission-lanes.md) · 🇦🇿 [az](../../../az/docs/architecture/admission-lanes.md) · 🇧🇬 [bg](../../../bg/docs/architecture/admission-lanes.md) · 🇧🇩 [bn](../../../bn/docs/architecture/admission-lanes.md) · 🇧🇦 [bs](../../../bs/docs/architecture/admission-lanes.md) · 🇨🇿 [cs](../../../cs/docs/architecture/admission-lanes.md) · 🇩🇰 [da](../../../da/docs/architecture/admission-lanes.md) · 🇩🇪 [de](../../../de/docs/architecture/admission-lanes.md) · 🇬🇷 [el](../../../el/docs/architecture/admission-lanes.md) · 🇪🇸 [es](../../../es/docs/architecture/admission-lanes.md) · 🇪🇪 [et](../../../et/docs/architecture/admission-lanes.md) · 🇮🇷 [fa](../../../fa/docs/architecture/admission-lanes.md) · 🇫🇮 [fi](../../../fi/docs/architecture/admission-lanes.md) · 🇫🇷 [fr](../../../fr/docs/architecture/admission-lanes.md) · 🇮🇪 [ga](../../../ga/docs/architecture/admission-lanes.md) · 🇮🇳 [gu](../../../gu/docs/architecture/admission-lanes.md) · 🇳🇬 [ha](../../../ha/docs/architecture/admission-lanes.md) · 🇮🇱 [he](../../../he/docs/architecture/admission-lanes.md) · 🇮🇳 [hi](../../../hi/docs/architecture/admission-lanes.md) · 🇭🇷 [hr](../../../hr/docs/architecture/admission-lanes.md) · 🇭🇺 [hu](../../../hu/docs/architecture/admission-lanes.md) · 🇦🇲 [hy](../../../hy/docs/architecture/admission-lanes.md) · 🇮🇩 [id](../../../id/docs/architecture/admission-lanes.md) · 🇳🇬 [ig](../../../ig/docs/architecture/admission-lanes.md) · 🇮🇹 [it](../../../it/docs/architecture/admission-lanes.md) · 🇯🇵 [ja](../../../ja/docs/architecture/admission-lanes.md) · 🇬🇪 [ka](../../../ka/docs/architecture/admission-lanes.md) · 🇰🇭 [km](../../../km/docs/architecture/admission-lanes.md) · 🇮🇳 [kn](../../../kn/docs/architecture/admission-lanes.md) · 🇰🇷 [ko](../../../ko/docs/architecture/admission-lanes.md) · 🇱🇹 [lt](../../../lt/docs/architecture/admission-lanes.md) · 🇱🇻 [lv](../../../lv/docs/architecture/admission-lanes.md) · 🇮🇳 [ml](../../../ml/docs/architecture/admission-lanes.md) · 🇮🇳 [mr](../../../mr/docs/architecture/admission-lanes.md) · 🇲🇾 [ms](../../../ms/docs/architecture/admission-lanes.md) · 🇲🇹 [mt](../../../mt/docs/architecture/admission-lanes.md) · 🇲🇲 [my](../../../my/docs/architecture/admission-lanes.md) · 🇳🇵 [ne](../../../ne/docs/architecture/admission-lanes.md) · 🇳🇱 [nl](../../../nl/docs/architecture/admission-lanes.md) · 🇳🇴 [no](../../../no/docs/architecture/admission-lanes.md) · 🇮🇳 [or](../../../or/docs/architecture/admission-lanes.md) · 🇮🇳 [pa](../../../pa/docs/architecture/admission-lanes.md) · 🇵🇭 [phi](../../../phi/docs/architecture/admission-lanes.md) · 🇵🇱 [pl](../../../pl/docs/architecture/admission-lanes.md) · 🇵🇹 [pt](../../../pt/docs/architecture/admission-lanes.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/admission-lanes.md) · 🇷🇴 [ro](../../../ro/docs/architecture/admission-lanes.md) · 🇷🇺 [ru](../../../ru/docs/architecture/admission-lanes.md) · 🇱🇰 [si](../../../si/docs/architecture/admission-lanes.md) · 🇸🇰 [sk](../../../sk/docs/architecture/admission-lanes.md) · 🇸🇮 [sl](../../../sl/docs/architecture/admission-lanes.md) · 🇷🇸 [sr](../../../sr/docs/architecture/admission-lanes.md) · 🇸🇪 [sv](../../../sv/docs/architecture/admission-lanes.md) · 🇰🇪 [sw](../../../sw/docs/architecture/admission-lanes.md) · 🇮🇳 [ta](../../../ta/docs/architecture/admission-lanes.md) · 🇮🇳 [te](../../../te/docs/architecture/admission-lanes.md) · 🇹🇭 [th](../../../th/docs/architecture/admission-lanes.md) · 🇹🇷 [tr](../../../tr/docs/architecture/admission-lanes.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/admission-lanes.md) · 🇵🇰 [ur](../../../ur/docs/architecture/admission-lanes.md) · 🇺🇿 [uz](../../../uz/docs/architecture/admission-lanes.md) · 🇻🇳 [vi](../../../vi/docs/architecture/admission-lanes.md) · 🇳🇬 [yo](../../../yo/docs/architecture/admission-lanes.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/admission-lanes.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/admission-lanes.md)
 
 ---
 
 لدى OmniRoute نظامان **اثنان** للمسارات محليان داخل العملية، ولكل منهما نطاق مختلف. وهما
 متكاملان؛ وينبغي للمشغّلين معرفة أيّهما ينظرون إليه.
 
-## 1. التحكم في القبول على مستوى البايت للعملية بأكملها (`chatBodyAdmission.ts`)
+## 1. القبول على مستوى البايت على امتداد العملية (`chatBodyAdmission.ts`)
 
-- **النطاق:** مسار النص المخزّن مؤقتًا/الكومة لطلبات `POST /v1/chat/completions`
-  و`/v1/messages` و`/v1/responses` والمسارات الأخرى المشابهة للدردشة. يحمي
-  من تضخيم استخدام الكومة الناتج عن نصوص طلبات وكلاء البرمجة الكبيرة (#4380).
-- **وحدة تحكم عامة واحدة لكل عملية، وليست مسارات منفصلة لكل مفتاح (#10110).** يُقبَل كل مفتاح API
-  (بعد تجزئته) أو جلسة `anonymous` ضمن **الميزانية** المشتركة نفسها —
-  ولا يُستخدم معرّف الجلسة المُجزّأ إلا كمفتاح لجدولة عادلة (توزيع
-  الانتظار بالتناوب)، ولا يُستخدم أبدًا لتقسيم السعة. وصفت نسخة سابقة من هذا
-  المستند مسارات لكل مفتاح ذات سعات مستقلة؛ وقد أُزيل ذلك النموذج
-  في #10110 لأنه كان يسمح لبيانات اعتماد مزيفة غير مصادق عليها بمضاعفة
+- **النطاق:** مسار الجسم المخزَّن مؤقتًا/كومة الذاكرة لطلبات `POST /v1/chat/completions`،
+  و`/v1/messages`، و`/v1/responses`، والمسارات الأخرى ذات بنية المحادثة. يحمي
+  من تضخيم استخدام كومة الذاكرة الناتج عن أجسام طلبات وكلاء البرمجة الكبيرة (#4380).
+- **متحكم عام واحد على مستوى العملية، وليس مسارات منفصلة لكل مفتاح (#10110).** يجري قبول كل مفتاح API
+  (بعد تجزئته) أو جلسة `anonymous` مقابل **الميزانية المشتركة نفسها** —
+  ويُستخدم معرّف الجلسة المُجزّأ فقط كمفتاح لجدولة عادلة (توزيع دائري
+  بين المنتظرين)، وليس مطلقًا كجزء مستقل من السعة. وصفت نسخة سابقة من هذا
+  المستند مسارات منفصلة لكل مفتاح بسعات مستقلة؛ وقد أُزيل ذلك النموذج
+  في #10110 لأنه كان يسمح لبيانات اعتماد زائفة غير موثّقة بمضاعفة
   الحد على مستوى العملية.
-- **البوابة (#503-fanout): ميزانية إدخال بالبايت تُشتق تلقائيًا، وليست عددًا ثابتًا
-  للطلبات.** كان حد عدد الطلبات القديم `CHAT_MAX_HEAVY_IN_FLIGHT` (بقيمة افتراضية `1`
+- **البوابة (#503-fanout): ميزانية إدخال بالبايت مشتقة تلقائيًا، وليست عددًا ثابتًا
+  من الطلبات.** كان الحد القديم لعدد الطلبات `CHAT_MAX_HEAVY_IN_FLIGHT` (بقيمة افتراضية `1`
   قبل هذا الإصلاح) يخفض التوزيع المتشعب لوكلاء البرمجة (عدة وكلاء فرعيين/واجهات CLI،
-  ونصوص طلبات تتجاوز عادةً 256 KB) إلى تزامن فعلي يبلغ نحو 1، ما كان يؤدي إلى
-  استجابات 503 تحت حمل طبيعي تمامًا. وأصبح الآن مفعّلًا فقط عندما يضبط المشغّل
-  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` صراحةً. وإذا تُرك دون ضبط، فسيُتحكم في القبول بدلًا من ذلك
-  بواسطة `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — وهي ميزانية مشتقة تلقائيًا من
-  الحد الفعلي لذاكرة العملية (`src/shared/middleware/admissionBudget.ts`):
-  نسبة 25% من الحد الأكثر تقييدًا بين حد كومة V8 وأي حد لمجموعة cgroup/الحاوية،
-  مقسومة على معامل تضخيم عابر قدره 8x، ومقيّدة بين 8 MiB و
-  2 GiB. تستخدم التجاوزات الصريحة القيود نفسها. ويتدرج هذا تلقائيًا من
-  حاوية بحجم 512 MB إلى حاسوب مكتبي بذاكرة 32 GB دون ضبط متغيرات البيئة. يفشل فورًا أي نص طلب
-  لا يمكن احتواؤه ضمن الميزانية الفعلية، مع `413 body_exceeds_budget`؛
-  ولا تدخل طابور العدالة المحدود سوى حالات التنافس بين نصوص الطلبات التي يمكن خدمتها
+  مع أجسام تتجاوز عادةً 256 KB) إلى تزامن فعلي يبلغ نحو 1، ما كان يؤدي إلى
+  استجابات 503 تحت حمل طبيعي تمامًا. ولا يُطبّق الآن إلا عندما يضبط المشغّل
+  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` صراحةً. وعند تركه دون ضبط، يصبح القبول
+  محكومًا بدلًا من ذلك بـ `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — وهي ميزانية مشتقة تلقائيًا من
+  سقف الذاكرة الفعلي للعملية (`src/shared/middleware/admissionBudget.ts`):
+  مقدار 25% من الحد الأكثر تقييدًا بين حد كومة V8 وأي حد لمجموعة cgroup/الحاوية،
+  مقسومًا على عامل تضخيم عابر قدره 8x، ومقيّدًا بين 8 MiB و
+  2 GiB. تستخدم التجاوزات الصريحة القيود نفسها. يتدرج هذا تلقائيًا من
+  حاوية بسعة 512 MB إلى جهاز مكتبي بسعة 32 GB دون ضبط متغيرات البيئة. يفشل فورًا أي جسم
+  لا يمكن احتواؤه ضمن الميزانية الفعلية بالاستجابة `413 body_exceeds_budget`؛
+  ولا يدخل طابور العدالة المحدود إلا التنافس بين الأجسام التي يمكن خدمتها
   كلٌّ على حدة. ويقوم متعقب مباشر لضغط الموارد متعدد الإشارات (نسبة كومة V8،
   وcgroup، وPSI، وأحداث OOM — `open-sse/utils/resourcePressurePolicy.ts`) بتقصير
-  مدة الانتظار المحدودة عند ضغط `high`، ويرفض الحمل فورًا باستخدام
-  `503 resource_pressure` عند ضغط `critical`، قبل إدخال أي بايتات أصلًا.
+  الانتظار المحدود تحت ضغط `high`، ويرفض الحمل فورًا بالاستجابة
+  `503 resource_pressure` تحت ضغط `critical`، حتى قبل إدخال أي بايتات.
+  تُقرأ PSI من ملف `memory.pressure` الخاص بمجموعة cgroup لهذه الوحدة عند وجوده
+  (`open-sse/utils/resourcePressureSampler.ts`)؛ أما `/proc/pressure/memory` فهو
+  على مستوى المضيف بالكامل، ولا يُستخدم إلا كخيار احتياطي على الأجهزة الفعلية / cgroup v1، بحيث لا
+  يؤدي مضيف يستخدم مساحة التبديل إلى استجابة 503 من حاوية خاملة.
 - **الضبط:**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — تجاوز لميزانية البايتات المشتقة تلقائيًا
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — حد قديم لعدد الطلبات، اختياري فقط
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — مدة الانتظار في الطابور قبل إرجاع 503 (الافتراضي 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — صمام للكومة خاص بالبايتات الموضوعة في الطابور (الافتراضي 4 MB)
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — تجاوز للميزانية المشتقة تلقائيًا بالبايت
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — الحد القديم لعدد الطلبات، اختياري فقط
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — مدة الانتظار في الطابور قبل استجابة 503 (القيمة الافتراضية هي `RATE_LIMIT_MAX_WAIT_MS`)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — صمام كومة الذاكرة للبايتات الموضوعة في الطابور (القيمة الافتراضية 4 MB)
   - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — مهملان
-    ولا تأثير لهما منذ #10110 (مقبولان لتوافق الإعدادات، لكن يتم تجاهلهما)
-- **التقارير:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — بما في ذلك
-  إضافات #503-fanout التالية: `inflightBytes` و`maxInflightBytes` و`budgetSource`
-  (`v8_heap` | `cgroup` | `override`) و`pressureSeverity` و`countCapEnabled`
-  (تكون قيمته false في النشر الافتراضي — ما يؤكد أن ميزانية البايتات، لا حد
-  العدد القديم، هي المطبقة فعليًا).
+    ولا تأثير لهما منذ #10110 (مقبولان لتوافق الإعدادات، لكن يجري تجاهلهما)
+- **التقارير:** `GET /api/monitoring/health` ← `chatAdmission` (#11244) — بما في ذلك
+  إضافات #503-fanout التالية: `inflightBytes`، و`maxInflightBytes`، و`budgetSource`
+  (`v8_heap` | `cgroup` | `override`)، و`pressureSeverity`، و`countCapEnabled`
+  (تكون قيمته false في النشر الافتراضي — ما يؤكد أن ميزانية البايت، وليس الحد القديم
+  للعدد، هي التي تفرض القيد فعليًا).
 
 ## 2. المسارات الافتراضية التكيفية وقت التشغيل (`open-sse/services/admission`)
 

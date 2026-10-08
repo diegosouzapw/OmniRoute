@@ -1,0 +1,1 @@
+- Disable cloud sync by default for new installations, block uploads while disabled, and require explicit credential-upload acknowledgment in the Endpoints enable dialog. Show the remote destination and distinguish cloud sync from local Storage backups.

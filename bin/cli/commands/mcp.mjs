@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { apiFetch, isServerUp } from "../api.mjs";
+import { MCP_ACCEPT, readJsonRpcResponse } from "../mcpClient.mjs";
 import { emit } from "../output.mjs";
 import { t } from "../i18n.mjs";
 
@@ -131,7 +132,7 @@ async function mcpJsonRpcCall(tool, args, { stream = false, globalOpts = {} } = 
 
   const hdrs = {
     "Content-Type": "application/json",
-    Accept: stream ? "text/event-stream" : "application/json",
+    Accept: MCP_ACCEPT,
     ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
   };
 
@@ -193,7 +194,7 @@ async function mcpJsonRpcCall(tool, args, { stream = false, globalOpts = {} } = 
   }
 
   // Non-stream: parse JSON-RPC response
-  const data = await callRes.json();
+  const data = await readJsonRpcResponse(callRes);
   if (data.error) {
     process.stderr.write(`MCP error: ${data.error.message || JSON.stringify(data.error)}\n`);
     return 1;

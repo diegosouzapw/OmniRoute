@@ -17,7 +17,7 @@ test("ONNX chain (@huggingface/transformers + onnxruntime-node) stays optional s
   // everywhere else. This deliberately reverses the MECHANISM of #9962 while
   // keeping its goal: #9962's skip happened because the old onnxruntime-node@
   // 1.21.0 pin built from source (NAN) and failed to compile on Node 24/26;
-  // the current 1.24.3 pin ships napi prebuilds, so on supported platforms the
+  // the current 1.30.0 pin ships napi prebuilds, so on supported platforms the
   // chain always installs and `npm ci`/`next build` keep resolving it. On
   // platforms where it IS skipped, both consumers degrade gracefully via lazy/
   // dynamic imports (asserted below).
@@ -44,12 +44,12 @@ test("ONNX chain (@huggingface/transformers + onnxruntime-node) stays optional s
   );
   assert.equal(
     pkg.optionalDependencies?.["onnxruntime-node"],
-    "1.24.3",
+    "1.30.0",
     "onnxruntime-node must be an optionalDependency pinned in lockstep with the overrides pin"
   );
   assert.equal(
     pkg.overrides?.["onnxruntime-node"],
-    "1.24.3",
+    "1.30.0",
     "the overrides pin must stay aligned with @huggingface/transformers' own pin (single-copy invariant)"
   );
 });
@@ -63,7 +63,7 @@ test("lockfile marks the whole ONNX chain optional", () => {
         dependencies?: Record<string, string>;
         optionalDependencies?: Record<string, string>;
       }
-      >;
+    >;
   }>("package-lock.json");
 
   assert.equal(
@@ -73,7 +73,7 @@ test("lockfile marks the whole ONNX chain optional", () => {
   );
   assert.equal(
     lock.packages[""]?.optionalDependencies?.["onnxruntime-node"],
-    "1.24.3",
+    "1.30.0",
     "root lock optionalDependencies must hold onnxruntime-node"
   );
   assert.ok(
@@ -105,10 +105,20 @@ test("every @huggingface/transformers consumer loads it lazily so absent install
     /^\s*import\s+(?:[^'"]*?\s+from\s+)?["']@huggingface\/transformers["']/m,
     "transformersLocal.ts must not statically import @huggingface/transformers"
   );
+  assert.doesNotMatch(
+    embeddingSrc,
+    /import\(\s*["']@huggingface\/transformers["']\s*\)/,
+    "transformersLocal.ts must not pass a literal specifier to import() - Next traces it at compile time"
+  );
   assert.match(
     embeddingSrc,
-    /await import\(["']@huggingface\/transformers["']\)/,
-    "transformersLocal.ts must load @huggingface/transformers via await import()"
+    /webpackIgnore:\s*true/,
+    "transformersLocal.ts must mark the optional import webpackIgnore so Next does not resolve it during /health"
+  );
+  assert.match(
+    embeddingSrc,
+    /["']@huggingface\/["']\s*\+\s*["']transformers["']/,
+    "transformersLocal.ts must assemble the specifier at runtime"
   );
 
   const workerSrc = readFileSync(

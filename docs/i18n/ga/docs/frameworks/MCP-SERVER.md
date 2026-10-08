@@ -1,6 +1,6 @@
 # OmniRoute MCP Server Documentation (Gaeilge)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
@@ -279,55 +279,141 @@ Foinsí comhaid: `src/app/api/mcp/{status,tools,sse,stream,audit,audit/stats}/ro
 
 Tá iompar SSE agus HTTP in-stream cosnaithe go dtí go ndéantar an freastalaí MPCI a chumasú i Socruithe (`mcpEnabled`) agus go roghnaítear an t-iompar `mcpTransport` cuí. Má chumraítear an t-iompar mícheart, fillfidh an rithse le HTTP 400 le leid chun socruithe a athrú.
 
-## Fíordheimhniú & Scóipeanna
+## Fíordheimhniú & Scóip
 
-Déantar uirlisí MCP a fhíordheimhniú trí scóipeanna eochracha API. Tá forfheidhmiú scóipeanna lárnaithe in `open-sse/mcp-server/scopeEnforcement.ts`. Éilíonn gach uirlis scóipeanna sonracha:
+Glaonn uirlis MCP teaghráin scóip ón nglaoiteoir. Tá an seiceáil sin ar cheann de thrí spásainm neamhspleácha. Ní pas ó sheiceálaí amháin pas ó na cinn eile. Is iad na rialacha ná [Trí spásainm scóip](#trí-spásainm-scóip). Is é an catalóg uirlisí ná [Scóip uirlisí MCP](#scóip-uirlisí-mcp).
 
-| Scóip                 | Uirlisí                                                                                                                                                                                   |
-| :-------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                                         |
-| `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                                 |
-| `write:combos`        | `switch_combo`, `set_routing_strategy`                                                                                                                                                    |
-| `read:quota`          | `check_quota`                                                                                                                                                                             |
-| `read:usage`          | `cost_report`, `get_session_snapshot`, `explain_route`                                                                                                                                    |
-| `read:models`         | `list_models_catalog`                                                                                                                                                                     |
-| `execute:completions` | `route_request`, `test_combo`                                                                                                                                                             |
-| `execute:search`      | `web_search`, `x_search`, `web_fetch`                                                                                                                                                     |
-| `write:budget`        | `set_budget_guard`                                                                                                                                                                        |
-| `write:resilience`    | `set_resilience_profile`, `db_health_check`                                                                                                                                               |
-| `pricing:write`       | `sync_pricing`                                                                                                                                                                            |
-| `read:cache`          | `cache_stats`                                                                                                                                                                             |
-| `write:cache`         | `cache_flush`                                                                                                                                                                             |
-| `read:compression`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                                                                                                |
-| `write:compression`   | `compression_configure`, `set_compression_engine`                                                                                                                                         |
-| `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                                                                                                     |
-| `read:notion`         | `notion_search`, `notion_get_page`, `notion_list_block_children`, `notion_query_database`, `notion_get_database`                                                                          |
-| `write:notion`        | `notion_append_blocks`                                                                                                                                                                    |
-| `read:memory`         | `memory_search`                                                                                                                                                                           |
-| `write:memory`        | `memory_add`, `memory_clear`                                                                                                                                                              |
-| `read:skills`         | `skills_list`, `skills_executions`                                                                                                                                                        |
-| `write:skills`        | `skills_enable`                                                                                                                                                                           |
-| `execute:skills`      | `skills_execute`                                                                                                                                                                          |
-| `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                                                                                          |
-| `read:tools`          | `omniroute_tool_search`                                                                                                                                                                   |
-| `read:radar`          | `omniroute_radar_catalog`                                                                                                                                                                 |
-| `read:gamification`   | `gamification_profile`, `gamification_rank`, `gamification_leaderboard`, `gamification_badges`, `gamification_servers`, `gamification_anomalies`                                          |
-| `write:gamification`  | `gamification_invite`, `gamification_transfer`                                                                                                                                            |
-| `read:plugins`        | `plugin_list`, `plugin_executions`                                                                                                                                                        |
-| `write:plugins`       | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                                           |
-| `read:obsidian`       | 13 uirlisí léitheoireachta — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
-| `write:obsidian`      | 9 n-uirlisí scríbhneoireachta — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …            |
-| `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                                         |
+### Trí spásainm scóip
 
-Tacaítear le scóipeanna aonchairt: deonaíonn `read:*` gach scóip léitheoireachta, agus deonaíonn `*` rochtain iomlán.
+Is trí dheontas éagsúla iad `manage` ar eochair API, `read:compression` ar uirlis MCP, agus `read` ar chomhartha rochtana `oma_live_…`. Faigheann glaotóirí a sheolann comhartha rochtana `read` chuig bealach bainistíochta athraitheach HTTP 403 `Access token scope 'read' is insufficient; 'write' required.` Is é an rang sin `scopeSatisfies`. Ní théann sé i gcomhairle le tábla an MCP, agus ní théann an meaitseálaí MCP i gcomhairle leis.
+
+| Spásainm                 | Dintiúr                                                      | Seiceálaí                  | Ceadaíonn pas                                                                 |
+| :----------------------- | :----------------------------------------------------------- | :------------------------- | :---------------------------------------------------------------------------- |
+| Bainistíocht eochair API | `api_keys.scopes`                                            | `hasManageScope`           | Bainistíocht REST don eochair Bearer sin                                      |
+| Breiseán eochair API     | an t-eagar céanna, teaghrán cruinn amháin                    | an cúntóir ainmnithe thíos | An cumas sin amháin                                                           |
+| Scóip uirlisí MCP        | an t-eagar céanna, nó MCP `_meta`, nó `OMNIROUTE_MCP_SCOPES` | `scopeMatches`             | An uirlis sin, nuair a bheidh forfheidhmiú ar siúl                            |
+| Comhartha rochtana       | `oma_live_…`                                                 | `scopeSatisfies`           | An bealach bainistíochta a dteastaíonn an rang sin óna mhodh agus óna chonair |
+
+Clúdaítear gach dintiúr a mhionú in [Fíordheimhniú Bainistíochta](../guides/MANAGEMENT-AUTH.md).
+
+#### Scóip eochair API
+
+Cothaíonn eagar `api_keys.scopes` amháin dhá phost. Úsáideann siad feidhmeanna éagsúla.
+
+**Bainistíocht REST.** Is iad `manage` agus `admin` baill `MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`). Is é `hasManageScope` a údaraíonn bealaí bainistíochta don eochair sin. Tá `admin` in ann bainistíocht a dhéanamh ar na bealaí sin. Ní hé an focal `admin` anseo an rang comhartha rochtana agus ní leathnaíonn sé isteach i scóip uirlisí MCP.
+
+**Teaghráin bhreiseacha.** Is tástáil bhallraíochta chruinn é gach ceann acu, agus fanann gach ceann acu lasmuigh de `MANAGEMENT_API_KEY_SCOPES`.
+
+| Scóip                          | Ceadaíonn pas                                                                                                                                                                  |
+| :----------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | An snoíodóireacht neamh-loopback `/api/mcp/` LOCAL_ONLY amháin (`hasMcpConnectOrManageScope`). Éiríonn le heochair le `manage` nó `admin` an snoíodóireacht sin fós.           |
+| `self:usage`                   | `GET /api/v1/me/status` don eochair seo (`src/app/api/v1/me/status/route.ts`). Cuireann `POST /api/keys` an scóip seo leis ar chruthú (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | Cuótaí cuntais in aghaidh an tsrutha laistigh den ualach páistí stádais sin (`src/lib/usage/apiKeySelfService.ts`). Éilíonn an bealach stádais `self:usage` fós.               |
+| `policy:bypass-provider-quota` | Scipeann glaonna tátail na heochrach seo an polasaí cuóta soláthraí (`hasProviderQuotaBypassScope` i `src/sse/handlers/chat.ts`).                                              |
+
+#### Meaitseáil
+
+Is é an catalóg an tábla faoi [Scóip uirlisí MCP](#scóip-uirlisí-mcp). Ná déan caitheamh le `MCP_SCOPE_LIST` i `src/shared/constants/mcpScopes.ts` mar an catalóg sin: is é an fothacar clóscríofa bunaidh é. Dearbhaíonn uirlisí níos déanaí scóip bhreise in aice leis (`read:notion`, `read:skills`, `read:local-corpus`, agus an chuid eile den tábla).
+
+Ceadaíonn `evaluateToolScopes` in `open-sse/mcp-server/scopeEnforcement.ts` glao nuair a mheaitseálann gach scóip riachtanach scóip dheonaithe éigin:
+
+- Meaitseálann `*` gach scóip riachtanach.
+- Meaitseálann scóip dheonaithe a chríochnaíonn le `*` scóip riachtanach a thosaíonn leis an réimír roimh an réaltóg. Meaitseálann `read:*` `read:compression`.
+- Ní mheaitseálann gach scóip dheonaithe eile ach an teaghrán riachtanach comhionann.
+
+Teipeann ar eochair a bhfuil a scóip `["manage"]` `scopeMatches` le haghaidh `read:compression`. Teipeann ar an nglao céanna le haghaidh `admin`, `mcp:connect`, `read`, agus `write` nuair is iad sin na teaghráin dheonaithe amháin. Níl aon ordlathas i measc scóip uirlisí MCP thar an `*` deiridh.
+
+Tá forfheidhmiú múchta mura bhfuil `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (réamhshocrú `false`). Cé go bhfuil sé múchta, ceadaíonn `evaluateToolScopes` an glao agus scipeann sé an catalóg. Cé go bhfuil sé ar siúl, úsáideann HTTP `api_keys.scopes` na heochrach Bearer mar `authInfo` (féach [Ceangal scóip HTTP in aghaidh na heochrach](#ceangal-scóip-http-in-aghaidh-na-heochrach-7895)). Nuair nach réitíonn aon scóip eochrach, titeann an tacar deonaithe tríd go MCP `_meta`, ansin `OMNIROUTE_MCP_SCOPES`.
+
+#### Scóip comhartha rochtana
+
+Iompraíonn comharthaí `oma_live_…` (`src/lib/accessTokens/scopes.ts`) `read`, `write`, nó `admin`. Is rang é `scopeSatisfies`: clúdaíonn `admin` `write` agus `read`, agus clúdaíonn `write` `read`. Ní chlúdaíonn scóip anaithnid aon rud.
+
+Déanann `evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) comparáid idir an rang sin agus `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
+
+- Éilíonn `GET`, `HEAD`, agus `OPTIONS` `read`.
+- Éilíonn gach modh eile `write`.
+- Éilíonn conairí i `ADMIN_SCOPE_PREFIXES` `admin` do gach modh. Tá `/api/mcp` ar an liosta sin, mar sin ní féidir le comhartha rochtana `write` dromchla HTTP an MCP a ghlaoch fós.
+- Éilíonn conairí i `ADMIN_MUTATION_PREFIXES` `admin` le haghaidh athruithe amháin.
+
+Is sóchán é `PATCH /api/keys/{id}` agus níl sé ar na liostaí riarthóra sin, mar sin faigheann comhartha `read` 403
+`Access token scope 'read' is insufficient; 'write' required.`
+Sásaíonn comhartha rochtana `write` nó `admin` an bealach sin. Glacann JWT painéil, an comhartha meaisín-aitheantais CLI loopback, agus eochair API le `manage` nó `admin` brainsí eile agus ní chaolaítear iad leis an rang seo.
+
+Níl ach an geata bainistíochta glanta ag comhartha rochtana a ritheann `scopeSatisfies` do `/api/mcp`. Ritheann glaonna uirlisí `scopeMatches` fós i gcoinne scóip eochracha API. Ní ionchur do `scopeMatches` é rang an chomhartha rochtana.
+
+### Scóip uirlisí MCP
+
+Tá forfheidhmiú scóip láraithe in `open-sse/mcp-server/scopeEnforcement.ts`.
+Éilíonn gach uirlis scóip shonracha:
+
+| Scóip                 | Uirlisí                                                                                                                                                                                  |
+| :-------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                                        |
+| `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                                |
+| `write:combos`        | `switch_combo`, `set_routing_strategy`                                                                                                                                                   |
+| `read:quota`          | `check_quota`                                                                                                                                                                            |
+| `read:usage`          | `cost_report`, `get_session_snapshot`, `explain_route`                                                                                                                                   |
+| `read:models`         | `list_models_catalog`                                                                                                                                                                    |
+| `execute:completions` | `route_request`, `test_combo`                                                                                                                                                            |
+| `execute:search`      | `web_search`, `x_search`, `web_fetch`                                                                                                                                                    |
+| `write:budget`        | `set_budget_guard`                                                                                                                                                                       |
+| `write:resilience`    | `set_resilience_profile`, `db_health_check`                                                                                                                                              |
+| `pricing:write`       | `sync_pricing`                                                                                                                                                                           |
+| `read:cache`          | `cache_stats`                                                                                                                                                                            |
+| `write:cache`         | `cache_flush`                                                                                                                                                                            |
+| `read:compression`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                                                                                               |
+| `write:compression`   | `compression_configure`, `set_compression_engine`                                                                                                                                        |
+| `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                                                                                                    |
+| `read:notion`         | `notion_search`, `notion_get_page`, `notion_list_block_children`, `notion_query_database`, `notion_get_database`                                                                         |
+| `write:notion`        | `notion_append_blocks`                                                                                                                                                                   |
+| `read:memory`         | `memory_search`                                                                                                                                                                          |
+| `write:memory`        | `memory_add`, `memory_clear`                                                                                                                                                             |
+| `read:skills`         | `skills_list`, `skills_executions`                                                                                                                                                       |
+| `write:skills`        | `skills_enable`                                                                                                                                                                          |
+| `execute:skills`      | `skills_execute`                                                                                                                                                                         |
+| `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                                                                                         |
+| `read:tools`          | `omniroute_tool_search`                                                                                                                                                                  |
+| `read:radar`          | `omniroute_radar_catalog`                                                                                                                                                                |
+| `read:gamification`   | `gamification_profile`, `gamification_rank`, `gamification_leaderboard`, `gamification_badges`, `gamification_servers`, `gamification_anomalies`                                         |
+| `write:gamification`  | `gamification_invite`, `gamification_transfer`                                                                                                                                           |
+| `read:plugins`        | `plugin_list`, `plugin_executions`                                                                                                                                                       |
+| `write:plugins`       | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                                          |
+| `read:obsidian`       | 13 uirlis léitheoireachta — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
+| `write:obsidian`      | 9 uirlis scríbhneoireachta — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …              |
+| `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                                        |
+
+Tacaítear le scóip chárta fiáin: tugann `read:*` gach scóip léitheoireachta, tugann `*` rochtain iomlán.
 
 ### `mcp:connect` — cumas bealaigh cúng (#7895)
 
-Chun an t-iompar HTTP/SSE MCP (`/api/mcp/*`) a bhaint amach ó lasmuigh den lúbchiorcal, teastaíonn an eisceacht LOCAL_ONLY `/api/mcp/` (féach `docs/security/ROUTE_GUARD_TIERS.md`). Go stairiúil, níor ghlac an eisceacht sin ach le heochair API le scóip iomlán `manage`/`admin` — ró-leathan d'fhéachtóir nach dteastaíonn uaidh ach labhairt le MCP. Easpórtálann `src/shared/constants/managementScopes.ts` anois `MCP_CONNECT_SCOPE = "mcp:connect"`: scóip chúng bhreise (an réamhshampla céanna le `SELF_USAGE_SCOPE`) a údaraíonn A MHÁIN an seachbhóthar `/api/mcp/` in `src/server/authz/policies/management.ts` — ní dheonaíonn sé aon rochtain eile ar bhealaí bainistíochta agus coinnítear amach as `MANAGEMENT_API_KEY_SCOPES` é d'aon ghnó. Pasann eochair a bhfuil `manage`/`admin` aici tríd an eisceacht gan athrú; is rogha eile le pribhléid níos ísle é `mcp:connect` d'fhéachtóirí cianda nach bhfuil uathu ach MCP, a sheiceáiltear trí `hasMcpConnectOrManageScope()`.
+Chun teacht ar iompar HTTP/SSE MCP (`/api/mcp/*`) ó neamh-lúbchúl, teastaíonn an
+snoíodóireacht LOCAL_ONLY `/api/mcp/` (féach `docs/security/ROUTE_GUARD_TIERS.md`). Go stairiúil
+níor ghlac an snoíodóireacht sin ach eochair API lán-scóip `manage`/`admin` — ró-leathan do ghlaoiteoir
+nach dteastaíonn uaidh ach labhairt le MCP. Easpórtálann `src/shared/constants/managementScopes.ts` anois
+`MCP_CONNECT_SCOPE = "mcp:connect"`: scóip bhreise, chúng (an fasach céanna le
+`SELF_USAGE_SCOPE`) a údaraíonn AMHÁIN seachbhóthar `/api/mcp/` i
+`src/server/authz/policies/management.ts` — ní dheonaíonn sé aon rochtain eile ar bhealach bainistíochta
+agus coinnítear d'aon ghnó É AS `MANAGEMENT_API_KEY_SCOPES`. Eochair a bhfuil `manage`/`admin` aici
+fós pasann an snoíodóireacht gan athrú; is rogha eile é `mcp:connect` le pribhléid níos ísle do
+ghlaoiteoirí iargúlta MCP-amháin, a sheiceáiltear trí `hasMcpConnectOrManageScope()`.
 
-### Ceangal scóip HTTP in aghaidh eochrach (#7895)
+### Ceangal scóip HTTP in aghaidh na heochrach (#7895)
 
-Thar HTTP/SSE, réitíonn `open-sse/mcp-server/httpTransport.ts` anois fíor-scóip `api_keys.scopes` an fhéachtóra trí `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) agus cuireann sé ar aghaidh chuig `transport.handleRequest(req, { authInfo })` de chuid SDK MCP é, ionas go léiríonn `extra.authInfo.scopes` a shroicheann gach glao uirlise scóip féin an eochair Bearer. Thug `resolveCallerScopeContext()` de chuid `scopeEnforcement.ts` tús áite cheana do `authInfo` thar an titim siar `_meta` agus `OMNIROUTE_MCP_SCOPES` env — ní dhéanann sé seo ach an chéad fhoinse sin, an fhoinse is airde tosaíochta, a líonadh, nach raibh á beathú roimhe seo thar HTTP. Nuair nach réitíonn aon eochair API (gan ceanntásc, eochair neamhbhailí), fanann `authInfo` mar `undefined` agus titim an réiteach tríd an slabhra `meta`/env atá ann cheana gan athrú. Ní dhéanann sé seo an réamhshocrú de chuid `OMNIROUTE_MCP_ENFORCE_SCOPES` a aisiompú — caithfear forfheidhmiú a chumasú go follasach fós; ní dhéanann an t-athrú seo ach go mbeidh an cosán in aghaidh eochrach i réim nuair a bheidh sé. Níl aon aitheantas in aghaidh an fhéachtóra ag stdio (féach `mcpCallerIdentity.ts`) agus ní dhéantar difear dó — fanann sé ar an slabhra titime siar `_meta`/env.
+Thar HTTP/SSE, réitíonn `open-sse/mcp-server/httpTransport.ts` anois fíor-`api_keys.scopes` an ghlaoiteora
+trí `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
+agus cuireann sé ar aghaidh chuig `transport.handleRequest(req, { authInfo })` SDK an MCP é, ionas go
+léiríonn `extra.authInfo.scopes` a shroicheann gach glao uirlise scóip féin na heochrach Bearer.
+Thug `resolveCallerScopeContext()` `scopeEnforcement.ts` tús áite cheana féin do `authInfo` thar
+an gcúlú `_meta` agus `OMNIROUTE_MCP_SCOPES` env — ní líonann sé seo ach an chéad fhoinse,
+an fhoinse is airde tosaíochta, a bhí gan bheathú roimhe seo thar HTTP. Nuair nach réitíonn aon eochair API
+(gan ceanntásc, eochair neamhbhailí), fanann `authInfo` `undefined` agus titeann an réiteach tríd go dtí
+an slabhra `meta`/env atá ann cheana gan athrú. NÍ athraíonn sé seo réamhshocrú `OMNIROUTE_MCP_ENFORCE_SCOPES`
+— ní mór forfheidhmiú a chumasú go sainráite fós; ní dhéanann an t-athrú seo ach an cosán in aghaidh na heochrach a chur
+chun tosaigh nuair a bhíonn sé cumasaithe. Níl aon aitheantas in aghaidh an ghlaoiteora ag stdio (féach
+`mcpCallerIdentity.ts`) agus níl aon tionchar air — fanann sé ar an slabhra cúlú `_meta`/env.
+
+---
 
 ## Athrógacha Timpeallachta
 

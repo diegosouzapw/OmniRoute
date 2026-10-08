@@ -5,8 +5,22 @@
  * @changes
  * - [2026-07-28] [Cursor Grok 4.5] - Brand-neutral default OpenAI keepalive id/model
  */
+import {
+  SYNTHETIC_RESPONSES_KEEPALIVE_ID,
+  SYNTHETIC_RESPONSES_SEQUENCE_NUMBER,
+} from "./responsesSequence.ts";
+
 const HEARTBEAT_ENCODER = new TextEncoder();
-const OPENAI_RESPONSES_IN_PROGRESS_PAYLOAD = 'data: {"type":"response.in_progress"}\n\n';
+// #14330 / #15202: a bare {"type":"response.in_progress"} frame has no
+// `sequence_number` or `response` object, so a strict Responses decoder
+// (openai-python, Codex/OpenCode/Grok CLIs) aborts on it. Every typed Responses
+// event requires both fields, and `response.id` must be a string — never `null`,
+// which the 3.8.51 fix left in place and broke the same decoders it targeted.
+const OPENAI_RESPONSES_IN_PROGRESS_PAYLOAD = `data: ${JSON.stringify({
+  type: "response.in_progress",
+  sequence_number: SYNTHETIC_RESPONSES_SEQUENCE_NUMBER,
+  response: { id: SYNTHETIC_RESPONSES_KEEPALIVE_ID, status: "in_progress" },
+})}\n\n`;
 
 export const DEFAULT_SSE_HEARTBEAT_INTERVAL_MS = 15_000;
 

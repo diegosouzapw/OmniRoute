@@ -400,12 +400,28 @@ export function selectBetaFlags(
   const isHeavyAgent = isFullAgent && isHeavyAgentModel(effectiveModel);
   const isOpusAgent = shouldUseMidConversationSystem(b, effectiveModel);
   const isContext1m = isFullAgent && isContext1mModel(effectiveModel);
+  // Message-level output_config (per-message effort directive, #14746): Anthropic
+  // rejects it with 400 `messages.N.output_config: Extra inputs are not permitted`
+  // unless its gating beta ships on the same request.
+  const hasMessageOutputConfig = Array.isArray(b.messages)
+    ? (b.messages as unknown[]).some(
+        (m) => !!m && typeof m === "object" && "output_config" in (m as Record<string, unknown>)
+      )
+    : false;
 
   const flags: string[] = [];
   if (isFullAgent) flags.push("claude-code-20250219");
   flags.push("oauth-2025-04-20");
   if (isContext1m) flags.push("context-1m-2025-08-07");
   if (isOpusAgent) flags.push("mid-conversation-system-2026-04-07");
+  // Derive the per-message effort beta from the body shape — same rule as
+  // mid-conversation-system above — so a directive-carrying body is valid even
+  // when the client negotiated no anthropic-beta of its own (#14746). The
+  // token is Anthropic's documented beta for the feature ("requires the beta
+  // header mid-conversation-output-config-2026-07-01",
+  // https://platform.claude.com/docs/en/build-with-claude/effort); a body
+  // without the field never gains it (fingerprint: shape-matched sets only).
+  if (hasMessageOutputConfig) flags.push("mid-conversation-output-config-2026-07-01");
   // Thinking betas: gated on the client header (#3415). interleaved-thinking forces
   // interleaved-thinking semantics that conflict with a tool_choice-forced turn,
   // producing malformed opus tool_use streams when the client never asked for it.

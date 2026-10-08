@@ -4,6 +4,10 @@
  * Split out of adobeFireflyClient.ts.
  */
 
+import {
+  fetchUntrustedRemoteImage,
+  type RemoteImageFetchResult,
+} from "@/shared/network/remoteImageFetch";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 import {
   ADOBE_FIREFLY_MAX_UPLOAD_BYTES,
@@ -307,22 +311,25 @@ export async function resolveAdobeSourceImageIds(opts: {
     let contentType = "image/png";
 
     if (/^https?:\/\//i.test(src)) {
-      const r = await fetchImpl(src, {
-        method: "GET",
-        headers: { accept: "image/*,*/*" },
-      });
-      if (!r.ok) {
-        throw new AdobeFireflyError(
-          `Failed to download reference image (${r.status}): ${src.slice(0, 120)}`,
-          400,
-          "bad_image"
+      // The URL comes from the request body: public addresses only, DNS pinned, size capped.
+      let downloaded: RemoteImageFetchResult;
+      try {
+        downloaded = await fetchUntrustedRemoteImage(src, {
+          maxBytes: ADOBE_FIREFLY_MAX_UPLOAD_BYTES,
+        });
+      } catch (error) {
+        // The client only learns that the download failed; the reason stays in the log.
+        opts.log?.error?.(
+          "ADOBE-FIREFLY",
+          `reference image download failed: ${sanitizeErrorMessage(
+            error instanceof Error ? error.message : String(error)
+          )}`
         );
+        throw new AdobeFireflyError("Failed to download reference image", 400, "bad_image");
       }
-      const ab = await r.arrayBuffer();
-      buffer = Buffer.from(ab);
-      const ct = r.headers.get("content-type") || "";
-      if (ct.toLowerCase().startsWith("image/")) {
-        contentType = ct.split(";")[0]!.trim();
+      buffer = downloaded.buffer;
+      if (downloaded.contentType.toLowerCase().startsWith("image/")) {
+        contentType = downloaded.contentType.split(";")[0]!.trim();
       }
     } else {
       const parsed = parseAdobeImageSourceBytes(src);

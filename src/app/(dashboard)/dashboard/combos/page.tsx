@@ -32,6 +32,8 @@ import { useComboProxyAssignments } from "./useComboProxyAssignments";
 import { ResponseValidationEditor, type ResponseValidationValue } from "./ResponseValidationEditor";
 import ReasoningTokenBufferToggle from "./ReasoningTokenBufferToggle";
 import ComboTimeoutFields from "./ComboTimeoutFields";
+import ComboRrLegibilityFields from "./ComboRrLegibilityFields";
+import { persistConnectionAwareExpansion, persistStickyRoundRobinLimit } from "./comboRrLegibility";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -84,6 +86,8 @@ import {
 } from "@/lib/combos/intelligentRouting";
 import { getComboStepTarget } from "@/lib/combos/steps";
 import { DEAD_COMBO_CONFIG_KEYS } from "@/lib/combos/deadConfigKeys";
+import { modelFamily } from "@/lib/combos/invariants";
+import { resolveProviderAlias } from "@omniroute/open-sse/services/providerAlias.ts";
 import { resolveServerErrorMessage } from "@/lib/api/serverErrorMessage";
 import { useTranslations } from "next-intl";
 
@@ -653,6 +657,54 @@ function normalizeModelEntry(entry) {
   };
 }
 
+/**
+ * On an existing-combo edit, work out how the dashboard save should synchronize
+ * `allowedProviders` / `allowedModelFamilies` against the combo's new step list so
+ * adding a step across providers never triggers COMBO_008 (#13951). Both restrictions
+ * are only ever WIDENED or left untouched here — never synthesized from no restriction,
+ * and never wiped just because the combo happens to have one.
+ */
+function computeAllowedRestrictionSync(
+  isEdit: boolean,
+  combo: { allowedProviders?: unknown; allowedModelFamilies?: unknown } | null | undefined,
+  models: Array<{ providerId?: string; model?: string }>
+): { allowedProviders?: string[]; allowedModelFamilies?: null; overrideAllowedProviders?: true } {
+  if (!isEdit) return {};
+  const result: {
+    allowedProviders?: string[];
+    allowedModelFamilies?: null;
+    overrideAllowedProviders?: true;
+  } = { overrideAllowedProviders: true };
+
+  const existingProviders = Array.isArray(combo?.allowedProviders) ? combo.allowedProviders : [];
+  if (existingProviders.length > 0) {
+    const stepProviders = models
+      .map((m) => {
+        if (m.providerId) return m.providerId;
+        if (typeof m.model !== "string" || !m.model.includes("/")) return "";
+        const [aliasOrProvider] = m.model.split("/");
+        return resolveProviderAlias(aliasOrProvider) || "";
+      })
+      .filter((p): p is string => Boolean(p));
+    result.allowedProviders = Array.from(new Set([...existingProviders, ...stepProviders]));
+  }
+
+  // Only clear the family restriction when a new step actually violates it (#13951).
+  const existingFamilies = Array.isArray(combo?.allowedModelFamilies)
+    ? combo.allowedModelFamilies
+    : [];
+  if (existingFamilies.length > 0) {
+    const allowedFamilies = new Set(existingFamilies);
+    const stepViolatesFamilies = models.some((m) => {
+      const family = typeof m.model === "string" ? modelFamily(m.model) : null;
+      return !family || !allowedFamilies.has(family);
+    });
+    if (stepViolatesFamilies) result.allowedModelFamilies = null;
+  }
+
+  return result;
+}
+
 function getModelString(entry) {
   if (typeof entry === "string") return entry;
   if (entry?.kind === "combo-ref") return entry.comboName;
@@ -821,6 +873,7 @@ function CombosPageContent() {
   const [comboDragOverIndex, setComboDragOverIndex] = useState(null);
   const [savingComboOrder, setSavingComboOrder] = useState(false);
   const [comboConfigMode, setComboConfigMode] = useState("guided");
+  const [routingSettings, setRoutingSettings] = useState(null);
   const [promptCompressionEnabled, setPromptCompressionEnabled] = useState(false);
   const [selectedIntelligentComboId, setSelectedIntelligentComboId] = useState<string | null>(null);
   const comboDragIndexRef = useRef<number | null>(null);
@@ -888,7 +941,11 @@ function CombosPageContent() {
     })();
     fetch("/api/settings")
       .then((r) => (r.ok ? r.json() : null))
-      .then((settings) => setComboConfigMode(normalizeComboConfigMode(settings?.comboConfigMode)))
+      .then((settings) => {
+        if (!settings) return;
+        setComboConfigMode(normalizeComboConfigMode(settings.comboConfigMode));
+        setRoutingSettings(settings);
+      })
       .catch(() => setComboConfigMode("guided"));
     fetch("/api/settings/compression")
       .then((r) => (r.ok ? r.json() : null))
@@ -1394,6 +1451,7 @@ function CombosPageContent() {
         activeProviders={activeProviders}
         combo={null}
         comboConfigMode={comboConfigMode}
+        routingSettings={routingSettings}
       />
 
       <ComboFormModal
@@ -1404,6 +1462,7 @@ function CombosPageContent() {
         onSave={(data) => handleUpdate(editingCombo.id, data)}
         activeProviders={activeProviders}
         comboConfigMode={comboConfigMode}
+        routingSettings={routingSettings}
       />
 
       {proxyTargetCombo && (
@@ -1966,6 +2025,10 @@ function TestResultsView({ results }) {
 
   return (
     <div className="flex flex-col gap-2">
+      <p className="text-xs text-text-muted">
+        Targets are tested independently. This checks model health, not the combo’s routing strategy
+        or fallback order.
+      </p>
       {results.resolvedBy && (
         <div className="flex items-center gap-2 text-sm">
           <span className="material-symbols-outlined text-emerald-500 text-[18px]">
@@ -1973,7 +2036,7 @@ function TestResultsView({ results }) {
           </span>
           <div className="min-w-0">
             <div>
-              Resolved by:{" "}
+              First healthy target in combo order:{" "}
               <code className="text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded">
                 {results.resolvedBy}
               </code>
@@ -2018,6 +2081,12 @@ function TestResultsView({ results }) {
                 {r.stepId ? ` · ${r.stepId}` : ""}
               </div>
             ) : null}
+            {r.error && (
+              <p className="mt-2 whitespace-pre-wrap break-words text-red-500">
+                {r.statusCode ? `HTTP ${r.statusCode}: ` : ""}
+                {r.error}
+              </p>
+            )}
           </div>
           {r.latencyMs !== undefined && <span className="text-text-muted">{r.latencyMs}ms</span>}
           <span
@@ -2037,7 +2106,15 @@ function TestResultsView({ results }) {
   );
 }
 
-function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, comboConfigMode }) {
+function ComboFormModal({
+  isOpen,
+  combo,
+  onClose,
+  onSave,
+  activeProviders,
+  comboConfigMode,
+  routingSettings,
+}) {
   type CreateDraftSnapshot = {
     name: string;
     models: unknown[];
@@ -2901,18 +2978,29 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
     );
   };
 
+  // #14077: these ids are a literal, so they drift whenever a provider catalog
+  // changes and the combo is created with targets that resolve to nothing. The
+  // three Qoder entries below replace `kimi-k2-thinking`, `qwen3-coder-plus` and
+  // `deepseek-v3.2`, which the Qoder registry no longer carries.
+  // `tests/unit/combo-preset-models-resolve-14077.test.ts` pins every entry
+  // against the registry so the next catalog change fails there instead of in a
+  // user's combo.
   const FREE_STACK_PRESET_MODELS = [
     { model: "agy/gemini-3.7-flash-low", weight: 0 },
     { model: "kr/claude-sonnet-4.5", weight: 0 },
-    { model: "if/kimi-k2-thinking", weight: 0 },
-    { model: "if/qwen3-coder-plus", weight: 0 },
-    { model: "if/deepseek-v3.2", weight: 0 },
+    { model: "if/kimi-k2.7-code", weight: 0 },
+    { model: "if/qwen3.7-plus", weight: 0 },
+    { model: "if/deepseek-v4-pro", weight: 0 },
     { model: "nvidia/llama-3.3-70b-instruct", weight: 0 },
     { model: "groq/openai/gpt-oss-120b", weight: 0 },
   ];
 
+  // Found by the #14077 guard, not reported in the issue: Cursor carries no
+  // `claude-4.6-opus-*` at all — that generation is sonnet-only there, and opus
+  // lives under `claude-opus-5-*`. The sibling sonnet entry below resolves, which
+  // is why this one went unnoticed.
   const PAID_PREMIUM_PRESET_MODELS = [
-    { model: "cu/claude-4.6-opus-high", weight: 0 },
+    { model: "cu/claude-opus-5-high", weight: 0 },
     { model: "antigravity/claude-sonnet-4-6", weight: 0 },
     { model: "cu/claude-4.6-sonnet-high", weight: 0 },
     { model: "antigravity/gemini-pro-agent", weight: 0 },
@@ -3027,6 +3115,10 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
       strategy,
     };
 
+    // When editing an existing combo from the dashboard form, synchronize allowedProviders
+    // and clear legacy family restrictions so adding steps across providers never triggers COMBO_008
+    Object.assign(saveData, computeAllowedRestrictionSync(isEdit, combo, models));
+
     // Per-combo description (#5005). Free-text, optional, persisted in combo data.
     if (description.trim()) {
       saveData.description = description.trim();
@@ -3044,12 +3136,12 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
       if (config.concurrencyPerModel !== undefined)
         configToSave.concurrencyPerModel = config.concurrencyPerModel;
       if (config.queueTimeoutMs !== undefined) configToSave.queueTimeoutMs = config.queueTimeoutMs;
-      if (config.stickyRoundRobinLimit !== undefined)
-        configToSave.stickyRoundRobinLimit = config.stickyRoundRobinLimit;
     }
     if (strategy === "weighted" && config.stickyWeightedLimit !== undefined) {
       configToSave.stickyWeightedLimit = config.stickyWeightedLimit;
     }
+    persistStickyRoundRobinLimit(strategy, configToSave, config);
+    persistConnectionAwareExpansion(strategy, configToSave, config);
     if (
       usesIntelligentBuilderStage &&
       !isExpertMode &&
@@ -4243,33 +4335,6 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                           className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
                         />
                       </div>
-                      <div className="col-span-2">
-                        <FieldLabelWithHelp
-                          label={getI18nOrFallback(t, "stickyLimit", "Sticky Limit")}
-                          help={getI18nOrFallback(
-                            t,
-                            "advancedHelp.stickyLimit",
-                            ADVANCED_FIELD_HELP_FALLBACK.stickyLimit
-                          )}
-                          showHelp={!isExpertMode}
-                        />
-                        <input
-                          type="number"
-                          min="0"
-                          max="1000"
-                          value={config.stickyRoundRobinLimit ?? ""}
-                          placeholder={getI18nOrFallback(t, "stickyLimitInherit", "inherit")}
-                          onChange={(e) =>
-                            setConfig({
-                              ...config,
-                              stickyRoundRobinLimit: e.target.value
-                                ? Number(e.target.value)
-                                : undefined,
-                            })
-                          }
-                          className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
-                        />
-                      </div>
                     </div>
                   )}
                   {strategy === "weighted" && (
@@ -4307,6 +4372,15 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                       </div>
                     </div>
                   )}
+                  <ComboRrLegibilityFields
+                    strategy={strategy}
+                    config={config}
+                    setConfig={setConfig}
+                    models={models}
+                    routingSettings={routingSettings}
+                    t={t}
+                    showHelp={!isExpertMode}
+                  />
                   <div className="grid grid-cols-1 gap-2 pt-2 border-t border-black/5 dark:border-white/5">
                     <div>
                       <FieldLabelWithHelp
