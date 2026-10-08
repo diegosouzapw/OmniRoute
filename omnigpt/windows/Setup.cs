@@ -13,7 +13,7 @@ using Microsoft.Win32;
 
 static class Setup
 {
-    public const string Version = "1.0.0";
+    public const string Version = "1.0.1";
     public static readonly string Dest = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "OmniGPT");
     const string UninstallKey = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\OmniGPT";
 
