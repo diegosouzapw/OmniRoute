@@ -27,8 +27,7 @@ export async function getDevinAgenticAuthStatus(
   let status: DevinAgenticAuthStatus = "unavailable";
   try {
     const env = buildDevinChildEnv({}, source);
-    const bin =
-      source.CLI_DEVIN_AGENTIC_BIN?.trim() || source.CLI_DEVIN_BIN?.trim() || "devin";
+    const bin = source.CLI_DEVIN_AGENTIC_BIN?.trim() || source.CLI_DEVIN_BIN?.trim() || "devin";
     const { stdout, stderr } = await execFileAsync(bin, ["auth", "status"], {
       cwd: env.HOME,
       env,
@@ -48,6 +47,36 @@ export async function getDevinAgenticAuthStatus(
 
   cachedStatus = { status, checkedAt: now };
   return status;
+}
+
+const ROUTING_MAX_AGE_MS = 60_000;
+let refreshInFlight: Promise<DevinAgenticAuthStatus> | null = null;
+
+/**
+ * Non-blocking read for the auto-combo hot path (#15446): returns the last known status
+ * (null before the first probe ever finished) and, when it is missing or older than
+ * `maxAgeMs`, starts ONE background refresh. Routing never waits on the CLI spawn, so a
+ * slow or missing `devin` binary cannot add latency to auto/* requests; the provider simply
+ * stays out of the pool until a probe has confirmed the isolated login.
+ */
+export function peekDevinAgenticAuthStatus(
+  maxAgeMs = ROUTING_MAX_AGE_MS,
+  now = Date.now()
+): DevinAgenticAuthStatus | null {
+  const known = cachedStatus;
+  if ((!known || now - known.checkedAt >= maxAgeMs) && !refreshInFlight) {
+    refreshInFlight = getDevinAgenticAuthStatus()
+      .catch((): DevinAgenticAuthStatus => "unavailable")
+      .finally(() => {
+        refreshInFlight = null;
+      });
+  }
+  return known ? known.status : null;
+}
+
+/** Test seam: wait for the background refresh started by peekDevinAgenticAuthStatus(). */
+export async function waitForDevinAgenticAuthRefresh(): Promise<void> {
+  await refreshInFlight;
 }
 
 export function parseDevinAuthStatus(output: string): DevinAgenticAuthStatus {

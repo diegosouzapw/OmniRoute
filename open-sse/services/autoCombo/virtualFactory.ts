@@ -53,6 +53,7 @@ import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
 import { resolveProviderAlias } from "../model.ts";
 import { filterExcludedCandidates } from "./candidateOverrides";
 import { getExcludedConnectionIds } from "@/lib/db/autoCandidateOverrides";
+import { isNoAuthProviderReadyForAutoRouting } from "@/lib/providers/noAuthAutoRoutingReadiness";
 import {
   filterResilienceBlockedCandidates,
   buildConnectionResilienceMap,
@@ -348,8 +349,8 @@ const SYNTHETIC_NOAUTH_CONNECTION_ID = RESILIENCE_NOAUTH_CONNECTION_ID;
 // Allowlist of no-auth providers permitted to enter the `auto`/`auto-*`
 // candidate pool. `opencode` is verified on public HTTP egress; `devin-cli-agentic`
 // is a local CLI backend whose credentials are provided by the isolated Devin CLI
-// home, not an OmniRoute connection. Other providers (including duckduckgo-web,
-// which is rate-limited, and aihorde, which rejects anonymous access) remain out
+// home and is admitted only once that login is confirmed (noAuthAutoRoutingReadiness.ts).
+// Others (duckduckgo-web: rate-limited; aihorde: rejects anonymous access) remain out
 // of auto-routing until verified. Re-add an id here to include it in every auto/* pool.
 //
 // Scope (operator decision 2026-07-24, refs #8183/#6453/#7032): this allowlist
@@ -368,6 +369,7 @@ function isChatAutoComboNoAuthProvider(
 ): boolean {
   if (providerDef.noAuth !== true) return false;
   if (!bypassAllowlist && !AUTO_COMBO_NOAUTH_ALLOWLIST.has(providerDef.id)) return false;
+  if (!bypassAllowlist && !isNoAuthProviderReadyForAutoRouting(providerDef.id)) return false;
   if (!Array.isArray(providerDef.serviceKinds) || providerDef.serviceKinds.length === 0)
     return true;
   return providerDef.serviceKinds.includes("llm");

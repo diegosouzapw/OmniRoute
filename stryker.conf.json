@@ -449,6 +449,7 @@
       "tests/unit/route-guard-acp-agents-local-only.test.ts",
       "tests/unit/route-guard-cli-tools-settings-local-only.test.ts",
       "tests/unit/route-guard-cursor-agent-availability.test.ts",
+      "tests/unit/route-guard-devin-agentic-auth-status.test.ts",
       "tests/unit/route-guard-cursor-refresh.test.ts",
       "tests/unit/route-guard-forge-jcode-settings-local-only.test.ts",
       "tests/unit/route-guard-grok-build-settings-local-only.test.ts",
