@@ -35,16 +35,7 @@ import {
   storeCompletedDetail,
   getCompletedDetails,
 } from "./completedRequestDetails";
-import {
-  hasAgentIdentity,
-  type AgentContext,
-} from "@omniroute/open-sse/handlers/chatCore/agentContext.ts";
-import {
-  recordAgentSessionUsage,
-  type AgentSessionTokens,
-  type AgentSessionUsage,
-} from "../db/agentSessions";
-import { calculateCostDetailed } from "./costCalculator";
+import * as sessions from "./usageHistory/agentSessionUsage";
 import { shouldPersistToDisk } from "./migrations";
 import { emitUsageRecorded } from "./usageEvents";
 import {
@@ -873,63 +864,7 @@ export interface UsageEntry {
   /** Opaque CLIProxyAPI auth_index. Never a label, path, token, or email. */
   cpaAuthIndex?: string | null;
   /** Coding-agent session and project of the request; attributes the row to an agent session. */
-  agentContext?: AgentContext | null;
-}
-
-/**
- * Upsert the request's agent session inside the caller's transaction; null when it has none.
- * Session attribution is best-effort: a failure here (e.g. agent_sessions missing) must never
- * drop the usage_history row, so it degrades to an unattributed row instead of throwing.
- */
-function recordAgentSession(
-  db: Parameters<typeof recordAgentSessionUsage>[0],
-  usage: AgentSessionUsage | null
-): string | null {
-  if (!usage) return null;
-  try {
-    return recordAgentSessionUsage(db, usage);
-  } catch (error) {
-    console.warn("Failed to record agent session; saving the usage row without it:", error);
-    return null;
-  }
-}
-
-/** Session counters for this request, priced now so reports keep the price at request time. */
-async function buildAgentSessionUsage(
-  entry: UsageEntry,
-  tokens: AgentSessionTokens,
-  timestamp: string,
-  serviceTier: string
-): Promise<AgentSessionUsage | null> {
-  if (!hasAgentIdentity(entry.agentContext)) return null;
-  const provider = entry.provider ? resolveProviderId(entry.provider) : null;
-  const model = entry.model || null;
-  let pricing: { costUsd: number; priced: boolean };
-  try {
-    pricing = await calculateCostDetailed(provider || "", model || "", tokens, {
-      provider,
-      model,
-      serviceTier,
-    });
-  } catch (error) {
-    // Pricing only feeds the session counters; never let it drop the usage_history row.
-    console.warn("Failed to price agent session usage; saving the usage row without it:", error);
-    return null;
-  }
-  const { costUsd, priced } = pricing;
-  return {
-    context: entry.agentContext,
-    apiKeyId: entry.apiKeyId || null,
-    apiKeyName: entry.apiKeyName || null,
-    timestamp,
-    success: entry.success !== false,
-    tokens,
-    costUsd,
-    priced,
-    provider,
-    model,
-    connectionId: entry.connectionId || null,
-  };
+  agentContext?: sessions.AgentContext | null;
 }
 
 /**
@@ -945,14 +880,7 @@ export async function saveRequestUsage(entry: UsageEntry) {
 
     const tokensInput = getLoggedInputTokens(entry.tokens);
     const tokensOutput = getLoggedOutputTokens(entry.tokens);
-    const tokens: AgentSessionTokens = {
-      input: tokensInput,
-      output: tokensOutput,
-      cacheRead: getPromptCacheReadTokens(entry.tokens),
-      cacheCreation: getPromptCacheCreationTokens(entry.tokens),
-      reasoning: getReasoningTokens(entry.tokens),
-    };
-    const agentSessionUsage = await buildAgentSessionUsage(entry, tokens, timestamp, serviceTier);
+    const sessionUsage = await sessions.buildAgentSessionUsage(entry, timestamp, serviceTier);
     const connection = entry.connectionId
       ? (db.prepare("SELECT * FROM provider_connections WHERE id = ?").get(entry.connectionId) as
           Record<string, unknown> | undefined)
@@ -1011,15 +939,14 @@ export async function saveRequestUsage(entry: UsageEntry) {
         return; // duplicate — do not insert
       }
 
-      const agentSessionId = recordAgentSession(db, agentSessionUsage);
-
+      const agentSessionId = sessions.recordAgentSession(db, sessionUsage);
       db.prepare(
         `
         INSERT INTO usage_history (provider, model, connection_id, account_key, account_label,
           account_label_priority, api_key_id, api_key_name, tokens_input, tokens_output,
           tokens_cache_read, tokens_cache_creation, tokens_reasoning, service_tier, status, success,
-          latency_ms, ttft_ms, error_code, combo_strategy, endpoint, cpa_auth_index,
-          agent_session_id, timestamp)
+          latency_ms, ttft_ms, error_code, combo_strategy, endpoint, cpa_auth_index, agent_session_id,
+          timestamp)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `
       ).run(
@@ -1033,9 +960,9 @@ export async function saveRequestUsage(entry: UsageEntry) {
         entry.apiKeyName || null,
         tokensInput,
         tokensOutput,
-        tokens.cacheRead,
-        tokens.cacheCreation,
-        tokens.reasoning,
+        getPromptCacheReadTokens(entry.tokens),
+        getPromptCacheCreationTokens(entry.tokens),
+        getReasoningTokens(entry.tokens),
         serviceTier,
         entry.status || null,
         entry.success === false ? 0 : 1,

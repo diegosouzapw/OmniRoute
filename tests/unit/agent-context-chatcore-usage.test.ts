@@ -73,7 +73,7 @@ async function drain(response) {
   }
 }
 
-async function sessionRowFor(sessionId, timeoutMs = 4000) {
+async function sessionRowFor(sessionId, timeoutMs = 15000) {
   const db = core.getDbInstance();
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
