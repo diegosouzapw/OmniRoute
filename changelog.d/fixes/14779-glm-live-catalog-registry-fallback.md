@@ -1,0 +1,1 @@
+- fix(providers): GLM no longer rejects registry models (e.g. glm-4.6v) with "not available in the active live catalog" when a connection's synced snapshot predates them (#14779)

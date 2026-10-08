@@ -120,11 +120,11 @@
 
 ## 📖 提供者设置
 
-要从 CSV 或 JSON 文件批量添加 API 密钥连接，请使用**控制面板 → 提供者 → 从文件导入**。列按位置排列（`provider,name,apiKey,baseUrl,priority`）；`provider` 必须已作为托管提供者或兼容节点存在。请参阅[从 CSV 或 JSON 文件导入提供者](../providers/CSV-IMPORT.md)。
+要从 CSV 或 JSON 文件批量添加 API 密钥连接，请使用 **控制面板 → 提供者 → 从文件导入**。各列按位置对应（`provider,name,apiKey,baseUrl,priority`）；`provider` 必须已作为托管提供者或兼容节点存在。请参阅[从 CSV 或 JSON 文件导入提供者](../providers/CSV-IMPORT.md)。
 
 ### 🔐 订阅提供者
 
-#### Claude Code（Pro/Max）
+#### Claude Code (Pro/Max)
 
 ```bash
 控制面板 → 提供者 → 连接 Claude Code
@@ -137,18 +137,18 @@
   cc/claude-haiku-4-5-20251001
 ```
 
-**专业提示：**复杂任务使用 Opus，追求速度则使用 Sonnet。OmniRoute 会按模型跟踪配额！
+**专业提示：** 复杂任务使用 Opus，追求速度则使用 Sonnet。OmniRoute 会按模型跟踪配额！
 
-Claude 和 Claude Code 兼容路由会为 Opus 和 Sonnet
-模型保留 `max` 思考强度。Haiku 模型不接受 `max` 强度等级，因此 OmniRoute 会在将
-请求发送到上游之前，将其降级为高思考预算。
+OmniRoute 主机上没有浏览器？在任何已登录 Claude Code 的环境中运行 `claude setup-token`，然后将有效期一年的令牌粘贴到 **Setup Token** 选项卡中。请参阅[使用 setup token 的 Claude Code](../providers/CLAUDE_CODE_SETUP_TOKEN.md)。
 
-#### OpenAI Codex（Plus/Pro）
+Claude 及与 Claude Code 兼容的路由会为 Opus 和 Sonnet 模型保留 `max` 思考强度。Haiku 模型不接受 `max` 强度级别，因此 OmniRoute 会在向上游发送请求前，将其降级为较高的思考预算。
+
+#### OpenAI Codex (Plus/Pro)
 
 ```bash
 控制面板 → 提供者 → 连接 Codex
 → OAuth 登录（端口 1455）
-→ 5 小时 + 每周重置
+→ 每 5 小时 + 每周重置
 
 模型：
   cx/gpt-5.5
@@ -180,39 +180,37 @@ Claude 和 Claude Code 兼容路由会为 Opus 和 Sonnet
 2. 从 Coding Plan 获取 API 密钥
 3. 控制面板 → 添加 API 密钥：提供者：`glm`，API 密钥：`your-key`
 
-**使用：**`glm/glm-4.7` — **专业提示：**Coding Plan 以 1/7 的成本提供 3 倍配额！每天上午 10:00 重置。
+**用法：** `glm/glm-4.7` — **专业提示：** Coding Plan 以 1/7 的成本提供 3 倍配额！每天上午 10:00 重置。
 
-#### MiniMax M2.1（5 小时重置，$0.20/1M）
+#### MiniMax M2.1（每 5 小时重置，$0.20/1M）
 
 1. 注册：[MiniMax](https://www.minimax.io)
 2. 获取 API 密钥 → 控制面板 → 添加 API 密钥
 
-**使用：**`minimax/MiniMax-M2.1` — **专业提示：**长上下文（100 万个令牌）最便宜的选择！
+**用法：** `minimax/MiniMax-M2.1` — **专业提示：** 长上下文（100 万令牌）的最便宜选择！
 
-#### Kimi K2（每月固定 $9）
+#### Kimi K2（固定每月 $9）
 
 1. 订阅：[Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. 获取 API 密钥 → 控制面板 → 添加 API 密钥
 
-**使用：**`kimi/kimi-k2.5` — **专业提示：**每月固定 $9 可获得 1000 万个令牌，实际成本为 $0.90/1M！
+**用法：** `kimi/kimi-k2.5` — **专业提示：** 每月固定 $9 即可获得 1000 万令牌，相当于每 100 万令牌 $0.90！
 
 #### Baidu Qianfan / ERNIE
 
 1. 注册：[Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
 2. 创建 Qianfan API 密钥 → 控制面板 → 添加 API 密钥：提供者：`qianfan`
 
-**使用：**`qianfan/ernie-5.1`、`qianfan/ernie-x1.1` 或其他兼容 OpenAI 的 Qianfan 模型 ID。
+**用法：** `qianfan/ernie-5.1`、`qianfan/ernie-x1.1` 或其他与 OpenAI 兼容的 Qianfan 模型 ID。
 
 ### 🆓 免费提供者
 
-无需身份验证的免费提供者，其提供者页面上的**无需身份验证**旁边有一个开关。
-关闭该开关会禁用该提供者，将其从已配置提供者视图和紧凑视图中移除，并
-从 `/v1/models` 中移除其模型。
+无需身份验证的免费提供者，其提供者页面上的 **无需身份验证** 旁边设有一个开关。将其关闭会禁用该提供者、将其从“已配置提供者”视图和紧凑视图中移除，并从 `/v1/models` 中移除其模型。
 
 #### Qoder（9 个免费模型）
 
 ```bash
-控制面板 → 连接 Qoder → OAuth 登录 → 访问权限受提供者当前限制约束
+控制面板 → 连接 Qoder → OAuth 登录 → 访问受提供者当前限制约束
 
 模型：if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
@@ -1232,9 +1230,9 @@ OmniRoute 集成了云端编码智能体（**OpenAI Codex Cloud**、**Devin**、
 
 ## 🛠️ 编程式管理
 
-你可以通过 HTTP，使用**具有 `manage` 作用域的 Bearer 密钥**管理所有 OmniRoute 资源（提供者、组合、密钥、设置）。
+你可以通过 HTTP 使用**具有 `manage` 权限范围的 Bearer 密钥**管理所有 OmniRoute 资源（提供者、组合、密钥和设置）。
 
-在**控制面板 → API 密钥 → 新建密钥 → 作用域：manage**中生成密钥，然后执行：
+在**控制面板 → API 密钥 → 新建密钥 → 权限范围：manage**中生成密钥，然后执行：
 
 ```bash
 # 列出提供者

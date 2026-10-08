@@ -58,6 +58,32 @@ function mapChatResponseFormatToResponsesText(body: JsonRecord, result: JsonReco
   result.text = { ...existingText, format };
 }
 
+// The Responses API rejects text.format json_object with 400 "Response input
+// messages must contain the word 'json'" unless an `input` message says "json";
+// `instructions` does not count. Chat Completions counts the system prompt, and
+// this translator hoists that prompt into `instructions`, so a request that was
+// valid as Chat (JSON asked for only in the system prompt) failed upstream.
+// Prepend a constant developer hint in that case: a fixed prefix keeps
+// the prompt-cache prefix stable across turns.
+const JSON_OBJECT_INPUT_HINT = "Respond with a valid JSON object.";
+
+function ensureJsonObjectInputHint(result: JsonRecord): void {
+  if (toRecord(toRecord(result.text).format).type !== "json_object") return;
+  if (!Array.isArray(result.input)) return;
+  const input = result.input as JsonRecord[];
+  const mentionsJson = input.some((item) => {
+    if (item.type !== "message") return false;
+    if (typeof item.content === "string") return /json/i.test(item.content);
+    return toArray(item.content).some((part) => /json/i.test(toString(toRecord(part).text)));
+  });
+  if (mentionsJson) return;
+  input.unshift({
+    type: "message",
+    role: "developer",
+    content: [{ type: "input_text", text: JSON_OBJECT_INPUT_HINT }],
+  });
+}
+
 // Flatten a Chat-Completions content block into the single string the Responses
 // API `instructions` field takes. `instructions` is a string, not a part array,
 // so the text parts are joined; anything non-textual has no representation there
@@ -495,6 +521,7 @@ export function openaiToOpenAIResponsesRequest(
   }
   if (root.top_p !== undefined) result.top_p = root.top_p;
   mapChatResponseFormatToResponsesText(root, result);
+  ensureJsonObjectInputHint(result);
   // GPT-5 verbosity: Chat Completions `verbosity` → Responses `text.verbosity`.
   const chatVerbosity = normalizeVerbosity(root.verbosity);
   if (chatVerbosity) {

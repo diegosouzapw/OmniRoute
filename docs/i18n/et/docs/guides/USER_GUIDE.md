@@ -120,33 +120,39 @@ Juurdepääs: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ## 📖 Teenusepakkuja seadistamine
 
+API-võtme ühenduste hulgi lisamiseks CSV- või JSON-failist kasutage valikut **Dashboard → Providers → Import from file**. Veerud on positsioonipõhised (`provider,name,apiKey,baseUrl,priority`); `provider` peab juba olemas olema hallatud teenusepakkuja või ühilduva sõlmena. Vaadake jaotist [Teenusepakkujate importimine CSV- või JSON-failist](../providers/CSV-IMPORT.md).
+
 ### 🔐 Tellimuspõhised teenusepakkujad
 
 #### Claude Code (Pro/Max)
 
 ```bash
 Dashboard → Providers → Connect Claude Code
-→ OAuth login → Auto token refresh
-→ 5-hour + weekly quota tracking
+→ OAuthi sisselogimine → Tokeni automaatne värskendamine
+→ 5 tunni ja nädala kvoodi jälgimine
 
-Models:
+Mudelid:
   cc/claude-opus-4-7
   cc/claude-sonnet-4-6
   cc/claude-haiku-4-5-20251001
 ```
 
-**Kasulik nõuanne:** Kasuta Opust keeruliste ülesannete jaoks, Sonnetit kiiruse jaoks. OmniRoute jälgib kvooti mudeli kaupa!
+**Profinõuanne:** Kasutage keerukate ülesannete jaoks Opust ja kiiruse jaoks Sonnetit. OmniRoute jälgib iga mudeli kvooti!
 
-Claude ja Claude Code'iga ühilduvad marsruudid säilitavad `max` mõtlemispingutuse Opuse ja Sonneti mudelite jaoks. Haiku mudelid ei toeta `max` pingutustaset, seega alandab OmniRoute selle taseme kõrgele mõtlemiseelarvele enne päringu edastamist.
+Kas OmniRoute'i hostis pole brauserit? Käivitage `claude setup-token` mis tahes kohas, kus Claude Code'i on sisse logitud, ja kleepige üheaastane token vahekaardile **Setup Token**. Vaadake jaotist [Claude Code seadistustokeniga](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Claude'i ja Claude Code'iga ühilduvad marsruudid säilitavad Opuse ja Sonneti mudelite puhul mõtlemispingutuse taseme `max`.
+Haiku mudelid ei aktsepteeri pingutustaset `max`, seega alandab OmniRoute selle
+päringu enne ülesvoolu saatmist kõrgele mõtlemiseelarve tasemele.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
 Dashboard → Providers → Connect Codex
-→ OAuth login (port 1455)
-→ 5-hour + weekly reset
+→ OAuthi sisselogimine (port 1455)
+→ Lähtestamine iga 5 tunni järel ja kord nädalas
 
-Models:
+Mudelid:
   cx/gpt-5.5
   cx/gpt-5.4
   cx/gpt-5.3-codex
@@ -157,10 +163,10 @@ Models:
 
 ```bash
 Dashboard → Providers → Connect GitHub
-→ OAuth via GitHub
-→ Monthly reset (1st of month)
+→ OAuth GitHubi kaudu
+→ Igakuine lähtestamine (kuu 1. kuupäeval)
 
-Models:
+Mudelid:
   gh/gpt-5.5
   gh/gpt-5.4
   gh/claude-sonnet-4.6
@@ -168,57 +174,57 @@ Models:
   gh/gemini-3.1-pro-preview
 ```
 
-### 💰 Odavad teenusepakkujad
+### 💰 Soodsad teenusepakkujad
 
-#### GLM-4.7 (igapäevane taastäitmine, $0.6/1M)
+#### GLM-4.7 (igapäevane lähtestamine, $0.6/1M)
 
-1. Registreeru: [Zhipu AI](https://open.bigmodel.cn)
-2. Hangi API-võti Coding Plan liidesest
-3. Dashboard → Add API Key: Provider: `glm`, API Key: `your-key`
+1. Registreeruge: [Zhipu AI](https://open.bigmodel.cn)
+2. Hankige Coding Planist API-võti
+3. Dashboard → Add API Key: Teenusepakkuja: `glm`, API-võti: `your-key`
 
-**Kasuta:** `glm/glm-4.7` — **Kasulik nõuanne:** Coding Plan pakub 3× kvooti 1/7 hinna eest! Taastäitub igapäevaselt kell 10:00.
+**Kasutamine:** `glm/glm-4.7` — **Profinõuanne:** Coding Plan pakub 3× kvooti 1/7 hinnaga! Lähtestamine toimub iga päev kell 10.00.
 
-#### MiniMax M2.1 (5h taastäitmine, $0.20/1M)
+#### MiniMax M2.1 (lähtestamine iga 5 tunni järel, $0.20/1M)
 
-1. Registreeru: [MiniMax](https://www.minimax.io)
-2. Hangi API-võti → Dashboard → Add API Key
+1. Registreeruge: [MiniMax](https://www.minimax.io)
+2. Hankige API-võti → Dashboard → Add API Key
 
-**Kasuta:** `minimax/MiniMax-M2.1` — **Kasulik nõuanne:** Odavaim valik pika konteksti (1M tokenit) jaoks!
+**Kasutamine:** `minimax/MiniMax-M2.1` — **Profinõuanne:** Odavaim valik pika konteksti jaoks (1M tokenit)!
 
-#### Kimi K2 ($9/kuus, fikseeritud)
+#### Kimi K2 (fikseeritud $9 kuus)
 
-1. Telli: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. Hangi API-võti → Dashboard → Add API Key
+1. Tellige: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
+2. Hankige API-võti → Dashboard → Add API Key
 
-**Kasuta:** `kimi/kimi-k2.5` — **Kasulik nõuanne:** Fikseeritud $9/kuus 10M tokeni eest = tegelik hind $0.90/1M!
+**Kasutamine:** `kimi/kimi-k2.5` — **Profinõuanne:** Fikseeritud $9 kuus 10M tokeni eest = tegelik kulu $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
-1. Registreeru: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. Loo Qianfan API-võti → Dashboard → Add API Key: Provider: `qianfan`
+1. Registreeruge: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
+2. Looge Qianfani API-võti → Dashboard → Add API Key: Teenusepakkuja: `qianfan`
 
-**Kasuta:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, või muud Qianfani OpenAI-ühilduvat mudeli ID-d.
+**Kasutamine:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` või mõni muu Qianfani OpenAI-ga ühilduva mudeli ID.
 
 ### 🆓 TASUTA teenusepakkujad
 
-Autentimist mittevajavatel tasuta teenusepakkujatel on nende leheküljel lüliti **No authentication required** kõrval.
-Selle väljalülitamine keelab teenusepakkuja, eemaldab selle Providers configured/compact vaadetest ja
-eemaldab selle mudelid `/v1/models` loendist.
+Autentimist mittevajavate tasuta teenusepakkujate lehel on valiku **No authentication required** kõrval lüliti.
+Selle väljalülitamine keelab vastava teenusepakkuja, eemaldab selle teenusepakkujate seadistatud/kompaktvaadetest ning
+eemaldab selle mudelid asukohast `/v1/models`.
 
 #### Qoder (9 TASUTA mudelit)
 
 ```bash
-Dashboard → Connect Qoder → OAuth login → Access is subject to current provider limits
+Dashboard → Connect Qoder → OAuthi sisselogimine → Juurdepääs sõltub teenusepakkuja kehtivatest piirangutest
 
-Models: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
+Mudelid: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
 #### Kiro (Claude TASUTA)
 
 ```bash
-Dashboard → Connect Kiro → AWS Builder ID or Google/GitHub → ~50 credits/month
+Dashboard → Connect Kiro → AWS Builder ID või Google/GitHub → ~50 krediiti kuus
 
-Models: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
+Mudelid: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
 
 ---

@@ -13,6 +13,7 @@ import {
   applyCacheHitTokensToResponsesUsage,
 } from "./responseSanitizer/cacheHitTokens.ts";
 import { stripObfuscationZeroWidth } from "../utils/zeroWidth.ts";
+import { normalizeArrayContentChunk } from "../utils/arrayContentDelta.ts";
 export {
   extractThinkingFromContent,
   shouldParseTextualReasoningTags,
@@ -888,12 +889,18 @@ function sanitizeResponsesOutputItem(item: unknown, index: number): JsonRecord |
 
   if (type === "function_call") {
     const callId = toString(itemRecord.call_id) || toString(itemRecord.id) || `call_${index}`;
+    const namespace = toString(itemRecord.namespace);
     return {
       id: toString(itemRecord.id) || `fc_${callId}`,
       type: "function_call",
       call_id: callId,
       name: toString(itemRecord.name) || "",
       arguments: stripZeroWidthToolArgumentJson(itemRecord.arguments),
+      ...(namespace ? { namespace } : {}),
+      ...(itemRecord.status !== undefined ? { status: itemRecord.status } : {}),
+      ...(itemRecord.encrypted_function_args !== undefined
+        ? { encrypted_function_args: itemRecord.encrypted_function_args }
+        : {}),
     };
   }
 
@@ -1102,6 +1109,10 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
     }
     return parsed;
   }
+
+  // Fold typed content-part arrays (Mistral thinking chunks) into the string
+  // `content` / `reasoning_content` the chat-chunk contract requires.
+  normalizeArrayContentChunk(parsedRecord);
 
   // Fast-path: check if any mutations would actually be needed
   // Most passthrough chunks (content deltas) need no sanitization

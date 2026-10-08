@@ -140,12 +140,46 @@ criar, à partida, mensagens que exponham a topologia.
 `tests/unit/error-message-sanitization.test.ts` garante que:
 
 - Todas as rotas em `/api/model-combo-mappings/*` devolvem corpos sanitizados em respostas 4xx/5xx.
-- `sanitizeErrorMessage` remove rastreios de pilha com várias linhas.
+- `sanitizeErrorMessage` remove stack traces com várias linhas.
 - `sanitizeErrorMessage` substitui caminhos absolutos POSIX e Windows por `<path>`.
-- `sanitizeErrorMessage` trata de forma segura entradas `null`/`undefined`/instâncias de `Error`.
-- `buildErrorBody` nunca expõe rastreios de pilha no respetivo campo `message`.
+- `sanitizeErrorMessage` processa com segurança entradas que sejam `null`/`undefined`/instâncias de `Error`.
+- `buildErrorBody` nunca expõe stack traces no respetivo campo `message`.
 
-Ao adicionar uma nova rota ou executor, copie o padrão de asserção deste ficheiro. O limite de cobertura (`npm run test:coverage`) exige ≥60% de instruções/linhas/funções/ramificações — os caminhos de erro têm de estar cobertos.
+Ao adicionar uma nova rota ou executor, copie o padrão de asserção deste ficheiro. O limite de cobertura (`npm run test:coverage`) exige ≥60% de instruções/linhas/funções/ramos — os caminhos de erro têm de estar cobertos.
+
+### A verificação estática: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` analisa `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` e todos os ficheiros `src/app/api/**/route.ts` à procura de um erro capturado em bruto (`err.message` / `err.stack`) ou de um `body.error.message` externo em bruto que chegue a um corpo visível para o cliente.
+
+**A confiança aplica-se por chamada, nunca por ficheiro** (G-03, #15159). Anteriormente, a verificação ignorava um ficheiro inteiro assim que encontrava qualquer importação a partir de um caminho `utils/error` — uma isenção ao nível do ficheiro aplicada a um risco ao nível da chamada. Um único `import { sanitizeErrorMessage }` correto isentava permanentemente todos os outros destinos no ficheiro, o que permitiu que uma fuga real chegasse a produção apesar de a verificação passar. Agora, uma linha só é considerada de confiança quando passa efetivamente por um construtor ou sanitizador autorizado:
+
+| Forma da linha                                                                                                      | É de confiança?    |
+| ------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| chama `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …                 | sim                |
+| chama um construtor canónico **que este ficheiro importa** de `open-sse/utils/error` ou `src/lib/api/errorResponse` | sim                |
+| um construtor autorizado é chamado em **várias linhas**, pelo que o campo `message:` fica numa linha posterior      | sim                |
+| chama uma `function errorResponse(...)` local ao ficheiro cujo próprio corpo sanitiza                               | sim                |
+| encaminha `err.message` / `err.stack` em qualquer outro local                                                       | **não — violação** |
+
+Duas consequências importantes:
+
+- Importar `errorResponse` _não_ concede confiança geral. Um ficheiro que defina o seu próprio `errorResponse` continua a ser assinalado no local da chamada, porque a verificação determina a confiança por símbolo, não por ficheiro. O mesmo se aplica a `createErrorResponse`.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` seguido de `error: body.error.message` é o padrão **sanitizado** utilizado nos executores `*-fetch.ts` e não é assinalado.
+
+Ambos os módulos de construtores autorizados são considerados: `open-sse/utils/error.ts` e `src/lib/api/errorResponse.ts`. O segundo é utilizado pelos ~54 processadores de rotas fora de `open-sse` e sanitiza ambas as suas exportações.
+
+Duas formas que **não** constituem violações, embora a verificação já as tenha reportado como fugas:
+
+- um erro em bruto dentro de uma **linha de auditoria** — `saveCallLog({ error: err.message })`, `logToolCall(...)` ou um logger que recebe primeiro uma mensagem (`log.error("BATCHES", "sweep failed", { error: err.message })`). A resposta visível para o cliente nas linhas seguintes pode perfeitamente ser um `buildErrorBody` estático.
+- uma chamada a um construtor autorizado em **várias linhas**, na qual o campo `message:` não identifica qualquer construtor:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` fixa as violações preexistentes para que a verificação bloqueie apenas as _novas_. `assertNoStale` remove automaticamente uma entrada assim que a respetiva violação é corrigida, pelo que a lista fixa não pode ficar fossilizada. Proteções contra regressões: `tests/unit/check-error-helper.test.ts` e `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Controlos relacionados
 

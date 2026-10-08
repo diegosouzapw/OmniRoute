@@ -120,16 +120,16 @@ I-access sa pamamagitan ng: WhatsApp, Telegram, Slack, Discord, iMessage, Signal
 
 ## 📖 Pag-set Up ng Provider
 
-Para maramihang magdagdag ng mga koneksyon ng API key mula sa isang CSV o JSON file, gamitin ang **Dashboard → Providers → Import from file**. Nakaayon sa posisyon ang mga column (`provider,name,apiKey,baseUrl,priority`); dapat umiiral na ang `provider` bilang isang pinamamahalaang provider o katugmang node. Tingnan ang [Pag-import ng mga provider mula sa isang CSV o JSON file](../providers/CSV-IMPORT.md).
+Upang maramihang magdagdag ng mga koneksiyong API-key mula sa isang CSV o JSON file, gamitin ang **Dashboard → Providers → Import from file**. Nakabatay sa posisyon ang mga column (`provider,name,apiKey,baseUrl,priority`); dapat umiiral na ang `provider` bilang isang pinamamahalaang provider o katugmang node. Tingnan ang [Pag-import ng mga provider mula sa isang CSV o JSON file](../providers/CSV-IMPORT.md).
 
 ### 🔐 Mga Subscription Provider
 
 #### Claude Code (Pro/Max)
 
 ```bash
-Dashboard → Providers → Connect Claude Code
+Dashboard → Providers → Ikonekta ang Claude Code
 → Pag-login gamit ang OAuth → Awtomatikong pag-refresh ng token
-→ 5 oras + lingguhang pagsubaybay sa quota
+→ 5-oras + lingguhang pagsubaybay sa quota
 
 Mga Model:
   cc/claude-opus-4-7
@@ -137,16 +137,18 @@ Mga Model:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Pro Tip:** Gamitin ang Opus para sa mga komplikadong gawain at Sonnet para sa bilis. Sinusubaybayan ng OmniRoute ang quota ng bawat model!
+**Tip para sa Pro:** Gamitin ang Opus para sa mga komplikadong gawain at Sonnet para sa bilis. Sinusubaybayan ng OmniRoute ang quota ng bawat model!
 
-Pinapanatili ng mga route na katugma sa Claude at Claude Code ang `max` na antas ng thinking effort para sa mga model na Opus at Sonnet. Hindi tinatanggap ng mga model na Haiku ang `max` na antas ng effort, kaya ibinababa ng OmniRoute ang kahilingang iyon sa isang mataas na thinking budget bago ito ipadala sa upstream.
+Walang browser sa OmniRoute host? Patakbuhin ang `claude setup-token` saanman naka-login ang Claude Code at i-paste ang isang-taong token sa tab na **Setup Token**. Tingnan ang [Claude Code gamit ang setup token](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Pinapanatili ng Claude at mga route na compatible sa Claude Code ang `max` na antas ng thinking effort para sa mga model na Opus at Sonnet. Hindi tinatanggap ng mga Haiku model ang antas ng effort na `max`, kaya ibinababa ng OmniRoute ang kahilingang iyon sa mataas na thinking budget bago ito ipadala upstream.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-Dashboard → Providers → Connect Codex
+Dashboard → Providers → Ikonekta ang Codex
 → Pag-login gamit ang OAuth (port 1455)
-→ Pag-reset kada 5 oras + lingguhan
+→ 5-oras + lingguhang pag-reset
 
 Mga Model:
   cx/gpt-5.5
@@ -158,7 +160,7 @@ Mga Model:
 #### GitHub Copilot
 
 ```bash
-Dashboard → Providers → Connect GitHub
+Dashboard → Providers → Ikonekta ang GitHub
 → OAuth sa pamamagitan ng GitHub
 → Buwanang pag-reset (ika-1 ng buwan)
 
@@ -178,37 +180,39 @@ Mga Model:
 2. Kunin ang API key mula sa Coding Plan
 3. Dashboard → Add API Key: Provider: `glm`, API Key: `your-key`
 
-**Gamitin:** `glm/glm-4.7` — **Pro Tip:** Nag-aalok ang Coding Plan ng 3× quota sa 1/7 ng halaga! Nire-reset araw-araw nang 10:00 AM.
+**Gamitin:** `glm/glm-4.7` — **Tip para sa Pro:** Nag-aalok ang Coding Plan ng 3× quota sa 1/7 na halaga! Nagre-reset araw-araw nang 10:00 AM.
 
-#### MiniMax M2.1 (Pag-reset kada 5 oras, $0.20/1M)
+#### MiniMax M2.1 (5-oras na pag-reset, $0.20/1M)
 
 1. Mag-sign up: [MiniMax](https://www.minimax.io)
 2. Kunin ang API key → Dashboard → Add API Key
 
-**Gamitin:** `minimax/MiniMax-M2.1` — **Pro Tip:** Pinakamurang opsyon para sa mahabang context (1M token)!
+**Gamitin:** `minimax/MiniMax-M2.1` — **Tip para sa Pro:** Pinakamurang opsyon para sa mahabang context (1M token)!
 
-#### Kimi K2 (Nakapirming $9/buwan)
+#### Kimi K2 (nakapirming $9/buwan)
 
 1. Mag-subscribe: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. Kunin ang API key → Dashboard → Add API Key
 
-**Gamitin:** `kimi/kimi-k2.5` — **Pro Tip:** Ang nakapirming $9/buwan para sa 10M token ay katumbas ng aktuwal na halagang $0.90/1M!
+**Gamitin:** `kimi/kimi-k2.5` — **Tip para sa Pro:** Ang nakapirming $9/buwan para sa 10M token ay katumbas ng epektibong halagang $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
 1. Mag-sign up: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
 2. Gumawa ng Qianfan API key → Dashboard → Add API Key: Provider: `qianfan`
 
-**Gamitin:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, o isa pang Qianfan model ID na katugma sa OpenAI.
+**Gamitin:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, o ibang Qianfan model ID na compatible sa OpenAI.
 
 ### 🆓 Mga LIBRENG Provider
 
-Ang mga libreng provider na hindi nangangailangan ng authentication ay may switch sa tabi ng **No authentication required** sa kanilang provider page. Kapag in-off ito, madi-disable ang provider na iyon, aalisin ito sa configured/compact na mga view ng Providers, at aalisin ang mga model nito mula sa `/v1/models`.
+Ang mga libreng provider na walang authentication ay may switch sa tabi ng **No authentication required** sa kanilang provider page.
+Kapag in-off ito, madi-disable ang provider na iyon, aalisin ito sa mga configured/compact view ng Providers, at
+aalisin ang mga model nito mula sa `/v1/models`.
 
 #### Qoder (9 na LIBRENG model)
 
 ```bash
-Dashboard → Connect Qoder → Pag-login gamit ang OAuth → Ang access ay napapailalim sa kasalukuyang mga limitasyon ng provider
+Dashboard → Ikonekta ang Qoder → Pag-login gamit ang OAuth → Ang access ay napapailalim sa kasalukuyang mga limitasyon ng provider
 
 Mga Model: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
@@ -216,7 +220,7 @@ Mga Model: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, 
 #### Kiro (LIBRENG Claude)
 
 ```bash
-Dashboard → Connect Kiro → AWS Builder ID o Google/GitHub → ~50 credit/buwan
+Dashboard → Ikonekta ang Kiro → AWS Builder ID o Google/GitHub → ~50 credit/buwan
 
 Mga Model: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```

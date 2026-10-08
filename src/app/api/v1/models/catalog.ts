@@ -73,6 +73,7 @@ import { createModelCapabilityResolutionSnapshot } from "@/lib/modelCapabilityRe
 import {
   getModelsDevPricing,
   getSyncedCapability,
+  peekCachedReasoningEfforts,
   upsertSyncedCapabilities,
 } from "@/lib/modelsDevSync";
 import type { ModelCapabilityEntry } from "@/lib/modelsDevSync";
@@ -563,7 +564,7 @@ async function buildUnifiedModelsResponseCore(
       getProviderPrefixesFromMaps(aliasMaps, providerId, rawProvider);
 
     const getComboTargetModelId = (target: ComboCatalogTarget) => {
-      const resolved = getComboTargetModelIdFromMaps(aliasMaps, target);
+      const resolved = getComboTargetModelIdFromMaps(aliasMaps, target, providerNodeIdByPrefix);
       if (!resolved) return null;
       const nodeId = providerNodeIdByPrefix[resolved.providerId];
       return nodeId ? { ...resolved, providerId: nodeId } : resolved;
@@ -724,6 +725,8 @@ async function buildUnifiedModelsResponseCore(
       if (typeof canonical.capabilities.temperature === "boolean") {
         capabilities.temperature = canonical.capabilities.temperature;
       }
+      const syncedReasoningEfforts =
+        synced?.reasoning_efforts ?? peekCachedReasoningEfforts(providerId, modelId);
       Object.assign(
         capabilities,
         connectionEfforts === undefined
@@ -732,14 +735,16 @@ async function buildUnifiedModelsResponseCore(
               modelId,
               canonical.capabilities.supportsThinking,
               getRegistryThinkingEfforts(providerId, modelId),
-              true
+              true,
+              syncedReasoningEfforts
             )
           : getThinkingCapabilityFields(
               providerId,
               modelId,
               connectionEfforts.length > 0 ? true : canonical.capabilities.supportsThinking,
               connectionEfforts,
-              true
+              true,
+              syncedReasoningEfforts
             )
       );
 
@@ -897,9 +902,9 @@ async function buildUnifiedModelsResponseCore(
           await yieldCatalogBuildTurn();
         }
         const virtualCombo = await createBuiltinAutoCombo(autoId, suffix, preparedAutoInputs);
+        if (virtualCombo.models.length === 0) continue; // zero live candidates — can't dispatch
         const contextLength = virtualCombo.advertisedContextLength || 128000;
         const maxOutputTokens = virtualCombo.advertisedMaxOutputTokens || 8192;
-
         // #11947: derive modalities and vision from the effective target pool so
         // OpenAI-compatible clients can detect vision support for auto/* combos.
         const autoTargets: ComboCatalogTarget[] = virtualCombo.models.map((m) => ({
@@ -1109,7 +1114,10 @@ async function buildUnifiedModelsResponseCore(
           // Skip the canonical fallback for static models without declared tiers —
           // otherwise the catalog synthesizes unresolvable `<prefix>/<model>-{tier}`
           // ids for every static reasoning model across all providers (#9485 review).
-          !hasDeclaredEffortTiers
+          !hasDeclaredEffortTiers,
+          // Memory only. Do not call getSyncedCapabilities() here — that opens
+          // SQLite and runs migrations on a pure catalog read.
+          peekCachedReasoningEfforts(canonicalProviderId, model.id)
         );
         const thinkingCapabilities =
           Object.keys(thinkingFields).length > 0 ? { capabilities: thinkingFields } : {};
@@ -1163,6 +1171,9 @@ async function buildUnifiedModelsResponseCore(
     }
 
     for (const modelId of CODEX_NATIVE_UNPREFIXED_MODELS) {
+      if (isCodexDiscoveryModelExcluded({ id: modelId })) continue;
+      const syncedCodexIds = syncedModelIdsByCanonicalProvider.get("codex");
+      if (syncedCodexIds?.size && !syncedCodexIds.has(modelId)) continue;
       if (!providerSupportsModel("codex", modelId)) continue;
       // #11300: a codex-native unprefixed model can also be hidden via the
       // `openai` provider page (codex runs on the openai-compatible connection)
@@ -1225,7 +1236,7 @@ async function buildUnifiedModelsResponseCore(
           continue;
         }
 
-        for (const sm of providerUsesExclusiveSyncedListing(providerId)
+        for (const sm of ["cursor", "cu"].includes(providerId.trim().toLowerCase())
           ? ensureCursorAutoCatalogEntry(
               syncedModels.map((row) => ({
                 ...row,
@@ -1991,7 +2002,8 @@ async function buildUnifiedModelsResponseCore(
     const apiKey = extractApiKey(request);
     let finalModels = models;
     if (apiKey) {
-      const { isModelAllowedForKey, getApiKeyMetadata } = await import("@/lib/db/apiKeys");
+      const { getApiKeyMetadata } = await import("@/lib/db/apiKeys");
+      const { isCatalogModelAllowedForKey } = await import("./catalogKeyFilter");
 
       // Quota-exclusive keys (allowedQuotas non-empty): list ONLY the pool's qtSd/*
       // virtual models. #4806: build from the hidden qtSd/* combos directly — the base
@@ -2036,14 +2048,8 @@ async function buildUnifiedModelsResponseCore(
             }
             continue;
           }
-          // m.id is the full identifier (e.g. openai/gpt-4o), m.root is the raw model string
-          // check either one as the config could use either patterns
-          if (
-            (await isModelAllowedForKey(apiKey, m.id)) ||
-            (await isModelAllowedForKey(apiKey, m.root))
-          ) {
-            filtered.push(m);
-          }
+          // m.id decides; a bare m.root also matches a bare allowlist entry (#781, #15409).
+          if (await isCatalogModelAllowedForKey(apiKey, m, keyMeta.blockedModels)) filtered.push(m);
         }
         finalModels = filtered;
       }

@@ -1,7 +1,7 @@
 ---
 title: "OmniRoute Architecture"
-version: 3.8.40
-lastUpdated: 2026-06-28
+version: 3.8.52
+lastUpdated: 2026-10-05
 ---
 
 # OmniRoute Architecture
@@ -299,7 +299,7 @@ Services (business logic):
 - Codex quota fetcher: `open-sse/services/codexQuotaFetcher.ts` — fetches Codex quota for context-relay handoff decisions
 - Cooldown-aware retry: `src/sse/services/cooldownAwareRetry.ts` — per-model cooldown retries with configurable `requestRetry` / `maxRetryIntervalSec`
 - Safe outbound fetch: `src/shared/network/safeOutboundFetch.ts` — guarded provider/model fetch with SSRF guard, private-URL blocking, retry, and timeout
-- Outbound URL guard: `src/shared/network/outboundUrlGuard.ts` — validates provider URLs against private/localhost CIDR ranges
+- Outbound URL guard: `src/shared/network/outboundUrlGuard.ts` — host checks on provider URLs; `src/shared/network/outboundUrlGuardPolicy.ts` picks the mode from `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`, `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`, and their dashboard toggles (see `docs/reference/ENVIRONMENT.md`)
 - Provider request defaults: `open-sse/services/providerRequestDefaults.ts` — provider-level `maxTokens`, `temperature`, `thinkingBudgetTokens` defaults
 - GLM provider constants: `open-sse/config/glmProvider.ts` — shared GLM models, quota URLs, GLMT timeout/defaults
 - Antigravity upstream: `open-sse/config/antigravityUpstream.ts` — base URL and discovery path constants
@@ -541,7 +541,7 @@ Domain State DB (SQLite):
 - API key generation/verification: `src/shared/utils/apiKey.ts`
 - Provider secrets persisted in `providerConnections` entries
 - Outbound proxy support via `open-sse/utils/proxyFetch.ts` (env vars) and `open-sse/utils/networkProxy.ts` (configurable per-provider or global)
-- SSRF / outbound URL guard: `src/shared/network/outboundUrlGuard.ts` — blocks private/loopback/link-local ranges for all provider calls
+- SSRF / outbound URL guard: `src/shared/network/outboundUrlGuard.ts` — host checks on provider calls and webhook targets; the mode comes from `src/shared/network/outboundUrlGuardPolicy.ts` (flags in `docs/reference/ENVIRONMENT.md`)
 - Runtime env validation: `src/lib/env/runtimeEnv.ts` — Zod schema for all environment variables, surfaced as startup errors/warnings
 - Sync tokens: `src/lib/db/syncTokens.ts` — scoped tokens for config bundle download endpoints; backed by `sync_tokens` SQLite table (migration `024_create_sync_tokens.sql`)
 - WebSocket handshake auth: `src/lib/ws/handshake.ts` — validates WS upgrade requests via API key or session cookie
@@ -1095,9 +1095,9 @@ legacy compatibility. The current runtime contract uses:
 
 ## 6) SSRF / Outbound URL Guard
 
-- `src/shared/network/outboundUrlGuard.ts` blocks all private/loopback/link-local target URLs before they reach provider executors
+- `BaseExecutor.assertOutboundUrlAllowed` (`open-sse/executors/base.ts`) applies `src/shared/network/outboundUrlGuard.ts` to chat requests dispatched through `BaseExecutor.execute()`. In public-only mode (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS=false` with the private flag off) it blocks private and loopback hosts and 169.254.0.0/16; in every other mode it blocks cloud-metadata hosts. It checks the hostname or IP literal as written, before any DNS lookup. Built-in local providers skip it.
 - Provider model discovery and validation routes use `src/shared/network/safeOutboundFetch.ts` which applies the guard before every outbound request
-- Guard errors surface as `URL_GUARD_BLOCKED` with HTTP 422 and are logged to the compliance audit trail via `providerAudit.ts`
+- Guard errors surface as `URL_GUARD_BLOCKED` with HTTP 503 (`getSafeOutboundFetchErrorStatus`; the model-discovery route returns 400), and genuine SSRF blocks during validation are logged to the audit trail as `provider.validation.ssrf_blocked` events
 
 ## Observability and Operational Signals
 

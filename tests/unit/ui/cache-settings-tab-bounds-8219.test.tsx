@@ -11,6 +11,7 @@ import CacheSettingsTab from "@/app/(dashboard)/dashboard/settings/components/Ca
 
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
+  useFormatter: () => ({ number: (value: number) => String(value) }),
 }));
 
 const roots: Array<{ root: Root; el: HTMLDivElement }> = [];
@@ -46,10 +47,7 @@ async function setInputValue(container: HTMLDivElement, value: string) {
   // event fires but React's commit doesn't flush before the callback
   // resolves), leaving the input showing its pre-dispatch value.
   act(() => {
-    const setter = Object.getOwnPropertyDescriptor(
-      window.HTMLInputElement.prototype,
-      "value"
-    )?.set;
+    const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
     setter?.call(input, value);
     input.dispatchEvent(new Event("input", { bubbles: true }));
   });

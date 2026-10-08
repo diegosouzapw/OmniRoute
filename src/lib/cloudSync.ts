@@ -1,8 +1,13 @@
 import crypto from "crypto";
+import { isCloudEnabled } from "@/lib/db/settings";
 import { getProviderConnections, updateProviderConnection } from "@/lib/db/providers";
 import { buildConfigSyncEnvelope, toLegacyCloudSyncPayload } from "@/lib/sync/bundle";
 
-const CLOUD_URL = process.env.CLOUD_URL || process.env.NEXT_PUBLIC_CLOUD_URL;
+const configuredCloudUrl = process.env.CLOUD_URL ?? process.env.NEXT_PUBLIC_CLOUD_URL;
+const CLOUD_URL =
+  configuredCloudUrl && !["false", "0", "off"].includes(configuredCloudUrl.trim().toLowerCase())
+    ? configuredCloudUrl.trim()
+    : undefined;
 const CLOUD_SYNC_TIMEOUT_MS = Number(process.env.CLOUD_SYNC_TIMEOUT_MS || 12000);
 const CLOUD_SYNC_SECRET = process.env.OMNIROUTE_CLOUD_SYNC_SECRET || "";
 
@@ -113,7 +118,14 @@ export async function fetchWithTimeout(url, options = {}, timeoutMs = CLOUD_SYNC
  * @param {string} machineId
  * @param {string|null} createdKey - Key created during enable
  */
-export async function syncToCloud(machineId, createdKey = null) {
+export async function syncToCloud(
+  machineId,
+  createdKey = null,
+  options: { explicitEnable?: boolean } = {}
+) {
+  if (!options.explicitEnable && !(await isCloudEnabled())) {
+    return { error: "Cloud sync is disabled" };
+  }
   if (!CLOUD_URL) {
     return { error: "NEXT_PUBLIC_CLOUD_URL is not configured" };
   }

@@ -16,6 +16,7 @@ const { providerChatCompletionSchema } =
 const core = await import("../../src/lib/db/core.ts");
 const modelsDevSync = await import("../../src/lib/modelsDevSync.ts");
 const registry = await import("../../src/lib/modelMetadataRegistry.ts");
+const { extractReasoningIntent } = await import("../../src/lib/reasoningRouting/policy.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -71,14 +72,7 @@ test("normalizeEffort maps canonical + aliases, ignores unknown", () => {
   assert.equal(normalizeEffort("none"), "none");
   assert.equal(normalizeEffort("turbo"), undefined);
   assert.equal(normalizeEffort(3), undefined);
-  assert.deepEqual([...CANONICAL_EFFORT_VALUES], [
-    "none",
-    "low",
-    "medium",
-    "high",
-    "xhigh",
-    "max",
-  ]);
+  assert.deepEqual([...CANONICAL_EFFORT_VALUES], ["none", "low", "medium", "high", "xhigh", "max"]);
 });
 
 // ── normalizeReasoningRequest ──────────────────────────────────────────
@@ -135,6 +129,104 @@ test("explicit object-shaped thinking config is preserved (not clobbered by bool
   }) as Record<string, unknown>;
   assert.deepEqual(out.thinking, cfg);
   assert.equal(out.reasoning_effort, "high");
+});
+
+test("OpenRouter reasoning.enabled false normalizes to none without mutating the request", () => {
+  const body = {
+    model: "openai/gpt-5",
+    messages: [{ role: "system", content: "Keep this prompt." }],
+    max_tokens: 321,
+    reasoning: { enabled: false, summary: "auto" },
+  };
+  const before = structuredClone(body);
+  const out = normalizeReasoningRequest(body) as Record<string, unknown>;
+
+  assert.notEqual(out, body);
+  assert.equal(out.messages, body.messages);
+  assert.equal(out.reasoning_effort, "none");
+  assert.deepEqual(out.reasoning, { summary: "auto", effort: "none" });
+  assert.deepEqual(body, before);
+
+  const intent = extractReasoningIntent(body.model, out);
+  assert.equal(intent.effort, "none");
+  assert.equal(intent.hasThinkingBudget, false);
+
+  const ambiguous = { reasoning: { enabled: false, max_tokens: 2048 } };
+  const rawIntent = extractReasoningIntent(body.model, ambiguous);
+  assert.equal(rawIntent.effort, null);
+  assert.equal(rawIntent.sourceEffort, "signal");
+  assert.equal(rawIntent.hasThinkingBudget, true);
+  const preservedBudget = normalizeReasoningRequest(ambiguous) as Record<string, unknown>;
+  assert.equal(preservedBudget.reasoning_effort, undefined);
+  assert.deepEqual(preservedBudget.reasoning, { max_tokens: 2048 });
+
+  const suffixed = extractReasoningIntent("codex/gpt-6-astra-high", {
+    reasoning: { enabled: false },
+  });
+  assert.equal(suffixed.effort, "high");
+  assert.equal(
+    extractReasoningIntent(body.model, {
+      reasoning: { enabled: false },
+      thinking: { type: "enabled", budget_tokens: 2048 },
+    }).sourceEffort,
+    "signal"
+  );
+  assert.equal(
+    extractReasoningIntent(body.model, {
+      reasoning: { enabled: false },
+      chat_template_kwargs: { enable_thinking: true },
+    }).sourceEffort,
+    "missing"
+  );
+  assert.equal(extractReasoningIntent(body.model, { effort: "extra" }).effort, "xhigh");
+});
+
+test("explicit effort beats reasoning.enabled false; true and non-boolean flags are untouched", () => {
+  const nested = normalizeReasoningRequest({
+    reasoning: { enabled: false, effort: "high", summary: "auto" },
+  }) as Record<string, unknown>;
+  assert.equal(nested.reasoning_effort, undefined);
+  assert.deepEqual(nested.reasoning, { effort: "high", summary: "auto" });
+
+  const flat = normalizeReasoningRequest({
+    reasoning_effort: "high",
+    reasoning: { enabled: false },
+  }) as Record<string, unknown>;
+  assert.equal(flat.reasoning_effort, "high");
+  assert.equal(flat.reasoning, undefined);
+
+  const canonical = normalizeReasoningRequest({
+    effort: "high",
+    reasoning: { enabled: false },
+  }) as Record<string, unknown>;
+  assert.equal(canonical.reasoning_effort, "high");
+  assert.deepEqual(canonical.reasoning, { effort: "high" });
+
+  const invalidCanonical = normalizeReasoningRequest({
+    effort: "turbo",
+    reasoning: { enabled: false },
+  }) as Record<string, unknown>;
+  assert.equal(invalidCanonical.effort, "turbo");
+  assert.equal(invalidCanonical.reasoning_effort, undefined);
+  assert.equal(invalidCanonical.reasoning, undefined);
+
+  for (const control of [
+    { thinking: { type: "enabled", budget_tokens: 2048 } },
+    { output_config: { effort: "high" } },
+    { chat_template_kwargs: { enable_thinking: true } },
+  ]) {
+    const out = normalizeReasoningRequest({ reasoning: { enabled: false }, ...control }) as Record<
+      string,
+      unknown
+    >;
+    assert.equal(out.reasoning_effort, undefined);
+    assert.equal(out.reasoning, undefined);
+  }
+
+  for (const enabled of [true, "false", null, undefined]) {
+    const body = { reasoning: { enabled } };
+    assert.equal(normalizeReasoningRequest(body), body);
+  }
 });
 
 test("returns the same reference untouched when no canonical fields are set", () => {

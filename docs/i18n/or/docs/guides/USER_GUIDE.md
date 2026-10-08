@@ -118,39 +118,41 @@
 
 ---
 
-## 📖 ପ୍ରଦାତା ସେଟଅପ୍
+## 📖 ପ୍ରଦାନକାରୀ ସେଟଅପ୍
 
-ଏକ CSV କିମ୍ବା JSON ଫାଇଲ୍‌ରୁ ଏକାଧିକ API-key ସଂଯୋଗ ଯୋଡ଼ିବାକୁ, **Dashboard → Providers → Import from file** ବ୍ୟବହାର କରନ୍ତୁ। କଲମ୍‌ଗୁଡ଼ିକ ସ୍ଥିତି-ଆଧାରିତ (`provider,name,apiKey,baseUrl,priority`); `provider` ପୂର୍ବରୁ ଏକ ପରିଚାଳିତ ପ୍ରଦାତା କିମ୍ବା ସୁସଙ୍ଗତ ନୋଡ୍ ଭାବରେ ଅବସ୍ଥିତ ଥିବା ଆବଶ୍ୟକ। [CSV କିମ୍ବା JSON ଫାଇଲ୍‌ରୁ ପ୍ରଦାତା ଆମଦାନୀ କରନ୍ତୁ](../providers/CSV-IMPORT.md) ଦେଖନ୍ତୁ।
+ଏକ CSV କିମ୍ବା JSON ଫାଇଲ୍ରୁ ଏକାଥରେ ଅନେକ API-key ସଂଯୋଗ ଯୋଡ଼ିବାକୁ, **Dashboard → Providers → Import from file** ବ୍ୟବହାର କରନ୍ତୁ। ସ୍ତମ୍ଭଗୁଡ଼ିକ ସ୍ଥାନ-ଭିତ୍ତିକ (`provider,name,apiKey,baseUrl,priority`); `provider` ପୂର୍ବରୁ ଏକ ପରିଚାଳିତ ପ୍ରଦାନକାରୀ କିମ୍ବା ସୁସଙ୍ଗତ ନୋଡ୍ ଭାବେ ଉପଲବ୍ଧ ଥିବା ଆବଶ୍ୟକ। [CSV କିମ୍ବା JSON ଫାଇଲ୍ରୁ ପ୍ରଦାନକାରୀ ଆମଦାନୀ କରନ୍ତୁ](../providers/CSV-IMPORT.md) ଦେଖନ୍ତୁ।
 
-### 🔐 ସବ୍‌ସ୍କ୍ରିପ୍‌ସନ୍ ପ୍ରଦାତା
+### 🔐 ସବ୍ସ୍କ୍ରିପ୍ସନ୍ ପ୍ରଦାନକାରୀ
 
 #### Claude Code (Pro/Max)
 
 ```bash
-Dashboard → Providers → Claude Code ସଂଯୋଗ କରନ୍ତୁ
-→ OAuth ଲଗ୍‌ଇନ୍ → ସ୍ୱୟଂଚାଳିତ ଟୋକନ୍ ରିଫ୍ରେଶ୍
+Dashboard → Providers → Connect Claude Code
+→ OAuth ଲଗ୍ଇନ୍ → ସ୍ୱୟଂଚାଳିତ ଟୋକନ୍ ରିଫ୍ରେଶ୍
 → 5-ଘଣ୍ଟା + ସାପ୍ତାହିକ କୋଟା ଟ୍ରାକିଂ
 
-ମଡେଲ୍‌ଗୁଡ଼ିକ:
+ମଡେଲ୍ଗୁଡ଼ିକ:
   cc/claude-opus-4-7
   cc/claude-sonnet-4-6
   cc/claude-haiku-4-5-20251001
 ```
 
-**ବିଶେଷଜ୍ଞ ପରାମର୍ଶ:** ଜଟିଳ କାର୍ଯ୍ୟ ପାଇଁ Opus ଏବଂ ଦ୍ରୁତତା ପାଇଁ Sonnet ବ୍ୟବହାର କରନ୍ତୁ। OmniRoute ପ୍ରତ୍ୟେକ ମଡେଲ୍‌ର କୋଟା ଟ୍ରାକ୍ କରେ!
+**ପ୍ରୋ ଟିପ୍ପଣୀ:** ଜଟିଳ କାର୍ଯ୍ୟ ପାଇଁ Opus ଏବଂ ଦ୍ରୁତତା ପାଇଁ Sonnet ବ୍ୟବହାର କରନ୍ତୁ। OmniRoute ପ୍ରତ୍ୟେକ ମଡେଲ୍ର କୋଟା ଟ୍ରାକ୍ କରେ!
 
-Claude ଏବଂ Claude Code-ସୁସଙ୍ଗତ ରୁଟ୍‌ଗୁଡ଼ିକ Opus ଓ Sonnet
-ମଡେଲ୍‌ଗୁଡ଼ିକ ପାଇଁ `max` ଚିନ୍ତନ ପ୍ରୟାସକୁ ସଂରକ୍ଷିତ ରଖେ। Haiku ମଡେଲ୍‌ଗୁଡ଼ିକ `max` ପ୍ରୟାସ ସ୍ତର ଗ୍ରହଣ କରେ ନାହିଁ, ତେଣୁ OmniRoute ସେହି
-ଅନୁରୋଧକୁ ଅପ୍‌ଷ୍ଟ୍ରିମ୍‌କୁ ପଠାଇବା ପୂର୍ବରୁ ଏକ ଉଚ୍ଚ ଚିନ୍ତନ ବଜେଟ୍‌କୁ ଡାଉନ୍‌ଗ୍ରେଡ୍ କରେ।
+OmniRoute ହୋଷ୍ଟ୍ରେ ବ୍ରାଉଜର୍ ନାହିଁ? Claude Code ଲଗ୍ଇନ୍ ଥିବା ଯେକୌଣସି ସ୍ଥାନରେ `claude setup-token` ଚଲାନ୍ତୁ ଏବଂ ଏକ-ବର୍ଷିଆ ଟୋକନ୍କୁ **Setup Token** ଟ୍ୟାବ୍ରେ ପେଷ୍ଟ୍ କରନ୍ତୁ। [ଏକ ସେଟଅପ୍ ଟୋକନ୍ ସହିତ Claude Code](../providers/CLAUDE_CODE_SETUP_TOKEN.md) ଦେଖନ୍ତୁ।
+
+Claude ଏବଂ Claude Code-ସୁସଙ୍ଗତ ରୁଟ୍ଗୁଡ଼ିକ Opus ଓ Sonnet
+ମଡେଲ୍ଗୁଡ଼ିକ ପାଇଁ `max` ଚିନ୍ତନ ପ୍ରୟାସକୁ ସଂରକ୍ଷଣ କରନ୍ତି। Haiku ମଡେଲ୍ଗୁଡ଼ିକ `max` ପ୍ରୟାସ ସ୍ତର ଗ୍ରହଣ କରନ୍ତି ନାହିଁ, ତେଣୁ OmniRoute
+ସେହି ଅନୁରୋଧକୁ ଅପ୍ଷ୍ଟ୍ରିମ୍କୁ ପଠାଇବା ପୂର୍ବରୁ ଏକ ଉଚ୍ଚ ଚିନ୍ତନ ବଜେଟ୍କୁ ଡାଉନ୍ଗ୍ରେଡ୍ କରେ।
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-Dashboard → Providers → Codex ସଂଯୋଗ କରନ୍ତୁ
-→ OAuth ଲଗ୍‌ଇନ୍ (ପୋର୍ଟ 1455)
+Dashboard → Providers → Connect Codex
+→ OAuth ଲଗ୍ଇନ୍ (ପୋର୍ଟ୍ 1455)
 → 5-ଘଣ୍ଟା + ସାପ୍ତାହିକ ରିସେଟ୍
 
-ମଡେଲ୍‌ଗୁଡ଼ିକ:
+ମଡେଲ୍ଗୁଡ଼ିକ:
   cx/gpt-5.5
   cx/gpt-5.4
   cx/gpt-5.3-codex
@@ -160,11 +162,11 @@ Dashboard → Providers → Codex ସଂଯୋଗ କରନ୍ତୁ
 #### GitHub Copilot
 
 ```bash
-Dashboard → Providers → GitHub ସଂଯୋଗ କରନ୍ତୁ
+Dashboard → Providers → Connect GitHub
 → GitHub ମାଧ୍ୟମରେ OAuth
 → ମାସିକ ରିସେଟ୍ (ମାସର 1 ତାରିଖ)
 
-ମଡେଲ୍‌ଗୁଡ଼ିକ:
+ମଡେଲ୍ଗୁଡ଼ିକ:
   gh/gpt-5.5
   gh/gpt-5.4
   gh/claude-sonnet-4.6
@@ -172,57 +174,57 @@ Dashboard → Providers → GitHub ସଂଯୋଗ କରନ୍ତୁ
   gh/gemini-3.1-pro-preview
 ```
 
-### 💰 ଶସ୍ତା ପ୍ରଦାତା
+### 💰 ଶସ୍ତା ପ୍ରଦାନକାରୀ
 
 #### GLM-4.7 (ଦୈନିକ ରିସେଟ୍, $0.6/1M)
 
 1. ସାଇନ୍ ଅପ୍ କରନ୍ତୁ: [Zhipu AI](https://open.bigmodel.cn)
 2. Coding Planରୁ API key ପ୍ରାପ୍ତ କରନ୍ତୁ
-3. Dashboard → API Key ଯୋଡ଼ନ୍ତୁ: ପ୍ରଦାତା: `glm`, API Key: `your-key`
+3. Dashboard → Add API Key: Provider: `glm`, API Key: `your-key`
 
-**ବ୍ୟବହାର:** `glm/glm-4.7` — **ବିଶେଷଜ୍ଞ ପରାମର୍ଶ:** Coding Plan 1/7 ଖର୍ଚ୍ଚରେ 3× କୋଟା ପ୍ରଦାନ କରେ! ପ୍ରତିଦିନ ସକାଳ 10:00ଟାରେ ରିସେଟ୍ ହୁଏ।
+**ବ୍ୟବହାର:** `glm/glm-4.7` — **ପ୍ରୋ ଟିପ୍ପଣୀ:** Coding Plan 1/7 ମୂଲ୍ୟରେ 3× କୋଟା ପ୍ରଦାନ କରେ! ପ୍ରତିଦିନ ସକାଳ 10:00ଟାରେ ରିସେଟ୍ ହୁଏ।
 
 #### MiniMax M2.1 (5h ରିସେଟ୍, $0.20/1M)
 
 1. ସାଇନ୍ ଅପ୍ କରନ୍ତୁ: [MiniMax](https://www.minimax.io)
-2. API key ପ୍ରାପ୍ତ କରନ୍ତୁ → Dashboard → API Key ଯୋଡ଼ନ୍ତୁ
+2. API key ପ୍ରାପ୍ତ କରନ୍ତୁ → Dashboard → Add API Key
 
-**ବ୍ୟବହାର:** `minimax/MiniMax-M2.1` — **ବିଶେଷଜ୍ଞ ପରାମର୍ଶ:** ଦୀର୍ଘ କଣ୍ଟେକ୍ସ୍ଟ (1M ଟୋକନ୍) ପାଇଁ ସବୁଠାରୁ ଶସ୍ତା ବିକଳ୍ପ!
+**ବ୍ୟବହାର:** `minimax/MiniMax-M2.1` — **ପ୍ରୋ ଟିପ୍ପଣୀ:** ଦୀର୍ଘ କଣ୍ଟେକ୍ସ୍ଟ (1M ଟୋକନ୍) ପାଇଁ ସବୁଠାରୁ ଶସ୍ତା ବିକଳ୍ପ!
 
-#### Kimi K2 ($9/ମାସର ନିର୍ଦ୍ଧାରିତ ମୂଲ୍ୟ)
+#### Kimi K2 (ମାସିକ ନିର୍ଦ୍ଧାରିତ $9)
 
-1. ସବ୍‌ସ୍କ୍ରାଇବ୍ କରନ୍ତୁ: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. API key ପ୍ରାପ୍ତ କରନ୍ତୁ → Dashboard → API Key ଯୋଡ଼ନ୍ତୁ
+1. ସବ୍ସ୍କ୍ରାଇବ୍ କରନ୍ତୁ: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
+2. API key ପ୍ରାପ୍ତ କରନ୍ତୁ → Dashboard → Add API Key
 
-**ବ୍ୟବହାର:** `kimi/kimi-k2.5` — **ବିଶେଷଜ୍ଞ ପରାମର୍ଶ:** 10M ଟୋକନ୍ ପାଇଁ ମାସକୁ ନିର୍ଦ୍ଧାରିତ $9 = $0.90/1M ପ୍ରଭାବୀ ଖର୍ଚ୍ଚ!
+**ବ୍ୟବହାର:** `kimi/kimi-k2.5` — **ପ୍ରୋ ଟିପ୍ପଣୀ:** 10M ଟୋକନ୍ ପାଇଁ ମାସିକ ନିର୍ଦ୍ଧାରିତ $9 = ପ୍ରଭାବୀ ମୂଲ୍ୟ $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
 1. ସାଇନ୍ ଅପ୍ କରନ୍ତୁ: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. ଏକ Qianfan API key ସୃଷ୍ଟି କରନ୍ତୁ → Dashboard → API Key ଯୋଡ଼ନ୍ତୁ: ପ୍ରଦାତା: `qianfan`
+2. ଏକ Qianfan API key ତିଆରି କରନ୍ତୁ → Dashboard → Add API Key: Provider: `qianfan`
 
-**ବ୍ୟବହାର:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, କିମ୍ବା ଅନ୍ୟ କୌଣସି Qianfan OpenAI-ସୁସଙ୍ଗତ ମଡେଲ୍ ID।
+**ବ୍ୟବହାର:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, କିମ୍ବା ଅନ୍ୟ ଏକ Qianfan OpenAI-ସୁସଙ୍ଗତ ମଡେଲ୍ ID।
 
-### 🆓 ମାଗଣା ପ୍ରଦାତା
+### 🆓 ମାଗଣା ପ୍ରଦାନକାରୀ
 
-ପ୍ରମାଣୀକରଣ ଆବଶ୍ୟକ ନଥିବା ମାଗଣା ପ୍ରଦାତାଙ୍କ ପ୍ରଦାତା ପୃଷ୍ଠାରେ **No authentication required** ପାଖରେ ଏକ ସ୍ୱିଚ୍ ଥାଏ।
-ଏହାକୁ ବନ୍ଦ କଲେ ସେହି ପ୍ରଦାତା ଅକ୍ଷମ ହୁଏ, Providersର ବିନ୍ୟାସିତ/ସଂକ୍ଷିପ୍ତ ଭ୍ୟୁରୁ ହଟିଯାଏ ଏବଂ
-ତାହାର ମଡେଲ୍‌ଗୁଡ଼ିକ `/v1/models`ରୁ ହଟିଯାଏ।
+ପ୍ରମାଣୀକରଣ ଆବଶ୍ୟକ ନଥିବା ମାଗଣା ପ୍ରଦାନକାରୀଙ୍କ ପ୍ରଦାନକାରୀ ପୃଷ୍ଠାରେ **No authentication required** ପାଖରେ ଏକ ସ୍ୱିଚ୍ ରହିଛି।
+ଏହାକୁ ବନ୍ଦ କଲେ ସେହି ପ୍ରଦାନକାରୀ ଅକ୍ଷମ ହୁଏ, Providersର କନ୍ଫିଗର୍ କରାଯାଇଥିବା/କମ୍ପାକ୍ଟ ଦୃଶ୍ୟରୁ ହଟିଯାଏ ଏବଂ
+ଏହାର ମଡେଲ୍ଗୁଡ଼ିକ `/v1/models`ରୁ ହଟିଯାଏ।
 
 #### Qoder (9ଟି ମାଗଣା ମଡେଲ୍)
 
 ```bash
-Dashboard → Qoder ସଂଯୋଗ କରନ୍ତୁ → OAuth ଲଗ୍‌ଇନ୍ → ପ୍ରବେଶ ବର୍ତ୍ତମାନର ପ୍ରଦାତା ସୀମା ଅଧୀନରେ ରହିବ
+Dashboard → Connect Qoder → OAuth ଲଗ୍ଇନ୍ → ଆକ୍ସେସ୍ ବର୍ତ୍ତମାନର ପ୍ରଦାନକାରୀ ସୀମାଗୁଡ଼ିକର ଅଧୀନ
 
-ମଡେଲ୍‌ଗୁଡ଼ିକ: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
+ମଡେଲ୍ଗୁଡ଼ିକ: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
 #### Kiro (Claude ମାଗଣା)
 
 ```bash
-Dashboard → Kiro ସଂଯୋଗ କରନ୍ତୁ → AWS Builder ID କିମ୍ବା Google/GitHub → ~50 କ୍ରେଡିଟ୍/ମାସ
+Dashboard → Connect Kiro → AWS Builder ID କିମ୍ବା Google/GitHub → ମାସିକ ~50 କ୍ରେଡିଟ୍
 
-ମଡେଲ୍‌ଗୁଡ଼ିକ: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
+ମଡେଲ୍ଗୁଡ଼ିକ: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
 
 ---

@@ -1,11 +1,7 @@
 /**
- * A provider-level breaker opened by chat.ts:_onFailure must close when the
- * combo success path records a success against a specific connection.
- *
- * Live failure: claude's provider breaker stayed HALF_OPEN after a probe
- * returned 200, because recordProviderSuccess(provider, connectionId) only
- * touched the connection-scoped breaker. The next request was rejected as
- * "all targets were skipped by pre-dispatch filters".
+ * Connection success closes its own breaker. The provider HALF_OPEN lease is
+ * settled only by the acquired probe inside execute(), so a late connection
+ * callback cannot close a newer provider generation.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -19,7 +15,7 @@ import { connectionCircuitBreakerName } from "../../open-sse/services/connection
 const unique = (suffix: string) =>
   `provider-close-${suffix}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
 
-test("a connection-scoped success also closes the provider-level breaker", async () => {
+test("connection success leaves provider HALF_OPEN until its acquired probe settles", async () => {
   const provider = unique("both");
   const connectionId = "conn-1";
 
@@ -45,8 +41,11 @@ test("a connection-scoped success also closes the provider-level breaker", async
 
   recordProviderSuccess(provider, connectionId);
 
-  assert.equal(providerBreaker.state, "CLOSED", "provider breaker must close");
+  assert.equal(providerBreaker.state, "HALF_OPEN", "unleased callback cannot close provider");
   assert.equal(connectionBreaker.state, "CLOSED", "connection breaker must close");
+
+  await providerBreaker.execute(async () => true);
+  assert.equal(providerBreaker.state, "CLOSED", "acquired provider probe closes breaker");
 
   resetAllCircuitBreakers();
 });

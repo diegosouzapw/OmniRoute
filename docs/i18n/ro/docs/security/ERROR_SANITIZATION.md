@@ -135,7 +135,7 @@ const safe = String(err).split("\n")[0];
 în mesajele de eroare. Igienizatorul acoperă căile absolute ca măsură de apărare în profunzime, dar apelanții nu trebuie
 să construiască de la bun început mesaje care dezvăluie topologia.
 
-## Acoperire în CI
+## Acoperirea în CI
 
 `tests/unit/error-message-sanitization.test.ts` impune:
 
@@ -146,6 +146,40 @@ să construiască de la bun început mesaje care dezvăluie topologia.
 - `buildErrorBody` nu expune niciodată urme de stivă în câmpul său `message`.
 
 Când adăugați o rută sau un executor nou, copiați modelul de aserțiuni din acest fișier. Pragul de acoperire (`npm run test:coverage`) impune ≥60% pentru instrucțiuni/linii/funcții/ramuri — căile de eroare trebuie acoperite.
+
+### Verificarea statică: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` scanează `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` și fiecare `src/app/api/**/route.ts` pentru o eroare capturată brută (`err.message` / `err.stack`) sau un `body.error.message` brut din amonte care ajunge într-un corp destinat clientului.
+
+**Încrederea este limitată la apel, niciodată la fișier** (G-03, #15159). Verificarea omitea anterior un fișier întreg în momentul în care detecta orice import dintr-o cale `utils/error` — o excepție la nivel de fișier aplicată unui pericol la nivel de apel. Un singur `import { sanitizeErrorMessage }` corect excepta permanent orice alt punct de ieșire din fișier, ceea ce a permis ca o scurgere reală să ajungă în producție în ciuda verificărilor reușite. Acum, o linie este considerată de încredere numai atunci când trece efectiv printr-un constructor sau sanitizator aprobat:
+
+| Forma liniei                                                                                                                   | De încredere?      |
+| ------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
+| apelează `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …                         | da                 |
+| apelează un constructor canonic **pe care acest fișier îl importă** din `open-sse/utils/error` sau `src/lib/api/errorResponse` | da                 |
+| un constructor aprobat este apelat **pe mai multe linii**, astfel încât câmpul `message:` apare pe o linie ulterioară          | da                 |
+| apelează o funcție locală fișierului `function errorResponse(...)` al cărei corp efectuează sanitizarea                        | da                 |
+| transmite `err.message` / `err.stack` oriunde altundeva                                                                        | **nu — încălcare** |
+
+Două consecințe care merită cunoscute:
+
+- Importarea `errorResponse` _nu_ acordă încredere generală. Un fișier care își definește propriul `errorResponse` este semnalat în continuare la locul apelului, deoarece verificarea determină încrederea per simbol, nu per fișier. Același lucru este valabil pentru `createErrorResponse`.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` urmat de `error: body.error.message` este idiomul **sanitizat** utilizat în executorii `*-fetch.ts` și nu este semnalat.
+
+Ambele module de constructori aprobați sunt luate în considerare: `open-sse/utils/error.ts` și `src/lib/api/errorResponse.ts`. Al doilea este utilizat de cele aproximativ 54 de rutine de gestionare a rutelor din afara `open-sse` și își sanitizează ambele exporturi.
+
+Două forme care **nu** reprezintă încălcări, deși verificarea le-a raportat cândva drept scurgeri:
+
+- o eroare brută într-un **rând de audit** — `saveCallLog({ error: err.message })`, `logToolCall(...)` sau un logger care primește mai întâi un mesaj (`log.error("BATCHES", "sweep failed", { error: err.message })`). Răspunsul destinat clientului de pe liniile următoare poate fi foarte bine un `buildErrorBody` static.
+- un apel către un constructor aprobat scris **pe mai multe linii**, unde câmpul `message:` nu numește deloc constructorul:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` îngheață încălcările preexistente, astfel încât verificarea să blocheze numai încălcările _noi_. `assertNoStale` elimină automat o intrare după remedierea încălcării sale, astfel încât lista înghețată nu se poate rigidiza. Protecții împotriva regresiilor: `tests/unit/check-error-helper.test.ts` și `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Controale asociate
 

@@ -164,13 +164,17 @@ test("direct Antigravity has one downstream model-lock owner and clamps body pro
     path.resolve(import.meta.dirname, "../../open-sse/handlers/chatCore.ts"),
     "utf8"
   );
+  const eprSource = fs.readFileSync(
+    path.resolve(import.meta.dirname, "../../open-sse/handlers/chatCore/executeProviderRequest.ts"),
+    "utf8"
+  );
   assert.match(
     chatCoreSource,
     /accountSemaphoreKey && !deferAntigravityQuotaStateToCaller/,
     "chatCore must not apply a prose-derived Antigravity semaphore TTL"
   );
   assert.match(
-    chatCoreSource,
+    eprSource,
     /Dropped generic quota cache after 429/,
     "non-Codex 429 must leave a QUOTA debug breadcrumb"
   );

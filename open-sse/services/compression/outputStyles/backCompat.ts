@@ -14,7 +14,8 @@ interface ConfigSlice {
  * Resolve the effective output-style selection (D-A5 back-compat).
  * Precedence: an explicit non-empty `outputStyles` wins; otherwise a stored
  * `cavemanOutputMode` (when enabled) maps to `[{ terse-prose, <intensity> }]`,
- * keeping existing installs byte-identical until they opt into other styles.
+ * so existing installs keep the legacy instruction text below the marker line
+ * until they opt into other styles.
  * Pure; never throws.
  */
 export function resolveOutputStyleSelection(config: ConfigSlice): OutputStyleSelectionEntry[] {
