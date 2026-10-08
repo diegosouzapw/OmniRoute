@@ -5512,6 +5512,7 @@
     "modelsImported": "A ti ṣàgbéwọlé àwọn módẹ́lì {count}",
     "allModelsAlreadyImported": "A ti ṣàgbéwọlé gbogbo àwọn módẹ́lì tẹ́lẹ̀",
     "noNewModelsToImport": "Kò sí módẹ́lì tuntun láti ṣàgbéwọlé — gbogbo àwọn módẹ́lì ti wà nínú ìforúkọsílẹ̀ tàbí àkójọ àwọn módẹ́lì àdáni",
+    "localCatalogFallbackStatus": "Couldn't reach the provider's model list — showing the built-in catalog",
     "skippingExistingModels": "Ń foju kọ àwọn módẹ́lì {count} tó ti wà",
     "autoSync": "Ìmúdọ́gba Aládàáṣiṣẹ́",
     "autoSyncShort": "Múdọ́gba",
@@ -6678,7 +6679,17 @@
     "savedModelEndpointSettings": "Àwọn ààtò endpoint awoṣe tí a fipamọ́",
     "searchByModelAria": "Ṣàwárí nípa awoṣe",
     "selectSupportedEndpoint": "Yan ó kéré tán endpoint kan tí ó ní àtìlẹ́yìn",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "Àwọn Ààtò",

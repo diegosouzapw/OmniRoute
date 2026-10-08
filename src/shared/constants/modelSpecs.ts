@@ -134,6 +134,18 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     ...GPT_5_6_MODEL_SPEC,
     aliases: ["openai/gpt-6-astra"],
   },
+  // #15023: Sol and Luna were missing from the spec map; the public API context
+  // window is 1,050,000 (same as Astra). Without an entry, getModelSpec() returned
+  // undefined and any spec-aware path (capability filter, compaction guard) fell
+  // back to 128k, the same wrong value advertised by the importer.
+  "gpt-6-sol": {
+    ...GPT_5_6_MODEL_SPEC,
+    aliases: ["openai/gpt-6-sol"],
+  },
+  "gpt-6-luna": {
+    ...GPT_5_6_MODEL_SPEC,
+    aliases: ["openai/gpt-6-luna"],
+  },
   "gpt-6.1-sol": GPT_5_6_MODEL_SPEC,
   "gpt-5.6": {
     ...GPT_5_6_MODEL_SPEC,

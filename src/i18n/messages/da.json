@@ -5512,6 +5512,7 @@
     "modelsImported": "{count} modeller importeret",
     "allModelsAlreadyImported": "Alle modeller er allerede importeret",
     "noNewModelsToImport": "Ingen nye modeller at importere — alle modeller findes allerede i registreret eller brugerdefineret liste",
+    "localCatalogFallbackStatus": "Couldn't reach the provider's model list — showing the built-in catalog",
     "skippingExistingModels": "Springer {count} eksisterende modeller over",
     "autoSync": "Auto-synkronisering",
     "autoSyncShort": "Synkronisering",
@@ -6678,7 +6679,17 @@
     "savedModelEndpointSettings": "Indstillinger for gemt model endpoint",
     "searchByModelAria": "Søg efter model",
     "selectSupportedEndpoint": "Vælg mindst én understøttet endpoint",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "Indstillinger",

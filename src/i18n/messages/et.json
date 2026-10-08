@@ -5512,6 +5512,7 @@
     "modelsImported": "Imporditud {count} mudelit",
     "allModelsAlreadyImported": "Kõik mudelid on juba imporditud",
     "noNewModelsToImport": "Uusi imporditavaid mudeleid pole — kõik mudelid on juba registris või kohandatud mudelite loendis",
+    "localCatalogFallbackStatus": "Couldn't reach the provider's model list — showing the built-in catalog",
     "skippingExistingModels": "Jäetakse vahele {count} olemasolevat mudelit",
     "autoSync": "Automaatne sünkroonimine",
     "autoSyncShort": "Sünkrooni",
@@ -6678,7 +6679,17 @@
     "savedModelEndpointSettings": "Mudeli lõpp-punkti seaded salvestatud",
     "searchByModelAria": "Otsi mudeli järgi",
     "selectSupportedEndpoint": "Valige vähemalt üks toetatud lõpp-punkt",
-    "antigravityClientProfileHarness": "Rakendusraamistik / CLI"
+    "antigravityClientProfileHarness": "Rakendusraamistik / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "Seaded",

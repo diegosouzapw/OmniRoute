@@ -5512,6 +5512,7 @@
     "modelsImported": "Modeli {count} zimeingizwa",
     "allModelsAlreadyImported": "Modeli zote tayari zimeingizwa",
     "noNewModelsToImport": "Hakuna modeli mpya za kuingiza — modeli zote tayari ziko kwenye sajili au orodha ya modeli maalum",
+    "localCatalogFallbackStatus": "Couldn't reach the provider's model list — showing the built-in catalog",
     "skippingExistingModels": "Inapuuza modeli {count} zilizopo",
     "autoSync": "Usawazishaji Otomatiki",
     "autoSyncShort": "Sawazisha",
@@ -6678,7 +6679,17 @@
     "savedModelEndpointSettings": "Mipangilio ya mwisho wa mfano uliohifadhiwa",
     "searchByModelAria": "Tafuta kwa mfano",
     "selectSupportedEndpoint": "Chagua angalau kiunganishi kimoja kinachoungwa mkono",
-    "antigravityClientProfileHarness": "Kiunzi / CLI"
+    "antigravityClientProfileHarness": "Kiunzi / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "Mipangilio",

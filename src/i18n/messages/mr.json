@@ -5512,6 +5512,7 @@
     "modelsImported": "{count} मॉडेल आयात केली",
     "allModelsAlreadyImported": "सर्व मॉडेल आधीच आयात केली आहेत",
     "noNewModelsToImport": "आयात करण्यासाठी कोणतीही नवीन मॉडेल नाहीत — सर्व मॉडेल आधीच रजिस्ट्रीमध्ये किंवा सानुकूल मॉडेलच्या यादीत आहेत",
+    "localCatalogFallbackStatus": "Couldn't reach the provider's model list — showing the built-in catalog",
     "skippingExistingModels": "अस्तित्वात असलेली {count} मॉडेल वगळत आहे",
     "autoSync": "स्वयं-समक्रमण",
     "autoSyncShort": "समक्रमित करा",
@@ -6678,7 +6679,17 @@
     "savedModelEndpointSettings": "सुरक्षित केलेल्या मॉडेल एंडपॉइंट सेटिंग्ज",
     "searchByModelAria": "मॉडेलद्वारे शोधा",
     "selectSupportedEndpoint": "किमान एक समर्थित एंडपॉइंट निवडा",
-    "antigravityClientProfileHarness": "हार्नेस / CLI"
+    "antigravityClientProfileHarness": "हार्नेस / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "सेटिंग्ज",

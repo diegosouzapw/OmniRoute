@@ -5512,6 +5512,7 @@
     "modelsImported": "{count} മോഡലുകൾ ഇറക്കുമതി ചെയ്തു",
     "allModelsAlreadyImported": "എല്ലാ മോഡലുകളും ഇതിനകം ഇറക്കുമതി ചെയ്തിട്ടുണ്ട്",
     "noNewModelsToImport": "ഇറക്കുമതി ചെയ്യാൻ പുതിയ മോഡലുകളൊന്നുമില്ല — എല്ലാ മോഡലുകളും ഇതിനകം രജിസ്ട്രിയിലോ ഇഷ്ടാനുസൃത മോഡലുകളുടെ പട്ടികയിലോ ഉണ്ട്",
+    "localCatalogFallbackStatus": "Couldn't reach the provider's model list — showing the built-in catalog",
     "skippingExistingModels": "നിലവിലുള്ള {count} മോഡലുകൾ ഒഴിവാക്കുന്നു",
     "autoSync": "യാന്ത്രിക സമന്വയം",
     "autoSyncShort": "സമന്വയിപ്പിക്കുക",
@@ -6678,7 +6679,17 @@
     "savedModelEndpointSettings": "സംരക്ഷിച്ച മോഡൽ എൻഡ്പോയിന്റ് ക്രമീകരണങ്ങൾ",
     "searchByModelAria": "മോഡൽ അനുസരിച്ച് തിരയുക",
     "selectSupportedEndpoint": "പിന്തുണയ്ക്കുന്ന ഒരു എൻഡ്പോയിന്റെങ്കിലും തിരഞ്ഞെടുക്കുക",
-    "antigravityClientProfileHarness": "ഹാർനെസ് / CLI"
+    "antigravityClientProfileHarness": "ഹാർനെസ് / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "ക്രമീകരണങ്ങൾ",
