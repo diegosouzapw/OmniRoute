@@ -226,6 +226,12 @@ test("a healthy first body issues no fallback request", async () => {
   try {
     assert.equal(calls, 1, "no fallback request when the first body is healthy");
     assert.equal(result.success, true);
+    // Drain rather than cancel: cancelling mid-flight leaves the pipeline
+    // feeding this body still in progress, and it then settles AFTER the test
+    // has ended — which node:test reports as "generated asynchronous activity
+    // after the test ended" and fails the whole file. The sibling fallback test
+    // below already drains for the same reason.
+    await result.response?.text();
   } finally {
     await result.response?.body?.cancel().catch(() => {});
   }
@@ -251,6 +257,8 @@ test("a stalled first body never marks the account unavailable", async () => {
   try {
     assert.equal(result.success, true);
     assert.deepEqual(seen, [], "the stalled body must not penalize the account");
+    // Drain for the same reason as above — see the comment in the healthy-body test.
+    await result.response?.text();
   } finally {
     await result.response?.body?.cancel().catch(() => {});
   }

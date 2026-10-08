@@ -39,8 +39,10 @@ import {
   getLocalProviderMetadata,
   normalizeAndValidateHttpBaseUrl,
   getCodexFingerprintMode,
+  getCodexPromptCacheKeyScope,
   getCodexRequestDefaults,
   type CodexFingerprintModeValue,
+  type CodexPromptCacheKeyScopeValue,
   getClaudeCodeCompatibleRequestDefaults,
   providerText,
   ERROR_TYPE_LABELS,
@@ -138,10 +140,12 @@ export default function EditConnectionModal({
     routingTags: "",
     excludedModels: "",
     customUserAgent: "",
+    huggingfaceBillTo: "",
     accountId: "",
     codexReasoningEffort: "medium",
     codexServiceTier: "default" as CodexServiceTier,
     codexFingerprintMode: "session" as CodexFingerprintModeValue,
+    codexPromptCacheKeyScope: "client" as CodexPromptCacheKeyScopeValue,
     codexOpenaiStoreEnabled: false,
     openaiResponsesStoreEnabled: false,
     preserveEncryptedReasoning: false,
@@ -287,6 +291,7 @@ export default function EditConnectionModal({
         stringField(connection.providerSpecificData?.accessKeyId) ||
         stringField(connection.providerSpecificData?.awsAccessKeyId);
       const existingCustomUserAgent = stringField(connection.providerSpecificData?.customUserAgent);
+      const existingHuggingfaceBillTo = stringField(connection.providerSpecificData?.billTo);
       const existingOpenRouterPreset = stringField(connection.providerSpecificData?.preset);
       const existingCx = stringField(connection.providerSpecificData?.cx);
       const existingAccountId = stringField(connection.providerSpecificData?.accountId);
@@ -365,10 +370,12 @@ export default function EditConnectionModal({
             connection.providerSpecificData?.excluded_models
         ),
         customUserAgent: existingCustomUserAgent,
+        huggingfaceBillTo: existingHuggingfaceBillTo,
         accountId: existingAccountId,
         codexReasoningEffort: codexRequestDefaults.reasoningEffort,
         codexServiceTier: codexRequestDefaults.serviceTier ?? "default",
         codexFingerprintMode: getCodexFingerprintMode(connection.providerSpecificData),
+        codexPromptCacheKeyScope: getCodexPromptCacheKeyScope(connection.providerSpecificData),
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         openaiResponsesStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         preserveEncryptedReasoning:
@@ -380,12 +387,7 @@ export default function EditConnectionModal({
         glmOrganizationId: existingGlmOrganizationId,
         glmProjectId: existingGlmProjectId,
         // Console-session credentials stripped in responses; blank preserves stored values.
-        ollamaCloudUsageCookie: "",
-        alibabaConsoleCookie: "",
-        qwenCloudCookie: "",
-        qwenCloudSecToken: "",
-        alibabaConsoleSecToken: "",
-        volcConsoleCookie: "",
+        ...EMPTY_QUOTA_SCRAPING_FIELDS,
         ccCompatibleContext1m: ccRequestDefaults.context1m,
         ccCompatibleRedactThinking: ccRequestDefaults.redactThinking,
         ccCompatibleSummarizeThinking: ccRequestDefaults.summarizeThinking,
@@ -440,6 +442,7 @@ export default function EditConnectionModal({
       setOpenRouterPreset(existingOpenRouterPreset);
       setShowAdvanced(
         !!existingCustomUserAgent ||
+          !!existingHuggingfaceBillTo ||
           normalizeM365TierValue(connection.providerSpecificData?.tier) !== ""
       );
       setTestResult(null);
@@ -665,7 +668,13 @@ export default function EditConnectionModal({
         updates.providerSpecificData = {
           ...(connection.providerSpecificData || {}),
           ...(validationPsd || {}),
-          ...(isCodex ? { codexFingerprintMode: null, codex_fingerprint_mode: null } : {}),
+          ...(isCodex
+            ? {
+                codexFingerprintMode: null,
+                codex_fingerprint_mode: null,
+                codexPromptCacheKeyScope: null,
+              }
+            : {}),
         };
         assignEditApiKeyProviderSpecificData({
           provider,
@@ -704,6 +713,7 @@ export default function EditConnectionModal({
           updates.providerSpecificData.openaiStoreEnabled =
             formData.codexOpenaiStoreEnabled === true;
           updates.providerSpecificData.codexFingerprintMode = formData.codexFingerprintMode;
+          updates.providerSpecificData.codexPromptCacheKeyScope = formData.codexPromptCacheKeyScope;
         }
         if (isAntigravityFamily) {
           updates.providerSpecificData.projectId = trimmedCloudCodeProjectId || null;
@@ -831,6 +841,7 @@ export default function EditConnectionModal({
             reasoningEffort={formData.codexReasoningEffort}
             serviceTier={formData.codexServiceTier}
             fingerprintMode={formData.codexFingerprintMode}
+            promptCacheKeyScope={formData.codexPromptCacheKeyScope}
             openaiStoreEnabled={formData.codexOpenaiStoreEnabled}
             showFingerprintMode={isOAuth}
             onChange={(patch) => setFormData({ ...formData, ...patch })}
@@ -1194,6 +1205,17 @@ export default function EditConnectionModal({
                   placeholder="my-app/1.0"
                   hint={t("customUserAgentHint")}
                 />
+                {provider === "huggingface" && (
+                  <Input
+                    label={t("huggingfaceBillToLabel")}
+                    value={formData.huggingfaceBillTo}
+                    onChange={(e) =>
+                      setFormData({ ...formData, huggingfaceBillTo: e.target.value })
+                    }
+                    placeholder="account-123"
+                    hint={t("huggingfaceBillToHint")}
+                  />
+                )}
                 <ProviderTierField provider={provider} />
                 {isM365TierCapable && (
                   <Select

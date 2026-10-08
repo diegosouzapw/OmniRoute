@@ -1,0 +1,1 @@
+- fix(cli): `omniroute stop` accepts `--port`, falls back to the port after a stale PID file, and no longer prints "Server stopped." when `lsof` is missing (#15177)

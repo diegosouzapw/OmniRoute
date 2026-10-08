@@ -1,0 +1,1 @@
+- **feat(dashboard):** models and combos catalog with filters and browser-side health tests ([#14887](https://github.com/diegosouzapw/OmniRoute/pull/14887)).

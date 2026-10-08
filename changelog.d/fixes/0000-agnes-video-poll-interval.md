@@ -1,1 +1,0 @@
-- **fix(video):** Honor `poll_interval_ms` and `max_polls` for Agnes and other video job providers so client-requested polling delays prevent upstream status-query rate limits.

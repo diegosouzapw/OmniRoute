@@ -1,0 +1,1 @@
+- Release-branch hygiene: freeze the file-size ceilings grown by #15766/#15757 and register two covering tests in `stryker.conf.json` after the d7 board-1 merge wave.

@@ -9,6 +9,7 @@ permissions:
 
 jobs:
   promptfoo-guard:
+    if: ${{ github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute' }}
     name: promptfoo — injection guard (block mode, no secret)
     # #11965: this job runs a backend-only `next build`; the hosted 7 GB runner cannot build
     # release/v3.8.51 (VM shutdown ~7 min in), so it targets the box's light pool (`omni-light`:
@@ -56,6 +57,7 @@ jobs:
         run: kill "$(cat server.pid)" || true
 
   garak:
+    if: ${{ github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute' }}
     name: garak probes (skip without provider secret)
     # #11965: this job runs a backend-only `next build`; the hosted 7 GB runner cannot build
     # release/v3.8.51 (VM shutdown ~7 min in), so it targets the box's light pool (`omni-light`:

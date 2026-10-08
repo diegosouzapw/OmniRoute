@@ -1,1 +1,0 @@
-- **fix(proxyHealth):** a sweep marks a proxy failed when the same target answers through another proxy ([#14776](https://github.com/diegosouzapw/OmniRoute/pull/14776)) — thanks @maxmad64bis

@@ -1,1 +1,0 @@
-- **fix(i18n):** zh-CN and zh-TW now use the canonical `提供者` for "provider" in two recent strings, clearing the glossary-consistency test (#15016).

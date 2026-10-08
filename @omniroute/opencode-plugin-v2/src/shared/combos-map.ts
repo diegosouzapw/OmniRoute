@@ -225,8 +225,15 @@ export function mapComboToModelV2(
       : resolveApiBlockV2(combo.id, baseURL, apiFormat);
   })();
 
+  // OmniRoute addresses a combo by its NAME (e.g. "static-best-free", "Kimi Coding", "auto/best-coding")
+  // — that string is what GET /v1/models publishes as the model id and what
+  // POST /v1/chat/completions routes via getComboByName (slugified names 400
+  // with "Unable to determine provider"). Some deployments store a UUID in
+  // combo.id; using it would publish an unselectable provider/<uuid> model.
+  const comboModelId = combo.name && combo.name.trim().length > 0 ? combo.name.trim() : combo.id;
+
   return {
-    id: combo.id,
+    id: comboModelId,
     providerID: providerId,
     api: comboApiBlock,
     name: combo.name && combo.name.trim().length > 0 ? combo.name : combo.id,

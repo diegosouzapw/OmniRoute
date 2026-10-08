@@ -1,1 +1,0 @@
-- **fix(mitm):** Respect downstream SSE backpressure and cap oversized inspector chunks to prevent avoidable memory growth ([#14594](https://github.com/diegosouzapw/OmniRoute/pull/14594)).

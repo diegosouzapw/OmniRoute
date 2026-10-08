@@ -387,20 +387,20 @@ Ajoutez les définitions des modèles dans `open-sse/config/providerRegistry.ts`
 
 ## Liste de contrôle de la Pull Request
 
-- [ ] Les tests réussissent (`npm test`)
-- [ ] Le linting réussit (`npm run lint`)
+- [ ] Les tests passent (`npm test`)
+- [ ] Le linting passe (`npm run lint`)
 - [ ] Le build réussit (`npm run build`)
-- [ ] Les types TypeScript ont été ajoutés pour les nouvelles fonctions et interfaces publiques
+- [ ] Des types TypeScript ont été ajoutés pour les nouvelles fonctions et interfaces publiques
 - [ ] Aucun secret ni aucune valeur de repli codés en dur
-- [ ] Les identifiants publics des services en amont sont intégrés via `resolvePublicCred()` (voir [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), jamais sous forme de littéraux
-- [ ] Les réponses d'erreur passent par `buildErrorBody()` / `sanitizeErrorMessage()` — aucune trace de pile brute dans le corps des réponses (voir [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Les commandes shell (`exec` / `spawn`) transmettent les valeurs d'exécution via `env`, et non par interpolation de chaînes
+- [ ] Les identifiants publics en amont sont intégrés via `resolvePublicCred()` (voir [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), jamais sous forme de littéraux
+- [ ] Les réponses d’erreur passent par `buildErrorBody()` / `sanitizeErrorMessage()` — aucune trace de pile brute dans le corps des réponses (voir [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Les commandes shell (`exec` / `spawn`) transmettent les valeurs d’exécution via `env`, et non par interpolation de chaînes
 - [ ] Toutes les entrées sont validées avec des schémas Zod
-- [ ] Un **fragment** de journal des modifications a été ajouté sous `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` pour les changements visibles par les utilisateurs (voir [`changelog.d/README.md`](./changelog.d/README.md)) — ne modifiez **pas** directement `CHANGELOG.md` ; les fragments sont agrégés au moment de la publication et ne créent jamais de conflits entre les Pull Requests
+- [ ] Un **fragment** de journal des modifications a été ajouté sous `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` pour les changements visibles par les utilisateurs (voir [`changelog.d/README.md`](./changelog.d/README.md)) — ne modifiez **pas** directement `CHANGELOG.md` ; les fragments sont regroupés au moment de la publication et ne provoquent jamais de conflits entre les PR
 - [ ] La documentation a été mise à jour (le cas échéant)
-- [ ] Aucune nouvelle alerte CodeQL / Secret-Scanning n'a été ouverte, ou chacune a été rejetée avec une justification technique faisant référence au document `docs/security/` pertinent
+- [ ] Aucune nouvelle alerte CodeQL / Secret-Scanning n’a été ouverte, ou chacune a été rejetée avec une justification technique faisant référence au document `docs/security/` pertinent
 - [ ] Les routes qui lancent des processus enfants (`/api/mcp/`, `/api/cli-tools/runtime/`) sont classées comme `isLocalOnlyPath()` dans `src/server/authz/routeGuard.ts` — voir la [Règle stricte nº 15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Aucun pied de message `Co-Authored-By` dans les messages de commit — les commits doivent apparaître uniquement sous l'identité Git du propriétaire du dépôt (Règle stricte nº 16)
+- [ ] Aucun pied de message `Co-authored-by` attribué à une IA ou à un bot dans les messages de commit (Règle stricte nº 16) — les collaborateurs humains dont le travail est réutilisé sont crédités avec des pieds de message standard `Co-authored-by: Name <email>`
 
 ---
 

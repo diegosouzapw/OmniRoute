@@ -454,7 +454,7 @@ curl https://localhost:20128/api/v1/management/proxy-subscriptions/{id} \
 
 Update a proxy subscription
 
-Partial update — only fields present in the body are changed (name/url/mode/ruleProviders/localCoreEndpoint/updateIntervalMinutes/enabled).
+Partial update — only fields present in the body are changed (name/url/mode/ruleProviders/localCoreEndpoint/coreConfigPath/coreBinaryPath/updateIntervalMinutes/enabled).
 
 ```bash
 curl -X PATCH https://localhost:20128/api/v1/management/proxy-subscriptions/{id} \

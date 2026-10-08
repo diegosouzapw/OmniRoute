@@ -74,6 +74,17 @@ export function isCompressionWorkerEligible(
   mode: CompressionMode,
   options?: CompressionWorkerOptions
 ): boolean {
+  if (mode === "ultra") {
+    // Heuristic ultra can be CPU/heap heavy on large Native Codex /v1/responses
+    // histories. Isolate it in the compression worker instead of running it in
+    // the gateway process. Model-backed/SLM ultra stays on its dedicated async
+    // path because the sync worker implementation intentionally runs only the
+    // heuristic tier.
+    const modelPath = options?.config?.ultra?.modelPath;
+    const hasModelPath = typeof modelPath === "string" && modelPath.trim().length > 0;
+    if (options?.config?.ultraEngine === "slm" || hasModelPath) return false;
+    return isStrictlySerializable({ body, mode, ...(options ? { options } : {}) });
+  }
   if (mode !== "standard" && mode !== "rtk" && mode !== "stacked") return false;
   if (mode === "stacked") {
     const pipeline = options?.config?.stackedPipeline;

@@ -1,1 +1,0 @@
-- **fix(build):** the npm package now ships `betterSqlitePrebuildTarget.mjs` and `peer-stamp.mjs`, so installing a freshly built tarball no longer fails in `postinstall` with `ERR_MODULE_NOT_FOUND`, and a unit test fails when a shipped script imports a file the package leaves out ([#15077](https://github.com/diegosouzapw/OmniRoute/pull/15077)) — thanks @maxmad64bis

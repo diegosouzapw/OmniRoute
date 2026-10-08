@@ -23,9 +23,11 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
-          node-version: "22"
+          node-version-file: ".node-version"
           cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/npm-ci-retry
+        with:
+          cache: "false"
       - name: Emit shadow acceptance report
         run: |
           node scripts/quality/validate-release-acceptance.mjs \

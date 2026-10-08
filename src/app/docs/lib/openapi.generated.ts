@@ -243,7 +243,8 @@ export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
     path: "/api/v1/audio/translations",
     method: "POST",
     summary: "Translate audio to English",
-    description: "OpenAI Whisper–compatible audio translation (multipart/form-data). Unlike `/api/v1/audio/transcriptions`, output is always English regardless of the source language. Success responses carry the `X-OmniRoute-*` cost-telemetry headers.",
+    description:
+      "OpenAI Whisper–compatible audio translation (multipart/form-data). Unlike `/api/v1/audio/transcriptions`, output is always English regardless of the source language. Success responses carry the `X-OmniRoute-*` cost-telemetry headers.",
     tag: "Audio",
     tags: ["Audio"],
     requiresAuth: true,
@@ -373,7 +374,8 @@ export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
     path: "/api/v1/explain/routing",
     method: "GET",
     summary: "Routing explainability snapshot",
-    description: "Returns the most recent routing events (bounded in-memory ring buffer) plus the per-provider/model quality snapshot from `open-sse/services/routing`. Routing metadata only — never prompts, bodies, headers or credentials. Auth mirrors `/api/v1/combos`: a valid Bearer API key or a dashboard session; with `REQUIRE_API_KEY=false` anonymous reads are allowed.",
+    description:
+      "Returns the most recent routing events (bounded in-memory ring buffer) plus the per-provider/model quality snapshot from `open-sse/services/routing`. Routing metadata only — never prompts, bodies, headers or credentials. Auth mirrors `/api/v1/combos`: a valid Bearer API key or a dashboard session; with `REQUIRE_API_KEY=false` anonymous reads are allowed.",
     tag: "Telemetry",
     tags: ["Telemetry"],
     requiresAuth: true,
@@ -563,7 +565,8 @@ export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
     path: "/api/v1/management/proxy-subscriptions",
     method: "GET",
     summary: "List proxy subscriptions",
-    description: "Lists all operator-supplied proxy subscription links. Also starts the background auto-refresh scheduler (idempotent) so enabled subscriptions stay in sync. Credentials embedded in `url` are redacted in the response.",
+    description:
+      "Lists all operator-supplied proxy subscription links. Also starts the background auto-refresh scheduler (idempotent) so enabled subscriptions stay in sync. Credentials embedded in `url` are redacted in the response.",
     tag: "Proxy Subscriptions",
     tags: ["Proxy Subscriptions"],
     requiresAuth: true,
@@ -573,7 +576,8 @@ export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
     path: "/api/v1/management/proxy-subscriptions",
     method: "POST",
     summary: "Create a proxy subscription",
-    description: "Creates a subscription record. If `mode` is `rule`, at least one entry in `ruleProviders` is required. `updateIntervalMinutes` defaults to 60 and `enabled` defaults to `false` when omitted or not exactly `true`.",
+    description:
+      "Creates a subscription record. If `mode` is `rule`, at least one entry in `ruleProviders` is required. `updateIntervalMinutes` defaults to 60 and `enabled` defaults to `false` when omitted or not exactly `true`.",
     tag: "Proxy Subscriptions",
     tags: ["Proxy Subscriptions"],
     requiresAuth: true,
@@ -583,7 +587,8 @@ export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
     path: "/api/v1/management/proxy-subscriptions/{id}",
     method: "DELETE",
     summary: "Delete a proxy subscription",
-    description: "Removes the subscription record and unbinds/drops its synced proxy_registry rows.",
+    description:
+      "Removes the subscription record and unbinds/drops its synced proxy_registry rows.",
     tag: "Proxy Subscriptions",
     tags: ["Proxy Subscriptions"],
     requiresAuth: true,
@@ -603,7 +608,8 @@ export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
     path: "/api/v1/management/proxy-subscriptions/{id}",
     method: "PATCH",
     summary: "Update a proxy subscription",
-    description: "Partial update — only fields present in the body are changed (name/url/mode/ruleProviders/localCoreEndpoint/updateIntervalMinutes/enabled).",
+    description:
+      "Partial update — only fields present in the body are changed (name/url/mode/ruleProviders/localCoreEndpoint/coreConfigPath/coreBinaryPath/updateIntervalMinutes/enabled).",
     tag: "Proxy Subscriptions",
     tags: ["Proxy Subscriptions"],
     requiresAuth: true,
@@ -613,7 +619,8 @@ export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
     path: "/api/v1/management/proxy-subscriptions/{id}/nodes",
     method: "GET",
     summary: "Get a subscription's last-parsed node summary",
-    description: "Returns the last-parsed node list without re-fetching the (possibly slow) subscription URL.",
+    description:
+      "Returns the last-parsed node list without re-fetching the (possibly slow) subscription URL.",
     tag: "Proxy Subscriptions",
     tags: ["Proxy Subscriptions"],
     requiresAuth: true,
@@ -623,7 +630,8 @@ export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
     path: "/api/v1/management/proxy-subscriptions/{id}/refresh",
     method: "POST",
     summary: "Refresh a proxy subscription",
-    description: "Re-fetches and re-parses the subscription URL, syncs its nodes into `proxy_registry`, and (re)binds the pool.",
+    description:
+      "Re-fetches and re-parses the subscription URL, syncs its nodes into `proxy_registry`, and (re)binds the pool.",
     tag: "Proxy Subscriptions",
     tags: ["Proxy Subscriptions"],
     requiresAuth: true,
@@ -703,7 +711,8 @@ export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
     path: "/api/v1/multimodal-embeddings",
     method: "POST",
     summary: "Create embeddings (Jina multimodal-embeddings alias)",
-    description: "Same handler as `POST /api/v1/embeddings`. Provided so Jina-compatible clients that call `/v1/multimodal-embeddings` do not receive HTTP 404 `unknown_route`.",
+    description:
+      "Same handler as `POST /api/v1/embeddings`. Provided so Jina-compatible clients that call `/v1/multimodal-embeddings` do not receive HTTP 404 `unknown_route`.",
     tag: "Embeddings",
     tags: ["Embeddings"],
     requiresAuth: true,
@@ -743,7 +752,8 @@ export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
     path: "/api/v1/ocr",
     method: "POST",
     summary: "Document OCR",
-    description: "Multi-provider document OCR endpoint (Mistral OCR–compatible request and response shape). Accepts a JSON body referencing a document/image and returns extracted text. `model` selects the provider via a `provider/model` prefix (e.g. `mistral/mistral-ocr-latest`, `azure-document-intelligence/prebuilt-read`, `vertex-deepseek-ocr/deepseek-ocr-maas`); a bare model id (e.g. `mistral-ocr-latest`) resolves to its registered provider, and an omitted `model` defaults to Mistral. Azure Document Intelligence is asynchronous upstream — the handler polls the returned operation until it succeeds or fails before responding, so this endpoint can take longer to return for that provider. Success responses carry the `X-OmniRoute-*` cost-telemetry headers.",
+    description:
+      "Multi-provider document OCR endpoint (Mistral OCR–compatible request and response shape). Accepts a JSON body referencing a document/image and returns extracted text. `model` selects the provider via a `provider/model` prefix (e.g. `mistral/mistral-ocr-latest`, `azure-document-intelligence/prebuilt-read`, `vertex-deepseek-ocr/deepseek-ocr-maas`); a bare model id (e.g. `mistral-ocr-latest`) resolves to its registered provider, and an omitted `model` defaults to Mistral. Azure Document Intelligence is asynchronous upstream — the handler polls the returned operation until it succeeds or fails before responding, so this endpoint can take longer to return for that provider. Success responses carry the `X-OmniRoute-*` cost-telemetry headers.",
     tag: "Images",
     tags: ["Images"],
     requiresAuth: true,
@@ -813,7 +823,8 @@ export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
     path: "/api/v1/providers/{provider}/models",
     method: "GET",
     summary: "List models for a specific provider",
-    description: "Returns only models for the selected provider with provider prefix removed from each model id.",
+    description:
+      "Returns only models for the selected provider with provider prefix removed from each model id.",
     tag: "Models",
     tags: ["Models"],
     requiresAuth: true,
@@ -823,7 +834,8 @@ export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
     path: "/api/v1/providers/suggested-models",
     method: "GET",
     summary: "Suggested media models",
-    description: "Read-only server-side proxy to the public HuggingFace Hub models search API, used by the dashboard to suggest models for a media provider kind without exposing an HF token client-side. Never accepts or returns credentials.",
+    description:
+      "Read-only server-side proxy to the public HuggingFace Hub models search API, used by the dashboard to suggest models for a media provider kind without exposing an HF token client-side. Never accepts or returns credentials.",
     tag: "Providers",
     tags: ["Providers"],
     requiresAuth: false,
@@ -953,7 +965,8 @@ export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
     path: "/api/v1/search",
     method: "POST",
     summary: "Run a unified search",
-    description: "Searches the web, news, or X through a configured provider. Set `provider` to `xquik-search` to use Xquik for X search. The aliases `xquik` and `xquik_search` resolve to the same provider. AnySearch (`anysearch-search`, aliases `anysearch` / `anysearch_search`) provides free fallback-only web search.",
+    description:
+      "Searches the web, news, or X through a configured provider. Set `provider` to `xquik-search` to use Xquik for X search. The aliases `xquik` and `xquik_search` resolve to the same provider. AnySearch (`anysearch-search`, aliases `anysearch` / `anysearch_search`) provides free fallback-only web search.",
     tag: "Search",
     tags: ["Search"],
     requiresAuth: true,
@@ -983,7 +996,8 @@ export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
     path: "/api/v1/session-leases",
     method: "POST",
     summary: "Acquire, inspect, renew, or release an exclusive managed connection lease",
-    description: "Requires an API key with `lease:exclusive` and an explicit non-empty\n`allowedConnections` policy. The opaque owner is bound to the authenticated API key;\nthe lease owns an eligible connection, not a provider or model. Managed inference\nrequests present the owner and exact generation headers. Temporary foreign occupancy\nreturns 429 `WAITING_FOR_CAPACITY` with `Retry-After`. Acquire, renew, and release retain\ntheir connection-free response shapes. The explicit status action is owner-, key-, and\ngeneration-fenced and returns only privacy-safe display metadata for an active binding.\n",
+    description:
+      "Requires an API key with `lease:exclusive` and an explicit non-empty\n`allowedConnections` policy. The opaque owner is bound to the authenticated API key;\nthe lease owns an eligible connection, not a provider or model. Managed inference\nrequests present the owner and exact generation headers. Temporary foreign occupancy\nreturns 429 `WAITING_FOR_CAPACITY` with `Retry-After`. Acquire, renew, and release retain\ntheir connection-free response shapes. The explicit status action is owner-, key-, and\ngeneration-fenced and returns only privacy-safe display metadata for an active binding.\n",
     tag: "Session Leases",
     tags: ["Session Leases"],
     requiresAuth: true,
@@ -993,7 +1007,8 @@ export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
     path: "/api/v1/speech-to-text",
     method: "POST",
     summary: "ElevenLabs speech-to-text",
-    description: "Streams the request body to `POST https://api.elevenlabs.io/v1/speech-to-text` using the stored `elevenlabs` provider credentials. `content-type` and `accept` are forwarded; the upstream body is relayed unchanged.",
+    description:
+      "Streams the request body to `POST https://api.elevenlabs.io/v1/speech-to-text` using the stored `elevenlabs` provider credentials. `content-type` and `accept` are forwarded; the upstream body is relayed unchanged.",
     tag: "Audio",
     tags: ["Audio"],
     requiresAuth: true,
@@ -1003,7 +1018,8 @@ export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
     path: "/api/v1/systemone",
     method: "POST",
     summary: "Evaluate state with TypeSafe Jev",
-    description: "TypeSafe System One passthrough. OmniRoute accepts provider-scoped model ids such as `typesafe/jev-latest`, removes the `typesafe/` prefix before forwarding, and preserves TypeSafe's response and error wire formats. The same operation is available at the SDK-compatible public path `/typesafe/v1/systemone`; SDK model discovery is available at `/typesafe/v1/models`.",
+    description:
+      "TypeSafe System One passthrough. OmniRoute accepts provider-scoped model ids such as `typesafe/jev-latest`, removes the `typesafe/` prefix before forwarding, and preserves TypeSafe's response and error wire formats. The same operation is available at the SDK-compatible public path `/typesafe/v1/systemone`; SDK model discovery is available at `/typesafe/v1/models`.",
     tag: "System One",
     tags: ["System One"],
     requiresAuth: true,
@@ -1013,7 +1029,8 @@ export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
     path: "/api/v1/text-to-speech/{voiceId}",
     method: "POST",
     summary: "ElevenLabs text-to-speech",
-    description: "Streams the request body to `POST https://api.elevenlabs.io/v1/text-to-speech/{voiceId}` using the stored `elevenlabs` provider credentials. `voiceId` must match `^[A-Za-z0-9_-]+$` or the request is rejected with 400 before any upstream call.",
+    description:
+      "Streams the request body to `POST https://api.elevenlabs.io/v1/text-to-speech/{voiceId}` using the stored `elevenlabs` provider credentials. `voiceId` must match `^[A-Za-z0-9_-]+$` or the request is rejected with 400 before any upstream call.",
     tag: "Audio",
     tags: ["Audio"],
     requiresAuth: true,
@@ -1063,7 +1080,8 @@ export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
     path: "/api/v1/voices",
     method: "GET",
     summary: "List ElevenLabs voices",
-    description: "Proxies `GET https://api.elevenlabs.io/v1/voices` using the stored `elevenlabs` provider credentials (the caller never sends `xi-api-key`). The incoming query string is forwarded unchanged.",
+    description:
+      "Proxies `GET https://api.elevenlabs.io/v1/voices` using the stored `elevenlabs` provider credentials (the caller never sends `xi-api-key`). The incoming query string is forwarded unchanged.",
     tag: "Audio",
     tags: ["Audio"],
     requiresAuth: true,
@@ -1323,7 +1341,8 @@ export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
     path: "/api/v1/ws",
     method: "GET",
     summary: "Chat completion over WebSocket (handshake + upgrade)",
-    description: "OpenAI-compatible chat over a WebSocket connection. `GET` with `?handshake=1` returns the connection descriptor (auth path, message protocol and live-event channels) as JSON; a plain `GET` without an Upgrade returns `426 Upgrade Required`. After upgrading, the client exchanges JSON frames — `{type:\"request\", id, payload:{model, messages}}` to start a completion and `{type:\"cancel\", id}` to abort it. A separate live channel (default port `LIVE_WS_PORT=20129`, path `/live`) streams dashboard events on the `requests`, `combo` and `credentials` topics with a 15s heartbeat. Requires an API key.",
+    description:
+      'OpenAI-compatible chat over a WebSocket connection. `GET` with `?handshake=1` returns the connection descriptor (auth path, message protocol and live-event channels) as JSON; a plain `GET` without an Upgrade returns `426 Upgrade Required`. After upgrading, the client exchanges JSON frames — `{type:"request", id, payload:{model, messages}}` to start a completion and `{type:"cancel", id}` to abort it. A separate live channel (default port `LIVE_WS_PORT=20129`, path `/live`) streams dashboard events on the `requests`, `combo` and `credentials` topics with a 15s heartbeat. Requires an API key.',
     tag: "Chat",
     tags: ["Chat"],
     requiresAuth: true,

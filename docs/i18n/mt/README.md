@@ -1263,19 +1263,19 @@ Metriċi kanoniċi fl-2026-08-24: **1.029 vidjo uniku** · **11.132.922 dehra ma
 <table>
   <tr><th align="left">Saff</th><th align="left">Teknoloġija</th></tr>
   <tr><td nowrap><b>Ambjent ta’ eżekuzzjoni</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Lingwa</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> f’<code>src/</code> u <code>open-sse/</code> kollha (żero <code>any</code> fil-qalba minn v2.0 ’l hawn)</td></tr>
+  <tr><td nowrap><b>Lingwa</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> f’<code>src/</code> u <code>open-sse/</code> kollha (l-ebda <code>any</code> fil-qalba minn v2.0 ’l hawn)</td></tr>
   <tr><td nowrap><b>Qafas</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Bażi tad-data</b></td><td>better-sqlite3 (SQLite, ġurnalar WAL) + LowDB (JSON legat) — 136 modulu tad-dominju, 193 migrazzjoni</td></tr>
-  <tr><td nowrap><b>Memorja</b></td><td>Test sħiħ SQLite FTS5 + embeddings vettorjali kwantizzati għal int8, tnaqqis ittajpjat</td></tr>
+  <tr><td nowrap><b>Bażi tad-data</b></td><td>better-sqlite3 (SQLite, ġurnalizzazzjoni WAL) + LowDB (legat JSON) — 137 modulu tad-dominju, 193 migrazzjoni</td></tr>
+  <tr><td nowrap><b>Memorja</b></td><td>Test sħiħ SQLite FTS5 + inkorporazzjonijiet vettorjali kkwantizzati b’int8, tnaqqis ittajpjat</td></tr>
   <tr><td nowrap><b>Skemi</b></td><td>Zod 4 — validazzjoni tal-I/O tal-għodod MCP + kuntratti tal-API</td></tr>
   <tr><td nowrap><b>Protokolli</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>Trażmissjoni kontinwa</b></td><td>Server-Sent Events (SSE) + pont WebSocket (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Kompressjoni</b></td><td>Pipeline ta’ 12-il magna — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Awtentikazzjoni u sigurtà</b></td><td>OAuth 2.0 (PKCE) + JWT + ċwievet tal-API + awtentikazzjoni MCP b’ambitu · AES-256-GCM waqt il-ħżin · DOMPurify</td></tr>
-  <tr><td nowrap><b>Moħbija</b></td><td>wreq-js — impersonazzjoni tal-marki tas-swaba’ TLS JA3 / JA4, proxy bi 3 livelli</td></tr>
-  <tr><td nowrap><b>Reżiljenza</b></td><td>Salvavita taċ-ċirkwit, dewmien esponenzjali, protezzjoni kontra thundering herd, awtorimedju permezz ta’ kombinazzjonijiet awtomatiċi</td></tr>
+  <tr><td nowrap><b>Kompressjoni</b></td><td>Pipeline bi 12-il magna — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Awtentikazzjoni u sigurtà</b></td><td>OAuth 2.0 (PKCE) + JWT + ċwievet tal-API + awtentikazzjoni MCP b’ambitu · AES-256-GCM waqt il-ħażna · DOMPurify</td></tr>
+  <tr><td nowrap><b>Moħbija</b></td><td>wreq-js — imitazzjoni tal-marki tas-swaba’ TLS JA3 / JA4, proxy bi 3 livelli</td></tr>
+  <tr><td nowrap><b>Reżiljenza</b></td><td>Circuit breaker, dewmien esponenzjali, prevenzjoni tat-thundering herd, awtofejqan permezz ta’ kombinazzjoni awtomatika</td></tr>
   <tr><td nowrap><b>Reġistrazzjoni</b></td><td>pino — reġistri JSON strutturati bil-kuntest tat-talba</td></tr>
-  <tr><td nowrap><b>Ittestjar</b></td><td>Għodda tat-testijiet ta’ Node.js + Vitest — <b>39,000+ dikjarazzjoni statika tat-testijiet</b> f’aktar minn 5,100 fajl tat-testijiet traċċat (unità, integrazzjoni, E2E, sigurtà, ekosistema)</td></tr>
+  <tr><td nowrap><b>Ittestjar</b></td><td>Node.js test runner + Vitest — <b>39,000+ dikjarazzjoni statika tat-testijiet</b> f’aktar minn 5,100 fajl tat-test traċċat (unità, integrazzjoni, E2E, sigurtà, ekosistema)</td></tr>
   <tr><td nowrap><b>Pjattaformi</b></td><td>Desktop (Electron) · Android (Termux) · PWA (kwalunkwe browser)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — pubblikazzjoni awtomatika fuq npm + Docker Hub mar-rilaxx</td></tr>
   <tr><td nowrap><b>Links</b></td><td><a href="https://omniroute.online">Sit web</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
@@ -1729,7 +1729,7 @@ Liċenzja MIT - ara [LICENSE](LICENSE) għad-dettalji.
 
 **[⬆ Lura fil-bidu](#-omniroute)** · Mibni b’❤️ għall-komunità tal-IA b’sors miftuħ.
 
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · Liċenzja MIT · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.52 · Node ≥22.22.2 · Liċenzja MIT · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- GitHub Discussions attivat għal mistoqsijiet u tweġibiet mill-komunità -->

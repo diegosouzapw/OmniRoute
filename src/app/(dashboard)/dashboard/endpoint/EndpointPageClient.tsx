@@ -5,6 +5,7 @@ import { Card, Button, Input, Modal, CardSkeleton, SegmentedControl } from "@/sh
 import Toggle from "@/shared/components/Toggle";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { isPublicDisplayBaseUrl, useDisplayBaseUrl } from "@/shared/hooks";
+import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
 import { useTranslations } from "next-intl";
 import A2ADashboardPage from "./components/A2ADashboard";
 import McpDashboardPage from "./components/MCPDashboard";
@@ -139,6 +140,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
   // Cloud sync state
   const [cloudEnabled, setCloudEnabled] = useState(false);
   const [showCloudModal, setShowCloudModal] = useState(false);
+  const [acknowledgeCloudUpload, setAcknowledgeCloudUpload] = useState(false);
   const [showDisableModal, setShowDisableModal] = useState(false);
   const [cloudSyncing, setCloudSyncing] = useState(false);
   const [cloudStatus, setCloudStatus] = useState(null);
@@ -392,7 +394,10 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
       const res = await fetch("/api/sync/cloud", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({
+          action,
+          ...(action === "enable" ? { acknowledgeCredentialUpload: acknowledgeCloudUpload } : {}),
+        }),
         signal: controller.signal,
       });
       const data = await res.json().catch(() => ({}));
@@ -463,9 +468,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
     return DEFAULT_TUNNEL_VISIBILITY;
   };
 
-  // Moved below the loader/fetcher declarations it schedules — referencing them from
-  // an effect declared above their `const` bindings is a TDZ read the compiler rejects
-  // (react-hooks/immutability).
   useEffect(() => {
     let mounted = true;
 
@@ -542,6 +544,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
         });
         return;
       }
+      setAcknowledgeCloudUpload(false);
       setShowCloudModal(true);
     } else {
       setShowDisableModal(true);
@@ -605,6 +608,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
   };
 
   const handleEnableCloud = async () => {
+    if (!acknowledgeCloudUpload || !cloudConfigured) return;
     setCloudSyncing(true);
     setModalSuccess(false);
     setSyncStep("syncing");
@@ -708,8 +712,10 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
 
       if (!res.ok) {
         throw new Error(
-          data?.error ||
+          extractApiErrorMessage(
+            data,
             translateOrFallback("cloudflaredRequestFailed", "Failed to update Cloudflare tunnel")
+          )
         );
       }
 
@@ -1403,6 +1409,13 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
             </span>
             <div className="flex-1 min-w-0">
               <span className="text-sm font-medium">{t("cloudOmniroute")}</span>
+              <p className="text-xs text-text-muted break-all">
+                {translateOrFallback(
+                  "cloudUploadDestination",
+                  "Cloud sync destination (not local backups):"
+                )}{" "}
+                {cloudBaseUrl || tc("notConfigured")}
+              </p>
             </div>
             <span
               className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border shrink-0 ${
@@ -2119,6 +2132,27 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
             </ul>
           </div>
 
+          <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-4">
+            <p className="text-sm break-all">{cloudBaseUrl || tc("notConfigured")}</p>
+            <p className="text-sm mt-2">
+              {translateOrFallback(
+                "cloudUploadWarning",
+                "Cloud sync is disabled by default on new installations. Enabling it uploads provider API keys, OAuth access/refresh tokens, OmniRoute API keys, and configuration to the destination above, now and during future syncs. This is separate from local Storage backups. Only enable it if you trust that server."
+              )}
+            </p>
+            <label className="flex items-start gap-2 mt-3 text-sm">
+              <input
+                type="checkbox"
+                checked={acknowledgeCloudUpload}
+                onChange={(event) => setAcknowledgeCloudUpload(event.target.checked)}
+              />
+              {translateOrFallback(
+                "cloudUploadConsent",
+                "I understand and authorize uploading my credentials to this destination."
+              )}
+            </label>
+          </div>
+
           {/* Sync Progress / Success */}
           {(cloudSyncing || modalSuccess) && (
             <div
@@ -2152,7 +2186,11 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
           )}
 
           <div className="flex gap-2">
-            <Button onClick={handleEnableCloud} fullWidth disabled={cloudSyncing || modalSuccess}>
+            <Button
+              onClick={handleEnableCloud}
+              fullWidth
+              disabled={cloudSyncing || modalSuccess || !acknowledgeCloudUpload || !cloudConfigured}
+            >
               {cloudSyncing ? (
                 <span className="flex items-center gap-2">
                   <span className="material-symbols-outlined animate-spin text-sm">

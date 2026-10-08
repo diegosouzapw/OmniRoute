@@ -10,7 +10,10 @@ import {
 // instead of forcing manual host/port re-entry. The server resolves that id to the
 // live pool record so the executor still receives an inline {type,host,port,...}.
 
-const POOL: Record<string, { type: string; host: string; port: number; username?: string; password?: string }> = {
+const POOL: Record<
+  string,
+  { type: string; host: string; port: number; username?: string; password?: string }
+> = {
   "pool-1": { type: "http", host: "1.2.3.4", port: 8080, username: "u", password: "p" },
   "pool-2": { type: "socks5", host: "9.9.9.9", port: 1080 },
 };
@@ -41,23 +44,69 @@ test("inline custom proxy passes through unchanged (escape hatch / legacy)", asy
   assert.deepEqual(out[0].proxy, inline);
 });
 
-test("unknown / deleted proxyId degrades safely to direct (null), no crash", async () => {
+test("unknown / deleted proxyId stays fail-closed instead of degrading to direct", async () => {
   const out = await resolveAccountProxies([{ fingerprint: "acc-d", proxyId: "gone" }], lookup);
   assert.equal(out.length, 1);
   assert.equal(out[0].proxy, null);
+  assert.equal(out[0].proxyUnavailable, true);
 });
 
-test("a throwing lookup degrades to direct (null) rather than rejecting", async () => {
+test("a throwing lookup stays fail-closed rather than rejecting or degrading to direct", async () => {
   const throwing: ProxyByIdLookup = async () => {
     throw new Error("db down");
   };
   const out = await resolveAccountProxies([{ fingerprint: "acc-e", proxyId: "pool-1" }], throwing);
   assert.equal(out[0].proxy, null);
+  assert.equal(out[0].proxyUnavailable, true);
+});
+
+test("inactive and dead by-id proxies are unavailable under the pool alive-status contract", async () => {
+  const statusLookup: ProxyByIdLookup = async (id) => ({
+    type: "http",
+    host: `${id}.local`,
+    port: 8080,
+    status: id,
+  });
+
+  for (const status of ["inactive", "ERROR", "disabled", "dead", "Down"]) {
+    const [resolved] = await resolveAccountProxies(
+      [{ fingerprint: `acc-${status}`, proxyId: status }],
+      statusLookup
+    );
+    assert.equal(resolved.proxy, null, `${status} must not hydrate a dispatch proxy`);
+    assert.equal(resolved.proxyUnavailable, true, `${status} must block direct fallback`);
+  }
+});
+
+test("active and null-status by-id proxies remain eligible", async () => {
+  const [active, legacy] = await resolveAccountProxies(
+    [
+      { fingerprint: "active", proxyId: "active" },
+      { fingerprint: "legacy", proxyId: "legacy" },
+    ],
+    async (id) => ({
+      type: "http",
+      host: `${id}.local`,
+      port: 8080,
+      status: id === "active" ? "active" : null,
+    })
+  );
+
+  assert.equal(active.proxy?.host, "active.local");
+  assert.equal(active.proxyUnavailable, undefined);
+  assert.equal(legacy.proxy?.host, "legacy.local");
+  assert.equal(legacy.proxyUnavailable, undefined);
 });
 
 test("proxyId takes precedence over an inline proxy on the same entry", async () => {
   const out = await resolveAccountProxies(
-    [{ fingerprint: "acc-f", proxyId: "pool-2", proxy: { type: "http", host: "0.0.0.0", port: 1 } }],
+    [
+      {
+        fingerprint: "acc-f",
+        proxyId: "pool-2",
+        proxy: { type: "http", host: "0.0.0.0", port: 1 },
+      },
+    ],
     lookup
   );
   assert.equal(out[0].proxy?.host, "9.9.9.9");
@@ -70,6 +119,8 @@ test("entry with neither proxyId nor proxy.host yields direct (null)", async () 
   );
   assert.equal(out[0].proxy, null);
   assert.equal(out[1].proxy, null);
+  assert.equal(out[0].proxyUnavailable, undefined);
+  assert.equal(out[1].proxyUnavailable, undefined);
 });
 
 test("non-array / malformed input is ignored without throwing", async () => {

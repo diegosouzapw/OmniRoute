@@ -1,10 +1,10 @@
 import { getAntigravityModelsDiscoveryUrls } from "@omniroute/open-sse/config/antigravityUpstream.ts";
 import {
-  GROK_BUILD_DEFAULT_CONTEXT_WINDOW,
   getGrokBuildModelsHeaders,
   GROK_BUILD_MODELS_URL,
   GROK_BUILD_SUPPORTED_REASONING_EFFORTS,
 } from "@omniroute/open-sse/config/grokBuild.ts";
+import { grok_cliProvider } from "@omniroute/open-sse/config/providers/registry/grok-cli/index.ts";
 import { getAntigravityContentHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { parseGeminiModelsList } from "@/lib/providerModels/geminiModelsParser";
 import { buildClaudeModelsHeaders } from "@/lib/providerModels/claudeModelsHeaders";
@@ -26,6 +26,7 @@ import { filterAlibabaFreeEligibleModels } from "@omniroute/open-sse/services/al
 import { shouldUseLiveAlibabaFreeModelDiscovery } from "@omniroute/open-sse/services/alibabaFreeTier.ts";
 import { isDashscopeTextModelId } from "@omniroute/open-sse/services/dashscopeTextModels.ts";
 import { extractZaiToken } from "@omniroute/open-sse/services/zaiWebCredentials.ts";
+import { buildOpencodeBackgroundHeaders } from "@omniroute/open-sse/utils/opencodeHeaders.ts";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import { normalizeOpenAiLikeModelsResponse } from "./normalizers";
 
@@ -106,6 +107,7 @@ export function parsePerplexitySonarModels(data: any): any[] {
   );
 }
 export type ProviderModelsHeaderContext = {
+  id?: string;
   authType?: string;
   providerSpecificData?: unknown;
   email?: string | null;
@@ -246,6 +248,37 @@ function grokBuildPositiveNumber(...values: unknown[]): number | undefined {
   );
 }
 
+const GROK_CLI_REGISTRY_CONTEXT_BY_ID = new Map<string, number>(
+  grok_cliProvider.models.flatMap((model) => {
+    const window = model.contextLength;
+    return typeof window === "number" && Number.isInteger(window) && window > 0
+      ? ([[model.id, window]] as Array<[string, number]>)
+      : [];
+  })
+);
+
+function resolveGrokBuildInputTokenLimit(
+  model: GrokBuildModelRecord,
+  metadata: GrokBuildModelRecord,
+  id: string
+): number | undefined {
+  // Registry first. Grok Build's /v1/models advertises contextWindow 256000 for every
+  // model, yet the backend serves grok-4.6 up to 500k (prod: 88 successful requests
+  // with 256k-485k input; upstream rejects at "> 500000 tokens"). Trusting the
+  // advertised number pinned 256k auto:discovery overrides over the verified window.
+  // Models the registry does not know keep the upstream number — under-advertising
+  // only makes clients compact early — and never get an invented default.
+  return (
+    GROK_CLI_REGISTRY_CONTEXT_BY_ID.get(id) ??
+    grokBuildPositiveNumber(
+      model.contextWindow,
+      model.context_window,
+      metadata.contextWindow,
+      metadata.totalContextTokens
+    )
+  );
+}
+
 function getGrokBuildModelItems(data: unknown): unknown[] {
   const envelope = asGrokBuildRecord(data);
   if (Array.isArray(data)) return data;
@@ -349,13 +382,7 @@ function normalizeGrokBuildModel(value: unknown): GrokBuildModelRecord | null {
   // here would route their request shape to the wrong upstream endpoint.
   if (backend !== "responses") return null;
 
-  const inputTokenLimit =
-    grokBuildPositiveNumber(
-      model.contextWindow,
-      model.context_window,
-      metadata.contextWindow,
-      metadata.totalContextTokens
-    ) || GROK_BUILD_DEFAULT_CONTEXT_WINDOW;
+  const inputTokenLimit = resolveGrokBuildInputTokenLimit(model, metadata, id);
   const outputTokenLimit = grokBuildPositiveNumber(
     model.maxCompletionTokens,
     model.max_completion_tokens
@@ -369,7 +396,7 @@ function normalizeGrokBuildModel(value: unknown): GrokBuildModelRecord | null {
     name: grokBuildString(model.name, id) || id,
     owned_by: "grok-cli",
     ...(description ? { description } : {}),
-    inputTokenLimit,
+    ...(typeof inputTokenLimit === "number" ? { inputTokenLimit } : {}),
     ...(outputTokenLimit ? { outputTokenLimit } : {}),
     ...(supportsThinking ? { supportsThinking: true } : {}),
     ...(supportedThinkingEfforts.length > 0 ? { supportedThinkingEfforts } : {}),
@@ -406,6 +433,50 @@ const KIMI_CODING_MODELS_CONFIG: ProviderModelsConfigEntry = {
   parseResponse: parseKimiCodingModels,
 };
 
+const OPENCODE_DISCOVERY_PARSE = (data: any) => data.data || data.models || [];
+
+/**
+ * Stable background-identity seed for one connection. Prefers the workspace id
+ * (all three spellings the providerSpecificData validator accepts) so
+ * connections sharing a workspace group under one upstream identity, then
+ * falls back to the connection id so a workspace-less connection still gets a
+ * deterministic session instead of a fresh anonymous UUID per discovery call.
+ */
+function readOpencodeBackgroundSeed(connection?: ProviderModelsHeaderContext): string | null {
+  const psd = connection?.providerSpecificData;
+  if (psd && typeof psd === "object") {
+    const record = psd as Record<string, unknown>;
+    for (const key of ["openCodeGoWorkspaceId", "opencodeGoWorkspaceId", "workspaceId"] as const) {
+      const value = record[key];
+      if (typeof value === "string" && value.trim().length > 0) return value.trim();
+    }
+  }
+  const id = connection?.id;
+  return typeof id === "string" && id.trim().length > 0 ? id.trim() : null;
+}
+
+/**
+ * Discovery entry for the opencode-family providers with the OpenCode CLI
+ * identity headers attached (User-Agent + x-opencode-session/request/client/
+ * project). Bare runtime fetches (UA "Bun fetch", no session header) are
+ * exactly the shape OpenCode's operator warning names — enforcement of the
+ * header is announced from 2026-09-06. The session id is a stable
+ * per-workspace/connection fingerprint so background discovery groups under
+ * one identity upstream instead of a fresh anonymous client per call.
+ */
+function buildOpencodeModelsDiscoveryEntry(url: string): ProviderModelsConfigEntry {
+  return {
+    url,
+    method: "GET",
+    headers: { Accept: "application/json" },
+    buildHeaders: (token, connection) => ({
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+      ...buildOpencodeBackgroundHeaders({ seed: readOpencodeBackgroundSeed(connection) }),
+    }),
+    parseResponse: OPENCODE_DISCOVERY_PARSE,
+  };
+}
 // Also used, behind the XAI_OAUTH_LIVE_MODEL_DISCOVERY flag, to fetch a live
 // catalog for xai-oauth (see getXaiOauthLiveModelsConfig below). Whether x.ai
 // accepts an OAuth bearer at this endpoint is unverified — that is why
@@ -828,22 +899,12 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
   },
-  "opencode-zen": {
-    url: "https://opencode.ai/zen/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  "opencode-go": {
-    url: "https://opencode.ai/zen/go/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
+  // OpenCode CLI identity headers on all three opencode-family entries (see
+  // buildOpencodeModelsDiscoveryEntry above for why — bare "Bun fetch" calls
+  // without x-opencode-session are what OpenCode's operator warning names).
+  opencode: buildOpencodeModelsDiscoveryEntry("https://opencode.ai/zen/v1/models"),
+  "opencode-zen": buildOpencodeModelsDiscoveryEntry("https://opencode.ai/zen/v1/models"),
+  "opencode-go": buildOpencodeModelsDiscoveryEntry("https://opencode.ai/zen/go/v1/models"),
   "glm-cn": {
     url: "https://open.bigmodel.cn/api/coding/paas/v4/models",
     method: "GET",

@@ -1,1 +1,0 @@
-- fix(api): stamp anonymous /v1/files and /v1/batches writes with a synthetic anonymous owner so the same caller can read/delete what it wrote (#14332)

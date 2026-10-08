@@ -135,15 +135,49 @@ const safe = String(err).split("\n")[0];
 
 ## CI의 커버리지
 
-`tests/unit/error-message-sanitization.test.ts`는 다음을 검증합니다.
+`tests/unit/error-message-sanitization.test.ts`는 다음을 보장합니다.
 
-- `/api/model-combo-mappings/*` 아래의 모든 라우트가 4xx/5xx 응답에서 정제된 본문을 반환합니다.
-- `sanitizeErrorMessage`가 여러 줄로 된 스택 추적을 제거합니다.
-- `sanitizeErrorMessage`가 POSIX 및 Windows 절대 경로를 `<path>`로 대체합니다.
-- `sanitizeErrorMessage`가 `null`/`undefined`/`Error` 인스턴스 입력을 안전하게 처리합니다.
-- `buildErrorBody`가 `message` 필드에 스택 추적을 노출하지 않습니다.
+- `/api/model-combo-mappings/*` 아래의 모든 라우트는 4xx/5xx 응답에서 정제된 본문을 반환합니다.
+- `sanitizeErrorMessage`는 여러 줄로 된 스택 추적을 제거합니다.
+- `sanitizeErrorMessage`는 POSIX 및 Windows 절대 경로를 `<path>`로 대체합니다.
+- `sanitizeErrorMessage`는 `null`/`undefined`/`Error` 인스턴스 입력을 안전하게 처리합니다.
+- `buildErrorBody`는 `message` 필드에 스택 추적을 절대 노출하지 않습니다.
 
-새 라우트나 실행기를 추가할 때는 이 파일의 어설션 패턴을 복사하세요. 커버리지 게이트(`npm run test:coverage`)는 구문/줄/함수/분기 커버리지가 60% 이상이 되도록 강제하므로 오류 경로도 반드시 포함해야 합니다.
+새 라우트나 실행기를 추가할 때는 이 파일의 어설션 패턴을 복사하세요. 커버리지 게이트(`npm run test:coverage`)는 구문/줄/함수/분기에 대해 ≥60%를 요구하므로 오류 경로도 반드시 커버해야 합니다.
+
+### 정적 게이트: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs`는 `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` 및 모든 `src/app/api/**/route.ts`를 검사하여, 원시로 포착된 오류(`err.message` / `err.stack`) 또는 원시 업스트림 `body.error.message`가 클라이언트에 노출되는 본문에 전달되는지 확인합니다.
+
+**신뢰는 호출 범위에만 적용되며 파일 범위에는 절대 적용되지 않습니다**(G-03, #15159). 이전에는 게이트가 `utils/error` 경로에서 가져온 항목이 하나라도 발견되면 전체 파일을 건너뛰었습니다. 즉, 호출 범위의 위험 요소에 파일 범위의 예외가 적용되었습니다. 올바른 `import { sanitizeErrorMessage }` 하나만 있어도 해당 파일의 다른 모든 싱크가 영구적으로 면제되었고, 이 때문에 실제 정보 유출이 발생했음에도 검사를 통과했습니다. 이제는 실제로 승인된 빌더나 정제기를 거치는 줄만 신뢰됩니다.
+
+| 줄 형태                                                                                            | 신뢰 여부         |
+| -------------------------------------------------------------------------------------------------- | ----------------- |
+| `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / … 호출 | 예                |
+| 이 파일이 `open-sse/utils/error` 또는 `src/lib/api/errorResponse`에서 가져온 표준 빌더 호출        | 예                |
+| 승인된 빌더가 **여러 줄에 걸쳐** 호출되어 `message:` 필드가 뒤쪽 줄에 있음                         | 예                |
+| 자체 본문에서 정제를 수행하는 파일 로컬 `function errorResponse(...)` 호출                         | 예                |
+| 그 외의 위치로 `err.message` / `err.stack` 전달                                                    | **아니요 — 위반** |
+
+알아둘 만한 결과는 두 가지입니다.
+
+- `errorResponse`를 가져온다고 해서 포괄적으로 신뢰되지는 않습니다. 자체 `errorResponse`를 정의하는 파일은 호출 지점에서 여전히 플래그가 지정됩니다. 게이트가 파일별이 아니라 심벌별로 신뢰를 판별하기 때문입니다. `createErrorResponse`에도 동일하게 적용됩니다.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` 다음에 `error: body.error.message`를 사용하는 방식은 `*-fetch.ts` 실행기 전반에서 사용하는 **정제된** 관용 패턴이며 플래그가 지정되지 않습니다.
+
+승인된 두 빌더 모듈인 `open-sse/utils/error.ts`와 `src/lib/api/errorResponse.ts`가 모두 인정됩니다. 두 번째 모듈은 `open-sse` 외부에 있는 약 54개의 라우트 핸들러에서 사용하며, 두 내보내기 모두를 정제합니다.
+
+다음 두 형태는 **위반이 아니지만**, 이전에는 게이트가 둘 다 정보 유출로 보고했습니다.
+
+- **감사 행** 내부의 원시 오류 — `saveCallLog({ error: err.message })`, `logToolCall(...)` 또는 메시지를 먼저 받는 로거(`log.error("BATCHES", "sweep failed", { error: err.message })`). 이어지는 줄의 클라이언트 대상 응답은 정적인 `buildErrorBody`일 수 있습니다.
+- `message:` 필드 자체에는 빌더 이름이 전혀 없는 **여러 줄** 형식의 승인된 빌더 호출:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER`는 기존 위반을 고정하여 게이트가 _새로운_ 위반만 차단하도록 합니다. 위반이 수정되면 `assertNoStale`이 해당 항목을 자동으로 제거하므로 고정 목록이 영구적으로 굳어지지 않습니다. 회귀 방지 테스트는 `tests/unit/check-error-helper.test.ts` 및 `tests/unit/check-error-helper-call-scope.test.ts`입니다.
 
 ## 관련 제어
 

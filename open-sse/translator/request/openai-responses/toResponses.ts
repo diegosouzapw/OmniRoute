@@ -58,6 +58,32 @@ function mapChatResponseFormatToResponsesText(body: JsonRecord, result: JsonReco
   result.text = { ...existingText, format };
 }
 
+// The Responses API rejects text.format json_object with 400 "Response input
+// messages must contain the word 'json'" unless an `input` message says "json";
+// `instructions` does not count. Chat Completions counts the system prompt, and
+// this translator hoists that prompt into `instructions`, so a request that was
+// valid as Chat (JSON asked for only in the system prompt) failed upstream.
+// Prepend a constant developer hint in that case: a fixed prefix keeps
+// the prompt-cache prefix stable across turns.
+const JSON_OBJECT_INPUT_HINT = "Respond with a valid JSON object.";
+
+function ensureJsonObjectInputHint(result: JsonRecord): void {
+  if (toRecord(toRecord(result.text).format).type !== "json_object") return;
+  if (!Array.isArray(result.input)) return;
+  const input = result.input as JsonRecord[];
+  const mentionsJson = input.some((item) => {
+    if (item.type !== "message") return false;
+    if (typeof item.content === "string") return /json/i.test(item.content);
+    return toArray(item.content).some((part) => /json/i.test(toString(toRecord(part).text)));
+  });
+  if (mentionsJson) return;
+  input.unshift({
+    type: "message",
+    role: "developer",
+    content: [{ type: "input_text", text: JSON_OBJECT_INPUT_HINT }],
+  });
+}
+
 // Flatten a Chat-Completions content block into the single string the Responses
 // API `instructions` field takes. `instructions` is a string, not a part array,
 // so the text parts are joined; anything non-textual has no representation there
@@ -366,12 +392,42 @@ export function openaiToOpenAIResponsesRequest(
       )
       .map((item: { type?: string; call_id?: string }) => item.call_id)
   );
-  result.input = input.filter((item: { type?: string; call_id?: string }) => {
+  const orphanFilteredInput = input.filter((item: { type?: string; call_id?: string }) => {
     if (item.type === "function_call_output" && item.call_id) {
       return knownCallIds.has(item.call_id);
     }
     return true;
   });
+  result.input = orphanFilteredInput;
+
+  // Mirror of the filter above: a `function_call` whose output never arrived
+  // (truncated history, client crash mid-tool-loop) makes strict Responses
+  // upstreams reject the whole request with 400 "No tool output found for
+  // function call <id>". Pair every unpaired call with a synthesized empty
+  // output in place rather than dropping the call, so the model still sees
+  // that the call happened and the caller's history stays intact (#15216).
+  const pairedOutputCallIds = new Set(
+    orphanFilteredInput
+      .filter(
+        (item: { type?: string; call_id?: string }) =>
+          item.type === "function_call_output" && item.call_id
+      )
+      .map((item: { type?: string; call_id?: string }) => item.call_id)
+  );
+  const pairedInput: JsonRecord[] = [];
+  for (const item of orphanFilteredInput as Array<{ type?: string; call_id?: string }>) {
+    pairedInput.push(item);
+    if (item.type === "function_call" && item.call_id && !pairedOutputCallIds.has(item.call_id)) {
+      pairedInput.push({
+        type: "function_call_output",
+        call_id: item.call_id,
+        output: "",
+        status: "completed",
+      });
+      pairedOutputCallIds.add(item.call_id);
+    }
+  }
+  result.input = pairedInput;
 
   // If no system message, keep empty instructions
   if (!hasSystemMessage) {
@@ -465,6 +521,7 @@ export function openaiToOpenAIResponsesRequest(
   }
   if (root.top_p !== undefined) result.top_p = root.top_p;
   mapChatResponseFormatToResponsesText(root, result);
+  ensureJsonObjectInputHint(result);
   // GPT-5 verbosity: Chat Completions `verbosity` → Responses `text.verbosity`.
   const chatVerbosity = normalizeVerbosity(root.verbosity);
   if (chatVerbosity) {

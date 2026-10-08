@@ -1,1 +1,0 @@
-- **fix(sse):** the Grok Web and web-tools tool-markup scanners no longer take quadratic or worse time on a long run of whitespace or unclosed tags, so one request cannot stall the server

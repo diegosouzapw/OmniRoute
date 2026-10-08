@@ -4,10 +4,10 @@
 
 ---
 
-1. Zafixujte stávající kontrakt semaforu s jedním klíčem a nový atomický kontrakt s více klíči pomocí cílených testů: žádné částečné rezervace, fronta FIFO, přerušení, vypršení časového limitu, zaplnění fronty, idempotentní uvolnění, statistiky a úklid.
+1. Zajistěte stávající kontrakt semaforu s jedním klíčem a nový atomický kontrakt s více klíči pomocí cílených testů: žádné částečné rezervace, řazení FIFO, přerušení, vypršení časového limitu, plná fronta, idempotentní uvolnění, statistiky a vyčištění.
 2. Zobecněte stávající semafor účtů přímo na místě. Zachovejte `acquire()` jako kompatibilní obálku nad `acquireMany()`; nepřidávejte druhý plánovač ani závislost.
-3. Nahraďte získávání pouze pro účet v `chatCore` jedním kumulativním získáním pro globální úroveň, poskytovatele a účet bezprostředně před `withRateLimit`. Kdykoli rotace účtu změní připojení, znovu získejte celou sadu a zachovejte rezervaci až do dokončení streamování.
-4. Rozšiřte stávající řetězec nastavení odolnosti (typy, výchozí hodnoty, normalizace, schéma, odpověď API, uživatelské rozhraní a překlady) o globální limity a limity poskytovatele. Přejmenujte původní řízení souběžnosti Bottleneck na souběžnost v rozsahu připojení/kvóty, aby byl jeho skutečný rozsah explicitní.
-5. Spusťte cílené testy, lint, kontrolu typů, statické kontroly a kompletní testovací sadu; zdokumentujte změnu chování v changelogu.
+3. Nahraďte získávání pouze pro účet v `chatCore` jedním kumulativním získáním pro globální úroveň, poskytovatele a účet bezprostředně před `withRateLimit`. Při každé změně připojení způsobené rotací účtu znovu získejte celou sadu a ponechte prostředky rezervované až do dokončení streamování.
+4. Rozšiřte stávající řetězec nastavení odolnosti (typy, výchozí hodnoty, normalizaci, schéma, odpověď API, uživatelské rozhraní a překlady) o globální limity a limity poskytovatelů. Přejmenujte původní řízení souběžnosti Bottleneck na souběžnost v rozsahu připojení/kvóty, aby byl jeho skutečný rozsah explicitní.
+5. Spusťte cílené testy, lint, kontrolu typů, statické kontroly a kompletní sadu testů; zdokumentujte změnu chování v changelogu.
 
-Záměrně zachované chování: nulová nebo `null` souběžnost obchází bránu, volající pracující pouze s účtem nadále používají `acquire()`, ovládací prvky blokovaných účtů zachovávají svůj formát klíčů a API a chování fronty pro omezení rychlosti poskytovatele zůstává beze změny.
+Záměrně zachované chování: nulová hodnota nebo `null` pro souběžnost obchází příslušnou bránu, volající pracující pouze s účtem nadále používají `acquire()`, ovládací prvky blokovaných účtů zachovávají svůj formát klíče a API a chování fronty pro omezení rychlosti poskytovatele zůstává beze změny.

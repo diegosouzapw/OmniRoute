@@ -120,15 +120,15 @@ Prístup cez: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ## 📖 Nastavenie poskytovateľov
 
-Ak chcete hromadne pridať pripojenia pomocou API kľúčov zo súboru CSV alebo JSON, použite **Ovládací panel → Poskytovatelia → Importovať zo súboru**. Stĺpce sú pozičné (`provider,name,apiKey,baseUrl,priority`); hodnota `provider` už musí existovať ako spravovaný poskytovateľ alebo kompatibilný uzol. Pozrite si časť [Import poskytovateľov zo súboru CSV alebo JSON](../providers/CSV-IMPORT.md).
+Ak chcete hromadne pridať pripojenia s API kľúčmi zo súboru CSV alebo JSON, použite **Dashboard → Providers → Import from file**. Stĺpce sú pozičné (`provider,name,apiKey,baseUrl,priority`); `provider` už musí existovať ako spravovaný poskytovateľ alebo kompatibilný uzol. Pozrite si [Import poskytovateľov zo súboru CSV alebo JSON](../providers/CSV-IMPORT.md).
 
-### 🔐 Predplatení poskytovatelia
+### 🔐 Poskytovatelia s predplatným
 
 #### Claude Code (Pro/Max)
 
 ```bash
-Ovládací panel → Poskytovatelia → Pripojiť Claude Code
-→ Prihlásenie cez OAuth → Automatické obnovovanie tokenu
+Dashboard → Providers → Connect Claude Code
+→ Prihlásenie cez OAuth → Automatické obnovenie tokenu
 → Sledovanie 5-hodinovej a týždennej kvóty
 
 Modely:
@@ -137,16 +137,18 @@ Modely:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Profesionálny tip:** Opus používajte na komplexné úlohy, Sonnet na rýchlosť. OmniRoute sleduje kvótu pre každý model!
+**Profesionálny tip:** Opus používajte na komplexné úlohy a Sonnet na rýchlosť. OmniRoute sleduje kvótu pre každý model!
 
-Trasy kompatibilné s Claude a Claude Code zachovávajú úroveň úsilia premýšľania `max` pre modely Opus a Sonnet. Modely Haiku nepodporujú úroveň úsilia `max`, preto OmniRoute pred odoslaním požiadavky nadradenému poskytovateľovi zníži túto požiadavku na vysoký rozpočet premýšľania.
+Na hostiteľovi OmniRoute nie je prehliadač? Spustite `claude setup-token` kdekoľvek, kde ste prihlásení do Claude Code, a vložte jednoročný token na kartu **Setup Token**. Pozrite si [Claude Code s nastavovacím tokenom](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Trasy kompatibilné s Claude a Claude Code zachovávajú úroveň úsilia pri uvažovaní `max` pre modely Opus a Sonnet. Modely Haiku nepodporujú úroveň úsilia `max`, preto OmniRoute pred odoslaním požiadavky nadradenému poskytovateľovi zmení túto požiadavku na vysoký rozpočet na uvažovanie.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-Ovládací panel → Poskytovatelia → Pripojiť Codex
+Dashboard → Providers → Connect Codex
 → Prihlásenie cez OAuth (port 1455)
-→ Obnovenie po 5 hodinách a každý týždeň
+→ Obnovenie po 5 hodinách a po týždni
 
 Modely:
   cx/gpt-5.5
@@ -158,7 +160,7 @@ Modely:
 #### GitHub Copilot
 
 ```bash
-Ovládací panel → Poskytovatelia → Pripojiť GitHub
+Dashboard → Providers → Connect GitHub
 → OAuth cez GitHub
 → Mesačné obnovenie (1. deň v mesiaci)
 
@@ -176,41 +178,41 @@ Modely:
 
 1. Zaregistrujte sa: [Zhipu AI](https://open.bigmodel.cn)
 2. Získajte API kľúč z plánu Coding Plan
-3. Ovládací panel → Pridať API kľúč: Poskytovateľ: `glm`, API kľúč: `your-key`
+3. Dashboard → Add API Key: Poskytovateľ: `glm`, API kľúč: `your-key`
 
-**Použitie:** `glm/glm-4.7` — **Profesionálny tip:** Coding Plan ponúka 3× vyššiu kvótu za 1/7 ceny! Obnovuje sa denne o 10:00.
+**Použitie:** `glm/glm-4.7` — **Profesionálny tip:** Coding Plan ponúka 3-násobnú kvótu za 1/7 ceny! Obnovuje sa denne o 10:00.
 
 #### MiniMax M2.1 (obnovenie po 5 h, $0.20/1M)
 
 1. Zaregistrujte sa: [MiniMax](https://www.minimax.io)
-2. Získajte API kľúč → Ovládací panel → Pridať API kľúč
+2. Získajte API kľúč → Dashboard → Add API Key
 
 **Použitie:** `minimax/MiniMax-M2.1` — **Profesionálny tip:** Najlacnejšia možnosť pre dlhý kontext (1M tokenov)!
 
-#### Kimi K2 (paušálne $9/mesiac)
+#### Kimi K2 (pevne $9/mesiac)
 
 1. Predplaťte si službu: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. Získajte API kľúč → Ovládací panel → Pridať API kľúč
+2. Získajte API kľúč → Dashboard → Add API Key
 
-**Použitie:** `kimi/kimi-k2.5` — **Profesionálny tip:** Pevná cena $9/mesiac za 10M tokenov = efektívna cena $0.90/1M!
+**Použitie:** `kimi/kimi-k2.5` — **Profesionálny tip:** Pevných $9/mesiac za 10M tokenov = efektívna cena $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
 1. Zaregistrujte sa: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. Vytvorte API kľúč Qianfan → Ovládací panel → Pridať API kľúč: Poskytovateľ: `qianfan`
+2. Vytvorte API kľúč Qianfan → Dashboard → Add API Key: Poskytovateľ: `qianfan`
 
-**Použitie:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` alebo iný identifikátor modelu Qianfan kompatibilného s OpenAI.
+**Použitie:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` alebo iné ID modelu Qianfan kompatibilného s OpenAI.
 
 ### 🆓 BEZPLATNÍ poskytovatelia
 
-Bezplatní poskytovatelia nevyžadujúci overenie majú na svojej stránke prepínač vedľa položky **Nevyžaduje sa overenie**.
-Jeho vypnutím sa daný poskytovateľ zakáže, odstráni zo nakonfigurovaných a kompaktných zobrazení Poskytovateľov a
-jeho modely sa odstránia z `/v1/models`.
+Bezplatní poskytovatelia bez overenia majú na svojej stránke prepínač vedľa položky **No authentication required**.
+Jeho vypnutím daného poskytovateľa deaktivujete, odstránite ho z nakonfigurovaného/kompaktného zobrazenia poskytovateľov
+a jeho modely odstránite z `/v1/models`.
 
 #### Qoder (9 BEZPLATNÝCH modelov)
 
 ```bash
-Ovládací panel → Pripojiť Qoder → Prihlásenie cez OAuth → Prístup podlieha aktuálnym limitom poskytovateľa
+Dashboard → Connect Qoder → Prihlásenie cez OAuth → Prístup podlieha aktuálnym limitom poskytovateľa
 
 Modely: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
@@ -218,7 +220,7 @@ Modely: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/
 #### Kiro (Claude BEZPLATNE)
 
 ```bash
-Ovládací panel → Pripojiť Kiro → AWS Builder ID alebo Google/GitHub → ~50 kreditov/mesiac
+Dashboard → Connect Kiro → AWS Builder ID alebo Google/GitHub → ~50 kreditov/mesiac
 
 Modely: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```

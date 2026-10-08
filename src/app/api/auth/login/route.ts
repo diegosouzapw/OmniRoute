@@ -12,7 +12,12 @@ import {
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import { loginSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { checkLoginGuard, clearLoginAttempts, recordLoginFailure } from "@/server/auth/loginGuard";
+import {
+  beginLoginAttempt,
+  clearLoginAttempts,
+  endLoginAttempt,
+  recordLoginFailure,
+} from "@/server/auth/loginGuard";
 import { AUTHZ_HEADER_TRUSTED_PEER_IP } from "@/server/authz/headers";
 import {
   getDashboardJwtSecret,
@@ -37,6 +42,9 @@ export const authRouteInternals = {
 
 export async function POST(request: NextRequest) {
   const auditContext = getAuditRequestContext(request);
+  // Slot reserved by the guard while the password is verified; released on every exit.
+  let heldSlotKey: string | null | undefined;
+  let holdsSlot = false;
 
   try {
     // Fail-fast if JWT_SECRET is not configured
@@ -113,7 +121,7 @@ export async function POST(request: NextRequest) {
 
     const bruteForceEnabled = settings.bruteForceProtection !== false;
 
-    const guardCheck = checkLoginGuard(lockoutKey, { enabled: bruteForceEnabled });
+    const guardCheck = beginLoginAttempt(lockoutKey, { enabled: bruteForceEnabled });
     if (!guardCheck.allowed) {
       logAuditEvent({
         action: "auth.login.locked",
@@ -133,6 +141,9 @@ export async function POST(request: NextRequest) {
         }
       );
     }
+
+    holdsSlot = true;
+    heldSlotKey = lockoutKey;
 
     const passwordState = await ensurePersistentManagementPasswordHash({
       settings,
@@ -282,5 +293,7 @@ export async function POST(request: NextRequest) {
       },
     });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  } finally {
+    if (holdsSlot) endLoginAttempt(heldSlotKey);
   }
 }

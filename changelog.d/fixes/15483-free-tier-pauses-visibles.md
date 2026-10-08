@@ -1,0 +1,1 @@
+- **fix(noauth):** paused free-tier models now show a pause note on the account card instead of unexplained failures ([#15483](https://github.com/diegosouzapw/OmniRoute/pull/15483)) — thanks @maxmad64bis
