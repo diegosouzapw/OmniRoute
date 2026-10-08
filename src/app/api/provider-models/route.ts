@@ -29,6 +29,7 @@ import {
   isAnthropicCompatibleProvider,
 } from "@/shared/constants/providers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { isHiddenForModality } from "@/shared/utils/modelVisibility";
 export const dynamic = "force-dynamic";
 import { providerModelMutationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -106,7 +107,10 @@ export async function GET(request) {
 
     return Response.json({
       models: modelsWithContextOverride,
-      modelCompatOverrides,
+      modelCompatOverrides: modelCompatOverrides.map((override) => ({
+        ...override,
+        isHidden: isHiddenForModality(override, "chat"),
+      })),
       modelContextOverrides,
       hiddenModelsByProvider,
     });
