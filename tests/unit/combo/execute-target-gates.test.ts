@@ -646,7 +646,9 @@ test("CLIProxyAPI preflight gate: TTL + singleflight coalesce concurrent fetches
 
   let fetchCount = 0;
   const cache = new CliproxyManagementHealthCache({
-    ttlMs: 50,
+    // A 50ms TTL expired between calls on a loaded runner; 1s keeps the same
+    // contract (coalesce, serve within TTL, refetch after expiry) without the flake.
+    ttlMs: 1000,
     fetcher: async () => {
       fetchCount++;
       await new Promise((resolve) => setTimeout(resolve, 10));
@@ -679,7 +681,7 @@ test("CLIProxyAPI preflight gate: TTL + singleflight coalesce concurrent fetches
   await makeTargetDecision();
   assert.equal(fetchCount, 1, "cached result must be served within TTL");
 
-  await new Promise((resolve) => setTimeout(resolve, 60));
+  await new Promise((resolve) => setTimeout(resolve, 1100));
   await makeTargetDecision();
   assert.equal(fetchCount, 2, "expired TTL must trigger a fresh fetch");
 });

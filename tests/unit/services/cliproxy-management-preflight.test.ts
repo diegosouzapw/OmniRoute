@@ -423,7 +423,8 @@ describe("CLIProxy Management Preflight - Pure Decision Logic", () => {
     it("deduplicates concurrent fetches with singleflight and caches for TTL", async () => {
       let fetchCount = 0;
       const cache = new CliproxyManagementHealthCache({
-        ttlMs: 50,
+        // 1s instead of 50ms so a loaded runner cannot expire the entry between calls.
+        ttlMs: 1000,
         fetcher: async () => {
           fetchCount++;
           await new Promise((r) => setTimeout(r, 10));
@@ -470,7 +471,7 @@ describe("CLIProxy Management Preflight - Pure Decision Logic", () => {
       assert.equal(resCached.state, "ready");
 
       // Wait for TTL expiration
-      await new Promise((r) => setTimeout(r, 60));
+      await new Promise((r) => setTimeout(r, 1100));
       const resAfterTTL = await cache.getHealth("http://127.0.0.1:8317", "key1");
       assert.equal(fetchCount, 2);
       assert.equal(resAfterTTL.state, "ready");
