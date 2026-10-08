@@ -172,6 +172,15 @@ describe("OpencodeExecutor empty-rejection rotation", () => {
   it("rotates to the next account on an empty 400 rejection (loop)", async () => {
     const exec = new OpencodeExecutor("opencode-zen");
     installFetch([{ status: 400, body: EMPTY_BODY }, { status: 200 }]);
+    const warns: string[] = [];
+    const spyLog: ExecutorLog = {
+      debug() {},
+      info() {},
+      warn(_tag, message) {
+        warns.push(String(message));
+      },
+      error() {},
+    };
 
     const result = await exec.execute({
       model: "deepseek-v4-flash-free",
@@ -179,7 +188,7 @@ describe("OpencodeExecutor empty-rejection rotation", () => {
       stream: false,
       signal: null,
       credentials: credentialsFor([ACCOUNT_A, ACCOUNT_B]),
-      log,
+      log: spyLog,
     });
 
     assert.strictEqual(
@@ -195,6 +204,10 @@ describe("OpencodeExecutor empty-rejection rotation", () => {
     assert.ok(
       observed.some((o) => o.port === String(portB)),
       "rotated attempt on account B"
+    );
+    assert.ok(
+      warns.some((l) => new RegExp(`\\(proxy 127\\.0\\.0\\.1:${portA}\\)`).test(l)),
+      `empty-rejection warn must name the applied egress, got=${JSON.stringify(warns)}`
     );
   });
 

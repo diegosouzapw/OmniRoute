@@ -39,6 +39,7 @@ export const USAGE_SUPPORTED_PROVIDERS: readonly string[] = [
   "minimax",
   "minimax-cn",
   "crof",
+  "clinepass",
   "nanogpt",
   "deepseek",
   "moonshot",
@@ -67,6 +68,10 @@ export const USAGE_SUPPORTED_PROVIDERS: readonly string[] = [
   // Tavily monthly credits & quota (GET /usage)
   "tavily-search",
   "tavily",
+  "jina-search",
+  "jina",
+  "jina-ai",
+  "jina-reader",
   // Volcano Ark Plan subscriptions (agent-plan / coding-plan)
   "volcengine-agent-plan",
   "volcengine-coding-plan",
@@ -90,4 +95,7 @@ export const USAGE_SUPPORTED_PROVIDERS: readonly string[] = [
   "lyceum",
   // Devin CLI agentic quota (Codeium seat-management GetUserStatus, protobuf)
   "devin-cli",
+  // ChatPlayground subscription and daily credits (GET /api/user)
+  "chatplayground",
+  "cpl",
 ];

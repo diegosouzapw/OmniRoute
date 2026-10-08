@@ -262,6 +262,23 @@ export function isPoolEgressObservationEnabled(): boolean {
 }
 
 /**
+ * Operator-provided dated egress observations: opt-in push + merged reads.
+ * Opt-in; an unreadable flag store keeps the push route at 404 and pool reads
+ * on the journal-only behavior.
+ */
+export function isOperatorEgressEnabled(): boolean {
+  try {
+    return isFeatureFlagEnabled("PROXY_OPERATOR_EGRESS_ENABLED");
+  } catch (error) {
+    console.error(
+      "[featureFlags] Failed to resolve PROXY_OPERATOR_EGRESS_ENABLED, defaulting to disabled:",
+      error instanceof Error ? error.message : error
+    );
+    return false;
+  }
+}
+
+/**
  * Proxy health sweep (#13608): a target-refused probe resets the consecutive-failure streak.
  * Opt-in; an unreadable flag store keeps the neutral policy (#10654).
  */

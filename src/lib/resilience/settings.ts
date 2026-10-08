@@ -13,6 +13,7 @@ import {
   normalizeRequestQueueSettings,
   normalizeConnectionCooldownProfile,
   normalizeProviderBreakerProfile,
+  normalizeTokenRefreshBreakerSettings,
   normalizeWaitForCooldownSettings,
   normalizeComboCooldownWaitSettings,
   normalizeQuotaShareConcurrencyLimitSettings,
@@ -30,6 +31,8 @@ export type {
   RequestQueueSettings,
   ConnectionCooldownProfileSettings,
   ProviderBreakerProfileSettings,
+  TokenRefreshBreakerScope,
+  TokenRefreshBreakerSettings,
   WaitForCooldownSettings,
   ComboCooldownWaitSettings,
   QuotaShareConcurrencyLimitSettings,
@@ -99,6 +102,14 @@ export const DEFAULT_RESILIENCE_SETTINGS: ResilienceSettings = {
       degradationThreshold: PROVIDER_PROFILES.apikey.degradationThreshold,
       resetTimeoutMs: PROVIDER_PROFILES.apikey.circuitBreakerReset,
     },
+  },
+  // Token-refresh breaker: provider-wide by default (current behavior), so
+  // existing installs see no change. Operators can switch to per-connection
+  // scope to isolate one dead account from healthy ones on the same provider.
+  tokenRefreshBreaker: {
+    scope: "provider",
+    failureThreshold: 5,
+    cooldownMs: 30 * 60 * 1000,
   },
   // Wait at most 90s for a single connection cooldown (covers Gemini-class
   // TPM/RPM windows, which report ~60s retry-after live), at most 5 retry
@@ -294,6 +305,7 @@ function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
     quotaShareConcurrencyLimit: DEFAULT_RESILIENCE_SETTINGS.quotaShareConcurrencyLimit,
     streamStallCooldown: DEFAULT_RESILIENCE_SETTINGS.streamStallCooldown,
     providerCooldown: DEFAULT_RESILIENCE_SETTINGS.providerCooldown,
+    tokenRefreshBreaker: DEFAULT_RESILIENCE_SETTINGS.tokenRefreshBreaker,
     quotaPreflight: DEFAULT_RESILIENCE_SETTINGS.quotaPreflight,
     streamRecovery: streamRecoveryDefaults,
     providerQuotaOverrides: DEFAULT_RESILIENCE_SETTINGS.providerQuotaOverrides,
@@ -353,6 +365,10 @@ export function resolveResilienceSettings(
         fallback.providerBreaker.apikey
       ),
     },
+    tokenRefreshBreaker: normalizeTokenRefreshBreakerSettings(
+      current.tokenRefreshBreaker,
+      fallback.tokenRefreshBreaker
+    ),
     waitForCooldown: normalizeWaitForCooldownSettings(
       current.waitForCooldown,
       fallback.waitForCooldown
@@ -418,6 +434,10 @@ export function mergeResilienceSettings(
         current.providerBreaker.apikey
       ),
     },
+    tokenRefreshBreaker: normalizeTokenRefreshBreakerSettings(
+      updates.tokenRefreshBreaker,
+      current.tokenRefreshBreaker
+    ),
     waitForCooldown: normalizeWaitForCooldownSettings(
       updates.waitForCooldown,
       current.waitForCooldown

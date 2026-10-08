@@ -7,6 +7,7 @@ export type ProviderCredentials = {
   expiresAt?: string;
   connectionId?: string; // T07: used for API key rotation index
   maxConcurrent?: number | null;
+  rateLimitMaxConcurrent?: number | null;
   providerSpecificData?: Record<string, unknown>;
   requestEndpointPath?: string;
 };

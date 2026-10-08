@@ -53,12 +53,7 @@ test("combo hits a failing provider only once before falling back across same-pr
     name: "same-provider-cascade-combo",
     strategy: "priority",
     config: { maxRetries: 0, retryDelayMs: 0 },
-    models: [
-      "openai/o3-mini",
-      "openai/o1-mini",
-      "openai/gpt-4.1-mini",
-      "claude/claude-sonnet-4.6",
-    ],
+    models: ["openai/o3-mini", "openai/o1-mini", "openai/gpt-4.1-mini", "claude/claude-sonnet-4.6"],
   });
 
   let openaiCalls = 0;
@@ -71,20 +66,17 @@ test("combo hits a failing provider only once before falling back across same-pr
 
     if (authHeader === "Bearer sk-openai-cascade") {
       openaiCalls += 1;
-      // 404 → per-model lockout (NOT whole-connection cooldown), so the openai
-      // connection stays usable and the next same-provider model is attempted.
-      // This is the cascade #3200 describes; #3145's consecutive-failure tracking
-      // is what cuts it short (5xx is already handled by connection cooldown).
-      return new Response(JSON.stringify({ error: { message: "model not found" } }), {
+      // Endpoint-level 404 (no model wording) → whole-connection cooldown, so the
+      // remaining same-provider targets are pre-screened out (#3200). A model-scoped
+      // `model not found` 404 only locks that model since #15633 — that cascade is
+      // guarded separately in combo-same-provider-model-404-15633.test.ts.
+      return new Response(JSON.stringify({ error: { message: "404 page not found" } }), {
         status: 404,
         headers: { "Content-Type": "application/json" },
       });
     }
 
-    if (
-      apiKeyHeader === "sk-claude-cascade" ||
-      authHeader === "Bearer sk-claude-cascade"
-    ) {
+    if (apiKeyHeader === "sk-claude-cascade" || authHeader === "Bearer sk-claude-cascade") {
       claudeCalls += 1;
       return buildClaudeResponse("claude handled the fallback");
     }

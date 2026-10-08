@@ -309,6 +309,8 @@ export function isConnectionRuntimeStateUpdate(data: Record<string, unknown>): b
   return keys.length > 0 && keys.every((key) => CONNECTION_RUNTIME_STATE_FIELDS.has(key));
 }
 
+export type UpdateOpts = { skipModelCatalog?: boolean };
+
 /**
  * Cache invalidation for `updateProviderConnection()`: runtime-state-only
  * updates (cooldowns, error fields) keep the connection read caches fresh
@@ -316,8 +318,14 @@ export function isConnectionRuntimeStateUpdate(data: Record<string, unknown>): b
  * these fields. Anything else falls back to the full invalidation so config
  * edits stay immediately visible in the catalog.
  */
-export function invalidateConnectionUpdate(id: string, data: Record<string, unknown>): void {
-  if (isConnectionRuntimeStateUpdate(data)) {
+export function invalidateConnectionUpdate(
+  id: string,
+  data: Record<string, unknown>,
+  opts?: UpdateOpts
+): void {
+  // #13389: a caller that vouches its write is catalog-irrelevant (OAuth token
+  // rotation — credentials only, see updateProviderCredentials) opts in explicitly.
+  if (opts?.skipModelCatalog || isConnectionRuntimeStateUpdate(data)) {
     invalidateDbCache("connections", id, { skipModelCatalog: true });
   } else {
     invalidateDbCache("connections");

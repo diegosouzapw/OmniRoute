@@ -103,17 +103,27 @@ function resolveStyles(
   return resolved;
 }
 
-/** Build the combined instruction body (no marker, no trailing boundary). Pure / deterministic. */
+/**
+ * Build the combined instruction body (no marker, no boundary block), ending with one
+ * space when the last style's own text puts whitespace (or nothing) before
+ * SHARED_BOUNDARIES, and with none when a non-whitespace character directly precedes
+ * it. Pure / deterministic.
+ */
 function buildStyleInstructions(resolved: OutputStyleSelectionEntry[], language: string): string {
   const parts: string[] = [];
+  let separator = " ";
   for (const { id, level } of resolved) {
     const meta = outputStyleMeta(id);
     const localized = meta.i18n?.[language];
     const levels = localized ?? meta.levels;
+    const text = levels[level];
     // Strip the per-style boundary so the combined boundary block is appended once below.
-    parts.push(levels[level].replace(SHARED_BOUNDARIES, "").trim());
+    parts.push(text.replace(SHARED_BOUNDARIES, "").trim());
+    // The separator mirrors whatever spacing the style's own text puts before SHARED_BOUNDARIES.
+    const at = text.indexOf(SHARED_BOUNDARIES);
+    separator = at > 0 && !/\s/.test(text[at - 1]) ? "" : " ";
   }
-  return parts.join("\n");
+  return `${parts.join("\n")}${separator}`;
 }
 
 /**
@@ -139,6 +149,29 @@ function buildStyleBoundaries(resolved: OutputStyleSelectionEntry[], language: s
 }
 
 /**
+ * The block applyOutputStyles injects for a selection: marker line, style
+ * instructions, then the boundary block. "" when no style in the selection
+ * resolves. Pure / deterministic; exported so the dashboard preview renders
+ * the same string a request carries.
+ */
+export function buildOutputStylesInstruction(
+  selection: OutputStyleSelectionEntry[],
+  language = "en"
+): string {
+  const resolved = resolveStyles(selection ?? [], language);
+  if (resolved.length === 0) return "";
+
+  // The boundary block follows the instruction body with the spacing the last style's own
+  // text puts before SHARED_BOUNDARIES, so a legacy single-style (terse-prose) injection
+  // matches the old caveman output mode below the marker line in every legacy language
+  // (D-A5 back-compat): terse-prose declares no `boundaries`, so its block is exactly
+  // SHARED_BOUNDARIES as before.
+  // A style that declares one gets the shared clause AND its own, in catalog order.
+  const combined = `${buildStyleInstructions(resolved, language)}${buildStyleBoundaries(resolved, language)}`;
+  return `${OUTPUT_STYLE_MARKER}\n${combined}`;
+}
+
+/**
  * Inject one or more output styles deterministically and appended to the system prompt.
  * - Selection resolved in catalog order; unknown/locale-mismatched styles dropped.
  * - Boundary block appended once at the end: SHARED_BOUNDARIES plus the
@@ -159,13 +192,7 @@ export function applyOutputStyles(
     return { body, applied: false, skippedReason: "no_styles" };
   }
 
-  // Single space before the boundary block so a legacy single-style
-  // (terse-prose) injection stays byte-identical to the old caveman output mode
-  // (D-A5 back-compat): terse-prose declares no `boundaries`, so its block is
-  // exactly SHARED_BOUNDARIES as before. A style that declares one gets the
-  // shared clause AND its own, in catalog order.
-  const combined = `${buildStyleInstructions(resolved, language)} ${buildStyleBoundaries(resolved, language)}`;
-  const instruction = `${OUTPUT_STYLE_MARKER}\n${combined}`;
+  const instruction = buildOutputStylesInstruction(resolved, language);
 
   const messages = Array.isArray(body.messages) ? body.messages : null;
   if (!messages || messages.length === 0) {

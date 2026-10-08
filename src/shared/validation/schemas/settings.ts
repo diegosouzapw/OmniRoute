@@ -165,6 +165,17 @@ export const credentialHealthCheckSettingsSchema = z
   })
   .strict();
 
+// Token-refresh breaker scope + thresholds. Bounds mirror
+// normalizeTokenRefreshBreakerSettings: a refresh is a real upstream OAuth
+// call, so the cooldown floor stays at 60s (never hammer the provider).
+export const tokenRefreshBreakerSettingsSchema = z
+  .object({
+    scope: z.enum(["provider", "connection"]).optional(),
+    failureThreshold: z.number().int().min(1).max(100).optional(),
+    cooldownMs: z.number().int().min(60_000).max(86_400_000).optional(),
+  })
+  .strict();
+
 export const updateResilienceSchema = z
   .object({
     requestQueue: requestQueueSettingsSchema.optional(),
@@ -216,6 +227,7 @@ export const updateResilienceSchema = z
       )
       .optional(),
     credentialHealthCheck: credentialHealthCheckSettingsSchema.optional(),
+    tokenRefreshBreaker: tokenRefreshBreakerSettingsSchema.optional(),
   })
   .strict()
   .superRefine((value, ctx) => {
@@ -223,6 +235,7 @@ export const updateResilienceSchema = z
       !value.requestQueue &&
       !value.connectionCooldown &&
       !value.providerBreaker &&
+      !value.tokenRefreshBreaker &&
       !value.waitForCooldown &&
       !value.comboCooldownWait &&
       !value.quotaShareConcurrencyLimit &&
@@ -315,6 +328,10 @@ export const guideSettingsSaveSchema = z
     model: z.string().trim().min(1, "Model is required").optional(),
     models: z.array(z.string().trim().min(1, "Models must be non-empty")).min(1).optional(),
     modelLabels: z.record(z.string(), z.string().trim().min(1)).optional(),
+    // OpenCode dashboard save forwards the /v1/models catalog the page already
+    // loaded. Unknown keys stay so context_length / capabilities are not stripped.
+    // Absent catalog keeps the writer's 128K/8K fallback.
+    catalog: z.array(z.object({ id: z.string().trim().min(1) }).passthrough()).optional(),
   })
   .refine((data) => !!data.model || !!data.models?.length, {
     message: "Model is required",

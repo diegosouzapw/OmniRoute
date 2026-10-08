@@ -161,6 +161,29 @@ function normalizeXiaomiMimoMimeType(format) {
   }
 }
 
+/**
+ * The Xiaomi MiMo upstream expects `audio.format` to be the enum `mp3` | `wav`
+ * (not an IANA media type). A missing `response_format` defaults to `mp3`.
+ */
+function normalizeXiaomiMimoRequestFormat(format) {
+  switch (getStringValue(format)?.toLowerCase()) {
+    case undefined:
+    case null:
+    case "mp3":
+    case "mpeg":
+    case "audio/mp3":
+    case "audio/mpeg":
+      return "mp3";
+    case "wav":
+    case "wave":
+    case "audio/wav":
+    case "audio/wave":
+      return "wav";
+    default:
+      return null;
+  }
+}
+
 function getXiaomiMimoAudioData(data) {
   const messageAudio = data?.choices?.[0]?.message?.audio;
   const directAudio = data?.audio || data?.output_audio;
@@ -622,10 +645,12 @@ async function pollKieAudioResult(baseUrl, modelId, taskId, token) {
 async function handleXiaomiMimoSpeech(providerConfig, body, modelId, token, credentials) {
   const providerSpecificData = getProviderSpecificData(credentials);
   const url = normalizeXiaomiMimoSpeechUrl(providerSpecificData.baseUrl || providerConfig.baseUrl);
-  const audioMimeType = normalizeXiaomiMimoMimeType(body.response_format);
-  if (!audioMimeType) {
+  const requestFormat = normalizeXiaomiMimoRequestFormat(body.response_format);
+  if (!requestFormat) {
     return errorResponse(400, "Xiaomi MiMo TTS supports response_format mp3 or wav only");
   }
+  // IANA media type for the response Content-Type; the upstream body takes the enum.
+  const audioMimeType = normalizeXiaomiMimoMimeType(requestFormat) || "audio/mpeg";
 
   const res = await fetch(url, {
     method: "POST",
@@ -637,7 +662,7 @@ async function handleXiaomiMimoSpeech(providerConfig, body, modelId, token, cred
       model: modelId,
       messages: [{ role: "assistant", content: body.input }],
       audio: {
-        format: audioMimeType,
+        format: requestFormat,
         voice: body.voice || getStringValue(providerSpecificData.defaultVoice) || "mimo_default",
       },
     }),

@@ -11,8 +11,7 @@ import { createHash } from "node:crypto";
  */
 export function catalogContentFingerprint(
   models: { id: string; release_date?: string }[],
-  combos: { id: string }[],
-  autoCombos: { id: string }[] = []
+  combos: { id: string }[]
 ): string {
   const modelLines = models
     .map((m) => `${m.id}|${m.release_date ?? ""}`)
@@ -22,22 +21,17 @@ export function catalogContentFingerprint(
     .map((c) => c.id)
     .sort()
     .join("\n");
-  const autoLines = autoCombos
-    .map((c) => c.id)
-    .sort()
-    .join("\n");
-  return createHash("sha256").update(`${modelLines}\n${comboLines}\n${autoLines}`).digest("hex");
+  return createHash("sha256").update(`${modelLines}\n${comboLines}`).digest("hex");
 }
 
 /**
- * Digest of the optional tier (auto-combos, provider connections, enrichment).
- * The catalog fingerprint covers model and combo ids only, so an overlay that
- * moves — a renamed model, a provider going unusable — leaves it unchanged.
- * Reloading on every refresh instead would ask the host to rebuild its catalog
- * once per TTL window for nothing.
+ * Digest of the optional tier (combos membership, provider connections,
+ * enrichment). The catalog fingerprint covers model and combo ids only, so an
+ * overlay that moves — a renamed model, a provider going unusable — leaves it
+ * unchanged. Reloading on every refresh instead would ask the host to rebuild
+ * its catalog once per TTL window for nothing.
  */
 export function optionalTierFingerprint(
-  autoCombos: { id: string }[],
   providers: {
     id?: string;
     name?: string;
@@ -66,12 +60,6 @@ export function optionalTierFingerprint(
   parts.push(
     combos
       .map((c) => c.id + "|" + (c.name ?? "") + "|" + String(c.models?.length ?? 0))
-      .sort()
-      .join(",")
-  );
-  parts.push(
-    autoCombos
-      .map((c) => c.id)
       .sort()
       .join(",")
   );

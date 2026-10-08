@@ -123,7 +123,10 @@ test("family aggregation — last-status subqueries seek the provider index (mig
   const correlated = plan.match(/SEARCH c[23] USING (?:COVERING )?INDEX (\w+)/g) ?? [];
   assert.equal(correlated.length, 2, `both correlated subqueries must SEARCH an index: ${plan}`);
   for (const step of correlated) {
-    assert.ok(step.includes("idx_cl_provider_timestamp"), `expected provider index: ${step}`);
+    assert.ok(
+      step.includes("idx_cl_health_matrix_cover"),
+      `covering index must serve the last-status subqueries: ${step}`
+    );
   }
 });
 

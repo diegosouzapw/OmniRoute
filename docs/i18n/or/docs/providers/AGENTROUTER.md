@@ -127,7 +127,7 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 | ହେଡର୍                                       | ମୂଲ୍ୟ                                                                                                                               |
 | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | `Authorization`                             | `Bearer <api-key>`                                                                                                                  |
-| `User-Agent`                                | `claude-cli/2.1.258 (external, sdk-cli)`                                                                                            |
+| `User-Agent`                                | `claude-cli/2.1.280 (external, sdk-cli)`                                                                                            |
 | `anthropic-version`                         | `2023-06-01`                                                                                                                        |
 | `anthropic-beta`                            | `claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24`                                                            |
 | ପ୍ରତି-କନେକ୍ସନ୍ redact-thinking ବିଟା ଟଗଲ୍    | ଯେଉଁ ଅପ୍ଷ୍ଟ୍ରିମ୍ଗୁଡ଼ିକ ପାଇଁ ବିଶେଷ ଭାବେ ରିଡାକ୍ଟ କରାଯାଇଥିବା ଥିଙ୍କିଂ ଷ୍ଟ୍ରିମ୍ ଆବଶ୍ୟକ, ସେଗୁଡ଼ିକ ପାଇଁ `redact-thinking-2026-02-12` ଯୋଡ଼େ |

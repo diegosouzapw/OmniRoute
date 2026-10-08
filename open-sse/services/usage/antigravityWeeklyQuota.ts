@@ -1,22 +1,11 @@
 /**
- * usage/antigravityWeeklyQuota.ts — Antigravity weekly-quota fetcher + parser (#4017).
+ * Antigravity quota-summary fetcher and parser.
  *
- * Antigravity enforces both a 5-hour window (already surfaced per-model by
- * `getAntigravityUsage()` via `retrieveUserQuota`) and a separate weekly window.
- * The weekly window is NOT part of the per-model `retrieveUserQuota` response —
- * it lives in a distinct upstream RPC, `v1internal:retrieveUserQuotaSummary`,
- * which groups models into families ("Gemini Models", "Claude and GPT models")
- * and reports one bucket per family per window (5h + weekly), keyed by a
- * `bucketId`/`displayName` pair rather than by individual modelId. There is no
- * dedicated window-type field on the bucket — the window is inferred from the
- * bucketId/displayName text (matches the reverse-engineered shape documented by
- * third-party Antigravity clients, since Google does not publish this API).
- *
- * This module is a small, self-contained leaf so `usage/antigravity.ts` stays a
- * thin caller: fetch (cached, best-effort) + pure parse, mirroring the existing
- * `fetchAntigravityUserQuotaCached` pattern.
+ * `retrieveUserQuotaSummary` reports quota per model family rather than per model.
+ * Google currently returns Gemini and Claude/GPT families, with independent 5-hour and
+ * weekly windows. Per-model `retrieveUserQuota` remains the fallback when this optional,
+ * undocumented RPC is unavailable.
  */
-
 import { ANTIGRAVITY_RUNTIME_BASE_URLS } from "../../config/antigravityUpstream.ts";
 import { toRecord, toNumber } from "./scalars.ts";
 import { type UsageQuota, parseResetTime } from "./quota.ts";
@@ -25,26 +14,43 @@ import type { AntigravityClientProfile } from "../antigravityClientProfile.ts";
 
 type JsonRecord = Record<string, unknown>;
 
-interface AntigravityWeeklyQuotaOptions {
+interface AntigravityQuotaSummaryOptions {
   forceRefresh?: boolean;
 }
 
-const WEEKLY_QUOTA_CACHE_TTL_MS = 60 * 1000;
-const _weeklyQuotaCache = new Map<string, { data: unknown; fetchedAt: number }>();
-const _weeklyQuotaInflight = new Map<string, Promise<unknown>>();
+export type AntigravityQuotaWindowName = "session" | "weekly";
+export type AntigravityQuotaGroupId = "gemini" | "claude_gpt" | string;
 
-// Self-contained purge timer — this leaf owns its own cache, so it owns the cleanup too
-// (same pattern as usage/antigravity.ts's module-level caches).
-const _weeklyQuotaCacheCleanupTimer = setInterval(
-  () => {
-    const now = Date.now();
-    for (const [key, entry] of _weeklyQuotaCache) {
-      if (now - entry.fetchedAt > WEEKLY_QUOTA_CACHE_TTL_MS) _weeklyQuotaCache.delete(key);
-    }
-  },
-  5 * 60 * 1000
-);
-_weeklyQuotaCacheCleanupTimer.unref?.();
+export type AntigravityQuotaWindow = UsageQuota & {
+  window: AntigravityQuotaWindowName;
+  quotaGroupId: AntigravityQuotaGroupId;
+  quotaAggregate: true;
+  quotaSource: "retrieveUserQuotaSummary";
+};
+
+export type AntigravityQuotaGroup = {
+  id: AntigravityQuotaGroupId;
+  displayName: string;
+  windows: Partial<Record<AntigravityQuotaWindowName, AntigravityQuotaWindow>>;
+  models: string[];
+};
+
+export type AntigravityQuotaSummary = {
+  groups: AntigravityQuotaGroup[];
+  quotas: Record<string, AntigravityQuotaWindow>;
+};
+
+const QUOTA_CACHE_TTL_MS = 60 * 1000;
+const quotaCache = new Map<string, { data: unknown; fetchedAt: number }>();
+const quotaInflight = new Map<string, Promise<unknown>>();
+
+const cleanupTimer = setInterval(() => {
+  const cutoff = Date.now() - QUOTA_CACHE_TTL_MS * 2;
+  for (const [key, value] of quotaCache) {
+    if (value.fetchedAt < cutoff) quotaCache.delete(key);
+  }
+}, QUOTA_CACHE_TTL_MS);
+cleanupTimer.unref?.();
 
 function buildCacheKey(
   accessToken: string,
@@ -54,156 +60,192 @@ function buildCacheKey(
   return `${accessToken.substring(0, 16)}:${projectId || "default"}:${clientProfile}`;
 }
 
-/**
- * Fetch the weekly-quota-bearing `retrieveUserQuotaSummary` response (cached, best-effort).
- * Returns `null` on any failure — callers must treat this as optional data, never a hard
- * dependency, since the RPC is undocumented and may not be available for every account/tier.
- */
 export async function fetchAntigravityUserQuotaSummaryCached(
   accessToken: string,
   projectId?: string | null,
   clientProfile: AntigravityClientProfile = "ide",
-  options: AntigravityWeeklyQuotaOptions = {}
-): Promise<unknown | null> {
-  if (!accessToken || !projectId) return null;
-
+  options: AntigravityQuotaSummaryOptions = {}
+): Promise<unknown> {
   const cacheKey = buildCacheKey(accessToken, projectId, clientProfile);
-  const cached = _weeklyQuotaCache.get(cacheKey);
-  if (
-    !options.forceRefresh &&
-    cached &&
-    Date.now() - cached.fetchedAt < WEEKLY_QUOTA_CACHE_TTL_MS
-  ) {
-    return cached.data;
+  if (!options.forceRefresh) {
+    const cached = quotaCache.get(cacheKey);
+    if (cached && Date.now() - cached.fetchedAt < QUOTA_CACHE_TTL_MS) return cached.data;
+    const pending = quotaInflight.get(cacheKey);
+    if (pending) return pending;
+  } else {
+    quotaCache.delete(cacheKey);
   }
 
-  const inflight = _weeklyQuotaInflight.get(cacheKey);
-  if (inflight !== undefined) return inflight;
-
   const promise = (async () => {
-    try {
-      for (const baseUrl of ANTIGRAVITY_RUNTIME_BASE_URLS) {
-        const response = await fetch(
-          `${baseUrl}/v1internal:retrieveUserQuotaSummary`,
-          {
-            method: "POST",
-            headers: getAntigravityContentHeaders(clientProfile, accessToken),
-            body: JSON.stringify({ project: projectId }),
-            signal: AbortSignal.timeout(10000),
-          }
-        );
-
+    for (const baseUrl of ANTIGRAVITY_RUNTIME_BASE_URLS) {
+      try {
+        const response = await fetch(`${baseUrl}/v1internal:retrieveUserQuotaSummary`, {
+          method: "POST",
+          headers: getAntigravityContentHeaders(clientProfile, accessToken),
+          body: JSON.stringify(projectId ? { project: projectId } : {}),
+        });
         if (!response.ok) continue;
-
         const data = await response.json();
-        _weeklyQuotaCache.set(cacheKey, { data, fetchedAt: Date.now() });
+        quotaCache.set(cacheKey, { data, fetchedAt: Date.now() });
         return data;
+      } catch {
+        // Try the next Antigravity runtime endpoint.
       }
-      return null;
-    } catch {
-      return null;
     }
-  })().finally(() => {
-    _weeklyQuotaInflight.delete(cacheKey);
-  });
+    return null;
+  })().finally(() => quotaInflight.delete(cacheKey));
 
-  _weeklyQuotaInflight.set(cacheKey, promise);
+  quotaInflight.set(cacheKey, promise);
   return promise;
 }
 
-/** Matches a bucket's combined bucketId+displayName text against a window keyword. */
-function bucketMatchesWindow(bucket: JsonRecord, keyword: RegExp): boolean {
-  const text = `${String(bucket.bucketId || "")} ${String(bucket.displayName || "")}`.toLowerCase();
-  return keyword.test(text);
-}
-
-const WEEKLY_KEYWORD = /\bweekly\b/;
-
-/** Turns a group displayName (e.g. "Gemini Models", "Claude and GPT models") into a quota key. */
-function slugifyGroupWeeklyKey(displayName: string): string | null {
-  const cleaned = String(displayName || "")
-    .toLowerCase()
-    .replace(/\bmodels?\b/g, "")
-    .replace(/\band\b/g, " ")
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
-  return cleaned ? `${cleaned}_weekly` : null;
-}
-
-/**
- * Parse the raw `retrieveUserQuotaSummary` response into weekly `UsageQuota` entries,
- * one per model family group. Tolerant of the two response envelopes third-party
- * Antigravity clients have observed (`groups[]` at the top level, or nested under
- * `quotaSummary.groups[]`) since the RPC is undocumented and unversioned by Google.
- */
-export function parseAntigravityWeeklyQuotas(summaryData: unknown): Record<string, UsageQuota> {
-  const quotas: Record<string, UsageQuota> = {};
-  for (const groupValue of extractSummaryGroups(summaryData)) {
-    const entry = parseGroupWeeklyQuota(toRecord(groupValue));
-    if (entry) quotas[entry.key] = entry.quota;
-  }
-  return quotas;
-}
-
-/** Extracts `groups[]` from either observed response envelope (top-level or nested). */
 function extractSummaryGroups(summaryData: unknown): unknown[] {
   const root = toRecord(summaryData);
   if (Array.isArray(root.groups)) return root.groups;
-  const nested = toRecord(root.quotaSummary).groups;
-  return Array.isArray(nested) ? nested : [];
+  const nested = toRecord(root.quotaSummary);
+  return Array.isArray(nested.groups) ? nested.groups : [];
 }
 
-/** Parses one model-family group into its weekly quota entry, or null when absent/invalid. */
-function parseGroupWeeklyQuota(group: JsonRecord): { key: string; quota: UsageQuota } | null {
-  const buckets = Array.isArray(group.buckets) ? group.buckets : [];
-  const weeklyBucketValue = buckets.find(
-    (b) => b && typeof b === "object" && bucketMatchesWindow(toRecord(b), WEEKLY_KEYWORD)
+function normalizeGroup(
+  displayName: unknown,
+  id: unknown
+): {
+  id: AntigravityQuotaGroupId;
+  displayName: string;
+} | null {
+  const text = `${String(id || "")} ${String(displayName || "")}`.toLowerCase();
+  if (text.includes("gemini")) return { id: "gemini", displayName: "Gemini Models" };
+  if (text.includes("claude") || text.includes("gpt")) {
+    return { id: "claude_gpt", displayName: "Claude & GPT Models" };
+  }
+
+  const fallback = String(displayName || id || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  return fallback ? { id: fallback, displayName: String(displayName || id).trim() } : null;
+}
+
+/** Map a summary bucket into a supported quota window. */
+export function normalizeAntigravityQuotaWindow(
+  bucket: JsonRecord
+): AntigravityQuotaWindowName | null {
+  const explicit = String(bucket.window || "")
+    .trim()
+    .toLowerCase();
+  if (explicit === "5h" || explicit === "session") return "session";
+  if (explicit === "weekly" || explicit === "7d") return "weekly";
+
+  const text = `${String(bucket.bucketId || "")} ${String(bucket.displayName || "")}`.toLowerCase();
+  if (/\b5h\b|five[-\s]?hour|\bsession\b/.test(text)) return "session";
+  if (/\bweekly\b|\b7d\b|seven[-\s]?day/.test(text)) return "weekly";
+  return null;
+}
+
+function toQuotaWindow(
+  groupId: AntigravityQuotaGroupId,
+  window: AntigravityQuotaWindowName,
+  bucket: JsonRecord
+): AntigravityQuotaWindow | null {
+  if (bucket.disabled === true) return null;
+
+  // retrieveUserQuotaSummary currently reports consumption under `remaining`, unlike
+  // retrieveUserQuota's flat bucket shape. Accept both so an upstream envelope change
+  // cannot silently erase every family window from Provider Quota.
+  const remainingData = toRecord(bucket.remaining);
+  const rawFraction = toNumber(
+    remainingData.remainingFraction ?? bucket.remainingFraction,
+    -1
   );
-  if (!weeklyBucketValue) return null;
-
-  const weeklyBucket = toRecord(weeklyBucketValue);
-  if (weeklyBucket.disabled === true) return null;
-
-  const key = slugifyGroupWeeklyKey(String(group.displayName || ""));
-  if (!key) return null;
-
-  const rawFraction = toNumber(weeklyBucket.remainingFraction, -1);
   if (rawFraction < 0) return null;
 
   const remainingFraction = Math.max(0, Math.min(1, rawFraction));
-  const resetAt = parseResetTime(weeklyBucket.resetTime);
-  const isUnlimited = !resetAt && remainingFraction >= 1;
-  const QUOTA_NORMALIZED_BASE = 1000;
-  const total = QUOTA_NORMALIZED_BASE;
+  const resetAt = parseResetTime(remainingData.resetTime ?? bucket.resetTime);
+  const unlimited = !resetAt && remainingFraction >= 1;
+  const total = 1000;
   const remaining = Math.round(total * remainingFraction);
 
   return {
-    key,
-    quota: {
-      used: isUnlimited ? 0 : Math.max(0, total - remaining),
-      total: isUnlimited ? 0 : total,
-      resetAt,
-      remainingPercentage: isUnlimited ? 100 : remainingFraction * 100,
-      unlimited: isUnlimited,
-      fractionReported: true,
-      quotaSource: "retrieveUserQuota",
-      displayName: String(group.displayName || "").trim() || undefined,
-    },
+    window,
+    quotaGroupId: groupId,
+    quotaAggregate: true,
+    used: unlimited ? 0 : Math.max(0, total - remaining),
+    total: unlimited ? 0 : total,
+    resetAt,
+    remainingPercentage: unlimited ? 100 : remainingFraction * 100,
+    unlimited,
+    fractionReported: true,
+    quotaSource: "retrieveUserQuotaSummary",
   };
 }
 
-/** Fetch + parse in one call — the only entry point `usage/antigravity.ts` needs. */
-export async function fetchAndParseAntigravityWeeklyQuotas(
+/** Parse all supported family/window buckets, preserving the group structure and flat projection. */
+export function parseAntigravityQuotaSummary(summaryData: unknown): AntigravityQuotaSummary {
+  const groups: AntigravityQuotaGroup[] = [];
+  const quotas: Record<string, AntigravityQuotaWindow> = {};
+
+  for (const rawGroup of extractSummaryGroups(summaryData)) {
+    const group = toRecord(rawGroup);
+    const normalized = normalizeGroup(group.displayName, group.groupId ?? group.id);
+    if (!normalized) continue;
+
+    const windows: AntigravityQuotaGroup["windows"] = {};
+    const buckets = Array.isArray(group.buckets) ? group.buckets : [];
+    for (const rawBucket of buckets) {
+      const bucket = toRecord(rawBucket);
+      const window = normalizeAntigravityQuotaWindow(bucket);
+      if (!window || windows[window]) continue;
+      const parsed = toQuotaWindow(normalized.id, window, bucket);
+      if (!parsed) continue;
+      windows[window] = parsed;
+      quotas[`${normalized.id}_${window}`] = parsed;
+    }
+
+    if (Object.keys(windows).length > 0) {
+      groups.push({ ...normalized, windows, models: [] });
+    }
+  }
+
+  return { groups, quotas };
+}
+
+/** Compatibility wrapper for existing callers that only need weekly aggregate entries. */
+export function parseAntigravityWeeklyQuotas(summaryData: unknown): Record<string, UsageQuota> {
+  const summary = parseAntigravityQuotaSummary(summaryData);
+  return Object.fromEntries(
+    Object.entries(summary.quotas).filter(([, quota]) => quota.window === "weekly")
+  );
+}
+
+export async function fetchAndParseAntigravityQuotaSummary(
   accessToken: string,
   projectId: string | undefined | null,
   clientProfile: AntigravityClientProfile = "ide",
-  options: AntigravityWeeklyQuotaOptions = {}
-): Promise<Record<string, UsageQuota>> {
+  options: AntigravityQuotaSummaryOptions = {}
+): Promise<AntigravityQuotaSummary> {
   const data = await fetchAntigravityUserQuotaSummaryCached(
     accessToken,
     projectId,
     clientProfile,
     options
   );
-  return parseAntigravityWeeklyQuotas(data);
+  return parseAntigravityQuotaSummary(data);
+}
+
+/** Compatibility wrapper retained for leaf-module consumers. */
+export async function fetchAndParseAntigravityWeeklyQuotas(
+  accessToken: string,
+  projectId: string | undefined | null,
+  clientProfile: AntigravityClientProfile = "ide",
+  options: AntigravityQuotaSummaryOptions = {}
+): Promise<Record<string, UsageQuota>> {
+  const summary = await fetchAndParseAntigravityQuotaSummary(
+    accessToken,
+    projectId,
+    clientProfile,
+    options
+  );
+  return Object.fromEntries(
+    Object.entries(summary.quotas).filter(([, quota]) => quota.window === "weekly")
+  );
 }

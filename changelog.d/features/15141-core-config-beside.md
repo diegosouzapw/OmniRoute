@@ -1,0 +1,1 @@
+- **feat(proxy-subscription):** generate the local proxy-core config beside the adopted file, opt-in per subscription ([#15141](https://github.com/diegosouzapw/OmniRoute/pull/15141)) — thanks @maxmad64bis

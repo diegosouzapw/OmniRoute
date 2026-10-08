@@ -138,15 +138,49 @@ topoloogiat paljastavaid teateid üldse koostada.
 
 ## Katvus CI-s
 
-`tests/unit/error-message-sanitization.test.ts` jõustab järgmise:
+`tests/unit/error-message-sanitization.test.ts` tagab järgmise:
 
-- Iga marsruut asukohas `/api/model-combo-mappings/*` tagastab 4xx/5xx korral puhastatud vastusekehad.
+- Kõik marsruudid asukohas `/api/model-combo-mappings/*` tagastavad 4xx/5xx korral puhastatud kehad.
 - `sanitizeErrorMessage` eemaldab mitmerealised pinujäljed.
 - `sanitizeErrorMessage` asendab POSIX-i ja Windowsi absoluutsed teed väärtusega `<path>`.
-- `sanitizeErrorMessage` töötleb `null`/`undefined`/`Error` eksemplaride sisendeid turvaliselt.
+- `sanitizeErrorMessage` töötleb `null`/`undefined`/`Error`-eksemplari sisendeid ohutult.
 - `buildErrorBody` ei avalda kunagi oma väljal `message` pinujälgi.
 
-Uue marsruudi või täituri lisamisel kopeerige sellest failist kontrollmuster. Katvuse lävend (`npm run test:coverage`) nõuab lausete/ridade/funktsioonide/harude katvust ≥60% — veateed peavad olema kaetud.
+Uue marsruudi või käivitaja lisamisel kopeerige sellest failist väidete muster. Katvuse lävi (`npm run test:coverage`) nõuab lausete/ridade/funktsioonide/harude katvust ≥60% — veateed peavad olema kaetud.
+
+### Staatiline kontroll: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` skannib katalooge `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` ja kõiki faile `src/app/api/**/route.ts`, et tuvastada kliendile saadetavasse kehasse jõudev töötlemata püütud viga (`err.message` / `err.stack`) või töötlemata ülesvoolu `body.error.message`.
+
+**Usaldus kehtib kutse, mitte faili ulatuses** (G-03, #15159). Varem jättis kontroll terve faili vahele kohe, kui tuvastas impordi mõnelt `utils/error` teelt — failiülest erandit rakendati kutsepõhisele ohule. Üks korrektne `import { sanitizeErrorMessage }` vabastas jäädavalt faili kõik teised väljundkohad kontrollist, mistõttu jõudis reaalne leke edukast kontrollist hoolimata väljalaskesse. Nüüd usaldatakse rida ainult siis, kui see läbib tegelikult heakskiidetud koostaja või puhastaja:
+
+| Rea kuju                                                                                                                   | Usaldatud?         |
+| -------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| kutsub `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …                       | jah                |
+| kutsub kanoonilist koostajat, **mille see fail impordib** asukohast `open-sse/utils/error` või `src/lib/api/errorResponse` | jah                |
+| heakskiidetud koostajat kutsutakse **mitmel real**, mistõttu väli `message:` asub hilisemal real                           | jah                |
+| kutsub faili lokaalset `function errorResponse(...)`, mille enda keha puhastab                                             | jah                |
+| edastab `err.message` / `err.stack` mis tahes mujal                                                                        | **ei — rikkumine** |
+
+Kaks olulist tagajärge:
+
+- `errorResponse` importimine _ei_ tähenda üldist usaldust. Fail, mis defineerib omaenda `errorResponse`, märgitakse kutsumiskohas ikkagi ära, sest kontroll lahendab usalduse sümboli-, mitte failipõhiselt. Sama kehtib `createErrorResponse` kohta.
+- Konstruktsioon `const body = buildErrorBody(status, sanitizeErrorMessage(msg))`, millele järgneb `error: body.error.message`, on kõigis `*-fetch.ts` käivitajates kasutatav **puhastatud** idiom ja seda ei märgita.
+
+Arvesse lähevad mõlemad heakskiidetud koostajamoodulid: `open-sse/utils/error.ts` ja `src/lib/api/errorResponse.ts`. Teist kasutavad ligikaudu 54 marsruudikäitlejat väljaspool `open-sse`-d ning see puhastab mõlema ekspordi väljundi.
+
+Kaks kuju, mis **ei ole** rikkumised, kuigi kontroll on mõlemat varem lekkeks pidanud:
+
+- töötlemata viga **auditireal** — `saveCallLog({ error: err.message })`, `logToolCall(...)` või logija, mis võtab kõigepealt vastu sõnumi (`log.error("BATCHES", "sweep failed", { error: err.message })`). Järgmiste ridade kliendile suunatud vastus võib vabalt olla staatiline `buildErrorBody`.
+- **mitmerealine** heakskiidetud koostaja kutse, mille väljal `message:` pole ühtegi koostajat nimetatud:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` fikseerib olemasolevad rikkumised, et kontroll blokeeriks ainult _uued_. `assertNoStale` eemaldab kirje automaatselt kohe, kui selle rikkumine parandatakse, mistõttu fikseeritud loend ei saa kivistuda. Regressioonikaitsed: `tests/unit/check-error-helper.test.ts` ja `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Seotud kontrollimeetmed
 

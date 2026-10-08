@@ -1,0 +1,1 @@
+- fix(api): count_tokens no longer returns a provider input_tokens of 0 for non-empty input; falls back to the local estimate (#15763)

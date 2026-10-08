@@ -135,6 +135,7 @@ export async function GET() {
       requestQueue: resilience.requestQueue,
       connectionCooldown: resilience.connectionCooldown,
       providerBreaker: resilience.providerBreaker,
+      tokenRefreshBreaker: resilience.tokenRefreshBreaker,
       waitForCooldown: {
         enabled: resilience.waitForCooldown.enabled,
         maxRetries: resilience.waitForCooldown.maxRetries,
@@ -198,6 +199,12 @@ export async function PATCH(request) {
         : {}),
       ...(body.providerBreaker
         ? { providerBreaker: body.providerBreaker as ResilienceSettingsPatch["providerBreaker"] }
+        : {}),
+      ...(body.tokenRefreshBreaker
+        ? {
+            tokenRefreshBreaker:
+              body.tokenRefreshBreaker as ResilienceSettingsPatch["tokenRefreshBreaker"],
+          }
         : {}),
       ...(body.waitForCooldown
         ? { waitForCooldown: body.waitForCooldown as ResilienceSettingsPatch["waitForCooldown"] }
@@ -269,6 +276,7 @@ export async function PATCH(request) {
       requestQueue: nextResilience.requestQueue,
       connectionCooldown: nextResilience.connectionCooldown,
       providerBreaker: nextResilience.providerBreaker,
+      tokenRefreshBreaker: nextResilience.tokenRefreshBreaker,
       waitForCooldown: {
         enabled: nextResilience.waitForCooldown.enabled,
         maxRetries: nextResilience.waitForCooldown.maxRetries,

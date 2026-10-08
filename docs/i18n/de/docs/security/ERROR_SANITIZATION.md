@@ -145,7 +145,41 @@ von vornherein keine Meldungen erstellen, die Informationen über die Systemtopo
 - `sanitizeErrorMessage` verarbeitet Eingaben wie `null`/`undefined`/`Error`-Instanzen sicher.
 - `buildErrorBody` legt in seinem Feld `message` niemals Stacktraces offen.
 
-Wenn Sie eine neue Route oder einen neuen Executor hinzufügen, übernehmen Sie das Assertion-Muster aus dieser Datei. Das Coverage-Gate (`npm run test:coverage`) erzwingt ≥60 % Abdeckung bei Anweisungen/Zeilen/Funktionen/Verzweigungen — Fehlerpfade müssen abgedeckt sein.
+Wenn Sie eine neue Route oder einen neuen Executor hinzufügen, übernehmen Sie das Assertion-Muster aus dieser Datei. Das Abdeckungs-Gate (`npm run test:coverage`) erzwingt ≥60 % Abdeckung für Anweisungen/Zeilen/Funktionen/Verzweigungen — Fehlerpfade müssen abgedeckt sein.
+
+### Das statische Gate: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` durchsucht `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` sowie jede Datei unter `src/app/api/**/route.ts` danach, ob ein unverarbeiteter abgefangener Fehler (`err.message` / `err.stack`) oder eine unverarbeitete vorgelagerte `body.error.message` in einen für Clients bestimmten Antwortkörper gelangt.
+
+**Vertrauen gilt auf Aufrufebene, niemals auf Dateiebene** (G-03, #15159). Das Gate übersprang früher eine gesamte Datei, sobald es irgendeinen Import aus einem `utils/error`-Pfad erkannte — eine Ausnahme auf Dateiebene für eine Gefahr auf Aufrufebene. Ein einziger korrekter `import { sanitizeErrorMessage }` nahm dauerhaft jede andere Senke in der Datei aus, wodurch ein echtes Leak trotz grüner Prüfung ausgeliefert wurde. Jetzt gilt eine Zeile nur dann als vertrauenswürdig, wenn sie tatsächlich einen zugelassenen Builder oder Sanitizer verwendet:
+
+| Zeilenform                                                                                                                     | Vertrauenswürdig?  |
+| ------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
+| ruft `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / … auf                         | ja                 |
+| ruft einen kanonischen Builder auf, **den diese Datei** aus `open-sse/utils/error` oder `src/lib/api/errorResponse` importiert | ja                 |
+| ein zugelassener Builder wird **mehrzeilig** aufgerufen, sodass sich das Feld `message:` in einer späteren Zeile befindet      | ja                 |
+| ruft eine dateilokale `function errorResponse(...)` auf, deren eigener Rumpf bereinigt                                         | ja                 |
+| leitet `err.message` / `err.stack` an eine andere Stelle weiter                                                                | **nein — Verstoß** |
+
+Zwei wichtige Konsequenzen:
+
+- Der Import von `errorResponse` bedeutet _kein_ pauschales Vertrauen. Eine Datei, die ihr eigenes `errorResponse` definiert, wird weiterhin an der Aufrufstelle beanstandet, da das Gate Vertrauen pro Symbol und nicht pro Datei auflöst. Dasselbe gilt für `createErrorResponse`.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` gefolgt von `error: body.error.message` ist das in den `*-fetch.ts`-Executors verwendete **bereinigte** Idiom und wird nicht beanstandet.
+
+Beide zugelassenen Builder-Module werden berücksichtigt: `open-sse/utils/error.ts` und `src/lib/api/errorResponse.ts`. Das zweite wird von den etwa 54 Route-Handlern außerhalb von `open-sse` verwendet und bereinigt beide seiner Exporte.
+
+Zwei Formen, die **keine** Verstöße darstellen, obwohl das Gate beide früher als Leaks gemeldet hat:
+
+- ein unverarbeiteter Fehler innerhalb einer **Audit-Zeile** — `saveCallLog({ error: err.message })`, `logToolCall(...)` oder ein Logger, der zuerst eine Nachricht entgegennimmt (`log.error("BATCHES", "sweep failed", { error: err.message })`). Die für Clients bestimmte Antwort in den nachfolgenden Zeilen kann durchaus ein statischer `buildErrorBody` sein.
+- ein **mehrzeiliger** Aufruf eines zugelassenen Builders, bei dem das Feld `message:` selbst keinen Builder nennt:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` fixiert bereits vorhandene Verstöße, sodass das Gate nur _neue_ blockiert. `assertNoStale` entfernt einen Eintrag automatisch, sobald der zugehörige Verstoß behoben wurde, damit die Fixierung nicht versteinert. Regressionsprüfungen: `tests/unit/check-error-helper.test.ts` und `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Zugehörige Kontrollmechanismen
 

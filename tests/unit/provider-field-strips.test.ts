@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 
 import {
   findOffendingField,
+  isUnsupportedThinkingError,
+  REASONING_REQUEST_FIELDS,
   stripGroqUnsupportedFields,
 } from "../../open-sse/config/providerFieldStrips.ts";
 
@@ -79,4 +81,64 @@ test("stripGroqUnsupportedFields drops unsupported messages[].model and other me
   assert.equal("model" in out.messages[1], false);
   assert.equal("messageId" in out.messages[1], false);
   assert.equal("sender" in out.messages[1], false);
+});
+
+test("isUnsupportedThinkingError matches upstreams that name the model, not the field", () => {
+  // Ollama's exact wording for an Instruct-only model.
+  assert.equal(isUnsupportedThinkingError('"Qwen3-Coder:latest" does not support thinking'), true);
+  assert.equal(isUnsupportedThinkingError("model gemma3 does not support reasoning"), true);
+  assert.equal(isUnsupportedThinkingError("does  not\n support\tthinking"), true);
+  assert.equal(isUnsupportedThinkingError("DOES NOT SUPPORT THINKING"), true);
+});
+
+test("isUnsupportedThinkingError ignores unrelated and near-miss 400 bodies", () => {
+  assert.equal(isUnsupportedThinkingError("does not support tools"), false);
+  assert.equal(isUnsupportedThinkingError("does not support thinkingly"), false);
+  assert.equal(isUnsupportedThinkingError("supports thinking"), false);
+  assert.equal(isUnsupportedThinkingError("rate limit exceeded"), false);
+  assert.equal(isUnsupportedThinkingError(""), false);
+  assert.equal(isUnsupportedThinkingError(undefined), false);
+});
+
+test("neither existing detector can see the model-named thinking rejection", () => {
+  // The reason this branch exists: findOffendingField needs a literal field name.
+  assert.equal(findOffendingField('"Qwen3-Coder:latest" does not support thinking'), null);
+});
+
+test("REASONING_REQUEST_FIELDS covers the fields a request can carry", () => {
+  for (const field of ["reasoning_effort", "reasoning", "thinking", "think"]) {
+    assert.ok(REASONING_REQUEST_FIELDS.includes(field), `missing ${field}`);
+  }
+});
+
+// Routing envelopes must become valid Groq Chat Completions fields.
+test("Groq GPT-OSS routing low/none uses low without foreign envelopes", () => {
+  for (const effort of ["low", "none"]) {
+    const input = {
+      model: "openai/gpt-oss-20b",
+      messages: [{ role: "user", content: "hello" }],
+      reasoning_effort: effort,
+      reasoning: { effort },
+      output_config: { effort },
+    };
+    const out = stripGroqUnsupportedFields(input, input.model);
+    assert.equal(out.reasoning_effort, "low");
+    assert.equal("reasoning" in out, false);
+    assert.equal("output_config" in out, false);
+    assert.deepEqual(out.messages, input.messages);
+    assert.equal(input.reasoning_effort, effort);
+    assert.deepEqual(input.output_config, { effort });
+  }
+});
+
+test("Groq forced none uses low even when routing removed the effort fields", () => {
+  const input = { model: "openai/gpt-oss-20b", messages: [{ role: "user", content: "hello" }] };
+  const out = stripGroqUnsupportedFields(input, input.model, "none") as Record<string, unknown>;
+  assert.equal(out.reasoning_effort, "low");
+  // An ordinary effort-less request must retain its provider default.
+  assert.equal("reasoning_effort" in stripGroqUnsupportedFields(input, input.model), false);
+  assert.equal(
+    stripGroqUnsupportedFields({ reasoning_effort: "high" }, input.model).reasoning_effort,
+    "high"
+  );
 });
