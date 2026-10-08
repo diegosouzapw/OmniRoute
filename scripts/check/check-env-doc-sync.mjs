@@ -254,6 +254,9 @@ const IGNORE_FROM_CODE = new Set([
   // Test-only escape hatch: makes getMachineIdRaw() skip the macOS ioreg strategy so
   // machineId tests reach the fallback strategies on darwin (#13539). Not user config.
   "DISABLE_IOREG_STRATEGY",
+  // Next.js-internal switch, not OmniRoute config: scripts/dev/standalone-server-ws.mjs sets it
+  // so Next skips its own SIGINT/SIGTERM handlers and the wrapper owns shutdown.
+  "NEXT_MANUAL_SIG_HANDLE",
 ]);
 
 // Vars documented in ENVIRONMENT.md but intentionally absent from .env.example.

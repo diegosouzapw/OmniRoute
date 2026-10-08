@@ -72,24 +72,31 @@ ja nimeää päätepisteen sekä menetetyt tiedot — joten suppeamman mallivali
 
 ## Asetukset
 
-| Avain                            | Oletus                                               | Huomautukset                                                                                                     |
-| -------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `providerId`                     | `"omniroute"`                                        | Palveluntarjoajan tunnus, integraation tunnus ja etuliite, jonka alla mallit näkyvät                             |
-| `baseURL`                        | pakollinen                                           | Yhdyskäytävän juuri, vain `http(s)`; `/v1`-jälkiliite lisätään tarvittaessa                                      |
-| `apiKey`                         | yhdistetty tunnistetieto, sitten `OMNIROUTE_API_KEY` | Keskusteluavain päätepisteille `/v1/*`                                                                           |
-| `managementReadToken`            | käyttää varavaihtoehtona `apiKey`-arvoa              | Avain päätepisteille `/api/*` — yleensä **ei** sama avain                                                        |
-| `displayName`                    | `"OmniRoute"`                                        | Palveluntarjoajan nimi mallivalitsimessa                                                                         |
-| `timeoutMs`                      | `10000`                                              | Päätepistekohtainen haun aikakatkaisu (automaattiset yhdistelmät käyttävät 5 sekuntia)                           |
-| `modelCacheTtlMs`                | `300000`                                             | Luettelovälimuistin TTL; levylle tallennettu tilannevedos nopeuttaa kylmäkäynnistyksiä                           |
-| `timeouts`                       | käyttää varavaihtoehtona `timeoutMs`-arvoa           | Päätepistekohtaiset aikarajat millisekunteina: `models`, `combos`, `autoCombos`, `enrichment`                    |
-| `enrichment`                     | `true`                                               | Hae nimet, hinnat ja maksuttoman tason käyttörajat                                                               |
-| `providerTag`                    | `true`                                               | Lisää näyttönimen eteen sen palveluntarjoajan nimi, jolle pyyntö reititetään                                     |
-| `usableOnly`                     | `false`                                              | Säilytä vain palveluntarjoajat, jotka yhdyskäytävä ilmoittaa valmistelluiksi                                     |
-| `visibleModels` / `hiddenModels` | `[]`                                                 | Tarkan vastaavuuden tai jälkiliitteen perusteella toimivat sallittujen luettelot; esto ohittaa sallimisen        |
-| `geminiSanitization`             | `true`                                               | Poista työkaluskeemoista Geminiin hylkäämät JSON Schema -avainsanat (`$ref`-työkalut välitetään muuttamattomina) |
-| `apiFormat.allowAnthropic`       | `false`                                              | Reititä sallittujen luettelossa olevat tunnukset Anthropicin API-lohkon kautta                                   |
-| `apiFormat.anthropicModels`      | `[]`                                                 | Anthropiciin reititettävät täydelliset mallitunnukset                                                            |
-| `logLevel` / `startupDebug`      | `warn` / `false`                                     | Lokituksen yksityiskohtaisuus                                                                                    |
+| Avain                            | Oletusarvo                                           | Huomautukset                                                                                                       |
+| -------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `providerId`                     | `"omniroute"`                                        | Palveluntarjoajan tunnus, integraation tunnus ja etuliite, jonka alla mallit näkyvät                               |
+| `baseURL`                        | pakollinen                                           | Yhdyskäytävän juuri, vain `http(s)`; pääte `/v1` lisätään tarvittaessa                                             |
+| `apiKey`                         | yhdistetty tunnistetieto, sitten `OMNIROUTE_API_KEY` | Keskusteluavain poluille `/v1/*`                                                                                   |
+| `managementReadToken`            | käyttää varalla `apiKey`-arvoa                       | Avain poluille `/api/*` — yleensä **ei** sama avain                                                                |
+| `displayName`                    | `"OmniRoute"`                                        | Palveluntarjoajan nimi valitsimessa                                                                                |
+| `timeoutMs`                      | `10000`                                              | Päätepistekohtainen noudon aikakatkaisu (automaattiset yhdistelmät käyttävät 5 sekuntia)                           |
+| `modelCacheTtlMs`                | `300000`                                             | Luettelovälimuistin TTL; levylle tallennettu tilannevedos nopeuttaa kylmäkäynnistyksiä                             |
+| `timeouts`                       | käyttää varalla `timeoutMs`-arvoa                    | Päätepistekohtaiset aikarajat millisekunteina: `models`, `combos`, `autoCombos`, `enrichment`                      |
+| `enrichment`                     | `true`                                               | Nouda nimet, hinnoittelu ja maksuttoman tason käyttökiintiöt                                                       |
+| `providerTag`                    | `true`                                               | Lisää näyttönimeen sen ylemmän tason palveluntarjoajan etuliite, jolle pyyntö reititetään                          |
+| `usableOnly`                     | `false`                                              | Säilytä vain palveluntarjoajat, jotka yhdyskäytävä ilmoittaa käyttövalmiiksi                                       |
+| `showcasePerOwner`               | `10`                                                 | Oletusnäkymässä säilytettävien kohteiden määrä palveluntarjoajaa kohden                                            |
+| `freshPerOwner`                  | `10`                                                 | Oletusnäkymässä säilytettävien tuoreiden kohteiden määrä palveluntarjoajaa kohden                                  |
+| `freshWindowDays`                | `90`                                                 | Tuoreushaaran tuoreusikkuna päivinä                                                                                |
+| `usageMemory`                    | `true`                                               | Palauta staattisesti poistetut kohteet, jotka on nimetty 30 päivän käyttöanalytiikassa (vaatii hallintatunnuksen)  |
+| `visibleModels` / `hiddenModels` | `[]`                                                 | Tarkan vastaavuuden tai loppuosan perusteella toimivat sallittujen listat; esto ohittaa sallinnan                  |
+| `geminiSanitization`             | `true`                                               | Poista työkaluskeemoista JSON Schema -avainsanat, jotka Gemini hylkää (`$ref`-työkalut välitetään muuttamattomina) |
+| `apiFormat.allowAnthropic`       | `false`                                              | Reititä sallittujen listalla olevat tunnukset Anthropic API -lohkon kautta                                         |
+| `apiFormat.anthropicModels`      | `[]`                                                 | Anthropicille reititettävät täydelliset mallitunnukset                                                             |
+| `logLevel` / `startupDebug`      | `warn` / `false`                                     | Lokituksen yksityiskohtaisuus                                                                                      |
+
+Käyttömuisti on oletusarvoisesti käytössä. Ilman hallintatunnusta se pysyy passiivisena
+(käynnistyksen yhteydessä kirjataan ilmoitus), eikä mitään palauteta.
 
 ## Miten luettelo pysyy ajan tasalla
 
