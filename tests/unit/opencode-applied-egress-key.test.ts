@@ -143,7 +143,7 @@ test("4. key-space guard: no '://'-shaped key in tried-sets after a pool 429", a
   for (const k of rateLimitedProxyKeys) assert.ok(!k.includes("://"));
 });
 
-test("5. replay: all set aside but cooldown-ready -> non-empty leg (fallback); none ready -> []", () => {
+test("5. replay: all set aside but cooldown-ready -> [] by default, non-empty leg with the opt-in fallback (#14851); none ready -> []", () => {
   memory.noteProxyRefusal(KEY_A, "ip_quota_429");
   memory.noteProxyRefusal(KEY_B, "ip_quota_429");
   const byPrint = new Map([
@@ -156,7 +156,8 @@ test("5. replay: all set aside but cooldown-ready -> non-empty leg (fallback); n
     { fingerprint: "fp-a", cooldownUntil: 0, consecutiveFails: 0, proxy: null },
     { fingerprint: "fp-b", cooldownUntil: 0, consecutiveFails: 0, proxy: null },
   ];
-  const leg = park.replayCandidates(accounts, now, keyOf);
+  assert.deepEqual(park.replayCandidates(accounts, now, keyOf, false), []);
+  const leg = park.replayCandidates(accounts, now, keyOf, true);
   assert.ok(leg.length > 0, "fallback: serve anyway");
   assert.ok(leg.length <= park.PARK_PROBE_MAX);
   const cooling = [
@@ -167,7 +168,7 @@ test("5. replay: all set aside but cooldown-ready -> non-empty leg (fallback); n
       proxy: null,
     },
   ];
-  assert.deepEqual(park.replayCandidates(cooling, now, keyOf), []);
+  assert.deepEqual(park.replayCandidates(cooling, now, keyOf, true), []);
 });
 
 test("6. URL verdict: NO_PROXY/local target -> sentinel despite pool ambient", async () => {

@@ -167,6 +167,10 @@ function findHeader(headers: Record<string, string>, name: string): string | und
  * @param options.keepAgentUserAgent - OpenCode Go (#15311): keep a client User-Agent that
  *   names the agent itself, as Go's client requirements ask. A generic SDK / HTTP-library
  *   UA is still replaced, and a missing one is still filled.
+ * @param options.forwardUserAgent - Set to false (DefaultExecutor, #15632) to NOT copy the
+ *   caller's User-Agent onto the upstream request: a library UA such as Python-urllib is
+ *   blocked by Cloudflare-fronted providers (Groq) and would override the provider/env/
+ *   connection User-Agent. Defaults to true.
  * @param options.sessionBody - Request body fields used to generate a
  *   conversation-stable session fingerprint (model, system, messages or input, tools).
  *   When provided, x-opencode-session is a deterministic hash instead of a random
@@ -180,11 +184,12 @@ export function forwardOpencodeClientHeaders(
     cliDefaults?: { userAgent: string; client: string; project: string };
     keepAgentUserAgent?: boolean;
     sessionBody?: OpencodeSessionBody;
+    forwardUserAgent?: boolean;
   }
 ): void {
-  // 1. Forward User-Agent
+  // 1. Forward User-Agent (opt-out for generic providers, #15632)
   const clientUA = clientHeaders["User-Agent"] || clientHeaders["user-agent"];
-  if (clientUA) {
+  if (clientUA && options?.forwardUserAgent !== false) {
     setUserAgentHeader(headers, clientUA);
   }
 
@@ -282,4 +287,44 @@ function applyCliDefaults(
       ? clientSessionId
       : canonicalId("ses_", clientSessionId)
     : canonicalId("ses_", generateSessionId(sessionBody ?? null) ?? undefined);
+}
+
+/**
+ * Build outbound headers for OmniRoute's BACKGROUND calls to opencode.ai —
+ * model-catalog discovery (autoSync/autoFetchModels), quota checks, and any
+ * other non-chat fetch. These calls previously went out on the bare runtime
+ * fetch (User-Agent "Bun fetch") with no `x-opencode-session`, which is exactly
+ * the shape OpenCode's operator warning names ("requests missing an
+ * x-opencode-session header", UA "Bun fetch"; hard errors announced from
+ * 2026-09-06).
+ *
+ * Background traffic has no conversation, so the caller passes the raw
+ * connection/workspace seed and applyCliDefaults() canonicalizes it into the
+ * deterministic `ses_…` shape — the same id contract the chat path enforces
+ * (#10571 follow-up) — so each connection's background traffic groups under
+ * one identity across daemon restarts instead of looking like a new anonymous
+ * client per call.
+ * The User-Agent is synthesized to the OpenCode CLI identity for the same
+ * reason applyCliDefaults() does it on the chat path (#5997): generic runtime
+ * UAs from non-CLI callers get flagged upstream.
+ */
+export function buildOpencodeBackgroundHeaders(options?: {
+  /** Stable seed for the per-caller session id (connection id / workspace id). */
+  seed?: string | null;
+  /** Explicit UA override (defaults to the OpenCode CLI identity). */
+  userAgent?: string;
+}): Record<string, string> {
+  const headers: Record<string, string> = {};
+  // Seed the session BEFORE applyCliDefaults so its canonicalizer derives the
+  // deterministic `ses_…` id from the raw seed (sha256 over the workspace /
+  // connection) — the header then carries the same canonical shape as the chat
+  // path while the identity stays stable across daemon restarts.
+  const seed = options?.seed?.trim();
+  if (seed && seed.length > 0) headers["x-opencode-session"] = seed;
+  applyCliDefaults(headers, {
+    userAgent: options?.userAgent?.trim() || process.env.OPENCODE_USER_AGENT?.trim() || "opencode",
+    client: process.env.OPENCODE_CLIENT?.trim() || "desktop",
+    project: process.env.OPENCODE_PROJECT?.trim() || "global",
+  });
+  return headers;
 }

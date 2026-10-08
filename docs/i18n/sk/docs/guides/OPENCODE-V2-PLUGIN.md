@@ -72,24 +72,31 @@ pričom uvedie koncový bod a chýbajúce údaje — zhoršená podoba výberu t
 
 ## Možnosti
 
-| Kľúč                             | Predvolená hodnota                                     | Poznámky                                                                                                                     |
-| -------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
-| `providerId`                     | `"omniroute"`                                          | Identifikátor poskytovateľa, identifikátor integrácie a prefix, pod ktorým sa modely zobrazujú                               |
-| `baseURL`                        | povinné                                                | Koreňová adresa brány, iba `http(s)`; prípona `/v1` sa pridá tam, kde je potrebná                                            |
-| `apiKey`                         | pripojený prihlasovací údaj, potom `OMNIROUTE_API_KEY` | Kľúč pre čet pre `/v1/*`                                                                                                     |
-| `managementReadToken`            | použije sa `apiKey`                                    | Kľúč pre `/api/*` — zvyčajne **nie** je rovnaký                                                                              |
-| `displayName`                    | `"OmniRoute"`                                          | Názov poskytovateľa vo výbere                                                                                                |
-| `timeoutMs`                      | `10000`                                                | Časový limit načítania pre každý koncový bod (automatické kombinácie používajú 5 s)                                          |
-| `modelCacheTtlMs`                | `300000`                                               | TTL vyrovnávacej pamäte katalógu; snímka na disku urýchľuje studené štarty                                                   |
-| `timeouts`                       | použije sa `timeoutMs`                                 | Limity jednotlivých koncových bodov v ms: `models`, `combos`, `autoCombos`, `enrichment`                                     |
-| `enrichment`                     | `true`                                                 | Načítať názvy, ceny a limity bezplatnej úrovne                                                                               |
-| `providerTag`                    | `true`                                                 | Pridať pred zobrazovaný názov nadradeného poskytovateľa, ku ktorému smeruje                                                  |
-| `usableOnly`                     | `false`                                                | Ponechať iba poskytovateľov, ktorých brána označuje ako nakonfigurovaných                                                    |
-| `visibleModels` / `hiddenModels` | `[]`                                                   | Zoznamy povolených položiek podľa presnej zhody alebo prípony; zákaz má prednosť                                             |
-| `geminiSanitization`             | `true`                                                 | Odstrániť z nástrojových schém kľúčové slová JSON Schema, ktoré Gemini odmieta (nástroje s `$ref` sa preposielajú bez zmien) |
-| `apiFormat.allowAnthropic`       | `false`                                                | Smerovať povolené identifikátory cez blok API Anthropic                                                                      |
-| `apiFormat.anthropicModels`      | `[]`                                                   | Úplné identifikátory modelov smerované do Anthropic                                                                          |
-| `logLevel` / `startupDebug`      | `warn` / `false`                                       | Podrobnosť protokolovania                                                                                                    |
+| Kľúč                             | Predvolená hodnota                                       | Poznámky                                                                                                                    |
+| -------------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `providerId`                     | `"omniroute"`                                            | ID poskytovateľa, ID integrácie a prefix, pod ktorým sa zobrazujú modely                                                    |
+| `baseURL`                        | povinné                                                  | Koreňová adresa brány, iba `http(s)`; prípona `/v1` sa pridá tam, kde je to potrebné                                        |
+| `apiKey`                         | pripojené prihlasovacie údaje, potom `OMNIROUTE_API_KEY` | Kľúč pre chat pre `/v1/*`                                                                                                   |
+| `managementReadToken`            | použije `apiKey`, ak nie je nastavené                    | Kľúč pre `/api/*` — zvyčajne **nie je** rovnaký                                                                             |
+| `displayName`                    | `"OmniRoute"`                                            | Názov poskytovateľa vo výbere                                                                                               |
+| `timeoutMs`                      | `10000`                                                  | Časový limit načítania pre jednotlivé koncové body (automatické kombinácie používajú 5 s)                                   |
+| `modelCacheTtlMs`                | `300000`                                                 | TTL vyrovnávacej pamäte katalógu; snímka na disku urýchľuje studené spustenia                                               |
+| `timeouts`                       | použije `timeoutMs`, ak nie je nastavené                 | Limity pre jednotlivé koncové body v ms: `models`, `combos`, `autoCombos`, `enrichment`                                     |
+| `enrichment`                     | `true`                                                   | Načítať názvy, ceny a limity bezplatnej úrovne                                                                              |
+| `providerTag`                    | `true`                                                   | Pred zobrazovaný názov pridať poskytovateľa, ku ktorému smeruje                                                             |
+| `usableOnly`                     | `false`                                                  | Ponechať iba poskytovateľov, ktorých brána uvádza ako nakonfigurovaných                                                     |
+| `showcasePerOwner`               | `10`                                                     | Počet položiek na poskytovateľa zachovaných v predvolenom zobrazení                                                         |
+| `freshPerOwner`                  | `10`                                                     | Počet nových položiek na poskytovateľa zachovaných v predvolenom zobrazení                                                  |
+| `freshWindowDays`                | `90`                                                     | Časové okno aktuálnosti v dňoch pre vetvu nových položiek                                                                   |
+| `usageMemory`                    | `true`                                                   | Obnoviť staticky odstránené položky uvedené v analytike používania za 30 dní (vyžaduje token na správu)                     |
+| `visibleModels` / `hiddenModels` | `[]`                                                     | Zoznamy povolených položiek s presnou zhodou alebo zhodou prípony; zákaz má prednosť                                        |
+| `geminiSanitization`             | `true`                                                   | Odstrániť kľúčové slová schémy JSON, ktoré Gemini odmieta, zo schém nástrojov (nástroje s `$ref` sa preposielajú bez zmien) |
+| `apiFormat.allowAnthropic`       | `false`                                                  | Smerovať povolené ID cez blok API Anthropic                                                                                 |
+| `apiFormat.anthropicModels`      | `[]`                                                     | Úplné ID modelov smerované do Anthropic                                                                                     |
+| `logLevel` / `startupDebug`      | `warn` / `false`                                         | Podrobnosť zaznamenávania do denníka                                                                                        |
+
+Pamäť používania je predvolene zapnutá. Bez tokenu na správu zostane neaktívna
+(pri spustení sa zaznamená upozornenie) a nič sa neobnoví.
 
 ## Ako katalóg zostáva aktuálny
 

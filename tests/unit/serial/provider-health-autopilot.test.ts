@@ -114,7 +114,7 @@ test("provider health autopilot reports actionable cooldown and model lockout is
   }
 });
 
-test("provider health autopilot canonicalizes alias-keyed signals while preserving raw breaker actions", async () => {
+test("provider health autopilot canonicalizes alias-keyed signals and breaker actions", async () => {
   const canonicalProvider = "nous-research";
   const aliasProvider = "nous";
   const connection = await createCooldownConnection(canonicalProvider);
@@ -143,7 +143,12 @@ test("provider health autopilot canonicalizes alias-keyed signals while preservi
 
     const clearBreaker = findAction(report, "clear_provider_breaker");
     assert.ok(clearBreaker);
-    assert.equal(clearBreaker.target.provider, aliasProvider);
+    // contract changed by #15594: the shared provider breaker is now keyed by the
+    // canonical provider id (recordProviderFailure/getProviderBreaker both run
+    // resolveProviderId), so failures recorded under the alias land on the canonical
+    // breaker and the reset action targets it. The reset below still proves the
+    // alias-recorded failures are cleared.
+    assert.equal(clearBreaker.target.provider, canonicalProvider);
 
     const applied = await autopilot.executeProviderHealthAutopilotAction({
       type: clearBreaker.type,

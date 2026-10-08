@@ -1,0 +1,1 @@
+- fix(claude): stop `.env.example` pinning an outdated `CLAUDE_USER_AGENT` and ignore a stale `claude-cli/<older>` env UA below the pinned Claude Code version, so Opus 5.5 is no longer rejected (#15740)

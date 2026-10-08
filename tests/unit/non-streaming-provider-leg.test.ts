@@ -1,74 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import {
-  runNonStreamingProviderLeg,
-  type ChatCoreExecutorResult,
-  type ProviderLegInput,
-} from "../../open-sse/handlers/chatCore/nonStreamingProviderLeg.ts";
+import { runNonStreamingProviderLeg } from "../../open-sse/handlers/chatCore/nonStreamingProviderLeg.ts";
 import {
   buildAssistantMessageCacheKey,
   clearReasoningCacheAll,
   lookupReasoning,
 } from "../../open-sse/services/reasoningCache.ts";
-
-/* -- helpers --------------------------------------------------------------- */
-
-function makeResponse(
-  body: string | object,
-  status = 200,
-  headers: Record<string, string> = {}
-): Response {
-  const text = typeof body === "string" ? body : JSON.stringify(body);
-  return {
-    ok: status >= 200 && status < 300,
-    status,
-    statusText: status === 200 ? "OK" : "Error",
-    headers: new Headers({ "content-type": "application/json", ...headers }),
-    text: async () => text,
-    clone() {
-      return { ...this, text: async () => text } as unknown as Response;
-    },
-    body: null,
-  } as unknown as Response;
-}
-
-function makeExecutorResult(
-  responseBody: unknown,
-  status = 200,
-  headers: Record<string, string> = {}
-): ChatCoreExecutorResult {
-  return {
-    response: makeResponse(responseBody, status, headers),
-    url: "https://api.openai.com/v1/chat/completions",
-    headers: {},
-    transformedBody: responseBody,
-  };
-}
-
-function baseInput(overrides: Partial<ProviderLegInput> = {}): ProviderLegInput {
-  return {
-    phase: "initial",
-    sourceBody: {
-      model: "gpt-4o",
-      messages: [{ role: "user", content: "hi" }],
-    },
-    expectedConnectionId: undefined,
-    allowAccountRotation: true,
-    allowModelFallback: true,
-    executeProviderRequest: async () =>
-      makeExecutorResult({
-        id: "chatcmpl-test",
-        choices: [{ message: { role: "assistant", content: "Hello!" }, finish_reason: "stop" }],
-        usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
-      }),
-    setRequestWireState: () => {},
-    provider: "openai",
-    model: "gpt-4o",
-    connectionId: "conn-test",
-    ...overrides,
-  };
-}
+import { baseInput, makeExecutorResult } from "./_helpers/nonStreamingProviderLegFixtures.ts";
 
 /* -- characterization tests ------------------------------------------------ */
 

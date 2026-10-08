@@ -1,8 +1,9 @@
-/**
- * APIKEY provider catalog — gateways family (aggregators, multi-model routers & API marketplaces).
- * Pure data; merged by apikey/index.ts via spread (god-file decomposition; semantic split).
- */
+import { onomeoGateway } from "./onomeo";
+import { unificallyGateway } from "./unifically";
+/** APIKEY provider catalog — gateways family. Pure data; merged by apikey/index.ts via spread. */
 export const APIKEY_PROVIDERS_GATEWAYS = {
+  ...onomeoGateway,
+  ...unificallyGateway,
   // 1min.ai (https://docs.1min.ai) — multi-model chat aggregator with its own
   // custom API (single `prompt` string + real SSE, not OpenAI-compatible).
   // OmniRoute's oneminai executor translates both directions.
@@ -48,10 +49,10 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     website: "https://freebuff.com",
     hasFree: true,
     serviceKinds: ["llm"],
-    authHint:
-      "Enter Freebuff / Codebuff Auth Token (obtained via CLI login or automated harvester).",
-    freeNote: "Free Codebuff / Freebuff AI models.",
-    apiHint: "Token is authenticated against Codebuff upstream session pool.",
+    subscriptionRisk: true,
+    riskNoticeVariant: "official-client-only",
+    authHint: "Enter your Freebuff / Codebuff auth token from the CLI login.",
+    freeNote: "Free Freebuff models (official client only); paid API: freebuff.com/account/api.",
     passthroughModels: true,
   },
   "charm-hyper": {
@@ -320,6 +321,33 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     // executes, and under whose terms, is a per-upstream property (#12985).
     apiHint:
       "Create an EURouter API key, then use https://api.eurouter.ai/v1 as the OpenAI-compatible base URL. Models are served by third-party upstreams listed per model in the EURouter catalog; check each upstream jurisdiction, privacy and data-transfer terms before use.",
+  },
+  // Y-API (https://y-api.bestvirtualgoods.com) — API-key gateway over third-party
+  // upstreams. Its own machine-readable catalog (models.json, synced 2026-09-29) defines
+  // `vendor` as "who trained the model, not who serves it" and states every model there
+  // is served by the gateway itself: a resale router, not an inference host. Its live
+  // catalog endpoint GET /v1/models requires a key (401 anonymously), so discovery is
+  // left to the user's own key rather than a seeded list.
+  "y-api": {
+    id: "y-api",
+    serviceKinds: ["llm"],
+    alias: "y-api",
+    name: "Y-API",
+    icon: "router",
+    color: "#0891B2",
+    textIcon: "YA",
+    passthroughModels: true,
+    website: "https://y-api.bestvirtualgoods.com",
+    // Free in the sense the OpenRouter and UnoRouter entries above use: the publisher
+    // prices a named subset of its catalog at 0 credit, so the badge is earned by those
+    // models, not by a standing free tier. The note dates the snapshot and points at the
+    // file rather than promising the subset survives. It quotes no cash figure: the
+    // credit-to-cash conversion has changed before (1:20 promo → 1:10 on 2026-10-01).
+    hasFree: true,
+    freeNote:
+      "4 of its 20 catalog models (deepseek/deepseek-v4-flash, minimax/minimax-m2.7, tencent/hy3, xiaomi/mimo-v2.5) are priced at 0 credit in the publisher's 2026-10-04 snapshot; the rest bill against prepaid credit, and signup grants a small credit whose amount is Y-API's to set. Y-API can withdraw a free model at any time — re-check https://y-api.bestvirtualgoods.com/pricing.json.",
+    apiHint:
+      "Create an API key at https://y-api.bestvirtualgoods.com, then use https://api.y-api.bestvirtualgoods.com/v1 as the OpenAI-compatible base URL. Models are served by this gateway from the third-party upstream vendors named per model in its catalog; check each upstream jurisdiction, privacy and data-transfer terms before use.",
   },
   "mnn-ai": {
     id: "mnn-ai",
@@ -1313,6 +1341,21 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
       "Use your Kenari API key (kn-...) in Authorization: Bearer <key>. Fully OpenAI-compatible. API base URL: https://kenari.id/v1.",
     apiHint:
       "Kenari exposes an OpenAI-compatible chat completions endpoint at https://kenari.id/v1/chat/completions, plus a live /v1/models catalog covering Claude, GPT, DeepSeek, GLM, Kimi and more. OmniRoute uses the OpenAI protocol and lists models via passthrough.",
+  },
+  tokenmarket: {
+    id: "tokenmarket",
+    serviceKinds: ["llm"],
+    alias: "tokenmarket",
+    name: "Token Market",
+    icon: "hub",
+    color: "#2563EB",
+    textIcon: "TM",
+    passthroughModels: true,
+    website: "https://www.tokensmarket.ai",
+    authHint:
+      "Create an API key in the Token Market console, then paste it here as a Bearer token.",
+    apiHint:
+      "Token Market provides an OpenAI-compatible API at https://api.tokensmarket.ai/v1 and discovers its current model catalog from /v1/models.",
   },
   navy: {
     id: "navy",

@@ -15,6 +15,9 @@ test("GHE Copilot registry exposes Claude Opus 5", () => {
   assert.deepStrictEqual(opus5, {
     id: "claude-opus-5",
     name: "Claude Opus 5",
+    // contract changed by #15478: GHE Copilot Claude models declare the Claude target
+    // format so chatCore dispatches them through the Messages translator.
+    targetFormat: "claude",
     contextLength: 1000000,
     maxOutputTokens: 64000,
     // #14732 declared the thinking-effort tiers on the first-party Claude registries

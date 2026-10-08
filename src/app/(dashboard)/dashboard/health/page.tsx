@@ -1,16 +1,6 @@
 "use client";
 
-/**
- * Health Dashboard — Phase 8.3
- *
- * System health overview with cards for:
- * - System status (uptime, version, memory)
- * - Provider health (circuit breaker states)
- * - Rate limit status
- * - Active lockouts
- * - Signature cache stats
- * - Latency telemetry & prompt cache
- */
+/** System health diagnostics and independently refreshed local concurrency gates. */
 
 import { useState, useEffect, useCallback } from "react";
 
@@ -23,6 +13,7 @@ import { useLocale, useTranslations } from "next-intl";
 import TelemetryCard from "./TelemetryCard";
 import ProviderHealthAutopilotCard from "./ProviderHealthAutopilotCard";
 import ProviderHealthMatrixCard from "./ProviderHealthMatrixCard";
+import ConcurrencyQueuesCard from "./ConcurrencyQueuesCard";
 
 function formatUptime(seconds) {
   const d = Math.floor(seconds / 86400);
@@ -58,6 +49,15 @@ const CB_STYLES = {
 };
 
 export default function HealthPage() {
+  return (
+    <div className="space-y-6">
+      <ConcurrencyQueuesCard />
+      <HealthSnapshot />
+    </div>
+  );
+}
+
+function HealthSnapshot() {
   const locale = useLocale();
   const t = useTranslations("health");
   const tc = useTranslations("common");
@@ -271,13 +271,11 @@ export default function HealthPage() {
       {/* Verdict Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">
-          {
-            data.status === "healthy"
-              ? t("healthVerdictReady")
-              : data.status === "cooling"
-                ? t("healthVerdictCoolingDown")
-                : t("healthVerdictActionRequired")
-          }
+          {data.status === "healthy"
+            ? t("healthVerdictReady")
+            : data.status === "cooling"
+              ? t("healthVerdictCoolingDown")
+              : t("healthVerdictActionRequired")}
         </h1>
         <p className="text-text-muted text-lg">{t("healthSubtitle")}</p>
       </div>
@@ -300,9 +298,7 @@ export default function HealthPage() {
           {data.status === "healthy" ? "check_circle" : "error"}
         </span>
         <span className={data.status === "healthy" ? "text-green-400" : "text-red-400"}>
-          {data.status === "healthy"
-            ? t("allOperational")
-            : t("issuesDetected")}
+          {data.status === "healthy" ? t("allOperational") : t("issuesDetected")}
         </span>
       </div>
 

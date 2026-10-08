@@ -10,6 +10,9 @@ lastUpdated: 2026-10-05
 
 Core reference for the OmniRoute API. It covers the public `/v1` surface and the most-used management endpoints; the machine-readable [`docs/openapi.yaml`](../openapi.yaml) and the route tree under `src/app/api/` are the exhaustive sources.
 
+For the focused OpenAI-compatible protocol and provider capability matrix, see
+[`OPENAI_COMPATIBILITY.md`](./OPENAI_COMPATIBILITY.md).
+
 ---
 
 ## Table of Contents
@@ -274,6 +277,12 @@ Provider translation (canonical items are never forwarded unchanged):
   top-level item.
 - Gemini Embedding 2 family: one top-level array becomes a single native
   `models/{model}:embedContent` request with `content.parts` (`text` or `inline_data`).
+- llama.cpp (`llama-cpp/<model>`, any model the local server loaded): canonical `text` items
+  become plain strings, and `image` / `audio` / `video` become one
+  `{"content": [part]}` object each, using llama-server's chat content parts (`image_url`,
+  `input_audio` with format `wav` / `mp3` / `flac`, `input_video`) with inline data; one vector
+  per top-level item. The server must run with `--embedding --mmproj …`; without a projector it
+  rejects media itself. `document` is not supported.
 - Unknown/dynamic models without explicit modality metadata reject structured input with HTTP 400.
 
 ```json
@@ -315,7 +324,26 @@ Content-Type: application/json
 }
 ```
 
-Available providers: OpenAI (GPT Image 2), xAI (Grok Image), Together AI (FLUX), Fireworks AI, Nebius (FLUX), Hyperbolic, NanoBanana, **OpenRouter**, SD WebUI (local), ComfyUI (local).
+Available providers include OpenAI (GPT Image 2), xAI (Grok Image), Together AI (FLUX), Fireworks AI, Nebius (FLUX), Hyperbolic, NanoBanana, **OpenRouter**, **ZenMux**, SD WebUI (local), ComfyUI (local).
+
+ZenMux reuses the existing API-key connection and accepts `zenmux/` or `zm/` prefixes:
+
+- `zenmux/openai/gpt-image-2` uses ZenMux's OpenAI Images API. Options include `size`,
+  `quality`, `n`, `output_format`, `output_compression`, `background`, and `response_format`.
+- Other publishers, such as `zm/meta/muse-image-1.0`, use ZenMux's Vertex AI `:predict`
+  endpoint. `n` maps to `sampleCount`, `aspect_ratio` to `aspectRatio`, and `image_size`
+  (`1K`, `2K`, `4K`) to `sampleImageSize`. A pixel `size` supplies only an aspect ratio,
+  not guaranteed pixel dimensions. Supported ratios, resolutions, and counts vary by model.
+- `zm/inclusionai/ming-image-0.1-design` chooses its own dimensions. Omit `size`,
+  `aspect_ratio`, and `image_size`; explicit values return HTTP 400. PNG, JPEG, and WebP
+  can be requested with `output_format`.
+
+This integration supports text-to-image generation, not reference-image editing. Vertex
+output is normalized to `data[].b64_json`; `response_format: "url"` returns an upstream
+HTTPS URL or a base64 data URL when only image bytes are available. Empty/filtered outputs
+return an error rather than an empty success. Model access depends on the ZenMux account.
+See [ZenMux's Vertex API](https://docs.zenmux.ai/api/vertexai/generate-images) and
+[OpenAI Images API](https://docs.zenmux.ai/api/openai/generate-an-image).
 
 ```bash
 # List all image models
@@ -514,7 +542,10 @@ POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 
 > **Rerank provider nodes:** `POST /v1/rerank` also routes to OpenAI-compatible provider nodes
 > (oMLX, vLLM, Infinity, TEI behind a gateway, …) addressed as `<node-prefix>/<model>`. Loopback
-> nodes (`localhost`, `127.0.0.1`, `172.16.0.0/12`) are always eligible. Nodes on any other
+> nodes (`localhost`, `127.0.0.1`, `172.16.0.0/12`) are always eligible, and so are hostnames the
+> operator lists in `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (e.g. a Docker/Compose service name such
+> as `http://reranker:8080/v1`; these are called directly, never through `HTTP(S)_PROXY` or a
+> connection's pinned proxy). Nodes on any other
 > host — a LAN box or Tailscale peer — are eligible only when the operator enables the
 > `RERANK_REMOTE_PROVIDER_NODES` feature flag **and** the node's base URL passes the provider
 > outbound URL policy (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`).
@@ -857,6 +888,40 @@ ordinary inference API keys. Credential families, scopes, and curl examples:
 | `/api/provider-nodes*`                  | Various               | Provider node management                                                                                                                                  |
 | `/api/provider-models`                  | GET/POST/PATCH/DELETE | Custom models (add, update, hide/show, delete)                                                                                                            |
 | `/api/provider-models/validate-and-add` | POST                  | Management-authenticated, opt-in strict-connection validation and atomic custom-model registration; see [Model validation](../guides/MODEL-VALIDATION.md) |
+
+Custom Chat Completions nodes adapt explicit reasoning opt-outs to the upstream backend. A
+successful connection test automatically selects chat-template controls for each exact model ID
+whose `/models` entry proves a recognized `owned_by` value: `vllm`, `sglang`, or `llamacpp`.
+Transparent OpenAI-compatible wrappers may preserve the original model entry inside a nested
+`openai` object; detection follows up to three such envelopes. Models with missing, unknown, or
+conflicting ownership keep ordinary OpenAI behavior. Detection reuses the existing catalog request,
+generates no completion tokens, and is invalidated when the connection endpoint changes.
+
+To pin the behavior for a backend that does not expose that metadata, use the existing partial
+provider update API:
+
+```json
+{
+  "providerSpecificData": {
+    "reasoningControl": "chat-template"
+  }
+}
+```
+
+Send that body with `PUT /api/providers/<connection-id>`. On that connection, an explicit
+reasoning effort of `none` is sent as `chat_template_kwargs.thinking=false` and
+`chat_template_kwargs.enable_thinking=false`. Explicit native template values remain authoritative
+unless a server-side reasoning rule forces an effort. The setting applies only when a custom
+OpenAI-compatible connection dispatches a Chat Completions body; Responses requests and ordinary
+providers keep their native request shape. Set `reasoningControl` to `openai` to force ordinary OpenAI
+`reasoning_effort` passthrough, or omit it/set it to `null` to use automatic detection.
+
+Claude Code auto-mode classifier requests default native thinking to disabled when they contain
+no explicit reasoning controls. Detection uses the classifier's system marker in Claude-format
+requests, not model names or completion limits. Explicit body controls, supported effort/thinking
+headers, routing rules, and resolved model effort keep their existing priority. Both classifier
+stages retain their prompts, completion limits, stop sequences, and real upstream permission
+verdicts; the second stage can still produce its requested visible reasoning as ordinary text.
 
 ### OAuth Flows
 

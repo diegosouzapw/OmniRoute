@@ -57,6 +57,7 @@ import {
   unmarkQuotaHealthy,
   isQuotaHealthy,
 } from "./quotaCacheState";
+import { isCodexPaidCreditsEnabled } from "@/lib/providers/codexPaidCredits";
 
 // Keep markQuotaHealthy's public import path; the remaining leaf state stays internal.
 export { markQuotaHealthy } from "./quotaCacheState";
@@ -295,6 +296,14 @@ function resolveAntigravityQuotaWindowsForModel(
   return selectAntigravityQuotaWindowNames(quotaNames, requestedModel);
 }
 
+// Automatic exhaustion is not the operator's optional usage cutoff — but Antigravity's
+// own remaining-fraction math can land a fully-used window at e.g. 0.0000017% instead
+// of an exact 0 (floating-point noise), so the "fully depleted" line sits a hair below
+// 100% used rather than exactly at it. This must stay far below the smallest boundary
+// `agy-quota-exhaustion-threshold.test.ts` asserts is NOT automatic exhaustion (1%
+// remaining / 99% used), or genuinely-usable low-quota accounts get skipped.
+const ANTIGRAVITY_EXHAUSTION_THRESHOLD_PERCENT = 99.999;
+
 function isAntigravityQuotaExhausted(
   connectionId: string,
   entry: QuotaCacheEntry,
@@ -304,12 +313,14 @@ function isAntigravityQuotaExhausted(
   const quotaNames = Object.keys(entry.quotas || {});
   if (quotaNames.length === 0) return entry.exhausted;
   const matchingWindows = resolveAntigravityQuotaWindowsForModel(quotaNames, requestedModel);
+  // Antigravity enforces both 5h and weekly windows for a family. A remaining
+  // 5h bucket cannot make an account usable when weekly is exhausted (or vice versa).
   return (
     matchingWindows.length > 0 &&
-    matchingWindows.every(
+    matchingWindows.some(
       (windowName) =>
-        // Automatic exhaustion is not the operator's optional usage cutoff.
-        getQuotaWindowStatus(connectionId, windowName, 100)?.reachedThreshold
+        getQuotaWindowStatus(connectionId, windowName, ANTIGRAVITY_EXHAUSTION_THRESHOLD_PERCENT)
+          ?.reachedThreshold
     )
   );
 }
@@ -453,6 +464,8 @@ function activeClaudeResetMs(
 }
 
 function isActiveClaudeExhaustion(quota: QuotaInfo, now: number): boolean {
+  // Active critical limits can be predictive warnings while quota remains.
+  // Explicit upstream 429s still use activeClaudeResetMs without this preflight guard.
   return activeClaudeResetMs(quota, now, isPreflightBlockingClaudeQuota) !== null;
 }
 
@@ -615,22 +628,31 @@ export function getCachedClaudeQuotaScopeDecision(input: {
 
 export function getClaudeQuotaPreflightResetAt(
   connectionId: string,
-  now = Date.now()
+  requestedModel: string | null,
+  providerSpecificData?: unknown
 ): string | null {
   const entry = getState().cache.get(connectionId);
   if (!entry || resolveProviderId(entry.provider) !== "claude") return null;
-  const windows = [...Object.values(entry.quotas), ...Object.values(entry.modelQuotas)].filter(
-    (quota) => isPreflightBlockingClaudeQuota(quota)
-  );
-  let earliest: string | null = null;
-  let earliestMs = Infinity;
-  for (const quota of windows) {
-    const resetMs = activeClaudeResetMs(quota, now);
-    if (resetMs === null || !quota.resetAt || resetMs >= earliestMs) continue;
-    earliestMs = resetMs;
-    earliest = quota.resetAt;
-  }
-  return earliest;
+  const now = Date.now();
+  const config = readClaudeUsageLimitConfig(providerSpecificData);
+  const sessionRecoveryEnabled = config.lowPriorityMode || config.autoLimitReset;
+  const windows = [
+    ...Object.values(entry.quotas).filter(
+      (quota) =>
+        quota.claudeQuota &&
+        quota.claudeQuota.kind !== "weekly_scoped" &&
+        (quota.claudeQuota.kind !== "session" || !sessionRecoveryEnabled)
+    ),
+    ...Object.values(entry.modelQuotas).filter(
+      (quota) =>
+        requestedModel &&
+        quota.claudeQuota?.kind === "weekly_scoped" &&
+        claudeQuotaMatchesModel(quota.claudeQuota, requestedModel)
+    ),
+  ].filter((quota) => isActiveClaudeExhaustion(quota, now));
+  // All blocking windows on this account must reset before it can serve this model.
+  // The caller then chooses the earliest available account, not the cache park TTL.
+  return decisionForLatestClaudeReset(windows, "connection", now)?.resetAt ?? null;
 }
 
 export function isQuotaExhaustedForRequest(
@@ -642,6 +664,9 @@ export function isQuotaExhaustedForRequest(
   if (isQuotaHealthy(connectionId)) return false;
   if (isCodexQuotaFilteringDisabled(provider, providerSpecificData)) return false;
   if (isClaudeExtraUsageAllowed(provider, providerSpecificData)) return false;
+  // Subscription snapshots cannot decide paid-credit eligibility. The mandatory
+  // Codex preflight checks the credit balance before dispatch; cooldowns remain separate.
+  if (isCodexPaidCreditsEnabled(provider, providerSpecificData, requestedModel)) return false;
   const entry = getState().cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
   if (!entry) return false;
 
@@ -948,12 +973,14 @@ export function getQuotaWindowObservation(
 }
 
 /**
- * Mark an account as out of credits from a 402-class response.
+ * Mark an account as out of credits from a 402/403-class balance response.
  *
  * Upstream refusing the request for balance is authoritative: it outranks
  * whatever remaining percentage the last snapshot happened to hold, which may
- * be hours old. Without this, a connection that answered 402 keeps its stale
- * non-zero remaining and the next quota-weighted draw can pick it again.
+ * be hours old. Without this, a connection that answered 402 (or a 403
+ * AUTHZ_INSUFFICIENT_BALANCE / "Insufficient account balance") keeps its stale
+ * non-zero remaining and the next quota-weighted / fill-first draw can pick it
+ * again.
  *
  * The entry is kept (never deactivated or deleted) — credits come back, and a
  * later successful refresh or window reset clears the flag through the same

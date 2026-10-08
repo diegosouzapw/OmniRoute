@@ -404,6 +404,11 @@
       "disposition": "separately-invoked"
     },
     {
+      "name": "check:ui-icu",
+      "command": "node scripts/i18n/check-ui-icu.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
       "name": "check:vitest-exclusions",
       "command": "node scripts/check/check-vitest-exclusions.mjs",
       "disposition": "separately-invoked"
@@ -606,6 +611,11 @@
     {
       "name": "test:security",
       "command": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test tests/unit/security-fase01.test.ts",
+      "disposition": "separately-invoked"
+    },
+    {
+      "name": "test:services:int",
+      "command": "cross-env RUN_SERVICES_INT=1 DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 \"tests/integration/services/*.test.ts\"",
       "disposition": "separately-invoked"
     },
     {

@@ -275,7 +275,7 @@ describe("catalog fail-open", () => {
 });
 
 describe("catalog combo vs combo", () => {
-  it("second combo with same id warns only once", async () => {
+  it("two combos sharing an id publish under their own names without colliding", async () => {
     const draft = fakeDraft();
     const warns: string[] = [];
     const origWarn = console.warn;
@@ -303,16 +303,23 @@ describe("catalog combo vs combo", () => {
     } finally {
       console.warn = origWarn;
     }
-    assert.equal(warns.length, 1);
-    assert.match(warns[0], /collides with a model id; combo wins/);
+    // Under name-based keying the combos publish at their own keys
+    // (`omniroute/Dupe Combo` and `omniroute/Dupe Combo Again`) — they no
+    // longer collide with the model `dupe` at `omniroute/dupe`.
+    assert.equal(warns.length, 0);
     const m = draft.models.get("omniroute/dupe");
-    assert.ok(m);
-    assert.equal(m?.name, "Dupe Combo Again");
+    assert.ok(m, "raw model remains at its own key");
+    assert.equal(m?.name, "dupe");
+    const combo1 = draft.models.get("omniroute/Dupe Combo");
+    assert.ok(combo1, "first combo published under its name");
+    const combo2 = draft.models.get("omniroute/Dupe Combo Again");
+    assert.ok(combo2, "second combo published under its name");
+    assert.equal(combo2?.name, "Dupe Combo Again");
   });
 });
 
 describe("catalog model bare vs combo", () => {
-  it("bare model id colliding with combo id warns exactly once", async () => {
+  it("bare model id and a same-suffix combo name no longer collide", async () => {
     const draft = fakeDraft();
     const warns: string[] = [];
     const origWarn = console.warn;
@@ -335,9 +342,13 @@ describe("catalog model bare vs combo", () => {
     } finally {
       console.warn = origWarn;
     }
-    assert.equal(warns.length, 1);
-    assert.match(warns[0], /collides with a model id; combo wins/);
-    assert.match(warns[0], /"omniroute\/dupe"/);
+    // Name-based keying: the combo advertises `Dupe Combo`, so it sits at
+    // `omniroute/Dupe Combo` instead of collapsing onto the raw model's
+    // `omniroute/dupe` key (the accidental-collision class the warn was
+    // written for). Both entries publish, nothing warns.
+    assert.equal(warns.length, 0);
+    assert.ok(draft.models.get("omniroute/dupe"), "raw model keeps its id key");
+    assert.ok(draft.models.get("omniroute/Dupe Combo"), "combo published under its name");
   });
 });
 
@@ -430,7 +441,7 @@ describe("catalog capability presets", () => {
     );
     assert.equal(res.models, 1);
     assert.equal(res.combos, 0);
-    assert.ok(!draft.models.has("omniroute/combo-a"));
+    assert.ok(!draft.models.has("omniroute/Combo A"));
   });
 
   it("toolsOnly keeps only tool-calling models", async () => {
@@ -472,8 +483,8 @@ describe("catalog capability presets", () => {
       }
     );
     assert.equal(res.combos, 1);
-    assert.ok(draft.models.has("omniroute/pure"));
-    assert.ok(!draft.models.has("omniroute/mixed"));
+    assert.ok(draft.models.has("omniroute/Pure"));
+    assert.ok(!draft.models.has("omniroute/Mixed"));
   });
 
   it("visionOnly keeps image-input models from either server convention", async () => {

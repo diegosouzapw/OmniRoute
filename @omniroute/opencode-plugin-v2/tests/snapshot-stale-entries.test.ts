@@ -319,7 +319,7 @@ describe("plugin-v2 snapshot stale-entry filter", () => {
       JSON.stringify({
         v: 2,
         identityFingerprint: fingerprint,
-        models: [{ id: "good-1" }],
+        models: [{ id: "good-1", capabilities: { tool_calling: true } }],
         combos: [],
         autoCombos: [{ id: "auto" }],
         providers: [],

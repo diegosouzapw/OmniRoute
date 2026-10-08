@@ -1,0 +1,1 @@
+- fix(cli): the `--tray` launcher no longer kills a still-booting worker after a fixed 60s (autostart on Windows never converged while systray2 installed); default readiness deadline is now 240s and configurable via `OMNIROUTE_TRAY_READY_TIMEOUT_MS` (#15464)

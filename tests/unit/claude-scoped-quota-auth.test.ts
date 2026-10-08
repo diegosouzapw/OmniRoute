@@ -380,6 +380,143 @@ test("Claude session preflight allows upstream recovery opt-ins without bypassin
   );
 });
 
+for (const percent of [91, 93]) {
+  test(`Claude critical weekly warning at ${percent}% still selects an account`, async () => {
+    const connection = await seedConnection("claude");
+    const resetAt = new Date(Date.now() + 3 * 24 * 60 * 60_000).toISOString();
+    const { quotas, modelQuotas } = normalizeClaudeUsageQuotas({
+      limits: [
+        { kind: "session", percent: 0, is_active: false, severity: "normal" },
+        { kind: "weekly_all", percent, resets_at: resetAt, is_active: true, severity: "critical" },
+      ],
+    });
+    quotaCache.setQuotaCache(connection.id, "claude", quotas, modelQuotas);
+    assert.equal(
+      quotaCache.isQuotaExhaustedForRequest(connection.id, "claude", "claude-opus-5-5"),
+      false
+    );
+    const selected = await auth.getProviderCredentials("claude", null, null, "claude-opus-5-5");
+    assert.equal(selected?.connectionId, connection.id);
+    assert.notEqual(selected?.allRateLimited, true);
+
+    const policy = auth.evaluateQuotaLimitPolicy("claude", {
+      id: connection.id,
+      providerSpecificData: {
+        limitPolicy: { enabled: true, thresholdPercent: 90, windows: ["weekly"] },
+      },
+    });
+    assert.equal(policy.blocked, true, "an explicit operator cutoff still applies");
+    assert.equal(policy.resetAt, resetAt);
+  });
+}
+
+test("Claude scoped warnings allow requests while exhausted scopes block only matching models", () => {
+  const resetAt = new Date(Date.now() + 3 * 24 * 60 * 60_000).toISOString();
+  for (const percent of [93, 100]) {
+    const { quotas, modelQuotas } = normalizeClaudeUsageQuotas({
+      limits: [
+        {
+          kind: "weekly_scoped",
+          percent,
+          resets_at: resetAt,
+          is_active: true,
+          severity: "critical",
+          scope: { model: { display_name: "Fable" } },
+        },
+      ],
+    });
+    quotaCache.setQuotaCache("claude-scoped-warning", "claude", quotas, modelQuotas);
+    assert.equal(
+      quotaCache.isQuotaExhaustedForRequest("claude-scoped-warning", "claude", "claude-fable-5-1"),
+      percent === 100
+    );
+    assert.equal(
+      quotaCache.isQuotaExhaustedForRequest("claude-scoped-warning", "claude", "claude-opus-5-5"),
+      false
+    );
+  }
+});
+
+test("Claude exhaustion reports the last applicable reset rather than the cache park deadline", async () => {
+  const connection = await seedConnection("claude");
+  const now = Date.now();
+  const sessionReset = new Date(now + 60 * 60_000).toISOString();
+  const weeklyReset = new Date(now + 3 * 24 * 60 * 60_000).toISOString();
+  const unrelatedReset = new Date(now + 5 * 24 * 60 * 60_000).toISOString();
+  const { quotas, modelQuotas } = normalizeClaudeUsageQuotas({
+    limits: [
+      {
+        kind: "session",
+        percent: 100,
+        resets_at: sessionReset,
+        is_active: true,
+        severity: "critical",
+      },
+      {
+        kind: "weekly_all",
+        percent: 100,
+        resets_at: weeklyReset,
+        is_active: true,
+        severity: "critical",
+      },
+      {
+        kind: "weekly_scoped",
+        percent: 100,
+        resets_at: unrelatedReset,
+        is_active: true,
+        severity: "critical",
+        scope: { model: { display_name: "Fable" } },
+      },
+    ],
+  });
+  quotaCache.setQuotaCache(connection.id, "claude", quotas, modelQuotas);
+  const blocked = await auth.getProviderCredentials("claude", null, null, "claude-opus-5-5");
+  assert.equal(blocked.allRateLimited, true);
+  assert.equal(blocked.retryAfter, weeklyReset);
+  assert.equal(String(blocked.lastError).includes("reset after 5m"), false);
+  const fable = await auth.getProviderCredentials("claude", null, null, "claude-fable-5-1");
+  assert.equal(fable.retryAfter, unrelatedReset);
+});
+
+test("Claude reset ignores recoverable sessions and selects the earliest eligible account reset", async () => {
+  const first = await seedConnection("claude");
+  const second = await seedConnection("claude");
+  const now = Date.now();
+  const sessionReset = new Date(now + 4 * 60 * 60_000).toISOString();
+  const firstReset = new Date(now + 60 * 60_000).toISOString();
+  const secondReset = new Date(now + 2 * 60 * 60_000).toISOString();
+  for (const [connection, resetAt] of [
+    [first, firstReset],
+    [second, secondReset],
+  ] as const) {
+    await providersDb.updateProviderConnection(connection.id, {
+      providerSpecificData: { lowPriorityMode: true },
+    });
+    const { quotas, modelQuotas } = normalizeClaudeUsageQuotas({
+      limits: [
+        {
+          kind: "session",
+          percent: 100,
+          resets_at: sessionReset,
+          is_active: true,
+          severity: "critical",
+        },
+        {
+          kind: "weekly_all",
+          percent: 100,
+          resets_at: resetAt,
+          is_active: true,
+          severity: "critical",
+        },
+      ],
+    });
+    quotaCache.setQuotaCache(connection.id, "claude", quotas, modelQuotas);
+  }
+  const blocked = await auth.getProviderCredentials("claude", null, null, "claude-opus-5-5");
+  assert.equal(blocked.allRateLimited, true);
+  assert.equal(blocked.retryAfter, firstReset);
+});
+
 test("predictive critical weekly warning with quota remaining is not preflight exhaustion", async () => {
   const connection = await seedConnection("claude", {
     name: "claude-predictive-weekly-warning",

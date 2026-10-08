@@ -113,7 +113,7 @@ catalog is never a mystery.
 | `providerTag`                           | `true`                                                     | Prefix a display name with the upstream provider it routes to                                                                                                                                                                                       |
 | `geminiSanitization`                    | `true`                                                     | Strip `$schema`/`additionalProperties` from tool schemas sent to Gemini models (`$ref` tools are forwarded untouched)                                                                                                                               |
 | `usableOnly`                            | `false`                                                    | Filter to healthy provisioned providers (`/api/providers`)                                                                                                                                                                                          |
-| `freeOnly` / `toolsOnly` / `visionOnly` | `false` / `true` / `false`                                 | Filter to free-tier / tool-calling / image-input models; combos with a filtered member are dropped, never partial                                                                                                                                   |
+| `freeOnly` / `toolsOnly` / `visionOnly` | `false` / `false` / `false`                                | Filter to free-tier / tool-calling / image-input models; combos with a filtered member are dropped, never partial                                                                                                                                   |
 | `showcasePerOwner`                      | `10`                                                       | Default-view entries kept per provider                                                                                                                                                                                                              |
 | `freshPerOwner`                         | `10`                                                       | Default-view fresh entries kept per provider                                                                                                                                                                                                        |
 | `freshWindowDays`                       | `90`                                                       | Freshness window in days for the fresh branch                                                                                                                                                                                                       |
@@ -125,12 +125,11 @@ catalog is never a mystery.
 | `apiFormat.anthropicPrefixes`           | v1 defaults                                                | Deprecated, warns once — prefer `anthropicModels`                                                                                                                                                                                                   |
 | `logLevel` / `startupDebug`             | `warn` / `false`                                           | Logger verbosity                                                                                                                                                                                                                                    |
 
-`toolsOnly` is on by default: agent sessions call tools on almost every turn, so
-models without tool calling are hidden from the host picker. This removes models
-an agent cannot use; it does not cap the catalog size, and a very large catalog
-can still slow the host picker (see
-[opencode#47615](https://github.com/anomalyco/opencode/issues/47615)). Set
-`toolsOnly: false` to publish the full catalog.
+`toolsOnly` is off by default, so the full catalog is published. Set
+`toolsOnly: true` to hide models without tool calling from the host picker —
+useful for agent sessions that call tools on almost every turn. It does not cap
+the catalog size, and a very large catalog can still slow the host picker (see
+[opencode#47615](https://github.com/anomalyco/opencode/issues/47615)).
 
 Usage memory is on by default. Without a management token it stays inert
 (a startup notice is logged) and nothing is restored — the picker stays filtered.
