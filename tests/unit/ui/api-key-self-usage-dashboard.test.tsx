@@ -112,9 +112,12 @@ describe("SelfServiceQuotaSettings", () => {
   });
 });
 
-describe("API key permissions modal", () => {
-  it("includes sharedQuotaProviders and anthropicRateLimitHeaders in the PATCH payload", async () => {
-    const calls = stubFetch((url) => {
+// The permissions modal this slice originally extended was replaced on the release tip by
+// the full-page access editor (#14885). Self-service settings are edited on the details page
+// (PUT /api/keys/{id}/self-service, covered below); the key list only links to it.
+describe("API key list", () => {
+  it("links each key to its usage, limits and quota page", async () => {
+    stubFetch((url) => {
       if (url === "/api/keys") {
         return {
           body: {
@@ -127,29 +130,7 @@ describe("API key permissions modal", () => {
                 allowedCombos: [],
                 allowedConnections: [],
                 scopes: ["self:usage", "self:account-quota"],
-                sharedQuotaProviders: ["anthropic"],
-                anthropicRateLimitHeaders: "auto",
                 createdAt: "2026-09-01T00:00:00.000Z",
-              },
-            ],
-          },
-        };
-      }
-      if (url === "/api/providers") {
-        return {
-          body: {
-            connections: [
-              {
-                id: "11111111-1111-1111-1111-111111111111",
-                name: "a",
-                provider: "anthropic",
-                isActive: true,
-              },
-              {
-                id: "22222222-2222-2222-2222-222222222222",
-                name: "b",
-                provider: "codex",
-                isActive: true,
               },
             ],
           },
@@ -159,24 +140,10 @@ describe("API key permissions modal", () => {
     });
 
     render(<ApiManagerPageClient />);
-    fireEvent.click(await screen.findByTitle("Edit permissions"));
-    expect(
-      screen.getByRole("link", { name: /View usage, limits and quota for Team key/ })
-    ).toBeTruthy();
-
-    fireEvent.click(await screen.findByRole("checkbox", { name: /codex/ }));
-    fireEvent.change(screen.getByLabelText("Anthropic rate-limit headers"), {
-      target: { value: "strip" },
+    const link = await screen.findByRole("link", {
+      name: /View usage, limits and quota for Team key/,
     });
-    fireEvent.click(screen.getByRole("button", { name: "Save Permissions" }));
-
-    await waitFor(() => expect(calls.some((c) => c.method === "PATCH")).toBe(true));
-    const patch = calls.find((c) => c.method === "PATCH");
-    expect(patch?.url).toBe("/api/keys/key-1");
-    expect(patch?.body).toMatchObject({
-      sharedQuotaProviders: ["anthropic", "codex"],
-      anthropicRateLimitHeaders: "strip",
-    });
+    expect(link.getAttribute("href")).toBe("/dashboard/api-manager/key-1");
   });
 });
 
