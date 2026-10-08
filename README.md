@@ -61,7 +61,7 @@
 
 <div align="center">
 
-|                           | v3.8.49 |        **v3.8.50**        | `v3.8.51+`  |
+|                           | v3.8.49 |        **v3.8.52**        | `v3.8.52+`  |
 | ------------------------- | :-----: | :-----------------------: | :---------: |
 | 🌐 Providers              |   290   |          **357**          | more queued |
 | 🧠 Unique chat model IDs  |  1185   |         **1312**          |      —      |
@@ -568,7 +568,7 @@ the current catalog at **[radar.omniroute.online/planos](https://radar.omniroute
 
 </div>
 
-> Recent highlights from **v3.8.20 → v3.8.50**. Full history in [`CHANGELOG.md`](CHANGELOG.md).
+> Recent highlights from **v3.8.20 → v3.8.52**. Full history in [`CHANGELOG.md`](CHANGELOG.md).
 
 - **🎛️ OmniConductor** — inbound A2A delegation to your agent fleet, Conductor skills on the Agent Card, and a dashboard panel with Faro push-to-talk voice chat. → [A2A Server](docs/frameworks/A2A-SERVER.md)
 - **🛂 Adaptive admission & overload protection** — heavyweight chat requests queue instead of 503ing, with atomic RPM rolling leases per connection. → [Resilience Guide](docs/architecture/RESILIENCE_GUIDE.md)
@@ -1009,7 +1009,7 @@ omniroute
 ```
 
 > 💡 See `npm warn ERESOLVE` or peer-dep warnings? [They're harmless](docs/guides/TROUBLESHOOTING.md#npm-install-warnings-eresolve--peer--deprecated).
-> **Using npm 11 or later?** npm may block package lifecycle scripts unless they are allowed. OmniRoute's `postinstall` (`node scripts/build/postinstall.mjs`) is required to prepare its native runtime files. Allow the packages named in npm's warning when installing globally. For the package set reported by OmniRoute 3.8.51:
+> **Using npm 11 or later?** npm may block package lifecycle scripts unless they are allowed. OmniRoute's `postinstall` (`node scripts/build/postinstall.mjs`) is required to prepare its native runtime files. Allow the packages named in npm's warning when installing globally. For the package set reported by OmniRoute 3.8.52:
 >
 > ```bash
 > npm install -g --allow-scripts=omniroute,keytar,onnxruntime-node,@parcel/watcher,@swc/core,protobufjs,esbuild omniroute

@@ -16,7 +16,7 @@ npm run build:release          # Release build
 npm run lint                   # ESLint (0 errors expected; warnings are pre-existing)
 npm run typecheck:core         # TypeScript check (should be clean)
 npm run typecheck:noimplicit:core  # Strict check (no implicit any)
-npm run test:coverage          # Unit tests + coverage gate (60/60/60/60 — statements/lines/functions/branches)
+npm run test:coverage          # Unit tests + coverage gate (67.33 / 67.33 / 72.02 / 65.08 — statements/lines/functions/branches, enforced by the blocking ratchet in config/quality/quality-baseline.json; test:coverage itself hardcodes 60)
 npm run check                  # lint + test combined
 npm run check:cycles           # Detect circular dependencies (advisory — lists the SCCs)
 npm run check:cycles:ratchet   # Same scan, blocking above the quality-baseline ceiling
@@ -462,16 +462,16 @@ For any non-trivial change, read the matching deep-dive first:
 
 ## Testing
 
-| What                    | Command                                                                       |
-| ----------------------- | ----------------------------------------------------------------------------- |
-| Unit tests              | `npm run test:unit`                                                           |
-| Single file             | `node --import tsx/esm --test tests/unit/your-file.test.ts`                   |
-| Vitest (MCP, autoCombo) | `npm run test:vitest`                                                         |
-| E2E (Playwright)        | `npm run test:e2e`                                                            |
-| Protocol E2E (MCP+A2A)  | `npm run test:protocols:e2e` (CI job `test-protocols-e2e`, advisory — #10049) |
-| Ecosystem               | `npm run test:ecosystem` (CI job `test-ecosystem`, blocking)                  |
-| Coverage gate           | `npm run test:coverage` (60/60/60/60 — statements/lines/functions/branches)   |
-| Coverage report         | `npm run coverage:report`                                                     |
+| What                    | Command                                                                                                                                                                                                    |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unit tests              | `npm run test:unit`                                                                                                                                                                                        |
+| Single file             | `node --import tsx/esm --test tests/unit/your-file.test.ts`                                                                                                                                                |
+| Vitest (MCP, autoCombo) | `npm run test:vitest`                                                                                                                                                                                      |
+| E2E (Playwright)        | `npm run test:e2e`                                                                                                                                                                                         |
+| Protocol E2E (MCP+A2A)  | `npm run test:protocols:e2e` (CI job `test-protocols-e2e`, advisory — #10049)                                                                                                                              |
+| Ecosystem               | `npm run test:ecosystem` (CI job `test-ecosystem`, blocking)                                                                                                                                               |
+| Coverage gate           | `npm run test:coverage` (67.33 / 67.33 / 72.02 / 65.08 — statements/lines/functions/branches, enforced by the blocking ratchet in config/quality/quality-baseline.json; test:coverage itself hardcodes 60) |
+| Coverage report         | `npm run coverage:report`                                                                                                                                                                                  |
 
 **PR rule**: If you change production code in `src/`, `open-sse/`, `electron/`, or `bin/`, you must include or update tests in the same PR.
 

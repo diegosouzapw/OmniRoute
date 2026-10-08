@@ -278,7 +278,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 └── .env.example                  # Environment variable template
 ```
 
-## Key Features (v3.8.50)
+## Key Features (v3.8.52)
 
 ### Core Proxy
 - **370 AI providers** with automatic format translation
