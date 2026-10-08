@@ -37,7 +37,7 @@ export const NOAUTH_PROVIDERS = {
     freeNote:
       "No API key required — public OpenCode endpoint with Kimi, GLM, Qwen, MiMo, MiniMax models.",
     notice: {
-      text: "OpenCode Free uses the public OpenCode endpoint (https://opencode.ai/zen/v1). No signup or API key needed. Rate limits apply. The free tier only serves requests matching the OpenCode client contract (CLI identity headers and the bash/glob/grep/read tool fingerprint), which OmniRoute applies automatically; a request that does not match is refused with 403 FreeTierError.",
+      text: "OpenCode Free uses the public OpenCode endpoint (https://opencode.ai/zen/v1). No signup or API key needed. Rate limits apply. The free tier only serves requests matching the OpenCode client contract (CLI identity headers and the bash/glob/grep/read tool fingerprint), which OmniRoute applies automatically; requests that do not match the OpenCode client contract are refused with 403 FreeTierError.",
     },
   },
   "duckduckgo-web": {

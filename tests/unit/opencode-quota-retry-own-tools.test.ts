@@ -138,7 +138,9 @@ for (const status of [403, 451]) {
       );
       assert.equal(response.status, 200);
       assert.equal(bodies.length, 2);
-      assert.deepEqual(toolNamesOf(bodies[0]), ["read", "bash"]);
+      // #15322: the gated contract always completes the lowercase fingerprint quartet, so the
+      // first attempt carries the caller's `read` plus bash/glob/grep (was ["read", "bash"]).
+      assert.deepEqual(toolNamesOf(bodies[0]), ["read", "bash", "glob", "grep"]);
       assert.ok(toolNamesOf(bodies[1]).includes("read"));
       assert.ok(toolNamesOf(bodies[1]).includes("edit"));
       await response.body?.cancel();

@@ -31,6 +31,7 @@ import {
   concealFingerprintToolNames,
   fingerprintPlaceholderTool,
   fingerprintToolKey,
+  recordRenamedToolNames,
   renamedToolNamesFor,
   restoreFingerprintToolNames,
   restoreToolNames,
@@ -39,6 +40,7 @@ import {
 import {
   applyFreeTierRequestContract,
   isGatedFreeTierRequest,
+  restoreFingerprintNames,
 } from "../../open-sse/executors/opencodeFreeTierContract.ts";
 import { forwardOpencodeClientHeaders } from "../../open-sse/utils/opencodeHeaders.ts";
 
@@ -351,6 +353,44 @@ test("restoreFingerprintToolNames leaves a non-JSON, non-SSE body untouched", ()
     headers: { "content-type": "text/plain" },
   });
   assert.equal(restoreFingerprintToolNames(upstream, new Map([["bash", "Bash"]])), upstream);
+});
+
+// The executor result after the release-tip rework can be a bare Response (forced-stream
+// rebuild) or an `{ response }` wrapper — both must get the caller's names back (#15322).
+const gluedJson = (name: string) =>
+  new Response(
+    JSON.stringify({ choices: [{ message: { tool_calls: [{ function: { name } }] } }] }),
+    { status: 200, headers: { "content-type": "application/json" } }
+  );
+const firstToolName = async (r: Response) =>
+  (
+    (await r.json()) as {
+      choices: Array<{ message: { tool_calls: Array<{ function: { name: string } }> } }>;
+    }
+  ).choices[0].message.tool_calls[0].function.name;
+
+test("restoreFingerprintNames restores a bare Response result", async () => {
+  const body = { model: "big-pickle" };
+  recordRenamedToolNames(body, new Map([["bash", "Bash"]]));
+  const restored = restoreFingerprintNames(body, gluedJson("bash"));
+  assert.equal(await firstToolName(restored), "Bash");
+});
+
+test("restoreFingerprintNames restores an { response } result and keeps its other fields", async () => {
+  const body = { model: "big-pickle" };
+  recordRenamedToolNames(body, new Map([["read", "Read"]]));
+  const result = { response: gluedJson("read"), url: "u", headers: {} };
+  const restored = restoreFingerprintNames(body, result);
+  assert.notEqual(restored, result);
+  assert.equal(restored.url, "u");
+  assert.equal(await firstToolName(restored.response), "Read");
+});
+
+test("restoreFingerprintNames is identity when the request recorded no renames", () => {
+  const response = gluedJson("bash");
+  assert.equal(restoreFingerprintNames({ model: "big-pickle" }, response), response);
+  const result = { response };
+  assert.equal(restoreFingerprintNames({ model: "big-pickle" }, result), result);
 });
 
 // ── End to end: the contract + fingerprint together produce a gate-passing body ────────
