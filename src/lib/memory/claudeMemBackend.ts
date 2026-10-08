@@ -127,32 +127,41 @@ export function toClaudeMemId(observationId: number): string {
   return `${ID_PREFIX}${observationId}`;
 }
 
+function resolveMemoryType(omni: OmniRouteMeta, row: ClaudeMemObservation): MemoryType {
+  if (typeof omni.type === "string" && MEMORY_TYPES.has(omni.type)) return omni.type as MemoryType;
+  return OBSERVATION_TYPE_MAP[row.type ?? ""] ?? MemoryType.EPISODIC;
+}
+
+function observationMetadata(
+  omni: OmniRouteMeta,
+  row: ClaudeMemObservation,
+  project: string
+): Record<string, unknown> {
+  return {
+    ...(omni.metadata ?? {}),
+    source: CLAUDE_MEM_BACKEND_ID,
+    project,
+    observationType: row.type ?? null,
+    subtitle: row.subtitle ?? null,
+    facts: toStringArray(row.facts),
+    concepts: toStringArray(row.concepts),
+  };
+}
+
 export function observationToMemory(row: ClaudeMemObservation): Memory {
   const rawMeta = parseJsonField<Record<string, unknown>>(row.metadata) ?? {};
   const omni = (rawMeta.omniroute ?? {}) as OmniRouteMeta;
   const createdAt = toDate(row);
   const project = row.project ?? "";
-  const type =
-    typeof omni.type === "string" && MEMORY_TYPES.has(omni.type)
-      ? (omni.type as MemoryType)
-      : (OBSERVATION_TYPE_MAP[row.type ?? ""] ?? MemoryType.EPISODIC);
 
   return {
     id: toClaudeMemId(row.id),
     apiKeyId: omni.apiKeyId ?? project,
     sessionId: omni.sessionId ?? row.memory_session_id ?? "",
-    type,
+    type: resolveMemoryType(omni, row),
     key: omni.key ?? row.title ?? toClaudeMemId(row.id),
     content: row.narrative || row.text || row.title || "",
-    metadata: {
-      ...(omni.metadata ?? {}),
-      source: CLAUDE_MEM_BACKEND_ID,
-      project,
-      observationType: row.type ?? null,
-      subtitle: row.subtitle ?? null,
-      facts: toStringArray(row.facts),
-      concepts: toStringArray(row.concepts),
-    },
+    metadata: observationMetadata(omni, row, project),
     createdAt,
     updatedAt: createdAt,
     expiresAt: null,
