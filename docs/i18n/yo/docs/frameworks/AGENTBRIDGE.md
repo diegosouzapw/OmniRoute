@@ -185,22 +185,22 @@ tí ó dúró ṣinṣin, ń yọ àkójọ ìdènà hop-by-hop/framing tí a p�
 
 ## §3 Ìṣètò
 
-### 3.1 Bẹ̀rẹ̀/dá olupèsè MITM dúró
+### 3.1 Bẹ̀rẹ̀/dá olupin MITM dúró
 
-Lo Káàdì Olùpèsè AgentBridge ní `/dashboard/tools/agent-bridge`:
+Lo Káàdì Olùpín AgentBridge ní `/dashboard/tools/agent-bridge`:
 
-| Ìṣe              | Àpèjúwe                                                                    |
-| ---------------- | -------------------------------------------------------------------------- |
-| Bẹ̀rẹ̀ Olùpèsè     | Ṣẹ̀dá `src/mitm/server.cjs` lórí port 443                                   |
-| Dá Olùpèsè Dúró  | Dá ìlànà ọmọ dúró lọ́nà tó bójú mu                                          |
-| Tun Olùpèsè Bẹ̀rẹ̀ | Dá dúró + bẹ̀rẹ̀ (ó máa gba àwọn ìyípadà ibi àfojúsùn)                       |
-| Fọkàn Tán Cert   | Fi `DATA_DIR/mitm/ca.crt` sínú ibi ìfọkànsìn OS                            |
-| Ṣe Àgbàsílẹ̀ Cert | Ṣe àgbàsílẹ̀ `ca.crt` fún fífi sori ẹrọ pẹ̀lú ọwọ́                            |
-| Ṣẹ̀dá Cert Tuntun | Ṣẹ̀dá CA keypair tuntun (gbogbo àwọn cert aṣojú kọ̀ọ̀kan tó wà yóò di aláìlò) |
+| Ìgbésẹ̀          | Àpèjúwe                                                                     |
+| --------------- | --------------------------------------------------------------------------- |
+| Bẹ̀rẹ̀ Olùpín     | Ó ṣe ìpilẹ̀ṣẹ̀ `src/mitm/server.cjs` lórí port 443                            |
+| Dá Olùpín Dúró  | Ó pa child process náà pẹ̀lú ìṣọ́ra                                           |
+| Tun Olùpín Bẹ̀rẹ̀ | Dádúró + bẹ̀rẹ̀ (ó gba àwọn àyípadà target tuntun)                            |
+| Fọkàn Tán Cert  | Ó fi `DATA_DIR/mitm/ca.crt` sínú ibi ìgbẹ́kẹ̀lé OS                            |
+| Ṣàgbàsílẹ̀ Cert  | Ó ṣàgbàsílẹ̀ `ca.crt` fún fífi sori ẹrọ lọ́wọ́                                 |
+| Tún Cert Ṣẹ̀dá   | Ó ṣẹ̀dá keypair CA tuntun (gbogbo cert tó wà fún agent kọ̀ọ̀kan kò ní wúlò mọ́) |
 
-### 3.2 Fọkàn tán certificate náà
+### 3.2 Fọkàn tán ìwé-ẹ̀rí náà
 
-OS gbọ́dọ̀ fọkàn tán certificate CA AgentBridge kí àwọn IDE tó lè gba àsopọ̀ MITM.
+OS gbọ́dọ̀ fọkàn tán ìwé-ẹ̀rí CA AgentBridge kí àwọn IDE tó lè gba ìsopọ̀ MITM.
 
 **Linux (NSS — Chrome/Firefox):**
 
@@ -221,103 +221,112 @@ sudo security add-trusted-cert -d -r trustRoot \
 certutil -addstore -f Root $env:USERPROFILE\.omniroute\mitm\ca.crt
 ```
 
-Tàbí lo bọ́tìnì "Fọkàn Tán Cert" nínú dashboard (ó máa ṣiṣẹ́ àṣẹ tó yẹ fún OS rẹ, pẹ̀lú ìbéèrè sudo bí ó bá ṣe pàtàkì).
+Tàbí lo bọ́tìnì "Fọkàn Tán Cert" nínú dashboard (ó máa ṣiṣẹ́ command tó yẹ fún OS rẹ, pẹ̀lú ìbéèrè sudo bí ó bá pọndandan).
 
-#### Àwọn IDE tó dá lórí Electron máa ń kọ ibi ìfọkànsìn OS sílẹ̀ (`NODE_EXTRA_CA_CERTS`)
+#### Àwọn IDE tó dá lórí Electron máa ń kọ ibi ìgbẹ́kẹ̀lé OS sílẹ̀ (`NODE_EXTRA_CA_CERTS`)
 
-Àwọn IDE kan — pàápàá jùlọ **Antigravity IDE**, àti àwọn app Electron / tí wọ́n jáde láti VS Code — máa ń ṣàkójọpọ̀
-runtime Node.js tiwọn tí **kì í wo ibi ìfọkànsìn OS** fún `fetch`/HTTPS tó ń jáde.
-Fífọkàn tán CA ní ìpele OS/NSS tó fún backend abinibi **backend** IDE
-(fún àpẹẹrẹ, olupèsè èdè Go kan, tó ń lo àkójọpọ̀ CA OS), ṣùgbọ́n **frontend Electron** yóò
-ṣì kùnà TLS — èyí máa ń hàn bí ẹni pé app náà ti _jáde kúrò nínú àkọọ́lẹ̀_ tàbí pé ó ń fi _"àsìṣe àsopọ̀"_
-hàn bó tilẹ̀ jẹ́ pé àkọsílẹ̀ MITM fi hàn pé àwọn ìpè ìbẹ̀rẹ̀ backend ń dá `200` padà. Ìgbésẹ̀ méjì ni
+Àwọn IDE kan — pàápàá jù lọ **Antigravity IDE**, àti àwọn app mìíràn tí a ṣẹ̀dá láti inú Electron / VS Code — ní
+runtime Node.js tiwọn nínú wọn, èyí tí **kì í ṣàyẹ̀wò ibi ìgbẹ́kẹ̀lé OS** fún
+`fetch`/HTTPS tó ń jáde. Fífi CA sí ìpele ìgbẹ́kẹ̀lé OS/NSS tó fún **backend** abinibi IDE
+(fún àpẹẹrẹ, olupin èdè Go, tó ń lo àkójọpọ̀ CA OS), ṣùgbọ́n **frontend Electron** yóò
+ṣì kùnà TLS — èyí lè hàn bí ẹni pé a ti _yọ app náà kúrò nínú àkọọ́lẹ̀_ tàbí pé ó ń fi _"àṣìṣe ìsopọ̀"_
+hàn, bó tilẹ̀ jẹ́ pé àkọsílẹ̀ MITM fi hàn pé àwọn ìpè bootstrap backend ń dá `200` padà. Ìgbésẹ̀ méjì ni
 a nílò, àwọn méjèèjì sì ṣe pàtàkì:
 
 1. Tọ́ka runtime náà sí CA ní tààrà:
    ```bash
    export NODE_EXTRA_CA_CERTS=/path/to/omniroute-agentbridge-ca.crt
    ```
-2. **Ṣí IDE náà láti inú shell yẹn.** Ṣíṣí i láti àmì desktop / Dock / àkójọ Start
-   **kì í** jogún àwọn export shell, àti pé `~/.config/environment.d/*.conf` máa ń ṣiṣẹ́ lẹ́yìn
-   wíwọlé ayaworan tuntun nìkan. Pa IDE náà pátápátá lákọ̀ọ́kọ́ — ìdènà singleton Electron túmọ̀ sí pé ṣíṣí i
-   lẹ́ẹ̀kejì kàn máa darí àfiyèsí sí ìlànà tó ti wà, a ó sì kọ àyíká tuntun náà sílẹ̀.
+2. **Ṣí IDE náà láti inú shell yẹn.** Ṣíṣí i láti aami desktop / Dock / Start menu
+   kì í jogún àwọn export shell, `~/.config/environment.d/*.conf` sì kàn máa ṣiṣẹ́ lẹ́yìn
+   ìwọlé graphical tuntun. Pa IDE náà pátápátá kọ́kọ́ — singleton lock Electron túmọ̀ sí pé ìṣíṣí
+   kejì kàn máa dojúkọ process tó ti wà, a sì máa kọ environment tuntun sílẹ̀.
 
-Ìgbésẹ̀ ìfọkànsìn-OS + NSS lókè ṣì ṣe pàtàkì (àkójọpọ̀ nẹ́tíwọ́ọ̀kì Chromium tí àwọn ìṣàn ìfàṣẹsí
-kan ń lò máa ń ka ibi ìfọkànsìn NSS onílò kọ̀ọ̀kan, ó sì ní àwọn pin tó dúró ṣinṣin tirẹ̀ fún `*.googleapis.com` tí
-CA tí a fọkàn tán ní abẹ́lẹ̀ máa ń borí). `NODE_EXTRA_CA_CERTS` bo ọ̀nà `fetch` Node ní àfikún sí i.
+Ìgbésẹ̀ ìgbẹ́kẹ̀lé OS + NSS tó wà lókè ṣì ṣe pàtàkì (Chromium network stack tí àwọn flow ìfàṣẹsí kan
+ń lò máa ń ka ibi ìpamọ́ NSS ti olumulo kọ̀ọ̀kan, ó sì ní àwọn pin aimi tirẹ̀ fún `*.googleapis.com` tí
+CA tí a fọkàn tán lórí ẹ̀rọ yóò borí). `NODE_EXTRA_CA_CERTS` ń bo ọ̀nà Node `fetch` ní àfikún sí i.
 
 ### 3.3 Ìdarí DNS
 
-Fún aṣojú kọ̀ọ̀kan tí o fẹ́ dá sí, API host rẹ̀ gbọ́dọ̀ tọ́ka sí `127.0.0.1`. AgentBridge máa ń ṣàkóso àwọn àkọsílẹ̀ `/etc/hosts` láìfọwọ́yí nígbà tí o bá tan tàbí pa DNS fún aṣojú kan nínú Olùrànlọ́wọ́ Ìṣètò.
+Fún agent kọ̀ọ̀kan tí o fẹ́ dá sí ọ̀nà, àwọn host API rẹ̀ gbọ́dọ̀ yanjú sí `127.0.0.1`. AgentBridge máa ń ṣàkóso àwọn àkọọ́lẹ̀ `/etc/hosts` fúnra rẹ̀ nígbà tí o bá tan tàbí pa DNS fún agent kan nínú Olùrànlọ́wọ́ Ìṣètò.
 
-Àpẹẹrẹ àwọn àkọsílẹ̀ `/etc/hosts` fún GitHub Copilot:
+Àpẹẹrẹ àwọn àkọọ́lẹ̀ `/etc/hosts` fún GitHub Copilot:
 
 ```
 127.0.0.1 api.githubcopilot.com
 127.0.0.1 copilot-proxy.githubusercontent.com
 ```
 
-### 3.4 Ìbáradọ́gba model
+### 3.4 Ìbáramu model
 
-Lo Tábìlì Ìbáradọ́gba Model nínú káàdì aṣojú kọ̀ọ̀kan láti ṣàlàyé àwọn ìbáradọ́gba orísun → ibi àfojúsùn:
+Lo Tábìlì Ìbáramu Model nínú káàdì agent kọ̀ọ̀kan láti ṣàlàyé àwọn ìbáramu orísun → target:
 
-| Model orísun (abinibi aṣojú) | Model ibi àfojúsùn (OmniRoute) |
-| ---------------------------- | ------------------------------ |
-| `gpt-4o`                     | `claude-sonnet-4.7`            |
-| `*` (wildcard)               | `claude-haiku-4.7`             |
+| Model orísun (abinibi agent) | Model target (OmniRoute) |
+| ---------------------------- | ------------------------ |
+| `gpt-4o`                     | `claude-sonnet-4.7`      |
+| `*` (wildcard)               | `claude-haiku-4.7`       |
 
-Wildcard `*` máa ń so model èyíkéyìí tí a kò mọ̀ mọ́ ibi àfojúsùn tí a sọ pàtó. A tọ́jú rẹ̀ sínú tábìlì `agent_bridge_mappings`.
+Wildcard `*` máa ń so model èyíkéyìí tí a kò mọ̀ pọ̀ mọ́ target tí a pàtó. A máa ń tọ́jú rẹ̀ sínú tábìlì `agent_bridge_mappings`.
 
-> **Ìmọ̀ràn — ṣàwárí àwọn ID model gidi ti aṣojú náà.** IDE kan lè fi àwọn orúkọ model ránṣẹ́ tí ó yàtọ̀ sí
-> àwọn àkọlé UI rẹ̀, tí wọ́n sì ń yí padà láàárín àwọn version pàtàkì. Fún àpẹẹrẹ **Antigravity 2** máa ń fi
-> `gemini-3.1-pro-low`, `gemini-pro-agent`, àti `gemini-3.1-flash-lite` ránṣẹ́ lórí asopọ̀ — kì í ṣe
-> `gemini-2.5-pro` tí a fi hàn nínú àwọn ìwé àkọsílẹ̀ àtijọ́. Fi ìjíròrò kan ránṣẹ́ láìsí ìbáradọ́gba tó bá a mu nípò: MITM
-> máa ṣàkọsílẹ̀ `model:` tó wọlé gan-an, yóò sì jẹ́ kí ìbéèrè náà kọjá lọ. So iye gangan yẹn pọ̀, lẹ́yìn náà
-> a ó dá ìbéèrè tó kàn sí, a ó sì darí rẹ̀ sí ibi àfojúsùn rẹ.
+> **Ìmọ̀ràn — ṣàwárí àwọn ID model gidi ti agent náà.** IDE kan lè fi àwọn orúkọ model ránṣẹ́ tí ó yàtọ̀ sí
+> àwọn àmì UI rẹ̀, tí wọ́n sì lè yí padà láàárín àwọn ẹ̀yà pàtàkì. Fún àpẹẹrẹ **Antigravity 2** ń fi
+> `gemini-3.1-pro-low`, `gemini-pro-agent`, àti `gemini-3.1-flash-lite` ránṣẹ́ lórí nẹ́tíwọ́ọ̀kì — kì í ṣe
+> `gemini-2.5-pro` tí a fi hàn nínú docs àtijọ́. Fi chat kan ránṣẹ́ láìsí ìbáramu tó bá a mu: MITM
+> máa kọ `model:` tó wọlé gan-an sínú àkọsílẹ̀, yóò sì jẹ́ kí ìbéèrè náà kọjá. So iye gangan yẹn pọ̀ mọ́ target,
+> lẹ́yìn náà a ó dá ìbéèrè tó kàn sí ọ̀nà, a ó sì darí rẹ̀ sí target rẹ.
 
-### 3.5 Àkíyèsí ewu
+### 3.5 Ìkìlọ̀ ewu
 
-AgentBridge máa ń dá àwọn ẹ̀rí ìdánimọ̀ (àwọn token OAuth, àwọn kọ́kọ́rọ́ API) tí IDE ń lò láti jẹ́rìí ìdánimọ̀ pẹ̀lú àwọn olupèsè upstream sí. A **máa ń bo wọ́n kí a tó ṣàkọsílẹ̀** (wo §2.7), ṣùgbọ́n wọ́n hàn sí ìpele MITM OmniRoute. Ìmúṣiṣẹ́ àkọ́kọ́ ti aṣojú kọ̀ọ̀kan máa ń fi modal àkíyèsí ewu kan hàn tí a lè pa tì.
+AgentBridge máa ń dá àwọn credential (OAuth token, API key) tí IDE ń lò láti fi ìdánimọ̀ rẹ̀ múlẹ̀ lọ́dọ̀ àwọn olupèsè upstream sí ọ̀nà. A máa **bo wọ́n kí a tó kọ wọ́n sínú àkọsílẹ̀** (wo §2.7), ṣùgbọ́n layer MITM OmniRoute lè rí wọn. Nígbà àkọ́kọ́ tí a bá mú agent kọ̀ọ̀kan ṣiṣẹ́, modal ìkìlọ̀ ewu kan tí a lè pa yóò hàn.
 
-### 3.6 Ìtọju & Ìwádìí Àṣìṣe
+### 3.6 Ìtọju & Àyẹ̀wò Ìṣòro
 
-Dashboard náà ní káàdì **Ìtọju & Ìwádìí Àṣìṣe** (`AgentBridgeMaintenanceCard`, nínú `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`) tó ń fi àwọn ipa-ọ̀nà MITM iṣẹ́ hàn, èyí tí kò ní UI tẹ́lẹ̀. Àkọlé kékeré rẹ̀ ni: _"Ṣe àyẹ̀wò ara ẹni fún ìṣàn gbigba, fagilé ipò ètò tó ṣẹ́kù, kí o sì gbé ìṣètò rẹ láàárín àwọn ẹ̀rọ."_ Àwọn olùrànlọ́wọ́ client káàdì náà wà nínú `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
+Dashboard náà ní káàdì **Ìtọju & Àyẹ̀wò Ìṣòro** (`AgentBridgeMaintenanceCard`, nínú `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`) tó ń fi àwọn route MITM iṣẹ́-ṣiṣe tí kò ní UI tẹ́lẹ̀ hàn. Àkọlé kékeré rẹ̀ ni: _"Dán pipeline ìgbà-mú wò fúnra rẹ̀, dá ipò system tó ṣẹ́kù padà, kí o sì gbé ìṣètò rẹ lọ láàárín àwọn ẹ̀rọ."_ Àwọn olùrànlọ́wọ́ client káàdì náà wà nínú `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
 
-| Bọ́tìnì             | Ìtọ́pàá                                 | Ohun tí ó ń ṣe                                                                                                                                                                                                      |
-| ------------------ | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Ṣàyẹ̀wò**         | `GET /api/tools/agent-bridge/diagnose` | Ó ń ṣiṣẹ́ àdánwò-ara-ẹni fún capture-pipeline, ó sì ń fi ìròyìn hàn fún àyẹ̀wò kọ̀ọ̀kan (✓/✗ + ìmọ̀ràn àtúnṣe).                                                                                                          |
-| **Ṣàtúnṣe**        | `POST /api/tools/agent-bridge/repair`  | Ó ń dá ipò ètò MITM tí kò ní olùdarí padà (àwọn àkọsílẹ̀ àfarawé DNS, root CA, aṣojú ètò) tí ìkọ̀lù tàbí SIGKILL fi sílẹ̀. Ó jẹ́ idempotent — ó ń jẹ́rìí "Kò sí ohun tí a ó ṣàtúnṣe" nígbà tí ipò bá mọ́.                 |
-| **Yọ CA kúrò**     | `DELETE /api/tools/agent-bridge/cert`  | Ó ń yọ ìgbẹ́kẹ̀lé kúrò lórí MITM root CA, ó sì ń yọ ọ́ kúrò nínú ibi ìpamọ́ ìgbẹ́kẹ̀lé OS (ní kedere, idempotent). A máa ń fi hàn nìkan nígbà tí CA bá wà ní ìgbẹ́kẹ̀lé lọ́wọ́lọ́wọ́; ó nílò ìmúdájú "Yọ CA kúrò?" lójúkan náà. |
-| **Gbé àtòpọ̀ jáde** | `GET /api/tools/agent-bridge/config`   | Ó ń gba JSON àtòpọ̀ tí a lè gbé kiri sílẹ̀ (wo §3.7).                                                                                                                                                                 |
-| **Gbé àtòpọ̀ wọlé** | `POST /api/tools/agent-bridge/config`  | Ó ń ṣàgbéjọ́ JSON àtòpọ̀ tí a ti gbé jáde tẹ́lẹ̀ (wo §3.7).                                                                                                                                                             |
+| Bọ́tìnì             | Ọ̀nà                                    | Ohun tí ó ń ṣe                                                                                                                                                                                                |
+| ------------------ | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Ṣàyẹ̀wò ìṣòro**   | `GET /api/tools/agent-bridge/diagnose` | Ó ń ṣiṣẹ́ àdánwò-ara-ẹni fún ọ̀nà-ṣiṣàn ìgbàlejádì, ó sì ń fi ìròyìn hàn fún àyẹ̀wò kọ̀ọ̀kan (✓/✗ + àbá àtúnṣe).                                                                                                   |
+| **Ṣàtúnṣe**        | `POST /api/tools/agent-bridge/repair`  | Ó ń dá ipò ètò MITM tí kò ní olùtọ́jú padà (àwọn àkọsílẹ̀ àfarawé DNS, root CA, aṣojú ètò) tí ìkọ̀lù tàbí SIGKILL fi sílẹ̀. Ó jẹ́ idempotent — ó ń jálẹ̀ pé "Kò sí ohun láti ṣàtúnṣe" nígbà tí ipò náà bá mọ́.       |
+| **Yọ CA kúrò**     | `DELETE /api/tools/agent-bridge/cert`  | Ó ń yọ ìgbẹ́kẹ̀lé kúrò lórí MITM root CA, ó sì ń yọ ọ́ kúrò nínú ibi ìpamọ́ ìgbẹ́kẹ̀lé OS (ní kedere, idempotent). A máa ń fi hàn nìkan nígbà tí CA bá ní ìgbẹ́kẹ̀lé lọ́wọ́lọ́wọ́; ó nílò ìmúdájú "Yọ CA kúrò?" lójú-ẹsẹ̀. |
+| **Gbé àtòpọ̀ jáde** | `GET /api/tools/agent-bridge/config`   | Ó ń gba JSON àtòpọ̀ tí a lè gbé kiri sílẹ̀ (wo §3.7).                                                                                                                                                           |
+| **Gbé àtòpọ̀ wọlé** | `POST /api/tools/agent-bridge/config`  | Ó ń ṣàgbérù JSON àtòpọ̀ tí a ti gbé jáde tẹ́lẹ̀ (wo §3.7).                                                                                                                                                       |
 
-**Àwọn àyẹ̀wò ìṣàwárí àṣìṣe** (`summarizeDiagnostics()` nínú `src/mitm/inspector/diagnostics.ts`). Ìtọ́pàá náà ń ṣiṣẹ́ ìdánwò tó ní ipa fún ọ̀kọ̀ọ̀kan, ó sì ń fi àwọn iye boolean náà sínú olùṣàkótán mímọ́; ó ń dá ìdájọ́ `healthy` kan ṣoṣo padà pẹ̀lú ìmọ̀ràn fún ìkùnà kọ̀ọ̀kan:
+Káàdì aṣojú kọ̀ọ̀kan tún ní bọ́tìnì **Dá àiyipada padà** tirẹ̀ (`POST
+/api/tools/agent-bridge/agents/{id}/reset`) — ìfagilé fún aṣojú kọ̀ọ̀kan pẹ̀lú títẹ̀ ẹ̀ẹ̀kan, èyí tí yóò yọ àfarawé kúrò lórí àwọn olùgbàlejò
+aṣojú yẹn nìkan, pa àwọn ìbámu model tí a fipamọ́ rẹ̀ rẹ́, kí ó sì tún ipò `dns_enabled`/`setup_completed`
+rẹ̀ padà, kí IDE lè tún máa bá upstream gidi sọ̀rọ̀ lẹ́yìn tí a bá tún un bẹ̀rẹ̀ ní kíkún. Kò **ní** fọwọ́ kan
+server MITM àjọpín tàbí root CA (àwọn aṣojú mìíràn lè ṣì gbára lé wọn) — wọ́n máa wà níbi tí a ti lè dé sí wọn
+nípasẹ̀ Káàdì Server àti ìṣe **Yọ CA kúrò** lókè. Lórí Windows, ó tún máa gbìyànjú láti ṣiṣẹ́
+`ipconfig /flushdns`, nítorí Windows DNS Client máa ń ṣe cache àwọn àkọsílẹ̀ fáìlì hosts, kò sì ní yọ
+àfarawé tí a ṣẹ̀ṣẹ̀ yọ kúrò láìṣe bẹ́ẹ̀.
 
-| Orúkọ àyẹ̀wò        | Ohun tí ó ń fìdí rẹ̀ múlẹ̀                                     | Ìmọ̀ràn nígbà ìkùnà                                                                                                                                |
-| ------------------ | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `server-running`   | Ilànà server MITM ń ṣiṣẹ́                                     | "Server MITM kò ṣiṣẹ́. Bẹ̀rẹ̀ rẹ̀ láti taabu AgentBridge."                                                                                            |
-| `server-reachable` | Server MITM ń gba àwọn ìsopọ̀ lórí port rẹ̀ (ìdánwò TCP)       | "Server MITM kò gba àwọn ìsopọ̀ lórí port rẹ̀. Ṣàyẹ̀wò pé port náà ṣófo àti pé o ní àwọn àṣẹ láti so mọ́ ọn."                                         |
-| `cert-exists`      | A ti ṣẹ̀dá certificate MITM sórí disiki                       | "A kò tíì ṣẹ̀dá certificate MITM kankan. Ṣẹ̀dá ọ̀kan láti taabu AgentBridge."                                                                        |
-| `cert-trusted`     | MITM root CA wà nínú ibi ìpamọ́ ìgbẹ́kẹ̀lé OS                   | "Ibi ìpamọ́ OS kò gbẹ́kẹ̀lé MITM root CA, nítorí náà ìdásẹ́wọ́lé TLS yóò kùnà. Gbẹ́kẹ̀lé certificate náà láti taabu AgentBridge."                        |
-| `dns-configured`   | Àwọn hostname àfojúsùn ni a ṣe àfarawé wọn nínú `/etc/hosts` | "A kò ṣe àfarawé àwọn hostname àfojúsùn nínú /etc/hosts, nítorí náà traffic kò dé ọ̀dọ̀ proxy rárá. Mú DNS ṣiṣẹ́ fún agent(àwọn agent) tí o fẹ́ gba." |
+**Àwọn àyẹ̀wò ìṣòro** (`summarizeDiagnostics()` nínú `src/mitm/inspector/diagnostics.ts`). Ọ̀nà náà ń ṣiṣẹ́ ìdánwò tó ní ipa fún ọ̀kọ̀ọ̀kan, ó sì ń fi àwọn iye boolean náà sínú olùṣàkójọpọ̀ mímọ́; ó ń dá ìdájọ́ `healthy` kan ṣoṣo padà pẹ̀lú àbá fún ìkùnà kọ̀ọ̀kan:
 
-**Àkíyèsí ipò aláìlábòójútó:** nígbà tí ojú-ewé bá ṣàwárí ipò tí ìkọ̀lù fi sílẹ̀ (àfarawé DNS / CA / aṣojú ètò), káàdì náà máa ń fi àkíyèsí àwọ̀ amber hàn — _"Ìgbà ìṣiṣẹ́ tẹ́lẹ̀ fi ipò ètò sílẹ̀ (àfarawé DNS, CA, tàbí aṣojú ètò). Ṣiṣe Ṣàtúnṣe láti fọ ọ́ mọ́."_ — ó sì ń ṣe àfihàn bọ́tìnì **Ṣàtúnṣe**. `Repair` ni afọ́ṣe ipele-ìṣàfilọ́lẹ̀ ti àsíá `--cleanup` ti ProxyBridge (ó ń fi iṣẹ́ náà lé `repairMitm()` lọ́wọ́ nínú `src/mitm/manager.ts`).
+| Orúkọ àyẹ̀wò        | Ohun tí ó ń fìdí rẹ̀ múlẹ̀                                     | Àbá nígbà ìkùnà                                                                                                                                        |
+| ------------------ | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `server-running`   | Process server MITM ń ṣiṣẹ́                                   | "Server MITM kò ṣiṣẹ́. Bẹ̀rẹ̀ rẹ̀ láti taabu AgentBridge."                                                                                                 |
+| `server-reachable` | Server MITM ń gba àwọn ìsopọ̀ lórí port rẹ̀ (ìdánwò TCP)       | "Server MITM kò gba àwọn ìsopọ̀ lórí port rẹ̀. Ṣàyẹ̀wò pé port náà ṣí sílẹ̀ àti pé o ní àwọn àṣẹ láti so mọ́ ọn."                                           |
+| `cert-exists`      | A ti ṣẹ̀dá ìwé-ẹ̀rí MITM sórí disk                             | "A kò tíì ṣẹ̀dá ìwé-ẹ̀rí MITM kankan. Ṣẹ̀dá ọ̀kan láti taabu AgentBridge."                                                                                 |
+| `cert-trusted`     | MITM root CA wà nínú ibi ìpamọ́ ìgbẹ́kẹ̀lé OS                   | "Ibi ìpamọ́ OS kò fọkàn tán MITM root CA, nítorí náà ìdádúró TLS yóò kùnà. Fọkàn tán ìwé-ẹ̀rí náà láti taabu AgentBridge."                               |
+| `dns-configured`   | Àwọn hostname àfojúsùn ni a ṣe àfarawé wọn nínú `/etc/hosts` | "A kò ṣe àfarawé àwọn hostname àfojúsùn nínú /etc/hosts, nítorí náà traffic kò dé ọ̀dọ̀ proxy rárá. Mú DNS ṣiṣẹ́ fún àwọn aṣojú tí o fẹ́ gba traffic wọn." |
 
-> A máa ń jẹ́ kí MITM root CA wà ní fífi-sórí kọjá dídúró/ìbẹ̀rẹ̀ láti yẹra fún àwọn
-> ìbéèrè sudo léraléra (ìhùwàsí kan náà bí mitmproxy/Charles), nítorí náà yíyọ ọ́ kúrò jẹ́ iṣẹ́
-> **Yọ CA kúrò** ní kedere dípò ohun tí yóò ṣẹlẹ̀ fúnra rẹ̀ nígbà dídúró.
+**Àsíá ipò tí kò ní olùtọ́jú:** nígbà tí ojú-ewé bá ṣàwárí ipò tí ìkọ̀lù fi sílẹ̀ (àfarawé DNS / CA / aṣojú ètò), káàdì náà máa ń fi àsíá aláwọ̀ ọ̀pọ̀lọpọ̀ hàn — _"Ìgbà iṣáájú kan fi ipò ètò sílẹ̀ (àfarawé DNS, CA, tàbí aṣojú ètò). Ṣiṣẹ́ Ṣàtúnṣe láti fọ̀ ọ́ mọ́."_ — ó sì ń ṣe bọ́tìnì **Ṣàtúnṣe** ní àfihàn. `Repair` jẹ́ ohun tó jọ àsíá `--cleanup` ti ProxyBridge ní ipele application (ó ń fi iṣẹ́ náà lé `repairMitm()` lọ́wọ́ nínú `src/mitm/manager.ts`).
 
-### 3.7 Gbigbé àtòpọ̀ tó ṣeé gbé kiri wọlé/jáde
+> A máa ń fi MITM root CA sílẹ̀ ní fifi sori ẹrọ láàárín ìdádúró àti ìbẹ̀rẹ̀ láti yẹra fún àwọn
+> ìbéèrè sudo léraléra (ìhùwàsí kan náà bí mitmproxy/Charles), nítorí náà yíyọ ọ́ jẹ́ ìṣe
+> **Yọ CA kúrò** tó ṣe kedere dípò ohun tí yóò ṣẹlẹ̀ fúnra rẹ̀ nígbà ìdádúró.
 
-AgentBridge lè ṣe serialization ipò **tí olùdarí lè ṣàtúnṣe** sínú blob JSON tó ní version kí a lè ṣe àdàkọ ìṣètò kan kọjá àwọn ẹ̀rọ. Serializer náà ni `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`), tí `AgentBridgeConfigSchema` sì ń fìdí rẹ̀ múlẹ̀.
+### 3.7 Gbigbé àtòpọ̀ tí a lè gbé kiri wọlé/jáde
 
-Ohun tí a gbé jáde ní àwọn apá mẹ́ta gan-an (a mọ̀ọ́mọ̀ **KÒ** gbé àwọn àiyípadà àkọ́kọ́ tí a fi sínú rẹ̀ jáde, kí gbígbé wọlé má bàa ṣe ẹ̀dà wọn tàbí bá wọn figagbága):
+AgentBridge lè ṣe serialize ipò tí **olùṣàkóso lè ṣàtúnṣe** sínú blob JSON tó ní version, kí a lè ṣe àtúnṣe ìṣètò kan náà lórí àwọn ẹ̀rọ ọ̀tọ̀ọ̀tọ̀. Serializer náà ni `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`), tí `AgentBridgeConfigSchema` ń fọwọ́sí.
 
-| Field            | Orísun                                                        | Àwọn àkíyèsí                                                              |
-| ---------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `bypassPatterns` | àwọn bypass pattern tí olùlò ṣàlàyé (`agent_bridge_bypass`)   | a yọ àwọn bank/gov/okta pattern àkọ́kọ́ kúrò                                |
-| `customHosts`    | àwọn custom host Traffic Inspector (`inspector_custom_hosts`) | ọ̀kọ̀ọ̀kan: `{ host, kind: "llm"\|"app"\|"custom", label? }`                 |
-| `agentMappings`  | àwọn model mapping fún agent kọ̀ọ̀kan (`agent_bridge_mappings`) | `{ [agentId]: [{ source, target }] }` fún gbogbo agent tó ní àwọn mapping |
+Ohun tí a gbé jáde ní àwọn apá mẹ́ta gan-an (a mọ̀ọ́mọ̀ **KÒ** gbé àwọn àiyipada inú rẹ̀ jáde, kí gbigbe wọlé má bàa ṣe àdàkọ wọn tàbí tako wọn):
+
+| Ààyè             | Orísun                                                        | Àwọn àkíyèsí                                                            |
+| ---------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `bypassPatterns` | àwọn àpẹẹrẹ ìrékọjá tí olumulo ṣàlàyé (`agent_bridge_bypass`) | àwọn àpẹẹrẹ bank/gov/okta àìyípadà ni a yọ kúrò                         |
+| `customHosts`    | àwọn host àkànṣe Traffic Inspector (`inspector_custom_hosts`) | ọ̀kọ̀ọ̀kan: `{ host, kind: "llm"\|"app"\|"custom", label? }`               |
+| `agentMappings`  | àwọn ìbámu model fún aṣojú kọ̀ọ̀kan (`agent_bridge_mappings`)   | `{ [agentId]: [{ source, target }] }` fún gbogbo aṣojú tó ní àwọn ìbámu |
 
 ```jsonc
 // GET /api/tools/agent-bridge/config
@@ -331,13 +340,13 @@ Ohun tí a gbé jáde ní àwọn apá mẹ́ta gan-an (a mọ̀ọ́mọ̀ **K�
 }
 ```
 
-**Ìhùwàsí gbígbé wọlé** (`POST /api/tools/agent-bridge/config`): àwọn bypass pattern àti mapping fún agent kọ̀ọ̀kan **rọ́pò gbogbo ohun tó wà**; a ń fi àwọn custom host kún un ní ọ̀nà **idempotent** (`INSERT OR IGNORE`). Ìdáhùn náà ń jẹ́rìí iye ọ̀kọ̀ọ̀kan tí a lò:
+**Ìhùwàsí ìgbéwọlé** (`POST /api/tools/agent-bridge/config`): àwọn àpẹẹrẹ ìrékọjá àti àwọn ìbámu fún aṣojú kọ̀ọ̀kan **rọ́pò gbogbo ohun tó wà**; àwọn host àkànṣe ni a ṣàfikún **láìṣe àtúnṣe tí kò pọndandan** (`INSERT OR IGNORE`). Ìdáhùn náà sọ iye ọ̀kọ̀ọ̀kan tí a lò:
 
 ```jsonc
 { "ok": true, "bypassPatterns": 1, "customHosts": 1, "agents": 1 }
 ```
 
-Ohun tí **KÒ SÍ** nínú àtòpọ̀ náà: ipò ṣíṣiṣẹ́ server, àwọn ipa-ọ̀nà cert, ipò DNS fún agent kọ̀ọ̀kan, ipa-ọ̀nà CA upstream, àti àwọn ètò TPROXY — ìwọ̀nyí jẹ́ ipò host/runtime, kì í ṣe àwọn ààyò tí a lè gbé kiri.
+Ohun tí **KÒ SÍ** nínú àtòjọ ìṣètò náà: ipò ṣíṣiṣẹ́ server, àwọn path cert, ipò DNS fún aṣojú kọ̀ọ̀kan, path CA upstream, àti àwọn ìṣètò TPROXY — ìwọ̀nyí jẹ́ ipò host/runtime, kì í ṣe àwọn ààyò tí a lè gbé kiri.
 
 ---
 
@@ -497,39 +506,40 @@ Tí AgentBridge bá ń dá àwọn ìbéèrè dúró ṣùgbọ́n tí gbogbo w�
 
 ## §7 Ìtọ́kasí API
 
-Gbogbo route jẹ́ `LOCAL_ONLY` (loopback nìkan, tí a fi tipátipá mú ṣiṣẹ́ ṣáájú auth) àti `SPAWN_CAPABLE`. Wo `src/server/authz/routeGuard.ts`.
+Gbogbo àwọn ipa-ọ̀nà jẹ́ `LOCAL_ONLY` (loopback nìkan, tí a fipá mú ṣáájú ìfàṣẹsí) àti `SPAWN_CAPABLE`. Wo `src/server/authz/routeGuard.ts`.
 
-Base path: `/api/tools/agent-bridge/`
+Ipilẹ̀ ipa-ọ̀nà: `/api/tools/agent-bridge/`
 
-| Ọ̀nà                 | Path                                           | Àpèjúwe                                                                                                                 |
-| ------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| GET                 | `/api/tools/agent-bridge/state`                | Ipò apèsè àgbáyé + ìṣàwárí/ipò fún aṣojú kọ̀ọ̀kan                                                                         |
-| GET                 | `/api/tools/agent-bridge/agents`               | Ṣàfihàn àwọn aṣojú tí a forúkọsílẹ̀ (id, orúkọ, hosts, ìṣeéṣe, ipò)                                                      |
-| GET                 | `/api/tools/agent-bridge/agents/{id}`          | Ipò aṣojú kan (àtòjọ ìṣètò ibi-àfojúsùn + ìṣàwárí + ipò tí a fi pamọ́)                                                   |
-| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Ṣe àfikún `setup_completed` fún aṣojú                                                                                   |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Ṣe ìdánwò ìṣàwárí fún aṣojú (`installed`, `version?`, `path?`)                                                          |
-| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Mu DNS ṣiṣẹ́/dá a dúró fún aṣojú (`{enabled: boolean}`)                                                                  |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Àwọn ìbámu àwòṣe fún aṣojú                                                                                              |
-| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Rọ́pò àwọn ìbámu àwòṣe                                                                                                   |
-| POST                | `/api/tools/agent-bridge/server`               | Bẹ̀rẹ̀/dá dúró/tún apèsè bẹ̀rẹ̀ (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                     |
-| GET                 | `/api/tools/agent-bridge/cert`                 | Ipò ìwé-ẹ̀rí (`exists`, `trusted`, `path`)                                                                               |
-| POST                | `/api/tools/agent-bridge/cert`                 | Fọkàn tán (fi sílẹ̀) MITM root CA                                                                                        |
-| DELETE              | `/api/tools/agent-bridge/cert`                 | Yọ ìfọkàntán kúrò (yọ) MITM root CA — ó lè túnṣe láìyí àbájáde padà (wo §3.6)                                           |
-| POST                | `/api/tools/agent-bridge/cert/regenerate`      | Tún ìwé-ẹ̀rí MITM tí ó fọwọ́sí ara rẹ̀ ṣe                                                                                  |
-| GET                 | `/api/tools/agent-bridge/cert/download`        | Ṣàn ìwé-ẹ̀rí PEM fún gbígbàsílẹ̀                                                                                          |
-| GET                 | `/api/tools/agent-bridge/bypass`               | Ṣàfihàn àwọn àpẹẹrẹ ìkọjá (`default` + `user`)                                                                          |
-| POST                | `/api/tools/agent-bridge/bypass`               | Rọ́pò gbogbo àwọn àpẹẹrẹ ìkọjá tí olùmúlò ṣàlàyé                                                                         |
-| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Yọ àpẹẹrẹ ìkọjá kan ṣoṣo tí olùmúlò ṣàlàyé                                                                              |
-| GET                 | `/api/tools/agent-bridge/diagnose`             | Ìdánwò-ara-ẹni fún ọ̀nà ìṣàkójọpọ̀ (wo §3.6)                                                                              |
-| POST                | `/api/tools/agent-bridge/repair`               | Yí ipò ètò MITM tí a fi sílẹ̀ láìsí olùtọ́jú padà (wo §3.6)                                                               |
-| GET                 | `/api/tools/agent-bridge/config`               | Kó àtúnṣe JSON tí a lè gbé kiri jáde (wo §3.7)                                                                          |
-| POST                | `/api/tools/agent-bridge/config`               | Gbé àtúnṣe JSON tí a lè gbé kiri wọlé (wo §3.7)                                                                         |
-| GET                 | `/api/tools/agent-bridge/upstream-ca`          | Gba path CA upstream tí a ti ṣètò                                                                                       |
-| POST                | `/api/tools/agent-bridge/upstream-ca`          | Fìdí rẹ̀ múlẹ̀ + fi path CA upstream pamọ́                                                                                 |
-| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Fìdí path CA upstream múlẹ̀ nìkan (ìdánwò láìṣiṣẹ́ gidi) — kò ní fi pamọ́                                                  |
-| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | Ipò ìṣàkójọpọ̀ ìtúkọ̀-àṣírí aláìhàn TPROXY — wo `docs/security/MITM-TPROXY-DECRYPT.md` (git; a kò ṣàkójọ rẹ̀ sínú `/docs`) |
+| Ọ̀nà                 | Ipa-ọ̀nà                                        | Àpèjúwe                                                                                                               |
+| ------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| GET                 | `/api/tools/agent-bridge/state`                | Ipò apèsè àpapọ̀ + ìṣàwárí/ipò fún aṣojú kọ̀ọ̀kan                                                                        |
+| GET                 | `/api/tools/agent-bridge/agents`               | Ṣàkójọ àwọn aṣojú tí a forúkọsílẹ̀ (id, orúkọ, àwọn olùgbàlejò, ìṣeélo, ipò)                                           |
+| GET                 | `/api/tools/agent-bridge/agents/{id}`          | Ipò aṣojú kan (àtòpọ̀ ibi-àfojúsùn + ìṣàwárí + ipò tí a tọ́jú)                                                          |
+| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Ṣe àfikún `setup_completed` fún aṣojú                                                                                 |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Ṣe ìdánwò ìṣàwárí fún aṣojú (`installed`, `version?`, `path?`)                                                        |
+| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Mú DNS ṣiṣẹ́/dá a dúró fún aṣojú (`{enabled: boolean}`)                                                                |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Àwọn ìbámu àwòṣe fún aṣojú                                                                                            |
+| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Rọ́pò àwọn ìbámu àwòṣe                                                                                                 |
+| POST                | `/api/tools/agent-bridge/agents/{id}/reset`    | Dá àìpépadà padà: yọ ìfarawé DNS aṣojú yìí, pa àwọn ìbámu rẹ̀ rẹ́, kí o sì tún ipò rẹ̀ tò (wo §3.6)                      |
+| POST                | `/api/tools/agent-bridge/server`               | Bẹ̀rẹ̀/dá dúró/tún apèsè bẹ̀rẹ̀ (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                   |
+| GET                 | `/api/tools/agent-bridge/cert`                 | Ipò ìjẹ́rìí (`exists`, `trusted`, `path`)                                                                              |
+| POST                | `/api/tools/agent-bridge/cert`                 | Fọkàn tán (fi sori ẹrọ) gbòǹgbò CA MITM                                                                               |
+| DELETE              | `/api/tools/agent-bridge/cert`                 | Yọ ìgbẹ́kẹ̀lé (yọ kúrò) fún gbòǹgbò CA MITM — idempotent (wo §3.6)                                                      |
+| POST                | `/api/tools/agent-bridge/cert/regenerate`      | Tún ìjẹ́rìí MITM tí ara rẹ̀ fọwọ́ sí ṣe                                                                                  |
+| GET                 | `/api/tools/agent-bridge/cert/download`        | Ṣàgbéjáde ìjẹ́rìí PEM bí ìṣàn fún ìgbàsílẹ̀                                                                             |
+| GET                 | `/api/tools/agent-bridge/bypass`               | Ṣàkójọ àwọn àpẹẹrẹ àkọjá (`default` + `user`)                                                                         |
+| POST                | `/api/tools/agent-bridge/bypass`               | Rọ́pò gbogbo àwọn àpẹẹrẹ àkọjá tí olùmúlò ṣàlàyé                                                                       |
+| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Yọ àpẹẹrẹ àkọjá kan ṣoṣo tí olùmúlò ṣàlàyé                                                                            |
+| GET                 | `/api/tools/agent-bridge/diagnose`             | Àyẹ̀wò ara-ẹni fún ìlànà ìgbàwọlé (wo §3.6)                                                                            |
+| POST                | `/api/tools/agent-bridge/repair`               | Yí ipò ètò MITM tí ó di aláìlóbìí padà (wo §3.6)                                                                      |
+| GET                 | `/api/tools/agent-bridge/config`               | Gbé JSON àtòpọ̀ alágbèéká jáde (wo §3.7)                                                                               |
+| POST                | `/api/tools/agent-bridge/config`               | Gbé JSON àtòpọ̀ alágbèéká wọlé (wo §3.7)                                                                               |
+| GET                 | `/api/tools/agent-bridge/upstream-ca`          | Gba ipa-ọ̀nà CA òkè tí a ti tò                                                                                         |
+| POST                | `/api/tools/agent-bridge/upstream-ca`          | Fìdí ipa-ọ̀nà CA òkè múlẹ̀ + tọ́jú rẹ̀                                                                                    |
+| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Fìdí ipa-ọ̀nà CA òkè múlẹ̀ nìkan (ìdánwò láìṣe) — kò tọ́jú rẹ̀                                                            |
+| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | Ipò ìgbàwọlé ìyọ̀-kóòdù aláṣehàn TPROXY — wo `docs/security/MITM-TPROXY-DECRYPT.md` (git; a kò ṣàkójọ rẹ̀ sínú `/docs`) |
 
-Àwọn schema OpenAPI kíkún: `docs/openapi.yaml` → àmì `AgentBridge`.
+Àwọn ìlànà OpenAPI kíkún: `docs/openapi.yaml` → àmì `AgentBridge`.
 
 ---
 

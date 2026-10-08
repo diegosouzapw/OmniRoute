@@ -36,6 +36,9 @@ export const grok_cliProvider: RegistryEntry = {
       name: "Grok 4.6",
       contextLength: 500000,
       supportsReasoning: true,
+      // Verified with a Responses `input_image` probe. grok-4.5 misread the same image,
+      // so it stays undeclared.
+      supportsVision: true,
       supportedThinkingEfforts: ["low", "medium", "high", "xhigh"],
       toolCalling: true,
       targetFormat: "openai-responses",

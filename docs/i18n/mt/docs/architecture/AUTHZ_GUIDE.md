@@ -15,61 +15,63 @@ OmniRoute għandu pipeline ta' awtorizzazzjoni konxju mir-rotta li jikkontrolla 
 
 ## Żewġ Modi ta’ Awtentikazzjoni
 
-### 1. API Key (Bearer)
+### 1. Ċavetta tal-API (Bearer)
 
-Tintuża għall-APIs tal-klijent kompatibbli ma’ OpenAI/Anthropic/Gemini u għal ftit rotot ta’ ġestjoni meta ċ-ċavetta jkollha l-ambitu `manage`.
+Jintuża għall-APIs tal-klijenti kompatibbli ma’ OpenAI/Anthropic/Gemini u għal xi rotot ta’ ġestjoni meta ċ-ċavetta jkollha l-ambitu `manage`.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Tiġi vvalidata minn `isValidApiKey()` / `extractApiKey()` f’`src/sse/services/auth.ts` u esportata mill-ġdid permezz ta’ `src/shared/utils/apiAuth.ts`. Il-validatur jaċċetta wkoll il-varjabbli tal-ambjent `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` bħala ċwievet passthrough persistenti (kwistjoni #1350).
+Ivvalidat minn `isValidApiKey()` / `extractApiKey()` f’`src/sse/services/auth.ts` u esportat mill-ġdid permezz ta’ `src/shared/utils/apiAuth.ts`. Il-validatur jaċċetta wkoll il-varjabbli tal-ambjent `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` bħala ċwievet persistenti ta’ passthrough (kwistjoni #1350).
 
 ### 2. Sessjoni tad-Dashboard (cookie auth_token)
 
-Għall-paġni tad-dashboard u l-operazzjonijiet amministrattivi.
+Għall-paġni tad-dashboard u l-operazzjonijiet tal-amministratur.
 
 ```
-Cookie: auth_token=<JWT iffirmat b’JWT_SECRET>
+Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-Cookie tkun sessjoni biss meta l-JWT jiġi vverifikat **u** jkollu `authenticated: true`
+Cookie titqies bħala sessjoni biss meta l-JWT jiġi vverifikat **u** jkollu `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Kull
-konsumatur tal-cookie (il-gwardja tar-rotta, l-aġġornament tal-pipeline tal-authz, il-handshake
-tal-WebSocket, is-server live, `/api/settings/require-login`, `/api/auth/status`) jgħaddi
-minn dak il-helper. Jeżistu JWTs oħra ffirmati b’`JWT_SECRET` — il-passthrough tas-CLI
-ta’ Cursor joħloq tokens `iss "omniroute" / aud "cursor-cli"` għad-detenturi taċ-ċwievet —
-u dawn qatt ma jkunu sessjonijiet (#13298).
+konsumatur tal-cookie (il-gwardja tar-rotta tad-dashboard (`isDashboardSessionAuthenticated()`), l-aġġornament tal-pipeline tal-awtorizzazzjoni, il-handshake tal-WebSocket, is-server
+live, `/api/settings/require-login`, `/api/auth/status`) jgħaddi minn dak il-helper.
+Jeżistu JWTs oħra ffirmati b’`JWT_SECRET` — il-passthrough tal-Cursor CLI joħloq
+tokens `iss "omniroute" / aud "cursor-cli"` għad-detenturi taċ-ċwievet — u dawn qatt ma jitqiesu bħala sessjonijiet
+(#13298).
 
-Tiġi vverifikata minn `isDashboardSessionAuthenticated()` f’`src/shared/utils/apiAuth.ts`. Il-pipeline jaġġorna l-JWT awtomatikament meta jkun fadallu inqas minn 7 ijiem mill-ħajja tiegħu ta’ 30 jum.
+Ivverifikat minn `isDashboardSessionAuthenticated()` f’`src/shared/utils/apiAuth.ts`. Il-pipeline jaġġorna l-JWT awtomatikament meta jkun fadallu inqas minn 7 ijiem mill-ħajja tiegħu ta’ 30 jum.
 
-Xi rotot ta’ ġestjoni jaċċettaw **kwalunkwe wieħed** miż-żewġ modi: cookie JEW `Bearer <key>` meta l-API key ikollha l-ambitu `manage` (jew `admin`). Dan huwa dak li jippermetti l-fluss tax-xogħol “konfigurabbli permezz ta’ sejħiet API” miżjud f’v3.8.
+Sessjoni tista’ tintemm ukoll qabel ma jgħaddu t-30 jum tagħha, għax kull min joħloq token jgħaddi minn `mintDashboardSessionToken` (ħin tal-ħruġ `iat` u identifikatur `jti`) u l-verifikatur jiċċekkja żewġ settings: `sessionsValidAfter`, issettjat meta tinbidel password sabiex kull sessjoni maħruġa qablu ma tibqax tiġi vverifikata (il-browser li biddel il-password jirċievi cookie ġdida), u `revokedDashboardSessions`, li magħha `POST /api/auth/logout` iżid il-`jti` tas-sessjoni li minnha jkun sar sign-out. Sessjonijiet maħluqa minn rilaxx eqdem ma jkollhom l-ebda waħda minn dawn il-claims u jibqgħu validi sal-ewwel bidla tal-password. Jekk is-settings ma jkunux jistgħu jinqraw, is-sessjoni ma titqiesx affidabbli.
 
-#### Gate fakultattiv tal-login OIDC (#6973)
+Xi rotot ta’ ġestjoni jaċċettaw **kwalunkwe wieħed** miż-żewġ modi: cookie JEW `Bearer <key>` meta ċ-ċavetta tal-API jkollha l-ambitu `manage` (jew `admin`). Dan huwa dak li jippermetti l-fluss tax-xogħol “konfigurabbli permezz ta’ sejħiet tal-API” miżjud f’v3.8.
 
-Il-login tal-amministratur tad-dashboard jappoġġja wkoll fluss OIDC (OpenID Connect)
-**fakultattiv** flimkien mal-login standard bil-password — il-login bil-password qatt
-ma jitneħħa, iżda jiġi biss issupplimentat:
+#### Kontroll fakultattiv tal-login permezz ta’ OIDC (#6973)
+
+Il-login tal-amministratur tad-dashboard jappoġġa wkoll fluss OIDC (OpenID Connect) **fakultattiv**
+flimkien mal-login predefinit bil-password — il-login bil-password qatt ma jitneħħa, iżda
+jiġi biss issupplimentat:
 
 - Ikun diżattivat sakemm `settings.oidcEnabled === true` **u** `oidcIssuer` /
   `oidcClientId` / `oidcClientSecret` ma jkunux kollha kkonfigurati (Settings → Auth).
   Inkella, `GET /api/auth/oidc/login` jirritorna `400`.
 - `GET /api/auth/oidc/login` jiskopri l-`authorization_endpoint` mill-
-  `/.well-known/openid-configuration` tal-issuer (u juża
-  `<issuer>/authorize` bħala alternattiva), jibni l-URI tar-ridirezzjoni mit-talba
-  li tkun dieħla (konxju ta’ `x-forwarded-proto`), u jirridirezzjona lejn l-IdP bi `state`
+  `/.well-known/openid-configuration` tal-issuer (jinqaleb għal
+  `<issuer>/authorize` jekk dan ifalli), jibni r-redirect URI mit-talba dieħla
+  (konxju ta’ `x-forwarded-proto`), u jirridirezzjona lejn l-IdP bi `state`
   każwali maħżun f’cookie `oidc_state` `httpOnly`.
-- `GET /api/auth/oidc/callback` jivvalida `state`, jibdel il-kodiċi tal-awtorizzazzjoni,
-  u jivverifika l-firma tat-token tal-ID permezz tal-JWKS tal-issuer
-  (`createRemoteJWKSet` ta’ `jose`, miżmum fil-cache għal kull URI tal-JWKS) b’kontrolli
-  ta’ `issuer`/`audience`. Lista fakultattiva ta’ suġġetti permessi,
-  `oidcAllowedSubjects`, tqabbel il-claim `sub` tat-token jew il-claim `email` tiegħu —
-  il-claim tal-email tiġi aċċettata biss meta `email_verified === true`, għalhekk email
-  mhux ivverifikata fl-IdP qatt ma tista’ tgħaddi mill-gate.
-- Meta jirnexxi, joħloq **eżattament l-istess** JWT `auth_token` ta’ 30 jum li joħloq
-  il-login bil-password (`src/app/api/auth/login/route.ts`), għalhekk il-bqija
-  tal-pipeline tas-sessjoni tad-dashboard (aġġornament awtomatiku, flags tal-cookie)
-  jibqa’ l-istess — OIDC jibdel biss kif tinħoloq il-cookie, mhux x’permessi tagħti.
+- `GET /api/auth/oidc/callback` jivvalida `state`, jibdel il-kodiċi tal-awtorizzazzjoni
+  ma’ token, u jivverifika l-firma tal-ID token permezz tal-JWKS tal-issuer
+  (`createRemoteJWKSet` ta’ `jose`, miżmum fil-cache għal kull JWKS URI) b’kontrolli
+  ta’ `issuer`/`audience`. Allowlist fakultattiva `oidcAllowedSubjects` tqabbel il-claim
+  `sub` tat-token jew il-claim `email` tiegħu — il-claim tal-email tiġi aċċettata biss meta
+  `email_verified === true`, għalhekk email mhux ivverifikata għand l-IdP qatt ma tista’
+  tgħaddi mill-kontroll.
+- Meta jirnexxi, joħloq **eżattament l-istess** JWT `auth_token` ta’ 30 jum li joħroġ
+  il-login bil-password (`src/app/api/auth/login/route.ts`), għalhekk il-bqija tal-
+  pipeline tas-sessjoni tad-dashboard (aġġornament awtomatiku, flags tal-cookie) jibqa’ l-istess —
+  OIDC jibdel biss kif tinħoloq il-cookie, mhux dak li tagħti permess għalih.
 
 ## Klassijiet tar-Rotot
 

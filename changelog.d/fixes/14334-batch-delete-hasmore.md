@@ -1,1 +1,0 @@
-- Fix dashboard 'Remove completed' button to fully drain batches when the total exceeds the backend chunk limit.

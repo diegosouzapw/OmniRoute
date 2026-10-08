@@ -10,8 +10,13 @@ import { DEFAULT_PRICING, getPricingForModel } from "../../src/shared/constants/
 
 const catalogIds = DEVIN_MODEL_CATALOG.map((model) => model.id);
 
-test("Devin transports expose the same curated catalog without duplicate ids", () => {
-  assert.equal(devin_cliProvider.models, DEVIN_MODEL_CATALOG);
+test("Devin transports expose the curated catalog with truthful tool capabilities", () => {
+  assert.deepEqual(
+    devin_cliProvider.models.map((model) => model.id),
+    catalogIds
+  );
+  assert.ok(devin_cliProvider.models.every((model) => model.toolCalling === false));
+  assert.ok(devin_cli_agenticProvider.models.every((model) => model.toolCalling === true));
   assert.equal(devin_desktopProvider.models, DEVIN_MODEL_CATALOG);
   assert.deepEqual(
     devin_cli_agenticProvider.models.map((model) => model.id),
@@ -100,12 +105,14 @@ test("Devin pricing remains provider-bound and preserves fast-tier rates", () =>
     cached: 0.2,
     output: 10,
   });
+  // contract changed by #15035: Anthropic's published Sonnet 5 rate is $2/$10 with $0.20
+  // cache reads and $2.50 5-minute cache writes (the $3/$15 sticker was retired).
   assert.deepEqual(getPricingForModel("anthropic", "claude-sonnet-5"), {
-    input: 3,
-    output: 15,
-    cached: 1.5,
-    reasoning: 22.5,
-    cache_creation: 3,
+    input: 2,
+    output: 10,
+    cached: 0.2,
+    reasoning: 10,
+    cache_creation: 2.5,
   });
   assert.deepEqual(getPricingForModel("devin-cli", "gpt-5-6-sol-max-priority"), {
     input: 8,

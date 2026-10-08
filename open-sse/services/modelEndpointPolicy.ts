@@ -143,6 +143,20 @@ export function getModelEndpointDecision(
   return { kind: "unknown", chatSelectable: true, reason: "unclassified" };
 }
 
+/**
+ * True when a model's own endpoint list names only non-chat endpoints
+ * (`["audio-speech"]`, `["images-generations"]`, …). Unlike
+ * `isChatSelectableModel`, provider id rules are not consulted, so a row stored
+ * with the synthetic `["chat"]` default is never reported as non-chat here.
+ */
+export function declaresOnlyNonChatEndpoints(supportedEndpoints: unknown): boolean {
+  if (!Array.isArray(supportedEndpoints)) return false;
+  const endpoints = supportedEndpoints.filter(
+    (endpoint): endpoint is string => typeof endpoint === "string"
+  );
+  return classifyExplicitEndpoints(endpoints)?.chatSelectable === false;
+}
+
 export function isChatSelectableModel(
   provider: string | null | undefined,
   model: EndpointAwareModel

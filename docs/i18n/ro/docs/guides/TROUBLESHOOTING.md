@@ -37,33 +37,33 @@ Probleme frecvente și soluții pentru OmniRoute.
 
 ---
 
-### Limitarea solicitărilor la furnizorii gratuiți (429 / 400 / 401)
+### Limitarea ratei la furnizorii gratuiți (429 / 400 / 401)
 
-**Simptom**: Atunci când folosiți `model: "auto"` cu furnizori gratuiți/fără autentificare (opencode, auggie etc.), primiți intermitent `HTTP 429`, `400` sau `401` în locul răspunsurilor. Solicitările reușesc când încercați din nou aceeași cerere câteva momente mai târziu, însă automatizările (sarcini cron, agenți, scripturi) se întrerup la prima eroare.
+**Simptom**: Când utilizați `model: "auto"` cu furnizori gratuiți/care nu necesită autentificare (opencode, auggie etc.), primiți intermitent `HTTP 429`, `400` sau `401` în locul răspunsurilor. Solicitările reușesc când reîncercați aceeași cerere câteva momente mai târziu, dar automatizarea (sarcini cron, agenți, scripturi) se întrerupe la prima eroare.
 
-**Cauza principală**: Se cumulează trei moduri independente de producere a erorilor:
+**Cauza principală**: Trei moduri independente de eșec se cumulează:
 
-1. **Limitarea solicitărilor de către furnizor (`429`)**: Nivelurile gratuite pot impune o cotă pentru fiecare interval de timp. O rafală de apeluri paralele o epuizează, astfel încât următoarea solicitare este refuzată până la resetarea intervalului.
-2. **Model nefuncțional în modul passthrough (`400`/`401`)**: Grupurile `auto/*` pot include modele passthrough de la `opencode` care sunt înregistrate în catalog, dar nu au date de autentificare active (de exemplu, `oc/north-mini-code-free` → `401`). Routerul automat încearcă unul dintre acestea, solicitarea eșuează, iar eroarea este propagată înainte de activarea mecanismului de rezervă.
-3. **Amplificarea concurenței (`429` sub sarcină)**: Când mai multe sesiuni de agent/cron accesează simultan `auto`, rata cumulată a solicitărilor depășește nivelul tolerat de furnizorii gratuiți, astfel încât apelurile legitime sunt marcate drept abuzive.
+1. **Limitarea ratei de către furnizor (`429`)**: Nivelurile gratuite pot impune o cotă pentru fiecare interval de timp. O rafală de apeluri paralele o epuizează, astfel încât următoarea solicitare este refuzată până la resetarea intervalului.
+2. **Model nefuncțional în passthrough (`400`/`401`)**: Grupurile `auto/*` pot include modele passthrough de la `opencode` care sunt înregistrate în catalog, dar nu au credențiale active (de exemplu, `oc/north-mini-code-free` → `401`). Routerul automat încearcă unul, eșuează, iar eroarea se propagă înainte ca mecanismul de rezervă să intre în acțiune.
+3. **Amplificarea concurenței (`429` sub sarcină)**: Când mai multe sesiuni de agent/cron accesează simultan `auto`, rata agregată a solicitărilor depășește ceea ce tolerează furnizorii gratuiți, astfel încât apelurile legitime sunt marcate drept abuzive.
 
-**Remediere verificată (raportată de comunitate, 2026-08-10)**: configurați trei variabile de mediu, astfel încât rotația, concurența și mecanismul de rezervă să absoarbă fluctuațiile nivelului gratuit, în loc să eșueze din cauza lor:
+**Remediere verificată (raportată de comunitate, 2026-08-10)**: ajustați trei variabile de mediu, astfel încât rotația, concurența și mecanismul de rezervă să absoarbă instabilitatea nivelului gratuit în loc să eșueze din cauza acesteia:
 
 ```bash
 export OMNIROUTE_ROTATE_ON_400=true           # trece la alt model/furnizor la 400/401 (omite modelele passthrough nefuncționale)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # limită explicită de admitere pentru solicitările complexe (implicit nesetată: fără limită privind numărul solicitărilor; consultați nota de mai jos)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # așteptare limitată mai lungă pentru capacitatea solicitărilor complexe, în locul unei erori 503 imediate care permite reîncercarea
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # limită explicită de admitere pentru solicitările grele (implicit nesetată: fără limită privind numărul de solicitări, consultați nota de mai jos)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # mărește așteptarea limitată peste valoarea implicită RATE_LIMIT_MAX_WAIT_MS pentru serviciile upstream lente
 ```
 
-Setați aceste variabile în mediul procesului OmniRoute (daemonul, de exemplu prin fișierul plist LaunchAgent sau `systemctl edit`), apoi reporniți OmniRoute. Indicatorul de rotație este opțiunea cu cel mai mare impact: transformă o eroare definitivă într-o reîncercare transparentă prin intermediul unui furnizor funcțional din grup.
+Setați-le în mediul procesului OmniRoute (daemonul, de exemplu prin plist-ul LaunchAgent sau `systemctl edit`), apoi reporniți OmniRoute. Indicatorul de rotație este măsura cu cel mai mare impact: transformă un eșec definitiv într-o reîncercare transparentă folosind un furnizor funcțional din grup.
 
-**Notă**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` limitează numărul de solicitări complexe — cu context lung — care rulează simultan; limita reprezintă un mecanism de admitere, nu un limitator al solicitărilor furnizorului. **Actualizare #503-fanout:** această variabilă nu mai este setată implicit (acum se aplică doar când este configurată explicit, ca mai sus) — admiterea solicitărilor complexe este controlată în schimb de un buget de octeți derivat automat (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), care se ajustează în funcție de limita reală de memorie a gazdei, astfel încât o instalare nouă ar trebui să întâmpine mult mai puține respingeri `503 chat_admission_busy` fără a seta deloc această variabilă; setarea explicită prezentată aici continuă să funcționeze exact conform documentației. Suprascrierile explicite ale bugetului de octeți sunt limitate la intervalul 8 MiB–2 GiB. O eroare `413 body_exceeds_budget` nu este tranzitorie: măriți bugetul de octeți, reduceți `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` sau măriți limita de memorie a procesului. O degrevare `inflight_bytes_budget` reprezintă o concurență temporară pentru resurse și permite în continuare reîncercarea. Limitarea solicitărilor pentru fiecare furnizor (`open-sse/services/rateLimitManager.ts`) este controlată separat prin `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` și `RATE_LIMIT_AUTO_ENABLE` — consultați `.env.example`.
+**Notă**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` limitează numărul de solicitări grele — cu context lung — care rulează simultan; limita este o poartă de admitere, nu un mecanism de limitare a ratei furnizorului. **Actualizare #503-fanout:** această variabilă nu mai este setată implicit (acum se aplică numai când este configurată explicit, ca mai sus) — admiterea solicitărilor grele este controlată în schimb de un buget de octeți derivat automat (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), care se ajustează în funcție de limita reală de memorie a gazdei, astfel încât o implementare nouă ar trebui să înregistreze mult mai puține respingeri `503 chat_admission_busy` fără a seta deloc această variabilă; setarea sa explicită aici continuă să funcționeze exact conform documentației. Suprascrierile explicite ale bugetului de octeți sunt limitate la 8 MiB–2 GiB. O eroare `413 body_exceeds_budget` nu este tranzitorie: măriți bugetul de octeți, reduceți `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` sau măriți limita de memorie a procesului. O eliminare `inflight_bytes_budget` indică o dispută temporară pentru resurse și poate fi reîncercată. Limitarea ratei pentru fiecare furnizor (`open-sse/services/rateLimitManager.ts`) este controlată separat de `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` și `RATE_LIMIT_AUTO_ENABLE` — consultați `.env.example`.
 
-**Cum să verificați că a funcționat**: rulați agentul/jobul cron de două ori în succesiune rapidă și confirmați că ambele rulări reușesc. Înainte de remediere, a doua rulare generează de obicei `429`/`401`. După remediere, încercările nereușite (dacă există) sunt reluate în mod transparent, iar apelul se finalizează. De asemenea, puteți rula `curl /monitoring/health` și urmări câmpul `rateLimitedUntil` din conexiunile furnizorilor și `circuitBreakers.providerBreakers[].state` pentru furnizorii afectați — starea este una dintre `CLOSED`, `DEGRADED`, `OPEN` sau `HALF_OPEN` (consultați `src/shared/utils/circuitBreaker.ts`), iar un furnizor care continuă să eșueze va trece prin `CLOSED → DEGRADED → OPEN` înainte ca intervalul de resetare să permită trecerea unei solicitări de testare (`HALF_OPEN`).
+**Cum verificați dacă a funcționat**: rulați agentul/sarcina cron de două ori, la interval scurt, și confirmați că ambele execuții reușesc. Înainte de remediere, a doua execuție generează de obicei `429`/`401`. După remediere, erorile (dacă există) sunt reîncercate transparent, iar apelul se finalizează. De asemenea, puteți utiliza `curl /monitoring/health` și puteți urmări câmpul `rateLimitedUntil` din conexiunile furnizorilor și `circuitBreakers.providerBreakers[].state` pentru furnizorii afectați — starea este una dintre `CLOSED`, `DEGRADED`, `OPEN` sau `HALF_OPEN` (consultați `src/shared/utils/circuitBreaker.ts`), iar un furnizor care continuă să eșueze va trece prin `CLOSED → DEGRADED → OPEN` înainte ca intervalul de resetare să permită trecerea unei solicitări de testare (`HALF_OPEN`).
 
-**Dacă vedeți în continuare 429**: contul activ pentru furnizorul respectiv și-a epuizat efectiv _cota_ (nu doar limita de frecvență). Adăugați un al doilea cont pentru același furnizor în tabloul de bord OmniRoute → Providers → Accounts sau includeți un alt furnizor gratuit (de exemplu, `routeway`, `auggie`). Rotația ajută doar în cazul erorilor tranzitorii de limitare a frecvenței/400/401; epuizarea completă a cotei necesită un al doilea set de credențiale sau un alt furnizor.
+**Dacă primiți în continuare 429**: contul activ pentru furnizorul respectiv și-a epuizat efectiv _cota_ (nu doar limita ratei). Adăugați un al doilea cont pentru același furnizor în tabloul de bord OmniRoute → Providers → Accounts sau includeți un alt furnizor gratuit (de exemplu, `routeway`, `auggie`). Rotația ajută doar în cazul limitărilor tranzitorii ale ratei și al erorilor 400/401; epuizarea definitivă a cotei necesită alte credențiale sau un alt furnizor.
 
-**Dacă vedeți 403 pentru modelele de viziune (`auto/vision`, `bazaarlink/*`)**: contul conectat nu dispune de un plan plătit care include funcționalități de viziune sau cheia API nu are permisiuni suficiente. Verificați în tabloul de bord al furnizorului dacă domeniul de acces al cheii include funcționalități de viziune/multimodale sau conectați un cont cu abonament plătit și păstrați-l ca destinație pentru solicitările de viziune.
+**Dacă primiți 403 pentru modelele de viziune (`auto/vision`, `bazaarlink/*`)**: contul conectat nu are un plan plătit care să includă funcționalități de viziune sau cheia API nu are permisiuni suficiente. Verificați în tabloul de bord al furnizorului dacă domeniul de acces al cheii include funcționalități de viziune/multimodale sau conectați un cont cu nivel plătit și păstrați-l drept țintă pentru solicitările de viziune.
 
 ---
 
@@ -549,31 +549,31 @@ Utilizați **Panou de control → Translator** pentru a depana problemele de con
 - Verificați dacă în **Setări → Reziliență → Profiluri de furnizor** este activată limitarea automată a ratei
 - Verificați dacă furnizorul returnează coduri de stare `429` sau antete `Retry-After`
 
-### Ajustarea temporizării exponențiale
+### Ajustarea backoff-ului exponențial
 
-Profilurile de furnizor acceptă următoarele setări:
+Profilurile de furnizor acceptă aceste setări:
 
 - **Întârziere de bază** — Timpul inițial de așteptare după prima eroare (implicit: 1s)
 - **Întârziere maximă** — Limita maximă a timpului de așteptare (implicit: 30s)
-- **Multiplicator** — Factorul de creștere a întârzierii pentru fiecare eroare consecutivă (implicit: 2x)
+- **Multiplicator** — Cu cât se mărește întârzierea pentru fiecare eroare consecutivă (implicit: 2x)
 
 ### Prevenirea efectului de turmă
 
-Atunci când multe solicitări concurente ajung la un furnizor cu rata limitată, OmniRoute utilizează mutex + limitarea automată a ratei pentru a serializa solicitările și a preveni erorile în cascadă. Acest lucru este automat pentru furnizorii cu cheie API.
+Când numeroase solicitări concurente ajung la un furnizor cu rata limitată, OmniRoute utilizează mutex + limitarea automată a ratei pentru a serializa solicitările și a preveni erorile în cascadă. Acest lucru este automat pentru furnizorii cu cheie API.
 
 ### Solicitările de chat eșuează cu 503 / chat_admission_busy
 
 **Simptome:**
 
-- Endpointul pentru completările de chat returnează un răspuns reîncercabil `503`, al cărui cod de eroare este
+- Endpoint-ul de completări pentru chat returnează un răspuns `503` reîncercabil, al cărui cod de eroare este
   `chat_admission_busy`.
-- Răspunsul include `Retry-After`. Începând cu #12135, valoarea este derivată din gradul de ocupare
-  observat — valoarea cea mai mare dintre fereastra `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` pe care solicitarea a
-  așteptat-o deja și timpul cât au fost păstrate alocările curente pentru sarcini grele — rotunjită în sus la
-  secunde întregi și limitată la 60. Pentru o poartă inactivă, sunt păstrate limitele minime istorice: 2 secunde pe
+- Răspunsul include `Retry-After`. Începând cu #12135, valoarea este derivată din gradul de
+  ocupare observat — valoarea mai mare dintre intervalul `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` pe care solicitarea l-a
+  așteptat deja și timpul în care lease-urile curente pentru solicitări complexe au fost menținute — rotunjită în sus la
+  secunde întregi și limitată la 60. Când mecanismul de control este inactiv, sunt păstrate limitele minime istorice: 2 secunde pe
   calea bazată pe octeți, 1 secundă pe calea bazată pe structură (care include și
   `reason: "structure_limit"`).
-- Acest lucru se poate întâmpla cât timp un alt chat cu sarcină grea sau un răspuns de streaming de lungă durată este încă
+- Acest lucru se poate întâmpla cât timp un alt chat complex sau un răspuns de streaming de lungă durată este încă
   în curs.
 
 Corpul răspunsului bazat pe octeți este:
@@ -595,46 +595,46 @@ La pragurile implicite, o solicitare este considerată complexă structural atun
 cel puțin `64` de instrumente sau cel puțin `32,000` de tokenuri estimate ori când estimarea limitată a structurii
 își epuizează limitele de `10,000` de noduri vizitate sau de adâncime `12`.
 
-**Cauză:** Aceasta este o reducere deliberată a sarcinii în cadrul OmniRoute, nu o eroare a furnizorului upstream.
-Fiecare proces utilizează o protecție locală procesului pentru a rezerva o capacitate limitată pentru sarcini grele înainte de a păstra
-și analiza corpul unei solicitări mari. O alocare pentru sarcini grele rămâne activă pe întreaga durată de viață a unui răspuns
-SSE.
+**Cauză:** Aceasta este o reducere deliberată a sarcinii în OmniRoute, nu o eroare a furnizorului upstream.
+Fiecare proces utilizează un mecanism de protecție local procesului pentru a rezerva capacitatea limitată destinată solicitărilor complexe înainte de a păstra
+și analiza corpul unei solicitări mari. Un lease pentru o solicitare complexă rămâne menținut pe întreaga durată de viață a unui
+răspuns SSE.
 
-**Distribuirea răspunsurilor 503:** înainte de această remediere, protecția limita concurența la un NUMĂR fix de solicitări
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, implicit `1`), indiferent de memoria gazdei, astfel încât distribuirea sarcinilor
-agenților de programare (mai mulți subagenți/CLI-uri, corpuri care depășesc în mod obișnuit 256 KB) reducea concurența
-efectivă la ~1 și genera răspunsuri 503 în condiții de sarcină complet normale. Protecția se ajustează acum automat: este controlată
-de un buget de OCTEȚI pentru ingestie, derivat automat (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), dimensionat pe baza
+**#503-fanout:** înainte de această remediere, mecanismul de protecție limita concurența la un NUMĂR fix de solicitări
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, implicit `1`), indiferent de memoria gazdei, astfel încât
+fan-out-ul agenților de programare (mai mulți subagenți/CLI-uri, corpuri în mod obișnuit > 256 KB) reducea concurența
+efectivă la ~1 și genera erori 503 în condiții de încărcare complet normale. Acum, mecanismul de protecție se autoreglează: este controlat
+printr-un buget de OCTEȚI pentru ingestie, derivat automat (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), dimensionat pe baza
 limitei reale de memorie a procesului și consultă, de asemenea, un semnal în timp real privind presiunea asupra resurselor — astfel încât
-reduce sarcina numai atunci când gazda se află cu adevărat sub presiune de memorie, nu doar pentru că mai multe
-solicitări grele au sosit simultan. Vechea limită numerică (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) este
-respectată în continuare, dar numai dacă o setați în mod explicit.
+reduce sarcina numai atunci când gazda se află cu adevărat sub presiunea memoriei, nu doar pentru că au sosit simultan mai multe
+solicitări complexe. Vechea limită numerică (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) este
+respectată în continuare, dar numai dacă o setați explicit.
 
-Atunci când capacitatea este ocupată, o solicitare cu sarcină grea așteaptă mai întâi până la
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (implicit `2000`, `0` dezactivează așteptarea) eliberarea unui slot,
-înainte de a răspunde cu codul reîncercabil `503`. Așteptarea limitată există pentru ca aplicațiile client de tip agent
-(OpenCode, Claude Code, Cursor), care distribuie simultan subsolicitări grele, să serializeze vârful de sarcină,
-în loc să-și consume întregul buget de reîncercări prin respingeri imediate și să se oprească în mijlocul sarcinii.
-Gradul curent de ocupare a alocărilor pentru sarcini grele, bugetul de octeți calculat și severitatea în timp real a presiunii sunt
+Când capacitatea este ocupată, o solicitare complexă așteaptă mai întâi până la
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (implicit `RATE_LIMIT_MAX_WAIT_MS`; `0` dezactivează așteptarea) eliberarea unui slot
+înainte de a returna răspunsul `503` reîncercabil. Așteptarea limitată există pentru ca acele aplicații client de tip agent
+(OpenCode, Claude Code, Cursor) care distribuie simultan subsolicitări complexe prin fan-out să serializeze rafala
+în loc să-și consume întregul buget de reîncercări pe respingeri imediate și să se oprească în timpul sarcinii.
+Gradul curent de ocupare a lease-urilor pentru solicitări complexe, bugetul de octeți stabilit și severitatea presiunii în timp real sunt
 expuse la `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
 `budgetSource`, `pressureSeverity`, `countCapEnabled`) — verificați-le înainte de a modifica orice variabilă de mediu.
-Setări → Reziliență → Coadă de solicitări → Solicitări concurente nu controlează acest comportament; setarea respectivă
+Setări → Reziliență → Coada de solicitări → Solicitări concurente nu controlează acest mecanism; setarea respectivă
 gestionează un mecanism separat pentru coada de solicitări a furnizorului.
 
 **Remediere:**
 
-1. Încercați din nou mai întâi. Aplicațiile client trebuie să respecte `Retry-After` și să utilizeze temporizarea progresivă, în loc să
+1. Reîncercați mai întâi. Aplicațiile client trebuie să respecte `Retry-After` și să utilizeze backoff în loc să
    repete imediat solicitarea.
 2. Verificați `/api/monitoring/health` → `chatAdmission` înainte de a ajusta ceva. `countCapEnabled:
 false` și o valoare generoasă pentru `maxInflightBytes` înseamnă că bugetul derivat automat își îndeplinește deja
-   rolul; o valoare `pressureSeverity` de `high`/`critical` înseamnă că gazda are cu adevărat puțină memorie disponibilă —
+   rolul; o valoare `pressureSeverity` de `high`/`critical` înseamnă că gazda are într-adevăr puțină memorie disponibilă —
    acest lucru nu poate fi remediat printr-o variabilă de mediu pentru admitere, ci necesită mai multă memorie RAM sau un volum de lucru mai mic.
 3. Numai dacă `/api/monitoring/health` arată că bugetul derivat automat este într-adevăr prea mic pentru
-   gazda dvs. (situație rară — acesta se adaptează deja de la containere până la sisteme bare-metal), suprascrieți-l direct cu
-   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`, în loc să reveniți la limita învechită bazată pe numărul de solicitări.
+   gazda dvs. (lucru rar — acesta se adaptează deja de la containere până la sisteme bare-metal), suprascrieți-l direct cu
+   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` în loc să reveniți la vechea limită bazată pe numărul de solicitări.
 
 Consultați [referința variabilelor de mediu](../reference/ENVIRONMENT.md#4-security--authentication)
-pentru setările oficiale de admitere.
+pentru setările oficiale privind admiterea.
 
 ---
 

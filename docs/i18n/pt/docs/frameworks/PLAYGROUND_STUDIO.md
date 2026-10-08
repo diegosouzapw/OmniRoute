@@ -188,14 +188,14 @@ Autenticação: opcional (`REQUIRE_API_KEY`). Erros através de `buildErrorBody(
 
 ## Resolução de problemas
 
-| Sintoma                                               | Causa                                                  | Correção                                                                                                 |
-| ----------------------------------------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| O editor Monaco não é apresentado no separador API    | O SSR carregou o Monaco                                | Verifique se `ApiTab` utiliza `dynamic(..., { ssr: false })`                                             |
-| Os fluxos de comparação são iniciados sequencialmente | Utilização incorreta de `Promise.all`                  | Todos os fluxos devem ser iniciados numa única chamada a `Promise.all`                                   |
-| As métricas apresentam TTFT como `null`               | O processador do primeiro fragmento não está associado | Verifique se `useStreamMetrics.onFirstChunk()` é chamado no ciclo de leitura de SSE                      |
-| A predefinição não é mantida                          | A migração da BD não foi executada                     | Execute `npm run db:migrate` ou reinicie o servidor (a migração é executada automaticamente no arranque) |
-| A melhoria do prompt devolve 502                      | O modelo não está definido em Config                   | O utilizador deve introduzir o nome de um modelo no painel Config antes de efetuar a melhoria            |
-| O código exportado apresenta `MISSING_API_KEY`        | O marcador de posição não foi inserido                 | `codeExport.ts` utiliza sempre `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`                              |
+| Sintoma                                               | Causa                                                  | Correção                                                                              |
+| ----------------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| O editor Monaco não é apresentado no separador API    | O SSR carregou o Monaco                                | Verifique se `ApiTab` utiliza `dynamic(..., { ssr: false })`                          |
+| Os fluxos de comparação são iniciados sequencialmente | Utilização incorreta de `Promise.all`                  | Todos os fluxos têm de ser iniciados numa única chamada a `Promise.all`               |
+| As métricas apresentam TTFT como `null`               | O processador do primeiro fragmento não está associado | Verifique se `useStreamMetrics.onFirstChunk()` é chamado no ciclo de leitura de SSE   |
+| A predefinição não é mantida                          | A migração da BD não foi executada                     | Reinicie o servidor: as migrações são executadas automaticamente no arranque          |
+| A melhoria do prompt devolve 502                      | O modelo não está definido em Config                   | O utilizador tem de introduzir um nome de modelo no painel Config antes de o melhorar |
+| O código exportado apresenta `MISSING_API_KEY`        | O marcador de posição não foi inserido                 | `codeExport.ts` utiliza sempre `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`           |
 
 ---
 

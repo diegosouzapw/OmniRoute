@@ -37,8 +37,9 @@ test.after(() => {
 
 test("getModelLatencyStats aggregates avgTtftMs/avgE2ELatencyMs/avgTokensPerSecond over successful rows", async () => {
   const now = Date.now();
-  // latencyMs / ttft / tokensOutput chosen so tokens/sec is a clean number per row:
-  // 50/(1000/1000)=50, 100/(2000/1000)=50, 300/(4000/1000)=75 -> mean 58.33
+  // #13130: tokens/sec is GENERATION throughput — tokens / (latency - ttft).
+  // 50/(0.9s)=55.56, 100/(1.8s)=55.56, 300/(3.7s)=81.08 -> mean 64.06.
+  // (The pre-#13130 wall-clock formula yielded 58.33 for these same rows.)
   const rows = [
     { latencyMs: 1000, ttftMs: 100, tokensOutput: 50 },
     { latencyMs: 2000, ttftMs: 200, tokensOutput: 100 },
@@ -70,7 +71,7 @@ test("getModelLatencyStats aggregates avgTtftMs/avgE2ELatencyMs/avgTokensPerSeco
   // column exists in usage_history beyond latency_ms/ttft_ms).
   assert.equal(entry.avgE2ELatencyMs, entry.avgLatencyMs);
   assert.equal(entry.avgE2ELatencyMs, 2333);
-  assert.equal(Math.round(entry.avgTokensPerSecond * 100) / 100, 58.33);
+  assert.equal(Math.round(entry.avgTokensPerSecond * 100) / 100, 64.06);
 });
 
 test("getModelLatencyStats guards divide-by-zero when latency_ms <= 0 for tokens/sec", async () => {
@@ -102,10 +103,11 @@ test("getModelLatencyStats guards divide-by-zero when latency_ms <= 0 for tokens
   const entry = stats["zero-latency-provider/zero-latency-model"];
   assert.ok(entry);
   assert.ok(Number.isFinite(entry.avgTokensPerSecond));
-  // Only the latencyMs=1000 row can contribute a valid tokens/sec sample
-  // (100 tokens / 1s = 100 tok/s); the zero-latency row must be excluded,
-  // not divide-by-zero into Infinity/NaN.
-  assert.equal(entry.avgTokensPerSecond, 100);
+  // Only the latencyMs=1000 row can contribute a valid tokens/sec sample; with
+  // #13130 the window is generation time: 100 tokens / (1000ms - 50ms) =
+  // 105.26 tok/s. The zero-latency row must be excluded, not divide-by-zero
+  // into Infinity/NaN.
+  assert.equal(entry.avgTokensPerSecond, 105.26);
 });
 
 test("getModelLatencyStats TTFT falls back to all-sample TTFTs when successful sample count is below minSamples", async () => {

@@ -237,16 +237,16 @@ docker compose -f docker-compose.prod.yml down
 
 ## Dockerfile mərhələləri
 
-Repozitoriya çoxmərhələli Dockerfile (`Dockerfile`) ilə təqdim olunur. Dörd mərhələ əlçatandır; istifadə ssenariniz üçün uyğun `target` seçin.
+Repozitoriya çoxmərhələli Dockerfile (`Dockerfile`) ilə təqdim olunur. Dörd mərhələ əlçatandır; istifadə ssenariniz üçün düzgün `target` seçin.
 
-| Mərhələ       | Baza obrazı           | Məqsəd                                                                                                                                                                                                                                                                                                  |
-| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Asılılıqları quraşdırır (`npm ci --legacy-peer-deps`) və `npm run build` əmrini işlədir (standart olaraq Turbopack — aşağıdakı Yığım zamanı resurslar bölməsinə baxın)                                                                                                                                  |
-| `runner-base` | `node:26-trixie-slim` | Next.js-in müstəqil çıxışı ilə istehsal mühiti. **Heç bir provayder CLI-ı daxil edilməyib.**                                                                                                                                                                                                            |
-| `runner-cli`  | `runner-base`         | `git`, `docker.io`, `docker-compose` və qlobal CLI-ları əlavə edir: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Agent əsaslı iş axınları üçün bunu seçin.**                                                                                                                    |
-| `runner-web`  | `runner-base`         | Veb sessiya provayderləri üçün Playwright və Chromium brauzeri (`--with-deps`) əlavə edir: `gemini-web`, `claude-web`, `claude-turnstile`. **Bu provayderlərdən istifadə etdikdə bunu seçin** — adi obraz bu olmadan sorğu zamanı uğursuz olur (Buraxılış kanalları bölməsindəki `-web` qeydinə baxın). |
+| Mərhələ       | Baza obrazı           | Məqsəd                                                                                                                                                                                                                                                                                               |
+| ------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Asılılıqları quraşdırır (`npm ci --legacy-peer-deps`) və `npm run build` işə salır (standart olaraq Turbopack — aşağıdakı Yığılma vaxtı resursları bölməsinə baxın)                                                                                                                                  |
+| `runner-base` | `node:26-trixie-slim` | Next.js-in müstəqil çıxışı ilə istehsal mühiti. **Heç bir provayder CLI-si daxil edilməyib.**                                                                                                                                                                                                        |
+| `runner-cli`  | `runner-base`         | `git`, `docker.io`, `docker-compose` və qlobal CLI-ləri əlavə edir: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Agent əsaslı iş axınları üçün bunu seçin.**                                                                                                                 |
+| `runner-web`  | `runner-base`         | Veb sessiya provayderləri üçün Playwright + Chromium brauzeri (`--with-deps`) əlavə edir: `gemini-web`, `claude-web`, `claude-turnstile`. **Bu provayderlərdən istifadə etdikdə bunu seçin** — standart obraz onsuz sorğu zamanı xəta verir (Buraxılış kanalları bölməsindəki `-web` qeydinə baxın). |
 
-Konkret `target`-i əl ilə yığın:
+Konkret hədəfi əl ilə yığın:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
@@ -254,78 +254,62 @@ docker build --target runner-cli  -t omniroute:cli  .
 docker build --target runner-web  -t omniroute:web  .
 ```
 
-### Yığım zamanı resurslar
+### Yığılma vaxtı resursları
 
-Üç yığım arqumenti `builder` mərhələsinin resurs sərfiyyatını idarə edir. Onlar yalnız yığım zamanı istifadə olunur —
-`OMNIROUTE_MEMORY_MB` (aşağıda) ayrıca icra zamanı parametridir.
+Üç yığılma arqumenti `builder` mərhələsinin resurs sərfini idarə edir. Bunlar yalnız yığılma vaxtına aiddir —
+`OMNIROUTE_MEMORY_MB` (aşağıda) isə ayrıca icra vaxtı parametridir.
 
-| Yığım arqumenti             | Standart | Təsir                                                                                                          |
+| Yığılma arqumenti           | Standart | Təsir                                                                                                          |
 | --------------------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`      | `0` olduqda yığım əvəzinə webpack ilə aparılır. Pik yaddaş istifadəsi daha az, sürət daha aşağıdır.            |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | İşə salınan `next build` üçün V8 hip yaddaşı həddi (`--max-old-space-size`).                                   |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`      | `0` webpack ilə yığır: pik yaddaş daha az, sürət daha aşağıdır. `1` Turbopack-i aktivləşdirir.                 |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | İşə salınan `next build` üçün V8 hip həddi (`--max-old-space-size`).                                           |
 | `OMNIROUTE_BUILD_WORKERS`   | `2`      | `CIRCLE_NODE_TOTAL` üçün dəyər verir; Next səhifə məlumatlarının toplanması üçün `workers = N - 1` hesablayır. |
 
-`OMNIROUTE_BUILD_WORKERS` böyük yığım serverində artırılmalı olan və məhdud resurslu yığım **`✓ Compiled successfully` mesajından sonra** dayandıqda şübhələnməli olduğunuz parametrdir. Hər bir səhifə məlumatı işçi prosesi ayrıca prosesdir və əsas `next build` prosesinin özü də belədir;
-işlək VPS-də aparılmış təkrar sınaq (məsələ #7518) hər prosesin pik RSS göstəricisini
-`NODE_OPTIONS` hip parametrindən asılı olmayaraq ~4.5 GB ölçüb (Turbopack kompilyasiyanı
-V8 hipindən kənardakı yerli/Rust yaddaşında həyata keçirir). Standart `2` dəyəri (→ 1 işçi, ümumilikdə 2
-proses) nəşr konveyerinin istifadə etdiyi 16 GB / 4 vCPU-luq GitHub tərəfindən təmin edilən icra mühitləri üçün
-hesablanıb. `8` dəyərində (→ 7 işçi) həmin icra mühitinin yaddaşı tükəndi və
-buildkit addımı `ResourceExhausted: ... cannot allocate memory` xətası ilə uğursuz oldu;
-hər prosesin RSS göstəricisi təxmin edilmək əvəzinə birbaşa ölçüldükdə `3` (→ 2 işçi) dəyəri də uyğun gəlmədi.
-`tests/unit/docker-build-memory-budget.test.ts`
-ölçülmüş göstəriciyə əsasən hesablamaları aparır və parametrlərdən hər hansı biri
-icra mühitinin imkanlarını aşdıqda uğursuz olur.
+Böyük yığılma maşınında artırılmalı olan parametr `OMNIROUTE_BUILD_WORKERS`-dır və məhdud resurslu yığılma **`✓ Compiled successfully` mesajından sonra** dayanarsa, ilk növbədə bundan şübhələnmək lazımdır. Hər səhifə məlumatı işçisi ayrıca prosesdir və əsas `next build` prosesinin özü də ayrıdır; real VPS-də aparılan təkrarlama (məsələ #7518) hər prosesin pik RSS göstəricisini `NODE_OPTIONS` hip parametrindən asılı olmayaraq ~4.5 GB səviyyəsində ölçdü (Turbopack V8 hipindən kənarda yerli/Rust yaddaşında kompilyasiya edir). Standart `2` dəyəri (→ 1 işçi, cəmi 2 proses) dərcetmə konveyerinin istifadə etdiyi 16 GB / 4 vCPU-lu GitHub hostlu icraçılar üçün nəzərdə tutulub. `8` dəyərində (→ 7 işçi) həmin icraçının yaddaşı tükəndi və buildkit mərhələni `ResourceExhausted: ... cannot allocate memory` xətası ilə dayandırdı; hər proses üzrə RSS birbaşa ölçüldükdən sonra `3` (→ 2 işçi) dəyəri də uyğun olmadı. `tests/unit/docker-build-memory-budget.test.ts` ölçülmüş göstəriciyə əsasən hesablamaları aparır və parametrlərdən hər hansı biri icraçının imkanlarını aşarsa, test uğursuz olur.
 
-Turbopack kompilyasiyanı V8 hipindən **kənarda** yerləşən yerli Rust yaddaşında həyata keçirir, buna görə də
-`OMNIROUTE_BUILD_MEMORY_MB` onu məhdudlaşdırmır. Yaddaş həddi olan hostda
-yığım OOM sonlandırıcısı tərəfindən heç bir xəta mətni olmadan SIGKILL ilə dayandırılır — proses sadəcə
-`Creating an optimized production build` mərhələsinin ortasında dayanır və bu, yaddaş çatışmazlığından
-daha çox donma kimi görünür. Yığım hostunun resursları məhduddursa, yığım alətini dəyişin:
+Turbopack V8 hipindən **kənarda** yerləşən yerli Rust yaddaşında kompilyasiya edir, buna görə də `OMNIROUTE_BUILD_MEMORY_MB` onu məhdudlaşdırmır. Yaddaş limiti olan hostda yığılma OOM dayandırıcısı tərəfindən heç bir xəta mətni olmadan SIGKILL siqnalı ilə dayandırılır — proses sadəcə `Creating an optimized production build` mərhələsinin ortasında dayanır və bu, yaddaş çatışmazlığından daha çox donma kimi görünür. Məhz buna görə `npm run dev` / `npm run build` komandalarından fərqli olaraq `Dockerfile` standart olaraq webpack-dən (`OMNIROUTE_USE_TURBOPACK=0`) istifadə edir; həmin komandalarda kod üzrə standart seçim Turbopack-dir: heç bir yığılma arqumenti olmayan sadə `docker build .` əmri (Railway və digər bir kliklə işə salınan hostların icra etdiyi variant) yaddaşı məhdud yığılma maşınında səssizcə dayanmamalıdır. Dərc olunmuş obrazlarda `docker-publish.yml` daxilində artıq `OMNIROUTE_USE_TURBOPACK=0` açıq şəkildə ötürülür. Kifayət qədər RAM-a malik yığılma maşınında daha sürətli yığılma üçün Turbopack-i aktivləşdirin:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` aktivdir, buna görə `next build` əsas **və** işçi
-prosesi işə salır və onların hər biri ayrıca `OMNIROUTE_BUILD_MEMORY_MB` dəyərinə əməl edir. Konteyner
-həddini bu dəyərin bir qatı deyil, təxminən iki qatından yuxarı təyin edin.
+`webpackBuildWorker` aktivdir, buna görə `next build` əsas prosesi **və** işçi prosesi işə salır və onların hər biri ayrıca `OMNIROUTE_BUILD_MEMORY_MB` dəyərinə əməl edir. Konteyner həddini bu dəyərin bir qatından deyil, təxminən iki qatından yüksək təyin edin.
 
 Bu ağacda ölçülüb (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Yığım aləti | Konteyner həddi | Nəticə                                      |
-| ----------- | --------------- | ------------------------------------------- |
-| Turbopack   | 8 GiB / 16 GiB  | hər ikisində səssizcə OOM ilə sonlandırıldı |
-| webpack     | 8 GiB           | yığım işçisi SIGKILL ilə sonlandırıldı      |
-| webpack     | 12 GiB          | uğurlu oldu, pik istifadə 11.1 GiB idi      |
+| Paketləyici | Konteyner həddi | Nəticə                                          |
+| ----------- | --------------- | ----------------------------------------------- |
+| Turbopack   | 8 GiB / 16 GiB  | hər iki halda səssizcə OOM ilə dayandırıldı     |
+| webpack     | 8 GiB           | yığılma işçisi SIGKILL siqnalı ilə dayandırıldı |
+| webpack     | 12 GiB          | uğurla tamamlandı, pik göstərici 11.1 GiB oldu  |
 
-### İcra zamanı standart dəyərlər
+### İcra vaxtı standartları
 
-`runner-base` tərəfindən ixrac edilən standart dəyərlər: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
+`runner-base` tərəfindən ixrac edilən standartlar: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
 Docker-də yaddaş davranışı:
 
-- Təsvir `OMNIROUTE_MEMORY_MB=1024` təyin edir və bundan `NODE_OPTIONS=--max-old-space-size=1024` dəyərini formalaşdırır.
-- Faktiki server prosesi `OMNIROUTE_MEMORY_MB` dəyərini oxuyan və `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` əlavə edən müstəqil işəsalma vasitəsi tərəfindən başladılır.
+- İmaj `OMNIROUTE_MEMORY_MB=1024` dəyərini təyin edir və ondan `NODE_OPTIONS=--max-old-space-size=1024` dəyərini formalaşdırır.
+- Faktiki server prosesi `OMNIROUTE_MEMORY_MB` dəyərini oxuyan və `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` parametrini əlavə edən müstəqil işəsalma proqramı tərəfindən başladılır.
 - Node təkrarlanan `--max-old-space-size` dəyərlərindən sonuncusunu istifadə edir, buna görə də `OMNIROUTE_MEMORY_MB` parametrinin təyin edilməsi Docker üçün effektiv heap limitini idarə edir.
-- Təsvir bu parametri həmişə təyin etdiyinə görə işəsalma vasitəsinin RAM əsasında kalibrlənən ehtiyat dəyəri Docker altında heç vaxt tətbiq edilmir. İş yükünə uyğun olaraq onu açıq şəkildə artırın (aşağıdakı cədvələ baxın). `2048` kodlaşdırma agentinin `/v1/responses` sorğuları üçün hələ də çox azdır.
+- İmaj bu parametri həmişə təyin etdiyindən işəsalma proqramının RAM əsasında kalibrlənən ehtiyat dəyəri Docker mühitində heç vaxt tətbiq olunmur. İş yükünə uyğun olaraq onu açıq şəkildə artırın (aşağıdakı cədvələ baxın). Kodlaşdırma agentlərinin `/v1/responses` sorğuları üçün `2048` hələ də çox azdır.
 
 ### Kodlaşdırma agentləri üçün icra zamanı RAM
 
-Docker üçün standart 1 GiB istehsal ölçüsü deyil, idarəetmə paneli/yüngül söhbət üçün minimum həddir. Uzun `POST /v1/responses` gövdələri (yüzlərlə mesaj, onlarla alət) sıxışdırma zamanı yaddaşda bir neçə qrafı saxlayır. Üst-üstə düşən təxminən 3 MiB / təxminən 750k tokenlik iki sorğu **12 GiB** old-space ilə V8-in işini dayandırıb (`FATAL ERROR: Reached heap limit`) və həmçinin 16 GiB cgroup OOM həddinə çatıb. Baxın: [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Docker üçün standart 1 GiB həddi istehsal mühiti üçün ölçü deyil, idarəetmə paneli/yüngül söhbət üçün minimum həddir. Uzun `POST /v1/responses` gövdələri (yüzlərlə mesaj, onlarla alət) sıxılma zamanı yaddaşda bir neçə qrafı saxlayır. Üst-üstə düşən təxminən 3 MiB / 750k tokenlik iki sorğu **12 GiB** old-space həddində V8-in dayanmasına (`FATAL ERROR: Reached heap limit`) səbəb olub və həmçinin 16 GiB cgroup OOM həddinə çatıb. [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849) bölməsinə baxın.
 
-**cgroup `--memory` dəyərini heap həddindən yüksək təyin edin** — yerli buferlər, SQLite və sıxışdırmanın aralıq nəticələri V8-dən kənarda yerləşir.
+**cgroup `--memory` dəyərini heap həddindən yuxarı təyin edin** — native buferlər, SQLite və sıxılmanın aralıq nəticələri V8-dən kənarda yerləşir.
 
-| İş yükü                                    | `OMNIROUTE_MEMORY_MB`             | Konteyner / cgroup          | Qeydlər                                                                                                                           |
-| ------------------------------------------ | --------------------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| İdarəetmə paneli, bir yüngül söhbət        | `1024` (təsvirin standart dəyəri) | ≥2 GiB                      |                                                                                                                                   |
-| Bir kodlaşdırma agenti (Claude/Codex/Grok) | `8192`                            | ≥10 GiB                     | Tipik tək sessiyalı `/v1/responses`                                                                                               |
-| İki paralel uzun `/v1/responses`           | `10240`–`12288`                   | ≥12–16 GiB                  | Təxminən 12 GiB heap ilə V8-in işinin dayanması ölçülüb                                                                           |
-| Üç və ya daha çox paralel uzun kontekst    | bir prosesdə istifadə etməyin     | ardıcıl icra / daha çox RAM | Standart ağır iş yükü qəbulu eyni anda 1 icra ilə məhdudlaşır; RAM artırılmadan bu həddin yüksəldilməsi dayanmanı yenidən yaradır |
+| İş yükü                                    | `OMNIROUTE_MEMORY_MB`   | Konteyner / cgroup           | Qeydlər                                                                                                                            |
+| ------------------------------------------ | ----------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| İdarəetmə paneli, bir yüngül söhbət        | `1024` (imaj standartı) | ≥2 GiB                       |                                                                                                                                    |
+| Bir kodlaşdırma agenti (Claude/Codex/Grok) | `8192`                  | ≥10 GiB                      | Tipik tək sessiyalı `/v1/responses`                                                                                                |
+| İki paralel uzun `/v1/responses`           | `10240`–`12288`         | ≥12–16 GiB                   | Təxminən 12 GiB heap həddində ölçülmüş V8 dayanması                                                                                |
+| Üç və ya daha çox paralel uzun kontekst    | bir prosesdə etməyin    | növbələşdirin / daha çox RAM | Standart ağır iş yükü qəbulu eyni anda 1 sorğu ilə məhdudlaşır; RAM artırılmadan bu həddin yüksəldilməsi dayanmanı yenidən yaradır |
 
-`OMNIROUTE_MEMORY_MB` **təyin edilmədikdə**, fiziki serverdə `omniroute serve` RAM-ın təxminən 35%-ni (`[512, 4096]` aralığı ilə məhdudlaşdırılmaqla) kalibrləyir. Docker həmişə `1024` təyin etdiyinə görə rəsmi təsvirdə bu kalibrləmə heç vaxt işə düşmür.
+`omniroute serve` fiziki sistemdə `OMNIROUTE_MEMORY_MB` **təyin edilmədikdə** RAM-ın təxminən 35%-ni (`[512, 4096]` aralığı ilə məhdudlaşdırılmış) kalibrləyir. Docker həmişə `1024` dəyərini təyin etdiyindən rəsmi imajda bu kalibrləmə heç vaxt işə düşmür.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

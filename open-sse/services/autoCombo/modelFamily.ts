@@ -24,7 +24,10 @@ export type ModelFamily =
   | "kimi"
   | "qwen"
   | "deepseek"
-  | "gpt";
+  | "gpt"
+  | "claude-opus"
+  | "claude-sonnet"
+  | "claude-haiku";
 
 export const MODEL_FAMILIES: readonly ModelFamily[] = [
   "glm",
@@ -38,6 +41,9 @@ export const MODEL_FAMILIES: readonly ModelFamily[] = [
   "qwen",
   "deepseek",
   "gpt",
+  "claude-opus",
+  "claude-sonnet",
+  "claude-haiku",
 ];
 
 const MODEL_FAMILY_SET: ReadonlySet<string> = new Set(MODEL_FAMILIES);
@@ -55,6 +61,11 @@ const FAMILY_ID_PATTERNS: ReadonlyArray<{ family: ModelFamily; pattern: RegExp }
   { family: "qwen", pattern: /^qwen/i },
   { family: "deepseek", pattern: /^deepseek-/i },
   { family: "gpt", pattern: /^gpt-/i },
+  // #15675: Claude tiers. Matches `claude-opus-4-8`, `claude-4.6-opus-high` and
+  // Bedrock-style `us.anthropic.claude-opus-4-v1:0` (the `.`-separated prefix).
+  { family: "claude-opus", pattern: /(?:^|\.)claude-(?:\d[\d.-]*-)?opus/i },
+  { family: "claude-sonnet", pattern: /(?:^|\.)claude-(?:\d[\d.-]*-)?sonnet/i },
+  { family: "claude-haiku", pattern: /(?:^|\.)claude-(?:\d[\d.-]*-)?haiku/i },
 ];
 
 /**

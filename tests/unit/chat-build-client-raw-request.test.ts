@@ -42,6 +42,19 @@ test("endpoint and headers are captured from the request", () => {
   assert.equal(out.headers["content-type"], "application/json");
 });
 
+test("buildClientRawRequest can carry an explicit stream lifecycle signal", () => {
+  const requestAbort = new AbortController();
+  const streamAbort = new AbortController();
+  const request = new Request("http://x/v1/responses", {
+    method: "POST",
+    body: "{}",
+    signal: requestAbort.signal,
+  });
+  const out = buildClientRawRequest(request, { model: "m" }, streamAbort.signal);
+  assert.equal(out.signal, streamAbort.signal);
+  assert.notEqual(out.signal, requestAbort.signal);
+});
+
 // #7360 follow-up (live incident, log id 1784418258231-14961a): a combo target
 // abandoned by comboTargetTimeoutMs used to hang forever because chatCore.ts's
 // createStreamController/withRateLimit only ever watches the ORIGINAL client's

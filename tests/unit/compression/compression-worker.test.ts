@@ -62,11 +62,27 @@ function comparable<T extends { stats: { durationMs?: number; timestamp: number 
 after(() => closeCompressionWorkerPoolForTests());
 
 describe("compression worker eligibility", () => {
-  it("accepts only standard, rtk, and approved rtk+caveman stacks", () => {
+  it("accepts standard, rtk, heuristic ultra, and approved rtk+caveman stacks", () => {
     assert.equal(isCompressionWorkerEligible(body, "standard", { config }), true);
     assert.equal(isCompressionWorkerEligible(body, "rtk", { config }), true);
     assert.equal(isCompressionWorkerEligible(body, "stacked", { config }), true);
-    for (const mode of ["off", "lite", "aggressive", "ultra", "omniglyph"] as const) {
+    assert.equal(isCompressionWorkerEligible(body, "ultra", { config }), true);
+    assert.equal(
+      isCompressionWorkerEligible(body, "ultra", {
+        config: { ...config, ultraEngine: "slm" } as CompressionConfig,
+      }),
+      false
+    );
+    assert.equal(
+      isCompressionWorkerEligible(body, "ultra", {
+        config: {
+          ...config,
+          ultra: { ...(config.ultra ?? {}), modelPath: "/tmp/model.onnx" },
+        } as CompressionConfig,
+      }),
+      false
+    );
+    for (const mode of ["off", "lite", "aggressive", "omniglyph"] as const) {
       assert.equal(isCompressionWorkerEligible(body, mode, { config }), false);
     }
     for (const engine of ["llmlingua", "omniglyph", "ccr", "session-dedup", "ultra"]) {
@@ -144,6 +160,56 @@ describe("compression worker execution", () => {
     assert.deepEqual(comparable(async), comparable(sync));
   });
 
+  it("runs heuristic ultra in the worker instead of the gateway isolate", async () => {
+    const ultraConfig = {
+      ...config,
+      defaultMode: "ultra",
+      ultraEngine: "heuristic",
+      ultra: {
+        ...(config.ultra ?? {}),
+        compressionRate: 0.5,
+        minScoreThreshold: 0.3,
+        maxTokensPerMessage: 1,
+      },
+    } as CompressionConfig;
+    let posted = 0;
+    const originalPostMessage = Worker.prototype.postMessage;
+    Worker.prototype.postMessage = function (this: Worker, ...args) {
+      posted++;
+      return originalPostMessage.apply(this, args);
+    };
+    try {
+      const result = await applyCompressionAsync(body, "ultra", { config: ultraConfig });
+      assert.equal(result.compressed, true);
+      assert.equal(result.stats?.mode, "ultra");
+      assert.equal(result.stats?.ultraTier, "heuristic");
+      assert.ok(posted >= 1, "heuristic ultra must be dispatched to a worker thread");
+    } finally {
+      Worker.prototype.postMessage = originalPostMessage;
+    }
+  });
+
+  it("caps the private V8 heap of compression workers", async () => {
+    const pool = new CompressionWorkerPool({
+      size: 1,
+      idleMs: 60_000,
+      maxOldGenerationSizeMb: 256,
+    });
+    try {
+      await pool.run(body, "standard", { config });
+      const workers = (
+        pool as unknown as {
+          workers: Set<{ worker: Worker }>;
+        }
+      ).workers;
+      const slot = [...workers][0];
+      assert.ok(slot, "worker should remain pooled before idle eviction");
+      assert.equal(slot.worker.resourceLimits.maxOldGenerationSizeMb, 256);
+    } finally {
+      await pool.close();
+    }
+  });
+
   it("preserves Responses bodies and hard-budget results", async () => {
     const responsesBody = {
       model: "gpt-test",
@@ -179,7 +245,7 @@ describe("compression worker execution", () => {
           err instanceof Error &&
           err.name === "CompressionWorkerError" &&
           (err as { retryInProcess?: boolean }).retryInProcess === false &&
-          /timed out/.test(err.message)
+          /timeout/.test(err.message)
       );
     } finally {
       await pool.close();

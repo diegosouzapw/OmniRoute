@@ -13,6 +13,7 @@ import { Agent, buildConnector, fetch as undiciFetch, type Dispatcher } from "un
 import { getSettings, updateSettings } from "@/lib/db/settings";
 import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLeaseIsolation";
 import { getRuntimePorts } from "@/lib/runtime/ports";
+import { timingSafeCompare } from "@/shared/utils/timingSafeCompare";
 
 export const DEFAULT_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
 /** Cycle-wide in-flight cap. Heap cost is total catalog JSON, not one upstream. */
@@ -156,7 +157,26 @@ export function isModelSyncInternalRequest(request: { headers: Headers }): boole
     internalAuthToken = globalState.__omnirouteModelSyncInternalAuthToken;
   }
   const headerToken = request.headers.get(MODEL_SYNC_INTERNAL_AUTH_HEADER);
-  return Boolean(headerToken && internalAuthToken && headerToken === internalAuthToken);
+  return Boolean(
+    headerToken && internalAuthToken && timingSafeCompare(headerToken, internalAuthToken)
+  );
+}
+
+/** Providers whose connections are created with `autoSync: true` (#488). */
+const AUTO_SYNC_DEFAULT_PROVIDERS = new Set(["antigravity", "agy"]);
+
+/**
+ * Whether a connection takes part in the sync cycle.
+ *
+ * `autoSync` unset means the connection predates the family default, not that the operator
+ * opted out — those connections never refreshed their catalog again, so every model Google
+ * shipped after the connection was created stayed invisible. An explicit `false` is still
+ * honored.
+ */
+export function isAutoSyncEnabled(provider: unknown, psd: Record<string, unknown>): boolean {
+  if (psd.autoSync === true) return true;
+  if (psd.autoSync !== undefined) return false;
+  return typeof provider === "string" && AUTO_SYNC_DEFAULT_PROVIDERS.has(provider);
 }
 
 /**
@@ -180,7 +200,7 @@ async function getAutoSyncConnections(): Promise<
         conn.providerSpecificData && typeof conn.providerSpecificData === "object"
           ? (conn.providerSpecificData as Record<string, unknown>)
           : {};
-      if (psd.autoSync !== true) continue;
+      if (!isAutoSyncEnabled(conn.provider, psd)) continue;
       if (typeof conn.id !== "string" || typeof conn.provider !== "string") continue;
       autoSyncConnections.push({
         id: conn.id,

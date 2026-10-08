@@ -4,24 +4,27 @@
 
 ---
 
-„OmniRoute“ tikrina aukštesniojo lygio paslaugų teikėjo klaidų atsakymus, ieškodama požymių, rodančių, kad paslaugų teikėjo
-**paskyra yra visam laikui nebeveikianti** (sustabdyta / deaktyvinta / užblokuota dėl paslaugų teikimo sąlygų pažeidimo), ir, aptikusi
-atitiktį, perkelia tą ryšį į **galutinę būseną `banned`**, kad jis
-nebebūtų pasirenkamas užklausoms. Būtent tai konfigūruojama nustatymų kortelėje **Sauga → Uždrausti raktažodžiai**
-(„Papildomi raktažodžiai, suaktyvinantys nuolatinio paskyros užblokavimo
+„OmniRoute“ tikrina pirminio teikėjo klaidų atsakymus, ieškodama požymių, rodančių, kad teikėjo
+**paskyra visam laikui nebeveikia** (sustabdyta / deaktyvuota / užblokuota dėl paslaugų teikimo sąlygų pažeidimo), ir, aptikusi
+atitiktį, perkelia tą ryšį į **galutinę `banned` būseną**, kad jis
+nebebūtų pasirenkamas užklausoms. Būtent tai konfigūruojama **Security → Banned Keywords**
+nustatymų kortelėje („Papildomi raktažodžiai, kurie inicijuoja visam laikui užblokuotos paskyros
 aptikimą. Integruotieji raktažodžiai taikomi visada.“).
 
 Šiame puslapyje aprašomas integruotasis sąrašas, aptikimo eiga, jo taikymo sritis, kaip saugiai pridėti
-pasirinktinių raktažodžių ir kaip atkurti pažymėtą ryšį. Pati galutinė
+pasirinktinius raktažodžius ir kaip atkurti pažymėtą ryšį. Pati galutinė
 būsena yra atsparumo modelio dalis — žr.
 [RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) („Galutinės būsenos“).
 
-**Pirminis tiesos šaltinis:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+**Pirminis informacijos šaltinis:** `open-sse/services/accountFallback.ts`
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+taip pat `open-sse/services/errorClassifier.ts`, kuriame apibrėžta negalutinė patvirtinimo klasė
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) ir ją
+naudojanti 403 atsakymo apdorojimo šaka.
 
 ## Integruotieji raktažodžiai
 
-Šios 8 poeilutės taikomos visada (neatsižvelgiant į raidžių dydį), nepaisant pasirinktinio sąrašo:
+Šios 7 poeilutės taikomos visada (neatsižvelgiant į didžiąsias ir mažąsias raides), kad ir koks būtų pasirinktinis sąrašas:
 
 ```
 account_deactivated
@@ -29,23 +32,46 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> Šis sąrašas kinta paslaugų teikėjams keičiant blokavimo pranešimų formuluotes. Autoritetinga
+> Šis sąrašas keičiasi paslaugų teikėjams keičiant blokavimo formuluotes. Autoritetinga
 > kopija yra `ACCOUNT_DEACTIVATED_SIGNALS`, esanti `open-sse/services/accountFallback.ts`;
 > pirmiau pateiktą bloką laikykite momentine kopija.
 
-Tame pačiame faile yra dvi gretimos, **atskiros** signalų lentelės, kurios _nėra_
-uždraustų raktažodžių aptikimo dalis:
+### Ne blokavimas: operatoriaus išsprendžiami patvirtinimo raginimai
 
-- `CREDITS_EXHAUSTED_SIGNALS` — išnaudotas atsiskaitymo / kvotos limitas (`insufficient_quota`,
+`verify your account to continue` **anksčiau buvo** pirmiau pateiktame sąraše. Tai nėra
+blokavimo signalas ir dabar jis yra `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS`, kuris
+klasifikuojamas kaip atkuriama `PROJECT_ROUTE_ERROR`, užuot visam laikui nutraukus ryšį.
+
+Google Cloud Code / Antigravity jį grąžina kaip `403 VALIDATION_REQUIRED`. Jis yra
+**laikinas ir pasireiškia sveikose, visą kvotą turinčiose paskyrose** — tai nustatyta
+veikiančiame diegime (2026-09-25, `proxy_logs`): vienas Antigravity ryšys per 10 minučių
+grąžino 33 tokias 403 klaidas ir liko `active`, o lygiagretus ryšys, turėjęs 100 % savo
+kvotos visuose 17 langų, buvo visam laikui užblokuotas dėl **vienos** tokios klaidos.
+Vienintelis skirtumas buvo tas, kuri užklausa atsitiktinai buvo aptarnauta.
+
+Šis skirtumas svarbus, nes galutinis atitikmuo yra `permanent: true` (1 metų atvėsimo
+laikotarpis, automatiškai niekada neatkuriamas), o operatorius patvirtinimo raginimą
+pašalina naršyklėje. Palikus šią frazę blokavimo sąraše, atkuriama cloud-code 403 šaka,
+esanti `classifyProviderError`, taip pat tapo nepasiekiama šiai formuluotei, nes
+`accountDeactivated` įvertinama pirmiausia — todėl Gemini Code Assist projektų maršrutų
+atkūrimas, pridėtas
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) ir
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452), niekada negalėjo būti vykdomas.
+
+Trys gretimos, **atskiros** signalų lentelės _nėra_ užblokavimo raktažodžių aptikimo dalis:
+
+- `CREDITS_EXHAUSTED_SIGNALS` — išeikvotos atsiskaitymo lėšos / kvota (`insufficient_quota`,
   `credit_balance_too_low`, `payment required`, …) → galutinė būsena `credits_exhausted`.
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **ne galutinė būsena**; atnaujinus prieigos raktą veikimą galima atkurti.
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **negalutinė būsena**; prieigos rakto atnaujinimas gali ją atkurti.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **negalutinė būsena**; operatorius turi
+  iš naujo patvirtinti paskyrą išorinėje sistemoje. Yra `open-sse/services/errorClassifier.ts`
+  (kitos dvi yra `accountFallback.ts`). Žr. pirmiau pateiktą skyrių.
 
-Pastaba: dažnos laikinos frazės, pvz., **`rate limit`** / `429`, apdorojamos
+Pastaba: dažnos laikinos frazės, tokios kaip **`rate limit`** / `429`, apdorojamos
 užklausų dažnio ribojimo / ryšio atvėsimo mechanizmo ir **nėra** blokavimo signalai.
 
 ## Aptikimo eiga

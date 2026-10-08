@@ -209,30 +209,29 @@ rawBody)`) πριν από την ανάλυση του JSON. Εάν έχει ο
 
 ---
 
-## Προφίλ δημιουργίας: `minimal`
+## Προφίλ build: `minimal`
 
-Για χρήστες που χρειάζονται ένα τεχνούργημα συμβατό με το Socket, εκτελέστε τη δημιουργία με:
+Για χρήστες που χρειάζονται ένα τεχνούργημα φιλικό προς το Socket, εκτελέστε το build με:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-Το `NormalModuleReplacementPlugin` του webpack αντιστοιχίζει τέσσερις μονάδες σε υποκατάστατα:
+Το `NormalModuleReplacementPlugin` του webpack αντιστοιχίζει τέσσερα modules σε stubs:
 
-| Μονάδα                                      | Υποκατάστατο                                     |
+| Module                                      | Stub                                             |
 | ------------------------------------------- | ------------------------------------------------ |
 | `src/mitm/cert/install.ts`                  | `src/mitm/cert/install.stub.ts`                  |
 | `src/lib/zed-oauth/keychain-reader.ts`      | `src/lib/zed-oauth/keychain-reader.stub.ts`      |
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Κάθε υποκατάστατο εξάγει την ίδια διεπαφή, αλλά κάθε συνάρτηση εγείρει ένα
-`featureDisabledError(name)` κατά την εκτέλεση. Οι διαδρομές που εξαρτώνται από την απενεργοποιημένη
-μονάδα επιστρέφουν HTTP 503 με ένα σαφές μήνυμα, αντί να ενεργοποιούν την
+Κάθε stub εξάγει την ίδια διεπαφή, αλλά κάθε συνάρτηση προκαλεί ένα
+`featureDisabledError(name)` κατά την εκτέλεση. Οι διαδρομές που εξαρτώνται από το απενεργοποιημένο
+module επιστρέφουν HTTP 503 με ένα σαφές μήνυμα, αντί να ενεργοποιούν την
 ευαίσθητη διαδρομή κώδικα.
 
-Το πακέτο που προκύπτει προορίζεται να δημοσιευτεί ως `omniroute-secure`. Ανατρέξτε στο
-`docs/ops/PUBLISHING_SECURE.md` για τη διαδικασία δημοσίευσης.
+Το bundle που προκύπτει προορίζεται για δημοσίευση ως `omniroute-secure`.
 
 ---
 

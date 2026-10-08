@@ -38,6 +38,11 @@ interface FlagUpdateResult {
 
 const ACTIVE_VALUES = new Set(["true", "1", "yes"]);
 
+// How card descriptions are displayed. "clamp" keeps cards compact and reveals
+// the full text on hover; "full" always shows the complete description.
+type DescriptionMode = "clamp" | "full";
+const DESCRIPTION_MODE_STORAGE_KEY = "ff-card-description-mode";
+
 function isActiveFlagValue(value: string): boolean {
   return ACTIVE_VALUES.has(value);
 }
@@ -67,6 +72,7 @@ export default function FeatureFlagsGrid() {
   const [resettingAll, setResettingAll] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [descriptionMode, setDescriptionMode] = useState<DescriptionMode>("clamp");
   // Set of flag keys whose DB override was changed in this session without
   // a subsequent restart. Used to surface the restart banner.
   const [pendingRestartKeys, setPendingRestartKeys] = useState<Set<string>>(new Set());
@@ -98,6 +104,28 @@ export default function FeatureFlagsGrid() {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(timer);
   }, [search]);
+
+  // Read the persisted preference after hydration — reading localStorage in the
+  // useState initializer would make the first client render differ from the SSR
+  // HTML (hydration mismatch), leaving the active pill stale.
+  useEffect(() => {
+    try {
+      if (window.localStorage.getItem(DESCRIPTION_MODE_STORAGE_KEY) === "full") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage hydration, runs once
+        setDescriptionMode("full");
+      }
+    } catch {
+      // localStorage unavailable — keep the default.
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(DESCRIPTION_MODE_STORAGE_KEY, descriptionMode);
+    } catch {
+      // localStorage unavailable — the mode just won't persist across reloads.
+    }
+  }, [descriptionMode]);
 
   const applyFlagResult = useCallback((key: string, result: FlagUpdateResult) => {
     const wasActive = isActiveFlagValue(result.previousValue);
@@ -285,7 +313,42 @@ export default function FeatureFlagsGrid() {
         </div>
 
         {/* Search + Filter */}
-        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+          {/* Description view: compact with hover tooltip vs always full text */}
+          <div
+            role="radiogroup"
+            aria-label={t("descriptionModeLabel")}
+            title={t("descriptionModeHint")}
+            className="flex items-center gap-1 rounded-lg border border-border bg-bg-subtle p-0.5"
+          >
+            <button
+              type="button"
+              role="radio"
+              aria-checked={descriptionMode === "clamp"}
+              onClick={() => setDescriptionMode("clamp")}
+              className={`rounded-md px-2 py-1 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                descriptionMode === "clamp"
+                  ? "bg-surface text-text-primary shadow-sm"
+                  : "text-text-muted hover:text-text-primary"
+              }`}
+            >
+              {t("descriptionModeHover")}
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={descriptionMode === "full"}
+              onClick={() => setDescriptionMode("full")}
+              className={`rounded-md px-2 py-1 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                descriptionMode === "full"
+                  ? "bg-surface text-text-primary shadow-sm"
+                  : "text-text-muted hover:text-text-primary"
+              }`}
+            >
+              {t("descriptionModeFull")}
+            </button>
+          </div>
+
           {/* Search input with search icon */}
           <div className="relative">
             <span className="material-symbols-outlined absolute left-2.5 top-2 text-sm text-text-muted">
@@ -430,6 +493,7 @@ export default function FeatureFlagsGrid() {
                   onToggle={handleToggle}
                   onReset={handleReset}
                   saving={savingKeys.has(flag.key)}
+                  descriptionMode={descriptionMode}
                 />
               ))}
             </div>

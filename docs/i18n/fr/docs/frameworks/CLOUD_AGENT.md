@@ -305,12 +305,13 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 fournisseur en amont — aucune RPC d’interruption n’existe dans `CloudAgentBase`. Pour arrêter la facturation
 en amont, mettez fin à la tâche dans la propre console du fournisseur.
 
-## API REST — infrastructure des fournisseurs cloud
+## API REST — Intégration des fournisseurs cloud
 
 Ces points de terminaison auxiliaires sous `src/app/api/cloud/` sont utilisés par les clients distants
 (la CLI, l’application Electron ou les workers de synchronisation) pour lire les métadonnées de connexion
-des fournisseurs et résoudre les alias de modèles. Ils sont authentifiés avec une **clé API standard**
-(via `validateApiKey`), et non avec l’authentification d’administration utilisée par les points de terminaison des tâches.
+aux fournisseurs et résoudre les alias de modèles. Ils sont authentifiés à l’aide d’une **clé API**
+(via `validateApiKey`), et non via l’authentification de gestion utilisée par les points de terminaison des tâches ; le contenu
+renvoyé par `/api/cloud/auth` dépend de la portée de la clé (voir ci-dessous).
 
 | Méthode | Chemin                          | Objectif                                                                                                  |
 | ------- | ------------------------------- | --------------------------------------------------------------------------------------------------------- |
@@ -321,8 +322,12 @@ des fournisseurs et résoudre les alias de modèles. Ils sont authentifiés avec
 | PUT     | `/api/cloud/models/alias`       | Définir un alias de modèle (et le synchroniser automatiquement avec le cloud si cette option est activée) |
 
 `/api/cloud/auth` ne renvoie jamais les valeurs brutes de `apiKey` / `accessToken` / `refreshToken`. Il
-renvoie `hasApiKey`, `hasAccessToken`, `hasRefreshToken` ainsi qu’un aperçu masqué
-(`maskedApiKey` : les 4 premiers caractères + `****` + les 4 derniers).
+renvoie `hasApiKey`, `hasAccessToken`, `hasRefreshToken` pour les connexions actives que la clé
+peut utiliser (une clé restreinte avec `allowedConnections` ne voit que celles-ci). Pour une clé API ayant
+la portée `manage` ou `admin`, y compris la clé de déploiement provenant de `OMNIROUTE_API_KEY`, il renvoie également
+un aperçu masqué (`maskedApiKey` : jusqu’à 4 caractères à chaque extrémité, moins pour une clé courte,
+aucun pour les clés de 8 caractères ou moins) ainsi que le `projectId` de la connexion. Ces deux champs sont omis
+de la réponse pour toute autre clé.
 
 ## Résolution des identifiants
 

@@ -74,23 +74,27 @@ Zie [A2A-SERVER.md](./A2A-SERVER.md) voor transportdetails, de structuur van de 
 
 ### Wat het is
 
-ACP is OmniRoute's **lokale inventaris van CLI-agents**. Het detecteert welke programmeer-CLI's op de host zijn geïnstalleerd (Cursor, Cline, Claude Code, Codex CLI, Continue, enz.), bepaalt hun versies en toont ze in het dashboard, zodat de gebruiker elke CLI kan configureren om naar OmniRoute te verwijzen.
+ACP is OmniRoute's **lokale inventaris van CLI-agents**. Het detecteert welke programmeer-CLI's op de host zijn geïnstalleerd (Cursor, Cline, Claude Code, Codex CLI, Continue, enz.), bepaalt hun versies en toont ze in het dashboard, zodat de gebruiker elke CLI naar OmniRoute kan laten verwijzen.
 
-Dit is GEEN extern protocol — het is een intern register dat de gebruikersinterface 'CLI Tools' en het bijhouden van CLI-fingerprints mogelijk maakt (zie [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+De HTTP-interface is een interne inventaris die de gebruikersinterface voor "CLI Tools" en
+het bijhouden van CLI-fingerprints mogelijk maakt (zie [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Daarnaast
+ondersteunt de interne procesbeheerder het native Agent Client Protocol voor de
+geregistreerde Gemini-launcher en verouderde stdio-adapters voor andere contracten.
+Zie [ACP-register en launchers](./ACP.md) voor deze afzonderlijke modi en beperkingen.
 
 ### Wat het doet
 
 - Controleert de host op geïnstalleerde CLI-binaire bestanden (gebruikt `which` / `where`, afhankelijk van het besturingssysteem)
 - Leest de versie van elke CLI (roept `<bin> --version` aan)
-- Accepteert optioneel door de gebruiker gedefinieerde aangepaste agents (pad naar binair bestand + versiecontrole + startargumenten)
+- Accepteert optioneel door de gebruiker gedefinieerde aangepaste agents (pad naar binair bestand + versiecontrole + spawn-argumenten)
 - Slaat aangepaste agents permanent op in de instellingen
-- Retourneert de samengevoegde lijst aan het dashboard
+- Retourneert de samengevoegde lijst naar het dashboard
 
 ### REST-API
 
 | Endpoint          | Methode | Beschrijving                                                                  | Auth        |
 | ----------------- | ------- | ----------------------------------------------------------------------------- | ----------- |
-| `/api/acp/agents` | GET     | Geeft gedetecteerde + aangepaste agents weer (aantallen geïnstalleerd/totaal) | API-sleutel |
+| `/api/acp/agents` | GET     | Gedetecteerde + aangepaste agents weergeven (aantallen geïnstalleerd/totaal)  | API-sleutel |
 | `/api/acp/agents` | POST    | Aangepaste agent toevoegen/bijwerken/verwijderen (actiediscriminator in body) | API-sleutel |
 
 Structuur van de body voor POST (`customAgentBodySchema` in `src/app/api/acp/agents/route.ts`):
@@ -110,13 +114,16 @@ Structuur van de body voor POST (`customAgentBodySchema` in `src/app/api/acp/age
 
 ### Gebruiksscenario's
 
-- De dashboardpagina 'CLI Tools' toont wat er is geïnstalleerd en helpt u elke tool naar OmniRoute te laten verwijzen
+- De dashboardpagina "CLI Tools" geeft weer wat er is geïnstalleerd en helpt u elke CLI naar OmniRoute te laten verwijzen
 - Met aangepaste agents kunnen ervaren gebruikers interne/eigen CLI's registreren die OmniRoute standaard niet kent
 - Het detectieresultaat voedt de `cli-tools`-fingerprintmatrix
 
-### Wanneer u ACP NIET moet gebruiken
+### Wanneer ACP NIET moet worden gebruikt
 
-- ACP _voert_ geen taken uit. Het detecteert en configureert alleen CLI's. Om daadwerkelijk een CLI aan te roepen, start u deze zelf met de omgevingsvariabelen die OmniRoute verstrekt (`OPENAI_BASE_URL`, `OPENAI_API_KEY`, enz.).
+- Het HTTP-register accepteert geen taken en biedt geen functionaliteit voor het starten van processen. De interne
+  beheerder kan een geregistreerde CLI starten, maar is niet gekoppeld als automatische
+  fallback voor providers. Start voor normaal interactief gebruik zelf de geconfigureerde CLI of
+  gebruik `omniroute run`.
 
 ## 3. Cloudagents
 

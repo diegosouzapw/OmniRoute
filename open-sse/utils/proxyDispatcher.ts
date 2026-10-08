@@ -5,13 +5,16 @@ import { getUpstreamTimeoutConfig } from "@/shared/utils/runtimeTimeouts";
 import { stripIpv6Brackets, detectIpLiteralFamily, parseProxyFamily } from "./proxyFamily.ts";
 import { createSocksDispatcherWithFamily } from "./socksConnectorWithFamily.ts";
 import {
-  clearDispatcherCache,
   createRoundRobinDispatcher,
   getDefaultCachedDispatcher,
   getDispatcherCache,
+  getLocalDefaultCachedDispatcher,
+  getLocalRetryCachedDispatcher,
   getRetryCachedDispatcher,
   setDefaultCachedDispatcher,
   setDispatcherCacheEntry,
+  setLocalDefaultCachedDispatcher,
+  setLocalRetryCachedDispatcher,
   setRetryCachedDispatcher,
 } from "./proxyDispatcherCache.ts";
 
@@ -26,6 +29,22 @@ export const RELAY_TYPES: ReadonlySet<string> = new Set(["vercel", "deno", "clou
 
 export function isRelayType(type: string | undefined | null): boolean {
   return typeof type === "string" && RELAY_TYPES.has(type);
+}
+
+// Local-egress hostnames: host.docker.internal, *.internal, *.local.
+// Match the same shape the proxyFetch.ts isLocalAddress() helper uses for
+// PROXY bypass, but narrower on purpose: we only switch dispatcher options
+// for mDNS-style hostnames, not RFC1918 IPs (those may still be cloud
+// upstreams via a private tunnel). IPv6 brackets are stripped defensively.
+const LOCAL_EGRESS_HOSTNAME_REGEX = /(?:^|\.)(?:internal|local)$/i;
+const LOCAL_KEEPALIVE_MAX_TIMEOUT_MS = 1000;
+const LOCAL_AUTO_SELECT_FAMILY_ATTEMPT_TIMEOUT_MS = 200;
+
+export function isLocalEgressHostname(hostname: string | null | undefined): boolean {
+  if (!hostname) return false;
+  // Tolerate both bare hostname and URL.host (host:port), and IPv6 brackets.
+  const host = hostname.replace(/^\[/, "").replace(/\]$/, "").replace(/:\d+$/, "");
+  return LOCAL_EGRESS_HOSTNAME_REGEX.test(host);
 }
 const DEFAULT_PROXY_DISPATCHER_CONNECTIONS = 32;
 const MAX_PROXY_DISPATCHER_CONNECTIONS = 256;
@@ -46,12 +65,25 @@ type ProxyConfigObject = {
   family?: string;
 };
 
-function getDispatcherOptions() {
-  const timeouts = getUpstreamTimeoutConfig(process.env, (message) => {
+export function isUpstreamHttp2Enabled(
+  env: Record<string, string | undefined> = process.env
+): boolean {
+  const raw = (env.OMNIROUTE_UPSTREAM_HTTP2_ENABLED ?? "").trim().toLowerCase();
+  return !["false", "0", "no", "off"].includes(raw);
+}
+
+function getDispatcherOptions(
+  hostname?: string,
+  env: Record<string, string | undefined> = process.env
+) {
+  const allowH2 = isUpstreamHttp2Enabled(env);
+  const timeouts = getUpstreamTimeoutConfig(env, (message) => {
     console.warn(`[ProxyDispatcher] ${message}`);
   });
+  const localEgress = isLocalEgressHostname(hostname);
 
   return {
+    allowH2,
     headersTimeout: timeouts.fetchHeadersTimeoutMs,
     bodyTimeout: timeouts.fetchBodyTimeoutMs,
     connectTimeout: timeouts.fetchConnectTimeoutMs,
@@ -59,7 +91,13 @@ function getDispatcherOptions() {
     // Without this, an upstream Keep-Alive: timeout=N header clamps
     // keepAliveTimeout UP to undici's default keepAliveMaxTimeout (600 s),
     // completely overriding the configured 1 s and restoring zombie-socket risk.
-    keepAliveMaxTimeout: timeouts.fetchKeepAliveTimeoutMs,
+    // For local-egress hostnames (host.docker.internal / *.internal / *.local)
+    // Docker Desktop's NAT silently drops idle keep-alive sockets well inside
+    // the default window, so cap keep-alive at 1 s on that path to force fresh
+    // sockets before the next request lands on a stale one.
+    keepAliveMaxTimeout: localEgress
+      ? LOCAL_KEEPALIVE_MAX_TIMEOUT_MS
+      : timeouts.fetchKeepAliveTimeoutMs,
     // 9router#1237: RFC 8305 Happy Eyeballs. undici does not
     // enable it by default, so when DNS returns both AAAA (IPv6) and A (IPv4)
     // and the IPv6 route is broken (e.g. NAT64 `64:ff9b::` without routing),
@@ -71,9 +109,15 @@ function getDispatcherOptions() {
     // requires `port`; at runtime undici merges these into net.connect (the origin
     // already carries host:port), so the partial pin is valid — cast to suppress
     // the spurious missing-`port` error, mirroring the `proxyTls` cast below.
+    // Local-egress path shortens the per-family attempt to 200 ms because the
+    // IPv6 route to host.docker.internal is dead inside the container (verified
+    // 2026-09-21) and the default 1 s wait is pure latency on every healthy request.
     connect: {
+      allowH2,
       autoSelectFamily: true,
-      autoSelectFamilyAttemptTimeout: 1000,
+      autoSelectFamilyAttemptTimeout: localEgress
+        ? LOCAL_AUTO_SELECT_FAMILY_ATTEMPT_TIMEOUT_MS
+        : 1000,
     } as ProxyAgent.Options["proxyTls"],
   };
 }
@@ -96,7 +140,7 @@ export function getProxyDispatcherConnectionLimit(
 }
 
 function getProxyDispatcherOptions(env: Record<string, string | undefined> = process.env) {
-  const options = getDispatcherOptions();
+  const options = getDispatcherOptions(undefined, env);
   // #9100: restore keep-alive on the proxy path. The previous hard-coded
   // keepAliveTimeout: 1 (1ms) destroyed the pooled socket right after every
   // response, forcing a fresh TCP+TLS+CONNECT handshake per request. Proxies
@@ -114,6 +158,9 @@ function getProxyDispatcherOptions(env: Record<string, string | undefined> = pro
   // connection instead of each opening its own socket (#4163 regression).
   return {
     ...options,
+    // ProxyAgent ignores connect and builds both TLS hops separately (#15313).
+    requestTls: { allowH2: options.allowH2 },
+    proxyTls: { allowH2: options.allowH2 },
     connections: getProxyDispatcherConnectionLimit(env),
     keepAliveTimeout: Math.max(options.keepAliveTimeout, 30_000),
     keepAliveMaxTimeout: Math.max(options.keepAliveMaxTimeout, 60_000),
@@ -139,7 +186,7 @@ export function getDefaultDispatcherConnectionLimit(
 }
 
 function getDefaultDispatcherOptions(env: Record<string, string | undefined> = process.env) {
-  const options = getDispatcherOptions();
+  const options = getDispatcherOptions(undefined, env);
   // #4580 — On the direct egress path, undici's default pipelining (1) let a long
   // SSE stream monopolize the single pooled socket per origin. Keep the public
   // connection-limit option here, but getDefaultDispatcher() fans it out across
@@ -152,8 +199,8 @@ function getDefaultDispatcherOptions(env: Record<string, string | undefined> = p
   };
 }
 
-function createRoundRobinDirectDispatcher(connectionLimit: number): Dispatcher {
-  const baseOptions = getDispatcherOptions();
+function createRoundRobinDirectDispatcher(connectionLimit: number, hostname?: string): Dispatcher {
+  const baseOptions = getDispatcherOptions(hostname);
   const perAgentOptions = {
     ...baseOptions,
     connections: 1,
@@ -163,7 +210,18 @@ function createRoundRobinDirectDispatcher(connectionLimit: number): Dispatcher {
   return createRoundRobinDispatcher(dispatchers);
 }
 
-export function getDefaultDispatcher(): Dispatcher {
+export function getDefaultDispatcher(hostname?: string): Dispatcher {
+  if (isLocalEgressHostname(hostname)) {
+    let dispatcher = getLocalDefaultCachedDispatcher();
+    if (!dispatcher) {
+      dispatcher = createRoundRobinDirectDispatcher(
+        getDefaultDispatcherConnectionLimit(),
+        hostname
+      );
+      setLocalDefaultCachedDispatcher(dispatcher);
+    }
+    return dispatcher;
+  }
   let dispatcher = getDefaultCachedDispatcher();
   if (!dispatcher) {
     dispatcher = createRoundRobinDirectDispatcher(getDefaultDispatcherConnectionLimit());
@@ -184,8 +242,25 @@ export function getDefaultDispatcher(): Dispatcher {
  * retry uses this no-keep-alive / no-pipelining dispatcher (mirroring the proxy
  * dispatcher mitigation) to force a fresh socket. Healthy keep-alive reuse on
  * the first attempt is preserved — only the retry pays the fresh-socket cost.
+ *
+ * Local-egress hostnames (host.docker.internal / *.internal / *.local) route
+ * to a parallel retry cache so a fresh-socket retry cannot pick up a stale
+ * socket from the cloud-upstream pool.
  */
-export function getRetryDispatcher(): Dispatcher {
+export function getRetryDispatcher(hostname?: string): Dispatcher {
+  if (isLocalEgressHostname(hostname)) {
+    let dispatcher = getLocalRetryCachedDispatcher();
+    if (!dispatcher) {
+      dispatcher = new Agent({
+        ...getDispatcherOptions(hostname),
+        keepAliveTimeout: 1,
+        keepAliveMaxTimeout: 1,
+        pipelining: 0,
+      });
+      setLocalRetryCachedDispatcher(dispatcher);
+    }
+    return dispatcher;
+  }
   let dispatcher = getRetryCachedDispatcher();
   if (!dispatcher) {
     dispatcher = new Agent({
@@ -432,6 +507,11 @@ export function __getDefaultDispatcherOptionsForTest(
   return getDefaultDispatcherOptions(env);
 }
 
+/** Test-only accessor for the hostname-branched dispatcher options (local-egress shortening). */
+export function __getDispatcherOptionsForTest(hostname?: string) {
+  return getDispatcherOptions(hostname);
+}
+
 export function __createRoundRobinDispatcherForTest(dispatchers: Dispatcher[]): Dispatcher {
   return createRoundRobinDispatcher(dispatchers);
 }
@@ -502,7 +582,13 @@ function buildProxyDispatcher(
     ...options,
     ...(proxyAuthorization ? { token: proxyAuthorization } : {}),
     ...(family !== null
-      ? { proxyTls: { family, autoSelectFamily: false } as ProxyAgent.Options["proxyTls"] }
+      ? {
+          proxyTls: {
+            ...options.proxyTls,
+            family,
+            autoSelectFamily: false,
+          } as ProxyAgent.Options["proxyTls"],
+        }
       : {}),
   });
 }

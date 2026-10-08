@@ -251,9 +251,18 @@ function parseCodex(data: any) {
   return quotas;
 }
 
+// #15635: extra_usage amounts arrive in minor units; decimal_places gives the exponent.
+function claudeExtraUsageScale(extraUsage: any): number {
+  const decimalPlaces = Number(extraUsage?.decimal_places);
+  return Number.isInteger(decimalPlaces) && decimalPlaces > 0 && decimalPlaces <= 6
+    ? 10 ** decimalPlaces
+    : 1;
+}
+
 function buildClaudeExtraUsageQuota(extraUsage: any) {
-  const monthlyLimit = Number(extraUsage?.monthly_limit ?? 0);
-  const usedCredits = Number(extraUsage?.used_credits ?? 0);
+  const scale = claudeExtraUsageScale(extraUsage);
+  const monthlyLimit = Number(extraUsage?.monthly_limit ?? 0) / scale;
+  const usedCredits = Number(extraUsage?.used_credits ?? 0) / scale;
   const utilization = Number(extraUsage?.utilization ?? 0);
   const remainingPercentage = Number.isFinite(utilization)
     ? Math.max(0, 100 - utilization)
@@ -275,9 +284,15 @@ function parseClaude(data: any) {
   if (data?.message)
     return [{ name: "error", used: 0, total: 0, resetAt: null, message: data.message }];
 
-  const quotas = quotaEntries({ quotas: { ...data.quotas, ...data.modelQuotas } }).map(
-    ([name, quota]) => normalizeQuotaEntry(name, quota, { isPercentageOnly: true })
-  );
+  const visibleQuotas = (
+    quotas: Record<string, { fractionReported?: boolean } | null> | null | undefined
+  ) =>
+    Object.fromEntries(
+      Object.entries(quotas ?? {}).filter(([, quota]) => quota?.fractionReported !== false)
+    );
+  const quotas = quotaEntries({
+    quotas: { ...visibleQuotas(data.quotas), ...visibleQuotas(data.modelQuotas) },
+  }).map(([name, quota]) => normalizeQuotaEntry(name, quota, { isPercentageOnly: true }));
 
   if (data?.extraUsage?.is_enabled) {
     quotas.push(buildClaudeExtraUsageQuota(data.extraUsage));
@@ -500,6 +515,9 @@ function parseProviderQuotas(providerId: string, data: any) {
 }
 
 function sortProviderModelOrder(provider: string, quotas: any[]) {
+  // Antigravity/AGY model IDs are discovered live. Static ordering would rank a model
+  // Google ships tomorrow at 999 and bury it below the collapsed three-row cutoff.
+  if (provider === "antigravity" || provider === "agy") return;
   const modelOrder = getModelsByProviderId(provider);
   if (modelOrder.length === 0) return;
   const orderMap = new Map(modelOrder.map((m, i) => [m.id, i]));

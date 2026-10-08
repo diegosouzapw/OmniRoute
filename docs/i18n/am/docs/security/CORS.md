@@ -129,24 +129,28 @@ CORS_ALLOWED_ORIGINS="http://localhost:5173, http://localhost:3000"
   የmanagement/dashboard መነሻዎችን ከማንኛውም permissive config ውጭ ያድርጉ፤ በትክክል
   fail-closed ሆነው መቆየት አለባቸው።
 
-## ምሳሌ፦ ከOmniRoute ፊት ያለ reverse proxy
+## ምሳሌ፦ በOmniRoute ፊት ያለ reverse proxy
 
-CORS በOmniRoute ራሱ የሚተገበር ስለሆነ፣ proxyው በአጠቃላይ `Access-Control-*` headersን
-**ማከል** ወይም እንደገና መጻፍ የለበትም (ድርብ headers browsersን ያበላሻሉ)። TLSን
-ያቋርጡና ወደፊት ያስተላልፉ — OmniRoute ለpreflight ምላሽ እንዲሰጥ ይተዉት፦
+CORS በOmniRoute ራሱ የሚተገበር ስለሆነ፣ proxyው በአጠቃላይ
+የ`Access-Control-*` headers ማከል ወይም እንደገና መጻፍ **የለበትም** (ድርብ headers አሳሾችን ያበላሻሉ)። TLSን ያቋርጡ
+እና ወደፊት ያስተላልፉ — OmniRoute preflightን እንዲመልስ ይተዉት፦
 
 ```nginx
-# nginx — ወደ OmniRoute ወደፊት ያስተላልፉ፤ እዚህ Access-Control-*ን አያስገቡ
+# nginx — ወደ OmniRoute ያስተላልፉ፤ Access-Control-*ን እዚህ አያስገቡ
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # X-Forwarded-Forን ወደ 127.0.0.1 አያዘጋጁ — ይህ የloopback route guardን ያሰናክላል።
+    # የማስተላለፊያ headersን ያቆዩ፦ በተመሳሳይ host ላይ ያለ proxy ከloopback ይገናኛል፣ እና እነሱ
+    # ደዋዩ የአካባቢው operator እንዳልሆነ ለOmniRoute የሚገልጹ ናቸው። ከእነሱ ምንም የማይጨምር proxy
+    # እያንዳንዱን የርቀት ደዋይ የአካባቢ እንዲመስል ያደርጋል። X-Forwarded-Forን ወደ 127.0.0.1 በፍጹም አያዋቅሩ።
 }
 ```
 
-የተፈቀዱትን የbrowser መነሻዎች በproxyው ውስጥ ሳይሆን በOmniRoute
-(`CORS_ALLOWED_ORIGINS` ወይም Security ትር) ውስጥ ያዘጋጁ።
+የተፈቀዱ የአሳሽ originsን በproxyው ሳይሆን በOmniRoute (`CORS_ALLOWED_ORIGINS` ወይም
+በደህንነት ትር) ውስጥ ያዋቅሩ።
 
 ## የምንጭ ፋይሎች
 

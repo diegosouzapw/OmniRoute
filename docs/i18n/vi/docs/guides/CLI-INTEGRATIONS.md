@@ -4,11 +4,13 @@
 
 ---
 
-OmniRoute cung cấp một nhóm các lệnh `setup-*` cấu hình một CLI lập trình (Codex, Claude Code, OpenCode, Cline, …) để sử dụng OmniRoute làm backend của nó — nhờ đó công cụ chỉ giao tiếp với **một** điểm cuối và OmniRoute sẽ định tuyến đến nhà cung cấp phù hợp với tính năng tự động dự phòng. Mỗi lệnh đọc danh mục mô hình **trực tiếp** từ một OmniRoute đang chạy (cục bộ hoặc từ xa) và ghi tệp cấu hình riêng của công cụ vào máy **của bạn**. Khóa API được tham chiếu bởi một biến môi trường ở bất cứ đâu công cụ hỗ trợ nó. Các lệnh lưu trữ tệp môi trường cục bộ của công cụ được ghi chú bên dưới.
+Đối với manifest tệp thực thi dùng chung, môi trường tiến trình con bị hạn chế và thiết lập Gemini bền vững, hãy xem [các hợp đồng khởi chạy CLI](./CLI-LAUNCH-CONTRACTS.md).
 
-Ngoài ra còn có một trình khởi chạy chung — `omniroute run <target>` — khởi tạo `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` hoặc `gemini` với các biến môi trường phù hợp được đưa vào, mà không cần ghi bất kỳ cấu hình nào. Các mục tiêu và bí danh của chúng đến từ manifest chuẩn `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), và `omniroute completion` cung cấp các từ khóa mục tiêu tương tự được lấy từ manifest. Các trình khởi chạy cũ theo công cụ — `omniroute launch` (Claude Code) và `omniroute launch-codex` (Codex) — vẫn khả dụng.
+OmniRoute cung cấp một nhóm lệnh `setup-*` để cấu hình một CLI lập trình (Codex, Claude Code, OpenCode, Cline, …) sử dụng OmniRoute làm backend — nhờ đó công cụ giao tiếp với **một** endpoint duy nhất và OmniRoute định tuyến đến nhà cung cấp phù hợp với cơ chế tự động chuyển đổi dự phòng. Mỗi lệnh đọc danh mục mô hình **đang hoạt động** từ một phiên bản OmniRoute đang chạy (cục bộ hoặc từ xa) và ghi tệp cấu hình riêng của công cụ trên máy của **bạn**. Khóa API được tham chiếu thông qua một biến môi trường ở bất cứ đâu công cụ hỗ trợ. Các lệnh lưu giữ tệp môi trường cục bộ của công cụ được ghi chú bên dưới.
 
-Quy trình tích hợp nhà cung cấp có sẵn từ cùng một ngữ cảnh cục bộ/từ xa. Các lệnh ưu tiên API dưới đây giữ xác thực quản lý tách biệt khỏi thông tin xác thực của nhà cung cấp và không bao giờ in thông tin xác thực trong đầu ra có cấu trúc:
+Ngoài ra còn có một trình khởi chạy tổng quát — `omniroute run <target>` — dùng để khởi chạy `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` hoặc `gemini` với môi trường phù hợp được chèn vào mà không ghi bất kỳ cấu hình nào. Các đích và bí danh của chúng đến từ manifest chuẩn `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), và `omniroute completion` cung cấp cùng các từ đích được lấy từ manifest. Các trình khởi chạy riêng cho từng công cụ theo kiểu cũ — `omniroute launch` (Claude Code) và `omniroute launch-codex` (Codex) — vẫn tiếp tục khả dụng.
+
+Việc tích hợp nhà cung cấp có thể được thực hiện từ cùng ngữ cảnh cục bộ/từ xa. Các lệnh ưu tiên API dưới đây giữ thông tin xác thực quản lý tách biệt với thông tin xác thực của nhà cung cấp và không bao giờ in thông tin xác thực trong đầu ra có cấu trúc:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -18,16 +20,17 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Đối với các script, hãy ưu tiên `--credential-stdin` hoặc `--credential-env`; `--credential` được giữ lại để sử dụng cục bộ có kiểm soát. Lệnh `providers remove` yêu cầu `--yes` trên một terminal không tương tác, và cả năm lệnh đều tuân thủ ngữ cảnh hoạt động hoặc các tùy chọn `--base-url`/`--api-key` toàn cục.
+Đối với tập lệnh, nên ưu tiên `--credential-stdin` hoặc `--credential-env`; `--credential` vẫn được giữ lại để sử dụng cục bộ có kiểm soát. `providers remove` yêu cầu `--yes` trên terminal không tương tác, và cả năm lệnh đều tuân theo ngữ cảnh đang hoạt động hoặc các tùy chọn toàn cục `--base-url`/`--api-key`.
 
-Bộ chọn nhà cung cấp từ chối các tiền tố ID, tên hoặc tên nhà cung cấp không rõ ràng; hãy sử dụng ID kết nối đầy đủ khi có nhiều kết nối trùng khớp. Các lệnh tạo và chỉnh sửa đọc lại kết nối đã lưu, và việc xóa sẽ xác minh rằng nó không còn có thể đọc được. Một thao tác nhập sẽ bỏ qua cặp nhà cung cấp/tên đã tồn tại. Các mục đã nhập không thể ghi đè điểm cuối quản lý, ngữ cảnh hoặc thông tin xác thực quản lý được cung cấp cho CLI.
+Các bộ chọn nhà cung cấp từ chối tiền tố ID, tên hoặc tên nhà cung cấp không rõ ràng; hãy sử dụng ID kết nối đầy đủ khi có nhiều kết nối khớp. Các lệnh tạo và chỉnh sửa sẽ đọc lại kết nối đã lưu, còn thao tác xóa sẽ xác minh rằng kết nối đó không còn có thể được đọc. Thao tác nhập sẽ bỏ qua một cặp nhà cung cấp/tên đã tồn tại. Các mục được nhập không thể ghi đè endpoint quản lý, ngữ cảnh hoặc thông tin xác thực quản lý được cung cấp cho CLI.
 
-Để thiết lập cơ bản một lần, thủ công cho hai tích hợp phong phú nhất, hãy xem các bài tìm hiểu chuyên sâu theo công cụ:
+Để thực hiện thiết lập cơ sở thủ công một lần cho hai tích hợp đầy đủ tính năng nhất, hãy xem các hướng dẫn chuyên sâu dành cho từng công cụ:
 
 - [Cấu hình Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
 - [Cấu hình Codex CLI](./CODEX-CLI-CONFIGURATION.md)
-- [Chế độ Từ xa](./REMOTE-MODE.md) — điều khiển một OmniRoute từ xa (VPS / Tailnet) từ máy tính xách tay của bạn
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — tiện ích mở rộng OmniCopilot; nó cũng có thể chạy các lệnh `setup-*` này cho bạn từ bên trong trình chỉnh sửa
+- [Chế độ từ xa](./REMOTE-MODE.md) — điều khiển một OmniRoute từ xa (VPS / Tailnet) từ máy tính xách tay của bạn
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — tiện ích mở rộng OmniCopilot; tiện ích này cũng có thể chạy các lệnh
+  `setup-*` này cho bạn ngay bên trong trình chỉnh sửa
 
 ---
 

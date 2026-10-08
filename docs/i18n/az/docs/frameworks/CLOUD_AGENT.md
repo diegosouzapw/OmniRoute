@@ -66,7 +66,7 @@ Sinxronizasiya **tənbəldir**: status hər `GET /tasks/[id]` sorğusunda ilkin 
 Arxa planda işləyən sorğulayıcı yoxdur. Aktual vəziyyətə ehtiyac duyan idarə panelləri GET
 son nöqtəsini münasib intervalla sorğulamalıdır.
 
-## `CloudAgentBase` interfeysi
+## `CloudAgentBase` İnterfeysi
 
 Mənbə: `src/lib/cloudAgent/baseAgent.ts`
 
@@ -110,15 +110,15 @@ export abstract class CloudAgentBase {
     c: AgentCredentials
   ): Promise<{ name: string; url: string; branch?: string }[]>;
 
-  protected mapStatus(raw: string): CloudAgentStatus; // evristik yuxarı səviyyə sətri → enum
+  protected mapStatus(raw: string): CloudAgentStatus; // yuxarı axın sətri → enum üçün evristik çevirmə
   protected generateTaskId(): string; // `task_<ts>_<rand>`
   protected generateActivityId(): string; // `act_<ts>_<rand>`
 }
 ```
 
-`CodexCloudAgent.approvePlan` qəsdən xəta atır — Codex Cloud planları avtomatik yaradır və təsdiqləmə mərhələsi yoxdur. `CodexCloudAgent.listSources` `[]` qaytarır.
+`CodexCloudAgent.approvePlan` qəsdən xəta yaradır — Codex Cloud planları avtomatik hazırlayır və təsdiq mərhələsi yoxdur. `CodexCloudAgent.listSources` `[]` qaytarır.
 
-`CursorCloudAgent` Cursor-un Background / Cloud Agents xidmətlərini onun rəsmi REST API-si (`api.cursor.com/v0`) vasitəsilə, **istifadəçi və ya xidmət hesabı API açarı** ilə idarə edir — bu, Cursor IDE-nin OAuth sessiyasını təkrar istifadə etməyə nisbətən daha təhlükəsiz, birbaşa istehsalçı tərəfindən təqdim olunan alternativdir (ban riski barədə xəbərdarlıq daşıyan `cursor` provayderi). Bu, sadə REST adapteridir (`@cursor/sdk` yerli asılılığı yoxdur). `approvePlan` xəta atır (Cursor agentləri avtonom işləyir); `listSources` açarın giriş əldə edə bildiyi repozitoriyaları siyahıya alır. Cursor ortaq `CloudAgentStatus`-a aşkar şəkildə uyğunlaşdırılan BÖYÜK HƏRFLİ status enum-ları (`CREATING`/`RUNNING`/`FINISHED`/`ERROR`) qaytarır. API versiyasının/yolunun kod dəyişikliyi olmadan düzəldilə bilməsi üçün `baseUrl` hər bir etimad məlumatı üzrə dəyişdirilə bilər.
+`CursorCloudAgent` Cursor-un Background / Cloud Agents xidmətlərini onun rəsmi REST API-si (`api.cursor.com/v0`) vasitəsilə, **istifadəçi və ya xidmət hesabı API açarı** ilə idarə edir — bu, Cursor IDE-nin OAuth sessiyasından təkrar istifadə etməyə nisbətən daha təhlükəsiz, birbaşa istehsalçı tərəfindən təqdim olunan alternativdir (`cursor` provayderi isə bloklanma riski barədə xəbərdarlıq daşıyır). Bu, sadə REST adapteridir (`@cursor/sdk` üçün yerli asılılıq yoxdur). `approvePlan` xəta yaradır (Cursor agentləri avtonom işləyir); `listSources` isə açarın giriş imkanı olan repozitoriyaları siyahıya alır. Cursor BÖYÜK HƏRFLƏRLƏ status enum-ları (`CREATING`/`RUNNING`/`FINISHED`/`ERROR`) qaytarır və bunlar ortaq `CloudAgentStatus` dəyərlərinə açıq şəkildə uyğunlaşdırılır. API versiyasının/yolunun kod dəyişikliyi olmadan düzəldilə bilməsi üçün `baseUrl` hər etimadnamə üzrə dəyişdirilə bilər.
 
 ## Domen tipləri
 
@@ -183,7 +183,7 @@ Validasiya sxemləri (`CreateCloudAgentTaskSchema`, `UpdateCloudAgentTaskSchema`
 
 ## Verilənlər bazası
 
-Mənbə: `src/lib/cloudAgent/db.ts` — cədvəl `createCloudAgentTaskTable()` vasitəsilə tənbəl şəkildə yaradılır (`src/lib/cloudAgent/index.ts` faylında modul idxal edilərkən də çağırılır).
+Mənbə: `src/lib/cloudAgent/db.ts` — cədvəl `createCloudAgentTaskTable()` vasitəsilə tənbəl şəkildə yaradılır (həmçinin modul idxal edilərkən `src/lib/cloudAgent/index.ts` daxilində çağırılır).
 
 ```sql
 CREATE TABLE IF NOT EXISTS cloud_agent_tasks (
@@ -208,7 +208,7 @@ CREATE INDEX IF NOT EXISTS idx_cloud_agent_tasks_created  ON cloud_agent_tasks(c
 
 `updateCloudAgentTask` SQL inyeksiyasının qarşısını almaq üçün **sütunların icazə siyahısını** tətbiq edir:
 `status`, `prompt`, `source`, `options`, `result`, `activities`, `error`,
-`completed_at`. Qismən yeniləmədəki istənilən digər açar səssizcə nəzərə alınmır.
+`completed_at`. Qismən yeniləmədəki hər hansı digər açar heç bir bildiriş verilmədən nəzərə alınmır.
 
 ## REST API — Tapşırığın həyat dövrü
 
@@ -288,24 +288,29 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 
 `cancel` lokal verilənlər bazasında `status` dəyərini `"cancelled"` olaraq dəyişir, lakin yuxarı axın provayderini **çağırmır** — `CloudAgentBase` daxilində dayandırma RPC-si yoxdur. Yuxarı axında hesablanmanı dayandırmaq üçün tapşırığı provayderin öz konsolunda sonlandırın.
 
-## REST API — Bulud Provayderi İnfrastrukturu
+## REST API — Bulud Provayderi İnteqrasiyası
 
-`src/app/api/cloud/` altındakı bu köməkçi son nöqtələr uzaq müştərilər
-(CLI, Electron tətbiqi və ya sinxronizasiya işçiləri) tərəfindən provayder bağlantısının metadatasını
-oxumaq və model ləqəblərini həll etmək üçün istifadə olunur. Onlar tapşırıq son nöqtələrinin istifadə etdiyi idarəetmə autentifikasiyası ilə deyil,
-**adi API açarı** ilə (`validateApiKey` vasitəsilə) autentifikasiya olunur.
+`src/app/api/cloud/` altında yerləşən bu köməkçi endpoint-lər uzaq müştərilər
+(CLI, Electron tətbiqi və ya sinxronizasiya işçiləri) tərəfindən provayder bağlantısı metadatasını
+oxumaq və model alias-larını həll etmək üçün istifadə olunur. Onlar tapşırıq endpoint-lərinin istifadə etdiyi idarəetmə autentifikasiyası ilə deyil, **API açarı**
+(`validateApiKey` vasitəsilə) ilə autentifikasiya olunur; `/api/cloud/auth`
+tərəfindən qaytarılan nəticə açarın əhatə dairəsindən asılıdır (aşağıya baxın).
 
 | Metod | Yol                             | Məqsəd                                                                                   |
 | ----- | ------------------------------- | ---------------------------------------------------------------------------------------- |
-| POST  | `/api/cloud/auth`               | API açarını doğrulamaq, maskalanmış bağlantı metadatasını və model ləqəblərini qaytarmaq |
-| PUT   | `/api/cloud/credentials/update` | `accessToken` / `refreshToken` / `expiresAt` məlumatlarını yeniləmək                     |
-| POST  | `/api/cloud/model/resolve`      | Model ləqəbini `{ provider, model }` dəyərinə həll etmək                                 |
-| GET   | `/api/cloud/models/alias`       | Bütün model ləqəblərini siyahılamaq                                                      |
-| PUT   | `/api/cloud/models/alias`       | Model ləqəbi təyin etmək (və aktivdirsə, avtomatik olaraq Cloud ilə sinxronlaşdırmaq)    |
+| POST  | `/api/cloud/auth`               | API açarını yoxlamaq, maskalanmış bağlantı metadatasını + model alias-larını qaytarmaq   |
+| PUT   | `/api/cloud/credentials/update` | `accessToken` / `refreshToken` / `expiresAt` dəyərlərini yeniləmək                       |
+| POST  | `/api/cloud/model/resolve`      | Model alias-ını `{ provider, model }` dəyərinə həll etmək                                |
+| GET   | `/api/cloud/models/alias`       | Bütün model alias-larını siyahılamaq                                                     |
+| PUT   | `/api/cloud/models/alias`       | Model alias-ı təyin etmək (və aktivdirsə, avtomatik olaraq Buludla sinxronizasiya etmək) |
 
-`/api/cloud/auth` heç vaxt xam `apiKey` / `accessToken` / `refreshToken` dəyərlərini qaytarmır. O,
-`hasApiKey`, `hasAccessToken`, `hasRefreshToken` və maskalanmış önizləmə
-(`maskedApiKey`: ilk 4 + `****` + son 4) qaytarır.
+`/api/cloud/auth` heç vaxt emal olunmamış `apiKey` / `accessToken` / `refreshToken` dəyərlərini qaytarmır. O,
+açarın istifadə edə biləcəyi aktiv bağlantılar üçün `hasApiKey`, `hasAccessToken`, `hasRefreshToken`
+dəyərlərini qaytarır (`allowedConnections` ilə məhdudlaşdırılmış açar yalnız həmin bağlantıları görür). `manage`
+və ya `admin` əhatə dairəsinə malik API açarı, o cümlədən `OMNIROUTE_API_KEY`-dən alınan yerləşdirmə açarı üçün o, həmçinin
+maskalanmış önizləməni (`maskedApiKey`: hər ucda 4-ə qədər simvol, qısa açar üçün daha az,
+8 və ya daha az simvoldan ibarət açar üçün isə heç biri) və bağlantının `projectId` dəyərini qaytarır. Digər bütün
+açarlar üçün hər iki sahə cavabdan çıxarılır.
 
 ## Giriş Məlumatlarının Müəyyənləşdirilməsi
 

@@ -37,7 +37,7 @@
       "name": "inline sample",
       "command": "(?:jest|npm (?:run )?test)",
       "input": "PASS src/a.test.ts\nFAIL src/b.test.ts\nError: boom\nTest Suites: 1 failed, 1 passed\nTests: 1 failed, 1 passed\n",
-      "expected": "FAIL src/b.test.ts\nTest Suites: 1 failed, 1 passed\nTests: 1 failed, 1 passed"
+      "expected": "FAIL src/b.test.ts\nError: boom\nTest Suites: 1 failed, 1 passed\nTests: 1 failed, 1 passed"
     }
   ]
 }

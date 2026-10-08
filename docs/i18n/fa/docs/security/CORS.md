@@ -130,22 +130,23 @@ CORS_ALLOWED_ORIGINS="http://localhost:5173, http://localhost:3000"
 
 ## مثال: پراکسی معکوس در جلوی OmniRoute
 
-CORS توسط خود OmniRoute اعمال میشود؛ بنابراین پراکسی معمولاً **نباید** هدرهای
-`Access-Control-*` را اضافه یا بازنویسی کند (هدرهای تکراری باعث اختلال در مرورگرها میشوند). TLS را
-خاتمه دهید و درخواست را فوروارد کنید — اجازه دهید OmniRoute به preflight پاسخ دهد:
+CORS توسط خود OmniRoute اعمال میشود، بنابراین پراکسی معمولاً **نباید** سرآیندهای `Access-Control-*` را اضافه یا بازنویسی کند (سرآیندهای تکراری باعث اختلال در مرورگرها میشوند). TLS را خاتمه دهید و درخواستها را به مقصد ارسال کنید — اجازه دهید OmniRoute به درخواستهای preflight پاسخ دهد:
 
 ```nginx
-# nginx — درخواست را به OmniRoute فوروارد کنید؛ در اینجا Access-Control-* را تزریق نکنید
+# nginx — ارسال به OmniRoute؛ سرآیندهای Access-Control-* را اینجا تزریق نکنید
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # X-Forwarded-For را روی 127.0.0.1 تنظیم نکنید — این کار محافظ مسیر loopback را بیاثر میکند.
+    # سرآیندهای ارسال را حفظ کنید: پراکسیای که روی همان میزبان است از طریق loopback متصل میشود و این سرآیندها
+    # به OmniRoute اعلام میکنند که فراخواننده اپراتور محلی نیست. پراکسیای که هیچکدام از آنها را اضافه نکند
+    # باعث میشود همه فراخوانندگان راهدور محلی به نظر برسند. همچنین هرگز X-Forwarded-For را روی 127.0.0.1 تنظیم نکنید.
 }
 ```
 
-مبدأهای مجاز مرورگر را در OmniRoute (`CORS_ALLOWED_ORIGINS` یا برگه
-Security) تنظیم کنید، نه در پراکسی.
+مبدأهای مجاز مرورگر را در OmniRoute (`CORS_ALLOWED_ORIGINS` یا زبانه Security) تنظیم کنید، نه در پراکسی.
 
 ## فایلهای منبع
 

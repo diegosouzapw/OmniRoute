@@ -73,3 +73,23 @@ test("issue #13591: non-JSON upstream body falls back to the generic templated m
 
   assert.equal(wrappedErrorBody.error.message, "Antigravity upstream error (502): Bad Gateway");
 });
+
+test("issue #13082: tool declaration overload detail remains visible through the shared parser", async () => {
+  const rawOverloadBody = JSON.stringify({
+    error: {
+      code: 400,
+      message: "Request exceeds the upstream tool declaration limit",
+      status: "INVALID_ARGUMENT",
+    },
+  });
+
+  const wrappedErrorBody = buildAntigravityUpstreamError(400, "Bad Request", rawOverloadBody);
+  const response = new Response(JSON.stringify(wrappedErrorBody), {
+    status: 400,
+    headers: { "content-type": "application/json" },
+  });
+  const parsed = await parseUpstreamError(response, "antigravity");
+
+  assert.match(parsed.message, /tool declaration limit/);
+  assert.equal(parsed.statusCode, 400);
+});

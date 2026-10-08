@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 
 const mod = await import("../../scripts/check/check-ai-attribution.mjs");
-const { findAiAttribution, scanRange, main, inputsFromGithubEvent } = mod;
+const { findAiAttribution, scanRange, main, inputsFromGithubEvent, loadAllowlist } = mod;
 
 test("findAiAttribution: rejects AI/bot Co-Authored-By trailers (both spellings, vendor e-mails)", () => {
   const cases = [
@@ -16,7 +16,9 @@ test("findAiAttribution: rejects AI/bot Co-Authored-By trailers (both spellings,
     "Co-authored-by: Codex <codex@openai.com>",
     "Co-authored-by: GPT-5 <gpt@example.com>",
     "Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>",
-    "Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+    // dependabot[bot] is exempted (maintainer decision, 2026-09-29) — see the dedicated test below;
+    // every other [bot] account still fails.
+    "Co-authored-by: renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>",
     "Co-authored-by: Someone <someone@anthropic.com>",
   ];
   for (const c of cases) assert.deepEqual(findAiAttribution(`subject\n\n${c}\n`), [c], c);
@@ -143,5 +145,87 @@ test("inputsFromGithubEvent: pull_request payload → range + title + body; othe
     assert.equal(inputsFromGithubEvent(path.join(dir, "missing.json")), undefined);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("allowlist: skips only the listed historical full SHAs in --range; new tainted commits still fail", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ai-attr-allow-"));
+  const cwd = process.cwd();
+  try {
+    git(dir, "init", "-q", "-b", "main");
+    git(dir, "commit", "-q", "--allow-empty", "-m", "root");
+    const base = git(dir, "rev-parse", "HEAD");
+    git(
+      dir,
+      "commit",
+      "-q",
+      "--allow-empty",
+      "-m",
+      "deps: bump x (#1)\n\nSigned-off-by: dependabot[bot] <support@github.com>"
+    );
+    const historical = git(dir, "rev-parse", "HEAD");
+    const list = path.join(dir, "allow.json");
+    fs.writeFileSync(
+      list,
+      JSON.stringify({ commits: { [historical]: { pr: 1, kind: "dependabot", reason: "r" } } })
+    );
+    process.chdir(dir);
+    const allow = loadAllowlist(list);
+    const skipped: string[] = [];
+    assert.deepEqual(scanRange(`${base}..HEAD`, allow, skipped), []);
+    assert.deepEqual(skipped, [historical]);
+    const log = console.log;
+    const err = console.error;
+    console.log = () => {};
+    console.error = () => {};
+    try {
+      assert.equal(main(["--range", `${base}..HEAD`, "--allowlist", list]), 0);
+      git(
+        dir,
+        "commit",
+        "-q",
+        "--allow-empty",
+        "-m",
+        "fix: new\n\nCo-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+      );
+      assert.equal(main(["--range", `${base}..HEAD`, "--allowlist", list]), 1);
+      // The allowlist never covers PR title/body.
+      assert.equal(main(["--pr-title", "Generated with Claude Code", "--allowlist", list]), 1);
+    } finally {
+      console.log = log;
+      console.error = err;
+    }
+    // Abbreviated SHAs and entries without a reason are rejected.
+    fs.writeFileSync(
+      list,
+      JSON.stringify({ commits: { [historical.slice(0, 10)]: { reason: "r" } } })
+    );
+    assert.throws(() => loadAllowlist(list), /not a full SHA/);
+    fs.writeFileSync(list, JSON.stringify({ commits: { [historical]: {} } }));
+    assert.throws(() => loadAllowlist(list), /no reason/);
+    assert.equal(loadAllowlist(path.join(dir, "missing.json")).size, 0);
+  } finally {
+    process.chdir(cwd);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("allowlist file in the repo: every entry is a full SHA with a reason", () => {
+  const allow = loadAllowlist();
+  assert.ok(allow.size > 0);
+});
+
+test("findAiAttribution: exempts only GitHub's own dependabot[bot] co-author trailer", () => {
+  const dependabot =
+    "Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>";
+  assert.deepEqual(findAiAttribution(`chore(deps): bump x\n\n${dependabot}\n`), []);
+  // Any other bot account, a look-alike name, or the right name with another address still fails.
+  for (const c of [
+    "Co-authored-by: renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>",
+    "Co-authored-by: dependabot[bot] <bot@example.com>",
+    "Co-authored-by: dependabot-preview[bot] <27856297+dependabot-preview[bot]@users.noreply.github.com>",
+    "Co-authored-by: Claude <noreply@anthropic.com>",
+  ]) {
+    assert.deepEqual(findAiAttribution(`subject\n\n${c}\n`), [c], c);
   }
 });

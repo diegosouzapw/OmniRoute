@@ -33,37 +33,37 @@ Nsogbu ndị a na-ahụkarị na ngwọta ha maka OmniRoute.
 
 ---
 
-## Ndozi Nsogbu Zuru Ezu
+## Nchọpụta Nsogbu N'ụzọ Zuru Ezu
 
 ---
 
-### Ịmachi Ọnụego na Ndị Na-eweta Ọrụ Efu (429 / 400 / 401)
+### Mmachi Ọsọ n’aka Ndị Na-eweta Ọrụ Efughị Ego (429 / 400 / 401)
 
-**Mgbaàmà**: Mgbe ị na-eji `model: "auto"` na ndị na-eweta ọrụ efu/na-achọghị nkwado njirimara (opencode, auggie, wdg.), mgbe ụfọdụ ị na-enweta `HTTP 429`, `400`, ma ọ bụ `401` kama nzaghachi. Arịrịọ ndị ahụ na-aga nke ọma mgbe a nwara otu mkpali ahụ ọzọ obere oge gachara, mana ọrụ akpaaka (ọrụ cron, ndị nnọchi anya, skripti) na-akwụsị ozugbo ọdịda mbụ mere.
+**Mgbaàmà**: Mgbe ị na-eji `model: "auto"` na ndị na-eweta ọrụ efughị ego/na-achọghị nkwenye njirimara (opencode, auggie, wdg.), ị na-enweta `HTTP 429`, `400`, ma ọ bụ `401` mgbe ụfọdụ kama azịza. Arịrịọ ndị ahụ na-aga nke ọma mgbe e zigara otu ntụziaka ahụ ọzọ obere oge gachara, mana akpaaka (ọrụ cron, ndị agent, script) na-akwụsị na ọdịda mbụ.
 
-**Isi ihe kpatara ya**: Ụdị ọdịda atọ nọọrọ onwe ha na-agbakọta:
+**Isi ihe kpatara ya**: Ụdị ọdịda atọ dị iche iche na-agbakọta:
 
-1. **Oke ọnụego onye na-eweta ọrụ (`429`)**: Ọkwa efu nwere ike ịmanye oke-nri maka oge ọ bụla. Ọtụtụ oku e mere n'otu oge na-emecha ya, ya mere a na-ajụ arịrịọ na-esote ruo mgbe oge ahụ maliteghachiri.
-2. **Ụdị arụghị ọrụ na passthrough (`400`/`401`)**: Otu ọdọ `auto/*` nwere ike ịgụnye ụdị passthrough sitere na `opencode` ndị edebanyere n'ime katalọgụ mana enweghị ozi njirimara dị ndụ (dịka `oc/north-mini-code-free` → `401`). Auto-router na-anwa otu, ọ daa, njehie ahụ wee gbasaa tupu ịlaghachi azụ amalite.
-3. **Mmụba n'ihi ọtụtụ ọrụ n'otu oge (`429` mgbe ibu dị arọ)**: Mgbe ọtụtụ nnọkọ onye nnọchi anya/cron rutere `auto` n'otu oge, mkpokọta ọnụego arịrịọ na-agafe ihe ndị na-eweta ọrụ efu nwere ike ịnabata, ya mere a na-akanye oku ziri ezi dịka mmegbu.
+1. **Mmachi ọsọ nke onye na-eweta ọrụ (`429`)**: Ọkwa efughị ego nwere ike itinye oke ojiji maka windo oge ọ bụla. Ọtụtụ oku yiri ibe ha n’otu oge na-emecha oke ahụ, ya mere a na-ajụ arịrịọ na-esote ruo mgbe windo ahụ maliteghachiri.
+2. **Model mebiri emebi na passthrough (`400`/`401`)**: Nchịkọta `auto/*` nwere ike ịgụnye model passthrough sitere na `opencode` ndị edebanyere aha na katalọgụ mana na-enweghị nzere dị irè (dịka `oc/north-mini-code-free` → `401`). Auto-router na-anwale otu, ọ daa, njehie ahụ wee gbasaa tupu fallback amalite.
+3. **Mmụba site na concurrency (`429` n’okpuru ibu)**: Mgbe ọtụtụ nnọkọ agent/cron na-akpọ `auto` n’otu oge, mkpokọta ọsọ arịrịọ na-agafe ihe ndị na-eweta ọrụ efughị ego nwere ike ịnagide, ya mere a na-akara oku ziri ezi dịka mkparị.
 
-**Ndozi a kwadoro (ndị obodo kọrọ ya, 2026-08-10)**: hazie mgbanwe gburugburu atọ ka ntụgharị, ọtụtụ ọrụ n'otu oge, na ịlaghachi azụ wee nagide mgbanwe nke ọkwa efu kama ịkwụsị n'ihi ya:
+**Ndozi a kwadoro (ndị obodo kọrọ, 2026-08-10)**: hazie environment variable atọ ka ntụgharị, concurrency, na fallback wee nabata mgbanwe nke ọkwa efughị ego kama ịkwụsị n’ihi ya:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # gafee na ụdị/onye na-eweta ọrụ ọzọ mgbe 400/401 mere (na-amafe ụdị passthrough ndị mebiri emebi)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # oke nnabata akọwapụtara maka ọrụ dị arọ (edoghị ya na ndabara: enweghị oke ọnụọgụ arịrịọ, lee ndetu n'okpuru)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # ichere nwere oke ogologo oge maka ikike ọrụ dị arọ kama 503 a pụrụ ịnwale ọzọ ozugbo
+export OMNIROUTE_ROTATE_ON_400=true           # gaa na model/onye na-eweta ọrụ ọzọ na 400/401 (na-awụli model passthrough ndị mebiri emebi)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # oke nnabata doro anya maka arịrịọ dị arọ (anaghị edobe ya na ndabara: enweghị oke ọnụọgụ arịrịọ, lee ndetu dị n'okpuru)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # bulie oge nchere nwere oke ka ọ gafee ndabara RATE_LIMIT_MAX_WAIT_MS maka upstream ndị dị nwayọ
 ```
 
-Tọọ ndị a na gburugburu usoro OmniRoute (daemon ahụ, dịka ọmụmaatụ site na LaunchAgent plist ma ọ bụ `systemctl edit`), wee malitegharịa OmniRoute. Ọkọlọtọ ntụgharị ahụ bụ ihe otu kacha nwee mmetụta: ọ na-agbanwe ọdịda siri ike ka ọ bụrụ nnwale ọzọ a na-adịghị ahụ anya megide onye na-eweta ọrụ dị mma n'ime ọdọ ahụ.
+Debe ndị a na gburugburu usoro OmniRoute (daemon ahụ, dịka site na LaunchAgent plist ma ọ bụ `systemctl edit`), wee malitegharịa OmniRoute. Flag ntụgharị ahụ bụ otu ihe nwere mmetụta kasịnụ: ọ na-agbanwe ọdịda siri ike ka ọ bụrụ nnwale ọzọ a na-adịghị ahụ anya megide onye na-eweta ọrụ dị mma n’ime nchịkọta ahụ.
 
-**Ndetu**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` na-amachi ọnụ ọgụgụ arịrịọ dị arọ — ndị nwere ọnọdụ ogologo — nwere ike ịrụ ọrụ n'otu oge; oke ahụ bụ ọnụ ụzọ nnabata, ọ bụghị ihe na-amachi ọnụego onye na-eweta ọrụ. **Mmelite #503-fanout:** anaghịzi edobe var a na ndabara (ugbu a ọ na-amachi naanị mgbe ahaziri ya n'ụzọ doro anya, dịka n'elu) — kama nke ahụ, mmefu byte a na-enweta na-akpaghị aka (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) na-achịkwa nnabata ọrụ dị arọ, nke na-ahazi onwe ya dịka oke ebe nchekwa n'ezie nke host si dị, ya mere nrụnye ọhụrụ kwesịrị ịhụ ọdịda `503 chat_admission_busy` ole na ole nke ukwuu n'enweghị ịtọ var a ma ọlị; ịtọ ya n'ụzọ doro anya ebe a ka na-arụ ọrụ kpọmkwem dịka e dere na akwụkwọ. Mgbanwe mmefu byte akọwapụtara na-amachi n'etiti 8 MiB–2 GiB. `413 body_exceeds_budget` abụghị ihe na-adịru nwa oge: bulie mmefu byte ahụ, belata `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES`, ma ọ bụ bulie oke ebe nchekwa usoro ahụ. Mwepu `inflight_bytes_budget` bụ esemokwu nwa oge, a ka nwekwara ike ịnwale ya ọzọ. A na-achịkwa mmachi ọnụego maka onye na-eweta ọrụ ọ bụla (`open-sse/services/rateLimitManager.ts`) iche site na `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH`, na `RATE_LIMIT_AUTO_ENABLE` — lee `.env.example`.
+**Ndetu**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` na-amachi ọnụ ọgụgụ arịrịọ dị arọ — ndị nwere context ogologo — nwere ike ịrụ n’otu oge; oke ahụ bụ ọnụ ụzọ nnabata, ọ bụghị ihe na-amachi ọsọ onye na-eweta ọrụ. **Mmelite #503-fanout:** anaghịzi edobe var a na ndabara (ugbu a ọ na-arụ ọrụ naanị mgbe ahaziri ya kpọmkwem, dịka n’elu) — kama nke ahụ, a na-achịkwa nnabata arịrịọ dị arọ site na mmefu byte a na-ewepụta na-akpaghị aka (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) nke na-agbanwe onwe ya dabere na ezigbo oke ebe nchekwa host, ya mere deployment ọhụrụ kwesịrị ịhụ `503 chat_admission_busy` ole na ole nke ukwuu n’enweghị ịhazi var a ma ọlị; ịtọ ya kpọmkwem ebe a ka na-arụ ọrụ kpọmkwem dịka e dere ya. A na-amachi mgbanwe mmefu byte ndị edobere kpọmkwem n’agbata 8 MiB–2 GiB. `413 body_exceeds_budget` abụghị ihe na-adịru nwa oge: bulie mmefu byte ahụ, belata `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES`, ma ọ bụ bulie oke ebe nchekwa usoro ahụ. Mwepụ `inflight_bytes_budget` bụ asọmpi nwa oge, a ka nwekwara ike ịnwale ya ọzọ. A na-achịkwa mmachi ọsọ maka onye na-eweta ọrụ ọ bụla (`open-sse/services/rateLimitManager.ts`) iche site na `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH`, na `RATE_LIMIT_AUTO_ENABLE` — lee `.env.example`.
 
-**Otu esi enyocha na ọ rụrụ ọrụ**: mee ka agent/cron gị gbaa ọsọ ugboro abụọ n’usoro ngwa ngwa ma gosi na ha abụọ gara nke ọma. Tupu ndozi ahụ, ọsọ nke abụọ na-ewepụtakarị `429`/`401`. Mgbe ndozi ahụ gasịrị, a na-anwale ọdịda ọ bụla ọzọ (ọ bụrụ na ọ dị) na nzuzo ma oku ahụ emechaa nke ọma. Ị nwekwara ike iji `curl /monitoring/health` wee lelee mpaghara `rateLimitedUntil` na njikọ ndị na-eweta ọrụ, yana `circuitBreakers.providerBreakers[].state` maka ndị na-eweta ọrụ emetụtara — ọnọdụ ahụ ga-abụ otu n’ime `CLOSED`, `DEGRADED`, `OPEN`, ma ọ bụ `HALF_OPEN` (lee `src/shared/utils/circuitBreaker.ts`), onye na-eweta ọrụ nke na-aga n’ihu na-ada ga-agbanwe `CLOSED → DEGRADED → OPEN` tupu oge nrụgharị ahụ ekwe ka arịrịọ nnwale gafee (`HALF_OPEN`).
+**Otu esi akwado na ọ rụrụ ọrụ**: mee ka agent/cron gị gbaa ugboro abụọ n’usoro ngwa ngwa ma hụ na ha abụọ gara nke ọma. Tupu ndozi ahụ, agba nke abụọ na-ewepụtakarị `429`/`401`. Mgbe ndozi ahụ gasịrị, a na-anwale ọdịda ọ bụla ọzọ n’ụzọ a na-adịghị ahụ anya, oku ahụ wee gwụchaa. Ị nwekwara ike iji `curl /monitoring/health` wee lelee mpaghara `rateLimitedUntil` na njikọ ndị na-eweta ọrụ yana `circuitBreakers.providerBreakers[].state` maka ndị na-eweta ọrụ emetụtara — ọnọdụ ahụ bụ otu n’ime `CLOSED`, `DEGRADED`, `OPEN`, ma ọ bụ `HALF_OPEN` (lee `src/shared/utils/circuitBreaker.ts`), onye na-eweta ọrụ nke na-aga n’ihu ịda ga-agbanwe `CLOSED → DEGRADED → OPEN` tupu windo mmalitegharị kwe ka nnwale gafere (`HALF_OPEN`).
 
-**Ọ bụrụ na ị ka na-ahụ 429**: akaụntụ na-arụ ọrụ maka onye na-eweta ọrụ ahụ agwụla _quota_ ya n’ezie (ọ bụghị naanị oke ọsọ arịrịọ). Tinye akaụntụ nke abụọ maka otu onye na-eweta ọrụ ahụ na dashboard OmniRoute → Providers → Accounts, ma ọ bụ tinye onye na-eweta ọrụ efu ọzọ (dịka `routeway`, `auggie`). Ntugharị akaụntụ na-enyere naanị na nsogbu nwa oge nke oke ọsọ/400/401; ịgwụcha quota kpamkpam chọrọ nzere nke abụọ ma ọ bụ onye na-eweta ọrụ dị iche.
+**Ọ bụrụ na ị ka na-ahụ 429**: account nọ n’ọrụ maka onye na-eweta ọrụ ahụ agwụchaala _quota_ ya n’ezie (ọ bụghị naanị oke ọsọ). Tinye account nke abụọ maka otu onye na-eweta ọrụ ahụ na dashboard OmniRoute → Providers → Accounts, ma ọ bụ tinye onye na-eweta ọrụ efughị ego ọzọ na ngwakọta ahụ (dịka `routeway`, `auggie`). Ntugharị na-enyere naanị na mmachi ọsọ/400/401 nwa oge; quota gwụchara kpamkpam chọrọ nzere nke abụọ ma ọ bụ onye na-eweta ọrụ ọzọ.
 
-**Ọ bụrụ na ị hụ 403 na ụdị vision (`auto/vision`, `bazaarlink/*`)**: akaụntụ ejikọrọ enweghị atụmatụ akwụ ụgwọ nke gụnyere vision, ma ọ bụ API key ahụ enweghị ikike zuru ezu. Nyochaa na dashboard nke onye na-eweta ọrụ na scope nke key ahụ gụnyere vision/multimodal, ma ọ bụ jikọọ akaụntụ ọkwa akwụ ụgwọ ma debe ya dịka ebumnuche vision.
+**Ọ bụrụ na ị hụ 403 na model vision (`auto/vision`, `bazaarlink/*`)**: account ejikọrọ enweghị atụmatụ akwụ ụgwọ nke gụnyere vision, ma ọ bụ API key enweghị ikike zuru oke. Kwenye na dashboard onye na-eweta ọrụ na scope nke key ahụ gụnyere vision/multimodal, ma ọ bụ jikọọ account ọkwa akwụ ụgwọ ma debe ya dịka ebe a na-eziga arịrịọ vision.
 
 ---
 
@@ -545,37 +545,37 @@ Jiri **Dashboard → Translator** chọpụta nsogbu ndị metụtara ntụghar�
 
 ## Ntọala Nkwụsi Ike
 
-### Mmachi ọnụego akpaaka anaghị amalite ịrụ ọrụ
+### Mmachi ọsọ akpaka anaghị arụ ọrụ
 
-- Mmachi ọnụego akpaaka na-emetụta naanị ndị na-eweta ọrụ ji API key (ọ bụghị OAuth/ndebanye aha)
-- Nyochaa na agbanyere mmachi ọnụego akpaaka na **Settings → Resilience → Provider Profiles**
-- Lelee ma onye na-eweta ọrụ na-eweghachi koodu ọnọdụ `429` ma ọ bụ nkụnye isi `Retry-After`
+- Mmachi ọsọ akpaka na-emetụta naanị ndị na-eweta ọrụ na-eji igodo API (ọ bụghị OAuth/ndebanye aha)
+- Nyochaa na agbanyere mmachi ọsọ akpaka na **Ntọala → Nkwụsi Ike → Profaịlụ Ndị Na-eweta Ọrụ**
+- Lelee ma onye na-eweta ọrụ ọ na-eweghachi koodu ọnọdụ `429` ma ọ bụ nkụnye isi `Retry-After`
 
 ### Ịhazigharị exponential backoff
 
 Profaịlụ ndị na-eweta ọrụ na-akwado ntọala ndị a:
 
-- **Nkwụsị ntọala** — Oge nchere mbụ mgbe ọdịda mbụ gasịrị (ndabara: 1s)
-- **Nkwụsị kacha elu** — Oke oge nchere kachasị elu (ndabara: 30s)
-- **Ọnụọgụ mmụba** — Ole a ga-eji mụbaa oge nchere maka ọdịda ọ bụla na-esochi ibe ya (ndabara: 2x)
+- **Oge nchere mbụ** — Oge nchere mbụ mgbe ọdịda mbụ gasịrị (ndabara: 1s)
+- **Oge nchere kachasị** — Oke kachasị nke oge nchere (ndabara: 30s)
+- **Ọnụọgụ mmụba** — Oke a ga-eji mụbaa oge nchere maka ọdịda ọ bụla na-esochi ibe ya (ndabara: 2x)
 
-### Mgbochi thundering herd
+### Mgbochi ìgwè arịrịọ ịgbakọta n'otu oge
 
-Mgbe ọtụtụ arịrịọ na-aga n'otu oge rutere onye na-eweta ọrụ e tinyere mmachi ọnụego, OmniRoute na-eji mutex + mmachi ọnụego akpaaka hazie arịrịọ ka ha na-aga n'usoro ma gbochie ọdịda na-agbasawanye. Nke a na-eme na-akpaghị aka maka ndị na-eweta ọrụ ji API key.
+Mgbe ọtụtụ arịrịọ na-aga n'otu oge rutere onye na-eweta ọrụ e tinyere mmachi ọsọ, OmniRoute na-eji mutex + mmachi ọsọ akpaka hazie arịrịọ ka ha na-aga n'otu n'otu ma gbochie ọdịda na-agbaso ibe ya. Nke a na-eme na-akpaghị aka maka ndị na-eweta ọrụ na-eji igodo API.
 
 ### Arịrịọ nkata na-ada na 503 / chat_admission_busy
 
-**Ihe mgbaàmà:**
+**Mgbaàmà:**
 
-- Endpoint mmecha nkata na-eweghachi nzaghachi `503` enwere ike ịnwale ọzọ nke koodu njehie ya bụ
+- Endpoint mmecha nkata na-eweghachi nzaghachi `503` nke enwere ike ịnwalegharị, nke koodu njehie ya bụ
   `chat_admission_busy`.
-- Nzaghachi ahụ gụnyere `Retry-After`. Kemgbe #12135, a na-enweta uru ahụ site na njupụta a hụrụ
-  — nke ka ukwuu n'etiti windo `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` nke arịrịọ ahụ cherelarị
-  na oge ejiderela heavyweight leases ndị dị ugbu a — a na-ebuli ya ruo sekọnd zuru ezu
-  ma debe oke ya na 60. N'ọnụ ụzọ na-enweghị ọrụ, ọ na-edobe opekempe ndị e ji kemgbe: sekọnd 2 n'ụzọ
+- Nzaghachi ahụ gụnyere `Retry-After`. Kemgbe #12135, a na-ewepụta uru ahụ site n'ọnọdụ ojiji
+  a hụrụ — nke ka ukwuu n'etiti windo `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` nke arịrịọ ahụ cherelarị
+  na oge ejirila leases dị arọ ugbu a — a na-agbakọ ya elu ruo sekọnd zuru ezu
+  ma na-amachi ya na 60. Mgbe gate ahụ enweghị ọrụ, ọ na-edobe oke kacha nta ochie: sekọnd 2 n'ụzọ
   dabere na byte, sekọnd 1 n'ụzọ dabere na nhazi (nke gụnyekwara
   `reason: "structure_limit"`).
-- Nke a nwere ike ime mgbe heavyweight chat ọzọ ma ọ bụ nzaghachi streaming na-ewe ogologo oge ka
+- Nke a nwere ike ime mgbe nkata ọzọ dị arọ ma ọ bụ nzaghachi streaming na-ewe ogologo oge ka
   na-aga n'ihu.
 
 Ahụ nzaghachi dabere na byte bụ:
@@ -590,52 +590,52 @@ Ahụ nzaghachi dabere na byte bụ:
 }
 ```
 
-Nzaghachi dabere na nhazi na-eji otu type na code ahụ, yana ozi
+Nzaghachi dabere na nhazi na-eji otu ụdị na koodu ahụ, ya na ozi
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 na `reason: "structure_limit"`.
-N'oke ndabara, arịrịọ dị arọ n'ụzọ nhazi ma ọ bụrụ na o nwere opekata mpe ozi `200`,
-ngwaọrụ `64` opekata mpe, ma ọ bụ token e mere atụmatụ ya ruru `32,000` opekata mpe, ma ọ bụ mgbe atụmatụ nhazi nwere oke
-gwụsịrị oke ya nke node `10,000` e letara ma ọ bụ omimi `12`.
+N'okpuru oke ndabara, a na-ewere arịrịọ dị ka nke dị arọ n'usoro ma ọ bụrụ na o nwere opekata mpe ozi `200`,
+ngwaọrụ `64`, ma ọ bụ token e mere atụmatụ ha dịkarịa ala `32,000`, ma ọ bụ mgbe atụmatụ nhazi nwere oke
+mefuru oke ya nke node `10,000` a gara ma ọ bụ omimi `12`.
 
-**Ihe kpatara ya:** Nke a bụ ịbelata ibu a kpachapụrụ anya n'ime OmniRoute, ọ bụghị ọdịda nke onye na-eweta ọrụ upstream.
-Process ọ bụla na-eji ihe nchebe dị naanị na process ahụ iji dobe ikike heavyweight nwere oke tupu ijide
-ma nyochaa nnukwu ahụ arịrịọ. A na-ejide heavyweight lease ruo ogologo ndụ nzaghachi SSE.
+**Ihe kpatara ya:** Nke a bụ ịkpachara anya belata ibu n'ime OmniRoute, ọ bụghị ọdịda nke onye na-eweta ọrụ dị n'elu.
+Process ọ bụla na-eji ihe nche process-local debe ikike dị arọ pere mpe tupu o debe
+ma nyochaa nnukwu ahụ arịrịọ. Lease dị arọ na-anọgide na-arụ ọrụ n'ogologo ndụ nzaghachi SSE.
 
-**#503-fanout:** tupu ndozi a, ihe nchebe ahụ na-amachi concurrency na COUNT arịrịọ a kapịrị ọnụ
+**#503-fanout:** tupu ndozi a, ihe nche ahụ na-amachi arịrịọ ndị nwere ike ịga n'otu oge na ỌNỤỌGỤ arịrịọ a kapịrị ọnụ
 (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, ndabara `1`) n'agbanyeghị ebe nchekwa host, ya mere fan-out nke coding-agent
-(ọtụtụ subagent/CLI, ahụ ndị na-adịkarị > 256 KB) dara ruo concurrency dị irè
-nke ~1 ma wepụta 503 n'okpuru ibu nkịtị kpamkpam. Ugbu a ihe nchebe ahụ na-ahazi onwe ya: a na-achịkwa ya
-site na mmefu ego ingest BYTE a na-enweta na-akpaghị aka (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) nke a tụrụ dabere na
-oke ebe nchekwa n'ezie nke process ahụ, ọ na-enyochakwa akara nrụgide akụrụngwa dị ndụ — ya mere ọ
-na-ebelata ibu naanị mgbe host nọ n'ezie n'okpuru nrụgide ebe nchekwa, ọ bụghị naanị n'ihi na ihe karịrị otu
-arịrịọ dị arọ bịara n'otu oge. A ka na-asọpụrụ oke count ochie (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`),
-mana naanị ma ọ bụrụ na ị tọọ ya n'ụzọ doro anya.
+(ọtụtụ subagent/CLI, ahụ arịrịọ na-abụkarị > 256 KB) dara ruo na ikike ime ihe n'otu oge
+nke ihe dị ka 1 ma na-eweghachi 503 n'okpuru ibu nkịtị kpamkpam. Ugbu a, ihe nche ahụ na-ahazi onwe ya: a na-achịkwa ya
+site na mmefu BYTE ingest ewepụtara na-akpaghị aka (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) nke a haziri dabere na
+oke ebe nchekwa process ahụ n'ezie, ọ na-enyochakwa akara nrụgide akụrụngwa dị ndụ — ya mere ọ
+na-ebelata ibu naanị mgbe host ahụ nọ n'ezie n'okpuru nrụgide ebe nchekwa, ọ bụghị naanị n'ihi na ihe karịrị otu
+arịrịọ dị arọ bịara n'otu oge. A ka na-asọpụrụ oke ọnụọgụ ochie (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`),
+mana naanị ma ọ bụrụ na i debere ya n'ụzọ doro anya.
 
-Mgbe ikike juru, arịrịọ heavyweight ga-ebu ụzọ chere ruo
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (ndabara `2000`, `0` na-agbanyụ nchere ahụ) ka oghere tọhapụ
-tupu ọ zaa `503` enwere ike ịnwale ọzọ. Nchere nwere oke dị ka ndị ahịa ụdị agent
-(OpenCode, Claude Code, Cursor) ndị na-ezipụ sub-request dị arọ n'otu oge wee hazie mwụpụ ahụ n'usoro
-kama imefusị mmefu ego nnwale ọzọ ha niile na ọjụjụ ozugbo ma kwụsị n'etiti ọrụ.
-A na-egosi njupụta heavyweight lease dị ugbu a, mmefu ego byte e kpebiri, na ogo nrụgide dị ndụ
+Mgbe ikike jupụtara, arịrịọ dị arọ na-ebu ụzọ chere ruo
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (ndabara ya bụ `RATE_LIMIT_MAX_WAIT_MS`; `0` na-agbanyụ nchere ahụ) ka oghere tọhapụ
+tupu ọ zaa `503` nke enwere ike ịnwalegharị. Nchere nwere oke a dị ka ndị ahịa yiri agent
+(OpenCode, Claude Code, Cursor) ndị na-ekesa sub-arịrịọ dị arọ n'otu oge wee hazie mbata ahụ n'usoro
+kama imefusị mmefu nnwalegharị ha niile na ajụjụ ozugbo ma kwụsị n'etiti ọrụ.
+A na-egosi ojiji lease dị arọ ugbu a, mmefu byte e kpebiri, na ogo nrụgide dị ndụ
 na `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
-`budgetSource`, `pressureSeverity`, `countCapEnabled`) — lelee ihe ndị a tupu imetụ env var ọ bụla aka.
-Settings → Resilience → Request Queue → Concurrent Requests anaghị achịkwa nke a; ntọala ahụ
-na-achịkwa usoro request-queue nke onye na-eweta ọrụ nke dị iche.
+`budgetSource`, `pressureSeverity`, `countCapEnabled`) — lelee ndị a tupu imetụ env var ọ bụla aka.
+Ntọala → Nkwụsi Ike → Ahịrị Arịrịọ → Arịrịọ N'otu Oge anaghị achịkwa nke a; ntọala ahụ
+na-achịkwa usoro ahịrị arịrịọ onye na-eweta ọrụ dị iche.
 
 **Ndozi:**
 
-1. Buru ụzọ nwaa ọzọ. Ndị ahịa kwesịrị ịgbaso `Retry-After` ma jiri backoff kama ikwugharị
-   arịrịọ ahụ ozugbo.
+1. Buru ụzọ nwalee ọzọ. Ndị ahịa kwesịrị ịgbaso `Retry-After` ma jiri backoff kama iziga
+   otu arịrịọ ahụ ọzọ ozugbo.
 2. Lelee `/api/monitoring/health` → `chatAdmission` tupu ịhazigharị ihe ọ bụla. `countCapEnabled:
-false` na `maxInflightBytes` sara mbara pụtara na mmefu ego e nwetara na-akpaghị aka arụworị
-   ọrụ ya; `pressureSeverity` nke `high`/`critical` pụtara na host ahụ nwere obere ebe nchekwa n'ezie —
-   enweghị ike iji admission env var dozie nke ahụ; ọ chọrọ RAM karịa ma ọ bụ ibu ọrụ pere mpe.
-3. Naanị ma ọ bụrụ na `/api/monitoring/health` gosiri na mmefu ego e nwetara na-akpaghị aka pere ezigbo mpe maka
-   host gị (ọ naghị adịkarị — ọ na-agbatịworị site na container ruo bare-metal), jiri
-   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` dochie ya ozugbo kama ịlaghachi na oke count arịrịọ ochie.
+false` na `maxInflightBytes` buru ibu pụtara na mmefu ewepụtara na-akpaghị aka na-arụworị
+   ọrụ ya; `pressureSeverity` nke `high`/`critical` pụtara na host ahụ enweghị ebe nchekwa zuru ezu n'ezie —
+   env var admission enweghị ike idozi nke ahụ; ọ chọrọ RAM karịa ma ọ bụ ibu ọrụ pere mpe.
+3. Naanị ma ọ bụrụ na `/api/monitoring/health` gosiri na mmefu ewepụtara na-akpaghị aka pere mpe n'ezie maka
+   host gị (nke a anaghị adịkarị — ọ na-agbatịworị site na container ruo bare-metal), jiri
+   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` dochie ya ozugbo kama ịlaghachi na oke ọnụọgụ arịrịọ ochie.
 
 Hụ [ntụaka environment-variable](../reference/ENVIRONMENT.md#4-security--authentication)
-maka ntọala admission ndị bụ isi e ji eme ihe.
+maka ntọala admission ndị bụ isi e ji ntụkwasị obi.
 
 ---
 

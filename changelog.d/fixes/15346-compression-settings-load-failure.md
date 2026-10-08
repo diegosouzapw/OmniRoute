@@ -1,0 +1,1 @@
+- **fix(compression):** the compression panel and the compression settings tab show a Retry when `GET /api/settings/compression` fails, and keep their controls hidden until a load succeeds, so a failed load can no longer save defaults over the stored output styles, context budget or engines ([#15346](https://github.com/diegosouzapw/OmniRoute/pull/15346)) — thanks @woodsonl

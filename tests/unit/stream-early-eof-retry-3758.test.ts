@@ -13,7 +13,8 @@ import assert from "node:assert/strict";
 // `shouldRetryStreamEarlyEof(errorCode, attempt)` so it can be unit-tested in
 // isolation and can NEVER loop.
 
-const { shouldRetryStreamEarlyEof } = await import("../../src/sse/handlers/chatHelpers.ts");
+const { shouldRetryStreamEarlyEof, shouldRetryStreamReadinessTimeout } =
+  await import("../../src/sse/handlers/chatHelpers.ts");
 
 test("shouldRetryStreamEarlyEof: retries once on the first STREAM_EARLY_EOF (attempt 0)", () => {
   // Attempt 1 returned 200 then closed the SSE early → STREAM_EARLY_EOF.
@@ -33,6 +34,29 @@ test("shouldRetryStreamEarlyEof: does NOT retry a stream readiness TIMEOUT (pres
   // be retried — retrying would double latency for a request that is still warming up.
   assert.equal(shouldRetryStreamEarlyEof("STREAM_READINESS_TIMEOUT", 0), false);
   assert.equal(shouldRetryStreamEarlyEof("stream_timeout", 0), false);
+});
+
+test("shouldRetryStreamReadinessTimeout: retries one direct timeout while connected", () => {
+  assert.equal(
+    shouldRetryStreamReadinessTimeout("STREAM_READINESS_TIMEOUT", 0, false, false),
+    true
+  );
+  assert.equal(shouldRetryStreamReadinessTimeout("stream_timeout", 0, false, false), false);
+});
+
+test("shouldRetryStreamReadinessTimeout: bounds retries and excludes combo/disconnected requests", () => {
+  assert.equal(
+    shouldRetryStreamReadinessTimeout("STREAM_READINESS_TIMEOUT", 1, false, false),
+    false
+  );
+  assert.equal(
+    shouldRetryStreamReadinessTimeout("STREAM_READINESS_TIMEOUT", 0, true, false),
+    false
+  );
+  assert.equal(
+    shouldRetryStreamReadinessTimeout("STREAM_READINESS_TIMEOUT", 0, false, true),
+    false
+  );
 });
 
 test("shouldRetryStreamEarlyEof: ignores unrelated/empty error codes", () => {

@@ -188,16 +188,16 @@ Nyocha njirimara: nhọrọ (`REQUIRE_API_KEY`). Njehie site na `buildErrorBody(
 
 ---
 
-## Nchọpụta na idozi nsogbu
+## Nchọpụta na ndozi nsogbu
 
-| Mgbaàmà                                        | Ihe kpatara ya                    | Ndozi                                                                                                     |
-| ---------------------------------------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Ihe ndezi Monaco anaghị apụta na taabụ API     | SSR buuru Monaco                  | Nyochaa na `ApiTab` na-eji `dynamic(..., { ssr: false })`                                                 |
-| Strim ntụnyere na-amalite otu na-esochi ibe ya | Ojiji `Promise.all` na-ezighi ezi | A ga-ezipụrịrị mmalite strim niile n’otu oku `Promise.all`                                                |
-| Metrik na-egosi `null` TTFT                    | Ejikọghị onye njikwa iberibe mbụ  | Lelee na a na-akpọ `useStreamMetrics.onFirstChunk()` n’ime loop onye na-agụ SSE                           |
-| Preset anaghị adịgide                          | Agba ọsọghị mbugharị DB           | Gbaa `npm run db:migrate` ma ọ bụ malitegharị sava ahụ (mbugharị na-agba ọsọ n’onwe ya mgbe ọ na-amalite) |
-| Imeziwanye prompt na-eweghachi 502             | Ahazighị model na Config          | Onye ọrụ ga-etinyerịrị aha model na pane Config tupu imeziwanye ya                                        |
-| Koodu ebupụtara na-egosi `MISSING_API_KEY`     | Etinyeghị placeholder             | `codeExport.ts` na-eji `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"` mgbe niile                            |
+| Mgbaàmà                                    | Ihe kpatara ya                 | Ndozi                                                                          |
+| ------------------------------------------ | ------------------------------ | ------------------------------------------------------------------------------ |
+| Editọ Monaco anaghị egosipụta na taabụ API | SSR buuru Monaco               | Nyochaa na `ApiTab` na-eji `dynamic(..., { ssr: false })`                      |
+| Strim ntụnyere na-amalite n’otu n’otu      | Ojiji `Promise.all` ezighi ezi | A ghaghị izipu mmalite strim niile n’otu oku `Promise.all`                     |
+| Metrik na-egosi `null` TTFT                | Ejikọghị njikwa iberibe mbụ    | Lelee na a na-akpọ `useStreamMetrics.onFirstChunk()` n’ime loopụ ọgụgụ SSE     |
+| Preset anaghị adịgide                      | Agba ọsọghị mbugharị DB        | Malitegharịa sava ahụ: mbugharị na-agba ọsọ na-akpaghị aka mgbe ọ na-amalite   |
+| Imeziwanye prompt na-eweghachi 502         | Edoghị model n’ime Nhazi       | Onye ọrụ ga-etinyerịrị aha model n’ime pane Nhazi tupu imeziwanye ya           |
+| Koodu mbupụ na-egosi `MISSING_API_KEY`     | Etinyeghị akara ndochi         | `codeExport.ts` na-eji `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"` mgbe niile |
 
 ---
 

@@ -30,6 +30,12 @@ function formatProxyLabel(proxy, directLabel) {
   return proxy.name ? `${proxy.name} (${endpoint})` : endpoint;
 }
 
+// Per-attempt durations from send start; unknown stays a dash, never 0.
+function formatAttemptTiming(ms: unknown): string {
+  if (typeof ms !== "number") return "—";
+  return ms === 0 ? "0ms" : formatLatency(ms);
+}
+
 function ObservedField({ label, children }) {
   return (
     <div>
@@ -162,6 +168,10 @@ function ObservedMetadataGrid({ log, t, emailsVisible }) {
       <StatusBadges log={log} t={t} />
       <ObservedField label={t("upstreamStatus")}>
         {typeof log.upstreamStatus === "number" ? String(log.upstreamStatus) : t("noResponse")}
+      </ObservedField>
+      <ObservedField label={t("headersAfter")}>{formatAttemptTiming(log.headersMs)}</ObservedField>
+      <ObservedField label={t("firstChunkAfter")}>
+        {formatAttemptTiming(log.firstChunkMs)}
       </ObservedField>
       <ObservedField label={t("egressIp")}>
         <span className="text-emerald-400">{maskSegment(log.egressIp) || "—"}</span>

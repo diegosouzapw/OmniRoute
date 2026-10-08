@@ -1,0 +1,1 @@
+- **ZenMux image generation** — route `zenmux/` and `zm/` models through the OpenAI Images API or Vertex AI `:predict`, normalize image output, and enforce Ming Design's text-only/model-selected dimensions contract. (#15670 — thanks @JeanRGW)

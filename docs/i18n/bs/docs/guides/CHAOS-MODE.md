@@ -4,21 +4,45 @@
 
 ---
 
-# Chaos Mode
-
-> **Kontrolna tabla:** **Chaos Mode** (bočna traka) → `/dashboard/chaos`  
-> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (sesija kontrolne table) · `POST /api/skills/collect/chaos` (API ključ)  
+> **Kontrolna ploča:** **Chaos Mode** (bočna traka) → `/dashboard/chaos`  
+> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (sesija kontrolne ploče) · `POST /api/skills/collect/chaos` (API ključ)  
 > **Izvor:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
-Chaos Mode šalje **jedan zadatak na nekoliko provajdera odjednom** — svaki provajder koji učestvuje doprinosi jednom instancom modela, a vi dobijate sve odgovore jedan pored drugog (ili u lancu). To je površina za izvršavanje više modela, a ne strategija rutiranja: vaš normalni `/v1/chat/completions` saobraćaj nikada nije pogođen ovim.
+Chaos Mode šalje **jedan zadatak većem broju pružalaca usluga odjednom** — svaki pružalac usluga koji učestvuje
+doprinosi jednom instancom modela, a vi dobijate sve odgovore jedan pored drugog (ili ulančane). To je
+površina za izvršavanje s više modela, a ne strategija usmjeravanja: ona nikada ne utiče na vaš uobičajeni
+saobraćaj prema `/v1/chat/completions`.
 
-**Razjašnjenje — tri različite stvari dolaze sa "chaos" u nazivu:**
+**Pojašnjenje — isporučuju se tri različite stvari koje u nazivu sadrže "chaos":**
 
-| Stavka             | Šta je to                                                                                                                    | Gdje je dokumentovano                        |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Chaos Mode**     | Stranica kontrolne table + API opisan ovdje: distribucija jednog zadatka na mnogo provajdera (paralelno ili kolaborativno).  | Ovaj vodič                                   |
-| `auto/chaos`       | ID Auto-Combo modela sa težinama bodovanja za ubrizgavanje grešaka, za testiranje otpornosti. Nema ničega za konfigurisanje. | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Chaos combo config | Trajna kombinacija sa `config.chaos.enabled` koja se distribuira na panel sa opcionim modelom sudijom (samo API).            | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Stvar                           | Šta predstavlja                                                                                                                                                             | Gdje je dokumentovano                        |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Chaos Mode**                  | Ovdje opisana stranica kontrolne ploče + API: prosljeđuje jedan zadatak većem broju pružalaca usluga (paralelno ili saradnički).                                            | Ovaj vodič                                   |
+| `auto/chaos`                    | ID Auto-Combo modela: paralelno prosljeđivanje, jedan model po pružaocu usluga, po jedan uzvodni poziv. Nije ubrizgavanje grešaka ([detalji](#autochaos-parallel-fan-out)). | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Konfiguracija Chaos kombinacije | Trajna kombinacija s `config.chaos.enabled` prosljeđuje zahtjev na isti način (samo putem API-ja); `judgeModel` samo bira konačni odgovor, bez poziva za sintezu.           | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: paralelno prosljeđivanje
+
+`auto/chaos` **nije** postavka za ubrizgavanje grešaka ili testiranje otpornosti. Zahtjev za
+`model: "auto/chaos"` na `/v1/chat/completions`:
+
+1. Formira panel od **jednog modela po pružaocu usluga**: prvi kandidat svakog
+   povezanog pružaoca usluga, prema redoslijedu u skupu kandidata, do najviše 5 članova
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, ograničeno na 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). Paket težina `chaos-mode`
+   samo postavlja `weight` svakog člana; prosljeđivanje je ne čita.
+2. Šalje isti zahtjev svakom članu panela **paralelno**, tako da jedan zahtjev
+   košta jedan uzvodni poziv po članu panela
+   (`open-sse/services/autoCombo/chaosEngine.ts`, otpremljeno iz
+   `open-sse/services/combo.ts`).
+3. Emotuje po jednu statusnu liniju za svakog člana panela kako rezultat stiže: SSE komentar
+   (`: chaos <index> ok|fail <model>`) prema zadanim postavkama, uz događaj `omni-chaos-part`
+   (`model`, `index`, `ok`, `error`) kada zahtjev postavi
+   `stream_options.include_chaos_parts: true`. Oni ne sadrže tekst odgovora.
+4. Šalje **jedan** odgovor panela kao konačni isječak u OpenAI stilu: odgovor prvog člana
+   panela (`auto/chaos` ga postavlja kao `judgeModel`) kada je uspješan, a u suprotnom
+   odgovor posljednjeg uspješnog člana. Ostali odgovori panela se ne vraćaju, tako da
+   plaćate N poziva, a dobijate jedan završeni odgovor.
 
 ## Podešavanje
 

@@ -239,14 +239,14 @@ Der Produktions-Stack läuft parallel zum Entwicklungs-Compose (mit unterschiedl
 
 Das Repository enthält ein mehrstufiges Dockerfile (`Dockerfile`). Vier Stages stehen zur Verfügung; wählen Sie das passende `target` für Ihren Anwendungsfall.
 
-| Stage         | Basis-Image           | Zweck                                                                                                                                                                                                                                                                                                                        |
-| ------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Installiert Abhängigkeiten (`npm ci --legacy-peer-deps`) und führt `npm run build` aus (standardmäßig Turbopack — siehe Ressourcen zur Build-Zeit unten)                                                                                                                                                                     |
-| `runner-base` | `node:26-trixie-slim` | Produktionslaufzeitumgebung mit der eigenständigen Next.js-Ausgabe. **Enthält keine Anbieter-CLIs.**                                                                                                                                                                                                                         |
-| `runner-cli`  | `runner-base`         | Fügt `git`, `docker.io`, `docker-compose` sowie die globalen CLIs `@openai/codex`, `@anthropic-ai/claude-code`, `droid` und `openclaw` hinzu. **Wählen Sie diesen Stage für agentenbasierte Workflows.**                                                                                                                     |
-| `runner-web`  | `runner-base`         | Fügt Playwright und einen Chromium-Browser (`--with-deps`) für Websitzungsanbieter hinzu: `gemini-web`, `claude-web`, `claude-turnstile`. **Wählen Sie diesen Stage, wenn Sie diese Anbieter verwenden** — beim einfachen Image schlagen Anfragen ohne ihn fehl (siehe den Hinweis zu `-web` unter Veröffentlichungskanäle). |
+| Stage         | Basis-Image           | Zweck                                                                                                                                                                                                                                                                                                                      |
+| ------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Installiert Abhängigkeiten (`npm ci --legacy-peer-deps`) und führt `npm run build` aus (standardmäßig Turbopack — siehe Build-Ressourcen unten)                                                                                                                                                                            |
+| `runner-base` | `node:26-trixie-slim` | Produktions-Runtime mit der Standalone-Ausgabe von Next.js. **Keine Anbieter-CLIs enthalten.**                                                                                                                                                                                                                             |
+| `runner-cli`  | `runner-base`         | Fügt `git`, `docker.io`, `docker-compose` und globale CLIs hinzu: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Wählen Sie dies für agentische Workflows.**                                                                                                                                         |
+| `runner-web`  | `runner-base`         | Fügt Playwright und einen Chromium-Browser (`--with-deps`) für Web-Session-Anbieter hinzu: `gemini-web`, `claude-web`, `claude-turnstile`. **Wählen Sie dies, wenn Sie diese Anbieter verwenden** — beim einfachen Image schlagen Anfragen ohne diese Erweiterung fehl (siehe den Hinweis zu `-web` unter Release-Kanäle). |
 
-So erstellen Sie ein bestimmtes Target manuell:
+Erstellen Sie ein bestimmtes Target manuell:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
@@ -254,55 +254,61 @@ docker build --target runner-cli  -t omniroute:cli  .
 docker build --target runner-web  -t omniroute:web  .
 ```
 
-### Ressourcen zur Build-Zeit
+### Build-Ressourcen
 
 Drei Build-Argumente steuern den Ressourcenbedarf des `builder`-Stages. Sie gelten ausschließlich zur Build-Zeit —
-`OMNIROUTE_MEMORY_MB` (unten) ist eine separate Laufzeiteinstellung.
+`OMNIROUTE_MEMORY_MB` (weiter unten) ist eine separate Einstellung für die Runtime.
 
-| Build-Argument              | Standardwert | Auswirkung                                                                                            |
+| Build-Argument              | Standardwert | Wirkung                                                                                               |
 | --------------------------- | ------------ | ----------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`          | Mit `0` wird stattdessen webpack verwendet. Geringerer Spitzenspeicherbedarf, langsamer.              |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`       | V8-Heap-Obergrenze (`--max-old-space-size`) für den gestarteten `next build`-Prozess.                 |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`          | `0` baut mit webpack: geringerer Spitzenspeicherbedarf, langsamer. `1` aktiviert Turbopack.           |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`       | Obergrenze für den V8-Heap (`--max-old-space-size`) für den gestarteten `next build`-Prozess.         |
 | `OMNIROUTE_BUILD_WORKERS`   | `2`          | Setzt `CIRCLE_NODE_TOTAL`; Next leitet daraus `workers = N - 1` für die Erfassung der Seitendaten ab. |
 
-`OMNIROUTE_BUILD_WORKERS` sollte auf einem leistungsstarken Build-System erhöht werden und ist die Einstellung,
-die Sie überprüfen sollten, wenn ein Build mit beschränkten Ressourcen **nach**
+`OMNIROUTE_BUILD_WORKERS` sollte auf einem leistungsfähigen Builder erhöht werden und ist
+der erste Verdächtige, wenn ein Build mit begrenzten Ressourcen **nach**
 `✓ Compiled successfully` abbricht. Jeder Worker für Seitendaten ist ein eigener
-Prozess, ebenso wie der übergeordnete `next build`-Prozess selbst; bei einer
-Live-Reproduktion auf einem VPS (Issue #7518) wurde für jeden Prozess unabhängig
-vom `NODE_OPTIONS`-Heap-Flag ein maximaler RSS-Speicherverbrauch von ~4,5 GB
-gemessen (Turbopack kompiliert in nativem/Rust-Speicher außerhalb des V8-Heaps).
-Der Standardwert `2` (→ 1 Worker, insgesamt 2 Prozesse) ist auf die von GitHub
-gehosteten Runner mit 16 GB / 4 vCPUs ausgelegt, die von der
-Veröffentlichungspipeline verwendet werden. Bei `8` (→ 7 Worker) ging diesem
-Runner der Arbeitsspeicher aus, und buildkit brach den Schritt mit
-`ResourceExhausted: ... cannot allocate memory` ab; `3` (→ 2 Worker) passte
-ebenfalls nicht mehr, nachdem der RSS-Speicherverbrauch pro Prozess direkt
-gemessen statt abgeleitet worden war. `tests/unit/docker-build-memory-budget.test.ts`
-führt die Berechnung anhand des gemessenen Werts durch und schlägt fehl, wenn
-eine der beiden Einstellungen die Kapazität des Runners überschreitet.
+Prozess, ebenso wie der übergeordnete `next build`-Prozess selbst; eine
+Reproduktion auf einem aktiven VPS (Issue #7518) ergab für jeden Prozess einen
+maximalen RSS-Wert von ~4,5 GB, unabhängig vom Heap-Flag `NODE_OPTIONS`
+(Turbopack kompiliert in nativem/Rust-Speicher außerhalb des V8-Heaps). Der
+Standardwert `2` (→ 1 Worker, insgesamt 2 Prozesse) ist für die von der
+Veröffentlichungs-Pipeline verwendeten, von GitHub gehosteten Runner mit
+16 GB / 4 vCPUs ausgelegt. Bei `8` (→ 7 Worker) ging diesem Runner der Speicher
+aus, und buildkit ließ den Schritt mit
+`ResourceExhausted: ... cannot allocate memory` fehlschlagen; `3` (→ 2 Worker)
+passte ebenfalls nicht, nachdem der RSS-Wert pro Prozess direkt gemessen statt
+abgeleitet worden war. `tests/unit/docker-build-memory-budget.test.ts` führt
+die Berechnung anhand des gemessenen Werts durch und schlägt fehl, wenn eine
+der beiden Einstellungen die Kapazität des Runners überschreitet.
 
 Turbopack kompiliert in nativem Rust-Speicher, der **außerhalb** des V8-Heaps
-liegt, sodass `OMNIROUTE_BUILD_MEMORY_MB` diesen nicht begrenzt. Auf einem Host
-mit einer Speicherobergrenze wird der Build daher ohne jegliche Fehlermeldung
-vom OOM-Killer per SIGKILL beendet — er stoppt einfach mitten in
+liegt, daher begrenzt `OMNIROUTE_BUILD_MEMORY_MB` diesen nicht. Auf einem Host
+mit Speicherobergrenze wird der Build dann vom OOM-Killer per SIGKILL beendet,
+ohne jegliche Fehlermeldung — er stoppt einfach mitten in
 `Creating an optimized production build`, was eher wie ein Hängenbleiben als
-wie unzureichender Arbeitsspeicher wirkt. Wenn der Build-Host nur über begrenzte
-Ressourcen verfügt, wechseln Sie den Bundler:
+wie Speichermangel wirkt. Deshalb verwendet das `Dockerfile` standardmäßig
+webpack (`OMNIROUTE_USE_TURBOPACK=0`), anders als `npm run dev` / `npm run build`,
+wo Turbopack die Standardeinstellung im Code ist: Ein einfaches
+`docker build .` ohne Build-Argumente (wie es Railway und andere
+One-Click-Hosts ausführen) darf auf einem Builder mit Speicherbegrenzung nicht
+lautlos abbrechen. Die veröffentlichten Images übergeben
+`OMNIROUTE_USE_TURBOPACK=0` bereits explizit in `docker-publish.yml`. Aktivieren
+Sie auf einem Builder mit reichlich RAM Turbopack für einen schnelleren Build:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` ist aktiviert, sodass `next build` einen übergeordneten
-Prozess **und** einen Worker-Prozess ausführt und beide
-`OMNIROUTE_BUILD_MEMORY_MB` separat berücksichtigen. Legen Sie die
-Container-Obergrenze auf etwas mehr als ungefähr das Doppelte dieses Werts fest,
-nicht nur auf den einfachen Wert.
+`webpackBuildWorker` ist aktiviert, daher führt `next build` einen übergeordneten
+Prozess **und** einen Worker-Prozess aus, und beide berücksichtigen
+`OMNIROUTE_BUILD_MEMORY_MB` separat. Legen Sie die Speicherobergrenze des
+Containers auf ungefähr das Doppelte dieses Werts fest, nicht nur auf den
+einfachen Wert.
 
-Messungen für diesen Quellbaum (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
+Gemessen in diesem Quellbaum (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
 | Bundler   | Container-Obergrenze | Ergebnis                                  |
 | --------- | -------------------- | ----------------------------------------- |
@@ -310,31 +316,31 @@ Messungen für diesen Quellbaum (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY
 | webpack   | 8 GiB                | Build-Worker per SIGKILL beendet          |
 | webpack   | 12 GiB               | erfolgreich, Spitzenwert bei 11,1 GiB     |
 
-### Laufzeitstandardwerte
+### Runtime-Standardwerte
 
 Von `runner-base` exportierte Standardwerte: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
 Speicherverhalten in Docker:
 
 - Das Image setzt `OMNIROUTE_MEMORY_MB=1024` und leitet daraus `NODE_OPTIONS=--max-old-space-size=1024` ab.
-- Der eigentliche Serverprozess wird vom Standalone-Launcher gestartet, der `OMNIROUTE_MEMORY_MB` liest und `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` anhängt.
-- Node verwendet den letzten wiederholten Wert für `--max-old-space-size`, sodass durch das Setzen von `OMNIROUTE_MEMORY_MB` das effektive Docker-Heap-Limit gesteuert wird.
-- Da das Image diese Variable immer setzt, kommt der RAM-kalibrierte Fallback des Launchers unter Docker nie zur Anwendung. Erhöhen Sie den Wert explizit für die jeweilige Arbeitslast (siehe Tabelle unten). `2048` ist für `/v1/responses` von Coding-Agenten weiterhin zu klein.
+- Der eigentliche Serverprozess wird vom Standalone-Launcher gestartet, der `OMNIROUTE_MEMORY_MB` einliest und `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` anhängt.
+- Node verwendet den letzten wiederholten Wert von `--max-old-space-size`; daher steuert `OMNIROUTE_MEMORY_MB` das effektive Docker-Heap-Limit.
+- Da das Image diese Variable immer setzt, greift der eigene RAM-basierte Fallback des Launchers unter Docker nie. Erhöhen Sie den Wert explizit entsprechend der Arbeitslast (siehe Tabelle unten). `2048` ist für `/v1/responses` von Coding-Agenten weiterhin zu klein.
 
 ### Laufzeit-RAM für Coding-Agenten
 
-Der Docker-Standardwert von 1 GiB ist eine Untergrenze für das Dashboard und einfache Chats, keine Größe für den Produktionseinsatz. Lange `POST /v1/responses`-Bodies (Hunderte Nachrichten, Dutzende Tools) halten während der Komprimierung mehrere In-Memory-Graphen vor. Zwei sich überschneidende Anfragen mit jeweils ~3 MiB / ~750k Token haben V8 selbst bei einem **12 GiB** großen Old-Space zum Abbruch gebracht (`FATAL ERROR: Reached heap limit`) und zudem einen cgroup-OOM bei 16 GiB ausgelöst. Siehe [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Der Docker-Standardwert von 1 GiB ist eine Untergrenze für das Dashboard und einfache Chats, keine Größe für den Produktivbetrieb. Lange `POST /v1/responses`-Anfragekörper (Hunderte Nachrichten, Dutzende Tools) halten während der Komprimierung mehrere Graphen im Arbeitsspeicher. Zwei sich überschneidende Anfragen mit jeweils ~3 MiB bzw. ~750.000 Token haben V8 selbst bei einem Old-Space von **12 GiB** zum Abbruch gebracht (`FATAL ERROR: Reached heap limit`) und außerdem bei einer 16-GiB-cgroup einen OOM ausgelöst. Siehe [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Dimensionieren Sie den **cgroup-Parameter `--memory` größer als den Heap** — native Puffer, SQLite und Zwischenprodukte der Komprimierung befinden sich außerhalb von V8.
+Dimensionieren Sie den **cgroup-Wert `--memory` größer als den Heap** — native Puffer, SQLite und Zwischenergebnisse der Komprimierung liegen außerhalb von V8.
 
-| Arbeitslast                             | `OMNIROUTE_MEMORY_MB`       | Container / cgroup       | Hinweise                                                                                                                           |
-| --------------------------------------- | --------------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Dashboard, ein einfacher Chat           | `1024` (Image-Standardwert) | ≥2 GiB                   |                                                                                                                                    |
-| Ein Coding-Agent (Claude/Codex/Grok)    | `8192`                      | ≥10 GiB                  | Typische `/v1/responses`-Einzelsitzung                                                                                             |
-| Zwei parallele lange `/v1/responses`    | `10240`–`12288`             | ≥12–16 GiB               | Gemessener V8-Abbruch bei einem Heap von ~12 GiB                                                                                   |
-| Drei oder mehr parallele lange Kontexte | nicht in einem Prozess      | serialisieren / mehr RAM | Standardmäßig ist eine rechenintensive Anfrage gleichzeitig zulässig; eine Erhöhung ohne zusätzlichen RAM führt erneut zum Abbruch |
+| Arbeitslast                                 | `OMNIROUTE_MEMORY_MB`   | Container / cgroup       | Hinweise                                                                                                                   |
+| ------------------------------------------- | ----------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| Dashboard, ein einfacher Chat               | `1024` (Image-Standard) | ≥2 GiB                   |                                                                                                                            |
+| Ein Coding-Agent (Claude/Codex/Grok)        | `8192`                  | ≥10 GiB                  | Typische `/v1/responses`-Einzelsitzung                                                                                     |
+| Zwei gleichzeitige lange `/v1/responses`    | `10240`–`12288`         | ≥12–16 GiB               | Gemessener V8-Abbruch bei einem Heap von ~12 GiB                                                                           |
+| Drei oder mehr gleichzeitige lange Kontexte | nicht in einem Prozess  | serialisieren / mehr RAM | Standardmäßig ist eine rechenintensive Anfrage gleichzeitig zulässig; eine Erhöhung ohne mehr RAM führt erneut zum Abbruch |
 
-`omniroute serve` auf Bare Metal kalibriert den Wert auf ~35 % des RAM (begrenzt auf `[512, 4096]`), wenn `OMNIROUTE_MEMORY_MB` **nicht gesetzt** ist. Docker setzt immer `1024`, sodass diese Kalibrierung im offiziellen Image nie ausgeführt wird.
+`omniroute serve` auf Bare Metal kalibriert den Wert auf ~35 % des RAM (begrenzt auf `[512, 4096]`), wenn `OMNIROUTE_MEMORY_MB` **nicht gesetzt** ist. Docker setzt immer `1024`, weshalb diese Kalibrierung im offiziellen Image nie ausgeführt wird.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

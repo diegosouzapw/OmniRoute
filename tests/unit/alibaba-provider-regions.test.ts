@@ -310,13 +310,16 @@ test("Qwen Cloud Token Plan remains a flat-rate provider with chat models only",
   assert.equal(isFlatRateProvider("qwen-cloud-token-plan"), true);
 
   const modelIds = REGISTRY["qwen-cloud-token-plan"].models.map((model) => model.id);
+  // #14273 registered the qwen3.8-flash and deepseek-v4.1-flash vision chat leaves.
   assert.deepEqual(modelIds, [
     "qwen3.8-max",
     "qwen3.7-max",
     "qwen3.7-plus",
+    "qwen3.8-flash",
     "qwen3.6-flash",
     "glm-5.2",
     "deepseek-v4-pro",
+    "deepseek-v4.1-flash",
     "deepseek-v4-flash-0731",
   ]);
 

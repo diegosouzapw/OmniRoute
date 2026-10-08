@@ -17,6 +17,7 @@ const postChatCompletion = chatRouteModule.POST;
 const { resetAllCircuitBreakers, getCircuitBreaker } =
   await import("../../src/shared/utils/circuitBreaker.ts");
 const { invalidateDbCache } = await import("../../src/lib/db/readCache.ts");
+const { replaceSyncedAvailableModelsForConnection } = await import("../../src/lib/db/models.ts");
 
 const originalFetch = globalThis.fetch;
 
@@ -245,6 +246,12 @@ test("gitlab stale-token probe never runs its own execute() refresh override", a
 
 test("codex 429 probe never runs the account-rotation failover (no persisted cooldown)", async () => {
   const connId = await createConnection("codex");
+  // contract changed by #15487: an explicit Codex model test first syncs an EMPTY
+  // account catalog (and 503s when that sync fails). Seed the account catalog so the
+  // probe reaches the 429 upstream this test is about.
+  await replaceSyncedAvailableModelsForConnection("codex", connId, [
+    { id: "gpt-5.6-sol", name: "GPT-5.6 Sol", source: "api" },
+  ]);
   await warmUp(connId);
   mockUpstream(429, "rate limited");
   const result = await runSingleModelTest({

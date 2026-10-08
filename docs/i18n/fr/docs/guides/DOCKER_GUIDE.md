@@ -239,12 +239,12 @@ La pile de production s’exécute parallèlement à la configuration Compose de
 
 Le dépôt fournit un Dockerfile multi-étapes (`Dockerfile`). Quatre étapes sont exposées ; choisissez la bonne `target` selon votre cas d’utilisation.
 
-| Étape         | Image de base         | Objectif                                                                                                                                                                                                                                                                                                                               |
-| ------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Installe les dépendances (`npm ci --legacy-peer-deps`) et exécute `npm run build` (Turbopack par défaut — voir Ressources de compilation ci-dessous)                                                                                                                                                                                   |
-| `runner-base` | `node:26-trixie-slim` | Environnement d’exécution de production avec la sortie autonome de Next.js. **Aucun CLI de fournisseur inclus.**                                                                                                                                                                                                                       |
-| `runner-cli`  | `runner-base`         | Ajoute `git`, `docker.io`, `docker-compose` et les CLI globaux : `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Choisissez cette option pour les workflows agentiques.**                                                                                                                                         |
-| `runner-web`  | `runner-base`         | Ajoute Playwright et un navigateur Chromium (`--with-deps`) pour les fournisseurs de sessions web : `gemini-web`, `claude-web`, `claude-turnstile`. **Choisissez cette option lorsque vous utilisez ces fournisseurs** — l’image standard échoue lors des requêtes sans cela (voir la remarque sur `-web` dans Canaux de publication). |
+| Étape         | Image de base         | Objectif                                                                                                                                                                                                                                                                                                                      |
+| ------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Installe les dépendances (`npm ci --legacy-peer-deps`) et exécute `npm run build` (Turbopack par défaut — voir Ressources de compilation ci-dessous)                                                                                                                                                                          |
+| `runner-base` | `node:26-trixie-slim` | Environnement d’exécution de production avec la sortie autonome de Next.js. **Aucune CLI de fournisseur incluse.**                                                                                                                                                                                                            |
+| `runner-cli`  | `runner-base`         | Ajoute `git`, `docker.io`, `docker-compose` et les CLI globales : `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Choisissez cette étape pour les workflows agentiques.**                                                                                                                                |
+| `runner-web`  | `runner-base`         | Ajoute Playwright et un navigateur Chromium (`--with-deps`) pour les fournisseurs de sessions web : `gemini-web`, `claude-web`, `claude-turnstile`. **Choisissez cette étape lorsque vous utilisez ces fournisseurs** — l’image standard échoue lors des requêtes sans cela (voir la note `-web` sous Canaux de publication). |
 
 Construisez manuellement une cible spécifique :
 
@@ -259,51 +259,65 @@ docker build --target runner-web  -t omniroute:web  .
 Trois arguments de compilation contrôlent les ressources consommées par l’étape `builder`. Ils s’appliquent uniquement à la compilation —
 `OMNIROUTE_MEMORY_MB` (ci-dessous) est un paramètre d’exécution distinct.
 
-| Argument de compilation     | Valeur par défaut | Effet                                                                                                 |
-| --------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`               | Avec `0`, utilise webpack pour la compilation. Pic de mémoire plus faible, mais plus lent.            |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`            | Plafond du tas V8 (`--max-old-space-size`) pour le processus `next build` lancé.                      |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`               | Alimente `CIRCLE_NODE_TOTAL` ; Next en déduit `workers = N - 1` pour la collecte des données de page. |
+| Argument de compilation     | Valeur par défaut | Effet                                                                                                |
+| --------------------------- | ----------------- | ---------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`               | `0` compile avec webpack : pic de mémoire inférieur, mais plus lent. `1` active Turbopack.           |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`            | Plafond du tas V8 (`--max-old-space-size`) pour le processus `next build` lancé.                     |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`               | Alimente `CIRCLE_NODE_TOTAL` ; Next calcule `workers = N - 1` pour la collecte des données de pages. |
 
-`OMNIROUTE_BUILD_WORKERS` est le paramètre à augmenter sur une machine de compilation puissante et celui à
-suspecter lorsqu’une compilation contrainte échoue **après** `✓ Compiled successfully`. Chaque
-worker de données de page est un processus distinct, tout comme le processus parent `next build` ;
-une reproduction sur un VPS actif (problème #7518) a mesuré le pic de RSS de chaque processus à
-environ 4,5 Go, indépendamment de l’option de tas `NODE_OPTIONS` (Turbopack compile dans de la
-mémoire native/Rust en dehors du tas V8). La valeur par défaut de `2` (→ 1 worker, 2
-processus au total) est dimensionnée pour les runners hébergés par GitHub dotés de 16 Go / 4 vCPU
-qu’utilise le pipeline de publication. Avec `8` (→ 7 workers), ce runner a épuisé sa mémoire et
-buildkit a fait échouer l’étape avec `ResourceExhausted: ... cannot allocate memory` ;
-`3` (→ 2 workers) ne tenait toujours pas une fois le RSS par processus mesuré
-directement plutôt que déduit. `tests/unit/docker-build-memory-budget.test.ts`
-effectue le calcul à partir de la valeur mesurée et échoue si l’un des deux paramètres
-dépasse les capacités du runner.
+`OMNIROUTE_BUILD_WORKERS` est le paramètre à augmenter sur une machine de
+compilation puissante et celui à suspecter lorsqu’une compilation soumise à des
+contraintes échoue **après** `✓ Compiled successfully`. Chaque worker de données
+de pages constitue son propre processus, tout comme le processus parent
+`next build` lui-même ; une reproduction sur un VPS actif (problème #7518) a
+mesuré le pic de RSS de chaque processus à environ 4,5 Go, indépendamment de
+l’option de tas `NODE_OPTIONS` (Turbopack compile dans de la mémoire native/Rust
+hors du tas V8). La valeur par défaut de `2` (→ 1 worker, soit 2 processus au
+total) est dimensionnée pour les runners hébergés par GitHub de 16 Go / 4 vCPU
+utilisés par le pipeline de publication. Avec `8` (→ 7 workers), ce runner a
+manqué de mémoire et buildkit a fait échouer l’étape avec
+`ResourceExhausted: ... cannot allocate memory` ; `3` (→ 2 workers) ne tenait
+toujours pas une fois la RSS par processus mesurée directement plutôt que
+déduite. `tests/unit/docker-build-memory-budget.test.ts` effectue le calcul à
+partir de la valeur mesurée et échoue si l’un ou l’autre paramètre dépasse les
+capacités du runner.
 
-Turbopack compile dans de la mémoire Rust native située **en dehors** du tas V8, donc
-`OMNIROUTE_BUILD_MEMORY_MB` ne la limite pas. Sur un hôte disposant d’un plafond de mémoire, la
-compilation est alors interrompue par SIGKILL par le mécanisme OOM killer, sans aucun message d’erreur — elle
-s’arrête simplement au milieu de `Creating an optimized production build`, ce qui ressemble davantage à un blocage
-qu’à un manque de mémoire. Si les ressources de l’hôte de compilation sont limitées, changez de bundler :
+Turbopack compile dans de la mémoire Rust native qui se trouve **hors** du tas
+V8 ; `OMNIROUTE_BUILD_MEMORY_MB` ne la limite donc pas. Sur un hôte doté d’un
+plafond de mémoire, la compilation est alors interrompue par un SIGKILL du
+mécanisme OOM, sans aucun message d’erreur — elle s’arrête simplement en plein
+`Creating an optimized production build`, ce qui ressemble davantage à un
+blocage qu’à un manque de mémoire. C’est pourquoi le `Dockerfile` utilise
+webpack par défaut (`OMNIROUTE_USE_TURBOPACK=0`), contrairement à
+`npm run dev` / `npm run build`, où Turbopack est le choix par défaut dans le
+code : une simple commande `docker build .` sans argument de compilation (ce
+qu’exécutent Railway et les autres hébergeurs en un clic) ne doit pas échouer
+silencieusement sur une machine de compilation dont la mémoire est plafonnée.
+Les images publiées transmettent déjà explicitement
+`OMNIROUTE_USE_TURBOPACK=0` dans `docker-publish.yml`. Sur une machine de
+compilation disposant de beaucoup de RAM, activez Turbopack pour accélérer la
+compilation :
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` est activé, donc `next build` exécute un processus parent **et** un processus
-worker, chacun respectant séparément `OMNIROUTE_BUILD_MEMORY_MB`. Dimensionnez le plafond
-du conteneur à environ deux fois cette valeur, et non une seule fois.
+`webpackBuildWorker` est activé ; `next build` exécute donc un processus parent
+**et** un processus worker, chacun respectant séparément
+`OMNIROUTE_BUILD_MEMORY_MB`. Dimensionnez le plafond du conteneur à une valeur
+supérieure à environ deux fois ce paramètre, et non à une seule fois.
 
 Mesures effectuées sur cette arborescence (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`) :
 
-| Bundler   | Plafond du conteneur | Résultat                                                |
-| --------- | -------------------- | ------------------------------------------------------- |
-| Turbopack | 8 Gio / 16 Gio       | Interrompu par l’OOM dans les deux cas, silencieusement |
-| webpack   | 8 Gio                | Worker de compilation interrompu par SIGKILL            |
-| webpack   | 12 Gio               | Réussi, avec un pic à 11,1 Gio                          |
+| Bundler   | Plafond du conteneur | Résultat                                         |
+| --------- | -------------------- | ------------------------------------------------ |
+| Turbopack | 8 Gio / 16 Gio       | Arrêt par OOM dans les deux cas, silencieusement |
+| webpack   | 8 Gio                | SIGKILL du worker de compilation                 |
+| webpack   | 12 Gio               | Réussite, avec un pic à 11,1 Gio                 |
 
-### Valeurs d’exécution par défaut
+### Valeurs par défaut à l’exécution
 
 Valeurs par défaut exportées par `runner-base` : `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
@@ -311,23 +325,23 @@ Comportement de la mémoire dans Docker :
 
 - L’image définit `OMNIROUTE_MEMORY_MB=1024` et en dérive `NODE_OPTIONS=--max-old-space-size=1024`.
 - Le processus serveur réel est démarré par le lanceur autonome, qui lit `OMNIROUTE_MEMORY_MB` et ajoute `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
-- Node utilise la dernière valeur répétée de `--max-old-space-size` ; définir `OMNIROUTE_MEMORY_MB` permet donc de contrôler la limite effective du tas dans Docker.
-- Comme l’image définit toujours cette variable, la valeur de secours du lanceur, calibrée en fonction de la RAM, ne s’applique jamais sous Docker. Augmentez-la explicitement en fonction de la charge de travail (tableau ci-dessous). `2048` reste insuffisant pour les requêtes `/v1/responses` des agents de programmation.
+- Node utilise la dernière valeur répétée de `--max-old-space-size` ; définir `OMNIROUTE_MEMORY_MB` contrôle donc la limite effective du tas sous Docker.
+- Comme l’image définit toujours cette variable, la valeur de secours du lanceur, calibrée en fonction de la RAM, ne s’applique jamais sous Docker. Augmentez-la explicitement en fonction de la charge de travail (voir le tableau ci-dessous). `2048` reste insuffisant pour `/v1/responses` avec des agents de programmation.
 
 ### RAM d’exécution pour les agents de programmation
 
-La valeur Docker par défaut de 1 Gio constitue un minimum pour le tableau de bord et les conversations légères, et non une configuration de production. Les corps volumineux de requêtes `POST /v1/responses` (des centaines de messages, des dizaines d’outils) conservent plusieurs graphes en mémoire pendant la compression. Deux requêtes simultanées d’environ 3 Mio / 750 000 jetons ont provoqué l’arrêt de V8 avec un espace ancien de **12 Gio** (`FATAL ERROR: Reached heap limit`) et ont également déclenché une erreur OOM du cgroup avec 16 Gio. Voir [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+La valeur Docker par défaut de 1 Gio constitue un minimum pour le tableau de bord et les conversations légères, et non une configuration adaptée à la production. Les corps volumineux des requêtes `POST /v1/responses` (des centaines de messages et des dizaines d’outils) conservent plusieurs graphes en mémoire pendant la compression. Deux requêtes simultanées d’environ 3 Mio / 750 000 tokens ont provoqué l’arrêt de V8 avec un espace old-space de **12 Gio** (`FATAL ERROR: Reached heap limit`) et ont également déclenché une erreur OOM du cgroup avec 16 Gio. Voir [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Dimensionnez la **valeur cgroup `--memory` au-dessus de la taille du tas** — les tampons natifs, SQLite et les données intermédiaires de compression résident en dehors de V8.
+Dimensionnez la **mémoire du cgroup `--memory` au-dessus de la taille du tas** — les tampons natifs, SQLite et les données intermédiaires de compression résident en dehors de V8.
 
-| Charge de travail                                 | `OMNIROUTE_MEMORY_MB`                 | Conteneur / cgroup             | Remarques                                                                                                                                             |
-| ------------------------------------------------- | ------------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tableau de bord, une conversation légère          | `1024` (valeur par défaut de l’image) | ≥2 Gio                         |                                                                                                                                                       |
-| Un agent de programmation (Claude/Codex/Grok)     | `8192`                                | ≥10 Gio                        | Session `/v1/responses` unique typique                                                                                                                |
-| Deux longues requêtes `/v1/responses` simultanées | `10240`–`12288`                       | ≥12–16 Gio                     | Arrêt de V8 mesuré avec un tas d’environ 12 Gio                                                                                                       |
-| Trois longs contextes simultanés ou plus          | à éviter dans un seul processus       | sérialiser / ajouter de la RAM | Par défaut, l’admission des charges lourdes est limitée à 1 requête en cours ; augmenter cette limite sans ajouter de RAM provoque de nouveau l’arrêt |
+| Charge de travail                                 | `OMNIROUTE_MEMORY_MB`                    | Conteneur / cgroup            | Remarques                                                                                                                                             |
+| ------------------------------------------------- | ---------------------------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tableau de bord, une conversation légère          | `1024` (valeur par défaut de l’image)    | ≥2 Gio                        |                                                                                                                                                       |
+| Un agent de programmation (Claude/Codex/Grok)     | `8192`                                   | ≥10 Gio                       | Session `/v1/responses` unique typique                                                                                                                |
+| Deux longues requêtes `/v1/responses` simultanées | `10240`–`12288`                          | ≥12–16 Gio                    | Arrêt de V8 mesuré avec un tas d’environ 12 Gio                                                                                                       |
+| Trois longs contextes simultanés ou plus          | à ne pas exécuter dans un seul processus | sérialiser / davantage de RAM | Par défaut, l’admission des charges lourdes est limitée à 1 requête en cours ; augmenter cette limite sans ajouter de RAM provoque de nouveau l’arrêt |
 
-Sur une machine physique, `omniroute serve` calibre la limite à environ 35 % de la RAM (bornée à `[512, 4096]`) lorsque `OMNIROUTE_MEMORY_MB` n’est **pas définie**. Docker définit toujours cette variable sur `1024` ; ce calibrage n’est donc jamais exécuté dans l’image officielle.
+Sur une machine physique, `omniroute serve` calibre la valeur à environ 35 % de la RAM (limitée à `[512, 4096]`) lorsque `OMNIROUTE_MEMORY_MB` est **non définie**. Docker définit toujours cette variable sur `1024` ; ce calibrage n’est donc jamais effectué dans l’image officielle.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

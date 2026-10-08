@@ -13,23 +13,74 @@ import {
 } from "../accountFallback.ts";
 import { isProviderInCooldown } from "../providerCooldownTracker.ts";
 import { checkCredentialGate, logCredentialSkip } from "../credentialGate.ts";
+import { stopProtectedPriorityTarget as stopPriorityTarget } from "./executeTargetClassify.ts";
 import { errorResponse } from "../../utils/error.ts";
-import { getCircuitBreaker } from "../../../src/shared/utils/circuitBreaker";
+import {
+  getCircuitBreaker,
+  type CircuitBreakerStatus,
+} from "../../../src/shared/utils/circuitBreaker";
 import { connectionCircuitBreakerName } from "../connectionCircuitBreaker.ts";
 import { parseModel } from "../model.ts";
 import { canAffordRequest } from "../../../src/lib/quota/quotaScheduler.ts";
 import { getCachedProviderConnectionById } from "../../../src/lib/db/readCache.ts";
+import { evaluateCliproxyPreflightGate } from "../../../src/lib/services/cliproxyManagementPreflight.ts";
 import { lookupPositiveCap } from "./concurrencyCaps.ts";
 import { recordComboDecision } from "./decisionTrace.ts";
+import { recordPersistedSkipBypass } from "../comboMetrics.ts";
 import {
   getExhaustedTargetSkipReason,
   resolvePersistedConnectionCooldownSkipReason,
 } from "./comboPredicates.ts";
 import { resolveQuotaExhaustionCutoffForTarget } from "./quotaExhaustionCutoff.ts";
-import { protectedPriorityStopStatus } from "./protectedPriorityStopStatus.ts";
 import type { ProtectedPriorityStopCause } from "./protectedPriorityStopStatus.ts";
 import type { AttemptLoopDeps, AttemptLoopState, GateDecision } from "./attemptLoopTypes.ts";
 import { modelAvailabilitySkipReason, type ResolvedComboTarget } from "./types.ts";
+import type { PreDispatchExclusion } from "./pinRecovery.ts";
+
+/**
+ * The breaker that keeps a target from being dispatched: the provider-wide one
+ * first, then the connection-scoped one. Null when neither is OPEN. Shared by the
+ * pre-dispatch gate and by the terminal response, so both read the same rule.
+ */
+export function findOpenCircuitBreaker(
+  provider: string,
+  connectionId?: string | null
+): { scope: "provider" | "connection"; status: CircuitBreakerStatus } | null {
+  const providerStatus = getCircuitBreaker(provider).getStatus();
+  if (providerStatus.state === "OPEN") return { scope: "provider", status: providerStatus };
+  if (!connectionId) return null;
+  const connectionStatus = getCircuitBreaker(
+    connectionCircuitBreakerName(provider, connectionId)
+  ).getStatus();
+  return connectionStatus.state === "OPEN"
+    ? { scope: "connection", status: connectionStatus }
+    : null;
+}
+
+/**
+ * When every target was skipped because its breaker is OPEN, describe each one
+ * (provider, model, time until the next probe) so the terminal response can say
+ * so instead of a generic pre-dispatch skip. Null as soon as one target is not
+ * behind an open breaker: a mixed pool keeps the generic response.
+ */
+export function collectCircuitOpenExclusions(
+  targets: readonly ResolvedComboTarget[]
+): PreDispatchExclusion[] | null {
+  if (targets.length === 0) return null;
+  const exclusions: PreDispatchExclusion[] = [];
+  for (const target of targets) {
+    if (!target.provider) return null;
+    const open = findOpenCircuitBreaker(target.provider, target.connectionId);
+    if (!open) return null;
+    exclusions.push({
+      provider: target.provider,
+      model: parseModel(target.modelStr).model || target.modelStr,
+      reason: "circuit_open",
+      retryAfterMs: open.status.retryAfterMs > 0 ? open.status.retryAfterMs : null,
+    });
+  }
+  return exclusions;
+}
 
 /**
  * Cached vs fresh connection read for the persisted-cooldown gate.
@@ -61,21 +112,15 @@ export async function evaluateExecuteTargetGates(opts: {
   const protectedPriorityTarget =
     deps.strategy === "priority" && target.fallbackOnlyOnQuotaExhaustion === true;
 
-  const stopProtectedPriorityTarget = (message: string, cause?: ProtectedPriorityStopCause) => {
-    state.observeFailure(false, target.executionKey);
-    deps.clearStaleLKGP(
-      deps.combo.name,
-      target.executionKey,
-      deps.combo.id,
-      deps.log,
-      "COMBO",
-      undefined,
-      target
-    );
-    return protectedPriorityTarget
-      ? { ok: false as const, response: errorResponse(protectedPriorityStopStatus(cause), message) }
-      : null;
-  };
+  const stopProtectedPriorityTarget = (message: string, cause?: ProtectedPriorityStopCause) =>
+    stopPriorityTarget({
+      protectedPriorityTarget,
+      state,
+      deps,
+      target,
+      message,
+      cause,
+    });
 
   // Lift-as-is from combo.ts executeTarget: only count a fallback when
   // this is not the first ordered target. Do not change the condition.
@@ -83,16 +128,11 @@ export async function evaluateExecuteTargetGates(opts: {
     if (i > 0) state.fallbackCount++;
   };
 
-  const providerBreaker = getCircuitBreaker(provider);
-  const scopedConnectionId = target.connectionId ?? undefined;
-  const connectionBreaker = scopedConnectionId
-    ? getCircuitBreaker(connectionCircuitBreakerName(provider, scopedConnectionId))
-    : null;
-  const providerOpen = providerBreaker.getStatus().state === "OPEN";
-  const connectionOpen = connectionBreaker?.getStatus().state === "OPEN";
-  if (providerOpen || connectionOpen) {
-    const cb = providerOpen ? providerBreaker : connectionBreaker!;
-    const cbStatus = cb.getStatus();
+  const openBreaker = findOpenCircuitBreaker(provider, target.connectionId);
+  if (openBreaker) {
+    const providerOpen = openBreaker.scope === "provider";
+    const scopedConnectionId = target.connectionId ?? undefined;
+    const cbStatus = openBreaker.status;
     state.skippedForCircuitOpen = true;
     if (
       cbStatus.retryAfterMs > 0 &&
@@ -188,6 +228,10 @@ export async function evaluateExecuteTargetGates(opts: {
       );
       bumpFallback();
       return { kind: "skip", result: null };
+    } else if (allowRateLimitedConnection) {
+      // The transient flag re-served a target with no future persisted
+      // cooldown: count the bypass for operators.
+      recordPersistedSkipBypass(deps.combo.name);
     }
   }
 
@@ -336,6 +380,65 @@ export async function evaluateExecuteTargetGates(opts: {
   // Lift-as-is: combo.ts uses the same `as string | undefined` cast.
   const connectionId = target.connectionId as string | undefined;
   if (connectionId) {
+    // CLIProxyAPI management-health preflight intentionally runs immediately
+    // before the credential gate. It only recognizes explicitly CLIProxy-backed
+    // connections and fails open for all management API failures or unknown
+    // model/account states, so generic OpenAI-compatible targets are unaffected.
+    const connection = await getCachedProviderConnectionById(connectionId);
+    if (connection) {
+      const managementHealth = await evaluateCliproxyPreflightGate({
+        connection: {
+          id: connectionId,
+          provider,
+          providerSpecificData:
+            connection.providerSpecificData && typeof connection.providerSpecificData === "object"
+              ? (connection.providerSpecificData as Record<string, unknown>)
+              : null,
+        },
+        modelStr,
+        healthCache: deps.cliproxyManagementHealthCache,
+      });
+      if (managementHealth.shouldSkip) {
+        deps.log.info(
+          "COMBO",
+          `Skipping ${modelStr} — CLIProxyAPI management health: ${managementHealth.reason || "unavailable"}`
+        );
+        deps.clearStaleLKGP(
+          deps.combo.name,
+          target.executionKey,
+          deps.combo.id,
+          deps.log,
+          "COMBO",
+          undefined,
+          target
+        );
+        recordComboDecision(deps.traceInvocationId, {
+          step: target.executionKey,
+          target: modelStr,
+          decision: "skipped_before_dispatch",
+          reason: "cliproxy_management_health",
+        });
+        bumpFallback();
+        // Same skip contract as quota_cutoff: a cooldown/quota snapshot is not
+        // proven infra, so protected-priority may fall through while mixed
+        // non-quota trust still answers 503.
+        state.observeFailure(true, target.executionKey);
+        if (protectedPriorityTarget) {
+          const protectedTargetTrust = state.targetFailureTrust.get(target.executionKey);
+          if (!protectedTargetTrust?.allObservedFailuresQuota) {
+            return {
+              kind: "skip",
+              result: {
+                ok: false,
+                response: errorResponse(503, `CLIProxyAPI target ${modelStr} is unavailable`),
+              },
+            };
+          }
+        }
+        return { kind: "skip", result: null };
+      }
+    }
+
     const gateResult = checkCredentialGate(connectionId, provider, modelStr);
     if (gateResult.allowed === false) {
       logCredentialSkip(deps.log, modelStr, gateResult.reason || "Credential gate blocked");

@@ -6,6 +6,7 @@ import Card from "./Card";
 import Button from "./Button";
 import DistributeProxiesButton from "./DistributeProxiesButton";
 import NoAuthProviderToggle from "./NoAuthProviderToggle";
+import { resolveNoAuthBannerDescription } from "./NoAuthProviderCard";
 
 interface NoAuthAccountCardProps {
   providerId: string;
@@ -56,6 +57,12 @@ interface SavedProxy {
   host?: string;
   port?: number | string;
   status?: string;
+}
+
+interface FreeTierPause {
+  model: string | null;
+  until: string;
+  reason: string;
 }
 
 const PROXY_TYPES = [
@@ -135,12 +142,13 @@ export interface EffectiveEgress {
  * a combo row makes the egress not affirmable (`null` → neutral legacy
  * rendering) — neither "direct" nor "pool empty / requests fail".
  */
-const EGRESS_LABEL_KEYS = {
+const EGRESS_LABEL_KEYS: Record<EffectiveEgressKind, string> = {
   "inherited-proxy": "inheritedProxy",
   "inherited-pool": "inheritedPool",
   "pool-empty": "poolEmptyBlocked",
   direct: "directEgress",
-} as const;
+  own: "ownProxy",
+};
 
 export type EgressLabelKind = keyof typeof EGRESS_LABEL_KEYS;
 
@@ -256,7 +264,10 @@ export default function NoAuthAccountCard({
   onManualApiKeyAdd,
 }: NoAuthAccountCardProps) {
   const t = useTranslations("noAuthProvider");
-  const resolvedDescription = description || t("accountDescription");
+  const resolvedDescription = resolveNoAuthBannerDescription(
+    providerId,
+    description || t("accountDescription")
+  );
   const resolvedAddLabel = addLabel || t("addAccount");
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -276,6 +287,8 @@ export default function NoAuthAccountCard({
   const [showManualKeyInput, setShowManualKeyInput] = useState(false);
   const [setAsideProxyIds, setSetAsideProxyIds] = useState<Record<string, string | null>>({});
   const setAsideInflight = useRef<Set<string>>(new Set());
+  const [freeTierPauses, setFreeTierPauses] = useState<FreeTierPause[] | null>(null);
+  const freeTierInflight = useRef(false);
   const [assignments, setAssignments] = useState<EffectiveEgressAssignment[] | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -330,6 +343,40 @@ export default function NoAuthAccountCard({
       console.error("Failed to fetch proxy assignments:", err);
     }
   }, []);
+
+  const fetchFreeTierPauses = useCallback(async () => {
+    // The pause signal only exists for the opencode family (server answers
+    // `[]` otherwise): skip the request entirely elsewhere. This also keeps
+    // the set-aside reads the only callers of this route on other cards.
+    if (!providerId.toLowerCase().startsWith("opencode")) return;
+    if (freeTierInflight.current) return;
+    freeTierInflight.current = true;
+    try {
+      const res = await fetch(
+        `/api/admin/proxy-pool-visibility?freeTierPauses=1&provider=${encodeURIComponent(providerId)}`
+      );
+      if (!res.ok) return;
+      const payload = await res.json().catch(() => ({}));
+      setFreeTierPauses(Array.isArray(payload?.pauses) ? payload.pauses : null);
+    } catch {
+      // Keep the legacy rendering: no claim is made on ignorance.
+    } finally {
+      freeTierInflight.current = false;
+    }
+  }, [providerId]);
+
+  useEffect(() => {
+    const loadTimer = window.setTimeout(() => {
+      void fetchFreeTierPauses();
+    }, 0);
+    const timer = window.setInterval(() => {
+      void fetchFreeTierPauses();
+    }, 30_000);
+    return () => {
+      window.clearTimeout(loadTimer);
+      window.clearInterval(timer);
+    };
+  }, [fetchFreeTierPauses]);
 
   useEffect(() => {
     const loadTimer = window.setTimeout(() => {
@@ -444,6 +491,7 @@ export default function NoAuthAccountCard({
     } finally {
       setAdding(false);
     }
+    await fetchFreeTierPauses();
   };
 
   const handleAddManualApiKey = async () => {
@@ -614,6 +662,18 @@ export default function NoAuthAccountCard({
       </div>
 
       <div className="border-t border-border pt-3 mt-3">
+        {freeTierPauses !== null && freeTierPauses.length > 0 && (
+          <p data-testid="noauth-free-tier-pause" className="text-xs text-text-muted pb-2">
+            {(() => {
+              const first = freeTierPauses[0];
+              const time = new Date(first.until).toLocaleString();
+              const headline = first.model
+                ? t("freeTierPause", { model: first.model, time })
+                : t("freeTierPauseProvider", { time });
+              return `${headline} — ${first.reason} — ${t("freeTierPauseNote")}`;
+            })()}
+          </p>
+        )}
         <div className="mb-2 flex items-center justify-between">
           <span className="text-sm font-medium">
             {t("accounts", { count: loading ? "..." : allAccountIds.length })}

@@ -22,7 +22,7 @@
 import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { randomUUID } from "node:crypto";
-import { InterceptedRequestSchema } from "@/mitm/inspector/types";
+import { InterceptedRequestSchema, type InterceptedRequest } from "@/mitm/inspector/types";
 import { globalTrafficBuffer } from "@/mitm/inspector/buffer";
 import { maskSecret } from "@/mitm/maskSecrets";
 import { sanitizeHeaders } from "@/mitm/sanitizeHeaders";
@@ -109,10 +109,17 @@ export async function POST(request: Request): Promise<Response> {
     // loopback ingest; sanitization is centralized here so the inspector never
     // stores bearer tokens / API keys (Hard Rule #12).
     const data = parsed.data;
-    const req = {
-      requestBody: null,
-      responseBody: null,
+    const req: InterceptedRequest = {
       ...data,
+      id: data.id,
+      source: data.source,
+      timestamp: data.timestamp,
+      method: data.method,
+      host: data.host,
+      path: data.path,
+      requestSize: data.requestSize,
+      responseSize: data.responseSize,
+      status: data.status,
       requestHeaders: sanitizeHeaders(data.requestHeaders || {}),
       responseHeaders: sanitizeHeaders(data.responseHeaders || {}),
       requestBody: data.requestBody != null ? maskSecret(data.requestBody) : null,

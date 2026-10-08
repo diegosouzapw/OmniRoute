@@ -43,7 +43,9 @@ import {
   LEGACY_RATE_LIMIT_QUEUE_TIMEOUT_CODE,
 } from "./rateLimitManager/errors";
 import { LimiterWedgeWatchdog, WATCHDOG_INTERVAL_MS } from "./rateLimitManager/wedgeWatchdog";
+import { createCancellableJob } from "./rateLimitManager/queuedJobCancel";
 import { toNumber } from "@/shared/utils/numeric";
+import type { ConnectionRateLimitOverrides } from "@/lib/db/providers/columns";
 import {
   getExecutorTimeoutMs,
   resolveConnectionTimeoutMs,
@@ -102,7 +104,7 @@ const enabledConnections = new Set<string>();
 
 // Store per-connection rate limit overrides (RPM, TPM, TPD, minTime, maxConcurrent)
 // Populated from provider_connections.rateLimitOverrides on startup and refresh.
-const connectionRateLimitOverrides = new Map<string, Record<string, number>>();
+const connectionRateLimitOverrides = new Map<string, ConnectionRateLimitOverrides>();
 
 // Store learned limits for persistence (debounced)
 // One learned entry per limiter key (provider:connection[:model]). The previous
@@ -265,7 +267,7 @@ export function resolveRequestQueueMaxWaitMs(
  */
 export function resolveExecutionMaxWaitMs(connectionId?: string): number {
   const override = connectionId
-    ? (connectionRateLimitOverrides.get(connectionId) as Record<string, number> | undefined)
+    ? (connectionRateLimitOverrides.get(connectionId) as ConnectionRateLimitOverrides | undefined)
         ?.executionMaxWaitMs
     : undefined;
   return resolveOverride(override, currentRequestQueueSettings.executionMaxWaitMs);
@@ -535,7 +537,7 @@ export function isRateLimitEnabled(connectionId) {
  * connection so the next request gets a fresh limiter with the new settings.
  *
  * @param {string} connectionId
- * @param {Record<string, number> | null} overrides - New overrides (null/undefined clears)
+ * @param {ConnectionRateLimitOverrides | null} overrides - New overrides (null/undefined clears)
  */
 export function refreshConnectionRateLimits(connectionId, overrides) {
   if (overrides === null || overrides === undefined) {
@@ -749,8 +751,11 @@ export async function withRateLimit(
       `[RATE-LIMIT] executionMaxWaitMs ${perConnExec}ms clamped to upstream ${upstreamMs}ms for ${provider}/${model ?? ""}`
     );
   }
-  const scheduleOpts =
-    executionExpirationMs && executionExpirationMs > 0 ? { expiration: executionExpirationMs } : {};
+  const { scheduleOpts, abandon: abandonQueuedJob } = createCancellableJob(
+    limiter,
+    executionExpirationMs,
+    trackAsyncOperation
+  );
 
   // Issue #6593: opt-in admission cap — fast-reject before Bottleneck's
   // schedule() (and before any downstream compression/prompt work runs) when
@@ -781,6 +786,7 @@ export async function withRateLimit(
     if (queueWaitDisabled) return; // sentinel: never fires
     delayId = setTimeout(() => {
       queueTimedOut = true;
+      abandonQueuedJob();
       reject(queueTimeoutErr);
     }, queueRemainingMs);
   });
@@ -803,18 +809,16 @@ export async function withRateLimit(
   const boundFn = AsyncResource.bind(wrappedFn);
   const scheduled = limiter.schedule(scheduleOpts, boundFn as unknown as () => Promise<unknown>);
   scheduled.catch(() => {});
-  // Note: if timeoutPromise wins while the job is still QUEUED (blocked by
-  // maxConcurrent), Bottleneck cannot cancel it — wrappedFn rejects only on
-  // dispatch after the slot frees. Until then counts().QUEUED stays 1 and
-  // maxQueueDepth admission sees an inflated depth transiently; this is
-  // inherent to Bottleneck (no cancelQueuedJob) and does not affect
-  // correctness since fnCalled stays false.
+  // If timeoutPromise or the abort wins while the job is still QUEUED,
+  // abandonQueuedJob() removes it (see queuedJobCancel.ts); a job already past
+  // QUEUED is kept from calling fn by wrappedFn's queueTimedOut guard.
 
   try {
     if (signal) {
       let abortListener: (() => void) | undefined;
       const { promise: abortPromise, reject: rejectAbort } = Promise.withResolvers<never>();
       const onAbort = () => {
+        abandonQueuedJob();
         const reason = signal.reason;
         // Preserve native Error reasons (including AbortController's
         // read-only DOMException) instead of mutating or wrapping them.

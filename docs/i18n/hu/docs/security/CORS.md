@@ -140,22 +140,24 @@ Az eredetek összehasonlítása nem érzékeny a kis- és nagybetűkre, a záró
 
 ## Példa: fordított proxy az OmniRoute előtt
 
-A CORS-t maga az OmniRoute kényszeríti ki, ezért a proxy általában **nem** adhat hozzá és
-nem írhat át `Access-Control-*` fejléceket (a kettős fejlécek hibát okoznak a böngészőkben). Végezze el a TLS
-lezárását és a továbbítást — az előzetes kérésre az OmniRoute válaszoljon:
+A CORS-szabályokat maga az OmniRoute érvényesíti, ezért a proxynak általában **nem** szabad `Access-Control-*` fejléceket hozzáadnia vagy átírnia (a duplikált fejlécek hibát okoznak a böngészőkben). Zárja le a TLS-kapcsolatot, majd továbbítsa a kérést — az előzetes kérésre az OmniRoute válaszoljon:
 
 ```nginx
-# nginx — továbbítás az OmniRoute felé; itt NE szúrjon be Access-Control-* fejléceket
+# nginx — továbbítás az OmniRoute-nak; itt NE szúrjon be Access-Control-* fejléceket
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # NE állítsa az X-Forwarded-For értékét 127.0.0.1-re — ez hatástalanítja a loopback útvonalvédőt.
+    # Tartsa meg a továbbítási fejléceket: az azonos gépen futó proxy a loopback felől csatlakozik,
+    # és ezek jelzik az OmniRoute számára, hogy a hívó nem a helyi üzemeltető. Ha a proxy egyiket
+    # sem adja hozzá, minden távoli hívó helyinek fog látszani. Az X-Forwarded-For értékét se állítsa
+    # soha 127.0.0.1-re.
 }
 ```
 
-Az engedélyezett böngészőeredeteket az OmniRoute-ban (`CORS_ALLOWED_ORIGINS` vagy a
-Biztonság lapon), ne pedig a proxyban állítsa be.
+Az engedélyezett böngészőeredeteket az OmniRoute-ban (`CORS_ALLOWED_ORIGINS` vagy a Security lapon) állítsa be, ne a proxyban.
 
 ## Forrásfájlok
 

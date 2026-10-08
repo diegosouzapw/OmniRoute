@@ -4,11 +4,29 @@
 
 ---
 
-OmniRouteは、コーディングCLI（Codex、Claude Code、OpenCode、Clineなど）をOmniRouteをバックエンドとして使用するように設定する`setup-*`コマンド群を提供しています。これにより、ツールは**1つ**のエンドポイントと通信し、OmniRouteが自動フォールバック付きで適切なプロバイダーにルーティングします。各コマンドは、実行中のOmniRoute（ローカルまたはリモート）から**ライブ**モデルカタログを読み取り、**あなたの**マシンにツールの設定ファイルを書き込みます。APIキーは、ツールがサポートする場所では環境変数によって参照されます。ツールローカルの環境ファイルを永続化するコマンドは以下に記載されています。
+共有実行可能ファイルのマニフェスト、制限された子プロセス環境、永続的な
+Gemini セットアップについては、[CLI 起動コントラクト](./CLI-LAUNCH-CONTRACTS.md)を参照してください。
 
-また、汎用ランチャー `omniroute run <target>` もあり、これは設定を一切書き込まずに、適切な環境を注入して `claude`、`codex`、`aider`、`goose`、`opencode`、`qwen`、または `gemini` を起動します。ターゲットとそのエイリアスは、正規のマニフェスト `bin/cli/cli-manifest.mjs`（`claude-code|cc|anthropic`、`codex-cli|openai-codex|openai`、`goose-cli`、`open-code`、`qwen-code`、`gemini-cli`）から取得され、`omniroute completion` は同じマニフェスト由来のターゲットワードを提供します。レガシーなツールごとのランチャー — `omniroute launch` (Claude Code) および `omniroute launch-codex` (Codex) — も引き続き利用可能です。
+OmniRoute には、コーディング CLI（Codex、Claude Code、OpenCode、Cline、…）が
+OmniRoute をバックエンドとして使用するよう構成する、一連の `setup-*` コマンドが付属しています。これにより、
+ツールは **1 つ**のエンドポイントと通信し、OmniRoute が自動フォールバックを使用して
+適切なプロバイダーへルーティングします。各コマンドは、実行中の OmniRoute（ローカルまたはリモート）から
+**最新の**モデルカタログを読み取り、**あなたの**マシン上にあるツール固有の設定ファイルへ書き込みます。
+ツールが対応している場合、API キーは環境変数を介して参照されます。ツールローカルの環境ファイルを
+永続化するコマンドについては、以下に明記しています。
 
-プロバイダーのオンボーディングは、同じローカル/リモートコンテキストから利用できます。以下のAPIファーストコマンドは、管理認証をプロバイダーの認証情報とは別に保ち、構造化された出力に認証情報を表示することはありません。
+また、汎用ランチャー `omniroute run <target>` もあります。これは設定を一切書き込まずに、
+適切な環境変数を注入して `claude`、`codex`、`aider`、`goose`、`opencode`、`qwen`、または `gemini` を
+起動します。ターゲットとそのエイリアスは、正規マニフェスト `bin/cli/cli-manifest.mjs`
+（`claude-code|cc|anthropic`、`codex-cli|openai-codex|openai`、`goose-cli`、
+`open-code`、`qwen-code`、`gemini-cli`）から取得され、`omniroute completion` も同じ
+マニフェスト由来のターゲット語を提供します。従来のツール別ランチャーである
+`omniroute launch`（Claude Code）と `omniroute launch-codex`（Codex）も引き続き
+利用できます。
+
+同じローカル／リモートのコンテキストから、プロバイダーのオンボーディングも行えます。
+以下の API ファーストのコマンドでは、管理認証をプロバイダー認証情報から分離し、
+構造化出力に認証情報を一切表示しません。
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -18,16 +36,25 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-スクリプトでは、`--credential-stdin` または `--credential-env` を推奨します。`--credential` は、制御されたローカル使用のために保持されています。非対話型ターミナルでは `providers remove` に `--yes` が必要であり、これら5つのコマンドはすべてアクティブなコンテキストまたはグローバルな `--base-url`/`--api-key` オプションを尊重します。
+スクリプトでは、`--credential-stdin` または `--credential-env` の使用を推奨します。`--credential` は、
+管理されたローカル用途向けに引き続き利用できます。非対話型ターミナルで `providers remove` を実行するには
+`--yes` が必要です。また、5 つのコマンドはすべて、アクティブなコンテキストまたはグローバルな
+`--base-url`／`--api-key` オプションに従います。
 
-プロバイダーセレクターは、曖昧なIDプレフィックス、名前、またはプロバイダー名を拒否します。複数の接続が一致する場合は、完全な接続IDを使用してください。作成および編集コマンドは保存された接続を読み戻し、削除はそれがもはや読み取り不可能であることを検証します。インポートは、既存のプロバイダー/名前のペアをスキップします。インポートされたエントリは、CLIに提供された管理エンドポイント、コンテキスト、または管理認証情報を上書きすることはできません。
+プロバイダーセレクターは、曖昧な ID プレフィックス、名前、またはプロバイダー名を拒否します。
+複数の接続が一致する場合は、完全な接続 ID を使用してください。作成および編集コマンドは、
+保存された接続を再度読み取り、削除ではその接続が読み取れなくなったことを検証します。
+インポートでは、既存のプロバイダー／名前の組み合わせはスキップされます。インポートされたエントリは、
+CLI に指定された管理エンドポイント、コンテキスト、または管理認証情報を上書きできません。
 
-最も豊富な2つの統合の一度限りの手動による基本設定については、ツールごとの詳細な解説を参照してください。
+最も充実した 2 つの統合に対する、手作業による一度限りの基本セットアップについては、
+各ツールの詳細ガイドを参照してください。
 
 - [Claude Code の設定](./CLAUDE-CODE-CONFIGURATION.md)
 - [Codex CLI の設定](./CODEX-CLI-CONFIGURATION.md)
-- [リモートモード](./REMOTE-MODE.md) — ラップトップからリモートのOmniRoute（VPS / Tailnet）を操作する
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot拡張機能。エディター内からこれらの `setup-*` コマンドを実行することもできます
+- [リモートモード](./REMOTE-MODE.md) — ノート PC からリモートの OmniRoute（VPS／Tailnet）を操作
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot 拡張機能。エディター内からこれらの
+  `setup-*` コマンドを実行することもできます
 
 ---
 

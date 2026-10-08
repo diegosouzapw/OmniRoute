@@ -11,48 +11,48 @@ complementarios; los operadores deben saber cuál están observando.
 
 - **Ámbito:** la ruta de cuerpo almacenado en búfer/montículo para `POST /v1/chat/completions`,
   `/v1/messages`, `/v1/responses` y las demás rutas con formato de chat. Protege
-  contra la amplificación del montículo provocada por cuerpos grandes de agentes de programación (#4380).
+  contra la amplificación del montículo causada por cuerpos grandes de agentes de programación (#4380).
 - **Un controlador global por proceso, no carriles por clave (#10110).** Cada clave de API
-  (con hash) o sesión `anonymous` se admite en función del **mismo** presupuesto compartido;
-  el id de sesión con hash se utiliza ÚNICAMENTE como clave de planificación equitativa (despacho
-  por turnos entre quienes esperan), nunca como partición de capacidad. Una versión anterior de este
+  (con hash) o sesión `anonymous` se admite con cargo al **mismo** presupuesto compartido;
+  el id. de sesión con hash se usa ÚNICAMENTE como clave de programación equitativa (despacho
+  por turnos entre solicitudes en espera), nunca como partición de capacidad. Una versión anterior de este
   documento describía carriles por clave con capacidad independiente; ese modelo se
   eliminó en #10110 porque permitía que credenciales falsas no autenticadas multiplicaran
-  el límite para todo el proceso.
-- **Control (#503-fanout): un presupuesto de ingestión en BYTES derivado automáticamente, no un recuento fijo de
+  el límite global del proceso.
+- **Control de acceso (#503-fanout): un presupuesto de ingesta en BYTES derivado automáticamente, no un recuento fijo de
   solicitudes.** El límite heredado por recuento de solicitudes `CHAT_MAX_HEAVY_IN_FLIGHT` (valor predeterminado `1`
-  antes de esta corrección) reducía el fan-out de los agentes de programación (varios subagentes/CLI,
-  con cuerpos habitualmente > 256 KB) a una concurrencia efectiva de ~1, lo que provocaba respuestas 503
-  bajo una carga completamente normal. Ahora solo se aplica cuando un operador establece explícitamente
-  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Si no se establece, la admisión queda
-  controlada por `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`: un presupuesto derivado automáticamente del
+  antes de esta corrección) reducía la distribución en abanico de los agentes de programación (varios subagentes/CLI,
+  con cuerpos habitualmente > 256 KB) a una concurrencia efectiva de ~1, lo que producía respuestas 503
+  bajo una carga completamente normal. Ahora solo es vinculante cuando un operador establece explícitamente
+  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Si no se establece, la admisión queda controlada en su lugar
+  por `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`: un presupuesto derivado automáticamente del
   límite real de memoria del proceso (`src/shared/middleware/admissionBudget.ts`):
   el 25 % del menor valor entre el límite del montículo de V8 y cualquier límite de cgroup/contenedor,
-  dividido por un factor de amplificación transitoria de 8x y restringido a un intervalo de entre 8 MiB y
-  2 GiB. Las anulaciones explícitas utilizan los mismos límites. Esto se ajusta automáticamente desde un
-  contenedor de 512 MB hasta un equipo de escritorio de 32 GB sin configurar variables de entorno. Un cuerpo que no
-  pueda caber dentro del presupuesto efectivo falla inmediatamente con `413 body_exceeds_budget`;
-  solo la contención entre cuerpos que pueden procesarse individualmente entra en la cola acotada
-  de equidad. Un monitor activo de presión de recursos basado en múltiples señales (proporción del montículo de V8,
-  cgroup, PSI, eventos OOM: `open-sse/utils/resourcePressurePolicy.ts`) reduce
-  la espera acotada bajo presión `high` y rechaza inmediatamente con
+  dividido por un factor de amplificación transitoria de 8x y acotado entre 8 MiB y
+  2 GiB. Las sustituciones explícitas usan los mismos límites. Esto se adapta automáticamente desde un
+  contenedor de 512 MB hasta un equipo de escritorio de 32 GB sin ajustar variables de entorno. Un cuerpo que no pueda
+  caber dentro del presupuesto efectivo falla inmediatamente con `413 body_exceeds_budget`;
+  solo la contención entre cuerpos que se pueden atender individualmente entra en la cola acotada
+  con equidad. Un rastreador en tiempo real de presión de recursos basado en múltiples señales (proporción del montículo de V8,
+  cgroup, PSI, eventos de OOM — `open-sse/utils/resourcePressurePolicy.ts`) reduce
+  la espera acotada bajo presión `high` y rechaza de inmediato con
   `503 resource_pressure` bajo presión `critical`, antes incluso de ingerir
   ningún byte. PSI se lee del archivo `memory.pressure` del cgroup de esta unidad cuando está presente
   (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` abarca
-  todo el host y solo se utiliza como alternativa en hardware físico/cgroup v1, de modo que un
-  host que utilice intercambio de memoria no pueda provocar un 503 en un contenedor inactivo.
-- **Ajustes:**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — anulación del presupuesto de bytes derivado automáticamente
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — límite heredado por recuento de solicitudes, solo mediante activación explícita
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — espera en cola antes de un 503 (valor predeterminado: 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — válvula del montículo para bytes en cola (valor predeterminado: 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — obsoletos
+  todo el host y solo se usa como alternativa en hardware sin virtualización o cgroup v1, de modo que un host
+  que use memoria de intercambio no pueda provocar un 503 en un contenedor inactivo.
+- **Ajuste:**
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — sustitución del presupuesto de bytes derivado automáticamente
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — límite heredado por recuento de solicitudes, solo por activación explícita
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — espera en cola antes de responder con 503 (valor predeterminado: `RATE_LIMIT_MAX_WAIT_MS`)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — válvula del montículo para los bytes en cola (valor predeterminado: 4 MB)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — obsoletas
     y sin efecto desde #10110 (se aceptan por compatibilidad de configuración, pero se ignoran)
 - **Informes:** `GET /api/monitoring/health` → `chatAdmission` (#11244), incluidas
-  las adiciones de #503-fanout `inflightBytes`, `maxInflightBytes`, `budgetSource`
+  las incorporaciones de #503-fanout `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity` y `countCapEnabled`
-  (false en una implementación predeterminada; confirma que el presupuesto de bytes, y no el límite heredado
-  por recuento, es el que realmente se está aplicando).
+  (false en una implementación predeterminada; confirma que el presupuesto de bytes, no el límite heredado
+  por recuento, es lo que realmente está restringiendo la admisión).
 
 ## 2. Carriles virtuales adaptativos en tiempo de ejecución (`open-sse/services/admission`)
 

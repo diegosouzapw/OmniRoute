@@ -39,31 +39,31 @@ Các sự cố thường gặp và giải pháp cho OmniRoute.
 
 ### Giới hạn tốc độ trên các nhà cung cấp miễn phí (429 / 400 / 401)
 
-**Triệu chứng**: Khi sử dụng `model: "auto"` với các nhà cung cấp miễn phí/không yêu cầu xác thực (opencode, auggie, v.v.), thỉnh thoảng bạn nhận được `HTTP 429`, `400` hoặc `401` thay vì câu trả lời. Các yêu cầu sẽ thành công nếu thử lại cùng lời nhắc sau đó ít phút, nhưng quy trình tự động hóa (tác vụ cron, tác nhân, tập lệnh) sẽ bị gián đoạn ngay ở lần thất bại đầu tiên.
+**Triệu chứng**: Khi sử dụng `model: "auto"` với các nhà cung cấp miễn phí/không yêu cầu xác thực (opencode, auggie, v.v.), thỉnh thoảng bạn nhận được `HTTP 429`, `400` hoặc `401` thay vì câu trả lời. Các yêu cầu thành công khi thử lại cùng một lời nhắc sau đó ít phút, nhưng quy trình tự động hóa (tác vụ cron, tác tử, tập lệnh) bị gián đoạn ngay khi gặp lỗi đầu tiên.
 
-**Nguyên nhân gốc rễ**: Có ba chế độ lỗi độc lập cộng dồn với nhau:
+**Nguyên nhân gốc rễ**: Có ba chế độ lỗi độc lập chồng lên nhau:
 
-1. **Giới hạn tốc độ của nhà cung cấp (`429`)**: Các gói miễn phí có thể áp dụng hạn mức theo từng khoảng thời gian. Một đợt yêu cầu song song sẽ dùng hết hạn mức, vì vậy yêu cầu tiếp theo bị từ chối cho đến khi khoảng thời gian được đặt lại.
-2. **Mô hình bị lỗi trong chế độ chuyển tiếp trực tiếp (`400`/`401`)**: Các nhóm `auto/*` có thể bao gồm những mô hình chuyển tiếp trực tiếp từ `opencode` đã được đăng ký trong danh mục nhưng không có thông tin xác thực còn hiệu lực (ví dụ: `oc/north-mini-code-free` → `401`). Bộ định tuyến tự động thử một mô hình, thất bại và truyền lỗi ra ngoài trước khi cơ chế dự phòng kịp hoạt động.
-3. **Khuếch đại đồng thời (`429` khi tải cao)**: Khi nhiều phiên tác nhân/cron cùng lúc gửi yêu cầu đến `auto`, tổng tốc độ yêu cầu sẽ vượt quá mức mà các nhà cung cấp miễn phí có thể chịu được, khiến những yêu cầu hợp lệ bị đánh dấu là lạm dụng.
+1. **Giới hạn tốc độ của nhà cung cấp (`429`)**: Các gói miễn phí có thể áp dụng hạn ngạch theo từng khoảng thời gian. Một đợt yêu cầu song song dồn dập sẽ làm cạn hạn ngạch, vì vậy yêu cầu tiếp theo bị từ chối cho đến khi khoảng thời gian được đặt lại.
+2. **Mô hình bị lỗi trong chế độ chuyển tiếp (`400`/`401`)**: Các nhóm `auto/*` có thể bao gồm những mô hình chuyển tiếp từ `opencode` đã được đăng ký trong danh mục nhưng không có thông tin xác thực còn hiệu lực (ví dụ: `oc/north-mini-code-free` → `401`). Bộ định tuyến tự động thử một mô hình, gặp lỗi và truyền lỗi ra ngoài trước khi cơ chế dự phòng kịp kích hoạt.
+3. **Khuếch đại do đồng thời (`429` khi tải cao)**: Khi nhiều phiên tác tử/cron cùng lúc truy cập `auto`, tổng tốc độ yêu cầu vượt quá mức mà các nhà cung cấp miễn phí có thể chấp nhận, khiến các lệnh gọi hợp lệ bị đánh dấu là lạm dụng.
 
-**Cách khắc phục đã được xác minh (do cộng đồng báo cáo, 2026-08-10)**: điều chỉnh ba biến môi trường để cơ chế luân chuyển, kiểm soát đồng thời và dự phòng hấp thụ được sự biến động của gói miễn phí thay vì bị lỗi:
+**Cách khắc phục đã được xác minh (do cộng đồng báo cáo, 2026-08-10)**: điều chỉnh ba biến môi trường để cơ chế luân chuyển, kiểm soát đồng thời và dự phòng hấp thụ sự bất ổn của gói miễn phí thay vì dừng hoạt động khi gặp lỗi:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # chuyển sang mô hình/nhà cung cấp khác khi gặp 400/401 (bỏ qua các mô hình chuyển tiếp trực tiếp bị lỗi)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # giới hạn tiếp nhận rõ ràng đối với tác vụ nặng (mặc định không đặt: không giới hạn số lượng yêu cầu, xem ghi chú bên dưới)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # chờ lâu hơn trong giới hạn để có năng lực xử lý tác vụ nặng thay vì lập tức trả về lỗi 503 có thể thử lại
+export OMNIROUTE_ROTATE_ON_400=true           # chuyển sang mô hình/nhà cung cấp khác khi gặp 400/401 (bỏ qua các mô hình chuyển tiếp bị lỗi)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # giới hạn tiếp nhận rõ ràng cho tác vụ nặng (mặc định không đặt: không giới hạn số lượng yêu cầu, xem ghi chú bên dưới)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # tăng thời gian chờ giới hạn vượt quá giá trị mặc định của RATE_LIMIT_MAX_WAIT_MS cho các dịch vụ thượng nguồn chậm
 ```
 
-Đặt các biến này trong môi trường tiến trình OmniRoute (daemon, ví dụ thông qua LaunchAgent plist hoặc `systemctl edit`), sau đó khởi động lại OmniRoute. Cờ luân chuyển là tùy chọn có tác động lớn nhất: nó biến một lỗi nghiêm trọng thành lần thử lại minh bạch với một nhà cung cấp đang hoạt động tốt trong nhóm.
+Đặt các biến này trong môi trường tiến trình OmniRoute (daemon, ví dụ thông qua plist của LaunchAgent hoặc `systemctl edit`), sau đó khởi động lại OmniRoute. Cờ luân chuyển là biện pháp có tác động lớn nhất: nó biến một lỗi nghiêm trọng thành lần thử lại trong suốt với một nhà cung cấp hoạt động ổn định trong nhóm.
 
-**Lưu ý**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` giới hạn số lượng yêu cầu nặng — có ngữ cảnh dài — được chạy cùng lúc; giới hạn này là một cổng tiếp nhận, không phải bộ giới hạn tốc độ của nhà cung cấp. **Bản cập nhật #503-fanout:** biến này không còn được đặt theo mặc định (giờ đây nó chỉ có hiệu lực khi được cấu hình rõ ràng như ở trên) — thay vào đó, việc tiếp nhận tác vụ nặng được kiểm soát bằng ngân sách byte tự động suy ra (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), ngân sách này tự điều chỉnh theo giới hạn bộ nhớ thực tế của máy chủ. Vì vậy, một bản triển khai mới sẽ gặp ít trường hợp từ chối `503 chat_admission_busy` hơn đáng kể mà không cần đặt biến này; việc đặt biến rõ ràng tại đây vẫn hoạt động chính xác như tài liệu mô tả. Các giá trị ghi đè ngân sách byte rõ ràng bị giới hạn trong khoảng 8 MiB–2 GiB. Lỗi `413 body_exceeds_budget` không phải là lỗi tạm thời: hãy tăng ngân sách byte đó, giảm `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` hoặc tăng giới hạn bộ nhớ của tiến trình. Việc giảm tải do `inflight_bytes_budget` là tình trạng tranh chấp tài nguyên tạm thời và vẫn có thể thử lại. Cơ chế giới hạn tốc độ theo từng nhà cung cấp (`open-sse/services/rateLimitManager.ts`) được kiểm soát riêng bởi `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` và `RATE_LIMIT_AUTO_ENABLE` — xem `.env.example`.
+**Lưu ý**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` giới hạn số lượng yêu cầu nặng — có ngữ cảnh dài — được chạy đồng thời; giới hạn này là một cổng tiếp nhận, không phải bộ giới hạn tốc độ của nhà cung cấp. **Cập nhật về #503-fanout:** biến này không còn được đặt theo mặc định (giờ đây nó chỉ có hiệu lực khi được cấu hình rõ ràng như ở trên) — thay vào đó, việc tiếp nhận tác vụ nặng được kiểm soát bằng hạn mức byte tự động suy ra (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) có khả năng tự điều chỉnh theo giới hạn bộ nhớ thực tế của máy chủ, vì vậy một bản triển khai mới sẽ gặp ít lỗi từ chối `503 chat_admission_busy` hơn nhiều mà không cần đặt biến này; việc đặt biến rõ ràng tại đây vẫn hoạt động đúng như tài liệu mô tả. Giá trị ghi đè rõ ràng cho hạn mức byte được giới hạn trong khoảng 8 MiB–2 GiB. Lỗi `413 body_exceeds_budget` không phải là lỗi tạm thời: hãy tăng hạn mức byte đó, giảm `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` hoặc tăng giới hạn bộ nhớ của tiến trình. Việc loại bỏ yêu cầu do `inflight_bytes_budget` là tình trạng tranh chấp tạm thời và vẫn có thể thử lại. Cơ chế giới hạn tốc độ theo từng nhà cung cấp (`open-sse/services/rateLimitManager.ts`) được quản lý riêng bởi `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` và `RATE_LIMIT_AUTO_ENABLE` — xem `.env.example`.
 
-**Cách xác minh bản sửa lỗi hoạt động**: chạy agent/cron của bạn hai lần liên tiếp trong thời gian ngắn và xác nhận cả hai lần đều thành công. Trước khi sửa, lần chạy thứ hai thường trả về lỗi `429`/`401`. Sau khi sửa, các lỗi (nếu có) sẽ được tự động thử lại một cách minh bạch và lệnh gọi sẽ hoàn tất. Bạn cũng có thể chạy `curl /monitoring/health` và theo dõi trường `rateLimitedUntil` trên các kết nối nhà cung cấp cũng như `circuitBreakers.providerBreakers[].state` của các nhà cung cấp bị ảnh hưởng — trạng thái là một trong các giá trị `CLOSED`, `DEGRADED`, `OPEN` hoặc `HALF_OPEN` (xem `src/shared/utils/circuitBreaker.ts`), và một nhà cung cấp liên tục gặp lỗi sẽ chuyển trạng thái theo trình tự `CLOSED → DEGRADED → OPEN` trước khi cửa sổ đặt lại cho phép một yêu cầu thăm dò đi qua (`HALF_OPEN`).
+**Cách xác minh cách khắc phục đã có hiệu lực**: chạy tác tử/cron hai lần liên tiếp trong thời gian ngắn và xác nhận cả hai lần đều thành công. Trước khi khắc phục, lần chạy thứ hai thường phát sinh lỗi `429`/`401`. Sau khi khắc phục, các lỗi (nếu có) được thử lại một cách trong suốt và lệnh gọi hoàn tất. Bạn cũng có thể chạy `curl /monitoring/health` và theo dõi trường `rateLimitedUntil` trên các kết nối của nhà cung cấp cũng như `circuitBreakers.providerBreakers[].state` đối với các nhà cung cấp bị ảnh hưởng — trạng thái là một trong các giá trị `CLOSED`, `DEGRADED`, `OPEN` hoặc `HALF_OPEN` (xem `src/shared/utils/circuitBreaker.ts`), và một nhà cung cấp liên tục gặp lỗi sẽ chuyển trạng thái `CLOSED → DEGRADED → OPEN` trước khi khoảng thời gian đặt lại cho phép một yêu cầu thăm dò đi qua (`HALF_OPEN`).
 
-**Nếu bạn vẫn gặp lỗi 429**: tài khoản đang hoạt động của nhà cung cấp đó thực sự đã dùng hết _hạn ngạch_ (không chỉ chạm giới hạn tốc độ). Hãy thêm tài khoản thứ hai cho cùng nhà cung cấp trong OmniRoute dashboard → Providers → Accounts, hoặc kết hợp thêm một nhà cung cấp miễn phí khác (ví dụ: `routeway`, `auggie`). Việc luân chuyển chỉ hữu ích với các lỗi tạm thời về giới hạn tốc độ/400/401; khi hạn ngạch đã cạn hoàn toàn, bạn cần thông tin xác thực thứ hai hoặc một nhà cung cấp khác.
+**Nếu bạn vẫn gặp lỗi 429**: tài khoản đang hoạt động của nhà cung cấp đó thực sự đã dùng hết _hạn ngạch_ (không chỉ là giới hạn tốc độ). Hãy thêm tài khoản thứ hai cho cùng nhà cung cấp trong bảng điều khiển OmniRoute → Providers → Accounts hoặc kết hợp thêm một nhà cung cấp miễn phí khác (ví dụ: `routeway`, `auggie`). Luân chuyển chỉ hữu ích với giới hạn tốc độ/lỗi 400/401 tạm thời; khi hạn ngạch bị cạn hoàn toàn, bạn cần thông tin xác thực thứ hai hoặc một nhà cung cấp khác.
 
-**Nếu bạn gặp lỗi 403 trên các mô hình thị giác (`auto/vision`, `bazaarlink/*`)**: tài khoản được kết nối không có gói trả phí bao gồm tính năng thị giác, hoặc khóa API không có đủ quyền. Hãy xác minh trong bảng điều khiển của nhà cung cấp rằng phạm vi của khóa bao gồm thị giác/đa phương thức, hoặc kết nối một tài khoản thuộc gói trả phí và giữ tài khoản đó làm đích cho các yêu cầu thị giác.
+**Nếu bạn gặp lỗi 403 trên các mô hình thị giác (`auto/vision`, `bazaarlink/*`)**: tài khoản được kết nối không có gói trả phí bao gồm tính năng thị giác hoặc khóa API không có đủ quyền. Hãy xác minh trong bảng điều khiển của nhà cung cấp rằng phạm vi của khóa bao gồm tính năng thị giác/đa phương thức, hoặc kết nối tài khoản gói trả phí và giữ tài khoản đó làm đích cho tác vụ thị giác.
 
 ---
 
@@ -543,37 +543,37 @@ Sử dụng **Dashboard → Translator** để gỡ lỗi các sự cố chuyể
 
 ## Cài đặt khả năng phục hồi
 
-### Giới hạn tốc độ tự động không kích hoạt
+### Giới hạn tốc độ tự động không được kích hoạt
 
 - Giới hạn tốc độ tự động chỉ áp dụng cho các nhà cung cấp dùng khóa API (không áp dụng cho OAuth/gói đăng ký)
 - Xác minh rằng **Settings → Resilience → Provider Profiles** đã bật giới hạn tốc độ tự động
-- Kiểm tra xem nhà cung cấp có trả về mã trạng thái `429` hoặc header `Retry-After` hay không
+- Kiểm tra xem nhà cung cấp có trả về mã trạng thái `429` hoặc tiêu đề `Retry-After` hay không
 
-### Điều chỉnh backoff theo cấp số nhân
+### Điều chỉnh cơ chế lùi theo cấp số nhân
 
-Các hồ sơ nhà cung cấp hỗ trợ những cài đặt sau:
+Hồ sơ nhà cung cấp hỗ trợ các cài đặt sau:
 
-- **Base delay** — Thời gian chờ ban đầu sau lần thất bại đầu tiên (mặc định: 1s)
-- **Max delay** — Giới hạn thời gian chờ tối đa (mặc định: 30s)
-- **Multiplier** — Mức tăng thời gian chờ sau mỗi lần thất bại liên tiếp (mặc định: 2x)
+- **Độ trễ cơ sở** — Thời gian chờ ban đầu sau lần thất bại đầu tiên (mặc định: 1s)
+- **Độ trễ tối đa** — Giới hạn trên của thời gian chờ (mặc định: 30s)
+- **Hệ số nhân** — Mức tăng độ trễ cho mỗi lần thất bại liên tiếp (mặc định: 2x)
 
-### Chống hiệu ứng thundering herd
+### Chống hiệu ứng bầy đàn
 
-Khi nhiều yêu cầu đồng thời truy cập một nhà cung cấp đang bị giới hạn tốc độ, OmniRoute sử dụng mutex + giới hạn tốc độ tự động để tuần tự hóa các yêu cầu và ngăn lỗi lan truyền. Cơ chế này được thực hiện tự động đối với các nhà cung cấp dùng khóa API.
+Khi nhiều yêu cầu đồng thời gửi đến một nhà cung cấp đang bị giới hạn tốc độ, OmniRoute sử dụng mutex + giới hạn tốc độ tự động để tuần tự hóa các yêu cầu và ngăn lỗi dây chuyền. Cơ chế này được áp dụng tự động cho các nhà cung cấp dùng khóa API.
 
 ### Yêu cầu trò chuyện thất bại với 503 / chat_admission_busy
 
 **Triệu chứng:**
 
-- Endpoint hoàn thành trò chuyện trả về phản hồi `503` có thể thử lại với mã lỗi
+- Điểm cuối hoàn tất trò chuyện trả về phản hồi `503` có thể thử lại, với mã lỗi là
   `chat_admission_busy`.
-- Phản hồi bao gồm `Retry-After`. Kể từ #12135, giá trị này được suy ra từ mức sử dụng
-  quan sát được — lấy giá trị lớn hơn giữa khoảng thời gian `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` mà yêu cầu đã
-  chờ và thời gian các lease hạng nặng hiện tại đã được giữ — làm tròn lên thành số
-  giây nguyên và giới hạn tối đa ở 60. Khi cổng không hoạt động, cơ chế này giữ nguyên các mức sàn trước đây: 2 giây trên
-  đường dẫn dựa trên byte, 1 giây trên đường dẫn dựa trên cấu trúc (đường dẫn này cũng bao gồm
+- Phản hồi bao gồm `Retry-After`. Kể từ #12135, giá trị này được suy ra từ mức chiếm dụng quan sát được
+  — lấy giá trị lớn hơn giữa khoảng thời gian `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` mà yêu cầu đã
+  chờ và khoảng thời gian các lease tải nặng hiện tại đã được giữ — làm tròn lên thành số
+  giây nguyên và giới hạn tối đa ở 60. Khi cổng đang nhàn rỗi, cơ chế này vẫn giữ các mức sàn trước đây: 2 giây trên
+  luồng dựa trên byte, 1 giây trên luồng dựa trên cấu trúc (luồng này cũng bao gồm
   `reason: "structure_limit"`).
-- Điều này có thể xảy ra khi một yêu cầu trò chuyện hạng nặng khác hoặc phản hồi streaming chạy lâu vẫn
+- Điều này có thể xảy ra trong khi một yêu cầu trò chuyện tải nặng khác hoặc một phản hồi phát trực tuyến kéo dài vẫn
   đang được xử lý.
 
 Nội dung phản hồi dựa trên byte là:
@@ -588,52 +588,52 @@ Nội dung phản hồi dựa trên byte là:
 }
 ```
 
-Phản hồi dựa trên cấu trúc sử dụng cùng loại và mã, với thông báo
+Phản hồi dựa trên cấu trúc sử dụng cùng kiểu và mã, với thông báo
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 và `reason: "structure_limit"`.
-Với các ngưỡng mặc định, một yêu cầu được xem là nặng về cấu trúc khi có ít nhất `200` thông báo,
+Ở các ngưỡng mặc định, một yêu cầu được xem là nặng về cấu trúc khi có ít nhất `200` thông báo,
 ít nhất `64` công cụ hoặc ít nhất `32,000` token ước tính, hoặc khi quá trình ước tính cấu trúc có giới hạn
-chạm đến giới hạn `10,000` nút đã duyệt hoặc độ sâu `12`.
+chạm giới hạn `10,000` nút đã duyệt hoặc độ sâu `12`.
 
-**Nguyên nhân:** Đây là cơ chế chủ động giảm tải bên trong OmniRoute, không phải lỗi của nhà cung cấp upstream.
-Mỗi tiến trình sử dụng một bộ bảo vệ cục bộ theo tiến trình để dành trước dung lượng hạng nặng có giới hạn trước khi giữ lại
-và phân tích cú pháp phần thân yêu cầu lớn. Một lease hạng nặng tiếp tục được giữ trong suốt vòng đời của phản hồi SSE.
+**Nguyên nhân:** Đây là cơ chế chủ động giảm tải bên trong OmniRoute, không phải lỗi của nhà cung cấp thượng nguồn.
+Mỗi tiến trình sử dụng một bộ bảo vệ cục bộ theo tiến trình để giữ trước dung lượng tải nặng có giới hạn trước khi lưu giữ
+và phân tích nội dung của một yêu cầu lớn. Một lease tải nặng được giữ trong toàn bộ thời gian tồn tại của phản hồi SSE.
 
-**#503-fanout:** trước bản sửa lỗi này, bộ bảo vệ giới hạn tính đồng thời theo SỐ LƯỢNG yêu cầu cố định
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, mặc định `1`) bất kể bộ nhớ máy chủ, vì vậy việc phân tán
-của coding agent (nhiều subagent/CLI, phần thân thường xuyên > 256 KB) làm mức đồng thời thực tế
-giảm xuống còn khoảng 1 và phát sinh lỗi 503 dưới tải hoàn toàn bình thường. Bộ bảo vệ hiện tự điều chỉnh: nó được kiểm soát
-bởi ngân sách BYTE tiếp nhận được tự động suy ra (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), định cỡ theo
+**#503-fanout:** trước bản sửa lỗi này, bộ bảo vệ giới hạn số lượng yêu cầu đồng thời ở một COUNT yêu cầu cố định
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, mặc định `1`) bất kể bộ nhớ máy chủ, vì vậy cơ chế fan-out của tác nhân lập trình
+(nhiều tác nhân con/CLI, nội dung thường xuyên > 256 KB) đã làm giảm mức đồng thời hiệu dụng
+xuống khoảng 1 và gây lỗi 503 dưới tải hoàn toàn bình thường. Hiện tại, bộ bảo vệ tự điều chỉnh: nó được kiểm soát
+bởi ngân sách BYTE nạp vào được tự động suy ra (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), định cỡ theo
 giới hạn bộ nhớ thực tế của tiến trình, đồng thời tham chiếu tín hiệu áp lực tài nguyên theo thời gian thực — vì vậy nó
-chỉ giảm tải khi máy chủ thực sự chịu áp lực bộ nhớ, thay vì chỉ vì có nhiều hơn một
-yêu cầu nặng đến cùng lúc. Giới hạn số lượng cũ (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) vẫn
-được áp dụng, nhưng chỉ khi bạn thiết lập rõ ràng biến này.
+chỉ giảm tải khi máy chủ thực sự chịu áp lực bộ nhớ, chứ không chỉ vì có nhiều hơn một
+yêu cầu tải nặng đến cùng lúc. Giới hạn số lượng cũ (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) vẫn
+được áp dụng, nhưng chỉ khi bạn thiết lập rõ ràng.
 
-Khi dung lượng đang bận, trước tiên một yêu cầu hạng nặng sẽ chờ tối đa
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (mặc định `2000`, `0` sẽ tắt việc chờ) để có một vị trí trống
-trước khi trả về phản hồi `503` có thể thử lại. Khoảng chờ có giới hạn này tồn tại để các máy khách kiểu agent
-(OpenCode, Claude Code, Cursor) phân tán đồng thời các yêu cầu con nặng có thể tuần tự hóa đợt yêu cầu
-thay vì tiêu tốn toàn bộ ngân sách thử lại vào các lần từ chối tức thì và dừng giữa chừng khi đang thực hiện tác vụ.
-Mức sử dụng lease hạng nặng hiện tại, ngân sách byte đã phân giải và mức độ nghiêm trọng của áp lực theo thời gian thực
-được cung cấp tại `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
+Khi dung lượng đang bận, một yêu cầu tải nặng trước tiên sẽ chờ tối đa
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (mặc định là `RATE_LIMIT_MAX_WAIT_MS`; `0` sẽ tắt việc chờ) để có một vị trí trống
+trước khi trả về phản hồi `503` có thể thử lại. Khoảng chờ có giới hạn này tồn tại để các máy khách kiểu tác nhân
+(OpenCode, Claude Code, Cursor) thực hiện fan-out các yêu cầu con tải nặng đồng thời có thể tuần tự hóa đợt yêu cầu
+thay vì tiêu hết toàn bộ ngân sách thử lại vào các lần từ chối tức thời và dừng giữa tác vụ.
+Mức chiếm dụng lease tải nặng hiện tại, ngân sách byte đã xác định và mức độ nghiêm trọng của áp lực theo thời gian thực
+được hiển thị tại `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
 `budgetSource`, `pressureSeverity`, `countCapEnabled`) — hãy kiểm tra các giá trị này trước khi thay đổi bất kỳ biến môi trường nào.
 Settings → Resilience → Request Queue → Concurrent Requests không kiểm soát cơ chế này; cài đặt đó
-quản lý một cơ chế hàng đợi yêu cầu nhà cung cấp riêng biệt.
+điều khiển một cơ chế hàng đợi yêu cầu nhà cung cấp riêng biệt.
 
 **Cách khắc phục:**
 
-1. Trước tiên, hãy thử lại. Máy khách nên tuân theo `Retry-After` và sử dụng backoff thay vì ngay lập tức
+1. Trước tiên, hãy thử lại. Máy khách nên tuân thủ `Retry-After` và sử dụng cơ chế lùi thay vì ngay lập tức
    lặp lại yêu cầu.
-2. Kiểm tra `/api/monitoring/health` → `chatAdmission` trước khi điều chỉnh bất kỳ thứ gì. `countCapEnabled:
+2. Kiểm tra `/api/monitoring/health` → `chatAdmission` trước khi điều chỉnh bất cứ thứ gì. `countCapEnabled:
 false` và `maxInflightBytes` đủ lớn có nghĩa là ngân sách được tự động suy ra đã hoạt động
-   đúng; `pressureSeverity` có giá trị `high`/`critical` nghĩa là máy chủ thực sự sắp hết bộ nhớ —
-   điều này không thể khắc phục bằng một biến môi trường admission mà cần thêm RAM hoặc giảm khối lượng công việc.
+   đúng; `pressureSeverity` ở mức `high`/`critical` có nghĩa là máy chủ thực sự sắp hết bộ nhớ —
+   vấn đề này không thể khắc phục bằng biến môi trường kiểm soát tiếp nhận mà cần thêm RAM hoặc giảm khối lượng công việc.
 3. Chỉ khi `/api/monitoring/health` cho thấy ngân sách được tự động suy ra thực sự quá nhỏ đối với
-   máy chủ của bạn (hiếm gặp — ngân sách này đã tự điều chỉnh từ container đến bare-metal), hãy ghi đè trực tiếp bằng
-   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` thay vì quay lại sử dụng giới hạn số lượng yêu cầu kiểu cũ.
+   máy chủ của bạn (hiếm gặp — ngân sách này vốn đã điều chỉnh theo quy mô từ container đến bare-metal), hãy ghi đè trực tiếp bằng
+   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` thay vì quay lại sử dụng giới hạn số lượng yêu cầu cũ.
 
-Xem [tài liệu tham chiếu biến môi trường](../reference/ENVIRONMENT.md#4-security--authentication)
-để biết các cài đặt admission chính thức.
+Xem [tài liệu tham chiếu về biến môi trường](../reference/ENVIRONMENT.md#4-security--authentication)
+để biết các cài đặt tiếp nhận chính thức.
 
 ---
 

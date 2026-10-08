@@ -177,13 +177,13 @@ rawBody)`）を検証します。シークレットが設定されている場�
 
 ## ビルドプロファイル: `minimal`
 
-Socket と相性のよい成果物が必要なユーザーは、次のコマンドでビルドしてください:
+Socket に適したアーティファクトが必要なユーザーは、以下のコマンドでビルドしてください。
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-webpack の `NormalModuleReplacementPlugin` は、4 つのモジュールをスタブにエイリアスします:
+webpack の `NormalModuleReplacementPlugin` は、4つのモジュールをスタブにエイリアスします。
 
 | モジュール                                  | スタブ                                           |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -192,12 +192,11 @@ webpack の `NormalModuleReplacementPlugin` は、4 つのモジュールをス�
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-各スタブは同じ公開インターフェースをエクスポートしますが、すべての関数は実行時に
-`featureDisabledError(name)` をスローします。無効化されたモジュールに依存するルートは、
-機密性の高いコードパスを有効化する代わりに、明確なメッセージとともに HTTP 503 を返します。
+各スタブは同じインターフェースをエクスポートしますが、すべての関数は実行時に
+`featureDisabledError(name)` をスローします。無効化されたモジュールに依存する
+ルートは、機密性の高いコードパスを有効化する代わりに、明確なメッセージとともに HTTP 503 を返します。
 
-生成されるバンドルは、`omniroute-secure` として公開することを想定しています。公開手順については、
-`docs/ops/PUBLISHING_SECURE.md` を参照してください。
+生成されるバンドルは、`omniroute-secure` として公開することを想定しています。
 
 ---
 

@@ -36,7 +36,17 @@ const GITHUB_RELEASES_LATEST_URL =
   "https://api.github.com/repos/diegosouzapw/OmniRoute/releases/latest";
 
 const LOOKUP_TIMEOUT_MS = 10_000;
-const MAX_VERSION_RESPONSE_BYTES = 16 * 1024;
+// Bound on the version-metadata responses, so a misdirected or hostile URL
+// cannot make the banner pin memory. It has to sit ABOVE what the two HTTP
+// sources really send, or the fallbacks can never succeed at all: measured on
+// 2026-09-21 from the published package, the registry per-version document is
+// 29,609 bytes (it embeds the README) and GitHub's latest-release payload is
+// 154,002 bytes (its `assets` array). The old 16 KiB cap was below both, so
+// each body was cancelled mid-read, the throw was swallowed by the local
+// `catch`, and both paths returned null -- the #14339 "unavailable" banner.
+// 1 MiB keeps a real ceiling (~7x the largest observed payload) without
+// pretending to parse unbounded input.
+const MAX_VERSION_RESPONSE_BYTES = 1024 * 1024;
 const LATEST_VERSION_CACHE_TTL_MS = 10 * 60_000;
 const MAX_LATEST_VERSION_CACHE_TTL_MS = 10 * 60_000;
 

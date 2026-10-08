@@ -21,8 +21,19 @@ test("admin concurrency route requires management authentication before read or 
   const content = fs.readFileSync("src/app/api/admin/concurrency/route.ts", "utf8");
 
   assert.ok(content.includes('from "@/lib/api/requireManagementAuth"'));
-  assert.ok(content.includes("const authError = await requireManagementAuth(request);"));
-  assert.ok(content.includes("if (authError) return authError;"));
+  // contract changed by #15092: the early return now also stamps
+  // `Cache-Control: private, no-store` on the auth error — both GET and POST
+  // must still return it before touching any limiter state.
+  assert.equal(
+    content.match(/const authError = await requireManagementAuth\(request\);/g)?.length,
+    2
+  );
+  assert.equal(
+    content.match(
+      /if \(authError\) \{\s*authError\.headers\.set\("Cache-Control", "private, no-store"\);\s*return authError;\s*\}/g
+    )?.length,
+    2
+  );
   assert.ok(
     content.indexOf("requireManagementAuth(request)") < content.indexOf("getAllRateLimitStatus()")
   );

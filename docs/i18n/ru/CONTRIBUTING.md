@@ -390,19 +390,19 @@ docs/                       # Documentation
 ## Контрольный список Pull Request
 
 - [ ] Тесты проходят (`npm test`)
-- [ ] Линтинг проходит (`npm run lint`)
-- [ ] Сборка выполняется успешно (`npm run build`)
+- [ ] Проверка линтером проходит (`npm run lint`)
+- [ ] Сборка завершается успешно (`npm run build`)
 - [ ] Для новых публичных функций и интерфейсов добавлены типы TypeScript
 - [ ] Нет жёстко заданных секретов или резервных значений
-- [ ] Публичные учётные данные вышестоящих сервисов встраиваются через `resolvePublicCred()` (см. [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), но никогда не задаются литералами
-- [ ] Ответы с ошибками проходят через `buildErrorBody()` / `sanitizeErrorMessage()` — никаких необработанных трассировок стека в телах ответов (см. [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Команды оболочки (`exec` / `spawn`) передают значения времени выполнения через `env`, а не посредством строковой интерполяции
+- [ ] Публичные учётные данные вышестоящих сервисов встраиваются через `resolvePublicCred()` (см. [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), а не задаются литералами
+- [ ] Ответы с ошибками проходят через `buildErrorBody()` / `sanitizeErrorMessage()` — необработанные трассировки стека не включаются в тела ответов (см. [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Команды оболочки (`exec` / `spawn`) передают значения времени выполнения через `env`, а не посредством интерполяции строк
 - [ ] Все входные данные проверяются с помощью схем Zod
-- [ ] Для изменений, заметных пользователям, добавлен **фрагмент** журнала изменений в `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` (см. [`changelog.d/README.md`](./changelog.d/README.md)) — **не** редактируйте `CHANGELOG.md` напрямую; фрагменты объединяются во время выпуска и никогда не создают конфликтов между PR
+- [ ] Для изменений, видимых пользователям, добавлен **фрагмент** журнала изменений в `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` (см. [`changelog.d/README.md`](./changelog.d/README.md)) — **не** редактируйте `CHANGELOG.md` напрямую; фрагменты объединяются при выпуске релиза и никогда не вызывают конфликтов между PR
 - [ ] Документация обновлена (если применимо)
 - [ ] Не создано новых предупреждений CodeQL / Secret-Scanning либо каждое из них отклонено с техническим обоснованием и ссылкой на соответствующий документ в `docs/security/`
-- [ ] Маршруты, запускающие дочерние процессы (`/api/mcp/`, `/api/cli-tools/runtime/`), классифицированы как `isLocalOnlyPath()` в `src/server/authz/routeGuard.ts` — см. [Жёсткое правило №15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] В сообщениях коммитов отсутствуют завершающие строки `Co-Authored-By` — коммиты должны отображаться исключительно под Git-идентичностью владельца репозитория (Жёсткое правило №16)
+- [ ] Маршруты, запускающие дочерние процессы (`/api/mcp/`, `/api/cli-tools/runtime/`), классифицированы как `isLocalOnlyPath()` в `src/server/authz/routeGuard.ts` — см. [жёсткое правило № 15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] В сообщениях коммитов отсутствуют трейлеры `Co-authored-by` для ИИ/ботов (жёсткое правило № 16) — люди, чья работа была повторно использована, указываются как соавторы с помощью стандартных трейлеров `Co-authored-by: Name <email>`
 
 ---
 
@@ -418,5 +418,4 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 - **Справочник API**: см. [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **Документация по безопасности**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **Документация по эксплуатации**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
-- **Проблемы**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR**: записи об архитектурных решениях см. в `docs/adr/`
+- **Сообщения о проблемах**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)

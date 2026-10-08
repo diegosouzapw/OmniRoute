@@ -7,63 +7,58 @@
 OmniRoute တွင် နယ်ပယ်အတိုင်းအတာ မတူညီသည့် process-local lane စနစ် **နှစ်ခု** ရှိသည်။ ၎င်းတို့သည်
 အပြန်အလှန် ဖြည့်စွက်ပေးသည့် စနစ်များဖြစ်သောကြောင့် operator များအနေဖြင့် မည်သည့်စနစ်ကို ကြည့်နေသည်ကို သိရှိထားသင့်သည်။
 
-## 1. Byte အဆင့် process တစ်ခုလုံးဆိုင်ရာ ဝင်ခွင့်ထိန်းချုပ်မှု (`chatBodyAdmission.ts`)
+## 1. Byte အဆင့် process-wide ဝင်ခွင့်ထိန်းချုပ်မှု (`chatBodyAdmission.ts`)
 
-- **သက်ရောက်မှုနယ်ပယ်:** `POST /v1/chat/completions`,
-  `/v1/messages`, `/v1/responses` နှင့် အခြား chat ပုံစံ route များအတွက်
-  buffered-body/heap လမ်းကြောင်း ဖြစ်သည်။ ကြီးမားသော coding-agent body များကြောင့်
-  ဖြစ်ပေါ်လာသော heap ချဲ့ထွင်မှုမှ ကာကွယ်ပေးသည် (#4380)။
-- **Key တစ်ခုချင်းစီအလိုက် lane များမဟုတ်ဘဲ process-global controller တစ်ခုတည်းကို အသုံးပြုသည် (#10110)။**
-  API key (hash လုပ်ထားသော) သို့မဟုတ် `anonymous` session တိုင်းသည်
-  **တူညီသော** မျှဝေ budget တစ်ခုတည်းဖြင့် ဝင်ခွင့်ရယူသည် — hash လုပ်ထားသော
-  session id ကို မျှတသော အစီအစဉ်ချမှတ်မှု key အဖြစ်သာ အသုံးပြုသည်
-  (စောင့်ဆိုင်းသူများအကြား round-robin ဖြင့် dispatch လုပ်ခြင်း)၊ capacity shard
-  အဖြစ် မည်သည့်အခါမျှ အသုံးမပြုပါ။ ဤစာတမ်း၏ ယခင် version တစ်ခုတွင် သီးခြား
-  capacity များရှိသော key တစ်ခုချင်းစီအလိုက် lane များကို ဖော်ပြထားခဲ့သည်။
-  အဆိုပါ model သည် authentication မပြုရသေးသော credential အတုများဖြင့်
-  process တစ်ခုလုံးဆိုင်ရာ ကန့်သတ်ချက်ကို ဆတိုးချဲ့နိုင်စေသောကြောင့် #10110 တွင်
-  ဖယ်ရှားခဲ့သည်။
-- **Gate (#503-fanout): ပုံသေ request အရေအတွက်မဟုတ်ဘဲ အလိုအလျောက် တွက်ချက်သတ်မှတ်သော ingest BYTE budget ဖြစ်သည်။**
-  ယခင် `CHAT_MAX_HEAVY_IN_FLIGHT` request အရေအတွက် ကန့်သတ်ချက် (ဤပြင်ဆင်မှုမတိုင်မီ
-  မူလတန်ဖိုး `1`) သည် coding-agent fan-out (subagent/CLI အများအပြား၊ body များသည်
-  ပုံမှန်အားဖြင့် > 256 KB) ကို လက်တွေ့ concurrency ~1 အထိ ကျဆင်းစေခဲ့ပြီး
-  လုံးဝပုံမှန်ဖြစ်သော load အောက်တွင်ပင် 503 ဖြစ်စေခဲ့သည်။ ယခုအခါ operator က
-  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` ကို အတိအလင်း သတ်မှတ်ထားမှသာ ၎င်းက
-  ကန့်သတ်မည်ဖြစ်သည်။ မသတ်မှတ်ထားပါက ဝင်ခွင့်ကို
-  `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` ဖြင့် အစားထိုးထိန်းချုပ်သည် — ယင်းသည်
-  process ၏ အမှန်တကယ် memory အမြင့်ဆုံးကန့်သတ်ချက်မှ အလိုအလျောက် တွက်ချက်ထားသော
-  budget ဖြစ်သည် (`src/shared/middleware/admissionBudget.ts`)။ V8 heap limit နှင့်
-  cgroup/container limit တို့အနက် ပိုမိုတင်းကျပ်သော limit ၏ 25% ကိုယူပြီး
-  ယာယီချဲ့ထွင်မှု factor 8x ဖြင့်စားကာ 8 MiB နှင့် 2 GiB ကြားတွင်
-  ကန့်သတ်ထားသည်။ အတိအလင်း override လုပ်ထားသော တန်ဖိုးများလည်း အလားတူ
-  ကန့်သတ်ချက်များကို အသုံးပြုသည်။ ထို့ကြောင့် env ကို ချိန်ညှိစရာမလိုဘဲ
-  512 MB container မှ 32 GB desktop အထိ ကိုယ်တိုင် အရွယ်အစားချိန်ညှိနိုင်သည်။
-  ထိရောက်သော budget အတွင်း မဝင်ဆံ့နိုင်သည့် body သည်
-  `413 body_exceeds_budget` ဖြင့် ချက်ချင်း မအောင်မြင်ပါ။ တစ်ခုချင်းစီအနေဖြင့်
-  လက်ခံဆောင်ရွက်နိုင်သော body များအကြား အရင်းအမြစ်ယှဉ်ပြိုင်မှုသာလျှင်
-  ကန့်သတ်ထားသော fairness queue ထဲသို့ ဝင်ရောက်သည်။ Signal မျိုးစုံကို
-  အချိန်နှင့်တပြေးညီ စောင့်ကြည့်သည့် resource-pressure tracker (V8 heap ratio,
-  cgroup, PSI, OOM event များ — `open-sse/utils/resourcePressurePolicy.ts`) သည်
-  `high` pressure အောက်တွင် ကန့်သတ်ထားသော စောင့်ဆိုင်းချိန်ကို လျှော့ချပေးပြီး
-  `critical` pressure အောက်တွင် byte တစ်ခုမျှ မထည့်သွင်းမီကပင်
-  `503 resource_pressure` ဖြင့် ချက်ချင်း load လျှော့ချသည်။ PSI ကို ရရှိနိုင်ပါက
-  ဤ unit ၏ cgroup `memory.pressure` မှ ဖတ်ယူသည်
-  (`open-sse/utils/resourcePressureSampler.ts`)။ `/proc/pressure/memory` သည်
-  host တစ်ခုလုံးဆိုင်ရာဖြစ်ပြီး bare metal / cgroup v1 တွင်သာ fallback အဖြစ်
-  အသုံးပြုသောကြောင့် swap လုပ်နေသော host တစ်ခုက idle ဖြစ်နေသည့် container ကို
-  503 ဖြစ်စေနိုင်မည်မဟုတ်ပါ။
+- **သက်ရောက်သည့်နယ်ပယ်:** `POST /v1/chat/completions`,
+  `/v1/messages`, `/v1/responses` နှင့် အခြား chat ပုံစံ route များအတွက် buffered-body/heap လမ်းကြောင်း။
+  အရွယ်အစားကြီးမားသော coding-agent body များကြောင့် ဖြစ်ပေါ်သည့် heap ချဲ့ထွင်မှုမှ
+  ကာကွယ်ပေးသည် (#4380)။
+- **Key တစ်ခုချင်းစီအလိုက် lane များမဟုတ်ဘဲ process တစ်ခုလုံးအတွက် global controller တစ်ခုတည်း (#10110)။**
+  API key (hashed) တိုင်း သို့မဟုတ် `anonymous` session တိုင်းသည် **တူညီသော** မျှဝေသုံးစွဲသည့်
+  budget ကို အခြေခံ၍ ဝင်ခွင့်ရရှိသည် — hashed session id ကို fairness scheduling key
+  အဖြစ်သာ အသုံးပြုသည် (စောင့်ဆိုင်းသူများအကြား round-robin ဖြင့် dispatch ပြုလုပ်ရန်)၊
+  capacity shard အဖြစ် မည်သည့်အခါမျှ အသုံးမပြုပါ။ ဤစာတမ်း၏ ယခင်ဗားရှင်းတွင်
+  သီးခြား capacity ရှိသည့် key တစ်ခုချင်းစီအလိုက် lane များကို ဖော်ပြခဲ့သော်လည်း၊
+  အဆိုပါ model သည် အထောက်အထားမပြုရသေးသော credential အတုများဖြင့် process-wide
+  ကန့်သတ်ချက်ကို အဆများပြားအောင် ပြုလုပ်နိုင်စေသောကြောင့် #10110 တွင် ဖယ်ရှားခဲ့သည်။
+- **Gate (#503-fanout): ပုံသေ request အရေအတွက်မဟုတ်ဘဲ အလိုအလျောက်တွက်ချက်ထားသော ingest BYTE budget။**
+  အစဉ်အလာ `CHAT_MAX_HEAVY_IN_FLIGHT` request-count ကန့်သတ်ချက် (ဤပြင်ဆင်မှုမတိုင်မီ
+  ပုံသေ `1`) သည် coding-agent fan-out (subagent/CLI အများအပြား၊ ပုံမှန်အားဖြင့်
+  body များ > 256 KB) ကို ထိရောက်သော concurrency ~1 အထိ လျှော့ချခဲ့ပြီး၊ လုံးဝပုံမှန်
+  load အောက်တွင်ပင် 503 ဖြစ်စေခဲ့သည်။ ယခုအခါ operator က
+  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` ကို အတိအလင်း သတ်မှတ်သည့်အခါမှသာ
+  ၎င်းက သက်ရောက်သည်။ မသတ်မှတ်ထားပါက ဝင်ခွင့်ကို
+  `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` ဖြင့် ထိန်းချုပ်မည် — process ၏ အမှန်တကယ်
+  memory ceiling (`src/shared/middleware/admissionBudget.ts`) မှ အလိုအလျောက်တွက်ချက်ထားသည့်
+  budget ဖြစ်သည်။ V8 heap ကန့်သတ်ချက်နှင့် မည်သည့် cgroup/container ကန့်သတ်ချက်မဆို
+  နှစ်ခုအနက် ပိုမိုတင်းကျပ်သောကန့်သတ်ချက်၏ 25% ကိုယူပြီး၊ 8x ယာယီချဲ့ထွင်မှု factor ဖြင့်
+  စားကာ 8 MiB နှင့် 2 GiB ကြားတွင် ကန့်သတ်ထားသည်။ အတိအလင်း override များတွင်လည်း
+  တူညီသော ကန့်သတ်ချက်များကို အသုံးပြုသည်။ ၎င်းသည် env ချိန်ညှိမှုမလိုဘဲ 512 MB container
+  မှ 32 GB desktop အထိ အလိုအလျောက် အရွယ်အစားညှိပေးသည်။ ထိရောက်သော budget အတွင်း
+  မဝင်ဆံ့နိုင်သည့် body သည် `413 body_exceeds_budget` ဖြင့် ချက်ချင်း ကျရှုံးမည်၊
+  တစ်ခုချင်းစီအနေဖြင့် ဝန်ဆောင်မှုပေးနိုင်သော body များအကြား ပြိုင်ဆိုင်မှုသာ
+  ကန့်သတ်ထားသော fairness queue ထဲသို့ ဝင်မည်။ အချက်ပြမျိုးစုံကို တိုက်ရိုက်စောင့်ကြည့်သည့်
+  resource-pressure tracker (V8 heap ratio, cgroup, PSI, OOM event များ —
+  `open-sse/utils/resourcePressurePolicy.ts`) သည် `high` pressure အောက်တွင်
+  ကန့်သတ်ထားသော စောင့်ဆိုင်းချိန်ကို လျှော့ချပြီး၊ byte တစ်ခုမျှ မထည့်သွင်းမီ
+  `critical` pressure အောက်တွင် `503 resource_pressure` ဖြင့် ချက်ချင်း
+  load ကို လျှော့ချသည်။ PSI ကို ရရှိနိုင်ပါက ဤ unit ၏ cgroup `memory.pressure` မှ
+  ဖတ်ယူသည် (`open-sse/utils/resourcePressureSampler.ts`)၊ `/proc/pressure/memory` သည်
+  host တစ်ခုလုံးအတွက်ဖြစ်ပြီး bare metal / cgroup v1 ပေါ်တွင်သာ fallback အဖြစ်
+  အသုံးပြုသောကြောင့် swapping ဖြစ်နေသည့် host တစ်ခုသည် idle container ကို
+  503 ဖြစ်စေမည်မဟုတ်ပါ။
 - **ချိန်ညှိမှု:**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — အလိုအလျောက် တွက်ချက်ထားသော byte budget အတွက် override
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — ယခင် request အရေအတွက် ကန့်သတ်ချက်၊ opt-in ဖြင့်သာ အသုံးပြုနိုင်သည်
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — 503 မဖြစ်မီ queue တွင် စောင့်ဆိုင်းချိန် (မူလတန်ဖိုး 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — queue ထဲရှိ byte များအတွက် heap valve (မူလတန်ဖိုး 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — #10110 မှစ၍ အသုံးမပြုတော့သော
-    no-op များ (config compatibility အတွက် လက်ခံသော်လည်း လျစ်လျူရှုထားသည်)
-- **အစီရင်ခံချက်များ:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — #503-fanout တွင်
-  ထပ်ထည့်ထားသော `inflightBytes`, `maxInflightBytes`, `budgetSource`
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — အလိုအလျောက်တွက်ချက်ထားသော byte budget အတွက် override
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — အစဉ်အလာ request-count ကန့်သတ်ချက်၊ opt-in အဖြစ်သာ
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — 503 မဖြစ်မီ queue တွင် စောင့်ဆိုင်းချိန် (ပုံသေမှာ `RATE_LIMIT_MAX_WAIT_MS`)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — queued-bytes heap valve (ပုံသေ 4 MB)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — #10110 မှစ၍
+    အသုံးမပြုတော့သော no-op များ (config compatibility အတွက် လက်ခံသော်လည်း လျစ်လျူရှုသည်)
+- **အစီရင်ခံချက်များ:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — #503-fanout
+  ထပ်တိုးချက်များဖြစ်သည့် `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity` နှင့် `countCapEnabled`
-  တို့အပါအဝင် ဖြစ်သည် (မူလ deployment တွင် false ဖြစ်သည် — ယခင် count cap
-  မဟုတ်ဘဲ byte budget ကသာ အမှန်တကယ် ကန့်သတ်နေကြောင်း အတည်ပြုပေးသည်)။
+  အပါအဝင် (ပုံသေ deployment တွင် false — အစဉ်အလာ count cap မဟုတ်ဘဲ byte budget ကသာ
+  အမှန်တကယ် ကန့်သတ်နေကြောင်း အတည်ပြုသည်)။
 
 ## 2. လိုက်လျောညီထွေပြောင်းလဲနိုင်သော runtime virtual lane များ (`open-sse/services/admission`)
 

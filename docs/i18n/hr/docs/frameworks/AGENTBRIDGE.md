@@ -187,18 +187,18 @@ zajednički popis zabranjenih hop-by-hop/okvirnih zaglavlja (uključujući proxy
 
 ### 3.1 Pokretanje/zaustavljanje MITM poslužitelja
 
-Upotrijebite karticu AgentBridge Server na `/dashboard/tools/agent-bridge`:
+Upotrijebite karticu AgentBridge poslužitelja na `/dashboard/tools/agent-bridge`:
 
-| Radnja                         | Opis                                                                             |
-| ------------------------------ | -------------------------------------------------------------------------------- |
-| Pokreni poslužitelj            | Pokreće `src/mitm/server.cjs` na portu 443                                       |
-| Zaustavi poslužitelj           | Kontrolirano zaustavlja podređeni proces                                         |
-| Ponovno pokreni poslužitelj    | Zaustavlja i ponovno pokreće poslužitelj (primjenjuje promjene ciljeva)          |
-| Postavi certifikat kao pouzdan | Instalira `DATA_DIR/mitm/ca.crt` u spremište pouzdanih certifikata OS-a          |
-| Preuzmi certifikat             | Preuzima `ca.crt` radi ručne instalacije                                         |
-| Ponovno generiraj certifikat   | Stvara novi par CA ključeva (svi postojeći certifikati agenata postaju nevažeći) |
+| Radnja                       | Opis                                                                               |
+| ---------------------------- | ---------------------------------------------------------------------------------- |
+| Pokreni poslužitelj          | Pokreće `src/mitm/server.cjs` na priključku 443                                    |
+| Zaustavi poslužitelj         | Kontrolirano zaustavlja podređeni proces                                           |
+| Ponovno pokreni poslužitelj  | Zaustavlja i ponovno pokreće poslužitelj (učitava promjene odredišta)              |
+| Dodaj certifikat kao pouzdan | Instalira `DATA_DIR/mitm/ca.crt` u spremište pouzdanih certifikata OS-a            |
+| Preuzmi certifikat           | Preuzima `ca.crt` za ručnu instalaciju                                             |
+| Ponovno generiraj certifikat | Stvara novi par CA ključeva (svi postojeći certifikati po agentu postaju nevažeći) |
 
-### 3.2 Postavljanje certifikata kao pouzdanog
+### 3.2 Dodavanje certifikata kao pouzdanog
 
 OS mora smatrati AgentBridge CA certifikat pouzdanim prije nego što IDE-ovi prihvate MITM vezu.
 
@@ -221,36 +221,36 @@ sudo security add-trusted-cert -d -r trustRoot \
 certutil -addstore -f Root $env:USERPROFILE\.omniroute\mitm\ca.crt
 ```
 
-Možete upotrijebiti i gumb „Postavi certifikat kao pouzdan” na nadzornoj ploči (pokreće odgovarajuću naredbu za vaš OS, uz upit za sudo ako je potreban).
+Možete upotrijebiti i gumb "Dodaj certifikat kao pouzdan" na nadzornoj ploči (pokreće odgovarajuću naredbu za vaš OS, uz sudo upit ako je potreban).
 
 #### IDE-ovi temeljeni na Electronu zanemaruju spremište pouzdanih certifikata OS-a (`NODE_EXTRA_CA_CERTS`)
 
-Neki IDE-ovi — osobito **Antigravity IDE** i druge aplikacije izvedene iz Electrona / VS Codea — uključuju
-vlastito Node.js izvršno okruženje koje **ne provjerava spremište pouzdanih certifikata OS-a** za odlazne
-`fetch`/HTTPS zahtjeve. Postavljanje CA certifikata kao pouzdanog na razini OS-a/NSS-a dovoljno je za izvorni **pozadinski sustav**
-IDE-a (npr. Go jezični poslužitelj, koji upotrebljava paket CA certifikata OS-a), ali će
-**Electron sučelje** i dalje imati TLS pogrešku — to se očituje kao da je korisnik _odjavljen_ ili se prikazuje
-_"pogreška veze"_, iako MITM zapisnik pokazuje da inicijalizacijski pozivi pozadinskog sustava vraćaju `200`. Potrebna su
+Neki IDE-ovi — osobito **Antigravity IDE** i druge aplikacije izvedene iz Electrona / VS Codea — sadrže
+vlastito Node.js izvršno okruženje koje **ne provjerava spremište pouzdanih certifikata OS-a** za izlazne
+`fetch`/HTTPS zahtjeve. Dodavanje CA certifikata kao pouzdanog na razini OS-a/NSS-a dovoljno je za izvorni **pozadinski sustav**
+IDE-a (npr. Go jezični poslužitelj koji upotrebljava skup CA certifikata OS-a), ali **Electronovo sučelje** i dalje
+neće uspjeti uspostaviti TLS vezu — to se prikazuje kao da je korisnik _odjavljen_ iz aplikacije ili kao _"pogreška veze"_,
+iako MITM zapisnik pokazuje da pozivi za inicijalizaciju pozadinskog sustava vraćaju `200`. Potrebna su
 dva koraka i oba su važna:
 
 1. Izričito usmjerite izvršno okruženje na CA certifikat:
    ```bash
    export NODE_EXTRA_CA_CERTS=/path/to/omniroute-agentbridge-ca.crt
    ```
-2. **Pokrenite IDE iz te ljuske.** Pokretanje s ikone na radnoj površini / Docka / izbornika Start
-   **ne** nasljeđuje varijable izvezene u ljusci, a `~/.config/environment.d/*.conf` primjenjuje se tek nakon
-   nove prijave u grafičko okruženje. Najprije potpuno zatvorite IDE — Electronovo zaključavanje jedne instance znači da drugo
-   pokretanje samo prebacuje fokus na postojeći proces, a novo se okruženje zanemaruje.
+2. **Pokrenite IDE iz te ljuske.** Pokretanje s ikone na radnoj površini / iz Docka / iz izbornika Start
+   **ne** nasljeđuje varijable izvezene iz ljuske, a `~/.config/environment.d/*.conf` primjenjuje se tek nakon
+   nove grafičke prijave. Najprije potpuno zatvorite IDE — Electronovo zaključavanje jedne instance znači da drugo
+   pokretanje samo prebacuje fokus na postojeći proces, a novo okruženje se zanemaruje.
 
-Prethodni korak postavljanja pouzdanosti na razini OS-a + NSS-a i dalje je potreban (Chromiumov mrežni stog, koji se upotrebljava u nekim
-postupcima autentikacije, čita korisničko NSS spremište i ima vlastita statična sidra za `*.googleapis.com` koja
-lokalno pouzdani CA nadjačava). `NODE_EXTRA_CA_CERTS` dodatno pokriva Nodeov put `fetch` zahtjeva.
+Prethodno navedeni koraci za dodavanje certifikata kao pouzdanog na razini OS-a i NSS-a i dalje su potrebni (Chromiumov mrežni stog koji se upotrebljava u nekim
+tijekovima autentifikacije čita korisničko NSS spremište i ima vlastita statička sidra za `*.googleapis.com` koja
+lokalno pouzdan CA certifikat nadjačava). `NODE_EXTRA_CA_CERTS` dodatno pokriva Nodeov `fetch` put.
 
 ### 3.3 DNS usmjeravanje
 
-Za svakog agenta čiji promet želite presretati njegovi API hostovi moraju se razrješavati na `127.0.0.1`. AgentBridge automatski upravlja unosima u `/etc/hosts` kada u Čarobnjaku za postavljanje uključite ili isključite DNS za agenta.
+Za svakog agenta čiji promet želite presretati njegovi API hostovi moraju se razriješiti u `127.0.0.1`. AgentBridge automatski upravlja unosima u `/etc/hosts` kada u Čarobnjaku za postavljanje uključite ili isključite DNS za agenta.
 
-Primjeri unosa u `/etc/hosts` za GitHub Copilot:
+Primjer unosa u `/etc/hosts` za GitHub Copilot:
 
 ```
 127.0.0.1 api.githubcopilot.com
@@ -259,65 +259,74 @@ Primjeri unosa u `/etc/hosts` za GitHub Copilot:
 
 ### 3.4 Mapiranje modela
 
-Upotrijebite tablicu mapiranja modela na kartici svakog agenta kako biste definirali mapiranja izvornog → ciljnog modela:
+Upotrijebite tablicu mapiranja modela na kartici svakog agenta kako biste definirali mapiranja izvor → odredište:
 
-| Izvorni model (izvorni za agenta) | Ciljni model (OmniRoute) |
-| --------------------------------- | ------------------------ |
-| `gpt-4o`                          | `claude-sonnet-4.7`      |
-| `*` (zamjenski znak)              | `claude-haiku-4.7`       |
+| Izvorni model (izvoran agentu) | Odredišni model (OmniRoute) |
+| ------------------------------ | --------------------------- |
+| `gpt-4o`                       | `claude-sonnet-4.7`         |
+| `*` (zamjenski znak)           | `claude-haiku-4.7`          |
 
-Zamjenski znak `*` mapira svaki neprepoznati model na navedeni cilj. Sprema se u tablicu `agent_bridge_mappings`.
+Zamjenski znak `*` mapira svaki neprepoznati model na navedeno odredište. Podaci se trajno pohranjuju u tablici `agent_bridge_mappings`.
 
 > **Savjet — otkrijte stvarne ID-ove modela agenta.** IDE može slati nazive modela koji se razlikuju od
-> oznaka u njegovu korisničkom sučelju i koji se mijenjaju između glavnih verzija. Primjerice, **Antigravity 2** šalje
-> `gemini-3.1-pro-low`, `gemini-pro-agent` i `gemini-3.1-flash-lite` putem mreže — a ne
+> oznaka u njegovu korisničkom sučelju i koji se mijenjaju između glavnih verzija. Primjerice, **Antigravity 2** putem
+> mreže šalje `gemini-3.1-pro-low`, `gemini-pro-agent` i `gemini-3.1-flash-lite` — a ne
 > `gemini-2.5-pro` prikazan u starijoj dokumentaciji. Pošaljite jednu poruku u razgovoru bez odgovarajućeg mapiranja: MITM
-> će u zapisnik zabilježiti točnu dolaznu vrijednost `model:` i propustiti zahtjev. Mapirajte tu doslovnu vrijednost, nakon čega
-> će sljedeći zahtjev biti presretnut i usmjeren na vaš cilj.
+> bilježi točan dolazni `model:` i prosljeđuje zahtjev. Mapirajte tu doslovnu vrijednost, a zatim će
+> sljedeći zahtjev biti presretnut i usmjeren prema vašem odredištu.
 
 ### 3.5 Obavijest o riziku
 
-AgentBridge presreće vjerodajnice (OAuth tokene, API ključeve) koje IDE upotrebljava za autentikaciju kod nadređenih pružatelja usluga. One su **maskirane prije zapisivanja u zapisnik** (pogledajte §2.7), ali su vidljive MITM sloju OmniRoutea. Pri prvoj aktivaciji svakog agenta prikazuje se modalni prozor s obavijesti o riziku koji se može odbaciti.
+AgentBridge presreće vjerodajnice (OAuth tokene, API ključeve) koje IDE upotrebljava za autentifikaciju kod pružatelja usluga uzvodno. One se **maskiraju prije zapisivanja** (pogledajte §2.7), ali su vidljive MITM sloju OmniRoutea. Pri prvoj aktivaciji svakog agenta prikazuje se modalni prozor s obavijesti o riziku koji se može odbaciti.
 
 ### 3.6 Održavanje i dijagnostika
 
-Nadzorna ploča sadrži karticu **Održavanje i dijagnostika** (`AgentBridgeMaintenanceCard`, u `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`) koja prikazuje operativne MITM rute koje prethodno nisu imale korisničko sučelje. Njezin podnaslov glasi: _"Samostalno testirajte cjevovod za snimanje, poništite preostalo stanje sustava i prenesite svoje postavke između računala."_ Klijentske pomoćne funkcije kartice nalaze se u `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
+Nadzorna ploča sadrži karticu **Održavanje i dijagnostika** (`AgentBridgeMaintenanceCard`, u `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`) koja prikazuje operativne MITM rute koje prethodno nisu imale korisničko sučelje. Njezin podnaslov glasi: _"Samostalno testirajte postupak snimanja, poništite preostalo stanje sustava i prenesite svoje postavke između računala."_ Klijentski pomoćni alati kartice nalaze se u `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
 
-| Gumb                     | Ruta                                   | Što radi                                                                                                                                                                                                                        |
-| ------------------------ | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Dijagnosticiraj**      | `GET /api/tools/agent-bridge/diagnose` | Pokreće samotestiranje cjevovoda za snimanje i prikazuje izvješće za svaku provjeru (✓/✗ + savjet za otklanjanje problema).                                                                                                     |
-| **Popravi**              | `POST /api/tools/agent-bridge/repair`  | Poništava napušteno stanje MITM-a u sustavu (DNS unosi za lažiranje, korijenski CA, proxy sustava) preostalo nakon rušenja ili signala SIGKILL. Idempotentno — javlja "Nema što popraviti" kada je stanje čisto.                |
-| **Ukloni CA**            | `DELETE /api/tools/agent-bridge/cert`  | Ukida pouzdanost i uklanja korijenski CA MITM-a iz spremišta pouzdanih certifikata OS-a (izričito, idempotentno). Prikazuje se samo kada je CA trenutačno označen kao pouzdan; zahtijeva potvrdu "Ukloniti CA?" unutar sučelja. |
-| **Izvezi konfiguraciju** | `GET /api/tools/agent-bridge/config`   | Preuzima prijenosni konfiguracijski JSON (pogledajte §3.7).                                                                                                                                                                     |
-| **Uvezi konfiguraciju**  | `POST /api/tools/agent-bridge/config`  | Prenosi prethodno izvezeni konfiguracijski JSON (pogledajte §3.7).                                                                                                                                                              |
+| Gumb                     | Ruta                                   | Što radi                                                                                                                                                                                                             |
+| ------------------------ | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Dijagnosticiraj**      | `GET /api/tools/agent-bridge/diagnose` | Pokreće samotestiranje procesa snimanja i prikazuje izvješće za svaku provjeru (✓/✗ + savjet za otklanjanje poteškoća).                                                                                              |
+| **Popravi**              | `POST /api/tools/agent-bridge/repair`  | Poništava zaostalo stanje MITM-a u sustavu (lažirani DNS unosi, korijenski CA, proxy sustava) preostalo nakon rušenja ili signala SIGKILL. Idempotentno — prikazuje „Nema ničega za popraviti” kada je stanje čisto. |
+| **Ukloni CA**            | `DELETE /api/tools/agent-bridge/cert`  | Ukida povjerenje i uklanja korijenski CA MITM-a iz spremišta pouzdanih certifikata OS-a (izričito, idempotentno). Prikazuje se samo kada je CA trenutačno pouzdan; zahtijeva potvrdu „Ukloniti CA?” unutar sučelja.  |
+| **Izvezi konfiguraciju** | `GET /api/tools/agent-bridge/config`   | Preuzima prijenosni konfiguracijski JSON (pogledajte §3.7).                                                                                                                                                          |
+| **Uvezi konfiguraciju**  | `POST /api/tools/agent-bridge/config`  | Učitava prethodno izvezeni konfiguracijski JSON (pogledajte §3.7).                                                                                                                                                   |
 
-**Dijagnostičke provjere** (`summarizeDiagnostics()` u `src/mitm/inspector/diagnostics.ts`). Ruta pokreće probu s učincima za svaku provjeru i prosljeđuje Booleove vrijednosti čistoj funkciji za sažimanje; vraća se jedinstvena ocjena `healthy` zajedno sa savjetom za svaki neuspjeh:
+Svaka kartica agenta također ima vlastiti gumb **Vrati zadano** (`POST
+/api/tools/agent-bridge/agents/{id}/reset`) — poništavanje jednim klikom za pojedinačnog agenta koje uklanja lažiranje samo za hostove tog
+agenta, briše njegova spremljena mapiranja modela i vraća njegovo stanje `dns_enabled`/`setup_completed`
+na zadane vrijednosti, tako da IDE nakon potpunog ponovnog pokretanja ponovno komunicira sa stvarnim udaljenim poslužiteljem. To **ne** utječe na
+zajednički MITM poslužitelj ni korijenski CA (drugi agenti možda i dalje ovise o njima) — oni ostaju dostupni
+putem kartice poslužitelja i prethodno navedene radnje **Ukloni CA**. U sustavu Windows također se prema načelu najboljeg pokušaja pokreće
+`ipconfig /flushdns`, jer Windows DNS Client predmemorira unose iz datoteke hosts i inače neće ukloniti
+upravo uklonjeno lažiranje.
 
-| Naziv provjere     | Što provjerava                                                        | Savjet u slučaju neuspjeha                                                                                                                                 |
-| ------------------ | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `server-running`   | Proces MITM poslužitelja je aktivan                                   | "MITM poslužitelj nije pokrenut. Pokrenite ga na kartici AgentBridge."                                                                                     |
-| `server-reachable` | MITM poslužitelj prihvaća veze na svom priključku (TCP proba)         | "MITM poslužitelj ne prihvaća veze na svom priključku. Provjerite je li priključak slobodan i imate li ovlasti za njegovo vezivanje."                      |
-| `cert-exists`      | MITM certifikat generiran je na disku                                 | "MITM certifikat još nije generiran. Generirajte ga na kartici AgentBridge."                                                                               |
-| `cert-trusted`     | Korijenski CA MITM-a nalazi se u spremištu pouzdanih certifikata OS-a | "Korijenski CA MITM-a nije označen kao pouzdan u spremištu OS-a, pa TLS presretanje neće uspjeti. Označite certifikat kao pouzdan na kartici AgentBridge." |
-| `dns-configured`   | Ciljna imena glavnih računala lažirana su u `/etc/hosts`              | "Ciljna imena glavnih računala nisu lažirana u /etc/hosts, pa promet nikada ne dolazi do proxyja. Omogućite DNS za agente čiji promet želite snimati."     |
+**Dijagnostičke provjere** (`summarizeDiagnostics()` u `src/mitm/inspector/diagnostics.ts`). Ruta pokreće probu s učincima za svaku provjeru i prosljeđuje Booleove vrijednosti čistom sažimatelju; vraćaju se jedinstveni zaključak `healthy` i savjet za svaki neuspjeh:
 
-**Natpis o napuštenom stanju:** kada stranica otkrije stanje preostalo nakon rušenja (lažiranje DNS-a / CA / proxy sustava), kartica prikazuje jantarni natpis — _"Prethodna sesija ostavila je stanje u sustavu (lažiranje DNS-a, CA ili proxy sustava). Pokrenite Popravak kako biste ga očistili."_ — i ističe gumb **Popravi**. `Repair` je ekvivalent ProxyBridgeove zastavice `--cleanup` na aplikacijskom sloju (delegira na `repairMitm()` u `src/mitm/manager.ts`).
+| Naziv provjere     | Što provjerava                                                        | Savjet u slučaju neuspjeha                                                                                                                          |
+| ------------------ | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server-running`   | Proces MITM poslužitelja je aktivan                                   | „MITM poslužitelj nije pokrenut. Pokrenite ga na kartici AgentBridge.”                                                                              |
+| `server-reachable` | MITM poslužitelj prihvaća veze na svojem priključku (TCP proba)       | „MITM poslužitelj ne prihvaća veze na svojem priključku. Provjerite je li priključak slobodan i imate li ovlasti za njegovo povezivanje.”           |
+| `cert-exists`      | MITM certifikat generiran je na disku                                 | „MITM certifikat još nije generiran. Generirajte ga na kartici AgentBridge.”                                                                        |
+| `cert-trusted`     | Korijenski CA MITM-a nalazi se u spremištu pouzdanih certifikata OS-a | „Spremište OS-a ne smatra korijenski CA MITM-a pouzdanim, pa TLS presretanje neće uspjeti. Označite certifikat kao pouzdan na kartici AgentBridge.” |
+| `dns-configured`   | Ciljani nazivi hostova lažirani su u `/etc/hosts`                     | „Ciljani nazivi hostova nisu lažirani u /etc/hosts, pa promet nikada ne dolazi do proxyja. Omogućite DNS za agente čiji promet želite snimati.”     |
+
+**Natpis o zaostalom stanju:** kada stranica otkrije stanje preostalo nakon rušenja (lažiranje DNS-a / CA / proxy sustava), kartica prikazuje jantarni natpis — _„Prethodna sesija ostavila je stanje sustava za sobom (lažiranje DNS-a, CA ili proxy sustava). Pokrenite Popravi kako biste ga očistili.”_ — i ističe gumb **Popravi**. `Repair` je ekvivalent zastavice `--cleanup` alata ProxyBridge na razini aplikacije (delegira funkciji `repairMitm()` u `src/mitm/manager.ts`).
 
 > Korijenski CA MITM-a ostaje instaliran između zaustavljanja i pokretanja kako bi se izbjegli ponovljeni sudo
-> upiti (isto ponašanje kao kod mitmproxyja/Charlesa), pa je njegovo uklanjanje izričita radnja
+> upiti (isto ponašanje kao u alatima mitmproxy/Charles), pa je njegovo uklanjanje izričita radnja
 > **Ukloni CA**, umjesto da se automatski izvršava pri zaustavljanju.
 
 ### 3.7 Uvoz/izvoz prijenosne konfiguracije
 
-AgentBridge može serijalizirati stanje koje **operater može prilagoditi** u verzionirani JSON objekt kako bi se postava mogla replicirati na više računala. Serijalizator je `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`), a validira ga `AgentBridgeConfigSchema`.
+AgentBridge može serijalizirati stanje koje **operater može prilagoditi** u verzionirani JSON objekt kako bi se postavke mogle replicirati na više računala. Serijalizator je `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`), a provjerava ga `AgentBridgeConfigSchema`.
 
-Izvoz uključuje točno tri dijela (ugrađene zadane vrijednosti namjerno se **NE** izvoze kako ih uvoz nikada ne bi duplicirao niti bio u sukobu s njima):
+Izvoz obuhvaća točno tri dijela (ugrađene zadane vrijednosti namjerno se **NE** izvoze, tako da ih uvoz nikada ne duplicira niti dolazi u sukob s njima):
 
-| Polje            | Izvor                                                                     | Napomene                                                                  |
-| ---------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `bypassPatterns` | korisnički definirani obrasci zaobilaženja (`agent_bridge_bypass`)        | zadani obrasci bank/gov/okta nisu uključeni                               |
-| `customHosts`    | prilagođena glavna računala Traffic Inspectora (`inspector_custom_hosts`) | svako: `{ host, kind: "llm"\|"app"\|"custom", label? }`                   |
-| `agentMappings`  | mapiranja modela po agentu (`agent_bridge_mappings`)                      | `{ [agentId]: [{ source, target }] }` za svakog agenta koji ima mapiranja |
+| Polje            | Izvor                                                              | Napomene                                                                  |
+| ---------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| `bypassPatterns` | korisnički definirani obrasci zaobilaženja (`agent_bridge_bypass`) | zadani obrasci za banke/državne institucije/Okta isključeni su            |
+| `customHosts`    | prilagođeni hostovi Traffic Inspectora (`inspector_custom_hosts`)  | svaki: `{ host, kind: "llm"\|"app"\|"custom", label? }`                   |
+| `agentMappings`  | mapiranja modela po agentu (`agent_bridge_mappings`)               | `{ [agentId]: [{ source, target }] }` za svakog agenta koji ima mapiranja |
 
 ```jsonc
 // GET /api/tools/agent-bridge/config
@@ -331,13 +340,13 @@ Izvoz uključuje točno tri dijela (ugrađene zadane vrijednosti namjerno se **N
 }
 ```
 
-**Ponašanje pri uvozu** (`POST /api/tools/agent-bridge/config`): obrasci zaobilaženja i mapiranja po agentu **zamjenjuju se u cijelosti**; prilagođena glavna računala dodaju se **idempotentno** (`INSERT OR IGNORE`). Odgovor navodi koliko je stavki svake vrste primijenjeno:
+**Ponašanje pri uvozu** (`POST /api/tools/agent-bridge/config`): obrasci zaobilaženja i mapiranja po agentu **zamjenjuju se u cijelosti**; prilagođeni hostovi dodaju se **idempotentno** (`INSERT OR IGNORE`). Odgovor navodi koliko je stavki svake vrste primijenjeno:
 
 ```jsonc
 { "ok": true, "bypassPatterns": 1, "customHosts": 1, "agents": 1 }
 ```
 
-Što **NIJE** u konfiguraciji: stanje rada poslužitelja, putanje certifikata, DNS stanje pojedinačnih agenata, putanja nadređenog CA certifikata i postavke TPROXY-ja — to su stanja glavnog računala/izvođenja, a ne prenosive postavke.
+Što **NIJE** u konfiguraciji: stanje rada poslužitelja, putanje certifikata, stanje DNS-a po agentu, putanja uzvodnog CA certifikata i postavke TPROXY-a — to su stanja glavnog računala/izvođenja, a ne prenosive postavke.
 
 ---
 
@@ -497,39 +506,40 @@ Ako AgentBridge presreće zahtjeve, ali svi zahtjevi ne uspijevaju:
 
 ## §7 Referenca API-ja
 
-Sve rute imaju oznake `LOCAL_ONLY` (samo povratna petlja, primjenjuje se prije autentifikacije) i `SPAWN_CAPABLE`. Pogledajte `src/server/authz/routeGuard.ts`.
+Sve su rute `LOCAL_ONLY` (dostupne samo putem povratne petlje, što se provjerava prije autentifikacije) i `SPAWN_CAPABLE`. Pogledajte `src/server/authz/routeGuard.ts`.
 
 Osnovna putanja: `/api/tools/agent-bridge/`
 
-| Metoda              | Putanja                                        | Opis                                                                                                                                            |
-| ------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET                 | `/api/tools/agent-bridge/state`                | Globalno stanje poslužitelja + otkrivanje/status po agentu                                                                                      |
-| GET                 | `/api/tools/agent-bridge/agents`               | Popis registriranih agenata (id, naziv, hostovi, upotrebljivost, stanje)                                                                        |
-| GET                 | `/api/tools/agent-bridge/agents/{id}`          | Stanje jednog agenta (ciljna konfiguracija + otkrivanje + pohranjeno stanje)                                                                    |
-| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Ažuriranje vrijednosti `setup_completed` za agenta                                                                                              |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Pokretanje provjere otkrivanja za agenta (`installed`, `version?`, `path?`)                                                                     |
-| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Omogućivanje/onemogućivanje DNS-a za agenta (`{enabled: boolean}`)                                                                              |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Mapiranja modela za agenta                                                                                                                      |
-| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Zamjena mapiranja modela                                                                                                                        |
-| POST                | `/api/tools/agent-bridge/server`               | Pokretanje/zaustavljanje/ponovno pokretanje poslužitelja (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                |
-| GET                 | `/api/tools/agent-bridge/cert`                 | Status certifikata (`exists`, `trusted`, `path`)                                                                                                |
-| POST                | `/api/tools/agent-bridge/cert`                 | Postavljanje MITM korijenskog CA certifikata kao pouzdanog (instalacija)                                                                        |
-| DELETE              | `/api/tools/agent-bridge/cert`                 | Uklanjanje MITM korijenskog CA certifikata iz pouzdanih (uklanjanje) — idempotentno (pogledajte §3.6)                                           |
-| POST                | `/api/tools/agent-bridge/cert/regenerate`      | Ponovno generiranje samopotpisanog MITM certifikata                                                                                             |
-| GET                 | `/api/tools/agent-bridge/cert/download`        | Slanje PEM certifikata u toku podataka radi preuzimanja                                                                                         |
-| GET                 | `/api/tools/agent-bridge/bypass`               | Popis obrazaca zaobilaženja (`default` + `user`)                                                                                                |
-| POST                | `/api/tools/agent-bridge/bypass`               | Potpuna zamjena korisnički definiranih obrazaca zaobilaženja                                                                                    |
-| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Uklanjanje jednog korisnički definiranog obrasca zaobilaženja                                                                                   |
-| GET                 | `/api/tools/agent-bridge/diagnose`             | Samotestiranje cjevovoda za hvatanje prometa (pogledajte §3.6)                                                                                  |
-| POST                | `/api/tools/agent-bridge/repair`               | Poništavanje zaostalog stanja MITM sustava (pogledajte §3.6)                                                                                    |
-| GET                 | `/api/tools/agent-bridge/config`               | Izvoz prenosive konfiguracije u JSON formatu (pogledajte §3.7)                                                                                  |
-| POST                | `/api/tools/agent-bridge/config`               | Uvoz prenosive konfiguracije u JSON formatu (pogledajte §3.7)                                                                                   |
-| GET                 | `/api/tools/agent-bridge/upstream-ca`          | Dohvaćanje konfigurirane putanje nadređenog CA certifikata                                                                                      |
-| POST                | `/api/tools/agent-bridge/upstream-ca`          | Provjera valjanosti + trajno spremanje putanje nadređenog CA certifikata                                                                        |
-| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Samo provjera valjanosti (probno izvođenje) putanje nadređenog CA certifikata — bez trajnog spremanja                                           |
-| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | TPROXY način hvatanja prometa s transparentnim dešifriranjem — pogledajte `docs/security/MITM-TPROXY-DECRYPT.md` (git; nije ugrađeno u `/docs`) |
+| Metoda              | Putanja                                        | Opis                                                                                                                                     |
+| ------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| GET                 | `/api/tools/agent-bridge/state`                | Globalno stanje poslužitelja + otkrivanje/status po agentu                                                                               |
+| GET                 | `/api/tools/agent-bridge/agents`               | Popis registriranih agenata (ID, naziv, domaćini, dostupnost, stanje)                                                                    |
+| GET                 | `/api/tools/agent-bridge/agents/{id}`          | Stanje jednog agenta (konfiguracija cilja + otkrivanje + pohranjeno stanje)                                                              |
+| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Ažurira `setup_completed` za agenta                                                                                                      |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Pokreće provjeru otkrivanja za agenta (`installed`, `version?`, `path?`)                                                                 |
+| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Omogućuje/onemogućuje DNS za agenta (`{enabled: boolean}`)                                                                               |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Mapiranja modela za agenta                                                                                                               |
+| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Zamjenjuje mapiranja modela                                                                                                              |
+| POST                | `/api/tools/agent-bridge/agents/{id}/reset`    | Vraća zadano stanje: poništava lažiranje DNS-a ovog agenta, briše njegova mapiranja i ponovno postavlja njegovo stanje (pogledajte §3.6) |
+| POST                | `/api/tools/agent-bridge/server`               | Pokreće/zaustavlja/ponovno pokreće poslužitelj (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                   |
+| GET                 | `/api/tools/agent-bridge/cert`                 | Status certifikata (`exists`, `trusted`, `path`)                                                                                         |
+| POST                | `/api/tools/agent-bridge/cert`                 | Označava korijenski CA za MITM kao pouzdan (instalira ga)                                                                                |
+| DELETE              | `/api/tools/agent-bridge/cert`                 | Uklanja korijenski CA za MITM iz pouzdanih (uklanja ga) — idempotentno (pogledajte §3.6)                                                 |
+| POST                | `/api/tools/agent-bridge/cert/regenerate`      | Ponovno generira samopotpisani certifikat za MITM                                                                                        |
+| GET                 | `/api/tools/agent-bridge/cert/download`        | Strujanjem šalje PEM certifikat za preuzimanje                                                                                           |
+| GET                 | `/api/tools/agent-bridge/bypass`               | Popis uzoraka za zaobilaženje (`default` + `user`)                                                                                       |
+| POST                | `/api/tools/agent-bridge/bypass`               | U cijelosti zamjenjuje korisnički definirane uzorke za zaobilaženje                                                                      |
+| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Uklanja jedan korisnički definirani uzorak za zaobilaženje                                                                               |
+| GET                 | `/api/tools/agent-bridge/diagnose`             | Samotestiranje kanala za snimanje (pogledajte §3.6)                                                                                      |
+| POST                | `/api/tools/agent-bridge/repair`               | Poništava zaostalo stanje MITM-a u sustavu (pogledajte §3.6)                                                                             |
+| GET                 | `/api/tools/agent-bridge/config`               | Izvozi prenosivu konfiguraciju u JSON-u (pogledajte §3.7)                                                                                |
+| POST                | `/api/tools/agent-bridge/config`               | Uvozi prenosivu konfiguraciju u JSON-u (pogledajte §3.7)                                                                                 |
+| GET                 | `/api/tools/agent-bridge/upstream-ca`          | Dohvaća konfiguriranu putanju nadređenog CA-a                                                                                            |
+| POST                | `/api/tools/agent-bridge/upstream-ca`          | Provjerava valjanost i trajno pohranjuje putanju nadređenog CA-a                                                                         |
+| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Samo provjerava valjanost (probno izvođenje) putanje nadređenog CA-a — bez trajne pohrane                                                |
+| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | TPROXY način snimanja s transparentnim dešifriranjem — pogledajte `docs/security/MITM-TPROXY-DECRYPT.md` (git; nije ugrađeno u `/docs`)  |
 
-Cjelovite OpenAPI sheme: `docs/openapi.yaml` → oznaka `AgentBridge`.
+Potpune OpenAPI sheme: `docs/openapi.yaml` → oznaka `AgentBridge`.
 
 ---
 

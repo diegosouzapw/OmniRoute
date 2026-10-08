@@ -138,13 +138,47 @@ vytvárať hlásenia obsahujúce informácie o topológii.
 
 `tests/unit/error-message-sanitization.test.ts` vynucuje:
 
-- Každá trasa pod `/api/model-combo-mappings/*` vracia sanitizované telá pri chybách 4xx/5xx.
+- Každá trasa pod `/api/model-combo-mappings/*` vracia pri chybách 4xx/5xx sanitizované telá.
 - `sanitizeErrorMessage` odstraňuje viacriadkové trasovania zásobníka.
-- `sanitizeErrorMessage` nahrádza absolútne cesty POSIX a Windows reťazcom `<path>`.
+- `sanitizeErrorMessage` nahrádza absolútne cesty POSIX a Windows hodnotou `<path>`.
 - `sanitizeErrorMessage` bezpečne spracúva vstupy `null`/`undefined`/inštancie `Error`.
-- `buildErrorBody` nikdy neodhaľuje trasovania zásobníka vo svojom poli `message`.
+- `buildErrorBody` nikdy nesprístupňuje trasovania zásobníka vo svojom poli `message`.
 
-Pri pridávaní novej trasy alebo vykonávača skopírujte vzor kontrolných výrazov z tohto súboru. Prah pokrytia (`npm run test:coverage`) vyžaduje ≥60 % príkazov/riadkov/funkcií/vetiev — chybové cesty musia byť pokryté.
+Pri pridávaní novej trasy alebo exekútora skopírujte vzor kontrolných výrazov z tohto súboru. Brána pokrytia (`npm run test:coverage`) vyžaduje ≥60 % príkazov/riadkov/funkcií/vetiev — chybové vetvy musia byť pokryté.
+
+### Statická brána: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` kontroluje `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` a každý súbor `src/app/api/**/route.ts`, či sa nespracovaná zachytená chyba (`err.message` / `err.stack`) alebo nespracovaná upstream hodnota `body.error.message` nedostane do tela odpovede určenej klientovi.
+
+**Dôvera sa viaže na volanie, nikdy nie na súbor** (G-03, #15159). Brána predtým preskočila celý súbor, len čo našla akýkoľvek import z cesty `utils/error` — výnimka na úrovni súboru sa aplikovala na riziko na úrovni volania. Jeden správny `import { sanitizeErrorMessage }` natrvalo ospravedlnil všetky ostatné rizikové miesta v súbore, v dôsledku čoho sa reálny únik dostal do produkcie napriek zelenej kontrole. Teraz je riadok považovaný za dôveryhodný iba vtedy, keď skutočne prechádza cez schválený zostavovač alebo sanitizátor:
+
+| Tvar riadka                                                                                                           | Dôveryhodný?        |
+| --------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| volá `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …                    | áno                 |
+| volá kanonický zostavovač, **ktorý tento súbor importuje** z `open-sse/utils/error` alebo `src/lib/api/errorResponse` | áno                 |
+| schválený zostavovač je volaný **na viacerých riadkoch**, takže pole `message:` sa nachádza na neskoršom riadku       | áno                 |
+| volá lokálnu `function errorResponse(...)`, ktorej vlastné telo vykonáva sanitizáciu                                  | áno                 |
+| preposiela `err.message` / `err.stack` kdekoľvek inde                                                                 | **nie — porušenie** |
+
+Dva dôležité dôsledky:
+
+- Import `errorResponse` neznamená _automatickú dôveru pre celý súbor_. Súbor, ktorý definuje vlastnú funkciu `errorResponse`, bude na mieste volania stále označený, pretože brána určuje dôveru podľa symbolu, nie podľa súboru. To isté platí pre `createErrorResponse`.
+- Za vzor **sanitizovaného** spracovania používaný v exekútoroch `*-fetch.ts` sa považuje `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` nasledované výrazom `error: body.error.message`; brána ho neoznačí.
+
+Oba schválené moduly zostavovačov sa započítavajú: `open-sse/utils/error.ts` a `src/lib/api/errorResponse.ts`. Druhý používajú približne 54 obslužných rutín mimo `open-sse` a sanitizuje oba svoje exporty.
+
+Dva tvary, ktoré **nie sú** porušeniami, hoci ich brána kedysi hlásila ako úniky:
+
+- nespracovaná chyba v **auditnom zázname** — `saveCallLog({ error: err.message })`, `logToolCall(...)` alebo logger, ktorý prijíma správu ako prvú (`log.error("BATCHES", "sweep failed", { error: err.message })`). Odpoveď určená klientovi na nasledujúcich riadkoch môže pokojne používať statický `buildErrorBody`.
+- **viacriadkové** volanie schváleného zostavovača, v ktorom pole `message:` vôbec neuvádza zostavovač:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` zmrazuje už existujúce porušenia, aby brána blokovala iba _nové_. `assertNoStale` automaticky odstráni záznam po opravení príslušného porušenia, takže sa zmrazený zoznam nemôže natrvalo zakonzervovať. Regresné kontroly: `tests/unit/check-error-helper.test.ts` a `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Súvisiace kontrolné mechanizmy
 

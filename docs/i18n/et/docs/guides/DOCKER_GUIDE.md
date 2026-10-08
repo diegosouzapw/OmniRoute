@@ -235,18 +235,18 @@ docker compose -f docker-compose.prod.yml down
 
 Tootmiskeskkonna teenused töötavad paralleelselt arenduskeskkonna compose-teenustega (konteinerite nimed, pordid ja andmeköited on erinevad), mistõttu saate jätkata kohalikku arendust, samal ajal kui tootmiskeskkond töötab.
 
-## Dockerfile’i etapid
+## Dockerfile'i etapid
 
-Hoidla sisaldab mitmeetapilist Dockerfile’i (`Dockerfile`). Saadaval on neli etappi; vali oma kasutusjuhu jaoks õige `target`.
+Hoidla sisaldab mitmeetapilist Dockerfile'i (`Dockerfile`). Saadaval on neli etappi; vali oma kasutusjuhu jaoks õige `target`.
 
-| Etapp         | Baastõmmis            | Otstarve                                                                                                                                                                                                                                                                                      |
-| ------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Installib sõltuvused (`npm ci --legacy-peer-deps`) ja käivitab käsu `npm run build` (vaikimisi Turbopack — vt allpool jaotist „Ehitusaegsed ressursid”)                                                                                                                                       |
-| `runner-base` | `node:26-trixie-slim` | Tootmiskäituskeskkond koos Next.js-i autonoomse väljundiga. **Teenusepakkujate CLI-sid ei kaasata.**                                                                                                                                                                                          |
-| `runner-cli`  | `runner-base`         | Lisab `git`, `docker.io`, `docker-compose` ja globaalsed CLI-d: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Vali see agentpõhiste töövoogude jaoks.**                                                                                                                |
-| `runner-web`  | `runner-base`         | Lisab Playwrighti ja Chromiumi brauseri (`--with-deps`) veebiseansside teenusepakkujate jaoks: `gemini-web`, `claude-web`, `claude-turnstile`. **Vali see nende teenusepakkujate kasutamisel** — ilma selleta nurjub tavaline tõmmis päringu ajal (vt väljalaskekanalite all märkust `-web`). |
+| Etapp         | Baastõmmis            | Otstarve                                                                                                                                                                                                                                                                         |
+| ------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Paigaldab sõltuvused (`npm ci --legacy-peer-deps`) ja käivitab `npm run build` (vaikimisi Turbopack — vt allpool jaotist „Koostamisaegsed ressursid“)                                                                                                                            |
+| `runner-base` | `node:26-trixie-slim` | Tootmiskäituskeskkond Next.js-i autonoomse väljundiga. **Teenusepakkujate CLI-sid ei kaasata.**                                                                                                                                                                                  |
+| `runner-cli`  | `runner-base`         | Lisab `git`, `docker.io`, `docker-compose` ja globaalsed CLI-d: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Vali see agendipõhiste töövoogude jaoks.**                                                                                                  |
+| `runner-web`  | `runner-base`         | Lisab Playwrighti ja Chromiumi brauseri (`--with-deps`) veebiseansi pakkujate jaoks: `gemini-web`, `claude-web`, `claude-turnstile`. **Vali see nende pakkujate kasutamisel** — tavaline tõmmis nurjub ilma selleta päringu ajal (vt väljalaskekanalite jaotise märkust `-web`). |
 
-Konkreetse sihtetapi käsitsi ehitamine:
+Konkreetse sihtmärgi käsitsi koostamine:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
@@ -254,83 +254,88 @@ docker build --target runner-cli  -t omniroute:cli  .
 docker build --target runner-web  -t omniroute:web  .
 ```
 
-### Ehitusaegsed ressursid
+### Koostamisaegsed ressursid
 
-Kolm ehitusargumenti määravad `builder`-etapi ressursikulu. Need kehtivad ainult ehitamise ajal —
-`OMNIROUTE_MEMORY_MB` (allpool) on eraldi käitusaegne seadistus.
+Kolm koostamisargumenti määravad etapi `builder` ressursikulu. Need kehtivad ainult koostamise ajal —
+`OMNIROUTE_MEMORY_MB` (allpool) on eraldiseisev käitusaegne seadistus.
 
-| Ehitusargument              | Vaikeväärtus | Mõju                                                                                                       |
-| --------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`          | Väärtus `0` kasutab ehitamiseks webpacki. Väiksem mälu tippkasutus, kuid aeglasem.                         |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`       | V8 kuhjamälu ülempiir (`--max-old-space-size`) käivitatud protsessile `next build`.                        |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`          | Edastatakse muutujale `CIRCLE_NODE_TOTAL`; Next tuletab leheandmete kogumiseks väärtuse `workers = N - 1`. |
+| Koostamisargument           | Vaikeväärtus | Mõju                                                                                   |
+| --------------------------- | ------------ | -------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`          | `0` koostab webpackiga: väiksem mälu tippkasutus, kuid aeglasem. `1` lubab Turbopacki. |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`       | V8 kuhjamälu ülempiir (`--max-old-space-size`) käivitatud protsessile `next build`.    |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`          | Määrab `CIRCLE_NODE_TOTAL`; Next tuletab leheandmete kogumiseks `workers = N - 1`.     |
 
-`OMNIROUTE_BUILD_WORKERS` on parameeter, mida suure võimsusega ehituskeskkonnas suurendada
-ja mida kahtlustada siis, kui piiratud ressurssidega ehitus nurjub **pärast** teadet
-`✓ Compiled successfully`. Iga leheandmete töötlusprotsess on eraldi protsess ning
-sama kehtib ka emaprotsessi `next build` kohta; töötavas VPS-is tehtud katse
-(probleem #7518) mõõtis iga protsessi RSS-i tippväärtuseks ~4,5 GB, sõltumata
-kuhjamälu lipust `NODE_OPTIONS` (Turbopack kompileerib väljaspool V8 kuhjamälu
-asuvasse natiivsesse/Rusti mällu). Vaikeväärtus `2` (→ 1 töötlusprotsess, kokku
-2 protsessi) on kohandatud avaldamiskonveieris kasutatavatele GitHubi hostitud
-16 GB / 4 vCPU-ga käitajatele. Väärtusega `8` (→ 7 töötlusprotsessi) sai selle
-käitaja mälu otsa ja buildkit nurjas etapi veaga
-`ResourceExhausted: ... cannot allocate memory`; ka `3` (→ 2 töötlusprotsessi)
-ei mahtunud pärast seda, kui protsessipõhist RSS-i mõõdeti järeldamise asemel
-otse. `tests/unit/docker-build-memory-budget.test.ts` teeb arvutused mõõdetud
-väärtuse põhjal ja nurjub, kui kumbki seadistus ületab käitaja võimalusi.
+`OMNIROUTE_BUILD_WORKERS` on seadistus, mida võimsas koostamiskeskkonnas suurendada ja
+mida kahtlustada, kui piiratud ressurssidega koostamine nurjub **pärast** teadet
+`✓ Compiled successfully`. Iga leheandmete töötaja on eraldi protsess, nagu ka
+ülemprotsess `next build`; VPS-is tehtud reproduktsioonis (probleem #7518) mõõdeti
+iga protsessi RSS-i tippkasutuseks ~4,5 GB sõltumata kuhja lipust `NODE_OPTIONS`
+(Turbopack kompileerib V8 kuhjast väljaspool asuvas natiivses/Rusti mälus).
+Vaikeväärtus `2` (→ 1 töötaja, kokku 2 protsessi) on valitud avaldamiskonveieris
+kasutatavate GitHubi hostitud 16 GB / 4 vCPU-ga käitajate jaoks. Väärtusega `8`
+(→ 7 töötajat) sai sellel käitajal mälu otsa ja buildkit katkestas etapi veaga
+`ResourceExhausted: ... cannot allocate memory`; ka `3` (→ 2 töötajat) ei mahtunud
+enam piiridesse, kui protsessipõhist RSS-i tuletamise asemel otse mõõdeti.
+`tests/unit/docker-build-memory-budget.test.ts` teeb mõõdetud väärtuse põhjal
+arvutused ja nurjub, kui kumbki seadistus ületab käitaja võimalused.
 
-Turbopack kompileerib natiivsesse Rusti mällu, mis asub **väljaspool** V8 kuhjamälu,
-seega `OMNIROUTE_BUILD_MEMORY_MB` seda ei piira. Mälu ülempiiriga hostis saadab OOM-i
-tõrjeprogramm ehitusprotsessile seejärel SIGKILL-signaali ilma igasuguse veatekstita —
-protsess lihtsalt peatub keset etappi `Creating an optimized production build`, mis
-näib mälu lõppemise asemel hangumisena. Kui ehitushosti ressursid on piiratud,
-vaheta pakkijat:
+Turbopack kompileerib natiivses Rusti mälus, mis asub **väljaspool** V8 kuhja, seega
+`OMNIROUTE_BUILD_MEMORY_MB` seda ei piira. Mälupiiranguga hostis lõpetab OOM-i
+tapja koostamise SIGKILL-iga ilma igasuguse veatekstita — protsess lihtsalt peatub
+toimingu `Creating an optimized production build` ajal, mis näib pigem hangumise
+kui mälu lõppemisena. Seetõttu kasutab `Dockerfile` vaikimisi webpacki
+(`OMNIROUTE_USE_TURBOPACK=0`), erinevalt käskudest `npm run dev` / `npm run build`,
+kus Turbopack on koodi vaikevalik: ilma koostamisargumentideta käivitatud
+`docker build .` (mida käitavad Railway ja teised ühe klõpsuga hostid) ei tohi
+mälupiiranguga koostamiskeskkonnas vaikides surra. Avaldatud tõmmised edastavad
+juba failis `docker-publish.yml` sõnaselgelt väärtuse
+`OMNIROUTE_USE_TURBOPACK=0`. Rohke muutmäluga koostamiskeskkonnas luba kiiremaks
+koostamiseks Turbopack:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` on lubatud, seega käivitab `next build` emaprotsessi **ja**
-töötlusprotsessi ning kumbki järgib eraldi väärtust `OMNIROUTE_BUILD_MEMORY_MB`.
-Määra konteineri ülempiir sellest väärtusest ligikaudu kaks korda suuremaks, mitte
-sellega võrdseks.
+`webpackBuildWorker` on lubatud, mistõttu `next build` käitab nii ülemprotsessi
+**kui ka** töötajaprotsessi ning kumbki järgib eraldi väärtust
+`OMNIROUTE_BUILD_MEMORY_MB`. Määra konteineri ülempiir ligikaudu sellest väärtusest
+kaks korda suuremaks, mitte sellega võrdseks.
 
-Selles lähtekoodipuus mõõdetud (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
+Mõõdetud selles puus (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Pakkija   | Konteineri ülempiir | Tulemus                              |
-| --------- | ------------------- | ------------------------------------ |
-| Turbopack | 8 GiB / 16 GiB      | OOM lõpetas mõlemad ilma teateta     |
-| webpack   | 8 GiB               | töötlusprotsess sai SIGKILL-signaali |
-| webpack   | 12 GiB              | õnnestus, tippkasutus oli 11,1 GiB   |
+| Pakendaja | Konteineri ülempiir | Tulemus                               |
+| --------- | ------------------- | ------------------------------------- |
+| Turbopack | 8 GiB / 16 GiB      | OOM lõpetas mõlemal juhul, vaikides   |
+| webpack   | 8 GiB               | koostamistöötaja lõpetati SIGKILL-iga |
+| webpack   | 12 GiB              | õnnestus, tippkasutus 11,1 GiB        |
 
-### Käitusaja vaikeväärtused
+### Käitusaegsed vaikeväärtused
 
-`runner-base` eksporditud vaikeväärtused: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
+Etapi `runner-base` eksporditud vaikeväärtused: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
-Mälu käitumine Dockeris:
+Mälukäitumine Dockeris:
 
 - Tõmmis määrab `OMNIROUTE_MEMORY_MB=1024` ja tuletab sellest `NODE_OPTIONS=--max-old-space-size=1024`.
 - Tegeliku serveriprotsessi käivitab eraldiseisev käiviti, mis loeb väärtust `OMNIROUTE_MEMORY_MB` ja lisab `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
-- Node kasutab viimast korduvat `--max-old-space-size` väärtust, seega juhib `OMNIROUTE_MEMORY_MB` Dockeris tegelikult rakenduvat kuhjamälu piirangut.
-- Kuna tõmmis määrab selle alati, ei rakendu käiviti enda RAM-i põhjal kalibreeritud varuväärtus Dockeris kunagi. Suurendage seda töökoormuse jaoks selgesõnaliselt (vt allolevat tabelit). `2048` on programmeerimisagendi `/v1/responses` päringute jaoks endiselt liiga väike.
+- Node kasutab viimasena korduvat `--max-old-space-size` väärtust, seega määrab `OMNIROUTE_MEMORY_MB` Dockeri tegeliku kuhjamälu piirangu.
+- Kuna tõmmis määrab selle alati, ei rakendu käiviti enda RAM-i järgi kalibreeritud varuväärtus Dockeris kunagi. Suurendage seda töökoormuse jaoks sõnaselgelt (vt allolevat tabelit). `2048` on programmeerimisagendi `/v1/responses` jaoks endiselt liiga väike.
 
 ### Käitusaegne RAM programmeerimisagentidele
 
-Dockeri 1 GiB vaikeväärtus on juhtpaneeli ja kerge vestluse miinimum, mitte tootmiskeskkonna jaoks sobiv maht. Pikad `POST /v1/responses` päringukehad (sajad sõnumid, kümned tööriistad) hoiavad tihendamise ajal mälus mitut graafi. Kaks kattuvat ~3 MiB / ~750k-tokenilist päringut on põhjustanud V8 katkestuse **12 GiB** old-space'i juures (`FATAL ERROR: Reached heap limit`) ning ka 16 GiB cgroup'i OOM-i. Vt [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Dockeri 1 GiB vaikeväärtus on juhtpaneeli ja lihtvestluse miinimum, mitte tootmiskeskkonna jaoks sobiv maht. Pikad `POST /v1/responses` päringukehad (sajad sõnumid, kümned tööriistad) hoiavad tihendamise ajal mälus mitut struktuuri. Kaks kattuvat ~3 MiB / ~750k-sõne pikkust päringut on põhjustanud V8 töö katkemise **12 GiB** old-space'i juures (`FATAL ERROR: Reached heap limit`) ning samuti 16 GiB cgroup OOM-i. Vt [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Määrake **cgroup'i `--memory` kuhjamälust suuremaks** — natiivsed puhvrid, SQLite ja tihendamise vahetulemused paiknevad väljaspool V8-t.
+Määrake **cgroupi `--memory` kuhjamälust suuremaks** — omapuhvrid, SQLite ja tihendamise vahetulemused paiknevad väljaspool V8-t.
 
-| Töökoormus                                     | `OMNIROUTE_MEMORY_MB`         | Konteiner / cgroup       | Märkused                                                                                                                       |
-| ---------------------------------------------- | ----------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| Juhtpaneel, üks kerge vestlus                  | `1024` (tõmmise vaikeväärtus) | ≥2 GiB                   |                                                                                                                                |
-| Üks programmeerimisagent (Claude/Codex/Grok)   | `8192`                        | ≥10 GiB                  | Tüüpiline ühe seansi `/v1/responses`                                                                                           |
-| Kaks samaaegset pikka `/v1/responses` päringut | `10240`–`12288`               | ≥12–16 GiB               | Mõõdetud V8 katkestus ~12 GiB kuhjamälu juures                                                                                 |
-| Kolm või enam samaaegset pikka konteksti       | ärge kasutage ühes protsessis | jadastage / rohkem RAM-i | Vaikimisi lubatakse korraga 1 suure koormusega päring; selle arvu suurendamine ilma RAM-i lisamata põhjustab katkestuse uuesti |
+| Töökoormus                                     | `OMNIROUTE_MEMORY_MB`         | Konteiner / cgroup       | Märkused                                                                                                               |
+| ---------------------------------------------- | ----------------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| Juhtpaneel, üks lihtvestlus                    | `1024` (tõmmise vaikeväärtus) | ≥2 GiB                   |                                                                                                                        |
+| Üks programmeerimisagent (Claude/Codex/Grok)   | `8192`                        | ≥10 GiB                  | Tüüpiline ühe seansi `/v1/responses`                                                                                   |
+| Kaks samaaegset pikka `/v1/responses` päringut | `10240`–`12288`               | ≥12–16 GiB               | Mõõdetud V8 töö katkemine ~12 GiB kuhjamälu juures                                                                     |
+| Kolm või enam samaaegset pikka konteksti       | ärge kasutage ühes protsessis | jadastage / rohkem RAM-i | Vaikimisi lubatakse korraga 1 suure koormusega päring; selle suurendamine ilma lisamäluta põhjustab taas töö katkemise |
 
-`omniroute serve` kalibreerib otse riistvaral ligikaudu 35% RAM-ist (piiratuna vahemikku `[512, 4096]`), kui `OMNIROUTE_MEMORY_MB` on **määramata**. Docker määrab alati väärtuse `1024`, mistõttu ei käivitata seda kalibreerimist ametlikus tõmmises kunagi.
+`omniroute serve` kalibreerib füüsilises keskkonnas ligikaudu 35% RAM-ist (piiratud vahemikku `[512, 4096]`), kui `OMNIROUTE_MEMORY_MB` on **määramata**. Docker määrab alati väärtuse `1024`, mistõttu seda kalibreerimist ametlikus tõmmises kunagi ei tehta.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

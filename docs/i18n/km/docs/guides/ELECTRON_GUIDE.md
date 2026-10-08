@@ -4,37 +4,38 @@
 
 ---
 
-> **ប្រភពផ្លូវការ:** workspace `electron/`
-> **ធ្វើបច្ចុប្បន្នភាពចុងក្រោយ:** 2026-06-28 — v3.8.40
+> **ប្រភពត្រឹមត្រូវ:** workspace `electron/`
+> **បានធ្វើបច្ចុប្បន្នភាពចុងក្រោយ:** 2026-06-28 — v3.8.40
 
-OmniRoute ផ្តល់ជូនកម្មវិធីកុំព្យូទ័រលើច្រើនវេទិកា (Windows / macOS / Linux) ដែលបង្កើតឡើងដោយប្រើ
-**Electron 41** + **electron-builder 26.10**។ កម្មវិធីកុំព្យូទ័រនេះបង្កើតម៉ាស៊ីនមេ standalone របស់ Next.js
-ជាដំណើរការរង តម្រង់ `BrowserWindow` ទៅកាន់វា ហើយបន្ថែមថាសប្រព័ន្ធ កម្មវិធីធ្វើបច្ចុប្បន្នភាពដោយស្វ័យប្រវត្តិ ស្ពាន IPC និងការចាប់ផ្ដើមដំឡើង secret ដោយមិនចាំបាច់កំណត់រចនាសម្ព័ន្ធ។
+OmniRoute ផ្តល់ជូនកម្មវិធីកុំព្យូទ័រលើច្រើនប្រព័ន្ធ (Windows / macOS / Linux) ដែលបង្កើតឡើងដោយប្រើ
+**Electron 41** + **electron-builder 26.10**។ កម្មវិធីកុំព្យូទ័រនេះបើកដំណើរការ server ឯករាជ្យរបស់ Next.js
+ជាដំណើរការរង ភ្ជាប់ `BrowserWindow` ទៅកាន់វា និងបន្ថែម
+ថាសប្រព័ន្ធ កម្មវិធីធ្វើបច្ចុប្បន្នភាពស្វ័យប្រវត្តិ ស្ពាន IPC និងការចាប់ផ្ដើម secret ដោយមិនតម្រូវឱ្យកំណត់រចនាសម្ព័ន្ធ។
 
 ## ស្ថាបត្យកម្ម
 
 ```
-┌──────────────────────────────────────────────┐
-│ ដំណើរការមេ Electron (electron/main.js)       │
-│ ├─ សោសម្រាប់ដំណើរការតែមួយ                   │
-│ ├─ ដំណើរការរង៖ ម៉ាស៊ីនមេ standalone Next.js │
-│ │   (បង្កើតដោយ Node runtime របស់ Electron)  │
-│ ├─ BrowserWindow → http://localhost:PORT     │
-│ ├─ ថាសប្រព័ន្ធ + ម៉ឺនុយបរិបទ                │
-│ ├─ ធ្វើបច្ចុប្បន្នភាពស្វ័យប្រវត្តិតាម electron-updater │
-│ ├─ Content Security Policy (ក្បាល session)  │
-│ └─ ការចាប់ផ្ដើមដំឡើង secret (JWT / API_KEY_SECRET) │
-└──────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────┐
+│ ដំណើរការមេរបស់ Electron (electron/main.js)      │
+│ ├─ ការចាក់សោ instance តែមួយ                     │
+│ ├─ ដំណើរការរង៖ server ឯករាជ្យរបស់ Next.js       │
+│ │   (បើកដោយប្រើ Node runtime របស់ Electron)     │
+│ ├─ BrowserWindow → http://localhost:PORT          │
+│ ├─ ថាសប្រព័ន្ធ + ម៉ឺនុយបរិបទ                     │
+│ ├─ បច្ចុប្បន្នភាពស្វ័យប្រវត្តិតាម electron-updater │
+│ ├─ Content Security Policy (session headers)      │
+│ └─ ការចាប់ផ្ដើម secret (JWT / API_KEY_SECRET)    │
+└──────────────────────────────────────────────────┘
             ↕ ស្ពាន IPC (electron/preload.js)
-┌──────────────────────────────────────────────┐
-│ Renderer (ផ្ទាំងគ្រប់គ្រង Next.js)           │
-│   window.electronAPI.* (contextIsolation)     │
-└──────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────┐
+│ Renderer (ផ្ទាំងគ្រប់គ្រង Next.js)               │
+│   window.electronAPI.* (contextIsolation)         │
+└──────────────────────────────────────────────────┘
 ```
 
 ## កំណែ
 
-បានផ្ទៀងផ្ទាត់ពី `electron/package.json`៖
+បានបញ្ជាក់ពី `electron/package.json`៖
 
 | កញ្ចប់             | កំណែ                                                               |
 | ------------------ | ------------------------------------------------------------------ |
@@ -43,32 +44,32 @@ OmniRoute ផ្តល់ជូនកម្មវិធីកុំព្យូ�
 | `electron-updater` | `^6.8.9`                                                           |
 | `better-sqlite3`   | root `^13.0.2` (Node-API prebuilds — មិនត្រូវការ Electron rebuild) |
 | កំណែកម្មវិធី       | `3.8.0`                                                            |
-| លេខសម្គាល់កម្មវិធី | `online.omniroute.desktop`                                         |
+| App id             | `online.omniroute.desktop`                                         |
 | ឈ្មោះផលិតផល        | `OmniRoute`                                                        |
 
-## Script (root `package.json`)
+## ស្គ្រីប (root `package.json`)
 
-| Script                            | គោលបំណង                                                                     |
-| --------------------------------- | --------------------------------------------------------------------------- |
-| `npm run electron:dev`            | ចាប់ផ្ដើម `npm run dev` + រង់ចាំ `localhost:20128` + បើកដំណើរការ Electron   |
-| `npm run electron:build`          | build Next.js រួចដំណើរការ `electron-builder` សម្រាប់ OS បច្ចុប្បន្ន         |
-| `npm run electron:build:win`      | build កម្មវិធីដំឡើង Windows NSIS + កំណែ portable (x64)                      |
-| `npm run electron:build:mac`      | build macOS DMG (Intel + Apple Silicon)                                     |
-| `npm run electron:build:linux`    | build Linux AppImage + DEB (x64 + arm64)                                    |
-| `npm run electron:smoke:packaged` | បើក binary ដែលបានវេចខ្ចប់ និងពិនិត្យ `/login` សម្រាប់ HTTP 200 បន្ទាប់មកបិទ |
+| ស្គ្រីប                           | គោលបំណង                                                                   |
+| --------------------------------- | ------------------------------------------------------------------------- |
+| `npm run electron:dev`            | ចាប់ផ្ដើម `npm run dev` + រង់ចាំ `localhost:20128` + បើកដំណើរការ Electron |
+| `npm run electron:build`          | build Next.js រួចដំណើរការ `electron-builder` សម្រាប់ OS បច្ចុប្បន្ន       |
+| `npm run electron:build:win`      | build កម្មវិធីដំឡើង Windows NSIS + កំណែ portable (x64)                    |
+| `npm run electron:build:mac`      | build macOS DMG (Intel + Apple Silicon)                                   |
+| `npm run electron:build:linux`    | build Linux AppImage + DEB (x64 + arm64)                                  |
+| `npm run electron:smoke:packaged` | បើក binary ដែលបានវេចខ្ចប់ និងស្ទង់ `/login` សម្រាប់ HTTP 200 បន្ទាប់មកបិទ |
 
-workspace `electron/` ក៏ផ្ដល់ជូនផងដែរ៖
+workspace `electron/` ក៏ផ្ដល់ជូន៖
 
 - `npm run prepare:bundle` — ដំណើរការ `scripts/build/prepare-electron-standalone.mjs`
-- `npm run build:mac-x64` / `build:mac-arm64` — build macOS សម្រាប់ស្ថាបត្យកម្មតែមួយ
-- `npm run pack` — build តែថតសម្រាប់ការធ្វើតេស្តក្នុងម៉ាស៊ីន (គ្មានកម្មវិធីដំឡើង)
+- `npm run build:mac-x64` / `build:mac-arm64` — ការ build macOS សម្រាប់ architecture តែមួយ
+- `npm run pack` — ការ build ជា directory ប៉ុណ្ណោះ សម្រាប់ការសាកល្បងក្នុងមូលដ្ឋាន (គ្មានកម្មវិធីដំឡើង)
 
-## ប្លង់ថតឯកសារ
+## ប្លង់ថត
 
 ```
 electron/
-├── package.json              # ភាពអាស្រ័យរបស់ Electron + ការកំណត់រចនាសម្ព័ន្ធ electron-builder
-├── main.js                   # ដំណើរការមេ (24 KB — មើលចំណារពន្យល់ខាងក្រោម)
+├── package.json              # dependencies របស់ Electron + ការកំណត់រចនាសម្ព័ន្ធ electron-builder
+├── main.js                   # process មេ (24 KB — សូមមើលចំណារពន្យល់ខាងក្រោម)
 ├── preload.js                # ស្ពាន IPC របស់ contextBridge
 ├── types.d.ts                # ប្រភេទ AppInfo / ServerStatus / ElectronAPI
 ├── README.md                 # កំណត់ចំណាំក្នុង workspace
@@ -77,16 +78,18 @@ electron/
 
 scripts/
 ├── build/
-│   └── prepare-electron-standalone.mjs   # រៀបចំកញ្ចប់ .next/electron-standalone ជាបណ្ដោះអាសន្ន
+│   └── prepare-electron-standalone.mjs   # រៀបចំកញ្ចប់ .next/electron-standalone
 └── dev/
     └── smoke-electron-packaged.mjs       # ការធ្វើតេស្ត smoke បន្ទាប់ពី build
 ```
 
-ទាំង `main.js` និង `preload.js` គឺជា **ឯកសារ CommonJS `.js`** មិនមែនជា TypeScript ទេ។ ការកំណត់ប្រភេទសម្រាប់ផ្នែក renderer ស្ថិតនៅក្នុង `electron/types.d.ts`។
+ទាំង `main.js` និង `preload.js` គឺជា **ឯកសារ CommonJS `.js`** មិនមែន TypeScript ទេ។
+ការកំណត់ប្រភេទសម្រាប់ renderer ស្ថិតនៅក្នុង `electron/types.d.ts`។
 
 ## ស្ពាន IPC (`preload.js`)
 
-preload បង្ហាញ API ដែលមានក្នុងបញ្ជីអនុញ្ញាតនៅលើ `window.electronAPI` ដោយប្រើ `contextBridge` ជាមួយ `contextIsolation: true` និង `nodeIntegration: false`។
+preload បង្ហាញ API ដែលបានអនុញ្ញាតជាមុននៅលើ `window.electronAPI` ដោយប្រើ `contextBridge`
+ជាមួយ `contextIsolation: true` និង `nodeIntegration: false`។
 
 ```javascript
 const VALID_CHANNELS = {
@@ -105,7 +108,7 @@ const VALID_CHANNELS = {
 };
 ```
 
-មេតូតដែលបានបង្ហាញ៖
+methods ដែលត្រូវបានបង្ហាញ៖
 
 | ការហៅពី Renderer                                                  | ប្រភេទ                    |
 | ----------------------------------------------------------------- | ------------------------- |
@@ -118,11 +121,14 @@ const VALID_CHANNELS = {
 | `minimizeWindow()` / `maximizeWindow()` / `closeWindow()`         | send                      |
 | `onServerStatus(cb)` / `onPortChanged(cb)` / `onUpdateStatus(cb)` | receive (ត្រឡប់ disposer) |
 
-មុខងារជំនួយ receive ត្រឡប់ **មុខងារ disposer** ជំនួសឱ្យការពឹងផ្អែកលើ `removeAllListeners` — វាការពារការកើនឡើងនៃ listener នៅពេលសមាសភាគ React mount ឡើងវិញ។
+helpers សម្រាប់ receive ត្រឡប់ **disposer function** ជំនួសឱ្យការពឹងផ្អែកលើ
+`removeAllListeners` — វាការពារការកើនឡើងនៃ listeners នៅពេល React components
+ត្រូវបាន mount ឡើងវិញ។
 
 ## វដ្តជីវិតរបស់ Server
 
-`main.js` បើកដំណើរការកញ្ចប់ standalone របស់ Next.js ដោយផ្ទាល់ជាមួយ runtime របស់ Electron Node ដើម្បីជៀសវាងភាពមិនត្រូវគ្នានៃ ABI របស់ native-module ជាមួយ Node ក្នុងប្រព័ន្ធ៖
+`main.js` បង្កើត process សម្រាប់កញ្ចប់ standalone របស់ Next.js ដោយផ្ទាល់ជាមួយ Electron Node
+runtime ដើម្បីជៀសវាងភាពមិនត្រូវគ្នានៃ native-module ABI ជាមួយ Node របស់ប្រព័ន្ធ៖
 
 ```js
 spawn(process.execPath, [serverScript], {
@@ -140,67 +146,91 @@ spawn(process.execPath, [serverScript], {
 
 ចំណុចសំខាន់ៗ៖
 
-- `waitForServer()` ពិនិត្យ URL ជាបន្តបន្ទាប់រហូតដល់ 30 វិនាទី មុនពេលបង្ហាញ window (គ្មានអេក្រង់ទទេនៅពេលចាប់ផ្ដើមពីស្ថានភាពត្រជាក់)។
-- `stdio: "pipe"` ចាប់យក stdout/stderr; ឃ្លាបញ្ជាក់ភាពរួចរាល់ (`Ready` / `listening`) បញ្ចេញ `server-status: running` តាម IPC។
-- `before-quit` រង់ចាំរហូតដល់ 5 វិនាទីសម្រាប់ SIGTERM បិទដោយរលូន (WAL checkpoint) បន្ទាប់មកផ្ញើ SIGKILL។
-- ឧបករណ៍ប្ដូរ port ក្នុង tray (`20128`, `3000`, `8080`) បញ្ឈប់ និងចាប់ផ្ដើម server ឡើងវិញ បន្ទាប់មកផ្ទុក BrowserWindow ឡើងវិញ។
+- `waitForServer()` ពិនិត្យ URL ម្តងហើយម្តងទៀតរហូតដល់ 30 វិនាទី មុនពេលបង្ហាញ window (មិនមានអេក្រង់ទទេនៅពេលចាប់ផ្ដើមដំបូង)។
+- `stdio: "pipe"` ចាប់យក stdout/stderr; ឃ្លាបញ្ជាក់ថារួចរាល់ (`Ready` / `listening`) បញ្ចេញ `server-status: running` តាម IPC។
+- `before-quit` រង់ចាំរហូតដល់ 5 វិនាទីសម្រាប់ការបញ្ចប់ដោយរលូនតាម SIGTERM (WAL checkpoint) បន្ទាប់មកផ្ញើ SIGKILL។
+- ឧបករណ៍ប្ដូរ port ក្នុង tray (`20128`, `3000`, `8080`) បញ្ឈប់ និងចាប់ផ្ដើម server ឡើងវិញ បន្ទាប់មក reload BrowserWindow។
 
-## ការចាប់ផ្ដើម Secret ដោយមិនចាំបាច់កំណត់រចនាសម្ព័ន្ធ
+## ការចាប់ផ្ដើម Secret ដោយមិនបាច់កំណត់រចនាសម្ព័ន្ធ
 
-នៅពេលបើកដំណើរការលើកដំបូង process មេនឹងបង្កើតដោយស្វ័យប្រវត្តិ និងរក្សាទុក secret ដែលខ្វះ៖
+នៅពេលបើកដំណើរការលើកដំបូង process មេនឹងបង្កើត និងរក្សាទុក secret ដែលខ្វះដោយស្វ័យប្រវត្តិ៖
 
-| Secret                   | ប្រភព                                                                                           |
-| ------------------------ | ----------------------------------------------------------------------------------------------- |
-| `JWT_SECRET`             | `crypto.randomBytes(64).toString("hex")`                                                        |
-| `STORAGE_ENCRYPTION_KEY` | `crypto.randomBytes(32).toString("hex")` (បដិសេធ ប្រសិនបើមាន credentials ដែលបានអ៊ិនគ្រីបរួចហើយ) |
-| `API_KEY_SECRET`         | `crypto.randomBytes(32).toString("hex")`                                                        |
+| Secret                   | ប្រភព                                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------------------------ |
+| `JWT_SECRET`             | `crypto.randomBytes(64).toString("hex")`                                                         |
+| `STORAGE_ENCRYPTION_KEY` | `crypto.randomBytes(32).toString("hex")` (បដិសេធ ប្រសិនបើមានព័ត៌មានសម្ងាត់ដែលបានអ៊ិនគ្រីបរួចហើយ) |
+| `API_KEY_SECRET`         | `crypto.randomBytes(32).toString("hex")`                                                         |
 
-រក្សាទុកទៅកាន់ `<DATA_DIR>/server.env`។ `DATA_DIR` ត្រូវបានកំណត់ទៅជា៖
+រក្សាទុកក្នុង `<DATA_DIR>/server.env`។ `DATA_DIR` ត្រូវបានកំណត់ទៅជា៖
 
 - Windows: `%APPDATA%\omniroute`
 - Linux: `$XDG_CONFIG_HOME/omniroute` ឬ `~/.omniroute`
 - macOS: `~/.omniroute`
 
+## ការស្វែងរកឯកសារ environment
+
+មុនពេលបង្កើត server process process មេ (`getPreferredEnvFilePath()` ក្នុង
+`electron/main.js`) ជ្រើសរើសឯកសារ `.env` **មួយ**៖ ឯកសារដំបូងគេក្នុងបញ្ជីខាងក្រោមដែលមានស្រាប់។
+
+1. `$DATA_DIR/.env` នៅពេល `DATA_DIR` ត្រូវបានកំណត់ក្នុង environment ដែលបានប្រើដើម្បីបើកដំណើរការកម្មវិធី។
+2. `<resolved DATA_DIR>/.env` ដោយប្រើតម្លៃលំនាំដើមដូចខាងលើ៖ `%APPDATA%\omniroute\.env` នៅលើ
+   Windows និង `$XDG_CONFIG_HOME/omniroute/.env` ឬ `~/.omniroute/.env` នៅលើ Linux និង macOS។
+3. `.env` ក្នុងថតការងាររបស់ process។
+
+Process មេអានតែឯកសារនោះប៉ុណ្ណោះ។ ឯកសារដែលជាបេក្ខភាពបន្ទាប់មិនត្រូវបានបញ្ចូលរួមគ្នាទេ។ បន្ទាប់មក
+environment របស់ server ត្រូវបានបង្កើតដោយមានលំដាប់អាទិភាពដូចខាងក្រោម (ខ្ពស់បំផុតមុន)៖
+
+1. Environment របស់ Electron process (អថេរដែលទទួលបន្តពីអ្វីក៏ដោយដែលបានបើកដំណើរការកម្មវិធី)។
+2. ឯកសារ `.env` ដែលបានជ្រើសរើស។
+3. `<DATA_DIR>/server.env` (secret ចាប់ផ្ដើមខាងលើ)។
+
+Process environment ត្រូវបានចាប់យកនៅពេលកម្មវិធីចាប់ផ្ដើម ដូច្នេះអថេរ environment របស់ប្រព័ន្ធ ឬអ្នកប្រើ
+ដែលកំណត់ខណៈពេលកម្មវិធីកំពុងដំណើរការ (រួមទាំងពេលវាស្ថិតនៅក្នុង tray បន្ទាប់ពី window របស់វា
+ត្រូវបានបិទ) នឹងមិនទៅដល់ server ទេ រហូតដល់កម្មវិធីត្រូវបានបិទទាំងស្រុង និងបើកដំណើរការឡើងវិញ។ សម្រាប់ជម្រើសកំណត់ពេលដំណើរការ
+ដូចជា `CONTEXT_LENGTH_<PROVIDER>` (សូមមើល
+[អថេរ Environment៖ ប្រវែង context តាម provider នីមួយៗ](../reference/ENVIRONMENT.md#per-provider-context-length-context_length_provider)),
+គួរប្រើឯកសារ `.env` ជាមុន បន្ទាប់មកបិទកម្មវិធីទាំងស្រុង (tray, **បិទ**) ហើយបើកដំណើរការឡើងវិញ។
+
 ## Window និង Tray
 
 - `BrowserWindow`: 1400×900 (អប្បបរមា 1024×700), `backgroundColor: "#0a0a0a"`។
 - macOS: `titleBarStyle: "hiddenInset"`, ប៊ូតុង traffic-light នៅ `{ x: 16, y: 16 }`។
-- Windows/Linux: របារចំណងជើង native។
-- ប៊ូតុងបិទនឹងបង្រួមកម្មវិធីទៅ tray; ម៉ឺនុយ tray មាន **បើក OmniRoute**, **បើក Dashboard** (កម្មវិធីរុករកខាងក្រៅ), ម៉ឺនុយរង **Server Port**, **ពិនិត្យរកបច្ចុប្បន្នភាព**, **ចាកចេញ**។
+- Windows/Linux: របារចំណងជើងដើមរបស់ប្រព័ន្ធ។
+- ប៊ូតុងបិទបង្រួមកម្មវិធីទៅក្នុង tray។ ម៉ឺនុយ tray មាន **បើក OmniRoute**, **បើក Dashboard** (ក្នុង browser ខាងក្រៅ), ម៉ឺនុយរង **Server Port**, **ពិនិត្យមើលបច្ចុប្បន្នភាព**, **បិទ**។
 
 ## គោលការណ៍សុវត្ថិភាពមាតិកា
 
-កំណត់តាមរយៈ `session.defaultSession.webRequest.onHeadersReceived`។ directive សំខាន់ៗ៖
+កំណត់តាមរយៈ `session.defaultSession.webRequest.onHeadersReceived`។ Directive សំខាន់ៗ៖
 
 - `frame-ancestors 'none'`, `object-src 'none'`, `child-src 'none'`
 - `connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https://*.omniroute.online https://*.omniroute.dev`
-- របៀបអភិវឌ្ឍន៍បន្ថែម `'unsafe-eval'` ទៅ `script-src` ប៉ុណ្ណោះ
+- Dev mode បន្ថែម `'unsafe-eval'` ទៅក្នុង `script-src` ប៉ុណ្ណោះ
 
-## ការធ្វើបច្ចុប្បន្នភាពស្វ័យប្រវត្តិ
+## ការធ្វើបច្ចុប្បន្នភាពដោយស្វ័យប្រវត្តិ
 
-ប្រើ `electron-updater` ជាមួយ provider របស់ GitHub (`diegosouzapw/OmniRoute`)។
+ប្រើ `electron-updater` ជាមួយ GitHub provider (`diegosouzapw/OmniRoute`)។
 
 - `autoDownload = false`, `autoInstallOnAppQuit = true`
-- Event ត្រូវបានបញ្ជូនបន្តទៅ renderer តាម `update-status` IPC៖
+- Event ត្រូវបានបញ្ជូនបន្តទៅ renderer តាមរយៈ `update-status` IPC៖
   `checking`, `available`, `not-available`, `downloading` (ជាមួយ `percent`), `downloaded`, `error`
-- `installUpdate()` បញ្ឈប់ server បន្ទាប់មកហៅ `autoUpdater.quitAndInstall()`
-- រំលងក្នុងរបៀបអភិវឌ្ឍន៍ (`!app.isPackaged`)
+- `installUpdate()` បញ្ឈប់ server រួចហៅ `autoUpdater.quitAndInstall()`
+- រំលងនៅក្នុង dev mode (`!app.isPackaged`)
 
-## Pipeline សម្រាប់ Build
+## ដំណើរការ Build
 
 1. `npm run build` → Next.js standalone នៅក្នុង `.next/standalone`។
-2. `prepare-electron-standalone.mjs` → រៀបចំឡើងវិញទៅក្នុង `.next/electron-standalone` និងសរសេរ path ដាច់ខាតនៅខាងក្នុង `server.js` + `required-server-files.json` ឡើងវិញ ដើម្បីឱ្យ bundle អាចផ្លាស់ទីបាន។
+2. `prepare-electron-standalone.mjs` → រៀបចំឡើងវិញទៅក្នុង `.next/electron-standalone` និងសរសេរផ្លូវ absolute នៅក្នុង `server.js` + `required-server-files.json` ឡើងវិញ ដើម្បីឱ្យ bundle អាចផ្លាស់ទីបាន។
 3. `electron-builder` វេចខ្ចប់ `main.js`, `preload.js`, `node_modules` និង `extraResources: { ../.next/electron-standalone → app }`។
 
 ### គោលដៅ Build
 
-| OS      | គោលដៅ                                    |
-| ------- | ---------------------------------------- |
-| Windows | កម្មវិធីដំឡើង NSIS + កំណែ portable (x64) |
-| macOS   | DMG (Intel + arm64, អូសទៅ Applications)  |
-| Linux   | AppImage + DEB (x64 + arm64)             |
+| OS      | គោលដៅ                                       |
+| ------- | ------------------------------------------- |
+| Windows | កម្មវិធីដំឡើង NSIS + កំណែ portable (x64)    |
+| macOS   | DMG (Intel + arm64, អូសដាក់ទៅ Applications) |
+| Linux   | AppImage + DEB (x64 + arm64)                |
 
-ការកំណត់ NSIS៖ `oneClick: false`, អនុញ្ញាតឱ្យអ្នកប្រើជ្រើសរើសថតដំឡើង និងបង្កើត shortcut នៅលើ Desktop និង Start Menu។
+ការកំណត់ NSIS៖ `oneClick: false` អនុញ្ញាតឱ្យអ្នកប្រើជ្រើសរើសថតដំឡើង និងបង្កើតផ្លូវកាត់នៅលើ Desktop និង Start Menu។
 
 ## ការធ្វើ Smoke Test លើ Build ដែលបានវេចខ្ចប់
 
@@ -210,18 +240,18 @@ npm run electron:smoke:packaged
 
 `scripts/dev/smoke-electron-packaged.mjs`៖
 
-- រកឃើញ binary ដែលបានវេចខ្ចប់នៅក្នុង `electron/dist-electron/` ដោយស្វ័យប្រវត្តិសម្រាប់ platform បច្ចុប្បន្ន។
-- បើកដំណើរការជាមួយថត `HOME`/`APPDATA`/`XDG_*` ដាច់ដោយឡែក ដើម្បីកុំឱ្យវាប៉ះពាល់ដល់ទិន្នន័យរបស់អ្នកអភិវឌ្ឍន៍។
-- Poll `http://127.0.0.1:20128/login` សម្រាប់ HTTP 200 ក្នុងរយៈពេល 45 s។
-- តាមដាន stderr/stdout សម្រាប់ pattern ដែលបណ្តាលឱ្យបរាជ័យធ្ងន់ធ្ងរ (`Cannot find module`, `MODULE_NOT_FOUND`, `ERR_DLOPEN_FAILED`, `Failed to start server` ជាដើម)។
-- រង់ចាំ runtime ដែលមានស្ថិរភាពរយៈពេល 2 s បន្ទាប់ពីរួចរាល់ រួចបញ្ជូន SIGTERM និងរង់ចាំរហូតដល់ port ទំនេរ។
+- ស្វែងរក binary ដែលបានវេចខ្ចប់ដោយស្វ័យប្រវត្តិនៅក្នុង `electron/dist-electron/` សម្រាប់ platform បច្ចុប្បន្ន។
+- ដំណើរការជាមួយថត `HOME`/`APPDATA`/`XDG_*` ដាច់ដោយឡែក ដើម្បីកុំឱ្យវាប៉ះពាល់ដល់ទិន្នន័យរបស់អ្នកអភិវឌ្ឍន៍។
+- ពិនិត្យ `http://127.0.0.1:20128/login` ជាបន្តបន្ទាប់ ដើម្បីទទួលបាន HTTP 200 ក្នុងរយៈពេល 45 វិនាទី។
+- តាមដាន stderr/stdout សម្រាប់លំនាំកំហុសធ្ងន់ធ្ងរ (`Cannot find module`, `MODULE_NOT_FOUND`, `ERR_DLOPEN_FAILED`, `Failed to start server` ជាដើម)។
+- រង់ចាំ runtime មានស្ថិរភាពរយៈពេល 2 វិនាទីបន្ទាប់ពីរួចរាល់ បន្ទាប់មកបញ្ជូន SIGTERM និងរង់ចាំរហូតដល់ port ទំនេរ។
 - នៅក្នុង CI វាបញ្ជូន `--no-sandbox --disable-gpu` ដោយស្វ័យប្រវត្តិ (និង `--disable-dev-shm-usage` នៅលើ Linux)។
 
-ការកំណត់ជំនួសតាម Env៖ `ELECTRON_SMOKE_APP_EXECUTABLE`, `ELECTRON_SMOKE_URL`, `ELECTRON_SMOKE_TIMEOUT_MS`, `ELECTRON_SMOKE_SETTLE_MS`, `ELECTRON_SMOKE_DATA_DIR`, `ELECTRON_SMOKE_KEEP_DATA`, `ELECTRON_SMOKE_STREAM_LOGS`។
+ការកំណត់ជំនួសតាម env៖ `ELECTRON_SMOKE_APP_EXECUTABLE`, `ELECTRON_SMOKE_URL`, `ELECTRON_SMOKE_TIMEOUT_MS`, `ELECTRON_SMOKE_SETTLE_MS`, `ELECTRON_SMOKE_DATA_DIR`, `ELECTRON_SMOKE_KEEP_DATA`, `ELECTRON_SMOKE_STREAM_LOGS`។
 
 ## ការចុះហត្ថលេខាលើកូដ
 
-`electron/package.json` **មិន** ភ្ជាប់ព័ត៌មានសម្ងាត់សម្រាប់ការចុះហត្ថលេខាដោយផ្ទាល់ទេ។ បញ្ជូនព័ត៌មានទាំងនោះតាមរយៈអថេរបរិស្ថានទៅ `electron-builder`៖
+`electron/package.json` **មិន** ភ្ជាប់ព័ត៌មានសម្ងាត់សម្រាប់ការចុះហត្ថលេខាដោយផ្ទាល់ទេ។ បញ្ជូនព័ត៌មានទាំងនោះតាមរយៈ env vars ទៅ `electron-builder`៖
 
 ### macOS
 
@@ -248,24 +278,24 @@ npm run electron:build:win
 
 ## ការចែកចាយ
 
-ឯកសារលទ្ធផលត្រូវបានដាក់ក្នុង `electron/dist-electron/`៖
+Artifacts ត្រូវបានរក្សាទុកនៅក្នុង `electron/dist-electron/`៖
 
 - `OmniRoute.Setup.X.Y.Z.exe`, `OmniRoute X.Y.Z.exe` (Windows)
 - `OmniRoute-X.Y.Z-mac.dmg`, `OmniRoute-X.Y.Z-arm64-mac.dmg` (macOS)
 - `OmniRoute-X.Y.Z.AppImage`, `omniroute-desktop_X.Y.Z_amd64.deb` (Linux)
 
-កំណែចេញផ្សាយត្រូវបានបោះពុម្ពផ្សាយទៅ GitHub Releases (`diegosouzapw/OmniRoute`) ដែលជាទីតាំងដែល `electron-updater` ពិនិត្យរកកំណែថ្មីផងដែរ។
+ការចេញផ្សាយត្រូវបានបោះពុម្ពទៅ GitHub Releases (`diegosouzapw/OmniRoute`) ដែលក៏ជាទីតាំងដែល `electron-updater` ពិនិត្យរកកំណែថ្មីផងដែរ។
 
 ## ការដោះស្រាយបញ្ហា
 
-| រោគសញ្ញា                                                                | ដំណោះស្រាយ                                                                                                                                                |
-| ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Cannot find module 'better-sqlite3'` បន្ទាប់ពីដំឡើងកំណែធំរបស់ Electron | better-sqlite3 v13 ផ្តល់ Node-API prebuilds — ដំណើរការ `npm install` ម្តងទៀតនៅថតឫស និង `prepare:bundle` (វាផ្ទៀងផ្ទាត់ prebuild សម្រាប់វេទិកាបច្ចុប្បន្ន) |
-| `ERR_DLOPEN_FAILED` សម្រាប់ម៉ូឌុល native                                | ដំណើរការ `prepare:bundle` ម្តងទៀត — វាបញ្ឈប់ភ្លាមៗជាមួយកំហុស នៅពេលបាត់ Node-API prebuild សម្រាប់វេទិកាបច្ចុប្បន្ន                                         |
-| បង្អួចបង្ហាញទទេនៅលើ Linux                                               | បញ្ជាក់ថាម៉ាស៊ីនមេ Next.js បានភ្ជាប់ទៅ PORT ពិតប្រាកដ (ពិនិត្យកំណត់ហេតុ `[Server]`)                                                                       |
-| ការធ្វើ notarization លើ macOS ជាប់គាំង                                  | ត្រូវប្រាកដថាអថេរ `APPLE_*` ត្រូវបាន export មិនមែនគ្រាន់តែមានក្នុង `.env` ទេ                                                                              |
-| ការព្រមាន Windows SmartScreen                                           | ចុះហត្ថលេខាដោយប្រើវិញ្ញាបនបត្រ EV ឬឱ្យអ្នកប្រើចុចកណ្ដុរស្ដាំ → "ដំណើរការទោះជាយ៉ាងណា"                                                                      |
-| ការធ្វើតេស្ត smoke បរាជ័យដោយសារច្រកកំពុងត្រូវបានប្រើ                    | បញ្ឈប់ម៉ាស៊ីនមេអភិវឌ្ឍន៍មូលដ្ឋានណាមួយនៅលើ 20128 មុនពេលដំណើរការ `electron:smoke:packaged`                                                                  |
+| រោគសញ្ញា                                                                | ដំណោះស្រាយ                                                                                                                                                     |
+| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Cannot find module 'better-sqlite3'` បន្ទាប់ពីដំឡើងកំណែធំរបស់ Electron | better-sqlite3 v13 ផ្តល់ Node-API prebuilds — ដំណើរការ `npm install` ម្តងទៀតនៅ root និង `prepare:bundle` (វាផ្ទៀងផ្ទាត់ prebuild សម្រាប់ platform បច្ចុប្បន្ន) |
+| `ERR_DLOPEN_FAILED` សម្រាប់ native module                               | ដំណើរការ `prepare:bundle` ម្តងទៀត — វានឹងបរាជ័យភ្លាមៗ នៅពេលបាត់ Node-API prebuild សម្រាប់ platform បច្ចុប្បន្ន                                                 |
+| ផ្ទាំង window បង្ហាញទទេនៅលើ Linux                                       | បញ្ជាក់ថា Next.js server ពិតជាបាន bind ទៅ PORT (ពិនិត្យ logs របស់ `[Server]`)                                                                                  |
+| ដំណើរការ notarization របស់ macOS ជាប់គាំង                               | ត្រូវប្រាកដថា vars `APPLE_*` ត្រូវបាន export មិនមែនគ្រាន់តែដាក់ក្នុង `.env` ទេ                                                                                 |
+| ការព្រមាន Windows SmartScreen                                           | ចុះហត្ថលេខាដោយប្រើ EV cert ឬឱ្យអ្នកប្រើចុចកណ្ដុរស្ដាំ → "Run anyway"                                                                                           |
+| Smoke test បរាជ័យដោយសារ port កំពុងត្រូវបានប្រើ                          | បញ្ឈប់ local dev server ណាមួយនៅលើ 20128 មុនពេលដំណើរការ `electron:smoke:packaged`                                                                               |
 
 ## សូមមើលផងដែរ
 

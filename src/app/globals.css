@@ -294,6 +294,16 @@ body.electron-macos {
   --desktop-safe-bottom: 8px;
 }
 
+/* iOS standalone PWA safe-area — keeps dashboard below the status bar */
+@media (display-mode: standalone) {
+  @supports (padding-top: env(safe-area-inset-top)) {
+    :root {
+      --ios-safe-top: env(safe-area-inset-top);
+      --ios-safe-bottom: env(safe-area-inset-bottom);
+    }
+  }
+}
+
 /* Selection — with fallback for browsers that don't support color-mix() */
 ::selection {
   background-color: rgba(229, 77, 94, 0.22);
@@ -535,6 +545,46 @@ select option {
   }
 }
 
+.dashboard-sidebar-mobile {
+  left: 0;
+  right: auto;
+}
+.dashboard-sidebar-mobile.-translate-x-full {
+  translate: -100% 0 !important;
+  transform: translateX(-100%) !important;
+}
+.dashboard-sidebar-mobile.translate-x-0 {
+  translate: 0 0 !important;
+  transform: translateX(0) !important;
+}
+
+html[dir="rtl"] .dashboard-sidebar-mobile,
+[dir="rtl"] .dashboard-sidebar-mobile {
+  left: auto !important;
+  right: 0 !important;
+  inset-inline-start: 0 !important;
+  inset-inline-end: auto !important;
+}
+html[dir="rtl"] .dashboard-sidebar-mobile.-translate-x-full,
+html[dir="rtl"] .dashboard-sidebar-mobile.rtl\:translate-x-full,
+[dir="rtl"] .dashboard-sidebar-mobile.-translate-x-full,
+[dir="rtl"] .dashboard-sidebar-mobile.rtl\:translate-x-full {
+  translate: 100% 0 !important;
+  transform: translateX(100%) !important;
+}
+html[dir="rtl"] .dashboard-sidebar-mobile.translate-x-0,
+[dir="rtl"] .dashboard-sidebar-mobile.translate-x-0 {
+  translate: 0 0 !important;
+  transform: translateX(0) !important;
+}
+html[dir="rtl"] .dashboard-sidebar-mobile aside,
+[dir="rtl"] .dashboard-sidebar-mobile aside {
+  border-right-width: 0 !important;
+  border-left-width: 1px !important;
+  border-inline-end-width: 0 !important;
+  border-inline-start-width: 1px !important;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    RTL (Right-to-Left) Compatibility — fixes #7680
    ═══════════════════════════════════════════════════════════════ */
@@ -588,13 +638,16 @@ html[dir="rtl"] .mr-0\.5 {
 html[dir="rtl"] .mr-1 {
   --rtl-me: 1;
 }
+html[dir="rtl"] .mr-1\.5 {
+  --rtl-me: 1.5;
+}
 html[dir="rtl"] .mr-2 {
   --rtl-me: 2;
 }
 html[dir="rtl"] .mr-3 {
   --rtl-me: 3;
 }
-html[dir="rtl"] :is(.mr-0\.5, .mr-1, .mr-2, .mr-3) {
+html[dir="rtl"] :is(.mr-0\.5, .mr-1, .mr-1\.5, .mr-2, .mr-3) {
   margin-right: 0;
   margin-inline-end: calc(var(--spacing) * var(--rtl-me));
 }
@@ -807,6 +860,12 @@ html[dir="rtl"]
 }
 html[dir="rtl"] .-translate-x-1\/2 {
   translate: 50% var(--tw-translate-y);
+}
+html[dir="rtl"] .-translate-x-full {
+  translate: 100% var(--tw-translate-y);
+}
+html[dir="rtl"] .translate-x-full {
+  translate: -100% var(--tw-translate-y);
 }
 @media (min-width: 48rem) {
   html[dir="rtl"] .md\:ml-2 {

@@ -397,22 +397,22 @@ docs/
 
 ---
 
-## Pull Request-ի ստուգացանկ
+## Pull Request-ի ստուգաթերթ
 
-- [ ] Թեստերը հաջողությամբ անցնում են (`npm test`)
-- [ ] Լինթինգն հաջողությամբ անցնում է (`npm run lint`)
+- [ ] Թեստերն անցնում են (`npm test`)
+- [ ] Լինտինգն անցնում է (`npm run lint`)
 - [ ] Կառուցումը հաջողվում է (`npm run build`)
 - [ ] Նոր հանրային ֆունկցիաների և ինտերֆեյսների համար ավելացվել են TypeScript տիպեր
 - [ ] Չկան կոդում ուղղակիորեն գրված գաղտնիքներ կամ պահուստային արժեքներ
-- [ ] Վերին հոսքի հանրային հավատարմագրերը ներդրված են `resolvePublicCred()`-ի միջոցով (տե՛ս [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), և երբեք՝ որպես լիտերալներ
-- [ ] Սխալի պատասխաններն անցնում են `buildErrorBody()` / `sanitizeErrorMessage()` ֆունկցիաներով՝ պատասխանների մարմիններում առանց չմշակված սթեքի հետագծերի (տե՛ս [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Shell հրամանները (`exec` / `spawn`) կատարման ժամանակի արժեքները փոխանցում են `env`-ի միջոցով, այլ ոչ թե տողային ինտերպոլացիայով
-- [ ] Բոլոր մուտքային տվյալները վավերացվում են Zod սխեմաներով
-- [ ] Օգտատիրոջը տեսանելի փոփոխությունների համար փոփոխությունների մատյանի **ֆրագմենտ** է ավելացվել `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md`-ում (տե՛ս [`changelog.d/README.md`](./changelog.d/README.md)) — **մի՛** խմբագրեք `CHANGELOG.md`-ն ուղղակիորեն․ ֆրագմենտները միավորվում են թողարկման ժամանակ և երբեք հակասություններ չեն առաջացնում PR-ների միջև
+- [ ] Հանրային վերին հոսքի հավատարմագրերը ներդրված են `resolvePublicCred()`-ի միջոցով (տե՛ս [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), երբեք՝ որպես լիտերալներ
+- [ ] Սխալների պատասխաններն անցնում են `buildErrorBody()` / `sanitizeErrorMessage()`-ի միջոցով. պատասխանների մարմիններում չկան չմշակված stack trace-եր (տե՛ս [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Shell հրամանները (`exec` / `spawn`) կատարման ժամանակի արժեքները փոխանցում են `env`-ի միջոցով, ոչ թե տողային ինտերպոլյացիայով
+- [ ] Բոլոր մուտքային տվյալները վավերացված են Zod սխեմաներով
+- [ ] Օգտատերերին տեսանելի փոփոխությունների համար `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md`-ում ավելացվել է փոփոխությունների մատյանի **հատված** (տե՛ս [`changelog.d/README.md`](./changelog.d/README.md)). մի՛ խմբագրեք `CHANGELOG.md`-ն անմիջապես. թողարկման ժամանակ հատվածները համախմբվում են և երբեք չեն հակասում տարբեր PR-ների միջև
 - [ ] Փաստաթղթերը թարմացվել են (եթե կիրառելի է)
-- [ ] Չեն բացվել CodeQL / Secret-Scanning-ի նոր ահազանգեր, կամ յուրաքանչյուրն անտեսվել է տեխնիկական հիմնավորմամբ՝ համապատասխան `docs/security/` փաստաթղթին հղումով
-- [ ] Դուստր գործընթացներ գործարկող երթուղիները (`/api/mcp/`, `/api/cli-tools/runtime/`) դասակարգված են որպես `isLocalOnlyPath()`՝ `src/server/authz/routeGuard.ts`-ում — տե՛ս [Խիստ կանոն #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Commit-ի հաղորդագրություններում չկան `Co-Authored-By` վերջնագրեր․ commit-ները պետք է ներկայացվեն բացառապես պահոցի սեփականատիրոջ Git ինքնության ներքո (Խիստ կանոն #16)
+- [ ] CodeQL-ի / Secret-Scanning-ի նոր զգուշացումներ չեն բացվել, կամ յուրաքանչյուրն անտեսվել է՝ համապատասխան `docs/security/` փաստաթղթին հղում կատարող տեխնիկական հիմնավորմամբ
+- [ ] Դուստր պրոցեսներ գործարկող երթուղիները (`/api/mcp/`, `/api/cli-tools/runtime/`) դասակարգված են որպես `isLocalOnlyPath()`՝ `src/server/authz/routeGuard.ts`-ում. տե՛ս [Խիստ կանոն #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Commit-ի հաղորդագրություններում չկան AI-ի/բոտի `Co-authored-by` վերջնատողեր (Խիստ կանոն #16). մարդկային համահեղինակները, որոնց աշխատանքը վերաօգտագործվել է, նշվում են ստանդարտ `Co-authored-by: Name <email>` վերջնատողերով
 
 ---
 
@@ -433,4 +433,3 @@ VPS-ում տեղակայելու համար օգտագործեք `npm run build
 - **Անվտանգության փաստաթղթեր**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **Շահագործման փաստաթղթեր**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Խնդիրներ**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR-ներ**: Ճարտարապետական որոշումների գրառումների համար տե՛ս `docs/adr/`

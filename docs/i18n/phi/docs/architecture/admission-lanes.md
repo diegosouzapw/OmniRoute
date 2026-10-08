@@ -7,64 +7,54 @@
 Ang OmniRoute ay may **dalawang** process-local lane system na may magkaibang saklaw. Ang mga ito ay
 magkatuwang; dapat malaman ng mga operator kung alin ang kanilang tinitingnan.
 
-## 1. Proseso ng admission sa antas ng byte para sa buong process (`chatBodyAdmission.ts`)
+## 1. Byte-level na admission sa buong proseso (`chatBodyAdmission.ts`)
 
-- **Saklaw:** ang path ng buffered body/heap para sa `POST /v1/chat/completions`,
-  `/v1/messages`, `/v1/responses`, at iba pang mga route na hugis-chat. Nagbibigay
-  ito ng proteksiyon laban sa paglaki ng paggamit ng heap dahil sa malalaking body
-  mula sa mga coding agent (#4380).
-- **Isang process-global na controller, hindi mga lane para sa bawat key (#10110).**
-  Ang bawat API key (naka-hash) o `anonymous` na session ay ina-admit batay sa
-  **iisang** nakabahaging budget — ginagamit LAMANG ang naka-hash na session id
-  bilang fairness scheduling key (round-robin na dispatch sa mga naghihintay),
-  at hindi kailanman bilang capacity shard. Inilarawan ng naunang bersyon ng
-  dokumentong ito ang mga lane para sa bawat key na may magkakahiwalay na
-  kapasidad; inalis ang modelong iyon sa #10110 dahil pinahintulutan nitong
-  paramihin ng mga hindi authenticated na pekeng credential ang process-wide
-  na limitasyon.
-- **Gate (#503-fanout): isang awtomatikong kinukuwentang ingest BYTE budget,
-  hindi isang nakapirming bilang ng request.** Ang legacy na request-count cap
-  na `CHAT_MAX_HEAVY_IN_FLIGHT` (default na `1` bago ang pag-aayos na ito) ay
-  nagpabagsak sa fan-out ng coding agent (maraming subagent/CLI, na ang mga body
-  ay karaniwang > 256 KB) tungo sa epektibong concurrency na ~1, na nagdulot ng
-  mga 503 sa ilalim ng ganap na normal na load. Nagiging umiiral lamang ito
-  ngayon kapag tahasang itinakda ng operator ang
-  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Kapag hindi ito itinakda, ang admission
-  ay sa halip kino-control ng `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — isang budget
-  na awtomatikong kinukuwenta mula sa aktuwal na memory ceiling ng process
-  (`src/shared/middleware/admissionBudget.ts`): 25% ng mas mababang limitasyon
-  sa pagitan ng V8 heap limit at anumang cgroup/container limit, na hinati sa
-  8x transient-amplification factor, at nilimitahan sa pagitan ng 8 MiB at
-  2 GiB. Ginagamit ng mga tahasang override ang parehong mga limitasyon.
-  Awtomatiko itong umaangkop mula sa isang 512 MB na container hanggang sa
-  isang 32 GB na desktop nang hindi kailangang i-tune ang env. Ang body na
-  hindi maaaring magkasya sa epektibong budget ay agad na mabibigo nang may
-  `413 body_exceeds_budget`; tanging ang agawan sa pagitan ng mga body na
-  indibidwal na kayang serbisyuhan ang pumapasok sa bounded fairness queue.
-  Ang isang live na multi-signal resource-pressure tracker (V8 heap ratio,
-  cgroup, PSI, mga OOM event —
-  `open-sse/utils/resourcePressurePolicy.ts`) ay nagpapaikli sa bounded na
-  paghihintay sa ilalim ng `high` na pressure at agad na nagbabawas ng load
-  gamit ang `503 resource_pressure` sa ilalim ng `critical` na pressure, bago
-  pa man ma-ingest ang anumang byte. Binabasa ang PSI mula sa `memory.pressure`
-  ng cgroup ng unit na ito kapag mayroon
-  (`open-sse/utils/resourcePressureSampler.ts`); ang
-  `/proc/pressure/memory` ay para sa buong host at ginagamit lamang bilang
-  fallback sa bare metal / cgroup v1, kaya hindi maaaring magdulot ng 503 sa
-  isang idle na container ang isang host na nagsa-swap.
+- **Saklaw:** ang buffered-body/heap path para sa `POST /v1/chat/completions`,
+  `/v1/messages`, `/v1/responses`, at iba pang chat-shaped na route. Pinipigilan
+  nito ang heap amplification mula sa malalaking body ng coding-agent (#4380).
+- **Isang process-global controller, hindi mga lane kada key (#10110).** Ang bawat API key
+  (na-hash) o `anonymous` session ay ina-admit laban sa **iisang** nakabahaging budget —
+  ginagamit LAMANG ang hashed session id bilang fairness scheduling key (round-robin
+  dispatch sa mga naghihintay), at hindi kailanman bilang capacity shard. Inilarawan ng
+  naunang bersyon ng dokumentong ito ang mga lane kada key na may magkakahiwalay na
+  kapasidad; inalis ang modelong iyon sa #10110 dahil pinahintulutan nitong paramihin ng
+  mga hindi authenticated na pekeng credential ang process-wide na hangganan.
+- **Gate (#503-fanout): isang awtomatikong kinukuwentang ingest BYTE budget, hindi isang nakapirming
+  bilang ng request.** Ang legacy na `CHAT_MAX_HEAVY_IN_FLIGHT` request-count cap (default na `1`
+  bago ang pag-aayos na ito) ay nagpabagsak sa fan-out ng coding-agent (maraming subagent/CLI,
+  mga body na karaniwang > 256 KB) tungo sa epektibong concurrency na ~1, na nagresulta
+  sa mga 503 sa ganap na normal na load. Nagiging binding lamang ito ngayon kapag tahasang
+  itinakda ng operator ang `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Kapag hindi ito itinakda,
+  ang admission ay sa halip ginagate ng `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — isang budget
+  na awtomatikong kinukuwenta mula sa tunay na memory ceiling ng proseso
+  (`src/shared/middleware/admissionBudget.ts`): 25% ng mas mahigpit sa V8 heap limit at
+  anumang cgroup/container limit, na hinati sa 8x transient-amplification factor, at
+  nilimitahan sa pagitan ng 8 MiB at 2 GiB. Ginagamit ng mga tahasang override ang
+  parehong mga limitasyon. Awtomatiko itong nag-a-adjust mula sa isang 512 MB container
+  hanggang sa isang 32 GB desktop nang walang env tuning. Ang body na hindi magkakasya
+  sa epektibong budget ay agad na mabibigo nang may `413 body_exceeds_budget`;
+  tanging ang contention sa pagitan ng mga body na maaaring isa-isang maasikaso ang
+  pumapasok sa bounded fairness queue. Ang live na multi-signal resource-pressure tracker
+  (V8 heap ratio, cgroup, PSI, OOM events — `open-sse/utils/resourcePressurePolicy.ts`) ay
+  nagpapaikli sa bounded na paghihintay kapag `high` ang pressure at agad na nagbabawas
+  ng load nang may `503 resource_pressure` kapag `critical` ang pressure, bago pa man
+  ma-ingest ang anumang byte. Binabasa ang PSI mula sa `memory.pressure` ng cgroup ng unit
+  na ito kapag mayroon (`open-sse/utils/resourcePressureSampler.ts`);
+  ang `/proc/pressure/memory` ay para sa buong host at fallback lamang sa bare metal /
+  cgroup v1, kaya hindi maaaring magdulot ng 503 sa isang idle na container ang isang
+  host na nagsasagawa ng swapping.
 - **Pag-tune:**
   - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — override para sa awtomatikong kinukuwentang byte budget
   - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — legacy na request-count cap, opt-in lamang
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — tagal ng paghihintay sa queue bago ang 503 (default 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — heap valve para sa mga naka-queue na byte (default 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — deprecated
-    na mga no-op mula noong #10110 (tinatanggap para sa compatibility ng config, ngunit binabalewala)
-- **Mga ulat:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — kabilang
-  ang mga idinagdag ng #503-fanout na `inflightBytes`, `maxInflightBytes`,
-  `budgetSource` (`v8_heap` | `cgroup` | `override`), `pressureSeverity`, at
-  `countCapEnabled` (false sa isang default na deployment — kinukumpirma nitong
-  ang byte budget, at hindi ang legacy na count cap, ang aktuwal na umiiral na
-  limitasyon).
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — oras ng paghihintay sa queue bago ang 503 (default sa `RATE_LIMIT_MAX_WAIT_MS`)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — heap valve para sa mga naka-queue na byte (default na 4 MB)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — deprecated na
+    mga no-op mula noong #10110 (tinatanggap para sa compatibility ng config, ngunit binabalewala)
+- **Mga ulat:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — kabilang ang
+  mga idinagdag sa #503-fanout na `inflightBytes`, `maxInflightBytes`, `budgetSource`
+  (`v8_heap` | `cgroup` | `override`), `pressureSeverity`, at `countCapEnabled`
+  (false sa default na deployment — kinukumpirma nitong ang byte budget, hindi ang legacy
+  na count cap, ang talagang nagiging binding).
 
 ## 2. Mga adaptive runtime virtual lane (`open-sse/services/admission`)
 

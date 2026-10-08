@@ -119,6 +119,8 @@ interface SseLifecycleFlags {
   hasContentBlock: boolean;
   hasRealContent: boolean;
   hasLifecycleEnd: boolean;
+  hasMessageStop: boolean;
+  stopReason: string | null;
 }
 
 /** Read `parsed.<key>` as a nested object bag, or null when absent/not an object. */
@@ -212,10 +214,14 @@ function applySseLifecycleEvent(
       return false;
     case "message_stop":
       flags.hasLifecycleEnd = true;
+      flags.hasMessageStop = true;
       return false;
-    case "message_delta":
+    case "message_delta": {
+      const stopReason = asObject(parsed, "delta")?.stop_reason;
+      if (typeof stopReason === "string") flags.stopReason = stopReason;
       if (messageDeltaEndsLifecycle(parsed)) flags.hasLifecycleEnd = true;
       return false;
+    }
     default:
       return false;
   }
@@ -296,7 +302,9 @@ function classifyStreamingUpstreamFailure(parsed: unknown): StreamingUpstreamFai
   const requestScoped =
     type === "invalid_request_error" ||
     code === "invalid_request_error" ||
+    type === "context_length_exceeded" ||
     code === "context_length_exceeded" ||
+    type === "context_window_exceeded" ||
     code === "context_window_exceeded";
   const message = sanitizeErrorMessage(normalized.message).slice(0, 300);
   return {
@@ -343,7 +351,8 @@ export async function validateResponseQuality(
   isStreaming: boolean,
   log: { warn?: (...args: unknown[]) => void },
   responseValidation?: ResponseValidationConfig | null,
-  signal?: AbortSignal | null
+  signal?: AbortSignal | null,
+  trustedEmptyTurn = false
 ): Promise<ResponseQualityResult> {
   // Issue #3685: For Claude SSE streaming responses, use a BOUNDED PEEK to
   // detect the empty-content-block pattern (content_filter stop_reason with
@@ -399,6 +408,8 @@ export async function validateResponseQuality(
       hasContentBlock: false,
       hasRealContent: false,
       hasLifecycleEnd: false,
+      hasMessageStop: false,
+      stopReason: null,
     };
     // #7285: OpenAI-shape lifecycle tracking, parallel to `sse` above.
     const openAi: OpenAiLifecycleFlags = { hasChoicePayload: false, hasTerminalMarker: false };
@@ -602,6 +613,17 @@ export async function validateResponseQuality(
           }
 
           if (sse.hasMessageStart && sse.hasLifecycleEnd && !sse.hasRealContent) {
+            // A first-party Claude empty turn with an ordinary stop is a valid
+            // response. Require the final message_stop and NO opened blocks:
+            // an empty start/stop block (#1382) or content_filter still fails over.
+            if (
+              trustedEmptyTurn &&
+              sse.hasMessageStop &&
+              !sse.hasContentBlock &&
+              (sse.stopReason === "end_turn" || sse.stopReason === "stop_sequence")
+            ) {
+              return { valid: true, clonedResponse: buildReplayResponse(reader) };
+            }
             // Complete Claude lifecycle with zero content blocks, or with
             // content_block_start/stop pairs that never carried real text/
             // thinking/tool_use content (#1382 — tool-heavy claude→openai
@@ -828,7 +850,12 @@ export async function validateResponseQuality(
     if (!responsesApiOutputHasContent(json.output))
       return { valid: false, reason: "empty_choices" };
     const status = typeof json.status === "string" ? json.status : "";
-    if (status && !["completed", "done"].includes(status)) {
+    // Same terminal set as detectMalformedNonStream (diagnostics.ts). A combo
+    // whose members are a reasoning model returns status:"incomplete" on a
+    // small max_output_tokens; rejecting that here fails every target over
+    // and the client still sees 502 after the direct path was fixed.
+    // "canceled" matches the SSE parser fallback spelling.
+    if (status && !["completed", "done", "incomplete", "cancelled", "canceled"].includes(status)) {
       return { valid: false, reason: "no_terminal" };
     }
     return {
@@ -895,6 +922,20 @@ export async function validateResponseQuality(
   }
 
   if (!hasContent && !hasToolCalls) {
+    // finish_reason "length" is a truncated completion (max_tokens hit), the
+    // same case the Claude shape exempts as stop_reason "max_tokens" (#12968).
+    // A thinking model that spends the whole budget before any visible token
+    // is a valid response, not a reason to fail the combo target over.
+    if (firstChoice?.finish_reason === "length") {
+      return {
+        valid: true,
+        clonedResponse: new Response(text, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: response.headers,
+        }),
+      };
+    }
     return { valid: false, reason: "empty content and no tool_calls in response" };
   }
 
@@ -931,10 +972,12 @@ export async function validateResponseQuality(
         reason: `reasoning truncated at token limit (finish_reason: ${finishReason}) — no content output`,
       };
     }
-    if (usage) {
+    if (usage && finishReason !== "stop") {
       const reasoningTokens = getReasoningTokens(usage);
-      // If reasoning consumed 90%+ of completion tokens, the model ran out of
-      // budget before producing any content output.
+      // finish_reason "stop" means the model ended on its own (OpenAI, Anthropic,
+      // Z.ai all document this). A high reasoning ratio on a clean stop is normal
+      // for models that cannot disable thinking (Claude Opus 4.7+, GLM-5.3). The
+      // 90% check stays as the fallback when the provider reports no finish_reason.
       if (completionTokens > 0 && reasoningTokens >= completionTokens * 0.9) {
         if (isTinyBudgetTruncation(completionTokens)) return { valid: true };
         return {

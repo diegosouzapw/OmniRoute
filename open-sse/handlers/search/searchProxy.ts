@@ -272,6 +272,23 @@ export async function executeProviderFetch(
     });
     await emitEvent("success", response.status);
 
+    // Mirror of the markAccountUnavailable() call above: a real success clears
+    // any recorded error (stale failed test, elapsed cooldown) so the dashboard
+    // stops painting a serving connection red. clearAccountError() is a no-op
+    // when the row is already clean.
+    if (connectionId) {
+      try {
+        const { getProviderConnectionById } = await import("@/lib/db/providers");
+        const current = await getProviderConnectionById(connectionId);
+        if (current) {
+          const { clearAccountError } = await import("@/sse/services/auth.ts");
+          await clearAccountError(connectionId, current as never);
+        }
+      } catch {
+        /* non-critical - clearing stale error state must not break the search response */
+      }
+    }
+
     return {
       success: true,
       data: {

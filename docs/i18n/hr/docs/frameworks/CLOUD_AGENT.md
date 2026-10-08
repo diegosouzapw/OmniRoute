@@ -306,24 +306,29 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 nadređenog pružatelja usluge — u `CloudAgentBase` ne postoji RPC za prekid. Kako biste zaustavili
 naplatu u nadređenom sustavu, prekinite zadatak u vlastitoj konzoli pružatelja usluge.
 
-## REST API — povezivanje pružatelja usluga u oblaku
+## REST API — Povezivanje s pružateljima usluga u oblaku
 
 Ove pomoćne krajnje točke u `src/app/api/cloud/` udaljeni klijenti
-(CLI, Electron aplikacija ili radni procesi za sinkronizaciju) koriste za čitanje metapodataka o vezi s pružateljem
-i razrješavanje aliasa modela. Autentificiraju se **običnim API ključem**
-(putem `validateApiKey`), a ne upravljačkom autentifikacijom koju koriste krajnje točke za zadatke.
+(CLI, Electron aplikacija ili radni procesi za sinkronizaciju) koriste za čitanje metapodataka
+o vezama s pružateljima usluga i razrješavanje pseudonima modela. Autentificiraju se **API ključem**
+(putem `validateApiKey`), a ne upravljačkom autentifikacijom koju koriste krajnje točke zadataka; ono što
+`/api/cloud/auth` vraća ovisi o opsegu ključa (pogledajte u nastavku).
 
-| Metoda | Putanja                         | Svrha                                                                               |
-| ------ | ------------------------------- | ----------------------------------------------------------------------------------- |
-| POST   | `/api/cloud/auth`               | Provjera API ključa i vraćanje maskiranih metapodataka o vezi + aliasa modela       |
-| PUT    | `/api/cloud/credentials/update` | Osvježavanje `accessToken` / `refreshToken` / `expiresAt`                           |
-| POST   | `/api/cloud/model/resolve`      | Razrješavanje aliasa modela u `{ provider, model }`                                 |
-| GET    | `/api/cloud/models/alias`       | Popis svih aliasa modela                                                            |
-| PUT    | `/api/cloud/models/alias`       | Postavljanje aliasa modela (i automatska sinkronizacija s oblakom ako je omogućena) |
+| Metoda | Put                             | Svrha                                                                                   |
+| ------ | ------------------------------- | --------------------------------------------------------------------------------------- |
+| POST   | `/api/cloud/auth`               | Provjera API ključa i vraćanje maskiranih metapodataka o vezi + pseudonima modela       |
+| PUT    | `/api/cloud/credentials/update` | Osvježavanje `accessToken` / `refreshToken` / `expiresAt`                               |
+| POST   | `/api/cloud/model/resolve`      | Razrješavanje pseudonima modela u `{ provider, model }`                                 |
+| GET    | `/api/cloud/models/alias`       | Popis svih pseudonima modela                                                            |
+| PUT    | `/api/cloud/models/alias`       | Postavljanje pseudonima modela (i automatska sinkronizacija s oblakom ako je omogućena) |
 
 `/api/cloud/auth` nikada ne vraća neobrađene vrijednosti `apiKey` / `accessToken` / `refreshToken`. Vraća
-`hasApiKey`, `hasAccessToken`, `hasRefreshToken` i maskirani pregled
-(`maskedApiKey`: prva 4 znaka + `****` + posljednja 4 znaka).
+`hasApiKey`, `hasAccessToken`, `hasRefreshToken` za aktivne veze koje ključ
+smije koristiti (ključ ograničen pomoću `allowedConnections` vidi samo te veze). Za API ključ s
+opsegom `manage` ili `admin`, uključujući ključ implementacije iz `OMNIROUTE_API_KEY`, također
+vraća maskirani pretpregled (`maskedApiKey`: do 4 znaka na svakom kraju, manje za kratki
+ključ, nijedan za 8 znakova ili manje) i `projectId` veze. Oba su polja izostavljena
+iz odgovora za sve ostale ključeve.
 
 ## Razrješavanje vjerodajnica
 

@@ -210,28 +210,27 @@ rawBody)`) قبل تحليل JSON. إذا كان السر مضبوطًا، يك�
 
 ## ملف تعريف البناء: `minimal`
 
-للمستخدمين الذين يحتاجون إلى ناتج بناء ملائم لـ Socket، نفّذوا البناء باستخدام:
+للمستخدمين الذين يحتاجون إلى حزمة متوافقة مع Socket، ابنوا باستخدام:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-ينشئ `NormalModuleReplacementPlugin` في webpack أسماءً بديلة لأربع وحدات تشير إلى وحدات بديلة وهمية:
+يُعيّن `NormalModuleReplacementPlugin` في webpack أربعة وحدات إلى بدائل وهمية:
 
-| الوحدة                                      | الوحدة البديلة الوهمية                           |
+| الوحدة                                      | البديل الوهمي                                    |
 | ------------------------------------------- | ------------------------------------------------ |
 | `src/mitm/cert/install.ts`                  | `src/mitm/cert/install.stub.ts`                  |
 | `src/lib/zed-oauth/keychain-reader.ts`      | `src/lib/zed-oauth/keychain-reader.stub.ts`      |
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-تُصدّر كل وحدة بديلة وهمية الواجهة نفسها، لكن كل دالة تطرح
+يُصدّر كل بديل وهمي الواجهة نفسها، لكن كل دالة تُطلق
 `featureDisabledError(name)` في وقت التشغيل. تُرجع المسارات التي تعتمد على الوحدة
-المعطّلة استجابة HTTP 503 مع رسالة واضحة بدلًا من تفعيل
-مسار التعليمات البرمجية الحسّاس.
+المعطّلة استجابة HTTP 503 مع رسالة واضحة بدلًا من تفعيل مسار
+التعليمات البرمجية الحسّاس.
 
-الحزمة الناتجة مُعدّة للنشر باسم `omniroute-secure`. راجع
-`docs/ops/PUBLISHING_SECURE.md` للاطلاع على خطوات النشر.
+الحزمة الناتجة مُعدّة للنشر باسم `omniroute-secure`.
 
 ---
 

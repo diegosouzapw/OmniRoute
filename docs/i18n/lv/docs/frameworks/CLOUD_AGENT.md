@@ -308,22 +308,27 @@ augšupējā pakalpojuma rēķinu aprēķinu, pārtrauciet uzdevumu paša pakalp
 
 ## REST API — mākoņpakalpojumu sniedzēju integrācija
 
-Šie palīgendpunkti direktorijā `src/app/api/cloud/` tiek izmantoti attālinātajos klientos
-(CLI, Electron lietotnē vai sinhronizācijas procesos), lai nolasītu pakalpojumu sniedzēju savienojumu metadatus
-un atrisinātu modeļu aizstājvārdus. To autentifikācijai tiek izmantota **parasta API atslēga**
-(ar `validateApiKey`), nevis uzdevumu galapunktos izmantotā pārvaldības autentifikācija.
+Šie palīgendpunkti direktorijā `src/app/api/cloud/` tiek izmantoti attālinātiem klientiem
+(CLI, Electron lietotnei vai sinhronizācijas darbiniekiem), lai nolasītu pakalpojumu sniedzēju savienojumu metadatus
+un atrisinātu modeļu aizstājvārdus. Tie tiek autentificēti ar **API atslēgu**
+(izmantojot `validateApiKey`), nevis ar pārvaldības autentifikāciju, ko izmanto uzdevumu galapunkti; tas,
+ko atgriež `/api/cloud/auth`, ir atkarīgs no atslēgas tvēruma (skatiet tālāk).
 
-| Metode | Ceļš                            | Mērķis                                                                               |
-| ------ | ------------------------------- | ------------------------------------------------------------------------------------ |
-| POST   | `/api/cloud/auth`               | Validēt API atslēgu, atgriezt maskētus savienojuma metadatus un modeļu aizstājvārdus |
-| PUT    | `/api/cloud/credentials/update` | Atjaunināt `accessToken` / `refreshToken` / `expiresAt`                              |
-| POST   | `/api/cloud/model/resolve`      | Atrisināt modeļa aizstājvārdu uz `{ provider, model }`                               |
-| GET    | `/api/cloud/models/alias`       | Uzskaitīt visus modeļu aizstājvārdus                                                 |
-| PUT    | `/api/cloud/models/alias`       | Iestatīt modeļa aizstājvārdu (un automātiski sinhronizēt ar Cloud, ja iespējots)     |
+| Metode | Ceļš                            | Nolūks                                                                                  |
+| ------ | ------------------------------- | --------------------------------------------------------------------------------------- |
+| POST   | `/api/cloud/auth`               | Validēt API atslēgu, atgriezt maskētus savienojuma metadatus un modeļu aizstājvārdus    |
+| PUT    | `/api/cloud/credentials/update` | Atjaunināt `accessToken` / `refreshToken` / `expiresAt`                                 |
+| POST   | `/api/cloud/model/resolve`      | Atrisināt modeļa aizstājvārdu par `{ provider, model }`                                 |
+| GET    | `/api/cloud/models/alias`       | Uzskaitīt visus modeļu aizstājvārdus                                                    |
+| PUT    | `/api/cloud/models/alias`       | Iestatīt modeļa aizstājvārdu (un automātiski sinhronizēt ar Cloud, ja tas ir iespējots) |
 
-`/api/cloud/auth` nekad neatgriež neapstrādātus `apiKey` / `accessToken` / `refreshToken`. Tas
-atgriež `hasApiKey`, `hasAccessToken`, `hasRefreshToken` un maskētu priekšskatījumu
-(`maskedApiKey`: pirmās 4 rakstzīmes + `****` + pēdējās 4 rakstzīmes).
+`/api/cloud/auth` nekad neatgriež neapstrādātas `apiKey` / `accessToken` / `refreshToken` vērtības. Tas
+atgriež `hasApiKey`, `hasAccessToken`, `hasRefreshToken` aktīvajiem savienojumiem, kurus atslēga
+drīkst izmantot (atslēga, kas ierobežota ar `allowedConnections`, redz tikai šos savienojumus). API atslēgai ar
+tvērumu `manage` vai `admin`, tostarp izvietošanas atslēgai no `OMNIROUTE_API_KEY`, tas arī
+atgriež maskētu priekšskatījumu (`maskedApiKey`: līdz 4 rakstzīmēm katrā galā, mazāk īsai
+atslēgai un nevienu atslēgām ar 8 vai mazāk rakstzīmēm) un savienojuma `projectId`. Abi lauki tiek
+izlaisti no atbildes jebkurai citai atslēgai.
 
 ## Akreditācijas datu noteikšana
 

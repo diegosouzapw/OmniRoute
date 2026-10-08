@@ -14,72 +14,72 @@
 
 ### Ví dụ nhanh
 
-| ID mô hình     | Biến thể | Hành vi                                                                  |
+| Model ID       | Biến thể | Hành vi                                                                  |
 | -------------- | -------- | ------------------------------------------------------------------------ |
 | `auto`         | mặc định | Tất cả nhà cung cấp đã kết nối, chiến lược LKGP, trọng số cân bằng       |
-| `auto/coding`  | coding   | Trọng số ưu tiên chất lượng, phù hợp để tạo mã                           |
-| `auto/fast`    | fast     | Lựa chọn có trọng số ưu tiên độ trễ thấp                                 |
+| `auto/coding`  | coding   | Trọng số ưu tiên chất lượng, phù hợp để sinh mã                          |
+| `auto/fast`    | fast     | Lựa chọn có trọng số với độ trễ thấp                                     |
 | `auto/cheap`   | cheap    | Định tuyến tối ưu chi phí (chi phí thấp nhất trước)                      |
 | `auto/offline` | offline  | Ưu tiên các nhà cung cấp có hạn mức khả dụng cao nhất                    |
 | `auto/smart`   | smart    | Ưu tiên chất lượng + tỷ lệ khám phá cao hơn (10%) để tìm mô hình tốt hơn |
 | `auto/lkgp`    | lkgp     | LKGP tường minh (giống `auto` mặc định)                                  |
-| `auto/chaos`   | chaos    | Trọng số chèn lỗi để kiểm thử khả năng phục hồi (chaos engineering)      |
+| `auto/chaos`   | chaos    | Phân nhánh song song, mỗi nhà cung cấp một mô hình (không phải chèn lỗi) |
 
-### Kết hợp danh mục × cấp (`auto/<category>:<tier>`)
+### Kết hợp danh mục × phân hạng (`auto/<category>:<tier>`)
 
-Các hậu tố theo phong cách OpenRouter tách biệt **loại tuyến** (danh mục) khỏi **cách tối ưu hóa tuyến đó** (cấp), vì vậy bạn có thể tự do kết hợp chúng (#4235 Phase B, `open-sse/services/autoCombo/suffixComposition.ts`):
+Các hậu tố theo phong cách OpenRouter tách biệt **loại định tuyến** (danh mục) với **cách tối ưu hóa** (phân hạng), nhờ đó bạn có thể tự do kết hợp chúng (#4235 Giai đoạn B, `open-sse/services/autoCombo/suffixComposition.ts`):
 
 - **Danh mục** (lọc nhóm ứng viên theo khả năng): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` giữ lại các mô hình có khả năng xử lý hình ảnh; `reasoning` giữ lại các mô hình suy luận/tư duy.
-- **Cấp** (chọn trọng số chấm điểm / bộ lọc nhóm): `fast` (triển khai nhanh) · `cheap` (bí danh `floor`, tiết kiệm chi phí) · `reliable` (tình trạng circuit breaker + độ ổn định độ trễ) · `free` / `pro` (lọc nhóm theo cấp mô hình thông qua `classifyTier` — cấp miễn phí so với cao cấp).
+- **Phân hạng** (chọn trọng số chấm điểm / bộ lọc nhóm): `fast` (triển khai nhanh) · `cheap` (bí danh `floor`, tiết kiệm chi phí) · `reliable` (tình trạng circuit breaker + độ ổn định của độ trễ) · `free` / `pro` (lọc nhóm theo phân hạng mô hình thông qua `classifyTier` — hạng miễn phí so với cao cấp).
 
-| Ví dụ                  | Được phân giải thành                                                      |
-| ---------------------- | ------------------------------------------------------------------------- |
-| `auto/coding:fast`     | nhóm coding, trọng số ưu tiên độ trễ thấp                                 |
-| `auto/coding:cheap`    | nhóm coding, tối ưu chi phí (bí danh `auto/coding:floor`)                 |
-| `auto/reasoning:pro`   | chỉ các mô hình suy luận/tư duy, cấp cao cấp                              |
-| `auto/vision`          | các mô hình có khả năng xử lý hình ảnh (không có cấp → trọng số cân bằng) |
-| `auto/multimodal:free` | các mô hình có khả năng đa phương thức, chỉ cấp miễn phí                  |
+| Ví dụ                  | Phân giải thành                                                            |
+| ---------------------- | -------------------------------------------------------------------------- |
+| `auto/coding:fast`     | nhóm coding, trọng số có độ trễ thấp                                       |
+| `auto/coding:cheap`    | nhóm coding, tối ưu chi phí (bí danh `auto/coding:floor`)                  |
+| `auto/reasoning:pro`   | chỉ các mô hình suy luận/tư duy, phân hạng cao cấp                         |
+| `auto/vision`          | các mô hình có khả năng xử lý hình ảnh (không có hạng → trọng số cân bằng) |
+| `auto/multimodal:free` | các mô hình có khả năng đa phương thức, chỉ phân hạng miễn phí             |
 
-Mọi `auto/<category>[:<tier>]` hợp lệ đều được phân giải theo yêu cầu; một tập con được tuyển chọn sẽ được công bố trong `/v1/models` và bảng điều khiển (`AUTO_SUFFIX_VARIANTS` trong `open-sse/services/autoCombo/builtinCatalog.ts`). Việc lọc hoạt động theo cơ chế **fail-open** — nếu không có mô hình đã kết nối nào khớp với ràng buộc, toàn bộ nhóm sẽ được sử dụng để quá trình định tuyến không bao giờ bị gián đoạn. Bộ chấm điểm cốt lõi (`combo.ts`) không thay đổi; bộ lọc danh mục/cấp được áp dụng trong `buildAutoCandidates`.
+Mọi `auto/<category>[:<tier>]` hợp lệ đều được phân giải theo yêu cầu; một tập con được tuyển chọn sẽ được công bố trong `/v1/models` và bảng điều khiển (`AUTO_SUFFIX_VARIANTS` trong `open-sse/services/autoCombo/builtinCatalog.ts`). Việc lọc là **fail-open** — nếu không có mô hình đã kết nối nào khớp với ràng buộc, toàn bộ nhóm sẽ được sử dụng để việc định tuyến không bao giờ bị gián đoạn. Bộ chấm điểm cốt lõi (`combo.ts`) không thay đổi; bộ lọc danh mục/phân hạng được áp dụng trong `buildAutoCandidates`.
 
-> **Thông tin mô hình theo thời gian thực:** mức độ phù hợp của tính năng tự động định tuyến được xác định dựa trên bảng xếp hạng **Arena ELO** trực tiếp + dữ liệu cấp từ **models.dev** khi cờ `ARENA_ELO_SYNC_ENABLED` được bật (nếu không, hệ thống sẽ quay về bản đồ mức độ phù hợp tĩnh).
+> **Thông tin mô hình trực tiếp:** mức độ phù hợp của tự động định tuyến được xác định dựa trên bảng xếp hạng **Arena ELO** trực tiếp + dữ liệu phân hạng từ **models.dev** khi cờ `ARENA_ELO_SYNC_ENABLED` được bật (nếu không sẽ quay về bản đồ mức độ phù hợp tĩnh).
 
 **Cách sử dụng:**
 
 ```bash
 # Bất kỳ IDE hoặc công cụ CLI nào hỗ trợ định dạng OpenAI
-URL cơ sở: http://localhost:20128/v1
-Khóa API:   <khóa-endpoint-của-bạn>
+Base URL: http://localhost:20128/v1
+API Key:  <your-endpoint-key>
 
-# Trong mã/cấu hình của bạn, đặt mô hình thành:
+# Trong mã/cấu hình của bạn, đặt model thành:
 model: "auto"                 # mặc định cân bằng
-model: "auto/coding"          # phù hợp nhất cho các tác vụ lập trình
+model: "auto/coding"          # tốt nhất cho các tác vụ lập trình
 model: "auto/fast"            # nhanh nhất hiện có
 model: "auto/cheap"           # rẻ nhất trên mỗi token
 ```
 
-**Điều gì sẽ xảy ra:**
+**Điều gì xảy ra:**
 
 1. OmniRoute phát hiện tiền tố `auto/` trong `src/sse/handlers/chat.ts`
 2. Truy vấn tất cả **kết nối nhà cung cấp đang hoạt động** từ cơ sở dữ liệu
-3. Lọc ra những kết nối có thông tin xác thực hợp lệ (khóa API hoặc token OAuth)
-4. Xác định mô hình cho từng kết nối (`connection.defaultModel` hoặc mô hình đầu tiên của nhà cung cấp)
+3. Lọc ra các kết nối có thông tin xác thực hợp lệ (API key hoặc OAuth token)
+4. Xác định mô hình cho mỗi kết nối (`connection.defaultModel` hoặc mô hình đầu tiên của nhà cung cấp)
 5. Tạo một **combo ảo** trong bộ nhớ (không được lưu trong DB)
 6. Định tuyến bằng hồ sơ trọng số của biến thể đã chọn + chiến lược LKGP
 
 **Các thuộc tính chính:**
 
-- ✅ **Luôn bật:** Không cần nút bật/tắt, không cần tạo combo, không cần cấu hình
+- ✅ **Luôn bật:** Không cần nút chuyển, không cần tạo combo, không cần cấu hình
 - ✅ **Động:** Tự động phản ánh các nhà cung cấp hiện đang được kết nối
 - ✅ **Duy trì phiên:** LKGP đảm bảo nhà cung cấp thành công gần nhất được ưu tiên
 - ✅ **Hỗ trợ nhiều tài khoản:** Mỗi kết nối nhà cung cấp trở thành một ứng viên riêng biệt
-- ✅ **Không ghi vào DB:** Combo ảo chỉ tồn tại trong phạm vi yêu cầu, không phát sinh chi phí duy trì dữ liệu
+- ✅ **Không ghi vào DB:** Combo ảo chỉ tồn tại trong phạm vi yêu cầu, không phát sinh chi phí lưu trữ lâu dài
 
 ### Kiểm soát ứng viên theo từng khóa (#7819, Cấp 1+2)
 
 `GET /v1/auto-combo/{channel}/candidates` (`{channel}` = hậu tố sau `auto/`, hoặc
-giá trị chữ `auto` đối với kênh cơ sở) là một endpoint **chỉ đọc**, liệt kê nhóm
-ứng viên hiện tại của một kênh `auto/*` cùng với trạng thái khả dụng trực tiếp, bằng
+giá trị nguyên văn `auto` cho kênh cơ sở) là một endpoint **chỉ đọc**, liệt kê nhóm
+ứng viên hiện tại của một kênh `auto/*` kèm theo trạng thái khả dụng trực tiếp, bằng
 cách tái sử dụng các thao tác đọc khả năng phục hồi hiện có (không bao giờ đọc trực
 tiếp `state` của breaker):
 
@@ -88,24 +88,24 @@ tiếp `state` của breaker):
   `provider_connections` đã được phân giải
 - khóa mô hình — `isModelLocked(provider, connectionId, model)`
 
-Mỗi ứng viên cũng mang cờ `excluded` của khóa API này. Các mục loại trừ được lưu
-theo từng khóa API (bảng `auto_candidate_overrides`, migration `128`) — OmniRoute
-là hệ thống đơn thuê bao không có bảng `users`, vì vậy `apiKeyId` là danh tính thực
-gần nhất cho mỗi bên gọi — và được thực thi tại điểm kiểm soát nhóm ứng viên trong
-`open-sse/services/autoCombo/virtualFactory.ts` thông qua hàm thuần túy đã được
-kiểm thử đơn vị `filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`).
-Bộ lọc hoạt động theo cơ chế **fail-open**: `apiKeyId`/kênh chưa được đặt hoặc lỗi
-tra cứu DB đều khiến nhóm không bị lọc, do đó một bên vận hành chưa cấu hình bất kỳ
-quy tắc ghi đè nào sẽ thấy hành vi định tuyến hoàn toàn giống từng byte so với trước
-khi có tính năng này.
+Mỗi ứng viên cũng mang cờ `excluded` dành cho API key này. Các trường hợp loại trừ
+được lưu theo từng API key (bảng `auto_candidate_overrides`, migration `128`) —
+OmniRoute là hệ thống đơn đối tượng thuê và không có bảng `users`, vì vậy `apiKeyId`
+là danh tính thực tế gần nhất theo từng bên gọi — đồng thời được thực thi tại điểm
+kiểm soát nhóm ứng viên trong `open-sse/services/autoCombo/virtualFactory.ts` thông
+qua `filterExcludedCandidates()` thuần túy, đã được kiểm thử đơn vị
+(`open-sse/services/autoCombo/candidateOverrides.ts`). Bộ lọc này là **fail-open**:
+`apiKeyId`/kênh chưa được đặt hoặc lỗi tra cứu DB đều khiến nhóm không bị lọc, vì vậy
+một người vận hành chưa cấu hình bất kỳ ghi đè nào sẽ thấy hoạt động định tuyến giống
+hệt từng byte so với trước khi có tính năng này.
 
 **Được hoãn sang một issue tiếp theo:** trọng số theo từng ứng viên + thứ tự rõ ràng (Cấp 3
-— tích hợp vào các luồng chiến lược trọng số/ưu tiên hiện có) và ghim một chiến lược
-`combo.ts` cụ thể cho từng kênh `auto/*` (Cấp 4). Xem kế hoạch #7819 về câu hỏi còn bỏ ngỏ
-liệu các thiết lập ghi đè nên duy trì theo từng khóa API hay chuyển thành toàn cục trong mô hình
-đơn khách thuê.
+— được đưa vào các luồng chiến lược trọng số/ưu tiên hiện có) và ghim một chiến lược
+`combo.ts` cụ thể cho từng kênh `auto/*` (Cấp 4). Xem kế hoạch #7819 để biết câu hỏi
+chưa được giải quyết về việc các giá trị ghi đè nên duy trì theo từng khóa API hay trở thành
+toàn cục do mô hình single-tenant.
 
-**Luồng xử lý bên trong:**
+**Cơ chế hoạt động phía sau:**
 
 ```txt
 Yêu cầu: { model: "auto/coding" }
@@ -114,19 +114,19 @@ src/sse/handlers/chat.ts phát hiện tiền tố
    ↓
 createVirtualAutoCombo('coding') → candidatePool từ các kết nối đang hoạt động
    ↓
-handleComboChat (cùng bộ máy với các combo được lưu)
+handleComboChat (cùng engine với các combo được lưu trữ)
    ↓
-Cơ chế tự động chấm điểm chọn nhà cung cấp/mô hình tốt nhất cho mỗi yêu cầu
+Tính điểm tự động chọn nhà cung cấp/mô hình tốt nhất cho mỗi yêu cầu
 ```
 
 **Các tệp triển khai:**
 
 | Tệp                                                       | Mục đích                                        |
 | --------------------------------------------------------- | ----------------------------------------------- |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Bộ phân tích tiền tố (`parseAutoPrefix`)        |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | Trình phân tích tiền tố (`parseAutoPrefix`)     |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Tạo các đối tượng `AutoComboConfig` ảo          |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Hook kiểm thử để mô phỏng registry nhà cung cấp |
-| `src/sse/handlers/chat.ts`                                | Tích hợp: thoát sớm khi gặp tiền tố tự động     |
+| `src/sse/handlers/chat.ts`                                | Tích hợp: xử lý tắt sớm đối với tiền tố tự động |
 | `src/shared/constants/providers.ts`                       | Mục hệ thống `SYSTEM_PROVIDERS.auto`            |
 
 ## Tên combo trùng với ID mô hình thực
@@ -217,9 +217,9 @@ Auto-Combo Engine tự động chọn nhà cung cấp/mô hình tốt nhất cho
 
 **Tổng:** `0.1429 + 0.1605 + 0.1429 + 0.1143 + 0.0762 + (7 × 0.0476) + 0.00 + 0.00 + 0.03 + 0.00 = 1.0` như được khai báo trong `DEFAULT_WEIGHTS`; các trọng số do người dùng cấu hình được `normalizeScoringWeights()` chuẩn hóa lại thành một phân phối trước khi tính điểm.
 
-## Gói chế độ
+## Các gói chế độ
 
-6 cấu hình trọng số được định nghĩa sẵn trong `open-sse/services/autoCombo/modePacks.ts`. Mỗi gói thay thế hoàn toàn các trọng số mặc định để thiên việc lựa chọn về một mục tiêu. Tổng trọng số của mỗi gói đã bằng `1.0` (`0.9999` khi hiển thị với bốn chữ số thập phân), vì vậy `normalizeScoringWeights()` không có gì đáng kể để hiệu chỉnh khi một gói đang hoạt động — xét đến việc làm tròn, các giá trị bên dưới chính là những giá trị mà bộ chấm điểm áp dụng.
+6 cấu hình trọng số được định nghĩa sẵn trong `open-sse/services/autoCombo/modePacks.ts`. Mỗi gói thay thế hoàn toàn các trọng số mặc định để thiên lệch việc lựa chọn về một mục tiêu. Tổng trọng số của mỗi gói đã bằng `1.0` (`0.9999` khi hiển thị với bốn chữ số thập phân), vì vậy `normalizeScoringWeights()` không có gì đáng kể để hiệu chỉnh khi một gói đang hoạt động — xét đến việc làm tròn, các giá trị bên dưới chính là các giá trị mà bộ chấm điểm áp dụng.
 
 | Yếu tố                | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
@@ -239,31 +239,31 @@ Auto-Combo Engine tự động chọn nhà cung cấp/mô hình tốt nhất cho
 | `quality`             | 0.02       | 0.02       | **0.03**      | 0.02             | 0.02              | 0.02       |
 | `reliability`         | 0.03       | 0.03       | 0.03          | 0.03             | **0.04**          | 0.03       |
 
-Lưu ý:
+Ghi chú:
 
-- **Các gói có chứa `quality` và `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) và thay thế toàn bộ ánh xạ trọng số (`weights = pack`, không phải phép hợp nhất). `DEFAULT_WEIGHTS` có `quality 0.03 / reliability 0`; việc chọn `balanced`/`default` giữ nguyên các giá trị mặc định đó, còn việc chọn một gói sẽ sử dụng các giá trị của gói nêu trên. Trên một pool chưa có dữ liệu (chưa có quan sát nào, do đó `quality 0.5` và `reliability 1`), hai yếu tố này cộng thêm `+0.04` khi dùng một gói thông thường (`0.03 + 0.01`), `+0.045` khi dùng `quality-first` và `+0.05` khi dùng `reliability-first`.
+- **Các gói chứa `quality` và `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) và thay thế toàn bộ ánh xạ trọng số (`weights = pack`, không phải phép hợp nhất). `DEFAULT_WEIGHTS` chứa `quality 0.03 / reliability 0`; việc chọn `balanced`/`default` giữ nguyên các giá trị mặc định đó, còn việc chọn một gói sẽ sử dụng các giá trị của gói ở trên. Trên một pool lạnh (chưa có quan sát nào, do đó `quality 0.5` và `reliability 1`), hai yếu tố này cộng thêm `+0.04` với một gói thông thường (`0.03 + 0.01`), `+0.045` với `quality-first` và `+0.05` với `reliability-first`.
 - `tierAffinity`, `specificityMatch` và `resetWindowAffinity` được đặt rõ ràng thành `0` trong mọi gói.
-- Tổng quan về trọng tâm của từng gói:
+- Tổng quan nhanh về trọng tâm của từng gói:
   - **ship-fast** → latencyInv 0.3048 + health 0.2667 (các kết nối có độ trễ thấp và trạng thái tốt)
-  - **cost-saver** → costInv 0.3324 (token rẻ nhất sẽ được ưu tiên)
-  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, cao nhất trong mọi gói (mô hình tốt nhất và ổn định cho tác vụ)
+  - **cost-saver** → costInv 0.3324 (token rẻ nhất sẽ thắng)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, cao nhất trong tất cả các gói (mô hình tốt nhất cho tác vụ, nhất quán)
   - **offline-friendly** → quota 0.3324 + health 0.2667 (dung lượng dự phòng tối đa bất kể tốc độ/chi phí)
-  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, cao nhất trong mọi gói (ít sự cố bất ngờ nhất)
-  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (cấu hình tiêm lỗi)
+  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, cao nhất trong tất cả các gói (ít tình huống bất ngờ nhất)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (gói trọng số mà `auto/chaos` gán cho các thành viên trong bảng của nó; cơ chế phân tán song song không đọc các trọng số này và đây không phải là một cấu hình chèn lỗi, xem [CHAOS-MODE.md](../guides/CHAOS-MODE.md#autochaos-parallel-fan-out))
 
-### Kiểm soát theo từng yêu cầu (header) — #6023 / #6024 / #6025 / #3470
+### Các điều khiển theo từng yêu cầu (header) — #6023 / #6024 / #6025 / #3470
 
-Một combo `auto` có thể được điều chỉnh **theo từng yêu cầu** thông qua ba header mà không làm thay đổi cấu hình đã lưu của combo. Các header này chỉ áp dụng cho chiến lược `auto` và chỉ cho yêu cầu chứa chúng; `modePack`/`budgetCap`/`budgetFallback` đã lưu của combo sẽ được sử dụng khi không có header.
+Một combo `auto` có thể được điều hướng **theo từng yêu cầu** thông qua ba header mà không làm thay đổi cấu hình đã lưu của combo. Chúng chỉ áp dụng cho chiến lược `auto` và chỉ cho yêu cầu chứa chúng; `modePack`/`budgetCap`/`budgetFallback` đã lưu của combo được sử dụng khi không có header.
 
-| Tiêu đề                       | Chấp nhận                                                                                                                                                                                       | Tác dụng                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| :---------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-Mode`            | một bí danh cấu hình sẵn (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) hoặc tên gói thô (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Ghi đè các trọng số chấm điểm cho yêu cầu này. `balanced`/`default` buộc sử dụng các trọng số mặc định (không có gói). Các giá trị không xác định sẽ bị bỏ qua (cấu hình được giữ nguyên).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `X-OmniRoute-Budget`          | một số dương (số USD tối đa cho mỗi yêu cầu)                                                                                                                                                    | Giới hạn chi phí cứng: các ứng viên có chi phí ước tính vượt quá giới hạn này sẽ bị lọc trước khi lựa chọn. Điều gì xảy ra khi **mọi** ứng viên đều vượt quá giới hạn được kiểm soát bởi `X-OmniRoute-Budget-Fallback` bên dưới.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `X-OmniRoute-Budget-Fallback` | `cheapest` (mặc định, bí danh: `cheapest-viable`, `soft`) hoặc `strict` (bí danh: `block`, `hard`)                                                                                              | `cheapest`: chuyển sang ứng viên rẻ nhất trên toàn cục mặc dù ứng viên đó vẫn vượt quá giới hạn (hành vi cũ). `strict`: từ chối lựa chọn — yêu cầu thất bại ngay lập tức với `HTTP 402` thay vì âm thầm chi tiêu vượt mức. Các giá trị không xác định sẽ bị bỏ qua.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| `X-OmniRoute-Effort`          | `auto` (các giá trị khác được dành riêng)                                                                                                                                                       | Ngân sách suy luận thích ứng: khi yêu cầu **không** chứa trường suy luận ở bất kỳ dạng nào (`reasoning_effort`, `reasoning`, `thinking`), cổng sẽ phân giải `auto` thành `low`/`medium`/`high` dựa trên các tín hiệu xác định từ cấu trúc yêu cầu (độ dài thông điệp cuối cùng của người dùng, kích thước ngữ cảnh tính đến thông điệp cuối cùng của người dùng, các kết quả công cụ trước đó, độ sâu vòng lặp công cụ). Các tín hiệu được giới hạn trong lượt hiện tại — mọi nội dung sau thông điệp cuối cùng của người dùng đều bị bỏ qua — vì vậy mọi yêu cầu trong một vòng lặp công cụ đều được phân giải về cùng một mức (ghim không trạng thái theo từng lượt, không có trạng thái phiên, không tăng mức giữa vòng lặp vì điều đó sẽ phá vỡ các tiền tố bộ nhớ đệm lời nhắc ở thượng nguồn). Trường suy luận do máy khách chỉ định rõ ràng luôn được ưu tiên. Chỉ áp dụng cho các yêu cầu có quá trình điều phối ở thượng nguồn được phân giải sang dạng OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` là một trường có dạng OpenAI, vì vậy tiêu đề này không có tác dụng đối với yêu cầu nhắm đến Claude hoặc Gemini (xem `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
+| Header                        | Chấp nhận                                                                                                                                                                                  | Tác dụng                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| :---------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`            | bí danh cài đặt sẵn (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) hoặc tên gói thô (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Ghi đè các trọng số chấm điểm cho yêu cầu này. `balanced`/`default` buộc sử dụng các trọng số mặc định (không dùng gói). Các giá trị không xác định sẽ bị bỏ qua (cấu hình được giữ nguyên).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `X-OmniRoute-Budget`          | số dương (mức USD tối đa cho mỗi yêu cầu)                                                                                                                                                  | Giới hạn cứng về chi phí: các ứng viên có chi phí ước tính vượt quá giới hạn sẽ bị lọc trước khi lựa chọn. Hành vi khi **mọi** ứng viên đều vượt quá giới hạn được kiểm soát bởi `X-OmniRoute-Budget-Fallback` bên dưới.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (mặc định, bí danh: `cheapest-viable`, `soft`) hoặc `strict` (bí danh: `block`, `hard`)                                                                                         | `cheapest`: dùng ứng viên có chi phí thấp nhất trên toàn cục làm phương án dự phòng, dù ứng viên đó vẫn vượt quá giới hạn (hành vi cũ). `strict`: từ chối lựa chọn — yêu cầu thất bại ngay với `HTTP 402` thay vì âm thầm chi vượt mức. Các giá trị không xác định sẽ bị bỏ qua.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `X-OmniRoute-Effort`          | `auto` (các giá trị khác được dành riêng)                                                                                                                                                  | Ngân sách suy luận thích ứng: khi yêu cầu **không** chứa trường suy luận dưới bất kỳ dạng nào (`reasoning_effort`, `reasoning`, `thinking`), gateway phân giải `auto` thành `low`/`medium`/`high` dựa trên các tín hiệu xác định từ hình dạng yêu cầu (độ dài tin nhắn cuối cùng của người dùng, kích thước ngữ cảnh tính đến tin nhắn cuối cùng của người dùng, các kết quả công cụ trước đó, độ sâu vòng lặp công cụ). Các tín hiệu được giới hạn trong lượt hiện tại — mọi nội dung sau tin nhắn cuối cùng của người dùng đều bị bỏ qua — vì vậy mọi yêu cầu trong một vòng lặp công cụ đều được phân giải về cùng một mức (ghim không trạng thái theo từng lượt, không có trạng thái phiên, không tăng mức giữa vòng lặp vì điều đó sẽ phá vỡ các tiền tố bộ nhớ đệm prompt ở thượng nguồn). Trường suy luận do client chỉ định rõ ràng luôn được ưu tiên. Chỉ áp dụng cho các yêu cầu có quá trình điều phối thượng nguồn phân giải thành dạng OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` là một trường theo dạng OpenAI, vì vậy header này không có tác dụng đối với yêu cầu nhắm đến Claude hoặc Gemini (xem `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
 
 ```bash
-# Buộc dùng cấu hình nhanh nhất, giới hạn yêu cầu này ở mức $0.05 và chặn cứng thay vì chi vượt ngân sách
+# Buộc dùng cấu hình nhanh nhất, giới hạn yêu cầu này ở mức $0.05 và chặn hoàn toàn thay vì chi vượt mức
 curl -sS http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-OmniRoute-Mode: fast" \
@@ -274,56 +274,104 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 Quá trình phân giải là một hàm thuần túy (`open-sse/services/autoCombo/requestControls.ts`); các
 giá trị đã phân giải được truyền vào các đầu vào `config.modePack` / `config.budgetCap` /
-`config.budgetFallback` hiện có của công cụ. Giá trị `config.budgetFallback` ("strict" |
-"cheapest") được lưu trữ của một combo thiết lập chính sách cố định; header sẽ ghi đè giá trị đó cho một yêu cầu duy nhất.
+`config.budgetFallback` hiện có của engine. `config.budgetFallback` được lưu trữ của một combo ("strict" |
+"cheapest") thiết lập chính sách lâu dài; header sẽ ghi đè chính sách đó cho một yêu cầu duy nhất.
 
 ## Tất cả chiến lược định tuyến
 
-Công cụ combo của OmniRoute hỗ trợ **19 chiến lược định tuyến** (được khai báo trong `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Bản thân công cụ Auto Combo được cung cấp dưới chiến lược `auto`; các chiến lược khác có thể được sử dụng cho các combo đã lưu.
+Công cụ kết hợp của OmniRoute hỗ trợ **19 chiến lược định tuyến** (được khai báo trong `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Bản thân công cụ Auto Combo được cung cấp thông qua chiến lược `auto`; các chiến lược còn lại có thể dùng cho các tổ hợp được lưu trữ lâu dài.
 
-| Chiến lược          | Mô tả                                                                                                                                                                                                                                      |
-| :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `priority`          | Danh sách có thứ tự ưu tiên mục tiêu đầu tiên với mức độ ưu tiên được chỉ định rõ ràng                                                                                                                                                     |
-| `weighted`          | Chọn ngẫu nhiên có trọng số theo trọng số của từng mục tiêu                                                                                                                                                                                |
-| `round-robin`       | Lần lượt xoay vòng qua các mục tiêu theo thứ tự                                                                                                                                                                                            |
-| `context-relay`     | Chuyển tiếp ngữ cảnh giữa các mục tiêu (các cuộc hội thoại dài)                                                                                                                                                                            |
-| `fill-first`        | Sử dụng hết hạn ngạch của từng mục tiêu trước khi chuyển sang mục tiêu tiếp theo                                                                                                                                                           |
-| `p2c`               | Cân bằng tải ngẫu nhiên theo phương pháp sức mạnh của 2 lựa chọn                                                                                                                                                                           |
-| `random`            | Lựa chọn ngẫu nhiên đồng đều                                                                                                                                                                                                               |
-| `least-used`        | Chọn mục tiêu có tải hiện tại thấp nhất                                                                                                                                                                                                    |
-| `cost-optimized`    | Giảm thiểu chi phí $ cho mỗi yêu cầu dựa trên bảng giá                                                                                                                                                                                     |
-| `reset-aware` ⭐    | Ưu tiên theo thời gian đặt lại hạn ngạch — các khoảng thời gian đặt lại ngắn được xếp hạng cao hơn                                                                                                                                         |
-| `reset-window`      | Ưu tiên các mục tiêu có cửa sổ hạn ngạch được đặt lại sớm nhất                                                                                                                                                                             |
-| `headroom`          | Chọn mục tiêu có phần hạn ngạch còn lại lớn nhất                                                                                                                                                                                           |
-| `strict-random`     | Chọn ngẫu nhiên mà không loại bỏ các lần lặp lại                                                                                                                                                                                           |
-| `auto`              | Sử dụng cách tính điểm Auto Combo (16 yếu tố) — **khuyến nghị**                                                                                                                                                                            |
-| `lkgp`              | Đường dẫn tốt gần nhất đã biết (ghim vào nhà cung cấp thành công gần nhất, sau đó chuyển sang các quy tắc dự phòng)                                                                                                                        |
-| `context-optimized` | Chọn mục tiêu phù hợp nhất với kích thước ngữ cảnh hiện tại                                                                                                                                                                                |
-| `cache-optimized`   | Sắp xếp lại các mục tiêu theo mức độ liên quan của bộ nhớ đệm prompt — kết nối có nhiều khả năng đã lưu tiền tố được lưu trong bộ nhớ đệm của yêu cầu này nhất sẽ được thử trước (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
-| `fusion` 🧬         | Gửi song song tới một nhóm mô hình, sau đó tổng hợp thành một câu trả lời thông qua mô hình giám khảo (xem bên dưới)                                                                                                                       |
-| `pipeline`          | Chạy các mục tiêu tuần tự, truyền đầu ra của mỗi bước vào đầu vào của bước tiếp theo; chỉ câu trả lời cuối cùng được trả về (#6396)                                                                                                        |
+| Chiến lược          | Mô tả                                                                                                                                                                                                                               |
+| :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `priority`          | Danh sách có thứ tự ưu tiên, trong đó mục tiêu đầu tiên được chọn trước                                                                                                                                                             |
+| `weighted`          | Chọn ngẫu nhiên có trọng số dựa trên trọng số của từng mục tiêu                                                                                                                                                                     |
+| `round-robin`       | Luân phiên qua các mục tiêu theo thứ tự (theo lô; xem bên dưới)                                                                                                                                                                     |
+| `context-relay`     | Chuyển tiếp ngữ cảnh giữa các mục tiêu (đối với hội thoại dài)                                                                                                                                                                      |
+| `fill-first`        | Dùng hết hạn ngạch của từng mục tiêu trước khi chuyển sang mục tiêu tiếp theo                                                                                                                                                       |
+| `p2c`               | Cân bằng tải ngẫu nhiên theo phương pháp chọn tốt hơn trong 2 lựa chọn                                                                                                                                                              |
+| `random`            | Lựa chọn ngẫu nhiên đồng đều                                                                                                                                                                                                        |
+| `least-used`        | Chọn mục tiêu có tải hiện tại thấp nhất                                                                                                                                                                                             |
+| `cost-optimized`    | Giảm thiểu chi phí $ trên mỗi yêu cầu dựa trên mức giá trong danh mục                                                                                                                                                               |
+| `reset-aware` ⭐    | Ưu tiên theo thời gian đặt lại hạn ngạch — các cửa sổ đặt lại ngắn hơn được xếp hạng cao hơn                                                                                                                                        |
+| `reset-window`      | Ưu tiên các mục tiêu có cửa sổ hạn ngạch được đặt lại sớm nhất                                                                                                                                                                      |
+| `headroom`          | Chọn mục tiêu có phần hạn ngạch còn lại lớn nhất                                                                                                                                                                                    |
+| `strict-random`     | Chọn ngẫu nhiên mà không loại bỏ các lần lặp lại                                                                                                                                                                                    |
+| `auto`              | Sử dụng cơ chế chấm điểm Auto Combo (16 yếu tố) — **khuyến nghị**                                                                                                                                                                   |
+| `lkgp`              | Đường dẫn tốt gần nhất đã biết (cố định vào nhà cung cấp thành công gần nhất, sau đó dự phòng theo các quy tắc)                                                                                                                     |
+| `context-optimized` | Chọn mục tiêu phù hợp nhất với kích thước ngữ cảnh hiện tại                                                                                                                                                                         |
+| `cache-optimized`   | Sắp xếp lại các mục tiêu theo mức độ tương thích với bộ nhớ đệm lời nhắc — kết nối có khả năng cao nhất đã lưu tiền tố của yêu cầu này trong bộ nhớ đệm sẽ được thử trước (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
+| `fusion` 🧬         | Gửi yêu cầu song song đến một nhóm mô hình, sau đó tổng hợp thành một câu trả lời thông qua mô hình giám khảo (xem bên dưới)                                                                                                        |
+| `pipeline`          | Chạy tuần tự các mục tiêu, chuyển đầu ra của mỗi bước thành đầu vào của bước tiếp theo; chỉ trả về câu trả lời cuối cùng (#6396)                                                                                                    |
 
 ⭐ = Mới trong v3.8.0 · 🧬 = Mới trong v3.8.36
 
 ### Ngữ nghĩa của `weighted`
 
-`weighted` là một **phép rút thăm ngẫu nhiên theo tỷ lệ cho mỗi yêu cầu**
-(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), không phải là cơ chế cân bằng:
+`weighted` là một **phép lấy mẫu ngẫu nhiên theo tỷ lệ cho mỗi yêu cầu**
+(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), không phải cơ chế cân bằng:
 
 - Mỗi yêu cầu chọn **một** bước với xác suất `weight / totalWeight`; các bước còn lại
-  được sắp xếp theo trọng số giảm dần để tạo thành chuỗi dự phòng cho yêu cầu đó.
-- Một bước có trọng số bằng `0` (hoặc không có trọng số) sẽ **không bao giờ được chọn** khi bất kỳ bước nào khác có
+  được sắp xếp theo trọng số giảm dần để làm chuỗi dự phòng cho yêu cầu đó.
+- Bước có trọng số bằng `0` (hoặc không có trọng số) sẽ **không bao giờ được chọn** khi bất kỳ bước nào khác có
   trọng số > 0 — bước đó chỉ có thể đóng vai trò dự phòng sau khi bước được chọn thất bại. Chỉ khi **tất cả**
   trọng số đều bằng 0 thì việc lựa chọn mới trở thành đồng đều.
-- Các bước có toàn bộ mục tiêu không khả dụng — cầu dao nhà cung cấp ở trạng thái `OPEN`, kết nối
-  đang trong thời gian chờ, mô hình bị khóa — sẽ bị loại khỏi phép rút thăm trước khi nó diễn ra
+- Các bước có toàn bộ mục tiêu không khả dụng — bộ ngắt mạch của nhà cung cấp ở trạng thái `OPEN`, kết nối
+  đang trong thời gian chờ, mô hình bị khóa — sẽ bị loại khỏi phép lấy mẫu trước khi quá trình này diễn ra
   (`open-sse/services/combo/targetResolution.ts`), vì vậy một bước duy nhất đang hoạt động bình thường có thể tạm thời
   được chọn cho mọi yêu cầu.
-- `stickyWeightedLimit` (cấu hình combo, mặc định `1` = tắt) ghim bước được chọn trong số lần
-  thành công liên tiếp tương ứng trước khi rút thăm lại.
+- `stickyWeightedLimit` (cấu hình tổ hợp, mặc định `1` = tắt) cố định bước được chọn trong số lượng
+  lần thành công liên tiếp tương ứng trước khi chọn lại.
 
-Để xoay vòng nghiêm ngặt, hãy sử dụng `round-robin`; các trọng số bằng nhau trên `weighted` tạo ra sự cân bằng mang tính thống kê — không phải
-nghiêm ngặt.
+Để luân phiên nghiêm ngặt, hãy sử dụng `round-robin`; các trọng số bằng nhau trong `weighted` tạo ra sự cân bằng
+mang tính thống kê — không phải nghiêm ngặt.
+
+### Chế độ pipeline tác tử
+
+Một tổ hợp `pipeline` gồm hai bước có thể bật định tuyến planner/executor bằng
+`config.agenticOrchestration.enabled`. Đích đầu tiên đảm nhiệm việc lập kế hoạch và đưa ra câu trả lời cuối cùng;
+đích thứ hai phát ra các lệnh gọi công cụ theo định dạng gốc của máy khách. OmniRoute phát hiện các lượt tiếp nối
+chứa kết quả công cụ từ giao thức yêu cầu, hỏi planner xem có cần thêm một lượt công cụ hay không,
+và tự động chọn executor hoặc planner làm bước cuối cùng trả về cho máy khách.
+
+```json
+{
+  "strategy": "pipeline",
+  "models": [{ "model": "provider/planner" }, { "model": "provider/executor" }],
+  "config": {
+    "agenticOrchestration": { "enabled": true, "maxToolRounds": 8 }
+  }
+}
+```
+
+Executor có thể phát ra nhiều lệnh gọi độc lập trong một phản hồi. Các lệnh gọi phụ thuộc được
+xử lý trong những lượt kết quả công cụ tiếp theo từ máy khách, với planner xem xét mọi kết quả.
+`maxToolRounds` mặc định là `8` và chấp nhận `1`–`32`; khi đạt đến giới hạn, planner phải
+tạo ra câu trả lời cuối cùng tốt nhất hiện có. Các quyết định nội bộ của planner được lưu vào bộ đệm, trong khi
+phản hồi được chọn để trả về cho máy khách vẫn giữ nguyên tùy chọn truyền phát ban đầu.
+
+### Lô cố định `round-robin` và mở rộng tài khoản
+
+Round-robin được xử lý theo lô, không phải mỗi bước một yêu cầu:
+
+- `stickyRoundRobinLimit` (cấu hình tổ hợp, sau đó là `comboStickyRoundRobinLimit`, rồi
+  `settings.stickyRoundRobinLimit`, mặc định **3**) giữ nguyên một đích trong số lần
+  thành công liên tiếp tương ứng trước khi xoay vòng. Đặt giá trị ghi đè của tổ hợp thành `1` để
+  xoay vòng sau mỗi yêu cầu. Trình chỉnh sửa tổ hợp hiển thị giá trị có hiệu lực và lớp cung cấp giá trị đó.
+- `connectionAwareExpansion` (cấu hình tổ hợp, sau đó là cài đặt, mặc định **false**) mở rộng
+  từng bước cấp nhà cung cấp thành các đích theo từng tài khoản trước khi xoay vòng. Các chiến lược Nhóm B
+  (priority, weighted, round-robin, random, p2c, least-used, cost-optimized, lkgp,
+  fill-first, strict-random, context-optimized, cache-optimized, context-relay, fusion,
+  pipeline) duy trì chế độ xem ở cấp nhà cung cấp cho đến khi tùy chọn này được bật. Trình chỉnh sửa tổ hợp cung cấp
+  các lựa chọn kế thừa / bật / tắt; kế thừa sử dụng giá trị mặc định toàn cục (tắt).
+- Định tuyến theo tính cục bộ của bộ nhớ đệm prompt (`promptCacheAffinityEnabled`, mặc định **true**) sắp xếp lại
+  các kết nối được ghim để các khóa bộ nhớ đệm trùng khớp tiếp tục sử dụng cùng một tài khoản. Tùy chọn này được ưu tiên hơn
+  việc xoay vòng round-robin và weighted giữa các bước theo từng tài khoản được ghim. Hãy tắt tùy chọn này trong
+  Settings → Combo defaults nếu bạn cần xoay vòng nghiêm ngặt. Không có tùy chọn ghi đè cho từng tổ hợp.
+
+Để xoay vòng nhiều tài khoản trên một mô hình, nên dùng **một bước tài khoản động** (`connectionId`
+trống, toàn bộ nhóm) với giới hạn cố định là `1`, thay vì ba `connectionId` được ghim.
+Các bước được ghim kết hợp với tính năng affinity sẽ dồn về cùng một tài khoản ngay cả khi bộ đếm RR
+vẫn tăng.
 
 ## Chiến lược Fusion
 
@@ -714,13 +762,17 @@ Bao gồm `auto` nguyên bản (mặc định) cùng với 6 giá trị `AutoVar
 
 (Bản thân `AutoVariant` liệt kê 6 giá trị; tùy chọn thứ 7 là "không có biến thể" — `auto` nguyên bản — được `parseAutoPrefix()` xử lý dưới dạng `variant: undefined`.)
 
-## Cách các bậc được tích hợp vào Auto-Combo
+## Cách các bậc hoạt động trong Auto-Combo
 
-Hàm chấm điểm gồm 16 yếu tố (`open-sse/services/autoCombo/scoring.ts`) xem việc thuộc một bậc là hai tín hiệu: `tierPriority` (0.0476) và `tierAffinity` (0.0476). Xem [bảng yếu tố chấm điểm](#how-it-works-persisted-auto-combos) chuẩn ở trên để biết toàn bộ tập hợp `DEFAULT_WEIGHTS` — các giá trị ghi đè theo từng gói (ship-fast/cost-saver/quality-first/
+Hàm chấm điểm gồm 16 yếu tố (`open-sse/services/autoCombo/scoring.ts`) xem việc
+thuộc một bậc là hai tín hiệu: `tierPriority` (0.0476) và `tierAffinity` (0.0476). Xem
+[bảng yếu tố chấm điểm chuẩn](#how-it-works-persisted-auto-combos) ở trên để biết đầy đủ
+tập hợp `DEFAULT_WEIGHTS` — các giá trị ghi đè theo từng gói (ship-fast/cost-saver/quality-first/
 offline-friendly) được liệt kê trong bảng "Hồ sơ trọng số theo từng gói".
 
 Chỉ riêng bậc **không** buộc Bậc 1 phải được ưu tiên trước — nếu độ trễ của Bậc 1 kém hoặc
-tỷ lệ chi phí trên chất lượng không tối ưu, Bậc 2 sẽ được chọn. Để buộc thứ tự theo bậc, hãy sử dụng chiến lược combo `priority` và sắp xếp các nhà cung cấp theo bậc.
+tỷ lệ chi phí so với chất lượng không tối ưu, Bậc 2 sẽ được chọn. Để buộc thứ tự theo bậc, hãy sử dụng
+chiến lược tổ hợp `priority` và sắp xếp các nhà cung cấp theo bậc.
 
 Để ưu tiên mạnh Bậc 1 (gói đăng ký), hãy tăng trọng số `tierPriority`:
 
@@ -731,7 +783,7 @@ tỷ lệ chi phí trên chất lượng không tối ưu, Bậc 2 sẽ được
 }
 ```
 
-Xem `docs/marketing/TIERS.md` để biết định nghĩa các bậc và cách phân loại nhà cung cấp.
+Xem [`docs/guides/TIERS.md`](../guides/TIERS.md) để biết định nghĩa các bậc và cách phân loại nhà cung cấp.
 
 ## Kiểm thử & độ bao phủ
 

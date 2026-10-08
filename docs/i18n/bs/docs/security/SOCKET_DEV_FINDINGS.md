@@ -169,30 +169,29 @@ da centralizuje kredencijale tima. Ispravka čini model prijetnje iskrenim:
 
 ---
 
-## Build profil: `minimal`
+## Profil izgradnje: `minimal`
 
-Za korisnike kojima je potreban Socket-friendly artefakt, build-ajte sa:
+Za korisnike kojima je potreban artefakt kompatibilan sa Socketom, izgradite ga pomoću:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-Webpack `NormalModuleReplacementPlugin` aliasa četiri modula u stub-ove:
+Webpackov `NormalModuleReplacementPlugin` mapira četiri modula na zamjenske implementacije:
 
-| Modul                                       | Stub                                             |
+| Modul                                       | Zamjenska implementacija                         |
 | ------------------------------------------- | ------------------------------------------------ |
 | `src/mitm/cert/install.ts`                  | `src/mitm/cert/install.stub.ts`                  |
 | `src/lib/zed-oauth/keychain-reader.ts`      | `src/lib/zed-oauth/keychain-reader.stub.ts`      |
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Svaki stub eksportuje isti interfejs, ali svaka funkcija baca
-`featureDisabledError(name)` u runtime-u. Rute koje zavise od onemogućenog
-modula vraćaju HTTP 503 sa jasnom porukom umjesto aktiviranja
-osjetljivog puta koda.
+Svaka zamjenska implementacija izvozi isto sučelje, ali svaka funkcija tokom izvršavanja izaziva grešku
+`featureDisabledError(name)`. Rute koje zavise od onemogućenog
+modula vraćaju HTTP 503 s jasnom porukom umjesto aktiviranja
+osjetljive putanje koda.
 
-Rezultujući bundle je namijenjen za objavljivanje kao `omniroute-secure`. Pogledajte
-`docs/ops/PUBLISHING_SECURE.md` za recept za objavljivanje.
+Rezultirajući paket namijenjen je za objavljivanje pod nazivom `omniroute-secure`.
 
 ---
 

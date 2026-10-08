@@ -10,50 +10,50 @@
 
 ## Automatické smerovanie bez konfigurácie (prefix `auto/`)
 
-> **NOVINKA:** Vytvorenie kombinácie nie je potrebné. Použite prefix `auto/` priamo v ľubovoľnom klientovi.
+> **NOVINKA:** Nie je potrebné vytvárať žiadne combo. Použite prefix `auto/` priamo v ľubovoľnom klientovi.
 
 ### Rýchle príklady
 
-| ID modelu      | Variant | Správanie                                                                            |
-| -------------- | ------- | ------------------------------------------------------------------------------------ |
-| `auto`         | default | Všetci pripojení poskytovatelia, stratégia LKGP, vyvážené váhy                       |
-| `auto/coding`  | coding  | Váhy uprednostňujúce kvalitu, vhodné na generovanie kódu                             |
-| `auto/fast`    | fast    | Vážený výber s nízkou latenciou                                                      |
-| `auto/cheap`   | cheap   | Smerovanie optimalizované podľa nákladov (najprv najnižšie náklady)                  |
-| `auto/offline` | offline | Uprednostňuje poskytovateľov s najvyššou dostupnosťou kvóty                          |
-| `auto/smart`   | smart   | Uprednostnenie kvality + vyššia miera prieskumu (10 %) na lepšie objavovanie modelov |
-| `auto/lkgp`    | lkgp    | Explicitné LKGP (rovnaké ako predvolené `auto`)                                      |
-| `auto/chaos`   | chaos   | Váhy vkladania porúch na testovanie odolnosti (chaos engineering)                    |
+| ID modelu      | Variant | Správanie                                                                             |
+| -------------- | ------- | ------------------------------------------------------------------------------------- |
+| `auto`         | default | Všetci pripojení poskytovatelia, stratégia LKGP, vyvážené váhy                        |
+| `auto/coding`  | coding  | Váhy uprednostňujúce kvalitu, vhodné na generovanie kódu                              |
+| `auto/fast`    | fast    | Vážený výber s nízkou latenciou                                                       |
+| `auto/cheap`   | cheap   | Smerovanie optimalizované podľa nákladov (najnižšie náklady ako prvé)                 |
+| `auto/offline` | offline | Uprednostňuje poskytovateľov s najvyššou dostupnou kvótou                             |
+| `auto/smart`   | smart   | Kvalita na prvom mieste + vyššia miera prieskumu (10 %) na lepšie objavovanie modelov |
+| `auto/lkgp`    | lkgp    | Explicitné LKGP (rovnaké ako predvolené `auto`)                                       |
+| `auto/chaos`   | chaos   | Paralelné rozvetvenie, jeden model na poskytovateľa (nejde o vkladanie porúch)        |
 
-### Kombinovanie kategórie × úrovne (`auto/<category>:<tier>`)
+### Kombinácia kategórie × úrovne (`auto/<category>:<tier>`)
 
-Prípony v štýle OpenRouter oddeľujú **aký druh trasy** (kategória) od toho, **ako ju optimalizovať** (úroveň), takže ich môžete ľubovoľne kombinovať (#4235 fáza B, `open-sse/services/autoCombo/suffixComposition.ts`):
+Prípony v štýle OpenRouter oddeľujú **aký druh trasy** (kategória) od toho, **ako ju optimalizovať** (úroveň), takže ich môžete ľubovoľne kombinovať (#4235 Phase B, `open-sse/services/autoCombo/suffixComposition.ts`):
 
-- **Kategórie** (filtrujú množinu kandidátov podľa schopností): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` zachovávajú modely podporujúce obrazový vstup; `reasoning` zachováva modely schopné uvažovania/premýšľania.
+- **Kategórie** (filtrujú množinu kandidátov podľa schopností): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` zachovávajú modely podporujúce obrazový vstup; `reasoning` zachováva modely s uvažovaním/premýšľaním.
 - **Úrovne** (vyberajú váhy hodnotenia/filter množiny): `fast` (rýchle nasadenie) · `cheap` (alias `floor`, úspora nákladov) · `reliable` (stav ističa + stabilita latencie) · `free` / `pro` (filtrujú množinu podľa úrovne modelu prostredníctvom `classifyTier` — bezplatná vs. prémiová úroveň).
 
-| Príklad                | Výsledok                                                                 |
-| ---------------------- | ------------------------------------------------------------------------ |
-| `auto/coding:fast`     | množina na kódovanie, váhy s nízkou latenciou                            |
-| `auto/coding:cheap`    | množina na kódovanie, optimalizácia nákladov (alias `auto/coding:floor`) |
-| `auto/reasoning:pro`   | iba modely na uvažovanie/premýšľanie, prémiová úroveň                    |
-| `auto/vision`          | modely podporujúce obrazový vstup (bez úrovne → vyvážené váhy)           |
-| `auto/multimodal:free` | modely s multimodálnymi schopnosťami, iba bezplatná úroveň               |
+| Príklad                | Výsledok                                                                         |
+| ---------------------- | -------------------------------------------------------------------------------- |
+| `auto/coding:fast`     | množina pre kódovanie, váhy s nízkou latenciou                                   |
+| `auto/coding:cheap`    | množina pre kódovanie, optimalizovaná podľa nákladov (alias `auto/coding:floor`) |
+| `auto/reasoning:pro`   | iba modely s uvažovaním/premýšľaním, prémiová úroveň                             |
+| `auto/vision`          | modely podporujúce obrazový vstup (bez úrovne → vyvážené váhy)                   |
+| `auto/multimodal:free` | modely s multimodálnymi schopnosťami, iba bezplatná úroveň                       |
 
-Každý platný identifikátor `auto/<category>[:<tier>]` sa vyhodnotí podľa potreby; starostlivo vybraná podmnožina sa zverejňuje v `/v1/models` a na ovládacom paneli (`AUTO_SUFFIX_VARIANTS` v `open-sse/services/autoCombo/builtinCatalog.ts`). Filtrovanie je typu **fail-open** — ak obmedzeniu nezodpovedajú žiadne pripojené modely, použije sa celá množina, aby sa smerovanie nikdy neprerušilo. Základný mechanizmus hodnotenia (`combo.ts`) zostáva nezmenený; filter kategórie/úrovne sa použije v `buildAutoCandidates`.
+Každé platné `auto/<category>[:<tier>]` sa vyhodnocuje na požiadanie; vybraná podmnožina sa zobrazuje v `/v1/models` a na ovládacom paneli (`AUTO_SUFFIX_VARIANTS` v `open-sse/services/autoCombo/builtinCatalog.ts`). Filtrovanie funguje v režime **fail-open** — ak obmedzeniu nezodpovedá žiadny pripojený model, použije sa celá množina, aby sa smerovanie nikdy neprerušilo. Základný hodnotiaci mechanizmus (`combo.ts`) zostáva nezmenený; filter kategórie/úrovne sa aplikuje v `buildAutoCandidates`.
 
-> **Aktuálne informácie o modeloch:** vhodnosť automatického smerovania vychádza z aktuálnych rebríčkov **Arena ELO** + údajov o úrovniach z **models.dev**, keď je zapnutý príznak `ARENA_ELO_SYNC_ENABLED` (inak sa použije statická mapa vhodnosti).
+> **Aktuálne informácie o modeloch:** vhodnosť pre automatické smerovanie sa určuje pomocou aktuálnych rebríčkov **Arena ELO** a údajov o úrovniach z **models.dev**, keď je zapnutý príznak `ARENA_ELO_SYNC_ENABLED` (inak sa použije statická mapa vhodnosti).
 
 **Ako používať:**
 
 ```bash
 # Ľubovoľné IDE alebo nástroj CLI, ktorý podporuje formát OpenAI
 Base URL: http://localhost:20128/v1
-API Key:  <your-endpoint-key>
+API Key:  <váš-kľúč-koncového-bodu>
 
-# Vo svojom kóde/konfigurácii nastavte model na:
+# V kóde/konfigurácii nastavte model na:
 model: "auto"                 # vyvážené predvolené nastavenie
-model: "auto/coding"          # najlepšie na úlohy programovania
+model: "auto/coding"          # najlepšie pre úlohy programovania
 model: "auto/fast"            # najrýchlejší dostupný
 model: "auto/cheap"           # najlacnejší na token
 ```
@@ -64,68 +64,68 @@ model: "auto/cheap"           # najlacnejší na token
 2. Z databázy načíta všetky **aktívne pripojenia poskytovateľov**
 3. Vyfiltruje tie, ktoré majú platné prihlasovacie údaje (kľúč API alebo token OAuth)
 4. Určí model pre každé pripojenie (`connection.defaultModel` alebo prvý model poskytovateľa)
-5. Vytvorí **virtuálnu kombináciu** v pamäti (neuloží sa do DB)
-6. Vykoná smerovanie pomocou váhového profilu vybraného variantu + stratégie LKGP
+5. Zostaví **virtuálne combo** v pamäti (neukladá sa do DB)
+6. Smeruje pomocou váhového profilu vybraného variantu + stratégie LKGP
 
 **Kľúčové vlastnosti:**
 
-- ✅ **Vždy zapnuté:** Nie je potrebný prepínač, vytvorenie kombinácie ani žiadna konfigurácia
+- ✅ **Vždy aktívne:** Nie je potrebný prepínač, vytvorenie comba ani konfigurácia
 - ✅ **Dynamické:** Automaticky zohľadňuje aktuálne pripojených poskytovateľov
-- ✅ **Stálosť relácie:** LKGP zabezpečuje uprednostnenie posledného úspešného poskytovateľa
+- ✅ **Stabilita relácie:** LKGP zabezpečuje uprednostnenie posledného úspešného poskytovateľa
 - ✅ **Podpora viacerých účtov:** Každé pripojenie poskytovateľa sa stane samostatným kandidátom
-- ✅ **Žiadne zápisy do DB:** Virtuálna kombinácia existuje iba počas požiadavky, bez režijných nákladov na uchovávanie
+- ✅ **Žiadne zápisy do DB:** Virtuálne combo existuje iba počas požiadavky, bez režijných nákladov na perzistenciu
 
-### Ovládanie kandidátov podľa kľúča (#7819, úroveň 1+2)
+### Riadenie kandidátov podľa kľúča (#7819, úroveň 1+2)
 
 `GET /v1/auto-combo/{channel}/candidates` (`{channel}` = prípona za `auto/` alebo
-doslovné `auto` pre základný kanál) je koncový bod **iba na čítanie**, ktorý uvádza
-aktuálnu množinu kandidátov kanála `auto/*` doplnenú o aktuálnu dostupnosť, pričom
-opätovne používa existujúce čítania odolnosti (nikdy nie nespracovaný `state` ističa):
+doslovná hodnota `auto` pre základný kanál) je koncový bod **iba na čítanie**, ktorý uvádza
+aktuálnu množinu kandidátov kanála `auto/*` doplnenú o aktuálnu dostupnosť, pričom opätovne používa
+existujúce čítania odolnosti (nikdy nie surovú hodnotu `state` ističa):
 
 - istič poskytovateľa — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
-- čas na zotavenie pripojenia — `rateLimitedUntil` / `testStatus` vo vyhodnotenom
+- čakacia lehota pripojenia — `rateLimitedUntil` / `testStatus` vo vyhodnotenom
   riadku `provider_connections`
-- zablokovanie modelu — `isModelLocked(provider, connectionId, model)`
+- uzamknutie modelu — `isModelLocked(provider, connectionId, model)`
 
 Každý kandidát obsahuje aj príznak `excluded` pre tento kľúč API. Vylúčenia sa ukladajú
-pre každý kľúč API samostatne (tabuľka `auto_candidate_overrides`, migrácia `128`) — OmniRoute
-je systém pre jedného nájomcu bez tabuľky `users`, takže `apiKeyId` je najbližšia skutočná
-identita jednotlivého volajúceho — a vynucujú sa v kritickom bode množiny kandidátov v
-`open-sse/services/autoCombo/virtualFactory.ts` prostredníctvom čistej, jednotkovo testovanej
-funkcie `filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`).
-Filter je typu **fail-open**: nenastavené apiKeyId/kanál aj zlyhanie vyhľadávania v DB
-ponechajú množinu nefiltrovanú, takže operátor bez nakonfigurovaných výnimiek dostane smerovanie
-bajtovo identické so stavom pred zavedením tejto funkcie.
+samostatne pre každý kľúč API (tabuľka `auto_candidate_overrides`, migrácia `128`) — OmniRoute je
+systém s jedným tenantom bez tabuľky `users`, takže `apiKeyId` je najbližšia skutočná identita
+jednotlivého volajúceho — a vynucujú sa v kritickom bode množiny kandidátov v
+`open-sse/services/autoCombo/virtualFactory.ts` prostredníctvom čistej, jednotkovo testovanej funkcie
+`filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`).
+Filter funguje v režime **fail-open**: nenastavené apiKeyId/kanál aj zlyhanie vyhľadávania v DB
+ponechajú množinu nefiltrovanú, takže operátor bez nakonfigurovaných prepísaní uvidí smerovanie
+na úrovni bajtov identické so stavom pred zavedením tejto funkcie.
 
-**Odložené do nadväzujúceho problému:** váhy jednotlivých kandidátov + explicitné poradie (Úroveň 3
-— využíva existujúce cesty stratégií váženia/priority) a pripnutie konkrétnej stratégie
-`combo.ts` ku každému kanálu `auto/*` (Úroveň 4). Otvorenú otázku, či majú prepísania vzhľadom na
-model s jedným nájomníkom zostať viazané na jednotlivé kľúče API alebo sa majú stať globálnymi,
-nájdete v pláne #7819.
+**Odložené na nadväzujúcu úlohu:** váhy jednotlivých kandidátov + explicitné poradie (úroveň 3
+— napája sa na existujúce cesty stratégií váženia/priority) a pripnutie konkrétnej
+stratégie `combo.ts` ku každému kanálu `auto/*` (úroveň 4). Otvorenú otázku, či majú
+prepísania vzhľadom na model s jedným nájomníkom zostať viazané na jednotlivé kľúče API,
+alebo sa majú stať globálnymi, nájdete v pláne #7819.
 
 **Na pozadí:**
 
 ```txt
 Požiadavka: { model: "auto/coding" }
    ↓
-src/sse/handlers/chat.ts rozpozná prefix
+src/sse/handlers/chat.ts zistí prefix
    ↓
 createVirtualAutoCombo('coding') → candidatePool z aktívnych pripojení
    ↓
 handleComboChat (rovnaký mechanizmus ako pri uložených kombináciách)
    ↓
-Automatické bodovanie vyberie najlepšieho poskytovateľa/model pre každú požiadavku
+Automatické vyhodnocovanie vyberie pre každú požiadavku najlepšieho poskytovateľa/model
 ```
 
-**Súbory implementácie:**
+**Implementačné súbory:**
 
-| Súbor                                                     | Účel                                                       |
-| --------------------------------------------------------- | ---------------------------------------------------------- |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Analyzátor prefixu (`parseAutoPrefix`)                     |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Vytvára virtuálne objekty `AutoComboConfig`                |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testovací mechanizmus na simuláciu registra poskytovateľov |
-| `src/sse/handlers/chat.ts`                                | Integrácia: skrátené spracovanie prefixu auto              |
-| `src/shared/constants/providers.ts`                       | Systémová položka `SYSTEM_PROVIDERS.auto`                  |
+| Súbor                                                     | Účel                                                         |
+| --------------------------------------------------------- | ------------------------------------------------------------ |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | Analyzátor prefixu (`parseAutoPrefix`)                       |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Vytvára virtuálne objekty `AutoComboConfig`                  |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testovací mechanizmus na simulovanie registra poskytovateľov |
+| `src/sse/handlers/chat.ts`                                | Integrácia: skrátené spracovanie automatického prefixu       |
+| `src/shared/constants/providers.ts`                       | Systémová položka `SYSTEM_PROVIDERS.auto`                    |
 
 ## Názvy kombinácií zhodné so skutočným identifikátorom modelu
 
@@ -216,7 +216,7 @@ Mechanizmus automatických kombinácií dynamicky vyberá najlepšieho poskytova
 
 ## Balíky režimov
 
-6 preddefinovaných profilov váh v `open-sse/services/autoCombo/modePacks.ts`. Každý balík úplne nahrádza predvolené váhy, aby uprednostnil výber zameraný na jeden cieľ. Súčet hodnôt každého balíka je už `1.0` (`0.9999` pri zobrazení na štyri desatinné miesta), takže `normalizeScoringWeights()` pri aktívnom balíku nemá čo zmysluplne upravovať — nižšie uvedené hodnoty sú po zaokrúhlení tie, ktoré hodnotiaci mechanizmus používa.
+6 preddefinovaných profilov váh v `open-sse/services/autoCombo/modePacks.ts`. Každý balík úplne nahrádza predvolené váhy, aby uprednostnil výber zameraný na jeden cieľ. Súčet hodnôt každého balíka je už `1.0` (`0.9999` pri zobrazení na štyri desatinné miesta), takže `normalizeScoringWeights()` nemá pri aktívnom balíku čo významne upravovať — nižšie uvedené hodnoty sú po zaokrúhlení tie, ktoré vyhodnocovací mechanizmus používa.
 
 | Faktor                | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
@@ -238,32 +238,32 @@ Mechanizmus automatických kombinácií dynamicky vyberá najlepšieho poskytova
 
 Poznámky:
 
-- **Balíky obsahujú `quality` a `reliability`** (`quality 0.02`, pri `quality-first 0.03`; `reliability 0.03`, pri `reliability-first 0.04`) a úplne nahrádzajú mapu váh (`weights = pack`, nejde o zlúčenie). `DEFAULT_WEIGHTS` obsahuje `quality 0.03 / reliability 0`; výber možnosti `balanced`/`default` zachová tieto predvolené hodnoty, zatiaľ čo výber balíka použije jeho hodnoty uvedené vyššie. V studenom poole (zatiaľ bez pozorovaní, takže `quality 0.5` a `reliability 1`) pridajú tieto dva faktory pri všeobecnom balíku hodnotu `+0.04` (`0.03 + 0.01`), pri `quality-first` hodnotu `+0.045` a pri `reliability-first` hodnotu `+0.05`.
+- **Balíky obsahujú `quality` a `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) a úplne nahrádzajú mapu váh (`weights = pack`, nejde o zlúčenie). `DEFAULT_WEIGHTS` obsahuje `quality 0.03 / reliability 0`; výber `balanced`/`default` zachová tieto predvolené hodnoty, zatiaľ čo výber balíka použije jeho hodnoty uvedené vyššie. V nenaplnenom poole (zatiaľ bez pozorovaní, takže `quality 0.5` a `reliability 1`) tieto dva faktory pridajú `+0.04` pri všeobecnom balíku (`0.03 + 0.01`), `+0.045` pri `quality-first` a `+0.05` pri `reliability-first`.
 - `tierAffinity`, `specificityMatch` a `resetWindowAffinity` majú v každom balíku explicitne nastavenú hodnotu `0`.
 - Stručný prehľad zamerania jednotlivých balíkov:
   - **ship-fast** → latencyInv 0.3048 + health 0.2667 (zdravé pripojenia s nízkou latenciou)
   - **cost-saver** → costInv 0.3324 (vyhrávajú najlacnejšie tokeny)
-  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, najvyššia hodnota spomedzi všetkých balíkov (najlepší model pre danú úlohu, konzistentný)
-  - **offline-friendly** → quota 0.3324 + health 0.2667 (maximálna rezerva bez ohľadu na rýchlosť alebo náklady)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, najvyššia hodnota spomedzi všetkých balíkov (najlepší a konzistentný model pre danú úlohu)
+  - **offline-friendly** → quota 0.3324 + health 0.2667 (maximálna rezerva bez ohľadu na rýchlosť či cenu)
   - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, najvyššia hodnota spomedzi všetkých balíkov (najmenej prekvapení)
-  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (profil na vkladanie porúch)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (balík váh, ktorý `auto/chaos` priraďuje členom svojho panela; paralelné vetvenie tieto váhy nečíta a nejde o profil vkladania porúch, pozrite si [CHAOS-MODE.md](../guides/CHAOS-MODE.md#autochaos-parallel-fan-out))
 
-### Ovládacie prvky pre jednotlivé požiadavky (hlavičky) — #6023 / #6024 / #6025 / #3470
+### Ovládanie pre jednotlivé požiadavky (hlavičky) — #6023 / #6024 / #6025 / #3470
 
-Kombináciu `auto` možno riadiť **pre každú požiadavku samostatne** prostredníctvom troch hlavičiek bez toho, aby sa zmenila uložená konfigurácia
-kombinácie. Tieto nastavenia sa vzťahujú iba na stratégiu `auto` a iba na požiadavku,
-ktorá ich obsahuje; ak hlavička chýba, použijú sa uložené hodnoty `modePack`/`budgetCap`/`budgetFallback`
+Kombináciu `auto` možno **pre každú požiadavku** riadiť pomocou troch hlavičiek bez zmeny
+uloženej konfigurácie kombinácie. Tie sa vzťahujú iba na stratégiu `auto` a iba na požiadavku,
+ktorá ich obsahuje; ak hlavička nie je prítomná, použijú sa uložené hodnoty `modePack`/`budgetCap`/`budgetFallback`
 danej kombinácie.
 
-| Hlavička                      | Akceptuje                                                                                                                                                                                             | Účinok                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| :---------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-Mode`            | alias predvoľby (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) alebo nespracovaný názov balíka (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Prepíše váhy hodnotenia pre túto požiadavku. `balanced`/`default` vynútia predvolené váhy (bez balíka). Neznáme hodnoty sa ignorujú (konfigurácia sa zachová).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `X-OmniRoute-Budget`          | kladné číslo (maximálna suma v USD na požiadavku)                                                                                                                                                     | Pevný strop nákladov: kandidáti, ktorých odhadované náklady ho prekračujú, sa pred výberom odfiltrujú. Správanie v prípade, že ho prekračuje **každý** kandidát, riadi nižšie uvedená hlavička `X-OmniRoute-Budget-Fallback`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| `X-OmniRoute-Budget-Fallback` | `cheapest` (predvolené, aliasy: `cheapest-viable`, `soft`) alebo `strict` (aliasy: `block`, `hard`)                                                                                                   | `cheapest`: použije ako náhradnú možnosť globálne najlacnejšieho kandidáta, aj keď stále prekračuje limit (pôvodné správanie). `strict`: odmietne vykonať výber — požiadavka okamžite zlyhá s `HTTP 402` namiesto tichého prekročenia rozpočtu. Neznáme hodnoty sa ignorujú.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `X-OmniRoute-Effort`          | `auto` (ostatné hodnoty sú rezervované)                                                                                                                                                               | Adaptívny rozpočet na premýšľanie: keď požiadavka neobsahuje **žiadne** pole uvažovania v akejkoľvek podobe (`reasoning_effort`, `reasoning`, `thinking`), brána prevedie hodnotu `auto` na `low`/`medium`/`high` na základe deterministických signálov štruktúry požiadavky (dĺžka poslednej správy používateľa, veľkosť kontextu po poslednú správu používateľa, predchádzajúce výsledky nástrojov, hĺbka cyklu nástrojov). Signály sú obmedzené na aktuálny ťah — všetko za poslednou správou používateľa sa ignoruje — takže každá požiadavka v cykle nástrojov sa vyhodnotí na rovnakú úroveň (bezstavové pripnutie na jeden ťah, žiadny stav relácie, žiadne zvýšenie úrovne uprostred cyklu, ktoré by narušilo prefixy vyrovnávacej pamäte promptov nadradeného systému). Explicitné pole uvažovania od klienta má vždy prednosť. Vzťahuje sa na požiadavky, ktorých odoslanie do nadradeného systému sa vyhodnotí na formát OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` je pole vo formáte OpenAI, takže hlavička nemá žiadny účinok na požiadavku smerovanú na Claude alebo Gemini (pozrite si `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
+| Hlavička                      | Akceptuje                                                                                                                                                                                             | Účinok                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| :---------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`            | alias predvoľby (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) alebo nespracovaný názov balíka (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Prepíše váhy hodnotenia pre túto požiadavku. `balanced`/`default` vynútia predvolené váhy (bez balíka). Neznáme hodnoty sa ignorujú (konfigurácia sa zachová).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `X-OmniRoute-Budget`          | kladné číslo (maximálna suma v USD na požiadavku)                                                                                                                                                     | Pevný strop nákladov: kandidáti, ktorých odhadované náklady ho prekračujú, sa pred výberom odfiltrujú. To, čo sa stane, keď ho prekročí **každý** kandidát, určuje nižšie uvedená hlavička `X-OmniRoute-Budget-Fallback`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (predvolené, aliasy: `cheapest-viable`, `soft`) alebo `strict` (aliasy: `block`, `hard`)                                                                                                   | `cheapest`: použije globálne najlacnejšieho kandidáta, hoci stále prekračuje strop (pôvodné správanie). `strict`: odmietne vykonať výber — požiadavka okamžite zlyhá s kódom `HTTP 402` namiesto tichého prekročenia rozpočtu. Neznáme hodnoty sa ignorujú.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `X-OmniRoute-Effort`          | `auto` (ostatné hodnoty sú rezervované)                                                                                                                                                               | Adaptívny rozpočet na uvažovanie: keď požiadavka neobsahuje **žiadne** pole uvažovania v akejkoľvek podobe (`reasoning_effort`, `reasoning`, `thinking`), brána prevedie hodnotu `auto` na `low`/`medium`/`high` na základe deterministických signálov zo štruktúry požiadavky (dĺžka poslednej správy používateľa, veľkosť kontextu po poslednú správu používateľa, predchádzajúce výsledky nástrojov, hĺbka cyklu nástrojov). Signály sú obmedzené na aktuálny ťah — všetko za poslednou správou používateľa sa ignoruje — takže každá požiadavka v cykle nástrojov sa vyhodnotí na rovnakú úroveň (bezstavové pripnutie pre daný ťah, žiadny stav relácie, žiadne zvýšenie úrovne uprostred cyklu, ktoré by narušilo prefixy vyrovnávacej pamäte promptov nadradeného systému). Explicitné pole uvažovania zadané klientom má vždy prednosť. Platí pre požiadavky, ktorých odoslanie do nadradeného systému sa vyhodnotí na formát OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` je pole vo formáte OpenAI, takže hlavička nemá žiadny účinok na požiadavku smerovanú na Claude alebo Gemini (pozrite `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
 
 ```bash
-# Vynúti najrýchlejší profil, obmedzí túto požiadavku na $0.05 a namiesto prekročenia rozpočtu ju striktne zablokuje
+# Vynúti najrýchlejší profil, obmedzí túto požiadavku na $0.05 a namiesto prekročenia rozpočtu ju úplne zablokuje
 curl -sS http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-OmniRoute-Mode: fast" \
@@ -272,58 +272,113 @@ curl -sS http://localhost:20128/v1/chat/completions \
   -d '{"model":"auto","messages":[{"role":"user","content":"hi"}]}'
 ```
 
-Vyhodnotenie je čistá funkcia (`open-sse/services/autoCombo/requestControls.ts`); výsledné
-hodnoty sa odovzdajú do existujúcich vstupov jadra `config.modePack` / `config.budgetCap` /
-`config.budgetFallback`. Uložená hodnota `config.budgetFallback` kombinácie („strict“ |
-„cheapest“) nastavuje trvalú politiku; hlavička ju prepíše pre jednu požiadavku.
+Vyhodnotenie je čistá funkcia (`open-sse/services/autoCombo/requestControls.ts`);
+vyhodnotené hodnoty vstupujú do existujúcich vstupov mechanizmu `config.modePack` / `config.budgetCap` /
+`config.budgetFallback`. Uložená hodnota `config.budgetFallback` kombinácie ("strict" |
+"cheapest") nastavuje trvalú politiku; hlavička ju prepíše pre jednu požiadavku.
 
 ## Všetky stratégie smerovania
 
-Kombinačný mechanizmus OmniRoute podporuje **19 stratégií smerovania** (deklarovaných v `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Samotný mechanizmus Auto Combo je dostupný prostredníctvom stratégie `auto`; ostatné sú k dispozícii pre uložené kombinácie.
+Kombinačný modul OmniRoute podporuje **19 stratégií smerovania** (deklarovaných v `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Samotný modul Auto Combo je dostupný v rámci stratégie `auto`; ostatné stratégie sú k dispozícii pre uložené kombinácie.
 
-| Stratégia           | Opis                                                                                                                                                                                                                                                       |
+| Stratégia           | Popis                                                                                                                                                                                                                                                      |
 | :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `priority`          | Usporiadaný zoznam s prvým cieľom a explicitnou prioritou                                                                                                                                                                                                  |
+| `priority`          | Zoradený zoznam s prvým cieľom a explicitnou prioritou                                                                                                                                                                                                     |
 | `weighted`          | Vážený náhodný výber podľa váhy jednotlivých cieľov                                                                                                                                                                                                        |
-| `round-robin`       | Postupné cyklické prechádzanie cieľov                                                                                                                                                                                                                      |
+| `round-robin`       | Cyklické prechádzanie cieľov v poradí (po dávkach; pozri nižšie)                                                                                                                                                                                           |
 | `context-relay`     | Odovzdávanie kontextu medzi cieľmi (dlhé konverzácie)                                                                                                                                                                                                      |
-| `fill-first`        | Vyčerpanie kvóty každého cieľa pred prechodom na ďalší                                                                                                                                                                                                     |
+| `fill-first`        | Naplnenie kvóty každého cieľa pred prechodom na ďalší                                                                                                                                                                                                      |
 | `p2c`               | Náhodné vyvažovanie záťaže metódou výberu z 2 možností                                                                                                                                                                                                     |
 | `random`            | Rovnomerný náhodný výber                                                                                                                                                                                                                                   |
 | `least-used`        | Výber cieľa s najnižšou aktuálnou záťažou                                                                                                                                                                                                                  |
-| `cost-optimized`    | Minimalizácia ceny v $ za požiadavku podľa katalógových cien                                                                                                                                                                                               |
-| `reset-aware` ⭐    | Uprednostnenie podľa času obnovenia kvóty — kratšie intervaly obnovenia sú zaradené vyššie                                                                                                                                                                 |
+| `cost-optimized`    | Minimalizácia ceny v $ za požiadavku na základe katalógových cien                                                                                                                                                                                          |
+| `reset-aware` ⭐    | Určenie priority podľa času obnovenia kvóty — kratšie intervaly obnovenia sú hodnotené vyššie                                                                                                                                                              |
 | `reset-window`      | Uprednostnenie cieľov, ktorých interval kvóty sa obnoví najskôr                                                                                                                                                                                            |
 | `headroom`          | Výber cieľa s najväčšou zostávajúcou rezervou kvóty                                                                                                                                                                                                        |
-| `strict-random`     | Náhodný výber bez deduplikácie opakovaní                                                                                                                                                                                                                   |
+| `strict-random`     | Náhodný výber bez odstraňovania opakovaní                                                                                                                                                                                                                  |
 | `auto`              | Použitie hodnotenia Auto Combo (16 faktorov) — **odporúčané**                                                                                                                                                                                              |
-| `lkgp`              | Posledná známa funkčná cesta (pripne sa k poslednému úspešnému poskytovateľovi a následne použije záložné pravidlá)                                                                                                                                        |
+| `lkgp`              | Posledná známa funkčná cesta (pripne sa k poslednému úspešnému poskytovateľovi a potom použije pravidlá ako záložnú možnosť)                                                                                                                               |
 | `context-optimized` | Výber cieľa, ktorý najlepšie vyhovuje aktuálnej veľkosti kontextu                                                                                                                                                                                          |
 | `cache-optimized`   | Zmena poradia cieľov podľa afinity vyrovnávacej pamäte promptov — ako prvé sa vyskúša pripojenie, ktoré už s najväčšou pravdepodobnosťou obsahuje prefix tejto požiadavky vo vyrovnávacej pamäti (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
-| `fusion` 🧬         | Paralelné rozoslanie požiadavky panelu modelov a následné zlúčenie do jednej odpovede pomocou posudzovacieho modelu (pozri nižšie)                                                                                                                         |
-| `pipeline`          | Sekvenčné spustenie cieľov, pričom výstup každého kroku sa odovzdáva ako vstup nasledujúcemu kroku; vráti sa iba konečná odpoveď (#6396)                                                                                                                   |
+| `fusion` 🧬         | Paralelné rozoslanie skupine modelov a následná syntéza jednej odpovede pomocou posudzovateľa (pozri nižšie)                                                                                                                                               |
+| `pipeline`          | Sekvenčné spustenie cieľov, pričom výstup každého kroku sa odovzdáva ako vstup ďalšiemu kroku; vráti sa iba konečná odpoveď (#6396)                                                                                                                        |
 
-⭐ = Nové vo v3.8.0 · 🧬 = Nové vo v3.8.36
+⭐ = Novinka vo v3.8.0 · 🧬 = Novinka vo v3.8.36
 
 ### Sémantika stratégie `weighted`
 
 `weighted` predstavuje **proporcionálny náhodný výber pre každú požiadavku**
-(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), nie mechanizmus vyrovnávania:
+(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), nie vyrovnávanie:
 
-- Pre každú požiadavku sa vyberie **jeden** krok s pravdepodobnosťou `weight / totalWeight`; zostávajúce kroky
-  sú pre danú požiadavku zoradené podľa klesajúcej váhy ako záložný reťazec.
+- Každá požiadavka vyberie **jeden** krok s pravdepodobnosťou `weight / totalWeight`; zostávajúce kroky
+  sú pre danú požiadavku zoradené zostupne podľa váhy ako reťazec záložných možností.
 - Krok, ktorého váha je `0` (alebo chýba), sa **nikdy nevyberie**, pokiaľ má akýkoľvek iný krok
-  váhu > 0 — môže slúžiť iba ako záloha po zlyhaní vybraného kroku. Výber sa stane rovnomerným iba vtedy, keď sú **všetky**
+  váhu > 0 — môže slúžiť iba ako záložná možnosť po zlyhaní vybraného kroku. Výber sa stane rovnomerným, iba keď sú **všetky**
   váhy 0.
 - Kroky, ktorých ciele sú všetky nedostupné — istič poskytovateľa v stave `OPEN`, doba čakania
-  pripojenia, zablokovanie modelu — sa z výberu odstránia ešte pred jeho vykonaním
+  pripojenia, uzamknutie modelu — sa pred uskutočnením výberu odstránia
   (`open-sse/services/combo/targetResolution.ts`), takže jediný funkčný krok môže dočasne
   vyhrať pri každej požiadavke.
 - `stickyWeightedLimit` (konfigurácia kombinácie, predvolená hodnota `1` = vypnuté) pripne vybraný krok na daný počet
-  po sebe nasledujúcich úspešných vykonaní pred ďalším výberom.
+  po sebe nasledujúcich úspechov pred opätovným výberom.
 
-Na striktne cyklické striedanie použite `round-robin`; rovnaké váhy pri stratégii `weighted` poskytujú štatistické — nie
+Na striktnú rotáciu použite `round-robin`; rovnaké váhy pri stratégii `weighted` poskytujú štatistické — nie
 striktné — vyváženie.
+
+### Agentný režim kanála
+
+Dvojkroková kombinácia `pipeline` môže aktivovať smerovanie plánovača/exekútora pomocou
+`config.agenticOrchestration.enabled`. Prvý cieľ zodpovedá za plánovanie a konečné odpovede;
+druhý cieľ generuje volania nástrojov v natívnom formáte klienta. OmniRoute zisťuje
+pokračovania s výsledkami nástrojov z protokolu požiadavky, pýta sa plánovača, či je
+potrebné ďalšie kolo nástrojov, a dynamicky nastaví exekútor alebo plánovač ako posledný
+krok komunikujúci s klientom.
+
+```json
+{
+  "strategy": "pipeline",
+  "models": [{ "model": "provider/planner" }, { "model": "provider/executor" }],
+  "config": {
+    "agenticOrchestration": { "enabled": true, "maxToolRounds": 8 }
+  }
+}
+```
+
+Exekútor môže v jednej odpovedi vygenerovať viacero nezávislých volaní. Závislé volania sa
+spracujú v neskorších klientskych kolách s výsledkami nástrojov, pričom plánovač kontroluje
+každý výsledok. Predvolená hodnota `maxToolRounds` je `8` a podporovaný rozsah je `1`–`32`;
+po dosiahnutí limitu musí plánovač vytvoriť najlepšiu dostupnú konečnú odpoveď. Interné
+rozhodnutia plánovača sa ukladajú do vyrovnávacej pamäte, zatiaľ čo vybraná odpoveď určená
+klientovi zachováva pôvodnú preferenciu streamovania.
+
+### Dávkové a účtové rozšírenie stratégie `round-robin`
+
+Round-robin funguje dávkovo, nie ako jedna požiadavka na krok:
+
+- `stickyRoundRobinLimit` (konfigurácia kombinácie, potom `comboStickyRoundRobinLimit`, potom
+  `settings.stickyRoundRobinLimit`, predvolená hodnota **3**) zachová rovnaký cieľ pre daný
+  počet po sebe nasledujúcich úspešných požiadaviek a až potom ho zmení. Ak chcete cieľ
+  meniť po každej požiadavke, nastavte prepísanie pre kombináciu na `1`. Editor kombinácií
+  zobrazuje efektívnu hodnotu a vrstvu, z ktorej pochádza.
+- `connectionAwareExpansion` (konfigurácia kombinácie, potom nastavenia, predvolená hodnota
+  **false**) pred rotáciou rozšíri každý krok na úrovni poskytovateľa na ciele pre jednotlivé
+  účty. Stratégie skupiny B (priorita, vážená, round-robin, náhodná, p2c, najmenej používaná,
+  optimalizovaná podľa nákladov, lkgp, najprv zaplniť, striktne náhodná, optimalizovaná podľa
+  kontextu, optimalizovaná podľa vyrovnávacej pamäte, prenos kontextu, fúzia, pipeline)
+  zachovávajú zobrazenie na úrovni poskytovateľa, kým táto možnosť nie je zapnutá. Editor
+  kombinácií ponúka zdediť / zapnúť / vypnúť; zdedenie používa globálnu predvolenú hodnotu
+  (vypnuté).
+- Smerovanie podľa lokality vyrovnávacej pamäte promptov (`promptCacheAffinityEnabled`,
+  predvolená hodnota **true**) zmení poradie pripnutých pripojení tak, aby zhodné kľúče
+  vyrovnávacej pamäte zostali v jednom účte. Má prednosť pred rotáciou round-robin a váženou
+  rotáciou medzi pripnutými krokmi pre jednotlivé účty. Ak potrebujete striktnú rotáciu,
+  vypnite ho v časti Nastavenia → Predvolené hodnoty kombinácií. Pre jednotlivé kombinácie
+  nie je k dispozícii žiadne prepísanie.
+
+Pri rotácii medzi viacerými účtami pre jeden model uprednostnite **jeden krok s dynamickým
+účtom** (prázdne `connectionId`, celý fond) s limitom pripnutia `1`, nie tri pripnuté
+`connectionId`. Pripnuté kroky spolu s afinitou vedú k použitiu rovnakého účtu, aj keď sa
+počítadlo RR naďalej zvyšuje.
 
 ## Stratégia Fusion
 
@@ -720,14 +775,14 @@ Vrátane samotného `auto` (predvolené) a 6 hodnôt `AutoVariant` deklarovanýc
 
 ## Ako úrovne zapadajú do Auto-Combo
 
-Bodovacia funkcia so 16 faktormi (`open-sse/services/autoCombo/scoring.ts`) považuje príslušnosť
-k úrovni za dva signály: `tierPriority` (0.0476) a `tierAffinity` (0.0476). Úplnú
-množinu `DEFAULT_WEIGHTS` nájdete v kanonickej [tabuľke bodovacích faktorov](#how-it-works-persisted-auto-combos) vyššie — prepisy pre jednotlivé balíky (ship-fast/cost-saver/quality-first/
-offline-friendly) sú uvedené v tabuľke „Profily váh podľa balíka“.
+Bodovacia funkcia so 16 faktormi (`open-sse/services/autoCombo/scoring.ts`) považuje
+príslušnosť k úrovni za dva signály: `tierPriority` (0.0476) a `tierAffinity` (0.0476). Úplnú
+množinu `DEFAULT_WEIGHTS` nájdete v kanonickej [tabuľke faktorov bodovania](#how-it-works-persisted-auto-combos) vyššie — nastavenia pre jednotlivé balíky (ship-fast/cost-saver/quality-first/
+offline-friendly) sú uvedené v tabuľke „Váhové profily jednotlivých balíkov“.
 
-Samotná úroveň **nevynucuje**, aby bola úroveň 1 prvá — ak má úroveň 1 vysokú latenciu alebo
-neoptimálny pomer ceny a kvality, vyhrá úroveň 2. Ak chcete vynútiť poradie úrovní, použite
-stratégiu kombinácie `priority` a usporiadajte poskytovateľov podľa úrovne.
+Samotná úroveň **nezaručuje**, že sa ako prvá použije úroveň 1 — ak má úroveň 1 vysokú latenciu alebo
+neoptimálny pomer ceny a kvality, zvíťazí úroveň 2. Ak chcete vynútiť poradie úrovní, použite
+stratégiu kombinácie `priority` a zoraďte poskytovateľov podľa úrovní.
 
 Ak chcete výrazne uprednostniť úroveň 1 (predplatné), zvýšte váhu `tierPriority`:
 
@@ -738,7 +793,7 @@ Ak chcete výrazne uprednostniť úroveň 1 (predplatné), zvýšte váhu `tierP
 }
 ```
 
-Definície úrovní a klasifikáciu poskytovateľov nájdete v `docs/marketing/TIERS.md`.
+Definície úrovní a klasifikáciu poskytovateľov nájdete v dokumente [`docs/guides/TIERS.md`](../guides/TIERS.md).
 
 ## Testovanie a pokrytie
 

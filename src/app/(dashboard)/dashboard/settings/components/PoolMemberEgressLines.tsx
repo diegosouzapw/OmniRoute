@@ -9,6 +9,7 @@ type MemberEgress = {
   port: number;
   egressIp: string | null;
   at: string | null;
+  source?: "operator" | "observed" | null;
 };
 
 type MemberEgressBody = {
@@ -104,6 +105,10 @@ const SET_ASIDE_KIND_KEYS: Record<string, string> = {
   // Repeated transport failures with cross-egress evidence (#14802): the proxy
   // path is what failed, so it reads as unreachable to the operator.
   transport: "poolSetAsideKindProxyUnreachable",
+  // Repeated waits for response headers through this egress: slow, not refused.
+  slow: "poolSetAsideKindSlow",
+  // Region refusal through this member (403/451 with a region signal): set aside briefly.
+  geo_blocked: "poolSetAsideKindGeoBlocked",
 };
 
 function setAsideKindLabel(
@@ -143,7 +148,12 @@ function isMemberEgressBody(value: unknown): value is MemberEgressBody {
       (typeof (member as Record<string, unknown>).egressIp === "string" ||
         (member as Record<string, unknown>).egressIp === null) &&
       (typeof (member as Record<string, unknown>).at === "string" ||
-        (member as Record<string, unknown>).at === null)
+        (member as Record<string, unknown>).at === null) &&
+      // Forward compat: older bodies carry no `source` — accept the absence.
+      ((member as Record<string, unknown>).source === undefined ||
+        (member as Record<string, unknown>).source === null ||
+        (member as Record<string, unknown>).source === "operator" ||
+        (member as Record<string, unknown>).source === "observed")
   );
 }
 
@@ -206,12 +216,19 @@ export function PoolMemberEgressLines({ query }: { query: string }) {
           title={t("poolMemberEgressHint")}
         >
           {member.egressIp
-            ? t("poolMemberEgress", {
-                host: member.host,
-                port: member.port,
-                egressIp: member.egressIp,
-                hours: body.windowHours,
-              })
+            ? member.source === "operator"
+              ? t("poolMemberEgressOperator", {
+                  host: member.host,
+                  port: member.port,
+                  egressIp: member.egressIp,
+                  date: member.at ?? "",
+                })
+              : t("poolMemberEgress", {
+                  host: member.host,
+                  port: member.port,
+                  egressIp: member.egressIp,
+                  hours: body.windowHours,
+                })
             : t("poolMemberEgressEmpty", {
                 host: member.host,
                 port: member.port,

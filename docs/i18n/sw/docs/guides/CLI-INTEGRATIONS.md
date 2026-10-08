@@ -4,26 +4,13 @@
 
 ---
 
-OmniRoute husafirisha familia ya amri za `setup-*` zinazosanidi CLI ya usimbaji (Codex, Claude Code, OpenCode, Cline, …) kutumia OmniRoute kama backend yake — ili
-zana izungumze na endpoint **moja** na OmniRoute ielekeze kwa mtoa huduma sahihi na
-kurejea kiotomatiki. Kila amri husoma katalogi ya modeli **hai** kutoka kwa
-OmniRoute inayoendesha (ya ndani au ya mbali) na kuandika faili ya usanidi ya zana yenyewe kwenye
-mashine **yako**. Ufunguo wa API hurejelewa na kigezo cha mazingira popote pale zana
-inapounga mkono. Amri zinazohifadhi faili ya mazingira ya ndani ya zana zimebainishwa hapa chini.
+Kwa manifesti ya pamoja ya kitekelezwaji, mazingira ya watoto yaliyowekewa vizuizi na usanidi endelevu wa Gemini, angalia [mikataba ya uzinduzi wa CLI](./CLI-LAUNCH-CONTRACTS.md).
 
-Pia kuna kizindua cha jumla — `omniroute run <target>` — kinachozindua
-`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` au `gemini` na
-mazingira sahihi yaliyodungwa, bila kuandika usanidi wowote kabisa. Malengo na
-majina yao mbadala hutoka kwenye manifest rasmi `bin/cli/cli-manifest.mjs`
-(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
-`open-code`, `qwen-code`, `gemini-cli`), na `omniroute completion` inatoa
-maneno yale yale ya lengo yanayotokana na manifest. Vizindua vya zamani vya kila zana —
-`omniroute launch` (Claude Code) na `omniroute launch-codex` (Codex) — vinabaki
-vinapatikana.
+OmniRoute huja na familia ya amri za `setup-*` ambazo husanidi CLI ya uandishi wa msimbo (Codex, Claude Code, OpenCode, Cline, …) kutumia OmniRoute kama backend yake — hivyo zana huwasiliana na endpoint **moja**, huku OmniRoute ikielekeza kwa mtoa huduma anayefaa kwa kutumia urejeaji mbadala wa kiotomatiki. Kila amri husoma katalogi ya modeli **inayotumika moja kwa moja** kutoka kwa OmniRoute inayoendeshwa (ya ndani au ya mbali) na huandika faili ya usanidi ya zana hiyo kwenye mashine **yako**. Ufunguo wa API hurejelewa kupitia kigezo cha mazingira popote ambapo zana inakiunga mkono. Amri zinazohifadhi faili ya mazingira ya ndani ya zana zimebainishwa hapa chini.
 
-Ujumuishaji wa mtoa huduma unapatikana kutoka kwa muktadha huo huo wa ndani/mbali. Amri
-zinazotanguliza API hapa chini huweka uthibitishaji wa usimamizi tofauti na
-vitambulisho vya mtoa huduma na hazichapishi kamwe kitambulisho katika matokeo yaliyopangwa:
+Pia kuna kizinduzi cha jumla — `omniroute run <target>` — ambacho huanzisha `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` au `gemini` huku mazingira yanayofaa yakiingizwa, bila kuandika usanidi wowote. Malengo na lakabu zake hutoka kwenye manifesti rasmi `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), na `omniroute completion` hutoa maneno yale yale ya malengo yanayotokana na manifesti. Vizinduzi vya zamani vya kila zana — `omniroute launch` (Claude Code) na `omniroute launch-codex` (Codex) — bado vinapatikana.
+
+Uanzishaji wa watoa huduma unapatikana kutoka kwenye muktadha huohuo wa ndani/mbali. Amri zifuatazo zinazotanguliza API hutenganisha uthibitishaji wa usimamizi na vitambulisho vya watoa huduma na kamwe hazichapishi kitambulisho katika matokeo yaliyopangwa:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -33,25 +20,16 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Kwa hati, pendelea `--credential-stdin` au `--credential-env`; `--credential`
-imehifadhiwa kwa matumizi ya ndani yaliyodhibitiwa. `providers remove` inahitaji `--yes` kwenye
-terminal isiyoingiliana, na amri zote tano huheshimu muktadha amilifu au
-chaguo za kimataifa za `--base-url`/`--api-key`.
+Kwa hati za kiotomatiki, pendelea `--credential-stdin` au `--credential-env`; `--credential` imehifadhiwa kwa matumizi ya ndani yanayodhibitiwa. `providers remove` huhitaji `--yes` kwenye terminal isiyo shirikishi, na amri zote tano huheshimu muktadha unaotumika au chaguo za jumla za `--base-url`/`--api-key`.
 
-Wachaguzi wa watoa huduma hukataa viambishi awali vya ID visivyoeleweka, majina au majina ya watoa huduma; tumia
-ID kamili ya muunganisho wakati miunganisho kadhaa inalingana. Amri za kuunda na kuhariri husoma
-muunganisho ulihifadhiwa tena, na uondoaji unathibitisha kuwa hauwezi kusomeka tena.
-Uagizaji huruka jozi iliyopo ya mtoa huduma/jina. Viingilio vilivyoagizwa haviwezi kubatilisha
-endpoint ya usimamizi, muktadha au vitambulisho vya usimamizi vilivyotolewa kwa CLI.
+Viteuzi vya watoa huduma hukataa viambishi awali visivyo bayana vya ID, majina au majina ya watoa huduma; tumia ID kamili ya muunganisho wakati miunganisho kadhaa inalingana. Amri za kuunda na kuhariri husoma tena muunganisho uliohifadhiwa, na uondoaji huthibitisha kuwa hauwezi kusomeka tena. Uingizaji huruka jozi iliyopo ya mtoa huduma/jina. Vipengee vilivyoingizwa haviwezi kubatilisha endpoint ya usimamizi, muktadha au vitambulisho vya usimamizi vilivyotolewa kwa CLI.
 
-Kwa usanidi wa msingi ulioandikwa kwa mkono, wa mara moja wa miunganisho miwili tajiri zaidi, angalia
-maelezo ya kina ya kila zana:
+Kwa usanidi wa msingi wa mara moja, ulioandikwa kwa mkono, wa miunganisho miwili yenye vipengele vingi zaidi, angalia maelezo ya kina ya kila zana:
 
 - [Usanidi wa Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
 - [Usanidi wa Codex CLI](./CODEX-CLI-CONFIGURATION.md)
-- [Hali ya Mbali](./REMOTE-MODE.md) — endesha OmniRoute ya mbali (VPS / Tailnet) kutoka kwenye kompyuta yako ndogo
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — kiendelezi cha OmniCopilot; kinaweza pia kuendesha
-  amri hizi za `setup-*` kwa ajili yako kutoka ndani ya kihariri
+- [Hali ya Mbali](./REMOTE-MODE.md) — dhibiti OmniRoute ya mbali (VPS / Tailnet) kutoka kwenye kompyuta yako mpakato
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — kiendelezi cha OmniCopilot; pia kinaweza kutekeleza amri hizi za `setup-*` kwa niaba yako kutoka ndani ya kihariri
 
 ---
 

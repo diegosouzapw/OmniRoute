@@ -249,7 +249,7 @@ test("client-audit-2026-09-01: no finish_reason + reasoning <90% of tokens → s
   assert.equal(out.valid, true, "should stay valid: no finish_reason signal, ratio under 90%");
 });
 
-test("client-audit-2026-09-01: finish_reason:stop + empty content + reasoning → ratio heuristic still applies unchanged", async () => {
+test("finish_reason:stop + reasoning over 90% is a clean stop, not exhaustion", async () => {
   const res = makeResponse({
     choices: [
       {
@@ -260,7 +260,20 @@ test("client-audit-2026-09-01: finish_reason:stop + empty content + reasoning �
     usage: { completion_tokens: 4096, reasoning_tokens: 3800 },
   });
   const out = await validateResponseQuality(res, false, silentLog);
-  assert.equal(out.valid, false, "finish_reason:stop doesn't short-circuit — ratio (>90%) still applies");
+  assert.equal(out.valid, true, "finish_reason:stop means the model ended on its own");
+});
+
+test("no finish_reason + reasoning over 90% stays invalid (fallback heuristic)", async () => {
+  const res = makeResponse({
+    choices: [
+      {
+        message: { content: null, reasoning_content: "Deep reasoning" },
+      },
+    ],
+    usage: { completion_tokens: 4096, reasoning_tokens: 3800 },
+  });
+  const out = await validateResponseQuality(res, false, silentLog);
+  assert.equal(out.valid, false, "no finish_reason still falls back to the 90% check");
   assert.match(out.reason ?? "", /reasoning consumed/i);
 });
 

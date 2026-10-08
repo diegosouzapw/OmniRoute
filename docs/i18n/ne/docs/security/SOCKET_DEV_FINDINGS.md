@@ -214,7 +214,7 @@ OmniRoute Cloud टेनेन्टका लागि Cloud Sync नै ए�
 
 ## बिल्ड प्रोफाइल: `minimal`
 
-Socket-अनुकूल आर्टिफ्याक्ट चाहिने प्रयोगकर्ताहरूले यसरी बिल्ड गर्नुहोस्:
+Socket-अनुकूल आर्टिफ्याक्ट चाहिने प्रयोगकर्ताहरूका लागि यसरी बिल्ड गर्नुहोस्:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
@@ -229,13 +229,12 @@ webpack को `NormalModuleReplacementPlugin` ले चारवटा मो�
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-प्रत्येक स्टबले उही सर्फेस एक्सपोर्ट गर्छ, तर हरेक फङ्सनले रनटाइममा
+प्रत्येक स्टबले उही इन्टरफेस निर्यात गर्छ, तर प्रत्येक फङ्सनले रनटाइममा
 `featureDisabledError(name)` थ्रो गर्छ। निष्क्रिय पारिएको मोड्युलमा निर्भर
-रुटहरूले संवेदनशील कोड पाथ सक्रिय गर्नुको सट्टा स्पष्ट सन्देशसहित HTTP 503
+रुटहरूले संवेदनशील कोड पथ सक्रिय गर्नुको सट्टा स्पष्ट सन्देशसहित HTTP 503
 फर्काउँछन्।
 
-नतिजास्वरूप प्राप्त बन्डललाई `omniroute-secure` का रूपमा प्रकाशित गर्ने उद्देश्य
-राखिएको छ। प्रकाशन विधिका लागि `docs/ops/PUBLISHING_SECURE.md` हेर्नुहोस्।
+तयार भएको बन्डललाई `omniroute-secure` का रूपमा प्रकाशित गर्ने उद्देश्य राखिएको छ।
 
 ---
 
