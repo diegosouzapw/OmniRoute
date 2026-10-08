@@ -221,9 +221,10 @@ function resolveFamilyContext(currentModel: string, providerHint?: string | null
   const bareModel = parsed.model || currentModel;
   // Alias first: parseModel("agy/gemini-3.8-flash-high") canonicalizes
   // provider to antigravity. Family hop must use the catalog the combo
-  // actually named (agy) or the explicit hint.
-  const explicitProvider = providerHint || parsed.providerAlias || parsed.provider || null;
-  const registryEntry = getRegistryEntry(explicitProvider || "");
+  // actually named (agy) or the explicit hint. Only a provider written in the
+  // model id itself prefixes the output: a bare id + hint stays bare (T30).
+  const explicitProvider = parsed.providerAlias || parsed.provider || null;
+  const registryEntry = getRegistryEntry(providerHint || explicitProvider || "");
   if (!registryEntry) return null;
 
   const lookupKey = bareModel.replace(/\./g, "-");
