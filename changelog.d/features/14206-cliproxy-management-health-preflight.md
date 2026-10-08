@@ -1,0 +1,1 @@
+- **feat(resilience):** skip CLIProxy-backed combo targets before dispatch using management account health, ignoring stale per-model quota rejections ([#14206](https://github.com/diegosouzapw/OmniRoute/issues/14206))

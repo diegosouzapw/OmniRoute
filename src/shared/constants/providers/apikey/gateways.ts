@@ -1,7 +1,9 @@
 import { ainetcafeGateway } from "./ainetcafe";
+import { onomeoGateway } from "./onomeo";
 /** APIKEY provider catalog — gateways family. Pure data; merged by apikey/index.ts via spread. */
 export const APIKEY_PROVIDERS_GATEWAYS = {
   ...ainetcafeGateway,
+  ...onomeoGateway,
   // 1min.ai (https://docs.1min.ai) — multi-model chat aggregator with its own
   // custom API (single `prompt` string + real SSE, not OpenAI-compatible).
   // OmniRoute's oneminai executor translates both directions.

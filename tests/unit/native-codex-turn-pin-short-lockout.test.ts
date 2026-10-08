@@ -56,7 +56,12 @@ test.after(async () => {
   process.env.DATA_DIR = ORIGINAL_DATA_DIR;
 });
 
-beforeEach(() => {
+beforeEach(async () => {
+  // Each scenario models a single-account pool. Keep prior scenarios' healthy
+  // accounts from becoming legitimate siblings in dynamic turn-pin expansion.
+  for (const connection of await providersDb.getProviderConnections({})) {
+    await providersDb.deleteProviderConnection(connection.id);
+  }
   clearAllModelLockouts();
   clearCooldownState();
   resetAllCircuitBreakers();
