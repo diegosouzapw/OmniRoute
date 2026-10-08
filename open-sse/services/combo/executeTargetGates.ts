@@ -13,7 +13,7 @@ import {
 } from "../accountFallback.ts";
 import { isProviderInCooldown } from "../providerCooldownTracker.ts";
 import { checkCredentialGate, logCredentialSkip } from "../credentialGate.ts";
-import { errorResponse } from "../../utils/error.ts";
+import { buildProtectedPriorityStopResponse } from "./executeTargetClassify.ts";
 import {
   getCircuitBreaker,
   type CircuitBreakerStatus,
@@ -30,7 +30,6 @@ import {
   resolvePersistedConnectionCooldownSkipReason,
 } from "./comboPredicates.ts";
 import { resolveQuotaExhaustionCutoffForTarget } from "./quotaExhaustionCutoff.ts";
-import { protectedPriorityStopStatus } from "./protectedPriorityStopStatus.ts";
 import type { ProtectedPriorityStopCause } from "./protectedPriorityStopStatus.ts";
 import type { AttemptLoopDeps, AttemptLoopState, GateDecision } from "./attemptLoopTypes.ts";
 import { modelAvailabilitySkipReason, type ResolvedComboTarget } from "./types.ts";
@@ -123,7 +122,15 @@ export async function evaluateExecuteTargetGates(opts: {
       target
     );
     return protectedPriorityTarget
-      ? { ok: false as const, response: errorResponse(protectedPriorityStopStatus(cause), message) }
+      ? {
+          ok: false as const,
+          response: buildProtectedPriorityStopResponse({
+            state,
+            traceInvocationId: deps.traceInvocationId,
+            message,
+            cause,
+          }),
+        }
       : null;
   };
 

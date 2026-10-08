@@ -6,7 +6,8 @@
  */
 import { isInputBoundRequestFailure } from "./comboPredicates.ts";
 import { comboTargetDecision } from "./statusDecisionTable.ts";
-import { errorResponse } from "../../utils/error.ts";
+import { errorResponse, errorResponseWithComboDiagnostics } from "../../utils/error.ts";
+import { buildRedactedSummary } from "./comboErrorAggregation.ts";
 import type { ComboDiagnostics } from "../../utils/error.ts";
 import { formatExhaustedConnectionKey } from "./comboDiagFormat.ts";
 import { collectQuotaWindowExclusions } from "./quotaSkipDiagnostics.ts";
@@ -55,9 +56,26 @@ export function buildComboDiag(
   };
 }
 
+/** Preserve prior attempt metadata without exposing upstream bodies or changing stop policy. */
+export function buildProtectedPriorityStopResponse(opts: {
+  state: AttemptLoopState;
+  traceInvocationId: string;
+  message: string;
+  cause?: ProtectedPriorityStopCause;
+}): Response {
+  const previous = buildRedactedSummary(opts.state.comboErrors);
+  return errorResponseWithComboDiagnostics(
+    protectedPriorityStopStatus(opts.cause),
+    previous ? `${opts.message}; earlier attempts: ${previous}` : opts.message,
+    buildComboDiag(opts.state, opts.traceInvocationId, "protected_priority_stop")
+  );
+}
+
 /** Fatal stop for a protected-priority target: terminal only when it is protected. */
 export function stopProtectedPriorityTarget(opts: {
   protectedPriorityTarget: boolean;
+  state: AttemptLoopState;
+  traceInvocationId: string;
   message: string;
   cause?: ProtectedPriorityStopCause;
   onStop: () => void;
@@ -68,7 +86,7 @@ export function stopProtectedPriorityTarget(opts: {
   return opts.protectedPriorityTarget
     ? {
         ok: false as const,
-        response: errorResponse(protectedPriorityStopStatus(opts.cause), opts.message),
+        response: buildProtectedPriorityStopResponse(opts),
       }
     : null;
 }

@@ -403,9 +403,9 @@ export async function dispatchWithCooldownRetry(opts: {
         );
       }
 
-      // #10681: finalize the decision trace (success).
+      // A resolved fatal response also sets anySuccess to stop dispatching.
+      // Record its actual HTTP status, not an unconditional success.
       finalizeComboTrace(deps.traceInvocationId, state.orderedTargets);
-      finishComboTrace(deps.traceInvocationId, { status: 200 });
       if (anySuccess) {
         // G1: clear the safety timer on the happy path so a successful combo does
         // not leave a 10-minute timer alive per request.
@@ -413,7 +413,9 @@ export async function dispatchWithCooldownRetry(opts: {
           clearTimeout(loopSafetyTimer);
           loopSafetyTimer = null;
         }
-        return await globalPromise;
+        const response = await globalPromise;
+        finishComboTrace(deps.traceInvocationId, { status: response.status });
+        return response;
       }
 
       // #10681: finalize the decision trace (global timeout).

@@ -127,6 +127,8 @@ export async function executeTargetAttempt(opts: {
   const stopTarget = (message: string, cause?: ProtectedPriorityStopCause) =>
     stopProtectedPriorityTarget({
       protectedPriorityTarget,
+      state,
+      traceInvocationId: deps.traceInvocationId,
       message,
       cause,
       onStop: () => state.observeFailure(false, target.executionKey),
