@@ -1,4 +1,4 @@
--- Migration 182: Seed version_manager row for sing-box embedded service
+-- Migration 203: Seed version_manager row for sing-box embedded service
 --
 -- sing-box is a supervised TPROXY sidecar (see src/lib/services/installers/singbox.ts),
 -- not an LLM provider, so provider_expose stays 0 (never exposes models for routing) and

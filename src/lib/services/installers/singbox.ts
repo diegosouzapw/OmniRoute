@@ -50,7 +50,7 @@ export const SINGBOX_PINNED_VERSION = "1.14.1";
  * the GitHub Releases API `assets[].digest` field and by downloading and
  * hashing the linux-amd64 and darwin-arm64 archives locally.
  */
-const SINGBOX_CHECKSUMS: Record<string, string> = {
+export const SINGBOX_CHECKSUMS: Record<string, string> = {
   "linux-amd64": "12cb2816b52febb356f6a885b740cc8758c3f30b8ae0ca8edba80f0d2d35343f",
   "linux-arm64": "6060b42fa84c5dcaeae1799af7f61b0f1ae4855d9d5ddc9e02baba17154b3ae2",
   "darwin-amd64": "b34381b047106fe84895df14f7aaae06f3182130b728006944deb0d59d8590c3",
@@ -87,9 +87,31 @@ export function getConfigPath(): string {
   return path.join(getSingboxInstallDir(), "config.json");
 }
 
+/**
+ * Picks the port for sing-box's tproxy inbound (its mixed inbound takes +1) so that
+ * NEITHER ever equals `reservedPort` — the port the native IP_TRANSPARENT listener
+ * binds and the PREROUTING `TPROXY --on-port` rule targets. Two listeners on that
+ * port would make one of them fail with EADDRINUSE or let sing-box swallow the
+ * traffic the MITM is meant to receive.
+ */
+export function resolveSingboxListenPort(
+  reservedPort: number,
+  basePort = SINGBOX_DEFAULT_PORT
+): number {
+  let port = basePort;
+  while (port === reservedPort || port + 1 === reservedPort) port += 2;
+  return port;
+}
+
+/**
+ * @param tproxyPort listen port of the tproxy inbound (the mixed inbound uses +1)
+ * @param bypassMark SO_MARK stamped on every outbound (`routing_mark`). It MUST be the
+ *   mark the `mangle OUTPUT` rule excludes (`! --mark <bypassMark>`), otherwise
+ *   sing-box's own egress is re-marked and re-TPROXY'd in a loop.
+ */
 export function generateDefaultSingboxConfig(
   tproxyPort = SINGBOX_DEFAULT_PORT,
-  _targetHttpPort = 20128
+  bypassMark?: number
 ): Record<string, unknown> {
   return {
     log: {
@@ -115,6 +137,7 @@ export function generateDefaultSingboxConfig(
       {
         type: "direct",
         tag: "direct",
+        ...(bypassMark !== undefined ? { routing_mark: bypassMark } : {}),
       },
     ],
   };
@@ -197,13 +220,17 @@ async function extractArchive(
  * {@link SINGBOX_CHECKSUMS}, extracts it and returns the path to the real
  * `sing-box`/`sing-box.exe` binary inside the extracted archive.
  */
-async function downloadRealBinary(version: string, workDir: string): Promise<string> {
+async function downloadRealBinary(
+  version: string,
+  workDir: string,
+  checksums: Record<string, string>
+): Promise<string> {
   const { platform, arch } = assetPlatformArch();
   const key = `${platform}-${arch}`;
-  const expectedSha256 = SINGBOX_CHECKSUMS[key];
+  const expectedSha256 = checksums[key];
   if (!expectedSha256) {
     throw new InstallError(
-      `No pinned sing-box checksum for ${key} (only ${Object.keys(SINGBOX_CHECKSUMS).join(", ")} are verified)`,
+      `No pinned sing-box checksum for ${key} (only ${Object.keys(checksums).join(", ")} are verified)`,
       `sing-box não tem checksum verificado para ${key}.`,
       500
     );
@@ -251,6 +278,18 @@ async function downloadRealBinary(version: string, workDir: string): Promise<str
 }
 
 export async function install(version = SINGBOX_PINNED_VERSION): Promise<InstallResult> {
+  return installWithChecksums(version, SINGBOX_CHECKSUMS);
+}
+
+/**
+ * `install()` with an explicit checksum table. Exists so tests can drive the full
+ * download → verify → extract → register path against a locally built archive;
+ * no route or caller outside tests passes anything but {@link SINGBOX_CHECKSUMS}.
+ */
+export async function installWithChecksums(
+  version: string,
+  checksums: Record<string, string>
+): Promise<InstallResult> {
   const startMs = Date.now();
   // The shared install route defaults an omitted body to the literal string
   // "latest" (see handleServiceInstall) — resolve that to the one pinned,
@@ -261,7 +300,7 @@ export async function install(version = SINGBOX_PINNED_VERSION): Promise<Install
   const installDir = getSingboxInstallDir();
   fs.mkdirSync(installDir, { recursive: true });
 
-  const downloadedBinary = await downloadRealBinary(resolvedVersion, installDir);
+  const downloadedBinary = await downloadRealBinary(resolvedVersion, installDir, checksums);
   const binPath = getBinPath();
   fs.copyFileSync(downloadedBinary, binPath);
   fs.chmodSync(binPath, 0o755);

@@ -18,7 +18,12 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import fs from "node:fs";
 import { getSupervisor } from "@/lib/services/registry";
-import { generateDefaultSingboxConfig, getConfigPath } from "@/lib/services/installers/singbox";
+import {
+  generateDefaultSingboxConfig,
+  getConfigPath,
+  resolveSingboxListenPort,
+  SINGBOX_DEFAULT_PORT,
+} from "@/lib/services/installers/singbox";
 import { createLogger } from "@/shared/utils/logger.ts";
 import {
   buildTproxyApplyCommands,
@@ -49,7 +54,7 @@ export async function applyTproxy(
   const invalid = validateTproxyConfig(cfg);
   if (invalid) throw new Error(invalid);
 
-  await ensureSingboxTproxy(cfg.onPort, cfg.dport);
+  await ensureSingboxTproxy(cfg);
 
   try {
     for (const cmd of buildTproxyApplyCommands(cfg)) {
@@ -85,14 +90,18 @@ export async function revertTproxy(
  * Never throws — `applyTproxy()` always proceeds to install the firewall rules
  * regardless of the outcome (pre-existing behavior, `tests/unit/tproxy-setup.test.ts`
  * exercises `applyTproxy()` with no sing-box supervisor registered at all) — but
- * every failure path now logs at error level instead of being swallowed by a bare
+ * every failure path logs at error level instead of being swallowed by a bare
  * `.catch(() => false)`, so an operator has a visible signal that TPROXY rules were
  * installed without a working sing-box listener behind them.
+ *
+ * Coexistence with the native IP_TRANSPARENT listener (`cfg.onPort`):
+ *  - sing-box listens on its own port (never `cfg.onPort`, see `resolveSingboxListenPort`);
+ *  - every sing-box outbound is SO_MARK'd with `cfg.bypassMark`, the mark the OUTPUT
+ *    rule excludes. Without a `bypassMark` that exclusion does not exist, so sing-box is
+ *    not started at all rather than looping its own egress.
+ * Covered by `tests/unit/singbox-tproxy-coexistence.test.ts`.
  */
-export async function ensureSingboxTproxy(
-  tproxyPort: number,
-  targetPort: number
-): Promise<boolean> {
+export async function ensureSingboxTproxy(cfg: TproxyConfig): Promise<boolean> {
   const supervisor = getSupervisor("singbox");
   if (!supervisor) {
     log.error(
@@ -102,21 +111,34 @@ export async function ensureSingboxTproxy(
     return false;
   }
 
-  const cfgPath = getConfigPath();
-  const cfgContent = JSON.stringify(generateDefaultSingboxConfig(tproxyPort, targetPort), null, 2);
-  fs.writeFileSync(cfgPath, cfgContent, "utf8");
+  if (cfg.bypassMark === undefined) {
+    log.error(
+      "TPROXY config has no bypassMark — the OUTPUT rule cannot exclude sing-box's own egress, " +
+        "so sing-box was NOT started (it would loop its own traffic). Set bypassMark to enable it."
+    );
+    return false;
+  }
 
-  if (supervisor.getStatus().state !== "running") {
-    try {
+  try {
+    const basePort = parseInt(process.env.SINGBOX_PORT ?? String(SINGBOX_DEFAULT_PORT), 10);
+    const listenPort = resolveSingboxListenPort(cfg.onPort, basePort);
+    const cfgContent = JSON.stringify(
+      generateDefaultSingboxConfig(listenPort, cfg.bypassMark),
+      null,
+      2
+    );
+    fs.writeFileSync(getConfigPath(), cfgContent, "utf8");
+
+    if (supervisor.getStatus().state !== "running") {
       await supervisor.start();
-    } catch (err) {
-      log.error(
-        { err: err instanceof Error ? err.message : String(err) },
-        "sing-box failed to start — TPROXY rules will be applied with no proxy listening " +
-          "behind them; traffic will NOT actually be intercepted"
-      );
-      return false;
     }
+  } catch (err) {
+    log.error(
+      { err: err instanceof Error ? err.message : String(err) },
+      "sing-box failed to start — TPROXY rules will be applied with no proxy listening " +
+        "behind them; traffic will NOT actually be intercepted"
+    );
+    return false;
   }
 
   const running = supervisor.getStatus().state === "running";
