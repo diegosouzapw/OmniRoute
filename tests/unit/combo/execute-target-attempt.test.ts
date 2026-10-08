@@ -119,6 +119,58 @@ function bodySpecific400(): Response {
   );
 }
 
+for (const protectedPriorityTarget of [false, true]) {
+  test(`target stop records failure then clears the original target (protected=${protectedPriorityTarget})`, async () => {
+    const { stopProtectedPriorityTarget } =
+      await import("../../../open-sse/services/combo/executeTargetClassify.ts");
+    const target = modelTarget();
+    const calls: unknown[][] = [];
+    const state = emptyState({
+      orderedTargets: [target],
+      recordedAttempts: 1,
+      observeFailure(...args) {
+        calls.push(["observeFailure", ...args]);
+      },
+    });
+    const deps = baseDeps({
+      combo: { id: "combo-stop", name: "t", models: [] },
+      clearStaleLKGP(...args) {
+        calls.push(["clearStaleLKGP", ...args]);
+      },
+    });
+    const result = stopProtectedPriorityTarget({
+      protectedPriorityTarget,
+      state,
+      deps,
+      target,
+      message: "Target is unavailable",
+    });
+    assert.deepEqual(calls, [
+      ["observeFailure", false, target.executionKey],
+      [
+        "clearStaleLKGP",
+        deps.combo.name,
+        target.executionKey,
+        deps.combo.id,
+        deps.log,
+        "COMBO",
+        undefined,
+        target,
+      ],
+    ]);
+    assert.equal(calls[1][7], target, "cleanup receives the original target by identity");
+    if (protectedPriorityTarget) {
+      assert.equal(result?.ok, false);
+      assert.equal(result?.response.status, 503);
+      const body = await result!.response.json();
+      assert.equal(body.diagnostics.attempted, 1);
+      assert.equal(body.diagnostics.terminalReason, "protected_priority_stop");
+    } else {
+      assert.equal(result, null);
+    }
+  });
+}
+
 test("remainderIsHomogeneous is true only when remaining targets share modelStr", async () => {
   const { remainderIsHomogeneous } =
     await import("../../../open-sse/services/combo/executeTargetClassify.ts");

@@ -128,20 +128,10 @@ export async function executeTargetAttempt(opts: {
     stopProtectedPriorityTarget({
       protectedPriorityTarget,
       state,
-      traceInvocationId: deps.traceInvocationId,
+      deps,
+      target,
       message,
       cause,
-      onStop: () => state.observeFailure(false, target.executionKey),
-      clearStale: () =>
-        deps.clearStaleLKGP(
-          deps.combo.name,
-          target.executionKey,
-          deps.combo.id,
-          deps.log,
-          "COMBO",
-          undefined,
-          target
-        ),
     });
 
   // Retry loop for transient errors

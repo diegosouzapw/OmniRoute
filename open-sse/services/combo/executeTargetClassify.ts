@@ -1,6 +1,6 @@
 /**
- * Pure classify helpers for executeTarget's retry loop.
- * Lift-as-is from combo.ts #8375 / #2101 / #4279. No I/O.
+ * Classify helpers for executeTarget's retry loop.
+ * Lift-as-is from combo.ts #8375 / #2101 / #4279; stop cleanup uses injected deps.
  *
  * @internal — not part of the public combo.ts barrel.
  */
@@ -13,7 +13,8 @@ import { formatExhaustedConnectionKey } from "./comboDiagFormat.ts";
 import { collectQuotaWindowExclusions } from "./quotaSkipDiagnostics.ts";
 import { getComboTrace, summarizeSkippedTargets } from "./decisionTrace.ts";
 import { buildRecoveryHint } from "./pinRecovery.ts";
-import type { AttemptLoopState } from "./attemptLoopTypes.ts";
+import type { AttemptLoopDeps, AttemptLoopState } from "./attemptLoopTypes.ts";
+import type { ResolvedComboTarget } from "./types.ts";
 import {
   protectedPriorityStopStatus,
   type ProtectedPriorityStopCause,
@@ -71,22 +72,35 @@ export function buildProtectedPriorityStopResponse(opts: {
   );
 }
 
-/** Fatal stop for a protected-priority target: terminal only when it is protected. */
+/** Record a target stop, returning a terminal response only for protected targets. */
 export function stopProtectedPriorityTarget(opts: {
   protectedPriorityTarget: boolean;
   state: AttemptLoopState;
-  traceInvocationId: string;
+  deps: Pick<AttemptLoopDeps, "combo" | "log" | "clearStaleLKGP" | "traceInvocationId">;
+  target: ResolvedComboTarget;
   message: string;
   cause?: ProtectedPriorityStopCause;
-  onStop: () => void;
-  clearStale: () => void;
 }): { ok: false; response: Response } | null {
-  opts.onStop();
-  opts.clearStale();
+  const { state, deps, target } = opts;
+  state.observeFailure(false, target.executionKey);
+  deps.clearStaleLKGP(
+    deps.combo.name,
+    target.executionKey,
+    deps.combo.id,
+    deps.log,
+    "COMBO",
+    undefined,
+    target
+  );
   return opts.protectedPriorityTarget
     ? {
         ok: false as const,
-        response: buildProtectedPriorityStopResponse(opts),
+        response: buildProtectedPriorityStopResponse({
+          state,
+          traceInvocationId: deps.traceInvocationId,
+          message: opts.message,
+          cause: opts.cause,
+        }),
       }
     : null;
 }
