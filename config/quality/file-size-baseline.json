@@ -1,4 +1,5 @@
 {
+  "_rebaseline_2026_10_08_14182_unifically_gateways": "PR #14182 (unifically-dev) reconcile onto release/v3.8.52 35f63906 (2026-10-08): src/shared/constants/providers/apikey/gateways.ts tip 1573 -> 1575 (+2 = one import of the dedicated apikey/unifically.ts entry and one ...unificallyGateway spread, the same wiring #14297 onomeo uses). The Unifically catalog entry itself lives in src/shared/constants/providers/apikey/unifically.ts (under cap); the PR's earlier doc-comment shrink was already taken by the tip, so the two wiring lines are irreducible. Measured with split(\"\\n\").length on the merged tree. Covered by tests/unit/unifically-provider.test.ts.",
   "_rebaseline_2026_10_07_13016_hf_bill_to_reconcile": "PR #13016 reconcile onto release/v3.8.52 tip f8a8131 (2026-10-07): EditConnectionModal.tsx tip ceiling 1634 (Onda A #14907) + this PR's own +15 (the owner-approved HF X-HF-Bill-To field already covered by _rebaseline_2026_09_23_13016_huggingface_bill_to) -> 1649, measured with split(\"\\n\").length by check-file-size on the merged tree. No slack.",
   "_rebaseline_2026_09_23_13016_huggingface_bill_to": "PR #13016 own growth: EditConnectionModal.tsx merge-base 1603 -> tip 1621 (tip-only growth, within the 1631 ceiling) -> 1637 (+16 = the optional Hugging Face X-HF-Bill-To billing-account field: form-state init + a single Input gated to provider huggingface + providerSpecificData wiring, mirroring the customUserAgent call-site pattern). Irreducible call-site wiring in the frozen modal; header logic lives in open-sse/executors/base/headers.ts and persistence in connectionProviderSpecificData.ts. Covered by tests/unit/huggingface-bill-to-header.test.ts. Owner-approved rebaseline 2026-09-23.",
   "_rebaseline_2026_10_07_wave_c_gateways": "Onda C 2026-10-07, measured with split(\"\\n\").length on the post-squash tip f83a3019. src/shared/constants/providers/apikey/gateways.ts 1547->1574 (#15131 Y-API catalog entry; the baseline hunk stayed out of the product squash). Ceiling is the measured size, not slack.",
@@ -585,7 +586,7 @@
     "src/lib/tailscaleTunnel.ts": 1208,
     "src/lib/tokenHealthCheck.ts": 1254,
     "src/shared/components/RequestLoggerV2.tsx": 1762,
-    "src/shared/constants/providers/apikey/gateways.ts": 1574,
+    "src/shared/constants/providers/apikey/gateways.ts": 1575,
     "src/shared/services/cliRuntime.ts": 1296,
     "src/sse/handlers/chat.ts": 2688,
     "src/sse/services/auth.ts": 3678,
