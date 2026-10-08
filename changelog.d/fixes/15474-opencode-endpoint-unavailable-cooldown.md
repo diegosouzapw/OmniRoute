@@ -1,0 +1,1 @@
+- **fix(providers):** a 400 or 429 reading "endpoint is unavailable" now pauses only that model for 5 minutes ([#15474](https://github.com/diegosouzapw/OmniRoute/pull/15474)) — thanks @maxmad64bis

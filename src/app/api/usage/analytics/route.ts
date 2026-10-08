@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 import { getProviderById } from "@/shared/constants/providers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { serveAnalyticsCached } from "@/lib/usage/analyticsResponseCache";
 import { getApiKeys } from "@/lib/db/apiKeys";
 import { getUserDatabaseSettings } from "@/lib/db/databaseSettings";
 import {
@@ -351,6 +352,10 @@ export async function GET(request: Request) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
+  return serveAnalyticsCached(new URL(request.url).search, () => computeAnalyticsResponse(request));
+}
+
+async function computeAnalyticsResponse(request: Request): Promise<Response> {
   try {
     const { searchParams } = new URL(request.url);
     const range = searchParams.get("range") || "30d";

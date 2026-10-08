@@ -1,5 +1,5 @@
 /**
- * Per-key self-service settings (migration 197) end to end on a temp SQLite DB:
+ * Per-key self-service settings (migration 207) end to end on a temp SQLite DB:
  * the DB module, the Zod schemas, the admin routes (GET/PUT
  * /api/keys/[id]/self-service, GET /api/keys, PATCH/DELETE /api/keys/[id]),
  * GET /v1/me/status auth via Bearer or x-api-key, and the policy merge into
@@ -71,13 +71,13 @@ function assertNoStackLeak(body: unknown) {
 
 // ──────────────── DB module ────────────────
 
-test("self-service migration 197 coexists with upstream attempt timing migration 194", () => {
+test("self-service migration 207 coexists with upstream attempt timing migration 194", () => {
   // Regression: stale stack children reused 194 and collided with upstream schema updates.
   const db = core.getDbInstance();
   const applied = db
     .prepare("SELECT version FROM _omniroute_migrations WHERE name = ?")
     .all("api_key_self_service_settings");
-  assert.deepEqual(applied, [{ version: "197" }]);
+  assert.deepEqual(applied, [{ version: "207" }]);
   const timingColumns = db.prepare("PRAGMA table_info(proxy_logs)").all() as { name: string }[];
   assert.ok(timingColumns.some((column) => column.name === "headers_ms"));
   assert.deepEqual(
@@ -98,7 +98,7 @@ test("historical self-service migration 194 upgrades without skipping upstream t
   db.exec(`
     DELETE FROM _omniroute_migrations WHERE version = '194';
     UPDATE _omniroute_migrations SET version = '194'
-      WHERE version = '197' AND name = 'api_key_self_service_settings';
+      WHERE version = '207' AND name = 'api_key_self_service_settings';
     ALTER TABLE proxy_logs DROP COLUMN headers_ms;
     ALTER TABLE proxy_logs DROP COLUMN first_chunk_ms;
   `);
@@ -109,17 +109,55 @@ test("historical self-service migration 194 upgrades without skipping upstream t
   assert.deepEqual(
     db
       .prepare(
-        "SELECT version, name FROM _omniroute_migrations WHERE version IN ('194', '197') ORDER BY version"
+        "SELECT version, name FROM _omniroute_migrations WHERE version IN ('194', '207') ORDER BY version"
       )
       .all(),
     [
       { version: "194", name: "proxy_logs_attempt_timing" },
-      { version: "197", name: "api_key_self_service_settings" },
+      { version: "207", name: "api_key_self_service_settings" },
     ]
   );
   const columns = db.prepare("PRAGMA table_info(proxy_logs)").all() as { name: string }[];
   assert.ok(columns.some((column) => column.name === "headers_ms"));
   assert.ok(columns.some((column) => column.name === "first_chunk_ms"));
+});
+
+test("historical self-service migration 197 moves to 207 and frees the slot for proxy_subscription_core_config", async () => {
+  // Builds of this PR shipped the settings table as 197, which release/v3.8.52 assigns to
+  // 197_proxy_subscription_core_config. Those databases must keep their settings and still
+  // receive the upstream 197 columns.
+  const db = core.getDbInstance();
+  const saved = settingsDb.updateApiKeySelfServiceSettings("historical-197-key", {
+    sharedQuotaProviders: ["claude"],
+    anthropicRateLimitHeaders: "strip",
+  });
+  db.exec(`
+    DELETE FROM _omniroute_migrations WHERE version = '197';
+    UPDATE _omniroute_migrations SET version = '197'
+      WHERE version = '207' AND name = 'api_key_self_service_settings';
+    ALTER TABLE proxy_subscriptions DROP COLUMN core_config_path;
+    ALTER TABLE proxy_subscriptions DROP COLUMN selector_last_switch_kind;
+  `);
+  const { runMigrations } = await import("../../src/lib/db/migrationRunner.ts");
+  runMigrations(db);
+  settingsDb.clearApiKeySelfServiceSettingsCache();
+  assert.deepEqual(settingsDb.getApiKeySelfServiceSettings("historical-197-key"), saved);
+  assert.deepEqual(
+    db
+      .prepare(
+        "SELECT version, name FROM _omniroute_migrations WHERE version IN ('197', '207') ORDER BY version"
+      )
+      .all(),
+    [
+      { version: "197", name: "proxy_subscription_core_config" },
+      { version: "207", name: "api_key_self_service_settings" },
+    ]
+  );
+  const columns = db.prepare("PRAGMA table_info(proxy_subscriptions)").all() as {
+    name: string;
+  }[];
+  assert.ok(columns.some((column) => column.name === "core_config_path"));
+  assert.ok(columns.some((column) => column.name === "selector_last_switch_kind"));
 });
 
 test("settings default to all providers + forward when no row exists", () => {

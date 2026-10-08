@@ -1,0 +1,1 @@
+- fix(sse): map a Codex/Responses `response.incomplete` (max_output_tokens, content_filter) to finish_reason `length`/`content_filter` instead of a clean stop that was then rejected as a 502 "Provider returned empty content" (#15489)

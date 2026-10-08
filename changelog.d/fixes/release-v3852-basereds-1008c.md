@@ -1,0 +1,1 @@
+- Release-branch hygiene: re-measure the reserved provider-prefix count (418) after ChatPlayground (#12690) and BeatAPI (#14875) both landed, and write the ChatPlayground upstream endpoints in its provider doc as full upstream URLs so check:fabricated-docs no longer reads them as local routes.

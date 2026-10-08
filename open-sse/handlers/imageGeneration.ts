@@ -61,10 +61,15 @@ import { handleUcImageGeneration } from "./imageGeneration/providers/ucImage.ts"
 import { handleCursorAgentImageGeneration } from "./imageGeneration/providers/cursorAgentImage.ts";
 import { handleMinimaxImageGeneration } from "./imageGeneration/providers/minimax.ts";
 import { handleCloudflareAiImageGeneration } from "./imageGeneration/providers/cloudflareAi.ts";
+import { buildXaiImageRequest } from "./imageGeneration/providers/xaiImage.ts";
 import { handleMaxaiImageGeneration } from "./imageGeneration/providers/maxaiImage.ts";
 import { handleAdobeFireflyImageGeneration } from "./imageGeneration/providers/adobeFirefly.ts";
+import { handleSyntxImageGeneration } from "./imageGeneration/providers/syntx.ts";
+import { geminiInlineImagePart } from "./imageGeneration/providers/geminiInline.ts";
 import { handleAlibabaImageGeneration } from "./imageGeneration/providers/alibabaImage.ts";
 import { handleAiHordeImageGeneration } from "./imageGeneration/providers/aihorde.ts";
+import * as codexImages from "./imageGeneration/providers/codexImages.ts";
+import { handleZenmuxImageGeneration } from "./imageGeneration/providers/zenmux.ts";
 import {
   applyPollinationsAnonymousFallback,
   reportPollinationsAnonOutcome,
@@ -72,6 +77,8 @@ import {
 
 // Re-export so /v1/images/edits can dispatch Firefly reference-image edits.
 export { handleAdobeFireflyImageGeneration };
+export { handleSyntxImageGeneration };
+export { isCodexChatGptModelAccessError };
 
 interface KieImageOptions {
   model: string;
@@ -185,6 +192,27 @@ const IMAGE_ASPECT_RATIO_PATTERN = /^\d+:\d+$/;
 const IMAGE_SIZE_PATTERN = /^(?:1K|2K|4K)$/;
 
 /**
+ * Read the configured node base URL from a custom provider's credentials:
+ * `providerSpecificData.baseUrl` first, then the legacy top-level
+ * `credentials.baseUrl`. Returns null when neither is set, so callers can
+ * fall back to a default or fail closed.
+ */
+function pickConfiguredNodeBaseUrl(
+  credentials:
+    { baseUrl?: unknown; providerSpecificData?: { baseUrl?: unknown } | null } | null | undefined
+): string | null {
+  const psd = credentials?.providerSpecificData;
+  const psdBaseUrl =
+    psd && typeof psd === "object" && typeof psd.baseUrl === "string" && psd.baseUrl.trim()
+      ? psd.baseUrl.trim()
+      : null;
+  if (psdBaseUrl) return psdBaseUrl;
+  return typeof credentials?.baseUrl === "string" && credentials.baseUrl.trim()
+    ? credentials.baseUrl.trim()
+    : null;
+}
+
+/**
  * Resolve the upstream images endpoint for a custom (OpenAI-compatible) image
  * provider node (#3205).
  *
@@ -192,7 +220,8 @@ const IMAGE_SIZE_PATTERN = /^(?:1K|2K|4K)$/;
  * in `credentials.providerSpecificData.baseUrl` (e.g. `https://example.com/v1`),
  * NOT as a top-level `credentials.baseUrl`. Older callers may still pass a
  * top-level `baseUrl`, so we honor that as a secondary source. When neither is
- * present we fall back to `fallback` (the built-in Gemini OpenAI endpoint).
+ * present the caller may use its explicit fallback. Custom-node callers use
+ * failClosed so they never route to a built-in provider endpoint.
  *
  * Resolution order: providerSpecificData.baseUrl → credentials.baseUrl → fallback.
  *
@@ -207,20 +236,12 @@ export function resolveImageBaseUrl(
   credentials:
     { baseUrl?: unknown; providerSpecificData?: { baseUrl?: unknown } | null } | null | undefined,
   fallback: string,
-  endpoint: "generations" | "edits" = "generations"
+  endpoint: "generations" | "edits" = "generations",
+  failClosed = false
 ): string {
-  const psd = credentials?.providerSpecificData;
-  const psdBaseUrl =
-    psd && typeof psd === "object" && typeof psd.baseUrl === "string" && psd.baseUrl.trim()
-      ? psd.baseUrl.trim()
-      : null;
-  const topLevelBaseUrl =
-    typeof credentials?.baseUrl === "string" && credentials.baseUrl.trim()
-      ? credentials.baseUrl.trim()
-      : null;
-  const nodeBaseUrl = psdBaseUrl || topLevelBaseUrl;
+  const nodeBaseUrl = pickConfiguredNodeBaseUrl(credentials);
 
-  if (!nodeBaseUrl) return fallback;
+  if (!nodeBaseUrl) return failClosed ? "" : fallback;
 
   // A single configured node serves both image routes: honor a base URL that already
   // points at the requested OpenAI image path, and rewrite one that points at the other
@@ -273,7 +294,7 @@ function parseJsonOrNull(value: string): unknown | null {
   }
 }
 
-function sanitizeImageProviderError(errorText: string): unknown {
+export function sanitizeImageProviderError(errorText: string): unknown {
   const parsed = parseJsonOrNull(errorText);
   if (parsed !== null) {
     return sanitizeUpstreamDetails(parsed) || sanitizeErrorMessage(errorText);
@@ -486,14 +507,19 @@ export async function handleImageGeneration({
       // Previously only the (always-absent) top-level credentials.baseUrl was
       // read, so every custom image node fell back to the Gemini endpoint and
       // returned "Please pass a valid API key".
-      baseUrl: resolveImageBaseUrl(
-        credentials,
-        `https://generativelanguage.googleapis.com/v1beta/openai/images/generations`
-      ),
+      baseUrl: resolveImageBaseUrl(credentials, "", "generations", true),
       authType: "apikey",
       authHeader: "bearer",
       format: "openai",
     };
+
+    if (!syntheticConfig.baseUrl) {
+      return {
+        success: false,
+        status: 501,
+        error: `Image generation is not configured for custom provider: ${provider}`,
+      };
+    }
 
     return handleOpenAIImageGeneration({
       model,
@@ -502,6 +528,18 @@ export async function handleImageGeneration({
       body,
       credentials,
       log,
+    });
+  }
+
+  if (providerConfig.format === "zenmux-image") {
+    return handleZenmuxImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+      signal,
     });
   }
 
@@ -663,6 +701,10 @@ export async function handleImageGeneration({
       credentials,
       log,
     });
+  }
+
+  if (providerConfig.format === "syntx-image") {
+    return handleSyntxImageGeneration({ model, provider, providerConfig, body, credentials, log });
   }
 
   if (providerConfig.format === "nanobanana") {
@@ -1095,6 +1137,7 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
     });
   }
 
+  const inlineImage = geminiInlineImagePart(body);
   const antigravityBody = {
     project: projectId,
     requestId: `image_gen/${Date.now()}/${randomUUID()}/0`,
@@ -1102,7 +1145,7 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
       contents: [
         {
           role: "user",
-          parts: [{ text: promptText }],
+          parts: [...(inlineImage ? [inlineImage] : []), { text: promptText }],
         },
       ],
       generationConfig: {
@@ -1285,7 +1328,11 @@ async function handleOpenAIImageGeneration({
           prompt: body.prompt,
         };
 
-  if (providerConfig.format !== "agnes-image") {
+  if (providerConfig.format === "xai-image") {
+    const request = buildXaiImageRequest(model, body);
+    if ("error" in request) return { success: false, status: 400, error: request.error };
+    Object.assign(upstreamBody, request.body);
+  } else if (providerConfig.format !== "agnes-image") {
     // Pass optional parameters for ordinary OpenAI-compatible providers.
     if (body.n !== undefined) upstreamBody.n = body.n;
     if (body.size !== undefined) upstreamBody.size = body.size;
@@ -2495,7 +2542,7 @@ export function extractImageGenerationCalls(
 // The image_generation hosted tool accepts { "auto" | "low" | "medium" | "high" }
 // for `quality`. Legacy image clients often send "standard" / "hd". Map those values
 // so OpenWebUI's quality dropdown doesn't silently get rejected upstream.
-function mapLegacyImageQualityToImageTool(value: string): string {
+export function mapLegacyImageQualityToImageTool(value: string): string {
   const normalized = value.toLowerCase();
   if (normalized === "standard") return "medium";
   if (normalized === "hd") return "high";
@@ -2565,11 +2612,10 @@ async function handleCodexImageGeneration({
     !Array.isArray(credentials.providerSpecificData)
       ? (credentials.providerSpecificData as Record<string, unknown>).workspaceId
       : undefined;
-
-  // Forward size/quality from the GPT-Image-style body into the hosted tool so
-  // OpenWebUI's size/quality selectors actually take effect. Everything else
-  // (model, n, background, moderation, output_compression) is left to the
-  // Codex backend's defaults — today that's `gpt-image-2`.
+  if (codexImages.isCodexImagesApiModel(model)) {
+    // prettier-ignore
+    return codexImages.handleCodexImagesApi({ model, provider, baseUrl: providerConfig.baseUrl, body, token, workspaceId, requestedCount, referenceImages, startTime, log, signal, logPath });
+  }
   const toolConfig: Record<string, unknown> = { type: "image_generation", output_format: "png" };
   if (referenceImages.length > 0) toolConfig.action = "edit";
   if (typeof body.size === "string" && body.size.trim()) {

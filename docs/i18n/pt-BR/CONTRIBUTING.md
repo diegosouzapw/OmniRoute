@@ -399,7 +399,7 @@ Escreva testes unitários em `tests/unit/` que cubram, no mínimo:
 
 ---
 
-## Checklist da Pull Request
+## Checklist do Pull Request
 
 - [ ] Os testes passam (`npm test`)
 - [ ] O lint passa (`npm run lint`)
@@ -407,14 +407,14 @@ Escreva testes unitários em `tests/unit/` que cubram, no mínimo:
 - [ ] Tipos TypeScript adicionados para novas funções e interfaces públicas
 - [ ] Nenhum segredo ou valor de fallback codificado diretamente
 - [ ] Credenciais públicas upstream incorporadas por meio de `resolvePublicCred()` (consulte [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), nunca como literais
-- [ ] As respostas de erro passam por `buildErrorBody()` / `sanitizeErrorMessage()` — nenhum stack trace bruto nos corpos das respostas (consulte [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Respostas de erro passam por `buildErrorBody()` / `sanitizeErrorMessage()` — nenhum stack trace bruto nos corpos das respostas (consulte [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
 - [ ] Comandos de shell (`exec` / `spawn`) passam valores de runtime por meio de `env`, não por interpolação de strings
 - [ ] Todas as entradas são validadas com esquemas Zod
 - [ ] **Fragmento** do changelog adicionado em `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` para alterações visíveis aos usuários (consulte [`changelog.d/README.md`](./changelog.d/README.md)) — **não** edite `CHANGELOG.md` diretamente; os fragmentos são agregados no momento do lançamento e nunca geram conflitos entre PRs
 - [ ] Documentação atualizada (se aplicável)
-- [ ] Nenhum novo alerta do CodeQL / Secret-Scanning aberto, ou cada um foi descartado com uma justificativa técnica que faça referência ao documento relevante em `docs/security/`
+- [ ] Nenhum novo alerta do CodeQL / Secret-Scanning foi aberto, ou cada alerta foi descartado com uma justificativa técnica que faça referência ao documento relevante em `docs/security/`
 - [ ] Rotas que iniciam processos filhos (`/api/mcp/`, `/api/cli-tools/runtime/`) classificadas como `isLocalOnlyPath()` em `src/server/authz/routeGuard.ts` — consulte a [Regra Rígida nº 15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Nenhum trailer `Co-Authored-By` nas mensagens de commit — os commits devem aparecer exclusivamente sob a identidade Git do proprietário do repositório (Regra Rígida nº 16)
+- [ ] Nenhum trailer `Co-authored-by` de IA/bot nas mensagens de commit (Regra Rígida nº 16) — colaboradores humanos cujo trabalho for reutilizado recebem crédito com trailers padrão `Co-authored-by: Name <email>`
 
 ---
 

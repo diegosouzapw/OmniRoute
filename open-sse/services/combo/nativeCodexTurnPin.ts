@@ -177,39 +177,48 @@ export function pinNativeCodexTurn(args: {
  */
 export function applyNativeCodexTurnPin(
   targets: ResolvedComboTarget[],
-  pin: NativeTurnPin
+  pin: NativeTurnPin,
+  activeConnectionIds?: string[]
 ): ResolvedComboTarget[] {
-  const compatible = targets.filter(
-    (candidate) => candidate.modelStr === pin.modelStr && candidate.provider === pin.provider
-  );
+  const compatible = targets
+    .filter(
+      (candidate) => candidate.modelStr === pin.modelStr && candidate.provider === pin.provider
+    )
+    .flatMap((target) => {
+      if (target.connectionId || !activeConnectionIds?.length) return [target];
+      const eligible = activeConnectionIds.filter(
+        (id) => !target.allowedConnectionIds?.length || target.allowedConnectionIds.includes(id)
+      );
+      return eligible.length
+        ? eligible.map((connectionId) => ({
+            ...target,
+            connectionId,
+            executionKey: `${target.executionKey}@${connectionId}`,
+          }))
+        : [target];
+    });
   if (compatible.length === 0) return [];
 
-  let pinnedIndex = compatible.findIndex((t) => t.connectionId === pin.connectionId);
-  // No candidate already carries the pinned connectionId (e.g. the caller
-  // resolved the target before a connection was assigned) — assign the pin
-  // onto the first compatible candidate so dispatch targets it directly.
-  if (pinnedIndex < 0) pinnedIndex = 0;
-
-  // Resolve the pinned slot's connectionId in ORIGINAL order first, so
-  // allowedConnectionIds reflects the same set/order regardless of which
-  // candidate ends up first in the returned (pinned-first) array.
-  const resolved = compatible.map((t, i) =>
-    i === pinnedIndex ? { ...t, connectionId: pin.connectionId } : t
-  );
-  const allowedConnectionIds = resolved
+  // Affinity only reorders the CURRENT eligible pool. Replacing its first
+  // candidate with a missing pin resurrects a disabled/removed account and
+  // discards a healthy sibling. Dynamic targets expand from the current active
+  // pool so per-account model locks and same-model fallback remain visible.
+  const pinnedIndex = compatible.findIndex((t) => t.connectionId === pin.connectionId);
+  const allowedConnectionIds = compatible
     .map((t) => t.connectionId)
     .filter((id): id is string => id !== null);
 
   // Pinned connection first, then same-provider/model siblings as fallback
-  const pinned = resolved[pinnedIndex];
-  const siblings = resolved.filter((_, i) => i !== pinnedIndex);
-  const ordered = [pinned, ...siblings];
+  const ordered =
+    pinnedIndex < 0
+      ? compatible
+      : [compatible[pinnedIndex], ...compatible.filter((_, i) => i !== pinnedIndex)];
 
-  return ordered.map((target) => ({
-    ...target,
-    // Allow only connections for the pinned provider+model
-    allowedConnectionIds,
-  }));
+  return ordered.map((target) =>
+    target.connectionId && !target.allowedConnectionIds?.length
+      ? { ...target, allowedConnectionIds }
+      : target
+  );
 }
 
 export function revokeNativeCodexTurnPinsForConnection(connectionId: string): number {

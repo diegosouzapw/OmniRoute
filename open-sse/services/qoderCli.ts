@@ -702,6 +702,20 @@ export function parseQoderCliFailure(stderrText: string, stdoutText = ""): Qoder
     return { status: 504, message: combined, code: "timeout" };
   }
 
+  // Qoder answers a temporarily throttled account with a queued/busy envelope
+  // (upstream code 10605) instead of an HTTP error. Classifying it as a generic
+  // 502 upstream_error parked the connection on the long failure cooldown, so a
+  // brief upstream hiccup made whole PAT pools look dead. 503 maps to the short
+  // serviceUnavailable cooldown, which lets routing retry or fail over at once.
+  if (
+    normalized.includes("10605") ||
+    normalized.includes("queued") ||
+    normalized.includes("is busy") ||
+    normalized.includes("server busy")
+  ) {
+    return { status: 503, message: combined, code: "upstream_busy" };
+  }
+
   return { status: 502, message: combined, code: "upstream_error" };
 }
 
@@ -967,8 +981,13 @@ export async function validateQoderCliPat({
     };
   }
 
-  // A successful `--list-models` prints the catalog (a table headed by "MODEL").
-  if (run.ok && normalized.includes("model")) {
+  // A successful `--list-models` exits 0 and prints the catalog (a table headed
+  // by "MODEL"). Trust the exit code plus the parsed catalog instead of the
+  // literal header string: the header is not part of the CLI contract, so a
+  // table-format change, a localized header, or an alias/JSON-producing build
+  // made valid PATs fail validation while the CLI itself reported success.
+  const catalog = parseQoderCliModelNames(run.stdout);
+  if (run.ok && catalog.length > 0 && !/error|failed/i.test(normalized)) {
     return { valid: true, error: null, unsupported: false };
   }
 

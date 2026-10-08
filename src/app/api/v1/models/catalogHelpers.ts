@@ -169,24 +169,31 @@ export function getThinkingCapabilityFields(
   /** When true, skip the canonical effort-tier fallback — used for static registry
    * models that declare `supportsReasoning` but no explicit tier list, so the
    * catalog does not synthesize unresolvable `<prefix>/<model>-{tier}` ids. */
-  skipCanonicalEffortFallback = false
+  skipCanonicalEffortFallback = false,
+  /** Already-loaded synced tiers. This helper must not open SQLite to fetch them. */
+  syncedReasoningEfforts?: readonly string[] | null
 ): Record<string, boolean | string[]> {
   const supportsThinking = resolvedThinking;
   if (typeof supportsThinking !== "boolean") return {};
   const hasDeclaredTiers = supportedThinkingEfforts && supportedThinkingEfforts.length > 0;
+  const syncedEfforts =
+    !hasDeclaredTiers && syncedReasoningEfforts && syncedReasoningEfforts.length > 0
+      ? [...syncedReasoningEfforts]
+      : null;
+  const tiers = hasDeclaredTiers
+    ? [...supportedThinkingEfforts!]
+    : syncedEfforts
+      ? syncedEfforts
+      : extendDeepSeekEffortValues(
+          providerId,
+          modelId,
+          extendCodexGpt56EffortValues(providerId, modelId, CANONICAL_EFFORT_VALUES)
+        );
   return {
     thinking: supportsThinking,
     supportsThinking,
-    ...(supportsThinking && (hasDeclaredTiers || !skipCanonicalEffortFallback)
-      ? {
-          effort_tiers: hasDeclaredTiers
-            ? [...supportedThinkingEfforts!]
-            : extendDeepSeekEffortValues(
-                providerId,
-                modelId,
-                extendCodexGpt56EffortValues(providerId, modelId, CANONICAL_EFFORT_VALUES)
-              ),
-        }
+    ...(supportsThinking && (hasDeclaredTiers || syncedEfforts || !skipCanonicalEffortFallback)
+      ? { effort_tiers: tiers }
       : {}),
   };
 }

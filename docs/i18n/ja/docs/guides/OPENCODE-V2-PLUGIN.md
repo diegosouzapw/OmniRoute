@@ -59,24 +59,31 @@ OpenCode v1 と v2 では異なる契約を通じてプラグインを読み込�
 
 ## オプション
 
-| キー                             | デフォルト                                   | 注記                                                                                                      |
-| -------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `providerId`                     | `"omniroute"`                                | プロバイダー ID、統合 ID、およびモデルが表示されるプレフィックス                                          |
-| `baseURL`                        | 必須                                         | ゲートウェイのルート。`http(s)` のみ。必要に応じて `/v1` サフィックスが追加されます                       |
-| `apiKey`                         | 接続済みの認証情報、次に `OMNIROUTE_API_KEY` | `/v1/*` 用のチャットキー                                                                                  |
-| `managementReadToken`            | `apiKey` にフォールバック                    | `/api/*` 用のキー。通常は**同じキーではありません**                                                       |
-| `displayName`                    | `"OmniRoute"`                                | ピッカー内のプロバイダー名                                                                                |
-| `timeoutMs`                      | `10000`                                      | エンドポイントごとの取得タイムアウト（オートコンボでは 5 秒）                                             |
-| `modelCacheTtlMs`                | `300000`                                     | カタログキャッシュの TTL。ディスクスナップショットによってコールドスタートが高速化されます                |
-| `timeouts`                       | `timeoutMs` にフォールバック                 | エンドポイントごとの時間上限（ミリ秒）：`models`、`combos`、`autoCombos`、`enrichment`                    |
-| `enrichment`                     | `true`                                       | 名前、料金、無料利用枠の予算を取得                                                                        |
-| `providerTag`                    | `true`                                       | 表示名の先頭に、ルーティング先となるアップストリームプロバイダーを付加                                    |
-| `usableOnly`                     | `false`                                      | ゲートウェイがプロビジョニング済みと報告したプロバイダーのみを保持                                        |
-| `visibleModels` / `hiddenModels` | `[]`                                         | 完全一致またはサフィックス一致の許可リスト。拒否が優先されます                                            |
-| `geminiSanitization`             | `true`                                       | Gemini が拒否する JSON-Schema キーワードをツールスキーマから削除（`$ref` ツールは変更せずに転送されます） |
-| `apiFormat.allowAnthropic`       | `false`                                      | 許可リストにある ID を Anthropic API ブロック経由でルーティング                                           |
-| `apiFormat.anthropicModels`      | `[]`                                         | Anthropic にルーティングされる完全なモデル ID                                                             |
-| `logLevel` / `startupDebug`      | `warn` / `false`                             | ロガーの詳細度                                                                                            |
+| キー                             | デフォルト                                   | 備考                                                                                              |
+| -------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `providerId`                     | `"omniroute"`                                | プロバイダー ID、インテグレーション ID、およびモデル表示時に付くプレフィックス                    |
+| `baseURL`                        | 必須                                         | ゲートウェイのルート。`http(s)` のみ。必要に応じて `/v1` サフィックスが追加されます               |
+| `apiKey`                         | 接続済みの認証情報、次に `OMNIROUTE_API_KEY` | `/v1/*` 用のチャットキー                                                                          |
+| `managementReadToken`            | `apiKey` にフォールバック                    | `/api/*` 用のキー。通常は同じキーでは**ありません**                                               |
+| `displayName`                    | `"OmniRoute"`                                | 選択画面に表示されるプロバイダー名                                                                |
+| `timeoutMs`                      | `10000`                                      | エンドポイントごとの取得タイムアウト（自動コンボでは 5 秒）                                       |
+| `modelCacheTtlMs`                | `300000`                                     | カタログキャッシュの TTL。ディスクスナップショットによりコールドスタートを高速化                  |
+| `timeouts`                       | `timeoutMs` にフォールバック                 | エンドポイントごとの時間上限（ミリ秒）：`models`、`combos`、`autoCombos`、`enrichment`            |
+| `enrichment`                     | `true`                                       | 名前、料金、無料枠の上限を取得                                                                    |
+| `providerTag`                    | `true`                                       | 表示名の先頭に、ルーティング先のアップストリームプロバイダー名を付加                              |
+| `usableOnly`                     | `false`                                      | ゲートウェイがプロビジョニング済みと報告したプロバイダーのみを保持                                |
+| `showcasePerOwner`               | `10`                                         | デフォルト表示でプロバイダーごとに保持するエントリ数                                              |
+| `freshPerOwner`                  | `10`                                         | デフォルト表示の新着分岐でプロバイダーごとに保持するエントリ数                                    |
+| `freshWindowDays`                | `90`                                         | 新着分岐で新着と見なす期間（日数）                                                                |
+| `usageMemory`                    | `true`                                       | 30 日間の利用状況分析に含まれる、静的に除外されたエントリを復元（管理トークンが必要）             |
+| `visibleModels` / `hiddenModels` | `[]`                                         | 完全一致またはサフィックス一致の許可リスト。拒否が優先                                            |
+| `geminiSanitization`             | `true`                                       | Gemini が拒否する JSON Schema キーワードをツールスキーマから除去（`$ref` ツールは変更せずに転送） |
+| `apiFormat.allowAnthropic`       | `false`                                      | 許可リストに含まれる ID を Anthropic API ブロック経由でルーティング                               |
+| `apiFormat.anthropicModels`      | `[]`                                         | Anthropic にルーティングされる完全なモデル ID                                                     |
+| `logLevel` / `startupDebug`      | `warn` / `false`                             | ロガーの詳細度                                                                                    |
+
+使用履歴の記憶はデフォルトで有効です。管理トークンがない場合は動作せず
+（起動時に通知がログに記録されます）、何も復元されません。
 
 ## カタログを最新に保つ仕組み
 

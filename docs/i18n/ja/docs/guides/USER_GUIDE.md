@@ -120,7 +120,7 @@
 
 ## 📖 プロバイダーのセットアップ
 
-CSV または JSON ファイルから API キー接続を一括追加するには、**ダッシュボード → プロバイダー → ファイルからインポート**を使用します。列は位置によって決まります（`provider,name,apiKey,baseUrl,priority`）。`provider` は、管理対象プロバイダーまたは互換性のあるノードとして、すでに存在している必要があります。[CSV または JSON ファイルからプロバイダーをインポートする](../providers/CSV-IMPORT.md)を参照してください。
+CSV または JSON ファイルから API キー接続を一括追加するには、**ダッシュボード → プロバイダー → ファイルからインポート**を使用します。列は位置によって決まります（`provider,name,apiKey,baseUrl,priority`）。`provider` は、管理対象プロバイダーまたは互換性のあるノードとして既に存在している必要があります。[CSV または JSON ファイルからプロバイダーをインポートする](../providers/CSV-IMPORT.md)を参照してください。
 
 ### 🔐 サブスクリプションプロバイダー
 
@@ -129,7 +129,7 @@ CSV または JSON ファイルから API キー接続を一括追加するに�
 ```bash
 ダッシュボード → プロバイダー → Claude Code に接続
 → OAuth ログイン → トークンの自動更新
-→ 5時間ごと + 週間クォータの追跡
+→ 5時間および週間クォータの追跡
 
 モデル:
   cc/claude-opus-4-7
@@ -137,16 +137,18 @@ CSV または JSON ファイルから API キー接続を一括追加するに�
   cc/claude-haiku-4-5-20251001
 ```
 
-**プロのヒント:** 複雑なタスクには Opus、速度を重視する場合は Sonnet を使用してください。OmniRoute はモデルごとにクォータを追跡します！
+**ヒント:** 複雑なタスクには Opus、速度を重視する場合は Sonnet を使用してください。OmniRoute はモデルごとにクォータを追跡します！
 
-Claude および Claude Code 互換ルートでは、Opus と Sonnet モデルの `max` 思考強度が維持されます。Haiku モデルは `max` 強度レベルを受け付けないため、OmniRoute はアップストリームへ送信する前に、そのリクエストを高い思考予算へダウングレードします。
+OmniRoute ホストにブラウザーがありませんか？Claude Code にログインしている任意の環境で `claude setup-token` を実行し、1年間有効なトークンを **Setup Token** タブに貼り付けてください。[セットアップトークンを使用する Claude Code](../providers/CLAUDE_CODE_SETUP_TOKEN.md)を参照してください。
+
+Claude および Claude Code 互換ルートでは、Opus および Sonnet モデルの `max` 思考強度が維持されます。Haiku モデルは `max` 強度レベルを受け付けないため、OmniRoute はそのリクエストをアップストリームに送信する前に、高い思考バジェットへダウングレードします。
 
 #### OpenAI Codex（Plus/Pro）
 
 ```bash
 ダッシュボード → プロバイダー → Codex に接続
 → OAuth ログイン（ポート 1455）
-→ 5時間ごと + 週間リセット
+→ 5時間ごとおよび週間リセット
 
 モデル:
   cx/gpt-5.5
@@ -159,7 +161,7 @@ Claude および Claude Code 互換ルートでは、Opus と Sonnet モデル�
 
 ```bash
 ダッシュボード → プロバイダー → GitHub に接続
-→ GitHub 経由で OAuth
+→ GitHub 経由の OAuth
 → 毎月リセット（毎月1日）
 
 モデル:
@@ -178,21 +180,21 @@ Claude および Claude Code 互換ルートでは、Opus と Sonnet モデル�
 2. Coding Plan から API キーを取得
 3. ダッシュボード → API キーを追加: プロバイダー: `glm`、API キー: `your-key`
 
-**使用方法:** `glm/glm-4.7` — **プロのヒント:** Coding Plan では、1/7 のコストで3倍のクォータを利用できます！毎日午前10時にリセットされます。
+**使用方法:** `glm/glm-4.7` — **ヒント:** Coding Plan では、7分の1のコストで3倍のクォータを利用できます！毎日午前10時にリセットされます。
 
 #### MiniMax M2.1（5時間ごとにリセット、$0.20/1M）
 
 1. 登録: [MiniMax](https://www.minimax.io)
 2. API キーを取得 → ダッシュボード → API キーを追加
 
-**使用方法:** `minimax/MiniMax-M2.1` — **プロのヒント:** 長いコンテキスト（1M トークン）向けの最安オプションです！
+**使用方法:** `minimax/MiniMax-M2.1` — **ヒント:** 長いコンテキスト（100万トークン）向けの最安オプションです！
 
 #### Kimi K2（月額 $9 の定額制）
 
-1. サブスクリプションに登録: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
+1. サブスクライブ: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. API キーを取得 → ダッシュボード → API キーを追加
 
-**使用方法:** `kimi/kimi-k2.5` — **プロのヒント:** 10M トークンが月額固定 $9 のため、実質コストは $0.90/1M です！
+**使用方法:** `kimi/kimi-k2.5` — **ヒント:** 1,000万トークンを月額固定 $9 で利用でき、実質コストは $0.90/1M です！
 
 #### Baidu Qianfan / ERNIE
 
@@ -203,8 +205,7 @@ Claude および Claude Code 互換ルートでは、Opus と Sonnet モデル�
 
 ### 🆓 無料プロバイダー
 
-認証不要の無料プロバイダーには、そのプロバイダーページの **認証不要** の横に切り替えスイッチがあります。
-オフにすると、そのプロバイダーが無効になり、「設定済みプロバイダー」表示およびコンパクト表示から削除され、さらにそのモデルも `/v1/models` から削除されます。
+認証不要の無料プロバイダーには、そのプロバイダーページの **認証不要** の横にスイッチがあります。オフにすると、そのプロバイダーが無効になり、プロバイダーの設定済みビューおよびコンパクトビューから削除され、そのモデルも `/v1/models` から削除されます。
 
 #### Qoder（無料モデル9種）
 
@@ -214,10 +215,10 @@ Claude および Claude Code 互換ルートでは、Opus と Sonnet モデル�
 モデル: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
-#### Kiro（Claude を無料で利用可能）
+#### Kiro（Claude を無料で利用）
 
 ```bash
-ダッシュボード → Kiro に接続 → AWS Builder ID または Google/GitHub → 月あたり約50クレジット
+ダッシュボード → Kiro に接続 → AWS Builder ID または Google/GitHub → 月間約50クレジット
 
 モデル: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
@@ -1212,12 +1213,12 @@ OmniRoute はクラウドコーディングエージェント（**OpenAI Codex C
 
 ## 🛠️ プログラムによる管理
 
-**`manage` スコープを持つ Bearer キー**を使用して、HTTP 経由ですべての OmniRoute リソース（プロバイダー、コンボ、キー、設定）を管理できます。
+**`manage` スコープを持つBearerキー**を使用して、すべてのOmniRouteリソース（プロバイダー、コンボ、キー、設定）をHTTP経由で管理できます。
 
-**ダッシュボード → API キー → 新しいキー → スコープ: manage** でキーを生成し、次のように使用します。
+**ダッシュボード → APIキー → 新しいキー → スコープ: manage** でキーを生成し、以下を実行します。
 
 ```bash
-# プロバイダーの一覧を取得
+# プロバイダーを一覧表示
 curl http://localhost:20128/api/providers \
   -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY"
 
@@ -1233,13 +1234,13 @@ curl -X POST http://localhost:20128/api/combos \
   -H "Content-Type: application/json" \
   -d '{ "name": "premium", "strategy": "priority", "models": [{ "model": "cc/claude-opus-4-7" }, { "model": "glm/glm-5.1" }] }'
 
-# API キーの一覧を取得／作成
+# APIキーを一覧表示／作成
 curl http://localhost:20128/api/keys -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY"
 curl -X POST http://localhost:20128/api/keys -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
   -d '{ "name": "ci-bot", "scopes": ["chat"] }'
 ```
 
-エンドポイントの完全な一覧とリクエスト／レスポンスのスキーマについては、[API_REFERENCE.md](../reference/API_REFERENCE.md)を参照してください。
+エンドポイントの完全なカタログおよびリクエスト／レスポンスのスキーマについては、[API_REFERENCE.md](../reference/API_REFERENCE.md)を参照してください。
 
 ---
 

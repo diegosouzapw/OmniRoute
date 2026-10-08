@@ -40,6 +40,14 @@ if (!process.env.DATA_DIR) {
   });
 }
 
+// Plugin-dir guard: the plugin scanner (src/lib/plugins/scanner.ts) resolves its directory
+// from OMNIROUTE_PLUGINS_DIR, else from HOME, which would point every test process at the
+// developer's real ~/.omniroute/plugins (scanned, and loaded, by the chat pipeline). Keep it
+// under the isolated DATA_DIR unless the caller already chose a directory; a blank value
+// counts as unset, matching the scanner's own trim.
+process.env.OMNIROUTE_PLUGINS_DIR =
+  process.env.OMNIROUTE_PLUGINS_DIR?.trim() || path.join(process.env.DATA_DIR!, "plugins");
+
 // System-trust guard: the suite must NEVER mutate the OS trust store. On a
 // persistent self-hosted runner the cert-flow integration test installed a fake
 // 105-byte PEM into /usr/local/share/ca-certificates and update-ca-certificates

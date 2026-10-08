@@ -111,3 +111,69 @@ test("control: a priced model routed at the same tokens does NOT trip fail-close
   assert.equal(status.dailyHasUnpricedUsage, false);
   assert.equal(status.dailyExceeded, false);
 });
+
+test("USAGE_LIMIT_IGNORE_UNPRICED=true: unpriced usage counts as $0 instead of failing the quota closed", async () => {
+  const previous = process.env.USAGE_LIMIT_IGNORE_UNPRICED;
+  process.env.USAGE_LIMIT_IGNORE_UNPRICED = "true";
+  try {
+    const { created, metadata } = await makeMeteredKey();
+
+    await usageHistory.saveRequestUsage({
+      provider: "cursor",
+      model: "auto",
+      apiKeyId: created.id,
+      apiKeyName: "Budget Alias Key",
+      tokens: { input: 1_000_000, output: 1_000_000 },
+      success: true,
+      timestamp: "2026-06-19T12:00:00.000Z",
+    });
+
+    const status = await usageLimits.getApiKeyUsageLimitStatus(
+      { ...metadata, allowedConnections: null },
+      { now: () => NOW }
+    );
+
+    assert.equal(status.dailySpentUsd, 0);
+    assert.equal(status.dailyHasUnpricedUsage, true, "the unpriced usage is still reported");
+    assert.equal(status.dailyExceeded, false, "an operator opt-in skips the fail-closed rule");
+    assert.equal(status.weeklyExceeded, false);
+  } finally {
+    if (previous === undefined) delete process.env.USAGE_LIMIT_IGNORE_UNPRICED;
+    else process.env.USAGE_LIMIT_IGNORE_UNPRICED = previous;
+  }
+});
+
+test("USAGE_LIMIT_IGNORE_UNPRICED=true still enforces priced spend over the limit", async () => {
+  const previous = process.env.USAGE_LIMIT_IGNORE_UNPRICED;
+  process.env.USAGE_LIMIT_IGNORE_UNPRICED = "true";
+  try {
+    const { updatePricing } = await import("@/lib/db/settings");
+    await updatePricing({
+      openai: {
+        "gpt-4o": { input: 20, cached: 20, output: 20, reasoning: 20, cache_creation: 20 },
+      },
+    });
+    const { created, metadata } = await makeMeteredKey();
+
+    await usageHistory.saveRequestUsage({
+      provider: "openai",
+      model: "gpt-4o",
+      apiKeyId: created.id,
+      apiKeyName: "Budget Alias Key",
+      tokens: { input: 1_000_000, output: 0 },
+      success: true,
+      timestamp: "2026-06-19T12:00:00.000Z",
+    });
+
+    const status = await usageLimits.getApiKeyUsageLimitStatus(
+      { ...metadata, allowedConnections: null },
+      { now: () => NOW }
+    );
+
+    assert.equal(status.dailySpentUsd, 20);
+    assert.equal(status.dailyExceeded, true, "$20 spent against a $10 daily limit");
+  } finally {
+    if (previous === undefined) delete process.env.USAGE_LIMIT_IGNORE_UNPRICED;
+    else process.env.USAGE_LIMIT_IGNORE_UNPRICED = previous;
+  }
+});

@@ -58,7 +58,7 @@ export const COLLECTORS = [
   // abaixo). Subdir novo: adicione aqui E nos scripts (o drift-check + o gate de
   // órfãos forçam a manutenção em sincronia).
   {
-    glob: "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,translator,ui,usage}/**/*.test.ts",
+    glob: "tests/unit/{api,auth,authz,build,chatcore,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,translator,ui,usage}/**/*.test.ts",
     sources: ["package.json"],
   },
   // Node native runner — tests/unit/dashboard/** roda numa invocação separada com o hook
@@ -87,8 +87,11 @@ export const COLLECTORS = [
       ".github/workflows/quality.yml": "test:unit:ci:shard",
     },
   },
-  // Node native runner — test:integration (top-level only; tests/integration/services/ NÃO roda)
+  // Node native runner — test:integration (top-level only)
   { glob: "tests/integration/*.test.ts", sources: ["package.json"] },
+  // Node native runner — test:services:int (gated RUN_SERVICES_INT=1; embedded-service
+  // installer/lifecycle tests — slow, network-dependent, never runs unopted in CI)
+  { glob: "tests/integration/services/*.test.ts", sources: ["package.json"] },
   // Node native runner — test:combo:matrix / test:integration (combo strategy decision matrix, 17 strategies)
   { glob: "tests/integration/combo-matrix/*.test.ts", sources: ["package.json"] },
   // Node native runner — test:combo:live (gated real-upstream smoke; RUN_COMBO_LIVE=1 + VPS creds)
