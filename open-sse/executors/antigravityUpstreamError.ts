@@ -299,3 +299,46 @@ export function toAntigravityDiagnosticPayload(
 ): { antigravityValidation: Record<string, unknown> } | null {
   return diagnostic ? { antigravityValidation: diagnostic } : null;
 }
+
+/**
+ * Log a terminal provider failure and return the body to persist: the bounded Antigravity
+ * diagnostic, otherwise the already-sanitized upstream body next to the response metadata.
+ */
+export function logTerminalProviderResponse(
+  reqLogger: {
+    logProviderDiagnostic: (diagnostic: Record<string, unknown> | null) => void;
+    logProviderResponse: (
+      status: number,
+      statusText: string,
+      headers: Headers,
+      body: unknown
+    ) => void;
+  },
+  provider: string,
+  response: Response,
+  diagnostic: Record<string, unknown> | undefined,
+  safeBody: unknown
+): unknown {
+  if (!isAntigravityProvider(provider)) {
+    reqLogger.logProviderResponse(response.status, response.statusText, response.headers, safeBody);
+    return safeBody;
+  }
+  const payload = toAntigravityDiagnosticPayload(diagnostic);
+  reqLogger.logProviderDiagnostic(payload);
+  return payload;
+}
+
+/**
+ * A successful fallback replaces the response the persisted diagnostic described (a 2xx carries
+ * none), so re-point the Antigravity log at the one it now describes. Returns `diagnostic`.
+ */
+export function relogFallbackDiagnostic(
+  reqLogger: { logProviderDiagnostic: (diagnostic: Record<string, unknown> | null) => void },
+  provider: string,
+  diagnostic: Record<string, unknown> | undefined
+): Record<string, unknown> | undefined {
+  if (isAntigravityProvider(provider)) {
+    reqLogger.logProviderDiagnostic(toAntigravityDiagnosticPayload(diagnostic));
+  }
+  return diagnostic;
+}

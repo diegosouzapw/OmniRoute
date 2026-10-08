@@ -86,8 +86,8 @@ import { updatePendingScope } from "@/lib/usage/pendingRequestScope";
 
 import { normalizeExecutorResult } from "./upstreamTimeouts.ts";
 import {
-  isAntigravityProvider,
-  toAntigravityDiagnosticPayload,
+  logTerminalProviderResponse,
+  relogFallbackDiagnostic,
 } from "../../executors/antigravityUpstreamError.ts";
 
 import { getProviderCredentials, extractSessionAffinityKey } from "@/sse/services/auth";
@@ -209,9 +209,7 @@ export async function runStreamingResponse(deps: StreamingDeps) {
   providerResponse = deps.providerResponse;
   providerUrl = deps.providerUrl;
   translatedBody = deps.translatedBody;
-  // #3229: always describes whichever response `providerResponse` currently holds — every
-  // retry, recovery, or fallback that replaces the response replaces or clears this too, or
-  // the log attributes one attempt's diagnosis to a different attempt's response.
+  // #3229: diagnostic of the response `providerResponse` holds; replacing it must replace this.
   let upstreamDiagnostic: Record<string, unknown> | undefined;
   try {
     const pipelineOutcome = await runProviderExecutionPipeline({
@@ -987,35 +985,17 @@ export async function runStreamingResponse(deps: StreamingDeps) {
       log?.debug?.("RETRY", `Antigravity quota reset in ${retrySeconds}s (${retryAfterMs}ms)`);
     }
 
-    // #3229: Antigravity terminal failures are diagnosed from the bounded projection, never
-    // from the upstream payload — see isAntigravityProvider in antigravityUpstreamError.ts.
-    const isAgyProvider = isAntigravityProvider(provider);
-    const agyDiagnostic = toAntigravityDiagnosticPayload(upstreamDiagnostic);
-    const persistedProviderErrorBody = isAgyProvider ? agyDiagnostic : safeUpstreamErrorBody;
-    // A successful intra-family fallback replaces the response the diagnostic above
-    // describes, so re-point the log at the one it now describes (a 2xx carries none).
-    // The streaming path has no success-side logProviderResponse to overwrite it, so
-    // without this the failed attempt's diagnosis would outlive the request it failed.
-    const adoptFallbackDiagnostic = (fallbackDiagnostic?: Record<string, unknown>) => {
-      upstreamDiagnostic = fallbackDiagnostic;
-      if (isAgyProvider) {
-        reqLogger.logProviderDiagnostic(toAntigravityDiagnosticPayload(upstreamDiagnostic));
-      }
-    };
-
     // Log error with full request body for debugging
     reqLogger.logError(new Error(message), finalBody || translatedBody);
-    if (isAgyProvider) {
-      reqLogger.logProviderDiagnostic(agyDiagnostic);
-    } else {
-      reqLogger.logProviderResponse(
-        providerResponse.status,
-        providerResponse.statusText,
-        providerResponse.headers,
-        safeUpstreamErrorBody
-      );
-    }
-
+    const persistedProviderErrorBody = logTerminalProviderResponse(
+      reqLogger,
+      provider,
+      providerResponse,
+      upstreamDiagnostic,
+      safeUpstreamErrorBody
+    );
+    const adoptFallbackDiagnostic = (diagnostic?: Record<string, unknown>) =>
+      (upstreamDiagnostic = relogFallbackDiagnostic(reqLogger, provider, diagnostic));
     // Rate limiter updated in applyProviderFailureClassification
 
     // ── T5: Intra-family model fallback ──────────────────────────────────────
