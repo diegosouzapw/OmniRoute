@@ -7,8 +7,11 @@
 // antigravity/sseCollect.ts submodule pattern.
 import { mergeAbortSignals, type ExecutorLog } from "../base.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../../config/cliFingerprints.ts";
-import { buildAntigravityUpstreamError } from "../antigravityUpstreamError.ts";
-import { maybeTriggerReactiveModelSync } from "@/lib/providerModels/reactiveModelSync.ts";
+import {
+  buildAntigravityUpstreamError,
+  projectAntigravityValidationDiagnostic,
+} from "../antigravityUpstreamError.ts";
+import { awaitReactiveModelSync } from "@/lib/providerModels/reactiveModelSync.ts";
 import {
   HTTP_STATUS,
   STREAM_READINESS_TIMEOUT_MS,
@@ -21,9 +24,11 @@ import {
   removeHeaderCaseInsensitive,
 } from "../../services/antigravityClientProfile.ts";
 import * as prl from "../../utils/providerRequestLogging.ts";
+import { generateAntigravityRequestId } from "../../services/antigravityIdentity.ts";
 import {
   createCreditsExtractionTransform as createCreditsExtractionTransformImpl,
   buildSsePassthroughResult,
+  bindAbortLifecycle,
   type SsePassthroughResult,
 } from "./streamingPassthrough.ts";
 import type { AntigravityCredentials } from "../antigravity.ts";
@@ -196,21 +201,6 @@ export function buildAntigravity429ErrorMessage(errorJson: unknown): string {
   return errorMessage;
 }
 
-function getChunkedOrFixedBody(bodyStr: string, stream: boolean): BodyInit {
-  if (stream) {
-    return new ReadableStream(
-      {
-        async start(controller) {
-          controller.enqueue(new TextEncoder().encode(bodyStr));
-          controller.close();
-        },
-      },
-      { highWaterMark: 16384 }
-    );
-  }
-  return bodyStr;
-}
-
 function cloneAntigravityRequestBody(body: unknown): unknown {
   if (!body || typeof body !== "object") {
     return body;
@@ -330,10 +320,12 @@ export async function sendAntigravityRequest(
   headers: Record<string, string>,
   transformedBody: Record<string, unknown>,
   credentials: AntigravityCredentials,
-  stream: boolean,
+  _stream: boolean,
   signal: AbortSignal | null | undefined,
   log: SafeAntigravityLog,
-  retryAttempt: number
+  retryAttempt: number,
+  physicalSendCounter: { value: number },
+  correlationId: string | null
 ): Promise<{ response: Response; finalHeaders: Record<string, string> }> {
   const serializedRequest = serializeAntigravityRequest(provider, headers, transformedBody);
   let finalHeaders = serializedRequest.headers;
@@ -356,11 +348,18 @@ export async function sendAntigravityRequest(
   }
 
   await prl.captureCurrentProviderBody(url, finalHeaders, serializedRequest.bodyString, log);
+  const physicalSendOrdinal = ++physicalSendCounter.value;
+  log.debug(
+    "TELEMETRY",
+    `[Antigravity] PhysicalSend - RequestId: ${correlationId ?? "none"}, URL: ${url}, Model: ${model}, PhysicalSend: ${physicalSendOrdinal}, RetryAttempt: ${retryAttempt}`
+  );
+  // The Antigravity request payload is finite JSON even when the response is streamed.
+  // Keep the upload replayable instead of wrapping it in a one-shot ReadableStream; proxyFetch
+  // can then use its normal replay/fallback path without retaining a duplex upload stream.
   let response = await fetchAntigravityWithReadinessTimeout(url, {
     method: "POST",
     headers: finalHeaders,
-    body: getChunkedOrFixedBody(serializedRequest.bodyString, stream),
-    ...(stream ? { duplex: "half" } : {}),
+    body: serializedRequest.bodyString,
     signal,
   });
 
@@ -369,11 +368,15 @@ export async function sendAntigravityRequest(
     removeHeaderCaseInsensitive(retryHeaders, "x-goog-user-project");
     log.debug("RETRY", "403 with x-goog-user-project, retrying once without it");
     await prl.captureCurrentProviderBody(url, retryHeaders, serializedRequest.bodyString, log);
+    const retryPhysicalSendOrdinal = ++physicalSendCounter.value;
+    log.debug(
+      "TELEMETRY",
+      `[Antigravity] PhysicalSend - RequestId: ${correlationId ?? "none"}, URL: ${url}, Model: ${model}, PhysicalSend: ${retryPhysicalSendOrdinal}, RetryAttempt: ${retryAttempt}, Cause: x-goog-user-project-403`
+    );
     response = await fetchAntigravityWithReadinessTimeout(url, {
       method: "POST",
       headers: retryHeaders,
-      body: getChunkedOrFixedBody(serializedRequest.bodyString, stream),
-      ...(stream ? { duplex: "half" } : {}),
+      body: serializedRequest.bodyString,
       signal,
     });
     finalHeaders = retryHeaders;
@@ -387,12 +390,46 @@ export async function sendAntigravityRequest(
     if (response.status === HTTP_STATUS.NOT_FOUND) {
       // The backend may have shipped/renamed models the synced catalog does not
       // know yet (pinned-catalog staleness). Kick a discovery sync for this
-      // connection so the fresh list lands in the synced catalog and the next
-      // request can resolve. Cooldown + in-flight dedup live in the trigger.
-      // credentials.connectionId is optional (base.ts): no connection row means
-      // there is no synced catalog to refresh, so skip rather than pass undefined.
+      // connection so the fresh list lands in the synced catalog. If sync succeeds,
+      // re-resolve the model with the updated catalog, re-serialize the request envelope,
+      // and transparently retry once so the first request for a freshly shipped model
+      // or alias succeeds on the first try.
       if (credentials.connectionId) {
-        maybeTriggerReactiveModelSync(provider, credentials.connectionId);
+        const synced = await awaitReactiveModelSync(provider, credentials.connectionId);
+        if (synced) {
+          // Lazy import: a static value import of ../antigravity.ts (which imports this
+          // module) forms an async ESM init cycle that deadlocks the bundled MCP server
+          // on startup (tests/unit/build/mcp-bundle-startup.test.ts).
+          const { cleanModelName } = await import("../antigravity.ts");
+          const reResolvedModel = await cleanModelName(model, undefined, provider);
+          const retryBody: Record<string, unknown> = {
+            ...transformedBody,
+            model: reResolvedModel,
+            requestId: generateAntigravityRequestId(),
+          };
+          const reSerialized = serializeAntigravityRequest(provider, headers, retryBody);
+          const retryHeaders = reSerialized.headers;
+          applyAntigravityClientProfileHeaders(retryHeaders, credentials, retryBody);
+
+          log.info(
+            "RETRY",
+            `[Antigravity] Discovery sync succeeded after 404 for ${model} (re-resolved to ${reResolvedModel}), retrying request with rebuilt envelope`
+          );
+          await prl.captureCurrentProviderBody(url, retryHeaders, reSerialized.bodyString, log);
+          const syncRetryPhysicalSendOrdinal = ++physicalSendCounter.value;
+          log.debug(
+            "TELEMETRY",
+            `[Antigravity] PhysicalSend - RequestId: ${correlationId ?? "none"}, URL: ${url}, Model: ${reResolvedModel}, PhysicalSend: ${syncRetryPhysicalSendOrdinal}, RetryAttempt: ${retryAttempt}, Cause: reactive-sync-404`
+          );
+          // Same replayable fixed-body upload as the first send (no one-shot stream).
+          response = await fetchAntigravityWithReadinessTimeout(url, {
+            method: "POST",
+            headers: retryHeaders,
+            body: reSerialized.bodyString,
+            signal,
+          });
+          finalHeaders = retryHeaders;
+        }
       }
     }
   }
@@ -416,7 +453,9 @@ export async function tryCreditsRetry(
   signal: AbortSignal | null | undefined,
   log: SafeAntigravityLog,
   accountId: string,
-  onCreditsUpdate: OnAntigravityCreditsUpdate
+  onCreditsUpdate: OnAntigravityCreditsUpdate,
+  physicalSendCounter: { value: number },
+  correlationId: string | null
 ): Promise<SsePassthroughResult | null> {
   log.info("AG_CREDITS", "Retrying with Google One AI credits");
   const creditsBody = attachToolNameMap(
@@ -433,11 +472,15 @@ export async function tryCreditsRetry(
       serializedCreditsRequest.bodyString,
       log
     );
+    const creditsPhysicalSendOrdinal = ++physicalSendCounter.value;
+    log.debug(
+      "TELEMETRY",
+      `[Antigravity] PhysicalSend - RequestId: ${correlationId ?? "none"}, URL: ${url}, PhysicalSend: ${creditsPhysicalSendOrdinal}, Cause: google-one-ai-credits-retry`
+    );
     const creditsResp = await fetchAntigravityWithReadinessTimeout(url, {
       method: "POST",
       headers: finalCreditsHeaders,
-      body: getChunkedOrFixedBody(serializedCreditsRequest.bodyString, stream),
-      ...(stream ? { duplex: "half" } : {}),
+      body: serializedCreditsRequest.bodyString,
       signal,
     });
     if (creditsResp.ok || creditsResp.status !== HTTP_STATUS.RATE_LIMITED) {
@@ -541,6 +584,7 @@ async function buildUpstreamErrorResult(
     .text()
     .catch(() => "");
   const errorBody = buildAntigravityUpstreamError(response.status, response.statusText, rawBody);
+  const upstreamDiagnostic = projectAntigravityValidationDiagnostic(response.status, rawBody);
   return {
     response: new Response(JSON.stringify(errorBody), {
       status: response.status,
@@ -549,6 +593,7 @@ async function buildUpstreamErrorResult(
     url,
     headers: finalHeaders,
     transformedBody,
+    upstreamDiagnostic,
   };
 }
 
@@ -628,27 +673,13 @@ async function buildStreamingExecuteOnceResult(
   }
 
   if (response.body) {
-    // If the downstream client aborts, cancel the upstream fetch body immediately
-    // to release the socket back to the Undici agent pool and prevent memory leaks.
-    if (signal) {
-      const abortHandler = () => {
-        try {
-          response.body?.cancel().catch(() => {});
-        } catch (_) {}
-      };
-      if (signal.aborted) {
-        abortHandler();
-      } else {
-        signal.addEventListener("abort", abortHandler, { once: true });
-      }
-    }
-
+    const abortAwareBody = bindAbortLifecycle(response.body, signal);
     const passThrough = createCreditsExtractionTransformImpl(
       accountId,
       onCreditsUpdate,
       16 * 1024 // 16KB sliding-window cap to prevent OOM
     );
-    const tappedBody = response.body.pipeThrough(passThrough);
+    const tappedBody = abortAwareBody.pipeThrough(passThrough);
     const tappedResponse = new Response(tappedBody, {
       status: response.status,
       statusText: response.statusText,

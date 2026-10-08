@@ -189,7 +189,40 @@ test("shared set size includes live REGISTRY and retired Designer + Felo + Qwen 
   // alias "pepper" from the REGISTRY walk (414 -> 412) — the two land back on the same total.
   // #12648 registers xKiro: id "xkiro" with no separate alias — a single REGISTRY
   // member (412 -> 413).
-  assert.equal(RESERVED_PREFIX_COUNT, 413);
+  // Base 413. Lyceum (pay-per-use OpenAI-compatible gateway, 2026-09-20, #12474) registers
+  // id "lyceum" PLUS a distinct alias — two REGISTRY members, not one (413 -> 415). #12474's
+  // own comment said "identical alias" and left this assertion at 414, so the release tip
+  // carries this test RED; measured directly on origin/release/v3.8.51 (198b3bfd), the live
+  // set is 415. #14217 then retires gemini-business (protocol death, no live account to
+  // validate a rewrite against — see docs/reference/REMOVED_PROVIDERS.md), removing its id
+  // "gemini-business" and alias "gembiz" from the REGISTRY walk and adding no tombstones
+  // (415 -> 413). Measured, not hand-derived: RESERVED_PROVIDER_PREFIXES.size on this head.
+  // Reconciled 2026-09-23: #14468 (suno retirement) landed on the tip first, which already
+  // measured 413 there; with gemini-business also retired on top of it the live set is 412
+  // (413 -> 412). Measured, not hand-derived: RESERVED_PROVIDER_PREFIXES.size on this head.
+  // origin/release/v3.8.52 already measures 413 (test still 412, inherited).
+  // onomeo registers id "onomeo" with the same alias — one REGISTRY member (413 -> 414).
+  // Unifically (#14182) registers id "unifically" with the same alias — one REGISTRY member
+  // (414 -> 415). BeatAPI (#14875) registers id "beatapi" with an identical alias — one more
+  // (415 -> 416). Measured, not hand-derived: RESERVED_PROVIDER_PREFIXES.size.
+  // ChatPlayground (#12690) registers id "chatplayground" and alias "cpl" — two more
+  // (416 -> 418). Measured: RESERVED_PROVIDER_PREFIXES.size after #12690 and #14875 both landed.
+  // notrack-web (#12534): registry entry registers its id "notrack-web" + alias "ntw"
+  // (two new members, 418 -> 420). Do not fold this into a generic catalog bump — the
+  // dedicated notrack-web prefix test below is the regression lock for this provider.
+  // Apmix (#14821) registers id "apmix" with the same alias — one more (420 -> 421).
+  // Token Market (#13191) registers id "tokenmarket" with the same alias — one more.
+  // Twinmind (#14131) registers id "twinmind" and alias "tm" — two more.
+  // SYNTX.ai (#14269) registers id "syntx" and alias "stx" — two more.
+  // Measured on the merged tree: RESERVED_PROVIDER_PREFIXES.size = 429.
+  assert.equal(RESERVED_PREFIX_COUNT, 429);
+});
+
+test("notrack-web registry id and alias stay reserved", () => {
+  assert.equal(RESERVED_PROVIDER_PREFIXES.has("notrack-web"), true);
+  assert.equal(RESERVED_PROVIDER_PREFIXES.has("ntw"), true);
+  assert.equal(isReservedProviderPrefix("notrack-web"), true);
+  assert.equal(isReservedProviderPrefix("ntw"), true);
 });
 
 test("isReservedProviderPrefix rejects non-string input", () => {

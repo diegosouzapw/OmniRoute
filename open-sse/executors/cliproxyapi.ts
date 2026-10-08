@@ -23,6 +23,8 @@ import {
 } from "./base.ts";
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { getProviderPluginManifestHeader } from "../config/providerPluginManifestUrl.ts";
+import { rememberCpaAuthIndex } from "../handlers/chatCore/cpaTraceAuthIndex.ts";
+import { applyReasoningEffortRecovery } from "./base/reasoningEffortRecovery.ts";
 import { cloakThirdPartyToolNames } from "../services/claudeCodeToolRemapper.ts";
 import { sanitizeClaudeToolSchemas } from "../translator/helpers/schemaCoercion.ts";
 
@@ -132,7 +134,9 @@ export function clearCliproxyapiUrlCache() {
     if (typeof settings.cliproxyapi_url === "string" && settings.cliproxyapi_url.trim()) {
       _cachedSettingsUrl = { url: settings.cliproxyapi_url.trim(), ts: Date.now() };
     }
-  } catch { /* env vars will be used as fallback */ }
+  } catch {
+    /* env vars will be used as fallback */
+  }
 })();
 
 /**
@@ -155,7 +159,9 @@ async function resolveCliproxyapiBaseUrl(): Promise<string> {
       _cachedSettingsUrl = { url, ts: Date.now() };
       return url;
     }
-  } catch { /* fall through to env vars */ }
+  } catch {
+    /* fall through to env vars */
+  }
 
   const host = process.env.CLIPROXYAPI_HOST || DEFAULT_HOST;
   const port = parseInt(process.env.CLIPROXYAPI_PORT || String(DEFAULT_PORT), 10);
@@ -411,19 +417,37 @@ export class CliproxyapiExecutor extends BaseExecutor {
     // _toolNameMap and _namespaceToolIdentityMap are in-memory channels to
     // chatCore for response-side tool name restoration; never send them over
     // the wire.
-    const wireBody =
-      transformedBody && typeof transformedBody === "object"
-        ? JSON.stringify(transformedBody, (key, value) =>
-            key === "_toolNameMap" || key === "_namespaceToolIdentityMap" ? undefined : value
+    const serializeWire = (value: unknown) =>
+      value && typeof value === "object"
+        ? JSON.stringify(value, (key, v) =>
+            key === "_toolNameMap" || key === "_namespaceToolIdentityMap" ? undefined : v
           )
-        : JSON.stringify(transformedBody);
+        : JSON.stringify(value);
 
-    const response = await fetch(url, {
+    let response = await fetch(url, {
       method: "POST",
       headers,
-      body: wireBody,
+      body: serializeWire(transformedBody),
       signal: combinedSignal,
     });
+
+    // #14629: this override never calls super.execute(). The retry must use
+    // the same serializer so the in-memory tool maps never reach the wire.
+    const recovery = await applyReasoningEffortRecovery({
+      response,
+      url,
+      provider: this.provider,
+      model: input.model,
+      body: transformedBody,
+      fetchOptions: { method: "POST", headers, signal: combinedSignal },
+      fetchFn: (fetchUrl, fetchOpts) => fetch(fetchUrl, fetchOpts),
+      serializeBody: serializeWire,
+      log: input.log,
+    });
+    response = recovery.response;
+    // #11725: capture X-CPA-TRACE-ID before any later header rebuild. A missing
+    // or unknown shape stays unattributed and does not fail the request.
+    rememberCpaAuthIndex(response);
 
     if (response.status === HTTP_STATUS.RATE_LIMITED) {
       input.log?.warn?.("CPA", `CLIProxyAPI rate limited: ${response.status}`);

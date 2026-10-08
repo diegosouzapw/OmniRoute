@@ -1,6 +1,6 @@
 # Guardrails (Čeština)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../security/GUARDRAILS.md) · 🇪🇹 [am](../../../am/docs/security/GUARDRAILS.md) · 🇸🇦 [ar](../../../ar/docs/security/GUARDRAILS.md) · 🇦🇿 [az](../../../az/docs/security/GUARDRAILS.md) · 🇧🇬 [bg](../../../bg/docs/security/GUARDRAILS.md) · 🇧🇩 [bn](../../../bn/docs/security/GUARDRAILS.md) · 🇩🇰 [da](../../../da/docs/security/GUARDRAILS.md) · 🇩🇪 [de](../../../de/docs/security/GUARDRAILS.md) · 🇬🇷 [el](../../../el/docs/security/GUARDRAILS.md) · 🇪🇸 [es](../../../es/docs/security/GUARDRAILS.md) · 🇪🇪 [et](../../../et/docs/security/GUARDRAILS.md) · 🇮🇷 [fa](../../../fa/docs/security/GUARDRAILS.md) · 🇫🇮 [fi](../../../fi/docs/security/GUARDRAILS.md) · 🇫🇷 [fr](../../../fr/docs/security/GUARDRAILS.md) · 🇮🇪 [ga](../../../ga/docs/security/GUARDRAILS.md) · 🇮🇳 [gu](../../../gu/docs/security/GUARDRAILS.md) · 🇳🇬 [ha](../../../ha/docs/security/GUARDRAILS.md) · 🇮🇱 [he](../../../he/docs/security/GUARDRAILS.md) · 🇮🇳 [hi](../../../hi/docs/security/GUARDRAILS.md) · 🇭🇷 [hr](../../../hr/docs/security/GUARDRAILS.md) · 🇭🇺 [hu](../../../hu/docs/security/GUARDRAILS.md) · 🇦🇲 [hy](../../../hy/docs/security/GUARDRAILS.md) · 🇮🇩 [id](../../../id/docs/security/GUARDRAILS.md) · 🇳🇬 [ig](../../../ig/docs/security/GUARDRAILS.md) · 🇮🇹 [it](../../../it/docs/security/GUARDRAILS.md) · 🇯🇵 [ja](../../../ja/docs/security/GUARDRAILS.md) · 🇬🇪 [ka](../../../ka/docs/security/GUARDRAILS.md) · 🇰🇭 [km](../../../km/docs/security/GUARDRAILS.md) · 🇮🇳 [kn](../../../kn/docs/security/GUARDRAILS.md) · 🇰🇷 [ko](../../../ko/docs/security/GUARDRAILS.md) · 🇱🇹 [lt](../../../lt/docs/security/GUARDRAILS.md) · 🇱🇻 [lv](../../../lv/docs/security/GUARDRAILS.md) · 🇮🇳 [ml](../../../ml/docs/security/GUARDRAILS.md) · 🇮🇳 [mr](../../../mr/docs/security/GUARDRAILS.md) · 🇲🇾 [ms](../../../ms/docs/security/GUARDRAILS.md) · 🇲🇹 [mt](../../../mt/docs/security/GUARDRAILS.md) · 🇲🇲 [my](../../../my/docs/security/GUARDRAILS.md) · 🇳🇵 [ne](../../../ne/docs/security/GUARDRAILS.md) · 🇳🇱 [nl](../../../nl/docs/security/GUARDRAILS.md) · 🇳🇴 [no](../../../no/docs/security/GUARDRAILS.md) · 🇮🇳 [or](../../../or/docs/security/GUARDRAILS.md) · 🇮🇳 [pa](../../../pa/docs/security/GUARDRAILS.md) · 🇵🇭 [phi](../../../phi/docs/security/GUARDRAILS.md) · 🇵🇱 [pl](../../../pl/docs/security/GUARDRAILS.md) · 🇵🇹 [pt](../../../pt/docs/security/GUARDRAILS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/GUARDRAILS.md) · 🇷🇴 [ro](../../../ro/docs/security/GUARDRAILS.md) · 🇷🇺 [ru](../../../ru/docs/security/GUARDRAILS.md) · 🇱🇰 [si](../../../si/docs/security/GUARDRAILS.md) · 🇸🇰 [sk](../../../sk/docs/security/GUARDRAILS.md) · 🇸🇮 [sl](../../../sl/docs/security/GUARDRAILS.md) · 🇷🇸 [sr](../../../sr/docs/security/GUARDRAILS.md) · 🇸🇪 [sv](../../../sv/docs/security/GUARDRAILS.md) · 🇰🇪 [sw](../../../sw/docs/security/GUARDRAILS.md) · 🇮🇳 [ta](../../../ta/docs/security/GUARDRAILS.md) · 🇮🇳 [te](../../../te/docs/security/GUARDRAILS.md) · 🇹🇭 [th](../../../th/docs/security/GUARDRAILS.md) · 🇹🇷 [tr](../../../tr/docs/security/GUARDRAILS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/GUARDRAILS.md) · 🇵🇰 [ur](../../../ur/docs/security/GUARDRAILS.md) · 🇺🇿 [uz](../../../uz/docs/security/GUARDRAILS.md) · 🇻🇳 [vi](../../../vi/docs/security/GUARDRAILS.md) · 🇳🇬 [yo](../../../yo/docs/security/GUARDRAILS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/GUARDRAILS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/GUARDRAILS.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../security/GUARDRAILS.md) · 🇪🇹 [am](../../../am/docs/security/GUARDRAILS.md) · 🇸🇦 [ar](../../../ar/docs/security/GUARDRAILS.md) · 🇦🇿 [az](../../../az/docs/security/GUARDRAILS.md) · 🇧🇬 [bg](../../../bg/docs/security/GUARDRAILS.md) · 🇧🇩 [bn](../../../bn/docs/security/GUARDRAILS.md) · 🇧🇦 [bs](../../../bs/docs/security/GUARDRAILS.md) · 🇩🇰 [da](../../../da/docs/security/GUARDRAILS.md) · 🇩🇪 [de](../../../de/docs/security/GUARDRAILS.md) · 🇬🇷 [el](../../../el/docs/security/GUARDRAILS.md) · 🇪🇸 [es](../../../es/docs/security/GUARDRAILS.md) · 🇪🇪 [et](../../../et/docs/security/GUARDRAILS.md) · 🇮🇷 [fa](../../../fa/docs/security/GUARDRAILS.md) · 🇫🇮 [fi](../../../fi/docs/security/GUARDRAILS.md) · 🇫🇷 [fr](../../../fr/docs/security/GUARDRAILS.md) · 🇮🇪 [ga](../../../ga/docs/security/GUARDRAILS.md) · 🇮🇳 [gu](../../../gu/docs/security/GUARDRAILS.md) · 🇳🇬 [ha](../../../ha/docs/security/GUARDRAILS.md) · 🇮🇱 [he](../../../he/docs/security/GUARDRAILS.md) · 🇮🇳 [hi](../../../hi/docs/security/GUARDRAILS.md) · 🇭🇷 [hr](../../../hr/docs/security/GUARDRAILS.md) · 🇭🇺 [hu](../../../hu/docs/security/GUARDRAILS.md) · 🇦🇲 [hy](../../../hy/docs/security/GUARDRAILS.md) · 🇮🇩 [id](../../../id/docs/security/GUARDRAILS.md) · 🇳🇬 [ig](../../../ig/docs/security/GUARDRAILS.md) · 🇮🇹 [it](../../../it/docs/security/GUARDRAILS.md) · 🇯🇵 [ja](../../../ja/docs/security/GUARDRAILS.md) · 🇬🇪 [ka](../../../ka/docs/security/GUARDRAILS.md) · 🇰🇭 [km](../../../km/docs/security/GUARDRAILS.md) · 🇮🇳 [kn](../../../kn/docs/security/GUARDRAILS.md) · 🇰🇷 [ko](../../../ko/docs/security/GUARDRAILS.md) · 🇱🇹 [lt](../../../lt/docs/security/GUARDRAILS.md) · 🇱🇻 [lv](../../../lv/docs/security/GUARDRAILS.md) · 🇮🇳 [ml](../../../ml/docs/security/GUARDRAILS.md) · 🇮🇳 [mr](../../../mr/docs/security/GUARDRAILS.md) · 🇲🇾 [ms](../../../ms/docs/security/GUARDRAILS.md) · 🇲🇹 [mt](../../../mt/docs/security/GUARDRAILS.md) · 🇲🇲 [my](../../../my/docs/security/GUARDRAILS.md) · 🇳🇵 [ne](../../../ne/docs/security/GUARDRAILS.md) · 🇳🇱 [nl](../../../nl/docs/security/GUARDRAILS.md) · 🇳🇴 [no](../../../no/docs/security/GUARDRAILS.md) · 🇮🇳 [or](../../../or/docs/security/GUARDRAILS.md) · 🇮🇳 [pa](../../../pa/docs/security/GUARDRAILS.md) · 🇵🇭 [phi](../../../phi/docs/security/GUARDRAILS.md) · 🇵🇱 [pl](../../../pl/docs/security/GUARDRAILS.md) · 🇵🇹 [pt](../../../pt/docs/security/GUARDRAILS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/GUARDRAILS.md) · 🇷🇴 [ro](../../../ro/docs/security/GUARDRAILS.md) · 🇷🇺 [ru](../../../ru/docs/security/GUARDRAILS.md) · 🇱🇰 [si](../../../si/docs/security/GUARDRAILS.md) · 🇸🇰 [sk](../../../sk/docs/security/GUARDRAILS.md) · 🇸🇮 [sl](../../../sl/docs/security/GUARDRAILS.md) · 🇷🇸 [sr](../../../sr/docs/security/GUARDRAILS.md) · 🇸🇪 [sv](../../../sv/docs/security/GUARDRAILS.md) · 🇰🇪 [sw](../../../sw/docs/security/GUARDRAILS.md) · 🇮🇳 [ta](../../../ta/docs/security/GUARDRAILS.md) · 🇮🇳 [te](../../../te/docs/security/GUARDRAILS.md) · 🇹🇭 [th](../../../th/docs/security/GUARDRAILS.md) · 🇹🇷 [tr](../../../tr/docs/security/GUARDRAILS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/GUARDRAILS.md) · 🇵🇰 [ur](../../../ur/docs/security/GUARDRAILS.md) · 🇺🇿 [uz](../../../uz/docs/security/GUARDRAILS.md) · 🇻🇳 [vi](../../../vi/docs/security/GUARDRAILS.md) · 🇳🇬 [yo](../../../yo/docs/security/GUARDRAILS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/GUARDRAILS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/GUARDRAILS.md)
 
 ---
 
@@ -17,12 +17,12 @@ Systém je **fail-open**: pokud guardrail během provádění vyvolá výjimku, 
 chybu zaznamená a pokračuje dalším guardrailem, místo aby požadavek
 selhal. Blokování je výslovné rozhodnutí (`block: true`), nikdy ne nehoda.
 
-## Vestavěné guardraily
+## Vestavěné zábrany
 
-Registr při importu automaticky načítá šest guardrailů v pořadí podle priority
+Registr automaticky načítá šest zábran v prioritním pořadí při importu
 (viz `registry.ts` → `registerDefaultGuardrails()`):
 
-| Priorita | Název               | Fáze           | Soubor                |
+| Priorita | Název               | Fáze(e)        | Soubor                |
 | -------- | ------------------- | -------------- | --------------------- |
 | `5`      | `vision-bridge`     | `preCall`      | `visionBridge.ts`     |
 | `6`      | `audio-bridge`      | `preCall`      | `audioBridge.ts`      |
@@ -31,672 +31,411 @@ Registr při importu automaticky načítá šest guardrailů v pořadí podle pr
 | `20`     | `prompt-injection`  | `preCall`      | `promptInjection.ts`  |
 | `95`     | `credential-masker` | `pre` + `post` | `credentialMasker.ts` |
 
-Nižší čísla priority se spouštějí **dříve**.
+Nižší čísla priorit se spouštějí **jako první**.
 
 ### Vision Bridge (`visionBridge.ts`) — Modality Bridge PR-1
 
-Zachytává požadavky obsahující obrázky, které míří na **modely bez podpory obrazu**, a buď
-přesměruje celý požadavek na model podporující obraz, nebo před
-upstream voláním nahradí obrazové části textovými popisy vytvořenými konfigurovatelným modelem pro zpracování obrazu.
-Poskytovatelé podporující pouze text tak mohou transparentně zpracovávat
-multimodální datové části.
+Zachytává požadavky obsahující obrázky směřující na **modely bez podpory vidění** a buď
+přesměruje celý požadavek na model s podporou vidění, nebo nahradí části obrázku
+textovými popisy vytvořenými konfigurovatelným modelem vidění před
+voláním upstreamu. To umožňuje poskytovatelům pouze textu transparentně zpracovávat
+multimodální datové zátěže.
 
-Průběh:
+Tok:
 
-1. Přeskočí zpracování, pokud cílový model již podporuje obraz (pokud se nenachází v
-   seznamu vynuceného přemostění `isVisionBridgeForcedModel`).
-2. Extrahuje obrazové části pomocí `extractImageParts(messages)`
-   (`visionBridgeHelpers.ts`), která deleguje na **sjednocený detektor
-   médií** `detectMediaParts()` v `open-sse/utils/mediaParts.ts` — jediný
-   zdroj pravdy sdílený s filtrem kompatibility kombinací.
-   Extrakce je omezena seznamem povolených částí nejvyšší úrovně ve tvarech,
-   které může `replaceImageParts` vložit zpět (kontrakt extrakce↔nahrazení): OpenAI
+1. Přeskočit, pokud cílový model již podporuje vidění (pokud se neobjeví v
+   seznamu vynucených mostů `isVisionBridgeForcedModel`).
+2. Extrahovat části obrázku pomocí `extractImageParts(messages)`
+   (`visionBridgeHelpers.ts`), které deleguje na **jednotný detektor médií**
+   `detectMediaParts()` v `open-sse/utils/mediaParts.ts` — jediný zdroj pravdy
+   sdílený s filtrem kompatibility kombinací.
+   Extrakce je povolena pro části nejvyšší úrovně tvarů, které
+   `replaceImageParts` může zpět spojit (kontrakt extrakce↔nahrazení): OpenAI
    `image_url`, Anthropic base64 `source.type:"base64"`, Anthropic URL
    `source.type:"url"` a Responses API `input_image`. Vnořené shody a
-   tvary sloužící pouze jako indikátory jsou materiálem pro filtr kombinací a nikdy se neextrahují.
-   Pokud nejsou žádné nalezeny, zpracování se přeskočí.
-3. Přeloží běhovou konfiguraci pomocí `resolveVisionBridgeRuntimeSettings()`
-   (`src/shared/constants/modalityBridgeDefaults.ts`): nové klíče nastavení `modalityBridge*`
-   mají přednost; starší klíče `visionBridge*` zůstávají jako **záložní možnost pro jeden cyklus**
-   (okno pro návrat zpět). Pokud je bridge zakázán, zpracování se přeskočí ještě před jakýmkoli průchodem médii.
-4. Volič režimu (`modalityBridgeVisionMode`, viz tabulka níže) rozhodne mezi
-   přesměrováním a popisem. Přesměrování vrátí `modifiedPayload`, kde je nahrazen pouze `model`,
-   spolu s metadaty `{ rerouted, fromModel, toModel, imagesKept }`.
-5. Cesta popisu: omezí počet obrázků na `maxImages`, sestaví prompt zohledňující úlohu,
-   zkontroluje mezipaměť popisů, zavolá model pro zpracování obrazu **paralelně**
-   (`Promise.allSettled`) a na jejich místo vloží textové části `[Image N]: <description>`.
-   Neúspěšný popis vrátí `null` a původní obrazová část je
-   **zachována** (#4012) — s výjimkou cesty popisu kombinace, pokud selhaly
-   všechny popisy; v takovém případě potvrzený upstream bez podpory obrazu obdrží zástupný text
+   tvary pouze indikátorů jsou materiálem pro kombinovaný filtr a nikdy se
+   neextrahují. Přeskočit, pokud žádné nebyly nalezeny.
+3. Vyřešit konfiguraci za běhu pomocí `resolveVisionBridgeRuntimeSettings()`
+   (`src/shared/constants/modalityBridgeDefaults.ts`): nové klíče nastavení
+   `modalityBridge*` vítězí; starší klíče `visionBridge*` zůstávají **jednocyklovým
+   záložním řešením** (okno pro vrácení zpět). Přeskočit před jakýmkoli procházením médií,
+   když je most zakázán.
+4. Selektor režimu (`modalityBridgeVisionMode`, viz tabulka níže) rozhoduje
+   o přesměrování vs. popisu. Přesměrování vrací `modifiedPayload` pouze s
+   vyměněným `model`, plus meta `{ rerouted, fromModel, toModel, imagesKept }`.
+5. Cesta popisu: omezit obrázky na `maxImages`, sestavit prompt s ohledem na úkol,
+   konzultovat cache popisu, volat model vidění **paralelně**
+   (`Promise.allSettled`) a vložit textové části `[Image N]: <description>`
+   na jejich místo. Neúspěšný popis vrátí `null` a původní část obrázku je
+   **zachována** (#4012) — kromě cesty kombinovaného popisu, kdy všechny popisy
+   selhaly, kde potvrzený neviditelný upstream dostane místo toho zástupný symbol
    `(unavailable — no vision-capable provider connected)` (#8430).
-6. Vrátí `modifiedPayload` + metadata (`imagesProcessed`, `descriptions`,
+6. Vrátit `modifiedPayload` + meta (`imagesProcessed`, `descriptions`,
    `processingTimeMs`, `visionModel`).
 
-#### Volič režimu (`modalityBridgeVisionMode`)
+#### Selektor režimu (`modalityBridgeVisionMode`)
 
-| Režim      | Výchozí | Chování                                                                                                                                                                                                                                                                                                                        |
-| ---------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `auto`     | ✔       | Původní heuristika beze změny (#6640/#7204): modely mimo kombinaci / modely `auto/` se přesměrují na nejlepší model podporující obraz, pokud původní model již nemá použitelné přihlašovací údaje (pak se použije popis); cíle kombinací vždy používají popis.                                                                 |
-| `describe` |         | Vždy použije popis — blok přesměrování se zcela přeskočí; odpovídá vždy model zvolený uživatelem.                                                                                                                                                                                                                              |
-| `reroute`  |         | Vynutí přesměrování: kontrola zachování modelu s přihlašovacími údaji se obejde. Kontrola přihlašovacích údajů **cíle** přesměrování však stále platí — pokud neexistuje použitelný cíl podporující obraz, požadavek přejde k popisu, aby se nezpracované obrázky nikdy nedostaly k backendu podporujícímu pouze text (#8430). |
+| Režim      | Výchozí | Chování                                                                                                                                                                                                                                                               |
+| ---------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `auto`     | ✔       | Starší heuristika, nedotčená (#6640/#7204): modely bez kombinace/`auto/` se přesměrují na nejlepší model vidění, pokud původní model již nemá použitelné pověření (pak popis); cíle kombinace vždy popisují.                                                          |
+| `describe` |         | Vždy popisovat — blok přesměrování je zcela přeskočen; vždy odpovídá uživatelem zvolený model.                                                                                                                                                                        |
+| `reroute`  |         | Vynucené přesměrování: ochrana modelu s pověřením je obejita. Ochrana pověření cíle přesměrování stále platí — pokud neexistuje použitelný cíl vidění, požadavek propadne k popisu, takže se nezpracované obrázky nikdy nedostanou k backendu pouze s textem (#8430). |
 
-Vynucené režimy provedou zkratku **předtím**, než se spustí automatická heuristika; chování režimu `auto`
-je bajtově totožné s guardrailem před PR-1.
+Vynucené režimy se zkracují **před** spuštěním automatické heuristiky; chování
+`auto` je bitově identické s před-PR-1 zábranou.
 
-#### Prompt popisu zohledňující úlohu (`modalityBridgeVisionTaskAware`)
+#### Prompt pro popis s ohledem na úkol (`modalityBridgeVisionTaskAware`)
 
-Výchozí hodnota je **true**. `composeVisionPrompt()` (`visionBridgeHelpers.ts`) připojí
-text **poslední zprávy uživatele** (zkrácený na 500 znaků) k základnímu
-promptu popisu, čímž popis zaměří na to, na co se uživatel skutečně ptal
-(vzor codex-vision-proxy), a požádá model pro zpracování obrazu o přepis viditelného
-textu. Pokud je příznak vypnutý — nebo uživatelský text chybí — použije se základní prompt beze změny.
+Výchozí **true**. `composeVisionPrompt()` (`visionBridgeHelpers.ts`) připojí
+text **poslední uživatelské zprávy** (zkrácený na 500 znaků) k základnímu
+promptu pro popis, čímž směřuje popis k tomu, co uživatel skutečně požadoval
+(vzor codex-vision-proxy) a žádá model vidění o přepis viditelného textu.
+Pokud je příznak vypnut — nebo není k dispozici žádný uživatelský text —
+použije se základní prompt beze změny.
 
-Vlastní požadavek kompatibilní s OpenAI ve smyčce describe (`callVisionModelSingle()`
-v `visionBridgeHelpers.ts`) vždy požaduje `image_url.detail: "high"` —
-bezpodmínečně, pro každého volajícího/poskytovatele, bez závislosti na jakémkoli signálu klienta.
-Vzorkování s nízkou úrovní detailů zhoršuje přesnost OCR právě u úlohy přepisu
-textu, kterou tento prompt požaduje, takže samotné volání describe vždy požaduje vysokou
-úroveň detailů bez ohledu na to, jakou úroveň detailů používal původní příchozí požadavek. Toto
-ovlivňuje pouze tělo interního požadavku describe; nemění způsob, jakým
-OmniRoute předává volajícího vlastní hodnotu `image_url.detail` v primárním požadavku —
-tato výchozí hodnota se aplikuje samostatně a pouze pro rozpoznané klienty OpenCode ve
-funkci `defaultImageDetail()` (`open-sse/handlers/chatCore/upstreamBody.ts`). Větev
-s přenosovým formátem Anthropic ve vlastní smyčce describe nemá pole `detail`
-a žádná z těchto výchozích hodnot ji neovlivňuje.
+Popis vlastního OpenAI-kompatibilního požadavku self-loopu (`callVisionModelSingle()` v `visionBridgeHelpers.ts`) vždy požaduje `image_url.detail: "high"` – bezpodmínečně, pro každého volajícího/poskytovatele, bez ohledu na jakýkoli klientský signál. Vzorkování s nízkými detaily snižuje přesnost OCR přesně pro úlohu transkripce textu, kterou tento prompt požaduje, takže samotné volání popisu vždy požaduje vysoké detaily bez ohledu na úroveň detailů, kterou použil původní příchozí požadavek. To ovlivňuje pouze interní tělo požadavku popisu; nemění to, jak OmniRoute předává volajícího vlastní `image_url.detail` u primárního požadavku – toto výchozí nastavení je aplikováno samostatně a pouze pro detekované klienty OpenCode v `defaultImageDetail()` (`open-sse/handlers/chatCore/upstreamBody.ts`). Větev Anthropic wire-format self-loopu popisu nemá pole `detail` a není ovlivněna žádným z výchozích nastavení.
 
-#### Limit výstupu describe (`modalityBridgeVisionMaxChars`)
+#### Omezení výstupu popisu (`modalityBridgeVisionMaxChars`)
 
-| Klíč                           | Výchozí hodnota | Rozsah             |
-| ------------------------------ | --------------- | ------------------ |
-| `modalityBridgeVisionMaxChars` | `0`             | `0` nebo 100–50000 |
+| Klíč                           | Výchozí | Rozsah             |
+| :----------------------------- | :------ | :----------------- |
+| `modalityBridgeVisionMaxChars` | `0`     | `0` nebo 100–50000 |
 
-`0` (výchozí hodnota) znamená **bez limitu** — popis vrácený funkcí
-`callVisionModel()` se předá beze změny, čímž se zachová stávající
-chování. Jakákoli hodnota v rozsahu 100–50000 popis zkrátí a přidá
-příponu `…` před jeho vložením zpět ve formátu `[Image N]: <description>`
-(`VisionBridgeGuardrail.preCall()` v `src/lib/guardrails/visionBridge.ts`).
-Pro úlohy OCR s vysokou mírou detailů, u nichž následný model potřebuje
-úplný přepis, tuto hodnotu zvyšte; chcete-li omezit spotřebu tokenů u upovídaných modelů
-pro zpracování obrazu, snižte ji. Pole na řídicím panelu se nachází v panelu Advanced na kartě Vision
-(`modality-bridge-max-chars` v `ModalityBridgeVisionTab.tsx`) a jakoukoli
-hodnotu mezi 1 a 99 zvýší na minimální hodnotu 100, zatímco explicitní `0`
-ponechá beze změny — `0` je sama o sobě platnou hodnotou Zod
-(`z.union([z.literal(0), z.number().int().min(100).max(50000)])`), nikoli pouze
-výchozí hodnotou „nenastaveno“.
+`0` (výchozí) znamená **bez omezení** – popis vrácený `callVisionModel()` je předán beze změny, čímž se zachovává stávající chování. Jakákoli hodnota v rozsahu 100–50000 zkrátí popis s příponou `…` předtím, než je vložen zpět jako `[Image N]: <description>` (`VisionBridgeGuardrail.preCall()` v `src/lib/guardrails/visionBridge.ts`). Zvyšte tuto hodnotu pro úlohy OCR náročné na detaily, kde následný model potřebuje plnou transkripci; snižte ji pro omezení využití tokenů u upovídaných vizuálních modelů. Pole na řídicím panelu se nachází na panelu Pokročilé na kartě Vision (`modality-bridge-max-chars` v `ModalityBridgeVisionTab.tsx`) a omezuje jakoukoli hodnotu mezi 1 a 99 na spodní hranici 100, přičemž explicitní `0` zůstává nedotčena – `0` je platná hodnota Zod sama o sobě (`z.union([z.literal(0), z.number().int().min(100).max(50000)])`), nikoli pouze "nenastavené" výchozí.
 
-#### Mezipaměť describe (`modalityBridge/bridgeCache.ts`)
+#### Mezipaměť popisu (`modalityBridge/bridgeCache.ts`)
 
-Procesně sdílená mezipaměť LRU + TTL v paměti pro výstupy describe.
-Klíč = `sha256(imageRef + composedPrompt + configuredBridgeModel)` s
-rámcováním pomocí prefixů délek (bez kolizí hranic polí). Komponentou modelu je
-**nakonfigurovaný** model bridge, nikoli model, který skutečně odpověděl —
-`callVisionModel` může interně použít záložní model a vytváření klíče pro každý pokus by
-mezipaměť fragmentovalo. Neúspěšné operace describe se nikdy neukládají do mezipaměti. Nastavení:
+In-memory LRU + TTL mezipaměť pro výstupy popisu, sdílená v rámci celého procesu.
+Klíč = `sha256(imageRef + composedPrompt + configuredBridgeModel)` s rámováním s předponou délky (žádné kolize hranic polí). Komponenta modelu je **konfigurovaný** bridge model, nikoli model, který skutečně odpověděl – `callVisionModel` se může interně vrátit k záložnímu řešení a klíčování pro každý pokus by fragmentovalo mezipaměť. Neúspěšné popisy se nikdy neukládají do mezipaměti. Nastavení:
 
-| Klíč                            | Výchozí hodnota | Rozsah  |
-| ------------------------------- | --------------- | ------- |
-| `modalityBridgeCacheEnabled`    | `true`          | —       |
-| `modalityBridgeCacheTtlMinutes` | `60`            | 1–1440  |
-| `modalityBridgeCacheMaxEntries` | `200`           | 10–5000 |
+| Klíč                            | Výchozí | Rozsah  |
+| :------------------------------ | :------ | :------ |
+| `modalityBridgeCacheEnabled`    | `true`  | —       |
+| `modalityBridgeCacheTtlMinutes` | `60`    | 1–1440  |
+| `modalityBridgeCacheMaxEntries` | `200`   | 10–5000 |
 
-#### Normalizace vzdálených obrázků (vlastní smyčka describe/načtení base64)
+#### Normalizace vzdáleného obrazu (self-loop popis/načítání base64)
 
-Když bridge sám načte **vzdálený** obrázek — pro vlastní volání describe Anthropic
-a převod do base64 ve formátu přenosu claude
-(`ensureBase64ImagesForClaudeWire`), v obou případech prostřednictvím
-`fetchRemoteImageAsDataUri()` v `visionBridgeHelpers.ts` — výsledný datový
-identifikátor URI je před vložením do požadavku modelu pro zpracování obrazu zpracován funkcí
-`normalizeDataUri()`
-(`open-sse/utils/imageNormalize.ts`). Nadměrně velké obrázky jsou zmenšeny tak, aby jejich **delší strana měla 2048 px** (což odpovídá
-limitu změny velikosti, který již OpenAI/Anthropic uplatňují na straně serveru), čímž se sníží
-objem nahrávaných dat a latence, aniž by se změnilo to, co model pro zpracování obrazu vidí. Změna velikosti
-používá `sharp`, načítaný dynamickým importem: na platformě, kde se jeho nativní
-binární soubor nepodaří načíst, funkce `normalizeDataUri()` **nikdy nevyvolá výjimku** — místo toho
-propustí původní bajty beze změny, takže cesta describe/převodu do base64
-zůstane vždy funkční. Data, která nejsou obrázkem (načtení, které nevrátilo
-dekódovatelný obrázek), jsou rovněž předána beze změny. Tato normalizace
-je omezena na obrázky, které bridge načítá pro své vlastní volání — nikdy
-se neaplikuje na nezpracovanou předávanou datovou část volajícího, což je v souladu
-s principem změn pouze po výslovném přihlášení (Pevné pravidlo č. 20).
+Když bridge sám načítá **vzdálený** obraz – Anthropic self-call popisu a konverze base64 ve formátu claude-wire-format (`ensureBase64ImagesForClaudeWire`), obojí přes `fetchRemoteImageAsDataUri()` v `visionBridgeHelpers.ts` – výsledný datový URI je před vložením do požadavku vizuálního modelu předán přes `normalizeDataUri()` (`open-sse/utils/imageNormalize.ts`). Příliš velké obrazy jsou zmenšeny na **2048px dlouhou hranu** (odpovídající limitu změny velikosti, který OpenAI/Anthropic již aplikují na straně serveru), což snižuje počet nahraných bajtů/latenci, aniž by se změnilo to, co vidí vizuální model. Změna velikosti používá `sharp`, načtený dynamickým importem: na platformě, kde se jeho nativní binární soubor nenačte, `normalizeDataUri()` **nikdy nevyvolá chybu** – vrátí se k předání původních bajtů, takže cesta popisu/konverze base64 vždy funguje. Nebrazové bajty (načtení, které nevrátilo dekódovatelný obraz) jsou také předány beze změny. Tato normalizace je omezena na obrazy, které bridge načítá pro svůj vlastní self-call – nikdy se nepoužije na původní průchozí datovou zátěž volajícího, což je v souladu s principem mutace pouze na základě opt-in (Tvrdé pravidlo #20).
 
 #### Schéma nastavení + migrace
 
-Nové klíče `modalityBridge*` jsou validovány pomocí Zod v `updateSettingsSchema`
-(`src/shared/validation/settingsSchemas.ts`): `modalityBridgeVisionEnabled`,
-`modalityBridgeVisionMode`, `modalityBridgeVisionModel`,
-`modalityBridgeVisionTaskAware`, `modalityBridgeVisionPrompt`,
-`modalityBridgeVisionTimeout`, `modalityBridgeVisionMaxImages`,
-`modalityBridgeVisionMaxChars`, trojice `modalityBridgeCache*` a skupina
-`modalityBridgeAudio*` používaná komponentou Audio Bridge. Migrace
-`141_modality_bridge_settings.sql` kopíruje existující starší hodnoty
-`visionBridge*` do odpovídajících nových klíčů (idempotentně, nikdy nepřepíše
-hodnotu `modalityBridge*` nastavenou operátorem); starší klíče zůstanou po dobu
-jednoho cyklu vydání akceptovány jako záložní zdroj pro čtení.
+Nové klíče `modalityBridge*` jsou Zod-validovány v `updateSettingsSchema` (`src/shared/validation/settingsSchemas.ts`): `modalityBridgeVisionEnabled`, `modalityBridgeVisionMode`, `modalityBridgeVisionModel`, `modalityBridgeVisionTaskAware`, `modalityBridgeVisionPrompt`, `modalityBridgeVisionTimeout`, `modalityBridgeVisionMaxImages`, `modalityBridgeVisionMaxChars`, trojice `modalityBridgeCache*` a skupina `modalityBridgeAudio*` používaná Audio Bridge. Migrace `141_modality_bridge_settings.sql` kopíruje existující starší hodnoty `visionBridge*` do odpovídajících nových klíčů (idempotentní, nikdy nepřepíše operátorem nastavenou hodnotu `modalityBridge*`); starší klíče zůstávají přijímány jako záložní pro čtení po dobu jednoho cyklu vydání.
 
-#### Hlavička pro transparentnost + statistiky
+#### Hlavička transparentnosti + statistiky
 
-Odpovědi transformované pomocí describe obsahují
-`x-omniroute-modality-bridge: image->text;model=<visionModel>;parts=<n>`
-(vytvořenou funkcí `buildModalityBridgeHeader()` v `modalityBridge/bridgeStats.ts`,
-přidanou funkcí `withModalityBridgeHeader()` v `src/sse/handlers/chatHelpers.ts`).
-Přesměrované požadavky neobdrží **žádnou** hlavičku — datová část nebyla změněna a záměna modelu
-je již viditelná v poli `model` těla odpovědi.
+Odpovědi transformované popisem nesou `x-omniroute-modality-bridge: image->text;model=<visionModel>;parts=<n>` (vytvořeno `buildModalityBridgeHeader()` v `modalityBridge/bridgeStats.ts`, označeno `withModalityBridgeHeader()` v `src/sse/handlers/chatHelpers.ts`). Přesměrované požadavky nedostanou **žádnou** hlavičku – datová zátěž byla nedotčena a výměna modelu je již viditelná v poli `model` v těle odpovědi.
 
-`GET /api/modality-bridge/stats` (ověření správy, stejná úroveň jako
-`GET /api/settings`) vrací čítače jednotlivých modalit uložené v paměti
-`{ attempts, successes, bridged, cacheHits, failures, totalLatencyMs,
-latencySamples, averageLatencyMs, lastUsedAt }` pro `vision`, `audio` a
-`video`. `averageLatencyMs` používá jako jmenovatel `latencySamples`, nikoli všechny
-pokusy; operace bez měření času nevytváří umělý vzorek s nulovou dobou
-v milisekundách. `bridged` zůstává zpětně kompatibilním aliasem pro úspěšné
-převody; neúspěšné pokusy jeho hodnotu nezvyšují.
-Čítače se záměrně resetují při restartu procesu
-(telemetrie, nikoli účtování).
+`GET /api/modality-bridge/stats` (správcovské ověření, stejná úroveň jako `GET /api/settings`) vrací in-memory čítače pro jednotlivé modality `{ attempts, successes, bridged, cacheHits, failures, totalLatencyMs, latencySamples, averageLatencyMs, lastUsedAt }` pro `vision`, `audio` a `video`. `averageLatencyMs` používá `latencySamples`, nikoli všechny pokusy, jako svůj jmenovatel; operace bez časování nevytváří vzorek s nulovou milisekundou. `bridged` zůstává zpětně kompatibilním aliasem pro úspěšné konverze; neúspěšné pokusy jej nezvyšují. Čítače se resetují při restartu procesu záměrně (telemetrie, nikoli účetnictví).
 
 #### Konfigurace řídicího panelu
 
-Vyhrazená stránka ovládacího panelu je
-`/dashboard/settings/modality-bridge`. Její karty `Vision`, `Audio`
-a `Video`, dostupné prostřednictvím URL, při přepínání hodnoty `tab` zachovávají parametry dotazu.
-Karta Vision zpřístupňuje povolení funkce, režim, výběr modelu (včetně automatického
-výchozího nastavení), výzvy zohledňující úlohu, pokročilé limity časového limitu, obrázků, délky popisu a mezipaměti,
-běhová
-počítadla a chráněný ukázkový požadavek. Aktivní je také karta Audio: zpřístupňuje
-povolení funkce, výběr modelu pouze pro STT s možností Auto, limity časového limitu a maximální délky klipu, zvuková
-počítadla a ukázkový test `input_audio`. Karta Video je funkční: hlásí
-běhový stav FFmpeg/ffprobe — jeden ze čtyř explicitních stavů uživatelského rozhraní (`unknown`, když
-kontrola probíhá nebo ji nebylo možné dokončit, `restricted` na hostiteli
-ovládacího panelu mimo loopback, kde se kontrola přeskočí na straně klienta, `unavailable` po provedení
-kontroly a potvrzení nedostupnosti, nebo `available` s verzemi FFmpeg/ffprobe) — trvale ukládá
-limity povolení, modelu, snímků, videa a časového limitu, filtruje výběr modelů pouze na modely
-podporující obrazové vstupy a zpřístupňuje počítadla videa.
+Vyhrazená stránka řídicího panelu je
+`/dashboard/settings/modality-bridge`. Její URL-adresovatelné záložky `Vision`, `Audio`
+a `Video` zachovávají parametry dotazu při přepínání hodnoty `tab`.
+Záložka Vision zpřístupňuje povolení, režim, výběr modelu (včetně automatického
+výchozího), výzvy s ohledem na úlohu, pokročilé limity pro timeout/obrázek/délku popisu/cache,
+čítače běhu a chráněný ukázkový požadavek. Záložka Audio je také aktivní: zpřístupňuje
+povolení, výběr modelu pouze pro STT s možností Auto, limity pro timeout/maximální klip,
+audio čítače a ukázkový test `input_audio`. Záložka Video je funkční: hlásí
+stav běhu FFmpeg/ffprobe — jeden ze čtyř explicitních stavů UI (`unknown`, zatímco
+se sonda provádí nebo se nepodařilo dokončit, `restricted` na hostiteli řídicího panelu,
+který není loopback, kde je sonda přeskočena na straně klienta, `unavailable` po sondování
+a potvrzení chybějícího stavu, nebo `available` s verzemi FFmpeg/ffprobe) — zachovává
+limity pro povolení/model/snímek/video/timeout, filtruje výběr modelu na modely
+schopné vize a zpřístupňuje video čítače.
 
-Původní karta Vision Bridge v nastavení AI nyní slouží jako kompatibilní odkaz na
-novou stránku; již neobsahuje druhou kopii formuláře. Media Providers také
-propojuje pracovní postupy Image-to-Text a Speech-to-Text s odpovídajícími kartami Modality
-Bridge, aniž by odstraňovalo stávající testovací prostředí Speech-to-Text.
+Dřívější karta Vision Bridge v nastavení AI je odkazem pro kompatibilitu na
+novou stránku; již neobsahuje druhou kopii formuláře. Poskytovatelé médií také
+propojují pracovní postupy převodu obrazu na text a řeči na text s odpovídajícími
+záložkami Modality Bridge, aniž by odstranili stávající Speech-to-Text playground.
 
-**Vynechání kontroly přijetí pro vlastní smyčku:** když je volání popisu směrováno přes
-vlastní smyčku `/v1` služby OmniRoute (nestandardní model poskytovatele), dílčí požadavek odesílá
-`x-omniroute-admission-bypass: internal` a je ověřen pomocí vyřešeného
-přihlašovacího údaje vlastní smyčky — lokálního zástupného klíče `sk_omniroute` v lokálním režimu nebo
-klíče prostředí `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` nakonfigurovaného
-provozovatelem (#1350), aby nasazení s
-`REQUIRE_API_KEY=true` mohla nadále spouštět volání popisu. Toto vynechání je
-respektováno pouze pro tyto přesné přihlašovací údaje, takže externí klienti nemohou použít
-hlavičku k přeskočení kontroly přijetí.
+**Obcházení přijetí self-loopu:** když volání `describe` prochází vlastním `/v1`
+self-loopem OmniRoute (nestandardní model poskytovatele), podpožadavek odesílá
+`x-omniroute-admission-bypass: internal` a je ověřen vyřešeným self-loop pověřením
+— lokálním `sk_omniroute` sentinel v lokálním režimu, nebo operátorem nakonfigurovaným
+klíčem prostředí `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` (#1350), takže nasazení
+s `REQUIRE_API_KEY=true` mohou stále spouštět volání `describe`. Obcházení je
+respektováno pouze pro tato přesná pověření, takže externí klienti nemohou použít
+hlavičku k přeskočení přijetí.
 
-Starší výchozí hodnoty jsou v `src/shared/constants/visionBridgeDefaults.ts`;
-nové výchozí hodnoty režimu, zohlednění úlohy a mezipaměti společně s resolverem nastavení jsou v
-`src/shared/constants/modalityBridgeDefaults.ts`. Ochranná vrstva zpřístupňuje
-volbu konstruktoru `deps`, aby testy mohly vkládat falešné implementace `getSettings` a
-`callVisionModel`.
+Starší výchozí nastavení se nacházejí v `src/shared/constants/visionBridgeDefaults.ts`;
+nová výchozí nastavení pro režim/úlohu/cache a řešič nastavení se nacházejí v
+`src/shared/constants/modalityBridgeDefaults.ts`. Guardrail zpřístupňuje možnost
+konstruktoru `deps`, takže testy mohou vkládat falešné implementace `getSettings`
+a `callVisionModel`.
 
 ### Audio Bridge (`audioBridge.ts`) — Modality Bridge PR-3
 
-Zachytává chatové požadavky obsahující zvuk předtím, než dorazí k cíli, o kterém není
-známo, že přijímá zvukový vstup. Chatový požadavek nikdy nepřesměrovává: zvukové části jsou
-přepsány prostřednictvím stávajícího multipart endpointu kompatibilního s OpenAI a
-zvolený chatový model pokračuje s textovými přepisy.
+Zachytává chatové požadavky obsahující zvuk dříve, než se dostanou k cíli, o kterém
+není známo, že by přijímal zvukový vstup. Nikdy nepřesměrovává chatový požadavek:
+zvukové části jsou přepsány prostřednictvím stávajícího multipartového koncového
+bodu kompatibilního s OpenAI a zvolený chatový model pokračuje s textovými přepisy.
 
-Průběh:
+Tok:
 
-1. Určí `supportsAudio` prostřednictvím `getResolvedModelCapabilities()`. Explicitní
-   metadata registru poskytovatelů mají přednost, následují statická metadata modelu a poté synchronizované
-   `modalities_input`. Deklarovaný seznam vstupů bez `audio` znamená `false`; pokud
-   neexistují žádné informace o schopnostech, zůstává hodnota `null`. Hodnoty `false` i `null` aktivují
-   konzervativní můstek, zatímco `true` jej obchází.
-2. Načte nastavení `modalityBridgeAudio*` a extrahuje spojitelné zvukové části nejvyšší úrovně
-   ze všech zpráv prostřednictvím sdíleného detektoru `detectMediaParts()`.
-   Podporované formáty přenosu jsou OpenAI `input_audio`, `audio_url` a
-   `source.media_type: "audio/*"`. Vnořený zvuk je detekován pro směrování, ale není
-   cestou spojování odstraněn. Množství zpracování je omezeno hodnotou `modalityBridgeAudioMaxClips`;
-   pozdější části zůstanou nedotčené.
-3. Použije nakonfigurovanou hodnotu `provider/model`, nebo nechá `selectAudioBridgeModel()` projít
-   `AUDIO_TRANSCRIPTION_PROVIDERS` ve stabilním pořadí katalogu a vybrat první
-   model s použitelným aktivním přihlašovacím údajem poskytovatele.
-4. `callAudioTranscription()` převede zvuk ve formátu base64/data-URI na multipart
-   `file`, nebo stáhne vzdálenou adresu `audio_url` prostřednictvím ochrany odchozích spojení povolující pouze veřejné cíle,
-   s připnutím DNS a limitem 25 MB. Poté odešle metodou POST soubor a vybraný
-   model do lokální vlastní smyčky `/v1/audio/transcriptions`, ověřené pomocí
-   `resolveSelfLoopBearer()`. Stávající trasa přepisu provede běžné
-   vyhledání přihlašovacích údajů, zpracování doby pozastavení a limitů požadavků a předání poskytovateli.
-5. Úspěšná volání nahradí příslušné části textem `[Audio N]: <transcript>`. Volání
-   probíhají pomocí `Promise.allSettled`: jednotlivé selhání zachová původní
-   zvukovou část (smlouva #4012). Pokud všechna volání selžou a je prokázáno, že cíl má
-   `supportsAudio === false`, části se změní na
-   `[Audio N]: (unavailable — no STT provider connected)` (smlouva #8430). U
-   neznámého cíle (`null`) zůstane při selhání všech volání obsah nedotčený. Prokázaný
-   čistě textový cíl bez použitelného přihlašovacího údaje STT obdrží stejnou explicitní
-   zástupnou hodnotu bez provedení síťového volání.
+1.  Vyřeší `supportsAudio` prostřednictvím `getResolvedModelCapabilities()`. Explicitní
+    metadata registru poskytovatele mají přednost, poté statická metadata modelu,
+    poté synchronizovaný `modalities_input`. Deklarovaný seznam vstupů bez `audio`
+    je `false`; žádný důkaz schopnosti zůstává `null`. Jak `false`, tak `null`
+    aktivují konzervativní bridge, zatímco `true` jej obchází.
+2.  Vyřeší nastavení `modalityBridgeAudio*` a extrahuje spojitelné zvukové části
+    nejvyšší úrovně z každé zprávy prostřednictvím sdíleného detektoru `detectMediaParts()`.
+    Podporované formáty jsou OpenAI `input_audio`, `audio_url` a `source.media_type: "audio/*"`.
+    Vnořený zvuk je detekován pro směrování, ale není odstraněn cestou pro spojení.
+    Práce je omezena `modalityBridgeAudioMaxClips`; pozdější části zůstávají nedotčeny.
+3.  Respektuje nakonfigurovaný `provider/model`, nebo nechá `selectAudioBridgeModel()`
+    projít `AUDIO_TRANSCRIPTION_PROVIDERS` ve stabilním pořadí katalogu a vybere
+    první model s použitelným aktivním pověřením poskytovatele.
+4.  `callAudioTranscription()` převádí base64/data-URI zvuk na multipart `file`,
+    nebo stahuje vzdálenou `audio_url` přes veřejnou odchozí ochranu s DNS pinningem
+    a limitem 25 MB. Poté POSTuje soubor a vybraný model na lokální
+    `/v1/audio/transcriptions` self-loop, ověřený pomocí `resolveSelfLoopBearer()`.
+    Stávající transkripční trasa provádí normální vyhledávání pověření, zpracování
+    cooldownu/rate-limitu a odeslání poskytovateli.
+5.  Úspěšná volání nahradí své části `[Audio N]: <transcript>`. Volání běží s
+    `Promise.allSettled`: individuální selhání zachovává původní zvukovou část
+    (kontrakt #4012). Pokud všechna volání selžou a cíl je prokázán jako
+    `supportsAudio === false`, části se stanou `[Audio N]: (nedostupné — není připojen
+žádný poskytovatel STT)` (kontrakt #8430). Pro neznámý cíl (`null`) zůstává
+    výsledek všech selhání nedotčen. Prokázaný cíl pouze pro text bez použitelného
+    pověření STT obdrží stejný explicitní stub bez provedení síťového volání.
 
-Úspěšné přepisy používají celoprocesovou mezipaměť LRU/TTL služby Modality Bridge. Klíč
-kombinuje odkaz na zvuk, stabilní označení operace `audio-transcription`
-a vybraný model STT; selhání se nikdy neukládají do mezipaměti. Pokusy o zpracování zvuku aktualizují
-sdílená počítadla `bridged`, `cacheHits`, `failures` a `lastUsedAt`.
-Transformované odpovědi obsahují
-`x-omniroute-modality-bridge: audio->text;model=<sttModel>;parts=<n>`; nedotčené
-požadavky neobdrží segment Audio Bridge.
+Úspěšné přepisy používají celoprocesovou LRU/TTL cache Modality Bridge. Klíč
+kombinuje zvukovou referenci, stabilní štítek operace `audio-transcription` a
+vybraný STT model; selhání se nikdy necachují. Pokusy se zvukem aktualizují
+sdílené čítače `bridged`, `cacheHits`, `failures` a `lastUsedAt`. Transformované
+odpovědi nesou `x-omniroute-modality-bridge: audio->text;model=<sttModel>;parts=<n>`;
+nedotčené požadavky neobdrží segment Audio Bridge.
 
-Běhová nastavení jsou uložena v databázi a validována pomocí Zod:
+Nastavení za běhu jsou zálohována v DB a validována pomocí Zod:
 
-| Klíč                          | Výchozí hodnota | Rozsah           |
-| ----------------------------- | --------------- | ---------------- |
-| `modalityBridgeAudioEnabled`  | `true`          | —                |
-| `modalityBridgeAudioModel`    | `""`            | Auto nebo ID STT |
-| `modalityBridgeAudioTimeout`  | `60000`         | 1000–300000      |
-| `modalityBridgeAudioMaxClips` | `3`             | 1–10             |
+| Klíč                          | Výchozí | Rozsah           |
+| :---------------------------- | :------ | :--------------- |
+| `modalityBridgeAudioEnabled`  | `true`  | —                |
+| `modalityBridgeAudioModel`    | `""`    | Auto nebo STT ID |
+| `modalityBridgeAudioTimeout`  | `60000` | 1000–300000      |
+| `modalityBridgeAudioMaxClips` | `3`     | 1–10             |
 
-Sdílená mezipaměť je nadále řízena nastaveními `modalityBridgeCacheEnabled`,
+Sdílená cache zůstává řízena pomocí `modalityBridgeCacheEnabled`,
 `modalityBridgeCacheTtlMinutes` a `modalityBridgeCacheMaxEntries`.
 
 ### Video Bridge (`videoBridge.ts`, `videoBridgePipeline.ts`)
 
-Zachytává části videa na nejvyšší úrovni v `messages` rozhraní Chat Completions a v
-`input` rozhraní Responses API před voláním cíle bez známé nativní podpory videa.
-Podporované formáty jsou `input_video`, `video_url`, `video_source`, URL adresy HTTPS
-a datové URI `data:video/*;base64,...`. Samotné názvy souborů v textu nejsou
-považovány za video.
+Zachytává video části nejvyšší úrovně v `messages` a odpovědích Chat Completions
+API `input` před voláním cíle bez známé nativní podpory videa.
+Podporované tvary jsou `input_video`, `video_url`, `video_source`, HTTPS URL,
+a datové URI `data:video/*;base64,...`. Prosté názvy souborů v textu nejsou považovány
+za video.
 
-`VideoBridgeGuardrail.preCall` (`videoBridge.ts`) zajišťuje průchod požadavkem,
-kontrolu schopností/zásad, agregaci v rámci požadavku a datovou část odpovědi.
-Zpracování jednotlivých videí — získání dat, mezipaměť kompletního výsledku,
-popis sekvence snímků (který slučuje případný volajícím deklarovaný přepis zvuku)
-a metriky/přerušení/úklid jednotlivých pokusů — je skryto za `processVideoPart`
-v `videoBridgePipeline.ts`, které je voláno jednou pro každou část videa uvnitř
-smyčky `preCall`. Tento modul také definuje explicitní hranice portů
-`VideoMediaBrokerPort` (získávání bajtů a extrakce vzorkovaných snímků),
-`VideoAudioTranscriptionPort` (sloučení volajícím deklarovaného přepisu zvuku
-s titulky vzorkovaných snímků) a `VideoDrilldownPort` (hranice perzistence
-podrobného rozboru snímků; zatím není zapojena do `processVideoPart` — záznamy
-podrobného rozboru dnes zapisuje pouze samostatná trasa
-`/api/modality-bridge/video/drilldown`).
+`VideoBridgeGuardrail.preCall` (`videoBridge.ts`) se stará o procházení požadavků,
+kontrolu schopností/zásad, agregaci na základě požadavku a datovou část odpovědi.
+Práce s jednotlivými videi – získávání, celo-výsledková cache, popis sekvence snímků
+(která spojuje jakýkoli volajícím deklarovaný audio přepis) a metriky/přerušení/vyčištění
+na pokus – je skryta za `processVideoPart` v
+`videoBridgePipeline.ts`, volaným jednou pro každou video část uvnitř smyčky `preCall`.
+Tento modul také definuje explicitní hranice portů `VideoMediaBrokerPort`
+(získávání bajtů a extrakce vzorkovaných snímků), `VideoAudioTranscriptionPort`
+(spojování volajícím deklarovaného audio přepisu se vzorkovanými titulky) a
+`VideoDrilldownPort` (hranice perzistence pro detailní analýzu snímků; zatím není
+zapojena do `processVideoPart` – pouze samostatná trasa `/api/modality-bridge/video/drilldown`
+dnes zapisuje záznamy detailní analýzy).
 
-Veřejná cesta požadavku `/v1` nikdy neimportuje ani nespouští podproces. Vzdálená
-videa se stahují s limitem 50 MiB; vložená videa v base64 mají konzervativní
-limit 36 MiB dekódovaných dat na jedno video, aby se obálka
-modelu/zpráv/rámcování vešla do veřejného limitu 50 MiB pro přijímání požadavků
-JSON. Délka vložených dat a odhad dekódované velikosti se kontrolují před
-alokací. Pro počáteční vzdálenou URL adresu i každé přesměrování je vyžadováno
-HTTPS a používá se stávající ochrana odchozích spojení pouze na veřejné adresy
-s připnutím DNS. Bajty poté překročí přesnou interní hranici zprostředkovatele
-`POST /api/modality-bridge/video/extract`. Tato trasa je současně `LOCAL_ONLY`
-a `SPAWN_CAPABLE`, přijímá pouze ověřený požadavek v rámci procesu z důvěryhodného
-rozhraní loopback a nikdy nepřijímá URL adresu, cestu v souborovém systému,
-spustitelný soubor ani seznam argumentů. Zpracování limitu velikosti těla API
-a inkrementální čtečka těla obslužné rutiny nezávisle vynucují limit vstupu
-zprostředkovatele 50 MiB. Jeho omezená fronta provádí vždy jednu extrakci,
-umožňuje čtyři čekající úlohy a omezuje objem čekajících vstupních dat na
+Veřejná cesta požadavku `/v1` nikdy neimportuje ani nevyvolává podproces. Vzdálená
+videa jsou stahována s omezením 50 MiB; inline base64 videa mají
+konzervativní limit 36 MiB dekódovaných na video, takže obálka modelu/zpráv/rámování
+může zůstat uvnitř veřejného limitu pro příjem JSON požadavků 50 MiB. Inline
+délka a odhady dekódované velikosti jsou kontrolovány před alokací. HTTPS je
+vyžadováno na počáteční vzdálené URL a každém přesměrování, s použitím stávajícího
+pouze veřejného odchozího zabezpečení s DNS pinningem. Bajty pak překročí přesnou interní
+hranici brokera `POST /api/modality-bridge/video/extract`. Tato trasa je jak
+`LOCAL_ONLY`, tak `SPAWN_CAPABLE`, přijímá pouze ověřený, důvěryhodný
+loopback požadavek na proces a nikdy nepřijímá URL, cestu k souboru, spustitelný soubor
+nebo seznam argumentů. Pipeline pro velikost těla API a inkrementální čtečka těla
+obslužného programu nezávisle vynucují limit 50 MiB pro vstup brokera. Jeho omezená fronta
+spouští jednu extrakci najednou, umožňuje čtyři čekající úlohy a omezuje čekající vstup na
 100 MiB.
 
-Uvnitř zprostředkovatele čte `ffprobe` soukromý místní soubor; pevný seznam
-povolených formátů vylučuje formáty playlistů a manifestů. U povolených
-kontejnerů rodiny MOV zůstávají externí datové reference MOV ve výchozím
-nastavení zakázány a pevně stanovený příkaz je nepovoluje. `ffprobe` i `ffmpeg`
-používají seznam povolených protokolů omezený pouze na `file`, jedno vlákno,
-pevná pole argumentů, žádný shell a spustitelné soubory vyhledané pomocí `PATH`.
-Proudy s připojeným obrázkem obalu nejsou kandidáty k přehrání. Všechny
-přehrávatelné proudy musí splňovat limity a před deterministickým záložním
-výběrem proudu s nejnižším indexem se upřednostňuje explicitní výchozí proud.
-Videa jsou omezena na 600 sekund, 8 192 pixelů v každém rozměru a 33 554 432
-zdrojových pixelů. FFmpeg vzorkuje 1–16 prostředních snímků ve formátu JPEG,
-zmenšuje delší hranu nejvýše na 1 024 pixelů bez zvětšování menších vstupů
-a nikdy nepřijímá URL adresu. Výchozí metodou vzorkování je `uniform`. Volitelné
-zásady `scene_aware` a experimentální `segment_aware` provedou jeden dodatečný
-pevně stanovený průchod FFmpeg přes již ověřený místní proud, vyberou omezený
-počet časových značek scén `showinfo` a při selhání detektoru, vypršení časového
-limitu, chybném výstupu nebo prázdné sadě kandidátů deterministicky přejdou ke
-stejným rovnoměrným středovým bodům. Režim zohledňující segmenty přiděluje vzorky
-středových bodů úměrně ověřeným intervalům scén; důkazy režimu zohledňujícího
-segmenty a chování při použití záložního postupu jsou podrobně popsány níže.
-Pevný limit 16 snímků se u každé zásady uplatňuje po výběru. Pokud má požadavek
-se zohledněním scén rozpočet pouze jednoho snímku, použije rovnoměrný středový
-bod aktivního okna celého videa nebo zaměřeného okna a uvede
-`policyEffective: uniform`: jediný vybraný snímek scény nemůže zachovat oba
-časové konce. Volající může volitelně zadat konečné zaměřené okno (`start`/`end`
-v sekundách); hranice se omezí na dobu trvání média, obrácená nebo nekonečná
-okna se odmítnou a všechny zásady vzorkování se použijí pouze v normalizovaném
-intervalu. Výsledné okno je zahrnuto v metadatech vzorkování a v nedůvěryhodné
-předponě popisu, aby navazující modely mohly odlišit zaměřený úsek od celé
-časové osy.
+Uvnitř brokera `ffprobe` čte soukromý lokální soubor; pevný seznam povolených formátů
+vylučuje formáty playlistů a manifestů. Pro povolené kontejnery rodiny MOV
+zůstávají externí datové reference MOV ve výchozím nastavení zakázány a pevný příkaz
+se k nim nepřihlašuje. Jak `ffprobe`, tak `ffmpeg` používají whitelist protokolů
+pouze `file`, jedno vlákno, pevné pole argumentů, žádný shell a spustitelné soubory
+rozlišené z `PATH`. Připojené obrázkové obalové streamy nejsou kandidáty na přehrávání.
+Všechny přehratelné streamy musí splňovat limity a explicitní výchozí stream je
+preferován před deterministickým záložním s nejnižším indexem. Videa jsou omezena na
+600 sekund, 8 192 pixelů na rozměr a 33 554 432 zdrojových pixelů. FFmpeg vzorkuje
+1–16 středových JPEG snímků, zmenšuje delší stranu na maximálně 1 024 pixelů bez
+zvětšování menších vstupů a nikdy nepřijímá URL. Vzorkování je ve výchozím nastavení
+`uniform`. Volitelné zásady `scene_aware` a experimentální `segment_aware` provádějí
+jeden dodatečný pevný průchod FFmpegem přes již ověřený lokální stream, vybírají
+omezené časové značky scény `showinfo` a deterministicky se vracejí ke stejným
+uniformním středovým bodům při selhání detektoru, vypršení časového limitu,
+chybném výstupu nebo prázdné sadě kandidátů. Režim segment-aware alokuje středové
+vzorky proporcionálně k ověřeným intervalům scény; důkazy a chování při selhání
+segment-aware jsou podrobně popsány níže. Pevný limit 16 snímků je
+aplikován po výběru v každé zásadě. Když požadavek scene-aware má rozpočet pouze
+na jeden snímek, používá uniformní středový bod aktivního celého videa nebo okna
+zaostření a hlásí `policyEffective: uniform`: jeden vybraný snímek scény nemůže
+zachovat oba časové konce. Volající může volitelně poskytnout
+konečné okno zaostření (sekundy `start`/`end`); hranice jsou oříznuty na délku média,
+obrácená nebo nekonečná okna jsou odmítnuta a všechny zásady vzorkování jsou
+prováděny pouze uvnitř normalizovaného intervalu. Výsledné okno je zahrnuto
+v metadatech vzorkování a v nedůvěryhodném prefixu popisu, aby následné modely
+mohly rozlišit zaostřený úryvek od celé časové osy.
 
-Sémantické zaměření titulků je samostatné, explicitní nastavení. Výchozí režim
-analýzy `full` zachovává stávající prompt pro snímky a nikdy nepředává text
-požadavku modelu pro titulky. V režimu `focused` načte most pouze nejnovější
-neprázdný uživatelský text `text`/`input_text` ze stejného kontejneru Chat nebo
-Responses, normalizuje jej do NFC, sloučí řídicí znaky a bílé znaky a omezí jej
-na 500 kódových bodů Unicode. Prázdný výsledek způsobí návrat k přesnému promptu
-režimu `full`. Použitelná nápověda se serializuje jako JSON ve vyhrazeném bloku
-nedůvěryhodného uživatelského kontextu a smí pouze upřednostnit pozorovatelné
-podrobnosti; nemůže potlačit samostatné varování před následováním pokynů
-viditelných nebo slyšitelných v médiu. Textové zaměření nikdy neodvozuje
-`start`/`end` ani nemění časový vzorkovač.
+Sémantické zaostření titulků je samostatné, explicitní nastavení. Výchozí režim
+analýzy `full` zachovává stávající výzvu snímku a nikdy nepředává text požadavku
+modelu titulků. V režimu `focused` most čte pouze nejnovější neprázdný
+uživatelem vytvořený `text`/`input_text` ze stejného kontejneru Chat nebo Responses,
+normalizuje jej na NFC, sbaluje řídicí znaky a mezery a omezuje jej na 500
+Unicode kódových bodů. Prázdný výsledek se vrátí k přesné výzvě `full`.
+Použitelná nápověda je serializována jako JSON v vyhrazeném bloku
+nedůvěryhodného uživatelského kontextu a může pouze prioritizovat pozorovatelné
+detaily; nemůže přepsat samostatné varování před dodržováním pokynů viditelných
+nebo slyšitelných v médiích. Textové zaostření nikdy neodvozuje `start`/`end`
+ani nemění časový vzorkovač.
 
-#### FU-07 strukturální důkazy segmentů
+#### FU-07 důkazy strukturálního segmentu
 
-`segment_aware` používá jeden omezený průchod předběžné analýzy přes již ověřený
-místní proud videa. Pevný řetězec filtrů nejprve zmenší šířku nejvýše na
-320 pixelů, detekuje změny scén a zamrzlé intervaly a poté vzorkuje frekvencí
-1 snímek za sekundu za účelem analýzy rozmazání, průměrného jasu a
-prostorových/časových informací. Průchod je omezen na 600 strukturálních vzorků,
-jedno vlákno FFmpeg/filtru, stejné seznamy povolených protokolů omezené pouze na
-`file` a povolených kontejnerů, limit výstupu procesu 1 MiB a nejvýše 30 sekund
-v rámci sdíleného přerušení/termínu zprostředkovatele. Z požadavku nikdy nepřijímá
-příkaz, filtr, cestu ani URL adresu.
+`segment_aware` používá jeden omezený předanalytický průchod přes již ověřený
+lokální video stream. Pevný řetězec filtrů nejprve škáluje na maximálně 320 pixelů
+na šířku, detekuje změny scény a zamrzlé intervaly, poté vzorkuje 1 snímek za
+sekundu pro rozmazání, průměrnou svítivost a prostorové/časové informace. Průchod
+je omezen na 600 strukturálních vzorků, jedno vlákno FFmpeg/filtru, stejný
+protokol pouze `file` a seznam povolených kontejnerů, limit 1 MiB výstupu procesu
+a maximálně 30 sekund v rámci sdíleného přerušení/termínu brokera. Nikdy
+nepřijímá příkaz, filtr, cestu nebo URL z požadavku.
 
-Strukturální hodnoty představují deterministické důkazy vzorkování, nikoli sémantické
-porozumění videu. Neodvozují subjekty, akce, titulky, řeč ani záměr uživatele.
-Hranice scén a zamrznutí vytvářejí segmenty; pokrytí zamrznutí, rozmazání,
-expozice, prostorové detaily a časové změny ovlivňují pouze způsob rozdělení
-stávajícího rozpočtu 1–16 snímků. Zcela zamrzlý segment je omezen na jeden snímek,
-zatímco nezamrzlé segmenty soutěží o zbývající rozpočet. Když je hranic více
-než snímků, zachová se rovnoměrné pokrytí časové osy, aby rychlé střihy na začátku
-nemohly skrýt dlouhý koncový segment. Hranice scén v rámci 1sekundového
-analytického rozlišení hranice zamrznutí se sloučí.
+Strukturální hodnoty jsou deterministické vzorkovací důkazy, nikoli sémantické porozumění videu. Neodvozují subjekty, akce, titulky, řeč ani záměr uživatele. Hranice scén a zmrazení tvoří segmenty; pokrytí zmrazením, rozostření, expozice, prostorové detaily a časová změna ovlivňují pouze to, jak je přidělen stávající rozpočet 1–16 snímků. Plně zmrazený segment je omezen na jeden snímek, zatímco nezmrazené segmenty soutěží o zbývající rozpočet. Když hranice převyšují počet snímků, je zachováno jednotné pokrytí časové osy, takže rychlé počáteční střihy nemohou skrýt dlouhý koncový segment. Hranice scén v rámci 1sekundového rozlišení analýzy hranice zmrazení jsou sloučeny.
 
-Chybějící filtry, poškozené/prázdné důkazy, chyba detektoru nebo vypršení časového
-limitu omezené předběžné analýzy vedou k otevřenému selhání a použití přesné
-zásady rovnoměrných středových bodů. Přerušení volajícím nebo termín brokeru
-nevede k otevřenému selhání: ukončí probíhající podproces, zabrání pozdější
-extrakci snímků a soukromý dočasný strom je odstraněn v bloku `finally`.
+Chybějící filtry, poškozené/prázdné důkazy, chyba detektoru nebo omezený časový limit předběžné analýzy se otevřeně vrátí k přesné jednotné politice středního bodu. Zrušení volajícím nebo termín brokera se neotevře: ukončí probíhající podproces, zabrání pozdější extrakci snímků a soukromý dočasný strom je odstraněn v `finally`.
 
-`scripts/perf/video-bridge-fu07-eval.ts` generuje deterministické skutečné
-testovací vstupy FFmpeg pro úsporu volání titulků po deduplikaci, rozdělení
-rozpočtu při intenzivním pohybu, důkazy o rozmazání/expozici/SI-TI, rychlé střihy
-s dlouhým koncem a falešně pozitivní výsledky při postupném prolínání. Zaznamenává
-reálný čas předběžné analýzy a tam, kde je k dispozici `/usr/bin/time`, také čas
-CPU podřízeného procesu a špičkové využití RSS. Jeho kontroly kvality jsou pouze
-strukturálními orákuly. Kvalita skutečného modelu titulků zůstává `HOLD`, protože
-tento testovací systém nemá autorizovaný koncový bod ani pevně daného hodnotitele.
-Finanční úspory rovněž zůstávají `HOLD`, pokud parametr
-`--caption-cost-per-call-usd` neposkytne explicitní kladný odhad nákladů na jedno
-volání; skript žádný z těchto výsledků nikdy nevytváří uměle.
+`scripts/perf/video-bridge-fu07-eval.ts` generuje deterministické skutečné FFmpeg fixture pro úspory volání titulků po deduplikaci, alokaci rozpočtu pro hustý pohyb, důkazy rozostření/expozice/SI-TI, rychlé střihy s dlouhým koncem a falešné pozitiva postupného prolínání. Zaznamenává čas běhu před analýzou a, pokud je k dispozici `/usr/bin/time`, CPU podřízeného procesu a špičkové RSS. Jeho kontroly kvality jsou pouze strukturální orákula. Kvalita skutečného modelu titulků zůstává `HOLD`, protože tento testovací nástroj nemá autorizovaný koncový bod ani zmrazeného rozhodčího. Finanční úspory také zůstávají `HOLD`, pokud `--caption-cost-per-call-usd` nedodá explicitní pozitivní odhad nákladů na jedno volání; skript nikdy nevytváří ani jeden výsledek.
 
-Každý snímek je omezen na 4 MiB, všechny nezpracované snímky dohromady na 23 MiB
-a serializovaná odpověď brokeru na 32 MiB. Soukromý dočasný adresář je odstraněn
-v bloku `finally`. OmniRoute nepřibaluje FFmpeg a nepřijímá vlastní cestu ke
-spustitelnému souboru. Před vytvořením titulků provede most konzervativní vizuální
-deduplikaci: každý JPEG je zmenšen na 16×16 vyrovnávací paměť ve stupních šedi
-a porovnán pouze s posledním zachovaným snímkem. Pro požadovaný rozpočet titulků
-vyšší než jeden snímek poskytne extrakce omezený fond kandidátů o velikosti
-nejvýše dvojnásobku tohoto rozpočtu a nikdy více než 16 snímků. Požadovaný limit
-se použije až po deduplikaci, přičemž při závěrečném ztenčování zůstanou zachováni
-první a poslední vybraný kandidát, pokud rozpočet činí alespoň dva snímky.
-Verzovaná zásada
-`grayscale-16x16-mean-cells-v2` používá vyšší z hodnot průměrného rozdílu jasu
-a podílu buněk miniatury, jejichž normalizovaný rozdíl je alespoň 0,05. Prahová
-hodnota duplicity je konstanta 0,04, zvolená kvůli předvídatelnosti namísto
-zpřístupnění jako běhové nastavení. Tento sekundární
-vysoce kontrastní signál zachovává drobný pohyb a změny viditelného textu, které
-může porovnání založené pouze na průměru skrýt. Chyby komparátoru nebo dekodéru
-vedou k otevřenému selhání a zachování pokrytí. Výstupní metadata oddělují
-extrahované kandidáty, úspěšně použité snímky a odstraněné vizuální duplicity.
+Každý snímek je omezen na 4 MiB, všechny surové snímky dohromady na 23 MiB a serializovaná odpověď brokera na 32 MiB. Soukromý dočasný adresář je odstraněn v `finally`. OmniRoute neobsahuje FFmpeg a nepřijímá vlastní cestu k spustitelnému souboru. Před titulkováním most aplikuje konzervativní vizuální deduplikační průchod: každý JPEG je zmenšen na 16×16 stupňů šedi a je porovnáván pouze s posledním zachovaným snímkem. Pro požadovaný rozpočet titulků nad jeden snímek extrakce poskytuje omezený fond kandidátů až do dvojnásobku tohoto rozpočtu a nikdy ne více než 16 snímků. Požadovaný limit je aplikován až po deduplikaci, přičemž první a poslední vybraní kandidáti jsou zachováni během konečného ztenčení, když je rozpočet alespoň dva. Verzovaná politika `grayscale-16x16-mean-cells-v2` používá větší z průměrné delty jasu a poměru buněk miniatury, jejichž normalizovaná delta je alespoň 0,05. Prahová hodnota duplikace je konstanta 0,04, zvolená pro předvídatelnost spíše než vystavená jako nastavení za běhu. Tento sekundární signál s vysokým kontrastem zachovává malé pohyby a změny viditelného textu, které by porovnání pouze průměrů mohlo skrýt. Chyby komparátoru nebo dekodéru se otevřeně vrátí a zachovají pokrytí. Výstupní metadata oddělují extrahované kandidáty, úspěšně použité snímky a vizuální duplikáty, které byly vyřazeny.
 
-Explicitně označená část videa může požádat o kontaktní list s časovými značkami.
-Most vytvoří mřížku JPEG nejvýše se 4 sloupci a 16 snímky. Každá buňka o velikosti
-512 pixelů vypálí časovou značku svého zdroje do vysoce kontrastního spodního
-pruhu, zatímco stejné časové značky zůstanou v textových metadatech pro následné
-přiřazení a audit. Kompletní JPEG zůstává omezen na 32 MiB. Pokud `sharp` nedokáže
-mřížku dekódovat nebo sestavit, most se vrátí k jednotlivým snímkům JPEG;
-přerušení klientem se nadále přenese přes operaci s kontaktním listem.
+Explicitně označená část videa může požádat o časově označený kontaktní list. Most sestaví maximálně 4sloupcovou, 16snímkovou JPEG mřížku. Každá buňka o velikosti 512 pixelů vypálí svůj zdrojový časový údaj do spodního pásu s vysokým kontrastem, zatímco stejné časové údaje zůstávají v textových metadatech pro následné přiřazení a audit. Kompletní JPEG zůstává omezen na 32 MiB. Pokud `sharp` nemůže dekódovat nebo složit mřížku, most se vrátí k jednotlivým JPEG snímkům; zrušení klientem se stále šíří operací listu.
 
-Důkazy pro povýšení jsou záměrně odděleny od syntetického mikrobenchmarku
-kompozice. `scripts/perf/video-bridge-contact-sheet-eval.ts` definuje
-A/B testovací systém s verzovaným schématem pro skutečné modely počítačového
-vidění kompatibilní s OpenAI. Měří tokeny hlášené poskytovatelem, celkovou reálnou
-latenci (včetně sestavení kontaktního listu), počet volání modelu a zachování
-faktů definovaných manifestem. Nezpracované odpovědi modelu se do zprávy
-nezapisují; uchovávají se pouze otisky SHA-256 a ID odpovídajících faktů. Testovací
-systém neprovede žádné síťové ani placené volání modelu, pokud není předán parametr
-`--execute-real` a nakonfigurovány `--model`, `OMNIROUTE_BASE_URL`
-a `OMNIROUTE_API_KEY`. Bez takového explicitního skutečného běhu zůstává jeho
-strojově čitelný verdikt `HOLD`; samotná syntetická měření objemu dat/počtu volání
-nejsou důkazem pro povýšení.
+Důkazy o propagaci jsou záměrně odděleny od syntetického kompozičního mikrobenchmarku. `scripts/perf/video-bridge-contact-sheet-eval.ts` definuje A/B testovací nástroj s verzovaným schématem pro skutečné vizuální modely kompatibilní s OpenAI. Měří tokeny nahlášené poskytovatelem, celkovou latenci (včetně kompozice listu), počet volání modelu a uchování faktů definovaných v manifestu. Surové odpovědi modelu nejsou zapisovány do zprávy; uchovávají se pouze SHA-256 hashe a odpovídající ID faktů. Testovací nástroj neprovádí žádné síťové ani placené volání modelu, pokud není předán `--execute-real` a nejsou nakonfigurovány `--model`, `OMNIROUTE_BASE_URL` a `OMNIROUTE_API_KEY`. Bez tohoto explicitního skutečného spuštění zůstává jeho strojově čitelný verdikt `HOLD`; samotná syntetická měření zátěže/počtu volání nejsou důkazem propagace.
 
-Volající mohou k podporované části videa připojit volitelné pole
-`transcript.cues`, pokud již mají k dispozici zarovnaný text. Každý záznam musí
-obsahovat `text`, konečný interval `start`/`end` v rámci zjištěné délky a povolený
-`source` (`client`, `embedded` nebo `audio-bridge`); výchozí hodnota `confidence`
-je `1` a musí zůstat mezi `0` a `1`. Přesné duplikáty záznamů se sloučí.
-OmniRoute na základě těchto metadat nikdy nespouští přepis: ověřené záznamy jsou
-zkopírovány do popsaného výsledku spolu se zdrojem, mírou spolehlivosti a intervalem
-a vykresleny jako nedůvěryhodná pozorování společně s titulky snímků. Neplatný
-text, text mimo rozsah nebo text bez informací o původu je odmítnut, namísto aby
-byl smíchán s proudem titulků. Pole `source` je v současnosti deklarováno
-volajícím, nikoli ověřeno serverem: OmniRoute vynucuje, aby hodnota byla jedním
-ze tří povolených řetězců, ale dosud kryptograficky nepotvrzuje, že označení
-`embedded` nebo `audio-bridge` skutečně pochází z extrakce vlastněné serverem.
-Dokud nebude toto ověřování implementováno, považujte `source` za nedůvěryhodnou
-nápovědu; nezakládejte na něm rozhodování o autorizaci.
+Volající mohou připojit volitelné pole `transcript.cues` k podporované části videa, pokud již mají zarovnaný text. Každá nápověda musí obsahovat `text`, konečný interval `start`/`end` uvnitř zkoumané doby a povolený `source` (`client`, `embedded` nebo `audio-bridge`); `confidence` má výchozí hodnotu `1` a musí zůstat mezi `0` a `1`. Přesné duplicitní nápovědy jsou sloučeny. OmniRoute nikdy nespouští transkripci z těchto metadat: ověřené nápovědy jsou zkopírovány do popsaného výsledku se zdrojem, důvěrou a intervalem a jsou vykresleny jako nedůvěryhodná pozorování vedle titulků snímků. Neplatný text, text mimo rozsah nebo text bez původu je odmítnut, nikoli smíchán do proudu titulků. Pole `source` je v současné době deklarováno volajícím, nikoli ověřeno serverem: OmniRoute vynucuje, aby hodnota byla jedním ze tří povolených řetězců, ale dosud kryptograficky nepotvrzuje, že štítek `embedded` nebo `audio-bridge` skutečně pochází z extrakce vlastněné serverem. Považujte `source` za nedůvěryhodnou nápovědu, dokud toto ověření nebude implementováno; nestavte na něm autorizační rozhodnutí.
 
-Pokročilý volající může pro stejné video poskytnout již autorizovanou stopu
-`audioTranscript`. Slučovací vrstva zpracuje vizuální a zvuková pozorování se
-společným časovým limitem a signálem přerušení, seřadí je na společné časové ose,
-sloučí přesné duplicity a vrátí částečný výsledek, pokud uspěje pouze jedna
-strana. Neplatná stopa `audioTranscript` vede k tomuto částečnému výsledku —
-vizuální popis se zachová a zvuková větev zaznamená sanitizovaný kód selhání —
-místo aby selhalo celé video. Dostupnost jednotlivých větví, příznak částečného
-výsledku a sanitizované kódy selhání se zachovají v popsaném výsledku, v
-metadatech ochranných mechanismů (`audioFusionRuns`/`audioFusionPartials`/
-`audioFusionFailureCodes`), v metadatech mezipaměti výsledků a v čítačích
-slučování mostu. Výchozí cesta Video Bridge nevyvolává převod řeči na text ani
-nestahuje druhou kopii média; bez této explicitní stopy zůstává pouze u videa.
+Pokročilý volající může poskytnout již autorizovanou stopu `audioTranscript` pro stejné video. Spojovací šev zpracovává vizuální a zvuková pozorování pod jednou uzávěrkou a signálem pro zrušení, řadí je na společnou časovou osu, slučuje přesné duplikáty a hlásí částečný výsledek, když uspěje pouze jedna strana. Neplatný `audioTranscript` se degraduje na tento částečný výsledek — vizuální popis je zachován a zvuková větev zaznamená sanitizovaný kód chyby — namísto selhání celého videa. Dostupnost pro jednotlivé větve, příznak částečnosti a sanitizované kódy selhání jsou zachovány v popsaném výsledku, v metadatech guardrailu (`audioFusionRuns`/`audioFusionPartials`/`audioFusionFailureCodes`), v metadatech mezipaměti výsledků a v počítadlech fúze mostu. Výchozí cesta Video Bridge nevyvolává převod řeči na text ani nestahuje druhou kopii média; bez této explicitní stopy zůstává pouze video.
 
-**Uchovávání přepisů (#12150 P1).** Toto se použije automaticky vždy, když
-Video Bridge (který je sám volitelný) vykreslí položku přepisu — neexistuje
-žádný samostatný příznak uchovávání. Když požadavek vykreslí libovolnou položku
-přepisu (volajícím deklarovaný `transcript` nebo sloučený `audioTranscript`),
-ochranný mechanismus ji označí jako `videoBridgeObserved` a vytvoří redigovanou
-stínovou kopii popisu videa — identické vykreslení, ve kterém je volný text
-každé položky nahrazen řetězcem `[redacted-video-transcript]`. Tato kopie
-vzniká nahrazením strukturovaného pole položky před sestavením řetězce (nikdy
-parsováním sloučeného textu, takže nemůže přežít žádný obsah položky —
-nepřátelský ani běžný, včetně textů obsahujících `]`, jako jsou
-`[inaudible]`/`[music]`). V uloženém těle požadavku v protokolu volání se každá
-textová část odvozená z videa nahradí touto redigovanou stínovou kopií na
-základě shody obsahu; kotva `fullText` se znovu načte z dokončené datové
-struktury ochranného mechanismu před voláním, takže shoda uspěje i poté, co
-pozdější řetězené ochranné mechanismy (maskování osobních údajů a přihlašovacích
-údajů s prioritami 10/95) přepíší text popisu na místě, a poté, co vložení
-systémové výzvy, předání kontextu nebo paměti změní strukturu pole zpráv. Tělo
-odeslané modelu se nemění. Pozorovaný požadavek také nevytváří žádnou trvalou
-Memory (extrakce odvozená z požadavku i odpovědi se přeskočí), takže ani vlastní
-odpověď modelu nemůže zopakovat text přepisu do Memory.
+**Uchovávání přepisu (#12150 P1).** To se automaticky použije vždy, když Video Bridge (sám o sobě volitelný) vykreslí nápovědu přepisu — neexistuje žádný samostatný příznak uchovávání. Když požadavek vykreslí jakoukoli nápovědu přepisu (volajícím deklarovaný `transcript` nebo sloučený `audioTranscript`), guardrail ji označí jako `videoBridgeObserved` a vytvoří redigovaný stín popisu videa — identické vykreslení, ve kterém je volný text každé nápovědy nahrazen `[redacted-video-transcript]`, vytvořený nahrazením strukturovaného pole nápovědy před sestavením řetězce (nikdy ne parsováním zploštělého textu, takže žádný obsah nápovědy — nepřátelský nebo běžný, včetně těl obsahujících `]` jako `[inaudible]`/`[music]` — nemůže přežít). Tělo požadavku v trvalém protokolu volání vymění každou textovou část odvozenou z videa za tento redigovaný stín, shodující se podle rovnosti obsahu; kotva `fullText` je znovu načtena z dokončeného payloadu guardrailu před voláním, takže shoda stále uspěje i po tom, co pozdější řetězové guardraily (maskovače PII a pověření, priority 10/95) přepíší text popisu na místě a po tom, co injekce systémové výzvy/předání/paměti přetvoří pole zpráv. Tělo odeslané upstreamu modelu zůstává nezměněno. Pozorovaný požadavek také neplní žádnou trvalou paměť (extrakce odvozená z požadavku i odpovědi jsou přeskočeny), takže vlastní odpověď modelu nemůže zrcadlit text přepisu do paměti.
 
-Stále otevřené oblasti uchovávání, sledované pro navazující práci (**P2**,
-#12430): nezpracovaný snímek klientského požadavku před ochrannými mechanismy v
-artefaktu podrobného protokolu; bezpečné zamítnutí pokračování
-`previous_response_id`; interní volání odvozených výzev, která vkládají přepis
-do syntetizovaného řetězcového zadání (fáze zpracování, předání kontextu); a tělo
-odpovědi / kopie odpovědi modelu v sémantické mezipaměti, pokud odpověď přepis
-cituje. Jde o nezpracované či odpověďové nebo volitelné oblasti mimo rozsah P1,
-který pokrývá uložené tělo požadavku + Memory.
+Další uchovávané kopie používají stejný signál pozorovaného požadavku. Nezpracovaný snímek klientského požadavku před guardrailem, požadavek čekající v paměti a log časně odmítnutých požadavků strukturálně nahrazují pole přepisu ve video částech; řetězcové výzvy syntetizované fázemi pipeline a předáním kontextu jsou redigovány v úložišti trvalého těla požadavku. Trvalý marker `video_content_removed` způsobí, že pokračování `previous_response_id` selže uzavřeně, namísto rekonstrukce textu, který byl záměrně zahozen. Pokud pozorovaný požadavek ztratí svůj stín redakce pro jednotlivé části před logováním, nebo dokonce jeden z několika video stínů selže ve shodě po pozdějších mutacích požadavku, uchovávané tělo požadavku je zcela vynecháno namísto uchování částečně redigovaného přepisu.
 
-Interní životní cyklus `/api/modality-bridge/video/drilldown` je samostatná
-mezipaměťová vrstva pro zpětnou smyčku ověřovanou tokenem. Každá operace také
-vyžaduje kanonický neprůhledný identifikátor principála. Než bude produkční
-volající povolen, musí tento identifikátor odvodit z ověřeného tenanta a nikdy
-nesmí předávat hodnotu zvolenou klientem. Klíče mezipaměti vážou tohoto
-principála na kanonické identifikátory relace a odkazu na video, ukládají pouze
-jejich klíče odvozené pomocí SHA-256 a omezují čtení i mazání na stejného
-principála. Mezipaměť ukládá nejvýše 16 odvozených snímků JPEG na položku,
-nechá je vypršet po deseti minutách a podporuje omezené čtení pomocí
-`start`/`end` nebo explicitní odstranění relace.
+Pro pozorovaný požadavek může odpověď modelu citovat libovolnou část přepisu bez hranice strukturované nápovědy. Jeho trvalé `responseBody` v protokolu volání je proto nahrazeno značkou vynechání; podrobný artefakt pipeline (který může zahrnovat těla upstreamu/klienta a streamové bloky) není uchováván. Sémantické, idempotence a reasoning-replay cache obcházejí čtení a zápisy pro tento požadavek. Požadavek poskytovatele a klientovi viditelná odpověď zůstávají nezměněny. Počáteční keepalive bajty jsou vyprázdněny z dočasné vyrovnávací paměti, když je podrobný artefakt vynechán. Varování Kiro o chybném EventStreamu hlásí pouze počet bajtů payloadu, nikdy jeho obsah ani nezpracovanou chybu JSON parseru. To netvrdí, že každá nesouvisející diagnostika poskytovatele/pluginu byla auditována; širší pročištění uchovávaných dat je sledováno v #11658.
 
-Každý principál je omezen na 16 položek a 64 MiB kanonických dat JPEG. Tyto
-limity jsou nezávislé na globálním stropu 64 položek / 256 MiB: tlak na kvótu
-principála vyřadí před zvažováním globálního vyřazování podle LRU pouze nejméně
-nedávno použité položky daného principála. Platnost vypršených položek se při
-aktivitě mezipaměti odstraní z účtování principála i globálního účtování,
-zatímco zrušení a selhání validace nepotvrdí částečnou náhradu.
+Interní životní cyklus `/api/modality-bridge/video/drilldown` je samostatný, loopback/tokenem autentizovaný cache substrát. Každá operace také vyžaduje kanonické neprůhledné ID principála. Před povolením produkčního volajícího musí odvodit toto ID z autentizovaného tenanta a nikdy nesmí předávat klientem vybranou hodnotu. Klíče mezipaměti vážou tohoto principála ke kanonickým ID relací a video-referencí, ukládají pouze jejich klíče odvozené z SHA-256 a omezují jak čtení, tak mazání na stejného principála. Mezipaměť ukládá maximálně 16 odvozených JPEG snímků na položku, expiruje je po deseti minutách a podporuje omezené čtení `start`/`end` nebo explicitní smazání relace.
 
-Mezipaměť odmítá nekanonické Base64, nadbytečné doplnění, média jiného typu než
-JPEG, poškozené nebo zkrácené soubory JPEG a soubory JPEG, které během omezeného
-dekódování celého obrázku pomocí `sharp` vyvolají varování. Každý přijatý obrázek
-znovu zakóduje jako kanonický JPEG, odvodí šířku a výšku z dekódovaných bajtů
-namísto důvěry v pole volajícího a odstraní veškeré koncové polyglotní bajty
-místo jejich uchování. Do obou kvót se započítává pouze omezená kanonická
-komprimovaná vyrovnávací paměť. Limit přenosu JSON zahrnuje režii Base64 pro
-strop dekódovaného vstupu 32 MiB. Každý uložený odvozený výstup zaznamenává
-ověřený formát a rozlišení JPEG, zásady vzorkování, verzi odvození, čas vytvoření,
-serverem vypočítaný hash obsahu a hashovaný nadřazený odkaz spolu s hashem obsahu
-nadřazeného objektu od důvěryhodného volajícího. Zrušení se kontroluje mezi
-asynchronními fázemi dekódování a výpočtu hashe před atomickým potvrzením do
-mezipaměti.
+Každý principál je omezen na 16 položek a 64 MiB kanonických JPEG dat. Tyto limity jsou nezávislé na globálním stropu 64 položek/256 MiB: tlak kvóty principála vyřadí pouze nejméně nedávno použité položky tohoto principála, než se zváží globální LRU vyřazení. Expirované položky jsou odstraněny z účetnictví principála i globálního účetnictví při aktivitě mezipaměti, zatímco zrušení a selhání validace neprovedou částečnou náhradu.
 
-Tato etapa zatím nepřipojuje k této trase produkčního producenta a neposkytuje
-výběr variant s více rozlišeními. Transparentní cesta požadavku Video Bridge
-proto nevyžaduje žádnou dodatečnou práci, zatímco odvození principála vázané na
-tenanta a úplný životní cyklus FU-08 s více rozlišeními zůstávají explicitní
-navazující prací a nejsou dokumentovány jako dokončené chování.
+Mezipaměť odmítá nekanonické Base64, nadbytečné vycpávky, média, která nejsou JPEG, chybně formátované nebo zkrácené JPEGy a JPEGy, které vyvolají varování během omezeného `sharp` dekódování celého obrazu. Každý přijatý obrázek znovu zakóduje jako kanonický JPEG, odvozuje šířku a výšku z dekódovaných bajtů namísto spoléhání se na pole volajícího a zahazuje jakékoli koncové polyglotní bajty namísto jejich uchovávání. Pouze omezený kanonický komprimovaný buffer je započítán do obou kvót. Limit JSON wire zahrnuje režii Base64 pro strop 32 MiB dekódovaného vstupu. Každá uložená derivace zaznamenává svůj validovaný formát/rozlišení JPEG, politiku vzorkování, verzi derivace, čas vytvoření, serverem vypočítaný hash obsahu a hashovanou rodičovskou referenci plus hash rodičovského obsahu důvěryhodného volajícího. Zrušení je kontrolováno mezi asynchronními fázemi dekódování/hashování před atomickým potvrzením mezipaměti.
 
-Snímky jsou postupně opatřovány popisky pomocí nakonfigurovaného modelu Video. Prázdné
-přepsání nastavení Video zdědí nastavení Vision; pokud jsou obě prázdná, automatický
-směrovač Vision vybere efektivní model podporující obraz. Úspěšné popisky
-nahradí původní část stabilním prefixem `[Video description:`, který také
-označuje text jako nedůvěryhodné pozorování odvozené z média a sděluje navazujícím
-modelům, aby se neřídily pokyny nalezenými v médiu. Klíče mezipaměti popisků snímků
-zahrnují bajty JPEG, prompt, časové razítko a efektivní model; ukládají se pouze úspěšné
-popisky. Záznamy mezipaměti uchovávají skutečný model, který úspěšně vytvořil výstup,
-včetně záložního modelu; pokud byly různé snímky vytvořeny různými modely,
-bridge hlásí `mixed`. Při zásahu mezipaměti se znovu použije identita tohoto modelu,
-namísto jejího přeznačení podle požadovaného plánu směrování. Mezipaměť výsledků
-pro celé video je klíčována podle všech vstupů, které mění výstup — promptu, efektivního
-modelu, zásad vzorkování, počtu snímků, režimu sémantické analýzy, otisku SHA-256
-normalizované nápovědy zaměření, okna zaměření, `transcript`,
-`audioTranscript` a příznaku kontaktního archu — takže změna kterékoli z těchto
-dimenzí způsobí minutí mezipaměti, nikdy opětovné použití zastaralého výsledku. Verze,
-prahová hodnota a omezený počet kandidátních snímků zásad vizuální deduplikace jsou
-rovněž explicitně uvedeny v klíči a metadatech mezipaměti výsledků; změna zásad proto
-nemůže znovu použít zastaralý popis celého videa. Metadata mezipaměti výsledků v4
-uchovávají režim a otisk, nikdy nezpracovanou uživatelskou úlohu. Metadata guardrailu
-uvádějí požadovaný i efektivní režim analýzy; požadovaný režim `focused` bez
-použitelného uživatelského textu je vykázán jako efektivně `full`.
+Tato tranše zatím nepřipojuje produkčního producenta k trase a neposkytuje výběr variant s více rozlišeními. Transparentní cesta požadavku Video Bridge proto nezpůsobuje žádnou dodatečnou práci, zatímco odvození principála vázaného na nájemce a plný životní cyklus FU-08 s více rozlišeními zůstávají explicitní následnou prací, spíše než aby byly dokumentovány jako kompletní chování.
 
-Guardrail extrahuje každou podporovanou část videa, ale popíše nejvýše
-`modalityBridgeVideoMaxVideos` videí. U cíle, u kterého je prokázáno
-`supportsVideo === false`, se neúspěšná videa a videa nad limitem změní na explicitní
-bezpečné textové značky, takže nezůstane žádné nezpracované video. Pokud podpora není
-známa, zůstanou tyto části beze změny. Cíle s `supportsVideo === true` bridge
-obcházejí. Signál přerušení klientského požadavku se propaguje přes stahování, frontu
-brokeru, podprocesy a volání pro tvorbu popisků; přerušení zastaví zpracování mezi
-videi a nikdy při selhání nepovolí průchod nezpracovaného média.
+Snímky jsou postupně opatřeny titulky pomocí nakonfigurovaného modelu Video. Prázdné přepsání Video dědí nastavení Vision; pokud jsou obě prázdné, Vision auto-router vybere efektivní model schopný vidění. Úspěšné titulky nahrazují původní část stabilní předponou `[Video description:`, která také označuje text jako nedůvěryhodné pozorování odvozené z médií a říká následným modelům, aby nepostupovaly podle pokynů nalezených v médiích. Klíče mezipaměti titulků snímků zahrnují JPEG bajty, prompt, časové razítko a efektivní model; do mezipaměti se ukládají pouze úspěšné titulky. Položky mezipaměti uchovávají skutečný úspěšný produkční model, včetně záložního modelu; bridge hlásí `mixed`, když byly různé snímky vytvořeny různými modely. Zásah do mezipaměti znovu použije tuto identitu producenta namísto jejího přejmenování na požadovaný plán směrování. Mezipaměť výsledků celého videa je klíčována každým vstupem, který mění výstup — prompt, efektivní model, politika vzorkování, počet snímků, režim sémantické analýzy, otisk SHA-256 normalizovaného nápovědy zaměření, okno zaměření, `transcript`, `audioTranscript` a příznak kontaktního listu — takže změna kterékoli z těchto dimenzí je chybou mezipaměti, nikdy ne zastaralým opětovným použitím. Verze politiky vizuální deduplikace, práh a omezený počet kandidátských snímků jsou také explicitní v klíči mezipaměti výsledků a metadatech; změna politiky proto nemůže znovu použít zastaralý popis celého videa. Metadata mezipaměti výsledků v4 uchovávají režim a otisk, nikdy ne syrový uživatelský úkol. Guardrail metadata hlásí jak požadované, tak efektivní režimy analýzy; požadovaný režim `focused` bez použitelného uživatelského textu je hlášen jako efektivně `full`.
 
-Běhová nastavení jsou uložena v DB a validována pomocí Zod:
+Guardrail extrahuje každou podporovanou video část, ale popisuje ne více než `modalityBridgeVideoMaxVideos`. Pro cíl, u kterého se prokáže, že má `supportsVideo === false`, se neúspěšná a překročená videa stávají explicitními značkami bezpečného textu, takže žádné syrové video nepřežije. Pokud je schopnost neznámá, tyto části zůstávají nedotčeny. Cíle s `supportsVideo === true` bridge obcházejí. Signál přerušení klientského požadavku se šíří přes stahování, frontu brokera, podprocesy a volání titulků; přerušení se zastaví mezi videi a nikdy se neotevřou k syrovým médiím.
 
-| Klíč                                | Výchozí hodnota | Rozsah / chování                                                                                         |
-| ----------------------------------- | --------------- | -------------------------------------------------------------------------------------------------------- |
-| `modalityBridgeVideoEnabled`        | `false`         | Volitelný běhový modul, aktivovaný explicitně                                                            |
-| `modalityBridgeVideoAnalysisMode`   | `"full"`        | `full` zachovává obecné popisky; `focused` používá omezený, nedůvěryhodný kontext nejnovějšího uživatele |
-| `modalityBridgeVideoModel`          | `""`            | Zdědí model Vision Bridge                                                                                |
-| `modalityBridgeVideoFrameCount`     | `8`             | 1–16                                                                                                     |
-| `modalityBridgeVideoSamplingPolicy` | `"uniform"`     | `uniform`, `scene_aware` nebo proporcionální `segment_aware`; při selhání detektoru se použije `uniform` |
-| `modalityBridgeVideoMaxVideos`      | `1`             | 1–4                                                                                                      |
-| `modalityBridgeVideoTimeout`        | `120000`        | 1000–120000 ms                                                                                           |
+Nastavení běhového prostředí jsou zálohována v DB a validována pomocí Zod:
 
-Starší uložené hodnoty časového limitu Video přesahující 120 sekund jsou omezeny na
-termín brokeru; zápisy nových nastavení nad tímto limitem jsou odmítnuty.
-`GET /api/modality-bridge/video/runtime` vyžaduje důvěryhodnou, označenou lokální
-adresu loopback ještě před autentizací nebo kontrolou běhového prostředí a poté
-vyžaduje oprávnění pro správu. Vrací pouze `available`, sanitizované verze
-FFmpeg/ffprobe a pevně daný důvod, pokud běhové prostředí není dostupné. Interní
-endpoint pro extrakci není veřejné API pro nahrávání: při zaplnění fronty vrací
-`503` spolu s `Retry-After`, při odpojení volajícího vrací `499` a při dosažení
-pevně stanoveného termínu brokeru vrací `504`. Převedené odpovědi přidávají
-`video->text;model=<visionModel>;parts=<videos>` do centrální hlavičky
-`x-omniroute-modality-bridge`, aniž by odstraňovaly segmenty Vision nebo Audio.
+| Klíč                                | Výchozí     | Rozsah / chování                                                                                       |
+| :---------------------------------- | :---------- | :----------------------------------------------------------------------------------------------------- |
+| `modalityBridgeVideoEnabled`        | `false`     | Volitelné běhové prostředí, opt-in                                                                     |
+| `modalityBridgeVideoAnalysisMode`   | `"full"`    | `full` zachovává obecné titulky; `focused` používá omezený, nedůvěryhodný kontext posledního uživatele |
+| `modalityBridgeVideoModel`          | `""`        | Dědí model Vision Bridge                                                                               |
+| `modalityBridgeVideoFrameCount`     | `8`         | 1–16                                                                                                   |
+| `modalityBridgeVideoSamplingPolicy` | `"uniform"` | `uniform`, `scene_aware`, nebo proporcionální `segment_aware`; selhání detektoru se vrátí k `uniform`  |
+| `modalityBridgeVideoMaxVideos`      | `1`         | 1–4                                                                                                    |
+| `modalityBridgeVideoTimeout`        | `120000`    | 1000–120000 ms                                                                                         |
 
-### Maskování PII (`piiMasker.ts`)
+Starší trvalé hodnoty časového limitu videa nad 120 sekund jsou omezeny na termín brokera; nové zápisy nastavení nad tento limit jsou odmítnuty. `GET /api/modality-bridge/video/runtime` vyžaduje důvěryhodnou označenou loopback lokalitu před autentizací nebo zjišťováním běhového prostředí, poté vyžaduje správcovskou autentizaci. Vrací pouze `available`, sanitizované verze FFmpeg/ffprobe a pevný důvod, když běhové prostředí není dostupné. Interní extrakční koncový bod není veřejné API pro nahrávání: saturace fronty vrací `503` plus `Retry-After`, odpojení volajícího vrací `499` a pevný termín brokera vrací `504`. Konvertované odpovědi přidávají `video->text;model=<visionModel>;parts=<videos>` do centrální hlavičky `x-omniroute-modality-bridge` bez odstranění segmentů Vision nebo Audio.
 
-Spouští se v **obou** fázích.
+### Maskovač PII (`piiMasker.ts`)
 
-- **`preCall`** naklonuje payload, projde `system`, `messages`, `input` a
-  `prompt` (včetně položek ve formě prostého řetězce) a použije `processPII()` (z
-  `@/shared/utils/inputSanitizer`) na řetězcová pole `content`/`text`. Když je
-  `PII_REDACTION_ENABLED=true`, detekované PII jsou ve výstupním payloadu
-  redigovány. To je nezávislé na `INPUT_SANITIZER_MODE` (který řídí pouze
-  zásady proti vkládání instrukcí do promptu). Když je redigování vypnuté, volání
-  zaznamená počty detekcí bez přepisování obsahu.
-- **`postCall`** vytvoří hlubokou kopii odpovědi a spustí `sanitizePIIResponse()`
-  spolu s maskováním struktury Responses API (`maskResponsesOutput` — pokrývá
-  `output_text` a `output[].content[].text`). Pokud dojde k jakékoli redakci,
-  upravená odpověď nahradí původní.
+Běží na **obou** fázích.
 
-Guardrail nikdy neblokuje; pouze přidává anotace (`meta.detections`,
-`meta.redacted`) nebo přepisuje obsah.
+- **`preCall`** klonuje payload, prochází `system`, `messages`, `input` a `prompt` (včetně položek prostého řetězce) a aplikuje `processPII()` (z `@/shared/utils/inputSanitizer`) na řetězcová pole `content`/`text`. Když je `PII_REDACTION_ENABLED=true`, detekované PII je redigováno v odchozím payloadu. To je nezávislé na `INPUT_SANITIZER_MODE` (který řídí pouze politiku vkládání promptů). Když je redakce vypnutá, volání zaznamenává počty detekcí bez přepisování obsahu.
+- **`postCall`** provede hlubokou kopii odpovědi, spustí `sanitizePIIResponse()` plus maskovač tvaru Responses-API (`maskResponsesOutput` — pokrývá `output_text` a `output[].content[].text`). Pokud dojde k jakékoli redakci, upravená odpověď nahradí původní.
 
-### Vkládání instrukcí do promptu (`promptInjection.ts`)
+Guardrail nikdy neblokuje; pouze anotuje (`meta.detections`, `meta.redacted`) nebo přepisuje.
 
-Detekuje nepřátelské struktury v obsahu dodaném uživatelem a vynucuje
-nakonfigurované zásady. Chování je řízeno proměnnými prostředí a možnostmi
-konstruktoru:
+### Vkládání promptů (`promptInjection.ts`)
 
-| Nastavení      | Proměnná prostředí                                                                                   | Výchozí hodnota | Účinek                                                                                                                                                                                      |
-| -------------- | ---------------------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Povoleno       | `INPUT_SANITIZER_ENABLED`                                                                            | `true`          | Při hodnotě `false` se ochranný mechanismus ihned ukončí.                                                                                                                                   |
-| Režim          | `INJECTION_GUARD_MODE` / `INPUT_SANITIZER_MODE`                                                      | `warn`          | Zásady pro injekce: `block`, `warn` nebo `log`. (`redact` je přijímáno kvůli zpětné kompatibilitě, ale text injekce **neodstraňuje**; přepis PII v požadavku řídí `PII_REDACTION_ENABLED`.) |
-| Práh blokování | Volba `blockThreshold` / `INPUT_SANITIZER_BLOCK_THRESHOLD` (alias `INJECTION_GUARD_BLOCK_THRESHOLD`) | `high`          | Minimální závažnost vyžadovaná k blokování. Při výchozím nastavení slouží střední závažnost pouze k pozorování.                                                                             |
+Detekuje nepřátelské struktury v uživatelském obsahu a vynucuje nakonfigurovanou politiku. Chování je řízeno proměnnými prostředí a možnostmi konstruktoru:
 
-**Priorita režimu** (`getMode`): `options.mode` volajícího →
-**přepsání příznakem funkce v DB** `INJECTION_GUARD_MODE` (Dashboard → Settings →
-Feature Flags) → proměnná prostředí `INJECTION_GUARD_MODE` → proměnná prostředí `INPUT_SANITIZER_MODE` →
-`warn`. Přepsání z řídicího panelu má tedy přednost před proměnnými prostředí, takže uživatelské
-rozhraní Feature Flags řídí spuštěný ochranný mechanismus za běhu (bez restartu). Čtení z DB je zabezpečené proti selhání:
-pokud skončí chybou, ochranný mechanismus přejde na chování založené na proměnných prostředí, a pokud není
-nastaveno žádné přepsání, je chování totožné s vyhodnocením pouze podle proměnných prostředí.
+| Nastavení      | Env var                                                                                               | Výchozí | Účinek                                                                                                                                                                                           |
+| -------------- | ----------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Povoleno       | `INPUT_SANITIZER_ENABLED`                                                                             | `true`  | Když je `false`, guardrail se okamžitě ukončí.                                                                                                                                                   |
+| Režim          | `INJECTION_GUARD_MODE` / `INPUT_SANITIZER_MODE`                                                       | `warn`  | Politika injekce: `block`, `warn`, nebo `log`. (`redact` je přijímáno pro zpětnou kompatibilitu, ale **neodstraňuje** text injekce; požadavek na přepsání PII je řízen `PII_REDACTION_ENABLED`.) |
+| Práh blokování | `blockThreshold` option / `INPUT_SANITIZER_BLOCK_THRESHOLD` (alias `INJECTION_GUARD_BLOCK_THRESHOLD`) | `high`  | Minimální závažnost požadovaná pro blokování. Střední je ve výchozím nastavení pouze pro pozorování.                                                                                             |
+
+**Priorita režimu** (`getMode`): volající `options.mode` →
+`INJECTION_GUARD_MODE` **přepsání DB feature-flagem** (Dashboard → Nastavení →
+Feature Flags) → `INJECTION_GUARD_MODE` env → `INPUT_SANITIZER_MODE` env →
+`warn`. Přepsání z dashboardu má proto přednost před proměnnými prostředí, takže
+uživatelské rozhraní Feature Flags řídí běžící guard v reálném čase (bez
+restartu). Čtení z DB je odolné proti chybám: pokud dojde k chybě, guard se
+vrátí k chování založenému na prostředí, a pokud není nastaveno žádné
+přepsání, chování je identické s řešením pouze na základě prostředí.
 
 Zdroje detekce:
 
-1. `sanitizeRequest()` z `@/shared/utils/inputSanitizer` (sdílená sada detektorů
-   používaná i jinde v pipeline).
-2. Vestavěné `DEFAULT_GUARD_PATTERNS` (aktuálně `system_override_inline` a
-   `markdown_system_block`, oba se závažností `high`).
-3. Volitelné `customPatterns` předané prostřednictvím voleb konstruktoru (řetězce, regulární výrazy
-   nebo záznamy `{ name, pattern, severity }`).
+1.  `sanitizeRequest()` z `@/shared/utils/inputSanitizer` (sdílená sada
+    detektorů používaná jinde v pipeline).
+2.  Vestavěné `DEFAULT_GUARD_PATTERNS` (aktuálně `system_override_inline` a
+    `markdown_system_block`, obě se závažností `high`).
+3.  Volitelné `customPatterns` předané prostřednictvím možností konstruktoru
+    (řetězce, regex, nebo záznamy `{ name, pattern, severity }`).
 
-Když `mode === "block"` **a** alespoň jedna detekce dosáhne prahové hodnoty
-závažnosti, `preCall` vrátí `{ block: true, message: "Request rejected:
-suspicious content detected" }`. V režimech `warn`/`log` ochranný mechanismus událost zaznamená, ale
-volání povolí. Sdílená pomocná funkce `evaluatePromptInjection()` je rovněž exportována
-pro volající, kteří potřebují vyhodnocovat prompty bez použití registru.
+Když `mode === "block"` **a** alespoň jedna detekce splňuje práh závažnosti,
+`preCall` vrátí `{ block: true, message: "Request rejected: suspicious content
+detected" }`. V režimech `warn`/`log` guardrail loguje, ale volání povolí.
+Sdílená pomocná funkce `evaluatePromptInjection()` je také exportována pro
+volající, kteří potřebují vyhodnotit výzvy, aniž by procházeli registrem.
 
 **Limit skenování (v3.8.20):** detektor kontroluje pouze **prvních 16 KB**
-spojeného textu promptu — `MAX_INJECTION_SCAN_BYTES = 16 * 1024` (16 384 bajtů) v
-`src/shared/utils/inputSanitizer.ts`. Funkce `detectInjection()` i
-`evaluatePromptInjection()` před spuštěním smyčky vzorů použijí
-`slice(0, MAX_INJECTION_SCAN_BYTES)`. Direktivy injekce se nacházejí poblíž začátku vstupu, takže tento
-limit omezuje využití CPU/GC regulárními výrazy u payloadů o velikosti stovek KB, aniž by oslabil detekci (viz
-#3932, #4041).
+spojeného textu výzvy — `MAX_INJECTION_SCAN_BYTES = 16 * 1024` (16 384 bajtů)
+v `src/shared/utils/inputSanitizer.ts`. Jak `detectInjection()`, tak
+`evaluatePromptInjection()` `slice(0, MAX_INJECTION_SCAN_BYTES)` před
+spuštěním smyčky vzorů. Direktivy injekce se nacházejí blízko začátku vstupu,
+takže toto omezuje CPU/GC regexu u payloadů o velikosti stovek KB, aniž by se
+oslabila detekce (viz #3932, #4041).
 
-### Maskování přihlašovacích údajů (`credentialMasker.ts`)
+### Maskovač pověření (`credentialMasker.ts`)
 
-Spouští se v **obou** fázích a ve výchozím řetězci jako poslední (priorita `95`). Rediguje
+Běží v **obou** fázích, poslední ve výchozím řetězci (priorita `95`). Rediguje
 známé vzory API klíčů / tajných tokenů z odchozího payloadu (obsah zprávy,
-argumenty volání nástrojů, výsledky nástrojů) **i** z odpovědi poskytovatele, takže
-přihlašovací údaj vložený do promptu (nebo vrácený ve výsledku nástroje) neunikne
+argumenty volání nástroje, výsledky nástroje) **a** z odpovědi poskytovatele,
+takže pověření vložené do výzvy (nebo vrácené výsledkem nástroje) neunikne
 upstream poskytovateli ani zpět klientovi.
 
-- **Pouze s výslovným přihlášením**, stejná konvence jako u redakce PII (související s pevným pravidlem č. 20):
-  vypnuto, pokud `settings.credentialRedactionEnabled === true` **nebo**
-  `CREDENTIAL_REDACTION_ENABLED=true`. Pokud je vypnuto, ochranný mechanismus neprovádí žádnou akci —
-  nikdy neblokuje ani nepřepisuje.
+- **Pouze opt-in**, stejná konvence jako redakce PII (Tvrzené pravidlo
+  #20-přilehlé): zakázáno, pokud není `settings.credentialRedactionEnabled ===
+true` **nebo** `CREDENTIAL_REDACTION_ENABLED=true`. Pokud je vypnutý,
+  guardrail je no-op — nikdy neblokuje a nikdy nepřepisuje.
 - `redactCredentials()` prochází celý strom payloadu/odpovědi (`walkValue()`,
-  bezpečně vůči prototype pollution a cyklům díky `WeakSet`) a nahrazuje shody
-  zástupným symbolem `[REDACTED:<type>]`, přičemž klonuje pouze větve, které byly skutečně
-  změněny.
+  bezpečné proti znečištění prototypu, bezpečné proti cyklům pomocí
+  `WeakSet`) a nahrazuje shody zástupným symbolem `[REDACTED:<type>]`,
+  klonuje pouze větve, které se skutečně změnily.
 - `CREDENTIAL_PATTERNS` pokrývá klíče poskytovatelů LLM (OpenAI, OpenAI-proj,
-  Anthropic, Google, Hugging Face, Replicate), tokeny VCS/SaaS (GitHub, Slack,
-  Linear, Notion, npm, Postman, Discord), platební klíče (Stripe, Square), cloudové
-  klíče (přístupový klíč AWS, Twilio, SendGrid, Mailgun), soukromé klíče / JWT,
-  připojovací řetězce obsahující přihlašovací údaje (`mongodb://user:pass@...` atd.) a
-  obecný vzor hodnoty hlavičky `Authorization`/`x-api-key`/`api-key`/`apikey`.
-  Klíče ve tvaru hlaviček (`authorization`, `x-api-key`, `api-key`,
-  `apikey`) jsou redigovány strukturálně (pouze hodnota, prefix schématu jako
-  `Bearer `/`Basic ` je zachován), nikoli pomocí obecného textového regulárního výrazu.
-- Ochranný mechanismus nikdy neblokuje; pouze přepisuje (`modifiedPayload` /
-  `modifiedResponse`) a přidává anotace (`meta.credentialsRedacted`, `meta.count`).
+  Anthropic, Google, Hugging Face, Replicate), tokeny VCS/SaaS (GitHub,
+  Slack, Linear, Notion, npm, Postman, Discord), platební klíče (Stripe,
+  Square), cloudové klíče (AWS access key, Twilio, SendGrid, Mailgun),
+  soukromé klíče / JWT, připojovací řetězce obsahující pověření
+  (`mongodb://user:pass@...`, atd.) a obecný vzor hodnoty hlavičky
+  `Authorization`/`x-api-key`/`api-key`/`apikey`. Klíče ve tvaru hlavičky
+  (`authorization`, `x-api-key`, `api-key`, `apikey`) jsou redigovány
+  strukturálně (pouze hodnota, předpona schématu jako `Bearer `/`Basic ` je
+  zachována) spíše než prostřednictvím obecného textového regexu.
+- Guardrail nikdy neblokuje; pouze přepisuje (`modifiedPayload` /
+  `modifiedResponse`) a anotuje (`meta.credentialsRedacted`, `meta.count`).
 
-Ochrana proti regresím: `tests/unit/credential-masker-guardrail.test.ts`.
+Regresní ochrana: `tests/unit/credential-masker-guardrail.test.ts`.
 
 ## Základní kontrakt (`base.ts`)
 

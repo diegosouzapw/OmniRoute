@@ -1,0 +1,1 @@
+- fix(auto): `excludeTosAvoid` now defaults to on, so providers whose catalog verdict is `tos: avoid` (e.g. Antigravity) no longer receive `auto` traffic on fresh installs; this changes the `auto` candidate pool on existing installs that never set it — opt back out with `PATCH /api/settings {"excludeTosAvoid": false}` (#15059)

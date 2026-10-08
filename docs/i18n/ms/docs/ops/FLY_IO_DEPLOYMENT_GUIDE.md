@@ -1,32 +1,32 @@
-# OmniRoute Fly.io 部署指南 (Bahasa Melayu)
+# OmniRoute Fly.io Deployment Guide (Bahasa Melayu)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇪🇹 [am](../../../am/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇦🇿 [az](../../../az/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇩🇰 [da](../../../da/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇩🇪 [de](../../../de/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇬🇷 [el](../../../el/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇪🇸 [es](../../../es/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇪🇪 [et](../../../et/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇱 [he](../../../he/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇩 [id](../../../id/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇹 [it](../../../it/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇰🇭 [km](../../../km/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇲🇲 [my](../../../my/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇳🇴 [no](../../../no/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [or](../../../or/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇱🇰 [si](../../../si/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [te](../../../te/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇹🇭 [th](../../../th/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md)
-
----
-
-本文档记录 OmniRoute 在 Fly.io 上的实际部署方法，适用于两类场景：
-
-- 首次把当前项目部署到 Fly.io
-- 后续代码更新后继续发布
-- 新项目参考同样流程部署
-
-本文基于当前项目已经验证通过的配置整理，应用名为 `omniroute`。
+🌐 **Languages:** 🇺🇸 [English](../../../../ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇪🇹 [am](../../../am/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇦🇿 [az](../../../az/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇩🇰 [da](../../../da/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇩🇪 [de](../../../de/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇬🇷 [el](../../../el/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇪🇸 [es](../../../es/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇪🇪 [et](../../../et/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇱 [he](../../../he/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇩 [id](../../../id/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇹 [it](../../../it/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇰🇭 [km](../../../km/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇲🇲 [my](../../../my/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇳🇴 [no](../../../no/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [or](../../../or/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇱🇰 [si](../../../si/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [te](../../../te/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇹🇭 [th](../../../th/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md)
 
 ---
 
-## 1. 部署目标
+Dokumen ini menerangkan proses penggunaan sebenar untuk OmniRoute pada Fly.io, merangkumi dua senario:
 
-- 平台：Fly.io
-- 部署方式：本地 `flyctl` 直接发布
-- 运行方式：使用仓库内现有 `Dockerfile` 和 `fly.toml`
-- 数据持久化：Fly Volume 挂载到 `/data`
-- 访问地址：`https://omniroute.fly.dev/`
+- Menggunakan projek semasa pada Fly.io buat kali pertama
+- Menerbitkan kemas kini kod seterusnya
+- Projek baharu yang mengikuti aliran kerja penggunaan yang sama
+
+Panduan ini berdasarkan konfigurasi yang telah disahkan berfungsi untuk projek semasa. Nama aplikasi ialah `omniroute`.
 
 ---
 
-## 2. 当前项目关键配置
+## 1. Matlamat Penggunaan
 
-当前仓库中的 `fly.toml` 已确认包含以下关键项：
+- Platform: Fly.io
+- Kaedah penggunaan: Penerbitan terus menggunakan `flyctl` setempat
+- Persekitaran masa jalan: Menggunakan `Dockerfile` dan `fly.toml` sedia ada dalam repositori
+- Pengekalan data: Fly Volume dilekapkan pada `/data`
+- URL akses: `https://omniroute.fly.dev/`
+
+---
+
+## 2. Konfigurasi Utama Projek Semasa
+
+`fly.toml` dalam repositori semasa telah disahkan mengandungi perkara utama berikut:
 
 ```toml
 app = 'omniroute'
@@ -49,33 +49,33 @@ primary_region = 'sin'
   BIND = "0.0.0.0"
 ```
 
-说明：
+Catatan:
 
-- `app = 'omniroute'` 决定实际部署到哪个 Fly 应用
-- `destination = '/data'` 决定持久卷挂载目录
-- 本项目必须让 `DATA_DIR=/data`，否则数据库和密钥会写到容器临时目录
+- `app = 'omniroute'` menentukan aplikasi Fly yang menjadi sasaran penggunaan
+- `destination = '/data'` menentukan direktori lekapan volum berterusan
+- Projek ini mesti menetapkan `DATA_DIR=/data`; jika tidak, pangkalan data dan kunci akan ditulis ke direktori sementara bekas
 
 ---
 
-## 3. 必备工具
+## 3. Prasyarat
 
-### 3.1 安装 Fly CLI
+### 3.1 Memasang Fly CLI
 
-Windows PowerShell：
+Windows PowerShell:
 
 ```powershell
 pwsh -Command "iwr https://fly.io/install.ps1 -useb | iex"
 ```
 
-如果安装脚本在当前环境失败，也可以手动下载 `flyctl` 二进制并放到 `PATH` 中。
+Jika skrip pemasangan gagal dalam persekitaran anda, anda juga boleh memuat turun perduaan `flyctl` secara manual dan menambahkannya pada `PATH` anda.
 
-### 3.2 登录 Fly 账号
+### 3.2 Log Masuk ke Akaun Fly Anda
 
 ```powershell
 flyctl auth login
 ```
 
-### 3.3 检查登录状态
+### 3.3 Mengesahkan Status Log Masuk
 
 ```powershell
 flyctl auth whoami
@@ -84,45 +84,45 @@ flyctl version
 
 ---
 
-## 4. 首次部署当前项目
+## 4. Penggunaan Kali Pertama bagi Projek Semasa
 
-### 4.1 获取代码并进入目录
+### 4.1 Klon Kod dan Masuk ke Direktori
 
 ```powershell
 git clone https://github.com/diegosouzapw/OmniRoute.git
 cd OmniRoute
 ```
 
-### 4.2 确认应用名
+### 4.2 Sahkan Nama Aplikasi
 
-打开 `fly.toml`，重点看这一行：
+Buka `fly.toml` dan sahkan baris berikut:
 
 ```toml
 app = 'omniroute'
 ```
 
-如果你准备部署到自己的新应用，可改成全局唯一名称，例如：
+Jika anda menggunakan aplikasi baharu milik anda sendiri, anda boleh menukarnya kepada nama yang unik secara global, contohnya:
 
 ```toml
 app = 'omniroute-yourname'
 ```
 
-注意：
+Catatan:
 
-- 控制台里要看的是与 `fly.toml` 里 `app` 一致的应用
-- 以前如果用过别的名字，例如 `oroute`，不要和 `omniroute` 混淆
+- Pastikan aplikasi yang anda lihat dalam konsol sepadan dengan nilai `app` dalam `fly.toml`
+- Jika anda pernah menggunakan nama yang berbeza sebelum ini, seperti `oroute`, jangan kelirukannya dengan `omniroute`
 
-### 4.3 创建应用
+### 4.3 Cipta Aplikasi
 
-如果该应用尚不存在：
+Jika aplikasi tersebut belum wujud:
 
 ```powershell
 flyctl apps create omniroute
 ```
 
-如果你已经改成别的应用名，把 `omniroute` 替换成你的名字。
+Jika anda menukar nama aplikasi, gantikan `omniroute` dengan nama pilihan anda.
 
-### 4.4 首次部署
+### 4.4 Penggunaan Pertama
 
 ```powershell
 flyctl deploy
@@ -130,163 +130,204 @@ flyctl deploy
 
 ---
 
-## 5. 必配参数
+## 5. Parameter yang Diperlukan
 
-本项目在 Fly.io 上建议至少配置以下参数。
+Projek ini mengesyorkan supaya sekurang-kurangnya parameter berikut dikonfigurasikan pada Fly.io.
 
-### 5.1 已验证使用的参数
+### 5.1 Parameter yang Disahkan
 
-这些参数已经在当前 `omniroute` 应用上实际部署：
+Parameter ini telah digunakan dalam penggunaan sebenar pada aplikasi `omniroute` semasa:
 
 - `API_KEY_SECRET`
 - `DATA_DIR`
 - `JWT_SECRET`
 - `MACHINE_ID_SALT`
 - `NEXT_PUBLIC_BASE_URL`
+- `OMNIROUTE_WS_BRIDGE_SECRET` (diperlukan dalam pengeluaran — digunakan untuk pengesahan jambatan WebSocket)
 - `STORAGE_ENCRYPTION_KEY`
 
-### 5.2 关于 `INITIAL_PASSWORD`
+### 5.2 Tentang `INITIAL_PASSWORD`
 
-当前项目没有设置 `INITIAL_PASSWORD`，因为本次部署按需求不使用它。
+Projek semasa tidak menetapkan `INITIAL_PASSWORD` kerana penggunaan ini tidak memerlukannya.
 
-如果不设置：
+Jika ia tidak ditetapkan:
 
-- 启动日志会提示默认密码是 `CHANGEME`
-- 部署后应尽快在系统设置中修改登录密码
+- Log permulaan akan menunjukkan bahawa kata laluan lalai ialah `CHANGEME`
+- Anda hendaklah menukar kata laluan log masuk dalam tetapan sistem secepat mungkin selepas penggunaan
 
-如果你希望无人值守初始化后台密码，也可以后续补：
+Jika anda mahu memulakan kata laluan bahagian belakang tanpa pengawasan, anda boleh menambahkannya kemudian:
 
 - `INITIAL_PASSWORD`
 
 ---
 
-## 6. 推荐参数说明
+## 6. Parameter yang Disyorkan
 
-### 6.1 Secrets 中设置
+### 6.1 Konfigurasi Rahsia
 
-建议放入 Fly Secrets：
+Pemboleh ubah berikut disyorkan untuk Fly Secrets:
 
-| 变量名                   | 是否推荐 | 说明                           |
-| ------------------------ | -------- | ------------------------------ |
-| `API_KEY_SECRET`         | 必需     | API Key 生成与校验使用         |
-| `JWT_SECRET`             | 必需     | 登录态和 JWT 签名使用          |
-| `STORAGE_ENCRYPTION_KEY` | 强烈推荐 | 加密存储敏感连接信息           |
-| `MACHINE_ID_SALT`        | 推荐     | 生成稳定机器标识               |
-| `INITIAL_PASSWORD`       | 可选     | 首次部署时直接指定后台初始密码 |
-| OAuth/API 私密凭证       | 按需     | 各类外部平台鉴权配置           |
+| Pemboleh Ubah                      | Syor                         | Penerangan                                                            |
+| ---------------------------------- | ---------------------------- | --------------------------------------------------------------------- |
+| `API_KEY_SECRET`                   | Diperlukan                   | Digunakan untuk penjanaan dan pengesahan Kunci API                    |
+| `JWT_SECRET`                       | Diperlukan                   | Digunakan untuk sesi log masuk dan penandatanganan JWT                |
+| `OMNIROUTE_WS_BRIDGE_SECRET`       | Diperlukan dalam pengeluaran | Rahsia pengesahan jambatan WebSocket                                  |
+| `STORAGE_ENCRYPTION_KEY`           | Sangat disyorkan             | Menyulitkan maklumat sambungan sensitif semasa disimpan               |
+| `MACHINE_ID_SALT`                  | Disyorkan                    | Menjana pengecam mesin yang stabil                                    |
+| `INITIAL_PASSWORD`                 | Pilihan                      | Menetapkan kata laluan awal bahagian belakang pada penggunaan pertama |
+| Bukti kelayakan peribadi OAuth/API | Mengikut keperluan           | Konfigurasi pengesahan platform luaran                                |
 
-### 6.2 当前项目推荐值
+### 6.2 Nilai yang Disyorkan untuk Projek Semasa
 
-| 变量名                 | 推荐值                      |
+| Pemboleh Ubah          | Nilai yang Disyorkan        |
 | ---------------------- | --------------------------- |
 | `DATA_DIR`             | `/data`                     |
 | `NEXT_PUBLIC_BASE_URL` | `https://omniroute.fly.dev` |
 
-说明：
+Nota:
 
-- `DATA_DIR=/data` 非常关键，必须与 Fly Volume 挂载点一致
-- `NEXT_PUBLIC_BASE_URL` 用于调度器和前端回调等场景
+- `DATA_DIR=/data` adalah kritikal dan mesti sepadan dengan titik pelekap Fly Volume
+- `NEXT_PUBLIC_BASE_URL` digunakan oleh penjadual, panggil balik bahagian hadapan dan senario yang serupa
+
+### 6.3 Konfigurasi URL Panggil Balik OAuth
+
+Jika anda perlu mendayakan penyedia berasaskan OAuth (contohnya Antigravity, Gemini, Cursor) pada penggunaan Fly.io, pastikan dua perkara berikut:
+
+1. **Tetapkan `NEXT_PUBLIC_BASE_URL` kepada domain HTTPS awam anda**
+
+   ```powershell
+   flyctl secrets set NEXT_PUBLIC_BASE_URL=https://omniroute.fly.dev -a omniroute
+   ```
+
+   Jika anda menggunakan domain tersuai, gantikannya dengan domain yang sepadan (contohnya `https://omniroute.yourdomain.com`).
+
+2. **Konfigurasikan URL panggil balik pada konsol penyedia**
+
+   Semua penyedia OAuth berkongsi satu laluan panggil balik `/callback` — TIADA laluan panggil balik berasingan bagi setiap penyedia:
+
+   ```text
+   <NEXT_PUBLIC_BASE_URL>/callback
+   ```
+
+   Sebagai contoh, sama ada Gemini, Antigravity, Cursor atau GitLab Duo:
+   - `https://omniroute.fly.dev/callback`
+
+   Jika `NEXT_PUBLIC_BASE_URL` tidak sepadan dengan URL panggil balik yang didaftarkan dengan penyedia, aliran OAuth akan gagal pada langkah pengalihan pelayar.
 
 ---
 
-## 7. 一键设置参数
+## 7. Penyediaan Rahsia dengan Satu Perintah
 
-下面命令会生成安全随机值，并把当前项目需要的参数一次性写入 Fly Secrets。
+Perintah berikut menjana nilai rawak yang selamat dan menulis semua parameter yang diperlukan untuk projek semasa ke Fly Secrets dalam satu langkah.
 
-说明：
+Nota:
 
-- 不包含 `INITIAL_PASSWORD`
-- 适用于当前项目 `omniroute`
+- Tidak termasuk `INITIAL_PASSWORD`
+- Ditujukan untuk projek semasa `omniroute`
 
 ```powershell
 $apiKeySecret = [Convert]::ToHexString((1..32 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 })).ToLower()
 $jwtSecret = [Convert]::ToHexString((1..64 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 })).ToLower()
 $machineIdSalt = [Convert]::ToHexString((1..32 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 })).ToLower()
 $storageKey = [Convert]::ToHexString((1..32 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 })).ToLower()
+$wsBridgeSecret = [Convert]::ToHexString((1..32 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 })).ToLower()
 
 flyctl secrets set `
   API_KEY_SECRET=$apiKeySecret `
   JWT_SECRET=$jwtSecret `
   MACHINE_ID_SALT=$machineIdSalt `
   STORAGE_ENCRYPTION_KEY=$storageKey `
+  OMNIROUTE_WS_BRIDGE_SECRET=$wsBridgeSecret `
   DATA_DIR=/data `
   NEXT_PUBLIC_BASE_URL=https://omniroute.fly.dev `
   -a omniroute
 ```
 
-如果你还要加初始密码：
+Pada Linux / macOS, anda juga boleh menggunakan `openssl rand -hex 32`:
+
+```bash
+flyctl secrets set OMNIROUTE_WS_BRIDGE_SECRET=$(openssl rand -hex 32) -a omniroute
+```
+
+Nota:
+
+- `OMNIROUTE_WS_BRIDGE_SECRET` diperlukan dalam pengeluaran; ketiadaannya akan menyebabkan jabat tangan jambatan WebSocket gagal
+
+Jika anda juga mahu menetapkan kata laluan awal:
 
 ```powershell
-flyctl secrets set INITIAL_PASSWORD=你的强密码 -a omniroute
+flyctl secrets set INITIAL_PASSWORD=your-strong-password -a omniroute
 ```
 
 ---
 
-## 8. 查看当前参数
+## 8. Melihat Parameter Semasa
 
 ```powershell
 flyctl secrets list -a omniroute
 ```
 
-如果控制台 `Secrets` 页面没有显示你期待的变量，先检查：
+Jika halaman `Secrets` dalam konsol tidak memaparkan pemboleh ubah yang dijangkakan, semak:
 
-- 看的应用是不是 `omniroute`
-- `fly.toml` 的 `app` 是否和控制台应用一致
+- Bahawa anda sedang melihat aplikasi `omniroute`
+- Bahawa nilai `app` dalam `fly.toml` sepadan dengan aplikasi dalam konsol
 
 ---
 
-## 9. 后续更新发布
+## 9. Kemas Kini dan Keluaran Seterusnya
 
-代码有更新后，发布步骤很简单：
+Selepas kemas kini kod, proses keluaran adalah mudah:
 
 ```powershell
 git pull
 flyctl deploy
 ```
 
-如果只更新参数，不改代码：
+Jika anda hanya perlu mengemas kini parameter tanpa mengubah kod:
 
 ```powershell
 flyctl secrets set KEY=value -a omniroute
 ```
 
-Fly 会自动滚动更新机器。
+Fly akan melaksanakan kemas kini berperingkat pada mesin secara automatik.
 
-### 9.1 跟踪原仓库更新并保留 fork 的 `fly.toml`
+### 9.1 Menjejaki Kemas Kini Repositori Hulu Sambil Mengekalkan `fly.toml` Fork Anda
 
-如果当前仓库是 fork，并且你要同步上游 `https://github.com/diegosouzapw/OmniRoute` 的更新，推荐按下面流程执行。
+Jika repositori semasa ialah fork dan anda mahu menyegerakkan kemas kini daripada repositori hulu `https://github.com/diegosouzapw/OmniRoute`, ikuti aliran kerja di bawah.
 
-先确认远程：
+Mula-mula, sahkan remote anda:
 
 ```powershell
 git remote -v
 ```
 
-应至少包含：
+Anda sepatutnya melihat sekurang-kurangnya:
 
-- `origin` 指向你自己的 fork
-- `upstream` 指向原仓库
+- `origin` yang menghala ke fork anda sendiri
+- `upstream` yang menghala ke repositori asal
 
-如果没有 `upstream`，先添加：
+Jika `upstream` belum dikonfigurasikan, tambahkannya:
 
 ```powershell
 git remote add upstream https://github.com/diegosouzapw/OmniRoute.git
 ```
 
-同步上游前，先抓取最新提交和标签：
+Sebelum menyegerakkan dengan repositori hulu, dapatkan commit dan tag terkini:
 
 ```powershell
 git fetch upstream --tags
 ```
 
-查看当前版本和上游标签：
+Semak versi semasa dan tag repositori hulu:
 
 ```powershell
 git describe --tags --always
 git show --no-patch --oneline v3.4.7
 ```
 
-如果你想合并上游最新 `main`，并强制保留 fork 当前的 `fly.toml`，可按下面流程执行：
+> Nota: Versi projek semasa ialah `v3.8.0`. Rujukan `v3.4.7` di bawah dikekalkan sebagai contoh sejarah sahaja. Untuk keluaran sebenar, gunakan `:latest` atau tag versi semasa (contohnya `:v3.8.0`).
+
+Jika anda mahu menggabungkan `main` repositori hulu yang terkini sambil mengekalkan `fly.toml` fork anda secara paksa, ikuti aliran kerja ini:
 
 ```powershell
 git merge upstream/main
@@ -296,52 +337,52 @@ git commit -m "chore(deploy): keep fork fly.toml"
 git push origin main
 ```
 
-说明：
+Nota:
 
-- `git merge upstream/main` 用于同步原仓库最新代码
-- `git checkout HEAD~1 -- fly.toml` 用于恢复合并前你 fork 自己的 `fly.toml`
-- 如果上游没有改 `fly.toml`，这一步不会带来额外差异
-- 如果上游改了 `fly.toml`，这一步能确保 Fly 应用名、挂载卷、区域等 fork 自定义部署配置不被覆盖
+- `git merge upstream/main` menyegerakkan kod terkini daripada repositori asal
+- `git checkout HEAD~1 -- fly.toml` memulihkan `fly.toml` milik fork anda daripada keadaan sebelum penggabungan
+- Jika repositori hulu tidak mengubah suai `fly.toml`, langkah ini tidak akan menghasilkan sebarang perbezaan
+- Jika repositori hulu mengubah suai `fly.toml`, langkah ini memastikan nama aplikasi Fly, pelekapan volum, rantau dan konfigurasi penggunaan lain yang khusus untuk fork anda tidak ditulis ganti
 
-如果你明确只想对齐某个发布标签，例如 `v3.4.7`，也可以先确认标签是否已经包含在 `upstream/main`：
+Jika anda mahu menyelaraskan dengan tag keluaran tertentu (contohnya `v3.4.7`), sahkan terlebih dahulu bahawa tag tersebut sudah disertakan dalam `upstream/main`:
 
 ```powershell
 git merge-base --is-ancestor v3.4.7 upstream/main
 ```
 
-返回成功表示 `upstream/main` 已经包含该版本，直接合并 `upstream/main` 即可。
+Hasil yang berjaya bermaksud `upstream/main` sudah mengandungi versi tersebut; anda hanya perlu menggabungkan `upstream/main`.
 
-### 9.2 同步上游后的标准发布顺序
+### 9.2 Urutan Keluaran Standard Selepas Menyegerakkan Repositori Hulu
 
-同步原仓库完成后，推荐按下面顺序发布：
+Selepas menyegerakkan dengan repositori asal, ikuti urutan keluaran yang disyorkan ini:
 
 1. `git fetch upstream --tags`
 2. `git merge upstream/main`
-3. 恢复 fork 的 `fly.toml`
+3. Pulihkan `fly.toml` fork
 4. `git push origin main`
 5. `flyctl deploy`
 6. `flyctl status -a omniroute`
 7. `flyctl logs --no-tail -a omniroute`
 
-这就是当前项目升级到 `v3.4.7` 时使用的实际流程。
+Ini ialah aliran kerja sebenar yang digunakan semasa menaik taraf projek semasa kepada `v3.4.7` (contoh tersebut merujuk kepada versi sejarah; versi sebenar semasa ialah `v3.8.0`).
 
 ---
 
-## 10. 发布后检查
+## 10. Semakan Selepas Pelaksanaan
 
-### 10.1 查看应用状态
+### 10.1 Semak Status Aplikasi
 
 ```powershell
 flyctl status -a omniroute
 ```
 
-### 10.2 查看启动日志
+### 10.2 Lihat Log Permulaan
 
 ```powershell
 flyctl logs --no-tail -a omniroute
 ```
 
-### 10.3 检查网站可访问
+### 10.3 Sahkan Kebolehcapaian Laman
 
 ```powershell
 try {
@@ -355,82 +396,82 @@ try {
 }
 ```
 
-返回 `200` 说明站点已正常响应。
+Nilai pulangan `200` menunjukkan bahawa laman bertindak balas secara normal.
 
 ---
 
-## 11. 成功标志
+## 11. Petunjuk Kejayaan
 
-部署成功后，日志里应看到类似内容：
+Selepas pelaksanaan berjaya, log sepatutnya memaparkan kandungan yang serupa dengan:
 
 ```text
-[bootstrap] Secrets persisted to: /data/server.env
-[DB] SQLite database ready: /data/storage.sqlite
+[bootstrap] Rahsia disimpan secara kekal di: /data/server.env
+[DB] Pangkalan data SQLite sedia: /data/storage.sqlite
 ```
 
-这两个点很关键：
+Dua perkara ini amat penting:
 
-- `/data/server.env` 说明运行时密钥落到了持久卷
-- `/data/storage.sqlite` 说明数据库写入持久卷
+- `/data/server.env` mengesahkan bahawa rahsia masa jalan ditulis ke volum kekal
+- `/data/storage.sqlite` mengesahkan bahawa pangkalan data ditulis ke volum kekal
 
-如果你看到的是 `/app/data/...`，说明 `DATA_DIR` 没配对，需要立即修正。
+Jika anda melihat `/app/data/...` sebaliknya, `DATA_DIR` telah dikonfigurasi dengan salah dan mesti dibetulkan dengan segera.
 
 ---
 
-## 12. 常见问题
+## 12. Isu Lazim
 
-### 12.1 `Secrets` 页面是空的
+### 12.1 Halaman `Secrets` Kosong
 
-通常有两种原因：
+Biasanya terdapat dua sebab:
 
-- 你还没执行 `flyctl secrets set`
-- 你打开的是另一个应用，例如 `oroute`，不是 `omniroute`
+- Anda belum menjalankan `flyctl secrets set`
+- Anda sedang melihat aplikasi yang berbeza (contohnya `oroute` dan bukannya `omniroute`)
 
-### 12.2 `flyctl deploy` 报 `app not found`
+### 12.2 `flyctl deploy` Melaporkan `app not found`
 
-先创建应用：
+Cipta aplikasi terlebih dahulu:
 
 ```powershell
 flyctl apps create omniroute
 ```
 
-### 12.3 `fly.toml` 解析失败
+### 12.3 Penghuraian `fly.toml` Gagal
 
-重点检查：
+Semak perkara berikut:
 
-- 注释里是否有乱码字符
-- TOML 引号和缩进是否正确
+- Sama ada terdapat aksara rosak dalam komen
+- Sama ada penggunaan tanda petik dan pengengsotan TOML adalah betul
 
-### 12.4 数据没有持久化
+### 12.4 Data Tidak Disimpan Secara Kekal
 
-检查以下两点：
+Sahkan kedua-dua perkara berikut:
 
-- `fly.toml` 中是否存在 `destination = '/data'`
-- `DATA_DIR` 是否设置为 `/data`
+- `fly.toml` mengandungi `destination = '/data'`
+- `DATA_DIR` ditetapkan kepada `/data`
 
-### 12.5 不设置 `INITIAL_PASSWORD` 是否能跑
+### 12.5 Bolehkah Ia Berjalan Tanpa `INITIAL_PASSWORD`?
 
-可以运行，但会回退到默认 `CHANGEME`。生产环境建议尽快修改后台密码。
-
----
-
-## 13. 新项目复用建议
-
-如果以后是新项目照着这份文档部署，最少改这几项：
-
-1. 修改 `fly.toml` 里的 `app`
-2. 修改 `NEXT_PUBLIC_BASE_URL`
-3. 保持 `DATA_DIR=/data`
-4. 重新生成 `API_KEY_SECRET`、`JWT_SECRET`、`MACHINE_ID_SALT`、`STORAGE_ENCRYPTION_KEY`
-5. 首次部署后检查日志是否写入 `/data`
-
-不要直接复用旧项目的密钥。
+Ya, ia boleh berjalan. Ia akan menggunakan kata laluan lalai `CHANGEME`. Anda disyorkan supaya menukar kata laluan bahagian belakang secepat mungkin dalam persekitaran pengeluaran.
 
 ---
 
-## 14. 当前项目的最小发布清单
+## 13. Penggunaan Semula untuk Projek Baharu
 
-当前项目后续最常用的命令如下：
+Jika anda melaksanakan projek baharu dengan mengikuti dokumen ini, anda hanya perlu mengubah perkara berikut:
+
+1. Ubah nilai `app` dalam `fly.toml`
+2. Ubah `NEXT_PUBLIC_BASE_URL`
+3. Kekalkan `DATA_DIR=/data`
+4. Jana semula `API_KEY_SECRET`, `JWT_SECRET`, `MACHINE_ID_SALT`, dan `STORAGE_ENCRYPTION_KEY`
+5. Selepas pelaksanaan pertama, sahkan bahawa log ditulis ke `/data`
+
+Jangan gunakan semula kunci daripada projek terdahulu.
+
+---
+
+## 14. Senarai Semak Keluaran Minimum untuk Projek Semasa
+
+Perintah yang paling kerap digunakan untuk keluaran seterusnya ialah:
 
 ```powershell
 flyctl auth whoami
@@ -440,13 +481,13 @@ flyctl deploy
 flyctl logs --no-tail -a omniroute
 ```
 
-如果只是正常发版，核心就是：
+Untuk keluaran biasa, perintah teras hanyalah:
 
 ```powershell
 flyctl deploy
 ```
 
-如果是新环境首次部署，核心就是：
+Untuk pelaksanaan kali pertama dalam persekitaran baharu, langkah teras ialah:
 
 1. `flyctl auth login`
 2. `flyctl apps create omniroute`

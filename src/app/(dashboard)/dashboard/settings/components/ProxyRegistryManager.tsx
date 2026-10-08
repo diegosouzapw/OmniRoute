@@ -9,6 +9,8 @@ import { ProxyHealthCell } from "./ProxyHealthCell";
 import { ProxyBatchActions } from "./ProxyBatchActions";
 import { ProxyCheckboxCell } from "./ProxyCheckboxCell";
 import { PoolEgressObservation } from "./PoolEgressObservation";
+import { PoolMemberEgressLines } from "./PoolMemberEgressLines";
+import { PoolUpstreamRegimeLine } from "./PoolUpstreamRegimeLine";
 import {
   parseBulkImportText,
   type ParsedProxyEntry,
@@ -1242,6 +1244,10 @@ export default function ProxyRegistryManager({
                   {t("poolMembersLabel", { count: poolMembers.length })}
                 </label>
                 <PoolEgressObservation query={poolQuery()} />
+                <PoolMemberEgressLines query={poolQuery()} />
+                {poolScope === "provider" && poolScopeId.trim() !== "" && (
+                  <PoolUpstreamRegimeLine provider={poolScopeId.trim()} />
+                )}
                 {poolMembers.length === 0 ? (
                   <div className="text-sm text-text-muted px-3 py-2 rounded border border-border bg-bg-subtle">
                     {t("poolNoMembers")}

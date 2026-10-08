@@ -1,3 +1,5 @@
+import { hasUnsafeModelIdSyntax } from "../utils/modelIdSafety.ts";
+
 /**
  * OCR Provider Registry
  *
@@ -218,7 +220,7 @@ export function getOcrProvider(providerId: string): OcrProvider | null {
  * matches one of the registered OCR models.
  */
 export function parseOcrModel(modelStr: string | null | undefined): ParsedOcrModel {
-  if (!modelStr) return { provider: null, model: null };
+  if (!modelStr || hasUnsafeModelIdSyntax(modelStr)) return { provider: null, model: null };
 
   for (const providerId of Object.keys(OCR_PROVIDERS)) {
     if (modelStr.startsWith(providerId + "/")) {

@@ -5,6 +5,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "api-manager",
   "endpoints",
   "providers",
+  "model-catalog",
   "embedded-services",
   "combos",
   "combos-live",
@@ -62,6 +63,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "health",
   "runtime",
   "resilience-connections",
+  "resilience-cooldowns",
   // Costs section
   "costs-pricing",
   "costs-budget",

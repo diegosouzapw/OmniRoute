@@ -2,6 +2,8 @@ import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { mock } from "node:test";
 import {
+  beginLoginAttempt,
+  endLoginAttempt,
   checkLoginGuard,
   clearLoginAttempts,
   recordLoginFailure,
@@ -108,5 +110,46 @@ describe("loginGuard", () => {
     } finally {
       mock.timers.reset();
     }
+  });
+
+  describe("in-flight reservation (GHSA-h872-cmwf-8q7v)", () => {
+    it("admits at most FAILURE_THRESHOLD concurrent verifications for one key", () => {
+      const key = "10.9.9.9";
+      const max = LOGIN_GUARD_TUNABLES.FAILURE_THRESHOLD;
+      // A burst all passes `check` before any failure is recorded; reservations must stop it.
+      for (let i = 0; i < max; i++) {
+        assert.equal(beginLoginAttempt(key, { enabled: true }).allowed, true, `slot #${i + 1}`);
+      }
+      const overflow = beginLoginAttempt(key, { enabled: true });
+      assert.equal(overflow.allowed, false);
+      assert.ok((overflow.retryAfterSeconds ?? 0) > 0);
+    });
+
+    it("counts recorded failures together with pending verifications", () => {
+      const key = "10.9.9.8";
+      recordLoginFailure(key, { enabled: true });
+      recordLoginFailure(key, { enabled: true });
+      const max = LOGIN_GUARD_TUNABLES.FAILURE_THRESHOLD;
+      for (let i = 0; i < max - 2; i++) {
+        assert.equal(beginLoginAttempt(key, { enabled: true }).allowed, true);
+      }
+      assert.equal(beginLoginAttempt(key, { enabled: true }).allowed, false);
+    });
+
+    it("frees the slot when a verification ends, and other keys are unaffected", () => {
+      const key = "10.9.9.7";
+      const max = LOGIN_GUARD_TUNABLES.FAILURE_THRESHOLD;
+      for (let i = 0; i < max; i++) beginLoginAttempt(key, { enabled: true });
+      assert.equal(beginLoginAttempt(key, { enabled: true }).allowed, false);
+      endLoginAttempt(key);
+      assert.equal(beginLoginAttempt(key, { enabled: true }).allowed, true);
+      assert.equal(beginLoginAttempt("10.9.9.6", { enabled: true }).allowed, true);
+    });
+
+    it("does not reserve anything when protection is disabled", () => {
+      for (let i = 0; i < 50; i++) {
+        assert.equal(beginLoginAttempt("10.9.9.5", { enabled: false }).allowed, true);
+      }
+    });
   });
 });

@@ -27,7 +27,7 @@ const SLOW_RESPONSE_MS = 3200; // > the initial 2s probe timeout
 
 test("waitForServer reports ready when the health response outlasts a probe timeout", async () => {
   let served = 0;
-  const server = http.createServer((req, res) => {
+  const server = http.createServer((_req, res) => {
     served += 1;
     // Answer only after a delay that exceeds the initial probe timeout. An
     // aborted probe tears the socket down before this fires — exactly how the

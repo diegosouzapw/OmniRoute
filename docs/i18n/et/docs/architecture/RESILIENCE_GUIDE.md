@@ -1,6 +1,6 @@
 # Resilience Guide (Eesti)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
 
 ---
 
@@ -86,62 +86,127 @@ Regressioonikaitse: `tests/unit/provider-cooldown-window-gate.test.ts`.
 - `rateLimitedUntil` — ajatempel, milleni ooteaeg kestab
 - `testStatus: "unavailable"`
 - `lastError`, `lastErrorType`, `errorCode`
-- `backoffLevel` — eksponentsiaalse tagasitaandumise loendur
+- `backoffLevel` — eksponentsiaalse taganemise loendur
 
 **Vaikimisi ooteajad:**
 
 - OAuthi baasaeg: 5 s
 - API-võtme baasaeg: 3 s
-- API-võtme 429: eelistab ülesvoolu `Retry-After`/lähtestamispäiseid/sõelutavat lähtestamisteksti
-- Tagasitaandumine: `baseCooldownMs * 2 ** failureIndex`
+- API-võtme 429: eelistab ülesvoolu `Retry-After`-/lähtestamispäiseid või sõelutavat lähtestamisteksti
+- Taganemine: `baseCooldownMs * 2 ** failureIndex`
 
-**Päringutulva vastane kaitse:** takistab samaaegsetel tõrgetel ooteaega liigselt pikendada või väärtust `backoffLevel` topelt suurendada.
+**Päringutulva vastane kaitse:** takistab samaaegsetel tõrgetel ooteaega liigselt pikendada või `backoffLevel`-it topelt suurendada.
 
 **Lõppolekud (EI OLE ooteajad):**
 
-- `banned` — määratakse keelatud märksõna / konto blokeerimise tuvastamisel (vt [BAN_DETECTION](../security/BAN_DETECTION.md)) ning pärast kolme järjestikust ülesvoolu keeldumist päringu kohta (`request_rejected`, nt Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); üksik keeldumine rakendab ühendusele ainult ooteaja
-- `expired` (läheb piiratud arvu korduskatsete järel lõppolekusse — `EXPIRED_RETRY_MAX = 3` koos eksponentsiaalse tagasitaandumisega — et ajutised OAuthi vead saaksid enne konto püsivat inaktiveerimist iseenesest laheneda)
+- `banned` — määratakse keelatud märksõna / konto blokeerimise tuvastamisel (vt [BAN_DETECTION](../security/BAN_DETECTION.md)) ning kolme järjestikuse ülesvoolu päringupõhise keeldumise korral (`request_rejected`, nt Anthropic OAuth 403 „Request not allowed” — `open-sse/services/requestRejectedStreak.ts`); üksik keeldumine paneb ühenduse ainult ooteajale
+- `expired` (läheb pärast piiratud arvu korduskatseid lõppolekusse — `EXPIRED_RETRY_MAX = 3` koos eksponentsiaalse taganemisega — et ajutised OAuthi vead saaksid enne konto püsivat inaktiveerimist ise laheneda)
 - `credits_exhausted`
 
-Need püsivad, kuni identimisteave muutub või operaator need lähtestab. Ärge kirjutage lõppolekuid ajutise ooteaja olekuga üle.
+Need olekud püsivad, kuni autentimisandmeid muudetakse või operaator need lähtestab. Ärge kirjutage lõppolekuid ajutise ooteaja olekuga üle.
 
-**Laisk taastumine:** kui `rateLimitedUntil` on möödunud, muutub ühendus uuesti valikukõlblikuks. Eduka kasutuse korral eemaldab `clearAccountError()` kõik veaväljad.
+**Laisk taastumine:** kui `rateLimitedUntil` on möödunud, muutub ühendus jälle sobivaks. Eduka kasutuse korral eemaldab `clearAccountError()` kõik veaväljad.
 
-### Seansiafiinsus (#7274)
+### Claude OAuthi kasutuspiir: madalama prioriteediga rada + seansipiirangu lähtestamine
 
-**Ulatus:** üks kliendiseanss (päis `X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`), mis on seotud ühe ühendusega **mis tahes** teenusepakkuja puhul.
+**Ulatus:** üks Claude'i tellimuse (OAuth) ühendus. Mõlemad funktsioonid on **iga
+ühenduse puhul valikulised** (Ühenduse muutmine → Claude'i jaotis → `lowPriorityMode` /
+`autoLimitReset` väljal `providerSpecificData`, mõlemad vaikimisi välja lülitatud) ning
+jäljendavad Claude Code'i käske `/low-priority` ja `/limit-reset` (sideprotokoll jäädvustatud
+Claude Code 2.1.263 põhjal).
 
-**Eesmärk:** hoida mitmevooruline agent (Claude Code, aider, kohandatud agendid) päringute lõikes samal kontol, vähendades kontodevahelist kontekstikadu ja korduvaid külmkäivituse 429-vastuseid teenusepakkujatel, kellel on kontopõhine seansiolek.
+**Teostus:**
+
+- Olekumasin + vastuse liigitamine: `open-sse/services/claudeLowPriority.ts`
+- Lähtestamisoleku/-nõude klient: `open-sse/services/claudeLimitReset.ts`
+- Täituri haak (päise lisamine + korduskatse sama kontoga): `open-sse/executors/base.ts::execute()`
+- Valiku püsimällu salvestamine: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+
+**Käivitaja:** 5-tunnine kasutuspiir — `429`, mille päised sisaldavad
+`anthropic-ratelimit-unified-status: rejected` ja konto sobivuse korral
+`anthropic-ratelimit-unified-slow-offer: treatment`. Enne esimest kasutuspiiri vastust
+429 ei saadeta midagi; ühtsete päisteta 429-puhang läbib tavapärase ooteaja tee.
+
+**Madalama prioriteediga rada** (`lowPriorityMode`):
+
+- Kasutuspiiri vastuse 429 korral võtab täitur pakkumise vastu ja proovib kohe uuesti **sama**
+  kontoga, lisades `anthropic-usage-limit: slow`; rada jääb aktiivseks kuni väljakuulutatud
+  ajani `anthropic-ratelimit-unified-reset` (+60 s varuaega) ning iga selle ajavahemiku
+  päring sisaldab seda päist. Vahele püütud 429 ei jõua kunagi funktsioonini `handleChatCore`,
+  seega ühendust **ei** panda ooteajale ega vahetata välja.
+- `anthropic-ratelimit-unified-slow-status` hilisemates vastustes: `active` / `not_needed`
+  säilitavad raja; `slot_busy` (429) või `529` ootavad serveri määratud
+  `anthropic-ratelimit-unified-slow-retry-after` aja (vaikimisi 20 s, piiratud vahemikku
+  5–600 s, ±30% juhuslik hälve) ja proovivad uuesti kuni väärtusega
+  `anthropic-ratelimit-unified-slow-max-wait` määratud piirini (vaikimisi 20 min, piiratud
+  vahemikku 1 min–6 h) — pärast seda rada lõpetatakse ja 10-minutiline paus takistab pakkumise
+  uuesti vastuvõtmist. Ooteaega piirab lisaks päringu enda ülesvoolu käivitamise ajalõpu
+  (`resolveFetchStartTimeout`, vaikimisi 10 min) järelejäänud aeg, millest lahutatakse 5 s:
+  selle piiranguta kestaks vaikimisi 20-minutiline maksimaalne ooteaeg päringust kauem ning
+  ootamine katkestataks poole pealt, tuues sujuva `max_wait` lõpetamise ja pausi asemel
+  nähtavale `TimeoutError`-i.
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, 5 h akna uuenemine või
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (mis lõpetab raja mis tahes
+  oleku korral olekuga `extra_usage`, sest tasuline ülekasutus katab nüüd kasutuspiiri)
+  lõpetavad raja; seejärel liigub vastus tavapärasele ooteaja teele. `budget_exhausted`
+  jäetakse meelde kuni väljakuulutatud eelarve lähtestamiseni (≤ 8 päeva).
+- Kasutuspiiri kontroll tehakse pärast täituri enda 400-põhiseid katse siseseid korduskatseid
+  (konteksti muutmine, mõtlemise/pingutuse piiramine, parameetrite automaatõpe), seega püütakse
+  ainult mõnel sellisel korduskatsel ilmnev kasutuspiiri vastus 429 ikkagi kinni, mitte ei
+  lasta sellel ooteaja teele jõuda.
+- Olek asub iga ühenduse kohta mälus (taaskäivitamine põhjustab pakkumise uuesti vastuvõtmiseks
+  ühe täiendava kasutuspiiri vastuse 429).
+
+**Seansipiirangu lähtestamine** (`autoLimitReset`, kui mõlemad on sisse lülitatud, proovitakse enne rada):
+
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → `juniper_tide`
+  plokk; kui `arm: "reset"` ja `available: true`,
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` koos
+  sisuga `{ "program": "juniper_tide" }` (organisatsiooni UUID pärineb väljast
+  `providerSpecificData.organizationUUID`, varuvariandina algväärtustamine).
+- `result: reset|not_limited` → päringut proovitakse uuesti täiskiirusel (ilma aeglase raja
+  päiseta). `already_used` / `not_offered` jätavad `next_available_at` väärtuse meelde
+  (vaikimisi üks nädal); mis tahes tõrge põhjustab 15-minutilise taganemise. Lähtestamine
+  on võimalik kord nädalas ja arvestatakse endiselt nädalase piirangu sisse.
+
+Regressioonikaitsed: `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
+
+### Seansi afiinsus (#7274)
+
+**Ulatus:** üks kliendiseanss (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` päis), mis on seotud ühe ühendusega **mis tahes** teenusepakkuja puhul.
+
+**Eesmärk:** hoida mitmevoorulist agenti (Claude Code, aider, kohandatud agendid) päringute vahel samal kontol, vähendades konto vahetamisest tingitud konteksti kadu ja korduvaid külmkäivitusest põhjustatud 429-vigu teenusepakkujatel, kelle seansi olek on kontopõhine.
 
 **Teostus:**
 
 - TTL-i lahendamine: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
-- Seose valimine/loomine: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
-- Päise eraldamine (üldine, mis tahes teenusepakkuja): `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- Püsiv seoste tabel: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- Seade: `sessionAffinityTtlMs` (globaalne TTL millisekundites, `0` keelab) — `src/lib/db/settings.ts`. Codexi-põhiselt nimelt `codexSessionAffinityTtlMs` nimetati see migreerimisega `124_generic_session_affinity_ttl.sql` ümber; see kannab kõik varem seadistatud Codexi TTL-id üle uue vaikeväärtusena.
+- Kinnituse valimine/loomine: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
+- Päise eraldamine (üldine, iga teenusepakkuja jaoks): `src/sse/services/auth.ts::extractSessionAffinityKey()`
+- Püsiv kinnituste tabel: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- Säte: `sessionAffinityTtlMs` (globaalne TTL millisekundites, `0` keelab) — `src/lib/db/settings.ts`. See nimetati ainult Codexile mõeldud sättest `codexSessionAffinityTtlMs` ümber migratsiooniga `124_generic_session_affinity_ttl.sql`, mis kannab kõik varem seadistatud Codexi TTL-i väärtused üle uueks vaikeväärtuseks.
 
-Enne #7274 lõpetas `resolveSessionAffinityTtlMs()` iga muu teenusepakkuja kui `codex` puhul kohe väärtusega `0`, mistõttu TTL-i seade (ja seansipäised) ei avaldanud mujal mõju, kuigi seostamismehhanism ja päiste eraldamine olid juba teenusepakkujast sõltumatud. Parandus eemaldas selle varajase tagastuse; TTL rakendub nüüd pärast globaalselt nullist suuremaks seadistamist ühtlaselt igale teenusepakkujale.
+Enne #7274 lõpetas `resolveSessionAffinityTtlMs()` kohe töö ja tagastas `0` iga teenusepakkuja puhul peale `codex`-i, mistõttu TTL-i säte (ja seansipäised) ei avaldanud mujal mõju, kuigi kinnitamise mehhanism ja päiste eraldamine olid juba teenusepakkujast sõltumatud. Parandus eemaldas selle varajase tagastuse; kui globaalne väärtus on määratud suuremaks kui `0`, rakendub TTL nüüd ühtlaselt kõigile teenusepakkujatele.
 
-Kolme seansiafiinsuse päist ei edastata kunagi ülesvoolu — täitjad koostavad oma ülesvoolupäised algusest peale, selle asemel et kliendi päiseid edasi saata, mistõttu jääb see ainult sisemiseks korrelatsiooniidentifikaatoriks.
+Kolme seansisidususe päist ei edastata kunagi ülesvoolu — täiturid koostavad oma ülesvoolupäised nullist, mitte ei edasta kliendi päiseid, seega jääb see ainult sisemiseks korrelatsiooniidentifikaatoriks.
 
-### Eksklusiivsete hallatud seansiühenduste rendid
+### Hallatava seansi ühenduste eksklusiivsed liisingud
 
-**Ulatus:** üks aktiivne hallatud HTTP-klient/seanss omab ühte sobivat OmniRoute'i ühendust.
+**Ulatus:** üks aktiivne hallatav HTTP-klient/seanss omab ühte sobivat OmniRoute'i ühendust.
 
-**Eesmärk:** pakkuda vastupidavat eksklusiivset ühenduse omandiõigust klientidele, kes vajavad päringute vahel ranget marsruutimispiiret. See erineb seansiafiinsusest, mis on pehme järjepidevuseelistus: eksklusiivne rent säilitab elutsükli oleku SQLite'is, jõustab aktiivse omaniku ja aktiivse ühenduse globaalse unikaalsuse ning lükkab aegunud põlvkonna tagasi enne teenusepakkujale edastamist.
+**Eesmärk:** pakkuda püsivat eksklusiivset ühenduse omandiõigust klientidele, kes vajavad päringute vahel ranget marsruutimiskaitset. See erineb seansisidususest, mis on nõrk järjepidevuseelistus: eksklusiivne liising säilitab elutsükli oleku SQLite'is, jõustab aktiivse omaniku ja aktiivse ühenduse globaalse unikaalsuse ning lükkab aegunud põlvkonna enne teenusepakkujale edastamist tagasi.
 
-Funktsioon on iga API-võtme puhul valikuline. Hallatud võtmel peab olema ulatus `lease:exclusive` ja selgelt määratud mittetühi loend `allowedConnections`. Elutsükli otspunkti võib kasutada iga HTTP-klient; kliendi nime, kasutajaagenti, teenusepakkujat, OAuthi meetodit ega mudelit ei nõuta. Rent omab ühendust, mitte mudelit, seega säilitab mudeli muutmine seose seni, kuni ühendus on tavapäraselt sobiv. Tavapärased mudeli-, kvoodi-, seisundi-, ooteaja- ja lubatud loendi reeglid jäävad määravaks ning võivad sama põlvkonna üle viia teisele vabale sobivale ühendusele.
+Funktsioon lubatakse iga API-võtme jaoks eraldi. Hallataval võtmel peab olema ulatus `lease:exclusive` ja selgesõnaline mittetühi loend `allowedConnections`. Elutsükli lõpp-punkti saab kasutada iga HTTP-klient; kliendi nime, kasutajaagenti, teenusepakkujat, OAuthi meetodit ega mudelit ei nõuta. Liising omab ühendust, mitte mudelit, seega säilib mudeli vahetamisel seotus seni, kuni ühendus jääb tavapäraste reeglite järgi sobivaks. Tavapärased mudeli-, kvoodi-, seisundi-, ooteaja- ja lubatud loendi reeglid jäävad määravaks ning võivad viia sama põlvkonna üle teisele vabale sobivale ühendusele.
 
-Elutsüklit hallatakse otspunkti `POST /api/v1/session-leases` kaudu JSON-toimingutega `acquire`, `renew` ja `release`. Hallatud inferentsipäringud esitavad läbipaistmatu väärtuse `X-OmniRoute-Lease-Owner` ja täpse väärtuse `X-OmniRoute-Lease-Generation`. Omaniku väärtus koosneb prefiksist `vlo_`, millele järgneb 43 base64url-märki; talletatakse ainult selle SHA-256 räsi. Iga lõplik edastamispiire seob ka autenditud API-võtme ID ja aktiivse ühenduse ID. Rendi juhtpäised eemaldatakse logidest, säilitatavatest päringutõmmistest ja ülesvoolu täitjate päistest.
+Elutsükkel kasutab `POST /api/v1/session-leases` päringut JSON-toimingutega `acquire`, `renew` ja `release`. Hallatavad inferentsipäringud esitavad läbipaistmatu `X-OmniRoute-Lease-Owner` väärtuse ja täpse `X-OmniRoute-Lease-Generation` väärtuse. Omanik koosneb prefiksist `vlo_`, millele järgneb 43 base64url-märki; salvestatakse ainult selle SHA-256 räsi. Iga lõplik edastustõke seob ka autenditud API-võtme ID ja aktiivse ühenduse ID. Liisingu juhtpäised eemaldatakse logidest, säilitatavatest päringutõmmistest ja ülesvoolu täituri päistest.
 
-Kui tavapärasel marsruutimisel leidub sobivaid hallatud kandidaate, kuid iga vaba kandidaat on hõivatud võõra aktiivse rendiga, tagastab OmniRoute HTTP `429`, koodi lease-capacity-unavailable, mahu ootamise oleku ja piiratud `Retry-After` väärtuse, mis tuletatakse varaseimast asjakohasest aegumisest. Tavapärane sobivate kandidaatide puudumine ei ole rendikonkurents ja säilitab olemasoleva marsruutimisvea semantika.
+Kui tavapärase marsruutimise jaoks leidub sobivaid hallatavaid kandidaate, kuid kõik vabad kandidaadid on hõivatud võõra aktiivse liisinguga, tagastab OmniRoute HTTP `429`, koodi lease-capacity-unavailable, oleku waiting-for-capacity ja piiratud `Retry-After` väärtuse, mis tuletatakse varaseimast asjakohasest aegumisajast. Tavapärane sobivate kandidaatide puudumine ei ole liisingukonkurents ning säilitab olemasoleva marsruutimisvea semantika.
 
 Seotud mehhanismid jäävad eraldiseisvaks:
 
-- OAuthi seansihõivatus on protsessisisene pehme jaotus OAuthi kontode jaoks.
-- Konto semaforid annavad päringute samaaegsuse lubasid ja lõpevad päringu lõpetamisel.
-- Eksklusiivsed hallatud seansirendid on vastupidav elutsükli omandiõigus koos põlvkonnapõhise piirajaga.
+- OAuthi seansihõivatus on protsessisisene nõrk jaotus OAuthi kontode jaoks.
+- Konto semaforid annavad päringute samaaegsuse lubasid ja lõpevad päringu valmimisel.
+- Hallatava seansi eksklusiivsed liisingud pakuvad püsivat elutsüklipõhist omandiõigust koos põlvkonnatõkkega.
 
 ---
 
@@ -272,49 +337,81 @@ mõlemad sihtmärgid jõuavad mudelipõhise kiirusepiiranguni. Seda piirab
 
 ---
 
-## 5. Päringujärjekorra vastuvõtu juhtimine (v3.8.49 · probleem #6593)
+## 5. Päringujärjekorra vastuvõtukontroll (v3.8.49 · probleem #6593)
 
-**Ulatus**: kohalik teenusepakkuja+ühenduse põhine kiirusepiirangu järjekord
-(`open-sse/services/rateLimitManager.ts`, mille aluseks on Bottleneck), üks kiht
-allpool kolmest eespool kirjeldatud mehhanismist.
+**Ulatus**: kohalik teenusepakkuja+ühenduse põhine kiiruspiirangu järjekord (`open-sse/services/rateLimitManager.ts`,
+mida toetab Bottleneck), üks kiht ülaltoodud kolmest mehhanismist allpool.
 
-**`maxWaitMs` on täitmise aegumise pärandina säilitatud nimi.**
-`resilienceSettings.requestQueue.maxWaitMs` edastatakse Bottleneckile töö
-`expiration` väärtusena, mille taimer käivitub alles pärast edastamist. Seega piirab see
-piiraja hallatavat täitmist, mitte kohalikus järjekorras veedetud aega. Aegumine
-esitatakse usaldusväärse kohaliku veana `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504);
-endist järjekorra ajalõpu koodinime aktsepteeritakse ainult usaldusväärse sisemise
-tagasiühilduvuse tagamiseks. Vaikeväärtus on 15000ms; seda saab muuta
-`RATE_LIMIT_MAX_WAIT_MS` (keskkonnamuutuja) kaudu või juhtpaneelil (**Settings → Resilience**,
-kasutajaliidese ülempiir 1–30000ms). Järjekorras viibimisel pole ajalist tähtaega; kasutage
-järjekorras olevate kutsujate arvu piiramiseks allpool kirjeldatud `maxQueueDepth` väärtust.
+**`maxWaitMs` piirab järjekorras ootamist; `executionMaxWaitMs` piirab täitmist.**
+Need kaks on teadlikult eraldatud ning kumbki ei mõjuta teist.
+
+`resilienceSettings.requestQueue.maxWaitMs` on **järjekorras ootamise eelarve**:
+see hõlmab teenusepakkuja vaba koha ootamist ja seejärel olekus QUEUED viibimist
+ning selle taimer tühistatakse hetkel, mil töö lahkub olekust QUEUED ja alustab
+täitmist (`rateLimitManager.ts`, `wrappedFn`). Seda piiri ületav päring ei jõua
+kunagi ülesvooluteenusesse. Vaikeväärtus on 30000ms, mille määrab
+`DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS` failis `src/lib/resilience/settings.ts` ja
+mille fikseerib `tests/unit/ratelimit-admission-control-6593.test.ts`, nii et
+selle muutmine muudab testi punaseks ega lase sellel lõigul märkamatult
+aeguneda.
+
+`resilienceSettings.requestQueue.executionMaxWaitMs` on väärtus, mille
+Bottleneck saab töö `expiration`-ina ja mille taimer käivitub alles pärast töö
+väljasaatmist. See on varumeede täituritele, millel puudub oma ülesvoolu
+ajalõpp, ning seda suurendatakse täituri enda päringu alustamise ajalõpuni, kui
+see on pikem, et see ei saaks katkestada korrektselt töötavat pooleliolevat
+vastust. Vaikeväärtus on 600000ms (10 min).
+
+Järjekorra eelarve edastamine parameetrisse `expiration` põhjustas varem
+mitteinkrementaalsete lüüside katkestamise töö keskel — neil võib esimeste
+baitide saabumiseni õigustatult kuluda minuteid — ning seetõttu esitatakse
+aegumine kujul `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504), samas kui
+järjekorra eelarve kasutab järjekorra ajalõpu koodi. Kumbagi saab muuta
+keskkonnamuutuja `RATE_LIMIT_MAX_WAIT_MS` /
+`RATE_LIMIT_EXECUTION_MAX_WAIT_MS` kaudu või juhtpaneelil
+(**Seaded → Tõrkekindlus**). Normaliseerimisel piiratakse mõlemad vahemikku
+1ms–24h.
+
+**Prioriteetsus mõlema puhul:** keskkonnamuutuja määrab ainult _vaikeväärtuse_.
+Väärtus, mis on püsivalt salvestatud asukohas
+`resilienceSettings.requestQueue` (juhtpaneeli / API paiga kaudu, salvestatud
+andmekogusse `key_value`), on sellest ülimuslik ning ühendusepõhine
+`rateLimitOverrides.maxWaitMs` / `.executionMaxWaitMs` on omakorda sellest
+ülimuslik. Keskkonnamuutuja määramine juurutuses, kus püsivalt salvestatud
+väärtus on juba olemas, ei muuda seega midagi — selle asemel tühjendage või
+värskendage püsivalt salvestatud seadistust.
+
+Järjekorras viibimise aega piirab `maxWaitMs`; allpool kirjeldatud
+`maxQueueDepth` piirab korraga järjekorras olla võivate kutsujate arvu.
 
 **`maxQueueDepth` — valikuline vastuvõtupiirang (uus).** `resilienceSettings.requestQueue.maxQueueDepth`
 piirab, mitu päringut võib ühe teenusepakkuja+ühenduse kohta korraga järjekorras
-(veel edastamata) olla. Kui järjekorras on juba `maxQueueDepth` päringut,
-lükatakse uus päring kiiresti tagasi tüübistatud veaga
-`code: "RATE_LIMIT_QUEUE_FULL"` **enne**, kui see üldse jõuab funktsioonini `limiter.schedule()`
-— seega on tagasilükkamine odav ja toimub enne selle päringu mis tahes allavoolu
-viiba tihendamise / tõlkimise tööd. Vaikeväärtus `0` =
-keelatud, säilitades olemasoleva piiramatu järjekorra käitumise; lubatud vahemik on 0–100000.
-Väärtust saab muuta `RATE_LIMIT_MAX_QUEUE_DEPTH` (keskkonnamuutuja) või
-`resilienceSettings.requestQueue.maxQueueDepth` kaudu (juhtpaneeli/API parandus).
+olla (ilma et neid oleks veel välja saadetud). Kui järjekorras on juba
+`maxQueueDepth` päringut, lükatakse uus päring kiiresti tagasi tüübitud veaga
+`code: "RATE_LIMIT_QUEUE_FULL"` **enne**, kui see üldse jõuab funktsioonini
+`limiter.schedule()` — seega on tagasilükkamine odav ja toimub enne selle
+päringu mis tahes allavoolu viiba tihendamise / tõlkimise tööd. Vaikeväärtus
+`0` = keelatud, säilitades senise piiranguta järjekorra käitumise; lubatud
+vahemik on 0–100000. Muutke seda keskkonnamuutuja
+`RATE_LIMIT_MAX_QUEUE_DEPTH` kaudu või väljal
+`resilienceSettings.requestQueue.maxQueueDepth` (juhtpaneeli/API paik).
 
-Vastuvõtukontroll ise on puhas funktsioon
+Vastuvõtukontroll ise on puhasfunktsioon
 (`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`), mistõttu
 saab seda ühiktestida ilma tegeliku Bottlenecki piirajata.
 
-> RFC, millega avati #6593, pakkus välja ka lipu `bypassCompressionOnRateLimit`.
-> Selle hoidla `open-sse/services/compression/` konveier tihendab
-> väljuva LLM-päringu viipa/konteksti (`chatCore.ts`,
-> ploki `resolveCompressionSettings`/`selectCompressionStrategy` ümbruses),
-> mitte sünteesitud 429-vastuste HTTP-vastuseid — sõnasõnalise möödaviigulipu jaoks
-> puudub vastav kooditee. See viiba tihendamise etapp käivitatakse praegu päringukonveieris
-> ka _enne_ funktsiooni `withRateLimit()`, seega on selle järjekorra muutmine, et jätta
-> tihendamine täis järjekorra tõttu tagasilükatud päringu korral vahele, eraldiseisev ja
-> selle probleemi ulatusest suurem muudatus; seda **ei** rakendatud siin tahtlikult
-> ning see jäeti järeltegevuseks juhuks, kui protsessoriressursi sääst kaalub üles
-> ümberjärjestamise riski.
+> #6593 algatanud RFC pakkus välja ka lipu `bypassCompressionOnRateLimit`.
+> Selle repo konveier `open-sse/services/compression/` tegeleb väljamineva
+> LLM-päringu viiba/konteksti tihendamisega (`chatCore.ts`, ploki
+> `resolveCompressionSettings`/`selectCompressionStrategy` ümbruses), mitte
+> sünteesitud 429-vastuste HTTP-tihendamisega — otsesele möödaviigulipule
+> vastavat kooditeed pole olemas. See viiba tihendamise etapp käivitatakse
+> praegu päringukonveieris ka _enne_ funktsiooni `withRateLimit()`, mistõttu
+> selle järjekorra täitumisest tingitud tagasilükkamise korral vahelejätmiseks
+> vajalik ümberjärjestamine on eraldiseisev ja suurem muudatus kui selle
+> probleemi ulatus; seda **ei** rakendatud siin tahtlikult ning see jäeti
+> järeltööks juhuks, kui protsessoriressursi sääst õigustab ümberjärjestamisega
+> seotud riski.
 
 ---
 

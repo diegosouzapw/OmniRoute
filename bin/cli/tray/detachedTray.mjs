@@ -117,9 +117,19 @@ export async function notifyTrayReady(port, token) {
   });
 }
 
+// The worker reports ready only after server boot AND the tray start, which may include a lazy
+// `npm install systray2` (up to 120s) — a fixed 60s deadline killed healthy workers (#15464).
+export const DEFAULT_TRAY_READY_TIMEOUT_MS = 240_000;
+
+/** Resolves the readiness deadline from OMNIROUTE_TRAY_READY_TIMEOUT_MS, else the default. */
+export function resolveTrayReadyTimeoutMs(env = process.env) {
+  const parsed = Number(env.OMNIROUTE_TRAY_READY_TIMEOUT_MS);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_TRAY_READY_TIMEOUT_MS;
+}
+
 /** Starts a detached tray worker and waits until its server and tray are ready. */
 export async function startDetachedTray(
-  { cliPath, port, maxRestarts, tlsCert, tlsKey, timeoutMs = 60000 },
+  { cliPath, port, maxRestarts, tlsCert, tlsKey, timeoutMs = resolveTrayReadyTimeoutMs() },
   { platform = process.platform, spawnProcess = spawn } = {}
 ) {
   const token = randomBytes(32).toString("hex");

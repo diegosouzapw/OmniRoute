@@ -39,6 +39,7 @@ export interface JinaEnvCredentials {
   provider: string;
   authType: "apikey";
   defaultModel: null;
+  rateLimitMaxConcurrent: null;
 }
 
 export function isJinaCredentialProvider(providerId: string | null | undefined): boolean {
@@ -99,5 +100,6 @@ export function buildJinaEnvCredentials(
     provider: providerId,
     authType: "apikey",
     defaultModel: null,
+    rateLimitMaxConcurrent: null,
   };
 }

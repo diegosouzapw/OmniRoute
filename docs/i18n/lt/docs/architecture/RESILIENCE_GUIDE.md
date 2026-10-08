@@ -1,6 +1,6 @@
 # Resilience Guide (Lietuvių)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
 
 ---
 
@@ -69,7 +69,7 @@ Regresijos patikra: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 ## 2. Ryšio atvėsimo laikotarpis
 
-**Taikymo sritis:** vienas teikėjo ryšys / paskyra / raktas.
+**Apimtis:** vienas teikėjo ryšys / paskyra / raktas.
 
 **Paskirtis:** praleisti vieną netinkamą raktą, kol kiti to paties teikėjo ryšiai toliau aptarnauja užklausas.
 
@@ -89,74 +89,134 @@ Regresijos patikra: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Numatytieji atvėsimo laikotarpiai:**
 
-- OAuth bazinė trukmė: 5 s
-- API rakto bazinė trukmė: 3 s
-- API rakto 429: pirmenybė teikiama iš pradinio serverio gautoms `Retry-After` / nustatymo iš naujo antraštėms / išanalizuojamam nustatymo iš naujo tekstui
+- OAuth bazinis: 5 s
+- API rakto bazinis: 3 s
+- API rakto 429: pirmenybė teikiama aukštesniojo serverio `Retry-After` / atkūrimo antraštėms / išanalizuojamam atkūrimo tekstui
 - Delsos didinimas: `baseCooldownMs * 2 ** failureIndex`
 
-**Apsauga nuo masinio vienalaikio užklausų antplūdžio:** neleidžia lygiagrečioms triktims pernelyg pratęsti atvėsimo laikotarpio arba dukart padidinti `backoffLevel`.
+**Apsauga nuo vienalaikių užklausų antplūdžio:** neleidžia lygiagrečioms triktims pernelyg pratęsti atvėsimo laikotarpio ar dukart padidinti `backoffLevel`.
 
 **Galutinės būsenos (NE atvėsimo laikotarpiai):**
 
-- `banned` — nustatoma aptikus uždraustą raktažodį / paskyros uždraudimą (žr. [BAN_DETECTION](../security/BAN_DETECTION.md)), taip pat po trijų iš eilės pradinio serverio atsisakymų vykdyti konkrečią užklausą (`request_rejected`, pvz., Anthropic OAuth 403 „Request not allowed“ — `open-sse/services/requestRejectedStreak.ts`); vienas atsisakymas tik laikinai apriboja ryšį
+- `banned` — nustatoma aptikus uždraustą raktažodį / paskyros blokavimą (žr. [BAN_DETECTION](../security/BAN_DETECTION.md)), taip pat po trijų iš eilės aukštesniojo serverio atsisakymų vykdyti atskiras užklausas (`request_rejected`, pvz., Anthropic OAuth 403 „Request not allowed“ — `open-sse/services/requestRejectedStreak.ts`); po vieno atsisakymo ryšiui tik pritaikomas atvėsimo laikotarpis
 - `expired` (po riboto pakartotinių bandymų skaičiaus pereinama į galutinę būseną — `EXPIRED_RETRY_MAX = 3` su eksponentiniu delsos didinimu — todėl laikinos OAuth klaidos gali išnykti savaime prieš visam laikui išaktyvinant paskyrą)
 - `credits_exhausted`
 
-Šios būsenos išlieka, kol pasikeičia prisijungimo duomenys arba operatorius jas nustato iš naujo. Neperrašykite galutinių būsenų laikino atvėsimo būsena.
+Šios būsenos išlieka, kol pakeičiami prisijungimo duomenys arba operatorius jas nustato iš naujo. Neperrašykite galutinių būsenų laikina atvėsimo būsena.
 
-**Atidėtasis atkūrimas:** praėjus `rateLimitedUntil`, ryšys vėl tampa tinkamas. Sėkmingai jį panaudojus, `clearAccountError()` išvalo visus klaidos laukus.
+**Atidėtasis atkūrimas:** kai `rateLimitedUntil` laikas praeina, ryšys vėl tampa tinkamas naudoti. Sėkmingai jį panaudojus, `clearAccountError()` išvalo visus klaidos laukus.
 
-### Seanso susiejimas (#7274)
+### Claude OAuth naudojimo riba: žemesnio prioriteto kanalas + seanso ribos nustatymas iš naujo
 
-**Taikymo sritis:** vienas kliento seansas (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` antraštė), susietas su vienu ryšiu, **bet kuriam** teikėjui.
+**Apimtis:** vienas Claude prenumeratos (OAuth) ryšys. Abi funkcijos **pasirenkamos atskirai kiekvienam
+ryšiui** (Redaguoti ryšį → Claude skiltis → `lowPriorityMode` / `autoLimitReset`, esančios
+`providerSpecificData`; abi pagal numatytuosius nustatymus išjungtos) ir atitinka Claude Code komandas `/low-priority` bei
+`/limit-reset` (ryšio protokolas užfiksuotas pagal Claude Code 2.1.263).
 
-**Paskirtis:** tarp užklausų išlaikyti kelių sąveikos etapų agentą (Claude Code, aider, pasirinktinius agentus) toje pačioje paskyroje, sumažinant konteksto praradimą pereinant tarp paskyrų ir pasikartojančias 429 klaidas po šaltojo paleidimo, kai teikėjai turi paskyros lygmens seanso būseną.
+**Įgyvendinimas:**
+
+- Būsenų automatas + atsakymų klasifikavimas: `open-sse/services/claudeLowPriority.ts`
+- Atkūrimo būsenos / rezervavimo klientas: `open-sse/services/claudeLimitReset.ts`
+- Vykdyklės integravimo taškas (antraštės įterpimas + pakartotinis bandymas su ta pačia paskyra): `open-sse/executors/base.ts::execute()`
+- Pasirinkimo išsaugojimas: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+
+**Aktyviklis:** 5 valandų naudojimo riba — `429`, kurio antraštėse yra
+`anthropic-ratelimit-unified-status: rejected` ir, kai paskyra yra tinkama,
+`anthropic-ratelimit-unified-slow-offer: treatment`. Iki pirmojo ribą žyminčio
+429 niekas nesiunčiama; staigus 429 be suvienodintų antraščių apdorojamas įprastu atvėsimo mechanizmu.
+
+**Žemesnio prioriteto kanalas** (`lowPriorityMode`):
+
+- Gavusi ribą žymintį 429 vykdyklė priima pasiūlymą ir nedelsdama pakartoja užklausą su **ta pačia**
+  paskyra bei `anthropic-usage-limit: slow`; kanalas lieka aktyvus iki paskelbto
+  `anthropic-ratelimit-unified-reset` (+60 s atsargos), o kiekvienoje per tą laikotarpį siunčiamoje užklausoje yra
+  ši antraštė. Perimtas 429 nepasiekia `handleChatCore`, todėl ryšiui
+  **netaikomas** atvėsimo laikotarpis ir jis nepakeičiamas kitu.
+- `anthropic-ratelimit-unified-slow-status` vėlesniuose atsakymuose: `active` / `not_needed`
+  išlaiko kanalą; `slot_busy` (429) arba `529` atveju laukiama serverio nurodyto
+  `anthropic-ratelimit-unified-slow-retry-after` (numatyta 20 s, ribojama iki 5–600 s, ±30 % atsitiktinis nuokrypis)
+  ir bandoma dar kartą, neviršijant `anthropic-ratelimit-unified-slow-max-wait` (numatyta 20 min., ribojama
+  iki 1 min.–6 val.) — viršijus šį laiką kanalas uždaromas, o 10 minučių atvėsimo laikotarpis neleidžia jo priimti iš naujo. Be to,
+  laukimo trukmę riboja likęs pačios užklausos aukštesniojo serverio paleidimo skirtasis laikas
+  (`resolveFetchStartTimeout`, pagal numatytuosius nustatymus 10 min.) atėmus 5 s atsargą: be šio apribojimo
+  numatytasis 20 minučių maksimalus laukimas truktų ilgiau nei užklausa, o miego režimas būtų nutrauktas
+  laukimo metu, todėl vietoj tvarkingo `max_wait` užbaigimo ir atvėsimo būtų pateikta `TimeoutError`.
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, 5 val. lango pasikeitimas arba
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (tai užbaigia kanalą kaip
+  `extra_usage` esant bet kokiai būsenai, nes mokamas limito viršijimas dabar padengia ribą) uždaro kanalą; tuomet
+  atsakymas perduodamas įprastam atvėsimo mechanizmui. `budget_exhausted` įsimenama iki
+  paskelbto biudžeto atkūrimo (≤ 8 dienos).
+- Ribos patikra vykdoma po pačios vykdyklės vidinių bandymo pakartojimų, kuriuos sukelia 400 (konteksto
+  redagavimas, mąstymo / pastangų ribojimas, automatinis parametrų mokymasis), todėl tik per
+  vieną iš šių pakartojimų pasirodęs ribą žymintis 429 vis tiek perimamas ir nepatenka į atvėsimo mechanizmą.
+- Būsena saugoma atmintyje kiekvienam ryšiui atskirai (paleidus iš naujo, pasiūlymui priimti prireikia vieno papildomo ribą žyminčio 429).
+
+**Seanso ribos nustatymas iš naujo** (`autoLimitReset`, išbandomas prieš kanalą, kai įjungtos abi funkcijos):
+
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → `juniper_tide`
+  blokas; kai `arm: "reset"` ir `available: true`,
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` su
+  `{ "program": "juniper_tide" }` (organizacijos UUID iš
+  `providerSpecificData.organizationUUID`, pradinis atsarginis variantas).
+- `result: reset|not_limited` → užklausa pakartojama visu greičiu (be lėtojo režimo antraštės).
+  `already_used` / `not_offered` įsimena `next_available_at` (pagal numatytuosius nustatymus viena savaitė); po bet kokios
+  trikties taikoma 15 minučių delsa. Atkūrimą galima atlikti kartą per savaitę ir jis vis tiek įskaičiuojamas į
+  savaitės ribą.
+
+Apsaugos nuo regresijų: `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
+
+### Seanso prieraišumas (#7274)
+
+**Apimtis:** vienas kliento seansas (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` antraštė), priskirtas vienam ryšiui, **bet kuriam** teikėjui.
+
+**Paskirtis:** išlaikyti kelių užklausų agentą (Claude Code, aider, pasirinktinius agentus) toje pačioje paskyroje tarp užklausų, taip sumažinant konteksto praradimą keičiant paskyras ir pasikartojančias šaltojo paleidimo 429 klaidas teikėjų sistemose, kuriose seanso būsena saugoma atskirai kiekvienai paskyrai.
 
 **Įgyvendinimas:**
 
 - TTL nustatymas: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
 - Susiejimo pasirinkimas / sukūrimas: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
-- Antraštės išgavimas (bendrasis, bet kuriam teikėjui): `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- Išsaugoma susiejimų lentelė: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- Nustatymas: `sessionAffinityTtlMs` (visuotinis TTL milisekundėmis, `0` išjungia) — `src/lib/db/settings.ts`. Migracija `124_generic_session_affinity_ttl.sql` jį pervadino iš tik Codex skirto `codexSessionAffinityTtlMs` ir bet kokią anksčiau sukonfigūruotą Codex TTL reikšmę perkėlė kaip naują numatytąją reikšmę.
+- Antraštės išskyrimas (bendrasis, bet kuriam teikėjui): `src/sse/services/auth.ts::extractSessionAffinityKey()`
+- Išliekamoji susiejimų lentelė: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- Nustatymas: `sessionAffinityTtlMs` (visuotinis TTL milisekundėmis, `0` išjungia) — `src/lib/db/settings.ts`. Per migraciją `124_generic_session_affinity_ttl.sql` pervadintas iš tik Codex skirto `codexSessionAffinityTtlMs`; bet kokia anksčiau sukonfigūruota Codex TTL reikšmė perkeliama kaip naujoji numatytoji reikšmė.
 
-Iki #7274 `resolveSessionAffinityTtlMs()` iškart grąžindavo `0` kiekvienam teikėjui, išskyrus `codex`, todėl TTL nustatymas (ir seanso antraštės) niekur kitur neturėjo poveikio, nors susiejimo mechanizmas ir antraščių išgavimas jau nepriklausė nuo teikėjo. Pataisoje šis ankstyvas grąžinimas pašalintas; dabar visuotinai nustačius didesnę nei `0` reikšmę, TTL vienodai taikomas kiekvienam teikėjui.
+Iki #7274 `resolveSessionAffinityTtlMs()` visiems teikėjams, išskyrus `codex`, iš karto grąžindavo `0`, todėl TTL nustatymas (ir seanso antraštės) niekur kitur neturėjo poveikio, nors susiejimo mechanizmas ir antraščių išskyrimas jau nepriklausė nuo konkretaus teikėjo. Pataisoje šis ankstyvas grąžinimas pašalintas; dabar TTL vienodai taikomas kiekvienam teikėjui, kai visuotinai nustatoma didesnė nei `0` reikšmė.
 
-Trys seanso susiejimo antraštės niekada nepersiunčiamos pradiniam serveriui — vykdytojai savo pradinio serverio antraštes kuria nuo pradžių, užuot persiuntę kliento antraštes, todėl tai lieka tik vidinis koreliacijos identifikatorius.
+Trys seanso susiejimo antraštės niekada nepersiunčiamos aukštyn — vykdyklės savo aukštesniojo lygmens antraštes kuria nuo nulio, užuot persiuntusios kliento antraštes, todėl tai lieka tik vidiniu koreliacijos identifikatoriumi.
 
-### Išskirtinės valdomo seanso ryšio nuomos
+### Išskirtinės valdomų seansų ryšio nuomos
 
-**Taikymo sritis:** vienas aktyvus valdomas HTTP klientas / seansas valdo vieną tinkamą OmniRoute ryšį.
+**Taikymo sritis:** vienam aktyviam valdomam HTTP klientui / seansui priklauso vienas tinkamas OmniRoute ryšys.
 
 **Paskirtis:** suteikti ilgalaikę išskirtinę ryšio nuosavybę klientams, kuriems tarp užklausų reikalingas griežtas maršruto parinkimo
-apribojimas. Tai skiriasi nuo seanso susiejimo, kuris tėra negriežta tęstinumo nuostata:
+barjeras. Tai skiriasi nuo seanso susiejimo, kuris yra neprivaloma tęstinumo pirmenybė:
 išskirtinė nuoma išsaugo gyvavimo ciklo būseną SQLite, užtikrina visuotinį aktyvaus savininko ir
 aktyvaus ryšio unikalumą bei atmeta pasenusią kartą prieš perduodant užklausą teikėjui.
 
-Ši funkcija kiekvienam API raktui pasirenkama atskirai. Valdomas raktas privalo turėti `lease:exclusive` apimtį ir
+Funkcija pasirenkama atskirai kiekvienam API raktui. Valdomas raktas turi turėti `lease:exclusive` aprėptį ir
 aiškiai nurodytą netuščią `allowedConnections` sąrašą. Gyvavimo ciklo galinį tašką gali naudoti bet kuris HTTP klientas; nereikia
-nei kliento pavadinimo, nei naudotojo agento, nei teikėjo, nei OAuth metodo, nei modelio. Nuomojamas ryšys,
-o ne modelis, todėl pakeitus modelį susiejimas išlieka, kol ryšys pagal įprastas taisykles tebėra
+nei kliento pavadinimo, nei naudotojo agento, nei teikėjo, nei OAuth metodo, nei modelio. Nuomai priklauso ryšys,
+o ne modelis, todėl pakeitus modelį susiejimas išlieka, kol ryšys tebėra įprastai
 tinkamas. Įprastos modelio, kvotos, būklės, atvėsimo laikotarpio ir leidžiamųjų sąrašų taisyklės išlieka viršesnės ir gali
-tą pačią kartą perkelti į kitą laisvą tinkamą ryšį.
+perkelti tą pačią kartą į kitą laisvą tinkamą ryšį.
 
 Gyvavimo ciklas valdomas per `POST /api/v1/session-leases`, naudojant JSON veiksmus `acquire`, `renew` ir `release`.
-Valdomos išvedimo užklausos pateikia nepermatomą `X-OmniRoute-Lease-Owner` reikšmę ir tikslią
-`X-OmniRoute-Lease-Generation` reikšmę. Savininko reikšmę sudaro `vlo_`, po kurio eina 43 base64url simboliai; saugoma tik
-jos SHA-256 maiša. Kiekvienas galutinis perdavimo apribojimas taip pat susiejamas su autentifikuoto API rakto ID ir
+Valdomos išvedimo užklausos pateikia neskaidrią `X-OmniRoute-Lease-Owner` reikšmę ir tikslią
+`X-OmniRoute-Lease-Generation` reikšmę. Savininko reikšmę sudaro `vlo_` ir po jo einantys 43 base64url simboliai; saugoma tik
+jos SHA-256 maiša. Kiekvienas galutinis perdavimo barjeras taip pat susiejamas su autentifikuoto API rakto ID ir
 aktyvaus ryšio ID. Nuomos valdymo antraštės pašalinamos iš žurnalų, išsaugomų užklausų momentinių kopijų ir
-pradinio serverio vykdytojų antraščių.
+aukštesniojo lygmens vykdyklių antraščių.
 
 Jei įprasto maršruto parinkimo metu yra tinkamų valdomų kandidatų, tačiau kiekvieną laisvą kandidatą užima
-svetima aktyvi nuoma, OmniRoute grąžina HTTP `429`, nepasiekiamos nuomos talpos kodą,
-talpos laukimo būseną ir apribotą `Retry-After`, apskaičiuotą pagal anksčiausią susijusį galiojimo pabaigos laiką.
-Įprastas tinkamų kandidatų nebuvimas nėra nuomos konkurencija, todėl jam ir toliau taikoma esama maršruto parinkimo klaidų semantika.
+svetima aktyvi nuoma, OmniRoute grąžina HTTP `429`, kodą, nurodantį, kad nuomos pajėgumai nepasiekiami,
+laukimo, kol atsiras pajėgumų, būseną ir apribotą `Retry-After` reikšmę, apskaičiuotą pagal anksčiausiai pasibaigsiančią susijusią nuomą.
+Įprastas tinkamų kandidatų nebuvimas nėra nuomos konfliktas, todėl jam išlieka esama maršruto parinkimo klaidų semantika.
 
-Susiję mechanizmai lieka atskiri:
+Susiję mechanizmai išlieka atskirti:
 
-- OAuth seanso užimtumas yra vietinis proceso negriežto paskirstymo mechanizmas OAuth paskyroms.
-- Paskyros semaforai suteikia užklausų lygiagretumo leidimus, kurie nustoja galioti užklausai pasibaigus.
-- Išskirtinės valdomo seanso nuomos yra ilgalaikė gyvavimo ciklo nuosavybė su kartos apribojimu.
+- OAuth seansų užimtumas yra procesui lokalus neprivalomas OAuth paskyrų paskirstymas.
+- Paskyrų semaforai suteikia užklausų lygiagretumo leidimus, kurie nustoja galioti užklausai pasibaigus.
+- Išskirtinės valdomų seansų nuomos yra ilgalaikė gyvavimo ciklo nuosavybė su kartos barjeru.
 
 ---
 
@@ -288,45 +348,71 @@ užklausų dažnio ribą. Ribas nustato `comboCooldownWait` (`enabled`, `maxWait
 
 ## 5. Užklausų eilės priėmimo valdymas (v3.8.49 · problema #6593)
 
-**Aprėptis**: vietinė kiekvieno teikėjo ir ryšio užklausų dažnio ribojimo eilė (`open-sse/services/rateLimitManager.ts`,
-pagrįsta Bottleneck), esanti vienu lygmeniu žemiau už tris pirmiau aprašytus mechanizmus.
+**Taikymo sritis**: vietinė kiekvieno teikėjo ir ryšio spartos ribojimo eilė (`open-sse/services/rateLimitManager.ts`,
+pagrįsta Bottleneck), esanti vienu lygmeniu žemiau trijų pirmiau aprašytų mechanizmų.
 
-**`maxWaitMs` yra senas išsaugomas vykdymo galiojimo laiko pavadinimas.**
-`resilienceSettings.requestQueue.maxWaitMs` perduodamas Bottleneck kaip užduoties
-`expiration`, kurio laikmatis paleidžiamas tik po persiuntimo. Todėl jis riboja
-ribotuvo valdomo vykdymo, o ne laukimo vietinėje eilėje laiką. Pasibaigęs galiojimo laikas
-pateikiamas kaip patikima vietinė klaida `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504);
-ankstesnis eilės skirtojo laiko klaidos kodo pavadinimas priimamas tik dėl patikimo vidinio
-atgalinio suderinamumo. Numatytoji reikšmė yra 15000ms; ją galima pakeisti naudojant
-`RATE_LIMIT_MAX_WAIT_MS` (aplinkos kintamąjį) arba valdymo skydą (**Nustatymai → Atsparumas**,
-1–30000ms naudotojo sąsajos riba). Buvimo eilėje laikas neribojamas; laukiančių užklausų
-skaičiui riboti naudokite toliau aprašytą `maxQueueDepth`.
+**`maxWaitMs` riboja laukimą eilėje; `executionMaxWaitMs` riboja vykdymą.**
+Šios dvi ribos sąmoningai atskirtos ir nė viena neturi įtakos kitai.
 
-**`maxQueueDepth` — pasirenkama priėmimo riba (nauja).** `resilienceSettings.requestQueue.maxQueueDepth`
-riboja, kiek vieno teikėjo ir ryšio užklausų vienu metu gali laukti eilėje (dar nepersiųstų).
-Kai eilėje jau yra `maxQueueDepth` užklausų, nauja užklausa greitai atmetama pateikiant tipizuotą
+`resilienceSettings.requestQueue.maxWaitMs` yra **laukimo eilėje laiko limitas**:
+jis apima laukimą, kol atsilaisvins teikėjo vieta, ir paskesnį buvimą būsenoje QUEUED, o jo laikmatis
+išvalomas iškart, kai užduotis palieka būseną QUEUED ir pradedama vykdyti
+(`rateLimitManager.ts`, `wrappedFn`). Šį limitą viršijusi užklausa niekada
+nepasiekia išorinio teikėjo. Numatytoji reikšmė yra 30000ms, ją pateikia
+`DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS`, esantis `src/lib/resilience/settings.ts`, ir įtvirtina
+`tests/unit/ratelimit-admission-control-6593.test.ts`, todėl ją pakeitus
+šis testas nepraeis, užuot leidęs šiai pastraipai nepastebimai pasenti.
+
+`resilienceSettings.requestQueue.executionMaxWaitMs` yra reikšmė, kurią Bottleneck
+gauna kaip užduoties `expiration`; jos laikmatis paleidžiamas tik po užduoties perdavimo vykdyti. Tai yra
+apsauginė riba vykdyklėms, kurios neturi savo išorinio teikėjo skirtojo laiko, ir ji
+padidinama iki vykdyklės užklausos pradžios skirtojo laiko, kai šis yra ilgesnis, todėl
+ji negali nutraukti tinkamai vykdomo atsakymo. Numatytoji reikšmė yra 600000ms (10 min.).
+
+Eilės laiko limito perdavimas į `expiration` anksčiau nutraukdavo neinkrementinius
+tinklų sietuvus vykdymo metu — iki pirmųjų baitų jie pagrįstai gali veikti kelias minutes —
+todėl galiojimo laiko pabaiga pateikiama kaip `code:
+"RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504), o eilės laiko limitui naudojamas
+eilės skirtojo laiko kodas. Bet kurią reikšmę galima pakeisti naudojant `RATE_LIMIT_MAX_WAIT_MS` /
+`RATE_LIMIT_EXECUTION_MAX_WAIT_MS` (aplinkos kintamuosius) arba valdymo skydelį
+(**Nustatymai → Atsparumas**). Normalizuojant abi reikšmės apribojamos intervalu nuo 1ms iki 24h.
+
+**Abiejų reikšmių pirmumas:** aplinkos kintamasis pateikia tik _numatytąją_ reikšmę. Reikšmė,
+išsaugota `resilienceSettings.requestQueue` (naudojant valdymo skydelį / API dalinį naujinimą ir saugoma
+`key_value`), turi pirmumą prieš ją, o konkretaus ryšio
+`rateLimitOverrides.maxWaitMs` / `.executionMaxWaitMs` turi pirmumą prieš pastarąją. Todėl
+aplinkos kintamojo nustatymas dieginyje, kuriame jau yra išsaugota reikšmė,
+nieko nepakeis — vietoje to išvalykite arba atnaujinkite išsaugotą nustatymą.
+
+Buvimo eilėje trukmę riboja `maxWaitMs`; toliau aprašytas `maxQueueDepth` riboja,
+kiek užklausų vienu metu gali būti eilėje.
+
+**`maxQueueDepth` — pasirinktinis priėmimo limitas (nauja funkcija).** `resilienceSettings.requestQueue.maxQueueDepth`
+riboja, kiek vieno teikėjo ir ryšio užklausų vienu metu gali laukti eilėje (dar nebūti perduotos vykdyti).
+Kai eilėje jau yra `maxQueueDepth` užklausų, nauja užklausa iškart atmetama pateikiant tipizuotą
 `code: "RATE_LIMIT_QUEUE_FULL"` klaidą **prieš** jai pasiekiant `limiter.schedule()`
-— todėl atmetimas nereikalauja daug išteklių ir įvyksta prieš bet kokį tolesnį tos užklausos
-raginimo glaudinimo / vertimo darbą. Numatytoji reikšmė `0` =
-išjungta, todėl išlaikomas esamas neribotos eilės veikimas; leidžiamas diapazonas 0–100000.
+— todėl atmetimas nereikalauja daug išteklių ir įvyksta prieš bet kokį tolesnį
+tos užklausos raginimo glaudinimą / vertimą. Numatytoji reikšmė `0` =
+išjungta, todėl išlaikoma esama neribotos eilės elgsena; leistinas intervalas 0–100000.
 Reikšmę galima pakeisti naudojant `RATE_LIMIT_MAX_QUEUE_DEPTH` (aplinkos kintamąjį) arba
-`resilienceSettings.requestQueue.maxQueueDepth` (valdymo skydo / API dalinį naujinimą).
+`resilienceSettings.requestQueue.maxQueueDepth` (valdymo skydelio / API dalinį naujinimą).
 
 Pati priėmimo patikra yra grynoji funkcija
 (`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`), todėl
-ją galima testuoti vienetų testais be tikro Bottleneck ribotuvo.
+ją galima testuoti modulių testais be tikro Bottleneck ribotuvo.
 
-> RFC, kuriuo buvo pradėta #6593, taip pat pasiūlė `bypassCompressionOnRateLimit`
-> žymą. Šios saugyklos `open-sse/services/compression/` konvejeris atlieka siunčiamos LLM užklausos
-> raginimo / konteksto glaudinimą (`chatCore.ts`,
-> ties `resolveCompressionSettings`/`selectCompressionStrategy` bloku),
-> o ne sintezuotų 429 atsakymų HTTP glaudinimą — tiesioginei apėjimo žymai nėra
-> atitinkamo kodo vykdymo kelio. Šis raginimo glaudinimo veiksmas
-> užklausų konvejeryje šiuo metu taip pat vykdomas _prieš_ `withRateLimit()`, todėl
-> veiksmų eiliškumo keitimas, kad jis būtų praleistas atmetus užklausą dėl pilnos eilės, yra atskiras ir didesnis
-> pakeitimas nei šios problemos aprėptis; čia jis sąmoningai **nebuvo** įgyvendintas
-> ir paliktas būsimam darbui, jei procesoriaus išteklių taupymo nauda būtų verta
-> eiliškumo keitimo rizikos.
+> RFC, kuriuo buvo pradėta #6593 problema, taip pat pasiūlė
+> `bypassCompressionOnRateLimit` žymą. Šios saugyklos
+> `open-sse/services/compression/` konvejeris glaudina išoriniam LLM siunčiamos užklausos
+> raginimą / kontekstą (`chatCore.ts`, maždaug ties
+> `resolveCompressionSettings`/`selectCompressionStrategy` bloku), o ne glaudina HTTP atsakymus
+> sintetintuose 429 atsakymų turiniuose — pažodinei apėjimo žymai nėra
+> atitinkamo kodo kelio. Be to, šis raginimo glaudinimo veiksmas šiuo metu vykdomas
+> _prieš_ `withRateLimit()` užklausų konvejeryje, todėl veiksmų tvarkos pakeitimas, siekiant
+> jį praleisti, kai užklausa atmetama dėl pilnos eilės, yra atskiras ir didesnis
+> pakeitimas, nei numatyta šios problemos taikymo srityje; jis čia sąmoningai
+> **nebuvo** įgyvendintas ir paliktas vėlesniam etapui, jei procesoriaus išteklių taupymo nauda
+> bus verta veiksmų tvarkos keitimo rizikos.
 
 ---
 

@@ -1,6 +1,32 @@
 import type { SqliteAdapter, PreparedStatement, RunResult } from "./types";
 
+// Same bound as the node:sqlite adapter (nodeSqliteShared.ts).
+const MAX_STMT_CACHE_SIZE = 200;
+
 export function createBetterSqliteAdapter(db: import("better-sqlite3").Database): SqliteAdapter {
+  // Hot request paths prepare the same SQL on every call (call_logs INSERT, usage_history
+  // statements), and SQLite was ~8% of main-thread busy time in a production profile, so
+  // statements are cached by SQL text, least recently used first out.
+  // Reuse is safe: the adapter only exposes synchronous run/get/all, never iterate()
+  // or bind(), and SQLite recompiles a cached statement itself after a schema change.
+  const stmtCache = new Map<string, import("better-sqlite3").Statement>();
+
+  function getCached(sql: string) {
+    let stmt = stmtCache.get(sql);
+    if (stmt) {
+      stmtCache.delete(sql);
+      stmtCache.set(sql, stmt);
+      return stmt;
+    }
+    stmt = db.prepare(sql);
+    if (stmtCache.size >= MAX_STMT_CACHE_SIZE) {
+      const oldestKey = stmtCache.keys().next().value;
+      if (oldestKey !== undefined) stmtCache.delete(oldestKey);
+    }
+    stmtCache.set(sql, stmt);
+    return stmt;
+  }
+
   return {
     driver: "better-sqlite3",
 
@@ -17,7 +43,7 @@ export function createBetterSqliteAdapter(db: import("better-sqlite3").Database)
     },
 
     prepare(sql: string): PreparedStatement {
-      const stmt = db.prepare(sql);
+      const stmt = getCached(sql);
       return {
         run: (...params: unknown[]): RunResult => stmt.run(...params) as unknown as RunResult,
         get: (...params: unknown[]): unknown => stmt.get(...params),
@@ -52,6 +78,7 @@ export function createBetterSqliteAdapter(db: import("better-sqlite3").Database)
     },
 
     close(): void {
+      stmtCache.clear();
       db.close();
     },
 

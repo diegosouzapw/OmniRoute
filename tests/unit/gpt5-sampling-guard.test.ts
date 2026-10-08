@@ -72,6 +72,27 @@ test("non-gpt-5 openai model is untouched (e.g. gpt-4o)", () => {
   assert.equal(result.temperature, 0.7);
 });
 
+test("gpt-6 + temperature + active reasoning strips sampling (gpt-[56] widen)", () => {
+  const body = {
+    model: "gpt-6-astra",
+    temperature: 0.7,
+    top_p: 0.9,
+    reasoning_effort: "high",
+    messages: [],
+  };
+  const result = stripGpt5SamplingWhenReasoning(body, "openai", "gpt-6-astra");
+  assert.equal(result.temperature, undefined);
+  assert.equal(result.top_p, undefined);
+  assert.equal(result.reasoning_effort, "high");
+
+  const none = stripGpt5SamplingWhenReasoning(
+    { model: "gpt-6-astra", temperature: 0.4, reasoning_effort: "none" },
+    "openai",
+    "gpt-6-astra"
+  );
+  assert.equal(none.temperature, 0.4);
+});
+
 test("returns the same reference when no sampling params are present", () => {
   const body = { model: "gpt-5.4", reasoning_effort: "high", messages: [] };
   const result = stripGpt5SamplingWhenReasoning(body, "openai", "gpt-5.4");

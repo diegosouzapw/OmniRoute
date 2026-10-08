@@ -5,6 +5,26 @@ const GOOGLE_MODELS_URL = "https://generativelanguage.googleapis.com/v1beta/mode
 const VERTEX_PUBLISHER_PAGE_SIZE = 300;
 const MAX_CATALOG_PAGES = 20;
 
+// #12328 — generativelanguage.googleapis.com is a different Google service from Vertex AI and
+// always rejects a genuine Vertex Express API key (400 API_KEY_INVALID), even though the same
+// key is valid for inference against aiplatform.googleapis.com's project-less publisher endpoint
+// (open-sse/executors/vertex.ts buildExpressGeminiUrl). Vertex AI Express mode has no public
+// list-all endpoint, so this single GET against the correct service only validates the key —
+// a 200 confirms the key is authorized for Vertex, and the caller-supplied (or default) curated
+// Express catalog is returned rather than an unreliable live listing.
+const VERTEX_EXPRESS_VALIDATION_URL =
+  "https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-3.7-flash";
+
+interface VertexExpressCuratedModel {
+  id: string;
+  name?: string;
+}
+
+const VERTEX_EXPRESS_DEFAULT_MODELS: VertexExpressCuratedModel[] = [
+  { id: "gemini-3.7-flash", name: "Gemini 3.7 Flash (Vertex)" },
+  { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro Preview (Vertex)" },
+];
+
 /**
  * Serverless chat publishers currently documented by Vertex Model Garden. The parser and executor
  * remain publisher-generic, so newly returned model versions need no source change.
@@ -190,50 +210,34 @@ export function discoverVertexModelsWithBearer(options: {
 export async function discoverVertexModelsWithApiKey(options: {
   apiKey: string;
   fetchImpl: VertexModelDiscoveryFetch;
+  curatedModels?: VertexExpressCuratedModel[];
 }): Promise<VertexModelDiscoveryResult> {
-  const models: unknown[] = [];
   const headers = {
     "Content-Type": "application/json",
     // Keep the secret out of URLs and any URL-bearing error/log path.
     "x-goog-api-key": options.apiKey,
   };
-  let pageUrl = GOOGLE_MODELS_URL;
-  let pageCount = 0;
-  const seenTokens = new Set<string>();
 
   try {
-    while (pageUrl && pageCount < MAX_CATALOG_PAGES) {
-      pageCount += 1;
-      const response = await options.fetchImpl(pageUrl, { method: "GET", headers });
+    const response = await options.fetchImpl(VERTEX_EXPRESS_VALIDATION_URL, {
+      method: "GET",
+      headers,
+    });
+    if (!response.ok) {
       const data = await response.json().catch(() => null);
-      if (!response.ok) {
-        const projectId = readApiKeyConsumerProjectId(data);
-        return {
-          models,
-          failureStatus: response.status,
-          unavailable: ![400, 401, 403].includes(response.status),
-          ...(projectId ? { projectId } : {}),
-          ...(models.length > 0
-            ? { warning: "Some Vertex Gemini catalog pages were unavailable" }
-            : {}),
-        };
-      }
-
-      models.push(...parseGeminiModelsList(data));
-      const nextPageToken = readNextPageToken(data);
-      if (!nextPageToken || seenTokens.has(nextPageToken)) break;
-      seenTokens.add(nextPageToken);
-      pageUrl = `${GOOGLE_MODELS_URL}&pageToken=${encodeURIComponent(nextPageToken)}`;
+      const projectId = readApiKeyConsumerProjectId(data);
+      return {
+        models: [],
+        failureStatus: response.status,
+        unavailable: ![400, 401, 403].includes(response.status),
+        ...(projectId ? { projectId } : {}),
+      };
     }
-  } catch {
-    return {
-      models,
-      unavailable: true,
-      ...(models.length > 0
-        ? { warning: "Some Vertex Gemini catalog pages were unavailable" }
-        : {}),
-    };
-  }
 
-  return { models };
+    return {
+      models: options.curatedModels?.length ? options.curatedModels : VERTEX_EXPRESS_DEFAULT_MODELS,
+    };
+  } catch {
+    return { models: [], unavailable: true };
+  }
 }

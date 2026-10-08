@@ -1,15 +1,15 @@
 # Authorization Guide (Magyar)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
 
 ---
 
-> **Hiteles forrás:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Utolsó frissítés:** 2026-06-28 — v3.8.40
+> **Igazság forrása:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **Utolsó frissítés:** 2026-09-22 — hatókör névterek mutatnak az MCP-SERVER.md-re
 
-Az OmniRoute útvonal-tudatos engedélyezési folyamattal védi az összes API-kérést. A besorolás **determinisztikus** és **alapértelmezetten tiltó** — minden, ami nem sorolható be, `MANAGEMENT` besorolást kap, és munkamenetet vagy kezelési szintű tokent igényel. Ez az oldal az útvonalakat karbantartó vagy új végpontokat tervező mérnökök számára ismerteti a modellt.
+Az OmniRoute útvonal-érzékeny engedélyezési folyamattal rendelkezik, amely minden API kérést ellenőriz. Az osztályozás **determinisztikus** és **fail-closed** (hibásan zárt) — minden, ami nem osztályozható, `MANAGEMENT` kategóriába kerül, és munkamenet vagy menedzsment szintű tokent igényel. Ez az oldal a modelljét magyarázza el azoknak a mérnököknek, akik útvonalakat tartanak karban vagy új végpontokat terveznek.
 
-![AuthZ-folyamat (3 útvonalosztály + házirend-kiértékelés)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ folyamat (3 útvonalkategória + házirend-értékelés)](../diagrams/exported/authz-pipeline.svg)
 
 > Forrás: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -17,57 +17,61 @@ Az OmniRoute útvonal-tudatos engedélyezési folyamattal védi az összes API-k
 
 ### 1. API-kulcs (Bearer)
 
-Az OpenAI-/Anthropic-/Gemini-kompatibilis kliens-API-khoz, valamint néhány kezelési útvonalhoz használatos, ha a kulcs rendelkezik `manage` hatókörrel.
+Az OpenAI-/Anthropic-/Gemini-kompatibilis kliens API-khoz, valamint néhány felügyeleti útvonalhoz használatos, ha a kulcs rendelkezik `manage` hatókörrel.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-A `src/sse/services/auth.ts` fájlban található `isValidApiKey()` / `extractApiKey()` ellenőrzi, és a `src/shared/utils/apiAuth.ts` fájl exportálja újra. Az ellenőrző az `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` környezeti változókat is elfogadja állandó átengedési kulcsokként (#1350. probléma).
+Az ellenőrzést az `isValidApiKey()` / `extractApiKey()` végzi a `src/sse/services/auth.ts` fájlban, majd ezek újra exportálásra kerülnek a `src/shared/utils/apiAuth.ts` fájlon keresztül. Az ellenőrző az `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` környezeti változókat is elfogadja állandó továbbítási kulcsként (#1350. probléma).
 
-### 2. Irányítópult-munkamenet (auth_token cookie)
+### 2. Vezérlőpult-munkamenet (auth_token cookie)
 
-Az irányítópult oldalaihoz és a rendszergazdai műveletekhez.
+A vezérlőpult oldalaihoz és az adminisztrátori műveletekhez.
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-Egy cookie csak akkor számít munkamenetnek, ha a JWT ellenőrzése sikeres, **és** tartalmazza az `authenticated: true` értéket
-(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). A cookie minden
-felhasználója (útvonalőr, az authz-folyamat frissítése, WebSocket-kézfogás, élő
-szerver, `/api/settings/require-login`, `/api/auth/status`) ezen a segédfüggvényen halad keresztül.
-Léteznek más, `JWT_SECRET` használatával aláírt JWT-k is — a Cursor CLI átengedési mechanizmusa
-`iss "omniroute" / aud "cursor-cli"` tokeneket bocsát ki a kulcsok birtokosai számára —, ezek azonban soha nem minősülnek munkamenetnek
+Egy cookie csak akkor számít munkamenetnek, ha a JWT ellenőrzése sikeres, **és** tartalmazza az `authenticated: true`
+értéket (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). A cookie minden
+felhasználója (a vezérlőpult útvonalvédelme (`isDashboardSessionAuthenticated()`), az authz-folyamat frissítése, a WebSocket-kézfogás, az élő
+szerver, `/api/settings/require-login`, `/api/auth/status`) ezen a segédfüggvényen keresztül működik.
+Léteznek más, `JWT_SECRET` használatával aláírt JWT-k is — a Cursor CLI-továbbítás
+`iss "omniroute" / aud "cursor-cli"` tokeneket állít ki a kulcsok birtokosai számára —, de ezek soha nem minősülnek munkamenetnek
 (#13298).
 
-A `src/shared/utils/apiAuth.ts` fájlban található `isDashboardSessionAuthenticated()` ellenőrzi. A folyamat automatikusan frissíti a JWT-t, ha a 30 napos élettartamából kevesebb mint 7 nap van hátra.
+Az ellenőrzést az `isDashboardSessionAuthenticated()` végzi a `src/shared/utils/apiAuth.ts` fájlban. A folyamat automatikusan frissíti a JWT-t, ha annak 30 napos élettartamából kevesebb mint 7 nap van hátra.
 
-Egyes kezelési útvonalak **mindkét** módot elfogadják: cookie VAGY `Bearer <key>`, ha az API-kulcs rendelkezik `manage` (vagy `admin`) hatókörrel. Ez teszi lehetővé a v3.8-ban bevezetett, „API-hívásokon keresztül konfigurálható” munkafolyamatot.
+Egy munkamenet a 30 nap letelte előtt is véget érhet, mivel minden kibocsátás a `mintDashboardSessionToken` függvényen keresztül történik (egy kibocsátási idővel, `iat`, és egy azonosítóval, `jti`), az ellenőrző pedig két beállítást vizsgál: a `sessionsValidAfter` értéket, amelyet egy jelszóváltoztatás állít be, így az előtte kibocsátott összes munkamenet ellenőrzése sikertelen lesz (a jelszót módosító böngésző friss cookie-t kap), valamint a `revokedDashboardSessions` értéket, amelyhez a `POST /api/auth/logout` hozzáadja a kijelentkeztetett munkamenet `jti` értékét. A régebbi kiadás által létrehozott munkamenetek egyik állítást sem tartalmazzák, és az első jelszóváltoztatásig érvényesek maradnak. Ha a beállítások nem olvashatók, a munkamenet nem tekinthető megbízhatónak.
 
-#### Opcionális OIDC-bejelentkezési védelem (#6973)
+Egyes felügyeleti útvonalak **bármelyik** módot elfogadják: cookie VAGY `Bearer <key>`, ha az API-kulcs rendelkezik `manage` (vagy `admin`) hatókörrel. Ez teszi lehetővé a v3.8 verzióban hozzáadott, „API-hívásokon keresztül konfigurálható” munkafolyamatot.
 
-Az irányítópult rendszergazdai bejelentkezése az alapértelmezett jelszavas bejelentkezés mellett egy **külön engedélyezhető** OIDC- (OpenID Connect-) folyamatot is támogat — a jelszavas bejelentkezés soha nem szűnik meg, csak kiegészül:
+#### Opcionális OIDC-bejelentkezési kapu (#6973)
 
-- Letiltva marad, hacsak a `settings.oidcEnabled === true` feltétel **és** az `oidcIssuer` /
+A vezérlőpult adminisztrátori bejelentkezése egy **külön engedélyezhető** OIDC- (OpenID Connect-) folyamatot is támogat
+az alapértelmezett jelszavas bejelentkezés mellett — a jelszavas bejelentkezés soha nem kerül eltávolításra, csak
+kiegészítésre:
+
+- Letiltva marad, hacsak a `settings.oidcEnabled === true` feltétel nem teljesül, **és** az `oidcIssuer` /
   `oidcClientId` / `oidcClientSecret` nincs mind konfigurálva (Beállítások → Hitelesítés).
   Ellenkező esetben a `GET /api/auth/oidc/login` `400` választ ad vissza.
-- A `GET /api/auth/oidc/login` felderíti az `authorization_endpoint` értékét a kibocsátó
-  `/.well-known/openid-configuration` végpontjáról (ennek hiányában az
-  `<issuer>/authorize` útvonalat használja), a bejövő kérésből összeállítja az átirányítási URI-t
+- A `GET /api/auth/oidc/login` lekéri az `authorization_endpoint` értékét a
+  kibocsátó `/.well-known/openid-configuration` végpontjáról (sikertelenség esetén az
+  `<issuer>/authorize` értéket használja), összeállítja az átirányítási URI-t a bejövő kérésből
   (figyelembe véve az `x-forwarded-proto` fejlécet), majd átirányít az IdP-hez egy véletlenszerű `state`
-  értékkel, amelyet egy `httpOnly` attribútumú `oidc_state` cookie tárol.
-- A `GET /api/auth/oidc/callback` ellenőrzi a `state` értékét, beváltja az engedélyezési
-  kódot, majd a kibocsátó JWKS-készletével ellenőrzi az ID-token aláírását
-  (a `jose` `createRemoteJWKSet` függvényével, JWKS URI-nként gyorsítótárazva), továbbá elvégzi az `issuer`/`audience`
-  ellenőrzéseket. Az opcionális `oidcAllowedSubjects` engedélyezési lista a token
-  `sub` jogcímével vagy `email` jogcímével keres egyezést — az e-mail-jogcímet csak akkor fogadja el,
-  ha `email_verified === true`, így az IdP-nél nem ellenőrzött e-mail-cím soha nem juthat át
-  a védelmen.
-- Siker esetén **pontosan ugyanazt** a 30 napos `auth_token` JWT-t bocsátja ki, mint a jelszavas
-  bejelentkezés (`src/app/api/auth/login/route.ts`), így az irányítópult
-  munkamenet-folyamatának többi része (automatikus frissítés, cookie-attribútumok) változatlan marad —
-  az OIDC csak a cookie kibocsátásának módját helyettesíti, nem az általa biztosított jogosultságokat.
+  értékkel, amelyet egy `httpOnly` `oidc_state` cookie tárol.
+- A `GET /api/auth/oidc/callback` ellenőrzi a `state` értéket, beváltja az engedélyezési
+  kódot, és ellenőrzi az ID-token aláírását a kibocsátó JWKS-én keresztül
+  (a `jose` `createRemoteJWKSet` függvényével, JWKS URI-nként gyorsítótárazva), `issuer`/`audience`
+  ellenőrzésekkel. Egy opcionális `oidcAllowedSubjects` engedélyezési lista illeszkedik a token
+  `sub` állítására vagy annak `email` állítására — az e-mail-címre vonatkozó állítás csak akkor vehető figyelembe, ha
+  `email_verified === true`, így az IdP-nél nem ellenőrzött e-mail-cím soha nem juthat át
+  a kapun.
+- Siker esetén **pontosan ugyanazt** a 30 napos `auth_token` JWT-t állítja ki, mint a jelszavas
+  bejelentkezés (`src/app/api/auth/login/route.ts`), így a vezérlőpult
+  munkamenet-folyamatának többi része (automatikus frissítés, cookie-jelzők) változatlan marad —
+  az OIDC csak azt váltja fel, hogy miként történik a cookie kiállítása, azt nem, hogy milyen jogosultságokat biztosít.
 
 ## Útvonalosztályok
 
@@ -198,26 +202,40 @@ A halmazt az alak, ne pedig a kényelmi szempontok alapján válaszd ki. Egyetle
 
 ## Hatókörök
 
-Az API-kulcsok egy `scopes` tömböt tartalmaznak (JSON-ként tárolva az `api_keys.scopes` mezőben, lásd: `src/lib/db/apiKeys.ts`).
+Három névtér. Minden ellenőrző csak a saját stringjeit olvassa. Az összehasonlítás,
+beleértve azt is, hogy miért hiúsul meg a `manage` a `scopeMatches` ellenőrzésen
+a `read:compression` esetében, és miért nem tud egy `read` hozzáférési token
+`PATCH /api/keys/{id}` kérést végrehajtani, itt található:
+[Három hatókör névtér](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Felügyeleti hatókör
+Az API kulcsok tartalmaznak egy `scopes` tömböt (JSON formátumban tárolva az
+`api_keys.scopes` mezőben, lásd `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — hozzáférést biztosít a kulcs számára a felügyeleti API-végpontokhoz, ha Bearer-tokenként küldik el.
+### Kezelési hatókör
 
-### MCP-hatókörök (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Bearer hozzáférés a kezelési API útvonalakhoz.
+- Az `mcp:connect`, `self:usage`, `self:account-quota` és
+  `policy:bypass-provider-quota` additív, pontosan egyező hatókörök. Ezek
+  kívül esnek a `MANAGEMENT_API_KEY_SCOPES` hatókörön. Az `mcp:connect` csak
+  az `/api/mcp/` nem-loopback kivágást nyitja meg.
 
-Minden MCP-eszköz meghatározott hatóköröket igényel az `MCP_TOOL_SCOPES` alapján. A teljes lista (`MCP_SCOPE_LIST`):
+### MCP eszköz hatókörök
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Katalógus és illesztési szabályok (azonos string, vagy egy `*`-ra végződő
+megadott hatókör): [MCP eszköz hatókörök](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+Az `MCP_SCOPE_LIST` a `src/shared/constants/mcpScopes.ts` fájlban az eredeti
+típusos részhalmaz, nem a teljes katalógus. A kényszerítés az
+`open-sse/mcp-server/scopeEnforcement.ts` fájlban fut, miután a
+`resolveCallerScopeContext()` feloldja a hatóköröket az MCP hitelesítési
+információkból, a kérés metaadataiból vagy az `OMNIROUTE_MCP_SCOPES` alapján.
+Ez kikapcsolva marad, hacsak az `OMNIROUTE_MCP_ENFORCE_SCOPES=true` nincs beállítva.
 
-A hatókörök kikényszerítése az `open-sse/mcp-server/server.ts` fájlban minden eszköz hatókörlistáját átadja az
-`evaluateToolScopes()` függvénynek, miután a `resolveCallerScopeContext()` feloldotta a hatóköröket az MCP hitelesítési adataiból,
-a kérés metaadataiból vagy az `OMNIROUTE_MCP_SCOPES` változóból.
+### Hozzáférési token hatókörök
+
+`read` / `write` / `admin` az `oma_live_…` tokeneken, a `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`) alapján rangsorolva. Ez a rangsor csak a
+hozzáférési token hitelesítő adatokra vonatkozik. Lásd:
+[Kezelési hitelesítés](../guides/MANAGEMENT-AUTH.md).
 
 ## Hitelesítési követelmény kapcsolója
 
@@ -266,6 +284,6 @@ A kezelőkön belül használja az `assertAuth(req, expectedClass)` függvényt 
 ## Lásd még
 
 - [API_REFERENCE.md](../reference/API_REFERENCE.md) — hitelesítési jelölő végpontonként
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — hitelesítési események naplója
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — az MCP-hatókörök kikényszerítésének részletei
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — naplózási napló hitelesítési eseményekhez
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — három hatókör-névtér és MCP eszköz-hatókör katalógus
 - Forrás: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

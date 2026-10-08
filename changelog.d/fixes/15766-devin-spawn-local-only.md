@@ -1,0 +1,1 @@
+- **fix(authz):** gate the Devin CLI-spawn fallback on peer locality so a leaked JWT via tunnel cannot spawn processes ([#15766](https://github.com/diegosouzapw/OmniRoute/pull/15766)) — thanks @jonlwheat2-gif

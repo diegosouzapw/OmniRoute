@@ -1,6 +1,6 @@
 # Resilience Guide (Svenska)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
 
 ---
 
@@ -67,80 +67,140 @@ i stället den exponentiella backoffen `minRetryCooldownMs → maxRetryCooldownM
 `OMNIROUTE_PROVIDER_BREAKER_{OAUTH,API_KEY}_{FAILURE_THRESHOLD,FAILURE_WINDOW_MS,COOLDOWN_MS}`.
 Regressionsskydd: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
-## 2. Nedkylningsperiod för anslutningar
+## 2. Anslutningens väntetid
 
 **Omfattning:** en enskild leverantörsanslutning/ett enskilt konto/en enskild nyckel.
 
-**Syfte:** hoppa över en felaktig nyckel medan andra anslutningar för samma leverantör fortsätter att hantera trafik.
+**Syfte:** hoppa över en felaktig nyckel medan andra anslutningar för samma leverantör fortsätter betjäna förfrågningar.
 
 **Implementering:**
 
 - Markera som otillgänglig: `src/sse/services/auth.ts::markAccountUnavailable()`
 - Val: `getProviderCredentials*` i samma fil
-- Beräkning av nedkylningsperiod: `open-sse/services/accountFallback.ts::checkFallbackError()`
+- Beräkning av väntetid: `open-sse/services/accountFallback.ts::checkFallbackError()`
 - Inställningar: `src/lib/resilience/settings.ts`
 
 **Fält per anslutning:**
 
-- `rateLimitedUntil` — tidsstämpel fram till dess att nedkylningsperioden löper ut
+- `rateLimitedUntil` — tidsstämpel för när väntetiden löper ut
 - `testStatus: "unavailable"`
 - `lastError`, `lastErrorType`, `errorCode`
 - `backoffLevel` — räknare för exponentiell backoff
 
-**Förvalda nedkylningsperioder:**
+**Standardväntetider:**
 
-- OAuth-bas: 5 s
-- API-nyckelbas: 3 s
-- API-nyckel 429: föredrar uppströms `Retry-After`-/återställningshuvuden eller tolkbar återställningstext
+- OAuth-bas: 5s
+- API-nyckelbas: 3s
+- API-nyckel 429: föredrar uppströms `Retry-After`-/återställningshuvuden/tolkningsbar återställningstext
 - Backoff: `baseCooldownMs * 2 ** failureIndex`
 
-**Skydd mot samtidiga anropsstormar:** förhindrar att samtidiga fel förlänger nedkylningsperioden för mycket eller ökar `backoffLevel` dubbelt.
+**Skydd mot stampede-effekt:** förhindrar att samtidiga fel förlänger väntetiden för mycket eller ökar `backoffLevel` dubbelt.
 
-**Sluttillstånd (INTE nedkylningsperioder):**
+**Sluttillstånd (INTE väntetider):**
 
-- `banned` — anges vid identifiering av förbjudna nyckelord/kontospärrar (se [BAN_DETECTION](../security/BAN_DETECTION.md)) och vid tre på varandra följande uppströmsavslag per begäran (`request_rejected`, t.ex. Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); ett enskilt avslag försätter endast anslutningen i en nedkylningsperiod
-- `expired` (övergår till ett sluttillstånd efter ett begränsat antal återförsök — `EXPIRED_RETRY_MAX = 3` med exponentiell backoff — så att övergående OAuth-fel kan självläka innan kontot inaktiveras permanent)
+- `banned` — anges vid identifiering av förbjudna nyckelord/kontoblockering (se [BAN_DETECTION](../security/BAN_DETECTION.md)) och vid tre på varandra följande avvisningar per begäran från uppströmstjänsten (`request_rejected`, t.ex. Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); en enskild avvisning försätter endast anslutningen i vänteläge
+- `expired` (övergår till ett sluttillstånd efter ett begränsat antal återförsök — `EXPIRED_RETRY_MAX = 3` med exponentiell backoff — så att tillfälliga OAuth-fel kan självläka innan kontot avaktiveras permanent)
 - `credits_exhausted`
 
-Dessa kvarstår tills autentiseringsuppgifterna ändras eller en operatör återställer dem. Skriv inte över sluttillstånd med ett tillfälligt nedkylningstillstånd.
+Dessa kvarstår tills autentiseringsuppgifterna ändras eller en operatör återställer dem. Skriv inte över sluttillstånd med ett tillfälligt väntetillstånd.
 
-**Lat återställning:** när `rateLimitedUntil` har passerat blir anslutningen valbar igen. Efter framgångsrik användning rensar `clearAccountError()` alla felfält.
+**Lat återställning:** när `rateLimitedUntil` har passerat blir anslutningen valbar igen. Vid framgångsrik användning rensar `clearAccountError()` alla felfält.
 
-### Sessionsaffinitet (#7274)
+### Claudes OAuth-användningsgräns: fil med lägre prioritet + återställning av sessionsgräns
 
-**Omfattning:** en klientsession (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`-huvud) fästs vid en anslutning, för **valfri** leverantör.
-
-**Syfte:** behålla en agent med flera interaktionssteg (Claude Code, aider, anpassade agenter) på samma konto mellan begäranden, vilket minskar kontextförlust mellan konton och upprepade 429-fel vid kallstart hos leverantörer med sessionsstatus per konto.
+**Omfattning:** en Claude-prenumerationsanslutning (OAuth). Båda funktionerna är **valfria per
+anslutning** (Redigera anslutning → Claude-avsnittet → `lowPriorityMode` / `autoLimitReset` i
+`providerSpecificData`, båda är avstängda som standard) och motsvarar Claude Codes kommandon `/low-priority` och
+`/limit-reset` (protokollkontraktet hämtat från Claude Code 2.1.263).
 
 **Implementering:**
 
-- TTL-matchning: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
-- Val/skapande av fästning: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
-- Extrahering av huvud (generisk, valfri leverantör): `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- Beständig fästningstabell: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- Inställning: `sessionAffinityTtlMs` (global TTL i ms, `0` inaktiverar) — `src/lib/db/settings.ts`. Namnet ändrades från den Codex-specifika `codexSessionAffinityTtlMs` genom migreringen `124_generic_session_affinity_ttl.sql`, som överför en eventuell tidigare konfigurerad Codex-TTL som det nya standardvärdet.
+- Tillståndsmaskin + svarsklassificering: `open-sse/services/claudeLowPriority.ts`
+- Klient för återställningsstatus/anspråk: `open-sse/services/claudeLimitReset.ts`
+- Exekveringskrok (huvudinjektion + återförsök med samma konto): `open-sse/executors/base.ts::execute()`
+- Beständig lagring av aktivering: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
 
-Före #7274 avbröt `resolveSessionAffinityTtlMs()` omedelbart med `0` för alla leverantörer utom `codex`, så TTL-inställningen (och sessionshuvudena) hade ingen effekt någon annanstans, trots att fästningsmekanismen och extraheringen av huvuden redan var leverantörsoberoende. Korrigeringen tog bort denna tidiga retur; TTL-värdet tillämpas nu enhetligt på alla leverantörer när det globala värdet är större än `0`.
+**Utlösare:** 5-timmarsgränsen för användning — ett `429` vars huvuden innehåller
+`anthropic-ratelimit-unified-status: rejected` och, när kontot är berättigat,
+`anthropic-ratelimit-unified-slow-offer: treatment`. Inget skickas före detta första
+429-svar för gränsen; ett plötsligt 429-svar utan unified-huvuden går genom den normala väntetidsvägen.
 
-De tre sessionsaffinitetshuvudena vidarebefordras aldrig uppströms — exekverare bygger sina egna uppströmshuvuden från grunden i stället för att vidarebefordra klienthuvuden, så detta förblir endast ett internt korrelations-id.
+**Fil med lägre prioritet** (`lowPriorityMode`):
 
-### Exklusiva anslutningsleasingar för hanterade sessioner
+- Vid 429-svaret för gränsen accepterar exekveraren erbjudandet och försöker omedelbart igen med **samma**
+  konto och `anthropic-usage-limit: slow`; filen förblir aktiv fram till den tillkännagivna
+  `anthropic-ratelimit-unified-reset` (+60s respitperiod), och varje begäran inom det tidsfönstret innehåller
+  huvudet. Det uppfångade 429-svaret når aldrig `handleChatCore`, så anslutningen
+  försätts **inte** i vänteläge och byts inte ut.
+- `anthropic-ratelimit-unified-slow-status` i senare svar: `active` / `not_needed`
+  behåller filen; `slot_busy` (429) eller ett `529` inväntar serverns
+  `anthropic-ratelimit-unified-slow-retry-after` (standard 20s, begränsat till 5–600s, ±30% jitter)
+  och försöker igen, begränsat av `anthropic-ratelimit-unified-slow-max-wait` (standard 20 min, begränsat
+  till 1 min–6 h) — därefter avslutas filen och en 10 minuter lång avsvalningsperiod blockerar nytt accepterande. Väntetiden
+  begränsas dessutom av den återstående tiden för begärans egen tidsgräns för uppströmsstart
+  (`resolveFetchStartTimeout`, 10 min som standard) minus en marginal på 5 s: utan denna begränsning skulle
+  den maximala standardväntetiden på 20 minuter överleva begäran och vilan skulle avbrytas
+  mitt under väntan, vilket skulle exponera ett `TimeoutError` i stället för det kontrollerade `max_wait`-avslutet + avsvalningsperioden.
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, övergången till ett nytt 5-timmarsfönster eller
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (vilket avslutar filen som
+  `extra_usage` oavsett status, eftersom betald överförbrukning nu täcker gränsen) avslutar filen;
+  svaret går därefter vidare till den normala väntetidsvägen. `budget_exhausted` koms ihåg fram till
+  den tillkännagivna budgetåterställningen (≤ 8 dagar).
+- Gränskontrollen körs efter exekverarens egna 400-utlösta återförsök inom försöket (kontextredigering,
+  begränsning av tänkande/ansträngning, automatisk parameterinlärning), så att ett 429-svar för gränsen som endast uppstår vid
+  ett av dessa återförsök fortfarande fångas upp i stället för att nå väntetidsvägen.
+- Tillståndet lagras i minnet per anslutning (en omstart medför ett extra 429-svar för gränsen innan erbjudandet accepteras igen).
 
-**Omfattning:** en aktiv hanterad HTTP-klient/session äger en valbar OmniRoute-anslutning.
+**Återställning av sessionsgräns** (`autoLimitReset`, provas före filen när båda är aktiverade):
 
-**Syfte:** tillhandahålla beständigt exklusivt anslutningsägande för klienter som behöver en strikt dirigeringsbarriär mellan begäranden. Detta skiljer sig från sessionsaffinitet, som är en mjuk kontinuitetspreferens: en exklusiv leasing lagrar livscykelstatus i SQLite, upprätthåller global unikhet för aktiva ägare och aktiva anslutningar samt avvisar en inaktuell generation före leverantörsdispatch.
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → `juniper_tide`-
+  block; när `arm: "reset"` och `available: true`,
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` med
+  `{ "program": "juniper_tide" }` (organisationens UUID från
+  `providerSpecificData.organizationUUID`, reservvärde från bootstrap).
+- `result: reset|not_limited` → begäran görs om med full hastighet (inget slow-huvud).
+  `already_used` / `not_offered` memorerar `next_available_at` (standard en vecka); alla
+  fel ger 15 minuters backoff. Återställningen kan göras en gång i veckan och räknas fortfarande mot
+  veckogränsen.
 
-Funktionen aktiveras separat per API-nyckel. En hanterad nyckel måste ha omfånget `lease:exclusive` och en explicit icke-tom `allowedConnections`-lista. Alla HTTP-klienter kan använda livscykelslutpunkten; inget klientnamn, ingen user-agent, leverantör, OAuth-metod eller modell krävs. Leasingen äger en anslutning, inte en modell, så ett modellbyte behåller bindningen så länge anslutningen förblir valbar enligt ordinarie regler. Normala regler för modell, kvot, hälsa, nedkylningsperiod och tillåtelselista förblir styrande och kan flytta samma generation till en annan ledig och valbar anslutning.
+Regressionsskydd: `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
 
-Livscykeln är `POST /api/v1/session-leases` med JSON-åtgärderna `acquire`, `renew` och `release`. Hanterade inferensbegäranden tillhandahåller det ogenomskinliga värdet `X-OmniRoute-Lease-Owner` och det exakta `X-OmniRoute-Lease-Generation`. Ägaren använder `vlo_` följt av 43 base64url-tecken; endast dess SHA-256-hash lagras. Varje slutlig dispatchbarriär binder även det autentiserade API-nyckel-id:t och det aktiva anslutnings-id:t. Leasingkontrollhuvuden tas bort från loggar, sparade ögonblicksbilder av begäranden och uppströmsexekverarnas huvuden.
+### Sessionsaffinitet (#7274)
 
-Om den ordinarie dirigeringen har valbara hanterade kandidater men varje ledig kandidat är upptagen av en främmande aktiv leasing, returnerar OmniRoute HTTP `429`, koden lease-capacity-unavailable, ett tillstånd som väntar på kapacitet och ett begränsat `Retry-After` som härleds från den tidigaste relevanta utgångstiden. Vanlig tom valbarhet är inte leasingkonkurrens och behåller sin befintliga semantik för dirigeringsfel.
+**Omfattning:** en klientsession (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`-huvud) som är fäst vid en anslutning, för **alla** leverantörer.
+
+**Syfte:** behålla en agent med flera interaktioner (Claude Code, aider, anpassade agenter) på samma konto mellan förfrågningar, vilket minskar kontextförlust mellan konton och upprepade 429-fel vid kallstart hos leverantörer med sessionsstatus per konto.
+
+**Implementering:**
+
+- TTL-upplösning: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
+- Val/skapande av bindning: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
+- Extrahering av headers (generiskt, valfri leverantör): `src/sse/services/auth.ts::extractSessionAffinityKey()`
+- Beständig bindningstabell: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- Inställning: `sessionAffinityTtlMs` (global TTL i ms, `0` inaktiverar) — `src/lib/db/settings.ts`. Bytte namn från den Codex-specifika `codexSessionAffinityTtlMs` genom migreringen `124_generic_session_affinity_ttl.sql`, som överför en eventuell tidigare konfigurerad Codex-TTL som det nya standardvärdet.
+
+Före #7274 avbröt `resolveSessionAffinityTtlMs()` direkt med `0` för alla leverantörer utom `codex`, så TTL-inställningen (och sessionsheaders) hade ingen effekt någon annanstans, trots att bindningsmekanismen och extraheringen av headers redan var leverantörsagnostiska. Korrigeringen tog bort denna tidiga retur; TTL-värdet gäller nu enhetligt för alla leverantörer när det globala värdet har angetts till mer än `0`.
+
+De tre headers som används för sessionsaffinitet vidarebefordras aldrig uppströms — exekverare bygger sina egna uppströmsheaders från grunden i stället för att vidarebefordra klientheaders, så detta förblir endast ett internt korrelations-id.
+
+### Exklusiva hanterade anslutningsleasingar för sessioner
+
+**Omfattning:** en aktiv hanterad HTTP-klient/session äger en berättigad OmniRoute-anslutning.
+
+**Syfte:** tillhandahålla ett beständigt exklusivt ägarskap av anslutningar för klienter som behöver en strikt routningsbarriär mellan förfrågningar. Detta skiljer sig från sessionsaffinitet, som är en mjuk preferens för kontinuitet: en exklusiv leasing lagrar livscykelstatus i SQLite, framtvingar global unikhet för aktiva ägare och aktiva anslutningar samt avvisar en inaktuell generation före leverantörsdispatch.
+
+Funktionen är valfri per API-nyckel. En hanterad nyckel måste ha omfånget `lease:exclusive` och en explicit lista `allowedConnections` som inte är tom. Alla HTTP-klienter kan använda livscykelslutpunkten; inget klientnamn, ingen user-agent, leverantör, OAuth-metod eller modell krävs. Leasingen äger en anslutning, inte en modell, så ett modellbyte behåller bindningen så länge anslutningen fortfarande är berättigad enligt de vanliga reglerna. Normala regler för modell, kvot, hälsa, nedkylning och tillåtelselista är fortsatt styrande och kan flytta samma generation till en annan ledig berättigad anslutning.
+
+Livscykeln är `POST /api/v1/session-leases` med JSON-åtgärderna `acquire`, `renew` och `release`. Hanterade inferensförfrågningar skickar det ogenomskinliga värdet `X-OmniRoute-Lease-Owner` och det exakta värdet `X-OmniRoute-Lease-Generation`. Ägarvärdet använder `vlo_` följt av 43 base64url-tecken; endast dess SHA-256-hash lagras. Varje slutlig dispatchbarriär binder även det autentiserade API-nyckel-ID:t och det aktiva anslutnings-ID:t. Kontrollheaders för leasing tas bort från loggar, sparade ögonblicksbilder av förfrågningar och uppströmsheaders för exekverare.
+
+Om vanlig routning har berättigade hanterade kandidater men varje ledig kandidat är upptagen av en främmande aktiv leasing returnerar OmniRoute HTTP `429`, koden lease-capacity-unavailable, statusen waiting-for-capacity och ett begränsat `Retry-After` som härleds från den tidigaste relevanta utgångstiden. Vanlig tom berättigandemängd är inte leasingkonkurrens och behåller sin befintliga felhantering för routning.
 
 Relaterade mekanismer förblir separata:
 
-- OAuth-sessionsbeläggning är en processlokal mjuk fördelning för OAuth-konton.
-- Kontosemaforer beviljar behörigheter för samtidiga begäranden och upphör när en begäran slutförs.
-- Exklusiva leasingar för hanterade sessioner är beständigt livscykelägande med en generationsbarriär.
+- OAuth-sessionsbeläggning är processlokal mjuk fördelning för OAuth-konton.
+- Kontosemaforer beviljar tillstånd för samtidiga förfrågningar och upphör när en förfrågan slutförs.
+- Exklusiva hanterade sessionleasingar är beständigt livscykelägarskap med en generationsbarriär.
 
 ---
 
@@ -270,48 +330,73 @@ per modell. Begränsas av `comboCooldownWait` (`enabled`, `maxWaitMs`, `maxAttem
 
 ---
 
-## 5. Inträdeskontroll för förfrågningskö (v3.8.49 · ärende #6593)
+## 5. Inträdeskontroll för begärandekön (v3.8.49 · ärende #6593)
 
 **Omfattning**: den lokala hastighetsbegränsningskön per leverantör+anslutning (`open-sse/services/rateLimitManager.ts`,
-som stöds av Bottleneck), ett lager under de tre mekanismerna ovan.
+med Bottleneck som grund), ett lager under de tre mekanismerna ovan.
 
-**`maxWaitMs` är ett äldre beständigt namn för exekveringsförfallotid.**
-`resilienceSettings.requestQueue.maxWaitMs` skickas till Bottleneck som ett jobbvärde för
-`expiration`, vars timer startar först efter dirigering. Det begränsar därför
-limiterarhanterad exekvering, inte tiden som tillbringas i den lokala kön. Förfallotiden
-visas som den betrodda lokala koden `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504);
-det tidigare kodnamnet för tidsgräns i kön godtas endast för betrodd intern
-bakåtkompatibilitet. Standardvärdet är 15000ms; åsidosätt det via
-`RATE_LIMIT_MAX_WAIT_MS` (miljövariabel) eller kontrollpanelen (**Inställningar → Feltolerans**,
-UI-tak på 1–30000ms). Vistelsen i kön har ingen tidsgräns; använd
-`maxQueueDepth` nedan för att begränsa antalet köande anropare.
+**`maxWaitMs` begränsar kötiden; `executionMaxWaitMs` begränsar körningen.**
+De två är avsiktligt separata, och ingen av dem påverkar den andra.
+
+`resilienceSettings.requestQueue.maxWaitMs` är **budgetgränsen för väntan i kön**: den
+omfattar väntan på en leverantörsplats och tiden därefter i tillståndet QUEUED, och dess timer
+nollställs i samma ögonblick som jobbet lämnar QUEUED och börjar köras
+(`rateLimitManager.ts`, `wrappedFn`). En begäran som överskrider gränsen når
+aldrig uppströmsservern. Standardvärdet är 30000ms, tillhandahållet av `DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS`
+i `src/lib/resilience/settings.ts` och verifierat av
+`tests/unit/ratelimit-admission-control-6593.test.ts`, så att en ändring gör
+testet rött i stället för att detta stycke obemärkt blir inaktuellt.
+
+`resilienceSettings.requestQueue.executionMaxWaitMs` är det som Bottleneck
+tar emot som jobbets `expiration`, vars timer startar först efter att jobbet har skickats. Det fungerar
+som ett skydd för exekverare som saknar en egen timeout uppströms, och det
+höjs till exekverarens egen timeout för start av hämtning när den är längre, så att det
+inte kan avbryta ett felfritt pågående svar. Standardvärdet är 600000ms (10 min).
+
+Att mata in köbudgeten i `expiration` var det som tidigare avbröt icke-inkrementella
+gatewayer mitt under körningen — de kör legitimt i flera minuter innan de första bytevärdena anländer —
+och det är därför en förfallotid exponeras som `code:
+"RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504), medan köbudgeten använder
+kötidsgränskoden. Åsidosätt någon av dem via `RATE_LIMIT_MAX_WAIT_MS` /
+`RATE_LIMIT_EXECUTION_MAX_WAIT_MS` (miljövariabel) eller instrumentpanelen
+(**Inställningar → Motståndskraft**). Båda begränsas till 1ms–24h vid normalisering.
+
+**Prioritetsordning, för båda:** miljövariabeln anger endast _standardvärdet_. Ett värde
+som sparats i `resilienceSettings.requestQueue` (instrumentpanel/API-patch, lagrat
+i `key_value`) har företräde, och ett anslutningsspecifikt
+`rateLimitOverrides.maxWaitMs` / `.executionMaxWaitMs` har företräde framför det. Att ange
+miljövariabeln i en distribution som redan har ett sparat värde
+ändrar därför ingenting — rensa eller uppdatera den sparade inställningen i stället.
+
+Tiden i kön begränsas av `maxWaitMs`; `maxQueueDepth` nedan begränsar hur
+många anropare som får stå i kö samtidigt.
 
 **`maxQueueDepth` — valfritt inträdestak (nytt).** `resilienceSettings.requestQueue.maxQueueDepth`
-begränsar hur många förfrågningar som samtidigt får vänta i kön (ännu inte dirigerade) för en
+begränsar hur många begäranden som samtidigt får stå i kö (ännu inte skickade) för en
 leverantör+anslutning. När kön redan innehåller `maxQueueDepth`
-förfrågningar snabbavvisas en ny förfrågan med ett typat
+begäranden snabbavvisas en ny begäran med ett typat
 `code: "RATE_LIMIT_QUEUE_FULL"`-fel **innan** den någonsin når `limiter.schedule()`
-— avvisningen är därför billig och sker före allt efterföljande arbete med
-promptkomprimering/översättning för den förfrågan. Standardvärdet `0` =
-inaktiverat, vilket bevarar det befintliga beteendet med obegränsad kö; begränsat till 0–100000.
+— avvisningen är därför billig och sker före eventuellt efterföljande arbete med
+promptkomprimering/översättning för den begäran. Standardvärdet `0` =
+inaktiverat, vilket bevarar det befintliga beteendet med en obegränsad kö; begränsat till 0–100000.
 Åsidosätt via `RATE_LIMIT_MAX_QUEUE_DEPTH` (miljövariabel) eller
-`resilienceSettings.requestQueue.maxQueueDepth` (korrigering via kontrollpanel/API).
+`resilienceSettings.requestQueue.maxQueueDepth` (instrumentpanel/API-patch).
 
 Själva inträdeskontrollen är en ren funktion
-(`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`) så
-den kan enhetstestas utan en riktig Bottleneck-begränsare.
+(`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`) så att
+den kan enhetstestas utan en verklig Bottleneck-begränsare.
 
-> RFC:n som öppnade #6593 föreslog även en flagga för `bypassCompressionOnRateLimit`.
-> Den här kodbasens pipeline i `open-sse/services/compression/` används för
-> prompt-/kontextkomprimering av den utgående LLM-förfrågan (`chatCore.ts`,
-> runt blocket `resolveCompressionSettings`/`selectCompressionStrategy`),
-> inte för HTTP-svarskomprimering av syntetiserade 429-svar — det finns ingen
+> RFC:n som öppnade #6593 föreslog även en `bypassCompressionOnRateLimit`-
+> flagga. Pipelinesystemet i detta repos `open-sse/services/compression/` är
+> prompt-/kontextkomprimering för den utgående LLM-begäran (`chatCore.ts`,
+> omkring blocket `resolveCompressionSettings`/`selectCompressionStrategy`),
+> inte HTTP-svarskomprimering av syntetiserade 429-svar — det finns ingen
 > motsvarande kodväg för en bokstavlig förbikopplingsflagga. Det steget för promptkomprimering
-> körs dessutom för närvarande _före_ `withRateLimit()` i förfrågningspipelinen, så
-> att ändra ordningsföljden för att hoppa över det vid ett avvisande på grund av full kö är en separat och större
-> ändring än omfattningen för detta ärende. Det implementerades avsiktligt **inte**
+> körs dessutom för närvarande _före_ `withRateLimit()` i begärandepipelinen, så
+> en omordning för att hoppa över det vid ett avvisande på grund av full kö är en separat och större
+> ändring än vad som omfattas av detta ärende; den implementerades avsiktligt **inte**
 > här och lämnas som en uppföljning om CPU-besparingen är värd
-> risken med att ändra ordningsföljden.
+> risken med omordningen.
 
 ---
 

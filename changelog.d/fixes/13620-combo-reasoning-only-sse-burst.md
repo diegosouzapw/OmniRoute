@@ -1,1 +1,0 @@
-- **fix(sse):** stream reasoning deltas from combo targets incrementally instead of buffering them into a single burst, and stop rejecting reasoning-only streams as an empty completion (#13620) — thanks @NaNomicon

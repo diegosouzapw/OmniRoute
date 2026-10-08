@@ -61,7 +61,7 @@ export function stripGpt5SamplingWhenReasoning<T extends Record<string, unknown>
   log?: { warn?: (tag: string, message: string) => void } | null
 ): T {
   if (provider !== "openai") return body;
-  if (typeof model !== "string" || !/^gpt-5/i.test(model)) return body;
+  if (typeof model !== "string" || !/^gpt-[56]/i.test(model)) return body;
 
   const record = asRecord(body);
   if (!record) return body;
@@ -130,7 +130,7 @@ export function stripGpt5ReasoningWhenTools<T extends Record<string, unknown>>(
   log?: { warn?: (tag: string, message: string) => void } | null
 ): T {
   if (provider !== "openai") return body;
-  if (typeof model !== "string" || !/^gpt-5/i.test(model)) return body;
+  if (typeof model !== "string" || !/^gpt-[56]/i.test(model)) return body;
   // Already routed to /v1/responses (e.g. GPT-5.6, #7242) — that endpoint
   // supports tools + reasoning natively, nothing to strip.
   if (targetFormat === FORMATS.OPENAI_RESPONSES) return body;

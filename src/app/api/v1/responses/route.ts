@@ -1,10 +1,12 @@
 import { z } from "zod";
 import { handleChat } from "@/sse/handlers/chat";
+import { logAdmissionRejection } from "@/sse/handlers/admissionRejectionLog";
 import { CORS_HEADERS } from "@/shared/utils/cors";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { resolveResponsesApiModel } from "@/app/api/internal/codex-responses-ws/modelResolution";
 import { getModelInfo, getComboForModel } from "@/sse/services/model";
 import { generateRequestId } from "@/shared/utils/requestId";
+import { resolveIncomingCorrelationId } from "@/shared/utils/correlationPreserve.ts";
 import {
   admitChatRequest,
   admitChatStructure,
@@ -20,6 +22,7 @@ import {
   withEarlyStreamKeepalive,
   OPENAI_RESPONSES_ERROR_FRAME,
 } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
+import { createStreamDeadlineSignal } from "@omniroute/open-sse/utils/streamDeadlineSignal";
 import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
 import { OPENAI_RESPONSES_IN_PROGRESS_FRAME } from "@omniroute/open-sse/utils/sseHeartbeat";
 
@@ -98,17 +101,29 @@ export async function withCodexPreferredModel(
  * Handled by the unified chat handler (openai-responses format auto-detected).
  */
 async function postHandler(request: any) {
+  // Keep the framework Request untouched until the route has parsed enough state
+  // to know this is a streaming response. Deadline lifecycle belongs to that branch.
   const sessionId = resolveSessionId(request);
   const admissionResult = await admitChatRequest(request, {
     sessionId,
     queueMs: CHAT_ADMISSION_QUEUE_MAX_MS,
   });
-  if (admissionResult.admit === false) return admissionResult.response;
+  if (admissionResult.admit === false) {
+    void logAdmissionRejection(admissionResult.response, {
+      path: new URL(request.url).pathname,
+      model: "-",
+      requestBody: null,
+      apiKeyId: null,
+      apiKeyName: null,
+      correlationId: resolveIncomingCorrelationId(request.headers.get("x-correlation-id")),
+    });
+    return admissionResult.response;
+  }
 
   const admission = admissionResult;
   request = admission.request;
   const finishAdmission = (response: Response) =>
-    releaseChatAdmissionWhenDone(response, admission.lease);
+    releaseChatAdmissionWhenDone(response, admission.lease, { signal: request.signal });
 
   try {
     let parsedBody;
@@ -129,6 +144,14 @@ async function postHandler(request: any) {
       signal: request.signal,
     });
     if (structuralAdmission.admit === false) {
+      void logAdmissionRejection(structuralAdmission.response, {
+        path: new URL(request.url).pathname,
+        model: typeof parsedBody?.model === "string" && parsedBody.model ? parsedBody.model : "-",
+        requestBody: parsedBody ?? null,
+        apiKeyId: null,
+        apiKeyName: null,
+        correlationId: resolveIncomingCorrelationId(request.headers.get("x-correlation-id")),
+      });
       admission.lease?.release();
       return finishAdmission(structuralAdmission.response);
     }
@@ -185,12 +208,16 @@ async function postHandler(request: any) {
     if (wantsStreaming) {
       const thresholdMs = resolveKeepaliveThreshold(resolvedBody?.model);
       const correlationId = generateRequestId();
+      const { signal: streamSignal, deadlineController } = createStreamDeadlineSignal(
+        request.signal
+      );
       const handlerResponse = releaseChatAdmissionAfterHandler(
-        handleChat(resolved, null, resolvedBody, correlationId),
-        admission.lease
+        handleChat(resolved, null, resolvedBody, correlationId, streamSignal),
+        admission.lease,
+        { signal: streamSignal }
       );
       return await withEarlyStreamKeepalive(handlerResponse, {
-        signal: request.signal,
+        signal: streamSignal,
         thresholdMs,
         startupFrame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
         applicationKeepalive: {
@@ -199,6 +226,7 @@ async function postHandler(request: any) {
         },
         errorFrame: OPENAI_RESPONSES_ERROR_FRAME,
         correlationId,
+        deadlineController,
       });
     }
 

@@ -134,6 +134,19 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     ...GPT_5_6_MODEL_SPEC,
     aliases: ["openai/gpt-6-astra"],
   },
+  // #15023: Sol and Luna were missing from the spec map; the public API context
+  // window is 1,050,000 (same as Astra). Without an entry, getModelSpec() returned
+  // undefined and any spec-aware path (capability filter, compaction guard) fell
+  // back to 128k, the same wrong value advertised by the importer.
+  "gpt-6-sol": {
+    ...GPT_5_6_MODEL_SPEC,
+    aliases: ["openai/gpt-6-sol"],
+  },
+  "gpt-6-luna": {
+    ...GPT_5_6_MODEL_SPEC,
+    aliases: ["openai/gpt-6-luna"],
+  },
+  "gpt-6.1-sol": GPT_5_6_MODEL_SPEC,
   "gpt-5.6": {
     ...GPT_5_6_MODEL_SPEC,
     aliases: ["openai/gpt-5.6"],
@@ -197,54 +210,6 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
     supportsVision: true,
   },
-  // Output limit published at https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash.
-  // Thinking budgets follow the 3.7 Flash high/medium/low/tiered split.
-  "gemini-3.8-flash-high": {
-    maxOutputTokens: 65536,
-    contextWindow: 1048576,
-    defaultThinkingBudget: 24576,
-    thinkingBudgetCap: 24576,
-    supportsThinking: true,
-    supportsTools: true,
-    supportsVision: true,
-  },
-  "gemini-3.8-flash-medium": {
-    maxOutputTokens: 65536,
-    contextWindow: 1048576,
-    defaultThinkingBudget: 8192,
-    thinkingBudgetCap: 24576,
-    supportsThinking: true,
-    supportsTools: true,
-    supportsVision: true,
-  },
-  "gemini-3.8-flash-low": {
-    maxOutputTokens: 65536,
-    contextWindow: 1048576,
-    defaultThinkingBudget: 1024,
-    thinkingBudgetCap: 24576,
-    supportsThinking: true,
-    supportsTools: true,
-    supportsVision: true,
-  },
-  "gemini-3.8-flash": {
-    maxOutputTokens: 65536,
-    contextWindow: 1048576,
-    defaultThinkingBudget: 8192,
-    thinkingBudgetCap: 24576,
-    supportsThinking: true,
-    supportsTools: true,
-    supportsVision: true,
-    aliases: ["gemini-3.8-flash-tiered"],
-  },
-  "gemini-3.8-flash-tiered": {
-    maxOutputTokens: 65536,
-    contextWindow: 1048576,
-    defaultThinkingBudget: 8192,
-    thinkingBudgetCap: 24576,
-    supportsThinking: true,
-    supportsTools: true,
-    supportsVision: true,
-  },
 
   // Gemini 3.7 Flash tiers: high 24.5k, medium 8k, low 1k thinking tokens.
   "gemini-3.7-flash-high": {
@@ -285,6 +250,53 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     aliases: ["gemini-3.7-flash-tiered"],
   },
   "gemini-3.7-flash-tiered": {
+    maxOutputTokens: 65536,
+    contextWindow: 1048576,
+    defaultThinkingBudget: 8192,
+    thinkingBudgetCap: 24576,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
+  // ── Gemini 3.8 Flash (current Antigravity/AGY live tiers) ─────────
+  "gemini-3.8-flash-high": {
+    maxOutputTokens: 65536,
+    contextWindow: 1048576,
+    defaultThinkingBudget: 24576,
+    thinkingBudgetCap: 24576,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
+  "gemini-3.8-flash-medium": {
+    maxOutputTokens: 65536,
+    contextWindow: 1048576,
+    defaultThinkingBudget: 8192,
+    thinkingBudgetCap: 24576,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
+  "gemini-3.8-flash-low": {
+    maxOutputTokens: 65536,
+    contextWindow: 1048576,
+    defaultThinkingBudget: 1024,
+    thinkingBudgetCap: 24576,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
+  "gemini-3.8-flash": {
+    maxOutputTokens: 65536,
+    contextWindow: 1048576,
+    defaultThinkingBudget: 8192,
+    thinkingBudgetCap: 24576,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    aliases: ["gemini-3.8-flash-tiered"],
+  },
+  "gemini-3.8-flash-tiered": {
     maxOutputTokens: 65536,
     contextWindow: 1048576,
     defaultThinkingBudget: 8192,
@@ -405,6 +417,38 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     aliases: BEDROCK_CLAUDE_ALIASES("claude-sonnet-5"),
   },
 
+  // ── Claude Haiku 5.5 ────────────────────────────────────────────
+  // Adaptive-thinking-only, like Sonnet 5.5: `thinking.type:"enabled"` returns
+  // 400 ("use thinking.type.adaptive and output_config.effort"). Haiku 4.5 and
+  // earlier still accept manual budgets, so this spec must NOT be widened to
+  // the /haiku/ family. Limits from the gateway catalog (context 1M, output 128K).
+  "claude-haiku-5-5": {
+    maxOutputTokens: 128000,
+    contextWindow: 1000000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    adaptiveThinkingOnly: true,
+    aliases: BEDROCK_CLAUDE_ALIASES("claude-haiku-5-5"),
+  },
+
+  // ── Claude Sonnet 5.5 ───────────────────────────────────────────
+  "claude-sonnet-5-5": {
+    // Same shape as Sonnet 5, but it rejects thinking.type:"disabled"
+    // (use between_tools) and forced tool_choice (any/tool).
+    maxOutputTokens: 128000,
+    contextWindow: 1000000,
+    defaultThinkingBudget: 32000,
+    thinkingBudgetCap: 120000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    adaptiveThinkingOnly: true,
+    rejectsThinkingDisabled: true,
+    rejectsForcedToolChoice: true,
+    aliases: BEDROCK_CLAUDE_ALIASES("claude-sonnet-5-5"),
+  },
+
   // ── Claude Opus 4.6 ─────────────────────────────────────────────
   "claude-opus-4-6": {
     maxOutputTokens: 128000,
@@ -467,6 +511,22 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     // …and, like Opus 4.7+, rejects manual budgets/`type:"enabled"` (adaptive-only).
     adaptiveThinkingOnly: true,
     aliases: BEDROCK_CLAUDE_ALIASES("claude-fable-5"),
+  },
+
+  // ── Claude Opus 5.5 ─────────────────────────────────────────────
+  "claude-opus-5-5": {
+    maxOutputTokens: 128000,
+    contextWindow: 1000000,
+    defaultThinkingBudget: 32000,
+    thinkingBudgetCap: 120000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    rejectsThinkingDisabled: true,
+    adaptiveThinkingOnly: true,
+    rejectsForcedToolChoice: true,
+    defaultReasoningEffort: "medium",
+    aliases: BEDROCK_CLAUDE_ALIASES("claude-opus-5-5", "claude-opus-5.5"),
   },
 
   // ── Claude Opus 5 ───────────────────────────────────────────────
@@ -543,6 +603,22 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     aliases: ["kimi-k2.6-thinking"],
   },
 
+  // ── Kimi K2.8 Preview (Kimi Coding — 1M context, native vision) ──
+  // #14003: Kimi Coding's stable wire ids `kimi-for-coding` and
+  // `kimi-for-coding-highspeed` both resolve to Kimi K2.8 Preview, which
+  // supports vision, tools, and thinking. The highspeed sibling must alias
+  // this spec too, otherwise it silently falls back to default caps (no
+  // vision) and the Vision-Bridge reroute bug reappears for that variant.
+  "kimi-k2.8-preview": {
+    maxOutputTokens: 131072,
+    contextWindow: 1048576,
+    thinkingBudgetCap: 32768,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    aliases: ["kimi-for-coding", "kimi-for-coding-highspeed"],
+  },
+
   // ── Kimi K2.7 Code (Moonshot — 262K native, parity with K2.6) ───
   // #3761: importing this via Ollama Cloud's sparse /v1/models gave it no caps, so it
   // fell back to the 128K/8K defaults and lost vision/thinking. Pin the real values.
@@ -577,6 +653,17 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsVision: true,
     aliases: ["qwen3.7-max", "qwen3-max-2026-01-23"],
   },
+  // #14181: the GA `qwen3.8-max` is a distinct model served by opencode-go (and
+  // listed bare by alibaba/qwen-cloud/kilocode/clinepass/xkiro) — it gets its own
+  // spec row instead of aliasing to the preview, which remains a separate model.
+  "qwen3.8-max": {
+    maxOutputTokens: 65536,
+    contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
   "qwen3.8-max-preview": {
     maxOutputTokens: 65536,
     contextWindow: 1000000,
@@ -584,7 +671,6 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
-    aliases: ["qwen3.8-max"],
   },
   "qwen3.6-plus": {
     maxOutputTokens: 65536,
@@ -604,10 +690,14 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   },
 
   // ── Xiaomi MiMo V2.5 (1M context, consensus across 7+ sync sources) ──
-  // Vision: ONLY mimo-v2.5 and mimo-v2-omni accept images per Xiaomi's docs
-  // (mimo.mi.com .../image-understanding). The *-pro chat models are TEXT-ONLY;
-  // models.dev mislabels them (hermes-agent#18884) — a hard override in
-  // src/lib/modelCapabilities.ts also beats that wrong synced attachment.
+  // Vision: in the v2.5 generation only `mimo-v2.5` and `mimo-v2-omni` accept
+  // images per Xiaomi's docs (mimo.mi.com .../image-understanding). The v2.5
+  // `*-pro` chat models are TEXT-ONLY; models.dev mislabels them
+  // (hermes-agent#18884) — a hard override in src/lib/modelCapabilities.ts
+  // also beats that wrong synced attachment. The v2.6 generation flips the
+  // `*-pro` rule (#14587): `mimo-v2.6-pro` accepts image input, covered by the
+  // `mimo-v2.6-pro` / `mimo-v2.6-flash` fragments in the shared vision
+  // heuristic rather than a spec.
   "mimo-v2.5-pro": {
     maxOutputTokens: 131072,
     contextWindow: 1048576,

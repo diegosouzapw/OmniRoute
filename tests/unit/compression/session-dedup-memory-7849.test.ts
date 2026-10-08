@@ -110,7 +110,10 @@ test("#7849: near-boundary under-budget request still deduplicates", () => {
   const body = {
     messages: [
       { role: "user", content: repeatedText },
+      { role: "assistant", content: "ok" },
       { role: "user", content: repeatedText },
+      // Closes the turn: the current turn is never deduped.
+      { role: "assistant", content: "ok" },
     ],
   };
   const result = sessionDedupEngine.apply(body);
@@ -118,7 +121,7 @@ test("#7849: near-boundary under-budget request still deduplicates", () => {
 
   assert.equal(result.compressed, true);
   assert.equal(messages[0].content, repeatedText);
-  assert.match(messages[1].content, /^\[dedup:ref sha=[0-9a-f]{24}\]$/);
+  assert.match(messages[2].content, /^\[dedup:ref sha=[0-9a-f]{24}\]$/);
   assert.ok((result.stats?.savingsPercent ?? 0) > 0);
   assert.deepEqual(result.stats?.validationWarnings ?? [], []);
 });

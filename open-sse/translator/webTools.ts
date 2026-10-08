@@ -12,6 +12,8 @@ export interface OpenAIToolCall {
   function: { name: string; arguments: string };
 }
 
+import { findTagBlocks } from "../utils/tagBlocks.ts";
+
 interface OpenAIToolDef {
   type?: string;
   function?: {
@@ -21,11 +23,49 @@ interface OpenAIToolDef {
   };
 }
 
-const TOOL_BLOCK_RE = /<tool>\s*([\s\S]*?)\s*<\/tool>/g;
+const TOOL_OPEN_RE = /<tool>/g;
+const TOOL_CLOSE_RE = /<\/tool>/g;
 // Some web-cookie models (e.g. ds-web) wrap calls as `<tool_call name="...">{json}</tool_call>`
 // instead of the canonical `<tool>{json}</tool>`. Capture the JSON body — the real tool name
 // lives there, never in the tag's `name="..."` attribute (#3260).
-const TOOL_CALL_TAG_RE = /<tool_call(?:\s+[^>]*)?\s*>\s*([\s\S]*?)\s*<\/tool_call>/g;
+// The attribute run stops at `<` as well as `>`: with `[^>]*` an unterminated `<tool_call ` scanned
+// to the end of the text from every such tag, so a run of them was quadratic again.
+const TOOL_CALL_OPEN_RE = /<tool_call(?:\s[^<>]*)?>/g;
+const TOOL_CALL_CLOSE_RE = /<\/tool_call>/g;
+
+const DSML_INVOKE_RE =
+  /<(?<dsml>｜｜DSML｜｜|\|DSML\|)\s*invoke\s+name=["']([^"']+)["']\s*>([\s\S]*?)<\/\k<dsml>\s*invoke\s*>/g;
+
+function normalizeDsmlToolCalls(text: string): string {
+  DSML_INVOKE_RE.lastIndex = 0;
+  return text
+    .replace(DSML_INVOKE_RE, (_match, _dsml: string, name: string, body: string) => {
+      const parameters: Record<string, unknown> = {};
+      const parameterRe =
+        /<(?:｜｜DSML｜｜|\|DSML\|)\s*parameter\s+name=["']([^"']+)["'][^>]*>([\s\S]*?)(?:<\/?(?:｜｜DSML｜｜|\|DSML\|)\s*parameter\s*>|(?=<(?:｜｜DSML｜｜|\|DSML\|)\s*parameter\s+name=|<\/(?:｜｜DSML｜｜|\|DSML\|)\s*invoke\s*>))/g;
+      let parameter: RegExpExecArray | null;
+      while ((parameter = parameterRe.exec(body)) !== null) {
+        const raw = parameter[2].trim();
+        try {
+          parameters[parameter[1]] = JSON.parse(raw);
+        } catch {
+          parameters[parameter[1]] = raw;
+        }
+      }
+      if (Object.keys(parameters).length === 0) {
+        try {
+          const parsed = JSON.parse(body.trim() || "{}");
+          if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+            Object.assign(parameters, parsed);
+          }
+        } catch {
+          // Leave malformed arguments empty; the surrounding parser remains fail-safe.
+        }
+      }
+      return `<tool>{"name":${JSON.stringify(name)},"arguments":${JSON.stringify(parameters)}}</tool>`;
+    })
+    .replace(/<\/?(?:｜｜DSML｜｜|\|DSML\|)\s*calls\s*>/g, "");
+}
 
 // Per-request nonce binding for tool envelopes (#9343). Associates a random nonce
 // with each tools[] array reference so the serializer and parser can share it
@@ -429,31 +469,28 @@ export function parseToolCallsFromText(
   idSeed = "call",
   requestedTools?: unknown
 ): { content: string; toolCalls: OpenAIToolCall[] | null } {
+  const normalizedText = typeof text === "string" ? normalizeDsmlToolCalls(text) : text;
   const requestedToolNames = getRequestedToolNames(requestedTools);
-  if (typeof text !== "string" || (!text.includes("<tool>") && !text.includes("<tool_call"))) {
+  if (
+    typeof normalizedText !== "string" ||
+    (!normalizedText.includes("<tool>") && !normalizedText.includes("<tool_call"))
+  ) {
     return { content: text ?? "", toolCalls: null };
   }
 
   const nonce = getToolNonce(requestedTools);
   const candidates: ToolParseCandidate[] = [];
 
-  let blockMatch: RegExpExecArray | null;
-  TOOL_BLOCK_RE.lastIndex = 0;
-  while ((blockMatch = TOOL_BLOCK_RE.exec(text)) !== null) {
+  // Candidate extraction runs on the DSML-normalized text: normalizeDsmlToolCalls rewrites
+  // DeepSeek's native dialect into canonical <tool> blocks first, so both shapes are collected.
+  for (const block of [
+    ...findTagBlocks(normalizedText, TOOL_OPEN_RE, TOOL_CLOSE_RE),
+    ...findTagBlocks(normalizedText, TOOL_CALL_OPEN_RE, TOOL_CALL_CLOSE_RE),
+  ]) {
     candidates.push({
-      raw: blockMatch[1].trim(),
-      start: blockMatch.index,
-      end: TOOL_BLOCK_RE.lastIndex,
-      requireRequestedTool: false,
-    });
-  }
-
-  TOOL_CALL_TAG_RE.lastIndex = 0;
-  while ((blockMatch = TOOL_CALL_TAG_RE.exec(text)) !== null) {
-    candidates.push({
-      raw: blockMatch[1].trim(),
-      start: blockMatch.index,
-      end: TOOL_CALL_TAG_RE.lastIndex,
+      raw: block.inner.trim(),
+      start: block.start,
+      end: block.end,
       requireRequestedTool: false,
     });
   }
@@ -496,7 +533,7 @@ export function parseToolCallsFromText(
     return { content: text, toolCalls: null };
   }
 
-  const content = stripRanges(text, acceptedRanges);
+  const content = stripRanges(normalizedText, acceptedRanges);
   return { content, toolCalls };
 }
 

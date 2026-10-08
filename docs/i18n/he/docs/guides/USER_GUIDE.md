@@ -1,10 +1,10 @@
 # User Guide (עברית)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 ---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 מדריך מלא להגדרת ספקים, ליצירת שילובים, לשילוב כלי CLI ולפריסת OmniRoute.
 
@@ -120,7 +120,7 @@
 
 ## 📖 הגדרת ספקים
 
-כדי להוסיף בכמות גדולה חיבורי מפתחות API מקובץ CSV או JSON, השתמשו ב-**לוח הבקרה → ספקים → ייבוא מקובץ**. העמודות מסודרות לפי מיקום (`provider,name,apiKey,baseUrl,priority`); הערך `provider` חייב כבר להתקיים כספק מנוהל או כצומת תואם. ראו [ייבוא ספקים מקובץ CSV או JSON](../providers/CSV-IMPORT.md).
+כדי להוסיף בכמות גדולה חיבורי מפתחות API מקובץ CSV או JSON, השתמשו ב-**לוח הבקרה → ספקים → ייבוא מקובץ**. העמודות מבוססות על מיקום (`provider,name,apiKey,baseUrl,priority`); הערך `provider` חייב להיות ספק מנוהל קיים או צומת תואם. ראו [ייבוא ספקים מקובץ CSV או JSON](../providers/CSV-IMPORT.md).
 
 ### 🔐 ספקי מנוי
 
@@ -128,8 +128,8 @@
 
 ```bash
 לוח הבקרה → ספקים → חיבור Claude Code
-→ התחברות באמצעות OAuth → רענון אוטומטי של האסימון
-→ מעקב אחר מכסה של 5 שעות + מכסה שבועית
+→ כניסה באמצעות OAuth → רענון אוטומטי של האסימון
+→ מעקב אחר מכסה ל-5 שעות + מכסה שבועית
 
 מודלים:
   cc/claude-opus-4-7
@@ -137,15 +137,17 @@
   cc/claude-haiku-4-5-20251001
 ```
 
-**טיפ מקצועי:** השתמשו ב-Opus למשימות מורכבות וב-Sonnet לקבלת מהירות. OmniRoute עוקב אחר המכסה לכל מודל!
+**טיפ מקצועי:** השתמשו ב-Opus למשימות מורכבות וב-Sonnet למהירות. OmniRoute עוקב אחר המכסה לכל מודל!
 
-נתיבים התואמים ל-Claude ול-Claude Code משמרים את רמת מאמץ החשיבה `max` עבור מודלי Opus ו-Sonnet. מודלי Haiku אינם מקבלים את רמת המאמץ `max`, ולכן OmniRoute מוריד בקשה זו לתקציב חשיבה גבוה לפני שליחתה לספק במעלה הזרם.
+אין דפדפן במארח של OmniRoute? הפעילו את `claude setup-token` בכל מקום שבו Claude Code מחובר, והדביקו את האסימון לשנה בלשונית **אסימון הגדרה**. ראו [Claude Code עם אסימון הגדרה](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+נתיבים התואמים ל-Claude ול-Claude Code שומרים על מאמץ החשיבה `max` עבור מודלי Opus ו-Sonnet. מודלי Haiku אינם מקבלים את רמת המאמץ `max`, ולכן OmniRoute מוריד בקשה זו לתקציב חשיבה גבוה לפני שליחתה לספק במעלה הזרם.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
 לוח הבקרה → ספקים → חיבור Codex
-→ התחברות באמצעות OAuth (יציאה 1455)
+→ כניסה באמצעות OAuth (יציאה 1455)
 → איפוס לאחר 5 שעות + איפוס שבועי
 
 מודלים:
@@ -159,7 +161,7 @@
 
 ```bash
 לוח הבקרה → ספקים → חיבור GitHub
-→ OAuth דרך GitHub
+→ OAuth באמצעות GitHub
 → איפוס חודשי (ב-1 בחודש)
 
 מודלים:
@@ -172,7 +174,7 @@
 
 ### 💰 ספקים זולים
 
-#### GLM-4.7 (איפוס יומי, $0.6 למיליון)
+#### GLM-4.7 (איפוס יומי, $0.6/1M)
 
 1. הירשמו: [Zhipu AI](https://open.bigmodel.cn)
 2. קבלו מפתח API מתוכנית Coding Plan
@@ -180,7 +182,7 @@
 
 **שימוש:** `glm/glm-4.7` — **טיפ מקצועי:** תוכנית Coding Plan מציעה מכסה גדולה פי 3 בשביעית מהעלות! האיפוס מתבצע מדי יום בשעה 10:00 בבוקר.
 
-#### MiniMax M2.1 (איפוס לאחר 5 שעות, $0.20 למיליון)
+#### MiniMax M2.1 (איפוס לאחר 5 שעות, $0.20/1M)
 
 1. הירשמו: [MiniMax](https://www.minimax.io)
 2. קבלו מפתח API → לוח הבקרה → הוספת מפתח API
@@ -189,26 +191,27 @@
 
 #### Kimi K2 (מחיר קבוע של $9 לחודש)
 
-1. הירשמו כמנויים: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
+1. הירשמו למנוי: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. קבלו מפתח API → לוח הבקרה → הוספת מפתח API
 
-**שימוש:** `kimi/kimi-k2.5` — **טיפ מקצועי:** מחיר קבוע של $9 לחודש עבור 10 מיליון אסימונים = עלות אפקטיבית של $0.90 למיליון!
+**שימוש:** `kimi/kimi-k2.5` — **טיפ מקצועי:** מחיר קבוע של $9 לחודש עבור 10 מיליון אסימונים = עלות אפקטיבית של $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
 1. הירשמו: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
 2. צרו מפתח API של Qianfan → לוח הבקרה → הוספת מפתח API: ספק: `qianfan`
 
-**שימוש:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, או מזהה מודל אחר של Qianfan התואם ל-OpenAI.
+**שימוש:** `qianfan/ernie-5.1`,‏ `qianfan/ernie-x1.1` או מזהה מודל אחר של Qianfan התואם ל-OpenAI.
 
-### 🆓 ספקים חינמיים
+### 🆓 ספקים בחינם
 
-לספקים חינמיים שאינם דורשים אימות יש מתג לצד **לא נדרש אימות** בדף הספק שלהם. כיבוי המתג משבית את הספק, מסיר אותו מתצוגות הספקים המוגדרים/המצומצמות ומסיר את המודלים שלו מ-`/v1/models`.
+לספקים חינמיים שאינם דורשים אימות יש מתג לצד **לא נדרש אימות** בדף הספק שלהם.
+כיבויו משבית את הספק, מסיר אותו מתצוגות הספקים המוגדרים/המצומצמות ומסיר את המודלים שלו מ-`/v1/models`.
 
-#### Qoder (9 מודלים חינמיים)
+#### Qoder (9 מודלים בחינם)
 
 ```bash
-לוח הבקרה → חיבור Qoder → התחברות באמצעות OAuth → הגישה כפופה למגבלות הספק הנוכחיות
+לוח הבקרה → חיבור Qoder → כניסה באמצעות OAuth → הגישה כפופה למגבלות הספק הנוכחיות
 
 מודלים: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
@@ -666,10 +669,10 @@ post_install() {
 
 ### מודלים מותאמים אישית
 
-הוסיפו כל מזהה מודל לכל ספק, ללא צורך להמתין לעדכון האפליקציה:
+הוסיפו כל מזהה מודל לכל ספק מבלי להמתין לעדכון של האפליקציה:
 
 ```bash
-# באמצעות ה-API
+# באמצעות API
 curl -X POST http://localhost:20128/api/provider-models \
   -H "Content-Type: application/json" \
   -d '{"provider": "openai", "modelId": "gpt-5.2", "modelName": "GPT-5.2"}'
@@ -682,14 +685,52 @@ curl -X POST http://localhost:20128/api/provider-models \
 
 הערות:
 
-- ספקים תואמי OpenRouter ו-OpenAI/Anthropic מנוהלים דרך **מודלים זמינים** בלבד. הוספה ידנית, ייבוא וסנכרון אוטומטי מגיעים כולם לאותה רשימת מודלים זמינים, ולכן אין מקטע נפרד של מודלים מותאמים אישית עבור ספקים אלה.
+- ספקים התואמים ל-OpenRouter ול-OpenAI/Anthropic מנוהלים רק דרך **מודלים זמינים**. הוספה ידנית, ייבוא וסנכרון אוטומטי מגיעים כולם לאותה רשימת מודלים זמינים, ולכן אין עבור ספקים אלה מקטע נפרד של מודלים מותאמים אישית.
 - המקטע **מודלים מותאמים אישית** מיועד לספקים שאינם מציעים ייבוא מנוהל של מודלים זמינים.
+
+### ספקים מותאמים אישית התואמים ל-OpenAI
+
+ניתן להוסיף כל שער שתומך ב-API של OpenAI (פרוקסי באירוח עצמי, vLLM או אגרגטור של צד שלישי)
+כצומת ספק עצמאי:
+
+1. **ספקים → הוספת ספק תואם OpenAI**.
+2. **שם**: תווית תצוגה עבור הצומת.
+3. **קידומת**: שם הניתוב. לקוחות פונים למודלים בתבנית `<prefix>/<model>`, כך שצומת בעל
+   הקידומת `mygw` משרת את `mygw/gpt-4o-mini`. שדה חובה; אין הגבלת תווים.
+4. **סוג API**: משפחת נקודות הקצה שהשער משרת (השלמות צ'אט, תגובות,
+   הטמעות, שמע, תמונות).
+5. **כתובת URL בסיסית**: שורש ה-API, עד `/v1` כולל (לדוגמה
+   `https://gateway.example.com/v1`), ולא הנתיב המלא `/chat/completions`. עבור שערים בעלי
+   נתיבים לא תקניים, הגדירו אותם תחת **הגדרות מתקדמות** (נתיב צ'אט, נתיב מודלים).
+6. השדה **מפתח API (לבדיקה)** משמש רק לבדיקת החיבור. לאחר יצירת הצומת,
+   פתחו אותו והשתמשו ב-**הוספת חיבור** כדי לשמור את המפתח שישמש את הבקשות.
+
+הצומת מקבל מזהה פנימי בתבנית `openai-compatible-<apiType>-<uuid>`; לעולם אינכם
+צריכים להקליד אותו, שכן הקידומת היא השם הציבורי.
+
+#### קידומות שמורות
+
+קידומת אינה יכולה להיות המזהה או הכינוי של ספק מובנה (לדוגמה `openai`, `cf`), וגם לא
+המזהה של ספק שהוצא משימוש. פותר המודלים בודק מזהים וכינויים מובנים לפני
+צמתים מותאמים אישית, ולכן צומת המשתמש באחת מהקידומות האלה לעולם לא יקבל תעבורה:
+`<prefix>/model` ינותב במקום זאת לספק המובנה, או ייחסם אם ספק זה
+הוצא משימוש. יצירה או עריכה של צומת עם קידומת כזו נדחית עם:
+
+```text
+קידומת: "<prefix>" היא קידומת ספק שמורה — בחרו קידומת אחרת (לא ניתן להשתמש במזהים/כינויים שמורים עבור צמתים מותאמים אישית, משום שבקשות כגון <prefix>/model מנותבות לספק מובנה או נחסמות כאשר הוא הוצא משימוש)
+```
+
+בחרו קידומת ייחודית (`mygw`, `acme-proxy`). אם בקשות לצומת מותאם אישית נכשלות עם
+שגיאה שמציינת ספק מובנה או את פרטי הגישה שלו, בדקו אם קידומת הצומת
+שמורה: צמתים שנשמרו לפני שהכלל הזה היה קיים עדיין מאוחסנים, אך הקידומת שלהם מנותבת
+לספק המובנה. ערכו את הצומת והקצו לו קידומת חדשה.
 
 ### שרשור עמיתי OmniRoute
 
-ניתן להוסיף שער OmniRoute אחר כספק **מותאם אישית תואם OpenAI**. השתמשו בכתובת ה-URL הבסיסית `/v1` של העמית ובמפתח API ייעודי בעל הרשאות מינימליות שהונפק על ידי אותו עמית.
+ניתן להוסיף שער OmniRoute אחר כספק **מותאם אישית התואם ל-OpenAI**. השתמשו
+בכתובת הבסיס `/v1` של העמית ובמפתח API ייעודי בעל הרשאות מינימליות שהונפק על ידי אותו עמית.
 
-עבור שרשראות הדדיות או מרובות דילוגים, הפעילו את הגנת הלולאה האופציונלית בכל שער:
+עבור שרשראות הדדיות או מרובות קפיצות, הפעילו את הגנת הלולאות האופציונלית בכל שער:
 
 ```bash
 # gateway-a
@@ -705,13 +746,18 @@ OMNIROUTE_PEER_URLS=http://gateway-a:20128/v1
 OMNIROUTE_PEER_MAX_HOPS=4
 ```
 
-רק בקשות הנשלחות לכתובת URL של עמית שנכללה במפורש ברשימת ההיתרים מקבלות את הכותרת `X-OmniRoute-Peer-Trace`. שער דוחה מזהה מופע חוזר או תקציב דילוגים שמוצה באמצעות HTTP `508 Loop Detected`; ספקי upstream רגילים אינם מקבלים מטא-נתונים של עמיתים.
+רק בקשות שנשלחות לכתובת URL של עמית המופיעה במפורש ברשימת ההרשאות מקבלות את הכותרת
+`X-OmniRoute-Peer-Trace`. שער דוחה מזהה מופע חוזר או תקציב קפיצות שמוצה
+באמצעות HTTP `508 Loop Detected`; ספקים רגילים במעלה הזרם אינם מקבלים מטא-נתונים של עמיתים.
 
-שרשור עמיתים אינו שכפול מסד נתונים או מעבר לגיבוי במקרה של כשל במארח. כל שער שומר מצב SQLite, מטמונים, מוני קצב והפעלות נפרדים. עבור זמינות בתצורת פעיל/סביל או פעיל/פעיל, השתמשו בפרוקסי הפוך עם בדיקות תקינות או במעבר לגיבוי מצד הלקוח, ולעולם אל תעגנו מסד נתונים אחד של SQLite למספר מופעי OmniRoute פעילים.
+שרשור עמיתים אינו שכפול מסד נתונים או מעבר לגיבוי ברמת המארח. כל שער שומר באופן עצמאי
+מצב SQLite, מטמונים, מוני קצב והפעלות. השתמשו בפרוקסי הפוך עם בדיקות תקינות או במעבר לגיבוי
+בצד הלקוח לצורך זמינות אקטיבית/פסיבית או אקטיבית/אקטיבית, ולעולם אל תעגנו מסד נתונים אחד של SQLite
+אל מספר מופעי OmniRoute שפועלים במקביל.
 
 ### נתיבים ייעודיים לספקים
 
-נתבו בקשות ישירות לספק מסוים, עם אימות המודל:
+נתבו בקשות ישירות לספק מסוים עם אימות מודל:
 
 ```bash
 POST http://localhost:20128/v1/providers/openai/chat/completions
@@ -719,7 +765,7 @@ POST http://localhost:20128/v1/providers/openai/embeddings
 POST http://localhost:20128/v1/providers/fireworks/images/generations
 ```
 
-תחילית הספק נוספת אוטומטית אם היא חסרה. מודלים שאינם תואמים מחזירים `400`.
+קידומת הספק מתווספת אוטומטית אם היא חסרה. מודלים שאינם תואמים מחזירים `400`.
 
 ### הגדרת פרוקסי רשת
 
@@ -737,7 +783,7 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
 ```
 
-**סדר קדימויות:** ספציפי למפתח → ספציפי לשילוב → ספציפי לספק → גלובלי → סביבה.
+**סדר עדיפות:** ספציפי למפתח → ספציפי לשילוב → ספציפי לספק → גלובלי → סביבה.
 
 ### API של קטלוג המודלים
 
@@ -745,90 +791,90 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
 curl http://localhost:20128/api/models/catalog
 ```
 
-מחזיר מודלים המקובצים לפי ספק וכוללים סוגים (`chat`, `embedding`, `image`).
+מחזיר מודלים המקובצים לפי ספק, יחד עם הסוגים (`chat`, `embedding`, `image`).
 
 ### סנכרון בענן
 
 - סנכרון ספקים, שילובים והגדרות בין מכשירים
-- סנכרון רקע אוטומטי עם זמן קצוב וכשל מהיר
+- סנכרון אוטומטי ברקע עם פסק זמן וכשל מהיר
 - בסביבת ייצור, העדיפו את `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` בצד השרת
 
 ### מנהרה מהירה של Cloudflare
 
-- זמינה דרך **לוח הבקרה → נקודות קצה** עבור Docker ופריסות אחרות באירוח עצמי
-- יוצרת כתובת URL זמנית בתבנית `https://*.trycloudflare.com`, המעבירה תעבורה לנקודת הקצה הנוכחית שלכם `/v1` התואמת ל-OpenAI
+- זמין ב-**לוח הבקרה → נקודות קצה** עבור Docker ופריסות אחרות באירוח עצמי
+- יוצר כתובת URL זמנית מסוג `https://*.trycloudflare.com`, שמעבירה בקשות לנקודת הקצה הנוכחית שלך, התואמת ל-OpenAI, בנתיב `/v1`
 - בהפעלה הראשונה, `cloudflared` מותקן רק בעת הצורך; הפעלות מחדש בהמשך משתמשות שוב באותו קובץ בינארי מנוהל
-- מנהרות מהירות אינן משוחזרות אוטומטית לאחר הפעלה מחדש של OmniRoute או של הקונטיינר; הפעילו אותן מחדש מלוח הבקרה בעת הצורך
-- כתובות ה-URL של המנהרות הן ארעיות ומשתנות בכל עצירה והפעלה של המנהרה
-- מנהרות מהירות מנוהלות משתמשות כברירת מחדל בתעבורת HTTP/2, כדי למנוע אזהרות מרובות על מאגר UDP של QUIC בקונטיינרים מוגבלים
-- הגדירו `CLOUDFLARED_PROTOCOL=quic` או `auto` אם ברצונכם לעקוף את בחירת התעבורה המנוהלת
-- הגדירו `CLOUDFLARED_BIN` אם אתם מעדיפים להשתמש בקובץ בינארי `cloudflared` מותקן מראש במקום בהורדה המנוהלת
-- ניתן להציג או להסתיר את החלוניות של Cloudflare Quick Tunnel, Tailscale Funnel ו-ngrok Tunnel דרך **הגדרות → מראה**. הסתרת חלונית אינה עוצרת מנהרה פעילה.
+- מנהרות מהירות אינן משוחזרות אוטומטית לאחר הפעלה מחדש של OmniRoute או של הקונטיינר; יש להפעיל אותן מחדש מלוח הבקרה בעת הצורך
+- כתובות ה-URL של המנהרות הן זמניות ומשתנות בכל פעם שעוצרים או מפעילים את המנהרה
+- מנהרות מהירות מנוהלות משתמשות כברירת מחדל בתעבורת HTTP/2 כדי להימנע מאזהרות רועשות בנוגע למאגר UDP של QUIC בקונטיינרים מוגבלים
+- הגדירו את `CLOUDFLARED_PROTOCOL=quic` או `auto` אם ברצונכם לעקוף את בחירת התעבורה המנוהלת
+- הגדירו את `CLOUDFLARED_BIN` אם אתם מעדיפים להשתמש בקובץ בינארי מותקן מראש של `cloudflared` במקום בהורדה המנוהלת
+- ניתן להציג או להסתיר את הלוחות של Cloudflare Quick Tunnel, Tailscale Funnel ו-ngrok Tunnel דרך **הגדרות → מראה**. הסתרת לוח אינה עוצרת מנהרה פעילה.
 
-### יכולות חכמות של שער LLM (שלב 9)
+### בינת שער LLM (שלב 9)
 
 - **מטמון סמנטי** — שומר אוטומטית במטמון תגובות שאינן מוזרמות ושבהן temperature=0 (ניתן לעקוף באמצעות `X-OmniRoute-No-Cache: true`)
-- **אידמפוטנטיות של בקשות** — מסיר כפילויות מבקשות בתוך 5 שניות באמצעות הכותרת `Idempotency-Key` או `X-Request-Id`
-- **מעקב התקדמות** — אירועי SSE אופציונליים מסוג `event: progress` באמצעות הכותרת `X-OmniRoute-Progress: true`
+- **אידמפוטנטיות של בקשות** — מסיר כפילויות של בקשות בטווח של 5 שניות באמצעות הכותרת `Idempotency-Key` או `X-Request-Id`
+- **מעקב התקדמות** — אירועי SSE מסוג `event: progress`, שניתן להפעיל לפי בחירה באמצעות הכותרת `X-OmniRoute-Progress: true`
 
 ---
 
-### סביבת הניסוי של המתרגם
+### סביבת ניסוי למתרגם
 
-הגישה זמינה דרך **לוח הבקרה → מתרגם**. ניפוי שגיאות והמחשה חזותית של האופן שבו OmniRoute מתרגם בקשות API בין ספקים.
+הגישה מתבצעת דרך **לוח הבקרה → מתרגם**. ניפוי שגיאות והמחשה חזותית של האופן שבו OmniRoute מתרגם בקשות API בין ספקים.
 
-| מצב             | מטרה                                                                   |
-| --------------- | ---------------------------------------------------------------------- |
-| **סביבת ניסוי** | בחירת תבניות מקור ויעד, הדבקת בקשה והצגה מיידית של הפלט המתורגם        |
-| **בודק צ'אט**   | שליחת הודעות צ'אט חיות דרך הפרוקסי ובחינת מחזור הבקשה/תגובה המלא       |
-| **מערך בדיקות** | הרצת בדיקות באצווה על פני מספר שילובי תבניות כדי לאמת את נכונות התרגום |
-| **ניטור חי**    | צפייה בתרגומים בזמן אמת כאשר בקשות זורמות דרך הפרוקסי                  |
+| מצב                | מטרה                                                                  |
+| ------------------ | --------------------------------------------------------------------- |
+| **סביבת ניסוי**    | בחירת תבניות מקור ויעד, הדבקת בקשה והצגת הפלט המתורגם באופן מיידי     |
+| **בודק צ'אט**      | שליחת הודעות צ'אט בזמן אמת דרך הפרוקסי ובחינת מחזור הבקשה/תגובה המלא  |
+| **ספסל בדיקות**    | הרצת בדיקות באצווה על פני כמה שילובי תבניות כדי לאמת את נכונות התרגום |
+| **ניטור בזמן אמת** | צפייה בתרגומים בזמן אמת כאשר בקשות זורמות דרך הפרוקסי                 |
 
-**מקרי שימוש:**
+**תרחישי שימוש:**
 
-- ניפוי הסיבה לכשל של שילוב מסוים בין לקוח לספק
-- אימות שתגיות חשיבה, קריאות לכלים והנחיות מערכת מתורגמים כהלכה
-- השוואת הבדלים בתבניות בין OpenAI, Claude, Gemini ותבניות Responses API
+- ניפוי הסיבה לכשל בשילוב מסוים של לקוח וספק
+- אימות שתגיות חשיבה, קריאות לכלים והנחיות מערכת מתורגמים כראוי
+- השוואת הבדלי תבניות בין OpenAI, Claude, Gemini ותבניות Responses API
 
 ---
 
 ### אסטרטגיות ניתוב
 
-הגדירו דרך **לוח הבקרה → הגדרות → ניתוב**. לוח הבקרה מציג את שש האסטרטגיות הנפוצות ביותר; שילובים והנתב האוטומטי תומכים באופן פנימי במגוון רחב יותר.
+ההגדרה מתבצעת דרך **לוח הבקרה → הגדרות → ניתוב**. לוח הבקרה מציג את שש האסטרטגיות הנפוצות ביותר; שילובים והנתב האוטומטי תומכים באופן פנימי במערך רחב יותר.
 
 **אסטרטגיות המוצגות בלוח הבקרה (ניתוב ברמת החשבון):**
 
-| אסטרטגיה                   | תיאור                                                                                      |
-| -------------------------- | ------------------------------------------------------------------------------------------ |
-| **מילוי ראשון**            | שימוש בחשבונות לפי סדר עדיפות — החשבון הראשי מטפל בכל הבקשות עד שאינו זמין                 |
-| **סבב מחזורי**             | מעבר מחזורי בין כל החשבונות עם מגבלת הצמדה הניתנת להגדרה (ברירת מחדל: 3 קריאות לכל חשבון)  |
-| **P2C (בחירה מבין שתיים)** | בחירה אקראית של 2 חשבונות וניתוב לחשבון הבריא יותר — איזון עומסים תוך התחשבות במצב התקינות |
-| **אקראי**                  | בחירה אקראית של חשבון לכל בקשה באמצעות ערבוב Fisher-Yates                                  |
-| **הכי פחות בשימוש**        | ניתוב לחשבון בעל חותמת הזמן `lastUsedAt` הישנה ביותר, לצורך חלוקה אחידה של התעבורה         |
-| **מיטוב עלויות**           | ניתוב לחשבון בעל ערך העדיפות הנמוך ביותר, לצורך מיטוב לשימוש בספקים הזולים ביותר           |
+| אסטרטגיה                       | תיאור                                                                                        |
+| ------------------------------ | -------------------------------------------------------------------------------------------- |
+| **מילוי הראשון**               | משתמש בחשבונות לפי סדר עדיפות — החשבון הראשי מטפל בכל הבקשות עד שאינו זמין                   |
+| **סבב מחזורי**                 | עובר במחזוריות בין כל החשבונות עם מגבלת הצמדה הניתנת להגדרה (ברירת מחדל: 3 קריאות לכל חשבון) |
+| **P2C (כוחן של שתי אפשרויות)** | בוחר 2 חשבונות אקראיים ומנתב לחשבון התקין יותר — מאזן את העומס תוך התחשבות בתקינות           |
+| **אקראי**                      | בוחר חשבון באופן אקראי לכל בקשה באמצעות ערבוב Fisher-Yates                                   |
+| **הכי פחות בשימוש**            | מנתב לחשבון בעל חותמת הזמן `lastUsedAt` הישנה ביותר, וכך מפזר את התעבורה באופן אחיד          |
+| **ממוטב עלות**                 | מנתב לחשבון בעל ערך העדיפות הנמוך ביותר, כדי לבצע אופטימיזציה לספקים בעלי העלות הנמוכה ביותר |
 
 **אסטרטגיות מתקדמות לשילובים ולניתוב אוטומטי** (ניתנות להגדרה לכל שילוב או באמצעות קידומות `auto/*` — ראו [AUTO-COMBO.md](../routing/AUTO-COMBO.md)):
 
-- `priority` — סדר קפדני, ללא סבב מחזורי
+- `priority` — סדר קשיח, ללא סבב מחזורי
 - `weighted` — חלוקת תעבורה יחסית לפי משקלים לכל מודל
-- `fill-first` — מיצוי המודל הראשון עד להגעה למגבלות
+- `fill-first` — ממצה את המודל הראשון עד להגעה למגבלות
 - `round-robin` / `strict-random` / `random`
-- `p2c` (בחירה מבין שתיים)
+- `p2c` (כוחן של שתי אפשרויות)
 - `least-used` ו-`cost-optimized`
-- `auto` — ניתוב מבוסס ניקוד בין כל המועמדים
-- `lkgp` (הספק התקין האחרון הידוע) — הצמדה לספק האחרון שהצליח, ולאחר מכן חזרה לכללים
-- `context-optimized` — בחירת המודל בעל חלון ההקשר הפנוי הגדול ביותר
-- `context-relay` — שרשור מודלים בעלי הקשר ארוך עבור סבבי המשך
+- `auto` — מבוסס ניקוד בין כל המועמדים
+- `lkgp` (הספק התקין האחרון הידוע) — נצמד לספק האחרון שהצליח, ולאחר מכן עובר לכללי גיבוי
+- `context-optimized` — בוחר את המודל בעל חלון ההקשר הפנוי הגדול ביותר
+- `context-relay` — משרשר מודלים בעלי הקשר ארוך עבור סבבי המשך
 
 #### כותרת חיצונית להפעלה מוצמדת
 
-לצורך זיקה להפעלה חיצונית (לדוגמה, סוכני Claude Code/Codex מאחורי שרתי Proxy הפוכים), שלחו:
+לצורך שיוך חיצוני להפעלה (לדוגמה, סוכני Claude Code/Codex מאחורי שרתי פרוקסי הפוכים), שלחו:
 
 ```http
 X-Session-Id: your-session-key
 ```
 
-OmniRoute מקבל גם את `x_session_id` ומחזיר את מפתח ההפעלה שבפועל בתוך `X-OmniRoute-Session-Id`.
+OmniRoute מקבל גם את `x_session_id` ומחזיר את מפתח ההפעלה בפועל בתוך `X-OmniRoute-Session-Id`.
 
 אם אתם משתמשים ב-Nginx ושולחים כותרות עם קווים תחתונים, הפעילו:
 
@@ -838,7 +884,7 @@ underscores_in_headers on;
 
 #### כינויים למודלים עם תווים כלליים
 
-צרו תבניות עם תווים כלליים למיפוי מחדש של שמות מודלים:
+צרו תבניות עם תווים כלליים כדי למפות מחדש שמות של מודלים:
 
 ```
 תבנית: claude-sonnet-*     →  יעד: cc/claude-sonnet-4-6
@@ -849,7 +895,7 @@ underscores_in_headers on;
 
 #### שרשראות גיבוי
 
-הגדירו שרשראות גיבוי גלובליות שחלות על כל הבקשות:
+הגדירו שרשראות גיבוי גלובליות שיחולו על כל הבקשות:
 
 ```
 שרשרת: production-fallback
@@ -860,52 +906,51 @@ underscores_in_headers on;
 
 ---
 
-### עמידות ומפסקי זרם
+### עמידות ומנתקי מעגל
 
-הגדירו דרך **לוח הבקרה → הגדרות → עמידות**.
+ההגדרה מתבצעת דרך **לוח הבקרה → הגדרות → עמידות**.
 
-OmniRoute מממש עמידות ברמת הספק באמצעות חמישה רכיבים:
+OmniRoute מיישם עמידות ברמת הספק באמצעות חמישה רכיבים:
 
 1. **תור בקשות וקיצוב** — ויסות בקשות ברמת המערכת:
    - **בקשות לדקה (RPM)** — מספר הבקשות המרבי לדקה לכל חשבון
-   - **זמן מינימלי בין בקשות** — המרווח המינימלי באלפיות השנייה בין בקשות
-   - **מספר מרבי של בקשות מקבילות** — מספר הבקשות המרבי בו-זמנית לכל חשבון
-
-2. **תקופת צינון לחיבור** — הגדרה לכל סוג אימות עבור חיבור יחיד לאחר כשלים הניתנים לניסיון חוזר:
-   - **תקופת צינון בסיסית** — חלון הצינון המוגדר כברירת מחדל לכשלי upstream הניתנים לניסיון חוזר
-   - **שימוש בהנחיות ניסיון חוזר מה-upstream** — כיבוד הנחיות מוסמכות מסוג `Retry-After` או איפוס, כאשר הן מסופקות
+   - **זמן מינימלי בין בקשות** — המרווח המינימלי באלפיות שנייה בין בקשות
+   - **מספר מרבי של בקשות בו-זמניות** — מספר הבקשות המרבי שיכולות להתבצע בו-זמנית לכל חשבון
+2. **צינון חיבור** — תצורה לפי סוג אימות עבור חיבור יחיד לאחר כשלים שניתן לנסות שוב:
+   - **צינון בסיסי** — חלון הצינון המוגדר כברירת מחדל עבור כשלים אצל ספק במעלה הזרם שניתן לנסות שוב
+   - **שימוש ברמזי ניסיון חוזר מספק במעלה הזרם** — מכבד רמזי `Retry-After` או איפוס מוסמכים כאשר הם מסופקים
    - **מספר מרבי של שלבי השהיה** — רמת ההשהיה המעריכית המרבית עבור כשלים חוזרים
 
-3. **מפסק זרם של ספק** — מעקב אחר כשלי ספק מקצה לקצה, סימון ספק כבעל ביצועים ירודים בסף האזהרה שהוגדר, ופתיחת המפסק כאשר מגיעים לסף הכשל שהוגדר:
-   - **סף ירידה בביצועים** — מספר כשלי הספק הרצופים לפני מעבר למצב `DEGRADED`
-   - **סף כשל** — מספר כשלי הספק הרצופים לפני מעבר למצב `OPEN`
-   - **זמן קצוב לאיפוס** — חלון הזמן לפני בדיקה חוזרת של הספק
+3. **מפסק מעגל של ספק** — עוקב אחר כשלים מקצה לקצה של ספק, מסמן ספק כפגום בסף האזהרה שהוגדר ופותח את המפסק כאשר מגיעים לסף הכשלים שהוגדר:
+   - **סף פגיעה בביצועים** — מספר כשלי ספק רצופים לפני מעבר למצב `DEGRADED`
+   - **סף כשלים** — מספר כשלי ספק רצופים לפני מעבר למצב `OPEN`
+   - **זמן קצוב לאיפוס** — חלון הזמן לפני שהספק נבדק שוב
    - **CLOSED** (תקין) — הבקשות זורמות כרגיל
-   - **DEGRADED** — הבקשות ממשיכות לזרום תוך מעקב אחר שיעור הכשלים המוגבר
+   - **DEGRADED** — הבקשות ממשיכות לזרום בזמן שמתבצע מעקב אחר רמת כשלים מוגברת
    - **OPEN** — הספק נחסם זמנית לאחר כשלים חוזרים
    - **HALF_OPEN** — בדיקה אם הספק התאושש
 
-   מגבלות קצב `429` בהיקף החיבור נשארות תחת **תקופת צינון לחיבור** ואינן נספרות עבור מפסק הספק.
+   מגבלות קצב `429` ברמת החיבור נשארות תחת **צינון חיבור** ואינן נספרות עבור מפסק הספק.
 
    מצב זמן הריצה של מפסק הספק מוצג רק תחת **לוח הבקרה → תקינות**.
 
-4. **המתנה לסיום תקופת הצינון** — אם כל החיבורים המועמדים כבר בתקופת צינון, OmniRoute יכול להמתין לסיום תקופת הצינון המוקדמת ביותר ולנסות שוב את אותה בקשת לקוח באופן אוטומטי.
+4. **המתנה לצינון** — אם כל החיבורים המועמדים כבר נמצאים בצינון, OmniRoute יכול להמתין לסיום הצינון המוקדם ביותר ולנסות שוב את אותה בקשת לקוח באופן אוטומטי.
 
-5. **זיהוי אוטומטי של מגבלת קצב** — כאשר ספקי upstream מחזירים חלונות המתנה מפורשים, ההנחיות האלה עוקפות את תקופת הצינון המקומית של החיבור כאשר ההגדרה מופעלת.
+5. **זיהוי אוטומטי של מגבלת קצב** — כאשר ספקים במעלה הזרם מחזירים חלונות המתנה מפורשים, רמזים אלה גוברים על צינון החיבור המקומי כאשר ההגדרה מופעלת.
 
-**טיפ מקצועי:** השתמשו בדף **תקינות** כדי לבדוק ולאפס מפסקי ספק פעילים לאחר השבתה. דף העמידות משנה את התצורה בלבד.
+**טיפ מקצועי:** השתמשו בדף **תקינות** כדי לבדוק ולאפס מפסקי ספקים פעילים לאחר השבתה. הדף חוסן משנה רק את התצורה.
 
 ---
 
-### ייצוא / ייבוא של מסד הנתונים
+### ייצוא / ייבוא מסד נתונים
 
-נהלו גיבויים של מסד הנתונים דרך **לוח הבקרה → הגדרות → מערכת ואחסון**.
+נהלו גיבויים של מסד הנתונים תחת **לוח הבקרה → הגדרות → מערכת ואחסון**.
 
-| פעולה                    | תיאור                                                                                                                    |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| **ייצוא מסד הנתונים**    | הורדת מסד הנתונים הנוכחי של SQLite כקובץ `.sqlite`                                                                       |
-| **ייצוא הכול (.tar.gz)** | הורדת ארכיון גיבוי מלא הכולל: מסד נתונים, הגדרות, שילובים, חיבורי ספקים (ללא פרטי גישה) ומטא-נתונים של מפתחות API        |
-| **ייבוא מסד נתונים**     | העלאת קובץ `.sqlite` להחלפת מסד הנתונים הנוכחי. גיבוי טרום-ייבוא נוצר אוטומטית, אלא אם `DISABLE_SQLITE_AUTO_BACKUP=true` |
+| פעולה                    | תיאור                                                                                                                          |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| **ייצוא מסד הנתונים**    | מוריד את מסד הנתונים הנוכחי של SQLite כקובץ `.sqlite`                                                                          |
+| **ייצוא הכול (.tar.gz)** | מוריד ארכיון גיבוי מלא הכולל: מסד נתונים, הגדרות, שילובים, חיבורי ספקים (ללא פרטי גישה), מטא-נתונים של מפתחות API              |
+| **ייבוא מסד נתונים**     | מעלה קובץ `.sqlite` כדי להחליף את מסד הנתונים הנוכחי. גיבוי טרום-ייבוא נוצר אוטומטית, אלא אם `DISABLE_SQLITE_AUTO_BACKUP=true` |
 
 ```bash
 # API: ייצוא מסד הנתונים
@@ -919,33 +964,33 @@ curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**אימות הייבוא:** הקובץ המיובא נבדק כדי לוודא את תקינותו (בדיקת pragma של SQLite), את קיומן של הטבלאות הנדרשות (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) ואת גודלו (לכל היותר 100MB).
+**אימות הייבוא:** תקינות הקובץ המיובא נבדקת (בדיקת pragma של SQLite), וכן נבדקים הטבלאות הנדרשות (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) והגודל (לכל היותר 100MB).
 
-**תרחישי שימוש:**
+**מקרי שימוש:**
 
-- העברת OmniRoute בין מכונות
-- יצירת גיבויים חיצוניים להתאוששות מאסון
+- העברת OmniRoute בין מחשבים
+- יצירת גיבויים חיצוניים לצורך התאוששות מאסון
 - שיתוף תצורות בין חברי צוות (ייצוא הכול → שיתוף הארכיון)
 
 ---
 
-### לוח הבקרה של ההגדרות
+### לוח בקרה להגדרות
 
-דף ההגדרות מאורגן ב-**7 לשוניות** לניווט קל:
+דף ההגדרות מאורגן ב-**7 כרטיסיות** לניווט קל:
 
-| לשונית     | תוכן                                                                                                                                                                  |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **כללי**   | כלי אחסון מערכת, התנהגות ברירת מחדל, נראות מנהרת נקודת הקצה                                                                                                           |
-| **מראה**   | פקדי ערכת נושא (בהירה/כהה/מערכת), נראות סרגל הצד, מתגים ללוחות כרטיסי המנהרות של Cloudflare/Tailscale/ngrok                                                           |
-| **AI**     | תקציב חשיבה (העברה ללא שינוי / הסרה אוטומטית / מותאם אישית / מסתגל — ראו [THINKING_BUDGET.md](./THINKING_BUDGET.md)), הנחיית מערכת גלובלית, נתוני מטמון הנחיות        |
-| **אבטחה**  | הגדרות כניסה/סיסמה, בקרת גישה לפי IP, אימות API עבור `/models`, חסימת ספקים, הגנה מפני הזרקת הנחיות                                                                   |
-| **ניתוב**  | אסטרטגיית ניתוב גלובלית (מילוי ראשון / סבב מחזורי / P2C / אקראי / הכי פחות בשימוש / מיטוב עלויות), כינויי מודלים עם תווים כלליים, שרשראות גיבוי, ברירות מחדל לשילובים |
-| **עמידות** | תור בקשות, תקופת צינון לחיבורים, תצורת מפסק ספקים והתנהגות המתנה לסיום תקופת הצינון                                                                                   |
-| **מתקדם**  | תצורת proxy גלובלית (HTTP/SOCKS5), דריסות proxy לכל ספק                                                                                                               |
+| כרטיסייה  | תוכן                                                                                                                                                                |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **כללי**  | כלי אחסון מערכת, התנהגות ברירת מחדל, נראות מנהרת נקודות קצה                                                                                                         |
+| **מראה**  | בקרי ערכת נושא (בהיר/כהה/מערכת), נראות סרגל הצד, מתגים ללוחות כרטיסי מנהרה של Cloudflare/Tailscale/ngrok                                                            |
+| **AI**    | תקציב חשיבה (העברה ללא שינוי / הסרה אוטומטית / מותאם אישית / מסתגל — ראו [THINKING_BUDGET.md](./THINKING_BUDGET.md)), הנחיית מערכת גלובלית, סטטיסטיקות מטמון הנחיות |
+| **אבטחה** | הגדרות כניסה/סיסמה, בקרת גישה לפי IP, אימות API עבור `/models`, חסימת ספקים, הגנה מפני הזרקת הנחיות                                                                 |
+| **ניתוב** | אסטרטגיית ניתוב גלובלית (מילוי ראשון / סבב / P2C / אקראי / הכי פחות בשימוש / מיטוב עלות), כינויי מודלים עם תווים כלליים, שרשראות חלופה, ברירות מחדל לשילובים        |
+| **חוסן**  | תור בקשות, צינון חיבורים, תצורת מפסק ספק והתנהגות המתנה לצינון                                                                                                      |
+| **מתקדם** | תצורת Proxy גלובלית (HTTP/SOCKS5), דריסות Proxy לפי ספק                                                                                                             |
 
-הלשונית „כללי” אינה משכפלת עוד הערות לקריאה בלבד בנוגע לרישום ולמטמון. הגדרות השמירה והמיטוב של מסד הנתונים
-נשמרות דרך `/api/settings/database`; ניקוי ידני של המטמון מתבצע באמצעות
-`DELETE /api/cache`. המכסות למספר השורות ביומני הבקשות וה-proxy נשלטות באמצעות
+הכרטיסייה כללי אינה משכפלת עוד הערות לקריאה בלבד על רישום ומטמון. הגדרות שימור מסד הנתונים
+והמיטוב נשמרות דרך `/api/settings/database`; ניקוי ידני של המטמון משתמש ב-
+`DELETE /api/cache`. מגבלות השורות ביומני הבקשות וה-Proxy נשלטות על ידי
 `CALL_LOGS_TABLE_MAX_ROWS` ו-`PROXY_LOGS_TABLE_MAX_ROWS`.
 
 ---
@@ -954,7 +999,7 @@ curl -X POST http://localhost:20128/api/db-backups/import \
 
 הגישה מתבצעת דרך **לוח הבקרה → עלויות**.
 
-| לשונית    | מטרה                                                                              |
+| כרטיסייה  | מטרה                                                                              |
 | --------- | --------------------------------------------------------------------------------- |
 | **תקציב** | הגדרת מגבלות הוצאה לכל מפתח API, עם תקציבים יומיים/שבועיים/חודשיים ומעקב בזמן אמת |
 | **תמחור** | הצגה ועריכה של רשומות תמחור מודלים — עלות לכל 1K אסימוני קלט/פלט לכל ספק          |
@@ -969,13 +1014,13 @@ curl -X POST http://localhost:20128/api/usage/budget \
 curl http://localhost:20128/api/usage/budget
 ```
 
-**מעקב עלויות:** כל בקשה מתעדת את השימוש באסימונים ומחשבת את העלות באמצעות טבלת התמחור. ניתן להציג פילוחים לפי ספק, מודל ומפתח API תחת **לוח הבקרה → שימוש**.
+**מעקב עלויות:** כל בקשה מתעדת את השימוש בטוקנים ומחשבת את העלות באמצעות טבלת התמחור. ניתן לצפות בפירוט לפי ספק, מודל ומפתח API דרך **לוח הבקרה → שימוש**.
 
 ---
 
-### תמלול שמע
+### תמלול אודיו
 
-OmniRoute תומך בתמלול שמע באמצעות נקודת הקצה התואמת ל-OpenAI:
+OmniRoute תומך בתמלול אודיו באמצעות נקודת קצה התואמת ל-OpenAI:
 
 ```bash
 POST /v1/audio/transcriptions
@@ -989,7 +1034,7 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
   -F "model=openai/whisper-1"
 ```
 
-`deepgram/nova-3` הוא מסלול Deepgram המקורי ודורש מפתח API של Deepgram.
+`deepgram/nova-3` הוא הנתיב המקורי של Deepgram ודורש מפתח API של Deepgram.
 אם מוגדר רק OpenRouter, השתמשו ב-`openrouter/deepgram/nova-3`.
 
 ספקי **דיבור לטקסט (תמלול)**:
@@ -1019,54 +1064,54 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
 - `coqui/`, `tortoise/`
 - `qwen/`
 
-תבניות השמע הנתמכות לתמלול: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`. תבניות הפלט של TTS תלויות בספק (mp3, wav, opus, pcm, mulaw).
+פורמטי האודיו הנתמכים לתמלול: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`. פורמטי הפלט של TTS תלויים בספק (mp3, wav, opus, pcm, mulaw).
 
 ---
 
 ### אסטרטגיות איזון לשילובים
 
-הגדירו איזון לכל שילוב בנפרד תחת **לוח הבקרה → שילובים → יצירה/עריכה → אסטרטגיה**.
+הגדירו איזון לכל שילוב דרך **לוח הבקרה → שילובים → יצירה/עריכה → אסטרטגיה**.
 
 | אסטרטגיה            | תיאור                                                                 |
 | ------------------- | --------------------------------------------------------------------- |
 | **סבב מחזורי**      | עוברת בין המודלים ברצף                                                |
-| **עדיפות**          | תמיד מנסה תחילה את המודל הראשון; עוברת לחלופה רק במקרה של שגיאה       |
+| **עדיפות**          | מנסה תמיד את המודל הראשון; עוברת למודל חלופי רק במקרה של שגיאה        |
 | **אקראית**          | בוחרת מודל אקראי מהשילוב עבור כל בקשה                                 |
-| **משוקללת**         | מנתבת באופן יחסי על סמך המשקלים שהוקצו לכל מודל                       |
+| **משוקללת**         | מנתבת באופן יחסי לפי המשקלים שהוקצו לכל מודל                          |
 | **הכי פחות בשימוש** | מנתבת למודל עם מספר הבקשות האחרונות הנמוך ביותר (משתמשת במדדי השילוב) |
-| **מותאמת לעלות**    | מנתבת למודל הזמין הזול ביותר (משתמשת בטבלת התמחור)                    |
+| **ממוטבת עלות**     | מנתבת למודל הזמין הזול ביותר (משתמשת בטבלת התמחור)                    |
 
 ניתן להגדיר ברירות מחדל גלובליות לשילובים דרך **לוח הבקרה → הגדרות → ניתוב → ברירות מחדל לשילובים**.
-כברירת מחדל, זמני הקצוב של יעדי השילוב יורשים את זמן הקצוב הנוכחי של הבקשה. השתמשו באפשרות **זמן קצוב ליעד
-(שניות)** בברירות המחדל לשילובים או בשילוב בודד רק כאשר מגבלה קצרה יותר לכל יעד אמורה
-להפעיל מעבר מהיר יותר לחלופה.
+כברירת מחדל, מגבלות הזמן של יעדי השילוב יורשות את מגבלת הזמן של הבקשה הנוכחית. השתמשו ב-**מגבלת זמן ליעד
+(שניות)** בברירות המחדל לשילובים או בשילוב מסוים רק כאשר מגבלה קצרה יותר לכל יעד אמורה
+להפעיל מעבר מהיר יותר ליעד חלופי.
 
-מיטובי שילוב ללא השהיה דורשים הפעלה מפורשת. השאירו את האפשרות **מיטובים ללא השהיה** מושבתת כדי
-למנוע מתכונות השהיה אלה להתחרות ביעדי מעבר לחלופה, לדלג על יעדים על סמך היסטוריית TTFT
-או לדחוס בקשות מעבר לחלופה; הפעלתה מאפשרת גידור מוגדר, דילוגים חזויים לפי TTFT
-ודחיסה יזומה של המעבר לחלופה, תוך ויתור מסוים על נאמנות הניתוב/הבקשה לטובת השהיית זנב
+מיטובי שילובים ללא השהיה הם אופציונליים. השאירו את **מיטובים ללא השהיה** מושבתים כדי
+למנוע מתכונות ההשהיה האלה להתחרות ביעדים חלופיים, לדלג על יעדים על סמך היסטוריית TTFT
+או לדחוס בקשות חלופיות; הפעלת האפשרות מאפשרת גידור מוגדר, דילוגים חזויים לפי TTFT
+ודחיסה יזומה של מעבר ליעדים חלופיים, תוך ויתור על דיוק הניתוב/הבקשה לטובת השהיית זנב
 נמוכה יותר.
 
-השביתו את **מאגר אסימוני החשיבה** כאשר ספקים במעלה הזרם דורשים מגבלות מחמירות של
-`max_tokens` / `maxOutputTokens`. כאשר האפשרות מופעלת, ניתוב השילוב מוסיף מרווח לאסימוני חשיבה
-רק עבור מודלים בעלי מגבלת פלט ידועה, ומשאיר את מגבלת האסימונים של הלקוח ללא שינוי כאשר
-הערך הבטוח הכולל את המאגר היה חורג ממגבלה זו. אם מגבלת הלקוח כבר גבוהה ממגבלה ידועה,
-OmniRoute מקטינה אותה למגבלה זו לפני שליחת הבקשה במעלה הזרם.
+השביתו את **מאגר טוקני החשיבה** כאשר ספקים במעלה הזרם דורשים מגבלות מחמירות של
+`max_tokens` / `maxOutputTokens`. כאשר האפשרות מופעלת, ניתוב שילובים מוסיף מרווח למודלי חשיבה
+רק עבור מודלים בעלי מגבלת פלט ידועה, ומשאיר את מגבלת הטוקנים של הלקוח ללא שינוי כאשר
+הערך הבטוח לאחר הוספת המאגר יחרוג ממגבלה זו. אם מגבלת הלקוח כבר גבוהה ממגבלה ידועה,
+OmniRoute מפחית אותה למגבלה זו לפני שליחת הבקשה לספק במעלה הזרם.
 
 ---
 
 ### לוח בקרת תקינות
 
-הגישה מתבצעת דרך **לוח הבקרה → תקינות**. סקירה בזמן אמת של תקינות המערכת, הכוללת 6 כרטיסים:
+ניתן לגשת דרך **לוח הבקרה → תקינות**. סקירה בזמן אמת של תקינות המערכת באמצעות 6 כרטיסים:
 
 | כרטיס              | מה הוא מציג                                               |
 | ------------------ | --------------------------------------------------------- |
 | **מצב המערכת**     | זמן פעילות, גרסה, שימוש בזיכרון, ספריית נתונים            |
-| **תקינות הספקים**  | מצב זמן הריצה של מפסקי הזרם הגלובליים של הספקים           |
-| **מגבלות קצב**     | תקופות צינון פעילות של חיבורים לכל חשבון, כולל הזמן שנותר |
-| **חסימות פעילות**  | חסימות פעילות ברמת המודל והחרגות זמניות                   |
-| **מטמון חתימות**   | נתוני מטמון מניעת כפילויות (מפתחות פעילים, שיעור פגיעות)  |
-| **טלמטריית השהיה** | צבירת השהיות p50/p95/p99 לכל ספק                          |
+| **תקינות הספקים**  | מצב זמן הריצה של מפסק הזרם הגלובלי של הספקים              |
+| **מגבלות קצב**     | תקופות צינון פעילות של חיבורים לכל חשבון, כולל הזמן הנותר |
+| **נעילות פעילות**  | נעילות פעילות ברמת המודל והחרגות זמניות                   |
+| **מטמון חתימות**   | נתוני מטמון למניעת כפילויות (מפתחות פעילים, שיעור פגיעות) |
+| **טלמטריית השהיה** | צבירת זמני השהיה p50/p95/p99 לכל ספק                      |
 
 **טיפ מקצועי:** דף התקינות מתרענן אוטומטית כל 10 שניות. השתמשו בכרטיס מפסק הזרם כדי לזהות אילו ספקים חווים בעיות.
 

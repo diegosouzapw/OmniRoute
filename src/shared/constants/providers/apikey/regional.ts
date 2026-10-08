@@ -35,6 +35,19 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     textIcon: "GC",
     website: "https://open.bigmodel.cn",
   },
+  bigmodel: {
+    id: "bigmodel",
+    serviceKinds: ["llm"],
+    alias: "bigmodel",
+    name: "BigModel.cn (Zhipu)",
+    icon: "psychology",
+    color: "#2563EB",
+    textIcon: "BM",
+    website: "https://open.bigmodel.cn",
+    apiHint:
+      "Create an API key at https://bigmodel.cn/usercenter/proj-mgmt/apikeys. OmniRoute uses BigModel.cn's OpenAI-compatible chat API.",
+    passthroughModels: true,
+  },
   glmt: {
     id: "glmt",
     serviceKinds: ["llm"],
@@ -104,7 +117,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     // Kimi official-partnership aff link (2026-07) — folds into the kimi-coding
     // card (PROVIDER_CONNECTION_ALIASES in providerPageUtils.ts) so this rarely
     // renders its own header, but stays in sync with kimi-coding's aff link.
-    website: "https://www.kimi.com/code?aff=omniroute",
+    website: "https://www.kimi.ai/code?aff=omniroute",
     hiddenFromDashboard: true,
   },
   minimax: {
@@ -147,8 +160,8 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     icon: "psychology",
     color: "#2563EB",
     textIcon: "ZA",
-    website: "https://open.bigmodel.cn",
-    apiHint: "API key from https://open.bigmodel.cn/usercenter/apikeys",
+    website: "https://z.ai/model-api",
+    apiHint: "Create an API key at https://z.ai/manage-apikey/apikey-list.",
   },
   alibaba: {
     id: "alibaba",
@@ -268,6 +281,8 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     color: "#EA580C",
     textIcon: "MT",
     website: "https://mimo.mi.com",
+    apiHint:
+      "Use a Token Plan key (tp-…) and select the cluster (Singapore, Amsterdam, or China) that issued it.",
   },
   baidu: {
     id: "baidu",
@@ -575,5 +590,16 @@ export const APIKEY_PROVIDERS_REGIONAL = {
       "Typhoon is OpenAI-compatible on /v1. Built by SCB 10X (Thailand); typhoon-v2.5-30b-a3b-instruct is a thai-first, multilingual model.",
     hasFree: true,
     freeNote: "Free API key with a 5 req/s and 200 req/m rate limit.",
+  },
+  apmix: {
+    id: "apmix",
+    serviceKinds: ["llm"],
+    alias: "apmix",
+    name: "Apmix",
+    icon: "hub",
+    color: "#7C3AED",
+    textIcon: "AP",
+    website: "https://apmix.ai",
+    apiHint: "Get your API key from the Apmix dashboard (apmix.ai/dashboard).",
   },
 };

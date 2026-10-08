@@ -55,7 +55,7 @@ function resolveWebCookieProbe(
   // regardless of cookie validity, which would silently report an expired/garbage
   // cookie as "OK" (worse than an honest "not supported"). The same refusal covers
   // providers whose registry entry exists only for the model catalog and whose
-  // baseUrl is a browser console rather than an API host (#12107, gemini-business).
+  // baseUrl is a browser console rather than an API host (#12107).
   if (!entry || WEB_COOKIE_PROVIDERS_WITHOUT_AUTH_PROBE.has(provider)) {
     return { rejection: UNSUPPORTED };
   }

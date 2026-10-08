@@ -258,6 +258,9 @@ export function createChatAdmissionContext(
       const result = await runtime.acquire({
         tenantKey: resolveAdmissionTenantKey(apiKeyId),
         body,
+        // Callers pass the lifecycle signal explicitly as `request.signal`
+        // (chat.ts forwards `{ signal }`, the deadline-aware lifecycle signal), so the stream
+        // deadline reaches the admission wait without rebuilding a Request.
         signal: request?.signal ?? undefined,
         streaming,
       });
@@ -284,7 +287,8 @@ type HandleChatImplementation = (
   clientRawRequest: any,
   preParsedBody: any,
   correlationId: string | undefined,
-  admissionContext: ChatAdmissionContext
+  admissionContext: ChatAdmissionContext,
+  lifecycleSignal?: AbortSignal | null
 ) => Promise<Response>;
 
 export type WithChatAdmissionOptions = {
@@ -303,18 +307,21 @@ export function withChatAdmission(
     request: any,
     clientRawRequest: any = null,
     preParsedBody: any = null,
-    correlationId?: string
+    correlationId?: string,
+    lifecycleSignal?: AbortSignal | null
   ): Promise<Response> {
     const admissionContext = createChatAdmissionContext(
       options.getRuntime ?? getAdaptiveAdmissionRuntime
     );
+    const effectiveSignal = lifecycleSignal ?? request?.signal ?? undefined;
     try {
       const response = await implementation(
         request,
         clientRawRequest,
         preParsedBody,
         correlationId,
-        admissionContext
+        admissionContext,
+        effectiveSignal
       );
       const admittedState = admissionContext.getAdmittedState();
       if (!admittedState) return response;
@@ -322,7 +329,7 @@ export function withChatAdmission(
       const { runtime, admitted } = admittedState;
       return runtime.attachResponseLifecycle(response, admitted.lease, {
         admittedAtMs: admitted.admittedAtMs,
-        signal: request?.signal ?? undefined,
+        signal: effectiveSignal,
       });
     } catch (err) {
       const admittedState = admissionContext.getAdmittedState();
@@ -330,7 +337,7 @@ export function withChatAdmission(
         const { runtime, admitted } = admittedState;
         runtime.releaseHandlerFailure(
           admitted.lease,
-          classifyHandlerFailure(err, request?.signal),
+          classifyHandlerFailure(err, effectiveSignal),
           { admittedAtMs: admitted.admittedAtMs }
         );
       }

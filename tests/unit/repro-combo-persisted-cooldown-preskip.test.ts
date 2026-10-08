@@ -115,16 +115,15 @@ describe("combo persisted-cooldown pre-skip", () => {
     );
   });
 
-  it("does not skip when allowRateLimitedConnection is set", () => {
+  it("skips a future cooldown even when allowRateLimitedConnection is set", () => {
     const until = new Date(Date.now() + 60_000).toISOString();
-    assert.equal(
-      getPersistedConnectionCooldownSkipReason(
-        TARGET,
-        { testStatus: "unavailable", rateLimitedUntil: until },
-        true
-      ),
-      null
+    const reason = getPersistedConnectionCooldownSkipReason(
+      TARGET,
+      { testStatus: "unavailable", rateLimitedUntil: until },
+      true
     );
+    assert.ok(reason);
+    assert.match(reason!, /has persisted cooldown until/);
   });
 
   it("does not skip when the connection row is missing", () => {
@@ -166,27 +165,28 @@ describe("combo persisted-cooldown re-check on retry", () => {
 
     assert.equal(await resolvePersistedConnectionCooldownSkipReason(TARGET, fetchConnection), null);
 
-    const retryReason = await resolvePersistedConnectionCooldownSkipReason(
-      TARGET,
-      fetchConnection
-    );
+    const retryReason = await resolvePersistedConnectionCooldownSkipReason(TARGET, fetchConnection);
     assert.ok(retryReason);
     assert.match(retryReason!, /persisted cooldown until/);
     assert.equal(calls, 2, "each attempt must re-read the connection");
   });
 
-  it("does not read the connection when allowRateLimitedConnection is set", async () => {
+  it("reads the connection and skips a future cooldown when allowRateLimitedConnection is set", async () => {
     let calls = 0;
     const reason = await resolvePersistedConnectionCooldownSkipReason(
       TARGET,
       async () => {
         calls++;
-        return { testStatus: "unavailable", rateLimitedUntil: null };
+        return {
+          testStatus: "unavailable",
+          rateLimitedUntil: new Date(Date.now() + 60_000).toISOString(),
+        };
       },
       true
     );
-    assert.equal(reason, null);
-    assert.equal(calls, 0);
+    assert.ok(reason);
+    assert.match(reason!, /has persisted cooldown until/);
+    assert.equal(calls, 1);
   });
 
   it("never blocks dispatch when the connection read throws", async () => {

@@ -5,17 +5,9 @@ import { useTranslations } from "next-intl";
 import Modal from "./Modal";
 import Button from "./Button";
 import Input from "./Input";
+import { requestTraeAuthorizeState } from "@/shared/utils/traeAuthorizeState";
 
 const TRAE_CLIENT_ID = "en1oxy7wnw8j9n";
-
-function uuid(): string {
-  const c = (globalThis.crypto || (globalThis as any).crypto) as Crypto | undefined;
-  if (c?.randomUUID) return c.randomUUID();
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (ch) => {
-    const r = (Math.random() * 16) | 0;
-    return (ch === "x" ? r : (r & 0x3) | 0x8).toString(16);
-  });
-}
 
 function randomHex(bytes: number): string {
   const buf = new Uint8Array(bytes);
@@ -141,10 +133,26 @@ export default function TraeAuthModal({
     return () => window.removeEventListener("message", onMessage);
   }, [isOpen, onSuccess, onClose, t]);
 
-  const handleAuthorizeWithBrowser = () => {
+  const handleAuthorizeWithBrowser = async () => {
     setError(null);
     setAuthorizing(true);
-    const traceId = uuid();
+    // Open the popup before the network call so the browser still ties it to the click.
+    const w = window.open("", "trae-oauth", "width=520,height=720");
+    if (!w) {
+      setAuthorizing(false);
+      setError(t("errorPopupBlocked"));
+      return;
+    }
+    popupRef.current = w;
+    // The callback at /authorize only saves a connection for a state issued by the server.
+    const stateResult = await requestTraeAuthorizeState();
+    if (stateResult.ok === false) {
+      w.close();
+      setAuthorizing(false);
+      setError(stateResult.message || t("errorAuthorizationFailed"));
+      return;
+    }
+    const traceId = stateResult.state;
     traceIdRef.current = traceId;
     // Trae's authorize endpoint validates two things about auth_callback_url:
     //  1. host must be a loopback IP (127.0.0.1) — "localhost" hostname gets
@@ -154,14 +162,7 @@ export default function TraeAuthModal({
     // The receiving handler therefore lives at the app root (src/app/authorize).
     const port = window.location.port || (window.location.protocol === "https:" ? "443" : "80");
     const callbackUrl = `http://127.0.0.1:${port}/authorize`;
-    const authUrl = buildTraeAuthorizeUrl(callbackUrl, traceId);
-    const w = window.open(authUrl, "trae-oauth", "width=520,height=720");
-    if (!w) {
-      setAuthorizing(false);
-      setError(t("errorPopupBlocked"));
-      return;
-    }
-    popupRef.current = w;
+    w.location.href = buildTraeAuthorizeUrl(callbackUrl, traceId);
     // If the user closes the popup without completing, drop the spinner.
     const poll = setInterval(() => {
       if (w.closed) {

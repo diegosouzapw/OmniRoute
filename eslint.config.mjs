@@ -229,6 +229,9 @@ const eslintConfig = [
       ".omnivscodeagent/**",
       // _tasks/ — planning/handoff/research artifacts (gitignored, external code)
       "_tasks/**",
+      // _artifacts/ — per-session review/recheck scratch inside worktrees
+      // (gitignored; workflow scripts with top-level return)
+      "_artifacts/**",
       // .agents/ — skill definitions + their helper scripts (gitignored; the
       // canonical copy lives here and is symlinked into .claude/).
       ".agents/**",
@@ -239,6 +242,7 @@ const eslintConfig = [
       "vscode-extension/**",
       "_references/**",
       "_mono_repo/**",
+      "review/**",
       // Electron app
       "electron/**",
       // Docs

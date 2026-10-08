@@ -1,59 +1,70 @@
 # Supply-Chain Gates (Phase 8 · Block A) (தமிழ்)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../security/SUPPLY_CHAIN.md) · 🇪🇹 [am](../../../am/docs/security/SUPPLY_CHAIN.md) · 🇸🇦 [ar](../../../ar/docs/security/SUPPLY_CHAIN.md) · 🇦🇿 [az](../../../az/docs/security/SUPPLY_CHAIN.md) · 🇧🇬 [bg](../../../bg/docs/security/SUPPLY_CHAIN.md) · 🇧🇩 [bn](../../../bn/docs/security/SUPPLY_CHAIN.md) · 🇨🇿 [cs](../../../cs/docs/security/SUPPLY_CHAIN.md) · 🇩🇰 [da](../../../da/docs/security/SUPPLY_CHAIN.md) · 🇩🇪 [de](../../../de/docs/security/SUPPLY_CHAIN.md) · 🇬🇷 [el](../../../el/docs/security/SUPPLY_CHAIN.md) · 🇪🇸 [es](../../../es/docs/security/SUPPLY_CHAIN.md) · 🇪🇪 [et](../../../et/docs/security/SUPPLY_CHAIN.md) · 🇮🇷 [fa](../../../fa/docs/security/SUPPLY_CHAIN.md) · 🇫🇮 [fi](../../../fi/docs/security/SUPPLY_CHAIN.md) · 🇫🇷 [fr](../../../fr/docs/security/SUPPLY_CHAIN.md) · 🇮🇪 [ga](../../../ga/docs/security/SUPPLY_CHAIN.md) · 🇮🇳 [gu](../../../gu/docs/security/SUPPLY_CHAIN.md) · 🇳🇬 [ha](../../../ha/docs/security/SUPPLY_CHAIN.md) · 🇮🇱 [he](../../../he/docs/security/SUPPLY_CHAIN.md) · 🇮🇳 [hi](../../../hi/docs/security/SUPPLY_CHAIN.md) · 🇭🇷 [hr](../../../hr/docs/security/SUPPLY_CHAIN.md) · 🇭🇺 [hu](../../../hu/docs/security/SUPPLY_CHAIN.md) · 🇦🇲 [hy](../../../hy/docs/security/SUPPLY_CHAIN.md) · 🇮🇩 [id](../../../id/docs/security/SUPPLY_CHAIN.md) · 🇳🇬 [ig](../../../ig/docs/security/SUPPLY_CHAIN.md) · 🇮🇹 [it](../../../it/docs/security/SUPPLY_CHAIN.md) · 🇯🇵 [ja](../../../ja/docs/security/SUPPLY_CHAIN.md) · 🇬🇪 [ka](../../../ka/docs/security/SUPPLY_CHAIN.md) · 🇰🇭 [km](../../../km/docs/security/SUPPLY_CHAIN.md) · 🇮🇳 [kn](../../../kn/docs/security/SUPPLY_CHAIN.md) · 🇰🇷 [ko](../../../ko/docs/security/SUPPLY_CHAIN.md) · 🇱🇹 [lt](../../../lt/docs/security/SUPPLY_CHAIN.md) · 🇱🇻 [lv](../../../lv/docs/security/SUPPLY_CHAIN.md) · 🇮🇳 [ml](../../../ml/docs/security/SUPPLY_CHAIN.md) · 🇮🇳 [mr](../../../mr/docs/security/SUPPLY_CHAIN.md) · 🇲🇾 [ms](../../../ms/docs/security/SUPPLY_CHAIN.md) · 🇲🇹 [mt](../../../mt/docs/security/SUPPLY_CHAIN.md) · 🇲🇲 [my](../../../my/docs/security/SUPPLY_CHAIN.md) · 🇳🇵 [ne](../../../ne/docs/security/SUPPLY_CHAIN.md) · 🇳🇱 [nl](../../../nl/docs/security/SUPPLY_CHAIN.md) · 🇳🇴 [no](../../../no/docs/security/SUPPLY_CHAIN.md) · 🇮🇳 [or](../../../or/docs/security/SUPPLY_CHAIN.md) · 🇮🇳 [pa](../../../pa/docs/security/SUPPLY_CHAIN.md) · 🇵🇭 [phi](../../../phi/docs/security/SUPPLY_CHAIN.md) · 🇵🇱 [pl](../../../pl/docs/security/SUPPLY_CHAIN.md) · 🇵🇹 [pt](../../../pt/docs/security/SUPPLY_CHAIN.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/SUPPLY_CHAIN.md) · 🇷🇴 [ro](../../../ro/docs/security/SUPPLY_CHAIN.md) · 🇷🇺 [ru](../../../ru/docs/security/SUPPLY_CHAIN.md) · 🇱🇰 [si](../../../si/docs/security/SUPPLY_CHAIN.md) · 🇸🇰 [sk](../../../sk/docs/security/SUPPLY_CHAIN.md) · 🇸🇮 [sl](../../../sl/docs/security/SUPPLY_CHAIN.md) · 🇷🇸 [sr](../../../sr/docs/security/SUPPLY_CHAIN.md) · 🇸🇪 [sv](../../../sv/docs/security/SUPPLY_CHAIN.md) · 🇰🇪 [sw](../../../sw/docs/security/SUPPLY_CHAIN.md) · 🇮🇳 [te](../../../te/docs/security/SUPPLY_CHAIN.md) · 🇹🇭 [th](../../../th/docs/security/SUPPLY_CHAIN.md) · 🇹🇷 [tr](../../../tr/docs/security/SUPPLY_CHAIN.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/SUPPLY_CHAIN.md) · 🇵🇰 [ur](../../../ur/docs/security/SUPPLY_CHAIN.md) · 🇺🇿 [uz](../../../uz/docs/security/SUPPLY_CHAIN.md) · 🇻🇳 [vi](../../../vi/docs/security/SUPPLY_CHAIN.md) · 🇳🇬 [yo](../../../yo/docs/security/SUPPLY_CHAIN.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/SUPPLY_CHAIN.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/SUPPLY_CHAIN.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../security/SUPPLY_CHAIN.md) · 🇪🇹 [am](../../../am/docs/security/SUPPLY_CHAIN.md) · 🇸🇦 [ar](../../../ar/docs/security/SUPPLY_CHAIN.md) · 🇦🇿 [az](../../../az/docs/security/SUPPLY_CHAIN.md) · 🇧🇬 [bg](../../../bg/docs/security/SUPPLY_CHAIN.md) · 🇧🇩 [bn](../../../bn/docs/security/SUPPLY_CHAIN.md) · 🇧🇦 [bs](../../../bs/docs/security/SUPPLY_CHAIN.md) · 🇨🇿 [cs](../../../cs/docs/security/SUPPLY_CHAIN.md) · 🇩🇰 [da](../../../da/docs/security/SUPPLY_CHAIN.md) · 🇩🇪 [de](../../../de/docs/security/SUPPLY_CHAIN.md) · 🇬🇷 [el](../../../el/docs/security/SUPPLY_CHAIN.md) · 🇪🇸 [es](../../../es/docs/security/SUPPLY_CHAIN.md) · 🇪🇪 [et](../../../et/docs/security/SUPPLY_CHAIN.md) · 🇮🇷 [fa](../../../fa/docs/security/SUPPLY_CHAIN.md) · 🇫🇮 [fi](../../../fi/docs/security/SUPPLY_CHAIN.md) · 🇫🇷 [fr](../../../fr/docs/security/SUPPLY_CHAIN.md) · 🇮🇪 [ga](../../../ga/docs/security/SUPPLY_CHAIN.md) · 🇮🇳 [gu](../../../gu/docs/security/SUPPLY_CHAIN.md) · 🇳🇬 [ha](../../../ha/docs/security/SUPPLY_CHAIN.md) · 🇮🇱 [he](../../../he/docs/security/SUPPLY_CHAIN.md) · 🇮🇳 [hi](../../../hi/docs/security/SUPPLY_CHAIN.md) · 🇭🇷 [hr](../../../hr/docs/security/SUPPLY_CHAIN.md) · 🇭🇺 [hu](../../../hu/docs/security/SUPPLY_CHAIN.md) · 🇦🇲 [hy](../../../hy/docs/security/SUPPLY_CHAIN.md) · 🇮🇩 [id](../../../id/docs/security/SUPPLY_CHAIN.md) · 🇳🇬 [ig](../../../ig/docs/security/SUPPLY_CHAIN.md) · 🇮🇹 [it](../../../it/docs/security/SUPPLY_CHAIN.md) · 🇯🇵 [ja](../../../ja/docs/security/SUPPLY_CHAIN.md) · 🇬🇪 [ka](../../../ka/docs/security/SUPPLY_CHAIN.md) · 🇰🇭 [km](../../../km/docs/security/SUPPLY_CHAIN.md) · 🇮🇳 [kn](../../../kn/docs/security/SUPPLY_CHAIN.md) · 🇰🇷 [ko](../../../ko/docs/security/SUPPLY_CHAIN.md) · 🇱🇹 [lt](../../../lt/docs/security/SUPPLY_CHAIN.md) · 🇱🇻 [lv](../../../lv/docs/security/SUPPLY_CHAIN.md) · 🇮🇳 [ml](../../../ml/docs/security/SUPPLY_CHAIN.md) · 🇮🇳 [mr](../../../mr/docs/security/SUPPLY_CHAIN.md) · 🇲🇾 [ms](../../../ms/docs/security/SUPPLY_CHAIN.md) · 🇲🇹 [mt](../../../mt/docs/security/SUPPLY_CHAIN.md) · 🇲🇲 [my](../../../my/docs/security/SUPPLY_CHAIN.md) · 🇳🇵 [ne](../../../ne/docs/security/SUPPLY_CHAIN.md) · 🇳🇱 [nl](../../../nl/docs/security/SUPPLY_CHAIN.md) · 🇳🇴 [no](../../../no/docs/security/SUPPLY_CHAIN.md) · 🇮🇳 [or](../../../or/docs/security/SUPPLY_CHAIN.md) · 🇮🇳 [pa](../../../pa/docs/security/SUPPLY_CHAIN.md) · 🇵🇭 [phi](../../../phi/docs/security/SUPPLY_CHAIN.md) · 🇵🇱 [pl](../../../pl/docs/security/SUPPLY_CHAIN.md) · 🇵🇹 [pt](../../../pt/docs/security/SUPPLY_CHAIN.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/SUPPLY_CHAIN.md) · 🇷🇴 [ro](../../../ro/docs/security/SUPPLY_CHAIN.md) · 🇷🇺 [ru](../../../ru/docs/security/SUPPLY_CHAIN.md) · 🇱🇰 [si](../../../si/docs/security/SUPPLY_CHAIN.md) · 🇸🇰 [sk](../../../sk/docs/security/SUPPLY_CHAIN.md) · 🇸🇮 [sl](../../../sl/docs/security/SUPPLY_CHAIN.md) · 🇷🇸 [sr](../../../sr/docs/security/SUPPLY_CHAIN.md) · 🇸🇪 [sv](../../../sv/docs/security/SUPPLY_CHAIN.md) · 🇰🇪 [sw](../../../sw/docs/security/SUPPLY_CHAIN.md) · 🇮🇳 [te](../../../te/docs/security/SUPPLY_CHAIN.md) · 🇹🇭 [th](../../../th/docs/security/SUPPLY_CHAIN.md) · 🇹🇷 [tr](../../../tr/docs/security/SUPPLY_CHAIN.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/SUPPLY_CHAIN.md) · 🇵🇰 [ur](../../../ur/docs/security/SUPPLY_CHAIN.md) · 🇺🇿 [uz](../../../uz/docs/security/SUPPLY_CHAIN.md) · 🇻🇳 [vi](../../../vi/docs/security/SUPPLY_CHAIN.md) · 🇳🇬 [yo](../../../yo/docs/security/SUPPLY_CHAIN.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/SUPPLY_CHAIN.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/SUPPLY_CHAIN.md)
 
 ---
 
-OmniRoute npm + Docker கலைப்பொருட்களை வெளியிடுகிறது. இந்தக் கட்டுப்பாடுகள் மூலச்சான்று,
-சரக்குப்பட்டியல் (SBOM) மற்றும் CVE ஸ்கேனிங்கை வழங்குகின்றன; இவை அனைத்தும் OSS ஆக இருந்து வெளியீட்டுப் பணிப்பாய்வுகளுடன் ஒருங்கிணைக்கப்பட்டுள்ளன.
-**முதலில் ஆலோசனை** என்ற அணுகுமுறை — தற்போது அவை அறிக்கையிடுகின்றன; முதல்
-வெற்றிகரமான வெளியீட்டிற்குப் பிறகு தடுக்கும் கட்டுப்பாடுகளாக உயர்த்தப்படும்.
+OmniRoute ஆனது npm + Docker ஆர்ட்டிஃபேக்ட்களை வெளியிடுகிறது. இந்த கேட்கள் ஆதாரம், இன்வென்டரி (SBOM) மற்றும் CVE ஸ்கேனிங் ஆகியவற்றை வழங்குகின்றன, இவை அனைத்தும் OSS ஆகும், மேலும் வெளியீட்டு பணிப்பாய்வுகளில் இணைக்கப்பட்டுள்ளன.
+**ஆலோசனை-முதன்மை** நிலைப்பாடு — அவை இப்போது புகாரளிக்கின்றன, முதல் பச்சை வெளியீட்டிற்குப் பிறகு தடுக்கும் நிலைக்கு உயர்த்துகின்றன.
 
-| கட்டுப்பாடு                | கருவி                                          | எங்கு                              | தடுக்குமா?                          | வெளியீடு                                                                          |
-| -------------------------- | ---------------------------------------------- | ---------------------------------- | ----------------------------------- | --------------------------------------------------------------------------------- |
-| SLSA மூலச்சான்று (npm)     | `npm --provenance` (OIDC)                      | `npm-publish.yml`                  | வெளியிடுதல் தோல்வியடைந்தால் மட்டும் | npmjs பதக்கம் / `npm audit signatures`                                            |
-| SBOM npm                   | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`                  | உருவாக்கம் தோல்வியடைந்தால் மட்டும்  | வெளியீட்டுச் சொத்து + கலைப்பொருள்                                                 |
-| SBOM படிமம்                | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (ஒன்றிணைப்பு) | ஆலோசனை                              | CycloneDX கலைப்பொருள்                                                             |
-| Trivy CVE (SARIF)          | `aquasecurity/trivy-action`                    | `docker-publish.yml` (ஒன்றிணைப்பு) | ஆலோசனை                              | SARIF (HIGH+CRITICAL) → பாதுகாப்புத் தாவல்                                        |
-| Trivy CRITICAL கட்டுப்பாடு | `aquasecurity/trivy-action`                    | `docker-publish.yml` (ஒன்றிணைப்பு) | **தடுக்கும்**                       | சரிசெய்யக்கூடிய CRITICAL இருந்தால் `exit-code: '1'`                               |
-| osv vulnCount              | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`)      | **தடுக்கும்**                       | `metrics.vulnCount`-ஐ பின்னோக்கிச் செல்லாமல் கட்டுப்படுத்துகிறது (direction:down) |
-| OpenSSF Scorecard          | `ossf/scorecard-action`                        | `scorecard.yml` (cron)             | ஆலோசனை                              | SARIF → பாதுகாப்பு + பதக்கம்                                                      |
+| கேட்                | கருவி                                          | எங்கே                         | தடுக்கிறதா?                       | வெளியீடு                                      |
+| ------------------- | ---------------------------------------------- | ----------------------------- | --------------------------------- | --------------------------------------------- |
+| SLSA ஆதாரம் (npm)   | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | வெளியீடு தோல்வியுற்றால் மட்டுமே   | பேட்ஜ் npmjs / `npm audit signatures`         |
+| SBOM npm            | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | உருவாக்கம் தோல்வியுற்றால் மட்டுமே | வெளியீட்டு சொத்து + ஆர்ட்டிஃபேக்ட்            |
+| SBOM படம்           | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (merge)  | ஆலோசனை                            | CycloneDX ஆர்ட்டிஃபேக்ட்                      |
+| Trivy CVE (SARIF)   | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | ஆலோசனை                            | SARIF (HIGH+CRITICAL) → பாதுகாப்பு தாவல்      |
+| Trivy CRITICAL கேட் | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | **தடுக்கும்**                     | சரிசெய்யக்கூடிய CRITICAL இல் `exit-code: '1'` |
+| osv vulnCount       | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **தடுக்கும்**                     | ratchets `metrics.vulnCount` (திசை:கீழ்)      |
+| OpenSSF Scorecard   | `ossf/scorecard-action`                        | `scorecard.yml` (cron)        | ஆலோசனை                            | SARIF → பாதுகாப்பு + பேட்ஜ்                   |
 
-படிம CVE பின்னடைவு கட்டுப்பாடு `docker-publish.yml`-இல் **இரண்டு படிகளைப்** பயன்படுத்துகிறது: SARIF படி
-(`HIGH,CRITICAL`, `exit-code: 0`) தடுக்காமல் HIGH+CRITICAL பாதிப்புகளைப் பாதுகாப்புத் தாவலில்
-தொடர்ந்து காண்பிக்கிறது; _CRITICAL கட்டுப்பாடு_ படி (`severity: CRITICAL`, `ignore-unfixed: true`,
-`exit-code: 1`) **சரிசெய்தல் கிடைக்கக்கூடிய** CRITICAL CVE இருந்தால் வெளியீட்டைத் தோல்வியடையச் செய்கிறது. `ignore-unfixed`
-மேல்நிலைத் திருத்தம் இல்லாத அடிப்படைப் படிம CVE காரணமாக வெளியீடு தடுக்கப்படுவதைத் தவிர்க்கிறது.
+பட CVE ராட்செட் `docker-publish.yml` இல் **இரண்டு படிகளை** பயன்படுத்துகிறது: SARIF படி (`HIGH,CRITICAL`, `exit-code: 0`) HIGH+CRITICAL ஐ பாதுகாப்பு தாவலில் தடுப்பு இல்லாமல் தெரியும் வகையில் வைத்திருக்கிறது; _CRITICAL கேட்_ படி (`severity: CRITICAL`, `ignore-unfixed: true`, `exit-code: 1`) ஒரு CRITICAL CVE **சரிசெய்யக்கூடியதாக இருந்தால்** வெளியீட்டை தோல்வியடையச் செய்கிறது. `ignore-unfixed` ஆனது ஒரு பேஸ்-இமேஜ் CVE க்கு மேல்நிலை பேட்ச் இல்லாமல் வெளியீட்டைத் தடுப்பதைத் தடுக்கிறது.
 
-## ⚠️ CVE மாறுபாடு (தடுக்கும் osv/Trivy கட்டுப்பாடுகள்)
+## ⚠️ CVE மாறுபாடு (osv/Trivy கேட்களைத் தடுப்பது)
 
-osv மற்றும் Trivy ஆகியவை சார்புகளைத் **தொடர்ந்து வளர்ந்துகொண்டிருக்கும்** CVE தரவுத்தளங்களுடன் ஒப்பிடுகின்றன. எந்தச் சார்பையும்
-**தொடாத** ஒரு PR கூட, ஏற்கனவே உள்ள சார்பில் புதிய CVE ஒன்று
-வெளிப்படுத்தப்பட்டதால் திடீரெனச் சிவப்பாகலாம் (osv: அளவிடப்பட்ட `vulnCount` > அடிப்படை மதிப்பு; Trivy: படிமத்தில் புதிய
-சரிசெய்யக்கூடிய CRITICAL). **இது தடுக்கும் CVE கட்டுப்பாட்டின் எதிர்பார்க்கப்படும் செயல்பாட்டு
-நடத்தை; தயாரிப்புப் பின்னடைவு அல்ல.**
+osv மற்றும் Trivy ஆகியவை CVE தரவுத்தளங்களுக்கு எதிராக deps ஐ ஒப்பிடுகின்றன, அவை **தொடர்ந்து வளர்கின்றன**. **எந்த சார்புகளையும் தொடாத** ஒரு PR ஆனது, ஏற்கனவே உள்ள dep இல் ஒரு புதிய CVE வெளியிடப்பட்டதால் திடீரென்று சிவப்பாக மாறலாம் (osv: அளவிடப்பட்ட `vulnCount` > அடிப்படை; Trivy: படத்தில் ஒரு புதிய சரிசெய்யக்கூடிய CRITICAL). **இது ஒரு தடுக்கும் CVE கேட்டின் எதிர்பார்க்கப்படும் செயல்பாட்டு நடத்தை, ஒரு தயாரிப்பு பின்னடைவு அல்ல.**
 
-புதிதாக வெளிப்படுத்தப்பட்ட CVE காரணமாக osv அல்லது Trivy சிவப்பானால், தீர்வு:
+புதிதாக வெளியிடப்பட்ட CVE காரணமாக osv அல்லது Trivy சிவப்பாக மாறும்போது, அதற்கான தீர்வு:
 
-1. **பாதிக்கப்பட்ட சார்பின் பதிப்பை உயர்த்தவும்** (விரும்பத்தக்கது) — `package.json`
-   `overrides` (மறைமுகச் சார்புகள்) வழியாகத் திருத்தப்பட்ட பதிப்பிற்கு மேம்படுத்தவும் அல்லது திருத்தப்பட்ட அடிப்படைப் படிமத்தில் படிமத்தை மீண்டும் உருவாக்கவும்.
-2. **மேல்நிலைத் திருத்தம் இல்லையெனில்:**
-   - **osv:** `config/quality/quality-baseline.json`-இல் உள்ள `metrics.vulnCount`-க்கு புதிய அடிப்படை மதிப்பை அமைக்கவும்
-     (`npm run quality:ratchet -- --update` தனிப்பட்ட கட்டுப்பாடுகளை உள்ளடக்காது — மதிப்பைக்
-     கைமுறையாகத் திருத்தி, `direction:down`-ஐ வைத்திருக்கவும்); அதனுடன் நியாயப்படுத்தும் குறிப்பு + கண்காணிப்புச் சிக்கலைச் சேர்க்கவும்.
-   - **Trivy:** `.trivyignore`-இல் ஒரு பதிவைச் சேர்க்கவும் (ஒரு வரிக்கு ஒரு CVE-ID); அதனுடன் நியாயப்படுத்தும்
-     கருத்துரை + கண்காணிப்புச் சிக்கலைச் சேர்க்கவும். திருத்தங்கள் இல்லாத CVE-களை
-     `ignore-unfixed: true` ஏற்கனவே தானாகவே கையாளுகிறது.
+1. **பாதிக்கப்பட்ட dep ஐ உயர்த்தவும்** (விரும்பத்தக்கது) — `package.json` `overrides` (மாற்று deps) வழியாக பேட்ச் செய்யப்பட்ட பதிப்பிற்கு மேம்படுத்தவும் அல்லது பேட்ச் செய்யப்பட்ட பேஸில் படத்தை மீண்டும் உருவாக்கவும்.
+2. **மேல்நிலை தீர்வு இல்லை என்றால்:**
+   - **osv:** `config/quality/quality-baseline.json` இல் `metrics.vulnCount` ஐ மீண்டும் அடிப்படைப்படுத்தவும் (`npm run quality:ratchet -- --update` பிரத்யேக கேட்களை உள்ளடக்காது — மதிப்பை கைமுறையாக திருத்தவும், `direction:down`) ஒரு நியாயப்படுத்தும் குறிப்பு + கண்காணிப்பு சிக்கலுடன்.
+   - **Trivy:** `.trivyignore` இல் ஒரு உள்ளீட்டைச் சேர்க்கவும் (ஒரு வரிக்கு CVE-ID) ஒரு நியாயப்படுத்தும் கருத்து + கண்காணிப்பு சிக்கலுடன். `ignore-unfixed: true` ஏற்கனவே பேட்ச்கள் இல்லாத CVE களை தானாகவே உள்ளடக்கியது.
 
-கருவி இல்லாதபோது அல்லது அளவீடு தோல்வியடையும் போது (PATH-இல் osv-scanner இல்லாமை, osv.dev/பிணையத்தை அணுக முடியாமை, செல்லுபடியாகாத JSON) இரண்டு கட்டுப்பாடுகளும்
-**சிக்கலின்றித் தவிர்க்கப்படும்** (exit 0) — ஓர்
-**அளவீட்டுத்** தோல்வி ஒருபோதும் தடுப்பதில்லை; **அளவிடப்பட்ட** பின்னடைவு மட்டுமே தடுக்கிறது.
+கருவி இல்லாதபோது அல்லது அளவீடு தோல்வியுற்றால் (osv-scanner PATH இல் இல்லை, osv.dev/network அணுக முடியாதது, தவறான JSON) இரண்டு கேட்களும் **நன்றாகத் தவிர்க்கின்றன** (exit 0) — ஒரு **அளவீட்டு** தோல்வி ஒருபோதும் தடுக்காது, ஒரு **அளவிடப்பட்ட** பின்னடைவு மட்டுமே தடுக்கிறது.
 
-## நிலுவை: Scorecard ஆலோசனை → தடுக்கும்
+## அறியப்பட்ட ஏற்றுக்கொள்ளப்பட்ட அபாயங்கள்
 
-Scorecard அறிக்கையிடலுடன் முதல் வெற்றிகரமான வெளியீட்டிற்குப் பிறகு:
+### extract-zip 2.0.1 — GHSA-7pqw-9j4j-h8q3 / GHSA-jmr9-qjv8-65gv (#14482)
 
-- Scorecard: மதிப்பெண் பின்னடைவு கட்டுப்பாடு (அளவிடப்பட்ட மதிப்பெண்ணை நிலைநிறுத்துகிறது; அது குறைய முடியாது).
+`extract-zip@2.0.1` இரண்டு சரிசெய்யப்படாத உயர்-தீவிர சிம்லிங்க்-டிராவர்சல் ஆலோசனைகளைக் கொண்டுள்ளது.
+மேலே உள்ள CVE மாறுபாடு தீர்வின் "மேல்நிலைத் திருத்தம் இல்லை" என்ற கிளையின்படி, இது ஒரு
+**ஏற்றுக்கொள்ளப்பட்ட ஆபத்து**, ஒரு பம்ப் அல்ல:
 
-கட்டம் 7 கட்டுப்பாடுகளுக்கு (osv-scanner, gitleaks, actionlint+zizmor) துணைபுரிகிறது: zizmor
-பணிப்பாய்வுகளையே தணிக்கை செய்கிறது; Scorecard களஞ்சியத்தின் ஒட்டுமொத்த நிலைப்பாட்டை அளவிடுகிறது.
+- **சங்கிலி:** `promptfoo` (devDependency) → `@openai/codex-security` → `extract-zip@2.0.1`.
+  `package-lock.json` மூலம் உறுதிப்படுத்தப்பட்டது — முழு சார்பு
+  மரத்திலும் (`@openai/codex-security`) சரியாக ஒரு தொகுப்பு `extract-zip` ஐ அறிவிக்கிறது, மேலும் சரியாக ஒரு தொகுப்பு
+  (`promptfoo`) `@openai/codex-security` ஐ அறிவிக்கிறது.
+- **சங்கிலியில் எங்கும் நிலையான வெளியீடு இல்லை.** `extract-zip@2.0.1` (2020 இல் வெளியிடப்பட்டது) என்பது தொகுப்பின் இறுதி வெளியீடு — இது பராமரிக்கப்படவில்லை. `@openai/codex-security` இன்
+  தற்போதைய npm-latest (`0.1.29`) இன்னும் `extract-zip@2.0.1` ஐ இழுக்கிறது.
+- **உற்பத்தியிலிருந்து அடைய முடியாதது.** `promptfoo` என்பது devDependency-மட்டுமே (ஒருபோதும் `dependencies` இன் கீழ் பட்டியலிடப்படவில்லை), மேலும் `src/`, `open-sse/`, அல்லது `bin/` இன் கீழ் உள்ள எந்த கோப்பும்
+  `extract-zip` npm தொகுப்பை இறக்குமதி செய்யவில்லை — OmniRoute இன் சொந்த `extractZip()` உதவியாளர்
+  (`src/lib/versionManager/binaryManager.ts:93`) சொந்த `unzip`/`tar` க்கு ஷெல் செய்கிறது
+  மற்றும் தொடர்பில்லாதது. `@openai/codex-security` ஆனது extract-zip இன் onEntry கால்பேக்கிற்கு மேல் அதன் சொந்த சிம்லிங்க்-டிராவர்சல்
+  பாதுகாவலையும் அனுப்புகிறது.
+- `package.json` `overrides` வழியாக `extract-zip` ஐ மாற்றுப்பெயர் செய்ய **வேண்டாம்** — ஒரே சாத்தியமான
+  டிராப்-இன் மாற்று Electron-org-internal மற்றும் `@openai/codex-security` இன் சொந்த onEntry/defaultDirMode/defaultFileMode சோதனைகளுடன் API-இணக்கமற்றது;
+  அதை மேலெழுதுவது அந்த தொகுப்பின் பாதுகாப்பு சோதனைகளை அமைதியாக உடைக்கும்.
+- **அடிப்படை:** அளவிடப்பட்ட osv `vulnCount` (3) ஏற்கனவே உறைந்த
+  `config/quality/quality-baseline.json` அடிப்படைக்கு (27) மிகக் குறைவாக உள்ளது — எந்த ராட்செட் மாற்றமும் தேவையில்லை.
+- **பின்னடைவு பாதுகாப்பு:** `tests/unit/extract-zip-14482-exposure.test.ts` சங்கிலியையும் மேலே உள்ள உற்பத்தி-இறக்குமதி இல்லாத மாறிலியையும் உறுதிப்படுத்துகிறது;
+  ஏதேனும் ஒன்று உடைந்தால் (எ.கா. எதிர்கால PR `extract-zip` ஐ உற்பத்தியிலிருந்து அடையக்கூடியதாக மாற்றினால்) அது CI ஐ தோல்வியடையச் செய்கிறது.
+- **கண்காணிப்பு:** சிக்கல் #14482.
+
+## நிலுவையில்: ஸ்கோர்கார்டு ஆலோசனை → தடுப்பது
+
+ஸ்கோர்கார்டு அறிக்கையுடன் முதல் பச்சை வெளியீட்டிற்குப் பிறகு:
+
+- ஸ்கோர்கார்டு: ஸ்கோர் ராட்செட் (அளவிடப்பட்ட ஸ்கோரை உறைய வைக்கிறது; குறைக்க முடியாது).
+
+கட்டம் 7 கேட்ஸை (osv-scanner, gitleaks, actionlint+zizmor) பூர்த்தி செய்கிறது: zizmor
+பணிப்பாய்வுகளை தணிக்கை செய்கிறது; ஸ்கோர்கார்டு ஒட்டுமொத்தமாக ரெப்போ நிலையை அளவிடுகிறது.

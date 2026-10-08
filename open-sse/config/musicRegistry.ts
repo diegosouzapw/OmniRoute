@@ -6,15 +6,18 @@
  */
 
 import { parseModelFromRegistry, getAllModelsFromRegistry } from "./registryUtils.ts";
+import { toRegistryMusicModels as toSyntxMusicModels } from "../services/syntxMediaCatalog.ts";
 
 interface MusicModel {
   id: string;
   name: string;
   isMarket?: boolean;
+  mediaCapabilities?: Record<string, unknown>;
 }
 
 interface MusicProvider {
   id: string;
+  alias?: string;
   baseUrl: string;
   statusUrl?: string;
   /** Regional deployment of the same contract, reachable via a base-URL override. */
@@ -57,18 +60,6 @@ export const MUSIC_PROVIDERS: Record<string, MusicProvider> = {
     ],
   },
 
-  suno: {
-    id: "suno",
-    baseUrl: "https://studio-api.suno.ai/api/generate/v2/",
-    statusUrl: "https://studio-api.suno.ai/api/feed/",
-    authType: "cookie",
-    authHeader: "cookie",
-    format: "suno-music",
-    models: [
-      { id: "chirp-v3-5", name: "Chirp V3.5" },
-      { id: "chirp-v4", name: "Chirp V4" },
-    ],
-  },
   udio: {
     id: "udio",
     baseUrl: "https://www.udio.com/api/generate-proxy",
@@ -108,6 +99,15 @@ export const MUSIC_PROVIDERS: Record<string, MusicProvider> = {
       { id: "stable-audio-open", name: "Stable Audio Open" },
       { id: "musicgen-medium", name: "MusicGen Medium" },
     ],
+  },
+  syntx: {
+    id: "syntx",
+    alias: "stx",
+    baseUrl: "https://api.syntx.ai/api/v1/audio/speech",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "syntx-music",
+    models: toSyntxMusicModels(),
   },
 };
 

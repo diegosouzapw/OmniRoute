@@ -1,6 +1,6 @@
 # Security Policy (Gaeilge)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇧🇦 [bs](../bs/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -216,39 +216,37 @@ Tá na rialacha seo forfheidhmithe ag uirlisí agus athbhreithneoirí:
 10. **Luachanna runtime `exec()` / `spawn()` trí rogha `env`** — ná hionchuir cosáin sheachtracha nó luachanna neamhiontaofa i scripteanna a chuirtear trí shlaod riamh. Tagairt: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Bí i bhfabhar leabharlanna slán-de-réir-chineáil** — féach [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Sroich dóibh sula ndéanann tú do chuid féin.
 
-## Torthaí scanóra slabhra soláthair (Socket.dev / Snyk / a leithéid)
+## Torthaí scanóir an tslabhra soláthair (Socket.dev / Snyk / a leithéid)
 
-Cuimsíonn déantán foilsithe npm `omniroute` leagan tógála Next.js
-`output: "standalone"`, rud a chiallaíonn go gcuirtear gach láimhseálaí róid —
-lena n-áirítear gnéithe pribhléideacha doiciméadaithe (MITM, iompórtáil Zed,
-Cloud Sync, maoirseoir seirbhíse leabaithe) — i smutáin íoslaghdaithe
-`.next/server/*.js`. Is minic a mheaitseálann scanóirí heorastúla slabhra
-soláthair patrúin sna smutáin sin le sínithe bogearraí mailísigh.
+> **Nóta faoin raon feidhme:** Ní dhéanann `socket.yml` ag fréamh na stórtha ach `projectIgnorePaths` a chumrú do scanadh iar-fhoilsithe Socket.dev ar thaobh na clárlainne ar an déantán npm foilsithe — ní geata éigeantach cumaisc CI/PR é. Ní dhéanann aon sreabhadh oibre in `.github/workflows`, aon script `package.json`, ná aon sprioc `Makefile` Socket.dev a agairt.
 
-Tá cumraíocht an scanóra a úsáidimid le fáil ag
-[`socket.yml`](socket.yml) i bhfréamh na stórtha (formáid v2 d'Aip GitHub
-Socket.dev — féach <https://docs.socket.dev/docs/socket-yml>). Eisiatar inti
-go sainráite comhadlanna nach seoltar (`tests/`, `_tasks/`, `_references/`,
-`_ideia/`, `_mono_repo/`, `docs/`, etc.) ionas nach dtuairiscíonn an scanóir
-ach ar chonairí cóid a shroicheann úsáideoirí foilsithe i ndáiríre — is í Aip
-GitHub Socket a léann an comhad sin a ritheann an scanadh féin, agus ní sreabhadh
-oibre sa stór seo.
+Cuimsíonn an déantán npm foilsithe `omniroute` an leagan Next.js `output: "standalone"`,
+rud a chiallaíonn go gcríochnaíonn gach láimhseálaí bealaigh — lena n-áirítear gnéithe
+pribhléideacha doiciméadaithe (MITM, iompórtáil Zed, Cloud Sync, maoirseoir seirbhíse
+leabaithe) — i smutáin íoslaghdaithe `.next/server/*.js`. Is minic a dhéanann scanóirí
+heorastúla slabhra soláthair na smutáin sin a mheaitseáil de réir patrúin le sínithe bogearraí mailíseacha.
 
-I gcás gach catagóire toraidh, coinnímid fianú cothabhálaí ar leith do gach
-toradh:
+Tá cumraíocht an scanóra a úsáidimid suite in [`socket.yml`](socket.yml) ag
+fréamh na stórtha (formáid v2 d’Aip GitHub Socket.dev — féach
+<https://docs.socket.dev/docs/socket-yml>). Eisiann sé go sainráite
+comhadlanna nach seoltar (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/`, etc.) ionas nach dtuairiscíonn an scanóir ach ar chonairí cóid a
+shroicheann úsáideoirí foilsithe i ndáiríre — is í Aip GitHub Socket a léann an comhad
+sin a thiomáineann an scanadh féin, ní sreabhadh oibre sa stór seo.
+
+Coinnímid fianú cothabhálaí ar leith do gach toradh i ngach catagóir torthaí:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  léarscáil de réir toraidh: comhad foinseach ↔ smután marcáilte ↔ iompar ↔
-  maolú a cuireadh i bhfeidhm in v3.8.6.
-- Díríonn bloic `SECURITY-AUDITOR-NOTE:` laistigh den fhoinse ag gach pointe
-  feidhme marcáilte siar chuig an doiciméad céanna.
+  léarscáil de réir toraidh: comhad foinseach ↔ smután marcáilte ↔ iompraíocht ↔ maolú
+  curtha i bhfeidhm in v3.8.6.
+- Déanann bloic `SECURITY-AUDITOR-NOTE:` san fhoinse ag gach pointe feidhme marcáilte
+  tagairt don doiciméad céanna.
 
-D'úsáideoirí nach féidir lena bpíblíne an foláireamh a mhaolú: tóg le
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Cuirtear bonnleaganacha in
-ionad na gceithre mhodúl íogaire leis sin, a sheolann HTTP 503
-`feature-disabled` ar ais ag am rite, ionas go mbeidh na conairí cóid
-pribhléideacha in easnamh go fisiciúil ón mbeart. Féach
-[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
+D’úsáideoirí nach féidir lena bpíblíne an foláireamh a mhaolú: tóg le
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Cuireann sé sin stoic in ionad na
+gceithre mhodúl íogaire a fhilleann HTTP 503 `feature-disabled` ag
+am rite, ionas go mbíonn na conairí cóid pribhléideacha as láthair go fisiciúil ón mbeart.
+Féach [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
 chun an t-oideas foilsithe a fháil.
 
 ## Téacsanna tagartha

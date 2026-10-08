@@ -19,6 +19,12 @@
  * Now only an unequivocal prefix with no determinable end swallows the line.
  * The last test is the other half of the fix: this narrows what fails closed
  * and must not weaken it.
+ *
+ * #14110 (2026-09-21, owner decision) widened "unequivocal prefix" back to
+ * include an unknown-root POSIX candidate (route-shaped or filesystem-shaped
+ * -- the two are lexically indistinguishable with no second anchor), because
+ * leaving an unknown-root filesystem path unredacted regressed HR#12. See the
+ * "#14110" test below for the accepted trade-off.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -47,13 +53,29 @@ test("an API route in prose does not truncate the rest of the message (#13144)",
   assert.equal(out.includes("<path>"), true);
 });
 
-test("separator evidence alone does not license swallowing the line", () => {
-  // The mechanism isolated from the message that surfaced it: a route is
-  // route-shaped, not filesystem-shaped, whatever its first segment is. All
-  // three truncated to "on <path>" before the fix, including the known root.
+test("#14110: a bare unanchored route/path candidate fails closed like a real path", () => {
+  // Superseded by the #14110 owner decision (2026-09-21, fail-closed). This
+  // test used to assert the opposite -- that separator evidence alone (an
+  // unknown-root `/x/y` shape) never licenses swallowing the line, so a bare
+  // API route in prose survived verbatim. #14110 proved the same code path
+  // left an unknown-root FILESYSTEM path (e.g. `/custom/internal secret
+  // directory`) exposed in clear text for the identical reason: there is no
+  // reliable lexical way to tell a route from an unknown-root filesystem path
+  // when neither has a second anchor (an extension, a known root, or a
+  // trailing absolute-path span) to resolve the ambiguity against. The owner
+  // chose to fail closed for both rather than risk leaking a real path
+  // (HR#12), so these bare, unanchored candidates are now redacted and the
+  // rest of the line is swallowed with them -- the same treatment a known
+  // filesystem root already got (see "an unequivocal prefix with no
+  // determinable end still swallows the line" below).
+  //
+  // The narrower, still-guaranteed contract survives one test down: a route
+  // immediately followed by ANOTHER absolute-path span (e.g. "... Use POST
+  // /v1/y instead.") has an anchor and keeps its trailing prose intact --
+  // see "an API route in prose does not truncate the rest of the message".
   for (const route of ["/v1/chat/completions", "/zz/chat/completions", "/v1/chat"]) {
     const input = `on ${route}. Contact support.`;
-    assert.equal(redactErrorPaths(input), input, `route ${route} must survive with its tail`);
+    assert.equal(redactErrorPaths(input), "on <path>", `route ${route} now fails closed`);
   }
 });
 

@@ -1,34 +1,34 @@
 # CLI Integrations (Gaeilge)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/CLI-INTEGRATIONS.md) · 🇪🇹 [am](../../../am/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇦 [ar](../../../ar/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇿 [az](../../../az/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇬 [bg](../../../bg/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇩 [bn](../../../bn/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇿 [cs](../../../cs/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇰 [da](../../../da/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇪 [de](../../../de/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇷 [el](../../../el/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇸 [es](../../../es/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇪 [et](../../../et/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇷 [fa](../../../fa/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇮 [fi](../../../fi/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇷 [fr](../../../fr/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [gu](../../../gu/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ha](../../../ha/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇱 [he](../../../he/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [hi](../../../hi/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇷 [hr](../../../hr/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇺 [hu](../../../hu/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇲 [hy](../../../hy/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇩 [id](../../../id/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ig](../../../ig/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇹 [it](../../../it/docs/guides/CLI-INTEGRATIONS.md) · 🇯🇵 [ja](../../../ja/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇪 [ka](../../../ka/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇭 [km](../../../km/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [kn](../../../kn/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇷 [ko](../../../ko/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇹 [lt](../../../lt/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇻 [lv](../../../lv/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ml](../../../ml/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [mr](../../../mr/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇾 [ms](../../../ms/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇹 [mt](../../../mt/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇲 [my](../../../my/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇵 [ne](../../../ne/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇱 [nl](../../../nl/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇴 [no](../../../no/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [or](../../../or/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [pa](../../../pa/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇭 [phi](../../../phi/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇱 [pl](../../../pl/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇹 [pt](../../../pt/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇴 [ro](../../../ro/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇺 [ru](../../../ru/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇰 [si](../../../si/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇰 [sk](../../../sk/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇮 [sl](../../../sl/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇸 [sr](../../../sr/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇪 [sv](../../../sv/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇪 [sw](../../../sw/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ta](../../../ta/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [te](../../../te/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇭 [th](../../../th/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇷 [tr](../../../tr/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇰 [ur](../../../ur/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇿 [uz](../../../uz/docs/guides/CLI-INTEGRATIONS.md) · 🇻🇳 [vi](../../../vi/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [yo](../../../yo/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/CLI-INTEGRATIONS.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/CLI-INTEGRATIONS.md) · 🇪🇹 [am](../../../am/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇦 [ar](../../../ar/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇿 [az](../../../az/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇬 [bg](../../../bg/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇩 [bn](../../../bn/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇦 [bs](../../../bs/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇿 [cs](../../../cs/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇰 [da](../../../da/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇪 [de](../../../de/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇷 [el](../../../el/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇸 [es](../../../es/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇪 [et](../../../et/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇷 [fa](../../../fa/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇮 [fi](../../../fi/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇷 [fr](../../../fr/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [gu](../../../gu/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ha](../../../ha/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇱 [he](../../../he/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [hi](../../../hi/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇷 [hr](../../../hr/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇺 [hu](../../../hu/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇲 [hy](../../../hy/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇩 [id](../../../id/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ig](../../../ig/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇹 [it](../../../it/docs/guides/CLI-INTEGRATIONS.md) · 🇯🇵 [ja](../../../ja/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇪 [ka](../../../ka/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇭 [km](../../../km/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [kn](../../../kn/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇷 [ko](../../../ko/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇹 [lt](../../../lt/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇻 [lv](../../../lv/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ml](../../../ml/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [mr](../../../mr/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇾 [ms](../../../ms/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇹 [mt](../../../mt/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇲 [my](../../../my/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇵 [ne](../../../ne/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇱 [nl](../../../nl/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇴 [no](../../../no/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [or](../../../or/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [pa](../../../pa/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇭 [phi](../../../phi/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇱 [pl](../../../pl/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇹 [pt](../../../pt/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇴 [ro](../../../ro/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇺 [ru](../../../ru/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇰 [si](../../../si/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇰 [sk](../../../sk/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇮 [sl](../../../sl/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇸 [sr](../../../sr/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇪 [sv](../../../sv/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇪 [sw](../../../sw/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ta](../../../ta/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [te](../../../te/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇭 [th](../../../th/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇷 [tr](../../../tr/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇰 [ur](../../../ur/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇿 [uz](../../../uz/docs/guides/CLI-INTEGRATIONS.md) · 🇻🇳 [vi](../../../vi/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [yo](../../../yo/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/CLI-INTEGRATIONS.md)
 
 ---
 
-Cuireann OmniRoute teaghlach d’orduithe `setup-*` ar fáil a chumraíonn CLI
-códaithe (Codex, Claude Code, OpenCode, Cline, …) chun OmniRoute a úsáid mar a
-inneall — ionas go labhraíonn an uirlis le críochphointe **amháin** agus go
-seolann OmniRoute an t-iarratas chuig an soláthraí ceart le cúltiú uathoibríoch.
-Léann gach ordú catalóg **bheo** na samhlacha ó OmniRoute atá ar siúl
-(go háitiúil nó go cianda) agus scríobhann sé comhad cumraíochta na huirlise
-féin ar **do** ríomhaire. Déantar tagairt don eochair API trí athróg timpeallachta
-pé áit a dtacaíonn an uirlis leis sin. Luaitear thíos na horduithe a chaomhnaíonn
-comhad timpeallachta áitiúil don uirlis.
+Maidir leis an léiriúchán inrite comhroinnte, timpeallachtaí srianta fochláir agus socrú buan
+Gemini, féach [conarthaí seolta CLI](./CLI-LAUNCH-CONTRACTS.md).
 
-Tá lainseálaí cineálach ann freisin — `omniroute run <target>` — a thosaíonn
-`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` nó `gemini` agus an
-timpeallacht cheart insteallta aige, gan aon chumraíocht a scríobh ar chor ar bith.
-Tagann na spriocanna agus a n-ailiasanna ón bhforógra canónach
-`bin/cli/cli-manifest.mjs`
+Cuireann OmniRoute teaghlach d’orduithe `setup-*` ar fáil a chumraíonn CLI códúcháin
+(Codex, Claude Code, OpenCode, Cline, …) chun OmniRoute a úsáid mar a inneall — ionas
+go ndéanann an uirlis cumarsáid le críochphointe **amháin** agus go seolann OmniRoute í chuig
+an soláthraí ceart le cúltaca uathoibríoch. Léann gach ordú catalóg **bheo** na samhlacha ó
+OmniRoute atá ag rith (go háitiúil nó go cianda) agus scríobhann sé comhad cumraíochta na
+huirlise féin ar **do** ríomhaire. Déantar tagairt don eochair API trí athróg timpeallachta
+cibé áit a dtacaíonn an uirlis leis sin. Luaitear thíos na horduithe a stórálann comhad
+timpeallachta áitiúil don uirlis go buan.
+
+Tá tosaitheoir cineálach ann freisin — `omniroute run <target>` — a thosaíonn
+`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` nó `gemini` agus na hathróga
+timpeallachta cearta curtha isteach, gan aon chumraíocht a scríobh ar chor ar bith. Tagann
+na spriocanna agus a n-ailiasanna ón léiriúchán canónach `bin/cli/cli-manifest.mjs`
 (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
 `open-code`, `qwen-code`, `gemini-cli`), agus cuireann `omniroute completion` na
-spriocfhocail chéanna, a dhíorthaítear ón bhforógra, ar fáil. Tá na seanlainseálaithe
+spriocfhocail chéanna a dhíorthaítear ón léiriúchán ar fáil. Tá na seantosaitheoirí
 ar leith do gach uirlis — `omniroute launch` (Claude Code) agus
-`omniroute launch-codex` (Codex) — ar fáil i gcónaí.
+`omniroute launch-codex` (Codex) — fós ar fáil.
 
-Tá ionduchtú soláthraithe ar fáil ón gcomhthéacs áitiúil/cianda céanna. Coinníonn
-na horduithe API-lárnacha thíos fíordheimhniú bainistíochta ar leithligh ó
-dhintiúir soláthraithe agus ní phriontálann siad dintiúr riamh in aschur
-struchtúrtha:
+Tá ionduchtú soláthraithe ar fáil ón gcomhthéacs áitiúil/cianda céanna. Coinníonn na
+horduithe thíos, atá bunaithe ar API, fíordheimhniú bainistíochta scartha ó dhintiúir
+soláthraithe agus ní phriontálann siad dintiúr riamh in aschur struchtúrtha:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -39,19 +39,26 @@ omniroute providers remove <connection-id> --yes
 ```
 
 I gcás scripteanna, b’fhearr `--credential-stdin` nó `--credential-env` a úsáid;
-coinnítear `--credential` le haghaidh úsáid áitiúil rialaithe. Éilíonn
-`providers remove` an rogha `--yes` ar theirminéal neamh-idirghníomhach, agus
-cloíonn gach ceann de na cúig ordú leis an gcomhthéacs gníomhach nó leis na
-roghanna domhanda `--base-url`/`--api-key`.
+coinnítear `--credential` le haghaidh úsáid rialaithe áitiúil. Éilíonn
+`providers remove` `--yes` ar theirminéal neamh-idirghníomhach, agus urramaíonn na
+cúig ordú go léir an comhthéacs gníomhach nó na roghanna domhanda
+`--base-url`/`--api-key`.
 
-Le haghaidh bhunshocrú aonuaire de láimh don dá chomhtháthú is saibhre, féach na
-miontreoracha do gach uirlis:
+Diúltaíonn roghnóirí soláthraithe do réimíreanna ID, ainmneacha nó ainmneacha soláthraithe
+atá débhríoch; úsáid ID ceangail iomlán nuair a mheaitseálann roinnt ceangal. Léann
+orduithe cruthaithe agus eagarthóireachta an ceangal sábháilte ar ais, agus fíoraíonn
+baint nach féidir é a léamh a thuilleadh. Scipeálann iompórtáil péire soláthraí/ainm atá
+ann cheana. Ní féidir le hiontrálacha iompórtáilte an críochphointe bainistíochta, an
+comhthéacs ná na dintiúir bhainistíochta a tugadh don CLI a shárú.
+
+Maidir leis an mbunsocrú aonuaire, lámhscríofa don dá chomhtháthú is saibhre, féach ar na
+mionléargais do gach uirlis:
 
 - [Cumraíocht Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
 - [Cumraíocht Codex CLI](./CODEX-CLI-CONFIGURATION.md)
 - [Mód Cianda](./REMOTE-MODE.md) — rialaigh OmniRoute cianda (VPS / Tailnet) ó do ríomhaire glúine
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — an eisínteacht OmniCopilot; is féidir léi na
-  horduithe `setup-*` seo a rith duit ón taobh istigh den eagarthóir freisin
+- [Comhrá Copilot VS Code](./VSCODE-COPILOT.md) — an eisínteacht OmniCopilot; is féidir léi na
+  horduithe `setup-*` seo a rith duit ón eagarthóir freisin
 
 ---
 

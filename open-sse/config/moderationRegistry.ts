@@ -1,3 +1,5 @@
+import { hasUnsafeModelIdSyntax } from "../utils/modelIdSafety.ts";
+
 /**
  * Moderation Provider Registry
  *
@@ -54,7 +56,7 @@ export function getModerationProvider(providerId: string): ModerationProvider | 
  * Parse a moderation model string.
  */
 export function parseModerationModel(modelStr: string | null | undefined): ParsedModerationModel {
-  if (!modelStr) return { provider: null, model: null };
+  if (!modelStr || hasUnsafeModelIdSyntax(modelStr)) return { provider: null, model: null };
 
   for (const providerId of Object.keys(MODERATION_PROVIDERS)) {
     if (modelStr.startsWith(providerId + "/")) {

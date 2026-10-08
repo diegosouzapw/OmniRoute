@@ -1,0 +1,1 @@
+- **fix(compression):** the omniglyph context page shows a Retry when `GET /api/settings/compression` fails, and keeps its enable toggle and profile select hidden until a load succeeds, so a failed load can no longer save default engines over the stored row ([#15587](https://github.com/diegosouzapw/OmniRoute/pull/15587)) — thanks @woodsonl

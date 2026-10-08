@@ -1,16 +1,16 @@
 # Embedded Services (हिन्दी)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/EMBEDDED-SERVICES.md) · 🇪🇹 [am](../../../am/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/EMBEDDED-SERVICES.md) · 🇦🇿 [az](../../../az/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/EMBEDDED-SERVICES.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/EMBEDDED-SERVICES.md) · 🇩🇰 [da](../../../da/docs/frameworks/EMBEDDED-SERVICES.md) · 🇩🇪 [de](../../../de/docs/frameworks/EMBEDDED-SERVICES.md) · 🇬🇷 [el](../../../el/docs/frameworks/EMBEDDED-SERVICES.md) · 🇪🇸 [es](../../../es/docs/frameworks/EMBEDDED-SERVICES.md) · 🇪🇪 [et](../../../et/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/EMBEDDED-SERVICES.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇱 [he](../../../he/docs/frameworks/EMBEDDED-SERVICES.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/EMBEDDED-SERVICES.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇩 [id](../../../id/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇹 [it](../../../it/docs/frameworks/EMBEDDED-SERVICES.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/EMBEDDED-SERVICES.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇭 [km](../../../km/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇲 [my](../../../my/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇴 [no](../../../no/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [or](../../../or/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇰 [si](../../../si/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [te](../../../te/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇭 [th](../../../th/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/EMBEDDED-SERVICES.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/EMBEDDED-SERVICES.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/EMBEDDED-SERVICES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/EMBEDDED-SERVICES.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/EMBEDDED-SERVICES.md) · 🇪🇹 [am](../../../am/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/EMBEDDED-SERVICES.md) · 🇦🇿 [az](../../../az/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/EMBEDDED-SERVICES.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/EMBEDDED-SERVICES.md) · 🇩🇰 [da](../../../da/docs/frameworks/EMBEDDED-SERVICES.md) · 🇩🇪 [de](../../../de/docs/frameworks/EMBEDDED-SERVICES.md) · 🇬🇷 [el](../../../el/docs/frameworks/EMBEDDED-SERVICES.md) · 🇪🇸 [es](../../../es/docs/frameworks/EMBEDDED-SERVICES.md) · 🇪🇪 [et](../../../et/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/EMBEDDED-SERVICES.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇱 [he](../../../he/docs/frameworks/EMBEDDED-SERVICES.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/EMBEDDED-SERVICES.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇩 [id](../../../id/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇹 [it](../../../it/docs/frameworks/EMBEDDED-SERVICES.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/EMBEDDED-SERVICES.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇭 [km](../../../km/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇲 [my](../../../my/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇴 [no](../../../no/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [or](../../../or/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇰 [si](../../../si/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [te](../../../te/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇭 [th](../../../th/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/EMBEDDED-SERVICES.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/EMBEDDED-SERVICES.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/EMBEDDED-SERVICES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/EMBEDDED-SERVICES.md)
 
 ---
 
 > **संस्करण:** v3.8.44
-> **अंतिम अपडेट:** 2026-07-03
-> **पाठक-वर्ग:** एम्बेडेड सेवाएँ (9Router, CLIProxyAPI, Mux, Bifrost) जोड़ने, बनाए रखने या डीबग करने वाले इंजीनियर।
+> **अंतिम अपडेट:** 2026-09-09
+> **लक्षित पाठक:** एम्बेडेड सेवाओं (9Router, CLIProxyAPI, Mux, Bifrost, open-wa) को जोड़ने, बनाए रखने या डीबग करने वाले इंजीनियर।
 
-एम्बेडेड सेवाएँ स्थानीय रूप से इंस्टॉल किए गए प्रोसेस साइडकार टूल हैं, जिन्हें OmniRoute इंस्टॉल करता है, उनकी निगरानी करता है और
-प्रथम-श्रेणी रूटिंग लक्ष्यों के रूप में उपलब्ध कराता है। बाहरी प्रदाताओं (जिन तक इंटरनेट के माध्यम से
-API कुंजियों का उपयोग करके पहुँचा जाता है) के विपरीत, एम्बेडेड सेवाएँ OmniRoute वाली मशीन पर ही चलती हैं और लूपबैक पर संचार करती हैं।
+एम्बेडेड सेवाएँ स्थानीय रूप से इंस्टॉल किए गए प्रोसेस साइडकार टूल हैं, जिन्हें OmniRoute इंस्टॉल करता है, पर्यवेक्षित करता है और
+प्रथम-श्रेणी रूटिंग लक्ष्यों के रूप में उपलब्ध कराता है। बाहरी प्रोवाइडरों (जिन तक इंटरनेट पर
+API कुंजियों के माध्यम से पहुँचा जाता है) के विपरीत, एम्बेडेड सेवाएँ OmniRoute वाली मशीन पर ही चलती हैं और लूपबैक के माध्यम से संचार करती हैं।
 
 ---
 
@@ -31,33 +31,34 @@ API कुंजियों का उपयोग करके पहुँच
 
 ### एम्बेडेड सेवाएँ क्यों?
 
-पाँच सेवाएँ एम्बेड की गई हैं:
+छह सेवाएँ एम्बेड की गई हैं:
 
-| सेवा            | npm पैकेज                         | डिफ़ॉल्ट पोर्ट | उद्देश्य                                                                                                                                                                                                    |
-| --------------- | --------------------------------- | :------------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **9Router**     | `9router`                         |     20130      | ऐसा AI राउटर जिसे OmniRoute उप-प्रदाता के रूप में उपयोग कर सकता है। मॉडल `9router/{sub}/{model}` के रूप में उपलब्ध कराए जाते हैं                                                                            |
-| **CLIProxyAPI** | GitHub रिलीज़ बाइनरी (`cliproxy`) |      8317      | Anthropic CLI प्रमाणीकरण फ़्लो के लिए स्थानीय प्रॉक्सी अडैप्टर। OAuth टोकन की समय-सीमा समाप्त होने पर फ़ॉलबैक रूटिंग प्रदान करता है                                                                         |
-| **Mux**         | `mux` (हेडलेस `mux server`)       |      8322      | स्थानीय एजेंट-ऑर्केस्ट्रेशन डेमन (coder/mux)। केवल लाइफ़साइकल-प्रबंधित — रूटिंग लक्ष्य नहीं है (कोई LLM प्रॉक्सीइंग नहीं)।                                                                                  |
-| **Bifrost**     | `@maximhq/bifrost`                |      8080      | Go AI-गेटवे रिले बैकएंड। चलते समय रिले रूट (`/v1/relay/`) द्वारा स्वतः चुना जाता है                                                                                                                         |
-| **Dario**       | `@askalf/dario`                   |      3456      | Claude-सब्सक्रिप्शन प्रॉक्सी — Claude-Code-रूपी ट्रैफ़िक के लिए CLIProxyAPI का विकल्प/फ़ेलओवर; इंजेक्ट की गई कुंजी `DARIO_ADMIN_TOKEN` बन जाती है, जो इसके `/admin/*` OAuth नियंत्रण तल को सुरक्षित करती है |
+| सेवा            | npm पैकेज                         | डिफ़ॉल्ट पोर्ट | उद्देश्य                                                                                                                                                                                                               |
+| --------------- | --------------------------------- | :------------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **9Router**     | `9router`                         |     20130      | AI राउटर, जिसे OmniRoute उप-प्रदाता के रूप में उपयोग कर सकता है। मॉडल `9router/{sub}/{model}` के रूप में उपलब्ध कराए जाते हैं                                                                                          |
+| **CLIProxyAPI** | GitHub रिलीज़ बाइनरी (`cliproxy`) |      8317      | Anthropic CLI प्रमाणीकरण प्रवाहों के लिए स्थानीय प्रॉक्सी अडैप्टर। OAuth टोकन की समय-सीमा समाप्त होने पर फ़ॉलबैक रूटिंग प्रदान करता है                                                                                 |
+| **Mux**         | `mux` (हेडलेस `mux server`)       |      8322      | स्थानीय एजेंट-ऑर्केस्ट्रेशन डेमन (coder/mux)। केवल जीवनचक्र-प्रबंधित — रूटिंग लक्ष्य नहीं (कोई LLM प्रॉक्सीइंग नहीं)।                                                                                                  |
+| **Bifrost**     | `@maximhq/bifrost`                |      8080      | Go AI-गेटवे रिले बैकएंड। चलने के दौरान, रिले रूट (`/v1/relay/`) द्वारा स्वचालित रूप से चयनित होता है                                                                                                                   |
+| **Dario**       | `@askalf/dario`                   |      3456      | Claude-सब्सक्रिप्शन प्रॉक्सी — Claude-Code-स्वरूपित ट्रैफ़िक के लिए CLIProxyAPI का विकल्प/फ़ेलओवर; इंजेक्ट की गई कुंजी `DARIO_ADMIN_TOKEN` बन जाती है, जो इसके `/admin/*` OAuth नियंत्रण तल तक पहुँच नियंत्रित करती है |
+| **open-wa**     | `@open-wa/wa-automate`            |      8323      | WhatsApp Web स्वचालन (Puppeteer के माध्यम से हेडलेस Chromium)। केवल जीवनचक्र-प्रबंधित — रूटिंग लक्ष्य नहीं।                                                                                                            |
 
-सभी पाँच समान पर्यवेक्षी मॉडल का पालन करती हैं:
+सभी छह समान पर्यवेक्षी मॉडल का पालन करते हैं:
 
 - OmniRoute उन्हें `DATA_DIR/services/{name}/` के अंतर्गत इंस्टॉल करता है (OmniRoute के अपने `package.json` से पृथक)
 - OmniRoute उन्हें चाइल्ड प्रोसेस के रूप में शुरू करता है और उनकी निगरानी करता है
-- OmniRoute चाइल्ड के एनवायरनमेंट में एक अस्थायी API कुंजी इंजेक्ट करता है और उसे बिना डाउनटाइम के रोटेट करता है (जहाँ लागू हो)
-- सभी प्रबंधन रूट (`/api/services/*`) **LOCAL_ONLY** हैं — केवल लूपबैक से ऐक्सेस किए जा सकते हैं (कठोर नियम #17)
+- OmniRoute चाइल्ड के एनवायरनमेंट में एक अल्पकालिक API कुंजी इंजेक्ट करता है और बिना डाउनटाइम के उसे रोटेट करता है (जहाँ लागू हो)
+- सभी प्रबंधन रूट (`/api/services/*`) **LOCAL_ONLY** हैं — केवल लूपबैक से पहुँच योग्य (अनिवार्य नियम #17)
 
 ### प्रमुख निर्णय (डिज़ाइन योजना से)
 
-| निर्णय                                | मान                                                                                                             |
-| ------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| 9Router के नेटिव UI तक डैशबोर्ड पहुँच | `/dashboard/providers/services/9router/embed/*` पर रिवर्स प्रॉक्सी                                              |
-| इंस्टॉलेशन तंत्र                      | `execFile` के माध्यम से `npm install {package}` (कोई शेल इंटरपोलेशन नहीं)                                       |
-| उपभोग मोड                             | रूटिंग इंजन में `9router/{sub}/{model}` के रूप में पंजीकृत प्रदाता                                              |
-| API कुंजी प्रबंधन                     | OmniRoute जनरेट करता है, स्थिर अवस्था में एन्क्रिप्ट करता है (AES-256-GCM), और env के माध्यम से इंजेक्ट करता है |
-| डैशबोर्ड स्थान                        | `/dashboard/providers/services` (तीन टैब)                                                                       |
-| ऑटो-स्टार्ट                           | प्रत्येक सेवा के लिए टॉगल, डिफ़ॉल्ट रूप से बंद                                                                  |
+| निर्णय                                   | मान                                                                                                     |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| 9Router के नेटिव UI तक डैशबोर्ड की पहुँच | `/dashboard/providers/services/9router/embed/*` पर रिवर्स प्रॉक्सी                                      |
+| इंस्टॉलेशन तंत्र                         | `execFile` के माध्यम से `npm install {package}` (कोई शेल इंटरपोलेशन नहीं)                               |
+| उपभोग मोड                                | रूटिंग इंजन में `9router/{sub}/{model}` के रूप में पंजीकृत प्रदाता                                      |
+| API कुंजी प्रबंधन                        | OmniRoute जनरेट करता है, एट-रेस्ट एन्क्रिप्ट करता है (AES-256-GCM), और env के माध्यम से इंजेक्ट करता है |
+| डैशबोर्ड स्थान                           | `/dashboard/providers/services` (तीन टैब)                                                               |
+| ऑटो-स्टार्ट                              | प्रत्येक सेवा के लिए टॉगल, डिफ़ॉल्ट रूप से बंद                                                          |
 
 ---
 
@@ -65,9 +66,9 @@ API कुंजियों का उपयोग करके पहुँच
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
-│  परत 1 — UI                                                        │
-│  /dashboard/providers/services  (टैब: CLIProxyAPI | 9Router | Mux) │
-│  लाइव लॉग (SSE), प्रारंभ/रोकें/पुनः प्रारंभ/अपडेट, सेटिंग्स, इंस्टॉल│
+│  परत 1 — UI                                                       │
+│  /dashboard/providers/services  (टैब: CLIProxyAPI | 9Router | Mux)│
+│  लाइव लॉग (SSE), शुरू/बंद/पुनः आरंभ/अपडेट, सेटिंग्स, इंस्टॉल      │
 │                                                                    │
 │  src/app/(dashboard)/dashboard/providers/services/                 │
 │    ├── page.tsx               शेल + ?tab= द्वारा टैब रूटिंग        │
@@ -78,7 +79,7 @@ API कुंजियों का उपयोग करके पहुँच
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ HTTP (Next.js fetch)
 ┌──────────────────────▼─────────────────────────────────────────────┐
-│  परत 2 — API (LOCAL_ONLY — केवल लूपबैक)                            │
+│  परत 2 — API (LOCAL_ONLY — केवल लूपबैक)                           │
 │                                                                    │
 │  /api/services/9router/{install|start|stop|restart|update|         │
 │                          rotate-key|status|auto-start|logs}        │
@@ -94,34 +95,34 @@ API कुंजियों का उपयोग करके पहुँच
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ इन-प्रोसेस कॉल
 ┌──────────────────────▼─────────────────────────────────────────────┐
-│  परत 3 — ServiceSupervisor (src/lib/services/)                     │
+│  परत 3 — ServiceSupervisor (src/lib/services/)                    │
 │                                                                    │
 │  ServiceSupervisor.ts   सामान्य सुपरवाइज़र (child_process.spawn)  │
-│    ├── इंस्टॉल:    execFile('npm', ['install', pkg, '--prefix'])    │
-│    ├── प्रारंभ:    spawn(node, [entrypoint], {env, cwd})           │
-│    ├── api_key:    crypto.randomBytes(32) → env NINEROUTER_API_KEY  │
-│    ├── पोर्ट:      9Router के लिए 20130 (कॉन्फ़िगर करने योग्य)     │
+│    ├── इंस्टॉल:    execFile('npm', ['install', pkg, '--prefix'])   │
+│    ├── शुरू करना:  spawn(node, [entrypoint], {env, cwd})           │
+│    ├── api_key:    crypto.randomBytes(32) → env NINEROUTER_API_KEY │
+│    ├── पोर्ट:      9Router के लिए 20130 (कॉन्फ़िगर करने योग्य)    │
 │    ├── लॉग:        stdio रिंग बफ़र 5 MB → SSE इवेंट                │
 │    ├── स्वास्थ्य:  प्रत्येक 2–5 सेकंड में HTTP GET /health, विलंबित रिकवरी│
-│    └── जीवनचक्र:   SIGTERM 15 सेकंड → SIGKILL                      │
+│    └── जीवनचक्र:   SIGTERM 15 सेकंड → SIGKILL                     │
 │                                                                    │
 │  registry.ts        getSupervisor(name) / registerSupervisor()     │
-│  bootstrap.ts       प्रोसेस प्रारंभ पर सभी SERVICES[] को बूटस्ट्रैप करता है│
+│  bootstrap.ts       प्रोसेस शुरू होने पर सभी SERVICES[] बूटस्ट्रैप करता है│
 │  apiKey.ts          getOrCreateApiKey(), generateServiceApiKey()   │
-│  modelSync.ts       आवधिक GET /v1/models → service_models टेबल    │
-│  ringBuffer.ts      सर्कुलर लॉग बफ़र (प्रति सेवा 5 MB)             │
-│  healthCheck.ts     पोलिंग HTTP स्वास्थ्य जाँच                     │
-│  installers/        ninerouter.ts, cliproxy.ts, mux.ts             │
-│                      (इंस्टॉलर अडैप्टर)                            │
+│  modelSync.ts       आवधिक GET /v1/models → service_models तालिका  │
+│  ringBuffer.ts      सर्कुलर लॉग बफ़र (प्रति सेवा 5 MB)            │
+│  healthCheck.ts     पोलिंग HTTP स्वास्थ्य जाँच                    │
+│  installers/        ninerouter.ts, cliproxy.ts, mux.ts, openwa.ts  │
+│                      (इंस्टॉलर अडैप्टर)                           │
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ OpenAI-संगत HTTP (लूपबैक)
 ┌──────────────────────▼─────────────────────────────────────────────┐
-│  परत 4 — प्रोवाइडर / रूटिंग                                       │
+│  परत 4 — प्रदाता / रूटिंग                                         │
 │                                                                    │
 │  open-sse/executors/ninerouter.ts                                  │
 │    प्रत्येक अनुरोध पर पोर्ट और API कुंजी फिर से खोजता है (कोई कैशिंग नहीं)।│
 │    प्रॉक्सी करने से पहले मॉडल id से "9router/" प्रीफ़िक्स हटाता है।│
-│    यदि सुपरवाइज़र "running" स्थिति में नहीं है, तो 503 service_not_running लौटाता है।│
+│    यदि सुपरवाइज़र "running" में न हो, तो 503 service_not_running लौटाता है।│
 │                                                                    │
 │  src/shared/constants/providers.ts                                 │
 │    "9router" के लिए प्रविष्टि: isEmbeddedService: true             │
@@ -130,26 +131,27 @@ API कुंजियों का उपयोग करके पहुँच
 │    मॉडल "9router/{sub}/{model}" (प्रीफ़िक्स सहित) के रूप में संग्रहीत होते हैं।│
 │    modelSync.ts द्वारा प्रत्येक 5 मिनट में सिंक किए जाते हैं।      │
 │                                                                    │
-│  Mux का केवल जीवनचक्र प्रबंधित होता है (परतें 1-3) — यह एक एजेंट- │
-│  ऑर्केस्ट्रेशन डेमन है, LLM प्रॉक्सी नहीं, इसलिए इसमें परत 4 की    │
+│  Mux केवल जीवनचक्र-प्रबंधित है (परतें 1-3) — यह एक एजेंट-         │
+│  ऑर्केस्ट्रेशन डेमन है, LLM प्रॉक्सी नहीं, इसलिए इसमें परत 4 की   │
 │  executor/provider प्रविष्टि नहीं है और यह कभी रूटिंग लक्ष्य नहीं बनता।│
 └────────────────────────────────────────────────────────────────────┘
 ```
 
-### प्रमुख स्रोत फ़ाइलें
+### मुख्य स्रोत फ़ाइलें
 
 | फ़ाइल                                       | भूमिका                                                   |
 | ------------------------------------------- | -------------------------------------------------------- |
 | `src/lib/services/ServiceSupervisor.ts`     | मुख्य क्लास: जीवनचक्र, लॉक, स्वास्थ्य, रिंग बफ़र         |
 | `src/lib/services/bootstrap.ts`             | प्रोसेस-स्तरीय पंजीकरण और स्वतः प्रारंभ                  |
 | `src/lib/services/registry.ts`              | सिंगलटन मैप `tool → supervisor`                          |
-| `src/lib/services/apiKey.ts`                | कुंजी निर्माण, स्थिर डेटा के लिए AES-256-GCM एन्क्रिप्शन |
+| `src/lib/services/apiKey.ts`                | कुंजी निर्माण, विश्रामावस्था में AES-256-GCM एन्क्रिप्शन |
 | `src/lib/services/modelSync.ts`             | आवधिक मॉडल सिंक (5 मिनट) + माँग पर                       |
 | `src/lib/services/ringBuffer.ts`            | SSE सदस्यता के साथ 5 MB सर्कुलर लॉग बफ़र                 |
 | `src/lib/services/healthCheck.ts`           | HTTP स्वास्थ्य जाँच (कॉन्फ़िगर करने योग्य अंतराल)        |
 | `src/lib/services/installers/ninerouter.ts` | 9Router के लिए npm इंस्टॉल/अपडेट/अनइंस्टॉल               |
 | `src/lib/services/installers/cliproxy.ts`   | CLIProxyAPI के लिए npm इंस्टॉल/अपडेट/अनइंस्टॉल           |
 | `src/lib/services/installers/mux.ts`        | Mux के लिए npm इंस्टॉल/अपडेट/अनइंस्टॉल                   |
+| `src/lib/services/installers/openwa.ts`     | open-wa के लिए npm इंस्टॉल/अपडेट/अनइंस्टॉल               |
 | `src/app/api/services/9router/_lib.ts`      | `getOrInitSupervisor()` सहायक                            |
 | `src/app/api/services/[name]/logs/route.ts` | साझा SSE लॉग एंडपॉइंट                                    |
 | `open-sse/executors/ninerouter.ts`          | प्रदाता एक्ज़ीक्यूटर (लेयर 4)                            |
@@ -211,15 +213,14 @@ API कुंजियों का उपयोग करके पहुँच
 ## 4. API संदर्भ
 
 `/api/services/` के अंतर्गत सभी रूट **LOCAL_ONLY** हैं (केवल लूपबैक, कठोर नियम #17)।
-गैर-लूपबैक अनुरोधों को ऑथ टोकन की परवाह किए बिना `403 LOCAL_ONLY` मिलता है।
+गैर-लूपबैक अनुरोधों को ऑथ टोकन की परवाह किए बिना `403 LOCAL_ONLY` प्राप्त होता है।
 
 ### 4.1 9Router एंडपॉइंट (11 रूट)
 
 #### `POST /api/services/9router/install`
 
-npm से 9Router इंस्टॉल करता है। अपने स्वयं के `package.json` और `node_modules/`
-के साथ `DATA_DIR/services/9router/` बनाता है। यह OmniRoute की अपनी डिपेंडेंसी से
-टकराव नहीं करता।
+npm से 9Router इंस्टॉल करता है। अपने स्वयं के `package.json` और `node_modules/` के साथ
+`DATA_DIR/services/9router/` बनाता है। यह OmniRoute की अपनी डिपेंडेंसी से टकराव नहीं करता।
 
 **अनुरोध बॉडी** (सभी वैकल्पिक):
 
@@ -237,30 +238,28 @@ npm से 9Router इंस्टॉल करता है। अपने स
 | ------ | ------------------------------------------------------------------ |
 | `200`  | `{ ok: true, installedVersion: "x.y.z", path: "..." }`             |
 | `400`  | अमान्य अनुरोध बॉडी (Zod सत्यापन विफलता)                            |
-| `409`  | इंस्टॉलेशन पहले से जारी है (लॉक अधिगृहीत है)                       |
-| `500`  | npm install विफल — उपयोगकर्ता-अनुकूल त्रुटि के लिए `message` देखें |
+| `409`  | इंस्टॉलेशन पहले से जारी है (लॉक सक्रिय है)                         |
+| `500`  | npm इंस्टॉल विफल — उपयोगकर्ता-अनुकूल त्रुटि के लिए `message` देखें |
 
-**टिप्पणियाँ:** `execFile('npm', [...])` का उपयोग करता है — कोई शेल नहीं, कोई
-इंटरपोलेशन नहीं (कठोर नियम #13)। EACCES त्रुटियाँ उपयोगकर्ता-अनुकूल संदेशों के
-रूप में दिखाई जाती हैं।
+**टिप्पणियाँ:** `execFile('npm', [...])` का उपयोग करता है — कोई शेल नहीं, कोई इंटरपोलेशन नहीं (कठोर नियम #13)।
+EACCES त्रुटियों को उपयोगकर्ता-अनुकूल संदेशों के रूप में दिखाया जाता है।
 
 ---
 
 #### `POST /api/services/9router/start`
 
-9Router शुरू करता है। यदि सुपरवाइज़र पहले से पंजीकृत नहीं है, तो उसे पंजीकृत करता
-है और फिर `supervisor.start()` कॉल करता है। पहले से चलने की स्थिति में यह
-आइडेम्पोटेंट है।
+9Router प्रारंभ करता है। यदि सुपरवाइज़र पहले से पंजीकृत नहीं है, तो उसे पंजीकृत करता है और फिर
+`supervisor.start()` को कॉल करता है। पहले से चल रहा होने पर यह आइडेम्पोटेंट है।
 
 **अनुरोध बॉडी:** कोई नहीं
 
 **प्रतिक्रियाएँ:**
 
-| स्थिति | विवरण                                                    |
-| ------ | -------------------------------------------------------- |
-| `200`  | `ServiceStatus` ऑब्जेक्ट (नीचे स्कीमा देखें)             |
-| `409`  | 9Router इंस्टॉल नहीं है (`status: "not_installed"`)      |
-| `503`  | प्रारंभ करना विफल (प्रक्रिया त्रुटि — `lastError` देखें) |
+| स्थिति | विवरण                                                      |
+| ------ | ---------------------------------------------------------- |
+| `200`  | `ServiceStatus` ऑब्जेक्ट (नीचे स्कीमा देखें)               |
+| `409`  | 9Router इंस्टॉल नहीं है (`status: "not_installed"`)        |
+| `503`  | प्रारंभ करना विफल रहा (प्रोसेस त्रुटि — `lastError` देखें) |
 
 **ServiceStatus स्कीमा:**
 
@@ -280,18 +279,17 @@ npm से 9Router इंस्टॉल करता है। अपने स
 
 #### `POST /api/services/9router/stop`
 
-9Router को सुचारु रूप से रोकता है। SIGTERM भेजता है, 15 सेकंड प्रतीक्षा करता है
-और यदि प्रक्रिया अब भी सक्रिय हो, तो SIGKILL भेजता है। पहले से रुकी हुई स्थिति
-में यह आइडेम्पोटेंट है।
+9Router को सुचारु रूप से रोकता है। SIGTERM भेजता है, 15 s प्रतीक्षा करता है और यदि प्रोसेस अब भी सक्रिय हो,
+तो SIGKILL भेजता है। पहले से रुका हुआ होने पर यह आइडेम्पोटेंट है।
 
 **अनुरोध बॉडी:** कोई नहीं
 
 **प्रतिक्रियाएँ:**
 
-| स्थिति | विवरण                               |
-| ------ | ----------------------------------- |
-| `200`  | `ServiceStatus` (स्थिति: "stopped") |
-| `503`  | रोकना अप्रत्याशित रूप से विफल हुआ   |
+| स्थिति | विवरण                              |
+| ------ | ---------------------------------- |
+| `200`  | `ServiceStatus` (state: "stopped") |
+| `503`  | रोकना अप्रत्याशित रूप से विफल रहा  |
 
 ---
 
@@ -307,9 +305,9 @@ npm से 9Router इंस्टॉल करता है। अपने स
 
 #### `POST /api/services/9router/update`
 
-9Router को नए npm वर्ज़न पर अपडेट करता है। यदि सेवा चल रही है, तो पहले उसे रोका
-जाता है, npm install चलाया जाता है (नए वर्ज़न को उसी स्थान पर इंस्टॉल करते हुए)
-और फिर सेवा को पुनः प्रारंभ किया जाता है।
+9Router को नए npm वर्ज़न में अपडेट करता है। यदि सेवा चल रही है, तो पहले उसे रोका जाता है,
+npm इंस्टॉल चलाया जाता है (नया वर्ज़न उसी स्थान पर इंस्टॉल किया जाता है) और फिर
+सेवा को पुनः प्रारंभ किया जाता है।
 
 **अनुरोध बॉडी** (सभी वैकल्पिक):
 
@@ -323,14 +321,14 @@ npm से 9Router इंस्टॉल करता है। अपने स
 | ------ | --------------------------------------------------------------- |
 | `200`  | `{ ok: true, previousVersion: "...", installedVersion: "..." }` |
 | `400`  | अमान्य बॉडी                                                     |
-| `500`  | npm update विफल                                                 |
+| `500`  | npm अपडेट विफल रहा                                              |
 
 ---
 
 #### `POST /api/services/9router/rotate-key`
 
-9Router के लिए एक नई API कुंजी जनरेट करता है, उसे एन्क्रिप्टेड अवस्था में संग्रहीत करता है, और सेवा को
-(यदि वह चल रही हो) पुनः प्रारंभ करता है, ताकि वह अपने एनवायरनमेंट से नई कुंजी प्राप्त कर सके। पुरानी कुंजी
+9Router के लिए एक नई API कुंजी जनरेट करता है, उसे स्थिर अवस्था में एन्क्रिप्ट करता है और सेवा को
+(यदि चल रही हो) पुनः प्रारंभ करता है, ताकि वह अपने एनवायरनमेंट से नई कुंजी प्राप्त कर सके। पुरानी कुंजी
 तुरंत अमान्य कर दी जाती है।
 
 **अनुरोध बॉडी:** कोई नहीं
@@ -340,23 +338,23 @@ npm से 9Router इंस्टॉल करता है। अपने स
 | स्थिति | विवरण                                      |
 | ------ | ------------------------------------------ |
 | `200`  | `{ keyRotated: true, restarted: boolean }` |
-| `500`  | रोटेशन विफल हुआ                            |
+| `500`  | कुंजी रोटेशन विफल रहा                      |
 
-**सुरक्षा:** नई कुंजी प्रतिक्रिया में कभी वापस नहीं की जाती (क्रेडेंशियल लीक नहीं होता)।
-इसे `version_manager` तालिका में एन्क्रिप्टेड (AES-256-GCM) रूप में संग्रहीत किया जाता है।
+**सुरक्षा:** नई कुंजी प्रतिक्रिया में कभी नहीं लौटाई जाती (क्रेडेंशियल लीक नहीं होता)।
+इसे `version_manager` टेबल में एन्क्रिप्टेड रूप में (AES-256-GCM) संग्रहीत किया जाता है।
 
 ---
 
 #### `GET /api/services/9router/status`
 
-संस्करण मेटाडेटा और API कुंजी पूर्वावलोकन सहित संयुक्त लाइव + DB स्थिति लौटाता है।
+वर्ज़न मेटाडेटा और API कुंजी पूर्वावलोकन सहित संयुक्त लाइव + DB स्थिति लौटाता है।
 
 **प्रतिक्रियाएँ:**
 
-| स्थिति | विवरण                  |
-| ------ | ---------------------- |
-| `200`  | नीचे दिया स्कीमा देखें |
-| `500`  | स्थिति पढ़ना विफल हुआ  |
+| स्थिति | विवरण                      |
+| ------ | -------------------------- |
+| `200`  | नीचे दिया गया स्कीमा देखें |
+| `500`  | स्थिति पढ़ना विफल रहा      |
 
 **प्रतिक्रिया स्कीमा:**
 
@@ -382,8 +380,8 @@ npm से 9Router इंस्टॉल करता है। अपने स
 
 #### `POST /api/services/9router/auto-start`
 
-ऑटो-स्टार्ट फ़्लैग को टॉगल करता है। जब `enabled: true` हो, तो अगली बार OmniRoute के बूट होने पर
-सेवा अपने आप प्रारंभ हो जाती है (यदि सेवा इंस्टॉल की गई हो)।
+ऑटो-स्टार्ट फ़्लैग को टॉगल करता है। जब `enabled: true` हो, तो अगली बार OmniRoute बूट होने पर
+सेवा स्वचालित रूप से प्रारंभ हो जाती है (यदि सेवा इंस्टॉल है)।
 
 **अनुरोध बॉडी:**
 
@@ -406,17 +404,17 @@ npm से 9Router इंस्टॉल करता है। अपने स
 
 **क्वेरी पैरामीटर:**
 
-| पैरामीटर | प्रकार    | डिफ़ॉल्ट | विवरण                                                          |
-| -------- | --------- | -------- | -------------------------------------------------------------- |
-| `tail`   | `integer` | 200      | पहले भेजी जाने वाली ऐतिहासिक पंक्तियों की संख्या (अधिकतम 1000) |
-| `filter` | `string`  | कोई नहीं | केस-असंवेदी सबस्ट्रिंग फ़िल्टर (regex नहीं — ReDoS-सुरक्षित)   |
+| पैरामीटर | प्रकार    | डिफ़ॉल्ट | विवरण                                                             |
+| -------- | --------- | -------- | ----------------------------------------------------------------- |
+| `tail`   | `integer` | 200      | शुरुआत में भेजी जाने वाली ऐतिहासिक लाइनों की संख्या (अधिकतम 1000) |
+| `filter` | `string`  | कोई नहीं | केस-असंवेदी सबस्ट्रिंग फ़िल्टर (कोई regex नहीं — ReDoS-सुरक्षित)  |
 
 **SSE इवेंट:**
 
 | इवेंट       | डेटा        | विवरण                       |
 | ----------- | ----------- | --------------------------- |
 | `snapshot`  | `LogLine[]` | प्रारंभिक ऐतिहासिक टेल      |
-| `log`       | `LogLine`   | लाइव लॉग पंक्ति             |
+| `log`       | `LogLine`   | लाइव लॉग लाइन               |
 | `heartbeat` | `{}`        | प्रत्येक 15 s में कीप-अलाइव |
 
 **LogLine स्कीमा:**
@@ -441,82 +439,118 @@ npm से 9Router इंस्टॉल करता है। अपने स
 
 ### 4.2 CLIProxyAPI एंडपॉइंट (10 रूट)
 
-CLIProxyAPI के एंडपॉइंट का स्वरूप 9Router जैसा ही है, लेकिन इसमें `rotate-key` नहीं है और
-`accounts`, `provider-expose` तथा `auto-restart-adopted` शामिल हैं। अब इसे प्रारंभ किए जाते समय
-एक समर्पित डेटा-प्लेन API कुंजी इंजेक्ट की जाती है (`bootstrap.ts` में `needsApiKey: true`,
-जिसका उपयोग मॉडल सिंक के लिए किया जाता है); `status` में कम फ़ील्ड शामिल होते हैं।
+CLIProxyAPI में 9Router जैसी ही एंडपॉइंट संरचना है, सिवाय `rotate-key` के, और इसमें
+`accounts`, `provider-expose` तथा `auto-restart-adopted` भी शामिल हैं। अब इसे
+आरंभ करते समय एक समर्पित डेटा-प्लेन API कुंजी इंजेक्ट की जाती है (`bootstrap.ts` में
+`needsApiKey: true`, जिसका उपयोग मॉडल सिंक के लिए होता है); `status` में कम फ़ील्ड शामिल हैं।
 
 | विधि   | पथ                                  | विवरण                                  |
 | ------ | ----------------------------------- | -------------------------------------- |
 | `POST` | `/api/services/cliproxy/install`    | npm से CLIProxyAPI इंस्टॉल करें        |
-| `POST` | `/api/services/cliproxy/start`      | CLIProxyAPI प्रारंभ करें               |
+| `POST` | `/api/services/cliproxy/start`      | CLIProxyAPI शुरू करें                  |
 | `POST` | `/api/services/cliproxy/stop`       | CLIProxyAPI रोकें                      |
-| `POST` | `/api/services/cliproxy/restart`    | CLIProxyAPI पुनः प्रारंभ करें          |
+| `POST` | `/api/services/cliproxy/restart`    | CLIProxyAPI पुनः शुरू करें             |
 | `POST` | `/api/services/cliproxy/update`     | नए संस्करण में अपडेट करें              |
 | `GET`  | `/api/services/cliproxy/status`     | लाइव + DB स्थिति (`apiKeyMasked` नहीं) |
-| `POST` | `/api/services/cliproxy/auto-start` | ऑटो-स्टार्ट टॉगल करें                  |
+| `POST` | `/api/services/cliproxy/auto-start` | स्वतः-प्रारंभ टॉगल करें                |
 
-साझा `GET /api/services/{name}/logs` एंडपॉइंट (§4.1 देखें), `[name]` डायनेमिक सेगमेंट का उपयोग करके
-सभी चार सेवाओं के लिए काम करता है।
+साझा `GET /api/services/{name}/logs` एंडपॉइंट (§4.1 देखें), `[name]` डायनेमिक
+सेगमेंट का उपयोग करके सभी चार सेवाओं के लिए काम करता है।
 
 ---
 
 ### 4.3 Mux एंडपॉइंट (8 रूट)
 
-Mux के एंडपॉइंट का स्वरूप CLIProxyAPI जैसा ही है — API सतह में कोई `rotate-key` रूट नहीं है
-(बेयरर टोकन को `getOrCreateApiKey("mux")` के माध्यम से 9Router की तरह ही जनरेट किया जाता है और
-`MUX_SERVER_AUTH_TOKEN` एनवायरनमेंट वेरिएबल के माध्यम से इंजेक्ट किया जाता है, लेकिन अभी तक
-कोई समर्पित रोटेशन एंडपॉइंट नहीं है)। Mux को केवल लाइफ़साइकल के स्तर पर प्रबंधित किया जाता है:
-9Router के विपरीत, इसमें कोई Layer 4 एक्ज़ीक्यूटर नहीं है और इसे कभी भी रूटिंग प्रोवाइडर के रूप में
-पंजीकृत नहीं किया जाता।
+Mux में CLIProxyAPI जैसी ही एंडपॉइंट संरचना है — API सतह में कोई `rotate-key` रूट
+नहीं है (बेयरर टोकन को 9Router की तरह ही `getOrCreateApiKey("mux")` के माध्यम से
+जनरेट किया जाता है और `MUX_SERVER_AUTH_TOKEN` env var के माध्यम से इंजेक्ट किया जाता है,
+लेकिन अभी तक कोई समर्पित रोटेशन एंडपॉइंट नहीं है)। Mux का केवल जीवनचक्र प्रबंधित किया
+जाता है: 9Router के विपरीत, इसमें कोई लेयर 4 एक्ज़ीक्यूटर नहीं है और इसे कभी भी रूटिंग
+प्रोवाइडर के रूप में पंजीकृत नहीं किया जाता।
 
 | विधि   | पथ                             | विवरण                                 |
 | ------ | ------------------------------ | ------------------------------------- |
 | `POST` | `/api/services/mux/install`    | npm से Mux इंस्टॉल करें (`npm i mux`) |
-| `POST` | `/api/services/mux/start`      | Mux प्रारंभ करें (`mux server`)       |
+| `POST` | `/api/services/mux/start`      | Mux शुरू करें (`mux server`)          |
 | `POST` | `/api/services/mux/stop`       | Mux रोकें                             |
-| `POST` | `/api/services/mux/restart`    | Mux पुनः प्रारंभ करें                 |
+| `POST` | `/api/services/mux/restart`    | Mux पुनः शुरू करें                    |
 | `POST` | `/api/services/mux/update`     | नए npm संस्करण में अपडेट करें         |
 | `GET`  | `/api/services/mux/status`     | लाइव + DB स्थिति                      |
-| `POST` | `/api/services/mux/auto-start` | ऑटो-स्टार्ट टॉगल करें                 |
+| `POST` | `/api/services/mux/auto-start` | स्वतः-प्रारंभ टॉगल करें               |
 
 ---
 
 ### 4.4 Bifrost एंडपॉइंट (8 रूट)
 
-Bifrost एक Go AI-गेटवे रिले बैकएंड (`@maximhq/bifrost`) है। यह CLIProxyAPI के समान
-एंडपॉइंट स्वरूप का उपयोग करता है (`rotate-key` नहीं — Bifrost अपनी प्रोवाइडर कुंजियों को
-अपने `-app-dir` के अंतर्गत `config.json` में प्रबंधित करता है)।
+Bifrost एक Go AI-गेटवे रिले बैकएंड (`@maximhq/bifrost`) है। यह CLIProxyAPI जैसी ही
+एंडपॉइंट संरचना का उपयोग करता है (`rotate-key` नहीं — Bifrost अपनी प्रोवाइडर कुंजियों
+को अपने `-app-dir` के अंतर्गत `config.json` में प्रबंधित करता है)।
 
-| विधि   | पथ                                 | विवरण                                                      |
-| ------ | ---------------------------------- | ---------------------------------------------------------- |
-| `POST` | `/api/services/bifrost/install`    | npm (`@maximhq/bifrost`) से Bifrost इंस्टॉल करें           |
-| `POST` | `/api/services/bifrost/start`      | पोर्ट 8080 (डिफ़ॉल्ट) पर Bifrost शुरू करें                 |
-| `POST` | `/api/services/bifrost/stop`       | Bifrost रोकें                                              |
-| `POST` | `/api/services/bifrost/restart`    | Bifrost पुनः शुरू करें                                     |
-| `POST` | `/api/services/bifrost/update`     | नए संस्करण में अपडेट करें                                  |
-| `GET`  | `/api/services/bifrost/status`     | लाइव + DB स्थिति                                           |
-| `POST` | `/api/services/bifrost/auto-start` | स्वतः-प्रारंभ टॉगल करें                                    |
-| `GET`  | `/api/services/bifrost/logs`       | SSE लॉग टेल (साझा `[name]/logs` डायनेमिक रूट के माध्यम से) |
+| विधि   | पथ                                 | विवरण                                                 |
+| ------ | ---------------------------------- | ----------------------------------------------------- |
+| `POST` | `/api/services/bifrost/install`    | npm से Bifrost इंस्टॉल करें (`@maximhq/bifrost`)      |
+| `POST` | `/api/services/bifrost/start`      | पोर्ट 8080 (डिफ़ॉल्ट) पर Bifrost शुरू करें            |
+| `POST` | `/api/services/bifrost/stop`       | Bifrost रोकें                                         |
+| `POST` | `/api/services/bifrost/restart`    | Bifrost पुनः शुरू करें                                |
+| `POST` | `/api/services/bifrost/update`     | नए संस्करण में अपडेट करें                             |
+| `GET`  | `/api/services/bifrost/status`     | लाइव + DB स्थिति                                      |
+| `POST` | `/api/services/bifrost/auto-start` | स्वतः-प्रारंभ टॉगल करें                               |
+| `GET`  | `/api/services/bifrost/logs`       | SSE लॉग टेल (साझा `[name]/logs` डायनेमिक रूट के जरिए) |
 
 **रूटिंग वायरिंग:** जब `BIFROST_BASE_URL` सेट नहीं होता और पर्यवेक्षित Bifrost
-इंस्टेंस चल रहा होता है, तब `getBifrostRoutingConfig()` (`routingBackend.ts` में) स्वचालित रूप से
-`http://127.0.0.1:{port}` को रिले बेस URL के रूप में उपयोग करता है। स्पष्ट रूप से सेट किया गया `BIFROST_BASE_URL` env
-हमेशा प्राथमिकता लेता है।
+इंस्टेंस चल रहा होता है, तो `getBifrostRoutingConfig()` (`routingBackend.ts` में)
+स्वचालित रूप से `http://127.0.0.1:{port}` को रिले बेस URL के रूप में उपयोग करता है।
+स्पष्ट रूप से सेट किया गया `BIFROST_BASE_URL` env हमेशा प्राथमिकता लेता है।
 
 ---
 
 ### 4.5 Dario एंडपॉइंट (12 रूट)
 
-अन्य सेवाओं जैसा ही लाइफ़साइकल स्वरूप (`install`, `start`, `stop`, `restart`,
-`update`, `status`, `auto-start`, `auto-restart-adopted`), साथ ही `admin/` के अंतर्गत एक टोकन-गेटेड OAuth
-कंट्रोल प्लेन: `admin/accounts`, `admin/import-from-omniroute`,
-`admin/login-start`, `admin/login-complete` (सभी `DARIO_ADMIN_TOKEN` द्वारा सुरक्षित)।
+अन्य सेवाओं जैसी ही जीवनचक्र संरचना (`install`, `start`, `stop`, `restart`,
+`update`, `status`, `auto-start`, `auto-restart-adopted`), साथ ही `admin/` के अंतर्गत
+एक टोकन-गेटेड OAuth कंट्रोल प्लेन: `admin/accounts`, `admin/import-from-omniroute`,
+`admin/login-start`, `admin/login-complete` (सभी `DARIO_ADMIN_TOKEN` द्वारा संरक्षित)।
 
-### 4.6 रिवर्स प्रॉक्सी (9Router डैशबोर्ड एम्बेड)
+### 4.6 open-wa एंडपॉइंट (7 रूट)
 
-डैशबोर्ड निम्न आंतरिक रिवर्स
-प्रॉक्सी के माध्यम से 9Router वेब UI को iframe के अंदर एम्बेड करता है:
+open-wa (`@open-wa/wa-automate`), WhatsApp Web को स्वचालित करने के लिए (Puppeteer
+के माध्यम से) एक हेडलेस Chromium इंस्टेंस संचालित करता है। यह Mux जैसी ही एंडपॉइंट
+संरचना का उपयोग करता है (अभी तक कोई `rotate-key` रूट नहीं)। इसका केवल जीवनचक्र
+प्रबंधित किया जाता है — यह रूटिंग लक्ष्य नहीं है और इसमें कोई लेयर 4 एक्ज़ीक्यूटर/प्रोवाइडर
+प्रविष्टि नहीं है।
+
+| विधि   | पथ                                | विवरण                                                      |
+| ------ | --------------------------------- | ---------------------------------------------------------- |
+| `POST` | `/api/services/openwa/install`    | npm से open-wa (`@open-wa/wa-automate`) इंस्टॉल करें       |
+| `POST` | `/api/services/openwa/start`      | पोर्ट 8323 (डिफ़ॉल्ट) पर open-wa शुरू करें                 |
+| `POST` | `/api/services/openwa/stop`       | open-wa बंद करें                                           |
+| `POST` | `/api/services/openwa/restart`    | open-wa पुनः शुरू करें                                     |
+| `POST` | `/api/services/openwa/update`     | नए संस्करण में अपडेट करें                                  |
+| `GET`  | `/api/services/openwa/status`     | लाइव + DB स्थिति                                           |
+| `POST` | `/api/services/openwa/auto-start` | स्वतः-प्रारंभ टॉगल करें                                    |
+| `GET`  | `/api/services/openwa/logs`       | SSE लॉग टेल (साझा `[name]/logs` डायनेमिक रूट के माध्यम से) |
+
+**API कुंजी:** `WA_KEY` के रूप में इंजेक्ट की जाती है — open-wa का सामान्य `WA_*`-प्रीफ़िक्स वाला env
+ओवरराइड इसे `--key`/`-k` CLI विकल्प पर मैप करता है
+(`dist/cli/setup.js::envArgs()`, इंस्टॉल किए गए 4.76.0
+पैकेज के विरुद्ध सत्यापित)। `generateServiceApiKey()` द्वारा जनरेट किए जाने पर `ow_`
+प्रीफ़िक्स लगाया जाता है। open-wa कुंजी को `key`/`api_key` HTTP हेडर से वापस पढ़ता है (`Authorization:
+Bearer` से नहीं); `/api-docs*` को स्पष्ट रूप से जाँच से छूट दी गई है
+(`dist/cli/server.js` में `setupAuthenticationLayer`), इसलिए हेल्थ प्रोब को
+किसी प्रमाणीकरण हेडर की आवश्यकता नहीं होती।
+
+**पेयरिंग:** open-wa अनौपचारिक है और WhatsApp से संबद्ध नहीं है — कनेक्ट किए गए
+नंबर पर WhatsApp की अपनी ऑटोमेशन पहचान प्रणाली के कारण प्रतिबंध लगने का जोखिम रहता है।
+पहली बार शुरू होने पर, पेयरिंग QR कोड stdout पर प्रिंट होता है और मौजूदा
+लॉग पैनल/SSE स्ट्रीम के माध्यम से प्रदर्शित किया जाता है — इस एकीकरण में अभी तक
+कोई समर्पित QR-इमेज एंडपॉइंट नहीं है।
+
+---
+
+### 4.7 रिवर्स प्रॉक्सी (9Router डैशबोर्ड एम्बेड)
+
+डैशबोर्ड एक आंतरिक रिवर्स
+प्रॉक्सी के माध्यम से iframe के अंदर 9Router वेब UI एम्बेड करता है:
 
 ```
 GET|POST|... /dashboard/providers/services/9router/embed/[...path]
@@ -524,18 +558,18 @@ GET|POST|... /dashboard/providers/services/9router/embed/[...path]
 
 यह प्रॉक्सी:
 
-- अनुरोध को `http://127.0.0.1:{port}/{path}` पर अग्रेषित करता है (केवल लूपबैक)
-- आने वाले `cookie` और `authorization` हेडर हटा देता है (OmniRoute सत्र का कोई रिसाव नहीं)
+- अनुरोध को `http://127.0.0.1:{port}/{path}` पर फ़ॉरवर्ड करता है (केवल लूपबैक)
+- इनकमिंग `cookie` और `authorization` हेडर हटाता है (OmniRoute सत्र का कोई रिसाव नहीं)
 - 9Router प्रमाणीकरण के लिए `Authorization: Bearer {apiKey}` इंजेक्ट करता है
-- प्रतिक्रिया से `set-cookie`, `content-security-policy`, `x-frame-options`, `cross-origin-*` हटा देता है
-- `<base href>` इंजेक्ट करने और निरपेक्ष पथों को सामान्य बनाने के लिए HTML प्रतिक्रियाओं को पुनर्लिखता है (`/foo` → `/dashboard/.../embed/foo`)
+- प्रतिक्रिया से `set-cookie`, `content-security-policy`, `x-frame-options`, `cross-origin-*` हटाता है
+- `<base href>` इंजेक्ट करने और निरपेक्ष पथों को सामान्यीकृत करने के लिए HTML प्रतिक्रियाओं को फिर से लिखता है (`/foo` → `/dashboard/.../embed/foo`)
 
-एम्बेड किए गए डैशबोर्ड के लिए WebSocket अपग्रेड को एक समर्पित पोर्ट पर
-सहायक सर्वर द्वारा संभाला जाता है (`src/lib/services/embedWsProxy.ts` देखें)।
+एम्बेड किए गए डैशबोर्ड के WebSocket अपग्रेड को एक समर्पित पोर्ट पर मौजूद सहायक सर्वर द्वारा संभाला जाता है
+(`src/lib/services/embedWsProxy.ts` देखें)।
 
-**सुरक्षा:** एम्बेड प्रॉक्सी रूट को `LOCAL_ONLY_API_PREFIXES` के अंतर्गत वर्गीकृत किया गया है
-और उन तक केवल लूपबैक से पहुँचा जा सकता है। Cloudflare/Ngrok टनल के माध्यम से JWT प्राप्त करने वाला
-हमलावर एम्बेड की गई सेवाओं में प्रॉक्सी नहीं कर सकता।
+**सुरक्षा:** एम्बेड प्रॉक्सी रूट्स को `LOCAL_ONLY_API_PREFIXES`
+के अंतर्गत वर्गीकृत किया गया है और उन तक केवल लूपबैक से पहुँचा जा सकता है। Cloudflare/Ngrok
+टनल के माध्यम से JWT प्राप्त करने वाला हमलावर एम्बेड की गई सेवाओं में प्रॉक्सी नहीं कर सकता।
 
 ---
 

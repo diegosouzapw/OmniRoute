@@ -1,59 +1,52 @@
 # Management Authentication (Svenska)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇦 [bs](../../../bs/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇷 [tr](../../../tr/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
 
 ---
 
-OmniRoute har **fyra autentiseringsfamiljer** som kan auktorisera hanteringsrutter.
-De är inte utbytbara. API-nycklar för inferens (`sk-…`) hanterar **inte**
-servern om de inte uttryckligen har tilldelats omfånget `manage` eller `admin`.
+OmniRoute har **fyra uppsättningar autentiseringsuppgifter** som kan auktorisera hanteringsrutter.
+De är inte utbytbara. Inference API-nycklar (`sk-…`) hanterar **inte** servern om de inte uttryckligen har beviljats `manage`- eller `admin`-omfattning.
 
-Kanonisk implementation: `src/lib/api/requireManagementAuth.ts`.
+Kanonisk implementering: `src/lib/api/requireManagementAuth.ts`.
 
-| Autentiseringsuppgift           | Typiskt format                            | Skapas var                                                 | Avsedd användning            | Hanteringsbehörighet                                                                                                  |
-| ------------------------------- | ----------------------------------------- | ---------------------------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| JWT-session för kontrollpanelen | `auth_token`-cookie                       | Inloggning på kontrollpanelen                              | Webbläsargränssnitt          | Fullständig hantering via kontrollpanelen, med förbehåll för regler om CSRF, lokal åtkomst och alltid skyddade rutter |
-| Maskin-ID-token för CLI         | intern/lokal                              | Initiering av CLI (`omniroute` på samma maskin)            | Lokalt CLI                   | Endast lokal hantering                                                                                                |
-| Omfångsbegränsad åtkomsttoken   | `oma_live_…`                              | **Inställningar → Åtkomsttoken** eller `omniroute connect` | Fjärr-CLI och hanterings-API | Måste uppfylla ruttens obligatoriska omfång `read`, `write` eller `admin`                                             |
-| API-nyckel för inferens         | `sk-…` (och andra prefix för API-nycklar) | **API-hanteraren/API-nycklar**                             | Inferens via `/v1/*`         | **Ingen** om inte nyckelns metadata inkluderar `manage` eller `admin`                                                 |
+| Autentiseringsuppgift | Typisk form                         | Skapas var                                                 | Avsedd användning            | Hanteringskapacitet                                                                                      |
+| :-------------------- | :---------------------------------- | :--------------------------------------------------------- | :--------------------------- | :------------------------------------------------------------------------------------------------------- |
+| Dashboard JWT-session | `auth_token` cookie                 | Dashboard-inloggning                                       | Webbläsar-UI                 | Fullständig dashboard-hantering, med förbehåll för CSRF, lokalitet och regler för alltid-skyddade-rutter |
+| CLI maskin-ID-token   | intern / lokal                      | CLI-bootstrap (`omniroute` på samma maskin)                | Lokal CLI                    | Endast lokal hantering                                                                                   |
+| Omfattad åtkomsttoken | `oma_live_…`                        | **Inställningar → Åtkomsttoken** eller `omniroute connect` | Fjärr-CLI och hanterings-API | Måste uppfylla ruttenas nödvändiga `read`-, `write`- eller `admin`-omfattning                            |
+| Inference API-nyckel  | `sk-…` (och andra API-nyckelprefix) | **API-hanterare / API-nycklar**                            | `/v1/* inference`            | **Ingen** om inte nyckelns metadata inkluderar `manage` eller `admin`                                    |
 
-Autentiseringsuppgifter med `oma_` är avsedda för hantering/CLI. De är **inte** API-nycklar för inferens.
+`oma_`-autentiseringsuppgifter är hanterings-/CLI-autentiseringsuppgifter. De är **inte** inference API-nycklar.
 
-Om autentisering med inloggning/API-nyckel är inaktiverad för servern kan vissa hanteringsrutter
-acceptera oautentiserade anrop. Rutter som endast är lokala och alltid skyddade tillämpar
-fortfarande sina egna regler. Det är därför inte alltid obligatoriskt att uppvisa någon
-av dessa autentiseringsuppgifter, och innehav av en sådan är inte alltid tillräckligt utan
-det obligatoriska omfånget och rätt lokalitet för rutten.
+Om inloggning/API-nyckelautentisering är inaktiverad för servern, kan vissa hanteringsrutter acceptera oautentiserade anrop. Lokala och alltid-skyddade rutter tillämpar fortfarande sina egna regler. Att presentera en av dessa autentiseringsuppgifter är därför inte universellt obligatoriskt, och att inneha en är inte universellt tillräckligt utan den nödvändiga omfattningen och ruttlokaliteten.
 
-Relaterat: [Fjärrläge](./REMOTE-MODE.md) (hur `oma_live_…` utfärdas för ett fjärr-CLI).
+Relaterat: [Fjärrläge](./REMOTE-MODE.md) (hur `oma_live_…` skapas för en fjärr-CLI).
 
 ---
 
-## Omfångsmatriser
+## Scope-matriser
 
-Dessa två omfångsvokabulärer är **olika**. Blanda inte ihop dem.
+API-nyckelhanterings-scopes och access-token-scopes är olika vokabulärer. MCP-verktygs-scopes är en tredje vokabulär, som kontrolleras med `scopeMatches` snarare än någon av funktionerna i tabellerna nedan. Jämförelse: [Tre scope-namnrymder](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Omfång för åtkomsttoken (`oma_live_…`)
+### Access Token-scopes (`oma_live_…`)
 
-| Omfång  | Typiska åtgärder                                                               |
-| ------- | ------------------------------------------------------------------------------ |
-| `read`  | List-/statusanrop med GET som token har rätt att se                            |
-| `write` | Ändringar (skapa/uppdatera/radera) under administratörsnivå                    |
-| `admin` | Fullständigt fjärr-CLI/anslutningstoken (standard vid initiering med lösenord) |
+| Scope   | Typiska operationer                                                                         |
+| ------- | ------------------------------------------------------------------------------------------- |
+| `read`  | List-/status-GET-anrop som tokenet har behörighet att se                                    |
+| `write` | Mutationer (skapa/uppdatera/radera) under admin-nivå                                        |
+| `admin` | Fullständig fjärr-CLI / anslutningstoken (standardvärden för lösenords-bootstrap finns här) |
 
-En token med `read` kan inte anropa en `write`-rutt. Meddelandeformat vid körning:
-`Access token scope '<have>' is insufficient; '<need>' required.`
+Ett token med `read` kan inte anropa en `write`-rutt. Form på körtidsmeddelande: `Access token scope '<have>' is insufficient; '<need>' required.`
 
-### Hanteringsomfång för API-nycklar
+### API-nyckelhanterings-scopes
 
-| Omfång   | Innebörd                                                                    |
-| -------- | --------------------------------------------------------------------------- |
-| (inget)  | Endast inferens. Hanteringsrutter returnerar 403.                           |
-| `manage` | Hanterings-API (samma spärr som API-nyckelgrenen i `requireManagementAuth`) |
-| `admin`  | Uppfyller även `hasManageScope` (behandlas som hanteringsbehörig)           |
+| Scope    | Betydelse                                                               |
+| -------- | ----------------------------------------------------------------------- |
+| (ingen)  | Endast inferens. Hanteringsrutter returnerar 403.                       |
+| `manage` | Hanterings-API (samma grind som `requireManagementAuth` API-nyckelgren) |
+| `admin`  | Uppfyller även `hasManageScope` (behandlas som hanteringskapabel)       |
 
-Aktivera `manage` för nyckeln i gränssnittet API-nycklar/API-hanteraren. Återanvänd inte en
-nyckel för chattklienter till automatisering om du inte avsiktligt har tilldelat detta omfång.
+Aktivera `manage` på nyckeln i API Keys / API Manager UI. Återanvänd inte en chattklientnyckel för automatisering om du inte medvetet har beviljat det scopet.
 
 ---
 
@@ -127,26 +120,26 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## Aktuella körningsfel (återge inte hemligheter)
+## Aktuella körtidsfel (återge inte hemligheter)
 
-| Situation                                           | Typisk status | Meddelande (rensat)                                                  |
-| --------------------------------------------------- | ------------- | -------------------------------------------------------------------- |
-| Inga autentiseringsuppgifter                        | 401           | `Authentication required`                                            |
-| Ogiltig/utgången `oma_live_…`                       | 401           | `Invalid or expired access token`                                    |
-| Giltig API-nyckel utan `manage`/`admin`             | 403           | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
-| Ogiltig vanlig API-nyckel på en administrationsrutt | 403           | `Invalid management token`                                           |
-| Åtkomsttokenens behörighet är för låg               | 403           | `Access token scope '<have>' is insufficient; '<need>' required.`    |
+| Situation                                      | Typisk status | Meddelande (sanerat)                                                 |
+| :--------------------------------------------- | :------------ | :------------------------------------------------------------------- |
+| Inga autentiseringsuppgifter                   | 401           | `Authentication required`                                            |
+| Ogiltig/utgången `oma_live_…`                  | 401           | `Invalid or expired access token`                                    |
+| Giltig API-nyckel utan `manage`/`admin`        | 403           | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
+| Ogiltig vanlig API-nyckel på en hanteringsrutt | 403           | `Invalid management token`                                           |
+| Åtkomsttoken-omfång för lågt                   | 403           | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-”Invalid management token” innebär att bearer-tokenen **inte** godkändes som en autentiseringsuppgift för administration. Det anger **inte** vilken typ du behöver utfärda. Använd tabellen ovan: inferensnycklar behöver `manage`-behörighet; fjärr-CLI behöver `oma_live_…`; dashboarden använder sessionscookien.
+"Invalid management token" betyder att bäraren **inte** accepterades som en hanteringsautentiseringsuppgift. Det talar **inte** om vilken familj som ska skapas. Använd tabellen ovan: inferensnycklar behöver `manage`-omfång; fjärr-CLI behöver `oma_live_…`; instrumentpanelen använder sessionscookien.
 
 ---
 
-## Rekommenderat val enligt principen om minsta behörighet
+## Rekommenderat val med minst privilegier
 
-| Anropare                                                   | Använd                                                        |
-| ---------------------------------------------------------- | ------------------------------------------------------------- |
+| Anropare                                                   | Användning                                                    |
+| :--------------------------------------------------------- | :------------------------------------------------------------ |
 | Webbläsare                                                 | Dashboard-session                                             |
 | CLI på servervärden                                        | Maskintoken                                                   |
 | CLI på en bärbar dator som kommunicerar med en fjärrserver | `oma_live_…` från `omniroute connect`                         |
-| CI/skript (endast administration)                          | `oma_live_…` med minsta möjliga behörighet som fungerar       |
+| CI / skript (endast hantering)                             | `oma_live_…` med minsta möjliga omfång som fungerar           |
 | CI som måste anropa både `/v1` och `/api`                  | API-nyckel med `manage` **eller** två autentiseringsuppgifter |

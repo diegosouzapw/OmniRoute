@@ -20,6 +20,7 @@ import {
   hasPerModelQuota,
   hasPerModelFailureScope,
   isProviderExhaustedReason,
+  retryHintBypassesMaxCooldownMs,
 } from "../accountFallback.ts";
 import {
   isAlibabaFreeQuotaExhaustedError,
@@ -28,13 +29,19 @@ import {
 import { RateLimitReason } from "../../config/constants.ts";
 import { isProviderCircuitOpenResult, isRequestScopedUpstreamFailure } from "./comboPredicates.ts";
 import { isCloudflareFingerprintRejection } from "../errorClassifier.ts";
+import { isLocalModelPolicyResponse } from "../../../src/shared/utils/resolvedModelAccess.ts";
 // #10334 — connection-scope predicate shared with the persistence layer
 // (markAccountUnavailable) so the same-request combo skip and the persisted
 // connection cooldown agree on exactly which fallbackResult shapes qualify.
 // Exclusive in practice to agentrouter's "额度不足" rule: no opencode-family
 // rule matches 403 today, so only agentrouter reaches this predicate via 403.
 import { isAgentrouterConnectionQuotaScope } from "@/sse/services/auth";
+import { isVertexConnectionWidePermissionDenied } from "@/sse/services/vertexErrorClassifier";
 import { isSharedWalletCredits402 } from "../accountFallback/sharedWalletCredits.ts";
+import { isClaudeMinuteRateLimitText, isExplicitClaudeQuota429Text } from "../usage/claudeQuota.ts";
+import { getCachedClaudeQuotaScopeDecision } from "@/domain/quotaCache";
+import { resolveProviderId } from "@/shared/constants/providers";
+import { LOCAL_MODEL_COOLDOWN_HEADER } from "../../utils/localCooldownHeader.ts";
 import type { ComboLogger, ResolvedComboTarget } from "./types.ts";
 
 // Connection-level failure statuses: the provider connection itself is likely bad (upstream
@@ -93,6 +100,10 @@ export type ApplyComboTargetExhaustionOptions = {
      * HONORS_RULE_LOCK_SCOPE_PROVIDERS (agentrouter + opencode family). */
     ruleScope?: "model" | "provider" | "connection";
     permanent?: boolean;
+    cooldownMs?: number;
+    usedUpstreamRetryHint?: boolean;
+    quotaResetHintMs?: number;
+    retryHintSource?: Parameters<typeof retryHintBypassesMaxCooldownMs>[0];
   };
   errorText: string;
   rawModel: string;
@@ -107,17 +118,95 @@ export type ApplyComboTargetExhaustionOptions = {
   structuredError?: { code?: string; type?: string; message?: string };
 };
 
+export type ComboTargetExhaustionResult = {
+  target: ResolvedComboTarget;
+  providerExhausted: boolean;
+  isModelScopedClaudeQuota: boolean;
+  isConnectionScopedClaudeQuota: boolean;
+  modelScopedClaudeCooldownMs: number | null;
+  effectiveTargetCooldownMs: number;
+  lockoutHintMs: number;
+  lockoutHintVerified: boolean;
+};
+
+type DerivedTargetFailure = Omit<ComboTargetExhaustionResult, "providerExhausted">;
+
+function deriveTargetFailure(
+  target: ResolvedComboTarget,
+  opts: ApplyComboTargetExhaustionOptions
+): DerivedTargetFailure {
+  const fallbackCooldownMs = opts.fallbackResult.cooldownMs ?? 0;
+  // #6863: a parsed upstream quota reset (e.g. Antigravity "Resets in 92h27m28s")
+  // arrives in `quotaResetHintMs` — it bypasses the operator-gated
+  // `useUpstreamRetryHints` connection-cooldown setting. Mirror the
+  // single-model path (src/sse/services/auth.ts): when the retry hint was
+  // already honored, `cooldownMs` IS the upstream value; otherwise prefer the
+  // parsed quota reset — even when it is SHORTER than the fallback cooldown
+  // (e.g. subscription-quota 1h default vs a real "resets in 10m").
+  // `selectLockoutCooldownMs` still ignores hints at/below the base cooldown,
+  // so absent/tiny hints keep the #1308 exponential-backoff behavior.
+  const lockoutHintMs =
+    opts.fallbackResult.usedUpstreamRetryHint === true
+      ? fallbackCooldownMs
+      : (opts.fallbackResult.quotaResetHintMs ?? 0);
+  // Only a transport header or google.rpc.RetryInfo is authoritative enough
+  // to bypass maxCooldownMs. Prose and generic JSON remain useful exact hints,
+  // but the operator cap still bounds them.
+  const fallbackLockoutHintVerified = retryHintBypassesMaxCooldownMs(
+    opts.fallbackResult.retryHintSource
+  );
+  const selectedConnectionId =
+    opts.result.headers?.get("X-OmniRoute-Selected-Connection-Id") ||
+    opts.result.headers?.get("x-omniroute-selected-connection-id") ||
+    undefined;
+  const effectiveTarget = selectedConnectionId
+    ? { ...target, connectionId: selectedConnectionId }
+    : target;
+  const canonicalProvider = effectiveTarget.provider
+    ? resolveProviderId(effectiveTarget.provider)
+    : effectiveTarget.provider;
+  const claudeQuotaScope = getCachedClaudeQuotaScopeDecision({
+    connectionId: effectiveTarget.connectionId,
+    provider: effectiveTarget.provider,
+    status: opts.result.status,
+    errorText: opts.errorText,
+    model: opts.rawModel,
+  });
+  const isModelScopedClaudeQuota = claudeQuotaScope.scope === "model";
+  const isConnectionScopedClaudeQuota =
+    canonicalProvider === "claude" &&
+    opts.result.status === 429 &&
+    isExplicitClaudeQuota429Text(opts.errorText) &&
+    claudeQuotaScope.scope === "connection";
+  const modelScopedClaudeCooldownMs = isModelScopedClaudeQuota ? claudeQuotaScope.cooldownMs : null;
+
+  return {
+    target: effectiveTarget,
+    isModelScopedClaudeQuota,
+    isConnectionScopedClaudeQuota,
+    modelScopedClaudeCooldownMs,
+    effectiveTargetCooldownMs: claudeQuotaScope.cooldownMs ?? fallbackCooldownMs,
+    lockoutHintMs,
+    lockoutHintVerified: modelScopedClaudeCooldownMs !== null || fallbackLockoutHintVerified,
+  };
+}
+
 /**
  * Update the per-request exhaustion sets from a target's upstream error.
- * @returns providerExhausted — callers gate the connection-level branch and the same-provider
- *          retry decision on this (was a `const providerExhausted` local in both dispatchers).
+ * Returns the resolved target, quota-derived cooldown and lockout metadata, and whether the
+ * provider is exhausted. Both dispatchers consume this single failed-target result.
  */
 export function applyComboTargetExhaustion(
   target: ResolvedComboTarget,
   opts: ApplyComboTargetExhaustionOptions
-): boolean {
+): ComboTargetExhaustionResult {
+  const derived = deriveTargetFailure(target, opts);
+  const effectiveTarget = derived.target;
   const { result, sets, log, tag, errorText, structuredError } = opts;
-  const provider = target.provider;
+  // Local key policy is neither upstream credential failure nor provider exhaustion.
+  if (isLocalModelPolicyResponse(result)) return { ...derived, providerExhausted: false };
+  const provider = effectiveTarget.provider;
+  const canonicalProvider = provider ? resolveProviderId(provider) : provider;
 
   // #10334: connection-scope account-wide quota exhaustion (agentrouter "额度不足";
   // exclusive in practice — no opencode-family rule matches 403 today)
@@ -166,13 +255,33 @@ export function applyComboTargetExhaustion(
   // can now resolve to "no credentials available" instead of retrying a
   // rate-limited sibling account, which is the intended, safer outcome.
   if (isAgentrouterConnectionQuotaScope(provider, opts.fallbackResult)) {
-    markAgentrouterConnectionQuotaExhaustion(target, { sets, log, tag });
-    return true;
+    markAgentrouterConnectionQuotaExhaustion(effectiveTarget, { sets, log, tag });
+    return { ...derived, providerExhausted: true };
   }
 
   if (isSharedWalletCredits402(provider, result.status, opts.errorText)) {
-    markSharedWalletCreditsExhaustion(target, { sets, log, tag });
-    return true;
+    markSharedWalletCreditsExhaustion(effectiveTarget, { sets, log, tag });
+    return { ...derived, providerExhausted: true };
+  }
+
+  if (
+    canonicalProvider === "claude" &&
+    result.status === 429 &&
+    isExplicitClaudeQuota429Text(errorText)
+  ) {
+    if (derived.isModelScopedClaudeQuota) {
+      return { ...derived, providerExhausted: false };
+    }
+    if (effectiveTarget.connectionId) {
+      sets.exhaustedConnections.add(`${provider}:${effectiveTarget.connectionId}`);
+    } else {
+      sets.exhaustedProviders.add(provider);
+    }
+    log.info?.(
+      tag,
+      `Native Claude quota exhausted for ${effectiveTarget.connectionId ? "connection" : "provider"}`
+    );
+    return { ...derived, providerExhausted: true };
   }
 
   // #8133/#8137: auth-level failures (401/403) mean that connection's credentials are bad.
@@ -219,21 +328,37 @@ export function applyComboTargetExhaustion(
       isAlibabaModelStudioProvider(provider) &&
       isAlibabaFreeQuotaExhaustedError(opts.errorText)
     ) {
-      return false;
+      return { ...derived, providerExhausted: false };
     }
-    markAuthLevelExhaustion(target, { result, sets, log, tag });
-    return true;
+    // #14136: For per-model-quota providers (gemini, vertex, codex, antigravity, passthrough models),
+    // a 403 is model-scoped (tier restriction or model access denial), not an invalid credential.
+    // Sibling combo legs on the same connection remain eligible, unless verified as a connection-wide
+    // denial (e.g. Vertex SERVICE_DISABLED or non-models IAM denial).
+    if (
+      result.status === 403 &&
+      hasPerModelQuota(provider, opts.rawModel) &&
+      !(provider === "vertex" && isVertexConnectionWidePermissionDenied(opts.errorText))
+    ) {
+      return { ...derived, providerExhausted: false };
+    }
+    markAuthLevelExhaustion(effectiveTarget, { result, sets, log, tag });
+    return { ...derived, providerExhausted: true };
   }
 
-  // #1731: full provider quota exhausted → skip remaining same-provider targets this request.
+  // #1731: If the entire provider quota is exhausted, mark it so subsequent
+  // same-provider targets are skipped immediately. API-key 429s still use
+  // the short resilience cooldown, but explicit quota text should stop the
+  // combo from trying another target for the same provider in this request.
+  // #1731 / #1731v2: classify the upstream error and update the exhaustion sets
+  // shared by both combo dispatchers.
   const providerExhausted = isProviderQuotaExhausted(provider, opts);
   if (providerExhausted) {
     markProviderQuotaExhaustion(provider as string, opts);
   } else {
-    markTransientOrConnectionLevel(target, opts);
+    markTransientOrConnectionLevel(effectiveTarget, opts);
   }
 
-  return providerExhausted;
+  return { ...derived, providerExhausted };
 }
 
 /**
@@ -246,6 +371,7 @@ function isProviderQuotaExhausted(
   provider: string | null | undefined,
   opts: Pick<
     ApplyComboTargetExhaustionOptions,
+    | "result"
     | "rawModel"
     | "fallbackResult"
     | "structuredError"
@@ -255,6 +381,7 @@ function isProviderQuotaExhausted(
   >
 ): boolean {
   const {
+    result,
     rawModel,
     fallbackResult,
     structuredError,
@@ -262,10 +389,18 @@ function isProviderQuotaExhausted(
     allAccountsRateLimited,
     requestScopedFailure,
   } = opts;
+  const canonicalProvider = provider ? resolveProviderId(provider) : provider;
+  // OmniRoute's own local model cooldown reuses CLIProxyAPI's `model_cooldown`
+  // wording, which #14190 classifies as quota (both in classifyErrorText and in the
+  // fallbackResult derived from it). Ours is a local, transient cooldown — never a
+  // provider quota signal — so it must not skip the remaining same-provider targets.
+  const isLocalCooldown = Boolean(result?.headers?.get?.(LOCAL_MODEL_COOLDOWN_HEADER));
   return (
     Boolean(provider && provider !== "unknown") &&
+    !isLocalCooldown &&
     !(requestScopedFailure || isRequestScopedUpstreamFailure(structuredError)) &&
     !hasPerModelQuota(provider as string, rawModel) &&
+    !(canonicalProvider === "claude" && isClaudeMinuteRateLimitText(errorText)) &&
     (isProviderExhaustedReason(fallbackResult) ||
       classifyErrorText(structuredError?.code || errorText) === RateLimitReason.QUOTA_EXHAUSTED ||
       allAccountsRateLimited)

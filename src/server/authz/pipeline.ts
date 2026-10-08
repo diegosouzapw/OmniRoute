@@ -1,9 +1,13 @@
-import { SignJWT } from "jose";
 import { NextResponse, type NextRequest } from "next/server";
 import { getCachedSettings } from "../../lib/db/readCache";
 import { isDraining } from "../../lib/gracefulShutdown";
 import { checkBodySize, getBodySizeLimit } from "../../shared/middleware/bodySizeGuard";
-import { verifyDashboardSessionToken } from "@/shared/utils/dashboardSessionToken";
+import {
+  verifyDashboardSessionToken,
+  mintDashboardSessionToken,
+  DASHBOARD_SESSION_COOKIE,
+  getDashboardJwtSecret,
+} from "@/shared/utils/dashboardSessionToken";
 import { generateRequestId } from "../../shared/utils/requestId";
 import { applyCorsHeaders } from "../cors/origins";
 import { validateBrowserMutationOrigin } from "../origin/publicOrigin";
@@ -31,6 +35,7 @@ import {
   CLI_TOKEN_HEADER,
   PEER_IP_HEADER,
   VIA_PROXY_HEADER,
+  CLIENT_IP_HEADER,
 } from "./headers";
 import type { AuthSubject, RouteClass, RouteClassification } from "./types";
 import type { AuthOutcome, RoutePolicy } from "./context";
@@ -44,29 +49,6 @@ const POLICIES: Record<RouteClass, RoutePolicy> = {
   CLIENT_API: clientApiPolicy,
   MANAGEMENT: managementPolicy,
 };
-
-let staleDashboardJwtWarningEmitted = false;
-
-function isStaleDashboardJwtError(error: unknown): boolean {
-  const code =
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    typeof (error as { code?: unknown }).code === "string"
-      ? (error as { code: string }).code
-      : "";
-
-  if (
-    code === "ERR_JWS_SIGNATURE_VERIFICATION_FAILED" ||
-    code === "ERR_JWT_EXPIRED" ||
-    code === "ERR_JWS_INVALID" ||
-    code === "ERR_JWT_CLAIM_VALIDATION_FAILED"
-  ) {
-    return true;
-  }
-
-  return error instanceof Error && error.message.includes("signature verification failed");
-}
 
 function stampSubject(headers: Headers, subject: AuthSubject): void {
   headers.set(AUTHZ_HEADER_AUTH_KIND, subject.kind);
@@ -129,11 +111,6 @@ function getCookieValue(request: NextRequest, name: string): string | null {
   return null;
 }
 
-function getJwtSecret(): Uint8Array | null {
-  const secret = process.env.JWT_SECRET?.trim();
-  return secret ? new TextEncoder().encode(secret) : null;
-}
-
 function shouldUseSecureCookie(request: NextRequest): boolean {
   if (process.env.AUTH_COOKIE_SECURE === "true") return true;
   const forwardedProto = (request.headers.get("x-forwarded-proto") || "")
@@ -143,14 +120,19 @@ function shouldUseSecureCookie(request: NextRequest): boolean {
   return forwardedProto === "https" || request.nextUrl.protocol === "https:";
 }
 
+// Module-level (not per-call): throttles the stale-cookie warning below to once per
+// process instead of once per request, avoiding log-flooding from a background dashboard
+// tab or foreign token riding along on every request (see #13684 LEDGER-12).
+let staleDashboardJwtWarningEmitted = false;
+
 async function refreshDashboardSessionIfNeeded(
   response: NextResponse,
   request: NextRequest
 ): Promise<void> {
-  const secret = getJwtSecret();
+  const secret = getDashboardJwtSecret();
   if (!secret) return;
 
-  const token = getCookieValue(request, "auth_token");
+  const token = getCookieValue(request, DASHBOARD_SESSION_COOKIE);
   if (!token) return;
 
   try {
@@ -158,7 +140,11 @@ async function refreshDashboardSessionIfNeeded(
     if (!payload) {
       // Not a dashboard session (foreign/expired/claim-less token): drop it so a
       // Cursor CLI token can never ride along as the cookie (#13298).
-      response.cookies.delete("auth_token");
+      response.cookies.delete(DASHBOARD_SESSION_COOKIE);
+      if (!staleDashboardJwtWarningEmitted) {
+        staleDashboardJwtWarningEmitted = true;
+        console.warn("[Authz] Dropped stale dashboard session cookie during auto-refresh");
+      }
       return;
     }
     const exp = typeof payload.exp === "number" ? payload.exp : null;
@@ -168,34 +154,22 @@ async function refreshDashboardSessionIfNeeded(
     const refreshWindowSeconds = 7 * 24 * 60 * 60;
     if (exp - now >= refreshWindowSeconds) return;
 
-    const freshToken = await new SignJWT({ authenticated: true })
-      .setProtectedHeader({ alg: "HS256" })
-      .setExpirationTime("30d")
-      .sign(secret);
+    const freshToken = await mintDashboardSessionToken(secret);
 
-    response.cookies.set("auth_token", freshToken, {
+    response.cookies.set(DASHBOARD_SESSION_COOKIE, freshToken, {
       httpOnly: true,
       secure: shouldUseSecureCookie(request),
       sameSite: "lax",
       path: "/",
     });
   } catch (error) {
-    if (isStaleDashboardJwtError(error)) {
-      response.cookies.delete("auth_token");
-      if (!staleDashboardJwtWarningEmitted) {
-        staleDashboardJwtWarningEmitted = true;
-        console.warn("[Authz] Dropped stale dashboard session cookie during auto-refresh");
-      }
-      return;
-    }
-
     console.error("[Authz] JWT auto-refresh failed:", error);
   }
 }
 
 function dashboardLoginRedirect(request: NextRequest, requestId: string): NextResponse {
   const response = NextResponse.redirect(new URL(`${request.nextUrl.basePath}/login`, request.url));
-  response.cookies.delete("auth_token");
+  response.cookies.delete(DASHBOARD_SESSION_COOKIE);
   stampRouteResponse(response, requestId, "MANAGEMENT");
   applyCorsHeaders(response, request);
   return response;
@@ -339,6 +313,7 @@ export async function runAuthzPipeline(
   // per-process token never reaches route handlers or upstream providers.
   requestHeaders.delete(PEER_IP_HEADER);
   requestHeaders.delete(VIA_PROXY_HEADER);
+  requestHeaders.delete(CLIENT_IP_HEADER);
 
   requestHeaders.set(AUTHZ_HEADER_ROUTE_CLASS, classification.routeClass);
   requestHeaders.set(AUTHZ_HEADER_REQUEST_ID, requestId);
@@ -409,7 +384,13 @@ export async function runAuthzPipeline(
       request.headers.get(VIA_PROXY_HEADER),
       process.env.OMNIROUTE_PEER_STAMP_TOKEN
     );
-    const ipVerdict = checkRequestIP(request, viaProxy ? null : trustedPeerIp);
+    // The server stamps the client address to judge (the peer, or what a trusted proxy
+    // reported for it). Requests without that stamp keep the earlier rule.
+    const stampedClientIp = resolveStampedPeer(
+      request.headers.get(CLIENT_IP_HEADER),
+      process.env.OMNIROUTE_PEER_STAMP_TOKEN
+    );
+    const ipVerdict = checkRequestIP(request, stampedClientIp ?? (viaProxy ? null : trustedPeerIp));
     if (!ipVerdict.allowed) {
       const blocked = NextResponse.json(
         { error: ipVerdict.reason || "Access denied" },

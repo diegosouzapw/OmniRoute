@@ -1,6 +1,6 @@
 # Resilience Guide (Gaeilge)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
 
 ---
 
@@ -71,18 +71,18 @@ Cosaint aischéimnithe: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Raon feidhme:** nasc/cuntas/eochair aonair soláthraí.
 
-**Cuspóir:** eochair lochtach amháin a scipeáil agus naisc eile don soláthraí céanna ag leanúint de bheith ag freastal.
+**Cuspóir:** eochair lochtach amháin a sheachaint agus naisc eile don soláthraí céanna ag leanúint de bheith ag freastal.
 
-**Cur chun feidhme:**
+**Cur i bhfeidhm:**
 
-- Marcáil mar cheann nach bhfuil ar fáil: `src/sse/services/auth.ts::markAccountUnavailable()`
+- Marcáil mar neamh-inúsáidte: `src/sse/services/auth.ts::markAccountUnavailable()`
 - Roghnú: `getProviderCredentials*` sa chomhad céanna
 - Ríomh na tréimhse maolaithe: `open-sse/services/accountFallback.ts::checkFallbackError()`
 - Socruithe: `src/lib/resilience/settings.ts`
 
 **Réimsí in aghaidh an naisc:**
 
-- `rateLimitedUntil` — stampa ama go dtí go rachaidh an tréimhse mhaolaithe in éag
+- `rateLimitedUntil` — stampa ama go dtí go dtéann an tréimhse mhaolaithe in éag
 - `testStatus: "unavailable"`
 - `lastError`, `lastErrorType`, `errorCode`
 - `backoffLevel` — cuntar cúlscoir easpónantúil
@@ -94,71 +94,133 @@ Cosaint aischéimnithe: `tests/unit/provider-cooldown-window-gate.test.ts`.
 - Eochair API 429: tugtar tús áite do cheanntásca réamhtheachtacha `Retry-After`/athshocraithe/téacs athshocraithe is féidir a pharsáil
 - Cúlscoir: `baseCooldownMs * 2 ** failureIndex`
 
-**Cosaint in aghaidh plódú comhuaineach:** cuireann sí cosc ar theipeanna comhthráthacha an tréimhse mhaolaithe a shíneadh an iomarca nó `backoffLevel` a incrimintiú faoi dhó.
+**Cosaint ar ró-ualach comhuaineach:** cuireann sí cosc ar theipeanna comhuaineacha an tréimhse mhaolaithe a shíneadh an iomarca nó `backoffLevel` a mhéadú faoi dhó.
 
-**Staideanna foirceanta (NÍ tréimhsí maolaithe iad):**
+**Staid chríochnaitheacha (NÍ tréimhsí maolaithe iad):**
 
-- `banned` — socraítear é trí bhrath eochairfhocail toirmisc / toirmisc cuntais (féach [BAN_DETECTION](../security/BAN_DETECTION.md)), agus trí thrí dhiúltú réamhtheachtacha as a chéile in aghaidh iarratais (`request_rejected`, m.sh. Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); ní dhéanann diúltú aonair ach tréimhse mhaolaithe a chur i bhfeidhm ar an nasc
-- `expired` (aistríonn sé go staid fhoirceanta tar éis líon teoranta atrialacha — `EXPIRED_RETRY_MAX = 3` le cúlscoir easpónantúil — ionas gur féidir le hearráidí sealadacha OAuth iad féin a leigheas sula ndíghníomhachtaítear an cuntas go buan)
+- `banned` — socraítear é trí bhrath eochairfhocail toirmiscthe / toirmisc cuntais (féach [BAN_DETECTION](../security/BAN_DETECTION.md)), agus trí thrí dhiúltú réamhtheachtacha comhleanúnacha in aghaidh na hiarrata (`request_rejected`, m.sh. Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); ní dhéanann aon diúltú aonair ach an nasc a chur i dtréimhse mhaolaithe
+- `expired` (aistríonn sé go staid chríochnaitheach tar éis líon teoranta atrialacha — `EXPIRED_RETRY_MAX = 3` le cúlscoir easpónantúil — ionas gur féidir le hearráidí sealadacha OAuth iad féin a leigheas sula ndíghníomhachtaítear an cuntas go buan)
 - `credits_exhausted`
 
-Maireann siad seo go dtí go n-athraítear na dintiúir nó go n-athshocraíonn oibreoir iad. Ná forscríobh staideanna foirceanta le staid shealadach mhaolaithe.
+Maireann siad seo go dtí go n-athraíonn na dintiúir nó go n-athshocraíonn oibreoir iad. Ná forscríobh staid chríochnaitheach le staid shealadach mhaolaithe.
 
 **Athshlánú leisciúil:** nuair atá `rateLimitedUntil` caite, bíonn an nasc incháilithe arís. Tar éis úsáid rathúil, glanann `clearAccountError()` gach réimse earráide.
 
+### Balla úsáide Claude OAuth: lána ar thosaíocht níos ísle + athshocrú teorainn seisiúin
+
+**Raon feidhme:** nasc amháin síntiúis Claude (OAuth). Tá an dá ghné **roghnach in aghaidh an
+naisc** (Cuir nasc in eagar → rannán Claude → `lowPriorityMode` / `autoLimitReset` in
+`providerSpecificData`, iad araon múchta de réir réamhshocraithe) agus déanann siad aithris ar orduithe `/low-priority` agus
+`/limit-reset` Claude Code (conradh sreinge gabhtha ó Claude Code 2.1.263).
+
+**Cur i bhfeidhm:**
+
+- Meaisín staide + aicmiú freagartha: `open-sse/services/claudeLowPriority.ts`
+- Cliant stádais/éilimh athshocraithe: `open-sse/services/claudeLimitReset.ts`
+- Crúca feidhmitheora (instealladh ceanntáisc + atriail ar an gcuntas céanna): `open-sse/executors/base.ts::execute()`
+- Marthanacht roghnach: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+
+**Truicear:** an balla úsáide 5 uair an chloig — `429` a bhfuil
+`anthropic-ratelimit-unified-status: rejected` ina cheanntásca agus, nuair atá an cuntas incháilithe,
+`anthropic-ratelimit-unified-slow-offer: treatment`. Ní sheoltar aon rud roimh an gcéad
+429 balla sin; téann 429 tobann gan ceanntásca aontaithe tríd an ngnáthchonair mhaolaithe.
+
+**Lána ar thosaíocht níos ísle** (`lowPriorityMode`):
+
+- Ar 429 an bhalla, glacann an feidhmitheoir leis an tairiscint agus déanann sé atriail láithreach ar an gcuntas
+  **céanna** le `anthropic-usage-limit: slow`; fanann an lána gníomhach go dtí an
+  `anthropic-ratelimit-unified-reset` fógartha (+60s de thréimhse chairde) agus bíonn
+  an ceanntásc ar gach iarratas san fhuinneog sin. Ní shroicheann an 429 idircheaptha
+  `handleChatCore` choíche, mar sin **ní chuirtear** an nasc i dtréimhse mhaolaithe agus ní rothlaítear uaidh.
+- `anthropic-ratelimit-unified-slow-status` ar fhreagraí níos déanaí: coinníonn `active` / `not_needed`
+  an lána; fanann `slot_busy` (429) nó `529` ar feadh
+  `anthropic-ratelimit-unified-slow-retry-after` an fhreastalaí (20s de réir réamhshocraithe, teorannaithe do 5–600s, giodam ±30%)
+  agus déanann sé atriail, faoi theorainn `anthropic-ratelimit-unified-slow-max-wait` (20 nóiméad de réir réamhshocraithe, teorannaithe do
+  1 nóiméad–6 uair) — ina dhiaidh sin cuirtear deireadh leis an lána agus cuireann tréimhse shuaimhnithe 10 nóiméad bac ar athghlacadh leis. Cuirtear
+  teorainn bhreise leis an bhfanacht de réir an ama atá fágtha de theorainn ama tosaithe réamhtheachtaí na hiarrata féin
+  (`resolveFetchStartTimeout`, 10 nóiméad de réir réamhshocraithe) lúide corrlach 5 s: gan an teorainn sin, mhairfeadh
+  an uasfhanacht réamhshocraithe 20 nóiméad níos faide ná an t-iarratas agus chuirfí deireadh leis an gcodladh
+  i lár na feithimh, rud a nochtfadh `TimeoutError` in ionad an deiridh shéimh `max_wait` + tréimhse shuaimhnithe.
+- Cuireann `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, rolladh thar fhuinneog 5h, nó
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (a chuireann deireadh leis mar
+  `extra_usage` ar aon stádas, ós rud é go gclúdaíonn an farasbarr íoctha an balla anois) deireadh leis an lána; téann an
+  freagra ansin chuig an ngnáthchonair mhaolaithe. Coinnítear `budget_exhausted` i gcuimhne go dtí
+  athshocrú fógartha an bhuiséid (≤ 8 lá).
+- Ritheann seiceáil an bhalla tar éis atrialacha laistigh den iarracht féin atá tiomáinte ag 400 ag an bhfeidhmitheoir (eagarthóireacht
+  comhthéacs, teanntáin smaointeoireachta/iarrachta, uathfhoghlaim paraiméadar), mar sin idircheapfar fós 429 balla nach dtagann chun solais ach
+  ar cheann de na hatrialacha sin seachas é a ligean chuig an gconair mhaolaithe.
+- Coinnítear an staid sa chuimhne in aghaidh an naisc (cosnaíonn atosú 429 balla breise amháin chun glacadh leis arís).
+
+**Athshocrú teorainn seisiúin** (`autoLimitReset`, baintear triail as roimh an lána nuair atá an dá cheann cumasaithe):
+
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → bloc `juniper_tide`;
+  nuair atá `arm: "reset"` agus `available: true`,
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` le
+  `{ "program": "juniper_tide" }` (UUID na heagraíochta ó
+  `providerSpecificData.organizationUUID`, cúltaca tosaithe).
+- `result: reset|not_limited` → déantar atriail ar an iarratas ar lánluas (gan ceanntásc moillithe).
+  Cuireann `already_used` / `not_offered` `next_available_at` de ghlanmheabhair (seachtain amháin de réir réamhshocraithe); bíonn
+  cúlscoir 15 nóiméad ann i gcás aon teipe. Tarlaíonn an t-athshocrú uair amháin sa tseachtain agus áirítear fós é i dtreo na
+  teorann seachtainiúla.
+
+Cosaintí aischéimnithe: `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
+
 ### Cleamhnas seisiúin (#7274)
 
-**Raon feidhme:** seisiún cliaint amháin (ceanntásc `X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`) pionnáilte le nasc amháin, i gcás **aon** soláthraí.
+**Raon feidhme:** seisiún cliaint amháin (ceanntásc `X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`) ceangailte le nasc amháin, do **sholáthraí ar bith**.
 
-**Cuspóir:** gníomhaire ilbabhta (Claude Code, aider, gníomhairí saincheaptha) a choinneáil ar an gcuntas céanna thar iarratais, rud a laghdaíonn caillteanas comhthéacs idir cuntais agus 429anna tosaithe fhuair arís agus arís eile ar sholáthraithe a bhfuil staid seisiúin in aghaidh an chuntais acu.
+**Cuspóir:** gníomhaire ilseala (Claude Code, aider, gníomhairí saincheaptha) a choinneáil ar an gcuntas céanna thar iarratais, rud a laghdaíonn caillteanas comhthéacs idir cuntais agus earráidí 429 athfhillteacha ag tosú fuar ar sholáthraithe a bhfuil staid seisiúin in aghaidh an chuntais acu.
 
 **Cur chun feidhme:**
 
 - Réiteach TTL: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
 - Roghnú/cruthú pionna: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
-- Aistarraingt ceanntáisc (cineálach, aon soláthraí): `src/sse/services/auth.ts::extractSessionAffinityKey()`
+- Baint ceanntásca (ginearálta, soláthraí ar bith): `src/sse/services/auth.ts::extractSessionAffinityKey()`
 - Tábla pionnaí marthanacha: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- Socrú: `sessionAffinityTtlMs` (TTL domhanda ina ms, díchumasaíonn `0` é) — `src/lib/db/settings.ts`. Athainmníodh é ón `codexSessionAffinityTtlMs` a bhain le Codex amháin tríd an aistriú `124_generic_session_affinity_ttl.sql`, a thugann aon TTL Codex a cumraíodh roimhe seo ar aghaidh mar an réamhshocrú nua.
+- Socrú: `sessionAffinityTtlMs` (TTL domhanda ina ms, díchumasaíonn `0` é) — `src/lib/db/settings.ts`. Athainmníodh é ón `codexSessionAffinityTtlMs`, a bhain le Codex amháin, leis an aistriú `124_generic_session_affinity_ttl.sql`, a thugann aon TTL Codex a cumraíodh roimhe seo ar aghaidh mar an réamhshocrú nua.
 
-Roimh #7274, d'éirigh `resolveSessionAffinityTtlMs()` as láithreach le `0` i gcás gach soláthraí seachas `codex`, mar sin ní raibh aon éifeacht ag an socrú TTL (ná ag na ceanntásca seisiúin) in aon áit eile, cé go raibh an mheicníocht phionnála agus aistarraingt na gceanntásc neamhspleách ar an soláthraí cheana féin. Bhain an ceartúchán an luathfhilleadh sin; cuirtear an TTL i bhfeidhm go haonfhoirmeach anois ar gach soláthraí a luaithe a shocraítear go domhanda os cionn `0` é.
+Roimh #7274, d'fhill `resolveSessionAffinityTtlMs()` `0` láithreach do gach soláthraí seachas `codex`, agus mar sin ní raibh aon éifeacht ag an socrú TTL (ná ag ceanntásca an tseisiúin) in aon áit eile, cé go raibh an mheicníocht pionnaithe agus baint na gceanntásca neamhspleách ar an soláthraí cheana féin. Bhain an deisiú an filleadh luath sin; cuirtear an TTL i bhfeidhm go haonfhoirmeach anois ar gach soláthraí a luaithe a shocraítear go domhanda é os cionn `0`.
 
-Ní chuirtear na trí cheanntásc cleamhnais seisiúin ar aghaidh chuig an gcóras réamhtheachtach choíche — tógann feidhmitheoirí a gceanntásca réamhtheachtacha féin ón tús seachas ceanntásca cliaint a chur ar aghaidh, mar sin ní fhanann sé seo ach mar aitheantas comhghaolmhaireachta inmheánach.
+Ní chuirtear na trí cheanntásc cleamhnais seisiúin ar aghaidh réamhtheachtach riamh — tógann seiceadóirí a gceanntásca réamhtheachtacha féin ón tús in ionad ceanntásca an chliaint a chur ar aghaidh, mar sin ní úsáidtear é seo ach mar aitheantas comhghaolmhaireachta inmheánach.
 
-### Léasanna eisiacha do naisc seisiún bainistithe
+### Léasanna eisiacha bainistithe do naisc seisiúin
 
-**Raon feidhme:** is le cliant/seisiún HTTP bainistithe gníomhach amháin nasc incháilithe OmniRoute amháin.
+**Raon feidhme:** is le cliant/seisiún gníomhach bainistithe HTTP amháin nasc incháilithe OmniRoute amháin.
 
-**Cuspóir:** úinéireacht eisiach mharthanach ar nasc a sholáthar do chliaint a dteastaíonn teorainn ródaithe dhocht uathu
-thar iarratais. Ní hionann é seo agus cleamhnas seisiúin, ar rogha bhog leanúnachais é:
-coinníonn léas eisiach staid saolré in SQLite, cuireann sé uathúlacht dhomhanda an úinéara ghníomhaigh agus
-an naisc ghníomhaigh i bhfeidhm, agus diúltaíonn sé do ghlúin atá as dáta sula seoltar chuig an soláthraí í.
+**Cuspóir:** úinéireacht eisiach mharthanach ar nasc a sholáthar do chliaint a dteastaíonn
+teorainn ródúcháin dhocht uathu thar iarratais. Ní hionann é seo agus cleamhnas seisiúin, ar rogha
+bhog leanúnachais é: coinníonn léas eisiach staid saolré in SQLite, forfheidhmíonn sé uathúlacht
+dhomhanda an úinéara ghníomhaigh agus an naisc ghníomhaigh, agus diúltaíonn sé do ghlúin atá as
+dáta sula seoltar chuig an soláthraí í.
 
-Ní mór roghnú sainráite a dhéanamh don ghné seo in aghaidh na heochrach API. Ní mór an raon feidhme `lease:exclusive` agus
-liosta sainráite neamhfholamh `allowedConnections` a bheith ag eochair bhainistithe. Is féidir le haon chliant HTTP críochphointe na saolré a úsáid; ní theastaíonn
-ainm cliaint, gníomhaire úsáideora, soláthraí, modh OAuth ná samhail. Is le nasc an léas,
-ní le samhail, mar sin coinníonn athrú samhla an ceangal fad a fhanann an nasc
-incháilithe de ghnáth. Fanann na gnáthrialacha samhla, cuóta, sláinte, tréimhse maolaithe agus liosta ceadaithe
-údarásach agus féadfaidh siad an ghlúin chéanna a aistriú chuig nasc saor incháilithe eile.
+Is gné roghnach í seo de réir na heochrach API. Ní mór an raon `lease:exclusive` agus liosta
+sainráite neamhfholamh `allowedConnections` a bheith ag eochair bhainistithe. Is féidir le haon
+chliant HTTP an críochphointe saolré a úsáid; ní theastaíonn ainm cliaint, gníomhaire úsáideora,
+soláthraí, modh OAuth ná samhail. Is le nasc an léas, ní le samhail, agus mar sin coinnítear an
+ceangal nuair a athraítear samhail fad is atá an nasc incháilithe de ghnáth. Tá gnáthrialacha
+samhla, cuóta, sláinte, tréimhse shuaimhnithe agus liosta ceadaithe fós ceannasach agus féadfaidh
+siad an ghlúin chéanna a aistriú chuig nasc incháilithe saor eile.
 
-Is é `POST /api/v1/session-leases` an tsaolré, leis na gníomhartha JSON `acquire`, `renew`, agus `release`.
-Cuireann iarratais tátail bhainistithe an luach teimhneach `X-OmniRoute-Lease-Owner` agus an luach beacht
-`X-OmniRoute-Lease-Generation` i láthair. Úsáideann an t-úinéir `vlo_` agus 43 carachtar base64url ina dhiaidh; ní stóráiltear ach
-a hais SHA-256. Ceanglaíonn gach teorainn deiridh seolta aitheantas na heochrach API fíordheimhnithe agus
-aitheantas an naisc ghníomhaigh freisin. Baintear ceanntásca rialaithe léasa de logaí, de ghrianghraif iarratais a choinnítear, agus de
-cheanntásca feidhmitheoirí réamhtheachtacha.
+Is é `POST /api/v1/session-leases` an saolré, le gníomhartha JSON `acquire`, `renew`, agus `release`.
+Cuireann iarratais tátail bhainistithe an luach doiléir `X-OmniRoute-Lease-Owner` agus an
+`X-OmniRoute-Lease-Generation` beacht i láthair. Úsáideann an t-úinéir `vlo_` agus 43 carachtar
+base64url ina dhiaidh; ní stóráiltear ach a hais SHA-256. Ceanglaíonn gach teorainn seolta
+dheiridh aitheantas na heochrach API fíordheimhnithe agus aitheantas an naisc ghníomhaigh freisin.
+Baintear ceanntásca rialaithe léasa ó logaí, ó léargais iarratais choinnithe, agus ó cheanntásca
+seiceadóra réamhtheachtacha.
 
-Má tá iarrthóirí bainistithe incháilithe ag an ngnáthródú ach go bhfuil gach iarrthóir saor áitithe ag
-léas gníomhach eachtrach, seolann OmniRoute HTTP `429`, an cód lease-capacity-unavailable,
-staid feithimh ar acmhainn, agus `Retry-After` teoranta a dhíorthaítear ón dáta éaga ábhartha is luaithe.
-Ní hionann gnátheaspa incháilitheachta agus iomaíocht léasa, agus coinníonn sé an tséimeantaic earráide ródaithe atá ann cheana.
+Má tá iarrthóirí bainistithe incháilithe ag an ngnáthródú ach go bhfuil gach iarrthóir saor i
+seilbh léasa ghníomhaigh choimhthí, filleann OmniRoute HTTP `429`, cód nach bhfuil acmhainn léasa
+ar fáil, staid feithimh ar acmhainn, agus `Retry-After` teoranta a dhíorthaítear ón dul in éag
+ábhartha is luaithe. Ní conspóid léasa í gnáthfholús incháilitheachta agus coinníonn sé na
+séimeantaicí earráide ródúcháin atá ann cheana.
 
 Fanann meicníochtaí gaolmhara ar leithligh:
 
-- Is dáileadh bog áitiúil don phróiseas é áitiú seisiúin OAuth le haghaidh cuntais OAuth.
-- Deonaíonn séamafair chuntais ceadanna comhthráthachta iarratais agus críochnaíonn siad nuair a chuirtear iarratas i gcrích.
-- Is úinéireacht mharthanach saolré le teorainn ghlúine iad léasanna eisiacha seisiún bainistithe.
-
----
+- Is dáileadh bog próiseas-logánta é áitíocht seisiúin OAuth do chuntais OAuth.
+- Deonaíonn séamafóir cuntais ceadanna comhthráthachta iarratais agus tagann deireadh leo nuair a chuirtear iarratas i gcrích.
+- Is úinéireacht mharthanach saolré le teorainn ghlúine iad léasanna eisiacha bainistithe do sheisiúin.
 
 ## 3. Frithdhúnadh Samhla
 
@@ -286,48 +348,84 @@ teorainn ráta in aghaidh an mhúnla. Tá sé teorannaithe ag `comboCooldownWait
 
 ---
 
-## 5. Rialú Iontrála Scuaine Iarratas (v3.8.49 · saincheist #6593)
+## 5. Rialú Iontrála do Scuaine Iarratas (v3.8.49 · saincheist #6593)
 
-**Raon feidhme**: an scuaine áitiúil teorannaithe ráta in aghaidh an tsoláthraí+naisc (`open-sse/services/rateLimitManager.ts`,
-le Bottleneck mar bhonn taca aige), sraith amháin faoi bhun na dtrí mheicníocht thuas.
+**Raon feidhme**: an scuaine áitiúil teorannaithe ráta in aghaidh an tsoláthraí+na ceangailteachta (`open-sse/services/rateLimitManager.ts`,
+le tacaíocht ó Bottleneck), sraith amháin faoi bhun na dtrí mheicníocht thuas.
 
-**Is ainm oidhreachta marthanaithe é `maxWaitMs` le haghaidh dhul in éag an fhorghníomhaithe.**
-Cuirtear `resilienceSettings.requestQueue.maxWaitMs` ar aghaidh chuig Bottleneck mar
-`expiration` poist, agus ní thosaíonn a amadóir go dtí tar éis an tseolta. Dá bhrí sin, cuireann sé teorainn le
-forghníomhú atá faoi bhainistiú an teorantóra, ní leis an am a chaitear sa scuaine áitiúil. Cuirtear dul in éag
-in iúl mar `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` áitiúil iontaofa (HTTP 504);
-ní ghlactar leis an seanainm cóid don teorainn ama scuaine ach ar mhaithe le comhoiriúnacht
-shiardhátaithe inmheánach iontaofa. Is é 15000ms an réamhshocrú; sáraigh é trí
-`RATE_LIMIT_MAX_WAIT_MS` (athróg timpeallachta) nó tríd an deais (**Socruithe → Athléimneacht**,
-uasteorainn UI 1–30000ms). Níl spriocdháta ama ag fanacht sa scuaine; úsáid
-`maxQueueDepth` thíos chun teorainn a chur le glaoiteoirí sa scuaine.
+**Cuireann `maxWaitMs` teorainn le fanacht sa scuaine; cuireann `executionMaxWaitMs` teorainn leis an rith.**
+Coinnítear an dá cheann scartha d’aon ghnó, agus ní chuireann ceachtar acu leis an gceann eile.
 
-**`maxQueueDepth` — uasteorainn iontrála roghnach (nua).** Cuireann `resilienceSettings.requestQueue.maxQueueDepth`
-teorainn le líon na n-iarratas ar féidir leo fanacht sa scuaine (gan a bheith seolta fós) do
-sholáthraí+nasc amháin ag aon am amháin. Nuair atá `maxQueueDepth` iarratas sa scuaine cheana féin,
-diúltaítear d'iarratas nua láithreach le hearráid chlóscríofa
-`code: "RATE_LIMIT_QUEUE_FULL"` **sula** sroicheann sé `limiter.schedule()` riamh
-— mar sin tá an diúltú saor agus tarlaíonn sé roimh aon obair iartheachtach
-chomhbhrú leid / aistriúcháin don iarratas sin. Réamhshocrú `0` =
-díchumasaithe, rud a chaomhnaíonn an t-iompar scuaine gan teorainn atá ann cheana; teorannaithe do 0–100000.
-Sáraigh é trí `RATE_LIMIT_MAX_QUEUE_DEPTH` (athróg timpeallachta) nó
-`resilienceSettings.requestQueue.maxQueueDepth` (paiste deaise/API).
+Is é `resilienceSettings.requestQueue.maxWaitMs` an **buiséad feithimh sa scuaine**:
+cumhdaíonn sé fanacht le sliotán soláthraí agus ansin suí sa staid QUEUED, agus
+glantar a amadóir a luaithe a fhágann an jab QUEUED agus a thosaíonn sé ag rith
+(`rateLimitManager.ts`, `wrappedFn`). Ní shroicheann iarratas a sháraíonn é an
+córas réamhtheachtach choíche. Is é 30000ms an réamhshocrú, arna sholáthar ag
+`DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS` in `src/lib/resilience/settings.ts` agus arna
+shocrú ag `tests/unit/ratelimit-admission-control-6593.test.ts`, ionas go
+dteipfidh an tástáil sin má athraítear é seachas ligean don mhír seo dul as dáta
+go ciúin.
 
-Is feidhm íon í an tseiceáil iontrála féin
-(`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`) ionas
-gur féidir í a thástáil mar aonad gan fíortheorantóir Bottleneck.
+Is é `resilienceSettings.requestQueue.executionMaxWaitMs` an méid a fhaigheann
+Bottleneck mar `expiration` an jaib, agus ní thosaíonn a amadóir go dtí tar éis
+an tseolta. Is cosaint chúltaca é do riteoirí nach bhfuil teorainn ama
+réamhtheachtach dá gcuid féin acu, agus ardaítear é go dtí teorainn ama
+thosaithe aisghabhála an riteora féin nuair is faide í sin, ionas nach féidir
+leis freagairt shláintiúil atá ar siúl a ghearradh as. Is é 600000ms (10 nóim.)
+an réamhshocrú.
 
-> Moladh san RFC a d'oscail #6593 bratach `bypassCompressionOnRateLimit`
-> freisin. Is comhbhrú leide/comhthéacs ar an iarratas LLM amach é píblíne
-> `open-sse/services/compression/` an stór seo (`chatCore.ts`,
-> thart ar an mbloc `resolveCompressionSettings`/`selectCompressionStrategy`),
-> ní comhbhrú freagartha HTTP ar chabhlacha 429 sintéisithe — níl aon
-> chonair chóid chomhfhreagrach ann do bhratach sheachanta liteartha. Faoi láthair ritheann an chéim chomhbhrú leide sin
-> _roimh_ `withRateLimit()` sa phíblíne iarratais freisin, mar sin
-> is athrú níos leithne ar leith é í a athordú chun í a scipeáil nuair a dhiúltaítear mar gheall ar scuaine lán,
-> seachas raon feidhme na saincheiste seo; **níor** cuireadh i bhfeidhm anseo í d'aon ghnó
-> agus fágtar í mar obair leantach más fiú an coigilteas LAP an riosca
-> athordaithe.
+Ba é buiséad na scuaine a chur isteach in `expiration` an rud a bhíodh ag
+marú geataí neamh-incriminteacha i lár an reatha — ritheann siad go dlisteanach
+ar feadh nóiméad sula dtagann na chéad bhearta — agus sin é an fáth a nochtar
+dul in éag mar `code:
+"RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504), agus cód teorann ama na scuaine ag
+gabháil le buiséad na scuaine. Sáraigh ceachtar acu trí
+`RATE_LIMIT_MAX_WAIT_MS` / `RATE_LIMIT_EXECUTION_MAX_WAIT_MS` (athróg
+timpeallachta) nó tríd an deais (**Socruithe → Athléimneacht**). Cuirtear
+teorainn 1ms–24h leis an dá cheann nuair a normalaítear iad.
+
+**Tosaíocht, don dá cheann:** ní sholáthraíonn an athróg timpeallachta ach an
+_luach réamhshocraithe_. Bíonn tosaíocht ag luach a coinníodh in
+`resilienceSettings.requestQueue` (paiste deaise / API, stóráilte in
+`key_value`) air, agus bíonn tosaíocht ag `rateLimitOverrides.maxWaitMs` /
+`.executionMaxWaitMs` in aghaidh na ceangailteachta air sin. Dá bhrí sin, ní
+athraítear rud ar bith ach an athróg timpeallachta a shocrú ar imscaradh a
+bhfuil luach coinnithe aige cheana féin — glan nó nuashonraigh an socrú
+coinnithe ina ionad sin.
+
+Cuireann `maxWaitMs` teorainn leis an tréimhse sa scuaine; cuireann
+`maxQueueDepth` thíos teorainn le líon na nglaoiteoirí is féidir a bheith sa
+scuaine ag aon am amháin.
+
+**`maxQueueDepth` — uasteorainn iontrála roghnach (nua).** Cuireann
+`resilienceSettings.requestQueue.maxQueueDepth` teorainn le líon na n-iarratas
+is féidir suí sa scuaine (gan a bheith seolta fós) do sholáthraí+ceangal amháin
+ag aon am amháin. Nuair atá `maxQueueDepth` iarratas sa scuaine cheana féin,
+diúltaítear d’iarratas nua láithreach le hearráid chlóscríofa
+`code: "RATE_LIMIT_QUEUE_FULL"` **sula** sroicheann sé `limiter.schedule()`
+riamh — mar sin tá an diúltú saor agus tarlaíonn sé roimh aon obair
+chomhbhrúite / aistriúcháin leide iartheachtach don iarratas sin. Réamhshocrú
+`0` = díchumasaithe, rud a chaomhnaíonn iompraíocht neamhtheoranta reatha na
+scuaine; teoranta do 0–100000. Sáraigh é trí `RATE_LIMIT_MAX_QUEUE_DEPTH`
+(athróg timpeallachta) nó `resilienceSettings.requestQueue.maxQueueDepth`
+(paiste deaise/API).
+
+Is feidhm íon é an tseiceáil iontrála féin
+(`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`), ionas
+gur féidir í a thástáil le tástáil aonaid gan fíortheorantóir Bottleneck.
+
+> Moladh san RFC a d’oscail #6593 bratach `bypassCompressionOnRateLimit`
+> freisin. Is é atá i bpíblíne `open-sse/services/compression/` na stórlainne
+> seo ná comhbhrú leide/comhthéacs ar an iarratas LLM amach (`chatCore.ts`,
+> timpeall an bhloic `resolveCompressionSettings`/`selectCompressionStrategy`),
+> seachas comhbhrú freagartha HTTP ar choirp 429 shintéisithe — níl cosán cóid
+> meaitseála ann do bhratach sheachanta liteartha. Ritheann an chéim
+> chomhbhrúite leide sin _roimh_ `withRateLimit()` sa phíblíne iarratais faoi
+> láthair freisin, mar sin is athrú ar leith agus níos mó ná raon feidhme na
+> saincheiste seo é an t-ord a athrú chun í a scipeáil nuair a dhiúltaítear mar
+> gheall ar scuaine lán; níor cuireadh i bhfeidhm anseo í **d’aon ghnó** agus
+> fágadh mar obair leantach í má tá an gnóthachan ó thaobh CPU a shábháil de
+> fiúntach i gcomparáid leis an riosca a bhaineann leis an athordú.
 
 ---
 

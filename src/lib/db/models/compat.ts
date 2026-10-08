@@ -6,6 +6,7 @@ import {
   type ModelCompatProtocolKey,
 } from "@/shared/constants/modelCompat";
 import { isForbiddenUpstreamHeaderName } from "@/shared/constants/upstreamHeaders";
+import { isHiddenForModality } from "@/shared/utils/modelVisibility";
 import { getKeyValue } from "./shared";
 import { finishModelCatalogWriteWithBackup } from "./modelCatalogWriteSignals";
 
@@ -129,19 +130,21 @@ export type ModelCompatOverride = {
   supportsVision?: boolean;
 };
 
+/** Nested provider → model map of explicit model-compat vision overrides. */
+export type ModelCompatVisionOverrideMap = ReadonlyMap<string, ReadonlyMap<string, boolean>>;
+
 /**
  * Resolve whether an override hides its model for a given modality.
  * Precedence: an explicit `hiddenModalities[modality]` entry always wins;
  * otherwise fall back to the legacy all-modalities `isHidden` flag.
+ * Delegates to the shared rule (`src/shared/utils/modelVisibility.ts`) so the dashboard
+ * UI and the server agree — the duplicated copy is what let the dashboard drift (#12172).
  */
 export function isOverrideHiddenForModality(
   override: Pick<ModelCompatOverride, "isHidden" | "hiddenModalities"> | null | undefined,
   modality: string
 ): boolean {
-  if (!override) return false;
-  const scoped = override.hiddenModalities?.[modality];
-  if (scoped !== undefined) return Boolean(scoped);
-  return Boolean(override.isHidden);
+  return isHiddenForModality(override, modality);
 }
 
 export function readCompatList(providerId: string): ModelCompatOverride[] {
@@ -186,6 +189,80 @@ export function writeCompatList(providerId: string, list: ModelCompatOverride[])
 
 export function getModelCompatOverrides(providerId: string): ModelCompatOverride[] {
   return readCompatList(providerId);
+}
+
+/**
+ * Resolve one exact provider/model `supportsVision` compat override.
+ * A supplied bulk map performs no SQLite work.
+ */
+export function getModelCompatVisionOverride(
+  providerId: string,
+  modelIds: readonly string[],
+  bulk?: ModelCompatVisionOverrideMap | null
+): boolean | null {
+  if (!providerId || modelIds.length === 0) return null;
+  const candidates = new Set(modelIds.filter(Boolean));
+  if (candidates.size === 0) return null;
+
+  try {
+    const overrides = bulk
+      ? bulk.get(providerId)
+      : new Map(
+          readCompatList(providerId).flatMap((entry) =>
+            typeof entry.supportsVision === "boolean"
+              ? [[entry.id, entry.supportsVision] as const]
+              : []
+          )
+        );
+    if (!overrides) return null;
+    for (const modelId of candidates) {
+      const value = overrides.get(modelId);
+      if (typeof value === "boolean") return value;
+    }
+  } catch {
+    // Capability resolution must remain available when the override store is unavailable.
+  }
+  return null;
+}
+
+function parseCompatVisionOverrides(value: string): Map<string, boolean> {
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    if (!Array.isArray(parsed)) return new Map<string, boolean>();
+    return new Map(
+      parsed.flatMap((candidate) => {
+        if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return [];
+        const { id, supportsVision } = candidate as {
+          id?: unknown;
+          supportsVision?: unknown;
+        };
+        return typeof id === "string" && typeof supportsVision === "boolean"
+          ? [[id, supportsVision] as const]
+          : [];
+      })
+    );
+  } catch {
+    return new Map<string, boolean>();
+  }
+}
+
+/** Bulk-load all explicit model-compat vision overrides with one SQLite query. */
+export function listModelCompatVisionOverrides(): ModelCompatVisionOverrideMap {
+  try {
+    const rows = getDbInstance()
+      .prepare("SELECT key, value FROM key_value WHERE namespace = 'modelCompatOverrides'")
+      .all();
+    const result = new Map<string, Map<string, boolean>>();
+    for (const row of rows) {
+      const { key, value } = getKeyValue(row);
+      if (!key || !value) continue;
+      const byModel = parseCompatVisionOverrides(value);
+      if (byModel.size > 0) result.set(key, byModel);
+    }
+    return result;
+  } catch {
+    return new Map<string, Map<string, boolean>>();
+  }
 }
 
 export type ModelCompatPatch = {
