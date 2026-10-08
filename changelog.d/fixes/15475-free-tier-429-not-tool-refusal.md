@@ -1,0 +1,1 @@
+- **fix(opencode):** only a 403 or 451 naming the refused model clears borrowed tools; a 429 leaves them alone ([#15475](https://github.com/diegosouzapw/OmniRoute/pull/15475)) — thanks @maxmad64bis

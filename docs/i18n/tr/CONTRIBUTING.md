@@ -397,19 +397,19 @@ Model tanımlarını `open-sse/config/providerRegistry.ts` dosyasına ekleyin.
 ## Pull Request Kontrol Listesi
 
 - [ ] Testler geçiyor (`npm test`)
-- [ ] Lint denetimleri geçiyor (`npm run lint`)
+- [ ] Lint denetimi geçiyor (`npm run lint`)
 - [ ] Derleme başarıyla tamamlanıyor (`npm run build`)
-- [ ] Yeni herkese açık işlevler ve arayüzler için TypeScript türleri eklendi
+- [ ] Yeni genel kullanıma açık fonksiyonlar ve arayüzler için TypeScript türleri eklendi
 - [ ] Sabit kodlanmış gizli bilgiler veya geri dönüş değerleri yok
-- [ ] Herkese açık üst sağlayıcı kimlik bilgileri, sabit değerler olarak değil, `resolvePublicCred()` aracılığıyla gömüldü (bkz. [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md))
-- [ ] Hata yanıtları `buildErrorBody()` / `sanitizeErrorMessage()` üzerinden yönlendiriliyor — yanıt gövdelerinde ham yığın izleri yok (bkz. [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Kabuk komutları (`exec` / `spawn`), çalışma zamanı değerlerini dize enterpolasyonu aracılığıyla değil `env` üzerinden iletiyor
-- [ ] Tüm girdiler Zod şemalarıyla doğrulanıyor
-- [ ] Kullanıcıya yönelik değişiklikler için `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` altına değişiklik günlüğü **parçası** eklendi (bkz. [`changelog.d/README.md`](./changelog.d/README.md)) — `CHANGELOG.md` dosyasını doğrudan **düzenlemeyin**; parçalar sürüm yayımlanırken birleştirilir ve PR'ler arasında hiçbir zaman çakışmaz
-- [ ] Belgeler güncellendi (geçerliyse)
-- [ ] Yeni CodeQL / Secret-Scanning uyarısı açılmadı veya her biri ilgili `docs/security/` belgesine atıfta bulunan teknik bir gerekçeyle kapatıldı
-- [ ] Alt süreç başlatan rotalar (`/api/mcp/`, `/api/cli-tools/runtime/`), `src/server/authz/routeGuard.ts` içinde `isLocalOnlyPath()` olarak sınıflandırıldı — bkz. [Kesin Kural #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Commit mesajlarında `Co-Authored-By` alt bilgileri yok — commit'ler yalnızca depo sahibinin Git kimliği altında görünmelidir (Kesin Kural #16)
+- [ ] Genel kullanıma açık üst kaynak kimlik bilgileri değişmez değer olarak değil, `resolvePublicCred()` aracılığıyla gömüldü (bkz. [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md))
+- [ ] Hata yanıtları `buildErrorBody()` / `sanitizeErrorMessage()` üzerinden yönlendiriliyor — yanıt gövdelerinde işlenmemiş yığın izleri yok (bkz. [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Kabuk komutları (`exec` / `spawn`), çalışma zamanı değerlerini dize interpolasyonu yoluyla değil `env` aracılığıyla iletiyor
+- [ ] Tüm girdiler Zod şemalarıyla doğrulandı
+- [ ] Kullanıcıya yönelik değişiklikler için `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` altında değişiklik günlüğü **parçası** eklendi (bkz. [`changelog.d/README.md`](./changelog.d/README.md)) — `CHANGELOG.md` dosyasını doğrudan düzenlemeyin; parçalar sürüm yayımlanırken birleştirilir ve PR'lar arasında hiçbir zaman çakışmaz
+- [ ] Dokümantasyon güncellendi (uygunsa)
+- [ ] Yeni CodeQL / Secret-Scanning uyarısı açılmadı veya her biri ilgili `docs/security/` belgesine atıfta bulunan teknik bir gerekçeyle reddedildi
+- [ ] Alt süreç başlatan rotalar (`/api/mcp/`, `/api/cli-tools/runtime/`), `src/server/authz/routeGuard.ts` içindeki `isLocalOnlyPath()` kapsamında sınıflandırıldı — bkz. [Kesin Kural #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Commit mesajlarında AI/bot `Co-authored-by` son bilgileri yok (Kesin Kural #16) — çalışmalarından yararlanılan insan iş ortaklarına standart `Co-authored-by: Name <email>` son bilgileriyle atıfta bulunuldu
 
 ---
 

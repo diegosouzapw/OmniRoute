@@ -72,24 +72,31 @@ en indiquant son nom et les informations perdues — ainsi, un sélecteur dégra
 
 ## Options
 
-| Clé                              | Valeur par défaut                              | Remarques                                                                                                                      |
-| -------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `providerId`                     | `"omniroute"`                                  | Identifiant du fournisseur, identifiant de l’intégration et préfixe sous lequel les modèles apparaissent                       |
-| `baseURL`                        | obligatoire                                    | Racine de la passerelle, `http(s)` uniquement ; le suffixe `/v1` est ajouté si nécessaire                                      |
-| `apiKey`                         | identifiant connecté, puis `OMNIROUTE_API_KEY` | Clé de chat pour `/v1/*`                                                                                                       |
-| `managementReadToken`            | utilise `apiKey` comme valeur de repli         | Clé pour `/api/*` — généralement **différente**                                                                                |
-| `displayName`                    | `"OmniRoute"`                                  | Nom du fournisseur dans le sélecteur                                                                                           |
-| `timeoutMs`                      | `10000`                                        | Délai d’expiration de récupération par endpoint (les auto-combos utilisent 5 s)                                                |
-| `modelCacheTtlMs`                | `300000`                                       | Durée de vie du cache du catalogue ; un instantané sur disque accélère les démarrages à froid                                  |
-| `timeouts`                       | utilise `timeoutMs` comme valeur de repli      | Délais en ms par endpoint : `models`, `combos`, `autoCombos`, `enrichment`                                                     |
-| `enrichment`                     | `true`                                         | Récupère les noms, les tarifs et les budgets du niveau gratuit                                                                 |
-| `providerTag`                    | `true`                                         | Préfixe un nom d’affichage avec le fournisseur en amont vers lequel il est acheminé                                            |
-| `usableOnly`                     | `false`                                        | Conserve uniquement les fournisseurs que la passerelle signale comme configurés                                                |
-| `visibleModels` / `hiddenModels` | `[]`                                           | Listes d’autorisation par correspondance exacte ou par suffixe ; l’exclusion est prioritaire                                   |
-| `geminiSanitization`             | `true`                                         | Supprime des schémas d’outils les mots-clés JSON Schema rejetés par Gemini (les outils `$ref` sont transmis sans modification) |
-| `apiFormat.allowAnthropic`       | `false`                                        | Achemine les identifiants autorisés via le bloc d’API Anthropic                                                                |
-| `apiFormat.anthropicModels`      | `[]`                                           | Identifiants complets des modèles acheminés vers Anthropic                                                                     |
-| `logLevel` / `startupDebug`      | `warn` / `false`                               | Niveau de verbosité du journal                                                                                                 |
+| Clé                              | Valeur par défaut                              | Remarques                                                                                                                                |
+| -------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `providerId`                     | `"omniroute"`                                  | Identifiant du fournisseur, identifiant de l’intégration et préfixe sous lequel les modèles apparaissent                                 |
+| `baseURL`                        | requis                                         | Racine de la passerelle, `http(s)` uniquement ; le suffixe `/v1` est ajouté lorsque nécessaire                                           |
+| `apiKey`                         | identifiant connecté, puis `OMNIROUTE_API_KEY` | Clé de chat pour `/v1/*`                                                                                                                 |
+| `managementReadToken`            | utilise `apiKey` par défaut                    | Clé pour `/api/*` — généralement **différente**                                                                                          |
+| `displayName`                    | `"OmniRoute"`                                  | Nom du fournisseur dans le sélecteur                                                                                                     |
+| `timeoutMs`                      | `10000`                                        | Délai d’expiration par point de terminaison (les combinaisons automatiques utilisent 5 s)                                                |
+| `modelCacheTtlMs`                | `300000`                                       | Durée de vie du cache du catalogue ; un instantané sur disque accélère les démarrages à froid                                            |
+| `timeouts`                       | utilise `timeoutMs` par défaut                 | Délais alloués par point de terminaison en ms : `models`, `combos`, `autoCombos`, `enrichment`                                           |
+| `enrichment`                     | `true`                                         | Récupère les noms, les tarifs et les quotas du niveau gratuit                                                                            |
+| `providerTag`                    | `true`                                         | Préfixe le nom d’affichage avec le fournisseur en amont vers lequel il est acheminé                                                      |
+| `usableOnly`                     | `false`                                        | Conserve uniquement les fournisseurs que la passerelle indique comme configurés                                                          |
+| `showcasePerOwner`               | `10`                                           | Nombre d’entrées conservées par fournisseur dans la vue par défaut                                                                       |
+| `freshPerOwner`                  | `10`                                           | Nombre d’entrées récentes conservées par fournisseur dans la vue par défaut                                                              |
+| `freshWindowDays`                | `90`                                           | Fenêtre de fraîcheur en jours pour la branche des entrées récentes                                                                       |
+| `usageMemory`                    | `true`                                         | Restaure les entrées supprimées statiquement et mentionnées dans les analyses d’utilisation sur 30 jours (nécessite un jeton de gestion) |
+| `visibleModels` / `hiddenModels` | `[]`                                           | Listes d’autorisation par correspondance exacte ou suffixe ; le refus prévaut                                                            |
+| `geminiSanitization`             | `true`                                         | Supprime des schémas d’outils les mots-clés JSON Schema rejetés par Gemini (les outils `$ref` sont transmis tels quels)                  |
+| `apiFormat.allowAnthropic`       | `false`                                        | Achemine les identifiants autorisés via le bloc d’API Anthropic                                                                          |
+| `apiFormat.anthropicModels`      | `[]`                                           | Identifiants complets des modèles acheminés vers Anthropic                                                                               |
+| `logLevel` / `startupDebug`      | `warn` / `false`                               | Niveau de verbosité du journal                                                                                                           |
+
+La mémoire d’utilisation est activée par défaut. Sans jeton de gestion, elle reste inactive
+(un avis est consigné au démarrage) et rien n’est restauré.
 
 ## Comment le catalogue reste à jour
 

@@ -86,9 +86,6 @@
 - [`PUT /api/v1/management/proxies/bulk-assign`](#put-apiv1managementproxiesbulk-assign)
 - [`GET /api/v1/management/proxies/health`](#get-apiv1managementproxieshealth)
 - [`GET /api/v1/me/status`](#get-apiv1mestatus)
-- [`GET /api/v1/me/sessions`](#get-apiv1mesessions)
-- [`GET /api/v1/me/sessions/{id}`](#get-apiv1mesessionsid)
-- [`GET /api/v1/me/sessions/{id}/messages`](#get-apiv1mesessionsidmessages)
 - [`GET /api/v1/muse-code/models`](#get-apiv1muse-codemodels)
 - [`GET /api/v1/music/generations`](#get-apiv1musicgenerations)
 - [`POST /api/v1/music/generations`](#post-apiv1musicgenerations)
@@ -443,7 +440,7 @@ curl https://localhost:20128/api/v1/management/proxy-subscriptions/{id} \
 
 Update a proxy subscription
 
-Partial update — only fields present in the body are changed (name/url/mode/ruleProviders/localCoreEndpoint/updateIntervalMinutes/enabled).
+Partial update — only fields present in the body are changed (name/url/mode/ruleProviders/localCoreEndpoint/coreConfigPath/coreBinaryPath/updateIntervalMinutes/enabled).
 
 ```bash
 curl -X PATCH https://localhost:20128/api/v1/management/proxy-subscriptions/{id} \
@@ -1025,39 +1022,6 @@ GET me › status
 
 ```bash
 curl https://localhost:20128/api/v1/me/status \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/v1/me/sessions
-
-GET me › sessions
-
-List agent sessions opened by the calling API key.
-
-```bash
-curl https://localhost:20128/api/v1/me/sessions \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/v1/me/sessions/{id}
-
-GET me › sessions › <id>
-
-Get details and recent requests of a session owned by the calling API key.
-
-```bash
-curl https://localhost:20128/api/v1/me/sessions/{id} \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/v1/me/sessions/{id}/messages
-
-GET me › sessions › <id> › messages
-
-Simplified conversation turns for a session owned by the calling API key.
-
-```bash
-curl https://localhost:20128/api/v1/me/sessions/{id}/messages \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 

@@ -45,3 +45,21 @@ test("finalize runs exactly once on cancel", async () => {
   await reader.cancel("done early");
   assert.equal(calls, 1);
 });
+
+test("finalize runs exactly once when the source stream errors", async () => {
+  let calls = 0;
+  const wrapped = wrapReadableStreamWithFinalize(
+    new ReadableStream({
+      start(controller) {
+        controller.error(new Error("synthetic stream failure"));
+      },
+    }),
+    () => {
+      calls++;
+    }
+  );
+
+  const reader = wrapped.getReader();
+  await assert.rejects(reader.read(), /synthetic stream failure/);
+  assert.equal(calls, 1);
+});

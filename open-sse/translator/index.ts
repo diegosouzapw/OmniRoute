@@ -45,6 +45,7 @@ import {
   RESPONSES_STORE_MARKER,
 } from "./request/openai-responses/helpers.ts";
 import { applyReasoningInputPolicy } from "../services/reasoningInputPolicy.ts";
+import { normalizeReasoningRequest } from "@/shared/reasoning/effortStandardization";
 
 bootstrapTranslatorRegistry();
 export { register } from "./registry.ts";
@@ -358,7 +359,7 @@ export function translateRequest(
     copilotClient?: boolean;
   }
 ) {
-  let result = body;
+  let result = normalizeReasoningRequest(body, provider);
   const use9CharId = options?.normalizeToolCallId === true;
   const preserveDeveloperRole = options?.preserveDeveloperRole;
   const connectionCacheOverride = resolveConnectionCacheOverride(

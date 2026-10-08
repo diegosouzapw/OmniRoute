@@ -25,10 +25,7 @@ import { persistCreditBalance, getAllPersistedCreditBalances } from "@/lib/db/cr
 import { setConnectionRateLimitUntil } from "@/lib/db/providers";
 import { markAntigravityModelQuotaExhausted } from "../services/antigravityFamilyCooldown.ts";
 import { getMitmAlias } from "@/lib/db/models";
-import {
-  MAX_ANTIGRAVITY_OUTPUT_TOKENS,
-  resolveAntigravityOutputCap,
-} from "./antigravityOutputCap.ts";
+import { resolveAntigravityOutputCap } from "./antigravityOutputCap.ts";
 export { MAX_ANTIGRAVITY_OUTPUT_TOKENS } from "./antigravityOutputCap.ts";
 import {
   ensureAntigravityProjectAssigned,
@@ -267,7 +264,11 @@ export function markConnectionQuotaExhausted(
  * specific upstream id, pass it here. It is an ALREADY-RESOLVED upstream id, so it bypasses
  * the MITM/static alias resolution and is used verbatim (after prefix stripping).
  */
-async function cleanModelName(model: string, modelIdOverride?: string): Promise<string> {
+export async function cleanModelName(
+  model: string,
+  modelIdOverride?: string,
+  provider = "antigravity"
+): Promise<string> {
   if (modelIdOverride) {
     return modelIdOverride.includes("/") ? modelIdOverride.split("/").pop()! : modelIdOverride;
   }
@@ -279,16 +280,16 @@ async function cleanModelName(model: string, modelIdOverride?: string): Promise<
   //    Built during model sync — contains ONLY currently-available models.
   //    Obsolete/removed models are automatically excluded.
   try {
-    const mitmAliases = await getMitmAlias("antigravity");
+    const mitmAliases = await getMitmAlias(provider);
     if (mitmAliases && typeof mitmAliases === "object") {
       const aliases = mitmAliases as Record<string, unknown>;
       const raw = aliases[stripped];
       // Only honor string aliases; corrupted/non-string DB values fall through
       // to the static alias resolution below (never return undefined here).
       if (typeof raw === "string" && raw) {
-        // Strip the "antigravity/" prefix if present; use the raw model ID otherwise.
-        const PREFIX = "antigravity/";
-        clean = raw.startsWith(PREFIX) ? raw.slice(PREFIX.length) : raw;
+        // Strip the provider prefix if present; use the raw model ID otherwise.
+        const prefix = `${provider}/`;
+        clean = raw.startsWith(prefix) ? raw.slice(prefix.length) : raw;
       }
     }
   } catch {
@@ -834,6 +835,7 @@ export class AntigravityExecutor extends BaseExecutor {
       enable_thinking: _enableThinking,
       thinking_budget: _thinkingBudget,
       enabledCreditTypes: _enabledCreditTypes,
+      stream: _streamField,
       ...passthroughFields
     } = normalizedBody;
 

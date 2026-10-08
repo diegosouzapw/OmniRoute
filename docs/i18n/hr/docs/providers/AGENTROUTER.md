@@ -128,7 +128,7 @@ zahtjevu (pogledajte `open-sse/services/claudeCodeCompatible.ts`):
 | Zaglavlje                                         | Vrijednost                                                                                                       |
 | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | `Authorization`                                   | `Bearer <api-key>`                                                                                               |
-| `User-Agent`                                      | `claude-cli/2.1.258 (external, sdk-cli)`                                                                         |
+| `User-Agent`                                      | `claude-cli/2.1.280 (external, sdk-cli)`                                                                         |
 | `anthropic-version`                               | `2023-06-01`                                                                                                     |
 | `anthropic-beta`                                  | `claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24`                                         |
 | Beta prekidač za redigiranje razmišljanja po vezi | Dodaje `redact-thinking-2026-02-12` za uzvodne sustave koji izričito zahtijevaju redigirane tokove razmišljanja  |

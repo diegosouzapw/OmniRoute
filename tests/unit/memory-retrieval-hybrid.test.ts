@@ -61,10 +61,13 @@ function insertMemory(
   content: string,
   key?: string
 ) {
+  const { nextId } = db
+    .prepare("SELECT COALESCE(MAX(rowid), 0) + 1 AS nextId FROM memories")
+    .get() as { nextId: number };
   db.prepare(
-    `INSERT INTO memories (id, api_key_id, session_id, type, key, content, metadata, created_at, updated_at, expires_at)
-     VALUES (?, ?, ?, 'factual', ?, ?, '{}', datetime('now'), datetime('now'), NULL)`
-  ).run(id, apiKeyId, "", key ?? `key-${id}`, content);
+    `INSERT INTO memories (rowid, memory_id, id, api_key_id, session_id, type, key, content, metadata, created_at, updated_at, expires_at)
+     VALUES (?, ?, ?, ?, ?, 'factual', ?, ?, '{}', datetime('now'), datetime('now'), NULL)`
+  ).run(nextId, nextId, id, apiKeyId, "", key ?? `key-${id}`, content);
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -210,4 +213,40 @@ test("retrievePreview: bundle shape matches RetrievePreviewBundle contract", asy
   assert.ok("strategyUsed" in res);
   assert.ok("rerankApplied" in res);
   assert.ok("fallbackReason" in res);
+});
+
+test("long lexical queries find older matching memories and retain API-key isolation", async () => {
+  const db = core.getDbInstance();
+  const { retrieveMemories, retrievePreview, sanitizeFts5Query } =
+    await import("../../src/lib/memory/retrieval.ts");
+  const words = Array.from({ length: 10_000 }, (_, i) => `term${i}`);
+  const query = words.join(" ");
+  // Fail safely on an unbounded implementation before executing synchronous FTS.
+  assert.equal(sanitizeFts5Query(query).split(" ").length, 32);
+  const content = words.slice(0, 32).join(" ");
+  insertMemory(db, "long-query-match", "long-query-key", content);
+  db.prepare("UPDATE memories SET created_at = datetime('now', '-1 day') WHERE id = ?").run(
+    "long-query-match"
+  );
+  insertMemory(db, "other-key-match", "other-key", content);
+  for (let i = 0; i < 210; i++) {
+    insertMemory(db, `newer-unrelated-${i}`, "long-query-key", "unrelated topic");
+  }
+
+  for (const retrievalStrategy of ["semantic", "hybrid"] as const) {
+    const memories = await retrieveMemories("long-query-key", {
+      retrievalStrategy,
+      query,
+      maxTokens: 2000,
+    });
+    assert.ok(memories.some((memory) => memory.id === "long-query-match"));
+    assert.ok(memories.every((memory) => memory.apiKeyId === "long-query-key"));
+  }
+  const preview = await retrievePreview("long-query-key", query, {
+    strategy: "semantic",
+    maxTokens: 2000,
+    limit: 10,
+  });
+  assert.ok(preview.items.some((item) => item.memory.id === "long-query-match"));
+  assert.ok(preview.items.every((item) => item.memory.apiKeyId === "long-query-key"));
 });

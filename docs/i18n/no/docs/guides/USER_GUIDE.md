@@ -120,7 +120,7 @@ Tilgang via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ## 📖 Oppsett av leverandører
 
-For å legge til flere API-nøkkeltilkoblinger samtidig fra en CSV- eller JSON-fil bruker du **Kontrollpanel → Leverandører → Importer fra fil**. Kolonnene er posisjonsbaserte (`provider,name,apiKey,baseUrl,priority`); `provider` må allerede finnes som en administrert leverandør eller en kompatibel node. Se [Importer leverandører fra en CSV- eller JSON-fil](../providers/CSV-IMPORT.md).
+For å masselegge til API-nøkkeltilkoblinger fra en CSV- eller JSON-fil bruker du **Kontrollpanel → Leverandører → Importer fra fil**. Kolonnene er posisjonsbaserte (`provider,name,apiKey,baseUrl,priority`); `provider` må allerede finnes som en administrert leverandør eller en kompatibel node. Se [Importer leverandører fra en CSV- eller JSON-fil](../providers/CSV-IMPORT.md).
 
 ### 🔐 Abonnementsleverandører
 
@@ -129,7 +129,7 @@ For å legge til flere API-nøkkeltilkoblinger samtidig fra en CSV- eller JSON-f
 ```bash
 Kontrollpanel → Leverandører → Koble til Claude Code
 → OAuth-innlogging → Automatisk oppdatering av token
-→ Sporing av 5-timerskvote og ukentlig kvote
+→ Sporing av kvoter per 5 timer + uke
 
 Modeller:
   cc/claude-opus-4-7
@@ -137,16 +137,18 @@ Modeller:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Profftips:** Bruk Opus til komplekse oppgaver og Sonnet når hastighet er viktig. OmniRoute sporer kvoten per modell!
+**Profftips:** Bruk Opus til komplekse oppgaver og Sonnet for hastighet. OmniRoute sporer kvoten per modell!
 
-Ruter som er kompatible med Claude og Claude Code, beholder `max`-nivået for resonneringsinnsats for Opus- og Sonnet-modeller. Haiku-modeller godtar ikke innsatsnivået `max`, så OmniRoute nedjusterer forespørselen til et høyt resonneringsbudsjett før den sendes oppstrøms.
+Ingen nettleser på OmniRoute-verten? Kjør `claude setup-token` hvor som helst der Claude Code er pålogget, og lim inn tokenet med ett års gyldighet i fanen **Setup Token**. Se [Claude Code med et oppsett-token](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Ruter som er kompatible med Claude og Claude Code, beholder tenkeinnsatsen `max` for Opus- og Sonnet-modeller. Haiku-modeller godtar ikke innsatsnivået `max`, så OmniRoute nedgraderer denne forespørselen til et høyt tenkebudsjett før den sendes oppstrøms.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
 Kontrollpanel → Leverandører → Koble til Codex
 → OAuth-innlogging (port 1455)
-→ Tilbakestilling hver 5. time og ukentlig
+→ Tilbakestilling per 5 timer + uke
 
 Modeller:
   cx/gpt-5.5
@@ -172,7 +174,7 @@ Modeller:
 
 ### 💰 Rimelige leverandører
 
-#### GLM-4.7 (daglig tilbakestilling, $0.6/1M)
+#### GLM-4.7 (Daglig tilbakestilling, $0.6/1M)
 
 1. Registrer deg: [Zhipu AI](https://open.bigmodel.cn)
 2. Hent API-nøkkelen fra Coding Plan
@@ -180,17 +182,17 @@ Modeller:
 
 **Bruk:** `glm/glm-4.7` — **Profftips:** Coding Plan tilbyr 3× kvote til 1/7 av kostnaden! Tilbakestilles daglig kl. 10:00.
 
-#### MiniMax M2.1 (tilbakestilling hver 5. time, $0.20/1M)
+#### MiniMax M2.1 (Tilbakestilling hver 5. time, $0.20/1M)
 
 1. Registrer deg: [MiniMax](https://www.minimax.io)
-2. Hent API-nøkkelen → Kontrollpanel → Legg til API-nøkkel
+2. Hent API-nøkkel → Kontrollpanel → Legg til API-nøkkel
 
 **Bruk:** `minimax/MiniMax-M2.1` — **Profftips:** Det rimeligste alternativet for lang kontekst (1M tokens)!
 
-#### Kimi K2 (fastpris på $9/måned)
+#### Kimi K2 ($9/måned fastpris)
 
 1. Abonner: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. Hent API-nøkkelen → Kontrollpanel → Legg til API-nøkkel
+2. Hent API-nøkkel → Kontrollpanel → Legg til API-nøkkel
 
 **Bruk:** `kimi/kimi-k2.5` — **Profftips:** Fastpris på $9/måned for 10M tokens = en effektiv kostnad på $0.90/1M!
 
@@ -203,14 +205,14 @@ Modeller:
 
 ### 🆓 GRATIS leverandører
 
-Gratisleverandører uten autentisering har en bryter ved siden av **Ingen autentisering kreves** på leverandørsiden.
-Når den slås av, deaktiveres leverandøren, den fjernes fra de konfigurerte og kompakte visningene under Leverandører, og
-modellene fjernes fra `/v1/models`.
+Gratisleverandører uten autentisering har en bryter ved siden av **Ingen autentisering kreves** på leverandørsiden sin.
+Når den slås av, deaktiveres leverandøren, den fjernes fra de konfigurerte/kompakte leverandørvisningene, og
+modellene dens fjernes fra `/v1/models`.
 
 #### Qoder (9 GRATIS modeller)
 
 ```bash
-Kontrollpanel → Koble til Qoder → OAuth-innlogging → Tilgangen er underlagt leverandørens gjeldende begrensninger
+Kontrollpanel → Koble til Qoder → OAuth-innlogging → Tilgangen er underlagt leverandørens gjeldende grenser
 
 Modeller: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```

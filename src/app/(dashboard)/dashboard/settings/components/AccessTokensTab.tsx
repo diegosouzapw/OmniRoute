@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Card, Button, Input, Select, Badge, Spinner, ConfirmModal } from "@/shared/components";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 
 interface AccessTokenRow {
   id: string;
@@ -30,13 +30,12 @@ async function fetchTokens(): Promise<AccessTokenRow[]> {
 
 export default function AccessTokensTab() {
   const t = useTranslations("settings");
-  // Graceful fallback so the tab renders in every locale before keys are translated.
-  const L = useCallback(
-    (key: string, fallback: string) =>
-      typeof t.has === "function" && t.has(key) ? t(key) : fallback,
-    [t]
-  );
-
+  const format = useFormatter();
+  const scopeLabels = {
+    read: t("accessTokensScopeReadLabel"),
+    write: t("accessTokensScopeWriteLabel"),
+    admin: t("accessTokensScopeAdminLabel"),
+  };
   const [tokens, setTokens] = useState<AccessTokenRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -56,11 +55,11 @@ export default function AccessTokensTab() {
     try {
       setTokens(await fetchTokens());
     } catch {
-      setError(L("accessTokensLoadError", "Could not load access tokens."));
+      setError(t("accessTokensLoadError"));
     } finally {
       setLoading(false);
     }
-  }, [L]);
+  }, [t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -69,7 +68,7 @@ export default function AccessTokensTab() {
         const tokens = await fetchTokens();
         if (!cancelled) setTokens(tokens);
       } catch {
-        if (!cancelled) setError(L("accessTokensLoadError", "Could not load access tokens."));
+        if (!cancelled) setError(t("accessTokensLoadError"));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -77,7 +76,7 @@ export default function AccessTokensTab() {
     return () => {
       cancelled = true;
     };
-  }, [L]);
+  }, [t]);
 
   const createToken = async () => {
     if (!name.trim()) return;
@@ -94,7 +93,12 @@ export default function AccessTokensTab() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data?.error?.message || data?.error || `HTTP ${res.status}`);
+        // API diagnostics are server data; localize the UI context, not the diagnostic.
+        const detail = data?.error?.message || data?.error;
+        setError(
+          `${t("accessTokensCreateError")} ${typeof detail === "string" ? detail : `HTTP ${res.status}`}`
+        );
+        return;
       }
       setNewSecret(data.token);
       setCopied(false);
@@ -102,10 +106,8 @@ export default function AccessTokensTab() {
       setExpires("");
       setScope("read");
       await load();
-    } catch (e) {
-      setError(
-        e instanceof Error ? e.message : L("accessTokensCreateError", "Could not create token.")
-      );
+    } catch {
+      setError(t("accessTokensCreateError"));
     } finally {
       setCreating(false);
     }
@@ -122,7 +124,7 @@ export default function AccessTokensTab() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       await load();
     } catch {
-      setError(L("accessTokensRevokeError", "Could not revoke token."));
+      setError(t("accessTokensRevokeError"));
     }
   };
 
@@ -136,73 +138,69 @@ export default function AccessTokensTab() {
     }
   };
 
-  const fmt = (iso: string | null) => (iso ? new Date(iso).toLocaleString() : "—");
+  const fmt = (iso: string | null) => {
+    if (!iso) return "—";
+    const date = new Date(iso);
+    return Number.isNaN(date.getTime())
+      ? "—"
+      : format.dateTime(date, { dateStyle: "medium", timeStyle: "short" });
+  };
 
   return (
     <div className="space-y-6">
       <Card>
         <div className="p-5">
-          <h2 className="text-lg font-semibold text-text">
-            {L("accessTokensTitle", "Access Tokens")}
-          </h2>
-          <p className="mt-1 text-sm text-text-muted">
-            {L(
-              "accessTokensDescription",
-              "Scoped tokens that let the omniroute CLI manage this server remotely. Distinct from inference API keys. The secret is shown once. Automation guide: /docs/guides/MANAGEMENT-AUTH."
-            )}
-          </p>
+          <h2 className="text-lg font-semibold text-text">{t("accessTokensTitle")}</h2>
+          <p className="mt-1 text-sm text-text-muted">{t("accessTokensDescription")}</p>
         </div>
       </Card>
 
       {/* Create */}
       <Card>
         <div className="p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-text">
-            {L("accessTokensCreateHeading", "Create a token")}
-          </h3>
+          <h3 className="text-sm font-semibold text-text">{t("accessTokensCreateHeading")}</h3>
           <div className="grid gap-3 sm:grid-cols-4">
             <Input
-              placeholder={L("accessTokensNamePlaceholder", "Name (e.g. laptop)")}
+              aria-label={t("accessTokensColName")}
+              placeholder={t("accessTokensNamePlaceholder")}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
             <Select
+              aria-label={t("accessTokensColScope")}
               value={scope}
               onChange={(e) => setScope(e.target.value)}
               options={[
-                { value: "read", label: L("accessTokensScopeRead", "read — list/inspect") },
-                { value: "write", label: L("accessTokensScopeWrite", "write — configure") },
-                { value: "admin", label: L("accessTokensScopeAdmin", "admin — manage") },
+                { value: "read", label: t("accessTokensScopeRead") },
+                { value: "write", label: t("accessTokensScopeWrite") },
+                { value: "admin", label: t("accessTokensScopeAdmin") },
               ]}
             />
             <Input
               type="number"
               min={1}
-              placeholder={L("accessTokensExpiresPlaceholder", "Expires (days, optional)")}
+              aria-label={t("accessTokensExpiresPlaceholder")}
+              placeholder={t("accessTokensExpiresPlaceholder")}
               value={expires}
               onChange={(e) => setExpires(e.target.value)}
             />
             <Button onClick={createToken} disabled={creating || !name.trim()}>
-              {creating
-                ? L("accessTokensCreating", "Creating…")
-                : L("accessTokensCreate", "Create")}
+              {creating ? t("accessTokensCreating") : t("accessTokensCreate")}
             </Button>
           </div>
 
           {newSecret && (
             <div className="rounded-control border border-primary/40 bg-primary/5 p-4">
-              <p className="text-sm font-medium text-text">
-                {L("accessTokensCopyNow", "Copy this token now — it will not be shown again:")}
-              </p>
+              <p className="text-sm font-medium text-text">{t("accessTokensCopyNow")}</p>
               <div className="mt-2 flex items-center gap-2">
                 <code className="flex-1 break-all rounded bg-surface px-3 py-2 font-mono text-xs text-text">
                   {newSecret}
                 </code>
                 <Button variant="secondary" onClick={copySecret}>
-                  {copied ? L("accessTokensCopied", "Copied") : L("accessTokensCopy", "Copy")}
+                  {copied ? t("accessTokensCopied") : t("accessTokensCopy")}
                 </Button>
                 <Button variant="ghost" onClick={() => setNewSecret(null)}>
-                  {L("accessTokensDismiss", "Dismiss")}
+                  {t("accessTokensDismiss")}
                 </Button>
               </div>
             </div>
@@ -219,36 +217,24 @@ export default function AccessTokensTab() {
       {/* List */}
       <Card>
         <div className="p-5">
-          <h3 className="mb-3 text-sm font-semibold text-text">
-            {L("accessTokensExisting", "Existing tokens")}
-          </h3>
+          <h3 className="mb-3 text-sm font-semibold text-text">{t("accessTokensExisting")}</h3>
           {loading ? (
             <div className="flex justify-center py-8">
               <Spinner />
             </div>
           ) : tokens.length === 0 ? (
-            <p className="py-6 text-center text-sm text-text-muted">
-              {L("accessTokensEmpty", "No access tokens yet.")}
-            </p>
+            <p className="py-6 text-center text-sm text-text-muted">{t("accessTokensEmpty")}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-border text-left text-text-muted">
-                    <th className="py-2 pr-4 font-medium">{L("accessTokensColName", "Name")}</th>
-                    <th className="py-2 pr-4 font-medium">{L("accessTokensColScope", "Scope")}</th>
-                    <th className="py-2 pr-4 font-medium">
-                      {L("accessTokensColPrefix", "Prefix")}
-                    </th>
-                    <th className="py-2 pr-4 font-medium">
-                      {L("accessTokensColStatus", "Status")}
-                    </th>
-                    <th className="py-2 pr-4 font-medium">
-                      {L("accessTokensColLastUsed", "Last used")}
-                    </th>
-                    <th className="py-2 pr-4 font-medium">
-                      {L("accessTokensColExpires", "Expires")}
-                    </th>
+                  <tr className="border-b border-border text-start text-text-muted">
+                    <th className="py-2 pe-4 font-medium">{t("accessTokensColName")}</th>
+                    <th className="py-2 pe-4 font-medium">{t("accessTokensColScope")}</th>
+                    <th className="py-2 pe-4 font-medium">{t("accessTokensColPrefix")}</th>
+                    <th className="py-2 pe-4 font-medium">{t("accessTokensColStatus")}</th>
+                    <th className="py-2 pe-4 font-medium">{t("accessTokensColLastUsed")}</th>
+                    <th className="py-2 pe-4 font-medium">{t("accessTokensColExpires")}</th>
                     <th className="py-2 font-medium" />
                   </tr>
                 </thead>
@@ -257,26 +243,28 @@ export default function AccessTokensTab() {
                     const revoked = Boolean(tk.revokedAt);
                     return (
                       <tr key={tk.id} className="border-b border-border/50">
-                        <td className="py-2 pr-4 text-text">{tk.name}</td>
-                        <td className="py-2 pr-4">
-                          <Badge variant={SCOPE_VARIANT[tk.scope] || "default"}>{tk.scope}</Badge>
-                        </td>
-                        <td className="py-2 pr-4 font-mono text-xs text-text-muted">
-                          {tk.tokenPrefix}
-                        </td>
-                        <td className="py-2 pr-4">
-                          <Badge variant={revoked ? "default" : "success"}>
-                            {revoked
-                              ? L("accessTokensStatusRevoked", "revoked")
-                              : L("accessTokensStatusActive", "active")}
+                        <td className="py-2 pe-4 text-text">{tk.name}</td>
+                        <td className="py-2 pe-4">
+                          <Badge variant={SCOPE_VARIANT[tk.scope] || "default"}>
+                            {scopeLabels[tk.scope] || tk.scope}
                           </Badge>
                         </td>
-                        <td className="py-2 pr-4 text-text-muted">{fmt(tk.lastUsedAt)}</td>
-                        <td className="py-2 pr-4 text-text-muted">{fmt(tk.expiresAt)}</td>
-                        <td className="py-2 text-right">
+                        <td className="py-2 pe-4 font-mono text-xs text-text-muted">
+                          {tk.tokenPrefix}
+                        </td>
+                        <td className="py-2 pe-4">
+                          <Badge variant={revoked ? "default" : "success"}>
+                            {revoked
+                              ? t("accessTokensStatusRevoked")
+                              : t("accessTokensStatusActive")}
+                          </Badge>
+                        </td>
+                        <td className="py-2 pe-4 text-text-muted">{fmt(tk.lastUsedAt)}</td>
+                        <td className="py-2 pe-4 text-text-muted">{fmt(tk.expiresAt)}</td>
+                        <td className="py-2 text-end">
                           {!revoked && (
                             <Button variant="ghost" size="sm" onClick={() => setRevokeTarget(tk)}>
-                              {L("accessTokensRevoke", "Revoke")}
+                              {t("accessTokensRevoke")}
                             </Button>
                           )}
                         </td>
@@ -294,12 +282,9 @@ export default function AccessTokensTab() {
         isOpen={Boolean(revokeTarget)}
         onClose={() => setRevokeTarget(null)}
         onConfirm={confirmRevoke}
-        title={L("accessTokensRevokeTitle", "Revoke access token")}
-        message={L(
-          "accessTokensRevokeConfirm",
-          "This immediately invalidates the token. Any machine using it loses access."
-        )}
-        confirmText={L("accessTokensRevoke", "Revoke")}
+        title={t("accessTokensRevokeTitle")}
+        message={t("accessTokensRevokeConfirm")}
+        confirmText={t("accessTokensRevoke")}
         variant="danger"
       />
     </div>

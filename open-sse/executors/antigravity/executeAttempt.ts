@@ -7,8 +7,11 @@
 // antigravity/sseCollect.ts submodule pattern.
 import { mergeAbortSignals, type ExecutorLog } from "../base.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../../config/cliFingerprints.ts";
-import { buildAntigravityUpstreamError } from "../antigravityUpstreamError.ts";
-import { maybeTriggerReactiveModelSync } from "@/lib/providerModels/reactiveModelSync.ts";
+import {
+  buildAntigravityUpstreamError,
+  projectAntigravityValidationDiagnostic,
+} from "../antigravityUpstreamError.ts";
+import { awaitReactiveModelSync } from "@/lib/providerModels/reactiveModelSync.ts";
 import {
   HTTP_STATUS,
   STREAM_READINESS_TIMEOUT_MS,
@@ -21,9 +24,11 @@ import {
   removeHeaderCaseInsensitive,
 } from "../../services/antigravityClientProfile.ts";
 import * as prl from "../../utils/providerRequestLogging.ts";
+import { generateAntigravityRequestId } from "../../services/antigravityIdentity.ts";
 import {
   createCreditsExtractionTransform as createCreditsExtractionTransformImpl,
   buildSsePassthroughResult,
+  bindAbortLifecycle,
   type SsePassthroughResult,
 } from "./streamingPassthrough.ts";
 import type { AntigravityCredentials } from "../antigravity.ts";
@@ -385,12 +390,46 @@ export async function sendAntigravityRequest(
     if (response.status === HTTP_STATUS.NOT_FOUND) {
       // The backend may have shipped/renamed models the synced catalog does not
       // know yet (pinned-catalog staleness). Kick a discovery sync for this
-      // connection so the fresh list lands in the synced catalog and the next
-      // request can resolve. Cooldown + in-flight dedup live in the trigger.
-      // credentials.connectionId is optional (base.ts): no connection row means
-      // there is no synced catalog to refresh, so skip rather than pass undefined.
+      // connection so the fresh list lands in the synced catalog. If sync succeeds,
+      // re-resolve the model with the updated catalog, re-serialize the request envelope,
+      // and transparently retry once so the first request for a freshly shipped model
+      // or alias succeeds on the first try.
       if (credentials.connectionId) {
-        maybeTriggerReactiveModelSync(provider, credentials.connectionId);
+        const synced = await awaitReactiveModelSync(provider, credentials.connectionId);
+        if (synced) {
+          // Lazy import: a static value import of ../antigravity.ts (which imports this
+          // module) forms an async ESM init cycle that deadlocks the bundled MCP server
+          // on startup (tests/unit/build/mcp-bundle-startup.test.ts).
+          const { cleanModelName } = await import("../antigravity.ts");
+          const reResolvedModel = await cleanModelName(model, undefined, provider);
+          const retryBody: Record<string, unknown> = {
+            ...transformedBody,
+            model: reResolvedModel,
+            requestId: generateAntigravityRequestId(),
+          };
+          const reSerialized = serializeAntigravityRequest(provider, headers, retryBody);
+          const retryHeaders = reSerialized.headers;
+          applyAntigravityClientProfileHeaders(retryHeaders, credentials, retryBody);
+
+          log.info(
+            "RETRY",
+            `[Antigravity] Discovery sync succeeded after 404 for ${model} (re-resolved to ${reResolvedModel}), retrying request with rebuilt envelope`
+          );
+          await prl.captureCurrentProviderBody(url, retryHeaders, reSerialized.bodyString, log);
+          const syncRetryPhysicalSendOrdinal = ++physicalSendCounter.value;
+          log.debug(
+            "TELEMETRY",
+            `[Antigravity] PhysicalSend - RequestId: ${correlationId ?? "none"}, URL: ${url}, Model: ${reResolvedModel}, PhysicalSend: ${syncRetryPhysicalSendOrdinal}, RetryAttempt: ${retryAttempt}, Cause: reactive-sync-404`
+          );
+          // Same replayable fixed-body upload as the first send (no one-shot stream).
+          response = await fetchAntigravityWithReadinessTimeout(url, {
+            method: "POST",
+            headers: retryHeaders,
+            body: reSerialized.bodyString,
+            signal,
+          });
+          finalHeaders = retryHeaders;
+        }
       }
     }
   }
@@ -545,6 +584,7 @@ async function buildUpstreamErrorResult(
     .text()
     .catch(() => "");
   const errorBody = buildAntigravityUpstreamError(response.status, response.statusText, rawBody);
+  const upstreamDiagnostic = projectAntigravityValidationDiagnostic(response.status, rawBody);
   return {
     response: new Response(JSON.stringify(errorBody), {
       status: response.status,
@@ -553,6 +593,7 @@ async function buildUpstreamErrorResult(
     url,
     headers: finalHeaders,
     transformedBody,
+    upstreamDiagnostic,
   };
 }
 
@@ -632,27 +673,13 @@ async function buildStreamingExecuteOnceResult(
   }
 
   if (response.body) {
-    // If the downstream client aborts, cancel the upstream fetch body immediately
-    // to release the socket back to the Undici agent pool and prevent memory leaks.
-    if (signal) {
-      const abortHandler = () => {
-        try {
-          response.body?.cancel().catch(() => {});
-        } catch (_) {}
-      };
-      if (signal.aborted) {
-        abortHandler();
-      } else {
-        signal.addEventListener("abort", abortHandler, { once: true });
-      }
-    }
-
+    const abortAwareBody = bindAbortLifecycle(response.body, signal);
     const passThrough = createCreditsExtractionTransformImpl(
       accountId,
       onCreditsUpdate,
       16 * 1024 // 16KB sliding-window cap to prevent OOM
     );
-    const tappedBody = response.body.pipeThrough(passThrough);
+    const tappedBody = abortAwareBody.pipeThrough(passThrough);
     const tappedResponse = new Response(tappedBody, {
       status: response.status,
       statusText: response.statusText,

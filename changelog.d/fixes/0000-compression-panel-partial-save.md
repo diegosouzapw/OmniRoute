@@ -1,0 +1,1 @@
+- **fix(dashboard):** the compression settings panel sends each save at once and rolls back only the fields of a failed save; the auto-trigger box commits once on Enter or blur and keeps rejected values as a draft, and the panel re-reads the settings after a save that threw so a value the server stored anyway is not lost

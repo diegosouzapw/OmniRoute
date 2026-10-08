@@ -23,6 +23,7 @@ import {
 interface ModelTableProps {
   byModel?: ModelBreakdownRow[] | null;
   summary?: { totalTokens?: number | null } | null;
+  displayMode?: "compact" | "exact";
 }
 
 type Column = {
@@ -55,7 +56,7 @@ function SortIndicator({ active, sortOrder }: { active: boolean; sortOrder: stri
   );
 }
 
-export function ModelTable({ byModel, summary }: ModelTableProps) {
+export function ModelTable({ byModel, summary, displayMode = "compact" }: ModelTableProps) {
   const t = useTranslations("analytics");
   const [sort, setSort] = useState<{
     by: ModelBreakdownSortField;
@@ -130,21 +131,29 @@ export function ModelTable({ byModel, summary }: ModelTableProps) {
                 </td>
                 <td
                   className="px-4 py-2.5 text-right font-mono text-primary"
-                  title={fmtFull(m.promptTokens)}
+                  title={
+                    displayMode === "exact" ? `~${fmt(m.promptTokens)}` : fmtFull(m.promptTokens)
+                  }
                 >
-                  {fmt(m.promptTokens)}
+                  {displayMode === "exact" ? fmtFull(m.promptTokens) : fmt(m.promptTokens)}
                 </td>
                 <td
                   className="px-4 py-2.5 text-right font-mono text-emerald-500"
-                  title={fmtFull(m.completionTokens)}
+                  title={
+                    displayMode === "exact"
+                      ? `~${fmt(m.completionTokens)}`
+                      : fmtFull(m.completionTokens)
+                  }
                 >
-                  {fmt(m.completionTokens)}
+                  {displayMode === "exact" ? fmtFull(m.completionTokens) : fmt(m.completionTokens)}
                 </td>
                 <td
                   className="px-4 py-2.5 text-right font-mono font-semibold"
-                  title={fmtFull(m.totalTokens)}
+                  title={
+                    displayMode === "exact" ? `~${fmt(m.totalTokens)}` : fmtFull(m.totalTokens)
+                  }
                 >
-                  {fmt(m.totalTokens)}
+                  {displayMode === "exact" ? fmtFull(m.totalTokens) : fmt(m.totalTokens)}
                 </td>
                 <td className="px-4 py-2.5 text-right font-mono text-amber-500">
                   {fmtCost(m.cost)}

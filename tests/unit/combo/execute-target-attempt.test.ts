@@ -119,6 +119,58 @@ function bodySpecific400(): Response {
   );
 }
 
+for (const protectedPriorityTarget of [false, true]) {
+  test(`target stop records failure then clears the original target (protected=${protectedPriorityTarget})`, async () => {
+    const { stopProtectedPriorityTarget } =
+      await import("../../../open-sse/services/combo/executeTargetClassify.ts");
+    const target = modelTarget();
+    const calls: unknown[][] = [];
+    const state = emptyState({
+      orderedTargets: [target],
+      recordedAttempts: 1,
+      observeFailure(...args) {
+        calls.push(["observeFailure", ...args]);
+      },
+    });
+    const deps = baseDeps({
+      combo: { id: "combo-stop", name: "t", models: [] },
+      clearStaleLKGP(...args) {
+        calls.push(["clearStaleLKGP", ...args]);
+      },
+    });
+    const result = stopProtectedPriorityTarget({
+      protectedPriorityTarget,
+      state,
+      deps,
+      target,
+      message: "Target is unavailable",
+    });
+    assert.deepEqual(calls, [
+      ["observeFailure", false, target.executionKey],
+      [
+        "clearStaleLKGP",
+        deps.combo.name,
+        target.executionKey,
+        deps.combo.id,
+        deps.log,
+        "COMBO",
+        undefined,
+        target,
+      ],
+    ]);
+    assert.equal(calls[1][7], target, "cleanup receives the original target by identity");
+    if (protectedPriorityTarget) {
+      assert.equal(result?.ok, false);
+      assert.equal(result?.response.status, 503);
+      const body = await result!.response.json();
+      assert.equal(body.diagnostics.attempted, 1);
+      assert.equal(body.diagnostics.terminalReason, "protected_priority_stop");
+    } else {
+      assert.equal(result, null);
+    }
+  });
+}
+
 test("remainderIsHomogeneous is true only when remaining targets share modelStr", async () => {
   const { remainderIsHomogeneous } =
     await import("../../../open-sse/services/combo/executeTargetClassify.ts");
@@ -688,4 +740,84 @@ test("priority combo treats a stale native Claude alias quota 429 as connection-
   assertUnprovenClaudeQuotaAttempt(
     await runUnprovenClaudeQuotaAttempt({ provider: "cc", stale: true })
   );
+});
+
+test("astra-high quality fail hops same connection to astra-max", async () => {
+  const { executeTargetAttempt } =
+    await import("../../../open-sse/services/combo/executeTargetAttempt.ts");
+  const seen: string[] = [];
+  const target = modelTarget({
+    modelStr: "codex/gpt-6-astra-high",
+    provider: "codex",
+    connectionId: "c-astra",
+  });
+  const deps = baseDeps({
+    maxRetries: 1,
+    clientRequestedStream: false,
+    handleSingleModelWithTimeout: async (_body, model, _dispatched) => {
+      const m = String(model);
+      seen.push(m);
+      if (m.includes("gpt-6-astra-high")) {
+        return emptyContent200("c-astra");
+      }
+      return new Response(
+        JSON.stringify({ choices: [{ message: { role: "assistant", content: "ok-max" } }] }),
+        {
+          status: 200,
+          headers: {
+            "content-type": "application/json",
+            "x-omniroute-selected-connection-id": "c-astra",
+          },
+        }
+      );
+    },
+  });
+  const state = emptyState({
+    orderedTargets: [target],
+    abortControllers: new Map([[0, new AbortController()]]),
+  });
+  const result = await executeTargetAttempt({
+    index: 0,
+    state,
+    deps,
+    targetForAttempt: target,
+    profile: {},
+    protectedPriorityTarget: false,
+  });
+  assert.equal(seen[0], "codex/gpt-6-astra-high");
+  assert.equal(seen[1], "codex/gpt-6-astra-max");
+  assert.equal(result?.ok, true);
+});
+
+test("quality fail without provider does not hop", async () => {
+  const { executeTargetAttempt } =
+    await import("../../../open-sse/services/combo/executeTargetAttempt.ts");
+  const seen: string[] = [];
+  const target = modelTarget({
+    modelStr: "codex/gpt-6-astra-high",
+    provider: "",
+    connectionId: "c-astra",
+  });
+  const deps = baseDeps({
+    maxRetries: 1,
+    clientRequestedStream: false,
+    handleSingleModelWithTimeout: async (_body, model) => {
+      seen.push(String(model));
+      return emptyContent200("c-astra");
+    },
+  });
+  const state = emptyState({
+    orderedTargets: [target],
+    abortControllers: new Map([[0, new AbortController()]]),
+  });
+  const result = await executeTargetAttempt({
+    index: 0,
+    state,
+    deps,
+    targetForAttempt: target,
+    profile: {},
+    protectedPriorityTarget: false,
+  });
+  assert.equal(seen.length, 1);
+  assert.equal(result, null);
 });

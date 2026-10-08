@@ -1,0 +1,1 @@
+- **fix(rate-limit):** idle limiter eviction now emits one aggregated line per watchdog pass instead of one line per limiter, with per-key detail on the debug channel ([#PRNUM](https://github.com/diegosouzapw/OmniRoute/pull/PRNUM)) — thanks @maxmad64bis

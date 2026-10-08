@@ -1,5 +1,5 @@
 // Agent sessions: saveRequestUsage aggregates each attributed request into its session row
-// (198_agent_sessions) and links the usage row to it (199_usage_history_agent_session_id).
+// (208_agent_sessions) and links the usage row to it (209_usage_history_agent_session_id).
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -275,4 +275,22 @@ test("the uncached input is input minus cache reads and writes, clamped at 0 and
   const [shortRequest] = agentSessionsDb.getAgentSessionRecentUsage(db, short.id);
   assert.equal(shortRequest.tokens.input, 100);
   assert.equal(shortRequest.tokens.uncachedInput, 0);
+});
+
+test("a failing agent-session write never drops the usage_history row", async () => {
+  const db = core.getDbInstance();
+  // Simulate agent_sessions being unavailable (missing table / failed migration).
+  db.exec("ALTER TABLE agent_sessions RENAME TO agent_sessions_unavailable");
+  try {
+    await recordUsage({
+      apiKeyId: "key-isolation",
+      apiKeyName: "Isolation",
+      timestamp: "2026-10-08T10:00:00.000Z",
+      agentContext: agentContext({ clientSessionId: "isolation-session" }),
+    });
+  } finally {
+    db.exec("ALTER TABLE agent_sessions_unavailable RENAME TO agent_sessions");
+  }
+  assert.deepEqual(usageSessionIds("key-isolation"), [null]);
+  assert.deepEqual(sessionsFor("key-isolation"), []);
 });

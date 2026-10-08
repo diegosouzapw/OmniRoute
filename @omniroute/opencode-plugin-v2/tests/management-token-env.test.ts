@@ -54,18 +54,6 @@ function installHarness(combos: unknown[]): Harness {
   globalThis.fetch = (async (url: unknown, init?: { headers?: Record<string, string> }) => {
     const href = String(url);
     seen.set(href, String(init?.headers?.Authorization ?? ""));
-    if (href.includes("/api/combos/auto")) return okJson({ combos: [] });
-    if (href.includes("/api/pricing/models")) {
-      return okJson({
-        providers: {
-          demo: {
-            id: "demo",
-            name: "Demo",
-            models: [{ id: "team-combo", name: "Team Combo" }],
-          },
-        },
-      });
-    }
     if (href.includes("/api/pricing")) return okJson({});
     if (href.includes("/api/free-tier/summary")) return okJson({ perModel: [] });
     if (href.includes("/api/combos")) return okJson({ combos });
@@ -122,10 +110,10 @@ function setupHarness(options: Record<string, unknown>) {
         });
         return Promise.resolve({ dispose: async () => {} });
       },
-      },
-      model: {
-        transform: () => Promise.resolve({ dispose: async () => {} }),
-      },
+    },
+    model: {
+      transform: () => Promise.resolve({ dispose: async () => {} }),
+    },
     integration: {
       transform: () => Promise.resolve({ dispose: async () => {} }),
     },
@@ -378,7 +366,7 @@ describe("plugin-v2 management token environment source", () => {
         }
       )
     );
-    assert.deepEqual(res, { models: 1, combos: 1, autoCombos: 0 });
+    assert.deepEqual(res, { models: 1, combos: 1 });
     assert.equal(seenCombos, "mgmt-env-token");
     assert.equal(seenPricing, "mgmt-env-token");
     const entry = models.get("omniroute/team-combo");

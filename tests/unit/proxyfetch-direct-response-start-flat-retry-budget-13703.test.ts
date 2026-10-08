@@ -7,9 +7,8 @@
 // target timeout (e.g. a combo's 120s), not another flat 30s (2x the flat
 // budget total, provider/model-independent).
 //
-// This probe proves the two attempts are bound by an IDENTICAL fixed timeout
-// regardless of any larger caller-side deadline, by measuring the wall-clock
-// gap between when each attempt's fetch is invoked and when it is aborted.
+// This probe verifies that the replay-safe retry uses the larger caller-side
+// deadline by measuring when each attempt is aborted.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { proxyFetch } from "../../open-sse/utils/proxyFetch.ts";
@@ -21,10 +20,15 @@ function withFastTimeout<T>(ms: number, fn: () => Promise<T>): Promise<T> {
   });
 }
 
-test("#13703 fresh-socket retry gets the SAME flat budget as the pooled attempt, not the remaining target budget", async () => {
+test("#13703 fresh-socket GET retry gets the remaining caller budget", async () => {
   const FLAT_TIMEOUT_MS = 80;
   const LARGER_CALLER_DEADLINE_MS = 2_000;
-  const callerDeadlineSignal = AbortSignal.timeout(LARGER_CALLER_DEADLINE_MS);
+  const callerDeadline = new AbortController();
+  const callerDeadlineReason = new Error("caller deadline");
+  const callerDeadlineTimer = setTimeout(
+    () => callerDeadline.abort(callerDeadlineReason),
+    LARGER_CALLER_DEADLINE_MS
+  );
 
   const attemptStarts: number[] = [];
   const attemptAbortedAfter: number[] = [];
@@ -50,15 +54,19 @@ test("#13703 fresh-socket retry gets the SAME flat budget as the pooled attempt,
   const mockNative = async (): Promise<Response> =>
     new Response("native-should-not-fire", { status: 200 });
 
-  await assert.rejects(
-    withFastTimeout(FLAT_TIMEOUT_MS, () =>
-      proxyFetch(
-        "https://slow-ttfb.example/v1/chat/completions",
-        { method: "POST", signal: callerDeadlineSignal },
-        { undiciFetch: mockUndici, nativeFetch: mockNative }
+  try {
+    await assert.rejects(
+      withFastTimeout(FLAT_TIMEOUT_MS, () =>
+        proxyFetch(
+          "https://slow-ttfb.example/resource",
+          { method: "GET", signal: callerDeadline.signal },
+          { undiciFetch: mockUndici, nativeFetch: mockNative }
+        )
       )
-    )
-  );
+    );
+  } finally {
+    clearTimeout(callerDeadlineTimer);
+  }
 
   assert.equal(attemptStarts.length, 2, "pooled attempt + fresh-socket retry must both fire");
 

@@ -120,16 +120,16 @@
 
 ## 📖 प्रदाता सेटअप
 
-CSV किंवा JSON फाइलमधून API-की कनेक्शन्स मोठ्या प्रमाणात जोडण्यासाठी, **Dashboard → Providers → Import from file** वापरा. स्तंभ स्थानानुसार असतात (`provider,name,apiKey,baseUrl,priority`); `provider` आधीपासूनच व्यवस्थापित प्रदाता किंवा सुसंगत नोड म्हणून अस्तित्वात असणे आवश्यक आहे. [CSV किंवा JSON फाइलमधून प्रदाते आयात करणे](../providers/CSV-IMPORT.md) पहा.
+CSV किंवा JSON फाइलमधून मोठ्या प्रमाणात API-की कनेक्शन्स जोडण्यासाठी, **डॅशबोर्ड → प्रदाते → फाइलमधून आयात करा** वापरा. स्तंभांचे स्थान निश्चित आहे (`provider,name,apiKey,baseUrl,priority`); `provider` हा आधीपासून व्यवस्थापित प्रदाता किंवा सुसंगत नोड म्हणून अस्तित्वात असणे आवश्यक आहे. [CSV किंवा JSON फाइलमधून प्रदाते आयात करा](../providers/CSV-IMPORT.md) पहा.
 
 ### 🔐 सदस्यता प्रदाते
 
 #### Claude Code (Pro/Max)
 
 ```bash
-Dashboard → Providers → Connect Claude Code
+डॅशबोर्ड → प्रदाते → Claude Code कनेक्ट करा
 → OAuth लॉगिन → स्वयंचलित टोकन रिफ्रेश
-→ 5-तासांच्या + साप्ताहिक कोट्याचे ट्रॅकिंग
+→ 5-तासांची + साप्ताहिक कोटा ट्रॅकिंग
 
 मॉडेल्स:
   cc/claude-opus-4-7
@@ -137,16 +137,18 @@ Dashboard → Providers → Connect Claude Code
   cc/claude-haiku-4-5-20251001
 ```
 
-**तज्ज्ञ सूचना:** गुंतागुंतीच्या कामांसाठी Opus आणि वेगासाठी Sonnet वापरा. OmniRoute प्रत्येक मॉडेलनुसार कोट्याचा मागोवा घेतो!
+**उपयुक्त सूचना:** जटिल कार्यांसाठी Opus आणि वेगासाठी Sonnet वापरा. OmniRoute प्रत्येक मॉडेलनुसार कोटा ट्रॅक करते!
 
-Claude आणि Claude Code-सुसंगत रूट्स Opus आणि Sonnet मॉडेल्ससाठी `max` विचार-प्रयत्न पातळी कायम ठेवतात. Haiku मॉडेल्स `max` प्रयत्न स्तर स्वीकारत नाहीत, त्यामुळे OmniRoute ती विनंती अपस्ट्रीमला पाठवण्यापूर्वी तिला उच्च विचार-बजेटमध्ये डाउनग्रेड करतो.
+OmniRoute होस्टवर ब्राउझर नाही? Claude Code मध्ये लॉगिन केलेल्या कोणत्याही ठिकाणी `claude setup-token` चालवा आणि एक वर्षासाठी वैध असलेले टोकन **Setup Token** टॅबमध्ये पेस्ट करा. [सेटअप टोकनसह Claude Code](../providers/CLAUDE_CODE_SETUP_TOKEN.md) पहा.
+
+Claude आणि Claude Code-सुसंगत रूट्स Opus आणि Sonnet मॉडेल्ससाठी `max` विचार-प्रयत्न पातळी कायम ठेवतात. Haiku मॉडेल्स `max` प्रयत्न स्तर स्वीकारत नाहीत, त्यामुळे विनंती अपस्ट्रीमकडे पाठवण्यापूर्वी OmniRoute ती उच्च विचार-बजेटवर डाउनग्रेड करते.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-Dashboard → Providers → Connect Codex
+डॅशबोर्ड → प्रदाते → Codex कनेक्ट करा
 → OAuth लॉगिन (पोर्ट 1455)
-→ 5-तासांचा + साप्ताहिक रीसेट
+→ 5-तासांची + साप्ताहिक रीसेट
 
 मॉडेल्स:
   cx/gpt-5.5
@@ -158,7 +160,7 @@ Dashboard → Providers → Connect Codex
 #### GitHub Copilot
 
 ```bash
-Dashboard → Providers → Connect GitHub
+डॅशबोर्ड → प्रदाते → GitHub कनेक्ट करा
 → GitHub द्वारे OAuth
 → मासिक रीसेट (महिन्याच्या 1 तारखेला)
 
@@ -176,41 +178,41 @@ Dashboard → Providers → Connect GitHub
 
 1. नोंदणी करा: [Zhipu AI](https://open.bigmodel.cn)
 2. Coding Plan मधून API की मिळवा
-3. Dashboard → Add API Key: प्रदाता: `glm`, API की: `your-key`
+3. डॅशबोर्ड → API की जोडा: प्रदाता: `glm`, API की: `your-key`
 
-**वापर:** `glm/glm-4.7` — **तज्ज्ञ सूचना:** Coding Plan एक-सप्तमांश खर्चात 3× कोटा देतो! दररोज सकाळी 10:00 वाजता रीसेट होतो.
+**वापर:** `glm/glm-4.7` — **उपयुक्त सूचना:** Coding Plan मध्ये 1/7 खर्चात 3× कोटा मिळतो! दररोज सकाळी 10:00 वाजता रीसेट होतो.
 
 #### MiniMax M2.1 (5 तासांनी रीसेट, $0.20/1M)
 
 1. नोंदणी करा: [MiniMax](https://www.minimax.io)
-2. API की मिळवा → Dashboard → Add API Key
+2. API की मिळवा → डॅशबोर्ड → API की जोडा
 
-**वापर:** `minimax/MiniMax-M2.1` — **तज्ज्ञ सूचना:** मोठ्या संदर्भासाठी सर्वात स्वस्त पर्याय (1M टोकन्स)!
+**वापर:** `minimax/MiniMax-M2.1` — **उपयुक्त सूचना:** मोठ्या संदर्भासाठी सर्वात स्वस्त पर्याय (1M टोकन्स)!
 
 #### Kimi K2 (दरमहा निश्चित $9)
 
 1. सदस्यता घ्या: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. API की मिळवा → Dashboard → Add API Key
+2. API की मिळवा → डॅशबोर्ड → API की जोडा
 
-**वापर:** `kimi/kimi-k2.5` — **तज्ज्ञ सूचना:** 10M टोकन्ससाठी दरमहा निश्चित $9 = $0.90/1M प्रभावी खर्च!
+**वापर:** `kimi/kimi-k2.5` — **उपयुक्त सूचना:** 10M टोकन्ससाठी दरमहा निश्चित $9 = प्रभावी खर्च $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
 1. नोंदणी करा: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. Qianfan API की तयार करा → Dashboard → Add API Key: प्रदाता: `qianfan`
+2. Qianfan API की तयार करा → डॅशबोर्ड → API की जोडा: प्रदाता: `qianfan`
 
 **वापर:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, किंवा अन्य Qianfan OpenAI-सुसंगत मॉडेल ID.
 
 ### 🆓 मोफत प्रदाते
 
-प्रमाणीकरणाची आवश्यकता नसलेल्या मोफत प्रदात्यांच्या पृष्ठावर **No authentication required** च्या शेजारी एक स्विच असतो.
-तो बंद केल्यास संबंधित प्रदाता अक्षम होतो, Providers च्या कॉन्फिगर केलेल्या/संक्षिप्त दृश्यांमधून काढला जातो आणि
+प्रमाणीकरणाची आवश्यकता नसलेल्या मोफत प्रदात्यांच्या प्रदाता पृष्ठावर **प्रमाणीकरण आवश्यक नाही** याच्या शेजारी एक स्विच असतो.
+तो बंद केल्यास संबंधित प्रदाता अक्षम होतो, प्रदाते कॉन्फिगर केलेल्या/संक्षिप्त दृश्यांमधून काढला जातो आणि
 त्याची मॉडेल्स `/v1/models` मधून काढली जातात.
 
 #### Qoder (9 मोफत मॉडेल्स)
 
 ```bash
-Dashboard → Connect Qoder → OAuth लॉगिन → प्रवेश सध्याच्या प्रदाता-मर्यादांच्या अधीन आहे
+डॅशबोर्ड → Qoder कनेक्ट करा → OAuth लॉगिन → प्रवेश सध्याच्या प्रदाता मर्यादांच्या अधीन आहे
 
 मॉडेल्स: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
@@ -218,7 +220,7 @@ Dashboard → Connect Qoder → OAuth लॉगिन → प्रवेश स
 #### Kiro (Claude मोफत)
 
 ```bash
-Dashboard → Connect Kiro → AWS Builder ID किंवा Google/GitHub → ~50 क्रेडिट्स/महिना
+डॅशबोर्ड → Kiro कनेक्ट करा → AWS Builder ID किंवा Google/GitHub → दरमहा ~50 क्रेडिट्स
 
 मॉडेल्स: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```

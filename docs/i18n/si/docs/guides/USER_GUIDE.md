@@ -118,9 +118,9 @@ $20ක් ගෙවා සීමාවලට ළඟා වී කලකිරී
 
 ---
 
-## 📖 සපයන්නා පිහිටුවීම
+## 📖 සපයන්නා සැකසීම
 
-CSV හෝ JSON ගොනුවකින් API-key සම්බන්ධතා තොග වශයෙන් එක් කිරීමට, **Dashboard → Providers → Import from file** භාවිත කරන්න. තීරු ස්ථානීය අනුපිළිවෙළට ඇත (`provider,name,apiKey,baseUrl,priority`); `provider` දැනටමත් කළමනාකරණය කරන ලද සපයන්නෙකු හෝ අනුකූල node එකක් ලෙස පැවතිය යුතුය. [CSV හෝ JSON ගොනුවකින් සපයන්නන් ආයාත කිරීම](../providers/CSV-IMPORT.md) බලන්න.
+CSV හෝ JSON ගොනුවකින් API-key සම්බන්ධතා තොග වශයෙන් එක් කිරීමට, **Dashboard → Providers → Import from file** භාවිත කරන්න. තීරු ස්ථානීය අනුපිළිවෙළට ඇත (`provider,name,apiKey,baseUrl,priority`); `provider` දැනටමත් කළමනාකරණය කළ සපයන්නෙකු හෝ අනුකූල node එකක් ලෙස පැවතිය යුතුය. [CSV හෝ JSON ගොනුවකින් සපයන්නන් ආයාත කිරීම](../providers/CSV-IMPORT.md) බලන්න.
 
 ### 🔐 දායකත්ව සපයන්නන්
 
@@ -129,17 +129,21 @@ CSV හෝ JSON ගොනුවකින් API-key සම්බන්ධතා 
 ```bash
 Dashboard → Providers → Connect Claude Code
 → OAuth පිවිසුම → ස්වයංක්රීය token නැවුම් කිරීම
-→ පැය 5ක + සතිපතා quota නිරීක්ෂණය
+→ පැය 5ක + සතිපතා quota ලුහුබැඳීම
 
-මාදිලි:
+Models:
   cc/claude-opus-4-7
   cc/claude-sonnet-4-6
   cc/claude-haiku-4-5-20251001
 ```
 
-**විශේෂඥ ඉඟිය:** සංකීර්ණ කාර්යයන් සඳහා Opus ද, වේගය සඳහා Sonnet ද භාවිත කරන්න. OmniRoute එක් එක් මාදිලිය සඳහා quota නිරීක්ෂණය කරයි!
+**වෘත්තීය ඉඟිය:** සංකීර්ණ කාර්යයන් සඳහා Opus ද, වේගය සඳහා Sonnet ද භාවිත කරන්න. OmniRoute එක් එක් model එක අනුව quota ලුහුබඳියි!
 
-Claude සහ Claude Code-අනුකූල මාර්ග, Opus සහ Sonnet මාදිලි සඳහා `max` චින්තන ප්රයත්නය රඳවා තබයි. Haiku මාදිලි `max` ප්රයත්න මට්ටම පිළිගන්නේ නැති බැවින්, OmniRoute එම ඉල්ලීම ඉහළ upstream වෙත යැවීමට පෙර එය ඉහළ චින්තන අයවැයකට පහත හෙළයි.
+OmniRoute host එකෙහි browser එකක් නැද්ද? Claude Code වෙත පිවිසී ඇති ඕනෑම තැනක `claude setup-token` ධාවනය කර, වසරක token එක **Setup Token** tab එකට අලවන්න. [setup token එකක් සමඟ Claude Code](../providers/CLAUDE_CODE_SETUP_TOKEN.md) බලන්න.
+
+Claude සහ Claude Code-අනුකූල routes, Opus සහ Sonnet
+models සඳහා `max` thinking effort එක එලෙසම තබාගනී. Haiku models `max` effort tier එක පිළිනොගන්නා බැවින්, OmniRoute එම
+ඉල්ලීම upstream වෙත යැවීමට පෙර එය ඉහළ thinking budget එකකට පහත හෙළයි.
 
 #### OpenAI Codex (Plus/Pro)
 
@@ -148,7 +152,7 @@ Dashboard → Providers → Connect Codex
 → OAuth පිවිසුම (port 1455)
 → පැය 5ක + සතිපතා යළි සැකසීම
 
-මාදිලි:
+Models:
   cx/gpt-5.5
   cx/gpt-5.4
   cx/gpt-5.3-codex
@@ -162,7 +166,7 @@ Dashboard → Providers → Connect GitHub
 → GitHub හරහා OAuth
 → මාසික යළි සැකසීම (මාසයේ 1 වැනිදා)
 
-මාදිලි:
+Models:
   gh/gpt-5.5
   gh/gpt-5.4
   gh/claude-sonnet-4.6
@@ -170,29 +174,29 @@ Dashboard → Providers → Connect GitHub
   gh/gemini-3.1-pro-preview
 ```
 
-### 💰 අඩු මිල සපයන්නන්
+### 💰 අඩු වියදම් සපයන්නන්
 
-#### GLM-4.7 (දෛනික යළි සැකසීම, $0.6/1M)
+#### GLM-4.7 (දිනපතා යළි සැකසීම, $0.6/1M)
 
 1. ලියාපදිංචි වන්න: [Zhipu AI](https://open.bigmodel.cn)
 2. Coding Plan වෙතින් API key එක ලබාගන්න
 3. Dashboard → Add API Key: Provider: `glm`, API Key: `your-key`
 
-**භාවිතය:** `glm/glm-4.7` — **විශේෂඥ ඉඟිය:** Coding Plan මඟින් 1/7ක පිරිවැයකට 3× quota එකක් ලබා දෙයි! දිනපතා පෙ.ව. 10:00ට යළි සැකසේ.
+**භාවිතය:** `glm/glm-4.7` — **වෘත්තීය ඉඟිය:** Coding Plan මඟින් පිරිවැයෙන් 1/7කට 3× quota පිරිනමයි! දිනපතා පෙ.ව. 10:00ට යළි සැකසේ.
 
-#### MiniMax M2.1 (පැය 5කින් යළි සැකසීම, $0.20/1M)
+#### MiniMax M2.1 (පැය 5කට වරක් යළි සැකසීම, $0.20/1M)
 
 1. ලියාපදිංචි වන්න: [MiniMax](https://www.minimax.io)
 2. API key එක ලබාගන්න → Dashboard → Add API Key
 
-**භාවිතය:** `minimax/MiniMax-M2.1` — **විශේෂඥ ඉඟිය:** දිගු context සඳහා ලාභම විකල්පයයි (tokens 1M)!
+**භාවිතය:** `minimax/MiniMax-M2.1` — **වෘත්තීය ඉඟිය:** දිගු context සඳහා ලාභම විකල්පය (tokens 1M)!
 
 #### Kimi K2 (මසකට ස්ථාවර $9)
 
 1. දායක වන්න: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. API key එක ලබාගන්න → Dashboard → Add API Key
 
-**භාවිතය:** `kimi/kimi-k2.5` — **විශේෂඥ ඉඟිය:** tokens 10M සඳහා මසකට ස්ථාවර $9 = ඵලදායී පිරිවැය $0.90/1M!
+**භාවිතය:** `kimi/kimi-k2.5` — **වෘත්තීය ඉඟිය:** tokens 10M සඳහා මසකට ස්ථාවර $9 = 1Mකට ඵලදායී පිරිවැය $0.90!
 
 #### Baidu Qianfan / ERNIE
 
@@ -203,16 +207,16 @@ Dashboard → Providers → Connect GitHub
 
 ### 🆓 නොමිලේ සපයන්නන්
 
-සත්යාපනය අවශ්ය නොවන නොමිලේ සපයන්නන්ගේ provider පිටුවේ **No authentication required** අසල switch එකක් ඇත.
-එය ක්රියාවිරහිත කිරීමෙන් එම සපයන්නා අක්රිය කර, Providers configured/compact දසුන්වලින් ඉවත් කර,
-එහි මාදිලි `/v1/models` වෙතින් ද ඉවත් කරයි.
+සත්යාපනය අවශ්ය නොවන නොමිලේ සපයන්නන්ගේ සපයන්නාගේ පිටුවෙහි **No authentication required** අසල switch එකක් ඇත.
+එය අක්රිය කිරීමෙන් එම සපයන්නා අක්රිය වී, Providers configured/compact දසුන්වලින් ඉවත් වන අතර,
+එහි models `/v1/models` වෙතින් ද ඉවත් වේ.
 
-#### Qoder (නොමිලේ මාදිලි 9ක්)
+#### Qoder (නොමිලේ models 9ක්)
 
 ```bash
 Dashboard → Connect Qoder → OAuth පිවිසුම → ප්රවේශය වත්මන් සපයන්නාගේ සීමාවන්ට යටත් වේ
 
-මාදිලි: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
+Models: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
 #### Kiro (Claude නොමිලේ)
@@ -220,7 +224,7 @@ Dashboard → Connect Qoder → OAuth පිවිසුම → ප්රවේ�
 ```bash
 Dashboard → Connect Kiro → AWS Builder ID හෝ Google/GitHub → මසකට credits ~50ක්
 
-මාදිලි: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
+Models: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
 
 ---
