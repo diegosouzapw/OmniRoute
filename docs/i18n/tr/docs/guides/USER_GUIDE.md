@@ -1,10 +1,10 @@
 # User Guide (Türkçe)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 ---
 
-🌐 **Diller:** 🇺🇸 [English](./USER_GUIDE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/guides/USER_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/USER_GUIDE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/guides/USER_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/USER_GUIDE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/guides/USER_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/USER_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/USER_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/USER_GUIDE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/guides/USER_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/guides/USER_GUIDE.md) | 🇪🇪 [Eesti](../i18n/et/docs/guides/USER_GUIDE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/guides/USER_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/USER_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/USER_GUIDE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/guides/USER_GUIDE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/guides/USER_GUIDE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/guides/USER_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/USER_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/guides/USER_GUIDE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/guides/USER_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/USER_GUIDE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/guides/USER_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/USER_GUIDE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/guides/USER_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/USER_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/USER_GUIDE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/guides/USER_GUIDE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/guides/USER_GUIDE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/guides/USER_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/USER_GUIDE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/guides/USER_GUIDE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/guides/USER_GUIDE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/guides/USER_GUIDE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/guides/USER_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/USER_GUIDE.md) | 🇲🇹 [Malti](../i18n/mt/docs/guides/USER_GUIDE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/guides/USER_GUIDE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/guides/USER_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/USER_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/USER_GUIDE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/guides/USER_GUIDE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/guides/USER_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/USER_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/USER_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/USER_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/USER_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/USER_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/USER_GUIDE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/guides/USER_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/USER_GUIDE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/guides/USER_GUIDE.md) | 🇷🇸 [Српски](../i18n/sr/docs/guides/USER_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/USER_GUIDE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/guides/USER_GUIDE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/guides/USER_GUIDE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/guides/USER_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/USER_GUIDE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/guides/USER_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/USER_GUIDE.md) | 🇵🇰 [اردو](../i18n/ur/docs/guides/USER_GUIDE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/guides/USER_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/USER_GUIDE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/guides/USER_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/USER_GUIDE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 Sağlayıcıları yapılandırma, kombinasyonlar oluşturma, CLI araçlarını entegre etme ve OmniRoute'u dağıtma konusunda eksiksiz kılavuz.
 
@@ -137,11 +137,11 @@ Modeller:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Profesyonel İpucu:** Karmaşık görevler için Opus'u, hız için Sonnet'i kullanın. OmniRoute kotayı model bazında takip eder!
+**Uzman İpucu:** Karmaşık görevler için Opus'u, hız için Sonnet'i kullanın. OmniRoute, kotayı model bazında takip eder!
 
-Claude ve Claude Code uyumlu rotalar, Opus ve Sonnet modelleri için `max` düşünme eforunu
-korur. Haiku modelleri `max` efor katmanını kabul etmez; bu nedenle OmniRoute, isteği
-üst sağlayıcıya göndermeden önce yüksek bir düşünme bütçesine düşürür.
+OmniRoute ana makinesinde tarayıcı yok mu? Claude Code'da oturum açılmış herhangi bir yerde `claude setup-token` komutunu çalıştırın ve bir yıllık token'ı **Kurulum Token'ı** sekmesine yapıştırın. Bkz. [Kurulum token'ıyla Claude Code](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Claude ve Claude Code uyumlu rotalar, Opus ve Sonnet modelleri için `max` düşünme eforunu korur. Haiku modelleri `max` efor düzeyini kabul etmediğinden OmniRoute, isteği üst sağlayıcıya göndermeden önce yüksek bir düşünme bütçesine düşürür.
 
 #### OpenAI Codex (Plus/Pro)
 
@@ -180,34 +180,33 @@ Modeller:
 2. Coding Plan'den API anahtarını alın
 3. Kontrol Paneli → API Anahtarı Ekle: Sağlayıcı: `glm`, API Anahtarı: `your-key`
 
-**Kullanım:** `glm/glm-4.7` — **Profesyonel İpucu:** Coding Plan, maliyetin 1/7'sine 3 kat kota sunar! Her gün saat 10:00'da sıfırlanır.
+**Kullanım:** `glm/glm-4.7` — **Uzman İpucu:** Coding Plan, maliyetin 1/7'sine 3 kat kota sunar! Her gün saat 10:00'da sıfırlanır.
 
-#### MiniMax M2.1 (5 saatte bir sıfırlama, $0.20/1M)
+#### MiniMax M2.1 (5 saatte sıfırlama, $0.20/1M)
 
 1. Kaydolun: [MiniMax](https://www.minimax.io)
 2. API anahtarını alın → Kontrol Paneli → API Anahtarı Ekle
 
-**Kullanım:** `minimax/MiniMax-M2.1` — **Profesyonel İpucu:** Uzun bağlam için en ucuz seçenek (1M token)!
+**Kullanım:** `minimax/MiniMax-M2.1` — **Uzman İpucu:** Uzun bağlam (1M token) için en ucuz seçenek!
 
 #### Kimi K2 (Aylık sabit $9)
 
 1. Abone olun: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. API anahtarını alın → Kontrol Paneli → API Anahtarı Ekle
 
-**Kullanım:** `kimi/kimi-k2.5` — **Profesyonel İpucu:** 10M token için aylık sabit $9 = 1M başına efektif $0.90 maliyet!
+**Kullanım:** `kimi/kimi-k2.5` — **Uzman İpucu:** 10M token için aylık sabit $9 = etkin maliyet $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
 1. Kaydolun: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
 2. Bir Qianfan API anahtarı oluşturun → Kontrol Paneli → API Anahtarı Ekle: Sağlayıcı: `qianfan`
 
-**Kullanım:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` veya başka bir Qianfan OpenAI uyumlu model kimliği.
+**Kullanım:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` veya OpenAI ile uyumlu başka bir Qianfan model kimliği.
 
 ### 🆓 ÜCRETSİZ Sağlayıcılar
 
 Kimlik doğrulaması gerektirmeyen ücretsiz sağlayıcıların sağlayıcı sayfasında **Kimlik doğrulaması gerekli değil** seçeneğinin yanında bir anahtar bulunur.
-Bu anahtarı kapatmak ilgili sağlayıcıyı devre dışı bırakır, Sağlayıcılar'ın yapılandırılmış/kompakt görünümlerinden kaldırır ve
-modellerini `/v1/models` üzerinden kaldırır.
+Bu anahtarın kapatılması, ilgili sağlayıcıyı devre dışı bırakır, onu Sağlayıcılar'ın yapılandırılmış/kompakt görünümlerinden kaldırır ve modellerini `/v1/models` listesinden çıkarır.
 
 #### Qoder (9 ÜCRETSİZ model)
 
@@ -220,7 +219,7 @@ Modeller: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, i
 #### Kiro (Claude ÜCRETSİZ)
 
 ```bash
-Kontrol Paneli → Kiro'yu Bağla → AWS Builder ID veya Google/GitHub → Ayda yaklaşık 50 kredi
+Kontrol Paneli → Kiro'yu Bağla → AWS Builder ID veya Google/GitHub → Ayda ~50 kredi
 
 Modeller: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
@@ -670,7 +669,7 @@ Ortam değişkenlerinin tam listesi için [README](../README.md) dosyasına bak�
 
 ### Özel Modeller
 
-Uygulama güncellemesini beklemeden herhangi bir sağlayıcıya herhangi bir model kimliği ekleyin:
+Uygulama güncellemesini beklemeden herhangi bir sağlayıcıya istediğiniz model kimliğini ekleyin:
 
 ```bash
 # API aracılığıyla
@@ -682,19 +681,58 @@ curl -X POST http://localhost:20128/api/provider-models \
 # Kaldır: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
 ```
 
-Veya Kontrol Panelini kullanın: **Sağlayıcılar → [Sağlayıcı] → Özel Modeller**.
+Alternatif olarak Kontrol Panelini kullanın: **Sağlayıcılar → [Sağlayıcı] → Özel Modeller**.
 
 Notlar:
 
-- OpenRouter ve OpenAI/Anthropic uyumlu sağlayıcılar yalnızca **Kullanılabilir Modeller** üzerinden yönetilir. Manuel ekleme, içe aktarma ve otomatik eşitlemenin tümü aynı kullanılabilir model listesine eklenir; bu nedenle bu sağlayıcılar için ayrı bir Özel Modeller bölümü yoktur.
-- **Özel Modeller** bölümü, yönetilen kullanılabilir model içe aktarımlarını sunmayan sağlayıcılar içindir.
+- OpenRouter ve OpenAI/Anthropic uyumlu sağlayıcılar yalnızca **Kullanılabilir Modeller** üzerinden yönetilir. Manuel ekleme, içe aktarma ve otomatik senkronizasyon işlemlerinin tümü aynı kullanılabilir modeller listesine kaydedilir; dolayısıyla bu sağlayıcılar için ayrı bir Özel Modeller bölümü yoktur.
+- **Özel Modeller** bölümü, yönetilen kullanılabilir model içe aktarımlarını sunmayan sağlayıcılar için tasarlanmıştır.
+
+### Özel OpenAI Uyumlu Sağlayıcılar
+
+OpenAI API'sini kullanan herhangi bir ağ geçidi (kendi sunucunuzda barındırılan bir proxy, vLLM veya üçüncü taraf bir toplayıcı)
+kendi sağlayıcı düğümü olarak eklenebilir:
+
+1. **Sağlayıcılar → OpenAI Uyumlu Ekle**.
+2. **Ad**: düğüm için görüntülenecek etiket.
+3. **Ön Ek**: yönlendirme adı. İstemciler modelleri `<prefix>/<model>` biçiminde çağırır; dolayısıyla
+   `mygw` ön ekine sahip bir düğüm `mygw/gpt-4o-mini` modelini sunar. Zorunludur; karakter kısıtlaması yoktur.
+4. **API Türü**: ağ geçidinin sunduğu uç nokta ailesi (Sohbet Tamamlamaları, Yanıtlar,
+   Gömmeler, ses, görseller).
+5. **Temel URL**: `/v1` dahil olmak üzere API kökü (örneğin
+   `https://gateway.example.com/v1`); tam `/chat/completions` yolu değildir. Standart dışı
+   yollara sahip ağ geçitlerinde bunları **Gelişmiş Ayarlar** altında ayarlayın (sohbet yolu, modeller yolu).
+6. **API Anahtarı (Kontrol İçin)** alanı yalnızca bağlantıyı test eder. Düğümü oluşturduktan sonra
+   düğümü açın ve isteklerin kullanacağı anahtarı kaydetmek için **Bağlantı Ekle** seçeneğini kullanın.
+
+Düğüm, `openai-compatible-<apiType>-<uuid>` biçiminde dahili bir kimlik alır; bunu hiçbir zaman
+yazmanız gerekmez, genel ad olarak ön ek kullanılır.
+
+#### Ayrılmış ön ekler
+
+Bir ön ek, yerleşik bir sağlayıcının kimliği veya diğer adı (örneğin `openai`, `cf`) ya da
+kullanımdan kaldırılmış bir sağlayıcının kimliği olamaz. Model çözümleyici, özel düğümlerden önce
+yerleşik kimlikleri ve diğer adları kontrol eder; dolayısıyla bu ön eklerden birini kullanan bir düğüm
+hiçbir zaman trafik almaz: `<prefix>/model` bunun yerine yerleşik sağlayıcıya gider veya söz konusu
+sağlayıcı kullanımdan kaldırılmışsa kapalı şekilde başarısız olur. Böyle bir ön eke sahip bir düğümün
+oluşturulması veya düzenlenmesi şu hatayla reddedilir:
+
+```text
+prefix: "<prefix>" ayrılmış bir sağlayıcı ön ekidir — farklı bir ön ek seçin (ayrılmış kimlikler/diğer adlar özel düğümler için kullanılamaz; çünkü <prefix>/model gibi istekler yerleşik bir sağlayıcıya yönlendirilir veya sağlayıcı kullanımdan kaldırılmışsa kapalı şekilde başarısız olur)
+```
+
+Benzersiz bir ön ek seçin (`mygw`, `acme-proxy`). Özel bir düğüme gönderilen istekler,
+yerleşik bir sağlayıcının veya onun kimlik bilgilerinin adını belirten bir hatayla başarısız olursa
+düğümün ön ekinin ayrılmış olup olmadığını kontrol edin: bu kural yürürlüğe girmeden önce kaydedilmiş
+düğümler saklanmaya devam eder, ancak ön ekleri yerleşik sağlayıcıya yönlendirilir. Düğümü düzenleyip
+ona yeni bir ön ek verin.
 
 ### OmniRoute Eşlerini Zincirleme
 
-Başka bir OmniRoute ağ geçidi, **Özel OpenAI uyumlu** bir sağlayıcı olarak eklenebilir. Eşin
-`/v1` temel URL'sini ve o eş tarafından verilmiş, yalnızca gerekli yetkilere sahip özel bir API anahtarını kullanın.
+Başka bir OmniRoute ağ geçidi, **Özel OpenAI uyumlu** sağlayıcı olarak eklenebilir. Eşin
+`/v1` temel URL'sini ve söz konusu eş tarafından verilmiş, en az ayrıcalığa sahip özel bir API anahtarını kullanın.
 
-Karşılıklı veya çok atlamalı zincirler için her ağ geçidinde isteğe bağlı döngü korumasını etkinleştirin:
+Karşılıklı veya çok atlamalı zincirlerde, katılıma bağlı döngü korumasını her ağ geçidinde etkinleştirin:
 
 ```bash
 # gateway-a
@@ -710,14 +748,14 @@ OMNIROUTE_PEER_URLS=http://gateway-a:20128/v1
 OMNIROUTE_PEER_MAX_HOPS=4
 ```
 
-Yalnızca açıkça izin verilenler listesine eklenmiş bir eş URL'sine gönderilen istekler
-`X-OmniRoute-Peer-Trace` üst bilgisini alır. Bir ağ geçidi, yinelenen bir örnek kimliğini veya tükenmiş atlama
-bütçesini HTTP `508 Loop Detected` ile reddeder; sıradan yukarı akış sağlayıcıları hiçbir eş meta verisi almaz.
+Yalnızca açıkça izin listesine eklenmiş bir eş URL'sine gönderilen istekler
+`X-OmniRoute-Peer-Trace` üst bilgisini alır. Bir ağ geçidi, yinelenen bir örnek kimliğini veya tükenmiş
+atlama bütçesini HTTP `508 Loop Detected` ile reddeder; sıradan yukarı akış sağlayıcıları eş meta verisi almaz.
 
 Eş zincirleme, veritabanı çoğaltma veya ana makine yük devretme değildir. Her ağ geçidi bağımsız
-SQLite durumu, önbellekler, hız sayaçları ve oturumlar tutar. Etkin/pasif veya etkin/etkin kullanılabilirlik için
-sağlık denetimli bir ters proxy ya da istemci yük devretmesi kullanın ve tek bir SQLite veritabanını asla
-çalışan birden fazla OmniRoute örneğine bağlamayın.
+SQLite durumunu, önbelleklerini, hız sayaçlarını ve oturumlarını korur. Etkin/pasif veya etkin/etkin
+kullanılabilirlik için sistem durumu denetlenen bir ters proxy ya da istemci yük devretme mekanizması kullanın
+ve tek bir SQLite veritabanını hiçbir zaman çalışan birden fazla OmniRoute örneğine bağlamayın.
 
 ### Özel Sağlayıcı Rotaları
 
@@ -729,7 +767,7 @@ POST http://localhost:20128/v1/providers/openai/embeddings
 POST http://localhost:20128/v1/providers/fireworks/images/generations
 ```
 
-Eksikse sağlayıcı öneki otomatik olarak eklenir. Eşleşmeyen modeller `400` döndürür.
+Eksikse sağlayıcı ön eki otomatik olarak eklenir. Eşleşmeyen modeller `400` döndürür.
 
 ### Ağ Proxy'si Yapılandırması
 
@@ -747,7 +785,7 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
 ```
 
-**Öncelik:** Anahtara özel → Kombinasyona özel → Sağlayıcıya özel → Genel → Ortam.
+**Öncelik:** Anahtara özgü → Kombinasyona özgü → Sağlayıcıya özgü → Genel → Ortam.
 
 ### Model Kataloğu API'si
 
@@ -755,87 +793,87 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
 curl http://localhost:20128/api/models/catalog
 ```
 
-Sağlayıcıya göre gruplandırılmış modelleri türleriyle (`chat`, `embedding`, `image`) döndürür.
+Sağlayıcıya göre gruplandırılmış modelleri türleriyle (`chat`, `embedding`, `image`) birlikte döndürür.
 
-### Bulut Eşitleme
+### Bulut Senkronizasyonu
 
-- Sağlayıcıları, kombinasyonları ve ayarları cihazlar arasında eşitleyin
-- Zaman aşımı ve hızlı hata verme özellikli otomatik arka plan eşitlemesi
-- Üretim ortamında sunucu tarafı `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` değerlerini tercih edin
+- Sağlayıcıları, kombinasyonları ve ayarları cihazlar arasında senkronize edin
+- Zaman aşımı ve hızlı başarısız olma özellikleriyle otomatik arka plan senkronizasyonu
+- Üretim ortamında sunucu tarafındaki `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` değerlerini tercih edin
 
 ### Cloudflare Hızlı Tüneli
 
-- Docker ve diğer kendi sunucunuzda barındırılan dağıtımlar için **Kontrol Paneli → Uç Noktalar** bölümünde kullanılabilir
-- Geçerli OpenAI uyumlu `/v1` uç noktanıza yönlendiren geçici bir `https://*.trycloudflare.com` URL'si oluşturur
-- İlk etkinleştirmede `cloudflared` yalnızca gerektiğinde yüklenir; sonraki yeniden başlatmalarda aynı yönetilen ikili dosya yeniden kullanılır
-- Hızlı Tüneller, OmniRoute veya kapsayıcı yeniden başlatıldıktan sonra otomatik olarak geri yüklenmez; gerektiğinde kontrol panelinden yeniden etkinleştirin
+- Docker ve kendi kendine barındırılan diğer dağıtımlar için **Dashboard → Endpoints** bölümünde kullanılabilir
+- OpenAI uyumlu mevcut `/v1` uç noktanıza yönlendiren geçici bir `https://*.trycloudflare.com` URL'si oluşturur
+- İlk etkinleştirmede `cloudflared` yalnızca gerektiğinde kurulur; sonraki yeniden başlatmalarda aynı yönetilen ikili dosya yeniden kullanılır
+- Quick Tunnel'lar, OmniRoute veya kapsayıcı yeniden başlatıldıktan sonra otomatik olarak geri yüklenmez; gerektiğinde bunları dashboard üzerinden yeniden etkinleştirin
 - Tünel URL'leri geçicidir ve tüneli her durdurup başlattığınızda değişir
-- Yönetilen Hızlı Tüneller, kısıtlı kapsayıcılarda gürültülü QUIC UDP arabellek uyarılarını önlemek için varsayılan olarak HTTP/2 aktarımını kullanır
+- Yönetilen Quick Tunnel'lar, kısıtlı kapsayıcılarda gürültülü QUIC UDP arabellek uyarılarını önlemek için varsayılan olarak HTTP/2 aktarımını kullanır
 - Yönetilen aktarım seçimini geçersiz kılmak istiyorsanız `CLOUDFLARED_PROTOCOL=quic` veya `auto` olarak ayarlayın
-- Yönetilen indirme yerine önceden yüklenmiş bir `cloudflared` ikili dosyası kullanmayı tercih ediyorsanız `CLOUDFLARED_BIN` değerini ayarlayın
-- Cloudflare Hızlı Tünel, Tailscale Funnel ve ngrok Tünel panelleri **Ayarlar → Görünüm** bölümünde gösterilebilir veya gizlenebilir. Bir paneli gizlemek, çalışan bir tüneli durdurmaz.
+- Yönetilen indirme yerine önceden yüklenmiş bir `cloudflared` ikili dosyasını kullanmayı tercih ediyorsanız `CLOUDFLARED_BIN` değişkenini ayarlayın
+- Cloudflare Quick Tunnel, Tailscale Funnel ve ngrok Tunnel panelleri **Settings → Appearance** bölümünde gösterilebilir veya gizlenebilir. Bir paneli gizlemek, çalışan bir tüneli durdurmaz.
 
 ### LLM Ağ Geçidi Zekâsı (Aşama 9)
 
-- **Anlamsal Önbellek** — Akışsız ve temperature=0 olan yanıtları otomatik olarak önbelleğe alır (`X-OmniRoute-No-Cache: true` ile atlayın)
-- **İstek Yinelenmesini Önleme** — `Idempotency-Key` veya `X-Request-Id` üst bilgisi aracılığıyla 5 saniye içindeki istekleri tekilleştirir
-- **İlerleme Takibi** — `X-OmniRoute-Progress: true` üst bilgisi aracılığıyla isteğe bağlı SSE `event: progress` olayları sağlar
+- **Semantik Önbellek** — Akışsız ve temperature=0 olan yanıtları otomatik olarak önbelleğe alır (`X-OmniRoute-No-Cache: true` ile atlayabilirsiniz)
+- **İstek Tekrarsızlığı** — `Idempotency-Key` veya `X-Request-Id` başlığı aracılığıyla 5 saniye içindeki yinelenen istekleri tekilleştirir
+- **İlerleme Takibi** — `X-OmniRoute-Progress: true` başlığı aracılığıyla isteğe bağlı SSE `event: progress` olayları sağlar
 
 ---
 
 ### Çevirici Deneme Alanı
 
-**Kontrol Paneli → Çevirici** üzerinden erişin. OmniRoute'un sağlayıcılar arasındaki API isteklerini nasıl çevirdiğini hata ayıklayın ve görselleştirin.
+**Dashboard → Translator** üzerinden erişin. OmniRoute'un sağlayıcılar arasında API isteklerini nasıl dönüştürdüğünü hata ayıklayarak inceleyin ve görselleştirin.
 
-| Mod              | Amaç                                                                                             |
-| ---------------- | ------------------------------------------------------------------------------------------------ |
-| **Deneme Alanı** | Kaynak/hedef biçimlerini seçin, bir istek yapıştırın ve çevrilmiş çıktıyı anında görün           |
-| **Sohbet Testi** | Proxy üzerinden canlı sohbet mesajları gönderin ve tüm istek/yanıt döngüsünü inceleyin           |
-| **Test Tezgâhı** | Çevirinin doğruluğunu onaylamak için birden fazla biçim kombinasyonunda toplu testler çalıştırın |
-| **Canlı İzleme** | İstekler proxy üzerinden akarken gerçek zamanlı çevirileri izleyin                               |
+| Mod              | Amaç                                                                                            |
+| ---------------- | ----------------------------------------------------------------------------------------------- |
+| **Deneme Alanı** | Kaynak/hedef biçimlerini seçin, bir istek yapıştırın ve dönüştürülmüş çıktıyı anında görün      |
+| **Sohbet Testi** | Proxy üzerinden canlı sohbet mesajları gönderin ve tüm istek/yanıt döngüsünü inceleyin          |
+| **Test Tezgâhı** | Dönüşüm doğruluğunu doğrulamak için birden fazla biçim kombinasyonunda toplu testler çalıştırın |
+| **Canlı İzleme** | İstekler proxy üzerinden akarken gerçek zamanlı dönüşümleri izleyin                             |
 
-**Kullanım alanları:**
+**Kullanım örnekleri:**
 
-- Belirli bir istemci/sağlayıcı kombinasyonunun neden başarısız olduğunu hata ayıklayın
-- Düşünme etiketlerinin, araç çağrılarının ve sistem istemlerinin doğru çevrildiğini doğrulayın
-- OpenAI, Claude, Gemini ve Responses API biçimleri arasındaki biçim farklılıklarını karşılaştırın
+- Belirli bir istemci/sağlayıcı kombinasyonunun neden başarısız olduğunu hata ayıklayarak belirleme
+- Düşünme etiketlerinin, araç çağrılarının ve sistem istemlerinin doğru şekilde dönüştürüldüğünü doğrulama
+- OpenAI, Claude, Gemini ve Responses API biçimleri arasındaki biçim farklılıklarını karşılaştırma
 
 ---
 
 ### Yönlendirme Stratejileri
 
-**Dashboard → Ayarlar → Yönlendirme** üzerinden yapılandırın. Dashboard en çok kullanılan altı stratejiyi gösterir; kombinasyonlar ve otomatik yönlendirici dahili olarak daha geniş bir kümeyi destekler.
+**Dashboard → Settings → Routing** üzerinden yapılandırın. Dashboard, en sık kullanılan altı stratejiyi sunar; kombinasyonlar ve otomatik yönlendirici dahili olarak daha geniş bir strateji kümesini destekler.
 
 **Dashboard'da görünen stratejiler (hesap düzeyinde yönlendirme):**
 
-| Strateji                     | Açıklama                                                                                                                |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| **İlkini Doldur**            | Hesapları öncelik sırasına göre kullanır — birincil hesap kullanılamaz hâle gelene kadar tüm istekleri işler            |
-| **Sıralı Döngü**             | Yapılandırılabilir bir kalıcılık sınırıyla tüm hesaplar arasında sırayla geçiş yapar (varsayılan: hesap başına 3 çağrı) |
-| **P2C (İki Seçeneğin Gücü)** | Rastgele 2 hesap seçer ve isteği daha sağlıklı olana yönlendirir — sağlık durumunu dikkate alarak yükü dengeler         |
-| **Rastgele**                 | Fisher-Yates karıştırmasını kullanarak her istek için rastgele bir hesap seçer                                          |
-| **En Az Kullanılan**         | İstekleri en eski `lastUsedAt` zaman damgasına sahip hesaba yönlendirerek trafiği eşit dağıtır                          |
-| **Maliyet Optimizasyonlu**   | İstekleri en düşük öncelik değerine sahip hesaba yönlendirerek en düşük maliyetli sağlayıcıları tercih eder             |
+| Strateji                          | Açıklama                                                                                                                  |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **Önce Doldur**                   | Hesapları öncelik sırasına göre kullanır — kullanılamaz duruma gelene kadar tüm istekleri birincil hesap işler            |
+| **Döngüsel**                      | Yapılandırılabilir bir yapışkanlık sınırıyla tüm hesaplar arasında sırayla geçiş yapar (varsayılan: hesap başına 3 çağrı) |
+| **P2C (İki Seçimin Gücü)**        | Rastgele 2 hesap seçer ve daha sağlıklı olana yönlendirir — sağlık durumunu dikkate alarak yükü dengeler                  |
+| **Rastgele**                      | Fisher-Yates karıştırmasını kullanarak her istek için rastgele bir hesap seçer                                            |
+| **En Az Kullanılan**              | En eski `lastUsedAt` zaman damgasına sahip hesaba yönlendirerek trafiği eşit şekilde dağıtır                              |
+| **Maliyet İçin Optimize Edilmiş** | En düşük öncelik değerine sahip hesaba yönlendirerek en düşük maliyetli sağlayıcıları tercih eder                         |
 
-**Gelişmiş kombinasyon ve otomatik stratejiler** (kombinasyon başına veya `auto/*` önekleri aracılığıyla yapılandırılabilir — bkz. [AUTO-COMBO.md](../routing/AUTO-COMBO.md)):
+**Gelişmiş kombinasyon ve otomatik stratejiler** (kombinasyon başına veya `auto/*` ön ekleri aracılığıyla yapılandırılabilir — bkz. [AUTO-COMBO.md](../routing/AUTO-COMBO.md)):
 
-- `priority` — katı sıralama uygular, asla sıralı döngü kullanmaz
-- `weighted` — model başına ağırlıklara göre orantılı trafik dağılımı
+- `priority` — katı sıralama uygular, hiçbir zaman döngüsel yönlendirme yapmaz
+- `weighted` — trafiği model başına ağırlıklara göre orantılı olarak böler
 - `fill-first` — sınırlara ulaşılana kadar ilk modeli kullanır
 - `round-robin` / `strict-random` / `random`
-- `p2c` (İki Seçeneğin Gücü)
+- `p2c` (İki Seçimin Gücü)
 - `least-used` ve `cost-optimized`
 - `auto` — tüm adaylar arasında puana dayalı seçim yapar
 - `lkgp` (Son Bilinen İyi Sağlayıcı) — son başarılı sağlayıcıya sabitler, ardından kurallara geri döner
 - `context-optimized` — en geniş boş bağlam penceresine sahip modeli seçer
-- `context-relay` — takip eden turlar için uzun bağlamlı modelleri zincirler
+- `context-relay` — takip turları için uzun bağlamlı modelleri zincirler
 
-#### Harici Kalıcı Oturum Başlığı
+#### Harici Yapışkan Oturum Başlığı
 
 Harici oturum yakınlığı için (örneğin, ters proxy'lerin arkasındaki Claude Code/Codex aracıları) şunu gönderin:
 
 ```http
-X-Session-Id: oturum-anahtarınız
+X-Session-Id: your-session-key
 ```
 
 OmniRoute ayrıca `x_session_id` değerini kabul eder ve etkin oturum anahtarını `X-OmniRoute-Session-Id` içinde döndürür.
@@ -848,18 +886,18 @@ underscores_in_headers on;
 
 #### Joker Karakterli Model Takma Adları
 
-Model adlarını yeniden eşlemek için joker karakterli desenler oluşturun:
+Model adlarını yeniden eşlemek için joker karakterli kalıplar oluşturun:
 
 ```
-Desen: claude-sonnet-*     →  Hedef: cc/claude-sonnet-4-6
-Desen: gpt-*               →  Hedef: gh/gpt-5.3-codex
+Kalıp: claude-sonnet-*     →  Hedef: cc/claude-sonnet-4-6
+Kalıp: gpt-*               →  Hedef: gh/gpt-5.3-codex
 ```
 
 Joker karakterler `*` (herhangi bir karakter dizisi) ve `?` (tek bir karakter) kullanımını destekler.
 
-#### Geri Dönüş Zincirleri
+#### Yedek Zincirleri
 
-Tüm isteklere uygulanan genel geri dönüş zincirleri tanımlayın:
+Tüm isteklere uygulanan genel yedek zincirleri tanımlayın:
 
 ```
 Zincir: production-fallback
@@ -872,50 +910,49 @@ Zincir: production-fallback
 
 ### Dayanıklılık ve Devre Kesiciler
 
-**Dashboard → Ayarlar → Dayanıklılık** üzerinden yapılandırın.
+**Dashboard → Settings → Resilience** üzerinden yapılandırın.
 
-OmniRoute, beş bileşenle sağlayıcı düzeyinde dayanıklılık uygular:
+OmniRoute, sağlayıcı düzeyinde dayanıklılığı beş bileşenle uygular:
 
-1. **İstek Kuyruğu ve Hız Denetimi** — Sistem düzeyinde istek biçimlendirme:
+1. **İstek Kuyruğu ve Hız Ayarlama** — Sistem düzeyinde istek biçimlendirme:
    - **Dakika Başına İstek (RPM)** — Hesap başına dakikadaki maksimum istek sayısı
-   - **İstekler Arasındaki Minimum Süre** — İstekler arasındaki milisaniye cinsinden minimum aralık
+   - **İstekler Arasındaki Minimum Süre** — İstekler arasındaki milisaniye cinsinden minimum boşluk
    - **Maksimum Eşzamanlı İstek** — Hesap başına maksimum eşzamanlı istek sayısı
-
-2. **Bağlantı Bekleme Süresi** — Yeniden denenebilir hatalardan sonra tek bir bağlantı için kimlik doğrulama türü başına yapılandırma:
-   - **Temel Bekleme Süresi** — Yeniden denenebilir üst kaynak hataları için varsayılan bekleme süresi penceresi
-   - **Üst Kaynağın Yeniden Deneme İpuçlarını Kullan** — Sağlandığında yetkili `Retry-After` veya sıfırlama ipuçlarını dikkate alır
+2. **Bağlantı Bekleme Süresi** — Yeniden denenebilir hatalardan sonra tek bir bağlantı için kimlik doğrulama türüne göre yapılandırma:
+   - **Temel Bekleme Süresi** — Yeniden denenebilir üst sağlayıcı hataları için varsayılan bekleme süresi aralığı
+   - **Üst Sağlayıcının Yeniden Deneme İpuçlarını Kullan** — Sağlandığında yetkili `Retry-After` veya sıfırlama ipuçlarını dikkate alır
    - **Maksimum Geri Çekilme Adımı** — Tekrarlanan hatalar için maksimum üstel geri çekilme düzeyi
 
-3. **Sağlayıcı Devre Kesicisi** — Uçtan uca sağlayıcı hatalarını izler, yapılandırılmış uyarı eşiğinde sağlayıcıyı bozulmuş olarak işaretler ve yapılandırılmış hata eşiğine ulaşıldığında kesiciyi açar:
-   - **Bozulma Eşiği** — `DEGRADED` durumuna geçmeden önceki ardışık sağlayıcı hatası sayısı
+3. **Sağlayıcı Devre Kesicisi** — Uçtan uca sağlayıcı hatalarını izler, yapılandırılan uyarı eşiğinde sağlayıcıyı düşük performanslı olarak işaretler ve yapılandırılan hata eşiğine ulaşıldığında devre kesiciyi açar:
+   - **Düşük Performans Eşiği** — `DEGRADED` durumuna geçmeden önceki ardışık sağlayıcı hatası sayısı
    - **Hata Eşiği** — `OPEN` durumuna geçmeden önceki ardışık sağlayıcı hatası sayısı
    - **Sıfırlama Zaman Aşımı** — Sağlayıcının yeniden test edilmesinden önce geçecek süre
-   - **CLOSED** (Sağlıklı) — İstekler normal şekilde akar
-   - **DEGRADED** — Artan hatalar izlenirken istekler akmaya devam eder
+   - **CLOSED** (Sağlıklı) — İstekler normal şekilde iletilir
+   - **DEGRADED** — Artan hatalar izlenirken istekler iletilmeye devam eder
    - **OPEN** — Tekrarlanan hatalardan sonra sağlayıcı geçici olarak engellenir
    - **HALF_OPEN** — Sağlayıcının düzelip düzelmediği test edilir
 
    Bağlantı kapsamındaki `429` hız sınırları **Bağlantı Bekleme Süresi** kapsamında kalır ve sağlayıcı devre kesicisine dâhil edilmez.
 
-   Sağlayıcı devre kesicisinin çalışma zamanı durumu yalnızca **Dashboard → Sağlık** bölümünde gösterilir.
+   Sağlayıcı devre kesicisinin çalışma zamanı durumu yalnızca **Kontrol Paneli → Sağlık** bölümünde gösterilir.
 
 4. **Bekleme Süresini Bekle** — Tüm aday bağlantılar zaten bekleme süresindeyse OmniRoute, en erken sona erecek bekleme süresini bekleyebilir ve aynı istemci isteğini otomatik olarak yeniden deneyebilir.
 
-5. **Hız Sınırını Otomatik Algılama** — Üst kaynak sağlayıcılar açık bekleme pencereleri döndürdüğünde ve ayar etkinleştirildiğinde bu ipuçları yerel bağlantı bekleme süresini geçersiz kılar.
+5. **Hız Sınırını Otomatik Algılama** — Üst sağlayıcılar açık bekleme aralıkları döndürdüğünde, ayar etkinse bu ipuçları yerel bağlantı bekleme süresini geçersiz kılar.
 
-**Uzman İpucu:** Bir kesintiden sonra etkin sağlayıcı devre kesicilerini incelemek ve sıfırlamak için **Sağlık** sayfasını kullanın. Dayanıklılık sayfası yalnızca yapılandırmayı değiştirir.
+**Profesyonel İpucu:** Bir kesintiden sonra etkin sağlayıcı devre kesicilerini incelemek ve sıfırlamak için **Sağlık** sayfasını kullanın. Dayanıklılık sayfası yalnızca yapılandırmayı değiştirir.
 
 ---
 
 ### Veritabanını Dışa / İçe Aktarma
 
-Veritabanı yedeklerini **Dashboard → Ayarlar → Sistem ve Depolama** bölümünden yönetin.
+Veritabanı yedeklerini **Kontrol Paneli → Ayarlar → Sistem ve Depolama** bölümünden yönetin.
 
-| Eylem                           | Açıklama                                                                                                                                                                          |
-| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Veritabanını Dışa Aktar**     | Geçerli SQLite veritabanını bir `.sqlite` dosyası olarak indirir                                                                                                                  |
-| **Tümünü Dışa Aktar (.tar.gz)** | Şunları içeren tam bir yedekleme arşivi indirir: veritabanı, ayarlar, kombinasyonlar, sağlayıcı bağlantıları (kimlik bilgileri olmadan), API anahtarı meta verileri               |
-| **Veritabanını İçe Aktar**      | Geçerli veritabanını değiştirmek için bir `.sqlite` dosyası yükler. `DISABLE_SQLITE_AUTO_BACKUP=true` olmadığı sürece içe aktarma öncesinde otomatik olarak bir yedek oluşturulur |
+| Eylem                           | Açıklama                                                                                                                                                                       |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Veritabanını Dışa Aktar**     | Geçerli SQLite veritabanını bir `.sqlite` dosyası olarak indirir                                                                                                               |
+| **Tümünü Dışa Aktar (.tar.gz)** | Şunları içeren tam bir yedek arşivi indirir: veritabanı, ayarlar, kombinasyonlar, sağlayıcı bağlantıları (kimlik bilgileri hariç), API anahtarı meta verileri                  |
+| **Veritabanını İçe Aktar**      | Geçerli veritabanını değiştirmek için bir `.sqlite` dosyası yükler. `DISABLE_SQLITE_AUTO_BACKUP=true` olmadığı sürece içe aktarma öncesi otomatik olarak bir yedek oluşturulur |
 
 ```bash
 # API: Veritabanını dışa aktar
@@ -929,57 +966,57 @@ curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**İçe Aktarma Doğrulaması:** İçe aktarılan dosyanın bütünlüğü (SQLite pragma denetimi), gerekli tabloları (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) ve boyutu (en fazla 100 MB) doğrulanır.
+**İçe Aktarma Doğrulaması:** İçe aktarılan dosya; bütünlük (SQLite pragma denetimi), gerekli tablolar (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) ve boyut (maks. 100MB) açısından doğrulanır.
 
-**Kullanım Alanları:**
+**Kullanım Örnekleri:**
 
 - OmniRoute'u makineler arasında taşıma
-- Olağanüstü durum kurtarma için harici yedekler oluşturma
-- Yapılandırmaları ekip üyeleri arasında paylaşma (tümünü dışa aktar → arşivi paylaş)
+- Felaket kurtarma için harici yedekler oluşturma
+- Yapılandırmaları ekip üyeleriyle paylaşma (tümünü dışa aktar → arşivi paylaş)
 
 ---
 
-### Ayarlar Panosu
+### Ayarlar Kontrol Paneli
 
-Ayarlar sayfası, kolay gezinme amacıyla **7 sekme** hâlinde düzenlenmiştir:
+Ayarlar sayfası, kolay gezinme için **7 sekme** hâlinde düzenlenmiştir:
 
-| Sekme            | İçerik                                                                                                                                                                                                          |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Genel**        | Sistem depolama araçları, varsayılan davranış, uç nokta tüneli görünürlüğü                                                                                                                                      |
-| **Görünüm**      | Tema denetimleri (açık/koyu/sistem), kenar çubuğu görünürlüğü, Cloudflare/Tailscale/ngrok tünel kartlarına yönelik panel geçişleri                                                                              |
-| **Yapay Zekâ**   | Düşünme bütçesi (değiştirmeden iletme / otomatik çıkarma / özel / uyarlanabilir — bkz. [THINKING_BUDGET.md](./THINKING_BUDGET.md)), genel sistem istemi, istem önbelleği istatistikleri                         |
-| **Güvenlik**     | Oturum açma/parola ayarları, IP erişim denetimi, `/models` için API kimlik doğrulaması, sağlayıcı engelleme, istem enjeksiyonu koruması                                                                         |
-| **Yönlendirme**  | Genel yönlendirme stratejisi (Önce Doldur / Döngüsel / P2C / Rastgele / En Az Kullanılan / Maliyet Optimizasyonlu), joker karakterli model takma adları, geri dönüş zincirleri, varsayılan kombinasyon ayarları |
-| **Dayanıklılık** | İstek kuyruğu, bağlantı bekleme süresi, sağlayıcı devre kesici yapılandırması ve bekleme süresinin dolmasını bekleme davranışı                                                                                  |
-| **Gelişmiş**     | Genel proxy yapılandırması (HTTP/SOCKS5), sağlayıcı başına proxy geçersiz kılmaları                                                                                                                             |
+| Sekme            | İçerik                                                                                                                                                                                                    |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Genel**        | Sistem depolama araçları, varsayılan davranış, uç nokta tüneli görünürlüğü                                                                                                                                |
+| **Görünüm**      | Tema denetimleri (açık/koyu/sistem), kenar çubuğu görünürlüğü, Cloudflare/Tailscale/ngrok tünel kartları için panel açma-kapama seçenekleri                                                               |
+| **AI**           | Düşünme bütçesi (değiştirmeden iletme / otomatik çıkarma / özel / uyarlanabilir — bkz. [THINKING_BUDGET.md](./THINKING_BUDGET.md)), genel sistem istemi, istem önbelleği istatistikleri                   |
+| **Güvenlik**     | Oturum açma/Parola ayarları, IP Erişim Denetimi, `/models` için API kimlik doğrulaması, Sağlayıcı Engelleme, istem enjeksiyonu koruması                                                                   |
+| **Yönlendirme**  | Genel yönlendirme stratejisi (Önce Doldur / Döngüsel / P2C / Rastgele / En Az Kullanılan / Maliyet Optimizasyonlu), joker karakterli model takma adları, geri dönüş zincirleri, varsayılan kombinasyonlar |
+| **Dayanıklılık** | İstek kuyruğu, bağlantı bekleme süresi, sağlayıcı devre kesicisi yapılandırması ve bekleme süresini bekleme davranışı                                                                                     |
+| **Gelişmiş**     | Genel proxy yapılandırması (HTTP/SOCKS5), sağlayıcı başına proxy geçersiz kılmaları                                                                                                                       |
 
 Genel sekmesi artık salt okunur günlük kaydı ve önbellek notlarını yinelemez. Veritabanı saklama ve
-optimizasyon ayarları `/api/settings/database` aracılığıyla kalıcı hâle getirilir; önbelleğin manuel olarak temizlenmesi için
-`DELETE /api/cache` kullanılır. İstek ve proxy günlüklerindeki satır sınırları
+optimizasyon ayarları `/api/settings/database` üzerinden kalıcı hâle getirilir; önbelleği manuel olarak temizlemek için
+`DELETE /api/cache` kullanılır. İstek ve proxy günlüğü satır sınırları
 `CALL_LOGS_TABLE_MAX_ROWS` ve `PROXY_LOGS_TABLE_MAX_ROWS` tarafından denetlenir.
 
 ---
 
 ### Maliyet ve Bütçe Yönetimi
 
-**Pano → Maliyetler** üzerinden erişin.
+**Kontrol Paneli → Maliyetler** üzerinden erişin.
 
-| Sekme             | Amaç                                                                                                                 |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------- |
-| **Bütçe**         | Günlük/haftalık/aylık bütçeler ve gerçek zamanlı izleme ile her API anahtarı için harcama sınırları belirleyin       |
-| **Fiyatlandırma** | Model fiyatlandırma kayıtlarını görüntüleyin ve düzenleyin — sağlayıcı başına her 1K giriş/çıkış token'ının maliyeti |
+| Sekme             | Amaç                                                                                                          |
+| ----------------- | ------------------------------------------------------------------------------------------------------------- |
+| **Bütçe**         | Günlük/haftalık/aylık bütçeler ve gerçek zamanlı izleme ile API anahtarı başına harcama sınırları belirleyin  |
+| **Fiyatlandırma** | Model fiyatlandırma kayıtlarını görüntüleyin ve düzenleyin — sağlayıcı başına 1K giriş/çıkış token'ı maliyeti |
 
 ```bash
-# API: Bütçe belirle
+# API: Bütçe belirleme
 curl -X POST http://localhost:20128/api/usage/budget \
   -H "Content-Type: application/json" \
   -d '{"keyId": "key-123", "limit": 50.00, "period": "monthly"}'
 
-# API: Geçerli bütçe durumunu al
+# API: Mevcut bütçe durumunu alma
 curl http://localhost:20128/api/usage/budget
 ```
 
-**Maliyet Takibi:** Her istek, token kullanımını günlüğe kaydeder ve fiyatlandırma tablosunu kullanarak maliyeti hesaplar. Sağlayıcı, model ve API anahtarına göre dökümleri **Pano → Kullanım** bölümünde görüntüleyin.
+**Maliyet Takibi:** Her istek, token kullanımını kaydeder ve fiyatlandırma tablosunu kullanarak maliyeti hesaplar. Sağlayıcı, model ve API anahtarına göre dökümleri **Dashboard → Usage** bölümünde görüntüleyin.
 
 ---
 
@@ -1035,49 +1072,49 @@ Transkripsiyon için desteklenen ses biçimleri: `mp3`, `wav`, `m4a`, `flac`, `o
 
 ### Kombinasyon Dengeleme Stratejileri
 
-Kombinasyon başına dengeleme ayarlarını **Pano → Kombinasyonlar → Oluştur/Düzenle → Strateji** bölümünde yapılandırın.
+Kombinasyon başına dengelemeyi **Dashboard → Combos → Create/Edit → Strategy** bölümünde yapılandırın.
 
-| Strateji             | Açıklama                                                                                |
-| -------------------- | --------------------------------------------------------------------------------------- |
-| **Round-Robin**      | Modeller arasında sırayla geçiş yapar                                                   |
-| **Öncelik**          | Her zaman ilk modeli dener; yalnızca hata durumunda diğer modele geçer                  |
-| **Rastgele**         | Her istek için kombinasyondan rastgele bir model seçer                                  |
-| **Ağırlıklı**        | Model başına atanan ağırlıklara göre orantılı olarak yönlendirir                        |
-| **En Az Kullanılan** | En az yakın tarihli isteğe sahip modele yönlendirir (kombinasyon metriklerini kullanır) |
-| **Maliyet Odaklı**   | Kullanılabilir en ucuz modele yönlendirir (fiyatlandırma tablosunu kullanır)            |
+| Strateji           | Açıklama                                                                                       |
+| ------------------ | ---------------------------------------------------------------------------------------------- |
+| **Round-Robin**    | Modeller arasında sırayla geçiş yapar                                                          |
+| **Priority**       | Her zaman ilk modeli dener; yalnızca hata durumunda yedek modele geçer                         |
+| **Random**         | Her istek için kombinasyondan rastgele bir model seçer                                         |
+| **Weighted**       | Model başına atanan ağırlıklara göre orantılı olarak yönlendirir                               |
+| **Least-Used**     | En az sayıda yakın tarihli isteğe sahip modele yönlendirir (kombinasyon metriklerini kullanır) |
+| **Cost-Optimized** | Kullanılabilir en ucuz modele yönlendirir (fiyatlandırma tablosunu kullanır)                   |
 
-Genel kombinasyon varsayılanları **Dashboard → Settings → Routing → Combo Defaults** bölümünden ayarlanabilir.
-Kombinasyon hedefi zaman aşımları, varsayılan olarak geçerli istek zaman aşımını devralır. Yalnızca hedef başına daha kısa bir sınırın
-diğer hedefe daha hızlı geçişi tetiklemesi gerektiğinde, kombinasyon varsayılanlarında veya tek bir kombinasyonda **Target timeout
+Genel kombinasyon varsayılanları **Dashboard → Settings → Routing → Combo Defaults** bölümünde ayarlanabilir.
+Kombinasyon hedefi zaman aşımları, varsayılan olarak mevcut istek zaman aşımını devralır. Yalnızca hedef başına daha kısa bir sınırın
+yedek modele daha hızlı geçişi tetiklemesi gerektiğinde, kombinasyon varsayılanlarındaki veya tek bir kombinasyondaki **Target timeout
 (seconds)** seçeneğini kullanın.
 
-Sıfır gecikmeli kombinasyon optimizasyonları isteğe bağlıdır. Bu gecikme özelliklerinin alternatif hedefleri eş zamanlı denemesini, TTFT
-geçmişine göre hedefleri atlamasını veya alternatif istekleri sıkıştırmasını önlemek için **Zero-latency optimizations** seçeneğini devre dışı
-bırakın; etkinleştirildiğinde, yapılandırılmış korumalı isteklerin, tahmine dayalı TTFT
-atlamalarının ve proaktif alternatif sıkıştırmanın daha düşük kuyruk
-gecikmesi karşılığında yönlendirme/istek doğruluğundan ödün vermesine izin verilir.
+Sıfır gecikmeli kombinasyon optimizasyonları isteğe bağlıdır. Bu gecikme özelliklerinin yedek hedefleri yarıştırmasını, TTFT
+geçmişine göre hedefleri atlamasını veya yedek istekleri sıkıştırmasını önlemek için **Zero-latency optimizations** seçeneğini devre dışı
+bırakın; etkinleştirildiğinde yapılandırılmış korumalı isteklerin, tahmine dayalı TTFT
+atlamalarının ve proaktif yedek istek sıkıştırmasının yönlendirme/istek doğruluğundan ödün vererek uzun kuyruk
+gecikmesini azaltmasına izin verilir.
 
-Üst sağlayıcılar katı
-`max_tokens` / `maxOutputTokens` sınırları gerektirdiğinde **Reasoning token buffer** seçeneğini devre dışı bırakın. Etkinleştirildiğinde kombinasyon yönlendirmesi, yalnızca bilinen bir çıktı sınırı olan modeller için muhakeme modeli
-ek kapasitesi ekler ve güvenli tamponlu değer bu sınırı aşacaksa istemci belirteç sınırını değiştirmez. İstemci sınırı zaten bilinen bir sınırın üzerindeyse
-OmniRoute, isteği üst sağlayıcıya göndermeden önce bu değeri söz konusu sınıra düşürür.
+Üst sağlayıcılar katı `max_tokens` / `maxOutputTokens` sınırları gerektirdiğinde
+**Reasoning token buffer** seçeneğini devre dışı bırakın. Etkinleştirildiğinde kombinasyon yönlendirmesi, yalnızca bilinen bir çıktı sınırına sahip modeller için akıl yürütme modeli
+ek payı ekler ve güvenli tamponlu değer bu sınırı aşacaksa istemci token sınırını değiştirmeden bırakır. İstemci sınırı zaten bilinen bir sınırın üzerindeyse
+OmniRoute, isteği üst sağlayıcıya göndermeden önce bunu söz konusu sınıra düşürür.
 
 ---
 
 ### Sistem Durumu Panosu
 
-**Dashboard → Health** üzerinden erişin. 6 karttan oluşan gerçek zamanlı sistem durumu genel görünümü:
+**Dashboard → Health** üzerinden erişin. 6 karttan oluşan gerçek zamanlı sistem durumu özeti:
 
-| Kart                    | Gösterdiği Bilgiler                                                              |
-| ----------------------- | -------------------------------------------------------------------------------- |
-| **Sistem Durumu**       | Çalışma süresi, sürüm, bellek kullanımı, veri dizini                             |
-| **Sağlayıcı Durumu**    | Genel sağlayıcı devre kesicisinin çalışma zamanı durumu                          |
-| **Hız Sınırları**       | Hesap başına etkin bağlantı bekleme süreleri ve kalan süre                       |
-| **Etkin Kilitlemeler**  | Etkin model kapsamlı kilitlemeler ve geçici hariç tutmalar                       |
-| **İmza Önbelleği**      | Yinelenenleri kaldırma önbelleği istatistikleri (etkin anahtarlar, isabet oranı) |
-| **Gecikme Telemetrisi** | Sağlayıcı başına p50/p95/p99 gecikme toplulaştırması                             |
+| Kart                  | Gösterdiği Bilgiler                                                     |
+| --------------------- | ----------------------------------------------------------------------- |
+| **System Status**     | Çalışma süresi, sürüm, bellek kullanımı, veri dizini                    |
+| **Provider Health**   | Genel sağlayıcı devre kesicisinin çalışma zamanı durumu                 |
+| **Rate Limits**       | Hesap başına kalan süreyle birlikte etkin bağlantı bekleme süreleri     |
+| **Active Lockouts**   | Etkin model kapsamlı kilitlemeler ve geçici hariç tutmalar              |
+| **Signature Cache**   | Tekilleştirme önbelleği istatistikleri (etkin anahtarlar, isabet oranı) |
+| **Latency Telemetry** | Sağlayıcı başına p50/p95/p99 gecikme toplaması                          |
 
-**Uzman İpucu:** Sistem Durumu sayfası her 10 saniyede bir otomatik olarak yenilenir. Hangi sağlayıcıların sorun yaşadığını belirlemek için devre kesici kartını kullanın.
+**Profesyonel İpucu:** Sistem Durumu sayfası her 10 saniyede bir otomatik olarak yenilenir. Hangi sağlayıcıların sorun yaşadığını belirlemek için devre kesici kartını kullanın.
 
 ---
 

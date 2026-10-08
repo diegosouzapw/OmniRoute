@@ -1,11 +1,8 @@
 import {
   EMBEDDING_PROVIDERS,
-  buildDynamicEmbeddingProvider,
   getEmbeddingDimension,
-  type EmbeddingProviderNodeRow,
 } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { getProviderCredentials } from "@/sse/services/auth";
-import { getCachedProviderNodes } from "@/lib/db/readCache";
 import type { MemorySettingsExtended } from "@/shared/schemas/memory";
 import {
   getEmbeddingProvider,
@@ -22,6 +19,7 @@ import { embedStatic } from "./staticPotion";
 import { embedTransformers } from "./transformersLocal";
 import { buildCacheKey, get as cacheGet, set as cacheSet } from "./cache";
 import { resolveMemoryCustomEmbeddingProvider } from "./customProvider";
+import { listProviderNodeModalityListings } from "./nodeModalityListings";
 
 const STATIC_MODEL = process.env.MEMORY_STATIC_MODEL || "minishlab/potion-base-8M";
 const TRANSFORMERS_MODEL = process.env.MEMORY_TRANSFORMERS_MODEL || "Xenova/all-MiniLM-L6-v2";
@@ -335,26 +333,9 @@ export async function embedWithRetry(
  * Aggregates from EMBEDDING_PROVIDERS + local provider_nodes.
  */
 export async function listEmbeddingProviders(): Promise<EmbeddingProviderListing[]> {
-  // Get dynamic local providers
-  let dynamicProviders: ReturnType<typeof buildDynamicEmbeddingProvider>[] = [];
-  try {
-    const nodes = (await getCachedProviderNodes()) as unknown as EmbeddingProviderNodeRow[];
-    dynamicProviders = (Array.isArray(nodes) ? nodes : [])
-      .filter((n) => {
-        const validTypes = ["chat", "responses", "embeddings"];
-        return validTypes.includes(n.apiType || "");
-      })
-      .map((n) => {
-        try {
-          return buildDynamicEmbeddingProvider(n);
-        } catch {
-          return null;
-        }
-      })
-      .filter((p): p is NonNullable<typeof p> => p !== null);
-  } catch {
-    // Ignore failures — just return static providers
-  }
+  // Local provider nodes, listed with the embedding-typed models they expose
+  // (synced + custom rows; see nodeModalityListings.ts).
+  const nodeListings = await listProviderNodeModalityListings("embeddings");
 
   const result: EmbeddingProviderListing[] = [];
 
@@ -384,18 +365,12 @@ export async function listEmbeddingProviders(): Promise<EmbeddingProviderListing
     });
   }
 
-  // Process dynamic providers (local nodes)
-  for (const dp of dynamicProviders) {
-    // Dynamic local providers typically have authType="none"
-    result.push({
-      provider: dp.id,
-      hasKey: true, // local providers don't need keys
-      models: dp.models.map((m) => ({
-        id: `${dp.id}/${m.id}`,
-        name: m.name,
-        dimensions: m.dimensions ?? null,
-      })),
-    });
+  // Local provider nodes (curated entries win on prefix collisions).
+  const curatedIds = new Set(result.map((p) => p.provider));
+  for (const listing of nodeListings) {
+    if (curatedIds.has(listing.provider)) continue;
+    curatedIds.add(listing.provider);
+    result.push(listing);
   }
 
   // Generic fallback: configured OpenAI-compatible chat providers without a

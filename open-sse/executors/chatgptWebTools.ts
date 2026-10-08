@@ -113,6 +113,7 @@ export async function buildToolModeResponse(
   stream: boolean,
   meta: { cid: string; created: number; model: string; idSeed?: string }
 ): Promise<Response> {
+  if (!bufferedJson.ok) return bufferedJson;
   const jsonResponse = await applyToolCallsToJsonResponse(
     bufferedJson,
     requestedTools,

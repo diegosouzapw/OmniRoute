@@ -1,10 +1,10 @@
 # API Reference (العربية)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 ---
 
-🌐 **اللغات:** 🇺🇸 [الإنجليزية](./API_REFERENCE.md) | 🇪🇹 [الأمهرية](../i18n/am/docs/reference/API_REFERENCE.md) | 🇸🇦 [العربية](../i18n/ar/docs/reference/API_REFERENCE.md) | 🇦🇿 [الأذربيجانية](../i18n/az/docs/reference/API_REFERENCE.md) | 🇧🇬 [البلغارية](../i18n/bg/docs/reference/API_REFERENCE.md) | 🇧🇩 [البنغالية](../i18n/bn/docs/reference/API_REFERENCE.md) | 🇨🇿 [التشيكية](../i18n/cs/docs/reference/API_REFERENCE.md) | 🇩🇰 [الدنماركية](../i18n/da/docs/reference/API_REFERENCE.md) | 🇩🇪 [الألمانية](../i18n/de/docs/reference/API_REFERENCE.md) | 🇬🇷 [اليونانية](../i18n/el/docs/reference/API_REFERENCE.md) | 🇪🇸 [الإسبانية](../i18n/es/docs/reference/API_REFERENCE.md) | 🇪🇪 [الإستونية](../i18n/et/docs/reference/API_REFERENCE.md) | 🇮🇷 [الفارسية](../i18n/fa/docs/reference/API_REFERENCE.md) | 🇫🇮 [الفنلندية](../i18n/fi/docs/reference/API_REFERENCE.md) | 🇫🇷 [الفرنسية](../i18n/fr/docs/reference/API_REFERENCE.md) | 🇮🇪 [الأيرلندية](../i18n/ga/docs/reference/API_REFERENCE.md) | 🇮🇳 [الغوجاراتية](../i18n/gu/docs/reference/API_REFERENCE.md) | 🇳🇬 [الهوسا](../i18n/ha/docs/reference/API_REFERENCE.md) | 🇮🇱 [العبرية](../i18n/he/docs/reference/API_REFERENCE.md) | 🇮🇳 [الهندية](../i18n/hi/docs/reference/API_REFERENCE.md) | 🇭🇷 [الكرواتية](../i18n/hr/docs/reference/API_REFERENCE.md) | 🇭🇺 [المجرية](../i18n/hu/docs/reference/API_REFERENCE.md) | 🇦🇲 [الأرمنية](../i18n/hy/docs/reference/API_REFERENCE.md) | 🇮🇩 [الإندونيسية](../i18n/id/docs/reference/API_REFERENCE.md) | 🇳🇬 [الإيغبو](../i18n/ig/docs/reference/API_REFERENCE.md) | 🇮🇹 [الإيطالية](../i18n/it/docs/reference/API_REFERENCE.md) | 🇯🇵 [اليابانية](../i18n/ja/docs/reference/API_REFERENCE.md) | 🇬🇪 [الجورجية](../i18n/ka/docs/reference/API_REFERENCE.md) | 🇰🇭 [الخميرية](../i18n/km/docs/reference/API_REFERENCE.md) | 🇮🇳 [الكنادية](../i18n/kn/docs/reference/API_REFERENCE.md) | 🇰🇷 [الكورية](../i18n/ko/docs/reference/API_REFERENCE.md) | 🇱🇹 [الليتوانية](../i18n/lt/docs/reference/API_REFERENCE.md) | 🇱🇻 [اللاتفية](../i18n/lv/docs/reference/API_REFERENCE.md) | 🇮🇳 [المالايالامية](../i18n/ml/docs/reference/API_REFERENCE.md) | 🇮🇳 [الماراثية](../i18n/mr/docs/reference/API_REFERENCE.md) | 🇲🇾 [الملايوية](../i18n/ms/docs/reference/API_REFERENCE.md) | 🇲🇹 [المالطية](../i18n/mt/docs/reference/API_REFERENCE.md) | 🇲🇲 [البورمية](../i18n/my/docs/reference/API_REFERENCE.md) | 🇳🇵 [النيبالية](../i18n/ne/docs/reference/API_REFERENCE.md) | 🇳🇱 [الهولندية](../i18n/nl/docs/reference/API_REFERENCE.md) | 🇳🇴 [النرويجية](../i18n/no/docs/reference/API_REFERENCE.md) | 🇮🇳 [الأوديا](../i18n/or/docs/reference/API_REFERENCE.md) | 🇮🇳 [البنجابية](../i18n/pa/docs/reference/API_REFERENCE.md) | 🇵🇭 [الفلبينية](../i18n/phi/docs/reference/API_REFERENCE.md) | 🇵🇱 [البولندية](../i18n/pl/docs/reference/API_REFERENCE.md) | 🇵🇹 [البرتغالية (البرتغال)](../i18n/pt/docs/reference/API_REFERENCE.md) | 🇧🇷 [البرتغالية (البرازيل)](../i18n/pt-BR/docs/reference/API_REFERENCE.md) | 🇷🇴 [الرومانية](../i18n/ro/docs/reference/API_REFERENCE.md) | 🇷🇺 [الروسية](../i18n/ru/docs/reference/API_REFERENCE.md) | 🇱🇰 [السنهالية](../i18n/si/docs/reference/API_REFERENCE.md) | 🇸🇰 [السلوفاكية](../i18n/sk/docs/reference/API_REFERENCE.md) | 🇸🇮 [السلوفينية](../i18n/sl/docs/reference/API_REFERENCE.md) | 🇷🇸 [الصربية](../i18n/sr/docs/reference/API_REFERENCE.md) | 🇸🇪 [السويدية](../i18n/sv/docs/reference/API_REFERENCE.md) | 🇰🇪 [السواحيلية](../i18n/sw/docs/reference/API_REFERENCE.md) | 🇮🇳 [التاميلية](../i18n/ta/docs/reference/API_REFERENCE.md) | 🇮🇳 [التيلوغوية](../i18n/te/docs/reference/API_REFERENCE.md) | 🇹🇭 [التايلاندية](../i18n/th/docs/reference/API_REFERENCE.md) | 🇹🇷 [التركية](../i18n/tr/docs/reference/API_REFERENCE.md) | 🇺🇦 [الأوكرانية](../i18n/uk-UA/docs/reference/API_REFERENCE.md) | 🇵🇰 [الأردية](../i18n/ur/docs/reference/API_REFERENCE.md) | 🇺🇿 [الأوزبكية](../i18n/uz/docs/reference/API_REFERENCE.md) | 🇻🇳 [الفيتنامية](../i18n/vi/docs/reference/API_REFERENCE.md) | 🇳🇬 [اليوروبية](../i18n/yo/docs/reference/API_REFERENCE.md) | 🇨🇳 [الصينية (المبسطة)](../i18n/zh-CN/docs/reference/API_REFERENCE.md) | 🇹🇼 [الصينية (التقليدية)](../i18n/zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 المرجع الأساسي لواجهة OmniRoute API. يغطي واجهة `/v1` العامة ونقاط نهاية الإدارة الأكثر استخدامًا؛ ويُعد كل من ملف [`docs/openapi.yaml`](../openapi.yaml) القابل للقراءة آليًا وشجرة المسارات ضمن `src/app/api/` المصدرين الشاملين.
 
@@ -89,11 +89,11 @@ Content-Type: application/json
 ## عقود الإيجار الحصرية للجلسات المُدارة
 
 يُعد تأجير الجلسات المُدارة حصريًا عقد توجيه اختياريًا ومحايدًا تجاه العميل: يحتفظ مالك نشط واحد
-باتصال OmniRoute واحد مؤهل. ولا يؤجّر نموذجًا، أو يتطلب OAuth، أو يحدد
-عميلًا بعينه، أو يتطلب مزودًا بعينه.
+باتصال OmniRoute مؤهل واحد. ولا يؤجّر نموذجًا، ولا يتطلب OAuth، ولا يحدد
+عميلًا بعينه، ولا يتطلب مزودًا بعينه.
 
 يجب أن يحتوي مفتاح API المستخدم للمصادقة على النطاق `lease:exclusive` وقائمة صريحة غير فارغة
-من `allowedConnections`. ويفرض حدّ تعديل قاعدة البيانات وجود كلا الحقلين معًا عند
+باسم `allowedConnections`. وتفرض حدود عمليات التعديل في قاعدة البيانات وجود الحقلين معًا عند
 إنشاء المفتاح وإجراء التحديثات الجزئية.
 
 ```http
@@ -106,8 +106,8 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 ```
 
 تعرض استجابات الاستحواذ والتجديد والتحرير الناجحة الطوابع الزمنية و`state` والقيمة الموجبة الدقيقة
-لـ`generation`، لكنها لا تعرض أبدًا الاتصال المحدد أو بيانات الاعتماد. يقدّم التجديد والتحرير
-قيمة الجيل في متن JSON:
+لـ`generation`، لكنها لا تعرض أبدًا الاتصال المحدد أو بيانات الاعتماد. ويوفر التجديد والتحرير
+قيمة `generation` في متن JSON:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +117,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-يمكن لمالك عقد إيجار نشط أن يطلب صراحةً بيانات وصفية آمنة للخصوصية لعرض الارتباط الحالي الخاص به:
+يمكن لمالك عقد إيجار نشط أن يطلب صراحةً بيانات تعريف وصفية آمنة للخصوصية لارتباطه الحالي:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,23 +137,24 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 }
 ```
 
-يُحاط إجراء الحالة الاختياري هذا بسياج يعتمد على المالك المُبهم، ومفتاح API المُدار والمصادق عليه، والجيل
-النشط الدقيق ضمن معاملة واحدة لقاعدة البيانات. لا تكون `displayName` سوى اسم الاتصال المُعدّ بعد إزالة
-المسافات الزائدة؛ وتكون `null` عند عدم وجود اسم مُعدّ آمن. لا يستبدل OmniRoute الاسم أبدًا
-بعنوان بريد إلكتروني أو هوية حساب مُنشأة. قيمة المزود هي تسمية عرض غير حساسة، وليست أبدًا
-معرّفًا مُنشأً لمزود متوافق. وتُستبعد بيانات الاعتماد، والرموز، وملفات تعريف الارتباط، ومعرّفات الاتصال أو مفاتيح
-API الأولية، وتجزئات المالك، وأسرار التسييج، وبيانات التوجيه الداخلية.
+يُسيَّج إجراء الحالة الاختياري هذا بالمالك المبهم، ومفتاح API المُدار والمُصادق عليه، والقيمة الدقيقة
+للجيل النشط، وذلك ضمن معاملة واحدة في قاعدة البيانات. لا تكون `displayName` سوى اسم الاتصال المضبوط
+بعد إزالة المسافات الزائدة؛ وتكون `null` عند عدم وجود اسم مضبوط وآمن. لا يستبدل OmniRoute هذا الاسم
+أبدًا بعنوان بريد إلكتروني أو بهوية حساب مُنشأة. وقيمة المزود هي تسمية عرض غير حساسة، وليست أبدًا
+معرّفًا مُنشأً لمزود متوافق. وتُستبعد بيانات الاعتماد والرموز المميزة وملفات تعريف الارتباط ومعرّفات
+الاتصال أو مفاتيح API الأولية وتجزئات المالك وأسرار التسييج وبيانات التوجيه الداخلية.
 
-تُرجع عمليات البحث باستخدام مفتاح خاطئ، أو مالك خاطئ، أو جيل قديم، أو عقد مفقود، أو منتهي الصلاحية، أو محرر، أو مُبطل
-جميعها الخطأ نفسه `409 LEASE_FENCE_STALE` من دون بيانات وصفية للاتصال. لا يملك العميل الذي تلقى استجابة انتظار السعة أي ارتباط نشط لفحصه. عندما ينقل التوجيه عقد إيجار نشطًا،
-يظل الجيل نفسه صالحًا، وتُرجع الحالة الارتباط الجديد ذريًا، لا القديم مطلقًا.
-تظل التطبيقات العميلة الحالية من دون تغيير لأن استجابات الاستحواذ والتجديد والتحرير والانتظار تحتفظ
-ببُناها السابقة.
+تُرجع جميع عمليات البحث ذات المفتاح الخاطئ أو المالك الخاطئ أو الجيل القديم، وكذلك عمليات البحث
+المفقودة أو المنتهية الصلاحية أو المُحررة أو المُبطلة، الخطأ نفسه `409 LEASE_FENCE_STALE` من دون
+بيانات تعريف الاتصال. ولا يكون لدى العميل الذي تلقى استجابة انتظار السعة أي ارتباط نشط لفحصه.
+عندما ينقل التوجيه عقد إيجار نشطًا، يظل الجيل نفسه صالحًا وتُرجع الحالة ذريًا الارتباط الجديد، وليس
+القديم أبدًا. ويظل العملاء الحاليون من دون تغيير لأن استجابات الاستحواذ والتجديد والتحرير والانتظار
+تحتفظ ببُناها السابقة.
 
-لا يغيّر عقد الخادم هذا `/status` القياسي في OpenAI Codex. يُبلغ Codex القياسي حاليًا عن
-مزود النموذج وحالة المصادقة/الحساب المدمجة، لكنه لا يعرض بيانات وصفية عشوائية لحساب
-مزود مخصص؛ ويجب على تكامل عميل لاحق استدعاء هذا الإجراء وتحديد كيفية
-عرض `connection.displayName`.
+لا يغيّر عقد الخادم هذا نقطة `/status` القياسية في OpenAI Codex. يُبلغ Codex القياسي حاليًا عن
+مزود النموذج وحالة المصادقة/الحساب المضمنة، لكنه لا يعرض بيانات تعريف حسابات اعتباطية لمزودين
+مخصصين؛ ويجب أن يستدعي تكامل لاحق للعميل هذا الإجراء وأن يقرر كيفية عرض
+`connection.displayName`.
 
 بعد ذلك، يرسل كل طلب استدلال مُدار ترويستي التحكم كلتيهما:
 
@@ -162,10 +163,10 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-يُسيّج المالك الدقيق والجيل والاتصال النشط ومفتاح API المصادق عليه مباشرةً
-قبل كل محاولة مدعومة للاتصال بالجهة العليا. تفشل إعادة استخدام المالك والجيل مع مفتاح آخر حتى
-عندما يسمح ذلك المفتاح بالاتصال نفسه. لا يُحتفظ بالمالكين الأوليين، ولا يُسجَّلون، ولا يُبقون في
-لقطة الطلب، ولا يُمررون إلى الجهة العليا.
+يُسيَّج المالك الدقيق والجيل والاتصال النشط ومفتاح API المُصادق عليه مباشرةً قبل كل محاولة مدعومة
+مع المزود العلوي. تفشل إعادة تشغيل المالك والجيل باستخدام مفتاح آخر حتى عندما يسمح ذلك المفتاح
+بالاتصال نفسه. ولا تُخزَّن قيم المالك الأولية بصورة دائمة، ولا تُسجَّل، ولا يُحتفظ بها في لقطة الطلب،
+ولا تُمرَّر إلى المزود العلوي.
 
 يُرجع التنافس المؤقت HTTP `429` مع `Retry-After` وما يلي:
 
@@ -178,28 +179,31 @@ X-OmniRoute-Lease-Generation: 1
 }
 ```
 
-تعني هذه الاستجابة فقط أن مجموعة العناصر المؤهلة العادية لم تكن فارغة وأن كل مرشح متاح كان
-محجوزًا بموجب عقد إيجار نشط أجنبي. تحتفظ النماذج/المزودون غير المدعومين، وعدم تطابق السياسة، وفترة التهدئة، والحصة،
-والسلامة، وغيرها من حالات فشل الأهلية العادية باستجابات OmniRoute الحالية الخاصة بها.
+تعني هذه الاستجابة فقط أن مجموعة العناصر المؤهلة العادية لم تكن فارغة، وأن كل اتصال مرشح متاح
+كان محجوزًا بعقد إيجار نشط لمالك آخر. وتحتفظ النماذج/المزودون غير المدعومين، وعدم تطابق السياسة،
+وفترة التهدئة، والحصة، والحالة الصحية، وغيرها من حالات فشل الأهلية العادية، باستجابات OmniRoute
+الحالية الخاصة بها.
 
 ### `x-omniroute-compression`
 
-تجاوز خطة الضغط لكل طلب. له الأولوية القصوى — ويتغلب على تجاوز مجموعة التوجيه،
-والملف الشخصي النشط، والتشغيل التلقائي، والإعداد الافتراضي للوحة. القيم:
+تجاوز خطة الضغط لكل طلب. يتمتع بأعلى أولوية — إذ يتقدم على تجاوز مجموعة التوجيه،
+والملف الشخصي النشط، والمشغّل التلقائي، والقيمة Default في اللوحة. القيم:
 
-| القيمة        | التأثير                                                                      |
-| ------------- | ---------------------------------------------------------------------------- |
-| `off`         | لا يوجد ضغط لهذا الطلب.                                                      |
-| `default`     | الملف الشخصي الافتراضي المستمد من اللوحة (يتجاهل الملف الشخصي النشط).        |
-| `engine:<id>` | محرك واحد عندما يكون مفعّلًا، مثل `engine:rtk`.                              |
-| `<combo>`     | مجموعة مسماة، تُطابق بالاسم أولًا (من دون حساسية لحالة الأحرف)، ثم بالمعرّف. |
+| القيمة        | التأثير                                                                                |
+| ------------- | -------------------------------------------------------------------------------------- |
+| `off`         | لا يوجد ضغط لهذا الطلب.                                                                |
+| `default`     | ملف Default المستمد من اللوحة (يتجاهل الملف الشخصي النشط). تظل المحركات الفاقدة معطلة. |
+| `safe`        | إزالة التكرار وطي المسافات البيضاء فقط.                                                |
+| `allow-lossy` | الاحتفاظ بخطة المشغّل لهذا الطلب، بما في ذلك الملخصات وإعادة صياغة الأسلوب.            |
+| `engine:<id>` | محرك واحد عند تمكينه، مثل `engine:rtk`. اشتراك اختياري لذلك المحرك على مستوى الطلب.    |
+| `<combo>`     | مجموعة مُسمّاة، تتم مطابقتها بالاسم أولًا (من دون حساسية لحالة الأحرف)، ثم بالمعرّف.   |
 
 ملاحظات:
 
-- تُتجاهل القيم غير المعروفة (لا يُرفض الطلب مطلقًا)؛ وينتقل الحل إلى أسبقية عوامل التشغيل العادية.
-- إذا كانت عدة مجموعات تشترك في الاسم نفسه، فمرّر **id** المجموعة للحصول على تطابق حتمي.
-- لا يمكن تحديد مجموعة اسمها `off` أو `default` بالاسم (إذ تُفسر هاتان الكلمتان المفتاحيتان أولًا)؛ فارجع إلى مثل هذه المجموعة باستخدام المعرّف الخاص بها.
-- مفتاح الضغط الرئيسي هو بوابة صارمة: عندما يكون الضغط معطلًا عموميًا، لا يمكن لهذه الترويسة تفعيله.
+- تُتجاهل القيم غير المعروفة (ولا يُرفض الطلب أبدًا)؛ ويعود الحل إلى ترتيب الأولوية العادي للمشغّل.
+- إذا اشتركت مجموعات متعددة في اسم واحد، فمرّر **id** المجموعة للحصول على تطابق حتمي.
+- لا يمكن تحديد مجموعة اسمها `off` أو `default` بالاسم (لأن هاتين الكلمتين المفتاحيتين تُفسَّران أولًا)؛ لذا أشِر إلى هذه المجموعة بواسطة معرّفها.
+- مفتاح الضغط الرئيسي هو بوابة صارمة: عندما يكون الضغط معطلًا عموميًا، لا يمكن لهذا الترويس تمكينه.
 
 تُعاد الخطة المطبقة في ترويسة الاستجابة:
 
@@ -207,7 +211,7 @@ X-OmniRoute-Lease-Generation: 1
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-حيث تكون `<source>` إحدى القيم `request-header` أو `routing-override` أو `active-profile` أو `auto-trigger` أو `default` أو `off`.
+حيث تكون `<source>` واحدة من `request-header` أو `routing-override` أو `active-profile` أو `auto-trigger` أو `default` أو `off`.
 
 ---
 
@@ -452,9 +456,9 @@ GET /api/v1/provider-plugin-manifest
 | POST    | `/v1/audio/transcriptions`                | صوت OpenAI (تحويل الكلام إلى نص)                  |
 | POST    | `/v1/audio/speech`                        | تحويل النص إلى كلام من OpenAI (يعيد محتوى صوتيًا) |
 | POST    | `/v1/rerank`                              | إعادة ترتيب بأسلوب Cohere/Voyage                  |
-| POST    | `/v1/classify`                            | تصنيف Jina ‏(`api.jina.ai`)                       |
-| POST    | `/v1/segment`                             | مُجزّئ Jina ‏(`segment.jina.ai`)                  |
-| POST    | `/v1/moderations`                         | الإشراف على المحتوى من OpenAI                     |
+| POST    | `/v1/classify`                            | تصنيف Jina (`api.jina.ai`)                        |
+| POST    | `/v1/segment`                             | مُجزّئ Jina (`segment.jina.ai`)                   |
+| POST    | `/v1/moderations`                         | إشراف المحتوى من OpenAI                           |
 | GET     | `/v1/models`                              | OpenAI                                            |
 | POST    | `/v1/messages/count_tokens`               | Anthropic                                         |
 | GET     | `/v1beta/models`                          | Gemini                                            |
@@ -462,17 +466,17 @@ GET /api/v1/provider-plugin-manifest
 | POST    | `/v1/api/chat`                            | Ollama                                            |
 | GET     | `/api/v1/vscode/{token}/`                 | اسم مستعار لكتالوج OpenAI                         |
 | GET     | `/api/v1/vscode/{token}/models`           | اسم مستعار لنماذج OpenAI                          |
-| POST    | `/api/v1/vscode/{token}/chat/completions` | اسم مستعار مُرمّز برمز لـ OpenAI                  |
-| POST    | `/api/v1/vscode/{token}/responses`        | اسم مستعار مُرمّز برمز لاستجابات OpenAI           |
-| POST    | `/api/v1/vscode/{token}/api/chat`         | اسم مستعار مُرمّز برمز لـ Ollama                  |
-| GET     | `/api/v1/vscode/{token}/api/tags`         | اسم مستعار مُرمّز برمز لوسوم Ollama               |
+| POST    | `/api/v1/vscode/{token}/chat/completions` | اسم مستعار مُرمَّز برمز لـ OpenAI                 |
+| POST    | `/api/v1/vscode/{token}/responses`        | اسم مستعار مُرمَّز برمز لاستجابات OpenAI          |
+| POST    | `/api/v1/vscode/{token}/api/chat`         | اسم مستعار مُرمَّز برمز لـ Ollama                 |
+| GET     | `/api/v1/vscode/{token}/api/tags`         | اسم مستعار مُرمَّز برمز لوسوم Ollama              |
 
-تتبع جميع مسارات POST البنية نفسها: `Bearer your-api-key` + محتوى JSON تم التحقق منه باستخدام Zod ‏(`v1RerankSchema` و`v1ModerationSchema` و`v1AudioSpeechSchema` وغيرها؛ راجع `src/shared/validation/schemas.ts`). تُعاد حالة 4xx عند فشل التحقق من المخطط.
+تتبع جميع مسارات POST البنية نفسها: `Bearer your-api-key` + محتوى JSON متحقق منه بواسطة Zod (`v1RerankSchema`، و`v1ModerationSchema`، و`v1AudioSpeechSchema`، وغيرها؛ راجع `src/shared/validation/schemas.ts`). تُعاد حالة 4xx عند فشل التحقق من المخطط.
 
-بالنسبة إلى العملاء الذين لا يمكنهم إرفاق `Authorization: Bearer ...`، يقبل OmniRoute أيضًا مفاتيح API ضمن عنوان URL، إما عبر توافق سلسلة الاستعلام (`?token=...` أو `?apiKey=...` أو `?api_key=...` أو `?key=...`) أو عبر نقاط النهاية المخصصة `/api/v1/vscode/{token}/...` الموثقة أدناه.
+بالنسبة إلى العملاء الذين لا يمكنهم إرفاق `Authorization: Bearer ...`، يقبل OmniRoute أيضًا مفاتيح API في عنوان URL، إما عبر توافق سلسلة الاستعلام (`?token=...`، أو `?apiKey=...`، أو `?api_key=...`، أو `?key=...`) أو عبر نقاط النهاية المخصصة `/api/v1/vscode/{token}/...` الموثقة أدناه.
 
 ```bash
-# إعادة الترتيب
+# إعادة الترتيب (موفّر سجل سحابي، أو عقدة موفّر متوافقة مع OpenAI بصيغة "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # تصنيف Jina (بيانات اعتماد Foundation API)
@@ -481,7 +485,7 @@ POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."
 # مُجزّئ Jina
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# بحث Jina ‏(s.jina.ai؛ الأسماء المستعارة للمزوّد: jina-search وjina-ai وjina)
+# بحث Jina ‏(s.jina.ai؛ الأسماء المستعارة للموفّر: jina-search، وjina-ai، وjina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # الإشراف على المحتوى
@@ -490,15 +494,41 @@ POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 # تحويل النص إلى كلام — يعيد محتوى audio/mpeg (أو التنسيق المطلوب)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
+# يتطلب تحويل النص إلى كلام من Soniox لغةً وصوتًا: تكون القيمة الافتراضية لـ `language` هي "en"؛ وعند غياب
+# الصوت أو استخدام اسم صوت افتراضي من OpenAI ‏(alloy، وnova، و…)، يصبح الصوت "Adrian"
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
+
 # تحرير صورة (متعدد الأجزاء)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# إنشاء فيديو / موسيقى (معرّف نموذج مسبوق باسم المزوّد)
+# إنشاء فيديو / موسيقى (معرّف نموذج مسبوق باسم الموفّر)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-### مسارات المزوّد المخصصة
+> **عُقد موفّري إعادة الترتيب:** يوجّه `POST /v1/rerank` أيضًا الطلبات إلى عُقد موفّرين متوافقة مع OpenAI
+> ‏(oMLX، وvLLM، وInfinity، وTEI خلف بوابة، و…) يُشار إليها بالصيغة `<node-prefix>/<model>`. تكون عُقد
+> الاسترجاع المحلي (`localhost`، و`127.0.0.1`، و`172.16.0.0/12`) مؤهلة دائمًا. أما العُقد الموجودة على أي
+> مضيف آخر — سواء كان جهازًا على شبكة LAN أو نظيرًا على Tailscale — فلا تكون مؤهلة إلا عندما يفعّل المشغّل
+> علامة الميزة `RERANK_REMOTE_PROVIDER_NODES` **ويكون** عنوان URL الأساسي للعقدة متوافقًا مع سياسة عناوين URL
+> الصادرة الخاصة بالموفّر (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`)؛
+> ولا تُوجَّه الطلبات مطلقًا إلى مضيفي بيانات تعريف السحابة. تستدعي خطوة إعادة الترتيب في محرك الذاكرة هذا المسار عبر
+> الاسترجاع المحلي، ولذلك تنطبق القاعدة نفسها على `rerankProviderModel` ضمن إعدادات الذاكرة.
+>
+> **بُنى الخوادم المحلية:** تُستدعى العقدة عند `<base>/v1/rerank`، وعند تلقي 404، عند `<base>/rerank`
+> ‏(Infinity، وTEI). يحمل المحتوى المرسل إلى الخدمة العليا كلًا من تهجئة Cohere/OpenAI ‏(`documents`،
+> و`return_documents`) وتهجئة TEI ‏(`texts`، و`return_text`)، وتُطبَّع استجابة الخدمة العليا إلى غلاف Cohere:
+> إذ تُعاد مصفوفة TEI المجرّدة `[{index, score, text}]`، و`{results: [{index, score}]}` الواردة
+> من البوابات الخفيفة، و`{data: [...]}` بأسلوب Voyage، جميعها إلى العميل بالصيغة
+> `{results: [{index, relevance_score, document?}]}`، مرتبة حسب الدرجة ومحدودة عند `top_n`.
+
+> **اكتشاف عُقد المزوّد:** تظهر النماذج الموجودة على عقدة مزوّد متوافقة مع OpenAI في `GET /v1/models`
+> ضمن بادئة العقدة. ترث الصفوف التي لا تحتوي على بيانات وصفية لنقطة النهاية (كما هو معتاد في قوائم `/v1/models` المحلية)
+> قيمة `apiType` الخاصة بالعقدة، ولذلك تكون نماذج عقدة `embeddings` من النوع `type: "embedding"` ونماذج عقدة
+> `rerank` من النوع `type: "rerank"` بدلًا من تعيين نوع الدردشة افتراضيًا؛ وتظل قيمة `supportedEndpoints` الصريحة
+> في صف متزامن أو مضاف يدويًا ذات أولوية.
+
+### مسارات مخصصة للمزوّد
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -506,7 +536,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-تُضاف بادئة المزوّد تلقائيًا إذا كانت مفقودة. تعيد النماذج غير المتطابقة `400`.
+تُضاف بادئة المزوّد تلقائيًا إذا كانت مفقودة. تُرجع النماذج غير المتطابقة الرمز `400`.
 
 ---
 
@@ -796,10 +826,10 @@ X-OmniRoute-No-Cache: true
 
 ---
 
-## لوحة المعلومات والإدارة
+## لوحة التحكم والإدارة
 
-مسارات الإدارة (`/api/*` باستثناء المصادقة العامة/تسجيل الدخول) **غير** مصرّح بالوصول إليها باستخدام
-مفاتيح API العادية الخاصة بالاستدلال. للاطلاع على فئات بيانات الاعتماد والنطاقات وأمثلة curl:
+مسارات الإدارة (`/api/*` باستثناء المصادقة العامة/تسجيل الدخول) **غير** مصرّح بها باستخدام
+مفاتيح API العادية الخاصة بالاستدلال. للاطلاع على عائلات بيانات الاعتماد والنطاقات وأمثلة curl:
 [مصادقة الإدارة](../guides/MANAGEMENT-AUTH.md).
 
 ### المصادقة
@@ -812,94 +842,95 @@ X-OmniRoute-No-Cache: true
 
 ### إدارة المزوّدين
 
-| نقطة النهاية                 | الطريقة               | الوصف                                                                                            |
-| ---------------------------- | --------------------- | ------------------------------------------------------------------------------------------------ |
-| `/api/providers`             | GET/POST              | عرض المزوّدين / إنشاء مزوّد                                                                      |
-| `/api/providers/[id]`        | GET/PUT/DELETE        | إدارة مزوّد                                                                                      |
-| `/api/providers/[id]/test`   | POST                  | اختبار اتصال المزوّد                                                                             |
-| `/api/providers/[id]/models` | GET                   | عرض نماذج المزوّد                                                                                |
-| `/api/providers/validate`    | POST                  | التحقق من صحة إعدادات المزوّد                                                                    |
-| `/api/providers/bulk`        | POST                  | إضافة مفاتيح API بشكل جماعي لمزوّد واحد                                                          |
-| `/api/providers/import`      | POST                  | استيراد قائمة غير متجانسة من المزوّدين من ملف CSV/JSON جرى تحليله (#6836)؛ نتائج فشل جزئي لكل صف |
-| `/api/provider-nodes*`       | طرق مختلفة            | إدارة عُقد المزوّد                                                                               |
-| `/api/provider-models`       | GET/POST/PATCH/DELETE | النماذج المخصّصة (إضافة، تحديث، إخفاء/إظهار، حذف)                                                |
+| نقطة النهاية                            | الطريقة               | الوصف                                                                                                                                              |
+| --------------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST              | عرض المزوّدين / إنشاء مزوّد                                                                                                                        |
+| `/api/providers/[id]`                   | GET/PUT/DELETE        | إدارة مزوّد                                                                                                                                        |
+| `/api/providers/[id]/test`              | POST                  | اختبار الاتصال بالمزوّد                                                                                                                            |
+| `/api/providers/[id]/models`            | GET                   | عرض نماذج المزوّد                                                                                                                                  |
+| `/api/providers/validate`               | POST                  | التحقق من صحة إعدادات المزوّد                                                                                                                      |
+| `/api/providers/bulk`                   | POST                  | إضافة مفاتيح API بالجملة لمزوّد واحد                                                                                                               |
+| `/api/providers/import`                 | POST                  | استيراد قائمة غير متجانسة من المزوّدين من ملف CSV/JSON مُحلّل (#6836)؛ مع نتائج فشل جزئي لكل صف                                                    |
+| `/api/provider-nodes*`                  | متنوع                 | إدارة عُقد المزوّد                                                                                                                                 |
+| `/api/provider-models`                  | GET/POST/PATCH/DELETE | النماذج المخصّصة (إضافة، تحديث، إخفاء/إظهار، حذف)                                                                                                  |
+| `/api/provider-models/validate-and-add` | POST                  | التحقق الصارم الاختياري من الاتصال وتسجيل النموذج المخصّص ذريًا، مع المصادقة الإدارية؛ راجع [التحقق من صحة النموذج](../guides/MODEL-VALIDATION.md) |
 
 ### تدفقات OAuth
 
-| نقطة النهاية                     | الطريقة    | الوصف              |
-| -------------------------------- | ---------- | ------------------ |
-| `/api/oauth/[provider]/[action]` | طرق مختلفة | OAuth خاص بالمزوّد |
+| نقطة النهاية                     | الطريقة | الوصف              |
+| -------------------------------- | ------- | ------------------ |
+| `/api/oauth/[provider]/[action]` | متنوع   | OAuth خاص بالمزوّد |
 
 ### التوجيه والإعدادات
 
-| نقطة النهاية          | الطريقة    | الوصف                            |
-| --------------------- | ---------- | -------------------------------- |
-| `/api/models/alias`   | GET/POST   | الأسماء المستعارة للنماذج        |
-| `/api/models/catalog` | GET        | جميع النماذج حسب المزوّد + النوع |
-| `/api/combos*`        | طرق مختلفة | إدارة المجموعات                  |
-| `/api/keys*`          | طرق مختلفة | إدارة مفاتيح API                 |
-| `/api/pricing`        | GET        | تسعير النماذج                    |
+| نقطة النهاية          | الطريقة  | الوصف                            |
+| --------------------- | -------- | -------------------------------- |
+| `/api/models/alias`   | GET/POST | الأسماء البديلة للنماذج          |
+| `/api/models/catalog` | GET      | جميع النماذج حسب المزوّد + النوع |
+| `/api/combos*`        | متنوع    | إدارة التركيبات                  |
+| `/api/keys*`          | متنوع    | إدارة مفاتيح API                 |
+| `/api/pricing`        | GET      | تسعير النماذج                    |
 
 ### الاستخدام والتحليلات
 
-| نقطة النهاية                     | الطريقة         | الوصف                                                                                                                                                                                                                                                                                                                  |
-| -------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/usage/history`             | GET             | سجل الاستخدام                                                                                                                                                                                                                                                                                                          |
-| `/api/usage/logs`                | GET             | سجلات الاستخدام                                                                                                                                                                                                                                                                                                        |
-| `/api/usage/request-logs`        | GET             | سجلات على مستوى الطلب                                                                                                                                                                                                                                                                                                  |
-| `/api/usage/[connectionId]`      | GET             | الاستخدام لكل اتصال                                                                                                                                                                                                                                                                                                    |
-| `/api/usage/token-limits`        | GET/POST/DELETE | ميزانيات حدود الرموز لكل مفتاح API                                                                                                                                                                                                                                                                                     |
-| `/api/usage/model-latency-stats` | GET             | تجميع متجدد لزمن الاستجابة لكل مزود/نموذج (المتوسط/p50/p95/p99، ومعدل النجاح)؛ عوامل التصفية: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                          |
-| `/api/usage/cache-health`        | GET             | ملخص حالة ذاكرة التخزين المؤقت للمطالبات عبر `call_logs` — نسبة الكتابة/القراءة، وتوزيع حجم الكتابة عند p50/p90/p99، وتركيز عمليات الكتابة الكثيفة، والتقسيم حسب النموذج، وحكم `healthy`/`degraded`/`thrash`/`no-data`؛ معاملات الاستعلام `range` (`1h`\|`24h`\|`7d`\|`30d`، الافتراضي `24h`) و`model` اختياري (#8827) |
+| نقطة النهاية                     | الطريقة         | الوصف                                                                                                                                                                                                                                                                                                                                    |
+| -------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/usage/history`             | GET             | سجل الاستخدام                                                                                                                                                                                                                                                                                                                            |
+| `/api/usage/logs`                | GET             | سجلات الاستخدام                                                                                                                                                                                                                                                                                                                          |
+| `/api/usage/request-logs`        | GET             | سجلات على مستوى الطلب                                                                                                                                                                                                                                                                                                                    |
+| `/api/usage/[connectionId]`      | GET             | الاستخدام لكل اتصال                                                                                                                                                                                                                                                                                                                      |
+| `/api/usage/token-limits`        | GET/POST/DELETE | ميزانيات حدود الرموز لكل مفتاح API                                                                                                                                                                                                                                                                                                       |
+| `/api/usage/model-latency-stats` | GET             | تجميع متجدد لزمن الاستجابة لكل مزود/نموذج (المتوسط/p50/p95/p99، معدل النجاح)؛ عوامل التصفية: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                                             |
+| `/api/usage/cache-health`        | GET             | ملخص سلامة ذاكرة التخزين المؤقت للمطالبات استنادًا إلى `call_logs` — نسبة الكتابة/القراءة، وتوزيع حجم الكتابة عند p50/p90/p99، وتركيز عمليات الكتابة الكثيفة، والتقسيم لكل نموذج، وحكم `healthy`/`degraded`/`thrash`/`no-data`؛ معاملات الاستعلام `range`‏ (`1h`\|`24h`\|`7d`\|`30d`، والقيمة الافتراضية `24h`) و`model` اختياري (#8827) |
 
 ### الإعدادات
 
-| نقطة النهاية                          | الطريقة       | الوصف                                                                                                                                                                           |
-| ------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/settings`                       | GET/PUT/PATCH | الإعدادات العامة                                                                                                                                                                |
-| `/api/settings/proxy`                 | GET/PUT       | تكوين وكيل الشبكة                                                                                                                                                               |
-| `/api/settings/proxy/test`            | POST          | اختبار اتصال الوكيل                                                                                                                                                             |
-| `/api/settings/ip-filter`             | GET/PUT       | قائمة السماح/الحظر لعناوين IP                                                                                                                                                   |
-| `/api/settings/thinking-budget`       | GET/PUT       | وضع إعادة كتابة **طلب** ميزانية التفكير/الاستدلال (التمرير كما هو / الإزالة التلقائية / مخصص / تكيفي). مستقل عن الضغط. راجع [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
-| `/api/settings/system-prompt`         | GET/PUT       | موجه النظام العام                                                                                                                                                               |
-| `/api/settings/compression`           | GET/PUT       | تكوين الضغط العام                                                                                                                                                               |
-| `/api/settings/purge-request-history` | POST          | مسح صفوف سجل الطلبات وملفات سجل الاستدعاءات المحلية                                                                                                                             |
+| نقطة النهاية                          | الطريقة       | الوصف                                                                                                                                                               |
+| ------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/settings`                       | GET/PUT/PATCH | الإعدادات العامة                                                                                                                                                    |
+| `/api/settings/proxy`                 | GET/PUT       | إعدادات وكيل الشبكة                                                                                                                                                 |
+| `/api/settings/proxy/test`            | POST          | اختبار اتصال الوكيل                                                                                                                                                 |
+| `/api/settings/ip-filter`             | GET/PUT       | قائمة السماح/الحظر لعناوين IP                                                                                                                                       |
+| `/api/settings/thinking-budget`       | GET/PUT       | وضع إعادة كتابة **طلبات** التفكير/الاستدلال (تمرير كما هو / إزالة تلقائية / مخصص / تكيفي). مستقل عن الضغط. راجع [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
+| `/api/settings/system-prompt`         | GET/PUT       | مطالبة النظام العامة                                                                                                                                                |
+| `/api/settings/compression`           | GET/PUT       | إعدادات الضغط العامة                                                                                                                                                |
+| `/api/settings/purge-request-history` | POST          | مسح صفوف سجل الطلبات وآثار سجل الاستدعاءات المحلية                                                                                                                  |
 
 ### السياق والضغط
 
-| Endpoint                               | الطريقة        | الوصف                                                                           |
+| نقطة النهاية                           | الطريقة        | الوصف                                                                           |
 | -------------------------------------- | -------------- | ------------------------------------------------------------------------------- |
-| `/api/compression/preview`             | POST           | معاينة ضغط off/lite/standard/aggressive/ultra/RTK/stacked                       |
+| `/api/compression/preview`             | POST           | معاينة الضغط بأوضاع off/lite/standard/aggressive/ultra/RTK/stacked              |
 | `/api/compression/language-packs`      | GET            | سرد حزم لغات Caveman المتاحة                                                    |
-| `/api/compression/rules`               | GET            | سرد البيانات الوصفية لقواعد Caveman                                             |
-| `/api/context/caveman/config`          | GET/PUT        | اسم مستعار للإعدادات الخاصة بـ Caveman                                          |
+| `/api/compression/rules`               | GET            | سرد بيانات تعريف قواعد Caveman                                                  |
+| `/api/context/caveman/config`          | GET/PUT        | اسم بديل للإعدادات الخاصة بـ Caveman                                            |
 | `/api/context/rtk/config`              | GET/PUT        | إعدادات خاصة بـ RTK، بما في ذلك عوامل التصفية المخصصة والاحتفاظ بالمخرجات الخام |
 | `/api/context/rtk/filters`             | GET            | كتالوج عوامل تصفية RTK وتشخيصات عوامل التصفية المخصصة                           |
 | `/api/context/rtk/test`                | POST           | تشغيل معاينة/اختبار RTK على حمولة نصية                                          |
-| `/api/context/rtk/raw-output/[id]`     | GET            | قراءة المخرجات الخام المنقحة والمحتفظ بها باستخدام معرّف المؤشر                 |
-| `/api/context/combos`                  | GET/POST       | سرد/إنشاء تركيبات الضغط                                                         |
-| `/api/context/combos/[id]`             | GET/PUT/DELETE | تفاصيل/تحديث/حذف تركيبة الضغط                                                   |
-| `/api/context/combos/[id]/assignments` | GET/PUT        | تعيين تركيبات الضغط إلى تركيبات التوجيه                                         |
-| `/api/context/analytics`               | GET            | اسم مستعار لتحليلات الضغط                                                       |
+| `/api/context/rtk/raw-output/[id]`     | GET            | قراءة المخرجات الخام المنقحة والمحتفظ بها حسب معرّف المؤشر                      |
+| `/api/context/combos`                  | GET/POST       | سرد/إنشاء مجموعات الضغط                                                         |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | تفاصيل/تحديث/حذف مجموعة الضغط                                                   |
+| `/api/context/combos/[id]/assignments` | GET/PUT        | تعيين مجموعات الضغط إلى مجموعات التوجيه                                         |
+| `/api/context/analytics`               | GET            | اسم بديل لتحليلات الضغط                                                         |
 
 ### المراقبة
 
-| Endpoint                             | الطريقة    | الوصف                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| ------------------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/sessions`                      | GET        | تتبع الجلسات النشطة                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `/api/rate-limits`                   | GET        | حدود المعدل لكل حساب                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `/api/monitoring/health`             | GET        | فحص السلامة + ملخص المزوّد (`catalogCount` و`configuredCount` و`activeCount` و`monitoredCount`). يتضمن عرض الإدارة `credentialHealth`: قيمًا قياسية لذاكرة التخزين المؤقت للفحوصات، و`failedConnections` عندما تكون `failed>0`، و`staleDbNonOkCount` (قيمة `test_status` الثابتة في SQLite، وليست المقياس). راجع [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
-| `/api/cache/stats`                   | GET/DELETE | إحصاءات ذاكرة التخزين المؤقت / مسحها                                                                                                                                                                                                                                                                                                                                                                                   |
-| `/api/modality-bridge/stats`         | GET        | قيم `attempts` في الذاكرة، وعمليات النجاح/`bridged`، والإخفاقات، وإصابات ذاكرة التخزين المؤقت، و`totalLatencyMs`، و`latencySamples`، و`averageLatencyMs` المحسوب بناءً على عدد العينات، ووقت آخر استخدام (تُعاد التهيئة عند إعادة التشغيل؛ تتطلب مصادقة إدارية)                                                                                                                                                        |
-| `/api/modality-bridge/video/runtime` | GET        | فحص صارم للاتصال المحلي الموثوق قبل المصادقة الإدارية/الفحص؛ حالة توفر FFmpeg/ffprobe وإصداراتهما بعد تنقيحها (دون تخزين)                                                                                                                                                                                                                                                                                              |
-| `/api/modality-bridge/video/extract` | POST       | وسيط بايتات داخلي مُصادق عليه لاتصال محلي موثوق؛ إدخال بحجم 50 MiB، وطابور محدود/مخرجات بحجم 32 MiB، و`503` عند بلوغ السعة، و`499` عند قطع الاتصال، و`504` عند انتهاء المهلة؛ ليست واجهة API عامة للرفع                                                                                                                                                                                                                |
+| نقطة النهاية                         | الطريقة    | الوصف                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/api/sessions`                      | GET        | تتبّع الجلسات النشطة                                                                                                                                                                                                                                                                                                                                                                                         |
+| `/api/rate-limits`                   | GET        | حدود المعدّل لكل حساب                                                                                                                                                                                                                                                                                                                                                                                        |
+| `/api/monitoring/health`             | GET        | فحص السلامة + ملخص المزوّد (`catalogCount`، و`configuredCount`، و`activeCount`، و`monitoredCount`). يتضمن عرض الإدارة `credentialHealth`: قيماً عددية لذاكرة التخزين المؤقت للفحص، و`failedConnections` عندما تكون `failed>0`، و`staleDbNonOkCount` (`test_status` ثابت في SQLite، وليس المقياس). راجع [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
+| `/api/cache/stats`                   | GET/DELETE | إحصاءات ذاكرة التخزين المؤقت / مسحها                                                                                                                                                                                                                                                                                                                                                                         |
+| `/api/modality-bridge/stats`         | GET        | `attempts` في الذاكرة، وحالات النجاح/`bridged`، وحالات الفشل، وإصابات ذاكرة التخزين المؤقت، و`totalLatencyMs`، و`latencySamples`، و`averageLatencyMs` المحسوب بناءً على عدد العينات، ووقت آخر استخدام (تُعاد تهيئتها عند إعادة التشغيل؛ تتطلب مصادقة الإدارة)                                                                                                                                                |
+| `/api/modality-bridge/video/runtime` | GET        | فحص صارم للاسترجاع الحلقي الموثوق قبل مصادقة/فحص الإدارة؛ حالة توفر FFmpeg/ffprobe وإصداراتهما بعد تنقيحها (من دون تخزين)                                                                                                                                                                                                                                                                                    |
+| `/api/modality-bridge/video/extract` | POST       | وسيط بايتات داخلي موثّق ومحصور في الاسترجاع الحلقي الموثوق؛ إدخال بحجم 50 MiB، وطابور محدود/مخرجات بحجم 32 MiB، و`503` عند بلوغ السعة، و`499` عند قطع الاتصال، و`504` عند تجاوز المهلة؛ وليست واجهة API عامة للرفع                                                                                                                                                                                           |
 
 ### النسخ الاحتياطي والتصدير/الاستيراد
 
 | نقطة النهاية                | الطريقة | الوصف                                    |
 | --------------------------- | ------- | ---------------------------------------- |
 | `/api/db-backups`           | GET     | سرد النسخ الاحتياطية المتاحة             |
-| `/api/db-backups`           | PUT     | إنشاء نسخة احتياطية يدوية                |
+| `/api/db-backups`           | PUT     | إنشاء نسخة احتياطية يدويًا               |
 | `/api/db-backups`           | POST    | الاستعادة من نسخة احتياطية محددة         |
 | `/api/db-backups/export`    | GET     | تنزيل قاعدة البيانات كملف .sqlite        |
 | `/api/db-backups/import`    | POST    | رفع ملف .sqlite لاستبدال قاعدة البيانات  |
@@ -909,9 +940,9 @@ X-OmniRoute-No-Cache: true
 
 | نقطة النهاية           | الطريقة | الوصف                    |
 | ---------------------- | ------- | ------------------------ |
-| `/api/sync/cloud`      | متعددة  | عمليات المزامنة السحابية |
+| `/api/sync/cloud`      | متنوّعة | عمليات المزامنة السحابية |
 | `/api/sync/initialize` | POST    | تهيئة المزامنة           |
-| `/api/cloud/*`         | متعددة  | إدارة السحابة            |
+| `/api/cloud/*`         | متنوّعة | إدارة السحابة            |
 
 ### الأنفاق
 
@@ -924,13 +955,13 @@ X-OmniRoute-No-Cache: true
 
 ### أدوات CLI
 
-| نقطة النهاية                       | الطريقة | الوصف               |
-| ---------------------------------- | ------- | ------------------- |
-| `/api/cli-tools/claude-settings`   | GET     | حالة Claude CLI     |
-| `/api/cli-tools/codex-settings`    | GET     | حالة Codex CLI      |
-| `/api/cli-tools/droid-settings`    | GET     | حالة Droid CLI      |
-| `/api/cli-tools/openclaw-settings` | GET     | حالة OpenClaw CLI   |
-| `/api/cli-tools/runtime/[toolId]`  | GET     | بيئة تشغيل CLI عامة |
+| نقطة النهاية                       | الطريقة | الوصف             |
+| ---------------------------------- | ------- | ----------------- |
+| `/api/cli-tools/claude-settings`   | GET     | حالة Claude CLI   |
+| `/api/cli-tools/codex-settings`    | GET     | حالة Codex CLI    |
+| `/api/cli-tools/droid-settings`    | GET     | حالة Droid CLI    |
+| `/api/cli-tools/openclaw-settings` | GET     | حالة OpenClaw CLI |
+| `/api/cli-tools/runtime/[toolId]`  | GET     | وقت تشغيل CLI عام |
 
 تتضمن استجابات CLI: `installed`، و`runnable`، و`command`، و`commandPath`، و`runtimeMode`، و`reason`.
 
@@ -938,30 +969,30 @@ X-OmniRoute-No-Cache: true
 
 | نقطة النهاية      | الطريقة | الوصف                                                       |
 | ----------------- | ------- | ----------------------------------------------------------- |
-| `/api/acp/agents` | GET     | سرد جميع الوكلاء المكتشفين (المضمّنين + المخصصين) مع الحالة |
+| `/api/acp/agents` | GET     | سرد جميع الوكلاء المكتشفين (المدمجين + المخصصين) مع حالاتهم |
 | `/api/acp/agents` | POST    | إضافة وكيل مخصص أو تحديث ذاكرة التخزين المؤقت للاكتشاف      |
-| `/api/acp/agents` | DELETE  | إزالة وكيل مخصص باستخدام معامل الاستعلام `id`               |
+| `/api/acp/agents` | DELETE  | إزالة وكيل مخصص عبر معامل الاستعلام `id`                    |
 
-تتضمن استجابة GET الحقل `agents[]` (id، وname، وbinary، وversion، وinstalled، وprotocol، وisCustom) والحقل `summary` (total، وinstalled، وnotFound، وbuiltIn، وcustom).
+تتضمن استجابة GET الحقل `agents[]` ‏(id، name، binary، version، installed، protocol، isCustom) والحقل `summary` ‏(total، installed، notFound، builtIn، custom).
 
 ### المرونة وحدود المعدل
 
-| نقطة النهاية                      | الطريقة   | الوصف                                                                                        |
-| --------------------------------- | --------- | -------------------------------------------------------------------------------------------- |
-| `/api/resilience`                 | GET/PATCH | الحصول على/تحديث قائمة انتظار الطلبات، وفترة تهدئة الاتصال، وقاطع المزوّد، وإعدادات الانتظار |
-| `/api/resilience/reset`           | POST      | إعادة تعيين قواطع الدائرة الخاصة بالمزوّد                                                    |
-| `/api/resilience/model-cooldowns` | GET       | سرد عمليات الحظر النشطة لكل (مزوّد، اتصال، نموذج)، مرتبة حسب الوقت المتبقي                   |
-| `/api/resilience/model-cooldowns` | DELETE    | مسح حظر نموذج — النص `{provider, model}` أو `{all: true}` لمسح كل شيء                        |
-| `/api/rate-limits`                | GET       | حالة حد المعدل لكل حساب                                                                      |
-| `/api/rate-limit`                 | GET       | إعدادات حد المعدل العامة                                                                     |
+| نقطة النهاية                      | الطريقة   | الوصف                                                                                             |
+| --------------------------------- | --------- | ------------------------------------------------------------------------------------------------- |
+| `/api/resilience`                 | GET/PATCH | الحصول على/تحديث قائمة انتظار الطلبات، وفترة تهدئة الاتصال، وقاطع مزوّد الخدمة، وإعدادات الانتظار |
+| `/api/resilience/reset`           | POST      | إعادة تعيين قواطع دوائر مزوّدي الخدمة                                                             |
+| `/api/resilience/model-cooldowns` | GET       | سرد عمليات الحظر النشطة لكل (مزوّد خدمة، اتصال، نموذج)، مرتبة حسب الوقت المتبقي                   |
+| `/api/resilience/model-cooldowns` | DELETE    | مسح حظر نموذج — النص `{provider, model}` أو `{all: true}` لمسح كل شيء                             |
+| `/api/rate-limits`                | GET       | حالة حد المعدل لكل حساب                                                                           |
+| `/api/rate-limit`                 | GET       | إعداد حد المعدل العام                                                                             |
 
-> تتطلب جميع مسارات `/api/resilience/*` الأربعة **مصادقة الإدارة** (`requireManagementAuth`). راجع [المرونة (موسّع)](#resilience-extended) للحصول على شرح كامل للفرق بين قاطع المزوّد وفترة تهدئة الاتصال وحظر النموذج.
+> تتطلب مسارات `/api/resilience/*` الأربعة جميعها **مصادقة إدارية** (`requireManagementAuth`). راجع [المرونة (الموسّعة)](#resilience-extended) للاطلاع على شرح كامل للفروق بين قاطع مزوّد الخدمة وفترة تهدئة الاتصال وحظر النموذج.
 
 ### التقييمات
 
-| نقطة النهاية | الطريقة  | الوصف                            |
-| ------------ | -------- | -------------------------------- |
-| `/api/evals` | GET/POST | سرد حِزم التقييم / تشغيل التقييم |
+| نقطة النهاية | الطريقة  | الوصف                           |
+| ------------ | -------- | ------------------------------- |
+| `/api/evals` | GET/POST | سرد حزم التقييم / تشغيل التقييم |
 
 ### السياسات
 
@@ -971,28 +1002,28 @@ X-OmniRoute-No-Cache: true
 
 ### الامتثال
 
-| نقطة النهاية                | الطريقة | الوصف                      |
-| --------------------------- | ------- | -------------------------- |
-| `/api/compliance/audit-log` | GET     | سجل تدقيق الامتثال (آخر N) |
+| نقطة النهاية                | الطريقة | الوصف                            |
+| --------------------------- | ------- | -------------------------------- |
+| `/api/compliance/audit-log` | GET     | سجل تدقيق الامتثال (آخر N سجلًا) |
 
 ### v1beta (متوافق مع Gemini)
 
-| نقطة النهاية               | الطريقة | الوصف                               |
-| -------------------------- | ------- | ----------------------------------- |
-| `/v1beta/models`           | GET     | سرد النماذج بتنسيق Gemini           |
-| `/v1beta/models/{...path}` | POST    | نقطة نهاية Gemini `generateContent` |
+| نقطة النهاية               | الطريقة | الوصف                                |
+| -------------------------- | ------- | ------------------------------------ |
+| `/v1beta/models`           | GET     | سرد النماذج بتنسيق Gemini            |
+| `/v1beta/models/{...path}` | POST    | نقطة نهاية Gemini ‏`generateContent` |
 
-تحاكي نقاط النهاية هذه تنسيق واجهة API الخاصة بـ Gemini للعملاء الذين يتوقعون توافقًا أصليًا مع Gemini SDK.
+تحاكي نقاط النهاية هذه تنسيق API الخاص بـ Gemini للعملاء الذين يتوقعون توافقًا أصليًا مع Gemini SDK.
 
 ### واجهات API الداخلية / واجهات النظام
 
-| نقطة النهاية             | الطريقة | الوصف                                               |
-| ------------------------ | ------- | --------------------------------------------------- |
-| `/api/init`              | GET     | التحقق من تهيئة التطبيق (يُستخدم عند التشغيل الأول) |
-| `/api/tags`              | GET     | وسوم النماذج المتوافقة مع Ollama (لعملاء Ollama)    |
-| `/api/restart`           | POST    | بدء إعادة تشغيل الخادم بسلاسة                       |
-| `/api/shutdown`          | POST    | بدء إيقاف تشغيل الخادم بسلاسة                       |
-| `/api/system/env/repair` | POST    | إصلاح متغيرات البيئة الخاصة بموفّر OAuth            |
+| نقطة النهاية             | الطريقة | الوصف                                                  |
+| ------------------------ | ------- | ------------------------------------------------------ |
+| `/api/init`              | GET     | التحقق من تهيئة التطبيق (يُستخدم عند التشغيل لأول مرة) |
+| `/api/tags`              | GET     | وسوم النماذج المتوافقة مع Ollama (لعملاء Ollama)       |
+| `/api/restart`           | POST    | تشغيل إعادة تشغيل سلسة للخادم                          |
+| `/api/shutdown`          | POST    | تشغيل إيقاف تشغيل سلس للخادم                           |
+| `/api/system/env/repair` | POST    | إصلاح متغيرات البيئة الخاصة بموفّر OAuth               |
 
 > **ملاحظة:** تُستخدم نقاط النهاية هذه داخليًا بواسطة النظام أو للتوافق مع عملاء Ollama. ولا يستدعيها المستخدمون النهائيون عادةً.
 
@@ -1438,18 +1469,18 @@ GET /.well-known/agent.json
 
 | الطريقة | المسار | الوصف |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | التحقق من مفتاح Bearer وإعادة اتصالات المزوّدين المقنّعة + الأسماء البديلة للنماذج لعملاء المزامنة السحابية |
+| POST | `/api/cloud/auth` | التحقق من مفتاح Bearer وإرجاع اتصالات المزوّدين المخفية جزئيًا + الأسماء المستعارة للنماذج لعملاء المزامنة السحابية |
 | POST | `/api/cloud/credentials/update` | تحديث بيانات الاعتماد المشفّرة لمزوّد متزامن مع السحابة |
 | POST | `/api/cloud/model/resolve` | تحويل معرّف نموذج منطقي إلى مزوّد/نموذج فعلي باستخدام جدول التوجيه المحلي |
-| GET | `/api/cloud/models/alias` | سرد الأسماء البديلة للنماذج كما تظهر للمزامنة السحابية |
+| GET | `/api/cloud/models/alias` | سرد الأسماء المستعارة للنماذج كما تُعرض للمزامنة السحابية |
 | GET | `/api/assess` | قراءة أحدث تصنيفات التقدير (لكل مزوّد/نموذج) |
-| POST | `/api/assess` | تشغيل تقدير — المتن: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | سرد حزم التقييم المضمّنة + أحدث عمليات التشغيل |
+| POST | `/api/assess` | تشغيل تقدير — النص: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| GET | `/api/evals` | سرد حِزم التقييم المضمّنة + أحدث عمليات التشغيل |
 | POST | `/api/evals` | تشغيل عملية تقييم |
-| POST | `/api/evals/suites` | إنشاء حزمة تقييم مخصّصة — يتم التحقق من المتن باستخدام `evalSuiteSaveSchema` |
+| POST | `/api/evals/suites` | إنشاء حزمة تقييم مخصّصة — يتم التحقق من صحة النص بواسطة `evalSuiteSaveSchema` |
 | GET | `/api/evals/suites/[id]` | استرداد حزمة تقييم مخصّصة |
 
-**المصادقة:** يتحقق `/api/cloud/auth` من مفتاح Bearer مباشرةً؛ وتتطلب مسارات `/api/cloud/*` و`/api/evals/*` و`/api/assess` الأخرى جلسة إدارة/مفتاح API. يستخدم طلب POST إلى `/api/assess` الدالة `validateBody` مع مخطط نطاق ذي اتحاد مميّز.
+**المصادقة:** يتحقق `/api/cloud/auth` من مفتاح Bearer مباشرةً، ولا يُرجع المفتاح المخفي جزئيًا و`projectId` لكل اتصال إلا لمفتاح ذي نطاق `manage` / `admin`؛ بينما تتطلب مسارات `/api/cloud/*` و`/api/evals/*` و`/api/assess` الأخرى جلسة إدارة/مفتاح API. يستخدم طلب POST إلى `/api/assess` الدالة `validateBody` مع مخطط نطاق لاتحاد مميَّز.
 
 ---
 
@@ -1610,19 +1641,19 @@ GET /.well-known/agent.json
 
 ## إدارة أدوات CLI
 
-إدارة أدوات CLI التي تتكامل مع OmniRoute (antigravity وchipotle وcommandCode و
-devin-cli وغيرها). راجع [مرجع المزودين](./PROVIDER_REFERENCE.md) للاطلاع على القائمة الكاملة.
+أدِر أدوات CLI التي تتكامل مع OmniRoute ‏(antigravity وcommandCode و
+devin-cli وغيرها). راجع [مرجع موفّري الخدمة](./PROVIDER_REFERENCE.md) للاطلاع على القائمة الكاملة.
 
-| الطريقة | المسار                                  | الوصف                                                                                                                                                       |
-| ------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET     | `/api/cli-tools/all-statuses`           | حالة جميع أدوات CLI (حالة التثبيت والإصدار وآخر ظهور)                                                                                                       |
-| GET     | `/api/cli-tools/status`                 | تفاصيل حالة أداة CLI واحدة (استعلام `?tool=`)                                                                                                               |
-| POST    | `/api/cli-tools/apply`                  | كتابة الإعدادات المُنشأة لأداة (`dryRun` للمعاينة؛ `422` + `containerEphemeralTarget` عند التشغيل داخل حاوية؛ تعرض `migration` ملاحظات حول Codex YAML قديم) |
-| GET     | `/api/cli-tools/backups`                | سرد النسخ الاحتياطية لإعدادات أدوات CLI                                                                                                                     |
-| POST    | `/api/cli-tools/backups`                | إنشاء نسخة احتياطية من إعدادات جميع أدوات CLI                                                                                                               |
-| POST    | `/api/cli-tools/backups`                | الاستعادة: تؤدي نقطة النهاية نفسها مع `{tool, backupId}` في النص إلى استعادة تلك النسخة الاحتياطية                                                          |
-| GET     | `/api/cli-tools/antigravity-mitm`       | حالة وكيل MITM الخاص بـ Antigravity (أداة CLI المسماة "antigravity-mitm")                                                                                   |
-| POST    | `/api/cli-tools/antigravity-mitm/alias` | تكوين الأسماء المستعارة لـ antigravity-mitm                                                                                                                 |
+| الطريقة | المسار                                  | الوصف                                                                                                                                                    |
+| ------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET     | `/api/cli-tools/all-statuses`           | حالة جميع أدوات CLI (التثبيت، الإصدار، وآخر ظهور)                                                                                                        |
+| GET     | `/api/cli-tools/status`                 | تفاصيل حالة أداة CLI واحدة (استعلام `?tool=`)                                                                                                            |
+| POST    | `/api/cli-tools/apply`                  | كتابة الإعداد المُنشأ لأداة (`dryRun` للمعاينة؛ `422` مع `containerEphemeralTarget` عند التشغيل داخل حاوية؛ وتوضّح `migration` وجود ملف Codex YAML قديم) |
+| GET     | `/api/cli-tools/backups`                | سرد النسخ الاحتياطية لإعدادات أدوات CLI                                                                                                                  |
+| POST    | `/api/cli-tools/backups`                | إنشاء نسخة احتياطية من إعدادات جميع أدوات CLI                                                                                                            |
+| POST    | `/api/cli-tools/backups`                | الاستعادة: تؤدي نقطة النهاية نفسها، مع `{tool, backupId}` في النص، إلى استعادة تلك النسخة الاحتياطية                                                     |
+| GET     | `/api/cli-tools/antigravity-mitm`       | حالة وكيل MITM لـ Antigravity (أداة CLI المسماة "antigravity-mitm")                                                                                      |
+| POST    | `/api/cli-tools/antigravity-mitm/alias` | إعداد الأسماء المستعارة لـ antigravity-mitm                                                                                                              |
 
 **المصادقة:** تتطلب جلسة إدارة.
 

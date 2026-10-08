@@ -1,1 +1,0 @@
-- **fix(proxies):** pool validation no longer rewrites proxies set to inactive or dead; only active and error statuses are updated ([#13612](https://github.com/diegosouzapw/OmniRoute/pull/13612)) — thanks @maxmad64bis

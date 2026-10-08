@@ -26,6 +26,7 @@ import {
   type ProviderCredentials,
   type ExecuteInput,
 } from "./base.ts";
+import { stripInternalBodyFields } from "../config/cliFingerprints.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { buildErrorBody } from "../utils/error.ts";
 import { getSupervisor } from "@/lib/services/registry";
@@ -166,6 +167,7 @@ export class NineRouterExecutor extends BaseExecutor {
       dynamicCredentials
     );
     mergeUpstreamExtraHeaders(headers, input.upstreamExtraHeaders ?? null);
+    stripInternalBodyFields(transformedBody);
 
     const timeoutSignal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
     const combinedSignal = input.signal

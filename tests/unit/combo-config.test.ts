@@ -385,6 +385,70 @@ test("combo timeout schema rejects values beyond the safe timer limit", () => {
   assert.equal(result.success, false);
 });
 
+test("comboTimeoutMs is a first-class runtime config key", () => {
+  const parsed = createComboSchema.parse({
+    name: "combo-wall-clock",
+    models: ["openai/gpt-4"],
+    config: {
+      comboTimeoutMs: 1_200_000,
+      targetTimeoutMs: 600_000,
+    },
+  });
+
+  assert.equal(parsed.config.comboTimeoutMs, 1_200_000);
+  assert.equal(parsed.config.targetTimeoutMs, 600_000);
+
+  const unlimited = createComboSchema.parse({
+    name: "combo-unlimited-wall-clock",
+    models: ["openai/gpt-4"],
+    config: { comboTimeoutMs: 0 },
+  });
+  assert.equal(unlimited.config.comboTimeoutMs, 0);
+});
+
+test("comboTimeoutMs schema rejects values beyond the safe timer limit", () => {
+  const result = createComboSchema.safeParse({
+    name: "unsafe-combo-timeout",
+    models: ["openai/gpt-4"],
+    config: {
+      comboTimeoutMs: MAX_TIMER_TIMEOUT_MS + 1,
+    },
+  });
+
+  assert.equal(result.success, false);
+});
+
+test("updateComboDefaultsSchema accepts comboTimeoutMs", () => {
+  const parsed = updateComboDefaultsSchema.parse({
+    comboDefaults: {
+      comboTimeoutMs: 1_200_000,
+      targetTimeoutMs: 600_000,
+    },
+  });
+
+  assert.equal(parsed.comboDefaults.comboTimeoutMs, 1_200_000);
+  assert.equal(parsed.comboDefaults.targetTimeoutMs, 600_000);
+});
+
+test("combo editor and defaults pages expose comboTimeoutMs", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const editor = await readFile(
+    new URL("../../src/app/(dashboard)/dashboard/combos/page.tsx", import.meta.url),
+    "utf8"
+  );
+  const defaults = await readFile(
+    new URL(
+      "../../src/app/(dashboard)/dashboard/settings/components/ComboDefaultsTab.tsx",
+      import.meta.url
+    ),
+    "utf8"
+  );
+  assert.match(editor, /import ComboTimeoutFields from "\.\/ComboTimeoutFields"/);
+  assert.match(editor, /<ComboTimeoutFields[\s\S]*showHelp=\{!isExpertMode\}/);
+  assert.match(defaults, /comboTimeoutMs: secondsInputToOptionalMs\(e\.target\.value\)/);
+  assert.match(defaults, /comboTimeoutHint/);
+});
+
 test("resolveComboConfig preserves explicit empty handoffProviders overrides", () => {
   const result = resolveComboConfig(
     {

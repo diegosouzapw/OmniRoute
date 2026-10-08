@@ -39,11 +39,14 @@ complementary; operators should know which one they are looking at.
   cgroup, PSI, OOM events — `open-sse/utils/resourcePressurePolicy.ts`) shortens
   the bounded wait under `high` pressure and sheds immediately with
   `503 resource_pressure` under `critical` pressure, before any bytes are even
-  ingested.
+  ingested. PSI is read from this unit's cgroup `memory.pressure` when present
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` is
+  host-wide and is only the fallback on bare metal / cgroup v1, so a swapping
+  host cannot 503 an idle container.
 - **Tuning:**
   - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — override for the auto-derived byte budget
   - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — legacy request-count cap, opt-in only
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — queue-wait before 503 (default 2000)
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — queue-wait before 503 (defaults to `RATE_LIMIT_MAX_WAIT_MS`)
   - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — queued-bytes heap valve (default 4 MB)
   - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — deprecated
     no-ops since #10110 (accepted for config compatibility, ignored)

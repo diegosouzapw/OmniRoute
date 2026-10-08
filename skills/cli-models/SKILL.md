@@ -17,6 +17,31 @@ omniroute --version
 
 ## Subcommands
 
+### `models test-add <model>`
+
+Validate an OpenAI-compatible model on one strict connection, then add it after a synthetic tool round-trip
+
+**Flags:**
+
+- `--provider <id>`
+- `--connection <id>`
+- `--name <name>`
+- `--max-input-tokens <count>`
+- `--max-output-tokens <count>`
+- `--api-format <format>`
+- `--context <name>`
+- `--base-url <url>`
+- `--allow-inference`
+- `--yes`
+- `--dry-run`
+- `--json`
+
+**Example:**
+
+```bash
+omniroute models test-add example-model --provider example-provider --connection example-connection --dry-run
+```
+
 ### `models [provider]`
 
 **Flags:**
@@ -28,4 +53,65 @@ omniroute --version
 
 ```bash
 omniroute models [provider]
+```
+
+### `models manual <provider>`
+
+List manual model metadata from the selected server
+
+**Example:**
+
+```bash
+omniroute models manual <provider>
+```
+
+### `models add <provider> <model-id>`
+
+Add an unverified manual model, then verify persistence
+
+**Flags:**
+
+- `--name <name>`
+- `--api-format <format>`
+- `--context-window <tokens>`
+- `--max-output-tokens <tokens>`
+- `--dry-run`
+
+**Example:**
+
+```bash
+omniroute models add <provider> <model-id>
+```
+
+### `models edit <provider> <model-id>`
+
+Edit manual model metadata, then verify persistence
+
+**Flags:**
+
+- `--name <name>`
+- `--api-format <format>`
+- `--context-window <tokens>`
+- `--clear-context-window`
+- `--dry-run`
+
+**Example:**
+
+```bash
+omniroute models edit <provider> <model-id>
+```
+
+### `models remove <provider> <model-id>`
+
+Remove only a manual model override, then verify persistence
+
+**Flags:**
+
+- `--yes`
+- `--dry-run`
+
+**Example:**
+
+```bash
+omniroute models remove <provider> <model-id>
 ```

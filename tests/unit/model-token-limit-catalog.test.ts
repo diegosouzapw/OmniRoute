@@ -34,6 +34,7 @@ async function getModel(target = TARGET) {
   const response = await catalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
   );
+  assert.equal(response.status, 200, "model catalog must be available before projecting limits");
   const body = (await response.json()) as { data: Array<Record<string, unknown>> };
   return body.data.find((model) => model.id === target);
 }
@@ -134,16 +135,20 @@ test("v1 model catalog projects a synced Codex context to both public aliases", 
   }
 
   const canonical = await getModel("codex/gpt-5.6-sol");
-  assert.equal(canonical?.type, "image");
-  assert.deepEqual(canonical?.output_modalities, ["image"]);
-  assert.ok(Array.isArray(canonical?.supported_sizes));
+  assert.equal(canonical?.type, undefined, "the canonical chat ID must not be shadowed by image");
+  const image = await getModel("codex/gpt-5.6-sol-image");
+  assert.equal(image?.type, "image");
+  assert.deepEqual(image?.output_modalities, ["image"]);
+  assert.ok(Array.isArray(image?.supported_sizes));
+  assert.equal(image?.context_length, undefined, "chat overrides must not leak to the image ID");
 
   assert.equal(contextOverrides.removeModelContextOverride("codex", "gpt-5.6-sol"), true);
   assert.equal(
-    (await getModel("codex/gpt-5.6-sol"))?.context_length,
+    (await getModel("codex/gpt-5.6-sol-image"))?.context_length,
     undefined,
     "the specialty row must not inherit the synced chat context after override removal"
   );
+  assert.equal((await getModel("codex/gpt-5.6-sol"))?.context_length, 872000);
   assert.equal((await getModel("cx/gpt-5.6-sol"))?.context_length, 272000);
 });
 

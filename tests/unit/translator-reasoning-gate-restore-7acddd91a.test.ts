@@ -16,6 +16,11 @@ import assert from "node:assert/strict";
 //   thinking-opt-out clients (requestedThinking=false) — the operator reported
 //   "reasoning is exposed".
 //
+// NOTE (#13866 drain): "opted out" is `requestedThinking === false`, which is what
+//   chatCore always resolves (hasActiveClaudeThinking() yields a boolean). A bare
+//   state (`undefined`) is the LEGACY direct-caller shape and keeps the pre-#12905
+//   "always relay" contract, matching the non-streaming path's own docs and the
+//   #5786 suites; so these cases set the flag explicitly.
 // RESOLUTION (this fix): restore the requestedThinking gate on the thinking
 //   block EMISSION only (content_block_start type:thinking + thinking_delta),
 //   so requestedThinking=false emits NO thinking block (no reasoning leak).
@@ -27,7 +32,7 @@ import assert from "node:assert/strict";
 const { openaiToClaudeResponse } =
   await import("../../open-sse/translator/response/openai-to-claude.ts");
 
-function createState() {
+function createState(): Record<string, unknown> & { requestedThinking?: boolean } {
   return {
     toolCalls: new Map(),
     _pendingXmlToolCalls: [],
@@ -44,7 +49,8 @@ function flatten(items: unknown[]) {
 // a text block from the accumulated reasoning so flush has a content block (no
 // 502) and Claude Code's autocompact parser has a real summary to apply.
 test("REGRESSION: requestedThinking=false + reasoning-only MUST NOT emit a thinking block (gate) but MUST synthesize a text block (fix B) => no 502, compact applies", () => {
-  const state = createState(); // requestedThinking absent => false (autocompact)
+  const state = createState();
+  state.requestedThinking = false; // client opted out (autocompact) — what chatCore resolves for it
 
   // GLM-5.2 autocompact: ONLY reasoning_content, no content delta.
   const reasoning = openaiToClaudeResponse(
@@ -108,7 +114,8 @@ test("REGRESSION: requestedThinking=false + reasoning-only MUST NOT emit a think
 // accumulation; this fix keeps accumulation so fix B never false-fires (real
 // content sets textBlockStarted, so the finish gate is skipped).
 test("REGRESSION: requestedThinking=false + reasoning THEN content emits NO thinking block (gate) but a text block (content)", () => {
-  const state = createState(); // requestedThinking absent => false
+  const state = createState();
+  state.requestedThinking = false; // client opted out — what chatCore resolves for it
 
   const reasoning = openaiToClaudeResponse(
     {
@@ -159,7 +166,8 @@ test("REGRESSION: requestedThinking=false + reasoning THEN content emits NO thin
 // The accumulation MUST stay outside the gate (e28d02066 gated it too => fix B
 // never fired => 502/compact loop regression).
 test("REGRESSION (fix B): requestedThinking=false + reasoning-ONLY MUST synthesize a text block (NOT a thinking block) so autocompact can use it as the summary", () => {
-  const state = createState(); // requestedThinking absent => false (autocompact)
+  const state = createState();
+  state.requestedThinking = false; // client opted out (autocompact) — what chatCore resolves for it
 
   const reasoning = openaiToClaudeResponse(
     {

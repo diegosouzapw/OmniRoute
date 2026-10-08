@@ -1,10 +1,15 @@
-import { getUnifiedModelsResponse } from "@/app/api/v1/models/catalog";
+import { getUnifiedModelsResponse as fetchUnifiedModels } from "@/app/api/v1/models/catalog";
 import { getProviderNodeById } from "@/lib/db/providers/nodes";
 import { getServiceModels } from "@/lib/db/serviceModels";
 import { isServiceBackendPluginId } from "@/lib/services/serviceBackends";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getProviderById, getProviderByAlias } from "@/shared/constants/providers";
 import { isCompatibleProviderConnectionId } from "@/shared/utils/compatibleProviderId";
+import { stripStaleEncodingHeaders } from "@omniroute/open-sse/utils/upstreamResponseHeaders.ts";
+
+// Object field, not a live ESM binding: tests replace `load` so a planted
+// upstream response reaches GET. Production leaves it pointing at the catalog.
+export const unifiedModels = { load: fetchUnifiedModels };
 
 /**
  * Handle CORS preflight
@@ -78,7 +83,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ prov
     }
   }
 
-  const response = await getUnifiedModelsResponse(request);
+  const response = await unifiedModels.load(request);
   const payload = (await response
     .clone()
     .json()
@@ -120,6 +125,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ prov
     });
   }
 
+  // Re-serialization changes the byte length, so the catalog's stale
+  // content-length/content-encoding/transfer-encoding must not ride onto this
+  // smaller body — a stale length makes the response never complete for the
+  // client (the dashboard model picker hangs on "loading" forever, #14092).
+  const headers = stripStaleEncodingHeaders(response.headers);
+
   return Response.json(
     {
       object: payload.object || "list",
@@ -127,7 +138,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ prov
     },
     {
       status: response.status,
-      headers: response.headers,
+      headers,
     }
   );
 }

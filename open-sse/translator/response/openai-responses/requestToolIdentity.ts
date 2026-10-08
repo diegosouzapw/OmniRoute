@@ -79,5 +79,15 @@ export function resolveRequestToolIdentity(identityMap: unknown, toolName: strin
     if (identity && `${identity.namespace}.${identity.name}` === toolName) return identity;
   }
 
-  return splitFlattenedNamespaceWireName(toolName);
+  // The wire-name split only stands in for a request that declared no
+  // namespace identities at all (follow-up turns). When the ledger is populated
+  // the request declared its own tools, so an unlisted `mcp__a__b` is a flat
+  // function tool and must not gain a namespace.
+  const ledgerSize =
+    identityMap instanceof Map
+      ? identityMap.size
+      : identityMap && typeof identityMap === "object" && !Array.isArray(identityMap)
+        ? Object.keys(identityMap).length
+        : 0;
+  return ledgerSize === 0 ? splitFlattenedNamespaceWireName(toolName) : null;
 }

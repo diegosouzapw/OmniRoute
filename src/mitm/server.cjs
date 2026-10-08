@@ -42,7 +42,7 @@ const MITM_IDLE_TIMEOUT_MS =
 const ROUTER_BASE_URL = (
   process.env.OMNIROUTE_BASE_URL ||
   process.env.BASE_URL ||
-  "http://localhost:20128"
+  `http://localhost:${process.env.API_PORT || process.env.PORT || 20128}`
 )
   .trim()
   .replace(/\/+$/, "");
@@ -140,6 +140,7 @@ const ingestShim = require("./_internal/ingest.cjs");
 const forwardShim = require("./_internal/forwardTarget.cjs");
 const aliasConfigShim = require("./_internal/aliasConfig.cjs");
 const standaloneRoutingShim = require("./_internal/standaloneRouting.cjs");
+const writeBackpressureShim = require("./_internal/writeBackpressure.cjs");
 
 // Inspector capture (D4 fallback). The standalone proxy intercepts AgentBridge
 // traffic inline (no MitmHandlerBase / agentBridgeHook), so it posts captured
@@ -255,7 +256,11 @@ function loadLegacySslOptions() {
 // `tproxy/dynamicCert.ts` — see that file's header for why it's duplicated
 // rather than imported). Resolved once during async bootstrap below.
 async function loadRootCaSslOptions() {
-  const { loadOrCreateMitmCa, issueLeafCert, DynamicCertStore } = require("./_internal/rootCaShim.cjs");
+  const {
+    loadOrCreateMitmCa,
+    issueLeafCert,
+    DynamicCertStore,
+  } = require("./_internal/rootCaShim.cjs");
   const ca = await loadOrCreateMitmCa(certDir);
   const certStore = new DynamicCertStore({ key: ca.key, cert: ca.cert });
   const defaultHost = [...TARGET_HOSTS][0];
@@ -542,47 +547,85 @@ async function intercept(req, res, bodyBuffer, override, sourceModel) {
     vlog(1, `[MITM] → forward ${forward.format} ${forward.url}`);
 
     upstreamStartedAt = Date.now();
-    const response = await fetch(forward.url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${API_KEY}`,
-        "x-omniroute-source": "agent-bridge",
-        "x-omniroute-agent": agentId,
-      },
-      body: JSON.stringify(body),
-    });
-
-    captureStatus = response.status;
-    respHeaders = headersToObject(response.headers);
-
-    if (!response.ok) {
-      const errText = await response.text().catch(() => "");
-      respBody = errText.slice(0, INGEST_MAX_BODY);
-      respSize = Buffer.byteLength(errText);
-      throw new Error(`OmniRoute ${response.status}: ${errText}`);
-    }
-
-    res.writeHead(200, {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive",
-      "X-Accel-Buffering": "no",
-    });
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) {
-        res.end();
-        break;
+    // #13395: an abandoned downstream must not keep the upstream fetch + reader
+    // alive. Abort the router fetch and cancel the reader on client close.
+    const upstreamAbort = new AbortController();
+    let downstreamClosed = false;
+    const onDownstreamClose = () => {
+      downstreamClosed = true;
+      try {
+        upstreamAbort.abort();
+      } catch {
+        // Abort is best-effort.
       }
-      const text = decoder.decode(value, { stream: true });
-      if (respBody.length < INGEST_MAX_BODY) respBody += text;
-      respSize += value ? value.length : 0;
-      res.write(text);
+    };
+    res.once("close", onDownstreamClose);
+    let reader = null;
+    try {
+      const response = await fetch(forward.url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${API_KEY}`,
+          "x-omniroute-source": "agent-bridge",
+          "x-omniroute-agent": agentId,
+        },
+        body: JSON.stringify(body),
+        signal: upstreamAbort.signal,
+      });
+
+      captureStatus = response.status;
+      respHeaders = headersToObject(response.headers);
+
+      if (!response.ok) {
+        const errText = await response.text().catch(() => "");
+        respBody = errText.slice(0, INGEST_MAX_BODY);
+        respSize = Buffer.byteLength(errText);
+        throw new Error(`OmniRoute ${response.status}: ${errText}`);
+      }
+
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+        "X-Accel-Buffering": "no",
+      });
+
+      reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        if (downstreamClosed) break;
+        const { done, value } = await reader.read();
+        if (done) {
+          res.end();
+          break;
+        }
+        const text = decoder.decode(value, { stream: true });
+        if (respBody.length < INGEST_MAX_BODY) {
+          respBody += text.slice(0, INGEST_MAX_BODY - respBody.length);
+        }
+        respSize += value ? value.length : 0;
+        if (downstreamClosed || res.closed || res.destroyed) break;
+        // #14528: a slow client must drain before the next upstream read,
+        // otherwise the socket write queue grows without bound. A close
+        // during the wait is caught by the downstreamClosed check above.
+        await writeBackpressureShim.writeWithBackpressure(res, text);
+      }
+    } finally {
+      res.off("close", onDownstreamClose);
+      if (reader) {
+        try {
+          await reader.cancel();
+        } catch {
+          // Reader already done or released.
+        }
+        try {
+          reader.releaseLock();
+        } catch {
+          // Already released.
+        }
+      }
     }
   } catch (error) {
     // Log the raw message locally (server console only) but never expose it
@@ -660,21 +703,19 @@ async function startMitmServer() {
 
     const agentId = TARGET_HOST_AGENT.get(host) || "antigravity";
     const routeConfig = standaloneRoutingShim.getAgentRouteConfig(agentId);
-    const isChatRequest = routeConfig.chatUrlPatterns.some((p) => req.url.includes(p));
-
-    if (!isChatRequest) {
-      vlog(1, `[MITM] → PASSTHROUGH (URL ${req.url} does not match chat patterns)`);
-      return passthrough(req, res, bodyBuffer);
-    }
 
     // FIX #8656: Capture ALL agent traffic (even passthrough) so Traffic Inspector
     // and model auto-detection work WITHOUT requiring mappings first.
     // This fixes the circular dependency: need mappings to see traffic, but need
     // to see traffic to create mappings.
     //
-    // Capture happens BEFORE checking for mappings, so requests appear in Traffic
-    // Inspector even when no mappings exist yet. Status is set to "in-flight"
-    // initially; will be updated to the actual status code if intercepted.
+    // Capture happens BEFORE both the chat-pattern check AND the mappings lookup,
+    // so requests appear in Traffic Inspector even when the URL doesn't match
+    // the agent's chatUrlPatterns (agent telemetry, gRPC-web service paths like
+    // aiserver.v1.GrokBotService/*, /extensions-control, etc.) and even when no
+    // mappings exist yet. Status is set to "in-flight" initially; for
+    // chat-matched requests it gets updated to the actual status code by the
+    // post-intercept capture inside intercept().
     const startedAt = Date.now();
     captureToInspector({
       req,
@@ -691,6 +732,13 @@ async function startMitmServer() {
       upstreamLatencyMs: 0,
     });
 
+    const isChatRequest = routeConfig.chatUrlPatterns.some((p) => req.url.includes(p));
+
+    if (!isChatRequest) {
+      vlog(1, `[MITM] → PASSTHROUGH (URL ${req.url} does not match chat patterns)`);
+      return passthrough(req, res, bodyBuffer);
+    }
+
     const mappedOverride = getMappedOverride(model, agentId);
 
     if (!mappedOverride) {
@@ -705,7 +753,9 @@ async function startMitmServer() {
     vlog(
       1,
       `[MITM] INTERCEPTED ${agentId} ${model} → ${mappedOverride.model || model}` +
-        (mappedOverride.reasoningEffort ? ` (reasoningEffort=${mappedOverride.reasoningEffort})` : "")
+        (mappedOverride.reasoningEffort
+          ? ` (reasoningEffort=${mappedOverride.reasoningEffort})`
+          : "")
     );
     return intercept(req, res, bodyBuffer, mappedOverride, model);
   });

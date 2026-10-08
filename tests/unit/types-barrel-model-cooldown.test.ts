@@ -62,6 +62,26 @@ test("model cooldown body omits retry_after / credentials_cooling when absent or
   );
 });
 
+test("model cooldown body projects hostile model and retry timestamp fields", async () => {
+  const { buildModelCooldownBody } = await import("../../open-sse/utils/error.ts");
+  const secret = "COOLDOWN_SECRET";
+  const body = buildModelCooldownBody({
+    model: `model access_token=${secret} /home/alice/model.ts`,
+    retryAfterSec: Number.NaN,
+    retryAfterAt: `2026-07-07T12:34:56.000Z password=${secret}`,
+    credentialsCoolingCount: 2,
+  });
+  const serialized = JSON.stringify(body);
+
+  assert.equal(body.error.message, "All credentials for the requested model are cooling down");
+  assert.equal(body.error.model, undefined);
+  assert.equal(body.error.retry_after, undefined);
+  assert.equal(body.error.reset_seconds, 1);
+  assert.equal(body.error.credentials_cooling, 2);
+  assert.ok(!serialized.includes(secret));
+  assert.ok(!serialized.includes("/home/alice"));
+});
+
 test("modelCooldownResponse emits HTTP 429 with Retry-After header and retry_after ISO in body (#6460)", async () => {
   const { modelCooldownResponse } = await import("../../open-sse/utils/error.ts");
 

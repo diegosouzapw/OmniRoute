@@ -436,9 +436,10 @@ export const FREE_MODEL_BUDGETS: FreeModelBudget[] = [
   { provider: "t3-web", modelId: "qwen3-32b", displayName: "Qwen3 32B (via t3.chat)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-daily", poolKey: "t3-web", tos: "avoid" },
   { provider: "t3-web", modelId: "kimi-k2", displayName: "Kimi K2 (via t3.chat)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-daily", poolKey: "t3-web", tos: "avoid" },
   { provider: "tencent", modelId: "hunyuan-pro", displayName: "Hunyuan Pro", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "tencent", tos: "caution" },
-  { provider: "uncloseai", modelId: "adamo1139/Hermes-3-Llama-3.1-8B-FP8-Dynamic", displayName: "Hermes 3 Llama 3.1 8B (🆓 Free)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "uncloseai", tos: "caution" },
-  { provider: "uncloseai", modelId: "qwen3.6:27b", displayName: "Qwen3 Coder 27B (🆓 Free)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "uncloseai", tos: "caution" },
-  { provider: "uncloseai", modelId: "gemma4:31b", displayName: "Gemma 4 31B (🆓 Free)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "uncloseai", tos: "caution" },
+  // 2026-09-15 refresh: upstream /v1/models serves a single live model; the
+  // three previously catalogued ids 404 on /v1/chat/completions (see the
+  // matching comment in providers/registry/uncloseai/index.ts).
+  { provider: "uncloseai", modelId: "Lorbus/Qwen3.6-27B-int4-AutoRound", displayName: "Qwen3.6 27B int4 AutoRound (🆓 Free)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "uncloseai", tos: "caution" },
   { provider: "vertex", modelId: "gemini-3.1-pro-preview", displayName: "Gemini 3.1 Pro Preview (Vertex)", monthlyTokens: 0, creditTokens: 300000000, freeType: "one-time-initial", poolKey: "vertex", tos: "caution" },
   { provider: "vertex", modelId: "gemini-3.1-flash-lite", displayName: "Gemini 3.1 Flash Lite (Vertex)", monthlyTokens: 0, creditTokens: 300000000, freeType: "one-time-initial", poolKey: "vertex", tos: "caution" },
   { provider: "vertex", modelId: "gemini-3-flash-preview", displayName: "Gemini 3 Flash Preview (Vertex)", monthlyTokens: 0, creditTokens: 300000000, freeType: "one-time-initial", poolKey: "vertex", tos: "caution" },

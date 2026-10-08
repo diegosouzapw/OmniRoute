@@ -1,7 +1,7 @@
 // Tests for validateWebCookieProvider fallback when no registry entry exists.
 // Covers providers like poe-web, venice-web and v0-vercel-web that are listed in
-// WEB_COOKIE_PROVIDERS but have no entry in providerRegistry.ts, plus the two that have
-// since gained an entry and must keep their classification (lmarena, gemini-business).
+// WEB_COOKIE_PROVIDERS but have no entry in providerRegistry.ts, plus one that has
+// since gained an entry and must keep its classification (lmarena).
 //
 // These providers only expose a marketing website URL (WEB_COOKIE_PROVIDERS[id].website),
 // not a real API host. Probing `${website}/models` does not reliably signal session
@@ -71,21 +71,9 @@ test("lmarena validation rejects empty cookie before checking support", async ()
   assert.equal(fetchCalls.length, 0);
 });
 
-// ── gemini-business (#12107: gained a catalog-only registry entry — must NOT be probed) ──
-// The entry exists so /v1/models lists the executor's models; its baseUrl is the enterprise
-// console (business.gemini.google/home), not an API host, so validation stays the
-// pre-registry "unsupported" result via WEB_COOKIE_PROVIDERS_WITHOUT_AUTH_PROBE, decided
-// before any network call.
-
-test("gemini-business validation is unsupported and makes no network call", async () => {
-  const result = await validateProviderApiKey({
-    provider: "gemini-business",
-    apiKey: "test-gemini-cookie",
-  });
-  assert.strictEqual(result.valid, false);
-  assert.equal(result.unsupported, true);
-  assert.equal(fetchCalls.length, 0);
-});
+// gemini-business (#12107: previously a catalog-only registry entry covered here) was
+// retired in #14217 — see docs/reference/REMOVED_PROVIDERS.md — and now falls through the
+// generic "unknown web-cookie provider" fallback test below instead of this dedicated case.
 
 // ── remaining WEB_COOKIE_PROVIDERS-only providers (no registry entry) ──
 // NOTE: doubao-web and zenmux-free are intentionally NOT covered here — unlike when this

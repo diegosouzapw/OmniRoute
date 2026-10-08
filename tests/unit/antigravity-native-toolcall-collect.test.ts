@@ -118,3 +118,27 @@ test("processAntigravitySSEPayload ignores a malformed functionCall without a na
   assert.equal(collected.toolCalls.length, 0);
   assert.equal(collected.textContent, "");
 });
+
+test("processAntigravitySSEPayload collects text carrying thoughtSignature", () => {
+  const collected = emptyCollected();
+  processAntigravitySSEPayload(
+    JSON.stringify({
+      response: {
+        candidates: [
+          {
+            content: {
+              parts: [
+                { text: "internal reasoning", thought: true },
+                { text: "visible reply after tool execution", thoughtSignature: "sig-tool-res" },
+              ],
+            },
+            finishReason: "STOP",
+          },
+        ],
+      },
+    }),
+    collected
+  );
+
+  assert.equal(collected.textContent, "visible reply after tool execution");
+});

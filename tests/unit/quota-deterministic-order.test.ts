@@ -97,13 +97,13 @@ test("quota-order: group keys order by rank then label then key", () => {
   );
 });
 
-test("quota-order: aliased providers with equal rank break tie by provider key", () => {
-  // xai-oauth and xao are both rank 16 in PROVIDER_ORDER. Deterministic key
-  // tiebreak (ASCII) must decide, not insertion order.
-  const a = ["xai-oauth", "xao"].sort((x, y) => compareProviderGroups(x, y, OPTS));
-  const b = ["xao", "xai-oauth"].sort((x, y) => compareProviderGroups(x, y, OPTS));
-  assert.deepEqual(a, b, "stable regardless of input order");
-  assert.deepEqual(a[0], "xai-oauth", "ASCII: 'xai-oauth' < 'xao'");
+test("quota-order: xao alias has no dashboard rank (single xai-oauth row)", () => {
+  // The xao alias resolves to xai-oauth everywhere it is displayed
+  // (getProviderAlias), so the quota dashboard keeps exactly one row.
+  assert.equal(PROVIDER_ORDER["xai-oauth"], 16, "xai-oauth keeps its rank");
+  assert.equal(PROVIDER_ORDER["xao"], undefined, "xao has no separate rank");
+  assert.equal(PROVIDER_LABEL["xai-oauth"], "xAI OAuth (Grok)");
+  assert.equal(PROVIDER_LABEL["xao"], undefined, "xao has no separate label");
 });
 
 test("quota-order: full grid end-to-end keeps group slots fixed while ordering accounts inside", () => {

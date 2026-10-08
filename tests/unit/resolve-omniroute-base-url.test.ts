@@ -50,3 +50,7 @@ test("resolveOmniRouteBaseUrl ignores blank values", () => {
 test("resolveOmniRouteBaseUrl uses the default localhost fallback", () => {
   assert.equal(resolveOmniRouteBaseUrl({}), DEFAULT_OMNIROUTE_BASE_URL);
 });
+
+test("resolveOmniRouteBaseUrl uses custom port when PORT env is set", () => {
+  assert.equal(resolveOmniRouteBaseUrl({ PORT: 37128 }), "http://localhost:37128");
+});

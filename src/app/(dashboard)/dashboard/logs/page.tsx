@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { ConfirmModal, RequestLoggerV2 } from "@/shared/components";
 import { useTranslations } from "next-intl";
+import { buildLogExportUrl, readLogExportTruncation } from "@/shared/utils/logExport";
 
 const TIME_RANGES = [
   { label: "1h", hours: 1 },
@@ -31,11 +32,15 @@ function LogsPageContent() {
   // Read ONCE: #6830 fixed the detail modal reopening on first close by freezing this
   // value, and the #8354 page rewrite regressed it by reading the live searchParams on
   // every render — the prop flips mid-session and re-fires the child's deep-link effect
-  // exactly when the modal closes.
+  // exactly when the modal closes. Same freeze applies to ?correlationId=: a same-page
+  // navigation to a new correlation link needs a full remount (key change) to take
+  // effect — mirrored from initialId on purpose.
   const [initialId] = useState(() => searchParams.get("id"));
+  const [initialCorrelationId] = useState(() => searchParams.get("correlationId"));
 
   const [showExport, setShowExport] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [exportStatus, setExportStatus] = useState<string | null>(null);
   const [showCleanHistory, setShowCleanHistory] = useState(false);
   const [cleaningHistory, setCleaningHistory] = useState(false);
   const [cleanHistoryStatus, setCleanHistoryStatus] = useState<string | null>(null);
@@ -57,10 +62,13 @@ function LogsPageContent() {
   async function handleExport(hours: number) {
     setExporting(true);
     setShowExport(false);
+    setExportStatus(null);
     try {
       const logType = "request-logs";
-      const res = await fetch(`/api/logs/export?hours=${hours}&type=${logType}`);
+      // #13999: ask for the server's maximum row cap instead of silently getting the 10k default.
+      const res = await fetch(buildLogExportUrl(hours, logType));
       if (!res.ok) throw new Error(t("exportFailed"));
+      const truncation = readLogExportTruncation(res.headers);
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -70,6 +78,11 @@ function LogsPageContent() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      if (truncation) {
+        const { exported, total } = truncation;
+        const fallback = `Export truncated: only ${exported} of ${total} log entries were included. Pick a shorter time range to export the rest.`;
+        setExportStatus(logsText(t, "exportTruncated", fallback, { exported, total }));
+      }
     } catch (err) {
       console.error(t("exportFailed"), err);
     } finally {
@@ -211,6 +224,16 @@ function LogsPageContent() {
         </div>
       </div>
 
+      {exportStatus && (
+        <div
+          id="export-logs-status"
+          role="status"
+          className="flex-shrink-0 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-300"
+        >
+          {exportStatus}
+        </div>
+      )}
+
       {cleanHistoryStatus && (
         <div className="flex-shrink-0 rounded-lg border border-[var(--border,#333)] bg-[var(--card-bg,#1e1e2e)] px-4 py-3 text-sm text-[var(--text-secondary,#aaa)]">
           {cleanHistoryStatus}
@@ -218,7 +241,12 @@ function LogsPageContent() {
       )}
 
       <div className="min-h-0">
-        <RequestLoggerV2 key={requestLogKey} ref={requestLoggerRef} initialSelectedId={initialId} />
+        <RequestLoggerV2
+          key={requestLogKey}
+          ref={requestLoggerRef}
+          initialSelectedId={initialId}
+          initialCorrelationId={initialCorrelationId}
+        />
       </div>
 
       <ConfirmModal

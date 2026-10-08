@@ -1,0 +1,1 @@
+- **fix(auth):** answer a paused no-auth provider with a retryable cooldown ([#15402](https://github.com/diegosouzapw/OmniRoute/pull/15402)) — thanks @maxmad64bis

@@ -28,6 +28,8 @@ export const AgentBridgeServerActionSchema = z.object({
 
 export const AgentBridgeDnsActionSchema = z.object({ enabled: z.boolean() });
 
+export const AgentBridgeResetBodySchema = z.object({ sudoPassword: z.string().optional() });
+
 export const AgentBridgeMappingPutSchema = z.object({
   mappings: z.array(z.object({ source: z.string(), target: z.string() })),
 });

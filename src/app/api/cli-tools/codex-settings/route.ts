@@ -13,7 +13,7 @@ import { createMultiBackup } from "@/shared/services/backupService";
 import { saveCliToolLastConfigured, deleteCliToolLastConfigured } from "@/lib/db/cliToolState";
 import { cliModelConfigSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { getApiKeyById } from "@/lib/db/apiKeys";
+import { resolveApiKey } from "@/shared/services/apiKeyResolver";
 import { normalizeCodexBaseUrl } from "@/shared/utils/codexBaseUrl";
 import { migrateCodexFeatureFlags } from "@/shared/utils/codexConfig";
 
@@ -214,25 +214,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
     const { baseUrl, model, reasoningEffort, wireApi, modelMappings } = validation.data;
-    let { apiKey } = validation.data;
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: "baseUrl, apiKey and model are required" },
-        { status: 400 }
-      );
-    }
-
-    // Resolve real key from DB by ID
-    if (keyId) {
-      try {
-        const keyRecord = await getApiKeyById(keyId);
-        if (keyRecord?.key) {
-          apiKey = keyRecord.key as string;
-        }
-      } catch {
-        // Non-critical: fall back to whatever value was in apiKey
-      }
-    }
+    // Canonical key resolution (#13563): by keyId -> submitted apiKey -> sk_omniroute.
+    // Matches cline/forge/openclaw/grok-build/jcode-settings.
+    const apiKey = await resolveApiKey(keyId, validation.data.apiKey);
 
     const codexDir = getCodexDir();
     const configPath = getCodexConfigPath();

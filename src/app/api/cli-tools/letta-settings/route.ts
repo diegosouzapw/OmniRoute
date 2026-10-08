@@ -74,7 +74,13 @@ const readAuthFile = async () => {
 // ── Check if a base_url points to OmniRoute ──────────────────────────────
 const isOmniRouteUrl = (baseUrl) => {
   if (!baseUrl) return false;
-  return baseUrl.includes(":20128") || baseUrl.includes(":3000") || baseUrl.includes("omniroute");
+  const port = process.env.PORT || process.env.DASHBOARD_PORT;
+  return (
+    baseUrl.includes(":20128") ||
+    baseUrl.includes(":3000") ||
+    (!!port && baseUrl.includes(`:${port}`)) ||
+    baseUrl.includes("omniroute")
+  );
 };
 
 // ── Check if OmniRoute is configured ─────────────────────────────────────
@@ -122,10 +128,7 @@ export async function GET(request: Request) {
       backendMode: settings.preferredBackendMode || "api",
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: { message: sanitizeErrorMessage(error) } },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: { message: sanitizeErrorMessage(error) } }, { status: 500 });
   }
 }
 
@@ -246,10 +249,7 @@ export async function POST(request: Request) {
       needsRestart: true,
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: { message: sanitizeErrorMessage(error) } },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: { message: sanitizeErrorMessage(error) } }, { status: 500 });
   }
 }
 
@@ -321,9 +321,6 @@ export async function DELETE(request: Request) {
       needsRestart: true,
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: { message: sanitizeErrorMessage(error) } },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: { message: sanitizeErrorMessage(error) } }, { status: 500 });
   }
 }

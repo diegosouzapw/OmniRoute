@@ -1,4 +1,8 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
 
 import {
@@ -8,7 +12,77 @@ import {
   filterScope,
   newDeadSymbols,
   perFileRuleCounts,
+  resolveMergeBase,
 } from "../../../scripts/check/newCodeMode.mjs";
+
+/**
+ * Build a temp repo shaped like GitHub's PR checkout (refs/pull/N/merge):
+ * HEAD is a merge commit whose FIRST parent is the live base tip and whose
+ * second parent is the PR head. The PR was opened against `base-old`, and the
+ * base moved (`base-tip`) afterwards — exactly the state where
+ * `github.event.pull_request.base.sha` is stale.
+ */
+function initPrMergeRepo() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-newcode-git-"));
+  const g = (...args: string[]) =>
+    execFileSync("git", args, { cwd: dir, encoding: "utf8" }).toString().trim();
+  g("init", "--quiet", "--initial-branch=main");
+  g("config", "user.email", "test@example.com");
+  g("config", "user.name", "Test");
+  fs.mkdirSync(path.join(dir, "src"));
+  fs.writeFileSync(path.join(dir, "src/base-old.txt"), "old\n");
+  g("add", "-A");
+  g("commit", "--quiet", "-m", "base-old");
+  const baseOld = g("rev-parse", "HEAD");
+  fs.writeFileSync(path.join(dir, "src/base-tip.txt"), "new\n");
+  g("add", "-A");
+  g("commit", "--quiet", "-m", "base-tip");
+  const baseTip = g("rev-parse", "HEAD");
+  g("checkout", "--quiet", "-b", "pr", baseOld);
+  fs.writeFileSync(path.join(dir, "src/pr.txt"), "pr\n");
+  g("add", "-A");
+  g("commit", "--quiet", "-m", "pr");
+  g("checkout", "--quiet", "-b", "merge-main", baseTip);
+  g("merge", "--no-ff", "--no-edit", "--quiet", "pr");
+  return { dir, baseOld, baseTip, g };
+}
+
+function withPrMergeRepo(fn: (repo: ReturnType<typeof initPrMergeRepo>) => void) {
+  const repo = initPrMergeRepo();
+  try {
+    fn(repo);
+  } finally {
+    fs.rmSync(repo.dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
+}
+
+test("resolveMergeBase compares against the merge ref's first parent when the PR base moved (#15346)", () => {
+  withPrMergeRepo((repo) => {
+    // HEAD is GitHub's merge commit; baseOld is the stale base.sha. The PR's new
+    // code is HEAD^1...HEAD — the base's own newer commit must not be blamed on it.
+    const mergeBase = resolveMergeBase(repo.baseOld, { cwd: repo.dir });
+    assert.equal(mergeBase, repo.baseTip);
+    const changed = repo
+      .g("diff", "--name-only", "--diff-filter=ACMR", `${mergeBase}...HEAD`)
+      .split("\n")
+      .filter(Boolean)
+      .sort();
+    assert.deepEqual(changed, ["src/pr.txt"]);
+  });
+});
+
+test("resolveMergeBase keeps merge-base semantics for a linear (non-merge) HEAD", () => {
+  withPrMergeRepo((repo) => {
+    repo.g("checkout", "--quiet", "pr"); // single-parent HEAD, like a local dev branch
+    assert.equal(resolveMergeBase(repo.baseOld, { cwd: repo.dir }), repo.baseOld);
+  });
+});
+
+test("resolveMergeBase is unchanged when the PR base sha is already the live base tip", () => {
+  withPrMergeRepo((repo) => {
+    assert.equal(resolveMergeBase(repo.baseTip, { cwd: repo.dir }), repo.baseTip);
+  });
+});
 
 test("baseRefArg reads --base-ref <sha> and ignores a dangling flag", () => {
   assert.equal(baseRefArg(["node", "x", "--base-ref", "abc123"]), "abc123");
@@ -126,4 +200,51 @@ test("newDeadSymbols reports only symbols that are new on HEAD, in touched files
     "src/other.ts:orphaned",
   ]);
   assert.deepEqual(newDeadSymbols(base, head, ["src/a.ts"]), []);
+});
+
+test("perFileRuleCounts normalizes symlinked cwd so canonical paths match (#14744)", () => {
+  const realBase = fs.realpathSync(os.tmpdir());
+  const realDir = fs.mkdtempSync(path.join(realBase, "omni-test-real-"));
+  const symDir = path.join(
+    realBase,
+    `omni-test-symlink-${Date.now()}-${Math.random().toString(36).slice(2)}`
+  );
+  fs.symlinkSync(realDir, symDir, "dir");
+
+  const report = [
+    {
+      filePath: path.join(realDir, "open-sse/executors/commandCode.ts"),
+      messages: [{ ruleId: "complexity" }, { ruleId: "max-lines-per-function" }],
+    },
+    {
+      filePath: "src/relative.ts",
+      messages: [{ ruleId: "complexity" }],
+    },
+  ];
+
+  try {
+    const counts = perFileRuleCounts(
+      report,
+      new Set(["complexity", "max-lines-per-function"]),
+      symDir
+    );
+    assert.equal(counts.size, 2);
+    assert.equal(counts.get("open-sse/executors/commandCode.ts"), 2);
+    assert.equal(counts.get("src/relative.ts"), 1);
+
+    // Fallback when cwd does not exist on disk
+    const fallbackCounts = perFileRuleCounts(
+      [{ filePath: "/nonexistent/repo/src/a.ts", messages: [{ ruleId: "complexity" }] }],
+      new Set(["complexity"]),
+      "/nonexistent/repo"
+    );
+    assert.equal(fallbackCounts.get("src/a.ts"), 1);
+  } finally {
+    try {
+      fs.unlinkSync(symDir);
+    } catch {}
+    try {
+      fs.rmSync(realDir, { recursive: true, force: true });
+    } catch {}
+  }
 });

@@ -29,7 +29,10 @@
  */
 import { randomUUID } from "node:crypto";
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
-import { makeExecutorErrorResult as makeErrorResult } from "../utils/error.ts";
+import {
+  makeExecutorErrorResult as makeErrorResult,
+  sanitizeErrorMessage,
+} from "../utils/error.ts";
 import {
   BROWSER_HEADERS,
   extractNotionUserIdFromCookie,
@@ -57,7 +60,6 @@ import {
 } from "../services/notionStreamParser.ts";
 import {
   buildNotionTranscript,
-  messagesForNotionTranscript,
   type NotionAgentOptions,
 } from "../services/notionTranscriptBuilder.ts";
 import { tlsFetchNotion } from "../services/notionTlsClient.ts";
@@ -311,6 +313,16 @@ function clientFacingModelId(model: unknown): string {
   return clientFacingModel;
 }
 
+function sanitizeNotionTransportError(error: unknown): string {
+  let candidate = error;
+  try {
+    if (error instanceof Error) candidate = error.message;
+  } catch {
+    // Keep the unknown value for the canonical fail-closed sanitizer.
+  }
+  return sanitizeErrorMessage(candidate).trim() || "unknown error";
+}
+
 /** Resolves workspace + user (cached). Required for createThread payloads. */
 async function resolveExecuteWorkspace(
   cookie: string,
@@ -508,7 +520,7 @@ async function sendNotionInferenceRequest(opts: {
     return {
       errorResult: makeErrorResult(
         502,
-        `Notion fetch failed: ${err instanceof Error ? err.message : "unknown error"}`,
+        `Notion fetch failed: ${sanitizeNotionTransportError(err)}`,
         reqBody,
         NOTION_URL
       ),

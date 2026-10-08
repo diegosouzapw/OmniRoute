@@ -1,6 +1,6 @@
 # OmniRoute Codebase Documentation (Yorùbá)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇹 [am](../../../am/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇦 [ar](../../../ar/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇿 [az](../../../az/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../../../bg/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇩 [bn](../../../bn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇿 [cs](../../../cs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../../../da/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../../../de/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇷 [el](../../../el/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../../../es/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇪 [et](../../../et/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇷 [fa](../../../fa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../../../fi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../../../fr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇪 [ga](../../../ga/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [gu](../../../gu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ha](../../../ha/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../../../he/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [hi](../../../hi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇷 [hr](../../../hr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../../../hu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇲 [hy](../../../hy/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../../../id/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ig](../../../ig/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../../../it/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../../../ja/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇪 [ka](../../../ka/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇭 [km](../../../km/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [kn](../../../kn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../../../ko/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇹 [lt](../../../lt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇻 [lv](../../../lv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ml](../../../ml/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [mr](../../../mr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../../../ms/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇹 [mt](../../../mt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇲 [my](../../../my/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇵 [ne](../../../ne/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../../../nl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../../../no/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [or](../../../or/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [pa](../../../pa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../../../phi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../../../pl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../../../pt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../../../ro/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../../../ru/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇰 [si](../../../si/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../../../sk/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇮 [sl](../../../sl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇸 [sr](../../../sr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../../../sv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇪 [sw](../../../sw/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ta](../../../ta/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [te](../../../te/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../../../th/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇷 [tr](../../../tr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇰 [ur](../../../ur/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇿 [uz](../../../uz/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../../../vi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/CODEBASE_DOCUMENTATION.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇹 [am](../../../am/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇦 [ar](../../../ar/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇿 [az](../../../az/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../../../bg/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇩 [bn](../../../bn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇦 [bs](../../../bs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇿 [cs](../../../cs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../../../da/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../../../de/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇷 [el](../../../el/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../../../es/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇪 [et](../../../et/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇷 [fa](../../../fa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../../../fi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../../../fr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇪 [ga](../../../ga/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [gu](../../../gu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ha](../../../ha/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../../../he/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [hi](../../../hi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇷 [hr](../../../hr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../../../hu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇲 [hy](../../../hy/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../../../id/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ig](../../../ig/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../../../it/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../../../ja/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇪 [ka](../../../ka/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇭 [km](../../../km/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [kn](../../../kn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../../../ko/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇹 [lt](../../../lt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇻 [lv](../../../lv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ml](../../../ml/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [mr](../../../mr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../../../ms/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇹 [mt](../../../mt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇲 [my](../../../my/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇵 [ne](../../../ne/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../../../nl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../../../no/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [or](../../../or/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [pa](../../../pa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../../../phi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../../../pl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../../../pt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../../../ro/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../../../ru/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇰 [si](../../../si/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../../../sk/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇮 [sl](../../../sl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇸 [sr](../../../sr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../../../sv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇪 [sw](../../../sw/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ta](../../../ta/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [te](../../../te/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../../../th/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇷 [tr](../../../tr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇰 [ur](../../../ur/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇿 [uz](../../../uz/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../../../vi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/CODEBASE_DOCUMENTATION.md)
 
 ---
 
@@ -434,63 +434,64 @@ A pín in sí àwọn subdirectory tó dojú kọ iṣẹ́ pàtó:
 
 ---
 
-## 4. `open-sse/` — Ààyè iṣẹ́ ẹ̀rọ ìṣànwọlé
+## 4. `open-sse/` — Ààyè-iṣẹ́ ẹ̀rọ ìṣànwọ́
 
-Ààyè iṣẹ́ npm ọ̀tọ̀ tí a tẹ̀jáde gẹ́gẹ́ bí `@omniroute/open-sse`. Ó ń ṣàkóso ṣíṣe àwọn ìbéèrè, àwọn olùṣe, àwọn atúmọ̀, àwọn iṣẹ́, olùyípadà, àti olupin MCP.
+Ààyè-iṣẹ́ npm ọ̀tọ̀ tí a tẹ̀jáde gẹ́gẹ́ bí `@omniroute/open-sse`. Ó ń ṣàkóso
+ìṣiṣẹ́ àwọn ìbéèrè, àwọn olùṣiṣẹ́, àwọn atúmọ̀, àwọn iṣẹ́, olùyípadà, àti olupin MCP.
 
 ```
 open-sse/
-├── index.ts                Àwọn ohun tí a gbé jáde fún gbogbo ènìyàn
-├── package.json            Àkọsílẹ̀ ààyè iṣẹ́
+├── index.ts                Àwọn ohun tí a kó jáde fún gbogbo ènìyàn
+├── package.json            Àkọsílẹ̀ ààyè-iṣẹ́
 ├── tsconfig.json
 ├── types.d.ts
-├── config/                 Àwọn ìforúkọsílẹ̀ olùpèsè, àwọn prófáìlì àkọlé, ìdánimọ̀, …
-├── handlers/               Àwọn olùṣàkóso ìbéèrè (ìfọ̀rọ̀wérọ̀, embeddings, ohun, àwòrán, …)
-├── executors/              Àwọn olùṣe HTTP pàtó sí olùpèsè 108
-├── translator/             Ìyípadà ọ̀nà-kíkó (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
+├── config/                 Àwọn ìforúkọsílẹ̀ olupèsè, prófáìlì àkọlé, ìdánimọ̀, …
+├── handlers/               Àwọn olùtọ́jú ìbéèrè (ìfọ̀rọ̀wérọ̀, embeddings, ohun, àwòrán, …)
+├── executors/              Àwọn olùṣiṣẹ́ HTTP 108 tí ó jẹ́ pàtó sí olupèsè
+├── translator/             Ìyípadà fọ́ọ̀mù (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Olùyípadà ìṣàn Responses API ↔ Chat Completions
-├── services/               Àwọn módù iṣẹ́ 80+ (àkójọpọ̀, fallback, àwọn ìpín, ìdánimọ̀, …)
-├── utils/                  Àwọn olùrànlọ́wọ́ ìṣànwọlé, oníbàárà TLS, AWS SigV4, proxy fetch, …
-└── mcp-server/             Olupin MCP (ọ̀nà ìgbékalẹ̀ 3, àyè-àṣẹ 33, irinṣẹ́ 110)
+├── services/               Àwọn módù iṣẹ́ 80+ (àkópọ̀, àṣàyàn-àfẹ́yinti, ìpín, ìdánimọ̀, …)
+├── utils/                  Àwọn olùrànlọ́wọ́ ìṣànwọ́, oníbárà TLS, AWS SigV4, ìgbàjá proxy, …
+└── mcp-server/             Olupin MCP (ọ̀nà-ìgbékalẹ̀ 3, àyè 33, irinṣẹ́ 110)
 ```
 
 ### 4.1 `open-sse/handlers/`
 
-| Olùṣàkóso               | Ète                                                                          |
-| ----------------------- | ---------------------------------------------------------------------------- |
-| `chatCore.ts`           | Ìlànà ìfọ̀rọ̀wérọ̀ àkọ́kọ́ (ìpamọ́, ààlà ìwọ̀n, ìdarí àkójọpọ̀, fífi ránṣẹ́ sí olùṣe) |
-| `responsesHandler.ts`   | Ibi ìwọlé OpenAI Responses API                                               |
-| `embeddings.ts`         | Àwọn embeddings                                                              |
-| `imageGeneration.ts`    | Ṣíṣẹ̀dá àwòrán                                                                |
-| `audioSpeech.ts`        | Ọ̀rọ̀-kíkọ-sí-ohùn                                                             |
-| `audioTranscription.ts` | Ohùn-sí-ọ̀rọ̀-kíkọ                                                             |
-| `videoGeneration.ts`    | Ṣíṣẹ̀dá fídíò                                                                 |
-| `musicGeneration.ts`    | Ṣíṣẹ̀dá orin                                                                  |
-| `rerank.ts`             | Ṣíṣe àtúntò ipò                                                              |
-| `moderations.ts`        | Ìṣàkóso àkóónú                                                               |
-| `search.ts`             | Ìṣàwárí wẹ́ẹ̀bù                                                                |
-| `sseParser.ts`          | Olùtúpalẹ̀ ìṣẹ̀lẹ̀ SSE                                                          |
-| `usageExtractor.ts`     | Yíyọ àwọn iye token jáde láti inú àwọn ìṣàn orísun òkè                       |
-| `responseSanitizer.ts`  | Yíyọ ariwo pàtó sí olùpèsè kúrò                                              |
-| `responseTranslator.ts` | Asopọ̀ láàárín èsì olùpèsè àti ìpele atúmọ̀                                    |
+| Olùtọ́jú                 | Ìdí                                                                              |
+| ----------------------- | -------------------------------------------------------------------------------- |
+| `chatCore.ts`           | Ìlànà ìfọ̀rọ̀wérọ̀ àkọ́kọ́ (cache, ààlà ìwọ̀n, ìdarí àkópọ̀, fífi iṣẹ́ ránṣẹ́ sí olùṣiṣẹ́) |
+| `responsesHandler.ts`   | Ojú-ìwọlé OpenAI Responses API                                                   |
+| `embeddings.ts`         | Embeddings                                                                       |
+| `imageGeneration.ts`    | Ṣíṣẹ̀dá àwòrán                                                                    |
+| `audioSpeech.ts`        | Ọ̀rọ̀-kíkọ-sí-ohùn                                                                 |
+| `audioTranscription.ts` | Ohùn-sí-ọ̀rọ̀-kíkọ                                                                 |
+| `videoGeneration.ts`    | Ṣíṣẹ̀dá fídíò                                                                     |
+| `musicGeneration.ts`    | Ṣíṣẹ̀dá orin                                                                      |
+| `rerank.ts`             | Ṣíṣe àtúntò ipò                                                                  |
+| `moderations.ts`        | Àbójútó                                                                          |
+| `search.ts`             | Ìṣàwárí wẹ́ẹ̀bù                                                                    |
+| `sseParser.ts`          | Olùtúpalẹ̀ ìṣẹ̀lẹ̀ SSE                                                              |
+| `usageExtractor.ts`     | Yíyọ iye token jáde láti inú àwọn ìṣàn orísun-òkè                                |
+| `responseSanitizer.ts`  | Yíyọ ariwo tí ó jẹ́ pàtó sí olupèsè kúrò                                          |
+| `responseTranslator.ts` | Àsopọ̀ láàárín èsì olupèsè àti ipele atúmọ̀                                        |
 
 ### 4.2 `open-sse/executors/`
 
-Àwọn olùṣe olùpèsè 108, tí ọ̀kọ̀ọ̀kan wọn ń faagun `BaseExecutor` (`base.ts`):
+Àwọn olùṣiṣẹ́ olupèsè 108, ọ̀kọ̀ọ̀kan wọn ń fa `BaseExecutor` (`base.ts`) gùn:
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`,
 `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
 `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`,
 `pollinations`, `qoder`, `vertex`, `devin-desktop`, pẹ̀lú `claudeIdentity.ts`
-(olùrànlọ́wọ́ ìdánimọ̀ tí a jọ ń lò) àti `index.ts` (ìforúkọsílẹ̀).
+(olùrànlọ́wọ́ ìdánimọ̀ àjọpín) àti `index.ts` (ìforúkọsílẹ̀).
 
-> Àkíyèsí: `default.ts` ló ń pèsè iṣẹ́ fún àwọn olùpèsè tí a kò tò síbí nípa lílo olùṣe
-> gbogbogbòò tí ó bá OpenAI mu. Àkójọ olùpèsè kíkún (olùpèsè 355) wà nínú
+> Àkíyèsí: àwọn olupèsè tí a kò tò síbí ni `default.ts` ń pèsè fún nípa lílo olùṣiṣẹ́
+> gbogbogbòò tí ó bá OpenAI mu. Àkójọ olupèsè kíkún (àwọn olupèsè 355) wà nínú
 > `src/shared/constants/providers.ts`.
 
 ### 4.3 `open-sse/translator/`
 
-Ìtumọ̀ onípele àárín-ati-ẹ̀ka (OpenAI ni àárín).
+Ìtumọ̀ àárín-gbùngbùn-àti-ẹ̀ka (OpenAI ni àárín-gbùngbùn).
 
 - **Àwọn atúmọ̀ ìbéèrè 9** (`translator/request/`):
   `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`,
@@ -505,64 +506,64 @@ open-sse/
   `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`, àti
   àwọn ìdánwò olùrànlọ́wọ́.
 - **Àwọn olùrànlọ́wọ́ àwòrán** (`translator/image/sizeMapper.ts`).
-- Ìpele òkè: `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`.
+- Ipele-òkè: `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`.
 
 ### 4.4 `open-sse/transformer/`
 
-- `responsesTransformer.ts` — Olùyípadà Responses API ↔ Chat Completions tó dá lórí `TransformStream`
-  (tí ọ̀nà `responses/` catch-all ń lò).
+- `responsesTransformer.ts` — Olùyípadà Responses API ↔ Chat Completions tí a kọ lórí
+  `TransformStream` (tí ọ̀nà `responses/` olùgbà-gbogbo ń lò).
 
 ### 4.5 `open-sse/services/`
 
 Àwọn pàtàkì (àkójọ kíkún wà lábẹ́ `open-sse/services/`):
 
-| Ohun tó kan        | Àwọn fáìlì                                                                                                                                                                                                                                        |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Ìdarí ọ̀nà Combo    | `combo.ts` (àwọn ọgbọ́n 19), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                             |
-| Ẹ́ńjìnnì Auto Combo | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`      |
-| Ìfaradà            | `accountFallback.ts` (àkókò ìsinmi + títìmọ́), `errorClassifier.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                                           |
-| Àwọn ìwọ̀n          | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts`                       |
-| Ìpamọ́ sínú kàṣe    | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                     |
-| Ọgbọ́n ìdarí ọ̀nà    | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                      |
-| Ìṣàkóso módẹ́lì     | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                       |
-| Ìfúnpọ̀             | `compression/` — gbogbo àsopọ̀ ẹ́ńjìnnì ìfúnpọ̀                                                                                                                                                                                                      |
-| Tókẹ́ẹ̀nì + sáà      | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts` |
-| Ìpele / manifest   | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                     |
-| IP / nẹ́tíwọ̀ọ̀kì     | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                             |
-| Àwọn ìpeleṣẹ́pọ̀     | `batchProcessor.ts`                                                                                                                                                                                                                               |
-| Ìlò                | `usage.ts`                                                                                                                                                                                                                                        |
+| Kókó àníyàn        | Àwọn fáìlì                                                                                                                                                                                                                                               |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ìtọ́sọ́nà Combo      | `combo.ts` (àwọn ọgbọ́n 19), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                    |
+| Ẹ́ńjìnnì Auto Combo | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
+| Ìfaradà            | `accountFallback.ts` (àkókò ìsinmi + títìpa), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                      |
+| Àwọn ìwọ̀n lílò     | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
+| Ìpamọ́ sínú cache   | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                            |
+| Ọgbọ́n ìtọ́sọ́nà      | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                             |
+| Ìṣàkóso model      | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                              |
+| Ìfúnpọ̀             | `compression/` — gbogbo ìsopọ̀ ẹ́ńjìnnì ìfúnpọ̀                                                                                                                                                                                                             |
+| Token + session    | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts`        |
+| Tier / manifest    | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                            |
+| IP / nẹ́tíwọ́ọ̀kì     | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                                    |
+| Àwọn batch         | `batchProcessor.ts`                                                                                                                                                                                                                                      |
+| Ìlò                | `usage.ts`                                                                                                                                                                                                                                               |
 
 ### 4.6 `open-sse/mcp-server/`
 
-- **Àwọn irinṣẹ́ aláìlẹ́gbẹ́ 110** ni a so pọ̀ sínú `server.ts` (45 jẹ́ boṣewa nínú `schemas/tools.ts` +
-  àwọn módù memory, skills, GitHub-skills, pool, gamification, plugin, Notion, Obsidian,
-  local-corpus àti compression — a ka àkójọpọ̀ náà pẹ̀lú `countUniqueMcpTools`).
-- **Àwọn ọ̀nà ìgbéka 3**: stdio, HTTP Streamable, SSE.
-- **Àwọn scope 33** ni a fi tipátipá mú nígbà ìṣiṣẹ́ — àkójọ ìpìlẹ̀ wà nínú `src/shared/constants/mcpScopes.ts`, gbogbo àkójọpọ̀ náà sì jẹ́ ìṣọ̀kan àwọn scope tí módù irinṣẹ́ kọ̀ọ̀kan kéde.
-- Tábìlì àyẹ̀wò: `mcp_tool_audit` (tí `audit.ts` ń fi dátà kún).
+- **Àwọn irinṣẹ́ aláìlẹ́gbẹ́ 110** ni a so pọ̀ nínú `server.ts` (45 jẹ́ canonical nínú `schemas/tools.ts` +
+  àwọn module memory, skills, GitHub-skills, pool, gamification, plugin, Notion, Obsidian,
+  local-corpus àti compression — a ka àpapọ̀ wọn pẹ̀lú `countUniqueMcpTools`).
+- **Àwọn ọ̀nà ìgbéwọlé 3**: stdio, HTTP Streamable, SSE.
+- **Àwọn scope 33** ni a fipá mú ní runtime — àkójọ ìpìlẹ̀ wà nínú `src/shared/constants/mcpScopes.ts`, àkójọpọ̀ kíkún sì ni àpapọ̀ àwọn scope tí module irinṣẹ́ kọ̀ọ̀kan kéde.
+- Tábìlì àyẹ̀wò: `mcp_tool_audit` (tí `audit.ts` ń fi dátà sínú rẹ̀).
 - Àwọn fáìlì: `server.ts`, `index.ts`, `httpTransport.ts`, `audit.ts`, `scopeEnforcement.ts`,
   `runtimeHeartbeat.ts`, `descriptionCompressor.ts`, `schemas/{tools, a2a, audit, index}.ts`,
   `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`,
   pẹ̀lú àwọn ìdánwò lábẹ́ `__tests__/`.
-- Wo [MCP-SERVER.md](../frameworks/MCP-SERVER.md) fún gbogbo àkójọ irinṣẹ́.
+- Wo [MCP-SERVER.md](../frameworks/MCP-SERVER.md) fún àkójọ irinṣẹ́ kíkún.
 
 ### 4.7 `open-sse/config/`
 
-Àwọn ìforúkọsílẹ̀ olùpèsè (`providerRegistry.ts`, `providerModels.ts`,
-`providerHeaderProfiles.ts`), àwọn ìforúkọsílẹ̀ módẹ́lì fún fọ́ọ̀mù kọ̀ọ̀kan (`audioRegistry.ts`,
+Àwọn ìforúkọsílẹ̀ provider (`providerRegistry.ts`, `providerModels.ts`,
+`providerHeaderProfiles.ts`), àwọn ìforúkọsílẹ̀ model fún format kọ̀ọ̀kan (`audioRegistry.ts`,
 `embeddingRegistry.ts`, `imageRegistry.ts`, `moderationRegistry.ts`,
 `musicRegistry.ts`, `rerankRegistry.ts`, `searchRegistry.ts`, `videoRegistry.ts`),
-àwọn olùrànlọ́wọ́ ìdánimọ̀ (`codexIdentity.ts`, `codexInstructions.ts`,
+àwọn olùrànlọ́wọ́ identity (`codexIdentity.ts`, `codexInstructions.ts`,
 `anthropicHeaders.ts`, `antigravityUpstream.ts`, `antigravityModelAliases.ts`,
 `cliFingerprints.ts`, `toolCloaking.ts`, `defaultThinkingSignature.ts`),
-àwọn olùrànlọ́wọ́ ẹ̀rí ìwọlé (`credentialLoader.ts`, `codexClient.ts`), àti àwọn
-adápítà awọsánmà (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
+àwọn olùrànlọ́wọ́ credential (`credentialLoader.ts`, `codexClient.ts`), àti àwọn
+adapter cloud (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
 `maritalk.ts`, `oci.ts`, `petals.ts`, `runway.ts`, `sap.ts`, `watsonx.ts`,
 `ollamaModels.ts`, `errorConfig.ts`, `constants.ts`, `registryUtils.ts`).
 
 ### 4.8 `open-sse/utils/`
 
-Àwọn ìpìlẹ̀ ṣiṣàn àti àwọn olùrànlọ́wọ́ olùpèsè: `stream.ts`, `streamHandler.ts`,
+Àwọn èròjà ìpìlẹ̀ fún ṣiṣàn àti àwọn olùrànlọ́wọ́ olùpèsè: `stream.ts`, `streamHandler.ts`,
 `streamHelpers.ts`, `streamPayloadCollector.ts`, `streamReadiness.ts`,
 `sseHeartbeat.ts`, `proxyFetch.ts`, `proxyDispatcher.ts`, `tlsClient.ts`,
 `networkProxy.ts`, `awsSigV4.ts`, `cacheControlPolicy.ts`,
@@ -655,7 +656,7 @@ A ṣe àfihàn binary méjì nínú `package.json` → `bin`:
 
 ## 8. `scripts/`
 
-A ṣètò rẹ̀ sínú àwọn fóódà kékeré 6 gẹ́gẹ́ bí ète wọn.
+A ṣètò wọn sí àwọn fódà kékeré mẹ́fà gẹ́gẹ́ bí ète wọn.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
   `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,

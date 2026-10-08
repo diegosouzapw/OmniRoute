@@ -12,6 +12,7 @@
 import { toNumber, toRecord, toTitleCase, toPercentage } from "./scalars.ts";
 import { type UsageQuota } from "./quota.ts";
 import { buildGlmQuotaFetch, getGlmTeamQuotaConfig } from "../../config/glmProvider.ts";
+import { fetchGlmResetCardCount } from "./glmResetCards.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -108,6 +109,14 @@ function shouldSuggestGlmTeamQuota(
 ): boolean {
   if (teamConfig.state !== "none") return false;
   return /coding\s*plan|不存在.*plan|没有.*coding|团队|编码套餐/i.test(upstreamMsg);
+}
+
+/**
+ * A reset card can only clear the 5-hour or the weekly coding-plan window, so a key that
+ * reports neither can never have one banked — used to skip the extra reset-card request.
+ */
+function hasResettableGlmWindow(quotas: Record<string, UsageQuota>): boolean {
+  return Boolean(quotas.session || quotas.weekly);
 }
 
 export async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string, unknown>) {
@@ -231,5 +240,21 @@ export async function getGlmUsage(apiKey: string, providerSpecificData?: Record<
         : "";
   const plan = levelRaw ? toTitleCase(levelRaw.replace(/\s*plan$/i, "")) : null;
 
-  return { plan, quotas: orderGlmQuotas(quotas) };
+  const orderedQuotas = orderGlmQuotas(quotas);
+
+  // Coding Plan Reset Cards live on a separate endpoint, so surfacing the banked count costs
+  // one extra request. Only pay it for keys that actually report a resettable window — a
+  // pay-as-you-go key can never hold a card — and keep it best-effort (the helper never
+  // throws). The count is tri-state: a successful list reports a number (0 is an
+  // authoritative "no cards"), while a transport/envelope failure reports null so the
+  // cache layer can preserve the previously known count instead of erasing it.
+  const bankedResetCredits = hasResettableGlmWindow(quotas)
+    ? await fetchGlmResetCardCount(apiKey, providerSpecificData)
+    : 0;
+
+  return {
+    plan,
+    quotas: orderedQuotas,
+    ...(bankedResetCredits !== null ? { bankedResetCredits } : {}),
+  };
 }

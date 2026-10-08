@@ -1,6 +1,6 @@
 # Contributing to OmniRoute (मराठी)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CONTRIBUTING.md) · 🇪🇹 [am](../am/CONTRIBUTING.md) · 🇸🇦 [ar](../ar/CONTRIBUTING.md) · 🇦🇿 [az](../az/CONTRIBUTING.md) · 🇧🇬 [bg](../bg/CONTRIBUTING.md) · 🇧🇩 [bn](../bn/CONTRIBUTING.md) · 🇨🇿 [cs](../cs/CONTRIBUTING.md) · 🇩🇰 [da](../da/CONTRIBUTING.md) · 🇩🇪 [de](../de/CONTRIBUTING.md) · 🇬🇷 [el](../el/CONTRIBUTING.md) · 🇪🇸 [es](../es/CONTRIBUTING.md) · 🇪🇪 [et](../et/CONTRIBUTING.md) · 🇮🇷 [fa](../fa/CONTRIBUTING.md) · 🇫🇮 [fi](../fi/CONTRIBUTING.md) · 🇫🇷 [fr](../fr/CONTRIBUTING.md) · 🇮🇪 [ga](../ga/CONTRIBUTING.md) · 🇮🇳 [gu](../gu/CONTRIBUTING.md) · 🇳🇬 [ha](../ha/CONTRIBUTING.md) · 🇮🇱 [he](../he/CONTRIBUTING.md) · 🇮🇳 [hi](../hi/CONTRIBUTING.md) · 🇭🇷 [hr](../hr/CONTRIBUTING.md) · 🇭🇺 [hu](../hu/CONTRIBUTING.md) · 🇦🇲 [hy](../hy/CONTRIBUTING.md) · 🇮🇩 [id](../id/CONTRIBUTING.md) · 🇳🇬 [ig](../ig/CONTRIBUTING.md) · 🇮🇹 [it](../it/CONTRIBUTING.md) · 🇯🇵 [ja](../ja/CONTRIBUTING.md) · 🇬🇪 [ka](../ka/CONTRIBUTING.md) · 🇰🇭 [km](../km/CONTRIBUTING.md) · 🇮🇳 [kn](../kn/CONTRIBUTING.md) · 🇰🇷 [ko](../ko/CONTRIBUTING.md) · 🇱🇹 [lt](../lt/CONTRIBUTING.md) · 🇱🇻 [lv](../lv/CONTRIBUTING.md) · 🇮🇳 [ml](../ml/CONTRIBUTING.md) · 🇲🇾 [ms](../ms/CONTRIBUTING.md) · 🇲🇹 [mt](../mt/CONTRIBUTING.md) · 🇲🇲 [my](../my/CONTRIBUTING.md) · 🇳🇵 [ne](../ne/CONTRIBUTING.md) · 🇳🇱 [nl](../nl/CONTRIBUTING.md) · 🇳🇴 [no](../no/CONTRIBUTING.md) · 🇮🇳 [or](../or/CONTRIBUTING.md) · 🇮🇳 [pa](../pa/CONTRIBUTING.md) · 🇵🇭 [phi](../phi/CONTRIBUTING.md) · 🇵🇱 [pl](../pl/CONTRIBUTING.md) · 🇵🇹 [pt](../pt/CONTRIBUTING.md) · 🇧🇷 [pt-BR](../pt-BR/CONTRIBUTING.md) · 🇷🇴 [ro](../ro/CONTRIBUTING.md) · 🇷🇺 [ru](../ru/CONTRIBUTING.md) · 🇱🇰 [si](../si/CONTRIBUTING.md) · 🇸🇰 [sk](../sk/CONTRIBUTING.md) · 🇸🇮 [sl](../sl/CONTRIBUTING.md) · 🇷🇸 [sr](../sr/CONTRIBUTING.md) · 🇸🇪 [sv](../sv/CONTRIBUTING.md) · 🇰🇪 [sw](../sw/CONTRIBUTING.md) · 🇮🇳 [ta](../ta/CONTRIBUTING.md) · 🇮🇳 [te](../te/CONTRIBUTING.md) · 🇹🇭 [th](../th/CONTRIBUTING.md) · 🇹🇷 [tr](../tr/CONTRIBUTING.md) · 🇺🇦 [uk-UA](../uk-UA/CONTRIBUTING.md) · 🇵🇰 [ur](../ur/CONTRIBUTING.md) · 🇺🇿 [uz](../uz/CONTRIBUTING.md) · 🇻🇳 [vi](../vi/CONTRIBUTING.md) · 🇳🇬 [yo](../yo/CONTRIBUTING.md) · 🇨🇳 [zh-CN](../zh-CN/CONTRIBUTING.md) · 🇹🇼 [zh-TW](../zh-TW/CONTRIBUTING.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CONTRIBUTING.md) · 🇪🇹 [am](../am/CONTRIBUTING.md) · 🇸🇦 [ar](../ar/CONTRIBUTING.md) · 🇦🇿 [az](../az/CONTRIBUTING.md) · 🇧🇬 [bg](../bg/CONTRIBUTING.md) · 🇧🇩 [bn](../bn/CONTRIBUTING.md) · 🇧🇦 [bs](../bs/CONTRIBUTING.md) · 🇨🇿 [cs](../cs/CONTRIBUTING.md) · 🇩🇰 [da](../da/CONTRIBUTING.md) · 🇩🇪 [de](../de/CONTRIBUTING.md) · 🇬🇷 [el](../el/CONTRIBUTING.md) · 🇪🇸 [es](../es/CONTRIBUTING.md) · 🇪🇪 [et](../et/CONTRIBUTING.md) · 🇮🇷 [fa](../fa/CONTRIBUTING.md) · 🇫🇮 [fi](../fi/CONTRIBUTING.md) · 🇫🇷 [fr](../fr/CONTRIBUTING.md) · 🇮🇪 [ga](../ga/CONTRIBUTING.md) · 🇮🇳 [gu](../gu/CONTRIBUTING.md) · 🇳🇬 [ha](../ha/CONTRIBUTING.md) · 🇮🇱 [he](../he/CONTRIBUTING.md) · 🇮🇳 [hi](../hi/CONTRIBUTING.md) · 🇭🇷 [hr](../hr/CONTRIBUTING.md) · 🇭🇺 [hu](../hu/CONTRIBUTING.md) · 🇦🇲 [hy](../hy/CONTRIBUTING.md) · 🇮🇩 [id](../id/CONTRIBUTING.md) · 🇳🇬 [ig](../ig/CONTRIBUTING.md) · 🇮🇹 [it](../it/CONTRIBUTING.md) · 🇯🇵 [ja](../ja/CONTRIBUTING.md) · 🇬🇪 [ka](../ka/CONTRIBUTING.md) · 🇰🇭 [km](../km/CONTRIBUTING.md) · 🇮🇳 [kn](../kn/CONTRIBUTING.md) · 🇰🇷 [ko](../ko/CONTRIBUTING.md) · 🇱🇹 [lt](../lt/CONTRIBUTING.md) · 🇱🇻 [lv](../lv/CONTRIBUTING.md) · 🇮🇳 [ml](../ml/CONTRIBUTING.md) · 🇲🇾 [ms](../ms/CONTRIBUTING.md) · 🇲🇹 [mt](../mt/CONTRIBUTING.md) · 🇲🇲 [my](../my/CONTRIBUTING.md) · 🇳🇵 [ne](../ne/CONTRIBUTING.md) · 🇳🇱 [nl](../nl/CONTRIBUTING.md) · 🇳🇴 [no](../no/CONTRIBUTING.md) · 🇮🇳 [or](../or/CONTRIBUTING.md) · 🇮🇳 [pa](../pa/CONTRIBUTING.md) · 🇵🇭 [phi](../phi/CONTRIBUTING.md) · 🇵🇱 [pl](../pl/CONTRIBUTING.md) · 🇵🇹 [pt](../pt/CONTRIBUTING.md) · 🇧🇷 [pt-BR](../pt-BR/CONTRIBUTING.md) · 🇷🇴 [ro](../ro/CONTRIBUTING.md) · 🇷🇺 [ru](../ru/CONTRIBUTING.md) · 🇱🇰 [si](../si/CONTRIBUTING.md) · 🇸🇰 [sk](../sk/CONTRIBUTING.md) · 🇸🇮 [sl](../sl/CONTRIBUTING.md) · 🇷🇸 [sr](../sr/CONTRIBUTING.md) · 🇸🇪 [sv](../sv/CONTRIBUTING.md) · 🇰🇪 [sw](../sw/CONTRIBUTING.md) · 🇮🇳 [ta](../ta/CONTRIBUTING.md) · 🇮🇳 [te](../te/CONTRIBUTING.md) · 🇹🇭 [th](../th/CONTRIBUTING.md) · 🇹🇷 [tr](../tr/CONTRIBUTING.md) · 🇺🇦 [uk-UA](../uk-UA/CONTRIBUTING.md) · 🇵🇰 [ur](../ur/CONTRIBUTING.md) · 🇺🇿 [uz](../uz/CONTRIBUTING.md) · 🇻🇳 [vi](../vi/CONTRIBUTING.md) · 🇳🇬 [yo](../yo/CONTRIBUTING.md) · 🇨🇳 [zh-CN](../zh-CN/CONTRIBUTING.md) · 🇹🇼 [zh-TW](../zh-TW/CONTRIBUTING.md)
 
 ---
 
@@ -387,20 +387,20 @@ OAuth क्रेडेन्शियल्स `src/lib/oauth/constants/oauth.
 
 ## Pull Request तपासणी सूची
 
-- [ ] चाचण्या उत्तीर्ण (`npm test`)
-- [ ] लिंटिंग उत्तीर्ण (`npm run lint`)
-- [ ] बिल्ड यशस्वी (`npm run build`)
-- [ ] नवीन सार्वजनिक फंक्शन्स आणि इंटरफेसेससाठी TypeScript प्रकार जोडले
+- [ ] चाचण्या यशस्वी होतात (`npm test`)
+- [ ] लिंटिंग यशस्वी होते (`npm run lint`)
+- [ ] बिल्ड यशस्वी होते (`npm run build`)
+- [ ] नवीन सार्वजनिक फंक्शन्स आणि इंटरफेसेससाठी TypeScript प्रकार जोडले आहेत
 - [ ] कोणतीही हार्डकोड केलेली गुपिते किंवा फॉलबॅक मूल्ये नाहीत
-- [ ] सार्वजनिक अपस्ट्रीम क्रेडेन्शियल्स `resolvePublicCred()` द्वारे एम्बेड केलेली आहेत ([`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) पहा), लिटरल्स म्हणून कधीही नाहीत
-- [ ] त्रुटी प्रतिसाद `buildErrorBody()` / `sanitizeErrorMessage()` मधून पाठवले जातात — प्रतिसादांच्या बॉडीमध्ये कोणतेही रॉ स्टॅक ट्रेस नाहीत ([`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) पहा)
+- [ ] सार्वजनिक अपस्ट्रीम क्रेडेन्शियल्स `resolvePublicCred()` द्वारे एम्बेड केली आहेत ([`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) पहा), लिटरल्स म्हणून कधीही नाही
+- [ ] त्रुटी प्रतिसाद `buildErrorBody()` / `sanitizeErrorMessage()` द्वारे पाठवले जातात — प्रतिसादांच्या बॉडीमध्ये रॉ स्टॅक ट्रेसेस नाहीत ([`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) पहा)
 - [ ] शेल कमांड्स (`exec` / `spawn`) रनटाइम मूल्ये स्ट्रिंग इंटरपोलेशनद्वारे नव्हे, तर `env` द्वारे पाठवतात
 - [ ] सर्व इनपुट्स Zod स्कीमांद्वारे प्रमाणित केले आहेत
-- [ ] वापरकर्त्यांना दिसणाऱ्या बदलांसाठी `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` अंतर्गत चेंजलॉग **फ्रॅगमेंट** जोडला आहे ([`changelog.d/README.md`](./changelog.d/README.md) पहा) — `CHANGELOG.md` थेट संपादित करू **नका**; फ्रॅगमेंट्स रिलीजच्या वेळी एकत्रित केले जातात आणि PRs दरम्यान कधीही संघर्ष निर्माण करत नाहीत
-- [ ] दस्तऐवजीकरण अद्ययावत केले (लागू असल्यास)
+- [ ] वापरकर्त्यांना दिसणाऱ्या बदलांसाठी `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` अंतर्गत चेंजलॉग **फ्रॅगमेंट** जोडला आहे ([`changelog.d/README.md`](./changelog.d/README.md) पहा) — `CHANGELOG.md` थेट संपादित करू **नका**; फ्रॅगमेंट्स रिलीजच्या वेळी एकत्रित केले जातात आणि PRs दरम्यान त्यांचा कधीही संघर्ष होत नाही
+- [ ] दस्तऐवजीकरण अद्ययावत केले आहे (लागू असल्यास)
 - [ ] कोणतेही नवीन CodeQL / Secret-Scanning अलर्ट उघडलेले नाहीत किंवा प्रत्येक अलर्ट संबंधित `docs/security/` दस्तऐवजाचा संदर्भ देणाऱ्या तांत्रिक समर्थनासह डिसमिस केला आहे
-- [ ] चाइल्ड प्रोसेसेस स्पॉन करणारे रूट्स (`/api/mcp/`, `/api/cli-tools/runtime/`) `src/server/authz/routeGuard.ts` मधील `isLocalOnlyPath()` म्हणून वर्गीकृत केले आहेत — [कठोर नियम #15](docs/security/ROUTE_GUARD_TIERS.md) पहा
-- [ ] कमिट संदेशांमध्ये कोणतेही `Co-Authored-By` ट्रेलर्स नाहीत — कमिट्स केवळ रिपॉझिटरी मालकाच्या Git ओळखीखाली दिसले पाहिजेत (कठोर नियम #16)
+- [ ] चाइल्ड प्रोसेसेस सुरू करणारे रूट्स (`/api/mcp/`, `/api/cli-tools/runtime/`) `src/server/authz/routeGuard.ts` मध्ये `isLocalOnlyPath()` म्हणून वर्गीकृत केले आहेत — [कठोर नियम #15](docs/security/ROUTE_GUARD_TIERS.md) पहा
+- [ ] कमिट संदेशांमध्ये AI/bot `Co-authored-by` ट्रेलर्स नाहीत (कठोर नियम #16) — ज्यांचे काम पुन्हा वापरले आहे अशा मानवी सहकाऱ्यांना मानक `Co-authored-by: Name <email>` ट्रेलर्सद्वारे श्रेय दिले आहे
 
 ---
 
@@ -417,4 +417,3 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 - **सुरक्षा दस्तऐवज**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **ऑपरेशन्स दस्तऐवज**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **समस्या**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: आर्किटेक्चरल निर्णय नोंदींसाठी `docs/adr/` पहा

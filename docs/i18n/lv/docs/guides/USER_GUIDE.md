@@ -1,10 +1,10 @@
 # User Guide (Latviešu)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 ---
 
-🌐 **Valodas:** 🇺🇸 [English](./USER_GUIDE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/guides/USER_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/USER_GUIDE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/guides/USER_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/USER_GUIDE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/guides/USER_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/USER_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/USER_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/USER_GUIDE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/guides/USER_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/guides/USER_GUIDE.md) | 🇪🇪 [Eesti](../i18n/et/docs/guides/USER_GUIDE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/guides/USER_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/USER_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/USER_GUIDE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/guides/USER_GUIDE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/guides/USER_GUIDE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/guides/USER_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/USER_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/guides/USER_GUIDE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/guides/USER_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/USER_GUIDE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/guides/USER_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/USER_GUIDE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/guides/USER_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/USER_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/USER_GUIDE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/guides/USER_GUIDE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/guides/USER_GUIDE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/guides/USER_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/USER_GUIDE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/guides/USER_GUIDE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/guides/USER_GUIDE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/guides/USER_GUIDE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/guides/USER_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/USER_GUIDE.md) | 🇲🇹 [Malti](../i18n/mt/docs/guides/USER_GUIDE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/guides/USER_GUIDE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/guides/USER_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/USER_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/USER_GUIDE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/guides/USER_GUIDE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/guides/USER_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/USER_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/USER_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/USER_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/USER_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/USER_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/USER_GUIDE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/guides/USER_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/USER_GUIDE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/guides/USER_GUIDE.md) | 🇷🇸 [Српски](../i18n/sr/docs/guides/USER_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/USER_GUIDE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/guides/USER_GUIDE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/guides/USER_GUIDE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/guides/USER_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/USER_GUIDE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/guides/USER_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/USER_GUIDE.md) | 🇵🇰 [اردو](../i18n/ur/docs/guides/USER_GUIDE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/guides/USER_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/USER_GUIDE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/guides/USER_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/USER_GUIDE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 Pilnīgs ceļvedis pakalpojumu sniedzēju konfigurēšanai, kombināciju izveidei, CLI rīku integrēšanai un OmniRoute izvietošanai.
 
@@ -118,7 +118,9 @@ Piekļuve, izmantojot: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ---
 
-## 📒 Pakalpojumu sniedzēju iestatīšana
+## 📖 Pakalpojumu sniedzēju iestatīšana
+
+Lai masveidā pievienotu API atslēgu savienojumus no CSV vai JSON faila, izmantojiet **Informācijas panelis → Pakalpojumu sniedzēji → Importēt no faila**. Kolonnas ir pozicionālas (`provider,name,apiKey,baseUrl,priority`); laukam `provider` jau jābūt pārvaldītam pakalpojumu sniedzējam vai saderīgam mezglam. Skatiet [Pakalpojumu sniedzēju importēšana no CSV vai JSON faila](../providers/CSV-IMPORT.md).
 
 ### 🔐 Abonementu pakalpojumu sniedzēji
 
@@ -126,8 +128,8 @@ Piekļuve, izmantojot: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ```bash
 Informācijas panelis → Pakalpojumu sniedzēji → Savienot Claude Code
-→ OAuth piesakāvieties → Automātiskā žetona atjaunošana
-→ 5 stundu + nedēļas kvotas izsekošana
+→ OAuth pieteikšanās → Automātiska pilnvaras atsvaidzināšana
+→ 5 stundu un nedēļas kvotas uzskaite
 
 Modeļi:
   cc/claude-opus-4-7
@@ -135,18 +137,18 @@ Modeļi:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Eksperta padoms:** Izmantojiet Opus sarežģītiem uzdevumiem, Sonnet ātrumam. OmniRoute izseko kvotu katram modelim!
+**Profesionāļa padoms:** Sarežģītiem uzdevumiem izmantojiet Opus, bet ātrumam — Sonnet. OmniRoute uzskaita kvotu katram modelim!
 
-Claude un Claude Code saderīgie maršruti saglabā `max` domāšanas pūles Opus un Sonnet modeļiem.
-Haiku modeļi nepieņem `max` pūļu līmeni, tāpēc OmniRoute šo pieprasījumu samazina
-līdz augstam domāšanas budžetam pirms tā nosūtīšanas augšstremei.
+OmniRoute resursdatorā nav pārlūkprogrammas? Palaidiet `claude setup-token` jebkur, kur ir veikta pieteikšanās Claude Code, un ielīmējiet viena gada pilnvaru cilnē **Iestatīšanas pilnvara**. Skatiet [Claude Code ar iestatīšanas pilnvaru](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Claude un ar Claude Code saderīgie maršruti Opus un Sonnet modeļiem saglabā `max` domāšanas intensitāti. Haiku modeļi nepieņem `max` intensitātes līmeni, tāpēc OmniRoute pirms pieprasījuma nosūtīšanas augšupstraumes pakalpojumam pazemina to līdz augstam domāšanas budžetam.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
 Informācijas panelis → Pakalpojumu sniedzēji → Savienot Codex
-→ OAuth piesakāvieties (ports 1455)
-→ 5 stundu + nedēļas atiestatīšana
+→ OAuth pieteikšanās (ports 1455)
+→ Atiestatīšana ik pēc 5 stundām un reizi nedēļā
 
 Modeļi:
   cx/gpt-5.5
@@ -159,8 +161,8 @@ Modeļi:
 
 ```bash
 Informācijas panelis → Pakalpojumu sniedzēji → Savienot GitHub
-→ OAuth caur GitHub
-→ Mēneša atiestatīšana (mēneša 1. datums)
+→ OAuth, izmantojot GitHub
+→ Atiestatīšana reizi mēnesī (mēneša 1. datumā)
 
 Modeļi:
   gh/gpt-5.5
@@ -172,53 +174,53 @@ Modeļi:
 
 ### 💰 Lēti pakalpojumu sniedzēji
 
-#### GLM-4.7 (Ik dienas atiestatīšana, $0.6/1M)
+#### GLM-4.7 (atiestatīšana katru dienu, $0.6/1M)
 
 1. Reģistrējieties: [Zhipu AI](https://open.bigmodel.cn)
-2. Iegūstiet API atslēgu no Kodēšanas plāna
+2. Iegūstiet API atslēgu no Coding Plan
 3. Informācijas panelis → Pievienot API atslēgu: Pakalpojumu sniedzējs: `glm`, API atslēga: `your-key`
 
-**Lietošana:** `glm/glm-4.7` — **Eksperta padoms:** Kodēšanas plāns piedāvā 3× kvotu par 1/7 cenu! Atiestatīšana katru dienu plkst. 10:00.
+**Lietošana:** `glm/glm-4.7` — **Profesionāļa padoms:** Coding Plan piedāvā 3× lielāku kvotu par 1/7 no izmaksām! Atiestatīšana katru dienu plkst. 10.00.
 
-#### MiniMax M2.1 (5h atiestatīšana, $0.20/1M)
+#### MiniMax M2.1 (atiestatīšana ik pēc 5 h, $0.20/1M)
 
 1. Reģistrējieties: [MiniMax](https://www.minimax.io)
 2. Iegūstiet API atslēgu → Informācijas panelis → Pievienot API atslēgu
 
-**Lietošana:** `minimax/MiniMax-M2.1` — **Eksperta padoms:** Lētākā iespēja garai kontekstai (1M žetonu)!
+**Lietošana:** `minimax/MiniMax-M2.1` — **Profesionāļa padoms:** Lētākā iespēja garam kontekstam (1M pilnvaru)!
 
-#### Kimi K2 ($9 mēnesī fiksēti)
+#### Kimi K2 (fiksēta maksa $9 mēnesī)
 
 1. Abonējiet: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. Iegūstiet API atslēgu → Informācijas panelis → Pievienot API atslēgu
 
-**Lietošana:** `kimi/kimi-k2.5` — **Eksperta padoms:** Fiksēti $9 mēnesī par 10M žetoniem = efektīvās izmaksas $0.90/1M!
+**Lietošana:** `kimi/kimi-k2.5` — **Profesionāļa padoms:** Fiksēta maksa $9 mēnesī par 10M pilnvaru = faktiskās izmaksas $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
 1. Reģistrējieties: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
 2. Izveidojiet Qianfan API atslēgu → Informācijas panelis → Pievienot API atslēgu: Pakalpojumu sniedzējs: `qianfan`
 
-**Lietošana:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` vai cits Qianfan OpenAI-saderīgs modeļa ID.
+**Lietošana:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` vai cits ar OpenAI saderīgs Qianfan modeļa ID.
 
 ### 🆓 BEZMAKSAS pakalpojumu sniedzēji
 
-Autentifikācijas bezmaksas pakalpojumu sniedzējiem ir slēdzis blakus **Nav nepieciešama autentifikācija** to pakalpojumu sniedzēja lapā.
-Tā izslēgšana atspējo šo pakalpojumu sniedzēju, noņem to no konfigurēto/kompakto skatu saraksta Pakalpojumu sniedzējiem
-un noņem tā modeļus no `/v1/models`.
+Bezmaksas pakalpojumu sniedzējiem, kuriem nav nepieciešama autentifikācija, to pakalpojumu sniedzēja lapā blakus opcijai **Autentifikācija nav nepieciešama** ir slēdzis.
+Tā izslēgšana atspējo attiecīgo pakalpojumu sniedzēju, noņem to no konfigurēto pakalpojumu sniedzēju un kompaktā skata, kā arī
+noņem tā modeļus no `/v1/models`.
 
 #### Qoder (9 BEZMAKSAS modeļi)
 
 ```bash
-Informācijas panelis → Savienot Qoder → OAuth piesakāvieties → Piekļuve ir pakļauta pašreizējiem pakalpojumu sniedzēja ierobežojumiem
+Informācijas panelis → Savienot Qoder → OAuth pieteikšanās → Piekļuve ir atkarīga no pašreizējiem pakalpojumu sniedzēja ierobežojumiem
 
 Modeļi: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
-#### Kiro (Claude BEZMAKSAS)
+#### Kiro (Claude BEZ MAKSAS)
 
 ```bash
-Informācijas panelis → Savienot Kiro → AWS Builder ID vai Google/GitHub → ~50 kredīti/mēnesī
+Informācijas panelis → Savienot Kiro → AWS Builder ID vai Google/GitHub → ~50 kredītu mēnesī
 
 Modeļi: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
@@ -662,11 +664,11 @@ Par pilnu vides mainīgo atsauci skatiet [README](../README.md).
 
 ---
 
-## 🧩 Papildu iespējas
+## 🧩 Papildu funkcijas
 
 ### Pielāgoti modeļi
 
-Pievienojiet jebkuru modeļa ID jebkurai pakalpojumu sniedzējam, negaidot lietotnes atjauninājumu:
+Pievienojiet jebkuru modeļa ID jebkuram nodrošinātājam, negaidot lietotnes atjauninājumu:
 
 ```bash
 # Izmantojot API
@@ -675,22 +677,59 @@ curl -X POST http://localhost:20128/api/provider-models \
   -d '{"provider": "openai", "modelId": "gpt-5.2", "modelName": "GPT-5.2"}'
 
 # Saraksts: curl http://localhost:20128/api/provider-models?provider=openai
-# Noņemt: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
+# Noņemšana: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
 ```
 
-Vai arī izmantojiet vadības paneli: **Pakalpojumu sniedzēji → [Pakalpojumu sniedzējs] → Pielāgoti modeļi**.
+Vai izmantojiet informācijas paneli: **Nodrošinātāji → [Nodrošinātājs] → Pielāgoti modeļi**.
 
 Piezīmes:
 
-- OpenRouter un OpenAI/Anthropic saderīgie pakalpojumu sniedzēji tiek pārvaldīti tikai no **Pieejamie modeļi**. Manuāla pievienošana, importēšana un automātiskā sinhronizācija nonāk tajā pašā pieejamo modeļu sarakstā, tāpēc šiem pakalpojumu sniedzējiem nav atsevišķas Pielāgoto modeļu sadaļas.
-- **Pielāgoto modeļu** sadaļa ir paredzēta pakalpojumu sniedzējiem, kuri nepiedāvā pārvaldītu pieejamo modeļu importēšanu.
+- OpenRouter un ar OpenAI/Anthropic saderīgie nodrošinātāji tiek pārvaldīti tikai sadaļā **Pieejamie modeļi**. Manuāla pievienošana, importēšana un automātiskā sinhronizācija papildina vienu un to pašu pieejamo modeļu sarakstu, tāpēc šiem nodrošinātājiem nav atsevišķas sadaļas Pielāgoti modeļi.
+- Sadaļa **Pielāgoti modeļi** ir paredzēta nodrošinātājiem, kuri nepiedāvā pārvaldītu pieejamo modeļu importēšanu.
 
-### Savienojumu ķēžu veidošana ar OmniRoute vienaudžiem
+### Pielāgoti ar OpenAI saderīgi nodrošinātāji
 
-Citu OmniRoute vārtu var pievienot kā **Pielāgoto OpenAI saderīgo** pakalpojumu sniedzēju. Izmantojiet
-vienaudža `/v1` bāzes URL un šī vienaudža izdotu īpašu, minimālo atļauju API atslēgu.
+Jebkuru vārteju, kas izmanto OpenAI API (pašmitinātu starpniekserveri, vLLM vai trešās puses agregatoru),
+var pievienot kā atsevišķu nodrošinātāja mezglu:
 
-Savstarpējām vai vairāku lēcienu ķēdēm iespējojiet izvēlēto cilpas sargu katros vārtos:
+1. **Nodrošinātāji → Pievienot ar OpenAI saderīgu nodrošinātāju**.
+2. **Nosaukums**: mezgla attēlojamais nosaukums.
+3. **Prefikss**: maršrutēšanas nosaukums. Klienti izsauc modeļus kā `<prefix>/<model>`, tāpēc mezgls ar
+   prefiksu `mygw` apkalpo `mygw/gpt-4o-mini`. Obligāts; rakstzīmju ierobežojumu nav.
+4. **API tips**: vārtejas apkalpotā galapunktu saime (tērzēšanas pabeigšanas, atbildes,
+   iegulšanas, audio, attēli).
+5. **Bāzes URL**: API saknes adrese līdz `/v1` ieskaitot (piemēram,
+   `https://gateway.example.com/v1`), nevis pilns `/chat/completions` ceļš. Vārtejām ar
+   nestandarta ceļiem tie jāiestata sadaļā **Papildu iestatījumi** (tērzēšanas ceļš, modeļu ceļš).
+6. Lauks **API atslēga (pārbaudei)** tikai pārbauda savienojumu. Pēc mezgla izveides
+   atveriet to un izmantojiet **Pievienot savienojumu**, lai saglabātu pieprasījumiem izmantojamo atslēgu.
+
+Mezgls saņem iekšēju ID formā `openai-compatible-<apiType>-<uuid>`; tas nekad
+nav jāievada, jo prefikss ir publiskais nosaukums.
+
+#### Rezervētie prefiksi
+
+Prefikss nedrīkst būt iebūvēta nodrošinātāja ID vai aizstājvārds (piemēram, `openai`, `cf`), kā arī
+vairs neatbalstīta nodrošinātāja ID. Modeļa atrisinātājs pirms pielāgotajiem mezgliem pārbauda
+iebūvētos ID un aizstājvārdus, tāpēc mezgls, kas izmanto kādu no šiem prefiksiem, nekad nesaņemtu datplūsmu:
+`<prefix>/model` tiktu novirzīts iebūvētajam nodrošinātājam vai drošības nolūkā noraidīts, ja šis nodrošinātājs
+vairs netiek atbalstīts. Mezgla izveide vai rediģēšana ar šādu prefiksu tiek noraidīta ar ziņojumu:
+
+```text
+prefix: "<prefix>" ir rezervēts nodrošinātāja prefikss — izvēlieties citu prefiksu (rezervētus ID/aizstājvārdus nevar izmantot pielāgotiem mezgliem, jo tādi pieprasījumi kā <prefix>/model tiek maršrutēti uz iebūvētu nodrošinātāju vai drošības nolūkā noraidīti, ja tas vairs netiek atbalstīts)
+```
+
+Izvēlieties atšķirīgu prefiksu (`mygw`, `acme-proxy`). Ja pieprasījumi pielāgotam mezglam neizdodas ar
+kļūdu, kurā minēts iebūvēts nodrošinātājs vai tā akreditācijas dati, pārbaudiet, vai mezgla prefikss nav
+rezervēts: mezgli, kas saglabāti pirms šī noteikuma ieviešanas, joprojām tiek glabāti, taču to prefikss novirza
+uz iebūvēto nodrošinātāju. Rediģējiet mezglu un piešķiriet tam jaunu prefiksu.
+
+### OmniRoute vienādranga mezglu ķēdēšana
+
+Citu OmniRoute vārteju var pievienot kā **pielāgotu ar OpenAI saderīgu** nodrošinātāju. Izmantojiet
+vienādranga mezgla `/v1` bāzes URL un īpaši šim nolūkam paredzētu API atslēgu ar minimālajām nepieciešamajām privilēģijām, ko izsniedzis šis mezgls.
+
+Savstarpējām vai vairāku posmu ķēdēm katrā vārtejā iespējojiet izvēles ciklu aizsardzību:
 
 ```bash
 # gateway-a
@@ -706,18 +745,18 @@ OMNIROUTE_PEER_URLS=http://gateway-a:20128/v1
 OMNIROUTE_PEER_MAX_HOPS=4
 ```
 
-Tikai pieprasījumiem, kas nosūtīti uz skaidri atļautajām vienaudžu URL, tiek pievienots
-`X-OmniRoute-Peer-Trace` galvenes elements. Vārti atgrūst atkārtotu instance ID vai izsmeltas lēcienu
-budžeta HTTP `508 Loop Detected`; parastajiem augšstāvu pakalpojumu sniedzējiem netiek nosūtīta vienaudžu metadati.
+`X-OmniRoute-Peer-Trace` galveni saņem tikai pieprasījumi, kas nosūtīti uz vienādranga mezgla URL,
+kurš ir skaidri iekļauts atļauto sarakstā. Vārteja noraida atkārtotu instances ID vai izsmeltu pāreju
+limitu ar HTTP `508 Loop Detected`; parastie augšupstraumes nodrošinātāji nesaņem vienādranga mezglu metadatus.
 
-Vienaudžu ķēžu veidošana nav datu bāzes replikācija vai saimnieka pārslēgšanās. Katri vārti saglabā neatkarīgu
-SQLite stāvokli, kešatmiņas, likmju skaitītājus un sesijas. Izmantojiet veselības pārbaudītu reverso prokseru vai klienta
-pārslēgšanos aktīvai/pasīvai vai aktīvai/aktīvai pieejamībai un nekad nesamontējiet vienu SQLite datu bāzi
-vairākās darbojošās OmniRoute instancēs.
+Vienādranga mezglu ķēdēšana nav datubāzes replikācija vai resursdatora kļūmjpārlēce. Katra vārteja uztur neatkarīgu
+SQLite stāvokli, kešatmiņas, ātruma ierobežojumu skaitītājus un sesijas. Aktīvai/pasīvai vai aktīvai/aktīvai pieejamībai
+izmantojiet apgriezto starpniekserveri ar darbspējas pārbaudēm vai klienta kļūmjpārlēci un nekad nemontējiet vienu SQLite datubāzi
+vairākās vienlaikus darbinātās OmniRoute instancēs.
 
-### Atsevišķas pakalpojumu sniedzēju maršrutēšanas
+### Īpaši nodrošinātāju maršruti
 
-Maršrutējiet pieprasījumus tieši uz konkrētu pakalpojumu sniedzēju ar modeļa validāciju:
+Maršrutējiet pieprasījumus tieši uz konkrētu nodrošinātāju, veicot modeļa validāciju:
 
 ```bash
 POST http://localhost:20128/v1/providers/openai/chat/completions
@@ -725,25 +764,25 @@ POST http://localhost:20128/v1/providers/openai/embeddings
 POST http://localhost:20128/v1/providers/fireworks/images/generations
 ```
 
-Pakalpojumu sniedzēja prefikss tiek automātiski pievienots, ja tas trūkst. Nesakritīgi modeļi atgriež `400`.
+Ja nodrošinātāja prefiksa nav, tas tiek pievienots automātiski. Neatbilstoši modeļi atgriež `400`.
 
-### Tīkla proksija konfigurācija
+### Tīkla starpniekservera konfigurācija
 
 ```bash
-# Iestatīt globālo proksiju
+# Iestatīt globālo starpniekserveri
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"global": {"type":"http","host":"proxy.example.com","port":"8080"}}'
 
-# Atsevišķam pakalpojumu sniedzējam
+# Starpniekserveris katram nodrošinātājam
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"providers": {"openai": {"type":"socks5","host":"proxy.example.com","port":"1080"}}}'
 
-# Testēt proksiju
+# Pārbaudīt starpniekserveri
 curl -X POST http://localhost:20128/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
 ```
 
-**Prioritāte:** Atslēgas specifisks → Kombo specifisks → Pakalpojumu sniedzēja specifisks → Globāls → Vides.
+**Prioritāte:** Konkrētai atslēgai → Konkrētai kombinācijai → Konkrētam nodrošinātājam → Globāla → Vide.
 
 ### Modeļu kataloga API
 
@@ -751,114 +790,114 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
 curl http://localhost:20128/api/models/catalog
 ```
 
-Atgriež modeļus, groupētus pēc pakalpojumu sniedzēja ar tipiem (`chat`, `embedding`, `image`).
+Atgriež modeļus, kas grupēti pēc nodrošinātāja un tipiem (`chat`, `embedding`, `image`).
 
-### Mākoņa sinhronizācija
+### Mākoņsinhronizācija
 
-- Sinhronizē pakalpojumu sniedzējus, kombinācijas un iestatījumus starp ierīcēm
-- Automātiska fona sinhronizācija ar noildzi + ātru pārtraukumu
-- Ražošanas vidē dodiet priekšroku servera puses `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL`
+- Sinhronizējiet nodrošinātājus, kombinācijas un iestatījumus starp ierīcēm
+- Automātiska sinhronizācija fonā ar taimautu un ātru pārtraukšanu kļūmes gadījumā
+- Produkcijas vidē dodiet priekšroku servera puses `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL`
 
-### Cloudflare ātrais tuneļis
+### Cloudflare ātrais tunelis
 
-- Pieejams **Vadības panelis → Galapunkti** Docker un citām pašmitinātām versijām
-- Izveido pagaidu `https://*.trycloudflare.com` URL, kas pārsūta uz jūsu pašreizējo OpenAI saderīgo `/v1` galapunktu
-- Pirmā iespējošana instalē `cloudflared` tikai tad, kad tas nepieciešams; vēlākie restarti izmanto to pašu pārvaldīto bināro failu
-- Ātrie tuneļi netiek automātiski atjaunoti pēc OmniRoute vai konteinera restarta; vajadzības gadījumā atkārtoti iespējojiet tos no vadības paneļa
-- Tuneļu URL ir īslaicīgi un mainās katru reizi, kad apturētat/sākat tuneli
-- Pārvaldītie Ātrie tuneļi pēc noklusējuma izmanto HTTP/2 transportlīdzekli, lai izvairītos no trokšņainiem QUIC UDP bufera brīdinājumiem ierobežotos konteineros
-- Iestatiet `CLOUDFLARED_PROTOCOL=quic` vai `auto`, ja vēlaties pārklāt pārvaldīto transporta izvēli
-- Iestatiet `CLOUDFLARED_BIN`, ja dodat priekšroku iepriekš instalētam `cloudflared` binārajam failam, nevis pārvaldītai lejupielādei
-- Cloudflare ātrā tuneļa, Tailscale Funnel un ngrok tuneļa paneļus var parādīt vai paslēpt **Iestatījumi → Izskats**. Paneļa paslēpšana neaptur darbojošos tuneli.
+- Pieejams sadaļā **Informācijas panelis → Galapunkti** Docker un citām pašmitinātām izvietošanām
+- Izveido pagaidu `https://*.trycloudflare.com` URL, kas pārsūta pieprasījumus uz jūsu pašreizējo ar OpenAI saderīgo `/v1` galapunktu
+- Pirmajā iespējošanas reizē `cloudflared` tiek instalēts tikai tad, kad tas ir nepieciešams; turpmākās restartēšanas izmanto to pašu pārvaldīto bināro failu
+- Ātrie tuneļi netiek automātiski atjaunoti pēc OmniRoute vai konteinera restartēšanas; kad nepieciešams, atkārtoti iespējojiet tos informācijas panelī
+- Tuneļu URL ir īslaicīgi un mainās ikreiz, kad apturat vai palaižat tuneli
+- Pārvaldītie ātrie tuneļi pēc noklusējuma izmanto HTTP/2 transportu, lai ierobežotos konteineros izvairītos no traucējošiem QUIC UDP bufera brīdinājumiem
+- Iestatiet `CLOUDFLARED_PROTOCOL=quic` vai `auto`, ja vēlaties ignorēt pārvaldītā transporta izvēli
+- Iestatiet `CLOUDFLARED_BIN`, ja pārvaldītās lejupielādes vietā vēlaties izmantot iepriekš instalētu `cloudflared` bināro failu
+- Cloudflare ātrā tuneļa, Tailscale Funnel un ngrok tuneļa paneļus var parādīt vai paslēpt sadaļā **Iestatījumi → Izskats**. Paneļa paslēpšana neaptur darbojošos tuneli.
 
-### LLM vārtu gudrība (9. posms)
+### LLM vārtejas intelekts (9. posms)
 
-- **Semantiskā kešatmiņa** — Automātiski kešo nestramējamus, temperature=0 atbildes (apiet ar `X-OmniRoute-No-Cache: true`)
-- **Pieprasījumu idempotence** — Noņem dublikātus pieprasījumus 5 sekunžu laikā, izmantojot `Idempotency-Key` vai `X-Request-Id` galveni
-- **Progresa izsekošana** — Izvēlieties SSE `event: progress` notikumus ar `X-OmniRoute-Progress: true` galveni
+- **Semantiskā kešatmiņa** — Automātiski kešo nestraumētas atbildes ar temperature=0 (apejiet ar `X-OmniRoute-No-Cache: true`)
+- **Pieprasījumu idempotence** — 5 sekunžu laikā novērš pieprasījumu dublēšanos, izmantojot galveni `Idempotency-Key` vai `X-Request-Id`
+- **Progresa izsekošana** — Pēc izvēles iespējojami SSE `event: progress` notikumi, izmantojot galveni `X-OmniRoute-Progress: true`
 
 ---
 
-### Tulkošanas darbnīca
+### Tulkotāja izmēģinājumu vide
 
-Piekļūstiet caur **Vadības panelis → Tulkotājs**. Atkļūdojiet un vizualizējiet, kā OmniRoute tulko pieprasījumus starp pakalpojumu sniedzējiem.
+Piekļūstiet, izmantojot **Informācijas panelis → Tulkotājs**. Atkļūdojiet un vizualizējiet, kā OmniRoute pārveido API pieprasījumus starp pakalpojumu sniedzējiem.
 
-| Režīms                   | Mērķis                                                                                     |
-| ------------------------ | ------------------------------------------------------------------------------------------ |
-| **Darbnīca**             | Izvēlieties avota/mērķa formātus, ielīmējiet pieprasījumu un redzēt tulkojumu uzreiz       |
-| **Tērzēšanas testētājs** | Sūtīt dzīvas tērzēšanas ziņas caur proksiju un pārbaudīt pilnu pieprasījuma/atbildes ciklu |
-| **Testa sols**           | Veikt masu testus vairāku formātu kombinācijām, lai pārbaudītu tulkojuma precizitāti       |
-| **Dzīvais monitorēšana** | Vērot reālā laika tulkojumus, kad pieprasījumi plūst caur proksiju                         |
+| Režīms                   | Nolūks                                                                                                           |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| **Izmēģinājumu vide**    | Atlasiet avota un mērķa formātus, ielīmējiet pieprasījumu un uzreiz apskatiet pārveidoto rezultātu               |
+| **Tērzēšanas testētājs** | Sūtiet tiešsaistes tērzēšanas ziņojumus caur starpniekserveri un pārbaudiet pilnu pieprasījuma un atbildes ciklu |
+| **Testēšanas vide**      | Palaidiet pakešu testus vairākām formātu kombinācijām, lai pārbaudītu pārveidošanas pareizību                    |
+| **Tiešraides pārraugs**  | Vērojiet pārveidojumus reāllaikā, kamēr pieprasījumi plūst caur starpniekserveri                                 |
 
-**Lietojuma gadījumi:**
+**Lietošanas gadījumi:**
 
-- Atkļūdojiet, kāpēc konkrēta klienta/pakalpojumu sniedzēja kombinācija neizdodas
-- Pārbaudiet, vai domāšanas birkas, rīku izsaukumi un sistēmas uzvednes tiek tulkotas pareizi
-- Salīdziniet formātu atšķirības starp OpenAI, Claude, Gemini un Responses API formātiem
+- Atkļūdot, kāpēc konkrēta klienta un pakalpojumu sniedzēja kombinācija nedarbojas
+- Pārbaudīt, vai domāšanas tagi, rīku izsaukumi un sistēmas uzvednes tiek pārveidotas pareizi
+- Salīdzināt OpenAI, Claude, Gemini un Responses API formātu atšķirības
 
 ---
 
 ### Maršrutēšanas stratēģijas
 
-Konfigurējiet caur **Vadības panelis → Iestatījumi → Maršrutēšana**. Vadības panelis parāda sešas visbiežāk izmantotās stratēģijas; kombinācijas un automātiskais maršrutētājs atbalsta plašāku kopu.
+Konfigurējiet sadaļā **Informācijas panelis → Iestatījumi → Maršrutēšana**. Informācijas panelī ir pieejamas sešas visbiežāk izmantotās stratēģijas; kombinācijas un automātiskais maršrutētājs iekšēji atbalsta plašāku klāstu.
 
-**Vadības paneļa redzamās stratēģijas (konta līmeņa maršrutēšana):**
+**Informācijas panelī redzamās stratēģijas (konta līmeņa maršrutēšana):**
 
-| Stratēģija                                                                                                                       | Apraksts                                                                                           |
-| -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| **Aizpildīt vispirms**                                                                                                           | Izmanto kontus prioritārā secībā — galvenais konts apstrādā visus pieprasījumus līdz nepieejamībai |
-| **Apaļais riņķis**                                                                                                               | Caur visiem kontiem ar konfigurējamu lipīguma ierobežojumu (noklusējums: 3 zvani uz kontu)         |
-| **P2C (Divu izvēles spēks)** Izlases divus nejaušus kontus un maršrutē uz veselīgāko — līdzsvaro slodzi ar veselības apzināšanos |
-| **Nejaušs** Katram pieprasījumam nejauši izvēlas kontu, izmantojot Fisher-Yates sajaukšanu                                       |
-| **Vismazāk izmantots** Maršrutē uz kontu ar vecāko `lastUsedAt` laikspiedolu, vienmērīgi sadalot trafiku                         |
-| **Izmaksu optimizēts** Maršrutē uz kontu ar zemāko prioritātes vērtību, optimizējot zemākās izmaksas pakalpojumu sniedzējiem     |
+| Stratēģija                     | Apraksts                                                                                                                   |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| **Secīga aizpildīšana**        | Izmanto kontus prioritātes secībā — primārais konts apstrādā visus pieprasījumus, līdz tas vairs nav pieejams              |
+| **Cikliska maršrutēšana**      | Cikliski pārslēdzas starp visiem kontiem ar konfigurējamu piesaistes ierobežojumu (noklusējums: 3 izsaukumi vienam kontam) |
+| **P2C (divu izvēļu princips)** | Izvēlas 2 nejaušus kontus un maršrutē uz veselīgāko — līdzsvaro slodzi, ņemot vērā darbspēju                               |
+| **Nejauša izvēle**             | Katram pieprasījumam nejauši atlasa kontu, izmantojot Fišera–Jeitsa jaukšanu                                               |
+| **Visretāk izmantotais**       | Maršrutē uz kontu ar vecāko `lastUsedAt` laikspiedolu, vienmērīgi sadalot datplūsmu                                        |
+| **Izmaksu optimizācija**       | Maršrutē uz kontu ar zemāko prioritātes vērtību, optimizējot izvēli par labu pakalpojumu sniedzējiem ar zemākajām izmaksām |
 
-**Uzlabotas kombināciju un automātiskās stratēģijas** (konfigurējamas katrai kombinācijai vai caur `auto/*` prefiksiem — skatiet [AUTO-COMBO.md](../routing/AUTO-COMBO.md)):
+**Papildu kombināciju un automātiskās stratēģijas** (konfigurējamas katrai kombinācijai vai ar `auto/*` prefiksiem — skatiet [AUTO-COMBO.md](../routing/AUTO-COMBO.md)):
 
-- `priority` — stingra secība, nekad neapaļo
-- `weighted` — proporcionalitātes trafika sadalījums pēc katra modeļa svariem
-- `fill-first` — iztukšo pirmo modeli, līdz sasniedz limitus
+- `priority` — stingra secība bez cikliskas maršrutēšanas
+- `weighted` — proporcionāls datplūsmas sadalījums pēc katram modelim noteiktajiem svariem
+- `fill-first` — izmanto pirmo modeli, līdz tiek sasniegti ierobežojumi
 - `round-robin` / `strict-random` / `random`
-- `p2c` (Divu izvēles spēks)
+- `p2c` (divu izvēļu princips)
 - `least-used` un `cost-optimized`
-- `auto` — rezultātu vadīts starp visiem kandidātiem
-- `lkgp` (Pēdējais zināmais labs pakalpojumu sniedzējs) — piesaista pēdējam veiksmīgam pakalpojumu sniedzējam, pēc tam atgriežas pie noteikumiem
-- `context-optimized` — izvēlas modeli ar lielāko brīvo kontekstu logu
-- `context-relay` — ķēdē garā konteksta modeļus turpmākajiem gājieniem
+- `auto` — pēc vērtējuma veikta izvēle starp visiem kandidātiem
+- `lkgp` (pēdējais zināmais labais pakalpojumu sniedzējs) — piesaista pēdējam veiksmīgajam pakalpojumu sniedzējam un pēc tam izmanto atkāpšanās noteikumus
+- `context-optimized` — izvēlas modeli ar lielāko brīvo konteksta logu
+- `context-relay` — sasaista modeļus ar lielu konteksta logu turpmākajiem dialoga posmiem
 
-#### Ārējais lipīgās sesijas galvene
+#### Ārējās piesaistītās sesijas galvene
 
-Ārējai sesijas piederībai (piemēram, Claude Code/Codex aģentiem aiz reversiem prokseriem), sūtiet:
+Lai nodrošinātu ārēju sesijas piesaisti (piemēram, Claude Code/Codex aģentiem aiz reversajiem starpniekserveriem), nosūtiet:
 
 ```http
 X-Session-Id: your-session-key
 ```
 
-OmniRoute pieņem arī `x_session_id` un atgriež efektīvo sesijas atslēgu `X-OmniRoute-Session-Id`.
+OmniRoute pieņem arī `x_session_id` un atgriež faktiski izmantoto sesijas atslēgu galvenē `X-OmniRoute-Session-Id`.
 
-Ja izmantojat Nginx un sūtāt galvenes ar pasvītrojumu, iespējojiet:
+Ja izmantojat Nginx un sūtāt galvenes ar pasvītrojuma rakstzīmēm, iespējojiet:
 
 ```nginx
 underscores_in_headers on;
 ```
 
-#### Aizstājvārdu modeļu aliāzes
+#### Modeļu aizstājējvārdi ar aizstājējzīmēm
 
-Izveidojiet aizstājvārdu modeļus, lai pārvietotu modeļu nosaukumus:
+Izveidojiet modeļu nosaukumu pārkartēšanas šablonus ar aizstājējzīmēm:
 
 ```
-Pattern: claude-sonnet-*     →  Target: cc/claude-sonnet-4-6
-Pattern: gpt-*               →  Target: gh/gpt-5.3-codex
+Šablons: claude-sonnet-*     →  Mērķis: cc/claude-sonnet-4-6
+Šablons: gpt-*               →  Mērķis: gh/gpt-5.3-codex
 ```
 
-Aizstājvārdi atbalsta `*` (jebkuri simboli) un `?` (viens simbols).
+Aizstājējzīmes atbalsta `*` (jebkuras rakstzīmes) un `?` (vienu rakstzīmi).
 
 #### Atkāpšanās ķēdes
 
-Definējiet globālās atkāpšanās ķēdes, kas attiecas uz visiem pieprasījumiem:
+Definējiet globālas atkāpšanās ķēdes, kas attiecas uz visiem pieprasījumiem:
 
 ```
-Chain: production-fallback
+Ķēde: production-fallback
   1. cc/claude-opus-4-7
   2. gh/gpt-5.3-codex
   3. glm/glm-4.7
@@ -866,104 +905,103 @@ Chain: production-fallback
 
 ---
 
-### Noturība un ķēžu pārtraucēji
+### Noturība un ķēdes pārtraucēji
 
-Konfigurējiet caur **Vadības panelis → Iestatījumi → Noturība**.
+Konfigurējiet sadaļā **Informācijas panelis → Iestatījumi → Noturība**.
 
-OmniRoute īsteno pakalpojumu sniedzēja līmeņa noturību ar pieciem komponentiem:
+OmniRoute nodrošina pakalpojumu sniedzēju līmeņa noturību ar pieciem komponentiem:
 
-1. **Pieprasījumu rinda un pulss** — Sistēmas līmeņa pieprasījumu veidošana:
-   - **Pieprasījumi minūtē (RPM)** — Maksimālais pieprasījumu skaits minūtē uz kontu
-   - **Minimālais laiks starp pieprasījumiem** — Minimālais atstatums milisekundēs starp pieprasījumiem
-   - **Maksimālais vienlaicīgo pieprasījumu skaits** — Maksimālais vienlaicīgo pieprasījumu skaits uz kontu
+1. **Pieprasījumu rinda un ātruma regulēšana** — Sistēmas līmeņa pieprasījumu plūsmas pārvaldība:
+   - **Pieprasījumi minūtē (RPM)** — Maksimālais pieprasījumu skaits minūtē katram kontam
+   - **Minimālais laiks starp pieprasījumiem** — Minimālais intervāls milisekundēs starp pieprasījumiem
+   - **Maksimālais vienlaicīgo pieprasījumu skaits** — Maksimālais vienlaicīgo pieprasījumu skaits katram kontam
+2. **Savienojuma atdzišanas periods** — Konfigurācija katram autentifikācijas tipam atsevišķam savienojumam pēc atkārtojamiem atteices gadījumiem:
+   - **Pamata atdzišanas periods** — Noklusējuma atdzišanas laika intervāls atkārtojamu augšupstraumes kļūmju gadījumā
+   - **Izmantot augšupstraumes atkārtošanas norādes** — Ievēro autoritatīvas `Retry-After` vai atiestatīšanas norādes, ja tādas ir sniegtas
+   - **Maksimālais atkāpšanās soļu skaits** — Maksimālais eksponenciālās atkāpšanās līmenis atkārtotu kļūmju gadījumā
 
-2. **Savienojuma atvēsināšana** — Konfigurācija katram autentifikācijas tipam vienam savienojumam pēc atkārtojamām kļūdām:
-   - **Bāzes atvēsināšana** — Noklusējuma atvēsināšanas logs atkārtojamām augšstāvu kļūdām
-   - **Izmantot augšstāvu atkārtošanas mājienus** — Ievēro pilnvaroto `Retry-After` vai atiestatīšanas mājienus, ja tie ir norādīti
-   - **Maksimālais atkāpšanās soļu skaits** — Maksimālais eksponenciālās atkāpšanās līmenis atkārtotām kļūdām
+3. **Pakalpojumu sniedzēja ķēdes pārtraucējs** — Uzskaita pakalpojumu sniedzēja pilnā cikla kļūmes, atzīmē pakalpojumu sniedzēju kā degradētu, sasniedzot konfigurēto brīdinājuma slieksni, un atver pārtraucēju, kad tiek sasniegts konfigurētais kļūmju slieksnis:
+   - **Degradācijas slieksnis** — Secīgu pakalpojumu sniedzēja kļūmju skaits pirms pārejas uz `DEGRADED`
+   - **Kļūmju slieksnis** — Secīgu pakalpojumu sniedzēja kļūmju skaits pirms pārejas uz `OPEN`
+   - **Atiestatīšanas noildze** — Laika intervāls, pēc kura pakalpojumu sniedzējs tiek pārbaudīts vēlreiz
+   - **CLOSED** (Veselīgs) — Pieprasījumi tiek apstrādāti kā parasti
+   - **DEGRADED** — Pieprasījumi joprojām tiek apstrādāti, kamēr tiek uzskaitīts palielinātais kļūmju skaits
+   - **OPEN** — Pakalpojumu sniedzējs pēc atkārtotām kļūmēm ir īslaicīgi bloķēts
+   - **HALF_OPEN** — Tiek pārbaudīts, vai pakalpojumu sniedzējs ir atjaunojis darbību
 
-3. **Pakalpojumu sniedzēja ķēžu pārtraucējs** — Izseko galīgām pakalpojumu sniedzēja kļūdām, atzīmē pakalpojumu sniedzēju kā degradētu pie konfigurētā brīdinājuma sliekšņa un atver pārtraucēju, kad sasniedzams konfigurētais kļūdas slieksnis:
-   - **Degradācijas slieksnis** — Secīgas pakalpojumu sniedzēja kļūdas pirms ievadīšanas `DEGRADED`
-   - **Kļūdas slieksnis** — Secīgas pakalpojumu sniedzēja kļūdas pirms ievadīšanas `OPEN`
-   - **Atiestatīšanas noildze** — Laika logs pirms pakalpojumu sniedzēja tiek pārbaudīts atkal
-   - **CLOSED** (Veselīgs) — Pieprasījumi plūst normāli
-   - **DEGRADED** — Pieprasījumi joprojām plūst, kamēr tiek izsekotas paaugstinātas kļūdas
-   - **OPEN** — Pakalpojumu sniedzējs ir īslaicīgi bloķēts pēc atkārtotām kļūdām
-   - **HALF_OPEN** — Testē, vai pakalpojumu sniedzējs ir atguvies
+   Savienojuma līmeņa `429` ātruma ierobežojumi paliek sadaļā **Savienojuma atdzišanas periods** un netiek ieskaitīti pakalpojumu sniedzēja ķēdes pārtraucējā.
 
-   Savienojuma apjoma `429` likmju ierobežojumi paliek **Savienojuma atvēsināšanā** un neieskaitās pakalpojumu sniedzēja pārtraucējā.
+   Pakalpojumu sniedzēja ķēdes pārtraucēja izpildlaika stāvoklis ir redzams tikai sadaļā **Informācijas panelis → Veselība**.
 
-   Pakalpojumu sniedzēja pārtraucēja darbības stāvoklis tiek rādīts tikai **Vadības panelis → Veselība**.
+4. **Gaidīt atdzišanas perioda beigas** — Ja visiem kandidātsavienojumiem jau ir aktīvs atdzišanas periods, OmniRoute var gaidīt agrākā atdzišanas perioda beigas un automātiski atkārtot to pašu klienta pieprasījumu.
 
-4. **Gaidīt atvēsināšanos** — Ja katrs kandidāta savienojums jau atvēsinās, OmniRoute var gaidīt tuvāko atvēsināšanos un automātiski atkārtot to pašu klienta pieprasījumu.
+5. **Automātiska ātruma ierobežojuma noteikšana** — Ja augšupstraumes pakalpojumu sniedzēji atgriež skaidri norādītus gaidīšanas intervālus, šīs norādes aizstāj lokālo savienojuma atdzišanas periodu, ja iestatījums ir iespējots.
 
-5. **Likmju ierobežojumu automātiskā noteikšana** — Kad augšstāvu pakalpojumu sniedzēji atgriež skaidrus gaidīšanas logus, šie mājieni pārklāj vietējo savienojuma atvēsināšanos, kad iestatījums ir iespējots.
-
-**Profesionālais padoms:** Izmantojiet **Veselība** lapu, lai pārbaudītu un atiestatītu dzīvos pakalpojumu sniedzēja pārtraucējus pēc traucējuma. Noturības lapa maina tikai konfigurāciju.
+**Profesionāļa padoms:** Izmantojiet lapu **Veselība**, lai pēc darbības pārtraukuma pārbaudītu un atiestatītu aktīvos pakalpojumu sniedzēju ķēdes pārtraucējus. Lapā Noturība var mainīt tikai konfigurāciju.
 
 ---
 
-### Datu bāzes eksportēšana / importēšana
+### Datubāzes eksportēšana/importēšana
 
-Pārvaldiet datu bāzes dublējumus **Vadības panelis → Iestatījumi → Sistēma un uzglabāšana**.
+Pārvaldiet datubāzes dublējumus sadaļā **Informācijas panelis → Iestatījumi → Sistēma un krātuve**.
 
-| Darbība                      | Apraksts                                                                                                                                                                 |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Eksportēt datu bāzi**      | Lejupielādē pašreizējo SQLite datu bāzi kā `.sqlite` failu                                                                                                               |
-| **Eksportēt visu (.tar.gz)** | Lejupielādē pilnu dublējuma arhīvu, tostarp: datu bāzi, iestatījumus, kombinācijas, pakalpojumu sniedzēju savienojumus (bez akreditācijas datiem), API atslēgu metadatus |
-| **Importēt datu bāzi**       | Augšupielādē `.sqlite` failu, lai aizstātu pašreizējo datu bāzi. Pirms importēšanas dublējums tiek automātiski izveidots, ja vien `DISABLE_SQLITE_AUTO_BACKUP=true`      |
+| Darbība                      | Apraksts                                                                                                                                                                         |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Eksportēt datubāzi**       | Lejupielādē pašreizējo SQLite datubāzi kā `.sqlite` failu                                                                                                                        |
+| **Eksportēt visu (.tar.gz)** | Lejupielādē pilnu dublējuma arhīvu, kas ietver datubāzi, iestatījumus, kombinācijas, pakalpojumu sniedzēju savienojumus (bez akreditācijas datiem) un API atslēgu metadatus      |
+| **Importēt datubāzi**        | Augšupielādē `.sqlite` failu, lai aizstātu pašreizējo datubāzi. Pirms importēšanas dublējums tiek izveidots automātiski, ja vien nav iestatīts `DISABLE_SQLITE_AUTO_BACKUP=true` |
 
 ```bash
-# API: Eksportēt datu bāzi
+# API: eksportēt datubāzi
 curl -o backup.sqlite http://localhost:20128/api/db-backups/export
 
-# API: Eksportēt visu (pilns arhīvs)
+# API: eksportēt visu (pilns arhīvs)
 curl -o backup.tar.gz http://localhost:20128/api/db-backups/exportAll
 
-# API: Importēt datu bāzi
+# API: importēt datubāzi
 curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**Importēšanas validācija:** Importētais fails tiek validēts attiecībā uz integritāti (SQLite pragma pārbaude), obligātām tabulām (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) un lielumu (maks. 100MB).
+**Importēšanas validācija:** Importētā faila integritāte tiek pārbaudīta (SQLite pragma pārbaude), kā arī tiek pārbaudīta nepieciešamo tabulu (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) esamība un faila izmērs (maks. 100 MB).
 
-**Lietojuma gadījumi:**
+**Lietošanas gadījumi:**
 
-- Migrēt OmniRoute starp mašīnām
-- Veidot ārējos dublējumus katastrofu atjaunošanai
-- Kopīgot konfigurācijas starp komandas locekļiem (eksportēt visu → kopīgot arhīvu)
+- OmniRoute migrēšana starp datoriem
+- Ārēju dublējumu izveide avāriju seku novēršanai
+- Konfigurāciju kopīgošana starp komandas dalībniekiem (eksportēt visu → kopīgot arhīvu)
 
 ---
 
-### Iestatījumu vadības panelis
+### Iestatījumu informācijas panelis
 
-Iestatījumu lapa ir organizēta ** 7 cilnēs** vieglai navigācijai:
+Iestatījumu lapa ir sakārtota **7 cilnēs**, lai atvieglotu navigāciju:
 
-| Cilne            | Saturs                                                                                                                                                                                                   |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Vispārīgi**    | Sistēmas uzglabāšanas rīki, noklusējuma uzvedība, Galapunkta tuneļa redzamība                                                                                                                            |
-| **Izskats**      | Tēmas kontroles (gaisma/tumšs/sistēma), sānu joslas redzamības, paneļu pārslēdzēji Cloudflare/Tailscale/ngrok tuneļa kartiņām                                                                            |
-| **AI**           | Domāšanas budžets (tiek pārsūtīts / automātiski noņemts / pielāgots / adaptīvs — skatiet [THINKING_BUDGET.md](./THINKING_BUDGET.md)), globālā sistēmas uzvedne, uzvednes kešatmiņas statistika           |
-| **Drošība**      | Pieteikšanās/paroles iestatījumi, IP piekļuves kontrole, API autentifikācija `/models`, Pakalpojumu sniedzēja bloķēšana, uzvednes injekcijas sargs                                                       |
-| **Maršrutēšana** | Globālā maršrutēšanas stratēģija (Aizpildīt vispirms / Apaļais riņķis / P2C / Nejaušs / Vismazāk izmantots / Izmaksu optimizēts), aizstājvārdu modeļu aliāzes, atkāpšanās ķēdes, kombināciju noklusējumi |
-| **Noturība**     | Pieprasījumu rinda, savienojuma atvēsināšana, pakalpojumu sniedzēja pārtraucēja konfigurācija un gaidīšanas-atvēsināšanas uzvedība                                                                       |
-| **Uzlabots**     | Globālā proksija konfigurācija (HTTP/SOCKS5), atsevišķu pakalpojumu sniedzēju proksija pārklājumi                                                                                                        |
+| Cilne            | Saturs                                                                                                                                                                                                           |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Vispārīgi**    | Sistēmas krātuves rīki, noklusējuma darbība, galapunkta tuneļa redzamība                                                                                                                                         |
+| **Izskats**      | Dizaina iestatījumi (gaišs/tumšs/sistēmas), sānjoslas redzamība, Cloudflare/Tailscale/ngrok tuneļu karšu paneļu slēdži                                                                                           |
+| **MI**           | Domāšanas budžets (tiešā pārsūtīšana / automātiska noņemšana / pielāgots / adaptīvs — skatiet [THINKING_BUDGET.md](./THINKING_BUDGET.md)), globālā sistēmas uzvedne, uzvedņu kešatmiņas statistika               |
+| **Drošība**      | Pieteikšanās/paroles iestatījumi, IP piekļuves kontrole, API autentifikācija `/models` galapunktam, pakalpojumu sniedzēju bloķēšana, aizsardzība pret uzvedņu injekcijām                                         |
+| **Maršrutēšana** | Globālā maršrutēšanas stratēģija (Vispirms aizpildīt / Cikliski / P2C / Nejauši / Vismazāk izmantotais / Izmaksu optimizācija), modeļu aizstājvārdi ar aizstājējzīmēm, atkāpšanās ķēdes, kombināciju noklusējumi |
+| **Noturība**     | Pieprasījumu rinda, savienojuma atdzišanas periods, pakalpojumu sniedzēja ķēdes pārtraucēja konfigurācija un gaidīšana līdz atdzišanas perioda beigām                                                            |
+| **Papildu**      | Globālā starpniekservera konfigurācija (HTTP/SOCKS5), atsevišķi starpniekservera iestatījumi katram pakalpojumu sniedzējam                                                                                       |
 
-Vispārīgi vairs nepārkopē lasīšanas režīma žurnālu un kešatmiņas piezīmes. Datu bāzes uzglabāšanas un
-optimizācijas iestatījumi tiek saglabāti caur `/api/settings/database`; manuāla kešatmiņas tīrīšana izmanto
-`DELETE /api/cache`. Pieprasījumu un proksiju žurnālu rindu ierobežojumus kontrolē
+Sadaļā Vispārīgi vairs netiek dublētas tikai lasāmas žurnalēšanas un kešatmiņas piezīmes. Datubāzes glabāšanas un
+optimizācijas iestatījumi tiek saglabāti, izmantojot `/api/settings/database`; manuālai kešatmiņas tīrīšanai izmanto
+`DELETE /api/cache`. Pieprasījumu un starpniekservera žurnālu rindu skaita ierobežojumus kontrolē
 `CALL_LOGS_TABLE_MAX_ROWS` un `PROXY_LOGS_TABLE_MAX_ROWS`.
 
 ---
 
-### Izmaksas un budžeta pārvaldība
+### Izmaksu un budžeta pārvaldība
 
-Piekļūstiet caur **Vadības panelis → Izmaksas**.
+Piekļūstiet sadaļā **Informācijas panelis → Izmaksas**.
 
-| Cilne       | Mērķis                                                                                                              |
-| ----------- | ------------------------------------------------------------------------------------------------------------------- |
-| **Budžets** | Iestatiet tēriņu ierobežojumus katrai API atslēgai ar ikdienas/iknedēļas/ikmēneša budžiem un reālā laika izsekošanu |
-| **Cenas**   | Skatīt un rediģēt modeļu cenu ierakstus — izmaksas par 1K ievades/izvades tokeniem uz pakalpojumu sniedzēju         |
+| Cilne               | Mērķis                                                                                                                       |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **Budžets**         | Iestatiet tēriņu ierobežojumus katrai API atslēgai ar dienas/nedēļas/mēneša budžetiem un reāllaika uzskaiti                  |
+| **Cenu noteikšana** | Skatiet un rediģējiet modeļu cenu ierakstus — izmaksas par 1 tūkstoti ievades/izvades marķieru katram pakalpojumu sniedzējam |
 
 ```bash
 # API: Iestatīt budžetu
@@ -975,13 +1013,13 @@ curl -X POST http://localhost:20128/api/usage/budget \
 curl http://localhost:20128/api/usage/budget
 ```
 
-**Izmaksu izsekošana:** Katrs pieprasījums reģistrē tokenu lietošanu un aprēķina izmaksas, izmantojot cenu tabulu. Skatiet sadalījumus **Vadības panelis → Lietošana** pēc pakalpojumu sniedzēja, modeļa un API atslēgas.
+**Izmaksu uzskaite:** Katram pieprasījumam tiek reģistrēts marķieru lietojums un aprēķinātas izmaksas, izmantojot cenu tabulu. Sadalījumu pēc pakalpojumu sniedzēja, modeļa un API atslēgas skatiet sadaļā **Informācijas panelis → Lietojums**.
 
 ---
 
 ### Audio transkripcija
 
-OmniRoute atbalsta audio transkripciju caur OpenAI saderīgo galapunktu:
+OmniRoute atbalsta audio transkripciju, izmantojot ar OpenAI saderīgu galapunktu:
 
 ```bash
 POST /v1/audio/transcriptions
@@ -995,20 +1033,20 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
   -F "model=openai/whisper-1"
 ```
 
-`deepgram/nova-3` ir vietējais Deepgram maršruts, kam nepieciešama Deepgram API atslēga.
-Ja konfigurēts tikai OpenRouter, izmantojiet `openrouter/deepgram/nova-3`.
+`deepgram/nova-3` ir vietējais Deepgram maršruts, un tam ir nepieciešama Deepgram API atslēga.
+Ja ir konfigurēts tikai OpenRouter, izmantojiet `openrouter/deepgram/nova-3`.
 
-**Balss-teksts (transkripcija)** pakalpojumu sniedzēji:
+**Runas pārveidošanas tekstā (transkripcijas)** pakalpojumu sniedzēji:
 
-- `openai/` (whisper-saderīgs)
+- `openai/` (saderīgs ar Whisper)
 - `groq/` (Groq Whisper Turbo)
-- `deepgram/` (Nova ģimene)
+- `deepgram/` (Nova saime)
 - `assemblyai/`
 - `nvidia/` (Parakeet, Canary)
-- `huggingface/` (whisper varianti)
+- `huggingface/` (Whisper varianti)
 - `qwen/`
 
-**Teksts-balsī (`POST /v1/audio/speech`)** pakalpojumu sniedzēji:
+**Teksta pārveidošanas runā (`POST /v1/audio/speech`)** pakalpojumu sniedzēji:
 
 - `openai/` (tts-1, tts-1-hd)
 - `hyperbolic/`
@@ -1025,56 +1063,56 @@ Ja konfigurēts tikai OpenRouter, izmantojiet `openrouter/deepgram/nova-3`.
 - `coqui/`, `tortoise/`
 - `qwen/`
 
-Atbalstītie audio formāti transkripcijai: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`. TTS izvades formāti ir atkarīgi no pakalpojumu sniedzēja (mp3, wav, opus, pcm, mulaw).
+Atbalstītie transkripcijas audio formāti: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`. TTS izvades formāti ir atkarīgi no pakalpojumu sniedzēja (mp3, wav, opus, pcm, mulaw).
 
 ---
 
-### Kombināciju līdzsvarošanas stratēģijas
+### Kombināciju balansēšanas stratēģijas
 
-Konfigurējiet katra kombinācijas līdzsvarošanu **Vadības panelis → Kombinācijas → Izveidot/Editēt → Stratēģija**.
+Konfigurējiet katras kombinācijas balansēšanu sadaļā **Informācijas panelis → Kombinācijas → Izveidot/rediģēt → Stratēģija**.
 
-| Stratēģija                                                              | Aprakss                                                                                    |
-| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| **Apaļais riņķis**                                                      | Rotē caur modeļiem secīgi                                                                  |
-| **Prioritāte**                                                          | Vienmēr mēģina pirmo modeli; atgriežas tikai kļūdas gadījumā                               |
-| **Nejaušs** Izlases nejaušu modeli no kombinācijas katram pieprasījumam |
-| **Svērts**                                                              | Maršrutē proporcionali, pamatojoties uz piešķirtajiem svariem katrai modelei               |
-| **Vismazāk izmantots**                                                  | Maršrutē uz modeli ar mazākajiem nesenajiem pieprasījumiem (izmanto kombinācijas metrikas) |
-| **Izmaksu optimizēts**                                                  | Maršrutē uz lētāko pieejamo modeli (izmanto cenu tabulu)                                   |
+| Stratēģija                  | Apraksts                                                                                    |
+| --------------------------- | ------------------------------------------------------------------------------------------- |
+| **Cikliska**                | Secīgi maina modeļus                                                                        |
+| **Prioritāte**              | Vienmēr vispirms izmēģina pirmo modeli; uz rezerves modeli pārslēdzas tikai kļūdas gadījumā |
+| **Nejauša**                 | Katram pieprasījumam izvēlas nejaušu modeli no kombinācijas                                 |
+| **Svērtā**                  | Maršrutē proporcionāli, pamatojoties uz katram modelim piešķirtajiem svariem                |
+| **Vismazāk izmantotais**    | Maršrutē uz modeli ar vismazāko neseno pieprasījumu skaitu (izmanto kombinācijas metriku)   |
+| **Izmaksu ziņā optimizēta** | Maršrutē uz lētāko pieejamo modeli (izmanto cenu tabulu)                                    |
 
-Globālos kombināciju noklusējumus var iestatīt **Vadības panelis → Iestatījumi → Maršrutēšana → Kombināciju noklusējumi**.
-Kombinācijas mērķa noildzes pēc noklusējuma mantotā pašreizējā pieprasījuma noildzi. Izmantojiet **Mērķa noildze
-(sekundes)** tikai kombināciju noklusējumos vai atsevišķā kombinācijā, kad īsākam katra mērķa ierobežojumam vajadzētu
-izraisīt ātrāku atkāpšanos.
+Globālos kombināciju noklusējumus var iestatīt sadaļā **Informācijas panelis → Iestatījumi → Maršrutēšana → Kombināciju noklusējumi**.
+Kombināciju mērķu taimauti pēc noklusējuma pārmanto pašreizējā pieprasījuma taimautu. Izmantojiet **Mērķa taimauts
+(sekundēs)** kombināciju noklusējumos vai atsevišķai kombinācijai tikai tad, ja īsākam katra mērķa ierobežojumam būtu
+jāaktivizē ātrāka pārslēgšanās uz rezerves variantu.
 
-Nulles aiztures kombināciju optimizācijas ir izvēles. Atstājiet **Nulles aiztures optimizācijas** atspējotas, lai
-novērstu šīs aiztures funkcijas no sacenstības ar atkāpšanās mērķiem, izlaižot mērķus, pamatojoties uz TTFT
-vēsturi, vai saspiežot atkāpšanās pieprasījumus; to iespējojot, ļauj konfigurētā riska nodrošināšana, paredzošas TTFT
-izlaišanas un proaktīvā atkāpšanās saspiešana, lai samainītu maršrutēšanas/pieprasījuma ticamību pret zemāku aizmugures
-aizturi.
+Kombināciju nulles latentuma optimizācijas ir jāiespējo apzināti. Atstājiet opciju **Nulles latentuma optimizācijas** atspējotu, lai
+neļautu šīm latentuma funkcijām paralēli sacensties ar rezerves mērķiem, izlaist mērķus, pamatojoties uz TTFT
+vēsturi, vai saspiest rezerves pieprasījumus; tās iespējošana ļauj konfigurētajai paralēlajai dublēšanai, prognozējošai TTFT
+izlaišanai un proaktīvai rezerves pieprasījumu saspiešanai samazināt maksimālo
+latentumu uz maršrutēšanas/pieprasījuma precizitātes rēķina.
 
-Atspējojiet **Racionālisma tokena buferi**, kad augšstāvu pakalpojumu sniedzēji prasa stingrus
-`max_tokens` / `maxOutputTokens` ierobežojumus. Kad iespējots, kombinācijas maršrutēšana pievieno tikai racionālisma-modeļa
-atstarpi modeļiem ar zināmu izvades griestu un atstāj klienta tokena ierobežojumu nemainīgu, ja drošais bufera
-vērtība pārsniegtu šo griestu. Ja klienta ierobežojums jau ir virs zināma griesta,
-OmniRoute to samazina līdz šim griestam pirms augšstāvu pieprasījuma nosūtīšanas.
+Atspējojiet **Spriešanas marķieru buferi**, ja augšupējie pakalpojumu sniedzēji pieprasa stingrus
+`max_tokens` / `maxOutputTokens` ierobežojumus. Kad tas ir iespējots, kombināciju maršrutēšana pievieno spriešanas modeļu
+rezervi tikai modeļiem ar zināmu izvades ierobežojumu un atstāj klienta marķieru ierobežojumu nemainītu, ja
+drošā buferētā vērtība pārsniegtu šo ierobežojumu. Ja klienta ierobežojums jau pārsniedz zināmu ierobežojumu,
+OmniRoute to samazina līdz šim ierobežojumam pirms augšupējā pieprasījuma nosūtīšanas.
 
 ---
 
-### Veselības vadības panelis
+### Sistēmas darbspējas informācijas panelis
 
-Piekļūstiet caur **Vadības panelis → Veselība**. Reālā laika sistēmas veselības pārskats ar 6 kartiņām:
+Piekļūstiet tam sadaļā **Informācijas panelis → Darbspēja**. Reāllaika sistēmas darbspējas pārskats ar 6 kartītēm:
 
-| Kartiņa                            | Ko tā rāda                                                             |
-| ---------------------------------- | ---------------------------------------------------------------------- |
-| **Sistēmas statuss**               | Darbības laiks, versija, atmiņas lietošana, datu direktorijs           |
-| **Pakalpojumu sniedzēja veselība** | Globālais pakalpojumu sniedzēja ķēžu pārtraucēja darbības stāvoklis    |
-| **Likmju ierobežojumi**            | Aktīvās savienojuma atvēsināšanas uz kontu ar atlikušo laiku           |
-| **Aktīvās bloķēšanas**             | Aktīvās modeļa apjoma bloķēšanas un īslaicīgās izslēgšanas             |
-| **Paraksta kešatmiņa**             | Noņemšanas kešatmiņas statistika (aktīvas atslēgas, trāpījumu līmenis) |
-| **Aiztures telemetrija**           | p50/p95/p99 aiztures agregācija katram pakalpojumu sniedzējam          |
+| Kartīte                             | Ko tā parāda                                                                     |
+| ----------------------------------- | -------------------------------------------------------------------------------- |
+| **Sistēmas statuss**                | Darbības laiks, versija, atmiņas lietojums, datu direktorijs                     |
+| **Pakalpojumu sniedzēju darbspēja** | Globālā pakalpojumu sniedzēju ķēdes pārtraucēja izpildlaika stāvoklis            |
+| **Ātruma ierobežojumi**             | Aktīvie savienojumu gaidīšanas periodi katram kontam un atlikušais laiks         |
+| **Aktīvie bloķējumi**               | Aktīvie, konkrētam modelim piemērotie bloķējumi un pagaidu izņēmumi              |
+| **Parakstu kešatmiņa**              | Dublikātu novēršanas kešatmiņas statistika (aktīvās atslēgas, trāpījumu līmenis) |
+| **Latentuma telemetrija**           | p50/p95/p99 latentuma apkopojums katram pakalpojumu sniedzējam                   |
 
-**Profesionālais padoms:** Veselības lapa automātiski atjaunojas ik pēc 10 sekundēm. Izmantojiet ķēžu pārtraucēja kartiņu, lai noteiktu, kuri pakalpojumu sniedzēji piedzīvo problēmas.
+**Profesionāls padoms:** Darbspējas lapa tiek automātiski atsvaidzināta ik pēc 10 sekundēm. Izmantojiet ķēdes pārtraucēja kartīti, lai noteiktu, kuriem pakalpojumu sniedzējiem radušās problēmas.
 
 ---
 

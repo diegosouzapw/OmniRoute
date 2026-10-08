@@ -24,6 +24,7 @@ interface KeyValueRow {
 
 export interface ProviderLimitsCacheEntry {
   quotas: JsonRecord | null;
+  modelQuotas?: JsonRecord;
   plan: unknown;
   message: string | null;
   fetchedAt: string;
@@ -62,9 +63,11 @@ function normalizeCacheEntry(value: unknown): ProviderLimitsCacheEntry | null {
 
   const bankedResetCredits = Number(record.bankedResetCredits);
   const billing = sanitizeProviderBillingStatus(record.billing);
+  const modelQuotas = toRecord(record.modelQuotas);
 
   return {
     quotas: toRecord(record.quotas),
+    ...(modelQuotas ? { modelQuotas } : {}),
     plan: record.plan ?? null,
     message: typeof record.message === "string" ? record.message : null,
     fetchedAt,

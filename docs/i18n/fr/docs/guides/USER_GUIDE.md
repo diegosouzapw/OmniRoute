@@ -1,10 +1,10 @@
 # User Guide (Français)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 ---
 
-🌐 **Langues :** 🇺🇸 [English](./USER_GUIDE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/guides/USER_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/USER_GUIDE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/guides/USER_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/USER_GUIDE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/guides/USER_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/USER_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/USER_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/USER_GUIDE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/guides/USER_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/guides/USER_GUIDE.md) | 🇪🇪 [Eesti](../i18n/et/docs/guides/USER_GUIDE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/guides/USER_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/USER_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/USER_GUIDE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/guides/USER_GUIDE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/guides/USER_GUIDE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/guides/USER_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/USER_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/guides/USER_GUIDE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/guides/USER_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/USER_GUIDE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/guides/USER_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/USER_GUIDE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/guides/USER_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/USER_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/USER_GUIDE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/guides/USER_GUIDE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/guides/USER_GUIDE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/guides/USER_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/USER_GUIDE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/guides/USER_GUIDE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/guides/USER_GUIDE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/guides/USER_GUIDE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/guides/USER_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/USER_GUIDE.md) | 🇲🇹 [Malti](../i18n/mt/docs/guides/USER_GUIDE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/guides/USER_GUIDE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/guides/USER_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/USER_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/USER_GUIDE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/guides/USER_GUIDE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/guides/USER_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/USER_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/USER_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/USER_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/USER_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/USER_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/USER_GUIDE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/guides/USER_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/USER_GUIDE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/guides/USER_GUIDE.md) | 🇷🇸 [Српски](../i18n/sr/docs/guides/USER_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/USER_GUIDE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/guides/USER_GUIDE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/guides/USER_GUIDE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/guides/USER_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/USER_GUIDE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/guides/USER_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/USER_GUIDE.md) | 🇵🇰 [اردو](../i18n/ur/docs/guides/USER_GUIDE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/guides/USER_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/USER_GUIDE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/guides/USER_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/USER_GUIDE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 Guide complet pour configurer les fournisseurs, créer des combinaisons, intégrer des outils CLI et déployer OmniRoute.
 
@@ -120,16 +120,16 @@ Accès via : WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ## 📖 Configuration des fournisseurs
 
-Pour ajouter en masse des connexions par clé API depuis un fichier CSV ou JSON, utilisez **Tableau de bord → Fournisseurs → Importer depuis un fichier**. Les colonnes sont positionnelles (`provider,name,apiKey,baseUrl,priority`) ; `provider` doit déjà exister en tant que fournisseur géré ou nœud compatible. Consultez [Importer des fournisseurs depuis un fichier CSV ou JSON](../providers/CSV-IMPORT.md).
+Pour ajouter en masse des connexions par clé API à partir d’un fichier CSV ou JSON, utilisez **Tableau de bord → Fournisseurs → Importer depuis un fichier**. Les colonnes sont positionnelles (`provider,name,apiKey,baseUrl,priority`) ; `provider` doit déjà exister en tant que fournisseur géré ou nœud compatible. Consultez [Importer des fournisseurs depuis un fichier CSV ou JSON](../providers/CSV-IMPORT.md).
 
-### 🔐 Fournisseurs avec abonnement
+### 🔐 Fournisseurs par abonnement
 
 #### Claude Code (Pro/Max)
 
 ```bash
 Tableau de bord → Fournisseurs → Connecter Claude Code
 → Connexion OAuth → Actualisation automatique du jeton
-→ Suivi des quotas sur 5 heures et hebdomadaire
+→ Suivi des quotas sur 5 heures et hebdomadaires
 
 Modèles :
   cc/claude-opus-4-7
@@ -137,18 +137,18 @@ Modèles :
   cc/claude-haiku-4-5-20251001
 ```
 
-**Conseil :** utilisez Opus pour les tâches complexes et Sonnet pour la rapidité. OmniRoute suit le quota pour chaque modèle !
+**Conseil de pro :** utilisez Opus pour les tâches complexes et Sonnet pour la rapidité. OmniRoute suit le quota par modèle !
 
-Les routes compatibles avec Claude et Claude Code conservent l’effort de réflexion `max` pour les
-modèles Opus et Sonnet. Les modèles Haiku n’acceptent pas le niveau d’effort `max` ; OmniRoute
-réduit donc cette requête à un budget de réflexion élevé avant de l’envoyer au fournisseur en amont.
+Aucun navigateur sur l’hôte OmniRoute ? Exécutez `claude setup-token` partout où Claude Code est connecté, puis collez le jeton valable un an dans l’onglet **Jeton de configuration**. Consultez [Claude Code avec un jeton de configuration](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Les routes compatibles avec Claude et Claude Code conservent l’effort de réflexion `max` pour les modèles Opus et Sonnet. Les modèles Haiku n’acceptent pas le niveau d’effort `max` ; OmniRoute abaisse donc cette requête à un budget de réflexion élevé avant de l’envoyer au fournisseur en amont.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
 Tableau de bord → Fournisseurs → Connecter Codex
 → Connexion OAuth (port 1455)
-→ Réinitialisation toutes les 5 heures et chaque semaine
+→ Réinitialisation toutes les 5 heures et hebdomadaire
 
 Modèles :
   cx/gpt-5.5
@@ -180,21 +180,21 @@ Modèles :
 2. Obtenez une clé API depuis Coding Plan
 3. Tableau de bord → Ajouter une clé API : Fournisseur : `glm`, Clé API : `your-key`
 
-**Utilisation :** `glm/glm-4.7` — **Conseil :** Coding Plan offre un quota 3 fois supérieur pour un coût divisé par 7 ! Réinitialisation quotidienne à 10 h 00.
+**Utilisation :** `glm/glm-4.7` — **Conseil de pro :** Coding Plan offre un quota 3× supérieur pour 1/7 du coût ! Réinitialisation quotidienne à 10 h 00.
 
 #### MiniMax M2.1 (Réinitialisation toutes les 5 h, 0,20 $/1M)
 
 1. Inscrivez-vous : [MiniMax](https://www.minimax.io)
 2. Obtenez une clé API → Tableau de bord → Ajouter une clé API
 
-**Utilisation :** `minimax/MiniMax-M2.1` — **Conseil :** l’option la moins chère pour les contextes longs (1M de jetons) !
+**Utilisation :** `minimax/MiniMax-M2.1` — **Conseil de pro :** l’option la moins chère pour les contextes longs (1M de jetons) !
 
-#### Kimi K2 (Forfait de 9 $/mois)
+#### Kimi K2 (Forfait fixe de 9 $/mois)
 
 1. Abonnez-vous : [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. Obtenez une clé API → Tableau de bord → Ajouter une clé API
 
-**Utilisation :** `kimi/kimi-k2.5` — **Conseil :** forfait fixe de 9 $/mois pour 10M de jetons, soit un coût effectif de 0,90 $/1M !
+**Utilisation :** `kimi/kimi-k2.5` — **Conseil de pro :** un forfait fixe de 9 $/mois pour 10M de jetons, soit un coût effectif de 0,90 $/1M !
 
 #### Baidu Qianfan / ERNIE
 
@@ -205,8 +205,8 @@ Modèles :
 
 ### 🆓 Fournisseurs GRATUITS
 
-Les fournisseurs gratuits sans authentification disposent d’un bouton à côté de **Aucune authentification requise** sur leur page.
-Sa désactivation désactive le fournisseur, le retire des vues configurée/compacte des fournisseurs et
+Les fournisseurs gratuits sans authentification disposent d’un interrupteur à côté de **Aucune authentification requise** sur leur page.
+Sa désactivation désactive ce fournisseur, le retire des vues configurée/compacte des fournisseurs et
 retire ses modèles de `/v1/models`.
 
 #### Qoder (9 modèles GRATUITS)
@@ -687,13 +687,51 @@ Vous pouvez également utiliser le tableau de bord : **Fournisseurs → [Fournis
 Remarques :
 
 - OpenRouter et les fournisseurs compatibles avec OpenAI/Anthropic sont gérés uniquement depuis **Modèles disponibles**. L’ajout manuel, l’importation et la synchronisation automatique alimentent tous la même liste de modèles disponibles ; il n’existe donc pas de section Modèles personnalisés distincte pour ces fournisseurs.
-- La section **Modèles personnalisés** est destinée aux fournisseurs qui ne proposent pas d’importations gérées de modèles disponibles.
+- La section **Modèles personnalisés** est destinée aux fournisseurs qui ne proposent pas d’importation gérée des modèles disponibles.
+
+### Fournisseurs personnalisés compatibles avec OpenAI
+
+Toute passerelle utilisant l’API OpenAI (un proxy auto-hébergé, vLLM ou un agrégateur tiers)
+peut être ajoutée en tant que nœud fournisseur distinct :
+
+1. **Fournisseurs → Ajouter un fournisseur compatible avec OpenAI**.
+2. **Nom** : un libellé d’affichage pour le nœud.
+3. **Préfixe** : le nom de routage. Les clients appellent les modèles sous la forme `<prefix>/<model>`. Ainsi, un nœud avec
+   le préfixe `mygw` fournit `mygw/gpt-4o-mini`. Obligatoire ; aucune restriction de caractères ne s’applique.
+4. **Type d’API** : la famille de points de terminaison fournie par la passerelle (Chat Completions, Responses,
+   Embeddings, audio, images).
+5. **URL de base** : la racine de l’API, jusqu’à `/v1` inclus (par exemple
+   `https://gateway.example.com/v1`), et non le chemin complet `/chat/completions`. Pour les passerelles utilisant
+   des chemins non standard, configurez-les dans **Paramètres avancés** (chemin de chat, chemin des modèles).
+6. Le champ **Clé API (pour la vérification)** sert uniquement à tester la connexion. Après avoir créé le nœud,
+   ouvrez-le et utilisez **Ajouter une connexion** pour enregistrer la clé qui sera utilisée par les requêtes.
+
+Le nœud reçoit un ID interne de la forme `openai-compatible-<apiType>-<uuid>` ; vous n’avez jamais
+besoin de le saisir, car le préfixe constitue le nom public.
+
+#### Préfixes réservés
+
+Un préfixe ne peut pas être l’ID ou l’alias d’un fournisseur intégré (par exemple `openai`, `cf`), ni
+l’ID d’un fournisseur retiré. Le résolveur de modèles vérifie les ID et alias intégrés avant
+les nœuds personnalisés. Par conséquent, un nœud utilisant l’un de ces préfixes ne recevrait jamais de trafic :
+`<prefix>/model` serait envoyé au fournisseur intégré à la place, ou échouerait de manière sécurisée si ce fournisseur
+avait été retiré. La création ou la modification d’un nœud avec un tel préfixe est rejetée avec le message suivant :
+
+```text
+prefix: "<prefix>" est un préfixe de fournisseur réservé — choisissez un autre préfixe (les ID/alias réservés ne peuvent pas être utilisés pour les nœuds personnalisés, car les requêtes telles que <prefix>/model sont acheminées vers un fournisseur intégré ou échouent de manière sécurisée lorsque celui-ci est retiré)
+```
+
+Choisissez un préfixe distinct (`mygw`, `acme-proxy`). Si les requêtes envoyées à un nœud personnalisé échouent avec une
+erreur mentionnant un fournisseur intégré ou ses identifiants, vérifiez si le préfixe du nœud est
+réservé : les nœuds enregistrés avant l’instauration de cette règle sont toujours conservés, mais leur préfixe achemine les requêtes vers
+le fournisseur intégré. Modifiez le nœud et attribuez-lui un nouveau préfixe.
 
 ### Chaînage de pairs OmniRoute
 
-Une autre passerelle OmniRoute peut être ajoutée en tant que fournisseur **personnalisé compatible avec OpenAI**. Utilisez l’URL de base `/v1` du pair et une clé d’API dédiée avec le minimum de privilèges, émise par ce pair.
+Une autre passerelle OmniRoute peut être ajoutée en tant que fournisseur **personnalisé compatible avec OpenAI**. Utilisez
+l’URL de base `/v1` du pair ainsi qu’une clé API dédiée disposant du minimum de privilèges, émise par ce pair.
 
-Pour les chaînes réciproques ou à plusieurs sauts, activez la protection facultative contre les boucles sur chaque passerelle :
+Pour les chaînes réciproques ou à plusieurs sauts, activez le mécanisme facultatif de protection contre les boucles sur chaque passerelle :
 
 ```bash
 # gateway-a
@@ -710,12 +748,12 @@ OMNIROUTE_PEER_MAX_HOPS=4
 ```
 
 Seules les requêtes envoyées à une URL de pair explicitement autorisée reçoivent l’en-tête
-`X-OmniRoute-Peer-Trace`. Une passerelle rejette un ID d’instance répété ou un nombre maximal
-de sauts atteint avec la réponse HTTP `508 Loop Detected` ; les fournisseurs en amont ordinaires ne reçoivent aucune métadonnée de pair.
+`X-OmniRoute-Peer-Trace`. Une passerelle rejette un ID d’instance répété ou un budget de sauts
+épuisé avec la réponse HTTP `508 Loop Detected` ; les fournisseurs en amont ordinaires ne reçoivent aucune métadonnée de pair.
 
-Le chaînage de pairs ne constitue ni une réplication de base de données ni un basculement d’hôte. Chaque passerelle conserve
-un état SQLite, des caches, des compteurs de débit et des sessions indépendants. Utilisez un proxy inverse avec vérification d’intégrité ou un mécanisme de
-basculement côté client pour une disponibilité active/passive ou active/active, et ne montez jamais une même base de données SQLite
+Le chaînage de pairs ne constitue ni une réplication de base de données ni un basculement d’hôte. Chaque passerelle conserve ses propres
+état SQLite, caches, compteurs de débit et sessions indépendants. Utilisez un proxy inverse avec contrôle d’intégrité ou un mécanisme de
+basculement côté client pour assurer une disponibilité actif/passif ou actif/actif, et ne montez jamais une même base de données SQLite
 dans plusieurs instances OmniRoute en cours d’exécution.
 
 ### Routes dédiées aux fournisseurs
@@ -728,7 +766,7 @@ POST http://localhost:20128/v1/providers/openai/embeddings
 POST http://localhost:20128/v1/providers/fireworks/images/generations
 ```
 
-Le préfixe du fournisseur est ajouté automatiquement s’il est absent. Les modèles qui ne correspondent pas renvoient `400`.
+Le préfixe du fournisseur est ajouté automatiquement s’il est absent. Les modèles incompatibles renvoient `400`.
 
 ### Configuration du proxy réseau
 
@@ -737,7 +775,7 @@ Le préfixe du fournisseur est ajouté automatiquement s’il est absent. Les mo
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"global": {"type":"http","host":"proxy.example.com","port":"8080"}}'
 
-# Proxy par fournisseur
+# Proxy propre à un fournisseur
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"providers": {"openai": {"type":"socks5","host":"proxy.example.com","port":"1080"}}}'
 
@@ -746,7 +784,7 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
 ```
 
-**Ordre de priorité :** Spécifique à la clé → Spécifique à la combinaison → Spécifique au fournisseur → Global → Environnement.
+**Ordre de priorité :** Propre à la clé → Propre à la combinaison → Propre au fournisseur → Global → Environnement.
 
 ### API du catalogue de modèles
 
@@ -754,98 +792,98 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
 curl http://localhost:20128/api/models/catalog
 ```
 
-Renvoie les modèles regroupés par fournisseur avec leurs types (`chat`, `embedding`, `image`).
+Renvoie les modèles regroupés par fournisseur avec leur type (`chat`, `embedding`, `image`).
 
 ### Synchronisation dans le cloud
 
-- Synchronisez les fournisseurs, les combinaisons et les paramètres entre les appareils
+- Synchronisation des fournisseurs, des combinaisons et des paramètres entre les appareils
 - Synchronisation automatique en arrière-plan avec délai d’expiration et échec rapide
-- Privilégiez `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` côté serveur en production
+- En production, privilégiez les valeurs côté serveur `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL`
 
 ### Tunnel rapide Cloudflare
 
 - Disponible dans **Tableau de bord → Points de terminaison** pour Docker et les autres déploiements auto-hébergés
 - Crée une URL temporaire `https://*.trycloudflare.com` qui redirige vers votre point de terminaison `/v1` actuel compatible avec OpenAI
-- La première activation installe `cloudflared` uniquement si nécessaire ; les redémarrages ultérieurs réutilisent le même binaire géré
+- Lors de la première activation, installe `cloudflared` uniquement si nécessaire ; les redémarrages ultérieurs réutilisent le même binaire géré
 - Les tunnels rapides ne sont pas restaurés automatiquement après le redémarrage d’OmniRoute ou du conteneur ; réactivez-les depuis le tableau de bord si nécessaire
-- Les URL de tunnel sont éphémères et changent chaque fois que vous arrêtez ou démarrez le tunnel
+- Les URL des tunnels sont éphémères et changent chaque fois que vous arrêtez ou démarrez le tunnel
 - Les tunnels rapides gérés utilisent par défaut le transport HTTP/2 afin d’éviter les avertissements bruyants liés au tampon UDP de QUIC dans les conteneurs aux ressources limitées
 - Définissez `CLOUDFLARED_PROTOCOL=quic` ou `auto` si vous souhaitez remplacer le choix de transport géré
 - Définissez `CLOUDFLARED_BIN` si vous préférez utiliser un binaire `cloudflared` préinstallé plutôt que le téléchargement géré
-- Les panneaux Tunnel rapide Cloudflare, Tailscale Funnel et Tunnel ngrok peuvent être affichés ou masqués dans **Paramètres → Apparence**. Masquer un panneau n’arrête pas un tunnel en cours d’exécution.
+- Les panneaux Cloudflare Quick Tunnel, Tailscale Funnel et ngrok Tunnel peuvent être affichés ou masqués dans **Paramètres → Apparence**. Masquer un panneau n’arrête pas un tunnel en cours d’exécution.
 
 ### Intelligence de la passerelle LLM (Phase 9)
 
 - **Cache sémantique** — Met automatiquement en cache les réponses non diffusées avec temperature=0 (contournement avec `X-OmniRoute-No-Cache: true`)
 - **Idempotence des requêtes** — Déduplique les requêtes dans un délai de 5 s via l’en-tête `Idempotency-Key` ou `X-Request-Id`
-- **Suivi de la progression** — Événements SSE facultatifs `event: progress` via l’en-tête `X-OmniRoute-Progress: true`
+- **Suivi de la progression** — Événements SSE `event: progress` facultatifs via l’en-tête `X-OmniRoute-Progress: true`
 
 ---
 
-### Atelier de traduction
+### Bac à sable du traducteur
 
 Accessible via **Tableau de bord → Traducteur**. Déboguez et visualisez la manière dont OmniRoute traduit les requêtes API entre les fournisseurs.
 
 | Mode                   | Objectif                                                                                                         |
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| **Atelier**            | Sélectionnez les formats source/cible, collez une requête et affichez instantanément le résultat traduit         |
-| **Testeur de chat**    | Envoyez des messages de chat en direct via le proxy et examinez l’intégralité du cycle de requête/réponse        |
+| **Bac à sable**        | Sélectionnez les formats source et cible, collez une requête et consultez instantanément le résultat traduit     |
+| **Testeur de chat**    | Envoyez des messages de chat en direct via le proxy et inspectez l’intégralité du cycle de requête et de réponse |
 | **Banc de test**       | Exécutez des tests par lots sur plusieurs combinaisons de formats afin de vérifier l’exactitude de la traduction |
 | **Moniteur en direct** | Observez les traductions en temps réel à mesure que les requêtes transitent par le proxy                         |
 
 **Cas d’utilisation :**
 
-- Déboguer la raison de l’échec d’une combinaison client/fournisseur spécifique
-- Vérifier que les balises de raisonnement, les appels d’outils et les invites système sont correctement traduits
-- Comparer les différences de format entre les formats OpenAI, Claude, Gemini et Responses API
+- Déterminer pourquoi une combinaison spécifique de client et de fournisseur échoue
+- Vérifier que les balises de réflexion, les appels d’outils et les invites système sont correctement traduits
+- Comparer les différences de format entre les formats d’API OpenAI, Claude, Gemini et Responses
 
 ---
 
 ### Stratégies de routage
 
-Configurez via **Tableau de bord → Paramètres → Routage**. Le tableau de bord présente les six stratégies les plus utilisées ; les combinaisons et le routeur automatique prennent en charge en interne un ensemble plus étendu.
+Configurez-les via **Tableau de bord → Paramètres → Routage**. Le tableau de bord présente les six stratégies les plus utilisées ; les combinaisons et le routeur automatique prennent en charge un ensemble plus étendu en interne.
 
 **Stratégies visibles dans le tableau de bord (routage au niveau du compte) :**
 
-| Stratégie                        | Description                                                                                                                       |
-| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Remplissage prioritaire**      | Utilise les comptes par ordre de priorité — le compte principal traite toutes les requêtes jusqu’à ce qu’il soit indisponible     |
-| **Tourniquet**                   | Parcourt tous les comptes avec une limite d’affinité configurable (par défaut : 3 appels par compte)                              |
-| **P2C (choix entre deux)**       | Sélectionne 2 comptes aléatoires et achemine vers celui en meilleur état — équilibre la charge tout en tenant compte de leur état |
-| **Aléatoire**                    | Sélectionne aléatoirement un compte pour chaque requête à l’aide du mélange de Fisher-Yates                                       |
-| **Le moins utilisé**             | Achemine vers le compte dont l’horodatage `lastUsedAt` est le plus ancien, afin de répartir uniformément le trafic                |
-| **Optimisé en fonction du coût** | Achemine vers le compte ayant la valeur de priorité la plus faible, afin de privilégier les fournisseurs les moins coûteux        |
+| Stratégie                         | Description                                                                                                                       |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Remplissage prioritaire**       | Utilise les comptes par ordre de priorité — le compte principal traite toutes les requêtes jusqu’à ce qu’il devienne indisponible |
+| **Tourniquet**                    | Parcourt tous les comptes avec une limite d’affinité configurable (par défaut : 3 appels par compte)                              |
+| **P2C (puissance de deux choix)** | Sélectionne 2 comptes au hasard et route vers le plus sain — équilibre la charge en tenant compte de l’état de santé              |
+| **Aléatoire**                     | Sélectionne aléatoirement un compte pour chaque requête à l’aide du mélange de Fisher-Yates                                       |
+| **Le moins utilisé**              | Route vers le compte dont l’horodatage `lastUsedAt` est le plus ancien, afin de répartir uniformément le trafic                   |
+| **Optimisé pour les coûts**       | Route vers le compte ayant la valeur de priorité la plus basse, afin de privilégier les fournisseurs les moins coûteux            |
 
-**Stratégies avancées de combinaison et automatiques** (configurables pour chaque combinaison ou via les préfixes `auto/*` — voir [AUTO-COMBO.md](../routing/AUTO-COMBO.md)) :
+**Stratégies avancées de combinaison et automatiques** (configurables par combinaison ou via les préfixes `auto/*` — consultez [AUTO-COMBO.md](../routing/AUTO-COMBO.md)) :
 
-- `priority` — ordre strict, sans tourniquet
+- `priority` — ordre strict, sans jamais appliquer de tourniquet
 - `weighted` — répartition proportionnelle du trafic selon les pondérations propres à chaque modèle
 - `fill-first` — utilise le premier modèle jusqu’à ce que ses limites soient atteintes
 - `round-robin` / `strict-random` / `random`
-- `p2c` (choix entre deux)
+- `p2c` (puissance de deux choix)
 - `least-used` et `cost-optimized`
-- `auto` — sélection fondée sur un score parmi tous les candidats
+- `auto` — routage fondé sur un score parmi tous les candidats
 - `lkgp` (dernier fournisseur connu comme fonctionnel) — conserve le dernier fournisseur ayant réussi, puis se rabat sur les règles
 - `context-optimized` — sélectionne le modèle disposant de la plus grande fenêtre de contexte libre
-- `context-relay` — enchaîne des modèles à contexte long pour les échanges suivants
+- `context-relay` — enchaîne des modèles à contexte long pour les tours de suivi
 
 #### En-tête externe de session persistante
 
 Pour une affinité de session externe (par exemple, des agents Claude Code/Codex derrière des proxys inverses), envoyez :
 
 ```http
-X-Session-Id: votre-clé-de-session
+X-Session-Id: your-session-key
 ```
 
 OmniRoute accepte également `x_session_id` et renvoie la clé de session effective dans `X-OmniRoute-Session-Id`.
 
-Si vous utilisez Nginx et envoyez des en-têtes contenant des traits de soulignement, activez :
+Si vous utilisez Nginx et envoyez des en-têtes dont le nom contient des traits de soulignement, activez :
 
 ```nginx
 underscores_in_headers on;
 ```
 
-#### Alias de modèles avec caractères génériques
+#### Alias génériques de modèles
 
 Créez des motifs génériques pour remapper les noms de modèles :
 
@@ -871,50 +909,49 @@ Chaîne : production-fallback
 
 ### Résilience et disjoncteurs
 
-Configurez via **Tableau de bord → Paramètres → Résilience**.
+Configurez-les via **Tableau de bord → Paramètres → Résilience**.
 
-OmniRoute met en œuvre une résilience au niveau des fournisseurs reposant sur cinq composants :
+OmniRoute met en œuvre une résilience au niveau des fournisseurs à l’aide de cinq composants :
 
-1. **File d’attente et cadencement des requêtes** — Régulation des requêtes au niveau du système :
+1. **File d’attente et régulation des requêtes** — Mise en forme des requêtes au niveau du système :
    - **Requêtes par minute (RPM)** — Nombre maximal de requêtes par minute et par compte
-   - **Délai minimal entre les requêtes** — Intervalle minimal en millisecondes entre les requêtes
+   - **Délai minimal entre les requêtes** — Intervalle minimal, en millisecondes, entre les requêtes
    - **Nombre maximal de requêtes simultanées** — Nombre maximal de requêtes simultanées par compte
-
-2. **Délai de récupération de la connexion** — Configuration par type d’authentification pour une connexion unique après des échecs autorisant une nouvelle tentative :
-   - **Délai de récupération de base** — Fenêtre de récupération par défaut après des échecs en amont autorisant une nouvelle tentative
-   - **Utiliser les indications de nouvelle tentative du service en amont** — Respecte les indications faisant autorité de `Retry-After` ou de réinitialisation lorsqu’elles sont fournies
-   - **Nombre maximal d’étapes de temporisation** — Niveau maximal de temporisation exponentielle en cas d’échecs répétés
+2. **Délai de récupération des connexions** — Configuration par type d’authentification pour une connexion après des échecs pouvant faire l’objet d’une nouvelle tentative :
+   - **Délai de récupération de base** — Fenêtre de récupération par défaut pour les échecs en amont pouvant faire l’objet d’une nouvelle tentative
+   - **Utiliser les indications de nouvelle tentative en amont** — Respecte les indications faisant autorité de `Retry-After` ou de réinitialisation lorsqu’elles sont fournies
+   - **Nombre maximal d’étapes de temporisation** — Niveau maximal de temporisation exponentielle pour les échecs répétés
 
 3. **Disjoncteur du fournisseur** — Suit les échecs de bout en bout du fournisseur, marque un fournisseur comme dégradé au seuil d’avertissement configuré et ouvre le disjoncteur lorsque le seuil d’échec configuré est atteint :
-   - **Seuil de dégradation** — Nombre d’échecs consécutifs du fournisseur avant le passage à l’état `DEGRADED`
-   - **Seuil d’échec** — Nombre d’échecs consécutifs du fournisseur avant le passage à l’état `OPEN`
-   - **Délai de réinitialisation** — Durée avant que le fournisseur soit à nouveau testé
-   - **CLOSED** (Sain) — Les requêtes sont traitées normalement
-   - **DEGRADED** — Les requêtes continuent d’être traitées tandis que le nombre élevé d’échecs est suivi
+   - **Seuil de dégradation** — Nombre d’échecs consécutifs du fournisseur avant de passer à l’état `DEGRADED`
+   - **Seuil d’échec** — Nombre d’échecs consécutifs du fournisseur avant de passer à l’état `OPEN`
+   - **Délai de réinitialisation** — Intervalle avant que le fournisseur ne soit testé à nouveau
+   - **CLOSED** (Opérationnel) — Les requêtes circulent normalement
+   - **DEGRADED** — Les requêtes continuent de circuler tandis que les échecs élevés sont suivis
    - **OPEN** — Le fournisseur est temporairement bloqué après des échecs répétés
    - **HALF_OPEN** — Vérification de la récupération du fournisseur
 
-   Les limitations de débit `429` propres à une connexion restent gérées par le **délai de récupération de la connexion** et ne sont pas comptabilisées par le disjoncteur du fournisseur.
+   Les limites de débit `429` propres à une connexion restent dans le **Délai de récupération des connexions** et ne sont pas comptabilisées par le disjoncteur du fournisseur.
 
-   L’état d’exécution du disjoncteur du fournisseur est affiché uniquement dans **Tableau de bord → État de santé**.
+   L’état d’exécution du disjoncteur du fournisseur est affiché uniquement dans **Tableau de bord → Santé**.
 
-4. **Attente de la fin du délai de récupération** — Si toutes les connexions candidates sont déjà en période de récupération, OmniRoute peut attendre la fin de la période la plus proche et relancer automatiquement la même requête cliente.
+4. **Attendre la fin du délai de récupération** — Si toutes les connexions candidates sont déjà en cours de récupération, OmniRoute peut attendre la fin du délai le plus proche et relancer automatiquement la même requête client.
 
-5. **Détection automatique des limites de débit** — Lorsque les fournisseurs en amont renvoient des fenêtres d’attente explicites, ces indications remplacent le délai local de récupération de la connexion si ce paramètre est activé.
+5. **Détection automatique des limites de débit** — Lorsque les fournisseurs en amont renvoient des délais d’attente explicites, ces indications remplacent le délai de récupération local de la connexion si ce paramètre est activé.
 
-**Conseil de pro :** Utilisez la page **État de santé** pour inspecter et réinitialiser les disjoncteurs actifs des fournisseurs après une panne. La page Résilience permet uniquement de modifier la configuration.
+**Conseil :** utilisez la page **Santé** pour inspecter et réinitialiser les disjoncteurs actifs des fournisseurs après une panne. La page Résilience permet uniquement de modifier la configuration.
 
 ---
 
-### Exportation / importation de la base de données
+### Exportation / Importation de la base de données
 
 Gérez les sauvegardes de la base de données dans **Tableau de bord → Paramètres → Système et stockage**.
 
-| Action                           | Description                                                                                                                                                                              |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Exporter la base de données**  | Télécharge la base de données SQLite actuelle sous forme de fichier `.sqlite`                                                                                                            |
-| **Tout exporter (.tar.gz)**      | Télécharge une archive de sauvegarde complète comprenant : base de données, paramètres, combos, connexions aux fournisseurs (sans identifiants), métadonnées des clés API                |
-| **Importer une base de données** | Téléverse un fichier `.sqlite` pour remplacer la base de données actuelle. Une sauvegarde préalable à l’importation est automatiquement créée, sauf si `DISABLE_SQLITE_AUTO_BACKUP=true` |
+| Action                          | Description                                                                                                                                                                                        |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Exporter la base de données** | Télécharge la base de données SQLite actuelle sous la forme d’un fichier `.sqlite`                                                                                                                 |
+| **Tout exporter (.tar.gz)**     | Télécharge une archive de sauvegarde complète comprenant : la base de données, les paramètres, les combinaisons, les connexions aux fournisseurs (sans identifiants), les métadonnées des clés API |
+| **Importer la base de données** | Téléverse un fichier `.sqlite` pour remplacer la base de données actuelle. Une sauvegarde préalable à l’importation est automatiquement créée, sauf si `DISABLE_SQLITE_AUTO_BACKUP=true`           |
 
 ```bash
 # API : exporter la base de données
@@ -928,13 +965,13 @@ curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**Validation de l’importation :** L’intégrité du fichier importé est vérifiée (contrôle pragma SQLite), ainsi que la présence des tables requises (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) et sa taille (100 Mo maximum).
+**Validation de l’importation :** l’intégrité du fichier importé est vérifiée (contrôle pragma SQLite), ainsi que la présence des tables requises (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) et sa taille (100 Mo maximum).
 
 **Cas d’utilisation :**
 
-- Migrer OmniRoute d’une machine à une autre
+- Migrer OmniRoute entre différentes machines
 - Créer des sauvegardes externes pour la reprise après sinistre
-- Partager des configurations entre les membres d’une équipe (tout exporter → partager l’archive)
+- Partager des configurations entre les membres de l’équipe (tout exporter → partager l’archive)
 
 ---
 
@@ -942,19 +979,19 @@ curl -X POST http://localhost:20128/api/db-backups/import \
 
 La page des paramètres est organisée en **7 onglets** pour faciliter la navigation :
 
-| Onglet         | Contenu                                                                                                                                                                                                             |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Général**    | Outils de stockage système, comportement par défaut, visibilité des tunnels d’endpoint                                                                                                                              |
-| **Apparence**  | Commandes du thème (clair/sombre/système), visibilité de la barre latérale, options d’affichage des panneaux pour les cartes de tunnel Cloudflare/Tailscale/ngrok                                                   |
-| **IA**         | Budget de réflexion (transmission / suppression automatique / personnalisé / adaptatif — voir [THINKING_BUDGET.md](./THINKING_BUDGET.md)), prompt système global, statistiques du cache de prompts                  |
-| **Sécurité**   | Paramètres de connexion/mot de passe, contrôle d’accès par IP, authentification API pour `/models`, blocage des fournisseurs, protection contre l’injection de prompts                                              |
-| **Routage**    | Stratégie de routage globale (Remplissage prioritaire / Tourniquet / P2C / Aléatoire / Moins utilisé / Coût optimisé), alias de modèles avec caractères génériques, chaînes de repli, valeurs par défaut des combos |
-| **Résilience** | File d’attente des requêtes, délai de récupération des connexions, configuration du disjoncteur des fournisseurs et comportement d’attente de la fin du délai de récupération                                       |
-| **Avancé**     | Configuration globale du proxy (HTTP/SOCKS5), substitutions du proxy par fournisseur                                                                                                                                |
+| Onglet         | Contenu                                                                                                                                                                                                                             |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Général**    | Outils de stockage système, comportement par défaut, visibilité du tunnel des points de terminaison                                                                                                                                 |
+| **Apparence**  | Commandes du thème (clair/sombre/système), visibilité de la barre latérale, affichage des panneaux pour les cartes de tunnel Cloudflare/Tailscale/ngrok                                                                             |
+| **IA**         | Budget de raisonnement (transmission directe / suppression automatique / personnalisé / adaptatif — voir [THINKING_BUDGET.md](./THINKING_BUDGET.md)), invite système globale, statistiques du cache des invites                     |
+| **Sécurité**   | Paramètres de connexion/mot de passe, contrôle d’accès par IP, authentification API pour `/models`, blocage des fournisseurs, protection contre l’injection d’invites                                                               |
+| **Routage**    | Stratégie de routage globale (Remplissage prioritaire / Tourniquet / P2C / Aléatoire / Moins utilisé / Optimisé pour les coûts), alias de modèles avec caractères génériques, chaînes de repli, valeurs par défaut des combinaisons |
+| **Résilience** | File d’attente des requêtes, délai de récupération des connexions, configuration du disjoncteur du fournisseur et comportement d’attente de la fin du délai de récupération                                                         |
+| **Avancé**     | Configuration globale du proxy (HTTP/SOCKS5), remplacements du proxy par fournisseur                                                                                                                                                |
 
-L’onglet Général ne duplique plus les notes en lecture seule relatives à la journalisation et au cache. Les paramètres de conservation et
-d’optimisation de la base de données sont conservés via `/api/settings/database` ; le nettoyage manuel du cache utilise
-`DELETE /api/cache`. Les limites du nombre de lignes des journaux de requêtes et de proxy sont contrôlées par
+La section Général ne duplique plus les notes en lecture seule relatives à la journalisation et au cache. Les paramètres de conservation et
+d’optimisation de la base de données sont conservés via `/api/settings/database` ; le vidage manuel du cache utilise
+`DELETE /api/cache`. Le nombre maximal de lignes des journaux de requêtes et du proxy est contrôlé par
 `CALL_LOGS_TABLE_MAX_ROWS` et `PROXY_LOGS_TABLE_MAX_ROWS`.
 
 ---
@@ -963,10 +1000,10 @@ d’optimisation de la base de données sont conservés via `/api/settings/datab
 
 Accessible via **Tableau de bord → Coûts**.
 
-| Onglet           | Objectif                                                                                                                 |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| **Budget**       | Définir des limites de dépenses par clé API avec des budgets quotidiens/hebdomadaires/mensuels et un suivi en temps réel |
-| **Tarification** | Afficher et modifier les entrées tarifaires des modèles — coût pour 1 000 tokens d’entrée/sortie par fournisseur         |
+| Onglet           | Objectif                                                                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **Budget**       | Définir des plafonds de dépenses par clé API avec des budgets quotidiens/hebdomadaires/mensuels et un suivi en temps réel |
+| **Tarification** | Afficher et modifier les entrées tarifaires des modèles — coût pour 1 000 jetons d’entrée/de sortie par fournisseur       |
 
 ```bash
 # API : définir un budget
@@ -978,13 +1015,13 @@ curl -X POST http://localhost:20128/api/usage/budget \
 curl http://localhost:20128/api/usage/budget
 ```
 
-**Suivi des coûts :** Chaque requête consigne l’utilisation des tokens et calcule le coût à l’aide de la grille tarifaire. Consultez les ventilations dans **Tableau de bord → Utilisation** par fournisseur, modèle et clé API.
+**Suivi des coûts :** chaque requête enregistre l’utilisation des jetons et calcule le coût à l’aide de la grille tarifaire. Consultez les détails dans **Tableau de bord → Utilisation**, par fournisseur, modèle et clé API.
 
 ---
 
 ### Transcription audio
 
-OmniRoute prend en charge la transcription audio via l’endpoint compatible avec OpenAI :
+OmniRoute prend en charge la transcription audio via le point de terminaison compatible avec OpenAI :
 
 ```bash
 POST /v1/audio/transcriptions
@@ -1001,7 +1038,7 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
 `deepgram/nova-3` est la route Deepgram native et nécessite une clé API Deepgram.
 Si seul OpenRouter est configuré, utilisez `openrouter/deepgram/nova-3`.
 
-Fournisseurs de **reconnaissance vocale (transcription)** :
+Fournisseurs de **conversion de la parole en texte (transcription)** :
 
 - `openai/` (compatible avec Whisper)
 - `groq/` (Groq Whisper Turbo)
@@ -1011,7 +1048,7 @@ Fournisseurs de **reconnaissance vocale (transcription)** :
 - `huggingface/` (variantes de Whisper)
 - `qwen/`
 
-Fournisseurs de **synthèse vocale (`POST /v1/audio/speech`)** :
+Fournisseurs de **conversion de texte en parole (`POST /v1/audio/speech`)** :
 
 - `openai/` (tts-1, tts-1-hd)
 - `hyperbolic/`
@@ -1036,48 +1073,48 @@ Formats audio pris en charge pour la transcription : `mp3`, `wav`, `m4a`, `flac`
 
 Configurez l’équilibrage de chaque combo dans **Tableau de bord → Combos → Créer/Modifier → Stratégie**.
 
-| Stratégie                   | Description                                                                                                 |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| **Round-Robin**             | Parcourt les modèles successivement                                                                         |
-| **Priorité**                | Essaie toujours le premier modèle ; ne bascule qu'en cas d'erreur                                           |
-| **Aléatoire**               | Choisit aléatoirement un modèle de la combinaison pour chaque requête                                       |
-| **Pondérée**                | Achemine proportionnellement selon les poids attribués à chaque modèle                                      |
-| **Le moins utilisé**        | Achemine vers le modèle ayant reçu le moins de requêtes récemment (utilise les métriques de la combinaison) |
-| **Optimisée selon le coût** | Achemine vers le modèle disponible le moins cher (utilise la grille tarifaire)                              |
+| Stratégie                  | Description                                                                                       |
+| -------------------------- | ------------------------------------------------------------------------------------------------- |
+| **Tourniquet**             | Parcourt les modèles de manière séquentielle                                                      |
+| **Priorité**               | Essaie toujours le premier modèle ; ne bascule vers un autre qu’en cas d’erreur                   |
+| **Aléatoire**              | Choisit aléatoirement un modèle du combo pour chaque requête                                      |
+| **Pondérée**               | Achemine proportionnellement selon les pondérations attribuées à chaque modèle                    |
+| **Le moins utilisé**       | Achemine vers le modèle ayant reçu le moins de requêtes récentes (utilise les métriques du combo) |
+| **Optimisée pour le coût** | Achemine vers le modèle disponible le moins cher (utilise la grille tarifaire)                    |
 
-Les valeurs globales par défaut des combinaisons peuvent être définies dans **Tableau de bord → Paramètres → Routage → Valeurs par défaut des combinaisons**.
-Par défaut, les délais d'expiration des cibles d'une combinaison héritent du délai d'expiration de la requête actuelle. Utilisez **Délai d'expiration de la cible
-(secondes)** dans les valeurs par défaut des combinaisons ou dans une combinaison individuelle uniquement lorsqu'une limite plus courte par cible doit
+Les valeurs par défaut globales des combos peuvent être définies dans **Tableau de bord → Paramètres → Routage → Valeurs par défaut des combos**.
+Par défaut, les délais d’expiration des cibles d’un combo héritent du délai d’expiration de la requête actuelle. Utilisez **Délai d’expiration de la cible
+(secondes)** dans les valeurs par défaut des combos ou dans un combo individuel uniquement lorsqu’une limite plus courte par cible doit
 déclencher un basculement plus rapide.
 
-Les optimisations de combinaison à latence nulle sont facultatives. Laissez **Optimisations à latence nulle** désactivé pour
-empêcher ces fonctionnalités de latence de mettre en concurrence les cibles de basculement, d'ignorer des cibles en fonction de l'historique
-TTFT ou de compresser les requêtes de basculement ; leur activation permet à la couverture configurée, aux exclusions prédictives selon le TTFT
-et à la compression proactive du basculement de sacrifier la fidélité du routage et des requêtes au profit d'une latence de fin de distribution
+Les optimisations de combo à latence nulle sont facultatives. Laissez **Optimisations à latence nulle** désactivé afin
+d’empêcher ces fonctionnalités de latence de mettre en concurrence les cibles de repli, d’ignorer des cibles en fonction de l’historique
+TTFT ou de compresser les requêtes de repli ; leur activation permet à la couverture configurée, aux exclusions prédictives basées sur le TTFT
+et à la compression proactive des replis de sacrifier la fidélité du routage et des requêtes au profit d’une latence de fin de distribution
 plus faible.
 
-Désactivez **Tampon de jetons de raisonnement** lorsque les fournisseurs en amont imposent des limites strictes
-`max_tokens` / `maxOutputTokens`. Lorsque cette option est activée, le routage des combinaisons n'ajoute une marge pour les modèles de raisonnement
-qu'aux modèles dont la limite de sortie est connue et laisse inchangée la limite de jetons du client lorsque la
-valeur tamponnée sûre dépasserait cette limite. Si la limite du client est déjà supérieure à une limite connue,
-OmniRoute la réduit à cette limite avant d'envoyer la requête en amont.
+Désactivez **Tampon de jetons de raisonnement** lorsque les fournisseurs en amont exigent des limites
+`max_tokens` / `maxOutputTokens` strictes. Lorsqu’il est activé, le routage des combos n’ajoute une marge pour les modèles
+de raisonnement qu’aux modèles ayant une limite de sortie connue, et laisse inchangée la limite de jetons du client lorsque la
+valeur tamponnée sûre dépasserait cette limite. Si la limite du client dépasse déjà une limite connue,
+OmniRoute la réduit à cette limite avant d’envoyer la requête en amont.
 
 ---
 
-### Tableau de bord de l'état de santé
+### Tableau de bord de l’état de santé
 
-Accessible via **Tableau de bord → État de santé**. Vue d'ensemble en temps réel de l'état de santé du système avec 6 cartes :
+Accessible via **Tableau de bord → État de santé**. Vue d’ensemble en temps réel de l’état de santé du système, comprenant 6 cartes :
 
-| Carte                              | Informations affichées                                                             |
-| ---------------------------------- | ---------------------------------------------------------------------------------- |
-| **État du système**                | Durée de fonctionnement, version, utilisation de la mémoire, répertoire de données |
-| **État de santé des fournisseurs** | État d'exécution global du disjoncteur des fournisseurs                            |
-| **Limites de débit**               | Délais de récupération actifs des connexions par compte avec temps restant         |
-| **Verrouillages actifs**           | Verrouillages actifs propres aux modèles et exclusions temporaires                 |
-| **Cache de signatures**            | Statistiques du cache de déduplication (clés actives, taux de succès)              |
-| **Télémétrie de latence**          | Agrégation des latences p50/p95/p99 par fournisseur                                |
+| Carte                     | Informations affichées                                                             |
+| ------------------------- | ---------------------------------------------------------------------------------- |
+| **État du système**       | Durée de fonctionnement, version, utilisation de la mémoire, répertoire de données |
+| **État des fournisseurs** | État d’exécution global du disjoncteur des fournisseurs                            |
+| **Limites de débit**      | Délais de récupération actifs des connexions par compte, avec le temps restant     |
+| **Verrouillages actifs**  | Verrouillages actifs propres aux modèles et exclusions temporaires                 |
+| **Cache des signatures**  | Statistiques du cache de déduplication (clés actives, taux de succès)              |
+| **Télémétrie de latence** | Agrégation des latences p50/p95/p99 par fournisseur                                |
 
-**Conseil de pro :** La page État de santé s'actualise automatiquement toutes les 10 secondes. Utilisez la carte du disjoncteur pour identifier les fournisseurs qui rencontrent des problèmes.
+**Conseil :** la page État de santé s’actualise automatiquement toutes les 10 secondes. Utilisez la carte du disjoncteur pour identifier les fournisseurs qui rencontrent des problèmes.
 
 ---
 

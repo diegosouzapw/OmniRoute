@@ -88,8 +88,14 @@ export interface ProviderLegInput {
   effectiveModel?: string;
   translatedBody?: Record<string, unknown>;
   toolNameMap?: Map<string, string> | null;
+  customToolNames?: ReadonlySet<string>;
   requestToolIdentityMap?: Map<string, { namespace?: string; name: string }> | null;
   reasoningCacheScope?: string | null;
+  videoTranscriptSensitive?: boolean;
+  /** Normalized OpenAI transcript reported by translateRequest for Responses-API
+   *  targets (their body has `input`, not `messages`) — the replay-cache write
+   *  side must digest the same transcript the read side keyed plain turns on. */
+  reasoningReplayHistory?: unknown[] | null;
   clientHeaders?: Headers | Record<string, unknown> | null;
   isClaudeCodeCompatible?: boolean;
   sleep?: (ms: number) => Promise<void>;
@@ -281,11 +287,15 @@ function finishOk(
     provider: params.provider,
     model: params.model,
     requestBody: params.requestBody,
-    historyMessages: (input.translatedBody as { messages?: unknown[] } | null | undefined)
-      ?.messages,
+    historyMessages:
+      (input.translatedBody as { messages?: unknown[] } | null | undefined)?.messages ??
+      input.reasoningReplayHistory ??
+      null,
     responseToolNameMap,
+    customToolNames: input.customToolNames,
     requestToolIdentityMap: input.requestToolIdentityMap ?? null,
     reasoningCacheScope: input.reasoningCacheScope ?? null,
+    videoTranscriptSensitive: input.videoTranscriptSensitive,
     clientHeaders: input.clientHeaders ?? null,
     isClaudeCodeCompatible: input.isClaudeCodeCompatible ?? false,
     // Same intent the streaming path computes in chatCore before building the
@@ -961,7 +971,10 @@ export async function runNonStreamingProviderLeg(
   responseBody = unwrapClineNonStreamingEnvelope(provider, responseBody) as typeof responseBody;
 
   // -- Empty content -> family fallback (initial only) -------------------------
-  if (isEmptyContentResponse(responseBody)) {
+  // #14160: pass the provider so first-party APIs (antigravity) keep empty
+  // completions with a normal stop reason as valid 200s instead of synthetic
+  // 502s feeding model lockout.
+  if (isEmptyContentResponse(responseBody, { provider })) {
     const errMsg = "Provider returned empty content";
     if (allowModelFallback) {
       const triedModels = new Set<string>([currentModel]);

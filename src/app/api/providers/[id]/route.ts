@@ -6,6 +6,7 @@ import {
 } from "@/lib/compliance/providerAudit";
 import { getCachedProviderConnectionById } from "@/lib/db/readCache";
 import { updateProviderConnection } from "@/lib/db/providers";
+import { clearRequestRejectedStreak } from "@omniroute/open-sse/services/requestRejectedStreak.ts";
 import { deleteProviderConnection } from "@/lib/db/providers/deletion";
 import { isCloudEnabled } from "@/lib/db/settings";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
@@ -40,6 +41,8 @@ import {
 // on a plain openai-compatible connection's rename failed with "Missing
 // tiktoken_bg.wasm" after 17-50s, never touching chatgpt-web-codex at all).
 import { rejectRetiredCommonChatGptWebProvider } from "@/lib/providers/chatgptWebRetirementResponse";
+import { chatGptWebStorageStateFromCookieHeader } from "@omniroute/open-sse/utils/chatgptWebExecutorAdapter.ts";
+import { applyOperatorActivationIntent } from "@/lib/providers/operatorDisable";
 
 function normalizeCodexLimitPolicy(
   incoming: unknown,
@@ -209,6 +212,20 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             { status: 400 }
           );
         }
+      } else if (existing.provider === "chatgpt-web") {
+        try {
+          JSON.parse(apiKey);
+          updateData.apiKey = apiKey;
+        } catch {
+          try {
+            updateData.apiKey = JSON.stringify(chatGptWebStorageStateFromCookieHeader(apiKey));
+          } catch {
+            return NextResponse.json(
+              { error: "ChatGPT Web storage state JSON or Cookie header is invalid" },
+              { status: 400 }
+            );
+          }
+        }
       } else {
         updateData.apiKey = apiKey;
       }
@@ -220,12 +237,15 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (lastErrorSource !== undefined) updateData.lastErrorSource = lastErrorSource;
     if (errorCode !== undefined) updateData.errorCode = errorCode;
     if (rateLimitedUntil !== undefined) updateData.rateLimitedUntil = rateLimitedUntil;
+    // Clearing the cooldown by hand also forgets the refusal streak (#12859).
+    if (rateLimitedUntil === null || testStatus === "active") clearRequestRejectedStreak(id);
     if (lastTested !== undefined) updateData.lastTested = lastTested;
     // healthCheckInterval PATCH semantics: undefined = leave as-is; null = clear
     // the override (connection follows the global default); 0-1440 = explicit
     // per-connection minutes (0 opts this connection out of the sweep).
     if (healthCheckInterval === null) updateData.healthCheckInterval = null;
-    else if (healthCheckInterval !== undefined) updateData.healthCheckInterval = healthCheckInterval;
+    else if (healthCheckInterval !== undefined)
+      updateData.healthCheckInterval = healthCheckInterval;
     if (group !== undefined) updateData.group = group;
     if (maxConcurrent !== undefined) updateData.maxConcurrent = maxConcurrent;
     if (incomingWindowThresholds !== undefined) {
@@ -351,6 +371,20 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       }
     }
 
+    // Fields the caller changed, for the audit trail. Captured before the
+    // operator-intent marker below, which is bookkeeping for isActive and not a
+    // providerSpecificData edit by the caller.
+    const changedFields = Object.keys(updateData);
+
+    // Record the operator's explicit on/off intent so automated activation paths
+    // (the connection test) do not turn a deliberately disabled connection back on.
+    if (typeof isActive === "boolean") {
+      updateData.providerSpecificData = applyOperatorActivationIntent(
+        updateData.providerSpecificData ?? existing.providerSpecificData,
+        isActive
+      );
+    }
+
     const updated = await updateProviderConnection(id, updateData);
 
     // If rateLimitOverrides was included in the request, refresh the in-memory
@@ -394,7 +428,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       requestId: auditContext.requestId,
       metadata: {
         provider: existing.provider,
-        changedFields: Object.keys(updateData),
+        changedFields,
         before: summarizeProviderConnectionForAudit(existing),
         after: summarizeProviderConnectionForAudit(updated),
       },

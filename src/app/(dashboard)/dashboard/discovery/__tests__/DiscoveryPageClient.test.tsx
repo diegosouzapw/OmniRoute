@@ -15,11 +15,12 @@ vi.mock("next-intl", () => ({
 }));
 
 function mockFetchOnce(results: unknown[]) {
-  const fetchMock = vi.fn(async () =>
-    new Response(JSON.stringify({ results }), {
-      status: 200,
-      headers: { "content-type": "application/json" },
-    })
+  const fetchMock = vi.fn(
+    async () =>
+      new Response(JSON.stringify({ results }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      })
   );
   vi.stubGlobal("fetch", fetchMock);
   return fetchMock;
@@ -50,10 +51,10 @@ describe("DiscoveryPageClient", () => {
     render(<DiscoveryPageClient />);
 
     await waitFor(() => {
-      expect(screen.getByText("huggingchat")).toBeInTheDocument();
+      expect(screen.getByText("huggingchat")).toBeTruthy();
     });
     // status + risk badges render (mocked t returns the key)
-    expect(screen.getByText("verified")).toBeInTheDocument();
+    expect(screen.getByText("verified")).toBeTruthy();
   });
 
   it("shows the empty state when there are no results", async () => {
@@ -62,7 +63,7 @@ describe("DiscoveryPageClient", () => {
     render(<DiscoveryPageClient />);
 
     await waitFor(() => {
-      expect(screen.getByText("emptyTitle")).toBeInTheDocument();
+      expect(screen.getByText("emptyTitle")).toBeTruthy();
     });
   });
 

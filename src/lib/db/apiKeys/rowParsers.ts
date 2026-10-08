@@ -17,17 +17,8 @@ export type { ModelAccessMode } from "./modelAccessMode";
  * Helper function to safely parse allowed_models JSON
  */
 export function parseAllowedModels(value: unknown): string[] {
-  if (!value || typeof value !== "string" || value.trim() === "") {
-    return [];
-  }
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((entry): entry is string => typeof entry === "string")
-      : [];
-  } catch {
-    return [];
-  }
+  // Was a third copy of parseStringList's body, and drifted from it at #14500.
+  return parseStringList(value);
 }
 
 export function parseAllowedCombos(value: unknown): string[] {
@@ -67,6 +58,20 @@ export function parseCompressionEnabled(value: unknown): boolean {
   // DEFAULT 1 — preserve compression for legacy rows unless explicitly disabled.
   if (value === 0 || value === "0" || value === false) return false;
   return true;
+}
+
+export function parseAllowAutoCombos(value: unknown): boolean {
+  // DEFAULT 1 — a key predating this column keeps its auto/* access.
+  if (value === 0 || value === "0" || value === false) return false;
+  return true;
+}
+
+export type CatalogScope = "all" | "combos" | "models";
+
+export function parseCatalogScope(value: unknown): CatalogScope {
+  // DEFAULT 'all' — a key predating this column advertises everything, as before.
+  // An unrecognised value must widen to 'all' rather than silently hide rows.
+  return value === "combos" || value === "models" ? value : "all";
 }
 
 export function parseAccessSchedule(value: unknown): AccessSchedule | null {
@@ -120,9 +125,10 @@ export function parseRateLimits(value: unknown): RateLimitRule[] | null {
  * Helper function to safely parse allowed_connections JSON
  */
 export function parseAllowedConnections(value: unknown): string[] {
-  if (!value || typeof value !== "string" || value.trim() === "") {
-    return [];
+  if (Array.isArray(value)) {
+    return value.filter((entry): entry is string => typeof entry === "string");
   }
+  if (!value || typeof value !== "string" || value.trim() === "") return [];
   try {
     const parsed = JSON.parse(value);
     return Array.isArray(parsed)
@@ -151,6 +157,13 @@ export function parseAllowedQuotas(value: unknown): string[] {
 }
 
 export function parseStringList(value: unknown): string[] {
+  // #14500: a driver that decodes the column for us, or a writer that stored a real
+  // array, hands us an Array rather than JSON text. Checked before the string guard
+  // below, which would otherwise return [] and drop the key's whole allow-list before
+  // policy evaluation — the request then fails as if nothing were permitted.
+  if (Array.isArray(value)) {
+    return value.filter((entry): entry is string => typeof entry === "string");
+  }
   if (!value || typeof value !== "string" || value.trim() === "") return [];
   try {
     const parsed = JSON.parse(value);

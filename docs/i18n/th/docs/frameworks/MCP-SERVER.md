@@ -1,6 +1,6 @@
 # OmniRoute MCP Server Documentation (ไทย)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
@@ -289,10 +289,76 @@ Guardrail **ก่อน** ที่จะไปถึงเลเยอร์�
 
 ---
 
-## การยืนยันตัวตนและขอบเขตสิทธิ์
+## การยืนยันตัวตนและขอบเขต
 
-เครื่องมือ MCP ได้รับการยืนยันตัวตนผ่านขอบเขตสิทธิ์ของ API key การบังคับใช้ขอบเขตสิทธิ์ถูกรวมศูนย์ไว้ที่
-`open-sse/mcp-server/scopeEnforcement.ts` เครื่องมือแต่ละรายการต้องใช้ขอบเขตสิทธิ์เฉพาะ:
+เครื่องมือ MCP เรียกใช้สตริงขอบเขตจากผู้เรียก การตรวจสอบนั้นเป็นหนึ่งในสามเนมสเปซอิสระ การผ่านจากตัวตรวจสอบหนึ่งไม่ได้หมายถึงการผ่านจากตัวตรวจสอบอื่น กฎเกณฑ์คือ [สามเนมสเปซขอบเขต](#three-scope-namespaces) แค็ตตาล็อกเครื่องมือคือ [ขอบเขตเครื่องมือ MCP](#mcp-tool-scopes)
+
+### สามเนมสเปซขอบเขต
+
+`manage` บนคีย์ API, `read:compression` บนเครื่องมือ MCP และ `read` บนโทเค็นการเข้าถึง `oma_live_…` เป็นการให้สิทธิ์ที่แตกต่างกันสามแบบ ผู้เรียกที่ส่งโทเค็นการเข้าถึง `read` ไปยังเส้นทางจัดการที่เปลี่ยนแปลงข้อมูลจะได้รับ HTTP 403 `Access token scope 'read' is insufficient; 'write' required.` ลำดับนั้นคือ `scopeSatisfies` ซึ่งไม่ได้ปรึกษาตาราง MCP และตัวจับคู่ MCP ก็ไม่ได้ปรึกษาเช่นกัน
+
+| เนมสเปซ              | ข้อมูลรับรอง                                                            | ตัวตรวจสอบ                | การผ่านอนุญาตให้                              |
+| :------------------- | :---------------------------------------------------------------------- | :------------------------ | :-------------------------------------------- |
+| การจัดการคีย์ API    | `api_keys.scopes`                                                       | `hasManageScope`          | การจัดการ REST สำหรับคีย์ Bearer นั้น         |
+| คีย์ API แบบเพิ่ม    | อาร์เรย์เดียวกัน, สตริงที่ตรงกันเป๊ะหนึ่งสตริง                          | ตัวช่วยที่ระบุไว้ด้านล่าง | ความสามารถนั้นเพียงอย่างเดียว                 |
+| ขอบเขตเครื่องมือ MCP | อาร์เรย์เดียวกัน, มิฉะนั้น MCP `_meta`, มิฉะนั้น `OMNIROUTE_MCP_SCOPES` | `scopeMatches`            | เครื่องมือนั้น, เมื่อมีการบังคับใช้           |
+| โทเค็นการเข้าถึง     | `oma_live_…`                                                            | `scopeSatisfies`          | เส้นทางจัดการที่วิธีการและพาธต้องการลำดับนั้น |
+
+การสร้างข้อมูลรับรองแต่ละรายการครอบคลุมอยู่ใน
+[การยืนยันตัวตนการจัดการ](../guides/MANAGEMENT-AUTH.md)
+
+#### ขอบเขตคีย์ API
+
+อาร์เรย์ `api_keys.scopes` หนึ่งชุดรองรับสองงาน พวกมันใช้ฟังก์ชันที่แตกต่างกัน
+
+**การจัดการ REST** `manage` และ `admin` เป็นสมาชิกของ
+`MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`)
+`hasManageScope` คือสิ่งที่อนุญาตเส้นทางจัดการสำหรับคีย์นั้น `admin` มีความสามารถในการจัดการบนเส้นทางเหล่านั้น คำว่า `admin` ในที่นี้ไม่ใช่ลำดับโทเค็นการเข้าถึงและไม่ได้ขยายไปสู่ขอบเขตเครื่องมือ MCP
+
+**สตริงแบบเพิ่ม** แต่ละสตริงเป็นการทดสอบสมาชิกภาพที่แน่นอน และแต่ละสตริงอยู่นอก
+`MANAGEMENT_API_KEY_SCOPES`
+
+| ขอบเขต                         | การผ่านอนุญาตให้                                                                                                                                              |
+| :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `mcp:connect`                  | การตัดออกเฉพาะ `/api/mcp/` LOCAL_ONLY ที่ไม่ใช่ลูปแบ็คเท่านั้น (`hasMcpConnectOrManageScope`) คีย์ที่มี `manage` หรือ `admin` ยังคงผ่านการตัดออกนั้น          |
+| `self:usage`                   | `GET /api/v1/me/status` สำหรับคีย์นี้ (`src/app/api/v1/me/status/route.ts`) `POST /api/keys` เพิ่มขอบเขตนี้เมื่อสร้าง (`normalizeSelfServiceScopesForCreate`) |
+| `self:account-quota`           | โควต้าบัญชีต้นน้ำภายในเพย์โหลดสถานะนั้น (`src/lib/usage/apiKeySelfService.ts`) เส้นทางสถานะยังคงต้องการ `self:usage`                                          |
+| `policy:bypass-provider-quota` | การเรียกอนุมานของคีย์นี้ข้ามการตรวจสอบโควต้าผู้ให้บริการ (`hasProviderQuotaBypassScope` ใน `src/sse/handlers/chat.ts`)                                        |
+
+#### การจับคู่
+
+แค็ตตาล็อกคือตารางภายใต้ [ขอบเขตเครื่องมือ MCP](#mcp-tool-scopes) อย่าถือว่า `MCP_SCOPE_LIST` ใน `src/shared/constants/mcpScopes.ts` เป็นแค็ตตาล็อกนั้น: มันเป็นชุดย่อยที่พิมพ์ไว้ดั้งเดิม เครื่องมือในภายหลังประกาศขอบเขตเพิ่มเติมข้างๆ (`read:notion`, `read:skills`, `read:local-corpus` และส่วนที่เหลือของตาราง)
+
+`evaluateToolScopes` ใน `open-sse/mcp-server/scopeEnforcement.ts` อนุญาตการเรียกเมื่อทุกขอบเขตที่จำเป็นตรงกับขอบเขตที่ได้รับ:
+
+- `*` ตรงกับทุกขอบเขตที่จำเป็น
+- ขอบเขตที่ได้รับที่ลงท้ายด้วย `*` ตรงกับขอบเขตที่จำเป็นที่ขึ้นต้นด้วยคำนำหน้าก่อนเครื่องหมายดอกจัน `read:*` ตรงกับ `read:compression`
+- ขอบเขตที่ได้รับอื่นๆ ทั้งหมดตรงกับสตริงที่จำเป็นที่เหมือนกันเท่านั้น
+
+คีย์ที่มีขอบเขตเป็น `["manage"]` จะล้มเหลว `scopeMatches` สำหรับ `read:compression` การเรียกเดียวกันจะล้มเหลวสำหรับ `admin`, `mcp:connect`, `read` และ `write` เมื่อสิ่งเหล่านั้นเป็นสตริงที่ได้รับเท่านั้น ไม่มีลำดับชั้นในหมู่ขอบเขตเครื่องมือ MCP นอกเหนือจาก `*` ที่ต่อท้าย
+
+การบังคับใช้จะปิดอยู่เว้นแต่ `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (ค่าเริ่มต้น `false`) ในขณะที่ปิดอยู่ `evaluateToolScopes` จะอนุญาตการเรียกและข้ามแค็ตตาล็อก ในขณะที่เปิดอยู่ HTTP จะใช้ `api_keys.scopes` ของคีย์ Bearer เป็น `authInfo` (ดู [การผูกขอบเขต HTTP ต่อคีย์](#per-key-http-scope-binding-7895)) เมื่อไม่มีขอบเขตคีย์ใดๆ ที่แก้ไขได้ ชุดที่ได้รับจะตกไปที่ MCP `_meta` จากนั้น `OMNIROUTE_MCP_SCOPES`
+
+#### ขอบเขตโทเค็นการเข้าถึง
+
+โทเค็น `oma_live_…` (`src/lib/accessTokens/scopes.ts`) มี `read`, `write` หรือ `admin` `scopeSatisfies` เป็นลำดับ: `admin` ครอบคลุม `write` และ `read` และ `write` ครอบคลุม `read` ขอบเขตที่ไม่รู้จักไม่ครอบคลุมอะไรเลย
+
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) เปรียบเทียบลำดับนั้นกับ `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
+
+- `GET`, `HEAD` และ `OPTIONS` ต้องการ `read`
+- วิธีการอื่นๆ ทั้งหมดต้องการ `write`
+- พาธใน `ADMIN_SCOPE_PREFIXES` ต้องการ `admin` สำหรับทุกวิธีการ `/api/mcp` อยู่ในรายการนั้น ดังนั้นโทเค็นการเข้าถึง `write` จึงยังไม่สามารถเรียกใช้ส่วนหน้า HTTP ของ MCP ได้
+- พาธใน `ADMIN_MUTATION_PREFIXES` ต้องการ `admin` สำหรับการเปลี่ยนแปลงเท่านั้น
+
+`PATCH /api/keys/{id}` เป็น mutation และไม่ได้อยู่ในรายการ admin เหล่านั้น ดังนั้นโทเค็น `read` จะได้รับ 403
+`Access token scope 'read' is insufficient; 'write' required.`
+โทเค็นการเข้าถึง (access token) แบบ `write` หรือ `admin` จะผ่านเงื่อนไขของ route นั้น ส่วน dashboard JWT, โทเค็น machine-id ของ loopback CLI และ API key ที่มี `manage` หรือ `admin` จะไปเข้าเงื่อนไขในสาขาอื่น และไม่ถูกจำกัดโดยระดับ (rank) นี้
+
+โทเค็นการเข้าถึงที่ผ่าน `scopeSatisfies` สำหรับ `/api/mcp` จะผ่านเฉพาะด่านการจัดการ (management gate) เท่านั้น การเรียกใช้งานเครื่องมือ (tool calls) ยังคงต้องรัน `scopeMatches` กับขอบเขต (scopes) ของ API-key โดยระดับของ access-token จะไม่ถูกนำมาใช้เป็นอินพุตของ `scopeMatches`
+
+### ขอบเขตของเครื่องมือ MCP
+
+การบังคับใช้ขอบเขต (scope enforcement) จะถูกรวมศูนย์ไว้ที่ `open-sse/mcp-server/scopeEnforcement.ts` โดยแต่ละเครื่องมือต้องการขอบเขตที่เฉพาะเจาะจง:
 
 | ขอบเขต                | เครื่องมือ                                                                                                                                                                              |
 | :-------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -330,15 +396,15 @@ Guardrail **ก่อน** ที่จะไปถึงเลเยอร์�
 | `write:obsidian`      | เครื่องมือเขียน 9 รายการ — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …               |
 | `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                                       |
 
-รองรับขอบเขตแบบไวลด์การ์ด: `read:*` ให้สิทธิ์ในขอบเขตการอ่านทั้งหมด ส่วน `*` ให้สิทธิ์เข้าถึงอย่างเต็มรูปแบบ
+รองรับขอบเขตแบบไวด์การ์ด: `read:*` ให้สิทธิ์ขอบเขตการอ่านทั้งหมด, `*` ให้สิทธิ์การเข้าถึงเต็มรูปแบบ
 
-### `mcp:connect` — ความสามารถเฉพาะเส้นทางแบบจำกัด (#7895)
+### `mcp:connect` — ความสามารถในการกำหนดเส้นทางแบบจำกัด (#7895)
 
-การเข้าถึงทรานสปอร์ต HTTP/SSE MCP (`/api/mcp/*`) จากที่อยู่ที่ไม่ใช่ลูปแบ็กจำเป็นต้องใช้ข้อยกเว้น LOCAL_ONLY สำหรับ `/api/mcp/` (ดู `docs/security/ROUTE_GUARD_TIERS.md`) ก่อนหน้านี้ข้อยกเว้นดังกล่าวยอมรับเฉพาะ API key ที่มีขอบเขต `manage`/`admin` แบบเต็มรูปแบบเท่านั้น ซึ่งกว้างเกินไปสำหรับผู้เรียกที่ต้องการเพียงสื่อสารกับ MCP ขณะนี้ `src/shared/constants/managementScopes.ts` ส่งออก `MCP_CONNECT_SCOPE = "mcp:connect"` แล้ว โดยเป็นขอบเขตแบบจำกัดที่เพิ่มเข้ามา (ตามแนวทางเดียวกับ `SELF_USAGE_SCOPE`) ซึ่งอนุญาตเฉพาะการข้ามข้อจำกัดของ `/api/mcp/` ใน `src/server/authz/policies/management.ts` เท่านั้น โดยไม่ให้สิทธิ์เข้าถึงเส้นทางการจัดการอื่นใด และจงใจไม่รวมไว้ใน `MANAGEMENT_API_KEY_SCOPES` คีย์ที่มี `manage`/`admin` ยังคงผ่านข้อยกเว้นนี้ได้เหมือนเดิม ส่วน `mcp:connect` เป็นทางเลือกที่มีสิทธิ์ต่ำกว่าสำหรับผู้เรียกจากระยะไกลที่ใช้เฉพาะ MCP โดยตรวจสอบผ่าน `hasMcpConnectOrManageScope()`
+การเข้าถึง HTTP/SSE MCP transport (`/api/mcp/*`) จากภายนอก loopback ต้องใช้การยกเว้น `LOCAL_ONLY` สำหรับ `/api/mcp/` (ดู `docs/security/ROUTE_GUARD_TIERS.md`) ในอดีต การยกเว้นนั้นยอมรับเฉพาะ API key ที่มีขอบเขต `manage`/`admin` เต็มรูปแบบ ซึ่งกว้างเกินไปสำหรับผู้เรียกที่ต้องการสื่อสารกับ MCP เท่านั้น `src/shared/constants/managementScopes.ts` ตอนนี้ส่งออก `MCP_CONNECT_SCOPE = "mcp:connect"`: ซึ่งเป็นขอบเขตแบบเพิ่มได้และจำกัด (มีหลักการเดียวกับ `SELF_USAGE_SCOPE`) ที่อนุญาตเฉพาะการข้าม `/api/mcp/` ใน `src/server/authz/policies/management.ts` เท่านั้น — โดยไม่ให้สิทธิ์การเข้าถึงเส้นทางจัดการอื่นใด และถูกแยกออกจาก `MANAGEMENT_API_KEY_SCOPES` โดยเจตนา คีย์ที่มี `manage`/`admin` ยังคงผ่านการยกเว้นได้โดยไม่มีการเปลี่ยนแปลง; `mcp:connect` เป็นทางเลือกที่มีสิทธิ์น้อยกว่าสำหรับผู้เรียก MCP จากระยะไกลเท่านั้น ซึ่งตรวจสอบผ่าน `hasMcpConnectOrManageScope()`
 
 ### การผูกขอบเขต HTTP ต่อคีย์ (#7895)
 
-เมื่อใช้งานผ่าน HTTP/SSE ขณะนี้ `open-sse/mcp-server/httpTransport.ts` จะค้นหาค่า `api_keys.scopes` จริงของผู้เรียกผ่าน `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) และส่งค่านั้นไปยัง `transport.handleRequest(req, { authInfo })` ของ MCP SDK เพื่อให้ `extra.authInfo.scopes` ที่ส่งไปถึงการเรียกใช้เครื่องมือแต่ละครั้งสะท้อนขอบเขตของ Bearer key นั้นเอง `resolveCallerScopeContext()` ใน `scopeEnforcement.ts` ให้ความสำคัญกับ `authInfo` เหนือ `_meta` และค่าทดแทนจากตัวแปรสภาพแวดล้อม `OMNIROUTE_MCP_SCOPES` อยู่แล้ว การเปลี่ยนแปลงนี้เพียงเติมข้อมูลให้แหล่งข้อมูลแรกซึ่งมีลำดับความสำคัญสูงสุด และก่อนหน้านี้ยังไม่ได้รับข้อมูลผ่าน HTTP เมื่อไม่สามารถค้นหา API key ได้ (ไม่มีส่วนหัวหรือคีย์ไม่ถูกต้อง) `authInfo` จะยังคงเป็น `undefined` และการค้นหาค่าจะดำเนินต่อไปตามลำดับ `meta`/ตัวแปรสภาพแวดล้อมที่มีอยู่โดยไม่เปลี่ยนแปลง การเปลี่ยนแปลงนี้ไม่ได้สลับค่าเริ่มต้นของ `OMNIROUTE_MCP_ENFORCE_SCOPES` โดยยังคงต้องเปิดใช้การบังคับใช้ขอบเขตอย่างชัดเจน การเปลี่ยนแปลงนี้เพียงทำให้เส้นทางต่อคีย์มีลำดับความสำคัญสูงกว่าเมื่อเปิดใช้งานแล้ว stdio ไม่มีข้อมูลระบุตัวตนแยกตามผู้เรียก (ดู `mcpCallerIdentity.ts`) และไม่ได้รับผลกระทบ โดยยังคงใช้ลำดับค่าทดแทน `_meta`/ตัวแปรสภาพแวดล้อมต่อไป
+ผ่าน HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` ตอนนี้จะแก้ไข `api_keys.scopes` ที่แท้จริงของผู้เรียกผ่าน `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) และส่งต่อไปยัง `transport.handleRequest(req, { authInfo })` ของ MCP SDK, ดังนั้น `extra.authInfo.scopes` ที่ส่งไปยังการเรียกใช้เครื่องมือแต่ละครั้งจะสะท้อนถึงขอบเขตของ Bearer key นั้นๆ `resolveCallerScopeContext()` ของ `scopeEnforcement.ts` ได้จัดลำดับความสำคัญของ `authInfo` เหนือ `_meta` และ `OMNIROUTE_MCP_SCOPES` env fallback อยู่แล้ว — การเปลี่ยนแปลงนี้เพียงแค่เติมข้อมูลในแหล่งที่มาที่มีลำดับความสำคัญสูงสุดนี้ ซึ่งก่อนหน้านี้ไม่ได้รับข้อมูลผ่าน HTTP เมื่อไม่มี API key ที่แก้ไขได้ (ไม่มีส่วนหัว, คีย์ไม่ถูกต้อง), `authInfo` จะยังคงเป็น `undefined` และการแก้ไขจะดำเนินต่อไปตามสายโซ่ `meta`/env ที่มีอยู่โดยไม่มีการเปลี่ยนแปลง การเปลี่ยนแปลงนี้ไม่ได้เปลี่ยนค่าเริ่มต้นของ `OMNIROUTE_MCP_ENFORCE_SCOPES` — การบังคับใช้ยังคงต้องเปิดใช้งานอย่างชัดเจน; การเปลี่ยนแปลงนี้เพียงแค่ทำให้เส้นทางต่อคีย์มีความสำคัญเหนือกว่าเมื่อเปิดใช้งานแล้ว stdio ไม่มีตัวตนต่อผู้เรียกแต่ละราย (ดู `mcpCallerIdentity.ts`) และไม่ได้รับผลกระทบ — โดยจะยังคงอยู่ในสายโซ่ `_meta`/env fallback
 
 ---
 

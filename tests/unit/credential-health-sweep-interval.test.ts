@@ -5,7 +5,10 @@ import {
   mergeResilienceSettings,
   resolveResilienceSettings,
 } from "../../src/lib/resilience/settings.ts";
-import { resolveCredentialHealthSweepInterval } from "../../src/lib/credentialHealth/scheduler.ts";
+import {
+  getConnIntervalMs,
+  resolveCredentialHealthSweepInterval,
+} from "../../src/lib/credentialHealth/scheduler.ts";
 
 const ORIGINAL_ENV = process.env.CREDENTIAL_HEALTH_CHECK_INTERVAL;
 
@@ -89,4 +92,19 @@ test("sweep interval: non-numeric stored interval falls back to env/default", ()
     };
     assert.equal(resolveCredentialHealthSweepInterval(settings), 60 * 60_000);
   });
+});
+
+test("per-connection interval falls back to the 60-minute default, not 5", () => {
+  // #12138 raised the global default to 60 min but left this helper defaulting
+  // to 300_000, so any caller omitting the second argument probed connections
+  // five times more often than the operator's configured cadence.
+  assert.equal(getConnIntervalMs({}), 60 * 60_000);
+});
+
+test("per-connection interval 0 opts that connection out entirely", () => {
+  assert.equal(getConnIntervalMs({ healthCheckInterval: 0 }, 60 * 60_000), null);
+});
+
+test("per-connection interval overrides the global cadence", () => {
+  assert.equal(getConnIntervalMs({ healthCheckInterval: 5 }, 60 * 60_000), 5 * 60_000);
 });

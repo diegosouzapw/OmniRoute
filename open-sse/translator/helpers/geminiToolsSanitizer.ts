@@ -60,10 +60,21 @@ function normalizeGeminiToolName(
         return namespaceIndex >= 0 ? trimmed.slice(namespaceIndex + 1) : trimmed;
       })();
 
-  return namespaceStripped
-    .replace(/[^a-zA-Z0-9_]/g, "_")
-    .replace(/_+/g, "_")
-    .replace(/^_+|_+$/g, "");
+  return (
+    namespaceStripped
+      .replace(/[^a-zA-Z0-9_]/g, "_")
+      .replace(/_+/g, "_")
+      .replace(/^_+|_+$/g, "")
+      // Google rejects the WHOLE GenerateContentRequest when any one
+      // functionDeclaration name fails its grammar, and that grammar requires a
+      // letter or an underscore first. The strip above has just removed any
+      // leading underscore, so a name like `1c_plugin_reload` reached Google
+      // unchanged and took the other 108 tools down with it (#13715). Prefixing
+      // here rather than at the call site keeps the guarantee on the one value
+      // every path reads: the length cap and the collision hash both build on
+      // this string, and a hashed name inherits its first character from it.
+      .replace(/^(\d)/, "t$1")
+  );
 }
 
 function buildHashedGeminiToolName(

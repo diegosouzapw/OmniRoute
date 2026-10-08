@@ -21,6 +21,7 @@ import { getTaskFitness } from "./taskFitness";
 import { getModePack } from "./modePacks";
 import { getSelfHealingManager } from "./selfHealing";
 import { classifyPromptIntent } from "../intentClassifier";
+import { mapIntentToTaskFitnessKey } from "./intentTaskFitnessMap";
 
 export interface AutoComboConfig {
   id: string;
@@ -242,7 +243,11 @@ export function selectProvider(
             : "";
       if (text.length > 10) {
         const intent = classifyPromptIntent(text);
-        effectiveTaskType = intent; // 'code' | 'reasoning' | 'simple' | 'medium'
+        // Bridge intentClassifier's vocabulary ('code'|'math'|'reasoning'|'creative'|
+        // 'simple'|'medium') to taskFitness.ts's vocabulary ('coding'|'review'|'planning'|
+        // 'analysis'|'debugging'|'documentation'|'default') — see intentTaskFitnessMap.ts.
+        // Passing the raw intent here previously never matched a fitness-table key.
+        effectiveTaskType = mapIntentToTaskFitnessKey(intent);
       }
     }
   }

@@ -12,9 +12,36 @@
  * but ONLY when the caller's advertised `tools[]` proves it can actually reach
  * `omniroute_ccr_retrieve` (an MCP-capable caller). Plain OpenAI-compatible
  * callers that cannot reach the tool must never be told to call it.
+ *
+ * MCP gateways/aggregators (Docker MCP Toolkit, Claude Code, and similar) rename
+ * tools when re-exposing them to the model to avoid cross-server name collisions,
+ * typically as `mcp__<gateway>__<server>__omniroute_ccr_retrieve` or with a
+ * dotted/slashed namespace prefix (`omniroute.omniroute_ccr_retrieve`). A caller
+ * reachable only under such a namespaced name is still MCP-capable, so the match
+ * below accepts a trailing-segment match bounded by a separator (`__`, `.`, `/`,
+ * `:`) — never a bare substring test — so a near-miss like
+ * `omniroute_ccr_retrieve_v2` still correctly does not match (#13781, #13897).
  */
 
 const CCR_RETRIEVE_TOOL_NAME = "omniroute_ccr_retrieve";
+
+/** Separators MCP gateways use to namespace a re-exposed tool name. */
+const CCR_RETRIEVE_TOOL_NAME_SEPARATORS = ["__", ".", "/", ":"];
+
+/**
+ * True when `name` is exactly the CCR retrieve tool name, or ends with it as a
+ * separator-bounded trailing segment (e.g. an MCP-gateway-namespaced name such
+ * as `mcp__docker__omniroute__omniroute_ccr_retrieve`). Deliberately NOT a bare
+ * `.includes()`/unqualified `.endsWith()` — that would also match an unrelated
+ * near-miss name like `omniroute_ccr_retrieve_v2`.
+ */
+function matchesCcrRetrieveToolName(name: string | undefined): boolean {
+  if (typeof name !== "string") return false;
+  if (name === CCR_RETRIEVE_TOOL_NAME) return true;
+  return CCR_RETRIEVE_TOOL_NAME_SEPARATORS.some((separator) =>
+    name.endsWith(`${separator}${CCR_RETRIEVE_TOOL_NAME}`)
+  );
+}
 
 /** Leading marker that identifies the injected instruction (also the idempotency sentinel). */
 export const CCR_PROTOCOL_MARKER_SENTINEL = "[CCR protocol]";
@@ -41,7 +68,7 @@ export function callerSupportsCcrRetrieve(body: Record<string, unknown>): boolea
     const t = tool as ToolLike;
     const flatName = typeof t?.name === "string" ? t.name : undefined;
     const nestedName = typeof t?.function?.name === "string" ? t.function.name : undefined;
-    return flatName === CCR_RETRIEVE_TOOL_NAME || nestedName === CCR_RETRIEVE_TOOL_NAME;
+    return matchesCcrRetrieveToolName(flatName) || matchesCcrRetrieveToolName(nestedName);
   });
 }
 
@@ -59,9 +86,7 @@ function messageContainsSentinel(message: MessageWithContent): boolean {
         part &&
         typeof part === "object" &&
         typeof (part as Record<string, unknown>)["text"] === "string" &&
-        ((part as Record<string, unknown>)["text"] as string).includes(
-          CCR_PROTOCOL_MARKER_SENTINEL
-        )
+        ((part as Record<string, unknown>)["text"] as string).includes(CCR_PROTOCOL_MARKER_SENTINEL)
     );
   }
   return false;

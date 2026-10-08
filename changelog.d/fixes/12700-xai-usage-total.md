@@ -1,1 +1,0 @@
-- **fix(providers):** xAI responses no longer report `total_tokens`/`totalTokenCount` as `0` when upstream usage uses the legacy `prompt_tokens`/`completion_tokens` names instead of `input_tokens`/`output_tokens` (#12700) — thanks @soroush5

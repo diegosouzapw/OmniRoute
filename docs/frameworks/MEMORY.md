@@ -177,7 +177,9 @@ Nine embedding and vector fields are available in `MemorySettingsExtended` in
 | `staticEnabled`          | `boolean`                                          | `false`  | Opt-in for static potion-base-8M local model     |
 | `rerankEnabled`          | `boolean`                                          | `false`  | Enable reranking step (adds +200-500ms/req)      |
 | `rerankProviderModel`    | `string \| null`                                   | `null`   | Rerank provider/model in `provider/model` format |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"` | Which vector backend to use                      |
+
+`rerankProviderModel` is resolved by `POST /v1/rerank` (called over loopback), so it accepts anything that route accepts: a curated cloud rerank model (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) or an OpenAI-compatible provider node as `<node-prefix>/<model>` (e.g. `skilled-mini/bge-reranker-v2-m3` for a TEI/Infinity box). Loopback nodes are always eligible; a node on another host (LAN, Tailscale) additionally requires the `RERANK_REMOTE_PROVIDER_NODES` feature flag and must pass the provider outbound URL policy — see [Feature Flags](../reference/FEATURE_FLAGS.md). The dashboard selector lists curated providers plus local nodes; any valid `provider/model` string can be set directly via `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Which vector backend to use |
 
 These are exposed via `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
 

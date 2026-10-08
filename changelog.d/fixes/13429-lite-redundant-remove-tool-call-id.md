@@ -1,1 +1,0 @@
-- **fix(compression):** stop lite compression from dropping a `role:"tool"` message when it is byte-identical to the previous message, which orphaned a `tool_call_id` and triggered upstream 400 errors on parallel tool calls (#13429) — thanks @tolgaaksoy

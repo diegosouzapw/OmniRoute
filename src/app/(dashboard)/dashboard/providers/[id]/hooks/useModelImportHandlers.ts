@@ -14,8 +14,9 @@
  */
 
 import React, { useState } from "react";
+import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
 import { providerText, type ProviderMessageTranslator } from "../providerPageHelpers";
-import { extractImportWarning } from "./modelImportWarning";
+import { classifyModelImport } from "./modelImportWarning";
 
 interface NotifyStore {
   success: (message: string, title?: string) => number;
@@ -138,7 +139,7 @@ export function useModelImportHandlers({
     });
 
     try {
-      const res = await fetch(`/api/providers/${importTargetId}/models?refresh=true&chatOnly=true`);
+      const res = await fetch(`/api/providers/${importTargetId}/models?refresh=true`);
       const data = await res.json();
       if (!res.ok) {
         setImportProgress((prev) => ({
@@ -153,32 +154,50 @@ export function useModelImportHandlers({
       // Discovery persists its result even when no new models need importing.
       // Refresh the active listing so removals take effect without a page reload.
       await fetchProviderModelMeta();
-      const importWarning = extractImportWarning(data);
-      if (fetchedModels.length === 0) {
-        setImportProgress((prev) => ({
-          ...prev,
-          phase: "done",
-          status: t("noModelsFound"),
-          logs: [t("noModelsReturnedFromEndpoint")],
-        }));
-        return;
-      }
-
       const existingIds = new Set([
         ...(modelMeta.customModels || []).map((m: any) => m.id),
         ...models.map((m: any) => m.id),
       ]);
-      const newModels = fetchedModels.filter(
-        (model: any) => !existingIds.has(model.id || model.name || model.model)
-      );
-
-      if (newModels.length === 0) {
+      const classification = classifyModelImport({
+        modelsData: data,
+        fetchedModels,
+        isKnownModel: (id) => existingIds.has(id),
+      });
+      const importWarning = classification.warning;
+      // B-03 (#15159): when discovery fell back to a local/cache catalog the
+      // headline must not read as an authoritative "nothing to import". The
+      // server's warning becomes the status, with the success-flavoured line
+      // demoted to a log entry — the operator sees the real cause first instead
+      // of scrolling for it. Only keys that already exist in all 66 locales are
+      // used; no new translation is introduced.
+      if (classification.outcome === "no-models") {
         setImportProgress((prev) => ({
           ...prev,
           phase: "done",
-          status: t("allModelsAlreadyImported") || "All models already imported",
+          status: classification.degraded && importWarning ? importWarning : t("noModelsFound"),
           logs: [
-            ...(importWarning ? [importWarning] : []),
+            ...(classification.degraded && importWarning ? [t("noModelsFound")] : []),
+            t("noModelsReturnedFromEndpoint"),
+          ],
+        }));
+        return;
+      }
+
+      const newModels = classification.newModels;
+
+      if (classification.outcome === "nothing-new") {
+        setImportProgress((prev) => ({
+          ...prev,
+          phase: "done",
+          status:
+            classification.degraded && importWarning
+              ? importWarning
+              : t("allModelsAlreadyImported") || "All models already imported",
+          logs: [
+            ...(classification.degraded && importWarning ? [t("allModelsAlreadyImported")] : []),
+            ...(importWarning && !(classification.degraded && importWarning)
+              ? [importWarning]
+              : []),
             t("noNewModelsToImport") || "No new models to import",
           ],
           importedCount: 0,
@@ -207,6 +226,7 @@ export function useModelImportHandlers({
       }));
 
       let importedCount = 0;
+      const failures: string[] = [];
       for (let i = 0; i < newModels.length; i++) {
         const model = newModels[i];
         const modelId = model.id || model.name || model.model;
@@ -221,7 +241,7 @@ export function useModelImportHandlers({
           logs: [...prev.logs, t("importingModelById", { modelId })],
         }));
 
-        await fetch("/api/provider-models", {
+        const createRes = await fetch("/api/provider-models", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -233,9 +253,33 @@ export function useModelImportHandlers({
             ...(Array.isArray(model.supportedEndpoints)
               ? { supportedEndpoints: model.supportedEndpoints }
               : {}),
+            ...(typeof model.dimensions === "number" && model.dimensions > 0
+              ? { dimensions: model.dimensions }
+              : {}),
+            ...(Array.isArray(model.supportedInputTypes)
+              ? { supportedInputTypes: model.supportedInputTypes }
+              : {}),
+            ...(typeof model.modelType === "string" ? { modelType: model.modelType } : {}),
+            ...(typeof model.inputTokenLimit === "number" && model.inputTokenLimit > 0
+              ? { max_input_tokens: model.inputTokenLimit }
+              : {}),
             ...(typeof model.targetFormat === "string" ? { targetFormat: model.targetFormat } : {}),
           }),
         });
+        // A rejected row was not stored: do not alias it or count it as imported,
+        // otherwise the dialog reports success while nothing reached the catalog.
+        if (!createRes.ok) {
+          const reason = extractApiErrorMessage(
+            await createRes.json().catch(() => null),
+            `HTTP ${createRes.status}`
+          );
+          failures.push(reason);
+          setImportProgress((prev) => ({
+            ...prev,
+            logs: [...prev.logs, `✗ ${modelId}: ${reason}`],
+          }));
+          continue;
+        }
         if (!modelAliases[baseAlias]) {
           await handleSetAlias(modelId, baseAlias, providerStorageAlias);
         }
@@ -243,6 +287,18 @@ export function useModelImportHandlers({
       }
 
       await fetchAliases();
+
+      if (importedCount === 0 && failures.length > 0) {
+        setImportProgress((prev) => ({
+          ...prev,
+          phase: "error",
+          current: newModels.length,
+          status: t("failedImportModels"),
+          error: failures[0],
+          importedCount: 0,
+        }));
+        return;
+      }
 
       setImportProgress((prev) => ({
         ...prev,
@@ -257,11 +313,15 @@ export function useModelImportHandlers({
           importedCount > 0
             ? t("importDoneCount", { count: importedCount })
             : t("noNewModelsAdded"),
+          ...(failures.length > 0 ? [t("bulkFailedCount", { count: failures.length })] : []),
         ],
         importedCount,
       }));
 
-      if (importedCount > 0) {
+      if (importedCount > 0 && failures.length > 0) {
+        // A reload would wipe the failure lines before they can be read.
+        await fetchProviderModelMeta();
+      } else if (importedCount > 0) {
         setTimeout(() => {
           window.location.reload();
         }, 2000);

@@ -53,4 +53,39 @@ describe("session-dedup intra-message dedup (#6467)", () => {
     const result = sessionDedupEngine.apply(body, { stepConfig: {} });
     assert.equal(result.compressed, false, "no repeated block → no compression");
   });
+
+  it("does not compile huge repeated literal memory blocks into RegExp", () => {
+    const originalRegExp = globalThis.RegExp;
+    let hugeRegExpAttempted = false;
+
+    class GuardedRegExp extends originalRegExp {
+      constructor(pattern: string | RegExp, flags?: string) {
+        if (typeof pattern === "string" && pattern.length > 10_000) {
+          hugeRegExpAttempted = true;
+          throw new Error("Regular expression too large");
+        }
+        super(pattern, flags);
+      }
+    }
+
+    const escapedJsonLikeLines = Array.from(
+      { length: 20 },
+      (_, i) =>
+        `    {\\"id\\":\\"memory-${i}\\",\\"text\\":\\"${"Meta Ads [cost] ".repeat(80)}\\$${i}.00 + regex? chars.*\\"}`
+    ).join("\n");
+    const content = [`first copy`, escapedJsonLikeLines, `second copy`, escapedJsonLikeLines].join("\n");
+
+    try {
+      globalThis.RegExp = GuardedRegExp as RegExpConstructor;
+      const result = sessionDedupEngine.apply(
+        { messages: [{ role: "user", content }] },
+        { stepConfig: { minBlockChars: 80 } }
+      );
+
+      assert.equal(result.compressed, true, "the repeated memory block should still deduplicate");
+      assert.equal(hugeRegExpAttempted, false, "session-dedup must use literal scanning");
+    } finally {
+      globalThis.RegExp = originalRegExp;
+    }
+  });
 });

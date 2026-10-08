@@ -34,6 +34,7 @@ import {
   type PreMigrationBackupReceipt,
 } from "./migrationRunner/preMigrationBackup";
 import {
+  applyMigrationSkippingExistingColumns,
   detectNameMismatches,
   getPlausiblePendingCount,
   hasColumn,
@@ -598,6 +599,30 @@ function isSchemaAlreadyApplied(
       // a bare ADD COLUMN would then throw. Renumbering the migration means renaming this case
       // (keyed by version only: a stale "177" here would skip 177_provider_connection_synced_models_at).
       return hasColumn(db, "proxy_logs", "upstream_status");
+    case "181":
+      // Same shape as 179: ensureProxyLogsColumns may have added proxy_name at boot, so the
+      // bare ADD COLUMN would throw. Keyed by version — a stale number here would answer for
+      // another migration's schema and skip it.
+      return hasColumn(db, "proxy_logs", "proxy_name");
+    case "183":
+      // Same shape as 179/181: ensureProxyLogsColumns may have added
+      // rotation_account at boot. Keyed by version only — a stale number here
+      // would answer for another migration's schema and skip it.
+      return hasColumn(db, "proxy_logs", "rotation_account");
+    case "184":
+      // Same shape as 179/181/183: ensureProxyLogsColumns may have added
+      // correlation_id at boot. Keyed by version only — a stale number here
+      // would answer for another migration's schema and skip it.
+      return hasColumn(db, "proxy_logs", "correlation_id");
+    case "187":
+      // Same shape as 179/181/183/184: ensureProxyLogsColumns may have added
+      // attempt_number at boot. Keyed by version only — a stale number here
+      // would answer for another migration's schema and skip it.
+      return hasColumn(db, "proxy_logs", "attempt_number");
+    case "194":
+      // Same shape as 179/181/183/184/187: ensureProxyLogsColumns may have
+      // added headers_ms at boot. Keyed by version only.
+      return hasColumn(db, "proxy_logs", "headers_ms");
     default:
       return false;
   }
@@ -1053,6 +1078,7 @@ export function runMigrations(
   for (const migration of pending) {
     if (isDeferredUnsupportedMigration(db, migration)) continue;
 
+    let genericSql: string | null = null;
     const applyMigration = db.transaction(() => {
       if (atomicPhysicalReplays.has(migration.version)) {
         const removed = db
@@ -1078,6 +1104,7 @@ export function runMigrations(
         applyCompressionCombosMigration(db, migration.path);
       } else {
         const sql = fs.readFileSync(migration.path, "utf-8");
+        genericSql = sql;
         db.exec(sql);
       }
       db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
@@ -1096,15 +1123,11 @@ export function runMigrations(
         message.includes("duplicate column name") &&
         !atomicPhysicalReplays.has(migration.version)
       ) {
-        const applyMarkerOnly = db.transaction(() => {
-          db.prepare(
-            "INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)"
-          ).run(migration.version, migration.name);
-        });
-        applyMarkerOnly();
+        const skipped = applyMigrationSkippingExistingColumns(db, migration, genericSql);
         count += 1;
         console.log(
-          `[Migration] Applied (column pre-exists): ${migration.version}_${migration.name}`
+          `[Migration] Applied (column pre-exists): ${migration.version}_${migration.name}` +
+            (skipped.length > 0 ? ` (skipped existing: ${skipped.join(", ")})` : "")
         );
       } else {
         console.error(`[Migration] FAILED: ${migration.version}_${migration.name} — ${message}`);

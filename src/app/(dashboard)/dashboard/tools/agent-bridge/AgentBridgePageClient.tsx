@@ -221,6 +221,36 @@ export default function AgentBridgePageClient({
     [refresh, t]
   );
 
+  // ── Restore default (per-agent full reset) ───────────────────────────────
+
+  const handleResetAgent = useCallback(
+    async (agentId: string): Promise<boolean> => {
+      setActionError(null);
+      let succeeded = false;
+      try {
+        await runPrivileged(async (password) => {
+          const res = await fetch(`/api/tools/agent-bridge/agents/${agentId}/reset`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(password ? { sudoPassword: password } : {}),
+          });
+          if (!res.ok) {
+            const payload = (await res.json().catch(() => ({}))) as {
+              error?: { message?: string };
+            };
+            throw new Error(payload.error?.message ?? `HTTP ${res.status}`);
+          }
+          succeeded = true;
+          await refresh();
+        });
+      } catch (err) {
+        setActionError(err instanceof Error ? err.message : t("unknownError"));
+      }
+      return succeeded;
+    },
+    [refresh, runPrivileged, t]
+  );
+
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
@@ -317,6 +347,7 @@ export default function AgentBridgePageClient({
             mappingsMap={data.mappings}
             onDnsToggle={handleDnsToggle}
             onMappingsSave={handleMappingsSave}
+            onReset={handleResetAgent}
           />
 
           {/* Quick links */}

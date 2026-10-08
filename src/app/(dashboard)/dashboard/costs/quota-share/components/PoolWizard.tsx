@@ -478,6 +478,9 @@ export default function PoolWizard({
     const name = poolName.trim();
     if (connectionIds.length === 0 || !name) return [];
 
+    const group = groups.find((g) => g.id === groupId);
+    const effectiveGroupName = group?.name || name;
+
     const MAX_PER_PROVIDER = 3;
     return connectionIds
       .map((cid) => {
@@ -486,11 +489,11 @@ export default function PoolWizard({
         const allModels = getPreviewModels(conn.provider);
         const names = allModels
           .slice(0, MAX_PER_PROVIDER)
-          .map((m) => quotaModelName(name, conn.provider, m));
+          .map((m) => quotaModelName(effectiveGroupName, conn.provider, m));
         return { provider: conn.provider, names, totalModels: allModels.length };
       })
       .filter(Boolean) as Array<{ provider: string; names: string[]; totalModels: number }>;
-  }, [connectionIds, connections, poolName]);
+  }, [connectionIds, connections, poolName, groupId, groups]);
 
   // Flat list (for legacy single-provider path, kept for step-3 rendering simplicity)
   const previewNames = useMemo(

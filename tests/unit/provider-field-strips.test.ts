@@ -13,6 +13,10 @@ test("findOffendingField matches known field names in a 400 body", () => {
   );
   assert.equal(findOffendingField("unexpected field chat_template"), "chat_template");
   assert.equal(findOffendingField("reasoning_content is not allowed"), "reasoning_content");
+  // Strict OpenAI-compatible gateways 400 with "Unsupported parameter:
+  // reasoning_effort" when they don't implement the reasoning-effort knob —
+  // the strip-and-retry in base.ts must fire instead of surfacing the 400.
+  assert.equal(findOffendingField("Unsupported parameter: reasoning_effort"), "reasoning_effort");
   // #1468: Claude Code's top-level context_management field rejected by strict
   // anthropic-compatible gateways → strip + retry regardless of the contextEditing flag.
   assert.equal(
@@ -77,3 +81,34 @@ test("stripGroqUnsupportedFields drops unsupported messages[].model and other me
   assert.equal("sender" in out.messages[1], false);
 });
 
+// Routing envelopes must become valid Groq Chat Completions fields.
+test("Groq GPT-OSS routing low/none uses low without foreign envelopes", () => {
+  for (const effort of ["low", "none"]) {
+    const input = {
+      model: "openai/gpt-oss-20b",
+      messages: [{ role: "user", content: "hello" }],
+      reasoning_effort: effort,
+      reasoning: { effort },
+      output_config: { effort },
+    };
+    const out = stripGroqUnsupportedFields(input, input.model);
+    assert.equal(out.reasoning_effort, "low");
+    assert.equal("reasoning" in out, false);
+    assert.equal("output_config" in out, false);
+    assert.deepEqual(out.messages, input.messages);
+    assert.equal(input.reasoning_effort, effort);
+    assert.deepEqual(input.output_config, { effort });
+  }
+});
+
+test("Groq forced none uses low even when routing removed the effort fields", () => {
+  const input = { model: "openai/gpt-oss-20b", messages: [{ role: "user", content: "hello" }] };
+  const out = stripGroqUnsupportedFields(input, input.model, "none") as Record<string, unknown>;
+  assert.equal(out.reasoning_effort, "low");
+  // An ordinary effort-less request must retain its provider default.
+  assert.equal("reasoning_effort" in stripGroqUnsupportedFields(input, input.model), false);
+  assert.equal(
+    stripGroqUnsupportedFields({ reasoning_effort: "high" }, input.model).reasoning_effort,
+    "high"
+  );
+});

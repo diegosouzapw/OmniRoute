@@ -1,66 +1,66 @@
 # OmniRoute MCP Server Documentation (Slovenčina)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
-> Server Model Context Protocol so 110 nástrojmi pre operácie smerovania, vyrovnávacej pamäte, kompresie, pamäte, zručností, proxy, fondu, Radaru a zdrojov kontextu.
+> Server protokolu Model Context Protocol so 110 nástrojmi pre smerovanie, cache, kompresiu, pamäť, zručnosti, proxy, pool, Radar a operácie zdrojov kontextu.
 >
-> Zdroj pravdy: `open-sse/mcp-server/server.ts` vypočítava pomocou `countUniqueMcpTools()` **110 jedinečných nástrojov**: 45 kanonických definícií (vrátane šiestich nástrojov životného cyklu CCR, trojice agent-skills, `omniroute_radar_catalog` a `omniroute_x_search`) plus pamäť (3), zručnosti (4), zručnosti GitHubu (3), fond (6), gamifikácia (8), pluginy (8), Notion (6), Obsidian (22), lokálny korpus (3) a dva kompresné nástroje určené iba pre RTK.
+> Zdroj pravdy: `open-sse/mcp-server/server.ts` vypočítava **110 unikátnych nástrojov** pomocou `countUniqueMcpTools()`: 45 kanonických definícií (vrátane šiestich nástrojov životného cyklu CCR, trojice agent-skills, `omniroute_radar_catalog` a `omniroute_x_search`), plus pamäť (3), zručnosti (4), GitHub zručnosti (3), pool (6), gamifikácia (8), pluginy (8), Notion (6), Obsidian (22), lokálny korpus (3) a dva nástroje na kompresiu len pre RTK.
 
 ## Inštalácia
 
-OmniRoute MCP je zabudovaný. Spustíte ho pomocou:
+OmniRoute MCP je vstavaný. Spustite ho pomocou:
 
 ```bash
 omniroute --mcp
 ```
 
-Alebo prostredníctvom transportu open-sse:
+Alebo cez open-sse transport:
 
 ```bash
-# Streamovateľný transport HTTP (port 20130)
-omniroute --dev  # MCP sa automaticky spustí na koncovom bode /mcp
+# HTTP streamovateľný transport (port 20130)
+omniroute --dev  # MCP sa automaticky spustí na /mcp koncovom bode
 ```
 
-Transporty HTTP (`sse` / `streamable-http`, obsluhované priamo procesom servera riadiaceho panela) sú
-predvolene vypnuté a predtým ich bolo možné prepínať iba na stránke `/dashboard/mcp`. Od verzie v3.8.51
-ponúka CLI rovnaké možnosti:
+HTTP transporty (`sse` / `streamable-http`, obsluhované v rámci procesu serverom dashboardu) sú
+predvolene vypnuté a predtým boli prepínateľné iba zo stránky `/dashboard/mcp`. Od verzie v3.8.51
+má CLI paritu:
 
 ```bash
-omniroute mcp status                                  # stav zapnutia/online, transport, počet nástrojov
+omniroute mcp status                                  # povolené/online, transport, počet nástrojov
 omniroute mcp enable [--transport stdio|sse|streamable-http]
 omniroute mcp disable
-omniroute mcp restart                                 # resetuje aktívne relácie sse/streamable-http
+omniroute mcp restart                                 # resetuje aktívne sse/streamable-http relácie
 ```
 
-`mcp enable`/`mcp disable` upravujú pomocou požiadavky PATCH rovnaké nastavenie `mcpEnabled` (a voliteľne `mcpTransport`),
-ktoré riadiaci panel prepína prostredníctvom `/api/settings`. `mcp restart` volá `POST /api/mcp/restart`: ukončí
-aktívne relácie `sse`/`streamable-http`, aby sa nasledujúca požiadavka znova inicializovala bez problémov, vráti
-`409`, ak je MCP vypnutý, a `501` pre transport `stdio` (klienti stdio vlastnia svoj vlastný
-podproces — neexistuje žiadny obslužný objekt v rámci procesu, ktorý by bolo možné reštartovať).
+`mcp enable`/`mcp disable` PATCHujú rovnaké nastavenie `mcpEnabled` (a voliteľne `mcpTransport`),
+ktoré dashboard prepína cez `/api/settings`. `mcp restart` volá `POST /api/mcp/restart`: ukončí
+aktívne `sse`/`streamable-http` relácie, aby sa ďalšia požiadavka čisto reinicializovala, vráti
+`409`, ak je MCP zakázané, a `501` pre `stdio` transport (klienti stdio spravujú svoj vlastný
+podproces – neexistuje žiadny in-process handle na reštart).
 
 ## Transporty
 
-Server MCP poskytuje tri transporty, pričom všetky používajú rovnakú factory funkciu `createMcpServer()`:
+MCP server vystavuje tri transporty, všetky podporené rovnakou továrenskou funkciou `createMcpServer()`:
 
 | Transport         | Kde                                         | Kedy použiť                                                    |
 | :---------------- | :------------------------------------------ | :------------------------------------------------------------- |
-| `stdio`           | `open-sse/mcp-server/server.ts`             | Integrácie IDE (Claude Desktop, Cursor atď.)                   |
-| `sse`             | `POST/GET /api/mcp/sse` cez `httpTransport` | Klienti prehliadača/agenta, ktorí potrebujú tok udalostí       |
-| `streamable-http` | `POST/GET/DELETE /api/mcp/stream`           | HTTP klienti s viacerými reláciami (hlavička `mcp-session-id`) |
+| `stdio`           | `open-sse/mcp-server/server.ts`             | Integrácie IDE (Claude Desktop, Cursor, atď.)                  |
+| `sse`             | `POST/GET /api/mcp/sse` cez `httpTransport` | Klienti prehliadača/agenta, ktorí potrebujú prúd udalostí      |
+| `streamable-http` | `POST/GET/DELETE /api/mcp/stream`           | HTTP klienti s viacerými reláciami (`mcp-session-id` hlavička) |
 
-Aktívny transport HTTP (`sse` alebo `streamable-http`) sa vyberá nastavením `mcpTransport`. Prepnutím transportov sa zatvoria existujúce relácie druhého transportu.
+Aktívny HTTP transport (`sse` alebo `streamable-http`) sa vyberá nastavením `mcpTransport`. Prepínanie transportov zatvára existujúce relácie na druhom transporte.
 
-### Vzdialený prístup (obídenie pomocou rozsahu manage)
+### Vzdialený prístup (obídenie rozsahu spravovania)
 
-`/api/mcp/*` patrí do úrovne LOCAL_ONLY (`src/server/authz/routeGuard.ts`) — predvolene k nemu môžu pristupovať iba hostitelia spätnej slučky (`localhost`, `127.0.0.1`, `::1`). Od verzie v3.8.2 sa môžu pripojiť aj klienti mimo spätnej slučky, ak uvedú hlavičku `Authorization: Bearer <api-key>`, ktorej kľúč má rozsah `manage`. Toto je jediný spôsob prístupu k vzdialenému serveru MCP cez tunel, reverzný proxy server alebo verejný názov hostiteľa.
+`/api/mcp/*` je v úrovni LOCAL_ONLY (`src/server/authz/routeGuard.ts`) – predvolene k nemu majú prístup iba loopback hostitelia (`localhost`, `127.0.0.1`, `::1`). Od verzie v3.8.2 sa môžu pripojiť aj non-loopback klienti, ak predložia `Authorization: Bearer <api-key>`, ktorého kľúč obsahuje rozsah `manage`. Toto je jediný spôsob, ako sa dostať k vzdialenému MCP serveru cez tunel, reverznú proxy alebo verejný názov hostiteľa.
 
 ```bash
-# Udelenie rozsahu manage: otvorte stránku API Keys riadiaceho panela a prepnite
-# možnosť „Management Access“ pre daný kľúč alebo pri vytváraní odošlite pomocou POST scopes:["manage"].
+# Udeľte rozsah spravovania: otvorte stránku API kľúčov dashboardu a prepnite
+# "Management Access" na kľúči, alebo POST scopes:["manage"] pri vytváraní.
 
-# Potom sa pripojte zo vzdialeného klienta MCP:
+# Potom sa pripojte zo vzdialeného MCP klienta:
 curl -i \
   -H "Host: your-public-host.example" \
   -H "Authorization: Bearer sk-…" \
@@ -70,187 +70,180 @@ curl -i \
   https://your-public-host.example/api/mcp/stream
 ```
 
-Kľúč bez rozsahu `manage` (alebo bez schémy Bearer) vráti `403 LOCAL_ONLY`. Súvisiaci prefix `/api/cli-tools/runtime/*` zámerne NIE JE možné obísť — pozrite si [Úrovne ochrany trás — výnimka pre rozsah manage](../security/ROUTE_GUARD_TIERS.md#manage-scope-carve-out).
+Kľúč bez rozsahu spravovania (alebo bez Bearer) vráti `403 LOCAL_ONLY`. Súrodený prefix `/api/cli-tools/runtime/*` nie je zámerne obchádzateľný – pozrite si [Úrovne Route Guard – výnimka rozsahu spravovania](../security/ROUTE_GUARD_TIERS.md#manage-scope-carve-out).
 
 ## Konfigurácia IDE
 
-Informácie o nastavení klientov Claude Desktop, Cursor, Cline a kompatibilných klientov MCP nájdete v časti [Konfigurácia klienta MCP](../guides/SETUP_GUIDE.md#mcp-client-configuration).
+Pozrite si [Konfiguráciu klienta MCP](../guides/SETUP_GUIDE.md#mcp-client-configuration) pre nastavenie Claude Desktop,
+Cursor, Cline a kompatibilného klienta MCP.
 
 ---
 
-## Základné nástroje (14) — 1. fáza
+## Základné nástroje (14) — Fáza 1
 
-| Nástroj                         | Rozsahy               | Popis                                                                                                                                                          |
-| :------------------------------ | :-------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `omniroute_get_health`          | `read:health`         | Doba prevádzky, pamäť, ističe, limity požiadaviek, štatistiky vyrovnávacej pamäte                                                                              |
-| `omniroute_list_combos`         | `read:combos`         | Všetky nakonfigurované kombinácie so stratégiami (voliteľne aj metriky)                                                                                        |
-| `omniroute_get_combo_metrics`   | `read:combos`         | Metriky výkonu konkrétnej kombinácie                                                                                                                           |
-| `omniroute_switch_combo`        | `write:combos`        | Aktivácia alebo deaktivácia kombinácie                                                                                                                         |
-| `omniroute_create_combo`        | `write:combos`        | Vytvorenie overenej kombinácie prostredníctvom existujúceho rozhrania API pre kombinácie                                                                       |
-| `omniroute_check_quota`         | `read:quota`          | Využitá/celková kvóta, zostávajúce percentá, čas obnovenia, stav tokenu                                                                                        |
-| `omniroute_route_request`       | `execute:completions` | Odoslanie požiadavky na dokončenie chatu prostredníctvom smerovania OmniRoute                                                                                  |
-| `omniroute_cost_report`         | `read:usage`          | Prehľad nákladov podľa obdobia (relácia/deň/týždeň/mesiac)                                                                                                     |
-| `omniroute_list_models_catalog` | `read:models`         | Úplný katalóg modelov s funkciami, stavom a cenami                                                                                                             |
-| `omniroute_radar_catalog`       | `read:radar`          | Lokálny podpísaný katalóg Radar; voliteľné filtre podľa poskytovateľa/rodiny                                                                                   |
-| `omniroute_tool_search`         | `read:tools`          | Vyhľadávanie nástrojov v zaregistrovanom katalógu MCP                                                                                                          |
-| `omniroute_web_search`          | `execute:search`      | Vyhľadávanie na webe prostredníctvom nakonfigurovaných poskytovateľov vyhľadávania. Nie na X/Twitteri.                                                         |
-| `omniroute_x_search`            | `execute:search`      | Vyhľadávanie na X prostredníctvom xAI/SuperGrok alebo výber `xquik-search` pre výsledky rozhrania Xquik API. Vyžaduje prihlasovacie údaje pre vybraný backend. |
-| `omniroute_web_fetch`           | `execute:search`      | Načítanie webového obsahu prostredníctvom nakonfigurovaných poskytovateľov načítania                                                                           |
+| Nástroj                         | Rozsahy               | Popis                                                                                                                       |
+| :------------------------------ | :-------------------- | :-------------------------------------------------------------------------------------------------------------------------- |
+| `omniroute_get_health`          | `read:health`         | Doba prevádzky, pamäť, ističe, obmedzenia rýchlosti, štatistiky vyrovnávacej pamäte                                         |
+| `omniroute_list_combos`         | `read:combos`         | Všetky nakonfigurované kombinácie so stratégiami (voliteľné metriky)                                                        |
+| `omniroute_get_combo_metrics`   | `read:combos`         | Metriky výkonu pre konkrétnu kombináciu                                                                                     |
+| `omniroute_switch_combo`        | `write:combos`        | Aktivovať alebo deaktivovať kombináciu                                                                                      |
+| `omniroute_create_combo`        | `write:combos`        | Vytvoriť validovanú kombináciu prostredníctvom existujúceho API pre kombinácie                                              |
+| `omniroute_check_quota`         | `read:quota`          | Použitá/celková kvóta, zostávajúce percento, čas resetu, stav tokenu                                                        |
+| `omniroute_route_request`       | `execute:completions` | Poslať dokončenie chatu cez smerovanie OmniRoute                                                                            |
+| `omniroute_cost_report`         | `read:usage`          | Správa o nákladoch podľa obdobia (relácia/deň/týždeň/mesiac)                                                                |
+| `omniroute_list_models_catalog` | `read:models`         | Kompletný katalóg modelov s možnosťami, stavom, cenami                                                                      |
+| `omniroute_radar_catalog`       | `read:radar`          | Lokálny podpísaný katalóg Radar; voliteľné filtre poskytovateľa/rodiny                                                      |
+| `omniroute_tool_search`         | `read:tools`          | Objavte nástroje z registrovaného katalógu MCP                                                                              |
+| `omniroute_web_search`          | `execute:search`      | Webové vyhľadávanie prostredníctvom nakonfigurovaných poskytovateľov vyhľadávania. Nie X/Twitter.                           |
+| `omniroute_x_search`            | `execute:search`      | Vyhľadávať X cez xAI/SuperGrok, alebo zvoliť `xquik-search` pre výsledky Xquik API. Vyžaduje poverenia pre vybraný backend. |
+| `omniroute_web_fetch`           | `execute:search`      | Načítať webový obsah prostredníctvom nakonfigurovaných poskytovateľov načítania                                             |
 
 ## Pokročilé nástroje (11) — Fáza 2
 
-| Nástroj                            | Rozsahy                              | Popis                                                                                                                           |
-| :--------------------------------- | :----------------------------------- | :------------------------------------------------------------------------------------------------------------------------------ |
-| `omniroute_simulate_route`         | `read:health`, `read:combos`         | Simulácia smerovania nanečisto so stromom záložných možností                                                                    |
-| `omniroute_set_budget_guard`       | `write:budget`                       | Rozpočet relácie s akciou zníženia kvality/blokovania/upozornenia                                                               |
-| `omniroute_set_routing_strategy`   | `write:combos`                       | Aktualizácia stratégie kombinácie počas behu (prioritná/vážená/automatická/atď.)                                                |
-| `omniroute_set_resilience_profile` | `write:resilience`                   | Použitie predvoľby odolnosti `aggressive` / `balanced` / `conservative`                                                         |
-| `omniroute_test_combo`             | `execute:completions`, `read:combos` | Živý test každého poskytovateľa v kombinácii pomocou skutočného volania nadradenej služby                                       |
-| `omniroute_get_provider_metrics`   | `read:health`                        | Metriky jednotlivých poskytovateľov s latenciou p50/p95/p99 a stavom ističa                                                     |
-| `omniroute_best_combo_for_task`    | `read:combos`, `read:health`         | Odporúčanie kombinácie podľa typu úlohy s obmedzeniami rozpočtu/latencie                                                        |
-| `omniroute_explain_route`          | `read:health`, `read:usage`          | Vysvetlenie, prečo bola požiadavka smerovaná k poskytovateľovi (faktory hodnotenia + záložné možnosti)                          |
-| `omniroute_get_session_snapshot`   | `read:usage`                         | Úplná snímka relácie: náklady, tokeny, hlavné modely/poskytovatelia, chyby, ochrana rozpočtu                                    |
-| `omniroute_db_health_check`        | `read:health`, `write:resilience`    | Diagnostika (a voliteľná automatická oprava) nekonzistencií databázy, napr. nefunkčných odkazov na kombinácie/osirelých riadkov |
-| `omniroute_sync_pricing`           | `pricing:write`                      | Synchronizácia cenových údajov z externých zdrojov (LiteLLM); podporuje `dryRun`                                                |
+| Nástroj                            | Rozsahy                              | Popis                                                                                                                       |
+| :--------------------------------- | :----------------------------------- | :-------------------------------------------------------------------------------------------------------------------------- |
+| `omniroute_simulate_route`         | `read:health`, `read:combos`         | Simulácia smerovania na nečisto so záložným stromom                                                                         |
+| `omniroute_set_budget_guard`       | `write:budget`                       | Rozpočet relácie s akciou degradácie/blokovania/upozornenia                                                                 |
+| `omniroute_set_routing_strategy`   | `write:combos`                       | Aktualizácia stratégie kombinácie za behu (priorita/vážená/auto/atď.)                                                       |
+| `omniroute_set_resilience_profile` | `write:resilience`                   | Použiť predvoľbu odolnosti `agresívna` / `vyvážená` / `konzervatívna`                                                       |
+| `omniroute_test_combo`             | `execute:completions`, `read:combos` | Živý test každého poskytovateľa v kombinácii pomocou skutočného volania upstreamu                                           |
+| `omniroute_get_provider_metrics`   | `read:health`                        | Metriky pre jednotlivých poskytovateľov s latenciou p50/p95/p99 a stavom ističa                                             |
+| `omniroute_best_combo_for_task`    | `read:combos`, `read:health`         | Odporučiť kombináciu podľa typu úlohy s obmedzeniami rozpočtu/latencie                                                      |
+| `omniroute_explain_route`          | `read:health`, `read:usage`          | Vysvetliť, prečo bola požiadavka smerovaná k poskytovateľovi (faktory bodovania + záložné možnosti)                         |
+| `omniroute_get_session_snapshot`   | `read:usage`                         | Úplná snímka relácie: náklady, tokeny, najlepšie modely/poskytovatelia, chyby, ochrana rozpočtu                             |
+| `omniroute_db_health_check`        | `read:health`, `write:resilience`    | Diagnostikovať (a voliteľne automaticky opraviť) odchýlky databázy, ako sú poškodené referencie kombinácií / osamelé riadky |
+| `omniroute_sync_pricing`           | `pricing:write`                      | Synchronizovať údaje o cenách z externých zdrojov (LiteLLM); podporuje `dryRun`                                             |
 
-## Nástroje vyrovnávacej pamäte (2)
+## Nástroje pre vyrovnávaciu pamäť (2)
 
-| Nástroj                 | Rozsahy       | Popis                                                                                   |
-| :---------------------- | :------------ | :-------------------------------------------------------------------------------------- |
-| `omniroute_cache_stats` | `read:cache`  | Štatistiky sémantickej vyrovnávacej pamäte, vyrovnávacej pamäte promptov a idempotencie |
-| `omniroute_cache_flush` | `write:cache` | Vyprázdnenie vyrovnávacej pamäte globálne alebo podľa podpisu/modelu                    |
+| Nástroj                 | Rozsahy       | Popis                                                                                    |
+| :---------------------- | :------------ | :--------------------------------------------------------------------------------------- |
+| `omniroute_cache_stats` | `read:cache`  | Štatistiky sémantickej vyrovnávacej pamäte, vyrovnávacej pamäte pre výzvy a idempotencie |
+| `omniroute_cache_flush` | `write:cache` | Vyprázdniť vyrovnávaciu pamäť globálne alebo podľa podpisu/modelu                        |
 
-## Nástroje kompresie (13)
+## Nástroje pre kompresiu (13)
 
-| Nástroj                             | Rozsahy             | Popis                                                                                                                                      |
-| :---------------------------------- | :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------- |
-| `omniroute_compression_status`      | `read:compression`  | Nastavenia kompresie, súhrn analytiky a štatistiky zohľadňujúce vyrovnávaciu pamäť (zahŕňa metadáta `analytics.mcpDescriptionCompression`) |
-| `omniroute_compression_configure`   | `write:compression` | Konfigurácia režimu kompresie, prahovej hodnoty, cieľového pomeru, zachovania systémového promptu a prepínača kompresie popisov MCP        |
-| `omniroute_set_compression_engine`  | `write:compression` | Výber aktívneho mechanizmu (off/caveman/rtk/stacked) a intenzity Caveman/RTK                                                               |
-| `omniroute_list_compression_combos` | `read:compression`  | Zoznam pomenovaných kombinácií kompresie a ich reťazcov mechanizmov                                                                        |
-| `omniroute_compression_combo_stats` | `read:compression`  | Analytika zoskupená podľa kombinácie kompresie a mechanizmu                                                                                |
-| `omniroute_ccr_store`               | `write:compression` | Uloženie obsahu izolovaného podľa volajúceho do kapacitne obmedzeného úložiska CCR v pamäti a vrátenie značky spolu s odkazom `ccr://`     |
-| `omniroute_ccr_retrieve`            | `read:compression`  | Načítanie úplného obsahu CCR alebo jeho časti pomocou režimov začiatku, konca, riadkov, grep a štatistík                                   |
-| `omniroute_ccr_inspect`             | `read:compression`  | Kontrola metadát CCR vlastnených volajúcim bez vrátenia obsahu                                                                             |
-| `omniroute_ccr_list`                | `read:compression`  | Zoznam stránkovaných metadát blokov CCR vlastnených volajúcim                                                                              |
-| `omniroute_ccr_delete`              | `write:compression` | Odstránenie bloku CCR vlastneného volajúcim                                                                                                |
-| `omniroute_ccr_stats`               | `read:compression`  | Hlásenie využitia pamäte v rozsahu volajúceho, počítadiel životného cyklu a limitov úložiska                                               |
-| `omniroute_rtk_discover`            | `read:compression`  | Zisťovanie opakujúceho sa šumu vo vzorkách výstupu RTK zahrnutých na základe súhlasu                                                       |
-| `omniroute_rtk_learn`               | `read:compression`  | Vygenerovanie návrhu filtra RTK na kontrolu zo vzoriek zahrnutých na základe súhlasu                                                       |
+| Nástroj                             | Rozsahy             | Popis                                                                                                                                   |
+| :---------------------------------- | :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| `omniroute_compression_status`      | `read:compression`  | Nastavenia kompresie, súhrn analýz a štatistiky s ohľadom na vyrovnávaciu pamäť (zahŕňa metadáta `analytics.mcpDescriptionCompression`) |
+| `omniroute_compression_configure`   | `write:compression` | Konfigurovať režim kompresie, prah, cieľový pomer, zachovanie systémovej výzvy, prepínač kompresie popisu MCP                           |
+| `omniroute_set_compression_engine`  | `write:compression` | Vybrať aktívny engine (vypnutý/caveman/rtk/stacked) a intenzitu Caveman/RTK                                                             |
+| `omniroute_list_compression_combos` | `read:compression`  | Zoznam pomenovaných kompresných kombinácií a ich engine pipeline                                                                        |
+| `omniroute_compression_combo_stats` | `read:compression`  | Analýzy zoskupené podľa kompresnej kombinácie a enginu                                                                                  |
+| `omniroute_ccr_store`               | `write:compression` | Uložiť obsah izolovaný volajúcim do obmedzeného in-memory CCR úložiska a vrátiť značku plus referenciu `ccr://`                         |
+| `omniroute_ccr_retrieve`            | `read:compression`  | Načítať obsah CCR v plnom rozsahu alebo s režimami head, tail, lines, grep a stats                                                      |
+| `omniroute_ccr_inspect`             | `read:compression`  | Skontrolovať metadáta CCR vlastnené volajúcim bez vrátenia obsahu                                                                       |
+| `omniroute_ccr_list`                | `read:compression`  | Zoznam stránkovaných metadát pre CCR bloky vlastnené volajúcim                                                                          |
+| `omniroute_ccr_delete`              | `write:compression` | Odstrániť CCR blok vlastnený volajúcim                                                                                                  |
+| `omniroute_ccr_stats`               | `read:compression`  | Nahlásiť využitie pamäte v rozsahu volajúceho, počítadlá životného cyklu a limity úložiska                                              |
+| `omniroute_rtk_discover`            | `read:compression`  | Objaviť opakujúci sa šum vo vzorkách výstupu RTK s povolením                                                                            |
+| `omniroute_rtk_learn`               | `read:compression`  | Generovať návrh RTK filtra na kontrolu zo vzoriek s povolením                                                                           |
 
-Položky CCR sa uchovávajú iba v pamäti a po reštarte zmiznú. Každý blok je obmedzený na 2 MiB, každý
-principál na 16 MiB a globálne úložisko na 64 MiB. Predvolená hodnota TTL položiek je 24 hodín (maximum
-je sedem dní). Úplné načítanie cez MCP je obmedzené na 256 KiB; väčšie bloky zostávajú dostupné prostredníctvom
-režimov rozsahu a grep. Ukladanie, načítanie, zobrazovanie zoznamu, kontrola, odstraňovanie a štatistiky sú izolované podľa
-principálu autentizovaného kľúča API. Záznamy auditu obsahujú haše a metadáta o veľkosti, nikdy nie obsah.
+Záznamy CCR sú iba v pamäti a po reštarte zmiznú. Každý blok je obmedzený na 2 MiB, každý princípál na 16 MiB a globálne úložisko na 64 MiB. Záznamy majú predvolenú TTL 24 hodín (maximálne sedem dní). Úplné načítanie MCP je obmedzené na 256 KiB; väčšie bloky zostávajú dostupné prostredníctvom režimov rozsahu a grep. Ukladanie, načítanie, zoznam, kontrola, mazanie a štatistiky sú izolované autentifikovaným princípálom API kľúča. Auditné záznamy obsahujú haše a metadáta veľkosti, nikdy nie obsah.
 
-`omniroute_compression_status` uvádza kompresiu popisov MCP samostatne v časti
-`analytics.mcpDescriptionCompression`. Tieto hodnoty predstavujú odhady veľkosti metadát pre
-popisy MCP, ktoré možno zobraziť v zozname (`tools`, `prompts`, `resources` a `resourceTemplates`);
-nejde o záznamy o využití poskytovateľa a sú označené pomocou `source: "mcp_metadata_estimate"`.
+`omniroute_compression_status` hlási kompresiu popisu MCP samostatne pod
+`analytics.mcpDescriptionCompression`. Tieto hodnoty sú odhady veľkosti metadát pre popisy MCP, ktoré je možné zoznamovať
+(`tools`, `prompts`, `resources`, a `resourceTemplates`); nie sú to potvrdenia o použití poskytovateľa a sú označené `source: "mcp_metadata_estimate"`.
 
 ### Filter stromu prístupnosti MCP (v3.8.0)
 
-Nezávisle od vyššie uvedených nástrojov na kompresiu obsahuje OmniRoute filter po vykonaní, ktorý
-komprimuje **výsledky nástrojov** prehliadača/prístupnosti MCP pred ich vrátením agentovi.
-Tento filter nie je sám osebe nástrojom — transparentne sa spúšťa pri každom výsledku nástroja,
-ktorý obsahuje podrobný text stromu prístupnosti alebo snímky prehliadača (≥2000 znakov).
+Oddelene od vyššie uvedených kompresných nástrojov, OmniRoute obsahuje filter po vykonaní, ktorý komprimuje **výsledky nástrojov** prehliadačových/prístupnostných nástrojov MCP predtým, ako sú vrátené agentovi. Tento filter sám o sebe nie je nástrojom — beží transparentne na akomkoľvek výsledku nástroja, ktorý obsahuje rozsiahly text stromu prístupnosti alebo snímky prehliadača (≥2000 znakov).
 
 Kľúčové správanie:
 
-- Zbalí ≥30 po sebe nasledujúcich opakujúcich sa súrodeneckých riadkov do súhrnu začiatku a konca
-- Zachová kotvy `[ref=eXX]` vyžadované nástrojmi Playwright/computer-use
-- Natvrdo skráti príliš veľký text (>50,000 znakov) a pridá navigačnú nápovedu
-- Očakávaná úspora: **60–80 %** pri dátach snímok prehliadača
+- Zbalí ≥30 po sebe idúcich opakujúcich sa súrodeneckých riadkov do súhrnu hlavy + chvosta
+- Zachováva kotvy `[ref=eXX]` vyžadované Playwright/computer-use
+- Nekompromisne skracuje nadrozmerný text (>50 000 znakov) s navigačnou nápovedou
+- Očakávané úspory: **60–80%** na dátových balíkoch snímok prehliadača
 
 Konfigurácia: `compression.mcpAccessibility` v globálnych nastaveniach (migrácia 056).
 Implementácia: `open-sse/services/compression/engines/mcpAccessibility/`.
-Úplná dokumentácia: [Kompresné mechanizmy — filter stromu prístupnosti MCP](../compression/COMPRESSION_ENGINES.md#mcp-accessibility-tree-filter).
+Kompletná dokumentácia: [Kompresné enginy — Filter stromu prístupnosti MCP](../compression/COMPRESSION_ENGINES.md#mcp-accessibility-tree-filter).
 
-Informácie o modeli kompresie za behu, ktorý používajú tieto nástroje, nájdete v dokumentoch
-[Kompresné mechanizmy](../compression/COMPRESSION_ENGINES.md) a [Kompresia RTK](../compression/RTK_COMPRESSION.md).
+Pozrite si [Kompresné enginy](../compression/COMPRESSION_ENGINES.md) a [RTK kompresiu](../compression/RTK_COMPRESSION.md) pre
+model kompresie za behu, ktorý stojí za týmito nástrojmi.
 
 ## Nástroje 1Proxy (3)
 
-| Nástroj                     | Rozsahy        | Popis                                                                                             |
-| :-------------------------- | :------------- | :------------------------------------------------------------------------------------------------ |
-| `omniroute_oneproxy_fetch`  | `read:proxies` | Načítanie bezplatných proxy serverov z trhoviska 1proxy (filtre protokolu/krajiny/kvality/limitu) |
-| `omniroute_oneproxy_rotate` | `read:proxies` | Získanie ďalšieho dostupného proxy servera podľa stratégie (`random` / `quality` / `sequential`)  |
-| `omniroute_oneproxy_stats`  | `read:proxies` | Štatistiky fondu, stav synchronizácie a distribúcia podľa protokolu a krajiny                     |
+| Nástroj                     | Rozsahy        | Popis                                                                               |
+| :-------------------------- | :------------- | :---------------------------------------------------------------------------------- |
+| `omniroute_oneproxy_fetch`  | `read:proxies` | Získať bezplatné proxy z trhoviska 1proxy (filtre protokolu/krajiny/kvality/limitu) |
+| `omniroute_oneproxy_rotate` | `read:proxies` | Získať ďalšie dostupné proxy podľa stratégie (`random` / `quality` / `sequential`)  |
+| `omniroute_oneproxy_stats`  | `read:proxies` | Štatistiky fondu, stav synchronizácie, distribúcia podľa protokolu a krajiny        |
 
 ## Nástroje pamäte (3)
 
-Definované v `open-sse/mcp-server/tools/memoryTools.ts`. Autorizácia/rozsah sa presadzuje prostredníctvom štandardného mechanizmu rozsahov MCP.
+Definované v `open-sse/mcp-server/tools/memoryTools.ts`. Autentifikácia/rozsah je vynucovaný prostredníctvom štandardného MCP rozsahu.
 
-| Nástroj                   | Rozsahy        | Popis                                                                                                        |
-| :------------------------ | :------------- | :----------------------------------------------------------------------------------------------------------- |
-| `omniroute_memory_search` | `read:memory`  | Vyhľadávanie záznamov v pamäti podľa dotazu / typu / kľúča API s dodržaním limitu tokenov                    |
-| `omniroute_memory_add`    | `write:memory` | Pridanie nového záznamu do pamäte (`factual` / `episodic` / `procedural` / `semantic`)                       |
-| `omniroute_memory_clear`  | `write:memory` | Vymazanie záznamov v pamäti pre kľúč API, voliteľne filtrovaných podľa typu alebo časovej značky `olderThan` |
+| Nástroj                   | Rozsahy        | Popis                                                                                           |
+| :------------------------ | :------------- | :---------------------------------------------------------------------------------------------- |
+| `omniroute_memory_search` | `read:memory`  | Vyhľadávanie pamätí podľa dotazu / typu / API kľúča s vynútením rozpočtu tokenov                |
+| `omniroute_memory_add`    | `write:memory` | Pridať nový záznam pamäte (`factual` / `episodic` / `procedural` / `semantic`)                  |
+| `omniroute_memory_clear`  | `write:memory` | Vymazať pamäte pre API kľúč, voliteľne filtrované podľa typu alebo časovej pečiatky `olderThan` |
 
 ## Nástroje zručností (4)
 
-Definované v `open-sse/mcp-server/tools/skillTools.ts`. Využívajú `src/lib/skills/registry` + `src/lib/skills/executor`.
+Definované v `open-sse/mcp-server/tools/skillTools.ts`. Podporené `src/lib/skills/registry` + `src/lib/skills/executor`.
 
-| Nástroj                       | Rozsahy          | Popis                                                                                                     |
-| :---------------------------- | :--------------- | :-------------------------------------------------------------------------------------------------------- |
-| `omniroute_skills_list`       | `read:skills`    | Zobrazenie registrovaných zručností s voliteľným filtrovaním podľa kľúča API, názvu alebo stavu povolenia |
-| `omniroute_skills_enable`     | `write:skills`   | Povolenie alebo zakázanie konkrétnej zručnosti podľa ID                                                   |
-| `omniroute_skills_execute`    | `execute:skills` | Vykonanie zručnosti so zadaným vstupom a vrátenie záznamu o vykonaní                                      |
-| `omniroute_skills_executions` | `read:skills`    | Zobrazenie nedávnej histórie vykonaní zručností                                                           |
+| Nástroj                       | Rozsahy          | Popis                                                                                                 |
+| :---------------------------- | :--------------- | :---------------------------------------------------------------------------------------------------- |
+| `omniroute_skills_list`       | `read:skills`    | Zoznam registrovaných zručností s voliteľným filtrovaním podľa API kľúča, názvu alebo stavu povolenia |
+| `omniroute_skills_enable`     | `write:skills`   | Povoliť alebo zakázať konkrétnu zručnosť podľa ID                                                     |
+| `omniroute_skills_execute`    | `execute:skills` | Vykonanie zručnosti s poskytnutým vstupom a vrátenie záznamu vykonania                                |
+| `omniroute_skills_executions` | `read:skills`    | Zoznam nedávnej histórie vykonávania zručností                                                        |
 
 ## Zdroj kontextu Notion (6)
 
-Definované v `open-sse/mcp-server/tools/notionTools.ts`. Token je uložený v tabuľke `key_value` prostredníctvom `src/lib/db/notion.ts`. Klient REST sa nachádza v `src/lib/notion/api.ts`. API nastavení sa nachádza v `src/app/api/settings/notion/route.ts`. Používateľské rozhranie ovládacieho panela sa nachádza v `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx`.
+Definované v `open-sse/mcp-server/tools/notionTools.ts`. Token uložený v tabuľke `key_value` prostredníctvom `src/lib/db/notion.ts`. REST klient v `src/lib/notion/api.ts`. API nastavení v `src/app/api/settings/notion/route.ts`. Používateľské rozhranie dashboardu v `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx`.
 
-Nakonfigurujte token integrácie Notion na karte **Zdroje kontextu** v ovládacom paneli koncového bodu alebo prostredníctvom API REST:
+Nakonfigurujte svoj integračný token Notion z karty **Context Sources** v dashboarde Endpoint, alebo prostredníctvom REST API:
 
 ```bash
-# Nastavenie tokenu
+# Set token
 curl -X POST http://localhost:20128/api/settings/notion \
   -H "Content-Type: application/json" \
   -d '{"token": "ntn_..."}'
 
-# Kontrola stavu
+# Check status
 curl http://localhost:20128/api/settings/notion
 
-# Odpojenie
+# Disconnect
 curl -X DELETE http://localhost:20128/api/settings/notion
 ```
 
-| Nástroj                      | Rozsahy        | Popis                                                                    |
-| :--------------------------- | :------------- | :----------------------------------------------------------------------- |
-| `notion_search`              | `read:notion`  | Fulltextové vyhľadávanie vo všetkých stránkach a databázach              |
-| `notion_get_page`            | `read:notion`  | Získanie stránky podľa ID spolu s jej vlastnosťami                       |
-| `notion_list_block_children` | `read:notion`  | Zobrazenie podradených blokov stránky alebo bloku                        |
-| `notion_query_database`      | `read:notion`  | Dopytovanie databázy pomocou filtrov, zoradenia a stránkovania           |
-| `notion_get_database`        | `read:notion`  | Získanie schémy databázy podľa ID                                        |
-| `notion_append_blocks`       | `write:notion` | Pridanie podradených blokov k nadradenému bloku (max. 100 na požiadavku) |
+| Nástroj                      | Rozsahy        | Popis                                                                 |
+| :--------------------------- | :------------- | :-------------------------------------------------------------------- |
+| `notion_search`              | `read:notion`  | Fulltextové vyhľadávanie naprieč všetkými stránkami a databázami      |
+| `notion_get_page`            | `read:notion`  | Získať stránku podľa ID s jej vlastnosťami                            |
+| `notion_list_block_children` | `read:notion`  | Zoznam podradených blokov stránky alebo bloku                         |
+| `notion_query_database`      | `read:notion`  | Dotazovanie databázy s filtrami, triedením a stránkovaním             |
+| `notion_get_database`        | `read:notion`  | Získať schému databázy podľa ID                                       |
+| `notion_append_blocks`       | `write:notion` | Pripojiť podradené bloky k nadradenému bloku (max. 100 na požiadavku) |
 
-## Nástroje katalógu Agent Skill (3)
+## Nástroje katalógu zručností agenta (3)
 
-Definované v `open-sse/mcp-server/tools/agentSkillTools.ts`. Podporované modulom `src/lib/agentSkills/catalog`. Tieto nástroje sprístupňujú klientom MCP a externým agentom katalóg dokumentácie Agent Skills so 45 položkami. Rozsah: `read:catalog`.
+Definované v `open-sse/mcp-server/tools/agentSkillTools.ts`. Podporené `src/lib/agentSkills/catalog`. Tieto nástroje sprístupňujú 45-položkový katalóg zručností agenta klientom MCP a externým agentom. Rozsah: `read:catalog`.
 
-| Nástroj                           | Rozsahy        | Popis                                                                                                                                                                       |
-| :-------------------------------- | :------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `omniroute_agent_skills_list`     | `read:catalog` | Zobrazí všetkých 45 zručností agentov s voliteľnými filtrami `category` (api\|cli) a `area`; vráti metadáta + pokrytie                                                      |
-| `omniroute_agent_skills_get`      | `read:catalog` | Získa úplné metadáta + obsah SKILL.md pre jednu zručnosť podľa kanonického `id`                                                                                             |
-| `omniroute_agent_skills_coverage` | `read:catalog` | Štatistiky pokrytia: koľko z 23 zručností API, 21 zručností CLI a 1 konfiguračnej zručnosti má v súborovom systéme súbory SKILL.md v porovnaní s celkovým počtom v katalógu |
+| Nástroj                           | Rozsahy        | Popis                                                                                                                                              |
+| :-------------------------------- | :------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `omniroute_agent_skills_list`     | `read:catalog` | Zoznam všetkých 45 zručností agenta s voliteľnými filtrami `category` (api\|cli) a `area`; vracia metadáta + pokrytie                              |
+| `omniroute_agent_skills_get`      | `read:catalog` | Získanie úplných metadát + obsahu SKILL.md pre jednu zručnosť podľa kanonického `id`                                                               |
+| `omniroute_agent_skills_coverage` | `read:catalog` | Štatistiky pokrytia: koľko z 23 API, 21 CLI a 1 konfiguračných zručností má súbory SKILL.md v súborovom systéme oproti celkovým katalógovým údajom |
 
-Úplný katalóg a spôsob, akým ho používajú externí agenti, nájdete v súbore [AGENT-SKILLS.md](./AGENT-SKILLS.md).
+Úplný katalóg a spôsob, akým ho využívajú externí agenti, nájdete v [AGENT-SKILLS.md](./AGENT-SKILLS.md).
 
 ## Súvisiace frameworky (v3.8.0)
 
-Vyššie uvedený inventár nástrojov MCP (110 jedinečných nástrojov, vypočítaných pomocou `countUniqueMcpTools()`) je zámerne
-obmedzený na operácie smerovania za behu, vyrovnávacej pamäte, kompresie, pamäte, zručností, proxy a zdrojov kontextu. Spolu
-so serverom MCP sa vo verzii v3.8.0 dodávajú dva súvisiace frameworky, ktoré sú zdokumentované samostatne:
+Vyššie uvedený inventár nástrojov MCP (110 unikátnych nástrojov, vypočítaných pomocou `countUniqueMcpTools()`) je zámerne
+obmedzený na operácie smerovania/cache/kompresie/pamäte/zručností/proxy/kontextového zdroja za behu. Dva susedné
+frameworky sa dodávajú spolu so serverom MCP vo verzii v3.8.0 a sú dokumentované samostatne:
 
-### Cloud Agents
+### Cloudoví agenti
 
-Cloud Agents sú externé AI agenty na programovanie spúšťané mimo procesu (codex-cloud, cursor-cloud, devin, jules), ktoré sú prepojené
-s OmniRoute prostredníctvom rovnakého modelu pripojenia, aký sa používa pre poskytovateľov LLM. Sú sprístupnené cez
-vlastné rozhranie REST (`/api/v1/agents/*`) a **nie sú** súčasťou katalógu nástrojov MCP
-— volanie Cloud Agent nespotrebúva rozsah MCP.
+Cloudoví agenti sú externí agenti AI kódovania (codex-cloud, cursor-cloud, devin, jules) zapojení do
+OmniRoute prostredníctvom rovnakého modelu pripojenia, aký sa používa pre poskytovateľov LLM. Sú sprístupnení prostredníctvom
+vlastného REST rozhrania (`/api/v1/agents/*`) a **nie sú** súčasťou katalógu nástrojov MCP
+— volanie cloudového agenta nespotrebúva rozsah MCP.
 
 - Implementácia: `src/lib/cloudAgent/` (`registry.ts`, `agents/codex.ts`, `agents/cursor.ts`, `agents/devin.ts`, `agents/jules.ts`).
 - Životný cyklus: `createTask`, `getStatus`, `approvePlan`, `sendMessage`, `listSources`.
@@ -258,40 +251,104 @@ vlastné rozhranie REST (`/api/v1/agents/*`) a **nie sú** súčasťou katalógu
 
 ### Guardrails
 
-Guardrails sú filtre pred vykonaním a po vykonaní (vision-bridge, pii-masker, prompt-injection),
-ktoré sa používajú v rámci konverzačného kanála. Spúšťajú sa pred dosiahnutím vrstvy nástrojov/smerovania MCP
-a odosielajú štruktúrované porušenia do auditného kanála; nevyvolávajú sa ako nástroje MCP.
+Guardrails sú filtre pred/po vykonaní (vision-bridge, pii-masker, prompt-injection)
+aplikované v rámci chatovacieho potrubia. Spúšťajú sa predtým, než sa dosiahne vrstva nástrojov/smerovania MCP
+a emitujú štruktúrované porušenia do auditovacieho potrubia; nie sú vyvolané ako nástroje MCP.
 
 - Implementácia: `src/lib/guardrails/`.
 - Dokumentácia: [docs/security/GUARDRAILS.md](../security/GUARDRAILS.md).
 
-Pri ladení volania MCP, ktoré sa javí ako zablokované, skontrolujte auditný protokol MCP
-(položky `scope_denied:*`) aj auditnú stopu Guardrails — požiadavka môže byť odmietnutá
-mechanizmom Guardrails **predtým**, než sa vôbec dostane k vrstve vynucovania rozsahov MCP.
+Pri ladení volania MCP, ktoré sa zdá byť zablokované, skontrolujte auditovací záznam MCP
+(položky `scope_denied:*`) aj auditovaciu stopu guardrails — požiadavka môže byť odmietnutá
+guardrailom **predtým**, než sa vôbec dostane do vrstvy vynucovania rozsahu MCP.
 
 ---
 
-## Koncové body REST API
+## REST API koncové body
 
-| Koncový bod            | Metóda                | Popis                                                                                                     | Autentifikácia           |
-| :--------------------- | :-------------------- | :-------------------------------------------------------------------------------------------------------- | :----------------------- |
-| `/api/mcp/status`      | `GET`                 | Stav servera: signál aktivity, stav transportu HTTP, súhrn auditnej aktivity                              | Správa (relácia/správca) |
-| `/api/mcp/tools`       | `GET`                 | Katalóg nástrojov (názov, popis, rozsahy, fáza, zdrojové koncové body)                                    | Správa                   |
-| `/api/mcp/sse`         | `GET` / `POST`        | Koncový bod transportu SSE (riadený pomocou `mcpEnabled` + `mcpTransport === "sse"`)                      | Kľúč API + rozsahy       |
-| `/api/mcp/stream`      | `POST`/`GET`/`DELETE` | Streamovateľný transport HTTP (používa hlavičku `mcp-session-id`; `DELETE` ukončí reláciu)                | Kľúč API + rozsahy       |
-| `/api/mcp/audit`       | `GET`                 | Položky auditného protokolu z `mcp_tool_audit` (filtre: `limit`, `offset`, `tool`, `success`, `apiKeyId`) | Správa                   |
-| `/api/mcp/audit/stats` | `GET`                 | Agregované štatistiky auditu (`totalCalls`, `successRate`, `avgDurationMs`, najpoužívanejšie nástroje)    | Správa                   |
+| Koncový bod            | Metóda                | Popis                                                                                           | Autentifikácia         |
+| :--------------------- | :-------------------- | :---------------------------------------------------------------------------------------------- | :--------------------- |
+| `/api/mcp/status`      | `GET`                 | Stav servera: heartbeat, stav HTTP transportu, súhrn auditovacej aktivity                       | Správa (session/admin) |
+| `/api/mcp/tools`       | `GET`                 | Katalóg nástrojov (názov, popis, rozsahy, fáza, zdrojové koncové body)                          | Správa                 |
+| `/api/mcp/sse`         | `GET` / `POST`        | SSE transportný koncový bod (chránený `mcpEnabled` + `mcpTransport === "sse"`)                  | API kľúč + rozsahy     |
+| `/api/mcp/stream`      | `POST`/`GET`/`DELETE` | Streamovateľný HTTP transport (používa hlavičku `mcp-session-id`; `DELETE` ukončuje reláciu)    | API kľúč + rozsahy     |
+| `/api/mcp/audit`       | `GET`                 | Záznamy auditu z `mcp_tool_audit` (filtre: `limit`, `offset`, `tool`, `success`, `apiKeyId`)    | Správa                 |
+| `/api/mcp/audit/stats` | `GET`                 | Agregované štatistiky auditu (`totalCalls`, `successRate`, `avgDurationMs`, najlepšie nástroje) | Správa                 |
 
 Zdrojové súbory: `src/app/api/mcp/{status,tools,sse,stream,audit,audit/stats}/route.ts`.
 
-Transporty SSE aj Streamable HTTP sú blokované, kým nie je server MCP povolený v nastaveniach (`mcpEnabled`) a nie je vybraný príslušný `mcpTransport`. Ak je nakonfigurovaný nesprávny transport, trasa vráti HTTP 400 s odporúčaním zmeniť nastavenia.
+Oba transporty SSE a Streamable HTTP sú zablokované, kým nie je server MCP povolený v Nastaveniach (`mcpEnabled`) a nie je vybraný príslušný `mcpTransport`. Ak je nakonfigurovaný nesprávny transport, cesta vráti HTTP 400 s nápovedou na zmenu nastavení.
 
 ---
 
 ## Autentifikácia a rozsahy
 
-Nástroje MCP sa autentifikujú prostredníctvom rozsahov kľúča API. Vynucovanie rozsahov je centralizované v
-`open-sse/mcp-server/scopeEnforcement.ts`. Každý nástroj vyžaduje konkrétne rozsahy:
+Nástroj MCP volá reťazce rozsahu čítania od volajúceho. Táto kontrola je jedným z troch nezávislých menných priestorov. Prechod jedným kontrolórom neznamená prechod ostatnými. Pravidlá sú [Tri menné priestory rozsahu](#tri-menné-priestory-rozsahu). Katalóg nástrojov je [Rozsahy nástrojov MCP](#rozsahy-nástrojov-mcp).
+
+### Tri menné priestory rozsahu
+
+`manage` na API kľúči, `read:compression` na nástroji MCP a `read` na prístupovom tokene `oma_live_…` sú tri rôzne oprávnenia. Volajúci, ktorí pošlú prístupový token `read` na mutujúcu správcovskú cestu, dostanú HTTP 403 `Access token scope 'read' is insufficient; 'write' required.` Táto úroveň je `scopeSatisfies`. Nekonzultuje tabuľku MCP a matcher MCP ju nekonzultuje.
+
+| Menný priestor        | Poverenie                                                   | Kontrolór              | Prechod umožňuje                                              |
+| :-------------------- | :---------------------------------------------------------- | :--------------------- | :------------------------------------------------------------ |
+| Správa API kľúčov     | `api_keys.scopes`                                           | `hasManageScope`       | Správcovské REST pre daný Bearer kľúč                         |
+| Aditívny API kľúč     | rovnaké pole, jeden presný reťazec                          | pomocná funkcia nižšie | Len táto jedna schopnosť                                      |
+| Rozsahy nástrojov MCP | rovnaké pole, inak MCP `_meta`, inak `OMNIROUTE_MCP_SCOPES` | `scopeMatches`         | Tento nástroj, akonáhle je vynútenie zapnuté                  |
+| Prístupový token      | `oma_live_…`                                                | `scopeSatisfies`       | Správcovská cesta, ktorej metóda a cesta vyžadujú túto úroveň |
+
+Vytváranie každého poverenia je popísané v [Správa autentifikácie](../guides/MANAGEMENT-AUTH.md).
+
+#### Rozsahy API kľúčov
+
+Jedno pole `api_keys.scopes` slúži dvom úlohám. Používajú rôzne funkcie.
+
+**Správcovské REST.** `manage` a `admin` sú členmi `MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`). `hasManageScope` je to, čo autorizuje správcovské cesty pre daný kľúč. `admin` je schopný správy na týchto cestách. Slovo `admin` tu nie je úroveň prístupového tokenu a nerozširuje sa na rozsahy nástrojov MCP.
+
+**Aditívne reťazce.** Každý z nich je presný test členstva a každý z nich zostáva mimo `MANAGEMENT_API_KEY_SCOPES`.
+
+| Rozsah                         | Prechod umožňuje                                                                                                                                                           |
+| :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | Iba non-loopback `/api/mcp/` LOCAL_ONLY výnimka (`hasMcpConnectOrManageScope`). Kľúč s `manage` alebo `admin` stále prechádza touto výnimkou.                              |
+| `self:usage`                   | `GET /api/v1/me/status` pre tento kľúč (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` pridáva tento rozsah pri vytváraní (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | Kvóty účtu upstream v rámci tohto stavového užitočného zaťaženia (`src/lib/usage/apiKeySelfService.ts`). Stavová cesta stále vyžaduje `self:usage`.                        |
+| `policy:bypass-provider-quota` | Volania inferencie tohto kľúča preskakujú politiku kvóty poskytovateľa (`hasProviderQuotaBypassScope` v `src/sse/handlers/chat.ts`).                                       |
+
+#### Zhoda
+
+Katalóg je tabuľka pod [Rozsahy nástrojov MCP](#rozsahy-nástrojov-mcp). Nepovažujte `MCP_SCOPE_LIST` v `src/shared/constants/mcpScopes.ts` za tento katalóg: je to pôvodná typovaná podmnožina. Neskôr nástroje deklarujú ďalšie rozsahy popri ňom (`read:notion`, `read:skills`, `read:local-corpus` a zvyšok tabuľky).
+
+`evaluateToolScopes` v `open-sse/mcp-server/scopeEnforcement.ts` umožňuje volanie, keď každý požadovaný rozsah zodpovedá nejakému udelenému rozsahu:
+
+- `*` zodpovedá každému požadovanému rozsahu.
+- Udelený rozsah, ktorý končí na `*`, zodpovedá požadovanému rozsahu, ktorý začína predponou pred hviezdičkou. `read:*` zodpovedá `read:compression`.
+- Každý iný udelený rozsah zodpovedá iba identickému požadovanému reťazcu.
+
+Kľúč, ktorého rozsahy sú `["manage"]`, zlyhá `scopeMatches` pre `read:compression`. Rovnaké volanie zlyhá pre `admin`, `mcp:connect`, `read` a `write`, keď sú to jediné udelené reťazce. Medzi rozsahmi nástrojov MCP neexistuje žiadna hierarchia okrem koncovej `*`.
+
+Vynútenie je vypnuté, pokiaľ `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (predvolené `false`). Keď je vypnuté, `evaluateToolScopes` povolí volanie a preskočí katalóg. Keď je zapnuté, HTTP používa `api_keys.scopes` Bearer kľúča ako `authInfo` (pozri [Viazanie rozsahu HTTP pre každý kľúč](#per-key-http-scope-binding-7895)). Keď sa nerozriešia žiadne rozsahy kľúčov, udelená sada prejde na MCP `_meta`, potom na `OMNIROUTE_MCP_SCOPES`.
+
+#### Rozsahy prístupových tokenov
+
+Tokeny `oma_live_…` (`src/lib/accessTokens/scopes.ts`) nesú `read`, `write` alebo `admin`. `scopeSatisfies` je úroveň: `admin` pokrýva `write` a `read`, a `write` pokrýva `read`. Neznáme rozsahy nepokrývajú nič.
+
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) porovnáva túto úroveň s `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
+
+- `GET`, `HEAD` a `OPTIONS` vyžadujú `read`.
+- Každá iná metóda vyžaduje `write`.
+- Cesty v `ADMIN_SCOPE_PREFIXES` vyžadujú `admin` pre každú metódu. `/api/mcp` je na tomto zozname, takže prístupový token `write` stále nemôže volať povrch MCP HTTP.
+- Cesty v `ADMIN_MUTATION_PREFIXES` vyžadujú `admin` iba pre mutácie.
+
+`PATCH /api/keys/{id}` je mutácia a nie je na týchto administrátorských zoznamoch, takže token s právom
+`read` dostane 403
+`Rozsah prístupového tokenu 'read' je nedostatočný; vyžaduje sa 'write'.`
+Prístupový token s právom `write` alebo `admin` vyhovuje tejto ceste. JWT z dashboardu, token machine-id z loopback CLI a API kľúč s právom `manage` alebo `admin` idú inými vetvami a nie sú obmedzené touto úrovňou.
+
+Prístupový token, ktorý prejde `scopeSatisfies` pre `/api/mcp`, prešiel iba manažérskou bránou. Volania nástrojov stále spúšťajú `scopeMatches` proti rozsahom API kľúčov. Úroveň prístupového tokenu nie je vstupom pre `scopeMatches`.
+
+### Rozsahy nástrojov MCP
+
+Vynucovanie rozsahu je centralizované v `open-sse/mcp-server/scopeEnforcement.ts`.
+Každý nástroj vyžaduje špecifické rozsahy:
 
 | Rozsah                | Nástroje                                                                                                                                                                               |
 | :-------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -329,99 +386,79 @@ Nástroje MCP sa autentifikujú prostredníctvom rozsahov kľúča API. Vynucova
 | `write:obsidian`      | 9 nástrojov na zápis — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                  |
 | `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                                      |
 
-Podporované sú aj rozsahy so zástupným znakom: `read:*` udeľuje všetky rozsahy na čítanie, `*` udeľuje úplný prístup.
+Podporované sú zástupné rozsahy (wildcard scopes): `read:*` udeľuje všetky rozsahy na čítanie, `*` udeľuje plný prístup.
 
-### `mcp:connect` — úzko vymedzené oprávnenie pre trasu (#7895)
+### `mcp:connect` — úzka schopnosť smerovania (#7895)
 
-Prístup k transportu HTTP/SSE MCP (`/api/mcp/*`) z rozhrania, ktoré nie je loopback, vyžaduje
-výnimku LOCAL_ONLY pre `/api/mcp/` (pozrite si `docs/security/ROUTE_GUARD_TIERS.md`). V minulosti
-táto výnimka akceptovala iba kľúč API s úplným rozsahom `manage`/`admin` — čo je príliš široké
-oprávnenie pre volajúceho, ktorý potrebuje iba komunikovať s MCP. Súbor `src/shared/constants/managementScopes.ts` teraz
-exportuje `MCP_CONNECT_SCOPE = "mcp:connect"`: doplnkový, úzko vymedzený rozsah (podľa rovnakého precedensu ako
-`SELF_USAGE_SCOPE`), ktorý autorizuje IBA obídenie ochrany pre `/api/mcp/` v
-`src/server/authz/policies/management.ts` — neudeľuje prístup k žiadnej inej správcovskej trase
-a zámerne NIE JE zahrnutý v `MANAGEMENT_API_KEY_SCOPES`. Kľúč s rozsahom `manage`/`admin`
-naďalej prejde touto výnimkou bez zmeny; `mcp:connect` je alternatíva s nižšími oprávneniami pre
-vzdialených volajúcich používajúcich iba MCP, ktorá sa kontroluje prostredníctvom `hasMcpConnectOrManageScope()`.
+Prístup k HTTP/SSE MCP transportu (`/api/mcp/*`) z iného než loopback rozhrania vyžaduje výnimku `/api/mcp/` LOCAL_ONLY (pozri `docs/security/ROUTE_GUARD_TIERS.md`). Historicky táto výnimka akceptovala iba API kľúč s plným rozsahom `manage`/`admin` — príliš široký pre volajúceho, ktorý potrebuje komunikovať iba s MCP. Súbor `src/shared/constants/managementScopes.ts` teraz exportuje `MCP_CONNECT_SCOPE = "mcp:connect"`: aditívny, úzky rozsah (rovnaký precedens ako `SELF_USAGE_SCOPE`), ktorý autorizuje IBA obchádzanie `/api/mcp/` v `src/server/authz/policies/management.ts` — neudeľuje žiadny iný prístup k manažérskym trasám a je zámerne vynechaný z `MANAGEMENT_API_KEY_SCOPES`. Kľúč s `manage`/`admin` stále prechádza výnimkou nezmenený; `mcp:connect` je alternatíva s nižšími oprávneniami pre vzdialených volajúcich iba pre MCP, kontrolovaná pomocou `hasMcpConnectOrManageScope()`.
 
-### Viazanie rozsahov HTTP podľa jednotlivých kľúčov (#7895)
+### Viazať HTTP rozsah pre každý kľúč (#7895)
 
-Pri použití HTTP/SSE teraz `open-sse/mcp-server/httpTransport.ts` zisťuje skutočné
-`api_keys.scopes` volajúceho prostredníctvom `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
-a odovzdáva ich súprave MCP SDK cez `transport.handleRequest(req, { authInfo })`, takže
-`extra.authInfo.scopes`, ktoré sa dostanú ku každému volaniu nástroja, zodpovedajú vlastným rozsahom kľúča Bearer.
-Funkcia `resolveCallerScopeContext()` zo súboru `scopeEnforcement.ts` už uprednostňovala `authInfo` pred
-`_meta` a záložnou hodnotou z premennej prostredia `OMNIROUTE_MCP_SCOPES` — táto zmena iba napĺňa tento prvý
-zdroj s najvyššou prioritou, ktorý predtým pri použití HTTP nebol poskytovaný. Ak sa nepodarí nájsť žiadny kľúč API
-(chýbajúca hlavička, neplatný kľúč), `authInfo` zostane `undefined` a zisťovanie pokračuje cez
-existujúci reťazec `meta`/premenná prostredia bez zmeny. Táto zmena NEPREPÍNA predvolenú hodnotu
-`OMNIROUTE_MCP_ENFORCE_SCOPES` — vynucovanie je stále potrebné výslovne povoliť; zmena iba zabezpečuje, že
-po jeho povolení bude mať cesta podľa jednotlivých kľúčov prednosť. stdio nemá identitu pre jednotlivých volajúcich (pozrite si
-`mcpCallerIdentity.ts`) a táto zmena sa ho netýka — naďalej používa záložný reťazec `_meta`/premenná prostredia.
+Cez HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` teraz rieši skutočné `api_keys.scopes` volajúceho prostredníctvom `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) a odovzdáva ich do `transport.handleRequest(req, { authInfo })` MCP SDK, takže `extra.authInfo.scopes` dosahujúce každé volanie nástroja odráža vlastné rozsahy Bearer kľúča. `resolveCallerScopeContext()` v `scopeEnforcement.ts` už uprednostňovalo `authInfo` pred `_meta` a záložným prostredím `OMNIROUTE_MCP_SCOPES` — toto iba napĺňa tento prvý, najvyššie prioritný zdroj, ktorý predtým nebol cez HTTP naplnený. Keď sa žiadny API kľúč nevyrieši (žiadna hlavička, neplatný kľúč), `authInfo` zostáva `undefined` a riešenie prechádza na existujúci reťazec `meta`/env nezmenené. Toto NEPREPÍNA predvolenú hodnotu `OMNIROUTE_MCP_ENFORCE_SCOPES` — vynútenie musí byť stále explicitne povolené; táto zmena iba zabezpečuje, že cesta pre každý kľúč má prednosť, keď je povolená. stdio nemá identitu pre každého volajúceho (pozri `mcpCallerIdentity.ts`) a je nedotknuté — zostáva na záložnom reťazci `_meta`/env.
 
 ---
 
 ## Premenné prostredia
 
-| Premenná                                | Predvolená hodnota                 | Účel                                                                                                                                           |
-| :-------------------------------------- | :--------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`           | Základná URL adresa, ktorú server MCP používa pri volaní interných API OmniRoute                                                               |
-| `OMNIROUTE_API_KEY`                     | (prázdne)                          | Kľúč API odovzdávaný interným volaniam API ako `Authorization: Bearer`                                                                         |
-| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false` (aktivuje sa iba `"true"`) | Ak je táto možnosť povolená, chýbajúce rozsahy zamietnu volania nástrojov a do protokolu auditu zaznamenajú `scope_denied:<reason>`            |
-| `OMNIROUTE_MCP_SCOPES`                  | (prázdne)                          | Čiarkami oddelený zoznam povolených rozsahov, ktoré sa predvolene považujú za „dostupné“ (používa sa, keď volajúci neposkytne vlastné rozsahy) |
-| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | (nenastavené = zapnuté)            | Pri nastavení na `0/false/off/no` vypne kompresiu opisov MCP počas registrácie                                                                 |
-| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (nenastavené = zapnuté)            | Alternatívny alias pre rovnaký prepínač ako vyššie                                                                                             |
-| `OMNIROUTE_MCP_FETCH_TIMEOUT_MS`        | `10000`                            | Časový limit na prerušenie interných čítaní správy (stav, odolnosť, kombinácie, kvóta, využitie)                                               |
-| `OMNIROUTE_MCP_UPSTREAM_TIMEOUT_MS`     | `60000`                            | Časový limit na prerušenie krokov čakajúcich na poskytovateľa (`route_request`, `web_search`, `web_fetch`)                                     |
-| `MCP_TOOL_DENY`                         | (nenastavené = bez filtra)         | Čiarkami oddelené názvy nástrojov, ktoré sa majú odstrániť z `tools/list` (zníženie počtu nástrojov — pozri nižšie)                            |
-| `MCP_TOOL_ALLOW`                        | (nenastavené = bez filtra)         | Čiarkami oddelené názvy nástrojov, ktoré sa majú ponechať výhradne (režim zoznamu povolených položiek — pozri nižšie)                          |
-| `DATA_DIR`                              | `~/.omniroute`                     | Súbor signálu aktivity sa zapisuje do `${DATA_DIR}/runtime/mcp-heartbeat.json`                                                                 |
+| Premenná                                | Predvolené nastavenie              | Účel                                                                                                                                               |
+| :-------------------------------------- | :--------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`           | Základná URL, ktorú používa server MCP pri volaní interných API OmniRoute                                                                          |
+| `OMNIROUTE_API_KEY`                     | (prázdne)                          | API kľúč preposlaný ako `Authorization: Bearer` pre volania interných API                                                                          |
+| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false` (aktivuje sa iba `"true"`) | Ak je povolené, chýbajúce rozsahy zamietnu volania nástrojov a zaznamenajú `scope_denied:<reason>` do auditného záznamu                            |
+| `OMNIROUTE_MCP_SCOPES`                  | (prázdne)                          | Zoznam povolených rozsahov oddelených čiarkami, ktoré sú predvolene považované za „dostupné“ (používa sa, keď volajúci neposkytne vlastné rozsahy) |
+| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | (nenastavené = zapnuté)            | Ak je nastavené na `0/false/off/no`, zakáže kompresiu popisu MCP v čase registrácie                                                                |
+| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (nenastavené = zapnuté)            | Alternatívny alias pre rovnaký prepínač ako vyššie                                                                                                 |
+| `OMNIROUTE_MCP_FETCH_TIMEOUT_MS`        | `10000`                            | Rozpočet na prerušenie pre interné riadiace čítania (zdravie, odolnosť, kombinácie, kvóta, využitie)                                               |
+| `OMNIROUTE_MCP_UPSTREAM_TIMEOUT_MS`     | `60000`                            | Rozpočet na prerušenie pre skoky, ktoré čakajú na poskytovateľa (`route_request`, `web_search`, `web_fetch`)                                       |
+| `MCP_TOOL_DENY`                         | (nenastavené = bez filtra)         | Názvy nástrojov oddelené čiarkami, ktoré sa majú odstrániť z `tools/list` (redukcia kardinality nástrojov – viď nižšie)                            |
+| `MCP_TOOL_ALLOW`                        | (nenastavené = bez filtra)         | Názvy nástrojov oddelené čiarkami, ktoré sa majú výhradne ponechať (režim zoznamu povolených – viď nižšie)                                         |
+| `DATA_DIR`                              | `~/.omniroute`                     | Súbor heartbeat sa zapisuje do `${DATA_DIR}/runtime/mcp-heartbeat.json`                                                                            |
 
 ---
 
-## Kompresia opisov
+## Kompresia popisu
 
-Registre nástrojov, výziev a zdrojov MCP môžu komprimovať opisy počas registrácie alebo výpisu, aby sa zmenšil objem metadát sprístupnených klientom (a tým aj náklady na kontext výzvy). Implementácia sa nachádza v `open-sse/mcp-server/descriptionCompressor.ts` a je prepojená so serverom MCP prostredníctvom `compressMcpRegistryMetadata` vo funkcii `createMcpServer()`.
+Registry nástrojov, výziev a zdrojov MCP môžu komprimovať popisy v čase registrácie/zoznamu, aby sa zmenšila stopa metadát vystavených klientom (a tým aj náklady na kontext výzvy). Implementácia sa nachádza v `open-sse/mcp-server/descriptionCompressor.ts` a je zapojená do servera MCP prostredníctvom `compressMcpRegistryMetadata` v rámci `createMcpServer()`.
 
-- Kompresia sa vykonáva nad textom opisu pomocou súboru pravidiel Caveman (`getRulesForContext("all", "full")`) s extrakciou zachovaných blokov (úseky kódu, ohraničené bloky atď.), aby sa štrukturálny obsah nezmenil.
-- Pre jednotlivé nasadenia ju možno prepínať pomocou hodnoty `compression.mcpDescriptionCompressionEnabled` v tabuľke nastavení `key_value` (predvolene: povolené) — v používateľskom rozhraní je dostupná ako **Analytika → Kompresia opisov MCP**.
-- Pre celý proces ju možno prepínať pomocou `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS=false` alebo `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION=false`.
-- Štatistiky v reálnom čase sú dostupné prostredníctvom `omniroute_compression_status` v položke `analytics.mcpDescriptionCompression` a sú označené `source: "mcp_metadata_estimate"`, aby sa odlíšili od skutočných záznamov o využití poskytovateľa.
+- Kompresia prebieha nad textom popisu pomocou súboru pravidiel Caveman (`getRulesForContext("all", "full")`) s extrakciou zachovaných blokov (rozsahy kódu, ohradené bloky atď.), takže štrukturálny obsah sa nemení.
+- Prepínanie pre každé nasadenie prostredníctvom hodnoty `compression.mcpDescriptionCompressionEnabled` v tabuľke nastavení `key_value` (predvolené: povolené) – zobrazené v používateľskom rozhraní ako **Analytics → MCP description compression**.
+- Prepínanie v rámci celého procesu prostredníctvom `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS=false` alebo `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION=false`.
+- Štatistiky v reálnom čase sú zverejnené prostredníctvom `omniroute_compression_status` pod `analytics.mcpDescriptionCompression` a označené `source: "mcp_metadata_estimate"`, aby sa odlíšili od skutočných potvrdení o použití poskytovateľa.
 
 ---
 
-## Zníženie počtu nástrojov (F4.3)
+## Redukcia Kardinality Nástrojov (F4.3)
 
-Kompresia opisov zmenšuje metadáta jednotlivých nástrojov; **zníženie počtu nástrojov** ide ešte o krok ďalej tým, že redukuje _počet_ nástrojov, ktoré sa vôbec oznamujú. Uvedenie menšieho počtu nástrojov v manifeste `tools/list` znižuje cenu v tokenoch za katalóg nástrojov, ktorú model klienta platí pri každej požiadavke (kompresia „vrstvy 5“). Implementácia je čistý filter bez stavových údajov v `open-sse/mcp-server/toolCardinality.ts` (`reduceToolManifest`), zapojený do registračnej slučky v `createMcpServer()` (`open-sse/mcp-server/server.ts`).
+Kompresia popisu zmenšuje metadáta každého nástroja; **redukcia kardinality nástrojov** ide o krok ďalej tým, že znižuje _počet_ oznamovaných nástrojov. Inzerovanie menšieho počtu nástrojov v manifeste `tools/list` znižuje náklady na tokeny na požiadavku, ktoré model klienta platí za katalóg nástrojov (kompresia "vrstvy 5"). Implementácia je čistý, bezstavový filter v `open-sse/mcp-server/toolCardinality.ts` (`reduceToolManifest`), zapojený do registračnej slučky v `createMcpServer()` (`open-sse/mcp-server/server.ts`).
 
-**Voliteľné, predvolene vypnuté.** Filter sa spustí iba vtedy, keď je nastavená aspoň jedna z dvoch premenných prostredia; ak nie je nastavená ani jedna, všetkých 110 nástrojov sa oznámi bez zmien.
+**Voliteľné, predvolene vypnuté.** Filter sa spustí len vtedy, ak je nastavená aspoň jedna z dvoch premenných prostredia; ak nie je nastavená žiadna, všetkých 110 nástrojov sa oznámi nezmenených.
 
-| Premenná         | Režim                                                                                                                |
-| :--------------- | :------------------------------------------------------------------------------------------------------------------- |
-| `MCP_TOOL_DENY`  | Zoznam zakázaných položiek — názvy nástrojov oddelené čiarkami, ktoré sa vždy odstránia z `tools/list`               |
-| `MCP_TOOL_ALLOW` | Zoznam povolených položiek — názvy nástrojov oddelené čiarkami; zachovajú sa iba tieto a všetky ostatné sa odstránia |
+| Premenná         | Režim                                                                                          |
+| :--------------- | :--------------------------------------------------------------------------------------------- |
+| `MCP_TOOL_DENY`  | Blacklist — názvy nástrojov oddelené čiarkami, ktoré sú vždy vynechané z `tools/list`          |
+| `MCP_TOOL_ALLOW` | Allow-list — názvy nástrojov oddelené čiarkami; prežijú len tieto, všetko ostatné je vynechané |
 
-`deny` má prednosť pred `allow`. Názvy sú oddelené čiarkami, medzery na ich okrajoch sa odstránia a prázdne položky sa ignorujú. Príklady:
+`deny` má prednosť pred `allow`. Názvy sú oddelené čiarkami, orezané a prázdne záznamy sú ignorované. Príklady:
 
 ```bash
-# Odstránenie dvoch nástrojov z katalógu
+# Vynechajte dva nástroje z katalógu
 MCP_TOOL_DENY="omniroute_get_health,omniroute_list_combos" omniroute --mcp
 
-# Oznámenie iba nástrojov na smerovanie a kvóty (režim zoznamu povolených položiek)
+# Oznamujte iba nástroje pre smerovanie + kvóty (režim allow-list)
 MCP_TOOL_ALLOW="omniroute_route_request,omniroute_check_quota" omniroute --mcp
 ```
 
-**Ako sa filtrované nástroje odstraňujú:** registrácia vždy uspeje; nástroj, ktorý profil odmietne, sa následne deaktivuje pomocou `.disable()` na rukoväti MCP SDK, takže sa nikdy nezobrazí v `tools/list`, no jeho prepojenie zostane zachované (čisté povolenie alebo zakázanie bez opätovnej registrácie). Parser profilu je `readMcpToolProfileFromEnv(process.env)`, ktorý vráti `null` (žiadne filtrovanie), keď sú obe premenné prázdne.
+**Ako sa odstraňujú filtrované nástroje:** registrácia vždy prebehne úspešne; nástroj, ktorý profil odmietne, je potom `.disable()`nutý na rukoväti MCP SDK, takže sa nikdy neobjaví v `tools/list`, ale zapojenie zostáva nedotknuté (čisté povolenie/zakázanie, žiadna opätovná registrácia). Parser profilu je `readMcpToolProfileFromEnv(process.env)`, ktorý vráti `null` (žiadne filtrovanie), keď sú obe premenné prázdne.
 
-Rozšírenejšia štruktúra `ToolProfile` používaná funkciou `reduceToolManifest` podporuje aj filtrovanie podľa prieniku rozsahov (`allowScopes`, so zástupným porovnávaním v štýle `read:*`) a deterministický limit `maxTools`, tieto dve nastavenia však pri registrácii vyžadujú celý manifest a v súčasnosti **nie sú** sprístupnené prostredníctvom premenných prostredia (nadväzujúca podpora na úrovni `tools/list` je evidovaná ako plánovaná úloha). Funkcia `estimateManifestTokens()` je k dispozícii na porovnanie tokenových nákladov manifestu pred redukciou a po nej.
+Bohatší tvar `ToolProfile` za `reduceToolManifest` tiež podporuje filtrovanie priesečníkov rozsahov (`allowScopes`, s wildcard zhodou v štýle `read:*`) a deterministický limit `maxTools`, ale tieto dva ovládače potrebujú kompletný manifest v čase registrácie a **nie sú** dnes vystavené prostredníctvom premenných prostredia (háčik na úrovni `tools/list` je sledovaný ako ďalší krok). `estimateManifestTokens()` je k dispozícii na porovnanie nákladov na tokeny manifestu pred a po redukcii.
 
 ---
 
-## Signál aktivity za behu
+## Heartbeat za Behu
 
-Transport stdio každých 5 sekúnd ukladá informácie o aktivite do `${DATA_DIR}/runtime/mcp-heartbeat.json`. Ovládací panel (`/api/mcp/status`) číta tento súbor spolu so stavom aktivity PID a na ich základe určuje hodnotu `online`. Transporty HTTP namiesto toho hlásia stav pomocou vnútroprocesovej funkcie `getMcpHttpStatus()` (bez zápisu do súboru).
+Transport stdio udržiava životaschopnosť v `${DATA_DIR}/runtime/mcp-heartbeat.json` každých 5 sekúnd. Dashboard (`/api/mcp/status`) číta tento súbor plus životaschopnosť PID na odvodenie `online`. HTTP transporty namiesto toho hlásia stav z in-process `getMcpHttpStatus()` (žiadny zápis do súboru).
 
-Snímka signálu aktivity obsahuje:
+Snímka heartbeat obsahuje:
 
 ```json
 {
@@ -438,47 +475,45 @@ Snímka signálu aktivity obsahuje:
 
 ---
 
-## Protokolovanie auditu
+## Auditné Logovanie
 
-Každé volanie nástroja sa zaznamenáva do tabuľky SQLite `mcp_tool_audit` pomocou `open-sse/mcp-server/audit.ts`:
+Každé volanie nástroja je zaznamenané do tabuľky SQLite `mcp_tool_audit` pomocou `open-sse/mcp-server/audit.ts`:
 
-- Názov nástroja, argumenty (hašované alebo skrátené podľa hodnoty `auditLevel` jednotlivého nástroja), výsledok
-- Trvanie v ms, príznak úspechu alebo zlyhania, chybové hlásenie (ak sa uplatňuje)
-- Haš kľúča API, časová pečiatka
-- Zamietnutia rozsahov sa zaznamenávajú ako `scope_denied:<reason>` spolu so zoznamom chýbajúcich rozsahov
+- Názov nástroja, argumenty (hashované/skrátené podľa `auditLevel` pre daný nástroj), výsledok
+- Trvanie v ms, príznak úspechu/zlyhania, chybové hlásenie (ak je relevantné)
+- Hash API kľúča, časová pečiatka
+- Odmietnutia rozsahu sú zaznamenané ako `scope_denied:<reason>` so zoznamom chýbajúcich rozsahov
 
-Na kontrolu nedávnych volaní použite ovládací panel alebo koncové body REST `/api/mcp/audit` a `/api/mcp/audit/stats`.
-
----
+Použite dashboard alebo REST koncové body `/api/mcp/audit` a `/api/mcp/audit/stats` na kontrolu nedávnych volaní.
 
 ## Súbory
 
-| Súbor                                                                    | Účel                                                                        |
-| :----------------------------------------------------------------------- | :-------------------------------------------------------------------------- |
-| `open-sse/mcp-server/server.ts`                                          | Továreň servera MCP, vstupný bod stdio, registrácie nástrojov podľa rozsahu |
-| `open-sse/mcp-server/httpTransport.ts`                                   | Prenos SSE + Streamable HTTP (správa relácií)                               |
-| `open-sse/mcp-server/scopeEnforcement.ts`                                | Vyhodnocovanie rozsahu nástrojov a určovanie volajúceho                     |
-| `open-sse/mcp-server/audit.ts`                                           | Auditné protokolovanie volaní nástrojov (`mcp_tool_audit`)                  |
-| `open-sse/mcp-server/runtimeHeartbeat.ts`                                | Zapisovač signálu aktivity stdio (`mcp-heartbeat.json`)                     |
-| `open-sse/mcp-server/descriptionCompressor.ts`                           | Kompresia opisov pre registre nástrojov, výziev a zdrojov                   |
-| `open-sse/mcp-server/schemas/tools.ts`                                   | Schémy Zod + register nástrojov (`MCP_TOOLS`, 45 položiek)                  |
-| `open-sse/mcp-server/tools/advancedTools.ts`                             | Obslužné rutiny nástrojov fázy 2, vyrovnávacej pamäte a 1proxy              |
-| `open-sse/mcp-server/tools/compressionTools.ts`                          | Obslužné rutiny kompresných nástrojov                                       |
-| `open-sse/mcp-server/tools/memoryTools.ts`                               | Definície pamäťových nástrojov (3 nástroje)                                 |
-| `open-sse/mcp-server/tools/skillTools.ts`                                | Definície nástrojov zručností (4 nástroje)                                  |
-| `open-sse/mcp-server/tools/notionTools.ts`                               | Definície nástrojov zdroja kontextu Notion (6 nástrojov)                    |
-| `open-sse/mcp-server/tools/gamificationTools.ts`                         | Definície gamifikačných nástrojov (8 nástrojov)                             |
-| `open-sse/mcp-server/tools/pluginTools.ts`                               | Nástroje na registráciu a správu doplnkov (8 nástrojov)                     |
-| `src/app/api/mcp/status/route.ts`                                        | Koncový bod `/api/mcp/status`                                               |
-| `src/app/api/mcp/tools/route.ts`                                         | Koncový bod `/api/mcp/tools`                                                |
-| `src/app/api/mcp/sse/route.ts`                                           | Trasa prenosu SSE `/api/mcp/sse`                                            |
-| `src/app/api/mcp/stream/route.ts`                                        | Trasa prenosu Streamable HTTP `/api/mcp/stream`                             |
-| `src/app/api/mcp/audit/route.ts`                                         | Dotaz na auditný protokol `/api/mcp/audit`                                  |
-| `src/app/api/mcp/audit/stats/route.ts`                                   | Agregované auditné metriky `/api/mcp/audit/stats`                           |
-| `src/lib/notion/api.ts`                                                  | Klient REST API služby Notion (opakovanie, časový limit, klasifikácia chýb) |
-| `src/lib/db/notion.ts`                                                   | Trvalé uloženie tokenu Notion (tabuľka `key_value`)                         |
-| `src/app/api/settings/notion/route.ts`                                   | API nastavení služby Notion (GET/POST/DELETE)                               |
-| `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx` | Používateľské rozhranie na správu tokenu Notion                             |
-| `tests/unit/notion-api.test.ts`                                          | Testy klienta API služby Notion (7)                                         |
-| `tests/unit/notion-tools.test.ts`                                        | Testy presadzovania rozsahu nástrojov Notion (10)                           |
-| `tests/unit/db/notion.test.mjs`                                          | Testy databázového modulu Notion (3)                                        |
+| Súbor                                                                    | Účel                                                                    |
+| :----------------------------------------------------------------------- | :---------------------------------------------------------------------- |
+| `open-sse/mcp-server/server.ts`                                          | MCP server továreň, vstupný bod stdio, registrácie nástrojov s rozsahom |
+| `open-sse/mcp-server/httpTransport.ts`                                   | SSE + Streamovateľný HTTP transport (správa relácií)                    |
+| `open-sse/mcp-server/scopeEnforcement.ts`                                | Vyhodnocovanie rozsahu nástrojov a rozlíšenie volajúceho                |
+| `open-sse/mcp-server/audit.ts`                                           | Auditné logovanie volaní nástrojov (`mcp_tool_audit`)                   |
+| `open-sse/mcp-server/runtimeHeartbeat.ts`                                | Zapisovač heartbeatov stdio (`mcp-heartbeat.json`)                      |
+| `open-sse/mcp-server/descriptionCompressor.ts`                           | Kompresia popisov pre registre nástrojov / promptov / zdrojov           |
+| `open-sse/mcp-server/schemas/tools.ts`                                   | Zod schémy + register nástrojov (`MCP_TOOLS`, 45 záznamov)              |
+| `open-sse/mcp-server/tools/advancedTools.ts`                             | Fáza 2 + cache + obsluhy nástrojov 1proxy                               |
+| `open-sse/mcp-server/tools/compressionTools.ts`                          | Obsluhy kompresných nástrojov                                           |
+| `open-sse/mcp-server/tools/memoryTools.ts`                               | Definície pamäťových nástrojov (3 nástroje)                             |
+| `open-sse/mcp-server/tools/skillTools.ts`                                | Definície nástrojov zručností (4 nástroje)                              |
+| `open-sse/mcp-server/tools/notionTools.ts`                               | Definície nástrojov zdroja kontextu Notion (6 nástrojov)                |
+| `open-sse/mcp-server/tools/gamificationTools.ts`                         | Definície nástrojov gamifikácie (8 nástrojov)                           |
+| `open-sse/mcp-server/tools/pluginTools.ts`                               | Nástroje na registráciu a správu pluginov (8 nástrojov)                 |
+| `src/app/api/mcp/status/route.ts`                                        | Endpoint `/api/mcp/status`                                              |
+| `src/app/api/mcp/tools/route.ts`                                         | Endpoint `/api/mcp/tools`                                               |
+| `src/app/api/mcp/sse/route.ts`                                           | Trasa SSE transportu `/api/mcp/sse`                                     |
+| `src/app/api/mcp/stream/route.ts`                                        | Trasa streamovateľného HTTP transportu `/api/mcp/stream`                |
+| `src/app/api/mcp/audit/route.ts`                                         | Dopyt na auditný log `/api/mcp/audit`                                   |
+| `src/app/api/mcp/audit/stats/route.ts`                                   | Agregované auditné metriky `/api/mcp/audit/stats`                       |
+| `src/lib/notion/api.ts`                                                  | Klient Notion REST API (opakovanie, časový limit, klasifikácia chýb)    |
+| `src/lib/db/notion.ts`                                                   | Perzistencia Notion tokenov (tabuľka `key_value`)                       |
+| `src/app/api/settings/notion/route.ts`                                   | Notion API nastavení (GET/POST/DELETE)                                  |
+| `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx` | UI pre správu Notion tokenov                                            |
+| `tests/unit/notion-api.test.ts`                                          | Testy klienta Notion API (7)                                            |
+| `tests/unit/notion-tools.test.ts`                                        | Testy vynucovania rozsahu Notion nástrojov (10)                         |
+| `tests/unit/db/notion.test.mjs`                                          | Testy modulu Notion DB (3)                                              |

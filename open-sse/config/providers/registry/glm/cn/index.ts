@@ -6,6 +6,7 @@ export const glm_cnProvider: RegistryEntry = {
   alias: "glmcn",
   format: "openai",
   executor: "glm",
+  naiveResetTimezone: "+08:00",
   baseUrl: "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions",
   authType: "apikey",
   authHeader: "bearer",

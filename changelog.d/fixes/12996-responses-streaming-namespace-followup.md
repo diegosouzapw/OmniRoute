@@ -1,1 +1,0 @@
-- **fix(api):** restore the MCP `namespace` field on streamed and non-streamed Responses tool calls in follow-up turns of a session that don't re-declare their `type:"namespace"` tools (#12996) — thanks @rolemiaster

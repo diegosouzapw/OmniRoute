@@ -72,9 +72,22 @@ test("createResponsesApiTransformStream converts plain chat deltas into Response
   );
   assert.ok(types.includes("response.created"));
   assert.ok(types.includes("response.in_progress"));
+
+  const inProgress = JSON.parse(
+    events.find((event) => event.event === "response.in_progress").data
+  ).response;
+  assert.ok(Array.isArray(inProgress.output), "response.in_progress must include an output array");
+  assert.deepEqual(inProgress.output, []);
+
   assert.ok(types.includes("response.output_item.added"));
+  const addedItem = JSON.parse(
+    events.find((event) => event.event === "response.output_item.added").data
+  ).item;
+  assert.equal(addedItem.status, "in_progress");
+
   assert.ok(types.includes("response.output_text.done"));
   assert.equal(completed.output[0].content[0].text, "Hello");
+  assert.equal(completed.output[0].status, "completed");
   assert.deepEqual(completed.usage, {
     input_tokens: 1,
     input_tokens_details: { cached_tokens: 0 },
@@ -607,4 +620,64 @@ test("createResponsesApiTransformStream still closes the message and emits a rea
   assert.equal(functionCallItems.length, 1);
   assert.equal(functionCallItems[0].call_id, "call_1");
   assert.equal(functionCallItems[0].arguments, '{"q":"hi"}');
+});
+
+test("createResponsesApiTransformStream: finish_reason:length surfaces as response.incomplete with incomplete_details.reason:max_output_tokens", async () => {
+  const output = await runTransformStream([
+    'data: {"id":"chatcmpl_len","choices":[{"index":0,"delta":{"content":"cut off mid"}}]}\n\n',
+    'data: {"choices":[{"index":0,"delta":{},"finish_reason":"length"}],"usage":{"prompt_tokens":100,"completion_tokens":8192,"total_tokens":8292}}\n\n',
+  ]);
+
+  const events = parseSseOutput(output);
+  const types = events.map((event) => event.event);
+
+  assert.ok(
+    !types.includes("response.completed"),
+    "must not emit response.completed for a truncated generation"
+  );
+  assert.ok(types.includes("response.incomplete"), "must emit response.incomplete instead");
+
+  const incomplete = JSON.parse(
+    events.find((event) => event.event === "response.incomplete").data
+  ).response;
+  assert.equal(incomplete.status, "incomplete");
+  assert.deepEqual(incomplete.incomplete_details, { reason: "max_output_tokens" });
+});
+
+test("createResponsesApiTransformStream: finish_reason:content_filter surfaces as response.incomplete with incomplete_details.reason:content_filter", async () => {
+  const output = await runTransformStream([
+    'data: {"id":"chatcmpl_cf","choices":[{"index":0,"delta":{"content":"partial"}}]}\n\n',
+    'data: {"choices":[{"index":0,"delta":{},"finish_reason":"content_filter"}],"usage":{"prompt_tokens":10,"completion_tokens":1,"total_tokens":11}}\n\n',
+  ]);
+
+  const events = parseSseOutput(output);
+  const types = events.map((event) => event.event);
+
+  assert.ok(!types.includes("response.completed"));
+  assert.ok(types.includes("response.incomplete"));
+
+  const incomplete = JSON.parse(
+    events.find((event) => event.event === "response.incomplete").data
+  ).response;
+  assert.equal(incomplete.status, "incomplete");
+  assert.deepEqual(incomplete.incomplete_details, { reason: "content_filter" });
+});
+
+test("createResponsesApiTransformStream: finish_reason:stop is unaffected by the incomplete-status handling", async () => {
+  const output = await runTransformStream([
+    'data: {"id":"chatcmpl_ok","choices":[{"index":0,"delta":{"content":"done"}}]}\n\n',
+    'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}],"usage":{"prompt_tokens":1,"completion_tokens":1,"total_tokens":2}}\n\n',
+  ]);
+
+  const events = parseSseOutput(output);
+  const types = events.map((event) => event.event);
+
+  assert.ok(!types.includes("response.incomplete"));
+  assert.ok(types.includes("response.completed"));
+
+  const completed = JSON.parse(
+    events.find((event) => event.event === "response.completed").data
+  ).response;
+  assert.equal(completed.status, "completed");
+  assert.equal(completed.incomplete_details, undefined);
 });

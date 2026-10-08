@@ -86,12 +86,15 @@ function insertMemoryWithFts(
   apiKeyId: string,
   content: string
 ) {
+  const { nextId } = db
+    .prepare("SELECT COALESCE(MAX(rowid), 0) + 1 AS nextId FROM memories")
+    .get() as { nextId: number };
   // Insert into memories — the trigger memory_fts_ai fires automatically if the DB has it.
   // In a fresh test DB the trigger exists (created by migration 023).
   db.prepare(
-    `INSERT INTO memories (id, api_key_id, type, key, content, created_at)
-     VALUES (?, ?, 'factual', ?, ?, datetime('now'))`
-  ).run(id, apiKeyId, `key-${id}`, content);
+    `INSERT INTO memories (rowid, memory_id, id, api_key_id, type, key, content, created_at)
+     VALUES (?, ?, ?, ?, 'factual', ?, ?, datetime('now'))`
+  ).run(nextId, nextId, id, apiKeyId, `key-${id}`, content);
   // The migration 023 trigger inserts into memory_fts using memory_id (= rowid).
   // If the trigger didn't fire (e.g. test DB without triggers), manually sync FTS.
   try {
@@ -116,6 +119,26 @@ function insertMemoryWithFts(
 }
 
 // ──────────────── RRF tests ────────────────
+
+test("searchHybrid: long prompts retain a scoped FTS-only hit", async (t) => {
+  const store = getStoreOrSkip(t);
+  if (!store) return;
+  const { sanitizeFts5Query } = await import("../../src/lib/memory/retrieval/scoring.ts");
+  const words = Array.from({ length: 10_000 }, (_, i) => `term${i}`);
+  const query = words.join(" ");
+  assert.equal(sanitizeFts5Query(query).split(" ").length, 32);
+  await setupTable(store);
+  const db = core.getDbInstance();
+  const content = words.slice(0, 32).join(" ");
+  insertMemoryWithFts(db, "long-fts-only", "long-key", content);
+  insertMemoryWithFts(db, "long-other-key", "other-key", content);
+  const hits = await store.searchHybrid(makeVec(1, 0, 0, 0), query, 10, "long-key");
+  const match = hits.find((hit) => hit.memoryId === "long-fts-only");
+  assert.ok(match);
+  assert.ok(match.ftsRank !== null);
+  assert.equal(match.vecRank, null);
+  assert.ok(hits.every((hit) => hit.memoryId !== "long-other-key"));
+});
 
 test("searchHybrid: results ordered DESC by rrfScore", async (t) => {
   const store = getStoreOrSkip(t);

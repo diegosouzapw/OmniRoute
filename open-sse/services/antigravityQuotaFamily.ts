@@ -76,6 +76,20 @@ export function quotaWindowNamesForScope(
   return scoped.length > 0 ? scoped : names;
 }
 
+/**
+ * Finite `percentUsed` from a raw quota field, or `null` when it is absent, blank or
+ * non-numeric. `Number(null)`, `Number("")`, `Number(" ")` and `Number(false)` are all 0,
+ * which would read an unreported window as "0% used" (#15347).
+ */
+export function finitePercentUsed(raw: unknown): number | null {
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
+  if (typeof raw === "string" && raw.trim() !== "") {
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
 /** Min remaining % across scoped windows, or 100 when an Antigravity family scope matched none. */
 export function remainingPercentFromQuotaWindows(
   rawWindows: Record<string, unknown>,
@@ -87,8 +101,8 @@ export function remainingPercentFromQuotaWindows(
   for (const name of namesToScan) {
     const windowInfo = rawWindows[name];
     if (!windowInfo || typeof windowInfo !== "object") continue;
-    const percentUsed = Number((windowInfo as Record<string, unknown>).percentUsed);
-    if (!Number.isFinite(percentUsed)) continue;
+    const percentUsed = finitePercentUsed((windowInfo as Record<string, unknown>).percentUsed);
+    if (percentUsed === null) continue;
     const remaining = Math.max(0, Math.min(100, (1 - percentUsed) * 100));
     minRemaining = minRemaining === null ? remaining : Math.min(minRemaining, remaining);
   }
@@ -126,13 +140,32 @@ export function selectAntigravityQuotaWindowNames(
         ? ["claude_gpt_weekly"]
         : [];
 
-  const exactWindows = quotaNames.filter((windowName) => {
+  let exactWindows = quotaNames.filter((windowName) => {
     const bare = windowName.replace(/^(antigravity|agy)\//, "");
     return bare === bareModel;
   });
+
+  // Live Antigravity discovery can expose a stable public Flash id while quota
+  // telemetry is keyed by the technical `-tiered` upstream id. Only fall back
+  // to that technical bucket when the exact public bucket is absent, so an
+  // unrelated Gemini sibling can never dilute exact-model exhaustion. This is
+  // intentionally version-agnostic for newly discovered Gemini Flash releases.
+  if (exactWindows.length === 0) {
+    const flashMatch = bareModel.match(/^(gemini-\d+(?:\.\d+)*-flash)(?:-(?:high|medium|low))?$/);
+    if (flashMatch) {
+      const technicalTieredModel = `${flashMatch[1]}-tiered`;
+      exactWindows = quotaNames.filter((windowName) => {
+        const bare = windowName.replace(/^(antigravity|agy)\//, "");
+        return bare === technicalTieredModel;
+      });
+    }
+  }
+
   const aggregateWindows = familyAggregates.filter((key) => quotaNames.includes(key));
   const scoped = [...exactWindows, ...aggregateWindows];
   if (scoped.length > 0) return scoped;
 
-  return quotaNames.filter((windowName) => getAntigravityQuotaFamily(windowName) === requestedFamily);
+  return quotaNames.filter(
+    (windowName) => getAntigravityQuotaFamily(windowName) === requestedFamily
+  );
 }

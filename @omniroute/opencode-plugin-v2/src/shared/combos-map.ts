@@ -1,4 +1,4 @@
-import type { Model as ModelV2 } from "@opencode-ai/sdk/v2";
+import type { LegacyModel } from "../legacy-model.js";
 import { type ApiFormatV2, type OmniRouteRawModelEntry, resolveApiBlockV2 } from "./models-map.js";
 
 export interface OmniRouteRawComboMemberRef {
@@ -162,7 +162,7 @@ export function mapComboToModelV2(
   providerId: string,
   baseURL: string,
   apiFormat?: ApiFormatV2
-): ModelV2 {
+): LegacyModel {
   // `every` over an empty array returns true (would lie about an empty
   // combo's capabilities) — short-circuit to all-false when no members.
   const hasMembers = members.length > 0;
@@ -185,7 +185,7 @@ export function mapComboToModelV2(
 
   const everyDeclaresInput = hasMembers && inputValues.length === members.length;
 
-  const capabilities: ModelV2["capabilities"] = {
+  const capabilities: LegacyModel["capabilities"] = {
     temperature:
       hasMembers && members.every((m) => (m.capabilities?.temperature ?? true) !== false),
     reasoning:

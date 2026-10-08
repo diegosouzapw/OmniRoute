@@ -13,7 +13,10 @@ type LatencyLogRow = {
 };
 
 // Builds a `"host:port" -> avg_latency_ms` map from proxy_logs rows recorded
-// within the trailing PROXY_LATENCY_WINDOW_HOURS window.
+// within the trailing PROXY_LATENCY_WINDOW_HOURS window. The latency strategy
+// measures the latency of sends served: a fast refusal does not make an
+// outlet fast, so abandoned sends are excluded (legacy rows predate the
+// journal and stay included via the NULL guard).
 function buildLatencyMap(db: ReturnType<typeof getDbInstance>): Map<string, number> {
   const sinceIso = new Date(Date.now() - PROXY_LATENCY_WINDOW_HOURS * 60 * 60 * 1000).toISOString();
 
@@ -22,6 +25,7 @@ function buildLatencyMap(db: ReturnType<typeof getDbInstance>): Map<string, numb
       `SELECT proxy_host, proxy_port, AVG(latency_ms) as avg_latency
        FROM proxy_logs
        WHERE timestamp >= ?
+         AND (attempt_issue IS NULL OR attempt_issue <> 'abandoned')
        GROUP BY proxy_host, proxy_port`
     )
     .all(sinceIso) as LatencyLogRow[];

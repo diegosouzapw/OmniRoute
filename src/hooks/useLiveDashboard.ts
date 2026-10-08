@@ -154,6 +154,12 @@ export function useLiveDashboard({
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const mountedRef = useRef(true);
+  // Consecutive connection attempts that ended without an accepted session. A ref,
+  // not state: bumping it must not re-create `connect`, whose effect cleanup would
+  // drop the next socket mid-handshake.
+  const failedAttemptsRef = useRef(0);
+  // Each bump makes the connect effect open a fresh socket (backoff timer, reconnect()).
+  const [reconnectTick, setReconnectTick] = useState(0);
 
   const stopPingHeartbeat = useCallback(() => {
     if (pingIntervalRef.current) {
@@ -195,13 +201,15 @@ export function useLiveDashboard({
       wsRef.current = ws;
 
       ws.onopen = () => {
-        if (!mountedRef.current) return;
-        setConnection({
+        if (!mountedRef.current || wsRef.current !== ws) return;
+        // The server authorizes only after the upgrade, so `open` is not an accepted
+        // session yet: the backoff resets on "welcome", not here.
+        setConnection((prev) => ({
+          ...prev,
           isConnected: true,
           isConnecting: false,
           error: null,
-          reconnectAttempt: 0,
-        });
+        }));
 
         // Subscribe to channels
         ws.send(JSON.stringify({ type: "subscribe", channels: stableChannels }));
@@ -218,7 +226,7 @@ export function useLiveDashboard({
       };
 
       ws.onmessage = (event) => {
-        if (!mountedRef.current) return;
+        if (!mountedRef.current || wsRef.current !== ws) return;
         try {
           const msg = JSON.parse(event.data);
 
@@ -237,6 +245,9 @@ export function useLiveDashboard({
           } else if (msg.type === "pong") {
             // Heartbeat response
           } else if (msg.type === "welcome") {
+            // First frame of an accepted session: the backoff starts over.
+            failedAttemptsRef.current = 0;
+            setConnection((prev) => ({ ...prev, reconnectAttempt: 0 }));
             // Send backlog
             if (Array.isArray(msg.data)) {
               setEvents((prev) => {
@@ -262,6 +273,8 @@ export function useLiveDashboard({
       };
 
       ws.onclose = () => {
+        // A superseded socket must not touch the refs its successor now owns.
+        if (wsRef.current !== ws) return;
         stopPingHeartbeat();
         if (!mountedRef.current) return;
         wsRef.current = null;
@@ -272,19 +285,18 @@ export function useLiveDashboard({
         }));
 
         if (autoReconnect) {
-          const attempt = connection.reconnectAttempt;
+          const attempt = failedAttemptsRef.current;
+          failedAttemptsRef.current = attempt + 1;
           const delay = WS_RECONNECT_DELAYS[Math.min(attempt, WS_RECONNECT_DELAYS.length - 1)];
           reconnectTimeoutRef.current = setTimeout(() => {
-            setConnection((prev) => ({
-              ...prev,
-              reconnectAttempt: prev.reconnectAttempt + 1,
-            }));
+            setConnection((prev) => ({ ...prev, reconnectAttempt: attempt + 1 }));
+            setReconnectTick((tick) => tick + 1);
           }, delay);
         }
       };
 
       ws.onerror = () => {
-        if (!mountedRef.current) return;
+        if (!mountedRef.current || wsRef.current !== ws) return;
         setConnection((prev) => ({
           ...prev,
           isConnecting: false,
@@ -298,14 +310,7 @@ export function useLiveDashboard({
         error: err instanceof Error ? err.message : "Connection failed",
       }));
     }
-  }, [
-    effectiveWsUrl,
-    apiKey,
-    stableChannels,
-    autoReconnect,
-    connection.reconnectAttempt,
-    stopPingHeartbeat,
-  ]);
+  }, [effectiveWsUrl, apiKey, stableChannels, autoReconnect, stopPingHeartbeat]);
 
   // Connect on mount and on reconnect trigger
   useEffect(() => {
@@ -316,8 +321,10 @@ export function useLiveDashboard({
         reconnectTimeoutRef.current = null;
       }
       stopPingHeartbeat();
-      wsRef.current?.close();
+      const ws = wsRef.current;
       wsRef.current = null;
+      ws?.close();
+      failedAttemptsRef.current = 0;
       setConnection({
         isConnected: false,
         isConnecting: false,
@@ -338,17 +345,18 @@ export function useLiveDashboard({
         clearTimeout(reconnectTimeoutRef.current);
       }
       stopPingHeartbeat();
-      wsRef.current?.close();
+      const ws = wsRef.current;
+      wsRef.current = null;
+      ws?.close();
     };
-  }, [connect, enabled, wsUrlResolved, stopPingHeartbeat]);
+  }, [connect, enabled, wsUrlResolved, stopPingHeartbeat, reconnectTick]);
 
   // Connect (for manual retry)
   const reconnect = useCallback(() => {
-    wsRef.current?.close();
-    setConnection((prev) => ({
-      ...prev,
-      reconnectAttempt: prev.reconnectAttempt + 1,
-    }));
+    const ws = wsRef.current;
+    wsRef.current = null;
+    ws?.close();
+    setReconnectTick((tick) => tick + 1);
   }, []);
 
   return {

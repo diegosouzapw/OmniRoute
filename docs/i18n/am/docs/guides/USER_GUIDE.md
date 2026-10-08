@@ -1,10 +1,10 @@
 # User Guide (አማርኛ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 ---
 
-🌐 **ቋንቋዎች:** 🇺🇸 [English](./USER_GUIDE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/guides/USER_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/USER_GUIDE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/guides/USER_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/USER_GUIDE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/guides/USER_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/USER_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/USER_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/USER_GUIDE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/guides/USER_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/guides/USER_GUIDE.md) | 🇪🇪 [Eesti](../i18n/et/docs/guides/USER_GUIDE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/guides/USER_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/USER_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/USER_GUIDE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/guides/USER_GUIDE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/guides/USER_GUIDE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/guides/USER_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/USER_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/guides/USER_GUIDE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/guides/USER_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/USER_GUIDE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/guides/USER_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/USER_GUIDE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/guides/USER_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/USER_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/USER_GUIDE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/guides/USER_GUIDE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/guides/USER_GUIDE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/guides/USER_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/USER_GUIDE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/guides/USER_GUIDE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/guides/USER_GUIDE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/guides/USER_GUIDE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/guides/USER_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/USER_GUIDE.md) | 🇲🇹 [Malti](../i18n/mt/docs/guides/USER_GUIDE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/guides/USER_GUIDE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/guides/USER_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/USER_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/USER_GUIDE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/guides/USER_GUIDE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/guides/USER_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/USER_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/USER_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/USER_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/USER_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/USER_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/USER_GUIDE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/guides/USER_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/USER_GUIDE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/guides/USER_GUIDE.md) | 🇷🇸 [Српски](../i18n/sr/docs/guides/USER_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/USER_GUIDE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/guides/USER_GUIDE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/guides/USER_GUIDE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/guides/USER_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/USER_GUIDE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/guides/USER_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/USER_GUIDE.md) | 🇵🇰 [اردو](../i18n/ur/docs/guides/USER_GUIDE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/guides/USER_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/USER_GUIDE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/guides/USER_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/USER_GUIDE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 አቅራቢዎችን ለማዋቀር፣ ጥምረቶችን ለመፍጠር፣ የCLI መሣሪያዎችን ለማቀናጀት እና OmniRouteን ለማሰማራት የተሟላ መመሪያ።
 
@@ -120,16 +120,16 @@
 
 ## 📖 የአቅራቢ ማዋቀር
 
-ከCSV ወይም JSON ፋይል ብዙ API-key ግንኙነቶችን በአንድ ጊዜ ለማከል፣ **ዳሽቦርድ → አቅራቢዎች → ከፋይል አስመጣ**ን ይጠቀሙ። ዓምዶቹ በቦታ ቅደም ተከተል የሚወሰኑ ናቸው (`provider,name,apiKey,baseUrl,priority`)፤ `provider` አስቀድሞ እንደሚተዳደር አቅራቢ ወይም ተኳሃኝ ኖድ መኖር አለበት። [አቅራቢዎችን ከCSV ወይም JSON ፋይል ማስመጣት](../providers/CSV-IMPORT.md)ን ይመልከቱ።
+ከCSV ወይም JSON ፋይል ብዙ API-key ግንኙነቶችን በአንድ ጊዜ ለመጨመር፣ **Dashboard → Providers → Import from file** ይጠቀሙ። ዓምዶቹ በቦታ ቅደም ተከተል ይወሰናሉ (`provider,name,apiKey,baseUrl,priority`)፤ `provider` አስቀድሞ እንደሚተዳደር አቅራቢ ወይም ተኳሃኝ ኖድ መኖር አለበት። [አቅራቢዎችን ከCSV ወይም JSON ፋይል ማስመጣት](../providers/CSV-IMPORT.md)ን ይመልከቱ።
 
 ### 🔐 የደንበኝነት ምዝገባ አቅራቢዎች
 
 #### Claude Code (Pro/Max)
 
 ```bash
-ዳሽቦርድ → አቅራቢዎች → Claude Codeን አገናኝ
-→ በOAuth ይግቡ → ራስ-ሰር የቶከን እድሳት
-→ የ5-ሰዓት + ሳምንታዊ ኮታ ክትትል
+Dashboard → Providers → Claude Codeን ያገናኙ
+→ በOAuth ይግቡ → ቶከን በራስ-ሰር ይታደሳል
+→ የ5 ሰዓት + ሳምንታዊ ኮታ ክትትል
 
 ሞዴሎች:
   cc/claude-opus-4-7
@@ -137,18 +137,20 @@
   cc/claude-haiku-4-5-20251001
 ```
 
-**የባለሙያ ምክር:** ለውስብስብ ተግባራት Opusን፣ ለፍጥነት Sonnetን ይጠቀሙ። OmniRoute ኮታን በየሞዴሉ ይከታተላል!
+**የባለሙያ ምክር:** ለውስብስብ ተግባራት Opusን፣ ለፍጥነት Sonnetን ይጠቀሙ። OmniRoute ኮታውን በየሞዴሉ ይከታተላል!
+
+በOmniRoute ሆስት ላይ ብራውዘር የለም? Claude Code በገባበት በማንኛውም ቦታ `claude setup-token`ን ያስኪዱና የአንድ ዓመቱን ቶከን በ**Setup Token** ትር ውስጥ ይለጥፉ። [Claude Codeን በsetup token መጠቀም](../providers/CLAUDE_CODE_SETUP_TOKEN.md)ን ይመልከቱ።
 
 ከClaude እና Claude Code ጋር ተኳሃኝ የሆኑ መስመሮች ለOpus እና Sonnet
-ሞዴሎች የ`max` የማሰብ ጥረትን እንዳለ ያቆያሉ። Haiku ሞዴሎች የ`max` የጥረት ደረጃን ስለማይቀበሉ፣ OmniRoute
+ሞዴሎች የ`max` የማሰብ ጥረትን እንዳለ ያቆያሉ። Haiku ሞዴሎች የ`max` ጥረት ደረጃን አይቀበሉም፤ ስለዚህ OmniRoute
 ጥያቄውን ወደ ላይኛው አቅራቢ ከመላኩ በፊት ወደ ከፍተኛ የማሰብ በጀት ዝቅ ያደርገዋል።
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-ዳሽቦርድ → አቅራቢዎች → Codexን አገናኝ
+Dashboard → Providers → Codexን ያገናኙ
 → በOAuth ይግቡ (port 1455)
-→ የ5-ሰዓት + ሳምንታዊ ዳግም ማስጀመር
+→ የ5 ሰዓት + ሳምንታዊ ዳግም ማስጀመር
 
 ሞዴሎች:
   cx/gpt-5.5
@@ -160,7 +162,7 @@
 #### GitHub Copilot
 
 ```bash
-ዳሽቦርድ → አቅራቢዎች → GitHubን አገናኝ
+Dashboard → Providers → GitHubን ያገናኙ
 → በGitHub በኩል OAuth
 → ወርሃዊ ዳግም ማስጀመር (በየወሩ 1ኛ ቀን)
 
@@ -174,53 +176,53 @@
 
 ### 💰 ርካሽ አቅራቢዎች
 
-#### GLM-4.7 (ዕለታዊ ዳግም ማስጀመር፣ $0.6/1M)
+#### GLM-4.7 (በየቀኑ ዳግም ማስጀመር፣ $0.6/1M)
 
 1. ይመዝገቡ፦ [Zhipu AI](https://open.bigmodel.cn)
-2. ከCoding Plan የAPI ቁልፍ ያግኙ
-3. ዳሽቦርድ → የAPI ቁልፍ አክል፦ አቅራቢ፦ `glm`፣ የAPI ቁልፍ፦ `your-key`
+2. ከCoding Plan API key ያግኙ
+3. Dashboard → Add API Key፦ Provider፦ `glm`፣ API Key፦ `your-key`
 
-**አጠቃቀም:** `glm/glm-4.7` — **የባለሙያ ምክር:** Coding Plan በ1/7 ወጪ 3× ኮታ ያቀርባል! በየቀኑ 10:00 AM ዳግም ይጀምራል።
+**አጠቃቀም:** `glm/glm-4.7` — **የባለሙያ ምክር:** Coding Plan በ1/7 ወጪ 3× ኮታ ይሰጣል! በየቀኑ 10:00 AM ዳግም ይጀምራል።
 
-#### MiniMax M2.1 (የ5 ሰዓት ዳግም ማስጀመር፣ $0.20/1M)
+#### MiniMax M2.1 (በ5 ሰዓት ዳግም ማስጀመር፣ $0.20/1M)
 
 1. ይመዝገቡ፦ [MiniMax](https://www.minimax.io)
-2. የAPI ቁልፍ ያግኙ → ዳሽቦርድ → የAPI ቁልፍ አክል
+2. API key ያግኙ → Dashboard → Add API Key
 
-**አጠቃቀም:** `minimax/MiniMax-M2.1` — **የባለሙያ ምክር:** ለረጅም አውድ በጣም ርካሹ አማራጭ (1M ቶከኖች)!
+**አጠቃቀም:** `minimax/MiniMax-M2.1` — **የባለሙያ ምክር:** ለረጅም አውድ (1M ቶከኖች) በጣም ርካሹ አማራጭ ነው!
 
-#### Kimi K2 (በወር ቋሚ $9)
+#### Kimi K2 (ቋሚ $9/ወር)
 
-1. ደንበኛ ይሁኑ፦ [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. የAPI ቁልፍ ያግኙ → ዳሽቦርድ → የAPI ቁልፍ አክል
+1. ይመዝገቡ፦ [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
+2. API key ያግኙ → Dashboard → Add API Key
 
-**አጠቃቀም:** `kimi/kimi-k2.5` — **የባለሙያ ምክር:** ለ10M ቶከኖች በወር ቋሚ $9 = ውጤታማ ወጪ $0.90/1M!
+**አጠቃቀም:** `kimi/kimi-k2.5` — **የባለሙያ ምክር:** ለ10M ቶከኖች ቋሚ $9/ወር = በተግባር $0.90/1M ወጪ!
 
 #### Baidu Qianfan / ERNIE
 
 1. ይመዝገቡ፦ [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. የQianfan API ቁልፍ ይፍጠሩ → ዳሽቦርድ → የAPI ቁልፍ አክል፦ አቅራቢ፦ `qianfan`
+2. የQianfan API key ይፍጠሩ → Dashboard → Add API Key፦ Provider፦ `qianfan`
 
 **አጠቃቀም:** `qianfan/ernie-5.1`፣ `qianfan/ernie-x1.1`፣ ወይም ሌላ ከQianfan OpenAI ጋር ተኳሃኝ የሆነ የሞዴል ID።
 
 ### 🆓 ነፃ አቅራቢዎች
 
-ማረጋገጫ የማይፈልጉ ነፃ አቅራቢዎች በአቅራቢ ገጻቸው ላይ ከ**ማረጋገጫ አያስፈልግም** አጠገብ መቀየሪያ አላቸው።
-መቀየሪያውን ማጥፋት ያንን አቅራቢ ያሰናክላል፣ ከተዋቀሩ/ከታመቁ የአቅራቢዎች እይታዎች ያስወግደዋል፣ እና
+ማረጋገጫ የማይፈልጉ ነፃ አቅራቢዎች በአቅራቢ ገጻቸው ላይ ከ**No authentication required** ጎን መቀየሪያ አላቸው።
+ማጥፋት ያንን አቅራቢ ያሰናክላል፣ ከProviders የተዋቀሩ/የታመቁ እይታዎች ያስወግደዋል፣ እንዲሁም
 ሞዴሎቹን ከ`/v1/models` ያስወግዳል።
 
 #### Qoder (9 ነፃ ሞዴሎች)
 
 ```bash
-ዳሽቦርድ → Qoderን አገናኝ → በOAuth ይግቡ → መዳረሻው አሁን ባሉት የአቅራቢ ገደቦች ይወሰናል
+Dashboard → Qoderን ያገናኙ → በOAuth ይግቡ → መዳረሻው አሁን ባሉት የአቅራቢው ገደቦች ይወሰናል
 
 ሞዴሎች: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
-#### Kiro (Claude ነፃ)
+#### Kiro (Claude በነፃ)
 
 ```bash
-ዳሽቦርድ → Kiroን አገናኝ → AWS Builder ID ወይም Google/GitHub → ~50 ክሬዲቶች/ወር
+Dashboard → Kiroን ያገናኙ → AWS Builder ID ወይም Google/GitHub → ~50 ክሬዲቶች/ወር
 
 ሞዴሎች: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
@@ -670,7 +672,7 @@ post_install() {
 
 ### ብጁ ሞዴሎች
 
-የመተግበሪያ ዝማኔን ሳይጠብቁ ማንኛውንም የሞዴል ID ወደ ማንኛውም አቅራቢ ያክሉ፦
+የመተግበሪያ ዝማኔ ሳይጠብቁ ማንኛውንም የሞዴል ID ወደ ማንኛውም አቅራቢ ያክሉ፦
 
 ```bash
 # በAPI በኩል
@@ -682,19 +684,56 @@ curl -X POST http://localhost:20128/api/provider-models \
 # ማስወገድ፦ curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
 ```
 
-ወይም Dashboardን ይጠቀሙ፦ **Providers → [Provider] → Custom Models**።
+ወይም ዳሽቦርዱን ይጠቀሙ፦ **አቅራቢዎች → [አቅራቢ] → ብጁ ሞዴሎች**።
 
 ማስታወሻዎች፦
 
-- OpenRouter እና OpenAI/Anthropic-ተኳኋኝ አቅራቢዎች ከ**Available Models** ብቻ ይተዳደራሉ። በእጅ ማከል፣ ማስመጣት እና ራስ-ሰር ማመሳሰል ሁሉም በተመሳሳዩ የሚገኙ ሞዴሎች ዝርዝር ውስጥ ይቀመጣሉ፤ ስለዚህ ለእነዚህ አቅራቢዎች የተለየ Custom Models ክፍል የለም።
-- የ**Custom Models** ክፍል የሚተዳደሩ የሞዴል ማስመጣቶችን ለማያቀርቡ አቅራቢዎች የታሰበ ነው።
+- OpenRouter እና ከOpenAI/Anthropic ጋር ተኳዃኝ የሆኑ አቅራቢዎች የሚተዳደሩት ከ**የሚገኙ ሞዴሎች** ብቻ ነው። በእጅ ማከል፣ ማስመጣት እና ራስ-ሰር ማመሳሰል ሁሉም በተመሳሳዩ የሚገኙ ሞዴሎች ዝርዝር ውስጥ ይገባሉ፤ ስለዚህ ለእነዚያ አቅራቢዎች የተለየ የብጁ ሞዴሎች ክፍል የለም።
+- **ብጁ ሞዴሎች** ክፍል የሚተዳደሩ የሚገኙ ሞዴሎችን የማስመጣት አማራጭ ለማያቀርቡ አቅራቢዎች የታሰበ ነው።
 
-### የOmniRoute አቻዎችን ማገናኘት
+### ከOpenAI ጋር ተኳዃኝ ብጁ አቅራቢዎች
 
-ሌላ OmniRoute ጌትዌይ እንደ **Custom OpenAI-compatible** አቅራቢ ሊታከል ይችላል። የአቻውን
-`/v1` መሠረታዊ URL እና በዚያ አቻ የተሰጠ ራሱን የቻለ፣ ዝቅተኛ ፈቃድ ያለው API ቁልፍ ይጠቀሙ።
+የOpenAI APIን የሚደግፍ ማንኛውም ጌትዌይ (በራስዎ የሚስተናገድ ፕሮክሲ፣ vLLM፣ የሶስተኛ ወገን አሰባሳቢ)
+እንደ የራሱ አቅራቢ ኖድ ሊታከል ይችላል፦
 
-ለተገላቢጦሽ ወይም ባለብዙ-ዝላይ ሰንሰለቶች፣ በእያንዳንዱ ጌትዌይ ላይ በፍላጎት የሚነቃውን የሉፕ መከላከያ ያንቁ፦
+1. **አቅራቢዎች → ከOpenAI ጋር ተኳዃኝ አቅራቢ አክል**።
+2. **ስም**፦ ለኖዱ የማሳያ መለያ።
+3. **ቅድመ ቅጥያ**፦ የማዘዋወሪያ ስም። ደንበኞች ሞዴሎችን እንደ `<prefix>/<model>` ይጠራሉ፤ ስለዚህ `mygw`
+   የሚል ቅድመ ቅጥያ ያለው ኖድ `mygw/gpt-4o-mini`ን ያቀርባል። ያስፈልጋል፤ የቁምፊ ገደብ የለም።
+4. **የAPI አይነት**፦ ጌትዌዩ የሚያቀርበው የመጨረሻ ነጥብ ቤተሰብ (Chat Completions፣ Responses፣
+   Embeddings፣ ድምፅ፣ ምስሎች)።
+5. **መሠረታዊ URL**፦ `/v1`ን ጨምሮ እስከዚያ ያለው የAPI ሥር (ለምሳሌ
+   `https://gateway.example.com/v1`) እንጂ ሙሉው `/chat/completions` ዱካ አይደለም። መደበኛ ያልሆኑ
+   ዱካዎች ያሏቸው ጌትዌዮች እነሱን በ**የላቁ ቅንብሮች** ስር ያዘጋጃሉ (የውይይት ዱካ፣ የሞዴሎች ዱካ)።
+6. **API ቁልፍ (ለማረጋገጫ)** መስኩ ግንኙነቱን ብቻ ይፈትሻል። ኖዱን ከፈጠሩ በኋላ
+   ይክፈቱትና ጥያቄዎች የሚጠቀሙበትን ቁልፍ ለማከማቸት **ግንኙነት አክል**ን ይጠቀሙ።
+
+ኖዱ `openai-compatible-<apiType>-<uuid>` በሚለው ቅርጽ ውስጣዊ id ያገኛል፤ በፍጹም
+መተየብ አያስፈልግዎትም፤ ቅድመ ቅጥያው የሕዝብ ስሙ ነው።
+
+#### የተያዙ ቅድመ ቅጥያዎች
+
+አንድ ቅድመ ቅጥያ አብሮ የተካተተ አቅራቢ id ወይም ተለዋጭ ስም (ለምሳሌ `openai`፣ `cf`)፣ ወይም
+ከአገልግሎት የወጣ አቅራቢ id ሊሆን አይችልም። የሞዴል መፍቻው ከብጁ
+ኖዶች በፊት አብረው የተካተቱ idsን እና ተለዋጭ ስሞችን ይፈትሻል፤ ስለዚህ ከእነዚያ ቅድመ ቅጥያዎች አንዱን የሚጠቀም ኖድ ትራፊክ ፈጽሞ አይቀበልም፦
+`<prefix>/model` በምትኩ ወደ አብሮ የተካተተው አቅራቢ ይሄዳል፣ ወይም ያ አቅራቢ
+ከአገልግሎት የወጣ ከሆነ በደህንነት መሠረት ይከለከላል። እንዲህ ባለ ቅድመ ቅጥያ ኖድ መፍጠር ወይም ማርትዕ በሚከተለው ስህተት ውድቅ ይደረጋል፦
+
+```text
+prefix: "<prefix>" የተያዘ የአቅራቢ ቅድመ ቅጥያ ነው — የተለየ ቅድመ ቅጥያ ይምረጡ (የተያዙ ids/aliases ለብጁ ኖዶች መጠቀም አይቻልም፤ ምክንያቱም እንደ <prefix>/model ያሉ ጥያቄዎች ወደ አብሮ የተካተተ አቅራቢ ይዘዋወራሉ ወይም አቅራቢው ከአገልግሎት ሲወጣ በደህንነት መሠረት ይከለከላሉ)
+```
+
+የተለየ ቅድመ ቅጥያ (`mygw`፣ `acme-proxy`) ይምረጡ። ወደ ብጁ ኖድ የሚላኩ ጥያቄዎች አብሮ የተካተተ
+አቅራቢን ወይም የእሱን ማረጋገጫዎች በሚጠቅስ ስህተት ከከሸፉ፣ የኖዱ ቅድመ ቅጥያ
+የተያዘ መሆኑን ያረጋግጡ፦ ይህ ደንብ ከመኖሩ በፊት የተቀመጡ ኖዶች አሁንም ተከማችተው ይቆያሉ፣ ነገር ግን ቅድመ ቅጥያቸው ወደ
+አብሮ የተካተተው አቅራቢ ያዘዋውራል። ኖዱን ያርትዑና አዲስ ቅድመ ቅጥያ ይስጡት።
+
+### የOmniRoute አቻዎችን ማስተሳሰር
+
+ሌላ OmniRoute ጌትዌይ እንደ **ከOpenAI ጋር ተኳዃኝ ብጁ** አቅራቢ ሊታከል ይችላል። የአቻውን
+`/v1` መሠረታዊ URL እና በዚያ አቻ የተሰጠ የተወሰነ፣ አነስተኛ መብት ያለው API ቁልፍ ይጠቀሙ።
+
+ለሁለትዮሽ ወይም ባለብዙ-ዝላይ ሰንሰለቶች፣ በእያንዳንዱ ጌትዌይ ላይ በምርጫ የሚነቃውን የዑደት መከላከያ ያንቁ፦
 
 ```bash
 # gateway-a
@@ -710,18 +749,17 @@ OMNIROUTE_PEER_URLS=http://gateway-a:20128/v1
 OMNIROUTE_PEER_MAX_HOPS=4
 ```
 
-በግልጽ ወደተፈቀደ የአቻ URL የተላኩ ጥያቄዎች ብቻ
-የ`X-OmniRoute-Peer-Trace` ራስጌን ይቀበላሉ። አንድ ጌትዌይ የተደገመ የኢንስታንስ ID ወይም ያለቀ የዝላይ
-ገደብን በHTTP `508 Loop Detected` ውድቅ ያደርጋል፤ መደበኛ የላይኛው ዥረት አቅራቢዎች ምንም የአቻ ሜታዳታ አይቀበሉም።
+በግልጽ የተፈቀደለት የአቻ URL የሚላኩ ጥያቄዎች ብቻ
+የ`X-OmniRoute-Peer-Trace` ራስጌን ይቀበላሉ። አንድ ጌትዌይ የተደገመ instance IDን ወይም ያለቀ የዝላይ
+በጀትን በHTTP `508 Loop Detected` ውድቅ ያደርጋል፤ መደበኛ የላይኛው ፍሰት አቅራቢዎች ምንም የአቻ ሜታዳታ አይቀበሉም።
 
-የአቻ ማገናኘት የዳታቤዝ ማባዛት ወይም የአስተናጋጅ መተካካት አይደለም። እያንዳንዱ ጌትዌይ ራሱን የቻለ
-የSQLite ሁኔታ፣ መሸጎጫዎች፣ የፍጥነት ቆጣሪዎች እና ክፍለ-ጊዜዎች ይኖሩታል። ለንቁ/ተጠባባቂ ወይም ንቁ/ንቁ ተገኝነት ጤንነቱ የሚፈተሽ የተገላቢጦሽ ፕሮክሲ ወይም የደንበኛ
-መተካካትን ይጠቀሙ፤ እንዲሁም አንድን SQLite ዳታቤዝ
-በበርካታ እየሰሩ ያሉ OmniRoute ኢንስታንሶች ላይ ፈጽሞ አይጫኑ።
+የአቻ ሰንሰለት የውሂብ ጎታ መባዛት ወይም የአስተናጋጅ ውድቀት መተካት አይደለም። እያንዳንዱ ጌትዌይ ራሱን የቻለ
+የSQLite ሁኔታ፣ መሸጎጫዎች፣ የፍጥነት ቆጣሪዎች እና ክፍለ-ጊዜዎች ይይዛል። ለገባሪ/ተጠባባቂ ወይም ገባሪ/ገባሪ ተገኝነት የጤና ምርመራ ያለው ተገላቢጦሽ ፕሮክሲ ወይም የደንበኛ
+ውድቀት መተካት ይጠቀሙ፣ እና አንድ SQLite የውሂብ ጎታ በበርካታ እየሰሩ ያሉ OmniRoute ኢንስታንሶች ላይ በፍጹም አይጫኑ።
 
 ### ለአቅራቢዎች የተወሰኑ መስመሮች
 
-ከሞዴል ማረጋገጫ ጋር ጥያቄዎችን በቀጥታ ወደተወሰነ አቅራቢ ያስተላልፉ፦
+ከሞዴል ማረጋገጫ ጋር ጥያቄዎችን በቀጥታ ወደ ተወሰነ አቅራቢ ያዘዋውሩ፦
 
 ```bash
 POST http://localhost:20128/v1/providers/openai/chat/completions
@@ -729,9 +767,9 @@ POST http://localhost:20128/v1/providers/openai/embeddings
 POST http://localhost:20128/v1/providers/fireworks/images/generations
 ```
 
-የአቅራቢው ቅድመ ቅጥያ ከሌለ በራስ-ሰር ይታከላል። የማይዛመዱ ሞዴሎች `400` ይመልሳሉ።
+የአቅራቢው ቅድመ ቅጥያ ከጎደለ በራስ-ሰር ይታከላል። የማይዛመዱ ሞዴሎች `400` ይመልሳሉ።
 
-### የኔትወርክ ፕሮክሲ ውቅር
+### የአውታረ መረብ ፕሮክሲ ውቅር
 
 ```bash
 # ዓለም አቀፍ ፕሮክሲ ያዘጋጁ
@@ -747,7 +785,7 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
 ```
 
-**ቅድሚያ፦** ለቁልፍ-የተወሰነ → ለጥምረት-የተወሰነ → ለአቅራቢ-የተወሰነ → ዓለም አቀፍ → አካባቢ።
+**ቅድሚያ፦** ለቁልፍ የተወሰነ → ለጥምረት የተወሰነ → ለአቅራቢ የተወሰነ → ዓለም አቀፍ → አካባቢ።
 
 ### የሞዴል ካታሎግ API
 
@@ -755,111 +793,111 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
 curl http://localhost:20128/api/models/catalog
 ```
 
-በአቅራቢ የተመደቡ ሞዴሎችን ከአይነቶቻቸው (`chat`፣ `embedding`፣ `image`) ጋር ይመልሳል።
+ሞዴሎችን በአቅራቢ ተመድበው፣ ከአይነቶቻቸው (`chat`፣ `embedding`፣ `image`) ጋር ይመልሳል።
 
 ### የደመና ማመሳሰል
 
 - አቅራቢዎችን፣ ጥምረቶችን እና ቅንብሮችን በመሣሪያዎች መካከል ያመሳስሉ
-- ከጊዜ ማብቂያ + ፈጣን ማቋረጥ ጋር ራስ-ሰር የጀርባ ማመሳሰል
-- በምርት አካባቢ የአገልጋይ-ወገን `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL`ን ይምረጡ
+- ከጊዜ ገደብ + ፈጣን ውድቀት ጋር ራስ-ሰር የጀርባ ማመሳሰል
+- በምርት አካባቢ ከአገልጋይ ወገን `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL`ን ይምረጡ
 
 ### Cloudflare ፈጣን ቱነል
 
-- ለDocker እና ለሌሎች በራስ-የሚስተናገዱ ማሰማሪያዎች በ**Dashboard → Endpoints** ውስጥ ይገኛል
-- ወደ አሁኑ OpenAI-ተኳኋኝ `/v1` መገልገያ ነጥብዎ የሚያስተላልፍ ጊዜያዊ `https://*.trycloudflare.com` URL ይፈጥራል
-- የመጀመሪያው ማንቃት `cloudflared`ን የሚጭነው ሲያስፈልግ ብቻ ነው፤ ቀጣይ ዳግም ማስጀመሮች ያንኑ የሚተዳደር ሁለትዮሽ ፋይል እንደገና ይጠቀማሉ
-- OmniRoute ወይም ኮንቴይነር ዳግም ከተጀመረ በኋላ ፈጣን ቱነሎች በራስ-ሰር አይመለሱም፤ ሲያስፈልግ ከDashboard እንደገና ያንቋቸው
-- የቱነል URLዎች ጊዜያዊ ሲሆኑ ቱነሉን ባቆሙ/ባስጀመሩ ቁጥር ይለወጣሉ
-- በተገደቡ ኮንቴይነሮች ውስጥ የሚረብሹ የQUIC UDP ቋት ማስጠንቀቂያዎችን ለማስወገድ፣ የሚተዳደሩ ፈጣን ቱነሎች በነባሪ HTTP/2 ትራንስፖርትን ይጠቀማሉ
-- የሚተዳደረውን የትራንስፖርት ምርጫ መቀየር ከፈለጉ `CLOUDFLARED_PROTOCOL=quic` ወይም `auto` ያዘጋጁ
-- በሚተዳደር ማውረድ ፋንታ አስቀድሞ የተጫነ `cloudflared` ሁለትዮሽ ፋይል መጠቀምን ከመረጡ `CLOUDFLARED_BIN`ን ያዘጋጁ
-- የCloudflare Quick Tunnel፣ Tailscale Funnel እና ngrok Tunnel ፓነሎች በ**Settings → Appearance** ውስጥ ሊታዩ ወይም ሊደበቁ ይችላሉ። ፓነልን መደበቅ እየሰራ ያለ ቱነልን አያቆምም።
+- ለDocker እና ለሌሎች በራስ ለሚስተናገዱ ማሰማሪያዎች በ**Dashboard → Endpoints** ውስጥ ይገኛል
+- ወደ አሁኑ OpenAI-ተኳሃኝ `/v1` endpointዎ የሚያስተላልፍ ጊዜያዊ `https://*.trycloudflare.com` URL ይፈጥራል
+- መጀመሪያ ሲነቃ `cloudflared`ን የሚጭነው ሲያስፈልግ ብቻ ነው፤ ቀጣይ ዳግም ማስጀመሮች ያንኑ የሚተዳደር binary እንደገና ይጠቀማሉ
+- OmniRoute ወይም container ዳግም ከተጀመረ በኋላ Quick Tunnels በራስ-ሰር አይመለሱም፤ ሲያስፈልግ ከdashboard እንደገና ያንቋቸው
+- የTunnel URLዎች ጊዜያዊ ሲሆኑ tunnelን ባቆሙ/ባስጀመሩ ቁጥር ይለወጣሉ
+- የሚተዳደሩ Quick Tunnels፣ የተገደበ ሀብት ባላቸው containerዎች ውስጥ የሚከሰቱ ብዙ የQUIC UDP buffer ማስጠንቀቂያዎችን ለማስወገድ፣ በነባሪ HTTP/2 transportን ይጠቀማሉ
+- የሚተዳደረውን transport ምርጫ መቀየር ከፈለጉ `CLOUDFLARED_PROTOCOL=quic` ወይም `auto` ያቀናብሩ
+- በሚተዳደረው ማውረድ ፋንታ አስቀድሞ የተጫነ `cloudflared` binary መጠቀምን ከመረጡ `CLOUDFLARED_BIN`ን ያቀናብሩ
+- የCloudflare Quick Tunnel፣ Tailscale Funnel እና ngrok Tunnel panelዎች በ**Settings → Appearance** ውስጥ ሊታዩ ወይም ሊደበቁ ይችላሉ። panelን መደበቅ እየሰራ ያለ tunnelን አያቆምም።
 
-### የLLM ጌትዌይ ብልህነት (ደረጃ 9)
+### የLLM Gateway ብልህነት (ደረጃ 9)
 
-- **የፍቺ መሸጎጫ** — ዥረት-አልባ፣ temperature=0 ምላሾችን በራስ-ሰር ይሸጎጣል (በ`X-OmniRoute-No-Cache: true` ይለፉት)
-- **የጥያቄ አንድ-ጊዜነት** — በ`Idempotency-Key` ወይም `X-Request-Id` ራስጌ አማካኝነት በ5 ሰከንድ ውስጥ የሚቀርቡ ጥያቄዎችን ከመደጋገም ይከላከላል
-- **የሂደት ክትትል** — በ`X-OmniRoute-Progress: true` ራስጌ በፍላጎት የሚነቁ SSE `event: progress` ክስተቶች
+- **የትርጉም-ዐውድ Cache** — streaming ያልሆኑ፣ temperature=0 ምላሾችን በራስ-ሰር cache ያደርጋል (`X-OmniRoute-No-Cache: true`ን በመጠቀም ይለፉት)
+- **የRequest Idempotency** — በ`Idempotency-Key` ወይም `X-Request-Id` header አማካኝነት በ5s ውስጥ የተላኩ ተመሳሳይ requestዎችን አንድ ያደርጋል
+- **የሂደት ክትትል** — በ`X-OmniRoute-Progress: true` header አማካኝነት በምርጫ የሚነቁ SSE `event: progress` eventዎች
 
 ---
 
-### የተርጓሚ የሙከራ ቦታ
+### የተርጓሚ Playground
 
-በ**Dashboard → Translator** በኩል ይድረሱበት። OmniRoute በአቅራቢዎች መካከል የAPI ጥያቄዎችን እንዴት እንደሚተረጉም ስህተቶችን ያርሙ እና በምስል ይመልከቱ።
+በ**Dashboard → Translator** በኩል ይድረሱበት። OmniRoute የAPI requestዎችን በproviderዎች መካከል እንዴት እንደሚተረጉም debug ያድርጉ እና በምስል ይመልከቱ።
 
-| ሁነታ              | ዓላማ                                                         |
-| ---------------- | ----------------------------------------------------------- |
-| **Playground**   | የምንጭ/ዒላማ ቅርጸቶችን ይምረጡ፣ ጥያቄን ይለጥፉ እና የተተረጎመውን ውጤት ወዲያውኑ ይመልከቱ |
-| **Chat Tester**  | በፕሮክሲው በኩል የቀጥታ ውይይት መልዕክቶችን ይላኩ እና ሙሉውን የጥያቄ/ምላሽ ዑደት ይመርምሩ |
-| **Test Bench**   | የትርጉም ትክክለኛነትን ለማረጋገጥ በበርካታ የቅርጸት ጥምረቶች ላይ የጅምላ ፈተናዎችን ያሂዱ  |
-| **Live Monitor** | ጥያቄዎች በፕሮክሲው ውስጥ ሲያልፉ የእውነተኛ-ጊዜ ትርጉሞችን ይመልከቱ                |
+| ሁነታ              | ዓላማ                                                                    |
+| ---------------- | ---------------------------------------------------------------------- |
+| **Playground**   | የምንጭ/መድረሻ formatዎችን ይምረጡ፣ requestን ይለጥፉ እና የተተረጎመውን output ወዲያውኑ ይመልከቱ |
+| **Chat Tester**  | በproxyው በኩል የቀጥታ chat መልዕክቶችን ይላኩ እና ሙሉውን የrequest/response ዑደት ይመርምሩ  |
+| **Test Bench**   | የትርጉም ትክክለኛነትን ለማረጋገጥ በበርካታ የformat ጥምረቶች ላይ የቡድን testዎችን ያስኪዱ         |
+| **Live Monitor** | requestዎች በproxyው ውስጥ ሲያልፉ የቅጽበት ትርጉሞችን ይመልከቱ                          |
 
 **የአጠቃቀም ሁኔታዎች፦**
 
-- አንድ የተወሰነ የደንበኛ/አቅራቢ ጥምረት ለምን እንደሚሳነው ስህተቱን ያርሙ
-- የአስተሳሰብ መለያዎች፣ የመሣሪያ ጥሪዎች እና የስርዓት መጠየቂያዎች በትክክል መተርጎማቸውን ያረጋግጡ
-- በOpenAI፣ Claude፣ Gemini እና Responses API ቅርጸቶች መካከል ያሉ የቅርጸት ልዩነቶችን ያወዳድሩ
+- አንድ የተወሰነ የclient/provider ጥምረት ለምን እንደማይሰራ debug ማድረግ
+- የthinking tagዎች፣ tool callዎች እና system promptዎች በትክክል እንደሚተረጎሙ ማረጋገጥ
+- በOpenAI፣ Claude፣ Gemini እና Responses API formatዎች መካከል ያሉ የformat ልዩነቶችን ማነጻጸር
 
 ---
 
-### የማስተላለፊያ ስልቶች
+### የRouting ስልቶች
 
-በ**Dashboard → Settings → Routing** በኩል ያዋቅሩ። Dashboard በብዛት ጥቅም ላይ የሚውሉትን ስድስት ስትራቴጂዎች ያሳያል፤ combos እና auto-router በውስጣዊ አሠራራቸው የበለጠ ሰፊ ስብስብን ይደግፋሉ።
+በ**Dashboard → Settings → Routing** በኩል ያዋቅሩ። dashboardው በብዛት ጥቅም ላይ የሚውሉትን ስድስት ስልቶች ያሳያል፤ comboዎች እና auto-router በውስጣዊ አሠራር የበለጠ ሰፊ ስብስብን ይደግፋሉ።
 
-**በDashboard ላይ የሚታዩ ስትራቴጂዎች (በመለያ ደረጃ የሚደረግ ማዘዋወር):**
+**በDashboard የሚታዩ ስልቶች (የaccount-ደረጃ routing)፦**
 
-| ስትራቴጂ                      | መግለጫ                                                                       |
-| -------------------------- | -------------------------------------------------------------------------- |
-| **መጀመሪያውን ሙላ**             | መለያዎችን በቅድሚያ ቅደም ተከተል ይጠቀማል — ዋናው መለያ እስኪገኝ እስከማይችል ድረስ ሁሉንም ጥያቄዎች ያስተናግዳል |
-| **ተራ በተራ**                 | ሊዋቀር በሚችል የቋሚነት ገደብ ሁሉንም መለያዎች በተራ ይጠቀማል (ነባሪ፦ በአንድ መለያ 3 ጥሪዎች)            |
-| **P2C (ከሁለት አማራጮች የተሻለው)** | 2 የዘፈቀደ መለያዎችን መርጦ ጤናማ ወደሆነው ያዘዋውራል — የጤና ሁኔታን ከግምት በማስገባት ጭነትን ያመጣጥናል     |
-| **የዘፈቀደ**                  | Fisher-Yates shuffleን በመጠቀም ለእያንዳንዱ ጥያቄ አንድ መለያ በዘፈቀደ ይመርጣል                |
-| **በትንሹ ጥቅም ላይ የዋለ**        | እጅግ የቆየው `lastUsedAt` timestamp ወዳለው መለያ ያዘዋውራል፣ ትራፊክንም በእኩል ያሰራጫል         |
-| **ለወጪ የተመቻቸ**              | ዝቅተኛው የቅድሚያ እሴት ወዳለው መለያ ያዘዋውራል፣ ዝቅተኛ ወጪ ላላቸው አቅራቢዎች ያመቻቻል                 |
+| ስልት                            | መግለጫ                                                                             |
+| ------------------------------ | -------------------------------------------------------------------------------- |
+| **Fill First**                 | accountዎችን በቅድሚያ ቅደም ተከተል ይጠቀማል — ዋናው account እስካልተገኘ ድረስ ሁሉንም requestዎች ያስተናግዳል |
+| **Round Robin**                | ሊዋቀር በሚችል sticky ገደብ በሁሉም accountዎች መካከል በዑደት ይሰራል (ነባሪ፦ በአንድ account 3 callዎች)  |
+| **P2C (Power of Two Choices)** | 2 የዘፈቀደ accountዎችን ይመርጥና ወደ ጤናማው route ያደርጋል — የጤና ሁኔታን ከግምት በማስገባት loadን ያመጣጥናል |
+| **Random**                     | Fisher-Yates shuffleን በመጠቀም ለእያንዳንዱ request accountን በዘፈቀደ ይመርጣል                 |
+| **Least Used**                 | የድሮው `lastUsedAt` timestamp ወዳለው account route ያደርጋል፣ trafficንም በእኩል ያሰራጫል       |
+| **Cost Optimized**             | ዝቅተኛው የpriority እሴት ወዳለው account route በማድረግ፣ ዝቅተኛ ወጪ ላላቸው providerዎች ያመቻቻል      |
 
-**የላቁ combo እና auto ስትራቴጂዎች** (ለእያንዳንዱ combo ወይም በ`auto/*` prefixes በኩል ሊዋቀሩ የሚችሉ — [AUTO-COMBO.md](../routing/AUTO-COMBO.md)ን ይመልከቱ)፦
+**የላቁ combo እና auto ስልቶች** (በእያንዳንዱ combo ወይም በ`auto/*` prefixዎች ሊዋቀሩ ይችላሉ — [AUTO-COMBO.md](../routing/AUTO-COMBO.md)ን ይመልከቱ)፦
 
-- `priority` — ጥብቅ ቅደም ተከተል፣ round-robinን ፈጽሞ አይጠቀምም
-- `weighted` — በእያንዳንዱ model ክብደት መሠረት የተመጣጠነ የትራፊክ ክፍፍል
-- `fill-first` — ገደቦች እስኪደረሱ ድረስ የመጀመሪያውን model ሙሉ በሙሉ ይጠቀማል
+- `priority` — ጥብቅ ቅደም ተከተል፤ round-robin ፈጽሞ አያደርግም
+- `weighted` — በእያንዳንዱ model weight መሠረት የtrafficን ተመጣጣኝ ክፍፍል
+- `fill-first` — ገደቦች እስኪደረስባቸው ድረስ የመጀመሪያውን model ይጠቀማል
 - `round-robin` / `strict-random` / `random`
-- `p2c` (ከሁለት አማራጮች የተሻለው)
+- `p2c` (Power of Two Choices)
 - `least-used` እና `cost-optimized`
-- `auto` — በሁሉም እጩዎች ላይ በውጤት ነጥብ የሚመራ
-- `lkgp` (በመጨረሻ ጥሩ እንደሆነ የታወቀ አቅራቢ) — በመጨረሻ ስኬታማ ወደነበረው አቅራቢ ያቆያል፣ ከዚያም ወደ ደንቦች ይመለሳል
+- `auto` — በሁሉም candidateዎች ላይ በscore የሚመራ
+- `lkgp` (Last Known Good Provider) — የመጨረሻው ስኬታማ provider ላይ ይቆያል፣ ከዚያም ወደ ruleዎች fallback ያደርጋል
 - `context-optimized` — ትልቁ ነፃ context window ያለውን model ይመርጣል
-- `context-relay` — ለቀጣይ ዙሮች ረጅም-context modelsን በሰንሰለት ያገናኛል
+- `context-relay` — ለቀጣይ turnዎች ረጅም-context modelዎችን በሰንሰለት ያገናኛል
 
-#### ውጫዊ ቋሚ Session Header
+#### የውጫዊ Sticky Session Header
 
-ለውጫዊ session affinity (ለምሳሌ፣ ከreverse proxies ጀርባ ላሉ Claude Code/Codex agents)፣ የሚከተለውን ይላኩ፦
+ለውጫዊ session affinity (ለምሳሌ፣ ከreverse proxyዎች ጀርባ ያሉ Claude Code/Codex agentዎች)፣ የሚከተለውን ይላኩ፦
 
 ```http
 X-Session-Id: your-session-key
 ```
 
-OmniRoute `x_session_id`ንም ይቀበላል፣ ተግባራዊውን session keyም በ`X-OmniRoute-Session-Id` ይመልሳል።
+OmniRoute `x_session_id`ንም ይቀበላል እና ተግባራዊውን session key በ`X-OmniRoute-Session-Id` ይመልሳል።
 
-Nginxን የሚጠቀሙ እና underscore-form headersን የሚልኩ ከሆነ፣ ይህን ያንቁ፦
+Nginxን የሚጠቀሙ እና underscore-ቅርጽ headerዎችን የሚልኩ ከሆነ፣ የሚከተለውን ያንቁ፦
 
 ```nginx
 underscores_in_headers on;
 ```
 
-#### Wildcard Model Aliases
+#### የWildcard Model Aliasዎች
 
-የmodel ስሞችን ዳግም ለመመደብ wildcard patternsን ይፍጠሩ፦
+የmodel ስሞችን እንደገና ለማመሳሰል wildcard patternዎችን ይፍጠሩ፦
 
 ```
 Pattern: claude-sonnet-*     →  Target: cc/claude-sonnet-4-6
 Pattern: gpt-*               →  Target: gh/gpt-5.3-codex
 ```
 
-Wildcards `*`ን (ማንኛውም ቁምፊዎች) እና `?`ን (አንድ ቁምፊ) ይደግፋሉ።
+Wildcardዎች `*`ን (ማንኛውም ቁምፊዎች) እና `?`ን (አንድ ቁምፊ) ይደግፋሉ።
 
-#### Fallback Chains
+#### የFallback ሰንሰለቶች
 
-በሁሉም ጥያቄዎች ላይ ተግባራዊ የሚሆኑ global fallback chainsን ይግለጹ፦
+በሁሉም requestዎች ላይ የሚተገበሩ ዓለም አቀፍ fallback ሰንሰለቶችን ይግለጹ፦
 
 ```
 Chain: production-fallback
@@ -870,52 +908,51 @@ Chain: production-fallback
 
 ---
 
-### የመቋቋም አቅም እና Circuit Breakers
+### የመቋቋም ችሎታ እና Circuit Breakerዎች
 
 በ**Dashboard → Settings → Resilience** በኩል ያዋቅሩ።
 
-OmniRoute በአቅራቢ ደረጃ የመቋቋም አቅምን በአምስት ክፍሎች ይተገብራል፦
+OmniRoute በprovider ደረጃ የመቋቋም ችሎታን በአምስት ክፍሎች ይተገብራል፦
 
-1. **የጥያቄ ወረፋ እና ፍጥነት መቆጣጠር** — በስርዓት ደረጃ የጥያቄ ፍሰት ማስተካከያ፦
-   - **ጥያቄዎች በደቂቃ (RPM)** — ለእያንዳንዱ መለያ በደቂቃ የሚፈቀደው ከፍተኛ የጥያቄዎች ብዛት
-   - **በጥያቄዎች መካከል ዝቅተኛው ጊዜ** — በጥያቄዎች መካከል በmilliseconds የሚለካ ዝቅተኛው ክፍተት
-   - **ከፍተኛው በአንድ ጊዜ የሚካሄዱ ጥያቄዎች** — ለእያንዳንዱ መለያ በአንድ ጊዜ የሚካሄዱ ከፍተኛው የጥያቄዎች ብዛት
+1. **የRequest Queue እና Pacing** — የስርዓት-ደረጃ request ቅርጽ ማስያዝ፦
+   - **Requests Per Minute (RPM)** — በአንድ account በደቂቃ የሚፈቀዱ ከፍተኛው የrequestዎች ብዛት
+   - **Min Time Between Requests** — በrequestዎች መካከል በmillisecond የሚለካ ዝቅተኛው ክፍተት
+   - **Max Concurrent Requests** — በአንድ account በአንድ ጊዜ የሚፈቀዱ ከፍተኛው የrequestዎች ብዛት
+2. **የግንኙነት ማቀዝቀዣ ጊዜ** — ዳግም ሊሞከሩ ከሚችሉ ውድቀቶች በኋላ ለአንድ ግንኙነት በማረጋገጫ አይነት የሚዋቀር ቅንብር፦
+   - **መሠረታዊ የማቀዝቀዣ ጊዜ** — ዳግም ሊሞከሩ ለሚችሉ የላይኛው አገልግሎት ውድቀቶች ነባሪ የማቀዝቀዣ ጊዜ መስኮት
+   - **የላይኛውን አገልግሎት የዳግም ሙከራ ፍንጮች ተጠቀም** — ሲቀርቡ ሥልጣን ያላቸውን `Retry-After` ወይም የዳግም ማስጀመሪያ ፍንጮች ያከብራል
+   - **ከፍተኛው የመጠባበቂያ ደረጃዎች** — ለተደጋጋሚ ውድቀቶች ከፍተኛው የኤክስፖነንሻል መጠባበቂያ ደረጃ
 
-2. **የግንኙነት ማቀዝቀዣ ጊዜ** — ዳግም ሊሞከሩ ከሚችሉ ውድቀቶች በኋላ ለአንድ ግንኙነት፣ በእያንዳንዱ auth type የሚደረግ ውቅር፦
-   - **መሠረታዊ ማቀዝቀዣ ጊዜ** — ዳግም ሊሞከሩ ለሚችሉ upstream ውድቀቶች ነባሪ የማቀዝቀዣ ጊዜ
-   - **የUpstream ዳግም ሙከራ ፍንጮችን ተጠቀም** — ሲቀርቡ ባለሥልጣን የሆኑ `Retry-After` ወይም reset ፍንጮችን ያከብራል
-   - **ከፍተኛው የBackoff ደረጃዎች** — ለተደጋጋሚ ውድቀቶች ከፍተኛው የexponential backoff ደረጃ
-
-3. **የአቅራቢ Circuit Breaker** — ከጫፍ እስከ ጫፍ የሚከሰቱ የአቅራቢ ውድቀቶችን ይከታተላል፣ በተዋቀረው የማስጠንቀቂያ ገደብ ላይ አቅራቢውን የተዳከመ ብሎ ምልክት ያደርጋል፣ እና የተዋቀረው የውድቀት ገደብ ሲደረስ breakerን ይከፍታል፦
+3. **የአቅራቢ ወረዳ መቋረጫ** — ከጫፍ እስከ ጫፍ ያሉ የአቅራቢ ውድቀቶችን ይከታተላል፣ በተዋቀረው የማስጠንቀቂያ ገደብ ላይ አቅራቢውን እንደተዳከመ ምልክት ያደርጋል፣ እንዲሁም የተዋቀረው የውድቀት ገደብ ሲደረስ መቋረጫውን ይከፍታል፦
    - **የመዳከም ገደብ** — ወደ `DEGRADED` ከመግባቱ በፊት የሚከሰቱ ተከታታይ የአቅራቢ ውድቀቶች
    - **የውድቀት ገደብ** — ወደ `OPEN` ከመግባቱ በፊት የሚከሰቱ ተከታታይ የአቅራቢ ውድቀቶች
-   - **የዳግም ማስጀመሪያ ጊዜ** — አቅራቢው እንደገና ከመፈተኑ በፊት ያለው የጊዜ መስኮት
-   - **CLOSED** (ጤናማ) — ጥያቄዎች በመደበኛነት ይፈሳሉ
-   - **DEGRADED** — ከፍ ያሉ ውድቀቶች እየተከታተሉ ጥያቄዎች አሁንም ይፈሳሉ
+   - **የዳግም ማስጀመሪያ ጊዜ ገደብ** — አቅራቢው እንደገና ከመፈተኑ በፊት ያለው የጊዜ መስኮት
+   - **CLOSED** (ጤናማ) — ጥያቄዎች በመደበኛነት ይፈስሳሉ
+   - **DEGRADED** — የጨመሩ ውድቀቶች እየተከታተሉ ጥያቄዎች መፍሰሳቸውን ይቀጥላሉ
    - **OPEN** — ከተደጋጋሚ ውድቀቶች በኋላ አቅራቢው ለጊዜው ይታገዳል
    - **HALF_OPEN** — አቅራቢው ማገገሙን በመፈተሽ ላይ
 
-   በግንኙነት ወሰን ያሉ `429` የፍጥነት ገደቦች በ**የግንኙነት ማቀዝቀዣ ጊዜ** ውስጥ ይቆያሉ፣ በአቅራቢ breaker ላይም አይቆጠሩም።
+   በግንኙነት ደረጃ ያሉ `429` የተመን ገደቦች በ**የግንኙነት ማቀዝቀዣ ጊዜ** ውስጥ ይቆያሉ እና ወደ አቅራቢው መቋረጫ አይቆጠሩም።
 
-   የአቅራቢ breaker runtime state የሚታየው በ**Dashboard → Health** ላይ ብቻ ነው።
+   የአቅራቢው መቋረጫ የአሂድ ጊዜ ሁኔታ በ**ዳሽቦርድ → ጤና** ላይ ብቻ ይታያል።
 
-4. **ማቀዝቀዣውን ጠብቅ** — እያንዳንዱ እጩ ግንኙነት አስቀድሞ በማቀዝቀዣ ጊዜ ላይ ከሆነ፣ OmniRoute ቀድሞ የሚያበቃውን የማቀዝቀዣ ጊዜ ጠብቆ ያንኑ የclient ጥያቄ በራስ-ሰር እንደገና ሊሞክር ይችላል።
+4. **የማቀዝቀዣ ጊዜን ጠብቅ** — ሁሉም ዕጩ ግንኙነቶች ቀድሞውኑ በማቀዝቀዝ ላይ ከሆኑ፣ OmniRoute በቅድሚያ እስከሚያበቃው የማቀዝቀዣ ጊዜ ድረስ በመጠበቅ ተመሳሳዩን የደንበኛ ጥያቄ በራስ-ሰር እንደገና ሊሞክር ይችላል።
 
-5. **የፍጥነት ገደብ ራስ-ሰር ማወቂያ** — upstream አቅራቢዎች ግልጽ የመጠበቂያ ጊዜዎችን ሲመልሱ፣ ቅንብሩ ከነቃ እነዚያ ፍንጮች ከአካባቢያዊው የግንኙነት ማቀዝቀዣ ጊዜ ይልቅ ቅድሚያ ያገኛሉ።
+5. **የተመን ገደብ ራስ-ሰር ማወቂያ** — የላይኛው አገልግሎት አቅራቢዎች ግልጽ የጥበቃ ጊዜ መስኮቶችን ሲመልሱ፣ ቅንብሩ ከነቃ እነዚያ ፍንጮች የአካባቢውን የግንኙነት ማቀዝቀዣ ጊዜ ይተካሉ።
 
-**የባለሙያ ምክር፦** ከአገልግሎት መቋረጥ በኋላ ንቁ የአቅራቢ breakersን ለመመርመር እና ዳግም ለማስጀመር የ**Health** ገጽን ይጠቀሙ። Resilience ገጹ የሚቀይረው ውቅረትን ብቻ ነው።
+**የባለሙያ ምክር፦** ከአገልግሎት መቋረጥ በኋላ ንቁ የአቅራቢ መቋረጫዎችን ለመመርመር እና ዳግም ለማስጀመር **ጤና** ገጹን ይጠቀሙ። የመቋቋም ችሎታ ገጹ የሚቀይረው ውቅረትን ብቻ ነው።
 
 ---
 
-### የDatabase ወደ ውጭ መላክ / ወደ ውስጥ ማስገባት
+### የውሂብ ጎታ ወደ ውጭ መላክ / ወደ ውስጥ ማስገባት
 
-የdatabase backupsን በ**Dashboard → Settings → System & Storage** ያስተዳድሩ።
+የውሂብ ጎታ ምትኬዎችን በ**ዳሽቦርድ → ቅንብሮች → ስርዓት እና ማከማቻ** ውስጥ ያስተዳድሩ።
 
-| ድርጊት                        | መግለጫ                                                                                                             |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| **የውሂብ ጎታ ወደ ውጭ ላክ**        | የአሁኑን SQLite የውሂብ ጎታ እንደ `.sqlite` ፋይል ያወርዳል                                                                     |
-| **ሁሉንም ወደ ውጭ ላክ (.tar.gz)** | የሚከተሉትን ያካተተ ሙሉ የምትኬ ማህደር ያወርዳል፦ የውሂብ ጎታ፣ ቅንብሮች፣ ጥምረቶች፣ የአቅራቢ ግንኙነቶች (ማረጋገጫዎችን ሳያካትት)፣ የAPI ቁልፍ ሜታዳታ             |
-| **የውሂብ ጎታ አስመጣ**            | የአሁኑን የውሂብ ጎታ ለመተካት `.sqlite` ፋይል ይሰቅላል። `DISABLE_SQLITE_AUTO_BACKUP=true` ካልሆነ በቀር፣ ከማስመጣት በፊት ምትኬ በራስ-ሰር ይፈጠራል |
+| እርምጃ                        | መግለጫ                                                                                                           |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **የውሂብ ጎታን ወደ ውጭ ላክ**       | የአሁኑን SQLite የውሂብ ጎታ እንደ `.sqlite` ፋይል ያወርዳል                                                                   |
+| **ሁሉንም ወደ ውጭ ላክ (.tar.gz)** | የውሂብ ጎታ፣ ቅንብሮች፣ ጥምረቶች፣ የአቅራቢ ግንኙነቶች (ምስክርነቶችን ሳያካትት) እና የAPI ቁልፍ ሜታዳታን ያካተተ ሙሉ የምትኬ ማህደር ያወርዳል                 |
+| **የውሂብ ጎታን ወደ ውስጥ አስገባ**    | የአሁኑን የውሂብ ጎታ ለመተካት `.sqlite` ፋይል ይሰቅላል። `DISABLE_SQLITE_AUTO_BACKUP=true` ካልሆነ በቀር ቅድመ-ማስገባት ምትኬ በራስ-ሰር ይፈጠራል |
 
 ```bash
 # API፦ የውሂብ ጎታን ወደ ውጭ ላክ
@@ -924,38 +961,38 @@ curl -o backup.sqlite http://localhost:20128/api/db-backups/export
 # API፦ ሁሉንም ወደ ውጭ ላክ (ሙሉ ማህደር)
 curl -o backup.tar.gz http://localhost:20128/api/db-backups/exportAll
 
-# API፦ የውሂብ ጎታን አስመጣ
+# API፦ የውሂብ ጎታን ወደ ውስጥ አስገባ
 curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**የማስመጣት ማረጋገጫ፦** የመጣው ፋይል ለትክክለኛነት (የSQLite pragma ምርመራ)፣ ለሚያስፈልጉ ሰንጠረዦች (`provider_connections`፣ `provider_nodes`፣ `combos`፣ `api_keys`) እና ለመጠን (ከፍተኛው 100MB) ይረጋገጣል።
+**የማስገባት ማረጋገጫ፦** ወደ ውስጥ የገባው ፋይል ለታማኝነት (የSQLite pragma ማረጋገጫ)፣ ለአስፈላጊ ሰንጠረዦች (`provider_connections`፣ `provider_nodes`፣ `combos`፣ `api_keys`) እና ለመጠን (ከፍተኛው 100MB) ይረጋገጣል።
 
 **የአጠቃቀም ሁኔታዎች፦**
 
-- OmniRouteን በማሽኖች መካከል ማዛወር
-- ለአደጋ ማገገሚያ ውጫዊ ምትኬዎችን መፍጠር
-- ቅንብሮችን በቡድን አባላት መካከል ማጋራት (ሁሉንም ወደ ውጭ ላክ → ማህደሩን አጋራ)
+- OmniRouteን በማሽኖች መካከል ያዛውሩ
+- ለአደጋ መልሶ ማግኛ ውጫዊ ምትኬዎችን ይፍጠሩ
+- ቅንብሮችን በቡድን አባላት መካከል ያጋሩ (ሁሉንም ወደ ውጭ ላክ → ማህደሩን አጋራ)
 
 ---
 
 ### የቅንብሮች ዳሽቦርድ
 
-ለቀላል አሰሳ፣ የቅንብሮች ገጹ በ**7 ትሮች** ተደራጅቷል፦
+ለቀላል አሰሳ የቅንብሮች ገጹ በ**7 ትሮች** ተደራጅቷል፦
 
-| ትር          | ይዘቶች                                                                                                                                           |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| **አጠቃላይ**   | የስርዓት ማከማቻ መሣሪያዎች፣ ነባሪ ባህሪ፣ የEndpoint ቱነል ታይነት                                                                                                 |
-| **ገጽታ**     | የገጽታ መቆጣጠሪያዎች (ብርሃን/ጨለማ/ስርዓት)፣ የጎን አሞሌ ታይነት፣ ለCloudflare/Tailscale/ngrok ቱነል ካርዶች የፓነል መቀያየሪያዎች                                                |
-| **AI**      | የአስተሳሰብ በጀት (እንዳለ ማሳለፍ / በራስ-ሰር ማስወገድ / ብጁ / ተስማሚ — [THINKING_BUDGET.md](./THINKING_BUDGET.md)ን ይመልከቱ)፣ ዓለም አቀፍ የስርዓት መመሪያ፣ የመመሪያ መሸጎጫ ስታቲስቲክስ |
-| **ደህንነት**   | የመግቢያ/የይለፍ ቃል ቅንብሮች፣ የIP መዳረሻ ቁጥጥር፣ ለ`/models` የAPI ማረጋገጫ፣ የአቅራቢ እገዳ፣ ከመመሪያ-መርፌ ጥቃት መከላከያ                                                      |
-| **ማስተላለፊያ** | ዓለም አቀፍ የማስተላለፊያ ስልት (መጀመሪያ ሙላ / ተራ በተራ / P2C / የዘፈቀደ / በትንሹ ጥቅም ላይ የዋለ / ወጪ-የተመቻቸ)፣ የዋይልድካርድ ሞዴል ተለዋጭ ስሞች፣ የመጠባበቂያ ሰንሰለቶች፣ የጥምረት ነባሪዎች        |
-| **ጽናት**     | የጥያቄ ወረፋ፣ የግንኙነት ማቀዝቀዣ ጊዜ፣ የአቅራቢ ወረዳ መቋረጫ ውቅር እና ማቀዝቀዣውን የመጠበቅ ባህሪ                                                                             |
-| **የላቀ**     | ዓለም አቀፍ የፕሮክሲ ውቅር (HTTP/SOCKS5)፣ ለእያንዳንዱ አቅራቢ የፕሮክሲ መሻሮች                                                                                       |
+| ትር            | ይዘቶች                                                                                                                                        |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **አጠቃላይ**     | የስርዓት ማከማቻ መሣሪያዎች፣ ነባሪ ባህሪ፣ የEndpoint መሿለኪያ ታይነት                                                                                            |
+| **ገጽታ**       | የገጽታ መቆጣጠሪያዎች (ብርሃን/ጨለማ/ስርዓት)፣ የጎን አሞሌ ታይነት፣ ለCloudflare/Tailscale/ngrok መሿለኪያ ካርዶች የፓነል መቀያየሪያዎች                                           |
+| **AI**        | የማሰብ በጀት (እንዳለ ማሳለፍ / ራስ-ሰር ማስወገድ / ብጁ / ተለማማጅ — [THINKING_BUDGET.md](./THINKING_BUDGET.md)ን ይመልከቱ)፣ ዓለም አቀፍ የስርዓት መመሪያ፣ የመመሪያ መሸጎጫ ስታቲስቲክስ |
+| **ደህንነት**     | የመግቢያ/የይለፍ ቃል ቅንብሮች፣ የIP መዳረሻ ቁጥጥር፣ ለ`/models` የAPI ማረጋገጫ፣ የአቅራቢ እገዳ፣ የመመሪያ-መርፌ ጥበቃ                                                         |
+| **ማዘዋወር**     | ዓለም አቀፍ የማዘዋወር ስልት (መጀመሪያ ሙላ / ተራ በተራ / P2C / የዘፈቀደ / በትንሹ ጥቅም ላይ የዋለ / በወጪ የተመቻቸ)፣ የሁሉን አቀፍ ምልክት ሞዴል ቅጽል ስሞች፣ የመጠባበቂያ ሰንሰለቶች፣ የጥምረት ነባሪዎች  |
+| **የመቋቋም ችሎታ** | የጥያቄ ወረፋ፣ የግንኙነት ማቀዝቀዣ ጊዜ፣ የአቅራቢ መቋረጫ ውቅር እና የማቀዝቀዣ ጊዜን የመጠበቅ ባህሪ                                                                           |
+| **የላቀ**       | ዓለም አቀፍ የወኪል አገልጋይ ውቅር (HTTP/SOCKS5)፣ በእያንዳንዱ አቅራቢ የወኪል አገልጋይ መሻር                                                                           |
 
-አጠቃላይ ከአሁን በኋላ ተደጋጋሚ የሆኑ ተነባቢ-ብቻ የምዝግብ እና የመሸጎጫ ማስታወሻዎችን አያካትትም። የውሂብ ጎታ ማቆያ እና
-ማመቻቻ ቅንብሮች በ`/api/settings/database` በኩል በቋሚነት ይቀመጣሉ፤ መሸጎጫን በእጅ ማጽዳት
-`DELETE /api/cache`ን ይጠቀማል። የጥያቄ እና የፕሮክሲ ምዝግብ ረድፍ ገደቦች በ
+አጠቃላይ ከአሁን በኋላ ተነባቢ-ብቻ የሆኑ የምዝግብ እና የመሸጎጫ ማስታወሻዎችን አያባዛም። የውሂብ ጎታ ማቆያ እና
+የማመቻቸት ቅንብሮች በ`/api/settings/database` በኩል በቋሚነት ይቀመጣሉ፤ መሸጎጫን በእጅ ለማጽዳት
+`DELETE /api/cache` ይጠቀማል። የጥያቄ እና የወኪል አገልጋይ ምዝግብ ረድፍ ገደቦች በ
 `CALL_LOGS_TABLE_MAX_ROWS` እና `PROXY_LOGS_TABLE_MAX_ROWS` ይቆጣጠራሉ።
 
 ---
@@ -964,55 +1001,55 @@ curl -X POST http://localhost:20128/api/db-backups/import \
 
 በ**ዳሽቦርድ → ወጪዎች** በኩል ይድረሱበት።
 
-| ትር          | ዓላማ                                                                          |
-| ----------- | ---------------------------------------------------------------------------- |
-| **በጀት**     | ለእያንዳንዱ API ቁልፍ ዕለታዊ/ሳምንታዊ/ወርሃዊ በጀቶች እና የቅጽበታዊ ክትትል ያላቸው የወጪ ገደቦችን ያዘጋጁ      |
-| **ዋጋ አሰጣጥ** | የሞዴል ዋጋ አሰጣጥ ግቤቶችን ይመልከቱ እና ያርትዑ — ለእያንዳንዱ አቅራቢ በ1K የግብዓት/የውጤት ቶከኖች የሚከፈል ወጪ |
+| ትር          | ዓላማ                                                                   |
+| ----------- | --------------------------------------------------------------------- |
+| **በጀት**     | በዕለታዊ/ሳምንታዊ/ወርሃዊ በጀቶች እና በቅጽበታዊ ክትትል ለእያንዳንዱ API ቁልፍ የወጪ ገደቦችን ያዘጋጁ   |
+| **ዋጋ አወጣጥ** | የሞዴል ዋጋ አወጣጥ ግቤቶችን ይመልከቱ እና ያርትዑ — በእያንዳንዱ አቅራቢ ለ1K የግቤት/የውጤት ቶከኖች ወጪ |
 
 ```bash
-# API፦ በጀት አዘጋጅ
+# API: በጀት ያዘጋጁ
 curl -X POST http://localhost:20128/api/usage/budget \
   -H "Content-Type: application/json" \
   -d '{"keyId": "key-123", "limit": 50.00, "period": "monthly"}'
 
-# API፦ የአሁኑን የበጀት ሁኔታ አግኝ
+# API: የአሁኑን የበጀት ሁኔታ ያግኙ
 curl http://localhost:20128/api/usage/budget
 ```
 
-**የወጪ ክትትል፦** እያንዳንዱ ጥያቄ የቶከን አጠቃቀምን ይመዘግባል እና የዋጋ አሰጣጥ ሰንጠረዡን በመጠቀም ወጪውን ያሰላል። ዝርዝሮችን በአቅራቢ፣ በሞዴል እና በAPI ቁልፍ በ**ዳሽቦርድ → አጠቃቀም** ውስጥ ይመልከቱ።
+**የወጪ ክትትል፦** እያንዳንዱ ጥያቄ የቶከን አጠቃቀምን ይመዘግባል፣ እንዲሁም የዋጋ ሰንጠረዡን በመጠቀም ወጪውን ያሰላል። በአቅራቢ፣ በሞዴል እና በAPI ቁልፍ የተከፋፈሉ ዝርዝሮችን በ**ዳሽቦርድ → አጠቃቀም** ይመልከቱ።
 
 ---
 
-### የድምፅ ወደ ጽሑፍ ቅጂ
+### የድምፅ ቅጂ ወደ ጽሑፍ መቀየር
 
-OmniRoute OpenAI-ተኳሃኝ በሆነው Endpoint በኩል የድምፅ ወደ ጽሑፍ ቅጂን ይደግፋል፦
+OmniRoute ከOpenAI ጋር ተኳሃኝ በሆነው መዳረሻ በኩል የድምፅ ቅጂን ወደ ጽሑፍ መቀየርን ይደግፋል፦
 
 ```bash
 POST /v1/audio/transcriptions
 Authorization: Bearer your-api-key
 Content-Type: multipart/form-data
 
-# ምሳሌ በcurl
+# curlን የሚጠቀም ምሳሌ
 curl -X POST http://localhost:20128/v1/audio/transcriptions \
   -H "Authorization: Bearer your-api-key" \
   -F "file=@audio.mp3" \
   -F "model=openai/whisper-1"
 ```
 
-`deepgram/nova-3` ቤተኛው የDeepgram መስመር ሲሆን፣ የDeepgram API ቁልፍ ያስፈልገዋል።
+`deepgram/nova-3` ቤተኛው የDeepgram መስመር ሲሆን የDeepgram API ቁልፍ ያስፈልገዋል።
 OpenRouter ብቻ ከተዋቀረ፣ `openrouter/deepgram/nova-3`ን ይጠቀሙ።
 
-**ድምፅ-ወደ-ጽሑፍ (ቅጂ)** አቅራቢዎች፦
+**ንግግር-ወደ-ጽሑፍ (የድምፅ ቅጂ ወደ ጽሑፍ መቀየር)** አቅራቢዎች፦
 
 - `openai/` (ከwhisper ጋር ተኳሃኝ)
 - `groq/` (Groq Whisper Turbo)
-- `deepgram/` (Nova ቤተሰብ)
+- `deepgram/` (Nova ምድብ)
 - `assemblyai/`
 - `nvidia/` (Parakeet፣ Canary)
-- `huggingface/` (የwhisper ተለዋጮች)
+- `huggingface/` (የwhisper ልዩነቶች)
 - `qwen/`
 
-**ጽሑፍ-ወደ-ድምፅ (`POST /v1/audio/speech`)** አቅራቢዎች፦
+**ጽሑፍ-ወደ-ንግግር (`POST /v1/audio/speech`)** አቅራቢዎች፦
 
 - `openai/` (tts-1፣ tts-1-hd)
 - `hyperbolic/`
@@ -1026,57 +1063,57 @@ OpenRouter ብቻ ከተዋቀረ፣ `openrouter/deepgram/nova-3`ን ይጠቀ�
 - `kie/`
 - `aws-polly/`
 - `xiaomi-mimo/`
-- `coqui/`፣ `tortoise/`
+- `coqui/`, `tortoise/`
 - `qwen/`
 
-ለድምፅ ወደ ጽሑፍ ቅጂ የሚደገፉ የድምፅ ቅርጸቶች፦ `mp3`፣ `wav`፣ `m4a`፣ `flac`፣ `ogg`፣ `webm`። የTTS ውጤት ቅርጸቶች በአቅራቢው ላይ ይመሰረታሉ (mp3፣ wav፣ opus፣ pcm፣ mulaw)።
+የድምፅ ቅጂን ወደ ጽሑፍ ለመቀየር የሚደገፉ የድምፅ ቅርጸቶች፦ `mp3`፣ `wav`፣ `m4a`፣ `flac`፣ `ogg`፣ `webm`። የTTS ውፅዓት ቅርጸቶች በአቅራቢው ላይ ይመረኮዛሉ (mp3፣ wav፣ opus፣ pcm፣ mulaw)።
 
 ---
 
-### የጥምረት ማመጣጠኛ ስልቶች
+### የጥምር ማመጣጠኛ ስልቶች
 
-የእያንዳንዱን ጥምረት ማመጣጠኛ በ**ዳሽቦርድ → ጥምረቶች → ፍጠር/አርትዕ → ስልት** ውስጥ ያዋቅሩ።
+የእያንዳንዱን ጥምር ማመጣጠኛ በ**ዳሽቦርድ → ጥምሮች → ፍጠር/አርትዕ → ስልት** ያዋቅሩ።
 
-| ስትራቴጂ               | መግለጫ                                                        |
-| ------------------- | ----------------------------------------------------------- |
-| **ተራ-በተራ**          | በሞዴሎች መካከል በቅደም ተከተል ይዘዋወራል                                 |
-| **ቅድሚያ**            | ሁልጊዜ የመጀመሪያውን ሞዴል ይሞክራል፤ ስህተት ሲኖር ብቻ ወደ ተተኪው ይመለሳል          |
-| **የዘፈቀደ**           | ለእያንዳንዱ ጥያቄ ከጥምሩ ውስጥ አንድ ሞዴል በዘፈቀደ ይመርጣል                    |
-| **ክብደት-ተኮር**        | ለእያንዳንዱ ሞዴል በተመደቡ ክብደቶች መሠረት ጥያቄዎችን በተመጣጣኝ ሁኔታ ይመራል         |
-| **በትንሹ-ጥቅም-ላይ-የዋለ** | በቅርብ ጊዜ ከሁሉም ያነሱ ጥያቄዎች ወደነበሩት ሞዴል ይመራል (የጥምር መለኪያዎችን ይጠቀማል) |
-| **ወጪ-የተመቻቸ**        | ካሉት ሞዴሎች ወደ ርካሹ ይመራል (የዋጋ ሰንጠረዡን ይጠቀማል)                     |
+| ስልት                 | መግለጫ                                                         |
+| ------------------- | ------------------------------------------------------------ |
+| **ተራ-በ-ተራ**         | በሞዴሎች መካከል በቅደም ተከተል ይዘዋወራል                                  |
+| **ቅድሚያ**            | ሁልጊዜ የመጀመሪያውን ሞዴል ይሞክራል፤ ስህተት ሲኖር ብቻ ወደ ተተኪ ይሸጋገራል           |
+| **የዘፈቀደ**           | ለእያንዳንዱ ጥያቄ ከጥምሩ ውስጥ የዘፈቀደ ሞዴል ይመርጣል                         |
+| **ክብደት-ተኮር**        | ለእያንዳንዱ ሞዴል በተመደቡ ክብደቶች መሠረት ጥያቄዎችን በተመጣጣኝ ሁኔታ ያሰራጫል         |
+| **በትንሹ-ጥቅም-ላይ-የዋለ** | በቅርብ ጊዜ አነስተኛውን የጥያቄ ብዛት ወዳለው ሞዴል ያሰራጫል (የጥምር መለኪያዎችን ይጠቀማል) |
+| **ወጪ-የተመቻቸ**        | ካሉት ውስጥ ርካሹ ወደሆነው ሞዴል ያሰራጫል (የዋጋ ሰንጠረዡን ይጠቀማል)               |
 
-ዓለም አቀፍ የጥምር ነባሪዎችን በ**ዳሽቦርድ → ቅንብሮች → ማዘዋወር → የጥምር ነባሪዎች** ውስጥ ማዋቀር ይቻላል።
-የጥምር ዒላማ የጊዜ ገደቦች በነባሪነት የአሁኑን የጥያቄ ጊዜ ገደብ ይወርሳሉ። አጭር የየዒላማው ገደብ
-ፈጣን ወደ ተተኪ መመለስን ማስጀመር ሲኖርበት ብቻ በጥምር ነባሪዎች ወይም በግለሰብ ጥምር ላይ **የዒላማ ጊዜ ገደብ
+ዓለም አቀፍ የጥምር ነባሪዎችን በ**ዳሽቦርድ → ቅንብሮች → ማሰራጨት → የጥምር ነባሪዎች** ማዘጋጀት ይቻላል።
+የጥምር ዒላማ የጊዜ ገደቦች በነባሪነት የአሁኑን የጥያቄ ጊዜ ገደብ ይወርሳሉ። አጭር የእያንዳንዱ ዒላማ ገደብ
+ፈጣን ወደ ተተኪ መሸጋገርን ማስነሳት ሲኖርበት ብቻ፣ በጥምር ነባሪዎች ወይም በተናጠል ጥምር ላይ **የዒላማ ጊዜ ገደብ
 (ሰከንዶች)**ን ይጠቀሙ።
 
-ዜሮ-መዘግየት ያላቸው የጥምር ማመቻቻዎች በፈቃደኝነት የሚነቁ ናቸው። እነዚህ የመዘግየት ባህሪያት ከተተኪ ዒላማዎች ጋር እንዳይሽቀዳደሙ፣ በTTFT
-ታሪክ መሠረት ዒላማዎችን እንዳይዘሉ ወይም የተተኪ ጥያቄዎችን እንዳያመቁ **ዜሮ-መዘግየት ማመቻቻዎች**ን እንደተሰናከሉ ይተዉ፤ ማንቃት የተዋቀረ ትይዩ ጥያቄ መላክን፣ ትንበያዊ የTTFT
-ዝለላዎችን እና ንቁ የተተኪ ጥያቄ ማመቅን በመፍቀድ የማዘዋወር/የጥያቄ ታማኝነትን ለዝቅተኛ የመጨረሻ-ጅራት
-መዘግየት ይለውጣል።
+ዜሮ-መዘግየት ያላቸው የጥምር ማመቻቸቶች በምርጫ ብቻ የሚነቁ ናቸው። እነዚህ የመዘግየት ባህሪያት ተተኪ ዒላማዎችን በፉክክር እንዳያስኬዱ፣ በTTFT
+ታሪክ ላይ ተመሥርተው ዒላማዎችን እንዳይዘሉ ወይም የተተኪ ጥያቄዎችን እንዳይጨምቁ፣ **የዜሮ-መዘግየት ማመቻቸቶች**ን እንደተሰናከለ ይተዉት፤
+ማንቃቱ የተዋቀረ ትይዩ ጥያቄ መላክን፣ ትንበያዊ የTTFT መዝለሎችን እና አስቀድሞ የሚደረግ የተተኪ ጥያቄ መጭመቅን በማስቻል፣ የማሰራጨት/ጥያቄ ታማኝነትን
+ለዝቅተኛ የጽንፍ መዘግየት ይለውጣል።
 
-የላይኛው አቅራቢዎች ጥብቅ የ
-`max_tokens` / `maxOutputTokens` ገደቦችን ሲጠይቁ **የምክንያታዊነት ቶከን ቋት**ን ያሰናክሉ። ሲነቃ፣ የጥምር ማዘዋወር የምክንያታዊነት ሞዴል
-ተጨማሪ ቦታን የሚጨምረው የሚታወቅ የውጤት ጣሪያ ላላቸው ሞዴሎች ብቻ ሲሆን፣ ደህንነቱ የተጠበቀው በቋት የተጨመረ እሴት ያንን ጣሪያ የሚያልፍ ከሆነ የደንበኛውን የቶከን ገደብ ሳይቀይር ይተዋል።
-የደንበኛው ገደብ ከታወቀ ጣሪያ በላይ ከሆነ፣ OmniRoute ጥያቄውን ወደ ላይኛው አቅራቢ ከመላኩ በፊት እስከዚያ ጣሪያ ድረስ ይቀንሰዋል።
+ወደላይ ያሉ አቅራቢዎች ጥብቅ
+`max_tokens` / `maxOutputTokens` ገደቦችን ሲፈልጉ **የምክንያታዊነት ቶከን ቋት**ን ያሰናክሉ። ሲነቃ፣ የጥምር ማሰራጨት የሚታወቅ የውፅዓት ጣሪያ ላላቸው ሞዴሎች ብቻ
+የምክንያታዊነት ሞዴል ተጨማሪ ቦታ ይጨምራል፣ እና ደህንነቱ የተጠበቀው የቋት እሴት ያንን ጣሪያ የሚያልፍ ከሆነ የደንበኛውን የቶከን ገደብ ሳይቀይር ይተዋል። የደንበኛው ገደብ ከታወቀ ጣሪያ ቀድሞውኑ ከፍ ያለ ከሆነ፣
+OmniRoute ጥያቄውን ወደ ላይኛው አቅራቢ ከመላኩ በፊት ወደዚያ ጣሪያ ይቀንሰዋል።
 
 ---
 
-### የጤና ዳሽቦርድ
+### የሥርዓት ጤና ዳሽቦርድ
 
-በ**ዳሽቦርድ → ጤና** በኩል ይድረሱበት። 6 ካርዶች ያሉት የእውነተኛ ጊዜ የስርዓት ጤና አጠቃላይ እይታ፦
+በ**ዳሽቦርድ → ጤና** በኩል ይድረሱበት። የአሁናዊ ጊዜ የሥርዓት ጤና አጠቃላይ እይታ በ6 ካርዶች፦
 
-| ካርድ              | የሚያሳየው                                            |
-| ---------------- | ------------------------------------------------- |
-| **የስርዓት ሁኔታ**    | የሥራ ጊዜ፣ ስሪት፣ የማህደረ ትውስታ አጠቃቀም፣ የውሂብ ማውጫ           |
-| **የአቅራቢ ጤና**     | የዓለም አቀፍ አቅራቢ ሰርኪት መቆራረጫ የአሂድ ጊዜ ሁኔታ              |
-| **የፍጥነት ገደቦች**   | በእያንዳንዱ መለያ ላይ ያሉ ንቁ የግንኙነት የማቀዝቀዣ ጊዜያት ከቀሪ ጊዜ ጋር |
-| **ንቁ መቆለፎች**     | ንቁ ሞዴል-ወሰን ያላቸው መቆለፎች እና ጊዜያዊ ማግለሎች               |
-| **የፊርማ መሸጎጫ**    | የብዜት ማስወገጃ መሸጎጫ ስታቲስቲክስ (ንቁ ቁልፎች፣ የስኬት መጠን)       |
-| **የመዘግየት ቴሌሜትሪ** | ለእያንዳንዱ አቅራቢ የp50/p95/p99 መዘግየት ድምር               |
+| ካርድ              | የሚያሳየው                                      |
+| ---------------- | ------------------------------------------- |
+| **የሥርዓት ሁኔታ**    | የሥራ ላይ ቆይታ፣ ስሪት፣ የማህደረ ትውስታ አጠቃቀም፣ የውሂብ ማውጫ |
+| **የአቅራቢ ጤና**     | ዓለም አቀፍ የአቅራቢ የወረዳ መቋረጫ የአሂድ ጊዜ ሁኔታ         |
+| **የፍጥነት ገደቦች**   | ለእያንዳንዱ መለያ ንቁ የግንኙነት ማቀዝቀዣዎች ከቀሪ ጊዜ ጋር     |
+| **ንቁ እገዳዎች**     | ንቁ በሞዴል የተወሰኑ እገዳዎች እና ጊዜያዊ ማግለያዎች          |
+| **የፊርማ መሸጎጫ**    | የብዜት ማስወገጃ መሸጎጫ ስታቲስቲክስ (ንቁ ቁልፎች፣ የስኬት መጠን) |
+| **የመዘግየት ቴሌሜትሪ** | የp50/p95/p99 መዘግየት ድምር በእያንዳንዱ አቅራቢ         |
 
-**የባለሙያ ምክር፦** የጤና ገጹ በየ10 ሰከንዱ በራስ-ሰር ይታደሳል። የትኞቹ አቅራቢዎች ችግር እያጋጠማቸው እንደሆነ ለመለየት የሰርኪት መቆራረጫ ካርዱን ይጠቀሙ።
+**የባለሙያ ምክር፦** የጤና ገጹ በየ10 ሰከንዱ በራስ-ሰር ይታደሳል። የትኞቹ አቅራቢዎች ችግር እያጋጠማቸው እንደሆነ ለመለየት የወረዳ መቋረጫ ካርዱን ይጠቀሙ።
 
 ---
 
@@ -1198,9 +1235,9 @@ OmniRoute ረጅም ጊዜ የሚወስዱ ተግባራትን የአካባቢዎ
 
 ## 🛠️ ፕሮግራማዊ አስተዳደር
 
-**የ`manage` ወሰን ያለውን Bearer ቁልፍ** በመጠቀም ሁሉንም የOmniRoute ሀብቶች (አቅራቢዎች፣ combos፣ ቁልፎች፣ ቅንብሮች) በHTTP በኩል ማስተዳደር ይችላሉ።
+**`manage` ወሰን ያለውን Bearer ቁልፍ** በመጠቀም እያንዳንዱን የOmniRoute ሀብት (አቅራቢዎች፣ ጥምረቶች፣ ቁልፎች፣ ቅንብሮች) በHTTP ማስተዳደር ይችላሉ።
 
-ቁልፉን በ**Dashboard → API Keys → New Key → Scope: manage** ውስጥ ያመንጩ፣ ከዚያም፦
+ቁልፉን በ**ዳሽቦርድ → API ቁልፎች → አዲስ ቁልፍ → ወሰን፦ manage** ውስጥ ይፍጠሩ፣ ከዚያ፦
 
 ```bash
 # አቅራቢዎችን ዘርዝር
@@ -1213,7 +1250,7 @@ curl -X POST http://localhost:20128/api/providers \
   -H "Content-Type: application/json" \
   -d '{ "provider": "openai", "apiKey": "sk-...", "name": "main" }'
 
-# combo ፍጠር
+# ጥምረት ፍጠር
 curl -X POST http://localhost:20128/api/combos \
   -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
   -H "Content-Type: application/json" \
@@ -1225,7 +1262,7 @@ curl -X POST http://localhost:20128/api/keys -H "Authorization: Bearer $OMNIROUT
   -d '{ "name": "ci-bot", "scopes": ["chat"] }'
 ```
 
-ሙሉውን የመገናኛ ነጥቦች ዝርዝር እና የጥያቄ/ምላሽ እቅዶች ለማየት [API_REFERENCE.md](../reference/API_REFERENCE.md) ይመልከቱ።
+ሙሉውን የendpoint ካታሎግ እና የጥያቄ/ምላሽ ንድፎች ለማየት [API_REFERENCE.md](../reference/API_REFERENCE.md)ን ይመልከቱ።
 
 ---
 

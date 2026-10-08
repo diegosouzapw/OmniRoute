@@ -7,6 +7,10 @@ const providerLimitUtils =
   await import("../../src/app/(dashboard)/dashboard/usage/components/ProviderLimits/utils.tsx");
 const providerConstants = await import("../../src/shared/constants/providers.ts");
 const settingsSchemas = await import("../../src/shared/validation/settingsSchemas.ts");
+const resetCreditModal =
+  await import("../../src/app/(dashboard)/dashboard/usage/components/ProviderLimits/CodexResetCreditsModal.tsx");
+const resetCreditRedemption =
+  await import("../../src/app/(dashboard)/dashboard/usage/components/ProviderLimits/useCodexResetCreditRedemption.ts");
 
 type ParsedQuota = {
   name?: string;
@@ -212,6 +216,69 @@ test("Codex banked reset credits parse as an integer reset-credit counter", () =
   assert.equal(resetCredits.creditCount, 2);
 });
 
+test("reset-credit modal uses provider-specific titles and confirmations", () => {
+  const tr = (_key: string, fallback: string) => fallback;
+  const upstreamTitle = { selectionToken: "card-1", title: "Bonus card" };
+
+  assert.equal(
+    resetCreditModal.getResetCreditWindowTitle("codex", upstreamTitle, tr),
+    "Bonus card"
+  );
+  assert.equal(
+    resetCreditModal.getResetCreditWindowTitle("glm", upstreamTitle, tr),
+    "5-hour window reset · Bonus card"
+  );
+  assert.equal(
+    resetCreditModal.getResetCreditWindowTitle("zai", { ...upstreamTitle, resetType: "WEEK" }, tr),
+    "Weekly window reset · Bonus card"
+  );
+  assert.match(
+    resetCreditModal.getResetCreditConfirmation("codex", undefined, tr),
+    /Codex usage windows/
+  );
+  assert.match(resetCreditModal.getResetCreditConfirmation("glm", "FIVE_HOUR", tr), /5-hour/);
+  assert.match(resetCreditModal.getResetCreditConfirmation("glm-cn", "WEEK", tr), /weekly/);
+});
+
+test("committed refresh fallback preserves usage windows and decrements only reset cards", () => {
+  const session = { name: "session", used: 50, total: 100 };
+  const entry = {
+    quotas: [
+      session,
+      {
+        name: "banked_reset_credits",
+        isResetCredits: true,
+        remaining: 2,
+        creditCount: 2,
+      },
+    ],
+    raw: { bankedResetCredits: 2, quotas: { session } },
+    plan: "pro",
+  };
+
+  const decremented = resetCreditRedemption.applyCommittedResetCreditFallback(entry);
+  assert.deepEqual(decremented.quotas, [
+    session,
+    {
+      name: "banked_reset_credits",
+      isResetCredits: true,
+      remaining: 1,
+      creditCount: 1,
+    },
+  ]);
+  assert.equal(decremented.raw.bankedResetCredits, 1);
+  assert.deepEqual(decremented.raw.quotas, entry.raw.quotas);
+  assert.equal(decremented.plan, "pro");
+
+  const exhausted = resetCreditRedemption.applyCommittedResetCreditFallback({
+    ...entry,
+    quotas: [{ isResetCredits: true, remaining: 1, creditCount: 1 }],
+    raw: { ...entry.raw, bankedResetCredits: 1 },
+  });
+  assert.deepEqual(exhausted.quotas, []);
+  assert.equal(exhausted.raw.bankedResetCredits, 0);
+});
+
 test("quota labels normalize session and weekly windows while preserving readable titles", () => {
   assert.equal(providerLimitUtils.formatQuotaLabel("session"), "Session");
   assert.equal(providerLimitUtils.formatQuotaLabel("session (5h)"), "Session");
@@ -268,19 +335,25 @@ test("MiniMax quota payloads use generic provider parsing and stale resets still
   assert.equal(providerLimitUtils.formatQuotaLabel(parsed[1].name), "Weekly");
 });
 
-test("GLM quota rows are ordered by session, weekly, then monthly", () => {
-  const parsed = providerLimitUtils.parseQuotaData("glm", {
-    quotas: {
-      mcp_monthly: { used: 10, total: 100, remainingPercentage: 90 },
-      weekly: { used: 20, total: 100, remainingPercentage: 80 },
-      session: { used: 30, total: 100, remainingPercentage: 70 },
-    },
-  });
+test("GLM quota rows are ordered by session, weekly, monthly, then reset cards", () => {
+  for (const provider of ["glm", "glm-cn", "glmt", "zai"]) {
+    const parsed = providerLimitUtils.parseQuotaData(provider, {
+      bankedResetCredits: 2,
+      quotas: {
+        mcp_monthly: { used: 10, total: 100, remainingPercentage: 90 },
+        weekly: { used: 20, total: 100, remainingPercentage: 80 },
+        session: { used: 30, total: 100, remainingPercentage: 70 },
+      },
+    });
 
-  assert.deepEqual(
-    parsed.map((quota) => quota.name),
-    ["session", "weekly", "mcp_monthly"]
-  );
+    assert.deepEqual(
+      parsed.map((quota) => quota.name),
+      ["session", "weekly", "mcp_monthly", "banked_reset_credits"],
+      `${provider} should use GLM family parsing`
+    );
+    assert.equal(parsed[3].creditCount, 2);
+    assert.equal(parsed[3].isResetCredits, true);
+  }
 });
 
 test("OpenRouter credits render as a USD credit count, not a percentage row", () => {
@@ -411,6 +484,13 @@ test("usage namespace includes Provider Limits UI translation keys", () => {
     "confirmRedeemResetCreditButton",
     "resetCreditRedeemed",
     "resetCreditRedeemFailed",
+    "glmResetCreditsModalTitle",
+    "glmResetCreditsModalExplainer",
+    "glmResetCreditFiveHourTitle",
+    "glmResetCreditWeekTitle",
+    "glmConfirmRedeemResetCredit",
+    "glmConfirmRedeemFiveHourResetCredit",
+    "glmConfirmRedeemWeekResetCredit",
   ]) {
     assert.equal(typeof usage[key], "string", `usage.${key} should be defined in en.json`);
     assert.ok(!usage[key].startsWith("__MISSING__:"), `usage.${key} should not be a placeholder`);

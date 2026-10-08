@@ -1,10 +1,10 @@
 # API Reference (ไทย)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 ---
 
-🌐 **ภาษา:** 🇺🇸 [English](./API_REFERENCE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/reference/API_REFERENCE.md) | 🇸🇦 [العربية](../i18n/ar/docs/reference/API_REFERENCE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/reference/API_REFERENCE.md) | 🇧🇬 [Български](../i18n/bg/docs/reference/API_REFERENCE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/reference/API_REFERENCE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/reference/API_REFERENCE.md) | 🇩🇰 [Dansk](../i18n/da/docs/reference/API_REFERENCE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/reference/API_REFERENCE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/reference/API_REFERENCE.md) | 🇪🇸 [Español](../i18n/es/docs/reference/API_REFERENCE.md) | 🇪🇪 [Eesti](../i18n/et/docs/reference/API_REFERENCE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/reference/API_REFERENCE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/reference/API_REFERENCE.md) | 🇫🇷 [Français](../i18n/fr/docs/reference/API_REFERENCE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/reference/API_REFERENCE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/reference/API_REFERENCE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/reference/API_REFERENCE.md) | 🇮🇱 [עברית](../i18n/he/docs/reference/API_REFERENCE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/reference/API_REFERENCE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/reference/API_REFERENCE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/reference/API_REFERENCE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/reference/API_REFERENCE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/reference/API_REFERENCE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/reference/API_REFERENCE.md) | 🇮🇹 [Italiano](../i18n/it/docs/reference/API_REFERENCE.md) | 🇯🇵 [日本語](../i18n/ja/docs/reference/API_REFERENCE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/reference/API_REFERENCE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/reference/API_REFERENCE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/reference/API_REFERENCE.md) | 🇰🇷 [한국어](../i18n/ko/docs/reference/API_REFERENCE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/reference/API_REFERENCE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/reference/API_REFERENCE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/reference/API_REFERENCE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/reference/API_REFERENCE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/reference/API_REFERENCE.md) | 🇲🇹 [Malti](../i18n/mt/docs/reference/API_REFERENCE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/reference/API_REFERENCE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/reference/API_REFERENCE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/reference/API_REFERENCE.md) | 🇳🇴 [Norsk](../i18n/no/docs/reference/API_REFERENCE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/reference/API_REFERENCE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/reference/API_REFERENCE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/reference/API_REFERENCE.md) | 🇵🇱 [Polski](../i18n/pl/docs/reference/API_REFERENCE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/reference/API_REFERENCE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/reference/API_REFERENCE.md) | 🇷🇴 [Română](../i18n/ro/docs/reference/API_REFERENCE.md) | 🇷🇺 [Русский](../i18n/ru/docs/reference/API_REFERENCE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/reference/API_REFERENCE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/reference/API_REFERENCE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/reference/API_REFERENCE.md) | 🇷🇸 [Српски](../i18n/sr/docs/reference/API_REFERENCE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/reference/API_REFERENCE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/reference/API_REFERENCE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/reference/API_REFERENCE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/reference/API_REFERENCE.md) | 🇹🇭 [ไทย](../i18n/th/docs/reference/API_REFERENCE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/reference/API_REFERENCE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/reference/API_REFERENCE.md) | 🇵🇰 [اردو](../i18n/ur/docs/reference/API_REFERENCE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/reference/API_REFERENCE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/reference/API_REFERENCE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/reference/API_REFERENCE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/reference/API_REFERENCE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 เอกสารอ้างอิงหลักสำหรับ OmniRoute API ซึ่งครอบคลุมส่วนติดต่อสาธารณะ `/v1` และเอนด์พอยต์สำหรับการจัดการที่ใช้งานบ่อยที่สุด โดยมี [`docs/openapi.yaml`](../openapi.yaml) ที่เครื่องอ่านได้และโครงสร้างเส้นทางภายใต้ `src/app/api/` เป็นแหล่งข้อมูลที่ครอบคลุมทั้งหมด
 
@@ -86,11 +86,11 @@ Content-Type: application/json
 
 > **ความหมายของต้นทุนเมื่อแคชฮิต:** เมื่อ semantic cache HIT (`X-OmniRoute-Cache-Hit: true`) จะไม่มีการเรียกไปยัง upstream ดังนั้น `X-OmniRoute-Response-Cost` จึงเป็น `0.0000000000` (ต้นทุน**ส่วนเพิ่ม**ในการให้บริการผลลัพธ์ที่แคชฮิต) ต้นทุนเดิม/ต้นทุนที่ควรจะเกิดขึ้นจะถูกรายงานแยกต่างหากใน `X-OmniRoute-Cost-Saved` ผู้ใช้งานข้อมูลสำหรับการเรียกเก็บเงินควรรวมค่า `X-OmniRoute-Response-Cost` (แคชฮิตไม่มีค่าใช้จ่าย) ส่วนการวิเคราะห์แคชสามารถรวมค่า `X-OmniRoute-Cost-Saved` ได้
 
-## การเช่าเซสชันที่มีการจัดการแบบเอกสิทธิ์
+## Exclusive Managed Session Leases
 
-การเช่าเซสชันที่มีการจัดการแบบเอกสิทธิ์เป็นสัญญาการกำหนดเส้นทางที่ต้องเลือกใช้และไม่ขึ้นกับไคลเอนต์ โดยเจ้าของที่ใช้งานอยู่หนึ่งรายจะครอบครองการเชื่อมต่อ OmniRoute ที่มีสิทธิ์หนึ่งรายการ สัญญานี้ไม่ได้เป็นการเช่าโมเดล ไม่ต้องใช้ OAuth ไม่ระบุไคลเอนต์รายใดรายหนึ่ง และไม่บังคับให้ใช้ผู้ให้บริการรายใดรายหนึ่ง
+การเช่าเซสชันแบบจัดการพิเศษ (Exclusive managed session leasing) เป็นสัญญาการกำหนดเส้นทาง (routing contract) แบบเลือกเข้าร่วม (opt-in) และไม่ขึ้นกับไคลเอนต์ (client-neutral): เจ้าของที่ใช้งานอยู่หนึ่งราย (active owner) จะถือครองการเชื่อมต่อ OmniRoute ที่มีสิทธิ์หนึ่งรายการ สัญญานี้ไม่ได้เป็นการเช่าโมเดล, ไม่ต้องใช้ OAuth, ไม่ระบุไคลเอนต์เฉพาะเจาะจง หรือต้องการผู้ให้บริการ (provider) รายใดรายหนึ่ง
 
-คีย์ API ที่ใช้ยืนยันตัวตนต้องมีขอบเขต `lease:exclusive` และรายการ `allowedConnections` ที่ระบุไว้อย่างชัดเจนและไม่ว่างเปล่า ขอบเขตการเปลี่ยนแปลงฐานข้อมูลจะบังคับใช้ทั้งสองฟิลด์ร่วมกัน ทั้งในระหว่างการสร้างคีย์และการอัปเดตบางส่วน
+API key ที่ใช้ยืนยันตัวตนต้องมี scope `lease:exclusive` และมีรายการ `allowedConnections` ที่ไม่ว่างเปล่าอย่างชัดเจน ขอบเขตการเปลี่ยนแปลงฐานข้อมูล (database mutation boundary) จะบังคับใช้ทั้งสองฟิลด์ร่วมกันในขณะสร้าง key และการอัปเดตบางส่วน (partial updates)
 
 ```http
 POST /api/v1/session-leases
@@ -101,7 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-การตอบกลับที่สำเร็จสำหรับการขอรับ การต่ออายุ และการปล่อยจะแสดงการประทับเวลา `state` และค่า `generation` ที่เป็นจำนวนบวกอย่างถูกต้อง แต่จะไม่เปิดเผยการเชื่อมต่อหรือข้อมูลประจำตัวที่เลือกไว้ การต่ออายุและการปล่อยจะส่งค่า generation ในเนื้อหา JSON:
+การตอบกลับที่สำเร็จสำหรับการ acquire, renew และ release จะแสดง timestamps, `state` และค่า `generation` ที่เป็นบวกและถูกต้อง แต่จะไม่แสดงการเชื่อมต่อที่ถูกเลือกหรือข้อมูลประจำตัว (credentials) โดยการ renew และ release จะส่ง generation มาใน JSON body:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -111,7 +111,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-เจ้าของสัญญาเช่าที่ใช้งานอยู่สามารถร้องขอข้อมูลเมตาสำหรับการแสดงผลที่ปลอดภัยต่อความเป็นส่วนตัวของการผูกปัจจุบันได้อย่างชัดเจน:
+เจ้าของสัญญาเช่าที่ใช้งานอยู่สามารถร้องขอ metadata สำหรับการแสดงผลที่ปลอดภัยต่อความเป็นส่วนตัว (privacy-safe display metadata) สำหรับการผูกมัด (binding) ปัจจุบันได้โดยตรง:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -131,22 +131,22 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 }
 ```
 
-การดำเนินการตรวจสอบสถานะที่ต้องเลือกใช้นี้ถูกกั้นด้วยเจ้าของแบบทึบแสง คีย์ API แบบมีการจัดการที่ผ่านการยืนยันตัวตน และ generation ที่ใช้งานอยู่ซึ่งต้องตรงกันทั้งหมด ภายในธุรกรรมฐานข้อมูลเดียว `displayName` เป็นเพียงชื่อการเชื่อมต่อที่กำหนดค่าไว้และตัดช่องว่างแล้วเท่านั้น โดยจะเป็น `null` เมื่อไม่มีชื่อที่กำหนดค่าไว้อย่างปลอดภัย OmniRoute จะไม่ใช้อีเมลหรือข้อมูลระบุตัวตนของบัญชีที่สร้างขึ้นมาแทน ค่า provider เป็นป้ายกำกับสำหรับการแสดงผลที่ไม่ละเอียดอ่อน และจะไม่เป็นตัวระบุ compatible-provider ที่สร้างขึ้น ข้อมูลประจำตัว โทเค็น คุกกี้ ID ดิบของการเชื่อมต่อหรือคีย์ API แฮชเจ้าของ ข้อมูลลับสำหรับการกั้น และข้อมูลการกำหนดเส้นทางภายในจะถูกตัดออก
+การดำเนินการ status แบบเลือกเข้าร่วมนี้ถูกจำกัดขอบเขต (fenced) โดย owner ที่ไม่เปิดเผยตัวตน, managed API key ที่ยืนยันตัวตนแล้ว และ generation ที่ใช้งานอยู่ซึ่งต้องตรงกันในหนึ่ง database transaction โดย `displayName` จะเป็นเพียงชื่อการเชื่อมต่อที่ถูกกำหนดค่าไว้และถูกตัดช่องว่างแล้วเท่านั้น; จะเป็น `null` เมื่อไม่มีชื่อที่ปลอดภัยถูกกำหนดไว้ OmniRoute จะไม่แทนที่ด้วยอีเมลหรือข้อมูลระบุตัวตนของบัญชีที่ถูกสร้างขึ้น ค่า provider เป็นเพียงป้ายกำกับสำหรับการแสดงผลที่ไม่เป็นความลับ และไม่ใช่ตัวระบุผู้ให้บริการที่เข้ากันได้ (compatible-provider identifier) ที่ถูกสร้างขึ้น ข้อมูลประจำตัว, tokens, cookies, raw connection หรือ API key ids, owner hashes, fencing secrets และข้อมูลการกำหนดเส้นทางภายในจะถูกคัดออกทั้งหมด
 
-การค้นหาด้วยคีย์ที่ไม่ถูกต้อง เจ้าของที่ไม่ถูกต้อง generation ที่ล้าสมัย รายการที่ไม่มีอยู่ หมดอายุ ถูกปล่อย หรือถูกทำให้ใช้ไม่ได้ จะส่งคืนข้อผิดพลาด `409 LEASE_FENCE_STALE` แบบเดียวกันทั้งหมดโดยไม่มีข้อมูลเมตาของการเชื่อมต่อ ไคลเอนต์ที่ได้รับการตอบกลับให้รอความจุจะไม่มีการผูกที่ใช้งานอยู่ให้ตรวจสอบ เมื่อการกำหนดเส้นทางเปลี่ยนสัญญาเช่าที่ใช้งานอยู่ generation เดิมจะยังคงใช้ได้ และสถานะจะส่งคืนการผูกใหม่แบบอะตอมมิก โดยจะไม่ส่งคืนการผูกเก่า ไคลเอนต์ที่มีอยู่จะไม่เปลี่ยนแปลง เนื่องจากการตอบกลับสำหรับการขอรับ การต่ออายุ การปล่อย และการรอ ยังคงใช้รูปแบบเดิม
+การค้นหาที่ใช้ key ผิด, owner ผิด, generation ที่ล้าสมัย, ไม่พบข้อมูล, หมดอายุ, ถูกปล่อย (released) หรือไม่ถูกต้อง (invalidated) ทั้งหมดจะส่งคืนข้อผิดพลาด `409 LEASE_FENCE_STALE` แบบเดียวกันโดยไม่มี metadata ของการเชื่อมต่อ ไคลเอนต์ที่ได้รับการตอบกลับแบบรอความจุ (capacity-wait) จะไม่มีการผูกมัดที่ใช้งานอยู่ให้ตรวจสอบ เมื่อการกำหนดเส้นทางเปลี่ยนผ่านสัญญาเช่าที่ใช้งานอยู่ generation เดิมจะยังคงใช้งานได้ และ status จะส่งคืนการผูกมัดใหม่แบบ atomic โดยจะไม่ส่งคืนอันเก่า ไคลเอนต์ที่มีอยู่จะไม่ได้รับผลกระทบเนื่องจากการตอบกลับ acquire, renew, release และ waiting ยังคงมีรูปแบบเดิม
 
-สัญญาฝั่งเซิร์ฟเวอร์นี้ไม่เปลี่ยนแปลง `/status` ของ OpenAI Codex มาตรฐาน ปัจจุบัน Codex มาตรฐานจะรายงานผู้ให้บริการโมเดลและสถานะการยืนยันตัวตน/บัญชีในตัว แต่จะไม่แสดงข้อมูลเมตาของบัญชีผู้ให้บริการแบบกำหนดเองโดยพลการ การผสานรวมไคลเอนต์ในอนาคตต้องเรียกใช้การดำเนินการนี้และตัดสินใจว่าจะแสดง `connection.displayName` อย่างไร
+สัญญาฝั่งเซิร์ฟเวอร์นี้ไม่เปลี่ยนแปลง OpenAI Codex `/status` มาตรฐาน ปัจจุบัน Codex มาตรฐานจะรายงานผู้ให้บริการโมเดลและสถานะการยืนยันตัวตน/บัญชีในตัว แต่จะไม่แสดง metadata ของบัญชีผู้ให้บริการที่กำหนดเองตามอำเภอใจ; การรวมไคลเอนต์ในภายหลังจะต้องเรียกใช้การดำเนินการนี้และตัดสินใจว่าจะแสดง `connection.displayName` อย่างไร
 
-จากนั้นคำขออนุมานแบบมีการจัดการทุกคำขอจะส่งส่วนหัวควบคุมทั้งสองรายการ:
+ทุกคำขอ inference แบบจัดการจะส่ง header ควบคุมทั้งสองตัว:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-เจ้าของ generation การเชื่อมต่อที่ใช้งานอยู่ และคีย์ API ที่ผ่านการยืนยันตัวตน ซึ่งทั้งหมดต้องตรงกันอย่างถูกต้อง จะถูกตรวจสอบกั้นทันทีก่อนความพยายามส่งต่อไปยังต้นทางแต่ละครั้งที่รองรับ การนำเจ้าของและ generation มาใช้ซ้ำกับคีย์อื่นจะล้มเหลว แม้ว่าคีย์นั้นจะอนุญาตการเชื่อมต่อเดียวกันก็ตาม เจ้าของแบบดิบจะไม่ถูกเก็บถาวร บันทึกในล็อก เก็บไว้ในสแนปช็อตคำขอ หรือส่งต่อไปยังต้นทาง
+owner, generation, การเชื่อมต่อที่ใช้งานอยู่ และ API key ที่ยืนยันตัวตนแล้วที่ถูกต้องจะถูกจำกัดขอบเขต (fenced) ทันทีในแต่ละครั้งก่อนพยายามส่งไปยังต้นน้ำ (upstream) ที่รองรับ การส่ง owner และ generation ซ้ำด้วย key อื่นจะล้มเหลว แม้ว่า key นั้นจะได้รับอนุญาตให้ใช้การเชื่อมต่อเดียวกันก็ตาม Raw owners จะไม่ถูกจัดเก็บถาวร, ไม่ถูกบันทึก log, ไม่ถูกเก็บไว้ใน request snapshot หรือถูกส่งต่อไปยังต้นน้ำ
 
-การแย่งใช้ทรัพยากรชั่วคราวจะส่งคืน HTTP `429` พร้อม `Retry-After` และ:
+การแย่งชิงทรัพยากรชั่วคราวจะส่งคืน HTTP `429` พร้อม `Retry-After` และ:
 
 ```json
 {
@@ -157,33 +157,35 @@ X-OmniRoute-Lease-Generation: 1
 }
 ```
 
-การตอบกลับนี้หมายความเพียงว่าชุดรายการปกติที่มีสิทธิ์ไม่ได้ว่างเปล่า และตัวเลือกที่ว่างทั้งหมดถูกครอบครองโดยสัญญาเช่าที่ใช้งานอยู่ของเจ้าของรายอื่น โมเดล/ผู้ให้บริการที่ไม่รองรับ นโยบายที่ไม่ตรงกัน ช่วงพักการใช้งาน โควตา สถานะความพร้อม และความล้มเหลวด้านสิทธิ์ตามปกติอื่น ๆ จะยังคงใช้การตอบกลับเดิมของ OmniRoute
+การตอบกลับนี้หมายความว่าชุดรายการที่มีสิทธิ์ตามปกติไม่ว่างเปล่า แต่ผู้สมัครที่ว่างทุกรายถูกถือครองโดยสัญญาเช่าอื่นที่ใช้งานอยู่ ความล้มเหลวอื่นๆ เช่น โมเดล/ผู้ให้บริการที่ไม่รองรับ, นโยบายไม่ตรงกัน, ช่วงพัก (cooldown), โควตา, สุขภาพระบบ และความล้มเหลวในการมีสิทธิ์ตามปกติอื่นๆ จะยังคงใช้การตอบกลับ OmniRoute เดิมที่มีอยู่
 
 ### `x-omniroute-compression`
 
-การแทนที่แผนการบีบอัดสำหรับแต่ละคำขอ มีลำดับความสำคัญสูงสุด โดยมีผลเหนือกว่าการแทนที่จากชุดการกำหนดเส้นทาง โปรไฟล์ที่ใช้งานอยู่ การทริกเกอร์อัตโนมัติ และค่า Default ในแผงควบคุม ค่าได้แก่:
+การเขียนทับแผนการบีบอัด (compression plan) ต่อคำขอ มีลำดับความสำคัญสูงสุด — เหนือกว่าการเขียนทับแบบ routing-combo, โปรไฟล์ที่ใช้งานอยู่, การทริกเกอร์อัตโนมัติ และค่าเริ่มต้น (Default) ของแผงควบคุม ค่าต่างๆ ได้แก่:
 
-| ค่า           | ผลลัพธ์                                                                         |
-| ------------- | ------------------------------------------------------------------------------- |
-| `off`         | ไม่มีการบีบอัดสำหรับคำขอนี้                                                     |
-| `default`     | โปรไฟล์ Default ที่ได้จากแผงควบคุม (ไม่สนใจโปรไฟล์ที่ใช้งานอยู่)                |
-| `engine:<id>` | เอนจินเดียวเมื่อเปิดใช้งาน เช่น `engine:rtk`                                    |
-| `<combo>`     | ชุดแบบมีชื่อ โดยจับคู่จากชื่อก่อน (ไม่แยกตัวพิมพ์เล็ก-ใหญ่) แล้วจึงจับคู่จาก id |
+| ค่า           | ผลลัพธ์                                                                                                                |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `off`         | ไม่มีการบีบอัดสำหรับคำขอนี้                                                                                            |
+| `default`     | โปรไฟล์ Default ที่มาจากแผงควบคุม (ละเว้นโปรไฟล์ที่ใช้งานอยู่) โดยจะไม่ใช้ engine แบบสูญเสียรายละเอียด (Lossy engines) |
+| `safe`        | ทำเฉพาะการลบข้อมูลซ้ำ (Dedup) และการยุบช่องว่าง (whitespace folding) เท่านั้น                                          |
+| `allow-lossy` | ใช้แผนของผู้ควบคุมสำหรับคำขอนี้ รวมถึงการสรุปความ (summaries) และการเขียนสไตล์ใหม่ (style rewrites)                    |
+| `engine:<id>` | ใช้ engine เดียวเมื่อเปิดใช้งาน เช่น `engine:rtk` เป็นการเลือกใช้เฉพาะ engine นั้นต่อคำขอ                              |
+| `<combo>`     | combo ที่ระบุชื่อ โดยจะจับคู่ตามชื่อ (ไม่สนใจตัวพิมพ์เล็ก-ใหญ่) ก่อน แล้วจึงตามด้วย id                                 |
 
 หมายเหตุ:
 
-- ค่าที่ไม่รู้จักจะถูกละเว้น (คำขอจะไม่ถูกปฏิเสธ) โดยการแก้ไขค่าจะดำเนินต่อไปตามลำดับความสำคัญปกติของตัวดำเนินการ
-- หากหลายชุดใช้ชื่อเดียวกัน ให้ส่ง **id** ของชุดเพื่อให้ได้การจับคู่ที่แน่นอน
-- ชุดที่มีชื่อเป็น `off` หรือ `default` จะไม่สามารถเลือกด้วยชื่อได้ (คีย์เวิร์ดเหล่านี้จะถูกตีความก่อน) ให้อ้างอิงชุดดังกล่าวด้วย id
-- สวิตช์หลักของการบีบอัดเป็นข้อจำกัดเด็ดขาด เมื่อปิดใช้งานการบีบอัดในระดับส่วนกลาง ส่วนหัวนี้จะไม่สามารถเปิดใช้งานได้
+- ค่าที่ไม่รู้จักจะถูกละเว้น (คำขอจะไม่ถูกปฏิเสธ); การตัดสินใจจะตกไปอยู่ที่ลำดับความสำคัญของผู้ควบคุมตามปกติ
+- หากมี combo หลายรายการที่ใช้ชื่อเดียวกัน ให้ส่ง combo **id** เพื่อการจับคู่ที่แน่นอน
+- combo ที่มีชื่อว่า `off` หรือ `default` จะไม่สามารถเลือกตามชื่อได้ (เนื่องจากคำสำคัญเหล่านั้นจะถูกตีความก่อน); ให้อ้างอิง combo ดังกล่าวด้วย id ของมัน
+- สวิตช์การบีบอัดหลัก (master compression switch) เป็นด่านที่เข้มงวด: เมื่อการบีบอัดถูกปิดใช้งานทั่วโลก header นี้จะไม่สามารถเปิดใช้งานได้
 
-แผนที่นำไปใช้จะถูกส่งกลับในส่วนหัวการตอบกลับ:
+แผนที่ถูกนำไปใช้จะถูกส่งกลับมาใน response header:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-โดย `<source>` เป็นหนึ่งใน `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` หรือ `off`
+โดยที่ `<source>` จะเป็นค่าใดค่าหนึ่งจาก `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` หรือ `off`
 
 ---
 
@@ -421,7 +423,7 @@ GET /api/v1/provider-plugin-manifest
 
 ---
 
-## Endpoint สำหรับความเข้ากันได้
+## เอนด์พอยต์ที่รองรับความเข้ากันได้
 
 | เมธอด | พาธ                                       | รูปแบบ                                  |
 | ----- | ----------------------------------------- | --------------------------------------- |
@@ -431,12 +433,12 @@ GET /api/v1/provider-plugin-manifest
 | POST  | `/v1/embeddings`                          | OpenAI                                  |
 | POST  | `/v1/images/generations`                  | OpenAI Images                           |
 | POST  | `/v1/images/edits`                        | OpenAI Images (แก้ไข/เติมภาพ)           |
-| POST  | `/v1/videos/generations`                  | การสร้างวิดีโอรูปแบบ OpenAI             |
-| POST  | `/v1/music/generations`                   | การสร้างเพลงรูปแบบ OpenAI               |
+| POST  | `/v1/videos/generations`                  | การสร้างวิดีโอในรูปแบบ OpenAI           |
+| POST  | `/v1/music/generations`                   | การสร้างเพลงในรูปแบบ OpenAI             |
 | POST  | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                      |
 | POST  | `/v1/audio/speech`                        | OpenAI TTS (ส่งคืนเนื้อหาเสียง)         |
-| POST  | `/v1/rerank`                              | การจัดอันดับใหม่รูปแบบ Cohere/Voyage    |
-| POST  | `/v1/classify`                            | การจำแนกประเภทของ Jina (`api.jina.ai`)  |
+| POST  | `/v1/rerank`                              | การจัดอันดับใหม่แบบ Cohere/Voyage       |
+| POST  | `/v1/classify`                            | การจำแนกประเภทด้วย Jina (`api.jina.ai`) |
 | POST  | `/v1/segment`                             | ตัวแบ่งส่วนของ Jina (`segment.jina.ai`) |
 | POST  | `/v1/moderations`                         | OpenAI Moderations                      |
 | GET   | `/v1/models`                              | OpenAI                                  |
@@ -446,41 +448,69 @@ GET /api/v1/provider-plugin-manifest
 | POST  | `/v1/api/chat`                            | Ollama                                  |
 | GET   | `/api/v1/vscode/{token}/`                 | นามแฝงแค็ตตาล็อก OpenAI                 |
 | GET   | `/api/v1/vscode/{token}/models`           | นามแฝงโมเดล OpenAI                      |
-| POST  | `/api/v1/vscode/{token}/chat/completions` | นามแฝง OpenAI ที่มี token               |
-| POST  | `/api/v1/vscode/{token}/responses`        | นามแฝง OpenAI Responses ที่มี token     |
-| POST  | `/api/v1/vscode/{token}/api/chat`         | นามแฝง Ollama ที่มี token               |
-| GET   | `/api/v1/vscode/{token}/api/tags`         | นามแฝงแท็ก Ollama ที่มี token           |
+| POST  | `/api/v1/vscode/{token}/chat/completions` | นามแฝง OpenAI ที่ใช้โทเค็น              |
+| POST  | `/api/v1/vscode/{token}/responses`        | นามแฝง OpenAI Responses ที่ใช้โทเค็น    |
+| POST  | `/api/v1/vscode/{token}/api/chat`         | นามแฝง Ollama ที่ใช้โทเค็น              |
+| GET   | `/api/v1/vscode/{token}/api/tags`         | นามแฝงแท็ก Ollama ที่ใช้โทเค็น          |
 
-เส้นทาง POST ทั้งหมดใช้โครงสร้างเดียวกัน: `Bearer your-api-key` + เนื้อหา JSON ที่ผ่านการตรวจสอบด้วย Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` ฯลฯ โปรดดู `src/shared/validation/schemas.ts`) ระบบจะส่งคืน 4xx เมื่อการตรวจสอบ schema ล้มเหลว
+เส้นทาง POST ทั้งหมดใช้โครงสร้างเดียวกัน: `Bearer your-api-key` + เนื้อหา JSON ที่ตรวจสอบความถูกต้องด้วย Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` ฯลฯ โปรดดู `src/shared/validation/schemas.ts`) ระบบจะส่งคืน 4xx เมื่อการตรวจสอบสคีมาล้มเหลว
 
-สำหรับไคลเอนต์ที่ไม่สามารถแนบ `Authorization: Bearer ...` ได้ OmniRoute ยังยอมรับ API key ใน URL ผ่านความเข้ากันได้แบบ query string (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) หรือผ่าน endpoint เฉพาะ `/api/v1/vscode/{token}/...` ที่อธิบายไว้ด้านล่าง
+สำหรับไคลเอนต์ที่ไม่สามารถแนบ `Authorization: Bearer ...` ได้ OmniRoute ยังรองรับคีย์ API ใน URL ผ่านพารามิเตอร์คิวรีเพื่อความเข้ากันได้ (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) หรือผ่านเอนด์พอยต์เฉพาะ `/api/v1/vscode/{token}/...` ที่อธิบายไว้ด้านล่าง
 
 ```bash
-# จัดอันดับใหม่
+# จัดอันดับใหม่ (ผู้ให้บริการในรีจิสทรีคลาวด์ หรือโหนดผู้ให้บริการที่เข้ากันได้กับ OpenAI ในรูปแบบ "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# การจำแนกประเภทของ Jina (ข้อมูลรับรอง Foundation API)
+# จำแนกประเภทด้วย Jina (ข้อมูลประจำตัวของ Foundation API)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
 # ตัวแบ่งส่วนของ Jina
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# การค้นหาของ Jina (s.jina.ai; นามแฝงผู้ให้บริการ: jina-search, jina-ai, jina)
+# การค้นหาด้วย Jina (s.jina.ai; นามแฝงผู้ให้บริการ: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# การกลั่นกรองเนื้อหา
+# การกลั่นกรอง
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
 # TTS — ส่งคืนเนื้อหา audio/mpeg (หรือรูปแบบที่ร้องขอ)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# การแก้ไขภาพ (multipart)
+# Soniox TTS ต้องระบุภาษาและเสียง: `language` มีค่าเริ่มต้นเป็น "en"; หากไม่ระบุ
+# เสียงหรือใช้ชื่อเสียงมาตรฐานของ OpenAI (alloy, nova, …) ระบบจะเปลี่ยนเป็น "Adrian"
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
+
+# แก้ไขภาพ (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# การสร้างวิดีโอ / เพลง (รหัสโมเดลที่มีคำนำหน้าผู้ให้บริการ)
+# สร้างวิดีโอ / เพลง (รหัสโมเดลที่มีคำนำหน้าผู้ให้บริการ)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
+
+> **โหนดผู้ให้บริการสำหรับการจัดอันดับใหม่:** `POST /v1/rerank` ยังส่งต่อคำขอไปยังโหนดผู้ให้บริการ
+> ที่เข้ากันได้กับ OpenAI (oMLX, vLLM, Infinity, TEI ที่อยู่หลังเกตเวย์, …) ซึ่งระบุด้วย
+> `<node-prefix>/<model>` โหนดลูปแบ็ก (`localhost`, `127.0.0.1`, `172.16.0.0/12`) ใช้งานได้เสมอ
+> โหนดบนโฮสต์อื่นทั้งหมด ไม่ว่าจะเป็นเครื่องใน LAN หรือเพียร์ Tailscale จะใช้งานได้ต่อเมื่อ
+> ผู้ดำเนินการเปิดใช้แฟล็กฟีเจอร์ `RERANK_REMOTE_PROVIDER_NODES` **และ** URL ฐานของโหนด
+> ผ่านนโยบาย URL ขาออกของผู้ให้บริการ (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` /
+> `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) เท่านั้น ระบบจะไม่ส่งต่อคำขอไปยังโฮสต์ข้อมูลเมตาของคลาวด์
+> ขั้นตอนการจัดอันดับใหม่ของเอนจินหน่วยความจำจะเรียกเส้นทางนี้ผ่านลูปแบ็ก ดังนั้นกฎเดียวกันนี้จึงควบคุม
+> `rerankProviderModel` ในการตั้งค่าหน่วยความจำด้วย
+>
+> **รูปแบบของเซิร์ฟเวอร์ภายในเครื่อง:** ระบบจะเรียกโหนดที่ `<base>/v1/rerank` และหากได้รับ 404
+> จะเรียกที่ `<base>/rerank` (Infinity, TEI) เนื้อหาคำขอต้นทางจะมีทั้งการสะกดแบบ Cohere/OpenAI
+> (`documents`, `return_documents`) และการสะกดแบบ TEI (`texts`, `return_text`) ส่วนการตอบกลับ
+> จากต้นทางจะถูกปรับให้เป็นเอนเวโลปแบบ Cohere: ทั้งอาร์เรย์เปล่าของ TEI `[{index, score, text}]`,
+> `{results: [{index, score}]}` จากเกตเวย์ขนาดเล็ก และรูปแบบ Voyage `{data: [...]}` จะถูกส่งกลับ
+> ไปยังไคลเอนต์เป็น `{results: [{index, relevance_score, document?}]}` โดยเรียงตามคะแนนและจำกัด
+> จำนวนสูงสุดตาม `top_n`
+
+> **การค้นหาโหนดผู้ให้บริการ:** โมเดลบนโหนดผู้ให้บริการที่เข้ากันได้กับ OpenAI จะปรากฏใน `GET /v1/models`
+> ภายใต้คำนำหน้าของโหนด แถวที่ไม่มีข้อมูลเมตาของเอนด์พอยต์ (ซึ่งพบได้ทั่วไปในรายการ `/v1/models` ภายในเครื่อง)
+> จะสืบทอด `apiType` ของโหนด ดังนั้นโมเดลของโหนด `embeddings` จะมี `type: "embedding"` และ
+> โมเดลของโหนด `rerank` จะมี `type: "rerank"` แทนที่จะใช้ค่าเริ่มต้นเป็นแชต ทั้งนี้ `supportedEndpoints`
+> ที่ระบุไว้อย่างชัดเจนในแถวที่ซิงค์หรือเพิ่มด้วยตนเองยังคงมีลำดับความสำคัญสูงกว่า
 
 ### เส้นทางเฉพาะสำหรับผู้ให้บริการ
 
@@ -782,7 +812,7 @@ X-OmniRoute-No-Cache: true
 
 ## แดชบอร์ดและการจัดการ
 
-เส้นทางการจัดการ (`/api/*` ยกเว้น auth/login สาธารณะ) **ไม่ได้**รับอนุญาตด้วย
+เส้นทางการจัดการ (`/api/*` ยกเว้นการยืนยันตัวตน/เข้าสู่ระบบแบบสาธารณะ) **ไม่** อนุญาตสิทธิ์ด้วย
 คีย์ API สำหรับการอนุมานทั่วไป สำหรับประเภทข้อมูลประจำตัว ขอบเขต และตัวอย่าง curl โปรดดู:
 [การยืนยันตัวตนสำหรับการจัดการ](../guides/MANAGEMENT-AUTH.md)
 
@@ -796,25 +826,26 @@ X-OmniRoute-No-Cache: true
 
 ### การจัดการผู้ให้บริการ
 
-| Endpoint                     | Method                | Description                                                                                                             |
-| ---------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `/api/providers`             | GET/POST              | แสดงรายการ / สร้างผู้ให้บริการ                                                                                          |
-| `/api/providers/[id]`        | GET/PUT/DELETE        | จัดการผู้ให้บริการ                                                                                                      |
-| `/api/providers/[id]/test`   | POST                  | ทดสอบการเชื่อมต่อกับผู้ให้บริการ                                                                                        |
-| `/api/providers/[id]/models` | GET                   | แสดงรายการโมเดลของผู้ให้บริการ                                                                                          |
-| `/api/providers/validate`    | POST                  | ตรวจสอบความถูกต้องของการกำหนดค่าผู้ให้บริการ                                                                            |
-| `/api/providers/bulk`        | POST                  | เพิ่มคีย์ API จำนวนมากสำหรับผู้ให้บริการหนึ่งราย                                                                        |
-| `/api/providers/import`      | POST                  | นำเข้ารายการผู้ให้บริการที่หลากหลายจากไฟล์ CSV/JSON ที่แยกวิเคราะห์แล้ว (#6836); แสดงผลความล้มเหลวบางส่วนแยกตามแต่ละแถว |
-| `/api/provider-nodes*`       | Various               | การจัดการโหนดของผู้ให้บริการ                                                                                            |
-| `/api/provider-models`       | GET/POST/PATCH/DELETE | โมเดลแบบกำหนดเอง (เพิ่ม อัปเดต ซ่อน/แสดง ลบ)                                                                            |
+| Endpoint                                | Method                | Description                                                                                                                                                                       |
+| --------------------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST              | แสดงรายการ / สร้างผู้ให้บริการ                                                                                                                                                    |
+| `/api/providers/[id]`                   | GET/PUT/DELETE        | จัดการผู้ให้บริการ                                                                                                                                                                |
+| `/api/providers/[id]/test`              | POST                  | ทดสอบการเชื่อมต่อกับผู้ให้บริการ                                                                                                                                                  |
+| `/api/providers/[id]/models`            | GET                   | แสดงรายการโมเดลของผู้ให้บริการ                                                                                                                                                    |
+| `/api/providers/validate`               | POST                  | ตรวจสอบความถูกต้องของการกำหนดค่าผู้ให้บริการ                                                                                                                                      |
+| `/api/providers/bulk`                   | POST                  | เพิ่มคีย์ API จำนวนมากสำหรับผู้ให้บริการเพียงรายเดียว                                                                                                                             |
+| `/api/providers/import`                 | POST                  | นำเข้ารายการผู้ให้บริการแบบหลากหลายจากไฟล์ CSV/JSON ที่แยกวิเคราะห์แล้ว (#6836); แสดงผลลัพธ์ความล้มเหลวบางส่วนแยกตามแต่ละแถว                                                      |
+| `/api/provider-nodes*`                  | Various               | การจัดการโหนดผู้ให้บริการ                                                                                                                                                         |
+| `/api/provider-models`                  | GET/POST/PATCH/DELETE | โมเดลแบบกำหนดเอง (เพิ่ม อัปเดต ซ่อน/แสดง ลบ)                                                                                                                                      |
+| `/api/provider-models/validate-and-add` | POST                  | การตรวจสอบการเชื่อมต่ออย่างเข้มงวดแบบเลือกใช้ ซึ่งยืนยันตัวตนสำหรับการจัดการแล้ว และการลงทะเบียนโมเดลแบบกำหนดเองโดยเป็นอะตอม; ดู [การตรวจสอบโมเดล](../guides/MODEL-VALIDATION.md) |
 
-### ขั้นตอน OAuth
+### กระบวนการ OAuth
 
-| Endpoint                         | Method  | Description                   |
-| -------------------------------- | ------- | ----------------------------- |
-| `/api/oauth/[provider]/[action]` | Various | OAuth เฉพาะสำหรับผู้ให้บริการ |
+| Endpoint                         | Method  | Description                        |
+| -------------------------------- | ------- | ---------------------------------- |
+| `/api/oauth/[provider]/[action]` | Various | OAuth เฉพาะสำหรับแต่ละผู้ให้บริการ |
 
-### การกำหนดเส้นทางและการตั้งค่า
+### การกำหนดเส้นทางและการกำหนดค่า
 
 | Endpoint              | Method   | Description                             |
 | --------------------- | -------- | --------------------------------------- |
@@ -826,63 +857,63 @@ X-OmniRoute-No-Cache: true
 
 ### การใช้งานและการวิเคราะห์
 
-| Endpoint                         | Method          | คำอธิบาย                                                                                                                                                                                                                                                                                                                    |
-| -------------------------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/usage/history`             | GET             | ประวัติการใช้งาน                                                                                                                                                                                                                                                                                                            |
-| `/api/usage/logs`                | GET             | บันทึกการใช้งาน                                                                                                                                                                                                                                                                                                             |
-| `/api/usage/request-logs`        | GET             | บันทึกระดับคำขอ                                                                                                                                                                                                                                                                                                             |
-| `/api/usage/[connectionId]`      | GET             | การใช้งานแยกตามการเชื่อมต่อ                                                                                                                                                                                                                                                                                                 |
-| `/api/usage/token-limits`        | GET/POST/DELETE | งบประมาณขีดจำกัดโทเค็นแยกตามคีย์ API                                                                                                                                                                                                                                                                                        |
-| `/api/usage/model-latency-stats` | GET             | สถิติรวมเวลาแฝงแบบต่อเนื่องแยกตามผู้ให้บริการ/โมเดล (ค่าเฉลี่ย/p50/p95/p99, อัตราความสำเร็จ); ตัวกรอง: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                      |
-| `/api/usage/cache-health`        | GET             | สรุปสถานะแคชพรอมต์จาก `call_logs` — อัตราส่วนการเขียน/การอ่าน, การกระจายขนาดการเขียนที่ p50/p90/p99, การกระจุกตัวของการเขียนปริมาณมาก, การแบ่งตามโมเดล และผลการประเมิน `healthy`/`degraded`/`thrash`/`no-data`; พารามิเตอร์คิวรี `range` (`1h`\|`24h`\|`7d`\|`30d`, ค่าเริ่มต้น `24h`) และ `model` ซึ่งเป็นตัวเลือก (#8827) |
+| Endpoint                         | Method          | Description                                                                                                                                                                                                                                                                                                                  |
+| -------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/usage/history`             | GET             | ประวัติการใช้งาน                                                                                                                                                                                                                                                                                                             |
+| `/api/usage/logs`                | GET             | บันทึกการใช้งาน                                                                                                                                                                                                                                                                                                              |
+| `/api/usage/request-logs`        | GET             | บันทึกระดับคำขอ                                                                                                                                                                                                                                                                                                              |
+| `/api/usage/[connectionId]`      | GET             | การใช้งานแยกตามการเชื่อมต่อ                                                                                                                                                                                                                                                                                                  |
+| `/api/usage/token-limits`        | GET/POST/DELETE | งบประมาณขีดจำกัดโทเค็นแยกตามคีย์ API                                                                                                                                                                                                                                                                                         |
+| `/api/usage/model-latency-stats` | GET             | ค่าสถิติรวมแบบต่อเนื่องของเวลาแฝงแยกตามผู้ให้บริการ/โมเดล (ค่าเฉลี่ย/p50/p95/p99, อัตราความสำเร็จ); ตัวกรอง: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                 |
+| `/api/usage/cache-health`        | GET             | สรุปสถานะแคชพรอมต์จาก `call_logs` — อัตราส่วนการเขียน/อ่าน, การแจกแจงขนาดการเขียนที่ p50/p90/p99, การกระจุกตัวของการเขียนปริมาณมาก, การแบ่งตามโมเดล และผลการประเมิน `healthy`/`degraded`/`thrash`/`no-data`; พารามิเตอร์คิวรี `range` (`1h`\|`24h`\|`7d`\|`30d`, ค่าเริ่มต้น `24h`) และ `model` ซึ่งระบุหรือไม่ก็ได้ (#8827) |
 
 ### การตั้งค่า
 
-| Endpoint                              | Method        | คำอธิบาย                                                                                                                                                                              |
-| ------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/settings`                       | GET/PUT/PATCH | การตั้งค่าทั่วไป                                                                                                                                                                      |
-| `/api/settings/proxy`                 | GET/PUT       | การกำหนดค่าพร็อกซีเครือข่าย                                                                                                                                                           |
-| `/api/settings/proxy/test`            | POST          | ทดสอบการเชื่อมต่อพร็อกซี                                                                                                                                                              |
-| `/api/settings/ip-filter`             | GET/PUT       | รายการอนุญาต/รายการบล็อก IP                                                                                                                                                           |
-| `/api/settings/thinking-budget`       | GET/PUT       | โหมดเขียน **คำขอ** สำหรับการคิด/การให้เหตุผลใหม่ (ส่งผ่าน / ตัดออกอัตโนมัติ / กำหนดเอง / ปรับตามสถานการณ์) ทำงานแยกจากการบีบอัด ดู [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md) |
-| `/api/settings/system-prompt`         | GET/PUT       | พรอมต์ระบบส่วนกลาง                                                                                                                                                                    |
-| `/api/settings/compression`           | GET/PUT       | การกำหนดค่าการบีบอัดส่วนกลาง                                                                                                                                                          |
-| `/api/settings/purge-request-history` | POST          | ล้างแถวบันทึกคำขอและอาร์ติแฟกต์บันทึกการเรียกใช้ภายในเครื่อง                                                                                                                          |
+| Endpoint                              | Method        | Description                                                                                                                                                                               |
+| ------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/settings`                       | GET/PUT/PATCH | การตั้งค่าทั่วไป                                                                                                                                                                          |
+| `/api/settings/proxy`                 | GET/PUT       | การกำหนดค่าพร็อกซีเครือข่าย                                                                                                                                                               |
+| `/api/settings/proxy/test`            | POST          | ทดสอบการเชื่อมต่อพร็อกซี                                                                                                                                                                  |
+| `/api/settings/ip-filter`             | GET/PUT       | รายการ IP ที่อนุญาต/บล็อก                                                                                                                                                                 |
+| `/api/settings/thinking-budget`       | GET/PUT       | โหมดเขียน **คำขอ** ด้านการคิด/การให้เหตุผลใหม่ (ส่งผ่าน / ตัดออกอัตโนมัติ / กำหนดเอง / ปรับตามสถานการณ์) ทำงานเป็นอิสระจากการบีบอัด ดู [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md) |
+| `/api/settings/system-prompt`         | GET/PUT       | พรอมต์ระบบส่วนกลาง                                                                                                                                                                        |
+| `/api/settings/compression`           | GET/PUT       | การกำหนดค่าการบีบอัดส่วนกลาง                                                                                                                                                              |
+| `/api/settings/purge-request-history` | POST          | ล้างแถวบันทึกคำขอและอาร์ติแฟกต์บันทึกการเรียกใช้ภายในเครื่อง                                                                                                                              |
 
 ### บริบทและการบีบอัด
 
-| Endpoint                               | เมธอด          | คำอธิบาย                                                               |
-| -------------------------------------- | -------------- | ---------------------------------------------------------------------- |
-| `/api/compression/preview`             | POST           | ดูตัวอย่างการบีบอัดแบบ off/lite/standard/aggressive/ultra/RTK/stacked  |
-| `/api/compression/language-packs`      | GET            | แสดงรายการแพ็กภาษาของ Caveman ที่พร้อมใช้งาน                           |
-| `/api/compression/rules`               | GET            | แสดงรายการข้อมูลเมตาของกฎ Caveman                                      |
-| `/api/context/caveman/config`          | GET/PUT        | นามแฝงสำหรับการตั้งค่าเฉพาะ Caveman                                    |
-| `/api/context/rtk/config`              | GET/PUT        | การตั้งค่าเฉพาะ RTK รวมถึงตัวกรองแบบกำหนดเองและการเก็บรักษาเอาต์พุตดิบ |
-| `/api/context/rtk/filters`             | GET            | แค็ตตาล็อกตัวกรอง RTK และข้อมูลวินิจฉัยตัวกรองแบบกำหนดเอง              |
-| `/api/context/rtk/test`                | POST           | เรียกใช้การดูตัวอย่าง/ทดสอบ RTK กับเพย์โหลดข้อความ                     |
-| `/api/context/rtk/raw-output/[id]`     | GET            | อ่านเอาต์พุตดิบที่ผ่านการปกปิดและเก็บรักษาไว้ด้วย ID ตัวชี้            |
-| `/api/context/combos`                  | GET/POST       | แสดงรายการ/สร้างคอมโบการบีบอัด                                         |
-| `/api/context/combos/[id]`             | GET/PUT/DELETE | ดูรายละเอียด/อัปเดต/ลบคอมโบการบีบอัด                                   |
-| `/api/context/combos/[id]/assignments` | GET/PUT        | กำหนดคอมโบการบีบอัดให้กับคอมโบการกำหนดเส้นทาง                          |
-| `/api/context/analytics`               | GET            | นามแฝงสำหรับการวิเคราะห์การบีบอัด                                      |
+| Endpoint                               | Method         | Description                                                           |
+| -------------------------------------- | -------------- | --------------------------------------------------------------------- |
+| `/api/compression/preview`             | POST           | ดูตัวอย่างการบีบอัดแบบ off/lite/standard/aggressive/ultra/RTK/stacked |
+| `/api/compression/language-packs`      | GET            | แสดงรายการชุดภาษาของ Caveman ที่พร้อมใช้งาน                           |
+| `/api/compression/rules`               | GET            | แสดงรายการข้อมูลเมตาของกฎ Caveman                                     |
+| `/api/context/caveman/config`          | GET/PUT        | นามแฝงสำหรับการตั้งค่าเฉพาะ Caveman                                   |
+| `/api/context/rtk/config`              | GET/PUT        | การตั้งค่าเฉพาะ RTK รวมถึงตัวกรองแบบกำหนดเองและการเก็บเอาต์พุตดิบไว้  |
+| `/api/context/rtk/filters`             | GET            | แค็ตตาล็อกตัวกรอง RTK และข้อมูลวินิจฉัยตัวกรองแบบกำหนดเอง             |
+| `/api/context/rtk/test`                | POST           | เรียกใช้การดูตัวอย่าง/การทดสอบ RTK กับเพย์โหลดข้อความ                 |
+| `/api/context/rtk/raw-output/[id]`     | GET            | อ่านเอาต์พุตดิบที่ปกปิดข้อมูลและเก็บรักษาไว้ตามรหัสตัวชี้             |
+| `/api/context/combos`                  | GET/POST       | แสดงรายการ/สร้างชุดผสมการบีบอัด                                       |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | ดูรายละเอียด/อัปเดต/ลบชุดผสมการบีบอัด                                 |
+| `/api/context/combos/[id]/assignments` | GET/PUT        | กำหนดชุดผสมการบีบอัดให้กับชุดผสมการกำหนดเส้นทาง                       |
+| `/api/context/analytics`               | GET            | นามแฝงสำหรับการวิเคราะห์การบีบอัด                                     |
 
-### การตรวจสอบระบบ
+### การเฝ้าติดตาม
 
-| Endpoint                             | เมธอด      | คำอธิบาย                                                                                                                                                                                                                                                                                                                                                                                                     |
-| ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `/api/sessions`                      | GET        | การติดตามเซสชันที่ใช้งานอยู่                                                                                                                                                                                                                                                                                                                                                                                 |
-| `/api/rate-limits`                   | GET        | ขีดจำกัดอัตราคำขอต่อบัญชี                                                                                                                                                                                                                                                                                                                                                                                    |
-| `/api/monitoring/health`             | GET        | การตรวจสอบสถานะระบบ + สรุปผู้ให้บริการ (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`) มุมมองการจัดการประกอบด้วย `credentialHealth`: ค่าสเกลาร์ของแคชการตรวจสอบ, `failedConnections` เมื่อ `failed>0` และ `staleDbNonOkCount` (`test_status` แบบคงค้างของ SQLite ไม่ใช่มาตรวัด) ดู [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status) |
-| `/api/cache/stats`                   | GET/DELETE | สถิติแคช / ล้างแคช                                                                                                                                                                                                                                                                                                                                                                                           |
-| `/api/modality-bridge/stats`         | GET        | ค่า `attempts` ในหน่วยความจำ, จำนวนที่สำเร็จ/`bridged`, จำนวนที่ล้มเหลว, จำนวนแคชฮิต, `totalLatencyMs`, `latencySamples`, `averageLatencyMs` ที่คำนวณโดยใช้จำนวนตัวอย่างเป็นตัวหาร และเวลาที่ใช้งานครั้งล่าสุด (รีเซ็ตเมื่อเริ่มระบบใหม่; ต้องมีสิทธิ์การจัดการ)                                                                                                                                             |
-| `/api/modality-bridge/video/runtime` | GET        | ตรวจสอบลูปแบ็กที่เชื่อถือได้อย่างเข้มงวดก่อนการยืนยันสิทธิ์/การตรวจสอบสำหรับการจัดการ; สถานะความพร้อมใช้งานและเวอร์ชันของ FFmpeg/ffprobe ที่ผ่านการกรองข้อมูลแล้ว (ไม่จัดเก็บ)                                                                                                                                                                                                                               |
-| `/api/modality-bridge/video/extract` | POST       | โบรกเกอร์ไบต์ภายในที่ผ่านการยืนยันสิทธิ์และใช้ลูปแบ็กที่เชื่อถือได้; อินพุต 50 MiB, คิวที่จำกัด/เอาต์พุต 32 MiB, `503` เมื่อความจุเต็ม, `499` เมื่อยกเลิกการเชื่อมต่อ, `504` เมื่อเกินกำหนดเวลา; ไม่ใช่ API อัปโหลดสาธารณะ                                                                                                                                                                                   |
+| Endpoint                             | Method     | Description                                                                                                                                                                                                                                                                                                                                                                                            |
+| ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/api/sessions`                      | GET        | การติดตามเซสชันที่ใช้งานอยู่                                                                                                                                                                                                                                                                                                                                                                           |
+| `/api/rate-limits`                   | GET        | ขีดจำกัดอัตราต่อบัญชี                                                                                                                                                                                                                                                                                                                                                                                  |
+| `/api/monitoring/health`             | GET        | การตรวจสอบสถานะระบบ + สรุปผู้ให้บริการ (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`) มุมมองการจัดการประกอบด้วย `credentialHealth`: ค่าสเกลาร์ของแคชโพรบ, `failedConnections` เมื่อ `failed>0` และ `staleDbNonOkCount` (`test_status` แบบคงค้างของ SQLite ไม่ใช่เกจ) โปรดดู [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status) |
+| `/api/cache/stats`                   | GET/DELETE | สถิติแคช / ล้างแคช                                                                                                                                                                                                                                                                                                                                                                                     |
+| `/api/modality-bridge/stats`         | GET        | ค่า `attempts` ในหน่วยความจำ, จำนวนสำเร็จ/`bridged`, จำนวนล้มเหลว, จำนวนครั้งที่พบข้อมูลในแคช, `totalLatencyMs`, `latencySamples`, `averageLatencyMs` ที่มีตัวหารเป็นจำนวนตัวอย่าง และเวลาที่ใช้งานครั้งล่าสุด (รีเซ็ตเมื่อเริ่มระบบใหม่; ต้องใช้การยืนยันตัวตนระดับการจัดการ)                                                                                                                         |
+| `/api/modality-bridge/video/runtime` | GET        | ตรวจสอบลูปแบ็กที่เชื่อถือได้อย่างเข้มงวดก่อนการยืนยันตัวตน/โพรบระดับการจัดการ; ความพร้อมใช้งานและเวอร์ชันของ FFmpeg/ffprobe ที่ผ่านการปรับให้ปลอดภัย (ไม่จัดเก็บ)                                                                                                                                                                                                                                      |
+| `/api/modality-bridge/video/extract` | POST       | โบรกเกอร์ไบต์ภายในที่ผ่านการยืนยันตัวตนและใช้ลูปแบ็กที่เชื่อถือได้; อินพุต 50 MiB, คิวที่มีขอบเขต/เอาต์พุต 32 MiB, `503` เมื่อความจุเต็ม, `499` เมื่อตัดการเชื่อมต่อ, `504` เมื่อเกินกำหนดเวลา; ไม่ใช่ API อัปโหลดสาธารณะ                                                                                                                                                                              |
 
 ### การสำรองข้อมูลและการส่งออก/นำเข้า
 
 | Endpoint                    | Method | คำอธิบาย                                    |
 | --------------------------- | ------ | ------------------------------------------- |
-| `/api/db-backups`           | GET    | แสดงรายการข้อมูลสำรองที่พร้อมใช้งาน         |
+| `/api/db-backups`           | GET    | แสดงรายการข้อมูลสำรองที่มีอยู่              |
 | `/api/db-backups`           | PUT    | สร้างข้อมูลสำรองด้วยตนเอง                   |
 | `/api/db-backups`           | POST   | กู้คืนจากข้อมูลสำรองที่ระบุ                 |
 | `/api/db-backups/export`    | GET    | ดาวน์โหลดฐานข้อมูลเป็นไฟล์ .sqlite          |
@@ -891,11 +922,11 @@ X-OmniRoute-No-Cache: true
 
 ### การซิงค์กับคลาวด์
 
-| Endpoint               | Method  | คำอธิบาย                   |
-| ---------------------- | ------- | -------------------------- |
-| `/api/sync/cloud`      | Various | การดำเนินการซิงค์กับคลาวด์ |
-| `/api/sync/initialize` | POST    | เริ่มต้นการซิงค์           |
-| `/api/cloud/*`         | Various | การจัดการคลาวด์            |
+| Endpoint               | Method       | คำอธิบาย                   |
+| ---------------------- | ------------ | -------------------------- |
+| `/api/sync/cloud`      | หลากหลายวิธี | การดำเนินการซิงค์กับคลาวด์ |
+| `/api/sync/initialize` | POST         | เริ่มต้นการซิงค์           |
+| `/api/cloud/*`         | หลากหลายวิธี | การจัดการคลาวด์            |
 
 ### ทันเนล
 
@@ -924,22 +955,22 @@ X-OmniRoute-No-Cache: true
 | ----------------- | ------ | --------------------------------------------------------------- |
 | `/api/acp/agents` | GET    | แสดงรายการเอเจนต์ที่ตรวจพบทั้งหมด (ในตัว + กำหนดเอง) พร้อมสถานะ |
 | `/api/acp/agents` | POST   | เพิ่มเอเจนต์ที่กำหนดเองหรือรีเฟรชแคชการตรวจหา                   |
-| `/api/acp/agents` | DELETE | ลบเอเจนต์ที่กำหนดเองโดยใช้พารามิเตอร์คิวรี `id`                 |
+| `/api/acp/agents` | DELETE | ลบเอเจนต์ที่กำหนดเองผ่านพารามิเตอร์คิวรี `id`                   |
 
 การตอบกลับ GET ประกอบด้วย `agents[]` (id, name, binary, version, installed, protocol, isCustom) และ `summary` (total, installed, notFound, builtIn, custom)
 
-### ความทนทานและขีดจำกัดอัตรา
+### ความยืดหยุ่นและขีดจำกัดอัตรา
 
-| Endpoint                          | Method    | คำอธิบาย                                                                                    |
-| --------------------------------- | --------- | ------------------------------------------------------------------------------------------- |
-| `/api/resilience`                 | GET/PATCH | รับ/อัปเดตคิวคำขอ ช่วงพักการเชื่อมต่อ เซอร์กิตเบรกเกอร์ของผู้ให้บริการ และการตั้งค่าการรอ   |
-| `/api/resilience/reset`           | POST      | รีเซ็ตเซอร์กิตเบรกเกอร์ของผู้ให้บริการ                                                      |
-| `/api/resilience/model-cooldowns` | GET       | แสดงรายการการล็อกที่ใช้งานอยู่ต่อ (ผู้ให้บริการ การเชื่อมต่อ โมเดล) โดยเรียงตามเวลาที่เหลือ |
-| `/api/resilience/model-cooldowns` | DELETE    | ล้างการล็อกโมเดล — บอดี `{provider, model}` หรือ `{all: true}` เพื่อล้างทั้งหมด             |
-| `/api/rate-limits`                | GET       | สถานะขีดจำกัดอัตราต่อบัญชี                                                                  |
-| `/api/rate-limit`                 | GET       | การกำหนดค่าขีดจำกัดอัตราส่วนกลาง                                                            |
+| Endpoint                          | Method    | คำอธิบาย                                                                                       |
+| --------------------------------- | --------- | ---------------------------------------------------------------------------------------------- |
+| `/api/resilience`                 | GET/PATCH | รับ/อัปเดตคิวคำขอ ช่วงพักการเชื่อมต่อ เบรกเกอร์ของผู้ให้บริการ และการตั้งค่าการรอ              |
+| `/api/resilience/reset`           | POST      | รีเซ็ตเซอร์กิตเบรกเกอร์ของผู้ให้บริการ                                                         |
+| `/api/resilience/model-cooldowns` | GET       | แสดงรายการการล็อกที่ใช้งานอยู่แยกตาม (ผู้ให้บริการ การเชื่อมต่อ โมเดล) โดยเรียงตามเวลาที่เหลือ |
+| `/api/resilience/model-cooldowns` | DELETE    | ล้างการล็อกโมเดล — เนื้อหา `{provider, model}` หรือ `{all: true}` เพื่อล้างทั้งหมด             |
+| `/api/rate-limits`                | GET       | สถานะขีดจำกัดอัตราแยกตามบัญชี                                                                  |
+| `/api/rate-limit`                 | GET       | การกำหนดค่าขีดจำกัดอัตราส่วนกลาง                                                               |
 
-> เส้นทาง `/api/resilience/*` ทั้งสี่เส้นทางต้องใช้ **การยืนยันตัวตนสำหรับการจัดการ** (`requireManagementAuth`) ดูรายละเอียดทั้งหมดเกี่ยวกับความแตกต่างระหว่างเซอร์กิตเบรกเกอร์ของผู้ให้บริการ ช่วงพักการเชื่อมต่อ และการล็อกโมเดลได้ที่ [ความทนทาน (ฉบับขยาย)](#resilience-extended)
+> เส้นทาง `/api/resilience/*` ทั้งสี่รายการต้องใช้ **การยืนยันตัวตนสำหรับการจัดการ** (`requireManagementAuth`) ดูรายละเอียดทั้งหมดเกี่ยวกับความแตกต่างระหว่างเบรกเกอร์ของผู้ให้บริการ ช่วงพักการเชื่อมต่อ และการล็อกโมเดลได้ที่ [ความยืดหยุ่น (เพิ่มเติม)](#resilience-extended)
 
 ### การประเมิน
 
@@ -961,24 +992,24 @@ X-OmniRoute-No-Cache: true
 
 ### v1beta (เข้ากันได้กับ Gemini)
 
-| Endpoint                   | Method | คำอธิบาย                              |
-| -------------------------- | ------ | ------------------------------------- |
-| `/v1beta/models`           | GET    | แสดงรายการโมเดลในรูปแบบ Gemini        |
-| `/v1beta/models/{...path}` | POST   | Endpoint `generateContent` ของ Gemini |
+| Endpoint                   | Method | คำอธิบาย                                |
+| -------------------------- | ------ | --------------------------------------- |
+| `/v1beta/models`           | GET    | แสดงรายการโมเดลในรูปแบบ Gemini          |
+| `/v1beta/models/{...path}` | POST   | เอนด์พอยต์ `generateContent` ของ Gemini |
 
-Endpoint เหล่านี้จำลองรูปแบบ API ของ Gemini สำหรับไคลเอนต์ที่ต้องการความเข้ากันได้กับ Gemini SDK แบบเนทีฟ
+เอนด์พอยต์เหล่านี้จำลองรูปแบบ API ของ Gemini สำหรับไคลเอนต์ที่ต้องการความเข้ากันได้กับ Gemini SDK แบบเนทีฟ
 
 ### API ภายใน / ระบบ
 
-| Endpoint                 | Method | คำอธิบาย                                                  |
-| ------------------------ | ------ | --------------------------------------------------------- |
-| `/api/init`              | GET    | ตรวจสอบการเริ่มต้นแอปพลิเคชัน (ใช้ในการเรียกใช้ครั้งแรก)  |
-| `/api/tags`              | GET    | แท็กโมเดลที่เข้ากันได้กับ Ollama (สำหรับไคลเอ็นต์ Ollama) |
-| `/api/restart`           | POST   | เริ่มกระบวนการรีสตาร์ตเซิร์ฟเวอร์อย่างปลอดภัย             |
-| `/api/shutdown`          | POST   | เริ่มกระบวนการปิดเซิร์ฟเวอร์อย่างปลอดภัย                  |
-| `/api/system/env/repair` | POST   | ซ่อมแซมตัวแปรสภาพแวดล้อมของผู้ให้บริการ OAuth             |
+| Endpoint                 | Method | คำอธิบาย                                                 |
+| ------------------------ | ------ | -------------------------------------------------------- |
+| `/api/init`              | GET    | ตรวจสอบการเริ่มต้นแอปพลิเคชัน (ใช้ในการเรียกใช้ครั้งแรก) |
+| `/api/tags`              | GET    | แท็กโมเดลที่เข้ากันได้กับ Ollama (สำหรับไคลเอนต์ Ollama) |
+| `/api/restart`           | POST   | ทริกเกอร์ให้เซิร์ฟเวอร์รีสตาร์ตอย่างราบรื่น              |
+| `/api/shutdown`          | POST   | ทริกเกอร์ให้เซิร์ฟเวอร์ปิดระบบอย่างราบรื่น               |
+| `/api/system/env/repair` | POST   | ซ่อมแซมตัวแปรสภาพแวดล้อมของผู้ให้บริการ OAuth            |
 
-> **หมายเหตุ:** Endpoint เหล่านี้ใช้ภายในระบบหรือเพื่อให้เข้ากันได้กับไคลเอ็นต์ Ollama โดยทั่วไปผู้ใช้ปลายทางจะไม่เรียกใช้ Endpoint เหล่านี้โดยตรง
+> **หมายเหตุ:** Endpoint เหล่านี้ใช้ภายในระบบหรือเพื่อความเข้ากันได้กับไคลเอนต์ Ollama โดยปกติผู้ใช้ปลายทางจะไม่เรียกใช้ Endpoint เหล่านี้
 
 ### การซ่อมแซมสภาพแวดล้อม OAuth _(v3.6.1+)_
 
@@ -991,7 +1022,7 @@ Content-Type: application/json
 }
 ```
 
-ซ่อมแซมตัวแปรสภาพแวดล้อม OAuth ที่สูญหายหรือเสียหายสำหรับผู้ให้บริการที่ระบุ โดยส่งคืน:
+ซ่อมแซมตัวแปรสภาพแวดล้อม OAuth ที่สูญหายหรือเสียหายสำหรับผู้ให้บริการรายใดรายหนึ่ง โดยส่งคืน:
 
 ```json
 {
@@ -1418,22 +1449,22 @@ GET /.well-known/agent.json
 
 ---
 
-## คลาวด์ การประเมินผล และการประเมิน
+## คลาวด์, Evals และการประเมิน
 
 | เมธอด | พาธ | คำอธิบาย |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | ตรวจสอบคีย์ Bearer และส่งคืนการเชื่อมต่อผู้ให้บริการที่ปกปิดข้อมูลบางส่วน พร้อมนามแฝงโมเดลสำหรับไคลเอนต์ซิงค์กับคลาวด์ |
+| POST | `/api/cloud/auth` | ตรวจสอบคีย์ Bearer และส่งคืนการเชื่อมต่อผู้ให้บริการแบบปกปิดข้อมูล + นามแฝงโมเดลสำหรับไคลเอนต์ซิงค์กับคลาวด์ |
 | POST | `/api/cloud/credentials/update` | อัปเดตข้อมูลประจำตัวที่เข้ารหัสสำหรับผู้ให้บริการที่ซิงค์กับคลาวด์ |
-| POST | `/api/cloud/model/resolve` | แปลงรหัสโมเดลเชิงตรรกะเป็นผู้ให้บริการ/โมเดลจริงโดยใช้ตารางการกำหนดเส้นทางภายในเครื่อง |
-| GET | `/api/cloud/models/alias` | แสดงรายการนามแฝงโมเดลที่เปิดเผยต่อการซิงค์กับคลาวด์ |
+| POST | `/api/cloud/model/resolve` | แปลง ID โมเดลเชิงตรรกะเป็นผู้ให้บริการ/โมเดลที่เป็นรูปธรรมโดยใช้ตารางการกำหนดเส้นทางภายในเครื่อง |
+| GET | `/api/cloud/models/alias` | แสดงรายการนามแฝงโมเดลตามที่เปิดเผยแก่การซิงค์กับคลาวด์ |
 | GET | `/api/assess` | อ่านการจัดหมวดหมู่จากการประเมินล่าสุด (แยกตามผู้ให้บริการ/โมเดล) |
 | POST | `/api/assess` | เรียกใช้การประเมิน — body: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | แสดงรายการชุดการประเมินผลในตัว + การเรียกใช้ล่าสุด |
-| POST | `/api/evals` | เริ่มการเรียกใช้การประเมินผล |
-| POST | `/api/evals/suites` | สร้างชุดการประเมินผลแบบกำหนดเอง — ตรวจสอบ body ด้วย `evalSuiteSaveSchema` |
-| GET | `/api/evals/suites/[id]` | ดึงข้อมูลชุดการประเมินผลแบบกำหนดเอง |
+| GET | `/api/evals` | แสดงรายการชุด eval ในตัว + การเรียกใช้ล่าสุด |
+| POST | `/api/evals` | เริ่มการเรียกใช้ eval |
+| POST | `/api/evals/suites` | สร้างชุด eval แบบกำหนดเอง — body ได้รับการตรวจสอบโดย `evalSuiteSaveSchema` |
+| GET | `/api/evals/suites/[id]` | เรียกข้อมูลชุด eval แบบกำหนดเอง |
 
-**การยืนยันตัวตน:** `/api/cloud/auth` ตรวจสอบคีย์ Bearer โดยตรง ส่วนเส้นทาง `/api/cloud/*`, `/api/evals/*` และ `/api/assess` อื่น ๆ ต้องใช้เซสชัน/คีย์ API สำหรับการจัดการ คำขอ POST ไปยัง `/api/assess` ใช้ `validateBody` ร่วมกับสคีมาขอบเขตแบบ discriminated union
+**การยืนยันตัวตน:** `/api/cloud/auth` ตรวจสอบคีย์ Bearer โดยตรง และส่งคืนเฉพาะคีย์ที่ปกปิดแล้วกับ `projectId` ของแต่ละการเชื่อมต่อสำหรับคีย์ที่มีขอบเขต `manage` / `admin` เท่านั้น ส่วนเส้นทาง `/api/cloud/*`, `/api/evals/*` และ `/api/assess` อื่น ๆ ต้องใช้เซสชันการจัดการ/คีย์ API การส่งคำขอ POST ไปยัง `/api/assess` ใช้ `validateBody` กับสคีมาขอบเขตแบบ discriminated union
 
 ---
 
@@ -1591,19 +1622,19 @@ Endpoint การวิเคราะห์แบบเรียลไทม�
 
 ## การจัดการเครื่องมือ CLI
 
-จัดการเครื่องมือ CLI ที่ผสานรวมกับ OmniRoute (antigravity, chipotle, commandCode,
+จัดการเครื่องมือ CLI ที่ผสานการทำงานกับ OmniRoute (antigravity, commandCode,
 devin-cli เป็นต้น) ดูรายการทั้งหมดได้ที่ [ข้อมูลอ้างอิงผู้ให้บริการ](./PROVIDER_REFERENCE.md)
 
-| เมธอด | พาธ                                     | คำอธิบาย                                                                                                                                                              |
-| ----- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET   | `/api/cli-tools/all-statuses`           | สถานะของเครื่องมือ CLI ทั้งหมด (ติดตั้งแล้ว, เวอร์ชัน, พบล่าสุด)                                                                                                      |
-| GET   | `/api/cli-tools/status`                 | รายละเอียดสถานะของเครื่องมือ CLI หนึ่งรายการ (คิวรี `?tool=`)                                                                                                         |
-| POST  | `/api/cli-tools/apply`                  | เขียนการกำหนดค่าที่สร้างขึ้นของเครื่องมือ (`dryRun` ใช้ดูตัวอย่าง; `422` + `containerEphemeralTarget` เมื่ออยู่ในคอนเทนเนอร์; `migration` ระบุถึง Codex YAML แบบเดิม) |
-| GET   | `/api/cli-tools/backups`                | แสดงรายการข้อมูลสำรองการกำหนดค่าเครื่องมือ CLI                                                                                                                        |
-| POST  | `/api/cli-tools/backups`                | สร้างข้อมูลสำรองของการกำหนดค่าเครื่องมือ CLI ทั้งหมด                                                                                                                  |
-| POST  | `/api/cli-tools/backups`                | กู้คืน: ใช้เอนด์พอยต์เดียวกันโดยระบุ `{tool, backupId}` ในเนื้อหาเพื่อกู้คืนข้อมูลสำรองนั้น                                                                           |
-| GET   | `/api/cli-tools/antigravity-mitm`       | สถานะพร็อกซี MITM ของ Antigravity (เครื่องมือ CLI "antigravity-mitm")                                                                                                 |
-| POST  | `/api/cli-tools/antigravity-mitm/alias` | กำหนดค่านามแฝงของ antigravity-mitm                                                                                                                                    |
+| เมธอด | พาธ                                     | คำอธิบาย                                                                                                                                                                 |
+| ----- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| GET   | `/api/cli-tools/all-statuses`           | สถานะของเครื่องมือ CLI ทั้งหมด (ติดตั้งแล้ว, เวอร์ชัน, พบล่าสุด)                                                                                                         |
+| GET   | `/api/cli-tools/status`                 | รายละเอียดสถานะของเครื่องมือ CLI หนึ่งรายการ (คิวรี `?tool=`)                                                                                                            |
+| POST  | `/api/cli-tools/apply`                  | เขียนการกำหนดค่าที่สร้างขึ้นของเครื่องมือ (`dryRun` ใช้แสดงตัวอย่าง; `422` + `containerEphemeralTarget` เมื่อทำงานในคอนเทนเนอร์; `migration` ระบุ YAML แบบเดิมของ Codex) |
+| GET   | `/api/cli-tools/backups`                | แสดงรายการข้อมูลสำรองการกำหนดค่าเครื่องมือ CLI                                                                                                                           |
+| POST  | `/api/cli-tools/backups`                | สร้างข้อมูลสำรองของการกำหนดค่าเครื่องมือ CLI ทั้งหมด                                                                                                                     |
+| POST  | `/api/cli-tools/backups`                | กู้คืน: ใช้ปลายทางเดียวกันโดยระบุ `{tool, backupId}` ในเนื้อหาคำขอเพื่อกู้คืนข้อมูลสำรองนั้น                                                                             |
+| GET   | `/api/cli-tools/antigravity-mitm`       | สถานะพร็อกซี MITM ของ Antigravity (เครื่องมือ CLI "antigravity-mitm")                                                                                                    |
+| POST  | `/api/cli-tools/antigravity-mitm/alias` | กำหนดค่านามแฝงของ antigravity-mitm                                                                                                                                       |
 
 **การยืนยันตัวตน:** ต้องมีเซสชันการจัดการ
 

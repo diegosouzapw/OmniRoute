@@ -78,8 +78,11 @@ test("syncAllProviderLimits spaces chunks for local/API-key connections when spa
   const chunkStarts: number[] = [];
   const start = Date.now();
 
-  globalThis.fetch = (async () => {
-    chunkStarts.push(Date.now() - start);
+  globalThis.fetch = (async (input: string | URL | Request) => {
+    // #12754 added a second per-connection call (customer-package-reset/list)
+    // after the quota fetch. A chunk starts at the QUOTA request; counting every
+    // fetch would read the reset-card follow-up as a fourth-sixth chunk.
+    if (String(input).includes("/quota/limit")) chunkStarts.push(Date.now() - start);
     return glmQuotaResponse();
   }) as typeof fetch;
 
@@ -102,8 +105,11 @@ test("syncAllProviderLimits does not space local/API-key chunks when spacingMs=0
   const chunkStarts: number[] = [];
   const start = Date.now();
 
-  globalThis.fetch = (async () => {
-    chunkStarts.push(Date.now() - start);
+  globalThis.fetch = (async (input: string | URL | Request) => {
+    // #12754 added a second per-connection call (customer-package-reset/list)
+    // after the quota fetch. A chunk starts at the QUOTA request; counting every
+    // fetch would read the reset-card follow-up as a fourth-sixth chunk.
+    if (String(input).includes("/quota/limit")) chunkStarts.push(Date.now() - start);
     return glmQuotaResponse();
   }) as typeof fetch;
 

@@ -10,6 +10,7 @@ import {
   MODEL_COMPAT_PROTOCOL_KEYS,
   type ModelCompatProtocolKey,
 } from "@/shared/constants/modelCompat";
+import { isHiddenForModality } from "@/shared/utils/modelVisibility";
 import {
   getClaudeCodeCompatibleRequestDefaults as _getClaudeCodeCompatibleRequestDefaults,
   getCodexRequestDefaults as _getCodexRequestDefaults,
@@ -85,6 +86,8 @@ export type CompatModelRow = {
   normalizeToolCallId?: boolean;
   preserveOpenAIDeveloperRole?: boolean;
   isHidden?: boolean;
+  /** #12172: per-modality visibility overrides (`{ chat: true }`) — see `isHiddenForModality`. */
+  hiddenModalities?: Record<string, boolean>;
   upstreamHeaders?: Record<string, string>;
   compatByProtocol?: CompatByProtocolMap;
   /** #2905: per-model upstream wire-format override. */ targetFormat?: string;
@@ -161,15 +164,21 @@ export function evaluateTestAllEntry(
         isTimeout?: boolean;
         isTransient?: boolean;
         isQuota?: boolean;
+        skipped?: boolean;
       }
     | null
     | undefined,
   autoHideFailed: boolean
 ): TestAllModelOutcome {
   const ok = entry?.status === "ok";
-  const transient = [entry?.rateLimited, entry?.isTimeout, entry?.isTransient, entry?.isQuota].some(
-    Boolean
-  );
+  // #14780: a skipped probe (web-session provider) was never dispatched — keep it visible.
+  const transient = [
+    entry?.rateLimited,
+    entry?.isTimeout,
+    entry?.isTransient,
+    entry?.isQuota,
+    entry?.skipped,
+  ].some(Boolean);
   return {
     status: ok ? "ok" : "error",
     // #9511: quota errors (isQuota) are surfaced on the icon but kept visible
@@ -234,6 +243,14 @@ export const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
   "firecrawl",
   "petals",
   "comfyui",
+  // #12704 — Modal is bring-your-own-deploy: every user runs their model on a
+  // unique endpoint (https://<workspace>--<app>.modal.run/v1), so there is no
+  // fixed host to preset. The server-side validator (src/lib/providers/
+  // validation.ts) requires providerSpecificData.baseUrl for modal, but the
+  // add-connection modal never exposed the field — connections could not be
+  // validated or saved at all. Expose the generic base-URL override
+  // affordance for this id (same mechanism as the kimi/moonshot case above).
+  "modal",
   // #7447 — Moonshot/Kimi's international host (api.moonshot.ai) rejects
   // CN-region keys (issued on platform.kimi.com/moonshot.cn — a separate
   // account/keyspace). Neither "kimi" (legacy id) nor "moonshot" (current
@@ -254,7 +271,7 @@ export const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
   "azure-openai": "https://example-resource.openai.azure.com",
   "azure-ai": "https://example-resource.services.ai.azure.com/openai/v1",
   "bailian-coding-plan": "https://token-plan.ap-southeast-1.maas.aliyuncs.com/apps/anthropic/v1",
-  "xiaomi-mimo": "https://token-plan-sgp.xiaomimimo.com/v1",
+  "xiaomi-mimo": "https://api.xiaomimimo.com/v1",
   siliconflow: "https://api.siliconflow.com/v1",
   "searxng-search": "http://localhost:8888/search",
   firecrawl: "https://api.firecrawl.dev",
@@ -350,38 +367,40 @@ export function getProviderBaseUrlHint(
   }
 }
 
+// Literal placeholder examples keyed by provider id. Kept in a record instead
+// of a switch so the function stays under the complexity cap as ids are added.
+const BUILTIN_BASE_URL_PLACEHOLDER_EXAMPLES: Readonly<Record<string, string>> = {
+  "azure-openai": "https://my-resource.openai.azure.com",
+  siliconflow: "https://api.siliconflow.cn/v1",
+  heroku: "https://us.inference.heroku.com",
+  databricks: "https://adb-1234567890123456.7.azuredatabricks.net/serving-endpoints",
+  snowflake: "https://example-account.snowflakecomputing.com",
+  "searxng-search": "http://localhost:8888/search",
+  // #7447 — surfaces the CN-region alternative host as the placeholder
+  // example (mirrors the siliconflow.com/siliconflow.cn pattern above).
+  kimi: "https://api.moonshot.cn/v1",
+  moonshot: "https://api.moonshot.cn/v1",
+  agnes: "https://api.agnes-ai.cn/v1",
+  // #12704 — shows the Modal app URL shape the validator demands.
+  modal: "https://<workspace>--<app>.modal.run/v1",
+};
+
+// These ids have no literal example: the placeholder is their configured default URL.
+const DEFAULT_BASED_PLACEHOLDER_PROVIDERS = new Set([
+  "bailian-coding-plan",
+  "xiaomi-mimo",
+  "comfyui",
+  "firecrawl",
+]);
+
 export function getProviderBaseUrlPlaceholder(providerId?: string | null) {
   if (isSelfHostedChatProvider(providerId || "")) {
     return getProviderBaseUrlDefault(providerId);
   }
-  switch (providerId) {
-    case "azure-openai":
-      return "https://my-resource.openai.azure.com";
-    case "bailian-coding-plan":
-    case "xiaomi-mimo":
-    case "comfyui":
-    case "firecrawl":
-      return getProviderBaseUrlDefault(providerId);
-    case "siliconflow":
-      return "https://api.siliconflow.cn/v1";
-    case "heroku":
-      return "https://us.inference.heroku.com";
-    case "databricks":
-      return "https://adb-1234567890123456.7.azuredatabricks.net/serving-endpoints";
-    case "snowflake":
-      return "https://example-account.snowflakecomputing.com";
-    case "searxng-search":
-      return "http://localhost:8888/search";
-    case "kimi":
-    case "moonshot":
-      // #7447 — surfaces the CN-region alternative host as the placeholder
-      // example (mirrors the siliconflow.com/siliconflow.cn pattern above).
-      return "https://api.moonshot.cn/v1";
-    case "agnes":
-      return "https://api.agnes-ai.cn/v1";
-    default:
-      return "";
-  }
+  const id = providerId || "";
+  const example = BUILTIN_BASE_URL_PLACEHOLDER_EXAMPLES[id];
+  if (example) return example;
+  return DEFAULT_BASED_PLACEHOLDER_PROVIDERS.has(id) ? getProviderBaseUrlDefault(providerId) : "";
 }
 
 export function isGlmProvider(providerId?: string | null) {
@@ -504,16 +523,26 @@ export function buildCompatMap(rows: CompatModelRow[]): CompatModelMap {
   return m;
 }
 
+/** The endpoint/modality this dashboard hides models from — see `readActiveHiddenFlag`. */
+const DASHBOARD_MODEL_MODALITY = "chat";
+
 export function getDisplayModelAlias(modelId: string, alias?: string | null): string | null {
   const trimmed = typeof alias === "string" ? alias.trim() : "";
   if (!trimmed || trimmed === modelId) return null;
   return trimmed;
 }
 
+/**
+ * #12172: this page manages Chat models only, and its hide/unhide PATCH sends
+ * `modality: "chat"` — so the stored flag lives in `hiddenModalities.chat`, not in the
+ * legacy all-modalities `isHidden`. Reading only the legacy flag made the eye toggle,
+ * "Hide all" and the Hidden filter silently report every model as visible.
+ */
 function readActiveHiddenFlag(row: CompatModelRow | undefined): boolean | undefined {
   if (!row) return undefined;
-  if (Object.prototype.hasOwnProperty.call(row, "isHidden")) {
-    return Boolean(row.isHidden);
+  const hasScopedFlag = row.hiddenModalities?.[DASHBOARD_MODEL_MODALITY] !== undefined;
+  if (hasScopedFlag || Object.prototype.hasOwnProperty.call(row, "isHidden")) {
+    return isHiddenForModality(row, DASHBOARD_MODEL_MODALITY);
   }
   return undefined;
 }
@@ -652,6 +681,33 @@ export function getCodexFingerprintMode(providerSpecificData: unknown): CodexFin
   return (CODEX_FINGERPRINT_MODE_VALUES as readonly string[]).includes(normalized)
     ? (normalized as CodexFingerprintModeValue)
     : "session";
+}
+
+export const CODEX_PROMPT_CACHE_KEY_SCOPE_VALUES = ["client", "thread"] as const;
+export type CodexPromptCacheKeyScopeValue = (typeof CODEX_PROMPT_CACHE_KEY_SCOPE_VALUES)[number];
+
+export function getCodexPromptCacheKeyScope(
+  providerSpecificData: unknown
+): CodexPromptCacheKeyScopeValue {
+  const data =
+    providerSpecificData &&
+    typeof providerSpecificData === "object" &&
+    !Array.isArray(providerSpecificData)
+      ? (providerSpecificData as Record<string, unknown>)
+      : undefined;
+  const raw = data?.codexPromptCacheKeyScope;
+  const normalized = typeof raw === "string" ? raw.trim().toLowerCase() : "";
+  return normalized === "thread" ? "thread" : "client";
+}
+
+export function getCodexPromptCacheKeyScopeLabel(
+  t: ProviderMessageTranslator,
+  value: CodexPromptCacheKeyScopeValue
+): string {
+  if (value === "thread") {
+    return providerText(t, "codexPromptCacheKeyScopeThread", "Thread — match the converged thread");
+  }
+  return providerText(t, "codexPromptCacheKeyScopeClient", "Client — forward the client's key");
 }
 
 export function getCodexFingerprintModeLabel(
@@ -1017,4 +1073,23 @@ export function getHeaderIconProviderId(
     return "anthropic-m";
   }
   return providerInfoId;
+}
+
+/**
+ * #4125: parse the free-text "Context Window Override" field. Blank → no override
+ * (`value: null`, not an error). A non-empty value must be a positive whole number of
+ * tokens; anything else is rejected.
+ *
+ * Lives here rather than in one section because #14337 gives synced/imported rows the
+ * same control: two copies of this rule would be two places for "blank clears" and
+ * "zero is invalid" to drift apart.
+ */
+export function parseContextWindowOverrideInput(raw: string): {
+  value: number | null;
+  invalid: boolean;
+} {
+  const trimmed = raw.trim();
+  if (!trimmed) return { value: null, invalid: false };
+  if (!/^\d+$/.test(trimmed) || Number(trimmed) <= 0) return { value: null, invalid: true };
+  return { value: Number(trimmed), invalid: false };
 }

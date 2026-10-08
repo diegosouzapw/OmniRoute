@@ -144,7 +144,7 @@ export default function ProviderDetailPageClient() {
     setBatchTestResults,
     setProviderNode,
     fetchConnections,
-    fetchProxyConfig,
+    refreshProxyState,
     deleteConfirm,
     handleUpdateConnectionStatus,
     handleToggleRateLimit,
@@ -847,7 +847,7 @@ export default function ProviderDetailPageClient() {
         isCommandCode={isCommandCode}
         isUpstreamProxyProvider={isUpstreamProxyProvider}
         subscriptionRisk={subscriptionRisk}
-        existingConnectionCount={connections.length}
+        existingConnectionNames={connections.map((c) => c.name ?? "").filter(Boolean)}
         showRiskNoticeModal={showRiskNoticeModal}
         handleConfirmRiskNotice={handleConfirmRiskNotice}
         handleCancelRiskNotice={handleCancelRiskNotice}
@@ -911,7 +911,7 @@ export default function ProviderDetailPageClient() {
         emailsVisible={emailsVisible}
         proxyTarget={proxyTarget}
         setProxyTarget={setProxyTarget}
-        fetchProxyConfig={fetchProxyConfig}
+        refreshProxyState={refreshProxyState}
         importProgress={importProgress}
         showImportModal={showImportModal}
         setShowImportModal={setShowImportModal}

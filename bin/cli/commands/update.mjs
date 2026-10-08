@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { t } from "../i18n.mjs";
-import { npmBin, npmExecOptions } from "../npm-exec.mjs";
+import { npmBin, npmExecInvocation } from "../npm-exec.mjs";
 import { readPidFile, isPidRunning } from "../utils/pid.mjs";
 
 const execFileAsync = promisify(execFile);
@@ -30,15 +30,21 @@ export async function getCurrentVersion() {
 // `--prefer-online` forces npm to revalidate its HTTP cache against the registry.
 // Without it `npm view` can return a stale cached version (e.g. report 3.8.30 as
 // "latest" after 3.8.31 was published), so the updater told users on an old build
-// they were already on the latest version (#4376). `execFn` is injectable for tests.
-export async function getLatestVersion(execFn = execFileAsync) {
+// they were already on the latest version (#4376). `execFn` and `platform` are
+// injectable for tests.
+export async function getLatestVersion(execFn = execFileAsync, platform = process.platform) {
   try {
-    // argv is all literals, so enabling the shell on win32 cannot splice a
-    // runtime value into the command line (Hard Rule #13).
+    // Every token is a literal, so joining them into a command line on win32 cannot
+    // splice a runtime value into it (Hard Rule #13) — npmExecInvocation enforces
+    // that. It also hands execFile an EMPTY args array there, so the shell is
+    // enabled for npm.cmd without tripping DEP0190 (#15327).
     const { stdout } = await execFn(
-      npmBin(),
-      ["view", "omniroute", "version", "--prefer-online"],
-      npmExecOptions(process.platform, { timeoutMs: 15000 })
+      ...npmExecInvocation(
+        platform,
+        npmBin(platform),
+        ["view", "omniroute", "version", "--prefer-online"],
+        { timeoutMs: 15000 }
+      )
     );
     return stdout.trim();
   } catch {
@@ -154,9 +160,9 @@ export async function runUpdateCommand(opts = {}) {
   if (showChangelog) {
     try {
       const { stdout } = await execFileAsync(
-        npmBin(),
-        ["view", "omniroute", "changelog"],
-        npmExecOptions(process.platform, { timeoutMs: 15000 })
+        ...npmExecInvocation(process.platform, npmBin(), ["view", "omniroute", "changelog"], {
+          timeoutMs: 15000,
+        })
       );
       if (stdout.trim()) {
         console.log(stdout.trim());
@@ -187,7 +193,9 @@ export async function runUpdateCommand(opts = {}) {
   }
 
   if (dryRun) {
-    console.log("\n  [DRY RUN] Would run: npm install -g omniroute@latest --include=optional");
+    console.log(
+      "\n  [DRY RUN] Would run: npm install -g omniroute@latest --include=optional --legacy-peer-deps"
+    );
     if (!skipBackup) console.log("  [DRY RUN] Would create backup in ~/.omniroute/backups/");
     return 0;
   }
@@ -221,7 +229,9 @@ export async function runUpdateCommand(opts = {}) {
     const { execSync } = await import("child_process");
     // --include=optional keeps the optionalDependencies (better-sqlite3, keytar,
     // tls-client, llmlingua SLM stack) on update so an omit=optional config can't drop them.
-    execSync("npm install -g omniroute@latest --include=optional", { stdio: "inherit" });
+    execSync("npm install -g omniroute@latest --include=optional --legacy-peer-deps", {
+      stdio: "inherit",
+    });
     // Trust-but-verify: `npm install -g` exits 0 even when a shadowing local install
     // (e.g. ~/node_modules/omniroute ahead of the global prefix on PATH) means the
     // binary the user actually runs was not touched. Re-read the running binary's

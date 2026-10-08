@@ -1,13 +1,21 @@
 import { randomUUID } from "node:crypto";
 
 import { isVisionModelId } from "@/shared/constants/visionModels";
+import { MUSE_SPARK_PATTERN } from "./base/reasoningEffort.ts";
+import { ANTHROPIC_VERSION_HEADER } from "../config/anthropicHeaders.ts";
 import { REGISTRY } from "../config/providerRegistry.ts";
+import { getModelTargetFormat } from "../config/providerModels.ts";
+import {
+  isResponsesShapedBody,
+  projectResponsesForCli,
+} from "./commandCode/responsesProjection.ts";
 import {
   BaseExecutor,
   mergeUpstreamExtraHeaders,
   sanitizeReasoningEffortForProvider,
   type ExecuteInput,
 } from "./base.ts";
+import { applyReasoningEffortRecovery } from "./base/reasoningEffortRecovery.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -18,6 +26,14 @@ export const COMMAND_CODE_VERSION = process.env.COMMAND_CODE_VERSION?.trim() || 
 // "Too big: expected number to be <=200000 at params.max_tokens". We only clamp
 // a client-supplied value down; we never fabricate this number for requests
 // that omit the field.
+//
+// The quoted error names `params.max_tokens`, which is the /alpha/generate shape.
+// The flat Chat surface uses top-level `max_tokens` and the Responses surface
+// uses `max_output_tokens`; Command Code documents the 200_000 limit only for
+// the first. The same gateway fronts all three, so this constant is applied to
+// every output-cap field on the assumption the ceiling is endpoint-wide. If a
+// live request ever 400s on max_output_tokens at a different bound, split the
+// constant per surface rather than loosening this one.
 const MAX_COMMAND_CODE_TOKENS = 200_000;
 const encoder = new TextEncoder();
 
@@ -59,6 +75,33 @@ function clampMaxTokens(value: unknown): number | undefined {
   return Math.min(Math.floor(numeric), MAX_COMMAND_CODE_TOKENS);
 }
 
+/**
+ * muse-spark (Meta) models are served through command-code with a hidden
+ * server-side reasoning phase that consumes the entire output budget before any
+ * visible content is emitted. With small caller-set budgets the upstream
+ * answers HTTP 200 with an empty message and `completion_tokens == max_tokens`
+ * (the symptom this fix targets: `out=64, reasoning=61` with null content);
+ * chatCore then flags the fake success as "Provider returned empty content".
+ *
+ * Floor raised budgets only — explicit large budgets are untouched, and no
+ * budget is synthesized when the caller set none. Detection is prefix-aware so
+ * provider-prefixed ids (`meta/muse-spark-1.2-contributor`, `cmd/meta/muse-…`)
+ * are caught, not just bare `muse-spark-*`.
+ */
+const MUSE_SPARK_MIN_OUTPUT_TOKENS = 512;
+
+function applyMuseSparkMinOutputTokens(
+  model: string,
+  body: JsonRecord,
+  field: "max_tokens" | "max_output_tokens" = "max_tokens"
+): void {
+  if (!MUSE_SPARK_PATTERN.test(model)) return;
+  const current = body[field];
+  if (typeof current !== "number" || !Number.isFinite(current)) return;
+  if (current >= MUSE_SPARK_MIN_OUTPUT_TOKENS) return;
+  body[field] = MUSE_SPARK_MIN_OUTPUT_TOKENS;
+}
+
 const COMMAND_CODE_PASSTHROUGH_FIELDS = [
   "reasoning_effort",
   "reasoning",
@@ -90,6 +133,10 @@ function normalizeCommandCodeWireModel(model: string): string {
   return COMMAND_CODE_BARE_MODEL_VENDOR_PREFIX[bare] ?? bare;
 }
 
+// Responses-shape detection and Responses -> Chat projection live in
+// ./commandCode/responsesProjection.ts (kept out of this file for the 1200-line
+// file-size gate).
+
 // ── OpenAi Flat Body Builder (/provider/v1/chat/completions) ─────────────────
 
 function buildOpenAiBody(model: string, body: unknown, stream: boolean): { body: JsonRecord } {
@@ -105,12 +152,31 @@ function buildOpenAiBody(model: string, body: unknown, stream: boolean): { body:
     stream: stream === true,
   };
 
+  // Forward max_tokens only when the client actually supplied a positive value
+  // (clamped to the endpoint ceiling). Omitting it lets the provider's upstream
+  // apply the model's own native default; a non-positive value such as -1
+  // ("let the server choose") must be omitted, NOT coerced to 1 (#5166).
+  if (isResponsesShapedBody(out)) {
+    // Responses shape: the cap lives on max_output_tokens; leave it clamped and
+    // never fabricate a Chat-shaped max_tokens alongside it.
+    const maxOutput = clampMaxTokens(out.max_output_tokens);
+    delete out.max_tokens;
+    delete out.max_completion_tokens;
+    delete out.max_output_tokens;
+    if (maxOutput !== undefined) {
+      out.max_output_tokens = maxOutput;
+    }
+    applyMuseSparkMinOutputTokens(resolvedModel, out, "max_output_tokens");
+    return { body: out };
+  }
+
   const maxTokens = clampMaxTokens(input.max_tokens ?? input.max_completion_tokens);
   delete out.max_tokens;
   delete out.max_completion_tokens;
   if (maxTokens !== undefined) {
     out.max_tokens = maxTokens;
   }
+  applyMuseSparkMinOutputTokens(resolvedModel, out);
 
   return { body: out };
 }
@@ -374,6 +440,7 @@ function buildCommandCodeCliBody(
   if (maxTokens !== undefined) {
     params.max_tokens = maxTokens;
   }
+  applyMuseSparkMinOutputTokens(resolvedModel, params);
 
   for (const field of COMMAND_CODE_PASSTHROUGH_FIELDS) {
     const value = input[field];
@@ -884,9 +951,26 @@ export class CommandCodeExecutor extends BaseExecutor {
     super(provider, REGISTRY["command-code"]);
   }
 
-  buildUrl() {
+  buildUrl(model?: string) {
     const baseUrl = (this.config.baseUrl || "https://api.commandcode.ai").replace(/\/$/, "");
+    if (model && getModelTargetFormat("command-code", model) === "claude") {
+      return `${baseUrl}/provider/v1/messages`;
+    }
     return `${baseUrl}${this.config.chatPath || "/provider/v1/chat/completions"}`;
+  }
+
+  /**
+   * OpenAI Responses endpoint for models whose targetFormat is
+   * `openai-responses`. Same base + auth as chat; Command Code serves OpenAI and
+   * open models on both surfaces, but only /responses honors
+   * `reasoning: {"effort": "none"}` — the chat validator's effort enum has no
+   * disable value and silently drops a nested `reasoning.effort` (verified live
+   * 2026-09-24: /responses + effort none → reasoning_tokens 0; /chat +
+   * `reasoning:{effort:"none"}` → reasoning_tokens 41).
+   */
+  buildResponsesUrl() {
+    const baseUrl = (this.config.baseUrl || "https://api.commandcode.ai").replace(/\/$/, "");
+    return `${baseUrl}/provider/v1/responses`;
   }
 
   buildCliUrl() {
@@ -894,27 +978,131 @@ export class CommandCodeExecutor extends BaseExecutor {
     return `${baseUrl}/alpha/generate`;
   }
 
+  /**
+   * Fallback path when the flat provider endpoint rejects with 403/404 (e.g. a Go
+   * plan without Provider API access, or a model only served on the CLI endpoint).
+   * Rebuilds the body in Command Code's CLI shape and posts to /alpha/generate.
+   */
+  private async executeCliFallback(input: {
+    model: string;
+    sanitizedBody: unknown;
+    stream: boolean;
+    apiKey: string;
+    signal?: AbortSignal;
+    upstreamExtraHeaders?: Record<string, string>;
+  }) {
+    const { model, sanitizedBody, stream, apiKey, signal, upstreamExtraHeaders } = input;
+    const cliUrl = this.buildCliUrl();
+    const cliHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+      "x-command-code-version": COMMAND_CODE_VERSION,
+      "x-cli-environment": "external",
+      "x-project-slug": "pi-cc",
+      "x-taste-learning": "false",
+      "x-co-flag": "false",
+      "x-session-id": randomUUID(),
+    };
+    mergeUpstreamExtraHeaders(cliHeaders, upstreamExtraHeaders);
+
+    const abortSignal = signal || undefined;
+    const { body: initialCliTransformedBody, toolNameMap } = buildCommandCodeCliBody(
+      model,
+      sanitizedBody,
+      stream
+    );
+    let cliTransformedBody: unknown = initialCliTransformedBody;
+
+    let cliUpstream = await fetch(cliUrl, {
+      method: "POST",
+      headers: cliHeaders,
+      body: JSON.stringify(cliTransformedBody),
+      signal: abortSignal,
+    });
+
+    // #14629: same reactive reasoning_effort recovery for the CLI fallback fetch.
+    const cliRecovery = await applyReasoningEffortRecovery({
+      response: cliUpstream,
+      url: cliUrl,
+      provider: this.provider,
+      model,
+      body: cliTransformedBody,
+      fetchOptions: { method: "POST", headers: cliHeaders, signal: abortSignal },
+      fetchFn: (fetchUrl, fetchOpts) => fetch(fetchUrl, fetchOpts),
+    });
+    cliUpstream = cliRecovery.response;
+    cliTransformedBody = cliRecovery.body;
+
+    if (!cliUpstream.ok) {
+      const errorText = await cliUpstream.text().catch(() => {
+        console.warn("[commandCode] cli upstream text failed");
+        return "";
+      });
+      return {
+        response: new Response(errorText || `Command Code API error ${cliUpstream.status}`, {
+          status: cliUpstream.status,
+          statusText: cliUpstream.statusText,
+          headers: cliUpstream.headers,
+        }),
+        url: cliUrl,
+        headers: cliHeaders,
+        transformedBody: cliTransformedBody,
+      };
+    }
+
+    const response = stream
+      ? createStreamResponse(cliUpstream, model, signal, toolNameMap)
+      : await createJsonResponse(cliUpstream, model, signal, toolNameMap);
+
+    return { response, url: cliUrl, headers: cliHeaders, transformedBody: cliTransformedBody };
+  }
+
   async execute({ model, body, stream, credentials, signal, upstreamExtraHeaders }: ExecuteInput) {
     const apiKey = credentials?.apiKey || credentials?.accessToken;
     if (!apiKey) throw new Error("Command Code API key required");
 
+    const abortSignal = signal || undefined;
     const sanitizedBody = sanitizeReasoningEffortForProvider(body, this.provider, model);
-    const { body: transformedBody } = buildOpenAiBody(model, sanitizedBody, stream);
-    const url = this.buildUrl();
+    const { body: initialTransformedBody } = buildOpenAiBody(model, sanitizedBody, stream);
+    let transformedBody: unknown = initialTransformedBody;
+    // Route by body shape: a Responses-shaped body (targetFormat openai-responses)
+    // must hit /provider/v1/responses, where `reasoning: {"effort":"none"}` is
+    // honored; the chat endpoint silently drops it.
+    const url = isResponsesShapedBody(transformedBody)
+      ? this.buildResponsesUrl()
+      : this.buildUrl(model);
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
       Accept: stream ? "text/event-stream" : "application/json",
     };
+    if (getModelTargetFormat("command-code", model) === "claude") {
+      headers["anthropic-version"] = ANTHROPIC_VERSION_HEADER;
+    }
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
 
-    const upstream = await fetch(url, {
+    let upstream = await fetch(url, {
       method: "POST",
       headers,
       body: JSON.stringify(transformedBody),
-      signal: signal || undefined,
+      signal: abortSignal,
     });
+
+    // #14629: reach the reactive reasoning_effort 400 clamp-and-retry chain,
+    // otherwise unreachable here since this override never calls
+    // super.execute() (see open-sse/executors/base/reasoningEffortRecovery.ts).
+    const recovery = await applyReasoningEffortRecovery({
+      response: upstream,
+      url,
+      provider: this.provider,
+      model,
+      body: transformedBody,
+      fetchOptions: { method: "POST", headers, signal: abortSignal },
+      fetchFn: (fetchUrl, fetchOpts) => fetch(fetchUrl, fetchOpts),
+    });
+    upstream = recovery.response;
+    transformedBody = recovery.body;
 
     if (upstream.ok) {
       return { response: upstream, url, headers, transformedBody };
@@ -923,54 +1111,22 @@ export class CommandCodeExecutor extends BaseExecutor {
     // Fallback: If /provider/v1/chat/completions returns 403 (e.g. Go plan without Provider
     // API access) or 404, fallback to /alpha/generate (CLI endpoint).
     if (upstream.status === 403 || upstream.status === 404) {
-      const cliUrl = this.buildCliUrl();
-      const cliHeaders: Record<string, string> = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-        "x-command-code-version": COMMAND_CODE_VERSION,
-        "x-cli-environment": "external",
-        "x-project-slug": "pi-cc",
-        "x-taste-learning": "false",
-        "x-co-flag": "false",
-        "x-session-id": randomUUID(),
-      };
-      mergeUpstreamExtraHeaders(cliHeaders, upstreamExtraHeaders);
-
-      const { body: cliTransformedBody, toolNameMap } = buildCommandCodeCliBody(
-        model,
-        sanitizedBody,
-        stream
-      );
-
-      const cliUpstream = await fetch(cliUrl, {
-        method: "POST",
-        headers: cliHeaders,
-        body: JSON.stringify(cliTransformedBody),
-        signal: signal || undefined,
-      });
-
-      if (!cliUpstream.ok) {
-        const errorText = await cliUpstream.text().catch(() => {
-          console.warn("[commandCode] cli upstream text failed");
-          return "";
+      // /alpha/generate is Chat-shaped, so a Responses request must be projected
+      // onto `messages` first. When it has no faithful CLI form, skip the fallback
+      // and surface the upstream error rather than replaying a mangled body.
+      const cliShaped = isResponsesShapedBody(sanitizedBody)
+        ? projectResponsesForCli(sanitizedBody as JsonRecord)
+        : sanitizedBody;
+      if (cliShaped !== null) {
+        return this.executeCliFallback({
+          model,
+          sanitizedBody: cliShaped,
+          stream,
+          apiKey,
+          signal,
+          upstreamExtraHeaders,
         });
-        return {
-          response: new Response(errorText || `Command Code API error ${cliUpstream.status}`, {
-            status: cliUpstream.status,
-            statusText: cliUpstream.statusText,
-            headers: cliUpstream.headers,
-          }),
-          url: cliUrl,
-          headers: cliHeaders,
-          transformedBody: cliTransformedBody,
-        };
       }
-
-      const response = stream
-        ? createStreamResponse(cliUpstream, model, signal, toolNameMap)
-        : await createJsonResponse(cliUpstream, model, signal, toolNameMap);
-
-      return { response, url: cliUrl, headers: cliHeaders, transformedBody: cliTransformedBody };
     }
 
     const errorText = await upstream.text().catch(() => {

@@ -17,14 +17,14 @@ export const KIMI_CODING_MODELS: RegistryModel[] = [
   },
   {
     id: "kimi-for-coding",
-    name: "Kimi K2.7 Code",
-    contextLength: 262144,
+    name: "Kimi K2.8 Preview",
+    contextLength: 1048576,
     supportsReasoning: true,
   },
   {
     id: "kimi-for-coding-highspeed",
-    name: "Kimi K2.7 Code (High Speed)",
-    contextLength: 262144,
+    name: "Kimi K2.8 Preview (High Speed)",
+    contextLength: 1048576,
     supportsReasoning: true,
   },
 ];
@@ -34,7 +34,7 @@ export const KIMI_CODING_SHARED = {
   executor: "default",
   baseUrl: KIMI_CODING_ANTHROPIC_URL,
   authHeader: "x-api-key",
-  defaultContextLength: 262144,
+  defaultContextLength: 1048576,
   headers: {
     "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
   },

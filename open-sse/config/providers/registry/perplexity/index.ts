@@ -10,6 +10,9 @@ export const perplexityProvider: RegistryEntry = {
   testKeyModelsUrl: "https://api.perplexity.ai/v1/models",
   authType: "apikey",
   authHeader: "bearer",
+  headers: {
+    "X-Pplx-Integration": "omniroute",
+  },
   models: [
     { id: "sonar-deep-research", name: "Sonar Deep Research" },
     { id: "sonar-reasoning-pro", name: "Sonar Reasoning Pro" },

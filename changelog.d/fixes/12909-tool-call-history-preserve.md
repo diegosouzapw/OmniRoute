@@ -1,1 +1,0 @@
-- **fix(compat):** preserve GPT and Claude Code tool-call history when translating OpenAI Responses API requests to Chat Completions — `role:"tool"` items and role-based assistant `tool_calls` are no longer dropped, fixing incomplete multi-turn history ([#12909](https://github.com/diegosouzapw/OmniRoute/pull/12909))

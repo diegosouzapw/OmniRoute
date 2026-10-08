@@ -93,11 +93,10 @@ async function capturePreparedRequest(
 
   try {
     await requestCapture.capture({ url, headers, body, bodyString });
-  } catch (error) {
-    log?.warn?.(
-      "REQUEST_LOG",
-      `Provider request logging hook failed: ${error instanceof Error ? error.message : String(error)}`
-    );
+  } catch {
+    // Capture hooks can fail while processing a provider payload. The thrown
+    // value may echo request content, so never copy it into application logs.
+    log?.warn?.("REQUEST_LOG", "Provider request logging hook failed");
   }
 }
 

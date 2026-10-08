@@ -1,6 +1,6 @@
 # OmniRoute Auto-Combo Engine (فارسی)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇪🇹 [am](../../../am/docs/routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇪🇪 [et](../../../et/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ha](../../../ha/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇦🇲 [hy](../../../hy/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ig](../../../ig/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇬🇪 [ka](../../../ka/docs/routing/AUTO-COMBO.md) · 🇰🇭 [km](../../../km/docs/routing/AUTO-COMBO.md) · 🇮🇳 [kn](../../../kn/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇱🇻 [lv](../../../lv/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ml](../../../ml/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇲🇲 [my](../../../my/docs/routing/AUTO-COMBO.md) · 🇳🇵 [ne](../../../ne/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇮🇳 [or](../../../or/docs/routing/AUTO-COMBO.md) · 🇮🇳 [pa](../../../pa/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇱🇰 [si](../../../si/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇷🇸 [sr](../../../sr/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../../sv/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../../ur/docs/routing/AUTO-COMBO.md) · 🇺🇿 [uz](../../../uz/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇳🇬 [yo](../../../yo/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇪🇹 [am](../../../am/docs/routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇧🇦 [bs](../../../bs/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇪🇪 [et](../../../et/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ha](../../../ha/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇦🇲 [hy](../../../hy/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ig](../../../ig/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇬🇪 [ka](../../../ka/docs/routing/AUTO-COMBO.md) · 🇰🇭 [km](../../../km/docs/routing/AUTO-COMBO.md) · 🇮🇳 [kn](../../../kn/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇱🇻 [lv](../../../lv/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ml](../../../ml/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇲🇲 [my](../../../my/docs/routing/AUTO-COMBO.md) · 🇳🇵 [ne](../../../ne/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇮🇳 [or](../../../or/docs/routing/AUTO-COMBO.md) · 🇮🇳 [pa](../../../pa/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇱🇰 [si](../../../si/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇷🇸 [sr](../../../sr/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../../sv/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../../ur/docs/routing/AUTO-COMBO.md) · 🇺🇿 [uz](../../../uz/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇳🇬 [yo](../../../yo/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
 
 ---
 
@@ -10,48 +10,48 @@
 
 ## مسیریابی خودکار بدون پیکربندی (پیشوند `auto/`)
 
-> **جدید:** نیازی به ساخت combo نیست. پیشوند `auto/` را مستقیماً در هر کلاینتی استفاده کنید.
+> **جدید:** نیازی به ایجاد combo نیست. پیشوند `auto/` را مستقیماً در هر کلاینتی استفاده کنید.
 
 ### مثالهای سریع
 
-| شناسه مدل      | گونه    | رفتار                                                  |
-| -------------- | ------- | ------------------------------------------------------ |
-| `auto`         | پیشفرض  | همه ارائهدهندگان متصل، راهبرد LKGP، وزنهای متعادل      |
-| `auto/coding`  | کدنویسی | وزنهای کیفیتمحور، مناسب برای تولید کد                  |
-| `auto/fast`    | سریع    | انتخاب وزندار با تأخیر کم                              |
-| `auto/cheap`   | ارزان   | مسیریابی بهینهشده از نظر هزینه (ابتدا کمترین هزینه)    |
-| `auto/offline` | آفلاین  | ارائهدهندگانی با بیشترین سهمیه در دسترس را ترجیح میدهد |
-| `auto/smart`   | هوشمند  | کیفیتمحور + نرخ کاوش بالاتر (10٪) برای کشف بهتر مدلها  |
-| `auto/lkgp`    | lkgp    | LKGP صریح (همان `auto` پیشفرض)                         |
-| `auto/chaos`   | آشوب    | وزنهای تزریق خطا برای آزمون تابآوری (مهندسی آشوب)      |
+| شناسه مدل      | گونه    | رفتار                                                           |
+| -------------- | ------- | --------------------------------------------------------------- |
+| `auto`         | پیشفرض  | همه ارائهدهندگان متصل، راهبرد LKGP، وزنهای متعادل               |
+| `auto/coding`  | کدنویسی | وزنهای مبتنی بر اولویت کیفیت، مناسب برای تولید کد               |
+| `auto/fast`    | سریع    | انتخاب وزندار با تأخیر کم                                       |
+| `auto/cheap`   | ارزان   | مسیریابی بهینهشده از نظر هزینه (ابتدا کمترین هزینه)             |
+| `auto/offline` | آفلاین  | ارائهدهندگانی با بیشترین سهمیه در دسترس را ترجیح میدهد          |
+| `auto/smart`   | هوشمند  | اولویت کیفیت + نرخ کاوش بالاتر (10٪) برای کشف بهتر مدلها        |
+| `auto/lkgp`    | lkgp    | LKGP صریح (همان `auto` پیشفرض)                                  |
+| `auto/chaos`   | آشوب    | توزیع موازی درخواستها، یک مدل برای هر ارائهدهنده (نه تزریق خطا) |
 
-### ترکیب دسته × سطح (`auto/<category>:<tier>`)
+### ترکیب دستهبندی × سطح (`auto/<category>:<tier>`)
 
-پسوندهای سبک OpenRouter، **نوع مسیر** (دسته) را از **نحوه بهینهسازی آن** (سطح) جدا میکنند؛ بنابراین میتوانید آنها را آزادانه با یکدیگر ترکیب کنید (#4235 Phase B، `open-sse/services/autoCombo/suffixComposition.ts`):
+پسوندهای سبک OpenRouter، **نوع مسیر** (دستهبندی) را از **نحوه بهینهسازی آن** (سطح) جدا میکنند تا بتوانید آزادانه آنها را ترکیب کنید (#4235 Phase B، `open-sse/services/autoCombo/suffixComposition.ts`):
 
-- **دستهها** (فیلتر کردن مجموعه کاندیداها بر اساس قابلیت): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. گزینههای `vision`/`multimodal` مدلهای دارای قابلیت بینایی را نگه میدارند؛ `reasoning` نیز مدلهای استدلالی/تفکری را نگه میدارد.
-- **سطوح** (انتخاب وزنهای امتیازدهی / فیلتر مجموعه): `fast` (ارسال سریع) · `cheap` (نام مستعار `floor`، صرفهجویی در هزینه) · `reliable` (سلامت قطعکننده مدار + پایداری تأخیر) · `free` / `pro` (فیلتر کردن مجموعه بر اساس سطح مدل از طریق `classifyTier` — سطح رایگان در برابر پریمیوم).
+- **دستهبندیها** (مجموعه نامزدها را بر اساس قابلیت فیلتر میکنند): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. گزینههای `vision`/`multimodal` مدلهای دارای قابلیت بینایی را نگه میدارند؛ `reasoning` مدلهای استدلال/تفکر را نگه میدارد.
+- **سطوح** (وزنهای امتیازدهی / فیلتر مجموعه را انتخاب میکنند): `fast` (عرضه سریع) · `cheap` (نام مستعار `floor`، صرفهجویی در هزینه) · `reliable` (سلامت مدارشکن + پایداری تأخیر) · `free` / `pro` (فیلتر کردن مجموعه بر اساس سطح مدل از طریق `classifyTier` — سطح رایگان در برابر ممتاز).
 
 | مثال                   | نتیجه                                                                  |
 | ---------------------- | ---------------------------------------------------------------------- |
 | `auto/coding:fast`     | مجموعه کدنویسی، وزنهای با تأخیر کم                                     |
 | `auto/coding:cheap`    | مجموعه کدنویسی، بهینهشده از نظر هزینه (نام مستعار `auto/coding:floor`) |
-| `auto/reasoning:pro`   | فقط مدلهای استدلالی/تفکری، سطح پریمیوم                                 |
+| `auto/reasoning:pro`   | فقط مدلهای استدلال/تفکر، سطح ممتاز                                     |
 | `auto/vision`          | مدلهای دارای قابلیت بینایی (بدون سطح ← وزنهای متعادل)                  |
 | `auto/multimodal:free` | مدلهای دارای قابلیت چندوجهی، فقط سطح رایگان                            |
 
-هر `auto/<category>[:<tier>]` معتبری هنگام تقاضا resolve میشود؛ زیرمجموعهای گزینششده در `/v1/models` و داشبورد نمایش داده میشود (`AUTO_SUFFIX_VARIANTS` در `open-sse/services/autoCombo/builtinCatalog.ts`). فیلتر کردن بهصورت **fail-open** انجام میشود — اگر هیچ مدل متصلی با یک محدودیت مطابقت نداشته باشد، از کل مجموعه استفاده میشود تا مسیریابی هرگز مختل نشود. امتیازدهنده اصلی (`combo.ts`) بدون تغییر باقی میماند؛ فیلتر دسته/سطح در `buildAutoCandidates` اعمال میشود.
+هر الگوی معتبر `auto/<category>[:<tier>]` در لحظه تفسیر میشود؛ یک زیرمجموعه منتخب در `/v1/models` و داشبورد اعلام میشود (`AUTO_SUFFIX_VARIANTS` در `open-sse/services/autoCombo/builtinCatalog.ts`). فیلتر کردن بهصورت **fail-open** است — اگر هیچ مدل متصلی با یک محدودیت مطابقت نداشته باشد، از کل مجموعه استفاده میشود تا مسیریابی هرگز مختل نشود. امتیازدهنده اصلی (`combo.ts`) بدون تغییر باقی میماند؛ فیلتر دستهبندی/سطح در `buildAutoCandidates` اعمال میشود.
 
-> **هوشمندی زنده مدل:** هنگامی که پرچم `ARENA_ELO_SYNC_ENABLED` فعال باشد، تناسب مسیریابی خودکار با رتبهبندیهای زنده **Arena ELO** و دادههای سطح **models.dev** تعیین میشود (در غیر این صورت، به نگاشت ایستای تناسب بازمیگردد).
+> **هوشمندی زنده مدل:** تناسب مسیریابی خودکار، هنگامی که پرچم `ARENA_ELO_SYNC_ENABLED` روشن باشد، از رتبهبندیهای زنده **Arena ELO** و دادههای سطح **models.dev** استفاده میکند (در غیر این صورت به نگاشت ایستای تناسب بازمیگردد).
 
 **نحوه استفاده:**
 
 ```bash
-# هر IDE یا ابزار CLI که از قالب OpenAI پشتیبانی میکند
+# هر ابزار IDE یا CLI که از قالب OpenAI پشتیبانی میکند
 Base URL: http://localhost:20128/v1
-API Key:  <کلید-endpoint-شما>
+API Key:  <your-endpoint-key>
 
-# در کد/پیکربندی خود، مدل را روی مقدار زیر تنظیم کنید:
+# در کد/پیکربندی خود، مدل را به این صورت تنظیم کنید:
 model: "auto"                 # حالت پیشفرض متعادل
 model: "auto/coding"          # بهترین گزینه برای وظایف کدنویسی
 model: "auto/fast"            # سریعترین گزینه موجود
@@ -62,46 +62,47 @@ model: "auto/cheap"           # ارزانترین گزینه بهازای هر 
 
 1. OmniRoute پیشوند `auto/` را در `src/sse/handlers/chat.ts` تشخیص میدهد
 2. همه **اتصالهای فعال ارائهدهندگان** را از پایگاه داده واکشی میکند
-3. آنها را به موارد دارای اعتبارنامه معتبر (کلید API یا توکن OAuth) محدود میکند
-4. مدل را برای هر اتصال تعیین میکند (`connection.defaultModel` یا نخستین مدل ارائهدهنده)
+3. مواردی را نگه میدارد که اعتبارنامه معتبر دارند (کلید API یا توکن OAuth)
+4. مدل هر اتصال را تعیین میکند (`connection.defaultModel` یا اولین مدل ارائهدهنده)
 5. یک **combo مجازی** در حافظه میسازد (در DB ذخیره نمیشود)
 6. با استفاده از پروفایل وزن گونه انتخابشده + راهبرد LKGP مسیریابی میکند
 
 **ویژگیهای کلیدی:**
 
-- ✅ **همیشه فعال:** بدون نیاز به کلید تغییر وضعیت، ساخت combo یا پیکربندی
-- ✅ **پویا:** ارائهدهندگان متصل فعلی را بهصورت خودکار بازتاب میدهد
+- ✅ **همیشه فعال:** بدون نیاز به کلید تغییر وضعیت، ایجاد combo یا پیکربندی
+- ✅ **پویا:** ارائهدهندگان متصل فعلی را بهطور خودکار منعکس میکند
 - ✅ **چسبندگی نشست:** LKGP تضمین میکند آخرین ارائهدهنده موفق در اولویت قرار گیرد
-- ✅ **آگاه از چندحسابی:** هر اتصال ارائهدهنده به یک کاندیدای جداگانه تبدیل میشود
+- ✅ **آگاه از چند حساب:** هر اتصال ارائهدهنده به یک نامزد جداگانه تبدیل میشود
 - ✅ **بدون نوشتن در DB:** combo مجازی فقط برای همان درخواست وجود دارد و سربار ماندگاری آن صفر است
 
-### کنترل کاندیدا برای هر کلید (#7819، سطح 1+2)
+### کنترل نامزدها بهازای هر کلید (#7819، سطح 1+2)
 
-`GET /v1/auto-combo/{channel}/candidates` (`{channel}` = پسوند بعد از `auto/`، یا
-مقدار تحتاللفظی `auto` برای کانال پایه) یک endpoint **فقطخواندنی** است که مجموعه
-کاندیداهای فعلی یک کانال `auto/*` را همراه با دسترسپذیری زنده فهرست میکند و از
-خواندنهای موجود مربوط به تابآوری مجدداً استفاده میکند (و هرگز `state` خام قطعکننده را نمیخواند):
+`GET /v1/auto-combo/{channel}/candidates` (`{channel}` = پسوند پس از `auto/`، یا
+مقدار لفظی `auto` برای کانال پایه) یک نقطه پایانی **فقط خواندنی** است که مجموعه
+نامزدهای فعلی یک کانال `auto/*` را همراه با دسترسپذیری زنده فهرست میکند و
+خواندنهای موجود تابآوری را مجدداً بهکار میگیرد (و هرگز `state` خام مدارشکن را نمیخواند):
 
-- قطعکننده مدار ارائهدهنده — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
-- دوره انتظار اتصال — `rateLimitedUntil` / `testStatus` در ردیف resolveشده
+- مدارشکن ارائهدهنده — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
+- دوره انتظار اتصال — `rateLimitedUntil` / `testStatus` در ردیف تفسیرشده
   `provider_connections`
-- قفلشدن مدل — `isModelLocked(provider, connectionId, model)`
+- قفل مدل — `isModelLocked(provider, connectionId, model)`
 
-هر کاندیدا همچنین دارای پرچم `excluded` مربوط به این کلید API است. موارد مستثنا
-بهازای هر کلید API ذخیره میشوند (جدول `auto_candidate_overrides`، migration شماره `128`) — OmniRoute
-تکمستأجری است و جدول `users` ندارد؛ بنابراین `apiKeyId` نزدیکترین هویت واقعی
-برای هر فراخواننده است — و این موارد در نقطه کنترل مجموعه کاندیداها در
-`open-sse/services/autoCombo/virtualFactory.ts` از طریق تابع خالص و آزمودهشده با تست واحد
+هر نامزد همچنین پرچم `excluded` مربوط به این کلید API را دربر دارد. استثناها
+بهازای هر کلید API ذخیره میشوند (جدول `auto_candidate_overrides`، مهاجرت `128`) — OmniRoute
+تکمستأجری است و جدول `users` ندارد، بنابراین `apiKeyId` نزدیکترین هویت واقعی
+بهازای هر فراخواننده است — و در گلوگاه مجموعه نامزدها در
+`open-sse/services/autoCombo/virtualFactory.ts` از طریق تابع خالص و آزمونشده با تست واحد
 `filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`)
-اعمال میشوند. فیلتر بهصورت **fail-open** عمل میکند: تنظیم نبودن apiKeyId/کانال یا شکست در
-واکشی DB، هر دو مجموعه را بدون فیلتر باقی میگذارند؛ بنابراین اپراتوری که هیچ overrideای
-پیکربندی نکرده باشد، مسیریابیای کاملاً یکسان در سطح بایت با پیش از این قابلیت مشاهده میکند.
+اعمال میشوند. این فیلتر بهصورت **fail-open** است: تنظیم نبودن apiKeyId/channel یا شکست
+در جستوجوی DB، هر دو مجموعه را بدون فیلتر باقی میگذارند؛ بنابراین اپراتوری که هیچ
+نادیدهگیریای برایش پیکربندی نشده باشد، مسیریابیای کاملاً یکسان در سطح بایت با پیش از
+این قابلیت مشاهده میکند.
 
-**موکول به یک issue تکمیلی:** وزندهی به هر candidate + ترتیبدهی صریح (سطح 3
-— به مسیرهای موجودِ strategy وزندار/اولویتدار متصل میشود) و pin کردن یک strategy مشخص از
-`combo.ts` برای هر channel از نوع `auto/*` (سطح 4). برای پرسش باز دربارهٔ اینکه با توجه به
-مدل single-tenant، overrideها باید بهازای هر API key باقی بمانند یا global شوند، به طرح #7819
-مراجعه کنید.
+**به یک ایشوی پیگیری موکول شد:** وزندهی به هر کاندیدا + ترتیبدهی صریح (سطح 3
+— به مسیرهای راهبرد وزندار/اولویتدار موجود وارد میشود) و پینکردن یک راهبرد مشخص
+`combo.ts` برای هر کانال `auto/*` (سطح 4). برای پرسش باز دربارهٔ اینکه با توجه به
+مدل تکمستأجری، بازنویسیها باید بهازای هر کلید API باقی بمانند یا سراسری شوند،
+به برنامهٔ #7819 مراجعه کنید.
 
 **پشت صحنه:**
 
@@ -110,11 +111,11 @@ model: "auto/cheap"           # ارزانترین گزینه بهازای هر 
    ↓
 src/sse/handlers/chat.ts پیشوند را تشخیص میدهد
    ↓
-createVirtualAutoCombo('coding') → candidatePool از connectionهای فعال
+createVirtualAutoCombo('coding') → candidatePool از اتصالهای فعال
    ↓
-handleComboChat (همان engine مورد استفاده برای comboهای ذخیرهشده)
+handleComboChat (همان موتور کمبوهای ذخیرهشده)
    ↓
-امتیازدهی خودکار، بهترین provider/model را برای هر درخواست انتخاب میکند
+امتیازدهی خودکار، بهترین ارائهدهنده/مدل را برای هر درخواست انتخاب میکند
 ```
 
 **فایلهای پیادهسازی:**
@@ -122,9 +123,9 @@ handleComboChat (همان engine مورد استفاده برای comboهای ذ
 | فایل                                                      | هدف                                          |
 | --------------------------------------------------------- | -------------------------------------------- |
 | `open-sse/services/autoCombo/autoPrefix.ts`               | تجزیهکنندهٔ پیشوند (`parseAutoPrefix`)       |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | ساخت objectهای مجازی `AutoComboConfig`       |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | هوک تست برای mock کردن registry ارائهدهندگان |
-| `src/sse/handlers/chat.ts`                                | یکپارچهسازی: short-circuit پیشوند خودکار     |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | اشیای مجازی `AutoComboConfig` را ایجاد میکند |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | هوک تست برای شبیهسازی رجیستری ارائهدهندگان   |
+| `src/sse/handlers/chat.ts`                                | یکپارچهسازی: میانبُر پیشوند خودکار           |
 | `src/shared/constants/providers.ts`                       | ورودی سیستمی `SYSTEM_PROVIDERS.auto`         |
 
 ## نامهای Combo که با شناسه یک مدل واقعی مطابقت دارند
@@ -219,7 +220,7 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 ## بستههای حالت
 
-۶ پروفایل وزن از پیش تعریفشده در `open-sse/services/autoCombo/modePacks.ts` وجود دارد. هر بسته، وزنهای پیشفرض را بهطور کامل جایگزین میکند تا انتخاب را بهسمت یک هدف مشخص سوق دهد. مجموع وزنهای هر بسته از قبل برابر با `1.0` است (`0.9999` هنگام نمایش با چهار رقم اعشار)، بنابراین وقتی بستهای فعال است، `normalizeScoringWeights()` عملاً چیزی برای اصلاح ندارد — مقادیر زیر، با در نظر گرفتن گرد کردن، همان مقادیری هستند که امتیازدهنده اعمال میکند.
+۶ پروفایل وزن از پیش تعریفشده در `open-sse/services/autoCombo/modePacks.ts` وجود دارد. هر بسته، وزنهای پیشفرض را بهطور کامل جایگزین میکند تا انتخاب را بهسمت یک هدف خاص سوق دهد. مجموع وزنهای هر بسته از قبل برابر با `1.0` است (در نمایش با چهار رقم اعشار، `0.9999`)، بنابراین وقتی بستهای فعال است، `normalizeScoringWeights()` عملاً مقدار معناداری برای اصلاح ندارد — مقادیر زیر، با در نظر گرفتن گرد کردن، همان مقادیری هستند که امتیازدهنده اعمال میکند.
 
 | عامل                  | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
@@ -241,29 +242,29 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 نکات:
 
-- **بستهها شامل `quality` و `reliability` هستند** (`quality 0.02`، برای `quality-first 0.03`؛ `reliability 0.03`، برای `reliability-first 0.04`) و کل نگاشت وزنها را جایگزین میکنند (`weights = pack`، نه ادغام). `DEFAULT_WEIGHTS` شامل `quality 0.03 / reliability 0` است؛ انتخاب `balanced`/`default` این مقادیر پیشفرض را حفظ میکند، درحالیکه انتخاب یک بسته از مقادیر همان بسته در بالا استفاده میکند. در یک مجموعه سرد (هنوز هیچ مشاهدهای وجود ندارد، بنابراین `quality 0.5` و `reliability 1` هستند)، این دو عامل در یک بسته عمومی مقدار `+0.04` (`0.03 + 0.01`)، در `quality-first` مقدار `+0.045` و در `reliability-first` مقدار `+0.05` اضافه میکنند.
-- مقادیر `tierAffinity`، `specificityMatch` و `resetWindowAffinity` در همه بستهها صراحتاً برابر با `0` هستند.
+- **بستهها شامل `quality` و `reliability` هستند** (`quality 0.02`، در `quality-first` برابر با `0.03`؛ `reliability 0.03`، در `reliability-first` برابر با `0.04`) و کل نگاشت وزنها را جایگزین میکنند (`weights = pack`، نه ادغام). `DEFAULT_WEIGHTS` شامل `quality 0.03 / reliability 0` است؛ انتخاب `balanced`/`default` این مقادیر پیشفرض را حفظ میکند و انتخاب یک بسته از مقادیر همان بسته در بالا استفاده میکند. در یک مخزن سرد (هنوز هیچ مشاهدهای وجود ندارد، بنابراین `quality 0.5` و `reliability 1` است)، این دو عامل در یک بسته عمومی مقدار `+0.04` (`0.03 + 0.01`)، در `quality-first` مقدار `+0.045` و در `reliability-first` مقدار `+0.05` اضافه میکنند.
+- مقادیر `tierAffinity`، `specificityMatch` و `resetWindowAffinity` در تمام بستهها صراحتاً برابر با `0` هستند.
 - تأکید هر بسته در یک نگاه:
-  - **ship-fast** ← latencyInv 0.3048 + health 0.2667 (اتصالهای سالم با تأخیر کم)
-  - **cost-saver** ← costInv 0.3324 (ارزانترین توکنها برنده میشوند)
-  - **quality-first** ← taskFit 0.3524 + stability 0.1429 + quality 0.03، بالاترین مقدار در میان همه بستهها (بهترین مدل برای وظیفه، با عملکرد سازگار)
-  - **offline-friendly** ← quota 0.3324 + health 0.2667 (بیشترین ظرفیت آزاد، صرفنظر از سرعت/هزینه)
-  - **reliability-first** ← health 0.3524 + stability 0.1905 + reliability 0.04، بالاترین مقدار در میان همه بستهها (کمترین غافلگیری)
-  - **chaos-mode** ← health 0.4000 + taskFit 0.1905 (پروفایل تزریق خطا)
+  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (اتصالهای سالم با تأخیر کم)
+  - **cost-saver** → costInv 0.3324 (ارزانترین توکنها برنده میشوند)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03، بالاترین مقدار در میان همه بستهها (بهترین مدل برای وظیفه، با عملکرد پایدار)
+  - **offline-friendly** → quota 0.3324 + health 0.2667 (بیشترین ظرفیت آزاد، بدون توجه به سرعت/هزینه)
+  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04، بالاترین مقدار در میان همه بستهها (کمترین رفتار غیرمنتظره)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (بسته وزنی که `auto/chaos` به اعضای پنل خود اختصاص میدهد؛ توزیع موازی درخواستها این وزنها را نمیخواند و این یک پروفایل تزریق خطا نیست؛ [CHAOS-MODE.md](../guides/CHAOS-MODE.md#autochaos-parallel-fan-out) را ببینید)
 
 ### کنترلهای هر درخواست (هدرها) — #6023 / #6024 / #6025 / #3470
 
-یک ترکیب `auto` را میتوان **برای هر درخواست** از طریق سه هدر هدایت کرد، بدون آنکه پیکربندی ذخیرهشده ترکیب تغییر کند. این موارد فقط برای راهبرد `auto` و فقط برای درخواستی اعمال میشوند که آنها را همراه دارد؛ در صورت نبود هدر، از `modePack`/`budgetCap`/`budgetFallback` ذخیرهشده ترکیب استفاده میشود.
+یک ترکیب `auto` را میتوان **برای هر درخواست** از طریق سه هدر هدایت کرد، بدون اینکه پیکربندی ذخیرهشده ترکیب تغییر کند. این موارد فقط برای استراتژی `auto` و تنها برای درخواستی اعمال میشوند که آنها را همراه دارد؛ وقتی هدر وجود نداشته باشد، از `modePack`/`budgetCap`/`budgetFallback` ذخیرهشده ترکیب استفاده میشود.
 
-| هدر                           | مقادیر قابلقبول                                                                                                                                                                                     | اثر                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| :---------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-Mode`            | یک نام مستعار از پیش تنظیمشده (`fast`، `balanced`، `quality`، `cheap`، `reliable`، `offline`) یا نام خام بسته (`ship-fast`، `cost-saver`، `quality-first`، `offline-friendly`، `reliability-first`) | وزنهای امتیازدهی را برای این درخواست بازنویسی میکند. `balanced`/`default` وزنهای پیشفرض را اجباری میکنند (بدون بسته). مقادیر ناشناخته نادیده گرفته میشوند (پیکربندی حفظ میشود).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `X-OmniRoute-Budget`          | یک عدد مثبت (حداکثر USD برای هر درخواست)                                                                                                                                                            | سقف قطعی هزینه: نامزدهایی که هزینهٔ تخمینی آنها از این مقدار بیشتر باشد، پیش از انتخاب فیلتر میشوند. آنچه در صورت عبور **همهٔ** نامزدها از این سقف رخ میدهد، توسط `X-OmniRoute-Budget-Fallback` در زیر کنترل میشود.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `X-OmniRoute-Budget-Fallback` | `cheapest` (پیشفرض، نامهای مستعار: `cheapest-viable`، `soft`) یا `strict` (نامهای مستعار: `block`، `hard`)                                                                                          | `cheapest`: حتی اگر ارزانترین نامزد کلی همچنان از سقف فراتر رود، به آن بازمیگردد (رفتار قدیمی). `strict`: از انتخاب خودداری میکند — درخواست بهجای هزینهکرد بیسروصدای بیشازحد، فوراً با `HTTP 402` شکست میخورد. مقادیر ناشناخته نادیده گرفته میشوند.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `X-OmniRoute-Effort`          | `auto` (سایر مقادیر رزرو شدهاند)                                                                                                                                                                    | بودجهٔ تفکر تطبیقی: وقتی درخواست **هیچ** فیلد استدلالی با هیچ ساختاری (`reasoning_effort`، `reasoning`، `thinking`) نداشته باشد، درگاه با استفاده از سیگنالهای قطعیِ ساختار درخواست (طول آخرین پیام کاربر، اندازهٔ زمینه تا آخرین پیام کاربر، نتایج پیشین ابزار و عمق حلقهٔ ابزار)، مقدار `auto` را به `low`/`medium`/`high` تبدیل میکند. سیگنالها به نوبت جاری محدود هستند — هر چیزی پس از آخرین پیام کاربر نادیده گرفته میشود — بنابراین هر درخواست در یک حلقهٔ ابزار به سطح یکسانی تبدیل میشود (تثبیت بدون حالت برای هر نوبت، بدون وضعیت نشست و بدون افزایش سطح در میانهٔ حلقه که پیشوندهای کشِ پرامپت بالادستی را مختل کند). فیلد استدلالی صریح کلاینت همیشه اولویت دارد. این قابلیت به درخواستهایی محدود است که ارسال بالادستی آنها به ساختار OpenAI Chat Completions تبدیل میشود (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` فیلدی با ساختار OpenAI است، بنابراین این هدر در درخواستهای مقصد Claude یا Gemini هیچ اثری ندارد (به `open-sse/handlers/chatCore/adaptiveEffortWiring.ts` مراجعه کنید). |
+| هدر                           | مقادیر پذیرفتهشده                                                                                                                                                                                      | اثر                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| :---------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`            | یک نام مستعار از پیش تعیینشده (`fast`، `balanced`، `quality`، `cheap`، `reliable`، `offline`) یا نام خام یک بسته (`ship-fast`، `cost-saver`، `quality-first`، `offline-friendly`، `reliability-first`) | وزنهای امتیازدهی را برای این درخواست بازنویسی میکند. `balanced`/`default` وزنهای پیشفرض را اعمال میکنند (بدون بسته). مقادیر ناشناخته نادیده گرفته میشوند (پیکربندی حفظ میشود).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `X-OmniRoute-Budget`          | یک عدد مثبت (حداکثر دلار آمریکا بهازای هر درخواست)                                                                                                                                                     | سقف قطعی هزینه: گزینههایی که هزینهٔ تخمینی آنها از این مقدار بیشتر باشد، پیش از انتخاب فیلتر میشوند. وقتی **همهٔ** گزینهها از این مقدار فراتر بروند، رفتار سیستم توسط `X-OmniRoute-Budget-Fallback` در ادامه تعیین میشود.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (پیشفرض، نامهای مستعار: `cheapest-viable`، `soft`) یا `strict` (نامهای مستعار: `block`، `hard`)                                                                                             | `cheapest`: حتی اگر گزینه همچنان از سقف هزینه فراتر برود، به ارزانترین گزینه در کل بازمیگردد (رفتار قدیمی). `strict`: از انتخاب خودداری میکند — درخواست بهجای هزینهکرد بیسروصدا و بیشازحد، بلافاصله با `HTTP 402` شکست میخورد. مقادیر ناشناخته نادیده گرفته میشوند.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `X-OmniRoute-Effort`          | `auto` (سایر مقادیر رزرو شدهاند)                                                                                                                                                                       | بودجهٔ تفکر تطبیقی: وقتی درخواست **هیچ** فیلد استدلالی با هیچ ساختاری (`reasoning_effort`، `reasoning`، `thinking`) نداشته باشد، درگاه مقدار `auto` را بر اساس سیگنالهای قطعیِ ساختار درخواست (طول آخرین پیام کاربر، اندازهٔ زمینه تا آخرین پیام کاربر، نتایج قبلی ابزارها، عمق حلقهٔ ابزار) به `low`/`medium`/`high` تبدیل میکند. سیگنالها به نوبت جاری محدود میشوند — هر چیزی پس از آخرین پیام کاربر نادیده گرفته میشود — بنابراین هر درخواست در یک حلقهٔ ابزار به سطح یکسانی تبدیل میشود (تثبیت بدونحالت در هر نوبت، بدون وضعیت نشست و بدون افزایش سطح در میانهٔ حلقه که پیشوندهای کش پرامپت بالادستی را مختل کند). فیلد استدلال صریح کلاینت همیشه اولویت دارد. این رفتار محدود به درخواستهایی است که ارسال بالادستی آنها به ساختار OpenAI Chat Completions تبدیل میشود (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` فیلدی با ساختار OpenAI است، بنابراین این هدر در درخواستهای مقصد Claude یا Gemini هیچ اثری ندارد (به `open-sse/handlers/chatCore/adaptiveEffortWiring.ts` مراجعه کنید). |
 
 ```bash
-# سریعترین پروفایل را اجباری کن، سقف هزینهٔ این درخواست را روی $0.05 بگذار و بهجای هزینهکرد بیشازحد، درخواست را قاطعانه مسدود کن
+# سریعترین پروفایل را اعمال کن، هزینهٔ این درخواست را به $0.05 محدود کن و بهجای هزینهکرد بیشازحد، آن را بهطور کامل مسدود کن
 curl -sS http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-OmniRoute-Mode: fast" \
@@ -272,58 +273,106 @@ curl -sS http://localhost:20128/v1/chat/completions \
   -d '{"model":"auto","messages":[{"role":"user","content":"hi"}]}'
 ```
 
-تفکیک یک تابع خالص است (`open-sse/services/autoCombo/requestControls.ts`)؛ مقادیر
-تفکیکشده به ورودیهای موجود `config.modePack` / `config.budgetCap` /
-`config.budgetFallback` موتور داده میشوند. مقدار ذخیرهشدهٔ `config.budgetFallback` یک ترکیب ("strict" |
-"cheapest") خطمشی پایدار را تعیین میکند؛ هدر آن را برای یک درخواست واحد بازنویسی میکند.
+تفکیک مقادیر یک تابع خالص است (`open-sse/services/autoCombo/requestControls.ts`)؛
+مقادیر تفکیکشده به ورودیهای موجود `config.modePack` / `config.budgetCap` /
+`config.budgetFallback` موتور داده میشوند. مقدار ذخیرهشدهٔ `config.budgetFallback` در یک ترکیب ("strict" |
+"cheapest") خطمشی پایدار را تعیین میکند؛ هدر آن را برای یک درخواست منفرد بازنویسی میکند.
 
 ## همهٔ راهبردهای مسیریابی
 
-موتور ترکیبی OmniRoute از **۱۹ راهبرد مسیریابی** پشتیبانی میکند (که در `src/shared/constants/routingStrategies.ts` ← `ROUTING_STRATEGY_VALUES` تعریف شدهاند). خود موتور Auto Combo تحت راهبرد `auto` ارائه میشود؛ سایر راهبردها برای ترکیبهای ذخیرهشده در دسترس هستند.
+موتور ترکیبی OmniRoute از **۱۹ راهبرد مسیریابی** پشتیبانی میکند (تعریفشده در `src/shared/constants/routingStrategies.ts` ← `ROUTING_STRATEGY_VALUES`). خود موتور Auto Combo از طریق راهبرد `auto` ارائه میشود؛ سایر راهبردها برای ترکیبهای ذخیرهشده در دسترس هستند.
 
-| راهبرد              | توضیحات                                                                                                                                                                                           |
-| :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `priority`          | فهرست مرتبشده بر اساس هدف اول، با اولویت صریح                                                                                                                                                     |
-| `weighted`          | انتخاب تصادفی وزندار بر اساس وزن هر هدف                                                                                                                                                           |
-| `round-robin`       | پیمایش چرخهای هدفها بهترتیب                                                                                                                                                                       |
-| `context-relay`     | انتقال زمینه میان هدفها (برای مکالمات طولانی)                                                                                                                                                     |
-| `fill-first`        | تکمیل سهمیهٔ هر هدف پیش از رفتن به هدف بعدی                                                                                                                                                       |
-| `p2c`               | متعادلسازی بار تصادفی با روش انتخاب از میان ۲ گزینه                                                                                                                                               |
-| `random`            | انتخاب تصادفی یکنواخت                                                                                                                                                                             |
-| `least-used`        | انتخاب هدفی با کمترین بار فعلی                                                                                                                                                                    |
-| `cost-optimized`    | به حداقل رساندن هزینهٔ $ بهازای هر درخواست با توجه به قیمتگذاری کاتالوگ                                                                                                                           |
-| `reset-aware` ⭐    | اولویتبندی بر اساس زمان بازنشانی سهمیه — پنجرههای بازنشانی کوتاهتر رتبهٔ بالاتری میگیرند                                                                                                          |
-| `reset-window`      | ترجیح هدفهایی که پنجرهٔ سهمیهشان زودتر بازنشانی میشود                                                                                                                                             |
-| `headroom`          | انتخاب هدفی با بیشترین ظرفیت باقیمانده از سهمیه                                                                                                                                                   |
-| `strict-random`     | انتخاب تصادفی بدون حذف تکرارها                                                                                                                                                                    |
-| `auto`              | استفاده از امتیازدهی Auto Combo (با ۱۶ عامل) — **توصیهشده**                                                                                                                                       |
-| `lkgp`              | آخرین مسیر سالم شناختهشده (اتصال به آخرین ارائهدهندهٔ موفق را ثابت نگه میدارد و سپس به قوانین جایگزین رجوع میکند)                                                                                 |
-| `context-optimized` | انتخاب هدفی که بهترین تناسب را با اندازهٔ فعلی زمینه دارد                                                                                                                                         |
-| `cache-optimized`   | مرتبسازی مجدد هدفها بر اساس نزدیکی به کش پرامپت — اتصالی که به احتمال زیاد پیشوند کششدهٔ این درخواست را از قبل دارد، ابتدا امتحان میشود (`open-sse/services/combo/promptCacheAffinity.ts`، #8008) |
-| `fusion` 🧬         | ارسال موازی درخواست به مجموعهای از مدلها و سپس ترکیب پاسخها در قالب یک پاسخ واحد بهوسیلهٔ یک داور (پایین را ببینید)                                                                               |
-| `pipeline`          | اجرای ترتیبی هدفها با انتقال خروجی هر مرحله به ورودی مرحلهٔ بعد؛ فقط پاسخ نهایی بازگردانده میشود (#6396)                                                                                          |
+| راهبرد              | توضیحات                                                                                                                                                                                                    |
+| :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `priority`          | فهرست مرتبشده بر اساس هدف نخست، با اولویت صریح                                                                                                                                                             |
+| `weighted`          | انتخاب تصادفی وزندار بر اساس وزن هر هدف                                                                                                                                                                    |
+| `round-robin`       | پیمایش چرخشی اهداف بهترتیب (بهصورت دستهای؛ پایین را ببینید)                                                                                                                                                |
+| `context-relay`     | انتقال زمینه میان اهداف (برای مکالمههای طولانی)                                                                                                                                                            |
+| `fill-first`        | تکمیل سهمیهٔ هر هدف پیش از رفتن به هدف بعدی                                                                                                                                                                |
+| `p2c`               | توازن بار تصادفی با روش «توانِ ۲ انتخاب»                                                                                                                                                                   |
+| `random`            | انتخاب تصادفی یکنواخت                                                                                                                                                                                      |
+| `least-used`        | انتخاب هدفی با کمترین بار فعلی                                                                                                                                                                             |
+| `cost-optimized`    | بهحداقلرساندن هزینهٔ دلاری هر درخواست بر اساس قیمتگذاری کاتالوگ                                                                                                                                            |
+| `reset-aware` ⭐    | اولویتبندی بر اساس زمان بازنشانی سهمیه — پنجرههای بازنشانی کوتاهتر در رتبهٔ بالاتری قرار میگیرند                                                                                                           |
+| `reset-window`      | ترجیح اهدافی که پنجرهٔ سهمیهٔ آنها زودتر بازنشانی میشود                                                                                                                                                    |
+| `headroom`          | انتخاب هدفی که بیشترین ظرفیت باقیمانده از سهمیه را دارد                                                                                                                                                    |
+| `strict-random`     | انتخاب تصادفی بدون حذف تکرارها                                                                                                                                                                             |
+| `auto`              | استفاده از امتیازدهی Auto Combo (با ۱۶ عامل) — **توصیهشده**                                                                                                                                                |
+| `lkgp`              | آخرین مسیر سالم شناختهشده (اتصال به آخرین ارائهدهندهٔ موفق و سپس بازگشت به قواعد در صورت شکست)                                                                                                             |
+| `context-optimized` | انتخاب هدفی که بهترین تناسب را با اندازهٔ فعلی زمینه دارد                                                                                                                                                  |
+| `cache-optimized`   | مرتبسازی مجدد اهداف بر اساس نزدیکی به کش پرامپت — اتصالی که بهاحتمال زیاد پیشوند کششدهٔ این درخواست را از قبل در اختیار دارد، ابتدا امتحان میشود (`open-sse/services/combo/promptCacheAffinity.ts`، #8008) |
+| `fusion` 🧬         | ارسال موازی درخواست به مجموعهای از مدلها و سپس ترکیب پاسخها در یک پاسخ واحد توسط داور (پایین را ببینید)                                                                                                    |
+| `pipeline`          | اجرای متوالی اهداف و انتقال خروجی هر مرحله به ورودی مرحلهٔ بعد؛ فقط پاسخ نهایی بازگردانده میشود (#6396)                                                                                                    |
 
 ⭐ = جدید در v3.8.0 · 🧬 = جدید در v3.8.36
 
 ### معناشناسی `weighted`
 
-`weighted` یک **انتخاب تصادفی متناسب در هر درخواست** است
-(`open-sse/services/combo/targetSorters.ts` ← `selectWeightedTarget`)، نه یک همترازکننده:
+`weighted` یک **قرعهکشی تصادفی متناسب برای هر درخواست** است
+(`open-sse/services/combo/targetSorters.ts` ← `selectWeightedTarget`)، نه یک متعادلکننده:
 
 - هر درخواست **یک** مرحله را با احتمال `weight / totalWeight` انتخاب میکند؛ مراحل باقیمانده
-  بر اساس وزن نزولی بهعنوان زنجیرهٔ جایگزین آن درخواست مرتب میشوند.
-- مرحلهای که وزن آن `0` باشد (یا وزن نداشته باشد)، تا زمانی که هر مرحلهٔ دیگری
-  وزنی > 0 داشته باشد، **هرگز انتخاب نمیشود** — چنین مرحلهای فقط پس از شکست مرحلهٔ انتخابشده میتواند بهعنوان جایگزین عمل کند. تنها زمانی که وزن **همهٔ**
-  مراحل 0 باشد، انتخاب یکنواخت میشود.
-- مراحلی که همهٔ هدفهایشان در دسترس نیستند — قطعکنندهٔ مدار ارائهدهنده در وضعیت `OPEN`، دورهٔ انتظار
-  اتصال یا قفلشدن مدل — پیش از انجام انتخاب از آن حذف میشوند
+  برای زنجیرهٔ بازگشت همان درخواست، بر اساس وزن بهترتیب نزولی مرتب میشوند.
+- مرحلهای که وزن آن `0` است (یا وزن ندارد)، تا زمانی که وزن هر مرحلهٔ دیگری
+  بزرگتر از ۰ باشد، **هرگز انتخاب نمیشود** — این مرحله فقط پس از شکست مرحلهٔ انتخابشده میتواند بهعنوان گزینهٔ بازگشت عمل کند. انتخاب تنها زمانی یکنواخت میشود که وزن **همهٔ**
+  مراحل ۰ باشد.
+- مراحلی که همهٔ اهداف آنها در دسترس نیستند — مدارشکن ارائهدهنده در وضعیت `OPEN`، دورهٔ
+  انتظار اتصال، قفلشدن مدل — پیش از انجام قرعهکشی از آن حذف میشوند
   (`open-sse/services/combo/targetResolution.ts`)؛ بنابراین یک مرحلهٔ سالم میتواند موقتاً
-  در تمام درخواستها برنده شود.
+  در همهٔ درخواستها برنده شود.
 - `stickyWeightedLimit` (پیکربندی ترکیب، مقدار پیشفرض `1` = غیرفعال) مرحلهٔ انتخابشده را برای همین تعداد
-  موفقیت متوالی ثابت نگه میدارد و سپس دوباره انتخاب انجام میشود.
+  موفقیت متوالی ثابت نگه میدارد و سپس دوباره قرعهکشی میکند.
 
-برای چرخش دقیق از `round-robin` استفاده کنید؛ وزنهای برابر در `weighted` تعادل آماری ایجاد میکنند — نه
-تعادل دقیق.
+برای چرخش دقیق از `round-robin` استفاده کنید؛ وزنهای برابر در `weighted` توازنی آماری — و نه
+دقیق — ایجاد میکنند.
+
+### حالت خط لولهٔ عاملی
+
+یک ترکیب `pipeline` دومرحلهای میتواند با استفاده از
+`config.agenticOrchestration.enabled` مسیریابی برنامهریز/اجراکننده را فعال کند. هدف اول مالک برنامهریزی و پاسخهای نهایی است؛
+هدف دوم فراخوانیهای ابزار بومی کلاینت را منتشر میکند. OmniRoute ادامههای حاوی نتیجهٔ ابزار را
+از پروتکل درخواست تشخیص میدهد، از برنامهریز میپرسد که آیا دور دیگری از ابزار لازم است یا نه،
+و بهصورت پویا اجراکننده یا برنامهریز را بهعنوان مرحلهٔ نهاییِ روبهروی کلاینت انتخاب میکند.
+
+```json
+{
+  "strategy": "pipeline",
+  "models": [{ "model": "provider/planner" }, { "model": "provider/executor" }],
+  "config": {
+    "agenticOrchestration": { "enabled": true, "maxToolRounds": 8 }
+  }
+}
+```
+
+اجراکننده میتواند چندین فراخوانی مستقل را در یک پاسخ منتشر کند. فراخوانیهای وابسته
+در نوبتهای بعدیِ نتیجهٔ ابزارِ کلاینت مدیریت میشوند و برنامهریز هر نتیجه را بررسی میکند.
+مقدار پیشفرض `maxToolRounds` برابر با `8` است و مقادیر `1` تا `32` را میپذیرد؛ پس از رسیدن به این حد، برنامهریز باید
+بهترین پاسخ نهاییِ موجود را تولید کند. تصمیمهای داخلی برنامهریز بافر میشوند، درحالیکه
+پاسخ انتخابشده برای کلاینت، ترجیح اصلی استریم را حفظ میکند.
+
+### دستهٔ چسبنده و گسترش حساب در `round-robin`
+
+روش Round-robin دستهای است، نه یک درخواست بهازای هر مرحله:
+
+- `stickyRoundRobinLimit` (ابتدا پیکربندی ترکیب، سپس `comboStickyRoundRobinLimit`، سپس
+  `settings.stickyRoundRobinLimit`، با مقدار پیشفرض **3**) همان هدف را برای این تعداد
+  موفقیت متوالی حفظ میکند و سپس میچرخد. برای چرخش بهازای هر درخواست، بازنویسی ترکیب را روی `1`
+  تنظیم کنید. ویرایشگر ترکیب مقدار مؤثر و لایهای را که مقدار از آن آمده است نشان میدهد.
+- `connectionAwareExpansion` (ابتدا پیکربندی ترکیب، سپس تنظیمات، با مقدار پیشفرض **false**)
+  هر مرحله در سطح ارائهدهنده را پیش از چرخش به اهداف جداگانه برای هر حساب گسترش میدهد. استراتژیهای گروه B
+  (اولویت، وزندار، round-robin، تصادفی، p2c، کماستفادهترین، بهینهشده برای هزینه، lkgp،
+  پرکردن-اول، تصادفی سختگیرانه، بهینهشده برای زمینه، بهینهشده برای کش، رلهٔ زمینه، ادغام،
+  pipeline) تا زمانی که این گزینه فعال نشده باشد، نمای سطح ارائهدهنده را حفظ میکنند. ویرایشگر ترکیب
+  گزینههای ارثبری / روشن / خاموش را ارائه میدهد؛ ارثبری از مقدار پیشفرض سراسری (خاموش) استفاده میکند.
+- مسیریابی مبتنی بر محلیبودن کش پرامپت (`promptCacheAffinityEnabled`، با مقدار پیشفرض **true**)
+  اتصالهای سنجاقشده را دوباره مرتب میکند تا کلیدهای کش منطبق روی یک حساب باقی بمانند. این قابلیت نسبت به
+  چرخش round-robin و وزندار در میان مراحل سنجاقشدهٔ هر حساب اولویت دارد. اگر به چرخش سختگیرانه نیاز دارید،
+  آن را در Settings → Combo defaults خاموش کنید. بازنویسی در سطح ترکیب وجود ندارد.
+
+برای چرخش چندحسابی روی یک مدل، بهجای سه `connectionId` سنجاقشده، ترجیحاً از **یک مرحلهٔ حساب پویا** (`connectionId` خالی،
+کل مخزن) با حد چسبندگی `1` استفاده کنید.
+مراحل سنجاقشده همراه با affinity همگی روی همان حساب قرار میگیرند، حتی هنگامی که شمارندهٔ RR
+جلو میرود.
 
 ## راهبرد Fusion
 
@@ -715,14 +764,16 @@ registerStrategy("my-custom", new MyCustomStrategy());
 
 (`AutoVariant` خود شامل ۶ مقدار است؛ گزینهٔ هفتم «بدون گونه» — یعنی `auto` ساده — است که توسط `parseAutoPrefix()` بهشکل `variant: undefined` مدیریت میشود.)
 
-## جایگاه سطحها در Auto-Combo
+## جایگاه سطوح در Auto-Combo
 
-تابع امتیازدهی ۱۶ عاملی (`open-sse/services/autoCombo/scoring.ts`) عضویت در سطح را بهعنوان دو سیگنال در نظر میگیرد: `tierPriority` (0.0476) و `tierAffinity` (0.0476). برای مشاهدهٔ مجموعهٔ کامل `DEFAULT_WEIGHTS`، جدول مرجع [عوامل امتیازدهی](#how-it-works-persisted-auto-combos) در بالا را ببینید — مقادیر بازنویسیشده برای هر بسته (ship-fast/cost-saver/quality-first/
+تابع امتیازدهی ۱۶عاملی (`open-sse/services/autoCombo/scoring.ts`) عضویت در سطح را بهعنوان دو سیگنال در نظر میگیرد: `tierPriority` (0.0476) و `tierAffinity` (0.0476). برای مشاهده مجموعه کامل `DEFAULT_WEIGHTS`، جدول مرجع [عوامل امتیازدهی](#how-it-works-persisted-auto-combos) در بالا را ببینید — مقادیر بازنویسیشده برای هر بسته (ship-fast/cost-saver/quality-first/
 offline-friendly) در جدول «پروفایلهای وزن برای هر بسته» فهرست شدهاند.
 
-سطح بهتنهایی **باعث نمیشود** که Tier 1 الزاماً نخست انتخاب شود — اگر تأخیر Tier 1 نامطلوب باشد یا نسبت هزینه به کیفیت آن بهینه نباشد، Tier 2 برنده میشود. برای تحمیل ترتیب سطحها، از راهبرد ترکیبی `priority` استفاده کنید و ارائهدهندگان را بر اساس سطح مرتب کنید.
+سطح بهتنهایی **باعث نمیشود** سطح ۱ در اولویت قرار گیرد — اگر تأخیر سطح ۱ نامطلوب باشد یا
+نسبت هزینه به کیفیت بهینه نباشد، سطح ۲ انتخاب میشود. برای اجبار ترتیب سطوح، از استراتژی
+`priority` برای ترکیب استفاده کنید و ارائهدهندگان را بر اساس سطح مرتب کنید.
 
-برای ترجیح شدید Tier 1 (اشتراک)، وزن `tierPriority` را افزایش دهید:
+برای ترجیح قوی سطح ۱ (اشتراکی)، وزن `tierPriority` را افزایش دهید:
 
 ```json
 {
@@ -731,7 +782,7 @@ offline-friendly) در جدول «پروفایلهای وزن برای هر بس
 }
 ```
 
-برای تعاریف سطحها و طبقهبندی ارائهدهندگان، به `docs/marketing/TIERS.md` مراجعه کنید.
+برای تعاریف سطوح و دستهبندی ارائهدهندگان، به [`docs/guides/TIERS.md`](../guides/TIERS.md) مراجعه کنید.
 
 ## آزمون و پوشش
 

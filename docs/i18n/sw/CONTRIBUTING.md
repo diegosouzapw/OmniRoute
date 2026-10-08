@@ -1,6 +1,6 @@
 # Contributing to OmniRoute (Kiswahili)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CONTRIBUTING.md) · 🇪🇹 [am](../am/CONTRIBUTING.md) · 🇸🇦 [ar](../ar/CONTRIBUTING.md) · 🇦🇿 [az](../az/CONTRIBUTING.md) · 🇧🇬 [bg](../bg/CONTRIBUTING.md) · 🇧🇩 [bn](../bn/CONTRIBUTING.md) · 🇨🇿 [cs](../cs/CONTRIBUTING.md) · 🇩🇰 [da](../da/CONTRIBUTING.md) · 🇩🇪 [de](../de/CONTRIBUTING.md) · 🇬🇷 [el](../el/CONTRIBUTING.md) · 🇪🇸 [es](../es/CONTRIBUTING.md) · 🇪🇪 [et](../et/CONTRIBUTING.md) · 🇮🇷 [fa](../fa/CONTRIBUTING.md) · 🇫🇮 [fi](../fi/CONTRIBUTING.md) · 🇫🇷 [fr](../fr/CONTRIBUTING.md) · 🇮🇪 [ga](../ga/CONTRIBUTING.md) · 🇮🇳 [gu](../gu/CONTRIBUTING.md) · 🇳🇬 [ha](../ha/CONTRIBUTING.md) · 🇮🇱 [he](../he/CONTRIBUTING.md) · 🇮🇳 [hi](../hi/CONTRIBUTING.md) · 🇭🇷 [hr](../hr/CONTRIBUTING.md) · 🇭🇺 [hu](../hu/CONTRIBUTING.md) · 🇦🇲 [hy](../hy/CONTRIBUTING.md) · 🇮🇩 [id](../id/CONTRIBUTING.md) · 🇳🇬 [ig](../ig/CONTRIBUTING.md) · 🇮🇹 [it](../it/CONTRIBUTING.md) · 🇯🇵 [ja](../ja/CONTRIBUTING.md) · 🇬🇪 [ka](../ka/CONTRIBUTING.md) · 🇰🇭 [km](../km/CONTRIBUTING.md) · 🇮🇳 [kn](../kn/CONTRIBUTING.md) · 🇰🇷 [ko](../ko/CONTRIBUTING.md) · 🇱🇹 [lt](../lt/CONTRIBUTING.md) · 🇱🇻 [lv](../lv/CONTRIBUTING.md) · 🇮🇳 [ml](../ml/CONTRIBUTING.md) · 🇮🇳 [mr](../mr/CONTRIBUTING.md) · 🇲🇾 [ms](../ms/CONTRIBUTING.md) · 🇲🇹 [mt](../mt/CONTRIBUTING.md) · 🇲🇲 [my](../my/CONTRIBUTING.md) · 🇳🇵 [ne](../ne/CONTRIBUTING.md) · 🇳🇱 [nl](../nl/CONTRIBUTING.md) · 🇳🇴 [no](../no/CONTRIBUTING.md) · 🇮🇳 [or](../or/CONTRIBUTING.md) · 🇮🇳 [pa](../pa/CONTRIBUTING.md) · 🇵🇭 [phi](../phi/CONTRIBUTING.md) · 🇵🇱 [pl](../pl/CONTRIBUTING.md) · 🇵🇹 [pt](../pt/CONTRIBUTING.md) · 🇧🇷 [pt-BR](../pt-BR/CONTRIBUTING.md) · 🇷🇴 [ro](../ro/CONTRIBUTING.md) · 🇷🇺 [ru](../ru/CONTRIBUTING.md) · 🇱🇰 [si](../si/CONTRIBUTING.md) · 🇸🇰 [sk](../sk/CONTRIBUTING.md) · 🇸🇮 [sl](../sl/CONTRIBUTING.md) · 🇷🇸 [sr](../sr/CONTRIBUTING.md) · 🇸🇪 [sv](../sv/CONTRIBUTING.md) · 🇮🇳 [ta](../ta/CONTRIBUTING.md) · 🇮🇳 [te](../te/CONTRIBUTING.md) · 🇹🇭 [th](../th/CONTRIBUTING.md) · 🇹🇷 [tr](../tr/CONTRIBUTING.md) · 🇺🇦 [uk-UA](../uk-UA/CONTRIBUTING.md) · 🇵🇰 [ur](../ur/CONTRIBUTING.md) · 🇺🇿 [uz](../uz/CONTRIBUTING.md) · 🇻🇳 [vi](../vi/CONTRIBUTING.md) · 🇳🇬 [yo](../yo/CONTRIBUTING.md) · 🇨🇳 [zh-CN](../zh-CN/CONTRIBUTING.md) · 🇹🇼 [zh-TW](../zh-TW/CONTRIBUTING.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CONTRIBUTING.md) · 🇪🇹 [am](../am/CONTRIBUTING.md) · 🇸🇦 [ar](../ar/CONTRIBUTING.md) · 🇦🇿 [az](../az/CONTRIBUTING.md) · 🇧🇬 [bg](../bg/CONTRIBUTING.md) · 🇧🇩 [bn](../bn/CONTRIBUTING.md) · 🇧🇦 [bs](../bs/CONTRIBUTING.md) · 🇨🇿 [cs](../cs/CONTRIBUTING.md) · 🇩🇰 [da](../da/CONTRIBUTING.md) · 🇩🇪 [de](../de/CONTRIBUTING.md) · 🇬🇷 [el](../el/CONTRIBUTING.md) · 🇪🇸 [es](../es/CONTRIBUTING.md) · 🇪🇪 [et](../et/CONTRIBUTING.md) · 🇮🇷 [fa](../fa/CONTRIBUTING.md) · 🇫🇮 [fi](../fi/CONTRIBUTING.md) · 🇫🇷 [fr](../fr/CONTRIBUTING.md) · 🇮🇪 [ga](../ga/CONTRIBUTING.md) · 🇮🇳 [gu](../gu/CONTRIBUTING.md) · 🇳🇬 [ha](../ha/CONTRIBUTING.md) · 🇮🇱 [he](../he/CONTRIBUTING.md) · 🇮🇳 [hi](../hi/CONTRIBUTING.md) · 🇭🇷 [hr](../hr/CONTRIBUTING.md) · 🇭🇺 [hu](../hu/CONTRIBUTING.md) · 🇦🇲 [hy](../hy/CONTRIBUTING.md) · 🇮🇩 [id](../id/CONTRIBUTING.md) · 🇳🇬 [ig](../ig/CONTRIBUTING.md) · 🇮🇹 [it](../it/CONTRIBUTING.md) · 🇯🇵 [ja](../ja/CONTRIBUTING.md) · 🇬🇪 [ka](../ka/CONTRIBUTING.md) · 🇰🇭 [km](../km/CONTRIBUTING.md) · 🇮🇳 [kn](../kn/CONTRIBUTING.md) · 🇰🇷 [ko](../ko/CONTRIBUTING.md) · 🇱🇹 [lt](../lt/CONTRIBUTING.md) · 🇱🇻 [lv](../lv/CONTRIBUTING.md) · 🇮🇳 [ml](../ml/CONTRIBUTING.md) · 🇮🇳 [mr](../mr/CONTRIBUTING.md) · 🇲🇾 [ms](../ms/CONTRIBUTING.md) · 🇲🇹 [mt](../mt/CONTRIBUTING.md) · 🇲🇲 [my](../my/CONTRIBUTING.md) · 🇳🇵 [ne](../ne/CONTRIBUTING.md) · 🇳🇱 [nl](../nl/CONTRIBUTING.md) · 🇳🇴 [no](../no/CONTRIBUTING.md) · 🇮🇳 [or](../or/CONTRIBUTING.md) · 🇮🇳 [pa](../pa/CONTRIBUTING.md) · 🇵🇭 [phi](../phi/CONTRIBUTING.md) · 🇵🇱 [pl](../pl/CONTRIBUTING.md) · 🇵🇹 [pt](../pt/CONTRIBUTING.md) · 🇧🇷 [pt-BR](../pt-BR/CONTRIBUTING.md) · 🇷🇴 [ro](../ro/CONTRIBUTING.md) · 🇷🇺 [ru](../ru/CONTRIBUTING.md) · 🇱🇰 [si](../si/CONTRIBUTING.md) · 🇸🇰 [sk](../sk/CONTRIBUTING.md) · 🇸🇮 [sl](../sl/CONTRIBUTING.md) · 🇷🇸 [sr](../sr/CONTRIBUTING.md) · 🇸🇪 [sv](../sv/CONTRIBUTING.md) · 🇮🇳 [ta](../ta/CONTRIBUTING.md) · 🇮🇳 [te](../te/CONTRIBUTING.md) · 🇹🇭 [th](../th/CONTRIBUTING.md) · 🇹🇷 [tr](../tr/CONTRIBUTING.md) · 🇺🇦 [uk-UA](../uk-UA/CONTRIBUTING.md) · 🇵🇰 [ur](../ur/CONTRIBUTING.md) · 🇺🇿 [uz](../uz/CONTRIBUTING.md) · 🇻🇳 [vi](../vi/CONTRIBUTING.md) · 🇳🇬 [yo](../yo/CONTRIBUTING.md) · 🇨🇳 [zh-CN](../zh-CN/CONTRIBUTING.md) · 🇹🇼 [zh-TW](../zh-TW/CONTRIBUTING.md)
 
 ---
 
@@ -391,18 +391,18 @@ Andika majaribio ya vipengele katika `tests/unit/` yanayojumuisha angalau:
 
 - [ ] Majaribio yanafaulu (`npm test`)
 - [ ] Ukaguzi wa lint unafaulu (`npm run lint`)
-- [ ] Ujenzi unafanikiwa (`npm run build`)
+- [ ] Uundaji unafaulu (`npm run build`)
 - [ ] Aina za TypeScript zimeongezwa kwa functions na interfaces mpya za umma
-- [ ] Hakuna siri au thamani mbadala zilizowekwa moja kwa moja
-- [ ] Vitambulisho vya umma vya upstream vimepachikwa kupitia `resolvePublicCred()` (angalia [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), kamwe si kama literals
-- [ ] Majibu ya hitilafu hupitishwa kupitia `buildErrorBody()` / `sanitizeErrorMessage()` — hakuna stack traces ghafi katika miili ya majibu (angalia [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Amri za shell (`exec` / `spawn`) hupitisha thamani za runtime kupitia `env`, si kupitia uingizaji wa thamani kwenye string
-- [ ] Ingizo zote zimethibitishwa kwa schemas za Zod
-- [ ] **Kipande** cha changelog kimeongezwa chini ya `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` kwa mabadiliko yanayoonekana kwa mtumiaji (angalia [`changelog.d/README.md`](./changelog.d/README.md)) — **usihariri** `CHANGELOG.md` moja kwa moja; vipande huunganishwa wakati wa toleo na kamwe havikinzani kati ya PR
-- [ ] Nyaraka zimesasishwa (ikiwa inatumika)
-- [ ] Hakuna arifa mpya za CodeQL / Secret-Scanning zilizofunguliwa, au kila moja imepuuzwa kwa uhalalishaji wa kiufundi unaorejelea hati husika ya `docs/security/`
-- [ ] Routes zinazoanzisha child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) zimeainishwa kama `isLocalOnlyPath()` katika `src/server/authz/routeGuard.ts` — angalia [Kanuni Isiyobadilika #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Hakuna trailers za `Co-Authored-By` katika commit messages — commits lazima zionekane chini ya Git identity ya mmiliki wa repository pekee (Kanuni Isiyobadilika #16)
+- [ ] Hakuna siri au thamani mbadala zilizowekwa moja kwa moja kwenye msimbo
+- [ ] Vitambulisho vya upstream vya umma vimepachikwa kupitia `resolvePublicCred()` (tazama [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), kamwe si kama literals
+- [ ] Majibu ya hitilafu yanapitia `buildErrorBody()` / `sanitizeErrorMessage()` — hakuna stack traces ghafi katika response bodies (tazama [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Amri za shell (`exec` / `spawn`) hupitisha thamani za wakati wa utekelezaji kupitia `env`, si kupitia string interpolation
+- [ ] Ingizo zote zimethibitishwa kwa Zod schemas
+- [ ] **Kipande** cha changelog kimeongezwa chini ya `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` kwa mabadiliko yanayoonekana kwa watumiaji (tazama [`changelog.d/README.md`](./changelog.d/README.md)) — **usihariri** `CHANGELOG.md` moja kwa moja; vipande huunganishwa wakati wa toleo na kamwe havikinzani kati ya PRs
+- [ ] Nyaraka zimesasishwa (ikiwa inahusika)
+- [ ] Hakuna arifa mpya za CodeQL / Secret-Scanning zilizofunguliwa, au kila moja imekataliwa kwa uhalalisho wa kiufundi unaorejelea hati husika ya `docs/security/`
+- [ ] Routes zinazoanzisha child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) zimeainishwa kama `isLocalOnlyPath()` katika `src/server/authz/routeGuard.ts` — tazama [Kanuni Kali #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Hakuna trailers za AI/bot za `Co-authored-by` katika commit messages (Kanuni Kali #16) — washirika wanadamu ambao kazi yao imetumika tena wanatambuliwa kwa trailers za kawaida za `Co-authored-by: Name <email>`
 
 ---
 
@@ -412,11 +412,10 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 
 ---
 
-## Kupata Msaada
+## Kupata Usaidizi
 
 - **Usanifu**: Tazama [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
 - **Marejeleo ya API**: Tazama [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **Nyaraka za usalama**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **Nyaraka za uendeshaji**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Masuala**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR**: Tazama `docs/adr/` kwa rekodi za maamuzi ya usanifu

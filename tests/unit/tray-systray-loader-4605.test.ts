@@ -19,7 +19,11 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import { initSystrayUnix } from "../../bin/cli/tray/traySystray.mjs";
+
+const REPO_ROOT = path.resolve(import.meta.dirname, "../..");
 
 class FakeSysTray {
   static lastOpts: unknown = null;
@@ -77,4 +81,19 @@ test("initSystrayUnix loads the injected SysTray ctor and builds the menu (#4605
 test("initSystrayUnix returns null without throwing when the loader yields null (#4605)", async () => {
   const tray = await initSystrayUnix(opts, async () => null);
   assert.equal(tray, null, "must degrade to null when systray2 cannot be loaded");
+});
+
+// #13992 (ported from #13991, credit @prabhtheone): systray2 expects an ICO
+// payload on Windows — icon.png alone left the Windows tray icon blank.
+test("getIconBase64 selects icon.ico on win32 and icon.png elsewhere (#13991/#13992)", () => {
+  const traySrc = fs.readFileSync(path.join(REPO_ROOT, "bin/cli/tray/traySystray.mjs"), "utf8");
+  assert.match(
+    traySrc,
+    /join\(__dirname,\s*process\.platform === "win32" \? "icon\.ico" : "icon\.png"\)/,
+    "getIconBase64 must resolve icon.ico on Windows instead of always using icon.png"
+  );
+  assert.ok(
+    fs.existsSync(path.join(REPO_ROOT, "bin/cli/tray/icon.ico")),
+    "bin/cli/tray/icon.ico must exist for the win32 branch to resolve to a real file"
+  );
 });

@@ -13,7 +13,18 @@
  * in isolation without touching the DB/registry-backed virtual factory.
  */
 
-export type ModelFamily = "glm" | "minimax" | "mimo" | "zai" | "gemma" | "llama" | "gemini";
+export type ModelFamily =
+  | "glm"
+  | "minimax"
+  | "mimo"
+  | "zai"
+  | "gemma"
+  | "llama"
+  | "gemini"
+  | "kimi"
+  | "qwen"
+  | "deepseek"
+  | "gpt";
 
 export const MODEL_FAMILIES: readonly ModelFamily[] = [
   "glm",
@@ -23,6 +34,10 @@ export const MODEL_FAMILIES: readonly ModelFamily[] = [
   "gemma",
   "llama",
   "gemini",
+  "kimi",
+  "qwen",
+  "deepseek",
+  "gpt",
 ];
 
 const MODEL_FAMILY_SET: ReadonlySet<string> = new Set(MODEL_FAMILIES);
@@ -36,6 +51,10 @@ const FAMILY_ID_PATTERNS: ReadonlyArray<{ family: ModelFamily; pattern: RegExp }
   { family: "gemma", pattern: /^gemma-/i },
   { family: "llama", pattern: /^llama-/i },
   { family: "gemini", pattern: /^gemini-/i },
+  { family: "kimi", pattern: /^kimi-/i },
+  { family: "qwen", pattern: /^qwen/i },
+  { family: "deepseek", pattern: /^deepseek-/i },
+  { family: "gpt", pattern: /^gpt-/i },
 ];
 
 /**
@@ -79,7 +98,8 @@ interface FamilyPoolCandidate {
 /**
  * Build the candidate filter for `auto/<family>`. Provider-override families
  * (currently only `zai`) filter by connection provider id; every other family
- * filters by `detectModelFamily(model) === family`.
+ * filters by `detectModelFamily(model) === family`, with a provider-scoped
+ * exception for Kimi backends exposing the bare `k3` model id.
  */
 export function buildFamilyCandidateFilter(
   family: ModelFamily
@@ -88,7 +108,17 @@ export function buildFamilyCandidateFilter(
   if (providerOverride) {
     return (candidate) => candidate.provider === providerOverride;
   }
-  return (candidate) => detectModelFamily(candidate.model) === family;
+  return (candidate) => {
+    if (detectModelFamily(candidate.model) === family) return true;
+    // Coding OAuth/API-key and web share the bare k3 id. Do not classify an
+    // unrelated provider's k3 (or other models on these providers) as Kimi.
+    const bareModel = candidate.model.slice(candidate.model.lastIndexOf("/") + 1);
+    return (
+      family === "kimi" &&
+      ["kimi-coding", "kimi-coding-apikey", "kimi-web"].includes(candidate.provider) &&
+      bareModel.toLowerCase() === "k3"
+    );
+  };
 }
 
 /** Advertised `auto/<family>` catalog ids (#6453), e.g. `auto/glm`, `auto/minimax`. */

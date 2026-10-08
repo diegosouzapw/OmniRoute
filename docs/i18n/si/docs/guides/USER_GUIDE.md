@@ -1,10 +1,10 @@
 # User Guide (සිංහල)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 ---
 
-🌐 **භාෂා:** 🇺🇸 [ඉංග්රීසි](./USER_GUIDE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/guides/USER_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/USER_GUIDE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/guides/USER_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/USER_GUIDE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/guides/USER_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/USER_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/USER_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/USER_GUIDE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/guides/USER_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/guides/USER_GUIDE.md) | 🇪🇪 [Eesti](../i18n/et/docs/guides/USER_GUIDE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/guides/USER_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/USER_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/USER_GUIDE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/guides/USER_GUIDE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/guides/USER_GUIDE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/guides/USER_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/USER_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/guides/USER_GUIDE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/guides/USER_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/USER_GUIDE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/guides/USER_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/USER_GUIDE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/guides/USER_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/USER_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/USER_GUIDE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/guides/USER_GUIDE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/guides/USER_GUIDE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/guides/USER_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/USER_GUIDE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/guides/USER_GUIDE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/guides/USER_GUIDE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/guides/USER_GUIDE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/guides/USER_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/USER_GUIDE.md) | 🇲🇹 [Malti](../i18n/mt/docs/guides/USER_GUIDE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/guides/USER_GUIDE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/guides/USER_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/USER_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/USER_GUIDE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/guides/USER_GUIDE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/guides/USER_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/USER_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/USER_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/USER_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/USER_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/USER_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/USER_GUIDE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/guides/USER_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/USER_GUIDE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/guides/USER_GUIDE.md) | 🇷🇸 [Српски](../i18n/sr/docs/guides/USER_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/USER_GUIDE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/guides/USER_GUIDE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/guides/USER_GUIDE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/guides/USER_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/USER_GUIDE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/guides/USER_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/USER_GUIDE.md) | 🇵🇰 [اردو](../i18n/ur/docs/guides/USER_GUIDE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/guides/USER_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/USER_GUIDE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/guides/USER_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/USER_GUIDE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 සපයන්නන් වින්යාස කිරීම, සංයෝජන නිර්මාණය කිරීම, CLI මෙවලම් ඒකාබද්ධ කිරීම සහ OmniRoute යෙදවීම සඳහා සම්පූර්ණ මාර්ගෝපදේශයකි.
 
@@ -118,9 +118,9 @@ $20ක් ගෙවා සීමාවලට ළඟා වී කලකිරී
 
 ---
 
-## 📖 සපයන්නා පිහිටුවීම
+## 📖 සපයන්නා සැකසීම
 
-CSV හෝ JSON ගොනුවකින් API-key සම්බන්ධතා තොග වශයෙන් එක් කිරීමට, **Dashboard → Providers → Import from file** භාවිත කරන්න. තීරු ස්ථානීය අනුපිළිවෙළට ඇත (`provider,name,apiKey,baseUrl,priority`); `provider` දැනටමත් කළමනාකරණය කරන ලද සපයන්නෙකු හෝ අනුකූල node එකක් ලෙස පැවතිය යුතුය. [CSV හෝ JSON ගොනුවකින් සපයන්නන් ආයාත කිරීම](../providers/CSV-IMPORT.md) බලන්න.
+CSV හෝ JSON ගොනුවකින් API-key සම්බන්ධතා තොග වශයෙන් එක් කිරීමට, **Dashboard → Providers → Import from file** භාවිත කරන්න. තීරු ස්ථානීය අනුපිළිවෙළට ඇත (`provider,name,apiKey,baseUrl,priority`); `provider` දැනටමත් කළමනාකරණය කළ සපයන්නෙකු හෝ අනුකූල node එකක් ලෙස පැවතිය යුතුය. [CSV හෝ JSON ගොනුවකින් සපයන්නන් ආයාත කිරීම](../providers/CSV-IMPORT.md) බලන්න.
 
 ### 🔐 දායකත්ව සපයන්නන්
 
@@ -129,17 +129,21 @@ CSV හෝ JSON ගොනුවකින් API-key සම්බන්ධතා 
 ```bash
 Dashboard → Providers → Connect Claude Code
 → OAuth පිවිසුම → ස්වයංක්රීය token නැවුම් කිරීම
-→ පැය 5ක + සතිපතා quota නිරීක්ෂණය
+→ පැය 5ක + සතිපතා quota ලුහුබැඳීම
 
-මාදිලි:
+Models:
   cc/claude-opus-4-7
   cc/claude-sonnet-4-6
   cc/claude-haiku-4-5-20251001
 ```
 
-**විශේෂඥ ඉඟිය:** සංකීර්ණ කාර්යයන් සඳහා Opus ද, වේගය සඳහා Sonnet ද භාවිත කරන්න. OmniRoute එක් එක් මාදිලිය සඳහා quota නිරීක්ෂණය කරයි!
+**වෘත්තීය ඉඟිය:** සංකීර්ණ කාර්යයන් සඳහා Opus ද, වේගය සඳහා Sonnet ද භාවිත කරන්න. OmniRoute එක් එක් model එක අනුව quota ලුහුබඳියි!
 
-Claude සහ Claude Code-අනුකූල මාර්ග, Opus සහ Sonnet මාදිලි සඳහා `max` චින්තන ප්රයත්නය රඳවා තබයි. Haiku මාදිලි `max` ප්රයත්න මට්ටම පිළිගන්නේ නැති බැවින්, OmniRoute එම ඉල්ලීම ඉහළ upstream වෙත යැවීමට පෙර එය ඉහළ චින්තන අයවැයකට පහත හෙළයි.
+OmniRoute host එකෙහි browser එකක් නැද්ද? Claude Code වෙත පිවිසී ඇති ඕනෑම තැනක `claude setup-token` ධාවනය කර, වසරක token එක **Setup Token** tab එකට අලවන්න. [setup token එකක් සමඟ Claude Code](../providers/CLAUDE_CODE_SETUP_TOKEN.md) බලන්න.
+
+Claude සහ Claude Code-අනුකූල routes, Opus සහ Sonnet
+models සඳහා `max` thinking effort එක එලෙසම තබාගනී. Haiku models `max` effort tier එක පිළිනොගන්නා බැවින්, OmniRoute එම
+ඉල්ලීම upstream වෙත යැවීමට පෙර එය ඉහළ thinking budget එකකට පහත හෙළයි.
 
 #### OpenAI Codex (Plus/Pro)
 
@@ -148,7 +152,7 @@ Dashboard → Providers → Connect Codex
 → OAuth පිවිසුම (port 1455)
 → පැය 5ක + සතිපතා යළි සැකසීම
 
-මාදිලි:
+Models:
   cx/gpt-5.5
   cx/gpt-5.4
   cx/gpt-5.3-codex
@@ -162,7 +166,7 @@ Dashboard → Providers → Connect GitHub
 → GitHub හරහා OAuth
 → මාසික යළි සැකසීම (මාසයේ 1 වැනිදා)
 
-මාදිලි:
+Models:
   gh/gpt-5.5
   gh/gpt-5.4
   gh/claude-sonnet-4.6
@@ -170,29 +174,29 @@ Dashboard → Providers → Connect GitHub
   gh/gemini-3.1-pro-preview
 ```
 
-### 💰 අඩු මිල සපයන්නන්
+### 💰 අඩු වියදම් සපයන්නන්
 
-#### GLM-4.7 (දෛනික යළි සැකසීම, $0.6/1M)
+#### GLM-4.7 (දිනපතා යළි සැකසීම, $0.6/1M)
 
 1. ලියාපදිංචි වන්න: [Zhipu AI](https://open.bigmodel.cn)
 2. Coding Plan වෙතින් API key එක ලබාගන්න
 3. Dashboard → Add API Key: Provider: `glm`, API Key: `your-key`
 
-**භාවිතය:** `glm/glm-4.7` — **විශේෂඥ ඉඟිය:** Coding Plan මඟින් 1/7ක පිරිවැයකට 3× quota එකක් ලබා දෙයි! දිනපතා පෙ.ව. 10:00ට යළි සැකසේ.
+**භාවිතය:** `glm/glm-4.7` — **වෘත්තීය ඉඟිය:** Coding Plan මඟින් පිරිවැයෙන් 1/7කට 3× quota පිරිනමයි! දිනපතා පෙ.ව. 10:00ට යළි සැකසේ.
 
-#### MiniMax M2.1 (පැය 5කින් යළි සැකසීම, $0.20/1M)
+#### MiniMax M2.1 (පැය 5කට වරක් යළි සැකසීම, $0.20/1M)
 
 1. ලියාපදිංචි වන්න: [MiniMax](https://www.minimax.io)
 2. API key එක ලබාගන්න → Dashboard → Add API Key
 
-**භාවිතය:** `minimax/MiniMax-M2.1` — **විශේෂඥ ඉඟිය:** දිගු context සඳහා ලාභම විකල්පයයි (tokens 1M)!
+**භාවිතය:** `minimax/MiniMax-M2.1` — **වෘත්තීය ඉඟිය:** දිගු context සඳහා ලාභම විකල්පය (tokens 1M)!
 
 #### Kimi K2 (මසකට ස්ථාවර $9)
 
 1. දායක වන්න: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. API key එක ලබාගන්න → Dashboard → Add API Key
 
-**භාවිතය:** `kimi/kimi-k2.5` — **විශේෂඥ ඉඟිය:** tokens 10M සඳහා මසකට ස්ථාවර $9 = ඵලදායී පිරිවැය $0.90/1M!
+**භාවිතය:** `kimi/kimi-k2.5` — **වෘත්තීය ඉඟිය:** tokens 10M සඳහා මසකට ස්ථාවර $9 = 1Mකට ඵලදායී පිරිවැය $0.90!
 
 #### Baidu Qianfan / ERNIE
 
@@ -203,16 +207,16 @@ Dashboard → Providers → Connect GitHub
 
 ### 🆓 නොමිලේ සපයන්නන්
 
-සත්යාපනය අවශ්ය නොවන නොමිලේ සපයන්නන්ගේ provider පිටුවේ **No authentication required** අසල switch එකක් ඇත.
-එය ක්රියාවිරහිත කිරීමෙන් එම සපයන්නා අක්රිය කර, Providers configured/compact දසුන්වලින් ඉවත් කර,
-එහි මාදිලි `/v1/models` වෙතින් ද ඉවත් කරයි.
+සත්යාපනය අවශ්ය නොවන නොමිලේ සපයන්නන්ගේ සපයන්නාගේ පිටුවෙහි **No authentication required** අසල switch එකක් ඇත.
+එය අක්රිය කිරීමෙන් එම සපයන්නා අක්රිය වී, Providers configured/compact දසුන්වලින් ඉවත් වන අතර,
+එහි models `/v1/models` වෙතින් ද ඉවත් වේ.
 
-#### Qoder (නොමිලේ මාදිලි 9ක්)
+#### Qoder (නොමිලේ models 9ක්)
 
 ```bash
 Dashboard → Connect Qoder → OAuth පිවිසුම → ප්රවේශය වත්මන් සපයන්නාගේ සීමාවන්ට යටත් වේ
 
-මාදිලි: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
+Models: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
 #### Kiro (Claude නොමිලේ)
@@ -220,7 +224,7 @@ Dashboard → Connect Qoder → OAuth පිවිසුම → ප්රවේ�
 ```bash
 Dashboard → Connect Kiro → AWS Builder ID හෝ Google/GitHub → මසකට credits ~50ක්
 
-මාදිලි: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
+Models: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
 
 ---
@@ -668,7 +672,7 @@ post_install() {
 
 ### අභිරුචි මාදිලි
 
-යෙදුම් යාවත්කාලීනයක් එනතුරු රැඳී නොසිට ඕනෑම සපයන්නෙකුට ඕනෑම මාදිලි ID එකක් එක් කරන්න:
+යෙදුම් යාවත්කාලීනයක් සඳහා රැඳී නොසිට ඕනෑම සැපයුම්කරුවෙකුට ඕනෑම මාදිලි ID එකක් එක් කරන්න:
 
 ```bash
 # API හරහා
@@ -676,22 +680,60 @@ curl -X POST http://localhost:20128/api/provider-models \
   -H "Content-Type: application/json" \
   -d '{"provider": "openai", "modelId": "gpt-5.2", "modelName": "GPT-5.2"}'
 
-# ලැයිස්තුව: curl http://localhost:20128/api/provider-models?provider=openai
+# ලැයිස්තුගත කිරීම: curl http://localhost:20128/api/provider-models?provider=openai
 # ඉවත් කිරීම: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
 ```
 
-නැතහොත් උපකරණ පුවරුව භාවිත කරන්න: **සපයන්නන් → [සපයන්නා] → අභිරුචි මාදිලි**.
+නැතහොත් උපකරණ පුවරුව භාවිත කරන්න: **සැපයුම්කරුවන් → [සැපයුම්කරු] → අභිරුචි මාදිලි**.
 
 සටහන්:
 
-- OpenRouter සහ OpenAI/Anthropic-අනුකූල සපයන්නන් කළමනාකරණය කරනු ලබන්නේ **පවතින මාදිලි** වෙතින් පමණි. අතින් එක් කිරීම, ආයාත කිරීම සහ ස්වයංක්රීය සමමුහුර්ත කිරීම යන සියල්ල එකම පවතින-මාදිලි ලැයිස්තුවට එක් වන බැවින්, එම සපයන්නන් සඳහා වෙනම අභිරුචි මාදිලි කොටසක් නොමැත.
-- **අභිරුචි මාදිලි** කොටස අදහස් කර ඇත්තේ කළමනාකරණය කළ පවතින-මාදිලි ආයාත ලබා නොදෙන සපයන්නන් සඳහාය.
+- OpenRouter සහ OpenAI/Anthropic-අනුකූල සැපයුම්කරුවන් කළමනාකරණය කරනු ලබන්නේ **ලබාගත හැකි මාදිලි** වෙතින් පමණි. අතින් එක් කිරීම, ආයාත කිරීම සහ ස්වයංක්රීය සමමුහුර්ත කිරීම යන සියල්ල එකම ලබාගත හැකි මාදිලි ලැයිස්තුවට එක් වන බැවින්, එම සැපයුම්කරුවන් සඳහා වෙනම අභිරුචි මාදිලි කොටසක් නොමැත.
+- **අභිරුචි මාදිලි** කොටස අදහස් කර ඇත්තේ කළමනාකරණය කළ ලබාගත හැකි මාදිලි ආයාත කිරීම් සපයන්නේ නැති සැපයුම්කරුවන් සඳහාය.
 
-### OmniRoute සම-ද්වාර දාමගත කිරීම
+### අභිරුචි OpenAI-අනුකූල සැපයුම්කරුවන්
 
-තවත් OmniRoute ද්වාරයක් **අභිරුචි OpenAI-අනුකූල** සපයන්නෙකු ලෙස එක් කළ හැක. එම සම-ද්වාරයේ `/v1` මූලික URL එක සහ එම සම-ද්වාරය විසින් නිකුත් කළ, ඒ සඳහාම වෙන් වූ අවම වරප්රසාද සහිත API යතුරක් භාවිත කරන්න.
+OpenAI API සමඟ සන්නිවේදනය කරන ඕනෑම ද්වාරයක් (ස්වයං-සත්කාරක ප්රොක්සියක්, vLLM, තෙවන පාර්ශ්ව එකතුකරන්නෙක්)
+එහිම සැපයුම්කරු නෝඩයක් ලෙස එක් කළ හැකිය:
 
-අන්යෝන්ය හෝ බහු-පියවර දාම සඳහා, සෑම ද්වාරයකම තේරීමෙන් සක්රිය කළ යුතු ලූප ආරක්ෂකය සක්රිය කරන්න:
+1. **සැපයුම්කරුවන් → OpenAI අනුකූල එකක් එක් කරන්න**.
+2. **නම**: නෝඩය සඳහා ප්රදර්ශන ලේබලයක්.
+3. **උපසර්ගය**: රවුටින් නාමය. සේවාලාභීන් මාදිලි `<prefix>/<model>` ලෙස කැඳවන බැවින්,
+   `mygw` උපසර්ගය සහිත නෝඩයක් `mygw/gpt-4o-mini` සපයයි. මෙය අනිවාර්යය; අක්ෂර සීමාවක් නොමැත.
+4. **API වර්ගය**: ද්වාරය සපයන අන්ත ලක්ෂ්ය පවුල (Chat Completions, Responses,
+   Embeddings, ශ්රව්ය, රූප).
+5. **මූලික URL**: `/v1` ඇතුළුව එතෙක් වන API මූලය (උදාහරණයක් ලෙස
+   `https://gateway.example.com/v1`), සම්පූර්ණ `/chat/completions` මාර්ගය නොවේ. සම්මත නොවන
+   මාර්ග සහිත ද්වාර සඳහා ඒවා **උසස් සැකසුම්** යටතේ සකසන්න (චැට් මාර්ගය, මාදිලි මාර්ගය).
+6. **API යතුර (පරීක්ෂාව සඳහා)** ක්ෂේත්රය සම්බන්ධතාව පමණක් පරීක්ෂා කරයි. නෝඩය සෑදීමෙන් පසු,
+   එය විවෘත කර ඉල්ලීම් භාවිත කරන යතුර ගබඩා කිරීමට **සම්බන්ධතාවක් එක් කරන්න** භාවිත කරන්න.
+
+නෝඩයට `openai-compatible-<apiType>-<uuid>` ආකාරයේ අභ්යන්තර id එකක් ලැබේ; ඔබට කිසිවිටෙක
+එය ටයිප් කිරීමට අවශ්ය නොවන අතර, උපසර්ගය පොදු නාමය වේ.
+
+#### වෙන් කළ උපසර්ග
+
+උපසර්ගයක්, බිල්ට්-ඉන් සැපයුම්කරුවෙකුගේ id හෝ අන්වර්ථ නාමයක් (උදාහරණයක් ලෙස `openai`, `cf`) හෝ
+විශ්රාම ගන්වා ඇති සැපයුම්කරුවෙකුගේ id එකක් විය නොහැක. මාදිලි නිරාකාරකය අභිරුචි නෝඩ්වලට පෙර
+බිල්ට්-ඉන් id සහ අන්වර්ථ නාම පරීක්ෂා කරන බැවින්, එවැනි උපසර්ගයක් භාවිත කරන නෝඩයකට කිසිවිටෙක ගමනාගමනය
+නොලැබෙනු ඇත: `<prefix>/model` බිල්ට්-ඉන් සැපයුම්කරු වෙත යනු ඇත, නැතහොත් එම සැපයුම්කරු
+විශ්රාම ගන්වා ඇත්නම් සංවෘත ලෙස අසාර්ථක වනු ඇත. එවැනි උපසර්ගයක් සමඟ නෝඩයක් සෑදීම හෝ සංස්කරණය කිරීම පහත දෝෂය සමඟ ප්රතික්ෂේප වේ:
+
+```text
+prefix: "<prefix>" යනු වෙන් කළ සැපයුම්කරු උපසර්ගයකි — වෙනත් උපසර්ගයක් තෝරන්න (වෙන් කළ ids/aliases අභිරුචි නෝඩ් සඳහා භාවිත කළ නොහැක, මන්ද <prefix>/model වැනි ඉල්ලීම් බිල්ට්-ඉන් සැපයුම්කරුවෙකු වෙත රවුට් වන හෝ එය විශ්රාම ගන්වා ඇති විට සංවෘත ලෙස අසාර්ථක වන බැවිනි)
+```
+
+වෙනස් උපසර්ගයක් (`mygw`, `acme-proxy`) තෝරන්න. අභිරුචි නෝඩයකට යැවෙන ඉල්ලීම් බිල්ට්-ඉන්
+සැපයුම්කරුවෙකු හෝ එහි අක්තපත්ර නම් කරන දෝෂයක් සමඟ අසාර්ථක වන්නේ නම්, නෝඩයේ උපසර්ගය
+වෙන් කර ඇත්දැයි පරීක්ෂා කරන්න: මෙම නියමය පැවතීමට පෙර සුරැකූ නෝඩ් තවමත් ගබඩා කර ඇත, නමුත් ඒවායේ උපසර්ගය
+බිල්ට්-ඉන් සැපයුම්කරු වෙත රවුට් වේ. නෝඩය සංස්කරණය කර එයට නව උපසර්ගයක් ලබා දෙන්න.
+
+### OmniRoute සමපාර්ශ්විකයන් දාමගත කිරීම
+
+තවත් OmniRoute ද්වාරයක් **අභිරුචි OpenAI-අනුකූල** සැපයුම්කරුවෙකු ලෙස එක් කළ හැකිය.
+සමපාර්ශ්විකයාගේ `/v1` මූලික URL එක සහ එම සමපාර්ශ්විකයා විසින් නිකුත් කළ, අවම වරප්රසාද සහිත කැපවූ API යතුරක් භාවිත කරන්න.
+
+අන්යෝන්ය හෝ බහු-පියවර දාම සඳහා, සෑම ද්වාරයකම තෝරා සක්රිය කළ යුතු ලූප් ආරක්ෂකය සක්රිය කරන්න:
 
 ```bash
 # gateway-a
@@ -707,13 +749,18 @@ OMNIROUTE_PEER_URLS=http://gateway-a:20128/v1
 OMNIROUTE_PEER_MAX_HOPS=4
 ```
 
-පැහැදිලිවම අවසර ලැයිස්තුගත කළ සම-ද්වාර URL එකකට යවන ඉල්ලීම්වලට පමණක් `X-OmniRoute-Peer-Trace` ශීර්ෂකය ලැබේ. නැවත භාවිත කළ instance ID එකක් හෝ අවසන් වූ පියවර සීමාවක් ද්වාරයක් විසින් HTTP `508 Loop Detected` සමඟ ප්රතික්ෂේප කරයි; සාමාන්ය upstream සපයන්නන්ට සම-ද්වාර පාරදත්ත කිසිවක් නොලැබේ.
+පැහැදිලිව අවසර-ලැයිස්තුගත කළ සමපාර්ශ්වික URL එකකට යවන ඉල්ලීම්වලට පමණක්
+`X-OmniRoute-Peer-Trace` ශීර්ෂකය ලැබේ. ද්වාරයක් නැවත නැවත පැමිණෙන instance ID එකක් හෝ අවසන් වූ hop
+අයවැයක් HTTP `508 Loop Detected` සමඟ ප්රතික්ෂේප කරයි; සාමාන්ය උඩුප්රවාහ සැපයුම්කරුවන්ට කිසිදු සමපාර්ශ්වික පාරදත්තයක් නොලැබේ.
 
-සම-ද්වාර දාමගත කිරීම දත්ත සමුදා ප්රතිනිර්මාණය හෝ සත්කාරක failover ක්රමයක් නොවේ. සෑම ද්වාරයක්ම ස්වාධීන SQLite තත්ත්වය, හැඹිලි, අනුපාත ගණක සහ සැසි පවත්වා ගනී. active/passive හෝ active/active ලබාගත හැකියාව සඳහා සෞඛ්ය-පරීක්ෂිත reverse proxy එකක් හෝ සේවාලාභී failover එකක් භාවිත කරන්න. එක් SQLite දත්ත සමුදායක් ධාවනය වන OmniRoute instances කිහිපයකට කිසිවිටෙක mount නොකරන්න.
+සමපාර්ශ්වික දාමගත කිරීම දත්ත සමුදා ප්රතිරූපණය හෝ සත්කාරක අසාර්ථකත්ව මාරුව නොවේ. සෑම ද්වාරයක්ම ස්වාධීන
+SQLite තත්ත්වය, හැඹිලි, අනුපාත ගණක සහ සැසි පවත්වා ගනී. සක්රිය/නිෂ්ක්රිය හෝ සක්රිය/සක්රිය ලබාගත හැකියාව සඳහා
+සෞඛ්ය-පරීක්ෂිත ප්රතිලෝම ප්රොක්සියක් හෝ සේවාලාභී අසාර්ථකත්ව මාරුවක් භාවිත කරන්න, තවද එක් SQLite දත්ත සමුදායක්
+ක්රියාත්මක OmniRoute අවස්ථා කිහිපයකට කිසිවිටෙක mount නොකරන්න.
 
-### වෙන් වූ සපයන්නාගේ මාර්ග
+### කැපවූ සැපයුම්කරු මාර්ග
 
-මාදිලි වලංගුකරණය සමඟ ඉල්ලීම් නිශ්චිත සපයන්නෙකු වෙත සෘජුව යොමු කරන්න:
+මාදිලි වලංගුකරණය සමඟ ඉල්ලීම් නිශ්චිත සැපයුම්කරුවෙකු වෙත සෘජුව රවුට් කරන්න:
 
 ```bash
 POST http://localhost:20128/v1/providers/openai/chat/completions
@@ -721,25 +768,25 @@ POST http://localhost:20128/v1/providers/openai/embeddings
 POST http://localhost:20128/v1/providers/fireworks/images/generations
 ```
 
-සපයන්නාගේ උපසර්ගය නොමැති නම් එය ස්වයංක්රීයව එක් කෙරේ. නොගැළපෙන මාදිලි `400` ආපසු ලබා දෙයි.
+සැපයුම්කරු උපසර්ගය නොමැති නම් එය ස්වයංක්රීයව එක් කෙරේ. නොගැළපෙන මාදිලි `400` ආපසු ලබා දෙයි.
 
-### ජාල Proxy වින්යාසය
+### ජාල ප්රොක්සි වින්යාසය
 
 ```bash
-# ගෝලීය proxy එක සකසන්න
+# ගෝලීය ප්රොක්සිය සකසන්න
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"global": {"type":"http","host":"proxy.example.com","port":"8080"}}'
 
-# එක් එක් සපයන්නා සඳහා proxy එක
+# එක් එක් සැපයුම්කරු සඳහා ප්රොක්සිය
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"providers": {"openai": {"type":"socks5","host":"proxy.example.com","port":"1080"}}}'
 
-# Proxy එක පරීක්ෂා කරන්න
+# ප්රොක්සිය පරීක්ෂා කරන්න
 curl -X POST http://localhost:20128/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
 ```
 
-**ප්රමුඛතාව:** යතුරට-විශේෂිත → Combo-විශේෂිත → සපයන්නාට-විශේෂිත → ගෝලීය → පරිසරය.
+**ප්රමුඛතා අනුපිළිවෙළ:** යතුරට විශේෂිත → Combo එකට විශේෂිත → සැපයුම්කරුට විශේෂිත → ගෝලීය → පරිසරය.
 
 ### මාදිලි නාමාවලි API
 
@@ -747,111 +794,111 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
 curl http://localhost:20128/api/models/catalog
 ```
 
-වර්ග (`chat`, `embedding`, `image`) සමඟ සපයන්නා අනුව කාණ්ඩගත කළ මාදිලි ආපසු ලබා දෙයි.
+වර්ග (`chat`, `embedding`, `image`) සමඟ සැපයුම්කරු අනුව කාණ්ඩගත කළ මාදිලි ආපසු ලබා දෙයි.
 
-### Cloud සමමුහුර්තකරණය
+### ක්ලවුඩ් සමමුහුර්තකරණය
 
-- උපාංග අතර සපයන්නන්, combos සහ සැකසුම් සමමුහුර්ත කරන්න
-- කාල සීමාවක් සහ fail-fast සමඟ ස්වයංක්රීය පසුබිම් සමමුහුර්තකරණය
-- නිෂ්පාදන පරිසරයේ සේවාදායක-පාර්ශ්වීය `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` භාවිතයට ප්රමුඛතාව දෙන්න
+- උපාංග අතර සැපයුම්කරුවන්, combos සහ සැකසුම් සමමුහුර්ත කරන්න
+- කාල සීමාවක් + ඉක්මන් අසාර්ථක වීමක් සහිත ස්වයංක්රීය පසුබිම් සමමුහුර්තකරණය
+- නිෂ්පාදන පරිසරයේ සේවාදායක-පාර්ශ්වීය `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` වඩාත් සුදුසුය
 
-### Cloudflare Quick Tunnel
+### Cloudflare ක්ෂණික උමඟ
 
-- Docker සහ අනෙකුත් ස්වයං-සත්කාරක යෙදවුම් සඳහා **උපකරණ පුවරුව → අන්ත ලක්ෂ්ය** තුළ පවතී
+- Docker සහ වෙනත් ස්වයං-සත්කාරක යෙදවීම් සඳහා **උපකරණ පුවරුව → අන්ත ලක්ෂ්ය** තුළ ලබා ගත හැක
 - ඔබගේ වත්මන් OpenAI-අනුකූල `/v1` අන්ත ලක්ෂ්යය වෙත යොමු කරන තාවකාලික `https://*.trycloudflare.com` URL එකක් සාදයි
-- පළමු වර සක්රිය කිරීමේදී `cloudflared` ස්ථාපනය කරන්නේ අවශ්ය වූ විට පමණි; පසුකාලීන නැවත ආරම්භ කිරීම් එම කළමනාකරණය කළ binary එකම නැවත භාවිත කරයි
-- OmniRoute හෝ container එකක් නැවත ආරම්භ කිරීමෙන් පසු Quick Tunnels ස්වයංක්රීයව ප්රතිසාධනය නොවේ; අවශ්ය විට උපකරණ පුවරුවෙන් ඒවා නැවත සක්රිය කරන්න
-- Tunnel URL තාවකාලික වන අතර ඔබ tunnel එක නවතා/ආරම්භ කරන සෑම අවස්ථාවකම වෙනස් වේ
-- සීමා සහිත containers තුළ ඇති ඝෝෂාකාරී QUIC UDP buffer අනතුරු ඇඟවීම් වැළැක්වීම සඳහා කළමනාකරණය කළ Quick Tunnels පෙරනිමියෙන් HTTP/2 ප්රවාහනය භාවිත කරයි
-- කළමනාකරණය කළ ප්රවාහන තේරීම අභිබවා යාමට අවශ්ය නම් `CLOUDFLARED_PROTOCOL=quic` හෝ `auto` සකසන්න
-- කළමනාකරණය කළ බාගැනීම වෙනුවට පෙර ස්ථාපනය කළ `cloudflared` binary එකක් භාවිත කිරීමට කැමති නම් `CLOUDFLARED_BIN` සකසන්න
+- පළමු වරට සබල කිරීමේදී අවශ්ය නම් පමණක් `cloudflared` ස්ථාපනය කරයි; පසුකාලීන නැවත ආරම්භ කිරීම් එම කළමනාකරණය කළ binary එකම නැවත භාවිත කරයි
+- OmniRoute හෝ container එක නැවත ආරම්භ කිරීමෙන් පසු Quick Tunnels ස්වයංක්රීයව ප්රතිසාධනය නොවේ; අවශ්ය විට උපකරණ පුවරුවෙන් ඒවා නැවත සබල කරන්න
+- Tunnel URL තාවකාලික වන අතර tunnel එක නවතා/ආරම්භ කරන සෑම අවස්ථාවකම වෙනස් වේ
+- සීමා සහිත containers තුළ ශබ්දකාරී QUIC UDP buffer අනතුරු ඇඟවීම් වළක්වා ගැනීමට කළමනාකරණය කරන Quick Tunnels පෙරනිමියෙන් HTTP/2 ප්රවාහනය භාවිත කරයි
+- කළමනාකරණය කරන ප්රවාහන තේරීම අභිබවා යාමට අවශ්ය නම් `CLOUDFLARED_PROTOCOL=quic` හෝ `auto` සකසන්න
+- කළමනාකරණය කරන බාගැනීම වෙනුවට පෙර ස්ථාපනය කළ `cloudflared` binary එකක් භාවිත කිරීමට කැමති නම් `CLOUDFLARED_BIN` සකසන්න
 - Cloudflare Quick Tunnel, Tailscale Funnel සහ ngrok Tunnel පැනල **සැකසුම් → පෙනුම** තුළ පෙන්වීමට හෝ සැඟවීමට හැක. පැනලයක් සැඟවීමෙන් ධාවනය වන tunnel එකක් නතර නොවේ.
 
-### LLM ද්වාර බුද්ධිය (අදියර 9)
+### LLM Gateway බුද්ධිය (අදියර 9)
 
-- **අර්ථමය හැඹිලිය** — streaming නොවන, temperature=0 ප්රතිචාර ස්වයංක්රීයව හැඹිලිගත කරයි (`X-OmniRoute-No-Cache: true` සමඟ මඟ හරින්න)
-- **ඉල්ලීම් අනන්යතාව** — `Idempotency-Key` හෝ `X-Request-Id` ශීර්ෂකය හරහා තත්පර 5ක් ඇතුළත ඉල්ලීම්වල අනුපිටපත් ඉවත් කරයි
-- **ප්රගති ලුහුබැඳීම** — `X-OmniRoute-Progress: true` ශීර්ෂකය හරහා තේරීමෙන් සක්රිය කළ හැකි SSE `event: progress` සිදුවීම්
+- **අර්ථමය Cache කිරීම** — streaming නොවන, temperature=0 ප්රතිචාර ස්වයංක්රීයව cache කරයි (`X-OmniRoute-No-Cache: true` මඟින් මඟහරින්න)
+- **ඉල්ලීම් Idempotency** — `Idempotency-Key` හෝ `X-Request-Id` header එක හරහා තත්පර 5ක් ඇතුළත ලැබෙන අනුපිටපත් ඉල්ලීම් ඉවත් කරයි
+- **ප්රගති නිරීක්ෂණය** — `X-OmniRoute-Progress: true` header එක හරහා අභිමතයෙන් සක්රිය කළ හැකි SSE `event: progress` සිදුවීම් සපයයි
 
 ---
 
-### පරිවර්තක අත්හදා බැලීමේ පරිසරය
+### පරිවර්තක අත්හදා බැලීම් පරිසරය
 
-**උපකරණ පුවරුව → පරිවර්තකය** හරහා ප්රවේශ වන්න. OmniRoute සපයන්නන් අතර API ඉල්ලීම් පරිවර්තනය කරන ආකාරය දෝෂහරණය කර දෘශ්යමාන කරන්න.
+**උපකරණ පුවරුව → පරිවර්තකය** හරහා ප්රවේශ වන්න. OmniRoute විසින් සැපයුම්කරුවන් අතර API ඉල්ලීම් පරිවර්තනය කරන ආකාරය දෝෂහරණය කර දෘශ්යකරණය කරන්න.
 
-| ප්රකාරය                  | අරමුණ                                                                                      |
-| ------------------------ | ------------------------------------------------------------------------------------------ |
-| **අත්හදා බැලීමේ පරිසරය** | මූලාශ්ර/ඉලක්ක ආකෘති තෝරා, ඉල්ලීමක් අලවා, පරිවර්තනය කළ ප්රතිදානය ක්ෂණිකව බලන්න              |
-| **Chat පරීක්ෂකය**        | proxy එක හරහා සජීවී chat පණිවිඩ යවා සම්පූර්ණ ඉල්ලීම්/ප්රතිචාර චක්රය පරීක්ෂා කරන්න          |
-| **පරීක්ෂණ වේදිකාව**      | පරිවර්තනයේ නිවැරදිභාවය තහවුරු කිරීමට බහුවිධ ආකෘති සංයෝජන හරහා කණ්ඩායම් පරීක්ෂණ ධාවනය කරන්න |
-| **සජීවී නිරීක්ෂකය**      | ඉල්ලීම් proxy එක හරහා ගලා යන විට තත්ය කාලීන පරිවර්තන නරඹන්න                                |
+| ආකාරය                    | අරමුණ                                                                                  |
+| ------------------------ | -------------------------------------------------------------------------------------- |
+| **අත්හදා බැලීම් පරිසරය** | මූලාශ්ර/ඉලක්ක ආකෘති තෝරා, ඉල්ලීමක් අලවා, පරිවර්තිත ප්රතිදානය ක්ෂණිකව බලන්න             |
+| **කතාබස් පරීක්ෂකය**      | proxy එක හරහා සජීවී කතාබස් පණිවිඩ යවා සම්පූර්ණ ඉල්ලීම්/ප්රතිචාර චක්රය පරීක්ෂා කරන්න    |
+| **පරීක්ෂණ මඬුල්ල**       | පරිවර්තන නිරවද්යතාව තහවුරු කිරීමට ආකෘති සංයෝජන කිහිපයක් හරහා කාණ්ඩ පරීක්ෂණ ධාවනය කරන්න |
+| **සජීවී නිරීක්ෂකය**      | proxy එක හරහා ඉල්ලීම් ගලා යන අතරතුර තත්ය කාලීන පරිවර්තන නරඹන්න                         |
 
 **භාවිත අවස්ථා:**
 
-- නිශ්චිත සේවාලාභී/සපයන්නා සංයෝජනයක් අසාර්ථක වන්නේ ඇයිදැයි දෝෂහරණය කරන්න
-- thinking tags, tool calls සහ system prompts නිවැරදිව පරිවර්තනය වන බව තහවුරු කරන්න
-- OpenAI, Claude, Gemini සහ Responses API ආකෘති අතර ආකෘති වෙනස්කම් සසඳන්න
+- නිශ්චිත client/provider සංයෝජනයක් අසාර්ථක වන්නේ ඇයි දැයි දෝෂහරණය කිරීම
+- thinking tags, tool calls සහ system prompts නිවැරදිව පරිවර්තනය වන බව තහවුරු කිරීම
+- OpenAI, Claude, Gemini සහ Responses API ආකෘති අතර ආකෘති වෙනස්කම් සැසඳීම
 
 ---
 
 ### මාර්ගගත කිරීමේ උපායමාර්ග
 
-**Dashboard → Settings → Routing** හරහා වින්යාස කරන්න. Dashboard එක වැඩිපුරම භාවිත වන උපායමාර්ග හය පෙන්වයි; combos සහ auto-router අභ්යන්තරව වඩා පුළුල් උපායමාර්ග කට්ටලයකට සහාය දක්වයි.
+**උපකරණ පුවරුව → සැකසුම් → මාර්ගගත කිරීම** හරහා වින්යාස කරන්න. උපකරණ පුවරුව වැඩිපුරම භාවිත වන උපායමාර්ග හයක් පෙන්වයි; combos සහ auto-router අභ්යන්තරව වඩා පුළුල් කට්ටලයකට සහාය දක්වයි.
 
-**Dashboard එකෙහි පෙනෙන උපායමාර්ග (ගිණුම්-මට්ටමේ routing):**
+**උපකරණ පුවරුවේ පෙනෙන උපායමාර්ග (ගිණුම් මට්ටමේ මාර්ගගත කිරීම):**
 
-| උපායමාර්ගය                     | විස්තරය                                                                                                            |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
-| **Fill First**                 | ප්රමුඛතා අනුපිළිවෙළට ගිණුම් භාවිත කරයි — ප්රධාන ගිණුම ලබාගත නොහැකි වන තෙක් සියලු ඉල්ලීම් එය විසින් හසුරුවයි        |
-| **Round Robin**                | වින්යාස කළ හැකි sticky සීමාවක් සමඟ සියලු ගිණුම් හරහා චක්රීයව ගමන් කරයි (පෙරනිමිය: එක් ගිණුමකට ඇමතුම් 3ක්)          |
-| **P2C (Power of Two Choices)** | අහඹු ගිණුම් 2ක් තෝරා වඩා සෞඛ්ය සම්පන්න ගිණුම වෙත route කරයි — සෞඛ්ය තත්ත්වය සැලකිල්ලට ගනිමින් load එක සමතුලිත කරයි |
-| **Random**                     | Fisher-Yates shuffle භාවිතයෙන් එක් එක් ඉල්ලීම සඳහා අහඹු ලෙස ගිණුමක් තෝරයි                                          |
-| **Least Used**                 | පැරණිතම `lastUsedAt` timestamp එක සහිත ගිණුම වෙත route කරමින් traffic එක සමානව බෙදා හරියි                          |
-| **Cost Optimized**             | අවම priority අගය සහිත ගිණුම වෙත route කරමින් අවම පිරිවැයක් ඇති providers සඳහා ප්රශස්ත කරයි                         |
+| උපායමාර්ගය                | විස්තරය                                                                                                     |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **පළමුව පුරවන්න**         | ප්රමුඛතා අනුපිළිවෙළට ගිණුම් භාවිත කරයි — ප්රධාන ගිණුම ලබා ගත නොහැකි වන තෙක් සියලු ඉල්ලීම් හසුරුවයි          |
+| **වටමාරු ක්රමය**          | වින්යාස කළ හැකි sticky සීමාවක් සමඟ සියලු ගිණුම් හරහා චක්රීයව ගමන් කරයි (පෙරනිමිය: ගිණුමකට calls 3ක්)        |
+| **P2C (තේරීම් දෙකක බලය)** | අහඹු ගිණුම් 2ක් තෝරා වඩා සෞඛ්ය සම්පන්න එක වෙත මාර්ගගත කරයි — සෞඛ්ය තත්ත්වය සැලකිල්ලට ගනිමින් භාරය සමබර කරයි |
+| **අහඹු**                  | Fisher-Yates shuffle භාවිතයෙන් සෑම ඉල්ලීමක් සඳහාම ගිණුමක් අහඹු ලෙස තෝරයි                                    |
+| **අවම වශයෙන් භාවිත කළ**   | පැරණිතම `lastUsedAt` timestamp එක සහිත ගිණුම වෙත මාර්ගගත කරමින්, traffic එක සමව බෙදා හරියි                  |
+| **පිරිවැය ප්රශස්ත කළ**    | අඩුම ප්රමුඛතා අගය සහිත ගිණුම වෙත මාර්ගගත කරමින්, අඩුම පිරිවැය සහිත සැපයුම්කරුවන් සඳහා ප්රශස්ත කරයි          |
 
-**උසස් combo සහ auto උපායමාර්ග** (එක් එක් combo එකකට හෝ `auto/*` prefixes හරහා වින්යාස කළ හැකිය — [AUTO-COMBO.md](../routing/AUTO-COMBO.md) බලන්න):
+**උසස් combo සහ auto උපායමාර්ග** (එක් එක් combo සඳහා හෝ `auto/*` prefixes හරහා වින්යාස කළ හැක — [AUTO-COMBO.md](../routing/AUTO-COMBO.md) බලන්න):
 
-- `priority` — දැඩි අනුපිළිවෙළකි, කිසිවිටෙක round-robin නොකරයි
-- `weighted` — එක් එක් model එකෙහි weights අනුව සමානුපාතික traffic බෙදීම
-- `fill-first` — සීමාවන්ට ළඟා වන තෙක් පළමු model එක භාවිත කර අවසන් කරයි
+- `priority` — දැඩි අනුපිළිවෙළ, කිසි විටෙක round-robin නොකරයි
+- `weighted` — එක් එක් model එකේ weights අනුව සමානුපාතික traffic බෙදීම
+- `fill-first` — සීමාවට ළඟා වන තෙක් පළමු model එක භාවිත කරයි
 - `round-robin` / `strict-random` / `random`
-- `p2c` (Power of Two Choices)
+- `p2c` (තේරීම් දෙකක බලය)
 - `least-used` සහ `cost-optimized`
-- `auto` — සියලු candidates හරහා score මත පදනම්ව ක්රියා කරයි
-- `lkgp` (Last Known Good Provider) — අවසන් වරට සාර්ථක වූ provider වෙත බැඳ තබා, ඉන්පසු rules වෙත fallback කරයි
+- `auto` — සියලු අපේක්ෂකයන් හරහා score මත පදනම් වේ
+- `lkgp` (අවසන් වරට සාර්ථක වූ සැපයුම්කරු) — අවසන් සාර්ථක සැපයුම්කරු වෙත සම්බන්ධව තබා, අනතුරුව නීති වෙත fallback වේ
 - `context-optimized` — විශාලතම නිදහස් context window එක සහිත model එක තෝරයි
-- `context-relay` — පසු විපරම් turns සඳහා දිගු-context models දාමගත කරයි
+- `context-relay` — පසු විමසුම් වාර සඳහා දිගු-context models දාමගත කරයි
 
-#### බාහිර Sticky Session Header එක
+#### බාහිර Sticky Session Header
 
-බාහිර session affinity සඳහා (උදාහරණයක් ලෙස, reverse proxies පිටුපස ඇති Claude Code/Codex agents), මෙය යවන්න:
+බාහිර session affinity සඳහා (උදාහරණයක් ලෙස, reverse proxies පිටුපස ඇති Claude Code/Codex agents), පහත දෑ යවන්න:
 
 ```http
 X-Session-Id: your-session-key
 ```
 
-OmniRoute විසින් `x_session_id` ද පිළිගන්නා අතර ක්රියාත්මක session key එක `X-OmniRoute-Session-Id` තුළ ආපසු ලබා දෙයි.
+OmniRoute විසින් `x_session_id` ද පිළිගන්නා අතර ඵලදායී session key එක `X-OmniRoute-Session-Id` තුළ ආපසු ලබා දෙයි.
 
-ඔබ Nginx භාවිත කර underscore ආකාරයේ headers යවන්නේ නම්, මෙය සබල කරන්න:
+ඔබ Nginx භාවිත කර underscore ආකාරයේ headers යවන්නේ නම්, පහත දෑ සබල කරන්න:
 
 ```nginx
 underscores_in_headers on;
 ```
 
-#### Wildcard Model Aliases
+#### Wildcard Model අන්වර්ථ නාම
 
-model නම් නැවත mapping කිරීම සඳහා wildcard patterns සාදන්න:
+model නම් නැවත සිතියම්ගත කිරීමට wildcard රටා සාදන්න:
 
 ```
 රටාව: claude-sonnet-*     →  ඉලක්කය: cc/claude-sonnet-4-6
 රටාව: gpt-*               →  ඉලක්කය: gh/gpt-5.3-codex
 ```
 
-Wildcards මඟින් `*` (ඕනෑම අක්ෂර) සහ `?` (තනි අක්ෂරයක්) සඳහා සහාය දක්වයි.
+Wildcards විසින් `*` (ඕනෑම අක්ෂර) සහ `?` (තනි අක්ෂරයක්) සඳහා සහාය දක්වයි.
 
 #### Fallback දාම
 
-සියලු ඉල්ලීම් සඳහා යෙදෙන global fallback දාම නිර්වචනය කරන්න:
+සියලු ඉල්ලීම් හරහා අදාළ වන ගෝලීය fallback දාම නිර්වචනය කරන්න:
 
 ```
 දාමය: production-fallback
@@ -862,52 +909,51 @@ Wildcards මඟින් `*` (ඕනෑම අක්ෂර) සහ `?` (තන�
 
 ---
 
-### ප්රතිරෝධීතාව සහ Circuit Breakers
+### ප්රත්යස්ථතාව සහ Circuit Breakers
 
-**Dashboard → Settings → Resilience** හරහා වින්යාස කරන්න.
+**උපකරණ පුවරුව → සැකසුම් → ප්රත්යස්ථතාව** හරහා වින්යාස කරන්න.
 
-OmniRoute සංරචක පහක් සමඟ provider-මට්ටමේ ප්රතිරෝධීතාව ක්රියාත්මක කරයි:
+OmniRoute සංරචක පහක් සමඟ සැපයුම්කරු මට්ටමේ ප්රත්යස්ථතාව ක්රියාත්මක කරයි:
 
-1. **Request Queue සහ Pacing** — පද්ධති-මට්ටමේ ඉල්ලීම් හැඩගැස්වීම:
-   - **මිනිත්තුවකට ඉල්ලීම් (RPM)** — එක් ගිණුමකට මිනිත්තුවකදී කළ හැකි උපරිම ඉල්ලීම් ගණන
-   - **ඉල්ලීම් අතර අවම කාලය** — ඉල්ලීම් අතර තිබිය යුතු අවම පරතරය milliseconds වලින්
-   - **උපරිම සමගාමී ඉල්ලීම්** — එක් ගිණුමකට එකවර කළ හැකි උපරිම ඉල්ලීම් ගණන
+1. **ඉල්ලීම් පෝලිම සහ වේග පාලනය** — පද්ධති මට්ටමේ ඉල්ලීම් හැඩගැස්වීම:
+   - **මිනිත්තුවකට ඉල්ලීම් (RPM)** — එක් ගිණුමකට මිනිත්තුවක් තුළ ඉඩ දෙන උපරිම ඉල්ලීම් ගණන
+   - **ඉල්ලීම් අතර අවම කාලය** — ඉල්ලීම් අතර තිබිය යුතු අවම මිලි තත්පර පරතරය
+   - **උපරිම සමගාමී ඉල්ලීම්** — එක් ගිණුමකට එකවර ක්රියාත්මක විය හැකි උපරිම ඉල්ලීම් ගණන
+2. **සම්බන්ධතා සිසිල් කාලය** — නැවත උත්සාහ කළ හැකි අසාර්ථකවීම්වලින් පසු තනි සම්බන්ධතාවක් සඳහා සත්යාපන වර්ගය අනුව වින්යාස කිරීම:
+   - **මූලික සිසිල් කාලය** — නැවත උත්සාහ කළ හැකි upstream අසාර්ථකවීම් සඳහා පෙරනිමි සිසිල් කාල පරාසය
+   - **Upstream නැවත උත්සාහ කිරීමේ ඉඟි භාවිත කරන්න** — සපයා ඇති විට බලයලත් `Retry-After` හෝ යළි සැකසීමේ ඉඟි පිළිපදියි
+   - **උපරිම Backoff පියවර** — නැවත නැවත සිදුවන අසාර්ථකවීම් සඳහා උපරිම ඝාතීය backoff මට්ටම
 
-2. **Connection Cooldown** — නැවත උත්සාහ කළ හැකි අසාර්ථක වීම්වලින් පසු තනි connection එකක් සඳහා එක් එක් auth-type අනුව කෙරෙන වින්යාසය:
-   - **මූලික Cooldown එක** — නැවත උත්සාහ කළ හැකි upstream අසාර්ථක වීම් සඳහා පෙරනිමි cooldown කාල පරාසය
-   - **Upstream නැවත උත්සාහ කිරීමේ ඉඟි භාවිත කරන්න** — සපයා ඇති විට බලයලත් `Retry-After` හෝ reset ඉඟි පිළිපදියි
-   - **උපරිම Backoff පියවර** — නැවත නැවත සිදුවන අසාර්ථක වීම් සඳහා උපරිම exponential backoff මට්ටම
+3. **සපයන්නාගේ Circuit Breaker** — ආරම්භයේ සිට අවසානය දක්වා වූ සපයන්නාගේ අසාර්ථකවීම් නිරීක්ෂණය කරයි, වින්යාස කළ අනතුරු ඇඟවීමේ සීමාවේදී සපයන්නා පිරිහුණු ලෙස සලකුණු කරයි, සහ වින්යාස කළ අසාර්ථකවීම් සීමාවට ළඟා වූ විට breaker එක විවෘත කරයි:
+   - **පිරිහීමේ සීමාව** — `DEGRADED` තත්ත්වයට ඇතුළු වීමට පෙර අඛණ්ඩව සිදුවන සපයන්නාගේ අසාර්ථකවීම් ගණන
+   - **අසාර්ථකවීම් සීමාව** — `OPEN` තත්ත්වයට ඇතුළු වීමට පෙර අඛණ්ඩව සිදුවන සපයන්නාගේ අසාර්ථකවීම් ගණන
+   - **යළි සැකසීමේ කල් ඉකුත් වීම** — සපයන්නා නැවත පරීක්ෂා කිරීමට පෙර කාල පරාසය
+   - **CLOSED** (සෞඛ්ය සම්පන්නයි) — ඉල්ලීම් සාමාන්ය පරිදි ගලා යයි
+   - **DEGRADED** — ඉහළ ගිය අසාර්ථකවීම් නිරීක්ෂණය කරන අතරතුර ඉල්ලීම් තවදුරටත් ගලා යයි
+   - **OPEN** — නැවත නැවත සිදුවන අසාර්ථකවීම්වලින් පසු සපයන්නා තාවකාලිකව අවහිර කරයි
+   - **HALF_OPEN** — සපයන්නා යථා තත්ත්වයට පත්වී ඇත්දැයි පරීක්ෂා කරයි
 
-3. **Provider Circuit Breaker** — ආරම්භයේ සිට අවසානය දක්වා provider අසාර්ථක වීම් නිරීක්ෂණය කරයි, වින්යාස කළ අනතුරු ඇඟවීමේ threshold එකේදී provider එකක් පිරිහුණු ලෙස සලකුණු කරයි, සහ වින්යාස කළ failure threshold එකට ළඟා වූ විට breaker එක විවෘත කරයි:
-   - **පිරිහීමේ Threshold එක** — `DEGRADED` තත්ත්වයට ඇතුළු වීමට පෙර සිදුවන අඛණ්ඩ provider අසාර්ථක වීම් ගණන
-   - **අසාර්ථක වීමේ Threshold එක** — `OPEN` තත්ත්වයට ඇතුළු වීමට පෙර සිදුවන අඛණ්ඩ provider අසාර්ථක වීම් ගණන
-   - **Reset Timeout එක** — provider එක නැවත පරීක්ෂා කිරීමට පෙර ඇති කාල පරාසය
-   - **CLOSED** (සෞඛ්ය සම්පන්නයි) — ඉල්ලීම් සාමාන්ය ලෙස ගලා යයි
-   - **DEGRADED** — ඉහළ ගිය අසාර්ථක වීම් නිරීක්ෂණය කරන අතරතුරත් ඉල්ලීම් දිගටම ගලා යයි
-   - **OPEN** — නැවත නැවත සිදුවන අසාර්ථක වීම්වලින් පසු provider එක තාවකාලිකව අවහිර කර ඇත
-   - **HALF_OPEN** — provider එක යථා තත්ත්වයට පත්වී ඇත්දැයි පරීක්ෂා කරමින් පවතී
+   සම්බන්ධතාවට සීමා වූ `429` අනුපාත සීමා **සම්බන්ධතා සිසිල් කාලය** තුළම පවතින අතර සපයන්නාගේ breaker එකට ගණන් නොගනී.
 
-   Connection එකකට සීමා වූ `429` rate limits **Connection Cooldown** තුළම පවතින අතර provider breaker එක සඳහා ගණන් නොගැනේ.
+   සපයන්නාගේ breaker එකෙහි ධාවනකාල තත්ත්වය පෙන්වන්නේ **Dashboard → Health** තුළ පමණි.
 
-   provider breaker එකෙහි runtime තත්ත්වය පෙන්වන්නේ **Dashboard → Health** තුළ පමණි.
+4. **සිසිල් කාලය සඳහා රැඳී සිටින්න** — සෑම අපේක්ෂක සම්බන්ධතාවක්ම දැනටමත් සිසිල් වෙමින් පවතී නම්, OmniRoute හට ඉක්මනින්ම අවසන් වන සිසිල් කාලය තෙක් රැඳී සිට එම සේවාදායක ඉල්ලීමම ස්වයංක්රීයව නැවත උත්සාහ කළ හැකිය.
 
-4. **Cooldown එක සඳහා රැඳී සිටීම** — සෑම candidate connection එකක්ම දැනටමත් cooling down තත්ත්වයේ තිබේ නම්, OmniRoute හට ඉක්මනින්ම අවසන් වන cooldown එක තෙක් රැඳී සිට එම client request එක ස්වයංක්රීයව නැවත උත්සාහ කළ හැකිය.
+5. **අනුපාත සීමාව ස්වයංක්රීයව හඳුනාගැනීම** — upstream සපයන්නන් පැහැදිලි රැඳී සිටීමේ කාල පරාස ලබා දෙන විට, මෙම සැකසුම සබල කර ඇත්නම් එම ඉඟි දේශීය සම්බන්ධතා සිසිල් කාලයට වඩා ප්රමුඛ වේ.
 
-5. **Rate Limit ස්වයංක්රීයව හඳුනාගැනීම** — upstream providers පැහැදිලි රැඳී සිටීමේ කාල පරාස ලබා දෙන විට, setting එක සබල කර ඇත්නම් එම ඉඟි local connection cooldown එක අභිබවා යයි.
-
-**වෘත්තීය ඉඟිය:** සේවා බිඳවැටීමකින් පසු සජීවී provider breakers පරීක්ෂා කිරීමට සහ reset කිරීමට **Health** පිටුව භාවිත කරන්න. Resilience පිටුව වෙනස් කරන්නේ වින්යාසය පමණි.
+**විශේෂඥ උපදෙස:** බිඳවැටීමකින් පසු සජීවී සපයන්නාගේ breakers පරීක්ෂා කර යළි සැකසීමට **Health** පිටුව භාවිත කරන්න. Resilience පිටුව මඟින් වෙනස් කරන්නේ වින්යාසය පමණි.
 
 ---
 
-### Database Export / Import කිරීම
+### දත්ත සමුදාය නිර්යාත කිරීම / ආයාත කිරීම
 
-**Dashboard → Settings → System & Storage** තුළ database backups කළමනාකරණය කරන්න.
+**Dashboard → Settings → System & Storage** තුළ දත්ත සමුදා උපස්ථ කළමනාකරණය කරන්න.
 
-| ක්රියාව                            | විස්තරය                                                                                                                                                       |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **දත්ත සමුදාය නිර්යාත කරන්න**      | වත්මන් SQLite දත්ත සමුදාය `.sqlite` ගොනුවක් ලෙස බාගත කරයි                                                                                                     |
-| **සියල්ල නිර්යාත කරන්න (.tar.gz)** | දත්ත සමුදාය, සැකසුම්, combos, provider connections (අක්තපත්ර නොමැතිව), API key metadata ඇතුළත් සම්පූර්ණ උපස්ථ සංරක්ෂිතයක් බාගත කරයි                           |
-| **දත්ත සමුදාය ආයාත කරන්න**         | වත්මන් දත්ත සමුදාය ප්රතිස්ථාපනය කිරීමට `.sqlite` ගොනුවක් උඩුගත කරයි. `DISABLE_SQLITE_AUTO_BACKUP=true` නොමැති නම්, ආයාතයට පෙර උපස්ථයක් ස්වයංක්රීයව සාදනු ලැබේ |
+| ක්රියාව                            | විස්තරය                                                                                                                                                     |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **දත්ත සමුදාය නිර්යාත කරන්න**      | වත්මන් SQLite දත්ත සමුදාය `.sqlite` ගොනුවක් ලෙස බාගනියි                                                                                                     |
+| **සියල්ල නිර්යාත කරන්න (.tar.gz)** | දත්ත සමුදාය, සැකසුම්, combos, සපයන්නාගේ සම්බන්ධතා (අක්තපත්ර නොමැතිව), API යතුරු පාරදත්ත ඇතුළත් සම්පූර්ණ උපස්ථ සංරක්ෂිතයක් බාගනියි                           |
+| **දත්ත සමුදාය ආයාත කරන්න**         | වත්මන් දත්ත සමුදාය ප්රතිස්ථාපනය කිරීමට `.sqlite` ගොනුවක් උඩුගත කරයි. `DISABLE_SQLITE_AUTO_BACKUP=true` නොවේ නම්, ආයාතයට පෙර උපස්ථයක් ස්වයංක්රීයව සාදනු ලැබේ |
 
 ```bash
 # API: දත්ත සමුදාය නිර්යාත කරන්න
@@ -921,7 +967,7 @@ curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**ආයාත සත්යාපනය:** ආයාත කළ ගොනුවේ අඛණ්ඩතාව (SQLite pragma පරීක්ෂාව), අවශ්ය වගු (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) සහ ප්රමාණය (උපරිම 100MB) සත්යාපනය කරනු ලැබේ.
+**ආයාත වලංගුකරණය:** ආයාත කළ ගොනුවේ අඛණ්ඩතාව (SQLite pragma පරීක්ෂාව), අවශ්ය වගු (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) සහ ප්රමාණය (උපරිම 100MB) වලංගු කරනු ලැබේ.
 
 **භාවිත අවස්ථා:**
 
@@ -931,35 +977,35 @@ curl -X POST http://localhost:20128/api/db-backups/import \
 
 ---
 
-### සැකසුම් උපකරණ පුවරුව
+### සැකසුම් Dashboard එක
 
 පහසු සංචාලනය සඳහා සැකසුම් පිටුව **ටැබ් 7කට** සංවිධානය කර ඇත:
 
-| ටැබය              | අන්තර්ගතය                                                                                                                                                    |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **සාමාන්ය**       | පද්ධති ආචයන මෙවලම්, පෙරනිමි හැසිරීම, Endpoint tunnel දෘශ්යතාව                                                                                                |
-| **පෙනුම**         | තේමා පාලන (ආලෝක/අඳුරු/පද්ධති), පැති තීරුවේ දෘශ්යතාව, Cloudflare/Tailscale/ngrok tunnel කාඩ්පත් සඳහා පැනල් ටොගල                                               |
-| **AI**            | චින්තන අයවැය (passthrough / auto-strip / custom / adaptive — [THINKING_BUDGET.md](./THINKING_BUDGET.md) බලන්න), ගෝලීය පද්ධති prompt, prompt cache සංඛ්යාලේඛන |
-| **ආරක්ෂාව**       | පිවිසුම්/මුරපද සැකසුම්, IP ප්රවේශ පාලනය, `/models` සඳහා API සත්යාපනය, Provider අවහිර කිරීම, prompt-injection ආරක්ෂකය                                         |
-| **මාර්ගගත කිරීම** | ගෝලීය මාර්ගගත කිරීමේ උපායමාර්ගය (පළමුව පුරවන්න / චක්රීයව / P2C / අහඹු / අවම භාවිත / පිරිවැය ප්රශස්ත), wildcard model aliases, fallback chains, combo පෙරනිමි |
-| **ප්රත්යස්ථතාව**  | ඉල්ලීම් පෝලිම, සම්බන්ධතා cooldown, provider breaker වින්යාසය සහ cooldown අවසන් වන තෙක් රැඳී සිටීමේ හැසිරීම                                                   |
-| **උසස්**          | ගෝලීය proxy වින්යාසය (HTTP/SOCKS5), එක් එක් provider සඳහා proxy overrides                                                                                    |
+| ටැබය              | අන්තර්ගතය                                                                                                                                                             |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **සාමාන්ය**       | පද්ධති ගබඩා මෙවලම්, පෙරනිමි හැසිරීම, Endpoint tunnel දෘශ්යතාව                                                                                                         |
+| **පෙනුම**         | තේමා පාලන (ආලෝක/අඳුරු/පද්ධති), පැති තීරුවේ දෘශ්යතාව, Cloudflare/Tailscale/ngrok tunnel කාඩ්පත් සඳහා පැනල ටොගල්                                                        |
+| **AI**            | චින්තන අයවැය (passthrough / auto-strip / custom / adaptive — [THINKING_BUDGET.md](./THINKING_BUDGET.md) බලන්න), ගෝලීය පද්ධති prompt එක, prompt cache සංඛ්යාලේඛන       |
+| **ආරක්ෂාව**       | පිවිසුම්/මුරපද සැකසුම්, IP ප්රවේශ පාලනය, `/models` සඳහා API සත්යාපනය, සපයන්නන් අවහිර කිරීම, prompt-injection ආරක්ෂකය                                                  |
+| **මාර්ගගත කිරීම** | ගෝලීය මාර්ගගත කිරීමේ උපායමාර්ගය (පළමුව පුරවන්න / වටමාරු / P2C / අහඹු / අවම වශයෙන් භාවිත කළ / පිරිවැය ප්රශස්ත කළ), wildcard ආකෘති අන්වර්ථ, fallback දාම, combo පෙරනිමි |
+| **ප්රත්යාස්ථතාව** | ඉල්ලීම් පෝලිම, සම්බන්ධතා සිසිල් කාලය, සපයන්නාගේ breaker වින්යාසය සහ සිසිල් කාලය සඳහා රැඳී සිටීමේ හැසිරීම                                                              |
+| **උසස්**          | ගෝලීය proxy වින්යාසය (HTTP/SOCKS5), එක් එක් සපයන්නා සඳහා proxy අභිබවා යෑම්                                                                                            |
 
-සාමාන්ය ටැබය තවදුරටත් කියවීමට පමණක් ඇති logging සහ cache සටහන් අනුපිටපත් නොකරයි. දත්ත සමුදා රඳවාගැනීමේ සහ
-ප්රශස්තිකරණ සැකසුම් `/api/settings/database` හරහා ස්ථිරව සුරැකේ; අතින් cache ඉවත් කිරීම සඳහා
-`DELETE /api/cache` භාවිත වේ. ඉල්ලීම් සහ proxy log පේළි සීමා
+සාමාන්ය ටැබය තවදුරටත් කියවීමට පමණක් ඇති ලොග්කරණ සහ cache සටහන් අනුපිටපත් නොකරයි. දත්ත සමුදා රඳවාගැනීමේ සහ
+ප්රශස්තකරණ සැකසුම් `/api/settings/database` හරහා සුරකිනු ලැබේ; cache එක අතින් හිස් කිරීම සඳහා
+`DELETE /api/cache` භාවිත කරයි. ඉල්ලීම් සහ proxy ලොග් පේළි සීමා
 `CALL_LOGS_TABLE_MAX_ROWS` සහ `PROXY_LOGS_TABLE_MAX_ROWS` මඟින් පාලනය වේ.
 
 ---
 
 ### පිරිවැය සහ අයවැය කළමනාකරණය
 
-**උපකරණ පුවරුව → පිරිවැය** හරහා ප්රවේශ වන්න.
+**Dashboard → Costs** හරහා ප්රවේශ වන්න.
 
-| ටැබය        | අරමුණ                                                                                                       |
-| ----------- | ----------------------------------------------------------------------------------------------------------- |
-| **අයවැය**   | දෛනික/සතිපතා/මාසික අයවැය සහ තත්ය කාලීන නිරීක්ෂණය සමඟ එක් එක් API key සඳහා වියදම් සීමා සකසන්න                |
-| **මිලකරණය** | Model මිලකරණ ඇතුළත් කිරීම් බලන්න සහ සංස්කරණය කරන්න — එක් එක් provider සඳහා input/output tokens 1Kකට පිරිවැය |
+| ටැබය        | අරමුණ                                                                                                      |
+| ----------- | ---------------------------------------------------------------------------------------------------------- |
+| **අයවැය**   | දෛනික/සතිපතා/මාසික අයවැය සහ තත්ය කාලීන නිරීක්ෂණය සමඟ එක් එක් API යතුර සඳහා වියදම් සීමා සකසන්න              |
+| **මිලකරණය** | ආකෘති මිලකරණ ඇතුළත් කිරීම් බලන්න සහ සංස්කරණය කරන්න — එක් එක් සපයන්නා සඳහා input/output tokens 1Kකට පිරිවැය |
 
 ```bash
 # API: අයවැයක් සකසන්න
@@ -971,13 +1017,13 @@ curl -X POST http://localhost:20128/api/usage/budget \
 curl http://localhost:20128/api/usage/budget
 ```
 
-**පිරිවැය නිරීක්ෂණය:** සෑම ඉල්ලීමක්ම token භාවිතය සටහන් කර මිලකරණ වගුව භාවිතයෙන් පිරිවැය ගණනය කරයි. Provider, model සහ API key අනුව විස්තර **උපකරණ පුවරුව → භාවිතය** තුළ බලන්න.
+**පිරිවැය නිරීක්ෂණය:** සෑම ඉල්ලීමක්ම token භාවිතය සටහන් කර, මිල වගුව භාවිතයෙන් පිරිවැය ගණනය කරයි. සපයන්නා, model එක සහ API key එක අනුව විස්තර **Dashboard → Usage** තුළ බලන්න.
 
 ---
 
-### ශ්රව්ය පිටපත් කිරීම
+### ශ්රව්ය පිටපත්කරණය
 
-OmniRoute, OpenAI-අනුකූල endpoint එක හරහා ශ්රව්ය පිටපත් කිරීමට සහාය දක්වයි:
+OmniRoute, OpenAI-අනුකූල endpoint එක හරහා ශ්රව්ය පිටපත්කරණයට සහාය දක්වයි:
 
 ```bash
 POST /v1/audio/transcriptions
@@ -994,7 +1040,7 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
 `deepgram/nova-3` යනු ස්වදේශීය Deepgram මාර්ගය වන අතර එයට Deepgram API key එකක් අවශ්ය වේ.
 OpenRouter පමණක් වින්යාස කර ඇත්නම්, `openrouter/deepgram/nova-3` භාවිත කරන්න.
 
-**කථනයෙන් පෙළට (පිටපත් කිරීම)** providers:
+**කථනයෙන් පෙළට (පිටපත්කරණය)** සපයන්නන්:
 
 - `openai/` (whisper-අනුකූල)
 - `groq/` (Groq Whisper Turbo)
@@ -1004,7 +1050,7 @@ OpenRouter පමණක් වින්යාස කර ඇත්නම්, `ope
 - `huggingface/` (whisper ප්රභේද)
 - `qwen/`
 
-**පෙළෙන් කථනයට (`POST /v1/audio/speech`)** providers:
+**පෙළෙන් කථනයට (`POST /v1/audio/speech`)** සපයන්නන්:
 
 - `openai/` (tts-1, tts-1-hd)
 - `hyperbolic/`
@@ -1021,55 +1067,55 @@ OpenRouter පමණක් වින්යාස කර ඇත්නම්, `ope
 - `coqui/`, `tortoise/`
 - `qwen/`
 
-පිටපත් කිරීම සඳහා සහාය දක්වන ශ්රව්ය ආකෘති: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`. TTS ප්රතිදාන ආකෘති provider මත රඳා පවතී (mp3, wav, opus, pcm, mulaw).
+පිටපත්කරණය සඳහා සහාය දක්වන ශ්රව්ය ආකෘති: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`. TTS ප්රතිදාන ආකෘති සපයන්නා මත රඳා පවතී (mp3, wav, opus, pcm, mulaw).
 
 ---
 
 ### Combo සමතුලිත කිරීමේ උපායමාර්ග
 
-**උපකරණ පුවරුව → Combos → සාදන්න/සංස්කරණය කරන්න → උපායමාර්ගය** තුළ එක් එක් combo සඳහා සමතුලිත කිරීම වින්යාස කරන්න.
+එක් එක් combo එක සඳහා සමතුලිත කිරීම **Dashboard → Combos → Create/Edit → Strategy** තුළ වින්යාස කරන්න.
 
-| උපායමාර්ගය         | විස්තරය                                                                                |
-| ------------------ | -------------------------------------------------------------------------------------- |
-| **Round-Robin**    | ආකෘති අතර අනුක්රමිකව මාරු වේ                                                           |
-| **Priority**       | සැමවිටම පළමු ආකෘතිය උත්සාහ කරයි; දෝෂයක් ඇති වූ විට පමණක් විකල්පයකට මාරු වේ             |
-| **Random**         | එක් එක් ඉල්ලීම සඳහා සංයෝජනයෙන් අහඹු ආකෘතියක් තෝරයි                                     |
-| **Weighted**       | එක් එක් ආකෘතියට පවරා ඇති බර අනුව සමානුපාතිකව මාර්ගගත කරයි                              |
-| **Least-Used**     | මෑතකදී අවම ඉල්ලීම් සංඛ්යාවක් ලැබූ ආකෘතිය වෙත මාර්ගගත කරයි (සංයෝජන මෙට්රික් භාවිත කරයි) |
-| **Cost-Optimized** | ලබා ගත හැකි අඩුම මිල ආකෘතිය වෙත මාර්ගගත කරයි (මිලකරණ වගුව භාවිත කරයි)                  |
+| උපායමාර්ගය         | විස්තරය                                                                             |
+| ------------------ | ----------------------------------------------------------------------------------- |
+| **Round-Robin**    | models අතර අනුක්රමිකව මාරු වෙයි                                                     |
+| **Priority**       | සෑම විටම පළමු model එක උත්සාහ කරයි; දෝෂයක් ඇති වූ විට පමණක් විකල්පයකට මාරු වෙයි     |
+| **Random**         | සෑම ඉල්ලීමක් සඳහාම combo එකෙන් අහඹු model එකක් තෝරයි                                |
+| **Weighted**       | එක් එක් model එකට පවරා ඇති බර අනුව සමානුපාතිකව මාර්ගගත කරයි                         |
+| **Least-Used**     | මෑත ඉල්ලීම් අවම සංඛ්යාවක් ඇති model එක වෙත මාර්ගගත කරයි (combo ප්රමිතික භාවිත කරයි) |
+| **Cost-Optimized** | පවතින ලාභදායීම model එක වෙත මාර්ගගත කරයි (මිල වගුව භාවිත කරයි)                      |
 
-ගෝලීය සංයෝජන පෙරනිමි **උපකරණ පුවරුව → සැකසුම් → මාර්ගගත කිරීම → සංයෝජන පෙරනිමි** තුළ සැකසිය හැක.
-පෙරනිමියෙන්, සංයෝජන ඉලක්ක කල් ඉකුත්වීම් වත්මන් ඉල්ලීම් කල් ඉකුත්වීමෙන් උරුම වේ. එක් එක් ඉලක්කයට අදාළ කෙටි සීමාවක්
-වේගවත් විකල්ප මාරුවක් ක්රියාත්මක කළ යුතු විට පමණක් සංයෝජන පෙරනිමි හෝ තනි සංයෝජනයක් මත **ඉලක්ක කල් ඉකුත්වීම
-(තත්පර)** භාවිත කරන්න.
+ගෝලීය combo පෙරනිමි **Dashboard → Settings → Routing → Combo Defaults** තුළ සැකසිය හැක.
+Combo ඉලක්ක කාලසීමා ඉක්මවීම් පෙරනිමියෙන් වත්මන් ඉල්ලීමේ කාලසීමා ඉක්මවීම අනුගමනය කරයි. වඩා කෙටි එක්-ඉලක්ක සීමාවක් මඟින්
+වඩා වේගවත් විකල්ප මාරුවක් ආරම්භ කළ යුතු විට පමණක් combo පෙරනිමි හෝ තනි combo එකක් මත **Target timeout
+(seconds)** භාවිත කරන්න.
 
-ශුන්ය-ප්රමාද සංයෝජන ප්රශස්තකරණ භාවිතයට පැහැදිලිව සක්රිය කළ යුතුය. මෙම ප්රමාද විශේෂාංග විකල්ප ඉලක්ක සමඟ තරග කිරීම,
-TTFT ඉතිහාසය මත පදනම්ව ඉලක්ක මඟ හැරීම, හෝ විකල්ප ඉල්ලීම් සම්පීඩනය කිරීම වැළැක්වීමට **ශුන්ය-ප්රමාද ප්රශස්තකරණ** අක්රියව තබන්න;
-එය සක්රිය කිරීමෙන් අඩු අග්ර ප්රමාදයක් සඳහා මාර්ගගත කිරීමේ/ඉල්ලීමේ නිරවද්යතාව හුවමාරු කරමින් වින්යාස කළ හෙජිං, පුරෝකථන TTFT
-මඟහැරීම් සහ පූර්වක්රියාකාරී විකල්ප සම්පීඩනයට ඉඩ ලැබේ.
+ශුන්ය-ප්රමාද combo ප්රශස්තකරණයන් තේරීමෙන් සක්රිය කළ යුතුය. මෙම ප්රමාද විශේෂාංග විකල්ප ඉලක්ක සමඟ තරග කිරීම,
+TTFT ඉතිහාසය මත පදනම්ව ඉලක්ක මඟහැරීම හෝ විකල්ප ඉල්ලීම් සම්පීඩනය කිරීම වැළැක්වීමට **Zero-latency optimizations**
+අක්රියව තබන්න; එය සක්රිය කිරීමෙන් අඩු අන්ත ප්රමාදයක් සඳහා මාර්ගගත කිරීමේ/ඉල්ලීමේ නිරවද්යතාව හුවමාරු කරමින් වින්යාස කළ hedging,
+පුරෝකථන TTFT මඟහැරීම් සහ පූර්වක්රියාකාරී විකල්ප සම්පීඩනයට ඉඩ සලසයි.
 
-උඩුගං සැපයුම්කරුවන්ට දැඩි `max_tokens` / `maxOutputTokens` සීමා අවශ්ය වන විට
-**තර්කන ටෝකන බෆරය** අක්රිය කරන්න. එය සක්රිය කළ විට, සංයෝජන මාර්ගගත කිරීම දන්නා ප්රතිදාන සීමාවක් සහිත ආකෘති සඳහා පමණක්
-තර්කන-ආකෘති අතිරේක ඉඩ එක් කරන අතර ආරක්ෂිත බෆර අගය එම සීමාව ඉක්මවන්නේ නම් සේවාලාභියාගේ ටෝකන සීමාව නොවෙනස්ව තබයි.
-සේවාලාභියාගේ සීමාව දැනටමත් දන්නා සීමාවකට වඩා වැඩි නම්, උඩුගං ඉල්ලීම යැවීමට පෙර
-OmniRoute එය එම සීමාව දක්වා අඩු කරයි.
+ඉහළ මට්ටමේ සපයන්නන්ට දැඩි `max_tokens` / `maxOutputTokens` සීමා අවශ්ය වන විට
+**Reasoning token buffer** අක්රිය කරන්න. එය සක්රිය කර ඇති විට, combo මාර්ගගත කිරීම reasoning model සඳහා
+අතිරේක ඉඩ එක් කරන්නේ දන්නා ප්රතිදාන උපරිමයක් ඇති models සඳහා පමණක් වන අතර, ආරක්ෂිතව buffer කළ අගය එම උපරිමය ඉක්මවන්නේ නම්
+සේවාලාභියාගේ token සීමාව වෙනස් නොකර තබයි. සේවාලාභියාගේ සීමාව දැනටමත් දන්නා උපරිමයකට වඩා වැඩි නම්,
+ඉහළ මට්ටමේ ඉල්ලීම යැවීමට පෙර OmniRoute එය එම උපරිමයට සීමා කරයි.
 
 ---
 
-### සෞඛ්ය උපකරණ පුවරුව
+### සෞඛ්ය Dashboard එක
 
-**උපකරණ පුවරුව → සෞඛ්යය** හරහා ප්රවේශ වන්න. කාඩ්පත් 6ක් සහිත තත්ය කාලීන පද්ධති සෞඛ්ය දළ විශ්ලේෂණයකි:
+**Dashboard → Health** හරහා ප්රවේශ වන්න. කාඩ්පත් 6ක් සහිත තත්ය කාලීන පද්ධති සෞඛ්ය දළ විශ්ලේෂණයක්:
 
-| කාඩ්පත                  | එය පෙන්වන දේ                                                              |
-| ----------------------- | ------------------------------------------------------------------------- |
-| **පද්ධති තත්ත්වය**      | ක්රියාත්මක කාලය, අනුවාදය, මතක භාවිතය, දත්ත නාමාවලිය                       |
-| **සැපයුම්කරුගේ සෞඛ්යය** | ගෝලීය සැපයුම්කරු පරිපථ බිඳිනයේ ධාවනකාල තත්ත්වය                            |
-| **අනුපාත සීමා**         | ඉතිරි කාලය සමඟ එක් එක් ගිණුමට අදාළ සක්රිය සම්බන්ධතා සිසිල්කිරීම්          |
-| **සක්රිය අගුලු දැමීම්** | සක්රිය ආකෘති-පරාසගත අගුලු දැමීම් සහ තාවකාලික බැහැර කිරීම්                 |
-| **අත්සන් හැඹිලිය**      | අනුපිටපත් ඉවත් කිරීමේ හැඹිලි සංඛ්යාලේඛන (සක්රිය යතුරු, සාර්ථකත්ව අනුපාතය) |
-| **ප්රමාද දුරමානය**      | එක් එක් සැපයුම්කරු සඳහා p50/p95/p99 ප්රමාද සමුච්චය                        |
+| කාඩ්පත                | එය පෙන්වන දේ                                                   |
+| --------------------- | -------------------------------------------------------------- |
+| **System Status**     | ක්රියාකාලය, අනුවාදය, මතක භාවිතය, දත්ත නාමාවලිය                 |
+| **Provider Health**   | ගෝලීය සපයන්නාගේ circuit breaker ධාවනකාල තත්ත්වය                |
+| **Rate Limits**       | ඉතිරි කාලය සමඟ එක් එක් ගිණුමේ සක්රිය සම්බන්ධතා cooldowns       |
+| **Active Lockouts**   | සක්රිය model-විෂය පථ lockouts සහ තාවකාලික බැහැර කිරීම්         |
+| **Signature Cache**   | අනුපිටපත් ඉවත් කිරීමේ cache සංඛ්යාලේඛන (සක්රිය keys, hit rate) |
+| **Latency Telemetry** | එක් එක් සපයන්නා සඳහා p50/p95/p99 ප්රමාද සමුච්චය                |
 
-**වෘත්තීය ඉඟිය:** සෞඛ්ය පිටුව සෑම තත්පර 10කට වරක් ස්වයංක්රීයව නැවුම් වේ. ගැටලු අත්විඳින සැපයුම්කරුවන් හඳුනා ගැනීමට පරිපථ බිඳින කාඩ්පත භාවිත කරන්න.
+**වෘත්තීය ඉඟිය:** Health පිටුව සෑම තත්පර 10කට වරක් ස්වයංක්රීයව නැවුම් වෙයි. ගැටලු අත්විඳින සපයන්නන් හඳුනා ගැනීමට circuit breaker කාඩ්පත භාවිත කරන්න.
 
 ---
 

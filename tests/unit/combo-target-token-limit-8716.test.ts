@@ -60,13 +60,39 @@ test("#8716 getComboTargetTokenLimit prefers parseModel provider when present", 
   assert.equal(withPrefix, fromParsedOnly);
 });
 
-test("#8716 getComboTargetTokenLimit uses unknown when both providers missing", () => {
+test("#8716/#14931 getComboTargetTokenLimit returns undefined when only the generic default resolves", () => {
+  // Both providers missing → "unknown" provider + uncataloged model resolves
+  // solely to the non-specific 128000 catch-all. #14931: that guess must NOT
+  // enter the runtime combo Math.min(); the resolver falls back to it on its
+  // own only when every member is unknown.
   const limit = getComboTargetTokenLimit({
     parsedProvider: null,
     parsedModel: "some-model",
     targetProvider: null,
   });
-  assert.ok(Number.isFinite(limit) && limit > 0);
+  assert.equal(limit, undefined);
+});
+
+test("#14931 specific sources still resolve (name heuristic is a known source)", () => {
+  // Step 4 of resolveTokenLimit (model-name heuristic) runs regardless of
+  // provider known-ness: an uncataloged "gpt*" variant on an unknown provider
+  // still resolves specific, while a non-matching name stays unknown.
+  const heuristic = getComboTargetTokenLimit({
+    parsedProvider: "totally-unknown-provider",
+    parsedModel: "gpt-4o-unknown-variant",
+    targetProvider: null,
+  });
+  assert.ok(Number.isFinite(heuristic) && (heuristic as number) > 0);
+
+  // The #14931 incident shape: uncataloged model behind a custom
+  // OpenAI-compatible connection has no catalog row, no registry entry and a
+  // name that matches no heuristic → unknown, must not fake 128000.
+  const unknownProvider = getComboTargetTokenLimit({
+    parsedProvider: "openai-compatible-chat-d9363e0c",
+    parsedModel: "qwen3.8-27b",
+    targetProvider: null,
+  });
+  assert.equal(unknownProvider, undefined);
 });
 
 test("#8716 chatCore combo-limit map uses getComboTargetTokenLimit (source guard)", async () => {

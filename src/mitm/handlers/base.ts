@@ -64,7 +64,7 @@ async function loadAgentBridgeHook(): Promise<{
       responseSize: number;
       proxyLatencyMs: number;
       upstreamLatencyMs: number;
-    },
+    }
   ) => void;
   recordRequestError?: (intercepted: InterceptedRequest, err: unknown) => void;
 } | null> {
@@ -74,6 +74,67 @@ async function loadAgentBridgeHook(): Promise<{
   } catch {
     return null;
   }
+}
+
+/**
+ * Ceiling for the per-request SSE text a MITM handler retains for the Traffic
+ * Inspector (#13395). The inspector buffer re-clamps per body
+ * (`INSPECTOR_MAX_BODY_KB`, default 1 MiB), but the handler-side `collected`
+ * string grew without bound BEFORE reaching that clamp — one long-lived stream
+ * kept the whole transcript in the handler closure for the request lifetime.
+ * Aligned with the inspector default so the bound never hides data the UI shows.
+ */
+export const MITM_PIPE_MAX_COLLECT_BYTES = 1 * 1024 * 1024;
+
+/**
+ * Resolve once the response emits "drain" or "close", removing both listeners.
+ * A close during the wait is caught by the caller's downstreamClosed check.
+ */
+function waitForDrainOrClose(res: ServerResponse): Promise<void> {
+  return new Promise<void>((resolve) => {
+    const done = () => {
+      res.off("drain", done);
+      res.off("close", done);
+      resolve();
+    };
+    res.once("drain", done);
+    res.once("close", done);
+  });
+}
+
+/**
+ * Bounded string accumulator for piped SSE transcripts. Stops retaining past
+ * `maxBytes` but keeps counting true bytes, so the inspector still reports
+ * the exact `responseSize` it reported before (`Buffer.byteLength` of the
+ * full transcript) and the pipe itself is unaffected — every chunk is still
+ * written downstream regardless of the cap.
+ */
+export function createBoundedCollector(maxBytes: number = MITM_PIPE_MAX_COLLECT_BYTES): {
+  push: (chunk: string) => void;
+  text: string;
+  totalBytes: number;
+  truncated: boolean;
+} {
+  let collected = "";
+  let totalBytes = 0;
+  const acc = {
+    push(chunk: string): void {
+      totalBytes += Buffer.byteLength(chunk);
+      if (collected.length < maxBytes) {
+        collected += chunk.slice(0, maxBytes - collected.length);
+      }
+    },
+    get text(): string {
+      return collected;
+    },
+    get totalBytes(): number {
+      return totalBytes;
+    },
+    get truncated(): boolean {
+      return totalBytes > Buffer.byteLength(collected);
+    },
+  };
+  return acc;
 }
 
 export abstract class MitmHandlerBase {
@@ -93,7 +154,7 @@ export abstract class MitmHandlerBase {
     req: IncomingMessage,
     res: ServerResponse,
     body: Buffer,
-    mappedModel: string,
+    mappedModel: string
   ): Promise<void>;
 
   /**
@@ -132,9 +193,11 @@ export abstract class MitmHandlerBase {
   protected async fetchRouter(
     body: unknown,
     path: string,
-    headers: IncomingHttpHeaders,
+    headers: IncomingHttpHeaders
   ): Promise<Response> {
-    const base = process.env.OMNIROUTE_BASE_URL ?? "http://127.0.0.1:20128";
+    const port = process.env.API_PORT || process.env.PORT || 20128;
+    const base =
+      process.env.OMNIROUTE_BASE_URL ?? process.env.BASE_URL ?? `http://127.0.0.1:${port}`;
     const url = `${base.replace(/\/+$/, "")}${path}`;
     const apiKey = process.env.ROUTER_API_KEY ?? "";
 
@@ -151,17 +214,10 @@ export abstract class MitmHandlerBase {
     });
   }
 
-  /**
-   * Pipe an SSE (or any chunked) upstream Response straight to the downstream
-   * ServerResponse, optionally invoking `onChunk` for each received Buffer.
-   *
-   * Writes SSE-friendly headers before the first chunk (only if `res.headersSent`
-   * is still false — handlers MAY have set custom headers first).
-   */
   protected async pipeSSE(
     upstream: Response,
     res: ServerResponse,
-    onChunk?: (c: Buffer) => void,
+    onChunk?: (c: Buffer) => void
   ): Promise<void> {
     if (!upstream.body) {
       if (!res.headersSent) res.writeHead(upstream.status, { "Content-Type": "application/json" });
@@ -179,8 +235,18 @@ export abstract class MitmHandlerBase {
     }
 
     const reader = upstream.body.getReader();
+    // #13395: a downstream disconnect must stop the upstream read — otherwise an
+    // abandoned stream keeps the reader (and its buffers) alive for the full
+    // upstream lifetime and the handler closure retains the transcript.
+    let downstreamClosed = false;
+    const onClose = () => {
+      downstreamClosed = true;
+      reader.cancel().catch(() => {});
+    };
+    res.once("close", onClose);
     try {
       while (true) {
+        if (downstreamClosed) break;
         const { done, value } = await reader.read();
         if (done) break;
         const buf = Buffer.from(value);
@@ -191,9 +257,19 @@ export abstract class MitmHandlerBase {
             // Inspector hook must never break the upstream pipe.
           }
         }
-        res.write(buf);
+        if (downstreamClosed || res.closed || res.destroyed) break;
+        // A slow client must be allowed to drain before we read another upstream
+        // chunk, otherwise Node queues the whole stream in memory. A close during
+        // the wait is caught by the downstreamClosed check at the top of the loop.
+        if (!res.write(buf)) await waitForDrainOrClose(res);
       }
     } finally {
+      res.off("close", onClose);
+      try {
+        reader.releaseLock();
+      } catch {
+        // Reader already cancelled or released.
+      }
       try {
         res.end();
       } catch {
@@ -210,7 +286,7 @@ export abstract class MitmHandlerBase {
   protected async hookBufferStart(
     req: IncomingMessage,
     body: Buffer,
-    mappedModel: string,
+    mappedModel: string
   ): Promise<InterceptedRequest> {
     const hook = await loadAgentBridgeHook();
     if (hook?.recordRequestStart) {
@@ -268,7 +344,7 @@ export abstract class MitmHandlerBase {
       responseSize: number;
       proxyLatencyMs: number;
       upstreamLatencyMs: number;
-    },
+    }
   ): void {
     const finalOpts = opts ?? {
       status: typeof intercepted.status === "number" ? intercepted.status : 0,
@@ -293,10 +369,7 @@ export abstract class MitmHandlerBase {
    * Report a failed request to the Traffic Inspector.
    * No-op when the inspector module is not present.
    */
-  protected async hookBufferError(
-    intercepted: InterceptedRequest,
-    err: unknown,
-  ): Promise<void> {
+  protected async hookBufferError(intercepted: InterceptedRequest, err: unknown): Promise<void> {
     const hook = await loadAgentBridgeHook();
     if (hook?.recordRequestError) {
       try {
@@ -311,11 +384,7 @@ export abstract class MitmHandlerBase {
    * Render a Hard-Rule-#12-compliant error JSON body and send via `res`.
    * Returns the sanitized error string so callers may also log it.
    */
-  protected async writeError(
-    res: ServerResponse,
-    err: unknown,
-    statusCode = 500,
-  ): Promise<string> {
+  protected async writeError(res: ServerResponse, err: unknown, statusCode = 500): Promise<string> {
     const safe = await safeErrorMessage(err);
     if (!res.headersSent) {
       res.writeHead(statusCode, { "Content-Type": "application/json" });

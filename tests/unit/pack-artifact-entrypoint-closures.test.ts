@@ -7,6 +7,7 @@ import {
   APP_STAGING_ALLOWED_EXACT_PATHS,
   PACK_ARTIFACT_REQUIRED_PATHS,
 } from "../../scripts/build/pack-artifact-policy.ts";
+import { isCoveredByFiles } from "../../scripts/build/mcpPublishedFilesClosure.ts";
 
 // Generalization of pack-artifact-server-ws-closure.test.ts (#7065 class, 3rd recurrence:
 // tls-options/3.8.41, head-response-guard VPS #7040 + npm #7065). assembleStandalone copies
@@ -149,4 +150,65 @@ test("no npm-shipped wrapper uses a parent-relative (../) import — it escapes 
       `${wrapper.src} has package-escaping imports: ${escaping.join(", ")} — extract to a sibling module instead`
     );
   }
+});
+
+// Relative specifiers of a shipped script: static `from`, dynamic `import()` and `require()`.
+function relativeImports(filePath: string): string[] {
+  const src = fs.readFileSync(filePath, "utf8");
+  const re = /(?:from\s+|import\s*\(\s*|require\(\s*)["'](\.{1,2}\/[^"']+)["']/g;
+  return [...new Set([...src.matchAll(re)].map((m) => m[1]))];
+}
+
+// Shipped .mjs/.cjs files named by package.json `files`: exact entries, plus the files
+// found under directory entries (bin/cli/ ...), without co-located tests.
+function shippedScripts(filesEntries: string[]): string[] {
+  const out: string[] = [];
+  const isScript = (f: string) => /\.(mjs|cjs)$/.test(f) && !/(?:^|\/)__tests__\/|\.test\./.test(f);
+  const walk = (rel: string) => {
+    const abs = path.join(ROOT, rel);
+    if (!fs.existsSync(abs)) return;
+    if (fs.statSync(abs).isDirectory()) {
+      for (const name of fs.readdirSync(abs)) walk(`${rel.replace(/\/$/, "")}/${name}`);
+    } else if (isScript(rel)) {
+      out.push(rel);
+    }
+  };
+  for (const entry of filesEntries) if (!entry.startsWith("!")) walk(entry);
+  return out;
+}
+
+test("every relative import of a shipped script is itself shipped (package.json files)", () => {
+  // #12961 made scripts/build/postinstall.mjs import ./betterSqlitePrebuildTarget.mjs and
+  // #15040 made scripts/dev/responses-ws-proxy.mjs import ./peer-stamp.mjs, without adding
+  // either file to `files`: the tarball then failed at postinstall with ERR_MODULE_NOT_FOUND.
+  // Static like the tests above: unit suites never shell out to `npm pack`.
+  const filesEntries: string[] = JSON.parse(
+    fs.readFileSync(path.join(ROOT, "package.json"), "utf8")
+  ).files;
+  const scripts = shippedScripts(filesEntries);
+  assert.ok(scripts.length >= 20, `found only ${scripts.length} shipped scripts (walker broken?)`);
+
+  const missing: string[] = [];
+  let checked = 0;
+  for (const file of scripts) {
+    for (const spec of relativeImports(path.join(ROOT, file))) {
+      checked++;
+      const target = path.posix.normalize(path.posix.join(path.posix.dirname(file), spec));
+      // A `.js` specifier may name a TypeScript source that ships as `.ts`.
+      const candidates = [target, target.replace(/\.js$/, ".ts"), `${target}.ts`, `${target}.mjs`];
+      if (
+        !candidates.some(
+          (c) => fs.existsSync(path.join(ROOT, c)) && isCoveredByFiles(c, filesEntries)
+        )
+      ) {
+        missing.push(`${file} -> ${target}`);
+      }
+    }
+  }
+  assert.ok(checked >= 50, `resolved only ${checked} relative imports (regex broken?)`);
+  assert.deepEqual(
+    missing,
+    [],
+    `add to package.json "files" and PACK_ARTIFACT_ROOT_ALLOWED_PATHS:\n${missing.join("\n")}`
+  );
 });

@@ -169,24 +169,31 @@ export function getThinkingCapabilityFields(
   /** When true, skip the canonical effort-tier fallback — used for static registry
    * models that declare `supportsReasoning` but no explicit tier list, so the
    * catalog does not synthesize unresolvable `<prefix>/<model>-{tier}` ids. */
-  skipCanonicalEffortFallback = false
+  skipCanonicalEffortFallback = false,
+  /** Already-loaded synced tiers. This helper must not open SQLite to fetch them. */
+  syncedReasoningEfforts?: readonly string[] | null
 ): Record<string, boolean | string[]> {
   const supportsThinking = resolvedThinking;
   if (typeof supportsThinking !== "boolean") return {};
   const hasDeclaredTiers = supportedThinkingEfforts && supportedThinkingEfforts.length > 0;
+  const syncedEfforts =
+    !hasDeclaredTiers && syncedReasoningEfforts && syncedReasoningEfforts.length > 0
+      ? [...syncedReasoningEfforts]
+      : null;
+  const tiers = hasDeclaredTiers
+    ? [...supportedThinkingEfforts!]
+    : syncedEfforts
+      ? syncedEfforts
+      : extendDeepSeekEffortValues(
+          providerId,
+          modelId,
+          extendCodexGpt56EffortValues(providerId, modelId, CANONICAL_EFFORT_VALUES)
+        );
   return {
     thinking: supportsThinking,
     supportsThinking,
-    ...(supportsThinking && (hasDeclaredTiers || !skipCanonicalEffortFallback)
-      ? {
-          effort_tiers: hasDeclaredTiers
-            ? [...supportedThinkingEfforts!]
-            : extendDeepSeekEffortValues(
-                providerId,
-                modelId,
-                extendCodexGpt56EffortValues(providerId, modelId, CANONICAL_EFFORT_VALUES)
-              ),
-        }
+    ...(supportsThinking && (hasDeclaredTiers || syncedEfforts || !skipCanonicalEffortFallback)
+      ? { effort_tiers: tiers }
       : {}),
   };
 }
@@ -221,6 +228,40 @@ export function mergeComboCapabilities(
     capabilities.effort_tiers = intersectStringArrays(effortTiers);
   }
   return capabilities;
+}
+
+/**
+ * #12798: a combo can advertise `capabilities.vision: true` while emitting no
+ * `input_modalities` / `output_modalities`. The merged vision verdict flows
+ * from the targets canonical capabilities - which honour the #9195 operator
+ * "Vision capable" override - while the combo-level modality intersection in
+ * buildComboCatalogMetadata only fills when EVERY known target carries synced
+ * modality data. An operator-flagged vision head with no synced modalities
+ * therefore listed `vision: true` next to an empty modality set, so
+ * models.dev-shaped clients that key off `input_modalities` (not the boolean)
+ * still saw a text-only entry. Derives the modalities from the already
+ * advertised vision verdict: mergeComboCapabilities only emits `vision: true`
+ * when every known target is vision-capable, so this makes no new claim.
+ * Synced intersections keep precedence; nothing is derived for unknown or
+ * text-only verdicts.
+ */
+export function visionDerivedModalities(
+  capabilities: Record<string, boolean | string[]>,
+  syncedInput: string[],
+  syncedOutput: string[]
+): { input_modalities?: string[]; output_modalities?: string[] } {
+  return {
+    ...(syncedInput.length > 0
+      ? { input_modalities: syncedInput }
+      : capabilities.vision === true
+        ? { input_modalities: ["text", "image"] }
+        : {}),
+    ...(syncedOutput.length > 0
+      ? { output_modalities: syncedOutput }
+      : capabilities.vision === true
+        ? { output_modalities: ["text"] }
+        : {}),
+  };
 }
 
 /**

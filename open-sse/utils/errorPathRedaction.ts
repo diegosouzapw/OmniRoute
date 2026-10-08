@@ -465,10 +465,23 @@ function findUnquotedPathEnd(
   let hasUnresolvedFragments = false;
 
   const resolveEndpoint = (ignoreAmbiguity = false): number => {
-    if (hasUnresolvedFragments && !ignoreAmbiguity) {
-      return failClosedAmbiguity || hasFilesystemEvidence ? value.length : -1;
-    }
+    // A deterministic filename extension pins the endpoint exactly, so there is
+    // no ambiguity left to fail closed about -- the suffix cannot leak because we
+    // know where it ends. Checked BEFORE the ambiguity branch, which otherwise
+    // discarded a resolved endpoint the moment any prose followed it and swallowed
+    // the rest of the line (#13144: `... provider.ts:42:7 with api_key=...` lost
+    // its redacted-secret tail).
     if (resolvedExtensionEnd >= 0) return resolvedExtensionEnd;
+    if (hasUnresolvedFragments && !ignoreAmbiguity) {
+      // Only an *unequivocal* prefix — Windows, a file URI, or a known POSIX
+      // filesystem root — may swallow the rest of the line to avoid exposing a
+      // suffix like `Files\secret`. Separator evidence alone is not that:
+      // every API route carries slashes, so treating it as unequivocal made an
+      // ordinary `/v1/x/y` in prose truncate the message after it, which is
+      // exactly what this function documents it must not do (#13144). Such a
+      // span returns -1 and falls back to token-level handling instead.
+      return failClosedAmbiguity ? value.length : -1;
+    }
     if (hasFilesystemEvidence && lastPathTokenEnd >= 0) return lastPathTokenEnd;
     if (
       acceptFirstTokenPunctuation &&
@@ -624,7 +637,21 @@ function redactUnquotedAbsolutePathSpans(value: string): string {
       isWindowsPath || isFileUriPath || isKnownPosixPath
     );
     if (pathEnd < 0) {
-      const mustFailClosed = isWindowsPath || isFileUriPath || isKnownPosixPath;
+      // #14110: an unknown-root POSIX candidate (e.g. `/custom/internal`,
+      // not in POSIX_FILESYSTEM_ROOTS) is just as filesystem-sensitive as a
+      // known-root one once it has multi-segment/extension evidence
+      // (isPosixPath, computed above from isUnquotedPosixSpanCandidateAt) --
+      // an unresolved ambiguous tail must not leave it exposed in clear text.
+      // This intentionally also fail-closes an unknown-root API route in
+      // prose with no anchor to resolve against (e.g. a bare `/v1/x/y.`
+      // followed only by more prose): the shape is identical to a real
+      // filesystem path and there is no reliable lexical discriminator
+      // between the two (owner decision, #14110). A route immediately
+      // followed by another absolute-path span (e.g. "... Use POST
+      // /v1/y instead.") is unaffected -- that shape resolves to a definite
+      // endpoint via acceptEndpointBeforeAnotherAbsolute and never reaches
+      // this branch.
+      const mustFailClosed = isWindowsPath || isFileUriPath || isKnownPosixPath || isPosixPath;
       if (mustFailClosed) {
         // An unequivocal filesystem prefix with an unknowable endpoint must
         // fail closed over the rest of the first line rather than expose a
