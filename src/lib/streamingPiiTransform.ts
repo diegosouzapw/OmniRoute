@@ -1,5 +1,5 @@
 import { createSseTextTransform, FieldCategory, classifyField } from "./sseTextTransform";
-import { sanitizePII } from "./piiSanitizer";
+import { sanitizePII, getPiiResponseMode } from "./piiSanitizer";
 
 export interface PiiTransformOptions {
   windowSize?: number;
@@ -40,6 +40,13 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
     isSnapshot = false
   ): string => {
     if (field === "toolArgs" || field === "partialJson") {
+      return text;
+    }
+    // warn/off never mutate the payload: detect-only, emit the original bytes immediately
+    // (no sliding-window buffering/re-chunking) so the stream stays byte-identical (#15507).
+    const mode = getPiiResponseMode();
+    if (mode === "warn" || mode === "off") {
+      if (mode === "warn") sanitizePII(text);
       return text;
     }
     if (isSnapshot) {
