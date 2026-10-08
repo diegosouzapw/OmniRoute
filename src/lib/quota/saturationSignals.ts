@@ -503,7 +503,9 @@ async function fetchGenericSaturation(connectionId: string, provider: string): P
       const { convertUsageToQuotaInfo } =
         await import("@omniroute/open-sse/services/genericQuotaFetcher");
       const quota = convertUsageToQuotaInfo(result);
-      if (quota && Number.isFinite(quota.percentUsed)) {
+      // An unlimited snapshot (#15347) has percentUsed 0 but is "no cap", not "0% used":
+      // fall through to the token-header complement exactly as a null conversion did.
+      if (quota && !quota.unlimited && Number.isFinite(quota.percentUsed)) {
         return Math.min(1, Math.max(0, quota.percentUsed));
       }
 

@@ -23,6 +23,7 @@ import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts
 import { getProviderById, getProviderByAlias } from "@/shared/constants/providers";
 import { getCachedProviderNodes } from "@/lib/db/readCache";
 import { getComboByName } from "@/lib/db/combos";
+import { createBuiltinAutoCombo } from "@omniroute/open-sse/services/autoCombo/builtinCatalog.ts";
 import {
   resolveCcAliasEnabled,
   getCcAliasGlobalState,
@@ -188,7 +189,17 @@ export async function resolveCcDiscoveryAliasStrip(
     claudeModelIds,
     isRegistryProvider: (prefix) => isRoutableProviderPrefix(prefix),
     customProviderPrefixes,
-    getCombo: (name) => getComboByName(name),
+    getCombo: async (name) => {
+      if (name.startsWith("auto/")) {
+        try {
+          return await createBuiltinAutoCombo(name, name.slice("auto/".length));
+        } catch {
+          return null;
+        }
+      }
+
+      return getComboByName(name);
+    },
     gateGlobal: () => globalEnabled,
     gateProvider: (providerId) => getCcAliasProviderSetting(providerId),
     gateModel: (providerId, modelId) => getCcAliasModelSetting(providerId, modelId),

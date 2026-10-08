@@ -24,6 +24,9 @@ import { resolve as pathResolve } from "node:path";
 // ── Temp DB — must be set BEFORE any DB-touching import ──────────────────────
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-plugins-fs-safety-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
+// The manager singleton resolves its install root once, at import. Pin it under the temp
+// DATA_DIR so installs, the cleanup below, and the staging-residue assertions share it.
+process.env.OMNIROUTE_PLUGINS_DIR = path.join(TEST_DATA_DIR, "plugins");
 
 const core = await import("../../src/lib/plugins/../db/core.ts");
 const hooks = await import("../../src/lib/plugins/hooks.ts");
@@ -84,13 +87,9 @@ function writePluginWithMain(opts: {
 
 const activeDirs: string[] = [];
 
-// The manager writes installed plugins to getDefaultPluginDir() = ~/.omniroute/plugins/.
+// The manager writes installed plugins to the OMNIROUTE_PLUGINS_DIR pinned above.
 // We must clean those dirs between tests to avoid ENOTEMPTY / stale state.
-const DEFAULT_PLUGIN_DIR = path.join(
-  process.env.HOME || process.env.USERPROFILE || "/tmp",
-  ".omniroute",
-  "plugins"
-);
+const DEFAULT_PLUGIN_DIR = process.env.OMNIROUTE_PLUGINS_DIR;
 
 /** Known plugin names created by this test file — cleaned between tests. */
 const MANAGED_PLUGIN_NAMES = [

@@ -137,15 +137,49 @@ const safe = String(err).split("\n")[0];
 
 ## CI-তে কভারেজ
 
-`tests/unit/error-message-sanitization.test.ts` নিম্নলিখিত বিষয়গুলো নিশ্চিত করে:
+`tests/unit/error-message-sanitization.test.ts` নিশ্চিত করে:
 
-- `/api/model-combo-mappings/*`-এর অধীনে প্রতিটি রুট 4xx/5xx-এর ক্ষেত্রে স্যানিটাইজ করা বডি ফেরত দেয়।
-- `sanitizeErrorMessage` একাধিক লাইনের স্ট্যাক ট্রেস সরিয়ে দেয়।
-- `sanitizeErrorMessage` POSIX এবং Windows-এর অ্যাবসোলিউট পাথগুলোকে `<path>` দিয়ে প্রতিস্থাপন করে।
-- `sanitizeErrorMessage` নিরাপদভাবে `null`/`undefined`/`Error` ইনস্ট্যান্স ইনপুট পরিচালনা করে।
-- `buildErrorBody` কখনোই এর `message` ফিল্ডে স্ট্যাক ট্রেস প্রকাশ করে না।
+- `/api/model-combo-mappings/*`-এর অধীনে প্রতিটি route 4xx/5xx-এর ক্ষেত্রে sanitized body ফেরত দেয়।
+- `sanitizeErrorMessage` বহু-লাইনের stack trace সরিয়ে দেয়।
+- `sanitizeErrorMessage` POSIX এবং Windows-এর absolute path-কে `<path>` দিয়ে প্রতিস্থাপন করে।
+- `sanitizeErrorMessage` নিরাপদে `null`/`undefined`/`Error` instance input পরিচালনা করে।
+- `buildErrorBody` কখনোই তার `message` field-এ stack trace প্রকাশ করে না।
 
-নতুন কোনো রুট বা এক্সিকিউটর যোগ করার সময়, এই ফাইল থেকে অ্যাসারশন প্যাটার্নটি অনুলিপি করুন। কভারেজ গেট (`npm run test:coverage`) ≥60% স্টেটমেন্ট/লাইন/ফাংশন/ব্রাঞ্চ নিশ্চিত করে — ত্রুটির পাথগুলো অবশ্যই কভার করতে হবে।
+নতুন কোনো route বা executor যোগ করার সময় এই file থেকে assertion pattern-টি অনুলিপি করুন। Coverage gate (`npm run test:coverage`) statements/lines/functions/branches-এর জন্য ≥60% নিশ্চিত করে — error path-গুলো অবশ্যই কভার করতে হবে।
+
+### Static gate: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` কোনো raw caught error (`err.message` / `err.stack`) অথবা raw upstream `body.error.message` client-facing body-তে পৌঁছাচ্ছে কি না, তা খুঁজতে `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` এবং প্রতিটি `src/app/api/**/route.ts` scan করে।
+
+**Trust call-scoped, কখনোই file-scoped নয়** (G-03, #15159)। আগে gate কোনো `utils/error` path থেকে যেকোনো import দেখামাত্র সম্পূর্ণ file skip করত — অর্থাৎ call-scoped ঝুঁকির ক্ষেত্রে file-scoped ছাড় প্রয়োগ করা হতো। একটি সঠিক `import { sanitizeErrorMessage }` file-টির অন্য প্রতিটি sink-কে স্থায়ীভাবে ছাড় দিত, আর এভাবেই একটি সক্রিয় leak যাচাইয়ে উত্তীর্ণ হয়ে প্রকাশিত হয়েছিল। এখন কোনো line কেবল তখনই trusted হয়, যখন সেটি বাস্তবেই অনুমোদিত builder বা sanitizer-এর মধ্য দিয়ে যায়:
+
+| Line-এর গঠন                                                                                                    | Trusted?           |
+| -------------------------------------------------------------------------------------------------------------- | ------------------ |
+| `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / … call করে         | হ্যাঁ              |
+| `open-sse/utils/error` বা `src/lib/api/errorResponse` থেকে **এই file-এ import করা** canonical builder call করে | হ্যাঁ              |
+| অনুমোদিত builder **multi-line**-এ call করা হয়, ফলে `message:` field পরের কোনো line-এ থাকে                     | হ্যাঁ              |
+| file-local `function errorResponse(...)` call করে, যার নিজস্ব body sanitize করে                                | হ্যাঁ              |
+| অন্য যেকোনো স্থানে `err.message` / `err.stack` forward করে                                                     | **না — violation** |
+
+দুটি গুরুত্বপূর্ণ ফলাফল:
+
+- `errorResponse` import করলেই সামগ্রিকভাবে trust পাওয়া যায় না। নিজস্ব `errorResponse` সংজ্ঞায়িত করে এমন file-ও call site-এ flagged হবে, কারণ gate file অনুযায়ী নয়, symbol অনুযায়ী trust নির্ধারণ করে। `createErrorResponse`-এর ক্ষেত্রেও একই নিয়ম প্রযোজ্য।
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))`-এর পরে `error: body.error.message` ব্যবহার করা হলো `*-fetch.ts` executor-গুলোজুড়ে ব্যবহৃত **sanitized** idiom এবং এটি flagged হয় না।
+
+অনুমোদিত builder module দুটিই গণ্য হয়: `open-sse/utils/error.ts` এবং `src/lib/api/errorResponse.ts`। দ্বিতীয়টি `open-sse`-এর বাইরের প্রায় 54টি route handler ব্যবহার করে এবং এটি নিজের দুটি export-ই sanitize করে।
+
+নিচের দুটি গঠন **violation নয়**, যদিও gate একসময় দুটিকেই leak হিসেবে report করত:
+
+- একটি **audit row**-এর ভেতরে raw error — `saveCallLog({ error: err.message })`, `logToolCall(...)`, অথবা এমন logger যা প্রথমে message নেয় (`log.error("BATCHES", "sweep failed", { error: err.message })`)। পরবর্তী line-গুলোতে থাকা client-facing response সহজেই একটি static `buildErrorBody` হতে পারে।
+- একটি **multi-line** অনুমোদিত builder call, যেখানে `message:` field-এ কোনো builder-এর নামই নেই:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` আগে থেকে থাকা violation-গুলো freeze করে, যাতে gate শুধু _নতুন_ violation block করে। কোনো violation ঠিক হয়ে গেলে `assertNoStale` স্বয়ংক্রিয়ভাবে তার entry বাদ দেয়, ফলে freeze-টি স্থায়ীভাবে জমাট বাঁধতে পারে না। Regression guard: `tests/unit/check-error-helper.test.ts` এবং `tests/unit/check-error-helper-call-scope.test.ts`।
 
 ## সম্পর্কিত নিয়ন্ত্রণসমূহ
 

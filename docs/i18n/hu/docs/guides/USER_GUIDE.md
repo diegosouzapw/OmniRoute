@@ -120,7 +120,7 @@ Elérés ezeken keresztül: WhatsApp, Telegram, Slack, Discord, iMessage, Signal
 
 ## 📖 Szolgáltatók beállítása
 
-API-kulcsos kapcsolatok CSV- vagy JSON-fájlból történő tömeges hozzáadásához használja az **Irányítópult → Szolgáltatók → Importálás fájlból** lehetőséget. Az oszlopok pozícióhoz kötöttek (`provider,name,apiKey,baseUrl,priority`); a `provider` értékének már létező felügyelt szolgáltatónak vagy kompatibilis csomópontnak kell lennie. Lásd: [Szolgáltatók importálása CSV- vagy JSON-fájlból](../providers/CSV-IMPORT.md).
+API-kulcsos kapcsolatok CSV- vagy JSON-fájlból történő tömeges hozzáadásához használja az **Irányítópult → Szolgáltatók → Importálás fájlból** lehetőséget. Az oszlopok sorrendje kötött (`provider,name,apiKey,baseUrl,priority`); a `provider` értékének már létező felügyelt szolgáltatónak vagy kompatibilis csomópontnak kell lennie. Lásd: [Szolgáltatók importálása CSV- vagy JSON-fájlból](../providers/CSV-IMPORT.md).
 
 ### 🔐 Előfizetéses szolgáltatók
 
@@ -128,7 +128,7 @@ API-kulcsos kapcsolatok CSV- vagy JSON-fájlból történő tömeges hozzáadás
 
 ```bash
 Irányítópult → Szolgáltatók → Claude Code csatlakoztatása
-→ OAuth-bejelentkezés → Automatikus tokenfrissítés
+→ OAuth-bejelentkezés → Token automatikus frissítése
 → 5 órás és heti kvótakövetés
 
 Modellek:
@@ -137,9 +137,13 @@ Modellek:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Profi tipp:** Összetett feladatokhoz használja az Opust, nagyobb sebességhez pedig a Sonnetet. Az OmniRoute modellenként követi a kvótát!
+**Profi tipp:** Összetett feladatokhoz használja az Opust, a gyorsasághoz pedig a Sonnetet. Az OmniRoute modellenként követi a kvótát!
 
-A Claude-dal és Claude Code-dal kompatibilis útvonalak megőrzik a `max` gondolkodási ráfordítást az Opus és Sonnet modelleknél. A Haiku modellek nem fogadják el a `max` ráfordítási szintet, ezért az OmniRoute a kérés upstream szolgáltatónak történő elküldése előtt magas gondolkodási keretre csökkenti azt.
+Nincs böngésző az OmniRoute-gazdagépen? Futtassa a `claude setup-token` parancsot bárhol, ahol be van jelentkezve a Claude Code-ba, majd illessze be az egy évig érvényes tokent a **Beállítási token** lapon. Lásd: [A Claude Code használata beállítási tokennel](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+A Claude- és Claude Code-kompatibilis útvonalak megőrzik a `max` gondolkodási erőfeszítési szintet az Opus és Sonnet
+modelleknél. A Haiku modellek nem fogadják el a `max` erőfeszítési szintet, ezért az OmniRoute
+a kérés továbbítása előtt magas gondolkodási keretre csökkenti azt.
 
 #### OpenAI Codex (Plus/Pro)
 
@@ -174,41 +178,43 @@ Modellek:
 
 #### GLM-4.7 (Napi visszaállítás, $0.6/1M)
 
-1. Regisztráció: [Zhipu AI](https://open.bigmodel.cn)
+1. Regisztráljon: [Zhipu AI](https://open.bigmodel.cn)
 2. Szerezze be az API-kulcsot a Coding Planből
 3. Irányítópult → API-kulcs hozzáadása: Szolgáltató: `glm`, API-kulcs: `your-key`
 
-**Használat:** `glm/glm-4.7` — **Profi tipp:** A Coding Plan háromszoros kvótát kínál a költség hetedéért! Naponta 10:00-kor áll vissza.
+**Használat:** `glm/glm-4.7` — **Profi tipp:** A Coding Plan háromszoros kvótát kínál hetedannyi költségért! Naponta délelőtt 10:00-kor áll vissza.
 
 #### MiniMax M2.1 (5 órás visszaállítás, $0.20/1M)
 
-1. Regisztráció: [MiniMax](https://www.minimax.io)
+1. Regisztráljon: [MiniMax](https://www.minimax.io)
 2. Szerezze be az API-kulcsot → Irányítópult → API-kulcs hozzáadása
 
 **Használat:** `minimax/MiniMax-M2.1` — **Profi tipp:** A legolcsóbb lehetőség hosszú kontextushoz (1M token)!
 
-#### Kimi K2 (fix $9/hónap)
+#### Kimi K2 (Fix $9/hónap)
 
-1. Előfizetés: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
+1. Fizessen elő: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. Szerezze be az API-kulcsot → Irányítópult → API-kulcs hozzáadása
 
 **Használat:** `kimi/kimi-k2.5` — **Profi tipp:** Fix $9/hónap 10M tokenért = ténylegesen $0.90/1M költség!
 
 #### Baidu Qianfan / ERNIE
 
-1. Regisztráció: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
+1. Regisztráljon: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
 2. Hozzon létre egy Qianfan API-kulcsot → Irányítópult → API-kulcs hozzáadása: Szolgáltató: `qianfan`
 
 **Használat:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` vagy egy másik, OpenAI-kompatibilis Qianfan-modellazonosító.
 
 ### 🆓 INGYENES szolgáltatók
 
-A hitelesítést nem igénylő ingyenes szolgáltatók oldalán egy kapcsoló található a **Nincs szükség hitelesítésre** lehetőség mellett. Kikapcsolása letiltja az adott szolgáltatót, eltávolítja azt a Szolgáltatók konfigurált/tömörített nézeteiből, a modelljeit pedig eltávolítja a `/v1/models` útvonalról.
+A hitelesítést nem igénylő ingyenes szolgáltatók oldalán egy kapcsoló található a **Nincs szükség hitelesítésre** lehetőség mellett.
+A kikapcsolása letiltja az adott szolgáltatót, eltávolítja azt a Szolgáltatók konfigurált/tömörített nézeteiből, valamint
+eltávolítja a modelljeit a `/v1/models` végpontról.
 
 #### Qoder (9 INGYENES modell)
 
 ```bash
-Irányítópult → Qoder csatlakoztatása → OAuth-bejelentkezés → A hozzáférésre a szolgáltató aktuális korlátai vonatkoznak
+Irányítópult → Qoder csatlakoztatása → OAuth-bejelentkezés → A hozzáférésre a szolgáltató aktuális korlátozásai vonatkoznak
 
 Modellek: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```

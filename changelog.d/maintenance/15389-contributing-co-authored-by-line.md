@@ -1,0 +1,1 @@
+- **docs(contributing):** align the Co-Authored-By checklist line with Hard Rule #16 so reused human work keeps its standard credit ([#15389](https://github.com/diegosouzapw/OmniRoute/pull/15389)) — thanks @maxmad64bis

@@ -18,10 +18,14 @@ import { resolveProviderId } from "../../../src/shared/constants/providers.ts";
 
 const RESET_AWARE_SESSION_WINDOW_MS = 5 * 60 * 60 * 1000;
 const RESET_AWARE_WEEKLY_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+const RESET_AWARE_MONTHLY_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 const RESET_AWARE_SESSION_REMAINING_WEIGHT = 0.45;
 const RESET_AWARE_SESSION_RESET_PRESSURE_WEIGHT = 0.55;
 const RESET_AWARE_WEEKLY_REMAINING_WEIGHT = 0.25;
 const RESET_AWARE_WEEKLY_RESET_PRESSURE_WEIGHT = 0.75;
+const RESET_AWARE_MONTHLY_WEIGHT = 0.25;
+const RESET_AWARE_MONTHLY_REMAINING_WEIGHT = 0.25;
+const RESET_AWARE_MONTHLY_RESET_PRESSURE_WEIGHT = 0.75;
 const RESET_AWARE_DEFAULTS = {
   sessionWeight: 0.35,
   weeklyWeight: 0.65,
@@ -314,9 +318,8 @@ function scoreQuotaWindow(
 }
 
 /**
- * Fraction of each window still available, 0-1, with the same fallbacks the
- * score uses: a missing window reads the snapshot-wide percentUsed, and a
- * snapshot with no usable number at all reads as half spent.
+ * Session and weekly windows use the same fallback as the score when absent.
+ * Monthly quota participates only when its window is present.
  *
  * Shared by the score and the leftover percent on purpose. If the two ever
  * resolved a window differently, an account could land in one pool while
@@ -326,11 +329,16 @@ function resolveWindowRemaining(quota: Record<string, unknown>) {
   const overallPercentUsed = clamp01(finiteNumberOrNull(quota.percentUsed) ?? 0.5);
   const sessionWindow = resolveQuotaWindowByName(quota, "session");
   const weeklyWindow = resolveQuotaWindowByName(quota, "weekly");
+  const monthlyWindow = resolveQuotaWindowByName(quota, "monthly");
   return {
     sessionWindow,
     weeklyWindow,
+    monthlyWindow,
     sessionRemaining: clamp01(1 - (sessionWindow?.percentUsed ?? overallPercentUsed)),
     weeklyRemaining: clamp01(1 - (weeklyWindow?.percentUsed ?? overallPercentUsed)),
+    monthlyRemaining: monthlyWindow
+      ? clamp01(1 - (monthlyWindow.percentUsed ?? overallPercentUsed))
+      : null,
   };
 }
 
@@ -341,8 +349,14 @@ export function scoreResetAwareQuota(
   if (!quota || !isRecord(quota)) return { score: 0.5 };
   if (quota.limitReached === true) return { score: -Infinity };
 
-  const { sessionWindow, weeklyWindow, sessionRemaining, weeklyRemaining } =
-    resolveWindowRemaining(quota);
+  const {
+    sessionWindow,
+    weeklyWindow,
+    monthlyWindow,
+    sessionRemaining,
+    weeklyRemaining,
+    monthlyRemaining,
+  } = resolveWindowRemaining(quota);
   const sessionScore = scoreQuotaWindow(
     sessionRemaining,
     sessionWindow?.resetAt,
@@ -358,6 +372,16 @@ export function scoreResetAwareQuota(
     RESET_AWARE_WEEKLY_RESET_PRESSURE_WEIGHT
   );
   let score = config.sessionWeight * sessionScore + config.weeklyWeight * weeklyScore;
+  if (monthlyWindow && monthlyRemaining !== null) {
+    const monthlyScore = scoreQuotaWindow(
+      monthlyRemaining,
+      monthlyWindow.resetAt,
+      RESET_AWARE_MONTHLY_WINDOW_MS,
+      RESET_AWARE_MONTHLY_REMAINING_WEIGHT,
+      RESET_AWARE_MONTHLY_RESET_PRESSURE_WEIGHT
+    );
+    score = (1 - RESET_AWARE_MONTHLY_WEIGHT) * score + RESET_AWARE_MONTHLY_WEIGHT * monthlyScore;
+  }
 
   if (config.exhaustionGuard > 0 && sessionRemaining < config.exhaustionGuard) {
     score *= Math.max(0.05, sessionRemaining / config.exhaustionGuard);
@@ -451,8 +475,12 @@ export function scoreExpiryFirstQuota(
 export function getResetAwareRemainingPercent(quota: unknown): number {
   if (!quota || !isRecord(quota)) return 100;
   if (quota.limitReached === true) return 0;
-  const { sessionRemaining, weeklyRemaining } = resolveWindowRemaining(quota);
-  return Number((Math.min(sessionRemaining, weeklyRemaining) * 100).toFixed(6));
+  const { sessionRemaining, weeklyRemaining, monthlyRemaining } = resolveWindowRemaining(quota);
+  const remaining =
+    monthlyRemaining === null
+      ? Math.min(sessionRemaining, weeklyRemaining)
+      : Math.min(sessionRemaining, weeklyRemaining, monthlyRemaining);
+  return Number((remaining * 100).toFixed(6));
 }
 
 /**

@@ -1,0 +1,1 @@
+- **fix(quality):** allowlist the `check-workflows.test.ts` assert reduction (73->67) from #14497's fail-closed refactor - the graceful-fallback asserts were replaced by fail-closed `assert.throws`, verified legitimate, not test masking.

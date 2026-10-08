@@ -179,12 +179,18 @@ function main() {
   const testCap = baseline.testCap;
   const testFrozen = baseline.testFrozen || {};
   const currentTests = collectTestLoc();
+  // PR mode (#8522): base LOC comes from the test collector's files, so a test file that
+  // already drifted on the base is judged against its base size, like a source file.
+  const testBaseLoc =
+    BASE_REF && typeof testCap === "number"
+      ? getBaseLoc(BASE_REF, Object.keys(currentTests))
+      : undefined;
   const {
     violations: testViolations,
     improvements: testImprovements,
     redundant: testRedundant,
   } = typeof testCap === "number"
-    ? evaluateFileSizes(currentTests, testFrozen, testCap, BASE_REF ? baseLoc : undefined)
+    ? evaluateFileSizes(currentTests, testFrozen, testCap, testBaseLoc)
     : { violations: [], improvements: [], redundant: [] };
 
   if (UPDATE) {

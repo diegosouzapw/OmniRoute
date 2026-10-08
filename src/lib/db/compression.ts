@@ -528,6 +528,33 @@ function sanitizeEnginesForWrite(value: unknown): Record<string, EngineToggle> {
   return out;
 }
 
+// Partial engines writes replace the whole JSON row, and the read path turns every id missing
+// from a stored row off. Merge each written entry over the stored entry, field by field. While
+// no usable row exists, merge over `current`, the map the read path derives from legacy settings.
+function mergeEnginesForWrite(
+  db: ReturnType<typeof getDbInstance>,
+  value: unknown,
+  current: Record<string, EngineToggle>
+): Record<string, EngineToggle> {
+  const existingRow = db
+    .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
+    .get(NAMESPACE, "engines") as { value: unknown } | undefined;
+  // getCompressionSettings skips non-text (BLOB) rows, so treat them as absent here too.
+  const stored =
+    typeof existingRow?.value === "string"
+      ? parseStoredEnginesMap(parseJsonSafe(existingRow.value))
+      : null;
+  const base = stored ?? current;
+  const incoming = toRecord(value);
+  const merged: JsonRecord = {};
+  for (const id of ENGINE_IDS) {
+    merged[id] = Object.hasOwn(incoming, id)
+      ? { ...base[id], ...toRecord(incoming[id]) }
+      : base[id];
+  }
+  return sanitizeEnginesForWrite(merged);
+}
+
 // Partial lite writes replace the whole JSON row. Keep a stored cap unless the
 // caller sends maxToolLength: null (clear) or a new in-range integer.
 function mergeLiteSettingsForWrite(
@@ -597,8 +624,9 @@ function parseStoredEnginesMap(value: unknown): Record<string, EngineToggle> | n
 }
 
 // Derive the per-engine toggle map from the legacy compression fields so existing installs keep
-// their behavior before they ever write an `engines` row. Single-engine modes (caveman/rtk/ultra/
-// aggressive) come from their dedicated config blocks; structural engines (lite/headroom/
+// their behavior before they ever write an `engines` row. Single-engine modes (caveman/rtk/ultra)
+// come from their dedicated config blocks; aggressive has no enabled signal in its config and only
+// turns on via the `defaultMode` fallback below. Structural engines (lite/headroom/
 // session-dedup/ccr/llmlingua) come from the default-combo pipeline. `defaultMode` is a last-resort
 // signal that turns on its single-mode engine when nothing else already did.
 function deriveEnginesMap(config: CompressionConfig): Record<string, EngineToggle> {
@@ -633,7 +661,9 @@ function deriveEnginesMap(config: CompressionConfig): Record<string, EngineToggl
         enabled = config.ultra?.enabled === true;
         break;
       case "aggressive":
-        enabled = aggressiveEnabled(config.aggressive);
+        // No enabled signal: `normalizeAggressiveConfig` never emits one, so aggressive is off
+        // here even though the default combo may include it (dispatch reads the combo directly
+        // on the legacy path). Only the defaultMode fallback below turns it on in this map.
         break;
       default:
         // Structural engines (lite/headroom/session-dedup/ccr/llmlingua): on when present in the
@@ -654,12 +684,6 @@ function deriveEnginesMap(config: CompressionConfig): Record<string, EngineToggl
   return engines;
 }
 
-// `aggressive` config doesn't carry a top-level `enabled` flag in its type, but legacy installs may
-// have stored one. Read it defensively for the derived engines map.
-function aggressiveEnabled(value: AggressiveConfig | undefined): boolean {
-  return toRecord(value).enabled === true;
-}
-
 export async function getCompressionSettings(): Promise<CompressionConfig> {
   const db = getDbInstance();
   if (
@@ -672,6 +696,15 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
   compressionSettingsCache = null;
 
   const rows = db.prepare("SELECT key, value FROM key_value WHERE namespace = ?").all(NAMESPACE);
+
+  // Legacy per-engine rows (aggressiveConfig/ultraConfig/headroomConfig) share their read case
+  // with the current keys. When both rows exist the current key must win, regardless of the
+  // order the storage engine happens to return them in. Presence, not usability: a corrupt
+  // current row (BLOB/unparseable JSON) also suppresses the legacy row — the engine resets to
+  // defaults and the corruption warn below is the operator's signal to re-save.
+  const rowKeys = new Set(
+    rows.map((row) => toRecord(row).key).filter((key): key is string => typeof key === "string")
+  );
 
   const config: CompressionConfig = {
     ...DEFAULT_COMPRESSION_CONFIG,
@@ -807,12 +840,20 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
         config.languageConfig = normalizeLanguageConfig(parsed);
         break;
       case "aggressive":
-      case "aggressiveConfig":
         config.aggressive = normalizeAggressiveConfig(parsed);
         break;
+      case "aggressiveConfig":
+        if (!rowKeys.has("aggressive")) {
+          config.aggressive = normalizeAggressiveConfig(parsed);
+        }
+        break;
       case "ultra":
-      case "ultraConfig":
         config.ultra = normalizeUltraConfig(parsed);
+        break;
+      case "ultraConfig":
+        if (!rowKeys.has("ultra")) {
+          config.ultra = normalizeUltraConfig(parsed);
+        }
         break;
       case "lite": {
         const liteRecord = toRecord(parsed);
@@ -824,8 +865,12 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
         break;
       }
       case "headroom":
-      case "headroomConfig":
         config.headroom = normalizeHeadroomConfig(parsed);
+        break;
+      case "headroomConfig":
+        if (!rowKeys.has("headroom")) {
+          config.headroom = normalizeHeadroomConfig(parsed);
+        }
         break;
       case "sessionDedup":
       case "ccr":
@@ -927,6 +972,10 @@ export async function updateCompressionSettings(
   const insert = db.prepare(
     "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)"
   );
+  // The engines map the read path returns now: the merge base for an engines write while no
+  // engines row exists yet.
+  const currentEngines: Record<string, EngineToggle> =
+    updates.engines === undefined ? {} : (await getCompressionSettings()).engines;
 
   const tx = db.transaction(() => {
     for (const [key, value] of Object.entries(updates)) {
@@ -934,7 +983,7 @@ export async function updateCompressionSettings(
       // Persist the engines map as ONE sanitized JSON row so the read path always gets
       // well-formed { enabled, level? } toggles for known engine ids.
       if (key === "engines") {
-        insert.run(NAMESPACE, key, JSON.stringify(sanitizeEnginesForWrite(value)));
+        insert.run(NAMESPACE, key, JSON.stringify(mergeEnginesForWrite(db, value, currentEngines)));
         continue;
       }
       if (key === "lite") {

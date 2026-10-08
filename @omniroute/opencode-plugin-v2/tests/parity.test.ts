@@ -126,7 +126,7 @@ describe("v1-vs-v2 catalog parity", () => {
     const counts = await publishCatalog(draft, TEST_OPTS, { fetcher, combosFetcher });
     assert.equal(counts.models, 5);
     assert.equal(counts.combos, 2);
-    assert.equal(counts.autoCombos, 0);
+    assert.deepEqual(counts, { models: 5, combos: 2 });
 
     // Final converted Record<string, any> shape (legacy→info boundary in
     // src/catalog.ts assignModelFields): api resolves to the
@@ -142,21 +142,24 @@ describe("v1-vs-v2 catalog parity", () => {
 
     // Measured key shapes: v1 namespaces the friendly name
     // (`Combo Fast` -> `omniroute/combo-fast`) and keys the colliding combo
-    // by its raw id (`good-combo` -> `omniroute/good-combo`, combo wins);
-    // v2 publishes combo ids verbatim (`omniroute/combo-fast`,
-    // `omniroute/good-combo` overwriting the raw model). v1 and v2 therefore
-    // publish the SAME model keys (modulo the slashed-id exclusion above)
-    // and the SAME non-colliding combo key; the colliding `good-combo` combo
-    // overwrites the same-named raw model on BOTH sides (warn asserted below).
+    // by its raw id (`good-combo` -> `omniroute/good-combo`, combo wins over
+    // the same-named raw model). v2 publishes combos under their advertised
+    // NAME verbatim (`Combo Fast` -> `omniroute/Combo Fast`,
+    // `Good Combo` -> `omniroute/Good Combo`) — the string GET /v1/models
+    // advertises and POST /v1/chat/completions routes (getComboByName), so
+    // the raw model at `omniroute/good-combo` no longer collides with the
+    // combo and survives alongside it. The raw-model key set is therefore
+    // still identical on both sides; only the combo keys intentionally
+    // diverge (slug vs advertised name).
     const v1Combo = v1Keys.filter((k) => k.startsWith("combo-") || k === "good-combo").sort();
+    const comboNameKeys = new Set(["Combo Fast", "Good Combo"]);
     const v2Combo = [...draft.models.keys()]
       .map(stripX)
-      .filter((k) => k.startsWith("combo-") || k === "good-combo")
+      .filter((k) => comboNameKeys.has(k))
       .sort();
     // slug("Combo Fast") = "combo-fast", slug("Good Combo") = "good-combo".
-    assert.deepEqual(v2Combo, ["combo-fast", "good-combo"]);
     assert.deepEqual(v1Combo, ["combo-fast", "good-combo"]);
-    assert.deepEqual(v2Combo, v1Combo);
+    assert.deepEqual(v2Combo, ["Combo Fast", "Good Combo"]);
     assert.deepEqual(recorded.comboSlugs, ["combo-fast", "good-combo"]);
     const v1Models = v1Keys.filter((k) => !k.startsWith("combo-") && k !== "good-combo").sort();
     // Anchor v1 model keys as literals (modulo the slashed-id exclusion
@@ -165,12 +168,21 @@ describe("v1-vs-v2 catalog parity", () => {
     assert.deepEqual(v1Models, ["local-delta", "m-alpha", "m-beta"]);
     const v2Models = [...draft.models.keys()]
       .map(stripX)
-      .filter((k) => !k.includes("/") && !k.startsWith("combo-") && k !== "good-combo")
+      .filter((k) => !k.includes("/") && !comboNameKeys.has(k))
       .sort();
-    assert.deepEqual(v2Models, v1Models);
+    assert.deepEqual(v2Models, ["good-combo", "local-delta", "m-alpha", "m-beta"]);
+    // Raw-model keys are identical on both sides once the combo keys are
+    // removed: v1's `good-combo` entry is the combo overwriting the raw
+    // model, v2's is the raw model itself (the combo moved to its name key).
+    assert.deepEqual(
+      v2Models,
+      [...v1Models, "good-combo"].sort(),
+      "raw model keys parity modulo the v1 combo overwrite"
+    );
 
-    // Collision: the combo whose friendly name collides with a raw model id
-    // wins on both sides (v1 warns via injected logger, v2 via console.warn).
+    // Under v2 the combo is published under its advertised name and the
+    // same-id raw model survives untouched; the accidental-collision class
+    // the v1 warn was written for no longer exists (no warn expected).
     const warns: string[] = [];
     const origWarn = console.warn;
     console.warn = (...args: unknown[]) => {
@@ -179,11 +191,15 @@ describe("v1-vs-v2 catalog parity", () => {
     try {
       const draft2 = fakeDraft();
       await publishCatalog(draft2, TEST_OPTS, { fetcher, combosFetcher });
-      assert.ok(draft2.models.has("omniroute/good-combo"), "colliding combo key wins in v2");
+      assert.ok(draft2.models.has("omniroute/Good Combo"), "combo keyed by its name in v2");
+      assert.ok(
+        draft2.models.has("omniroute/good-combo"),
+        "raw model keeps its id key alongside the combo"
+      );
     } finally {
       console.warn = origWarn;
     }
-    assert.ok(warns.some((w) => w.includes("collides with a model id; combo wins")));
+    assert.ok(!warns.some((w) => w.includes("collides with a model id")));
 
     // Mapper-level parity for the slashed-id exclusion: v1 and shared mappers
     // must produce identical ModelV2 payloads for every fixture entry.
@@ -217,11 +233,26 @@ describe("v1-vs-v2 catalog parity", () => {
         .filter((s) => s?.kind !== "combo-ref" && typeof s?.model === "string")
         .map((s) => byId.get(s.model as string))
         .filter((m): m is OmniRouteRawModelEntry => m !== undefined);
-      assert.deepEqual(
-        JSON.parse(JSON.stringify(sharedMapCombo(combo, members, "omniroute", TEST_OPTS.baseURL))),
-        recorded.mappedCombos[combo.id],
-        `combo mapper parity for ${combo.id}`
+      const viaSharedFull = sharedMapCombo(combo, members, "omniroute", TEST_OPTS.baseURL);
+      const expected = recorded.mappedCombos[combo.id];
+      assert.ok(expected, `v1 output recorded for ${combo.id}`);
+      // The combo mapper now publishes `id: combo.name` (the advertised name
+      // GET /v1/models routes — see combos-map.ts comment); v1 used the slug
+      // of the name (`combo-fast`/`good-combo`). Strip `id` before comparing
+      // so the payload parity stays focused on capabilities/limits/api.
+      const viaShared = JSON.parse(JSON.stringify({ ...viaSharedFull, providerID: undefined }));
+      const exp = JSON.parse(JSON.stringify({ ...(expected as object), providerID: undefined }));
+      const sharedId: string = viaSharedFull.id;
+      const expectedId: string = (expected as { id: string }).id;
+      assert.equal(
+        sharedId,
+        combo.name ?? combo.id,
+        `combo advertised id is its name for ${combo.id}`
       );
+      delete (viaShared as { id?: unknown }).id;
+      delete (exp as { id?: unknown }).id;
+      assert.deepEqual(viaShared, exp, `combo mapper parity (minus id) for ${combo.id}`);
+      assert.notEqual(sharedId, expectedId, `v1-vs-v2 id divergence documented for ${combo.id}`);
     }
   });
 

@@ -10,7 +10,12 @@ import {
   isAutoLearnGloballyEnabled,
 } from "@/lib/db/paramFilters";
 import { HTTP_STATUS } from "../../config/constants.ts";
-import { findOffendingField, detectUnsupportedParam } from "../../config/providerFieldStrips.ts";
+import {
+  findOffendingField,
+  detectUnsupportedParam,
+  isUnsupportedThinkingError,
+  REASONING_REQUEST_FIELDS,
+} from "../../config/providerFieldStrips.ts";
 
 type FieldDowngradeLog = {
   debug?: (tag: string, message: string) => void;
@@ -69,6 +74,34 @@ async function applyAutoLearnRecovery(
   return response;
 }
 
+/**
+ * Some upstreams (Ollama for Instruct-only models such as Qwen3-Coder) reject thinking by
+ * naming the MODEL, not the field. Drop every top-level reasoning field the body carries
+ * and retry once; null when no such field is present (e.g. Gemini's nested
+ * generationConfig.thinkingConfig), so the caller falls through to auto-learn.
+ */
+async function applyThinkingUnsupportedRecovery(
+  params: FieldDowngradeParams,
+  record: Record<string, unknown>,
+  errText: string
+): Promise<Response | null> {
+  const { url, model, body, fetchOptions, fetchFn, serializeBody, strippedFields, log } = params;
+  const thinkingFields = REASONING_REQUEST_FIELDS.filter(
+    (field) => !strippedFields.has(field) && record[field] !== undefined
+  );
+  if (thinkingFields.length === 0 || !isUnsupportedThinkingError(errText)) return null;
+  for (const field of thinkingFields) {
+    strippedFields.add(field);
+    delete record[field];
+  }
+  const retryBody = await serializeBody(body);
+  log?.info?.(
+    "THINKING_UNSUPPORTED",
+    `Upstream 400: ${model} has no thinking mode on ${url} — retrying without ${thinkingFields.join(", ")}`
+  );
+  return fetchFn(url, { ...fetchOptions, body: retryBody });
+}
+
 /** Returns the response to use going forward (the retry's when one was issued). */
 export async function applyFieldDowngradeRecovery(params: FieldDowngradeParams): Promise<Response> {
   const { url, fetchOptions, fetchFn, serializeBody, strippedFields, log } = params;
@@ -90,5 +123,7 @@ export async function applyFieldDowngradeRecovery(params: FieldDowngradeParams):
     log?.debug?.("FIELD_400", `Upstream 400 rejected ${offending} on ${url} — retrying without it`);
     return fetchFn(url, { ...fetchOptions, body: retryBody });
   }
+  const thinkingRetry = await applyThinkingUnsupportedRecovery(params, record, errText);
+  if (thinkingRetry) return thinkingRetry;
   return (await applyAutoLearnRecovery(params, record, errText)) ?? response;
 }

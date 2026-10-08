@@ -71,7 +71,7 @@ export async function POST(request, { params }) {
   if (isValidationFailure(validation)) {
     return NextResponse.json({ error: validation.error }, { status: 400 });
   }
-  const { baseUrl, model, models, modelLabels } = validation.data;
+  const { baseUrl, model, models, modelLabels, catalog } = validation.data;
   // (#523) Extract keyId BEFORE validation — Zod strips unknown fields!
   const apiKeyId = typeof rawBody?.keyId === "string" ? rawBody.keyId.trim() : null;
   // If no keyId provided, auto-create a valid DB-backed key instead of using placeholder
@@ -95,7 +95,7 @@ export async function POST(request, { params }) {
       case "opencode":
         // (#524) OpenCode config was never saved because only 'continue' was handled here.
         // OpenCode reads opencode.jsonc/opencode.json — update the active native config.
-        return await saveOpenCodeConfig({ baseUrl, apiKey, model, models, modelLabels });
+        return await saveOpenCodeConfig({ baseUrl, apiKey, model, models, modelLabels, catalog });
       case "hermes":
         return await saveHermesConfig({ baseUrl, apiKey, model });
       // hermes-agent now uses the dedicated /api/cli-tools/hermes-agent-settings endpoint
@@ -197,7 +197,7 @@ async function saveContinueConfig({ baseUrl, apiKey, model }) {
  *
  * (#524) OpenCode was silently failing because this handler was missing.
  */
-async function saveOpenCodeConfig({ baseUrl, apiKey, model, models, modelLabels }) {
+async function saveOpenCodeConfig({ baseUrl, apiKey, model, models, modelLabels, catalog }) {
   const configPath = getOpenCodeConfigPath();
   const configDir = path.dirname(configPath);
 
@@ -223,6 +223,7 @@ async function saveOpenCodeConfig({ baseUrl, apiKey, model, models, modelLabels 
     model,
     models,
     modelLabels,
+    catalog,
   });
 
   await fs.writeFile(configPath, nextConfigText, "utf-8");

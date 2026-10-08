@@ -139,13 +139,47 @@ const safe = String(err).split("\n")[0];
 
 Το `tests/unit/error-message-sanitization.test.ts` επιβάλλει τα εξής:
 
-- Κάθε διαδρομή κάτω από το `/api/model-combo-mappings/*` επιστρέφει εξυγιασμένα σώματα στις αποκρίσεις 4xx/5xx.
-- Το `sanitizeErrorMessage` αφαιρεί ίχνη στοίβας πολλαπλών γραμμών.
-- Το `sanitizeErrorMessage` αντικαθιστά απόλυτες διαδρομές POSIX και Windows με `<path>`.
-- Το `sanitizeErrorMessage` χειρίζεται με ασφάλεια εισόδους `null`/`undefined`/στιγμιοτύπων `Error`.
-- Το `buildErrorBody` δεν εκθέτει ποτέ ίχνη στοίβας στο πεδίο `message`.
+- Κάθε route κάτω από το `/api/model-combo-mappings/*` επιστρέφει εξυγιασμένα σώματα αποκρίσεων για 4xx/5xx.
+- Η `sanitizeErrorMessage` αφαιρεί ίχνη στοίβας πολλαπλών γραμμών.
+- Η `sanitizeErrorMessage` αντικαθιστά τις απόλυτες διαδρομές POSIX και Windows με `<path>`.
+- Η `sanitizeErrorMessage` χειρίζεται με ασφάλεια εισόδους `null`/`undefined`/στιγμιότυπα `Error`.
+- Η `buildErrorBody` δεν εκθέτει ποτέ ίχνη στοίβας στο πεδίο `message`.
 
-Όταν προσθέτετε μια νέα διαδρομή ή έναν νέο εκτελεστή, αντιγράψτε το μοτίβο ελέγχου από αυτό το αρχείο. Η πύλη κάλυψης (`npm run test:coverage`) επιβάλλει ≥60% σε εντολές/γραμμές/συναρτήσεις/διακλαδώσεις — οι διαδρομές σφάλματος πρέπει να καλύπτονται.
+Όταν προσθέτετε ένα νέο route ή executor, αντιγράψτε το μοτίβο assertion από αυτό το αρχείο. Η πύλη κάλυψης (`npm run test:coverage`) επιβάλλει ≥60% σε statements/lines/functions/branches — οι διαδρομές σφάλματος πρέπει να καλύπτονται.
+
+### Η στατική πύλη: `npm run check:error-helper`
+
+Το `scripts/check/check-error-helper.mjs` σαρώνει τα `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` και κάθε `src/app/api/**/route.ts` για ένα μη επεξεργασμένο σφάλμα που έχει συλληφθεί (`err.message` / `err.stack`) ή ένα μη επεξεργασμένο upstream `body.error.message` που καταλήγει σε σώμα απόκρισης προς τον πελάτη.
+
+**Η εμπιστοσύνη έχει εμβέλεια κλήσης, ποτέ αρχείου** (G-03, #15159). Η πύλη παρέλειπε παλαιότερα ένα ολόκληρο αρχείο μόλις εντόπιζε οποιοδήποτε import από διαδρομή `utils/error` — μια εξαίρεση εμβέλειας αρχείου που εφαρμοζόταν σε κίνδυνο εμβέλειας κλήσης. Ένα σωστό `import { sanitizeErrorMessage }` εξαιρούσε μόνιμα κάθε άλλο σημείο εξόδου στο αρχείο, και έτσι μια πραγματική διαρροή πέρασε επιτυχώς τους ελέγχους. Πλέον, μια γραμμή θεωρείται αξιόπιστη μόνο όταν δρομολογείται πράγματι μέσω εγκεκριμένου builder ή sanitizer:
+
+| Μορφή γραμμής                                                                                                       | Αξιόπιστη;          |
+| ------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| καλεί `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …                 | ναι                 |
+| καλεί έναν κανονικό builder **που αυτό το αρχείο εισάγει** από `open-sse/utils/error` ή `src/lib/api/errorResponse` | ναι                 |
+| ένας εγκεκριμένος builder καλείται σε **πολλαπλές γραμμές**, οπότε το πεδίο `message:` βρίσκεται σε επόμενη γραμμή  | ναι                 |
+| καλεί μια τοπική στο αρχείο `function errorResponse(...)`, της οποίας το σώμα πραγματοποιεί εξυγίανση               | ναι                 |
+| προωθεί `err.message` / `err.stack` οπουδήποτε αλλού                                                                | **όχι — παραβίαση** |
+
+Δύο συνέπειες που αξίζει να γνωρίζετε:
+
+- Η εισαγωγή της `errorResponse` _δεν_ συνεπάγεται καθολική εμπιστοσύνη. Ένα αρχείο που ορίζει τη δική του `errorResponse` εξακολουθεί να επισημαίνεται στο σημείο κλήσης, επειδή η πύλη επιλύει την εμπιστοσύνη ανά σύμβολο και όχι ανά αρχείο. Το ίδιο ισχύει για τη `createErrorResponse`.
+- Το `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` ακολουθούμενο από `error: body.error.message` είναι το **εξυγιασμένο** ιδίωμα που χρησιμοποιείται σε όλους τους executors `*-fetch.ts` και δεν επισημαίνεται.
+
+Και τα δύο εγκεκριμένα modules builder λαμβάνονται υπόψη: `open-sse/utils/error.ts` και `src/lib/api/errorResponse.ts`. Το δεύτερο είναι αυτό που χρησιμοποιούν οι ~54 route handlers εκτός του `open-sse` και εξυγιαίνει και τα δύο exports του.
+
+Δύο μορφές που **δεν** αποτελούν παραβιάσεις, παρότι κάποτε η πύλη τις ανέφερε ως διαρροές:
+
+- ένα μη επεξεργασμένο σφάλμα μέσα σε μια **εγγραφή ελέγχου** — `saveCallLog({ error: err.message })`, `logToolCall(...)` ή ένας logger που δέχεται πρώτα ένα μήνυμα (`log.error("BATCHES", "sweep failed", { error: err.message })`). Η απόκριση προς τον πελάτη στις επόμενες γραμμές μπορεί κάλλιστα να είναι ένα στατικό `buildErrorBody`.
+- μια **πολλαπλών γραμμών** κλήση εγκεκριμένου builder, όπου το πεδίο `message:` δεν αναφέρει κανέναν builder:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+Το `KNOWN_MISSING_ERROR_HELPER` παγώνει τις προϋπάρχουσες παραβιάσεις, ώστε η πύλη να αποκλείει μόνο τις _νέες_. Η `assertNoStale` αφαιρεί αυτόματα μια καταχώριση μόλις διορθωθεί η παραβίασή της, ώστε το πάγωμα να μην παγιωθεί. Έλεγχοι προστασίας από παλινδρόμηση: `tests/unit/check-error-helper.test.ts` και `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Σχετικοί έλεγχοι
 

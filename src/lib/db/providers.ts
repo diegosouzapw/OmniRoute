@@ -14,7 +14,7 @@ import {
 } from "./encryption";
 import { createLazyRowProxy } from "./providers/lazyConnectionView";
 import { invalidateDbCache, getCachedRawProviderConnections } from "./readCache";
-import { invalidateConnectionUpdate } from "./readCache";
+import { invalidateConnectionUpdate, type UpdateOpts } from "./readCache";
 import { reorderConnections } from "./providers/deletion";
 import {
   removeConnectionHealth,
@@ -1007,7 +1007,7 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
   ).run(_buildUpdateConnectionRowParams(id, data, now));
 }
 
-export async function updateProviderConnection(id: string, data: JsonRecord) {
+export async function updateProviderConnection(id: string, data: JsonRecord, opts?: UpdateOpts) {
   const db = getDbInstance() as unknown as DbLike;
   const existing = db.prepare("SELECT * FROM provider_connections WHERE id = ?").get(id);
   if (!existing) return null;
@@ -1066,16 +1066,19 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
     _updateConnectionRow(db, id, encryptConnectionFields({ ...merged }));
   })();
   backupDbFile("pre-write");
-  invalidateConnectionUpdate(id, data);
+  invalidateConnectionUpdate(id, data, opts);
   bumpProxyConfigGeneration();
 
-  if (data.priority !== undefined) {
+  // Zero is the internal move-to-top sentinel. Explicit positive priorities
+  // are operator-selected values, not ranks to compact after every edit.
+  if (data.priority === 0) {
     const existingRecord = toRecord(existing);
     const providerId =
       typeof existingRecord.provider === "string"
         ? existingRecord.provider
         : String(existingRecord.provider || "");
     reorderConnections(db, providerId);
+    return getProviderConnectionById(id);
   }
 
   const returnedConnection = withNullableRateLimitOverrides(

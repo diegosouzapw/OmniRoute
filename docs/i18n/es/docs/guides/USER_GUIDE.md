@@ -120,7 +120,7 @@ Acceso mediante: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ## 📖 Configuración de proveedores
 
-Para añadir en bloque conexiones con claves de API desde un archivo CSV o JSON, usa **Panel de control → Proveedores → Importar desde un archivo**. Las columnas son posicionales (`provider,name,apiKey,baseUrl,priority`); `provider` ya debe existir como proveedor administrado o nodo compatible. Consulta [Importar proveedores desde un archivo CSV o JSON](../providers/CSV-IMPORT.md).
+Para añadir en bloque conexiones con claves de API desde un archivo CSV o JSON, usa **Panel de control → Proveedores → Importar desde archivo**. Las columnas son posicionales (`provider,name,apiKey,baseUrl,priority`); `provider` ya debe existir como proveedor administrado o nodo compatible. Consulta [Importar proveedores desde un archivo CSV o JSON](../providers/CSV-IMPORT.md).
 
 ### 🔐 Proveedores por suscripción
 
@@ -128,8 +128,8 @@ Para añadir en bloque conexiones con claves de API desde un archivo CSV o JSON,
 
 ```bash
 Panel de control → Proveedores → Conectar Claude Code
-→ Inicio de sesión mediante OAuth → Renovación automática del token
-→ Seguimiento de cuotas de 5 horas y semanales
+→ Inicio de sesión OAuth → Renovación automática del token
+→ Seguimiento de la cuota de 5 horas y semanal
 
 Modelos:
   cc/claude-opus-4-7
@@ -139,13 +139,15 @@ Modelos:
 
 **Consejo profesional:** Usa Opus para tareas complejas y Sonnet para obtener mayor velocidad. ¡OmniRoute realiza un seguimiento de la cuota por modelo!
 
-Las rutas compatibles con Claude y Claude Code conservan el esfuerzo de razonamiento `max` para los modelos Opus y Sonnet. Los modelos Haiku no admiten el nivel de esfuerzo `max`, por lo que OmniRoute reduce esa solicitud a un presupuesto de razonamiento alto antes de enviarla al proveedor ascendente.
+¿No hay un navegador en el host de OmniRoute? Ejecuta `claude setup-token` en cualquier lugar donde se haya iniciado sesión en Claude Code y pega el token válido durante un año en la pestaña **Token de configuración**. Consulta [Claude Code con un token de configuración](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Las rutas compatibles con Claude y Claude Code conservan el esfuerzo de razonamiento `max` para los modelos Opus y Sonnet. Los modelos Haiku no aceptan el nivel de esfuerzo `max`, por lo que OmniRoute reduce esa solicitud a un presupuesto de razonamiento alto antes de enviarla al proveedor ascendente.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
 Panel de control → Proveedores → Conectar Codex
-→ Inicio de sesión mediante OAuth (puerto 1455)
+→ Inicio de sesión OAuth (puerto 1455)
 → Restablecimiento cada 5 horas y semanal
 
 Modelos:
@@ -178,21 +180,21 @@ Modelos:
 2. Obtén una clave de API del Coding Plan
 3. Panel de control → Añadir clave de API: Proveedor: `glm`, clave de API: `your-key`
 
-**Uso:** `glm/glm-4.7` — **Consejo profesional:** ¡El Coding Plan ofrece una cuota 3 veces mayor por 1/7 del coste! Se restablece diariamente a las 10:00 AM.
+**Uso:** `glm/glm-4.7` — **Consejo profesional:** ¡Coding Plan ofrece una cuota 3 veces mayor por 1/7 del coste! Se restablece diariamente a las 10:00 a. m.
 
 #### MiniMax M2.1 (restablecimiento cada 5 h, $0.20/1M)
 
 1. Regístrate: [MiniMax](https://www.minimax.io)
 2. Obtén una clave de API → Panel de control → Añadir clave de API
 
-**Uso:** `minimax/MiniMax-M2.1` — **Consejo profesional:** ¡La opción más barata para contextos largos (1M de tokens)!
+**Uso:** `minimax/MiniMax-M2.1` — **Consejo profesional:** ¡La opción más económica para contextos largos (1M de tokens)!
 
-#### Kimi K2 ($9/mes, tarifa fija)
+#### Kimi K2 ($9/mes, tarifa plana)
 
 1. Suscríbete: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. Obtén una clave de API → Panel de control → Añadir clave de API
 
-**Uso:** `kimi/kimi-k2.5` — **Consejo profesional:** ¡$9/mes fijos por 10M de tokens equivalen a un coste efectivo de $0.90/1M!
+**Uso:** `kimi/kimi-k2.5` — **Consejo profesional:** ¡La tarifa fija de $9/mes por 10M de tokens equivale a un coste efectivo de $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
@@ -203,12 +205,12 @@ Modelos:
 
 ### 🆓 Proveedores GRATUITOS
 
-Los proveedores gratuitos sin autenticación tienen un interruptor junto a **No se requiere autenticación** en su página de proveedor. Al desactivarlo, se deshabilita ese proveedor, se elimina de las vistas configurada/compacta de Proveedores y sus modelos se eliminan de `/v1/models`.
+Los proveedores gratuitos sin autenticación tienen un interruptor junto a **No se requiere autenticación** en su página de proveedor. Al desactivarlo, se inhabilita ese proveedor, se elimina de las vistas configurada/compacta de Proveedores y se eliminan sus modelos de `/v1/models`.
 
 #### Qoder (9 modelos GRATUITOS)
 
 ```bash
-Panel de control → Conectar Qoder → Inicio de sesión mediante OAuth → El acceso está sujeto a los límites actuales del proveedor
+Panel de control → Conectar Qoder → Inicio de sesión OAuth → El acceso está sujeto a los límites actuales del proveedor
 
 Modelos: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```

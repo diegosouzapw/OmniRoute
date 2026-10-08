@@ -160,6 +160,11 @@ async function dispatchCompression(
   // When the client/settings carry a headroom detail sub-object, thread it so
   // buildStepOptions can merge minRows into the headroom engine stepConfig (#8056).
   const { headroomDetail, headroomStepDetail } = resolveHeadroomDetail(opts.config);
+  // The Aggressive/Ultra engine pages send their form values as config.aggressive /
+  // config.ultra (EngineConfigPage handlePreview) and the engines read
+  // options.config.<engine>, so thread them into the synthesized config like headroom —
+  // otherwise single-engine/pipeline previews silently run on built-in defaults.
+  const sentConfig = (opts.config ?? {}) as Partial<CompressionConfig>;
 
   if (opts.engineId) {
     const q = quantumExtras(opts.quantumLock);
@@ -173,6 +178,8 @@ async function dispatchCompression(
           ),
         ],
         ...(headroomDetail ? { headroom: headroomDetail } : {}),
+        ...(sentConfig.aggressive ? { aggressive: sentConfig.aggressive } : {}),
+        ...(sentConfig.ultra ? { ultra: sentConfig.ultra } : {}),
         ...(opts.fidelityGate ? { fidelityGate: opts.fidelityGate } : {}),
         ...(opts.riskGate ? { riskGate: opts.riskGate } : {}),
         ...q.configPatch,
@@ -188,6 +195,8 @@ async function dispatchCompression(
           buildStep(engine, opts.fuzzyDedup, engine === "headroom" ? headroomStepDetail : undefined)
         ),
         ...(headroomDetail ? { headroom: headroomDetail } : {}),
+        ...(sentConfig.aggressive ? { aggressive: sentConfig.aggressive } : {}),
+        ...(sentConfig.ultra ? { ultra: sentConfig.ultra } : {}),
         ...(opts.fidelityGate ? { fidelityGate: opts.fidelityGate } : {}),
         ...(opts.riskGate ? { riskGate: opts.riskGate } : {}),
         ...q.configPatch,

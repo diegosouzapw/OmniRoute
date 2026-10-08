@@ -125,17 +125,51 @@ const safe = String(err).split("\n")[0];
 
 ❌ Xəta mesajlarına **heç vaxt** qəsdən `process.cwd()`, `__filename`, `__dirname` və ya mühit dəyişənlərindən əldə edilən yolları daxil etməyin. Sanitizator əlavə müdafiə kimi mütləq yolları əhatə edir, lakin çağıran tərəflər ilk növbədə topologiyanı üzə çıxaran mesajlar yaratmamalıdır.
 
-## CI-də əhatə dairəsi
+## CI-də əhatə
 
 `tests/unit/error-message-sanitization.test.ts` aşağıdakıları təmin edir:
 
-- `/api/model-combo-mappings/*` altındakı hər bir marşrut 4xx/5xx hallarında sanitizasiya edilmiş gövdələr qaytarır.
+- `/api/model-combo-mappings/*` altındakı hər marşrut 4xx/5xx cavablarında təmizlənmiş gövdələr qaytarır.
 - `sanitizeErrorMessage` çoxsətirli stek izlərini silir.
 - `sanitizeErrorMessage` POSIX və Windows mütləq yollarını `<path>` ilə əvəz edir.
 - `sanitizeErrorMessage` `null`/`undefined`/`Error` instansiyası girişlərini təhlükəsiz şəkildə emal edir.
 - `buildErrorBody` öz `message` sahəsində stek izlərini heç vaxt ifşa etmir.
 
-Yeni marşrut və ya icraedici əlavə edərkən bu fayldakı təsdiqləmə nümunəsini köçürün. Əhatə həddi (`npm run test:coverage`) ifadələr/sətirlər/funksiyalar/budaqlar üçün ≥60% tələb edir — xəta yolları əhatə edilməlidir.
+Yeni marşrut və ya icraçı əlavə edərkən təsdiqləmə nümunəsini bu fayldan köçürün. Əhatə qapısı (`npm run test:coverage`) ifadələr/sətirlər/funksiyalar/budaqlar üçün ≥60% tələb edir — xəta yolları əhatə edilməlidir.
+
+### Statik qapı: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` faylı `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` qovluqlarını və hər bir `src/app/api/**/route.ts` faylını müştəriyə yönəlmiş gövdəyə çatan xam tutulmuş xəta (`err.message` / `err.stack`) və ya yuxarı axından gələn xam `body.error.message` üçün skan edir.
+
+**Etibar fayl miqyasında deyil, çağırış miqyasındadır** (G-03, #15159). Əvvəllər qapı `utils/error` yolundan istənilən importu görən kimi bütün faylı ötürürdü — çağırış miqyaslı təhlükəyə fayl miqyaslı istisna tətbiq olunurdu. Bir düzgün `import { sanitizeErrorMessage }` fayldakı bütün digər qəbulediciləri daimi olaraq istisna edirdi və canlı sızıntının yoxlamadan keçərək yayımlanması məhz belə baş verdi. İndi sətir yalnız həqiqətən təsdiqlənmiş qurucudan və ya təmizləyicidən keçdikdə etibarlı sayılır:
+
+| Sətirin forması                                                                                                      | Etibarlıdır?       |
+| -------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / … çağırır                | bəli               |
+| bu faylın `open-sse/utils/error` və ya `src/lib/api/errorResponse` modulundan import etdiyi kanonik qurucunu çağırır | bəli               |
+| təsdiqlənmiş qurucu **çoxsətirli** şəkildə çağırılır, buna görə `message:` sahəsi sonrakı sətirdə yerləşir           | bəli               |
+| öz gövdəsi təmizləmə aparan fayl-lokal `function errorResponse(...)` çağırır                                         | bəli               |
+| `err.message` / `err.stack` dəyərini başqa yerə ötürür                                                               | **xeyr — pozuntu** |
+
+Bilməyə dəyər iki nəticə:
+
+- `errorResponse` import etmək ümumi etibar vermir. Öz `errorResponse` funksiyasını təyin edən fayl çağırış yerində yenə işarələnir, çünki qapı etibarı fayl üzrə deyil, simvol üzrə müəyyənləşdirir. Eyni qayda `createErrorResponse` üçün də keçərlidir.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` ifadəsindən sonra `error: body.error.message` istifadəsi `*-fetch.ts` icraçıları boyunca istifadə olunan **təmizlənmiş** idiomdur və işarələnmir.
+
+Hər iki təsdiqlənmiş qurucu modulu nəzərə alınır: `open-sse/utils/error.ts` və `src/lib/api/errorResponse.ts`. İkincisi `open-sse` xaricindəki təxminən 54 marşrut emalçısının istifadə etdiyi moduldur və onun hər iki eksportu təmizlənir.
+
+Aşağıdakı iki forma pozuntu **deyil**, baxmayaraq ki, qapı əvvəllər onların hər ikisini sızıntı kimi bildirirdi:
+
+- **audit sətrindəki** xam xəta — `saveCallLog({ error: err.message })`, `logToolCall(...)` və ya əvvəlcə mesaj qəbul edən loqer (`log.error("BATCHES", "sweep failed", { error: err.message })`). Sonrakı sətirlərdəki müştəriyə yönəlmiş cavab statik `buildErrorBody` ola bilər.
+- `message:` sahəsində heç bir qurucu adı olmayan **çoxsətirli** təsdiqlənmiş qurucu çağırışı:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` əvvəlcədən mövcud pozuntuları dondurur ki, qapı yalnız _yeni_ pozuntuları bloklasın. Pozuntu düzəldildikdən sonra `assertNoStale` müvafiq qeydi avtomatik silir, beləliklə dondurulmuş siyahı daşlaşmır. Reqressiya qoruyucuları: `tests/unit/check-error-helper.test.ts` və `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Əlaqəli nəzarət mexanizmləri
 
