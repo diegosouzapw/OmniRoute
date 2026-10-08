@@ -43,9 +43,11 @@ function completedSse(text: string): Response {
       usage: { input_tokens: 1, output_tokens: 1, total_tokens: 2 },
     },
   };
-  return new Response(`data: ${JSON.stringify(completed)}\n\ndata: [DONE]\n\n`, {
-    headers: { "Content-Type": "text/event-stream" },
-  });
+  const delta = { type: "response.output_text.delta", item_id: "msg_fixture", delta: text };
+  return new Response(
+    `data: ${JSON.stringify(delta)}\n\ndata: ${JSON.stringify(completed)}\n\ndata: [DONE]\n\n`,
+    { headers: { "Content-Type": "text/event-stream" } }
+  );
 }
 
 async function createCodexAccount(name: string, accessToken: string, priority: number) {
