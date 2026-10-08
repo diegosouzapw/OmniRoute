@@ -34,6 +34,7 @@ import {
   type PreMigrationBackupReceipt,
 } from "./migrationRunner/preMigrationBackup";
 import {
+  applyMigrationSkippingExistingColumns,
   detectNameMismatches,
   getPlausiblePendingCount,
   hasColumn,
@@ -1077,6 +1078,7 @@ export function runMigrations(
   for (const migration of pending) {
     if (isDeferredUnsupportedMigration(db, migration)) continue;
 
+    let genericSql: string | null = null;
     const applyMigration = db.transaction(() => {
       if (atomicPhysicalReplays.has(migration.version)) {
         const removed = db
@@ -1102,6 +1104,7 @@ export function runMigrations(
         applyCompressionCombosMigration(db, migration.path);
       } else {
         const sql = fs.readFileSync(migration.path, "utf-8");
+        genericSql = sql;
         db.exec(sql);
       }
       db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
@@ -1120,15 +1123,11 @@ export function runMigrations(
         message.includes("duplicate column name") &&
         !atomicPhysicalReplays.has(migration.version)
       ) {
-        const applyMarkerOnly = db.transaction(() => {
-          db.prepare(
-            "INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)"
-          ).run(migration.version, migration.name);
-        });
-        applyMarkerOnly();
+        const skipped = applyMigrationSkippingExistingColumns(db, migration, genericSql);
         count += 1;
         console.log(
-          `[Migration] Applied (column pre-exists): ${migration.version}_${migration.name}`
+          `[Migration] Applied (column pre-exists): ${migration.version}_${migration.name}` +
+            (skipped.length > 0 ? ` (skipped existing: ${skipped.join(", ")})` : "")
         );
       } else {
         console.error(`[Migration] FAILED: ${migration.version}_${migration.name} — ${message}`);

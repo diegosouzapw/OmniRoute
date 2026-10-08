@@ -139,15 +139,49 @@ construir en primer lugar mensajes que revelen la topología.
 
 ## Cobertura en CI
 
-`tests/unit/error-message-sanitization.test.ts` garantiza:
+`tests/unit/error-message-sanitization.test.ts` garantiza que:
 
-- Cada ruta bajo `/api/model-combo-mappings/*` devuelve cuerpos saneados para respuestas 4xx/5xx.
-- `sanitizeErrorMessage` elimina trazas de pila de varias líneas.
-- `sanitizeErrorMessage` reemplaza rutas absolutas de POSIX y Windows por `<path>`.
-- `sanitizeErrorMessage` gestiona de forma segura entradas `null`/`undefined`/instancias de `Error`.
-- `buildErrorBody` nunca expone trazas de pila en su campo `message`.
+- Cada ruta bajo `/api/model-combo-mappings/*` devuelva cuerpos saneados en respuestas 4xx/5xx.
+- `sanitizeErrorMessage` elimine las trazas de pila multilínea.
+- `sanitizeErrorMessage` sustituya las rutas absolutas de POSIX y Windows por `<path>`.
+- `sanitizeErrorMessage` gestione de forma segura entradas `null`/`undefined`/instancias de `Error`.
+- `buildErrorBody` nunca exponga trazas de pila en su campo `message`.
 
-Al añadir una nueva ruta o ejecutor, copie el patrón de aserciones de este archivo. El umbral de cobertura (`npm run test:coverage`) exige ≥60 % de sentencias/líneas/funciones/ramas; las rutas de error deben estar cubiertas.
+Al añadir una ruta o ejecutor nuevo, copia el patrón de aserciones de este archivo. El umbral de cobertura (`npm run test:coverage`) exige ≥60 % de sentencias/líneas/funciones/ramas; las rutas de error deben estar cubiertas.
+
+### La comprobación estática: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` analiza `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` y cada `src/app/api/**/route.ts` en busca de errores capturados sin sanear (`err.message` / `err.stack`) o de un `body.error.message` ascendente sin sanear que llegue a un cuerpo destinado al cliente.
+
+**La confianza se aplica por llamada, nunca por archivo** (G-03, #15159). Antes, la comprobación omitía un archivo completo en cuanto detectaba cualquier importación desde una ruta `utils/error`: una exención en el ámbito del archivo aplicada a un riesgo en el ámbito de la llamada. Un único `import { sanitizeErrorMessage }` correcto eximía permanentemente a todos los demás puntos de salida del archivo, y así fue como una filtración real llegó a producción pese a superar las comprobaciones. Ahora, una línea solo se considera de confianza cuando realmente pasa por un constructor o saneador autorizado:
+
+| Forma de la línea                                                                                                         | ¿De confianza?     |
+| ------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| llama a `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …                     | sí                 |
+| llama a un constructor canónico **que este archivo importa** desde `open-sse/utils/error` o `src/lib/api/errorResponse`   | sí                 |
+| se llama a un constructor autorizado **en varias líneas**, de modo que el campo `message:` aparece en una línea posterior | sí                 |
+| llama a una `function errorResponse(...)` local del archivo cuyo propio cuerpo sanea                                      | sí                 |
+| reenvía `err.message` / `err.stack` en cualquier otro lugar                                                               | **no: infracción** |
+
+Conviene conocer dos consecuencias:
+
+- Importar `errorResponse` _no_ otorga confianza general. Un archivo que define su propio `errorResponse` sigue siendo marcado en el lugar de la llamada, porque la comprobación determina la confianza por símbolo, no por archivo. Lo mismo se aplica a `createErrorResponse`.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` seguido de `error: body.error.message` es el patrón **saneado** utilizado en los ejecutores `*-fetch.ts` y no se marca.
+
+Ambos módulos de constructores autorizados cuentan: `open-sse/utils/error.ts` y `src/lib/api/errorResponse.ts`. El segundo es el que utilizan los aproximadamente 54 controladores de ruta externos a `open-sse`, y sanea sus dos exportaciones.
+
+Dos formas que **no** constituyen infracciones, aunque la comprobación llegó a señalarlas como filtraciones:
+
+- un error sin sanear dentro de una **fila de auditoría**: `saveCallLog({ error: err.message })`, `logToolCall(...)` o un registrador que recibe primero un mensaje (`log.error("BATCHES", "sweep failed", { error: err.message })`). La respuesta destinada al cliente en las líneas siguientes bien puede ser un `buildErrorBody` estático.
+- una llamada **multilínea** a un constructor autorizado, en la que el campo `message:` no menciona ningún constructor:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` congela las infracciones preexistentes para que la comprobación bloquee solo las _nuevas_. `assertNoStale` elimina automáticamente una entrada cuando se corrige su infracción, por lo que la congelación no puede fosilizarse. Protecciones contra regresiones: `tests/unit/check-error-helper.test.ts` y `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Controles relacionados
 

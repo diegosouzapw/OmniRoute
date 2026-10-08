@@ -292,6 +292,81 @@ function ensureMessageContentArray(msg: ClaudeMessage): ClaudeContentBlock[] {
   return [];
 }
 
+const MAX_CACHE_CONTROL_BLOCKS = 4;
+
+/**
+ * Anthropic rejects `cache_control` nested INSIDE `tool_result.content[]` blocks
+ * ("cache_control may not be specified within 'tool_result.content'. Instead,
+ * place it directly on 'tool_result'"). The nesting only ever appears when a
+ * client (or a prior non-Anthropic leg of a combo) sent markers inside the tool
+ * result payload — never valid for any Anthropic model — so hoist the first
+ * inner marker onto the `tool_result` block itself and strip the rest.
+ */
+export function hoistToolResultCacheControl(body: ClaudeRequestBody): number {
+  let hoisted = 0;
+  if (!Array.isArray(body?.messages)) return hoisted;
+  for (const msg of body.messages) {
+    if (!msg || !Array.isArray(msg.content)) continue;
+    for (const block of msg.content) {
+      if (!block || block.type !== "tool_result" || !Array.isArray(block.content)) continue;
+      let hoistedValue: { type: string; ttl?: string } | undefined;
+      for (const inner of block.content) {
+        if (inner && typeof inner === "object" && inner.cache_control !== undefined) {
+          hoistedValue ??= normalizeCacheControl(inner.cache_control);
+          delete inner.cache_control;
+        }
+      }
+      if (hoistedValue !== undefined && block.cache_control === undefined) {
+        block.cache_control = hoistedValue;
+        hoisted++;
+      }
+    }
+  }
+  return hoisted;
+}
+
+function normalizeCacheControl(value: unknown): { type: string; ttl?: string } {
+  if (value && typeof value === "object") {
+    const v = value as { type?: unknown; ttl?: unknown };
+    return {
+      type: typeof v.type === "string" && v.type ? v.type : "ephemeral",
+      ...(typeof v.ttl === "string" && v.ttl ? { ttl: v.ttl } : {}),
+    };
+  }
+  return { type: "ephemeral" };
+}
+
+/**
+ * Anthropic allows at most 4 `cache_control` blocks per request ("A maximum of
+ * 4 blocks with cache_control may be provided"). Count markers across system
+ * blocks, tools, and message content in request order and remove the EARLIEST
+ * ones beyond the limit — later breakpoints sit deeper in the prefix and cache
+ * more tokens, so the last 4 are the most valuable. Returns the number culled.
+ */
+export function enforceCacheControlBlockLimit(
+  body: ClaudeRequestBody,
+  limit = MAX_CACHE_CONTROL_BLOCKS
+): number {
+  const holders: Array<{ obj: Record<string, unknown> }> = [];
+  const push = (block: unknown) => {
+    if (block && typeof block === "object" && "cache_control" in block) {
+      holders.push({ obj: block as Record<string, unknown> });
+    }
+  };
+  if (Array.isArray(body?.system)) body.system.forEach(push);
+  if (Array.isArray(body?.tools)) body.tools.forEach(push);
+  if (Array.isArray(body?.messages)) {
+    for (const msg of body.messages) {
+      if (Array.isArray(msg?.content)) msg.content.forEach(push);
+    }
+  }
+  const marked = holders.filter((h) => h.obj.cache_control !== undefined);
+  if (marked.length <= limit) return 0;
+  const toRemove = marked.length - limit;
+  for (let i = 0; i < toRemove; i++) delete marked[i].obj.cache_control;
+  return toRemove;
+}
+
 function markMessageCacheControl(msg: ClaudeMessage, ttl?: string): boolean {
   const content = ensureMessageContentArray(msg);
   if (content.length === 0) return false;
@@ -756,6 +831,16 @@ export function prepareClaudeRequest(
         }
       }
     }
+  }
+
+  // Anthropic-API hard rules, applied in every mode (including client-marker
+  // passthrough): cache_control may never live inside tool_result.content[] and
+  // at most 4 blocks may carry cache_control. These are shape requirements of
+  // the upstream API, not caching policy, so preserveCacheControl does not
+  // exempt them (they were the 400 sources on claude 5.x since 2026-09-29).
+  hoistToolResultCacheControl(body);
+  if (supportsPromptCaching) {
+    enforceCacheControlBlockLimit(body);
   }
 
   return body;

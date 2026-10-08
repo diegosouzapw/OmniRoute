@@ -24,9 +24,11 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     // executeProviderRequest(), whose assertManagedLeaseFence(attemptConnectionId) rejects a
     // connection other than the leased one — so it is fenced centrally (class A).
     // #14914 moved that loop (and its credential rollback) into
-    // chatCore/emptyTurnRetryLoop.ts; chatCore.ts now passes `getProviderCredentials` in
-    // as a dependency (a reference, not a call), so the site is inventoried at its new
-    // home — still dispatched through executeProviderRequest(), still class A.
+    // chatCore/emptyTurnRetryLoop.ts; the response-path split (chatCore.ts split into
+    // response-path leaves) then moved the call site into streamingTail.ts, which now
+    // passes `getProviderCredentials` in as a dependency (a reference, not a call) to
+    // emptyTurnRetryLoop.ts — still dispatched through executeProviderRequest(), still
+    // fenced centrally (class A).
     "open-sse/handlers/chatCore/emptyTurnRetryLoop.ts": 1,
     "open-sse/handlers/chatCore/providerExecutionPipeline.ts": 2,
     "open-sse/services/imageCombo.ts": 1,
@@ -49,7 +51,8 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     // of the retirement-check one hoisted before enforceApiKeyPolicy) was
     // removed as dead redundant code, 6->5. #12653 added combo target
     // resolution with the same shape as imageCombo, 5->6.
-    "src/app/api/v1/images/edits/route.ts": 6,
+    // #15513: added Antigravity/Gemini image edits support branch, 6->7.
+    "src/app/api/v1/images/edits/route.ts": 7,
     "src/app/api/v1/images/generations/route.ts": 3,
     "src/app/api/v1/images/upscale/route.ts": 1,
     "src/app/api/v1/messages/count_tokens/route.ts": 1,
@@ -80,7 +83,11 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/sse/services/imageCredentialRetry.ts": 1,
   },
   executor: {
-    "open-sse/handlers/chatCore.ts": 3,
+    // The three executor.execute() sites that used to sit in chatCore.ts moved
+    // with the decomposition: two into the wire-send leaf and one into the
+    // streaming leg (same sites, new homes).
+    "open-sse/handlers/chatCore/executeProviderRequest.ts": 2,
+    "open-sse/handlers/chatCore/streamingResponse.ts": 1,
     "open-sse/handlers/chatCore/cliproxyModelMapping.ts": 1,
     "open-sse/handlers/chatCore/cliproxyapiCredentials.ts": 1,
     // v3.8.51 #11754: the legacy common ChatGPT Web's synthetic
@@ -97,7 +104,10 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
   },
   connection: {
     "open-sse/handlers/autoComboCandidates.ts": 1,
-    "open-sse/handlers/chatCore.ts": 3,
+    // Two of the three connection re-resolution sites moved into the streaming
+    // leg with the decomposition (same sites, new home).
+    "open-sse/handlers/chatCore.ts": 1,
+    "open-sse/handlers/chatCore/streamingResponse.ts": 2,
     "open-sse/handlers/cursorCliProxy.ts": 1,
     "open-sse/services/alibabaFreeTier.ts": 1,
     "open-sse/services/alibabaFreeTierQuotaFetcher.ts": 1,
@@ -257,7 +267,8 @@ const CLASSIFICATION: Record<InventoryKind, Record<string, BypassClass>> = {
     ])
   ),
   executor: {
-    "open-sse/handlers/chatCore.ts": "A",
+    "open-sse/handlers/chatCore/executeProviderRequest.ts": "A",
+    "open-sse/handlers/chatCore/streamingResponse.ts": "A",
     "open-sse/handlers/chatCore/cliproxyModelMapping.ts": "A",
     "open-sse/handlers/chatCore/cliproxyapiCredentials.ts": "A",
     "open-sse/handlers/videoGeneration.ts": "B",
@@ -271,6 +282,7 @@ const CLASSIFICATION: Record<InventoryKind, Record<string, BypassClass>> = {
       [
         "open-sse/handlers/autoComboCandidates.ts",
         "open-sse/handlers/chatCore.ts",
+        "open-sse/handlers/chatCore/streamingResponse.ts",
         "open-sse/services/alibabaFreeTier.ts",
         "open-sse/services/alibabaFreeTierQuotaFetcher.ts",
         "open-sse/services/combo/executeTargetGates.ts",
@@ -380,7 +392,6 @@ test("hard-lease credential, executor, and connection-query inventory has no unc
 
 test("managed request surfaces are fenced centrally or rejected before independent dispatch", () => {
   const chat = fs.readFileSync(path.join(REPO_ROOT, "src/sse/handlers/chat.ts"), "utf8");
-  const core = fs.readFileSync(path.join(REPO_ROOT, "open-sse/handlers/chatCore.ts"), "utf8");
   const ws = fs.readFileSync(
     path.join(REPO_ROOT, "src/app/api/internal/codex-responses-ws/route.ts"),
     "utf8"
@@ -407,9 +418,22 @@ test("managed request surfaces are fenced centrally or rejected before independe
 
   assert.match(chat, /parseManagedLeaseRequestContext\(request\.headers\)/);
   assert.match(chat, /isManagedComboUnsupported/);
-  assert.match(core, /assertManagedLeaseFence\(attemptConnectionId\)/);
+  // The fence call sites moved into the leg leaves with the decomposition.
+  const eprSource = fs.readFileSync(
+    path.join(REPO_ROOT, "open-sse/handlers/chatCore/executeProviderRequest.ts"),
+    "utf8"
+  );
+  const streamingLeg = fs.readFileSync(
+    path.join(REPO_ROOT, "open-sse/handlers/chatCore/streamingResponse.ts"),
+    "utf8"
+  );
+  const nonStreamingLeg = fs.readFileSync(
+    path.join(REPO_ROOT, "open-sse/handlers/chatCore/nonStreamingResponse.ts"),
+    "utf8"
+  );
+  assert.match(eprSource, /assertManagedLeaseFence\(attemptConnectionId\)/);
   assert.match(
-    core,
+    streamingLeg,
     /assertManagedLeaseFence\(getExecutionConnectionId\(getExecutionCredentials\(\)\)\)/
   );
   // #12867 (d6f315018) extracted codex 429 / antigravity 422 account rotation out
@@ -423,9 +447,14 @@ test("managed request surfaces are fenced centrally or rejected before independe
     path.join(REPO_ROOT, "open-sse/handlers/chatCore/providerExecutionPipeline.ts"),
     "utf8"
   );
-  const rotationPolicySites = core.match(
-    /allowAccountRotation: !managedLease && comboStrategy !== "context-relay"/g
-  );
+  const rotationPolicySites = [
+    ...nonStreamingLeg.matchAll(
+      /allowAccountRotation: !managedLease && comboStrategy !== "context-relay"/g
+    ),
+    ...streamingLeg.matchAll(
+      /allowAccountRotation: !managedLease && comboStrategy !== "context-relay"/g
+    ),
+  ];
   assert.equal(
     rotationPolicySites?.length,
     2,

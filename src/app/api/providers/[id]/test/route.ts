@@ -31,7 +31,7 @@ import { recoverKeyHealth } from "@omniroute/open-sse/services/apiKeyRotator.ts"
 import { lockModelIfPerModelQuota } from "@omniroute/open-sse/services/accountFallback.ts";
 import { shouldClearErrorStateOnValidProbe } from "@/lib/usage/providerLimits";
 import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLeaseIsolation";
-import { buildApiKeyConnectionTestResult } from "./apiKeyTestResult";
+import * as apiKeyTestResult from "./apiKeyTestResult";
 import { classifyOAuthProbeInconclusive, OAUTH_TEST_CONFIG } from "./oauthTestConfig";
 import { isGeoBlockedError } from "@omniroute/open-sse/services/errorClassifier.ts";
 import * as retirement from "@/lib/providers/chatgptWebRetirementResponse";
@@ -928,7 +928,7 @@ async function testApiKeyConnection(connection: any) {
     ? makeDiagnosis("ok", "upstream", null, null)
     : classifyFailure({ error, statusCode: result.statusCode, provider: connection.provider });
 
-  return buildApiKeyConnectionTestResult(result, error, diagnosis);
+  return apiKeyTestResult.buildApiKeyConnectionTestResult(result, error, diagnosis);
 }
 
 /**
@@ -1148,7 +1148,7 @@ export async function testSingleConnection(
     const recovered = recoverKeyHealth(connectionId, "primary", latest.providerSpecificData);
     if (recovered) updateData.providerSpecificData = recovered;
   }
-
+  apiKeyTestResult.applyDetectedControlUpdate(updateData, latest.providerSpecificData, result);
   if (result.refreshed && result.newTokens) {
     updateData.accessToken = result.newTokens.accessToken;
     if (result.newTokens.refreshToken) {

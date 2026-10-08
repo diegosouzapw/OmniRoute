@@ -47,8 +47,8 @@ test("OpenRouter mid-stream 502 provider_unavailable is surfaced as upstreamErro
 
   // End of stream (chunk === null) flushes the deferred completion.
   const flushEvents = openaiToOpenAIResponsesResponse(null, state);
-  const completedEvent = flushEvents.find((e) => e.event === "response.completed");
-  assert.ok(completedEvent, "should have a response.completed event");
+  const completedEvent = flushEvents.find((e) => e.event === "response.failed");
+  assert.ok(completedEvent, "should have a response.failed event");
   assert.equal(
     completedEvent.data.response.status,
     "failed",
@@ -78,7 +78,7 @@ test("OpenRouter mid-stream error with a rate-limit code maps to a 429 upstreamE
   );
 
   const flushEvents = openaiToOpenAIResponsesResponse(null, state);
-  const completedEvent = flushEvents.find((e) => e.event === "response.completed");
+  const completedEvent = flushEvents.find((e) => e.event === "response.failed");
   assert.ok(completedEvent);
   assert.equal(completedEvent.data.response.status, "failed");
   assert.equal(completedEvent.data.response.error.code, "429");

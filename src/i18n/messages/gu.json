@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Proxy pools અને opencodeનું પ્રતિ-એકાઉન્ટ રોટેશન, હમણાં જ નિષ્ફળ ગયેલા પ્રોક્સીને (TCP પ્રોબ નકારાયો હોય અથવા તેના મારફતે 429 મળ્યો હોય) દરેક પુનરાવર્તન સાથે બમણા થતા, મહત્તમ મર્યાદા સુધીના પ્રતિ-પ્રોસેસ સમયગાળા માટે ફરીથી સર્વ કરવાનું બંધ કરે છે. પ્રોક્સીની કોઈ સ્થિતિ લખવામાં આવતી નથી; દરેક ઉમેદવારને બાજુ પર રાખવામાં આવે તો પસંદગી યથાવત્ રહે છે. ડિફૉલ્ટ રૂપે ચાલુ; `false` સાદી પસંદગી પાછી લાવે છે.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "જે પ્રદાતાઓનો ક્વોટા egress સરનામા મુજબ વહેંચાય છે, તેમના માટે તાજેતરમાં નકારાયેલા સભ્યનું જોવાયેલું egress સરનામું શેર કરતા pool સભ્યને સ્વસ્થ સભ્યોની બરાબર નીચે મૂકે છે. ફક્ત ક્રમ, ક્યારેય બાકાત નહીં. PROXY_SKIP_RECENTLY_FAILED જરૂરી છે, જે તે વાંચે છે તે નકાર સંકેત ઉત્પન્ન કરે છે. ડિફૉલ્ટ રૂપે બંધ: પસંદગીનો ક્રમ બરાબર સામાન્ય રોટેશન છે.",
   "featureFlagProxyPoolEgressObservationDescription": "ડૅશબોર્ડમાં પ્રોક્સી પૂલ હેઠળ બતાવો કે છેલ્લા 24 કલાકમાં કેટલા નિરીક્ષિત એગ્રેસ IPએ તેના સભ્યોને સેવા આપી, કેટલાં કનેક્શનોએ તેમનો ઉપયોગ કર્યો અને એક IP પાછળ સૌથી વધુ કેટલાં કનેક્શન જોવા મળ્યાં. આ માહિતી ફક્ત વાંચવા માટે છે, પ્રોક્સી લૉગમાંથી ગણવામાં આવે છે અને રૂટિંગ માટે ક્યારેય ઉપયોગમાં લેવાતી નથી. ડિફૉલ્ટ રૂપે બંધ: પૂલ એડિટર યથાવત્ રહે છે અને નિરીક્ષણ રૂટ null પરત કરે છે.",
+  "featureFlagProxyOperatorEgressDescription": "ઓપરેટર દ્વારા પુશ કરેલ તારીખવાળા અવલોકિત સરનામાંઓને દરેક પૂલ સભ્ય માટે સ્વીકારો અને તેમને ડિસ્પ્લે અને પૂલ ઓર્ડર માટે જર્નલ વાંચન સાથે મર્જ કરો. ડિફોલ્ટ દ્વારા બંધ: પુશ રૂટ 404 જવાબ આપે છે અને પૂલ વાંચનો અગાઉની જેમ જ વર્તે છે.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "પ્રોક્સી હેલ્થ સ્વીપમાં, લક્ષ્ય દ્વારા નકારવામાં આવેલા પ્રોબને (401/403/429: પ્રોક્સીએ રિલે કર્યું, ગંતવ્યે આ એગ્રેસ IPને નકાર્યો) સર્વ કરાયેલા પ્રોબની જેમ પ્રોક્સીની સળંગ નિષ્ફળતાઓની શ્રેણી રીસેટ કરવાની મંજૂરી આપો. ડિફૉલ્ટ રૂપે બંધ: નકાર તટસ્થ રહે છે અને શ્રેણી જાળવી રાખે છે. બંને સ્થિતિમાં 5xx અનિર્ણાયક રહે છે, અને નકાર ક્યારેય પ્રોક્સીને દૂર, અક્ષમ અથવા ફરી સક્રિય કરતો નથી.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "સ્વચાલિત ક્લીનઅપ સ્વીપને OMNIROUTE_BATCH_RETENTION_DAYS કરતાં જૂની, અંતિમ સ્થિતિમાં રહેલી (પૂર્ણ/નિષ્ફળ/રદ કરેલી/સમાપ્ત) Batch API jobs ને તેમના પ્રત્યેક-લાઇન checkpoints સાથે કાઢી નાખવા દો અને તેમની પોતાની expires_at વીતી ગયેલી અપલોડ કરેલી ફાઇલોની BLOB સામગ્રી સાફ કરવા દો. ડિફૉલ્ટ રૂપે બંધ: ઑપરેટર તેને સક્રિય ન કરે ત્યાં સુધી દરેક હાલનું ઇન્સ્ટોલેશન આ ડેટાને પહેલાંની જેમ જ રાખે છે. ઑપરેટર દ્વારા ટ્રિગર થતો DELETE /api/v1/batches/delete-completed રૂટ કોઈપણ સ્થિતિમાં અપ્રભાવિત રહે છે — તે એક અલગ, બિનશરતી જાહેર API કરાર છે.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "સ્થિર સ્ટેટિક સીડને બદલે OAuth bearer token નો ઉપયોગ કરીને https://api.x.ai/v1/models પરથી xai-oauth કનેક્શન્સ માટે લાઇવ xAI મોડેલ કેટલોગ મેળવો. ડિફૉલ્ટ રૂપે બંધ: xai-oauth સ્ટેટિક સીડને કોઈ ફેરફાર વિના પ્રદાન કરવાનું ચાલુ રાખે છે. કોઈપણ રિઝોલ્યુશન ભૂલ થાય તો ડિસ્કવરી પાછી સીડનો ઉપયોગ કરે છે.",
@@ -5692,7 +5693,7 @@
     "claudeImportBulkModePaste": "JSON એરે પેસ્ટ કરો",
     "claudeImportBulkModeZip": "ઝીપ અપલોડ કરો",
     "claudeImportBulkUploadHint": "50 .credentials.json ફાઇલો (દરેક 256KB, કુલ 10MB) છોડો અથવા પસંદ કરો.",
-    "claudeImportBulkPasteHint": "ઑબ્જેક્ટ્સની એરે પેસ્ટ કરો: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "ઑબ્જેક્ટ્સની એરે પેસ્ટ કરો: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": ".json એન્ટ્રીઓ ધરાવતી ZIP. મહત્તમ 50 એન્ટ્રીઓ, 10MB અનપેક્ડ.",
     "claudeImportBulkSubmit": "બધા આયાત કરો",
     "claudeImportBulkSuccess": "આયાત કરેલ {count} ક્લાઉડ કનેક્શન",
@@ -5724,7 +5725,7 @@
     "geminiImportBulkModePaste": "JSON એરે પેસ્ટ કરો",
     "geminiImportBulkModeZip": "ઝીપ અપલોડ કરો",
     "geminiImportBulkUploadHint": "50 oauth_creds.json ફાઇલો (દરેક 256KB, કુલ 10MB) છોડો અથવા પસંદ કરો.",
-    "geminiImportBulkPasteHint": "ઑબ્જેક્ટ્સની એરે પેસ્ટ કરો: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "ઑબ્જેક્ટ્સની એરે પેસ્ટ કરો: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "ઝીપ જેમાં oauth_creds.json એન્ટ્રીઓ છે. મહત્તમ 50 એન્ટ્રીઓ, 10MB અનપેક્ડ.",
     "geminiImportBulkSubmit": "બધા આયાત કરો",
     "geminiImportBulkSuccess": "આયાત કરેલ {count} જેમિની કનેક્શન",
@@ -5773,7 +5774,7 @@
     "codexImportBulkModePaste": "યાદી પેસ્ટ કરો",
     "codexImportBulkModeZip": "ઝીપ આર્કાઇવ",
     "codexImportBulkUploadHint": "બહુવિધ .json ફાઇલો પસંદ કરો અથવા ખેંચો અને છોડો",
-    "codexImportBulkPasteHint": "JSON એરે [ {...}, {...} ] અથવા બહુવિધ JSON --- દ્વારા તેની પોતાની લાઇન પર વિભાજિત",
+    "codexImportBulkPasteHint": "JSON એરે [ '{...}', '{...}' ] અથવા બહુવિધ JSON --- દ્વારા તેની પોતાની લાઇન પર વિભાજિત",
     "codexImportBulkZipHint": "auth.json ફાઇલો ધરાવતી .zip અપલોડ કરો (મહત્તમ 50 ફાઇલો, 10 MB)",
     "codexImportBulkSubmit": "{count} એકાઉન્ટ્સ આયાત કરો",
     "codexImportBulkLimit": "આયાત દીઠ મહત્તમ 50 ફાઇલો",
@@ -6011,7 +6012,7 @@
     "validationModelIdPlaceholder": "દા.ત. meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "API Key અથવા Service Account JSON",
     "vertexCredentialHint": "API keys પસંદ કરેલા પ્રોજેક્ટ કૅટલોગનો ઉપયોગ કરે છે. Service Account JSON લાઇવ Model Garden ડિસ્કવરી સક્ષમ કરે છે.",
-    "vertexServiceAccountPlaceholder": "API key, Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) અથવા OAuth access token પેસ્ટ કરો",
+    "vertexServiceAccountPlaceholder": "API key, Service Account JSON ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') અથવા OAuth access token પેસ્ટ કરો",
     "webCookieProviders": "વેબ કૂકી પ્રદાતાઓ",
     "weeklyShort": "સાપ્તાહિકનું ટૂંકું સ્વરૂપ",
     "xiaomiMimoBaseUrlHint": "Xiaomi Mimo બેઝ URL સંકેત",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "લોકલ પ્રોક્સી-કોર એન્ડપોઇન્ટ અમાન્ય છે; SS/VMess/Trojan/VLESS નોડ્સને અવગણવામાં આવ્યા હતા.",
         "NEEDS_CORE_NOT_CONFIGURED": "આ સબ્સ્ક્રિપ્શનમાં એવા નોડ્સ છે જેને લોકલ પ્રોક્સી કોર (SS/VMess/Trojan/VLESS) ની જરૂર છે; જ્યાં સુધી તમે લોકલ-કોર SOCKS5 એન્ડપોઇન્ટ કન્ફિગર ન કરો ત્યાં સુધી તેઓ રાઉટ થશે નહીં.",
         "NO_USABLE_NODES": "સબ્સ્ક્રિપ્શનમાંથી કોઈ ઉપયોગી નોડ્સ મળ્યા નથી (http/https/socks5 અથવા લોકલ કોર એન્ડપોઇન્ટવાળા નોડ્સ).",
-        "SELECTOR_SWITCH_FAILED": "પ્રોક્સી-કોર નિયંત્રણ કૉલ નિષ્ફળ ગયો; અગાઉનો માર્ગ સક્રિય રહે છે. નિયંત્રણ URL અને સીક્રેટ તપાસો, પછી રિફ્રેશ કરો."
+        "SELECTOR_SWITCH_FAILED": "પ્રોક્સી-કોર નિયંત્રણ કૉલ નિષ્ફળ ગયો; અગાઉનો માર્ગ સક્રિય રહે છે. નિયંત્રણ URL અને સીક્રેટ તપાસો, પછી રિફ્રેશ કરો.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "બનાવેલા કોર કન્ફિગરેશનથી અપનાવેલી ફાઇલને બદલી શકાયું નહીં; બાજુમાં રાખેલી નકલ રાખવામાં આવી હતી.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "જનરેશન દરમિયાન કેટલીક એન્ટ્રીઓ છોડી દેવામાં આવી હતી. સર્વર લૉગ જુઓ."
       },
       "description": "તમારી પ્રોક્સી સબ્સ્ક્રિપ્શન લિંક પેસ્ટ કરો. એકવાર સક્ષમ થયા પછી, ટ્રાફિકને વૈશ્વિક અથવા નિયમ (ઉલ્લેખિત પ્રદાતા) મોડમાં પ્રોક્સી પૂલ દ્વારા રૂટ કરવામાં આવે છે. સબ્સ્ક્રિપ્શન નોડ્સ પ્રોક્સી પૂલમાં આપમેળે સમન્વયિત થાય છે અને હાલના મતદાન, આરોગ્ય-તપાસ અને એન્ટી-લીક મિકેનિઝમનો ફરીથી ઉપયોગ કરે છે.",
       "addSubscription": "સબ્સ્ક્રિપ્શન ઉમેરો",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "હજુ કોઈ ફેરફાર નોંધાયો નથી",
       "lastSwitchMember": "સેવા આપતો સભ્ય",
       "nextSwitch": "આગામી શક્ય ફેરફાર",
-      "nextSwitchNow": "હમણાં"
+      "nextSwitchNow": "હમણાં",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "કોર બાઇનરી પાથ",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "વૈકલ્પિક: અપનાવેલી ફાઇલને બદલતા પહેલાં કોર બાઇનરી સાથે બનાવેલી ફાઇલને ચકાસે છે. બાજુમાં જ લખવાનું ચાલુ રાખવા માટે ખાલી છોડો. ડિરેક્ટરી ન હોય તો બનાવવામાં આવે છે."
     },
     "bulkHealthcheck": "બલ્ક હેલ્થચેક",
     "bulkHealthcheckDesc": "કયા પ્રોક્સી કાર્ય કરે છે તે જાણવા માટે બધા કૉન્ફિગર કરેલા પ્રોક્સીઓને લક્ષ્ય URL સામે ચકાસો.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP વર્ણન સંકોચન",
     "mcpAccessibilityTitle": "MCP ઍક્સેસિબિલિટી આઉટપુટ",
     "compressionSettingsCavemanIntensity": "કેવમેનની તીવ્રતા",
-    "compressionSettingsCavemanOutputMode": "કેવમેન આઉટપુટ મોડ",
     "compressionSettingsOutputStyles": "આઉટપુટ સ્ટાઇલ્સ",
     "compressionStylesTileTitle": "આઉટપુટ સ્ટાઇલ્સ",
     "compressionSettingsOutputIntensity": "આઉટપુટ તીવ્રતા",
-    "compressionSettingsAutoClarityBypass": "સ્વતઃ સ્પષ્ટતા બાયપાસ",
     "compressionEffectivePipeline": "અસરકારક પાઇપલાઇન:",
     "compressionDerivedOff": "બંધ",
     "compressionDerivedRuns": "રન: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "આ કી માટે GET /v1/models શું દર્શાવે છે. સૂચિને મર્યાદિત કરવાથી કી કયા મોડલને કૉલ કરી શકે છે તેમાં ક્યારેય ફેરફાર થતો નથી.",
     "catalogScopeAll": "બંને",
     "catalogScopeCombos": "ફક્ત કોમ્બોઝ",
-    "catalogScopeModels": "ફક્ત મોડલ્સ"
+    "catalogScopeModels": "ફક્ત મોડલ્સ",
+    "resilienceTokenRefreshTitle": "ટોકન રિફ્રેશ બ્રેકર",
+    "resilienceTokenRefreshDesc": "વારંવાર નિષ્ફળતા પછી ટોકન રિફ્રેશ કરવાનો પ્રયાસ કરવાનું બંધ કરે છે. દરેક કનેક્શનનો વ્યાપ એક મૃત એકાઉન્ટને અલગ કરે છે, જેથી સમાન પ્રોવાઇડર પરના સ્વસ્થ એકાઉન્ટ્સ રિફ્રેશ કરવાનું ચાલુ રાખી શકે.",
+    "resilienceTokenRefreshScope": "એક પ્રદાતા માટે ટોકન રિફ્રેશ પ્રયાસો",
+    "resilienceTokenRefreshTrigger": "સળંગ નિષ્ફળ રિફ્રેશ પ્રયાસો",
+    "resilienceTokenRefreshEffect": "ઠંડક સમય માટે રિફ્રેશ પ્રયાસો અટકાવે છે",
+    "resilienceTokenRefreshScopeLabel": "અવકાશ",
+    "resilienceTokenRefreshScopeProvider": "પ્રદાતા (બધા ખાતાઓ એક જ બ્રેકર શેર કરે છે)",
+    "resilienceTokenRefreshScopeConnection": "કનેક્શન (દરેક એકાઉન્ટનું પોતાનું બ્રેકર છે)",
+    "resilienceTokenRefreshThreshold": "થંભાવતા પહેલાં નિષ્ફળતાઓ",
+    "resilienceTokenRefreshCooldown": "ટ્રિપ થયા પછી વિરામ"
   },
   "contextRtk": {
     "title": "RTK એન્જિન",
@@ -8544,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "લોડ થઈ રહ્યું છે…",
     "loadFailed": "એન્જિન માહિતી લોડ કરવામાં નિષ્ફળ.",
+    "settingsLoadFailed": "સાચવેલી સેટિંગ્સ લોડ કરવામાં નિષ્ફળતા. ફીલ્ડ્સ ડિફૉલ્ટ મૂલ્યો બતાવે છે, અને પેજ ફરી લોડ થાય ત્યાં સુધી સાચવો બંધ રહે છે.",
     "engineNotFound": "એન્જિન \"{engine}\" મળ્યું નથી.",
     "saveFailed": "કન્ફિગરેશન સાચવવામાં નિષ્ફળ.",
     "previewFailed": "પૂર્વાવલોકન નિષ્ફળ ગયું.",
@@ -8638,9 +8667,6 @@
       "minRows": {
         "label": "કમ્પેક્ટ કરવા માટે ન્યૂનતમ પંક્તિઓ",
         "description": "ટેબ્યુલર કમ્પેક્શન ટ્રિગર કરવા માટે સજાતીય JSON એરેમાં જરૂરી ન્યૂનતમ પંક્તિઓ. ડિફોલ્ટ: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "સિસ્ટમ પ્રોમ્પ્ટ સાચવો"
       },
       "summarizerEnabled": {
         "label": "સમરાઇઝર સક્ષમ કરો"
@@ -9029,12 +9055,7 @@
     "tooltipMinLength": "આના કરતાં ટૂંકા સંદેશાઓ સંકુચિત નથી. લોઅર = વધુ સંકોચન.",
     "tooltipMinSavings": "માત્ર સંકુચિત કરો જો તે ઓછામાં ઓછા આટલા બધા ટોકન્સ બચાવે.",
     "ultraSettings": "અલ્ટ્રા સેટિંગ્સ",
-    "ultraSettingsDesc": "SLM-સંચાલિત સિમેન્ટીક કમ્પ્રેશન",
-    "preview": {
-      "lite": "સંક્ષિપ્ત જવાબ આપો. તકનીકી શબ્દો, કોડ, ભૂલો, URLs અને ઓળખકર્તાઓ જાળવી રાખો.",
-      "full": "ટૂંકો અને સંક્ષિપ્ત જવાબ આપો. તમામ તકનીકી સામગ્રી જાળવી રાખો.",
-      "ultra": "સામાન્ય તકનીકી સંક્ષેપો સાથે અત્યંત સંક્ષિપ્ત જવાબ આપો. ચોક્કસ પ્રતીકો જાળવો."
-    }
+    "ultraSettingsDesc": "SLM-સંચાલિત સિમેન્ટીક કમ્પ્રેશન"
   },
   "translator": {
     "title": "અનુવાદક",
@@ -9653,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "દા.ત. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "દા.ત. ડેફ ફિબોનાકી",
     "suiteBuilderCaseExpectedPlaceholderExact": "ચોક્કસ અપેક્ષિત પ્રતિસાદ પેસ્ટ કરો",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "દા.ત. ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "દા.ત. ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "સ્લેશને વીંટાળ્યા વિના JavaScript રેગ્યુલર એક્સપ્રેશનનો ઉપયોગ કરો.",
     "suiteBuilderNamePlaceholder": "દા.ત. કોડિંગ ગુણવત્તા સ્યુટ",
     "suiteBuilderAddCase": "કેસ ઉમેરો",
@@ -10862,7 +10883,7 @@
     "grokAuthJsonDescription": "~/.grok/auth.json ની સંપૂર્ણ સામગ્રી પેસ્ટ કરો (ફક્ત JWT \"કી\" ક્ષેત્ર નહીં). એક નગ્ન JWT માં refresh_token નથી, તેથી કનેક્શન સમાપ્ત થયા પછી મરવા જાય છે (#7610). ઉપલબ્ધ હોય ત્યારે સમર્પિત Import auth.json મોડલને પ્રાથમિકતા આપો.",
     "devinDesktopPasteDescription": "પ્રમાણિત ડેવિન સત્રમાંથી એક અસ્તિત્વમાં રહેલ ડેવિન API કી પેસ્ટ કરો. કી નિકાસ ઉપલબ્ધતા અને પગલાં ડેવિન સંસ્કરણ અને ખાતા દ્વારા બદલાય છે.",
     "devinPasteDescription": "તમારો WINDSURF_API_KEY પ્રદાન કરો (જેને `devin auth login` દ્વારા અથવા Windsurf IDE \"Windsurf: Provide Auth Token\" આદેશ દ્વારા પ્રાપ્ત કરવામાં આવ્યો છે).",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "Grok Build auth.json",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "એપીઆઈ કી / ટોકન",
@@ -10875,7 +10896,10 @@
     "gitlabDuoSetupTitle": "GitLab Duo OAuth સેટઅપ",
     "gitlabDuoSetupMessage": "GitLab Duo OAuth કન્ફિગર નથી કરવામાં આવ્યું. {applicationsUrl} પર એક OAuth એપ્લિકેશન નોંધણી કરો જેમાં રીડાયરેક્ટ URI {redirectUri} અને સ્કોપ્સ \"{scopes}\" છે, પછી {clientIdEnv} (અને વૈકલ્પિક રીતે {clientSecretEnv}) સેટ કરો અને પુનઃપ્રારંભ કરો.",
     "gitlabDuoSetupDescription": "આ એપ્લિકેશન નોંધણી થયા પછી અને આ OmniRoute ઉદાહરણ પર env vars સેટ થયા પછી, OAuth લોગિન શરૂ કરવા માટે ચાલુ રાખવા માટે ક્લિક કરો.",
-    "continue": "ચાલુ રાખો"
+    "continue": "ચાલુ રાખો",
+    "tabPasteSetupToken": "સેટઅપ ટોકન",
+    "claudeSetupTokenDescription": "ટર્મિનલમાં `claude setup-token` ચલાવો અને તે જે ટોકન છાપે તે પેસ્ટ કરો. તે એક વર્ષ માટે માન્ય છે અને તેમાં કોઈ રિફ્રેશ ટોકન નથી. સાચવતા પહેલાં OmniRoute Anthropic ને એક પરીક્ષણ વિનંતી મોકલે છે.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Connect Cursor IDE",
@@ -11073,6 +11097,7 @@
     "poolEgressFailuresUnattributed": "નિર્ધારિત એક્ઝિટ વિનાની નિષ્ફળતાઓ: {count}",
     "poolMemberEgress": "{host}:{port} એ {egressIp} મારફતે બહાર મોકલ્યું · છેલ્લા {hours} કલાક",
     "poolMemberEgressEmpty": "{host}:{port}: છેલ્લા {hours} કલાકમાં કોઈ ટ્રાફિક જોવા મળ્યો નથી",
+    "poolMemberEgressOperator": "{host}:{port} {egressIp} મારફતે છોડ્યું · ઓપરેટર-પ્રદાન કરેલ, {date}",
     "poolMemberEgressHint": "આ સમયગાળા દરમિયાન આ પૂલ સભ્ય મારફતે જોવામાં આવેલ છેલ્લો ઇગ્રેસ IP, જે પ્રોક્સી લૉગમાંથી વાંચવામાં આવ્યો છે. સમયગાળા દરમિયાન કોઈ ટ્રાફિક ન ધરાવતા સભ્ય માટે ટ્રાફિક ન હોવાની લાઇન દેખાય છે.",
     "poolRemove": "દૂર કરો",
     "poolRemoveFailed": "પૂલમાંથી પ્રોક્સી દૂર કરવામાં નિષ્ફળ",
@@ -11086,6 +11111,7 @@
     "poolSetAsideKindProxyUnreachable": "પ્રોક્સી સુધી પહોંચી શકાતું નથી",
     "poolSetAsideKindIpQuota429": "IP દર મર્યાદા (429)",
     "poolSetAsideKindSlow": "ધીમા પ્રતિસાદો",
+    "poolSetAsideKindGeoBlocked": "પ્રદેશ અવરોધિત (403/451)",
     "poolSetAsideUntil": "રોટેશનમાં પાછા {endsAt}",
     "poolSetAsideRepeat": "બાજુએ રાખેલ {count, plural, one {# વખત} other {# વખત}}",
     "poolUnknownAddress": "અજ્ઞાત સરનામું",
@@ -11094,10 +11120,15 @@
     "poolSignalPosition": "સ્થાન ક્રમ",
     "poolHealthRankingOff": "આરોગ્ય રેન્કિંગ બંધ",
     "transportRate": "{rate}% ટ્રાન્સપોર્ટ",
+    "slowAbandoned": "{count} ધીમી છોડી દેવાની ઘટનાઓ",
+    "clientAborted": "{count} ક્લાયન્ટ દ્વારા રદ કરવામાં આવેલી ઘટનાઓ",
+    "slowAbandonedHint": "હેડર્સની રાહ જોવાની સીમા પછી છોડી દેવામાં આવી, ટ્રાન્સપોર્ટ રેટમાંથી બાકાત કરવામાં આવી",
     "previousSuccessRate": "અગાઉ {rate}% સફળતા",
-    "upstreamRefusals": "{count} અપસ્ટ્રીમ અસ્વીકાર",
     "connectionTestsCount": "{count} કનેક્શન પરીક્ષણો",
-    "notMeasured": "માપેલ નથી"
+    "notMeasured": "માપેલ નથી",
+    "upstream4xx": "{count} અપસ્ટ્રીમ ક્લાયન્ટ ત્રુટિઓ",
+    "upstream5xx": "{count} અપસ્ટ્રીમ સર્વર ત્રુટિઓ",
+    "uniformEgressLine": "{affected} માંથી {exits} એક્સિટ્સ એકસાથે {provider} પર નિષ્ફળ થાય છે (છેલ્લા {hours} કલાક) — એ એક્સિટનો સમસ્યા નથી"
   },
   "playground": {
     "title": "મોડેલ પ્લેગ્રાઉન્ડ",
@@ -12871,7 +12902,10 @@
     "inheritedPool": "કનેક્શન પૂલ વારસામાં ({count})",
     "poolEmptyBlocked": "પૂલ ખાલી — વિનંતીઓ નિષ્ફળ જાય છે (સીધી નહીં)",
     "directEgress": "સીધું (પ્રોક્સી વિના)",
-    "ownProxy": "પોતાનું પ્રોક્સી"
+    "ownProxy": "પોતાનું પ્રોક્સી",
+    "freeTierPause": "મોડેલ {model} થોભાવ્યું (429), {time} એ પાછું આવશે",
+    "freeTierPauseProvider": "થોભાવ્યું (429), {time} એ પાછું આવશે",
+    "freeTierPauseNote": "આ ઇન્સ્ટન્સ પર ઇન-પ્રોસેસ પોઝ"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13053,8 +13087,8 @@
     "dbOverrideCount": "{count} DB ઓવરરાઇડ્સ",
     "searchPlaceholder": "ફ્લેગ્સ શોધો...",
     "descriptionModeLabel": "વર્ણન દૃશ્ય",
-    "descriptionModeHint": "હોવર પર: કાર્ડ્સ સંક્ષિપ્ત રહે છે અને વર્ણન પર હોવર કરવાથી સંપૂર્ણ લખાણ દેખાય છે. સંપૂર્ણ લખાણ: હંમેશા સંપૂર્ણ વર્ણન બતાવો.",
-    "descriptionModeHover": "હોવર પર",
+    "descriptionModeHint": "હોવર કરવા પર: કાર્ડ ટૂંકા રહે છે અને વર્ણન પર હોવર કરવાથી સંપૂર્ણ લખાણ દેખાય છે. સંપૂર્ણ લખાણ: હંમેશા સંપૂર્ણ વર્ણન બતાવો.",
+    "descriptionModeHover": "હોવર કરવા પર",
     "descriptionModeFull": "સંપૂર્ણ લખાણ",
     "categories": {
       "all": "બધા",
@@ -13683,7 +13717,7 @@
     "secondaryNote": "Open VSX પર પણ ઉપલબ્ધ (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "બંધ કરો"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "/gateway-alias/<model> મિરર આઈડીઓને /v1/models પર જાહેરાત આપો તે મોડલ્સ માટે જેમના કૅનોનિકલ માલિક પાસે કોઈ સક્રિય પ્રમાણપત્ર નથી પરંતુ એક પાસથ્રૂ ગેટવે સાથે સક્રિય પ્રમાણપત્ર તેમને માર્ગદર્શિત કરે છે. ચેતવણી: વૈશ્વિક રીતે સક્રિય કરવામાં આવે ત્યારે તમામ ક્લાયન્ટ્સ માટે કૅટલોગ એન્ટ્રીઓ ઉમેરે છે.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "/gateway-alias/'<model>' મિરર આઈડીઓને /v1/models પર જાહેરાત આપો તે મોડલ્સ માટે જેમના કૅનોનિકલ માલિક પાસે કોઈ સક્રિય પ્રમાણપત્ર નથી પરંતુ એક પાસથ્રૂ ગેટવે સાથે સક્રિય પ્રમાણપત્ર તેમને માર્ગદર્શિત કરે છે. ચેતવણી: વૈશ્વિક રીતે સક્રિય કરવામાં આવે ત્યારે તમામ ક્લાયન્ટ્સ માટે કૅટલોગ એન્ટ્રીઓ ઉમેરે છે.",
   "radarPage": {
     "title": "રેડાર કેટલોગ",
     "subtitle": "સમુદાયની બુદ્ધિથી સમૃદ્ધ મફત મોડલ કેટલોગ",

@@ -1,0 +1,1 @@
+- **feat(providers):** Perplexity API (Sonar, Agent) and Perplexity Search requests now send an `X-Pplx-Integration: omniroute` attribution header

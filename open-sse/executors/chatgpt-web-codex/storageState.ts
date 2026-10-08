@@ -59,6 +59,27 @@ function stateFingerprint(state: Record<string, unknown>): string {
   return createHash("sha256").update(JSON.stringify(state)).digest("hex");
 }
 
+function normalizeStorageStateForPlaywright(
+  state: Record<string, unknown>
+): Record<string, unknown> {
+  const cookies = Array.isArray(state.cookies) ? state.cookies : [];
+  return {
+    ...state,
+    cookies: cookies.map((cookie) => {
+      if (!cookie || typeof cookie !== "object" || Array.isArray(cookie)) return cookie;
+      const next = { ...(cookie as Record<string, unknown>) };
+      const name = typeof next.name === "string" ? next.name : "";
+      if (name.startsWith("__Host-")) {
+        delete next.url;
+        next.domain = "chatgpt.com";
+        next.path = "/";
+        next.secure = true;
+      }
+      return next;
+    }),
+  };
+}
+
 function validStorageState(value: unknown): value is Record<string, unknown> {
   return (
     !!value &&
@@ -72,7 +93,7 @@ function validStorageState(value: unknown): value is Record<string, unknown> {
 export function readConnectionStorageState(path: string): Record<string, unknown> {
   const parsed = JSON.parse(readFileSync(path, "utf8")) as unknown;
   if (!validStorageState(parsed)) throw new Error("ChatGPT browser storage state is invalid");
-  return parsed;
+  return normalizeStorageStateForPlaywright(parsed);
 }
 
 export function ensureConnectionStorageState(connectionId: string, rawCookie: string): string {
@@ -137,7 +158,8 @@ export function ensureConnectionStorageStateFromCredential(
         // Rebuild the protected local working copy below.
       }
     }
-    atomicWriteFile(paths.storageStatePath, `${JSON.stringify(credential.storageState)}\n`);
+    const normalizedStorageState = normalizeStorageStateForPlaywright(credential.storageState);
+    atomicWriteFile(paths.storageStatePath, `${JSON.stringify(normalizedStorageState)}\n`);
     atomicWriteFile(
       markerPath,
       `${JSON.stringify({

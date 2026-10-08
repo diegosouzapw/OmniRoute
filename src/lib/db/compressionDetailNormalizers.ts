@@ -24,6 +24,11 @@ function boundedInt(value: unknown, fallback: number, min: number, max: number):
   return Math.min(max, Math.max(min, Math.floor(value)));
 }
 
+function boundedNumber(value: unknown, fallback: number, min: number, max: number): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
+  return Math.min(max, Math.max(min, value));
+}
+
 /** Matches SESSION_DEDUP_SCHEMA bounds (engines/session-dedup/index.ts). */
 export function normalizeSessionDedupConfig(value: unknown): SessionDedupConfig {
   const record = toRecord(value);
@@ -45,7 +50,9 @@ export function normalizeCcrConfig(value: unknown): CcrConfig {
   return {
     ...DEFAULT_CCR_CONFIG,
     minChars: boundedInt(record.minChars, DEFAULT_CCR_CONFIG.minChars, 100, 1_000_000),
-    retrievalRampFactor: boundedInt(
+    // Fractional by design: CCR_SCHEMA has no .int() and effectiveMinChars() ramps on
+    // fractions — flooring here would turn any factor in [1, 2) into 1, disabling the ramp.
+    retrievalRampFactor: boundedNumber(
       record.retrievalRampFactor,
       DEFAULT_CCR_CONFIG.retrievalRampFactor,
       1,
@@ -56,7 +63,10 @@ export function normalizeCcrConfig(value: unknown): CcrConfig {
 
 /** Default sub-objects spread into getCompressionSettings' seed config. */
 export function buildDetailConfigDefaults(): Pick<CompressionConfig, "sessionDedup" | "ccr"> {
-  return { sessionDedup: normalizeSessionDedupConfig(undefined), ccr: normalizeCcrConfig(undefined) };
+  return {
+    sessionDedup: normalizeSessionDedupConfig(undefined),
+    ccr: normalizeCcrConfig(undefined),
+  };
 }
 
 /** Applies a stored sessionDedup/ccr row onto config during getCompressionSettings' row scan. */

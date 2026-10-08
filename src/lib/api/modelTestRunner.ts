@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { prepareConnectionModelTest } from "@/lib/providerModels/prepareConnectionModelTest";
 import { POST as postChatCompletion } from "@/app/api/v1/chat/completions/route";
 import { POST as postAudioTranscription } from "@/app/api/v1/audio/transcriptions/route";
 import { handleValidatedEmbeddingRequestBody } from "@/app/api/v1/embeddings/route";
@@ -26,6 +27,7 @@ import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLease
 
 const INTERNAL_ORIGIN = "http://omniroute.internal";
 export const DEFAULT_MODEL_TEST_TIMEOUT_MS = 30_000;
+const CHATGPT_WEB_CLEAN_ROOM_PROVIDER_ID = "chatgpt-web";
 const DOLA_PRO_TEST_TIMEOUT_MS = 90_000;
 const DOUBAO_WEB_PROVIDER_ID = "doubao-web";
 const ZAI_WEB_PROVIDER_ID = "zai-web";
@@ -36,6 +38,14 @@ const STREAMING_CHAT_TEST_MAX_TOKENS = 64;
 // ignored on that endpoint, which would let a reasoning model spend the whole
 // default budget before emitting any visible text.
 const RESPONSES_TEST_MAX_OUTPUT_TOKENS = 256;
+
+export function shouldSkipWebSessionModelTest(providerId: unknown): boolean {
+  return (
+    requiresWebSessionCredential(providerId) &&
+    (typeof providerId !== "string" ||
+      providerId.trim().toLowerCase() !== CHATGPT_WEB_CLEAN_ROOM_PROVIDER_ID)
+  );
+}
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -477,7 +487,7 @@ export async function runSingleModelTest(
   if (!fullModelStr.includes("/")) {
     fullModelStr = `${providerId}/${modelId}`;
   }
-  if (requiresWebSessionCredential(providerId)) {
+  if (shouldSkipWebSessionModelTest(providerId)) {
     return {
       modelId: fullModelStr,
       status: "error",
@@ -489,6 +499,16 @@ export async function runSingleModelTest(
     };
   }
   const effectiveTimeoutMs = resolveModelTestTimeoutMs(providerId, fullModelStr, timeoutMs);
+
+  const catalogError = await prepareConnectionModelTest(providerId, connectionId, fullModelStr);
+  if (catalogError)
+    return {
+      modelId: fullModelStr,
+      status: "error",
+      latencyMs: 0,
+      httpStatus: catalogError.status,
+      error: catalogError.message,
+    };
 
   const startTime = Date.now();
   const [customModel, nodeApiType] = await Promise.all([

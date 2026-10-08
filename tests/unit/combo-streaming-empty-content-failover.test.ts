@@ -274,6 +274,162 @@ test("#3685 streaming is preserved for non-empty response: clonedResponse body y
   assert.ok(decoded.includes(", world!"), "decoded body must contain the full text delta");
 });
 
+/** Full Claude lifecycle with ZERO content blocks and a given stop_reason. */
+function makeEmptyLifecycleStream(stopReason: string | null): Response {
+  const events = [
+    `event: message_start\ndata: ${JSON.stringify({
+      type: "message_start",
+      message: {
+        id: "msg_test_empty_turn",
+        type: "message",
+        role: "assistant",
+        model: "claude-sonnet-4-6",
+        content: [],
+        stop_reason: null,
+        stop_sequence: null,
+        usage: { input_tokens: 10, output_tokens: 0 },
+      },
+    })}`,
+    "",
+    `event: message_delta\ndata: ${JSON.stringify({
+      type: "message_delta",
+      delta: { stop_reason: stopReason, stop_sequence: null },
+      usage: { input_tokens: 0, output_tokens: 0 },
+    })}`,
+    "",
+    `event: message_stop\ndata: ${JSON.stringify({ type: "message_stop" })}`,
+    "",
+  ];
+
+  return new Response(claudeSseStream(events), {
+    status: 200,
+    headers: { "content-type": "text/event-stream" },
+  });
+}
+
+/** Full lifecycle with one text block that never carries a delta (#1382 shape). */
+function makeEmptyTextBlockStream(): Response {
+  const events = [
+    `event: message_start\ndata: ${JSON.stringify({
+      type: "message_start",
+      message: {
+        id: "msg_test_empty_block",
+        type: "message",
+        role: "assistant",
+        model: "claude-sonnet-4-6",
+        content: [],
+        stop_reason: null,
+        stop_sequence: null,
+        usage: { input_tokens: 10, output_tokens: 0 },
+      },
+    })}`,
+    "",
+    `event: content_block_start\ndata: ${JSON.stringify({
+      type: "content_block_start",
+      index: 0,
+      content_block: { type: "text", text: "" },
+    })}`,
+    "",
+    `event: content_block_stop\ndata: ${JSON.stringify({ type: "content_block_stop", index: 0 })}`,
+    "",
+    `event: message_delta\ndata: ${JSON.stringify({
+      type: "message_delta",
+      delta: { stop_reason: "end_turn", stop_sequence: null },
+      usage: { input_tokens: 0, output_tokens: 0 },
+    })}`,
+    "",
+    `event: message_stop\ndata: ${JSON.stringify({ type: "message_stop" })}`,
+    "",
+  ];
+
+  return new Response(claudeSseStream(events), {
+    status: 200,
+    headers: { "content-type": "text/event-stream" },
+  });
+}
+
+test("trusted first-party Claude end_turn with zero content blocks is valid (#15488 combo path)", async () => {
+  const res = makeEmptyLifecycleStream("end_turn");
+  const out = await validateResponseQuality(res, true, silentLog, null, null, true);
+  assert.equal(out.valid, true, `expected valid for empty end_turn stream, got: ${out.reason}`);
+  assert.ok(out.clonedResponse, "clonedResponse must be returned for the trusted empty stream");
+  const text = await out.clonedResponse!.text();
+  assert.ok(text.includes("message_stop"), "clonedResponse must replay the full SSE bytes");
+});
+
+test("trusted first-party Claude stop_sequence with zero content blocks is valid", async () => {
+  const res = makeEmptyLifecycleStream("stop_sequence");
+  const out = await validateResponseQuality(res, true, silentLog, null, null, true);
+  assert.equal(
+    out.valid,
+    true,
+    `expected valid for empty stop_sequence stream, got: ${out.reason}`
+  );
+});
+
+test("trusted provider content_filter stop stays invalid", async () => {
+  const res = makeEmptyLifecycleStream("content_filter");
+  const out = await validateResponseQuality(res, true, silentLog, null, null, true);
+  assert.equal(out.valid, false, "content_filter must still trigger failover for trusted provider");
+});
+
+test("untrusted by default: end_turn with zero content blocks stays invalid", async () => {
+  const res = makeEmptyLifecycleStream("end_turn");
+  const out = await validateResponseQuality(res, true, silentLog);
+  assert.equal(
+    out.valid,
+    false,
+    "without an explicit trusted connection the guard must not be relaxed"
+  );
+});
+
+test("explicitly untrusted connection end_turn with zero content blocks stays invalid", async () => {
+  const res = makeEmptyLifecycleStream("end_turn");
+  const out = await validateResponseQuality(res, true, silentLog, null, null, false);
+  assert.equal(out.valid, false, "third-party Claude-compatible gateways keep the guard");
+});
+
+test("trusted provider empty text block pair (#1382 shape) stays invalid", async () => {
+  const res = makeEmptyTextBlockStream();
+  const out = await validateResponseQuality(res, true, silentLog, null, null, true);
+  assert.equal(out.valid, false, "an opened-and-closed empty block is not a normal empty answer");
+});
+
+test("trusted provider lifecycle without message_stop stays invalid", async () => {
+  const events = [
+    `event: message_start\ndata: ${JSON.stringify({
+      type: "message_start",
+      message: {
+        id: "msg_test_no_stop",
+        type: "message",
+        role: "assistant",
+        model: "claude-sonnet-4-6",
+        content: [],
+        stop_reason: null,
+        stop_sequence: null,
+        usage: { input_tokens: 10, output_tokens: 0 },
+      },
+    })}`,
+    "",
+    `event: message_delta\ndata: ${JSON.stringify({
+      type: "message_delta",
+      delta: { stop_reason: "end_turn", stop_sequence: null },
+      usage: { input_tokens: 0, output_tokens: 0 },
+    })}`,
+    "",
+  ];
+  const res = new Response(claudeSseStream(events), {
+    status: 200,
+    headers: { "content-type": "text/event-stream" },
+  });
+  const out = await validateResponseQuality(res, true, silentLog, null, null, true);
+  assert.equal(
+    out.valid,
+    false,
+    "incomplete lifecycle (no message_stop) must not be treated as a normal empty answer"
+  );
+});
+
 test("#5976 truly EMPTY streaming body (zero bytes) → invalid for combo failover", async () => {
   // A 200 SSE response whose body closes without emitting a single byte
   // (e.g. Gemini returning HTTP 200 with an empty body) cannot carry content —

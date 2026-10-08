@@ -1,0 +1,1 @@
+- **fix(cc-bridge):** preserve OpenAI tool history on Claude Code compatible targets ([#15457](https://github.com/diegosouzapw/OmniRoute/pull/15457)) — thanks @skygunner

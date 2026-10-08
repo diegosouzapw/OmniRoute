@@ -24,9 +24,14 @@ async function writePins(
   setLKGPFn: SetLkgp | undefined
 ): Promise<void> {
   const set = setLKGPFn ?? (await import("@/lib/db/settings")).setLKGP;
+  const comboKey = comboId || comboName;
+  if (comboKey === comboName) {
+    await set(comboName, comboKey, provider, connectionId);
+    return;
+  }
   await Promise.all([
     set(comboName, executionKey, provider, connectionId),
-    set(comboName, comboId || comboName, provider, connectionId),
+    set(comboName, comboKey, provider, connectionId),
   ]);
 }
 

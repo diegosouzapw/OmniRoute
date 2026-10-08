@@ -153,7 +153,7 @@ export function registerProxyTransitionBridge(): void {
   if (unsubscribe !== null) return;
   unsubscribe = onProxyTransition((transition) => {
     emitSetAside(transition);
-  });
+  }, "proxyTransitionBridge");
 }
 
 /** Test-only: forget emission state and the subscription. */

@@ -88,7 +88,13 @@ export async function GET(request: Request) {
       ? settings.oidcRedirectPath
       : "/api/auth/oidc/callback";
 
-  if (!enabled || !rawIssuer || !clientId || !clientSecret) {
+  // Without an allowlist every account at the identity provider would be let in as the
+  // dashboard admin, so an empty list counts as not configured.
+  const allowed = Array.isArray(settings.oidcAllowedSubjects)
+    ? settings.oidcAllowedSubjects.filter((v: unknown) => typeof v === "string" && v.trim() !== "")
+    : [];
+
+  if (!enabled || !rawIssuer || !clientId || !clientSecret || allowed.length === 0) {
     return NextResponse.redirect(new URL("/login?oidc_error=not_configured", originEarly));
   }
 
@@ -193,23 +199,18 @@ export async function GET(request: Request) {
       audience: clientId,
     });
 
-    // Optional subject / email whitelist
-    const allowed = Array.isArray(settings.oidcAllowedSubjects) ? settings.oidcAllowedSubjects : [];
-    if (allowed.length > 0) {
-      const sub = typeof payload.sub === "string" ? payload.sub : "";
-      const emailVerified = (payload as Record<string, unknown>).email_verified === true;
-      const email =
-        emailVerified && typeof (payload as Record<string, unknown>).email === "string"
-          ? ((payload as Record<string, unknown>).email as string).toLowerCase()
-          : "";
-      const ok = allowed.some((v: unknown) => {
-        if (typeof v !== "string") return false;
-        if (v === sub) return true;
-        return email !== "" && v.toLowerCase() === email;
-      });
-      if (!ok) {
-        return NextResponse.redirect(new URL("/login?oidc_error=subject_not_allowed", originEarly));
-      }
+    const sub = typeof payload.sub === "string" ? payload.sub : "";
+    const emailVerified = (payload as Record<string, unknown>).email_verified === true;
+    const email =
+      emailVerified && typeof (payload as Record<string, unknown>).email === "string"
+        ? ((payload as Record<string, unknown>).email as string).toLowerCase()
+        : "";
+    const ok = allowed.some((v: string) => {
+      if (v === sub) return true;
+      return email !== "" && v.toLowerCase() === email;
+    });
+    if (!ok) {
+      return NextResponse.redirect(new URL("/login?oidc_error=subject_not_allowed", originEarly));
     }
   } catch {
     return NextResponse.redirect(new URL("/login?oidc_error=id_token_invalid", originEarly));
