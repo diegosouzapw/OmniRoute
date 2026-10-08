@@ -4,10 +4,6 @@
 
 ---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇪🇹 [am](../../../am/docs/routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇧🇦 [bs](../../../bs/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇪🇪 [et](../../../et/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ha](../../../ha/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇦🇲 [hy](../../../hy/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ig](../../../ig/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇬🇪 [ka](../../../ka/docs/routing/AUTO-COMBO.md) · 🇰🇭 [km](../../../km/docs/routing/AUTO-COMBO.md) · 🇮🇳 [kn](../../../kn/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇱🇻 [lv](../../../lv/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ml](../../../ml/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇲🇲 [my](../../../my/docs/routing/AUTO-COMBO.md) · 🇳🇵 [ne](../../../ne/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇮🇳 [or](../../../or/docs/routing/AUTO-COMBO.md) · 🇮🇳 [pa](../../../pa/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇱🇰 [si](../../../si/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇷🇸 [sr](../../../sr/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../../sv/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../../ur/docs/routing/AUTO-COMBO.md) · 🇺🇿 [uz](../../../uz/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇳🇬 [yo](../../../yo/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
-
----
-
 > **İstifadəçilər üçün**: Sürətli başlanğıc axtarırsınız? Sadə izahlar və nümunələr üçün [Auto-Combo İstifadəçi Təlimatına](../getting-started/AUTO-COMBO-GUIDE.md) baxın.
 
 > Adaptiv qiymətləndirmə + sıfır konfiqurasiyalı avtomatik marşrutlaşdırma ilə özünü idarə edən model zəncirləri
@@ -296,68 +292,60 @@ müəyyən edilmiş dəyərlər mühərrikin mövcud `config.modePack` / `config
 
 ## Bütün Marşrutlaşdırma Strategiyaları
 
-OmniRoute-un kombo mühərriki **19 marşrutlaşdırma strategiyasını** dəstəkləyir (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` daxilində elan edilmişdir). Auto Combo mühərrikinin özü `auto` strategiyası altında təqdim olunur; digərləri isə saxlanılan kombolar üçün mövcuddur.
+OmniRoute-un combo mühərriki **19 marşrutlaşdırma strategiyasını** dəstəkləyir (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` daxilində elan edilib). Auto Combo mühərrikinin özü `auto` strategiyası vasitəsilə təqdim olunur; digərləri saxlanılan combo-lar üçün əlçatandır.
 
-| Strategiya          | Təsvir                                                                                                                                                                                                                     |
-| :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `priority`          | Açıq prioritetə malik birinci hədəf üzrə sıralanmış siyahı                                                                                                                                                                 |
-| `weighted`          | Hər hədəf üçün çəkiyə görə çəkili təsadüfi seçim                                                                                                                                                                           |
-| `round-robin`       | Hədəflər üzrə sıra ilə dövr etmə (toplu; aşağıya baxın)                                                                                                                                                                    |
-| `context-relay`     | Hədəflər arasında konteksti ötürmə (uzun söhbətlər)                                                                                                                                                                        |
-| `fill-first`        | Növbətiyə keçməzdən əvvəl hər bir hədəfin kvotasını doldurma                                                                                                                                                               |
-| `p2c`               | Power-of-2-choices təsadüfi yük balanslaşdırması                                                                                                                                                                           |
-| `random`            | Bərabər paylanmış təsadüfi seçim                                                                                                                                                                                           |
-| `least-used`        | Cari yükü ən az olan hədəfi seçmə                                                                                                                                                                                          |
-| `cost-optimized`    | Kataloq qiymətlərinə əsasən sorğu başına düşən $ xərcini minimuma endirmə                                                                                                                                                  |
-| `reset-aware` ⭐    | Kvotanın sıfırlanma vaxtına görə prioritetləşdirmə — qısa sıfırlanma pəncərələri daha yüksək dərəcələndirilir                                                                                                              |
-| `reset-window`      | Kvota pəncərəsi ən tez sıfırlanan hədəflərə üstünlük vermə                                                                                                                                                                 |
-| `headroom`          | Ən çox qalan kvota ehtiyatına (headroom) malik hədəfi seçmə                                                                                                                                                                |
-| `strict-random`     | Təkrarların deduplikasiyası olmadan təsadüfi seçim                                                                                                                                                                         |
-| `auto`              | Auto Combo xallamasından istifadə (16 faktorlu) — **tövsiyə olunur**                                                                                                                                                       |
-| `lkgp`              | Last-Known-Good Path (son uğurlu provayderə bərkidilir, sonra qaydalara qayıdır)                                                                                                                                           |
-| `context-optimized` | Cari kontekst ölçüsünə ən uyğun hədəfi seçmə                                                                                                                                                                               |
-| `cache-optimized`   | Hədəfləri prompt keş yaxınlığına görə yenidən sıralama — bu sorğunun keşlənmiş prefiksinə artıq sahib olma ehtimalı ən yüksək olan qoşulma ilk olaraq yoxlanılır (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
-| `fusion` 🧬         | Paralel olaraq modellər qrupuna paylama, sonra isə hakim (judge) vasitəsilə vahid cavabı sintez etmə (aşağıya baxın)                                                                                                       |
-| `pipeline`          | Hədəfləri ardıcıl icra etmə, hər addımın çıxışını növbəti addımın girişinə ötürmə; yalnız yekun cavab qaytarılır (#6396)                                                                                                   |
+| Strategiya          | Təsvir                                                                                                                                                                                                              |
+| :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `priority`          | Aydın şəkildə göstərilən prioritetə malik, ilk hədəfə üstünlük verən sıralanmış siyahı                                                                                                                              |
+| `weighted`          | Hər hədəfin çəkisinə əsaslanan çəkili təsadüfi seçim                                                                                                                                                                |
+| `round-robin`       | Hədəflər arasında sıra ilə dövr et (paketləşdirilmiş; aşağıya baxın)                                                                                                                                                |
+| `context-relay`     | Konteksti hədəflər arasında ötür (uzun söhbətlər)                                                                                                                                                                   |
+| `fill-first`        | Növbəti hədəfə keçməzdən əvvəl hər hədəfin kvotasını doldur                                                                                                                                                         |
+| `p2c`               | İki seçim gücünə əsaslanan təsadüfi yük balanslaşdırması                                                                                                                                                            |
+| `random`            | Bərabər ehtimallı təsadüfi seçim                                                                                                                                                                                    |
+| `least-used`        | Cari yükü ən aşağı olan hədəfi seç                                                                                                                                                                                  |
+| `cost-optimized`    | Kataloq qiymətlərinə əsasən hər sorğu üzrə xərci minimuma endir                                                                                                                                                     |
+| `reset-aware` ⭐    | Kvotanın sıfırlanma vaxtına görə prioritetləşdir — qısa sıfırlanma intervalları daha yuxarı sıralanır                                                                                                               |
+| `reset-window`      | Kvota intervalı ən tez sıfırlanacaq hədəflərə üstünlük ver                                                                                                                                                          |
+| `headroom`          | Ən çox qalan kvota ehtiyatına malik hədəfi seç                                                                                                                                                                      |
+| `strict-random`     | Təkrarların deduplikasiyası olmadan təsadüfi seçim                                                                                                                                                                  |
+| `auto`              | Auto Combo qiymətləndirməsindən istifadə et (16 amil) — **tövsiyə olunur**                                                                                                                                          |
+| `lkgp`              | Son Məlum Yaxşı Yol (son uğurlu provayderə bağlanır, sonra qaydalara əsaslanan ehtiyat variantlara keçir)                                                                                                           |
+| `context-optimized` | Cari kontekst ölçüsünə ən uyğun hədəfi seç                                                                                                                                                                          |
+| `cache-optimized`   | Hədəfləri sorğu keşinə uyğunluğa görə yenidən sırala — bu sorğunun keşlənmiş prefiksini artıq saxlaması ən çox ehtimal olunan bağlantı ilk olaraq sınanır (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
+| `fusion` 🧬         | Paralel olaraq model panelinə sorğu göndər, sonra bir hakim vasitəsilə vahid cavab sintez et (aşağıya baxın)                                                                                                        |
+| `pipeline`          | Hədəfləri ardıcıl işə salaraq hər addımın çıxışını növbəti addımın girişinə ötür; yalnız yekun cavab qaytarılır (#6396)                                                                                             |
 
-⭐ = v3.8.0 versiyasında yeni · 🧬 = v3.8.36 versiyasında yeni
+⭐ = v3.8.0 versiyasında yenidir · 🧬 = v3.8.36 versiyasında yenidir
 
 ### `weighted` semantikası
 
-`weighted` bərabərləşdirici deyil, **hər sorğu üçün mütənasib təsadüfi seçimdir**
-(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`):
+`weighted` **hər sorğu üçün proporsional təsadüfi seçimdir**
+(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), tarazlaşdırıcı deyil:
 
-- Hər bir sorğu `weight / totalWeight` ehtimalı ilə **bir** addım seçir; qalan addımlar
+- Hər sorğu `weight / totalWeight` ehtimalı ilə **bir** addım seçir; qalan addımlar
   həmin sorğu üçün ehtiyat zənciri kimi azalan çəki sırası ilə düzülür.
-- Çəkisi `0` olan (və ya çatışmayan) bir addım, çəkisi > 0 olan hər hansı digər addım
-  mövcud olduqda **heç vaxt seçilmir** — o, yalnız seçilmiş addım uğursuz olduqdan sonra
-  ehtiyat variant kimi xidmət edə bilər. Yalnız **bütün** çəkilər 0 olduqda seçim bərabər paylanır.
-- Bütün hədəfləri əlçatmaz olan addımlar — provayder dövrə kəsicisi (circuit breaker) `OPEN`, qoşulmanın
-  soyuma müddəti (cooldown), modelin bloklanması — seçim baş verməzdən əvvəl prosesdən çıxarılır
-  (`open-sse/services/combo/targetResolution.ts`), beləliklə tək bir sağlam addım müvəqqəti olaraq
-  hər bir sorğunu qazana bilər.
-- `stickyWeightedLimit` (kombo konfiqurasiyası, defolt `1` = sönülü) yenidən seçim etməzdən
-  əvvəl seçilmiş addımı ardıcıl olaraq həmin sayda uğurlu nəticə üçün sabit saxlayır.
+- Çəkisi `0` olan (və ya çəkisi göstərilməyən) addım, hər hansı digər addımın çəkisi
+  > 0 olduğu müddətdə **heç vaxt seçilmir** — o, yalnız seçilmiş addım uğursuz olduqdan sonra ehtiyat variant kimi xidmət edə bilər. Yalnız **bütün**
+  > çəkilər 0 olduqda seçim bərabər ehtimallı olur.
+- Bütün hədəfləri əlçatmaz olan addımlar — provayder dövrə açarı `OPEN`, bağlantının
+  gözləmə müddəti, modelin bloklanması — seçim baş verməzdən əvvəl siyahıdan çıxarılır
+  (`open-sse/services/combo/targetResolution.ts`), buna görə də yeganə sağlam addım müvəqqəti olaraq
+  hər sorğuda qalib gələ bilər.
+- `stickyWeightedLimit` (combo konfiqurasiyası, standart olaraq `1` = söndürülüb) yenidən seçim edilməzdən əvvəl seçilmiş addımı
+  həmin sayda ardıcıl uğur üçün sabitləyir.
 
-Ciddi rotasiya üçün `round-robin`-dən istifadə edin; `weighted` üzərində bərabər çəkilər
-ciddi deyil, statistik balans təmin edir.
+Ciddi rotasiya üçün `round-robin` istifadə edin; `weighted` daxilində bərabər çəkilər ciddi deyil,
+statistik balans yaradır.
 
-### Agentic pipeline rejimi
+### Agent əsaslı pipeline rejimi
 
-Ən azı iki modeli olan `pipeline` kombinasiyası `config.agenticOrchestration.enabled`
-ilə planlaşdırıcı/icraçı (planner/executor) marşrutlaşdırmasına qoşula bilər. Birinci hədəf
-planlaşdırmaya və yekun cavablara cavabdehdir; ikinci hədəf isə müştəri üçün yerli (client-native)
-alət çağırışları göndərir. OmniRoute sorğu protokolundan alət nəticəsi davamiyyətlərini aşkar
-edir, planlaşdırıcıdan başqa bir alət raundunun lazım olub-olmadığını soruşur və dinamik
-olaraq icraçını və ya planlaşdırıcını müştəri tərəfinə yönəlmiş yekun addım edir.
-
-İkinci hədəfdən sonrakı əlavə modellər ardıcıl icraçı ehtiyatlarıdır (executor backups). Uğursuz
-HTTP cavabı və ya nəqliyyat istisnası (transport exception) eyni planlaşdırıcı qərarını və yerli
-alətləri daşıyaraq, lakin həmin icraçının öz addım təlimatını (step prompt) və həll edilmiş
-bağlantısını götürərək növbəti icraçıya keçir. İlk uğurlu cavab dəyişdirilmədən geri qaytarılır,
-bura SSE axını (streaming) da daxildir; uğurlu axın başladıqdan sonra baş verən uğursuzluqlar burada
-yenidən cəhd edilə bilməz. Əgər bütün icraçılar uğursuz olarsa, sonuncu uğursuzluq qaytarılır. Müştəri
-tərəfindən dayandırmalar göndərişi saxlayır.
+İki addımlı `pipeline` kombinasiyası `config.agenticOrchestration.enabled` vasitəsilə
+planlayıcı/icraçı marşrutlaşdırmasını aktivləşdirə bilər. Birinci hədəf planlaşdırmaya və yekun
+cavablara cavabdehdir; ikinci hədəf isə müştəriyə məxsus alət çağırışları yaradır. OmniRoute
+sorğu protokolundan alət nəticəsinin davamlarını aşkarlayır, planlayıcıdan başqa bir alət
+mərhələsinin lazım olub-olmadığını soruşur və dinamik şəkildə ya icraçını, ya da planlayıcını
+müştəriyə təqdim olunan yekun addım edir.
 
 ```json
 {
@@ -369,36 +357,37 @@ tərəfindən dayandırmalar göndərişi saxlayır.
 }
 ```
 
-İcraçı bir cavabda bir neçə müstəqil çağırış göndərə bilər. Asılı çağırışlar daha sonrakı
-müştəri alət-nəticə mərhələlərində həll edilir və planlaşdırıcı hər bir nəticəni nəzərdən keçirir.
-`maxToolRounds` susmaya görə `8` dəyərini alır və `1`–`32` aralığını qəbul edir; limitə çatdıqda,
-planlaşdırıcı mövcud olan ən yaxşı yekun cavabı verməlidir. Daxili planlaşdırıcı qərarları
-buferləşdirilir, seçilmiş müştəri yönümlü cavab isə ilkin axın seçimini qoruyur.
+İcraçı bir cavabda bir neçə müstəqil çağırış yarada bilər. Asılı çağırışlar
+müştərinin sonrakı alət nəticəsi mərhələlərində emal edilir və planlayıcı hər nəticəni nəzərdən
+keçirir. `maxToolRounds` üçün defolt dəyər `8`-dir və `1`–`32` qəbul edir; limitə çatdıqda
+planlayıcı mövcud olan ən yaxşı yekun cavabı hazırlamalıdır. Daxili planlayıcı qərarları
+buferlənir, seçilmiş müştəriyə təqdim olunan cavab isə ilkin axın seçimini qoruyur.
 
-### `round-robin` yapışqan paket və hesab genişləndirilməsi
+### `round-robin` yapışqan paketləmə və hesab genişləndirilməsi
 
-Round-robin addımbaşına-tək-sorğu deyil, paketlənmiş şəkildədir:
+Round-robin hər addımda bir sorğu deyil, paketlənmiş şəkildə işləyir:
 
-- `stickyRoundRobinLimit` (kombo konfiqurasiyası, sonra `comboStickyRoundRobinLimit`,
-  daha sonra `settings.stickyRoundRobinLimit`, susmaya görə **3**) növbələşmədən (rotasiyadan)
-  əvvəl ardıcıl uğurların sayı qədər eyni hədəfi saxlayır. Tək sorğulu növbələşmə üçün kombo
-  ləğvetməsini (override) `1` olaraq təyin edin. Kombo redaktoru faktiki dəyəri və onun hansı
-  qatdan gəldiyini göstərir.
-- `connectionAwareExpansion` (kombo konfiqurasiyası, sonra settings, susmaya görə **false**)
-  növbələşmədən əvvəl hər bir təminatçı səviyyəli addımı hər hesaba uyğun hədəflərə genişləndirir.
-  Qrup-B strategiyaları (priority, weighted, round-robin, random, p2c, least-used, cost-optimized,
-  lkgp, fill-first, strict-random, context-optimized, cache-optimized, context-relay, fusion,
-  pipeline) bu parametr aktiv edilənə qədər təminatçı səviyyəli görünüşü saxlayır. Kombo redaktoru
-  inherit / on / off seçimlərini təqdim edir; inherit qlobal susmaya görə olan dəyərdən (off) istifadə edir.
-- Prompt-keş lokal marşrutlaşdırması (`promptCacheAffinityEnabled`, susmaya görə **true**)
-  sabitlənmiş bağlantıları yenidən sıralayır ki, uyğun gələn keş açarları bir hesabda qalsın.
-  Bu, sabitləşdirilmiş hesablararası addımlarda round-robin və çəkili növbələşmədən (weighted rotation)
-  daha üstün sayılır. Ciddi növbələşməyə ehtiyacınız varsa, bunu Settings → Combo defaults bölməsindən
-  deaktiv edin. Hər kombo üçün xüsusi ləğvetmə (override) mövcud deyil.
+- `stickyRoundRobinLimit` (əvvəl kombinasiya konfiqurasiyası, sonra `comboStickyRoundRobinLimit`,
+  sonra `settings.stickyRoundRobinLimit`, defolt **3**) rotasiyadan əvvəl eyni hədəfi bu sayda
+  ardıcıl uğurlu sorğu üçün saxlayır. Hər sorğudan sonra rotasiya üçün kombinasiya əvəzləməsini
+  `1` olaraq təyin edin. Kombinasiya redaktoru effektiv dəyəri və onun hansı qatdan gəldiyini göstərir.
+- `connectionAwareExpansion` (əvvəl kombinasiya konfiqurasiyası, sonra parametrlər, defolt
+  **false**) rotasiyadan əvvəl provayder səviyyəsindəki hər addımı hesab üzrə ayrı-ayrı
+  hədəflərə genişləndirir. B qrupu strategiyaları (priority, weighted, round-robin, random,
+  p2c, least-used, cost-optimized, lkgp, fill-first, strict-random, context-optimized,
+  cache-optimized, context-relay, fusion, pipeline) bu seçim aktivləşdirilənədək
+  provayder səviyyəsində görünüşü saxlayır. Kombinasiya redaktoru inherit / on / off
+  seçimlərini təqdim edir; inherit qlobal defolt dəyərdən (off) istifadə edir.
+- Sorğu keşinin lokallıq marşrutlaşdırması (`promptCacheAffinityEnabled`, defolt **true**)
+  uyğun keş açarlarının bir hesabda qalması üçün bərkidilmiş bağlantıların sırasını dəyişir.
+  Bu, hər hesaba bərkidilmiş addımlar üzrə round-robin və weighted rotasiyasından üstündür.
+  Sərt rotasiya lazımdırsa, onu Parametrlər → Kombinasiya defoltları bölməsində söndürün.
+  Hər kombinasiya üçün ayrıca əvəzləmə mövcud deyil.
 
-Bir modeldə çoxhesablı növbələşmə üçün üç sabit `connectionId` yerinə sticky limiti `1` olan
-**bir dinamik-hesab addımına** (boş `connectionId`, bütün pul) üstünlük verin. Sabitlənmiş addımlar
-və affinlik (affinity), hətta RR sayğacı irəliləsə belə, eyni hesaba yığılıb qalır.
+Bir model üzrə çoxhesablı rotasiya üçün üç bərkidilmiş `connectionId` əvəzinə, yapışqan
+limiti `1` olan **bir dinamik hesab addımına** (boş `connectionId`, bütün hovuz) üstünlük
+verin. Bərkidilmiş addımlar və uyğunluq birlikdə, hətta RR sayğacı irəliləyərkən belə,
+eyni hesab üzərində cəmlənir.
 
 ## Fusion Strategiyası
 

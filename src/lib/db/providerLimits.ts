@@ -31,6 +31,7 @@ export interface ProviderLimitsCacheEntry {
   source?: string | null;
   bankedResetCredits?: number;
   billing?: ProviderBillingStatus;
+  quotaGroups?: Array<Record<string, unknown>>;
 }
 
 const PROVIDER_LIMITS_CACHE_NAMESPACE = "providerLimitsCache";
@@ -74,6 +75,9 @@ function normalizeCacheEntry(value: unknown): ProviderLimitsCacheEntry | null {
     source: typeof record.source === "string" ? record.source : null,
     ...(Number.isFinite(bankedResetCredits) ? { bankedResetCredits } : {}),
     ...(billing ? { billing } : {}),
+    ...(Array.isArray(record.quotaGroups)
+      ? { quotaGroups: record.quotaGroups as Array<Record<string, unknown>> }
+      : {}),
   };
 }
 

@@ -4,10 +4,6 @@
 
 ---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇪🇹 [am](../../../am/docs/routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇧🇦 [bs](../../../bs/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇪🇪 [et](../../../et/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ha](../../../ha/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇦🇲 [hy](../../../hy/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ig](../../../ig/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇬🇪 [ka](../../../ka/docs/routing/AUTO-COMBO.md) · 🇰🇭 [km](../../../km/docs/routing/AUTO-COMBO.md) · 🇮🇳 [kn](../../../kn/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇱🇻 [lv](../../../lv/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ml](../../../ml/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇳🇵 [ne](../../../ne/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇮🇳 [or](../../../or/docs/routing/AUTO-COMBO.md) · 🇮🇳 [pa](../../../pa/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇱🇰 [si](../../../si/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇷🇸 [sr](../../../sr/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../../sv/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../../ur/docs/routing/AUTO-COMBO.md) · 🇺🇿 [uz](../../../uz/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇳🇬 [yo](../../../yo/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
-
----
-
 > **အသုံးပြုသူများအတွက်**: အမြန်စတင်ရန် လမ်းညွှန်ကို ရှာနေပါသလား။ ရိုးရှင်းသော ရှင်းလင်းချက်များနှင့် နမူနာများအတွက် [Auto-Combo အသုံးပြုသူ လမ်းညွှန်](../getting-started/AUTO-COMBO-GUIDE.md) ကို ကြည့်ပါ။
 
 > အလိုက်သင့် ပြောင်းလဲနိုင်သော အမှတ်ပေးစနစ် + ဖွဲ့စည်းသတ်မှတ်ရန်မလိုသော အလိုအလျောက် လမ်းကြောင်းရွေးချယ်မှုတို့ပါဝင်သည့် ကိုယ်တိုင်စီမံခန့်ခွဲသော မော်ဒယ်ကွင်းဆက်များ
@@ -259,51 +255,54 @@ curl -sS http://localhost:20128/v1/chat/completions \
 `config.budgetFallback` input များထဲသို့ ထည့်သွင်းသည်။ Combo တစ်ခု၏ သိမ်းဆည်းထားသော `config.budgetFallback` ("strict" |
 "cheapest") သည် အမြဲတမ်းသုံးမည့် မူဝါဒကို သတ်မှတ်ပြီး၊ header က တောင်းဆိုချက်တစ်ခုတည်းအတွက် ၎င်းကို အစားထိုးသတ်မှတ်သည်။
 
-## လမ်းကြောင်းသတ်မှတ်ခြင်း မဟာဗျူဟာများ အားလုံး
+## Routing နည်းဗျူဟာများအားလုံး
 
-OmniRoute ၏ combo အင်ဂျင်သည် **routing strategy ၁၉ ခု** ကို အထောက်အပံ့ပေးထားပါသည် (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` တွင် သတ်မှတ်ထားသည်)။ Auto Combo အင်ဂျင်ကို `auto` strategy အောက်တွင် အသုံးပြုနိုင်ပြီး ကျန်ရှိသော strategy များကို သိမ်းဆည်းထားသော combo များအတွက် အသုံးပြုနိုင်ပါသည်။
+OmniRoute ၏ combo engine သည် **routing နည်းဗျူဟာ 19 မျိုး** (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` တွင် ကြေညာထားသည်) ကို ပံ့ပိုးပေးသည်။ Auto Combo engine ကိုယ်တိုင်ကို `auto` နည်းဗျူဟာအောက်တွင် ဖော်ထုတ်ပေးထားပြီး အခြားနည်းဗျူဟာများကို သိမ်းဆည်းထားသော combo များအတွက် အသုံးပြုနိုင်သည်။
 
-| Strategy            | ဖော်ပြချက်                                                                                                                                                                                                                   |
-| :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `priority`          | တိကျသော ဦးစားပေးအဆင့် သတ်မှတ်ထားသည့် ပထမ target ဦးစားပေး စာရင်း                                                                                                                                                              |
-| `weighted`          | Target တစ်ခုချင်းစီ၏ weight အပေါ် အခြေခံထားသော အချိုးကျ ကျပန်း ရွေးချယ်မှု                                                                                                                                                   |
-| `round-robin`       | Target များကို အစဉ်လိုက် အလှည့်ကျ လုပ်ဆောင်ခြင်း (batched ပုံစံ၊ အောက်တွင် ကြည့်ပါ)                                                                                                                                          |
-| `context-relay`     | Target များတစ်လျှောက် context ကို လက်ဆင့်ကမ်း ပေးပို့ခြင်း (စကားပြောဆိုမှု အရှည်ကြီးများအတွက်)                                                                                                                               |
-| `fill-first`        | နောက် target တစ်ခုသို့ မကူးပြောင်းမီ လက်ရှိ target ၏ သတ်မှတ် quota ပြည့်အောင် အရင်ဖြည့်ခြင်း                                                                                                                                 |
-| `p2c`               | Power-of-2-choices ကျပန်း load balancing စနစ်                                                                                                                                                                                |
-| `random`            | အညီအမျှ ကျပန်း ရွေးချယ်မှု                                                                                                                                                                                                   |
-| `least-used`        | လက်ရှိ load အနည်းဆုံး target ကို ရွေးချယ်ခြင်း                                                                                                                                                                               |
-| `cost-optimized`    | Catalog ဈေးနှုန်းများအရ request တစ်ခုချင်းစီအတွက် ကုန်ကျငွေ ($) အနည်းဆုံးဖြစ်အောင် ပြုလုပ်ခြင်း                                                                                                                              |
-| `reset-aware` ⭐    | Quota reset ချိန်အပေါ် မူတည်ပြီး ဦးစားပေး သတ်မှတ်ခြင်း — reset ချိန်တိုသော target များကို ပိုမိုမြင့်မားသော အဆင့် သတ်မှတ်သည်                                                                                                 |
-| `reset-window`      | Quota window အမြန်ဆုံး reset ဖြစ်မည့် target များကို ပိုမိုဦးစားပေးသည်                                                                                                                                                       |
-| `headroom`          | ကျန်ရှိသော quota headroom အများဆုံး target ကို ရွေးချယ်ခြင်း                                                                                                                                                                 |
-| `strict-random`     | ထပ်ခါတလဲလဲ ဖြစ်ခြင်းများကို ဖယ်ရှားခြင်း မရှိဘဲ ကျပန်း ရွေးချယ်ခြင်း                                                                                                                                                         |
-| `auto`              | Auto Combo scoring (16-factor) ကို အသုံးပြုခြင်း — **အကြံပြုထားသည်**                                                                                                                                                         |
-| `lkgp`              | Last-Known-Good Path (နောက်ဆုံး အောင်မြင်ခဲ့သော provider ကို ဆက်လက်အသုံးပြုပြီး၊ မရပါက သတ်မှတ်ထားသော စည်းမျဉ်းများအတိုင်း ပြန်လည်လုပ်ဆောင်သည်)                                                                               |
-| `context-optimized` | လက်ရှိ context size နှင့် အသင့်တော်ဆုံး target ကို ရွေးချယ်ခြင်း                                                                                                                                                             |
-| `cache-optimized`   | Prompt-cache affinity အပေါ် မူတည်၍ target များကို ပြန်လည်စီစဉ်ခြင်း — ဤ request ၏ cached prefix ကို လက်ဝယ်ရှိနိုင်ခြေ အများဆုံး connection ကို အရင်ဆုံး စမ်းသပ်သည် (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
-| `fusion` 🧬         | Model အများအပြားသို့ တစ်ပြိုင်နက် ပို့ဆောင်ပြီး judge တစ်ခုမှတစ်ဆင့် အဖြေတစ်ခုတည်းအဖြစ် ပေါင်းစပ်ထုတ်လုပ်ခြင်း (အောက်တွင် ကြည့်ပါ)                                                                                           |
-| `pipeline`          | Target များကို အစဉ်လိုက် လုပ်ဆောင်ပြီး အဆင့်တစ်ခုစီ၏ output ကို နောက်အဆင့်၏ input အဖြစ် ဆက်စပ်ပေးပို့ခြင်း။ နောက်ဆုံးအဖြေကိုသာ ပြန်လည်ရရှိမည် ဖြစ်သည် (#6396)                                                                |
+| နည်းဗျူဟာ           | ဖော်ပြချက်                                                                                                                                                                                                                    |
+| :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `priority`          | တိကျစွာသတ်မှတ်ထားသော ဦးစားပေးအစီအစဉ်ဖြင့် ပထမဆုံး target ကို ရွေးချယ်သည့် စီထားသောစာရင်း                                                                                                                                      |
+| `weighted`          | target တစ်ခုချင်းစီ၏ weight အလိုက် အလေးပေး ကျပန်းရွေးချယ်မှု                                                                                                                                                                  |
+| `round-robin`       | target များကို အစဉ်လိုက် လှည့်ပတ်အသုံးပြုခြင်း (batch အလိုက်၊ အောက်တွင်ကြည့်ပါ)                                                                                                                                               |
+| `context-relay`     | target များကြား context ကို လက်ဆင့်ကမ်းပေးခြင်း (ရှည်လျားသော စကားဝိုင်းများ)                                                                                                                                                  |
+| `fill-first`        | နောက် target သို့ မရွှေ့မီ target တစ်ခုစီ၏ quota ကို ပြည့်အောင် အသုံးပြုခြင်း                                                                                                                                                 |
+| `p2c`               | ရွေးချယ်စရာ ၂ ခု၏ စွမ်းအားကို အသုံးပြုသည့် ကျပန်း load balancing                                                                                                                                                              |
+| `random`            | အညီအမျှဖြစ်နိုင်ခြေရှိသော ကျပန်းရွေးချယ်မှု                                                                                                                                                                                   |
+| `least-used`        | လက်ရှိ load အနည်းဆုံးရှိသော target ကို ရွေးချယ်ခြင်း                                                                                                                                                                          |
+| `cost-optimized`    | catalog ဈေးနှုန်းအပေါ် အခြေခံ၍ request တစ်ခုချင်းစီအတွက် $ ကုန်ကျစရိတ်ကို အနည်းဆုံးဖြစ်စေခြင်း                                                                                                                                |
+| `reset-aware` ⭐    | quota reset အချိန်အလိုက် ဦးစားပေးခြင်း — reset window တိုသော target များကို ပိုမြင့်စွာ အဆင့်သတ်မှတ်သည်                                                                                                                       |
+| `reset-window`      | quota window အစောဆုံး reset ဖြစ်မည့် target များကို ဦးစားပေးခြင်း                                                                                                                                                             |
+| `headroom`          | ကျန်ရှိသည့် quota headroom အများဆုံးရှိသော target ကို ရွေးချယ်ခြင်း                                                                                                                                                           |
+| `strict-random`     | ထပ်နေမှုများကို ဖယ်ရှားခြင်းမရှိဘဲ ကျပန်းရွေးချယ်ခြင်း                                                                                                                                                                        |
+| `auto`              | Auto Combo အမှတ်ပေးစနစ် (အချက် 16 ချက်) ကို အသုံးပြုခြင်း — **အကြံပြုထားသည်**                                                                                                                                                 |
+| `lkgp`              | နောက်ဆုံးအောင်မြင်ခဲ့သော လမ်းကြောင်း (နောက်ဆုံးအောင်မြင်ခဲ့သည့် provider ကို ဆက်လက်အသုံးပြုပြီးနောက် မအောင်မြင်ပါက စည်းမျဉ်းများအတိုင်း အစားထိုးအသုံးပြုသည်)                                                                  |
+| `context-optimized` | လက်ရှိ context အရွယ်အစားနှင့် အကိုက်ညီဆုံး target ကို ရွေးချယ်ခြင်း                                                                                                                                                           |
+| `cache-optimized`   | prompt-cache နှင့် ကိုက်ညီမှုအလိုက် target များကို ပြန်လည်စီခြင်း — ဤ request ၏ cache လုပ်ထားသော prefix ကို ရှိထားနိုင်ခြေအများဆုံး connection ကို ဦးစွာ စမ်းသပ်သည် (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
+| `fusion` 🧬         | model များ၏ panel တစ်ခုသို့ တစ်ပြိုင်နက်တည်း ဖြန့်ဝေပြီးနောက် judge တစ်ခုဖြင့် အဖြေတစ်ခုအဖြစ် ပေါင်းစပ်ခြင်း (အောက်တွင်ကြည့်ပါ)                                                                                               |
+| `pipeline`          | target များကို အစဉ်လိုက် လုပ်ဆောင်ပြီး အဆင့်တစ်ခုစီ၏ output ကို နောက်အဆင့်၏ input ထဲသို့ ဆက်လက်ထည့်သွင်းခြင်း၊ နောက်ဆုံးအဖြေကိုသာ ပြန်ပေးသည် (#6396)                                                                          |
 
 ⭐ = v3.8.0 တွင် အသစ်ပါဝင်သည် · 🧬 = v3.8.36 တွင် အသစ်ပါဝင်သည်
 
-### `weighted` သဘောတရား
+### `weighted` ၏ လုပ်ဆောင်ပုံ
 
-`weighted` သည် **request တစ်ခုချင်းစီအလိုက် အချိုးကျ ကျပန်း ရွေးချယ်မှု** ဖြစ်ပြီး
-(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`)၊ ညီတူညီမျှ ခွဲဝေပေးသည့် စနစ်မဟုတ်ပါ-
+`weighted` သည် တန်းညှိပေးသည့်စနစ်မဟုတ်ဘဲ **request တစ်ခုချင်းစီအလိုက် အချိုးကျ ကျပန်းရွေးချယ်မှု**
+(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`) ဖြစ်သည်။
 
-- Request တစ်ခုချင်းစီသည် `weight / totalWeight` ဖြစ်နိုင်ခြေဖြင့် step **တစ်ခု** ကို မဲနှိုက်ရွေးချယ်ပြီး၊ ကျန်ရှိသော step များကို ထို request အတွက် fallback chain အဖြစ် weight ကြီးစဉ်ငယ်လိုက် စီစဉ်ပေးပါသည်။
-- Weight တန်ဖိုး `0` (သို့မဟုတ် မပါဝင်သော) step တစ်ခုသည် အခြား step တစ်ခုခုတွင် weight > 0 ရှိနေသရွေ့ **ဘယ်သောအခါမှ မဲနှိုက်ရွေးချယ်ခံရမည် မဟုတ်ပါ** — ရွေးချယ်ခံရသော step ကျရှုံးသွားမှသာ fallback အဖြစ်သာ ဆောင်ရွက်နိုင်ပါသည်။ Weight **အားလုံး** သည် 0 ဖြစ်နေမှသာလျှင် ရွေးချယ်မှုသည် အညီအမျှ ဖြစ်သွားပါမည်။
-- Target များ အားလုံး အသုံးမပြုနိုင်တော့သော step များ (ဥပမာ- provider circuit breaker `OPEN` ဖြစ်နေခြင်း၊ connection cooldown ဖြစ်နေခြင်း၊ model lockout ဖြစ်နေခြင်း) ကို မဲမနှိုက်မီ ဖယ်ထုတ်ထားပါသည် (`open-sse/services/combo/targetResolution.ts`)၊ ထို့ကြောင့် ကောင်းမွန်စွာ အလုပ်လုပ်နေသော step တစ်ခုတည်းကသာ request အားလုံးကို ယာယီ ရရှိသွားနိုင်ပါသည်။
-- `stickyWeightedLimit` (combo config၊ ပုံသေအားဖြင့် `1` = ပိတ်ထားသည်) သည် ပြန်လည်မဲမနှိုက်မီ ထိုရွေးချယ်ထားသော step ကို ဆက်တိုက် အောင်မြင်သည့် အကြိမ်အရေအတွက်အတိုင်း ပုံသေသတ်မှတ်ပေးထားပါသည်။
+- request တစ်ခုစီသည် ဖြစ်နိုင်ခြေ `weight / totalWeight` ဖြင့် အဆင့် **တစ်ခု** ကို ရွေးချယ်သည်။ ကျန်အဆင့်များကို ထို request အတွက် fallback chain အဖြစ် weight ကြီးစဉ်ငယ်လိုက် စီထားသည်။
+- weight `0` ဖြစ်သော (သို့မဟုတ် weight မသတ်မှတ်ထားသော) အဆင့်ကို အခြားအဆင့်တစ်ခုခု၏ weight > 0 ဖြစ်နေသရွေ့ **မည်သည့်အခါမျှ ကျပန်းမရွေးချယ်ပါ** — ရွေးချယ်ထားသောအဆင့် မအောင်မြင်ပြီးနောက် fallback အဖြစ်သာ အသုံးပြုနိုင်သည်။ weight **အားလုံး** 0 ဖြစ်သည့်အခါမှသာ ရွေးချယ်မှုသည် အညီအမျှဖြစ်နိုင်ခြေရှိလာသည်။
+- target အားလုံး အသုံးမပြုနိုင်သောအဆင့်များ — provider circuit breaker `OPEN`၊ connection cooldown၊ model lockout — ကို ကျပန်းမရွေးချယ်မီ ဖယ်ရှားသည်
+  (`open-sse/services/combo/targetResolution.ts`)။ ထို့ကြောင့် ကောင်းမွန်စွာ အလုပ်လုပ်နေသော အဆင့်တစ်ခုတည်းက request အားလုံးအတွက် ယာယီရွေးချယ်ခံရနိုင်သည်။
+- `stickyWeightedLimit` (combo config၊ မူလတန်ဖိုး `1` = ပိတ်ထားသည်) သည် ပြန်လည်ကျပန်းမရွေးချယ်မီ ဆက်တိုက်အောင်မြင်မှုအရေအတွက် သတ်မှတ်ထားသမျှအတွက် ရွေးချယ်ထားသောအဆင့်ကို ဆက်လက်အသုံးပြုစေသည်။
 
-တိကျသော အလှည့်ကျစနစ်အတွက် `round-robin` ကို သုံးပါ၊ `weighted` တွင် တူညီသော weight များ သတ်မှတ်ခြင်းသည် စာရင်းအင်းဆိုင်ရာ မျှတမှုကိုသာ ရရှိစေပြီး တိကျသော အလှည့်ကျ မျှတမှု မဟုတ်ပါ။
+တိကျသော အလှည့်ကျအသုံးပြုမှုအတွက် `round-robin` ကို အသုံးပြုပါ။ `weighted` တွင် weight များကို အညီအမျှထားခြင်းသည် တိကျသော ညီမျှမှုမဟုတ်ဘဲ ကိန်းဂဏန်းအရ ညီမျှမှုကိုသာ ပေးသည်။
 
 ### Agentic pipeline mode
 
-မော်ဒယ် အနည်းဆုံးနှစ်ခုပါဝင်သော `pipeline` combo သည် `config.agenticOrchestration.enabled` ဖြင့် planner/executor လမ်းကြောင်းသတ်မှတ်ခြင်း (routing) စနစ်ကို ရွေးချယ်အသုံးပြုနိုင်ပါသည်။ ပထမ target သည် စီစဉ်ခြင်း (planning) နှင့် နောက်ဆုံးအဖြေများကို တာဝန်ယူပြီး ဒုတိယ target သည် client-native tool calls များကို ထုတ်ပေးပါသည်။ OmniRoute သည် request protocol မှ tool-result ဆက်လက်လုပ်ဆောင်မှုများကို အလိုအလျောက်သိရှိပြီး၊ အခြား tool round တစ်ခု ထပ်မံလိုအပ်ခြင်း ရှိမရှိ planner အား မေးမြန်းကာ executor သို့မဟုတ် planner အား client သို့ ပြသပေးမည့် နောက်ဆုံးအဆင့်အဖြစ် ပြောင်းလဲသတ်မှတ်ပေးပါသည်။
-
-ဒုတိယ target ၏ နောက်တွင်ရှိသော နောက်ထပ်မော်ဒယ်များသည် အစဉ်လိုက်သတ်မှတ်ထားသော executor အရန် (backup) များ ဖြစ်ကြပါသည်။ HTTP response မအောင်မြင်ခြင်း သို့မဟုတ် transport exception ဖြစ်ပေါ်ပါက ထို planner ၏ ဆုံးဖြတ်ချက်နှင့် native tools များကို ဆက်လက်သယ်ဆောင်သွားကာ နောက် executor သို့ ကူးပြောင်းသွားမည်ဖြစ်သော်လည်း ထို executor ၏ ကိုယ်ပိုင် step prompt နှင့် ချိတ်ဆက်ထားသော connection ကို အသုံးပြုမည်ဖြစ်သည်။ ပထမဆုံး အောင်မြင်သော response (SSE streaming အပါအဝင်) အား မူရင်းအတိုင်း ပြန်လည်ပေးပို့မည်ဖြစ်ပြီး အောင်မြင်သော stream တစ်ခု စတင်ပြီးနောက် ဖြစ်ပေါ်သည့် failure များကို ဤနေရာတွင် ထပ်မံကြိုးစား၍မရနိုင်ပါ။ Executor အားလုံး မအောင်မြင်ပါက နောက်ဆုံး failure ကို ပြန်လည်ပေးပို့မည်ဖြစ်သည်။ Client ဘက်မှ ပယ်ဖျက်လိုက်ပါက ပေးပို့ခြင်း (dispatch) လုပ်ငန်းစဉ် ရပ်တန့်သွားမည်ဖြစ်သည်။
+အဆင့်နှစ်ဆင့်ပါဝင်သော `pipeline` ပေါင်းစပ်မှုသည်
+`config.agenticOrchestration.enabled` ဖြင့် planner/executor လမ်းကြောင်းရွေးချယ်မှုကို အသုံးပြုနိုင်သည်။ ပထမ target က အစီအစဉ်ရေးဆွဲခြင်းနှင့် နောက်ဆုံးအဖြေများကို တာဝန်ယူပြီး၊
+ဒုတိယ target က client မူရင်းပုံစံအတိုင်း tool call များကို ထုတ်ပေးသည်။ OmniRoute သည် request protocol မှ tool-result
+ဆက်လက်လုပ်ဆောင်မှုများကို စစ်ဆေးသိရှိကာ နောက်ထပ် tool round လိုအပ်ခြင်းရှိမရှိ planner ကို မေးမြန်းပြီး executor သို့မဟုတ် planner တစ်ခုခုကို client မြင်တွေ့ရမည့် နောက်ဆုံး
+အဆင့်အဖြစ် အခြေအနေပေါ်မူတည်၍ သတ်မှတ်ပေးသည်။
 
 ```json
 {
@@ -315,17 +314,34 @@ OmniRoute ၏ combo အင်ဂျင်သည် **routing strategy ၁၉ ခ
 }
 ```
 
-Executor သည် တစ်ကြိမ်တုံ့ပြန်မှုအတွင်း သီးခြားဖြစ်သော call အများအပြားကို ထုတ်ပေးနိုင်ပါသည်။ တစ်ခုနှင့်တစ်ခု အမှီသဟဲပြုနေသော call များကို နောက်ပိုင်း client tool-result အလှည့်များတွင် ကိုင်တွယ်ဖြေရှင်းပြီး ရလဒ်တိုင်းကို planner မှ ပြန်လည်စစ်ဆေးပါသည်။ `maxToolRounds` ၏ default တန်ဖိုးမှာ `8` ဖြစ်ပြီး `1` မှ `32` အထိ လက်ခံပါသည်။ သတ်မှတ်ထားသော အကြိမ်အရေအတွက်သို့ ရောက်ရှိသွားပါက planner သည် ရရှိနိုင်သမျှ အကောင်းဆုံး နောက်ဆုံးအဖြေကို ထုတ်ပေးရမည်ဖြစ်သည်။ အတွင်းပိုင်း planner ဆုံးဖြတ်ချက်များကို buffer ပြုလုပ်ထားသော်လည်း ရွေးချယ်ထားသော client-facing response သည် မူရင်း streaming preference အတိုင်း ထိန်းသိမ်းထားရှိပါသည်။
+Executor သည် response တစ်ခုအတွင်း သီးခြားလွတ်လပ်သော call အများအပြားကို ထုတ်ပေးနိုင်သည်။ တစ်ခုကိုတစ်ခု မှီခိုနေသော call များကို
+နောက်ပိုင်း client tool-result turn များတွင် ကိုင်တွယ်ပြီး planner က result တိုင်းကို ပြန်လည်သုံးသပ်သည်။
+`maxToolRounds` ၏ မူလတန်ဖိုးသည် `8` ဖြစ်ပြီး `1`–`32` ကို လက်ခံသည်။ သတ်မှတ်အရေအတွက် ပြည့်သွားသည်နှင့် planner သည်
+လက်ရှိရရှိနိုင်သမျှအနက် အကောင်းဆုံး နောက်ဆုံးအဖြေကို ထုတ်ပေးရမည်။ အတွင်းပိုင်း planner ဆုံးဖြတ်ချက်များကို buffer လုပ်ထားပြီး၊
+ရွေးချယ်ထားသော client မြင်တွေ့ရမည့် response သည် မူလ streaming preference ကို ထိန်းသိမ်းထားသည်။
 
-### `round-robin` sticky batch နှင့် account ချဲ့ထွင်ခြင်း
+### `round-robin` sticky batch နှင့် account တိုးချဲ့ခြင်း
 
-Round-robin သည် အဆင့်တစ်ခုလျှင် request တစ်ခုနှုန်းမဟုတ်ဘဲ batch အလိုက် လုပ်ဆောင်ခြင်းဖြစ်သည်-
+Round-robin သည် request တစ်ခုလျှင် step တစ်ခုစီ လုပ်ဆောင်ခြင်းမဟုတ်ဘဲ batch အလိုက် လုပ်ဆောင်သည်-
 
-- `stickyRoundRobinLimit` (combo config၊ ထို့နောက် `comboStickyRoundRobinLimit`၊ ထို့နောက် `settings.stickyRoundRobinLimit`၊ default **3**) သည် မလှည့်မီ (rotation မလုပ်မီ) သတ်မှတ်ထားသော အကြိမ်အရေအတွက်အတိုင်း ဆက်တိုက်အောင်မြင်မှုများအတွက် target တစ်ခုတည်းကို ဆက်လက်အသုံးပြုထားပါသည်။ Request တစ်ခုစီတိုင်း အလှည့်ကျစနစ်အတွက် combo override ကို `1` ဟု သတ်မှတ်ပါ။ Combo editor တွင် သက်ရောက်မှုရှိသော တန်ဖိုးနှင့် ၎င်းမည်သည့် layer မှ လာသည်ကို ပြသပေးပါသည်။
-- `connectionAwareExpansion` (combo config၊ ထို့နောက် settings၊ default **false**) သည် rotation မလုပ်မီ provider-level step တစ်ခုစီကို account တစ်ခုချင်းစီအလိုက် target များအဖြစ် ချဲ့ထွင်ပေးပါသည်။ ၎င်းကို မဖွင့်မချင်း Group-B strategies များ (priority, weighted, round-robin, random, p2c, least-used, cost-optimized, lkgp, fill-first, strict-random, context-optimized, cache-optimized, context-relay, fusion, pipeline) သည် provider-level မြင်ကွင်းကိုသာ ဆက်လက်ထိန်းသိမ်းထားမည်ဖြစ်သည်။ Combo editor တွင် inherit / on / off ကို ရွေးချယ်နိုင်ပြီး inherit သည် global default (off) ကို အသုံးပြုပါသည်။
-- Prompt-cache locality routing (`promptCacheAffinityEnabled`၊ default **true**) သည် ကိုက်ညီသော cache key များ account တစ်ခုတည်းတွင်သာ ရှိနေစေရန် pinned connection များကို အစီအစဉ် ပြန်လည်စီစဉ်ပေးပါသည်။ ၎င်းသည် pinned per-account steps များတစ်လျှောက် round-robin နှင့် weighted rotation ထက် ဦးစားပေးလုပ်ဆောင်ပါသည်။ တိကျသော rotation ပြုလုပ်ရန် လိုအပ်ပါက Settings → Combo defaults အောက်တွင် ပိတ်ထားနိုင်ပါသည်။ Per-combo override သတ်မှတ်ချက် မရှိပါ။
+- `stickyRoundRobinLimit` (combo config၊ ထို့နောက် `comboStickyRoundRobinLimit`၊ ထို့နောက်
+  `settings.stickyRoundRobinLimit`၊ မူလတန်ဖိုး **3**) သည် အလှည့်မပြောင်းမီ ဆက်တိုက်အောင်မြင်မှု အရေအတွက် သတ်မှတ်ထားသလောက်
+  တူညီသော target ကို ဆက်လက်အသုံးပြုသည်။ request တစ်ခုစီအလိုက် အလှည့်ပြောင်းရန် combo override ကို `1` ဟု သတ်မှတ်ပါ။
+  Combo editor သည် အမှန်တကယ် အသုံးဝင်နေသော တန်ဖိုးနှင့် ထိုတန်ဖိုး ရရှိလာသည့် layer ကို ပြသသည်။
+- `connectionAwareExpansion` (combo config၊ ထို့နောက် settings၊ မူလတန်ဖိုး **false**) သည်
+  provider-level step တစ်ခုစီကို အလှည့်မပြောင်းမီ account တစ်ခုချင်းအလိုက် target များအဖြစ် တိုးချဲ့သည်။ Group-B strategy များ
+  (priority, weighted, round-robin, random, p2c, least-used, cost-optimized, lkgp,
+  fill-first, strict-random, context-optimized, cache-optimized, context-relay, fusion,
+  pipeline) သည် ဤရွေးချယ်မှုကို ဖွင့်မထားသရွေ့ provider-level မြင်ကွင်းကို ဆက်လက်ထိန်းသိမ်းထားသည်။ Combo editor တွင်
+  inherit / on / off ကို ရွေးချယ်နိုင်ပြီး inherit သည် global မူလသတ်မှတ်ချက် (off) ကို အသုံးပြုသည်။
+- Prompt-cache locality routing (`promptCacheAffinityEnabled`၊ မူလတန်ဖိုး **true**) သည်
+  တူညီသော cache key များကို account တစ်ခုတည်းတွင် ဆက်လက်ထားရှိနိုင်ရန် pinned connection များကို အစီအစဉ်ပြန်စီသည်။ ၎င်းသည်
+  pinned per-account step များအကြား round-robin နှင့် weighted rotation တို့ထက် ဦးစားပေးအဆင့် မြင့်သည်။ တိကျသော rotation လိုအပ်ပါက
+  Settings → Combo defaults အောက်တွင် ၎င်းကို ပိတ်ပါ။ Combo တစ်ခုချင်းအလိုက် override မရှိပါ။
 
-မော်ဒယ်တစ်ခုတည်းတွင် account အများအပြား rotation ပြုလုပ်ရန်အတွက် pinned `connectionId` သုံးခုအစား sticky limit `1` ပါဝင်သော **dynamic-account step တစ်ခု** (`connectionId` အလွတ်၊ pool တစ်ခုလုံး) ကို ဦးစားပေး အသုံးပြုသင့်ပါသည်။ Pinned steps များနှင့် affinity ပေါင်းစပ်လိုက်ပါက RR counter ရှေ့သို့ ရွေ့လျားနေသော်လည်း account တစ်ခုတည်းပေါ်သို့သာ စုပြုံကျရောက်သွားမည်ဖြစ်သည်။
+Model တစ်ခုတည်းတွင် account အများအပြားကို အလှည့်ကျအသုံးပြုရန်အတွက် `connectionId` အလွတ်နှင့် pool တစ်ခုလုံးပါဝင်သော
+**dynamic-account step တစ်ခုတည်း** ကို sticky limit `1` ဖြင့် အသုံးပြုခြင်းက `connectionId` သုံးခုကို pin လုပ်ခြင်းထက် ပိုသင့်လျော်သည်။
+Pinned step များနှင့် affinity ကို တွဲသုံးပါက RR counter တိုးနေသော်လည်း account တစ်ခုတည်းပေါ်တွင် စုစည်းသွားမည်ဖြစ်သည်။
 
 ## Fusion မဟာဗျူဟာ
 

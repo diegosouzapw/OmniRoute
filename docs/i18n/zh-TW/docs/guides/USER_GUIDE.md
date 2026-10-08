@@ -120,14 +120,14 @@
 
 ## 📖 提供者設定
 
-若要從 CSV 或 JSON 檔案大量新增 API 金鑰連線，請使用 **儀表板 → 提供者 → 從檔案匯入**。欄位採固定順序（`provider,name,apiKey,baseUrl,priority`）；`provider` 必須已存在，且為受管理的提供者或相容節點。請參閱[從 CSV 或 JSON 檔案匯入提供者](../providers/CSV-IMPORT.md)。
+若要從 CSV 或 JSON 檔案批次新增 API 金鑰連線，請使用 **控制台 → 提供者 → 從檔案匯入**。欄位採用固定位置順序（`provider,name,apiKey,baseUrl,priority`）；`provider` 必須已作為受管理的提供者或相容節點存在。請參閱[從 CSV 或 JSON 檔案匯入提供者](../providers/CSV-IMPORT.md)。
 
-### 🔐 訂閱制提供者
+### 🔐 訂閱型提供者
 
 #### Claude Code (Pro/Max)
 
 ```bash
-儀表板 → 提供者 → 連接 Claude Code
+控制台 → 提供者 → 連線 Claude Code
 → OAuth 登入 → 自動重新整理權杖
 → 5 小時 + 每週配額追蹤
 
@@ -137,16 +137,18 @@
   cc/claude-haiku-4-5-20251001
 ```
 
-**專業提示：** 複雜任務使用 Opus，追求速度則使用 Sonnet。OmniRoute 會依模型追蹤配額！
+**專業提示：**複雜任務使用 Opus，追求速度則使用 Sonnet。OmniRoute 會追蹤各模型的配額！
 
-與 Claude 和 Claude Code 相容的路由會保留 Opus 與 Sonnet 模型的 `max` 思考強度。Haiku 模型不接受 `max` 強度層級，因此 OmniRoute 會先將該要求降級為高思考預算，再傳送至上游。
+OmniRoute 主機上沒有瀏覽器？請在任何已登入 Claude Code 的環境執行 `claude setup-token`，並將一年期權杖貼到 **Setup Token** 分頁中。請參閱[使用設定權杖的 Claude Code](../providers/CLAUDE_CODE_SETUP_TOKEN.md)。
+
+Claude 與 Claude Code 相容路由會保留 Opus 和 Sonnet 模型的 `max` 思考強度。Haiku 模型不接受 `max` 強度層級，因此 OmniRoute 會在將該要求傳送至上游之前，將其降級為高思考預算。
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-儀表板 → 提供者 → 連接 Codex
+控制台 → 提供者 → 連線 Codex
 → OAuth 登入（連接埠 1455）
-→ 5 小時 + 每週重設
+→ 每 5 小時 + 每週重設
 
 模型：
   cx/gpt-5.5
@@ -158,7 +160,7 @@
 #### GitHub Copilot
 
 ```bash
-儀表板 → 提供者 → 連接 GitHub
+控制台 → 提供者 → 連線 GitHub
 → 透過 GitHub 進行 OAuth
 → 每月重設（每月 1 日）
 
@@ -176,41 +178,40 @@
 
 1. 註冊：[Zhipu AI](https://open.bigmodel.cn)
 2. 從 Coding Plan 取得 API 金鑰
-3. 儀表板 → 新增 API 金鑰：提供者：`glm`，API 金鑰：`your-key`
+3. 控制台 → 新增 API 金鑰：提供者：`glm`，API 金鑰：`your-key`
 
-**使用：** `glm/glm-4.7` — **專業提示：** Coding Plan 以 1/7 的成本提供 3 倍配額！每日上午 10:00 重設。
+**使用方式：**`glm/glm-4.7` — **專業提示：**Coding Plan 以 1/7 的成本提供 3 倍配額！每日上午 10:00 重設。
 
-#### MiniMax M2.1（5 小時重設，$0.20/1M）
+#### MiniMax M2.1（每 5 小時重設，$0.20/1M）
 
 1. 註冊：[MiniMax](https://www.minimax.io)
-2. 取得 API 金鑰 → 儀表板 → 新增 API 金鑰
+2. 取得 API 金鑰 → 控制台 → 新增 API 金鑰
 
-**使用：** `minimax/MiniMax-M2.1` — **專業提示：** 長上下文最便宜的選項（1M 個權杖）！
+**使用方式：**`minimax/MiniMax-M2.1` — **專業提示：**這是長上下文（1M 個權杖）最便宜的選項！
 
 #### Kimi K2（每月固定 $9）
 
 1. 訂閱：[Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. 取得 API 金鑰 → 儀表板 → 新增 API 金鑰
+2. 取得 API 金鑰 → 控制台 → 新增 API 金鑰
 
-**使用：** `kimi/kimi-k2.5` — **專業提示：** 每月固定 $9 可使用 10M 個權杖，相當於每 1M 個權杖的有效成本為 $0.90！
+**使用方式：**`kimi/kimi-k2.5` — **專業提示：**每月固定 $9 可使用 10M 個權杖，實際成本為 $0.90/1M！
 
 #### Baidu Qianfan / ERNIE
 
 1. 註冊：[Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. 建立 Qianfan API 金鑰 → 儀表板 → 新增 API 金鑰：提供者：`qianfan`
+2. 建立 Qianfan API 金鑰 → 控制台 → 新增 API 金鑰：提供者：`qianfan`
 
-**使用：** `qianfan/ernie-5.1`、`qianfan/ernie-x1.1`，或其他與 OpenAI 相容的 Qianfan 模型 ID。
+**使用方式：**`qianfan/ernie-5.1`、`qianfan/ernie-x1.1`，或其他與 OpenAI 相容的 Qianfan 模型 ID。
 
 ### 🆓 免費提供者
 
-無需驗證的免費提供者，其提供者頁面上的 **不需要驗證** 旁會有一個開關。
-關閉開關會停用該提供者、將其從提供者的已設定/精簡檢視中移除，並
-從 `/v1/models` 中移除其模型。
+無須驗證的免費提供者，其提供者頁面上的 **不需要驗證** 旁設有開關。
+關閉該開關會停用該提供者、將其從「已設定的提供者」／精簡檢視中移除，並從 `/v1/models` 移除其模型。
 
 #### Qoder（9 個免費模型）
 
 ```bash
-儀表板 → 連接 Qoder → OAuth 登入 → 存取受目前提供者限制約束
+控制台 → 連線 Qoder → OAuth 登入 → 存取權受目前提供者限制約束
 
 模型：if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
@@ -218,7 +219,7 @@
 #### Kiro（免費 Claude）
 
 ```bash
-儀表板 → 連接 Kiro → AWS Builder ID 或 Google/GitHub → 每月約 50 點額度
+控制台 → 連線 Kiro → AWS Builder ID 或 Google/GitHub → 每月約 50 點額度
 
 模型：kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
@@ -1229,9 +1230,9 @@ OmniRoute 可與雲端程式設計代理程式（**OpenAI Codex Cloud**、**Devi
 
 ## 🛠️ 程式化管理
 
-您可以透過 HTTP，使用**具備 `manage` 作用域的 Bearer 金鑰**管理每一項 OmniRoute 資源（提供者、組合、金鑰、設定）。
+你可以透過 HTTP，使用**具備 `manage` 範圍的 Bearer 金鑰**來管理所有 OmniRoute 資源（提供者、組合、金鑰、設定）。
 
-在**儀表板 → API 金鑰 → 新增金鑰 → 作用域：manage**中產生金鑰，接著執行：
+請前往**儀表板 → API 金鑰 → 新增金鑰 → 範圍：manage**產生金鑰，然後：
 
 ```bash
 # 列出提供者
@@ -1250,13 +1251,13 @@ curl -X POST http://localhost:20128/api/combos \
   -H "Content-Type: application/json" \
   -d '{ "name": "premium", "strategy": "priority", "models": [{ "model": "cc/claude-opus-4-7" }, { "model": "glm/glm-5.1" }] }'
 
-# 列出/建立 API 金鑰
+# 列出／建立 API 金鑰
 curl http://localhost:20128/api/keys -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY"
 curl -X POST http://localhost:20128/api/keys -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
   -d '{ "name": "ci-bot", "scopes": ["chat"] }'
 ```
 
-如需完整的端點目錄與請求/回應結構定義，請參閱 [API_REFERENCE.md](../reference/API_REFERENCE.md)。
+如需完整的端點目錄及請求／回應結構描述，請參閱 [API_REFERENCE.md](../reference/API_REFERENCE.md)。
 
 ---
 

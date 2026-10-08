@@ -1,0 +1,1 @@
+- Docs: sync the provider count to 363 after the d7 provider merges (Unifically #14182, BeatAPI #14875, ChatPlayground #12690); regenerate PROVIDER_REFERENCE.md.

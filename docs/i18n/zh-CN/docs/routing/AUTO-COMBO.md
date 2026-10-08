@@ -4,10 +4,6 @@
 
 ---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇪🇹 [am](../../../am/docs/routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇧🇦 [bs](../../../bs/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇪🇪 [et](../../../et/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ha](../../../ha/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇦🇲 [hy](../../../hy/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ig](../../../ig/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇬🇪 [ka](../../../ka/docs/routing/AUTO-COMBO.md) · 🇰🇭 [km](../../../km/docs/routing/AUTO-COMBO.md) · 🇮🇳 [kn](../../../kn/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇱🇻 [lv](../../../lv/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ml](../../../ml/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇲🇲 [my](../../../my/docs/routing/AUTO-COMBO.md) · 🇳🇵 [ne](../../../ne/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇮🇳 [or](../../../or/docs/routing/AUTO-COMBO.md) · 🇮🇳 [pa](../../../pa/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇱🇰 [si](../../../si/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇷🇸 [sr](../../../sr/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../../sv/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../../ur/docs/routing/AUTO-COMBO.md) · 🇺🇿 [uz](../../../uz/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇳🇬 [yo](../../../yo/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
-
----
-
 > **面向用户**：想要快速上手？请参阅 [Auto-Combo 用户指南](../getting-started/AUTO-COMBO-GUIDE.md)，其中提供了简单的说明和示例。
 
 > 具有自适应评分和零配置自动路由能力的自管理模型链
@@ -247,49 +243,47 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## 所有路由策略
 
-OmniRoute 的 combo 引擎支持 **19 种路由策略**（声明于 `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`）。Auto Combo 引擎本身在 `auto` 策略下公开；其他策略可用于持久化 combo。
+OmniRoute 的组合引擎支持 **19 种路由策略**（在 `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` 中声明）。Auto Combo 引擎本身通过 `auto` 策略提供；其他策略可用于持久化组合。
 
-| 策略                | 描述                                                                                                                                        |
-| :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------ |
-| `priority`          | 具有显式优先级的首选目标有序列表                                                                                                            |
-| `weighted`          | 按每个目标的权重进行加权随机                                                                                                                |
-| `round-robin`       | 按顺序轮询目标（批处理；见下文）                                                                                                            |
-| `context-relay`     | 跨目标传递上下文（长对话）                                                                                                                  |
-| `fill-first`        | 在转移到下一个目标之前用完每个目标的配额                                                                                                    |
-| `p2c`               | 两次选择幂（Power-of-2-choices）随机负载均衡                                                                                                |
-| `random`            | 均匀随机选择                                                                                                                                |
-| `least-used`        | 选择当前负载最低的目标                                                                                                                      |
-| `cost-optimized`    | 根据目录定价最小化每次请求的费用（$）                                                                                                       |
-| `reset-aware` ⭐    | 按配额重置时间划分优先级 —— 重置窗口短的目标排名更高                                                                                        |
-| `reset-window`      | 优先选择配额窗口最早重置的目标                                                                                                              |
-| `headroom`          | 选择剩余配额空间最多的目标                                                                                                                  |
-| `strict-random`     | 不对重复项去重的随机选择                                                                                                                    |
-| `auto`              | 使用 Auto Combo 评分（16 因素）—— **推荐**                                                                                                  |
-| `lkgp`              | 最近已知良好路径（Last-Known-Good Path，固定到上次成功的提供者，然后回退到规则）                                                            |
-| `context-optimized` | 选择最适合当前上下文大小的目标                                                                                                              |
-| `cache-optimized`   | 按提示缓存亲和性对目标重新排序 —— 最有可能已保留此请求缓存前缀的连接将被首先尝试（`open-sse/services/combo/promptCacheAffinity.ts`，#8008） |
-| `fusion` 🧬         | 并行分发给一组模型，然后通过裁判综合出一个答案（见下文）                                                                                    |
-| `pipeline`          | 顺序运行目标，将每一步的输出传递到下一步的输入中；仅返回最终答案（#6396）                                                                   |
+| 策略                | 描述                                                                                                                            |
+| :------------------ | :------------------------------------------------------------------------------------------------------------------------------ |
+| `priority`          | 按明确优先级排列的首选目标有序列表                                                                                              |
+| `weighted`          | 根据各目标权重进行加权随机选择                                                                                                  |
+| `round-robin`       | 按顺序循环使用目标（分批进行；见下文）                                                                                          |
+| `context-relay`     | 在目标之间传递上下文（适用于长对话）                                                                                            |
+| `fill-first`        | 先用满每个目标的配额，再转到下一个目标                                                                                          |
+| `p2c`               | 二选一随机负载均衡                                                                                                              |
+| `random`            | 均匀随机选择                                                                                                                    |
+| `least-used`        | 选择当前负载最低的目标                                                                                                          |
+| `cost-optimized`    | 根据目录定价，最大限度降低每次请求的费用                                                                                        |
+| `reset-aware` ⭐    | 按配额重置时间确定优先级——重置窗口较短的目标排名更高                                                                            |
+| `reset-window`      | 优先选择配额窗口最早重置的目标                                                                                                  |
+| `headroom`          | 选择剩余配额余量最多的目标                                                                                                      |
+| `strict-random`     | 随机选择，不对重复项去重                                                                                                        |
+| `auto`              | 使用 Auto Combo 评分（16 项因素）——**推荐**                                                                                     |
+| `lkgp`              | 最近已知可用路径（固定使用最近成功的提供者，然后按规则回退）                                                                    |
+| `context-optimized` | 选择最适合当前上下文大小的目标                                                                                                  |
+| `cache-optimized`   | 按提示缓存亲和性重新排列目标——最可能已缓存此请求前缀的连接会最先尝试（`open-sse/services/combo/promptCacheAffinity.ts`，#8008） |
+| `fusion` 🧬         | 并行分发给一组模型，然后由评判模型综合生成一个答案（见下文）                                                                    |
+| `pipeline`          | 依次运行各目标，将每一步的输出传入下一步作为输入；仅返回最终答案（#6396）                                                       |
 
 ⭐ = v3.8.0 新增 · 🧬 = v3.8.36 新增
 
 ### `weighted` 语义
 
-`weighted` 是**每次请求按比例进行的随机抽取**
-（`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`），而非均衡器：
+`weighted` 是**按请求进行的比例随机抽取**
+（`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`），并非均衡器：
 
-- 每个请求以 `weight / totalWeight` 的概率抽取**一个**步骤；其余步骤按权重降序排列，作为该请求的回退链。
-- 当存在任何其他权重 > 0 的步骤时，权重为 `0`（或缺失）的步骤**永远不会被抽取** —— 它只能在抽取的步骤失败后充当回退。仅当**所有**权重都为 0 时，选择才会变为均匀分布。
-- 所有目标均不可用的步骤 —— 提供者熔断器处于 `OPEN` 状态、连接冷却、模型锁定 —— 在抽取发生前会被移除（`open-sse/services/combo/targetResolution.ts`），因此单个健康的步骤可能会暂时赢得所有请求。
-- `stickyWeightedLimit`（combo 配置，默认 `1` = 关闭）会在重新抽取之前将抽取的步骤固定用于该次数的连续成功请求。
+- 每个请求按照 `weight / totalWeight` 的概率抽取**一个**步骤；其余步骤按权重降序排列，作为该请求的回退链。
+- 当任何其他步骤的权重 > 0 时，权重为 `0`（或未设置）的步骤**永远不会被抽中**——它只能在被抽中的步骤失败后作为回退。只有当**所有**权重均为 0 时，选择才会变为均匀随机。
+- 目标全部不可用的步骤——提供者断路器为 `OPEN`、连接处于冷却状态、模型被锁定——会在抽取前被移除（`open-sse/services/combo/targetResolution.ts`），因此单个健康步骤可能暂时赢得每个请求。
+- `stickyWeightedLimit`（组合配置，默认值为 `1`，表示关闭）会将抽中的步骤固定用于指定次数的连续成功请求，然后重新抽取。
 
-如需严格轮换，请使用 `round-robin`；在 `weighted` 上设置相同权重只会产生统计上的均衡 —— 而非严格的均衡。
+如需严格轮换，请使用 `round-robin`；在 `weighted` 中使用相同权重只能实现统计意义上的均衡，而非严格均衡。
 
-### Agentic 流水线模式
+### 智能体式流水线模式
 
-包含至少两个模型的 `pipeline` 组合可以通过 `config.agenticOrchestration.enabled` 选择加入规划器/执行器路由（planner/executor routing）。第一个目标负责规划和最终回答；第二个目标发出客户端原生工具调用。OmniRoute 会从请求协议中检测工具结果的延续，询问规划器是否需要进行另一轮工具调用，并动态地将执行器或规划器作为面向客户端的最终步骤。
-
-第二个目标之后的额外模型是按顺序排列的执行器备选。失败的 HTTP 响应或传输异常会推进到下一个执行器，携带相同的规划器决策和原生工具，但使用该执行器自身的步骤提示词和已解析的连接。第一个成功的响应将按原样返回，包括 SSE 流式传输；在成功流启动之后的失败无法在此重试。如果所有执行器均失败，则返回最后一次失败。客户端中止会停止调度。
+两步式 `pipeline` 组合可以通过 `config.agenticOrchestration.enabled` 启用规划器/执行器路由。第一个目标负责规划和最终回答；第二个目标发出客户端原生工具调用。OmniRoute 会从请求协议中检测工具结果续接，询问规划器是否需要再进行一轮工具调用，并动态选择执行器或规划器作为面向客户端的最终步骤。
 
 ```json
 {
@@ -301,17 +295,17 @@ OmniRoute 的 combo 引擎支持 **19 种路由策略**（声明于 `src/shared/
 }
 ```
 
-执行器可能会在单次响应中发出多个独立的调用。存在依赖关系的调用会在后续的客户端工具结果轮次中处理，由规划器审查每个结果。`maxToolRounds` 默认为 `8`，取值范围为 `1`–`32`；一旦达到该上限，规划器必须生成可用的最佳最终答案。内部规划器决策会被缓冲，而所选的面向客户端的响应将保留原始的流式传输偏好。
+执行器可以在一次响应中发出多个相互独立的调用。依赖调用会在客户端后续的工具结果轮次中处理，并由规划器审核每个结果。`maxToolRounds` 默认为 `8`，接受 `1`–`32`；达到上限后，规划器必须生成当前可得的最佳最终回答。内部规划器决策会被缓冲，而所选的面向客户端响应会保留原始流式传输偏好。
 
-### `round-robin` 粘性批处理和账户扩展
+### `round-robin` 粘性批处理与账户扩展
 
-轮询是批处理的，而不是每步一个请求：
+轮询采用批处理方式，而不是每个步骤处理一个请求：
 
-- `stickyRoundRobinLimit`（组合配置，然后是 `comboStickyRoundRobinLimit`，接着是 `settings.stickyRoundRobinLimit`，默认值为 **3**）在轮换前将同一个目标保持连续成功的次数。将组合覆盖设置为 `1` 可实现单请求轮换。组合编辑器会显示有效值及其来源层级。
-- `connectionAwareExpansion`（组合配置，然后是设置，默认值为 **false**）在轮换前将每个提供者级别的步骤扩展为每个账户的目标。B 组策略（priority、weighted、round-robin、random、p2c、least-used、cost-optimized、lkgp、fill-first、strict-random、context-optimized、cache-optimized、context-relay、fusion、pipeline）在此选项开启前保持提供者级别的视图。组合编辑器提供 inherit / on / off；inherit 使用全局默认值（off）。
-- 提示词缓存局部性路由（`promptCacheAffinityEnabled`，默认值为 **true**）会对固定的连接重新排序，以便匹配的缓存键保留在同一个账户上。在固定每个账户的步骤中，它优先于轮询和加权轮换。如果您需要严格轮换，请在 Settings → Combo defaults 下将其关闭。没有针对单个组合的覆盖选项。
+- `stickyRoundRobinLimit`（依次取组合配置、`comboStickyRoundRobinLimit`、`settings.stickyRoundRobinLimit`，默认值为 **3**）会让同一目标连续成功指定次数后再轮换。将组合覆盖值设置为 `1` 可实现每个请求轮换一次。组合编辑器会显示生效值及其来源层级。
+- `connectionAwareExpansion`（依次取组合配置、设置，默认值为 **false**）会在轮换前将每个提供者级步骤扩展为按账户划分的目标。在启用此选项之前，B 组策略（priority、weighted、round-robin、random、p2c、least-used、cost-optimized、lkgp、fill-first、strict-random、context-optimized、cache-optimized、context-relay、fusion、pipeline）会保持提供者级视图。组合编辑器提供继承 / 开启 / 关闭选项；继承使用全局默认值（关闭）。
+- 提示词缓存亲和性路由（`promptCacheAffinityEnabled`，默认值为 **true**）会对固定连接重新排序，使匹配缓存键的请求留在同一账户上。对于固定到具体账户的步骤，它的优先级高于轮询和加权轮换。如果需要严格轮换，请在 Settings → Combo defaults 下将其关闭。此选项不支持按组合覆盖。
 
-对于单一模型上的多账户轮换，建议使用带有粘性限制 `1` 的**单个动态账户步骤**（空的 `connectionId`，整个池），而不是三个固定的 `connectionId`。即使 RR 计数器递增，固定步骤加上亲和性也会坍缩到同一个账户上。
+若要在一个模型的多个账户间进行轮换，建议使用**一个动态账户步骤**（`connectionId` 为空，使用整个账户池）并将粘性限制设为 `1`，而不要使用三个固定的 `connectionId`。即使 RR 计数器持续递增，固定步骤加上亲和性机制仍会集中到同一个账户上。
 
 ## 融合策略
 

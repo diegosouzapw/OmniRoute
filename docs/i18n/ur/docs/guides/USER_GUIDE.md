@@ -118,18 +118,18 @@
 
 ---
 
-## 📖 فراہم کنندہ سیٹ اپ
+## 📖 پرووائیڈر سیٹ اپ
 
-CSV یا JSON فائل سے API کلید کنکشنز بڑی تعداد میں شامل کرنے کے لیے، **Dashboard → Providers → Import from file** استعمال کریں۔ کالمز کی ترتیب مقرر ہے (`provider,name,apiKey,baseUrl,priority`)؛ `provider` پہلے سے ایک منظم فراہم کنندہ یا ہم آہنگ نوڈ کے طور پر موجود ہونا چاہیے۔ [CSV یا JSON فائل سے فراہم کنندگان درآمد کریں](../providers/CSV-IMPORT.md) دیکھیں۔
+CSV یا JSON فائل سے API کلید کے کنکشنز بڑی تعداد میں شامل کرنے کے لیے، **Dashboard → Providers → Import from file** استعمال کریں۔ کالمز کی ترتیب مقرر ہے (`provider,name,apiKey,baseUrl,priority`)؛ `provider` کا پہلے سے ایک منظم پرووائیڈر یا ہم آہنگ نوڈ کے طور پر موجود ہونا ضروری ہے۔ [CSV یا JSON فائل سے پرووائیڈرز درآمد کریں](../providers/CSV-IMPORT.md) ملاحظہ کریں۔
 
-### 🔐 سبسکرپشن فراہم کنندگان
+### 🔐 سبسکرپشن پرووائیڈرز
 
 #### Claude Code (Pro/Max)
 
 ```bash
 Dashboard → Providers → Connect Claude Code
 → OAuth لاگ اِن → ٹوکن کی خودکار تجدید
-→ 5 گھنٹے کی + ہفتہ وار کوٹا ٹریکنگ
+→ 5 گھنٹے + ہفتہ وار کوٹے کی ٹریکنگ
 
 ماڈلز:
   cc/claude-opus-4-7
@@ -137,16 +137,18 @@ Dashboard → Providers → Connect Claude Code
   cc/claude-haiku-4-5-20251001
 ```
 
-**ماہرانہ مشورہ:** پیچیدہ کاموں کے لیے Opus اور رفتار کے لیے Sonnet استعمال کریں۔ OmniRoute ہر ماڈل کا کوٹا الگ ٹریک کرتا ہے!
+**ماہرانہ مشورہ:** پیچیدہ کاموں کے لیے Opus اور رفتار کے لیے Sonnet استعمال کریں۔ OmniRoute ہر ماڈل کے کوٹے کو ٹریک کرتا ہے!
 
-Claude اور Claude Code سے ہم آہنگ روٹس، Opus اور Sonnet ماڈلز کے لیے `max` سوچنے کی کوشش کو برقرار رکھتے ہیں۔ Haiku ماڈلز `max` کوشش کی سطح قبول نہیں کرتے، اس لیے OmniRoute درخواست کو اپ اسٹریم بھیجنے سے پہلے اسے زیادہ سوچنے کے بجٹ پر منتقل کر دیتا ہے۔
+OmniRoute ہوسٹ پر براؤزر نہیں ہے؟ جہاں بھی Claude Code میں لاگ اِن ہوں وہاں `claude setup-token` چلائیں اور ایک سالہ ٹوکن کو **Setup Token** ٹیب میں پیسٹ کریں۔ [سیٹ اپ ٹوکن کے ساتھ Claude Code](../providers/CLAUDE_CODE_SETUP_TOKEN.md) ملاحظہ کریں۔
+
+Claude اور Claude Code سے ہم آہنگ روٹس، Opus اور Sonnet ماڈلز کے لیے `max` سوچنے کی کوشش کو برقرار رکھتے ہیں۔ Haiku ماڈلز `max` کوشش کی سطح قبول نہیں کرتے، اس لیے OmniRoute اس درخواست کو اپ اسٹریم بھیجنے سے پہلے اسے زیادہ سوچنے کے بجٹ میں تبدیل کر دیتا ہے۔
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
 Dashboard → Providers → Connect Codex
 → OAuth لاگ اِن (پورٹ 1455)
-→ 5 گھنٹے کی + ہفتہ وار ری سیٹ
+→ 5 گھنٹے + ہفتہ وار ری سیٹ
 
 ماڈلز:
   cx/gpt-5.5
@@ -170,17 +172,17 @@ Dashboard → Providers → Connect GitHub
   gh/gemini-3.1-pro-preview
 ```
 
-### 💰 کم قیمت فراہم کنندگان
+### 💰 سستے پرووائیڈرز
 
 #### GLM-4.7 (روزانہ ری سیٹ، $0.6/1M)
 
 1. سائن اپ کریں: [Zhipu AI](https://open.bigmodel.cn)
 2. Coding Plan سے API کلید حاصل کریں
-3. Dashboard → Add API Key: فراہم کنندہ: `glm`، API کلید: `your-key`
+3. Dashboard → Add API Key: Provider: `glm`، API Key: `your-key`
 
-**استعمال:** `glm/glm-4.7` — **ماہرانہ مشورہ:** Coding Plan لاگت کے 1/7 پر 3× کوٹا فراہم کرتا ہے! روزانہ صبح 10:00 بجے ری سیٹ ہوتا ہے۔
+**استعمال:** `glm/glm-4.7` — **ماہرانہ مشورہ:** Coding Plan صرف 1/7 لاگت پر 3× کوٹا فراہم کرتا ہے! روزانہ صبح 10:00 بجے ری سیٹ ہوتا ہے۔
 
-#### MiniMax M2.1 (5 گھنٹے میں ری سیٹ، $0.20/1M)
+#### MiniMax M2.1 (5 گھنٹے بعد ری سیٹ، $0.20/1M)
 
 1. سائن اپ کریں: [MiniMax](https://www.minimax.io)
 2. API کلید حاصل کریں → Dashboard → Add API Key
@@ -197,20 +199,20 @@ Dashboard → Providers → Connect GitHub
 #### Baidu Qianfan / ERNIE
 
 1. سائن اپ کریں: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. Qianfan API کلید بنائیں → Dashboard → Add API Key: فراہم کنندہ: `qianfan`
+2. ایک Qianfan API کلید بنائیں → Dashboard → Add API Key: Provider: `qianfan`
 
 **استعمال:** `qianfan/ernie-5.1`، `qianfan/ernie-x1.1`، یا کوئی دوسرا Qianfan OpenAI سے ہم آہنگ ماڈل ID۔
 
-### 🆓 مفت فراہم کنندگان
+### 🆓 مفت پرووائیڈرز
 
-تصدیق کے بغیر کام کرنے والے مفت فراہم کنندگان کے صفحے پر **No authentication required** کے ساتھ ایک سوئچ ہوتا ہے۔
-اسے بند کرنے سے وہ فراہم کنندہ غیر فعال ہو جاتا ہے، Providers کے تشکیل شدہ/مختصر مناظر سے ہٹ جاتا ہے، اور
-اس کے ماڈلز `/v1/models` سے ہٹا دیے جاتے ہیں۔
+بغیر توثیق والے مفت پرووائیڈرز کے پرووائیڈر صفحے پر **No authentication required** کے ساتھ ایک سوئچ ہوتا ہے۔
+اسے بند کرنے سے وہ پرووائیڈر غیر فعال ہو جاتا ہے، Providers کے کنفیگرڈ/مختصر ویوز سے ہٹ جاتا ہے، اور
+اس کے ماڈلز `/v1/models` سے بھی ہٹ جاتے ہیں۔
 
 #### Qoder (9 مفت ماڈلز)
 
 ```bash
-Dashboard → Connect Qoder → OAuth لاگ اِن → رسائی موجودہ فراہم کنندہ حدود کے تابع ہے
+Dashboard → Connect Qoder → OAuth لاگ اِن → رسائی موجودہ پرووائیڈر حدود سے مشروط ہے
 
 ماڈلز: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```

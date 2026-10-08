@@ -4,10 +4,6 @@
 
 ---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇪🇹 [am](../../../am/docs/routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇧🇦 [bs](../../../bs/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇪🇪 [et](../../../et/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ha](../../../ha/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇦🇲 [hy](../../../hy/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ig](../../../ig/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇬🇪 [ka](../../../ka/docs/routing/AUTO-COMBO.md) · 🇰🇭 [km](../../../km/docs/routing/AUTO-COMBO.md) · 🇮🇳 [kn](../../../kn/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇱🇻 [lv](../../../lv/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ml](../../../ml/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇲🇲 [my](../../../my/docs/routing/AUTO-COMBO.md) · 🇳🇵 [ne](../../../ne/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇮🇳 [or](../../../or/docs/routing/AUTO-COMBO.md) · 🇮🇳 [pa](../../../pa/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇱🇰 [si](../../../si/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇷🇸 [sr](../../../sr/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../../sv/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../../ur/docs/routing/AUTO-COMBO.md) · 🇺🇿 [uz](../../../uz/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
-
----
-
 > **Fún Àwọn Olùlò**: Ṣé o fẹ́ bẹ̀rẹ̀ ní kíákíá? Wo [Ìtọ́sọ́nà Olùlò Auto-Combo](../getting-started/AUTO-COMBO-GUIDE.md) fún àwọn àlàyé àti àpẹẹrẹ tó rọrùn.
 
 > Àwọn ẹ̀wọ̀n àwòṣe tó ń ṣàkóso ara wọn pẹ̀lú ìfúnni-ní-àmì tó ń mú ara mu + ìtọ́sọ́nà aládàáṣe tí kò nílò àtòjọ-ẹ̀yà kankan
@@ -281,68 +277,62 @@ curl -sS http://localhost:20128/v1/chat/completions \
 `config.budgetFallback` tó ti wà tẹ́lẹ̀ nínú ẹ́ńjìnnì náà. `config.budgetFallback` tí a tọ́jú fún àkójọpọ̀ kan ("strict" |
 "cheapest") ló ń ṣètò ìlànà tó máa ń bá a lọ; akọlé náà máa ń fagi lé e fún ìbéèrè kan ṣoṣo.
 
-## Gbogbo Àwọn Ìlànà Ìṣàkóso Ọ̀nà (Routing Strategies)
+## Gbogbo Àwọn Ọ̀nà Ìdarí
 
-Ẹ́ńjìnnì àpapọ̀ ti OmniRoute ń ṣe àtìlẹ́yìn fún **àwọn ìlànà ìṣàkóso ọ̀nà 19** (tí a kéde nínú `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Ẹ́ńjìnnì Auto Combo fúnrarẹ̀ wà lábẹ́ ìlànà `auto`; àwọn yòókù wà fún àwọn àpapọ̀ tí a ti fipamọ́ (persisted combos).
+Ẹ́ńjìnnì àkópọ̀ OmniRoute ṣe àtìlẹ́yìn fún **ọ̀nà ìdarí 19** (tí a kéde nínú `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Ẹ́ńjìnnì Auto Combo fúnra rẹ̀ wà lábẹ́ ọ̀nà `auto`; àwọn yòókù wà fún àwọn àkópọ̀ tí a ti fi pamọ́.
 
-| Ìlànà               | Ìpèjúwe                                                                                                                                                                                                         |
-| :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `priority`          | Àtòjọ tí a tò nípasẹ̀ àfojúsùn àkọ́kọ́ pẹ̀lú àkọ́kọ́kọ́ pàtó                                                                                                                                                           |
-| `weighted`          | Àṣàyàn àrìnkò tí a wọn níwọ̀n nípasẹ̀ ìwọ̀n àfojúsùn kọ̀ọ̀kan                                                                                                                                                        |
-| `round-robin`       | Yípo láàárín àwọn àfojúsùn ní títẹ̀léra (ní àkójọpọ̀; wo ìsàlẹ̀)                                                                                                                                                   |
-| `context-relay`     | Gbé àyíká ọ̀rọ̀ (context) kọjá láàárín àwọn àfojúsùn (fún àwọn ìfọ̀rọ̀wérọ̀ gígùn)                                                                                                                                   |
-| `fill-first`        | Kún àyè ìpín (quota) àfojúsùn kọ̀ọ̀kan kí o tó kọjá sí èyí tó kàn                                                                                                                                                 |
-| `p2c`               | Ìwọ́ntúnwọ̀nsì ẹrù iṣẹ́ àrìnkò ti agbára-àwọn-àṣàyàn-2 (Power-of-2-choices)                                                                                                                                        |
-| `random`            | Àṣàyàn àrìnkò tí ó dọ́gba                                                                                                                                                                                        |
-| `least-used`        | Yan àfojúsùn tí ó ní ẹrù iṣẹ́ lọ́wọ́lọ́wọ́ tí ó kéré jùlọ                                                                                                                                                            |
-| `cost-optimized`    | Dín $ kù fún ìbéèrè kọ̀ọ̀kan ní ìbámu pẹ̀lú iye owó àkójọ ọjà                                                                                                                                                      |
-| `reset-aware` ⭐    | Fi àkọ́kọ́kọ́ fún nípasẹ̀ àkókò ìtúntò àyè ìpín — àwọn fèrèsé ìtúntò kúkúrú ni a fún ní ipò gíga jù                                                                                                                 |
-| `reset-window`      | Fẹ́ràn àwọn àfojúsùn tí fèrèsé àyè ìpín wọn ń tètè túnṣe ní kíákíá                                                                                                                                               |
-| `headroom`          | Yan àfojúsùn tí ó ní àyè ìpín tó kù jùlọ                                                                                                                                                                        |
-| `strict-random`     | Àrìnkò láìsí yíyọ àwọn àtúnṣe kúrò                                                                                                                                                                              |
-| `auto`              | Lo àkójọpọ̀ àmì Auto Combo (oní-kókó-16) — **a gbani nímọ̀ràn**                                                                                                                                                   |
-| `lkgp`              | Last-Known-Good Path (ó ń so mọ́ olùpèsè tí ó kẹ́sẹjarí kẹ́yìn, lẹ́yìn náà yóò padà sí àwọn òfin)                                                                                                                   |
-| `context-optimized` | Yan àfojúsùn tí ó bá ìwọ̀n àyíká ọ̀rọ̀ lọ́wọ́lọ́wọ́ mu jùlọ                                                                                                                                                            |
-| `cache-optimized`   | Tún àwọn àfojúsùn tò nípasẹ̀ ìbátan prompt-cache — ìsopọ̀ tí ó ṣeéṣe jùlọ láti ní àkọsílẹ̀ àfipamọ́ (cached prefix) fún ìbéèrè yìí ni a máa kọ́kọ́ gbìyànjú (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
-| `fusion` 🧬         | Pín káakiri sí àwùjọ àwọn àwòṣe (models) ní ẹ̀gbẹ́gbẹ̀rún, lẹ́yìn náà ṣe àkópọ̀ ìdáhùn kan nípasẹ̀ adájọ́ (judge) (wo ìsàlẹ̀)                                                                                           |
-| `pipeline`          | Ṣiṣẹ́ àwọn àfojúsùn ní títẹ̀léra, ní fífi àbájáde ìgbésẹ̀ kọ̀ọ̀kan sínú ìgbésẹ̀ tó kàn gẹ́gẹ́ bí ìwọlé; ìdáhùn ìkẹyìn nìkan ni a máa dá padà (#6396)                                                                    |
+| Ọ̀nà                 | Àpèjúwe                                                                                                                                                                                                             |
+| :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `priority`          | Àtòjọ tó bẹ̀rẹ̀ pẹ̀lú àfojúsùn àkọ́kọ́, pẹ̀lú ìṣáájú tó ṣe kedere                                                                                                                                                         |
+| `weighted`          | Yíyan aláìròtẹ́lẹ̀ tí a fi ìwọ̀n ṣe gẹ́gẹ́ bí ìwọ̀n àfojúsùn kọ̀ọ̀kan                                                                                                                                                       |
+| `round-robin`       | Yípo láàárín àwọn àfojúsùn ní ìtòlẹ́sẹẹsẹ (ní ìpele ìdìpọ̀; wo ìsàlẹ̀)                                                                                                                                                 |
+| `context-relay`     | Gbé àyíká ọ̀rọ̀ lọ láàárín àwọn àfojúsùn (fún àwọn ìjíròrò gígùn)                                                                                                                                                     |
+| `fill-first`        | Kún ìpín àfojúsùn kọ̀ọ̀kan kí o tó lọ sí èyí tó kàn                                                                                                                                                                   |
+| `p2c`               | Ìwọ̀ntúnwọ̀nsì ẹrù aláìròtẹ́lẹ̀ nípa agbára yíyan méjì                                                                                                                                                                  |
+| `random`            | Yíyan aláìròtẹ́lẹ̀ tó dọ́gba                                                                                                                                                                                           |
+| `least-used`        | Yan àfojúsùn tó ní ẹrù lọ́wọ́lọ́wọ́ tó kéré jù                                                                                                                                                                          |
+| `cost-optimized`    | Dín iye owó $ fún ìbéèrè kọ̀ọ̀kan kù ní ìbámu pẹ̀lú iye owó inú àkójọ                                                                                                                                                  |
+| `reset-aware` ⭐    | Ṣe àkọ́kọ́ gẹ́gẹ́ bí àkókò àtúnṣètò ìpín — àwọn fèrèsé àtúnṣètò kúkúrú ni a máa gbé ga                                                                                                                                  |
+| `reset-window`      | Fẹ́ràn àwọn àfojúsùn tí fèrèsé ìpín wọn yóò tètè tún bẹ̀rẹ̀                                                                                                                                                            |
+| `headroom`          | Yan àfojúsùn tó ní ààyè ìpín tó kù jù lọ                                                                                                                                                                            |
+| `strict-random`     | Yíyan aláìròtẹ́lẹ̀ láìyọ àwọn àtúnṣe kúrò                                                                                                                                                                             |
+| `auto`              | Lo ìṣirò àmì Auto Combo (ohun-ìdí 16) — **a ṣe ìṣeduro rẹ̀**                                                                                                                                                         |
+| `lkgp`              | Ọ̀nà Tó Ṣiṣẹ́ Dáadáa Tó Gbẹ̀yìn (ó dì mọ́ olùpèsè tó ṣàṣeyọrí gbẹ̀yìn, lẹ́yìn náà ó padà sí àwọn òfin bí ó bá kùnà)                                                                                                       |
+| `context-optimized` | Yan àfojúsùn tó bá ìwọ̀n àyíká ọ̀rọ̀ lọ́wọ́lọ́wọ́ mu jù lọ                                                                                                                                                                 |
+| `cache-optimized`   | Ṣàtòjọ àwọn àfojúsùn padà gẹ́gẹ́ bí ìbáṣepọ̀ wọn pẹ̀lú ibi ìpamọ́ prompt — àsopọ̀ tó ṣeé ṣe jù lọ láti ti ní ìbẹ̀rẹ̀ ìbéèrè yìí nínú ibi ìpamọ́ ni a kọ́kọ́ gbìyànjú (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
+| `fusion` 🧬         | Fi ìbéèrè ránṣẹ́ sí ẹgbẹ́ àwọn model ní àkókò kan náà, lẹ́yìn náà jẹ́ kí adájọ́ ṣàkópọ̀ wọn sí ìdáhùn kan (wo ìsàlẹ̀)                                                                                                      |
+| `pipeline`          | Ṣiṣe àwọn àfojúsùn lẹ́sẹ̀ẹsẹ̀, ní fífi àbájáde ìgbésẹ̀ kọ̀ọ̀kan wọ inú ìwọlé ìgbésẹ̀ tó kàn; ìdáhùn ìkẹyìn nìkan ni a dá padà (#6396)                                                                                      |
 
-⭐ = Titun ní v3.8.0 · 🧬 = Titun ní v3.8.36
+⭐ = Tuntun nínú v3.8.0 · 🧬 = Tuntun nínú v3.8.36
 
-### Àwọn ìtumọ̀ `weighted`
+### Ìtumọ̀ `weighted`
 
-`weighted` jẹ́ **ìfàtẹ́tẹ́ àrìnkò tí ó ní ìwọ̀n fún ìbéèrè kọ̀ọ̀kan**
-(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), kì í ṣe ẹ̀rọ amú-nǹkan-dọ́gba:
+`weighted` jẹ́ **yíyan aláìròtẹ́lẹ̀ tó bá ìpín mu fún ìbéèrè kọ̀ọ̀kan**
+(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), kì í ṣe ohun èlò ìdọ́gba:
 
-- Ìbéèrè kọ̀ọ̀kan ń fa ìgbésẹ̀ **kan** pẹ̀lú ìṣeéṣe `weight / totalWeight`; àwọn ìgbésẹ̀ tí ó kù
-  ni a tò nípasẹ̀ ìwọ̀n tí ń dínkù gẹ́gẹ́ bí ẹ̀wọ̀n àfikún (fallback chain) fún ìbéèrè yẹn.
-- Ìgbésẹ̀ kan tí ìwọ̀n rẹ̀ jẹ́ `0` (tàbí tí kò sí) **kò ní fà láé** nígbà tí ìgbésẹ̀ mìíràn bá ní
-  ìwọ̀n > 0 — ó lè ṣiṣẹ́ gẹ́gẹ́ bí àfikún lẹ́yìn tí ìgbésẹ̀ tí a fà bá kùnà nìkan. Nígbà tí **gbogbo**
-  ìwọ̀n bá jẹ́ 0 nìkan ni àṣàyàn yóò di èyí tó dọ́gba.
-- Àwọn ìgbésẹ̀ tí gbogbo àwọn àfojúsùn wọn kò sí — olùpèsè circuit breaker `OPEN`, ìdúró
-  fún ìtútù ìsopọ̀, tìtìpa àwòṣe — ni a máa yọ kúrò nínú ìfàtẹ́tẹ́ kí ó tó wáyé
-  (`open-sse/services/combo/targetResolution.ts`), nítorí náà ìgbésẹ̀ kan tí ó dára lè jáwé
-  olúborí fún gbogbo ìbéèrè fún ìgbà díẹ̀.
-- `stickyWeightedLimit` (ìṣètò combo, àkókò àbùdá `1` = pa) ń so ìgbésẹ̀ tí a fà mọ́lẹ̀ fún iye
-  àṣeyọrí títẹ̀léra yẹn kí ó tó tún fa òmíràn.
+- Ìbéèrè kọ̀ọ̀kan máa ń yan ìgbésẹ̀ **kan** pẹ̀lú iṣeeṣe `weight / totalWeight`; a sì ṣètò
+  àwọn ìgbésẹ̀ tó kù ní ìtòlẹ́sẹẹsẹ ìwọ̀n láti ńlá sí kékeré gẹ́gẹ́ bí ẹ̀wọ̀n àfirọ́pò fún ìbéèrè náà.
+- Ìgbésẹ̀ tí ìwọ̀n rẹ̀ jẹ́ `0` (tàbí tí kò sí) ni a **kì í yàn rárá** nígbà tí ìgbésẹ̀ míì bá ní
+  ìwọ̀n > 0 — ó lè ṣiṣẹ́ gẹ́gẹ́ bí àfirọ́pò nìkan lẹ́yìn tí ìgbésẹ̀ tí a yàn bá kùnà. Nígbà tí **gbogbo**
+  ìwọ̀n bá jẹ́ 0 nìkan ni yíyan yóò di èyí tó dọ́gba.
+- Àwọn ìgbésẹ̀ tí gbogbo àfojúsùn wọn kò lè ṣiṣẹ́ — olùdádúró-circuit olùpèsè `OPEN`, àkókò
+  ìsinmi àsopọ̀, dídènà model — ni a yọ kúrò nínú yíyan kí ó tó ṣẹlẹ̀
+  (`open-sse/services/combo/targetResolution.ts`), nítorí náà ìgbésẹ̀ kan ṣoṣo tó wà nípò rere lè máa
+  borí gbogbo ìbéèrè fún ìgbà díẹ̀.
+- `stickyWeightedLimit` (àtòlẹ́sẹẹsẹ combo, àìyípadà `1` = pípa) máa ń dì mọ́ ìgbésẹ̀ tí a yàn fún iye
+  àwọn àṣeyọrí tó tẹ̀lé ara wọn náà kí a tó tún yan.
 
-Fún yíyípo tí ó lágbára lo `round-robin`; àwọn ìwọ̀n tí ó dọ́gba lórí `weighted` ń fúnni ní ìwọ́ntúnwọ̀nsì
-ìṣirò (statistical) — kì í ṣe èyí tí ó lágbára (strict).
+Fún yíyípo tó muna, lo `round-robin`; àwọn ìwọ̀n tó dọ́gba lórí `weighted` máa ń fúnni ní ìwọ̀ntúnwọ̀nsì
+oníṣirò — kì í ṣe èyí tó muna.
 
-### Ìlànà pipeline ti aṣojú (Agentic pipeline mode)
+### Ìpo pipeline aṣojúṣe ọlọ́gbọ́n
 
-Àpapọ̀ `pipeline` pẹ̀lú ó kéré tán àwọn àwòṣe méjì lè yàn láti lo ìdarí ètò/aláṣẹ pẹ̀lú
-`config.agenticOrchestration.enabled`. Àfojúsùn àkọ́kọ́ ni ó ni ìṣètò àti àwọn ìdáhùn ìparí;
-àfojúsùn kejì ń gbé àwọn ìpè irinṣẹ́ client-native jáde. OmniRoute ń ṣàwárí àwọn ìtẹ̀síwájú
-tool-result láti inú request protocol, ó ń béèrè lọ́wọ́ olùṣètò bóyá a tún nílò ìpele irinṣẹ́
-mìíràn, ó sì ń sọ yálà aláṣẹ tàbí olùṣètò di ìgbésẹ̀ ìparí tí ó kọjú sí oníbàárà ní ọ̀nà agbára gíga (dynamically).
-
-Àwọn àwòṣe àfikún lẹ́yìn àfojúsùn kejì jẹ́ àwọn aláṣẹ àtìlẹ́yìn tí a tò lẹ́sẹẹsẹ. Ìdáhùn
-HTTP tí ó kùnà tàbí transport exception yóò gbé e lọ sí aláṣẹ tí ó kàn, pẹ̀lú gbigbe
-ìpinnu olùṣètò kan náà àti àwọn irinṣẹ́ àbínibí ṣùgbọ́n pẹ̀lú step prompt ti aláṣẹ náà fúnra rẹ̀ àti
-ìsopọ̀ tí a yanjú. Ìdáhùn àkọ́kọ́ tí ó yọrí sí rere ni a ń dá padà láìyípadà, títí kan
-SSE streaming; àwọn ìkùnà lẹ́yìn tí ìṣàn tí ó yọrí sí rere bá bẹ̀rẹ̀ kò lè ṣe àtúnṣe níhìn-ín.
-Tí gbogbo àwọn aláṣẹ bá kùnà, ìkùnà tí ó kẹ́yìn ni a ó dá padà. Ìfagilé oníbàárà (client aborts) ń dá dispatch dúró.
+Àpapọ̀ `pipeline` onígbésẹ̀-méjì lè yan ìdarí planner/executor pẹ̀lú
+`config.agenticOrchestration.enabled`. Ibi-àfojúsùn àkọ́kọ́ ni ó ń ṣe ètò àti àwọn ìdáhùn ìkẹyìn;
+ibi-àfojúsùn kejì ń mú àwọn ìpè irinṣẹ́ abínibí oníbàárà jáde. OmniRoute máa ń ṣàwárí àwọn
+ìtẹ̀síwájú èsì-irinṣẹ́ láti inú ìlànà ìbéèrè, ó máa ń béèrè lọ́wọ́ planner bóyá a nílò
+ìpele irinṣẹ́ míì, ó sì máa ń yan ní ìmúdàgba bóyá executor tàbí planner ni yóò jẹ́
+ìgbésẹ̀ ìkẹyìn tí oníbàárà yóò rí.
 
 ```json
 {
@@ -354,34 +344,35 @@ Tí gbogbo àwọn aláṣẹ bá kùnà, ìkùnà tí ó kẹ́yìn ni a ó dá
 }
 ```
 
-Aláṣẹ lè gbé ọ̀pọ̀lọpọ̀ ìpè tí kò gbẹ́kẹ̀ lé ara wọn jáde nínú ìdáhùn kan. Àwọn ìpè tí ó gbẹ́kẹ̀ lé ara wọn ni a
-ń ṣe àbójútó wọn nínú àwọn ìyípo client tool-result tí ń bọ̀ lẹ́yìn, pẹ̀lú olùṣètò tí ń ṣàyẹ̀wò gbogbo àbájáde.
-`maxToolRounds` jẹ́ `8` nípa àkùnya (default) ó sì ń gba `1`–`32`; ní kété tí a bá dé ibẹ̀, olùṣètò gbọ́dọ̀
-mú ìdáhùn ìparí tí ó dára jùlọ tí ó wà jáde. Àwọn ìpinnu olùṣètò ti inú ni a ń pamọ́ sí buffer, nígbà tí
-ìdáhùn tí a yàn tí ó kọjú sí oníbàárà ń tọ́jú ààyò ìṣàn àkọ́kọ́ (original streaming preference).
+Executor lè mú ọ̀pọ̀ ìpè olómìnira jáde nínú èsì kan. Àwọn ìpè tó gbára lé ara wọn ni a
+máa ń bójú tó ní àwọn ìpele èsì-irinṣẹ́ oníbàárà tó tẹ̀ lé, pẹ̀lú planner tí yóò ṣàyẹ̀wò gbogbo èsì.
+Iye àiyipada `maxToolRounds` jẹ́ `8`, ó sì gba `1`–`32`; nígbà tí ó bá dé iye náà, planner gbọ́dọ̀
+pèsè ìdáhùn ìkẹyìn tó dára jù lọ tí ó wà. A máa ń pa àwọn ìpinnu inú ti planner mọ́ sínú buffer, nígbà tí
+èsì tí a yàn fún oníbàárà yóò pa ààyò streaming ìpilẹ̀ṣẹ̀ mọ́.
 
-### `round-robin` sticky batch àti ìfẹ̀sí àkántì
+### Ìdìpọ̀ alámọ̀ọ́mọ̀ `round-robin` àti ìmúgbòòrò àkọọ́lẹ̀
 
-Round-robin wà ní ìpele (batched), kì í ṣe ìbéèrè-kan-fún-ìgbésẹ̀-kan:
+Round-robin ń ṣiṣẹ́ ní ìdìpọ̀, kì í ṣe ìbéèrè-kan-fún-ìgbésẹ̀-kọ̀ọ̀kan:
 
-- `stickyRoundRobinLimit` (combo config, lẹ́yìn náà `comboStickyRoundRobinLimit`, lẹ́yìn náà
-  `settings.stickyRoundRobinLimit`, àkùnya **3**) ń pa àfojúsùn kan náà mọ́ fún iye
-  àṣeyọrí títẹ̀lé bẹ́ẹ̀ kí ó tó yípo. Ṣètò àfikún combo sí `1` fún ìyípo ìbéèrè-kan.
-  Olóòtú combo ń fi iye tí ó gbéṣẹ́ hàn àti ìpele tí ó ti wá.
-- `connectionAwareExpansion` (combo config, lẹ́yìn náà settings, àkùnya **false**) ń fẹ
-  ìgbésẹ̀ ìpele-olùpèsè kọ̀ọ̀kan sí àwọn àfojúsùn ti àkántì-kọ̀ọ̀kan kí a tó yípo. Àwọn ìlànà Group-B
+- `stickyRoundRobinLimit` (àtúnṣe combo, lẹ́yìn náà `comboStickyRoundRobinLimit`, lẹ́yìn náà
+  `settings.stickyRoundRobinLimit`, àiyipada **3**) máa ń lo ibi-àfojúsùn kan náà fún iye
+  àṣeyọrí tó tẹ̀ lé ara wọn yẹn kí ó tó yípo. Ṣètò àtúnṣe combo sí `1` fún yíyípo
+  ìbéèrè-kọ̀ọ̀kan. Olootu combo máa ń ṣàfihàn iye tó ń ṣiṣẹ́ àti ipele tí ó ti wá.
+- `connectionAwareExpansion` (àtúnṣe combo, lẹ́yìn náà settings, àiyipada **false**) máa ń fa
+  ìgbésẹ̀ ipele-provider kọ̀ọ̀kan gbòòrò sí àwọn ibi-àfojúsùn fún àkọọ́lẹ̀ kọ̀ọ̀kan kí yíyípo tó bẹ̀rẹ̀. Àwọn ọgbọ́n Group-B
   (priority, weighted, round-robin, random, p2c, least-used, cost-optimized, lkgp,
   fill-first, strict-random, context-optimized, cache-optimized, context-relay, fusion,
-  pipeline) ń pa ojú-ìwòye ìpele-olùpèsè mọ́ títí èyí yóò fi di títàn. Olóòtú combo ń ṣàfihàn
-  inherit / on / off; inherit ń lo àkùnya àgbáyé (off).
-- Ìdarí Prompt-cache locality (`promptCacheAffinityEnabled`, àkùnya **true**) ń tún ètò
-  àwọn ìsopọ̀ tí a pín ṣe kí àwọn kọ́kọ́rọ́ cache tí ó báramu lè dúró lórí àkántì kan. Ó ní àkóso lórí
-  round-robin àti ìyípo weighted kọjá àwọn ìgbésẹ̀ ti àkántì-kọ̀ọ̀kan tí a pín. Pa á nínú
-  Settings → Combo defaults tí o bá nílò ìyípo tí ó lágbára (strict rotation). Kò sí àfikún fún combo-kọ̀ọ̀kan.
+  pipeline) máa ń pa ojú-ìwòye ipele-provider mọ́ títí tí èyí yóò fi wà ní títàn. Olootu combo ń pèsè
+  inherit / on / off; inherit máa ń lo àiyipada àgbáyé (off).
+- Ìdarí tó dá lórí ìsúnmọ́ cache prompt (`promptCacheAffinityEnabled`, àiyipada **true**) máa ń tún
+  àwọn ìsopọ̀ tí a ti pin mọ́ sípò kí àwọn kọ́kọ́rọ́ cache tó bára mu lè dúró lórí àkọọ́lẹ̀ kan. Ó ní ipò àkọ́kọ́ ju
+  yíyípo round-robin àti weighted lọ láàárín àwọn ìgbésẹ̀ fún-àkọọ́lẹ̀-kọ̀ọ̀kan tí a ti pin mọ́. Pa á
+  lábẹ́ Ètò → Àwọn àiyipada Combo bí o bá nílò yíyípo tó muna. Kò sí àtúnṣe fún combo kọ̀ọ̀kan.
 
-Fún ìyípo àkántì púpọ̀ lórí àwòṣe kan, fẹ́ràn **ìgbésẹ̀ àkántì-agbára-gíga kan (dynamic-account step)** (òfo
-`connectionId`, gbogbo pool) pẹ̀lú sticky limit `1`, kì í ṣe àwọn `connectionId` mẹ́ta tí a pín.
-Àwọn ìgbésẹ̀ tí a pín pẹ̀lú affinity ń wó lulẹ̀ sórí àkántì kan náà kódà nígbà tí counter RR bá ń tẹ̀síwájú.
+Fún yíyípo ọ̀pọ̀ àkọọ́lẹ̀ lórí model kan, yan **ìgbésẹ̀ dynamic-account kan** (`connectionId` òfìfo,
+gbogbo pool) pẹ̀lú ìwọ̀n alámọ̀ọ́mọ̀ `1`, dípò àwọn `connectionId` mẹ́ta tí a ti pin mọ́.
+Àwọn ìgbésẹ̀ tí a ti pin mọ́ pẹ̀lú affinity máa ń kó jọ sórí àkọọ́lẹ̀ kan náà, kódà bí counter RR
+ṣe ń tẹ̀ síwájú.
 
 ## Ìlànà Fusion
 

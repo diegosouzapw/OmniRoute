@@ -4,10 +4,6 @@
 
 ---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇪🇹 [am](../../../am/docs/routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇧🇦 [bs](../../../bs/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇪🇪 [et](../../../et/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ha](../../../ha/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇦🇲 [hy](../../../hy/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ig](../../../ig/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇬🇪 [ka](../../../ka/docs/routing/AUTO-COMBO.md) · 🇰🇭 [km](../../../km/docs/routing/AUTO-COMBO.md) · 🇮🇳 [kn](../../../kn/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇱🇻 [lv](../../../lv/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ml](../../../ml/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇲🇲 [my](../../../my/docs/routing/AUTO-COMBO.md) · 🇳🇵 [ne](../../../ne/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇮🇳 [or](../../../or/docs/routing/AUTO-COMBO.md) · 🇮🇳 [pa](../../../pa/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇱🇰 [si](../../../si/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇷🇸 [sr](../../../sr/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../../sv/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../../ur/docs/routing/AUTO-COMBO.md) · 🇺🇿 [uz](../../../uz/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇳🇬 [yo](../../../yo/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
-
----
-
 > **ユーザー向け**: すぐに始めたい場合は、わかりやすい説明と例を掲載した[自動コンボ・ユーザーガイド](../getting-started/AUTO-COMBO-GUIDE.md)をご覧ください。
 
 > 適応型スコアリングと設定不要の自動ルーティングを備えた、自己管理型モデルチェーン
@@ -259,49 +255,54 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## すべてのルーティング戦略
 
-OmniRouteのコンボエンジンは**19種類のルーティング戦略**をサポートしています（`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` で宣言）。Auto Comboエンジン自体は`auto`戦略として公開されており、その他は永続化されたコンボで利用可能です。
+OmniRoute のコンボエンジンは **19 種類のルーティング戦略**をサポートしています（`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` で宣言）。Auto Combo エンジン自体は `auto` 戦略として公開されており、その他の戦略は永続化されたコンボで利用できます。
 
-| 戦略                | 説明                                                                                                                                                                                                                   |
-| :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `priority`          | 明示的な優先度を持つ、先頭ターゲット順の順序付きリスト                                                                                                                                                                 |
-| `weighted`          | ターゲットごとの重みに基づく重み付きランダム                                                                                                                                                                           |
-| `round-robin`       | ターゲットを順番に循環（バッチ処理。下記参照）                                                                                                                                                                         |
-| `context-relay`     | ターゲット間でコンテキストを引き継ぎ（長時間の会話向け）                                                                                                                                                               |
-| `fill-first`        | 各ターゲットのクォータを満たしてから次へ移動                                                                                                                                                                           |
-| `p2c`               | Power-of-2-choices ランダム負荷分散                                                                                                                                                                                    |
-| `random`            | 一様ランダム選択                                                                                                                                                                                                       |
-| `least-used`        | 現在の負荷が最も低いターゲットを選択                                                                                                                                                                                   |
-| `cost-optimized`    | カタログ価格に基づいてリクエストあたりのコスト（$）を最小化                                                                                                                                                            |
-| `reset-aware` ⭐    | クォータリセット時間で優先順位付け — リセットウィンドウが短いものを上位にランク付け                                                                                                                                    |
-| `reset-window`      | クォータウィンドウのリセットが最も近いターゲットを優先                                                                                                                                                                 |
-| `headroom`          | 残りのクォータヘッドルームが最も多いターゲットを選択                                                                                                                                                                   |
-| `strict-random`     | 重複の排除を行わないランダム選択                                                                                                                                                                                       |
-| `auto`              | Auto Comboスコアリング（16要素）を使用 — **推奨**                                                                                                                                                                      |
-| `lkgp`              | Last-Known-Good Path（直近で成功したプロバイダーに固定し、その後ルールにフォールバック）                                                                                                                               |
-| `context-optimized` | 現在のコンテキストサイズに最も適したターゲットを選択                                                                                                                                                                   |
-| `cache-optimized`   | プロンプトキャッシュ親和性によってターゲットを並べ替え — このリクエストのキャッシュされたプレフィックスをすでに保持している可能性が最も高い接続を最初に試行（`open-sse/services/combo/promptCacheAffinity.ts`、#8008） |
-| `fusion` 🧬         | 複数のモデル群に並行してファンアウトし、ジャッジモデルを介して1つの回答を統合（下記参照）                                                                                                                              |
-| `pipeline`          | ターゲットを順次実行し、各ステップの出力を次のステップの入力に連結。最終的な回答のみを返却（#6396）                                                                                                                    |
+| 戦略                | 説明                                                                                                                                                                                                                       |
+| :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `priority`          | 明示的な優先順位に基づき、最初のターゲットから順番に試行するリスト                                                                                                                                                         |
+| `weighted`          | ターゲットごとの重みに基づく加重ランダム選択                                                                                                                                                                               |
+| `round-robin`       | ターゲットを順番に巡回（バッチ単位。下記参照）                                                                                                                                                                             |
+| `context-relay`     | ターゲット間でコンテキストを引き継ぐ（長い会話向け）                                                                                                                                                                       |
+| `fill-first`        | 次のターゲットへ移る前に、各ターゲットのクォータを使い切る                                                                                                                                                                 |
+| `p2c`               | 2 選択肢方式によるランダム負荷分散                                                                                                                                                                                         |
+| `random`            | 一様ランダム選択                                                                                                                                                                                                           |
+| `least-used`        | 現在の負荷が最も低いターゲットを選択                                                                                                                                                                                       |
+| `cost-optimized`    | カタログ価格に基づき、リクエストあたりのコストを最小化                                                                                                                                                                     |
+| `reset-aware` ⭐    | クォータのリセット時刻で優先順位付け — リセット間隔が短いものを上位に配置                                                                                                                                                  |
+| `reset-window`      | クォータ期間が最も早くリセットされるターゲットを優先                                                                                                                                                                       |
+| `headroom`          | クォータの残余余裕が最も大きいターゲットを選択                                                                                                                                                                             |
+| `strict-random`     | 重複排除を行わないランダム選択                                                                                                                                                                                             |
+| `auto`              | Auto Combo スコアリング（16 要素）を使用 — **推奨**                                                                                                                                                                        |
+| `lkgp`              | Last-Known-Good Path（最後に成功したプロバイダーに固定し、その後ルールへフォールバック）                                                                                                                                   |
+| `context-optimized` | 現在のコンテキストサイズに最も適したターゲットを選択                                                                                                                                                                       |
+| `cache-optimized`   | プロンプトキャッシュとの親和性に基づいてターゲットを並べ替え — このリクエストのキャッシュ済みプレフィックスをすでに保持している可能性が最も高い接続を最初に試行（`open-sse/services/combo/promptCacheAffinity.ts`、#8008） |
+| `fusion` 🧬         | 複数のモデルへ並列に処理を振り分けた後、ジャッジを介して 1 つの回答に統合（下記参照）                                                                                                                                      |
+| `pipeline`          | ターゲットを順番に実行し、各ステップの出力を次のステップの入力へ渡す。返されるのは最終回答のみ（#6396）                                                                                                                    |
 
-⭐ = v3.8.0の新機能 · 🧬 = v3.8.36の新機能
+⭐ = v3.8.0 で新規追加 · 🧬 = v3.8.36 で新規追加
 
 ### `weighted` のセマンティクス
 
-`weighted` はイコライザーではなく、**リクエストごとの比例ランダム抽出**です
+`weighted` は均等化ではなく、**リクエストごとの比例ランダム抽選**です
 （`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`）。
 
-- 各リクエストは確率 `weight / totalWeight` でステップを**1つ**抽出します。残りのステップは、そのリクエストのフォールバックチェーンとして重みの降順に並べられます。
-- 重みが `0`（または未指定）のステップは、他のステップに 0 より大きい重みがある限り**抽出されることはありません**。抽出されたステップが失敗した後のフォールバックとしてのみ機能します。**すべての**重みが 0 の場合にのみ、選択は一様になります。
-- すべてのターゲットが利用不可（プロバイダーのサーキットブレーカーが `OPEN`、接続のクールダウン、モデルのロックアウトなど）となっているステップは、抽出が行われる前に除外されます（`open-sse/services/combo/targetResolution.ts`）。そのため、単一の正常なステップが一時的にすべてのリクエストを獲得する場合があります。
-- `stickyWeightedLimit`（コンボ設定、デフォルト `1` = オフ）は、再抽出を行う前に、その回数だけ連続して成功するまで抽出されたステップを固定します。
+- 各リクエストでは、確率 `weight / totalWeight` で **1 つ**のステップが抽選されます。残りのステップは、そのリクエストのフォールバックチェーンとして重みの降順に並べられます。
+- 重みが `0`（または未指定）のステップは、他のいずれかのステップの重みが
+  0 より大きい間は**決して抽選されません**。抽選されたステップが失敗した後のフォールバックとしてのみ使用できます。**すべての**
+  重みが 0 の場合に限り、選択は一様になります。
+- すべてのターゲットが利用不可のステップ — プロバイダーのサーキットブレーカーが `OPEN`、接続が
+  クールダウン中、モデルがロックアウト中 — は、抽選が行われる前に候補から除外されます
+  （`open-sse/services/combo/targetResolution.ts`）。そのため、正常なステップが 1 つしかない場合、一時的に
+  すべてのリクエストでそのステップが選ばれることがあります。
+- `stickyWeightedLimit`（コンボ設定、デフォルトは `1` = オフ）は、再抽選するまで、指定された回数の
+  連続成功の間、抽選されたステップに固定します。
 
-厳密なローテーションには `round-robin` を使用してください。`weighted` で重みを均等に設定しても、統計的なバランスが得られるだけであり、厳密なバランスにはなりません。
+厳密なローテーションには `round-robin` を使用してください。`weighted` に同じ重みを設定した場合に得られるのは、厳密な均衡ではなく
+統計的な均衡です。
 
 ### エージェント型パイプラインモード
 
-少なくとも2つのモデルを持つ `pipeline` コンボは、`config.agenticOrchestration.enabled` を使用してプランナー/エグゼキューターのルーティングを選択できます。最初のターゲットは計画と最終回答を担当し、2番目のターゲットはクライアントネイティブなツール呼び出しを発行します。OmniRoute はリクエストプロトコルからツール結果の継続を検出し、別のツールラウンドが必要かどうかをプランナーに問い合わせ、エグゼキューターまたはプランナーのいずれかをクライアント向けの最終ステップとして動的に設定します。
-
-2番目のターゲット以降の追加モデルは、順序付けられたエグゼキューターのバックアップとなります。HTTPレスポンスの失敗またはトランスポート例外が発生すると、同じプランナーの決定とネイティブツールを保持したまま次のエグゼキューターに進みますが、ステッププロンプトと解決された接続はそのエグゼキューター独自のものになります。SSEストリーミングを含め、最初の成功したレスポンスがそのまま返されます。ストリームが正常に開始した後の失敗は、ここでは再試行できません。すべてのエグゼキューターが失敗した場合、最後の失敗が返されます。クライアントによる中止はディスパッチを停止します。
+2 ステップの `pipeline` コンボでは、`config.agenticOrchestration.enabled` を使用してプランナー／エグゼキューターのルーティングを有効にできます。最初のターゲットが計画と最終回答を担当し、2 番目のターゲットがクライアントネイティブのツール呼び出しを生成します。OmniRoute はリクエストプロトコルからツール結果の継続を検出し、さらにツールラウンドが必要かどうかをプランナーに確認したうえで、エグゼキューターまたはプランナーのいずれかを、クライアント向けの最終ステップとして動的に選択します。
 
 ```json
 {
@@ -313,17 +314,17 @@ OmniRouteのコンボエンジンは**19種類のルーティング戦略**を�
 }
 ```
 
-エグゼキューターは、1つのレスポンスで複数の独立した呼び出しを発行する場合があります。依存関係のある呼び出しは、その後のクライアントのツール結果ターンで処理され、プランナーがすべての結果をレビューします。`maxToolRounds` はデフォルトで `8` であり、`1`〜`32` を受け入れます。上限に達すると、プランナーは利用可能な最善の最終回答を生成する必要があります。内部プランナーの決定はバッファリングされますが、選択されたクライアント向けのレスポンスでは元のストリーミング設定が維持されます。
+エグゼキューターは、1 回のレスポンスで独立した複数の呼び出しを生成できます。依存関係のある呼び出しは、後続のクライアントのツール結果ターンで処理され、プランナーがすべての結果を確認します。`maxToolRounds` のデフォルトは `8` で、`1`～`32` を指定できます。上限に達すると、プランナーはその時点で可能な最善の最終回答を生成する必要があります。プランナー内部の判断はバッファリングされますが、選択されたクライアント向けレスポンスでは、元のストリーミング設定が維持されます。
 
-### `round-robin` スティッキーバッチとアカウント展開
+### `round-robin` のスティッキーバッチとアカウント展開
 
-ラウンドロビンはステップごとに1リクエストではなく、バッチ処理されます:
+ラウンドロビンは、リクエストごとにステップを切り替えるのではなく、バッチ単位で動作します。
 
-- `stickyRoundRobinLimit`（コンボ設定、次に `comboStickyRoundRobinLimit`、その後に `settings.stickyRoundRobinLimit`、デフォルトは **3**）は、ローテーションする前にその回数の連続成功の間、同じターゲットを維持します。1リクエストごとのローテーションを行うには、コンボの上書きを `1` に設定します。コンボエディターには、有効な値とそれがどのレイヤーから取得されたかが表示されます。
-- `connectionAwareExpansion`（コンボ設定、次に設定、デフォルトは **false**）は、ローテーションの前に各プロバイダーレベルのステップをアカウントごとのターゲットに展開します。グループBの戦略（priority、weighted、round-robin、random、p2c、least-used、cost-optimized、lkgp、fill-first、strict-random、context-optimized、cache-optimized、context-relay、fusion、pipeline）は、これが有効になるまでプロバイダーレベルのビューを維持します。コンボエディターには inherit / on / off が用意されており、inherit はグローバルデフォルト（off）を使用します。
-- プロンプトキャッシュの局所性ルーティング（`promptCacheAffinityEnabled`、デフォルトは **true**）は、一致するキャッシュキーが1つのアカウントにとどまるように、固定された接続を並べ替えます。これは、固定されたアカウントごとのステップ間におけるラウンドロビンおよび重み付けローテーションよりも優先されます。厳密なローテーションが必要な場合は、Settings → Combo defaults でオフにしてください。コンボごとの上書きはありません。
+- `stickyRoundRobinLimit`（コンボ設定、次に `comboStickyRoundRobinLimit`、次に `settings.stickyRoundRobinLimit`、デフォルトは **3**）では、ローテーションするまで、同じターゲットを指定した回数の連続成功にわたって維持します。リクエストごとにローテーションするには、コンボのオーバーライドを `1` に設定します。コンボエディターには、実効値と、その値がどのレイヤーから取得されたかが表示されます。
+- `connectionAwareExpansion`（コンボ設定、次に設定、デフォルトは **false**）は、ローテーションの前に、プロバイダーレベルの各ステップをアカウントごとのターゲットへ展開します。グループ B の戦略（priority、weighted、round-robin、random、p2c、least-used、cost-optimized、lkgp、fill-first、strict-random、context-optimized、cache-optimized、context-relay、fusion、pipeline）は、これが有効になるまでプロバイダーレベルのビューを維持します。コンボエディターでは、継承／オン／オフを選択できます。継承ではグローバルデフォルト（オフ）が使用されます。
+- プロンプトキャッシュの局所性ルーティング（`promptCacheAffinityEnabled`、デフォルトは **true**）は、一致するキャッシュキーが 1 つのアカウントに留まるように、固定された接続の順序を変更します。これは、固定されたアカウント別ステップ間のラウンドロビンおよび重み付きローテーションより優先されます。厳密なローテーションが必要な場合は、Settings → Combo defaults で無効にしてください。コンボごとのオーバーライドはありません。
 
-1つのモデルで複数アカウントのローテーションを行う場合は、3つの固定された `connectionId` ではなく、スティッキーリミット `1` を持つ**1つの動的アカウントステップ**（空の `connectionId`、プール全体）を使用することをお勧めします。固定されたステップとアフィニティを組み合わせると、RRカウンターが進んでいる場合でも同じアカウントに集約されてしまいます。
+1 つのモデルで複数アカウントをローテーションする場合は、3 つの固定された `connectionId` ではなく、スティッキー上限を `1` に設定した **単一の動的アカウントステップ**（`connectionId` は空、プール全体）を推奨します。固定されたステップとアフィニティを併用すると、RR カウンターが進んでいても、同じアカウントに集約されます。
 
 ## Fusion 戦略
 

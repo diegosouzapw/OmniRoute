@@ -4,10 +4,6 @@
 
 ---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇪🇹 [am](../../../am/docs/routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇧🇦 [bs](../../../bs/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇪🇪 [et](../../../et/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ha](../../../ha/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇦🇲 [hy](../../../hy/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ig](../../../ig/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇬🇪 [ka](../../../ka/docs/routing/AUTO-COMBO.md) · 🇰🇭 [km](../../../km/docs/routing/AUTO-COMBO.md) · 🇮🇳 [kn](../../../kn/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇱🇻 [lv](../../../lv/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ml](../../../ml/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇲🇲 [my](../../../my/docs/routing/AUTO-COMBO.md) · 🇳🇵 [ne](../../../ne/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇮🇳 [or](../../../or/docs/routing/AUTO-COMBO.md) · 🇮🇳 [pa](../../../pa/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇱🇰 [si](../../../si/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇷🇸 [sr](../../../sr/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../../sv/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../../ur/docs/routing/AUTO-COMBO.md) · 🇺🇿 [uz](../../../uz/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇳🇬 [yo](../../../yo/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md)
-
----
-
 > **使用者注意**：想要快速開始嗎？請參閱 [Auto-Combo 使用者指南](../getting-started/AUTO-COMBO-GUIDE.md)，其中提供簡明的說明與範例。
 
 > 具備自適應評分與零設定自動路由的自我管理模型鏈
@@ -247,56 +243,47 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## 所有路由策略
 
-OmniRoute 的組合引擎支援 **19 種路由策略**（宣告於 `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`）。Auto Combo 引擎本身於 `auto` 策略下公開；其他策略則可用於持久化組合。
+OmniRoute 的組合引擎支援 **19 種路由策略**（宣告於 `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`）。Auto Combo 引擎本身透過 `auto` 策略提供；其他策略則可用於持久化組合。
 
 | 策略                | 說明                                                                                                                                   |
 | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------- |
-| `priority`          | 具有明確優先級的首選目標排序清單                                                                                                       |
-| `weighted`          | 根據每個目標的權重進行加權隨機選取                                                                                                     |
-| `round-robin`       | 按順序輪詢目標（批次處理；見下文）                                                                                                     |
-| `context-relay`     | 跨目標傳遞上下文（長對話）                                                                                                             |
-| `fill-first`        | 在移至下一個目標之前填滿每個目標的配額                                                                                                 |
-| `p2c`               | 兩者取其輕（Power-of-2-choices）隨機負載平衡                                                                                           |
-| `random`            | 均勻隨機選取                                                                                                                           |
+| `priority`          | 具有明確優先順序、以第一個目標為優先的排序清單                                                                                         |
+| `weighted`          | 依各目標權重進行加權隨機選擇                                                                                                           |
+| `round-robin`       | 依序循環使用各目標（採批次方式；詳見下文）                                                                                             |
+| `context-relay`     | 在各目標之間移交上下文（適用於長對話）                                                                                                 |
+| `fill-first`        | 先用滿每個目標的配額，再移至下一個目標                                                                                                 |
+| `p2c`               | 二選一（Power-of-2-choices）隨機負載平衡                                                                                               |
+| `random`            | 均勻隨機選擇                                                                                                                           |
 | `least-used`        | 選擇目前負載最低的目標                                                                                                                 |
-| `cost-optimized`    | 根據目錄定價最小化每次請求的成本 ($)                                                                                                   |
-| `reset-aware` ⭐    | 依配額重設時間設定優先級 — 重設週期短的排名較高                                                                                        |
+| `cost-optimized`    | 根據目錄定價，將每次請求的成本降至最低                                                                                                 |
+| `reset-aware` ⭐    | 依配額重設時間排定優先順序 — 重設週期較短者排名較高                                                                                    |
 | `reset-window`      | 優先選擇配額週期最快重設的目標                                                                                                         |
-| `headroom`          | 選擇剩餘配額餘裕最多的目標                                                                                                             |
-| `strict-random`     | 隨機選取且不去除重複項                                                                                                                 |
-| `auto`              | 使用 Auto Combo 評分機制（16 項因子）— **推薦**                                                                                        |
-| `lkgp`              | 上次已知良好路徑（Last-Known-Good Path，固定使用上次成功的提供者，失敗後再回退至規則）                                                 |
+| `headroom`          | 選擇剩餘配額空間最多的目標                                                                                                             |
+| `strict-random`     | 隨機選擇，不對重複項目去重                                                                                                             |
+| `auto`              | 使用 Auto Combo 評分（16 項因素）— **建議使用**                                                                                        |
+| `lkgp`              | 最後已知良好路徑（固定使用上次成功的提供者，然後才退回至規則）                                                                         |
 | `context-optimized` | 選擇最適合目前上下文大小的目標                                                                                                         |
-| `cache-optimized`   | 依提示快取親和性重新排序目標 — 最有可能已保存此請求快取前綴的連線將優先嘗試（`open-sse/services/combo/promptCacheAffinity.ts`，#8008） |
-| `fusion` 🧬         | 平行分派給多個模型群組，然後透過裁判模型綜合成單一答案（見下文）                                                                       |
-| `pipeline`          | 循序執行目標，將每一步的輸出作為下一步的輸入；僅返回最終答案（#6396）                                                                  |
+| `cache-optimized`   | 依提示快取親和性重新排序目標 — 最有可能已保存此請求快取前綴的連線會最先嘗試（`open-sse/services/combo/promptCacheAffinity.ts`、#8008） |
+| `fusion` 🧬         | 平行分派給一組模型，然後由評判模型合成單一答案（詳見下文）                                                                             |
+| `pipeline`          | 依序執行各目標，將每個步驟的輸出傳入下一步的輸入；僅傳回最終答案（#6396）                                                              |
 
 ⭐ = v3.8.0 新增 · 🧬 = v3.8.36 新增
 
 ### `weighted` 語意
 
-`weighted` 是**每次請求的比例隨機抽取**
-（`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`），而非平均分配器：
+`weighted` 是**每次請求進行一次按比例隨機抽取**
+（`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`），而非均衡器：
 
-- 每個請求以 `weight / totalWeight` 的機率抽取**一個**步驟；其餘步驟
-  則按權重降冪排列，作為該請求的備用鏈（fallback chain）。
-- 當任何其他步驟的權重 > 0 時，權重為 `0`（或缺失）的步驟**絕不會被抽中** —
-  它只能在抽中的步驟失敗後作為備用。只有當**所有**權重皆為 0 時，
-  選取才會變為均勻分佈。
-- 所有目標皆不可用的步驟 — 提供者斷路器 `OPEN`、連線冷卻、模型鎖定 —
-  會在抽取前被移除（`open-sse/services/combo/targetResolution.ts`），
-  因此單一健康的步驟可能會暫時贏得所有請求。
-- `stickyWeightedLimit`（組合設定，預設為 `1` = 關閉）會在重新抽取前，
-  將抽中的步驟固定維持該次數的連續成功。
+- 每個請求會依 `weight / totalWeight` 的機率抽取**一個**步驟；其餘步驟會依權重遞減排序，作為該請求的後援鏈。
+- 權重為 `0`（或未設定）的步驟，只要任何其他步驟的權重 > 0，就**絕不會被抽中** — 它只能在抽中的步驟失敗後作為後援。只有當**所有**權重皆為 0 時，才會改為均勻選擇。
+- 若某步驟的所有目標皆不可用 — 提供者斷路器為 `OPEN`、連線處於冷卻期、模型遭鎖定 — 該步驟會在抽取前遭到移除（`open-sse/services/combo/targetResolution.ts`），因此單一健康步驟可能暫時贏得每個請求。
+- `stickyWeightedLimit`（組合設定，預設值 `1` = 關閉）會將抽中的步驟固定使用指定次數的連續成功請求，之後才重新抽取。
 
-若需嚴格輪詢請使用 `round-robin`；在 `weighted` 上設定相等權重只會提供統計上的平衡，
-而非嚴格的平衡。
+若需要嚴格輪替，請使用 `round-robin`；在 `weighted` 中使用相等權重只能達到統計上的平衡，而非嚴格平衡。
 
-### 代理管線模式
+### 代理式管線模式
 
-包含至少兩個模型的 `pipeline` 組合可以透過 `config.agenticOrchestration.enabled` 選擇加入 planner/executor 路由。第一個目標負責規劃與最終回答；第二個目標則發出用戶端原生（client-native）的工具呼叫。OmniRoute 會從請求協定中偵測工具結果（tool-result）的接續情況，詢問 planner 是否需要再進行一輪工具呼叫，並動態將 executor 或 planner 設為面向用戶端的最終步驟。
-
-第二個目標之後的額外模型均為有序的 executor 備用目標。發生失敗的 HTTP 回應或傳輸例外時，會推進至下一個 executor，並沿用相同的 planner 決策與原生工具，但使用該 executor 自身的步驟提示詞（step prompt）與已解析的連線。第一個成功的回應會原封不動地返回，包含 SSE 串流；成功開始串流後的失敗無法在此進行重試。如果所有 executor 皆失敗，則會返回最後一個失敗。用戶端中止操作將會停止分派。
+兩步驟的 `pipeline` 組合可透過 `config.agenticOrchestration.enabled` 選擇啟用規劃器／執行器路由。第一個目標負責規劃與最終答案；第二個目標則發出用戶端原生工具呼叫。OmniRoute 會從請求協定中偵測工具結果的接續內容、詢問規劃器是否需要進行下一輪工具呼叫，並動態選擇執行器或規劃器作為面向用戶端的最終步驟。
 
 ```json
 {
@@ -308,17 +295,17 @@ OmniRoute 的組合引擎支援 **19 種路由策略**（宣告於 `src/shared/c
 }
 ```
 
-executor 可以在單次回應中發出多個獨立呼叫。具有依賴關係的呼叫會在後續的用戶端工具結果回合中處理，且 planner 會審視每個結果。`maxToolRounds` 預設為 `8` 並接受 `1`–`32`；一旦達到上限，planner 必須產生最佳的可用最終回答。內部 planner 的決策會被緩衝，而所選取面向用戶端的回應則會保留原始的串流偏好設定。
+執行器可在單一回應中發出多個彼此獨立的呼叫。相依呼叫會在後續用戶端工具結果輪次中處理，且規劃器會審查每個結果。`maxToolRounds` 預設為 `8`，可接受 `1`–`32`；達到上限後，規劃器必須產生當下最佳的最終答案。內部規劃器決策會經過緩衝，而所選定的面向用戶端回應則會保留原始的串流偏好設定。
 
-### `round-robin` 黏性批次與帳號擴展
+### `round-robin` 黏著式批次與帳戶展開
 
-Round-robin 是批次進行的，而非單次請求單一步驟：
+輪詢採用批次方式，而非每個步驟處理一個請求：
 
-- `stickyRoundRobinLimit`（組合設定，接著是 `comboStickyRoundRobinLimit`，最後是 `settings.stickyRoundRobinLimit`，預設為 **3**）在輪替前會將同一個目標保持該連續成功次數。將組合覆寫值設為 `1` 可實現單次請求輪替。組合編輯器會顯示有效值及其來源層級。
-- `connectionAwareExpansion`（組合設定，接著是全域設定，預設為 **false**）會在輪替前將每個 provider 層級的步驟擴展為個別帳號目標。Group-B 策略（priority、weighted、round-robin、random、p2c、least-used、cost-optimized、lkgp、fill-first、strict-random、context-optimized、cache-optimized、context-relay、fusion、pipeline）在此選項開啟前都會維持 provider 層級的檢視。組合編輯器提供 inherit / on / off；inherit 會使用全域預設值（off）。
-- Prompt 快取局部性路由（`promptCacheAffinityEnabled`，預設為 **true**）會重新排序釘選的連線，使相符的快取鍵保留在同一個帳號上。在跨釘選的個別帳號步驟中，它的優先級高於 round-robin 與 weighted 輪替。如果您需要嚴格的輪替，請在 Settings → Combo defaults 下將其關閉。此功能沒有提供個別組合的覆寫設定。
+- `stickyRoundRobinLimit`（依序採用組合設定、`comboStickyRoundRobinLimit`、`settings.stickyRoundRobinLimit`，預設為 **3**）會在連續成功指定次數後，才從同一目標輪轉至下一個目標。若要每個請求都輪轉，請將組合覆寫值設為 `1`。組合編輯器會顯示有效值及其來源層級。
+- `connectionAwareExpansion`（依序採用組合設定、設定，預設為 **false**）會在輪轉前，將每個提供者層級的步驟展開為各帳戶目標。群組 B 策略（priority、weighted、round-robin、random、p2c、least-used、cost-optimized、lkgp、fill-first、strict-random、context-optimized、cache-optimized、context-relay、fusion、pipeline）在啟用此功能前會維持提供者層級的檢視。組合編輯器提供繼承／開啟／關閉選項；繼承會使用全域預設值（關閉）。
+- 提示詞快取位置相近性路由（`promptCacheAffinityEnabled`，預設為 **true**）會重新排序已釘選的連線，使相符的快取鍵維持在同一帳戶上。對於跨已釘選之各帳戶步驟的輪詢與加權輪轉，它具有更高優先順序。若需要嚴格輪轉，請在 Settings → Combo defaults 下將其關閉。此設定無法針對個別組合覆寫。
 
-對於單一模型的多帳號輪替，建議使用**單一動態帳號步驟**（空的 `connectionId`，整個集區）並搭配黏性限制 `1`，而非三個釘選的 `connectionId`。釘選的步驟加上親和性（affinity）會導致即使 RR 計數器在遞增，請求仍會收斂到同一個帳號上。
+若要在單一模型上進行多帳戶輪轉，建議使用**一個動態帳戶步驟**（空白的 `connectionId`，使用整個集區），並將黏著上限設為 `1`，而非使用三個已釘選的 `connectionId`。即使 RR 計數器持續遞增，已釘選的步驟加上位置相近性機制仍會集中至同一帳戶。
 
 ## 融合策略
 

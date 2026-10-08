@@ -104,7 +104,7 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 | ਹੈਡਰ                                        | ਮੁੱਲ                                                                                                                     |
 | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `Authorization`                             | `Bearer <api-key>`                                                                                                       |
-| `User-Agent`                                | `claude-cli/2.1.258 (external, sdk-cli)`                                                                                 |
+| `User-Agent`                                | `claude-cli/2.1.280 (external, sdk-cli)`                                                                                 |
 | `anthropic-version`                         | `2023-06-01`                                                                                                             |
 | `anthropic-beta`                            | `claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24`                                                 |
 | ਪ੍ਰਤੀ-ਕਨੈਕਸ਼ਨ redact-thinking ਬੀਟਾ ਟੌਗਲ     | ਉਹਨਾਂ ਅੱਪਸਟ੍ਰੀਮਾਂ ਲਈ `redact-thinking-2026-02-12` ਜੋ ਖ਼ਾਸ ਤੌਰ 'ਤੇ ਰੀਡੈਕਟ ਕੀਤੀਆਂ ਥਿੰਕਿੰਗ ਸਟ੍ਰੀਮਾਂ ਦੀ ਮੰਗ ਕਰਦੀਆਂ ਹਨ        |

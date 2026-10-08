@@ -388,16 +388,16 @@ docs/                       # Documentation
 - [ ] بررسی Lint با موفقیت انجام میشود (`npm run lint`)
 - [ ] Build با موفقیت انجام میشود (`npm run build`)
 - [ ] نوعهای TypeScript برای توابع و رابطهای عمومی جدید اضافه شدهاند
-- [ ] هیچ secret یا مقدار fallback بهصورت hardcoded وجود ندارد
-- [ ] اطلاعات احراز هویت عمومی upstream از طریق `resolvePublicCred()` تعبیه شدهاند (نگاه کنید به [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)) و هرگز بهصورت مقادیر literal نیستند
-- [ ] پاسخهای خطا از طریق `buildErrorBody()` / `sanitizeErrorMessage()` هدایت میشوند — هیچ stack trace خامی در بدنه پاسخها وجود ندارد (نگاه کنید به [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] فرمانهای Shell (`exec` / `spawn`) مقادیر زمان اجرا را از طریق `env` ارسال میکنند، نه از طریق string interpolation
+- [ ] هیچ مقدار محرمانه یا مقدار جایگزینی بهصورت hardcoded وجود ندارد
+- [ ] اطلاعات احراز هویت عمومی upstream از طریق `resolvePublicCred()` تعبیه شدهاند (به [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) مراجعه کنید) و هرگز بهصورت literal درج نشدهاند
+- [ ] پاسخهای خطا از طریق `buildErrorBody()` / `sanitizeErrorMessage()` پردازش میشوند — هیچ stack trace خامی در بدنه پاسخها وجود ندارد (به [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) مراجعه کنید)
+- [ ] فرمانهای Shell (`exec` / `spawn`) مقادیر زمان اجرا را از طریق `env` ارسال میکنند، نه از طریق درونیابی رشتهای
 - [ ] همه ورودیها با schemaهای Zod اعتبارسنجی شدهاند
-- [ ] برای تغییرات قابل مشاهده توسط کاربر، **fragment** مربوط به Changelog در مسیر `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` اضافه شده است (نگاه کنید به [`changelog.d/README.md`](./changelog.d/README.md)) — فایل `CHANGELOG.md` را مستقیماً ویرایش **نکنید**؛ fragmentها هنگام انتشار تجمیع میشوند و هرگز میان PRها تداخل ایجاد نمیکنند
+- [ ] برای تغییرات قابل مشاهده برای کاربر، یک **قطعه** Changelog در مسیر `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` اضافه شده است (به [`changelog.d/README.md`](./changelog.d/README.md) مراجعه کنید) — فایل `CHANGELOG.md` را مستقیماً ویرایش **نکنید**؛ قطعهها هنگام انتشار تجمیع میشوند و هرگز میان PRها تداخل ایجاد نمیکنند
 - [ ] مستندات بهروزرسانی شدهاند (در صورت نیاز)
-- [ ] هیچ هشدار جدیدی از CodeQL / Secret-Scanning ایجاد نشده است، یا هر مورد با توجیه فنی و ارجاع به سند مرتبط در `docs/security/` رد شده است
-- [ ] مسیرهایی که فرایندهای فرزند ایجاد میکنند (`/api/mcp/`، `/api/cli-tools/runtime/`) در `src/server/authz/routeGuard.ts` بهعنوان `isLocalOnlyPath()` طبقهبندی شدهاند — نگاه کنید به [قانون قطعی شماره ۱۵](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] هیچ trailer از نوع `Co-Authored-By` در پیامهای commit وجود ندارد — commitها باید صرفاً تحت هویت Git مالک repository ثبت شوند (قانون قطعی شماره ۱۶)
+- [ ] هیچ هشدار جدید CodeQL / Secret-Scanning ایجاد نشده است، یا هر هشدار با توجیه فنی و ارجاع به سند مرتبط در `docs/security/` رد شده است
+- [ ] مسیرهایی که فرایندهای فرزند ایجاد میکنند (`/api/mcp/`، `/api/cli-tools/runtime/`) در `src/server/authz/routeGuard.ts` بهعنوان `isLocalOnlyPath()` طبقهبندی شدهاند — به [قانون سختگیرانه شماره ۱۵](docs/security/ROUTE_GUARD_TIERS.md) مراجعه کنید
+- [ ] هیچ trailer از نوع `Co-authored-by` برای AI/bot در پیامهای commit وجود ندارد (قانون سختگیرانه شماره ۱۶) — از همکاران انسانی که از کارشان دوباره استفاده شده است، با trailerهای استاندارد `Co-authored-by: Name <email>` قدردانی میشود
 
 ---
 

@@ -4,10 +4,6 @@
 
 ---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇪🇹 [am](../../../am/docs/routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇧🇦 [bs](../../../bs/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇪🇪 [et](../../../et/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ha](../../../ha/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇦🇲 [hy](../../../hy/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ig](../../../ig/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇬🇪 [ka](../../../ka/docs/routing/AUTO-COMBO.md) · 🇰🇭 [km](../../../km/docs/routing/AUTO-COMBO.md) · 🇮🇳 [kn](../../../kn/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇱🇻 [lv](../../../lv/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ml](../../../ml/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇲🇲 [my](../../../my/docs/routing/AUTO-COMBO.md) · 🇳🇵 [ne](../../../ne/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇮🇳 [or](../../../or/docs/routing/AUTO-COMBO.md) · 🇮🇳 [pa](../../../pa/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇱🇰 [si](../../../si/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇷🇸 [sr](../../../sr/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../../sv/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../../ur/docs/routing/AUTO-COMBO.md) · 🇺🇿 [uz](../../../uz/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇳🇬 [yo](../../../yo/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
-
----
-
 > **Kwa Watumiaji**: Unatafuta njia ya kuanza haraka? Angalia [Mwongozo wa Mtumiaji wa Auto-Combo](../getting-started/AUTO-COMBO-GUIDE.md) kwa maelezo na mifano rahisi.
 
 > Minyororo ya modeli inayojisimamia yenye uwekaji alama unaobadilika + uelekezaji otomatiki usiohitaji usanidi
@@ -284,66 +280,60 @@ zilizobainishwa huingizwa katika ingizo zilizopo za injini za `config.modePack` 
 
 ## Mikakati Yote ya Uelekezaji
 
-Injini ya mseto ya OmniRoute inasaidia **mikakati 19 ya uelekezaji** (iliyobainishwa katika `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Injini yenyewe ya Auto Combo inapatikana chini ya mkakati wa `auto`; mingine inapatikana kwa mseto iliyohifadhiwa.
+Injini ya combo ya OmniRoute inatumia **mikakati 19 ya uelekezaji** (iliyotangazwa katika `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Injini yenyewe ya Auto Combo inapatikana chini ya mkakati wa `auto`; mingine inapatikana kwa combo zilizohifadhiwa.
 
-| Mkakati             | Maelezo                                                                                                                                                                                                                                                 |
-| :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `priority`          | Orodha iliyopangwa ya shabaha-ya-kwanza yenye kipaumbele cha wazi                                                                                                                                                                                       |
-| `weighted`          | Uteuzi wa nasibu uliopimwa kulingana na uzito wa kila shabaha                                                                                                                                                                                           |
-| `round-robin`       | Zunguka kwenye shabaha kwa mpangilio (kwa makundi; tazama hapa chini)                                                                                                                                                                                   |
-| `context-relay`     | Pitisha muktadha katika shabaha mbalimbali (mazungumzo marefu)                                                                                                                                                                                          |
-| `fill-first`        | Jaza mgawo wa kila shabaha kabla ya kuhamia inayofuata                                                                                                                                                                                                  |
-| `p2c`               | Usawazishaji wa mzigo wa nasibu wa chaguo-la-nguvu-ya-2 (Power-of-2-choices)                                                                                                                                                                            |
-| `random`            | Uteuzi wa nasibu usio na upendeleo                                                                                                                                                                                                                      |
-| `least-used`        | Chagua shabaha yenye mzigo wa chini zaidi kwa sasa                                                                                                                                                                                                      |
-| `cost-optimized`    | Punguza $ kwa kila ombi kulingana na bei za katalogi                                                                                                                                                                                                    |
-| `reset-aware` ⭐    | Weka kipaumbele kulingana na muda wa kuweka upya mgawo — madirisha mafupi ya kuweka upya hupewa nafasi ya juu zaidi                                                                                                                                     |
-| `reset-window`      | Pendelea shabaha ambazo dirisha lao la mgawo linawekwa upya mapema zaidi                                                                                                                                                                                |
-| `headroom`          | Chagua shabaha yenye kiwango kikubwa zaidi cha mgawo kilichobaki                                                                                                                                                                                        |
-| `strict-random`     | Nasibu bila kuondoa marudio                                                                                                                                                                                                                             |
-| `auto`              | Tumia upimaji wa alama wa Auto Combo (wa vipengele 16) — **inapendekezwa**                                                                                                                                                                              |
-| `lkgp`              | Njia-Inayojulikana-Kuwa-Nzuri-Mwisho (hujifunga kwa mtoa huduma aliyefanikiwa mwisho, kisha hurudi kwenye sheria)                                                                                                                                       |
-| `context-optimized` | Chagua shabaha inayofaa zaidi kwa ukubwa wa muktadha wa sasa                                                                                                                                                                                            |
-| `cache-optimized`   | Panga upya shabaha kulingana na mshikamano wa akiba ya maelekezo (prompt-cache affinity) — muunganisho unaoelekea kuwa tayari na kiambishi awali cha ombi hili kwenye akiba hujaribiwa kwanza (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
-| `fusion` 🧬         | Sambaza kwa jopo la modeli sambamba, kisha unganisha jibu moja kupitia mwamuzi (tazama hapa chini)                                                                                                                                                      |
-| `pipeline`          | Endesha shabaha kwa mfuatano, ukipitisha matokeo ya kila hatua kama ingizo la hatua inayofuata; ni jibu la mwisho pekee linalorudishwa (#6396)                                                                                                          |
+| Mkakati             | Maelezo                                                                                                                                                                                                                                                                 |
+| :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `priority`          | Orodha iliyopangwa kwa lengo la kwanza, yenye kipaumbele kilichobainishwa wazi                                                                                                                                                                                          |
+| `weighted`          | Uteuzi nasibu uliopimwa kwa uzito wa kila lengo                                                                                                                                                                                                                         |
+| `round-robin`       | Pitia malengo kwa zamu kwa mpangilio (kwa makundi; tazama hapa chini)                                                                                                                                                                                                   |
+| `context-relay`     | Hamisha muktadha kati ya malengo (mazungumzo marefu)                                                                                                                                                                                                                    |
+| `fill-first`        | Jaza kiasi cha matumizi cha kila lengo kabla ya kuhamia lengo linalofuata                                                                                                                                                                                               |
+| `p2c`               | Usawazishaji nasibu wa mzigo kwa kutumia chaguo 2                                                                                                                                                                                                                       |
+| `random`            | Uteuzi nasibu wenye uwezekano sawa                                                                                                                                                                                                                                      |
+| `least-used`        | Chagua lengo lenye mzigo mdogo zaidi kwa sasa                                                                                                                                                                                                                           |
+| `cost-optimized`    | Punguza $ kwa kila ombi kulingana na bei za katalogi                                                                                                                                                                                                                    |
+| `reset-aware` ⭐    | Panga vipaumbele kulingana na muda wa kuweka upya kiasi cha matumizi — vipindi vifupi vya kuweka upya hupewa nafasi ya juu                                                                                                                                              |
+| `reset-window`      | Pendelea malengo ambayo kipindi chake cha kiasi cha matumizi kitawekwa upya mapema zaidi                                                                                                                                                                                |
+| `headroom`          | Chagua lengo lenye nafasi kubwa zaidi ya kiasi cha matumizi iliyosalia                                                                                                                                                                                                  |
+| `strict-random`     | Uteuzi nasibu bila kuondoa marudio                                                                                                                                                                                                                                      |
+| `auto`              | Tumia ukadiriaji wa Auto Combo (vipengele 16) — **inapendekezwa**                                                                                                                                                                                                       |
+| `lkgp`              | Njia ya Mwisho Inayojulikana Kuwa Nzuri (hufungamanisha na mtoa huduma aliyefanikiwa mara ya mwisho, kisha hutumia sheria kama mbadala)                                                                                                                                 |
+| `context-optimized` | Chagua lengo linalofaa zaidi kwa ukubwa wa sasa wa muktadha                                                                                                                                                                                                             |
+| `cache-optimized`   | Panga upya malengo kulingana na uhusiano wake na akiba ya kidokezo — muunganisho wenye uwezekano mkubwa zaidi wa kuwa tayari na kiambishi awali kilichohifadhiwa kwenye akiba cha ombi hili hujaribiwa kwanza (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
+| `fusion` 🧬         | Tuma ombi kwa kundi la miundo sambamba, kisha unganisha jibu moja kupitia mwamuzi (tazama hapa chini)                                                                                                                                                                   |
+| `pipeline`          | Endesha malengo kwa mfuatano, ukipitisha matokeo ya kila hatua kuwa ingizo la hatua inayofuata; jibu la mwisho pekee ndilo linalorejeshwa (#6396)                                                                                                                       |
 
 ⭐ = Mpya katika v3.8.0 · 🧬 = Mpya katika v3.8.36
 
 ### Semantiki za `weighted`
 
-`weighted` ni **uchoraji wa nasibu wa uwiano kwa kila ombi**
-(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), siyo kisawazishaji:
+`weighted` ni **uteuzi nasibu wa uwiano kwa kila ombi**
+(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), wala si kisawazishaji:
 
-- Kila ombi huchota hatua **moja** yenye uwezekano wa `weight / totalWeight`; hatua zilizobaki
-  hupangwa kwa uzito unaoshuka kama mnyororo wa dharura kwa ombi hilo.
-- Hatua ambayo uzito wake ni `0` (au haupo) **haichorwi kamwe** wakati hatua nyingine yoyote ina
-  uzito > 0 — inaweza tu kutumika kama dharura baada ya hatua iliyochorwa kushindwa. Ni pale tu wakati uzito **wote**
-  ni 0 ndipo uteuzi unakuwa sawa kwa wote.
-- Hatua ambazo shabaha zake zote hazipatikani — kivunja mzunguko wa mtoa huduma kikiwa `OPEN`, kipindi cha
-  kupoa kwa muunganisho (cooldown), kufungiwa kwa modeli — huondolewa kwenye uchoraji kabla haujafanyika
-  (`open-sse/services/combo/targetResolution.ts`), kwa hivyo hatua moja yenye afya inaweza kushinda
-  kila ombi kwa muda.
-- `stickyWeightedLimit` (usanidi wa combo, chaguo-msingi `1` = imezimwa) huifunga hatua iliyochorwa kwa idadi hiyo
-  ya mafanikio mfululizo kabla ya kuchora tena.
+- Kila ombi huchagua hatua **moja** kwa uwezekano wa `weight / totalWeight`; hatua zilizosalia
+  hupangwa kwa uzito unaopungua kama mnyororo wa hatua mbadala kwa ombi hilo.
+- Hatua ambayo uzito wake ni `0` (au haupo) **haichaguliwi kamwe** wakati hatua nyingine yoyote ina
+  uzito > 0 — inaweza kutumika tu kama mbadala baada ya hatua iliyochaguliwa kushindwa. Ni wakati tu ambapo uzito **wote**
+  ni 0 ndipo uteuzi huwa na uwezekano sawa.
+- Hatua ambazo malengo yake yote hayapatikani — kizuia saketi cha mtoa huduma kiko `OPEN`, muunganisho
+  uko katika kipindi cha kusubiri, au modeli imefungiwa — huondolewa kwenye uteuzi kabla haujafanyika
+  (`open-sse/services/combo/targetResolution.ts`), kwa hivyo hatua moja yenye afya inaweza kushinda kila
+  ombi kwa muda.
+- `stickyWeightedLimit` (usanidi wa combo, chaguo-msingi `1` = imezimwa) hufungamanisha hatua iliyochaguliwa kwa idadi hiyo ya
+  mafanikio mfululizo kabla ya kuchagua upya.
 
-Kwa mzunguko madhubuti tumia `round-robin`; uzito sawa kwenye `weighted` hutoa usawa wa kitakwimu — siyo
-madhubuti.
+Kwa mzunguko mkali tumia `round-robin`; uzito sawa kwenye `weighted` hutoa uwiano wa kitakwimu — si
+mkali.
 
-### Hali ya mtiririko wa kiwakala (Agentic pipeline mode)
+### Modi ya pipeline ya kiwakala
 
-Mchanganyiko wa `pipeline` wenye angalau modeli mbili unaweza kuchagua mfumo wa uelekezaji wa mpangaji/mtekelezaji (planner/executor) kwa kutumia
-`config.agenticOrchestration.enabled`. Lengo la kwanza linamiliki upangaji na majibu ya mwisho;
-lengo la pili hutoa miito ya zana asilia za mteja (client-native tool calls). OmniRoute hutambua miendelezo ya
-matokeo ya zana kutoka kwenye itifaki ya ombi, humuuliza mpangaji iwapo mzunguko mwingine wa zana
-unahitajika, na kumfanya aidha mtekelezaji au mpangaji kuwa hatua ya mwisho inayomkabili mteja kwa njia inayobadilika.
-
-Modeli za ziada baada ya lengo la pili hupangwa kama akiba za mtekelezaji. Jibu la HTTP
-lililofeli au hitilafu ya usafirishaji huendeleza mchakato hadi kwa mtekelezaji anayefuata, likibeba
-uamuzi ule ule wa mpangaji na zana asilia lakini likitumia kidokezo cha hatua ya mtekelezaji huyo mwenyewe pamoja na
-muunganisho uliotatuliwa. Jibu la kwanza lililofanikiwa hurejeshwa bila kubadilishwa, ikijumuisha
-utiririshaji wa SSE; hitilafu baada ya mtiririko uliofanikiwa kuanza haziwezi kujaribiwa tena hapa.
-Ikiwa watekelezaji wote watafeli, hitilafu ya mwisho ndiyo hurejeshwa. Usitishaji kutoka kwa mteja husimamisha utumaji.
+Mchanganyiko wa `pipeline` wa hatua mbili unaweza kuchagua uelekezaji wa mpangaji/mtekelezaji kwa kutumia
+`config.agenticOrchestration.enabled`. Lengo la kwanza linawajibika kwa upangaji na majibu ya mwisho;
+lengo la pili hutoa miito ya zana inayotumia muundo asilia wa kiteja. OmniRoute hutambua
+miendelezo ya matokeo ya zana kutoka kwenye itifaki ya ombi, humuuliza mpangaji iwapo duru nyingine ya zana
+inahitajika, na hubadilisha kwa nguvu hatua ya mwisho inayoonekana kwa kiteja iwe mtekelezaji au
+mpangaji.
 
 ```json
 {
@@ -356,34 +346,34 @@ Ikiwa watekelezaji wote watafeli, hitilafu ya mwisho ndiyo hurejeshwa. Usitishaj
 ```
 
 Mtekelezaji anaweza kutoa miito mingi inayojitegemea katika jibu moja. Miito inayotegemeana
-hushughulikiwa katika awamu za baadaye za matokeo ya zana za mteja, huku mpangaji akikagua kila tokeo.
-`maxToolRounds` huwa na thamani chaguomsingi ya `8` na inakubali `1`–`32`; ikifikiwa, mpangaji lazima
-azalishe jibu bora zaidi la mwisho linalopatikana. Maamuzi ya ndani ya mpangaji huwekwa kwenye bafa, wakati
-jibu lililochaguliwa linalomkabili mteja huhifadhi upendeleo asilia wa utiririshaji.
+hushughulikiwa katika zamu zinazofuata za matokeo ya zana ya kiteja, huku mpangaji akikagua kila tokeo.
+`maxToolRounds` ina thamani chaguo-msingi ya `8` na hukubali `1`–`32`; kikomo hicho kikifikiwa, mpangaji lazima
+atoe jibu bora zaidi la mwisho linalopatikana. Maamuzi ya ndani ya mpangaji huwekwa kwenye bafa, huku
+jibu lililochaguliwa linaloonekana kwa kiteja likihifadhi mapendeleo ya awali ya utiririshaji.
 
-### Kundi linalonata na upanuzi wa akaunti wa `round-robin`
+### Bachi inayonata ya `round-robin` na upanuzi wa akaunti
 
-Round-robin hufanywa kwa mafungu, si ombi-moja-kwa-hatua:
+Round-robin hutekelezwa kwa bachi, si ombi moja kwa kila hatua:
 
-- `stickyRoundRobinLimit` (usanidi wa combo, kisha `comboStickyRoundRobinLimit`, kisha
-  `settings.stickyRoundRobinLimit`, chaguomsingi **3**) huweka lengo lile lile kwa idadi hiyo ya
-  mafanikio mfululizo kabla ya kuzunguka. Weka mbadala wa combo kuwa `1` kwa mzunguko wa ombi
-  moja. Kihariri cha combo huonyesha thamani inayotumika na safu iliyotoka.
-- `connectionAwareExpansion` (usanidi wa combo, kisha mipangilio, chaguomsingi **false**) hupanua
-  kila hatua ya kiwango cha mtoa huduma kuwa malengo ya kila akaunti kabla ya mzunguko. Mikakati ya Kundi-B
+- `stickyRoundRobinLimit` (usanidi wa mchanganyiko, kisha `comboStickyRoundRobinLimit`, kisha
+  `settings.stickyRoundRobinLimit`, chaguo-msingi **3**) hudumisha lengo lilelile kwa idadi hiyo ya
+  mafanikio mfululizo kabla ya kubadilisha. Weka ubatilishaji wa mchanganyiko kuwa `1` ili kubadilisha
+  baada ya kila ombi. Kihariri cha mchanganyiko huonyesha thamani inayotumika na safu ilikotoka.
+- `connectionAwareExpansion` (usanidi wa mchanganyiko, kisha mipangilio, chaguo-msingi **false**) hupanua
+  kila hatua ya kiwango cha mtoa huduma kuwa malengo ya kila akaunti kabla ya kubadilisha. Mikakati ya Kundi B
   (priority, weighted, round-robin, random, p2c, least-used, cost-optimized, lkgp,
   fill-first, strict-random, context-optimized, cache-optimized, context-relay, fusion,
-  pipeline) huweka mwonekano wa kiwango cha mtoa huduma hadi kipengele hiki kitakapowashwa. Kihariri cha combo huonyesha
-  inherit / on / off; inherit hutumia chaguomsingi ya jumla (off).
-- Uelekezaji wa ukaribu wa akiba ya vidokezo (`promptCacheAffinityEnabled`, chaguomsingi **true**) hupanga upya
-  miunganisho iliyobandikwa ili funguo za akiba zinazolingana zibaki kwenye akaunti moja. Hupewa kipaumbele zaidi ya
-  round-robin na mzunguko uliopimwa uzito katika hatua zilizobandikwa za kila akaunti. Kizime chini ya
-  Settings → Combo defaults ikiwa unahitaji mzunguko thabiti. Hakuna mbadala wa kila combo.
+  pipeline) hudumisha mwonekano wa kiwango cha mtoa huduma hadi kipengele hiki kiwashwe. Kihariri cha mchanganyiko hutoa chaguo za
+  kurithi / kuwasha / kuzima; kurithi hutumia thamani chaguo-msingi ya jumla (imezimwa).
+- Uelekezaji kwa kuzingatia ukaribu wa kache ya kidokezo (`promptCacheAffinityEnabled`, chaguo-msingi **true**) hupanga upya
+  miunganisho iliyobandikwa ili funguo za kache zinazolingana zibaki kwenye akaunti moja. Hupewa kipaumbele kuliko
+  mzunguko wa round-robin na wenye uzani katika hatua zilizobandikwa za kila akaunti. Zima chini ya
+  Settings → Combo defaults ikiwa unahitaji mzunguko mkali. Hakuna ubatilishaji kwa kila mchanganyiko.
 
-Kwa mzunguko wa akaunti nyingi kwenye modeli moja, pendelea **hatua moja ya akaunti inayobadilika** (tupu
-`connectionId`, bwawa zima) yenye kikomo cha kunata `1`, badala ya `connectionId` tatu zilizobandikwa.
-Hatua zilizobandikwa pamoja na ukaribu huangukia kwenye akaunti ile ile hata wakati kaunta ya RR inapoendelea
-mbele.
+Kwa mzunguko wa akaunti nyingi kwenye modeli moja, pendelea **hatua moja ya akaunti inayobadilika** (`connectionId` tupu,
+mkusanyiko mzima) yenye kikomo cha kunata cha `1`, badala ya `connectionId` tatu zilizobandikwa.
+Hatua zilizobandikwa pamoja na ukaribu huishia kwenye akaunti ileile hata wakati kihesabu cha RR
+kinaendelea kusonga mbele.
 
 ## Mkakati wa Fusion
 

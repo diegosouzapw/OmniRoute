@@ -200,3 +200,102 @@ describe("CompressionCombosPageClient", () => {
     expect(text).toContain("Named combos");
   });
 });
+
+describe("CompressionHub when the settings GET fails", () => {
+  // The settings GET fails as it does while the server restarts; the combos GET keeps
+  // answering. A failed load must offer a retry instead of the default-profile view,
+  // whose select and Context Editing toggle would save the defaults over the stored row.
+  const FAILURES = {
+    "a 500": async () => new Response(JSON.stringify({ error: "unavailable" }), { status: 500 }),
+    "a network error": async () => {
+      throw new TypeError("Failed to fetch");
+    },
+  };
+
+  function failSettingsGet(failure: keyof typeof FAILURES) {
+    const json = (body: unknown, status = 200) =>
+      new Response(JSON.stringify(body), {
+        status,
+        headers: { "Content-Type": "application/json" },
+      });
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input: RequestInfo | URL) => {
+      const url = input.toString();
+      if (url.includes("/api/settings/compression")) return FAILURES[failure]();
+      if (url.includes("/api/context/combos")) return json({ combos: [] });
+      return json({}, 404);
+    });
+  }
+
+  async function mountHub() {
+    const { default: CompressionHub } =
+      await import("../../../src/app/(dashboard)/dashboard/context/combos/CompressionHub");
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<CompressionHub />);
+    });
+    await flush();
+    return container;
+  }
+
+  function retryButton(container: HTMLElement) {
+    return Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Retry"
+    );
+  }
+
+  it.each(Object.keys(FAILURES) as Array<keyof typeof FAILURES>)(
+    "shows a retry in place of the default-profile view after %s",
+    { timeout: 20000 },
+    async (failure) => {
+      failSettingsGet(failure);
+      const container = await mountHub();
+
+      expect(container.querySelector('[data-testid="active-profile-select"]')).toBeNull();
+      expect(container.querySelectorAll('[role="switch"]')).toHaveLength(0);
+      expect(container.textContent).toContain("Failed To Load");
+      expect(retryButton(container)).toBeTruthy();
+    }
+  );
+
+  it("returns with the stored settings once Retry answers", async () => {
+    const json = (body: unknown, status = 200) =>
+      new Response(JSON.stringify(body), {
+        status,
+        headers: { "Content-Type": "application/json" },
+      });
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementation(async (input: RequestInfo | URL) => {
+        const url = input.toString();
+        if (url.includes("/api/settings/compression")) {
+          return json({ enabled: true, defaultMode: "rtk", contextEditing: { enabled: true } });
+        }
+        if (url.includes("/api/context/combos")) {
+          return json({
+            combos: [{ id: "c1", name: "Alpha", pipeline: [{ engine: "rtk" }] }],
+          });
+        }
+        return json({}, 404);
+      });
+    // The Hub's first call is the settings GET; only it fails.
+    fetchSpy.mockImplementationOnce(
+      async () => new Response(JSON.stringify({ error: "unavailable" }), { status: 500 })
+    );
+    const container = await mountHub();
+    expect(container.textContent).toContain("Failed To Load");
+
+    await act(async () => {
+      retryButton(container)!.click();
+    });
+    await flush();
+
+    expect(container.textContent).not.toContain("Failed To Load");
+    // The stored row has Context Editing on, which the defaults do not.
+    const toggle = container.querySelector('[role="switch"]');
+    expect(toggle?.getAttribute("aria-checked")).toBe("true");
+    const select = container.querySelector(
+      '[data-testid="active-profile-select"]'
+    ) as HTMLSelectElement | null;
+    expect(Array.from(select?.options ?? []).some((option) => option.text === "Alpha")).toBe(true);
+  });
+});

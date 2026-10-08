@@ -4,10 +4,6 @@
 
 ---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇪🇹 [am](../../../am/docs/routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇧🇦 [bs](../../../bs/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇪🇪 [et](../../../et/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ha](../../../ha/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇦🇲 [hy](../../../hy/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ig](../../../ig/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇬🇪 [ka](../../../ka/docs/routing/AUTO-COMBO.md) · 🇰🇭 [km](../../../km/docs/routing/AUTO-COMBO.md) · 🇮🇳 [kn](../../../kn/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇱🇻 [lv](../../../lv/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ml](../../../ml/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇲🇲 [my](../../../my/docs/routing/AUTO-COMBO.md) · 🇳🇵 [ne](../../../ne/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇮🇳 [or](../../../or/docs/routing/AUTO-COMBO.md) · 🇮🇳 [pa](../../../pa/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇱🇰 [si](../../../si/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇷🇸 [sr](../../../sr/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../../sv/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../../ur/docs/routing/AUTO-COMBO.md) · 🇺🇿 [uz](../../../uz/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇳🇬 [yo](../../../yo/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
-
----
-
 > **Dla użytkowników**: Szukasz szybkiego startu? Zobacz [Podręcznik użytkownika Auto-Combo](../getting-started/AUTO-COMBO-GUIDE.md), aby poznać proste wyjaśnienia i przykłady.
 
 > Samozarządzające się łańcuchy modeli z adaptacyjną punktacją i automatycznym routingiem bez konfiguracji
@@ -288,67 +284,59 @@ dla pojedynczego żądania.
 
 ## Wszystkie strategie routingu
 
-Silnik combo OmniRoute obsługuje **19 strategii routingu** (zadeklarowanych w `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Sam silnik Auto Combo jest dostępny w ramach strategii `auto`; pozostałe są dostępne dla utrwalonych combos.
+Silnik kombinacji OmniRoute obsługuje **19 strategii routingu** (zadeklarowanych w `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Sam silnik Auto Combo jest dostępny w ramach strategii `auto`; pozostałe strategie są dostępne dla zapisanych kombinacji.
 
-| Strategia           | Opis                                                                                                                                                                                                                                               |
-| :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `priority`          | Uporządkowana lista celów z jawnym priorytetem                                                                                                                                                                                                     |
-| `weighted`          | Ważone losowanie według wagi przypisanej do celu                                                                                                                                                                                                   |
-| `round-robin`       | Przechodzenie przez cele w kolejności (w trybie wsadowym; patrz poniżej)                                                                                                                                                                           |
-| `context-relay`     | Przekazywanie kontekstu między celami (długie konwersacje)                                                                                                                                                                                         |
-| `fill-first`        | Wypełnianie limitu każdego celu przed przejściem do następnego                                                                                                                                                                                     |
-| `p2c`               | Równoważenie obciążenia metodą losowego wyboru z dwóch opcji (Power-of-2-choices)                                                                                                                                                                  |
-| `random`            | Jednostajny losowy wybór                                                                                                                                                                                                                           |
-| `least-used`        | Wybór celu o najniższym bieżącym obciążeniu                                                                                                                                                                                                        |
-| `cost-optimized`    | Minimalizacja kosztu $ za żądanie na podstawie cen w katalogu                                                                                                                                                                                      |
-| `reset-aware` ⭐    | Priorytetyzacja według czasu resetu limitu — krótkie okna resetu są oceniane wyżej                                                                                                                                                                 |
-| `reset-window`      | Preferowanie celów, których okno limitu resetuje się najszybciej                                                                                                                                                                                   |
-| `headroom`          | Wybór celu z największym pozostałym marginesem limitu                                                                                                                                                                                              |
-| `strict-random`     | Losowanie bez deduplikacji powtórzeń                                                                                                                                                                                                               |
-| `auto`              | Użycie punktacji Auto Combo (16-czynnikowej) — **zalecane**                                                                                                                                                                                        |
-| `lkgp`              | Last-Known-Good Path (przypina do ostatniego działającego dostawcy, a następnie wraca do reguł)                                                                                                                                                    |
-| `context-optimized` | Wybór celu najlepiej dopasowanego do bieżącego rozmiaru kontekstu                                                                                                                                                                                  |
-| `cache-optimized`   | Zmiana kolejności celów według kolokacji z pamięcią podręczną promptu — połączenie z największym prawdopodobieństwem posiadania zapisanego prefiksu żądania jest testowane jako pierwsze (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
-| `fusion` 🧬         | Równoległe rozsyłanie do panelu modeli, a następnie synteza jednej odpowiedzi za pośrednictwem sędziego (patrz poniżej)                                                                                                                            |
-| `pipeline`          | Sekwencyjne uruchamianie celów, przekazywanie wyjścia każdego kroku do wejścia następnego; zwracana jest tylko ostateczna odpowiedź (#6396)                                                                                                        |
+| Strategia           | Opis                                                                                                                                                                                                                                                      |
+| :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `priority`          | Uporządkowana lista, w której pierwszy cel ma pierwszeństwo, z jawnym priorytetem                                                                                                                                                                         |
+| `weighted`          | Losowanie ważone według wagi poszczególnych celów                                                                                                                                                                                                         |
+| `round-robin`       | Cykliczne przechodzenie przez cele w ustalonej kolejności (partiami; patrz poniżej)                                                                                                                                                                       |
+| `context-relay`     | Przekazywanie kontekstu między celami (długie konwersacje)                                                                                                                                                                                                |
+| `fill-first`        | Wykorzystanie limitu każdego celu przed przejściem do następnego                                                                                                                                                                                          |
+| `p2c`               | Losowe równoważenie obciążenia metodą wyboru z 2 opcji                                                                                                                                                                                                    |
+| `random`            | Jednostajny wybór losowy                                                                                                                                                                                                                                  |
+| `least-used`        | Wybór celu o najmniejszym bieżącym obciążeniu                                                                                                                                                                                                             |
+| `cost-optimized`    | Minimalizacja kosztu $ na żądanie na podstawie cennika katalogowego                                                                                                                                                                                       |
+| `reset-aware` ⭐    | Priorytetyzacja według czasu resetowania limitu — krótsze okna resetowania mają wyższą pozycję                                                                                                                                                            |
+| `reset-window`      | Preferowanie celów, których okno limitu zostanie zresetowane najwcześniej                                                                                                                                                                                 |
+| `headroom`          | Wybór celu z największym pozostałym zapasem limitu                                                                                                                                                                                                        |
+| `strict-random`     | Losowanie bez usuwania powtórzeń                                                                                                                                                                                                                          |
+| `auto`              | Użycie punktacji Auto Combo (16 czynników) — **zalecane**                                                                                                                                                                                                 |
+| `lkgp`              | Ostatnia znana dobra ścieżka (przypina do ostatniego dostawcy, który pomyślnie obsłużył żądanie, a następnie przechodzi awaryjnie do reguł)                                                                                                               |
+| `context-optimized` | Wybór celu najlepiej dopasowanego do bieżącego rozmiaru kontekstu                                                                                                                                                                                         |
+| `cache-optimized`   | Zmiana kolejności celów według zgodności z pamięcią podręczną promptów — połączenie, które najprawdopodobniej przechowuje już buforowany prefiks tego żądania, jest wypróbowywane jako pierwsze (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
+| `fusion` 🧬         | Równoległe wysłanie żądania do panelu modeli, a następnie zsyntetyzowanie jednej odpowiedzi przez model oceniający (patrz poniżej)                                                                                                                        |
+| `pipeline`          | Sekwencyjne uruchamianie celów i przekazywanie wyniku każdego kroku jako danych wejściowych następnego; zwracana jest tylko końcowa odpowiedź (#6396)                                                                                                     |
 
 ⭐ = Nowość w v3.8.0 · 🧬 = Nowość w v3.8.36
 
 ### Semantyka `weighted`
 
-`weighted` to **proporcjonalne losowanie na każde żądanie**
-(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), a nie korektor:
+`weighted` wykonuje **proporcjonalne losowanie dla każdego żądania**
+(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), a nie równoważenie:
 
-- Każde żądanie losuje **jeden** krok z prawdopodobieństwem `weight / totalWeight`; pozostałe kroki
-  są sortowane według malejącej wagi jako łańcuch zapasowy (fallback) dla tego żądania.
-- Krok, którego waga wynosi `0` (lub brakuje wartości), nie jest **nigdy losowany**, dopóki jakikolwiek inny krok ma
-  wagę > 0 — może służyć jedynie jako fallback po niepowodzeniu wylosowanego kroku. Tylko wtedy, gdy **wszystkie**
+- Dla każdego żądania losowany jest **jeden** krok z prawdopodobieństwem `weight / totalWeight`; pozostałe kroki
+  są uporządkowane według malejącej wagi jako łańcuch awaryjny dla tego żądania.
+- Krok, którego waga wynosi `0` (lub nie została określona), **nigdy nie jest losowany**, dopóki dowolny inny krok ma
+  wagę > 0 — może służyć wyłącznie jako opcja awaryjna po niepowodzeniu wylosowanego kroku. Dopiero gdy **wszystkie**
   wagi wynoszą 0, wybór staje się jednostajny.
-- Kroki, których wszystkie cele są niedostępne — bezpiecznik dostawcy (circuit breaker) w stanie `OPEN`, czas
-  odnowienia połączenia (cooldown), blokada modelu — są usuwane z losowania przed jego rozpoczęciem
-  (`open-sse/services/combo/targetResolution.ts`), więc pojedynczy sprawny krok może tymczasowo
-  wygrywać każde żądanie.
-- `stickyWeightedLimit` (konfiguracja combo, domyślnie `1` = wyłączone) przypina wylosowany krok na określoną liczbę
-  kolejnych sukcesów przed ponownym losowaniem.
+- Kroki, których wszystkie cele są niedostępne — wyłącznik obwodu dostawcy ma stan `OPEN`, połączenie
+  jest w okresie karencji lub model jest zablokowany — są usuwane z puli przed losowaniem
+  (`open-sse/services/combo/targetResolution.ts`), dlatego pojedynczy sprawny krok może tymczasowo
+  obsługiwać każde żądanie.
+- `stickyWeightedLimit` (konfiguracja kombinacji, domyślnie `1` = wyłączone) przypina wylosowany krok na określoną liczbę
+  kolejnych pomyślnych wykonań przed ponownym losowaniem.
 
-W celu ścisłej rotacji użyj `round-robin`; równe wagi w `weighted` zapewniają równowagę
-statystyczną — a nie ścisłą.
+Aby uzyskać ścisłą rotację, użyj `round-robin`; równe wagi w `weighted` zapewniają równowagę statystyczną, a nie
+ścisłą.
 
-### Tryb agentic pipeline
+### Tryb potoku agentowego
 
-Kombinacja `pipeline` z co najmniej dwoma modelami może włączyć routing typu planner/executor za pomocą
-`config.agenticOrchestration.enabled`. Pierwszy cel odpowiada za planowanie i ostateczne odpowiedzi;
-drugi cel generuje natywne dla klienta wywołania narzędzi (tool calls). OmniRoute wykrywa kontynuacje
-wyników narzędzi (tool-result) na podstawie protokołu żądania, pyta planistę (planner), czy potrzebna jest
-kolejna runda narzędzi, oraz dynamicznie ustawia executora lub plannera jako krok końcowy
-skierowany do klienta.
-
-Dodatkowe modele po drugim celu stanowią uporządkowane kopie zapasowe (backupy) executora. Nieudana
-odpowiedź HTTP lub wyjątek warstwy transportowej powoduje przejście do kolejnego executora, przekazując
-tę samą decyzję plannera i natywne narzędzia, ale z własnym promptem kroku tego executora oraz
-rozwiązanym połączeniem. Pierwsza udana odpowiedź jest zwracana w niezmienionej postaci, w tym
-strumieniowanie SSE; awarie po rozpoczęciu udanego strumienia nie mogą być ponawiane w tym miejscu.
-Jeśli wszyscy executorzy zawiodą, zwracany jest ostatni błąd. Przerwanie żądania przez klienta (client abort) zatrzymuje wysyłanie.
+Dwustopniowa kombinacja `pipeline` może włączyć routing planisty/wykonawcy za pomocą
+`config.agenticOrchestration.enabled`. Pierwszy element docelowy odpowiada za planowanie i odpowiedzi końcowe;
+drugi element docelowy generuje wywołania narzędzi w natywnym formacie klienta. OmniRoute wykrywa kontynuacje
+z wynikami narzędzi na podstawie protokołu żądania, pyta planistę, czy potrzebna jest kolejna runda narzędzi,
+i dynamicznie wybiera wykonawcę albo planistę jako końcowy etap widoczny dla klienta.
 
 ```json
 {
@@ -360,35 +348,35 @@ Jeśli wszyscy executorzy zawiodą, zwracany jest ostatni błąd. Przerwanie ż�
 }
 ```
 
-Executor może wygenerować wiele niezależnych wywołań w jednej odpowiedzi. Wywołania zależne są
-obsługiwane w późniejszych turach wyników narzędzi klienta, a planner weryfikuje każdy wynik.
-Wartość domyślna `maxToolRounds` wynosi `8` i akceptuje wartości od `1` do `32`; po jej osiągnięciu planner musi
-wygenerować najlepszą dostępną odpowiedź końcową. Wewnętrzne decyzje plannera są buforowane, podczas gdy
-wybrana odpowiedź skierowana do klienta zachowuje pierwotną preferencję strumieniowania.
+Wykonawca może wygenerować wiele niezależnych wywołań w jednej odpowiedzi. Wywołania zależne są
+obsługiwane w kolejnych turach wyników narzędzi po stronie klienta, a planista analizuje każdy wynik.
+Domyślna wartość `maxToolRounds` to `8`; akceptowany zakres wynosi `1`–`32`. Po osiągnięciu limitu planista musi
+wygenerować najlepszą dostępną odpowiedź końcową. Wewnętrzne decyzje planisty są buforowane, natomiast
+wybrana odpowiedź widoczna dla klienta zachowuje pierwotne ustawienie przesyłania strumieniowego.
 
-### Grupowanie sticky w `round-robin` i rozszerzanie kont (account expansion)
+### Lepkie przetwarzanie wsadowe `round-robin` i rozszerzanie kont
 
-Round-robin działa w trybie wsadowym (batched), a nie w trybie jedno-żądanie-na-krok:
+Round-robin działa wsadowo, a nie jako jedno żądanie na krok:
 
-- `stickyRoundRobinLimit` (konfiguracja combo, następnie `comboStickyRoundRobinLimit`, a potem
-  `settings.stickyRoundRobinLimit`, domyślnie **3**) zachowuje ten sam cel przez tyle
-  kolejnych sukcesów przed rotacją. Ustaw nadpisanie w combo na `1`, aby uzyskać rotację
-  przy każdym żądaniu. Edytor combo pokazuje efektywną wartość oraz warstwę, z której pochodzi.
-- `connectionAwareExpansion` (konfiguracja combo, następnie ustawienia, domyślnie **false**) rozszerza
-  każdy krok na poziomie dostawcy na cele dla poszczególnych kont przed rotacją. Strategie z Grupy B
+- `stickyRoundRobinLimit` (najpierw konfiguracja kombinacji, następnie `comboStickyRoundRobinLimit`, potem
+  `settings.stickyRoundRobinLimit`, domyślnie **3**) utrzymuje ten sam element docelowy przez określoną liczbę
+  kolejnych pomyślnych wykonań przed rotacją. Ustaw nadpisanie dla kombinacji na `1`, aby rotacja następowała
+  po każdym żądaniu. Edytor kombinacji pokazuje efektywną wartość oraz warstwę, z której ona pochodzi.
+- `connectionAwareExpansion` (najpierw konfiguracja kombinacji, następnie ustawienia, domyślnie **false**) rozszerza
+  każdy krok na poziomie dostawcy do elementów docelowych odpowiadających poszczególnym kontom przed rotacją. Strategie grupy B
   (priority, weighted, round-robin, random, p2c, least-used, cost-optimized, lkgp,
   fill-first, strict-random, context-optimized, cache-optimized, context-relay, fusion,
-  pipeline) zachowują widok na poziomie dostawcy, dopóki ta opcja nie zostanie włączona. Edytor combo udostępnia
-  opcje inherit / on / off; inherit korzysta z globalnej wartości domyślnej (off).
-- Routing oparty na lokalności pamięci podręcznej promptów (`promptCacheAffinityEnabled`, domyślnie **true**) zmienia kolejność
-  przypiętych połączeń, aby pasujące klucze pamięci podręcznej pozostały na jednym koncie. Ma on pierwszeństwo przed
-  rotacją round-robin i ważoną (weighted) pomiędzy przypiętymi krokami per-konto. Wyłącz go w
-  Settings → Combo defaults, jeśli potrzebujesz ścisłej rotacji. Brak możliwości nadpisania per-combo.
+  pipeline) zachowują widok na poziomie dostawcy, dopóki ta opcja nie zostanie włączona. Edytor kombinacji udostępnia opcje
+  dziedziczenia / włączenia / wyłączenia; dziedziczenie korzysta z globalnej wartości domyślnej (wyłączone).
+- Routing uwzględniający lokalność pamięci podręcznej promptów (`promptCacheAffinityEnabled`, domyślnie **true**) zmienia kolejność
+  przypiętych połączeń, tak aby pasujące klucze pamięci podręcznej pozostawały na jednym koncie. Ma on pierwszeństwo przed
+  rotacją round-robin i rotacją ważoną między przypiętymi krokami poszczególnych kont. Wyłącz go w sekcji
+  Ustawienia → Domyślne ustawienia kombinacji, jeśli potrzebujesz ścisłej rotacji. Nie ma możliwości nadpisania tej opcji dla pojedynczej kombinacji.
 
-W przypadku rotacji wielu kont na jednym modelu zaleca się **jeden krok z dynamicznym kontem** (puste
-`connectionId`, cała pula) z limitem sticky równym `1`, zamiast trzech przypiętych `connectionId`.
-Przypięte kroki wraz z koligacją (affinity) zbiegają się do tego samego konta, nawet gdy licznik RR
-idzie do przodu.
+W przypadku rotacji między wieloma kontami dla jednego modelu preferuj **jeden krok z kontem dynamicznym** (puste
+`connectionId`, cała pula) z limitem lepkości `1`, zamiast trzech przypiętych wartości `connectionId`.
+Przypięte kroki wraz z mechanizmem koligacji prowadzą do wyboru tego samego konta, nawet gdy licznik RR
+jest zwiększany.
 
 ## Strategia Fusion
 

@@ -117,6 +117,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "sessionCookie", "authCookie"],
   },
+  chatplayground: {
+    kind: "cookie",
+    credentialName: "Clerk Session / __client Cookie or JWT",
+    placeholder: "__client=...; __session=... or Clerk Bearer JWT",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "__client", "__session", "sessionToken", "jwt", "apiKey"],
+  },
   "blackbox-web": {
     kind: "cookie",
     credentialName: "__Secure-authjs.session-token",
@@ -203,6 +210,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     placeholder: "hy_user=...; hy_token=... (full Cookie header from yuanbao.tencent.com)",
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "hy_user", "hy_token"],
+  },
+  "notrack-web": {
+    kind: "cookie",
+    credentialName: "full Cookie header (uid + si_usr_id + si_ses_id)",
+    placeholder: "uid=...; si_usr_id=...; si_ses_id=... (full Cookie header from notrack.ai)",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "uid", "si_usr_id", "si_ses_id", "nt_session"],
   },
   "poe-web": {
     kind: "cookie",
