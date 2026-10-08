@@ -5512,6 +5512,7 @@
     "modelsImported": "모델 {count}개를 가져왔습니다",
     "allModelsAlreadyImported": "모든 모델이 이미 가져왔습니다",
     "noNewModelsToImport": "가져올 새 모델 없음 — 모든 모델이 이미 레지스트리 또는 사용자 정의 모델 목록에 있습니다",
+    "localCatalogFallbackStatus": "Couldn't reach the provider's model list — showing the built-in catalog",
     "skippingExistingModels": "{count}개의 기존 모델 건너뛰기",
     "autoSync": "자동 동기화",
     "autoSyncShort": "동기화",
@@ -6678,7 +6679,17 @@
     "savedModelEndpointSettings": "저장된 모델 엔드포인트 설정",
     "searchByModelAria": "모델로 검색",
     "selectSupportedEndpoint": "지원되는 엔드포인트를 최소한 하나 선택하세요.",
-    "antigravityClientProfileHarness": "하네스 / CLI"
+    "antigravityClientProfileHarness": "하네스 / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "설정",

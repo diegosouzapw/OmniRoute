@@ -316,7 +316,7 @@
     "tests/unit/provider-validation-specialty.test.ts": 2912,
     "tests/unit/reasoning-cache.test.ts": 1291,
     "tests/unit/route-edge-coverage.test.ts": 1244,
-    "tests/unit/sse-auth.test.ts": 1733,
+    "tests/unit/sse-auth.test.ts": 1740,
     "tests/unit/stream-utils.test.ts": 2517,
     "tests/unit/token-refresh-service.test.ts": 1408,
     "tests/unit/translator-openai-responses-req.test.ts": 1470,
@@ -326,7 +326,8 @@
     "tests/unit/usage-service-hardening.test.ts": 1487,
     "tests/unit/vscode-token-routes.test.ts": 1267,
     "tests/unit/tls-client-wreq-migration.test.ts": 1374,
-    "tests/unit/response-sanitizer.test.ts": 1252
+    "tests/unit/response-sanitizer.test.ts": 1252,
+    "_rebaseline_2026_10_07_15481_turn_pin_failover": "PR #15481 (JxnLexn): tests/unit/sse-auth.test.ts 1733->1740 (+7 = one regression test: an inactive allowed account returns null instead of the #13832 blockedByKeyPolicy 403)."
   },
   "_rebaseline_2026_06_09": "Re-baseline consciente pre-release v3.8.19: 9 arquivos cresceram durante o ciclo (features mergeadas: RequestLoggerV2 +281 request-logger rework, stream +101, combo +73, chatCore +45, catalog +32 fable-5/catalog-flag, callLogs +4, accountFallback +2, usageHistory novo 840) + core.ts +7 (fix resetAllDbModuleState, PR 3536). A catraca segue valendo destes valores — proximo crescimento falha. Decisao: encolher (esp. RequestLoggerV2/chatCore) e a issue #3501 ficam para o ciclo seguinte.",
   "_rebaseline_2026_06_11_phase1f": "Phase 1f (#3501): ProviderDetailPageClient.tsx 4948→4062 (-886 LOC); 3 novos hooks extraídos. useProviderConnections.ts=954 acima do cap=800 — justificado: extração direta do god-component (zero lógica nova), própria redução do cliente supera o custo. useProviderSettings.ts=263 e useProviderModels.ts=154 já abaixo do cap.",
@@ -549,7 +550,8 @@
     "open-sse/services/accountFallback.ts": 2522,
     "open-sse/services/adobeFireflyBrowserLogin.ts": 1401,
     "open-sse/services/combo.ts": 4080,
-    "open-sse/services/combo/executeTargetAttempt.ts": 1280,
+    "open-sse/services/combo/executeTargetAttempt.ts": 1294,
+    "_rebaseline_2026_10_07_13603_astra_quality_family_hop": "Own growth (#13603 quality-invalid family hop): open-sse/services/combo/executeTargetAttempt.ts 1280->1294 (+14 = getNextFamilyFallback import, familyTried set, and the hop branch after handlePreContentStreamRetry that swaps modelStr/rawModel and re-enters the retry loop without consuming maxRetries; it must live inside the loop because it drives retry--/continue). Family tables and resolution live in open-sse/services/modelFamilyFallback.ts (not frozen). Measured with split(\"\\n\").length after the tip merge. Covered by tests/unit/combo/execute-target-attempt.test.ts and tests/unit/model-family-fallback-notation.test.ts.",
     "open-sse/translator/response/openai-responses.ts": 1547,
     "open-sse/utils/cursorAgentProtobuf.ts": 1622,
     "open-sse/utils/proxyFetch.ts": 1406,
@@ -582,8 +584,8 @@
     "src/shared/components/RequestLoggerV2.tsx": 1762,
     "src/shared/constants/providers/apikey/gateways.ts": 1574,
     "src/shared/services/cliRuntime.ts": 1296,
-    "src/sse/handlers/chat.ts": 2597,
-    "src/sse/services/auth.ts": 3668,
+    "src/sse/handlers/chat.ts": 2688,
+    "src/sse/services/auth.ts": 3678,
     "tests/unit/account-fallback-service.test.ts": 2453,
     "tests/unit/provider-validation-specialty.test.ts": 4656,
     "open-sse/services/autoCombo/virtualFactory.ts": 1258,
@@ -596,7 +598,8 @@
     "open-sse/executors/opencode.ts": 1532,
     "open-sse/handlers/responseSanitizer.ts": 1215,
     "src/lib/usage/usageHistory.ts": 1227,
-    "open-sse/services/claudeCodeCompatible.ts": 1245
+    "open-sse/services/claudeCodeCompatible.ts": 1245,
+    "_rebaseline_2026_10_07_15481_turn_pin_failover": "PR #15481 (JxnLexn) own growth, measured with split(\"\\n\").length after merging release/v3.8.52: src/sse/services/auth.ts 3668->3678 (+10 = the keyPolicyDeniesTarget guard in getProviderCredentials as Prettier prints it plus its 3-line rationale, and the extra condition on the #13832 403 branch). An allowed-but-inactive account is unavailable, not an API-key permission denial. Covered by tests/unit/sse-auth.test.ts and tests/unit/native-codex-turn-pin-model-scoped-fallback.test.ts."
   },
   "_rebaseline_2026_09_15_roundrobin_dashboard_events": "Fix #13089 (Combo Studio Live dashboard shows an empty backlog for round-robin combos): open-sse/services/combo/roundRobinCombo.ts 1205->1213. Round-robin is the only combo strategy that bypasses handleComboChat/executeTargetAttempt.ts, the path that publishes the combo.target.attempt/succeeded/failed EventBus events the Live dashboard listens for — so round-robin completions never showed up. The new call-site wiring (createRRDashboardEvents(...) instantiated once per target, one-line .attempt()/.succeeded()/.failed() calls at the 6 existing dispatch/outcome points) is the emitter logic actually extracted into a new module, open-sse/services/combo/rrDashboardEvents.ts — this is the minimum irreducible footprint for wiring 6 required call sites into 6 fixed control-flow points of the frozen file. Covered by tests/unit/issue-13089-roundrobin-live-ws-events.test.ts (2 tests: success + failure paths).",
   "_rebaseline_base_2026_08_10_proxyfetch": "Base-red fix (green-prs sweep, issue #9985): open-sse/utils/proxyFetch.ts 1207 > cap 1000 — new proxied-TLS fetch helper introduced by the Fal reference-image work. Owner-authorized quick rebaseline to green; structural slim tracked for v3.9.0.",
@@ -801,5 +804,6 @@
   "_rebaseline_2026_09_30_15186_stream_output_model_lockout": "Model-only lockout skipped for an isolated 5xx after the stream already relayed output (locked again once 3 such failures arrive in a row with no completed stream in between): open-sse/utils/stream.ts 3297->3298 (return registerStreamTiming(sseStream, timing)), open-sse/handlers/chatCore.ts 6441->6444 (hasEmittedOutput passed to createStreamFailureFinalizers + streak reset on a completed stream + its import) and src/sse/handlers/chatHelpers.ts 1285->1286 (streamOutputEmitted read from the failure payload) -- irreducible call-site wiring. The logic lives in new modules: open-sse/utils/streamTiming.ts (output registry), open-sse/services/accountFallback/postOutputFailureStreak.ts (streak) and src/sse/services/syntheticEmptyStream.ts (isRequestScopedServerFailure); src/sse/services/auth.ts stays under its ceiling because buildExhaustionOptions now reuses the markAccountUnavailable option type. Covered by tests/unit/stream-failure-after-output-no-model-lockout.test.ts.",
   "_rebaseline_2026_10_03_uniform_provider_regime_mount": "Own growth (uniform provider regime mount): src/app/(dashboard)/dashboard/settings/components/ProxyRegistryManager.tsx 1479->1483 (+4 = the PoolUpstreamRegimeLine import and its three-line conditional mount under the pool members label, next to PoolEgressObservation/PoolMemberEgressLines: rendered only when poolScope is 'provider' with a non-blank poolScopeId, which becomes the line's provider; nothing renders for other scopes or a blank id, so no conclusion without a provider). The regime itself lives outside the frozen file, all under cap: PoolUpstreamRegimeLine.tsx, the dedicated GET /api/settings/proxies/pool/uniform-egress route, readUniformEgressRegime/isUpstreamRegime in src/lib/proxyPoolEgressObservation.ts and getProviderUpstreamSummary in src/lib/db/proxies.ts. Only the mount point is irreducible. Covered by tests/unit/ui/proxy-registry-manager-regime-mount.test.tsx and tests/unit/ui/pool-upstream-regime-line.test.tsx.",
   "_rebaseline_2026_10_02_admission_rejection_call_log": "PR own growth (admission rejection call-log) after extraction of the rejection-logging logic into the new src/sse/handlers/admissionRejectionLog.ts (under cap): src/sse/handlers/chat.ts 2586->2597 (+11 = one import + 10 call-site lines at the single acquire() rejection site, irreducible — plancher +6 prouve, gate exige +0). Covered by tests/unit/admission-rejection-call-log.test.ts.",
-  "_rebaseline_2026_10_02_15375_rotation_egress_label": "Own growth: open-sse/executors/opencode.ts 1456->1460 gate count (+4 = one hoisted attempt-egress const after the paced repick + its served-account comment share, nine inline `${egress}` suffixes inside existing warn templates, one inline 429 label argument, one pool re-select member label; all rotation-log suffixes, no new line, level, or branch. Label extraction lives outside the frozen file in open-sse/executors/opencodeEgressThrottle.ts::egressLabel (under no frozen ceiling; +51 = hoisted port/host helpers + label + 6th log429Outcome param). Measured with split(\"\\n\").length on the PR head. Covered by tests/unit/opencode-egress-label.test.ts (6: dedicated/direct/explicit-default-port/member/no-leak/fail-open) + strengthened rotation warns (transient 500 names egress, network throw ECONNRESET names egress). Red-proof: opencode-egress-label 1 case red without / green with; proxy-rotation-4954 3 red/green; transient-rotation 2 red/green."
+  "_rebaseline_2026_10_02_15375_rotation_egress_label": "Own growth: open-sse/executors/opencode.ts 1456->1460 gate count (+4 = one hoisted attempt-egress const after the paced repick + its served-account comment share, nine inline `${egress}` suffixes inside existing warn templates, one inline 429 label argument, one pool re-select member label; all rotation-log suffixes, no new line, level, or branch. Label extraction lives outside the frozen file in open-sse/executors/opencodeEgressThrottle.ts::egressLabel (under no frozen ceiling; +51 = hoisted port/host helpers + label + 6th log429Outcome param). Measured with split(\"\\n\").length on the PR head. Covered by tests/unit/opencode-egress-label.test.ts (6: dedicated/direct/explicit-default-port/member/no-leak/fail-open) + strengthened rotation warns (transient 500 names egress, network throw ECONNRESET names egress). Red-proof: opencode-egress-label 1 case red without / green with; proxy-rotation-4954 3 red/green; transient-rotation 2 red/green.",
+  "_rebaseline_2026_10_07_15741_handler_rejection_call_log": "Own growth: src/sse/handlers/chat.ts 2597->2688 (+91 = eleven rejection call-sites wrapped in the single-expression logHandlerRejection call, irreducible wiring at the existing early-return chokepoints; the logging logic lives in src/sse/handlers/admissionRejectionLog.ts 56->66 (+10 = logHandlerRejection wrapper + widened header comment), under cap. Measured with split(\"\\n\").length. Covered by tests/unit/handler-rejection-call-log.test.ts."
 }

@@ -5512,6 +5512,7 @@
     "modelsImported": "იმპორტირებულია {count} მოდელი",
     "allModelsAlreadyImported": "ყველა მოდელი უკვე იმპორტირებულია",
     "noNewModelsToImport": "იმპორტირებისთვის ახალი მოდელები არ არის — ყველა მოდელი უკვე რეესტრში ან მორგებული მოდელების სიაშია",
+    "localCatalogFallbackStatus": "Couldn't reach the provider's model list — showing the built-in catalog",
     "skippingExistingModels": "გამოტოვებულია {count} არსებული მოდელი",
     "autoSync": "ავტომატური სინქრონიზაცია",
     "autoSyncShort": "სინქრონიზაცია",
@@ -6678,7 +6679,17 @@
     "savedModelEndpointSettings": "მოდელის საბოლოო წერტილის პარამეტრები შენახულია",
     "searchByModelAria": "მოდელის მიხედვით ძიება",
     "selectSupportedEndpoint": "აირჩიეთ სულ მცირე ერთი მხარდაჭერილი საბოლოო წერტილი",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "პარამეტრები",

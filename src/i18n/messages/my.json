@@ -5512,6 +5512,7 @@
     "modelsImported": "မော်ဒယ် {count} ခု ထည့်သွင်းပြီးပါပြီ",
     "allModelsAlreadyImported": "မော်ဒယ်အားလုံးကို ထည့်သွင်းပြီးဖြစ်သည်",
     "noNewModelsToImport": "ထည့်သွင်းရန် မော်ဒယ်အသစ်မရှိပါ — မော်ဒယ်အားလုံးသည် မှတ်ပုံတင်စာရင်း သို့မဟုတ် စိတ်ကြိုက်မော်ဒယ်စာရင်းတွင် ရှိပြီးဖြစ်သည်",
+    "localCatalogFallbackStatus": "Couldn't reach the provider's model list — showing the built-in catalog",
     "skippingExistingModels": "ရှိပြီးသား မော်ဒယ် {count} ခုကို ကျော်နေသည်",
     "autoSync": "အလိုအလျောက် စင့်ခ်လုပ်ခြင်း",
     "autoSyncShort": "စင့်ခ်လုပ်မည်",
@@ -6678,7 +6679,17 @@
     "savedModelEndpointSettings": "မော်ဒယ် endpoint ဆက်တင်များကို သိမ်းဆည်းပြီးပါပြီ",
     "searchByModelAria": "မော်ဒယ်ဖြင့် ရှာဖွေရန်",
     "selectSupportedEndpoint": "ပံ့ပိုးထားသော endpoint အနည်းဆုံးတစ်ခုကို ရွေးချယ်ပါ",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "ဆက်တင်များ",

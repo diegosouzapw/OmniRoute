@@ -5512,6 +5512,7 @@
     "modelsImported": "{count} మోడళ్లు దిగుమతి చేయబడ్డాయి",
     "allModelsAlreadyImported": "అన్ని మోడళ్లు ఇప్పటికే దిగుమతి చేయబడ్డాయి",
     "noNewModelsToImport": "దిగుమతి చేయడానికి కొత్త మోడళ్లు లేవు — అన్ని మోడళ్లు ఇప్పటికే రిజిస్ట్రీ లేదా అనుకూల మోడళ్ల జాబితాలో ఉన్నాయి",
+    "localCatalogFallbackStatus": "Couldn't reach the provider's model list — showing the built-in catalog",
     "skippingExistingModels": "ఇప్పటికే ఉన్న {count} మోడళ్లను దాటవేస్తోంది",
     "autoSync": "ఆటో-సింక్",
     "autoSyncShort": "సింక్ చేయండి",
@@ -6678,7 +6679,17 @@
     "savedModelEndpointSettings": "సేవ్ చేసిన మోడల్ ఎండ్‌పాయింట్ సెట్టింగ్స్",
     "searchByModelAria": "మోడల్ ద్వారా శోధించండి",
     "selectSupportedEndpoint": "కమిషన్ చేయబడిన కనెక్ట్ చేయబడిన ఎండ్‌పాయింట్‌లలో కనీసం ఒకటి ఎంచుకోండి",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "సెట్టింగ్లు",

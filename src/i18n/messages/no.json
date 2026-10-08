@@ -5512,6 +5512,7 @@
     "modelsImported": "{count} modeller importert",
     "allModelsAlreadyImported": "Alle modeller er allerede importert",
     "noNewModelsToImport": "Ingen nye modeller å importere — alle modeller finnes allerede i registeret eller listen over egendefinerte modeller",
+    "localCatalogFallbackStatus": "Couldn't reach the provider's model list — showing the built-in catalog",
     "skippingExistingModels": "Hopper over {count} eksisterende modeller",
     "autoSync": "Auto-synkronisering",
     "autoSyncShort": "Synkronisering",
@@ -6678,7 +6679,17 @@
     "savedModelEndpointSettings": "Innstillinger for lagrede modellendepunkter",
     "searchByModelAria": "Søk etter modell",
     "selectSupportedEndpoint": "Velg minst ett støttet endepunkt",
-    "antigravityClientProfileHarness": "Rammeverk / CLI"
+    "antigravityClientProfileHarness": "Rammeverk / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "Innstillinger",

@@ -5512,6 +5512,7 @@
     "modelsImported": "{count} модела увезено",
     "allModelsAlreadyImported": "Сви модели су већ увезени",
     "noNewModelsToImport": "Нема нових модела за увоз — сви модели су већ у регистру или на листи прилагођених модела",
+    "localCatalogFallbackStatus": "Couldn't reach the provider's model list — showing the built-in catalog",
     "skippingExistingModels": "Прескакање {count} постојећих модела",
     "autoSync": "Ауто-синхронизација",
     "autoSyncShort": "Синхронизуј",
@@ -6678,7 +6679,17 @@
     "savedModelEndpointSettings": "Подешавања ендпоинта модела су сачувана",
     "searchByModelAria": "Претрага по моделу",
     "selectSupportedEndpoint": "Изаберите бар једну подржану крајњу тачку",
-    "antigravityClientProfileHarness": "Окружење / CLI"
+    "antigravityClientProfileHarness": "Окружење / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "Подешавања",

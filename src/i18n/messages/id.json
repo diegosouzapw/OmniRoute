@@ -5512,6 +5512,7 @@
     "modelsImported": "{count} model diimpor",
     "allModelsAlreadyImported": "Semua model sudah diimpor",
     "noNewModelsToImport": "Tidak ada model baru untuk diimpor — semua model sudah ada di registri atau daftar model kustom",
+    "localCatalogFallbackStatus": "Couldn't reach the provider's model list — showing the built-in catalog",
     "skippingExistingModels": "Melewatkan {count} model yang sudah ada",
     "autoSync": "Sinkronisasi Otomatis",
     "autoSyncShort": "Sinkronkan",
@@ -6678,7 +6679,17 @@
     "savedModelEndpointSettings": "Pengaturan endpoint model yang disimpan",
     "searchByModelAria": "Cari berdasarkan model",
     "selectSupportedEndpoint": "Pilih setidaknya satu endpoint yang didukung",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "Pengaturan",

@@ -5512,6 +5512,7 @@
     "modelsImported": "{count} مدل وارد شد",
     "allModelsAlreadyImported": "همه مدلها قبلاً وارد شدهاند",
     "noNewModelsToImport": "مدل جدیدی برای وارد کردن وجود ندارد — همه مدلها از قبل در رجیستری یا فهرست مدلهای سفارشی هستند",
+    "localCatalogFallbackStatus": "Couldn't reach the provider's model list — showing the built-in catalog",
     "skippingExistingModels": "از {count} مدل موجود صرفنظر میشود",
     "autoSync": "همگامسازی خودکار",
     "autoSyncShort": "همگامسازی",
@@ -6678,7 +6679,17 @@
     "savedModelEndpointSettings": "تنظیمات نقطه پایانی مدل ذخیره شده",
     "searchByModelAria": "جستجو بر اساس مدل",
     "selectSupportedEndpoint": "حداقل یک نقطه پایانی پشتیبانی شده را انتخاب کنید",
-    "antigravityClientProfileHarness": "هارنس / CLI"
+    "antigravityClientProfileHarness": "هارنس / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "تنظیمات",

@@ -5512,6 +5512,7 @@
     "modelsImported": "{count}টি মডেল ইম্পোর্ট করা হয়েছে",
     "allModelsAlreadyImported": "সব মডেল ইতিমধ্যেই ইম্পোর্ট করা হয়েছে",
     "noNewModelsToImport": "ইম্পোর্ট করার মতো কোনো নতুন মডেল নেই — সব মডেল ইতিমধ্যেই registry বা custom models তালিকায় রয়েছে",
+    "localCatalogFallbackStatus": "Couldn't reach the provider's model list — showing the built-in catalog",
     "skippingExistingModels": "বিদ্যমান {count}টি মডেল এড়িয়ে যাওয়া হচ্ছে",
     "autoSync": "স্বয়ংক্রিয় সিঙ্ক",
     "autoSyncShort": "সিঙ্ক",
@@ -6678,7 +6679,17 @@
     "savedModelEndpointSettings": "সংরক্ষিত মডেল এন্ডপয়েন্ট সেটিংস",
     "searchByModelAria": "মডেল দ্বারা অনুসন্ধান করুন",
     "selectSupportedEndpoint": "কমপক্ষে একটি সমর্থিত এন্ডপয়েন্ট নির্বাচন করুন",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "সেটিংস",

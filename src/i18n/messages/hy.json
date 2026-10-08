@@ -5512,6 +5512,7 @@
     "modelsImported": "Ներմուծվել է {count} մոդել",
     "allModelsAlreadyImported": "Բոլոր մոդելներն արդեն ներմուծված են",
     "noNewModelsToImport": "Ներմուծման համար նոր մոդելներ չկան. բոլոր մոդելներն արդեն գրանցամատյանում կամ հատուկ մոդելների ցանկում են",
+    "localCatalogFallbackStatus": "Couldn't reach the provider's model list — showing the built-in catalog",
     "skippingExistingModels": "Բաց է թողնվում առկա {count} մոդել",
     "autoSync": "Ավտոմատ համաժամացում",
     "autoSyncShort": "Համաժամացնել",
@@ -6678,7 +6679,17 @@
     "savedModelEndpointSettings": "Մոդելի վերջնակետի կարգավորումները պահպանվել են",
     "searchByModelAria": "Որոնել ըստ մոդելի",
     "selectSupportedEndpoint": "Ընտրեք առնվազն մեկ աջակցվող վերջնակետ",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "Կարգավորումներ",

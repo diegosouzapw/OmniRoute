@@ -5512,6 +5512,7 @@
     "modelsImported": "Zaimportowano {count} models",
     "allModelsAlreadyImported": "Wszystkie models zostały już zaimportowane",
     "noNewModelsToImport": "Brak nowych models do zaimportowania — wszystkie models znajdują się już w rejestrze lub na liście niestandardowych models",
+    "localCatalogFallbackStatus": "Couldn't reach the provider's model list — showing the built-in catalog",
     "skippingExistingModels": "Pomijanie {count} istniejących models",
     "autoSync": "Automatyczna synchronizacja",
     "autoSyncShort": "Synchronizuj",
@@ -6678,7 +6679,17 @@
     "savedModelEndpointSettings": "Ustawienia punktu końcowego zapisanego modelu",
     "searchByModelAria": "Szukaj według modelu",
     "selectSupportedEndpoint": "Wybierz przynajmniej jeden obsługiwany punkt końcowy",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "Ustawienia",

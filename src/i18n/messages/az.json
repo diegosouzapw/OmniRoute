@@ -5512,6 +5512,7 @@
     "modelsImported": "{count} model idxal edildi",
     "allModelsAlreadyImported": "Bütün modellər artıq idxal edilib",
     "noNewModelsToImport": "İdxal ediləcək yeni model yoxdur — bütün modellər artıq reyestrdə və ya fərdi modellər siyahısındadır",
+    "localCatalogFallbackStatus": "Couldn't reach the provider's model list — showing the built-in catalog",
     "skippingExistingModels": "Mövcud olan {count} model buraxılır",
     "autoSync": "Avtomatik sinxronizasiya",
     "autoSyncShort": "Sinxronizasiya et",
@@ -6678,7 +6679,17 @@
     "savedModelEndpointSettings": "Saxlanmış model son nöqtəsi parametrləri",
     "searchByModelAria": "Model üzrə axtarış edin",
     "selectSupportedEndpoint": "Ən azı bir dəstəklənən son nöqtəni seçin",
-    "antigravityClientProfileHarness": "Test sistemi / CLI"
+    "antigravityClientProfileHarness": "Test sistemi / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "Parametrlər",

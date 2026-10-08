@@ -5512,6 +5512,7 @@
     "modelsImported": "{count} ಮಾದರಿಗಳನ್ನು ಆಮದು ಮಾಡಲಾಗಿದೆ",
     "allModelsAlreadyImported": "ಎಲ್ಲಾ ಮಾದರಿಗಳನ್ನು ಈಗಾಗಲೇ ಆಮದು ಮಾಡಲಾಗಿದೆ",
     "noNewModelsToImport": "ಆಮದು ಮಾಡಲು ಯಾವುದೇ ಹೊಸ ಮಾದರಿಗಳಿಲ್ಲ — ಎಲ್ಲಾ ಮಾದರಿಗಳು ಈಗಾಗಲೇ ನೋಂದಾವಣೆಯಲ್ಲಿ ಅಥವಾ ಕಸ್ಟಮ್ ಮಾದರಿಗಳ ಪಟ್ಟಿಯಲ್ಲಿವೆ",
+    "localCatalogFallbackStatus": "Couldn't reach the provider's model list — showing the built-in catalog",
     "skippingExistingModels": "ಈಗಾಗಲೇ ಇರುವ {count} ಮಾದರಿಗಳನ್ನು ಬಿಟ್ಟುಬಿಡಲಾಗುತ್ತಿದೆ",
     "autoSync": "ಸ್ವಯಂ-ಸಿಂಕ್",
     "autoSyncShort": "ಸಿಂಕ್",
@@ -6678,7 +6679,17 @@
     "savedModelEndpointSettings": "ಮಾದರಿ ಎಂಡ್ಪಾಯಿಂಟ್ ಸೆಟ್ಟಿಂಗ್ಗಳನ್ನು ಉಳಿಸಲಾಗಿದೆ",
     "searchByModelAria": "ಮಾದರಿಯ ಮೂಲಕ ಹುಡುಕಿ",
     "selectSupportedEndpoint": "ಬೆಂಬಲಿತ ಎಂಡ್ಪಾಯಿಂಟ್ಗಳಲ್ಲಿ ಕನಿಷ್ಠ ಒಂದನ್ನು ಆಯ್ಕೆಮಾಡಿ",
-    "antigravityClientProfileHarness": "ಹಾರ್ನೆಸ್ / CLI"
+    "antigravityClientProfileHarness": "ಹಾರ್ನೆಸ್ / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "ಸೆಟ್ಟಿಂಗ್ಗಳು",

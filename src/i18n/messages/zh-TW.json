@@ -5512,6 +5512,7 @@
     "modelsImported": "已匯入 {count} 個模型",
     "allModelsAlreadyImported": "所有模型已匯入",
     "noNewModelsToImport": "沒有新模型可匯入 — 所有模型已在登錄檔或自定義模型列表中",
+    "localCatalogFallbackStatus": "Couldn't reach the provider's model list — showing the built-in catalog",
     "skippingExistingModels": "跳過 {count} 個已有模型",
     "autoSync": "自動同步",
     "autoSyncShort": "同步",
@@ -6678,7 +6679,17 @@
     "savedModelEndpointSettings": "已儲存的模型端點設定",
     "searchByModelAria": "按型號搜尋",
     "selectSupportedEndpoint": "請選擇至少一個受支持的端點",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "quotaNoData": "No usage data yet",
+    "quotaRefresh": "Refresh usage",
+    "quotaCredits": "{count} credits",
+    "quotaUnlimited": "unlimited",
+    "quotaResetIn": "resets in {time}",
+    "quotaMoreWindows": "{count} more usage windows",
+    "quotaWindowMonthly": "Monthly",
+    "quotaWindowSpark": "Spark",
+    "quotaDetails": "Usage details",
+    "quotaPlanBadge": "Subscription plan (from usage data)"
   },
   "settings": {
     "title": "設定",
