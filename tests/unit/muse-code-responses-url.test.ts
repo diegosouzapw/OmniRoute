@@ -7,7 +7,9 @@ import { DefaultExecutor } from "../../open-sse/executors/default.ts";
 // mint response ("https://api.meta.ai/v1"). The custom-baseUrl branch normalized
 // that to /chat/completions while chatCore sent a Responses body (registry
 // targetFormat openai-responses), so Meta rejected every request with
-// "unknown parameter `input`" / "unknown parameter `include`".
+// "unknown parameter `input`" / "unknown parameter `include`". The release tip fixed
+// the URL in DefaultExecutor.buildUrl's `case "muse-code"` (#15576); these cases keep
+// guarding that behavior after #15567 dropped its own duplicate URL rewrite.
 
 const museCredentials = {
   accessToken: "minted-key",

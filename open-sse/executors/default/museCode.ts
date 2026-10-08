@@ -1,20 +1,9 @@
 /**
- * Muse Code request/URL tweaks for DefaultExecutor (extracted from default.ts).
+ * Muse Code request tweaks for DefaultExecutor (extracted from default.ts). The Responses
+ * URL for muse-code is owned by the `case "muse-code"` branch of buildUrl (#15576).
  */
 
-import { getModelTargetFormat } from "../../config/providerModels.ts";
 import { MUSE_SPARK_MIN_OUTPUT_TOKENS } from "../opencodeMuseSpark.ts";
-
-/**
- * A Responses-format model (registry targetFormat, e.g. muse-code) carries a Responses body;
- * sending it to /chat/completions fails upstream with "unknown parameter `input`". Keep the
- * URL in lockstep with the body.
- */
-export function responsesUrlForModel(chatUrl: string, provider: string, model: string) {
-  return getModelTargetFormat(provider, model) === "openai-responses"
-    ? chatUrl.replace(/\/chat\/completions\/?$/, "/responses")
-    : chatUrl;
-}
 
 /**
  * Muse spends the whole budget on hidden reasoning before any text: a tiny caller budget

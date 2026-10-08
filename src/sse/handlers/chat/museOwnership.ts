@@ -18,7 +18,7 @@ import {
   claimMuseSession,
   museClaimCandidates,
   museEmptyResponseRetryDelayMs,
-  museSessionScope,
+  museSessionScopeFor,
   recordMuseOutput,
   usesMuseOAuthOwnership,
 } from "../../services/museSessionOwnership";
@@ -61,7 +61,10 @@ export async function claimMuseOwner(args: ClaimArgs): Promise<MuseOwner | Respo
   if (!usesMuseOAuthOwnership(connections, args.forcedConnectionId || args.preselectedConnectionId))
     return null;
   try {
-    const scope = museSessionScope(args.body, args.headers, args.apiKeyId);
+    const oauthAccounts = connections.filter((item) => item.authType === "oauth").length;
+    const scope = museSessionScopeFor(args.body, args.headers, args.apiKeyId, oauthAccounts);
+    // One OAuth account and no session id: nothing to rotate to, keep unpinned routing.
+    if (scope === null) return null;
     const candidates = museClaimCandidates(
       connections,
       args.model,
