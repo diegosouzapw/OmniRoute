@@ -4,11 +4,30 @@
 
 ---
 
-OmniRoute toimittaa joukon `setup-*`-komentoja, jotka konfiguroivat koodaus-CLI:n (Codex, Claude Code, OpenCode, Cline, …) käyttämään OmniRoutea taustajärjestelmänään – jotta työkalu keskustelee **yhden** päätepisteen kanssa ja OmniRoute reitittää oikealle palveluntarjoajalle automaattisella varajärjestelmällä. Jokainen komento lukee **reaaliaikaisen** mallikatalogin käynnissä olevasta OmniRoutesta (paikallinen tai etä) ja kirjoittaa työkalun oman konfiguraatiotiedoston **sinun** koneellesi. API-avainta viitataan ympäristömuuttujalla aina, kun työkalu sitä tukee. Alla on mainittu komennot, jotka säilyttävät työkalukohtaisen ympäristötiedoston.
+Jaetun suoritettavan manifestin, rajoitettujen aliprosessiympäristöjen ja pysyvän
+Gemini-määrityksen tiedot ovat kohdassa [CLI-käynnistyssopimukset](./CLI-LAUNCH-CONTRACTS.md).
 
-On myös yleinen käynnistin – `omniroute run <target>` – joka käynnistää `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` tai `gemini` oikein injektoidulla ympäristöllä, kirjoittamatta mitään konfiguraatiota. Kohteet ja niiden aliakset tulevat kanonisesta manifestista `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), ja `omniroute completion` tarjoaa samat manifestista johdetut kohdesanat. Vanhat työkalukohtaiset käynnistimet – `omniroute launch` (Claude Code) ja `omniroute launch-codex` (Codex) – ovat edelleen saatavilla.
+OmniRoute sisältää joukon `setup-*`-komentoja, jotka määrittävät ohjelmointiin
+tarkoitetun CLI:n (Codex, Claude Code, OpenCode, Cline, …) käyttämään OmniRoutea taustajärjestelmänään — näin
+työkalu käyttää **yhtä** päätepistettä, ja OmniRoute reitittää pyynnöt oikealle palveluntarjoajalle
+automaattisella varajärjestelmään siirtymisellä. Jokainen komento lukee **ajantasaisen** malliluettelon käynnissä olevasta
+OmniRoute-instanssista (paikallisesta tai etäinstanssista) ja kirjoittaa työkalun oman määritystiedoston **sinun**
+koneellesi. API-avaimeen viitataan ympäristömuuttujalla aina, kun työkalu
+tukee sitä. Komennot, jotka tallentavat työkalukohtaisen ympäristötiedoston pysyvästi, on mainittu jäljempänä.
 
-Palveluntarjoajan käyttöönotto on saatavilla samasta paikallisesta/etäisestä kontekstista. Alla olevat API-ensimmäiset komennot pitävät hallinnan todennuksen erillään palveluntarjoajan tunnistetiedoista eivätkä koskaan tulosta tunnistetietoja strukturoituun tulosteeseen:
+Käytettävissä on myös yleinen käynnistin — `omniroute run <target>` — joka käynnistää
+ohjelman `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` tai `gemini` oikeat
+ympäristömuuttujat asetettuina kirjoittamatta lainkaan määrityksiä. Kohteet ja niiden
+aliakset tulevat kanonisesta manifestista `bin/cli/cli-manifest.mjs`
+(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
+`open-code`, `qwen-code`, `gemini-cli`), ja `omniroute completion` tarjoaa samat
+manifestista johdetut kohdesanat. Vanhat työkalukohtaiset käynnistimet —
+`omniroute launch` (Claude Code) ja `omniroute launch-codex` (Codex) — ovat edelleen
+käytettävissä.
+
+Palveluntarjoajien käyttöönotto on mahdollista samasta paikallisesta tai etäkontekstista.
+Alla olevat API-ensisijaiset komennot pitävät hallinnan todennuksen erillään palveluntarjoajan
+tunnistetiedoista eivätkä koskaan tulosta tunnistetietoa jäsennellyssä tulosteessa:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -18,16 +37,24 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Skripteissä suosi `--credential-stdin` tai `--credential-env`; `--credential` on säilytetty valvottua paikallista käyttöä varten. `providers remove` vaatii `--yes` ei-interaktiivisessa terminaalissa, ja kaikki viisi komentoa kunnioittavat aktiivista kontekstia tai globaaleja `--base-url`/`--api-key`-asetuksia.
+Käytä komentosarjoissa mieluiten valintaa `--credential-stdin` tai `--credential-env`; `--credential`
+on säilytetty hallittua paikallista käyttöä varten. `providers remove` edellyttää valintaa `--yes`
+ei-interaktiivisessa päätteessä, ja kaikki viisi komentoa noudattavat aktiivista kontekstia tai
+yleisiä `--base-url`/`--api-key`-valintoja.
 
-Palveluntarjoajan valitsimet hylkäävät epäselvät ID-etuliitteet, nimet tai palveluntarjoajan nimet; käytä täyttä yhteys-ID:tä, kun useampi yhteys täsmää. Luo- ja muokkaa-komennot lukevat tallennetun yhteyden takaisin, ja poisto varmistaa, ettei sitä voi enää lukea. Tuonti ohittaa olemassa olevan palveluntarjoaja/nimi-parin. Tuodut merkinnät eivät voi ohittaa CLI:lle toimitettua hallintapäätepistettä, kontekstia tai hallintatunnuksia.
+Palveluntarjoajavalitsimet hylkäävät monitulkintaiset ID-etuliitteet, nimet tai palveluntarjoajien nimet; käytä
+täydellistä yhteystunnusta, kun useita yhteyksiä täsmää. Luonti- ja muokkauskomennot lukevat
+tallennetun yhteyden takaisin, ja poistaminen varmistaa, ettei sitä voi enää lukea.
+Tuonti ohittaa olemassa olevan palveluntarjoajan ja nimen yhdistelmän. Tuodut merkinnät eivät voi ohittaa
+CLI:lle annettua hallinnan päätepistettä, kontekstia tai hallinnan tunnistetietoja.
 
-Kertaluonteista, käsin kirjoitettua perusasetusta kahdelle rikkaimmalle integraatiolle varten, katso työkalukohtaiset syväsukellukset:
+Kahden monipuolisimman integraation kertaluonteiset, käsin kirjoitettavat perusmääritykset on kuvattu
+työkalukohtaisissa syventävissä ohjeissa:
 
-- [Claude Code -konfiguraatio](./CLAUDE-CODE-CONFIGURATION.md)
-- [Codex CLI -konfiguraatio](./CODEX-CLI-CONFIGURATION.md)
-- [Etätila](./REMOTE-MODE.md) – ohjaa etä-OmniRoutea (VPS / Tailnet) kannettavastasi
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) – OmniCopilot-laajennus; se voi myös suorittaa nämä
+- [Claude Coden määritykset](./CLAUDE-CODE-CONFIGURATION.md)
+- [Codex CLI:n määritykset](./CODEX-CLI-CONFIGURATION.md)
+- [Etätila](./REMOTE-MODE.md) — ohjaa OmniRoute-etäinstanssia (VPS / Tailnet) kannettavaltasi
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot-laajennus; se voi suorittaa myös nämä
   `setup-*`-komennot puolestasi editorin sisältä
 
 ---

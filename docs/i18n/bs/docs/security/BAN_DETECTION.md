@@ -4,17 +4,20 @@
 
 ---
 
-# Zabrana naloga / Detekcija zabranjenih ključnih riječi
+OmniRoute skenira odgovore o greškama uzvodnih pružalaca usluga tražeći signale koji ukazuju na to da je **račun trajno neaktivan** (suspendovan / deaktiviran / blokiran zbog kršenja Uslova korištenja) i, kada pronađe podudaranje, premješta tu vezu u **terminalno stanje `banned`** kako više ne bi bila odabrana za zahtjeve. Ovo se konfigurira na kartici postavki **Sigurnost → Zabranjene ključne riječi** („Dodatne ključne riječi koje pokreću detekciju trajne zabrane računa. Ugrađene ključne riječi uvijek se primjenjuju.“).
 
-OmniRoute skenira odgovore o greškama uzvodnih provajdera (upstream) u potrazi za signalima koji ukazuju na to da je **nalog provajdera trajno mrtav** (suspendovan / deaktiviran / zabranjen zbog kršenja Uslova korišćenja) i, kada se podudari, prebacuje tu konekciju u **terminalno `banned` stanje** tako da se više ne bira za zahteve. Ovo je ono što konfiguriše kartica podešavanja **Security → Banned Keywords** ("Dodatne ključne riječi koje pokreću detekciju trajne zabrane naloga. Ugrađene ključne riječi se uvijek primjenjuju.").
+Ova stranica dokumentira ugrađenu listu, tok detekcije, njen opseg, način sigurnog dodavanja prilagođenih ključnih riječi i način oporavka označene veze. Samo terminalno stanje dio je modela otpornosti — pogledajte
+[RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) („Terminalna stanja“).
 
-Ova stranica dokumentuje ugrađenu listu, tok detekcije, njen obim, kako bezbjedno dodati prilagođene ključne riječi i kako oporaviti označenu konekciju. Samo terminalno stanje je dio modela otpornosti — pogledajte [RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("Terminalna stanja").
-
-**Izvor istine:** `open-sse/services/accountFallback.ts` (`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+**Izvor istine:** `open-sse/services/accountFallback.ts`
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+kao i `open-sse/services/errorClassifier.ts` za neterminalnu klasu verifikacije
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) i za
+403 granu koja je koristi.
 
 ## Ugrađene ključne riječi
 
-Ovih 8 podnizova se uvijek primjenjuje (ne razlikuju velika i mala slova), bez obzira na bilo koju prilagođenu listu:
+Ovih 7 podnizova uvijek se primjenjuje (bez obzira na velika i mala slova), nezavisno od bilo koje prilagođene liste:
 
 ```
 account_deactivated
@@ -22,19 +25,46 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud kod)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> Ova lista se razvija kako provajderi mijenjaju tekst svojih zabrana. Mjerodavna kopija je `ACCOUNT_DEACTIVATED_SIGNALS` u `open-sse/services/accountFallback.ts`; tretirajte gornji blok kao snimak stanja.
+> Ova lista se mijenja kako pružaoci mijenjaju formulacije zabrana. Mjerodavna
+> kopija je `ACCOUNT_DEACTIVATED_SIGNALS` u `open-sse/services/accountFallback.ts`;
+> gornji blok smatrajte trenutnim snimkom.
 
-Dvije susjedne, **odvojene** tabele signala nalaze se u istoj datoteci i _nisu_ dio detekcije zabranjenih ključnih riječi:
+### Nije zabrana: zahtjevi za verifikaciju koje operater može riješiti
 
-- `CREDITS_EXHAUSTED_SIGNALS` — naplata/kvota iscrpljena (`insufficient_quota`, `credit_balance_too_low`, `payment required`, …) → terminalno `credits_exhausted`.
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **nije terminalno**; osvježavanje tokena može oporaviti stanje.
+`verify your account to continue` **ranije se nalazilo** na gornjoj listi. To nije
+signal zabrane i sada se nalazi u `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS`, koji ga
+klasificira kao oporavljivi `PROJECT_ROUTE_ERROR`, umjesto da trajno prekine vezu.
 
-Napomena: uobičajene prolazne fraze kao što su **`rate limit`** / `429` se obrađuju putem putanje za ograničenje brzine (rate-limit) / hlađenje konekcije (connection-cooldown) i **nisu** signali zabrane.
+Google Cloud Code / Antigravity vraćaju ga kao `403 VALIDATION_REQUIRED`. On je
+**privremen i pojavljuje se na ispravnim računima s punom kvotom** — izmjereno na aktivnoj
+implementaciji (2026-09-25, `proxy_logs`): jedna Antigravity veza vratila je 33 takva
+odgovora 403 unutar 10 minuta i ostala `active`, dok je srodna veza sa 100 % dostupne
+kvote u svih 17 intervala bila trajno zabranjena zbog **samo jednog** takvog odgovora.
+Jedina razlika bila je u tome koji je pokušaj slučajno bio obrađen.
+
+Razlika je važna jer terminalno podudaranje ima `permanent: true` (period čekanja od
+1 godine, bez automatskog oporavka), dok operater zahtjev za verifikaciju rješava u
+pregledniku. Zadržavanje ove fraze na listi zabrana također je činilo oporavljivu
+cloud-code granu za odgovor 403 u `classifyProviderError` nedostižnom za ovu formulaciju,
+jer se `accountDeactivated` procjenjuje prvo — pa se oporavak projektne rute dodan za
+Gemini Code Assist u [#868](https://github.com/diegosouzapw/OmniRoute/pull/868) i
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) nikada nije mogao pokrenuti.
+
+Tri susjedne, **odvojene** tabele signala _nisu_ dio otkrivanja zabranjenih ključnih riječi:
+
+- `CREDITS_EXHAUSTED_SIGNALS` — potrošena sredstva/kvota (`insufficient_quota`,
+  `credit_balance_too_low`, `payment required`, …) → terminalni `credits_exhausted`.
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **nije terminalno**; osvježavanje tokena može omogućiti oporavak.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **nije terminalno**; operater mora
+  ponovo verificirati račun kod izvornog pružaoca. Nalazi se u `open-sse/services/errorClassifier.ts`
+  (preostale dvije nalaze se u `accountFallback.ts`). Pogledajte gornji odjeljak.
+
+Napomena: uobičajene privremene fraze poput **`rate limit`** / `429` obrađuju se putem
+mehanizma ograničenja brzine / perioda čekanja veze i **nisu** signali zabrane.
 
 ## Tok detekcije
 

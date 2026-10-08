@@ -190,14 +190,14 @@ Uthibitishaji: wa hiari (`REQUIRE_API_KEY`). Hitilafu kupitia `buildErrorBody()`
 
 ## Utatuzi wa Matatizo
 
-| Dalili                                                 | Sababu                                                | Suluhisho                                                                                              |
-| ------------------------------------------------------ | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Kihariri cha Monaco hakionekani kwenye kichupo cha API | SSR ilipakia Monaco                                   | Thibitisha kuwa `ApiTab` inatumia `dynamic(..., { ssr: false })`                                       |
-| Mitiririko ya ulinganishaji inaanza kwa mfuatano       | Matumizi yasiyo sahihi ya `Promise.all`               | Uanzishaji wote wa mitiririko lazima utumwe katika mwito mmoja wa `Promise.all`                        |
-| Vipimo vinaonyesha TTFT ya `null`                      | Kishughulikiaji cha sehemu ya kwanza hakijaunganishwa | Hakikisha `useStreamMetrics.onFirstChunk()` inaitwa ndani ya kitanzi cha kisomaji cha SSE              |
-| Mipangilio iliyowekwa awali haihifadhiwi               | Uhamishaji wa DB haujaendeshwa                        | Endesha `npm run db:migrate` au anzisha upya seva (uhamishaji huendeshwa kiotomatiki wakati wa kuanza) |
-| Uboreshaji wa kidokezo unarudisha 502                  | Modeli haijawekwa katika Config                       | Mtumiaji lazima aweke jina la modeli katika kidirisha cha Config kabla ya kuboresha                    |
-| Msimbo wa kuhamisha unaonyesha `MISSING_API_KEY`       | Kishikilia nafasi hakijaingizwa                       | `codeExport.ts` hutumia daima `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`                             |
+| Dalili                                                 | Sababu                                                | Suluhisho                                                                               |
+| ------------------------------------------------------ | ----------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Kihariri cha Monaco hakionekani kwenye kichupo cha API | SSR ilipakia Monaco                                   | Thibitisha kuwa `ApiTab` inatumia `dynamic(..., { ssr: false })`                        |
+| Mitiririko ya ulinganishaji huanzishwa kwa kufuatana   | Matumizi yasiyo sahihi ya `Promise.all`               | Uanzishaji wote wa mitiririko lazima utekelezwe katika mwito mmoja wa `Promise.all`     |
+| Vipimo vinaonyesha TTFT ya `null`                      | Kishughulikiaji cha sehemu ya kwanza hakijaunganishwa | Hakikisha `useStreamMetrics.onFirstChunk()` inaitwa katika kitanzi cha kisomaji cha SSE |
+| Mipangilio iliyowekwa awali haihifadhiwi               | Uhamishaji wa DB haujatekelezwa                       | Anzisha upya seva: uhamishaji hutekelezwa kiotomatiki wakati wa kuanza                  |
+| Uboreshaji wa kidokezo unarejesha 502                  | Modeli haijawekwa katika Config                       | Mtumiaji lazima aweke jina la modeli katika kidirisha cha Config kabla ya kuboresha     |
+| Msimbo wa kuhamisha unaonyesha `MISSING_API_KEY`       | Kishikilia nafasi hakijawekwa                         | `codeExport.ts` hutumia kila wakati `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`        |
 
 ---
 

@@ -4,6 +4,11 @@ import net from "node:net";
 import { OpencodeExecutor } from "../../open-sse/executors/opencode.ts";
 import type { ExecutorLog, ProviderCredentials } from "../../open-sse/executors/base.ts";
 import { resolveProxyForRequest } from "../../open-sse/utils/proxyFetch.ts";
+import {
+  __resetProxyRefusalMemoryForTesting,
+  __resetSlowOverrunsForTesting,
+  __resetTransportEvidenceForTesting,
+} from "../../open-sse/utils/proxyRefusalMemory.ts";
 
 const log: ExecutorLog = { debug() {}, info() {}, warn() {}, error() {} };
 
@@ -81,6 +86,13 @@ describe("OpencodeExecutor geo-block rotation", () => {
   beforeEach(() => {
     originalFetch = globalThis.fetch;
     observed = [];
+    // The refusal memory is module-global and PROXY_SKIP_RECENTLY_FAILED is on by
+    // default: a 429 in one case (e.g. "a geo-tried proxy is never re-called even
+    // after a 429") correctly sets that proxy aside for minutes, which then leaked
+    // into later cases sharing the same local proxy ports. Start each case clean.
+    __resetProxyRefusalMemoryForTesting();
+    __resetSlowOverrunsForTesting();
+    __resetTransportEvidenceForTesting();
   });
 
   afterEach(() => {
@@ -110,6 +122,15 @@ describe("OpencodeExecutor geo-block rotation", () => {
       { status: 403, body: GEO_BODY },
       { status: 200 },
     ]);
+    const warns: string[] = [];
+    const spyLog: ExecutorLog = {
+      debug() {},
+      info() {},
+      warn(_tag, message) {
+        warns.push(String(message));
+      },
+      error() {},
+    };
 
     const result = await exec.execute({
       model: "muse-spark-1.3-contributor-free",
@@ -117,7 +138,7 @@ describe("OpencodeExecutor geo-block rotation", () => {
       stream: false,
       signal: null,
       credentials: credentialsFor([FP_A, FP_B, FP_C]),
-      log,
+      log: spyLog,
     });
 
     assert.strictEqual(
@@ -131,6 +152,10 @@ describe("OpencodeExecutor geo-block rotation", () => {
         observed.includes(String(portB)) &&
         observed.includes(String(portC)),
       "first attempt on A (fresh cursor), then rotation over untried proxies"
+    );
+    assert.ok(
+      warns.some((l) => new RegExp(`\\(proxy 127\\.0\\.0\\.1:${portA}\\)`).test(l)),
+      `geo-block warn must name the applied egress, got=${JSON.stringify(warns)}`
     );
   });
 
@@ -176,6 +201,78 @@ describe("OpencodeExecutor geo-block rotation", () => {
 
     assert.strictEqual((result as { response: Response }).response.status, 403);
     assert.strictEqual(observed.length, 1, "no retry on non-geo 403");
+  });
+
+  it("a region refusal sets the member aside for the next request", async () => {
+    process.env.PROXY_SKIP_RECENTLY_FAILED = "true";
+    try {
+      const exec = new OpencodeExecutor("opencode-zen");
+      installFetch([{ status: 403, body: GEO_BODY }, { status: 200 }, { status: 200 }]);
+      const first = await exec.execute({
+        model: "muse-spark-1.3-contributor-free",
+        body: { messages: [{ role: "user", content: "hi" }], stream: false },
+        stream: false,
+        signal: null,
+        credentials: credentialsFor([FP_A, FP_B, FP_C]),
+        log,
+      });
+      assert.strictEqual((first as { response: Response }).response.status, 200);
+      // Request 1 rotates past the refused member within the request…
+      assert.deepStrictEqual(observed, [String(portA), String(portB)]);
+
+      const { proxyEgressKey, isProxyAvoided, snapshotProxySetAside } =
+        await import("../../open-sse/utils/proxyRefusalMemory.ts");
+      const refusedKey = proxyEgressKey({ type: "http", host: "127.0.0.1", port: portA });
+      assert.equal(isProxyAvoided(refusedKey), true);
+      assert.equal(snapshotProxySetAside(refusedKey)?.kind, "geo_blocked");
+
+      // …but the 200 served through B clears the memory, so request 2 starts
+      // from the plain cursor again (prove the write happened above instead).
+      const refusedB = proxyEgressKey({ type: "http", host: "127.0.0.1", port: portB });
+      assert.equal(isProxyAvoided(refusedB), false);
+
+      // A 200 served through another member leaves a refusal on a third
+      // member untouched: the next request avoids only that third member.
+      const { noteProxyRefusal } = await import("../../open-sse/utils/proxyRefusalMemory.ts");
+      const thirdKey = proxyEgressKey({ type: "http", host: "127.0.0.1", port: portC });
+      assert.ok(noteProxyRefusal(thirdKey, "geo_blocked") !== null);
+      installFetch([{ status: 200 }]);
+      observed = [];
+      const second = await exec.execute({
+        model: "muse-spark-1.3-contributor-free",
+        body: { messages: [{ role: "user", content: "hi" }], stream: false },
+        stream: false,
+        signal: null,
+        credentials: credentialsFor([FP_A, FP_B, FP_C]),
+        log,
+      });
+      assert.strictEqual((second as { response: Response }).response.status, 200);
+      assert.ok(!observed.includes(String(portC)), "set-aside member avoided on next request");
+    } finally {
+      delete process.env.PROXY_SKIP_RECENTLY_FAILED;
+    }
+  });
+
+  it("a region refusal with the flag off writes nothing", async () => {
+    process.env.PROXY_SKIP_RECENTLY_FAILED = "false";
+    try {
+      const { __proxyRefusalMemorySizeForTesting } =
+        await import("../../open-sse/utils/proxyRefusalMemory.ts");
+      const exec = new OpencodeExecutor("opencode-zen");
+      installFetch([{ status: 403, body: GEO_BODY }, { status: 200 }]);
+      const result = await exec.execute({
+        model: "muse-spark-1.3-contributor-free",
+        body: { messages: [{ role: "user", content: "hi" }], stream: false },
+        stream: false,
+        signal: null,
+        credentials: credentialsFor([FP_A, FP_B]),
+        log,
+      });
+      assert.strictEqual((result as { response: Response }).response.status, 200);
+      assert.equal(__proxyRefusalMemorySizeForTesting(), 0);
+    } finally {
+      delete process.env.PROXY_SKIP_RECENTLY_FAILED;
+    }
   });
 
   it("propagates the last 403 after exhausting all proxies", async () => {

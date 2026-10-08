@@ -4,12 +4,12 @@
 
 ---
 
-OmniRoute analiza las respuestas de error del servicio ascendente en busca de señales que indiquen que una
-**cuenta del proveedor está inactiva permanentemente** (suspendida/desactivada/bloqueada por incumplir los Términos de servicio) y, cuando
-encuentra una coincidencia, mueve esa conexión a un **estado terminal `banned`** para que deje de
-seleccionarse para las solicitudes. Esto es lo que configura la tarjeta de ajustes **Seguridad → Palabras clave de bloqueo**
-("Palabras clave adicionales que activan la detección de bloqueos permanentes de cuentas.
-Las palabras clave integradas se aplican siempre.").
+OmniRoute analiza las respuestas de error de los proveedores upstream en busca de señales que indiquen que una
+**cuenta está permanentemente inactiva** (suspendida / desactivada / bloqueada por incumplimiento de los Términos de servicio) y, cuando
+hay una coincidencia, mueve esa conexión a un **estado terminal `banned`** para que deje de
+seleccionarse para las solicitudes. Esto es lo que configura la tarjeta de ajustes
+**Seguridad → Palabras clave de bloqueo** ("Palabras clave adicionales que activan la detección
+de bloqueo permanente de cuentas. Las palabras clave integradas siempre se aplican.").
 
 Esta página documenta la lista integrada, el flujo de detección, su alcance, cómo añadir
 palabras clave personalizadas de forma segura y cómo recuperar una conexión marcada. El estado
@@ -17,11 +17,14 @@ terminal forma parte del modelo de resiliencia; consulte
 [RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("Estados terminales").
 
 **Fuente de referencia:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+además de `open-sse/services/errorClassifier.ts` para la clase de verificación no terminal
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) y para
+la rama 403 que la utiliza.
 
 ## Palabras clave integradas
 
-Estas 8 subcadenas se aplican siempre (sin distinguir entre mayúsculas y minúsculas), independientemente de cualquier lista personalizada:
+Estas 7 subcadenas se aplican siempre (sin distinguir entre mayúsculas y minúsculas), independientemente de cualquier lista personalizada:
 
 ```
 account_deactivated
@@ -29,24 +32,46 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
 > Esta lista evoluciona a medida que los proveedores cambian la redacción de sus bloqueos. La copia
 > autoritativa es `ACCOUNT_DEACTIVATED_SIGNALS` en `open-sse/services/accountFallback.ts`;
-> considere el bloque anterior como una instantánea.
+> considera el bloque anterior como una instantánea.
 
-En el mismo archivo hay dos tablas de señales contiguas e **independientes** que _no_ forman parte
-de la detección de palabras clave de bloqueo:
+### No es un bloqueo: solicitudes de verificación que el operador puede resolver
+
+`verify your account to continue` **solía estar** en la lista anterior. No es una señal de
+bloqueo y ahora se encuentra en `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS`, que se clasifica como
+`PROJECT_ROUTE_ERROR` recuperable en lugar de finalizar la conexión.
+
+Google Cloud Code / Antigravity la devuelven como `403 VALIDATION_REQUIRED`. Es
+**transitoria y se produce en cuentas en buen estado y con toda su cuota disponible** — medido en un despliegue
+en producción (2026-09-25, `proxy_logs`): una conexión de Antigravity devolvió 33 de estos
+403 en un intervalo de 10 minutos y permaneció `active`, mientras que una conexión relacionada que conservaba el 100 %
+de su cuota en las 17 ventanas fue bloqueada permanentemente por **una sola** aparición. La única
+diferencia fue qué intento recibió la respuesta.
+
+La distinción es importante porque una coincidencia terminal tiene `permanent: true` (periodo de espera de 1 año,
+nunca se recupera automáticamente), mientras que el operador resuelve una solicitud de verificación en un navegador.
+Mantener la frase en la lista de bloqueos también hacía inalcanzable la rama recuperable de errores 403 de Cloud Code en
+`classifyProviderError` para esta redacción, porque `accountDeactivated` se
+evalúa primero; por tanto, la recuperación de rutas del proyecto añadida para Gemini Code Assist en
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) y
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) nunca podía ejecutarse.
+
+Tres tablas de señales contiguas y **separadas** _no_ forman parte de la detección de palabras clave de bloqueo:
 
 - `CREDITS_EXHAUSTED_SIGNALS` — facturación/cuota agotada (`insufficient_quota`,
-  `credit_balance_too_low`, `payment required`, …) → estado terminal `credits_exhausted`.
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **no terminal**; una actualización del token puede permitir la recuperación.
+  `credit_balance_too_low`, `payment required`, …) → `credits_exhausted` terminal.
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **no terminal**; una actualización del token puede resolverlo.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **no terminal**; el operador debe
+  volver a verificar la cuenta con el proveedor. Se encuentra en `open-sse/services/errorClassifier.ts`
+  (las otras dos se encuentran en `accountFallback.ts`). Consulta la sección anterior.
 
-Nota: las expresiones transitorias comunes como **`rate limit`** / `429` se gestionan mediante la
-ruta de limitación de frecuencia/tiempo de espera de la conexión y **no** son señales de bloqueo.
+Nota: las frases transitorias comunes como **`rate limit`** / `429` se gestionan mediante la
+ruta de límite de solicitudes / periodo de espera de la conexión y **no** son señales de bloqueo.
 
 ## Flujo de detección
 

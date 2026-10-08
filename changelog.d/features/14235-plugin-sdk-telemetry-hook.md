@@ -1,1 +1,0 @@
-- **feat(plugins):** the editor plugin registers the host `sdk` telemetry hook behind an opt-in flag that defaults to off, marking matching inference calls without touching anything else. ([#14235](https://github.com/diegosouzapw/OmniRoute/pull/14235)) — thanks @maxmad64bis

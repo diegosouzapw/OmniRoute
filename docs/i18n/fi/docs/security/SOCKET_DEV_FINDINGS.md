@@ -212,22 +212,21 @@ Käyttäjät, jotka tarvitsevat Socket-yhteensopivan artefaktin, voivat koota se
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-Webpackin `NormalModuleReplacementPlugin` määrittää neljälle moduulille stub-korvikkeet:
+Webpackin `NormalModuleReplacementPlugin` korvaa neljä moduulia tynkämoduuleilla:
 
-| Moduuli                                     | Stub                                             |
+| Moduuli                                     | Tynkä                                            |
 | ------------------------------------------- | ------------------------------------------------ |
 | `src/mitm/cert/install.ts`                  | `src/mitm/cert/install.stub.ts`                  |
 | `src/lib/zed-oauth/keychain-reader.ts`      | `src/lib/zed-oauth/keychain-reader.stub.ts`      |
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Kukin stub vie saman rajapinnan, mutta jokainen funktio heittää suorituksen aikana
-`featureDisabledError(name)`-virheen. Käytöstä poistetusta moduulista riippuvat
-reitit palauttavat HTTP 503 -vastauksen ja selkeän viestin sen sijaan, että
-arkaluonteinen koodipolku aktivoitaisiin.
+Jokainen tynkä vie saman rajapinnan, mutta jokainen funktio heittää
+`featureDisabledError(name)`-virheen suorituksen aikana. Käytöstä poistetusta
+moduulista riippuvat reitit palauttavat HTTP 503 -vastauksen ja selkeän viestin
+sen sijaan, että arkaluonteinen koodipolku aktivoitaisiin.
 
-Tuloksena syntyvä paketti on tarkoitus julkaista nimellä `omniroute-secure`. Katso
-julkaisuohjeet tiedostosta `docs/ops/PUBLISHING_SECURE.md`.
+Tuloksena syntyvä paketti on tarkoitettu julkaistavaksi nimellä `omniroute-secure`.
 
 ---
 

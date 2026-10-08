@@ -217,9 +217,9 @@ teamreferenties kan centraliseren. De oplossing maakt het dreigingsmodel duideli
 
 ---
 
-## Bouwprofiel: `minimal`
+## Buildprofiel: `minimal`
 
-Gebruikers die een Socket-vriendelijk artefact nodig hebben, kunnen dit bouwen met:
+Voor gebruikers die een Socket-vriendelijk artefact nodig hebben, bouwt u met:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
@@ -239,8 +239,7 @@ Elke stub exporteert dezelfde interface, maar elke functie genereert tijdens run
 module retourneren HTTP 503 met een duidelijke melding, in plaats van het
 gevoelige codepad te activeren.
 
-De resulterende bundel is bedoeld om als `omniroute-secure` te worden gepubliceerd. Zie
-`docs/ops/PUBLISHING_SECURE.md` voor de publicatie-instructies.
+De resulterende bundel is bedoeld om te worden gepubliceerd als `omniroute-secure`.
 
 ---
 

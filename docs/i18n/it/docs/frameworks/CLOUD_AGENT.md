@@ -68,7 +68,7 @@ a intervalli ragionevoli.
 
 ## Interfaccia `CloudAgentBase`
 
-Origine: `src/lib/cloudAgent/baseAgent.ts`
+Fonte: `src/lib/cloudAgent/baseAgent.ts`
 
 ```typescript
 export interface AgentCredentials {
@@ -116,9 +116,9 @@ export abstract class CloudAgentBase {
 }
 ```
 
-`CodexCloudAgent.approvePlan` genera intenzionalmente un'eccezione: Codex Cloud crea automaticamente i piani e non prevede alcun passaggio di approvazione. `CodexCloudAgent.listSources` restituisce `[]`.
+`CodexCloudAgent.approvePlan` genera intenzionalmente un'eccezione: Codex Cloud crea automaticamente i piani e non dispone di un passaggio di approvazione. `CodexCloudAgent.listSources` restituisce `[]`.
 
-`CursorCloudAgent` gestisce i Background / Cloud Agents di Cursor tramite la relativa API REST ufficiale (`api.cursor.com/v0`) con una **chiave API utente o di account di servizio**: l'alternativa proprietaria più sicura rispetto al riutilizzo della sessione OAuth dell'IDE Cursor (provider `cursor`, che include un avviso relativo al rischio di ban). È un semplice adattatore REST (senza dipendenza nativa da `@cursor/sdk`). `approvePlan` genera un'eccezione (gli agenti Cursor vengono eseguiti autonomamente); `listSources` elenca i repository accessibili tramite la chiave. Cursor restituisce enum di stato in maiuscolo (`CREATING`/`RUNNING`/`FINISHED`/`ERROR`), mappati esplicitamente al tipo condiviso `CloudAgentStatus`. `baseUrl` può essere sovrascritto per ciascuna credenziale, in modo che sia possibile correggere la versione o il percorso dell'API senza modificare il codice.
+`CursorCloudAgent` gestisce gli agenti Background / Cloud di Cursor tramite la relativa API REST ufficiale (`api.cursor.com/v0`) con una **chiave API utente o di account di servizio**: l'alternativa proprietaria e più sicura al riutilizzo della sessione OAuth dell'IDE Cursor (provider `cursor`, che comporta un avviso relativo al rischio di ban). È un semplice adattatore REST (senza dipendenza nativa da `@cursor/sdk`). `approvePlan` genera un'eccezione (gli agenti Cursor operano autonomamente); `listSources` elenca i repository accessibili dalla chiave. Cursor restituisce enum di stato in MAIUSCOLO (`CREATING`/`RUNNING`/`FINISHED`/`ERROR`), mappati esplicitamente al valore `CloudAgentStatus` condiviso. `baseUrl` può essere sovrascritto per ciascuna credenziale, in modo che la versione o il percorso dell'API possano essere corretti senza modificare il codice.
 
 ## Tipi di dominio
 
@@ -295,24 +295,29 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 provider upstream: non esiste alcuna RPC di interruzione in `CloudAgentBase`. Per interrompere la fatturazione
 upstream, terminare l'attività nella console del provider.
 
-## API REST — Infrastruttura dei Cloud Provider
+## API REST — Infrastruttura dei provider cloud
 
 Questi endpoint ausiliari in `src/app/api/cloud/` vengono utilizzati dai client remoti
 (la CLI, l'app Electron o i worker di sincronizzazione) per leggere i metadati di connessione
-dei provider e risolvere gli alias dei modelli. Sono autenticati con una **normale chiave API**
-(tramite `validateApiKey`), non con l'autenticazione di gestione utilizzata dagli endpoint delle attività.
+dei provider e risolvere gli alias dei modelli. Vengono autenticati con una **chiave API**
+(tramite `validateApiKey`), non con l'autenticazione di gestione utilizzata dagli endpoint delle attività; ciò che
+restituisce `/api/cloud/auth` dipende dall'ambito della chiave (vedi sotto).
 
-| Metodo | Percorso                        | Scopo                                                                                        |
-| ------ | ------------------------------- | -------------------------------------------------------------------------------------------- |
-| POST   | `/api/cloud/auth`               | Convalida la chiave API e restituisce metadati di connessione mascherati + alias dei modelli |
-| PUT    | `/api/cloud/credentials/update` | Aggiorna `accessToken` / `refreshToken` / `expiresAt`                                        |
-| POST   | `/api/cloud/model/resolve`      | Risolve un alias di modello in `{ provider, model }`                                         |
-| GET    | `/api/cloud/models/alias`       | Elenca tutti gli alias dei modelli                                                           |
-| PUT    | `/api/cloud/models/alias`       | Imposta un alias di modello (e lo sincronizza automaticamente con Cloud, se abilitato)       |
+| Metodo | Percorso                        | Scopo                                                                                         |
+| ------ | ------------------------------- | --------------------------------------------------------------------------------------------- |
+| POST   | `/api/cloud/auth`               | Convalidare la chiave API e restituire metadati di connessione mascherati + alias dei modelli |
+| PUT    | `/api/cloud/credentials/update` | Aggiornare `accessToken` / `refreshToken` / `expiresAt`                                       |
+| POST   | `/api/cloud/model/resolve`      | Risolvere un alias di modello in `{ provider, model }`                                        |
+| GET    | `/api/cloud/models/alias`       | Elencare tutti gli alias dei modelli                                                          |
+| PUT    | `/api/cloud/models/alias`       | Impostare un alias di modello (e sincronizzarlo automaticamente con Cloud, se abilitato)      |
 
-`/api/cloud/auth` non restituisce mai i valori non elaborati di `apiKey` / `accessToken` / `refreshToken`.
-Restituisce `hasApiKey`, `hasAccessToken`, `hasRefreshToken` e un'anteprima mascherata
-(`maskedApiKey`: primi 4 caratteri + `****` + ultimi 4 caratteri).
+`/api/cloud/auth` non restituisce mai i valori non mascherati di `apiKey` / `accessToken` / `refreshToken`.
+Restituisce `hasApiKey`, `hasAccessToken`, `hasRefreshToken` per le connessioni attive che la chiave
+può utilizzare (una chiave con restrizioni tramite `allowedConnections` vede solo tali connessioni). Per una chiave API con
+ambito `manage` o `admin`, inclusa la chiave di distribuzione proveniente da `OMNIROUTE_API_KEY`, restituisce inoltre
+un'anteprima mascherata (`maskedApiKey`: fino a 4 caratteri a ciascuna estremità, meno per una chiave
+breve, nessuno per chiavi di 8 caratteri o meno) e il `projectId` della connessione. Entrambi i campi vengono omessi
+dalla risposta per qualsiasi altra chiave.
 
 ## Risoluzione delle credenziali
 

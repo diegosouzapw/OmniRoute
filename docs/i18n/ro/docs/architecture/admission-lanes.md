@@ -7,52 +7,52 @@
 OmniRoute are **două** sisteme de benzi locale procesului, cu domenii de aplicare diferite. Acestea sunt
 complementare; operatorii trebuie să știe pe care dintre ele îl examinează.
 
-## 1. Admitere la nivel de octeți, la nivelul întregului proces (`chatBodyAdmission.ts`)
+## 1. Admitere la nivel de octeți pentru întregul proces (`chatBodyAdmission.ts`)
 
-- **Domeniu:** calea pentru corpuri stocate în buffer/heap pentru `POST /v1/chat/completions`,
-  `/v1/messages`, `/v1/responses` și celelalte rute de tip chat. Protejează
+- **Domeniu:** calea pentru corpuri stocate în buffer/heap aferentă rutelor `POST /v1/chat/completions`,
+  `/v1/messages`, `/v1/responses` și celorlalte rute cu structură de chat. Protejează
   împotriva amplificării utilizării heap-ului cauzate de corpurile mari trimise de agenții de programare (#4380).
 - **Un singur controler global per proces, nu benzi per cheie (#10110).** Fiecare cheie API
-  (hash-uită) sau sesiune `anonymous` este admisă în cadrul **aceluiași** buget partajat —
-  ID-ul hash-uit al sesiunii este utilizat EXCLUSIV drept cheie de planificare echitabilă (distribuire
-  round-robin între solicitările în așteptare), niciodată drept partiție de capacitate. O versiune anterioară a acestei
-  documentații descria benzi per cheie cu capacitate independentă; modelul respectiv a fost
-  eliminat în #10110 deoarece permitea acreditărilor false neautentificate să multiplice
+  (cu hash) sau sesiune `anonymous` este admisă în raport cu **același** buget partajat —
+  ID-ul de sesiune cu hash este folosit EXCLUSIV drept cheie de planificare echitabilă (distribuire
+  round-robin între solicitările în așteptare), niciodată ca partiție de capacitate. O versiune anterioară a acestui
+  document descria benzi per cheie cu capacitate independentă; acel model a fost
+  eliminat în #10110 deoarece permitea credențialelor false neautentificate să multiplice
   limita la nivelul întregului proces.
-- **Poartă (#503-fanout): un buget de OCTEȚI pentru ingestie, derivat automat, nu un număr fix de
-  cereri.** Limita veche bazată pe numărul de cereri `CHAT_MAX_HEAVY_IN_FLIGHT` (implicit `1`
-  înainte de această remediere) reducea distribuirea în evantai a agenților de programare (mai mulți subagenți/CLI-uri,
-  corpuri care depășesc frecvent 256 KB) la o concurență efectivă de ~1, ceea ce genera răspunsuri 503
-  în condiții de încărcare complet normale. Acum, aceasta impune o limită numai când un operator setează explicit
-  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Dacă nu este setată, admiterea este în schimb
+- **Poartă (#503-fanout): un buget de ingerare în OCTEȚI derivat automat, nu un număr fix
+  de cereri.** Limita veche, bazată pe numărul de cereri, `CHAT_MAX_HEAVY_IN_FLIGHT` (implicit `1`
+  înainte de această remediere) reducea paralelizarea agenților de programare (mai mulți subagenți/CLI-uri,
+  cu corpuri care depășesc în mod obișnuit 256 KB) la o concurență efectivă de ~1, ceea ce genera
+  răspunsuri 503 la o încărcare complet normală. Acum, aceasta limitează doar atunci când un operator setează explicit
+  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Dacă rămâne nesetată, admiterea este în schimb
   controlată de `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — un buget derivat automat din
   limita reală de memorie a procesului (`src/shared/middleware/admissionBudget.ts`):
   25% din cea mai restrictivă dintre limita heap-ului V8 și orice limită cgroup/container,
-  împărțit la un factor de amplificare tranzitorie de 8x și limitat între 8 MiB și
-  2 GiB. Suprascrierile explicite utilizează aceleași limite. Acesta se scalează automat de la un
-  container de 512 MB la un desktop cu 32 GB, fără ajustarea variabilelor de mediu. Un corp care nu
+  împărțit la un factor de amplificare tranzitorie de 8x, limitat între 8 MiB și
+  2 GiB. Suprascrierile explicite folosesc aceleași limite. Acesta se adaptează automat de la un
+  container de 512 MB până la un desktop cu 32 GB, fără ajustarea variabilelor de mediu. Un corp care nu
   încape în bugetul efectiv eșuează imediat cu `413 body_exceeds_budget`;
-  numai concurența dintre corpuri care pot fi procesate individual intră în coada delimitată
-  cu echitate. Un sistem activ de urmărire a presiunii asupra resurselor, bazat pe mai multe semnale (raportul heap-ului V8,
+  numai concurența dintre corpuri care pot fi procesate individual intră în coada limitată
+  cu echitate. Un sistem live de monitorizare a presiunii asupra resurselor, bazat pe mai multe semnale (raportul heap-ului V8,
   cgroup, PSI, evenimente OOM — `open-sse/utils/resourcePressurePolicy.ts`), scurtează
-  timpul de așteptare delimitat sub presiune `high` și respinge imediat cererile cu
+  așteptarea limitată sub presiune `high` și elimină imediat solicitările cu
   `503 resource_pressure` sub presiune `critical`, înainte ca vreun octet să fie
   ingerat. PSI este citit din `memory.pressure` al cgroup-ului acestei unități, atunci când este disponibil
   (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` se aplică
-  la nivelul întregii gazde și este utilizat doar ca soluție de rezervă pe bare metal / cgroup v1, astfel încât o
-  gazdă care utilizează swap nu poate genera un răspuns 503 pentru un container inactiv.
-- **Reglare:**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — suprascriere pentru bugetul de octeți derivat automat
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — limită veche bazată pe numărul de cereri, activată numai explicit
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — timpul de așteptare în coadă înainte de 503 (implicit 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — supapă pentru heap bazată pe octeții din coadă (implicit 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — opțiuni perimate
-    fără efect începând cu #10110 (acceptate pentru compatibilitatea configurației, ignorate)
-- **Rapoarte:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — inclusiv
-  adăugirile din #503-fanout `inflightBytes`, `maxInflightBytes`, `budgetSource`
+  întregii gazde și este folosit doar ca soluție de rezervă pe bare metal / cgroup v1, astfel încât o
+  gazdă care folosește swap să nu poată genera răspunsuri 503 pentru un container inactiv.
+- **Configurare:**
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — suprascriere pentru bugetul în octeți derivat automat
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — limită veche bazată pe numărul de cereri, numai cu activare explicită
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — durata de așteptare în coadă înainte de 503 (valoarea implicită este `RATE_LIMIT_MAX_WAIT_MS`)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — supapă pentru heap bazată pe octeții din coadă (valoare implicită: 4 MB)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — perimate
+    și fără efect începând cu #10110 (acceptate pentru compatibilitatea configurației, dar ignorate)
+- **Raportare:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — inclusiv
+  adăugirile #503-fanout `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity` și `countCapEnabled`
-  (false într-o implementare implicită — confirmă că bugetul de octeți, nu limita veche
-  bazată pe număr, este cel care impune efectiv constrângerea).
+  (false într-o implementare implicită — confirmă că bugetul în octeți, nu limita veche
+  bazată pe număr, este cel care limitează efectiv).
 
 ## 2. Benzi virtuale adaptive la rulare (`open-sse/services/admission`)
 

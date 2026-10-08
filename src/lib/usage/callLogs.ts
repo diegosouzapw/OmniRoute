@@ -14,6 +14,8 @@ import { getRequestDetailLogByCallLogId } from "../db/detailedLogs";
 import { shouldPersistToDisk } from "./migrations";
 import { updateRequestTokensById } from "./usageHistory";
 import { getCallLogApiKeyContext } from "./callLogApiKeyContext";
+import { serializeResilienceActions, resetResilienceActions } from "./resilienceActionsContext";
+import { parseResilienceActions } from "./resilienceActionsParse";
 import {
   seedPendingContinuationState,
   clearPendingContinuationState,
@@ -27,6 +29,11 @@ import {
   getReasoningTokensOrNull,
   getObservedReasoning,
 } from "./tokenAccounting";
+import {
+  hasRenderedContent,
+  isNonTextRequest,
+  resolveUsageProvenance,
+} from "./callContentProvenance";
 import { isNoLog } from "../compliance/noLog";
 import {
   parseStoredPayload,
@@ -92,12 +99,15 @@ type CallLogSummaryRow = {
   account: string | null;
   connection_id: string | null;
   duration: number | null;
+  ttft_ms: number | null;
   tokens_in: number | null;
   tokens_out: number | null;
   tokens_cache_read: number | null;
   tokens_cache_creation: number | null;
   tokens_reasoning: number | null;
   tokens_compressed: number | null;
+  reasoning_source?: string | null;
+  reasoning_chars?: number | null;
   cache_source: string | null;
   request_type: string | null;
   source_format: string | null;
@@ -122,9 +132,13 @@ type CallLogSummaryRow = {
   correlation_id?: string | null;
   model_pinned?: number | null;
   session_tag?: string | null;
+  resilience_actions?: string | null;
+  has_content?: number | null;
+  usage_provenance?: string | null;
 };
 
-const RESOLVED_ACCOUNT_SQL = "COALESCE(NULLIF(pc.name, ''), NULLIF(pc.email, ''), cl.account)";
+export const RESOLVED_ACCOUNT_SQL =
+  "COALESCE(NULLIF(pc.name, ''), NULLIF(pc.email, ''), cl.account)";
 
 type LegacyInlineRow = {
   request_body: string | null;
@@ -137,11 +151,26 @@ type DeleteResult = {
   deletedArtifacts: number;
 };
 
-let logIdCounter = 0;
+const CALL_LOG_ID_RETRY_LIMIT = 3;
 
 function generateLogId() {
-  logIdCounter++;
-  return `${Date.now()}-${logIdCounter}`;
+  return globalThis.crypto.randomUUID();
+}
+
+function isCallLogIdCollision(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const code = String((error as { code?: unknown }).code ?? "");
+  const msg = String((error as { message?: unknown }).message ?? "");
+  if (/SQLITE_CONSTRAINT_PRIMARYKEY/i.test(code)) return true;
+  if (/SQLITE_CONSTRAINT_UNIQUE/i.test(code) && /call_logs\.id/i.test(msg)) return true;
+  return /UNIQUE constraint failed: call_logs\.id/i.test(msg);
+}
+
+// TTFT is only meaningful when measured and non-negative; normalize anything
+// else (undefined/NaN/negative) to the column's "not tracked" state.
+function toNullableTtftMs(value: unknown): number | null {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 ? Math.round(n) : null;
 }
 
 async function resolveAccountName(connectionId: string | null | undefined) {
@@ -349,6 +378,28 @@ function hasTable(tableName: string): boolean {
   );
 }
 
+function hasCallLogsColumn(columnName: string): boolean {
+  // One PRAGMA per INSERT is wasteful; the cached answer is invalidated only
+  // when a write fails with "no such column" (concurrent migration race).
+  const cached = (hasCallLogsColumn as { cache?: Map<string, boolean> }).cache;
+  if (cached?.has(columnName)) return cached.get(columnName) as boolean;
+  try {
+    const db = getDbInstance();
+    const rows = db.prepare("PRAGMA table_info(call_logs)").all() as Array<{ name?: string }>;
+    const found = rows.some((row) => row.name === columnName);
+    const map = cached ?? new Map<string, boolean>();
+    map.set(columnName, found);
+    (hasCallLogsColumn as { cache?: Map<string, boolean> }).cache = map;
+    return found;
+  } catch {
+    return false;
+  }
+}
+
+export function invalidateCallLogsColumnCache(): void {
+  (hasCallLogsColumn as { cache?: Map<string, boolean> }).cache = undefined;
+}
+
 function readLegacyLogFromDisk(entry: {
   timestamp: string | null;
   model: string | null;
@@ -412,6 +463,8 @@ export function resolveProviderDisplay(
   return null;
 }
 
+export { parseResilienceActions };
+
 function mapSummaryRow(row: CallLogSummaryRow) {
   const detailState = normalizeDetailState(row.detail_state);
   const provider = row.provider;
@@ -430,6 +483,7 @@ function mapSummaryRow(row: CallLogSummaryRow) {
     account: row.resolved_account || row.account,
     connectionId: row.connection_id,
     duration: toNumber(row.duration),
+    ttft: row.ttft_ms != null ? toNumber(row.ttft_ms) : null,
     tokens: {
       in: toNumber(row.tokens_in),
       out: toNumber(row.tokens_out),
@@ -439,6 +493,12 @@ function mapSummaryRow(row: CallLogSummaryRow) {
       compressed: row.tokens_compressed != null ? toNumber(row.tokens_compressed) : null,
     },
     cacheSource: row.cache_source || "upstream",
+    // #6187/#13965: observed reasoning (source + CHARACTER count, never tokens) so the
+    // detail view can tell "reasoned but not metered" apart from "did not reason".
+    reasoningSource: row.reasoning_source ?? null,
+    reasoningChars: row.reasoning_chars != null ? toNumber(row.reasoning_chars) : null,
+    hasContent: row.has_content ?? null,
+    usageProvenance: row.usage_provenance ?? null,
     requestType: row.request_type,
     sourceFormat: row.source_format,
     targetFormat: row.target_format,
@@ -459,6 +519,7 @@ function mapSummaryRow(row: CallLogSummaryRow) {
     correlationId: row.correlation_id || null,
     modelPinned: toNumber(row.model_pinned) === 1,
     sessionTag: row.session_tag || null,
+    resilienceActions: parseResilienceActions(row.resilience_actions ?? null),
   };
 }
 
@@ -542,6 +603,13 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       );
     }
 
+    // resilience resilience summary for this attempt (implicit ALS store opened
+    // around the attempt; null outside a store or when nothing was noted).
+    // Read BEFORE any await: the ALS context is synchronous and later awaits
+    // (resolveAccountName, artifact write) may cross async boundaries.
+    const resilienceActions = serializeResilienceActions();
+    const hasResilienceColumn = hasCallLogsColumn("resilience_actions");
+
     const account = await resolveAccountName(entry.connectionId || null);
     const rawProvider: string = entry.provider || "-";
     const rawRequestedModel: string | null = entry.requestedModel || null;
@@ -602,6 +670,27 @@ async function saveCallLogOperation(entry: any): Promise<void> {
     const errorType = toStoredErrorType(
       classifyCallLogError(entry.status, entry.error, entry.provider)
     );
+    // Rendered-content presence plus usage provenance: success-only, additive,
+    // nullable. A 2xx is a success even with token counts at zero, so the
+    // success bound is 200-299 (not <400).
+    const numericStatus = Number(entry.status);
+    const isSuccess = Number.isFinite(numericStatus) && numericStatus >= 200 && numericStatus < 300;
+    const clientVisibleBody =
+      entry.clientResponse ??
+      (entry.pipelinePayloads as { clientResponse?: unknown } | null | undefined)?.clientResponse ??
+      (entry.pipeline as { clientResponse?: unknown } | null | undefined)?.clientResponse ??
+      entry.responseBody;
+    const measurableContent =
+      isSuccess &&
+      !noLogEnabled &&
+      !isNonTextRequest(entry.requestType, entry.path ?? entry.method);
+    const renderedContent = measurableContent ? hasRenderedContent(clientVisibleBody) : null;
+    const hasContent = renderedContent === null ? null : renderedContent ? 1 : 0;
+    const usageProvenance = resolveUsageProvenance({
+      usageEstimated: entry.usageEstimated === true,
+      tokens: entry.tokens,
+      isSuccess,
+    });
     const logEntry = {
       id: typeof entry.id === "string" && entry.id.length > 0 ? entry.id : generateLogId(),
       timestamp: typeof entry.timestamp === "string" ? entry.timestamp : new Date().toISOString(),
@@ -615,6 +704,11 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       account,
       connectionId: entry.connectionId || null,
       duration: entry.duration || 0,
+      // #13130: TTFT (ms to first forwarded stream chunk) when the streaming
+      // pipeline measured it; null for non-streaming rows. The dashboard TPS
+      // divides by duration - ttft so queueing/prefill wait does not drag the
+      // reported generation rate down.
+      ttftMs: toNullableTtftMs(entry.ttftMs ?? entry.ttft),
       tokensIn: toNumber(getLoggedInputTokens(entry.tokens)),
       tokensOut: toNumber(getLoggedOutputTokens(entry.tokens)),
       tokensCacheRead: getPromptCacheReadTokensOrNull(entry.tokens),
@@ -638,6 +732,12 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       comboExecutionKey:
         toStringOrNull(entry.comboExecutionKey) || toStringOrNull(entry.comboStepId),
       correlationId: entry.correlationId || null,
+      // Ms of pacing/park wait imposed before dispatch (null = none).
+      addedWaitMs:
+        typeof entry.addedWaitMs === "number" && Number.isFinite(entry.addedWaitMs)
+          ? entry.addedWaitMs
+          : null,
+      addedWaitCause: toStringOrNull(entry.addedWaitCause),
       modelPinned: entry.modelPinned ? 1 : 0,
       sessionTag: entry.sessionTag || null,
       // OpenAI Responses API response id, when this attempt produced one --
@@ -650,6 +750,8 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       // resolvePreviousResponseState refuses to rehydrate it as continuation
       // history. See src/lib/db/responsesContinuationStore.ts.
       videoContentRemoved: entry.videoContentRemoved ? 1 : 0,
+      hasContent,
+      usageProvenance,
     };
 
     const requestSummary = noLogEnabled
@@ -686,11 +788,14 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       }
     }
 
-    db.prepare(
+    // Optional column (migration 191) — only fixed identifiers are spliced in.
+    const resilienceCol = hasResilienceColumn ? ", resilience_actions" : "";
+    const resilienceParam = hasResilienceColumn ? ", @resilienceActions" : "";
+    const insertStmt = db.prepare(
       `
       INSERT INTO call_logs (
         id, timestamp, method, path, status, model, requested_model, provider,
-        account, connection_id, duration, tokens_in, tokens_out,
+        account, connection_id, duration, ttft_ms, tokens_in, tokens_out,
         tokens_cache_read, tokens_cache_creation, tokens_reasoning, tokens_compressed,
         reasoning_source, reasoning_chars,
         reasoning_duration_ms, reasoning_effort_requested, reasoning_effort_upstream,
@@ -700,11 +805,12 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         artifact_relpath, artifact_size_bytes, artifact_sha256,
         has_request_body, has_response_body, has_pipeline_details, request_summary,
         correlation_id, model_pinned, session_tag, response_id, error_type,
-        video_content_removed
+        video_content_removed, has_content, usage_provenance,
+        added_wait_ms, added_wait_cause${resilienceCol}
       )
       VALUES (
         @id, @timestamp, @method, @path, @status, @model, @requestedModel, @provider,
-        @account, @connectionId, @duration, @tokensIn, @tokensOut,
+        @account, @connectionId, @duration, @ttftMs, @tokensIn, @tokensOut,
         @tokensCacheRead, @tokensCacheCreation, @tokensReasoning, @tokensCompressed,
         @reasoningSource, @reasoningChars,
         @reasoningDurationMs, @reasoningEffortRequested, @reasoningEffortUpstream,
@@ -714,10 +820,12 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         @artifactRelPath, @artifactSizeBytes, @artifactSha256,
         @hasRequestBody, @hasResponseBody, @hasPipelineDetails, @requestSummary,
         @correlationId, @modelPinned, @sessionTag, @responseId, @errorType,
-        @videoContentRemoved
+        @videoContentRemoved, @hasContent, @usageProvenance,
+        @addedWaitMs, @addedWaitCause${resilienceParam}
       )
     `
-    ).run({
+    );
+    const insertParams = {
       ...logEntry,
       errorSummary: toStoredErrorSummary(protectedError),
       detailState,
@@ -726,9 +834,25 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       artifactSha256,
       hasRequestBody: protectedRequestBody !== null ? 1 : 0,
       hasResponseBody: protectedResponseBody !== null ? 1 : 0,
+      resilienceActions,
       hasPipelineDetails: protectedPipelinePayloads ? 1 : 0,
       requestSummary,
-    });
+    };
+    // #14451: a 6-char dashboard traceId (or any reused explicit id) can collide.
+    // Keep the already-written artifact path; only the SQLite primary key is regenerated.
+    for (let attempt = 0; ; attempt++) {
+      try {
+        insertStmt.run(insertParams);
+        break;
+      } catch (error) {
+        if (!isCallLogIdCollision(error) || attempt >= CALL_LOG_ID_RETRY_LIMIT) throw error;
+        insertParams.id = generateLogId();
+      }
+    }
+    // sink note: the sink is the unique consumer — reset only after a successful
+    // INSERT, so a failed write (or a second persistence of the same
+    // attempt) keeps the summary instead of silently writing NULL.
+    resetResilienceActions();
 
     if (detailState === "ready" && typeof logEntry.responseId === "string") {
       // The durable row is now authoritative; drop the bridge entry instead
@@ -738,6 +862,9 @@ async function saveCallLogOperation(entry: any): Promise<void> {
 
     scheduleCallLogRotation();
   } catch (error) {
+    if (String((error as Error)?.message ?? error).includes("no such column")) {
+      invalidateCallLogsColumnCache();
+    }
     console.error(
       "[callLogs] Failed to save call log:",
       sanitizeErrorMessage(error) || "Call log persistence failed"

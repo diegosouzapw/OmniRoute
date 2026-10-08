@@ -24,6 +24,7 @@ import * as prl from "../../utils/providerRequestLogging.ts";
 import {
   createCreditsExtractionTransform as createCreditsExtractionTransformImpl,
   buildSsePassthroughResult,
+  bindAbortLifecycle,
   type SsePassthroughResult,
 } from "./streamingPassthrough.ts";
 import type { AntigravityCredentials } from "../antigravity.ts";
@@ -196,21 +197,6 @@ export function buildAntigravity429ErrorMessage(errorJson: unknown): string {
   return errorMessage;
 }
 
-function getChunkedOrFixedBody(bodyStr: string, stream: boolean): BodyInit {
-  if (stream) {
-    return new ReadableStream(
-      {
-        async start(controller) {
-          controller.enqueue(new TextEncoder().encode(bodyStr));
-          controller.close();
-        },
-      },
-      { highWaterMark: 16384 }
-    );
-  }
-  return bodyStr;
-}
-
 function cloneAntigravityRequestBody(body: unknown): unknown {
   if (!body || typeof body !== "object") {
     return body;
@@ -330,7 +316,7 @@ export async function sendAntigravityRequest(
   headers: Record<string, string>,
   transformedBody: Record<string, unknown>,
   credentials: AntigravityCredentials,
-  stream: boolean,
+  _stream: boolean,
   signal: AbortSignal | null | undefined,
   log: SafeAntigravityLog,
   retryAttempt: number,
@@ -363,11 +349,13 @@ export async function sendAntigravityRequest(
     "TELEMETRY",
     `[Antigravity] PhysicalSend - RequestId: ${correlationId ?? "none"}, URL: ${url}, Model: ${model}, PhysicalSend: ${physicalSendOrdinal}, RetryAttempt: ${retryAttempt}`
   );
+  // The Antigravity request payload is finite JSON even when the response is streamed.
+  // Keep the upload replayable instead of wrapping it in a one-shot ReadableStream; proxyFetch
+  // can then use its normal replay/fallback path without retaining a duplex upload stream.
   let response = await fetchAntigravityWithReadinessTimeout(url, {
     method: "POST",
     headers: finalHeaders,
-    body: getChunkedOrFixedBody(serializedRequest.bodyString, stream),
-    ...(stream ? { duplex: "half" } : {}),
+    body: serializedRequest.bodyString,
     signal,
   });
 
@@ -384,8 +372,7 @@ export async function sendAntigravityRequest(
     response = await fetchAntigravityWithReadinessTimeout(url, {
       method: "POST",
       headers: retryHeaders,
-      body: getChunkedOrFixedBody(serializedRequest.bodyString, stream),
-      ...(stream ? { duplex: "half" } : {}),
+      body: serializedRequest.bodyString,
       signal,
     });
     finalHeaders = retryHeaders;
@@ -455,8 +442,7 @@ export async function tryCreditsRetry(
     const creditsResp = await fetchAntigravityWithReadinessTimeout(url, {
       method: "POST",
       headers: finalCreditsHeaders,
-      body: getChunkedOrFixedBody(serializedCreditsRequest.bodyString, stream),
-      ...(stream ? { duplex: "half" } : {}),
+      body: serializedCreditsRequest.bodyString,
       signal,
     });
     if (creditsResp.ok || creditsResp.status !== HTTP_STATUS.RATE_LIMITED) {
@@ -647,27 +633,13 @@ async function buildStreamingExecuteOnceResult(
   }
 
   if (response.body) {
-    // If the downstream client aborts, cancel the upstream fetch body immediately
-    // to release the socket back to the Undici agent pool and prevent memory leaks.
-    if (signal) {
-      const abortHandler = () => {
-        try {
-          response.body?.cancel().catch(() => {});
-        } catch (_) {}
-      };
-      if (signal.aborted) {
-        abortHandler();
-      } else {
-        signal.addEventListener("abort", abortHandler, { once: true });
-      }
-    }
-
+    const abortAwareBody = bindAbortLifecycle(response.body, signal);
     const passThrough = createCreditsExtractionTransformImpl(
       accountId,
       onCreditsUpdate,
       16 * 1024 // 16KB sliding-window cap to prevent OOM
     );
-    const tappedBody = response.body.pipeThrough(passThrough);
+    const tappedBody = abortAwareBody.pipeThrough(passThrough);
     const tappedResponse = new Response(tappedBody, {
       status: response.status,
       statusText: response.statusText,

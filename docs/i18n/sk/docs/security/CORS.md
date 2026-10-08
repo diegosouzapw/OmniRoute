@@ -129,22 +129,26 @@ možno za behu bez reštartu nastaviť v časti **Dashboard → Security → COR
 
 ## Príklad: reverzný proxy server pred OmniRoute
 
-CORS vynucuje samotný OmniRoute, preto by proxy server vo všeobecnosti **nemal** pridávať ani
+CORS vynucuje samotný OmniRoute, takže proxy server by vo všeobecnosti **nemal** pridávať ani
 prepisovať hlavičky `Access-Control-*` (duplicitné hlavičky spôsobujú problémy v prehliadačoch). Ukončite TLS
-a požiadavky preposielajte — odpovede na predbežné požiadavky nechajte na OmniRoute:
+a požiadavky prepošlite — odpoveď na predbežnú požiadavku nechajte na OmniRoute:
 
 ```nginx
-# nginx — preposielanie do OmniRoute; sem NEVKLADAJTE Access-Control-*
+# nginx — preposielanie do OmniRoute; tu NEVKLADAJTE hlavičky Access-Control-*
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # Nenastavujte X-Forwarded-For na 127.0.0.1 — obchádza to ochranu trás pre loopback.
+    # Zachovajte hlavičky preposielania: proxy server na rovnakom hostiteľovi sa pripája zo spätnej slučky a práve
+    # tieto hlavičky oznamujú OmniRoute, že volajúci nie je lokálny operátor. Ak ich proxy server nepridá,
+    # každý vzdialený volajúci sa bude javiť ako lokálny. Nikdy nenastavujte ani X-Forwarded-For na 127.0.0.1.
 }
 ```
 
-Povolené pôvody prehliadačov nastavte v OmniRoute (`CORS_ALLOWED_ORIGINS` alebo na karte
-Security), nie v proxy serveri.
+Povolené zdroje prehliadača nastavte v OmniRoute (`CORS_ALLOWED_ORIGINS` alebo na
+karte Zabezpečenie), nie na proxy serveri.
 
 ## Zdrojové súbory
 

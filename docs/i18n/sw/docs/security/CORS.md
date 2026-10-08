@@ -128,24 +128,28 @@ kuanzisha upya.
   vyanzo vya usimamizi/dashibodi katika usanidi wowote unaoruhusu kwa upana; ni lazima viendelee
   kukataa ufikiaji kikamilifu.
 
-## Mfano: reverse proxy mbele ya OmniRoute
+## Mfano: proksi ya kinyume mbele ya OmniRoute
 
-CORS hutekelezwa na OmniRoute yenyewe, kwa hivyo kwa kawaida proxy **haipaswi** kuongeza au
-kuandika upya vichwa vya `Access-Control-*` (vichwa vinavyojirudia huharibu utendaji wa vivinjari). Sitisha TLS
-na uelekeze maombi — acha OmniRoute ijibu preflight:
+CORS inatekelezwa na OmniRoute yenyewe, kwa hivyo kwa ujumla proksi **haipaswi** kuongeza au
+kuandika upya vichwa vya `Access-Control-*` (vichwa maradufu huvuruga vivinjari). Sitisha TLS
+na usambaze maombi — acha OmniRoute ijibu ombi la awali:
 
 ```nginx
-# nginx — elekeza kwa OmniRoute; USIINGIZE Access-Control-* hapa
+# nginx — sambaza kwa OmniRoute; USIWEKE Access-Control-* hapa
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # USIWEKE X-Forwarded-For kuwa 127.0.0.1 — kufanya hivyo hubatilisha kilinzi cha route ya loopback.
+    # Dumisha vichwa vya usambazaji: proksi kwenye seva hiyo hiyo huunganisha kupitia loopback, navyo
+    # ndivyo vinavyojulisha OmniRoute kwamba mpigaji si mwendeshaji wa ndani. Proksi isiyoongeza hata kimoja
+    # humfanya kila mpigaji wa mbali aonekane kuwa wa ndani. Pia, usiwahi kuweka X-Forwarded-For kuwa 127.0.0.1.
 }
 ```
 
-Weka vyanzo vya kivinjari vinavyoruhusiwa katika OmniRoute (`CORS_ALLOWED_ORIGINS` au kichupo cha
-Security), si katika proxy.
+Weka asili za vivinjari zinazoruhusiwa katika OmniRoute (`CORS_ALLOWED_ORIGINS` au kichupo cha
+Security), si katika proksi.
 
 ## Faili za chanzo
 

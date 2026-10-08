@@ -130,22 +130,26 @@ CORS_ALLOWED_ORIGINS="http://localhost:5173, http://localhost:3000"
 
 ## Пример: реверзни прокси испред OmniRoute-а
 
-CORS примењује сам OmniRoute, тако да прокси углавном **не би требало** да додаје или
-преписује заглавља `Access-Control-*` (дуплирана заглавља ометају прегледаче). Завршите TLS
-и проследите захтев — препустите OmniRoute-у да одговори на прелиминарни захтев:
+CORS примењује сам OmniRoute, па прокси углавном **не треба** да додаје нити
+преписује `Access-Control-*` заглавља (двострука заглавља онемогућавају рад прегледача). Завршите TLS
+и проследите саобраћај — нека OmniRoute одговори на предзахтев:
 
 ```nginx
-# nginx — проследите ка OmniRoute-у; овде НЕ убацујте Access-Control-*
+# nginx — прослеђивање ка OmniRoute-у; овде НЕ умећите Access-Control-*
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # НЕ постављајте X-Forwarded-For на 127.0.0.1 — тиме се онемогућава заштита рута за локалну петљу.
+    # Задржите заглавља за прослеђивање: прокси на истом хосту повезује се преко повратне спреге,
+    # а она указују OmniRoute-у да позивалац није локални оператор. Ако прокси не додаје ниједно од њих,
+    # сваки удаљени позивалац изгледа као локални. Такође, никада не постављајте X-Forwarded-For на 127.0.0.1.
 }
 ```
 
-Подесите дозвољене изворе прегледача у OmniRoute-у (`CORS_ALLOWED_ORIGINS` или на картици
-Security), а не у проксију.
+Подесите дозвољена порекла за прегледаче у OmniRoute-у (`CORS_ALLOWED_ORIGINS` или на
+картици Security), а не у проксију.
 
 ## Изворне датотеке
 

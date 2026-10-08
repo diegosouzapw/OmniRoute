@@ -64,6 +64,13 @@ export const USAGE_SUPPORTED_PROVIDERS: readonly string[] = [
   // Firecrawl team credits (GET /v2/team/credit-usage)
   "firecrawl",
   "context7",
+  // Tavily monthly credits & quota (GET /usage)
+  "tavily-search",
+  "tavily",
+  "jina-search",
+  "jina",
+  "jina-ai",
+  "jina-reader",
   // Volcano Ark Plan subscriptions (agent-plan / coding-plan)
   "volcengine-agent-plan",
   "volcengine-coding-plan",

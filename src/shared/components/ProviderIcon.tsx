@@ -22,11 +22,28 @@
  *   <ProviderIcon providerId="openai-compatible-abc" src={node.iconUrl} fallbackText="OC" />
  */
 
-import { createElement, memo, useState } from "react";
+import { createElement, memo, useEffect, useState } from "react";
 
 import { useTheme } from "@/shared/hooks/useTheme";
 
-import { getLobeProviderIcon } from "./lobeProviderIcons";
+/**
+ * Tier 4 (LobeHub npm icons) is loaded through a dynamic import on demand.
+ *
+ * `./lobeProviderIcons` statically imports 179 icon components (~605 KB raw /
+ * ~106 KB gzip) which `next.config.mjs` pins into a single `vendor-lobe-icons`
+ * chunk. ProviderIcon is rendered by the dashboard Header on every page, so a
+ * static import here pulls that entire chunk into the initial load of every
+ * route — for a single 22px icon. The map is only needed when resolution
+ * actually falls through to Tier 4 (no themed SVG, no local SVG asset), so it
+ * is fetched lazily and the generic icon renders while it loads. Pages that
+ * never show a Tier-4 icon never download the chunk at all.
+ */
+type LobeIconsModule = typeof import("./lobeProviderIcons");
+let lobeIconsPromise: Promise<LobeIconsModule> | null = null;
+function loadLobeIcons(): Promise<LobeIconsModule> {
+  lobeIconsPromise ??= import("./lobeProviderIcons");
+  return lobeIconsPromise;
+}
 
 interface ProviderIconProps {
   providerId: string;
@@ -352,6 +369,7 @@ const ProviderIcon = memo(function ProviderIcon({
 
   const [failedAssets, setFailedAssets] = useState<Record<string, true>>({});
   const [remoteSrcFailed, setRemoteSrcFailed] = useState(false);
+  const [lobeIcons, setLobeIcons] = useState<LobeIconsModule | null>(null);
   const themedKey = `${normalizedId}:themed`;
   const svgKey = `${normalizedId}:svg`;
   const theSvgKey = `${normalizedId}:thesvg`;
@@ -360,6 +378,27 @@ const ProviderIcon = memo(function ProviderIcon({
   const themedFailed = failedAssets[themedKey];
   const svgFailed = failedAssets[svgKey];
   const theSvgFailed = failedAssets[theSvgKey];
+
+  // True when the resolution chain will fall through Tiers 2/3 and needs the
+  // LobeHub map (Tier 4) — kicks off the lazy chunk load just-in-time.
+  const needsLobeIcons = (!themedSvg || themedFailed) && (!hasSvg || svgFailed) && !usesGenericIcon;
+  useEffect(() => {
+    if (!needsLobeIcons || lobeIcons) return;
+    let cancelled = false;
+    loadLobeIcons()
+      .then((mod) => {
+        if (!cancelled) setLobeIcons(mod);
+      })
+      .catch(() => {
+        // Chunk load failed — fall through to Tier 5/6 with an empty map.
+        if (!cancelled) {
+          setLobeIcons({ getLobeProviderIcon: () => null } as unknown as LobeIconsModule);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [needsLobeIcons, lobeIcons]);
 
   // #2166: a custom remote icon URL always wins over the resolution chain below.
   // It is a plain <img> (not next/image) so operators can point at any host
@@ -419,7 +458,7 @@ const ProviderIcon = memo(function ProviderIcon({
     );
   }
 
-  const lobeIcon = getLobeProviderIcon(normalizedId, type);
+  const lobeIcon = lobeIcons ? lobeIcons.getLobeProviderIcon(normalizedId, type) : null;
 
   // Tier 2: Theme-aware local SVGs
   if (themedSvg && !themedFailed) {
@@ -474,6 +513,20 @@ const ProviderIcon = memo(function ProviderIcon({
           }}
           onError={() => setFailedAssets((current) => ({ ...current, [svgKey]: true }))}
         />
+      </span>
+    );
+  }
+
+  // Tier 4 (loading): the LobeHub chunk is in flight — hold the generic icon
+  // placeholder instead of racing ahead to the Tier-5 CDN fallback, which
+  // would flash a second network fetch and then get replaced anyway.
+  if (needsLobeIcons && !lobeIcons) {
+    return (
+      <span
+        className={className}
+        style={{ display: "inline-flex", alignItems: "center", ...style }}
+      >
+        <GenericProviderIcon size={size} />
       </span>
     );
   }

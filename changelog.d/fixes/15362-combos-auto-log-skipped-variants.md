@@ -1,0 +1,1 @@
+- **fix(api):** log the auto-combo variants GET /api/combos/auto skips instead of failing silently ([#15362](https://github.com/diegosouzapw/OmniRoute/pull/15362)) — thanks @maxmad64bis

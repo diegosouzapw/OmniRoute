@@ -190,14 +190,14 @@ Autentisering: valgfritt (`REQUIRE_API_KEY`). Feil via `buildErrorBody()` (ufrav
 
 ## Feilsøking
 
-| Symptom                                    | Årsak                                         | Løsning                                                                                             |
-| ------------------------------------------ | --------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Monaco-editoren gjengis ikke i API-fanen   | SSR lastet inn Monaco                         | Kontroller at `ApiTab` bruker `dynamic(..., { ssr: false })`                                        |
-| Sammenligningsstrømmer starter sekvensielt | Feil bruk av `Promise.all`                    | Alle strømstarter må sendes i ett enkelt `Promise.all`-kall                                         |
-| Måledata viser `null` for TTFT             | Behandleren for første del er ikke koblet til | Kontroller at `useStreamMetrics.onFirstChunk()` kalles i SSE-leseløkken                             |
-| Forhåndsinnstillingen blir ikke lagret     | Databasemigreringen er ikke kjørt             | Kjør `npm run db:migrate` eller start serveren på nytt (migreringen kjøres automatisk ved oppstart) |
-| Forbedring av ledetekst gir 502            | Modell er ikke angitt i konfigurasjonen       | Brukeren må angi et modellnavn i konfigurasjonspanelet før forbedring                               |
-| Eksportert kode viser `MISSING_API_KEY`    | Plassholderen er ikke satt inn                | `codeExport.ts` bruker alltid `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`                          |
+| Symptom                                    | Årsak                                       | Løsning                                                                    |
+| ------------------------------------------ | ------------------------------------------- | -------------------------------------------------------------------------- |
+| Monaco-editoren vises ikke i API-fanen     | SSR lastet inn Monaco                       | Kontroller at `ApiTab` bruker `dynamic(..., { ssr: false })`               |
+| Sammenligningsstrømmer starter sekvensielt | Feil bruk av `Promise.all`                  | Alle strømstarter må sendes i ett enkelt `Promise.all`-kall                |
+| Målinger viser `null` for TTFT             | Behandler for første del er ikke koblet til | Kontroller at `useStreamMetrics.onFirstChunk()` kalles i SSE-lesesløyfen   |
+| Forhåndsinnstillingen blir ikke lagret     | Databasemigreringen er ikke kjørt           | Start serveren på nytt: migreringer kjøres automatisk ved oppstart         |
+| Forbedring av ledeteksten returnerer 502   | Modellen er ikke angitt i konfigurasjonen   | Brukeren må angi et modellnavn i konfigurasjonspanelet før forbedring      |
+| Eksportert kode viser `MISSING_API_KEY`    | Plassholderen er ikke satt inn              | `codeExport.ts` bruker alltid `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"` |
 
 ---
 

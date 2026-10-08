@@ -9,6 +9,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { resolveRequestToolIdentity } from "../translator/response/openai-responses/requestToolIdentity.ts";
 import { plaintextCollaborationFields } from "../translator/response/openai-responses/collaborationPlaintextMarker.ts";
+import { finalizeResponsesTerminalStatus } from "../translator/helpers/responsesTerminalStatus.ts";
 
 // #10223: threshold for detecting corrupted request_id fields. Normal
 // request IDs are <100 chars. DeepSeek's SSE encoder bug produces 200+
@@ -115,6 +116,13 @@ function normalizeResponsesUsage(previous: unknown, raw: unknown): UsageRecord |
     usageNumber(inputDetails.cacheReadTokens) ??
     usageNumber(beforeInputDetails.cached_tokens) ??
     0;
+  const cacheCreationTokens =
+    usageNumber(source.cache_creation_input_tokens) ??
+    usageNumber(source.cache_write_tokens) ??
+    usageNumber(inputDetails.cache_creation_tokens) ??
+    usageNumber(inputDetails.cache_write_tokens) ??
+    usageNumber(beforeInputDetails.cache_creation_tokens) ??
+    usageNumber(beforeInputDetails.cache_write_tokens);
   const outputTokens =
     usageNumber(source.output_tokens) ??
     usageNumber(source.completion_tokens) ??
@@ -137,7 +145,10 @@ function normalizeResponsesUsage(previous: unknown, raw: unknown): UsageRecord |
 
   return {
     input_tokens: inputTokens,
-    input_tokens_details: { cached_tokens: cachedTokens },
+    input_tokens_details: {
+      cached_tokens: cachedTokens,
+      ...(cacheCreationTokens !== undefined ? { cache_creation_tokens: cacheCreationTokens } : {}),
+    },
     output_tokens: outputTokens,
     output_tokens_details: { reasoning_tokens: reasoningTokens },
     total_tokens: totalTokens,
@@ -243,6 +254,7 @@ export function createResponsesApiTransformStream(
     buffer: "",
     completedSent: false,
     usage: null,
+    finishReason: null as string | null,
     keepaliveTimer: null,
     // #6906: true once a finish_reason chunk closed all output items but deferred
     // response.completed — a trailing usage-only chunk (choices: [], usage: {...}) may
@@ -460,6 +472,8 @@ export function createResponsesApiTransformStream(
     const itemType = customTool ? "custom_tool_call" : "function_call";
     state.funcItemTypes[idx] = itemType;
     state.funcItemAdded[idx] = true;
+    const name = state.funcNames[idx] || "";
+    const identity = resolveRequestToolIdentity(requestToolIdentityMap, name);
 
     emit(controller, "response.output_item.added", {
       type: "response.output_item.added",
@@ -469,7 +483,8 @@ export function createResponsesApiTransformStream(
         type: itemType,
         ...(customTool ? { input: "" } : { arguments: "" }),
         call_id: state.funcCallIds[idx],
-        name: state.funcNames[idx] || "",
+        name: identity?.name ?? name,
+        ...(identity ? { namespace: identity.namespace } : {}),
         status: "in_progress",
       },
     });
@@ -605,8 +620,9 @@ export function createResponsesApiTransformStream(
         response.usage = state.usage;
       }
 
-      emit(controller, "response.completed", {
-        type: "response.completed",
+      const eventType = finalizeResponsesTerminalStatus(response, state.finishReason);
+      emit(controller, eventType, {
+        type: eventType,
         response,
       });
     }
@@ -954,6 +970,8 @@ export function createResponsesApiTransformStream(
 
           // Handle finish_reason
           if (choice.finish_reason) {
+            // Read by sendCompleted() → finalizeResponsesTerminalStatus (length/filter → incomplete).
+            state.finishReason = choice.finish_reason;
             for (const i in state.msgItemAdded) closeMessage(controller, i);
             closeReasoning(controller);
             for (const i in state.funcCallIds) closeToolCall(controller, i);

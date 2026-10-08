@@ -1,11 +1,15 @@
 /**
  * quotaTrackersBatch.ts — startup registration for batch quota trackers
  * (AgentRouter, v0-vercel, freemodel-dev, grok-cli, xai-oauth, firecrawl,
- * llmgateway, lyceum).
+ * context7, tavily, llmgateway, lyceum).
  *
- * Kept in a dedicated module (rather than adding more inline calls to
- * `src/sse/handlers/chat.ts`, which is a frozen file at its LOC baseline) so the
- * chokepoint file only needs a single import + a single call.
+ * Do not call `registerQuotaTrackersBatch()` at module scope. Webpack emits
+ * `quotaPreflight.ts` as an async module; a top-level call invokes
+ * `registerQuotaFetcher` before that live binding is a function
+ * (`(0 , e.Zd) is not a function`), rejects the chat-route module, and caches
+ * an empty HTTP 500 for every later chat/messages/responses request.
+ * Callers must invoke it once imports have resolved: the `chat.ts` module body,
+ * and `instrumentation-node.ts` after `await import`.
  */
 
 import { registerAgentrouterQuotaFetcher } from "./agentrouterQuotaFetcher.ts";
@@ -15,6 +19,8 @@ import { registerGrokCliQuotaFetcher } from "./grokCliQuotaFetcher.ts";
 import { registerXaiOauthQuotaFetcher } from "./xaiOauthQuotaFetcher.ts";
 import { registerFirecrawlQuotaFetcher } from "./firecrawlQuotaFetcher.ts";
 import { registerContext7QuotaFetcher } from "./context7QuotaFetcher.ts";
+import { registerTavilyQuotaFetcher } from "./tavilyQuotaFetcher.ts";
+import { registerJinaQuotaFetcher } from "./jinaQuotaFetcher.ts";
 import { registerLlmgatewayQuotaFetcher } from "./llmgatewayQuotaFetcher.ts";
 import { registerLyceumQuotaFetcher } from "./lyceumQuotaFetcher.ts";
 
@@ -26,12 +32,8 @@ export function registerQuotaTrackersBatch(): void {
   registerXaiOauthQuotaFetcher();
   registerFirecrawlQuotaFetcher();
   registerContext7QuotaFetcher();
+  registerTavilyQuotaFetcher();
+  registerJinaQuotaFetcher();
   registerLlmgatewayQuotaFetcher();
   registerLyceumQuotaFetcher();
 }
-
-// Side-effect registration at module load, mirroring the sibling
-// registerXQuotaFetcher() calls in chat.ts — done here (rather than as an
-// additional call line in chat.ts) to keep the frozen chokepoint file's net
-// diff to a single import line.
-registerQuotaTrackersBatch();

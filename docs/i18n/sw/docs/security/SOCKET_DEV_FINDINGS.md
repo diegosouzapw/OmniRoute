@@ -210,28 +210,27 @@ kuweka vitambulisho vya timu katika sehemu moja. Marekebisho hayo yanafanya mode
 
 ## Wasifu wa uundaji: `minimal`
 
-Kwa watumiaji wanaohitaji artifact inayooana na Socket, unda kwa:
+Kwa watumiaji wanaohitaji artefakti inayooana na Socket, jenga kwa:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-`NormalModuleReplacementPlugin` ya webpack huweka alias za moduli nne kuelekea stub:
+`NormalModuleReplacementPlugin` ya webpack huweka moduli nne mbadala kwa stubu:
 
-| Moduli                                      | Stub                                             |
+| Moduli                                      | Stubu                                            |
 | ------------------------------------------- | ------------------------------------------------ |
 | `src/mitm/cert/install.ts`                  | `src/mitm/cert/install.stub.ts`                  |
 | `src/lib/zed-oauth/keychain-reader.ts`      | `src/lib/zed-oauth/keychain-reader.stub.ts`      |
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Kila stub husafirisha kiolesura kilekile, lakini kila function hutupa
-`featureDisabledError(name)` wakati wa utekelezaji. Routes zinazotegemea moduli iliyozimwa
-hurejesha HTTP 503 pamoja na ujumbe ulio wazi badala ya kuwezesha
-njia nyeti ya msimbo.
+Kila stubu husafirisha kiolesura kilekile, lakini kila kitendakazi hutupa
+`featureDisabledError(name)` wakati wa utekelezaji. Njia zinazotegemea moduli
+iliyozimwa hurejesha HTTP 503 ikiwa na ujumbe wazi badala ya kuamilisha
+njia ya msimbo nyeti.
 
-Bundle inayotokana na mchakato huu imekusudiwa kuchapishwa kama `omniroute-secure`. Angalia
-`docs/ops/PUBLISHING_SECURE.md` kwa mwongozo wa uchapishaji.
+Kifurushi kinachotokana na uundaji huu kimekusudiwa kuchapishwa kama `omniroute-secure`.
 
 ---
 

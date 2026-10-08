@@ -6,6 +6,8 @@
  * embedded as `<final_response>…</final_response>` XML inside `response_text`).
  */
 
+import { findTagBlocks } from "../../utils/tagBlocks.ts";
+
 export function walkStrings(
   node: unknown,
   out: Array<{ path: string; text: string }> = [],
@@ -13,11 +15,7 @@ export function walkStrings(
 ): Array<{ path: string; text: string }> {
   if (node == null) return out;
   if (typeof node === "string") {
-    if (
-      node.length >= 1 &&
-      !/^[0-9a-f-]{36}$/i.test(node) &&
-      !/^\d{4}-\d{2}-\d{2}T/.test(node)
-    ) {
+    if (node.length >= 1 && !/^[0-9a-f-]{36}$/i.test(node) && !/^\d{4}-\d{2}-\d{2}T/.test(node)) {
       out.push({ path, text: node });
     }
     return out;
@@ -40,8 +38,8 @@ export function extractFinalResponseMessage(eventData: unknown): string | null {
   // response_text XML fallback
   const raw = walkStrings(eventData).find((t) => /response_text$/i.test(t.path));
   if (raw) {
-    const m = raw.text.match(/<final_response>\s*([\s\S]*?)\s*<\/final_response>/i);
-    if (m) return m[1]!.trim();
+    const [block] = findTagBlocks(raw.text, /<final_response>/gi, /<\/final_response>/gi);
+    if (block) return block.inner.trim();
   }
   return null;
 }

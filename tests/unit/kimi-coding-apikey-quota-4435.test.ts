@@ -70,9 +70,9 @@ test("kimi-coding (OAuth) keeps Bearer + device headers (not x-api-key)", async 
   assert.ok(call, "kimi /usages endpoint should be called for kimi-coding");
   assert.equal(call.headers["Authorization"], "Bearer tok-abc");
   assert.equal(call.headers["X-Msh-Platform"], "kimi_code_cli");
-  assert.equal(call.headers["X-Msh-Version"], "0.26.0");
+  assert.equal(call.headers["X-Msh-Version"], "2.1.1");
   assert.equal(call.headers["X-Msh-Device-Id"], "12345678-1234-1234-1234-1234567890ab");
-  assert.equal(call.headers["User-Agent"], "kimi-code-cli/0.26.0");
+  assert.equal(call.headers["User-Agent"], "kimi-code-cli/2.1.1");
   assert.equal(call.headers["x-api-key"], undefined);
 });
 

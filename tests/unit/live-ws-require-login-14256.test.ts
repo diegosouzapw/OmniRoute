@@ -203,4 +203,27 @@ describe("LiveWS authorizeConnection — requireLogin=false bypass (#14256)", ()
       await new Promise<void>((r) => server.close(() => r()));
     }
   });
+
+  test("fresh-install bypass is refused for a proxy that sets only X-Forwarded-Proto/Host", async () => {
+    // The proxy example in docs/security/CORS.md sets these and no address header. The peer is
+    // the proxy on this host, so the window must stay shut for its callers too.
+    resetDbInstance();
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+
+    await updateSettings({ requireLogin: true });
+
+    const port = await getFreePort("127.0.0.1");
+    const server = await startLiveDashboardServer(port, "127.0.0.1");
+    try {
+      const msg = await connectAndWait(port, {
+        "x-forwarded-proto": "https",
+        "x-forwarded-host": "omni.example.com",
+      });
+      assert.equal(msg.type, "error", `Expected error but got type=${msg.type}`);
+      assert.equal(msg.code, "UNAUTHORIZED");
+    } finally {
+      await new Promise<void>((r) => server.close(() => r()));
+    }
+  });
 });

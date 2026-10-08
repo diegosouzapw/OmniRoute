@@ -237,14 +237,14 @@ Tuotantopino toimii rinnakkain kehitysympäristön Compose-pinon kanssa (eri kon
 
 ## Dockerfile-vaiheet
 
-Tietovaraston mukana toimitetaan monivaiheinen Dockerfile (`Dockerfile`). Käytettävissä on neljä vaihetta; valitse käyttötapaukseesi sopiva `target`.
+Repositorio sisältää monivaiheisen Dockerfilen (`Dockerfile`). Käytettävissä on neljä vaihetta; valitse käyttötarkoitukseesi sopiva `target`.
 
-| Vaihe         | Peruslevykuva         | Tarkoitus                                                                                                                                                                                                                                                                                                                  |
-| ------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Asentaa riippuvuudet (`npm ci --legacy-peer-deps`) ja suorittaa komennon `npm run build` (oletuksena Turbopack — katso alta Koontiaikaiset resurssit)                                                                                                                                                                      |
-| `runner-base` | `node:26-trixie-slim` | Tuotantoajoympäristö, joka sisältää itsenäisen Next.js-tulosteen. **Palveluntarjoajien CLI-työkaluja ei sisällytetä.**                                                                                                                                                                                                     |
-| `runner-cli`  | `runner-base`         | Lisää paketit `git`, `docker.io`, `docker-compose` sekä globaalit CLI-työkalut: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Valitse tämä agenttipohjaisiin työnkulkuihin.**                                                                                                                       |
-| `runner-web`  | `runner-base`         | Lisää Playwrightin ja Chromium-selaimen (`--with-deps`) verkkoistuntopalveluntarjoajia varten: `gemini-web`, `claude-web`, `claude-turnstile`. **Valitse tämä käyttäessäsi kyseisiä palveluntarjoajia** — tavallinen levykuva epäonnistuu pyyntöä käsiteltäessä ilman sitä (katso Julkaisukanavat-osion `-web`-huomautus). |
+| Vaihe         | Peruslevykuva         | Tarkoitus                                                                                                                                                                                                                                                                                                                   |
+| ------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Asentaa riippuvuudet (`npm ci --legacy-peer-deps`) ja suorittaa komennon `npm run build` (oletuksena Turbopack — katso alta Koontiaikaiset resurssit)                                                                                                                                                                       |
+| `runner-base` | `node:26-trixie-slim` | Tuotantoajoympäristö, joka sisältää Next.js:n itsenäisen tulosteen. **Palveluntarjoajien komentorivityökaluja ei sisällytetä.**                                                                                                                                                                                             |
+| `runner-cli`  | `runner-base`         | Lisää paketit `git`, `docker.io`, `docker-compose` ja globaalit komentorivityökalut: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Valitse tämä agenttipohjaisiin työnkulkuihin.**                                                                                                                   |
+| `runner-web`  | `runner-base`         | Lisää Playwrightin ja Chromium-selaimen (`--with-deps`) verkkoistuntopalveluntarjoajia varten: `gemini-web`, `claude-web`, `claude-turnstile`. **Valitse tämä käyttäessäsi kyseisiä palveluntarjoajia** — tavallinen levykuva epäonnistuu pyyntöä käsiteltäessä ilman sitä (katso Julkaisukanavat-kohdan `-web`-huomautus). |
 
 Koosta tietty kohde manuaalisesti:
 
@@ -256,55 +256,58 @@ docker build --target runner-web  -t omniroute:web  .
 
 ### Koontiaikaiset resurssit
 
-Kolme koontiargumenttia hallitsee `builder`-vaiheen resurssien kulutusta. Ne vaikuttavat vain koontiaikana —
+Kolme koontiargumenttia ohjaa `builder`-vaiheen resurssienkulutusta. Ne vaikuttavat vain koontiaikana —
 `OMNIROUTE_MEMORY_MB` (alla) on erillinen ajonaikainen asetus.
 
-| Koontiargumentti            | Oletus | Vaikutus                                                                                                        |
-| --------------------------- | ------ | --------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`    | Arvo `0` koostaa webpackilla. Pienempi muistin huippukulutus, mutta hitaampi.                                   |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144` | V8-keon yläraja (`--max-old-space-size`) käynnistetylle `next build` -prosessille.                              |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`    | Välitetään muuttujalle `CIRCLE_NODE_TOTAL`; Next johtaa siitä sivutietojen keräämiseen arvon `workers = N - 1`. |
+| Koontiargumentti            | Oletus | Vaikutus                                                                                                           |
+| --------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------ |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`    | `0` käyttää webpackia: pienempi muistin huippukulutus, hitaampi. `1` ottaa Turbopackin käyttöön.                   |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144` | V8-keon yläraja (`--max-old-space-size`) käynnistetylle `next build` -prosessille.                                 |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`    | Syöttää arvon muuttujalle `CIRCLE_NODE_TOTAL`; Next johtaa siitä `workers = N - 1` sivutietojen keräämistä varten. |
 
-`OMNIROUTE_BUILD_WORKERS` on asetus, jota kannattaa kasvattaa tehokkaassa koontiympäristössä ja
-epäillä, kun rajallisilla resursseilla suoritettava koonti keskeytyy **vaiheen** `✓ Compiled successfully` **jälkeen**. Jokainen
-sivutietojen käsittelijä on oma prosessinsa, samoin kuin ylätason `next build`;
-VPS-ympäristössä tehdyssä toistossa (ongelma #7518) kunkin prosessin RSS-muistin
-huippukulutukseksi mitattiin noin 4,5 Gt riippumatta `NODE_OPTIONS`-kekolipusta
-(Turbopack kääntää V8-keon ulkopuolisessa natiivissa/Rust-muistissa). Oletusarvo
-`2` (→ 1 käsittelijä, yhteensä 2 prosessia) on mitoitettu julkaisuprosessin
-käyttämille GitHubin ylläpitämille ympäristöille, joissa on 16 Gt muistia ja
-4 vCPU:ta. Arvolla `8` (→ 7 käsittelijää) ympäristön muisti loppui ja buildkit
-keskeytti vaiheen virheellä `ResourceExhausted: ... cannot allocate memory`;
-myöskään arvo `3` (→ 2 käsittelijää) ei mahtunut muistiin, kun prosessikohtainen
-RSS mitattiin suoraan arvioinnin sijaan. `tests/unit/docker-build-memory-budget.test.ts`
-suorittaa laskutoimitukset mitatun arvon perusteella ja epäonnistuu, jos jompikumpi
-asetus ylittää ympäristön kapasiteetin.
+`OMNIROUTE_BUILD_WORKERS` on asetus, jota kannattaa suurentaa tehokkaassa koontiympäristössä ja jota kannattaa
+epäillä, kun rajoitettu koonti kaatuu **sen jälkeen**, kun `✓ Compiled successfully` on tullut näkyviin. Jokainen
+sivutietojen käsittelijä on oma prosessinsa, samoin kuin ylätason `next build` itse;
+todellisella VPS-palvelimella tehdyssä toisinnuksessa (ongelma #7518) kunkin prosessin RSS-muistin huippukulutukseksi mitattiin
+~4.5 GB riippumatta `NODE_OPTIONS`-kekolipusta (Turbopack kääntää käyttäen
+natiivia Rust-muistia V8-keon ulkopuolella). Oletusarvo `2` (→ 1 käsittelijä, yhteensä 2
+prosessia) on mitoitettu julkaisuputken käyttämille GitHubin ylläpitämille suorittimille, joissa on
+16 GB muistia / 4 vCPU:ta. Arvolla `8` (→ 7 käsittelijää) kyseisen suorittimen muisti loppui ja
+buildkit keskeytti vaiheen virheeseen `ResourceExhausted: ... cannot allocate memory`;
+edes `3` (→ 2 käsittelijää) ei mahtunut muistiin, kun prosessikohtainen RSS mitattiin
+suoraan sen sijaan, että se olisi päätelty. `tests/unit/docker-build-memory-budget.test.ts`
+tekee laskutoimitukset mitatun arvon perusteella ja epäonnistuu, jos jompikumpi asetus
+ylittää suorittimen kapasiteetin.
 
-Turbopack kääntää natiivissa Rust-muistissa, joka sijaitsee **V8-keon ulkopuolella**, joten
-`OMNIROUTE_BUILD_MEMORY_MB` ei rajoita sitä. Muistirajoitetulla isäntäkoneella OOM-tappaja
-keskeyttää tällöin koonnin SIGKILL-signaalilla ilman mitään virhetekstiä — koonti vain
-pysähtyy kesken vaiheen `Creating an optimized production build`, mikä vaikuttaa
-jumittumiselta muistin loppumisen sijaan. Jos koonti-isännän resurssit ovat rajalliset,
-vaihda paketoijaa:
+Turbopack kääntää käyttäen natiivia Rust-muistia, joka sijaitsee **V8-keon ulkopuolella**, joten
+`OMNIROUTE_BUILD_MEMORY_MB` ei rajoita sitä. Isännällä, jolla on muistirajoitus,
+OOM-killer lähettää koonnille SIGKILL-signaalin ilman minkäänlaista virhetekstiä — koonti vain
+pysähtyy kesken `Creating an optimized production build` -vaiheen, mikä vaikuttaa pikemminkin
+jumittumiselta kuin muistin loppumiselta. Tämän vuoksi `Dockerfile` käyttää oletuksena webpackia
+(`OMNIROUTE_USE_TURBOPACK=0`), toisin kuin `npm run dev` / `npm run build`, joissa
+Turbopack on koodin oletus: pelkkä `docker build .` ilman koontiargumentteja (jonka
+Railway ja muut yhden napsautuksen isännät suorittavat) ei saa kaatua hiljaisesti muistirajoitetussa
+koontiympäristössä. Julkaistut levykuvat välittävät jo asetuksen `OMNIROUTE_USE_TURBOPACK=0`
+eksplisiittisesti tiedostossa `docker-publish.yml`. Jos koontiympäristössä on runsaasti RAM-muistia, ota
+Turbopack käyttöön nopeampaa koontia varten:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` on käytössä, joten `next build` suorittaa ylätason prosessin **ja**
-käsittelijäprosessin, ja kumpikin noudattaa `OMNIROUTE_BUILD_MEMORY_MB`-arvoa erikseen.
-Mitoita säilön raja hieman yli kaksinkertaiseksi kyseiseen arvoon nähden, älä vain sen
-suuruiseksi.
+`webpackBuildWorker` on käytössä, joten `next build` suorittaa sekä ylätason prosessin **että** käsittelijäprosessin,
+ja kumpikin noudattaa `OMNIROUTE_BUILD_MEMORY_MB`-arvoa erikseen. Mitoita säilön
+muistiraja karkeasti yli kaksinkertaiseksi tähän arvoon nähden, älä vain sen suuruiseksi.
 
-Tässä lähdekoodipuussa mitatut tulokset (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
+Tällä lähdekoodipuulla mitattuna (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Paketoija | Säilön muistiraja | Tulos                                               |
-| --------- | ----------------- | --------------------------------------------------- |
-| Turbopack | 8 GiB / 16 GiB    | OOM-tappaja keskeytti molemmilla, hiljaisesti       |
-| webpack   | 8 GiB             | koontikäsittelijä keskeytettiin SIGKILL-signaalilla |
-| webpack   | 12 GiB            | onnistui, huippukulutus 11,1 GiB                    |
+| Niputtaja | Säilön muistiraja | Tulos                                   |
+| --------- | ----------------- | --------------------------------------- |
+| Turbopack | 8 GiB / 16 GiB    | OOM-keskeytys molemmilla, hiljaisesti   |
+| webpack   | 8 GiB             | koontikäsittelijä sai SIGKILL-signaalin |
+| webpack   | 12 GiB            | onnistui, huippukulutus 11.1 GiB        |
 
 ### Ajonaikaiset oletusarvot
 
@@ -312,25 +315,25 @@ Tässä lähdekoodipuussa mitatut tulokset (`--target runner-base`, `OMNIROUTE_B
 
 Muistin toiminta Dockerissa:
 
-- Levykuva asettaa arvon `OMNIROUTE_MEMORY_MB=1024` ja johtaa siitä arvon `NODE_OPTIONS=--max-old-space-size=1024`.
-- Varsinaisen palvelinprosessin käynnistää erillinen käynnistysohjelma, joka lukee muuttujan `OMNIROUTE_MEMORY_MB` ja lisää valitsimen `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
-- Node käyttää viimeistä toistettua `--max-old-space-size`-arvoa, joten `OMNIROUTE_MEMORY_MB` määrittää Dockerin todellisen keon rajan.
-- Koska levykuva asettaa sen aina, käynnistysohjelman oma RAM-muistin mukaan kalibroitu varavaihtoehto ei koskaan tule käyttöön Dockerissa. Kasvata arvoa erikseen työkuormaa varten (katso alla oleva taulukko). `2048` on edelleen liian pieni koodausagenttien `/v1/responses`-pyynnöille.
+- Näköistiedosto asettaa arvon `OMNIROUTE_MEMORY_MB=1024` ja johtaa siitä arvon `NODE_OPTIONS=--max-old-space-size=1024`.
+- Varsinaisen palvelinprosessin käynnistää itsenäinen käynnistysohjelma, joka lukee muuttujan `OMNIROUTE_MEMORY_MB` ja lisää valitsimen `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
+- Node käyttää viimeistä toistettua `--max-old-space-size`-arvoa, joten `OMNIROUTE_MEMORY_MB` määrittää Dockerissa käytettävän todellisen kekomuistin rajan.
+- Koska näköistiedosto asettaa sen aina, käynnistysohjelman oma RAM-muistin mukaan kalibroitu varajärjestely ei koskaan tule käyttöön Dockerissa. Kasvata arvoa nimenomaisesti työkuorman mukaan (katso alla oleva taulukko). `2048` on edelleen liian pieni koodausagenttien `/v1/responses`-pyynnöille.
 
-### Koodausagenttien ajonaikainen RAM-muisti
+### Koodausagenttien RAM-muisti suorituksen aikana
 
-Dockerin 1 GiB:n oletusarvo on vähimmäistaso hallintapaneelille ja kevyelle keskustelulle, ei tuotantokäyttöön sopiva mitoitus. Pitkät `POST /v1/responses` -pyyntörungot (satoja viestejä, kymmeniä työkaluja) säilyttävät pakkauksen aikana muistissa useita graafeja. Kaksi päällekkäistä noin 3 MiB:n / noin 750 000 tokenin pyyntöä ovat keskeyttäneet V8:n **12 GiB:n** old-space-tilassa (`FATAL ERROR: Reached heap limit`) ja aiheuttaneet myös 16 GiB:n cgroup-OOM-tilanteen. Katso [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Dockerin 1 GiB:n oletusarvo on hallintapaneelin ja kevyen keskustelun vähimmäistaso, ei tuotantokäyttöön sopiva koko. Pitkät `POST /v1/responses` -pyyntörungot (satoja viestejä, kymmeniä työkaluja) säilyttävät pakkauksen aikana muistissa useita graafeja. Kaksi päällekkäistä, kooltaan noin 3 MiB:n / noin 750 000 tokenin pyyntöä ovat keskeyttäneet V8:n **12 GiB:n** old-space-muistilla (`FATAL ERROR: Reached heap limit`) ja aiheuttaneet myös 16 GiB:n cgroup OOM -tilanteen. Katso [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Mitoita **cgroupin `--memory` keon kokoa suuremmaksi** — natiivipuskurit, SQLite ja pakkauksen välitulokset sijaitsevat V8:n ulkopuolella.
+Mitoita **cgroupin `--memory` kekomuistia suuremmaksi** — natiivipuskurit, SQLite ja pakkauksen välitulokset sijaitsevat V8:n ulkopuolella.
 
-| Työkuorma                                          | `OMNIROUTE_MEMORY_MB`           | Säilö / cgroup               | Huomautukset                                                                                                                      |
-| -------------------------------------------------- | ------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Hallintapaneeli, yksi kevyt keskustelu             | `1024` (levykuvan oletus)       | ≥2 GiB                       |                                                                                                                                   |
-| Yksi koodausagentti (Claude/Codex/Grok)            | `8192`                          | ≥10 GiB                      | Tyypillinen yhden istunnon `/v1/responses`                                                                                        |
-| Kaksi samanaikaista pitkää `/v1/responses`-pyyntöä | `10240`–`12288`                 | ≥12–16 GiB                   | V8:n mitattu keskeytys noin 12 GiB:n keolla                                                                                       |
-| Vähintään kolme samanaikaista pitkää kontekstia    | älä suorita yhdessä prosessissa | sarjoita / lisää RAM-muistia | Raskaiden pyyntöjen oletusraja on yksi käsiteltävä pyyntö; rajan kasvattaminen ilman lisämuistia aiheuttaa keskeytyksen uudelleen |
+| Työkuorma                                          | `OMNIROUTE_MEMORY_MB`           | Säilö / cgroup                  | Huomautukset                                                                                                                      |
+| -------------------------------------------------- | ------------------------------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Hallintapaneeli, yksi kevyt keskustelu             | `1024` (näköistiedoston oletus) | ≥2 GiB                          |                                                                                                                                   |
+| Yksi koodausagentti (Claude/Codex/Grok)            | `8192`                          | ≥10 GiB                         | Tyypillinen yhden istunnon `/v1/responses`                                                                                        |
+| Kaksi samanaikaista pitkää `/v1/responses`-pyyntöä | `10240`–`12288`                 | ≥12–16 GiB                      | Mitattu V8:n keskeytys noin 12 GiB:n kekomuistilla                                                                                |
+| Vähintään kolme samanaikaista pitkää kontekstia    | älä suorita yhdessä prosessissa | sarjallista / lisää RAM-muistia | Raskaiden pyyntöjen oletusraja on yksi samanaikainen pyyntö; sen kasvattaminen ilman lisämuistia aiheuttaa keskeytyksen uudelleen |
 
-`omniroute serve` kalibroi paljaalla raudalla käyttöön noin 35 % RAM-muistista (rajattuna välille `[512, 4096]`), kun `OMNIROUTE_MEMORY_MB` on **asettamatta**. Docker asettaa aina arvon `1024`, joten tätä kalibrointia ei koskaan suoriteta virallisessa levykuvassa.
+Paljaalla raudalla `omniroute serve` kalibroi arvoksi noin 35 % RAM-muistista (rajattuna välille `[512, 4096]`), kun `OMNIROUTE_MEMORY_MB` on **asettamatta**. Docker asettaa arvoksi aina `1024`, joten tätä kalibrointia ei koskaan suoriteta virallisessa näköistiedostossa.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

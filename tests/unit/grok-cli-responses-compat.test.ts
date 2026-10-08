@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 
 import { grok_cliProvider } from "../../open-sse/config/providers/registry/grok-cli/index.ts";
 import {
-  GROK_BUILD_DEFAULT_CONTEXT_WINDOW,
   getGrokBuildClientVersion,
   getGrokBuildUserAgent,
   GROK_BUILD_MODELS_URL,
@@ -22,6 +21,12 @@ test("grok-cli exposes the authenticated grok-build model catalog", () => {
       targetFormat,
     })),
     [
+      {
+        id: "grok-4.7",
+        name: "Grok 4.7",
+        contextLength: 500000,
+        targetFormat: "openai-responses",
+      },
       {
         id: "grok-4.6",
         name: "Grok 4.6",
@@ -122,7 +127,7 @@ test("grok-cli inherits BaseExecutor transport instead of buffering its own resp
       stream: true,
       credentials: {},
     });
-    // Without namespace tools the upstream Response is returned as-is.
+    // Without namespace or custom tools the upstream Response is returned as-is.
     assert.equal((result as { response: Response }).response, upstream);
   } finally {
     BaseExecutor.prototype.execute = originalExecute;
@@ -200,9 +205,51 @@ test("grok-cli live model discovery uses the authenticated session contract", ()
       id: "session-only-alias",
       name: "Session Only",
       owned_by: "grok-cli",
-      inputTokenLimit: GROK_BUILD_DEFAULT_CONTEXT_WINDOW,
       apiFormat: "responses",
       supportedEndpoints: ["responses"],
     },
   ]);
+});
+
+test("grok-cli discovery prefers the registry window over Grok Build's advertised one", () => {
+  // Grok Build /v1/models advertises contextWindow 256000 for every model, but the
+  // backend serves grok-4.6 up to 500k: prod logged 88 successful grok-4.6 requests
+  // with 256k-485k input tokens and upstream rejects at "> 500000 tokens". Trusting
+  // the advertised number pinned 256k auto:discovery overrides over the verified
+  // registry window. Unknown models keep the upstream number (under-advertising is
+  // safe), and models with neither stay unadvertised.
+  const config = PROVIDER_MODELS_CONFIG["grok-cli"];
+  const models = config.parseResponse({
+    data: [
+      {
+        id: "grok-4.6",
+        model: "grok-4.6",
+        name: "Grok 4.6",
+        contextWindow: 256000,
+        apiBackend: "responses",
+      },
+      {
+        id: "grok-4.5",
+        model: "grok-4.5",
+        name: "Grok 4.5",
+        apiBackend: "responses",
+      },
+      {
+        id: "grok-next-build",
+        name: "Grok Next Build",
+        contextWindow: 256000,
+        apiBackend: "responses",
+      },
+      {
+        id: "session-only-alias",
+        name: "Session Only",
+        apiBackend: "responses",
+      },
+    ],
+  });
+  const byId = Object.fromEntries(models.map((model) => [model.id, model]));
+  assert.equal(byId["grok-4.6"].inputTokenLimit, 500000);
+  assert.equal(byId["grok-4.5"].inputTokenLimit, 500000);
+  assert.equal(byId["grok-next-build"].inputTokenLimit, 256000);
+  assert.equal("inputTokenLimit" in byId["session-only-alias"], false);
 });

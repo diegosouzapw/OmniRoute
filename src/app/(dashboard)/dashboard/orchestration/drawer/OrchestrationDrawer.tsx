@@ -520,7 +520,7 @@ export function OrchestrationDrawer({
     <>
       <div className="fixed inset-0 bg-black/20 z-30" onClick={onClose} aria-hidden />
       <aside
-        className="fixed right-0 top-0 h-full w-[380px] bg-surface border-l border-border z-40 overflow-y-auto p-4"
+        className="fixed right-0 top-0 h-full w-[380px] max-w-full bg-surface border-l border-border z-40 overflow-y-auto p-4"
         role="dialog"
         aria-label={node.label}
       >

@@ -1,0 +1,1 @@
+- **fix(api):** persist `comboAutoPromoteEnabled` through PATCH `/api/settings` by adding it to `updateSettingsSchema` (Zod previously stripped the key with HTTP 200, so the sticky combo promote flag could not be turned off via API once enabled; same class of bug as #13562 / #13800)

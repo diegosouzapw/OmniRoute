@@ -1,0 +1,1 @@
+- **fix(combo):** preserve terminal upstream error codes such as `invalid_encrypted_content` in combo errors so Responses clients can recover from rejected reasoning replay. Mixed failure classes retain their aggregate status and generic code.

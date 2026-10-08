@@ -226,10 +226,9 @@ tiksliai atspindi grėsmių modelį:
 
 ---
 
-## Kompiliavimo profilis: `minimal`
+## Komponavimo profilis: `minimal`
 
-Naudotojai, kuriems reikia su „Socket“ suderinamo artefakto, gali jį
-sukompiliuoti taip:
+Naudotojams, kuriems reikia su „Socket“ suderinamo artefakto, sukomponuokite naudodami:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
@@ -244,13 +243,11 @@ Webpack `NormalModuleReplacementPlugin` keturiems moduliams priskiria pakaitiniu
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Kiekvienas pakaitinis modulis eksportuoja tokią pačią sąsają, tačiau vykdymo
-metu kiekviena funkcija išmeta `featureDisabledError(name)`. Maršrutai,
-priklausantys nuo išjungto modulio, užuot aktyvinę jautrų kodo kelią, grąžina
-HTTP 503 su aiškiu pranešimu.
+Kiekvienas pakaitinis modulis eksportuoja tokią pačią sąsają, tačiau kiekviena funkcija vykdymo metu išmeta
+`featureDisabledError(name)`. Maršrutai, kurie priklauso nuo išjungto
+modulio, užuot aktyvinę nesaugų kodo vykdymo kelią, grąžina HTTP 503 su aiškiu pranešimu.
 
-Gautas paketas skirtas publikuoti kaip `omniroute-secure`. Publikavimo
-instrukcijas rasite `docs/ops/PUBLISHING_SECURE.md`.
+Gautas paketas skirtas publikuoti kaip `omniroute-secure`.
 
 ---
 

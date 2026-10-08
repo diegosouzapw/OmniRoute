@@ -132,21 +132,25 @@ CORS_ALLOWED_ORIGINS="http://localhost:5173, http://localhost:3000"
 
 ## مثال: وكيل عكسي أمام OmniRoute
 
-يفرض OmniRoute نفسه سياسة CORS، لذلك ينبغي للوكيل عمومًا **ألا** يضيف ترويسات
-`Access-Control-*` أو يعيد كتابتها (فالترويسات المزدوجة تعطل المتصفحات). أنهِ TLS
-وأعِد التوجيه — ودع OmniRoute يستجيب لطلب التحقق المسبق:
+يفرض OmniRoute سياسة CORS بنفسه، لذا ينبغي للوكيل عمومًا **ألّا** يضيف ترويسات
+`Access-Control-*` أو يعيد كتابتها (الترويسات المكررة تُعطّل المتصفحات). أنهِ اتصال TLS
+وأعِد التوجيه — ودَع OmniRoute يستجيب لطلب التحقق المسبق:
 
 ```nginx
-# nginx — إعادة التوجيه إلى OmniRoute؛ لا تحقن Access-Control-* هنا
+# nginx — أعِد التوجيه إلى OmniRoute؛ لا تُدرج Access-Control-* هنا
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # لا تضبط X-Forwarded-For على 127.0.0.1 — فهذا يعطل آلية حماية مسارات loopback.
+    # أبقِ ترويسات إعادة التوجيه: فالوكيل الموجود على المضيف نفسه يتصل عبر عنوان الاسترجاع، وهي
+    # التي تُعلم OmniRoute بأن المتصل ليس المشغّل المحلي. والوكيل الذي لا يضيف أيًا منها
+    # يجعل كل متصل بعيد يبدو محليًا. ولا تضبط X-Forwarded-For على 127.0.0.1 أيضًا.
 }
 ```
 
-عيّن مصادر المتصفح المسموح بها في OmniRoute (`CORS_ALLOWED_ORIGINS` أو علامة تبويب
+اضبط أصول المتصفح المسموح بها في OmniRoute (عبر `CORS_ALLOWED_ORIGINS` أو علامة تبويب
 الأمان)، وليس في الوكيل.
 
 ## ملفات المصدر

@@ -11,6 +11,7 @@ import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
 import { getKeyGroupsForApiKey, checkKeyModelAccess } from "./apiKeyGroups";
 import { API_KEY_COLUMN_FALLBACKS } from "./apiKeyColumnFallbacks";
 import { SYNTHETIC_ENV_API_KEY_ID } from "@/shared/constants/apiKeyIdentities";
+import { timingSafeCompare } from "@/shared/utils/timingSafeCompare";
 import {
   appendUsageLimitUpdates,
   hasUsageLimitUpdate,
@@ -18,11 +19,13 @@ import {
 } from "./apiKeyUsageLimitFields";
 import { setNoLog } from "../compliance/noLog";
 import { resolveModelAlias } from "@omniroute/open-sse/services/modelDeprecation.ts";
-import { splitSyncedEffortSuffix } from "@omniroute/open-sse/services/model.ts";
-import { getLearnedReasoningEffortForModel } from "@omniroute/open-sse/services/learnedReasoningEffortCaps.ts";
-import { isSkippedEffortProvider } from "@omniroute/open-sse/utils/syncedEffortVariants.ts";
 import { getProviderAlias, resolveProviderId } from "@/shared/constants/providers";
-import { getSyncedAvailableModelsByConnection, getCustomModels, getModelIsHidden } from "./models";
+import { isSelfLoopBearer, selfLoopKeyOverrides } from "./apiKeys/selfLoopKey";
+import {
+  findPublishedModel,
+  isDeniedUnderCanonicalProvider,
+  isPublishedModelHidden,
+} from "./apiKeys/publishedModelLookup";
 import {
   CLAUDE_CODE_PROVIDER_PREFIXES,
   preferClaudeCodeForUnprefixedClaudeModels,
@@ -283,7 +286,7 @@ function toRecord(value: unknown): JsonRecord {
 
 function isConfiguredEnvApiKey(key: string): boolean {
   const envKey = process.env.OMNIROUTE_API_KEY || process.env.ROUTER_API_KEY;
-  return Boolean(envKey && key === envKey);
+  return Boolean(envKey && timingSafeCompare(key, envKey));
 }
 
 function isRedisAuthCacheEnabled(): boolean {
@@ -1267,7 +1270,7 @@ export async function setApiKeyExpiry(id: string, expiresAt: string | null): Pro
 export async function validateApiKey(key: string | null | undefined) {
   if (!key || typeof key !== "string") return false;
 
-  if (isConfiguredEnvApiKey(key)) return true;
+  if (isConfiguredEnvApiKey(key) || isSelfLoopBearer(key)) return true;
 
   const now = Date.now();
   const hashedKey = await hashKey(key);
@@ -1278,34 +1281,10 @@ export async function validateApiKey(key: string | null | undefined) {
     return cached.valid;
   }
 
-  if (isRedisAuthCacheEnabled()) {
-    // Try Redis cache for multi-instance consistency
-    try {
-      const { getRedisClient, isRedisConfigured } = await import("@/shared/utils/rateLimiter");
-      if (isRedisConfigured()) {
-        const redis = await getRedisClient();
-        const redisKey = `auth:api_key:${hashedKey}`;
-        const redisData = await redis.get(redisKey);
-        if (redisData) {
-          const data = JSON.parse(redisData);
-          const isBanned = !!data.isBanned;
-          const isActive = !!data.isActive;
-          const revokedAt = data.revokedAt;
-          const expiresAt = data.expiresAt;
-
-          if (isBanned || !isActive) return false;
-          if (typeof revokedAt === "string" && revokedAt.trim() !== "") return false;
-          if (typeof expiresAt === "string" && expiresAt.trim() !== "") {
-            const expiresMs = Date.parse(expiresAt);
-            if (Number.isFinite(expiresMs) && expiresMs <= now) return false;
-          }
-          return true;
-        }
-      }
-    } catch {
-      // Redis lookup failures fall through to SQLite.
-    }
-  }
+  // A Redis hit never authorizes on its own (GHSA-66vh-35g3-78qv): eviction on regenerate/revoke
+  // is best-effort and a late SET can resurrect an evicted entry, so the entry could keep a
+  // retired credential valid for its whole TTL. SQLite is the source of truth for identity and
+  // lifecycle; the lookup below is a single indexed read.
 
   const db = getDbInstance() as ApiKeysDbLike;
   const stmt = getPreparedStatements(db);
@@ -1372,7 +1351,7 @@ export async function getApiKeyMetadata(
   const now = Date.now();
 
   // persistent env-var key support (persistent passthrough keys) (#1350)
-  if (isConfiguredEnvApiKey(key)) {
+  if (isConfiguredEnvApiKey(key) || isSelfLoopBearer(key)) {
     // ─── Env-key management-scope bypass ──────────────────────────────────
     // The deployment-time env key (`OMNIROUTE_API_KEY` / `ROUTER_API_KEY`)
     // is granted the "manage" scope unconditionally. This is intentional:
@@ -1433,6 +1412,7 @@ export async function getApiKeyMetadata(
       compressionEnabled: true,
       allowAutoCombos: true,
       catalogScope: "all",
+      ...selfLoopKeyOverrides(key),
     };
   }
 
@@ -1543,33 +1523,6 @@ export async function getApiKeyMetadata(
 }
 
 /**
- * #7694: `/v1/models` and the combo builder advertise `<model>-<tier>` variants for
- * synced models that declare `supportedThinkingEfforts`, and request routing strips
- * the tier back to the base model before dispatch. Resolve such an id to its base
- * discovered model — only for a tier that model itself declares — so the
- * published-model gate judges the base model instead of rejecting the variant.
- */
-function resolveSyncedEffortVariantBase(
-  providerId: string,
-  modelId: string,
-  models: ReadonlyArray<{ id?: unknown; supportedThinkingEfforts?: unknown }>
-): string | null {
-  if (isSkippedEffortProvider(providerId)) return null;
-  for (const candidate of models) {
-    if (typeof candidate.id !== "string" || !Array.isArray(candidate.supportedThinkingEfforts)) {
-      continue;
-    }
-    // Same tier set as routing (`effectiveKnownEfforts` in src/sse/services/model.ts):
-    // learned upstream caps win over the synced declaration.
-    const learned = getLearnedReasoningEffortForModel(candidate.id);
-    const knownEfforts = learned ? [...learned] : candidate.supportedThinkingEfforts;
-    const { baseModel, effort } = splitSyncedEffortSuffix(modelId, knownEfforts);
-    if (effort && baseModel === candidate.id) return candidate.id;
-  }
-  return null;
-}
-
-/**
  * Check if a model is allowed for a given API key
  * @param {string} key - The API key
  * @param {string} modelId - The model ID to check
@@ -1616,27 +1569,13 @@ export async function isModelAllowedForKey(
 
     if (!hasClaudeCodeWildcardPermission(allowedModels, modelPermissionCandidates)) {
       const lookupTarget = await getPublishedModelLookupTarget(effectiveModelId);
-      const providerId = lookupTarget?.providerId || effectiveModelId.split("/")[0];
+      const providerOrAlias = lookupTarget?.providerId || effectiveModelId.split("/")[0];
       const shortModelId = lookupTarget?.modelId || effectiveModelId.split("/").slice(1).join("/");
-      if (!providerId || !shortModelId) return false;
+      if (!providerOrAlias || !shortModelId) return false;
 
-      const [syncedModelsByConnection, customModels] = await Promise.all([
-        getSyncedAvailableModelsByConnection(providerId),
-        getCustomModels(providerId),
-      ]);
-
-      // Combine synced and custom models
-      const allDiscoveredModels = Object.values(syncedModelsByConnection)
-        .flat()
-        .concat(customModels);
-      const publishedModelId = allDiscoveredModels.some((m) => m.id === shortModelId)
-        ? shortModelId
-        : resolveSyncedEffortVariantBase(
-            providerId,
-            shortModelId,
-            Object.values(syncedModelsByConnection).flat()
-          );
-      if (!publishedModelId) return false;
+      const published = await findPublishedModel(providerOrAlias, shortModelId);
+      if (!published) return false;
+      const { providerId, publishedModelId } = published;
 
       // An effort variant dispatches to its base model, so a deny rule on the
       // base model must also deny the variant.
@@ -1649,8 +1588,8 @@ export async function isModelAllowedForKey(
         }
       }
 
-      const isPublic = !getModelIsHidden(providerId, publishedModelId);
-      if (!isPublic) return false;
+      // A model hidden under the alias the client used stays hidden.
+      if (isPublishedModelHidden(providerId, providerOrAlias, publishedModelId)) return false;
     }
   }
 
@@ -1674,6 +1613,10 @@ export async function isModelAllowedForKey(
     const targetOk = checkKeyModelAccess(metadata.id, modelTarget, provider).allowed;
     const fullOk = checkKeyModelAccess(metadata.id, modelId || "", provider).allowed;
     if (!targetOk || !fullOk) allowed = false;
+
+    if (allowed && (await isDeniedUnderCanonicalProvider(metadata.id, provider, modelTarget))) {
+      allowed = false;
+    }
   }
   // Cache the result
   if (!usesSettingDependentClaudeRouting) {

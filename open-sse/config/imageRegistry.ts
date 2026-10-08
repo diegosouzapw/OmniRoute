@@ -5,6 +5,8 @@
  * Each provider has its own request format and endpoint.
  */
 
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags.ts";
+import { hasUnsafeModelIdSyntax } from "../utils/modelIdSafety.ts";
 import { LMARENA_DIRECT_IMAGE_MODELS } from "./providers/registry/lmarena/directModels.ts";
 import { SEGMIND_IMAGE_PROVIDER } from "./providers/registry/segmind/imageModels.ts";
 import { KIE_IMAGE_MODELS } from "./providers/registry/kie/imageModels.ts";
@@ -16,6 +18,7 @@ import {
   toRegistryImageModels,
 } from "../services/adobeFireflyModels.ts";
 import { AI_HORDE_IMAGE_PROVIDER } from "./providers/registry/aihorde/imageModels.ts";
+import { ZENMUX_IMAGE_PROVIDER } from "./providers/registry/zenmux/imageModels.ts";
 
 interface ImageModelEntry {
   id: string;
@@ -66,6 +69,57 @@ interface ImageCatalogModelEntry {
   inputModalities: string[];
   description?: string;
   mediaCapabilities?: Record<string, unknown>;
+}
+
+// OAuth variants keep their provider identity for token refresh and account selection.
+const XAI_IMAGE_CONFIG = {
+  baseUrl: "https://api.x.ai/v1/images/generations",
+  authHeader: "bearer",
+  format: "xai-image",
+  models: [
+    { id: "grok-imagine-image-2.0", name: "Grok Imagine Image 2.0" },
+    { id: "grok-imagine-image-quality", name: "Grok Imagine Image Quality" },
+    { id: "grok-imagine-image", name: "Grok Imagine Image" },
+  ],
+  supportedSizes: ["1024x1024", "2048x2048", "1536x1024", "1024x1536", "1792x1024", "1024x1792"],
+};
+
+/** API-key xAI image entry shipped before subscription images. Kept verbatim while the flag is off. */
+const XAI_API_KEY_IMAGE_PROVIDER: ImageProviderConfig = {
+  id: "xai",
+  baseUrl: "https://api.x.ai/v1/images/generations",
+  authType: "apikey",
+  authHeader: "bearer",
+  format: "openai",
+  models: [
+    { id: "grok-imagine-image-quality", name: "Grok Imagine Image Quality" },
+    { id: "grok-imagine-image", name: "Grok Imagine Image" },
+  ],
+  supportedSizes: ["1024x1024", "2048x2048"],
+};
+
+const XAI_SUBSCRIPTION_IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
+  xai: { ...XAI_IMAGE_CONFIG, id: "xai", authType: "apikey" },
+  "xai-oauth": { ...XAI_IMAGE_CONFIG, id: "xai-oauth", alias: "xao", authType: "oauth" },
+  "grok-cli": { ...XAI_IMAGE_CONFIG, id: "grok-cli", alias: "gc", authType: "oauth" },
+};
+
+export function isGrokSubscriptionImagesEnabled(): boolean {
+  try {
+    return isFeatureFlagEnabled("GROK_SUBSCRIPTION_IMAGES_ENABLED");
+  } catch (error) {
+    console.error(
+      "[imageRegistry] Failed to resolve GROK_SUBSCRIPTION_IMAGES_ENABLED, defaulting to disabled:",
+      error instanceof Error ? error.message : error
+    );
+    const envValue = process.env.GROK_SUBSCRIPTION_IMAGES_ENABLED;
+    return envValue === "true" || envValue === "1" || envValue === "yes";
+  }
+}
+
+function visibleImageProviders(): Record<string, ImageProviderConfig> {
+  if (!isGrokSubscriptionImagesEnabled()) return IMAGE_PROVIDERS;
+  return { ...IMAGE_PROVIDERS, ...XAI_SUBSCRIPTION_IMAGE_PROVIDERS };
 }
 
 const IMAGE_MODEL_ALIASES: Record<string, ImageModelAliasEntry> = {
@@ -150,7 +204,7 @@ function resolveSameProviderBareAlias(providerId, model) {
 }
 
 function findImageModelConfig(providerId, modelId) {
-  const provider = IMAGE_PROVIDERS[providerId];
+  const provider = visibleImageProviders()[providerId];
   if (!provider) return null;
   return (
     provider.models.find((model) => model.id === modelId || model.catalogId === modelId) || null
@@ -169,6 +223,7 @@ function resolveAliasImageRequired(alias, modelConfig) {
 }
 
 export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
+  zenmux: ZENMUX_IMAGE_PROVIDER,
   agnes: {
     id: "agnes",
     baseUrl: "https://apihub.agnes-ai.com/v1/images/generations",
@@ -308,18 +363,7 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     supportedSizes: ["1024x1024", "1024x1536", "1536x1024", "1024x1792", "1792x1024"],
   },
 
-  xai: {
-    id: "xai",
-    baseUrl: "https://api.x.ai/v1/images/generations",
-    authType: "apikey",
-    authHeader: "bearer",
-    format: "openai",
-    models: [
-      { id: "grok-imagine-image-quality", name: "Grok Imagine Image Quality" },
-      { id: "grok-imagine-image", name: "Grok Imagine Image" },
-    ],
-    supportedSizes: ["1024x1024", "2048x2048"],
-  },
+  xai: XAI_API_KEY_IMAGE_PROVIDER,
 
   "vercel-ai-gateway": {
     id: "vercel-ai-gateway",
@@ -545,6 +589,10 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
       { id: "black-forest-labs/flux.2-max", name: "FLUX.2 Max (via OpenRouter)" },
       { id: "black-forest-labs/flux.2-pro", name: "FLUX.2 Pro (via OpenRouter)" },
       { id: "black-forest-labs/flux.2-flex", name: "FLUX.2 Flex (via OpenRouter)" },
+      { id: "openai/gpt-image-2.5-sunburst", name: "GPT Image 2.5 Sunburst (via OpenRouter)" },
+      { id: "openai/gpt-image-2.5-flare", name: "GPT Image 2.5 Flare (via OpenRouter)" },
+      { id: "microsoft/mai-image-2.6", name: "MAI Image 2.6 (via OpenRouter)" },
+      { id: "microsoft/mai-image-2.6-flash", name: "MAI Image 2.6 Flash (via OpenRouter)" },
     ],
     supportedSizes: ["1024x1024", "1024x1792", "1792x1024"],
   },
@@ -950,9 +998,10 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
  * Get image provider config by ID
  */
 export function getImageProvider(providerId) {
-  if (IMAGE_PROVIDERS[providerId]) return IMAGE_PROVIDERS[providerId];
+  const providers = visibleImageProviders();
+  if (providers[providerId]) return providers[providerId];
   if (!providerId) return null;
-  for (const config of Object.values(IMAGE_PROVIDERS)) {
+  for (const config of Object.values(providers)) {
     if (config.alias === providerId) return config;
   }
   return null;
@@ -963,7 +1012,7 @@ export function getImageProvider(providerId) {
  * Returns { provider, model }
  */
 export function parseImageModel(modelStr) {
-  if (!modelStr) return { provider: null, model: null };
+  if (!modelStr || hasUnsafeModelIdSyntax(modelStr)) return { provider: null, model: null };
 
   const directAlias = resolveImageModelAlias(modelStr);
   if (directAlias) {
@@ -971,7 +1020,7 @@ export function parseImageModel(modelStr) {
   }
 
   // Try each provider prefix
-  for (const [providerId, config] of Object.entries(IMAGE_PROVIDERS)) {
+  for (const [providerId, config] of Object.entries(visibleImageProviders())) {
     if (modelStr.startsWith(providerId + "/")) {
       const model = modelStr.slice(providerId.length + 1);
       const aliased =
@@ -994,7 +1043,7 @@ export function parseImageModel(modelStr) {
   }
 
   // No provider prefix — try to find the model in every provider, excluding cookie-auth (web) bridges
-  for (const [providerId, config] of Object.entries(IMAGE_PROVIDERS)) {
+  for (const [providerId, config] of Object.entries(visibleImageProviders())) {
     const modelConfig = config.models.find(
       (model) => model.id === modelStr || model.catalogId === modelStr
     );
@@ -1033,7 +1082,7 @@ function imageAliasCatalogEntry(
 ): ImageCatalogModelEntry | null {
   if (!target.listInCatalog) return null;
 
-  const providerConfig = IMAGE_PROVIDERS[target.provider];
+  const providerConfig = visibleImageProviders()[target.provider];
   const modelConfig = findImageModelConfig(target.provider, target.model);
   return {
     id: alias,
@@ -1046,7 +1095,7 @@ function imageAliasCatalogEntry(
 }
 
 export function getAllImageModels(): ImageCatalogModelEntry[] {
-  const providerModels = Object.entries(IMAGE_PROVIDERS).flatMap(([providerId, config]) =>
+  const providerModels = Object.entries(visibleImageProviders()).flatMap(([providerId, config]) =>
     imageProviderCatalogEntries(providerId, config)
   );
   const aliasModels = Object.entries(IMAGE_MODEL_ALIASES).flatMap(([alias, target]) => {

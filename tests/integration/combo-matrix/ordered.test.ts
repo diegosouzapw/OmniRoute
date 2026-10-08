@@ -93,9 +93,15 @@ test("round-robin: cycles through targets in batches (sticky limit = 3 default)"
     assert.equal(r.status, 200);
   }
   assert.deepEqual(h.providersSeen(), [
-    "openai", "openai", "openai",
-    "claude", "claude", "claude",
-    "gemini", "gemini", "gemini",
+    "openai",
+    "openai",
+    "openai",
+    "claude",
+    "claude",
+    "claude",
+    "gemini",
+    "gemini",
+    "gemini",
   ]);
 });
 

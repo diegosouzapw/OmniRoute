@@ -195,13 +195,13 @@ service ہے (یعنی: WordPress طرز کا plugin) — سخت opt-in۔
 
 ## بلڈ پروفائل: `minimal`
 
-جن صارفین کو Socket کے موافق آرٹی فیکٹ درکار ہو، وہ اس کے ساتھ بلڈ کریں:
+ان صارفین کے لیے جنہیں Socket-موافق آرٹیفیکٹ درکار ہو، اس کمانڈ سے بلڈ کریں:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-webpack کا `NormalModuleReplacementPlugin` چار ماڈیولز کو اسٹبز سے الیاس کرتا ہے:
+webpack کا `NormalModuleReplacementPlugin` چار ماڈیولز کو اسٹبز سے عرف دیتا ہے:
 
 | ماڈیول                                      | اسٹب                                             |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -210,11 +210,11 @@ webpack کا `NormalModuleReplacementPlugin` چار ماڈیولز کو اسٹب
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-ہر اسٹب وہی انٹرفیس ایکسپورٹ کرتا ہے، لیکن ہر فنکشن رن ٹائم پر
-`featureDisabledError(name)` تھرو کرتا ہے۔ غیر فعال کردہ ماڈیول پر منحصر روٹس، حساس کوڈ پاتھ کو فعال کرنے کے بجائے واضح پیغام کے ساتھ HTTP 503 واپس کرتے ہیں۔
+ہر اسٹب وہی سطح برآمد کرتا ہے، لیکن ہر فنکشن رن ٹائم پر
+`featureDisabledError(name)` تھرو کرتا ہے۔ غیر فعال ماڈیول پر منحصر روٹس
+حساس کوڈ پاتھ فعال کرنے کے بجائے ایک واضح پیغام کے ساتھ HTTP 503 واپس کرتے ہیں۔
 
-نتیجتاً بننے والے بنڈل کو `omniroute-secure` کے طور پر شائع کیا جانا مقصود ہے۔ اشاعت کے طریقۂ کار کے لیے
-`docs/ops/PUBLISHING_SECURE.md` دیکھیں۔
+نتیجے میں بننے والے بنڈل کو `omniroute-secure` کے طور پر شائع کرنا مقصود ہے۔
 
 ---
 

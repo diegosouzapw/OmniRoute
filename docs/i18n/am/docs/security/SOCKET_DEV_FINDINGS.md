@@ -180,13 +180,13 @@ rawBody)`) ይፈትሻል። ሚስጥሩ ከተዋቀረ፣ ፊርማው ያ�
 
 ## የግንባታ መገለጫ፦ `minimal`
 
-ለSocket ምቹ የሆነ አርቲፋክት ለሚፈልጉ ተጠቃሚዎች፣ የሚከተለውን በመጠቀም ይገንቡ፦
+ለSocket ተስማሚ የሆነ artifact ለሚፈልጉ ተጠቃሚዎች፣ በሚከተለው ይገንቡ፦
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-የwebpack `NormalModuleReplacementPlugin` አራት ሞጁሎችን ወደ stub ትግበራዎች ያመሳክራል፦
+የwebpack `NormalModuleReplacementPlugin` አራት ሞጁሎችን ወደ stubs በalias ያገናኛል፦
 
 | ሞጁል                                         | Stub                                             |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -195,12 +195,11 @@ OMNIROUTE_BUILD_PROFILE=minimal npm run build
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-እያንዳንዱ stub ተመሳሳዩን በይነገጽ ወደ ውጭ ይልካል፣ ነገር ግን እያንዳንዱ ፈንክሽን በአሂድ ጊዜ
-`featureDisabledError(name)`ን ይጥላል። በተሰናከለው ሞጁል ላይ የሚመሰረቱ መስመሮች፣
-ስሱ የኮድ መንገዱን ከማግበር ይልቅ ግልጽ መልዕክት ያለውን HTTP 503 ይመልሳሉ።
+እያንዳንዱ stub ተመሳሳይ በይነገጽን ወደ ውጭ ያቀርባል፣ ነገር ግን እያንዳንዱ function በruntime ላይ
+`featureDisabledError(name)` ይጥላል። በተሰናከለው ሞጁል ላይ የሚመሰረቱ routes፣
+ስሱን የኮድ መንገድ ከማግበር ይልቅ ግልጽ ከሆነ መልዕክት ጋር HTTP 503 ይመልሳሉ።
 
-የተገኘው bundle እንደ `omniroute-secure` እንዲታተም የታሰበ ነው። የህትመት መመሪያውን
-ለማየት `docs/ops/PUBLISHING_SECURE.md`ን ይመልከቱ።
+የተፈጠረው bundle እንደ `omniroute-secure` ለመታተም የታሰበ ነው።
 
 ---
 

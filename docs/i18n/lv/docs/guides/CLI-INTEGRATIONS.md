@@ -4,11 +4,30 @@
 
 ---
 
-OmniRoute piegādā `setup-*` komandu saimi, kas konfigurē kodēšanas CLI (Codex, Claude Code, OpenCode, Cline, …), lai izmantotu OmniRoute kā savu aizmugursistēmu — tādējādi rīks sazinās ar **vienu** galapunktu, un OmniRoute maršrutē uz pareizo pakalpojumu sniedzēju ar automātisku atkritienu. Katra komanda nolasa **tiešraides** modeļu katalogu no darbojošās OmniRoute (vietējās vai attālās) un raksta rīka konfigurācijas failu **jūsu** mašīnā. API atslēga tiek atsauce uz vides mainīgo, kur vien rīks to atbalsta. Komandas, kas saglabā rīka lokālo vides failu, ir norādītas zemāk.
+Informāciju par koplietojamo izpildāmo failu manifestu, ierobežotām bērnprocesu vidēm un pastāvīgo
+Gemini iestatīšanu skatiet sadaļā [CLI palaišanas līgumi](./CLI-LAUNCH-CONTRACTS.md).
 
-Ir arī vispārīgs palaidējs — `omniroute run <target>` —, kas palaiž `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` vai `gemini` ar pareizi injicētu vidi, nerakstot nekādu konfigurāciju. Mērķi un to aizstājvārdi nāk no kanoniskā manifesta `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), un `omniroute completion` piedāvā tos pašus no manifesta atvasinātos mērķa vārdus. Mantotie rīku palaidēji — `omniroute launch` (Claude Code) un `omniroute launch-codex` (Codex) — joprojām ir pieejami.
+OmniRoute nodrošina `setup-*` komandu saimi, kas konfigurē programmēšanas
+CLI (Codex, Claude Code, OpenCode, Cline, …), lai tas izmantotu OmniRoute kā savu aizmugursistēmu — tādējādi
+rīks sazinās ar **vienu** galapunktu, bet OmniRoute novirza pieprasījumus pareizajam pakalpojumu sniedzējam ar
+automātisku rezerves varianta izmantošanu. Katra komanda nolasa **aktuālo** modeļu katalogu no palaistas
+OmniRoute instances (lokālas vai attālas) un ieraksta paša rīka konfigurācijas failu **jūsu**
+datorā. API atslēge tiek norādīta, izmantojot vides mainīgo, ja vien rīks
+to atbalsta. Komandas, kas saglabā rīka lokālo vides failu, ir norādītas tālāk.
 
-Pakalpojumu sniedzēju iekļaušana ir pieejama no tā paša lokālā/attālās konteksta. Zemāk norādītās API-pirmās komandas saglabā pārvaldības autentifikāciju atsevišķi no pakalpojumu sniedzēju akreditācijas datiem un nekad neizdrukā akreditācijas datus strukturētā izvadā:
+Ir pieejams arī vispārīgs palaidējs — `omniroute run <target>` —, kas palaiž
+`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` vai `gemini` ar
+ievadītiem atbilstošajiem vides mainīgajiem, vispār neierakstot konfigurāciju. Mērķi un to
+aizstājvārdi tiek iegūti no kanoniskā manifesta `bin/cli/cli-manifest.mjs`
+(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
+`open-code`, `qwen-code`, `gemini-cli`), un `omniroute completion` piedāvā
+tos pašus no manifesta atvasinātos mērķu vārdus. Mantotie katram rīkam paredzētie palaidēji —
+`omniroute launch` (Claude Code) un `omniroute launch-codex` (Codex) — joprojām ir
+pieejami.
+
+Pakalpojumu sniedzēju sākotnējā iestatīšana ir pieejama tajā pašā lokālajā/attālajā kontekstā. Tālāk norādītās
+uz API orientētās komandas nodala pārvaldības autentifikāciju no pakalpojumu sniedzēja
+akreditācijas datiem un nekad neizvada akreditācijas datus strukturētā izvadē:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -18,17 +37,25 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Skriptiem dodiet priekšroku `--credential-stdin` vai `--credential-env`; `--credential` tiek saglabāts kontrolētai vietējai lietošanai. `providers remove` neinteraktīvā terminālī prasa `--yes`, un visas piecas komandas ievēro aktīvo kontekstu vai globālās `--base-url`/`--api-key` opcijas.
+Skriptos ieteicams izmantot `--credential-stdin` vai `--credential-env`; opcija `--credential`
+ir saglabāta kontrolētai lokālai lietošanai. Neinteraktīvā terminālī komandai `providers remove` ir nepieciešama opcija `--yes`,
+un visas piecas komandas izmanto aktīvo kontekstu vai globālās
+`--base-url`/`--api-key` opcijas.
 
-Pakalpojumu sniedzēju selektori noraida neskaidrus ID prefiksus, nosaukumus vai pakalpojumu sniedzēju nosaukumus; izmantojiet pilnu savienojuma ID, ja atbilst vairāki savienojumi. Izveidošanas un rediģēšanas komandas nolasa saglabāto savienojumu atpakaļ, un noņemšana pārbauda, vai tas vairs nav lasāms. Imports izlaiž esošu pakalpojumu sniedzēja/nosaukuma pāri. Importētie ieraksti nevar ignorēt pārvaldības galapunktu, kontekstu vai pārvaldības akreditācijas datus, kas piegādāti CLI.
+Pakalpojumu sniedzēju selektori noraida neviennozīmīgus ID prefiksus, nosaukumus vai pakalpojumu sniedzēju nosaukumus; ja atbilst
+vairāki savienojumi, izmantojiet pilnu savienojuma ID. Izveides un rediģēšanas komandas atkārtoti nolasa
+saglabāto savienojumu, bet noņemšanas komanda pārbauda, vai tas vairs nav nolasāms.
+Importēšana izlaiž jau esošu pakalpojumu sniedzēja/nosaukuma pāri. Importētie ieraksti nevar pārrakstīt
+CLI norādīto pārvaldības galapunktu, kontekstu vai pārvaldības akreditācijas datus.
 
-Vienreizējai, ar roku rakstītai divu bagātīgāko integrāciju pamata iestatīšanai skatiet detalizētās rīku analīzes:
+Informāciju par divu funkcijām bagātāko integrāciju vienreizējo, manuāli izveidoto pamatkonfigurāciju skatiet
+katram rīkam veltītajos detalizētajos aprakstos:
 
 - [Claude Code konfigurācija](./CLAUDE-CODE-CONFIGURATION.md)
 - [Codex CLI konfigurācija](./CODEX-CLI-CONFIGURATION.md)
-- [Attālais režīms](./REMOTE-MODE.md) — vadiet attālo OmniRoute (VPS / Tailnet) no sava klēpjdatora
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot paplašinājums; tas var arī palaist šīs
-  `setup-*` komandas jūsu vietā no redaktora iekšienes
+- [Attālais režīms](./REMOTE-MODE.md) — pārvaldiet attālu OmniRoute instanci (VPS / Tailnet) no sava klēpjdatora
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot paplašinājums; tas var arī izpildīt šīs
+  `setup-*` komandas jūsu vietā tieši redaktorā
 
 ---
 

@@ -237,16 +237,16 @@ Mfumo wa uzalishaji huendeshwa sambamba na compose ya uundaji (majina ya kontena
 
 ## Hatua za Dockerfile
 
-Hazina huja na Dockerfile ya hatua nyingi (`Dockerfile`). Hatua nne zimetolewa; chagua `target` inayofaa kwa matumizi yako.
+Hifadhi hii inakuja na Dockerfile ya hatua nyingi (`Dockerfile`). Hatua nne zinapatikana; chagua `target` inayofaa kwa matumizi yako.
 
-| Hatua         | Taswira msingi        | Madhumuni                                                                                                                                                                                                                                                                                                     |
-| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Husakinisha vitegemezi (`npm ci --legacy-peer-deps`) na kutekeleza `npm run build` (Turbopack kwa chaguo-msingi — tazama Rasilimali za wakati wa uundaji hapa chini)                                                                                                                                          |
-| `runner-base` | `node:26-trixie-slim` | Mazingira ya utekelezaji wa uzalishaji yenye matokeo huru ya Next.js. **Hayajumuishi CLI za watoa huduma.**                                                                                                                                                                                                   |
-| `runner-cli`  | `runner-base`         | Huongeza `git`, `docker.io`, `docker-compose` na CLI za kimataifa: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Chagua hii kwa mitiririko ya kazi inayotumia mawakala.**                                                                                                              |
-| `runner-web`  | `runner-base`         | Huongeza Playwright + kivinjari cha Chromium (`--with-deps`) kwa watoa huduma wa vipindi vya wavuti: `gemini-web`, `claude-web`, `claude-turnstile`. **Chagua hii unapotumia watoa huduma hao** — taswira ya kawaida hushindwa wakati wa ombi bila hiyo (tazama dokezo la `-web` chini ya Vituo vya Matoleo). |
+| Hatua         | Taswira msingi        | Madhumuni                                                                                                                                                                                                                                                                                                 |
+| ------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Husakinisha vitegemezi (`npm ci --legacy-peer-deps`) na kuendesha `npm run build` (Turbopack kwa chaguo-msingi — tazama Rasilimali za wakati wa ujenzi hapa chini)                                                                                                                                        |
+| `runner-base` | `node:26-trixie-slim` | Mazingira ya utekelezaji ya uzalishaji yenye matokeo ya kujitegemea ya Next.js. **Hakuna CLI za watoa huduma zilizojumuishwa.**                                                                                                                                                                           |
+| `runner-cli`  | `runner-base`         | Huongeza `git`, `docker.io`, `docker-compose` na CLI za kimataifa: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Chagua hii kwa mitiririko ya kazi ya kiwakala.**                                                                                                                  |
+| `runner-web`  | `runner-base`         | Huongeza Playwright + kivinjari cha Chromium (`--with-deps`) kwa watoa huduma wa vipindi vya wavuti: `gemini-web`, `claude-web`, `claude-turnstile`. **Chagua hii unapotumia watoa huduma hao** — taswira ya kawaida hushindwa wakati wa ombi bila hiyo (tazama dokezo la `-web` chini ya Njia za Toleo). |
 
-Unda `target` mahususi mwenyewe:
+Jenga `target` mahususi mwenyewe:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
@@ -254,54 +254,60 @@ docker build --target runner-cli  -t omniroute:cli  .
 docker build --target runner-web  -t omniroute:web  .
 ```
 
-### Rasilimali za wakati wa uundaji
+### Rasilimali za wakati wa ujenzi
 
-Hoja tatu za uundaji hudhibiti gharama ya hatua ya `builder`. Zinatumika wakati wa uundaji pekee —
+Hoja tatu za ujenzi hudhibiti gharama ya hatua ya `builder`. Zinatumika wakati wa ujenzi pekee —
 `OMNIROUTE_MEMORY_MB` (hapa chini) ni kidhibiti tofauti cha wakati wa utekelezaji.
 
-| Hoja ya uundaji             | Chaguo-msingi | Athari                                                                                                    |
+| Hoja ya ujenzi              | Chaguo-msingi | Athari                                                                                                    |
 | --------------------------- | ------------- | --------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`           | `0` huunda kwa webpack badala yake. Kiwango cha juu cha kumbukumbu huwa kidogo, lakini ni polepole zaidi. |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`           | `0` hujenga kwa webpack: kumbukumbu ya kilele ni ndogo, lakini ni polepole zaidi. `1` huwasha Turbopack.  |
 | `OMNIROUTE_BUILD_MEMORY_MB` | `6144`        | Kikomo cha heap ya V8 (`--max-old-space-size`) kwa `next build` iliyoanzishwa.                            |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`           | Huweka thamani ya `CIRCLE_NODE_TOTAL`; Next hukokotoa `workers = N - 1` kwa ukusanyaji wa data za kurasa. |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`           | Hutoa thamani kwa `CIRCLE_NODE_TOTAL`; Next hukokotoa `workers = N - 1` kwa ukusanyaji wa data za kurasa. |
 
-`OMNIROUTE_BUILD_WORKERS` ndiyo ya kuongeza kwenye mazingira makubwa ya uundaji na ndiyo ya
-kutiliwa shaka wakati uundaji wenye rasilimali chache unapokatika **baada ya** `✓ Compiled successfully`. Kila
-mchakato wa data za kurasa ni mchakato wake binafsi, na mchakato mzazi wa `next build` pia ni tofauti;
-jaribio halisi kwenye VPS (suala #7518) lilipima kilele cha RSS cha kila mchakato kuwa
-~4.5 GB bila kutegemea alama ya heap ya `NODE_OPTIONS` (Turbopack hukusanya katika
-kumbukumbu asilia/ya Rust iliyo nje ya heap ya V8). Chaguo-msingi la `2` (→ mchakato 1 wa kazi, jumla ya
-michakato 2) limepangwa kwa runners zinazohifadhiwa na GitHub zenye 16 GB / vCPU 4 ambazo
-mchakato wa uchapishaji hutumia. Ikiwa `8` (→ michakato 7 ya kazi), runner hiyo iliishiwa kumbukumbu na
+`OMNIROUTE_BUILD_WORKERS` ndiyo inayopaswa kuongezwa kwenye mashine kubwa ya ujenzi na ndiyo
+inayopaswa kutiliwa shaka wakati ujenzi wenye rasilimali chache unapokufa **baada ya** `✓ Compiled successfully`. Kila
+mfanyakazi wa data za kurasa ni mchakato wake wenyewe, na vivyo hivyo kwa mchakato mkuu wa `next build`;
+jaribio halisi kwenye VPS (suala #7518) lilipima RSS ya kilele ya kila mchakato kuwa
+~4.5 GB bila kutegemea bendera ya heap ya `NODE_OPTIONS` (Turbopack hukusanya katika
+kumbukumbu asilia/Rust iliyo nje ya heap ya V8). Chaguo-msingi la `2` (→ mfanyakazi 1, jumla ya
+michakato 2) limepangwa kwa vitekelezaji vya 16 GB / vCPU 4 vinavyohifadhiwa na GitHub ambavyo
+mtiririko wa uchapishaji hutumia. Ikiwa `8` (→ wafanyakazi 7), kitekelezaji hicho kilishiwa kumbukumbu na
 buildkit ikashindwa kutekeleza hatua kwa `ResourceExhausted: ... cannot allocate memory`;
-`3` (→ michakato 2 ya kazi) bado haikutoshea baada ya RSS ya kila mchakato kupimwa
+`3` (→ wafanyakazi 2) bado haikutoshea baada ya RSS ya kila mchakato kupimwa
 moja kwa moja badala ya kukadiriwa. `tests/unit/docker-build-memory-budget.test.ts`
-hufanya hesabu kwa kutumia thamani iliyopimwa na hushindwa ikiwa kidhibiti chochote
-kinazidi uwezo wa runner.
+hufanya hesabu dhidi ya thamani iliyopimwa na hushindwa ikiwa mojawapo ya vidhibiti
+itazidi uwezo wa kitekelezaji.
 
-Turbopack hukusanya katika kumbukumbu asilia ya Rust ambayo ipo **nje** ya heap ya V8, kwa hiyo
-`OMNIROUTE_BUILD_MEMORY_MB` haiiwekei kikomo. Kwenye host yenye kikomo cha kumbukumbu,
-uundaji huuawa kwa SIGKILL na OOM killer bila maandishi yoyote ya hitilafu — husimama tu
+Turbopack hukusanya katika kumbukumbu asilia ya Rust iliyo **nje** ya heap ya V8, kwa hivyo
+`OMNIROUTE_BUILD_MEMORY_MB` haiwekei kikomo. Kwenye seva yenye kikomo cha kumbukumbu,
+ujenzi kisha hupewa SIGKILL na kiua-michakato cha OOM bila maandishi yoyote ya hitilafu — husimama tu
 katikati ya `Creating an optimized production build`, jambo linaloonekana kama kukwama badala
-ya kuishiwa kumbukumbu. Ikiwa host ya uundaji ina rasilimali chache, badilisha bundler:
+ya kuishiwa kumbukumbu. Ndiyo maana `Dockerfile` hutumia webpack kwa chaguo-msingi
+(`OMNIROUTE_USE_TURBOPACK=0`), tofauti na `npm run dev` / `npm run build`, ambapo
+Turbopack ndiyo chaguo-msingi la msimbo: `docker build .` ya kawaida bila hoja za ujenzi (ambayo
+Railway na watoa huduma wengine wa mbofyo mmoja huendesha) haipaswi kufa kimya kwenye
+mashine ya ujenzi yenye kikomo cha kumbukumbu. Taswira zilizochapishwa tayari hupitisha
+`OMNIROUTE_USE_TURBOPACK=0` waziwazi katika `docker-publish.yml`. Kwenye mashine ya ujenzi
+yenye RAM ya kutosha, washa Turbopack ili kupata ujenzi wa haraka zaidi:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` imewezeshwa, kwa hiyo `next build` huendesha mchakato mzazi **na** mchakato
-wa kazi, na kila mmoja huzingatia `OMNIROUTE_BUILD_MEMORY_MB` kivyake. Weka kikomo cha
+`webpackBuildWorker` imewashwa, kwa hivyo `next build` huendesha mchakato mkuu **na** mchakato
+wa mfanyakazi, na kila mmoja huheshimu `OMNIROUTE_BUILD_MEMORY_MB` kivyake. Weka kikomo cha
 kontena juu ya takribani mara mbili ya thamani hiyo, si mara moja.
 
-Ilipimwa kwenye muundo huu (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
+Vipimo kwenye mti huu (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Bundler   | Kikomo cha kontena | Matokeo                                 |
-| --------- | ------------------ | --------------------------------------- |
-| Turbopack | 8 GiB / 16 GiB     | Iliuawa na OOM katika zote, kimyakimya  |
-| webpack   | 8 GiB              | Mchakato wa uundaji uliuawa kwa SIGKILL |
-| webpack   | 12 GiB             | Ilifanikiwa, kilele kilikuwa 11.1 GiB   |
+| Kifungashaji | Kikomo cha kontena | Matokeo                              |
+| ------------ | ------------------ | ------------------------------------ |
+| Turbopack    | 8 GiB / 16 GiB     | Iliuliwa na OOM kwa vyote, kimya     |
+| webpack      | 8 GiB              | Mfanyakazi wa ujenzi alipewa SIGKILL |
+| webpack      | 12 GiB             | Ilifaulu, kilele kilikuwa 11.1 GiB   |
 
 ### Chaguo-msingi za wakati wa utekelezaji
 
@@ -310,24 +316,24 @@ Chaguo-msingi zinazosafirishwa na `runner-base`: `PORT=20128`, `HOSTNAME=0.0.0.0
 Tabia ya kumbukumbu katika Docker:
 
 - Image huweka `OMNIROUTE_MEMORY_MB=1024` na hutengeneza `NODE_OPTIONS=--max-old-space-size=1024` kutokana nayo.
-- Mchakato halisi wa seva huanzishwa na kizinduzi huru, ambacho husoma `OMNIROUTE_MEMORY_MB` na kuambatisha `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
-- Node hutumia thamani ya mwisho iliyorudiwa ya `--max-old-space-size`, kwa hivyo kuweka `OMNIROUTE_MEMORY_MB` hudhibiti kikomo halisi cha heap ya Docker.
-- Kwa sababu image huiweka kila wakati, thamani mbadala ya kizinduzi iliyorekebishwa kulingana na RAM haitumiki kamwe chini ya Docker. Iongeze waziwazi kulingana na mzigo wa kazi (jedwali hapa chini). `2048` bado ni ndogo mno kwa `/v1/responses` za mawakala wa uandishi wa msimbo.
+- Mchakato halisi wa seva huanzishwa na kizinduzi cha pekee, ambacho husoma `OMNIROUTE_MEMORY_MB` na kuongeza `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
+- Node hutumia thamani ya mwisho ya `--max-old-space-size` iliyorudiwa, kwa hivyo kuweka `OMNIROUTE_MEMORY_MB` hudhibiti kikomo halisi cha heap cha Docker.
+- Kwa sababu image huiweka kila wakati, thamani mbadala ya kizinduzi iliyorekebishwa kulingana na RAM haitumiki kamwe chini ya Docker. Iongeze waziwazi kulingana na mzigo wa kazi (jedwali hapa chini). `2048` bado ni ndogo mno kwa `/v1/responses` ya wakala wa uandishi wa msimbo.
 
 ### RAM ya wakati wa utekelezaji kwa mawakala wa uandishi wa msimbo
 
-Chaguomsingi la Docker la GiB 1 ni kiwango cha chini kwa dashibodi/mazungumzo mepesi, si ukubwa wa uzalishaji. Miili mirefu ya `POST /v1/responses` (mamia ya ujumbe, makumi ya zana) huhifadhi grafu nyingi kwenye kumbukumbu wakati wa ubanaji. Maombi mawili yanayopishana ya takribani MiB 3 / tokeni 750k kila moja yamesababisha V8 kusitishwa kwenye old-space ya **GiB 12** (`FATAL ERROR: Reached heap limit`) na pia kufikia OOM ya cgroup ya GiB 16. Angalia [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Chaguo-msingi la Docker la GiB 1 ni kiwango cha chini kwa dashibodi/mazungumzo mepesi, si ukubwa wa matumizi halisi. Miili mirefu ya `POST /v1/responses` (mamia ya ujumbe, makumi ya zana) huhifadhi grafu nyingi ndani ya kumbukumbu wakati wa ubanaji. Maombi mawili yanayopishana ya takriban MiB 3 / tokeni 750k yamesababisha V8 kukatiza utekelezaji ikiwa na old-space ya **GiB 12** (`FATAL ERROR: Reached heap limit`) na pia yamefikia hitilafu ya cgroup OOM ya GiB 16. Tazama [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Weka ukubwa wa **cgroup `--memory` juu ya heap** — vihifadhi asili, SQLite, na data za kati za ubanaji ziko nje ya V8.
+Weka ukubwa wa **cgroup `--memory` juu ya heap** — vihifadhi vya asili, SQLite, na data za kati za ubanaji ziko nje ya V8.
 
-| Mzigo wa kazi                                          | `OMNIROUTE_MEMORY_MB`                | Kontena / cgroup                  | Maelezo                                                                                                             |
-| ------------------------------------------------------ | ------------------------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Dashibodi, mazungumzo mepesi moja                      | `1024` (chaguomsingi la image)       | ≥2 GiB                            |                                                                                                                     |
-| Wakala mmoja wa uandishi wa msimbo (Claude/Codex/Grok) | `8192`                               | ≥10 GiB                           | Kipindi kimoja cha kawaida cha `/v1/responses`                                                                      |
-| `/v1/responses` mbili ndefu kwa wakati mmoja           | `10240`–`12288`                      | ≥12–16 GiB                        | Kusitishwa kwa V8 kulikopimwa kwenye heap ya takribani GiB 12                                                       |
-| Muktadha mirefu mitatu au zaidi kwa wakati mmoja       | usifanye hivyo katika mchakato mmoja | tekeleza kwa mfuatano / RAM zaidi | Chaguomsingi la upokeaji wa kazi nzito ni kazi 1 inayoendelea; kuliongeza bila RAM hurudisha hitilafu ya kusitishwa |
+| Mzigo wa kazi                                          | `OMNIROUTE_MEMORY_MB`               | Kontena / cgroup                | Maelezo                                                                                                                  |
+| ------------------------------------------------------ | ----------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Dashibodi, gumzo moja jepesi                           | `1024` (chaguo-msingi la image)     | ≥2 GiB                          |                                                                                                                          |
+| Wakala mmoja wa uandishi wa msimbo (Claude/Codex/Grok) | `8192`                              | ≥10 GiB                         | Kipindi kimoja cha kawaida cha `/v1/responses`                                                                           |
+| `/v1/responses` mbili ndefu kwa wakati mmoja           | `10240`–`12288`                     | ≥12–16 GiB                      | Ukatizaji wa V8 ulipimwa kwenye heap ya takriban GiB 12                                                                  |
+| Miktadha mitatu au zaidi mirefu kwa wakati mmoja       | usifanye hivi katika mchakato mmoja | panga kwa mfululizo / RAM zaidi | Kwa chaguo-msingi, ombi 1 zito huruhusiwa kutekelezwa kwa wakati mmoja; kuongeza idadi hiyo bila RAM hurejesha ukatizaji |
 
-`omniroute serve` kwenye bare metal hurekebisha takribani 35% ya RAM (ikiwa imewekewa mipaka ya `[512, 4096]`) wakati `OMNIROUTE_MEMORY_MB` **haijawekwa**. Docker huweka `1024` kila wakati, kwa hivyo urekebishaji huo hautekelezwi kamwe kwenye image rasmi.
+`omniroute serve` kwenye bare metal hurekebisha takriban 35% ya RAM (ikiwa imewekewa mipaka ya `[512, 4096]`) wakati `OMNIROUTE_MEMORY_MB` **haijawekwa**. Docker huweka `1024` kila wakati, kwa hivyo urekebishaji huo hautekelezwi kamwe kwenye image rasmi.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

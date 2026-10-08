@@ -266,6 +266,8 @@ test("#10788 registry base rows declare the same tiers EFFORT_TIERS parses", () 
     "qwen3.6-plus": ["high", "max"],
     "qwen3.7-max": ["high", "max"],
     "qwen3.7-plus": ["high", "max"],
+    "muse-spark-1.2-contributor": ["minimal", "low", "medium", "high", "xhigh"],
+    "muse-spark-1.3-contributor": ["minimal", "low", "medium", "high", "xhigh"],
   };
   for (const providerId of ["opencode-go", "opencode-zen"]) {
     const entry = REGISTRY[providerId];

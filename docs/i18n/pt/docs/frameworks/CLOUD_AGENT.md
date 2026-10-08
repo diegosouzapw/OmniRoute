@@ -305,24 +305,29 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 fornecedor externo — não existe um RPC de interrupção em `CloudAgentBase`. Para interromper a faturação
 externa, termine a tarefa na consola do próprio fornecedor.
 
-## API REST — Infraestrutura de Fornecedores Cloud
+## REST API — Integração com Fornecedores de Cloud
 
 Estes endpoints auxiliares em `src/app/api/cloud/` são utilizados por clientes remotos
-(a CLI, a aplicação Electron ou workers de sincronização) para ler metadados de ligação
-do fornecedor e resolver aliases de modelos. São autenticados com uma **chave de API normal**
-(através de `validateApiKey`), e não com a autenticação de gestão utilizada pelos endpoints de tarefas.
+(a CLI, a aplicação Electron ou processos de sincronização) para ler metadados de ligação
+a fornecedores e resolver aliases de modelos. São autenticados com uma **chave de API**
+(através de `validateApiKey`), e não com a autenticação de gestão utilizada pelos endpoints de tarefas; o que
+`/api/cloud/auth` devolve depende do âmbito da chave (ver abaixo).
 
-| Método | Caminho                         | Finalidade                                                                            |
-| ------ | ------------------------------- | ------------------------------------------------------------------------------------- |
-| POST   | `/api/cloud/auth`               | Validar a chave de API e devolver metadados de ligação ocultados + aliases de modelos |
-| PUT    | `/api/cloud/credentials/update` | Atualizar `accessToken` / `refreshToken` / `expiresAt`                                |
-| POST   | `/api/cloud/model/resolve`      | Resolver um alias de modelo para `{ provider, model }`                                |
-| GET    | `/api/cloud/models/alias`       | Listar todos os aliases de modelos                                                    |
-| PUT    | `/api/cloud/models/alias`       | Definir um alias de modelo (e sincronizar automaticamente com a Cloud, se ativado)    |
+| Método | Caminho                         | Finalidade                                                                             |
+| ------ | ------------------------------- | -------------------------------------------------------------------------------------- |
+| POST   | `/api/cloud/auth`               | Validar a chave de API e devolver metadados de ligação mascarados + aliases de modelos |
+| PUT    | `/api/cloud/credentials/update` | Atualizar `accessToken` / `refreshToken` / `expiresAt`                                 |
+| POST   | `/api/cloud/model/resolve`      | Resolver um alias de modelo para `{ provider, model }`                                 |
+| GET    | `/api/cloud/models/alias`       | Listar todos os aliases de modelos                                                     |
+| PUT    | `/api/cloud/models/alias`       | Definir um alias de modelo (e sincronizar automaticamente com a Cloud, se ativado)     |
 
-`/api/cloud/auth` nunca devolve `apiKey` / `accessToken` / `refreshToken` em bruto.
-Devolve `hasApiKey`, `hasAccessToken`, `hasRefreshToken` e uma pré-visualização ocultada
-(`maskedApiKey`: primeiros 4 + `****` + últimos 4).
+`/api/cloud/auth` nunca devolve `apiKey` / `accessToken` / `refreshToken` sem ocultação. Em vez disso,
+devolve `hasApiKey`, `hasAccessToken`, `hasRefreshToken` para as ligações ativas que a chave
+pode utilizar (uma chave restrita através de `allowedConnections` vê apenas essas ligações). Para uma chave de API com
+o âmbito `manage` ou `admin`, incluindo a chave de implementação de `OMNIROUTE_API_KEY`, também
+devolve uma pré-visualização mascarada (`maskedApiKey`: até 4 caracteres em cada extremidade, menos para uma chave
+curta e nenhum para chaves com 8 caracteres ou menos) e o `projectId` da ligação. Ambos os campos são
+omitidos da resposta para qualquer outra chave.
 
 ## Resolução de Credenciais
 

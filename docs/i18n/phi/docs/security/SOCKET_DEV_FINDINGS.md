@@ -209,9 +209,9 @@ na maisentralisa ang mga kredensyal ng team. Ginagawang malinaw ng pag-aayos ang
 
 ---
 
-## Build profile: `minimal`
+## Profile ng build: `minimal`
 
-Para sa mga user na nangangailangan ng artifact na angkop sa Socket, mag-build gamit ang:
+Para sa mga user na nangangailangan ng artifact na compatible sa Socket, mag-build gamit ang:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
@@ -227,12 +227,11 @@ Ina-alias ng webpack `NormalModuleReplacementPlugin` ang apat na module sa mga s
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
 Nag-e-export ang bawat stub ng parehong interface, ngunit naghahagis ang bawat function ng
-`featureDisabledError(name)` sa runtime. Nagbabalik ang mga route na nakadepende sa naka-disable na
-module ng HTTP 503 na may malinaw na mensahe sa halip na i-activate ang
+`featureDisabledError(name)` sa runtime. Ang mga route na nakadepende sa naka-disable na
+module ay nagbabalik ng HTTP 503 na may malinaw na mensahe sa halip na i-activate ang
 sensitibong code path.
 
-Nilalayong i-publish ang mabubuong bundle bilang `omniroute-secure`. Tingnan ang
-`docs/ops/PUBLISHING_SECURE.md` para sa proseso ng pag-publish.
+Ang resultang bundle ay nilalayong i-publish bilang `omniroute-secure`.
 
 ---
 

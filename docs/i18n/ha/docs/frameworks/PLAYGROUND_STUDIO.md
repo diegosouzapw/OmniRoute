@@ -190,14 +190,14 @@ Auth: na zaɓi (`REQUIRE_API_KEY`). Kurakurai ta hanyar `buildErrorBody()` (Doka
 
 ## Magance Matsaloli
 
-| Alama                                        | Dalili                                  | Gyara                                                                                               |
-| -------------------------------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Editan Monaco ba ya bayyana a shafin API     | SSR ya loda Monaco                      | Tabbatar `ApiTab` yana amfani da `dynamic(..., { ssr: false })`                                     |
-| Rafukan kwatantawa suna aiki ɗaya bayan ɗaya | Amfani da `Promise.all` ba daidai ba    | Dole ne a fara duk rafukan a cikin kira guda na `Promise.all`                                       |
-| Ma'aunai suna nuna `null` TTFT               | Ba a haɗa mai kula da ɓangaren farko ba | Duba cewa ana kiran `useStreamMetrics.onFirstChunk()` a cikin madaukin mai karanta SSE              |
-| Saitin da aka riga aka tanada ba ya dawwama  | Ba a gudanar da ƙaura ta DB ba          | Gudanar da `npm run db:migrate` ko sake kunna sabar (ƙaurar tana gudana ta atomatik lokacin farawa) |
-| Inganta prompt yana dawo da 502              | Ba a saita model a cikin Config ba      | Dole ne mai amfani ya shigar da sunan model a sashen Config kafin ingantawa                         |
-| Lambar fitarwa tana nuna `MISSING_API_KEY`   | Ba a saka alamar maye gurbi ba          | `codeExport.ts` koyaushe yana amfani da `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`                |
+| Alama                                          | Dalili                                  | Gyara                                                                                  |
+| ---------------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------- |
+| Editan Monaco ba ya bayyana a shafin API       | SSR ya loda Monaco                      | Tabbatar `ApiTab` yana amfani da `dynamic(..., { ssr: false })`                        |
+| Rafukan kwatantawa suna farawa ɗaya bayan ɗaya | Amfani da `Promise.all` ba daidai ba    | Dole ne a ƙaddamar da dukkan rafukan lokaci guda a cikin kira ɗaya na `Promise.all`    |
+| Ma'aunai suna nuna `null` TTFT                 | Ba a haɗa mai sarrafa ɓangaren farko ba | Duba cewa ana kiran `useStreamMetrics.onFirstChunk()` a cikin madaukin mai karanta SSE |
+| Preset ba ya dawwama                           | Ba a gudanar da ƙaura ta DB ba          | Sake kunna sabar: ana gudanar da ƙaura ta atomatik yayin farawa                        |
+| Improve prompt yana dawo da 502                | Ba a saita model a Config ba            | Dole ne mai amfani ya shigar da sunan model a ɓangaren Config kafin ingantawa          |
+| Lambar fitarwa tana nuna `MISSING_API_KEY`     | Ba a saka placeholder ba                | `codeExport.ts` koyaushe yana amfani da `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`   |
 
 ---
 

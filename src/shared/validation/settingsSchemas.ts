@@ -229,6 +229,9 @@ export const updateSettingsSchema = z.object({
   debugMode: z.boolean().optional(),
   logToolSources: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
+  hiddenSidebarSections: z
+    .array(z.enum(SIDEBAR_SECTIONS.map((s) => s.id) as [string, ...string[]]))
+    .optional(),
   hiddenSidebarGroupLabels: z.array(z.enum(HIDEABLE_SIDEBAR_GROUP_IDS)).optional(),
   sidebarSectionOrder: z
     .array(z.enum(SIDEBAR_SECTIONS.map((s) => s.id) as [string, ...string[]]))
@@ -239,6 +242,12 @@ export const updateSettingsSchema = z.object({
     .nullable()
     .optional(),
   comboConfigMode: z.enum(COMBO_CONFIG_MODES).optional(),
+  // Opt-in combo sticky promote (#4852). Stored/read by getSettings + autoPromote.ts,
+  // but was never listed here — Zod silently strips unknown keys on PATCH /api/settings,
+  // so clients got HTTP 200 while comboAutoPromoteEnabled never persisted (same class of
+  // bug as hideAutoCombos in #13562 / #13800). Without this, operators cannot turn the
+  // flag off via API once it is true, and priority combos keep promoting last-success to #1.
+  comboAutoPromoteEnabled: z.boolean().optional(),
   codexServiceTier: z
     .object({
       enabled: z.boolean().optional(),
@@ -488,6 +497,12 @@ export const updateSettingsSchema = z.object({
   // the default (for providers that don't implement Anthropic's web_search server tool).
   // Empty/unset = disabled. Value is a model string ("provider,model" / alias / combo).
   webSearchRouteModel: z.string().max(200).optional(),
+  // Whole-request budget for /v1/search, in ms. Unset keeps the 15s constant.
+  // The floor matches the handler's minimum; the ceiling stops a typo from
+  // holding a worker for hours.
+  searchTimeoutMs: z.number().int().min(1_000).max(120_000).optional(),
+  // Per-provider timeout overrides in ms, keyed by search provider id.
+  searchProviderTimeoutsMs: z.record(z.string().max(60), z.number().int().min(1).max(120_000)).optional(),
   backgroundDegradation: z.unknown().optional(),
   bruteForceProtection: z.boolean().optional(),
   // Auto-routing settings

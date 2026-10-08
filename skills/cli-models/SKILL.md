@@ -17,6 +17,31 @@ omniroute --version
 
 ## Subcommands
 
+### `models test-add <model>`
+
+Validate an OpenAI-compatible model on one strict connection, then add it after a synthetic tool round-trip
+
+**Flags:**
+
+- `--provider <id>`
+- `--connection <id>`
+- `--name <name>`
+- `--max-input-tokens <count>`
+- `--max-output-tokens <count>`
+- `--api-format <format>`
+- `--context <name>`
+- `--base-url <url>`
+- `--allow-inference`
+- `--yes`
+- `--dry-run`
+- `--json`
+
+**Example:**
+
+```bash
+omniroute models test-add example-model --provider example-provider --connection example-connection --dry-run
+```
+
 ### `models [provider]`
 
 **Flags:**

@@ -47,6 +47,18 @@ function hasNonEmptyString(value: unknown): boolean {
   return typeof value === "string" && value.length > 0;
 }
 
+// A Claude thinking or signature delta is proof the model is working, even
+// when its payload carries no readable text (encrypted reasoning, empty
+// signature envelope). Presence of a non-empty `thinking` or `signature`
+// string on a typed delta object counts as liveness — never as user-visible
+// output. Plain `signature: ""` bootstraps stay excluded: only a non-empty
+// value passes.
+function hasThinkingLiveness(value: Record<string, unknown>): boolean {
+  const deltaType = value.type;
+  if (deltaType !== "thinking_delta" && deltaType !== "signature_delta") return false;
+  return hasNonEmptyString(value.thinking) || hasNonEmptyString(value.signature);
+}
+
 function hasUsefulValue(value: unknown): boolean {
   if (hasNonEmptyString(value)) return true;
   if (Array.isArray(value)) return value.some(hasUsefulValue);
@@ -59,6 +71,8 @@ function hasUsefulValue(value: unknown): boolean {
   // tripping the #8649 empty-content guard.
   // This shape is specific to Responses streams; chat-completion frames do not produce it.
   if (value.type === "compaction" && hasNonEmptyString(value.encrypted_content)) return true;
+
+  if (hasThinkingLiveness(value)) return true;
 
   for (const key of [
     "content",
@@ -246,6 +260,54 @@ export function frameHasStructuredStreamError(frame: string): boolean {
   return false;
 }
 
+const CLAUDE_REASONING_DELTA_TYPES = new Set(["thinking_delta", "signature_delta"]);
+const CLAUDE_REASONING_BLOCK_TYPES = new Set(["thinking", "redacted_thinking"]);
+const RESPONSES_ITEM_EVENTS = new Set(["response.output_item.added", "response.output_item.done"]);
+
+function isReasoningProgressPayload(payload: Record<string, unknown>, type: string): boolean {
+  if (type === "content_block_delta") {
+    const delta = isRecord(payload.delta) ? payload.delta : null;
+    return typeof delta?.type === "string" && CLAUDE_REASONING_DELTA_TYPES.has(delta.type);
+  }
+  if (type === "content_block_start") {
+    const block = isRecord(payload.content_block) ? payload.content_block : null;
+    return typeof block?.type === "string" && CLAUDE_REASONING_BLOCK_TYPES.has(block.type);
+  }
+  if (RESPONSES_ITEM_EVENTS.has(type)) {
+    return isRecord(payload.item) && payload.item.type === "reasoning";
+  }
+  return type.startsWith("response.reasoning");
+}
+
+/**
+ * True when an SSE frame shows a reasoning model still working: a Claude thinking block
+ * (start, thinking_delta or signature_delta, even with no visible thinking text) or an
+ * OpenAI Responses reasoning item or reasoning delta. These frames are not model output —
+ * an encrypted or omitted thought is not something the client can show, so
+ * hasUsefulStreamContent stays false for them (#8649) — but they prove the upstream is
+ * producing tokens rather than heartbeats, which the content-stall watchdog needs to know.
+ */
+export function isReasoningProgressFrame(frame: string): boolean {
+  if (!/thinking|signature|reasoning/.test(frame)) return false;
+  let eventType = "";
+  for (const line of frame.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("event:")) {
+      eventType = trimmed.slice(6).trim();
+      continue;
+    }
+    if (!trimmed.startsWith("data:")) continue;
+    try {
+      const parsed: unknown = JSON.parse(trimmed.slice(5).trim());
+      if (isRecord(parsed) && isReasoningProgressPayload(parsed, getPayloadType(parsed, eventType)))
+        return true;
+    } catch {
+      // non-JSON data lines carry no reasoning signal
+    }
+  }
+  return false;
+}
+
 export type StreamContentWatcher = {
   /** Feed a decoded slice of the client-facing stream. Safe to call with partial frames. */
   note: (text: string) => void;
@@ -253,6 +315,11 @@ export type StreamContentWatcher = {
   finish: () => void;
   /** True once any frame carried real model output (text, reasoning, or a tool call). */
   sawContent: () => boolean;
+  /**
+   * Reasoning-progress frames (isReasoningProgressFrame) seen before the first real
+   * output. Grows while a reasoning model thinks without visible output.
+   */
+  reasoningProgress: () => number;
   /** True once a terminal state was seen where emitting no content is valid. */
   sawLegitEmptyTerminal: () => boolean;
   /**
@@ -290,12 +357,14 @@ export function createStreamContentWatcher(): StreamContentWatcher {
   let legitEmpty = false;
   let sse = false;
   let error = false;
+  let progress = 0;
 
   const inspect = (frame: string): void => {
     if (!frame) return;
     if (!sse && SSE_FIELD_LINE.test(frame)) sse = true;
     if (!error && frameHasStructuredStreamError(frame)) error = true;
     if (!content && hasUsefulStreamContent(frame)) content = true;
+    if (!content && isReasoningProgressFrame(frame)) progress += 1;
     if (legitEmpty) return;
     for (const match of frame.matchAll(TERMINAL_REASON_PATTERN)) {
       if (LEGIT_EMPTY_TERMINAL_REASONS.has(match[1])) {
@@ -325,6 +394,7 @@ export function createStreamContentWatcher(): StreamContentWatcher {
       pending = "";
     },
     sawContent: () => content,
+    reasoningProgress: () => progress,
     sawLegitEmptyTerminal: () => legitEmpty,
     sawSseFrame: () => sse,
     sawError: () => error,
@@ -447,7 +517,7 @@ function createErrorResponse(
   );
 }
 
-function prependBufferedChunks(
+export function prependBufferedChunks(
   chunks: Uint8Array[],
   reader: ReadableStreamDefaultReader<Uint8Array>
 ): ReadableStream<Uint8Array> {
@@ -516,12 +586,18 @@ function prependBufferedChunks(
   });
 }
 
+class StreamReadinessReadTimeout extends Error {
+  constructor() {
+    super("STREAM_READINESS_TIMEOUT");
+  }
+}
+
 function readWithTimeout(
   reader: ReadableStreamDefaultReader<Uint8Array>,
   timeoutMs: number
 ): Promise<ReadableStreamReadResult<Uint8Array>> {
   return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => reject(new Error("STREAM_READINESS_TIMEOUT")), timeoutMs);
+    const timeout = setTimeout(() => reject(new StreamReadinessReadTimeout()), timeoutMs);
     reader.read().then(
       (value) => {
         clearTimeout(timeout);
@@ -625,7 +701,40 @@ export async function ensureStreamReadiness(
       const readStart = Date.now();
       try {
         readResult = await readWithTimeout(reader, remainingMs);
-      } catch {
+      } catch (error) {
+        // A source stream that errors before its first non-ping event (e.g. an
+        // executor watchdog giving up on a stalled upstream) must say so instead of
+        // claiming a readiness timeout. The code/type/status stay on the timeout class on
+        // purpose: STREAM_EARLY_EOF buys a same-connection retry (#3758), which would
+        // double the wait on a stream the executor already gave up on before the combo
+        // can fall back.
+        if (!(error instanceof StreamReadinessReadTimeout)) {
+          const classificationReason = "Stream failed before producing a non-ping SSE event";
+          const rawMessage = error instanceof Error ? error.message : String(error);
+          const upstreamDiagnostic = sanitizeErrorMessage(rawMessage).trim() || undefined;
+          const reason = upstreamDiagnostic
+            ? `${classificationReason}: ${upstreamDiagnostic}`
+            : classificationReason;
+          options.log?.warn?.(
+            "STREAM",
+            `${reason} (${options.provider || "provider"}/${options.model || "unknown"})`
+          );
+          return {
+            ok: false,
+            reason,
+            classificationReason,
+            ...(upstreamDiagnostic ? { upstreamDiagnostic } : {}),
+            code: "STREAM_READINESS_TIMEOUT",
+            type: "stream_timeout",
+            response: createErrorResponse(
+              HTTP_STATUS.GATEWAY_TIMEOUT,
+              classificationReason,
+              "STREAM_READINESS_TIMEOUT",
+              "stream_timeout",
+              upstreamDiagnostic
+            ),
+          };
+        }
         const reason = timeoutReason();
         options.log?.warn?.(
           "STREAM",

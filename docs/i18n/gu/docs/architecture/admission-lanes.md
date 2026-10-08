@@ -7,54 +7,54 @@
 OmniRoute માં અલગ-અલગ વ્યાપ ધરાવતી **બે** process-local lane સિસ્ટમ્સ છે. તેઓ
 એકબીજાની પૂરક છે; ઓપરેટર્સે જાણવું જોઈએ કે તેઓ કઈ સિસ્ટમ જોઈ રહ્યા છે.
 
-## 1. Byte-level process-wide admission (`chatBodyAdmission.ts`)
+## 1. બાઇટ-સ્તરીય પ્રક્રિયા-વ્યાપી પ્રવેશ (`chatBodyAdmission.ts`)
 
-- **વ્યાપ:** `POST /v1/chat/completions`,
-  `/v1/messages`, `/v1/responses` અને અન્ય chat-આકારના routes માટેનો buffered-body/heap પાથ.
-  મોટા coding-agent bodies થી થતા heap amplification સામે રક્ષણ આપે છે (#4380).
-- **દરેક key માટે અલગ lanes નહીં, પરંતુ એક process-global controller (#10110).** દરેક API key
-  (hashed) અથવા `anonymous` session **સમાન** shared budget સામે admission મેળવે છે —
-  hashed session id નો ઉપયોગ માત્ર fairness scheduling key તરીકે થાય છે (રાહ જોનારાઓ વચ્ચે
-  round-robin dispatch માટે), capacity shard તરીકે ક્યારેય નહીં. આ દસ્તાવેજના અગાઉના સંસ્કરણમાં
-  સ્વતંત્ર capacity ધરાવતી per-key lanes નું વર્ણન હતું; તે મોડેલને #10110 માં
-  દૂર કરવામાં આવ્યું હતું, કારણ કે તે અનધિકૃત નકલી credentials દ્વારા
-  process-wide bound ને ગુણાકારે વધારવાની મંજૂરી આપતું હતું.
-- **Gate (#503-fanout): આપમેળે નિર્ધારિત થતું ingest BYTE budget, નિશ્ચિત request
-  count નહીં.** લેગસી `CHAT_MAX_HEAVY_IN_FLIGHT` request-count cap (આ સુધારા પહેલાં
-  ડિફૉલ્ટ `1`) coding-agent fan-out (એકથી વધુ subagents/CLIs,
-  નિયમિત રીતે > 256 KB હોય તેવા bodies) ને ~1 ની અસરકારક concurrency સુધી સીમિત કરતું હતું,
-  જેના કારણે સંપૂર્ણપણે સામાન્ય load હેઠળ 503 પ્રતિસાદ મળતો હતો. હવે તે માત્ર ત્યારે જ લાગુ પડે છે
-  જ્યારે ઓપરેટર સ્પષ્ટ રીતે `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` સેટ કરે.
-  તેને સેટ ન રાખવામાં આવે તો admission ને તેના બદલે
-  `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` દ્વારા નિયંત્રિત કરવામાં આવે છે — આ budget
-  process ની વાસ્તવિક memory ceiling (`src/shared/middleware/admissionBudget.ts`) પરથી
-  આપમેળે નિર્ધારિત થાય છે: V8 heap limit અને કોઈપણ cgroup/container limit માંથી
-  વધુ કડક limit ના 25%, જેને 8x transient-amplification factor વડે ભાગવામાં આવે છે,
-  અને 8 MiB થી 2 GiB વચ્ચે મર્યાદિત કરવામાં આવે છે. સ્પષ્ટ overrides માટે પણ
-  સમાન મર્યાદાઓ વપરાય છે. આ કોઈ env tuning વિના 512 MB container થી
-  32 GB desktop સુધી જાતે scale થાય છે. Effective budget માં સમાવી ન શકાય તેવું
-  body તરત જ `413 body_exceeds_budget` સાથે નિષ્ફળ જાય છે; વ્યક્તિગત રીતે
-  સેવા આપી શકાય તેવા bodies વચ્ચેની contention જ bounded fairness queue માં પ્રવેશે છે.
-  Live multi-signal resource-pressure tracker (V8 heap ratio,
-  cgroup, PSI, OOM events — `open-sse/utils/resourcePressurePolicy.ts`) `high`
-  pressure હેઠળ bounded wait ઘટાડે છે અને કોઈપણ bytes ingest થાય તે પહેલાં
-  `critical` pressure હેઠળ `503 resource_pressure` સાથે તરત જ load ઘટાડે છે.
-  PSI ઉપલબ્ધ હોય ત્યારે આ unit ના cgroup `memory.pressure` માંથી વાંચવામાં આવે છે
+- **વ્યાપ:** `POST /v1/chat/completions`, `/v1/messages`, `/v1/responses`,
+  અને અન્ય ચેટ-આકારના રૂટ્સ માટેનો બફર કરેલ બોડી/હીપ પાથ. મોટા કોડિંગ-એજન્ટ
+  બોડીઝથી થતા હીપ એમ્પ્લિફિકેશન સામે રક્ષણ આપે છે (#4380).
+- **એક પ્રક્રિયા-વૈશ્વિક કંટ્રોલર, પ્રતિ-કી લેન નહીં (#10110).** દરેક API કી
+  (હૅશ કરેલી) અથવા `anonymous` સેશન **એ જ** વહેંચાયેલા બજેટ સામે પ્રવેશ મેળવે
+  છે — હૅશ કરેલ સેશન id નો ઉપયોગ ફક્ત ન્યાયસંગત શેડ્યૂલિંગ કી તરીકે થાય છે
+  (વેઇટર્સ વચ્ચે રાઉન્ડ-રોબિન ડિસ્પેચ), ક્ષમતા શાર્ડ તરીકે ક્યારેય નહીં. આ
+  દસ્તાવેજના અગાઉના સંસ્કરણમાં સ્વતંત્ર ક્ષમતાવાળી પ્રતિ-કી લેન્સનું વર્ણન
+  હતું; એ મોડેલ #10110 માં દૂર કરવામાં આવ્યું, કારણ કે તે અપ્રમાણિત નકલી
+  ક્રેડેન્શિયલ્સને પ્રક્રિયા-વ્યાપી મર્યાદા ગુણાકારમાં વધારવા દેતું હતું.
+- **ગેટ (#503-fanout): આપમેળે નિર્ધારિત થતું ઇન્જેસ્ટ BYTE બજેટ, નિશ્ચિત રિક્વેસ્ટ
+  સંખ્યા નહીં.** લેગસી `CHAT_MAX_HEAVY_IN_FLIGHT` રિક્વેસ્ટ-સંખ્યા મર્યાદાએ (આ
+  સુધારા પહેલાં ડિફૉલ્ટ `1`) કોડિંગ-એજન્ટ ફૅન-આઉટને (એકથી વધુ સબએજન્ટ્સ/CLIs,
+  બોડીઝ સામાન્ય રીતે > 256 KB) અસરકારક સમકાલીનતા ~1 સુધી ઘટાડ્યું, જેના કારણે
+  સંપૂર્ણપણે સામાન્ય લોડ હેઠળ 503 મળતું હતું. હવે તે માત્ર ત્યારે જ લાગુ પડે
+  છે જ્યારે ઑપરેટર સ્પષ્ટપણે `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` સેટ કરે.
+  તેને સેટ ન રાખવામાં આવે તો પ્રવેશને બદલે `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`
+  દ્વારા ગેટ કરવામાં આવે છે — પ્રક્રિયાની વાસ્તવિક મેમરી મર્યાદામાંથી આપમેળે
+  નિર્ધારિત બજેટ (`src/shared/middleware/admissionBudget.ts`): V8 હીપ મર્યાદા
+  અને કોઈપણ cgroup/container મર્યાદામાંથી વધુ કડક મર્યાદાના 25%, તેને 8x
+  ક્ષણિક-એમ્પ્લિફિકેશન ફેક્ટરથી વિભાજિત કરીને, 8 MiB અને 2 GiB વચ્ચે સીમિત
+  કરવામાં આવે છે. સ્પષ્ટ ઓવરરાઇડ્સ પણ એ જ મર્યાદાઓનો ઉપયોગ કરે છે. કોઈ env
+  ટ્યુનિંગ વિના આ પોતે જ 512 MB container થી 32 GB desktop સુધી સ્કેલ થાય છે.
+  અસરકારક બજેટમાં સમાઈ ન શકે તેવી બોડી `413 body_exceeds_budget` સાથે તરત જ
+  નિષ્ફળ જાય છે; વ્યક્તિગત રીતે સંભાળી શકાય તેવી બોડીઝ વચ્ચેની સ્પર્ધા જ
+  મર્યાદિત ન્યાયસંગતતા ક્યૂમાં પ્રવેશે છે. લાઇવ બહુ-સિગ્નલ રિસોર્સ-પ્રેશર
+  ટ્રૅકર (V8 હીપ ગુણોત્તર, cgroup, PSI, OOM ઇવેન્ટ્સ —
+  `open-sse/utils/resourcePressurePolicy.ts`) `high` પ્રેશર હેઠળ મર્યાદિત
+  પ્રતીક્ષા ઘટાડે છે અને `critical` પ્રેશર હેઠળ કોઈપણ બાઇટ્સ ઇન્જેસ્ટ થાય તે
+  પહેલાં જ `503 resource_pressure` સાથે લોડ તરત દૂર કરે છે. ઉપલબ્ધ હોય ત્યારે
+  PSI આ યુનિટના cgroup `memory.pressure` માંથી વાંચવામાં આવે છે
   (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory`
-  host-wide છે અને bare metal / cgroup v1 પર માત્ર fallback તરીકે વપરાય છે, જેથી swapping
-  કરતું host નિષ્ક્રિય container ને 503 કરાવી ન શકે.
+  સમગ્ર હોસ્ટ માટે છે અને માત્ર બેર મેટલ / cgroup v1 પર ફૉલબૅક તરીકે વપરાય
+  છે, તેથી સ્વૅપિંગ કરતું હોસ્ટ નિષ્ક્રિય container ને 503 આપી શકતું નથી.
 - **ટ્યુનિંગ:**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — આપમેળે નિર્ધારિત byte budget માટે override
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — લેગસી request-count cap, માત્ર opt-in
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — 503 પહેલાં queue-wait (ડિફૉલ્ટ 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — queued-bytes heap valve (ડિફૉલ્ટ 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — #10110 પછીથી deprecated
-    no-ops (config compatibility માટે સ્વીકારવામાં આવે છે, અવગણવામાં આવે છે)
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — આપમેળે નિર્ધારિત બાઇટ બજેટ માટે ઓવરરાઇડ
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — લેગસી રિક્વેસ્ટ-સંખ્યા મર્યાદા, માત્ર ઑપ્ટ-ઇન
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — 503 પહેલાં ક્યૂ-પ્રતીક્ષા (`RATE_LIMIT_MAX_WAIT_MS` ડિફૉલ્ટ છે)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — ક્યૂ થયેલા બાઇટ્સ માટે હીપ વાલ્વ (ડિફૉલ્ટ 4 MB)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — #10110 થી અપ્રચલિત
+    no-ops (કન્ફિગ સુસંગતતા માટે સ્વીકારવામાં આવે છે, અવગણવામાં આવે છે)
 - **રિપોર્ટ્સ:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — જેમાં
-  #503-fanout ના ઉમેરાઓ `inflightBytes`, `maxInflightBytes`, `budgetSource`
+  #503-fanout ઉમેરાઓ `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity`, અને `countCapEnabled`
-  સામેલ છે (ડિફૉલ્ટ deployment પર false — આ પુષ્ટિ કરે છે કે વાસ્તવમાં byte budget
-  લાગુ પડે છે, લેગસી count cap નહીં).
+  નો સમાવેશ થાય છે (ડિફૉલ્ટ ડિપ્લોયમેન્ટ પર false — ખાતરી કરે છે કે ખરેખર
+  બાઇટ બજેટ જ મર્યાદા લાગુ કરે છે, લેગસી સંખ્યા મર્યાદા નહીં).
 
 ## 2. અનુકૂલનશીલ રનટાઇમ વર્ચ્યુઅલ લેન (`open-sse/services/admission`)
 

@@ -11,47 +11,47 @@ dopolnjujeta; skrbniki morajo vedeti, katerega opazujejo.
 
 - **Obseg:** pot medpomnjenega telesa/kopice za `POST /v1/chat/completions`,
   `/v1/messages`, `/v1/responses` in druge poti v obliki klepeta. Ščiti
-  pred povečanjem porabe kopice zaradi velikih teles zahtev agentov za programiranje (#4380).
+  pred povečevanjem porabe kopice zaradi velikih teles zahtev agentov za programiranje (#4380).
 - **En globalni krmilnik na proces, ne ločeni pasovi za posamezne ključe (#10110).** Vsak ključ API
-  (zgoščen) ali seja `anonymous` se sprejema v okviru **istega** skupnega proračuna —
+  (zgoščeni) ali seja `anonymous` se sprejema glede na **isti** skupni proračun —
   zgoščeni ID seje se uporablja SAMO kot ključ za pravično razporejanje (krožno
-  razvrščanje čakajočih), nikoli kot razdelitev zmogljivosti. Prejšnja različica tega
+  razpošiljanje med čakajočimi), nikoli kot razdelek zmogljivosti. Prejšnja različica tega
   dokumenta je opisovala ločene pasove za posamezne ključe z neodvisno zmogljivostjo; ta model je bil
   odstranjen v #10110, ker je neoverjenim lažnim poverilnicam omogočal pomnožitev
   omejitve za celoten proces.
-- **Omejevalnik (#503-fanout): samodejno izpeljan BAJTNI proračun za sprejem, ne fiksno
-  število zahtev.** Stara omejitev števila zahtev `CHAT_MAX_HEAVY_IN_FLIGHT` (pred
-  tem popravkom privzeto `1`) je razpršitev agentov za programiranje (več podagentov/CLI-jev,
-  telesa so običajno > 256 KB) skrčila na dejansko sočasnost ~1, kar je
-  pri povsem običajni obremenitvi povzročalo napake 503. Zdaj se upošteva samo, ko operater izrecno
+- **Pregrada (#503-fanout): samodejno izpeljan BAJTNI proračun za vnos, ne fiksno število
+  zahtev.** Stara omejitev števila zahtev `CHAT_MAX_HEAVY_IN_FLIGHT` (pred tem
+  popravkom privzeto `1`) je skrčila razvejanje agentov za programiranje (več podagentov/CLI-jev,
+  telesa so običajno > 256 KB) na dejansko sočasnost ~1, kar je pri povsem
+  običajni obremenitvi povzročalo odzive 503. Zdaj se upošteva samo, ko upravljavec izrecno
   nastavi `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Če ni nastavljena, sprejem namesto tega
   omejuje `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — proračun, samodejno izpeljan iz
   dejanske omejitve pomnilnika procesa (`src/shared/middleware/admissionBudget.ts`):
-  25 % strožje od omejitve kopice V8 in morebitne omejitve cgroup/vsebnika,
-  deljeno z 8-kratnim faktorjem prehodnega povečanja, omejeno med 8 MiB in
-  2 GiB. Za izrecne preglasitve veljajo enake meje. Tako se brez prilagajanja
-  spremenljivk okolja samodejno prilagodi od vsebnika s 512 MB do namiznega računalnika z 32 GB.
-  Telo, ki ga ni mogoče umestiti v dejanski proračun, takoj vrne napako `413 body_exceeds_budget`;
-  v omejeno čakalno vrsto s pravičnim razporejanjem se uvrsti samo tekmovanje med telesi,
-  ki jih je posamezno mogoče obdelati. Sprotni sledilnik pritiska na vire z več signali
-  (delež kopice V8, cgroup, PSI, dogodki OOM — `open-sse/utils/resourcePressurePolicy.ts`)
-  skrajša omejeno čakanje pri pritisku `high` in zahteve takoj zavrne z
-  `503 resource_pressure` pri pritisku `critical`, še preden se sprejmejo kakršni koli bajti.
-  PSI se bere iz datoteke `memory.pressure` skupine cgroup te enote, kadar je na voljo
-  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` velja za
-  celotnega gostitelja in se uporablja samo kot nadomestna možnost na fizičnih strežnikih ali pri cgroup v1,
-  zato gostitelj, ki uporablja izmenjevalni prostor, ne more povzročiti napake 503 v nedejavnem vsebniku.
+  25 % strožje od omejitve kopice V8 in katere koli omejitve cgroup/vsebnika,
+  deljeno z 8-kratnim faktorjem prehodnega povečanja ter omejeno med 8 MiB in
+  2 GiB. Izrecne preglasitve uporabljajo enake meje. To se brez prilagajanja
+  okoljskih spremenljivk samodejno prilagodi od vsebnika s 512 MB do namiznega računalnika z 32 GB. Telo, ki ga ni mogoče
+  umestiti v dejanski proračun, je takoj zavrnjeno z `413 body_exceeds_budget`;
+  samo tekmovanje med telesi, ki jih je posamično mogoče obdelati, vstopi v omejeno
+  pravično čakalno vrsto. Sprotni sledilnik pritiskov na vire z več signali (delež kopice V8,
+  cgroup, PSI, dogodki OOM — `open-sse/utils/resourcePressurePolicy.ts`) skrajša
+  omejeno čakanje pri pritisku `high` in takoj zavrača zahteve z
+  `503 resource_pressure` pri pritisku `critical`, še preden se vnesejo kakršni koli bajti.
+  PSI se bere iz `memory.pressure` skupine cgroup te enote, kadar je na voljo
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` velja
+  za celotnega gostitelja in se uporablja samo kot nadomestna možnost na fizičnih sistemih / cgroup v1, zato
+  gostitelj, ki uporablja izmenjevalni prostor, ne more povzročiti odziva 503 v nedejavnem vsebniku.
 - **Prilagajanje:**
   - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — preglasitev samodejno izpeljanega bajtnega proračuna
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — stara omejitev števila zahtev, samo ob izrecnem vklopu
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — čakanje v čakalni vrsti pred napako 503 (privzeto 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — varovalo kopice za bajte v čakalni vrsti (privzeto 4 MB)
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — stara omejitev števila zahtev, samo z izrecnim vklopom
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — čakanje v čakalni vrsti pred odzivom 503 (privzeto `RATE_LIMIT_MAX_WAIT_MS`)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — razbremenilni ventil kopice glede na bajte v čakalni vrsti (privzeto 4 MB)
   - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — opuščeni
-    možnosti brez učinka od #10110 (sprejeti zaradi združljivosti konfiguracije, vendar prezrti)
+    nastavitvi brez učinka od #10110 (sprejeti zaradi združljivosti konfiguracije, prezrti)
 - **Poročila:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — vključno
-  z dodatki iz #503-fanout `inflightBytes`, `maxInflightBytes`, `budgetSource`
+  z dodatki #503-fanout `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity` in `countCapEnabled`
-  (false pri privzeti uvedbi — potrjuje, da dejansko omejuje bajtni proračun, ne stara
+  (false pri privzeti uvedbi — potrjuje, da dejansko omejuje bajtni proračun in ne stara
   omejitev števila zahtev).
 
 ## 2. Prilagodljivi izvajalniniški navidezni pasovi (`open-sse/services/admission`)

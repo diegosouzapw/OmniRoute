@@ -80,6 +80,14 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "firecrawl",
   // Context7 rate limit quota (ratelimit-* headers of GET https://context7.com/api/v1/search)
   "context7",
+  // Tavily API key → /usage account & plan credits
+  "tavily-search",
+  "tavily",
+  // Jina wallet balance (GET https://dash.jina.ai/api/v1/api_key/fe_user)
+  "jina-search",
+  "jina",
+  "jina-ai",
+  "jina-reader",
   // Volcano Ark Plan subscriptions (agent-plan / coding-plan)
   "volcengine-agent-plan",
   "volcengine-coding-plan",
@@ -757,7 +765,12 @@ async function fetchLiveProviderLimitsWithOptions(
       )) as JsonRecord
     );
     if (isRecord(usage.quotas)) {
-      setQuotaCache(connectionId, connection.provider, usage.quotas);
+      setQuotaCache(
+        connectionId,
+        connection.provider,
+        usage.quotas,
+        isRecord(usage.modelQuotas) ? usage.modelQuotas : {}
+      );
     }
     connection = await syncExpiredStatusIfNeeded(connection, usage);
     connection = await syncClaudeExtraUsageStateIfNeeded(connection, usage);
@@ -880,7 +893,12 @@ async function fetchLiveProviderLimitsWithOptions(
     if (data) connection = { ...connection, providerSpecificData: data };
   }
   if (isRecord(result.usage.quotas)) {
-    setQuotaCache(connectionId, connection.provider, result.usage.quotas);
+    setQuotaCache(
+      connectionId,
+      connection.provider,
+      result.usage.quotas,
+      isRecord(result.usage.modelQuotas) ? result.usage.modelQuotas : {}
+    );
   }
   connection = await syncExpiredStatusIfNeeded(connection, result.usage);
   connection = await syncClaudeExtraUsageStateIfNeeded(connection, result.usage);

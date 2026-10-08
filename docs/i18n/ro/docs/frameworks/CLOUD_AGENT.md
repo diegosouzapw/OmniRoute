@@ -307,22 +307,27 @@ facturarea upstream, încheiați sarcina din consola proprie a furnizorului.
 
 ## API REST — infrastructura furnizorilor cloud
 
-Aceste endpointuri auxiliare din `src/app/api/cloud/` sunt utilizate de clienții la distanță
+Aceste endpointuri auxiliare din `src/app/api/cloud/` sunt utilizate de clienți la distanță
 (CLI-ul, aplicația Electron sau procesele de sincronizare) pentru a citi metadatele conexiunilor
-furnizorilor și pentru a rezolva aliasurile modelelor. Acestea sunt autentificate cu o **cheie API obișnuită**
-(prin `validateApiKey`), nu cu autentificarea de administrare utilizată de endpointurile pentru sarcini.
+la furnizori și pentru a rezolva aliasurile modelelor. Acestea sunt autentificate cu o **cheie API**
+(prin `validateApiKey`), nu cu autentificarea de administrare utilizată de endpointurile pentru sarcini;
+ceea ce returnează `/api/cloud/auth` depinde de domeniul de acces al cheii (vedeți mai jos).
 
-| Metodă | Cale                            | Scop                                                                                     |
-| ------ | ------------------------------- | ---------------------------------------------------------------------------------------- |
-| POST   | `/api/cloud/auth`               | Validează cheia API, returnează metadatele mascate ale conexiunii + aliasurile modelelor |
-| PUT    | `/api/cloud/credentials/update` | Actualizează `accessToken` / `refreshToken` / `expiresAt`                                |
-| POST   | `/api/cloud/model/resolve`      | Rezolvă un alias de model la `{ provider, model }`                                       |
-| GET    | `/api/cloud/models/alias`       | Listează toate aliasurile modelelor                                                      |
-| PUT    | `/api/cloud/models/alias`       | Setează un alias de model (și îl sincronizează automat cu Cloud, dacă este activat)      |
+| Metodă | Cale                            | Scop                                                                                          |
+| ------ | ------------------------------- | --------------------------------------------------------------------------------------------- |
+| POST   | `/api/cloud/auth`               | Validează cheia API și returnează metadatele mascate ale conexiunii + aliasurile modelelor    |
+| PUT    | `/api/cloud/credentials/update` | Reîmprospătează `accessToken` / `refreshToken` / `expiresAt`                                  |
+| POST   | `/api/cloud/model/resolve`      | Rezolvă un alias de model în `{ provider, model }`                                            |
+| GET    | `/api/cloud/models/alias`       | Listează toate aliasurile modelelor                                                           |
+| PUT    | `/api/cloud/models/alias`       | Setează un alias de model (și îl sincronizează automat cu Cloud, dacă opțiunea este activată) |
 
-`/api/cloud/auth` nu returnează niciodată valorile brute `apiKey` / `accessToken` / `refreshToken`. Acesta
-returnează `hasApiKey`, `hasAccessToken`, `hasRefreshToken` și o previzualizare mascată
-(`maskedApiKey`: primele 4 caractere + `****` + ultimele 4 caractere).
+`/api/cloud/auth` nu returnează niciodată valorile brute `apiKey` / `accessToken` / `refreshToken`.
+Acesta returnează `hasApiKey`, `hasAccessToken`, `hasRefreshToken` pentru conexiunile active pe care
+cheia le poate utiliza (o cheie restricționată prin `allowedConnections` le vede doar pe acestea).
+Pentru o cheie API cu domeniul de acces `manage` sau `admin`, inclusiv cheia de implementare din
+`OMNIROUTE_API_KEY`, acesta returnează și o previzualizare mascată (`maskedApiKey`: până la 4 caractere
+la fiecare capăt, mai puține pentru o cheie scurtă și niciunul pentru cheile de cel mult 8 caractere),
+precum și valoarea `projectId` a conexiunii. Ambele câmpuri sunt omise din răspuns pentru orice altă cheie.
 
 ## Rezolvarea acreditărilor
 

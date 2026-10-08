@@ -308,24 +308,29 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 fornitur upstream — m’hemm l-ebda abort RPC f’`CloudAgentBase`. Biex twaqqaf il-kontijiet
 upstream, waqqaf il-kompitu mill-console tal-fornitur stess.
 
-## REST API — Infrastruttura tal-Fornitur tal-Cloud
+## REST API — Infrastruttura tal-Cloud Provider
 
 Dawn l-endpoints awżiljarji taħt `src/app/api/cloud/` jintużaw minn klijenti remoti
-(is-CLI, l-app Electron, jew ħaddiema tas-sinkronizzazzjoni) biex jaqraw il-metadata tal-konnessjoni tal-fornitur
-u jirriżolvu l-aliases tal-mudelli. Dawn jiġu awtentikati b’**ċavetta API regolari**
-(permezz ta’ `validateApiKey`), mhux bl-awtentikazzjoni tal-ġestjoni użata mill-endpoints tal-kompiti.
+(is-CLI, l-app Electron, jew ħaddiema tas-sinkronizzazzjoni) biex jaqraw il-metadata tal-konnessjoni
+tal-provider u jirriżolvu l-aliases tal-mudelli. Dawn jiġu awtentikati b’**API key**
+(permezz ta’ `validateApiKey`), mhux bl-awtentikazzjoni tal-ġestjoni użata mill-endpoints tal-kompiti; dak li
+jirritorna `/api/cloud/auth` jiddependi fuq l-ambitu tal-key (ara hawn taħt).
 
-| Metodu | Mogħdija                        | Għan                                                                                       |
-| ------ | ------------------------------- | ------------------------------------------------------------------------------------------ |
-| POST   | `/api/cloud/auth`               | Jivvalida ċ-ċavetta API, jirritorna metadata tal-konnessjoni moħbija + aliases tal-mudelli |
-| PUT    | `/api/cloud/credentials/update` | Jaġġorna `accessToken` / `refreshToken` / `expiresAt`                                      |
-| POST   | `/api/cloud/model/resolve`      | Jirriżolvi alias ta’ mudell għal `{ provider, model }`                                     |
-| GET    | `/api/cloud/models/alias`       | Jelenka l-aliases kollha tal-mudelli                                                       |
-| PUT    | `/api/cloud/models/alias`       | Jissettja alias ta’ mudell (u jissinkronizzah awtomatikament mal-Cloud jekk attivat)       |
+| Metodu | Path                            | Għan                                                                                    |
+| ------ | ------------------------------- | --------------------------------------------------------------------------------------- |
+| POST   | `/api/cloud/auth`               | Jivvalida l-API key u jirritorna metadata tal-konnessjoni moħbija + aliases tal-mudelli |
+| PUT    | `/api/cloud/credentials/update` | Jaġġorna `accessToken` / `refreshToken` / `expiresAt`                                   |
+| POST   | `/api/cloud/model/resolve`      | Jirriżolvi alias ta’ mudell għal `{ provider, model }`                                  |
+| GET    | `/api/cloud/models/alias`       | Jelenka l-aliases kollha tal-mudelli                                                    |
+| PUT    | `/api/cloud/models/alias`       | Jissettja alias ta’ mudell (u jissinkronizzah awtomatikament mal-Cloud jekk attivat)    |
 
 `/api/cloud/auth` qatt ma jirritorna `apiKey` / `accessToken` / `refreshToken` mhux moħbija. Huwa
-jirritorna `hasApiKey`, `hasAccessToken`, `hasRefreshToken`, u dehra parzjali moħbija
-(`maskedApiKey`: l-ewwel 4 + `****` + l-aħħar 4).
+jirritorna `hasApiKey`, `hasAccessToken`, `hasRefreshToken` għall-konnessjonijiet attivi li l-key
+tista’ tuża (key ristretta b’`allowedConnections` tara dawk biss). Għal API key bl-ambitu
+`manage` jew `admin`, inkluża d-deployment key minn `OMNIROUTE_API_KEY`, jirritorna wkoll
+previżjoni moħbija (`maskedApiKey`: sa 4 karattri f’kull tarf, inqas għal key qasira,
+u xejn għal 8 karattri jew inqas) u l-`projectId` tal-konnessjoni. Iż-żewġ fields jitħallew
+barra mir-risposta għal kwalunkwe key oħra.
 
 ## Riżoluzzjoni tal-Kredenzjali
 

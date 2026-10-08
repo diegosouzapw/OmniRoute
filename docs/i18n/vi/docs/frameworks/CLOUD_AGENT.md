@@ -305,12 +305,13 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 nhà cung cấp thượng nguồn — không có RPC hủy bỏ trong `CloudAgentBase`. Để dừng tính phí
 ở thượng nguồn, hãy chấm dứt tác vụ trong bảng điều khiển riêng của nhà cung cấp.
 
-## REST API — Hạ tầng Nhà cung cấp Đám mây
+## REST API — Tích hợp Nhà cung cấp Đám mây
 
 Các endpoint phụ trợ này trong `src/app/api/cloud/` được các máy khách từ xa
-(CLI, ứng dụng Electron hoặc các worker đồng bộ) sử dụng để đọc siêu dữ liệu kết nối của nhà cung cấp
-và phân giải bí danh mô hình. Chúng được xác thực bằng **API key thông thường**
-(thông qua `validateApiKey`), không phải cơ chế xác thực quản trị được các endpoint tác vụ sử dụng.
+(CLI, ứng dụng Electron hoặc các worker đồng bộ) sử dụng để đọc siêu dữ liệu kết nối
+của nhà cung cấp và phân giải bí danh mô hình. Chúng được xác thực bằng **API key**
+(thông qua `validateApiKey`), không phải cơ chế xác thực quản trị được các endpoint tác vụ sử dụng; dữ liệu
+mà `/api/cloud/auth` trả về phụ thuộc vào phạm vi của khóa (xem bên dưới).
 
 | Phương thức | Đường dẫn                       | Mục đích                                                               |
 | ----------- | ------------------------------- | ---------------------------------------------------------------------- |
@@ -318,11 +319,15 @@ và phân giải bí danh mô hình. Chúng được xác thực bằng **API ke
 | PUT         | `/api/cloud/credentials/update` | Làm mới `accessToken` / `refreshToken` / `expiresAt`                   |
 | POST        | `/api/cloud/model/resolve`      | Phân giải bí danh mô hình thành `{ provider, model }`                  |
 | GET         | `/api/cloud/models/alias`       | Liệt kê tất cả bí danh mô hình                                         |
-| PUT         | `/api/cloud/models/alias`       | Đặt bí danh mô hình (và tự động đồng bộ lên Cloud nếu được bật)        |
+| PUT         | `/api/cloud/models/alias`       | Đặt bí danh mô hình (và tự động đồng bộ với Cloud nếu được bật)        |
 
-`/api/cloud/auth` không bao giờ trả về `apiKey` / `accessToken` / `refreshToken` thô. Endpoint này
-trả về `hasApiKey`, `hasAccessToken`, `hasRefreshToken` và bản xem trước đã che
-(`maskedApiKey`: 4 ký tự đầu + `****` + 4 ký tự cuối).
+`/api/cloud/auth` không bao giờ trả về `apiKey` / `accessToken` / `refreshToken` ở dạng thô. Endpoint này
+trả về `hasApiKey`, `hasAccessToken`, `hasRefreshToken` cho các kết nối đang hoạt động mà khóa
+có thể sử dụng (khóa bị giới hạn bằng `allowedConnections` chỉ thấy các kết nối đó). Đối với API key có
+phạm vi `manage` hoặc `admin`, bao gồm cả khóa triển khai từ `OMNIROUTE_API_KEY`, endpoint này cũng
+trả về bản xem trước đã che (`maskedApiKey`: tối đa 4 ký tự ở mỗi đầu, ít hơn đối với khóa ngắn,
+không có đối với khóa từ 8 ký tự trở xuống) và `projectId` của kết nối. Cả hai trường đều bị lược bỏ
+khỏi phản hồi đối với mọi khóa khác.
 
 ## Phân giải Thông tin xác thực
 

@@ -13,63 +13,64 @@ OmniRoute heeft een route-bewuste autorisatiepipeline die elke API-aanvraag afsc
 
 > Bron: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
-## Twee authenticatiemethoden
+## Twee authenticatiemodi
 
 ### 1. API-sleutel (Bearer)
 
 Wordt gebruikt voor de OpenAI/Anthropic/Gemini-compatibele client-API's en enkele beheerroutes wanneer de sleutel het bereik `manage` heeft.
 
 ```
-Authorization: Bearer <api-sleutel>
+Authorization: Bearer <api-key>
 ```
 
 Gevalideerd door `isValidApiKey()` / `extractApiKey()` in `src/sse/services/auth.ts` en opnieuw geëxporteerd via `src/shared/utils/apiAuth.ts`. De validator accepteert ook de omgevingsvariabelen `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` als permanente passthrough-sleutels (issue #1350).
 
 ### 2. Dashboardsessie (auth_token-cookie)
 
-Voor dashboardpagina's en beheerdersbewerkingen.
+Voor dashboardpagina's en beheerbewerkingen.
 
 ```
 Cookie: auth_token=<JWT ondertekend met JWT_SECRET>
 ```
 
-Een cookie is alleen een sessie wanneer de JWT met succes wordt geverifieerd **en** `authenticated: true`
-bevat (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Elke
-gebruiker van de cookie (routebeveiliging, vernieuwing van de authz-pipeline, WebSocket-handshake, live
-server, `/api/settings/require-login`, `/api/auth/status`) gebruikt daarvoor die helper.
-Er bestaan andere met `JWT_SECRET` ondertekende JWT's — de Cursor CLI-passthrough maakt
-tokens met `iss "omniroute" / aud "cursor-cli"` aan voor sleutelhouders — en die gelden nooit als sessies
+Een cookie is alleen een sessie wanneer de JWT met succes wordt geverifieerd **en** `authenticated: true` bevat
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Elke
+gebruiker van de cookie (dashboardroutebeveiliging (`isDashboardSessionAuthenticated()`), vernieuwing van de autorisatiepipeline, WebSocket-handshake, live
+server, `/api/settings/require-login`, `/api/auth/status`) gebruikt die helper.
+Er bestaan andere JWT's die met `JWT_SECRET` zijn ondertekend — de Cursor CLI-passthrough maakt
+tokens met `iss "omniroute" / aud "cursor-cli"` aan voor sleutelhouders — en deze zijn nooit sessies
 (#13298).
 
-Geverifieerd door `isDashboardSessionAuthenticated()` in `src/shared/utils/apiAuth.ts`. De pipeline vernieuwt de JWT automatisch wanneer er minder dan 7 dagen over zijn van de geldigheidsduur van 30 dagen.
+Geverifieerd door `isDashboardSessionAuthenticated()` in `src/shared/utils/apiAuth.ts`. De pipeline vernieuwt de JWT automatisch wanneer er minder dan 7 dagen resteren van de levensduur van 30 dagen.
 
-Sommige beheerroutes accepteren **beide** methoden: cookie OF `Bearer <sleutel>` wanneer de API-sleutel het bereik `manage` (of `admin`) heeft. Dit maakt de in v3.8 toegevoegde workflow mogelijk waarbij configuratie via API-aanroepen plaatsvindt.
+Een sessie kan ook eindigen voordat de 30 dagen zijn verstreken, omdat elke uitgever `mintDashboardSessionToken` gebruikt (met een uitgiftetijd `iat` en een id `jti`) en de verifier twee instellingen controleert: `sessionsValidAfter`, die bij een wachtwoordwijziging wordt ingesteld zodat elke eerder uitgegeven sessie niet langer wordt geverifieerd (de browser waarin het wachtwoord is gewijzigd, ontvangt een nieuwe cookie), en `revokedDashboardSessions`, waaraan `POST /api/auth/logout` de `jti` van de afgemelde sessie toevoegt. Sessies die door een oudere release zijn aangemaakt, bevatten geen van beide claims en blijven geldig tot de eerste wachtwoordwijziging. Als de instellingen niet kunnen worden gelezen, wordt de sessie niet vertrouwd.
+
+Sommige beheerroutes accepteren **beide** modi: een cookie OF `Bearer <key>` wanneer de API-sleutel het bereik `manage` (of `admin`) heeft. Dit maakt de in v3.8 toegevoegde workflow "configureerbaar via API-aanroepen" mogelijk.
 
 #### Optionele OIDC-inlogbeveiliging (#6973)
 
-De beheerdersaanmelding voor het dashboard ondersteunt ook een **optionele** OIDC-stroom (OpenID Connect)
-naast de standaardaanmelding met een wachtwoord — aanmelden met een wachtwoord wordt nooit verwijderd, maar alleen
+De beheerderslogin van het dashboard ondersteunt naast de standaardlogin met een wachtwoord ook een **optionele** OIDC-flow (OpenID Connect) — de login met een wachtwoord wordt nooit verwijderd, maar alleen
 aangevuld:
 
 - Uitgeschakeld tenzij `settings.oidcEnabled === true` **en** `oidcIssuer` /
   `oidcClientId` / `oidcClientSecret` allemaal zijn geconfigureerd (Instellingen → Authenticatie).
-  `GET /api/auth/oidc/login` retourneert anders `400`.
+  Anders retourneert `GET /api/auth/oidc/login` de statuscode `400`.
 - `GET /api/auth/oidc/login` haalt het `authorization_endpoint` op uit de
   `/.well-known/openid-configuration` van de uitgever (met
-  `<issuer>/authorize` als terugvaloptie), bouwt de omleidings-URI op basis van het inkomende verzoek
+  `<issuer>/authorize` als terugvaloptie), stelt de omleidings-URI samen op basis van het inkomende verzoek
   (rekening houdend met `x-forwarded-proto`) en leidt om naar de IdP met een willekeurige `state`
-  die wordt opgeslagen in een `httpOnly`-cookie met de naam `oidc_state`.
+  die is opgeslagen in een `httpOnly`-cookie met de naam `oidc_state`.
 - `GET /api/auth/oidc/callback` valideert `state`, wisselt de autorisatiecode
   in en verifieert de handtekening van het ID-token via de JWKS van de uitgever
-  (`createRemoteJWKSet` van `jose`, gecachet per JWKS-URI), met controles op `issuer`/`audience`.
-  Een optionele allowlist `oidcAllowedSubjects` vergelijkt de `sub`-claim of
-  de `email`-claim van het token — de e-mailclaim wordt alleen geaccepteerd wanneer
-  `email_verified === true`, zodat een niet-geverifieerd e-mailadres bij de IdP de
-  beveiliging nooit kan passeren.
-- Bij succes wordt **exact dezelfde** 30 dagen geldige `auth_token`-JWT aangemaakt die ook bij
-  aanmelding met een wachtwoord wordt uitgegeven (`src/app/api/auth/login/route.ts`), zodat de rest van de
-  dashboardsessiepipeline (automatische vernieuwing, cookiekenmerken) ongewijzigd blijft —
-  OIDC vervangt alleen de manier waarop de cookie wordt aangemaakt, niet welke rechten deze verleent.
+  (`createRemoteJWKSet` van `jose`, gecachet per JWKS-URI), inclusief controles
+  van `issuer`/`audience`. Een optionele toelatingslijst `oidcAllowedSubjects` vergelijkt de
+  `sub`-claim of de `email`-claim van het token — de e-mailclaim wordt alleen geaccepteerd wanneer
+  `email_verified === true`, zodat een niet-geverifieerd e-mailadres bij de IdP nooit door
+  de beveiliging kan komen.
+- Bij succes wordt **exact dezelfde** `auth_token`-JWT met een geldigheidsduur van 30 dagen aangemaakt als bij de login met een wachtwoord
+  (`src/app/api/auth/login/route.ts`), zodat de rest van de
+  dashboardsessiepipeline (automatische vernieuwing, cookie-instellingen) ongewijzigd blijft —
+  OIDC vervangt alleen de manier waarop de cookie wordt aangemaakt, niet de rechten die ermee worden verleend.
 
 ## Routeklassen
 

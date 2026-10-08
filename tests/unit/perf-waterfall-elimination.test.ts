@@ -247,7 +247,8 @@ test("F1: cache GET returns correct shapes + trend window after batching (#11396
 
 // ─── N1: apiKeys permission probe ───────────────────────────────────────────
 test("N1: apiKeys fetches synced + custom models in parallel (#11396)", () => {
-  const src = readSource("src/lib/db/apiKeys.ts");
+  // The published-model lookup behind isModelAllowedForKey lives in its own module.
+  const src = readSource("src/lib/db/apiKeys/publishedModelLookup.ts");
 
   const pair = src.match(
     /const \[syncedModelsByConnection, customModels\] = await Promise\.all\(\[([\s\S]*?)\]\);/s
@@ -264,7 +265,7 @@ test("N1: apiKeys fetches synced + custom models in parallel (#11396)", () => {
   // the merged view feeding the deny/allow decision is unchanged
   assert.match(
     src,
-    /allDiscoveredModels = Object\.values\(syncedModelsByConnection\)\s*\.flat\(\)\s*\.concat\(customModels\)/
+    /syncedModels = Object\.values\(syncedModelsByConnection\)\.flat\(\);[\s\S]*?syncedModels\s*\.concat\(customModels\)/
   );
 
   // no serial awaits left behind

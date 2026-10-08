@@ -131,20 +131,24 @@ lahko med izvajanjem brez ponovnega zagona nastavite v **Dashboard → Security 
 
 CORS uveljavlja sam OmniRoute, zato posredniški strežnik praviloma **ne sme** dodajati ali
 prepisovati glav `Access-Control-*` (podvojene glave povzročajo težave v brskalnikih). Zaključite TLS
-in posredujte zahteve — predpoletne zahteve naj obravnava OmniRoute:
+in posredujte zahteve — naj OmniRoute odgovarja na predhodne zahteve:
 
 ```nginx
 # nginx — posredujte v OmniRoute; tukaj NE vstavljajte glav Access-Control-*
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # Ne nastavite X-Forwarded-For na 127.0.0.1 — s tem onemogočite varovalo poti za povratno zanko.
+    # Ohranite glave za posredovanje: posredniški strežnik na istem gostitelju se povezuje prek povratne zanke,
+    # te glave pa OmniRoute sporočajo, da klicatelj ni lokalni upravljavec. Če posredniški strežnik ne doda
+    # nobene od njih, je vsak oddaljeni klicatelj videti kot lokalni. Prav tako nikoli ne nastavite X-Forwarded-For na 127.0.0.1.
 }
 ```
 
 Dovoljene izvore brskalnikov nastavite v OmniRoute (`CORS_ALLOWED_ORIGINS` ali na
-zavihku Security), ne v posredniškem strežniku.
+zavihku Varnost), ne v posredniškem strežniku.
 
 ## Izvorne datoteke
 

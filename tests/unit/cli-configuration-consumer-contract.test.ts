@@ -5,12 +5,15 @@ import { parseOpenapi } from "../../src/lib/agentSkills/openapiParser.ts";
 import { buildApiOperationExample } from "../../src/lib/agentSkills/apiOperationExample.ts";
 
 test("generated CLI skill uses header previews and original-input dry-run application", () => {
-  const { body } = buildSkillMarkdown("omni-cli-tools", {
+  const { body, references } = buildSkillMarkdown("omni-cli-tools", {
     openapi: parseOpenapi(),
     cliRegistry: { commands: new Map(), families: new Map() },
   });
+  // #14293 moved oversized endpoint sections out of SKILL.md into
+  // references/endpoints.md, so the examples may live in either document.
+  const docs = [body, ...references.map((reference) => reference.content)].join("\n");
   const section = (method: string, path: string) =>
-    body.split(`### ${method} ${path}\n`)[1]?.split("\n### ")[0] || "";
+    docs.split(`### ${method} ${path}\n`)[1]?.split("\n### ")[0] || "";
   const preview = section("GET", "/api/cli-tools/config");
   assert.ok(preview.includes("x-omniroute-config-api-key: <configuration-api-key>"));
   assert.ok(!preview.includes("?apiKey="));

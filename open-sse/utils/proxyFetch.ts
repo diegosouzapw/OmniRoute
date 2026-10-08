@@ -4,11 +4,14 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { fetch as undiciFetch, Agent } from "undici";
 import {
   buildVercelRelayHeaders,
+  clearDispatcherCache,
   createProxyDispatcher,
   getDefaultDispatcher,
   getProxyRetryDispatcher,
   getRetryDispatcher,
+  isLocalEgressHostname,
   isRelayType,
+  isUpstreamHttp2Enabled,
   normalizeProxyUrl,
   proxyConfigToUrl,
   proxyUrlForLogs,
@@ -16,7 +19,10 @@ import {
 import tlsClient, { type TlsFetchOptions, guardTlsFirstByte } from "./tlsClient.ts";
 import { withUpstreamStatusCapture } from "./upstreamStatusCapture.ts";
 import { stampOwnListenerSelfHop } from "./selfHop.ts";
+import { tlsFingerprintProviderAllowed } from "./tlsFingerprintExclusions.ts";
 import { describeFallbackFailure, redactProxyDetailsInMessage } from "./proxyFetchRedaction.ts";
+import { recordFinalTransportOutcome, recordProxiedSuccess } from "./proxyTransportOutcome.ts";
+import { sanitizeTransportError } from "./proxyTransportError.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
 import { isDirectBypassHost } from "./proxyDirectBypass.ts";
 import {
@@ -26,7 +32,7 @@ import {
 import {
   directFetchWithBoundedResponseStart,
   isDirectResponseStartTimeout,
-  resolveDirectHeadersTimeoutMs,
+  directHeadersTimeoutResolver,
 } from "./directResponseStartTimeout.ts";
 
 // #9100: relay egress (Vercel / Deno / Cloudflare edge functions) used to go
@@ -40,14 +46,14 @@ import {
 // pipelines POST (SSE is POST), so a single socket would serialize every
 // concurrent stream; 4 sockets give 4 parallel streams. h2 relays are
 // unaffected — streams multiplex over one socket, so the pool stays at a single
-// connection while streams drain. `allowH2: true` keeps that h2 fast path for
-// Vercel / Deno / Cloudflare.
+// connection while streams drain. HTTP/2 stays enabled by default for
+// Vercel / Deno / Cloudflare; operators can opt out when needed.
 const RELAY_POOL_AGENT_OPTIONS = {
   keepAliveTimeout: 30_000,
   keepAliveMaxTimeout: 60_000,
   pipelining: 4,
   connections: 4,
-  allowH2: true,
+  allowH2: isUpstreamHttp2Enabled(),
 } as const;
 const RELAY_POOL_AGENT = new Agent(RELAY_POOL_AGENT_OPTIONS);
 
@@ -59,7 +65,7 @@ const RELAY_RETRY_AGENT = new Agent({
   keepAliveMaxTimeout: 1,
   pipelining: 0,
   connections: 1,
-  allowH2: true,
+  allowH2: isUpstreamHttp2Enabled(),
 });
 
 // A hung relay must fail BEFORE the client/agent timeout (typically 30s) so the
@@ -86,21 +92,6 @@ const RETRY_BACKOFF_MS = Math.max(Number(process.env.OMNIROUTE_RETRY_BACKOFF_MS)
 
 function isTlsFingerprintEnabled() {
   return process.env.ENABLE_TLS_FINGERPRINT === "true";
-}
-
-function tlsFingerprintProviderAllowed(
-  provider: string | null | undefined,
-  proxied: boolean
-): boolean {
-  const configured = process.env.TLS_FINGERPRINT_PROVIDERS?.trim();
-  // Preserve the legacy direct-only opt-in. The new proxied transport requires
-  // an explicit allowlist so enabling TLS cannot silently change proxy traffic.
-  if (!configured) return !proxied;
-  if (!provider) return false;
-  const normalizedProvider = provider.trim().toLowerCase();
-  return configured
-    .split(",")
-    .some((candidate) => candidate.trim().toLowerCase() === normalizedProvider);
 }
 
 /**
@@ -196,6 +187,17 @@ export type AppliedProxySink = {
   upstreamStatus?: number;
   /** Masked serving-account id (N112) — set by the rotation executor at dispatch. */
   rotationAccount?: string | null;
+  /** Added wait before dispatch, ms — null means none was imposed. */
+  addedWaitMs?: number | null;
+  /** Added-wait cause: throttle, park, or throttle+park. */
+  addedWaitCause?: string | null;
+  /**
+   * Pool-member resolver published by the chat layer when the resolved egress
+   * came from a connection pool that may offer another member on a per-address
+   * refusal. Absent otherwise. Resolves to a proxy config, or null when the
+   * pool has nothing else to offer — the executor keeps its behavior then.
+   */
+  reselectPoolMember?: () => Promise<unknown>;
 };
 const APPLIED_PROXY_CONTEXT_KEY = Symbol.for("omniroute.proxyFetch.applied-context");
 type AppliedProxyStore = typeof globalThis & {
@@ -218,6 +220,16 @@ export function runWithAppliedProxyCapture<T>(sink: AppliedProxySink, fn: () => 
 }
 
 /**
+ * Read the current applied-proxy capture sink, if the request runs inside one
+ * (see runWithAppliedProxyCapture). Read-only: never creates a sink. Lets an
+ * executor read a resolver the chat layer published on the sink before
+ * dispatch without importing the database layer.
+ */
+export function currentAppliedProxySink(): AppliedProxySink | undefined {
+  return getAppliedProxyContext().getStore();
+}
+
+/**
  * Record the masked id of the rotation account serving this request on the
  * current capture sink (no-op outside a capture — the sink stays null and the
  * call-site forwards null). Only an already-masked id may be passed in.
@@ -228,6 +240,47 @@ export function noteRotationAccount(masked: string): void {
     if (sink) sink.rotationAccount = masked;
   } catch {
     /* attribution is best-effort; never break the request path */
+  }
+}
+
+/** Added-wait causes. Plain data — numbers plus this enum, nothing to mask. */
+export type AddedWaitCause = "throttle" | "park" | "throttle+park";
+
+/**
+ * Cumulative wait before dispatch (pacing, park) on the capture sink.
+ * Snapshot: callers publish cumulative totals, so last-write-wins loses
+ * nothing. Best-effort like noteRotationAccount: no-op outside a capture.
+ */
+export function noteAddedWait(totalMs: number, causes: Set<AddedWaitCause>): void {
+  try {
+    const sink = getAppliedProxyContext().getStore();
+    if (!sink) return;
+    if (!Number.isFinite(totalMs) || totalMs <= 0 || causes.size === 0) {
+      sink.addedWaitMs = null;
+      sink.addedWaitCause = null;
+      return;
+    }
+    sink.addedWaitMs = Math.round(totalMs);
+    sink.addedWaitCause = causes.size > 1 ? "throttle+park" : ([...causes][0] ?? null);
+  } catch {
+    /* added-wait is best-effort; never break the request path */
+  }
+}
+
+/**
+ * Late read of the added wait on the capture sink. Fail-soft: null
+ * outside a capture or when nothing was published — callers persist NULL.
+ */
+export function readAddedWait(): { ms: number | null; cause: string | null } | null {
+  try {
+    const sink = getAppliedProxyContext().getStore();
+    if (!sink) return null;
+    const ms = typeof sink.addedWaitMs === "number" ? sink.addedWaitMs : null;
+    if (ms === null) return null;
+    const cause = typeof sink.addedWaitCause === "string" ? sink.addedWaitCause : null;
+    return { ms, cause };
+  } catch {
+    return null;
   }
 }
 
@@ -313,6 +366,8 @@ const TLS_ALLOWED_OPTION_KEYS: Record<string, true> = {
   method: true,
   redirect: true,
   signal: true,
+  // Next.js cache/revalidation metadata. It is not forwarded to wreq.
+  next: true,
 };
 
 function isWreqBodySupported(body: unknown): boolean {
@@ -367,30 +422,6 @@ function isWreqProxySupported(proxyUrl: string): boolean {
   } catch {
     return false;
   }
-}
-
-function sanitizeTransportError(
-  error: unknown,
-  message: string,
-  fallbackCode: string
-): Error & { code: string; errorCode?: string; statusCode?: number } {
-  const source = error && typeof error === "object" ? (error as Record<string, unknown>) : {};
-  const sanitized = new Error(message) as Error & {
-    code: string;
-    errorCode?: string;
-    statusCode?: number;
-  };
-  sanitized.code =
-    typeof source.code === "string" && /^[A-Z0-9_:-]{1,64}$/.test(source.code)
-      ? source.code
-      : fallbackCode;
-  if (typeof source.errorCode === "string" && /^[a-zA-Z0-9_:-]{1,64}$/.test(source.errorCode)) {
-    sanitized.errorCode = source.errorCode;
-  }
-  if (typeof source.statusCode === "number" && Number.isFinite(source.statusCode)) {
-    sanitized.statusCode = source.statusCode;
-  }
-  return sanitized;
 }
 
 /** Injectable dependencies for testability (Approach B DI). */
@@ -801,7 +832,7 @@ async function patchedFetchUnrecorded(
     if (
       isTlsFingerprintEnabled() &&
       activeTlsClient.available &&
-      tlsFingerprintProviderAllowed(tlsStore?.provider, false) &&
+      tlsFingerprintProviderAllowed(tlsStore?.provider, false, targetUrl) &&
       isTlsRequestEligible(input, options)
     ) {
       try {
@@ -877,8 +908,7 @@ async function patchedFetchUnrecorded(
     }
 
     let lastDispatcherError: unknown = null;
-    const directBodyForTimeout = typeof options.body === "string" ? options.body : null;
-    const directHeadersTimeoutMs = resolveDirectHeadersTimeoutMs(undefined, directBodyForTimeout);
+    const timeoutFor = directHeadersTimeoutResolver(options, targetUrl);
     let targetHostForLogs = "";
     try {
       targetHostForLogs = new URL(targetUrl).host;
@@ -887,20 +917,27 @@ async function patchedFetchUnrecorded(
     }
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
+        let hostnameForDispatcher: string | undefined;
+        try {
+          hostnameForDispatcher = new URL(targetUrl).hostname;
+        } catch {}
         return await directFetchWithBoundedResponseStart(
           input,
           {
             ...options,
-            dispatcher: attempt === 0 ? getDefaultDispatcher() : getRetryDispatcher(),
+            dispatcher:
+              attempt === 0
+                ? getDefaultDispatcher(hostnameForDispatcher)
+                : getRetryDispatcher(hostnameForDispatcher),
           },
           _undiciDirect,
-          resolveDirectHeadersTimeoutMs(undefined, directBodyForTimeout, attempt, !!options.signal)
+          timeoutFor(attempt)
         );
       } catch (dispatcherError) {
         if (isDirectResponseStartTimeout(dispatcherError)) {
           if (attempt === 0 && maxAttempts > 1) {
             console.warn(
-              `[ProxyFetch] Direct response-start timeout (${directHeadersTimeoutMs}ms) on pooled dispatcher — retrying on fresh no-keep-alive dispatcher: ${targetHostForLogs}`
+              `[ProxyFetch] Direct response-start timeout (${timeoutFor(0)}ms) on pooled dispatcher — retrying on fresh no-keep-alive dispatcher: ${targetHostForLogs}`
             );
             lastDispatcherError = dispatcherError;
             continue;
@@ -981,6 +1018,18 @@ async function patchedFetchUnrecorded(
           console.warn(
             `[ProxyFetch] Undici dispatcher failed, falling back to native fetch (after retry): ${describeFetchCause(dispatcherError)}`
           );
+          // On PROXY_UNREACHABLE for local-egress hostnames (host.docker.internal,
+          // *.internal, *.local), drop the cached dispatcher pool: Docker
+          // Desktop's NAT silently drops idle keep-alive sockets inside the
+          // round-robin pool's keepAliveMaxTimeout window, and the pool never
+          // reaps them on PROXY_UNREACHABLE, so the next request must rebuild
+          // with fresh sockets (#4252-style stale-socket burst mitigation).
+          if (
+            isLocalEgressHostname(targetHostForLogs) &&
+            isProxyUnreachableError(dispatcherError)
+          ) {
+            clearDispatcherCache();
+          }
           try {
             return await _nativeFallback(input, options);
           } catch (nativeError) {
@@ -1121,7 +1170,7 @@ async function patchedFetchUnrecorded(
     typeof tlsStore?.sessionScope === "string" &&
     tlsStore.sessionScope.trim().length > 0 &&
     activeTlsClient.available &&
-    tlsFingerprintProviderAllowed(tlsStore?.provider, true) &&
+    tlsFingerprintProviderAllowed(tlsStore?.provider, true, targetUrl) &&
     isTlsRequestEligible(input, options) &&
     isWreqProxySupported(proxyUrl)
   ) {
@@ -1171,11 +1220,13 @@ async function patchedFetchUnrecorded(
   let lastProxyError: unknown = null;
   for (let attempt = 0; attempt < maxProxyAttempts; attempt++) {
     try {
-      return await _undiciProxy(input, {
+      const response = await _undiciProxy(input, {
         ...options,
         dispatcher:
           attempt === 0 ? createProxyDispatcher(proxyUrl) : getProxyRetryDispatcher(proxyUrl),
       });
+      recordProxiedSuccess(proxyUrl, targetUrl); // completed response, any status
+      return response;
     } catch (error) {
       if (isCallerAbort(error, getEffectiveSignal(input, options))) throw error;
       const msg = error instanceof Error ? error.message : String(error);
@@ -1207,8 +1258,15 @@ async function patchedFetchUnrecorded(
         originalMsg ? `Proxy request failed: ${originalMsg}` : "Proxy request failed",
         "PROXY_REQUEST_FAILED"
       );
+      // Read the code off the thrown sanitized error (tag survives the
+      // sanitize as errorCode passthrough; untagged reads undefined).
+      if (sanitized.errorCode === "proxy_unreachable")
+        recordFinalTransportOutcome(proxyUrl, targetUrl);
+      if (sanitized.causeCode) {
+        sanitized.message += ` (cause ${sanitized.causeCode})`;
+      }
       console.error(
-        `[ProxyFetch] Proxy request failed (${source}, fail-closed; code=${sanitized.code})`
+        `[ProxyFetch] Proxy request failed (${source}, fail-closed; code=${sanitized.code}${sanitized.causeCode ? `; cause=${sanitized.causeCode}` : ""})`
       );
       throw sanitized;
     }

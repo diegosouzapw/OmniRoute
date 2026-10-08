@@ -37,33 +37,33 @@ Biežāk sastopamās OmniRoute problēmas un to risinājumi.
 
 ---
 
-### Ātruma ierobežošana bezmaksas pakalpojumu sniedzējiem (429 / 400 / 401)
+### Bezmaksas pakalpojumu sniedzēju pieprasījumu biežuma ierobežošana (429 / 400 / 401)
 
-**Simptoms**: Izmantojot `model: "auto"` ar bezmaksas pakalpojumu sniedzējiem vai tādiem, kuriem nav nepieciešama autentifikācija (opencode, auggie u.c.), atbilžu vietā periodiski saņemat `HTTP 429`, `400` vai `401`. Atkārtoti nosūtot to pašu uzvedni pēc īsa brīža, pieprasījumi izdodas, taču automatizācija (cron uzdevumi, aģenti, skripti) pārstāj darboties pēc pirmās kļūmes.
+**Simptoms**: Izmantojot `model: "auto"` ar bezmaksas/autentifikāciju neprasošiem pakalpojumu sniedzējiem (opencode, auggie u.c.), atbilžu vietā periodiski tiek saņemts `HTTP 429`, `400` vai `401`. Atkārtoti nosūtot to pašu uzvedni pēc neilga brīža, pieprasījumi izdodas, taču automatizācija (cron uzdevumi, aģenti, skripti) pārtrauc darbību jau pēc pirmās kļūmes.
 
-**Pamatcēlonis**: Vienlaikus summējas trīs neatkarīgi kļūmju režīmi:
+**Pamatcēlonis**: Vienlaikus pārklājas trīs neatkarīgi kļūmju režīmi:
 
-1. **Pakalpojumu sniedzēja ātruma ierobežojums (`429`)**: Bezmaksas līmeņi var noteikt kvotu katram laika periodam. Paralēlu izsaukumu vilnis to izsmeļ, tādēļ nākamais pieprasījums tiek noraidīts, līdz tiek atiestatīts laika periods.
-2. **Nedarbojošs modelis tiešās pārsūtīšanas režīmā (`400`/`401`)**: `auto/*` pūlos var būt iekļauti `opencode` tiešās pārsūtīšanas modeļi, kuri ir reģistrēti katalogā, bet kuriem nav derīgu akreditācijas datu (piem., `oc/north-mini-code-free` → `401`). Automātiskais maršrutētājs izmēģina kādu no tiem, tas neizdodas, un kļūda tiek nodota tālāk, pirms nostrādā atkāpšanās mehānisms.
-3. **Vienlaicīguma pastiprinājums (`429` slodzes laikā)**: Kad vairākas aģentu/cron sesijas vienlaikus izmanto `auto`, kopējais pieprasījumu ātrums pārsniedz bezmaksas pakalpojumu sniedzēju pieļaujamo līmeni, tādēļ derīgi izsaukumi tiek atzīmēti kā ļaunprātīgi.
+1. **Pakalpojumu sniedzēja pieprasījumu biežuma ierobežojums (`429`)**: Bezmaksas līmeņiem var būt noteikta kvota katram laika periodam. Paralēlu izsaukumu vilnis to izsmeļ, tāpēc nākamais pieprasījums tiek noraidīts, līdz attiecīgais periods tiek atiestatīts.
+2. **Bojāts modelis tranzīta režīmā (`400`/`401`)**: `auto/*` kopās var būt iekļauti `opencode` tranzīta modeļi, kas ir reģistrēti katalogā, bet kuriem nav aktīvu akreditācijas datu (piem., `oc/north-mini-code-free` → `401`). Automātiskais maršrutētājs izmēģina vienu no tiem, tas cieš neveiksmi, un kļūda tiek pārsūtīta, pirms tiek aktivizēta atkāpšanās.
+3. **Vienlaicīguma izraisīta pastiprināšanās (`429` slodzes laikā)**: Kad vairākas aģenta/cron sesijas vienlaikus izmanto `auto`, kopējais pieprasījumu biežums pārsniedz bezmaksas pakalpojumu sniedzēju pieļaujamo līmeni, tāpēc likumīgi izsaukumi tiek atzīmēti kā ļaunprātīgi.
 
-**Pārbaudīts risinājums (kopienas ziņots, 2026-08-10)**: pielāgojiet trīs vides mainīgos, lai rotācija, vienlaicīgums un atkāpšanās mehānisms absorbētu bezmaksas līmeņa svārstības, nevis to dēļ pārtrauktu darbību:
+**Pārbaudīts risinājums (kopienas ziņojums, 2026-08-10)**: pielāgojiet trīs vides mainīgos, lai rotācija, vienlaicīguma pārvaldība un atkāpšanās absorbētu bezmaksas līmeņa svārstības, nevis to dēļ pārtrauktu darbību:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # pāriet uz citu modeli/pakalpojumu sniedzēju pēc 400/401 (izlaiž nedarbojošos tiešās pārsūtīšanas modeļus)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # precīzi noteikts smagsvara pieprasījumu pieņemšanas maksimums (pēc noklusējuma nav iestatīts: pieprasījumu skaita ierobežojuma nav; skatiet piezīmi tālāk)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # ilgāka ierobežota gaidīšana uz smagsvara pieprasījumu apstrādes jaudu, nevis tūlītēja atkārtojama 503 kļūda
+export OMNIROUTE_ROTATE_ON_400=true           # 400/401 gadījumā pāriet uz citu modeli/pakalpojumu sniedzēju (izlaiž bojātus tranzīta modeļus)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # precīzi noteikts smagsvara pieprasījumu uzņemšanas maksimums (pēc noklusējuma nav iestatīts: nav pieprasījumu skaita ierobežojuma; skatiet piezīmi tālāk)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # palielina ierobežoto gaidīšanas laiku virs RATE_LIMIT_MAX_WAIT_MS noklusējuma lēniem augšupējiem pakalpojumiem
 ```
 
-Iestatiet tos OmniRoute procesa vidē (dēmonam, piem., izmantojot LaunchAgent plist vai `systemctl edit`) un pēc tam restartējiet OmniRoute. Rotācijas karogs ir viens pats visefektīvākais iestatījums: tas pārveido neatgriezenisku kļūmi par nemanāmu atkārtotu mēģinājumu, izmantojot veselīgu pakalpojumu sniedzēju no pūla.
+Iestatiet tos OmniRoute procesa vidē (dēmonam, piemēram, izmantojot LaunchAgent plist vai `systemctl edit`) un pēc tam restartējiet OmniRoute. Rotācijas karodziņš ir vienīgais visietekmīgākais iestatījums: tas pārvērš pilnīgu kļūmi pārredzamā atkārtotā mēģinājumā, izmantojot veselīgu pakalpojumu sniedzēju no kopas.
 
-**Piezīme**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` ierobežo vienlaikus izpildāmo smagsvara — gara konteksta — pieprasījumu skaitu; šis ierobežojums ir pieņemšanas vārteja, nevis pakalpojumu sniedzēja ātruma ierobežotājs. **#503-fanout atjauninājums:** šis mainīgais pēc noklusējuma vairs netiek iestatīts (tagad tas ir saistošs tikai tad, ja ir skaidri konfigurēts, kā norādīts iepriekš) — tā vietā smagsvara pieprasījumu pieņemšanu ierobežo automātiski atvasināts baitu budžets (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), kas pielāgojas resursdatora faktiskajam atmiņas ierobežojumam, tādēļ jaunā izvietojumā vajadzētu būt ievērojami mazāk `503 chat_admission_busy` noraidījumu, pat vispār neiestatot šo mainīgo; skaidri iestatot to šeit, tas joprojām darbojas tieši tā, kā dokumentēts. Skaidri norādītām baitu budžeta vērtībām tiek piemērotas 8 MiB–2 GiB robežas. `413 body_exceeds_budget` nav pārejoša kļūda: palieliniet šo baitu budžetu, samaziniet `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` vai palieliniet procesa atmiņas ierobežojumu. `inflight_bytes_budget` izraisīta slodzes nomešana ir īslaicīga resursu konkurence, un pieprasījumu joprojām var atkārtot. Katra pakalpojumu sniedzēja ātruma ierobežošanu (`open-sse/services/rateLimitManager.ts`) atsevišķi pārvalda `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` un `RATE_LIMIT_AUTO_ENABLE` — skatiet `.env.example`.
+**Piezīme**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` ierobežo vienlaikus izpildāmo smagsvara — gara konteksta — pieprasījumu skaitu; šis ierobežojums ir uzņemšanas vārteja, nevis pakalpojumu sniedzēja pieprasījumu biežuma ierobežotājs. **#503-fanout atjauninājums:** šis mainīgais pēc noklusējuma vairs netiek iestatīts (tagad tas tiek lietots tikai tad, ja ir skaidri konfigurēts, kā parādīts iepriekš) — tā vietā smagsvara pieprasījumu uzņemšanu regulē automātiski atvasināts baitu budžets (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), kas pats mērogojas atbilstoši resursdatora faktiskajam atmiņas ierobežojumam, tādēļ jaunā izvietojumā vajadzētu būt ievērojami mazāk `503 chat_admission_busy` noraidījumu, pat vispār neiestatot šo mainīgo; tā nepārprotama iestatīšana šeit joprojām darbojas tieši tā, kā dokumentēts. Nepārprotami baitu budžeta pārrakstījumi tiek ierobežoti diapazonā no 8 MiB līdz 2 GiB. `413 body_exceeds_budget` nav pārejoša kļūda: palieliniet šo baitu budžetu, samaziniet `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` vai palieliniet procesa atmiņas ierobežojumu. `inflight_bytes_budget` izraisīta slodzes nomešana ir īslaicīgs resursu konflikts, un to joprojām var atkārtot. Katram pakalpojumu sniedzējam piemērojamā pieprasījumu biežuma ierobežošana (`open-sse/services/rateLimitManager.ts`) tiek pārvaldīta atsevišķi ar `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` un `RATE_LIMIT_AUTO_ENABLE` — skatiet `.env.example`.
 
-**Kā pārbaudīt, vai labojums darbojas**: divreiz īsā laika intervālā palaidiet savu aģentu/cron uzdevumu un pārliecinieties, ka abas izpildes ir veiksmīgas. Pirms labojuma otrā izpilde parasti rada `429`/`401` kļūdu. Pēc labojuma kļūmju gadījumā (ja tādas rodas) atkārtotie mēģinājumi notiek nemanāmi, un izsaukums tiek pabeigts. Varat arī izpildīt `curl /monitoring/health` un pakalpojumu sniedzēju savienojumos novērot lauku `rateLimitedUntil`, kā arī `circuitBreakers.providerBreakers[].state` ietekmētajiem pakalpojumu sniedzējiem — stāvoklis var būt `CLOSED`, `DEGRADED`, `OPEN` vai `HALF_OPEN` (skatiet `src/shared/utils/circuitBreaker.ts`), un pakalpojumu sniedzējs, kura izsaukumi turpina neizdoties, pārslēgsies no `CLOSED → DEGRADED → OPEN`, pirms atiestatīšanas intervāls ļaus veikt pārbaudes izsaukumu (`HALF_OPEN`).
+**Kā pārbaudīt, vai risinājums darbojas**: divas reizes īsā laika intervālā palaidiet savu aģentu/cron un pārliecinieties, ka abas izpildes ir veiksmīgas. Pirms labojuma otrā izpilde parasti atgriež `429`/`401`. Pēc labojuma kļūmju gadījumā (ja tādas rodas) mēģinājumi tiek pārredzami atkārtoti un izsaukums tiek pabeigts. Varat arī izpildīt `curl /monitoring/health` un pakalpojumu sniedzēju savienojumos vērot lauku `rateLimitedUntil`, kā arī `circuitBreakers.providerBreakers[].state` attiecīgajiem pakalpojumu sniedzējiem — stāvoklis var būt `CLOSED`, `DEGRADED`, `OPEN` vai `HALF_OPEN` (skatiet `src/shared/utils/circuitBreaker.ts`), un pakalpojumu sniedzējs, kura darbība atkārtoti cieš neveiksmi, pārslēgsies `CLOSED → DEGRADED → OPEN`, pirms atiestatīšanas periods ļaus veikt pārbaudes pieprasījumu (`HALF_OPEN`).
 
-**Ja joprojām redzat 429**: šī pakalpojumu sniedzēja aktīvais konts patiešām ir izsmēlis savu _kvotu_ (nevis tikai sasniedzis pieprasījumu biežuma ierobežojumu). Pievienojiet otru tā paša pakalpojumu sniedzēja kontu OmniRoute vadības panelī → Providers → Accounts vai iekļaujiet citu bezmaksas pakalpojumu sniedzēju (piemēram, `routeway`, `auggie`). Rotācija palīdz tikai pārejošu pieprasījumu biežuma ierobežojumu un 400/401 kļūdu gadījumā; pilnīgai kvotas izsmelšanai ir nepieciešami citi akreditācijas dati vai cits pakalpojumu sniedzējs.
+**Ja joprojām redzat 429**: šī pakalpojumu sniedzēja aktīvais konts patiešām ir izsmēlis savu _kvotu_ (nevis tikai sasniedzis pieprasījumu biežuma ierobežojumu). OmniRoute informācijas panelī pievienojiet otru tā paša pakalpojumu sniedzēja kontu: Providers → Accounts, vai pievienojiet vēl kādu bezmaksas pakalpojumu sniedzēju (piem., `routeway`, `auggie`). Rotācija palīdz tikai pārejošu pieprasījumu biežuma ierobežojumu un 400/401 kļūdu gadījumā; pilnīgai kvotas izsmelšanai ir nepieciešami citi akreditācijas dati vai cits pakalpojumu sniedzējs.
 
-**Ja redzes modeļiem (`auto/vision`, `bazaarlink/*`) redzat 403**: piesaistītajam kontam nav maksas plāna, kas ietver redzes funkcionalitāti, vai arī API atslēgai nav pietiekamu atļauju. Pakalpojumu sniedzēja vadības panelī pārbaudiet, vai atslēgas tvērums ietver redzes/multimodālo funkcionalitāti, vai piesaistiet maksas līmeņa kontu un saglabājiet to kā redzes pieprasījumu mērķi.
+**Ja redzat 403 redzes modeļiem (`auto/vision`, `bazaarlink/*`)**: savienotajam kontam nav maksas plāna, kas ietver redzes funkcijas, vai arī API atslēgai nav pietiekamu atļauju. Pakalpojumu sniedzēja informācijas panelī pārbaudiet, vai atslēgas tvērums ietver redzes/multimodālās funkcijas, vai pievienojiet maksas līmeņa kontu un saglabājiet to kā redzes pieprasījumu mērķi.
 
 ---
 
@@ -552,7 +552,7 @@ Izmantojiet sadaļu **Informācijas panelis → Tulkotājs**, lai atkļūdotu fo
 - Pārbaudiet, vai sadaļā **Iestatījumi → Noturība → Nodrošinātāju profili** ir iespējota automātiskā pieprasījumu biežuma ierobežošana
 - Pārbaudiet, vai nodrošinātājs atgriež statusa kodus `429` vai galvenes `Retry-After`
 
-### Eksponenciālās atkāpšanās pielāgošana
+### Eksponenciālās atkāpšanās regulēšana
 
 Nodrošinātāju profili atbalsta šādus iestatījumus:
 
@@ -560,9 +560,9 @@ Nodrošinātāju profili atbalsta šādus iestatījumus:
 - **Maksimālā aizkave** — maksimālā gaidīšanas laika robeža (noklusējums: 30s)
 - **Reizinātājs** — cik lielā mērā palielināt aizkavi pēc katras secīgās kļūmes (noklusējums: 2x)
 
-### Vienlaicīgu pieprasījumu pārslodzes novēršana
+### Lavīnveida pieprasījumu novēršana
 
-Kad daudzi vienlaicīgi pieprasījumi sasniedz nodrošinātāju ar ierobežotu pieprasījumu biežumu, OmniRoute izmanto mutex un automātisku pieprasījumu biežuma ierobežošanu, lai pieprasījumus apstrādātu secīgi un novērstu ķēdveida kļūmes. API atslēgu nodrošinātājiem tas notiek automātiski.
+Kad daudzi vienlaicīgi pieprasījumi sasniedz nodrošinātāju ar ierobežotu pieprasījumu biežumu, OmniRoute izmanto mutex + automātisko pieprasījumu biežuma ierobežošanu, lai serializētu pieprasījumus un novērstu kļūmju ķēdes reakciju. API atslēgu nodrošinātājiem tas notiek automātiski.
 
 ### Tērzēšanas pieprasījumi neizdodas ar 503 / chat_admission_busy
 
@@ -570,14 +570,13 @@ Kad daudzi vienlaicīgi pieprasījumi sasniedz nodrošinātāju ar ierobežotu p
 
 - Tērzēšanas pabeigšanas galapunkts atgriež atkārtojamu `503` atbildi, kuras kļūdas kods ir
   `chat_admission_busy`.
-- Atbildē ir iekļauta galvene `Retry-After`. Kopš #12135 tās vērtība tiek noteikta pēc novērotās
-  noslodzes — izvēloties lielāko no `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` loga, kuru pieprasījums jau
-  ir gaidījis, un laika, cik ilgi pašreizējās smagsvara nomas ir bijušas aizņemtas, — noapaļojot uz augšu līdz veselām
-  sekundēm un ierobežojot līdz 60. Kad vārteja nav noslogota, tiek saglabātas vēsturiskās minimālās vērtības: 2 sekundes
-  uz baitos balstītajā ceļā un 1 sekunde uz struktūrā balstītajā ceļā (kurā ir iekļauts arī
+- Atbildē ir ietverts `Retry-After`. Kopš #12135 vērtība tiek iegūta no novērotā
+  noslogojuma — tiek izmantota lielākā no `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` loga daļas, ko pieprasījums jau
+  ir gaidījis, un laika, cik ilgi ir turētas pašreizējās resursietilpīgo pieprasījumu nomas — noapaļota uz augšu līdz veselām
+  sekundēm un ierobežota līdz 60. Ja piekļuves vārteja nav noslogota, tiek saglabātas vēsturiskās minimālās vērtības: 2 sekundes
+  baitos balstītajam ceļam un 1 sekunde struktūrā balstītajam ceļam (kas ietver arī
   `reason: "structure_limit"`).
-- Tas var notikt, kamēr vēl tiek apstrādāta cita smagsvara tērzēšanas vai ilgstošas straumēšanas
-  atbilde.
+- Tas var notikt, kamēr vēl tiek izpildīts cits resursietilpīgs tērzēšanas pieprasījums vai ilgstoša straumēšanas atbilde.
 
 Baitos balstītās atbildes pamatteksts ir:
 
@@ -594,49 +593,49 @@ Baitos balstītās atbildes pamatteksts ir:
 Struktūrā balstītā atbilde izmanto to pašu tipu un kodu ar ziņojumu
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 un `reason: "structure_limit"`.
-Ar noklusējuma sliekšņiem pieprasījums tiek uzskatīts par strukturāli smagu, ja tajā ir vismaz `200` ziņojumu,
-vismaz `64` rīki vai vismaz `32,000` aplēsto marķieru, vai arī ja ierobežotā struktūras aplēse
+Izmantojot noklusējuma sliekšņus, pieprasījums ir strukturāli resursietilpīgs, ja tajā ir vismaz `200` ziņojumi,
+vismaz `64` rīki vai vismaz `32,000` aplēstie tokeni, vai ja ierobežotā struktūras novērtēšana
 sasniedz savas robežas — `10,000` apmeklētu mezglu vai dziļumu `12`.
 
-**Cēlonis:** Tā ir apzināta slodzes samazināšana OmniRoute iekšienē, nevis augšupējā nodrošinātāja kļūme.
-Katrs process izmanto lokālu procesa aizsargmehānismu, lai rezervētu ierobežotu smagsvara kapacitāti pirms liela
-pieprasījuma pamatteksta paturēšanas un parsēšanas. Smagsvara noma paliek aizņemta visu SSE
+**Cēlonis:** Tā ir apzināta slodzes nomešana OmniRoute iekšienē, nevis augšupstraumes nodrošinātāja kļūme.
+Katrs process izmanto procesam lokālu aizsargmehānismu, lai rezervētu ierobežotu resursietilpīgo pieprasījumu apstrādes kapacitāti, pirms tiek saglabāts
+un parsēts liels pieprasījuma pamatteksts. Resursietilpīga pieprasījuma noma paliek aktīva visu SSE
 atbildes darbības laiku.
 
-**#503-fanout:** pirms šī labojuma aizsargmehānisms ierobežoja vienlaicīgumu līdz fiksētam pieprasījumu SKAITAM
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, noklusējums `1`) neatkarīgi no resursdatora atmiņas, tādēļ kodēšanas aģentu
+**#503-izplatīšanās:** pirms šī labojuma aizsargmehānisms ierobežoja vienlaicīgumu līdz fiksētam pieprasījumu SKAITAM
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, noklusējums `1`) neatkarīgi no resursdatora atmiņas, tāpēc programmēšanas aģentu
 izvēršana (vairāki apakšaģenti/CLI, pamatteksti parasti > 256 KB) samazināja faktisko
-vienlaicīgumu līdz aptuveni 1 un pilnīgi normālas slodzes apstākļos izraisīja 503 kļūdas. Tagad aizsargmehānisms pielāgojas
-automātiski: to kontrolē automātiski noteikts uzņemšanas BAITU budžets (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), kas aprēķināts pēc
-procesa faktiskā atmiņas ierobežojuma, un tas ņem vērā arī aktuālu resursu noslodzes signālu, tāpēc
-slodze tiek samazināta tikai tad, kad resursdators patiešām izjūt atmiņas trūkumu, nevis tikai tāpēc, ka vienlaikus
-ieradās vairāk nekā viens smags pieprasījums. Vecais skaita ierobežojums (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) joprojām
-tiek ievērots, taču tikai tad, ja to iestatāt tieši.
+vienlaicīgumu līdz ~1 un pilnīgi normālas slodzes apstākļos izraisīja 503 kļūdas. Tagad aizsargmehānisms pašregulējas: tā darbību nosaka
+automātiski atvasināts ienākošo BAITU budžets (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), kura lielums tiek aprēķināts no
+procesa faktiskā atmiņas ierobežojuma, un tas ņem vērā arī aktuālu resursu noslodzes signālu — tādējādi
+slodze tiek nomesta tikai tad, kad resursdatorā tiešām trūkst atmiņas, nevis tikai tāpēc, ka vienlaikus
+ieradies vairāk nekā viens resursietilpīgs pieprasījums. Iepriekšējais skaita ierobežojums (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`)
+joprojām tiek ievērots, taču tikai tad, ja to iestatāt tieši.
 
-Kad kapacitāte ir aizņemta, smagsvara pieprasījums vispirms gaida līdz
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (noklusējums `2000`; `0` atspējo gaidīšanu), lai atbrīvotos vieta,
-un tikai pēc tam atgriež atkārtojamu `503`. Ierobežotais gaidīšanas laiks pastāv tādēļ, lai aģentu tipa klienti
-(OpenCode, Claude Code, Cursor), kas vienlaicīgi izvērš smagus apakšpieprasījumus, apstrādātu šo pieprasījumu vilni secīgi,
-nevis iztērētu visu savu atkārtošanas budžetu tūlītējiem noraidījumiem un pārtrauktu darbu uzdevuma vidū.
-Pašreizējais smagsvara nomu noslogojums, noteiktais baitu budžets un aktuālais noslodzes smagums
+Kad kapacitāte ir aizņemta, resursietilpīgs pieprasījums vispirms gaida līdz
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (noklusējums ir `RATE_LIMIT_MAX_WAIT_MS`; `0` atspējo gaidīšanu), lai atbrīvotos vieta,
+un tikai pēc tam atgriež atkārtojamo `503` atbildi. Ierobežotā gaidīšana pastāv tādēļ, lai aģentu tipa klienti
+(OpenCode, Claude Code, Cursor), kas vienlaicīgi izvērš resursietilpīgus apakšpieprasījumus, serializētu šo pieprasījumu vilni,
+nevis iztērētu visu atkārtošanas budžetu tūlītējiem noraidījumiem un pārtrauktu darbību uzdevuma vidū.
+Pašreizējais resursietilpīgo pieprasījumu nomu noslogojums, aprēķinātais baitu budžets un aktuālais noslodzes smagums
 ir pieejami sadaļā `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
-`budgetSource`, `pressureSeverity`, `countCapEnabled`) — pārbaudiet tos pirms jebkura vides mainīgā maiņas.
-Iestatījumi → Noturība → Pieprasījumu rinda → Vienlaicīgie pieprasījumi to nekontrolē; šis iestatījums
+`budgetSource`, `pressureSeverity`, `countCapEnabled`) — pārbaudiet tos pirms jebkura vides mainīgā mainīšanas.
+Iestatījumi → Noturība → Pieprasījumu rinda → Vienlaicīgi pieprasījumi to nekontrolē; šis iestatījums
 pārvalda atsevišķu nodrošinātāja pieprasījumu rindas mehānismu.
 
-**Risinājums:**
+**Labojums:**
 
 1. Vispirms atkārtojiet pieprasījumu. Klientiem jāievēro `Retry-After` un jāizmanto atkāpšanās, nevis nekavējoties
    jāatkārto pieprasījums.
-2. Pirms jebkādas pielāgošanas pārbaudiet `/api/monitoring/health` → `chatAdmission`. `countCapEnabled:
-false` un pietiekami liela `maxInflightBytes` vērtība nozīmē, ka automātiski noteiktais budžets jau darbojas
-   pareizi; `pressureSeverity` vērtība `high`/`critical` nozīmē, ka resursdatoram patiešām trūkst atmiņas —
-   to nevar novērst ar uzņemšanas vides mainīgo; nepieciešams vairāk RAM vai mazāka darba slodze.
-3. Tikai tad, ja `/api/monitoring/health` rāda, ka automātiski noteiktais budžets jūsu resursdatoram patiešām ir pārāk mazs
-   (tas notiek reti — budžets jau mērogojas no konteineriem līdz fiziskajiem serveriem), pārrakstiet to tieši ar
+2. Pirms kaut ko regulējat, pārbaudiet `/api/monitoring/health` → `chatAdmission`. `countCapEnabled:
+false` un pietiekami liels `maxInflightBytes` nozīmē, ka automātiski atvasinātais budžets jau darbojas
+   pareizi; `pressureSeverity` vērtība `high`/`critical` nozīmē, ka resursdatorā tiešām trūkst atmiņas —
+   to nevar novērst ar piekļuves vides mainīgo; nepieciešams vairāk RAM vai mazāka darba slodze.
+3. Tikai tad, ja `/api/monitoring/health` rāda, ka automātiski atvasinātais budžets jūsu
+   resursdatoram tiešām ir pārāk mazs (tas notiek reti — tas jau pielāgojas videi no konteineriem līdz fiziskiem serveriem), pārrakstiet to tieši ar
    `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`, nevis atgriezieties pie mantotā pieprasījumu skaita ierobežojuma.
 
-Autoritatīvos uzņemšanas iestatījumus skatiet [vides mainīgo atsaucē](../reference/ENVIRONMENT.md#4-security--authentication).
+Autoritatīvos piekļuves iestatījumus skatiet [vides mainīgo atsaucē](../reference/ENVIRONMENT.md#4-security--authentication).
 
 ---
 

@@ -229,7 +229,7 @@ Pour les utilisateurs qui ont besoin d’un artefact compatible avec Socket, eff
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-Le `NormalModuleReplacementPlugin` de webpack redirige quatre modules vers des stubs :
+Le plugin webpack `NormalModuleReplacementPlugin` remplace quatre modules par des stubs :
 
 | Module                                      | Stub                                             |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -239,12 +239,11 @@ Le `NormalModuleReplacementPlugin` de webpack redirige quatre modules vers des s
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
 Chaque stub exporte la même interface, mais toutes les fonctions lèvent une
-`featureDisabledError(name)` lors de l’exécution. Les routes qui dépendent du module désactivé
-renvoient une réponse HTTP 503 accompagnée d’un message clair au lieu d’activer le
+erreur `featureDisabledError(name)` lors de l’exécution. Les routes qui dépendent du
+module désactivé renvoient une réponse HTTP 503 accompagnée d’un message clair au lieu d’activer le
 chemin de code sensible.
 
-Le bundle obtenu est destiné à être publié sous le nom `omniroute-secure`. Consultez
-`docs/ops/PUBLISHING_SECURE.md` pour connaître la procédure de publication.
+Le bundle obtenu est destiné à être publié sous le nom `omniroute-secure`.
 
 ---
 

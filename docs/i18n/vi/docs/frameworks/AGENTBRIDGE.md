@@ -187,16 +187,16 @@ danh sách chặn dùng chung cho các tiêu đề từng chặng/định khung 
 
 ### 3.1 Khởi động/dừng máy chủ MITM
 
-Sử dụng thẻ AgentBridge Server tại `/dashboard/tools/agent-bridge`:
+Sử dụng Thẻ Máy chủ AgentBridge tại `/dashboard/tools/agent-bridge`:
 
-| Hành động             | Mô tả                                                                           |
-| --------------------- | ------------------------------------------------------------------------------- |
-| Khởi động máy chủ     | Khởi chạy `src/mitm/server.cjs` trên cổng 443                                   |
-| Dừng máy chủ          | Tắt tiến trình con một cách an toàn                                             |
-| Khởi động lại máy chủ | Dừng + khởi động (áp dụng các thay đổi về đích)                                 |
-| Tin cậy chứng chỉ     | Cài đặt `DATA_DIR/mitm/ca.crt` vào kho tin cậy của hệ điều hành                 |
-| Tải xuống chứng chỉ   | Tải xuống `ca.crt` để cài đặt thủ công                                          |
-| Tạo lại chứng chỉ     | Tạo cặp khóa CA mới (tất cả chứng chỉ hiện có của từng agent sẽ bị vô hiệu hóa) |
+| Hành động         | Mô tả                                                                            |
+| ----------------- | -------------------------------------------------------------------------------- |
+| Khởi động máy chủ | Khởi chạy `src/mitm/server.cjs` trên cổng 443                                    |
+| Dừng máy chủ      | Dừng tiến trình con một cách an toàn                                             |
+| Khởi động lại     | Dừng + khởi động (áp dụng các thay đổi về đích)                                  |
+| Tin cậy chứng chỉ | Cài đặt `DATA_DIR/mitm/ca.crt` vào kho chứng chỉ tin cậy của hệ điều hành        |
+| Tải chứng chỉ     | Tải xuống `ca.crt` để cài đặt thủ công                                           |
+| Tạo lại chứng chỉ | Tạo cặp khóa CA mới (tất cả chứng chỉ hiện có của từng tác nhân sẽ mất hiệu lực) |
 
 ### 3.2 Tin cậy chứng chỉ
 
@@ -221,34 +221,34 @@ sudo security add-trusted-cert -d -r trustRoot \
 certutil -addstore -f Root $env:USERPROFILE\.omniroute\mitm\ca.crt
 ```
 
-Hoặc sử dụng nút "Tin cậy chứng chỉ" trên bảng điều khiển (nút này chạy lệnh phù hợp với hệ điều hành của bạn và hiển thị lời nhắc sudo nếu cần).
+Hoặc sử dụng nút "Tin cậy chứng chỉ" trong bảng điều khiển (nút này chạy lệnh phù hợp với hệ điều hành của bạn và hiển thị lời nhắc sudo nếu cần).
 
-#### Các IDE dựa trên Electron bỏ qua kho tin cậy của hệ điều hành (`NODE_EXTRA_CA_CERTS`)
+#### Các IDE dựa trên Electron bỏ qua kho chứng chỉ tin cậy của hệ điều hành (`NODE_EXTRA_CA_CERTS`)
 
-Một số IDE — đáng chú ý là **Antigravity IDE** và các ứng dụng khác bắt nguồn từ Electron / VS Code — đóng gói
-môi trường chạy Node.js riêng, vốn **không tham chiếu kho tin cậy của hệ điều hành** cho các yêu cầu
-`fetch`/HTTPS gửi đi. Việc tin cậy CA ở cấp hệ điều hành/NSS là đủ cho **backend** gốc của IDE
+Một số IDE — đáng chú ý là **Antigravity IDE** và các ứng dụng khác dựa trên Electron / VS Code — tích hợp
+môi trường chạy Node.js riêng, vốn **không tham chiếu kho chứng chỉ tin cậy của hệ điều hành** cho các kết nối
+`fetch`/HTTPS đi ra ngoài. Việc tin cậy CA ở cấp hệ điều hành/NSS là đủ cho **backend** gốc của IDE
 (ví dụ: máy chủ ngôn ngữ Go sử dụng gói CA của hệ điều hành), nhưng **frontend Electron** vẫn
-không thể thiết lập TLS — biểu hiện là ứng dụng ở trạng thái _đã đăng xuất_ hoặc hiển thị _"lỗi kết nối"_
-mặc dù nhật ký MITM cho thấy các lệnh gọi khởi tạo của backend trả về `200`. Cần thực hiện hai bước,
-và cả hai đều quan trọng:
+không thể thiết lập TLS — biểu hiện là ứng dụng bị _đăng xuất_ hoặc hiển thị _"lỗi kết nối"_
+mặc dù nhật ký MITM cho thấy các lệnh gọi khởi tạo của backend trả về `200`. Cần thực hiện
+hai bước và cả hai đều quan trọng:
 
-1. Trỏ môi trường chạy đến CA một cách rõ ràng:
+1. Chỉ định rõ CA cho môi trường chạy:
    ```bash
    export NODE_EXTRA_CA_CERTS=/path/to/omniroute-agentbridge-ca.crt
    ```
-2. **Khởi chạy IDE từ shell đó.** Việc khởi động từ biểu tượng trên màn hình nền / Dock / menu Start
-   **không** kế thừa các biến được xuất trong shell, còn `~/.config/environment.d/*.conf` chỉ được áp dụng sau
-   một lần đăng nhập đồ họa mới. Trước tiên, hãy thoát hoàn toàn khỏi IDE — khóa singleton của Electron khiến lần
-   khởi chạy thứ hai chỉ đưa tiến trình hiện có lên phía trước và môi trường mới bị bỏ qua.
+2. **Khởi chạy IDE từ shell đó.** Việc khởi động IDE từ biểu tượng trên màn hình nền / Dock / menu Start
+   sẽ **không** kế thừa các biến được export trong shell, còn `~/.config/environment.d/*.conf` chỉ có hiệu lực sau
+   một lần đăng nhập đồ họa mới. Trước tiên, hãy thoát hoàn toàn khỏi IDE — cơ chế khóa đơn thể của Electron khiến lần
+   khởi chạy thứ hai chỉ chuyển tiêu điểm sang tiến trình hiện có và môi trường mới sẽ bị bỏ qua.
 
-Bước thiết lập tin cậy ở cấp hệ điều hành + NSS nêu trên vẫn cần thiết (ngăn xếp mạng Chromium được một số luồng xác thực
-sử dụng sẽ đọc kho NSS của từng người dùng và có các pin tĩnh riêng cho `*.googleapis.com` mà một
-CA được tin cậy cục bộ có thể ghi đè). `NODE_EXTRA_CA_CERTS` bổ sung phạm vi cho đường dẫn `fetch` của Node.
+Bước thiết lập độ tin cậy của hệ điều hành + NSS ở trên vẫn cần thiết (ngăn xếp mạng Chromium được một số luồng
+xác thực sử dụng sẽ đọc kho NSS theo người dùng và có các mã pin tĩnh riêng cho `*.googleapis.com` mà một
+CA được tin cậy cục bộ có thể ghi đè). Ngoài ra, `NODE_EXTRA_CA_CERTS` bao phủ đường dẫn `fetch` của Node.
 
 ### 3.3 Định tuyến DNS
 
-Đối với mỗi agent mà bạn muốn chặn bắt, (các) máy chủ API của agent đó phải phân giải thành `127.0.0.1`. AgentBridge tự động quản lý các mục nhập `/etc/hosts` khi bạn bật/tắt DNS cho một agent trong Trình hướng dẫn thiết lập.
+Đối với mỗi tác nhân bạn muốn chặn, (các) máy chủ API của tác nhân đó phải phân giải thành `127.0.0.1`. AgentBridge tự động quản lý các mục nhập trong `/etc/hosts` khi bạn bật hoặc tắt DNS cho một tác nhân trong Trình hướng dẫn thiết lập.
 
 Ví dụ về các mục nhập `/etc/hosts` cho GitHub Copilot:
 
@@ -259,65 +259,74 @@ Ví dụ về các mục nhập `/etc/hosts` cho GitHub Copilot:
 
 ### 3.4 Ánh xạ mô hình
 
-Sử dụng Bảng ánh xạ mô hình trong mỗi thẻ agent để xác định các ánh xạ nguồn → đích:
+Sử dụng Bảng ánh xạ mô hình trong từng thẻ tác nhân để xác định ánh xạ nguồn → đích:
 
-| Mô hình nguồn (gốc của agent) | Mô hình đích (OmniRoute) |
-| ----------------------------- | ------------------------ |
-| `gpt-4o`                      | `claude-sonnet-4.7`      |
-| `*` (ký tự đại diện)          | `claude-haiku-4.7`       |
+| Mô hình nguồn (gốc của tác nhân) | Mô hình đích (OmniRoute) |
+| -------------------------------- | ------------------------ |
+| `gpt-4o`                         | `claude-sonnet-4.7`      |
+| `*` (ký tự đại diện)             | `claude-haiku-4.7`       |
 
-Ký tự đại diện `*` ánh xạ bất kỳ mô hình không được nhận dạng nào tới đích đã chỉ định. Dữ liệu được lưu bền vững trong bảng `agent_bridge_mappings`.
+Ký tự đại diện `*` ánh xạ mọi mô hình không được nhận dạng đến đích được chỉ định. Dữ liệu được lưu trong bảng `agent_bridge_mappings`.
 
-> **Mẹo — khám phá ID mô hình thực tế của agent.** Một IDE có thể gửi các tên mô hình khác với
-> nhãn giao diện người dùng và các tên này có thể thay đổi giữa các phiên bản lớn. Ví dụ: **Antigravity 2** gửi
-> `gemini-3.1-pro-low`, `gemini-pro-agent` và `gemini-3.1-flash-lite` qua đường truyền — không phải
-> `gemini-2.5-pro` được hiển thị trong các tài liệu cũ. Hãy gửi một cuộc trò chuyện khi chưa có ánh xạ phù hợp: MITM
-> sẽ ghi nhật ký chính xác giá trị `model:` nhận được và chuyển tiếp yêu cầu. Ánh xạ giá trị nguyên văn đó, sau đó
-> yêu cầu tiếp theo sẽ được chặn bắt và định tuyến đến đích của bạn.
+> **Mẹo — khám phá ID mô hình thực tế của tác nhân.** Một IDE có thể gửi tên mô hình khác với
+> nhãn trên giao diện người dùng và các tên này có thể thay đổi giữa những phiên bản chính. Ví dụ: **Antigravity 2** gửi
+> `gemini-3.1-pro-low`, `gemini-pro-agent` và `gemini-3.1-flash-lite` qua kết nối — không phải
+> `gemini-2.5-pro` được hiển thị trong tài liệu cũ. Hãy gửi một tin nhắn trò chuyện khi chưa có ánh xạ phù hợp: MITM
+> sẽ ghi lại chính xác `model:` nhận được và chuyển tiếp yêu cầu. Ánh xạ giá trị nguyên văn đó, sau đó
+> yêu cầu tiếp theo sẽ bị chặn và định tuyến đến đích của bạn.
 
 ### 3.5 Thông báo rủi ro
 
-AgentBridge chặn bắt thông tin xác thực (token OAuth, khóa API) mà IDE sử dụng để xác thực với các nhà cung cấp thượng nguồn. Các thông tin này được **che trước khi ghi nhật ký** (xem §2.7) nhưng vẫn hiển thị với lớp MITM của OmniRoute. Lần kích hoạt đầu tiên của mỗi agent sẽ hiển thị một hộp thoại thông báo rủi ro có thể đóng.
+AgentBridge chặn thông tin xác thực (token OAuth, khóa API) mà IDE sử dụng để xác thực với các nhà cung cấp thượng nguồn. Những thông tin này được **che trước khi ghi nhật ký** (xem §2.7) nhưng vẫn hiển thị đối với lớp MITM của OmniRoute. Lần kích hoạt đầu tiên của mỗi tác nhân sẽ hiển thị một hộp thoại thông báo rủi ro có thể đóng.
 
 ### 3.6 Bảo trì & Chẩn đoán
 
-Bảng điều khiển cung cấp một thẻ **Bảo trì & Chẩn đoán** (`AgentBridgeMaintenanceCard`, trong `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`) để hiển thị các tuyến MITM vận hành mà trước đây không có giao diện người dùng. Phụ đề của thẻ: _"Tự kiểm tra quy trình chặn bắt, hoàn tác trạng thái hệ thống còn sót lại và di chuyển cấu hình của bạn giữa các máy."_ Các trình trợ giúp phía client của thẻ nằm trong `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
+Bảng điều khiển cung cấp thẻ **Bảo trì & Chẩn đoán** (`AgentBridgeMaintenanceCard`, trong `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`) để hiển thị các tuyến MITM vận hành mà trước đây chưa có giao diện người dùng. Phụ đề của thẻ: _"Tự kiểm tra quy trình thu thập, hoàn tác trạng thái hệ thống còn sót lại và di chuyển cấu hình của bạn giữa các máy."_ Các trình trợ giúp phía máy khách của thẻ nằm trong `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
 
-| Nút               | Route                                  | Chức năng                                                                                                                                                                                        |
-| ----------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Chẩn đoán**     | `GET /api/tools/agent-bridge/diagnose` | Chạy quy trình tự kiểm tra của pipeline thu thập và hiển thị báo cáo cho từng mục kiểm tra (✓/✗ + gợi ý khắc phục).                                                                              |
-| **Sửa chữa**      | `POST /api/tools/agent-bridge/repair`  | Hoàn tác trạng thái hệ thống MITM mồ côi (các mục giả mạo DNS, CA gốc, proxy hệ thống) còn sót lại do sự cố hoặc SIGKILL. Có tính lũy đẳng — báo "Không có gì cần sửa chữa" khi trạng thái sạch. |
-| **Xóa CA**        | `DELETE /api/tools/agent-bridge/cert`  | Hủy tin cậy và xóa CA gốc MITM khỏi kho tin cậy của HĐH (tường minh, có tính lũy đẳng). Chỉ hiển thị khi CA hiện đang được tin cậy; yêu cầu xác nhận nội tuyến "Xóa CA?".                        |
-| **Xuất cấu hình** | `GET /api/tools/agent-bridge/config`   | Tải xuống JSON cấu hình có thể di chuyển (xem §3.7).                                                                                                                                             |
-| **Nhập cấu hình** | `POST /api/tools/agent-bridge/config`  | Tải lên JSON cấu hình đã xuất trước đó (xem §3.7).                                                                                                                                               |
+| Nút               | Route                                  | Chức năng                                                                                                                                                                                    |
+| ----------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Chẩn đoán**     | `GET /api/tools/agent-bridge/diagnose` | Chạy quy trình tự kiểm tra của pipeline thu thập và hiển thị báo cáo cho từng bước kiểm tra (✓/✗ + gợi ý khắc phục).                                                                         |
+| **Sửa chữa**      | `POST /api/tools/agent-bridge/repair`  | Hoàn tác trạng thái hệ thống MITM bị bỏ lại (các mục giả mạo DNS, root CA, proxy hệ thống) do sự cố hoặc SIGKILL. Có tính lũy đẳng — báo cáo "Không có gì cần sửa chữa" khi trạng thái sạch. |
+| **Xóa CA**        | `DELETE /api/tools/agent-bridge/cert`  | Hủy tin cậy và xóa MITM root CA khỏi kho tin cậy của HĐH (tường minh, có tính lũy đẳng). Chỉ hiển thị khi CA hiện đang được tin cậy; yêu cầu xác nhận trực tiếp "Xóa CA?".                   |
+| **Xuất cấu hình** | `GET /api/tools/agent-bridge/config`   | Tải xuống JSON cấu hình có thể di chuyển (xem §3.7).                                                                                                                                         |
+| **Nhập cấu hình** | `POST /api/tools/agent-bridge/config`  | Tải lên JSON cấu hình đã xuất trước đó (xem §3.7).                                                                                                                                           |
 
-**Các mục kiểm tra chẩn đoán** (`summarizeDiagnostics()` trong `src/mitm/inspector/diagnostics.ts`). Route chạy phép thăm dò có hiệu ứng cho từng mục rồi truyền các giá trị boolean vào bộ tổng hợp thuần túy; kết quả trả về gồm một kết luận `healthy` duy nhất cùng gợi ý cho từng lỗi:
+Mỗi thẻ agent cũng có nút **Khôi phục mặc định** riêng (`POST
+/api/tools/agent-bridge/agents/{id}/reset`) — thao tác hoàn tác cho từng agent chỉ bằng một cú nhấp, chỉ hủy giả mạo các host của
+agent đó, xóa các ánh xạ model đã lưu và đặt lại trạng thái `dns_enabled`/`setup_completed`
+của agent, để IDE giao tiếp lại với upstream thực sau khi được khởi động lại hoàn toàn. Thao tác này **không** ảnh hưởng đến
+máy chủ MITM dùng chung hoặc root CA (các agent khác vẫn có thể phụ thuộc vào chúng) — chúng vẫn có thể được truy cập
+thông qua Thẻ máy chủ và thao tác **Xóa CA** ở trên. Trên Windows, thao tác này cũng cố gắng chạy
+`ipconfig /flushdns`, vì DNS Client của Windows lưu vào bộ nhớ đệm các mục trong tệp hosts và sẽ không loại bỏ
+mục giả mạo vừa được xóa nếu không thực hiện thao tác này.
 
-| Tên mục kiểm tra   | Nội dung xác minh                                             | Gợi ý khi thất bại                                                                                                                                           |
-| ------------------ | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `server-running`   | Tiến trình máy chủ MITM đang hoạt động                        | "Máy chủ MITM không chạy. Hãy khởi động máy chủ từ tab AgentBridge."                                                                                         |
-| `server-reachable` | Máy chủ MITM chấp nhận kết nối trên cổng của nó (thăm dò TCP) | "Máy chủ MITM không chấp nhận kết nối trên cổng của nó. Hãy kiểm tra xem cổng có đang trống hay không và bạn có quyền liên kết với cổng đó hay không."       |
-| `cert-exists`      | Chứng chỉ MITM đã được tạo trên đĩa                           | "Chưa có chứng chỉ MITM nào được tạo. Hãy tạo chứng chỉ từ tab AgentBridge."                                                                                 |
-| `cert-trusted`     | CA gốc MITM nằm trong kho tin cậy của HĐH                     | "CA gốc MITM không được kho tin cậy của HĐH tin cậy, vì vậy việc chặn bắt TLS sẽ thất bại. Hãy tin cậy chứng chỉ từ tab AgentBridge."                        |
-| `dns-configured`   | Các tên máy chủ đích được giả mạo trong `/etc/hosts`          | "Các tên máy chủ đích không được giả mạo trong /etc/hosts, vì vậy lưu lượng không bao giờ đến được proxy. Hãy bật DNS cho (các) agent mà bạn muốn thu thập." |
+**Các bước kiểm tra chẩn đoán** (`summarizeDiagnostics()` trong `src/mitm/inspector/diagnostics.ts`). Route này chạy phép thăm dò có hiệu ứng cho từng bước kiểm tra và truyền các giá trị boolean vào trình tổng hợp thuần túy; kết quả trả về gồm một kết luận `healthy` duy nhất cùng với gợi ý cho từng lỗi:
 
-**Biểu ngữ trạng thái mồ côi:** khi trang phát hiện trạng thái còn sót lại do sự cố (giả mạo DNS / CA / proxy hệ thống), thẻ sẽ hiển thị một biểu ngữ màu hổ phách — _"Một phiên trước đó đã để lại trạng thái hệ thống (giả mạo DNS, CA hoặc proxy hệ thống). Hãy chạy Sửa chữa để dọn dẹp."_ — và làm nổi bật nút **Sửa chữa**. `Repair` là thành phần tương đương ở tầng ứng dụng với cờ `--cleanup` của ProxyBridge (nó ủy quyền cho `repairMitm()` trong `src/mitm/manager.ts`).
+| Tên bước kiểm tra  | Nội dung xác minh                                             | Gợi ý khi thất bại                                                                                                                                                |
+| ------------------ | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server-running`   | Tiến trình máy chủ MITM đang hoạt động                        | "Máy chủ MITM không chạy. Hãy khởi động máy chủ từ tab AgentBridge."                                                                                              |
+| `server-reachable` | Máy chủ MITM chấp nhận kết nối trên cổng của nó (thăm dò TCP) | "Máy chủ MITM không chấp nhận kết nối trên cổng của nó. Hãy kiểm tra xem cổng có khả dụng hay không và bạn có quyền liên kết với cổng đó hay không."              |
+| `cert-exists`      | Chứng chỉ MITM đã được tạo trên đĩa                           | "Chưa có chứng chỉ MITM nào được tạo. Hãy tạo chứng chỉ từ tab AgentBridge."                                                                                      |
+| `cert-trusted`     | MITM root CA nằm trong kho tin cậy của HĐH                    | "MITM root CA không được kho tin cậy của HĐH tin cậy, vì vậy việc chặn TLS sẽ thất bại. Hãy tin cậy chứng chỉ từ tab AgentBridge."                                |
+| `dns-configured`   | Các hostname đích được giả mạo trong `/etc/hosts`             | "Các hostname đích không được giả mạo trong /etc/hosts, vì vậy lưu lượng không bao giờ đến được proxy. Hãy bật DNS cho các agent mà bạn muốn thu thập lưu lượng." |
 
-> CA gốc MITM được giữ nguyên trạng thái cài đặt qua các lần dừng/khởi động để tránh
-> phải nhập sudo nhiều lần (cùng hành vi như mitmproxy/Charles), vì vậy việc xóa CA là
-> một hành động **Xóa CA** tường minh thay vì tự động diễn ra khi dừng.
+**Biểu ngữ trạng thái bị bỏ lại:** khi trang phát hiện trạng thái bị bỏ lại do sự cố (giả mạo DNS / CA / proxy hệ thống), thẻ sẽ hiển thị một biểu ngữ màu hổ phách — _"Một phiên trước đó đã để lại trạng thái hệ thống (giả mạo DNS, CA hoặc proxy hệ thống). Hãy chạy Sửa chữa để dọn dẹp."_ — và làm nổi bật nút **Sửa chữa**. `Repair` là thao tác tương đương ở lớp ứng dụng với cờ `--cleanup` của ProxyBridge (thao tác này ủy quyền cho `repairMitm()` trong `src/mitm/manager.ts`).
+
+> MITM root CA được giữ nguyên trạng thái cài đặt qua các lần dừng/khởi động để tránh liên tục
+> hiển thị lời nhắc sudo (cùng hành vi với mitmproxy/Charles), vì vậy việc xóa CA là một thao tác
+> **Xóa CA** tường minh thay vì tự động diễn ra khi dừng.
 
 ### 3.7 Nhập/xuất cấu hình có thể di chuyển
 
-AgentBridge có thể tuần tự hóa trạng thái **mà người vận hành có thể điều chỉnh** thành một blob JSON có phiên bản để có thể sao chép thiết lập giữa các máy. Bộ tuần tự hóa là `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`), được xác thực bởi `AgentBridgeConfigSchema`.
+AgentBridge có thể tuần tự hóa trạng thái **mà người vận hành có thể tinh chỉnh** thành một blob JSON có phiên bản để có thể sao chép thiết lập giữa các máy. Trình tuần tự hóa là `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`), được xác thực bằng `AgentBridgeConfigSchema`.
 
-Dữ liệu xuất bao gồm chính xác ba phần (các giá trị mặc định tích hợp sẵn cố ý **KHÔNG** được xuất, vì vậy thao tác nhập không bao giờ sao chép trùng hoặc xung đột với chúng):
+Dữ liệu xuất bao gồm chính xác ba phần (các giá trị mặc định tích hợp sẵn được chủ ý **KHÔNG** xuất, do đó việc nhập sẽ không bao giờ sao chép trùng lặp hoặc xung đột với chúng):
 
-| Trường           | Nguồn                                                                  | Ghi chú                                                       |
-| ---------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------- |
-| `bypassPatterns` | các mẫu bỏ qua do người dùng định nghĩa (`agent_bridge_bypass`)        | các mẫu bank/gov/okta mặc định bị loại trừ                    |
-| `customHosts`    | các máy chủ tùy chỉnh của Traffic Inspector (`inspector_custom_hosts`) | mỗi mục: `{ host, kind: "llm"\|"app"\|"custom", label? }`     |
-| `agentMappings`  | ánh xạ mô hình theo từng agent (`agent_bridge_mappings`)               | `{ [agentId]: [{ source, target }] }` cho mọi agent có ánh xạ |
+| Trường           | Nguồn                                                               | Ghi chú                                                       |
+| ---------------- | ------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `bypassPatterns` | các mẫu bỏ qua do người dùng xác định (`agent_bridge_bypass`)       | các mẫu bank/gov/okta mặc định bị loại trừ                    |
+| `customHosts`    | các host tùy chỉnh của Traffic Inspector (`inspector_custom_hosts`) | mỗi mục: `{ host, kind: "llm"\|"app"\|"custom", label? }`     |
+| `agentMappings`  | ánh xạ mô hình theo từng agent (`agent_bridge_mappings`)            | `{ [agentId]: [{ source, target }] }` cho mọi agent có ánh xạ |
 
 ```jsonc
 // GET /api/tools/agent-bridge/config
@@ -331,13 +340,13 @@ Dữ liệu xuất bao gồm chính xác ba phần (các giá trị mặc địn
 }
 ```
 
-**Hành vi nhập** (`POST /api/tools/agent-bridge/config`): các mẫu bỏ qua và ánh xạ theo từng agent được **thay thế toàn bộ**; các máy chủ tùy chỉnh được thêm theo cách **lũy đẳng** (`INSERT OR IGNORE`). Phản hồi cho biết số lượng mục của từng loại đã được áp dụng:
+**Hành vi nhập** (`POST /api/tools/agent-bridge/config`): các mẫu bỏ qua và ánh xạ theo từng agent được **thay thế toàn bộ**; các host tùy chỉnh được thêm theo cách **lũy đẳng** (`INSERT OR IGNORE`). Phản hồi cho biết số lượng từng loại đã được áp dụng:
 
 ```jsonc
 { "ok": true, "bypassPatterns": 1, "customHosts": 1, "agents": 1 }
 ```
 
-Những gì **KHÔNG** có trong cấu hình: trạng thái chạy của máy chủ, đường dẫn chứng chỉ, trạng thái DNS của từng agent, đường dẫn CA thượng nguồn và các cài đặt TPROXY — đó là trạng thái máy chủ/môi trường chạy, không phải các tùy chọn có thể di chuyển.
+Những nội dung **KHÔNG** có trong cấu hình: trạng thái chạy của máy chủ, đường dẫn chứng chỉ, trạng thái DNS theo từng agent, đường dẫn CA thượng nguồn và các cài đặt TPROXY — đây là trạng thái của host/môi trường chạy, không phải các tùy chọn có thể di chuyển.
 
 ---
 
@@ -497,20 +506,21 @@ Nếu AgentBridge chặn được lưu lượng nhưng tất cả yêu cầu đ�
 
 ## §7 Tham chiếu API
 
-Tất cả các route đều là `LOCAL_ONLY` (chỉ dành cho loopback, được thực thi trước khi xác thực) và `SPAWN_CAPABLE`. Xem `src/server/authz/routeGuard.ts`.
+Tất cả các route đều là `LOCAL_ONLY` (chỉ cho phép loopback, được thực thi trước bước xác thực) và `SPAWN_CAPABLE`. Xem `src/server/authz/routeGuard.ts`.
 
 Đường dẫn cơ sở: `/api/tools/agent-bridge/`
 
 | Phương thức         | Đường dẫn                                      | Mô tả                                                                                                                          |
 | ------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | GET                 | `/api/tools/agent-bridge/state`                | Trạng thái máy chủ toàn cục + trạng thái/phát hiện theo từng agent                                                             |
-| GET                 | `/api/tools/agent-bridge/agents`               | Liệt kê các agent đã đăng ký (id, tên, máy chủ, khả năng hoạt động, trạng thái)                                                |
-| GET                 | `/api/tools/agent-bridge/agents/{id}`          | Trạng thái của một agent (cấu hình đích + kết quả phát hiện + trạng thái đã lưu)                                               |
+| GET                 | `/api/tools/agent-bridge/agents`               | Liệt kê các agent đã đăng ký (id, tên, host, khả năng hoạt động, trạng thái)                                                   |
+| GET                 | `/api/tools/agent-bridge/agents/{id}`          | Trạng thái của một agent (cấu hình đích + thông tin phát hiện + trạng thái đã lưu)                                             |
 | PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Cập nhật `setup_completed` cho agent                                                                                           |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Chạy phép kiểm tra phát hiện cho agent (`installed`, `version?`, `path?`)                                                      |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Chạy phép thăm dò phát hiện cho agent (`installed`, `version?`, `path?`)                                                       |
 | POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Bật/tắt DNS cho agent (`{enabled: boolean}`)                                                                                   |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Ánh xạ mô hình cho agent                                                                                                       |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Các ánh xạ mô hình cho agent                                                                                                   |
 | PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Thay thế các ánh xạ mô hình                                                                                                    |
+| POST                | `/api/tools/agent-bridge/agents/{id}/reset`    | Khôi phục mặc định: hủy giả mạo DNS của agent này, xóa các ánh xạ và đặt lại trạng thái của agent (xem §3.6)                   |
 | POST                | `/api/tools/agent-bridge/server`               | Khởi động/dừng/khởi động lại máy chủ (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                   |
 | GET                 | `/api/tools/agent-bridge/cert`                 | Trạng thái chứng chỉ (`exists`, `trusted`, `path`)                                                                             |
 | POST                | `/api/tools/agent-bridge/cert`                 | Tin cậy (cài đặt) CA gốc MITM                                                                                                  |
@@ -518,18 +528,18 @@ Tất cả các route đều là `LOCAL_ONLY` (chỉ dành cho loopback, đượ
 | POST                | `/api/tools/agent-bridge/cert/regenerate`      | Tạo lại chứng chỉ MITM tự ký                                                                                                   |
 | GET                 | `/api/tools/agent-bridge/cert/download`        | Truyền phát chứng chỉ PEM để tải xuống                                                                                         |
 | GET                 | `/api/tools/agent-bridge/bypass`               | Liệt kê các mẫu bỏ qua (`default` + `user`)                                                                                    |
-| POST                | `/api/tools/agent-bridge/bypass`               | Thay thế toàn bộ các mẫu bỏ qua do người dùng định nghĩa                                                                       |
-| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Xóa một mẫu bỏ qua do người dùng định nghĩa                                                                                    |
-| GET                 | `/api/tools/agent-bridge/diagnose`             | Tự kiểm tra quy trình thu thập (xem §3.6)                                                                                      |
-| POST                | `/api/tools/agent-bridge/repair`               | Hoàn tác trạng thái hệ thống MITM bị bỏ lại (xem §3.6)                                                                         |
-| GET                 | `/api/tools/agent-bridge/config`               | Xuất cấu hình JSON có tính di động (xem §3.7)                                                                                  |
-| POST                | `/api/tools/agent-bridge/config`               | Nhập cấu hình JSON có tính di động (xem §3.7)                                                                                  |
+| POST                | `/api/tools/agent-bridge/bypass`               | Thay thế toàn bộ các mẫu bỏ qua do người dùng xác định                                                                         |
+| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Xóa một mẫu bỏ qua do người dùng xác định                                                                                      |
+| GET                 | `/api/tools/agent-bridge/diagnose`             | Tự kiểm tra pipeline thu thập (xem §3.6)                                                                                       |
+| POST                | `/api/tools/agent-bridge/repair`               | Hoàn tác trạng thái hệ thống MITM không còn được quản lý (xem §3.6)                                                            |
+| GET                 | `/api/tools/agent-bridge/config`               | Xuất JSON cấu hình có thể di chuyển (xem §3.7)                                                                                 |
+| POST                | `/api/tools/agent-bridge/config`               | Nhập JSON cấu hình có thể di chuyển (xem §3.7)                                                                                 |
 | GET                 | `/api/tools/agent-bridge/upstream-ca`          | Lấy đường dẫn CA thượng nguồn đã cấu hình                                                                                      |
 | POST                | `/api/tools/agent-bridge/upstream-ca`          | Xác thực + lưu đường dẫn CA thượng nguồn                                                                                       |
-| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Chỉ xác thực (chạy thử) đường dẫn CA thượng nguồn — không lưu                                                                  |
+| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Chỉ xác thực (chạy thử) đường dẫn CA thượng nguồn — không lưu lại                                                              |
 | GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | Chế độ thu thập giải mã trong suốt TPROXY — xem `docs/security/MITM-TPROXY-DECRYPT.md` (git; không được biên dịch vào `/docs`) |
 
-Các lược đồ OpenAPI đầy đủ: `docs/openapi.yaml` → thẻ `AgentBridge`.
+Các schema OpenAPI đầy đủ: `docs/openapi.yaml` → tag `AgentBridge`.
 
 ---
 

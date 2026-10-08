@@ -237,14 +237,14 @@ Stiva de producție rulează în paralel cu configurația compose de dezvoltare 
 
 ## Etapele Dockerfile
 
-Depozitul include un Dockerfile în mai multe etape (`Dockerfile`). Sunt expuse patru etape; alegeți `target` potrivit pentru cazul dvs. de utilizare.
+Repository-ul include un Dockerfile în mai multe etape (`Dockerfile`). Sunt expuse patru etape; alegeți valoarea `target` potrivită pentru cazul dumneavoastră de utilizare.
 
-| Etapă         | Imagine de bază       | Scop                                                                                                                                                                                                                                                                                                                                                 |
-| ------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Instalează dependențele (`npm ci --legacy-peer-deps`) și rulează `npm run build` (Turbopack în mod implicit — consultați mai jos Resurse la compilare)                                                                                                                                                                                               |
-| `runner-base` | `node:26-trixie-slim` | Mediu de execuție pentru producție cu rezultatul standalone Next.js. **Nu include CLI-uri ale furnizorilor.**                                                                                                                                                                                                                                        |
-| `runner-cli`  | `runner-base`         | Adaugă `git`, `docker.io`, `docker-compose` și CLI-urile globale: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Alegeți această variantă pentru fluxuri de lucru cu agenți.**                                                                                                                                                 |
-| `runner-web`  | `runner-base`         | Adaugă Playwright și un browser Chromium (`--with-deps`) pentru furnizorii bazați pe sesiuni web: `gemini-web`, `claude-web`, `claude-turnstile`. **Alegeți această variantă atunci când utilizați furnizorii respectivi** — imaginea simplă eșuează la procesarea solicitărilor fără aceasta (consultați nota despre `-web` din Canale de lansare). |
+| Etapă         | Imagine de bază       | Scop                                                                                                                                                                                                                                                                                                                                 |
+| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `builder`     | `node:26-trixie-slim` | Instalează dependențele (`npm ci --legacy-peer-deps`) și rulează `npm run build` (Turbopack în mod implicit — consultați mai jos Resurse pentru compilare)                                                                                                                                                                           |
+| `runner-base` | `node:26-trixie-slim` | Mediu de execuție pentru producție cu rezultatul standalone Next.js. **Nu include CLI-uri ale furnizorilor.**                                                                                                                                                                                                                        |
+| `runner-cli`  | `runner-base`         | Adaugă `git`, `docker.io`, `docker-compose` și CLI-urile globale: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Alegeți această etapă pentru fluxuri de lucru bazate pe agenți.**                                                                                                                             |
+| `runner-web`  | `runner-base`         | Adaugă Playwright și un browser Chromium (`--with-deps`) pentru furnizorii de sesiuni web: `gemini-web`, `claude-web`, `claude-turnstile`. **Alegeți această etapă când utilizați acești furnizori** — imaginea simplă eșuează în momentul solicitării fără aceasta (consultați nota despre `-web` din secțiunea Canale de lansare). |
 
 Compilați manual o anumită țintă:
 
@@ -254,80 +254,86 @@ docker build --target runner-cli  -t omniroute:cli  .
 docker build --target runner-web  -t omniroute:web  .
 ```
 
-### Resurse la compilare
+### Resurse pentru compilare
 
-Trei argumente de compilare controlează consumul etapei `builder`. Acestea se aplică numai în timpul compilării —
-`OMNIROUTE_MEMORY_MB` (mai jos) este un parametru separat pentru execuție.
+Trei argumente de compilare controlează resursele consumate de etapa `builder`. Acestea se aplică numai în timpul compilării —
+`OMNIROUTE_MEMORY_MB` (mai jos) este o opțiune separată pentru mediul de execuție.
 
-| Argument de compilare       | Valoare implicită | Efect                                                                                                                 |
-| --------------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`               | `0` compilează folosind webpack. Consum maxim de memorie mai redus, dar mai lent.                                     |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`            | Limita heap-ului V8 (`--max-old-space-size`) pentru procesul `next build` lansat.                                     |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`               | Furnizează valoarea pentru `CIRCLE_NODE_TOTAL`; Next determină `workers = N - 1` pentru colectarea datelor paginilor. |
+| Argument de compilare       | Valoare implicită | Efect                                                                                                              |
+| --------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`               | `0` compilează cu webpack: consum maxim de memorie mai redus, dar mai lent. `1` activează Turbopack.               |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`            | Limita heap-ului V8 (`--max-old-space-size`) pentru procesul `next build` lansat.                                  |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`               | Furnizează valoarea pentru `CIRCLE_NODE_TOTAL`; Next derivă `workers = N - 1` pentru colectarea datelor paginilor. |
 
-`OMNIROUTE_BUILD_WORKERS` este parametrul care trebuie mărit pe un sistem de compilare puternic și primul care trebuie
-verificat atunci când o compilare cu resurse limitate eșuează **după** `✓ Compiled successfully`. Fiecare
-proces de lucru pentru datele paginilor este un proces separat, la fel ca procesul părinte `next build`;
-o reproducere pe un VPS activ (problema #7518) a măsurat valoarea RSS maximă a fiecărui proces la
-~4,5 GB, independent de opțiunea pentru heap `NODE_OPTIONS` (Turbopack compilează folosind
-memorie nativă/Rust din afara heap-ului V8). Valoarea implicită `2` (→ 1 proces de lucru, 2
-procese în total) este dimensionată pentru sistemele de execuție găzduite de GitHub cu 16 GB / 4 vCPU pe care le
-utilizează conducta de publicare. Cu `8` (→ 7 procese de lucru), sistemul de execuție a rămas fără memorie, iar
-buildkit a oprit etapa cu eroarea `ResourceExhausted: ... cannot allocate memory`;
-nici `3` (→ 2 procese de lucru) nu a încăput după ce RSS-ul per proces a fost măsurat
-direct, în loc să fie dedus. `tests/unit/docker-build-memory-budget.test.ts`
-efectuează calculele folosind valoarea măsurată și eșuează dacă oricare dintre parametri
-depășește capacitatea sistemului de execuție.
+`OMNIROUTE_BUILD_WORKERS` este valoarea care trebuie mărită pe un sistem de compilare puternic și cea care trebuie
+suspectată atunci când o compilare cu resurse limitate eșuează **după** `✓ Compiled successfully`. Fiecare
+proces worker pentru datele paginilor este un proces separat, la fel ca procesul părinte `next build`;
+o reproducere pe un VPS activ (problema #7518) a măsurat valoarea maximă RSS a fiecărui proces la
+~4,5 GB, independent de opțiunea pentru heap din `NODE_OPTIONS` (Turbopack compilează folosind
+memorie nativă/Rust din afara heap-ului V8). Valoarea implicită `2` (→ 1 worker, 2
+procese în total) este dimensionată pentru runner-ele găzduite de GitHub cu 16 GB / 4 vCPU, pe care le
+utilizează pipeline-ul de publicare. La `8` (→ 7 workeri), runner-ul respectiv a rămas fără memorie, iar
+buildkit a oprit etapa cu `ResourceExhausted: ... cannot allocate memory`;
+nici `3` (→ 2 workeri) nu a încăput după ce valoarea RSS per proces a fost măsurată
+direct, în loc să fie dedusă. `tests/unit/docker-build-memory-budget.test.ts`
+efectuează calculele folosind valoarea măsurată și eșuează dacă oricare dintre cele două opțiuni
+depășește capacitatea runner-ului.
 
-Turbopack compilează folosind memorie Rust nativă care se află **în afara** heap-ului V8, astfel încât
+Turbopack compilează folosind memorie Rust nativă aflată **în afara** heap-ului V8, astfel încât
 `OMNIROUTE_BUILD_MEMORY_MB` nu o limitează. Pe o gazdă cu o limită de memorie,
-compilarea este apoi oprită prin SIGKILL de mecanismul OOM fără niciun mesaj de eroare — pur și simplu
-se oprește în timpul etapei `Creating an optimized production build`, ceea ce pare mai degrabă
-un blocaj decât o epuizare a memoriei. Dacă gazda de compilare are resurse limitate, schimbați bundlerul:
+compilarea este apoi oprită prin SIGKILL de mecanismul OOM killer, fără niciun mesaj de eroare — pur și simplu
+se oprește în timpul etapei `Creating an optimized production build`, ceea ce pare mai degrabă o blocare
+decât o epuizare a memoriei. De aceea, `Dockerfile` utilizează implicit webpack
+(`OMNIROUTE_USE_TURBOPACK=0`), spre deosebire de `npm run dev` / `npm run build`, unde
+Turbopack este opțiunea implicită în cod: o comandă simplă `docker build .`, fără argumente de compilare (ceea ce
+rulează Railway și alte platforme cu configurare printr-un singur clic), nu trebuie să eșueze silențios pe un sistem de compilare
+cu memorie limitată. Imaginile publicate transmit deja explicit
+`OMNIROUTE_USE_TURBOPACK=0` în `docker-publish.yml`. Pe un sistem de compilare cu suficientă memorie RAM, activați
+Turbopack pentru o compilare mai rapidă:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` este activat, astfel încât `next build` rulează un proces părinte **și** un proces de lucru,
-iar fiecare respectă separat `OMNIROUTE_BUILD_MEMORY_MB`. Configurați limita containerului
-la aproximativ de două ori această valoare, nu o singură dată.
+`webpackBuildWorker` este activat, astfel încât `next build` rulează un proces părinte **și** un proces worker,
+iar fiecare respectă separat `OMNIROUTE_BUILD_MEMORY_MB`. Dimensionați limita containerului
+la aproximativ dublul acestei valori, nu la o singură valoare.
 
 Măsurători efectuate pe acest arbore (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Bundler   | Limita containerului | Rezultat                                 |
-| --------- | -------------------- | ---------------------------------------- |
-| Turbopack | 8 GiB / 16 GiB       | oprit de OOM în ambele cazuri, silențios |
-| webpack   | 8 GiB                | procesul de compilare oprit prin SIGKILL |
-| webpack   | 12 GiB               | reușit, cu un vârf de 11,1 GiB           |
+| Bundler   | Limita containerului | Rezultat                                      |
+| --------- | -------------------- | --------------------------------------------- |
+| Turbopack | 8 GiB / 16 GiB       | Oprit de OOM la ambele valori, fără mesaj     |
+| webpack   | 8 GiB                | Procesul worker de compilare a primit SIGKILL |
+| webpack   | 12 GiB               | A reușit, cu un vârf de 11,1 GiB              |
 
-### Valori implicite la execuție
+### Valori implicite pentru mediul de execuție
 
 Valori implicite exportate de `runner-base`: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
 Comportamentul memoriei în Docker:
 
 - Imaginea setează `OMNIROUTE_MEMORY_MB=1024` și derivă din aceasta `NODE_OPTIONS=--max-old-space-size=1024`.
-- Procesul efectiv al serverului este pornit de lansatorul independent, care citește `OMNIROUTE_MEMORY_MB` și adaugă `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
+- Procesul efectiv al serverului este pornit de programul de lansare autonom, care citește `OMNIROUTE_MEMORY_MB` și adaugă `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
 - Node utilizează ultima valoare repetată pentru `--max-old-space-size`, astfel încât setarea `OMNIROUTE_MEMORY_MB` controlează limita efectivă a heap-ului în Docker.
-- Deoarece imaginea o setează întotdeauna, valoarea de rezervă a lansatorului, calibrată în funcție de RAM, nu se aplică niciodată în Docker. Măriți-o explicit pentru volumul de lucru (tabelul de mai jos). `2048` este în continuare prea puțin pentru `/v1/responses` al agenților de programare.
+- Deoarece imaginea o setează întotdeauna, valoarea de rezervă a programului de lansare, calibrată în funcție de RAM, nu se aplică niciodată în Docker. Măriți-o explicit pentru volumul de lucru (tabelul de mai jos). `2048` este în continuare prea puțin pentru `/v1/responses` al agenților de programare.
 
 ### Memorie RAM la rulare pentru agenții de programare
 
-Valoarea implicită Docker de 1 GiB reprezintă un nivel minim pentru panoul de control și conversații ușoare, nu o dimensiune pentru producție. Corpurile lungi ale solicitărilor `POST /v1/responses` (sute de mesaje, zeci de instrumente) păstrează în memorie mai multe grafuri în timpul compresiei. Două solicitări suprapuse de aproximativ 3 MiB / 750k tokenuri au provocat oprirea V8 cu un spațiu vechi de **12 GiB** (`FATAL ERROR: Reached heap limit`) și au atins, de asemenea, limita OOM a unui cgroup de 16 GiB. Consultați [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Valoarea implicită Docker de 1 GiB este un prag minim pentru panoul de control și conversații ușoare, nu o dimensiune adecvată pentru producție. Corpurile lungi ale cererilor `POST /v1/responses` (sute de mesaje, zeci de instrumente) păstrează în memorie mai multe grafuri în timpul compresiei. Două cereri suprapuse de aproximativ 3 MiB / aproximativ 750k tokenuri au provocat oprirea V8 la un old-space de **12 GiB** (`FATAL ERROR: Reached heap limit`) și au atins, de asemenea, limita OOM a unui cgroup de 16 GiB. Consultați [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Dimensionați **valoarea cgroup `--memory` peste dimensiunea heap-ului** — bufferele native, SQLite și datele intermediare de compresie se află în afara V8.
+Dimensionați **memoria cgroup `--memory` peste dimensiunea heap-ului** — bufferele native, SQLite și datele intermediare de compresie se află în afara V8.
 
-| Volum de lucru                                  | `OMNIROUTE_MEMORY_MB`                  | Container / cgroup                  | Observații                                                                                                  |
-| ----------------------------------------------- | -------------------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Panou de control, o conversație ușoară          | `1024` (valoarea implicită a imaginii) | ≥2 GiB                              |                                                                                                             |
-| Un agent de programare (Claude/Codex/Grok)      | `8192`                                 | ≥10 GiB                             | Sesiune individuală tipică `/v1/responses`                                                                  |
-| Două solicitări lungi `/v1/responses` simultane | `10240`–`12288`                        | ≥12–16 GiB                          | Oprire V8 măsurată la un heap de aproximativ 12 GiB                                                         |
-| Trei sau mai multe contexte lungi simultane     | nu pe un singur proces                 | serializare / mai multă memorie RAM | Limita implicită pentru solicitările intensive este de 1 în curs; mărirea acesteia fără RAM readuce oprirea |
+| Volum de lucru                              | `OMNIROUTE_MEMORY_MB`                  | Container / cgroup          | Note                                                                                                                      |
+| ------------------------------------------- | -------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Panou de control, o conversație ușoară      | `1024` (valoarea implicită a imaginii) | ≥2 GiB                      |                                                                                                                           |
+| Un agent de programare (Claude/Codex/Grok)  | `8192`                                 | ≥10 GiB                     | Sesiune unică `/v1/responses` tipică                                                                                      |
+| Două cereri lungi `/v1/responses` simultane | `10240`–`12288`                        | ≥12–16 GiB                  | Oprire V8 măsurată la un heap de aproximativ 12 GiB                                                                       |
+| Trei sau mai multe contexte lungi simultane | nu pe un singur proces                 | serializare / mai multă RAM | Admiterea implicită pentru sarcini intensive este de 1 cerere în curs; mărirea acesteia fără RAM readuce problema opririi |
 
-`omniroute serve` pe sistem fizic calibrează aproximativ 35% din RAM (limitat la `[512, 4096]`) atunci când `OMNIROUTE_MEMORY_MB` este **nesetat**. Docker setează întotdeauna `1024`, astfel încât această calibrare nu este executată niciodată în imaginea oficială.
+`omniroute serve` pe bare metal calibrează aproximativ 35% din RAM (limitat la intervalul `[512, 4096]`) atunci când `OMNIROUTE_MEMORY_MB` este **nesetat**. Docker setează întotdeauna `1024`, astfel încât această calibrare nu rulează niciodată în imaginea oficială.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

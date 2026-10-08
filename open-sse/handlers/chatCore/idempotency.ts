@@ -90,12 +90,15 @@ export function composeIdempotencyKey({
   model,
   messages,
   body,
+  apiKeyId,
 }: {
   rawKey: string | null | undefined;
   provider: string;
   model: string;
   messages: unknown;
   body?: unknown;
+  /** The calling API key: keeps one caller's replay from being served to another caller. */
+  apiKeyId?: string | null;
 }): string | null {
   if (!rawKey) return null;
   let digest = "";
@@ -107,7 +110,7 @@ export function composeIdempotencyKey({
   } catch {
     digest = "nodigest";
   }
-  return `${rawKey}|${provider}|${model}|${digest}`;
+  return `${rawKey}|${apiKeyId ?? ""}|${provider}|${model}|${digest}`;
 }
 
 /**
@@ -121,6 +124,7 @@ export async function checkIdempotencyCache({
   provider,
   model,
   body,
+  apiKeyId,
   effectiveServiceTier,
   startTime,
   log,
@@ -130,6 +134,8 @@ export async function checkIdempotencyCache({
   provider: string;
   model: string;
   body?: unknown;
+  /** The calling API key, so replays are never shared across callers. */
+  apiKeyId?: string | null;
   effectiveServiceTier: EffectiveServiceTier | null | undefined;
   startTime: number;
   log: LoggerLike;
@@ -146,6 +152,7 @@ export async function checkIdempotencyCache({
     model,
     messages: (body as { messages?: unknown } | undefined)?.messages,
     body,
+    apiKeyId,
   });
   const cachedIdemp = checkIdempotency(idempotencyKey);
   if (cachedIdemp) {

@@ -33,37 +33,37 @@
 
 ---
 
-## Ìṣàtúnṣe Ìṣòro Tó Kúnrẹ́rẹ́
+## Ìtọ́nisọ́nà Alálàyé fún Yíyanjú Ìṣòro
 
 ---
 
-### Fífi Ààlà Ìwọ̀n Lórí Àwọn Olùpèsè Ọ̀fẹ́ (429 / 400 / 401)
+### Ìdínwọ̀n Oṣùwọ̀n lórí Àwọn Olùpèsè Ọ̀fẹ́ (429 / 400 / 401)
 
-**Àmì ìṣòro**: Nígbà tí o bá ń lo `model: "auto"` pẹ̀lú àwọn olùpèsè ọ̀fẹ́/tí kò nílò ìjẹ́rìí ìdánimọ̀ (opencode, auggie, àti bẹ́ẹ̀ bẹ́ẹ̀ lọ), o máa ń rí `HTTP 429`, `400`, tàbí `401` lẹ́ẹ̀kọ̀ọ̀kan dípò àwọn ìdáhùn. Àwọn ìbéèrè náà máa ń ṣàṣeyọrí nígbà tí a bá tún ìtọ́ni kan náà gbìyànjú ní ìṣẹ́jú díẹ̀ lẹ́yìn náà, ṣùgbọ́n ìṣiṣẹ́ aládàáṣe (àwọn iṣẹ́ cron, aṣojú, àwọn skripti) máa ń dáwọ́ dúró ní ìkùnà àkọ́kọ́.
+**Àmì ìṣòro**: Nígbà tí o bá ń lo `model: "auto"` pẹ̀lú àwọn olùpèsè ọ̀fẹ́/tí kò nílò ìfàṣẹsí (opencode, auggie, àti bẹ́ẹ̀ bẹ́ẹ̀ lọ), lẹ́ẹ̀kọ̀ọ̀kan o máa ń gba `HTTP 429`, `400`, tàbí `401` dípò àwọn ìdáhùn. Àwọn ìbéèrè náà máa ń ṣàṣeyọrí tí o bá tún ìtọ́kasí kan náà gbìyànjú ní ìṣẹ́jú díẹ̀ lẹ́yìn náà, ṣùgbọ́n àìṣọwọ́ṣe aládàáṣiṣẹ́ (àwọn iṣẹ́ cron, àwọn agent, àwọn script) máa ń dáwọ́ dúró ní ìkùnà àkọ́kọ́.
 
-**Ohun tó fa ìṣòro náà ní pàtàkì**: Ọ̀nà ìkùnà mẹ́ta tí kò gbára lé ara wọn ń kójọ pọ̀:
+**Ohun tó fa ìṣòro náà gan-an**: Àwọn ọ̀nà ìkùnà mẹ́ta tí kò sinmi lé ara wọn ni ó parapọ̀:
 
-1. **Ààlà ìwọ̀n olùpèsè (`429`)**: Àwọn ipele ọ̀fẹ́ lè fi ìpín kan múlẹ̀ fún fèrèsé àkókò kọ̀ọ̀kan. Fífi ọ̀pọ̀ ìpè tó ń ṣiṣẹ́ ní àkókò kan náà ránṣẹ́ lojijì máa ń lo gbogbo rẹ̀ tán, nítorí náà a máa kọ ìbéèrè tó tẹ̀ lé e títí fèrèsé náà yóò fi bẹ̀rẹ̀ sí i tuntun.
-2. **Módẹ́lì tó bàjẹ́ nínú ìrékọjá (`400`/`401`)**: Àwọn àkójọpọ̀ `auto/*` lè ní àwọn módẹ́lì ìrékọjá láti `opencode` tí a forúkọsílẹ̀ sínú àkójọ ṣùgbọ́n tí kò ní àwọn ẹ̀rí ìdánimọ̀ tó ń ṣiṣẹ́ (fún àpẹẹrẹ `oc/north-mini-code-free` → `401`). Olùdarí aládàáṣe máa ń gbìyànjú ọ̀kan, ó máa ń kùnà, aṣìṣe náà sì máa ń tàn ká ṣáájú kí aṣàyàn ìgbẹ̀yìn tó bẹ̀rẹ̀.
-3. **Ìmúdára ìṣiṣẹ́pọ̀ (`429` lábẹ́ ẹrù iṣẹ́)**: Nígbà tí ọ̀pọ̀ ìjókòó aṣojú/cron bá pe `auto` lẹ́ẹ̀kan náà, àpapọ̀ ìwọ̀n ìbéèrè máa ń kọjá ohun tí àwọn olùpèsè ọ̀fẹ́ lè fara dà, nítorí náà a máa ń sàmì sí àwọn ìpè tó bófin mu gẹ́gẹ́ bí ìlòkulò.
+1. **Ìdínwọ̀n oṣùwọ̀n olùpèsè (`429`)**: Àwọn ìpele ọ̀fẹ́ lè fi ìwọ̀n lílò kan múlẹ̀ fún àkókò kọ̀ọ̀kan. Ọ̀pọ̀ ìpè ní àsìkò kan náà máa ń parí ìwọ̀n náà, nítorí náà a ó kọ ìbéèrè tó tẹ̀ lé e títí àkókò náà yóò fi tún bẹ̀rẹ̀.
+2. **Módẹ́ẹ̀lì tó ní àbùkù nínú passthrough (`400`/`401`)**: Àwọn àkójọpọ̀ `auto/*` lè ní àwọn módẹ́ẹ̀lì passthrough láti `opencode` tí a forúkọ sílẹ̀ nínú katalọ́ọ̀gù ṣùgbọ́n tí kò ní ìwé ẹ̀rí tó ń ṣiṣẹ́ (fún àpẹẹrẹ `oc/north-mini-code-free` → `401`). Auto-router yóò gbìyànjú ọ̀kan, yóò kùnà, ìṣòro náà yóò sì tàn ká ṣáájú kí fallback tó bẹ̀rẹ̀ iṣẹ́.
+3. **Ìlọ́po ìṣiṣẹ́-pọ̀ (`429` lábẹ́ ẹrù)**: Nígbà tí ọ̀pọ̀ àwọn ìgbà agent/cron bá ń pe `auto` lẹ́ẹ̀kan náà, àpapọ̀ oṣùwọ̀n ìbéèrè máa ń kọjá ohun tí àwọn olùpèsè ọ̀fẹ́ lè fara dà, nítorí náà a máa ń fi àmì sí àwọn ìpè tó bófin mu bí ìlòkulò.
 
-**Àtúnṣe tí a ti fìdí rẹ̀ múlẹ̀ (gẹ́gẹ́ bí àwùjọ ṣe ròyìn, 2026-08-10)**: ṣàtúnṣe àwọn oníyípadà àyíká mẹ́ta kí yíyípadà, ìṣiṣẹ́pọ̀, àti aṣàyàn ìgbẹ̀yìn lè gba ìyípadà lemọ́lemọ́ ti ipele ọ̀fẹ́ dípò kí wọ́n dáwọ́ iṣẹ́ dúró nítorí rẹ̀:
+**Àtúnṣe tí a ti fìdí rẹ̀ múlẹ̀ (gẹ́gẹ́ bí àwùjọ ṣe ròyìn, 2026-08-10)**: ṣàtúnṣe àwọn environment variable mẹ́ta kí yíyípo, ìṣiṣẹ́-pọ̀, àti fallback lè gba ìyípadà àìdúróṣinṣin ìpele ọ̀fẹ́ dípò kí wọ́n kùnà nítorí rẹ̀:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # lọ sí módẹ́lì/olùpèsè mìíràn lórí 400/401 (ó fo àwọn módẹ́lì ìrékọjá tó bàjẹ́)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # òrùlé gbígba àwọn iṣẹ́ wuwo tó ṣe kedere (a kò ṣètò rẹ̀ ní àìpé: kò sí ààlà iye ìbéèrè, wo àkíyèsí nísàlẹ̀)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # ìdúró tó ní ààlà tó gùn sí i fún agbára iṣẹ́ wuwo dípò 503 tí a lè tún gbìyànjú lẹ́sẹ̀kẹsẹ̀
+export OMNIROUTE_ROTATE_ON_400=true           # lọ sí módẹ́ẹ̀lì/olùpèsè mìíràn lórí 400/401 (fo àwọn módẹ́ẹ̀lì passthrough tó ní àbùkù)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # òrùlé gbígba wọlé tó ṣe kedere fún àwọn ìbéèrè tó wuwo (a kò ṣètò rẹ̀ ní àkọ́kọ́: kò sí ààlà iye ìbéèrè, wo àkíyèsí ní ìsàlẹ̀)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # gbé àkókò ìdúró tó ní ààlà sókè ju iye àkọ́kọ́ RATE_LIMIT_MAX_WAIT_MS lọ fún àwọn upstream tó lọ́ra
 ```
 
-Ṣètò àwọn wọ̀nyí nínú àyíká ìlànà OmniRoute (daemon náà, fún àpẹẹrẹ nípasẹ̀ LaunchAgent plist tàbí `systemctl edit`), lẹ́yìn náà tún OmniRoute bẹ̀rẹ̀. Àmì yíyípadà náà ni irinṣẹ́ kan ṣoṣo tó ní ipa tó ga jù: ó ń yí ìkùnà pátápátá padà sí àtúngbìyànjú tí kò hàn sí olùmúlò pẹ̀lú olùpèsè tó ní ìlera nínú àkójọpọ̀ náà.
+Ṣètò àwọn wọ̀nyí nínú àyíká iṣẹ́ OmniRoute (daemon náà, fún àpẹẹrẹ nípasẹ̀ LaunchAgent plist tàbí `systemctl edit`), lẹ́yìn náà tún OmniRoute bẹ̀rẹ̀. Àmì yíyípo náà ni ọ̀nà tó lágbára jù lọ: ó máa ń yí ìkùnà pátápátá padà sí àtúngbìyànjú tí kò hàn sí olùlò lòdì sí olùpèsè tó ní ìlera nínú àkójọpọ̀ náà.
 
-**Àkíyèsí**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` ń fi ààlà sí iye àwọn ìbéèrè iṣẹ́ wuwo — tí ó ní àyíká ọ̀rọ̀ gígùn — tó lè ṣiṣẹ́ lẹ́ẹ̀kan náà; ààlà náà jẹ́ ẹnubodè gbígba wọlé, kì í ṣe ohun tó ń fi ààlà ìwọ̀n lé olùpèsè lórí. **Ìmúdójúìwọ̀n #503-fanout:** a kò tún ṣètò oníyípadà yìí ní àìpé mọ́ (ní báyìí ó máa ń ṣiṣẹ́ nìkan nígbà tí a bá ṣètò rẹ̀ ní pàtó, gẹ́gẹ́ bí ó ṣe wà lókè) — dípò bẹ́ẹ̀, ìgbàwọlé iṣẹ́ wuwo ni ìnáwó báìtì tí a yọ jáde ní aládàáṣe (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) ń darí, èyí tí ń ṣe ìwọ̀n ara rẹ̀ láti inú òrùlé gidi ti ìrántí ẹrọ agbàlejò, nítorí náà ìṣàgbékalẹ̀ tuntun yẹ kí ó rí àwọn ìkọ̀sílẹ̀ `503 chat_admission_busy` tó dín kù gan-an láì ṣètò oníyípadà yìí rárá; ṣíṣètò rẹ̀ ní pàtó níbí ṣì ń ṣiṣẹ́ gan-an gẹ́gẹ́ bí àkọsílẹ̀ ṣe ṣàlàyé. Àwọn ìforígbárí ìnáwó báìtì tí a ṣètò ní pàtó máa ń ní ààlà láàárín 8 MiB–2 GiB. `413 body_exceeds_budget` kì í ṣe ìṣòro onígbà díẹ̀: mú ìnáwó báìtì náà pọ̀ sí i, dín `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` kù, tàbí mú òrùlé ìrántí ìlànà náà pọ̀ sí i. Ìtúsílẹ̀ `inflight_bytes_budget` jẹ́ ìdíje fún ohun àmúlò fún ìgbà díẹ̀, ó sì ṣì ṣeé tún gbìyànjú. Fífi ààlà ìwọ̀n lórí olùpèsè kọ̀ọ̀kan (`open-sse/services/rateLimitManager.ts`) ni `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH`, àti `RATE_LIMIT_AUTO_ENABLE` ń darí lọ́tọ̀ — wo `.env.example`.
+**Àkíyèsí**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` ń fi ààlà sí iye àwọn ìbéèrè tó wuwo — tó ní àyíká ọ̀rọ̀ gígùn — tí ó lè ṣiṣẹ́ lẹ́ẹ̀kan náà; ààlà náà jẹ́ ẹnu-ọ̀nà gbígba wọlé, kì í ṣe olùdínwọ̀n oṣùwọ̀n olùpèsè. **Àfikún #503-fanout:** a kò ṣètò var yìí ní àkọ́kọ́ mọ́ (ní báyìí ó máa ń múlẹ̀ nìkan tí a bá ṣètò rẹ̀ ní kedere, gẹ́gẹ́ bí òkè yìí) — dípò bẹ́ẹ̀, ìṣúná byte tí a ṣírò fúnra rẹ̀ (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) ló ń ṣàkóso gbígba àwọn ìbéèrè tó wuwo wọlé, ó sì ń ṣe ìwọ̀n ara rẹ̀ láti inú ààlà gidi ti memory host náà, nítorí náà ìmúṣiṣẹ́ tuntun yẹ kí ó rí àwọn ìkọ̀sílẹ̀ `503 chat_admission_busy` tó dín kù gan-an láì ṣètò var yìí rárá; ṣíṣètò rẹ̀ ní kedere níbí ṣì ń ṣiṣẹ́ gẹ́gẹ́ bí a ṣe ṣàkọsílẹ̀ rẹ̀. Àwọn àtúnṣe ìṣúná byte ní kedere ni a fi ààlà sí láàárín 8 MiB–2 GiB. `413 body_exceeds_budget` kì í ṣe ìṣòro fún ìgbà díẹ̀: mú ìṣúná byte yẹn pọ̀ sí i, dín `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` kù, tàbí mú ààlà memory iṣẹ́ náà pọ̀ sí i. Ìtúsílẹ̀ `inflight_bytes_budget` jẹ́ ìdíje fún ìgbà díẹ̀, ó sì ṣì ṣeé tún gbìyànjú. Ìdínwọ̀n oṣùwọ̀n olùpèsè kọ̀ọ̀kan (`open-sse/services/rateLimitManager.ts`) ni `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH`, àti `RATE_LIMIT_AUTO_ENABLE` ń ṣàkóso lọ́tọ̀ — wo `.env.example`.
 
-**Bí o ṣe lè jẹ́rìí pé ó ṣiṣẹ́**: ṣiṣẹ́ agent/cron rẹ lẹ́ẹ̀mejì ní kíákíá, kí o sì jẹ́rìí pé àwọn méjèèjì ṣàṣeyọrí. Ṣáájú àtúnṣe náà, ìṣiṣẹ́ kejì sábà máa ń dá àṣìṣe `429`/`401` padà. Lẹ́yìn àtúnṣe náà, a máa tún àwọn ìkùnà (bí ó bá sí) gbìyànjú láìjẹ́ kí o rí i, ìpè náà yóò sì parí. O tún lè lo `curl /monitoring/health` kí o sì ṣàkíyèsí field `rateLimitedUntil` lórí àwọn ìsopọ̀ provider àti `circuitBreakers.providerBreakers[].state` fún àwọn provider tí ọ̀ràn náà kàn — state náà jẹ́ ọ̀kan lára `CLOSED`, `DEGRADED`, `OPEN`, tàbí `HALF_OPEN` (wo `src/shared/utils/circuitBreaker.ts`), provider tí ìkùnà rẹ̀ sì ń bá a lọ yóò yí padà láti `CLOSED → DEGRADED → OPEN` kí fèrèsé àtúntò tó jẹ́ kí ìdánwò kan kọjá (`HALF_OPEN`).
+**Bí o ṣe lè fìdí rẹ̀ múlẹ̀ pé ó ṣiṣẹ́**: ṣe agent/cron rẹ lẹ́ẹ̀mejì ní kíákíá lẹ́yìn ara wọn, kí o sì jẹ́rìí pé àwọn méjèèjì ṣàṣeyọrí. Ṣáájú àtúnṣe náà, ìṣiṣẹ́ kejì sábà máa ń dá `429`/`401` padà. Lẹ́yìn àtúnṣe náà, àwọn ìkùnà (tí èyíkéyìí bá wà) ni a ó tún gbìyànjú láì jẹ́ kó hàn sí olùlò, ìpè náà yóò sì parí. O tún lè lo `curl /monitoring/health` kí o sì ṣọ́ pápá `rateLimitedUntil` lórí àwọn àsopọ̀ olùpèsè àti `circuitBreakers.providerBreakers[].state` fún àwọn olùpèsè tí ọ̀ràn náà kàn — ipò náà jẹ́ ọ̀kan lára `CLOSED`, `DEGRADED`, `OPEN`, tàbí `HALF_OPEN` (wo `src/shared/utils/circuitBreaker.ts`), olùpèsè tó sì ń kùnà léraléra yóò yí láti `CLOSED → DEGRADED → OPEN` kí àkókò ìtúnṣètò tó gba ìdánwò kan láàyè láti kọjá (`HALF_OPEN`).
 
-**Tí o bá ṣì ń rí 429**: account tó ń ṣiṣẹ́ fún provider yẹn ti lo gbogbo _quota_ rẹ̀ lóòótọ́ (kì í ṣe ààlà ìwọ̀n ìbéèrè nìkan). Ṣàfikún account kejì fún provider kan náà nínú dashboard OmniRoute → Providers → Accounts, tàbí fi provider ọ̀fẹ́ mìíràn kún un (fún àpẹẹrẹ, `routeway`, `auggie`). Yíyí account ká lè ṣèrànwọ́ fún ààlà ìwọ̀n ìbéèrè/400/401 tó jẹ́ ti ìgbà díẹ̀ nìkan; lílo quota tán pátápátá nílò credential kejì tàbí provider mìíràn.
+**Tí o bá ṣì ń rí 429**: àkọọ́lẹ̀ tó ń ṣiṣẹ́ fún olùpèsè yẹn ti lo _quota_ rẹ̀ tán ní tòótọ́ (kì í ṣe oṣùwọ̀n nìkan). Ṣàfikún àkọọ́lẹ̀ kejì fún olùpèsè kan náà nínú OmniRoute dashboard → Providers → Accounts, tàbí fi olùpèsè ọ̀fẹ́ mìíràn kún un (fún àpẹẹrẹ `routeway`, `auggie`). Yíyípo ń ṣèrànwọ́ fún oṣùwọ̀n/400/401 fún ìgbà díẹ̀ nìkan; lílo quota tán pátápátá nílò ìwé ẹ̀rí kejì tàbí olùpèsè mìíràn.
 
-**Tí o bá rí 403 lórí àwọn model vision (`auto/vision`, `bazaarlink/*`)**: account tí a so pọ̀ kò ní ètò sísan tó ní vision nínú, tàbí API key náà kò ní àṣẹ tó. Jẹ́rìí nínú dashboard provider pé scope key náà ní vision/multimodal nínú, tàbí so account ìpele sísan pọ̀ kí o sì fi sílẹ̀ gẹ́gẹ́ bí ibi àfojúsùn vision.
+**Tí o bá rí 403 lórí àwọn módẹ́ẹ̀lì ìríran (`auto/vision`, `bazaarlink/*`)**: àkọọ́lẹ̀ tó sopọ̀ kò ní ètò tí a sanwó fún tó ní ìríran, tàbí API key náà kò ní àṣẹ tó pé. Ṣàyẹ̀wò nínú dashboard olùpèsè pé scope key náà ní ìríran/multimodal, tàbí so àkọọ́lẹ̀ ìpele tí a sanwó fún pọ̀ kí o sì fi sílẹ̀ gẹ́gẹ́ bí ibi-àfojúsùn ìríran.
 
 ---
 
@@ -544,40 +544,40 @@ Lo **Pátákó Ìṣàkóso → Atúmọ̀** láti ṣàtúnṣe àwọn ìṣò
 
 ## Àwọn Ètò Ìfaradà
 
-### Ìdíwọ̀n ìwọ̀n-ìbéèrè aládàáṣiṣẹ́ kò ṣiṣẹ́
+### Ìdíwọ̀n-oṣùwọ̀n aládàáṣe kò ṣiṣẹ́
 
-- Ìdíwọ̀n ìwọ̀n-ìbéèrè aládàáṣiṣẹ́ kan àwọn olùpèsè kọ́kọ́rọ́ API nìkan (kì í kan OAuth/ìforúkọsílẹ̀)
-- Ṣàyẹ̀wò pé **Settings → Resilience → Provider Profiles** ti mú ìdíwọ̀n ìwọ̀n-ìbéèrè aládàáṣiṣẹ́ ṣiṣẹ́
-- Ṣàyẹ̀wò bóyá olùpèsè náà dá àwọn kóòdù ipò `429` tàbí àwọn àkọlé `Retry-After` padà
+- Ìdíwọ̀n-oṣùwọ̀n aládàáṣe kan àwọn olùpèsè kọ́kọ́rọ́ API nìkan (kì í kan OAuth/ìforúkọsílẹ̀)
+- Ṣàyẹ̀wò pé **Àwọn Ètò → Ìfaradà → Àwọn Profaili Olùpèsè** ti mú ìdíwọ̀n-oṣùwọ̀n aládàáṣe ṣiṣẹ́
+- Ṣàyẹ̀wò bóyá olùpèsè náà ń dá àwọn kóòdù ipò `429` tàbí àwọn àkọlé `Retry-After` padà
 
-### Ṣíṣe àtúnṣe ìdádúró tí ń pọ̀ sí i lọ́nà oníìlọpo
+### Ṣíṣe àtúnṣe ìdádúró tó ń pọ̀ sí i lọ́nà ẹ̀kúnrẹ́rẹ́
 
-Àwọn prófáìlì olùpèsè ṣe àtìlẹ́yìn fún àwọn ètò wọ̀nyí:
+Àwọn profaili olùpèsè ṣe àtìlẹ́yìn fún àwọn ètò wọ̀nyí:
 
-- **Ìdádúró ìbẹ̀rẹ̀** — Àkókò ìdúró àkọ́kọ́ lẹ́yìn ìkùnà àkọ́kọ́ (àìpéye: 1s)
-- **Ìdádúró tó pọ̀ jù** — Ààlà àkókò ìdúró tó pọ̀ jù (àìpéye: 30s)
-- **Olùṣọdipúpọ̀** — Iye tí a ó fi mú ìdádúró pọ̀ sí fún ìkùnà kọ̀ọ̀kan tó ń tẹ̀ léra (àìpéye: 2x)
+- **Ìdádúró ìpilẹ̀** — Àkókò ìdúró àkọ́kọ́ lẹ́yìn ìkùnà àkọ́kọ́ (àìpéye: 1s)
+- **Ìdádúró tó pọ̀ jù** — Òpin àkókò ìdúró tó pọ̀ jù (àìpéye: 30s)
+- **Olùsọdipúpọ̀** — Ìwọ̀n tí a ó fi mú ìdádúró pọ̀ sí i fún ìkùnà kọ̀ọ̀kan tó tẹ̀ lé ara wọn (àìpéye: 2x)
 
-### Ìdènà ìkójọpọ̀-ìbéèrè-lẹ́ẹ̀kan-náà
+### Ìdènà ìkójọpọ̀ ìbéèrè lẹ́ẹ̀kan náà
 
-Nígbà tí ọ̀pọ̀ ìbéèrè tó ń ṣiṣẹ́ ní àkókò kan bá kan olùpèsè tí a ti fi ìdíwọ̀n ìwọ̀n-ìbéèrè sí, OmniRoute máa ń lo mutex + ìdíwọ̀n ìwọ̀n-ìbéèrè aládàáṣiṣẹ́ láti ṣètò àwọn ìbéèrè ní ọ̀kọ̀ọ̀kan àti láti dènà ìkùnà tó ń tàn kálẹ̀. Èyí máa ń ṣẹlẹ̀ láìsí ìfọwọ́sowọ́pọ̀ fún àwọn olùpèsè kọ́kọ́rọ́ API.
+Nígbà tí ọ̀pọ̀ ìbéèrè tó ń lọ lẹ́ẹ̀kan náà bá dé ọ̀dọ̀ olùpèsè tí a fi ìdíwọ̀n-oṣùwọ̀n sí, OmniRoute máa ń lo mutex + ìdíwọ̀n-oṣùwọ̀n aládàáṣe láti ṣètò àwọn ìbéèrè ní ọ̀kọ̀ọ̀kan, kí ó sì dènà àwọn ìkùnà tó ń tẹ̀ lé ara wọn. Èyí máa ń ṣẹlẹ̀ láìfọwọ́sí fún àwọn olùpèsè kọ́kọ́rọ́ API.
 
-### Àwọn ìbéèrè ìfọ̀rọ̀wérọ̀ kùnà pẹ̀lú 503 / chat_admission_busy
+### Àwọn ìbéèrè ìfọ̀rọ̀wérọ̀ ń kùnà pẹ̀lú 503 / chat_admission_busy
 
 **Àwọn àmì:**
 
-- Ojú-ọ̀nà ìparí fún ìparí ìfọ̀rọ̀wérọ̀ dá èsì `503` tí a lè tún gbìyànjú padà, tí kóòdù àṣìṣe rẹ̀ jẹ́
+- Endpoint ìparí ìfọ̀rọ̀wérọ̀ ń dá èsì `503` tí a lè tún gbìyànjú padà, tí kóòdù àṣìṣe rẹ̀ jẹ́
   `chat_admission_busy`.
-- Èsì náà ní `Retry-After`. Láti #12135, iye náà ni a ń yọ láti inú
-  ìlò agbára tí a ṣàkíyèsí — èyí tó tóbi jù láàárín fèrèsé `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` tí ìbéèrè náà ti
-  dúró tẹ́lẹ̀ àti àkókò tí a ti di àwọn ìyálò heavyweight lọ́wọ́lọ́wọ́ mú — tí a yíká sókè sí
-  ìṣẹ́jú-àáyá odidi, tí a sì fi ààlà 60 sí. Lórí ẹnu-ọ̀nà tí kò ní iṣẹ́, ó pa àwọn ààlà ìsàlẹ̀ àtijọ́ mọ́: ìṣẹ́jú-àáyá 2 lórí
-  ọ̀nà tó dá lórí báìtì, àti ìṣẹ́jú-àáyá 1 lórí ọ̀nà tó dá lórí ìgbékalẹ̀ (èyí tí ó tún ní
+- Èsì náà ní `Retry-After`. Láti #12135, iye náà ni a ń yọ láti inú bí agbára ṣe kún tó tí a ṣàkíyèsí
+  — èyí tó tóbi jù láàárín fèrèsé `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` tí ìbéèrè náà ti dúró
+  àti àkókò tí a ti di àwọn àṣẹ-lílo iṣẹ́-wúwo lọ́wọ́lọ́wọ́ mú — tí a yí sókè sí iye
+  ìṣẹ́jú-àáyá odidi, tí a sì fi òpin 60 sí. Lórí ẹnu-ọ̀nà tí kò sí iṣẹ́, ó máa ń pa àwọn ìpele-kéré ìtàn mọ́: ìṣẹ́jú-àáyá 2 lórí
+  ipa ọ̀nà tó dá lórí byte, ìṣẹ́jú-àáyá 1 lórí ipa ọ̀nà tó dá lórí ìṣètò (èyí tún ní
   `reason: "structure_limit"`).
-- Èyí lè ṣẹlẹ̀ nígbà tí ìfọ̀rọ̀wérọ̀ heavyweight mìíràn tàbí èsì sísàn tó ń ṣiṣẹ́ fún ìgbà pípẹ́ ṣì
+- Èyí lè ṣẹlẹ̀ nígbà tí ìfọ̀rọ̀wérọ̀ iṣẹ́-wúwo mìíràn tàbí èsì streaming tó ń pẹ́ ṣì
   ń lọ lọ́wọ́.
 
-Ara èsì tó dá lórí báìtì ni:
+Ara èsì tó dá lórí byte ni:
 
 ```json
 {
@@ -589,53 +589,53 @@ Ara èsì tó dá lórí báìtì ni:
 }
 ```
 
-Èsì tó dá lórí ìgbékalẹ̀ ń lo irú àti kóòdù kan náà, pẹ̀lú ìfiránṣẹ́
+Èsì tó dá lórí ìṣètò ń lo irú àti kóòdù kan náà, pẹ̀lú ifiranṣẹ náà
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 àti `reason: "structure_limit"`.
-Ní àwọn ààlà àìpéye, ìbéèrè kan jẹ́ heavyweight nípa ìgbékalẹ̀ nígbà tí ó bá ní ó kéré tán àwọn ìfiránṣẹ́ `200`,
-ó kéré tán irinṣẹ́ `64`, tàbí ó kéré tán àwọn token tí a fojú díwọ̀n sí `32,000`, tàbí nígbà tí ìṣírò ìgbékalẹ̀
-tó ní ààlà bá dé òpin ààlà rẹ̀ ti àwọn node `10,000` tí a ṣàbẹ̀wò tàbí ìjìnlẹ̀ `12`.
+Ní àwọn ààlà àìpéye, ìbéèrè kan jẹ́ iṣẹ́-wúwo ní ti ìṣètò nígbà tí ó bá ní ó kéré tán àwọn ifiranṣẹ `200`,
+ó kéré tán àwọn irinṣẹ́ `64`, tàbí ó kéré tán àwọn token tí a fojú díwọ̀n sí `32,000`, tàbí nígbà tí ìṣírò ìṣètò
+tó ní ààlà bá lo gbogbo ààlà rẹ̀ ti àwọn node `10,000` tí a bẹ̀ wò tàbí ìjìnlẹ̀ `12`.
 
-**Ìdí:** Èyí jẹ́ fífi ẹrù iṣẹ́ sílẹ̀ tí a mọ̀ọ́mọ̀ ṣe nínú OmniRoute, kì í ṣe ìkùnà olùpèsè upstream.
-Process kọ̀ọ̀kan ń lo olùṣọ́ tó jẹ́ ti process náà láti fi agbára heavyweight tó lopin pamọ́ ṣáájú dídádúró
-àti ṣíṣe ìtúpalẹ̀ ara ìbéèrè ńlá kan. Ìyálò heavyweight máa wà ní dídìmú fún gbogbo ìgbà ayé
-èsì SSE kan.
+**Okùnfà:** Èyí jẹ́ ìdínkù ẹrù tó mọ̀ọ́mọ̀ ṣẹlẹ̀ nínú OmniRoute, kì í ṣe ìkùnà láti ọ̀dọ̀ olùpèsè upstream.
+Process kọ̀ọ̀kan ń lo olùṣọ́ tó jẹ́ ti process náà láti fi agbára iṣẹ́-wúwo tó ní ààlà pamọ́ ṣáájú dídá
+ara ìbéèrè ńlá dúró àti ṣíṣe àtúpalẹ̀ rẹ̀. Àṣẹ-lílo iṣẹ́-wúwo máa ń wà ní dídímú fún gbogbo àkókò tí èsì SSE
+bá wà láàyè.
 
-**#503-fanout:** ṣáájú àtúnṣe yìí, olùṣọ́ náà fi ààlà sí iṣẹ́ ní àkókò kan nípa iye ÌBÉÈRÈ tí kò yí padà
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, àìpéye `1`) láìka ìrántí host sí, nítorí náà ìtànkálẹ̀ coding-agent
-(ọ̀pọ̀ subagents/CLIs, àwọn ara ìbéèrè sábà máa ń ju 256 KB lọ) ṣubú sí agbára iṣẹ́ ní àkókò kan
-tó fẹ́rẹ̀ẹ́ jẹ́ ~1, ó sì ń dá 503 padà lábẹ́ ẹrù iṣẹ́ tó jẹ́ ti ìṣe déédéé pátápátá. Olùṣọ́ náà ti ń ṣàtúnṣe ara rẹ̀ báyìí: a ń ṣàkóso rẹ̀
-pẹ̀lú ìnáwó BÁÌTÌ ìgbàwọlé tí a yọ jáde láìfọwọ́ṣe (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) tí a ṣe ìwọ̀n rẹ̀ láti
-ààlà ìrántí gidi ti process náà, ó sì tún ń wo àmì titẹ̀ orísun tó ń ṣiṣẹ́ lọ́wọ́lọ́wọ́ — nítorí náà ó
-máa ń fi ẹrù sílẹ̀ kìkì nígbà tí host bá wà lábẹ́ titẹ̀ ìrántí gidi, kì í ṣe nítorí pé ìbéèrè
-heavyweight tó ju ọ̀kan lọ dé lẹ́ẹ̀kan náà. A ṣì ń tẹ̀lé ààlà iye àtijọ́ (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`),
-ṣùgbọ́n kìkì bí o bá ṣètò rẹ̀ ní pàtó.
+**#503-fanout:** ṣáájú àtúnṣe yìí, olùṣọ́ náà fi òpin sí àwọn iṣẹ́ tó ń lọ lẹ́ẹ̀kan náà nípa iye ÌBÉÈRÈ kan tí kò yí padà
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, àìpéye `1`) láìka memory host sí, nítorí náà fan-out coding-agent
+(ọ̀pọ̀ subagents/CLIs, àwọn ara tó máa ń ju 256 KB lọ déédéé) ṣubú sí agbára iṣẹ́ tó ń lọ lẹ́ẹ̀kan náà
+tó fẹ́rẹ̀ẹ́ jẹ́ 1, ó sì ń dá 503 padà lábẹ́ ẹrù tó jẹ́ ti déédéé pátápátá. Olùṣọ́ náà ti ń ṣàtúnṣe ara rẹ̀ báyìí: budget BYTE ingest
+tí a ṣe àyọkúrò rẹ̀ láìfọwọ́sí (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) ló ń ṣàkóso rẹ̀, tí a gbé ìwọ̀n rẹ̀ ka orí
+òpin memory gidi ti process náà, ó sì tún ń wo àmì ìfúnpá resource tó ń ṣiṣẹ́ lọ́wọ́lọ́wọ́ — nítorí náà,
+ó máa ń dín ẹrù kù nígbà tí host bá wà lábẹ́ ìfúnpá memory gidi nìkan, kì í ṣe nítorí pé ìbéèrè iṣẹ́-wúwo tó ju ẹyọ kan lọ
+dé lẹ́ẹ̀kan náà. A ṣì ń bọ̀wọ̀ fún òpin iye ti àtijọ́ (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`), ṣùgbọ́n
+kìkì bí o bá ṣètò rẹ̀ ní tààrà.
 
-Nígbà tí agbára bá dí, ìbéèrè heavyweight kan máa kọ́kọ́ dúró fún tó
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (àìpéye `2000`, `0` máa pa ìdúró náà) kí àyè kan lè ṣí sílẹ̀
-ṣáájú dídá `503` tí a lè tún gbìyànjú padà. Ìdúró tó ní ààlà náà wà kí àwọn client tí wọ́n ń ṣiṣẹ́ bí agent
-(OpenCode, Claude Code, Cursor), tí wọ́n ń tan àwọn ìbéèrè-kékeré heavyweight jáde ní àkókò kan, lè ṣètò ìkójọpọ̀ náà
-ní ọ̀kọ̀ọ̀kan dípò kí wọ́n lo gbogbo ìnáwó àtúngbìyànjú wọn lórí ìkọ̀sílẹ̀ lẹ́sẹ̀kẹsẹ̀ kí wọ́n sì dá iṣẹ́ dúró láàárín.
-Ìlò àwọn ìyálò heavyweight lọ́wọ́lọ́wọ́, ìnáwó báìtì tí a pinnu, àti bí titẹ̀ tó ń ṣiṣẹ́ ṣe le tó
-wà ní `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
+Nígbà tí agbára bá dí, ìbéèrè iṣẹ́-wúwo kan yóò kọ́kọ́ dúró fún tó
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (àìpéye rẹ̀ ni `RATE_LIMIT_MAX_WAIT_MS`; `0` máa ń pa ìdúró náà) kí ààyè kan lè ṣí sílẹ̀
+ṣáájú dídá `503` tí a lè tún gbìyànjú padà. Ìdúró tó ní ààlà wà kí àwọn client irú agent
+(OpenCode, Claude Code, Cursor) tí ń ṣe fan-out àwọn ìbéèrè-kékeré iṣẹ́-wúwo lẹ́ẹ̀kan náà lè ṣètò ìkójọpọ̀ náà
+ní ọ̀kọ̀ọ̀kan dípò lílo gbogbo budget àtúngbìyànjú wọn lórí ìkọ̀sílẹ̀ lẹ́sẹ̀kẹsẹ̀ àti dídáwọ́ dúró láàárín iṣẹ́.
+Ìkúnwọ̀n àwọn àṣẹ-lílo iṣẹ́-wúwo lọ́wọ́lọ́wọ́, budget byte tí a ti pinnu, àti bí ìfúnpá tó ń ṣiṣẹ́ ṣe le tó ni a
+fi hàn ní `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
 `budgetSource`, `pressureSeverity`, `countCapEnabled`) — ṣàyẹ̀wò àwọn wọ̀nyí kí o tó yí env var kankan padà.
-Settings → Resilience → Request Queue → Concurrent Requests kì í ṣàkóso èyí; ètò yẹn
-ń ṣàkóso ọ̀nà ìṣètò ìbéèrè olùpèsè ọ̀tọ̀.
+Àwọn Ètò → Ìfaradà → Ìlà Ìbéèrè → Àwọn Ìbéèrè Tó Ń Lọ Lẹ́ẹ̀kan Náà kò ṣàkóso èyí; ètò yẹn
+ń ṣàkóso ètò ìlà-ìbéèrè olùpèsè mìíràn tó yàtọ̀.
 
 **Àtúnṣe:**
 
-1. Kọ́kọ́ tún gbìyànjú. Àwọn client gbọ́dọ̀ tẹ̀lé `Retry-After`, kí wọ́n sì lo backoff dípò títún
+1. Kọ́kọ́ tún gbìyànjú. Àwọn client gbọ́dọ̀ bọ̀wọ̀ fún `Retry-After`, kí wọ́n sì lo backoff dípò títún
    ìbéèrè náà ṣe lẹ́sẹ̀kẹsẹ̀.
-2. Ṣàyẹ̀wò `/api/monitoring/health` → `chatAdmission` kí o tó ṣe àtúnṣe ohunkóhun. `countCapEnabled:
-false` àti `maxInflightBytes` tó tóbi túmọ̀ sí pé ìnáwó tí a yọ jáde láìfọwọ́ṣe ti ń ṣe
-   iṣẹ́ rẹ̀; `pressureSeverity` ti `high`/`critical` túmọ̀ sí pé host náà kò ní ìrántí tó tó ní tòótọ́ —
-   a kò lè ṣàtúnṣe èyí pẹ̀lú env var gbígbàwọlé; ó nílò RAM púpọ̀ sí i tàbí ẹrù iṣẹ́ tó kéré sí i.
-3. Kìkì bí `/api/monitoring/health` bá fi hàn pé ìnáwó tí a yọ jáde láìfọwọ́ṣe kéré jù fún
-   host rẹ ní tòótọ́ (èyí kì í sábà ṣẹlẹ̀ — ó ti ń ṣe ìwọ̀n ara rẹ̀ láti container títí dé bare-metal), ṣàkóso rẹ̀ ní tààrà pẹ̀lú
-   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` dípò pípadà sí ààlà iye ìbéèrè àtijọ́.
+2. Ṣàyẹ̀wò `/api/monitoring/health` → `chatAdmission` kí o tó ṣàtúnṣe ohunkóhun. `countCapEnabled:
+false` àti `maxInflightBytes` tó pọ̀ dáadáa túmọ̀ sí pé budget tí a ṣe àyọkúrò rẹ̀ láìfọwọ́sí ti ń ṣe
+   iṣẹ́ rẹ̀; `pressureSeverity` tó jẹ́ `high`/`critical` túmọ̀ sí pé host náà kò ní memory tó ní tòótọ́ —
+   env var admission kò lè tún ìyẹn ṣe; ó nílò RAM púpọ̀ sí i tàbí workload tó kéré sí i.
+3. Kìkì bí `/api/monitoring/health` bá fi hàn pé budget tí a ṣe àyọkúrò rẹ̀ láìfọwọ́sí kéré jù fún
+   host rẹ ní tòótọ́ (èyí ṣọ̀wọ́n — ó ti ń mú ìwọ̀n rẹ̀ bá ti container títí dé bare-metal mu), kọjá rẹ̀ ní tààrà pẹ̀lú
+   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` dípò pípadà sí òpin iye-ìbéèrè àtijọ́.
 
-Wo [ìtọ́kasí àyípadà àyíká](../reference/ENVIRONMENT.md#4-security--authentication)
-fún àwọn ètò gbígbàwọlé tó jẹ́ orísun àṣẹ.
+Wo [ìtọ́kasí environment-variable](../reference/ENVIRONMENT.md#4-security--authentication)
+fún àwọn ètò admission tó jẹ́ orísun àṣẹ.
 
 ---
 

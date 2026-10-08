@@ -2,7 +2,9 @@ import { randomUUID } from "node:crypto";
 
 import { isVisionModelId } from "@/shared/constants/visionModels";
 import { MUSE_SPARK_PATTERN } from "./base/reasoningEffort.ts";
+import { ANTHROPIC_VERSION_HEADER } from "../config/anthropicHeaders.ts";
 import { REGISTRY } from "../config/providerRegistry.ts";
+import { getModelTargetFormat } from "../config/providerModels.ts";
 import {
   isResponsesShapedBody,
   projectResponsesForCli,
@@ -13,6 +15,7 @@ import {
   sanitizeReasoningEffortForProvider,
   type ExecuteInput,
 } from "./base.ts";
+import { applyReasoningEffortRecovery } from "./base/reasoningEffortRecovery.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -133,9 +136,6 @@ function normalizeCommandCodeWireModel(model: string): string {
 // Responses-shape detection and Responses -> Chat projection live in
 // ./commandCode/responsesProjection.ts (kept out of this file for the 1200-line
 // file-size gate).
-
-
-
 
 // ── OpenAi Flat Body Builder (/provider/v1/chat/completions) ─────────────────
 
@@ -951,8 +951,11 @@ export class CommandCodeExecutor extends BaseExecutor {
     super(provider, REGISTRY["command-code"]);
   }
 
-  buildUrl() {
+  buildUrl(model?: string) {
     const baseUrl = (this.config.baseUrl || "https://api.commandcode.ai").replace(/\/$/, "");
+    if (model && getModelTargetFormat("command-code", model) === "claude") {
+      return `${baseUrl}/provider/v1/messages`;
+    }
     return `${baseUrl}${this.config.chatPath || "/provider/v1/chat/completions"}`;
   }
 
@@ -1002,18 +1005,33 @@ export class CommandCodeExecutor extends BaseExecutor {
     };
     mergeUpstreamExtraHeaders(cliHeaders, upstreamExtraHeaders);
 
-    const { body: cliTransformedBody, toolNameMap } = buildCommandCodeCliBody(
+    const abortSignal = signal || undefined;
+    const { body: initialCliTransformedBody, toolNameMap } = buildCommandCodeCliBody(
       model,
       sanitizedBody,
       stream
     );
+    let cliTransformedBody: unknown = initialCliTransformedBody;
 
-    const cliUpstream = await fetch(cliUrl, {
+    let cliUpstream = await fetch(cliUrl, {
       method: "POST",
       headers: cliHeaders,
       body: JSON.stringify(cliTransformedBody),
-      signal: signal || undefined,
+      signal: abortSignal,
     });
+
+    // #14629: same reactive reasoning_effort recovery for the CLI fallback fetch.
+    const cliRecovery = await applyReasoningEffortRecovery({
+      response: cliUpstream,
+      url: cliUrl,
+      provider: this.provider,
+      model,
+      body: cliTransformedBody,
+      fetchOptions: { method: "POST", headers: cliHeaders, signal: abortSignal },
+      fetchFn: (fetchUrl, fetchOpts) => fetch(fetchUrl, fetchOpts),
+    });
+    cliUpstream = cliRecovery.response;
+    cliTransformedBody = cliRecovery.body;
 
     if (!cliUpstream.ok) {
       const errorText = await cliUpstream.text().catch(() => {
@@ -1043,26 +1061,48 @@ export class CommandCodeExecutor extends BaseExecutor {
     const apiKey = credentials?.apiKey || credentials?.accessToken;
     if (!apiKey) throw new Error("Command Code API key required");
 
+    const abortSignal = signal || undefined;
     const sanitizedBody = sanitizeReasoningEffortForProvider(body, this.provider, model);
-    const { body: transformedBody } = buildOpenAiBody(model, sanitizedBody, stream);
+    const { body: initialTransformedBody } = buildOpenAiBody(model, sanitizedBody, stream);
+    let transformedBody: unknown = initialTransformedBody;
     // Route by body shape: a Responses-shaped body (targetFormat openai-responses)
     // must hit /provider/v1/responses, where `reasoning: {"effort":"none"}` is
     // honored; the chat endpoint silently drops it.
-    const url = isResponsesShapedBody(transformedBody) ? this.buildResponsesUrl() : this.buildUrl();
+    const url = isResponsesShapedBody(transformedBody)
+      ? this.buildResponsesUrl()
+      : this.buildUrl(model);
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
       Accept: stream ? "text/event-stream" : "application/json",
     };
+    if (getModelTargetFormat("command-code", model) === "claude") {
+      headers["anthropic-version"] = ANTHROPIC_VERSION_HEADER;
+    }
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
 
-    const upstream = await fetch(url, {
+    let upstream = await fetch(url, {
       method: "POST",
       headers,
       body: JSON.stringify(transformedBody),
-      signal: signal || undefined,
+      signal: abortSignal,
     });
+
+    // #14629: reach the reactive reasoning_effort 400 clamp-and-retry chain,
+    // otherwise unreachable here since this override never calls
+    // super.execute() (see open-sse/executors/base/reasoningEffortRecovery.ts).
+    const recovery = await applyReasoningEffortRecovery({
+      response: upstream,
+      url,
+      provider: this.provider,
+      model,
+      body: transformedBody,
+      fetchOptions: { method: "POST", headers, signal: abortSignal },
+      fetchFn: (fetchUrl, fetchOpts) => fetch(fetchUrl, fetchOpts),
+    });
+    upstream = recovery.response;
+    transformedBody = recovery.body;
 
     if (upstream.ok) {
       return { response: upstream, url, headers, transformedBody };
@@ -1078,7 +1118,14 @@ export class CommandCodeExecutor extends BaseExecutor {
         ? projectResponsesForCli(sanitizedBody as JsonRecord)
         : sanitizedBody;
       if (cliShaped !== null) {
-        return this.executeCliFallback({ model, sanitizedBody: cliShaped, stream, apiKey, signal, upstreamExtraHeaders });
+        return this.executeCliFallback({
+          model,
+          sanitizedBody: cliShaped,
+          stream,
+          apiKey,
+          signal,
+          upstreamExtraHeaders,
+        });
       }
     }
 

@@ -19,6 +19,7 @@ interface AgentListProps {
   mappingsMap: AgentMappingsMap;
   onDnsToggle: (agentId: string, enabled: boolean) => Promise<void>;
   onMappingsSave: (agentId: string, mappings: MappingRow[]) => Promise<void>;
+  onReset: (agentId: string) => Promise<boolean>;
 }
 
 type SetupFilter = "all" | "active" | "setup-required" | "investigating";
@@ -35,6 +36,7 @@ export function AgentList({
   mappingsMap,
   onDnsToggle,
   onMappingsSave,
+  onReset,
 }: AgentListProps) {
   const t = useTranslations("agentBridge");
   const [filter, setFilter] = useState<SetupFilter>("all");
@@ -140,6 +142,7 @@ export function AgentList({
               mappings={mappingsMap[target.id] ?? []}
               onDnsToggle={onDnsToggle}
               onMappingsSave={onMappingsSave}
+              onReset={onReset}
             />
           ))
         )}

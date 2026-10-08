@@ -237,14 +237,14 @@ De productie-stack draait parallel aan de ontwikkel-Compose-configuratie (met ve
 
 ## Dockerfile-fasen
 
-De repository bevat een Dockerfile met meerdere fasen (`Dockerfile`). Er worden vier fasen beschikbaar gesteld; kies het juiste `target` voor jouw gebruiksscenario.
+De repository bevat een meerfasen-Dockerfile (`Dockerfile`). Er worden vier fasen aangeboden; kies het juiste `target` voor jouw gebruiksscenario.
 
-| Fase          | Basisimage            | Doel                                                                                                                                                                                                                                                                                                                         |
-| ------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Installeert afhankelijkheden (`npm ci --legacy-peer-deps`) en voert `npm run build` uit (standaard met Turbopack — zie Buildresources hieronder)                                                                                                                                                                             |
-| `runner-base` | `node:26-trixie-slim` | Productieruntime met de zelfstandige Next.js-uitvoer. **Geen provider-CLI's meegeleverd.**                                                                                                                                                                                                                                   |
-| `runner-cli`  | `runner-base`         | Voegt `git`, `docker.io`, `docker-compose` en globale CLI's toe: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Kies dit voor agentische workflows.**                                                                                                                                                  |
-| `runner-web`  | `runner-base`         | Voegt Playwright + een Chromium-browser (`--with-deps`) toe voor websessieproviders: `gemini-web`, `claude-web`, `claude-turnstile`. **Kies dit wanneer je deze providers gebruikt** — zonder dit image mislukt het gewone image tijdens het afhandelen van een verzoek (zie de opmerking over `-web` onder Releasekanalen). |
+| Fase          | Basisimage            | Doel                                                                                                                                                                                                                                                                                                           |
+| ------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Installeert afhankelijkheden (`npm ci --legacy-peer-deps`) en voert `npm run build` uit (standaard met Turbopack — zie Buildresources hieronder)                                                                                                                                                               |
+| `runner-base` | `node:26-trixie-slim` | Productieruntime met de zelfstandige Next.js-uitvoer. **Geen provider-CLI's meegeleverd.**                                                                                                                                                                                                                     |
+| `runner-cli`  | `runner-base`         | Voegt `git`, `docker.io`, `docker-compose` en globale CLI's toe: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Kies deze voor agentgestuurde workflows.**                                                                                                                               |
+| `runner-web`  | `runner-base`         | Voegt Playwright en een Chromium-browser (`--with-deps`) toe voor websessieproviders: `gemini-web`, `claude-web`, `claude-turnstile`. **Kies deze wanneer je die providers gebruikt** — zonder deze toevoeging mislukt het gewone image tijdens aanvragen (zie de opmerking over `-web` onder Releasekanalen). |
 
 Bouw handmatig een specifiek target:
 
@@ -256,55 +256,63 @@ docker build --target runner-web  -t omniroute:web  .
 
 ### Buildresources
 
-Drie buildargumenten bepalen hoeveel resources de `builder`-fase gebruikt. Ze gelden alleen tijdens het buildproces —
+Drie build-args bepalen hoeveel resources de `builder`-fase verbruikt. Ze gelden alleen tijdens het buildproces —
 `OMNIROUTE_MEMORY_MB` (hieronder) is een afzonderlijke runtime-instelling.
 
-| Buildargument               | Standaard | Effect                                                                                            |
-| --------------------------- | --------- | ------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`       | Met `0` wordt in plaats daarvan met webpack gebouwd. Lager piekgeheugen, maar trager.             |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`    | V8-heaplimiet (`--max-old-space-size`) voor de gestarte `next build`.                             |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`       | Stelt `CIRCLE_NODE_TOTAL` in; Next leidt `workers = N - 1` af voor het verzamelen van paginadata. |
+| Build-arg                   | Standaard | Effect                                                                                                        |
+| --------------------------- | --------- | ------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`       | `0` bouwt met webpack: lager piekgeheugengebruik, maar langzamer. `1` schakelt Turbopack in.                  |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`    | Bovengrens voor de V8-heap (`--max-old-space-size`) van het gestarte `next build`-proces.                     |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`       | Stelt `CIRCLE_NODE_TOTAL` in; Next leidt hieruit `workers = N - 1` af voor het verzamelen van paginagegevens. |
 
-`OMNIROUTE_BUILD_WORKERS` is de waarde die je op een krachtige builder moet verhogen en die je
-moet verdenken wanneer een build met beperkte resources **na** `✓ Compiled successfully` stopt.
-Elke worker voor paginadata is een afzonderlijk proces, net als het bovenliggende
-`next build`-proces zelf; bij een reproductie op een actieve VPS (issue #7518) werd de
-piek-RSS van elk proces gemeten op ~4,5 GB, onafhankelijk van de heapvlag in
-`NODE_OPTIONS` (Turbopack compileert in native/Rust-geheugen buiten de V8-heap).
-De standaardwaarde `2` (→ 1 worker, in totaal 2 processen) is afgestemd op de door
-GitHub gehoste runners met 16 GB / 4 vCPU die door de publicatiepipeline worden
-gebruikt. Bij `8` (→ 7 workers) raakte die runner door zijn geheugen heen en
-mislukte de buildkit-stap met `ResourceExhausted: ... cannot allocate memory`;
-`3` (→ 2 workers) paste nog steeds niet nadat de RSS per proces rechtstreeks was
+`OMNIROUTE_BUILD_WORKERS` is de waarde die je op een krachtige builder verhoogt en
+die je moet verdenken wanneer een build met beperkte resources uitvalt **na**
+`✓ Compiled successfully`. Elke worker voor paginagegevens is een afzonderlijk
+proces, net als het bovenliggende `next build`-proces zelf; een reproductie op
+een actieve VPS (issue #7518) mat voor elk proces een piek-RSS van ~4,5 GB,
+onafhankelijk van de heapvlag in `NODE_OPTIONS` (Turbopack compileert in
+native/Rust-geheugen buiten de V8-heap). De standaardwaarde `2` (→ 1 worker,
+in totaal 2 processen) is afgestemd op de door GitHub gehoste runners met
+16 GB / 4 vCPU's die door de publicatiepipeline worden gebruikt. Bij `8`
+(→ 7 workers) raakte het geheugen van die runner uitgeput en mislukte de stap
+in buildkit met `ResourceExhausted: ... cannot allocate memory`; `3`
+(→ 2 workers) paste nog steeds niet nadat de RSS per proces rechtstreeks was
 gemeten in plaats van afgeleid. `tests/unit/docker-build-memory-budget.test.ts`
-voert de berekening uit aan de hand van de gemeten waarde en mislukt als een van
-beide instellingen de capaciteit van de runner overschrijdt.
+voert de berekening uit aan de hand van het gemeten getal en mislukt als een
+van beide instellingen de capaciteit van de runner overschrijdt.
 
-Turbopack compileert in native Rust-geheugen dat zich **buiten** de V8-heap bevindt,
-dus `OMNIROUTE_BUILD_MEMORY_MB` begrenst dit niet. Op een host met een geheugenlimiet
-wordt de build vervolgens door de OOM-killer met SIGKILL beëindigd, zonder enige
-foutmelding — de build stopt simpelweg halverwege `Creating an optimized production build`,
-waardoor het eerder op een vastloper lijkt dan op een tekort aan geheugen. Als de
-buildhost beperkte resources heeft, wissel dan van bundler:
+Turbopack compileert in native Rust-geheugen dat **buiten** de V8-heap valt, dus
+`OMNIROUTE_BUILD_MEMORY_MB` begrenst dit niet. Op een host met een geheugenlimiet
+wordt de build vervolgens door de OOM-killer via SIGKILL beëindigd, zonder enige
+fouttekst — de build stopt simpelweg halverwege
+`Creating an optimized production build`, wat eerder op vastlopen lijkt dan op
+een geheugentekort. Daarom gebruikt de `Dockerfile` standaard webpack
+(`OMNIROUTE_USE_TURBOPACK=0`), anders dan `npm run dev` / `npm run build`, waar
+Turbopack standaard in de code is ingesteld: een kale `docker build .` zonder
+build-args (zoals Railway en andere hosts met installatie via één klik die
+uitvoeren) mag niet stilletjes mislukken op een builder met een geheugenlimiet.
+De gepubliceerde images geven `OMNIROUTE_USE_TURBOPACK=0` al expliciet door in
+`docker-publish.yml`. Op een builder met ruim voldoende RAM kun je Turbopack
+inschakelen voor een snellere build:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` is ingeschakeld, waardoor `next build` een bovenliggend proces
-**en** een workerproces uitvoert en elk proces afzonderlijk
-`OMNIROUTE_BUILD_MEMORY_MB` respecteert. Stel de containerlimiet in op ongeveer
-tweemaal die waarde, niet eenmaal.
+`webpackBuildWorker` is ingeschakeld, zodat `next build` zowel een bovenliggend
+proces **als** een workerproces uitvoert, die elk afzonderlijk
+`OMNIROUTE_BUILD_MEMORY_MB` respecteren. Stel de containerlimiet in op iets meer
+dan ongeveer tweemaal die waarde, niet eenmaal.
 
-Gemeten met deze broncode (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
+Gemeten voor deze codebase (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
 | Bundler   | Containerlimiet | Resultaat                               |
 | --------- | --------------- | --------------------------------------- |
-| Turbopack | 8 GiB / 16 GiB  | Bij beide stilzwijgend door OOM gestopt |
-| webpack   | 8 GiB           | Buildworker met SIGKILL beëindigd       |
-| webpack   | 12 GiB          | Geslaagd, met een piek van 11,1 GiB     |
+| Turbopack | 8 GiB / 16 GiB  | bij beide stilletjes beëindigd door OOM |
+| webpack   | 8 GiB           | buildworker beëindigd via SIGKILL       |
+| webpack   | 12 GiB          | geslaagd, piek van 11,1 GiB             |
 
 ### Runtime-standaardwaarden
 
@@ -313,24 +321,24 @@ Standaardwaarden die door `runner-base` worden geëxporteerd: `PORT=20128`, `HOS
 Geheugengedrag in Docker:
 
 - De image stelt `OMNIROUTE_MEMORY_MB=1024` in en leidt daaruit `NODE_OPTIONS=--max-old-space-size=1024` af.
-- Het daadwerkelijke serverproces wordt gestart door de standalone-launcher, die `OMNIROUTE_MEMORY_MB` leest en `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` toevoegt.
-- Node gebruikt de laatste herhaalde waarde van `--max-old-space-size`, dus door `OMNIROUTE_MEMORY_MB` in te stellen bepaalt u de effectieve Docker-heaplimiet.
-- Omdat de image deze variabele altijd instelt, wordt de eigen, op RAM afgestemde terugvalwaarde van de launcher onder Docker nooit toegepast. Verhoog deze expliciet voor de workload (zie onderstaande tabel). `2048` is nog steeds te klein voor `/v1/responses` van codeeragents.
+- Het daadwerkelijke serverproces wordt gestart door de zelfstandige launcher, die `OMNIROUTE_MEMORY_MB` leest en `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` toevoegt.
+- Node gebruikt de laatste herhaalde waarde van `--max-old-space-size`, dus door `OMNIROUTE_MEMORY_MB` in te stellen, bepaalt u effectief de Docker-heaplimiet.
+- Omdat de image deze variabele altijd instelt, wordt de eigen, op RAM afgestemde terugvalwaarde van de launcher onder Docker nooit toegepast. Verhoog deze expliciet voor de workload (zie onderstaande tabel). `2048` is nog steeds te weinig voor `/v1/responses` van coding-agents.
 
-### Runtime-RAM voor codeeragents
+### Runtime-RAM voor coding-agents
 
-De Docker-standaardwaarde van 1 GiB is een ondergrens voor het dashboard en lichte chats, geen configuratie voor productiegebruik. Lange bodies van `POST /v1/responses` (honderden berichten, tientallen tools) houden tijdens compressie meerdere grafen in het geheugen vast. Twee overlappende verzoeken van ~3 MiB / ~750k tokens hebben V8 afgebroken bij een **12 GiB** old-space (`FATAL ERROR: Reached heap limit`) en veroorzaakten ook een cgroup-OOM bij 16 GiB. Zie [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+De Docker-standaardwaarde van 1 GiB is een ondergrens voor het dashboard en lichte chats, geen capaciteit voor productiegebruik. Lange `POST /v1/responses`-body's (honderden berichten, tientallen tools) houden tijdens compressie meerdere grafen in het geheugen vast. Twee overlappende verzoeken van elk circa 3 MiB / circa 750k tokens hebben V8 laten afbreken bij een old-space van **12 GiB** (`FATAL ERROR: Reached heap limit`) en veroorzaakten ook een cgroup-OOM bij 16 GiB. Zie [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Dimensioneer **cgroup `--memory` hoger dan de heap** — native buffers, SQLite en tijdelijke compressiedata bevinden zich buiten V8.
+Stel **cgroup `--memory` hoger in dan de heap** — native buffers, SQLite en tijdelijke compressiegegevens bevinden zich buiten V8.
 
-| Workload                                   | `OMNIROUTE_MEMORY_MB`           | Container / cgroup      | Opmerkingen                                                                                                              |
-| ------------------------------------------ | ------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Dashboard, één lichte chat                 | `1024` (standaard van de image) | ≥2 GiB                  |                                                                                                                          |
-| Eén codeeragent (Claude/Codex/Grok)        | `8192`                          | ≥10 GiB                 | Typische `/v1/responses` met één sessie                                                                                  |
-| Twee gelijktijdige lange `/v1/responses`   | `10240`–`12288`                 | ≥12–16 GiB              | Gemeten V8-afbreking bij een heap van ~12 GiB                                                                            |
-| Drie of meer gelijktijdige lange contexten | niet in één proces uitvoeren    | serialiseren / meer RAM | Standaard wordt slechts 1 zware aanvraag tegelijk toegelaten; verhogen zonder extra RAM veroorzaakt de afbreking opnieuw |
+| Workload                                   | `OMNIROUTE_MEMORY_MB`           | Container / cgroup      | Opmerkingen                                                                                                                                 |
+| ------------------------------------------ | ------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dashboard, één lichte chat                 | `1024` (standaard van de image) | ≥2 GiB                  |                                                                                                                                             |
+| Eén coding-agent (Claude/Codex/Grok)       | `8192`                          | ≥10 GiB                 | Typische `/v1/responses` met één sessie                                                                                                     |
+| Twee gelijktijdige lange `/v1/responses`   | `10240`–`12288`                 | ≥12–16 GiB              | V8-afbreking gemeten bij een heap van circa 12 GiB                                                                                          |
+| Drie of meer gelijktijdige lange contexten | niet in één proces              | serialiseren / meer RAM | Standaard wordt voor zware verzoeken slechts 1 gelijktijdig verzoek toegelaten; verhoging zonder extra RAM veroorzaakt opnieuw de afbreking |
 
-`omniroute serve` op bare metal stemt de waarde af op ~35% van het RAM (begrensd tot `[512, 4096]`) wanneer `OMNIROUTE_MEMORY_MB` **niet is ingesteld**. Docker stelt altijd `1024` in, waardoor die afstemming in de officiële image nooit wordt uitgevoerd.
+`omniroute serve` op bare metal stelt circa 35% van het RAM in (begrensd op `[512, 4096]`) wanneer `OMNIROUTE_MEMORY_MB` **niet is ingesteld**. Docker stelt altijd `1024` in, waardoor die kalibratie in de officiële image nooit wordt uitgevoerd.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

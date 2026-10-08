@@ -110,15 +110,15 @@ export abstract class CloudAgentBase {
     c: AgentCredentials
   ): Promise<{ name: string; url: string; branch?: string }[]>;
 
-  protected mapStatus(raw: string): CloudAgentStatus; // تحويل استدلالي من سلسلة المنبع إلى التعداد
+  protected mapStatus(raw: string): CloudAgentStatus; // تحويل استدلالي من سلسلة نصية واردة إلى تعداد
   protected generateTaskId(): string; // `task_<ts>_<rand>`
   protected generateActivityId(): string; // `act_<ts>_<rand>`
 }
 ```
 
-تطرح `CodexCloudAgent.approvePlan` استثناءً عمدًا — إذ تُنشئ Codex Cloud الخطط تلقائيًا ولا تحتوي على بوابة موافقة. تُرجع `CodexCloudAgent.listSources` القيمة `[]`.
+تطرح `CodexCloudAgent.approvePlan` استثناءً عن قصد — إذ تنشئ Codex Cloud الخطط تلقائيًا ولا تحتوي على بوابة موافقة. تُرجع `CodexCloudAgent.listSources` القيمة `[]`.
 
-تُشغّل `CursorCloudAgent` وكلاء Cursor في الخلفية / السحابة عبر واجهة REST API الرسمية الخاصة بها (`api.cursor.com/v0`) باستخدام **مفتاح API لمستخدم أو لحساب خدمة** — وهو البديل الأكثر أمانًا ومن الطرف الأول لإعادة استخدام جلسة OAuth الخاصة ببيئة Cursor IDE (المزوّد `cursor`، الذي يتضمن تحذيرًا من خطر الحظر). وهي محوّل REST عادي (من دون اعتماد أصلي على `@cursor/sdk`). تطرح `approvePlan` استثناءً (يعمل وكلاء Cursor بصورة مستقلة)؛ وتسرد `listSources` المستودعات التي يمكن للمفتاح الوصول إليها. تُرجع Cursor تعدادات حالة بأحرف كبيرة (`CREATING`/`RUNNING`/`FINISHED`/`ERROR`)، وتُربط صراحةً بـ `CloudAgentStatus` المشترك. يمكن تجاوز `baseUrl` لكل بيانات اعتماد، بحيث يمكن تصحيح إصدار/مسار API من دون تغيير الشيفرة.
+تشغّل `CursorCloudAgent` وكلاء Cursor في الخلفية / السحابة عبر واجهة REST API الرسمية الخاصة بها (`api.cursor.com/v0`) باستخدام **مفتاح API لمستخدم أو لحساب خدمة** — وهو البديل الأكثر أمانًا والمقدَّم من الطرف الأول بدلًا من إعادة استخدام جلسة OAuth الخاصة ببيئة Cursor IDE (المزوّد `cursor`، الذي يتضمن تحذيرًا من خطر الحظر). وهي موائم REST بسيط (من دون اعتماد أصلي على `@cursor/sdk`). تطرح `approvePlan` استثناءً (تعمل وكلاء Cursor بصورة مستقلة)؛ وتسرد `listSources` المستودعات التي يمكن الوصول إليها باستخدام المفتاح. تُرجع Cursor تعدادات الحالة بأحرف كبيرة (`CREATING`/`RUNNING`/`FINISHED`/`ERROR`)، وتُربط صراحةً بتعداد `CloudAgentStatus` المشترك. يمكن تجاوز `baseUrl` لكل بيانات اعتماد، بحيث يمكن تصحيح إصدار/مسار واجهة API دون تغيير الشيفرة.
 
 ## أنواع المجال
 
@@ -295,24 +295,29 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 يستدعي المزوّد الخارجي — إذ لا توجد عملية RPC للإيقاف في `CloudAgentBase`. لإيقاف
 الفوترة لدى المزوّد الخارجي، أنهِ المهمة من وحدة التحكم الخاصة بالمزوّد.
 
-## واجهة REST API — البنية التحتية لمزوّد الخدمات السحابية
+## REST API — تكامل موفّري الخدمات السحابية
 
-تُستخدم نقاط النهاية المساعدة هذه ضمن `src/app/api/cloud/` بواسطة العملاء البعيدين
-(واجهة CLI، أو تطبيق Electron، أو عمال المزامنة) لقراءة البيانات الوصفية لاتصال المزوّد
-وحل الأسماء المستعارة للنماذج. وتتم مصادقتها باستخدام **مفتاح API عادي**
-(عبر `validateApiKey`)، وليس مصادقة الإدارة المستخدمة بواسطة نقاط نهاية المهام.
+تُستخدم نقاط النهاية المساعدة هذه ضمن `src/app/api/cloud/` من قِبل العملاء البعيدين
+(واجهة CLI، أو تطبيق Electron، أو عمّال المزامنة) لقراءة بيانات تعريف اتصال الموفّر
+وحل الأسماء المستعارة للنماذج. وتُصادَق باستخدام **مفتاح API**
+(عبر `validateApiKey`)، وليس مصادقة الإدارة المستخدمة بواسطة نقاط نهاية المهام؛ وما
+تُرجعه `/api/cloud/auth` يعتمد على نطاق المفتاح (انظر أدناه).
 
 | الطريقة | المسار                          | الغرض                                                                           |
 | ------- | ------------------------------- | ------------------------------------------------------------------------------- |
-| POST    | `/api/cloud/auth`               | التحقق من مفتاح API، وإرجاع بيانات اتصال وصفية محجوبة + أسماء النماذج المستعارة |
+| POST    | `/api/cloud/auth`               | التحقق من مفتاح API، وإرجاع بيانات تعريف اتصال محجوبة + أسماء النماذج المستعارة |
 | PUT     | `/api/cloud/credentials/update` | تحديث `accessToken` / `refreshToken` / `expiresAt`                              |
-| POST    | `/api/cloud/model/resolve`      | تحويل اسم نموذج مستعار إلى `{ provider, model }`                                |
-| GET     | `/api/cloud/models/alias`       | عرض جميع الأسماء المستعارة للنماذج                                              |
+| POST    | `/api/cloud/model/resolve`      | حل اسم نموذج مستعار إلى `{ provider, model }`                                   |
+| GET     | `/api/cloud/models/alias`       | سرد جميع الأسماء المستعارة للنماذج                                              |
 | PUT     | `/api/cloud/models/alias`       | تعيين اسم مستعار لنموذج (ومزامنته تلقائيًا مع Cloud إذا كانت مفعّلة)            |
 
-لا تُرجع `/api/cloud/auth` مطلقًا القيم الخام لـ `apiKey` / `accessToken` / `refreshToken`.
-بل تُرجع `hasApiKey`، و`hasAccessToken`، و`hasRefreshToken`، ومعاينة محجوبة
-(`maskedApiKey`: أول 4 أحرف + `****` + آخر 4 أحرف).
+لا تُرجع `/api/cloud/auth` مطلقًا القيم الأولية لـ `apiKey` / `accessToken` / `refreshToken`.
+بل تُرجع `hasApiKey` و`hasAccessToken` و`hasRefreshToken` للاتصالات النشطة التي يُسمح للمفتاح
+باستخدامها (لا يرى المفتاح المقيّد بواسطة `allowedConnections` سوى تلك الاتصالات). وبالنسبة إلى مفتاح API
+ذي النطاق `manage` أو `admin`، بما في ذلك مفتاح النشر من `OMNIROUTE_API_KEY`، فإنها تُرجع أيضًا
+معاينة محجوبة (`maskedApiKey`: ما يصل إلى 4 أحرف عند كل طرف، وأقل من ذلك للمفتاح القصير،
+ولا شيء للمفتاح المكوّن من 8 أحرف أو أقل) و`projectId` الخاص بالاتصال. ويُحذف كلا الحقلين
+من الاستجابة لأي مفتاح آخر.
 
 ## تحديد بيانات الاعتماد
 

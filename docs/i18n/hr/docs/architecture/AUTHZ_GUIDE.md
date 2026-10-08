@@ -13,7 +13,7 @@ OmniRoute ima autorizacijski cjevovod svjestan ruta koji štiti svaki API zahtje
 
 > Izvor: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
-## Dva načina autentifikacije
+## Dva načina autentikacije
 
 ### 1. API ključ (Bearer)
 
@@ -23,53 +23,54 @@ Upotrebljava se za klijentske API-je kompatibilne s OpenAI/Anthropic/Gemini te z
 Authorization: Bearer <api-key>
 ```
 
-Provjerava se funkcijama `isValidApiKey()` / `extractApiKey()` u `src/sse/services/auth.ts`, koje se ponovno izvoze putem `src/shared/utils/apiAuth.ts`. Validator također prihvaća varijable okruženja `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` kao trajne ključeve za izravno prosljeđivanje (problem #1350).
+Provjerava se funkcijama `isValidApiKey()` / `extractApiKey()` u `src/sse/services/auth.ts` te se ponovno izvozi putem `src/shared/utils/apiAuth.ts`. Validator također prihvaća varijable okruženja `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` kao trajne ključeve za izravno prosljeđivanje (problem #1350).
 
 ### 2. Sesija nadzorne ploče (kolačić auth_token)
 
 Za stranice nadzorne ploče i administratorske operacije.
 
 ```
-Cookie: auth_token=<JWT potpisan s JWT_SECRET>
+Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-Kolačić predstavlja sesiju samo kada je JWT uspješno provjeren **i** sadrži `authenticated: true`
+Kolačić predstavlja sesiju samo kada je JWT valjan **i** sadrži `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Svaki
-potrošač kolačića (čuvar rute, osvježavanje autorizacijskog cjevovoda, WebSocket rukovanje, poslužitelj
-uživo, `/api/settings/require-login`, `/api/auth/status`) prolazi kroz taj pomoćni program.
-Postoje i drugi JWT-ovi potpisani s `JWT_SECRET` — izravno prosljeđivanje za Cursor CLI izdaje
-tokene `iss "omniroute" / aud "cursor-cli"` vlasnicima ključeva — i oni nikada nisu sesije
+potrošač kolačića (zaštita ruta nadzorne ploče (`isDashboardSessionAuthenticated()`), osvježavanje autorizacijskog cjevovoda, WebSocket uspostavljanje veze, poslužitelj uživo, `/api/settings/require-login`, `/api/auth/status`) prolazi kroz tu pomoćnu funkciju.
+Postoje i drugi JWT-ovi potpisani s `JWT_SECRET` — izravno prosljeđivanje Cursor CLI-ja izdaje
+tokene `iss "omniroute" / aud "cursor-cli"` za vlasnike ključeva — i oni nikada nisu sesije
 (#13298).
 
-Provjerava se funkcijom `isDashboardSessionAuthenticated()` u `src/shared/utils/apiAuth.ts`. Cjevovod automatski osvježava JWT kada mu je preostalo manje od 7 dana od ukupnog trajanja od 30 dana.
+Provjerava se funkcijom `isDashboardSessionAuthenticated()` u `src/shared/utils/apiAuth.ts`. Cjevovod automatski osvježava JWT kada mu od njegova 30-dnevnog životnog vijeka preostane manje od 7 dana.
 
-Neke rute za upravljanje prihvaćaju **bilo koji** način: kolačić ILI `Bearer <key>` kada API ključ ima opseg `manage` (ili `admin`). To omogućuje tijek rada „konfigurabilno putem API poziva” dodan u v3.8.
+Sesija može završiti i prije isteka svojih 30 dana jer svaki izdavatelj prolazi kroz `mintDashboardSessionToken` (vrijeme izdavanja `iat` i identifikator `jti`), a provjeravatelj provjerava dvije postavke: `sessionsValidAfter`, koja se postavlja promjenom lozinke tako da se sve sesije izdane prije tog trenutka više ne mogu potvrditi (preglednik u kojem je lozinka promijenjena dobiva novi kolačić), i `revokedDashboardSessions`, u koji `POST /api/auth/logout` dodaje `jti` odjavljene sesije. Sesije izdane starijim izdanjem ne sadrže nijednu od tih tvrdnji i ostaju valjane do prve promjene lozinke. Ako se postavke ne mogu pročitati, sesija se ne smatra pouzdanom.
+
+Neke rute za upravljanje prihvaćaju **bilo koji** način: kolačić ILI `Bearer <key>` kada API ključ ima opseg `manage` (ili `admin`). To omogućuje tijek rada „podesivo putem API poziva” dodan u v3.8.
 
 #### Neobavezna OIDC prijava (#6973)
 
-Administratorska prijava na nadzornu ploču također podržava **opcijski** tijek OIDC-a (OpenID Connect)
+Administratorska prijava na nadzornu ploču također podržava **opcijski** OIDC (OpenID Connect) tijek
 uz zadanu prijavu lozinkom — prijava lozinkom nikada se ne uklanja, već se samo
 nadopunjuje:
 
-- Onemogućeno je osim ako vrijedi `settings.oidcEnabled === true` **i** ako su
-  `oidcIssuer` / `oidcClientId` / `oidcClientSecret` svi konfigurirani (Postavke → Autentifikacija).
+- Onemogućeno je osim ako je `settings.oidcEnabled === true` **i** ako su `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` svi konfigurirani (Postavke → Autentikacija).
   U suprotnom `GET /api/auth/oidc/login` vraća `400`.
-- `GET /api/auth/oidc/login` otkriva `authorization_endpoint` iz
-  izdavateljeve konfiguracije `/.well-known/openid-configuration` (uz pričuvnu vrijednost
+- `GET /api/auth/oidc/login` otkriva `authorization_endpoint` iz izdavateljeve
+  konfiguracije `/.well-known/openid-configuration` (uz rezervnu upotrebu
   `<issuer>/authorize`), izrađuje URI za preusmjeravanje iz dolaznog zahtjeva
-  (uzimajući u obzir `x-forwarded-proto`) i preusmjerava na IdP s nasumičnim `state`
-  pohranjenim u `httpOnly` kolačiću `oidc_state`.
+  (uz podršku za `x-forwarded-proto`) i preusmjerava prema IdP-u sa slučajnom vrijednošću `state`
+  pohranjenom u `httpOnly` kolačiću `oidc_state`.
 - `GET /api/auth/oidc/callback` provjerava `state`, razmjenjuje autorizacijski
   kôd i provjerava potpis ID tokena putem izdavateljeva JWKS-a
-  (`createRemoteJWKSet` iz paketa `jose`, predmemoriran po URI-ju JWKS-a), uz provjere
-  `issuer`/`audience`. Neobavezan popis dopuštenih vrijednosti `oidcAllowedSubjects` uspoređuje se s
-  tvrdnjom `sub` ili tvrdnjom `email` tokena — tvrdnja e-pošte uzima se u obzir samo kada je
-  `email_verified === true`, pa neprovjerena adresa e-pošte kod IdP-a nikada ne može proći
+  (`createRemoteJWKSet` iz paketa `jose`, predmemorirano po JWKS URI-ju) uz provjere
+  `issuer`/`audience`. Neobavezni popis dopuštenih vrijednosti `oidcAllowedSubjects` uspoređuje
+  se s tvrdnjom `sub` ili tvrdnjom `email` tokena — tvrdnja e-pošte uzima se u obzir samo kada je
+  `email_verified === true`, pa nepotvrđena adresa e-pošte kod IdP-a nikada ne može proći
   provjeru.
-- Nakon uspješne provjere izdaje se **potpuno isti** 30-dnevni JWT `auth_token` koji izdaje prijava
-  lozinkom (`src/app/api/auth/login/route.ts`), tako da ostatak
+- Nakon uspjeha izdaje se **potpuno isti** 30-dnevni `auth_token` JWT koji izdaje prijava
+  lozinkom (`src/app/api/auth/login/route.ts`), pa ostatak
   cjevovoda sesije nadzorne ploče (automatsko osvježavanje, zastavice kolačića) ostaje nepromijenjen —
-  OIDC mijenja samo način izdavanja kolačića, a ne ovlasti koje on daje.
+  OIDC zamjenjuje samo način izdavanja kolačića, a ne ovlasti koje on daje.
 
 ## Klase ruta
 

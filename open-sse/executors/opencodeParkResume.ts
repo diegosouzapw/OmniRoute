@@ -20,6 +20,7 @@ import { PARKED_STREAM_HEADER, PARKED_STREAM_VALUE } from "../utils/streamReadin
 import { isProxyAvoided, proxyEgressKey, proxySetAsideSeq } from "../utils/proxyRefusalMemory.ts";
 import { maskAccountId, type RotatableAccount } from "./accountRotation.ts";
 import { runWithProxyContext } from "../utils/proxyFetch.ts";
+import { noteResilienceAction } from "@/lib/usage/resilienceActionsContext.ts";
 import type { ExecuteInput, ExecutorExecuteResult } from "./base.ts";
 
 /** Consecutive transient 429s before a request parks. */
@@ -146,13 +147,16 @@ export function parkWaitMs(ttlLeftMs: number | null): number {
  */
 export function replayCandidates<T extends RotatableAccount>(
   accounts: T[],
-  nowMs = Date.now()
+  nowMs = Date.now(),
+  keyOfMember: (account: T) => string | null = (a) => proxyEgressKey(a.proxy)
 ): T[] {
-  return accounts
-    .filter((a) => a.cooldownUntil <= nowMs && !isProxyAvoided(proxyEgressKey(a.proxy)))
+  const ready = accounts.filter((a) => a.cooldownUntil <= nowMs);
+  const fresh = ready.filter((a) => !isProxyAvoided(keyOfMember(a)));
+  // Serve anyway when everything ready is set aside (never exclude).
+  return (fresh.length > 0 ? fresh : ready)
     .sort((x, y) => {
-      const sx = proxySetAsideSeq(proxyEgressKey(x.proxy)) ?? -1;
-      const sy = proxySetAsideSeq(proxyEgressKey(y.proxy)) ?? -1;
+      const sx = proxySetAsideSeq(keyOfMember(x)) ?? -1;
+      const sy = proxySetAsideSeq(keyOfMember(y)) ?? -1;
       return sx - sy;
     })
     .slice(0, PARK_PROBE_MAX);
@@ -207,6 +211,7 @@ export interface ParkDriver<TAccount extends RotatableAccount = RotatableAccount
   execute: (input: ExecuteInput) => Promise<ExecutorExecuteResult & { response: Response }>;
   markSuccess: (account: TAccount) => void;
   sleep: (ms: number, signal?: AbortSignal | null) => Promise<boolean>;
+  replayKeyOfMember?: (account: TAccount) => string | null;
 }
 
 /**
@@ -247,10 +252,22 @@ export async function runParkAndReplay<TAccount extends RotatableAccount>(
         }
         const probe = await replayOneLeg(driver, input, driver.accounts, log, cid);
         const finalBody = probe?.result.response ?? fallback.response;
+        // stream note: note only AFTER the recopy outcome is known. A stored 429
+        // fallback recopied into the 200 SSE envelope is still a stored
+        // error replay — flag alone decides at read time.
+        let recopied = true;
         try {
           await copyFinalBodyAsValidFrames(controller, encoder, finalBody);
         } catch {
-          /* unreadable body — close with the pings already sent */
+          // Unreadable body — the client got pings only, not the replay.
+          recopied = false;
+        }
+        if (probe == null && fallback.response.status === 429) {
+          noteResilienceAction({ stored429: true, replayed: false });
+        } else if (probe != null && recopied) {
+          noteResilienceAction({ replayed: true });
+        } else if (probe != null) {
+          noteResilienceAction({ replayed: false });
         }
         try {
           controller.close();
@@ -298,7 +315,7 @@ export async function replayOneLeg<TAccount extends RotatableAccount>(
     account: TAccount;
     result: ExecutorExecuteResult & { response: Response };
   } | null = null;
-  for (const account of replayCandidates(accounts)) {
+  for (const account of replayCandidates(accounts, Date.now(), driver.replayKeyOfMember)) {
     const masked = maskAccountId(account.fingerprint);
     const proxy = (account as { proxy?: { host?: string; port?: unknown } | null }).proxy;
     log?.info?.(

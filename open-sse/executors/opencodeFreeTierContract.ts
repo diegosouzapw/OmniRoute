@@ -23,11 +23,13 @@
  */
 import { parseSSEToOpenAIResponse, parseSSEToResponsesOutput } from "../handlers/sseParser.ts";
 import {
+  confirmBorrowedToolNames,
   getObservedToolNames,
   noteRefusedBorrowedToolNames,
   recordAcceptedToolNames,
   resolvePlaceholderNames,
 } from "./opencodeToolObservation.ts";
+import { isOpencodeFreeTierRefusal } from "./opencodeGeoBlock.ts";
 import {
   forgetAttempt,
   planShape,
@@ -52,6 +54,12 @@ export interface FreeTierContractAttempt {
   readonly clientToolNames: readonly string[];
   /** A refusal may still be replayed in the other shape: its outcome is noted afterwards. */
   readonly probe?: boolean;
+  /**
+   * True when this attempt injected placeholder tools the caller had not sent. Kept as a
+   * separate flag from `borrowed`: a placeholder this layer added is ours to attribute, while
+   * `borrowed` means it came from the observation store.
+   */
+  readonly injectedPlaceholders?: boolean;
 }
 
 /**
@@ -189,18 +197,10 @@ const PLACEHOLDER_TOOL_DESCRIPTION =
 const PLACEHOLDER_TOOL_PARAMETERS = { type: "object", properties: {} } as const;
 
 /**
- * An empty `tools` array counts as no tools: it is the exact shape the upstream refuses
- * (upstream anomalyco/opencode#49433 reports it from the client's own compaction path),
- * so it has to be filled like an absent one rather than passed through.
- */
-function hasTools(body: Record<string, unknown>): boolean {
-  return Array.isArray(body.tools) && body.tools.length > 0;
-}
-
-/**
  * Bring a free-tier request up to the upstream contract, without overriding anything the
  * caller already decided: client tools are kept as they are, and the placeholder tool is
- * only added when the caller sent none. Idempotent.
+ * only added when the caller sent none or when client-supplied tools do not yet carry the
+ * required placeholder tool. Idempotent.
  *
  * The placeholder differs per surface: Chat Completions takes the nested function shape,
  * the Responses surface takes the flat one. Neither carries a `tool_choice` — the upstream
@@ -221,29 +221,39 @@ export function applyFreeTierRequestContract<T>(
   const record = body as Record<string, unknown>;
   const next: Record<string, unknown> = { ...record, stream: true };
 
-  if (hasTools(next)) return next as T;
+  const existingNames = new Set(clientToolNamesOf(next));
+  const baseNames = placeholderNames.length > 0 ? placeholderNames : [PLACEHOLDER_TOOL_NAME];
+  const namesToAdd = baseNames.filter((name) => !existingNames.has(name));
 
-  const names = placeholderNames.length > 0 ? placeholderNames : [PLACEHOLDER_TOOL_NAME];
+  if (namesToAdd.length === 0) return next as T;
+
+  const existingTools = Array.isArray(next.tools) ? [...next.tools] : [];
 
   if (requestFormat === "openai-responses") {
-    next.tools = names.map((name) => ({
-      type: "function",
-      name,
-      description: PLACEHOLDER_TOOL_DESCRIPTION,
-      parameters: PLACEHOLDER_TOOL_PARAMETERS,
-    }));
+    next.tools = [
+      ...existingTools,
+      ...namesToAdd.map((name) => ({
+        type: "function",
+        name,
+        description: PLACEHOLDER_TOOL_DESCRIPTION,
+        parameters: PLACEHOLDER_TOOL_PARAMETERS,
+      })),
+    ];
     return next as T;
   }
 
   if (requestFormat === "openai" || requestFormat === null) {
-    next.tools = names.map((name) => ({
-      type: "function",
-      function: {
-        name,
-        description: PLACEHOLDER_TOOL_DESCRIPTION,
-        parameters: PLACEHOLDER_TOOL_PARAMETERS,
-      },
-    }));
+    next.tools = [
+      ...existingTools,
+      ...namesToAdd.map((name) => ({
+        type: "function",
+        function: {
+          name,
+          description: PLACEHOLDER_TOOL_DESCRIPTION,
+          parameters: PLACEHOLDER_TOOL_PARAMETERS,
+        },
+      })),
+    ];
     return next as T;
   }
 
@@ -385,7 +395,7 @@ export function prepareFreeTierRequest<T>(
       shape: chosen,
       key,
       probe: plan.probe,
-      replayNote: () => noteFreeTierOutcome({ ...attempt, probe: false }, false),
+      replayNote: (verdict) => noteFreeTierOutcome({ ...attempt, probe: false }, verdict),
     });
   }
   return {
@@ -403,14 +413,33 @@ function withStreaming<T>(body: T): T {
 }
 
 /**
+ * What the upstream answered, with enough detail to tell a refusal about the
+ * tools apart from any other failure. A bare boolean keeps the legacy callers
+ * compiling: `true` counts as an acceptance, `false` carries no verdict and is
+ * never counted.
+ */
+export interface FreeTierOutcome {
+  readonly ok: boolean;
+  readonly status: number | null;
+  readonly bodyText: string | null;
+}
+
+/**
  * Feed a gated request's outcome back, so the next one borrows a shape that still works.
  *
  * An accepted request teaches which names the upstream takes right now; a refused one only
- * teaches something when the names it carried came from the store.
+ * teaches something when the names it carried came from the store AND the refusal says
+ * something about the tools (a 403/451 carrying the refusal signals — a 429, a 5xx or a
+ * refusal about something else leaves the store alone).
  */
-export function noteFreeTierOutcome(attempt: FreeTierContractAttempt | null, ok: boolean): void {
+export function noteFreeTierOutcome(
+  attempt: FreeTierContractAttempt | null,
+  outcome: boolean | FreeTierOutcome
+): void {
   if (!attempt) return;
-  if (ok) {
+  const decided: FreeTierOutcome =
+    typeof outcome === "boolean" ? { ok: outcome, status: null, bodyText: null } : outcome;
+  if (decided.ok) {
     if (attempt.clientToolNames.length > 0) {
       recordAcceptedToolNames(
         attempt.provider,
@@ -418,11 +447,15 @@ export function noteFreeTierOutcome(attempt: FreeTierContractAttempt | null, ok:
         attempt.session,
         attempt.clientToolNames
       );
+    } else if (attempt.borrowed && !attempt.probe) {
+      confirmBorrowedToolNames(attempt.provider, attempt.model, attempt.session);
     }
     return;
   }
   if (attempt.probe) return;
-  if (attempt.borrowed) {
+  if (!attempt.borrowed) return;
+  if (decided.status === null) return;
+  if (isOpencodeFreeTierRefusal(decided.status, decided.bodyText)) {
     noteRefusedBorrowedToolNames(attempt.provider, attempt.model, attempt.session);
   }
 }

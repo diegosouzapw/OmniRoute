@@ -11,7 +11,7 @@ import {
   normalizeCliCompatProviderId,
 } from "@/shared/constants/cliCompatProviders";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
-import { CLAUDE_CODE_CLIENT_BUILD_REVISION } from "@/shared/constants/claudeCodeClient";
+import { getClaudeCodeClientBuildRevision } from "@/shared/constants/claudeCodeClient";
 import { compareTr } from "@/shared/utils/turkishText";
 import { HERMES } from "./systemTransformsHermesDefaults";
 
@@ -170,7 +170,7 @@ const DEFAULT_SYSTEM_TRANSFORMS_CLIENT = {
           entrypoint: "sdk-cli",
           versionFormat: "ex-machina",
           cchAlgo: "sha256-first-user",
-          buildRevision: CLAUDE_CODE_CLIENT_BUILD_REVISION,
+          buildRevision: getClaudeCodeClientBuildRevision(),
         },
       ],
     },
@@ -1515,6 +1515,64 @@ export default function RoutingTab() {
                 disabled={loading}
                 ariaLabel={t("webSearchRouteTitle")}
               />
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <Card>
+        <div className="flex gap-3">
+          <div className="p-2 rounded-lg bg-sky-500/10 text-sky-500 h-fit">
+            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+              timer
+            </span>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold">Search timeouts</h3>
+            <p className="text-sm text-text-muted mt-1">
+              How long a search waits before it is cut off. Leave a field empty to keep the default:
+              15 seconds overall, and each provider&apos;s own limit.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-3">
+              <label className="flex flex-col gap-1 text-xs text-text-muted">
+                Overall budget (ms)
+                <input
+                  type="number"
+                  min={1000}
+                  max={120000}
+                  defaultValue={settings.searchTimeoutMs ?? ""}
+                  placeholder="15000"
+                  onBlur={(e) => {
+                    const raw = e.target.value.trim();
+                    const parsed = raw === "" ? undefined : Number.parseInt(raw, 10);
+                    if (parsed !== undefined && Number.isNaN(parsed)) return;
+                    updateSetting({ searchTimeoutMs: parsed });
+                  }}
+                  className="h-9 w-32 rounded-lg border border-border bg-background px-3 text-sm text-text-main"
+                />
+              </label>
+              {["exa-search", "tavily-search", "firecrawl", "context7", "jina-search"].map((id) => (
+                <label key={id} className="flex flex-col gap-1 text-xs text-text-muted">
+                  {id} (ms)
+                  <input
+                    type="number"
+                    min={1}
+                    max={120000}
+                    defaultValue={settings.searchProviderTimeoutsMs?.[id] ?? ""}
+                    placeholder="default"
+                    onBlur={(e) => {
+                      const raw = e.target.value.trim();
+                      const parsed = raw === "" ? undefined : Number.parseInt(raw, 10);
+                      if (parsed !== undefined && Number.isNaN(parsed)) return;
+                      const next = { ...(settings.searchProviderTimeoutsMs ?? {}) };
+                      if (parsed === undefined) delete next[id];
+                      else next[id] = parsed;
+                      updateSetting({ searchProviderTimeoutsMs: next });
+                    }}
+                    className="h-9 w-32 rounded-lg border border-border bg-background px-3 text-sm text-text-main"
+                  />
+                </label>
+              ))}
             </div>
           </div>
         </div>

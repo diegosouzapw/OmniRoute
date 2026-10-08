@@ -110,24 +110,27 @@ CORS_ALLOWED_ORIGINS="http://localhost:5173, http://localhost:3000"
   출처를 허용 범위가 넓은 구성에 포함하지 마세요. 해당 출처는 반드시 기본적으로
   접근이 차단되는 상태를 그대로 유지해야 합니다.
 
-## 예시: OmniRoute 앞의 리버스 프록시
+## 예시: OmniRoute 앞단의 리버스 프록시
 
-CORS는 OmniRoute 자체에서 적용되므로 일반적으로 프록시가 `Access-Control-*`
-헤더를 추가하거나 다시 작성해서는 **안 됩니다**(헤더가 중복되면 브라우저가 제대로
-작동하지 않습니다). TLS를 종료하고 요청을 전달하세요. 프리플라이트에는 OmniRoute가
-응답하도록 하세요.
+CORS는 OmniRoute 자체에서 적용되므로, 일반적으로 프록시는 `Access-Control-*`
+헤더를 추가하거나 다시 작성해서는 **안 됩니다**(헤더가 중복되면 브라우저가 정상적으로 작동하지 않습니다). TLS를
+종료하고 전달만 하여, 프리플라이트 요청에 OmniRoute가 응답하도록 하세요.
 
 ```nginx
-# nginx — OmniRoute로 전달하며, 여기서 Access-Control-*을 삽입하지 마세요
+# nginx — OmniRoute로 전달합니다. 여기에는 Access-Control-*를 삽입하지 마세요
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # X-Forwarded-For를 127.0.0.1로 설정하지 마세요. 루프백 경로 가드가 무력화됩니다.
+    # 전달 헤더를 유지하세요. 동일한 호스트의 프록시는 루프백에서 연결하며, 이 헤더는
+    # 호출자가 로컬 운영자가 아님을 OmniRoute에 알려 줍니다. 이러한 헤더를 전혀 추가하지 않는 프록시는
+    # 모든 원격 호출자를 로컬 호출자로 보이게 합니다. 또한 X-Forwarded-For를 127.0.0.1로 설정하지 마세요.
 }
 ```
 
-허용할 브라우저 출처는 프록시가 아니라 OmniRoute(`CORS_ALLOWED_ORIGINS` 또는
+허용할 브라우저 오리진은 프록시가 아니라 OmniRoute(`CORS_ALLOWED_ORIGINS` 또는
 보안 탭)에서 설정하세요.
 
 ## 소스 파일

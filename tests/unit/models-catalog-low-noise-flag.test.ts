@@ -138,9 +138,9 @@ test("?prefix=canonical query param overrides flag to canonical-only mode", asyn
 // supposed to suppress, via the ?prefix= path AND the feature-flag path.
 //
 // Root `gpt-5.6-sol-ultra` is used for the id-set cases: it is a member of
-// CODEX_NATIVE_UNPREFIXED_MODELS (open-sse/services/model.ts:147-175). It is
-// also present in the static PROVIDER_MODELS catalog (as are 26 of the 27
-// roots), which is why the separate parent-rule test below deliberately uses
+// CODEX_NATIVE_UNPREFIXED_MODELS (open-sse/services/model.ts). It is
+// also present in the static PROVIDER_MODELS catalog (as are all roots but
+// one), which is why the separate parent-rule test below deliberately uses
 // `codex-auto-review` instead — see the comment on that test.
 // ---------------------------------------------------------------------------
 
@@ -194,7 +194,7 @@ async function seedCodexConnection(name: string) {
 // not part of this defect; they are asserted so a fix scoped to :1064-1093
 // cannot disturb a neighbouring, already-correct loop.
 //
-// PROVIDER_MODELS["cxa"] carries 26 of the 27 native roots — `codex-auto-review`
+// PROVIDER_MODELS["cxa"] carries every native root but one — `codex-auto-review`
 // is absent from it, which is why that root has no `cxa/` row.
 const CODEX_APP_SERVER_ALIAS_ROW: [string, string | null] = [`cxa/${CODEX_NATIVE_ROOT}`, null];
 
@@ -307,25 +307,25 @@ test("#11632 MODELS_CATALOG_PREFIX_MODE=canonical flag path gates Codex-native r
 
 test("#11632 canonical mode re-roots the surviving row instead of dangling at a suppressed parent", async () => {
   // Parent rule (frozen): no surviving row may point at a suppressed
-  // predecessor. This needs a root the native loop emits FIRST, otherwise the
-  // rule is unobservable: 26 of the 27 CODEX_NATIVE_UNPREFIXED_MODELS entries
-  // are also in the static PROVIDER_MODELS catalog, so the static loop
-  // (:1022/:1036/:1052) already emits a correctly re-rooted `codex/<root>` and
-  // the native loop's first-wins dedupe at :1082 then skips its own entry —
-  // masking a wrong parent there.
-  //
-  // `codex-auto-review` is the sole root NOT in the static catalog (it is not
-  // in codexProvider.models either, which is why it has no `cxa/` row), so its
-  // `codex/` row is produced by the native loop and its parent is observable.
-  // Verified against a mutant that gates the ids correctly but leaves the
-  // canonical parent at `cx/<root>`: that mutant survives every
-  // gpt-5.6-sol-ultra assertion and is caught only here.
+  // predecessor. `codex-auto-review` used to be the sole native root outside the
+  // static PROVIDER_MODELS catalog, which made the native loop's parent rule
+  // observable on its own (every other root is first emitted, correctly
+  // re-rooted, by the static loop and the native loop's first-wins dedupe skips
+  // its entry). It is retired (#14903) and no longer emitted at all, so the rule
+  // is asserted as a catalog-wide invariant instead.
   await seedCodexConnection("codex-primary");
 
   const rows = await getRows("http://localhost/api/v1/models?prefix=canonical");
   assert.ok(rows.length > 100, `expected a populated catalog, got ${rows.length} rows`);
 
-  assert.deepEqual(rowsForRoot(rows, "codex-auto-review"), [["codex/codex-auto-review", null]]);
+  assert.deepEqual(rowsForRoot(rows, "codex-auto-review"), []);
+  assert.deepEqual(rowsForRoot(rows, CODEX_NATIVE_ROOT), EXPECTED_CANONICAL_MODE_ROWS);
+
+  const ids = new Set(rows.map((row) => row.id));
+  const dangling = rows
+    .filter((row) => row.parent && !ids.has(row.parent))
+    .map((row) => `${row.id} -> ${row.parent}`);
+  assert.deepEqual(dangling, [], "no row may point at a suppressed parent");
 });
 
 test("#11632 the gating holds for every Codex-native root, not just the sampled ones", async () => {
@@ -451,23 +451,28 @@ test("#11632 regression guard: the already-gated cxa/ alias loop is untouched", 
   assert.deepEqual(canonicalDuplicates, [], "canonical mode must not emit duplicate ids");
 });
 
-test("#11632 backward compatibility: dual-mode codex-auto-review chain is preserved", async () => {
-  // Freezes the same contract as tests/unit/models-catalog-route.test.ts:652-680
-  // so the fix cannot satisfy the new matrix by flattening the default mode.
+test("#11632 backward compatibility: dual-mode Codex-native chain is preserved", async () => {
+  // Freezes the same contract as tests/unit/models-catalog-route.test.ts
+  // (bare Codex-preferred IDs) so the fix cannot satisfy the new matrix by
+  // flattening the default mode. `codex-auto-review` was the sampled root until
+  // it was retired (#14903); it must now be absent from the chain.
   await seedCodexConnection("codex-primary");
 
   const rows = await getRows("http://localhost/api/v1/models");
   const find = (id: string) => rows.find((row) => row.id === id);
 
-  const bare = find("codex-auto-review");
-  const canonical = find("codex/codex-auto-review");
-  const alias = find("cx/codex-auto-review");
+  const bare = find(CODEX_NATIVE_ROOT);
+  const canonical = find(`codex/${CODEX_NATIVE_ROOT}`);
+  const alias = find(`cx/${CODEX_NATIVE_ROOT}`);
 
-  assert.ok(bare, "expected bare codex-auto-review row");
-  assert.ok(canonical, "expected codex/codex-auto-review row");
-  assert.ok(alias, "expected cx/codex-auto-review row");
-  assert.equal(bare.parent, "codex/codex-auto-review");
-  assert.equal(canonical.parent, "cx/codex-auto-review");
+  assert.ok(bare, `expected bare ${CODEX_NATIVE_ROOT} row`);
+  assert.ok(canonical, `expected codex/${CODEX_NATIVE_ROOT} row`);
+  assert.ok(alias, `expected cx/${CODEX_NATIVE_ROOT} row`);
+  assert.equal(bare.parent, `codex/${CODEX_NATIVE_ROOT}`);
+  assert.equal(canonical.parent, `cx/${CODEX_NATIVE_ROOT}`);
   assert.equal(alias.parent, null);
-  assert.equal(find("openai/codex-auto-review"), undefined);
+  assert.equal(find(`openai/${CODEX_NATIVE_ROOT}`), undefined);
+  assert.equal(find("codex-auto-review"), undefined);
+  assert.equal(find("codex/codex-auto-review"), undefined);
+  assert.equal(find("cx/codex-auto-review"), undefined);
 });

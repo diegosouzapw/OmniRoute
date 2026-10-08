@@ -288,12 +288,18 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
     // Declare before the conditional so they're available to the rest of preCall
     let forceVisionBridge = false;
     let comboVisionBridgeDecision: ComboVisionBridgeDecision | undefined;
+    // #14003: the requested model's resolved vision capability, hoisted out of
+    // the `!isAuto` block so the reroute gate below can reason about it.
+    // `null` means UNKNOWN (no spec / registry / synced verdict), which is a
+    // different fact from `false` (proven text-only) and must not be conflated.
+    let requestedModelVision: boolean | null = null;
 
     if (!isAuto) {
       forceVisionBridge = isVisionBridgeForcedModel(model);
 
       // 4. Check if model supports vision
       const capabilities = getResolvedModelCapabilities(model);
+      requestedModelVision = capabilities?.supportsVision ?? null;
       comboVisionBridgeDecision = forceVisionBridge
         ? "process"
         : this.deps.checkModelHasComboMapping
@@ -383,12 +389,52 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
     // exactly like a single text-only model, and without this fallback an image
     // request would die in the combo capability filter (capability_mismatch)
     // whenever the describe path cannot run.
+    // #14003: a BARE model id (no `provider/` prefix) with UNKNOWN vision
+    // capability must not be whole-request rerouted.
+    //
+    // For a bare id, getResolvedModelCapabilities resolves `provider` to null,
+    // so getRegistryModel() and getSyncedCapabilityForResolved() are both
+    // skipped and only MODEL_SPECS / isVisionModelId() can produce a verdict.
+    // `supportsVision === null` therefore means OmniRoute has no static
+    // knowledge of that wire id at all. Providers rename and upgrade wire
+    // models faster than the static spec table tracks, so that is a
+    // stale-catalog condition, NOT proof the model is text-only. Hijacking
+    // such a request sent it to a different provider's model with no error: the
+    // reported case routed every `kimi-for-coding` image request to
+    // `command-code/moonshotai/Kimi-K2.6`, so the wrong model answered, the
+    // request was billed against the wrong connection, and `call_logs`
+    // recorded the substitute as intended.
+    //
+    // The credential guard cannot save these requests on its own:
+    // hasUsableCredentialsForModel splits on "/" and treats the model name as a
+    // provider, finds no connection rows, and reports a hard `false` instead of
+    // the `null` that would have failed open. This gate uses the same
+    // string-level notion of a provider prefix.
+    //
+    // The model string, not capabilities.provider, decides "bare": a
+    // provider-qualified id must not be classified as bare, because for those
+    // the registry and synced rows are the authoritative sources. Combos are
+    // excluded as well: a zero-vision combo is deliberately reroute-eligible
+    // (#10415) and its capability is resolved from its targets, not its name.
+    const bareIdUnknownVision =
+      !isAuto &&
+      !forceVisionBridge &&
+      !model.includes("/") &&
+      requestedModelVision === null &&
+      comboVisionBridgeDecision === "not-combo";
+    if (bareIdUnknownVision) {
+      context.log?.warn?.(
+        "VISION_BRIDGE",
+        `Vision capability unknown for bare model ${model}; not whole-request rerouting - describing images and keeping the requested model`
+      );
+    }
     const rerouteEligible =
       rerouteTextOnly ||
-      ((comboVisionBridgeDecision === "not-combo" ||
-        comboVisionBridgeDecision === "no-vision" ||
-        isAuto) &&
-        !forceVisionBridge);
+      (!bareIdUnknownVision &&
+        ((comboVisionBridgeDecision === "not-combo" ||
+          comboVisionBridgeDecision === "no-vision" ||
+          isAuto) &&
+          !forceVisionBridge));
     // Forced modes short-circuit BEFORE the auto heuristic (#6640/#7204 untouched):
     // - "describe" skips the whole reroute block → straight to the describe path.
     // - "reroute" skips only the keep-credentialed-model guard; the reroute-target
@@ -452,6 +498,13 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
               ...(rerouteBody as Record<string, unknown>),
               model: bestModel,
             };
+            // #14003: a whole-request reroute answers from a DIFFERENT model
+            // than the one the client named, so it must stay visible in the log
+            // even when it succeeds. The report was that it happened silently.
+            context.log?.warn?.(
+              "VISION_BRIDGE",
+              `Whole-request vision reroute ${model} -> ${bestModel} for ${imageParts.length} image(s)`
+            );
             return {
               block: false,
               modifiedPayload: modifiedBody as unknown,

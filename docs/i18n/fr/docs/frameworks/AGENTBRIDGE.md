@@ -187,20 +187,20 @@ liste d’exclusion partagée des en-têtes saut par saut/de cadrage (y compris 
 
 ### 3.1 Démarrer/arrêter le serveur MITM
 
-Utilisez la carte AgentBridge Server à l’adresse `/dashboard/tools/agent-bridge` :
+Utilisez la carte du serveur AgentBridge à l’adresse `/dashboard/tools/agent-bridge` :
 
-| Action                        | Description                                                                                                 |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Démarrer le serveur           | Lance `src/mitm/server.cjs` sur le port 443                                                                 |
-| Arrêter le serveur            | Arrête proprement le processus enfant                                                                       |
-| Redémarrer le serveur         | Arrête puis redémarre le serveur (prend en compte les modifications apportées aux cibles)                   |
-| Faire confiance au certificat | Installe `DATA_DIR/mitm/ca.crt` dans le magasin de certificats de confiance du système d’exploitation       |
-| Télécharger le certificat     | Télécharge `ca.crt` pour une installation manuelle                                                          |
-| Régénérer le certificat       | Crée une nouvelle paire de clés d’AC (tous les certificats existants propres à chaque agent sont invalidés) |
+| Action                  | Description                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------ |
+| Démarrer le serveur     | Lance `src/mitm/server.cjs` sur le port 443                                          |
+| Arrêter le serveur      | Arrête proprement le processus enfant                                                |
+| Redémarrer le serveur   | Arrête puis redémarre le serveur (prend en compte les modifications des cibles)      |
+| Faire confiance au cert | Installe `DATA_DIR/mitm/ca.crt` dans le magasin de certificats de confiance du SE    |
+| Télécharger le cert     | Télécharge `ca.crt` pour une installation manuelle                                   |
+| Régénérer le cert       | Crée une nouvelle paire de clés d’AC (tous les certificats existants sont invalidés) |
 
 ### 3.2 Faire confiance au certificat
 
-Le certificat de l’AC AgentBridge doit être approuvé par le système d’exploitation avant que les IDE puissent accepter la connexion MITM.
+Le certificat d’AC AgentBridge doit être approuvé par le système d’exploitation avant que les IDE puissent accepter la connexion MITM.
 
 **Linux (NSS — Chrome/Firefox) :**
 
@@ -221,30 +221,30 @@ sudo security add-trusted-cert -d -r trustRoot \
 certutil -addstore -f Root $env:USERPROFILE\.omniroute\mitm\ca.crt
 ```
 
-Vous pouvez également utiliser le bouton « Trust Cert » dans le tableau de bord (il exécute la commande appropriée pour votre système d’exploitation, avec une demande sudo si nécessaire).
+Vous pouvez également utiliser le bouton « Faire confiance au cert » dans le tableau de bord (il exécute la commande appropriée pour votre système d’exploitation, avec une invite sudo si nécessaire).
 
-#### Les IDE basés sur Electron ignorent le magasin de certificats de confiance du système d’exploitation (`NODE_EXTRA_CA_CERTS`)
+#### Les IDE basés sur Electron ignorent le magasin de certificats de confiance du SE (`NODE_EXTRA_CA_CERTS`)
 
-Certains IDE — notamment **Antigravity IDE**, ainsi que d’autres applications Electron ou dérivées de VS Code — embarquent
-leur propre environnement d’exécution Node.js, qui **ne consulte pas le magasin de certificats de confiance du système d’exploitation** pour les requêtes
-`fetch`/HTTPS sortantes. Faire confiance à l’AC au niveau du système d’exploitation/NSS suffit pour le **backend** natif
-de l’IDE (par exemple, un serveur de langage Go qui utilise l’ensemble d’AC du système), mais le **frontend Electron**
-échouera toujours lors de la connexion TLS — cela se manifeste par une _déconnexion_ de l’application ou par
-l’affichage d’une _« erreur de connexion »_, même si le journal MITM indique que les appels d’amorçage du backend
-renvoient `200`. Deux étapes sont nécessaires, et toutes deux sont importantes :
+Certains IDE — notamment **Antigravity IDE**, ainsi que d’autres applications dérivées d’Electron / VS Code — intègrent
+leur propre environnement d’exécution Node.js, qui **ne consulte pas le magasin de certificats de confiance du SE** pour les requêtes
+`fetch`/HTTPS sortantes. Faire confiance à l’AC au niveau du SE/NSS suffit pour le **backend** natif de l’IDE
+(par exemple, un serveur de langage Go, qui utilise l’ensemble d’AC du SE), mais le **frontend Electron**
+échouera toujours lors de la connexion TLS — cela se manifeste par une _déconnexion_ de l’application ou par une
+_"erreur de connexion"_, même si le journal MITM indique que les appels d’initialisation du backend renvoient `200`. Deux étapes sont
+nécessaires, et toutes deux sont importantes :
 
 1. Indiquez explicitement l’AC à l’environnement d’exécution :
    ```bash
    export NODE_EXTRA_CA_CERTS=/path/to/omniroute-agentbridge-ca.crt
    ```
-2. **Lancez l’IDE depuis ce shell.** Un lancement depuis l’icône du bureau, le Dock ou le menu Démarrer
-   **n’hérite pas** des variables exportées par le shell, et `~/.config/environment.d/*.conf` ne s’applique qu’après
-   une nouvelle ouverture de session graphique. Quittez d’abord complètement l’IDE — le verrou d’instance unique
-   d’Electron signifie qu’un second lancement se contente d’afficher le processus existant et que le nouvel environnement est ignoré.
+2. **Lancez l’IDE depuis ce shell.** Le démarrer depuis l’icône du bureau / le Dock / le menu Démarrer
+   ne transmet **pas** les variables exportées du shell, et `~/.config/environment.d/*.conf` ne s’applique qu’après
+   une nouvelle ouverture de session graphique. Quittez d’abord complètement l’IDE — le verrou d’instance unique d’Electron implique qu’un second
+   lancement ne fait que réactiver le processus existant et que le nouvel environnement est ignoré.
 
-L’approbation par le système d’exploitation et l’étape NSS ci-dessus restent nécessaires (la pile réseau Chromium utilisée par certains flux
-d’authentification consulte le magasin NSS propre à l’utilisateur et possède ses propres épingles statiques pour `*.googleapis.com`,
-qu’une AC approuvée localement remplace). `NODE_EXTRA_CA_CERTS` couvre en complément le chemin `fetch` de Node.
+L’étape ci-dessus concernant la confiance du SE + NSS reste nécessaire (la pile réseau Chromium utilisée par certains flux
+d’authentification lit le magasin NSS propre à l’utilisateur et possède ses propres épingles statiques pour `*.googleapis.com`,
+qu’une AC approuvée localement remplace). `NODE_EXTRA_CA_CERTS` couvre en plus le chemin `fetch` de Node.
 
 ### 3.3 Routage DNS
 
@@ -259,65 +259,75 @@ Exemples d’entrées `/etc/hosts` pour GitHub Copilot :
 
 ### 3.4 Mappage des modèles
 
-Utilisez le tableau de mappage des modèles dans la carte de chaque agent afin de définir les mappages source → cible :
+Utilisez le tableau de mappage des modèles dans la carte de chaque agent pour définir les mappages source → cible :
 
 | Modèle source (natif de l’agent) | Modèle cible (OmniRoute) |
 | -------------------------------- | ------------------------ |
 | `gpt-4o`                         | `claude-sonnet-4.7`      |
 | `*` (caractère générique)        | `claude-haiku-4.7`       |
 
-Le caractère générique `*` associe tout modèle non reconnu à la cible indiquée. Les mappages sont conservés dans la table `agent_bridge_mappings`.
+Le caractère générique `*` associe tout modèle non reconnu à la cible spécifiée. Les données sont conservées dans la table `agent_bridge_mappings`.
 
-> **Conseil — identifiez les véritables identifiants de modèle de l’agent.** Un IDE peut envoyer des noms de modèles qui diffèrent
-> des libellés de son interface utilisateur et qui changent entre les versions majeures. Par exemple, **Antigravity 2** envoie
+> **Astuce — découvrez les véritables identifiants de modèle de l’agent.** Un IDE peut envoyer des noms de modèles différents de
+> ceux affichés dans son interface, et ceux-ci peuvent changer entre les versions majeures. Par exemple, **Antigravity 2** envoie
 > `gemini-3.1-pro-low`, `gemini-pro-agent` et `gemini-3.1-flash-lite` sur le réseau — et non
-> le modèle `gemini-2.5-pro` indiqué dans l’ancienne documentation. Envoyez un message sans qu’aucun mappage correspondant soit configuré : le MITM
-> consigne la valeur exacte du champ `model:` entrant et transmet la requête. Mappez cette valeur littérale ; la requête
-> suivante sera alors interceptée et routée vers votre cible.
+> le `gemini-2.5-pro` indiqué dans les anciennes documentations. Envoyez un message de chat sans mappage correspondant : le MITM
+> journalise la valeur exacte du `model:` entrant et transmet la requête. Mappez cette valeur littérale, puis
+> la requête suivante sera interceptée et routée vers votre cible.
 
 ### 3.5 Avis relatif aux risques
 
-AgentBridge intercepte les identifiants (jetons OAuth, clés d’API) que l’IDE utilise pour s’authentifier auprès des fournisseurs en amont. Ceux-ci sont **masqués avant leur journalisation** (voir §2.7), mais restent visibles par la couche MITM d’OmniRoute. Lors de la première activation de chaque agent, une fenêtre modale d’avertissement relatif aux risques pouvant être fermée s’affiche.
+AgentBridge intercepte les identifiants (jetons OAuth, clés d’API) que l’IDE utilise pour s’authentifier auprès des fournisseurs en amont. Ceux-ci sont **masqués avant leur journalisation** (voir §2.7), mais restent visibles par la couche MITM d’OmniRoute. La première activation de chaque agent affiche une fenêtre modale d’avertissement relatif aux risques pouvant être fermée.
 
 ### 3.6 Maintenance et diagnostics
 
-Le tableau de bord contient une carte **Maintenance et diagnostics** (`AgentBridgeMaintenanceCard`, dans `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`) qui présente les routes MITM opérationnelles qui ne disposaient auparavant d’aucune interface utilisateur. Son sous-titre est : _« Testez automatiquement le pipeline de capture, annulez l’état système résiduel et transférez votre configuration d’une machine à une autre. »_ Les fonctions auxiliaires clientes de la carte se trouvent dans `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
+Le tableau de bord présente une carte **Maintenance et diagnostics** (`AgentBridgeMaintenanceCard`, dans `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`) qui expose les routes MITM opérationnelles auparavant dépourvues d’interface utilisateur. Son sous-titre est : _« Testez automatiquement le pipeline de capture, annulez les états système résiduels et transférez votre configuration d’une machine à une autre. »_ Les fonctions auxiliaires clientes de la carte se trouvent dans `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
 
-| Bouton                  | Route                                  | Fonction                                                                                                                                                                                                                                            |
-| ----------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Diagnostiquer**       | `GET /api/tools/agent-bridge/diagnose` | Exécute l’autotest du pipeline de capture et affiche un rapport pour chaque vérification (✓/✗ + conseil de résolution).                                                                                                                             |
-| **Réparer**             | `POST /api/tools/agent-bridge/repair`  | Annule l’état système MITM orphelin (entrées d’usurpation DNS, AC racine, proxy système) laissé par un plantage ou SIGKILL. Idempotent — indique « Rien à réparer » lorsque l’état est propre.                                                      |
-| **Supprimer l’AC**      | `DELETE /api/tools/agent-bridge/cert`  | Révoque la confiance et supprime l’AC racine MITM du magasin de confiance du système d’exploitation (explicite, idempotent). Affiché uniquement lorsque l’AC est actuellement approuvée ; nécessite une confirmation intégrée « Supprimer l’AC ? ». |
-| **Exporter la config.** | `GET /api/tools/agent-bridge/config`   | Télécharge la configuration JSON portable (voir §3.7).                                                                                                                                                                                              |
-| **Importer la config.** | `POST /api/tools/agent-bridge/config`  | Téléverse une configuration JSON précédemment exportée (voir §3.7).                                                                                                                                                                                 |
+| Bouton                 | Route                                  | Fonction                                                                                                                                                                                                                                                           |
+| ---------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Diagnostiquer**      | `GET /api/tools/agent-bridge/diagnose` | Exécute l’autotest du pipeline de capture et affiche un rapport pour chaque vérification (✓/✗ + conseil de résolution).                                                                                                                                            |
+| **Réparer**            | `POST /api/tools/agent-bridge/repair`  | Annule l’état système MITM orphelin (entrées DNS usurpées, AC racine, proxy système) laissé par un plantage ou SIGKILL. Idempotent — indique « Rien à réparer » lorsque l’état est propre.                                                                         |
+| **Supprimer l’AC**     | `DELETE /api/tools/agent-bridge/cert`  | Révoque la confiance et supprime l’AC racine MITM du magasin de certificats de confiance du système d’exploitation (explicite, idempotent). Affiché uniquement lorsque l’AC est actuellement approuvée ; nécessite une confirmation intégrée « Supprimer l’AC ? ». |
+| **Exporter la config** | `GET /api/tools/agent-bridge/config`   | Télécharge la configuration JSON portable (voir §3.7).                                                                                                                                                                                                             |
+| **Importer la config** | `POST /api/tools/agent-bridge/config`  | Téléverse une configuration JSON précédemment exportée (voir §3.7).                                                                                                                                                                                                |
 
-**Vérifications de diagnostic** (`summarizeDiagnostics()` dans `src/mitm/inspector/diagnostics.ts`). La route exécute la sonde avec effets pour chacune d’elles et transmet les valeurs booléennes au récapitulateur pur ; un verdict `healthy` unique ainsi qu’un conseil pour chaque échec sont renvoyés :
+Chaque carte d’agent possède également son propre bouton **Restaurer les valeurs par défaut** (`POST
+/api/tools/agent-bridge/agents/{id}/reset`) — une annulation en un clic, propre à chaque agent, qui supprime uniquement
+l’usurpation des hôtes de cet agent, efface ses mappages de modèles enregistrés et réinitialise son état
+`dns_enabled`/`setup_completed`, afin que l’IDE communique de nouveau avec le véritable service en amont après
+un redémarrage complet. Cette action n’affecte **pas** le serveur MITM partagé ni l’AC racine (d’autres agents
+peuvent encore en dépendre) — ceux-ci restent accessibles via la carte Serveur et l’action **Supprimer l’AC**
+ci-dessus. Sous Windows, elle tente également d’exécuter `ipconfig /flushdns`, car le client DNS de Windows
+met en cache les entrées du fichier hosts et, sans cela, ne supprime pas une usurpation qui vient d’être retirée.
 
-| Nom de la vérification | Ce qu’elle vérifie                                                                | Conseil en cas d’échec                                                                                                                                                                   |
-| ---------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `server-running`       | Le processus du serveur MITM est actif                                            | « Le serveur MITM n’est pas en cours d’exécution. Démarrez-le depuis l’onglet AgentBridge. »                                                                                             |
-| `server-reachable`     | Le serveur MITM accepte les connexions sur son port (sonde TCP)                   | « Le serveur MITM n’accepte pas les connexions sur son port. Vérifiez que le port est libre et que vous disposez des privilèges nécessaires pour vous y lier. »                          |
-| `cert-exists`          | Le certificat MITM a été généré sur le disque                                     | « Aucun certificat MITM n’a encore été généré. Générez-en un depuis l’onglet AgentBridge. »                                                                                              |
-| `cert-trusted`         | L’AC racine MITM se trouve dans le magasin de confiance du système d’exploitation | « L’AC racine MITM n’est pas approuvée par le magasin du système d’exploitation ; l’interception TLS échouera donc. Approuvez le certificat depuis l’onglet AgentBridge. »               |
-| `dns-configured`       | Les noms d’hôtes cibles sont usurpés dans `/etc/hosts`                            | « Les noms d’hôtes cibles ne sont pas usurpés dans /etc/hosts ; le trafic n’atteint donc jamais le proxy. Activez le DNS pour le ou les agents dont vous souhaitez capturer le trafic. » |
+**Vérifications de diagnostic** (`summarizeDiagnostics()` dans `src/mitm/inspector/diagnostics.ts`). La route exécute la sonde avec effets pour chaque vérification et transmet les valeurs booléennes au synthétiseur pur ; un verdict `healthy` unique ainsi qu’un conseil pour chaque échec sont renvoyés :
 
-**Bannière d’état orphelin :** lorsque la page détecte un état laissé par un plantage (usurpation DNS / AC / proxy système), la carte affiche une bannière orange — _« Une session précédente a laissé un état système résiduel (usurpation DNS, AC ou proxy système). Exécutez Réparer pour le nettoyer. »_ — et met en évidence le bouton **Réparer**. `Repair` est l’équivalent, au niveau de l’application, de l’option `--cleanup` de ProxyBridge (il délègue à `repairMitm()` dans `src/mitm/manager.ts`).
+| Nom de la vérification | Ce qu’elle vérifie                                                                            | Conseil en cas d’échec                                                                                                                                                                   |
+| ---------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server-running`       | Le processus du serveur MITM est actif                                                        | « Le serveur MITM n’est pas en cours d’exécution. Démarrez-le depuis l’onglet AgentBridge. »                                                                                             |
+| `server-reachable`     | Le serveur MITM accepte les connexions sur son port (sonde TCP)                               | « Le serveur MITM n’accepte pas les connexions sur son port. Vérifiez que le port est libre et que vous disposez des privilèges nécessaires pour vous y associer. »                      |
+| `cert-exists`          | Le certificat MITM a été généré sur le disque                                                 | « Aucun certificat MITM n’a encore été généré. Générez-en un depuis l’onglet AgentBridge. »                                                                                              |
+| `cert-trusted`         | L’AC racine MITM figure dans le magasin de certificats de confiance du système d’exploitation | « L’AC racine MITM n’est pas approuvée par le magasin du système d’exploitation ; l’interception TLS échouera donc. Approuvez le certificat depuis l’onglet AgentBridge. »               |
+| `dns-configured`       | Les noms d’hôtes cibles sont usurpés dans `/etc/hosts`                                        | « Les noms d’hôtes cibles ne sont pas usurpés dans /etc/hosts ; le trafic n’atteint donc jamais le proxy. Activez le DNS pour le ou les agents dont vous souhaitez capturer le trafic. » |
+
+**Bannière d’état orphelin :** lorsque la page détecte un état laissé par un plantage (usurpation DNS / AC / proxy système), la carte affiche une bannière orange — _« Une session précédente a laissé un état système résiduel (usurpation DNS, AC ou proxy système). Exécutez Réparer pour le nettoyer. »_ — et met en évidence le bouton **Réparer**. `Repair` est l’équivalent, au niveau de l’application, de l’option `--cleanup` de ProxyBridge (il délègue l’opération à `repairMitm()` dans `src/mitm/manager.ts`).
 
 > L’AC racine MITM reste installée entre les arrêts et les démarrages afin d’éviter
-> les demandes sudo répétées (le même comportement que mitmproxy/Charles) ; sa suppression constitue donc une action
-> **Supprimer l’AC** explicite plutôt qu’une opération effectuée automatiquement lors de l’arrêt.
+> des invites sudo répétées (le même comportement que mitmproxy/Charles) ; sa suppression
+> est donc une action explicite **Supprimer l’AC**, plutôt qu’une opération effectuée
+> automatiquement lors de l’arrêt.
 
 ### 3.7 Importation/exportation d’une configuration portable
 
 AgentBridge peut sérialiser l’état **réglable par l’opérateur** dans un objet JSON versionné afin qu’une configuration puisse être reproduite sur plusieurs machines. Le sérialiseur est `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`), validé par `AgentBridgeConfigSchema`.
 
-L’exportation comprend exactement trois éléments (les valeurs par défaut intégrées ne sont volontairement **PAS** exportées, afin que l’importation ne les duplique jamais et n’entre pas en conflit avec elles) :
+L’exportation comprend exactement trois éléments (les valeurs par défaut intégrées ne sont intentionnellement **PAS** exportées, afin que leur importation ne les duplique jamais et n’entre jamais en conflit avec elles) :
 
-| Champ            | Source                                                                    | Remarques                                                                     |
-| ---------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `bypassPatterns` | motifs de contournement définis par l’utilisateur (`agent_bridge_bypass`) | les motifs bank/gov/okta par défaut sont exclus                               |
-| `customHosts`    | hôtes personnalisés de l’Inspecteur de trafic (`inspector_custom_hosts`)  | chacun : `{ host, kind: "llm"\|"app"\|"custom", label? }`                     |
-| `agentMappings`  | mappages de modèles par agent (`agent_bridge_mappings`)                   | `{ [agentId]: [{ source, target }] }` pour chaque agent disposant de mappages |
+| Champ            | Source                                                                     | Notes                                                                             |
+| ---------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `bypassPatterns` | modèles de contournement définis par l’utilisateur (`agent_bridge_bypass`) | les modèles bank/gov/okta par défaut sont exclus                                  |
+| `customHosts`    | hôtes personnalisés de Traffic Inspector (`inspector_custom_hosts`)        | chacun : `{ host, kind: "llm"\|"app"\|"custom", label? }`                         |
+| `agentMappings`  | correspondances de modèles par agent (`agent_bridge_mappings`)             | `{ [agentId]: [{ source, target }] }` pour chaque agent ayant des correspondances |
 
 ```jsonc
 // GET /api/tools/agent-bridge/config
@@ -331,13 +341,13 @@ L’exportation comprend exactement trois éléments (les valeurs par défaut in
 }
 ```
 
-**Comportement de l’importation** (`POST /api/tools/agent-bridge/config`) : les motifs de contournement et les mappages par agent sont **entièrement remplacés** ; les hôtes personnalisés sont ajoutés de manière **idempotente** (`INSERT OR IGNORE`). La réponse indique combien d’éléments de chaque type ont été appliqués :
+**Comportement lors de l’importation** (`POST /api/tools/agent-bridge/config`) : les modèles de contournement et les correspondances par agent sont **entièrement remplacés** ; les hôtes personnalisés sont ajoutés **de manière idempotente** (`INSERT OR IGNORE`). La réponse indique combien d’éléments de chaque type ont été appliqués :
 
 ```jsonc
 { "ok": true, "bypassPatterns": 1, "customHosts": 1, "agents": 1 }
 ```
 
-Ce qui ne figure **PAS** dans la configuration : l’état d’exécution du serveur, les chemins des certificats, l’état DNS de chaque agent, le chemin de l’autorité de certification en amont et les paramètres TPROXY — il s’agit de l’état de l’hôte ou de l’environnement d’exécution, et non de préférences portables.
+Ce qui n’est **PAS** inclus dans la configuration : l’état d’exécution du serveur, les chemins des certificats, l’état DNS par agent, le chemin de l’autorité de certification en amont et les paramètres TPROXY — il s’agit de l’état de l’hôte ou de l’environnement d’exécution, et non de préférences portables.
 
 ---
 
@@ -503,33 +513,34 @@ Chemin de base : `/api/tools/agent-bridge/`
 
 | Méthode             | Chemin                                         | Description                                                                                                                          |
 | ------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| GET                 | `/api/tools/agent-bridge/state`                | État global du serveur + détection/état par agent                                                                                    |
-| GET                 | `/api/tools/agent-bridge/agents`               | Liste des agents enregistrés (id, nom, hôtes, viabilité, état)                                                                       |
-| GET                 | `/api/tools/agent-bridge/agents/{id}`          | État d’un agent (configuration cible + détection + état stocké)                                                                      |
+| GET                 | `/api/tools/agent-bridge/state`                | État global du serveur + détection/état de chaque agent                                                                              |
+| GET                 | `/api/tools/agent-bridge/agents`               | Répertorier les agents enregistrés (identifiant, nom, hôtes, viabilité, état)                                                        |
+| GET                 | `/api/tools/agent-bridge/agents/{id}`          | État d’un agent (configuration de la cible + détection + état enregistré)                                                            |
 | PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Mettre à jour `setup_completed` pour l’agent                                                                                         |
 | GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Exécuter la sonde de détection pour l’agent (`installed`, `version?`, `path?`)                                                       |
 | POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Activer/désactiver le DNS pour l’agent (`{enabled: boolean}`)                                                                        |
 | GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Mappages de modèles pour l’agent                                                                                                     |
 | PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Remplacer les mappages de modèles                                                                                                    |
+| POST                | `/api/tools/agent-bridge/agents/{id}/reset`    | Restaurer les valeurs par défaut : annuler l’usurpation DNS de cet agent, effacer ses mappages et réinitialiser son état (voir §3.6) |
 | POST                | `/api/tools/agent-bridge/server`               | Démarrer/arrêter/redémarrer le serveur (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                       |
 | GET                 | `/api/tools/agent-bridge/cert`                 | État du certificat (`exists`, `trusted`, `path`)                                                                                     |
-| POST                | `/api/tools/agent-bridge/cert`                 | Approuver (installer) l’AC racine MITM                                                                                               |
-| DELETE              | `/api/tools/agent-bridge/cert`                 | Révoquer l’approbation (supprimer) de l’AC racine MITM — idempotent (voir §3.6)                                                      |
-| POST                | `/api/tools/agent-bridge/cert/regenerate`      | Régénérer le certificat MITM autosigné                                                                                               |
+| POST                | `/api/tools/agent-bridge/cert`                 | Faire confiance à l’autorité de certification racine MITM (l’installer)                                                              |
+| DELETE              | `/api/tools/agent-bridge/cert`                 | Ne plus faire confiance à l’autorité de certification racine MITM (la supprimer) — opération idempotente (voir §3.6)                 |
+| POST                | `/api/tools/agent-bridge/cert/regenerate`      | Régénérer le certificat MITM auto-signé                                                                                              |
 | GET                 | `/api/tools/agent-bridge/cert/download`        | Transmettre le certificat PEM en flux pour téléchargement                                                                            |
-| GET                 | `/api/tools/agent-bridge/bypass`               | Lister les motifs de contournement (`default` + `user`)                                                                              |
+| GET                 | `/api/tools/agent-bridge/bypass`               | Répertorier les motifs de contournement (`default` + `user`)                                                                         |
 | POST                | `/api/tools/agent-bridge/bypass`               | Remplacer intégralement les motifs de contournement définis par l’utilisateur                                                        |
 | DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Supprimer un seul motif de contournement défini par l’utilisateur                                                                    |
-| GET                 | `/api/tools/agent-bridge/diagnose`             | Autotest du pipeline de capture (voir §3.6)                                                                                          |
+| GET                 | `/api/tools/agent-bridge/diagnose`             | Auto-test du pipeline de capture (voir §3.6)                                                                                         |
 | POST                | `/api/tools/agent-bridge/repair`               | Annuler l’état système MITM orphelin (voir §3.6)                                                                                     |
 | GET                 | `/api/tools/agent-bridge/config`               | Exporter la configuration JSON portable (voir §3.7)                                                                                  |
 | POST                | `/api/tools/agent-bridge/config`               | Importer la configuration JSON portable (voir §3.7)                                                                                  |
-| GET                 | `/api/tools/agent-bridge/upstream-ca`          | Obtenir le chemin configuré de l’AC en amont                                                                                         |
-| POST                | `/api/tools/agent-bridge/upstream-ca`          | Valider + conserver le chemin de l’AC en amont                                                                                       |
-| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Valider uniquement (simulation) un chemin d’AC en amont — sans le conserver                                                          |
-| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | Mode de capture avec déchiffrement transparent TPROXY — voir `docs/security/MITM-TPROXY-DECRYPT.md` (git ; non compilé dans `/docs`) |
+| GET                 | `/api/tools/agent-bridge/upstream-ca`          | Obtenir le chemin configuré de l’autorité de certification en amont                                                                  |
+| POST                | `/api/tools/agent-bridge/upstream-ca`          | Valider + enregistrer le chemin de l’autorité de certification en amont                                                              |
+| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Valider uniquement (simulation) un chemin d’autorité de certification en amont — sans l’enregistrer                                  |
+| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | Mode de capture TPROXY avec déchiffrement transparent — voir `docs/security/MITM-TPROXY-DECRYPT.md` (git ; non compilé dans `/docs`) |
 
-Schémas OpenAPI complets : `docs/openapi.yaml` → balise `AgentBridge`.
+Schémas OpenAPI complets : `docs/openapi.yaml` → étiquette `AgentBridge`.
 
 ---
 

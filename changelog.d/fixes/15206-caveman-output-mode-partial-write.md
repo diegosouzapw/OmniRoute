@@ -1,0 +1,1 @@
+- **fix(db):** a partial `cavemanOutputMode` settings write keeps the stored values of the fields it leaves out, so sending only `autoClarity` or only `enabled` leaves the other two as they were ([#15206](https://github.com/diegosouzapw/OmniRoute/pull/15206)) — thanks @woodsonl

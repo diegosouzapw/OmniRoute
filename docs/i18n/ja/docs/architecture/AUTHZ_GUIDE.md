@@ -13,61 +13,61 @@ OmniRouteには、すべてのAPIリクエストをゲートするルート認�
 
 > ソース: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
-## 2 つの認証モード
+## 2つの認証モード
 
-### 1. API キー（Bearer）
+### 1. APIキー（Bearer）
 
-OpenAI/Anthropic/Gemini 互換のクライアント API、およびキーに `manage` スコープがある場合の一部の管理ルートで使用されます。
+OpenAI/Anthropic/Gemini互換のクライアントAPI、およびキーに`manage`スコープがある場合の一部の管理ルートで使用されます。
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-`src/sse/services/auth.ts` の `isValidApiKey()` / `extractApiKey()` によって検証され、`src/shared/utils/apiAuth.ts` を通じて再エクスポートされます。バリデーターは、永続的なパススルーキーとして `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` 環境変数も受け付けます（issue #1350）。
+`src/sse/services/auth.ts`の`isValidApiKey()` / `extractApiKey()`で検証され、`src/shared/utils/apiAuth.ts`を通じて再エクスポートされます。また、バリデーターは`OMNIROUTE_API_KEY` / `ROUTER_API_KEY`環境変数を永続的なパススルーキーとして受け入れます（issue #1350）。
 
-### 2. ダッシュボードセッション（auth_token cookie）
+### 2. ダッシュボードセッション（auth_token Cookie）
 
-ダッシュボードページおよび管理者操作で使用されます。
+ダッシュボードページと管理操作に使用されます。
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-JWT の検証に成功し、**かつ** `authenticated: true` が含まれている場合に限り、cookie はセッションとして扱われます
-（`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`）。この
-cookie を利用するすべてのコンシューマー（ルートガード、AuthZ パイプラインの更新、WebSocket ハンドシェイク、ライブ
+Cookieがセッションとして扱われるのは、JWTの検証に成功し、**かつ**`authenticated: true`を含む場合のみです
+（`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`）。このCookieを利用するすべてのコンシューマー（ダッシュボードのルートガード（`isDashboardSessionAuthenticated()`）、認可パイプラインの更新、WebSocketハンドシェイク、ライブ
 サーバー、`/api/settings/require-login`、`/api/auth/status`）は、このヘルパーを経由します。
-`JWT_SECRET` で署名された別の JWT も存在します。Cursor CLI パススルーは、キー保有者向けに
-`iss "omniroute" / aud "cursor-cli"` トークンを発行しますが、これらがセッションとして扱われることはありません
+`JWT_SECRET`で署名された他のJWTも存在します。Cursor CLIパススルーは、
+キーホルダー向けに`iss "omniroute" / aud "cursor-cli"`トークンを発行しますが、これらがセッションとして扱われることはありません
 （#13298）。
 
-`src/shared/utils/apiAuth.ts` の `isDashboardSessionAuthenticated()` によって検証されます。パイプラインは、有効期間が 30 日間の JWT の残存期間が 7 日未満になると、自動的に更新します。
+`src/shared/utils/apiAuth.ts`の`isDashboardSessionAuthenticated()`によって検証されます。パイプラインは、30日間の有効期間のうち残りが7日未満になると、JWTを自動更新します。
 
-一部の管理ルートでは、cookie、または API キーに `manage`（もしくは `admin`）スコープがある場合の `Bearer <key>` の、**いずれか**のモードを受け付けます。これにより、v3.8 で追加された「API 呼び出しによる設定」ワークフローが実現されています。
+すべての発行処理は`mintDashboardSessionToken`を経由し、発行時刻`iat`とID`jti`が付与されます。また、検証側では2つの設定を確認するため、セッションは30日が経過する前に終了する場合もあります。1つは`sessionsValidAfter`で、パスワード変更時に設定され、それより前に発行されたすべてのセッションが検証を通過しなくなります（パスワードを変更したブラウザーには新しいCookieが発行されます）。もう1つは`revokedDashboardSessions`で、`POST /api/auth/logout`はサインアウトしたセッションの`jti`をここに追加します。古いリリースで発行されたセッションにはどちらのクレームも含まれず、最初にパスワードが変更されるまで有効なままです。設定を読み取れない場合、そのセッションは信頼されません。
 
-#### オプションの OIDC ログインゲート（#6973）
+一部の管理ルートでは、Cookie、またはAPIキーに`manage`（もしくは`admin`）スコープがある場合の`Bearer <key>`の、**いずれか**のモードを受け入れます。これにより、v3.8で追加された「API呼び出しによって設定可能」なワークフローが実現されています。
 
-ダッシュボードの管理者ログインでは、デフォルトのパスワードログインに加えて、**オプトイン**の OIDC（OpenID Connect）フローもサポートしています。パスワードログインが削除されることはなく、あくまで補完されます。
+#### オプションのOIDCログインゲート（#6973）
 
-- `settings.oidcEnabled === true` であり、**かつ** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` がすべて設定されている場合（設定 → 認証）を除き、無効です。
-  それ以外の場合、`GET /api/auth/oidc/login` は `400` を返します。
-- `GET /api/auth/oidc/login` は、発行者の
-  `/.well-known/openid-configuration` から `authorization_endpoint` を検出し（検出できない場合は
-  `<issuer>/authorize` にフォールバック）、受信リクエストからリダイレクト URI を構築し
-  （`x-forwarded-proto` を考慮）、ランダムな `state` を
-  `httpOnly` の `oidc_state` cookie に保存したうえで IdP にリダイレクトします。
-- `GET /api/auth/oidc/callback` は `state` を検証し、認可
-  コードを交換して、発行者の JWKS を介して ID トークンの署名を検証します
-  （`jose` の `createRemoteJWKSet` を使用し、JWKS URI ごとにキャッシュ）。その際、`issuer` / `audience`
-  のチェックも行います。オプションの `oidcAllowedSubjects` 許可リストは、トークンの
-  `sub` クレームまたは `email` クレームと照合されます。email クレームが認められるのは
-  `email_verified === true` の場合のみであるため、IdP で未検証のメールアドレスが
+ダッシュボードの管理者ログインでは、デフォルトのパスワードログインに加えて、**オプトイン方式**のOIDC（OpenID Connect）フローもサポートされます。パスワードログインが削除されることはなく、追加の方式として提供されます。
+
+- `settings.oidcEnabled === true`であり、**かつ**`oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret`がすべて設定されている場合（Settings → Auth）を除き、無効です。
+  それ以外の場合、`GET /api/auth/oidc/login`は`400`を返します。
+- `GET /api/auth/oidc/login`は、発行者の
+  `/.well-known/openid-configuration`から`authorization_endpoint`を検出し（失敗した場合は
+  `<issuer>/authorize`を使用）、受信リクエストからリダイレクトURIを構築し
+  （`x-forwarded-proto`を考慮）、ランダムな`state`を
+  `httpOnly`の`oidc_state` Cookieに保存してIdPへリダイレクトします。
+- `GET /api/auth/oidc/callback`は`state`を検証し、認可
+  コードを交換して、発行者のJWKSを介してIDトークンの署名を検証します
+  （`jose`の`createRemoteJWKSet`を使用し、JWKS URIごとにキャッシュ）。このとき`issuer`/`audience`
+  のチェックも行います。オプションの`oidcAllowedSubjects`許可リストは、トークンの
+  `sub`クレームまたは`email`クレームと照合されます。emailクレームが認められるのは
+  `email_verified === true`の場合のみであるため、IdPで未検証のメールアドレスが
   ゲートを通過することはありません。
 - 成功すると、パスワードログイン
-  （`src/app/api/auth/login/route.ts`）が発行するものと**まったく同じ**、有効期間 30 日間の `auth_token` JWT を発行します。そのため、ダッシュボードセッションの残りの
-  パイプライン（自動更新、cookie フラグ）に変更はありません。
-  OIDC が置き換えるのは cookie の発行方法だけであり、cookie によって付与される権限ではありません。
+  （`src/app/api/auth/login/route.ts`）が発行するものと**まったく同じ**、有効期間30日の`auth_token` JWTを発行します。そのため、ダッシュボードセッションパイプラインのその他の部分
+  （自動更新、Cookieフラグ）は変更されません。OIDCが置き換えるのはCookieの発行方法のみであり、付与される権限ではありません。
 
 ## ルートクラス
 

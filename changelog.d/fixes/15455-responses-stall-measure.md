@@ -1,0 +1,1 @@
+- **fix(opencode):** count silent streamed replies that would have tripped the 15 s first-byte window while the guard stays off ([#15455](https://github.com/diegosouzapw/OmniRoute/pull/15455)) — thanks @maxmad64bis

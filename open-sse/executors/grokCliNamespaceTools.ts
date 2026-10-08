@@ -131,7 +131,8 @@ function restorePayload(payload: unknown, identityMap: NamespaceToolIdentityMap)
 const SSE_BLOCK_SEP_RE = /\r?\n\r?\n/;
 
 function restoreSseBlock(block: string, identityMap: NamespaceToolIdentityMap): string {
-  return block.replace(/^data:[ \t]?(.*)$/m, (line, data: string) => {
+  // `[^\r\n]` rather than `.`: raw U+2028/U+2029 are valid inside JSON strings.
+  return block.replace(/^data:[ \t]?([^\r\n]*)$/m, (line, data: string) => {
     if (!data || data === "[DONE]") return line;
     try {
       const parsed = JSON.parse(data);

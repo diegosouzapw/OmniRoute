@@ -341,7 +341,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🎯 Kombolar — Asosiy imkoniyat
+## 🎯 Kombolar — Yetakchi imkoniyat
 
 </div>
 
@@ -349,27 +349,27 @@ curl http://localhost:20128/v1/chat/completions \
 
 > **Kombo** — OmniRoute **avtomatik ravishda** marshrutlaydigan modellar zanjiri. Kvota tugasa, provayder ishlamay qolsa yoki xarajatlar keskin oshsa, kombo keyingi mos va sog‘lom modelga o‘tishi mumkin. 🛡️
 
-### ⚡ Nol sozlama — shunchaki `auto`dan foydalaning
+### ⚡ Nol konfiguratsiya — shunchaki `auto`dan foydalaning
 
-Kombo yaratish shart emas. Modelingizni `auto`ga (yoki uning variantlaridan biriga) o‘rnating va OmniRoute ulangan provayderlaringiz asosida real vaqt rejimida baholanadigan virtual kombo yaratadi:
+Kombo yaratish shart emas. Modelingizni `auto`ga (yoki uning variantlaridan biriga) sozlang va OmniRoute ulangan provayderlaringizdan real vaqt rejimida baholanadigan virtual kombo yaratadi:
 
 <table>
-  <tr><th align="left">Model IDsi</th><th align="left">Nimani optimallashtiradi</th></tr>
-  <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 Muvozanatli standart tanlov (LKGP — oxirgi yaxshi provayderingizga bog‘lanib qoladi)</td></tr>
-  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 Kod generatsiyasi uchun sifatni ustun qo‘yuvchi vaznlar</td></tr>
+  <tr><th align="left">Model ID</th><th align="left">Nimani optimallashtiradi</th></tr>
+  <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 Muvozanatli standart tanlov (LKGP — oxirgi yaxshi provayderingizdan foydalanishda davom etadi)</td></tr>
+  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 Kod yaratishda sifatni birinchi o‘ringa qo‘yuvchi vaznlar</td></tr>
   <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ Avval eng past kechikish</td></tr>
   <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 Avval har bir token uchun eng arzon variant</td></tr>
-  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 Avval kvota / tezlik cheklovi bo‘yicha eng katta zaxira</td></tr>
-  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 Sifat ustuvorligi + yaxshiroq modellarni topish uchun 10% sinov</td></tr>
-  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 Oxirgi ma’lum yaxshi provayderga aniq bog‘lanib qolish</td></tr>
-  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 Barqarorlikni sinash uchun nosozlik kiritish vaznlari (xaos muhandisligi)</td></tr>
+  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 Avval eng katta kvota / tezlik cheklovi zaxirasi</td></tr>
+  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 Sifat birinchi o‘rinda + yaxshiroq modellarni topish uchun 10% tadqiq qilish</td></tr>
+  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 Oxirgi ma’lum yaxshi provayderga aniq bog‘lanish</td></tr>
+  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 Modellar paneliga parallel tarqatish (har bir provayderdan bittadan, standart bo‘yicha 5 ta), bitta javob qaytaradi; nosozlik kiritish emas, balki har bir panel modeli uchun bittadan yuqori oqim chaqiruvi</td></tr>
 </table>
 
 ##
 
-### 🔀 Yoki o‘zingiz yarating — 19 ta marshrutlash strategiyasi
+### 🔀 Yoki o‘zingiznikini yarating — 19 ta marshrutlash strategiyasi
 
-Barcha **19** strategiya — har bir kombo bosqichida aralashtirib qo‘llang:
+Barcha **19 ta** strategiya — har bir kombo bosqichida aralashtirib moslashtiring:
 
 <table>
   <tr>
@@ -380,7 +380,7 @@ Barcha **19** strategiya — har bir kombo bosqichida aralashtirib qo‘llang:
   <tr>
     <td align="center">1</td>
     <td nowrap><code>priority</code></td>
-    <td>Birinchi nishon ustuvor bo‘lgan tartiblangan ro‘yxat — keyingisiga o‘tishdan oldin har birini to‘liq ishlatadi 🥇</td>
+    <td>Birinchi nishonga ustuvorlik berilgan tartibli ro‘yxat — keyingisiga o‘tishdan oldin har birini to‘liq ishlatadi 🥇</td>
   </tr>
   <tr>
     <td align="center">2</td>
@@ -395,12 +395,12 @@ Barcha **19** strategiya — har bir kombo bosqichida aralashtirib qo‘llang:
   <tr>
     <td align="center">4</td>
     <td nowrap><code>round-robin</code></td>
-    <td>Nishonlar bo‘ylab tartib bilan navbatma-navbat o‘tadi</td>
+    <td>Nishonlarni tartib bo‘yicha navbatma-navbat aylanib chiqadi</td>
   </tr>
   <tr>
     <td align="center">5</td>
     <td nowrap><code>p2c</code></td>
-    <td>Ikki variantdan tanlash usulidagi tasodifiy yukni muvozanatlash</td>
+    <td>Ikki tanlov kuchiga asoslangan tasodifiy yukni muvozanatlash</td>
   </tr>
   <tr>
     <td align="center">6</td>
@@ -420,7 +420,7 @@ Barcha **19** strategiya — har bir kombo bosqichida aralashtirib qo‘llang:
   <tr>
     <td align="center">9</td>
     <td nowrap><code>cost-optimized</code></td>
-    <td>Jonli katalog narxlari asosida har bir so‘rov uchun $ xarajatni minimallashtiradi 💸</td>
+    <td>Jonli katalog narxlari asosida har bir so‘rov uchun $ xarajatini minimallashtiradi 💸</td>
   </tr>
   <tr>
     <td align="center">10</td>
@@ -435,12 +435,12 @@ Barcha **19** strategiya — har bir kombo bosqichida aralashtirib qo‘llang:
   <tr>
     <td align="center">12</td>
     <td nowrap><code>reset-aware</code></td>
-    <td>Kvota tiklanish vaqtiga ko‘ra tartiblaydi — qisqa oynalar birinchi 📊</td>
+    <td>Kvota tiklanish vaqtiga qarab tartiblaydi — avval qisqa oynalar 📊</td>
   </tr>
   <tr>
     <td align="center">13</td>
     <td nowrap><code>context-relay</code></td>
-    <td>Uzoq suhbatlar uchun kontekstni nishonlar o‘rtasida uzatadi 🧠</td>
+    <td>Uzoq suhbatlarda kontekstni nishonlar o‘rtasida uzatadi 🧠</td>
   </tr>
   <tr>
     <td align="center">14</td>
@@ -450,22 +450,22 @@ Barcha **19** strategiya — har bir kombo bosqichida aralashtirib qo‘llang:
   <tr>
     <td align="center">15</td>
     <td nowrap><code>cache-optimized</code></td>
-    <td>Har bir qayta ishlatiladigan prompt prefiksini bir xil hisobga biriktiradi — prompt keshi mos tushishlarini maksimal darajaga oshiradi 🎯</td>
+    <td>Har bir qayta ishlatiladigan prompt prefiksini bir xil hisobga bog‘laydi — prompt keshi mos tushishlarini maksimal darajaga oshiradi 🎯</td>
   </tr>
   <tr>
     <td align="center">16</td>
     <td nowrap><code>lkgp</code></td>
-    <td>Oxirgi ma’lum yaxshi yo‘l — oxirgi muvaffaqiyatli provayderga biriktiradi, so‘ng qoidalarga muvofiq zaxira variantga o‘tadi</td>
+    <td>Oxirgi ma’lum yaxshi yo‘l — oxirgi muvaffaqiyatli provayderga bog‘lanadi, so‘ng qoidalarga muvofiq zaxira variantga o‘tadi</td>
   </tr>
   <tr>
     <td align="center">17</td>
     <td nowrap><code>auto</code></td>
-    <td>Har bir ulanishni 16 omil asosida real vaqt rejimida baholaydi 🤖</td>
+    <td>Har bir ulanish bo‘yicha 16 omilli jonli baholash 🤖</td>
   </tr>
   <tr>
     <td align="center">18</td>
     <td nowrap><code>fusion</code></td>
-    <td>So‘rovni modellar guruhiga parallel yuboradi va hakam bitta javobni umumlashtiradi 🧬</td>
+    <td>Modellar paneliga parallel tarqatadi + hakam bitta javobni umumlashtiradi 🧬</td>
   </tr>
   <tr>
     <td align="center">19</td>
@@ -474,15 +474,15 @@ Barcha **19** strategiya — har bir kombo bosqichida aralashtirib qo‘llang:
   </tr>
 </table>
 
-<sub>Auto-Combo mexanizmi har bir nomzodni **16 ta omil** (holat, kvota, xarajat, kechikish, vazifaga moslik, sifat, sessiya mavjudligi…) bo‘yicha baholaydi — [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md)ga qarang.</sub>
+<sub>Auto-Combo mexanizmi har bir nomzodni **16 ta omil** (sog‘lomlik, kvota, xarajat, kechikish, vazifaga moslik, sifat, sessiya mavjudligi…) bo‘yicha baholaydi — [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md) fayliga qarang.</sub>
 
 ##
 
-### 🧱 Barqarorlik ichki imkoniyat sifatida taqdim etilgan (3 ta mustaqil qatlam)
+### 🧱 Bardoshlilik ichki imkoniyat sifatida taqdim etilgan (3 ta mustaqil qatlam)
 
-<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="OmniRoute bardoshliligi — 3 ta mustaqil o‘zini tiklash qatlami, har bir nosozlik uchun mos qatlam. 1-qatlam — provayderning avtomatik uzgichi (butun provayder): faqat 408/5xx holatlarida ishga tushadi, chegaralar OAuth uchun 8× / API kaliti uchun 12× / mahalliy uchun 2×, 60s/30s/15s dan so‘ng HALF-OPEN sinov holatiga qaytadi, kechiktirilgan tiklanish; OPEN holatida kombinatsiya keyingi provayderga yo‘naltiriladi. 2-qatlam — ulanishning kutish davri (bitta kalit/hisob): boshlang‘ich vaqt OAuth uchun 5s / API kaliti uchun 3s, haddan tashqari bir vaqtda qayta urinishdan himoya bilan eksponensial ×2 kechikish, 429 holatida Retry-After hisobga olinadi, muvaffaqiyat barcha xato holatlarini tozalaydi; kutish davridagi bitta kalit chetlab o‘tiladi, boshqa kalitlar esa xizmat ko‘rsatishda davom etadi. 3-qatlam — modelni bloklash (bitta model): har bir modelga tegishli 429, mahalliy 404 yoki rejimni rad etish holatlari faqat shu modelni bloklaydi — hech qachon butun ulanishni emas. Yakuniy holatlar (taqiqlangan, muddati tugagan, kreditlar sarflangan) kutish davrlari emas, balki operator aralashuvini talab qiladigan holatlardir."/>
+<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="OmniRoute barqarorligi — 3 ta mustaqil o‘z-o‘zini tiklash qatlami, har bir nosozlik uchun mos qatlam. 1-qatlam — provayderning avtomatik uzgichi (butun provayder): faqat 408/5xx holatlarida ishga tushadi, chegaralar OAuth uchun 8× / API-key uchun 12× / mahalliy uchun 2×, 60s/30s/15s dan so‘ng HALF-OPEN sinov holatiga qaytadi, kechiktirilgan tiklanish; OPEN holatida kombinatsiya keyingi provayderga qayta yo‘naltiriladi. 2-qatlam — ulanishni kutish rejimi (bitta kalit/hisob): bazaviy muddat OAuth uchun 5s / API-key uchun 3s, so‘rovlar oqimining keskin ko‘payishidan himoyalovchi eksponensial ×2 kechiktirish, 429 holatida Retry-After hisobga olinadi, muvaffaqiyat barcha xato holatlarini tozalaydi; kutish rejimidagi bitta kalit chetlab o‘tiladi, parallel kalitlar esa xizmat ko‘rsatishda davom etadi. 3-qatlam — modelni bloklash (bitta model): har bir model uchun 429, mahalliy 404 yoki rejim bo‘yicha rad etishlar faqat o‘sha modelni bloklaydi — hech qachon butun ulanishni emas. Yakuniy holatlar (taqiqlangan, muddati tugagan, kreditlar sarflangan) kutish rejimlari emas, operator hal qilishi kerak bo‘lgan holatlardir."/>
 
-<sub>📖 [Avtomatik kombinatsiya mexanizmi](docs/routing/AUTO-COMBO.md) · [Bardoshlilik bo‘yicha qo‘llanma](docs/architecture/RESILIENCE_GUIDE.md)</sub>
+<sub>📖 [Auto-Combo mexanizmi](docs/routing/AUTO-COMBO.md) · [Barqarorlik bo‘yicha qo‘llanma](docs/architecture/RESILIENCE_GUIDE.md)</sub>
 
 <br/>
 
@@ -562,29 +562,29 @@ Radar ixtiyoriy ravishda yoqiladi va faqat GET so‘rovlaridan foydalanadi. Omni
 
 </div>
 
-> **v3.8.20 → v3.8.50** versiyalaridagi so‘nggi muhim yangiliklar. To‘liq tarix [`CHANGELOG.md`](CHANGELOG.md) faylida.
+> **v3.8.20 → v3.8.50** versiyalaridagi soʻnggi muhim yangiliklar. Toʻliq tarix [`CHANGELOG.md`](CHANGELOG.md) faylida.
 
-- **🎛️ OmniConductor** — agentlar parkingizga kiruvchi A2A delegatsiyasi, Agent Card ichidagi Conductor ko‘nikmalari va Faro push-to-talk ovozli chatiga ega boshqaruv paneli. → [A2A serveri](docs/frameworks/A2A-SERVER.md)
-- **🛂 Moslashuvchan qabul va ortiqcha yuklanishdan himoya** — katta hajmdagi chat so‘rovlari 503 qaytarish o‘rniga navbatga qo‘yiladi, har bir ulanish uchun atomar RPM sirg‘aluvchi ijaralari bilan. → [Barqarorlik qo‘llanmasi](docs/architecture/RESILIENCE_GUIDE.md)
-- **🗂️ Kanonik `/v1/models` tartibi** — har bir provayder uchun provayder bo‘yicha guruhlangan yagona uzluksiz blok (avval mahkamlangan kombinatsiyalar), barcha katalog manbalarida barqaror. → [API ma’lumotnomasi](docs/reference/API_REFERENCE.md)
-- **🗜️ Siqishni mustahkamlash** — sukut bo‘yicha yoqilgan hajmni oshirish himoyasi, DE / FR / JA va xitoycha (wényán) uchun Caveman to‘plamlari, Gradle hamda .NET uchun RTK filtrlari. → [Siqish](docs/compression/COMPRESSION_ENGINES.md)
-- **💸 Halol qat’iy tarifli xarajat** — obuna / kodlash rejasi provayderlari xarajat tahlilida **$0** sifatida ko‘rsatiladi; budjet, kvota va marshrutlash esa hisoblashda davom etadi. → [API ma’lumotnomasi](docs/reference/API_REFERENCE.md)
-- **⚖️ Quota-Share marshrutlashi** — umumiy hisob kvotasini birlashtirilgan kalitlar o‘rtasida adolatli taqsimlaydi va ishni tejovchi tarzda bo‘sh ulushlarni boshqalarga beradi. → [Barqarorlik qo‘llanmasi](docs/architecture/RESILIENCE_GUIDE.md)
-- **🤖 CLI/agentni bitta buyruq bilan sozlash** — ro‘yxatdan o‘tgan 13 ta `setup-*` buyrug‘i; `omniroute run` 7 ta CLI’ni ishga tushiradi (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI); `omniroute configure` interaktiv provayder+model tanlagichi va har bir kontekst uchun sevimlilar bilan 10 ta nishonni qo‘llab-quvvatlaydi. → [CLI integratsiyalari](docs/guides/CLI-INTEGRATIONS.md)
-- **🛰️ Masofaviy rejim** — qamrovi cheklangan tokenlar (`connect` / `contexts` / `tokens`) va VPS o‘rnatmalari uchun `antigravity` OAuth yordamchisi orqali masofaviy OmniRoute’ni boshqaring. → [Masofaviy rejim](docs/guides/REMOTE-MODE.md)
-- **🧭 Aqlliroq avtomatik marshrutlash** — `auto/<category>:<tier>` kombinatsiyalari, **Fusion** (modellar paneli + hakam), vazifani hisobga oluvchi marshrutlash, har bir so‘rov uchun model / rejim / USD-budjetni qayta belgilash. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **🗜️ Ulanadigan siqish** — birlashtiriladigan 12 ta dvigatel + Compression Studios: LLMLingua-2, ikki darajali Ultra, omniglyph, har bir qadam uchun aniqlik darvozasi, GCF v3.2, sudrab qayta tartiblash muharriri. → [Siqish](docs/compression/COMPRESSION_ENGINES.md)
-- **🕵️ Shaffof MITM deshifrlash (TPROXY)** — proksi muhit o‘zgaruvchilarini e’tiborsiz qoldiradigan CLI’larni har bir SNI uchun alohida CA va ishonch ombori o‘rnatuvchisi yordamida tutib oling. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
-- **💸 Hamma joyda xarajat telemetriyasi** — har bir endpointda `X-OmniRoute-*` xarajat/foydalanish sarlavhalari, kesh-HIT tejash sarlavhasi va har bir kalit uchun USD xarajat kvotalari. → [API ma’lumotnomasi](docs/reference/API_REFERENCE.md)
-- **🧠 Siz boshqaradigan xotira** — sukut bo‘yicha o‘chirilgan, ixtiyoriy int8 vektor kvantlash + turlangan susayish, har bir so‘rov uchun `x-omniroute-no-memory`. → [Xotira](docs/frameworks/MEMORY.md)
-- **🛡️ Xavfsizlik** — har bir LLM marshrutida prompt-inyeksiya himoyasi (red-team to‘plami), ixtiyoriy hisob ma’lumotlarini niqoblash himoyasi (har ikki yo‘nalishda sizib chiqqan API kalitlari/maxfiy ma’lumotlarni tahrirlaydi), so‘nggi chora sifatida bepul DuckDuckGo veb-qidiruvi va boshqaruv paneli uchun ixtiyoriy OIDC kirish darvozasi (parol bilan kirish doimo mavjud bo‘lib qoladi). → [Himoya vositalari](docs/security/GUARDRAILS.md)
-- **🖼️ Yangi endpointlar** — `/v1/ocr` (Mistral OCR) va `/v1/audio/translations` (Whisper uslubida) media imkoniyatlarini to‘ldiradi. → [API ma’lumotnomasi](docs/reference/API_REFERENCE.md)
-- **🎨 Tasvir / video / audio yaratish** — media uchun yagona API: xAI Grok Imagine va Novita AI video, ComfyUI, Magnific, Adobe Firefly, Segmind hamda ElevenLabs kabi nutq provayderlari. → [API ma’lumotnomasi](docs/reference/API_REFERENCE.md)
-- **🌍 Joylashtirish va operatsiyalar** — teskari proksi `basePath`, brauzer tilini avtomatik aniqlash, har bir kalit uchun qurilma kuzatuvi, rootsiz MITM ishonchi, zh-TW mahalliylashtirish. → [Muhit](docs/reference/ENVIRONMENT.md)
-- **🤝 Ko‘proq provayderlar va agentlar** — bulut agentlari (Codex Cloud, Cursor, Devin, Jules), brauzer + OAuth kirishiga ega Grok Build (xAI), birinchi darajali Ollama kartasi, Claude Opus 5 va Sonnet 5, Kimi bilan rasmiy hamkorlik (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… va yangilangan **352 provayderli katalog**. → [Provayderlar](docs/reference/PROVIDER_REFERENCE.md)
-- **📡 Marshrutlash shaffofligi** — har bir javobda unga xizmat ko‘rsatgan strategiya/provayder/kechikishni ko‘rsatuvchi `X-OmniRoute-Decision` sarlavhasi mavjud; yangi `cache-optimized` kombinatsiya strategiyasi va Auto-Combo `cacheAffinity` omili takroriy so‘rovlarni keshlangan prefiksni saqlayotgan ulanishga qayta yo‘naltiradi, faqat o‘qish uchun mo‘ljallangan `/v1/auto-combo/{channel}/candidates` endpointi esa `auto/*` kanalining joriy nomzodlar to‘plamini ochib beradi. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **⚡ Mahalliy unumdorlik va infratuzilma** — bir bosishda mahalliy Redis, Cloudflare Workers / Deno Deploy relay joylashtiruvchilari, nazorat ostidagi o‘rnatilgan xizmatlar sifatida Bifrost va Mux. → [O‘rnatilgan xizmatlar](docs/frameworks/EMBEDDED-SERVICES.md)
-- **🧩 To‘plamda yana nimalar bor** — plagin freymvorki + marketpleys, Omni/Agent/GitHub ko‘nikmalar freymvorklari, Obsidian ombori integratsiyasi (22 ta MCP vositasi), OpenAI bilan mos Batch va Files API’lari, semantik javob keshi, yetakchilar jadvallari bilan geymifikatsiya, ACP agentlarini aniqlash (15 ta ichki agent), jurnallarni BigQuery’ga reja asosida eksport qilish, `auto/chaos` nosozlik kiritish, Telegram bot ko‘prigi, ilova ichidagi versiya menejeri va LMArena-ELO bepul provayder reytinglari. → [Hujjatlar](docs/README.md)
+- **🎛️ OmniConductor** — agentlar flotingizga kiruvchi A2A delegatsiyasi, Agent Card kartasidagi Conductor koʻnikmalari va Faro bosib-gapirish ovozli chatiga ega boshqaruv paneli. → [A2A serveri](docs/frameworks/A2A-SERVER.md)
+- **🛂 Moslashuvchan qabul va ortiqcha yuklanishdan himoya** — katta resurs talab qiladigan chat soʻrovlari 503 xatosini qaytarish oʻrniga navbatga qoʻyiladi, bunda har bir ulanish uchun atomar RPM sirgʻaluvchi ijaralari qoʻllanadi. → [Barqarorlik qoʻllanmasi](docs/architecture/RESILIENCE_GUIDE.md)
+- **🗂️ Kanonik `/v1/models` tartibi** — har bir provayder uchun provayder boʻyicha guruhlangan bitta uzluksiz blok (kombinatsiyalar boshida mahkamlanadi), barcha katalog manbalarida barqaror. → [API maʼlumotnomasi](docs/reference/API_REFERENCE.md)
+- **🗜️ Siqishni mustahkamlash** — standart holatda yoqilgan kengayish himoyasi, DE / FR / JA + xitoy tili (wényán) uchun Caveman paketlari, Gradle va .NET uchun RTK filtrlari. → [Siqish](docs/compression/COMPRESSION_ENGINES.md)
+- **💸 Haqqoniy qatʼiy tarif xarajati** — obuna / kodlash rejasi provayderlari xarajat tahlilida **$0** sifatida koʻrsatiladi; budjet, kvota va marshrutlash esa hisoblashda davom etadi. → [API maʼlumotnomasi](docs/reference/API_REFERENCE.md)
+- **⚖️ Quota-Share marshrutlashi** — umumiy hisob kvotasini birlashtirilgan kalitlar oʻrtasida adolatli taqsimlaydi va ishni tejovchi usulda boʻsh ulushlarni boshqalarga vaqtincha beradi. → [Barqarorlik qoʻllanmasi](docs/architecture/RESILIENCE_GUIDE.md)
+- **🤖 CLI/agentni bitta buyruq bilan sozlash** — roʻyxatdan oʻtkazilgan 13 ta `setup-*` buyrugʻi; `omniroute run` 7 ta CLI’ni (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI) ishga tushiradi; `omniroute configure` provayder+modelni interaktiv tanlash va har bir kontekst uchun sevimlilar bilan 10 ta nishonni qoʻllab-quvvatlaydi. → [CLI integratsiyalari](docs/guides/CLI-INTEGRATIONS.md)
+- **🛰️ Masofaviy rejim** — qamrovi cheklangan tokenlar (`connect` / `contexts` / `tokens`) hamda VPS oʻrnatmalari uchun `antigravity` OAuth yordamchisi orqali masofaviy OmniRoute’ni boshqaring. → [Masofaviy rejim](docs/guides/REMOTE-MODE.md)
+- **🧭 Aqlliroq avtomatik marshrutlash** — `auto/<category>:<tier>` kombinatsiyalari, **Fusion** (modellar paneli + hakam), vazifadan xabardor marshrutlash, har bir soʻrov uchun model / rejim / USD-budjetni qayta belgilash. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **🗜️ Ulanadigan siqish tizimi** — birgalikda ishlatiladigan 12 ta dvigatel + Compression Studios: LLMLingua-2, ikki bosqichli Ultra, omniglyph, har bir qadam uchun aniqlik nazorati, GCF v3.2, sudrab qayta tartiblash muharriri. → [Siqish](docs/compression/COMPRESSION_ENGINES.md)
+- **🕵️ Shaffof MITM shifrini ochish (TPROXY)** — har bir SNI uchun CA va ishonchli sertifikatlar ombori oʻrnatuvchisi yordamida proksi muhit oʻzgaruvchilarini eʼtiborsiz qoldiradigan CLI’larni tutib olish. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
+- **💸 Hamma joyda xarajat telemetriyasi** — har bir soʻnggi nuqtada `X-OmniRoute-*` xarajat/foydalanish sarlavhalari, kesh-HIT tejash sarlavhasi, har bir kalit uchun USD xarajat kvotalari. → [API maʼlumotnomasi](docs/reference/API_REFERENCE.md)
+- **🧠 Siz boshqaradigan xotira** — standart holatda oʻchiq, ixtiyoriy int8 vektor kvantlash + turlashtirilgan pasayish, har bir soʻrov uchun `x-omniroute-no-memory`. → [Xotira](docs/frameworks/MEMORY.md)
+- **🛡️ Xavfsizlik** — har bir LLM marshrutida prompt-inʼeksiyadan himoya (red-team toʻplami), ixtiyoriy hisob maʼlumotlarini niqoblash himoyasi (sizib chiqqan API kalitlari/maxfiy maʼlumotlarni har ikki yoʻnalishda tahrirlaydi), soʻnggi chora sifatida bepul DuckDuckGo veb-qidiruvi va boshqaruv paneli uchun ixtiyoriy OIDC kirish darvozasi (parol bilan kirish har doim mavjud boʻlib qoladi). → [Himoya vositalari](docs/security/GUARDRAILS.md)
+- **🖼️ Yangi soʻnggi nuqtalar** — `/v1/ocr` (Mistral OCR) va `/v1/audio/translations` (Whisper uslubida) media imkoniyatlarini toʻldiradi. → [API maʼlumotnomasi](docs/reference/API_REFERENCE.md)
+- **🎨 Tasvir / video / audio yaratish** — media uchun yagona API: xAI Grok Imagine va Novita AI video, ComfyUI, Magnific, Adobe Firefly, Segmind hamda ElevenLabs kabi nutq provayderlari. → [API maʼlumotnomasi](docs/reference/API_REFERENCE.md)
+- **🌍 Joylashtirish va operatsiyalar** — teskari proksi `basePath`, brauzer tilini avtomatik aniqlash, har bir kalit boʻyicha qurilmalarni kuzatish, rootsiz MITM ishonchi, zh-TW mahalliylashtirishi. → [Muhit](docs/reference/ENVIRONMENT.md)
+- **🤝 Koʻproq provayderlar va agentlar** — bulut agentlari (Codex Cloud, Cursor, Devin, Jules), brauzer + OAuth kirishiga ega Grok Build (xAI), toʻlaqonli Ollama kartasi, Claude Opus 5 va Sonnet 5, Kimi bilan rasmiy hamkorlik (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… va yangilangan **352 provayderli katalog**. → [Provayderlar](docs/reference/PROVIDER_REFERENCE.md)
+- **📡 Marshrutlash shaffofligi** — har bir javob unga xizmat koʻrsatgan strategiya/provayder/kechikishni koʻrsatuvchi `X-OmniRoute-Decision` sarlavhasiga ega; yangi `cache-optimized` kombinatsiya strategiyasi + Auto-Combo `cacheAffinity` omili takroriy soʻrovlarni keshlangan prefiksni saqlayotgan ulanishga qayta yoʻnaltiradi va faqat oʻqish uchun moʻljallangan `/v1/auto-combo/{channel}/candidates` soʻnggi nuqtasi `auto/*` kanalining joriy nomzodlar toʻplamini ochib beradi. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **⚡ Mahalliy unumdorlik va infratuzilma** — bir bosishda mahalliy Redis, Cloudflare Workers / Deno Deploy reley joylashtiruvchilari, nazorat ostidagi ichki xizmatlar sifatida Bifrost va Mux. → [Ichki xizmatlar](docs/frameworks/EMBEDDED-SERVICES.md)
+- **🧩 Toʻplamda yana nimalar bor** — plagin freymvorki + marketpleys, Omni/Agent/GitHub koʻnikmalar freymvorklari, Obsidian ombori integratsiyasi (22 ta MCP vositasi), OpenAI bilan mos Batch va Files API’lari, semantik javob keshi, yetakchilar jadvallari bilan geymifikatsiya, ACP agentlarini aniqlash (15 ta ichki agent), jurnallarni reja asosida BigQuery’ga eksport qilish, `auto/chaos` orqali parallel koʻp modelli tarqatish, Telegram bot koʻprigi, ilova ichidagi versiya menejeri va bepul provayderlar uchun LMArena-ELO reytinglari. → [Hujjatlar](docs/README.md)
 
 <br/>
 
@@ -1256,28 +1256,28 @@ bitta jarayon xizmat koʻrsatadi, shu sababli hozircha faqat CLI uchun alohida p
 <br/>
 <div align="center">
 
-## 🛠️ Texnologiyalar to'plami
+## 🛠️ Texnologiyalar steki
 
 </div>
 
 <table>
   <tr><th align="left">Qatlam</th><th align="left">Texnologiya</th></tr>
   <tr><td nowrap><b>Ishlash muhiti</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Til</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> `src/` va `open-sse/` bo'ylab (v2.0 dan beri yadroda `any` yo'q)</td></tr>
-  <tr><td nowrap><b>Freyvork</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Ma'lumotlar bazasi</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 domen modullari, 183 migratsiya</td></tr>
-  <tr><td nowrap><b>Xotira</b></td><td>SQLite FTS5 full-text + int8-quantized vector embeddings, typed decay</td></tr>
-  <tr><td nowrap><b>Sxemalar</b></td><td>Zod 4 — MCP vositasi I/O validatsiyasi + API shartnomalari</td></tr>
+  <tr><td nowrap><b>Til</b></td><td>TypeScript 6.0 — <code>src/</code> va <code>open-sse/</code> bo‘ylab <b>100% TypeScript</b> (v2.0 dan beri yadroda <code>any</code> umuman yo‘q)</td></tr>
+  <tr><td nowrap><b>Freymvork</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
+  <tr><td nowrap><b>Ma’lumotlar bazasi</b></td><td>better-sqlite3 (SQLite, WAL jurnallash) + LowDB (eski JSON) — 137 ta domen moduli, 193 ta migratsiya</td></tr>
+  <tr><td nowrap><b>Xotira</b></td><td>SQLite FTS5 to‘liq matnli qidiruv + int8-kvantlangan vektorli embeddinglar, tiplashtirilgan susayish</td></tr>
+  <tr><td nowrap><b>Sxemalar</b></td><td>Zod 4 — MCP vositalarining kirish/chiqishini tekshirish + API shartnomalari</td></tr>
   <tr><td nowrap><b>Protokollar</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Oqimlash</b></td><td>Server-Sent Events (SSE) + WebSocket bridge (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Siqish</b></td><td>12-dvigatelli quvur liniyasi — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Autentifikatsiya va xavfsizlik</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP scoped auth · AES-256-GCM saqlashda · DOMPurify</td></tr>
-  <tr><td nowrap><b>Yashirinlik</b></td><td>wreq-js — JA3 / JA4 TLS barmoq izini taqlid qilish, 3 darajali proksi</td></tr>
-  <tr><td nowrap><b>Chidamlilik</b></td><td>Elektr uzgich, eksponensial orqaga qaytish, anti-thundering-herd, avtomatik-kombo o'z-o'zini tiklash</td></tr>
-  <tr><td nowrap><b>Jurnal yozish</b></td><td>pino — so'rov konteksti bilan tuzilgan JSON jurnallari</td></tr>
-  <tr><td nowrap><b>Testlash</b></td><td>Node.js test runner + Vitest — <b>39,000+ statik test deklaratsiyalari</b> 5,100+ kuzatilgan test fayllari bo'ylab (unit, integratsiya, E2E, xavfsizlik, ekotizim)</td></tr>
-  <tr><td nowrap><b>Platformalar</b></td><td>Ish stoli (Electron) · Android (Termux) · PWA (har qanday brauzer)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — avtomatik npm nashr qilish + chiqarishda Docker Hub</td></tr>
+  <tr><td nowrap><b>Oqimli uzatish</b></td><td>Server-Sent Events (SSE) + WebSocket ko‘prigi (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Siqish</b></td><td>12 dvigatelli konveyer — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Autentifikatsiya va xavfsizlik</b></td><td>OAuth 2.0 (PKCE) + JWT + API kalitlari + MCP doirasidagi autentifikatsiya · saqlangan holatda AES-256-GCM · DOMPurify</td></tr>
+  <tr><td nowrap><b>Yashirinlik</b></td><td>wreq-js — JA3 / JA4 TLS raqamli izini taqlid qilish, 3 darajali proksi</td></tr>
+  <tr><td nowrap><b>Barqarorlik</b></td><td>Avtomatik uzgich, eksponensial kechiktirish, bir vaqtdagi ommaviy so‘rovlarni oldini olish, avtomatik kombinatsiyali o‘z-o‘zini tiklash</td></tr>
+  <tr><td nowrap><b>Jurnallash</b></td><td>pino — so‘rov kontekstiga ega tuzilmaviy JSON jurnallari</td></tr>
+  <tr><td nowrap><b>Sinov</b></td><td>Node.js test ishga tushirgichi + Vitest — kuzatuvdagi 5,100+ ta test fayli bo‘ylab <b>39,000+ ta statik test deklaratsiyasi</b> (modul, integratsion, E2E, xavfsizlik, ekotizim)</td></tr>
+  <tr><td nowrap><b>Platformalar</b></td><td>Stol kompyuteri (Electron) · Android (Termux) · PWA (istalgan brauzer)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — relizda npm va Docker Hub’ga avtomatik nashr qilish</td></tr>
   <tr><td nowrap><b>Havolalar</b></td><td><a href="https://omniroute.online">Veb-sayt</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
@@ -1729,7 +1729,7 @@ MIT litsenziyasi — batafsil maʼlumot uchun [LICENSE](LICENSE) fayliga qarang.
 
 **[⬆ Yuqoriga qaytish](#-omniroute)** · Ochiq kodli sunʼiy intellekt hamjamiyati uchun ❤️ bilan yaratildi.
 
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · MIT litsenziyasi · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.52 · Node ≥22.22.2 · MIT litsenziyasi · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- Hamjamiyatning savol-javoblari uchun GitHub Discussions yoqilgan -->

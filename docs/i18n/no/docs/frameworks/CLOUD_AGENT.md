@@ -305,24 +305,29 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 oppstrømsleverandøren — det finnes ingen RPC for avbrytelse i `CloudAgentBase`. For å stoppe
 fakturering hos oppstrømsleverandøren må oppgaven avsluttes i leverandørens egen konsoll.
 
-## REST-API — integrasjon mot skyleverandører
+## REST-API — integrasjon med skyleverandører
 
 Disse hjelpeendepunktene under `src/app/api/cloud/` brukes av eksterne klienter
-(CLI-en, Electron-appen eller synkroniseringsarbeidere) til å lese metadata for leverandørtilkoblinger
-og slå opp modellaliaser. De autentiseres med en **vanlig API-nøkkel**
+(CLI-en, Electron-appen eller synkroniseringsarbeidere) til å lese metadata for
+leverandørtilkoblinger og slå opp modellaliaser. De autentiseres med en **API-nøkkel**
 (via `validateApiKey`), ikke administrasjonsautentiseringen som brukes av oppgaveendepunktene.
+Hva `/api/cloud/auth` returnerer, avhenger av nøkkelens omfang (se nedenfor).
 
-| Metode | Bane                            | Formål                                                                      |
-| ------ | ------------------------------- | --------------------------------------------------------------------------- |
-| POST   | `/api/cloud/auth`               | Valider API-nøkkelen, returner maskerte tilkoblingsmetadata + modellaliaser |
-| PUT    | `/api/cloud/credentials/update` | Oppdater `accessToken` / `refreshToken` / `expiresAt`                       |
-| POST   | `/api/cloud/model/resolve`      | Slå opp et modellalias til `{ provider, model }`                            |
-| GET    | `/api/cloud/models/alias`       | Vis alle modellaliaser                                                      |
-| PUT    | `/api/cloud/models/alias`       | Angi et modellalias (og synkroniser automatisk til Cloud hvis aktivert)     |
+| Metode | Bane                            | Formål                                                                         |
+| ------ | ------------------------------- | ------------------------------------------------------------------------------ |
+| POST   | `/api/cloud/auth`               | Valider API-nøkkelen, og returner maskerte tilkoblingsmetadata + modellaliaser |
+| PUT    | `/api/cloud/credentials/update` | Oppdater `accessToken` / `refreshToken` / `expiresAt`                          |
+| POST   | `/api/cloud/model/resolve`      | Slå opp et modellalias til `{ provider, model }`                               |
+| GET    | `/api/cloud/models/alias`       | Vis alle modellaliaser                                                         |
+| PUT    | `/api/cloud/models/alias`       | Angi et modellalias (og synkroniser automatisk til skyen hvis aktivert)        |
 
 `/api/cloud/auth` returnerer aldri rå `apiKey` / `accessToken` / `refreshToken`. Det
-returnerer `hasApiKey`, `hasAccessToken`, `hasRefreshToken` og en maskert forhåndsvisning
-(`maskedApiKey`: de første 4 + `****` + de siste 4).
+returnerer `hasApiKey`, `hasAccessToken`, `hasRefreshToken` for de aktive tilkoblingene som nøkkelen
+kan bruke (en nøkkel begrenset med `allowedConnections` ser bare disse). For en API-nøkkel med
+omfanget `manage` eller `admin`, inkludert distribusjonsnøkkelen fra `OMNIROUTE_API_KEY`, returnerer
+det også en maskert forhåndsvisning (`maskedApiKey`: opptil 4 tegn i hver ende, færre for en kort
+nøkkel og ingen for nøkler på 8 tegn eller færre) samt tilkoblingens `projectId`. Begge feltene
+utelates fra svaret for alle andre nøkler.
 
 ## Oppslag av påloggingsinformasjon
 

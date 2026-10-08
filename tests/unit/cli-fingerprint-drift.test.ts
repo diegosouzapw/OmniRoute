@@ -13,6 +13,7 @@ import assert from "node:assert/strict";
 import {
   compareFingerprintPins,
   exitCodeForFingerprintCheck,
+  platformVersionFromLauncherDeps,
   FINGERPRINT_SOURCES,
   type FingerprintDrift,
   type FingerprintId,
@@ -86,4 +87,39 @@ test("grok reads the platform binary package, not the launcher", () => {
   const grok = FINGERPRINT_SOURCES.find((source) => source.id === "grok-build");
   assert.equal(grok?.platformPackage, "@xai-official/grok-linux-x64");
   assert.notEqual(grok?.platformPackage, grok?.npmPackage);
+});
+
+test("grok's wire version is the platform binary the launcher installs, not the platform package's latest tag", () => {
+  // Captured 2026-09-25: `@xai-official/grok@1.0.41` pins every platform binary
+  // to 1.0.41, and that binary hardcodes `x-grok-client-version: 1.0.41`. The
+  // platform package's own `latest` dist-tag is frozen at 0.1.220 (May 2026),
+  // so `npm view @xai-official/grok-linux-x64 version` reports a binary nobody
+  // installs any more.
+  const launcherOptionalDeps = {
+    "@xai-official/grok-linux-x64": "1.0.41",
+    "@xai-official/grok-darwin-arm64": "1.0.41",
+  };
+  assert.equal(
+    platformVersionFromLauncherDeps(launcherOptionalDeps, "@xai-official/grok-linux-x64"),
+    "1.0.41"
+  );
+  assert.equal(
+    platformVersionFromLauncherDeps([launcherOptionalDeps], "@xai-official/grok-linux-x64"),
+    "1.0.41",
+    "npm view --json wraps the field in an array when the version has two dist-tags"
+  );
+  assert.equal(platformVersionFromLauncherDeps({}, "@xai-official/grok-linux-x64"), null);
+  assert.equal(
+    platformVersionFromLauncherDeps(
+      { "@xai-official/grok-linux-x64": "^1.0.0" },
+      "@xai-official/grok-linux-x64"
+    ),
+    null,
+    "a range is not a pinned binary version"
+  );
+});
+
+test("the grok pin matches the platform binary shipped by the published launcher", () => {
+  const grok = FINGERPRINT_SOURCES.find((source) => source.id === "grok-build");
+  assert.equal(grok?.pinned, "1.0.41");
 });
