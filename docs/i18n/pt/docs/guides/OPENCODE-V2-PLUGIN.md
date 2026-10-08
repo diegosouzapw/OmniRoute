@@ -72,24 +72,31 @@ indicando o endpoint e o que foi perdido — para que um seletor degradado nunca
 
 ## Opções
 
-| Chave                            | Predefinição                                     | Notas                                                                                                                                         |
-| -------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `providerId`                     | `"omniroute"`                                    | Id do fornecedor, id da integração e o prefixo sob o qual os modelos aparecem                                                                 |
-| `baseURL`                        | obrigatório                                      | Raiz do gateway, apenas `http(s)`; o sufixo `/v1` é adicionado quando necessário                                                              |
-| `apiKey`                         | credencial associada, depois `OMNIROUTE_API_KEY` | Chave de chat para `/v1/*`                                                                                                                    |
-| `managementReadToken`            | recorre a `apiKey`                               | Chave para `/api/*` — normalmente **não** é a mesma                                                                                           |
-| `displayName`                    | `"OmniRoute"`                                    | Nome do fornecedor no seletor                                                                                                                 |
-| `timeoutMs`                      | `10000`                                          | Tempo limite de obtenção por endpoint (os auto-combos usam 5 s)                                                                               |
-| `modelCacheTtlMs`                | `300000`                                         | TTL da cache do catálogo; uma captura em disco acelera os arranques a frio                                                                    |
-| `timeouts`                       | recorre a `timeoutMs`                            | Limites por endpoint em ms: `models`, `combos`, `autoCombos`, `enrichment`                                                                    |
-| `enrichment`                     | `true`                                           | Obtém nomes, preços e limites do nível gratuito                                                                                               |
-| `providerTag`                    | `true`                                           | Adiciona ao nome de apresentação o prefixo do fornecedor a montante para o qual encaminha                                                     |
-| `usableOnly`                     | `false`                                          | Mantém apenas os fornecedores que o gateway indica como aprovisionados                                                                        |
-| `visibleModels` / `hiddenModels` | `[]`                                             | Listas de permissão por correspondência exata ou por sufixo; a negação prevalece                                                              |
-| `geminiSanitization`             | `true`                                           | Remove dos esquemas de ferramentas as palavras-chave JSON Schema que o Gemini rejeita (as ferramentas `$ref` são encaminhadas sem alterações) |
-| `apiFormat.allowAnthropic`       | `false`                                          | Encaminha os ids presentes na lista de permissões através do bloco da API Anthropic                                                           |
-| `apiFormat.anthropicModels`      | `[]`                                             | Ids completos dos modelos encaminhados para a Anthropic                                                                                       |
-| `logLevel` / `startupDebug`      | `warn` / `false`                                 | Nível de detalhe do registo                                                                                                                   |
+| Chave                            | Predefinição                                     | Notas                                                                                                                                               |
+| -------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `providerId`                     | `"omniroute"`                                    | ID do fornecedor, ID da integração e prefixo sob o qual aparecem os modelos                                                                         |
+| `baseURL`                        | obrigatório                                      | Raiz do gateway, apenas `http(s)`; o sufixo `/v1` é adicionado quando necessário                                                                    |
+| `apiKey`                         | credencial associada, depois `OMNIROUTE_API_KEY` | Chave de chat para `/v1/*`                                                                                                                          |
+| `managementReadToken`            | recorre a `apiKey`                               | Chave para `/api/*` — normalmente **não** é a mesma                                                                                                 |
+| `displayName`                    | `"OmniRoute"`                                    | Nome do fornecedor no seletor                                                                                                                       |
+| `timeoutMs`                      | `10000`                                          | Tempo limite por endpoint para obtenção de dados (as combinações automáticas utilizam 5 s)                                                          |
+| `modelCacheTtlMs`                | `300000`                                         | TTL da cache do catálogo; um instantâneo em disco acelera os arranques a frio                                                                       |
+| `timeouts`                       | recorre a `timeoutMs`                            | Limites por endpoint em ms: `models`, `combos`, `autoCombos`, `enrichment`                                                                          |
+| `enrichment`                     | `true`                                           | Obtém nomes, preços e limites do nível gratuito                                                                                                     |
+| `providerTag`                    | `true`                                           | Prefixa o nome de apresentação com o fornecedor a montante para o qual encaminha                                                                    |
+| `usableOnly`                     | `false`                                          | Mantém apenas os fornecedores que o gateway indica como aprovisionados                                                                              |
+| `showcasePerOwner`               | `10`                                             | Entradas da vista predefinida mantidas por fornecedor                                                                                               |
+| `freshPerOwner`                  | `10`                                             | Entradas recentes da vista predefinida mantidas por fornecedor                                                                                      |
+| `freshWindowDays`                | `90`                                             | Janela de atualidade, em dias, para o ramo de entradas recentes                                                                                     |
+| `usageMemory`                    | `true`                                           | Restaura entradas removidas estaticamente e identificadas pelas análises de utilização de 30 dias (requer um token de gestão)                       |
+| `visibleModels` / `hiddenModels` | `[]`                                             | Listas de permissão por correspondência exata ou por sufixo; a exclusão prevalece                                                                   |
+| `geminiSanitization`             | `true`                                           | Remove dos esquemas de ferramentas as palavras-chave JSON-Schema que o Gemini rejeita (as ferramentas com `$ref` são reencaminhadas sem alterações) |
+| `apiFormat.allowAnthropic`       | `false`                                          | Encaminha os IDs incluídos na lista de permissões através do bloco da API Anthropic                                                                 |
+| `apiFormat.anthropicModels`      | `[]`                                             | IDs completos dos modelos encaminhados para a Anthropic                                                                                             |
+| `logLevel` / `startupDebug`      | `warn` / `false`                                 | Nível de detalhe dos registos                                                                                                                       |
+
+A memória de utilização está ativada por predefinição. Sem um token de gestão, permanece inativa
+(é registado um aviso no arranque) e nada é restaurado.
 
 ## Como o catálogo se mantém atualizado
 

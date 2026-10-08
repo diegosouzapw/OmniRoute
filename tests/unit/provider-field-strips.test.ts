@@ -80,3 +80,35 @@ test("stripGroqUnsupportedFields drops unsupported messages[].model and other me
   assert.equal("messageId" in out.messages[1], false);
   assert.equal("sender" in out.messages[1], false);
 });
+
+// Routing envelopes must become valid Groq Chat Completions fields.
+test("Groq GPT-OSS routing low/none uses low without foreign envelopes", () => {
+  for (const effort of ["low", "none"]) {
+    const input = {
+      model: "openai/gpt-oss-20b",
+      messages: [{ role: "user", content: "hello" }],
+      reasoning_effort: effort,
+      reasoning: { effort },
+      output_config: { effort },
+    };
+    const out = stripGroqUnsupportedFields(input, input.model);
+    assert.equal(out.reasoning_effort, "low");
+    assert.equal("reasoning" in out, false);
+    assert.equal("output_config" in out, false);
+    assert.deepEqual(out.messages, input.messages);
+    assert.equal(input.reasoning_effort, effort);
+    assert.deepEqual(input.output_config, { effort });
+  }
+});
+
+test("Groq forced none uses low even when routing removed the effort fields", () => {
+  const input = { model: "openai/gpt-oss-20b", messages: [{ role: "user", content: "hello" }] };
+  const out = stripGroqUnsupportedFields(input, input.model, "none") as Record<string, unknown>;
+  assert.equal(out.reasoning_effort, "low");
+  // An ordinary effort-less request must retain its provider default.
+  assert.equal("reasoning_effort" in stripGroqUnsupportedFields(input, input.model), false);
+  assert.equal(
+    stripGroqUnsupportedFields({ reasoning_effort: "high" }, input.model).reasoning_effort,
+    "high"
+  );
+});

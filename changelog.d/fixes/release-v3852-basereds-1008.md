@@ -1,0 +1,1 @@
+- Release-branch hygiene: the hard-lease bypass inventory now lists the Firecrawl Map route (#15703) and the priority-0 re-read in `providers.ts` (#15485); the #11759 catalog test pins `CATALOG_BUILD_TIMEOUT_MS` so a slow cold build on a loaded host no longer returns 503 mid-assertion.

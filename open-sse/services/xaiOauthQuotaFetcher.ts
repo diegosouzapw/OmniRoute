@@ -19,8 +19,8 @@
  *
  * Cache: 60s in-memory TTL keyed by connectionId.
  *
- * Registration: registerXaiOauthQuotaFetcher() via quotaTrackersBatch side-effect
- * import (before registerGenericQuotaFetchers).
+ * Registration: registerXaiOauthQuotaFetcher() via registerQuotaTrackersBatch()
+ * (before registerGenericQuotaFetchers). Not a module-load side effect.
  */
 
 import {

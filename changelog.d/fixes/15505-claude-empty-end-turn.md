@@ -1,0 +1,1 @@
+- **fix(sse):** a finished Claude stream with `end_turn` or `stop_sequence` and no content block stays a 200 ([#15505](https://github.com/diegosouzapw/OmniRoute/pull/15505) — thanks @HouMinXi)

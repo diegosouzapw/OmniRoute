@@ -58,22 +58,20 @@ describe("plugin-v2 P2 parity: per-endpoint timeouts", () => {
     assert.deepEqual(resolveTimeouts(opts), {
       models: 10000,
       combos: 10000,
-      autoCombos: 5000,
       enrichment: 10000,
     });
   });
 
-  it("endpoint overrides win over the global timeout", () => {
+  it("a retired per-endpoint timeout key still parses (ignored)", () => {
     const opts = parsePluginOptions({
       baseURL: BER,
       timeoutMs: 3000,
-      timeouts: { models: 1111, combos: 2222, autoCombos: 3333, enrichment: 4444 },
+      timeouts: { models: 1111, autoCombos: 3333 },
     });
     assert.deepEqual(resolveTimeouts(opts), {
       models: 1111,
-      combos: 2222,
-      autoCombos: 3333,
-      enrichment: 4444,
+      combos: 3000,
+      enrichment: 3000,
     });
   });
 
@@ -108,7 +106,7 @@ describe("plugin-v2 P2 parity: per-endpoint timeouts", () => {
         },
         { fetcher: slowModels, combosFetcher: async () => [] }
       );
-      assert.deepEqual(res, { models: 0, combos: 0, autoCombos: 0 });
+      assert.deepEqual(res, { models: 0, combos: 0 });
     } finally {
       console.warn = origWarn;
     }

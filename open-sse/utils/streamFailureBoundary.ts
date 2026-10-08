@@ -33,7 +33,7 @@ export function createStreamFailureAborter(context: AborterContext) {
     controller: TransformStreamDefaultController<Uint8Array>,
     failure: StreamFailurePayload,
     publicMessage: string,
-    options: { notifyComplete?: boolean } = {}
+    options: { notifyComplete?: boolean; preserveQueuedChunks?: boolean } = {}
   ): void => {
     let handled = false;
     context.timing.markInterrupted();
@@ -71,6 +71,11 @@ export function createStreamFailureAborter(context: AborterContext) {
     }
     context.clearIdleTimer();
     if (!handled) context.clearPendingRequest();
-    controller.error(context.markPendingRequestCleared(new Error(safeMessage)));
+    // At EOF the caller has already queued an explicit failure terminal. Let
+    // flush close normally: controller.error() would discard those queued
+    // deltas and the failure event before a slow reader can consume them.
+    if (!options.preserveQueuedChunks) {
+      controller.error(context.markPendingRequestCleared(new Error(safeMessage)));
+    }
   };
 }

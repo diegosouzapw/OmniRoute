@@ -1,0 +1,1 @@
+- **fix(providers):** Muse Code OAuth requests use the configured Responses API endpoint instead of Chat Completions.

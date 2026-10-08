@@ -70,26 +70,33 @@ ilalathala pa rin ang catalog, ngunit may mga raw model id sa halip na mga displ
 alias, walang presyo, at walang mga combo. Minsang magbibigay ng babala ang plugin para sa bawat endpoint kapag nangyari iyon,
 na binabanggit ang endpoint at kung ano ang nawala — kaya hindi magiging palaisipan ang isang degraded na picker.
 
-## Mga Option
+## Mga Opsyon
 
-| Key                              | Default                                                     | Mga Tala                                                                                                                                   |
-| -------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `providerId`                     | `"omniroute"`                                               | Provider id, integration id, at ang prefix kung saan lumalabas ang mga model                                                               |
-| `baseURL`                        | kinakailangan                                               | Root ng gateway, `http(s)` lamang; idinaragdag ang suffix na `/v1` kung kinakailangan                                                      |
-| `apiKey`                         | nakakonektang credential, pagkatapos ay `OMNIROUTE_API_KEY` | Chat key para sa `/v1/*`                                                                                                                   |
-| `managementReadToken`            | ginagamit ang `apiKey` bilang fallback                      | Key para sa `/api/*` — karaniwang **hindi** ito ang parehong key                                                                           |
-| `displayName`                    | `"OmniRoute"`                                               | Pangalan ng provider sa picker                                                                                                             |
-| `timeoutMs`                      | `10000`                                                     | Timeout ng fetch para sa bawat endpoint (5s ang ginagamit ng mga auto-combo)                                                               |
-| `modelCacheTtlMs`                | `300000`                                                    | TTL ng cache ng catalog; pinapabilis ng snapshot sa disk ang mga cold start                                                                |
-| `timeouts`                       | ginagamit ang `timeoutMs` bilang fallback                   | Mga badyet para sa bawat endpoint sa ms: `models`, `combos`, `autoCombos`, `enrichment`                                                    |
-| `enrichment`                     | `true`                                                      | Kunin ang mga pangalan, presyo, at badyet para sa free tier                                                                                |
-| `providerTag`                    | `true`                                                      | Lagyan ng prefix ang display name gamit ang upstream provider kung saan ito idinuruta                                                      |
-| `usableOnly`                     | `false`                                                     | Panatilihin lamang ang mga provider na iniulat ng gateway bilang provisioned                                                               |
-| `visibleModels` / `hiddenModels` | `[]`                                                        | Mga allowlist na exact-or-suffix; nangingibabaw ang deny                                                                                   |
-| `geminiSanitization`             | `true`                                                      | Alisin sa mga tool schema ang mga keyword ng JSON-Schema na tinatanggihan ng Gemini (ipinapasa nang hindi binabago ang mga tool na `$ref`) |
-| `apiFormat.allowAnthropic`       | `false`                                                     | Iruta ang mga naka-allowlist na id sa pamamagitan ng Anthropic API block                                                                   |
-| `apiFormat.anthropicModels`      | `[]`                                                        | Mga buong model id na idinuruta sa Anthropic                                                                                               |
-| `logLevel` / `startupDebug`      | `warn` / `false`                                            | Antas ng detalye ng logger                                                                                                                 |
+| Key                              | Default                                                     | Mga Tala                                                                                                                                          |
+| -------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `providerId`                     | `"omniroute"`                                               | Provider id, integration id, at prefix kung saan lumalabas ang mga modelo                                                                         |
+| `baseURL`                        | kinakailangan                                               | Gateway root, `http(s)` lamang; idinaragdag ang suffix na `/v1` kung kinakailangan                                                                |
+| `apiKey`                         | nakakonektang credential, pagkatapos ay `OMNIROUTE_API_KEY` | Chat key para sa `/v1/*`                                                                                                                          |
+| `managementReadToken`            | bumabalik sa `apiKey`                                       | Key para sa `/api/*` — karaniwang **hindi** ito pareho                                                                                            |
+| `displayName`                    | `"OmniRoute"`                                               | Pangalan ng provider sa picker                                                                                                                    |
+| `timeoutMs`                      | `10000`                                                     | Timeout ng pag-fetch kada endpoint (gumagamit ang mga auto-combo ng 5s)                                                                           |
+| `modelCacheTtlMs`                | `300000`                                                    | TTL ng catalog cache; pinapabilis ng disk snapshot ang mga cold start                                                                             |
+| `timeouts`                       | bumabalik sa `timeoutMs`                                    | Mga budget kada endpoint sa ms: `models`, `combos`, `autoCombos`, `enrichment`                                                                    |
+| `enrichment`                     | `true`                                                      | Kunin ang mga pangalan, presyo, at mga budget ng free tier                                                                                        |
+| `providerTag`                    | `true`                                                      | Lagyan ng prefix ang display name gamit ang upstream provider kung saan ito nagru-route                                                           |
+| `usableOnly`                     | `false`                                                     | Panatilihin lamang ang mga provider na iniulat ng gateway bilang provisioned                                                                      |
+| `showcasePerOwner`               | `10`                                                        | Mga entry sa default view na pinananatili kada provider                                                                                           |
+| `freshPerOwner`                  | `10`                                                        | Mga bagong entry sa default view na pinananatili kada provider                                                                                    |
+| `freshWindowDays`                | `90`                                                        | Saklaw ng pagiging bago sa mga araw para sa fresh branch                                                                                          |
+| `usageMemory`                    | `true`                                                      | Ibalik ang mga entry na statically dropped na tinukoy ng 30-araw na usage analytics (nangangailangan ng management token)                         |
+| `visibleModels` / `hiddenModels` | `[]`                                                        | Mga allowlist na eksakto o suffix; nangingibabaw ang deny                                                                                         |
+| `geminiSanitization`             | `true`                                                      | Alisin sa mga tool schema ang mga keyword ng JSON-Schema na tinatanggihan ng Gemini (ang mga tool na may `$ref` ay ipinapasa nang hindi binabago) |
+| `apiFormat.allowAnthropic`       | `false`                                                     | I-route ang mga allowlisted id sa pamamagitan ng Anthropic API block                                                                              |
+| `apiFormat.anthropicModels`      | `[]`                                                        | Mga buong model id na iri-route sa Anthropic                                                                                                      |
+| `logLevel` / `startupDebug`      | `warn` / `false`                                            | Antas ng detalye ng logger                                                                                                                        |
+
+Naka-on ang usage memory bilang default. Kung walang management token, mananatili itong hindi aktibo
+(may ila-log na startup notice) at walang ibabalik.
 
 ## Paano nananatiling napapanahon ang catalog
 
