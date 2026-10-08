@@ -393,16 +393,16 @@ Skriv enhedstests i `tests/unit/`, som som minimum dækker:
 - [ ] Linting består (`npm run lint`)
 - [ ] Build lykkes (`npm run build`)
 - [ ] TypeScript-typer er tilføjet for nye offentlige funktioner og interfaces
-- [ ] Ingen hardcodede hemmeligheder eller reserveværdier
-- [ ] Offentlige upstream-legitimationsoplysninger indlejres via `resolvePublicCred()` (se [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), aldrig som litteraler
-- [ ] Fejlsvar føres gennem `buildErrorBody()` / `sanitizeErrorMessage()` — ingen rå stack traces i svarenes bodies (se [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Ingen hardkodede hemmeligheder eller fallback-værdier
+- [ ] Offentlige upstream-legitimationsoplysninger indlejres via `resolvePublicCred()` (se [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), aldrig som literals
+- [ ] Fejlsvar sendes gennem `buildErrorBody()` / `sanitizeErrorMessage()` — ingen rå stack traces i svartekster (se [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
 - [ ] Shell-kommandoer (`exec` / `spawn`) videregiver runtime-værdier via `env`, ikke via strenginterpolation
 - [ ] Alle input valideres med Zod-skemaer
-- [ ] Changelog-**fragment** tilføjet under `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` for brugerrettede ændringer (se [`changelog.d/README.md`](./changelog.d/README.md)) — rediger **ikke** `CHANGELOG.md` direkte; fragmenter samles ved udgivelsestidspunktet og skaber aldrig konflikter mellem pull requests
-- [ ] Dokumentationen er opdateret (hvis relevant)
-- [ ] Ingen nye CodeQL- / Secret-Scanning-advarsler er åbnet, eller hver enkelt er afvist med en teknisk begrundelse, der henviser til det relevante dokument under `docs/security/`
+- [ ] Changelog-**fragment** tilføjet under `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` for brugervendte ændringer (se [`changelog.d/README.md`](./changelog.d/README.md)) — rediger **ikke** `CHANGELOG.md` direkte; fragmenter samles ved udgivelsen og skaber aldrig konflikter mellem pull requests
+- [ ] Dokumentation opdateret (hvis relevant)
+- [ ] Ingen nye CodeQL- eller Secret-Scanning-advarsler oprettet, eller hver enkelt er afvist med en teknisk begrundelse, der henviser til det relevante dokument under `docs/security/`
 - [ ] Ruter, der starter underprocesser (`/api/mcp/`, `/api/cli-tools/runtime/`), er klassificeret som `isLocalOnlyPath()` i `src/server/authz/routeGuard.ts` — se [ufravigelig regel nr. 15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Ingen `Co-Authored-By`-trailere i commitbeskeder — commits må udelukkende fremstå under repository-ejerens Git-identitet (ufravigelig regel nr. 16)
+- [ ] Ingen AI-/bot-`Co-authored-by`-trailere i commit-meddelelser (ufravigelig regel nr. 16) — menneskelige samarbejdspartnere, hvis arbejde genbruges, krediteres med standardtrailere i formatet `Co-authored-by: Name <email>`
 
 ---
 
@@ -419,4 +419,3 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 - **Sikkerhedsdokumentation**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **Driftsdokumentation**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Problemer**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR'er**: Se `docs/adr/` for arkitekturbeslutningsregistreringer

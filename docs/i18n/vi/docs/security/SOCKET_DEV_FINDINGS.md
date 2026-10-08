@@ -208,15 +208,15 @@ tập trung hóa thông tin xác thực của nhóm. Bản sửa lỗi giúp mô
 
 ---
 
-## Hồ sơ bản dựng: `minimal`
+## Hồ sơ build: `minimal`
 
-Đối với người dùng cần một artifact thân thiện với Socket, hãy dựng bằng:
+Đối với người dùng cần một artifact thân thiện với Socket, hãy build bằng:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-`NormalModuleReplacementPlugin` của webpack ánh xạ bốn mô-đun đến các stub:
+`NormalModuleReplacementPlugin` của webpack ánh xạ bí danh bốn mô-đun tới các stub:
 
 | Mô-đun                                      | Stub                                             |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -225,13 +225,12 @@ OMNIROUTE_BUILD_PROFILE=minimal npm run build
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Mỗi stub xuất cùng một giao diện, nhưng mọi hàm đều ném ra
-`featureDisabledError(name)` tại thời điểm chạy. Các route phụ thuộc vào mô-đun đã bị vô hiệu hóa
+Mỗi stub xuất cùng một bề mặt API, nhưng mọi hàm đều ném ra
+`featureDisabledError(name)` trong thời gian chạy. Các route phụ thuộc vào mô-đun bị vô hiệu hóa
 sẽ trả về HTTP 503 kèm thông báo rõ ràng thay vì kích hoạt
 đường dẫn mã nhạy cảm.
 
-Bundle thu được được dùng để phát hành dưới tên `omniroute-secure`. Xem
-`docs/ops/PUBLISHING_SECURE.md` để biết quy trình phát hành.
+Bundle tạo ra được thiết kế để phát hành dưới tên `omniroute-secure`.
 
 ---
 

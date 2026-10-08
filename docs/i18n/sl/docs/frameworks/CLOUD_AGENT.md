@@ -305,24 +305,29 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 pokliče nadrejenega ponudnika — v `CloudAgentBase` ni klica RPC za prekinitev. Če želite
 ustaviti obračunavanje v nadrejenem sistemu, opravilo končajte v ponudnikovi lastni konzoli.
 
-## REST API — povezovanje s ponudniki oblaka
+## REST API — povezovanje s ponudniki v oblaku
 
-Te pomožne končne točke v `src/app/api/cloud/` uporabljajo oddaljeni odjemalci
-(CLI, aplikacija Electron ali sinhronizacijski procesi) za branje metapodatkov povezave
-s ponudnikom in razreševanje vzdevkov modelov. Preverjanje pristnosti poteka z **običajnim ključem API**
-(prek `validateApiKey`) in ne s skrbniškim preverjanjem pristnosti, ki ga uporabljajo končne točke opravil.
+Te pomožne končne točke v `src/app/api/cloud/` oddaljeni odjemalci
+(CLI, aplikacija Electron ali sinhronizacijski delavci) uporabljajo za branje metapodatkov o povezavah s ponudniki
+in razreševanje vzdevkov modelov. Preverjanje pristnosti poteka z **API-ključem**
+(prek `validateApiKey`) in ne s skrbniškim preverjanjem pristnosti, ki ga uporabljajo končne točke opravil; vsebina,
+ki jo vrne `/api/cloud/auth`, je odvisna od obsega ključa (glejte spodaj).
 
-| Metoda | Pot                             | Namen                                                                            |
-| ------ | ------------------------------- | -------------------------------------------------------------------------------- |
-| POST   | `/api/cloud/auth`               | Preveri ključ API ter vrne prikrite metapodatke povezave in vzdevke modelov      |
-| PUT    | `/api/cloud/credentials/update` | Osveži `accessToken` / `refreshToken` / `expiresAt`                              |
-| POST   | `/api/cloud/model/resolve`      | Razreši vzdevek modela v `{ provider, model }`                                   |
-| GET    | `/api/cloud/models/alias`       | Prikaže vse vzdevke modelov                                                      |
-| PUT    | `/api/cloud/models/alias`       | Nastavi vzdevek modela (in ga samodejno sinhronizira z oblakom, če je omogočeno) |
+| Metoda | Pot                             | Namen                                                                               |
+| ------ | ------------------------------- | ----------------------------------------------------------------------------------- |
+| POST   | `/api/cloud/auth`               | Preveri API-ključ ter vrne zamaskirane metapodatke o povezavah in vzdevke modelov   |
+| PUT    | `/api/cloud/credentials/update` | Osveži `accessToken` / `refreshToken` / `expiresAt`                                 |
+| POST   | `/api/cloud/model/resolve`      | Razreši vzdevek modela v `{ provider, model }`                                      |
+| GET    | `/api/cloud/models/alias`       | Navede vse vzdevke modelov                                                          |
+| PUT    | `/api/cloud/models/alias`       | Nastavi vzdevek modela (in ga samodejno sinhronizira z oblakom, če je to omogočeno) |
 
 `/api/cloud/auth` nikoli ne vrne neobdelanih vrednosti `apiKey` / `accessToken` / `refreshToken`.
-Vrne `hasApiKey`, `hasAccessToken`, `hasRefreshToken` in prikrit predogled
-(`maskedApiKey`: prvi 4 znaki + `****` + zadnji 4 znaki).
+Za aktivne povezave, ki jih ključ sme uporabljati, vrne `hasApiKey`, `hasAccessToken`,
+`hasRefreshToken` (ključ, omejen z `allowedConnections`, vidi samo te povezave). Za API-ključ
+z obsegom `manage` ali `admin`, vključno s ključem uvedbe iz `OMNIROUTE_API_KEY`, vrne tudi
+zamaskiran predogled (`maskedApiKey`: do 4 znake na vsakem koncu, manj pri kratkem ključu,
+nič pri 8 znakih ali manj) in `projectId` povezave. Za vse druge ključe sta obe polji
+izpuščeni iz odziva.
 
 ## Razreševanje poverilnic
 

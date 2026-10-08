@@ -9,6 +9,10 @@ import { dirname, join } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const modalSource = readFileSync(join(here, "../../src/shared/components/OAuthModal.tsx"), "utf8");
+const pasteCopySource = readFileSync(
+  join(here, "../../src/shared/components/oauthModal/pasteTokenCopy.ts"),
+  "utf8"
+);
 const parserSource = readFileSync(
   join(here, "../../src/lib/oauth/utils/grokCliAuthJson.ts"),
   "utf8"
@@ -27,8 +31,10 @@ test("#7610: OAuthModal rejects bare Grok JWT paste instructions", () => {
 test("#7610: OAuthModal paste UI is auth.json-oriented for grok-cli", () => {
   // #9245 localized the hardcoded copy: the modal now renders i18n keys and the
   // English source strings live in oauthModal.* inside en.json.
-  assert.match(modalSource, /tabImportAuthJson/);
-  assert.match(modalSource, /grokAuthJsonDescription/);
+  // The per-provider tab/description keys live in the modal's paste-copy table.
+  assert.match(modalSource, /getPasteTokenCopyKeys/);
+  assert.match(pasteCopySource, /"grok-cli": "tabImportAuthJson"/);
+  assert.match(pasteCopySource, /"grok-cli": "grokAuthJsonDescription"/);
   assert.match(modalSource, /grokAuthJsonPlaceholder/);
   assert.match(modalSource, /grokAuthJsonLabel/);
 

@@ -13,63 +13,63 @@ OmniRoute ima cevovod za avtorizacijo, ki je odvisen od poti in varuje vsako zah
 
 > Vir: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
-## Dva načina preverjanja pristnosti
+## Dva načina avtentikacije
 
 ### 1. Ključ API (Bearer)
 
-Uporablja se za odjemalske API-je, združljive z OpenAI/Anthropic/Gemini, in za nekaj upravljavskih poti, kadar ima ključ obseg `manage`.
+Uporablja se za odjemalske API-je, združljive z OpenAI/Anthropic/Gemini, in nekaj upravljavskih poti, kadar ima ključ obseg `manage`.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Preverjanje izvajata `isValidApiKey()` / `extractApiKey()` v `src/sse/services/auth.ts`, ki sta ponovno izvožena prek `src/shared/utils/apiAuth.ts`. Preverjevalnik sprejema tudi okoljski spremenljivki `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` kot trajna ključa za neposredno posredovanje (težava #1350).
+Preverjanje izvajata `isValidApiKey()` / `extractApiKey()` v `src/sse/services/auth.ts`, funkciji pa sta ponovno izvoženi prek `src/shared/utils/apiAuth.ts`. Preverjevalnik sprejema tudi okoljski spremenljivki `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` kot trajna ključa za neposredno posredovanje (težava #1350).
 
 ### 2. Seja nadzorne plošče (piškotek auth_token)
 
-Za strani nadzorne plošče in skrbniške operacije.
+Za strani nadzorne plošče in skrbniška opravila.
 
 ```
-Cookie: auth_token=<JWT signed with JWT_SECRET>
+Cookie: auth_token=<JWT, podpisan z JWT_SECRET>
 ```
 
-Piškotek je seja samo, kadar je JWT uspešno preverjen **in** vsebuje `authenticated: true`
+Piškotek predstavlja sejo samo, kadar je JWT uspešno preverjen **in** vsebuje `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Vsak
-porabnik piškotka (varovalo poti, osveževanje avtorizacijskega cevovoda, rokovanje WebSocket, strežnik za
-žive podatke, `/api/settings/require-login`, `/api/auth/status`) uporablja to pomožno funkcijo.
-Obstajajo tudi drugi JWT-ji, podpisani z `JWT_SECRET` — neposredno posredovanje Cursor CLI za imetnike
-ključev ustvarja žetone z `iss "omniroute" / aud "cursor-cli"` — in ti nikoli niso obravnavani kot seje
+porabnik piškotka (varovalo poti nadzorne plošče (`isDashboardSessionAuthenticated()`), osveževanje cevovoda za avtorizacijo, rokovanje WebSocket, strežnik v živo, `/api/settings/require-login`, `/api/auth/status`) uporablja to pomožno funkcijo.
+Obstajajo tudi drugi JWT-ji, podpisani z `JWT_SECRET` — neposredno posredovanje Cursor CLI za imetnike ključev izdaja žetone
+`iss "omniroute" / aud "cursor-cli"` — ki nikoli niso seje
 (#13298).
 
 Preverjanje izvaja `isDashboardSessionAuthenticated()` v `src/shared/utils/apiAuth.ts`. Cevovod samodejno osveži JWT, ko je do izteka njegove 30-dnevne življenjske dobe manj kot 7 dni.
 
-Nekatere upravljavske poti sprejemajo **kateri koli** način: piškotek ALI `Bearer <key>`, kadar ima ključ API obseg `manage` (ali `admin`). To omogoča potek dela »nastavljivo prek klicev API«, ki je bil dodan v v3.8.
+Seja se lahko konča tudi pred iztekom 30 dni, ker vsak izdajatelj uporablja `mintDashboardSessionToken` (čas izdaje `iat` in ID `jti`), preverjevalnik pa preveri dve nastavitvi: `sessionsValidAfter`, ki se nastavi ob spremembi gesla, tako da se prenehajo uspešno preverjati vse seje, izdane pred tem trenutkom (brskalnik, v katerem je bilo geslo spremenjeno, prejme svež piškotek), in `revokedDashboardSessions`, kamor `POST /api/auth/logout` doda `jti` odjavljene seje. Seje, izdane s starejšo različico, ne vsebujejo nobene od teh trditev in ostanejo veljavne do prve spremembe gesla. Če nastavitev ni mogoče prebrati, se seja ne šteje za zaupanja vredno.
 
-#### Izbirna prijavna pregrada OIDC (#6973)
+Nekatere upravljavske poti sprejemajo **kateri koli** način: piškotek ALI `Bearer <key>`, kadar ima ključ API obseg `manage` (ali `admin`). To omogoča potek dela »nastavljivo prek klicev API«, dodan v v3.8.
 
-Skrbniška prijava v nadzorno ploščo poleg privzete prijave z geslom podpira tudi
-**izbirni** potek OIDC (OpenID Connect) — prijava z geslom ni nikoli odstranjena,
-temveč le dopolnjena:
+#### Izbirna prijavna zapora OIDC (#6973)
 
-- Onemogočeno je, razen če velja `settings.oidcEnabled === true` **in** so konfigurirani
-  `oidcIssuer` / `oidcClientId` / `oidcClientSecret` (Nastavitve → Preverjanje pristnosti).
+Skrbniška prijava v nadzorno ploščo poleg privzete prijave z geslom podpira tudi **izbirni** potek OIDC (OpenID Connect) — prijava z geslom ni nikoli odstranjena, temveč le
+dopolnjena:
+
+- Onemogočeno, razen če velja `settings.oidcEnabled === true` **in** so
+  `oidcIssuer` / `oidcClientId` / `oidcClientSecret` vsi nastavljeni (Nastavitve → Avtentikacija).
   V nasprotnem primeru `GET /api/auth/oidc/login` vrne `400`.
 - `GET /api/auth/oidc/login` odkrije `authorization_endpoint` iz
-  izdajateljevega `/.well-known/openid-configuration` (rezervno uporabi
-  `<issuer>/authorize`), sestavi preusmeritveni URI iz dohodne zahteve
-  (ob upoštevanju `x-forwarded-proto`) in preusmeri k ponudniku IdP z naključnim `state`,
-  shranjenim v piškotku `oidc_state` z oznako `httpOnly`.
+  izdajateljevega `/.well-known/openid-configuration` (nadomestno uporabi
+  `<issuer>/authorize`), sestavi URI za preusmeritev iz dohodne zahteve
+  (ob upoštevanju `x-forwarded-proto`) in preusmeri k ponudniku identitete z naključnim `state`,
+  shranjenim v piškotku `oidc_state` z zastavico `httpOnly`.
 - `GET /api/auth/oidc/callback` preveri `state`, zamenja avtorizacijsko
-  kodo in preveri podpis žetona ID prek izdajateljevega JWKS
-  (`createRemoteJWKSet` iz `jose`, predpomnjen glede na URI JWKS) s preverjanji `issuer`/`audience`.
-  Izbirni seznam dovoljenih vrednosti `oidcAllowedSubjects` se ujema z zahtevkom
-  `sub` ali zahtevkom `email` žetona — zahtevek za e-poštni naslov se upošteva samo, kadar
-  velja `email_verified === true`, zato nepreverjen e-poštni naslov pri ponudniku IdP nikoli ne more
-  prestati prijavne pregrade.
-- Ob uspehu ustvari **popolnoma enak** 30-dnevni JWT `auth_token`, kot ga izda prijava
-  z geslom (`src/app/api/auth/login/route.ts`), zato ostane preostali del
-  cevovoda seje nadzorne plošče (samodejno osveževanje, zastavice piškotkov) nespremenjen —
-  OIDC nadomesti samo način ustvarjanja piškotka, ne pa pravic, ki jih ta podeljuje.
+  kodo in prek izdajateljevega JWKS preveri podpis žetona ID
+  (`createRemoteJWKSet` iz `jose`, predpomnjen za vsak URI JWKS), vključno s preverjanjem
+  `issuer`/`audience`. Izbirni seznam dovoljenih `oidcAllowedSubjects` se ujema s
+  trditvijo `sub` ali trditvijo `email` v žetonu — trditev o e-poštnem naslovu se upošteva samo, kadar
+  velja `email_verified === true`, zato nepreverjen e-poštni naslov pri ponudniku identitete nikoli ne more prestati
+  zapore.
+- Ob uspehu izda **popolnoma enak** 30-dnevni JWT `auth_token`, kot ga izda prijava
+  z geslom (`src/app/api/auth/login/route.ts`), zato preostali del
+  cevovoda seje nadzorne plošče (samodejno osveževanje, zastavice piškotkov) ostane nespremenjen —
+  OIDC nadomesti samo način izdaje piškotka, ne pa pravic, ki jih ta podeljuje.
 
 ## Razredi poti
 

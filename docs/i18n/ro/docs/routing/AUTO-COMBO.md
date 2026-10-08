@@ -10,46 +10,46 @@
 
 ## Rutare automată fără configurare (prefixul `auto/`)
 
-> **NOU:** Nu este necesară crearea unui combo. Utilizați prefixul `auto/` direct în orice client.
+> **NOU:** Nu este necesară crearea unei combinații. Folosiți prefixul `auto/` direct în orice client.
 
 ### Exemple rapide
 
-| ID model       | Variantă | Comportament                                                                                 |
-| -------------- | -------- | -------------------------------------------------------------------------------------------- |
-| `auto`         | implicit | Toți furnizorii conectați, strategie LKGP, ponderi echilibrate                               |
-| `auto/coding`  | coding   | Ponderi axate pe calitate, adecvate pentru generarea de cod                                  |
-| `auto/fast`    | fast     | Selecție ponderată pentru latență redusă                                                     |
-| `auto/cheap`   | cheap    | Rutare optimizată pentru cost (mai întâi costul cel mai mic)                                 |
-| `auto/offline` | offline  | Favorizează furnizorii cu cea mai mare disponibilitate a cotei                               |
-| `auto/smart`   | smart    | Axat pe calitate + rată de explorare mai mare (10%) pentru descoperirea mai bună a modelelor |
-| `auto/lkgp`    | lkgp     | LKGP explicit (identic cu `auto` implicit)                                                   |
-| `auto/chaos`   | chaos    | Ponderi pentru injectarea defecțiunilor în testarea rezilienței (ingineria haosului)         |
+| ID model       | Variantă  | Comportament                                                                               |
+| -------------- | --------- | ------------------------------------------------------------------------------------------ |
+| `auto`         | implicită | Toți furnizorii conectați, strategia LKGP, ponderi echilibrate                             |
+| `auto/coding`  | coding    | Ponderi axate pe calitate, adecvate pentru generarea de cod                                |
+| `auto/fast`    | fast      | Selecție ponderată cu latență redusă                                                       |
+| `auto/cheap`   | cheap     | Rutare optimizată pentru cost (mai întâi costul cel mai mic)                               |
+| `auto/offline` | offline   | Favorizează furnizorii cu cea mai mare disponibilitate a cotei                             |
+| `auto/smart`   | smart     | Axat pe calitate + rată de explorare mai mare (10%) pentru descoperirea modelelor mai bune |
+| `auto/lkgp`    | lkgp      | LKGP explicit (la fel ca valoarea implicită `auto`)                                        |
+| `auto/chaos`   | chaos     | Distribuire paralelă, câte un model per furnizor (nu injectare de erori)                   |
 
-### Compoziție categorie × nivel (`auto/<category>:<tier>`)
+### Compoziția categorie × nivel (`auto/<category>:<tier>`)
 
-Sufixele în stil OpenRouter separă **ce fel de rută** (categoria) de **modul de optimizare** (nivelul), astfel încât să le puteți combina liber (#4235 Faza B, `open-sse/services/autoCombo/suffixComposition.ts`):
+Sufixele în stil OpenRouter separă **tipul rutei** (categoria) de **modul de optimizare** (nivelul), astfel încât să le puteți combina liber (#4235 Faza B, `open-sse/services/autoCombo/suffixComposition.ts`):
 
-- **Categorii** (filtrează grupul de candidați după capabilitate): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` păstrează modelele cu capabilități vizuale; `reasoning` păstrează modelele de raționament/gândire.
-- **Niveluri** (aleg ponderile de evaluare/filtrul grupului): `fast` (livrare rapidă) · `cheap` (alias `floor`, economisire de costuri) · `reliable` (starea întrerupătorului de circuit + stabilitatea latenței) · `free` / `pro` (filtrează grupul după nivelul modelului prin `classifyTier` — nivel gratuit vs. premium).
+- **Categorii** (filtrează grupul de candidați după capabilități): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` păstrează modelele cu capabilități vizuale; `reasoning` păstrează modelele de raționament/gândire.
+- **Niveluri** (selectează ponderile de evaluare/filtrul grupului): `fast` (livrare rapidă) · `cheap` (alias `floor`, economie de costuri) · `reliable` (starea disjunctorului + stabilitatea latenței) · `free` / `pro` (filtrează grupul după nivelul modelului prin `classifyTier` — nivel gratuit sau premium).
 
-| Exemplu                | Se rezolvă la                                                             |
-| ---------------------- | ------------------------------------------------------------------------- |
-| `auto/coding:fast`     | grup pentru programare, ponderi pentru latență redusă                     |
-| `auto/coding:cheap`    | grup pentru programare, optimizat pentru cost (alias `auto/coding:floor`) |
-| `auto/reasoning:pro`   | doar modele de raționament/gândire, nivel premium                         |
-| `auto/vision`          | modele cu capabilități vizuale (fără nivel → ponderi echilibrate)         |
-| `auto/multimodal:free` | modele cu capabilități multimodale, doar nivelul gratuit                  |
+| Exemplu                | Se rezolvă la                                                         |
+| ---------------------- | --------------------------------------------------------------------- |
+| `auto/coding:fast`     | grup de programare, ponderi pentru latență redusă                     |
+| `auto/coding:cheap`    | grup de programare, optimizat pentru cost (alias `auto/coding:floor`) |
+| `auto/reasoning:pro`   | numai modele de raționament/gândire, nivel premium                    |
+| `auto/vision`          | modele cu capabilități vizuale (fără nivel → ponderi echilibrate)     |
+| `auto/multimodal:free` | modele cu capabilități multimodale, numai nivelul gratuit             |
 
-Orice valoare validă `auto/<category>[:<tier>]` este rezolvată la cerere; un subset selectat este afișat în `/v1/models` și în panoul de control (`AUTO_SUFFIX_VARIANTS` din `open-sse/services/autoCombo/builtinCatalog.ts`). Filtrarea este **fail-open** — dacă nicio constrângere nu corespunde vreunui model conectat, este utilizat întregul grup, astfel încât rutarea să nu eșueze niciodată. Evaluatorul principal (`combo.ts`) rămâne neschimbat; filtrul pentru categorie/nivel este aplicat în `buildAutoCandidates`.
+Orice valoare validă `auto/<category>[:<tier>]` este rezolvată la cerere; un subset selectat este prezentat în `/v1/models` și în panoul de control (`AUTO_SUFFIX_VARIANTS` din `open-sse/services/autoCombo/builtinCatalog.ts`). Filtrarea este de tip **fail-open** — dacă nicio conexiune nu corespunde unei constrângeri, se utilizează întregul grup, astfel încât rutarea să nu eșueze niciodată. Evaluatorul principal (`combo.ts`) rămâne neschimbat; filtrul de categorie/nivel este aplicat în `buildAutoCandidates`.
 
-> **Informații în timp real despre modele:** adecvarea pentru rutarea automată este determinată de clasamentele **Arena ELO** în timp real + datele despre niveluri de la **models.dev** atunci când indicatorul `ARENA_ELO_SYNC_ENABLED` este activat (în caz contrar, se revine la harta statică de adecvare).
+> **Informații actualizate în timp real despre modele:** adecvarea rutării automate este determinată de clasamentele **Arena ELO** în timp real + datele despre niveluri din **models.dev** atunci când indicatorul `ARENA_ELO_SYNC_ENABLED` este activat (în caz contrar, se revine la harta statică de adecvare).
 
 **Mod de utilizare:**
 
 ```bash
 # Orice IDE sau instrument CLI care acceptă formatul OpenAI
 Base URL: http://localhost:20128/v1
-API Key:  <cheia-endpointului-dvs.>
+API Key:  <cheia-punctului-final>
 
 # În codul/configurația dvs., setați modelul la:
 model: "auto"                 # valoarea implicită echilibrată
@@ -61,71 +61,71 @@ model: "auto/cheap"           # cel mai ieftin per token
 **Ce se întâmplă:**
 
 1. OmniRoute detectează prefixul `auto/` în `src/sse/handlers/chat.ts`
-2. Interoghează toate **conexiunile active la furnizori** din baza de date
+2. Interoghează toate **conexiunile active ale furnizorilor** din baza de date
 3. Filtrează conexiunile care au acreditări valide (cheie API sau token OAuth)
 4. Determină modelul pentru fiecare conexiune (`connection.defaultModel` sau primul model al furnizorului)
-5. Construiește în memorie un **combo virtual** (nu este stocat în DB)
-6. Efectuează rutarea folosind profilul de ponderi al variantei selectate + strategia LKGP
+5. Construiește în memorie o **combinație virtuală** (care nu este stocată în baza de date)
+6. Efectuează rutarea folosind profilul de ponderare al variantei selectate + strategia LKGP
 
 **Proprietăți principale:**
 
-- ✅ **Întotdeauna activ:** Nu este necesară nicio comutare, creare de combo sau configurare
+- ✅ **Întotdeauna activ:** Nu sunt necesare comutatoare, crearea unei combinații sau configurarea
 - ✅ **Dinamic:** Reflectă automat furnizorii conectați în prezent
 - ✅ **Persistența sesiunii:** LKGP asigură prioritizarea ultimului furnizor utilizat cu succes
-- ✅ **Compatibil cu mai multe conturi:** Fiecare conexiune la un furnizor devine un candidat separat
-- ✅ **Fără scrieri în DB:** Combo-ul virtual există doar pe durata solicitării, fără costuri suplimentare de persistență
+- ✅ **Compatibil cu mai multe conturi:** Fiecare conexiune a furnizorului devine un candidat separat
+- ✅ **Fără scrieri în baza de date:** Combinația virtuală există numai pe durata cererii, fără cost suplimentar de persistență
 
-### Controlul candidaților per cheie (#7819, Nivelurile 1+2)
+### Controlul candidaților per cheie (#7819, Nivelul 1+2)
 
 `GET /v1/auto-combo/{channel}/candidates` (`{channel}` = sufixul de după `auto/` sau
-valoarea literală `auto` pentru canalul de bază) este un endpoint **doar pentru citire** care listează
+valoarea literală `auto` pentru canalul de bază) este un punct final **doar pentru citire** care listează
 grupul curent de candidați al unui canal `auto/*`, completat cu accesibilitatea în timp real, reutilizând
-citirile existente privind reziliența (niciodată valoarea brută `state` a întrerupătorului):
+citirile existente pentru reziliență (niciodată valoarea brută `state` a disjunctorului):
 
-- întrerupătorul de circuit al furnizorului — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
-- perioada de așteptare a conexiunii — `rateLimitedUntil` / `testStatus` pe rândul
-  `provider_connections` rezolvat
+- disjunctorul furnizorului — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
+- perioada de așteptare a conexiunii — `rateLimitedUntil` / `testStatus` pe înregistrarea
+  `provider_connections` rezolvată
 - blocarea modelului — `isModelLocked(provider, connectionId, model)`
 
 Fiecare candidat include și indicatorul `excluded` al acestei chei API. Excluderile sunt stocate
 per cheie API (tabelul `auto_candidate_overrides`, migrarea `128`) — OmniRoute este
-single-tenant și nu are niciun tabel `users`, astfel încât `apiKeyId` este cea mai apropiată
-identitate reală per apelant — și sunt aplicate în punctul critic al grupului de candidați din
-`open-sse/services/autoCombo/virtualFactory.ts` prin funcția pură și testată unitar
+cu un singur locatar și nu are un tabel `users`, astfel încât `apiKeyId` este cea mai apropiată
+identitate reală per apelant — și sunt aplicate în punctul central de control al grupului de candidați din
+`open-sse/services/autoCombo/virtualFactory.ts` prin funcția pură, testată unitar,
 `filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`).
-Filtrul este **fail-open**: un apiKeyId/canal nesetat sau eșecul unei interogări DB lasă
-grupul nefiltrat, astfel încât un operator fără suprascrieri configurate beneficiază de o rutare
+Filtrul este de tip **fail-open**: absența valorii apiKeyId/canalului sau eșecul unei interogări a bazei de date
+lasă grupul nefiltrat, astfel încât un operator fără suprascrieri configurate beneficiază de o rutare
 identică la nivel de octet cu cea de dinaintea acestei funcționalități.
 
-**Amânat pentru o problemă ulterioară:** ponderi per candidat + ordonare explicită (Nivelul 3
-— se integrează în fluxurile existente ale strategiilor bazate pe ponderi/priorități) și fixarea unei anumite
-strategii `combo.ts` pentru fiecare canal `auto/*` (Nivelul 4). Consultați planul #7819 pentru întrebarea deschisă
-dacă suprascrierile ar trebui să rămână per cheie API sau să devină globale, având în vedere
+**Amânat pentru un tichet ulterior:** ponderi per candidat + ordonare explicită (Nivelul 3
+— se integrează în căile existente ale strategiilor ponderate/prioritare) și fixarea unei strategii
+`combo.ts` specifice pentru fiecare canal `auto/*` (Nivelul 4). Consultați planul #7819 pentru întrebarea
+deschisă dacă suprascrierile ar trebui să rămână per cheie API sau să devină globale, având în vedere
 modelul cu un singur tenant.
 
 **În culise:**
 
 ```txt
-Solicitare: { model: "auto/coding" }
+Cerere: { model: "auto/coding" }
    ↓
 src/sse/handlers/chat.ts detectează prefixul
    ↓
 createVirtualAutoCombo('coding') → candidatePool din conexiunile active
    ↓
-handleComboChat (același motor ca pentru combinațiile persistate)
+handleComboChat (același motor ca pentru combinațiile persistente)
    ↓
-Evaluarea automată selectează cel mai bun furnizor/model pentru fiecare solicitare
+Evaluarea automată selectează cel mai bun furnizor/model pentru fiecare cerere
 ```
 
 **Fișiere de implementare:**
 
-| Fișier                                                    | Scop                                                          |
-| --------------------------------------------------------- | ------------------------------------------------------------- |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Parser pentru prefix (`parseAutoPrefix`)                      |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Creează obiecte virtuale `AutoComboConfig`                    |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Mecanism de testare pentru simularea registrului de furnizori |
-| `src/sse/handlers/chat.ts`                                | Integrare: scurtcircuitarea prefixului automat                |
-| `src/shared/constants/providers.ts`                       | Intrare de sistem `SYSTEM_PROVIDERS.auto`                     |
+| Fișier                                                    | Scop                                                                 |
+| --------------------------------------------------------- | -------------------------------------------------------------------- |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | Parser de prefix (`parseAutoPrefix`)                                 |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Creează obiecte virtuale `AutoComboConfig`                           |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Punct de extensie pentru simularea registrului de furnizori în teste |
+| `src/sse/handlers/chat.ts`                                | Integrare: scurtcircuitarea prefixului auto                          |
+| `src/shared/constants/providers.ts`                       | Intrarea de sistem `SYSTEM_PROVIDERS.auto`                           |
 
 ## Nume de combo-uri care corespund unui ID real de model
 
@@ -217,7 +217,7 @@ Motorul Auto-Combo selectează dinamic cel mai bun furnizor/model pentru fiecare
 
 ## Pachete de moduri
 
-6 profiluri de ponderi predefinite în `open-sse/services/autoCombo/modePacks.ts`. Fiecare pachet înlocuiește integral ponderile implicite pentru a orienta selecția către un singur obiectiv. Suma ponderilor fiecărui pachet este deja `1.0` (`0.9999` când este afișată cu patru zecimale), astfel încât `normalizeScoringWeights()` nu are nimic semnificativ de corectat atunci când un pachet este activ — valorile de mai jos sunt, cu aproximația dată de rotunjire, cele aplicate de sistemul de punctare.
+6 profiluri de ponderi predefinite în `open-sse/services/autoCombo/modePacks.ts`. Fiecare pachet înlocuiește complet ponderile implicite pentru a orienta selecția către un singur obiectiv. Fiecare pachet are deja suma `1.0` (`0.9999` când este afișată cu patru zecimale), astfel încât `normalizeScoringWeights()` nu are nimic semnificativ de corectat când un pachet este activ — valorile de mai jos sunt, în limitele rotunjirii, cele aplicate de sistemul de punctare.
 
 | Factor                | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
@@ -239,29 +239,29 @@ Motorul Auto-Combo selectează dinamic cel mai bun furnizor/model pentru fiecare
 
 Note:
 
-- **Pachetele includ `quality` și `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) și înlocuiesc integral harta ponderilor (`weights = pack`, nu o îmbinare). `DEFAULT_WEIGHTS` include `quality 0.03 / reliability 0`; selectarea `balanced`/`default` păstrează aceste valori implicite, iar selectarea unui pachet utilizează valorile pachetului de mai sus. Într-un pool rece (încă nu există observații, deci `quality 0.5` și `reliability 1`), acești doi factori adaugă `+0.04` pentru un pachet generic (`0.03 + 0.01`), `+0.045` pentru `quality-first` și `+0.05` pentru `reliability-first`.
-- `tierAffinity`, `specificityMatch` și `resetWindowAffinity` sunt setate explicit la `0` în fiecare pachet.
+- **Pachetele includ `quality` și `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) și înlocuiesc integral harta ponderilor (`weights = pack`, nu o îmbinare). `DEFAULT_WEIGHTS` include `quality 0.03 / reliability 0`; selectarea `balanced`/`default` păstrează aceste valori implicite, iar selectarea unui pachet utilizează valorile pachetului de mai sus. Într-un pool rece (încă nu există observații, deci `quality 0.5` și `reliability 1`), acești doi factori adaugă `+0.04` în cazul unui pachet generic (`0.03 + 0.01`), `+0.045` în cazul `quality-first` și `+0.05` în cazul `reliability-first`.
+- `tierAffinity`, `specificityMatch` și `resetWindowAffinity` sunt explicit `0` în fiecare pachet.
 - Pe scurt, accentul fiecărui pachet:
   - **ship-fast** → latencyInv 0.3048 + health 0.2667 (conexiuni sănătoase, cu latență redusă)
-  - **cost-saver** → costInv 0.3324 (câștigă tokenurile cu cel mai mic cost)
-  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, cea mai mare valoare dintre toate pachetele (cel mai bun model pentru sarcină, cu rezultate consecvente)
+  - **cost-saver** → costInv 0.3324 (câștigă tokenurile cele mai ieftine)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, cea mai mare valoare dintre toate pachetele (cel mai bun model pentru sarcină, consecvent)
   - **offline-friendly** → quota 0.3324 + health 0.2667 (marjă disponibilă maximă, indiferent de viteză/cost)
   - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, cea mai mare valoare dintre toate pachetele (cele mai puține surprize)
-  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (profil pentru injectarea defecțiunilor)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (pachetul de ponderi pe care `auto/chaos` îl atribuie membrilor panoului său; distribuirea paralelă nu citește aceste ponderi, iar acesta nu este un profil de injectare a defecțiunilor, consultați [CHAOS-MODE.md](../guides/CHAOS-MODE.md#autochaos-parallel-fan-out))
 
-### Controale per cerere (antete) — #6023 / #6024 / #6025 / #3470
+### Controale per solicitare (anteturi) — #6023 / #6024 / #6025 / #3470
 
-Un combo `auto` poate fi dirijat **pentru fiecare cerere** prin intermediul a trei antete, fără a modifica configurația stocată a combo-ului. Acestea se aplică numai strategiei `auto` și numai cererii care le conține; valorile `modePack`/`budgetCap`/`budgetFallback` salvate ale combo-ului sunt utilizate atunci când antetul lipsește.
+O combinație `auto` poate fi dirijată **pentru fiecare solicitare** prin intermediul a trei anteturi, fără a modifica configurația stocată a combinației. Acestea se aplică numai strategiei `auto` și numai solicitării care le conține; valorile `modePack`/`budgetCap`/`budgetFallback` salvate ale combinației sunt utilizate când antetul lipsește.
 
-| Antet                         | Acceptă                                                                                                                                                                                                | Efect                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| :---------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-Mode`            | un alias de presetare (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) sau un nume brut de pachet (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Suprascrie ponderile de evaluare pentru această solicitare. `balanced`/`default` impun ponderile implicite (fără pachet). Valorile necunoscute sunt ignorate (configurația este păstrată).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| `X-OmniRoute-Budget`          | un număr pozitiv (valoarea maximă în USD per solicitare)                                                                                                                                               | Plafon strict de cost: candidații al căror cost estimat îl depășește sunt filtrați înainte de selecție. Comportamentul atunci când **fiecare** candidat îl depășește este controlat de `X-OmniRoute-Budget-Fallback` de mai jos.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `X-OmniRoute-Budget-Fallback` | `cheapest` (implicit, aliasuri: `cheapest-viable`, `soft`) sau `strict` (aliasuri: `block`, `hard`)                                                                                                    | `cheapest`: revine la candidatul cu cel mai mic cost la nivel global, chiar dacă acesta depășește în continuare plafonul (comportament moștenit). `strict`: refuză selecția — solicitarea eșuează imediat cu `HTTP 402`, în loc să depășească bugetul în mod silențios. Valorile necunoscute sunt ignorate.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `X-OmniRoute-Effort`          | `auto` (alte valori sunt rezervate)                                                                                                                                                                    | Buget adaptiv de raționament: când solicitarea nu conține **niciun** câmp de raționament, indiferent de formă (`reasoning_effort`, `reasoning`, `thinking`), gateway-ul transformă `auto` în `low`/`medium`/`high` pe baza unor semnale deterministe privind structura solicitării (lungimea ultimului mesaj al utilizatorului, dimensiunea contextului până la ultimul mesaj al utilizatorului, rezultatele anterioare ale instrumentelor, adâncimea buclei de instrumente). Semnalele sunt limitate la runda curentă — tot ce urmează după ultimul mesaj al utilizatorului este ignorat — astfel încât fiecare solicitare dintr-o buclă de instrumente este evaluată la același nivel (fixare fără stare per rundă, fără stare de sesiune, fără escaladare în mijlocul buclei care ar invalida prefixele cache-ului de prompturi din amonte). Un câmp de raționament explicit furnizat de client are întotdeauna prioritate. Se aplică solicitărilor a căror expediere în amonte utilizează formatul OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` este un câmp specific formatului OpenAI, astfel încât antetul nu are niciun efect asupra unei solicitări direcționate către Claude sau Gemini (consultați `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
+| Antet                         | Acceptă                                                                                                                                                                                                | Efect                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| :---------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`            | un alias de presetare (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) sau un nume brut de pachet (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Suprascrie ponderile de punctare pentru această solicitare. `balanced`/`default` impun ponderile implicite (fără pachet). Valorile necunoscute sunt ignorate (configurația este păstrată).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `X-OmniRoute-Budget`          | un număr pozitiv (valoarea maximă în USD per solicitare)                                                                                                                                               | Plafon strict de cost: candidații al căror cost estimat îl depășește sunt filtrați înainte de selecție. Comportamentul atunci când **toți** candidații îl depășesc este controlat de `X-OmniRoute-Budget-Fallback` de mai jos.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (implicit, aliasuri: `cheapest-viable`, `soft`) sau `strict` (aliasuri: `block`, `hard`)                                                                                                    | `cheapest`: revine la candidatul cu cel mai mic cost la nivel global, chiar dacă acesta depășește în continuare plafonul (comportament moștenit). `strict`: refuză selecția — solicitarea eșuează imediat cu `HTTP 402`, în loc să depășească neobservat bugetul. Valorile necunoscute sunt ignorate.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `X-OmniRoute-Effort`          | `auto` (alte valori sunt rezervate)                                                                                                                                                                    | Buget de gândire adaptiv: când solicitarea **nu** conține niciun câmp de raționament, indiferent de formă (`reasoning_effort`, `reasoning`, `thinking`), gateway-ul rezolvă valoarea `auto` la `low`/`medium`/`high` pe baza unor semnale deterministe privind structura solicitării (lungimea ultimului mesaj al utilizatorului, dimensiunea contextului până la ultimul mesaj al utilizatorului, rezultatele anterioare ale instrumentelor, adâncimea buclei de instrumente). Semnalele sunt limitate la runda curentă — tot ce urmează după ultimul mesaj al utilizatorului este ignorat — astfel încât fiecare solicitare dintr-o buclă de instrumente este rezolvată la același nivel (fixare fără stare pentru fiecare rundă, fără stare de sesiune, fără escaladare în mijlocul buclei care ar invalida prefixele cache-ului de prompturi din amonte). Un câmp de raționament explicit furnizat de client are întotdeauna prioritate. Se aplică solicitărilor a căror rutare în amonte este rezolvată la structura OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` este un câmp specific structurii OpenAI, astfel încât antetul nu are niciun efect asupra unei solicitări direcționate către Claude sau Gemini (consultați `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
 
 ```bash
-# Forțează profilul cel mai rapid, limitează această solicitare la 0,05 USD și blochează ferm în loc să depășească bugetul
+# Forțează profilul cel mai rapid, limitează această solicitare la 0,05 USD și blochează strict în loc să depășească bugetul
 curl -sS http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-OmniRoute-Mode: fast" \
@@ -271,7 +271,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 ```
 
 Rezolvarea este o funcție pură (`open-sse/services/autoCombo/requestControls.ts`); valorile
-rezolvate sunt transmise intrărilor existente `config.modePack` / `config.budgetCap` /
+rezolvate alimentează intrările existente `config.modePack` / `config.budgetCap` /
 `config.budgetFallback` ale motorului. Valoarea `config.budgetFallback` stocată a unei combinații ("strict" |
 "cheapest") stabilește politica persistentă; antetul o suprascrie pentru o singură solicitare.
 
@@ -771,11 +771,17 @@ Incluzând varianta simplă `auto` (implicită), plus cele 6 valori `AutoVariant
 
 ## Cum se integrează nivelurile în Auto-Combo
 
-Funcția de punctare cu 16 factori (`open-sse/services/autoCombo/scoring.ts`) tratează apartenența la nivel drept două semnale: `tierPriority` (0.0476) și `tierAffinity` (0.0476). Consultați [tabelul canonic al factorilor de punctare](#how-it-works-persisted-auto-combos) de mai sus pentru setul complet `DEFAULT_WEIGHTS` — suprascrierile pentru fiecare pachet (ship-fast/cost-saver/quality-first/offline-friendly) sunt enumerate în tabelul „Profiluri de ponderare pentru fiecare pachet”.
+Funcția de evaluare cu 16 factori (`open-sse/services/autoCombo/scoring.ts`) tratează apartenența
+la un nivel drept două semnale: `tierPriority` (0.0476) și `tierAffinity` (0.0476). Consultați
+[tabelul canonic al factorilor de evaluare](#how-it-works-persisted-auto-combos) de mai sus pentru setul
+complet `DEFAULT_WEIGHTS` — suprascrierile pentru fiecare pachet (ship-fast/cost-saver/quality-first/
+offline-friendly) sunt enumerate în tabelul „Profiluri de ponderi pentru fiecare pachet”.
 
-Nivelul singur **nu** impune ca Nivelul 1 să fie primul — dacă latența Nivelului 1 este slabă sau raportul cost-calitate este suboptim, Nivelul 2 câștigă. Pentru a impune ordinea nivelurilor, utilizați strategia de combinație `priority` și aranjați furnizorii în funcție de nivel.
+Nivelul singur **nu** impune ca Nivelul 1 să fie primul — dacă latența Nivelului 1 este mare sau
+raportul cost-calitate este suboptim, câștigă Nivelul 2. Pentru a impune ordonarea după nivel, utilizați
+strategia de combinație `priority` și organizați furnizorii în funcție de nivel.
 
-Pentru a favoriza puternic Nivelul 1 (abonament), creșteți ponderea `tierPriority`:
+Pentru a favoriza puternic Nivelul 1 (abonament), măriți ponderea `tierPriority`:
 
 ```json
 {
@@ -784,7 +790,7 @@ Pentru a favoriza puternic Nivelul 1 (abonament), creșteți ponderea `tierPrior
 }
 ```
 
-Consultați `docs/marketing/TIERS.md` pentru definițiile nivelurilor și clasificarea furnizorilor.
+Consultați [`docs/guides/TIERS.md`](../guides/TIERS.md) pentru definițiile nivelurilor și clasificarea furnizorilor.
 
 ## Testare și acoperire
 

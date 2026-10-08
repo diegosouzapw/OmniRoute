@@ -15,7 +15,7 @@ OmniRoute turi maršrutą atpažįstančią autorizacijos sistemą, kuri kontrol
 
 ## Du autentifikavimo režimai
 
-### 1. API raktas (Bearer)
+### 1. API raktas („Bearer“)
 
 Naudojamas su OpenAI / Anthropic / Gemini suderinamoms kliento API ir keliems valdymo maršrutams, kai raktas turi `manage` aprėptį.
 
@@ -25,29 +25,33 @@ Authorization: Bearer <api-key>
 
 Tikrinamas naudojant `isValidApiKey()` / `extractApiKey()`, esančias `src/sse/services/auth.ts`, ir pakartotinai eksportuojamas per `src/shared/utils/apiAuth.ts`. Tikrintuvas taip pat priima `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` aplinkos kintamuosius kaip nuolatinius tiesioginio perdavimo raktus (problema #1350).
 
-### 2. Valdymo skydelio sesija (auth_token slapukas)
+### 2. Valdymo skydelio seansas (`auth_token` slapukas)
 
-Skirta valdymo skydelio puslapiams ir administravimo operacijoms.
+Skirtas valdymo skydelio puslapiams ir administravimo operacijoms.
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-Slapukas laikomas sesija tik tada, kai JWT patikrinamas **ir** turi `authenticated: true`
+Slapukas laikomas seansu tik tada, kai JWT sėkmingai patikrinamas **ir** turi `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Kiekvienas
-slapuko naudotojas (maršruto apsauga, authz sekos atnaujinimas, WebSocket ryšio užmezgimas, tiesioginis
+slapuko naudotojas (valdymo skydelio maršruto apsauga (`isDashboardSessionAuthenticated()`), autorizavimo konvejerio atnaujinimas, WebSocket prisijungimo užmezgimas, tiesioginis
 serveris, `/api/settings/require-login`, `/api/auth/status`) naudoja šią pagalbinę funkciją.
-Egzistuoja ir kitų JWT, pasirašytų naudojant `JWT_SECRET` — Cursor CLI tiesioginis perdavimas raktų
-turėtojams išduoda žetonus su `iss "omniroute" / aud "cursor-cli"` — tačiau jie niekada nelaikomi sesijomis
+Yra ir kitų JWT, pasirašytų naudojant `JWT_SECRET` — Cursor CLI tiesioginis perdavimas raktų
+turėtojams išduoda prieigos raktus su `iss "omniroute" / aud "cursor-cli"` — tačiau jie niekada nelaikomi seansais
 (#13298).
 
-Tikrinama naudojant `isDashboardSessionAuthenticated()`, esančią `src/shared/utils/apiAuth.ts`. Seka automatiškai atnaujina JWT, kai iš jo 30 dienų galiojimo laikotarpio lieka mažiau nei 7 dienos.
+Tikrinama naudojant `isDashboardSessionAuthenticated()`, esančią `src/shared/utils/apiAuth.ts`. Konvejeris automatiškai atnaujina JWT, kai iki jo 30 dienų galiojimo pabaigos lieka mažiau nei 7 dienos.
 
-Kai kurie valdymo maršrutai priima **bet kurį** režimą: slapuką ARBA `Bearer <key>`, kai API raktas turi `manage` (arba `admin`) aprėptį. Būtent tai suteikia galimybę naudoti „konfigūravimo per API iškvietimus“ darbo eigą, pridėtą v3.8.
+Seansas taip pat gali baigtis nepasibaigus 30 dienų laikotarpiui, nes kiekvienas išdavėjas naudoja `mintDashboardSessionToken` (išdavimo laiką `iat` ir identifikatorių `jti`), o tikrintuvas tikrina du nustatymus: `sessionsValidAfter`, nustatomą pakeitus slaptažodį, kad visi anksčiau išduoti seansai nebebūtų patvirtinami (slaptažodį pakeitusi naršyklė gauna naują slapuką), ir `revokedDashboardSessions`, į kurį `POST /api/auth/logout` įtraukia atsijungusio seanso `jti`. Senesnės laidos sukurti seansai neturi nė vieno iš šių teiginių ir lieka galioti iki pirmojo slaptažodžio pakeitimo. Jei nustatymų nepavyksta nuskaityti, seansu nepasitikima.
+
+Kai kurie valdymo maršrutai priima **bet kurį** režimą: slapuką ARBA `Bearer <key>`, kai API raktas turi `manage` (arba `admin`) aprėptį. Būtent tai įgalina „konfigūruojama per API iškvietimus“ darbo eigą, pridėtą v3.8.
 
 #### Pasirenkamas OIDC prisijungimo barjeras (#6973)
 
-Valdymo skydelio administratoriaus prisijungimas kartu su numatytuoju prisijungimu naudojant slaptažodį taip pat palaiko **pasirenkamą** OIDC (OpenID Connect) eigą — prisijungimas naudojant slaptažodį niekada nepašalinamas, tik papildomas:
+Valdymo skydelio administratoriaus prisijungimas taip pat palaiko **pasirinktinai įjungiamą** OIDC (OpenID Connect) eigą
+greta numatytojo prisijungimo naudojant slaptažodį — prisijungimas naudojant slaptažodį niekada nepašalinamas, tik
+papildomas:
 
 - Išjungta, nebent `settings.oidcEnabled === true` **ir** `oidcIssuer` /
   `oidcClientId` / `oidcClientSecret` yra sukonfigūruoti (Nustatymai → Autentifikavimas).
@@ -55,19 +59,19 @@ Valdymo skydelio administratoriaus prisijungimas kartu su numatytuoju prisijungi
 - `GET /api/auth/oidc/login` aptinka `authorization_endpoint` iš išdavėjo
   `/.well-known/openid-configuration` (jei nepavyksta, naudojamas
   `<issuer>/authorize`), sukuria peradresavimo URI pagal gaunamą užklausą
-  (atsižvelgdamas į `x-forwarded-proto`) ir peradresuoja į IdP, kartu perduodamas atsitiktinę `state`
-  reikšmę, saugomą `httpOnly` `oidc_state` slapuke.
+  (atsižvelgdamas į `x-forwarded-proto`) ir peradresuoja į IdP su atsitiktine `state`
+  reikšme, saugoma `httpOnly` `oidc_state` slapuke.
 - `GET /api/auth/oidc/callback` patikrina `state`, iškeičia autorizavimo
-  kodą ir patikrina ID žetono parašą naudodamas išdavėjo JWKS
-  (`jose` funkciją `createRemoteJWKSet`, talpykloje saugomą pagal kiekvieną JWKS URI), atlikdamas `issuer` / `audience`
-  patikras. Pasirenkamas `oidcAllowedSubjects` leidžiamųjų reikšmių sąrašas lyginamas su žetono
-  `sub` arba `email` deklaracija — į el. pašto deklaraciją atsižvelgiama tik tada, kai
-  `email_verified === true`, todėl IdP nepatvirtintas el. pašto adresas niekada negali
-  įveikti šio barjero.
-- Sėkmės atveju išduodamas **visiškai toks pats** 30 dienų `auth_token` JWT, kokį išduoda prisijungimas
+  kodą ir patikrina ID prieigos rakto parašą naudodamas išdavėjo JWKS
+  (`jose` funkciją `createRemoteJWKSet`, talpykloje saugomą kiekvienam JWKS URI), atlikdamas `issuer` / `audience`
+  patikras. Pasirinktinis `oidcAllowedSubjects` leidžiamų reikšmių sąrašas lyginamas su prieigos rakto
+  `sub` teiginiu arba jo `email` teiginiu — į el. pašto teiginį atsižvelgiama tik tada, kai
+  `email_verified === true`, todėl nepatvirtintas el. pašto adresas IdP sistemoje niekada negali įveikti
+  šio barjero.
+- Sėkmės atveju sukuriamas **visiškai toks pats** 30 dienų `auth_token` JWT, kokį išduoda prisijungimas
   naudojant slaptažodį (`src/app/api/auth/login/route.ts`), todėl likusi
-  valdymo skydelio sesijos seka (automatinis atnaujinimas, slapuko žymos) nesikeičia —
-  OIDC pakeičia tik tai, kaip išduodamas slapukas, o ne jo suteikiamas teises.
+  valdymo skydelio seanso konvejerio dalis (automatinis atnaujinimas, slapuko žymos) lieka nepakitusi —
+  OIDC pakeičia tik slapuko sukūrimo būdą, o ne jo suteikiamas teises.
 
 ## Maršrutų klasės
 

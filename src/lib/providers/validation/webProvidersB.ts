@@ -557,8 +557,19 @@ async function validateDevinCliKeyFallback(
  */
 export async function validateDevinCloudAgentProvider({
   apiKey,
+  allowLocalSpawn = true,
 }: {
   apiKey: string;
+  /**
+   * S-01 (#15159): whether this caller may cause the local Devin CLI fallback to
+   * spawn. Defaults to permissive because the direct callers (credential-health
+   * scheduler, VNC harvest — the latter is already loopback-gated) are internal.
+   * Remote-reachable routes MUST pass `false` for non-loopback callers: the
+   * fallback is `spawn(bin, ["acp","--agent-type","summarizer"])`, and Hard Rules
+   * #15/#17 require loopback enforcement before any auth check so a leaked JWT via
+   * tunnel cannot trigger process spawning.
+   */
+  allowLocalSpawn?: boolean;
 }): Promise<{ valid: boolean; error: string | null; warning?: string }> {
   try {
     const response = await validationWrite("https://api.devin.ai/v1/sessions?limit=1", {
@@ -573,6 +584,14 @@ export async function validateDevinCloudAgentProvider({
       // but are exactly what the devin-cli executor authenticates with (via
       // WINDSURF_API_KEY). Fall back to probing the CLI itself — the real
       // routing path — before declaring the key invalid.
+      //
+      // S-01 (#15159): that fallback spawns a child process, so it is skipped
+      // entirely for callers that are not loopback. The HTTP verdict below is
+      // unchanged — a rejected key is still invalid, just not re-probed on the
+      // host on behalf of a remote caller.
+      if (!allowLocalSpawn) {
+        return { valid: false, error: "Invalid API key" };
+      }
       const cliCheck = await validateDevinCliKeyFallback(apiKey);
       if (cliCheck.valid) {
         return {

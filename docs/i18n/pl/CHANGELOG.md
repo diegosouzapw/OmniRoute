@@ -8,6 +8,19 @@
 
 ---
 
+## [3.8.52] — TBD
+
+_Living section — cycle opened at the v3.8.51 freeze (parallel-cycle model). Bullets are aggregated from `changelog.d/` fragments at each `/generate-release` phase._
+
+### ✨ New Features
+
+### 🐛 Bug Fixes
+
+### 📝 Maintenance
+
+---
+
+
 ## [3.8.51] — 2026-09-29
 
 _Living section — reconciled 2026-09-29 from all cycle commits (`091589089c` → `4aed4b4a08`, 1,972 non-merge commits). Bullets carry the merged PR and its author; direct pushes are listed with their commit hash. Regenerated at each `/generate-release` phase._

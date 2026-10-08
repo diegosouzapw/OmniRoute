@@ -140,12 +140,46 @@ skapa meddelanden som avslöjar topologin från första början.
 `tests/unit/error-message-sanitization.test.ts` säkerställer:
 
 - Varje route under `/api/model-combo-mappings/*` returnerar sanerade svarskroppar vid 4xx/5xx.
-- `sanitizeErrorMessage` tar bort stackspår som sträcker sig över flera rader.
+- `sanitizeErrorMessage` tar bort flerradiga stackspårningar.
 - `sanitizeErrorMessage` ersätter absoluta POSIX- och Windows-sökvägar med `<path>`.
-- `sanitizeErrorMessage` hanterar indata som är instanser av `null`/`undefined`/`Error` på ett säkert sätt.
-- `buildErrorBody` exponerar aldrig stackspår i sitt `message`-fält.
+- `sanitizeErrorMessage` hanterar indata i form av `null`/`undefined`/`Error`-instanser säkert.
+- `buildErrorBody` exponerar aldrig stackspårningar i sitt `message`-fält.
 
-När du lägger till en ny route eller exekverare ska du kopiera verifieringsmönstret från den här filen. Täckningsgrinden (`npm run test:coverage`) kräver ≥60 % satser/rader/funktioner/grenar — felvägar måste täckas.
+När du lägger till en ny route eller exekverare ska du kopiera verifieringsmönstret från den här filen. Täckningskravet (`npm run test:coverage`) kräver ≥60 % täckning för satser/rader/funktioner/grenar — felvägar måste täckas.
+
+### Den statiska kontrollen: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` genomsöker `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` och varje `src/app/api/**/route.ts` efter ett rått fångat fel (`err.message` / `err.stack`) eller ett rått uppströms `body.error.message` som når en klientriktad svarskropp.
+
+**Förtroende gäller per anrop, aldrig per fil** (G-03, #15159). Kontrollen brukade hoppa över en hel fil så fort den såg en import från en `utils/error`-sökväg — ett filomfattande undantag tillämpades på en risk som gäller per anrop. En enda korrekt `import { sanitizeErrorMessage }` undantog permanent alla andra sänkor i filen, vilket är hur en faktisk läcka kunde driftsättas trots godkänd kontroll. Nu betraktas en rad som betrodd endast när den faktiskt går via en godkänd byggare eller sanerare:
+
+| Radens form                                                                                                                | Betrodd?               |
+| -------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| anropar `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …                      | ja                     |
+| anropar en kanonisk byggare **som den här filen importerar** från `open-sse/utils/error` eller `src/lib/api/errorResponse` | ja                     |
+| en godkänd byggare anropas över **flera rader**, så att `message:`-fältet finns på en senare rad                           | ja                     |
+| anropar en fillokal `function errorResponse(...)` vars egen kropp sanerar                                                  | ja                     |
+| vidarebefordrar `err.message` / `err.stack` någon annanstans                                                               | **nej — överträdelse** |
+
+Två konsekvenser som är bra att känna till:
+
+- Att importera `errorResponse` innebär _inte_ generellt förtroende. En fil som definierar sin egen `errorResponse` flaggas fortfarande vid anropsplatsen, eftersom kontrollen avgör förtroende per symbol, inte per fil. Detsamma gäller för `createErrorResponse`.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` följt av `error: body.error.message` är det **sanerade** idiom som används i `*-fetch.ts`-exekverarna och flaggas inte.
+
+Båda godkända byggarmodulerna räknas: `open-sse/utils/error.ts` och `src/lib/api/errorResponse.ts`. Den andra används av de cirka 54 route-hanterarna utanför `open-sse`, och den sanerar båda sina exporter.
+
+Två former som **inte** är överträdelser, men som kontrollen tidigare rapporterade som läckor:
+
+- ett rått fel inuti en **granskningsrad** — `saveCallLog({ error: err.message })`, `logToolCall(...)` eller en loggare som tar ett meddelande först (`log.error("BATCHES", "sweep failed", { error: err.message })`). Det klientriktade svaret på de följande raderna kan mycket väl vara en statisk `buildErrorBody`.
+- ett **flerradigt** anrop till en godkänd byggare, där `message:`-fältet inte namnger någon byggare alls:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` fryser befintliga överträdelser så att kontrollen endast blockerar _nya_. `assertNoStale` tar automatiskt bort en post när dess överträdelse har åtgärdats, så att frysningen inte kan förstenas. Regressionsskydd: `tests/unit/check-error-helper.test.ts` och `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Relaterade kontroller
 

@@ -9,6 +9,7 @@ permissions:
 
 jobs:
   heap:
+    if: ${{ github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute' }}
     name: Heap-growth gate
     runs-on: ubuntu-latest
     steps:
@@ -23,6 +24,7 @@ jobs:
       - run: npm run test:heap
 
   chaos:
+    if: ${{ github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute' }}
     name: Resilience chaos (fault injection)
     runs-on: ubuntu-latest
     steps:
@@ -37,6 +39,7 @@ jobs:
       - run: npm run test:chaos
 
   k6-soak:
+    if: ${{ github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute' }}
     name: k6 load/soak
     runs-on: ubuntu-latest
     steps:
@@ -77,6 +80,7 @@ jobs:
         run: kill "$(cat server.pid)" || true
 
   a11y:
+    if: ${{ github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute' }}
     name: A11y axe (nightly, freeze-and-alert)
     # #11965: this job runs a backend-only `next build`; the hosted 7 GB runner cannot build
     # release/v3.8.51 (VM shutdown ~7 min in), so it targets the box's light pool (`omni-light`:

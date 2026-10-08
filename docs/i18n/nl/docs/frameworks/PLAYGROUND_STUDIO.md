@@ -188,16 +188,16 @@ Authenticatie: optioneel (`REQUIRE_API_KEY`). Fouten via `buildErrorBody()` (har
 
 ---
 
-## Probleemoplossing
+## Problemen oplossen
 
-| Symptoom                                                | Oorzaak                                            | Oplossing                                                                                                        |
-| ------------------------------------------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Monaco-editor wordt niet weergegeven op het API-tabblad | SSR heeft Monaco geladen                           | Controleer of `ApiTab` gebruikmaakt van `dynamic(..., { ssr: false })`                                           |
-| Vergelijkingsstreams starten na elkaar                  | Onjuist gebruik van `Promise.all`                  | Alle streams moeten binnen één aanroep van `Promise.all` worden gestart                                          |
-| Metrieken tonen `null` voor TTFT                        | Handler voor het eerste fragment is niet gekoppeld | Controleer of `useStreamMetrics.onFirstChunk()` wordt aangeroepen in de SSE-readerlus                            |
-| Voorinstelling wordt niet opgeslagen                    | DB-migratie is niet uitgevoerd                     | Voer `npm run db:migrate` uit of herstart de server (de migratie wordt bij het opstarten automatisch uitgevoerd) |
-| Prompt verbeteren geeft 502 terug                       | Model is niet ingesteld in Config                  | De gebruiker moet een modelnaam invoeren in het Config-paneel voordat de prompt wordt verbeterd                  |
-| Geëxporteerde code toont `MISSING_API_KEY`              | Tijdelijke aanduiding is niet ingevoegd            | `codeExport.ts` gebruikt altijd `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`                                     |
+| Symptoom                                                | Oorzaak                                      | Oplossing                                                                                        |
+| ------------------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Monaco-editor wordt niet weergegeven op het API-tabblad | SSR heeft Monaco geladen                     | Controleer of `ApiTab` gebruikmaakt van `dynamic(..., { ssr: false })`                           |
+| Vergelijkingsstreams worden na elkaar gestart           | Onjuist gebruik van `Promise.all`            | Alle streams moeten binnen één `Promise.all`-aanroep worden gestart                              |
+| Metrieken tonen `null` voor TTFT                        | Handler voor het eerste chunk niet gekoppeld | Controleer of `useStreamMetrics.onFirstChunk()` wordt aangeroepen in de SSE-readerlus            |
+| Preset wordt niet opgeslagen                            | Databasemigratie is niet uitgevoerd          | Start de server opnieuw: migraties worden automatisch uitgevoerd bij het opstarten               |
+| Prompt verbeteren retourneert 502                       | Model is niet ingesteld in Config            | De gebruiker moet een modelnaam invoeren in het Config-venster voordat de prompt wordt verbeterd |
+| Geëxporteerde code toont `MISSING_API_KEY`              | Tijdelijke aanduiding niet ingevoegd         | `codeExport.ts` gebruikt altijd `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`                     |
 
 ---
 

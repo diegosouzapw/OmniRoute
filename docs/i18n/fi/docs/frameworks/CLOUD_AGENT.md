@@ -110,15 +110,15 @@ export abstract class CloudAgentBase {
     c: AgentCredentials
   ): Promise<{ name: string; url: string; branch?: string }[]>;
 
-  protected mapStatus(raw: string): CloudAgentStatus; // heuristinen palveluntarjoajan merkkijono → enumeraatio
+  protected mapStatus(raw: string): CloudAgentStatus; // heuristinen ylävirran merkkijono → enumeraatio
   protected generateTaskId(): string; // `task_<ts>_<rand>`
   protected generateActivityId(): string; // `act_<ts>_<rand>`
 }
 ```
 
-`CodexCloudAgent.approvePlan` aiheuttaa tarkoituksella poikkeuksen — Codex Cloud luo suunnitelmat automaattisesti, eikä siinä ole hyväksyntävaihetta. `CodexCloudAgent.listSources` palauttaa arvon `[]`.
+`CodexCloudAgent.approvePlan` aiheuttaa tarkoituksella poikkeuksen — Codex Cloud suunnittelee automaattisesti eikä siinä ole hyväksyntävaihetta. `CodexCloudAgent.listSources` palauttaa arvon `[]`.
 
-`CursorCloudAgent` ohjaa Cursorin Background / Cloud Agents -agentteja virallisen REST-rajapinnan (`api.cursor.com/v0`) kautta käyttäen **käyttäjän tai palvelutilin API-avainta** — tämä on turvallisempi, ensisijaisen osapuolen vaihtoehto Cursor IDE:n OAuth-istunnon uudelleenkäytölle (palveluntarjoaja `cursor`, johon liittyy varoitus porttikiellon riskistä). Se on tavallinen REST-sovitin (ei natiivia `@cursor/sdk`-riippuvuutta). `approvePlan` aiheuttaa poikkeuksen (Cursor-agentit toimivat itsenäisesti); `listSources` luettelee avaimella käytettävissä olevat tietovarastot. Cursor palauttaa SUURAAKKOSIN kirjoitetut tilaenumeraatiot (`CREATING`/`RUNNING`/`FINISHED`/`ERROR`), jotka yhdistetään eksplisiittisesti yhteiseen `CloudAgentStatus`-enumeraatioon. `baseUrl` voidaan ohittaa tunnistetietokohtaisesti, joten API-versio tai -polku voidaan korjata ilman koodimuutosta.
+`CursorCloudAgent` ohjaa Cursorin Background / Cloud Agents -agentteja sen virallisen REST-rajapinnan (`api.cursor.com/v0`) kautta käyttäen **käyttäjän tai palvelutilin API-avainta** — tämä on turvallisempi, Cursorin oma vaihtoehto Cursor IDE:n OAuth-istunnon uudelleenkäytölle (palveluntarjoaja `cursor`, johon liittyy varoitus käyttökiellon riskistä). Se on tavallinen REST-sovitin (ei natiivia `@cursor/sdk`-riippuvuutta). `approvePlan` aiheuttaa poikkeuksen (Cursor-agentit toimivat itsenäisesti); `listSources` luettelee avaimella käytettävissä olevat tietovarastot. Cursor palauttaa suuraakkosin kirjoitetut tilaluettelot (`CREATING`/`RUNNING`/`FINISHED`/`ERROR`), jotka muunnetaan eksplisiittisesti yhteiseen `CloudAgentStatus`-tyyppiin. `baseUrl` voidaan ohittaa tunnistetietokohtaisesti, joten API-versio tai -polku voidaan korjata ilman koodimuutosta.
 
 ## Toimialatyypit
 
@@ -295,24 +295,31 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 ulkoista palveluntarjoajaa — `CloudAgentBase` ei sisällä keskeytyksen RPC-kutsua. Lopeta tehtävä
 palveluntarjoajan omassa hallintakonsolissa, jotta ulkoisen palvelun laskutus päättyy.
 
-## REST API — pilvipalveluntarjoajien integrointi
+## REST API — Pilvipalveluntarjoajien integrointi
 
-Näitä hakemiston `src/app/api/cloud/` alla olevia avustavia päätepisteitä käyttävät etäasiakkaat
-(CLI, Electron-sovellus tai synkronointityöntekijät) palveluntarjoajan yhteysmetatietojen
-lukemiseen ja mallialiasten selvittämiseen. Todennus tehdään **tavallisella API-avaimella**
-(`validateApiKey`-toiminnon kautta), ei tehtäväpäätepisteiden käyttämällä hallintatodennuksella.
+Näitä hakemiston `src/app/api/cloud/` alla olevia apupäätepisteitä käyttävät etäasiakkaat
+(CLI, Electron-sovellus tai synkronointityöntekijät) palveluntarjoajien yhteysmetatietojen
+lukemiseen ja mallialiasten selvittämiseen. Ne todennetaan **API-avaimella**
+(`validateApiKey`-toiminnon kautta), ei tehtäväpäätepisteiden käyttämällä hallintatodennuksella;
+`/api/cloud/auth`-päätepisteen palauttama sisältö riippuu avaimen käyttöalueesta (katso alta).
 
-| Menetelmä | Polku                           | Tarkoitus                                                                 |
-| --------- | ------------------------------- | ------------------------------------------------------------------------- |
-| POST      | `/api/cloud/auth`               | Validoi API-avain ja palauta peitetyt yhteysmetatiedot sekä mallialiakset |
-| PUT       | `/api/cloud/credentials/update` | Päivitä `accessToken` / `refreshToken` / `expiresAt`                      |
-| POST      | `/api/cloud/model/resolve`      | Selvitä mallialias muotoon `{ provider, model }`                          |
-| GET       | `/api/cloud/models/alias`       | Listaa kaikki mallialiakset                                               |
-| PUT       | `/api/cloud/models/alias`       | Aseta mallialias (ja synkronoi se automaattisesti Cloudiin, jos käytössä) |
+| Menetelmä | Polku                           | Tarkoitus                                                                  |
+| --------- | ------------------------------- | -------------------------------------------------------------------------- |
+| POST      | `/api/cloud/auth`               | Vahvista API-avain ja palauta peitetyt yhteysmetatiedot sekä mallialiakset |
+| PUT       | `/api/cloud/credentials/update` | Päivitä `accessToken` / `refreshToken` / `expiresAt`                       |
+| POST      | `/api/cloud/model/resolve`      | Selvitä mallialias muotoon `{ provider, model }`                           |
+| GET       | `/api/cloud/models/alias`       | Luettele kaikki mallialiakset                                              |
+| PUT       | `/api/cloud/models/alias`       | Aseta mallialias (ja synkronoi automaattisesti Cloudiin, jos käytössä)     |
 
-`/api/cloud/auth` ei koskaan palauta käsittelemättömiä `apiKey`- / `accessToken`- / `refreshToken`-arvoja. Se
-palauttaa arvot `hasApiKey`, `hasAccessToken`, `hasRefreshToken` sekä peitetyn esikatselun
-(`maskedApiKey`: ensimmäiset 4 + `****` + viimeiset 4).
+`/api/cloud/auth` ei koskaan palauta käsittelemättömiä `apiKey`- / `accessToken`- /
+`refreshToken`-arvoja. Se palauttaa arvot `hasApiKey`, `hasAccessToken` ja `hasRefreshToken`
+aktiivisille yhteyksille, joita avain saa käyttää (avaimelle, jota on rajoitettu
+`allowedConnections`-asetuksella, näytetään vain kyseiset yhteydet). Jos API-avaimen
+käyttöalueena on `manage` tai `admin`, mukaan lukien `OMNIROUTE_API_KEY`-muuttujasta saatu
+käyttöönottoavain, vastaus sisältää myös peitetyn esikatselun (`maskedApiKey`: enintään 4
+merkkiä kummastakin päästä, lyhyestä avaimesta vähemmän eikä yhtään, jos avaimessa on
+enintään 8 merkkiä) sekä yhteyden `projectId`-arvon. Molemmat kentät jätetään pois vastauksesta
+kaikkien muiden avainten kohdalla.
 
 ## Tunnistetietojen selvittäminen
 

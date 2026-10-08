@@ -17,59 +17,61 @@ OmniRoute ir maršrutu apzinoša autorizācijas cauruļvads, kas aizsargā katru
 
 ### 1. API atslēga (Bearer)
 
-Tiek izmantota ar OpenAI/Anthropic/Gemini saderīgajām klientu API un dažiem pārvaldības maršrutiem, ja atslēgai ir tvērums `manage`.
+Tiek izmantota ar OpenAI/Anthropic/Gemini saderīgām klientu API un dažiem pārvaldības maršrutiem, ja atslēgai ir tvērums `manage`.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-To validē `isValidApiKey()` / `extractApiKey()` failā `src/sse/services/auth.ts`, un tā tiek atkārtoti eksportēta, izmantojot `src/shared/utils/apiAuth.ts`. Validētājs pieņem arī vides mainīgos `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` kā pastāvīgas tranzīta atslēgas (problēma #1350).
+To validē `isValidApiKey()` / `extractApiKey()` failā `src/sse/services/auth.ts`, un tā tiek atkārtoti eksportēta, izmantojot `src/shared/utils/apiAuth.ts`. Validētājs arī pieņem vides mainīgos `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` kā pastāvīgas tiešās pārsūtīšanas atslēgas (problēma #1350).
 
-### 2. Informācijas paneļa sesija (`auth_token` sīkdatne)
+### 2. Informācijas paneļa sesija (auth_token sīkdatne)
 
 Informācijas paneļa lapām un administratora darbībām.
 
 ```
-Cookie: auth_token=<JWT signed with JWT_SECRET>
+Cookie: auth_token=<JWT, kas parakstīts ar JWT_SECRET>
 ```
 
-Sīkdatne ir sesija tikai tad, ja JWT ir sekmīgi pārbaudīts **un** satur `authenticated: true`
+Sīkdatne ir sesija tikai tad, ja JWT ir sekmīgi verificēts **un** satur `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Katrs
-sīkdatnes patērētājs (maršruta aizsargs, authz konveijera atsvaidzināšana, WebSocket rokasspiediens, tiešraides
+sīkdatnes izmantotājs (informācijas paneļa maršruta aizsargs (`isDashboardSessionAuthenticated()`), autorizācijas konveijera atsvaidzināšana, WebSocket savienojuma izveide, reāllaika
 serveris, `/api/settings/require-login`, `/api/auth/status`) izmanto šo palīgfunkciju.
-Pastāv arī citi JWT, kas parakstīti ar `JWT_SECRET` — Cursor CLI tranzīta mehānisms atslēgu
-turētājiem izveido pilnvaras ar `iss "omniroute" / aud "cursor-cli"` —, un tie nekad nav sesijas
+Pastāv arī citi JWT, kas parakstīti ar `JWT_SECRET` — Cursor CLI tiešās pārsūtīšanas mehānisms atslēgu turētājiem izveido
+marķierus ar `iss "omniroute" / aud "cursor-cli"` — un tie nekad nav sesijas
 (#13298).
 
-To pārbauda `isDashboardSessionAuthenticated()` failā `src/shared/utils/apiAuth.ts`. Konveijers automātiski atsvaidzina JWT, ja līdz tā 30 dienu derīguma termiņa beigām ir atlikušas mazāk nekā 7 dienas.
+To verificē `isDashboardSessionAuthenticated()` failā `src/shared/utils/apiAuth.ts`. Konveijers automātiski atsvaidzina JWT, ja no tā 30 dienu derīguma termiņa ir atlikušas mazāk nekā 7 dienas.
 
-Daži pārvaldības maršruti pieņem **jebkuru** no abiem režīmiem: sīkdatni VAI `Bearer <key>`, ja API atslēgai ir tvērums `manage` (vai `admin`). Tas nodrošina darbplūsmu „konfigurējams, izmantojot API izsaukumus”, kas tika pievienota versijā v3.8.
+Sesija var beigties arī pirms tās 30 dienu termiņa beigām, jo katrs izsniedzējs izmanto `mintDashboardSessionToken` (izsniegšanas laiks `iat` un identifikators `jti`), un verificētājs pārbauda divus iestatījumus: `sessionsValidAfter`, kas tiek iestatīts paroles maiņas laikā, lai visas pirms tam izsniegtās sesijas vairs netiktu verificētas (pārlūks, kurā parole tika mainīta, saņem jaunu sīkdatni), un `revokedDashboardSessions`, kam `POST /api/auth/logout` pievieno tās sesijas `jti`, no kuras lietotājs ir izrakstījies. Vecākā laidienā izveidotajās sesijās nav neviena no šiem laukiem, un tās paliek derīgas līdz pirmajai paroles maiņai. Ja iestatījumus nevar nolasīt, sesija netiek uzskatīta par uzticamu.
 
-#### Neobligāta OIDC pieteikšanās piekļuves kontrole (#6973)
+Daži pārvaldības maršruti pieņem **jebkuru** no abiem režīmiem: sīkdatni VAI `Bearer <key>`, ja API atslēgai ir tvērums `manage` (vai `admin`). Tas nodrošina versijā v3.8 pievienoto darbplūsmu „konfigurējams, izmantojot API izsaukumus”.
 
-Informācijas paneļa administratora pieteikšanās atbalsta arī **brīvprātīgi iespējojamu** OIDC (OpenID Connect) plūsmu
-līdzās noklusējuma pieteikšanās metodei ar paroli — pieteikšanās ar paroli nekad netiek noņemta, bet tikai
+#### Neobligāta OIDC pieteikšanās kontrole (#6973)
+
+Informācijas paneļa administratora pieteikšanās atbalsta arī **pēc izvēles iespējojamu** OIDC (OpenID Connect) plūsmu
+līdztekus noklusējuma pieteikšanās iespējai ar paroli — pieteikšanās ar paroli nekad netiek noņemta, tā tiek tikai
 papildināta:
 
-- Tā ir atspējota, ja vien `settings.oidcEnabled === true` **un** visi parametri `oidcIssuer` /
+- Tā ir atspējota, ja vien `settings.oidcEnabled === true` **un** visi `oidcIssuer` /
   `oidcClientId` / `oidcClientSecret` nav konfigurēti (Iestatījumi → Autentifikācija).
   Pretējā gadījumā `GET /api/auth/oidc/login` atgriež `400`.
-- `GET /api/auth/oidc/login` nosaka `authorization_endpoint` no izdevēja
-  `/.well-known/openid-configuration` (atkāpvariantā izmanto
+- `GET /api/auth/oidc/login` nosaka `authorization_endpoint`, izmantojot izsniedzēja
+  `/.well-known/openid-configuration` (rezerves variants ir
   `<issuer>/authorize`), izveido novirzīšanas URI no ienākošā pieprasījuma
-  (ņemot vērā `x-forwarded-proto`) un novirza uz IdP ar nejauši ģenerētu `state`,
-  kas tiek glabāts `httpOnly` sīkdatnē `oidc_state`.
+  (ņemot vērā `x-forwarded-proto`) un novirza uz IdP ar nejaušu `state`,
+  kas glabājas `httpOnly` sīkdatnē `oidc_state`.
 - `GET /api/auth/oidc/callback` validē `state`, apmaina autorizācijas
-  kodu un pārbauda ID pilnvaras parakstu, izmantojot izdevēja JWKS
-  (`jose` funkciju `createRemoteJWKSet`, kas tiek kešota katram JWKS URI), kā arī veicot `issuer`/`audience`
-  pārbaudes. Neobligāts `oidcAllowedSubjects` atļauto vērtību saraksts tiek salīdzināts ar pilnvaras
-  deklarāciju `sub` vai deklarāciju `email` — e-pasta deklarācija tiek ņemta vērā tikai tad, ja
-  `email_verified === true`, tādēļ IdP nepārbaudīta e-pasta adrese nekad nevar izturēt
-  piekļuves pārbaudi.
-- Veiksmes gadījumā tiek izveidots **tieši tāds pats** 30 dienu `auth_token` JWT, kādu izsniedz pieteikšanās
+  kodu un verificē ID marķiera parakstu, izmantojot izsniedzēja JWKS
+  (`jose` funkciju `createRemoteJWKSet`, kas tiek kešota katram JWKS URI), kā arī veic `issuer`/`audience`
+  pārbaudes. Neobligātais atļauto vērtību saraksts `oidcAllowedSubjects` salīdzina marķiera
+  lauku `sub` vai tā lauku `email` — lauks `email` tiek ņemts vērā tikai tad, ja
+  `email_verified === true`, tādēļ IdP neverificēta e-pasta adrese nekad nevar iziet
+  šo kontroli.
+- Veiksmīgas autentifikācijas gadījumā tiek izveidots **tieši tāds pats** 30 dienu `auth_token` JWT, kādu izsniedz pieteikšanās
   ar paroli (`src/app/api/auth/login/route.ts`), tādēļ pārējais
-  informācijas paneļa sesijas konveijers (automātiskā atsvaidzināšana, sīkdatņu karodziņi) paliek nemainīgs —
-  OIDC aizstāj tikai sīkdatnes izveides veidu, nevis tās piešķirtās tiesības.
+  informācijas paneļa sesijas konveijers (automātiskā atsvaidzināšana, sīkdatņu karodziņi) paliek nemainīts —
+  OIDC aizstāj tikai veidu, kā sīkdatne tiek izveidota, nevis tās piešķirtās tiesības.
 
 ## Maršrutu klases
 

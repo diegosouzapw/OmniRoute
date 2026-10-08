@@ -1,0 +1,1 @@
+- **fix(api):** `npm run dev` / `npm start` no longer cut claimed WebSocket upgrades (Responses WS, `/v1/ws` bridge): Next's lazily self-attached upgrade listener now sits on a relay and only receives upgrades nobody else claimed (HMR) ([#15332](https://github.com/diegosouzapw/OmniRoute/pull/15332))

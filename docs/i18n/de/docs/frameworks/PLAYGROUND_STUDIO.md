@@ -190,14 +190,14 @@ Authentifizierung: optional (`REQUIRE_API_KEY`). Fehler über `buildErrorBody()`
 
 ## Fehlerbehebung
 
-| Symptom                                          | Ursache                                        | Lösung                                                                                                            |
-| ------------------------------------------------ | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Monaco-Editor wird im API-Tab nicht dargestellt  | SSR hat Monaco geladen                         | Überprüfen, ob `ApiTab` `dynamic(..., { ssr: false })` verwendet                                                  |
-| Vergleichs-Streams werden nacheinander ausgelöst | Falsche Verwendung von `Promise.all`           | Alle Stream-Starts müssen in einem einzigen `Promise.all`-Aufruf ausgelöst werden                                 |
-| Metriken zeigen `null` für TTFT                  | Handler für den ersten Chunk nicht eingebunden | Prüfen, ob `useStreamMetrics.onFirstChunk()` in der SSE-Reader-Schleife aufgerufen wird                           |
-| Voreinstellung wird nicht gespeichert            | DB-Migration nicht ausgeführt                  | `npm run db:migrate` ausführen oder den Server neu starten (die Migration wird beim Start automatisch ausgeführt) |
-| „Prompt verbessern“ gibt 502 zurück              | Modell nicht in der Konfiguration festgelegt   | Vor der Verbesserung muss im Konfigurationsbereich ein Modellname eingegeben werden                               |
-| Exportierter Code zeigt `MISSING_API_KEY`        | Platzhalter nicht eingefügt                    | `codeExport.ts` verwendet immer `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`                                      |
+| Symptom                                          | Ursache                                           | Behebung                                                                                 |
+| ------------------------------------------------ | ------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Monaco-Editor wird im API-Tab nicht dargestellt  | SSR hat Monaco geladen                            | Überprüfen Sie, ob `ApiTab` `dynamic(..., { ssr: false })` verwendet                     |
+| Vergleichs-Streams werden nacheinander gestartet | Falsche Verwendung von `Promise.all`              | Alle Stream-Starts müssen in einem einzigen `Promise.all`-Aufruf ausgeführt werden       |
+| Metriken zeigen `null` für TTFT                  | Handler für den ersten Chunk ist nicht angebunden | Prüfen Sie, ob `useStreamMetrics.onFirstChunk()` in der SSE-Leseschleife aufgerufen wird |
+| Voreinstellung wird nicht dauerhaft gespeichert  | DB-Migration wurde nicht ausgeführt               | Starten Sie den Server neu: Migrationen werden beim Start automatisch ausgeführt         |
+| „Prompt verbessern“ gibt 502 zurück              | Modell ist in der Konfiguration nicht festgelegt  | Vor der Verbesserung muss im Konfigurationsbereich ein Modellname eingegeben werden      |
+| Exportierter Code zeigt `MISSING_API_KEY`        | Platzhalter wurde nicht eingefügt                 | `codeExport.ts` verwendet immer `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`             |
 
 ---
 

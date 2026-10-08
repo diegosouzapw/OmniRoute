@@ -201,6 +201,53 @@ test("codex logins without a workspaceId are not merged on bare email match", as
   assert.equal(rowA?.refreshToken, "refresh-account-a");
 });
 
+test("updateProviderConnection persists an explicit priority for a single connection", async () => {
+  const connection = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "Only connection",
+  });
+
+  const updated = await providersDb.updateProviderConnection(String(connection.id), {
+    priority: 5,
+  });
+  const persisted = await providersDb.getProviderConnectionById(String(connection.id));
+  const listed = await providersDb.getProviderConnections({ provider: "openai" });
+
+  assert.equal(updated?.priority, 5);
+  assert.equal(persisted?.priority, 5);
+  assert.equal(listed[0].priority, 5);
+
+  await providersDb.updateProviderConnection(String(connection.id), { name: "Renamed connection" });
+  const renamed = await providersDb.getProviderConnectionById(String(connection.id));
+  assert.equal(renamed?.name, "Renamed connection");
+  assert.equal(renamed?.priority, 5);
+});
+
+test("updateProviderConnection preserves other priorities when changing routing order", async () => {
+  const first = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "First",
+  });
+  const second = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "Second",
+  });
+
+  await providersDb.updateProviderConnection(String(first.id), { priority: 10 });
+  const ordered = await providersDb.getProviderConnections({ provider: "openai" });
+
+  assert.deepEqual(
+    ordered.map(({ id, priority }) => ({ id, priority })),
+    [
+      { id: second.id, priority: 2 },
+      { id: first.id, priority: 10 },
+    ]
+  );
+});
+
 test("updateProviderConnection reorders priorities and returns decrypted payloads", async () => {
   const first = await providersDb.createProviderConnection({
     provider: "openai",
@@ -231,6 +278,7 @@ test("updateProviderConnection reorders priorities and returns decrypted payload
 
   assert.equal((updated as any).providerSpecificData.region, "us-east-1");
   assert.equal(updated.rateLimitProtection, true);
+  assert.equal(updated.priority, ordered[0].priority);
   assert.deepEqual(
     ordered.map((connection) => ({
       id: connection.id,

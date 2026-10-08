@@ -224,7 +224,7 @@ Pentru utilizatorii care au nevoie de un artefact compatibil cu Socket, compila�
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-`NormalModuleReplacementPlugin` din webpack creează aliasuri pentru patru module către implementări stub:
+Pluginul webpack `NormalModuleReplacementPlugin` redirecționează patru module către stuburi:
 
 | Modul                                       | Stub                                             |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -233,13 +233,12 @@ OMNIROUTE_BUILD_PROFILE=minimal npm run build
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Fiecare stub exportă aceeași interfață, dar fiecare funcție aruncă o eroare
-`featureDisabledError(name)` în timpul execuției. Rutele care depind de modulul dezactivat
-returnează HTTP 503 cu un mesaj clar, în loc să activeze
-calea de cod sensibilă.
+Fiecare stub exportă aceeași interfață, dar fiecare funcție generează o eroare
+`featureDisabledError(name)` în timpul execuției. Rutele care depind de modulul
+dezactivat returnează HTTP 503 cu un mesaj clar, în loc să activeze calea de
+cod sensibilă.
 
-Pachetul rezultat este destinat publicării ca `omniroute-secure`. Consultați
-`docs/ops/PUBLISHING_SECURE.md` pentru instrucțiunile de publicare.
+Pachetul rezultat este destinat publicării sub numele `omniroute-secure`.
 
 ---
 

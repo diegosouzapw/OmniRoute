@@ -215,30 +215,26 @@ prevádzkovateľ výslovne povoľuje“.
 
 ## Profil zostavenia: `minimal`
 
-Používatelia, ktorí potrebujú artefakt kompatibilný so službou Socket, ho
-môžu zostaviť pomocou:
+Pre používateľov, ktorí potrebujú artefakt kompatibilný so Socket, použite:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-Webpackový doplnok `NormalModuleReplacementPlugin` nahrádza štyri moduly ich
-zástupnými implementáciami:
+Webpackový doplnok `NormalModuleReplacementPlugin` nahrádza štyri moduly ich náhradami:
 
-| Modul                                       | Zástupná implementácia                           |
+| Modul                                       | Náhrada                                          |
 | ------------------------------------------- | ------------------------------------------------ |
 | `src/mitm/cert/install.ts`                  | `src/mitm/cert/install.stub.ts`                  |
 | `src/lib/zed-oauth/keychain-reader.ts`      | `src/lib/zed-oauth/keychain-reader.stub.ts`      |
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Každá zástupná implementácia exportuje rovnaké rozhranie, ale každá funkcia
-počas behu vyvolá `featureDisabledError(name)`. Trasy závislé od zakázaného
-modulu vrátia HTTP 503 s jasnou správou namiesto aktivovania citlivej cesty
-kódu.
+Každá náhrada exportuje rovnaké rozhranie, ale každá funkcia počas behu vyvolá
+`featureDisabledError(name)`. Trasy, ktoré závisia od vypnutého modulu,
+vrátia HTTP 503 s jasnou správou namiesto aktivácie citlivej cesty kódu.
 
-Výsledný balík je určený na publikovanie ako `omniroute-secure`. Postup
-publikovania nájdete v súbore `docs/ops/PUBLISHING_SECURE.md`.
+Výsledný balík je určený na zverejnenie pod názvom `omniroute-secure`.
 
 ---
 

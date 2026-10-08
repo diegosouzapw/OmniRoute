@@ -137,15 +137,49 @@ teachtaireachtaí ina bhfuil faisnéis faoin toipeolaíocht a chruthú ar an gc�
 
 ## Clúdach in CI
 
-Forfheidhmíonn `tests/unit/error-message-sanitization.test.ts` na rialacha seo a leanas:
+Forfheidhmíonn `tests/unit/error-message-sanitization.test.ts` na ceanglais seo a leanas:
 
 - Filleann gach bealach faoi `/api/model-combo-mappings/*` coirp sláintithe i gcás 4xx/5xx.
-- Baineann `sanitizeErrorMessage` rianta cruachta il-líne.
+- Baineann `sanitizeErrorMessage` rianuithe cruachta il-líne.
 - Cuireann `sanitizeErrorMessage` `<path>` in ionad conairí absalóideacha POSIX agus Windows.
 - Láimhseálann `sanitizeErrorMessage` ionchuir de chineál `null`/`undefined`/ásc `Error` go sábháilte.
-- Ní nochtann `buildErrorBody` rianta cruachta riamh ina réimse `message`.
+- Ní nochtann `buildErrorBody` rianuithe cruachta riamh ina réimse `message`.
 
-Agus bealach nó seiceadóir nua á chur leis, cóipeáil patrún na ndearbhuithe ón gcomhad seo. Forfheidhmíonn an tairseach clúdaigh (`npm run test:coverage`) ≥60% de ráitis/línte/feidhmeanna/bhrainsí — ní mór conairí earráide a bheith clúdaithe.
+Agus bealach nó feidhmitheoir nua á chur leis, cóipeáil patrún na ndearbhuithe ón gcomhad seo. Forfheidhmíonn an geata clúdaigh (`npm run test:coverage`) ≥60% de ráitis/línte/feidhmeanna/craobhacha — ní mór conairí earráide a bheith clúdaithe.
+
+### An geata statach: `npm run check:error-helper`
+
+Scanann `scripts/check/check-error-helper.mjs` `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` agus gach `src/app/api/**/route.ts` chun earráid ghabhtha amh (`err.message` / `err.stack`) nó `body.error.message` amh réamhtheachtach a aimsiú a shroicheann corp atá os comhair an chliaint.
+
+**Baineann muinín le glao, ní le comhad riamh** (G-03, #15159). Ba ghnách leis an ngeata comhad iomlán a scipeáil a luaithe a chonaic sé iompórtáil ar bith ó chonair `utils/error` — díolúine ar leibhéal comhaid a cuireadh i bhfeidhm ar ghuais ar leibhéal glao. Thug `import { sanitizeErrorMessage }` ceart amháin maithiúnas buan do gach ceann scríbe eile sa chomhad, agus sin mar a seoladh sceitheadh beo agus na seiceálacha glasa. Anois ní chuirtear muinín i líne ach amháin nuair a théann sí trí thógálaí nó sláintitheoir ceadaithe:
+
+| Cruth na líne                                                                                                       | Iontaofa?      |
+| ------------------------------------------------------------------------------------------------------------------- | -------------- |
+| glaonn sí `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …             | tá             |
+| glaonn sí tógálaí canónach **a iompórtálann an comhad seo** ó `open-sse/utils/error` nó `src/lib/api/errorResponse` | tá             |
+| glaoitear tógálaí ceadaithe thar **il-línte**, agus mar sin tá an réimse `message:` ar líne níos faide síos         | tá             |
+| glaonn sí `function errorResponse(...)` atá logánta don chomhad agus a shláintíonn a chorp féin                     | tá             |
+| cuireann sí `err.message` / `err.stack` ar aghaidh áit ar bith eile                                                 | **níl — sárú** |
+
+Dhá iarmhairt ar fiú iad a bheith ar eolas agat:
+
+- Ní hionann `errorResponse` a iompórtáil agus muinín uileghabhálach. Marcálfar comhad a shainíonn a `errorResponse` féin fós ag suíomh an ghlao, toisc go réitíonn an geata muinín de réir siombaile, ní de réir comhaid. Is amhlaidh atá i gcás `createErrorResponse` freisin.
+- Is é `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` agus `error: body.error.message` ina dhiaidh sin an nath **sláintithe** a úsáidtear ar fud na bhfeidhmitheoirí `*-fetch.ts`, agus ní mharcáiltear é.
+
+Áirítear an dá mhodúl tógálaí ceadaithe: `open-sse/utils/error.ts` agus `src/lib/api/errorResponse.ts`. Is é an dara ceann a úsáideann an tuairim is 54 láimhseálaí bealaigh lasmuigh de `open-sse`, agus sláintíonn sé an dá easpórtáil atá aige.
+
+Dhá chruth nach **sáruithe** iad, cé gur thuairiscigh an geata mar sceitheanna iad tráth:
+
+- earráid amh taobh istigh de **ró iniúchta** — `saveCallLog({ error: err.message })`, `logToolCall(...)`, nó logálaí a ghlacann teachtaireacht ar dtús (`log.error("BATCHES", "sweep failed", { error: err.message })`). D’fhéadfadh sé gur `buildErrorBody` statach atá sa fhreagra don chliant ar na línte ina dhiaidh sin.
+- glao **il-líne** ar thógálaí ceadaithe, áit nach n-ainmníonn an réimse `message:` aon tógálaí ar chor ar bith:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+Reonn `KNOWN_MISSING_ERROR_HELPER` sáruithe a bhí ann cheana ionas nach gcuireann an geata bac ach ar sháruithe _nua_. Baineann `assertNoStale` iontráil go huathoibríoch nuair a cheartaítear a sárú, ionas nach féidir leis an reo iontaisiú. Gardaí cúlchéimnithe: `tests/unit/check-error-helper.test.ts` agus `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Rialuithe gaolmhara
 

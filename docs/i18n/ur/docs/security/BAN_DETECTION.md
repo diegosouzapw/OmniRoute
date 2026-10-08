@@ -4,24 +4,27 @@
 
 ---
 
-OmniRoute اپ اسٹریم خرابی کے جوابات میں ایسے اشارے تلاش کرتا ہے جو ظاہر کریں کہ کسی فراہم کنندہ کا
-**اکاؤنٹ مستقل طور پر ناکارہ ہو چکا ہے** (معطل / غیر فعال / ToS کی خلاف ورزی پر ممنوع) اور، مماثلت
+OmniRoute اپ اسٹریم خرابی کے جوابات میں ان اشاروں کو اسکین کرتا ہے جو یہ ظاہر کرتے ہیں کہ فراہم کنندہ کا
+**اکاؤنٹ مستقل طور پر ناکارہ ہو چکا ہے** (معطل / غیر فعال / ToS کے تحت پابندی زدہ) اور، مماثلت
 ملنے پر، اس کنکشن کو **حتمی `banned` حالت** میں منتقل کر دیتا ہے تاکہ اسے آئندہ
 درخواستوں کے لیے منتخب نہ کیا جائے۔ **Security → Banned Keywords**
-کی ترتیبات کا کارڈ اسی کو ترتیب دیتا ہے ("اضافی کلیدی الفاظ جو مستقل اکاؤنٹ
-پابندی کی شناخت کو متحرک کرتے ہیں۔ بلٹ اِن کلیدی الفاظ ہمیشہ لاگو ہوتے ہیں۔")۔
+کی ترتیبات کا کارڈ اسی کو تشکیل دیتا ہے ("اضافی کلیدی الفاظ جو مستقل اکاؤنٹ
+پابندی کی شناخت کو متحرک کرتے ہیں۔ پہلے سے شامل کلیدی الفاظ ہمیشہ لاگو ہوتے ہیں۔")۔
 
-یہ صفحہ بلٹ اِن فہرست، شناخت کے بہاؤ، اس کے دائرۂ کار، حسبِ ضرورت کلیدی الفاظ محفوظ طریقے سے شامل
-کرنے، اور نشان زدہ کنکشن کو بحال کرنے کے طریقے کی دستاویز فراہم کرتا ہے۔ حتمی
+یہ صفحہ پہلے سے شامل فہرست، شناخت کے طریقۂ کار، اس کے دائرۂ کار، حسبِ ضرورت کلیدی الفاظ کو
+محفوظ طریقے سے شامل کرنے، اور نشان زدہ کنکشن کو بحال کرنے کا طریقہ بیان کرتا ہے۔ حتمی
 حالت بذاتِ خود لچک پذیری کے ماڈل کا حصہ ہے — دیکھیے
 [RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("حتمی حالتیں")۔
 
-**حتمی ماخذ:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`)۔
+**مستند ماخذ:** `open-sse/services/accountFallback.ts`
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`)،
+نیز غیر حتمی تصدیقی درجہ بندی کے لیے `open-sse/services/errorClassifier.ts`
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) اور اس
+403 شاخ کے لیے جو اسے استعمال کرتی ہے۔
 
-## بلٹ اِن کلیدی الفاظ
+## پہلے سے موجود کلیدی الفاظ
 
-یہ 8 ذیلی اسٹرنگز کسی بھی حسبِ ضرورت فہرست سے قطع نظر ہمیشہ لاگو ہوتی ہیں (حروف کی بڑی یا چھوٹی شکل سے غیر حساس):
+یہ 7 ذیلی اسٹرنگز ہمیشہ لاگو ہوتی ہیں (حروف کی بڑی یا چھوٹی شکل سے قطع نظر)، چاہے کوئی بھی حسبِ ضرورت فہرست ہو:
 
 ```
 account_deactivated
@@ -29,24 +32,47 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> جیسے جیسے فراہم کنندگان اپنی پابندی کی عبارت تبدیل کرتے ہیں، یہ فہرست بھی ارتقا پذیر رہتی ہے۔ مستند
-> نقل `open-sse/services/accountFallback.ts` میں موجود `ACCOUNT_DEACTIVATED_SIGNALS` ہے؛
+> فراہم کنندگان کی پابندی کی عبارت بدلنے کے ساتھ یہ فہرست بھی ارتقا پذیر رہتی ہے۔ مستند
+> نقل `open-sse/services/accountFallback.ts` میں `ACCOUNT_DEACTIVATED_SIGNALS` ہے؛
 > اوپر دیے گئے بلاک کو ایک وقتی عکس سمجھیں۔
 
-اسی فائل میں دو ملحقہ، **علیحدہ** سگنل ٹیبلز موجود ہیں جو ممنوعہ کلیدی الفاظ کی شناخت
-کا حصہ _نہیں_ ہیں:
+### پابندی نہیں: آپریٹر کے قابلِ عمل تصدیقی اشارے
 
-- `CREDITS_EXHAUSTED_SIGNALS` — بلنگ/کوٹہ ختم ہو چکا ہے (`insufficient_quota`,
-  `credit_balance_too_low`, `payment required`, …) → حتمی `credits_exhausted`۔
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **غیر حتمی**؛ ٹوکن ریفریش سے بحالی ممکن ہے۔
+`verify your account to continue` **پہلے** اوپر دی گئی فہرست میں شامل تھا۔ یہ پابندی کا
+اشارہ نہیں ہے اور اب `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` میں موجود ہے، جو کنکشن کو
+اختتامی حالت میں لے جانے کے بجائے اسے قابلِ بازیابی `PROJECT_ROUTE_ERROR` قرار دیتا ہے۔
 
-نوٹ: عام عارضی عبارتیں، جیسے **`rate limit`** / `429`، شرح کی حد /
-کنکشن کول ڈاؤن کے راستے کے ذریعے سنبھالی جاتی ہیں اور پابندی کے سگنلز **نہیں** ہیں۔
+Google Cloud Code / Antigravity اسے `403 VALIDATION_REQUIRED` کے طور پر واپس کرتے ہیں۔ یہ
+**عارضی ہے اور صحت مند، مکمل کوٹے والے اکاؤنٹس پر بھی ظاہر ہوتا ہے** — ایک لائیو
+تعیناتی پر پیمائش کی گئی (2026-09-25، `proxy_logs`): ایک Antigravity کنکشن نے 10 منٹ
+کے اندر ایسے 33 عدد 403 واپس کیے اور `active` رہا، جبکہ تمام 17 ونڈوز پر اپنے کوٹے کا 100 %
+رکھنے والا ایک ہم رتبہ کنکشن صرف **ایک** ایسے جواب کے باعث مستقل طور پر ممنوع ہو گیا۔ واحد
+فرق یہ تھا کہ اتفاقاً کون سی کوشش کو سروس فراہم کی گئی۔
+
+یہ امتیاز اہم ہے کیونکہ اختتامی مماثلت `permanent: true` ہوتی ہے (1 سالہ کول ڈاؤن،
+کبھی خودکار طور پر بحال نہیں ہوتی)، جبکہ آپریٹر براؤزر میں تصدیقی اشارے کو حل کرتا ہے۔
+اس عبارت کو پابندی کی فہرست میں رکھنے سے `classifyProviderError` میں قابلِ بازیابی cloud-code
+403 شاخ بھی اس عبارت کے لیے ناقابلِ رسائی ہو گئی تھی، کیونکہ `accountDeactivated` کا
+جائزہ پہلے لیا جاتا ہے — لہٰذا Gemini Code Assist کے لیے
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) اور
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) میں شامل کی گئی
+project-route بازیابی کبھی چل ہی نہیں سکتی تھی۔
+
+تین متصل مگر **علیحدہ** سگنل ٹیبلز ممنوعہ کلیدی الفاظ کی شناخت کا حصہ _نہیں_ ہیں:
+
+- `CREDITS_EXHAUSTED_SIGNALS` — بلنگ/کوٹہ ختم (`insufficient_quota`,
+  `credit_balance_too_low`, `payment required`، …) → اختتامی `credits_exhausted`۔
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **غیر اختتامی**؛ ٹوکن ریفریش سے بازیابی ممکن ہے۔
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **غیر اختتامی**؛ آپریٹر کو upstream
+  اکاؤنٹ کی دوبارہ تصدیق کرنی ہوتی ہے۔ یہ `open-sse/services/errorClassifier.ts`
+  میں موجود ہے (باقی دونوں `accountFallback.ts` میں موجود ہیں)۔ اوپر والا حصہ دیکھیں۔
+
+نوٹ: عام عارضی عبارات جیسے **`rate limit`** / `429` کو rate-limit /
+connection-cooldown راستہ سنبھالتا ہے اور یہ پابندی کے اشارے **نہیں** ہیں۔
 
 ## شناخت کا بہاؤ
 

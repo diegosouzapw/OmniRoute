@@ -305,12 +305,13 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 penyedia huluan — tiada RPC pembatalan dalam `CloudAgentBase`. Untuk menghentikan pengebilan
 di huluan, tamatkan tugasan dalam konsol penyedia itu sendiri.
 
-## REST API — Pendawaian Penyedia Cloud
+## REST API — Integrasi Penyedia Awan
 
 Titik akhir tambahan di bawah `src/app/api/cloud/` ini digunakan oleh klien jauh
-(CLI, aplikasi Electron atau pekerja penyegerakan) untuk membaca metadata sambungan
-penyedia dan menyelesaikan alias model. Titik akhir ini disahkan menggunakan **kunci API biasa**
-(melalui `validateApiKey`), bukan pengesahan pengurusan yang digunakan oleh titik akhir tugas.
+(CLI, aplikasi Electron, atau pekerja penyegerakan) untuk membaca metadata sambungan penyedia
+dan menyelesaikan alias model. Titik akhir ini disahkan dengan **kunci API**
+(melalui `validateApiKey`), bukan pengesahan pengurusan yang digunakan oleh titik akhir tugasan; kandungan yang
+dikembalikan oleh `/api/cloud/auth` bergantung pada skop kunci tersebut (lihat di bawah).
 
 | Kaedah | Laluan                          | Tujuan                                                                         |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------ |
@@ -321,8 +322,12 @@ penyedia dan menyelesaikan alias model. Titik akhir ini disahkan menggunakan **k
 | PUT    | `/api/cloud/models/alias`       | Tetapkan alias model (dan segerakkan secara automatik ke Cloud jika didayakan) |
 
 `/api/cloud/auth` tidak pernah mengembalikan `apiKey` / `accessToken` / `refreshToken` mentah. Ia
-mengembalikan `hasApiKey`, `hasAccessToken`, `hasRefreshToken` dan pratonton bertopeng
-(`maskedApiKey`: 4 aksara pertama + `****` + 4 aksara terakhir).
+mengembalikan `hasApiKey`, `hasAccessToken`, `hasRefreshToken` untuk sambungan aktif yang boleh
+digunakan oleh kunci tersebut (kunci yang dihadkan dengan `allowedConnections` hanya melihat sambungan tersebut). Bagi kunci API dengan
+skop `manage` atau `admin`, termasuk kunci pengerahan daripada `OMNIROUTE_API_KEY`, ia turut
+mengembalikan pratonton bertopeng (`maskedApiKey`: sehingga 4 aksara pada setiap hujung, kurang untuk kunci
+pendek, tiada untuk 8 aksara atau kurang) dan `projectId` sambungan tersebut. Kedua-dua medan tidak
+disertakan dalam respons untuk mana-mana kunci lain.
 
 ## Penyelesaian Kelayakan
 

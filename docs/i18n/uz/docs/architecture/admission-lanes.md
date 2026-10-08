@@ -7,22 +7,60 @@
 OmniRoute turli qamrovga ega **ikkita** jarayon ichidagi yoʻlak tizimiga ega. Ular
 bir-birini toʻldiradi; operatorlar qaysi birini kuzatayotganini bilishi kerak.
 
-## 1. Bayt darajasidagi, butun jarayon miqyosidagi kirishni boshqarish (`chatBodyAdmission.ts`)
+## 1. Bayt darajasidagi butun jarayon bo‘yicha qabul qilish (`chatBodyAdmission.ts`)
 
-- **Qamrov:** `POST /v1/chat/completions`, `/v1/messages`, `/v1/responses` va chat shaklidagi boshqa yoʻnalishlar uchun buferlangan tana/heap yoʻli. Katta hajmdagi kodlash agenti tanalari sababli heap kuchayishidan himoya qiladi (#4380).
-- **Har bir kalit uchun alohida yoʻlaklar emas, balki butun jarayon uchun yagona global boshqaruvchi (#10110).** Har bir API kaliti (xesh qilingan) yoki `anonymous` sessiya **bir xil** umumiy budjet asosida qabul qilinadi — xesh qilingan sessiya identifikatori FAQAT adolatli rejalashtirish kaliti sifatida (kutuvchilarni round-robin usulida navbatdan chiqarish uchun) ishlatiladi, hech qachon sigʻim segmenti sifatida emas. Ushbu hujjatning oldingi versiyasida mustaqil sigʻimga ega har bir kalit uchun alohida yoʻlaklar tavsiflangan edi; bu model #10110 da olib tashlandi, chunki u autentifikatsiyadan oʻtmagan soxta hisob maʼlumotlari orqali butun jarayon miqyosidagi chegarani koʻpaytirishga imkon berardi.
-- **Toʻsiq (#503-fanout): qatʼiy soʻrovlar soni emas, avtomatik aniqlanadigan qabul qilish BAYT budjeti.** Eski `CHAT_MAX_HEAVY_IN_FLIGHT` soʻrovlar soni cheklovi (bu tuzatishdan oldin standart qiymat `1`) kodlash agentlarining fan-out jarayonini (bir nechta subagent/CLI, tana hajmi odatda > 256 KB) amaldagi ~1 parallellikkacha tushirib yuborar, natijada mutlaqo odatiy yuklama ostida 503 xatolari yuz berardi. Endi u faqat operator `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` ni aniq belgilaganida amal qiladi. Belgilanmagan holda, kirish `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` orqali boshqariladi — bu jarayonning haqiqiy xotira chegarasidan avtomatik aniqlanadigan budjetdir (`src/shared/middleware/admissionBudget.ts`): V8 heap chegarasi va har qanday cgroup/konteyner chegarasidan kichigining 25%i olinib, 8x vaqtinchalik kuchaytirish koeffitsiyentiga boʻlinadi va 8 MiB bilan 2 GiB oraligʻida cheklanadi. Aniq berilgan qiymatlar ham shu cheklovlardan foydalanadi. Bu hech qanday muhit sozlamalarisiz 512 MB konteynerdan 32 GB ish stoligacha oʻzini avtomatik moslashtiradi. Samarali budjetga sigʻmaydigan tana darhol `413 body_exceeds_budget` xatosi bilan rad etiladi; faqat har biri alohida xizmat koʻrsatish mumkin boʻlgan tanalar oʻrtasidagi raqobat cheklangan adolatli navbatga tushadi. Bir nechta real vaqt signallariga asoslangan resurs bosimi kuzatuvchisi (V8 heap nisbati, cgroup, PSI, OOM hodisalari — `open-sse/utils/resourcePressurePolicy.ts`) `high` bosim ostida cheklangan kutish muddatini qisqartiradi va `critical` bosim ostida, hatto birorta bayt qabul qilinishidan oldin, darhol `503 resource_pressure` bilan yukni tashlaydi. Mavjud boʻlsa, PSI ushbu birlikning cgroup `memory.pressure` faylidan oʻqiladi (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` butun xost miqyosida ishlaydi va faqat bare metal / cgroup v1 holatida zaxira variant hisoblanadi, shuning uchun swapping holatidagi xost boʻsh turgan konteynerga 503 xatosini keltirib chiqara olmaydi.
+- **Qo‘llanish doirasi:** `POST /v1/chat/completions`,
+  `/v1/messages`, `/v1/responses` va chat shaklidagi boshqa marshrutlar uchun
+  buferlangan so‘rov tanasi/heap yo‘li. Katta hajmdagi dasturlash agenti
+  tanalari sababli heap kuchayishidan himoya qiladi (#4380).
+- **Har bir kalit uchun alohida yo‘laklar emas, balki butun jarayon uchun yagona kontroller (#10110).**
+  Har bir API kaliti (xesh qilingan) yoki `anonymous` sessiya **bir xil** umumiy
+  budjet doirasida qabul qilinadi — xeshlangan sessiya identifikatori FAQAT
+  adolatli rejalashtirish kaliti sifatida (kutuvchilarni navbatma-navbat
+  jo‘natish uchun) ishlatiladi, hech qachon sig‘im segmenti sifatida
+  ishlatilmaydi. Ushbu hujjatning oldingi versiyasida mustaqil sig‘imga ega
+  bo‘lgan har bir kalit uchun alohida yo‘laklar tavsiflangan edi; bu model
+  #10110 da olib tashlandi, chunki u autentifikatsiyadan o‘tmagan soxta hisob
+  ma’lumotlariga butun jarayon bo‘yicha chegarani ko‘paytirish imkonini berardi.
+- **Darvoza (#503-fanout): qat’iy so‘rovlar soni emas, avtomatik hisoblangan qabul qilish BAYT budjeti.**
+  Eski `CHAT_MAX_HEAVY_IN_FLIGHT` so‘rovlar soni cheklovi (bu tuzatishdan oldin
+  standart qiymat `1`) dasturlash agentlarining tarqalishini (bir nechta
+  subagentlar/CLI’lar, tanalar odatda > 256 KB) amaldagi parallellik darajasi
+  ~1 gacha tushirar va butunlay odatiy yuklama ostida 503 xatolariga olib
+  kelardi. Endi u faqat operator `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` ni
+  aniq o‘rnatgandagina cheklov qo‘yadi. O‘rnatilmagan holatda qabul qilish
+  `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` orqali boshqariladi — bu jarayonning
+  haqiqiy xotira chegarasidan avtomatik hisoblanadigan budjetdir
+  (`src/shared/middleware/admissionBudget.ts`): V8 heap chegarasi va har qanday
+  cgroup/konteyner chegarasidan kichikrog‘ining 25 foizi, 8x vaqtinchalik
+  kuchaytirish koeffitsiyentiga bo‘linib, 8 MiB va 2 GiB oralig‘ida cheklanadi.
+  Aniq qayta belgilangan qiymatlar ham xuddi shu chegaralardan foydalanadi.
+  Bu hech qanday muhit sozlamasisiz 512 MB konteynerdan 32 GB ish stoligacha
+  avtomatik masshtablanadi. Samarali budjetga sig‘maydigan tana darhol
+  `413 body_exceeds_budget` bilan rad etiladi; faqat alohida ravishda xizmat
+  ko‘rsatish mumkin bo‘lgan tanalar o‘rtasidagi raqobat cheklangan adolatli
+  navbatga kiradi. Bir nechta jonli signallarga asoslangan resurs bosimi
+  kuzatuvchisi (V8 heap nisbati, cgroup, PSI, OOM hodisalari —
+  `open-sse/utils/resourcePressurePolicy.ts`) `high` bosim ostida cheklangan
+  kutish vaqtini qisqartiradi va birorta bayt qabul qilinishidan oldin
+  `critical` bosim ostida darhol `503 resource_pressure` bilan yukni rad etadi.
+  PSI mavjud bo‘lsa, ushbu birlikning cgroup `memory.pressure` faylidan
+  o‘qiladi (`open-sse/utils/resourcePressureSampler.ts`);
+  `/proc/pressure/memory` butun xost miqyosida ishlaydi va faqat bare metal /
+  cgroup v1 uchun zaxira variantidir, shu sababli swap ishlatayotgan xost bo‘sh
+  turgan konteynerda 503 xatosini keltirib chiqara olmaydi.
 - **Sozlash:**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — avtomatik aniqlanadigan bayt budjetini qayta belgilash
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — eski soʻrovlar soni cheklovi, faqat ixtiyoriy ravishda yoqiladi
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — 503 xatosidan oldingi navbat kutish vaqti (standart qiymat 2000)
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — avtomatik hisoblangan bayt budjetini qayta belgilash
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — eski so‘rovlar soni cheklovi, faqat ixtiyoriy yoqiladi
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — 503 dan oldingi navbatda kutish vaqti (standart qiymat `RATE_LIMIT_MAX_WAIT_MS`)
   - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — navbatdagi baytlar uchun heap klapani (standart qiymat 4 MB)
   - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — #10110 dan beri eskirgan
-    va hech qanday amal bajarmaydi (konfiguratsiya mosligi uchun qabul qilinadi, ammo eʼtiborsiz qoldiriladi)
+    va hech qanday amal bajarmaydi (konfiguratsiya mosligi uchun qabul qilinadi, e’tiborga olinmaydi)
 - **Hisobotlar:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — jumladan,
-  #503-fanout qoʻshimchalari: `inflightBytes`, `maxInflightBytes`, `budgetSource`
+  #503-fanout qo‘shimchalari: `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity` va `countCapEnabled`
-  (standart joylashtirishda false — amalda eski soʻrovlar soni cheklovi emas, bayt budjeti cheklovchi omil ekanini tasdiqlaydi).
+  (standart joylashtirishda false — amalda eski so‘rovlar soni cheklovi emas,
+  aynan bayt budjeti cheklov qo‘yayotganini tasdiqlaydi).
 
 ## 2. Moslashuvchan bajarilish vaqtidagi virtual yoʻlaklar (`open-sse/services/admission`)
 

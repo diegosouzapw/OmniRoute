@@ -23,7 +23,7 @@ Wird für die OpenAI-/Anthropic-/Gemini-kompatiblen Client-APIs und einige Verwa
 Authorization: Bearer <api-key>
 ```
 
-Die Validierung erfolgt durch `isValidApiKey()` / `extractApiKey()` in `src/sse/services/auth.ts`; beide werden über `src/shared/utils/apiAuth.ts` erneut exportiert. Der Validator akzeptiert außerdem die Umgebungsvariablen `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` als persistente Passthrough-Schlüssel (Issue #1350).
+Die Validierung erfolgt durch `isValidApiKey()` / `extractApiKey()` in `src/sse/services/auth.ts`; diese werden über `src/shared/utils/apiAuth.ts` erneut exportiert. Der Validator akzeptiert außerdem die Umgebungsvariablen `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` als dauerhafte Passthrough-Schlüssel (Issue #1350).
 
 ### 2. Dashboard-Sitzung (auth_token-Cookie)
 
@@ -33,20 +33,43 @@ Für Dashboard-Seiten und administrative Vorgänge.
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-Ein Cookie gilt nur dann als Sitzung, wenn das JWT erfolgreich verifiziert wurde **und** `authenticated: true` enthält (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Jeder Nutzer des Cookies (Routen-Guard, Aktualisierung der AuthZ-Pipeline, WebSocket-Handshake, Live-Server, `/api/settings/require-login`, `/api/auth/status`) verwendet diesen Helper. Es existieren weitere mit `JWT_SECRET` signierte JWTs — der Cursor-CLI-Passthrough stellt für Schlüsselinhaber Token mit `iss "omniroute" / aud "cursor-cli"` aus — diese gelten jedoch niemals als Sitzungen (#13298).
+Ein Cookie gilt nur dann als Sitzung, wenn das JWT erfolgreich verifiziert wird **und** `authenticated: true` enthält
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Jeder
+Verwender des Cookies (Dashboard-Routenwächter (`isDashboardSessionAuthenticated()`), Aktualisierung der Authentifizierungs- und Autorisierungspipeline, WebSocket-Handshake, Live-
+Server, `/api/settings/require-login`, `/api/auth/status`) verwendet diesen Helper.
+Es existieren weitere mit `JWT_SECRET` signierte JWTs — das Cursor-CLI-Passthrough stellt
+für Schlüsselinhaber Token mit `iss "omniroute" / aud "cursor-cli"` aus —, die niemals als Sitzungen
+gelten (#13298).
 
-Die Verifizierung erfolgt durch `isDashboardSessionAuthenticated()` in `src/shared/utils/apiAuth.ts`. Die Pipeline aktualisiert das JWT automatisch, wenn von seiner 30-tägigen Gültigkeitsdauer weniger als 7 Tage verbleiben.
+Die Überprüfung erfolgt durch `isDashboardSessionAuthenticated()` in `src/shared/utils/apiAuth.ts`. Die Pipeline aktualisiert das JWT automatisch, wenn von seiner 30-tägigen Gültigkeitsdauer weniger als 7 Tage verbleiben.
 
-Einige Verwaltungsrouten akzeptieren **beide** Modi: Cookie ODER `Bearer <key>`, wenn der API-Schlüssel über den Geltungsbereich `manage` (oder `admin`) verfügt. Dies ermöglicht den in v3.8 hinzugefügten Arbeitsablauf „über API-Aufrufe konfigurierbar“.
+Eine Sitzung kann auch vor Ablauf ihrer 30 Tage enden, da jede ausstellende Stelle `mintDashboardSessionToken` verwendet (mit einem Ausstellungszeitpunkt `iat` und einer ID `jti`) und der Verifizierer zwei Einstellungen prüft: `sessionsValidAfter`, die bei einer Passwortänderung gesetzt wird, sodass alle zuvor ausgestellten Sitzungen nicht mehr erfolgreich verifiziert werden (der Browser, in dem das Passwort geändert wurde, erhält ein neues Cookie), sowie `revokedDashboardSessions`, zu dem `POST /api/auth/logout` die `jti` der abgemeldeten Sitzung hinzufügt. Sitzungen, die von einer älteren Version ausgestellt wurden, enthalten keinen dieser Claims und bleiben bis zur ersten Passwortänderung gültig. Wenn die Einstellungen nicht gelesen werden können, wird der Sitzung nicht vertraut.
+
+Einige Verwaltungsrouten akzeptieren **beide** Modi: Cookie ODER `Bearer <key>`, wenn der API-Schlüssel über den Geltungsbereich `manage` (oder `admin`) verfügt. Dies ermöglicht den in v3.8 hinzugefügten Workflow „über API-Aufrufe konfigurierbar“.
 
 #### Optionales OIDC-Anmelde-Gate (#6973)
 
-Die Dashboard-Admin-Anmeldung unterstützt neben der standardmäßigen Passwortanmeldung außerdem einen **optional aktivierbaren** OIDC-Flow (OpenID Connect) — die Passwortanmeldung wird niemals entfernt, sondern lediglich ergänzt:
+Die Administratoranmeldung des Dashboards unterstützt neben der standardmäßigen Passwortanmeldung auch einen **optional aktivierbaren** OIDC-Flow (OpenID Connect) — die Passwortanmeldung wird niemals entfernt, sondern lediglich ergänzt:
 
-- Deaktiviert, sofern nicht `settings.oidcEnabled === true` gilt **und** `oidcIssuer` / `oidcClientId` / `oidcClientSecret` vollständig konfiguriert sind (Einstellungen → Authentifizierung). Andernfalls gibt `GET /api/auth/oidc/login` den Status `400` zurück.
-- `GET /api/auth/oidc/login` ermittelt den `authorization_endpoint` aus der `/.well-known/openid-configuration` des Ausstellers (mit Rückgriff auf `<issuer>/authorize`), erstellt den Umleitungs-URI anhand der eingehenden Anfrage (unter Berücksichtigung von `x-forwarded-proto`) und leitet mit einem zufälligen `state`, der in einem `httpOnly`-Cookie namens `oidc_state` gespeichert ist, zum IdP um.
-- `GET /api/auth/oidc/callback` validiert `state`, tauscht den Autorisierungscode aus und verifiziert die Signatur des ID-Tokens anhand des JWKS des Ausstellers (`createRemoteJWKSet` von `jose`, pro JWKS-URI zwischengespeichert), einschließlich der Prüfungen von `issuer`/`audience`. Eine optionale Positivliste `oidcAllowedSubjects` gleicht den `sub`-Claim oder den `email`-Claim des Tokens ab — der E-Mail-Claim wird nur berücksichtigt, wenn `email_verified === true` gilt, sodass eine beim IdP nicht verifizierte E-Mail-Adresse das Gate niemals passieren kann.
-- Bei Erfolg stellt der Flow **exakt dasselbe** 30 Tage gültige `auth_token`-JWT aus wie die Passwortanmeldung (`src/app/api/auth/login/route.ts`), sodass die übrige Dashboard-Sitzungspipeline (automatische Aktualisierung, Cookie-Flags) unverändert bleibt — OIDC ersetzt lediglich die Art und Weise, wie das Cookie ausgestellt wird, nicht die damit gewährten Berechtigungen.
+- Deaktiviert, sofern nicht `settings.oidcEnabled === true` gilt **und**
+  `oidcIssuer` / `oidcClientId` / `oidcClientSecret` vollständig konfiguriert sind (Einstellungen → Authentifizierung).
+  Andernfalls gibt `GET /api/auth/oidc/login` den Status `400` zurück.
+- `GET /api/auth/oidc/login` ermittelt den `authorization_endpoint` aus der
+  `/.well-known/openid-configuration` des Ausstellers (mit Rückgriff auf
+  `<issuer>/authorize`), erstellt die Weiterleitungs-URI aus der eingehenden Anfrage
+  (unter Berücksichtigung von `x-forwarded-proto`) und leitet mit einem zufälligen `state` zum IdP weiter,
+  der in einem `httpOnly`-Cookie namens `oidc_state` gespeichert wird.
+- `GET /api/auth/oidc/callback` validiert `state`, tauscht den Autorisierungscode
+  aus und überprüft die Signatur des ID-Tokens über die JWKS des Ausstellers
+  (`createRemoteJWKSet` von `jose`, pro JWKS-URI zwischengespeichert) einschließlich
+  der Prüfung von `issuer`/`audience`. Eine optionale Positivliste `oidcAllowedSubjects` gleicht
+  den `sub`-Claim oder den `email`-Claim des Tokens ab — der E-Mail-Claim wird nur berücksichtigt, wenn
+  `email_verified === true` gilt, sodass eine nicht verifizierte E-Mail-Adresse beim IdP das
+  Gate niemals passieren kann.
+- Bei Erfolg wird **exakt dasselbe** 30 Tage gültige `auth_token`-JWT ausgestellt wie bei der
+  Passwortanmeldung (`src/app/api/auth/login/route.ts`), sodass der Rest der
+  Dashboard-Sitzungspipeline (automatische Aktualisierung, Cookie-Flags) unverändert bleibt —
+  OIDC ersetzt lediglich die Art und Weise, wie das Cookie ausgestellt wird, nicht die dadurch gewährten Berechtigungen.
 
 ## Routenklassen
 

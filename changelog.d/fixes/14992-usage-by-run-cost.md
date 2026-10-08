@@ -1,0 +1,1 @@
+- **fix(usage):** add `GET /api/usage/by-run?run_id=` — per-run/session cost lookup joining the existing `call_logs.session_tag` and `correlation_id` columns to `request_cost_ledger`, no schema change (#PENDING)

@@ -4,24 +4,27 @@
 
 ---
 
-OmniRoute otsib ülesvoolu veavastustest signaale, mis viitavad sellele, et teenusepakkuja
-**konto on jäädavalt kasutuskõlbmatu** (peatatud / inaktiveeritud / kasutustingimuste rikkumise tõttu blokeeritud), ning vaste
-leidmisel viib selle ühenduse **terminaalsesse olekusse `banned`**, mistõttu seda
-ei valita enam päringute jaoks. Seda seadistatakse kaardil **Security → Banned Keywords**
-(„Täiendavad märksõnad, mis käivitavad konto jäädava blokeerimise tuvastamise.
-Sisseehitatud märksõnad kehtivad alati.“).
+OmniRoute skannib ülesvoolu teenusepakkujate veavastuseid signaalide suhtes, mis näitavad, et teenusepakkuja
+**konto on jäädavalt kasutuskõlbmatu** (peatatud / inaktiveeritud / kasutustingimuste rikkumise tõttu keelatud), ning vaste
+leidmisel viib selle ühenduse **lõplikku `banned` olekusse**, et seda enam
+päringute jaoks ei valitaks. Seda seadistab **Turvalisus → Keelatud märksõnad**
+seadete kaart („Täiendavad märksõnad, mis käivitavad konto püsiva keelu
+tuvastamise. Sisseehitatud märksõnad kehtivad alati.”).
 
-Sellel lehel kirjeldatakse sisseehitatud loendit, tuvastusvoogu, selle ulatust,
-kohandatud märksõnade turvalist lisamist ja märgistatud ühenduse taastamist. Terminaalne
-olek ise on osa vastupidavusmudelist — vt
-[RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) („Terminaalsed olekud“).
+Sellel lehel dokumenteeritakse sisseehitatud loendit, tuvastusvoogu ja selle ulatust, seda, kuidas
+kohandatud märksõnu turvaliselt lisada, ning seda, kuidas märgistatud ühendus taastada. Lõplik
+olek ise on osa töökindlusmudelist — vt
+[RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) („Lõplikud olekud”).
 
 **Tõeallikas:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+samuti `open-sse/services/errorClassifier.ts` mittelõpliku kinnitamisklassi jaoks
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) ja
+seda kasutava 403 haru jaoks.
 
 ## Sisseehitatud märksõnad
 
-Need 8 alamstringi kehtivad alati (tõstutundetult), olenemata kohandatud loendist:
+Need 7 alamstringi rakenduvad alati (tõstutundetult), olenemata kohandatud loendist:
 
 ```
 account_deactivated
@@ -29,24 +32,47 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
 > See loend muutub sedamööda, kuidas teenusepakkujad oma blokeerimiste sõnastust muudavad. Autoriteetne
 > koopia on `ACCOUNT_DEACTIVATED_SIGNALS` failis `open-sse/services/accountFallback.ts`;
-> käsitlege ülaltoodud plokki hetkeseisuna.
+> käsitle ülaltoodud plokki hetkeseisuna.
 
-Samas failis asuvad kaks kõrvutist, **eraldi** signaalitabelit, mis _ei kuulu_
-blokeeritud märksõnade tuvastuse hulka:
+### Ei ole blokeering: operaatori lahendatavad kinnitamisviibad
 
-- `CREDITS_EXHAUSTED_SIGNALS` — arvelduslimiit/kvoot on ammendatud (`insufficient_quota`,
-  `credit_balance_too_low`, `payment required`, …) → terminaalne `credits_exhausted`.
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **mitteterminaalne**; loa värskendamine võib ühenduse taastada.
+`verify your account to continue` **oli varem** ülaltoodud loendis. See ei ole blokeeringu
+signaal ja asub nüüd loendis `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS`, mis liigitab selle
+taastatavaks veaks `PROJECT_ROUTE_ERROR`, selle asemel et ühendus lõplikult sulgeda.
+
+Google Cloud Code / Antigravity tagastavad selle kujul `403 VALIDATION_REQUIRED`. See on
+**ajutine ja esineb tervetel, täieliku kvoodiga kontodel** — mõõdetud töötavas
+juurutuses (2026-09-25, `proxy_logs`): üks Antigravity ühendus tagastas 10 minuti
+jooksul 33 sellist 403-vastust ja jäi olekusse `active`, samal ajal kui teine ühendus,
+millel oli kõigis 17 aknas alles 100 % kvoodist, blokeeriti jäädavalt **üheainsa**
+sellise vastuse tõttu. Ainus erinevus seisnes selles, millist katset parasjagu teenindati.
+
+See eristus on oluline, sest lõplik vaste on `permanent: true` (üheaastane ooteperiood,
+automaatset taastumist ei toimu), samas kui operaator saab kinnitamisviiba brauseris
+lahendada. Fraasi hoidmine blokeeringute loendis muutis selle sõnastuse puhul kättesaamatuks
+ka funktsiooni `classifyProviderError` taastatava cloud-code'i 403-haru, sest
+`accountDeactivated` hinnatakse esimesena — seega ei saanud Gemini Code Assisti jaoks
+pull request'ides [#868](https://github.com/diegosouzapw/OmniRoute/pull/868) ja
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) lisatud projektimarsruudi
+taastamine kunagi käivituda.
+
+Kolm kõrvuti asuvat, **eraldi** signaalitabelit _ei kuulu_ blokeeritud märksõnade tuvastamise alla:
+
+- `CREDITS_EXHAUSTED_SIGNALS` — arveldusvahendid/kvoot on ammendunud (`insufficient_quota`,
+  `credit_balance_too_low`, `payment required`, …) → lõplik `credits_exhausted`.
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **mittelõplik**; loa värskendamine võib olukorra taastada.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **mittelõplik**; operaator peab konto
+  teenusepakkuja juures uuesti kinnitama. Asub failis `open-sse/services/errorClassifier.ts`
+  (ülejäänud kaks asuvad failis `accountFallback.ts`). Vaata ülaltoodud jaotist.
 
 Märkus: levinud ajutisi fraase, nagu **`rate limit`** / `429`, käsitleb
-päringulimiidi / ühenduse jahtumisaja mehhanism ning need **ei ole** blokeerimissignaalid.
+kiirusepiirangu / ühenduse ooteperioodi loogika ning need **ei ole** blokeeringu signaalid.
 
 ## Tuvastusvoog
 

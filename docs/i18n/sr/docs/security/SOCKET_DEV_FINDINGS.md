@@ -216,30 +216,29 @@ rawBody)`) пре парсирања JSON-а. Ако је тајна подеш�
 
 ---
 
-## Профил изградње: `minimal`
+## Профил израде: `minimal`
 
-За кориснике којима је потребан артефакт прилагођен Socket-у, изградњу покрените са:
+За кориснике којима је потребан артефакт компатибилан са Socket-ом, извршите израду помоћу:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-Webpack додатак `NormalModuleReplacementPlugin` замењује четири модула псеудоимплементацијама:
+Webpack додатак `NormalModuleReplacementPlugin` преусмерава четири модула на заменске имплементације:
 
-| Модул                                       | Псеудоимплементација                             |
+| Модул                                       | Заменска имплементација                          |
 | ------------------------------------------- | ------------------------------------------------ |
 | `src/mitm/cert/install.ts`                  | `src/mitm/cert/install.stub.ts`                  |
 | `src/lib/zed-oauth/keychain-reader.ts`      | `src/lib/zed-oauth/keychain-reader.stub.ts`      |
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Свака псеудоимплементација извози исти интерфејс, али свака функција током извршавања баца
+Свака заменска имплементација извози исти интерфејс, али свака функција током извршавања изазива грешку
 `featureDisabledError(name)`. Руте које зависе од онемогућеног
-модула враћају HTTP 503 са јасном поруком уместо активирања
-осетљиве путање кода.
+модула враћају HTTP 503 са јасном поруком, уместо да активирају
+осетљиву путању кода.
 
-Добијени пакет је намењен објављивању као `omniroute-secure`. Рецепт за објављивање потражите у
-`docs/ops/PUBLISHING_SECURE.md`.
+Добијени пакет је намењен за објављивање под називом `omniroute-secure`.
 
 ---
 

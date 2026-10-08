@@ -37,33 +37,33 @@ Typowe problemy i rozwiązania dotyczące OmniRoute.
 
 ---
 
-### Ograniczanie liczby żądań u bezpłatnych dostawców (429 / 400 / 401)
+### Ograniczanie częstotliwości żądań u bezpłatnych dostawców (429 / 400 / 401)
 
-**Objaw**: Podczas używania `model: "auto"` z bezpłatnymi dostawcami lub dostawcami niewymagającymi uwierzytelniania (opencode, auggie itd.) sporadycznie otrzymujesz błędy `HTTP 429`, `400` lub `401` zamiast odpowiedzi. Żądania kończą się powodzeniem po ponowieniu tego samego zapytania kilka chwil później, ale automatyzacja (zadania cron, agenci, skrypty) przestaje działać po pierwszym błędzie.
+**Objaw**: Podczas używania `model: "auto"` z bezpłatnymi dostawcami lub dostawcami niewymagającymi uwierzytelnienia (opencode, auggie itp.) sporadycznie zamiast odpowiedzi pojawiają się błędy `HTTP 429`, `400` lub `401`. Ponowienie tego samego promptu kilka chwil później kończy się powodzeniem, ale automatyzacja (zadania cron, agenci, skrypty) przerywa działanie przy pierwszym błędzie.
 
-**Główna przyczyna**: Nakładają się na siebie trzy niezależne rodzaje błędów:
+**Główna przyczyna**: Nakładają się trzy niezależne tryby awarii:
 
-1. **Limit żądań dostawcy (`429`)**: Bezpłatne plany mogą wymuszać limit w określonym przedziale czasowym. Seria równoległych wywołań wyczerpuje ten limit, przez co kolejne żądanie jest odrzucane do czasu zresetowania przedziału.
-2. **Niedziałający model w trybie przekazywania (`400`/`401`)**: Pule `auto/*` mogą zawierać modele przekazywane przez `opencode`, które są zarejestrowane w katalogu, ale nie mają aktywnych danych uwierzytelniających (np. `oc/north-mini-code-free` → `401`). Automatyczny router próbuje użyć takiego modelu, operacja kończy się niepowodzeniem, a błąd jest propagowany, zanim uruchomi się mechanizm przełączania awaryjnego.
-3. **Wzmocnienie wskutek współbieżności (`429` pod obciążeniem)**: Gdy wiele sesji agentów lub zadań cron jednocześnie korzysta z `auto`, łączna częstotliwość żądań przekracza poziom tolerowany przez bezpłatnych dostawców, przez co prawidłowe wywołania są oznaczane jako nadużycie.
+1. **Limit częstotliwości dostawcy (`429`)**: Bezpłatne plany mogą narzucać limit na określony przedział czasu. Seria równoległych wywołań wyczerpuje go, więc kolejne żądanie jest odrzucane do czasu zresetowania okna.
+2. **Niedziałający model w trybie passthrough (`400`/`401`)**: Pule `auto/*` mogą zawierać modele passthrough od `opencode`, które są zarejestrowane w katalogu, ale nie mają aktywnych danych uwierzytelniających (np. `oc/north-mini-code-free` → `401`). Automatyczny router próbuje użyć jednego z nich, kończy się to niepowodzeniem, a błąd jest propagowany, zanim uruchomi się mechanizm awaryjny.
+3. **Wzmocnienie współbieżności (`429` pod obciążeniem)**: Gdy wiele sesji agentów lub zadań cron jednocześnie korzysta z `auto`, łączna częstotliwość żądań przekracza poziom tolerowany przez bezpłatnych dostawców, przez co prawidłowe wywołania są oznaczane jako nadużycie.
 
-**Zweryfikowane rozwiązanie (zgłoszone przez społeczność, 2026-08-10)**: dostosuj trzy zmienne środowiskowe, aby rotacja, współbieżność i przełączanie awaryjne kompensowały niestabilność bezpłatnych planów zamiast powodować błędy:
+**Zweryfikowane rozwiązanie (zgłoszone przez społeczność, 2026-08-10)**: dostosuj trzy zmienne środowiskowe, aby rotacja, współbieżność i mechanizm awaryjny kompensowały niestabilność bezpłatnych planów zamiast powodować przerwanie działania:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # przejdź do innego modelu/dostawcy po błędzie 400/401 (pomija niedziałające modele przekazywane)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # jawny limit dopuszczania ciężkich żądań (domyślnie nieustawiony: brak limitu liczby żądań, zobacz uwagę poniżej)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # dłuższe, ograniczone oczekiwanie na dostępność zasobów dla ciężkich żądań zamiast natychmiastowego, możliwego do ponowienia błędu 503
+export OMNIROUTE_ROTATE_ON_400=true           # przejdź do innego modelu/dostawcy po błędzie 400/401 (pomija niedziałające modele passthrough)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # jawny limit dopuszczeń dla ciężkich żądań (domyślnie nieustawiony: brak limitu liczby żądań, patrz uwaga poniżej)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # zwiększ ograniczony czas oczekiwania ponad domyślną wartość RATE_LIMIT_MAX_WAIT_MS dla wolnych usług nadrzędnych
 ```
 
-Ustaw je w środowisku procesu OmniRoute (demona, np. za pośrednictwem pliku plist LaunchAgent lub `systemctl edit`), a następnie ponownie uruchom OmniRoute. Flaga rotacji daje największy efekt: zamienia błąd krytyczny w niewidoczne dla użytkownika ponowienie żądania u sprawnego dostawcy z puli.
+Ustaw je w środowisku procesu OmniRoute (demona, np. za pomocą pliku plist LaunchAgent lub polecenia `systemctl edit`), a następnie uruchom ponownie OmniRoute. Flaga rotacji ma zdecydowanie największy wpływ: zamienia błąd krytyczny w przejrzystą ponowną próbę z użyciem sprawnego dostawcy z puli.
 
-**Uwaga**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` ogranicza liczbę ciężkich żądań — wykorzystujących długi kontekst — które mogą być wykonywane jednocześnie; ograniczenie to jest bramą dopuszczającą, a nie mechanizmem limitowania żądań dostawcy. **Aktualizacja dotycząca efektu kaskadowego błędów #503:** ta zmienna nie jest już ustawiana domyślnie (obecnie obowiązuje tylko wtedy, gdy zostanie jawnie skonfigurowana, jak powyżej) — dopuszczanie ciężkich żądań jest zamiast tego kontrolowane przez automatycznie wyliczany budżet bajtów (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), który skaluje się na podstawie rzeczywistego limitu pamięci hosta. Dzięki temu nowe wdrożenie powinno generować znacznie mniej odrzuceń `503 chat_admission_busy` bez ustawiania tej zmiennej; jej jawne ustawienie nadal działa dokładnie tak, jak opisano. Jawnie ustawione wartości budżetu bajtów są ograniczane do zakresu 8 MiB–2 GiB. Błąd `413 body_exceeds_budget` nie jest przejściowy: zwiększ budżet bajtów, zmniejsz `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` lub zwiększ limit pamięci procesu. Odrzucenie `inflight_bytes_budget` jest skutkiem tymczasowego przeciążenia i nadal kwalifikuje się do ponowienia. Ograniczanie liczby żądań dla poszczególnych dostawców (`open-sse/services/rateLimitManager.ts`) jest kontrolowane oddzielnie przez `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` i `RATE_LIMIT_AUTO_ENABLE` — zobacz `.env.example`.
+**Uwaga**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` ogranicza liczbę ciężkich — wykorzystujących długi kontekst — żądań wykonywanych jednocześnie; jest to bramka dopuszczeń, a nie ogranicznik częstotliwości dostawcy. **Aktualizacja dotycząca propagacji błędów #503:** ta zmienna nie jest już ustawiana domyślnie (obecnie obowiązuje tylko po jawnym skonfigurowaniu, jak powyżej) — dopuszczanie ciężkich żądań jest zamiast tego kontrolowane przez automatycznie wyliczany budżet bajtów (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), który skaluje się na podstawie rzeczywistego limitu pamięci hosta. Dzięki temu świeże wdrożenie powinno generować znacznie mniej odrzuceń `503 chat_admission_busy`, nawet bez ustawiania tej zmiennej; jej jawne ustawienie w tym miejscu nadal działa dokładnie tak, jak opisano. Jawne nadpisanie budżetu bajtów jest ograniczane do zakresu od 8 MiB do 2 GiB. Błąd `413 body_exceeds_budget` nie jest przejściowy: zwiększ ten budżet bajtów, zmniejsz `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` lub zwiększ limit pamięci procesu. Odrzucenie `inflight_bytes_budget` wynika z tymczasowej rywalizacji o zasoby i nadal można je ponowić. Ograniczanie częstotliwości dla poszczególnych dostawców (`open-sse/services/rateLimitManager.ts`) jest kontrolowane oddzielnie przez `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` i `RATE_LIMIT_AUTO_ENABLE` — zobacz `.env.example`.
 
-**Jak sprawdzić, czy poprawka zadziałała**: uruchom agenta/zadanie cron dwukrotnie w krótkim odstępie czasu i potwierdź, że oba uruchomienia zakończyły się powodzeniem. Przed wprowadzeniem poprawki drugie uruchomienie zazwyczaj zwraca błąd `429`/`401`. Po poprawce błędy (jeśli wystąpią) są automatycznie ponawiane, a wywołanie zostaje ukończone. Możesz również wykonać `curl /monitoring/health` i obserwować pole `rateLimitedUntil` w połączeniach z dostawcami oraz `circuitBreakers.providerBreakers[].state` dla dostawców, których dotyczy problem — stan przyjmuje jedną z wartości: `CLOSED`, `DEGRADED`, `OPEN` lub `HALF_OPEN` (zobacz `src/shared/utils/circuitBreaker.ts`), a dostawca, u którego błędy nadal występują, przejdzie kolejno przez stany `CLOSED → DEGRADED → OPEN`, zanim po upływie okna resetowania zostanie przepuszczone wywołanie próbne (`HALF_OPEN`).
+**Jak sprawdzić, czy rozwiązanie zadziałało**: uruchom agenta lub zadanie cron dwukrotnie w krótkim odstępie i potwierdź, że oba uruchomienia zakończyły się powodzeniem. Przed zastosowaniem rozwiązania drugie uruchomienie zwykle zwraca błąd `429`/`401`. Po zastosowaniu rozwiązania błędy (jeśli wystąpią) są automatycznie ponawiane, a wywołanie zostaje ukończone. Możesz również wykonać `curl /monitoring/health` i obserwować pole `rateLimitedUntil` w połączeniach dostawców oraz `circuitBreakers.providerBreakers[].state` dla dostawców, których dotyczy problem — stan przyjmuje jedną z wartości `CLOSED`, `DEGRADED`, `OPEN` lub `HALF_OPEN` (zobacz `src/shared/utils/circuitBreaker.ts`), a dostawca, u którego nadal występują błędy, przejdzie kolejno ze stanu `CLOSED → DEGRADED → OPEN`, zanim okno resetowania umożliwi wykonanie żądania próbnego (`HALF_OPEN`).
 
-**Jeśli nadal widzisz błąd 429**: aktywne konto tego dostawcy rzeczywiście wyczerpało swój _limit wykorzystania_ (a nie tylko limit częstotliwości żądań). Dodaj drugie konto tego samego dostawcy w panelu OmniRoute → Providers → Accounts albo dodaj innego bezpłatnego dostawcę (np. `routeway`, `auggie`). Rotacja pomaga tylko w przypadku przejściowych błędów ograniczenia częstotliwości żądań oraz błędów 400/401; całkowite wyczerpanie limitu wykorzystania wymaga drugiego zestawu danych uwierzytelniających lub innego dostawcy.
+**Jeśli nadal występuje błąd 429**: aktywne konto tego dostawcy rzeczywiście wyczerpało swój _przydział_ (a nie tylko limit częstotliwości). Dodaj drugie konto tego samego dostawcy w panelu OmniRoute → Dostawcy → Konta albo dodaj do konfiguracji innego bezpłatnego dostawcę (np. `routeway`, `auggie`). Rotacja pomaga tylko w przypadku przejściowych limitów częstotliwości oraz błędów 400/401; całkowite wyczerpanie przydziału wymaga drugich danych uwierzytelniających lub innego dostawcy.
 
-**Jeśli widzisz błąd 403 w modelach wizyjnych (`auto/vision`, `bazaarlink/*`)**: połączone konto nie ma płatnego planu obejmującego funkcje wizyjne albo klucz API ma niewystarczające uprawnienia. Sprawdź w panelu dostawcy, czy zakres klucza obejmuje funkcje wizyjne/multimodalne, albo połącz konto z płatnym planem i pozostaw je jako docelowe konto dla modeli wizyjnych.
+**Jeśli w przypadku modeli wizyjnych (`auto/vision`, `bazaarlink/*`) występuje błąd 403**: połączone konto nie ma płatnego planu obejmującego obsługę obrazów albo klucz API ma niewystarczające uprawnienia. Sprawdź w panelu dostawcy, czy zakres klucza obejmuje obsługę obrazów lub funkcje multimodalne, albo połącz konto z płatnym planem i pozostaw je jako docelowe konto dla modeli wizyjnych.
 
 ---
 
@@ -549,7 +549,7 @@ Użyj sekcji **Panel → Translator**, aby debugować problemy z translacją for
 
 ## Ustawienia odporności
 
-### Automatyczne ograniczanie szybkości nie jest uruchamiane
+### Automatyczne ograniczanie szybkości nie uruchamia się
 
 - Automatyczne ograniczanie szybkości dotyczy tylko dostawców korzystających z kluczy API (nie OAuth/subskrypcji)
 - Sprawdź, czy w sekcji **Ustawienia → Odporność → Profile dostawców** włączono automatyczne ograniczanie szybkości
@@ -560,29 +560,30 @@ Użyj sekcji **Panel → Translator**, aby debugować problemy z translacją for
 Profile dostawców obsługują następujące ustawienia:
 
 - **Opóźnienie bazowe** — Początkowy czas oczekiwania po pierwszym niepowodzeniu (domyślnie: 1s)
-- **Maks. opóźnienie** — Górny limit czasu oczekiwania (domyślnie: 30s)
-- **Mnożnik** — Współczynnik zwiększania opóźnienia przy każdym kolejnym niepowodzeniu (domyślnie: 2x)
+- **Maksymalne opóźnienie** — Górny limit czasu oczekiwania (domyślnie: 30s)
+- **Mnożnik** — Wartość zwiększenia opóźnienia przy każdym kolejnym niepowodzeniu (domyślnie: 2x)
 
-### Zapobieganie efektowi „thundering herd”
+### Zapobieganie efektowi thundering herd
 
-Gdy wiele równoczesnych żądań trafia do dostawcy z ograniczoną szybkością, OmniRoute używa muteksu i automatycznego ograniczania szybkości, aby przetwarzać żądania sekwencyjnie i zapobiegać kaskadowym awariom. Odbywa się to automatycznie w przypadku dostawców korzystających z kluczy API.
+Gdy wiele równoczesnych żądań trafia do dostawcy z ograniczoną szybkością, OmniRoute używa muteksu i automatycznego ograniczania szybkości, aby serializować żądania i zapobiegać kaskadowym awariom. W przypadku dostawców korzystających z kluczy API odbywa się to automatycznie.
 
-### Żądania czatu kończą się niepowodzeniem 503 / chat_admission_busy
+### Żądania czatu kończą się błędem 503 / chat_admission_busy
 
 **Objawy:**
 
-- Punkt końcowy uzupełnień czatu zwraca możliwą do ponowienia odpowiedź `503`, której kod błędu to
+- Punkt końcowy uzupełnień czatu zwraca możliwą do ponowienia odpowiedź `503` z kodem błędu
   `chat_admission_busy`.
-- Odpowiedź zawiera `Retry-After`. Od wersji #12135 wartość jest wyznaczana na podstawie zaobserwowanego
-  obciążenia — jako większa z wartości: okna `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`, przez które żądanie już
-  oczekiwało, oraz czasu utrzymywania bieżących rezerwacji dla ciężkich żądań — zaokrąglona w górę do pełnych
-  sekund i ograniczona do 60. Przy bezczynnym mechanizmie zachowuje historyczne wartości minimalne: 2 sekundy dla
-  ścieżki opartej na bajtach, 1 sekundę dla ścieżki opartej na strukturze (która obejmuje również
+- Odpowiedź zawiera `Retry-After`. Od #12135 wartość jest wyznaczana na podstawie zaobserwowanego
+  obciążenia — jest to większa z dwóch wartości: czas, który żądanie już odczekało w oknie
+  `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`, oraz czas utrzymywania bieżących dzierżaw dla ciężkich
+  żądań — zaokrąglona w górę do pełnych sekund i ograniczona do 60. Gdy brama jest bezczynna,
+  zachowane są historyczne wartości minimalne: 2 sekundy dla ścieżki opartej na bajtach i
+  1 sekunda dla ścieżki opartej na strukturze (która zawiera również
   `reason: "structure_limit"`).
-- Może się to zdarzyć, gdy inne ciężkie żądanie czatu lub długotrwała odpowiedź strumieniowa jest nadal
-  w trakcie przetwarzania.
+- Może się to zdarzyć, gdy inny ciężki czat lub długotrwała odpowiedź strumieniowa jest nadal
+  w toku.
 
-Treść odpowiedzi opartej na bajtach:
+Treść odpowiedzi opartej na bajtach wygląda następująco:
 
 ```json
 {
@@ -594,51 +595,58 @@ Treść odpowiedzi opartej na bajtach:
 }
 ```
 
-Odpowiedź oparta na strukturze używa tego samego typu i kodu oraz komunikatu
+Odpowiedź oparta na strukturze używa tego samego typu i kodu, z komunikatem
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
-i `reason: "structure_limit"`.
-Przy domyślnych progach żądanie jest uznawane za ciężkie strukturalnie, gdy zawiera co najmniej `200` wiadomości,
-co najmniej `64` narzędzia lub co najmniej `32,000` szacowanych tokenów albo gdy ograniczone szacowanie struktury
-wyczerpie swoje limity wynoszące `10,000` odwiedzonych węzłów lub głębokość `12`.
+oraz `reason: "structure_limit"`.
+Przy domyślnych progach żądanie jest uznawane za strukturalnie ciężkie, gdy zawiera co najmniej
+`200` wiadomości, co najmniej `64` narzędzia lub co najmniej `32,000` szacowanych tokenów albo gdy
+ograniczone szacowanie struktury wyczerpie swoje limity `10,000` odwiedzonych węzłów lub głębokości `12`.
 
-**Przyczyna:** Jest to celowe odrzucanie obciążenia wewnątrz OmniRoute, a nie awaria dostawcy zewnętrznego.
-Każdy proces używa lokalnego dla procesu mechanizmu ochronnego do rezerwowania ograniczonej przepustowości dla ciężkich żądań przed zachowaniem
-i analizowaniem dużej treści żądania. Rezerwacja dla ciężkiego żądania pozostaje aktywna przez cały czas trwania odpowiedzi SSE.
+**Przyczyna:** Jest to celowe odrzucanie obciążenia wewnątrz OmniRoute, a nie awaria dostawcy
+nadrzędnego. Każdy proces używa lokalnego dla procesu mechanizmu ochronnego, aby zarezerwować
+ograniczoną przepustowość dla ciężkich żądań przed zachowaniem i przeanalizowaniem dużej treści
+żądania. Dzierżawa dla ciężkiego żądania pozostaje aktywna przez cały czas trwania odpowiedzi SSE.
 
-**#503-fanout:** przed wprowadzeniem tej poprawki mechanizm ochronny ograniczał współbieżność do stałej LICZBY żądań
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, domyślnie `1`) niezależnie od pamięci hosta, przez co rozgałęzianie
-agentów programistycznych (wiele podagentów/CLI, treści rutynowo > 256 KB) ograniczało efektywną
-współbieżność do ~1 i powodowało błędy 503 przy całkowicie normalnym obciążeniu. Mechanizm ochronny dostraja się teraz
-automatycznie: jest kontrolowany przez automatycznie wyznaczany BAJTOWY budżet pobierania (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) dopasowany do
-rzeczywistego limitu pamięci procesu, a także uwzględnia bieżący sygnał presji na zasoby — dzięki czemu
-odrzuca obciążenie tylko wtedy, gdy host rzeczywiście znajduje się pod presją pamięci, a nie wyłącznie dlatego, że jednocześnie
-nadeszło więcej niż jedno ciężkie żądanie. Stary limit liczby (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) jest
-nadal respektowany, ale tylko wtedy, gdy zostanie jawnie ustawiony.
+**Rozgałęzianie błędów #503:** przed tą poprawką mechanizm ochronny ograniczał współbieżność do
+stałej LICZBY żądań (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, domyślnie `1`) niezależnie od pamięci
+hosta, przez co rozgałęzianie agentów programistycznych (wiele podagentów/CLI, treści rutynowo
+przekraczające 256 KB) zmniejszało efektywną współbieżność do około 1 i powodowało błędy 503 przy
+całkowicie normalnym obciążeniu. Mechanizm ochronny dostraja się teraz automatycznie: jest sterowany
+przez automatycznie wyznaczany budżet BAJTÓW dla przyjmowanych danych
+(`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), którego rozmiar jest ustalany na podstawie rzeczywistego
+limitu pamięci procesu, a także uwzględnia bieżący sygnał presji na zasoby — dzięki czemu odrzuca
+żądania tylko wtedy, gdy host rzeczywiście znajduje się pod presją pamięci, a nie tylko dlatego,
+że jednocześnie nadeszło więcej niż jedno ciężkie żądanie. Stary limit liczby
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) jest nadal respektowany, ale tylko wtedy, gdy ustawisz go
+jawnie.
 
 Gdy przepustowość jest zajęta, ciężkie żądanie najpierw czeka do
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (domyślnie `2000`, wartość `0` wyłącza oczekiwanie) na zwolnienie miejsca,
-zanim zostanie zwrócona możliwa do ponowienia odpowiedź `503`. Ograniczony czas oczekiwania istnieje po to, aby klienty działające jak agenci
-(OpenCode, Claude Code, Cursor), które równolegle rozgałęziają ciężkie podżądania, mogły przetworzyć nagły napływ sekwencyjnie,
-zamiast wyczerpywać cały budżet ponownych prób na natychmiastowe odrzucenia i przerywać działanie w trakcie zadania.
-Bieżące wykorzystanie rezerwacji dla ciężkich żądań, wyznaczony budżet bajtowy i aktualny poziom presji są
-udostępniane pod adresem `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (domyślnie `RATE_LIMIT_MAX_WAIT_MS`; `0` wyłącza oczekiwanie) na zwolnienie miejsca,
+zanim zostanie zwrócona możliwa do ponowienia odpowiedź `503`. Ograniczony czas oczekiwania istnieje
+po to, aby klienty działające w stylu agentów (OpenCode, Claude Code, Cursor), które równolegle
+rozgałęziają ciężkie podżądania, serializowały gwałtowny napływ żądań zamiast zużywać cały budżet
+ponownych prób na natychmiastowe odrzucenia i przerywać działanie w trakcie zadania.
+Bieżące wykorzystanie dzierżaw dla ciężkich żądań, obliczony budżet bajtów oraz aktualny poziom
+presji są dostępne pod `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
 `budgetSource`, `pressureSeverity`, `countCapEnabled`) — sprawdź je przed zmianą jakiejkolwiek zmiennej środowiskowej.
-Ustawienia → Odporność → Kolejka żądań → Żądania równoczesne nie steruje tym mechanizmem; to ustawienie
-kontroluje oddzielny mechanizm kolejki żądań dostawcy.
+Ustawienia → Odporność → Kolejka żądań → Równoczesne żądania nie kontroluje tego mechanizmu; to
+ustawienie zarządza oddzielnym mechanizmem kolejki żądań dostawcy.
 
 **Rozwiązanie:**
 
-1. Najpierw ponów próbę. Klienty powinny respektować `Retry-After` i stosować wycofywanie zamiast natychmiast
-   powtarzać żądanie.
-2. Przed dostrajaniem czegokolwiek sprawdź `/api/monitoring/health` → `chatAdmission`. `countCapEnabled:
-false` oraz wysoka wartość `maxInflightBytes` oznaczają, że automatycznie wyznaczany budżet już działa
-   prawidłowo; wartość `pressureSeverity` równa `high`/`critical` oznacza, że hostowi rzeczywiście brakuje pamięci —
-   nie można tego naprawić zmienną środowiskową kontroli dostępu; potrzebna jest większa ilość RAM-u lub mniejsze obciążenie.
-3. Tylko jeśli `/api/monitoring/health` wskazuje, że automatycznie wyznaczany budżet jest rzeczywiście zbyt mały dla
-   Twojego hosta (co zdarza się rzadko — już skaluje się od kontenera po serwer fizyczny), zastąp go bezpośrednio za pomocą
-   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`, zamiast wracać do starszego limitu liczby żądań.
+1. Najpierw ponów próbę. Klienty powinny respektować `Retry-After` i stosować wycofywanie zamiast
+   natychmiast ponawiać żądanie.
+2. Przed dostrojeniem czegokolwiek sprawdź `/api/monitoring/health` → `chatAdmission`. `countCapEnabled:
+false` i wysoka wartość `maxInflightBytes` oznaczają, że automatycznie wyznaczony budżet już działa
+   prawidłowo; wartość `pressureSeverity` równa `high`/`critical` oznacza, że hostowi rzeczywiście
+   brakuje pamięci — nie można tego naprawić za pomocą zmiennej środowiskowej kontroli przyjmowania
+   żądań; potrzebna jest większa ilość pamięci RAM lub mniejsze obciążenie.
+3. Tylko jeśli `/api/monitoring/health` wskazuje, że automatycznie wyznaczony budżet jest rzeczywiście
+   zbyt mały dla Twojego hosta (co zdarza się rzadko — skaluje się już od kontenerów po serwery
+   fizyczne), nadpisz go bezpośrednio za pomocą `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`, zamiast wracać
+   do starszego limitu liczby żądań.
 
-Autorytatywne ustawienia kontroli dostępu znajdziesz w [dokumentacji zmiennych środowiskowych](../reference/ENVIRONMENT.md#4-security--authentication).
+Mi arodajne ustawienia kontroli przyjmowania żądań znajdziesz w [dokumentacji zmiennych środowiskowych](../reference/ENVIRONMENT.md#4-security--authentication).
 
 ---
 

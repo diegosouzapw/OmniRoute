@@ -2812,11 +2812,13 @@ paths:
           schema: { type: string }
       responses:
         "200":
-          description: Token revoked
+          description: Token revoked (alreadyRevoked is true when it was already revoked)
         "403":
           description: Insufficient scope
         "404":
-          description: Token not found or already revoked
+          description: Token not found
+        "409":
+          description: Prefix matches more than one live token; nothing revoked
 
   # ─── CLI Tools ─────────────────────────────────────────────────
 

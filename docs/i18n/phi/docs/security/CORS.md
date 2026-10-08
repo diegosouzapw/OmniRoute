@@ -131,21 +131,25 @@ ang trailing slash, kaya magkatumbas ang `http://localhost:3000` at
 ## Halimbawa: reverse proxy sa harap ng OmniRoute
 
 Ang CORS ay ipinapatupad mismo ng OmniRoute, kaya karaniwang **hindi** dapat magdagdag o
-magsulat muli ang proxy ng mga `Access-Control-*` header (sinisira ng dobleng header ang mga
-browser). Tapusin ang TLS at i-forward — hayaang OmniRoute ang sumagot sa preflight:
+magsulat muli ang proxy ng mga header na `Access-Control-*` (sinisira ng dobleng mga header ang mga browser). I-terminate ang TLS
+at i-forward ang trapiko — hayaang OmniRoute ang tumugon sa preflight:
 
 ```nginx
-# nginx — i-forward sa OmniRoute; HUWAG mag-inject ng Access-Control-* dito
+# nginx — i-forward sa OmniRoute; HUWAG magpasok ng Access-Control-* dito
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # HUWAG itakda ang X-Forwarded-For sa 127.0.0.1 — pinawawalang-saysay nito ang loopback route guard.
+    # Panatilihin ang mga forwarding header: ang proxy sa parehong host ay kumokonekta mula sa loopback, at ang mga ito
+    # ang nagsasabi sa OmniRoute na ang tumatawag ay hindi ang lokal na operator. Kapag walang idinagdag na ganitong header ang proxy,
+    # magmumukhang lokal ang bawat malayuang tumatawag. Huwag ding itakda kailanman ang X-Forwarded-For sa 127.0.0.1.
 }
 ```
 
-Itakda ang mga pinapayagang browser origin sa OmniRoute (`CORS_ALLOWED_ORIGINS` o ang
-tab na Security), hindi sa proxy.
+Itakda sa OmniRoute (`CORS_ALLOWED_ORIGINS` o ang tab na
+Security) ang mga pinapayagang origin ng browser, hindi sa proxy.
 
 ## Mga source file
 

@@ -211,28 +211,27 @@ zai iya tattara bayanan shaidar ƙungiya wuri guda. Gyaran yana fayyace samfurin
 
 ## Bayanan gini: `minimal`
 
-Ga masu amfani da ke buƙatar artifact mai dacewa da Socket, yi gini da:
+Ga masu amfani da ke buƙatar wani kayan gini mai dacewa da Socket, yi gini da:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-Webpack `NormalModuleReplacementPlugin` yana maye gurbin modules huɗu da stubs:
+`NormalModuleReplacementPlugin` na webpack yana sanya laƙabi ga modula huɗu zuwa stubs:
 
-| Module                                      | Stub                                             |
+| Modula                                      | Stub                                             |
 | ------------------------------------------- | ------------------------------------------------ |
 | `src/mitm/cert/install.ts`                  | `src/mitm/cert/install.stub.ts`                  |
 | `src/lib/zed-oauth/keychain-reader.ts`      | `src/lib/zed-oauth/keychain-reader.stub.ts`      |
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Kowane stub yana fitar da interface iri ɗaya, amma kowace function tana jefa
-`featureDisabledError(name)` a lokacin aiki. Routes da suka dogara da module da aka kashe
-suna mayar da HTTP 503 tare da saƙo bayyananne maimakon kunna
-hanyar code mai haɗari.
+Kowane stub yana fitar da API iri ɗaya, amma kowace aiki tana jefa
+`featureDisabledError(name)` yayin lokacin gudana. Hanyoyin da suka dogara da
+modulan da aka kashe suna mayar da HTTP 503 tare da saƙo bayyananne maimakon kunna
+hanyar lambar da ke da muhimmancin tsaro.
 
-An yi nufin buga bundle ɗin da aka samar a matsayin `omniroute-secure`. Duba
-`docs/ops/PUBLISHING_SECURE.md` don matakan bugawa.
+An yi nufin a wallafa bundle ɗin da aka samar a matsayin `omniroute-secure`.
 
 ---
 

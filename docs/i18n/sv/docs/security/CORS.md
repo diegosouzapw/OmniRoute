@@ -132,23 +132,26 @@ CORS-ursprung** utan omstart.
 
 ## Exempel: omvänd proxy framför OmniRoute
 
-CORS tillämpas av OmniRoute självt, så proxyn bör i allmänhet **inte** lägga till
-eller skriva om `Access-Control-*`-huvuden (dubbla huvuden får webbläsare att
-sluta fungera). Terminera TLS och vidarebefordra — låt OmniRoute besvara
-preflight-begäran:
+CORS tillämpas av OmniRoute självt, så proxyn bör i allmänhet **inte** lägga till eller
+skriva om `Access-Control-*`-rubriker (dubbla rubriker orsakar problem i webbläsare). Terminera TLS
+och vidarebefordra — låt OmniRoute besvara preflight-förfrågningar:
 
 ```nginx
 # nginx — vidarebefordra till OmniRoute; injicera INTE Access-Control-* här
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # Ange INTE X-Forwarded-For som 127.0.0.1 — det sätter loopback-ruttskyddet ur spel.
+    # Behåll vidarebefordringsrubrikerna: en proxy på samma värd ansluter från loopback, och det är
+    # de som talar om för OmniRoute att anroparen inte är den lokala operatören. En proxy som inte lägger till någon av dem
+    # får alla fjärranropare att se lokala ut. Ange heller aldrig X-Forwarded-For som 127.0.0.1.
 }
 ```
 
-Ange de tillåtna webbläsarursprungen i OmniRoute (`CORS_ALLOWED_ORIGINS` eller
-fliken Säkerhet), inte i proxyn.
+Ange de tillåtna webbläsarursprungen i OmniRoute (`CORS_ALLOWED_ORIGINS` eller fliken
+Säkerhet), inte i proxyn.
 
 ## Källfiler
 

@@ -17,33 +17,35 @@ OmniRoute posiada potok autoryzacji świadomy tras, który kontroluje każde ż�
 
 ### 1. Klucz API (Bearer)
 
-Używany przez interfejsy API klienta zgodne z OpenAI/Anthropic/Gemini oraz kilka tras zarządzania, gdy klucz ma zakres `manage`.
+Używany przez interfejsy API klientów zgodnych z OpenAI/Anthropic/Gemini oraz kilka tras zarządzania, gdy klucz ma zakres `manage`.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Walidowany przez `isValidApiKey()` / `extractApiKey()` w `src/sse/services/auth.ts` i ponownie eksportowany przez `src/shared/utils/apiAuth.ts`. Walidator akceptuje również zmienne środowiskowe `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` jako trwałe klucze przekazywane bez zmian (zgłoszenie #1350).
+Weryfikowany przez `isValidApiKey()` / `extractApiKey()` w `src/sse/services/auth.ts` i ponownie eksportowany przez `src/shared/utils/apiAuth.ts`. Walidator akceptuje również zmienne środowiskowe `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` jako trwałe klucze przekazywane bezpośrednio (zgłoszenie #1350).
 
-### 2. Sesja panelu (plik cookie auth_token)
+### 2. Sesja panelu administracyjnego (plik cookie auth_token)
 
-Dla stron panelu i operacji administracyjnych.
+Dla stron panelu administracyjnego i operacji administracyjnych.
 
 ```
-Cookie: auth_token=<JWT signed with JWT_SECRET>
+Cookie: auth_token=<JWT podpisany za pomocą JWT_SECRET>
 ```
 
-Plik cookie jest sesją tylko wtedy, gdy token JWT przejdzie weryfikację **i** zawiera `authenticated: true`
+Plik cookie jest sesją tylko wtedy, gdy JWT przejdzie weryfikację **i** zawiera `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Każdy
-konsument pliku cookie (strażnik trasy, odświeżanie potoku autoryzacji, uzgadnianie połączenia WebSocket, serwer
-na żywo, `/api/settings/require-login`, `/api/auth/status`) korzysta z tego pomocnika.
-Istnieją również inne tokeny JWT podpisane za pomocą `JWT_SECRET` — mechanizm przekazywania Cursor CLI generuje
-dla posiadaczy kluczy tokeny `iss "omniroute" / aud "cursor-cli"` — i nigdy nie są one sesjami
+konsument tego pliku cookie (mechanizm ochrony tras panelu (`isDashboardSessionAuthenticated()`), odświeżanie potoku autoryzacji, uzgadnianie połączenia WebSocket, serwer
+na żywo, `/api/settings/require-login`, `/api/auth/status`) korzysta z tej funkcji pomocniczej.
+Istnieją inne tokeny JWT podpisane za pomocą `JWT_SECRET` — mechanizm bezpośredniego przekazywania Cursor CLI generuje
+dla posiadaczy kluczy tokeny z `iss "omniroute" / aud "cursor-cli"` — i nigdy nie są one sesjami
 (#13298).
 
-Weryfikacja odbywa się za pomocą `isDashboardSessionAuthenticated()` w `src/shared/utils/apiAuth.ts`. Potok automatycznie odświeża token JWT, gdy do końca jego 30-dniowego okresu ważności pozostało mniej niż 7 dni.
+Weryfikacja odbywa się za pomocą `isDashboardSessionAuthenticated()` w `src/shared/utils/apiAuth.ts`. Potok automatycznie odświeża JWT, gdy do końca jego 30-dniowego okresu ważności pozostało mniej niż 7 dni.
 
-Niektóre trasy zarządzania akceptują **dowolny** z tych trybów: plik cookie LUB `Bearer <key>`, gdy klucz API ma zakres `manage` (lub `admin`). Umożliwia to przepływ pracy „konfigurowalny za pomocą wywołań API”, dodany w v3.8.
+Sesja może również zakończyć się przed upływem 30 dni, ponieważ każdy mechanizm generujący token korzysta z `mintDashboardSessionToken` (czas wydania `iat` i identyfikator `jti`), a weryfikator sprawdza dwa ustawienia: `sessionsValidAfter`, ustawiane po zmianie hasła, dzięki czemu każda sesja wydana wcześniej przestaje przechodzić weryfikację (przeglądarka, w której zmieniono hasło, otrzymuje nowy plik cookie), oraz `revokedDashboardSessions`, do którego `POST /api/auth/logout` dodaje `jti` wylogowanej sesji. Sesje wygenerowane przez starszą wersję nie zawierają żadnego z tych pól i pozostają ważne do pierwszej zmiany hasła. Jeśli nie można odczytać ustawień, sesja nie jest uznawana za zaufaną.
+
+Niektóre trasy zarządzania akceptują **dowolny** z tych trybów: plik cookie LUB `Bearer <key>`, gdy klucz API ma zakres `manage` (lub `admin`). Umożliwia to przepływ pracy „konfigurowalny za pomocą wywołań API”, dodany w wersji v3.8.
 
 #### Opcjonalna brama logowania OIDC (#6973)
 
@@ -51,24 +53,24 @@ Logowanie administratora do panelu obsługuje również **opcjonalny** przepływ
 obok domyślnego logowania za pomocą hasła — logowanie hasłem nigdy nie jest usuwane, a jedynie
 uzupełniane:
 
-- Jest wyłączone, chyba że `settings.oidcEnabled === true` **oraz** wszystkie wartości `oidcIssuer` /
+- Funkcja jest wyłączona, chyba że `settings.oidcEnabled === true` **oraz** wszystkie wartości `oidcIssuer` /
   `oidcClientId` / `oidcClientSecret` są skonfigurowane (Ustawienia → Uwierzytelnianie).
   W przeciwnym razie `GET /api/auth/oidc/login` zwraca `400`.
 - `GET /api/auth/oidc/login` wykrywa `authorization_endpoint` na podstawie
-  `/.well-known/openid-configuration` wystawcy (awaryjnie używa
-  `<issuer>/authorize`), tworzy identyfikator URI przekierowania na podstawie przychodzącego żądania
-  (z uwzględnieniem `x-forwarded-proto`) i przekierowuje do dostawcy tożsamości z losową wartością `state`
-  zapisaną w pliku cookie `oidc_state` z flagą `httpOnly`.
+  `/.well-known/openid-configuration` wystawcy (w razie niepowodzenia używa
+  `<issuer>/authorize`), tworzy URI przekierowania na podstawie przychodzącego żądania
+  (z uwzględnieniem `x-forwarded-proto`) i przekierowuje do IdP z losową wartością `state`
+  przechowywaną w pliku cookie `oidc_state` z flagą `httpOnly`.
 - `GET /api/auth/oidc/callback` weryfikuje `state`, wymienia kod autoryzacyjny
-  i weryfikuje podpis tokenu ID przy użyciu JWKS wystawcy
-  (`createRemoteJWKSet` z pakietu `jose`, buforowane osobno dla każdego identyfikatora URI JWKS), sprawdzając
-  `issuer`/`audience`. Opcjonalna lista dozwolonych wartości `oidcAllowedSubjects` dopasowuje
-  deklarację `sub` tokenu lub jego deklarację `email` — deklaracja adresu e-mail jest uwzględniana tylko wtedy, gdy
-  `email_verified === true`, dlatego niezweryfikowany adres e-mail u dostawcy tożsamości nigdy nie umożliwi
-  przejścia przez bramę.
-- Po pomyślnym zakończeniu generowany jest **dokładnie taki sam** 30-dniowy token JWT `auth_token`, jaki wystawia
-  logowanie hasłem (`src/app/api/auth/login/route.ts`), dzięki czemu pozostała część
-  potoku sesji panelu (automatyczne odświeżanie, flagi plików cookie) pozostaje niezmieniona —
+  i weryfikuje podpis tokenu ID za pomocą JWKS wystawcy
+  (`createRemoteJWKSet` z pakietu `jose`, buforowane osobno dla każdego URI JWKS), sprawdzając
+  `issuer`/`audience`. Opcjonalna lista dozwolonych `oidcAllowedSubjects` dopasowuje
+  oświadczenie `sub` tokenu lub jego oświadczenie `email` — oświadczenie adresu e-mail jest
+  uwzględniane tylko wtedy, gdy `email_verified === true`, dlatego niezweryfikowany adres
+  e-mail u IdP nigdy nie pozwala przejść przez bramę.
+- Po pomyślnym zakończeniu generowany jest **dokładnie taki sam** 30-dniowy JWT `auth_token`, jaki wystawia
+  logowanie za pomocą hasła (`src/app/api/auth/login/route.ts`), dzięki czemu pozostała część
+  potoku sesji panelu (automatyczne odświeżanie, flagi plików cookie) pozostaje bez zmian —
   OIDC zastępuje jedynie sposób generowania pliku cookie, a nie przyznawane przez niego uprawnienia.
 
 ## Klasy tras

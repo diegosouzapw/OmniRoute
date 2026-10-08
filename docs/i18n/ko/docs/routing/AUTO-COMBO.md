@@ -8,54 +8,54 @@
 
 > 적응형 점수 계산과 무설정 자동 라우팅을 사용하는 자체 관리형 모델 체인
 
-## 무설정 자동 라우팅 (`auto/` 접두사)
+## 무설정 자동 라우팅(`auto/` 접두사)
 
-> **신규:** 콤보를 생성할 필요가 없습니다. 모든 클라이언트에서 `auto/` 접두사를 바로 사용하세요.
+> **신규:** 콤보를 생성할 필요가 없습니다. 모든 클라이언트에서 `auto/` 접두사를 직접 사용하세요.
 
-### 빠른 예제
+### 빠른 예시
 
-| 모델 ID        | 변형    | 동작                                                     |
-| -------------- | ------- | -------------------------------------------------------- |
-| `auto`         | 기본값  | 연결된 모든 제공자, LKGP 전략, 균형 잡힌 가중치          |
-| `auto/coding`  | coding  | 품질 우선 가중치, 코드 생성에 적합                       |
-| `auto/fast`    | fast    | 지연 시간이 짧은 대상에 가중치를 둔 선택                 |
-| `auto/cheap`   | cheap   | 비용 최적화 라우팅(비용이 가장 낮은 대상 우선)           |
-| `auto/offline` | offline | 할당량 가용성이 가장 높은 제공자를 선호                  |
-| `auto/smart`   | smart   | 품질 우선 + 더 나은 모델 탐색을 위한 높은 탐색 비율(10%) |
-| `auto/lkgp`    | lkgp    | 명시적 LKGP(기본 `auto`와 동일)                          |
-| `auto/chaos`   | chaos   | 복원력 테스트를 위한 결함 주입 가중치(카오스 엔지니어링) |
+| 모델 ID        | 변형    | 동작                                                  |
+| -------------- | ------- | ----------------------------------------------------- |
+| `auto`         | 기본값  | 연결된 모든 제공자, LKGP 전략, 균형 잡힌 가중치       |
+| `auto/coding`  | coding  | 품질 우선 가중치, 코드 생성에 적합                    |
+| `auto/fast`    | fast    | 지연 시간이 짧은 항목을 우선하는 가중 선택            |
+| `auto/cheap`   | cheap   | 비용 최적화 라우팅(비용이 가장 낮은 항목 우선)        |
+| `auto/offline` | offline | 할당량 가용성이 가장 높은 제공자를 우선               |
+| `auto/smart`   | smart   | 품질 우선 + 더 나은 모델 탐색을 위한 높은 탐색률(10%) |
+| `auto/lkgp`    | lkgp    | 명시적 LKGP(기본 `auto`와 동일)                       |
+| `auto/chaos`   | chaos   | 병렬 팬아웃, 제공자당 모델 하나(장애 주입 아님)       |
 
-### 카테고리 × 티어 조합 (`auto/<category>:<tier>`)
+### 카테고리 × 티어 조합(`auto/<category>:<tier>`)
 
-OpenRouter 스타일 접미사는 **어떤 종류의 경로인지**(카테고리)와 **어떻게 최적화할지**(티어)를 분리하므로 자유롭게 조합할 수 있습니다(#4235 Phase B, `open-sse/services/autoCombo/suffixComposition.ts`):
+OpenRouter 스타일 접미사는 **어떤 종류의 경로인지**(카테고리)와 **어떻게 최적화할지**(티어)를 분리하므로 자유롭게 조합할 수 있습니다(#4235 Phase B, `open-sse/services/autoCombo/suffixComposition.ts`).
 
-- **카테고리**(기능에 따라 후보 풀 필터링): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal`은 비전 기능을 지원하는 모델을 유지하고, `reasoning`은 추론/사고 모델을 유지합니다.
-- **티어**(점수 계산 가중치/풀 필터 선택): `fast`(빠른 제공) · `cheap`(별칭 `floor`, 비용 절감) · `reliable`(서킷 브레이커 상태 + 지연 시간 안정성) · `free` / `pro`(`classifyTier`를 통해 모델 티어별로 풀 필터링 — 무료 티어 대 프리미엄).
+- **카테고리**(기능에 따라 후보 풀 필터링): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal`은 비전 기능을 지원하는 모델을 유지하며, `reasoning`은 추론/사고 모델을 유지합니다.
+- **티어**(점수 가중치/풀 필터 선택): `fast`(빠른 제공) · `cheap`(별칭 `floor`, 비용 절감) · `reliable`(회로 차단기 상태 + 지연 시간 안정성) · `free` / `pro`(`classifyTier`를 통해 모델 티어별로 풀 필터링 — 무료 티어와 프리미엄 티어).
 
-| 예제                   | 해석 결과                                               |
-| ---------------------- | ------------------------------------------------------- |
-| `auto/coding:fast`     | coding 풀, 짧은 지연 시간 가중치                        |
-| `auto/coding:cheap`    | coding 풀, 비용 최적화(별칭 `auto/coding:floor`)        |
-| `auto/reasoning:pro`   | 추론/사고 모델만 포함, 프리미엄 티어                    |
-| `auto/vision`          | 비전 기능을 지원하는 모델(티어 없음 → 균형 잡힌 가중치) |
-| `auto/multimodal:free` | 멀티모달 기능을 지원하는 모델, 무료 티어만 포함         |
+| 예시                   | 해석 결과                                         |
+| ---------------------- | ------------------------------------------------- |
+| `auto/coding:fast`     | 코딩 풀, 짧은 지연 시간 가중치                    |
+| `auto/coding:cheap`    | 코딩 풀, 비용 최적화(별칭 `auto/coding:floor`)    |
+| `auto/reasoning:pro`   | 추론/사고 모델만, 프리미엄 티어                   |
+| `auto/vision`          | 비전 기능 지원 모델(티어 없음 → 균형 잡힌 가중치) |
+| `auto/multimodal:free` | 멀티모달 기능 지원 모델, 무료 티어만              |
 
-유효한 모든 `auto/<category>[:<tier>]`는 요청 시 해석됩니다. 엄선된 일부 항목은 `/v1/models`와 대시보드(`open-sse/services/autoCombo/builtinCatalog.ts`의 `AUTO_SUFFIX_VARIANTS`)에 표시됩니다. 필터링은 **장애 시 허용(fail-open)** 방식입니다. 제약 조건과 일치하는 연결 모델이 없으면 전체 풀을 사용하므로 라우팅이 중단되지 않습니다. 핵심 점수 계산기(`combo.ts`)는 변경되지 않았으며, 카테고리/티어 필터는 `buildAutoCandidates`에서 적용됩니다.
+유효한 모든 `auto/<category>[:<tier>]`는 요청 시 해석됩니다. 엄선된 일부 항목은 `/v1/models`와 대시보드(`open-sse/services/autoCombo/builtinCatalog.ts`의 `AUTO_SUFFIX_VARIANTS`)에 표시됩니다. 필터링은 **장애 시 개방** 방식입니다. 제약 조건과 일치하는 연결된 모델이 없으면 전체 풀이 사용되므로 라우팅이 중단되지 않습니다. 핵심 점수 계산기(`combo.ts`)는 변경되지 않으며, 카테고리/티어 필터는 `buildAutoCandidates`에서 적용됩니다.
 
-> **실시간 모델 인텔리전스:** `ARENA_ELO_SYNC_ENABLED` 플래그가 켜져 있으면 실시간 **Arena ELO** 순위와 **models.dev** 티어 데이터를 자동 라우팅 적합성 판단에 활용합니다(그렇지 않으면 정적 적합성 맵으로 대체).
+> **실시간 모델 인텔리전스:** `ARENA_ELO_SYNC_ENABLED` 플래그가 켜져 있으면 실시간 **Arena ELO** 순위와 **models.dev** 티어 데이터를 바탕으로 자동 라우팅 적합도를 판단합니다(그렇지 않으면 정적 적합도 맵으로 대체).
 
 **사용 방법:**
 
 ```bash
 # OpenAI 형식을 지원하는 모든 IDE 또는 CLI 도구
 Base URL: http://localhost:20128/v1
-API Key:  <엔드포인트-키>
+API Key:  <your-endpoint-key>
 
-# 코드/구성에서 모델을 다음과 같이 설정합니다.
+# 코드/구성에서 모델을 다음과 같이 설정:
 model: "auto"                 # 균형 잡힌 기본값
 model: "auto/coding"          # 코딩 작업에 가장 적합
 model: "auto/fast"            # 사용 가능한 항목 중 가장 빠름
-model: "auto/cheap"           # 토큰당 비용이 가장 저렴
+model: "auto/cheap"           # 토큰당 비용이 가장 저렴함
 ```
 
 **처리 과정:**
@@ -63,43 +63,44 @@ model: "auto/cheap"           # 토큰당 비용이 가장 저렴
 1. OmniRoute가 `src/sse/handlers/chat.ts`에서 `auto/` 접두사를 감지합니다
 2. 데이터베이스에서 모든 **활성 제공자 연결**을 조회합니다
 3. 유효한 자격 증명(API 키 또는 OAuth 토큰)이 있는 연결만 필터링합니다
-4. 연결별 모델을 결정합니다(`connection.defaultModel` 또는 제공자의 첫 번째 모델)
-5. 메모리 내에 **가상 콤보**를 구성합니다(DB에 저장하지 않음)
-6. 선택한 변형의 가중치 프로필과 LKGP 전략을 사용하여 라우팅합니다
+4. 연결별 모델(`connection.defaultModel` 또는 제공자의 첫 번째 모델)을 결정합니다
+5. 메모리 내에 **가상 콤보**를 생성합니다(DB에 저장되지 않음)
+6. 선택한 변형의 가중치 프로필 + LKGP 전략을 사용해 라우팅합니다
 
-**주요 특성:**
+**주요 속성:**
 
 - ✅ **상시 활성화:** 토글, 콤보 생성 또는 구성이 필요하지 않음
 - ✅ **동적:** 현재 연결된 제공자를 자동으로 반영
-- ✅ **세션 고정성:** LKGP를 통해 마지막으로 성공한 제공자에 우선순위 부여
+- ✅ **세션 고정성:** LKGP가 마지막으로 성공한 제공자를 우선하도록 보장
 - ✅ **다중 계정 인식:** 각 제공자 연결이 별도의 후보가 됨
-- ✅ **DB 쓰기 없음:** 가상 콤보는 요청에만 존재하며 영속성 오버헤드가 없음
+- ✅ **DB 쓰기 없음:** 가상 콤보는 요청에 대해서만 존재하므로 영속성 오버헤드가 없음
 
-### 키별 후보 제어(#7819, Level 1+2)
+### 키별 후보 제어(#7819, 레벨 1+2)
 
-`GET /v1/auto-combo/{channel}/candidates`(`{channel}` = `auto/` 뒤의 접미사 또는
-기본 채널을 나타내는 리터럴 `auto`)는 기존 복원력 조회를 재사용하여
-실시간 도달 가능성 정보가 추가된 `auto/*` 채널의 현재 후보 풀을 나열하는
-**읽기 전용** 엔드포인트입니다(브레이커의 원시 `state`는 절대 사용하지 않음):
+`GET /v1/auto-combo/{channel}/candidates`에서 (`{channel}` = `auto/` 뒤의 접미사 또는
+기본 채널의 경우 리터럴 `auto`)는 기존 복원력 조회를 재사용하여 실시간
+도달 가능성 정보가 추가된 `auto/*` 채널의 현재 후보 풀을 나열하는 **읽기 전용**
+엔드포인트입니다(회로 차단기의 원시 `state`는 사용하지 않음).
 
-- 제공자 서킷 브레이커 — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
-- 연결 쿨다운 — 해석된 `provider_connections` 행의 `rateLimitedUntil` / `testStatus`
+- 제공자 회로 차단기 — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
+- 연결 쿨다운 — 확인된 `provider_connections` 행의 `rateLimitedUntil` /
+  `testStatus`
 - 모델 잠금 — `isModelLocked(provider, connectionId, model)`
 
-각 후보에는 이 API 키의 `excluded` 플래그도 포함됩니다. 제외 설정은
-API 키별로 저장되며(`auto_candidate_overrides` 테이블, 마이그레이션 `128`) — OmniRoute는
-`users` 테이블이 없는 단일 테넌트이므로 `apiKeyId`가 실제 호출자별
-ID에 가장 가깝습니다 — 순수하며 단위 테스트를 거친
-`filterExcludedCandidates()`(`open-sse/services/autoCombo/candidateOverrides.ts`)를 통해
-`open-sse/services/autoCombo/virtualFactory.ts`의 후보 풀 병목 지점에서 적용됩니다.
-필터는 **장애 시 허용(fail-open)** 방식입니다. 설정되지 않은 apiKeyId/channel 또는 DB 조회 실패는 모두
-풀을 필터링하지 않은 상태로 유지하므로, 재정의가 구성되지 않은 운영자에게는 이 기능을
-도입하기 전과 바이트 단위로 동일한 라우팅이 제공됩니다.
+각 후보에는 이 API 키의 `excluded` 플래그도 포함됩니다. 제외 설정은 API 키별로
+저장됩니다(`auto_candidate_overrides` 테이블, 마이그레이션 `128`). OmniRoute는
+`users` 테이블이 없는 단일 테넌트이므로 `apiKeyId`가 실제 호출자별 ID에 가장
+가깝습니다. 이 설정은 순수 함수이자 단위 테스트를 거친
+`filterExcludedCandidates()`(`open-sse/services/autoCombo/candidateOverrides.ts`)를
+통해 `open-sse/services/autoCombo/virtualFactory.ts`의 후보 풀 병목 지점에서
+적용됩니다. 필터는 **장애 시 개방** 방식입니다. apiKeyId/채널이 설정되지 않았거나
+DB 조회에 실패하면 풀이 필터링되지 않으므로, 재정의가 구성되지 않은 운영자에게는
+이 기능 도입 이전과 바이트 단위로 동일한 라우팅이 제공됩니다.
 
 **후속 이슈로 연기됨:** 후보별 가중치 + 명시적 순서 지정(Level 3
-— 기존 가중치/우선순위 전략 경로에 연결) 및 `auto/*` 채널별 특정
-`combo.ts` 전략 고정(Level 4). 단일 테넌트 모델을 고려할 때 오버라이드를 API 키별로 유지할지,
-아니면 전역으로 전환할지에 대한 미결 사항은 #7819 계획을 참조하세요.
+— 기존의 가중치/우선순위 전략 경로에 반영) 및 `auto/*` 채널별로 특정
+`combo.ts` 전략 고정(Level 4). 단일 테넌트 모델을 고려할 때 재정의를 API 키별로
+유지할지 전역으로 변경할지에 대한 미해결 질문은 #7819 계획을 참조하세요.
 
 **내부 동작:**
 
@@ -108,21 +109,21 @@ ID에 가장 가깝습니다 — 순수하며 단위 테스트를 거친
    ↓
 src/sse/handlers/chat.ts에서 접두사 감지
    ↓
-createVirtualAutoCombo('coding') → 활성 연결에서 candidatePool 생성
+createVirtualAutoCombo('coding') → 활성 연결로부터 candidatePool 생성
    ↓
-handleComboChat(영구 저장된 콤보와 동일한 엔진)
+handleComboChat(저장된 콤보와 동일한 엔진)
    ↓
-자동 점수 산정이 요청별로 최적의 제공자/모델 선택
+자동 점수 산정으로 요청별 최적의 제공자/모델 선택
 ```
 
 **구현 파일:**
 
-| 파일                                                      | 용도                                    |
+| 파일                                                      | 목적                                    |
 | --------------------------------------------------------- | --------------------------------------- |
 | `open-sse/services/autoCombo/autoPrefix.ts`               | 접두사 파서(`parseAutoPrefix`)          |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | 가상 `AutoComboConfig` 객체 생성        |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | 제공자 레지스트리 모킹을 위한 테스트 훅 |
-| `src/sse/handlers/chat.ts`                                | 통합: auto 접두사 단축 처리             |
+| `src/sse/handlers/chat.ts`                                | 통합: auto 접두사 단락 처리             |
 | `src/shared/constants/providers.ts`                       | `SYSTEM_PROVIDERS.auto` 시스템 항목     |
 
 ## 실제 모델 ID와 일치하는 콤보 이름
@@ -196,7 +197,7 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 ## 모드 팩
 
-`open-sse/services/autoCombo/modePacks.ts`에 사전 정의된 6개의 가중치 프로필이 있습니다. 각 팩은 기본 가중치를 완전히 대체하여 선택이 하나의 목표를 우선하도록 편향시킵니다. 모든 팩의 합계는 이미 `1.0`(소수점 넷째 자리까지 표시하면 `0.9999`)이므로, 팩이 활성화된 경우 `normalizeScoringWeights()`가 실질적으로 보정할 부분은 없습니다. 아래 값은 반올림 오차를 제외하면 스코어러가 적용하는 값입니다.
+`open-sse/services/autoCombo/modePacks.ts`에 사전 정의된 6개의 가중치 프로필이 있습니다. 각 팩은 기본 가중치를 완전히 대체하여 하나의 목표에 맞게 선택 편향을 조정합니다. 모든 팩의 합계는 이미 `1.0`(소수점 넷째 자리까지 표시하면 `0.9999`)이므로 팩이 활성화된 경우 `normalizeScoringWeights()`가 실질적으로 보정할 내용은 없습니다. 아래 값은 반올림 오차를 제외하면 스코어러가 적용하는 값입니다.
 
 | 요소                  | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
@@ -218,29 +219,31 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 참고:
 
-- **팩에는 `quality`와 `reliability`가 포함되며**(`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`), 가중치 맵을 병합하지 않고 통째로 대체합니다(`weights = pack`). `DEFAULT_WEIGHTS`에는 `quality 0.03 / reliability 0`이 포함되어 있습니다. `balanced`/`default`를 선택하면 이러한 기본값이 유지되고, 팩을 선택하면 위에 나온 해당 팩의 값이 사용됩니다. 콜드 풀(아직 관측값이 없어 `quality 0.5`, `reliability 1`인 경우)에서는 이 두 요소가 일반 팩에서 `+0.04`(`0.03 + 0.01`), `quality-first`에서 `+0.045`, `reliability-first`에서 `+0.05`를 추가합니다.
+- **팩에는 `quality`와 `reliability`가 포함되며**(`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) 가중치 맵을 통째로 대체합니다(병합이 아니라 `weights = pack`). `DEFAULT_WEIGHTS`에는 `quality 0.03 / reliability 0`이 포함되어 있습니다. `balanced`/`default`를 선택하면 이러한 기본값이 유지되고, 팩을 선택하면 위에 나온 해당 팩의 값이 사용됩니다. 콜드 풀(아직 관측값이 없어 `quality 0.5`, `reliability 1`인 경우)에서는 이 두 요소가 일반 팩에서 `+0.04`(`0.03 + 0.01`), `quality-first`에서 `+0.045`, `reliability-first`에서 `+0.05`를 추가합니다.
 - 모든 팩에서 `tierAffinity`, `specificityMatch`, `resetWindowAffinity`는 명시적으로 `0`입니다.
-- 각 팩의 핵심 강조점을 요약하면 다음과 같습니다.
+- 각 팩의 중점 사항을 한눈에 보면 다음과 같습니다.
   - **ship-fast** → latencyInv 0.3048 + health 0.2667(지연 시간이 짧고 정상 상태인 연결)
   - **cost-saver** → costInv 0.3324(가장 저렴한 토큰이 우선)
   - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03으로 모든 팩 중 가장 높음(작업에 가장 적합하고 일관된 모델)
   - **offline-friendly** → quota 0.3324 + health 0.2667(속도/비용과 관계없이 최대 여유 용량)
   - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04로 모든 팩 중 가장 높음(예상치 못한 상황 최소화)
-  - **chaos-mode** → health 0.4000 + taskFit 0.1905(장애 주입 프로필)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905(`auto/chaos` 가중치 팩이 패널 구성원에게 할당하는 값이며, 병렬 팬아웃은 이러한 가중치를 읽지 않습니다. 또한 이는 장애 주입 프로필이 아닙니다. [CHAOS-MODE.md](../guides/CHAOS-MODE.md#autochaos-parallel-fan-out) 참조)
 
 ### 요청별 제어(헤더) — #6023 / #6024 / #6025 / #3470
 
-콤보에 저장된 구성을 변경하지 않고도 세 가지 헤더를 통해 **요청별로** `auto` 콤보를 제어할 수 있습니다. 이 설정은 `auto` 전략에만 적용되며 해당 헤더가 포함된 요청에만 적용됩니다. 헤더가 없으면 콤보에 저장된 `modePack`/`budgetCap`/`budgetFallback`이 사용됩니다.
+`auto` 콤보는 저장된 구성을 변경하지 않고도 세 가지 헤더를 통해 **요청별로** 조정할 수 있습니다.
+이 설정은 `auto` 전략에만 적용되며 해당 헤더가 포함된 요청에만 적용됩니다. 헤더가 없으면
+콤보에 저장된 `modePack`/`budgetCap`/`budgetFallback`이 사용됩니다.
 
-| 헤더                          | 허용 값                                                                                                                                                                           | 효과                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| :---------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-Mode`            | 프리셋 별칭(`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) 또는 원시 팩 이름(`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | 이 요청의 점수 산정 가중치를 재정의합니다. `balanced`/`default`는 기본 가중치를 강제로 적용합니다(팩 없음). 알 수 없는 값은 무시됩니다(설정 유지).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `X-OmniRoute-Budget`          | 양수(요청당 최대 USD)                                                                                                                                                             | 엄격한 비용 상한: 예상 비용이 상한을 초과하는 후보는 선택 전에 필터링됩니다. **모든** 후보가 상한을 초과할 때의 동작은 아래의 `X-OmniRoute-Budget-Fallback`으로 제어됩니다.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `X-OmniRoute-Budget-Fallback` | `cheapest`(기본값, 별칭: `cheapest-viable`, `soft`) 또는 `strict`(별칭: `block`, `hard`)                                                                                          | `cheapest`: 여전히 상한을 초과하더라도 전체 후보 중 가장 저렴한 후보로 대체합니다(레거시 동작). `strict`: 선택을 거부합니다. 즉, 조용히 예산을 초과하는 대신 요청이 `HTTP 402`와 함께 즉시 실패합니다. 알 수 없는 값은 무시됩니다.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `X-OmniRoute-Effort`          | `auto`(다른 값은 예약됨)                                                                                                                                                          | 적응형 사고 예산: 요청에 어떤 형태의 추론 필드도(`reasoning_effort`, `reasoning`, `thinking`) **없는** 경우, 게이트웨이는 결정론적 요청 형태 신호(마지막 사용자 메시지 길이, 마지막 사용자 메시지까지의 컨텍스트 크기, 이전 도구 결과, 도구 루프 깊이)를 바탕으로 `auto`를 `low`/`medium`/`high`로 결정합니다. 신호는 현재 턴으로 범위가 제한되며, 마지막 사용자 메시지 이후의 모든 내용은 무시됩니다. 따라서 도구 루프의 모든 요청은 동일한 수준으로 결정됩니다(턴별 무상태 고정, 세션 상태 없음, 업스트림 프롬프트 캐시 접두사를 손상시킬 수 있는 루프 도중의 단계 상향 없음). 클라이언트가 명시적으로 지정한 추론 필드가 항상 우선합니다. 업스트림 디스패치가 OpenAI Chat Completions 형태(`targetFormat === FORMATS.OPENAI`)로 결정되는 요청으로 범위가 제한됩니다. `reasoning_effort`는 OpenAI 형태의 필드이므로 Claude 또는 Gemini를 대상으로 하는 요청에서는 이 헤더가 아무런 효과도 내지 않습니다(`open-sse/handlers/chatCore/adaptiveEffortWiring.ts` 참조). |
+| 헤더                          | 허용 값                                                                                                                                                                           | 효과                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| :---------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`            | 프리셋 별칭(`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) 또는 원시 팩 이름(`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | 이 요청의 점수 산정 가중치를 재정의합니다. `balanced`/`default`는 기본 가중치를 강제로 적용합니다(팩 없음). 알 수 없는 값은 무시됩니다(설정 유지).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `X-OmniRoute-Budget`          | 양수(요청당 최대 USD)                                                                                                                                                             | 엄격한 비용 상한: 예상 비용이 이를 초과하는 후보는 선택 전에 필터링됩니다. **모든** 후보가 상한을 초과할 때의 동작은 아래의 `X-OmniRoute-Budget-Fallback`으로 제어됩니다.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `X-OmniRoute-Budget-Fallback` | `cheapest`(기본값, 별칭: `cheapest-viable`, `soft`) 또는 `strict`(별칭: `block`, `hard`)                                                                                          | `cheapest`: 여전히 상한을 초과하더라도 전체 후보 중 가장 저렴한 후보로 대체합니다(레거시 동작). `strict`: 선택을 거부하며, 조용히 예산을 초과하는 대신 요청이 `HTTP 402`와 함께 즉시 실패합니다. 알 수 없는 값은 무시됩니다.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `X-OmniRoute-Effort`          | `auto` (기타 값은 예약됨)                                                                                                                                                         | 적응형 사고 예산: 요청에 어떤 형태의 추론 필드(`reasoning_effort`, `reasoning`, `thinking`)도 **없는** 경우, 게이트웨이는 결정론적인 요청 형태 신호(마지막 사용자 메시지 길이, 마지막 사용자 메시지까지의 컨텍스트 크기, 이전 도구 결과, 도구 루프 깊이)를 바탕으로 `auto`를 `low`/`medium`/`high` 중 하나로 결정합니다. 신호는 현재 턴으로 한정되며, 마지막 사용자 메시지 이후의 모든 내용은 무시됩니다. 따라서 도구 루프의 모든 요청은 동일한 수준으로 결정됩니다(턴별 무상태 고정, 세션 상태 없음, 업스트림 프롬프트 캐시 접두사를 깨뜨릴 수 있는 루프 중간 단계 상향 없음). 클라이언트가 명시적으로 지정한 추론 필드가 항상 우선합니다. 업스트림 디스패치가 OpenAI Chat Completions 형식(`targetFormat === FORMATS.OPENAI`)으로 결정되는 요청에만 적용됩니다. `reasoning_effort`는 OpenAI 형식의 필드이므로, Claude 또는 Gemini를 대상으로 하는 요청에서는 이 헤더가 아무런 효과가 없습니다(`open-sse/handlers/chatCore/adaptiveEffortWiring.ts` 참조). |
 
 ```bash
-# 가장 빠른 프로필을 강제하고, 이 요청의 비용을 $0.05로 제한하며, 예산 초과 지출 대신 강제로 차단합니다
+# 가장 빠른 프로필을 강제하고, 이 요청의 한도를 $0.05로 설정하며, 초과 지출 대신 엄격하게 차단
 curl -sS http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-OmniRoute-Mode: fast" \
@@ -249,7 +252,10 @@ curl -sS http://localhost:20128/v1/chat/completions \
   -d '{"model":"auto","messages":[{"role":"user","content":"hi"}]}'
 ```
 
-해석은 순수 함수(`open-sse/services/autoCombo/requestControls.ts`)로 수행되며, 해석된 값은 엔진의 기존 `config.modePack` / `config.budgetCap` / `config.budgetFallback` 입력으로 전달됩니다. 콤보에 저장된 `config.budgetFallback`("strict" | "cheapest")은 영구 정책을 설정하며, 헤더는 단일 요청에 한해 이를 재정의합니다.
+결정 과정은 순수 함수(`open-sse/services/autoCombo/requestControls.ts`)이며,
+결정된 값은 엔진의 기존 `config.modePack` / `config.budgetCap` /
+`config.budgetFallback` 입력으로 전달됩니다. 콤보에 저장된 `config.budgetFallback` ("strict" |
+"cheapest")은 영구 정책을 설정하며, 헤더는 단일 요청에 한해 이를 재정의합니다.
 
 ## 모든 라우팅 전략
 
@@ -710,14 +716,14 @@ SLA 인식 필드:
 ## 티어가 Auto-Combo에 적용되는 방식
 
 16개 요소로 구성된 점수 산정 함수(`open-sse/services/autoCombo/scoring.ts`)는 티어
-소속 여부를 `tierPriority`(0.0476)와 `tierAffinity`(0.0476)라는 두 가지 신호로 처리합니다. 전체
-`DEFAULT_WEIGHTS` 세트는 위의 표준 [점수 산정 요소 표](#how-it-works-persisted-auto-combos)를
+소속 여부를 `tierPriority`(0.0476)와 `tierAffinity`(0.0476)라는 두 가지 신호로 취급합니다. 전체
+`DEFAULT_WEIGHTS` 집합은 위의 표준 [점수 산정 요소 표](#how-it-works-persisted-auto-combos)를
 참조하세요. 팩별 재정의(ship-fast/cost-saver/quality-first/
 offline-friendly)는 "팩별 가중치 프로필" 표에 나와 있습니다.
 
-티어만으로는 Tier 1이 먼저 선택되도록 **강제되지 않습니다**. Tier 1의 지연 시간이 길거나
+티어만으로는 **Tier 1이 먼저 사용되도록 강제되지 않습니다**. Tier 1의 지연 시간이 길거나
 비용 대비 품질이 최적이 아닌 경우 Tier 2가 선택됩니다. 티어 순서를 강제하려면 콤보
-전략 `priority`를 사용하고 공급자를 티어 순서에 따라 배치하세요.
+전략 `priority`를 사용하고 공급자를 티어별로 정렬하세요.
 
 Tier 1(구독)을 강하게 선호하려면 `tierPriority` 가중치를 높이세요.
 
@@ -728,7 +734,7 @@ Tier 1(구독)을 강하게 선호하려면 `tierPriority` 가중치를 높이�
 }
 ```
 
-티어 정의와 공급자 분류는 `docs/marketing/TIERS.md`를 참조하세요.
+티어 정의와 공급자 분류는 [`docs/guides/TIERS.md`](../guides/TIERS.md)를 참조하세요.
 
 ## 테스트 및 커버리지
 
