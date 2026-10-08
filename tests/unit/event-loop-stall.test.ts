@@ -189,15 +189,64 @@ test("default clock measures ticks without throwing", () => {
   }
 });
 
+test("invalid sampler reading falls back to zero and warns once", () => {
+  const { lines } = runStallScenario({
+    thresholdMs: 5000,
+    ticks: [0, 7000, 15000],
+    sampler: () => NaN,
+  });
+  const stallLines = lines.filter((line) => /inflight=\d/.test(line));
+  assert.equal(stallLines.length, 2);
+  assert.match(stallLines[0], /inflight=0/);
+  assert.match(stallLines[1], /inflight=0/);
+  const samplerWarnings = lines.filter((line) => line.includes("inflight sampler"));
+  assert.equal(samplerWarnings.length, 1);
+});
+
+test("negative sampler reading falls back to zero and warns once", () => {
+  const { lines } = runStallScenario({
+    thresholdMs: 5000,
+    ticks: [0, 7000, 15000],
+    sampler: () => -1,
+  });
+  const stallLines = lines.filter((line) => /inflight=\d/.test(line));
+  assert.equal(stallLines.length, 2);
+  assert.match(stallLines[0], /inflight=0/);
+  assert.match(stallLines[1], /inflight=0/);
+  const samplerWarnings = lines.filter((line) => line.includes("inflight sampler"));
+  assert.equal(samplerWarnings.length, 1);
+});
+
+test("unbounded sampler reading falls back to zero and warns once", () => {
+  const { lines } = runStallScenario({
+    thresholdMs: 5000,
+    ticks: [0, 7000, 15000],
+    sampler: () => Infinity,
+  });
+  const stallLines = lines.filter((line) => /inflight=\d/.test(line));
+  assert.equal(stallLines.length, 2);
+  assert.match(stallLines[0], /inflight=0/);
+  const samplerWarnings = lines.filter((line) => line.includes("inflight sampler"));
+  assert.equal(samplerWarnings.length, 1);
+});
+
+test("healthy sampler reading keeps its count without warning", () => {
+  const { lines } = runStallScenario({
+    thresholdMs: 5000,
+    ticks: [0, 7000, 15000],
+    sampler: () => 3,
+  });
+  const stallLines = lines.filter((line) => /inflight=\d/.test(line));
+  assert.equal(stallLines.length, 2);
+  assert.match(stallLines[0], /inflight=3/);
+  const samplerWarnings = lines.filter((line) => line.includes("inflight sampler"));
+  assert.equal(samplerWarnings.length, 0);
+});
+
 test("failing sampler falls back to zero and warns once", () => {
   let now = 0;
   let calls = 0;
   const lines: string[] = [];
-  const warnings: string[] = [];
-  const originalWarn = console.warn;
-  console.warn = (message?: unknown, ...rest: unknown[]) => {
-    warnings.push([message, ...rest].map(String).join(" "));
-  };
   try {
     resetEventLoopStallStatsForTests();
     startEventLoopStallRecorder({
@@ -220,10 +269,49 @@ test("failing sampler falls back to zero and warns once", () => {
       globalThis as { __tickEventLoopStallRecorderForTests?: () => void }
     ).__tickEventLoopStallRecorderForTests?.();
     assert.equal(calls, 2);
-    assert.equal(lines.length, 2);
-    assert.match(lines[0], /inflight=0/);
-    const samplerWarnings = warnings.filter((line) => line.includes("inflight sampler"));
+    const stallLines = lines.filter((line) => /inflight=\d/.test(line));
+    assert.equal(stallLines.length, 2);
+    assert.match(stallLines[0], /inflight=0/);
+    assert.match(stallLines[1], /inflight=0/);
+    const samplerWarnings = lines.filter((line) => line.includes("inflight sampler"));
     assert.equal(samplerWarnings.length, 1);
+  } finally {
+    stopEventLoopStallRecorder();
+    resetEventLoopStallStatsForTests();
+  }
+});
+
+test("invalid sampler reading warns through the injected log only", () => {
+  let now = 0;
+  const lines: string[] = [];
+  const consoleMessages: string[] = [];
+  const originalWarn = console.warn;
+  console.warn = (message?: unknown, ...rest: unknown[]) => {
+    consoleMessages.push([message, ...rest].map(String).join(" "));
+  };
+  try {
+    resetEventLoopStallStatsForTests();
+    startEventLoopStallRecorder({
+      thresholdMs: 5000,
+      now: () => now,
+      sampler: () => NaN,
+      log: (message: string) => {
+        lines.push(message);
+      },
+    });
+    for (const at of [0, 7000, 15000]) {
+      now = at;
+      (
+        globalThis as { __tickEventLoopStallRecorderForTests?: () => void }
+      ).__tickEventLoopStallRecorderForTests?.();
+    }
+    const stallLines = lines.filter((line) => /inflight=\d/.test(line));
+    assert.equal(stallLines.length, 2);
+    assert.match(stallLines[0], /inflight=0/);
+    assert.match(stallLines[1], /inflight=0/);
+    const samplerWarnings = lines.filter((line) => line.includes("inflight sampler"));
+    assert.equal(samplerWarnings.length, 1);
+    assert.equal(consoleMessages.length, 0);
   } finally {
     console.warn = originalWarn;
     stopEventLoopStallRecorder();

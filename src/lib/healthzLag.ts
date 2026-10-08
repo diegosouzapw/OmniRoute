@@ -68,15 +68,22 @@ function resolveEventLoopStallThresholdMs(explicit?: number): number {
   return parsed;
 }
 
-function readInflightSample(sampler: () => number): number {
+function warnSamplerOnce(log: (message: string) => void): void {
+  if (stallWarnedSampler) return;
+  stallWarnedSampler = true;
+  log("[HEALTHZ] event loop stall inflight sampler unavailable, using 0");
+}
+
+function readInflightSample(sampler: () => number, log: (message: string) => void): number {
   try {
     const value = sampler();
-    return Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
-  } catch {
-    if (!stallWarnedSampler) {
-      stallWarnedSampler = true;
-      console.warn("[HEALTHZ] event loop stall inflight sampler unavailable, using 0");
+    if (!Number.isFinite(value) || value < 0) {
+      warnSamplerOnce(log);
+      return 0;
     }
+    return Math.floor(value);
+  } catch {
+    warnSamplerOnce(log);
     return 0;
   }
 }
@@ -109,7 +116,7 @@ export function startEventLoopStallRecorder(opts: EventLoopStallRecorderOptions 
     stallMaxMs = Math.max(stallMaxMs, driftMs);
     const seconds = Math.round(driftMs / 100) / 10;
     const memory = process.memoryUsage();
-    const inflight = readInflightSample(sampler);
+    const inflight = readInflightSample(sampler, log);
     log(
       `[HEALTHZ] event loop stalled ${seconds}s ` +
         `(rss=${Math.round(memory.rss)}, heapUsed=${Math.round(memory.heapUsed)}, ` +
