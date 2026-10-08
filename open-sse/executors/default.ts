@@ -1,5 +1,4 @@
 import { createHash } from "node:crypto";
-
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { mapNvidiaGlm52ReasoningParams } from "./base/reasoningEffort.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
@@ -66,6 +65,7 @@ import { acquireNvidiaConcurrencySlot } from "./default/nvidiaConcurrencyGate.ts
 import { resolveAlibabaProviderBaseUrl } from "@/shared/constants/alibabaProviderRegions";
 import { xiaomiAlternateUrl, xiaomiMimoChatUrl } from "./default/xiaomiTokenPlan.ts";
 import { usesCcWireImage } from "../services/ccWireImageBuiltins.ts";
+import { applyRegistryBodyRepairs } from "../utils/strictChatHistory.ts";
 
 const NVIDIA_TOOL_CALL_ID_PATTERN = /^[A-Za-z0-9]{9}$/;
 const PERPLEXITY_AGENT_DEFAULT_MAX_OUTPUT_TOKENS = 4096;
@@ -1075,7 +1075,7 @@ export class DefaultExecutor extends BaseExecutor {
       }
     }
 
-    return withDefaults;
+    return applyRegistryBodyRepairs(this.provider, withDefaults);
   }
 
   // Reasoning models (ClinePass, OpenRouter, etc.) leave content empty when the reasoning

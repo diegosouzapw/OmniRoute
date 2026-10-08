@@ -29,7 +29,7 @@ import { extractZaiToken } from "@omniroute/open-sse/services/zaiWebCredentials.
 import { buildOpencodeBackgroundHeaders } from "@omniroute/open-sse/utils/opencodeHeaders.ts";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import { buildChatPlaygroundModelsDiscoveryEntry } from "@omniroute/open-sse/services/chatplaygroundModels.ts";
-import { normalizeOpenAiLikeModelsResponse } from "./normalizers";
+import { normalizeOpenAiLikeModelsResponse, normalizeWorkbuddyModelsResponse } from "./normalizers";
 
 const QWEN_CLOUD_TEXT_MODEL_IDS = new Set(QWEN_CLOUD_TEXT_MODELS.map((model) => model.id));
 const ALIBABA_MODEL_STUDIO_MODEL_IDS = new Set(
@@ -932,4 +932,18 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
   },
   chatplayground: buildChatPlaygroundModelsDiscoveryEntry(),
   cpl: buildChatPlaygroundModelsDiscoveryEntry(),
+  // WorkBuddy serves no OpenAI-shaped /models endpoint (/v1/models and
+  // /v2/models both 404) and its bundled catalog is known to be stale, so the
+  // roster is read from the authenticated config the official CLI itself uses.
+  // The registry entry stays `models: []` + `passthroughModels: true`; this is
+  // what fills the dashboard. See normalizeWorkbuddyModelsResponse for what was
+  // verified live vs. taken from the shipped CLI catalog.
+  workbuddy: {
+    url: "https://www.workbuddy.ai/v3/config",
+    method: "GET",
+    headers: { "Content-Type": "application/json", "X-Product": "SaaS" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => normalizeWorkbuddyModelsResponse(data),
+  },
 };

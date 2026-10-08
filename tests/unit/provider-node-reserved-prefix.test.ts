@@ -211,7 +211,7 @@ test("shared set size includes live REGISTRY and retired Designer + Felo + Qwen 
   // (two new members, 418 -> 420). Do not fold this into a generic catalog bump — the
   // dedicated notrack-web prefix test below is the regression lock for this provider.
   // BigModel.cn (#12343) registers id "bigmodel" with the same alias — one more (420 -> 421).
-  assert.equal(RESERVED_PREFIX_COUNT, 421);
+  assert.equal(RESERVED_PREFIX_COUNT, 423);
   assert.equal(isReservedProviderPrefix("bigmodel"), true);
   assert.equal(RESERVED_PROVIDER_PREFIXES.has("seekai"), true);
   assert.equal(RESERVED_PROVIDER_PREFIXES.has("ska"), true);
