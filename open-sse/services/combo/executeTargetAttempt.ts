@@ -52,6 +52,7 @@ import { recordStickyBinding } from "./sessionStickiness.ts";
 import { recordStickyWeightedSuccess } from "./rrState.ts";
 import { resolveReasoningBufferedMaxTokens, toPositiveInteger } from "../reasoningTokenBuffer.ts";
 import { parseModel } from "../model.ts";
+import { getNextFamilyFallback } from "../modelFamilyFallback.ts";
 import type { ProviderProfile } from "../accountFallback.ts";
 import {
   MAX_FALLBACK_WAIT_MS,
@@ -119,8 +120,8 @@ export async function executeTargetAttempt(opts: {
   const { index: i, state, deps, targetForAttempt, protectedPriorityTarget } = opts;
   const profile = opts.profile as ProviderProfile | undefined;
   const target = state.orderedTargets[i];
-  const modelStr = target.modelStr;
-  const rawModel = parseModel(modelStr).model || modelStr;
+  let modelStr = target.modelStr;
+  let rawModel = parseModel(modelStr).model || modelStr;
   const provider = target.provider;
   const allowRateLimitedConnection =
     Boolean(provider && provider !== "unknown") &&
@@ -147,6 +148,7 @@ export async function executeTargetAttempt(opts: {
         ),
     });
 
+  const familyTried = new Set<string>();
   // Retry loop for transient errors
   for (let retry = 0; retry <= deps.maxRetries; retry++) {
     // Fix #1681: Bail out immediately if the client has disconnected
@@ -460,6 +462,18 @@ export async function executeTargetAttempt(opts: {
         });
         state.observeFailure(false, target.executionKey);
         if (handlePreContentStreamRetry(quality, retry, deps, modelStr)) continue;
+        familyTried.add(modelStr);
+        const familyNext =
+          provider && provider !== "unknown"
+            ? getNextFamilyFallback(modelStr, familyTried, provider)
+            : null;
+        if (familyNext && familyNext !== modelStr) {
+          deps.log.info("COMBO", `Quality fail ${modelStr} -> family sibling ${familyNext}`);
+          modelStr = familyNext;
+          rawModel = parseModel(modelStr).model || modelStr;
+          retry--;
+          continue;
+        }
         return protectedPriorityTarget ? qualityValidationFailure(quality) : null;
       }
 
@@ -1041,8 +1055,17 @@ export async function executeTargetAttempt(opts: {
     recordQuotaExhaustionClassification(result, quotaExhausted);
     // Balance exhaustion is upstream truth about credits, and it outranks the
     // stored snapshot — which can be hours stale and still claim headroom. Mark
-    // it so the next quota-weighted draw stops picking this connection.
-    if (quotaExhausted && result.status === 402 && targetWithConnection.connectionId && provider) {
+    // it so the next quota-weighted / fill-first draw stops preferring this
+    // connection. Include HTTP 403: some upstreams signal durable wallet
+    // exhaustion as 403 AUTHZ_INSUFFICIENT_BALANCE / "Insufficient account
+    // balance" instead of 402 (#10966 classifier; same-request hop still
+    // advances via the failure path below).
+    if (
+      quotaExhausted &&
+      (result.status === 402 || result.status === 403) &&
+      targetWithConnection.connectionId &&
+      provider
+    ) {
       markAccountExhaustedFromCredits(targetWithConnection.connectionId, provider);
     }
     state.observeFailure(quotaExhausted, target.executionKey);

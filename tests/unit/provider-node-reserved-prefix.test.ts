@@ -200,10 +200,15 @@ test("shared set size includes live REGISTRY and retired Designer + Felo + Qwen 
   // Reconciled 2026-09-23: #14468 (suno retirement) landed on the tip first, which already
   // measured 413 there; with gemini-business also retired on top of it the live set is 412
   // (413 -> 412). Measured, not hand-derived: RESERVED_PROVIDER_PREFIXES.size on this head.
-  // Live origin/release/v3.8.52 (27b7e9528a) set size is 413 (the frozen assertion on the
-  // tip still says 412). #12343 BigModel.cn (Zhipu) adds registry id "bigmodel" whose alias
-  // is the same string, so the unique reserved-prefix set grows by 1 (413 → 414).
-  assert.equal(RESERVED_PREFIX_COUNT, 414);
+  // origin/release/v3.8.52 already measures 413 (test still 412, inherited).
+  // onomeo registers id "onomeo" with the same alias — one REGISTRY member (413 -> 414).
+  // Unifically (#14182) registers id "unifically" with the same alias — one REGISTRY member
+  // (414 -> 415). BeatAPI (#14875) registers id "beatapi" with an identical alias — one more
+  // (415 -> 416). Measured, not hand-derived: RESERVED_PROVIDER_PREFIXES.size.
+  // ChatPlayground (#12690) registers id "chatplayground" and alias "cpl" — two more
+  // (416 -> 418). Measured: RESERVED_PROVIDER_PREFIXES.size after #12690 and #14875 both landed.
+  // BigModel.cn (#12343) registers id "bigmodel" with the same alias — one more (418 -> 419).
+  assert.equal(RESERVED_PREFIX_COUNT, 419);
   assert.equal(isReservedProviderPrefix("bigmodel"), true);
   assert.equal(RESERVED_PROVIDER_PREFIXES.has("seekai"), true);
   assert.equal(RESERVED_PROVIDER_PREFIXES.has("ska"), true);

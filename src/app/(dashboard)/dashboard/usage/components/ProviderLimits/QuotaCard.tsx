@@ -99,7 +99,8 @@ export default function QuotaCard({
           quota?.plan ?? null,
           connection.providerSpecificData ?? null,
           connection.provider
-        )
+        ),
+        connection.provider
       ),
     [quota?.plan, connection.providerSpecificData, connection.provider]
   );
@@ -146,6 +147,7 @@ export default function QuotaCard({
         hasStaleData={hasStaleData}
         onToggleActive={onToggleActive}
         togglingActive={togglingActive}
+        onTestSent={onRefresh}
       />
       <QuotaCardExpanded
         quotas={quotas}

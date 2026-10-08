@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import ConnectionTestButton from "@/shared/components/ConnectionTestButton";
 import Badge from "@/shared/components/Badge";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
@@ -27,6 +28,7 @@ interface Props {
   onToggleActive: (nextActive: boolean) => void;
   /** True while the active-state PUT is in flight. */
   togglingActive: boolean;
+  onTestSent?: () => void;
 }
 
 export default function QuotaCardHeader({
@@ -39,6 +41,7 @@ export default function QuotaCardHeader({
   hasStaleData,
   onToggleActive,
   togglingActive,
+  onTestSent,
 }: Props) {
   const t = useTranslations("usage");
   const isActive = connection.isActive ?? true;
@@ -128,6 +131,12 @@ export default function QuotaCardHeader({
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-0.5 self-center">
+        <ConnectionTestButton
+          connectionId={connection.id}
+          disabled={!isActive}
+          compact
+          onSent={onTestSent}
+        />
         <button
           type="button"
           disabled={togglingActive}
