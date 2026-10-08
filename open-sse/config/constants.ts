@@ -319,8 +319,14 @@ export const DEFAULT_API_LIMITS = {
 // Skip patterns - requests containing these texts will bypass provider
 export const SKIP_PATTERNS = ["Please write a 5-10 word title for the following conversation:"];
 
-// Default maximum number of tools allowed in a request (OpenAI default)
-export const MAX_TOOLS_LIMIT = 128;
+// Default maximum number of tools allowed in a request (OpenAI default).
+// Override with OMNIROUTE_MAX_TOOLS_LIMIT (positive integers only); any other
+// value (zero, negative, fractional, non-numeric) falls back to 128.
+const maxToolsLimitOverride = envInt("OMNIROUTE_MAX_TOOLS_LIMIT", 128);
+export const MAX_TOOLS_LIMIT =
+  Number.isInteger(maxToolsLimitOverride) && maxToolsLimitOverride > 0
+    ? maxToolsLimitOverride
+    : 128;
 
 // ── Credential Health Check ────────────────────────────────────────
 

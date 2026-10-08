@@ -25,7 +25,13 @@ function resolvedWith(
   // Real option resolution path: parse, then the catalog-shaping copy in
   // `../src/options.js` (re-exported by the entrypoint). Run with
   // `node --import tsx/esm --test` from the package directory.
-  const parsed = parsePluginOptions({ baseURL: "https://gw.example.com", ...raw });
+  // toolsOnly defaults false again (it was true after #14554); pinned false here so these
+  // provider-filter cases stay independent of the default. A caller can still override it.
+  const parsed = parsePluginOptions({
+    baseURL: "https://gw.example.com",
+    toolsOnly: false,
+    ...raw,
+  });
   const resolved = toResolvedOptions(parsed);
   resolved.logger = silentLogger(warns);
   resolved.modelCacheTtlMs = 300000;
@@ -261,12 +267,13 @@ describe("provider filter integration (real option resolution)", () => {
 
   it("scales N+N models through the real pipeline", async () => {
     const N = 500;
+    // The default view now caps entries per provider (#15484); the scale case wants all N.
     const models: Array<{ id: string }> = [];
     for (let i = 0; i < N; i++) models.push({ id: `cc/m-${i}` });
     for (let i = 0; i < N; i++) models.push({ id: `alpha/m-${i}` });
     const warns: string[] = [];
     const collected = await collectCatalog(
-      resolvedWith({ providersAllow: ["claude"] }, warns, {
+      resolvedWith({ providersAllow: ["claude"], showcasePerOwner: N, freshPerOwner: N }, warns, {
         enrichment: enrichmentOf(["cc", "claude"], ["alpha", "alpha"]),
       }),
       {

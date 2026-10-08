@@ -76,24 +76,31 @@ ungeklärt.
 
 ## Optionen
 
-| Schlüssel                        | Standardwert                                       | Hinweise                                                                                                                      |
-| -------------------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `providerId`                     | `"omniroute"`                                      | Anbieter-ID, Integrations-ID und das Präfix, unter dem Modelle erscheinen                                                     |
-| `baseURL`                        | erforderlich                                       | Gateway-Stamm-URL, nur `http(s)`; das Suffix `/v1` wird bei Bedarf hinzugefügt                                                |
-| `apiKey`                         | hinterlegte Anmeldedaten, dann `OMNIROUTE_API_KEY` | Chat-Schlüssel für `/v1/*`                                                                                                    |
-| `managementReadToken`            | verwendet ersatzweise `apiKey`                     | Schlüssel für `/api/*` — normalerweise **nicht** derselbe                                                                     |
-| `displayName`                    | `"OmniRoute"`                                      | Anbietername in der Modellauswahl                                                                                             |
-| `timeoutMs`                      | `10000`                                            | Abruf-Zeitüberschreitung pro Endpunkt (Auto-Combos verwenden 5 s)                                                             |
-| `modelCacheTtlMs`                | `300000`                                           | TTL des Katalog-Caches; ein Snapshot auf der Festplatte beschleunigt Kaltstarts                                               |
-| `timeouts`                       | verwendet ersatzweise `timeoutMs`                  | Endpunktspezifische Zeitbudgets in ms: `models`, `combos`, `autoCombos`, `enrichment`                                         |
-| `enrichment`                     | `true`                                             | Namen, Preise und Budgets für die kostenlose Nutzung abrufen                                                                  |
-| `providerTag`                    | `true`                                             | Dem Anzeigenamen den vorgelagerten Anbieter voranstellen, an den weitergeleitet wird                                          |
-| `usableOnly`                     | `false`                                            | Nur Anbieter beibehalten, die das Gateway als bereitgestellt meldet                                                           |
-| `visibleModels` / `hiddenModels` | `[]`                                               | Positiv- und Negativlisten mit exakter oder suffixbasierter Übereinstimmung; Ausschluss hat Vorrang                           |
-| `geminiSanitization`             | `true`                                             | Von Gemini abgelehnte JSON-Schema-Schlüsselwörter aus Tool-Schemas entfernen (`$ref`-Tools werden unverändert weitergeleitet) |
-| `apiFormat.allowAnthropic`       | `false`                                            | IDs auf der Positivliste über den Anthropic-API-Block weiterleiten                                                            |
-| `apiFormat.anthropicModels`      | `[]`                                               | Vollständige Modell-IDs, die an Anthropic weitergeleitet werden                                                               |
-| `logLevel` / `startupDebug`      | `warn` / `false`                                   | Ausführlichkeit der Protokollierung                                                                                           |
+| Schlüssel                        | Standardwert                                      | Hinweise                                                                                                                         |
+| -------------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `providerId`                     | `"omniroute"`                                     | Provider-ID, Integrations-ID und Präfix, unter dem Modelle erscheinen                                                            |
+| `baseURL`                        | erforderlich                                      | Gateway-Stamm-URL, nur `http(s)`; das Suffix `/v1` wird bei Bedarf hinzugefügt                                                   |
+| `apiKey`                         | verbundene Anmeldedaten, dann `OMNIROUTE_API_KEY` | Chat-Schlüssel für `/v1/*`                                                                                                       |
+| `managementReadToken`            | fällt auf `apiKey` zurück                         | Schlüssel für `/api/*` — normalerweise **nicht** derselbe                                                                        |
+| `displayName`                    | `"OmniRoute"`                                     | Provider-Name in der Auswahl                                                                                                     |
+| `timeoutMs`                      | `10000`                                           | Abruf-Timeout pro Endpunkt (automatische Kombinationen verwenden 5 s)                                                            |
+| `modelCacheTtlMs`                | `300000`                                          | TTL des Katalog-Caches; ein Festplatten-Snapshot beschleunigt Kaltstarts                                                         |
+| `timeouts`                       | fällt auf `timeoutMs` zurück                      | Zeitbudgets pro Endpunkt in ms: `models`, `combos`, `autoCombos`, `enrichment`                                                   |
+| `enrichment`                     | `true`                                            | Namen, Preise und Kontingente der kostenlosen Stufe abrufen                                                                      |
+| `providerTag`                    | `true`                                            | Dem Anzeigenamen den Upstream-Provider voranstellen, an den weitergeleitet wird                                                  |
+| `usableOnly`                     | `false`                                           | Nur Provider beibehalten, die laut Gateway bereitgestellt sind                                                                   |
+| `showcasePerOwner`               | `10`                                              | Pro Provider beibehaltene Einträge der Standardansicht                                                                           |
+| `freshPerOwner`                  | `10`                                              | Pro Provider beibehaltene aktuelle Einträge der Standardansicht                                                                  |
+| `freshWindowDays`                | `90`                                              | Aktualitätsfenster in Tagen für den Zweig mit aktuellen Einträgen                                                                |
+| `usageMemory`                    | `true`                                            | Statisch entfernte Einträge wiederherstellen, die in der 30-Tage-Nutzungsanalyse genannt werden (erfordert ein Management-Token) |
+| `visibleModels` / `hiddenModels` | `[]`                                              | Positiv- und Negativlisten mit exakter oder Suffix-Übereinstimmung; die Negativliste hat Vorrang                                 |
+| `geminiSanitization`             | `true`                                            | Von Gemini abgelehnte JSON-Schema-Schlüsselwörter aus Tool-Schemas entfernen (`$ref`-Tools werden unverändert weitergeleitet)    |
+| `apiFormat.allowAnthropic`       | `false`                                           | IDs aus der Positivliste über den Anthropic-API-Block weiterleiten                                                               |
+| `apiFormat.anthropicModels`      | `[]`                                              | Vollständige Modell-IDs, die an Anthropic weitergeleitet werden                                                                  |
+| `logLevel` / `startupDebug`      | `warn` / `false`                                  | Ausführlichkeit der Protokollierung                                                                                              |
+
+Der Nutzungsspeicher ist standardmäßig aktiviert. Ohne Management-Token bleibt er inaktiv
+(beim Start wird ein Hinweis protokolliert), und es wird nichts wiederhergestellt.
 
 ## So bleibt der Katalog aktuell
 

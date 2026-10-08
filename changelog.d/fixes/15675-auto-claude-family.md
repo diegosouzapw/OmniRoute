@@ -1,0 +1,1 @@
+- fix(auto-combo): `auto/claude-opus|sonnet|haiku` now pin the candidate pool to that Claude family instead of scoring every connected model (#15675)

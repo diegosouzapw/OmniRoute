@@ -260,6 +260,54 @@ export function frameHasStructuredStreamError(frame: string): boolean {
   return false;
 }
 
+const CLAUDE_REASONING_DELTA_TYPES = new Set(["thinking_delta", "signature_delta"]);
+const CLAUDE_REASONING_BLOCK_TYPES = new Set(["thinking", "redacted_thinking"]);
+const RESPONSES_ITEM_EVENTS = new Set(["response.output_item.added", "response.output_item.done"]);
+
+function isReasoningProgressPayload(payload: Record<string, unknown>, type: string): boolean {
+  if (type === "content_block_delta") {
+    const delta = isRecord(payload.delta) ? payload.delta : null;
+    return typeof delta?.type === "string" && CLAUDE_REASONING_DELTA_TYPES.has(delta.type);
+  }
+  if (type === "content_block_start") {
+    const block = isRecord(payload.content_block) ? payload.content_block : null;
+    return typeof block?.type === "string" && CLAUDE_REASONING_BLOCK_TYPES.has(block.type);
+  }
+  if (RESPONSES_ITEM_EVENTS.has(type)) {
+    return isRecord(payload.item) && payload.item.type === "reasoning";
+  }
+  return type.startsWith("response.reasoning");
+}
+
+/**
+ * True when an SSE frame shows a reasoning model still working: a Claude thinking block
+ * (start, thinking_delta or signature_delta, even with no visible thinking text) or an
+ * OpenAI Responses reasoning item or reasoning delta. These frames are not model output —
+ * an encrypted or omitted thought is not something the client can show, so
+ * hasUsefulStreamContent stays false for them (#8649) — but they prove the upstream is
+ * producing tokens rather than heartbeats, which the content-stall watchdog needs to know.
+ */
+export function isReasoningProgressFrame(frame: string): boolean {
+  if (!/thinking|signature|reasoning/.test(frame)) return false;
+  let eventType = "";
+  for (const line of frame.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("event:")) {
+      eventType = trimmed.slice(6).trim();
+      continue;
+    }
+    if (!trimmed.startsWith("data:")) continue;
+    try {
+      const parsed: unknown = JSON.parse(trimmed.slice(5).trim());
+      if (isRecord(parsed) && isReasoningProgressPayload(parsed, getPayloadType(parsed, eventType)))
+        return true;
+    } catch {
+      // non-JSON data lines carry no reasoning signal
+    }
+  }
+  return false;
+}
+
 export type StreamContentWatcher = {
   /** Feed a decoded slice of the client-facing stream. Safe to call with partial frames. */
   note: (text: string) => void;
@@ -267,6 +315,11 @@ export type StreamContentWatcher = {
   finish: () => void;
   /** True once any frame carried real model output (text, reasoning, or a tool call). */
   sawContent: () => boolean;
+  /**
+   * Reasoning-progress frames (isReasoningProgressFrame) seen before the first real
+   * output. Grows while a reasoning model thinks without visible output.
+   */
+  reasoningProgress: () => number;
   /** True once a terminal state was seen where emitting no content is valid. */
   sawLegitEmptyTerminal: () => boolean;
   /**
@@ -304,12 +357,14 @@ export function createStreamContentWatcher(): StreamContentWatcher {
   let legitEmpty = false;
   let sse = false;
   let error = false;
+  let progress = 0;
 
   const inspect = (frame: string): void => {
     if (!frame) return;
     if (!sse && SSE_FIELD_LINE.test(frame)) sse = true;
     if (!error && frameHasStructuredStreamError(frame)) error = true;
     if (!content && hasUsefulStreamContent(frame)) content = true;
+    if (!content && isReasoningProgressFrame(frame)) progress += 1;
     if (legitEmpty) return;
     for (const match of frame.matchAll(TERMINAL_REASON_PATTERN)) {
       if (LEGIT_EMPTY_TERMINAL_REASONS.has(match[1])) {
@@ -339,6 +394,7 @@ export function createStreamContentWatcher(): StreamContentWatcher {
       pending = "";
     },
     sawContent: () => content,
+    reasoningProgress: () => progress,
     sawLegitEmptyTerminal: () => legitEmpty,
     sawSseFrame: () => sse,
     sawError: () => error,

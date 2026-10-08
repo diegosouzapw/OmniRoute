@@ -17,6 +17,26 @@ import {
   snapshotProxySetAside,
   TRANSPORT_EVIDENCE_WINDOW_MS,
 } from "@omniroute/open-sse/utils/proxyRefusalMemory.ts";
+import { listOpencodeFreeTierPauses } from "@omniroute/open-sse/services/opencodeFreeTierSkip.ts";
+
+function freeTierPausesResponse(searchParams: URLSearchParams, now: number) {
+  // Active free-tier pauses (in-process refusal memory, read-only): this
+  // branch answers first and ignores proxyId/scope when combined with it.
+  if (searchParams.get("freeTierPauses") !== "1") return null;
+  const provider = searchParams.get("provider")?.trim();
+  if (!provider) {
+    return createErrorResponse({
+      status: 400,
+      message: "provider is required",
+      type: "invalid_request",
+    });
+  }
+  return NextResponse.json({
+    provider,
+    pauses: listOpencodeFreeTierPauses(provider, now),
+    processMemory: true,
+  });
+}
 
 // Read-only pool visibility: per-member set-aside state (motive, start, expected
 // end, repeat count) plus the current preference order computed by the same
@@ -116,6 +136,8 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const now = Date.now();
+    const pauses = freeTierPausesResponse(searchParams, now);
+    if (pauses) return pauses;
     const proxyId = searchParams.get("proxyId");
     if (proxyId?.trim()) {
       // Single-entry view for accounts bound to one proxy. Unknown ids answer

@@ -153,7 +153,7 @@ export async function getSettings() {
   const db = getDbInstance();
   const rows = db.prepare("SELECT key, value FROM key_value WHERE namespace = 'settings'").all();
   const settings: Record<string, unknown> = {
-    cloudEnabled: true,
+    cloudEnabled: false,
     tailscaleEnabled: false,
     tailscaleUrl: "",
     stickyRoundRobinLimit: 3,
@@ -210,6 +210,7 @@ export async function getSettings() {
       enabled: false,
       supportedModels: [
         "claude-fable-5",
+        "claude-opus-5-5",
         "claude-opus-5",
         "claude-opus-4-8",
         "claude-opus-4-7",
@@ -255,7 +256,9 @@ export async function getSettings() {
     // live hard-stop-guaranteed quota check for non-keyless free candidates.
     // See open-sse/services/autoCombo/strictZeroCostFilter.ts.
     freeAccessPolicy: "off",
-    excludeTosAvoid: false,
+    // #15059: ON by default — providers whose curated verdict is `tos: "avoid"` (e.g. Antigravity)
+    // must not receive `auto` traffic on a fresh install. Opt out with PATCH /api/settings.
+    excludeTosAvoid: true,
     // #9418: Opt-in filter that hides auto/* virtual combos from the /v1/models catalog.
     // User-defined combos are unaffected; routing still works for hidden ids sent explicitly.
     hideAutoCombos: false,

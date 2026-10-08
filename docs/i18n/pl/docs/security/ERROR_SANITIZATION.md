@@ -139,13 +139,47 @@ przede wszystkim tworzyć komunikatów ujawniających topologię.
 
 `tests/unit/error-message-sanitization.test.ts` wymusza:
 
-- Każda trasa pod `/api/model-combo-mappings/*` zwraca sanityzowane body przy 4xx/5xx.
-- `sanitizeErrorMessage` usuwa wieloliniowe stack trace'y.
-- `sanitizeErrorMessage` zastępuje bezwzględne ścieżki POSIX i Windows przez `<path>`.
-- `sanitizeErrorMessage` bezpiecznie obsługuje wejścia `null`/`undefined`/instancje `Error`.
-- `buildErrorBody` nigdy nie ujawnia stack trace'ów w polu `message`.
+- Każda trasa w `/api/model-combo-mappings/*` zwraca oczyszczone treści odpowiedzi dla błędów 4xx/5xx.
+- `sanitizeErrorMessage` usuwa wielowierszowe ślady stosu.
+- `sanitizeErrorMessage` zastępuje bezwzględne ścieżki POSIX i Windows wartością `<path>`.
+- `sanitizeErrorMessage` bezpiecznie obsługuje dane wejściowe będące `null`/`undefined`/instancjami `Error`.
+- `buildErrorBody` nigdy nie ujawnia śladów stosu w swoim polu `message`.
 
-Przy dodawaniu nowej trasy lub executora skopiuj wzorzec asercji z tego pliku. Brama coverage (`npm run test:coverage`) wymusza ≥60% statements/lines/functions/branches — ścieżki błędów muszą być pokryte.
+Podczas dodawania nowej trasy lub wykonawcy skopiuj wzorzec asercji z tego pliku. Próg pokrycia (`npm run test:coverage`) wymusza ≥60% instrukcji/wierszy/funkcji/rozgałęzień — ścieżki obsługi błędów muszą być pokryte.
+
+### Bramka statyczna: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` skanuje `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` oraz każdy plik `src/app/api/**/route.ts` pod kątem surowego przechwyconego błędu (`err.message` / `err.stack`) lub surowego `body.error.message` z systemu nadrzędnego, które trafiają do treści odpowiedzi przeznaczonej dla klienta.
+
+**Zaufanie jest przypisane do wywołania, nigdy do pliku** (G-03, #15159). Wcześniej bramka pomijała cały plik, gdy tylko wykryła jakikolwiek import ze ścieżki `utils/error` — wyjątek dotyczący całego pliku stosowano do zagrożenia dotyczącego pojedynczego wywołania. Jeden poprawny `import { sanitizeErrorMessage }` bezterminowo zwalniał z kontroli każdy inny ujściowy punkt danych w pliku, przez co rzeczywisty wyciek trafił do wydania mimo zielonego statusu. Teraz wiersz jest uznawany za zaufany tylko wtedy, gdy faktycznie przekazuje dane przez zatwierdzony konstruktor lub mechanizm oczyszczający:
+
+| Postać wiersza                                                                                                            | Zaufany?             |
+| ------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| wywołuje `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …                    | tak                  |
+| wywołuje kanoniczny konstruktor **zaimportowany przez ten plik** z `open-sse/utils/error` lub `src/lib/api/errorResponse` | tak                  |
+| zatwierdzony konstruktor jest wywoływany **w wielu wierszach**, więc pole `message:` znajduje się w późniejszym wierszu   | tak                  |
+| wywołuje lokalną dla pliku funkcję `function errorResponse(...)`, której ciało wykonuje oczyszczanie                      | tak                  |
+| przekazuje `err.message` / `err.stack` gdziekolwiek indziej                                                               | **nie — naruszenie** |
+
+Warto znać dwie konsekwencje:
+
+- Importowanie `errorResponse` _nie_ zapewnia bezwarunkowego zaufania. Plik, który definiuje własną funkcję `errorResponse`, nadal zostanie oznaczony w miejscu wywołania, ponieważ bramka ustala zaufanie dla poszczególnych symboli, a nie całych plików. To samo dotyczy `createErrorResponse`.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))`, po którym występuje `error: body.error.message`, jest **oczyszczonym** idiomem używanym w wykonawcach `*-fetch.ts` i nie jest oznaczany.
+
+Uwzględniane są oba zatwierdzone moduły konstruktorów: `open-sse/utils/error.ts` oraz `src/lib/api/errorResponse.ts`. Drugi z nich jest używany przez około 54 procedury obsługi tras poza `open-sse` i oczyszcza dane w obu swoich eksportach.
+
+Dwie postacie, które **nie** są naruszeniami, choć bramka zgłaszała je kiedyś jako wycieki:
+
+- surowy błąd wewnątrz **wiersza audytu** — `saveCallLog({ error: err.message })`, `logToolCall(...)` lub rejestrator przyjmujący najpierw komunikat (`log.error("BATCHES", "sweep failed", { error: err.message })`). Odpowiedź przeznaczona dla klienta w kolejnych wierszach może być statycznym `buildErrorBody`.
+- **wielowierszowe** wywołanie zatwierdzonego konstruktora, w którym pole `message:` w ogóle nie wskazuje konstruktora:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` zamraża istniejące wcześniej naruszenia, dzięki czemu bramka blokuje wyłącznie _nowe_. `assertNoStale` automatycznie usuwa wpis po naprawieniu odpowiadającego mu naruszenia, więc zamrożony zestaw nie może skostnieć. Zabezpieczenia przed regresją: `tests/unit/check-error-helper.test.ts` oraz `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Powiązane mechanizmy kontrolne
 

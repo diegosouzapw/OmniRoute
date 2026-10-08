@@ -23,11 +23,13 @@
  */
 import { parseSSEToOpenAIResponse, parseSSEToResponsesOutput } from "../handlers/sseParser.ts";
 import {
+  confirmBorrowedToolNames,
   getObservedToolNames,
   noteRefusedBorrowedToolNames,
   recordAcceptedToolNames,
   resolvePlaceholderNames,
 } from "./opencodeToolObservation.ts";
+import { isOpencodeFreeTierRefusal } from "./opencodeGeoBlock.ts";
 import {
   forgetAttempt,
   planShape,
@@ -475,7 +477,7 @@ export function prepareFreeTierRequest<T>(
       shape: chosen,
       key,
       probe: plan.probe,
-      replayNote: () => noteFreeTierOutcome({ ...attempt, probe: false }, false),
+      replayNote: (verdict) => noteFreeTierOutcome({ ...attempt, probe: false }, verdict),
     });
   }
   return {
@@ -493,14 +495,33 @@ function withStreaming<T>(body: T): T {
 }
 
 /**
+ * What the upstream answered, with enough detail to tell a refusal about the
+ * tools apart from any other failure. A bare boolean keeps the legacy callers
+ * compiling: `true` counts as an acceptance, `false` carries no verdict and is
+ * never counted.
+ */
+export interface FreeTierOutcome {
+  readonly ok: boolean;
+  readonly status: number | null;
+  readonly bodyText: string | null;
+}
+
+/**
  * Feed a gated request's outcome back, so the next one borrows a shape that still works.
  *
  * An accepted request teaches which names the upstream takes right now; a refused one only
- * teaches something when the names it carried came from the store.
+ * teaches something when the names it carried came from the store AND the refusal says
+ * something about the tools (a 403/451 carrying the refusal signals — a 429, a 5xx or a
+ * refusal about something else leaves the store alone).
  */
-export function noteFreeTierOutcome(attempt: FreeTierContractAttempt | null, ok: boolean): void {
+export function noteFreeTierOutcome(
+  attempt: FreeTierContractAttempt | null,
+  outcome: boolean | FreeTierOutcome
+): void {
   if (!attempt) return;
-  if (ok) {
+  const decided: FreeTierOutcome =
+    typeof outcome === "boolean" ? { ok: outcome, status: null, bodyText: null } : outcome;
+  if (decided.ok) {
     if (attempt.clientToolNames.length > 0) {
       recordAcceptedToolNames(
         attempt.provider,
@@ -508,11 +529,15 @@ export function noteFreeTierOutcome(attempt: FreeTierContractAttempt | null, ok:
         attempt.session,
         attempt.clientToolNames
       );
+    } else if (attempt.borrowed && !attempt.probe) {
+      confirmBorrowedToolNames(attempt.provider, attempt.model, attempt.session);
     }
     return;
   }
   if (attempt.probe) return;
-  if (attempt.borrowed) {
+  if (!attempt.borrowed) return;
+  if (decided.status === null) return;
+  if (isOpencodeFreeTierRefusal(decided.status, decided.bodyText)) {
     noteRefusedBorrowedToolNames(attempt.provider, attempt.model, attempt.session);
   }
 }

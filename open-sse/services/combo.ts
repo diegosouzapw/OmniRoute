@@ -487,6 +487,7 @@ export async function buildAutoCandidates(
       // time (scoreAutoTargets → STATUS_SOFT_DEPRIORITIZE_FACTOR) instead.
       let statusPenalty = false;
       let statusPenaltyReason: string | undefined;
+      let quotaUnreadable = false;
       if (statusCutoffReason) {
         quotaCutoffBlocked = true;
         quotaCutoffReason = statusCutoffReason;
@@ -517,10 +518,22 @@ export async function buildAutoCandidates(
         const quota = await quotaPromises.get(quotaKey)!;
         resetWindowAffinity = calculateAutoResetWindowAffinity(quota, resetWindowConfig);
         if (!quotaCutoffBlocked) {
-          quotaRemaining = quotaRemainingPercentFromQuota(quota, {
+          const remaining = quotaRemainingPercentFromQuota(quota, {
             provider,
             requestedModel: modelStr,
           });
+          if (remaining === null) {
+            // #15347: this provider HAS a quota fetcher but gave us nothing readable (failed
+            // fetch, missing credentials, message-only or malformed payload). That is evidence
+            // about the telemetry, not the provider, so it must not outrank providers that
+            // reported a real percentage. Worst on the quota axis plus a soft penalty at
+            // scoring time (like #4540), so it ranks strictly below any real reading without
+            // being blocked or evicted. Unlimited plans report `unlimited: true` and score 100.
+            quotaRemaining = 0;
+            quotaUnreadable = true;
+          } else {
+            quotaRemaining = remaining;
+          }
         }
         if (!quotaCutoffBlocked && quotaCutoffEnabled) {
           const cutoffDecision = evaluateQuotaCutoff(
@@ -569,6 +582,7 @@ export async function buildAutoCandidates(
         quotaCutoffReason,
         statusPenalty,
         statusPenaltyReason,
+        quotaUnreadable,
         connectionPoolSize: connectionPoolCounts.get(provider) ?? 1,
         connectionId: target.connectionId ?? undefined,
         authType,
@@ -895,7 +909,18 @@ async function handleComboChatInner({
 
   let pinnedLockWaitMs = 0;
   if (activeNativeTurnPin) {
-    const pinnedTargets = applyNativeCodexTurnPin(orderedTargets, activeNativeTurnPin);
+    const activeConnections = (await getCachedProviderConnections({
+      provider: resolveProviderId(activeNativeTurnPin.provider),
+      isActive: true,
+    })) as Array<Record<string, unknown>>;
+    const activeConnectionIds = activeConnections
+      .map((connection) => String(connection.id))
+      .filter((id) => !apiKeyAllowedConnections?.length || apiKeyAllowedConnections.includes(id));
+    const pinnedTargets = applyNativeCodexTurnPin(
+      orderedTargets,
+      activeNativeTurnPin,
+      activeConnectionIds
+    );
     if (pinnedTargets.length === 0) {
       // Pinned model no longer exists in the combo — release pin and fall through
       // to full combo routing so the turn can continue with a healthy model.

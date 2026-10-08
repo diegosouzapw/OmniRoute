@@ -12,10 +12,13 @@ import {
   type PoolEgressObservationCounts,
 } from "@/lib/db/proxyLogs";
 import { normalizeAssignmentScopeId, normalizeScope } from "@/lib/db/proxies/mappers";
-import { getScopeProxyPool } from "@/lib/db/proxies/rotation";
+import { getScopeProxyPool, readEgressAddressSetForMember } from "@/lib/db/proxies/rotation";
 import { getProxyById, getProviderUpstreamSummary } from "@/lib/db/proxies";
 import { flushProxyLogsSync } from "@/lib/proxyLogger";
-import { isPoolEgressObservationEnabled } from "@/shared/utils/featureFlags";
+import {
+  isOperatorEgressEnabled,
+  isPoolEgressObservationEnabled,
+} from "@/shared/utils/featureFlags";
 import { createLogger } from "@/shared/utils/logger";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitization.ts";
 
@@ -28,6 +31,7 @@ export type PoolMemberEgress = {
   port: number;
   egressIp: string | null;
   at: string | null;
+  source: "operator" | "observed" | null;
 };
 
 export type PoolMemberEgressObservation = {
@@ -211,20 +215,67 @@ function writeMemberCache(key: string, value: PoolMemberEgressObservation, nowMs
   memberCache.set(key, { at: nowMs, value });
 }
 
+function nullMember(host: string, port: number): PoolMemberEgress {
+  return { host, port, egressIp: null, at: null, source: null };
+}
+
+function journalMember(
+  host: string,
+  port: number,
+  observed: { egressIp: string; at: string } | null
+): PoolMemberEgress {
+  return {
+    host,
+    port,
+    egressIp: observed?.egressIp ?? null,
+    at: observed?.at ?? null,
+    source: "observed",
+  };
+}
+
+function operatorMember(
+  host: string,
+  port: number,
+  freshest: { address: string; at: string },
+  journalAt: number
+): PoolMemberEgress {
+  const operatorIsNewer = !Number.isFinite(journalAt) || Date.parse(freshest.at) >= journalAt;
+  if (!operatorIsNewer)
+    return journalMember(host, port, { egressIp: freshest.address, at: freshest.at });
+  return {
+    host,
+    port,
+    egressIp: freshest.address,
+    at: freshest.at,
+    source: "operator",
+  };
+}
+
+function mergedMemberEntry(
+  host: string,
+  port: number,
+  observed: { egressIp: string; at: string } | null,
+  nowMs: number
+): PoolMemberEgress {
+  if (observed?.egressIp == null) return nullMember(host, port);
+  if (!isOperatorEgressEnabled()) return journalMember(host, port, observed);
+  // The operator rows are the freshest dated observation when newer than the
+  // journal: serve them as operator-provided, else the journal read.
+  const merged = readEgressAddressSetForMember({ host, port }, nowMs);
+  if (merged.freshest === null) return journalMember(host, port, observed);
+  return operatorMember(host, port, merged.freshest, Date.parse(observed.at));
+}
+
 async function collectMemberEgressEntries(
-  assignments: { proxyId: string }[]
+  assignments: { proxyId: string }[],
+  nowMs: number
 ): Promise<PoolMemberEgress[]> {
   const members: PoolMemberEgress[] = [];
   for (const assignment of assignments) {
     const proxy = await getProxyById(assignment.proxyId);
     if (!proxy || typeof proxy.host !== "string" || !Number.isInteger(proxy.port)) continue;
     const observed = getRecentEgressIpForProxy(proxy.host, proxy.port);
-    members.push({
-      host: proxy.host,
-      port: proxy.port,
-      egressIp: observed?.egressIp ?? null,
-      at: observed?.at ?? null,
-    });
+    members.push(mergedMemberEntry(proxy.host, proxy.port, observed, nowMs));
   }
   return members;
 }
@@ -254,7 +305,7 @@ export async function readPoolMemberEgressObservation(
   try {
     flushProxyLogsSync();
     const assignments = await getScopeProxyPool(normalizedScope, normalizedScopeId);
-    const members = await collectMemberEgressEntries(assignments);
+    const members = await collectMemberEgressEntries(assignments, nowMs);
     value = { windowHours: EGRESS_IP_LOOKUP_WINDOW_MS / (60 * 60 * 1000), members };
   } catch {
     // Observer only: a failed read hides the lines instead of failing the pool screen.

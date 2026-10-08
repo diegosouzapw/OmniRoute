@@ -136,15 +136,49 @@ kutengeneza jumbe zinazofichua topolojia tangu mwanzo.
 
 ## Ufunikaji katika CI
 
-`tests/unit/error-message-sanitization.test.ts` huhakikisha:
+`tests/unit/error-message-sanitization.test.ts` inahakikisha:
 
-- Kila route iliyo chini ya `/api/model-combo-mappings/*` hurejesha body zilizosafishwa kwa 4xx/5xx.
-- `sanitizeErrorMessage` huondoa stack trace za mistari mingi.
-- `sanitizeErrorMessage` hubadilisha path kamili za POSIX na Windows kuwa `<path>`.
-- `sanitizeErrorMessage` hushughulikia input za instance za `null`/`undefined`/`Error` kwa usalama.
-- `buildErrorBody` kamwe haifichui stack trace katika field yake ya `message`.
+- Kila njia chini ya `/api/model-combo-mappings/*` inarejesha miili iliyosafishwa kwa 4xx/5xx.
+- `sanitizeErrorMessage` huondoa ufuatiliaji wa rundo wenye mistari mingi.
+- `sanitizeErrorMessage` hubadilisha njia kamili za POSIX na Windows kuwa `<path>`.
+- `sanitizeErrorMessage` hushughulikia ingizo za mifano ya `null`/`undefined`/`Error` kwa usalama.
+- `buildErrorBody` haifichui kamwe ufuatiliaji wa rundo katika uga wake wa `message`.
 
-Unapoongeza route au executor mpya, nakili muundo wa assertion kutoka kwenye faili hii. Kizuizi cha ufunikaji (`npm run test:coverage`) huhakikisha ≥60% ya statements/lines/functions/branches — error path lazima zifunikwe.
+Unapoongeza njia au kitekelezaji kipya, nakili muundo wa uthibitishaji kutoka kwenye faili hii. Kizingiti cha ufunikaji (`npm run test:coverage`) kinalazimisha ≥60% ya kauli/mistari/vitendakazi/matawi — njia za hitilafu lazima zifunikwe.
+
+### Kizingiti tuli: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` huchanganua `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` na kila `src/app/api/**/route.ts` kutafuta hitilafu ghafi iliyonaswa (`err.message` / `err.stack`) au `body.error.message` ghafi kutoka huduma ya juu inayofika kwenye mwili unaoonekana kwa mteja.
+
+**Uaminifu unahusu wito pekee, kamwe si faili nzima** (G-03, #15159). Awali, kizingiti kiliruka faili nzima mara tu kilipoona uingizaji wowote kutoka njia ya `utils/error` — msamaha wa kiwango cha faili uliotumika kwa hatari ya kiwango cha wito. `import { sanitizeErrorMessage }` moja sahihi ilisamehe kabisa kila sehemu nyingine ya kutoa data katika faili, na hivyo ndivyo uvujaji halisi ulivyosafirishwa huku ukionekana kuwa salama. Sasa mstari unaaminika tu unapopitishwa kupitia kiundaji au kisafishaji kilichoidhinishwa:
+
+| Muundo wa mstari                                                                                                  | Unaaminika?           |
+| ----------------------------------------------------------------------------------------------------------------- | --------------------- |
+| huita `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …               | ndiyo                 |
+| huita kiundaji rasmi **ambacho faili hii huingiza** kutoka `open-sse/utils/error` au `src/lib/api/errorResponse`  | ndiyo                 |
+| kiundaji kilichoidhinishwa huitwa kwa **mistari mingi**, kwa hivyo uga wa `message:` huwa kwenye mstari unaofuata | ndiyo                 |
+| huita `function errorResponse(...)` ya ndani ya faili ambayo mwili wake husafisha                                 | ndiyo                 |
+| husambaza `err.message` / `err.stack` mahali pengine popote                                                       | **hapana — ukiukaji** |
+
+Matokeo mawili yanayofaa kujulikana:
+
+- Kuingiza `errorResponse` **si** uaminifu wa jumla. Faili inayofafanua `errorResponse` yake bado huwekewa alama katika eneo la wito, kwa sababu kizingiti hutambua uaminifu kwa kila alama, si kwa kila faili. Hali hiyo hiyo inatumika kwa `createErrorResponse`.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` ikifuatiwa na `error: body.error.message` ni mtindo **uliosafishwa** unaotumiwa kote katika vitekelezaji vya `*-fetch.ts` na hauwekewi alama.
+
+Moduli zote mbili za viundaji vilivyoidhinishwa zinahesabiwa: `open-sse/utils/error.ts` na `src/lib/api/errorResponse.ts`. Ya pili ndiyo inayotumiwa na vishughulikiaji takriban 54 vya njia vilivyo nje ya `open-sse`, na husafisha matokeo yake yote mawili.
+
+Miundo miwili ambayo **si** ukiukaji, ingawa hapo awali kizingiti kiliiripoti kama uvujaji:
+
+- hitilafu ghafi ndani ya **safu ya ukaguzi** — `saveCallLog({ error: err.message })`, `logToolCall(...)`, au kiweka kumbukumbu kinachopokea ujumbe kwanza (`log.error("BATCHES", "sweep failed", { error: err.message })`). Jibu linaloonekana kwa mteja katika mistari inayofuata linaweza kabisa kuwa `buildErrorBody` tuli.
+- wito wa kiundaji kilichoidhinishwa wa **mistari mingi**, ambapo uga wa `message:` hautaji kiundaji chochote:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` hufungia ukiukaji uliokuwepo tayari ili kizingiti kizuie mipya tu. `assertNoStale` huondoa ingizo kiotomatiki mara ukiukaji wake unaporekebishwa, hivyo hali hiyo iliyofungiwa haiwezi kukomaa na kuwa ya kudumu. Vilinzi vya urejeleaji: `tests/unit/check-error-helper.test.ts` na `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Vidhibiti vinavyohusiana
 

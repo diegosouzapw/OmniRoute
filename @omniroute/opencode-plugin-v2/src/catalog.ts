@@ -11,6 +11,7 @@ import {
   type ProviderResolve,
 } from "./provider-filter.js";
 import type { LegacyModel } from "./legacy-model.js";
+import { type CapabilityPresetFlags, passesCapabilityPresets } from "./capability-presets.js";
 import {
   isHttpUrl,
   type ApiFormatV2,
@@ -38,6 +39,38 @@ import {
   mapRawModelToModelV2,
   usableProviderAliasSet,
 } from "./shared/index.js";
+import {
+  FRESH_PER_OWNER,
+  FRESH_WINDOW_DAYS,
+  SHOWCASE_PER_OWNER,
+  baseIdOf,
+  freshWindowDaysToMs,
+  isFlatTierId,
+  matchesSuffix,
+  passesWhatServes,
+  readEntryStatus,
+  selectFreshKeptIds,
+  selectShowcaseIds,
+  staysDropped,
+} from "./catalog-freshness.js";
+export {
+  FRESH_PER_OWNER,
+  FRESH_WINDOW_DAYS,
+  FRESHNESS_WINDOW_MS,
+  SHOWCASE_PER_OWNER,
+  baseIdOf,
+  compareByRecency,
+  freshWindowDaysToMs,
+  isFlatTierId,
+  isFreshModel,
+  ownerKeyOf,
+  passesWhatServes,
+  selectFreshKeptIds,
+  selectShowcaseIds,
+  staysDropped,
+} from "./catalog-freshness.js";
+export type { ModelListFilter } from "./catalog-freshness.js";
+import type { ModelListFilter } from "./catalog-freshness.js";
 
 export type ModelsFetcher = OmniRouteModelsFetcher;
 export type CombosFetcher = OmniRouteCombosFetcher;
@@ -69,7 +102,31 @@ export interface ResolvedOptions {
   hiddenModels?: string[];
   providersAllow?: string[];
   usableOnly: boolean;
+  freeOnly?: boolean;
+  toolsOnly?: boolean;
+  visionOnly?: boolean;
   enrichment?: OmniRouteEnrichmentMap | boolean;
+  /**
+   * Per-provider showcase size. Absent means the catalog default
+   * (`SHOWCASE_PER_OWNER`); direct callers keep working without it.
+   */
+  showcasePerOwner?: number;
+  /**
+   * Per-provider fresh cap. Absent means the catalog default
+   * (`FRESH_PER_OWNER`); direct callers keep working without it.
+   */
+  freshPerOwner?: number;
+  /**
+   * Freshness window in days. Absent means the catalog default (FRESH_WINDOW_DAYS);
+   * direct callers keep working without it.
+   */
+  freshWindowDays?: number;
+  /**
+   * Usage memory over the statically dropped entries. Absent means
+   * enabled (default on); false disables it. Needs a management token —
+   * without one the memory stays inert.
+   */
+  usageMemory?: boolean;
   /**
    * Shared collision-warning dedupe set keyed `cacheKey::comboKey`. When
    * omitted a fresh per-publish set is used. index.ts passes one setup-wide
@@ -88,11 +145,145 @@ export interface CatalogFetchers {
   providers?: ProvidersFetcher;
   enrichment?: EnrichmentFetcher;
   /**
+   * Resolves the model ids used in the last 30 days from the gateway
+   * usage analytics. Injected so unit tests can stub it; defaults to
+   * a single `GET <root>/api/usage/analytics?range=30d` call.
+   */
+  usageFetcher?: OmniRouteUsageFetcher;
+  /** Alias of `usageFetcher`, same shape as the other fetcher pairs. */
+  usage?: OmniRouteUsageFetcher;
+  /**
    * Called when a gateway source cannot be read. Without it this function
    * degrades silently — the catalog publishes with raw ids and no combos and
    * nothing says why, which is the failure the plugin path reports.
    */
   onSourceError?: (endpoint: string, reason: string) => void;
+}
+
+/** Contract for the 30-day usage memory: model ids only, never payloads. */
+export type OmniRouteUsageFetcher = (
+  rootBaseURL: string,
+  managementToken: string,
+  timeoutMs?: number,
+  onSourceError?: (endpoint: string, reason: string) => void
+) => Promise<string[]>;
+
+function trimUsageSlashes(value: string): string {
+  let i = value.length;
+  while (i > 0 && value.charCodeAt(i - 1) === 0x2f /* "/" */) i--;
+  return i === value.length ? value : value.slice(0, i);
+}
+
+/**
+ * Default usage fetcher: one `GET <root>/api/usage/analytics?range=30d`
+ * call with the management token, reading `byModel[].model` (plus
+ * `rawModel` when present) as plain identifiers. Refusals, network
+ * errors and a 2xx without a `byModel` table THROW so the caller keeps
+ * the statically dropped entries; only a 2xx array (even empty)
+ * narrows the catalog.
+ */
+export const defaultOmniRouteUsageFetcher: OmniRouteUsageFetcher = async (
+  rootBaseURL,
+  managementToken,
+  timeoutMs = 10_000,
+  onSourceError
+) => {
+  if (!rootBaseURL) throw new Error("[omniroute-v2] baseURL required to fetch usage analytics");
+  if (!managementToken) throw new Error("[omniroute-v2] management token required");
+  const trimmed = trimUsageSlashes(rootBaseURL);
+  const root = trimmed.replace(/\/v\d+$/, "");
+  const url = `${root}/api/usage/analytics?range=30d`;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${managementToken}`,
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      onSourceError?.("/api/usage/analytics", `HTTP ${res.status}`);
+      throw new Error(`[omniroute-v2] GET ${url} failed: ${res.status} ${res.statusText}`);
+    }
+    const body = (await res.json()) as unknown;
+    const table = (body as { byModel?: unknown } | null | undefined)?.byModel;
+    if (!Array.isArray(table)) {
+      onSourceError?.("/api/usage/analytics", "missing byModel table");
+      throw new Error("[omniroute-v2] usage analytics response has no byModel table");
+    }
+    const rows = table as unknown[];
+    const out: string[] = [];
+    for (const row of rows) {
+      if (!row || typeof row !== "object") continue;
+      const model = (row as { model?: unknown }).model;
+      const rawModel = (row as { rawModel?: unknown }).rawModel;
+      if (typeof model === "string" && model.length > 0) out.push(model);
+      if (typeof rawModel === "string" && rawModel.length > 0 && rawModel !== model)
+        out.push(rawModel);
+    }
+    return out;
+  } catch (err) {
+    throw err instanceof Error ? err : new Error(String(err));
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
+/**
+ * Resolve the usage memory over the statically dropped entries only.
+ * No dropped entries (or no management token) means no call at all.
+ * Success returns the lowercased id set (empty set = the gateway
+ * answered "no usage", a narrowed fallback); failure warns once and
+ * returns an empty set, so a down gateway never reopens the picker.
+ */
+async function resolveUsageIds(
+  dropped: readonly OmniRouteRawModelEntry[],
+  opts: ResolvedOptions,
+  fetchers: CatalogFetchers | undefined,
+  log: Logger
+): Promise<Set<string>> {
+  if (dropped.length === 0) return new Set();
+  if (!opts.managementReadToken) return new Set();
+  const fetchUsage = fetchers?.usageFetcher ?? fetchers?.usage ?? defaultOmniRouteUsageFetcher;
+  let used: string[];
+  try {
+    used = await fetchUsage(
+      opts.baseURL,
+      opts.managementReadToken,
+      opts.timeoutMs,
+      fetchers?.onSourceError
+    );
+  } catch (err) {
+    log.warn(
+      `[omniroute-v2] usage fetch failed, no dropped models restored: ${err instanceof Error ? err.message : String(err)}`
+    );
+    return new Set();
+  }
+  const out = new Set<string>();
+  const capped = used.slice(0, 50);
+  for (const id of capped) {
+    if (typeof id !== "string" || id.length === 0) continue;
+    out.add(id.toLowerCase());
+  }
+  return out;
+}
+
+/**
+ * True on an exact usage hit, or when usage names a flat variant of this
+ * base entry: the base restores in place of its flat, never the flat
+ * itself (flats stay excluded by the `restorable` filter above).
+ */
+function matchesUsage(id: string, used: ReadonlySet<string>): boolean {
+  const lower = id.toLowerCase();
+  if (used.has(lower)) return true;
+  if (isFlatTierId(id)) return false;
+  for (const name of used) {
+    if (baseIdOf(name) === lower) return true;
+  }
+  return false;
 }
 
 export type StableModelInfo = Model.Info;
@@ -290,11 +481,6 @@ export interface PublishCounts {
   combos: number;
 }
 
-export interface ModelListFilter {
-  exact: Set<string>;
-  suffixes: Set<string>;
-}
-
 export function compileModelListFilter(list?: string[]): ModelListFilter | undefined {
   if (!list || list.length === 0) return undefined;
   const exact = new Set<string>();
@@ -308,13 +494,6 @@ export function compileModelListFilter(list?: string[]): ModelListFilter | undef
   }
   if (exact.size === 0 && suffixes.size === 0) return undefined;
   return { exact, suffixes };
-}
-
-function matchesSuffix(id: string, suffixes: Set<string>): boolean {
-  if (suffixes.size === 0) return false;
-  const slash = id.indexOf("/");
-  const suffix = slash > 0 ? id.slice(slash + 1) : id;
-  return suffixes.has(suffix);
 }
 
 export function passesModelAllowlist(
@@ -586,9 +765,18 @@ async function publishCombos(
         continue;
       }
       const mapped = mapComboToModelV2(combo, memberEntries, X, opts.baseURL, opts.apiFormat);
-      applyEnrichment(mapped, lookupEnrichment(combo.id, enrichment, canonicalToAlias), {
+      const comboEnrichment = lookupEnrichment(combo.id, enrichment, canonicalToAlias);
+      applyEnrichment(mapped, comboEnrichment, {
         isCombo: true,
       });
+      if (
+        !passesCapabilityPresets(mapped, comboEnrichment, {
+          freeOnly: opts.freeOnly,
+          toolsOnly: opts.toolsOnly,
+          visionOnly: opts.visionOnly,
+        } satisfies CapabilityPresetFlags)
+      )
+        continue;
       const mid = mapped.id.startsWith(X + "/") ? mapped.id.slice(X.length + 1) : mapped.id;
       const key = X + "/" + mid;
       if (publishedKeys.has(key)) {
@@ -721,12 +909,30 @@ export async function collectCatalog(
     return empty;
   }
 
-  const visibleFilter = compileModelListFilter(opts.visibleModels);
+  const catalogAll = opts.visibleModels?.includes("*") === true;
+  const visibleFilter = catalogAll ? undefined : compileModelListFilter(opts.visibleModels);
   const hiddenFilter = compileModelListFilter(opts.hiddenModels);
 
   const enrichment = await resolveEnrichmentOverlay(opts, fetchers, log);
   const canonicalToAlias = buildCanonicalToAliasMap(enrichment);
   const canonicalDedup = canonicalDedupSet(rawModels, canonicalToAlias);
+  // `freeOnly` reads the overlay: an empty overlay (no management token,
+  // `enrichment: false`, or fetch failure) would otherwise empty the catalog
+  // silently. Warn once per refresh and keep filtering (fail-closed).
+  if (opts.freeOnly === true) {
+    let hasFreeEntry = false;
+    for (const entry of enrichment.values()) {
+      if (entry.freeType !== undefined) {
+        hasFreeEntry = true;
+        break;
+      }
+    }
+    if (!hasFreeEntry) {
+      log.warn(
+        `[omniroute-v2] freeOnly is on but the enrichment overlay has no free-tier entries (no management token, enrichment disabled, or free-tier fetch failed); publishing an empty catalog. Disable freeOnly or configure the management token.`
+      );
+    }
+  }
 
   const usable = await resolveUsableAliases(
     opts,
@@ -773,6 +979,35 @@ export async function collectCatalog(
   const collected = new Map<string, LegacyModel>();
   let modelCount = 0;
   let providerDroppedCount = 0;
+  // Showcase ranks the allowlisted pool so the default picker stays usable
+  // without pinning plus the curated dates and pinned ids below.
+  const showcasePool = catalogAll
+    ? []
+    : rawModels.filter(
+        (entry) =>
+          entry.id &&
+          !canonicalDedup.has(entry.id) &&
+          (!usable || isUsableRawModelId(entry.id, usable)) &&
+          passesModelAllowlist(entry.id, visibleFilter, hiddenFilter) &&
+          passesProviderFilter(entry.id, providerFilter, providerResolve, providerAllUnknown) &&
+          readEntryStatus(entry) !== "deprecated" &&
+          !isFlatTierId(entry.id)
+      );
+  const showcased = catalogAll
+    ? new Set<string>()
+    : selectShowcaseIds(showcasePool, opts.showcasePerOwner ?? SHOWCASE_PER_OWNER);
+  const nowMs = Date.now();
+  const windowMs = freshWindowDaysToMs(opts.freshWindowDays ?? FRESH_WINDOW_DAYS);
+  const freshKept = catalogAll
+    ? new Set<string>()
+    : selectFreshKeptIds(
+        rawModels,
+        opts.freshPerOwner ?? FRESH_PER_OWNER,
+        nowMs,
+        visibleFilter,
+        windowMs
+      );
+  const staticallyDropped: OmniRouteRawModelEntry[] = [];
   for (const entry of rawModels) {
     if (!entry.id) continue;
     if (canonicalDedup.has(entry.id)) continue;
@@ -782,20 +1017,65 @@ export async function collectCatalog(
       providerDroppedCount += 1;
       continue;
     }
+    if (
+      !catalogAll &&
+      !passesWhatServes(entry, showcased, visibleFilter, nowMs, freshKept, windowMs)
+    ) {
+      staticallyDropped.push(entry);
+      continue;
+    }
     const mapped = mapRawModelToModelV2(entry, {
       providerId: X,
       baseURL: opts.baseURL,
       apiFormat: opts.apiFormat,
     });
-    applyEnrichment(mapped, lookupEnrichment(entry.id, enrichment, canonicalToAlias), {
+    const enrichmentEntry = lookupEnrichment(entry.id, enrichment, canonicalToAlias);
+    applyEnrichment(mapped, enrichmentEntry, {
       providerTag: opts.providerTag !== false,
     });
+    if (
+      !passesCapabilityPresets(mapped, enrichmentEntry, {
+        freeOnly: opts.freeOnly,
+        toolsOnly: opts.toolsOnly,
+        visionOnly: opts.visionOnly,
+      } satisfies CapabilityPresetFlags)
+    )
+      continue;
     const mid = mapped.id.startsWith(X + "/") ? mapped.id.slice(X.length + 1) : mapped.id;
     const key = X + "/" + mid;
     collected.set(key, mapped);
     publishedKeys.add(key);
     publishedModelIds.set(key, mapped.id);
     modelCount += 1;
+  }
+  // Memory branch: restore only what the static pass dropped and the last
+  // 30 days of usage still names. Empty usage, a failed fetch, no token or
+  // an explicit opt-out restores nothing; the narrowed fallback stands.
+  if (!catalogAll && staticallyDropped.length > 0 && opts.usageMemory !== false) {
+    // The exclusions above hold under the usage memory too: a retired
+    // entry, a flat effort-variant id or an id past the fresh cap is
+    // never restored — filter before resolving.
+    const restorable = staticallyDropped.filter(
+      (entry) => !staysDropped(entry, freshKept, nowMs, windowMs)
+    );
+    const used = await resolveUsageIds(restorable, opts, fetchers, log);
+    const toRestore = restorable.filter((entry) => matchesUsage(entry.id, used));
+    for (const entry of toRestore) {
+      const mapped = mapRawModelToModelV2(entry, {
+        providerId: X,
+        baseURL: opts.baseURL,
+        apiFormat: opts.apiFormat,
+      });
+      applyEnrichment(mapped, lookupEnrichment(entry.id, enrichment, canonicalToAlias), {
+        providerTag: opts.providerTag !== false,
+      });
+      const mid = mapped.id.startsWith(X + "/") ? mapped.id.slice(X.length + 1) : mapped.id;
+      const key = X + "/" + mid;
+      collected.set(key, mapped);
+      publishedKeys.add(key);
+      publishedModelIds.set(key, mapped.id);
+      modelCount += 1;
+    }
   }
 
   const cacheKey = `${opts.baseURL}::${opts.providerId}`;

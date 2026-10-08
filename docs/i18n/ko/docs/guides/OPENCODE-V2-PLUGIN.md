@@ -75,24 +75,31 @@ OpenCode v1과 v2는 서로 다른 계약을 통해 플러그인을 로드하므
 
 ## 옵션
 
-| 키                               | 기본값                                       | 참고                                                                                     |
-| -------------------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `providerId`                     | `"omniroute"`                                | 제공자 ID, 통합 ID 및 모델이 표시되는 접두사                                             |
-| `baseURL`                        | 필수                                         | 게이트웨이 루트, `http(s)`만 지원하며 필요한 경우 `/v1` 접미사가 추가됨                  |
-| `apiKey`                         | 연결된 자격 증명, 그다음 `OMNIROUTE_API_KEY` | `/v1/*`용 채팅 키                                                                        |
-| `managementReadToken`            | `apiKey`로 대체                              | `/api/*`용 키 — 일반적으로 **동일한 키가 아님**                                          |
-| `displayName`                    | `"OmniRoute"`                                | 선택기에 표시되는 제공자 이름                                                            |
-| `timeoutMs`                      | `10000`                                      | 엔드포인트별 가져오기 시간 제한(자동 콤보는 5초 사용)                                    |
-| `modelCacheTtlMs`                | `300000`                                     | 카탈로그 캐시 TTL. 디스크 스냅샷으로 콜드 스타트를 예열                                  |
-| `timeouts`                       | `timeoutMs`로 대체                           | 엔드포인트별 시간 예산(ms): `models`, `combos`, `autoCombos`, `enrichment`               |
-| `enrichment`                     | `true`                                       | 이름, 가격 및 무료 티어 예산 가져오기                                                    |
-| `providerTag`                    | `true`                                       | 표시 이름 앞에 해당 이름이 라우팅되는 업스트림 제공자 표시                               |
-| `usableOnly`                     | `false`                                      | 게이트웨이가 프로비저닝된 것으로 보고하는 제공자만 유지                                  |
-| `visibleModels` / `hiddenModels` | `[]`                                         | 정확히 일치하거나 접미사가 일치하는 허용 목록. 거부 목록이 우선함                        |
-| `geminiSanitization`             | `true`                                       | 도구 스키마에서 Gemini가 거부하는 JSON-Schema 키워드 제거 (`$ref` 도구는 수정 없이 전달) |
-| `apiFormat.allowAnthropic`       | `false`                                      | 허용 목록에 포함된 ID를 Anthropic API 블록을 통해 라우팅                                 |
-| `apiFormat.anthropicModels`      | `[]`                                         | Anthropic으로 라우팅되는 전체 모델 ID                                                    |
-| `logLevel` / `startupDebug`      | `warn` / `false`                             | 로거 상세 수준                                                                           |
+| 키                               | 기본값                                     | 참고                                                                                           |
+| -------------------------------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| `providerId`                     | `"omniroute"`                              | 제공자 ID, 통합 ID 및 모델이 표시되는 접두사                                                   |
+| `baseURL`                        | 필수                                       | 게이트웨이 루트, `http(s)`만 지원하며 필요한 경우 `/v1` 접미사가 추가됨                        |
+| `apiKey`                         | 연결된 자격 증명, 이후 `OMNIROUTE_API_KEY` | `/v1/*`용 채팅 키                                                                              |
+| `managementReadToken`            | `apiKey`로 대체                            | `/api/*`용 키 — 일반적으로 동일한 키가 **아님**                                                |
+| `displayName`                    | `"OmniRoute"`                              | 선택기에 표시되는 제공자 이름                                                                  |
+| `timeoutMs`                      | `10000`                                    | 엔드포인트별 가져오기 제한 시간(자동 조합은 5초 사용)                                          |
+| `modelCacheTtlMs`                | `300000`                                   | 카탈로그 캐시 TTL. 디스크 스냅샷을 사용해 콜드 스타트를 준비함                                 |
+| `timeouts`                       | `timeoutMs`로 대체                         | 엔드포인트별 제한 시간(ms): `models`, `combos`, `autoCombos`, `enrichment`                     |
+| `enrichment`                     | `true`                                     | 이름, 가격 및 무료 티어 한도를 가져옴                                                          |
+| `providerTag`                    | `true`                                     | 표시 이름 앞에 라우팅 대상인 업스트림 제공자를 접두사로 추가                                   |
+| `usableOnly`                     | `false`                                    | 게이트웨이가 프로비저닝되었다고 보고한 제공자만 유지                                           |
+| `showcasePerOwner`               | `10`                                       | 기본 보기에 제공자별로 유지할 항목 수                                                          |
+| `freshPerOwner`                  | `10`                                       | 기본 보기의 최신 분기에 제공자별로 유지할 항목 수                                              |
+| `freshWindowDays`                | `90`                                       | 최신 분기에 적용되는 최신성 기간(일)                                                           |
+| `usageMemory`                    | `true`                                     | 30일 사용량 분석에 명시된 정적으로 제외된 항목 복원(관리 토큰 필요)                            |
+| `visibleModels` / `hiddenModels` | `[]`                                       | 정확히 일치하거나 접미사가 일치하는 허용 목록. 거부가 우선함                                   |
+| `geminiSanitization`             | `true`                                     | 도구 스키마에서 Gemini가 거부하는 JSON-Schema 키워드를 제거함 (`$ref` 도구는 수정 없이 전달됨) |
+| `apiFormat.allowAnthropic`       | `false`                                    | 허용 목록에 있는 ID를 Anthropic API 블록을 통해 라우팅                                         |
+| `apiFormat.anthropicModels`      | `[]`                                       | Anthropic으로 라우팅되는 전체 모델 ID                                                          |
+| `logLevel` / `startupDebug`      | `warn` / `false`                           | 로거 상세 수준                                                                                 |
+
+사용량 메모리는 기본적으로 활성화됩니다. 관리 토큰이 없으면 비활성 상태로 유지되며
+(시작 알림이 기록됨) 아무것도 복원되지 않습니다.
 
 ## 카탈로그가 최신 상태를 유지하는 방식
 

@@ -15,6 +15,57 @@ import { getCursorUserAgent } from "@omniroute/open-sse/config/providerHeaderPro
  * - storage.serviceMachineId: Machine ID for checksum
  */
 
+/**
+ * Fallback lifetime used only when a Cursor token carries no usable `exp`
+ * claim (i.e. it is not a JWT, or the claim is missing/garbage).
+ */
+export const CURSOR_FALLBACK_TOKEN_TTL_SECONDS = 86400;
+
+/**
+ * Derive the remaining lifetime (in seconds) of a Cursor access token from its
+ * own JWT `exp` claim.
+ *
+ * Cursor tokens are Auth0 JWTs whose real lifetime is weeks, not hours — the
+ * observed `exp` on an imported IDE token was ~8 weeks out. Previously this
+ * value was hardcoded to 24h, which wrote a `expires_at` ~24h after import.
+ * Past that timestamp `/api/providers/[id]/test` (cursor is `checkExpiry: true`
+ * with no refresh token) reported a hard `401 "Token expired"` for a token that
+ * was still perfectly valid — a **false positive** that made a working provider
+ * look dead and pushed the operator into a re-import loop.
+ *
+ * Pure + exported so the behavior is unit-testable without a DB or network.
+ *
+ * @param accessToken Raw Cursor access token (JWT or opaque string).
+ * @param nowMs Injectable clock for deterministic tests.
+ * @returns Seconds until expiry — the real `exp` when decodable and still in
+ *   the future, otherwise {@link CURSOR_FALLBACK_TOKEN_TTL_SECONDS}.
+ */
+export function resolveCursorTokenTtlSeconds(
+  accessToken: string,
+  nowMs: number = Date.now()
+): number {
+  const parts = String(accessToken || "").split(".");
+  if (parts.length !== 3) return CURSOR_FALLBACK_TOKEN_TTL_SECONDS;
+  try {
+    let payload = parts[1];
+    while (payload.length % 4) payload += "=";
+    const decoded = JSON.parse(
+      Buffer.from(payload.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString()
+    );
+    const exp = decoded?.exp;
+    if (typeof exp !== "number" || !Number.isFinite(exp)) {
+      return CURSOR_FALLBACK_TOKEN_TTL_SECONDS;
+    }
+    const ttl = Math.floor((exp * 1000 - nowMs) / 1000);
+    // An already-expired token must NOT be papered over with the fallback —
+    // returning the (non-positive) real value lets the caller persist an
+    // accurate `expires_at` so the test route reports a *true* expiry.
+    return ttl;
+  } catch {
+    return CURSOR_FALLBACK_TOKEN_TTL_SECONDS;
+  }
+}
+
 export class CursorService {
   config: any;
 
@@ -122,7 +173,7 @@ export class CursorService {
     return {
       accessToken,
       machineId: machineId || null,
-      expiresIn: 86400, // Cursor tokens typically last 24 hours
+      expiresIn: resolveCursorTokenTtlSeconds(accessToken), // real JWT `exp` (weeks), fallback 24h
       authMethod: machineId ? "imported" : "cursor-agent",
     };
   }

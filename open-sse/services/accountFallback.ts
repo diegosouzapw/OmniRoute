@@ -162,14 +162,6 @@ function toJsonRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
 
-// Provider-level failure tracking for circuit breaker behavior
-// Error codes that count toward provider-level failure threshold.
-// 429 is included: per-error-type cooldowns (rate_limit: 60s, quota_exhausted: 1h)
-// prevent cascading provider trips at scale (Issue #1846 concern addressed),
-// while still allowing the circuit breaker to open on sustained 429s and
-// prevent infinite combo retries (Issue #3200).
-const PROVIDER_FAILURE_ERROR_CODES = new Set([408, 429, 500, 502, 503, 504]);
-
 // Per-connection failure deduplication: prevents rapid-fire failures from the
 // same connection from counting multiple times toward the provider breaker.
 const CONNECTION_FAILURE_DEDUP_MS = 5000;
@@ -1139,7 +1131,7 @@ type ProviderBreakerProfile = {
 };
 
 function getProviderBreaker(provider: string | null | undefined) {
-  return provider ? getCircuitBreaker(provider) : null;
+  return provider ? getCircuitBreaker(resolveProviderId(provider)) : null;
 }
 
 function configureProviderBreaker(
@@ -1155,7 +1147,7 @@ function configureProviderBreaker(
   // Stored value type is `boolean | undefined` — never `null` after PATCH.
   const userValue = resolvedProfile.useUpstream429BreakerHints;
   const useHints = resolveUseUpstream429BreakerHints(provider, userValue);
-  return getCircuitBreaker(breakerName || provider, {
+  return getCircuitBreaker(breakerName || resolveProviderId(provider), {
     failureThreshold: resolvedProfile.failureThreshold ?? resolvedProfile.circuitBreakerThreshold,
     resetTimeout: resolvedProfile.resetTimeoutMs ?? resolvedProfile.circuitBreakerReset,
     ...(useHints
@@ -1207,19 +1199,20 @@ export function getProviderBreakerState(provider: string | null | undefined) {
  * Delegates to the existing CircuitBreaker utility which handles
  * failure counting, threshold detection, and state transitions.
  *
- * IMPORTANT: If the breaker is already OPEN (in cooldown), we skip
- * recording the failure to prevent resetting the cooldown timer.
- * This matches the original behavior where failures during cooldown
- * were ignored to avoid indefinite lockout.
+ * Provider OPEN cooldown and unleased HALF_OPEN attempts are not counted;
+ * only an acquired execute() probe may settle the provider's HALF_OPEN state.
+ * Connection breakers retain their own failure accounting and scope.
  */
 export function recordProviderFailure(
   provider: string | null | undefined,
   log?: { warn?: (...args: unknown[]) => void },
   connectionId?: string | null,
   profile?: ProviderBreakerProfile | null,
-  opts?: { isQueueTimeout?: boolean; isNetworkError?: boolean }
+  opts?: { isQueueTimeout?: boolean; isNetworkError?: boolean; providerProbeSettled?: boolean }
 ): void {
   if (!provider) return;
+  provider = resolveProviderId(provider);
+  if (opts?.providerProbeSettled && !connectionId) return;
   // OmniRoute's own rate-limit queue timeout is backpressure we applied, not a
   // provider failure — the provider never saw the request, so it must not count
   // toward the provider breaker.
@@ -1260,7 +1253,7 @@ export function recordProviderFailure(
     failureCircuitBreakerName(provider, connectionId, opts?.isNetworkError)
   );
   if (!breaker) return;
-
+  if (breaker.name === provider && breaker.getStatus().state === "HALF_OPEN") return;
   if (!breaker.canExecute()) return;
 
   breaker._onFailure();
@@ -1271,42 +1264,38 @@ export function recordProviderFailure(
 }
 
 /**
- * Record a successful request for a provider.
- * Symmetric counterpart of recordProviderFailure:
- * - Resets cooldown failureCount (exponential backoff) for all non-OPEN states.
- * - HALF_OPEN -> CLOSED (probe success), CLOSED/DEGRADED -> decay failureCount.
- *
- * When the breaker is OPEN (provider is failing), this is a no-op -- the
- * cooldown stays intact and the breaker keeps its cooldown period.
- *
- * Matches execute()'s behavior: _onSuccess() is called for all non-OPEN states.
+ * Reset a healthy connection's cooldown and decay CLOSED/DEGRADED breaker counts.
+ * An acquired execute() probe alone may close provider HALF_OPEN; OPEN stays intact.
  */
 export function recordProviderSuccess(
   provider: string | null | undefined,
-  connectionId?: string | null
+  connectionId?: string | null,
+  opts?: { providerProbeSettled?: boolean }
 ): void {
   if (!provider || provider === "unknown") return;
-
+  provider = resolveProviderId(provider);
   const breaker = connectionId
     ? getCircuitBreaker(connectionCircuitBreakerName(provider, connectionId))
     : getProviderBreaker(provider);
   if (!breaker) return;
   const breakerState = breaker.getStatus().state;
 
-  // When breaker is OPEN, the provider is failing -- do not reset cooldown
-  // even if one request slipped through (dispatched before the open).
-  // The cooldown resets when the breaker reaches HALF_OPEN and the probe
-  // succeeds below.
-  if (breakerState === "OPEN") return;
+  // A success from an older dispatch must not bypass the OPEN cooldown.
+  if (breakerState === "OPEN" || (!connectionId && breakerState === "HALF_OPEN")) return;
 
-  // Reset cooldown failureCount (exponential backoff) -- symmetric with
-  // recordProviderCooldown which increments it on each failure.
+  // Reset the connection's exponential cooldown after a real success.
   resetCooldownFailureCount(provider, connectionId ?? undefined);
+  if (opts?.providerProbeSettled && !connectionId) return;
 
   if (connectionId) {
     lastConnectionFailure.delete(`${provider}:${connectionId}`);
     const providerBreaker = getProviderBreaker(provider);
-    if (providerBreaker && providerBreaker !== breaker && providerBreaker.canExecute()) {
+    if (
+      !opts?.providerProbeSettled &&
+      providerBreaker &&
+      providerBreaker !== breaker &&
+      ["CLOSED", "DEGRADED"].includes(providerBreaker.getStatus().state)
+    ) {
       providerBreaker._onSuccess();
     }
   }
@@ -1341,13 +1330,6 @@ export function getProvidersInCooldown(): Array<{
       cooldownRemainingMs: status.retryAfterMs || null,
       lastFailureAt: status.lastFailureTime,
     }));
-}
-
-/**
- * Check if a status code should be counted toward provider failure threshold
- */
-export function isProviderFailureCode(status: number): boolean {
-  return PROVIDER_FAILURE_ERROR_CODES.has(status);
 }
 
 /**

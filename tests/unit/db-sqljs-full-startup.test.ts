@@ -17,7 +17,7 @@ test("sql.js defers dependent FTS migrations until a native restart", () => {
       const db = core.getDbInstance();
       const fallback = process.env.OMNIROUTE_PACK_BOOT_FORCE_SQLJS === '1';
       assert.equal(db.driver === 'sql.js', fallback);
-      for (const version of ['022', '023', '178']) {
+      for (const version of ['022', '023', '178', '203']) {
         const applied = db.prepare('SELECT version FROM _omniroute_migrations WHERE version=?').get(version);
         assert.equal(Boolean(applied), !fallback, version);
       }

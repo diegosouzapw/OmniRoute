@@ -18,8 +18,8 @@ import {
 } from "./chatCore/failureUsage.ts";
 import { createTranslationFailureResult } from "./chatCore/translationFailure.ts";
 import {
+  estimateCalibratedFinalInputTokens,
   estimateFinalInputTokenBreakdown,
-  estimateFinalInputTokens,
 } from "./chatCore/contextEstimation.ts";
 import {
   extractSystemRoleMessages,
@@ -39,6 +39,7 @@ import {
   shouldDefaultAllowClassifier,
   detectClassifierFormat,
   buildDefaultAllowClaudeMessage,
+  applyClaudeClassifierReasoningDefault,
 } from "./chatCore/claudeClassifierCompat.ts";
 import { enforceOutputTokenBudget } from "./chatCore/outputTokenBudget.ts";
 import { withResilienceActionsContext } from "./chatCore/resilienceAttemptContext.ts";
@@ -179,6 +180,7 @@ import { armOpencodeFreeTierSkipAfterRefusal } from "../executors/opencodeFreeTi
 import { updateProviderConnection, getProviderConnectionById } from "@/lib/db/providers";
 
 import { connectionHasExtraKeys } from "../services/apiKeyRotator.ts";
+import { shouldKeepConnectionActiveOnRateLimit } from "./chatCore/rateLimitConnectionGuard.ts";
 import { recordKeyHealthStatus as recordKeyHealthStatusFor } from "./chatCore/keyHealth.ts";
 import { getSkillsModelIdForFormat } from "./chatCore/skillsFormat.ts";
 import { isSemaphoreCapacityError, getSafeErrorMetadata } from "./chatCore/streamErrorResult.ts";
@@ -225,8 +227,8 @@ import {
 import type { EnforceDecision } from "@/lib/quota/types";
 import { isCompressionExcluded } from "../services/compression/exclusions.ts";
 import {
+  defaultComboForRequest,
   isBuiltinStackedPipeline,
-  isStackedCompressionCombo,
   type RuntimeCompressionCombo,
 } from "./chatCore/compressionComboPredicates.ts";
 import { emitOutputStyleTelemetry } from "./chatCore/outputStyleTelemetry.ts";
@@ -259,6 +261,10 @@ import {
   resolveConnectionCacheOverride,
 } from "../utils/cacheControlPolicy.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
+import {
+  applyApiKeyCodexServiceMode,
+  withApiKeyCodexServiceMode,
+} from "@/lib/providers/codexApiKeyServiceMode";
 import { applyCodexGlobalFastServiceTier } from "@/lib/providers/codexFastTier";
 import { buildUpstreamHeadersForExecute as buildUpstreamHeadersForExecuteFor } from "./chatCore/upstreamExecuteHeaders.ts";
 import {
@@ -280,7 +286,7 @@ import {
   recordCoreOwnedAntigravityQuotaState,
   shouldDeferAntigravityQuotaStateToCaller,
 } from "../services/accountFallback.ts";
-import { saveIdempotency } from "@/lib/idempotencyLayer";
+import { saveIdempotencyWithConfiguredWindow } from "@/lib/idempotencyLayer";
 
 import { computeRequestHash, shouldDeduplicate } from "../services/requestDedup.ts";
 import {
@@ -291,6 +297,7 @@ import {
   resolveComboContextLimit,
 } from "../services/contextManager.ts";
 import { resolveBackgroundTaskRedirect } from "./chatCore/backgroundRedirect.ts";
+import { emitThinkingSignatureDiagnostics } from "./chatCore/thinkingSignatureDiagnostics.ts";
 import type {
   CompressionConfig,
   CompressionPipelineStep,
@@ -609,8 +616,9 @@ async function handleChatCoreInner({
     status: number,
     creds: Record<string, unknown> | null | undefined,
     transport?: string,
-    failureDetail?: string
-  ): void => recordKeyHealthStatusFor(status, creds, log, transport, failureDetail);
+    failureDetail?: string,
+    retryAfterMs?: number | null
+  ): void => recordKeyHealthStatusFor(status, creds, log, transport, failureDetail, retryAfterMs);
   // Endpoint/format resolution extracted to chatCore/requestFormat.ts (#3501); pure derivation
   // from the request. OUTSIDE the try below — persistFailureUsage closes over endpointPath.
   const {
@@ -690,13 +698,8 @@ async function handleChatCoreInner({
     return bypassResponse;
   }
 
-  // ── Claude Code auto-mode classifier compat (opt-in, default "off") ──
-  // Claude Code's `--permission-mode auto` sends an internal classifier request that
-  // requires the response to START with `<block>no</block>`/`<block>yes</block>`.
-  // When a combo/fallback route sends that call to a cheap model returning 200 with
-  // empty content, Claude Code fails closed on every gated action. Detect the
-  // classifier request and short-circuit with a synthetic ALLOW response, WITHOUT
-  // calling the upstream provider. See chatCore/claudeClassifierCompat.ts.
+  // Synthetic classifier ALLOW stays opt-in; ordinary classifier calls still go upstream
+  // with the native-thinking default applied below. See claudeClassifierCompat.ts.
   {
     const classifierSettings = cachedSettings ?? (await getCachedSettings());
     if (
@@ -714,6 +717,11 @@ async function handleChatCoreInner({
       return buildDefaultAllowClaudeMessage(requestedModel, classifierFormat);
     }
   }
+  body = applyClaudeClassifierReasoningDefault(
+    sourceFormat,
+    body as Record<string, unknown>,
+    { headers: clientRawRequest?.headers, resolvedThinkingEffort }
+  );
 
   // Detect source format and get target format
   // Model-specific targetFormat takes priority over provider default
@@ -1115,6 +1123,9 @@ async function handleChatCoreInner({
     model: requestedModel,
     body: body && typeof body === "object" ? (body as Record<string, unknown>) : null,
   });
+  const apiKeyCodexServiceMode = (apiKeyInfo as { codexServiceMode?: unknown } | null)
+    ?.codexServiceMode;
+  body = applyApiKeyCodexServiceMode(provider, body, apiKeyCodexServiceMode);
   effectiveServiceTier = resolveEffectiveServiceTier(body);
   setGeminiThoughtSignatureMode(settings.antigravitySignatureCacheMode);
   const semanticCacheEnabled = isSemanticCacheEnabled(settings, apiKeyInfo);
@@ -1541,14 +1552,19 @@ async function handleChatCoreInner({
         try {
           const { getDefaultCompressionCombo } =
             await import("../../src/lib/db/compressionCombos.ts");
-          const defaultCompressionCombo = getDefaultCompressionCombo();
-          if (
-            isStackedCompressionCombo(defaultCompressionCombo as RuntimeCompressionCombo | null) &&
-            applyCompressionComboConfig(defaultCompressionCombo as RuntimeCompressionCombo | null)
-          ) {
+          const defaultCompressionCombo = defaultComboForRequest(
+            getDefaultCompressionCombo() as RuntimeCompressionCombo | null,
+            { config, header: compressionHeader, combos: namedCombos }
+          );
+          if (applyCompressionComboConfig(defaultCompressionCombo)) {
             log?.debug?.(
               "COMPRESSION",
               `Default compression combo applied: ${defaultCompressionCombo?.id}`
+            );
+          } else if (compressionHeader) {
+            log?.debug?.(
+              "COMPRESSION",
+              `Default compression combo not applied (header: ${compressionHeader})`
             );
           }
         } catch (err) {
@@ -2076,7 +2092,8 @@ async function handleChatCoreInner({
   // filtering is advisory and may preserve an all-incompatible pool; this is the
   // hard boundary that prevents a too-large prompt (or a negative token budget)
   // from reaching an OpenAI-compatible upstream such as NVIDIA NIM.
-  let finalEstimatedInputTokens = estimateFinalInputTokens(body as Record<string, unknown>);
+  // #14931: scaled by the learned actual/estimated ratio (factor 1.0 cold).
+  let finalEstimatedInputTokens = estimateCalibratedFinalInputTokens(body, provider, effectiveModel);
   // Reuse the already-resolved `contextLimit` (may have been narrowed to the
   // per-target combo window above, resolveComboContextLimit) instead of a bare
   // getTokenLimit(provider, effectiveModel) re-fetch, which would silently
@@ -2106,7 +2123,7 @@ async function handleChatCoreInner({
             dropMissingMappedItems: true,
           })
         : lastResortResult.body;
-      finalEstimatedInputTokens = estimateFinalInputTokens(body as Record<string, unknown>);
+      finalEstimatedInputTokens = estimateCalibratedFinalInputTokens(body, provider, effectiveModel);
       const finalInputBreakdown = estimateFinalInputTokenBreakdown(
         body as Record<string, unknown>
       );
@@ -2120,6 +2137,7 @@ async function handleChatCoreInner({
     }
   }
 
+  const calibrationEstimatedInputTokens = finalEstimatedInputTokens; // #14931 pairing
   const modelOutputCap = toPositiveInteger(
     getExplicitModelOutputCap({ provider, model: effectiveModel })
   );
@@ -2933,17 +2951,22 @@ async function handleChatCoreInner({
   // Get executor for this provider (with optional upstream proxy routing)
   const executor = await resolveExecutorWithProxy(provider);
   const getExecutionCredentials = () =>
-    withReasoningRuleContext(
-      resolveExecutionCredentialsFor({
-        credentials,
-        nativeCodexPassthrough: nativeResponsesPassthrough,
-        endpointPath,
-        targetFormat,
-        provider,
-        ccSessionId,
-        modelInfo,
-      }),
-      reasoningRuleDirective
+    withApiKeyCodexServiceMode(
+      provider,
+      withReasoningRuleContext(
+        resolveExecutionCredentialsFor({
+          credentials,
+          nativeCodexPassthrough: nativeResponsesPassthrough,
+          endpointPath,
+          targetFormat,
+          provider,
+          ccSessionId,
+          modelInfo,
+          requestBody: body,
+        }),
+        reasoningRuleDirective
+      ),
+      apiKeyCodexServiceMode
     );
 
   let onPipelineStreamError: streamFailure.PipelineStreamErrorHandler | null = null;
@@ -3198,7 +3221,13 @@ async function handleChatCoreInner({
         ),
       3,
       log,
-      provider
+      provider,
+      {
+        ...(casConnectionId ? { connectionId: casConnectionId } : {}),
+        scope: resilienceSettings.tokenRefreshBreaker.scope,
+        failureThreshold: resilienceSettings.tokenRefreshBreaker.failureThreshold,
+        cooldownMs: resilienceSettings.tokenRefreshBreaker.cooldownMs,
+      }
     )) as null | Record<string, unknown>;
 
     if (newCredentials?.accessToken || newCredentials?.copilotToken) {
@@ -3453,6 +3482,18 @@ async function handleChatCoreInner({
               console.warn(
                 `[provider] Node ${errorConnectionId} ${quotaScope}-only quota exhausted (${statusCode}) for ${targetModel} - ${Math.ceil(quotaCooldownMs / 1000)}s (cooldown_scope=${quotaScope}, ttl_source=${retryAfterMs ? "upstream" : "inferred"}, connection stays active)`
               );
+            } else if (shouldKeepConnectionActiveOnRateLimit(credentials, errorConnectionId)) {
+              // A 429 on one key must not disable a connection whose extra keys
+              // are still eligible. The hot key is already cooling via the
+              // per-key cooldown recorded at the execution sites.
+              await updateProviderConnection(errorConnectionId, {
+                lastErrorType: errorType,
+                lastError: persistentMessage,
+                errorCode: statusCode,
+              });
+              console.warn(
+                `[provider] Node ${errorConnectionId} rate limited on one key (${statusCode}) -- extra keys eligible, keeping connection active`
+              );
             } else {
               await writeTerminalStatus(
                 errorConnectionId,
@@ -3566,9 +3607,37 @@ async function handleChatCoreInner({
     }
   };
 
+  const reportSignatureFailure = (failure: {
+    status: number;
+    message: string;
+    outboundBody: unknown;
+    outboundBodyCaptured: boolean;
+    model: string;
+    recoveryAttempted: boolean;
+    recoverySucceeded: boolean;
+  }) => {
+    emitThinkingSignatureDiagnostics(
+      {
+        correlationId,
+        provider,
+        model: failure.model,
+        status: failure.status,
+        message: failure.message,
+        ingressBody: body,
+        outboundBody: failure.outboundBody,
+        outboundBodyCaptured: failure.outboundBodyCaptured,
+        recoveryAttempted: failure.recoveryAttempted,
+        recoverySucceeded: failure.recoverySucceeded,
+      },
+      noLogEnabled,
+      log
+    );
+  };
+
   let pipelineRecovered = false;
   if (stream) {
     const streamingOutcome = await runStreamingResponse({
+      reportSignatureFailure,
       apiKeyInfo,
       persistAttemptLogs,
       buildUpstreamHeadersForExecute,
@@ -3607,6 +3676,7 @@ async function handleChatCoreInner({
       provider,
       providerRequestCapture,
       reqLogger,
+      resilienceSettings,
       sessionAffinityKey,
       skillRequestId,
       sourceFormat,
@@ -3644,6 +3714,7 @@ async function handleChatCoreInner({
   // Non-streaming response
   if (!stream) {
     const nonStreamingOutcome = await runNonStreamingResponse({
+      reportSignatureFailure,
       apiKeyInfo,
       appendRequestLog,
       applyProviderFailureClassification,
@@ -3655,6 +3726,7 @@ async function handleChatCoreInner({
       buildCostCtx,
       buildErrorBody,
       calculateCost,
+      calibrationEstimatedInputTokens,
       claudePromptCacheLogMeta,
       clientRawRequest,
       clientRequestedResponsesStream,
@@ -3739,7 +3811,7 @@ async function handleChatCoreInner({
       runPluginOnResponseHook,
       sanitizeErrorMessage,
       sanitizeUpstreamDetails,
-      saveIdempotency,
+      saveIdempotency: saveIdempotencyWithConfiguredWindow,
       scheduleQuotaShareConsumption,
       semanticCacheEnabled,
       sessionAffinityKey,
@@ -3787,6 +3859,7 @@ async function handleChatCoreInner({
     attachCompressionUsageReceiptAfterAnalytics,
     body,
     bodyForCacheWrite,
+    calibrationEstimatedInputTokens,
     claudePromptCacheLogMeta,
     clientRawRequest,
     clientResponseFormat,
@@ -3801,6 +3874,7 @@ async function handleChatCoreInner({
     currentModel,
     customToolNames,
     echoModel,
+    effectiveModel,
     effectiveServiceTier,
     endpointPath,
     executeProviderRequest,

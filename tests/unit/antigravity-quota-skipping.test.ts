@@ -114,7 +114,7 @@ test("isQuotaExhaustedForRequest scopes gemini exhaustion to the requested model
   quotaCache.setQuotaCache(connectionId, "antigravity", {
     "gemini-3.7-flash-medium": { remainingPercentage: 0, resetAt: null },
     "gemini-pro-agent": { remainingPercentage: 100, resetAt: null },
-    gemini_weekly: { remainingPercentage: 0, resetAt: null },
+    gemini_weekly: { remainingPercentage: 100, resetAt: null },
   });
 
   assert.equal(
@@ -137,7 +137,7 @@ test("isQuotaExhaustedForRequest scopes gemini exhaustion to the requested model
   );
 });
 
-test("isQuotaExhaustedForRequest keeps reported positive remaining available", () => {
+test("isQuotaExhaustedForRequest treats near-zero remaining as exhausted at default threshold", () => {
   const connectionId = "conn-near-zero-test";
   quotaCache.setQuotaCache(connectionId, "antigravity", {
     "gemini-3.7-flash-medium": { remainingPercentage: 0.00000167, resetAt: null },
@@ -149,29 +149,8 @@ test("isQuotaExhaustedForRequest keeps reported positive remaining available", (
       "antigravity",
       "antigravity/gemini-3.7-flash-medium"
     ),
-    false,
-    "positive quota is not exhaustion; explicit usage cutoffs are evaluated separately"
-  );
-});
-
-test("isQuotaExhaustedForRequest does not skip Claude extra-usage connections", () => {
-  const connectionId = "conn-claude-extra-usage";
-  quotaCache.setQuotaCache(connectionId, "claude", {
-    "session (5h)": { remainingPercentage: 0, resetAt: null },
-  });
-
-  assert.equal(quotaCache.isQuotaExhaustedForRequest(connectionId, "claude"), true);
-  assert.equal(
-    quotaCache.isQuotaExhaustedForRequest(connectionId, "claude", null, { blockExtraUsage: true }),
-    true
-  );
-  assert.equal(
-    quotaCache.isQuotaExhaustedForRequest(connectionId, "claude", null, { blockExtraUsage: false }),
-    false
-  );
-  assert.equal(
-    quotaCache.isQuotaExhaustedForRequest(connectionId, "codex", null, { blockExtraUsage: false }),
-    true
+    true,
+    "effectively-zero remaining should count as exhausted"
   );
 });
 

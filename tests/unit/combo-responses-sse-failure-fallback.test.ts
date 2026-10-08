@@ -134,6 +134,29 @@ test("context input errors map to HTTP 400 without an explicit status", async ()
   }
 });
 
+test("context input error type without code stays request-scoped", async () => {
+  for (const type of ["context_length_exceeded", "context_window_exceeded"]) {
+    const body = [
+      "event: response.failed",
+      `data: ${JSON.stringify({
+        type: "response.failed",
+        response: {
+          status: "failed",
+          error: { type, message: "request exceeds the model context" },
+        },
+      })}`,
+      "",
+      "",
+    ].join("\n");
+
+    const result = await validateResponseQuality(sseResponse(body), true, silentLog());
+    assert.equal(result.upstreamFailure?.status, 400);
+    assert.equal(result.upstreamFailure?.type, type);
+    assert.equal(result.upstreamFailure?.requestScoped, true);
+    assert.equal(result.upstreamFailure?.retryable, false);
+  }
+});
+
 test("invalid_request_error code maps to HTTP 400 without a type field", async () => {
   const body = [
     "event: response.failed",

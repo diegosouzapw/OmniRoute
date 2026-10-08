@@ -713,9 +713,10 @@ async function main() {
   ]);
 
   if (!QUICK) {
-    // These are the gates that catch inherited base-red tests from cycle PRs (the fast-path
-    // PR→release does NOT run unit/vitest/integration per-PR — the v3.8.42 release PR exploded
-    // with 15 such reds). They run SILENTLY for many minutes; the announce line above + these
+    // These are the gates that catch inherited base-red tests from cycle PRs (the v3.8.42
+    // release PR exploded with 15 such reds). Non-draft code PRs into release/** run the unit
+    // suite and test:vitest per PR (quality.yml fast-unit, fast-vitest); only integration is
+    // absent. These gates run SILENTLY for many minutes; the announce line above + these
     // hard ceilings keep a long-but-healthy run from being mistaken for a hang (the ceiling also
     // converts a genuine DB-handle hang into a visible failure instead of an infinite block).
     // The slow suites are INDEPENDENT processes (each self-isolates DATA_DIR) with
