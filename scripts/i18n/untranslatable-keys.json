@@ -151,6 +151,7 @@
     "providers.prefixLabel",
     "providers.proxy",
     "providers.proxyConfiguredBySource",
+    "providers.quotaWindowSpark",
     "providers.responses",
     "providers.responsesApi",
     "providers.responsesPath",

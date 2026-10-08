@@ -629,15 +629,15 @@ test("v1 models catalog exposes refreshed GitHub Copilot aliases and drops retir
     new Request("http://localhost/api/v1/models")
   );
   const body = (await response.json()) as any;
-  const aliasModel = body.data.find((item) => item.id === "gh/gpt-5.4");
-  const providerModel = body.data.find((item) => item.id === "github/gpt-5.4");
-  const codexModel = body.data.find((item) => item.id === "gh/gpt-5.3-codex");
-  const opusModel = body.data.find((item) => item.id === "github/claude-opus-4.7");
+  const aliasModel = body.data.find((item) => item.id === "gh/gpt-6-astra");
+  const providerModel = body.data.find((item) => item.id === "github/gpt-6-astra");
+  const solModel = body.data.find((item) => item.id === "gh/gpt-5.6-sol");
+  const opusModel = body.data.find((item) => item.id === "github/claude-opus-5");
 
   assert.equal(response.status, 200);
   assert.ok(aliasModel);
   assert.ok(providerModel);
-  assert.ok(codexModel);
+  assert.ok(solModel);
   assert.ok(opusModel);
   assert.equal(providerModel.parent, aliasModel.id);
   assert.equal(
@@ -665,7 +665,15 @@ test("v1 models catalog exposes bare Codex-preferred IDs for native Codex client
   const getModel = (id: string) => body.data.find((item) => item.id === id);
 
   assert.equal(response.status, 200);
-  const modelId = "codex-auto-review";
+  // `codex-auto-review` is retired (#14903): it is no longer advertised, bare or prefixed.
+  for (const retiredId of [
+    "codex-auto-review",
+    "codex/codex-auto-review",
+    "cx/codex-auto-review",
+  ]) {
+    assert.equal(getModel(retiredId), undefined, `${retiredId} must not be listed`);
+  }
+  const modelId = "gpt-5.6-sol";
   const bareModel = getModel(modelId);
   const providerModel = getModel(`codex/${modelId}`);
   const aliasModel = getModel(`cx/${modelId}`);
@@ -884,23 +892,16 @@ test("v1 models catalog retains registered effort aliases beside synced OpenCode
   assert.ok(ids.includes("opencode-go/hy3-high"));
 });
 
-test("v1 models catalog advertises GLM-5.2 provider aliases with hosted context limits", async () => {
-  const hfConnection = await seedConnection("huggingface", {
-    name: "huggingface-glm52",
-    apiKey: "hf-key",
+test("v1 models catalog preserves GLM-5.2 limits alongside GitHub Copilot Astra", async () => {
+  await seedConnection("github", {
+    authType: "oauth",
+    accessToken: "github-access",
+    providerSpecificData: { copilotToken: "copilot-token" },
   });
-  const cfConnection = await seedConnection("cloudflare-ai", {
-    name: "cloudflare-glm52",
-    apiKey: "cf-key",
-  });
-  const zenmuxConnection = await seedConnection("zenmux", {
-    name: "zenmux-glm52",
-    apiKey: "zen-key",
-  });
-  await seedConnection("opencode-go", {
-    name: "opencode-go-glm52",
-    apiKey: "go-key",
-  });
+  const hfConnection = await seedConnection("huggingface");
+  const cfConnection = await seedConnection("cloudflare-ai");
+  const zenmuxConnection = await seedConnection("zenmux");
+  await seedConnection("opencode-go");
 
   await modelsDb.replaceSyncedAvailableModelsForConnection(
     "huggingface",
@@ -940,7 +941,6 @@ test("v1 models catalog advertises GLM-5.2 provider aliases with hosted context 
       outputTokenLimit: 128000,
     },
   ]);
-
   try {
     modelsDevSync.saveModelsDevCapabilities({
       huggingface: {
@@ -959,7 +959,9 @@ test("v1 models catalog advertises GLM-5.2 provider aliases with hosted context 
     );
     const body = (await response.json()) as any;
     const byId = new Map(body.data.map((item) => [item.id, item]));
-
+    for (const id of ["github/gpt-6-astra", "gh/gpt-6-astra"]) assert.ok(byId.has(id), id);
+    // GLM-5.2 limits are unchanged by #12759 (no HF/Cloudflare/ZenMux registry change here):
+    // the release tip resolves these routes to the synced 128K window, OpenCode Go to 1M.
     for (const [id, expectedContext] of [
       ["huggingface/zai-org/GLM-5.2", 128000],
       ["cloudflare-ai/@cf/zai-org/glm-5.2", 128000],
@@ -1296,7 +1298,7 @@ test("v1 models catalog lets provider-specific synced limits beat global static 
   try {
     modelsDevSync.saveModelsDevCapabilities({
       github: {
-        "gpt-5.5": {
+        "gpt-5.6-sol": {
           tool_call: true,
           reasoning: true,
           attachment: true,
@@ -1322,12 +1324,12 @@ test("v1 models catalog lets provider-specific synced limits beat global static 
       new Request("http://localhost/api/v1/models")
     );
     const body = (await response.json()) as any;
-    const model = body.data.find((item) => item.id === "gh/gpt-5.5");
+    const model = body.data.find((item) => item.id === "gh/gpt-5.6-sol");
 
     assert.equal(response.status, 200);
     assert.ok(model);
     assert.equal(model.context_length, 400000);
-    assert.equal(model.max_input_tokens, 272000);
+    assert.equal(model.max_input_tokens, 400000);
     assert.equal(model.max_output_tokens, 128000);
   } finally {
     modelsDevSync.saveModelsDevCapabilities({});

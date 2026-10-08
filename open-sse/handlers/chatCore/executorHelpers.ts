@@ -39,8 +39,13 @@ export function resolveAccountSemaphoreAccountKey(
 }
 
 export function resolveAccountSemaphoreMaxConcurrency(
-  credentials: Record<string, unknown> | null | undefined
+  credentials: Record<string, unknown> | null | undefined,
+  rateLimitProtectionEnabled = true
 ): number | null {
+  const rateLimitOverride = toFiniteNumberOrNull(credentials?.rateLimitMaxConcurrent);
+  if (rateLimitProtectionEnabled && rateLimitOverride !== null && rateLimitOverride > 0) {
+    return rateLimitOverride;
+  }
   return toFiniteNumberOrNull(credentials?.maxConcurrent);
 }
 

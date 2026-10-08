@@ -140,6 +140,7 @@ export async function runNonStreamingResponse(deps: NonStreamingDeps) {
     provider,
     providerHeaders: _providerHeaders,
     providerRequestCapture,
+    reportSignatureFailure,
     providerResponse: _providerResponse,
     reasoningReplayHistory: _reasoningReplayHistory,
     recordChatCallCost,
@@ -311,6 +312,8 @@ export async function runNonStreamingResponse(deps: NonStreamingDeps) {
         },
         sendProviderAttempt: (modelToCall, allowDedup) =>
           executeProviderRequest(modelToCall, allowDedup),
+        getLastOutboundBody: () => providerRequestCapture.latest()?.body,
+        onSignatureFailure: reportSignatureFailure,
       });
     };
 

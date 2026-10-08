@@ -127,6 +127,10 @@ function isStructuralSpawnFailure(error: unknown): boolean {
     code === "ERR_INVALID_ARG_VALUE"
   );
 }
+
+function isWorkerOutOfMemory(error: unknown): boolean {
+  return (error as NodeJS.ErrnoException | undefined)?.code === "ERR_WORKER_OUT_OF_MEMORY";
+}
 interface PendingJob extends CompressionWorkerJob {
   originalBody: Record<string, unknown>;
   resolve: (result: CompressionResult) => void;
@@ -150,6 +154,7 @@ export class CompressionWorkerPool {
   private readonly size: number;
   private readonly timeoutMs: number;
   private readonly idleMs: number;
+  private readonly maxOldGenerationSizeMb: number;
   private readonly spawnWorker: () => Worker;
   /**
    * Set when spawn() throws synchronously (e.g. Turbopack's moduleContext
@@ -164,18 +169,28 @@ export class CompressionWorkerPool {
     size = positiveInteger(process.env.OMNI_COMPRESSION_WORKERS, 2),
     timeoutMs = positiveInteger(process.env.OMNI_COMPRESSION_WORKER_TIMEOUT_MS, 120_000),
     idleMs = positiveInteger(process.env.OMNI_COMPRESSION_WORKER_IDLE_MS, 60_000),
+    maxOldGenerationSizeMb = positiveInteger(process.env.OMNI_COMPRESSION_WORKER_MAX_OLD_MB, 1024),
     workerFactory,
   }: {
     size?: number;
     timeoutMs?: number;
     idleMs?: number;
-    /** Test seam: replaces `new Worker(resolveWorkerFile())`. */
+    maxOldGenerationSizeMb?: number;
+    /** Test seam: replaces `new Worker(resolveWorkerFile(), { resourceLimits })`. */
     workerFactory?: () => Worker;
   } = {}) {
     this.size = Math.max(1, Math.floor(size));
     this.timeoutMs = Math.max(1, Math.floor(timeoutMs));
     this.idleMs = Math.max(1, Math.floor(idleMs));
-    this.spawnWorker = workerFactory ?? (() => new Worker(resolveWorkerFile()));
+    this.maxOldGenerationSizeMb = Math.max(128, Math.floor(maxOldGenerationSizeMb));
+    this.spawnWorker =
+      workerFactory ??
+      (() =>
+        new Worker(resolveWorkerFile(), {
+          resourceLimits: {
+            maxOldGenerationSizeMb: this.maxOldGenerationSizeMb,
+          },
+        }));
   }
 
   run(
@@ -225,7 +240,16 @@ export class CompressionWorkerPool {
     slot.worker.on("message", (message: CompressionWorkerMessage) =>
       this.handleMessage(slot, message)
     );
-    slot.worker.on("error", (error) => this.fail(slot, `worker error: ${errorText(error)}`));
+    slot.worker.on("error", (error) =>
+      this.fail(
+        slot,
+        `worker error: ${errorText(error)}`,
+        // A worker that exhausted its private heap already proved this payload is
+        // unsafe to retry on the gateway's main isolate. Fail open instead of
+        // recreating the same host-OOM condition in-process.
+        !isWorkerOutOfMemory(error)
+      )
+    );
     slot.worker.on("exit", (code) => {
       if (this.workers.has(slot)) this.fail(slot, `worker exit code ${code}`);
     });

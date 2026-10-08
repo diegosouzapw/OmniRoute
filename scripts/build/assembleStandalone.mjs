@@ -840,7 +840,14 @@ function repairEmptyExternalPackageDirs(projectRoot, bundleNodeModules) {
     } catch {
       continue;
     }
-    if (bundleEntries.length > 0 || !fsSync.existsSync(sourcePkgDir)) continue;
+    if (!fsSync.existsSync(sourcePkgDir)) continue;
+    // #15493: a PARTIAL dir (e.g. zod with only v3/v4 subdirs, no package.json) is non-empty
+    // but just as broken — treat "no package.json while the source has one" as hollow too.
+    const isPartial =
+      bundleEntries.length > 0 &&
+      !fsSync.existsSync(path.join(bundlePkgDir, "package.json")) &&
+      fsSync.existsSync(path.join(sourcePkgDir, "package.json"));
+    if (bundleEntries.length > 0 && !isPartial) continue;
 
     let sourceStat;
     try {
@@ -854,7 +861,7 @@ function repairEmptyExternalPackageDirs(projectRoot, bundleNodeModules) {
     // under heavy concurrent build I/O (a transient readdirSync race, not a real
     // hollow placeholder), or a stale non-directory node from an earlier pass.
     if (resolvesToSamePath(sourcePkgDir, bundlePkgDir)) continue;
-    clearStaleDest(bundlePkgDir);
+    if (!isPartial) clearStaleDest(bundlePkgDir);
 
     fsSync.cpSync(sourcePkgDir, bundlePkgDir, { recursive: true, force: true });
     summary.repaired += 1;

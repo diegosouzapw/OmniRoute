@@ -10,6 +10,9 @@ lastUpdated: 2026-10-05
 
 Core reference for the OmniRoute API. It covers the public `/v1` surface and the most-used management endpoints; the machine-readable [`docs/openapi.yaml`](../openapi.yaml) and the route tree under `src/app/api/` are the exhaustive sources.
 
+For the focused OpenAI-compatible protocol and provider capability matrix, see
+[`OPENAI_COMPATIBILITY.md`](./OPENAI_COMPATIBILITY.md).
+
 ---
 
 ## Table of Contents
@@ -274,6 +277,12 @@ Provider translation (canonical items are never forwarded unchanged):
   top-level item.
 - Gemini Embedding 2 family: one top-level array becomes a single native
   `models/{model}:embedContent` request with `content.parts` (`text` or `inline_data`).
+- llama.cpp (`llama-cpp/<model>`, any model the local server loaded): canonical `text` items
+  become plain strings, and `image` / `audio` / `video` become one
+  `{"content": [part]}` object each, using llama-server's chat content parts (`image_url`,
+  `input_audio` with format `wav` / `mp3` / `flac`, `input_video`) with inline data; one vector
+  per top-level item. The server must run with `--embedding --mmproj …`; without a projector it
+  rejects media itself. `document` is not supported.
 - Unknown/dynamic models without explicit modality metadata reject structured input with HTTP 400.
 
 ```json
@@ -533,7 +542,10 @@ POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 
 > **Rerank provider nodes:** `POST /v1/rerank` also routes to OpenAI-compatible provider nodes
 > (oMLX, vLLM, Infinity, TEI behind a gateway, …) addressed as `<node-prefix>/<model>`. Loopback
-> nodes (`localhost`, `127.0.0.1`, `172.16.0.0/12`) are always eligible. Nodes on any other
+> nodes (`localhost`, `127.0.0.1`, `172.16.0.0/12`) are always eligible, and so are hostnames the
+> operator lists in `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (e.g. a Docker/Compose service name such
+> as `http://reranker:8080/v1`; these are called directly, never through `HTTP(S)_PROXY` or a
+> connection's pinned proxy). Nodes on any other
 > host — a LAN box or Tailscale peer — are eligible only when the operator enables the
 > `RERANK_REMOTE_PROVIDER_NODES` feature flag **and** the node's base URL passes the provider
 > outbound URL policy (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`).

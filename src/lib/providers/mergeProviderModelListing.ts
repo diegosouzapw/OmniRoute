@@ -69,7 +69,7 @@ export function mergeProviderModelListing(
       (providerUsesExclusiveSyncedListing(input.providerId) && synced.length > 0));
 
   if (exclusive) {
-    const cursor = providerUsesExclusiveSyncedListing(input.providerId);
+    const cursor = ["cursor", "cu"].includes(input.providerId.trim().toLowerCase());
     const registryById = new Map(input.registryModels.map((model) => [model.id, model]));
     const liveModels = synced.map((model) => ({
       ...(registryById.get(model.id) || {}),

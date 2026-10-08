@@ -72,7 +72,17 @@ function hasQoderToken(connection: any): boolean {
 
 // GHSA-jmq6-8j86-8xqj: getCliRuntimeStatus() spawns on the host (LOCAL_ONLY capability),
 // but these routes stay remote-reachable — only loopback/LAN callers and the scheduler probe.
-export type ConnectionTestOptions = { allowLocalRuntimeProbe?: boolean };
+export type ConnectionTestOptions = {
+  allowLocalRuntimeProbe?: boolean;
+  /**
+   * S-01 (#15159): whether a provider validator reached from this test may spawn a
+   * local child process (currently only the devin cloud-agent CLI fallback). These
+   * routes stay remote-reachable for legitimate dashboard use, so the spawn is gated
+   * here at its call site on the trusted peer-locality header — the same shape as
+   * allowLocalRuntimeProbe above. Defaults to permissive for the internal scheduler.
+   */
+  allowLocalSpawn?: boolean;
+};
 
 export async function getProviderRuntimeStatus(
   connection: any,
@@ -894,7 +904,7 @@ export async function testOAuthConnection(
 /**
  * Test API key connection
  */
-async function testApiKeyConnection(connection: any) {
+async function testApiKeyConnection(connection: any, allowLocalSpawn = true) {
   const requiresApiKey = !providerAllowsOptionalApiKey(connection.provider);
   if (requiresApiKey && !connection.apiKey) {
     const error = "Missing API key";
@@ -910,6 +920,7 @@ async function testApiKeyConnection(connection: any) {
       provider: connection.provider,
       apiKey: connection.apiKey,
       providerSpecificData: connection.providerSpecificData,
+      allowLocalSpawn,
     })
   );
 
@@ -1018,7 +1029,7 @@ export async function testSingleConnection(
         }
       : connection;
     result = await runWithProxyContext(proxyInfo?.proxy || null, () =>
-      testApiKeyConnection(enrichedConnection)
+      testApiKeyConnection(enrichedConnection, options.allowLocalSpawn ?? true)
     );
   } else {
     result = await runWithProxyContext(proxyInfo?.proxy || null, () =>
@@ -1235,6 +1246,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     const data = await testSingleConnection(id, validationModelId, {
       allowLocalRuntimeProbe: getRequestPeerLocality(request) !== "remote",
+      allowLocalSpawn: getRequestPeerLocality(request) !== "remote",
     });
 
     if (data.error === "Connection not found") {
