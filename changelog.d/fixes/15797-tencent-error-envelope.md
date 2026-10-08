@@ -1,0 +1,1 @@
+- **fix(error):** unwrap Tencent/CodeBuddy `{Response.Error}`, `{data.Response.Error}`, and `{code,msg}` envelopes in `parseUpstreamError` so CodeBuddy 4xx surfaces the real upstream message and code instead of a generic status ([#15797](https://github.com/diegosouzapw/OmniRoute/pull/15797))

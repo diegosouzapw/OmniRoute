@@ -3,8 +3,12 @@ import type { RegistryEntry } from "../../shared.ts";
 export const clineProvider: RegistryEntry = {
   id: "cline",
   alias: "cl",
+  // #DUAL-AUTH: cline is OAuth-primary (WorkOS auth-code) but also accepts
+  // a direct Bearer API key from app.cline.bot. Both paths reuse this
+  // baseUrl + authPrefix. Direct API keys are stored as authType:"apikey"
+  // and rotated automatically. See DUAL_AUTH_PROVIDER_IDS in providers.ts.
   format: "openai",
-  executor: "openai",
+  executor: "default",
   // Cline's API only implements streaming (streamText). A non-streaming request
   // returns "generateText is not implemented" / an empty body, so force upstream
   // streaming and let chatCore convert the SSE back to JSON for stream:false
@@ -76,6 +80,33 @@ export const clineProvider: RegistryEntry = {
       maxOutputTokens: 128000,
       supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
     },
+    // Cline's official free bucket (recommended-models -> free[]). These ids are a
+    // different namespace from the paid vendor ids (e.g. deepseek/deepseek-v4.1-flash
+    // bills Cline Credits and answers 402 at $0). The bucket rotates upstream.
+    {
+      id: "cline-free/deepseek-v4.1-flash",
+      name: "DeepSeek V4.1 Flash (Free)",
+      toolCalling: true,
+      supportsReasoning: true,
+    },
+    {
+      id: "cline-free/mimo-v2.6-flash",
+      name: "MiMo V2.6 Flash (Free)",
+      toolCalling: true,
+      supportsReasoning: true,
+    },
+    {
+      id: "cline-free/muse-spark-1.3-contributor",
+      name: "Muse Spark 1.3 Contributor (Free)",
+      toolCalling: true,
+      supportsReasoning: true,
+    },
+    {
+      id: "stealth/space-bunny-alpha",
+      name: "Space Bunny Alpha (Free)",
+      toolCalling: true,
+      supportsReasoning: true,
+    },
     {
       id: "openrouter/free",
       name: "Free Models Router",
@@ -87,7 +118,7 @@ export const clineProvider: RegistryEntry = {
     },
     {
       id: "deepseek/deepseek-v4-flash",
-      name: "DeepSeek V4 Flash (Free)",
+      name: "DeepSeek V4 Flash",
       toolCalling: true,
       supportsReasoning: true,
       contextLength: 1048576,
@@ -105,7 +136,7 @@ export const clineProvider: RegistryEntry = {
     },
     {
       id: "stepfun/step-3.7-flash",
-      name: "Step 3.7 Flash (Free)",
+      name: "Step 3.7 Flash",
       toolCalling: true,
       supportsReasoning: true,
       supportsVision: true,
@@ -143,7 +174,7 @@ export const clineProvider: RegistryEntry = {
     },
     {
       id: "minimax/minimax-m3",
-      name: "MiniMax M3 (Free)",
+      name: "MiniMax M3",
       toolCalling: true,
       supportsReasoning: true,
       supportsVision: true,

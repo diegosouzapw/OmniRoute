@@ -52,6 +52,7 @@ test("Perplexity Search forwards validated provider options and locale filters",
 
     assert.equal(captured.url, "https://api.perplexity.ai/search");
     assert.equal(captured.headers.Authorization, "Bearer perplexity-key");
+    assert.equal(captured.headers["X-Pplx-Integration"], "omniroute");
     assert.deepEqual(captured.body, {
       query: "ai agents",
       max_results: 1,

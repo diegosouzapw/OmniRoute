@@ -65,13 +65,25 @@ type ProxyConfigObject = {
   family?: string;
 };
 
-function getDispatcherOptions(hostname?: string) {
-  const timeouts = getUpstreamTimeoutConfig(process.env, (message) => {
+export function isUpstreamHttp2Enabled(
+  env: Record<string, string | undefined> = process.env
+): boolean {
+  const raw = (env.OMNIROUTE_UPSTREAM_HTTP2_ENABLED ?? "").trim().toLowerCase();
+  return !["false", "0", "no", "off"].includes(raw);
+}
+
+function getDispatcherOptions(
+  hostname?: string,
+  env: Record<string, string | undefined> = process.env
+) {
+  const allowH2 = isUpstreamHttp2Enabled(env);
+  const timeouts = getUpstreamTimeoutConfig(env, (message) => {
     console.warn(`[ProxyDispatcher] ${message}`);
   });
   const localEgress = isLocalEgressHostname(hostname);
 
   return {
+    allowH2,
     headersTimeout: timeouts.fetchHeadersTimeoutMs,
     bodyTimeout: timeouts.fetchBodyTimeoutMs,
     connectTimeout: timeouts.fetchConnectTimeoutMs,
@@ -101,6 +113,7 @@ function getDispatcherOptions(hostname?: string) {
     // IPv6 route to host.docker.internal is dead inside the container (verified
     // 2026-09-21) and the default 1 s wait is pure latency on every healthy request.
     connect: {
+      allowH2,
       autoSelectFamily: true,
       autoSelectFamilyAttemptTimeout: localEgress
         ? LOCAL_AUTO_SELECT_FAMILY_ATTEMPT_TIMEOUT_MS
@@ -127,7 +140,7 @@ export function getProxyDispatcherConnectionLimit(
 }
 
 function getProxyDispatcherOptions(env: Record<string, string | undefined> = process.env) {
-  const options = getDispatcherOptions();
+  const options = getDispatcherOptions(undefined, env);
   // #9100: restore keep-alive on the proxy path. The previous hard-coded
   // keepAliveTimeout: 1 (1ms) destroyed the pooled socket right after every
   // response, forcing a fresh TCP+TLS+CONNECT handshake per request. Proxies
@@ -145,6 +158,9 @@ function getProxyDispatcherOptions(env: Record<string, string | undefined> = pro
   // connection instead of each opening its own socket (#4163 regression).
   return {
     ...options,
+    // ProxyAgent ignores connect and builds both TLS hops separately (#15313).
+    requestTls: { allowH2: options.allowH2 },
+    proxyTls: { allowH2: options.allowH2 },
     connections: getProxyDispatcherConnectionLimit(env),
     keepAliveTimeout: Math.max(options.keepAliveTimeout, 30_000),
     keepAliveMaxTimeout: Math.max(options.keepAliveMaxTimeout, 60_000),
@@ -170,7 +186,7 @@ export function getDefaultDispatcherConnectionLimit(
 }
 
 function getDefaultDispatcherOptions(env: Record<string, string | undefined> = process.env) {
-  const options = getDispatcherOptions();
+  const options = getDispatcherOptions(undefined, env);
   // #4580 — On the direct egress path, undici's default pipelining (1) let a long
   // SSE stream monopolize the single pooled socket per origin. Keep the public
   // connection-limit option here, but getDefaultDispatcher() fans it out across
@@ -566,7 +582,13 @@ function buildProxyDispatcher(
     ...options,
     ...(proxyAuthorization ? { token: proxyAuthorization } : {}),
     ...(family !== null
-      ? { proxyTls: { family, autoSelectFamily: false } as ProxyAgent.Options["proxyTls"] }
+      ? {
+          proxyTls: {
+            ...options.proxyTls,
+            family,
+            autoSelectFamily: false,
+          } as ProxyAgent.Options["proxyTls"],
+        }
       : {}),
   });
 }

@@ -67,7 +67,14 @@ test("M-05: handleSyncPricing returns a sanitized error, not the raw upstream bo
     const result = (await handleSyncPricing({ sources: ["openai"], dryRun: false })) as ToolResult;
     assert.equal(result.isError, true, "expected an isError tool result");
     const text = result.content[0]?.text ?? "";
-    assert.ok(text.startsWith("Error: API [500]"), `unexpected result shape: ${text}`);
+    // #15159 M-06: was `Error: API [500]`. That prefix came from the private hop this
+    // module's tool used to carry, and it had drifted from server.ts's `OmniRoute API
+    // error [..]`. One shared hop means one prefix. The sanitization assertion below is
+    // what this test is actually for; the prefix just pins the envelope shape.
+    assert.ok(
+      text.startsWith("Error: OmniRoute API error [500]"),
+      `unexpected result shape: ${text}`
+    );
     assertSanitized(result);
   } finally {
     restoreFetch();
@@ -121,7 +128,11 @@ test("M-05: handlePickFastestModel sanitizes an upstream failure while applying 
     })) as ToolResult;
     assert.equal(result.isError, true, "expected an isError tool result");
     const text = result.content[0]?.text ?? "";
-    assert.ok(text.startsWith("Error: API [500]"), `unexpected result shape: ${text}`);
+    // Same M-06 prefix unification as the sync-pricing case above.
+    assert.ok(
+      text.startsWith("Error: OmniRoute API error [500]"),
+      `unexpected result shape: ${text}`
+    );
     assertSanitized(result);
   } finally {
     restoreFetch();

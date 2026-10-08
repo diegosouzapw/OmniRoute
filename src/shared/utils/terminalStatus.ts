@@ -34,12 +34,20 @@ export async function writeTerminalStatus(
     });
     return;
   }
-  await updateProviderConnection(connectionId, {
-    isActive: patch.isActive ?? (isTerminal ? false : undefined),
+  // Never auto-flip isActive on health flaps / temporary unpaid /
+  // ban-looking errors. Callers that truly need deactivation must pass
+  // isActive explicitly AND gate it behind autoDisableBannedAccounts.
+  // credits_exhausted in particular must stay is_active=1 so unpaid→renew
+  // recovers without a UI re-enable (fill-first balance-403 hop path).
+  const update: Record<string, unknown> = {
     testStatus: patch.testStatus,
     lastError: persistedLastError,
     lastErrorAt: new Date().toISOString(),
     lastErrorType: patch.lastErrorType ?? null,
     errorCode: patch.errorCode ?? null,
-  });
+  };
+  if (typeof patch.isActive === "boolean") {
+    update.isActive = patch.isActive;
+  }
+  await updateProviderConnection(connectionId, update);
 }

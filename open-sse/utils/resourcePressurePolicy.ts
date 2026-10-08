@@ -7,6 +7,7 @@ export type PressureReason =
   | "none"
   | "v8_heap_ratio"
   | "v8_heap_absolute"
+  | "rss_absolute"
   | "cgroup_ratio"
   | "cgroup_high"
   | "psi_some"

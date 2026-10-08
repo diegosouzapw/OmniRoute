@@ -129,7 +129,7 @@ Para adicionar em massa ligações com chaves de API a partir de um ficheiro CSV
 ```bash
 Painel → Fornecedores → Ligar Claude Code
 → Início de sessão OAuth → Renovação automática do token
-→ Monitorização das quotas de 5 horas + semanal
+→ Monitorização da quota de 5 horas + semanal
 
 Modelos:
   cc/claude-opus-4-7
@@ -139,14 +139,16 @@ Modelos:
 
 **Dica profissional:** Utilize o Opus para tarefas complexas e o Sonnet para maior rapidez. O OmniRoute monitoriza a quota por modelo!
 
-As rotas compatíveis com Claude e Claude Code preservam o esforço de raciocínio `max` para os modelos Opus e Sonnet. Os modelos Haiku não aceitam o nível de esforço `max`, pelo que o OmniRoute reduz esse pedido para um orçamento de raciocínio elevado antes de o enviar ao fornecedor.
+Não tem um navegador no anfitrião do OmniRoute? Execute `claude setup-token` em qualquer local onde tenha sessão iniciada no Claude Code e cole o token válido por um ano no separador **Token de configuração**. Consulte [Claude Code com um token de configuração](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+As rotas compatíveis com o Claude e o Claude Code preservam o esforço de raciocínio `max` nos modelos Opus e Sonnet. Os modelos Haiku não aceitam o nível de esforço `max`, pelo que o OmniRoute reduz esse pedido para um orçamento de raciocínio elevado antes de o enviar ao fornecedor a montante.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
 Painel → Fornecedores → Ligar Codex
 → Início de sessão OAuth (porta 1455)
-→ Reposição a cada 5 horas + semanal
+→ Reposição após 5 horas + semanal
 
 Modelos:
   cx/gpt-5.5
@@ -172,27 +174,27 @@ Modelos:
 
 ### 💰 Fornecedores económicos
 
-#### GLM-4.7 (Reposição diária, $0.6/1M)
+#### GLM-4.7 (reposição diária, $0.6/1M)
 
 1. Registe-se: [Zhipu AI](https://open.bigmodel.cn)
-2. Obtenha a chave de API no Coding Plan
+2. Obtenha uma chave de API no Coding Plan
 3. Painel → Adicionar chave de API: Fornecedor: `glm`, Chave de API: `your-key`
 
-**Utilização:** `glm/glm-4.7` — **Dica profissional:** O Coding Plan oferece uma quota 3× superior por 1/7 do custo! Reposição diária às 10:00.
+**Utilização:** `glm/glm-4.7` — **Dica profissional:** O Coding Plan oferece uma quota 3 vezes superior por 1/7 do custo! Reposição diária às 10:00.
 
-#### MiniMax M2.1 (Reposição a cada 5 h, $0.20/1M)
+#### MiniMax M2.1 (reposição após 5 h, $0.20/1M)
 
 1. Registe-se: [MiniMax](https://www.minimax.io)
-2. Obtenha a chave de API → Painel → Adicionar chave de API
+2. Obtenha uma chave de API → Painel → Adicionar chave de API
 
-**Utilização:** `minimax/MiniMax-M2.1` — **Dica profissional:** A opção mais económica para contextos longos (1 milhão de tokens)!
+**Utilização:** `minimax/MiniMax-M2.1` — **Dica profissional:** A opção mais barata para contextos longos (1M de tokens)!
 
 #### Kimi K2 ($9/mês, preço fixo)
 
 1. Subscreva: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. Obtenha a chave de API → Painel → Adicionar chave de API
+2. Obtenha uma chave de API → Painel → Adicionar chave de API
 
-**Utilização:** `kimi/kimi-k2.5` — **Dica profissional:** $9/mês fixos por 10 milhões de tokens = custo efetivo de $0.90/1M!
+**Utilização:** `kimi/kimi-k2.5` — **Dica profissional:** $9/mês fixos por 10M de tokens = custo efetivo de $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 

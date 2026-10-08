@@ -1,0 +1,1 @@
+- **fix(combo):** keep declared priority order ahead of session stickiness ([#15458](https://github.com/diegosouzapw/OmniRoute/pull/15458)) — thanks @skygunner

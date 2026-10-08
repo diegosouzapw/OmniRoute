@@ -52,7 +52,8 @@ same turn-bound local tool capability when the tunnel and connector are configur
 The raw cookie is not retained after a successful save. When the session expires, open
 the connection, paste a fresh full Cookie header, and rerun the check. The doctor status
 in the edit dialog reports browser, storage state, sign-in, Temporary Chat, tunnel,
-connector, and tool round-trip separately.
+connector, and tool round-trip separately. To automate cookie updates when sessions rotate,
+see the companion tool in [Browser Session Sync Extension](../guides/SESSION-SYNC-EXTENSION.md).
 
 > Never commit a real cookie, runtime key, storage state, or capability token. Test and
 > documentation values must always be placeholders.

@@ -452,7 +452,11 @@ export default function ProviderModalsPanel({
         importProgress={importProgress}
         isOpen={showImportModal}
         onClose={() => {
-          if (importProgress.phase === "done" || importProgress.phase === "error") {
+          if (
+            importProgress.phase === "done" ||
+            importProgress.phase === "error" ||
+            importProgress.phase === "warning"
+          ) {
             setShowImportModal(false);
           }
         }}

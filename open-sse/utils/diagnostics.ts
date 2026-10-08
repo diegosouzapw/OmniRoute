@@ -11,7 +11,10 @@
 
 import { sanitizeErrorMessage } from "./error.ts";
 import { classifyFakeSuccessBody } from "../services/errorClassifier.ts";
-import { SYNTHETIC_RESPONSES_SEQUENCE_NUMBER } from "./responsesSequence.ts";
+import {
+  buildSyntheticResponsesFailureId,
+  SYNTHETIC_RESPONSES_SEQUENCE_NUMBER,
+} from "./responsesSequence.ts";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -150,9 +153,10 @@ export function synthResponsesFailure(reason?: MalformedReason): string {
     // #14330: this frame is synthesized outside the real per-stream sequence
     // counter, so it uses the shared synthetic seed instead of omitting the
     // required field — a strict Responses decoder aborts without it.
+    // #15202: `response.id` must be a string; `null` aborts those same decoders.
     sequence_number: SYNTHETIC_RESPONSES_SEQUENCE_NUMBER,
     response: {
-      id: null,
+      id: buildSyntheticResponsesFailureId(),
       status: "failed",
       error: {
         type: "stream_error",
@@ -366,9 +370,15 @@ export function detectMalformedNonStream(
     // thinking model can burn a 1-token probe budget and return no visible
     // text. Rejecting the translated form reintroduces the 502 the exemption
     // removed. "stop" with no output stays empty_choices.
+    // #13560: tool_calls / content_filter are likewise terminal stops that
+    // isEmptyContentResponse already accepts, not silent fake-successes.
     const truncated = choices.some((choice) => {
       const c = choice as Record<string, unknown>;
-      return c?.finish_reason === "length";
+      return (
+        c?.finish_reason === "length" ||
+        c?.finish_reason === "tool_calls" ||
+        c?.finish_reason === "content_filter"
+      );
     });
     if (truncated) return null;
     return "empty_choices";
