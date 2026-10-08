@@ -123,6 +123,14 @@ function getDeterministicIconAccent(id: string): string {
     .replace(/^/, "#");
 }
 
+/**
+ * Stable accent colour for a sidebar item id.
+ *
+ * Kept as a public pure utility (#3812) although `Sidebar.tsx` no longer colours its icons per
+ * item since the navigation-hierarchy redesign (#12869). Its contract is pinned by
+ * tests/unit/sidebar-icon-accents-3812.test.ts and tests/unit/sidebar-hierarchy-a11y-12869.test.tsx,
+ * which also asserts the Sidebar renders no accent colours.
+ */
 export function getSidebarIconAccent(id: string): string {
   return (
     SIDEBAR_ICON_ACCENTS[id as SidebarItemId] ||
