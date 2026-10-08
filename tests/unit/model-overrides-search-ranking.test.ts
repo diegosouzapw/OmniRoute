@@ -90,6 +90,50 @@ describe("filterModelOverrideTargets", () => {
     assert.equal(filterModelOverrideTargets(big, "bai").length, 300);
   });
 
+  it("separates provider-prefix tier (800) from model-id-prefix tier (600)", () => {
+    // someday/bai-bar is a model-id-prefix match for "bai" (600); every
+    // baichuan/baidu/bailing entry is a provider-prefix match (800). A bug
+    // swapping the two tiers would surface someday first.
+    const out = filterModelOverrideTargets(CATALOG, "bai");
+    const somedayAt = out.findIndex((entry) => entry.provider === "someday");
+    const lastPrefixProviderAt = out.findIndex((entry) =>
+      ["baichuan", "baidu", "bailing"].includes(entry.provider)
+    );
+    assert.ok(lastPrefixProviderAt !== -1, "prefix providers must match 'bai'");
+    assert.ok(
+      somedayAt > lastPrefixProviderAt,
+      "provider prefix (800) beats model-id prefix (600)"
+    );
+  });
+
+  it("keeps catalog order within a tier (explicit tiebreak)", () => {
+    const out = filterModelOverrideTargets(CATALOG, "glm");
+    assert.deepEqual(
+      out.map((entry) => entry.modelId),
+      Array.from({ length: 30 }, (_, i) => `glm-${i}`)
+    );
+  });
+
+  it("window keeps top-scored entries, not catalog-first entries", () => {
+    const big = [
+      ...Array.from({ length: 400 }, (_, i) => makeTarget(`xbai-${i}`, `m-${i}`)), // substring tier
+      ...Array.from({ length: 50 }, (_, i) => makeTarget("bai", `top-${i}`)), // exact tier
+    ];
+    const out = filterModelOverrideTargets(big, "bai");
+    assert.equal(out.length, 300);
+    assert.equal(out.filter((entry) => entry.provider === "bai").length, 50);
+  });
+
+  it("whitespace-only query takes the default window (normalizer trims)", () => {
+    const out = filterModelOverrideTargets(CATALOG, "   ");
+    assert.deepEqual(out, CATALOG.slice(0, 80));
+  });
+
+  it("matches the target field even when it diverges from label (filter parity)", () => {
+    const divergent = [{ target: "bai/secret", provider: "x", modelId: "m", label: "x/m" }];
+    assert.equal(filterModelOverrideTargets(divergent, "bai").length, 1);
+  });
+
   it("is case/diacritic-insensitive via the shared normalizer", () => {
     const out = filterModelOverrideTargets(CATALOG, "BAI/");
     assert.ok(out.length > 0);

@@ -106,16 +106,24 @@ function scoreModelOverrideTarget(target: ModelOverrideTarget, query: string): n
   const provider = normalizeForSearch(target.provider);
   const modelId = normalizeForSearch(target.modelId);
   const label = normalizeForSearch(target.label);
+  const targetText = normalizeForSearch(target.target);
 
-  // Parity with the previous filter: same fields, same substring semantics.
-  if (!(provider.includes(query) || modelId.includes(query) || label.includes(query))) {
+  // Parity with the previous filter: same four fields, same substring
+  // semantics. `label` and `target` are identical for the current producer
+  // but the field parity is the contract, not an implementation detail.
+  if (!(
+    provider.includes(query) ||
+    modelId.includes(query) ||
+    label.includes(query) ||
+    targetText.includes(query)
+  )) {
     return 0;
   }
 
   if (provider === query) return 1000;
   // Tiers: scoped form `bai/` (900) > provider prefix (800) > model-id
   // prefix (600) > plain substring (200).
-  if (query.endsWith("/") && normalizeForSearch(target.target).startsWith(query)) {
+  if (query.endsWith("/") && targetText.startsWith(query)) {
     return 900;
   }
   if (provider.startsWith(query)) return 800;
