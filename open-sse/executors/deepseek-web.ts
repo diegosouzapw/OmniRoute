@@ -1110,7 +1110,9 @@ export class DeepSeekWebExecutor extends BaseExecutor {
 
         // DSML / malformed envelopes are explicit tool intent, not genuine plain answers.
         // Retry once in a fresh upstream session with an untrusted-output-free repair prompt.
-        // Parsing still requires the original nonce, requested name, and argument schema.
+        // The repaired reply goes through the same parser: the single-pipe/full-width DSML
+        // dialects still require the original nonce, a requested name and a schema-valid
+        // argument set; the canonical <tool> envelope keeps the shared #9343 policy.
         if (hasMalformedDeepSeekToolIntent(parsed.content, requestedTools)) {
           log?.warn?.("DEEPSEEK-WEB", "Malformed tool envelope — retrying once with nonce binding");
           sessionCache.delete(userToken);

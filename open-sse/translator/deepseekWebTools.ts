@@ -89,8 +89,11 @@ function validateToolArguments(
  *
  * `finalizeParsedToolCalls` holds every call to the full nonce + schema contract, which is correct
  * for the shapes this fork parses but rejects upstream's nameless `<tool>`/`<parameter>` shape that
- * carries no JSON body to bind. This variant applies the full contract only to calls that actually
- * carry `_nonce`, and leaves the rest to upstream's own policy.
+ * carries no JSON body to bind. This variant applies the full contract only to calls whose
+ * ARGUMENTS carry `_nonce`, and leaves the rest to upstream's own policy. Note the canonical
+ * `<tool>{"name",…,"_nonce"}</tool>` envelope puts `_nonce` at the envelope top level: the shared
+ * webTools parser checks it there (only when present) and strips it, so those calls reach this
+ * function without `_nonce` and are NOT schema-validated.
  */
 function finalizeBoundCalls(
   rawText: string,
@@ -148,7 +151,8 @@ function finalizeParsedToolCalls(
 
 export function hasMalformedDeepSeekToolMarkup(text: string): boolean {
   if (typeof text !== "string" || !text.trim()) return false;
-  if (/<\/?(?:｜｜|\|\|?)DSML(?:｜｜|\|\|?)\s+(?:calls|invoke|parameter)\b/i.test(text)) {
+  // `\s*`: DeepSeek emits both `<|DSML| invoke` and the no-space `<|DSML|invoke`.
+  if (/<\/?(?:｜｜|\|\|?)DSML(?:｜｜|\|\|?)\s*(?:calls|invoke|parameter)\b/i.test(text)) {
     return true;
   }
   return /<\/?(?:tool|tool_call)(?::|\s|>)/i.test(text);
@@ -631,8 +635,11 @@ function extractCall(
 // defensively. Closers are sloppy in the wild (`</｜｜DSML｜｜ calls>` but bare
 // `<｜｜DSML｜｜ invoke>` / `<｜｜DSML｜｜ parameter>` with no slash), so a tag
 // carrying `name="…"` opens a block and the next same-kind tag closes it.
-// Like the XML-children/tag-suffix shapes, DSML blocks carry no JSON body with
-// a `_nonce`, so the #9343 nonce check does not apply to them.
+// Like the XML-children/tag-suffix shapes, these double-pipe DSML blocks carry no
+// JSON body with a `_nonce`, so the #9343 nonce check does not apply to them here
+// (a call is only checked when it does carry `_nonce`, see finalizeBoundCalls).
+// The single-pipe `|DSML|` and full-width fork dialects are different: those are
+// nonce-bound and schema-validated in parseFullWidthDsmlCalls (#15448).
 
 const DSML_PIPE = "[｜|]";
 const DSML_MARK = `${DSML_PIPE}{2}DSML${DSML_PIPE}{2}`;

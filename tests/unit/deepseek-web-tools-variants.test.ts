@@ -316,6 +316,27 @@ describe("deepseekWebTools — native DSML", () => {
     assert.equal(hasMalformedDeepSeekToolIntent(text, DSML_TOOLS), true);
   });
 
+  test("unbound DSML without a space after the marker is also marked for repair", () => {
+    // `<|DSML|invoke name=...>` (no space) is the form the PR description lists; it used to
+    // yield no calls AND no malformed-intent signal, so the raw envelope leaked as a 200.
+    const text = [
+      "<|DSML|calls>",
+      '<|DSML|invoke name="bash">',
+      '<|DSML|parameter name="command" string="true">ls -la</|DSML|parameter>',
+      "</|DSML|invoke>",
+      "</|DSML|calls>",
+    ].join("\n");
+
+    const result = parseDeepSeekToolCalls(text, "dsml", DSML_TOOLS);
+    assert.equal(result.toolCalls, null, "missing nonce must fail closed");
+    assert.equal(hasMalformedDeepSeekToolIntent(text, DSML_TOOLS), true);
+    // Prose that merely names DSML is not tool markup.
+    assert.equal(
+      hasMalformedDeepSeekToolIntent("The |DSML| format is internal.", DSML_TOOLS),
+      false
+    );
+  });
+
   test("wrong nonce, unknown tools, and schema-invalid arguments reject the whole batch", () => {
     const nonce = getToolNonce(DSML_TOOLS);
     for (const invoke of [
