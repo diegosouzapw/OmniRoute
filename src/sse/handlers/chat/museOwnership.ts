@@ -54,10 +54,30 @@ type ClaimArgs = {
   allowUnavailable: boolean;
 };
 
+type MuseConnectionRow = {
+  id: string;
+  authType?: string;
+  rateLimitedUntil?: string | null;
+  testStatus?: string | null;
+};
+
+/** Narrow the untyped provider_connections rows to the fields the ownership rules read. */
+function toMuseConnectionRows(rows: Array<Record<string, unknown>>): MuseConnectionRow[] {
+  const text = (value: unknown) => (typeof value === "string" ? value : null);
+  return rows.map((row) => ({
+    id: String(row.id),
+    authType: text(row.authType) ?? undefined,
+    rateLimitedUntil: text(row.rateLimitedUntil),
+    testStatus: text(row.testStatus),
+  }));
+}
+
 /** Claim (or re-read) the session owner. `null` = not a Muse OAuth request; Response = rejected. */
 export async function claimMuseOwner(args: ClaimArgs): Promise<MuseOwner | Response | null> {
   if (args.provider !== "muse-code") return null;
-  const connections = await getProviderConnections({ provider: "muse-code", isActive: true });
+  const connections = toMuseConnectionRows(
+    await getProviderConnections({ provider: "muse-code", isActive: true })
+  );
   if (!usesMuseOAuthOwnership(connections, args.forcedConnectionId || args.preselectedConnectionId))
     return null;
   try {
@@ -85,6 +105,7 @@ export function museOwnerUnavailable(owner: MuseOwner, credentials: Creds): Resp
     !!credentials &&
     !("allRateLimited" in credentials) &&
     !("allExpired" in credentials) &&
+    "connectionId" in credentials &&
     credentials.connectionId === owner.connectionId;
   return usable
     ? null

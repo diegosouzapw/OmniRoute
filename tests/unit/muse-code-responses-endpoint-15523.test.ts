@@ -37,10 +37,12 @@ test("muse-code sends reminted Responses requests to its configured endpoint", a
 
   assert.equal(requests.length, 1);
   assert.equal(requests[0].url, "https://api.meta.ai/v1/responses");
+  // #15567 floors tiny Muse output budgets (16-32 token health probes ended empty -> 502 and
+  // a model lockout): the caller's 20 reaches the upstream as the 512-token floor.
   assert.deepEqual(requests[0].body, {
     model: "muse-spark-1.3",
     input: "hello",
-    max_output_tokens: 20,
+    max_output_tokens: 512,
   });
 });
 
