@@ -6,9 +6,9 @@ lastUpdated: 2026-09-22
 
 # OmniRoute MCP Server Documentation
 
-> Model Context Protocol server with 110 tools across routing, cache, compression, memory, skills, proxy, pool, Radar, and context source operations.
+> Model Context Protocol server with tools across routing, cache, compression, memory, skills, proxy, pool, Radar, and context source operations.
 >
-> Source of truth: `open-sse/mcp-server/server.ts` computes **110 unique tools** with `countUniqueMcpTools()`: 45 canonical definitions (including the six CCR lifecycle tools, the agent-skills trio, `omniroute_radar_catalog`, and `omniroute_x_search`), plus memory (3), skills (4), GitHub skills (3), pool (6), gamification (8), plugins (8), Notion (6), Obsidian (22), local corpus (3), and two RTK-only compression tools.
+> Source of truth: `open-sse/mcp-server/server.ts` computes the unique tool total with `countUniqueMcpTools()`. The registry combines canonical definitions (including CCR lifecycle, agent skills, `omniroute_radar_catalog`, and `omniroute_x_search`) with memory, skills, GitHub skills, pool, gamification, plugins, Notion, Obsidian, local corpus, and RTK-only compression tools. Use the registry and the tool inventory below rather than a copied total.
 
 ## Installation
 
@@ -244,7 +244,7 @@ See [AGENT-SKILLS.md](./AGENT-SKILLS.md) for the full catalog and how external a
 
 ## Related Frameworks (v3.8.0)
 
-The MCP tool inventory above (110 unique tools, computed by `countUniqueMcpTools()`) is intentionally
+The MCP tool inventory above (unique tools, computed by `countUniqueMcpTools()`) is intentionally
 scoped to runtime routing/cache/compression/memory/skills/proxy/context-source operations. Two adjacent
 frameworks ship alongside the MCP server in v3.8.0 and are documented separately:
 
@@ -497,7 +497,7 @@ MCP tool, prompt, and resource registries can compress descriptions at registrat
 
 Description compression shrinks each tool's metadata; **tool-cardinality reduction** goes one step further by reducing _how many_ tools are announced at all. Advertising fewer tools in the `tools/list` manifest cuts the per-request token cost the client's model pays for the tool catalog ("layer 5" compression). The implementation is a pure, stateless filter in `open-sse/mcp-server/toolCardinality.ts` (`reduceToolManifest`), wired into the registration loop in `createMcpServer()` (`open-sse/mcp-server/server.ts`).
 
-**Opt-in, off by default.** The filter only runs when at least one of two environment variables is set; with neither set, all 110 tools are announced unchanged.
+**Opt-in, off by default.** The filter only runs when at least one of two environment variables is set; with neither set, all tools are announced unchanged.
 
 | Variable         | Mode                                                                                    |
 | :--------------- | :-------------------------------------------------------------------------------------- |
@@ -567,11 +567,11 @@ Use the dashboard or the `/api/mcp/audit` and `/api/mcp/audit/stats` REST endpoi
 | `open-sse/mcp-server/schemas/tools.ts`                                   | Zod schemas + tool registry (`MCP_TOOLS`, 45 entries)            |
 | `open-sse/mcp-server/tools/advancedTools.ts`                             | Phase 2 + cache + 1proxy tool handlers                           |
 | `open-sse/mcp-server/tools/compressionTools.ts`                          | Compression tool handlers                                        |
-| `open-sse/mcp-server/tools/memoryTools.ts`                               | Memory tool definitions (3 tools)                                |
-| `open-sse/mcp-server/tools/skillTools.ts`                                | Skill tool definitions (4 tools)                                 |
-| `open-sse/mcp-server/tools/notionTools.ts`                               | Notion context source tool definitions (6 tools)                 |
-| `open-sse/mcp-server/tools/gamificationTools.ts`                         | Gamification tool definitions (8 tools)                          |
-| `open-sse/mcp-server/tools/pluginTools.ts`                               | Plugin registration and management tools (8 tools)               |
+| `open-sse/mcp-server/tools/memoryTools.ts`                               | Memory tool definitions                                          |
+| `open-sse/mcp-server/tools/skillTools.ts`                                | Skill tool definitions                                           |
+| `open-sse/mcp-server/tools/notionTools.ts`                               | Notion context source tool definitions                           |
+| `open-sse/mcp-server/tools/gamificationTools.ts`                         | Gamification tool definitions                                    |
+| `open-sse/mcp-server/tools/pluginTools.ts`                               | Plugin registration and management tools                         |
 | `src/app/api/mcp/status/route.ts`                                        | `/api/mcp/status` endpoint                                       |
 | `src/app/api/mcp/tools/route.ts`                                         | `/api/mcp/tools` endpoint                                        |
 | `src/app/api/mcp/sse/route.ts`                                           | `/api/mcp/sse` SSE transport route                               |

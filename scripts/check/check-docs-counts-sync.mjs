@@ -482,7 +482,15 @@ export function makeProviderReferenceValidator(expected) {
   };
 }
 
-// PURE: the npm package description must carry the live provider count.
+// Inventory totals are optional in hand-written prose. If stated, they must be accurate.
+function makeProviderClaimValidator(expected) {
+  return makeNumberClaimValidator(expected, {
+    what: "providers",
+    pattern: /(\d+)\+?\s+(?:(?:AI|LLM|registered)\s+)?providers\b/gi,
+  });
+}
+
+// PURE: validate any provider-total claim; do not require one in package metadata.
 export function makePackageDescriptionValidator(expected) {
   return (content) => {
     let desc = "";
@@ -491,12 +499,7 @@ export function makePackageDescriptionValidator(expected) {
     } catch {
       return { ok: false, detail: "package.json could not be parsed" };
     }
-    if (desc.includes(String(expected)))
-      return { ok: true, detail: `description mentions the live provider count ${expected}` };
-    return {
-      ok: false,
-      detail: `description does not mention the live provider count ${expected}: "${desc}"`,
-    };
+    return makeProviderClaimValidator(expected)(desc);
   };
 }
 
@@ -549,6 +552,7 @@ export function buildChecks() {
       docKey: "providers",
       strict: true,
       files: ["README.md", "AGENTS.md", "llm.txt"],
+      validate: makeProviderClaimValidator(readProviderTotal()),
     },
     {
       label: "Provider count (package.json description)",
@@ -586,6 +590,10 @@ export function buildChecks() {
       docKey: "i18n locales",
       strict: true,
       files: ["docs/README.md", "docs/guides/I18N.md"],
+      validate: makeNumberClaimValidator(countLocales(), {
+        what: "i18n locales",
+        pattern: /(\d+)\+?\s+(?:locales|languages)\b/gi,
+      }),
     },
     ...(() => {
       const f = readCodeFacts();
@@ -636,21 +644,6 @@ export function buildChecks() {
             // profiles", "4 weight profiles". Matching only the first left the
             // other two unwatched.
             pattern: MODE_PACK_CLAIM_PATTERN,
-          }),
-        },
-        {
-          // Same claim, but on the one document that MUST carry it. Without
-          // `requireClaim` the strongest gate in this file is also the easiest to
-          // silence: reword the sentence and "no claim in this file" reads as a pass.
-          label: "Auto-Combo mode packs (reference doc must state the count)",
-          actual: packs.length,
-          docKey: "mode packs",
-          strict: true,
-          files: ["docs/routing/AUTO-COMBO.md"],
-          validate: makeNumberClaimValidator(packs.length, {
-            what: "mode packs",
-            pattern: MODE_PACK_CLAIM_PATTERN,
-            requireClaim: true,
           }),
         },
         {
@@ -890,6 +883,10 @@ export function buildChecks() {
       docKey: "executors",
       strict: false,
       files: ["docs/architecture/ARCHITECTURE.md", "docs/architecture/CODEBASE_DOCUMENTATION.md"],
+      validate: makeNumberClaimValidator(countFiles("open-sse/executors"), {
+        what: "executors",
+        pattern: /(\d+)\+?\s+(?:provider-specific\s+)?executors\b/gi,
+      }),
     },
     {
       // The Auto-Combo engine is advertised as "N-factor" in a dozen places, in
@@ -934,6 +931,10 @@ export function buildChecks() {
       docKey: "strategies",
       strict: false,
       files: ["docs/routing/AUTO-COMBO.md", "docs/architecture/RESILIENCE_GUIDE.md", "llm.txt"],
+      validate: makeNumberClaimValidator(countRoutingStrategies(), {
+        what: "routing strategies",
+        pattern: /(\d+)\+?\s+(?:(?:public|routing)\s+)?strategies\b/gi,
+      }),
     },
     {
       label: "OAuth providers count",
@@ -941,6 +942,10 @@ export function buildChecks() {
       docKey: "OAuth providers",
       strict: false,
       files: ["docs/architecture/ARCHITECTURE.md"],
+      validate: makeNumberClaimValidator(countFiles("src/lib/oauth/providers"), {
+        what: "OAuth providers",
+        pattern: /(\d+)\+?\s+OAuth\s+providers\b/gi,
+      }),
     },
     {
       label: "A2A skills count",
@@ -948,6 +953,10 @@ export function buildChecks() {
       docKey: "A2A skills",
       strict: false,
       files: ["docs/frameworks/A2A-SERVER.md"],
+      validate: makeNumberClaimValidator(countFiles("src/lib/a2a/skills"), {
+        what: "A2A skills",
+        pattern: /(\d+)\+?\s+(?:A2A\s+)?skills\b/gi,
+      }),
     },
     {
       label: "Cloud agents count",
@@ -955,6 +964,10 @@ export function buildChecks() {
       docKey: "cloud agents",
       strict: false,
       files: ["docs/frameworks/CLOUD_AGENT.md", "docs/frameworks/AGENT_PROTOCOLS_GUIDE.md"],
+      validate: makeNumberClaimValidator(countFiles("src/lib/cloudAgent/agents"), {
+        what: "cloud agents",
+        pattern: /(\d+)\+?\s+(?:cloud\s+)?agents\b/gi,
+      }),
     },
   ];
 }
@@ -975,7 +988,7 @@ function main() {
   if (strict > 0) {
     console.error(
       `✗ ${strict} STRICT drift(s) detected. ` +
-        `Update the docs above to the real counts, or regenerate auto-generated sources ` +
+        `Remove unnecessary inventory totals from prose or correct explicit claims; regenerate generated sources ` +
         `(npm run gen:provider-reference).`
     );
     process.exit(1);

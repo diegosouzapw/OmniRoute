@@ -1,4 +1,4 @@
-<svg viewBox="0 0 1200 644" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Animated examples for 18 of OmniRoute's 19 combo routing strategies. The cache-optimized strategy is documented in the adjacent routing table.">
+<svg viewBox="0 0 1200 644" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Animated examples for OmniRoute's routing strategies. The cache-optimized strategy is documented in the adjacent routing table.">
   <desc>Animated grid of 18 routing-strategy tiles; static tracks show each flow on the first frame while a small dot repeatedly travels the path each illustrated strategy takes.</desc>
   <defs>
     <pattern id="gridPaperS" width="32" height="32" patternUnits="userSpaceOnUse">
@@ -13,7 +13,7 @@
   <rect width="1200" height="644" fill="#0b0e14"/>
   <rect width="1200" height="644" fill="url(#gridPaperS)"/>
   <rect width="1200" height="644" fill="url(#bgGlowS)"/>
-  <text x="40" y="52" font-family="Consolas, 'Courier New', monospace" font-size="13" letter-spacing="2.5" fill="#a78bfa">COMBO ROUTING &#183; 18 OF 19 STRATEGY FLOWS</text>
+  <text x="40" y="52" font-family="Consolas, 'Courier New', monospace" font-size="13" letter-spacing="2.5" fill="#a78bfa">COMBO ROUTING &#183; SELECTED STRATEGY FLOWS</text>
   <line x1="418" y1="47" x2="1160" y2="47" stroke="#232b38" stroke-width="1.5"/>
   <text x="40" y="80" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13.5" fill="#71717a">&#9679; request &#8594; &#9646; targets &#8212; each tile animates the path its strategy takes &#183; <tspan fill="#7ee787">green outline = the pick</tspan></text>
   <g transform="translate(40,104)">

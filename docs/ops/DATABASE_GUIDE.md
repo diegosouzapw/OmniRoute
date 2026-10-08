@@ -12,7 +12,7 @@ lastUpdated: 2026-08-23
 
 - `src/lib/db/core.ts` — singleton + SCHEMA_SQL (17 base tables)
 - `src/lib/db/migrationRunner.ts` — versioned migrations
-- `src/lib/db/migrations/` — 167 versioned SQL files
+- `src/lib/db/migrations/` — versioned SQL files
 - `src/lib/db/encryption.ts` — encryption helpers
 - `src/lib/db/backup.ts` — backup export/import
 - `src/lib/db/healthCheck.ts` — health diagnostics
@@ -90,7 +90,7 @@ OmniRoute's database has **110 top-level TypeScript modules** in `src/lib/db/`. 
 - Never touches another module's tables
 - Uses `getDbInstance()` from `core.ts` to access the DB
 
-### The 110 Top-Level DB Modules
+### The Top-Level DB Modules
 
 OmniRoute has **110 top-level TypeScript files** in `src/lib/db/`. Below is a sampling of core modules; see the directory listing for the complete list:
 

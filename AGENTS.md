@@ -47,22 +47,22 @@ Repository map and Reference Documentation sections below.
 
 ## Project at a Glance
 
-**OmniRoute** — unified AI proxy/router. One endpoint, 358 LLM providers, auto-fallback.
+**OmniRoute** — unified AI proxy/router. One endpoint, multiple LLM providers, auto-fallback.
 
-| Layer         | Location                | Purpose                                                                                                                                                                   |
-| ------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| API Routes    | `src/app/api/v1/`       | Next.js App Router — entry points                                                                                                                                         |
-| Handlers      | `open-sse/handlers/`    | Request processing (chat, embeddings, etc)                                                                                                                                |
-| Executors     | `open-sse/executors/`   | Provider-specific HTTP dispatch                                                                                                                                           |
-| Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)                                                                                                                                  |
-| Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions                                                                                                                                          |
-| Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                                                                                                                                  |
-| Database      | `src/lib/db/`           | SQLite domain modules (193 migrations)                                                                                                                                    |
-| Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                                                                                                                                 |
-| MCP Server    | `open-sse/mcp-server/`  | 110 tools (45 canonical + memory/skill/GitHub/pool/gamification/plugin/Notion/Obsidian/local-corpus/RTK modules), 3 transports (stdio / SSE / Streamable HTTP), 33 scopes |
-| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                                                                                                                               |
-| Skills        | `src/lib/skills/`       | Extensible skill framework                                                                                                                                                |
-| Memory        | `src/lib/memory/`       | Persistent conversational memory                                                                                                                                          |
+| Layer         | Location                | Purpose                                                                                                                                                         |
+| ------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API Routes    | `src/app/api/v1/`       | Next.js App Router — entry points                                                                                                                               |
+| Handlers      | `open-sse/handlers/`    | Request processing (chat, embeddings, etc)                                                                                                                      |
+| Executors     | `open-sse/executors/`   | Provider-specific HTTP dispatch                                                                                                                                 |
+| Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)                                                                                                                        |
+| Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions                                                                                                                                |
+| Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                                                                                                                        |
+| Database      | `src/lib/db/`           | SQLite domain modules and versioned migrations                                                                                                                  |
+| Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                                                                                                                       |
+| MCP Server    | `open-sse/mcp-server/`  | Tools (canonical + memory/skill/GitHub/pool/gamification/plugin/Notion/Obsidian/local-corpus/RTK modules), 3 transports (stdio / SSE / Streamable HTTP), scopes |
+| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                                                                                                                     |
+| Skills        | `src/lib/skills/`       | Extensible skill framework                                                                                                                                      |
+| Memory        | `src/lib/memory/`       | Persistent conversational memory                                                                                                                                |
 
 Monorepo: `src/` (Next.js 16 app), `open-sse/` (streaming engine workspace), `electron/` (desktop app), `tests/`, `bin/` (CLI entry point).
 
@@ -84,7 +84,7 @@ Client → /v1/chat/completions (Next.js route)
 
 API routes follow a consistent pattern: `Route → CORS preflight → Zod body validation → Optional auth (extractApiKey/isValidApiKey) → API key policy enforcement → Handler delegation (open-sse)`. No global Next.js middleware — interception is route-specific.
 
-**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()` which wraps `handleChatCore()` with per-target error handling and circuit breaker checks. The `fusion` strategy is the exception: it fans out to a panel of models in parallel, then a judge model synthesizes one final answer (`open-sse/services/fusion.ts`). See `docs/routing/AUTO-COMBO.md` for the 16-factor Auto-Combo scoring + the full strategy table and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
+**Combo routing** (`open-sse/services/combo.ts`): public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()` which wraps `handleChatCore()` with per-target error handling and circuit breaker checks. The `fusion` strategy is the exception: it fans out to a panel of models in parallel, then a judge model synthesizes one final answer (`open-sse/services/fusion.ts`). See `docs/routing/AUTO-COMBO.md` for the multi-factor Auto-Combo scoring + the full strategy table and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -331,8 +331,10 @@ Documentation must describe verified behavior, not plausible behavior.
 1. Before documenting an API name, endpoint, path, CLI command, or environment variable,
    search for it: `rg -n "name" src/ open-sse/ bin/`. If it has no source match, do not
    document it.
-2. Measure mutable counts instead of writing them from memory: use `wc -l <file>` or a
-   directory-specific count command.
+2. Do not duplicate mutable inventory totals in hand-written prose (providers, tools,
+   migrations, modules, strategies, locales). Describe capabilities and link to the source
+   registry or generated catalog. Keep versions, limits, defaults and dated historical
+   measurements where they explain behavior; validate any explicit numerical claim.
 3. Copy code examples from working usage or run them. Prefer a source link such as
    `path/to/file.ts:line` to an invented signature.
 4. Run `npm run check:docs-all` for edits under `docs/`; it includes the fabricated-docs
@@ -377,7 +379,7 @@ Documentation must describe verified behavior, not plausible behavior.
 
 ### Adding a New A2A Skill
 
-1. Create skill in `src/lib/a2a/skills/` (6 already exist: smart-routing, quota-management, provider-discovery, cost-analysis, health-report, list-capabilities)
+1. Create skill in `src/lib/a2a/skills/` (including: smart-routing, quota-management, provider-discovery, cost-analysis, health-report, list-capabilities)
 2. Skill receives task context (messages, metadata) → returns structured result
 3. Register in `A2A_SKILL_HANDLERS` in `src/lib/a2a/taskExecution.ts`
 4. Expose in `src/app/.well-known/agent.json/route.ts` (Agent Card)
@@ -386,7 +388,7 @@ Documentation must describe verified behavior, not plausible behavior.
 
 ### Adding a New Cloud Agent
 
-1. Create agent class in `src/lib/cloudAgent/agents/` extending `CloudAgentBase` (4 already exist: codex-cloud, devin, jules, cursor-cloud)
+1. Create agent class in `src/lib/cloudAgent/agents/` extending `CloudAgentBase` (including: codex-cloud, devin, jules, cursor-cloud)
 2. Implement `createTask`, `getStatus`, `approvePlan`, `sendMessage`, `listSources`
 3. Register in `src/lib/cloudAgent/registry.ts`
 4. Add OAuth/credentials handling if needed (`src/lib/oauth/providers/`)
@@ -419,38 +421,38 @@ Documentation must describe verified behavior, not plausible behavior.
 
 For any non-trivial change, read the matching deep-dive first:
 
-| Area                                          | Doc                                                     |
-| --------------------------------------------- | ------------------------------------------------------- |
-| Repo navigation                               | `docs/architecture/REPOSITORY_MAP.md`                   |
-| Architecture                                  | `docs/architecture/ARCHITECTURE.md`                     |
-| Engineering reference                         | `docs/architecture/CODEBASE_DOCUMENTATION.md`           |
-| Auto-Combo (16-factor scoring, 19 strategies) | `docs/routing/AUTO-COMBO.md`                            |
-| Resilience (3 mechanisms)                     | `docs/architecture/RESILIENCE_GUIDE.md`                 |
-| Reasoning replay                              | `docs/routing/REASONING_REPLAY.md`                      |
-| Skills framework                              | `docs/frameworks/SKILLS.md`                             |
-| Radar (free-model catalog overlay)            | `docs/frameworks/RADAR.md`                              |
-| Memory system (FTS5 + Qdrant)                 | `docs/frameworks/MEMORY.md`                             |
-| Cloud agents                                  | `docs/frameworks/CLOUD_AGENT.md`                        |
-| Guardrails (PII / injection / vision)         | `docs/security/GUARDRAILS.md`                           |
-| Public upstream credentials (Gemini/etc.)     | `docs/security/PUBLIC_CREDS.md`                         |
-| Error message sanitization                    | `docs/security/ERROR_SANITIZATION.md`                   |
-| Evals                                         | `docs/frameworks/EVALS.md`                              |
-| Compliance / audit                            | `docs/security/COMPLIANCE.md`                           |
-| Webhooks                                      | `docs/frameworks/WEBHOOKS.md`                           |
-| Log export (call logs → BigQuery/…)           | `docs/frameworks/LOG-EXPORT.md`                         |
-| Authorization pipeline                        | `docs/architecture/AUTHZ_GUIDE.md`                      |
-| Stealth (TLS / fingerprint)                   | `docs/security/STEALTH_GUIDE.md`                        |
-| Agent protocols (A2A / ACP / Cloud)           | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`              |
-| MCP server                                    | `docs/frameworks/MCP-SERVER.md`                         |
-| A2A server                                    | `docs/frameworks/A2A-SERVER.md`                         |
-| API reference + OpenAPI                       | `docs/reference/API_REFERENCE.md` + `docs/openapi.yaml` |
-| Provider catalog (auto-generated)             | `docs/reference/PROVIDER_REFERENCE.md`                  |
-| Tunnels                                       | `docs/ops/TUNNELS_GUIDE.md`                             |
-| Electron desktop app                          | `docs/guides/ELECTRON_GUIDE.md`                         |
-| VS Code Copilot Chat (OmniCopilot extension)  | `docs/guides/VSCODE-COPILOT.md`                         |
-| Release flow                                  | `docs/ops/RELEASE_CHECKLIST.md`                         |
-| Embedded services                             | `docs/frameworks/EMBEDDED-SERVICES.md`                  |
-| Quality gates (~90 scripts, allowlist policy) | `docs/architecture/QUALITY_GATES.md`                    |
+| Area                                           | Doc                                                     |
+| ---------------------------------------------- | ------------------------------------------------------- |
+| Repo navigation                                | `docs/architecture/REPOSITORY_MAP.md`                   |
+| Architecture                                   | `docs/architecture/ARCHITECTURE.md`                     |
+| Engineering reference                          | `docs/architecture/CODEBASE_DOCUMENTATION.md`           |
+| Auto-Combo (multi-factor scoring, strategies)  | `docs/routing/AUTO-COMBO.md`                            |
+| Resilience (3 mechanisms)                      | `docs/architecture/RESILIENCE_GUIDE.md`                 |
+| Reasoning replay                               | `docs/routing/REASONING_REPLAY.md`                      |
+| Skills framework                               | `docs/frameworks/SKILLS.md`                             |
+| Radar (free-model catalog overlay)             | `docs/frameworks/RADAR.md`                              |
+| Memory system (FTS5 + Qdrant)                  | `docs/frameworks/MEMORY.md`                             |
+| Cloud agents                                   | `docs/frameworks/CLOUD_AGENT.md`                        |
+| Guardrails (PII / injection / vision)          | `docs/security/GUARDRAILS.md`                           |
+| Public upstream credentials (Gemini/etc.)      | `docs/security/PUBLIC_CREDS.md`                         |
+| Error message sanitization                     | `docs/security/ERROR_SANITIZATION.md`                   |
+| Evals                                          | `docs/frameworks/EVALS.md`                              |
+| Compliance / audit                             | `docs/security/COMPLIANCE.md`                           |
+| Webhooks                                       | `docs/frameworks/WEBHOOKS.md`                           |
+| Log export (call logs → BigQuery/…)            | `docs/frameworks/LOG-EXPORT.md`                         |
+| Authorization pipeline                         | `docs/architecture/AUTHZ_GUIDE.md`                      |
+| Stealth (TLS / fingerprint)                    | `docs/security/STEALTH_GUIDE.md`                        |
+| Agent protocols (A2A / ACP / Cloud)            | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`              |
+| MCP server                                     | `docs/frameworks/MCP-SERVER.md`                         |
+| A2A server                                     | `docs/frameworks/A2A-SERVER.md`                         |
+| API reference + OpenAPI                        | `docs/reference/API_REFERENCE.md` + `docs/openapi.yaml` |
+| Provider catalog (auto-generated)              | `docs/reference/PROVIDER_REFERENCE.md`                  |
+| Tunnels                                        | `docs/ops/TUNNELS_GUIDE.md`                             |
+| Electron desktop app                           | `docs/guides/ELECTRON_GUIDE.md`                         |
+| VS Code Copilot Chat (OmniCopilot extension)   | `docs/guides/VSCODE-COPILOT.md`                         |
+| Release flow                                   | `docs/ops/RELEASE_CHECKLIST.md`                         |
+| Embedded services                              | `docs/frameworks/EMBEDDED-SERVICES.md`                  |
+| Quality gates (inventory and allowlist policy) | `docs/architecture/QUALITY_GATES.md`                    |
 
 ---
 
@@ -678,11 +680,11 @@ focused checks, and use a Conventional Commit message (for example, `docs: slim 
 
 ## Quality Gates & Ratchets
 
-OmniRoute has **~90 quality-gate scripts** (`scripts/check/` + `scripts/quality/`) wired
-across **9 gate-running jobs** in `.github/workflows/ci.yml` (`lint`, `quality-gate`,
+OmniRoute has **quality-gate scripts** (`scripts/check/` + `scripts/quality/`) wired
+across **gate-running jobs** in `.github/workflows/ci.yml` (`lint`, `quality-gate`,
 `quality-extended`, `docs-sync-strict`, `i18n-ui-coverage`, `i18n`, `pr-test-policy`,
 `test-vitest`, `sonarqube`), plus the `quality.yml` fast-gates job (PR→`release/**`) and
-5 quality nightly workflows (`nightly-property`, `nightly-resilience`,
+quality nightly workflows (`nightly-property`, `nightly-resilience`,
 `nightly-llm-security`, `nightly-mutation`, `nightly-schemathesis`). Full inventory, per-job breakdown, and operational
 procedures are in [`docs/architecture/QUALITY_GATES.md`](docs/architecture/QUALITY_GATES.md).
 

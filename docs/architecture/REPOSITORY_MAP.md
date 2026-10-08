@@ -121,7 +121,7 @@ src/
 ├── domain/              # Pure domain logic (policy engine, fallback, cost, lockout, comboResolver, assessment)
 ├── server/              # Server-only modules (authz pipeline, cors, auth middleware) — cannot import from client
 ├── shared/              # Shared between server and client where safe (constants, types, validation, contracts, utils)
-├── i18n/                # next-intl config + per-locale message JSON (42 locales)
+├── i18n/                # next-intl config + per-locale message JSON
 ├── middleware/          # Next.js middleware (request enrichment, locale detection)
 ├── mitm/                # MITM proxy core: cert gen/install, handlers, targets, inspector, masks, passthrough
 │   ├── handlers/        # 9 IDE-agent handler classes extending MitmHandlerBase (antigravity, kiro, copilot, codex, cursor, zed, claudeCode, openCode, trae)
@@ -164,7 +164,7 @@ src/
 | `app/layout.tsx`, `page.tsx`, `manifest.ts`, `globals.css`                   | Root layout, home, PWA manifest, global CSS                                                                                                                                                                                                                                                                        |
 | `app/error.tsx`, `global-error.tsx`, `not-found.tsx`, `loading.tsx`          | Error boundaries                                                                                                                                                                                                                                                                                                   |
 
-### `src/lib/` — Core libraries (~50 modules)
+### `src/lib/` — Core libraries
 
 | Module                                   | Purpose                                                                                                                                                                                                                                                                                                                 |
 | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -180,7 +180,7 @@ src/
 | `compliance/`                            | Audit log + provider audit — see `docs/security/COMPLIANCE.md`                                                                                                                                                                                                                                                          |
 | `compression/`                           | Compression engine glue (engines live in `open-sse/services/compression/`)                                                                                                                                                                                                                                              |
 | `config/`                                | Runtime config helpers                                                                                                                                                                                                                                                                                                  |
-| `db/`                                    | 120+ domain DB modules + 168 migrations (always go through here for SQLite)                                                                                                                                                                                                                                             |
+| `db/`                                    | domain DB modules + migrations (always go through here for SQLite)                                                                                                                                                                                                                                                      |
 | `quota/`                                 | Quota Sharing Engine: `dimensions.ts` (types/Zod), `types.ts` (QuotaStore interface), `sqliteQuotaStore.ts`, `redisQuotaStore.ts`, `storeFactory.ts`, `fairShare.ts`, `burnRate.ts`, `planResolver.ts`, `planRegistry.ts`, `saturationSignals.ts`, `enforce.ts`, `spendRecorder.ts` — see `docs/routing/QUOTA_SHARE.md` |
 | `radar/`                                 | Radar free-model catalog client: `feedSchema.ts`, `pinnedKeys.ts`, `verify.ts`, `sync.ts`, `applyFeed.ts`, `index.ts` (`getRadarCatalog()`) — see `docs/frameworks/RADAR.md`                                                                                                                                            |
 | `display/`                               | UI formatting helpers (cost, latency, etc.)                                                                                                                                                                                                                                                                             |
@@ -194,7 +194,7 @@ src/
 | `memory/vectorStore.ts`                  | sqlite-vec v0.1.9 wrapper — KNN brute-force + hybrid RRF (FTS5 + vector, k=60). Lazy-init, degrades gracefully when sqlite-vec unavailable. (plan 21)                                                                                                                                                                   |
 | `memory/reindex.ts`                      | `runReindexBatch()` — processes memories with `needs_reindex=1` in background; called by `POST /api/memory/reindex` and lazy-backfill path. (plan 21)                                                                                                                                                                   |
 | `monitoring/`                            | Health checks, metrics emission                                                                                                                                                                                                                                                                                         |
-| `oauth/`                                 | OAuth/import flows for 22 provider modules (agy, antigravity, claude, cline, codebuddy-cn, codex, cursor, devin-desktop, ghe-copilot, github, gitlab-duo, grok-cli-oauth, grok-cli, kilocode, kimi-coding, kiro, openference, qoder, trae, xai-oauth, zed-hosted, zed)                                                  |
+| `oauth/`                                 | OAuth/import flows for provider modules (agy, antigravity, claude, cline, codebuddy-cn, codex, cursor, devin-desktop, ghe-copilot, github, gitlab-duo, grok-cli-oauth, grok-cli, kilocode, kimi-coding, kiro, openference, qoder, trae, xai-oauth, zed-hosted, zed)                                                     |
 | `plugins/`                               | Plugin registry                                                                                                                                                                                                                                                                                                         |
 | `promptCache/`                           | Anthropic-style prompt cache breakpoints                                                                                                                                                                                                                                                                                |
 | `skills/`                                | Skills framework (built-in + marketplace + SkillsSH) — see `docs/frameworks/SKILLS.md`                                                                                                                                                                                                                                  |
@@ -206,7 +206,7 @@ src/
 | `cacheLayer.ts`, `idempotencyLayer.ts`   | Request caching + idempotency                                                                                                                                                                                                                                                                                           |
 | (~30 more top-level files)               | Specialized helpers (logEnv, modelsDevSync, piiSanitizer, etc.)                                                                                                                                                                                                                                                         |
 
-### `src/lib/db/` — Database (137 modules + 193 migrations)
+### `src/lib/db/` — Database (modules + migrations)
 
 | Subdir                    | Purpose                                                                                                                                                                    |
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -241,9 +241,9 @@ src/
 
 | Module                           | Purpose                                                                |
 | -------------------------------- | ---------------------------------------------------------------------- |
-| `constants/providers.ts`         | **355 providers** with Zod validation (source of truth)                |
+| `constants/providers.ts`         | **Providers** with Zod validation (source of truth)                    |
 | `constants/cliTools.ts`          | External CLI tool registry                                             |
-| `constants/routingStrategies.ts` | **19 routing strategies** with priorities                              |
+| `constants/routingStrategies.ts` | **Routing strategies** with priorities                                 |
 | `constants/publicApiRoutes.ts`   | Routes that require Bearer (vs management) auth                        |
 | `constants/upstreamHeaders.ts`   | Header denylist for upstream requests                                  |
 | `validation/schemas.ts`          | ~80 Zod schemas (single source of truth for API contracts)             |
@@ -267,8 +267,8 @@ open-sse/
 ├── executors/           # 67 provider-specific executors (extend BaseExecutor)
 ├── translator/          # Format converters (9 request, 9 response, 9 helpers)
 ├── transformer/         # Responses API ↔ Chat Completions (TransformStream)
-├── services/            # ~80+ service modules (combo, accountFallback, autoCombo, reasoningCache, claude code/chatgpt stealth, modelDeprecation, taskAwareRouter, workflowFSM, etc.)
-├── mcp-server/          # MCP server (110 tools, 3 transports, 33 scopes)
+├── services/            # service modules (combo, accountFallback, autoCombo, reasoningCache, claude code/chatgpt stealth, modelDeprecation, taskAwareRouter, workflowFSM, etc.)
+├── mcp-server/          # MCP server (tools, 3 transports, scopes)
 ├── config/              # Provider/model registries, header config, model aliases
 ├── utils/               # TLS client, proxy fetch/dispatcher, network helpers
 ├── index.ts             # Workspace entry
@@ -381,45 +381,45 @@ open-sse/
 
 ### Top-level guides
 
-| Doc                         | Purpose                                                                               |
-| --------------------------- | ------------------------------------------------------------------------------------- |
-| `ARCHITECTURE.md`           | High-level architecture, subsystem map, dashboard surface                             |
-| `CODEBASE_DOCUMENTATION.md` | Engineering reference: directories, modules, conventions                              |
-| `FEATURES.md`               | Feature matrix with v3.8 highlights                                                   |
-| `USER_GUIDE.md`             | End-user manual (setup, models, combos, CLIs, audio, etc.)                            |
-| `API_REFERENCE.md`          | API endpoint reference with auth model                                                |
-| `openapi.yaml`              | OpenAPI 3.0 spec (121 paths)                                                          |
-| `SETUP_GUIDE.md`            | Install methods (npm, npx, Docker, Electron, Termux, source)                          |
-| `ENVIRONMENT.md`            | All env vars (~800 documented, ~3,050 lines `.env.example`)                           |
-| `TROUBLESHOOTING.md`        | Common errors + v3.8.0 known issues                                                   |
-| `RELEASE_CHECKLIST.md`      | Full release flow (skills, husky, conventional commits, deploy)                       |
-| `COVERAGE_PLAN.md`          | Coverage goals and current state                                                      |
-| `FREE_TIERS.md`             | Curated free-tier providers (48+ free + 11 OAuth)                                     |
-| `CLI-TOOLS.md`              | External CLI integrations + Internal OmniRoute CLI                                    |
-| `I18N.md`                   | i18n architecture, adding a language, 42 locales                                      |
-| `UNINSTALL.md`              | Clean uninstall steps                                                                 |
-| `PROVIDER_REFERENCE.md`     | **Auto-generated** catalog of 355 providers (regen: `npm run gen:provider-reference`) |
+| Doc                         | Purpose                                                                           |
+| --------------------------- | --------------------------------------------------------------------------------- |
+| `ARCHITECTURE.md`           | High-level architecture, subsystem map, dashboard surface                         |
+| `CODEBASE_DOCUMENTATION.md` | Engineering reference: directories, modules, conventions                          |
+| `FEATURES.md`               | Feature matrix with v3.8 highlights                                               |
+| `USER_GUIDE.md`             | End-user manual (setup, models, combos, CLIs, audio, etc.)                        |
+| `API_REFERENCE.md`          | API endpoint reference with auth model                                            |
+| `openapi.yaml`              | OpenAPI 3.0 spec (121 paths)                                                      |
+| `SETUP_GUIDE.md`            | Install methods (npm, npx, Docker, Electron, Termux, source)                      |
+| `ENVIRONMENT.md`            | All env vars (~800 documented, ~3,050 lines `.env.example`)                       |
+| `TROUBLESHOOTING.md`        | Common errors + v3.8.0 known issues                                               |
+| `RELEASE_CHECKLIST.md`      | Full release flow (skills, husky, conventional commits, deploy)                   |
+| `COVERAGE_PLAN.md`          | Coverage goals and current state                                                  |
+| `FREE_TIERS.md`             | Curated free-tier providers (48+ free + 11 OAuth)                                 |
+| `CLI-TOOLS.md`              | External CLI integrations + Internal OmniRoute CLI                                |
+| `I18N.md`                   | i18n architecture, adding a language, locales                                     |
+| `UNINSTALL.md`              | Clean uninstall steps                                                             |
+| `PROVIDER_REFERENCE.md`     | **Auto-generated** catalog of providers (regen: `npm run gen:provider-reference`) |
 
 ### Subsystem deep-dives
 
-| Doc                                         | Purpose                                                              |
-| ------------------------------------------- | -------------------------------------------------------------------- |
-| `MCP-SERVER.md`                             | MCP server: 110 tools, 3 transports, 33 scopes, REST endpoints       |
-| `A2A-SERVER.md`                             | A2A v0.3: JSON-RPC, 6 skills, REST helpers, agent card               |
-| `AGENT_PROTOCOLS_GUIDE.md`                  | Unified guide: A2A vs ACP vs Cloud Agents                            |
-| `CLOUD_AGENT.md`                            | Codex Cloud / Devin / Jules orchestration                            |
-| `SKILLS.md`                                 | Skills framework (built-in + marketplace + SkillsSH + sandbox)       |
-| `RADAR.md`                                  | Radar free-model catalog overlay (`RADAR_ENABLED`, off by default)   |
-| `MEMORY.md`                                 | Memory system (SQLite FTS5 + Qdrant)                                 |
-| `EVALS.md`                                  | Eval framework (suites, runs, rubrics)                               |
-| `GUARDRAILS.md`                             | PII masker, prompt injection, vision bridge                          |
-| `COMPLIANCE.md`                             | Audit log, retention, noLog opt-out                                  |
-| `WEBHOOKS.md`                               | HMAC-signed webhook delivery                                         |
-| `REASONING_REPLAY.md`                       | Hybrid memory/SQLite cache for `reasoning_content`                   |
-| `AUTHZ_GUIDE.md`                            | Authorization pipeline (`classify` → `policies` → `enforce`)         |
-| `RESILIENCE_GUIDE.md`                       | Circuit breaker + cooldown + model lockout                           |
-| `docs/security/STEALTH_GUIDE.md` (git only) | TLS fingerprinting (JA3/JA4), Claude Code CCH, MITM cert             |
-| `AUTO-COMBO.md`                             | Auto Combo engine (16-factor scoring, 6 mode packs, virtual factory) |
+| Doc                                         | Purpose                                                               |
+| ------------------------------------------- | --------------------------------------------------------------------- |
+| `MCP-SERVER.md`                             | MCP server: tools, 3 transports, scopes, REST endpoints               |
+| `A2A-SERVER.md`                             | A2A v0.3: JSON-RPC, skills, REST helpers, agent card                  |
+| `AGENT_PROTOCOLS_GUIDE.md`                  | Unified guide: A2A vs ACP vs Cloud Agents                             |
+| `CLOUD_AGENT.md`                            | Codex Cloud / Devin / Jules orchestration                             |
+| `SKILLS.md`                                 | Skills framework (built-in + marketplace + SkillsSH + sandbox)        |
+| `RADAR.md`                                  | Radar free-model catalog overlay (`RADAR_ENABLED`, off by default)    |
+| `MEMORY.md`                                 | Memory system (SQLite FTS5 + Qdrant)                                  |
+| `EVALS.md`                                  | Eval framework (suites, runs, rubrics)                                |
+| `GUARDRAILS.md`                             | PII masker, prompt injection, vision bridge                           |
+| `COMPLIANCE.md`                             | Audit log, retention, noLog opt-out                                   |
+| `WEBHOOKS.md`                               | HMAC-signed webhook delivery                                          |
+| `REASONING_REPLAY.md`                       | Hybrid memory/SQLite cache for `reasoning_content`                    |
+| `AUTHZ_GUIDE.md`                            | Authorization pipeline (`classify` → `policies` → `enforce`)          |
+| `RESILIENCE_GUIDE.md`                       | Circuit breaker + cooldown + model lockout                            |
+| `docs/security/STEALTH_GUIDE.md` (git only) | TLS fingerprinting (JA3/JA4), Claude Code CCH, MITM cert              |
+| `AUTO-COMBO.md`                             | Auto Combo engine (multi-factor scoring, mode packs, virtual factory) |
 
 ### Compression
 
@@ -448,7 +448,7 @@ open-sse/
 
 | Subdir                | Purpose                                                                                                                                                                                        |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `docs/i18n/`          | Localized doc translations (41 locales)                                                                                                                                                        |
+| `docs/i18n/`          | Localized doc translations                                                                                                                                                                     |
 | `docs/screenshots/`   | Image assets for guides                                                                                                                                                                        |
 | `_tasks/superpowers/` | Plans/specs from superpowers (`writing-plans`/`brainstorming`) + research — isolated, separately-versioned repo, gitignored by the main tree. See CLAUDE.md → "Planning & Research Artifacts". |
 

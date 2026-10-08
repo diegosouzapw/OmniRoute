@@ -17,27 +17,27 @@ It provides a single OpenAI-compatible endpoint (`/v1/*`) and routes traffic acr
 
 Core capabilities:
 
-- OpenAI-compatible API surface for CLI/tools (355 providers, 108 executors)
+- OpenAI-compatible API surface for CLI/tools (providers, executors)
 - Request/response translation across provider formats
 - Model combo fallback (multi-model sequence)
 - Structured combo steps (`provider + model + connection`) with runtime ordering by `compositeTiers`
 - Account-level fallback (multi-account per provider)
 - Quota preflight and quota-aware P2C account selection in the main chat path
-- OAuth + API-key provider connection management (22 OAuth provider modules)
-- Embedding generation via `/v1/embeddings` (18 providers)
-- Image generation via `/v1/images/generations` (10+ providers, 20+ models)
-- Audio transcription via `/v1/audio/transcriptions` (18 providers)
-- Text-to-speech via `/v1/audio/speech` (24 built-in providers)
+- OAuth + API-key provider connection management (OAuth provider modules)
+- Embedding generation via `/v1/embeddings`
+- Image generation via `/v1/images/generations` (providers, 20+ models)
+- Audio transcription via `/v1/audio/transcriptions`
+- Text-to-speech via `/v1/audio/speech` (built-in providers)
 - Video generation via `/v1/videos/generations` (ComfyUI + SD WebUI)
 - Music generation via `/v1/music/generations` (ComfyUI)
-- Web search via `/v1/search` (20 providers)
+- Web search via `/v1/search`
 - Moderations via `/v1/moderations`
 - Reranking via `/v1/rerank`
 - Think tag parsing (`<think>...</think>`) for reasoning models
 - Response sanitization for strict OpenAI SDK compatibility
 - Role normalization (developer→system, system→user) for cross-provider compatibility
 - Structured output conversion (json_schema → Gemini responseSchema)
-- Local persistence for providers, keys, aliases, combos, settings, pricing (122 DB modules)
+- Local persistence for providers, keys, aliases, combos, settings, pricing (DB modules)
 - Usage/cost tracking and request logging
 - Optional cloud sync for multi-device/state sync
 - IP allowlist/blocklist for API access control
@@ -58,7 +58,7 @@ Core capabilities:
 - Compliance audit logging with opt-out per API key
 - Eval framework for LLM quality assurance
 - Health dashboard with real-time provider circuit breaker status
-- MCP Server (110 tools) with 3 transports (stdio/SSE/Streamable HTTP)
+- MCP Server with 3 transports (stdio/SSE/Streamable HTTP)
 - A2A Server (JSON-RPC 2.0 + SSE) with skills and task lifecycle
 - Memory system (extraction, injection, retrieval, summarization)
 - Skills system (registry, executor, sandbox, built-in skills)
@@ -218,8 +218,8 @@ Important compatibility routes:
 - `src/app/api/v1/messages/route.ts`
 - `src/app/api/v1/responses/route.ts`
 - `src/app/api/v1/models/route.ts` — includes custom models with `custom: true`
-- `src/app/api/v1/embeddings/route.ts` — embedding generation (6 providers)
-- `src/app/api/v1/images/generations/route.ts` — image generation (4+ providers incl. Antigravity/Nebius)
+- `src/app/api/v1/embeddings/route.ts` — embedding generation
+- `src/app/api/v1/images/generations/route.ts` — image generation (providers incl. Antigravity/Nebius)
 - `src/app/api/v1/messages/count_tokens/route.ts`
 - `src/app/api/v1/providers/[provider]/chat/completions/route.ts` — dedicated per-provider chat
 - `src/app/api/v1/providers/[provider]/embeddings/route.ts` — dedicated per-provider embeddings
@@ -365,20 +365,20 @@ relying on a static combo definition. It powers the `auto/*` model prefix family
 
 Key capabilities:
 
-- **19 routing strategies** (priority, weighted, fill-first, round-robin, P2C, random,
+- **Routing strategies** (priority, weighted, fill-first, round-robin, P2C, random,
   least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random,
   **auto**, lkgp, context-optimized, context-relay, **fusion**, plus a fallback path) —
   auto is the headline addition in v3.8.0; `fusion` (panel fan-out + judge synthesis,
   `open-sse/services/fusion.ts`) is new in v3.8.36.
-- **16-factor scoring**: quota, health, inverse cost, inverse latency, task fit and
-  ten more. The canonical table of factors and their default weights lives in
+- **Multi-factor scoring**: quota, health, inverse cost, inverse latency, task fit and
+  other signals. The canonical table of factors and their default weights lives in
   [`docs/routing/AUTO-COMBO.md`](../routing/AUTO-COMBO.md) — restating it here would
   give it a second place to go stale.
 - **Virtual factory** materializes ephemeral combos when no matching named combo
   exists, sourcing candidates from healthy active provider connections.
 - **Auto prefixes**: `auto/coding`, `auto/cheap`, `auto/fast`, `auto/offline`,
   `auto/smart`, `auto/lkgp` — each backed by a tuned weight profile.
-- **6 mode packs**: `ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`,
+- **Mode packs**: `ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`,
   `reliability-first` and `chaos-mode` — preset weight configurations callable from
   the dashboard. (Not to be confused with the `auto/*` prefixes above, which are
   request-time variants.)
@@ -882,9 +882,9 @@ flowchart LR
 ### Translation Registry and Format Converters
 
 - `open-sse/translator/index.ts`: translator registry and orchestration
-- Request translators: `open-sse/translator/request/*` (9 modules — `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`, `gemini-to-openai`, `openai-responses`, `openai-to-claude`, `openai-to-cursor`, `openai-to-gemini`, `openai-to-kiro`)
-- Response translators: `open-sse/translator/response/*` (11 modules — `claude-to-openai`, `cursor-to-openai`, `gemini-to-claude`, `gemini-to-openai`, `kiro-to-openai`, `openai-responses`, `openai-to-antigravity`, `openai-to-claude`, `openai-to-gemini`, `openai-to-gemini-sse`, `responsesToolItem`)
-- Helpers: `open-sse/translator/helpers/*` (12 modules — `claudeHelper`, `geminiHelper`, `geminiToolsSanitizer`, `jsonUtil`, `markdownBoundary`, `maxTokensHelper`, `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `strictSystemHoist`, `toolCallHelper`, `toolCallShim`)
+- Request translators: `open-sse/translator/request/*` (modules — `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`, `gemini-to-openai`, `openai-responses`, `openai-to-claude`, `openai-to-cursor`, `openai-to-gemini`, `openai-to-kiro`)
+- Response translators: `open-sse/translator/response/*` (modules — `claude-to-openai`, `cursor-to-openai`, `gemini-to-claude`, `gemini-to-openai`, `kiro-to-openai`, `openai-responses`, `openai-to-antigravity`, `openai-to-claude`, `openai-to-gemini`, `openai-to-gemini-sse`, `responsesToolItem`)
+- Helpers: `open-sse/translator/helpers/*` (modules — `claudeHelper`, `geminiHelper`, `geminiToolsSanitizer`, `jsonUtil`, `markdownBoundary`, `maxTokensHelper`, `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `strictSystemHoist`, `toolCallHelper`, `toolCallShim`)
 - Format constants: `open-sse/translator/formats.ts`
 - Bootstrap and registry: `open-sse/translator/bootstrap.ts`, `open-sse/translator/registry.ts`
 - Image-format helpers: `open-sse/translator/image/`
@@ -933,7 +933,7 @@ All other providers (including custom compatible nodes) use the `DefaultExecutor
 
 ## Provider Compatibility Matrix
 
-> **Note:** The matrix below is a representative sample of the 351 registered providers in
+> **Note:** The matrix below is a representative sample of the registered providers in
 > OmniRoute v3.8.0. For the canonical and continuously-updated list, refer to
 > [`docs/reference/PROVIDER_REFERENCE.md`](../reference/PROVIDER_REFERENCE.md) (auto-generated) or the source of
 > truth at `src/shared/constants/providers.ts` (Zod-validated at load).
