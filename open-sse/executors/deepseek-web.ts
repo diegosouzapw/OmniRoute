@@ -1108,11 +1108,19 @@ export class DeepSeekWebExecutor extends BaseExecutor {
         let { content, reasoningContent } = await collectSSEContent(resp.body!, clientModel);
         let parsed = parseDeepSeekToolCalls(content, `call-${Date.now()}`, requestedTools);
 
-        // DSML / malformed envelopes are explicit tool intent, not genuine plain answers.
-        // Retry once in a fresh upstream session with an untrusted-output-free repair prompt.
-        // The repaired reply goes through the same parser: the single-pipe/full-width DSML
-        // dialects still require the original nonce, a requested name and a schema-valid
-        // argument set; the canonical <tool> envelope keeps the shared #9343 policy.
+        // DSML / malformed envelopes are explicit tool intent, not plain answers: retry once in a
+        // fresh session. The reply goes through the same parser (fork DSML dialects stay nonce-
+        // and schema-bound; the canonical <tool> envelope keeps the shared #9343 policy).
+        const repairFailed = async (message: string) => {
+          await cleanupFn();
+          const response = errorResponse(502, message);
+          return {
+            response,
+            url: COMPLETION_URL,
+            headers: reqHeaders,
+            transformedBody: requestPayload,
+          };
+        };
         if (hasMalformedDeepSeekToolIntent(parsed.content, requestedTools)) {
           log?.warn?.("DEEPSEEK-WEB", "Malformed tool envelope — retrying once with nonce binding");
           sessionCache.delete(userToken);
@@ -1129,25 +1137,11 @@ export class DeepSeekWebExecutor extends BaseExecutor {
               "including its _nonce binding and argument schema. Do not emit bare JSON or unbound DSML.",
           ].join("\n\n");
           ({ resp, reqHeaders, requestPayload } = await performCompletion(sessionId, repairPrompt));
-          if (!resp.ok) {
-            await cleanupFn();
-            return {
-              response: errorResponse(502, "DeepSeek tool-call repair request failed."),
-              url: COMPLETION_URL,
-              headers: reqHeaders,
-              transformedBody: requestPayload,
-            };
-          }
+          if (!resp.ok) return repairFailed("DeepSeek tool-call repair request failed.");
           ({ content, reasoningContent } = await collectSSEContent(resp.body!, clientModel));
           parsed = parseDeepSeekToolCalls(content, `call-${Date.now()}`, requestedTools);
           if (hasMalformedDeepSeekToolMarkup(parsed.content)) {
-            await cleanupFn();
-            return {
-              response: errorResponse(502, "DeepSeek emitted an invalid tool call after repair."),
-              url: COMPLETION_URL,
-              headers: reqHeaders,
-              transformedBody: requestPayload,
-            };
+            return repairFailed("DeepSeek emitted an invalid tool call after repair.");
           }
         }
 
