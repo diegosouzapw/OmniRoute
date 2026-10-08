@@ -2850,8 +2850,8 @@ test("Statsig: x-statsig-id is valid base64", async () => {
     assert.ok(statsig, "Should have statsig header");
     const decoded = atob(statsig);
     assert.ok(
-      decoded.startsWith("e:TypeError:"),
-      `Decoded statsig should start with e:TypeError:, got: ${decoded}`
+      decoded.startsWith("x1:TypeError:"),
+      `Decoded statsig should start with x1:TypeError:, got: ${decoded}`
     );
   } finally {
     cap.restore();

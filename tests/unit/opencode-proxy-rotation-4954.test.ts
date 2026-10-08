@@ -7,6 +7,7 @@ import {
   resolveProxyForRequest,
   runWithAppliedProxyCapture,
 } from "../../open-sse/utils/proxyFetch.ts";
+import { __resetProxyRefusalMemoryForTesting } from "../../open-sse/utils/proxyRefusalMemory.ts";
 
 /**
  * #4954 — "OpenCode Free" exposes per-account proxy + multi-account rotation in
@@ -82,6 +83,7 @@ describe("OpencodeExecutor per-account proxy + rotation (#4954)", () => {
   let observed: Array<{ source: string; host: string | null; port: string | null }>;
 
   beforeEach(() => {
+    __resetProxyRefusalMemoryForTesting();
     originalFetch = globalThis.fetch;
     observed = [];
   });
@@ -198,6 +200,16 @@ describe("OpencodeExecutor per-account proxy + rotation (#4954)", () => {
       });
     }) as typeof globalThis.fetch;
 
+    const warnCalls: Array<{ tag: unknown; msg: string }> = [];
+    const spyLog: ExecutorLog = {
+      debug() {},
+      info() {},
+      warn: (tag, msg) => {
+        warnCalls.push({ tag, msg });
+      },
+      error() {},
+    };
+
     try {
       const result = await exec.execute({
         model: "deepseek-v4-flash-free",
@@ -205,7 +217,7 @@ describe("OpencodeExecutor per-account proxy + rotation (#4954)", () => {
         stream: false,
         signal: null,
         credentials: credentialsWithProxies(),
-        log,
+        log: spyLog,
       });
 
       assert.strictEqual(
@@ -218,6 +230,14 @@ describe("OpencodeExecutor per-account proxy + rotation (#4954)", () => {
         observed[0].port,
         observed[1].port,
         "rotation must switch to a different account/proxy after a throw"
+      );
+      assert.ok(
+        warnCalls.some((c) =>
+          new RegExp(
+            `network error on account .*, rotating to next… .*\\(proxy 127\\.0\\.0\\.1:(${portA}|${portB})\\)`
+          ).test(c.msg)
+        ),
+        `network throw warn must name the applied egress, got=${JSON.stringify(warnCalls)}`
       );
     } finally {
       globalThis.fetch = originalFetchForThrow;
@@ -261,6 +281,14 @@ describe("OpencodeExecutor per-account proxy + rotation (#4954)", () => {
         warnCalls.some((c) => c.tag === "OPENCODE" && /network error/i.test(c.msg)),
         `expected a warn-level "network error" log; got=${JSON.stringify(warnCalls)}`
       );
+      assert.ok(
+        warnCalls.some((c) =>
+          new RegExp(
+            `network error on account .*, rotating to next… .*\\(proxy 127\\.0\\.0\\.1:(${portA}|${portB})\\)`
+          ).test(c.msg)
+        ),
+        `network error warn must name the applied egress, got=${JSON.stringify(warnCalls)}`
+      );
     } finally {
       globalThis.fetch = originalFetchForThrow;
     }
@@ -292,6 +320,16 @@ describe("OpencodeExecutor per-account proxy + rotation (#4954)", () => {
         });
       }) as typeof globalThis.fetch;
 
+      const warnCalls: Array<{ tag: unknown; msg: string }> = [];
+      const spyLog: ExecutorLog = {
+        debug() {},
+        info() {},
+        warn: (tag, msg) => {
+          warnCalls.push({ tag, msg });
+        },
+        error() {},
+      };
+
       try {
         // ACCOUNT_A has no proxy, ACCOUNT_B does — credentialsWithProxies(true)
         // only configures a proxy for accounts present in accountProxies; give
@@ -308,7 +346,7 @@ describe("OpencodeExecutor per-account proxy + rotation (#4954)", () => {
           stream: false,
           signal: null,
           credentials,
-          log,
+          log: spyLog,
         });
 
         assert.strictEqual(
@@ -317,6 +355,10 @@ describe("OpencodeExecutor per-account proxy + rotation (#4954)", () => {
           "the proxied account (B) must still be tried and must succeed the request"
         );
         assert.strictEqual(call, 2, "exactly one throw (A) then one success (B)");
+        assert.ok(
+          warnCalls.some((c) => /\(proxy (direct|127\.0\.0\.1:\d+)\)/.test(c.msg)),
+          `shared-egress warn must carry an egress label, got=${JSON.stringify(warnCalls)}`
+        );
       } finally {
         globalThis.fetch = originalFetchForThrow;
       }

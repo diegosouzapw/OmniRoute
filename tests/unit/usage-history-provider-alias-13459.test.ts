@@ -19,14 +19,19 @@ test.after(() => {
 });
 
 test("#13459 saveRequestUsage stores the canonical provider id for an alias", async () => {
-  for (const provider of ["af", "api-airforce"]) {
+  // Distinct timestamps: the dedup guard skips an INSERT when timestamp +
+  // provider + model + connection + keys + token counts all match, so sharing
+  // one timestamp between the two writes would collapse them to a single row
+  // on fast/loaded CI runners (same-ms Date.now()).
+  const base = Date.now();
+  for (const [i, provider] of ["af", "api-airforce"].entries()) {
     await usageHistory.saveRequestUsage({
       provider,
       model: "gpt-4o-mini",
       tokens: { input: 10, output: 5 },
       success: true,
       latencyMs: 100,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(base + i * 1000).toISOString(),
     });
   }
   const rows = core

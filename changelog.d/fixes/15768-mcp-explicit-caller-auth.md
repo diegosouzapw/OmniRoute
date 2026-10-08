@@ -1,0 +1,1 @@
+- **fix(mcp):** make the internal hop's env key a stdio-only fallback ([#15768](https://github.com/diegosouzapw/OmniRoute/pull/15768)) — thanks @jonlwheat2-gif

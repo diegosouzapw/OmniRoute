@@ -253,14 +253,27 @@ export default function ComboControlCenterClient({ comboId }: { comboId: string 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const comboData = await fetchJson<ComboControlCenterCombo>(`/api/combos/${comboId}`);
+      // Built-in auto combos (auto, auto/*) are virtual — no persisted row/UUID.
+      // They materialize through /api/combos/auto?id= which returns the same
+      // combo shape; the UUID-keyed combo-health endpoint can't serve them, so
+      // the health lookup is skipped (it would only 400 anyway).
+      const isVirtualAutoCombo = comboId === "auto" || comboId.startsWith("auto/");
+      const comboData = await fetchJson<ComboControlCenterCombo>(
+        isVirtualAutoCombo
+          ? `/api/combos/auto?id=${encodeURIComponent(comboId)}`
+          : `/api/combos/${encodeURIComponent(comboId)}`
+      );
       const [metricsData, healthData, logsData] = await Promise.all([
         fetchJson<ComboMetricsResponse>(
           `/api/combos/metrics?combo=${encodeURIComponent(comboData.name || "")}`
         ).catch(() => ({ metrics: null })),
-        fetchJson<ComboHealthResponse>(`/api/usage/combo-health?range=${range}&comboId=${comboId}`)
-          .then((data) => data.combos?.[0] || null)
-          .catch(() => null),
+        isVirtualAutoCombo
+          ? Promise.resolve(null)
+          : fetchJson<ComboHealthResponse>(
+              `/api/usage/combo-health?range=${range}&comboId=${comboId}`
+            )
+              .then((data) => data.combos?.[0] || null)
+              .catch(() => null),
         fetchJson<CallLogEntry[]>(
           `/api/usage/call-logs?combo=1&search=${encodeURIComponent(comboData.name || "")}&limit=8`
         ).catch(() => []),

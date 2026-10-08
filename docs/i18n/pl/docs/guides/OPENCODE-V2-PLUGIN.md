@@ -74,22 +74,29 @@ podając jego nazwę i wskazując utracone informacje — dzięki temu przyczyna
 
 | Klucz                            | Wartość domyślna                                                | Uwagi                                                                                                                            |
 | -------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `providerId`                     | `"omniroute"`                                                   | Identyfikator dostawcy i integracji oraz prefiks, pod którym pojawiają się modele                                                |
-| `baseURL`                        | wymagane                                                        | Adres główny bramy, wyłącznie `http(s)`; sufiks `/v1` jest dodawany w razie potrzeby                                             |
+| `providerId`                     | `"omniroute"`                                                   | Identyfikator dostawcy, identyfikator integracji oraz prefiks, pod którym pojawiają się modele                                   |
+| `baseURL`                        | wymagane                                                        | Główny adres bramy, tylko `http(s)`; sufiks `/v1` jest dodawany tam, gdzie jest potrzebny                                        |
 | `apiKey`                         | połączone dane uwierzytelniające, następnie `OMNIROUTE_API_KEY` | Klucz czatu dla `/v1/*`                                                                                                          |
-| `managementReadToken`            | domyślnie używa `apiKey`                                        | Klucz dla `/api/*` — zazwyczaj **nie** jest to ten sam klucz                                                                     |
+| `managementReadToken`            | używa `apiKey`, jeśli nie podano                                | Klucz dla `/api/*` — zwykle **nie** jest to ten sam klucz                                                                        |
 | `displayName`                    | `"OmniRoute"`                                                   | Nazwa dostawcy w selektorze                                                                                                      |
-| `timeoutMs`                      | `10000`                                                         | Limit czasu pobierania dla każdego punktu końcowego (automatyczne kombinacje używają 5 s)                                        |
-| `modelCacheTtlMs`                | `300000`                                                        | TTL pamięci podręcznej katalogu; migawka na dysku przyspiesza zimne uruchomienia                                                 |
-| `timeouts`                       | domyślnie używa `timeoutMs`                                     | Limity czasu poszczególnych punktów końcowych w ms: `models`, `combos`, `autoCombos`, `enrichment`                               |
-| `enrichment`                     | `true`                                                          | Pobieranie nazw, cen i limitów bezpłatnych warstw                                                                                |
-| `providerTag`                    | `true`                                                          | Poprzedzenie nazwy wyświetlanej nazwą dostawcy nadrzędnego, do którego kierowany jest ruch                                       |
-| `usableOnly`                     | `false`                                                         | Zachowanie wyłącznie dostawców, których brama zgłasza jako skonfigurowanych                                                      |
-| `visibleModels` / `hiddenModels` | `[]`                                                            | Listy dozwolonych wartości dopasowywanych dokładnie lub według sufiksu; odmowa ma pierwszeństwo                                  |
+| `timeoutMs`                      | `10000`                                                         | Limit czasu pobierania dla poszczególnych punktów końcowych (automatyczne kombinacje używają 5 s)                                |
+| `modelCacheTtlMs`                | `300000`                                                        | Czas TTL pamięci podręcznej katalogu; migawka na dysku przyspiesza zimne uruchomienia                                            |
+| `timeouts`                       | używa `timeoutMs`, jeśli nie podano                             | Limity czasu dla poszczególnych punktów końcowych w ms: `models`, `combos`, `autoCombos`, `enrichment`                           |
+| `enrichment`                     | `true`                                                          | Pobieranie nazw, cen i limitów bezpłatnej warstwy                                                                                |
+| `providerTag`                    | `true`                                                          | Poprzedzanie nazwy wyświetlanej nazwą dostawcy źródłowego, do którego kierowany jest ruch                                        |
+| `usableOnly`                     | `false`                                                         | Zachowanie tylko dostawców zgłoszonych przez bramę jako skonfigurowani                                                           |
+| `showcasePerOwner`               | `10`                                                            | Liczba wpisów zachowywanych dla każdego dostawcy w widoku domyślnym                                                              |
+| `freshPerOwner`                  | `10`                                                            | Liczba nowych wpisów zachowywanych dla każdego dostawcy w widoku domyślnym                                                       |
+| `freshWindowDays`                | `90`                                                            | Okno świeżości w dniach dla gałęzi nowych wpisów                                                                                 |
+| `usageMemory`                    | `true`                                                          | Przywracanie statycznie odrzuconych wpisów wskazanych przez analizę użycia z 30 dni (wymaga tokenu zarządzania)                  |
+| `visibleModels` / `hiddenModels` | `[]`                                                            | Listy dozwolonych dokładnych identyfikatorów lub sufiksów; odmowa ma pierwszeństwo                                               |
 | `geminiSanitization`             | `true`                                                          | Usuwanie ze schematów narzędzi słów kluczowych JSON Schema odrzucanych przez Gemini (narzędzia `$ref` są przekazywane bez zmian) |
 | `apiFormat.allowAnthropic`       | `false`                                                         | Kierowanie identyfikatorów z listy dozwolonych przez blok API Anthropic                                                          |
 | `apiFormat.anthropicModels`      | `[]`                                                            | Pełne identyfikatory modeli kierowanych do Anthropic                                                                             |
 | `logLevel` / `startupDebug`      | `warn` / `false`                                                | Szczegółowość rejestrowania                                                                                                      |
+
+Pamięć użycia jest domyślnie włączona. Bez tokenu zarządzania pozostaje nieaktywna
+(przy uruchamianiu rejestrowany jest odpowiedni komunikat) i nic nie zostaje przywrócone.
 
 ## Jak katalog pozostaje aktualny
 

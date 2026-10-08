@@ -118,7 +118,9 @@ Prieiga per: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ---
 
-## 📖 Teikėjų nustatymas
+## 📖 Teikėjų konfigūravimas
+
+Norėdami masiškai pridėti API rakto ryšius iš CSV arba JSON failo, naudokite **Valdymo skydas → Teikėjai → Importuoti iš failo**. Stulpeliai nustatomi pagal jų poziciją (`provider,name,apiKey,baseUrl,priority`); `provider` jau turi egzistuoti kaip valdomas teikėjas arba suderinamas mazgas. Žr. [Teikėjų importavimas iš CSV arba JSON failo](../providers/CSV-IMPORT.md).
 
 ### 🔐 Prenumeratos teikėjai
 
@@ -135,11 +137,13 @@ Modeliai:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Profesionalo patarimas:** Sudėtingoms užduotims naudokite Opus, o kai svarbi sparta – Sonnet. OmniRoute stebi kiekvieno modelio kvotą!
+**Profesionalo patarimas:** sudėtingoms užduotims naudokite Opus, o kai svarbus greitis – Sonnet. OmniRoute stebi kiekvieno modelio kvotą!
 
-Su Claude ir Claude Code suderinami maršrutai išlaiko `max` mąstymo pastangų lygį Opus ir Sonnet
-modeliams. Haiku modeliai nepalaiko `max` pastangų lygio, todėl prieš siųsdama užklausą pirminiam
-teikėjui OmniRoute sumažina jį iki didelio mąstymo biudžeto.
+OmniRoute pagrindiniame kompiuteryje nėra naršyklės? Paleiskite `claude setup-token` bet kur, kur prisijungta prie Claude Code, ir įklijuokite vienus metus galiojantį prieigos raktą skirtuke **Sąrankos prieigos raktas**. Žr. [Claude Code naudojimas su sąrankos prieigos raktu](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Claude ir su Claude Code suderinami maršrutai išsaugo `max` samprotavimo pastangų lygį Opus ir Sonnet
+modeliams. Haiku modeliai nepriima `max` pastangų lygio, todėl prieš siųsdama užklausą pirminiam
+teikėjui OmniRoute sumažina jį iki didelio samprotavimo biudžeto.
 
 #### OpenAI Codex (Plus/Pro)
 
@@ -172,39 +176,39 @@ Modeliai:
 
 ### 💰 Pigūs teikėjai
 
-#### GLM-4.7 (nustatoma iš naujo kasdien, $0.6/1M)
+#### GLM-4.7 (nustatymas iš naujo kasdien, $0.6/1M)
 
 1. Užsiregistruokite: [Zhipu AI](https://open.bigmodel.cn)
 2. Gaukite API raktą iš Coding Plan
 3. Valdymo skydas → Pridėti API raktą: Teikėjas: `glm`, API raktas: `your-key`
 
-**Naudojimas:** `glm/glm-4.7` — **Profesionalo patarimas:** Coding Plan suteikia 3× didesnę kvotą už 1/7 kainos! Nustatoma iš naujo kasdien 10:00 val.
+**Naudojimas:** `glm/glm-4.7` — **Profesionalo patarimas:** Coding Plan suteikia 3 kartus didesnę kvotą už 7 kartus mažesnę kainą! Kvota nustatoma iš naujo kasdien 10:00 val.
 
-#### MiniMax M2.1 (nustatoma iš naujo kas 5 val., $0.20/1M)
+#### MiniMax M2.1 (nustatymas iš naujo kas 5 val., $0.20/1M)
 
 1. Užsiregistruokite: [MiniMax](https://www.minimax.io)
 2. Gaukite API raktą → Valdymo skydas → Pridėti API raktą
 
-**Naudojimas:** `minimax/MiniMax-M2.1` — **Profesionalo patarimas:** Pigiausias variantas ilgam kontekstui (1M prieigos raktų)!
+**Naudojimas:** `minimax/MiniMax-M2.1` — **Profesionalo patarimas:** pigiausias variantas ilgam kontekstui (1M žetonų)!
 
 #### Kimi K2 (fiksuotas $9/mėn. mokestis)
 
-1. Užsisakykite prenumeratą: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
+1. Užsiprenumeruokite: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. Gaukite API raktą → Valdymo skydas → Pridėti API raktą
 
-**Naudojimas:** `kimi/kimi-k2.5` — **Profesionalo patarimas:** Fiksuotas $9/mėn. mokestis už 10M prieigos raktų = faktinė $0.90/1M kaina!
+**Naudojimas:** `kimi/kimi-k2.5` — **Profesionalo patarimas:** fiksuotas $9/mėn. mokestis už 10M žetonų = faktinė $0.90/1M kaina!
 
 #### Baidu Qianfan / ERNIE
 
 1. Užsiregistruokite: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
 2. Sukurkite Qianfan API raktą → Valdymo skydas → Pridėti API raktą: Teikėjas: `qianfan`
 
-**Naudojimas:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` arba kitas su OpenAI suderinamo Qianfan modelio ID.
+**Naudojimas:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` arba kitas su OpenAI suderinamas Qianfan modelio ID.
 
 ### 🆓 NEMOKAMI teikėjai
 
 Teikėjų, kuriems nereikia autentifikavimo, puslapyje šalia **Autentifikavimas nereikalingas** yra jungiklis.
-Jį išjungus teikėjas išjungiamas, pašalinamas iš sukonfigūruotų teikėjų bei glaustųjų rodinių ir
+Jį išjungus teikėjas išjungiamas, pašalinamas iš sukonfigūruotų ir glaustų Teikėjų rodinių, o
 jo modeliai pašalinami iš `/v1/models`.
 
 #### Qoder (9 NEMOKAMI modeliai)

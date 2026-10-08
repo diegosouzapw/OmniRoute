@@ -134,17 +134,51 @@ const safe = String(err).split("\n")[0];
 n'ime ozi njehie n'ebumnobi. Sanitizer ahụ na-ekpuchi absolute paths dịka nchebe gbakwunyere n'ígwé, mana ndị na-akpọ ya agaghị
 arụpụta ozi na-ekpughe topology na mbụ.
 
-## Mkpuchi ule na CI
+## Mkpuchi na CI
 
 `tests/unit/error-message-sanitization.test.ts` na-amanye ihe ndị a:
 
-- Ụzọ ọ bụla dị n'okpuru `/api/model-combo-mappings/*` na-eweghachite body ndị e sachara maka 4xx/5xx.
+- Ụzọ ọ bụla dị n'okpuru `/api/model-combo-mappings/*` na-eweghachi body ndị e sachapụrụ mgbe 4xx/5xx mere.
 - `sanitizeErrorMessage` na-ewepụ stack trace nwere ọtụtụ ahịrị.
 - `sanitizeErrorMessage` na-eji `<path>` dochie absolute path nke POSIX na Windows.
-- `sanitizeErrorMessage` na-ejikwa input instance nke `null`/`undefined`/`Error` n'enweghị nsogbu.
+- `sanitizeErrorMessage` na-ejikwa input instance `null`/`undefined`/`Error` n'enweghị nsogbu.
 - `buildErrorBody` anaghị ekpughe stack trace n'ime field `message` ya.
 
-Mgbe ị na-agbakwunye route ma ọ bụ executor ọhụrụ, detuo usoro assertion dị na faịlụ a. Ọnụ ụzọ mkpuchi ule (`npm run test:coverage`) na-amanye ≥60% nke statements/lines/functions/branches — a ga-etinyerịrị ụzọ njehie n'ule.
+Mgbe ị na-agbakwunye ụzọ ma ọ bụ executor ọhụrụ, detuo usoro assertion dị na faịlụ a. Ọnụ ụzọ mkpuchi (`npm run test:coverage`) na-amanye ≥60% nke statements/lines/functions/branches — a ga-ekpuchirịrị ụzọ njehie.
+
+### Ọnụ ụzọ static: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` na-enyocha `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` na `src/app/api/**/route.ts` ọ bụla maka raw caught error (`err.message` / `err.stack`) ma ọ bụ raw upstream `body.error.message` nke rutere na body a na-ezigara client.
+
+**Ntụkwasị obi na-emetụta naanị call, ọ dịghị mgbe ọ na-emetụta faịlụ dum** (G-03, #15159). Na mbụ, ọnụ ụzọ ahụ na-awụgharị faịlụ dum ozugbo ọ hụrụ import ọ bụla sitere na path `utils/error` — exemption metụtara faịlụ dum ka etinyere n'ihe ize ndụ metụtara naanị call. Otu `import { sanitizeErrorMessage }` ziri ezi na-eme ka sink ndị ọzọ niile dị na faịlụ ahụ ghara ịnata nyocha ruo mgbe ebighị ebi, nke a bụkwa otú leak dị adị siri gafee n'enweghị mmejọ. Ugbu a, a na-atụkwasị otu ahịrị obi naanị mgbe ọ gafere n'ezie na builder ma ọ bụ sanitizer akwadoro:
+
+| Ụdị ahịrị                                                                                                              | A tụkwasịrị ya obi? |
+| ---------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| na-akpọ `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …                  | ee                  |
+| na-akpọ canonical builder **nke faịlụ a na-import** site na `open-sse/utils/error` ma ọ bụ `src/lib/api/errorResponse` | ee                  |
+| a na-akpọ builder akwadoro n'ụdị **ọtụtụ ahịrị**, ya mere field `message:` dị n'ahịrị na-esote                         | ee                  |
+| na-akpọ `function errorResponse(...)` nke dị naanị na faịlụ ahụ, nke body nke ya na-asachapụ                           | ee                  |
+| na-ebufe `err.message` / `err.stack` n'ebe ọ bụla ọzọ                                                                  | **mba — mmebi iwu** |
+
+Ihe abụọ si na nke a pụta nke kwesịrị ịma:
+
+- Ị-import `errorResponse` abụghị ntụkwasị obi zuru ezu. A ka ga-akara faịlụ kọwara `errorResponse` nke ya n'ebe a kpọrọ ya, n'ihi na ọnụ ụzọ ahụ na-ekpebi ntụkwasị obi site na symbol ọ bụla, ọ bụghị site na faịlụ ọ bụla. Otu ihe ahụ metụtara `createErrorResponse`.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` nke `error: body.error.message` na-esote bụ usoro e **sachapụrụ** nke a na-eji n'ofe executor `*-fetch.ts`, a naghịkwa akara ya.
+
+Module builder abụọ akwadoro na-agụnye: `open-sse/utils/error.ts` na `src/lib/api/errorResponse.ts`. Nke abụọ bụ nke ihe dịka route handler 54 dị na mpụga `open-sse` na-eji, ọ na-asachapụkwa export abụọ ya.
+
+Ụdị abụọ ndị a abụghị **mmebi iwu**, ọ bụ ezie na ọnụ ụzọ ahụ kọburu ha n'otu oge dị ka leak:
+
+- raw error dị n'ime **ahịrị audit** — `saveCallLog({ error: err.message })`, `logToolCall(...)`, ma ọ bụ logger nke na-ebu ụzọ anata message (`log.error("BATCHES", "sweep failed", { error: err.message })`). Response a na-ezigara client n'ahịrị ndị na-esote nwere ike ịbụ static `buildErrorBody`.
+- call builder akwadoro nwere **ọtụtụ ahịrị**, ebe field `message:` na-enweghị aha builder ọ bụla:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` na-akpọchi mmebi iwu ndị dịbu adị ka ọnụ ụzọ ahụ wee gbochie naanị ndị _ọhụrụ_. `assertNoStale` na-ewepụ entry ozugbo e doziri mmebi iwu ya, ka mkpọchi ahụ ghara isi ike ma bụrụ ihe na-adịgide adịgide. Ihe nche regression: `tests/unit/check-error-helper.test.ts` na `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Njikwa ndị metụtara ya
 

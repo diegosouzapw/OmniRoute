@@ -1,0 +1,1 @@
+- **feat(services):** Added an LLMLingua embedded-service supervisor + HTTP sidecar wrapping the real `@atjsh/llmlingua-2` prompt-compression package (ONNX TinyBERT model, downloaded from Hugging Face on first use). The compression engine dispatches `/compress` calls to the sidecar over HTTP, falling back to the existing in-process worker-thread backend when the sidecar is down.

@@ -386,18 +386,18 @@ docs/                       # Documentation
 
 - [ ] Тести проходять (`npm test`)
 - [ ] Перевірка лінтером проходить (`npm run lint`)
-- [ ] Збірка виконується успішно (`npm run build`)
+- [ ] Збірка успішна (`npm run build`)
 - [ ] Додано типи TypeScript для нових публічних функцій та інтерфейсів
 - [ ] Немає жорстко закодованих секретів або резервних значень
-- [ ] Публічні облікові дані вбудовано через `resolvePublicCred()` (див. [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), а не задано як літерали
+- [ ] Публічні облікові дані upstream-сервісів вбудовано через `resolvePublicCred()` (див. [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), а не як літерали
 - [ ] Відповіді з помилками проходять через `buildErrorBody()` / `sanitizeErrorMessage()` — у тілах відповідей немає необроблених трасувань стека (див. [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Команди оболонки (`exec` / `spawn`) передають значення середовища виконання через `env`, а не через інтерполяцію рядків
+- [ ] Команди оболонки (`exec` / `spawn`) передають значення часу виконання через `env`, а не через інтерполяцію рядків
 - [ ] Усі вхідні дані перевіряються за допомогою схем Zod
 - [ ] Для змін, видимих користувачам, додано **фрагмент** журналу змін у `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` (див. [`changelog.d/README.md`](./changelog.d/README.md)) — **не** редагуйте `CHANGELOG.md` безпосередньо; фрагменти об’єднуються під час випуску й ніколи не спричиняють конфліктів між PR
 - [ ] Документацію оновлено (якщо застосовно)
 - [ ] Не створено нових сповіщень CodeQL / Secret-Scanning або кожне з них відхилено з технічним обґрунтуванням і посиланням на відповідний документ у `docs/security/`
-- [ ] Маршрути, які запускають дочірні процеси (`/api/mcp/`, `/api/cli-tools/runtime/`), класифіковано як `isLocalOnlyPath()` у `src/server/authz/routeGuard.ts` — див. [жорстке правило №15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] У повідомленнях комітів немає завершальних рядків `Co-Authored-By` — коміти мають відображатися виключно під Git-ідентичністю власника репозиторію (жорстке правило №16)
+- [ ] Маршрути, що запускають дочірні процеси (`/api/mcp/`, `/api/cli-tools/runtime/`), класифіковано як `isLocalOnlyPath()` у `src/server/authz/routeGuard.ts` — див. [Жорстке правило №15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] У повідомленнях комітів немає трейлерів AI/ботів `Co-authored-by` (Жорстке правило №16) — людей-співавторів, чию роботу повторно використано, зазначено стандартними трейлерами `Co-authored-by: Name <email>`
 
 ---
 

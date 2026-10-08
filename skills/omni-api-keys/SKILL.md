@@ -63,6 +63,25 @@ curl -X DELETE https://localhost:20128/api/keys/{id} \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
+### POST /api/keys/{id}/access
+
+Add or remove allowed models and combos on an API key atomically
+
+Adds or removes allowed models and combos on an API key without lost updates.
+Serialized per key ID using an in-process async lock.
+Keys allowing all models (modelAccessMode: all) or all combos (allowedCombos containing 'combo/*')
+require switchToRestricted: true when adding new models or combos, otherwise returning a 409 Conflict.
+When switching to restricted mode, the allowlist becomes exactly the net added items (at least one required).
+Direct concurrent PATCH calls to /api/keys/{id} completely overwrite the policy outside this lock.
+
+
+```bash
+curl -X POST https://localhost:20128/api/keys/{id}/access \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
 ### GET /api/keys/{id}/devices
 
 List devices for an API key
@@ -101,30 +120,6 @@ GET keys › <id> › usage limits
 ```bash
 curl https://localhost:20128/api/keys/{id}/usage-limits \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/keys/{id}/self-service
-
-GET keys › <id> › self service
-
-Self-service settings, what the key holder can see through /v1/me/status, the providers the key can reach, and an admin preview of its /v1/me/status body (always includes limits and settings-filtered accountQuotas, regardless of scopes).
-
-```bash
-curl https://localhost:20128/api/keys/{id}/self-service \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### PUT /api/keys/{id}/self-service
-
-PUT keys › <id> › self service
-
-Update the key's self-service settings. Omitted fields keep their value.
-
-```bash
-curl -X PUT https://localhost:20128/api/keys/{id}/self-service \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
 ```
 
 ### GET /api/keys/groups

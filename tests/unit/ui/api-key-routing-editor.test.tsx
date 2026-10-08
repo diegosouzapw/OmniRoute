@@ -170,7 +170,15 @@ describe("isolated routing editor", () => {
 
   it("does not offer writes after a failed configuration load", async () => {
     setup({ failLoad: true });
-    await screen.findByRole("alert");
+    // #13554 adds the per-key Codex service-mode section to this workspace; it
+    // raises its own load-error alert, so target the routing editor's alert.
+    await waitFor(() =>
+      expect(
+        screen
+          .getAllByRole("alert")
+          .some((el) => el.textContent === "Reasoning rules could not be loaded.")
+      ).toBe(true)
+    );
     expect((screen.getByRole("button", { name: "New rule" }) as HTMLButtonElement).disabled).toBe(
       true
     );

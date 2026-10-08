@@ -33,6 +33,7 @@ import {
 import { normalizeCodexLimitPolicy, providerText } from "../providerPageHelpers";
 import { useProviderQuotaVisibility } from "./useProviderQuotaVisibility";
 import { useReorderByAvailability } from "./useReorderByAvailability";
+import { useCodexPaidCreditsToggle } from "./useCodexPaidCreditsToggle";
 import {
   useConnectionDeleteConfirm,
   type ConnectionDeleteConfirmState,
@@ -199,6 +200,7 @@ export interface UseProviderConnectionsReturn {
   handleToggleRateLimit: (connectionId: string, enabled: boolean) => Promise<void>;
   handleToggleQuotaVisibility: (connectionId: string, visible: boolean) => Promise<void>;
   handleToggleClaudeExtraUsage: (connectionId: string, enabled: boolean) => Promise<void>;
+  handleToggleCodexPaidCredits: (connectionId: string, enabled: boolean) => Promise<void>;
   handleToggleCodexLimit: (connectionId: string, field: string, enabled: boolean) => Promise<void>;
   handleToggleCliproxyapiMode: (connectionId: string, enabled: boolean) => Promise<void>;
   handleSetUpstreamProxyMode: (
@@ -545,6 +547,15 @@ export function useProviderConnections(
       );
     }
   };
+
+  // Codex paid-credits toggle — extracted to its own hook (see
+  // useCodexPaidCreditsToggle.ts) to keep this file under the file-size cap.
+  const { handleToggleCodexPaidCredits } = useCodexPaidCreditsToggle({
+    connections,
+    setConnections,
+    notify,
+    t,
+  });
 
   const handleToggleCodexLimit = async (connectionId: string, field: string, enabled: boolean) => {
     try {
@@ -1146,6 +1157,7 @@ export function useProviderConnections(
     handleToggleRateLimit,
     handleToggleQuotaVisibility,
     handleToggleClaudeExtraUsage,
+    handleToggleCodexPaidCredits,
     handleToggleCodexLimit,
     handleToggleCliproxyapiMode,
     handleSetUpstreamProxyMode,

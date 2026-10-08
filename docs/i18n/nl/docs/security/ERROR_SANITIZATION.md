@@ -140,12 +140,46 @@ geen meldingen construeren die informatie over de topologie bevatten.
 `tests/unit/error-message-sanitization.test.ts` dwingt het volgende af:
 
 - Elke route onder `/api/model-combo-mappings/*` retourneert gesaniteerde bodies bij 4xx/5xx.
-- `sanitizeErrorMessage` verwijdert stacktraces van meerdere regels.
+- `sanitizeErrorMessage` verwijdert stacktraces met meerdere regels.
 - `sanitizeErrorMessage` vervangt absolute POSIX- en Windows-paden door `<path>`.
 - `sanitizeErrorMessage` verwerkt invoerwaarden van het type `null`/`undefined`/`Error` veilig.
 - `buildErrorBody` stelt stacktraces nooit bloot in het veld `message`.
 
-Kopieer bij het toevoegen van een nieuwe route of executor het assertion-patroon uit dit bestand. De dekkingsdrempel (`npm run test:coverage`) dwingt ≥60% dekking van statements/regels/functies/vertakkingen af — foutpaden moeten worden gedekt.
+Kopieer bij het toevoegen van een nieuwe route of executor het assertiepatroon uit dit bestand. De dekkingsdrempel (`npm run test:coverage`) dwingt ≥60% dekking af voor statements/regels/functies/vertakkingen — foutpaden moeten worden gedekt.
+
+### De statische controle: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` scant `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` en elk bestand `src/app/api/**/route.ts` op een onbewerkte afgevangen fout (`err.message` / `err.stack`) of een onbewerkte upstream-waarde `body.error.message` die in een clientgerichte body terechtkomt.
+
+**Vertrouwen geldt per aanroep, nooit per bestand** (G-03, #15159). De controle sloeg voorheen een volledig bestand over zodra deze een import uit een `utils/error`-pad aantrof — een vrijstelling op bestandsniveau die werd toegepast op een risico op aanroepniveau. Eén correcte `import { sanitizeErrorMessage }` stelde alle andere sinks in het bestand permanent vrij, waardoor een daadwerkelijk lek groen door de controle kwam. Nu wordt een regel alleen vertrouwd wanneer deze daadwerkelijk via een goedgekeurde builder of sanitizer loopt:
+
+| Regelvorm                                                                                                                   | Vertrouwd?            |
+| --------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| roept `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / … aan                     | ja                    |
+| roept een canonieke builder aan **die dit bestand importeert** uit `open-sse/utils/error` of `src/lib/api/errorResponse`    | ja                    |
+| een goedgekeurde builder wordt **over meerdere regels** aangeroepen, waardoor het veld `message:` op een latere regel staat | ja                    |
+| roept een bestandslokale `function errorResponse(...)` aan waarvan de eigen body sanitiseert                                | ja                    |
+| geeft `err.message` / `err.stack` ergens anders door                                                                        | **nee — overtreding** |
+
+Twee gevolgen die het vermelden waard zijn:
+
+- Het importeren van `errorResponse` biedt _geen_ algemeen vertrouwen. Een bestand dat zijn eigen `errorResponse` definieert, wordt nog steeds op de aanroeplocatie gemarkeerd, omdat de controle vertrouwen per symbool bepaalt en niet per bestand. Hetzelfde geldt voor `createErrorResponse`.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` gevolgd door `error: body.error.message` is het **gesaniteerde** idioom dat in de `*-fetch.ts`-executors wordt gebruikt en wordt niet gemarkeerd.
+
+Beide goedgekeurde buildermodules tellen mee: `open-sse/utils/error.ts` en `src/lib/api/errorResponse.ts`. De tweede wordt gebruikt door de circa 54 routehandlers buiten `open-sse` en sanitiseert beide exports.
+
+Twee vormen die **geen** overtredingen zijn, maar die de controle ooit wel als lekken rapporteerde:
+
+- een onbewerkte fout in een **auditrij** — `saveCallLog({ error: err.message })`, `logToolCall(...)` of een logger die eerst een bericht ontvangt (`log.error("BATCHES", "sweep failed", { error: err.message })`). De clientgerichte respons op de volgende regels kan heel goed een statische `buildErrorBody` zijn.
+- een goedgekeurde builderaanroep **over meerdere regels**, waarbij het veld `message:` helemaal geen builder noemt:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` bevriest bestaande overtredingen, zodat de controle alleen _nieuwe_ overtredingen blokkeert. `assertNoStale` verwijdert automatisch een item zodra de overtreding ervan is opgelost, zodat de bevriezing niet kan verstarren. Regressiecontroles: `tests/unit/check-error-helper.test.ts` en `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Gerelateerde beheersmaatregelen
 

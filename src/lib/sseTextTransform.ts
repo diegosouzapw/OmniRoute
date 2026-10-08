@@ -43,7 +43,25 @@ export const METADATA_KEYS = new Set([
   "event",
   "provider",
   "format",
+  // OpenAI Responses API protocol identifiers / opaque blobs (#15507): never user text.
+  "call_id",
+  "item_id",
+  "obfuscation",
+  "encrypted_content",
+  "response_id",
+  "previous_response_id",
+  "status",
 ]);
+
+// Responses API events whose `delta` carries tool-call arguments (JSON), not answer text.
+export function isResponsesToolArgsDelta(json: any): boolean {
+  const t = json?.type;
+  return (
+    typeof t === "string" &&
+    t.startsWith("response.") &&
+    (t.includes("_arguments.") || t.startsWith("response.custom_tool_call_input."))
+  );
+}
 
 /**
  * Classify a string field as a PII-processed category, or `null` when it is metadata that
@@ -218,7 +236,10 @@ export function createSseTextTransform(
             for (const key of Object.keys(obj)) {
               if (typeof obj[key] === "string") {
                 const val = obj[key];
-                const field = classifyField(key, parentKey);
+                const field =
+                  key === "delta" && obj === json && isResponsesToolArgsDelta(json)
+                    ? "toolArgs"
+                    : classifyField(key, parentKey);
                 if (field === null) {
                   continue;
                 }

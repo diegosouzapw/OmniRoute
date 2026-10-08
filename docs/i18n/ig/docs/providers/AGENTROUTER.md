@@ -128,7 +128,7 @@ Maka ntụaka, bridge cc-compatible na-eziga ihe ndị na-esonụ na request ups
 | Header                                              | Uru                                                                                                   |
 | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | `Authorization`                                     | `Bearer <api-key>`                                                                                    |
-| `User-Agent`                                        | `claude-cli/2.1.258 (external, sdk-cli)`                                                              |
+| `User-Agent`                                        | `claude-cli/2.1.280 (external, sdk-cli)`                                                              |
 | `anthropic-version`                                 | `2023-06-01`                                                                                          |
 | `anthropic-beta`                                    | `claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24`                              |
 | Mgbanwe beta redact-thinking maka connection ọ bụla | Na-agbakwunye `redact-thinking-2026-02-12` maka upstream ndị chọrọ kpọmkwem stream echiche e zoro ezo |

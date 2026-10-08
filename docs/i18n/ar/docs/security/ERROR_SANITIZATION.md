@@ -140,11 +140,45 @@ const safe = String(err).split("\n")[0];
 
 - يعيد كل مسار ضمن `/api/model-combo-mappings/*` أجسام استجابة منقّحة عند أخطاء 4xx/5xx.
 - تزيل `sanitizeErrorMessage` تتبعات المكدس متعددة الأسطر.
-- تستبدل `sanitizeErrorMessage` المسارات المطلقة في POSIX وWindows بالقيمة `<path>`.
-- تتعامل `sanitizeErrorMessage` بأمان مع مدخلات `null` و`undefined` ومثيلات `Error`.
+- تستبدل `sanitizeErrorMessage` المسارات المطلقة في POSIX وWindows بـ `<path>`.
+- تتعامل `sanitizeErrorMessage` بأمان مع مدخلات `null`/`undefined`/مثيلات `Error`.
 - لا تكشف `buildErrorBody` أبدًا تتبعات المكدس في حقل `message` الخاص بها.
 
-عند إضافة مسار أو منفّذ جديد، انسخ نمط التحقق من هذا الملف. تفرض بوابة التغطية (`npm run test:coverage`) تغطية بنسبة ≥60% للتعليمات/الأسطر/الدوال/الفروع — ويجب تغطية مسارات الأخطاء.
+عند إضافة مسار أو منفّذ جديد، انسخ نمط التحقق من هذا الملف. تفرض بوابة التغطية (`npm run test:coverage`) نسبة ≥60% للعبارات/الأسطر/الدوال/الفروع — ويجب تغطية مسارات الخطأ.
+
+### البوابة الثابتة: `npm run check:error-helper`
+
+يفحص `scripts/check/check-error-helper.mjs` كلًا من `open-sse/executors/` و`open-sse/handlers/` و`open-sse/mcp-server/` وكل ملف `src/app/api/**/route.ts` بحثًا عن خطأ خام ملتقط (`err.message` / `err.stack`) أو عن `body.error.message` خام قادم من خدمة منبع يصل إلى جسم استجابة موجّه للعميل.
+
+**الثقة على مستوى الاستدعاء، وليست على مستوى الملف أبدًا** (G-03، #15159). كانت البوابة سابقًا تتخطى ملفًا كاملًا بمجرد رؤيتها أي استيراد من مسار `utils/error` — أي إعفاء على مستوى الملف طُبّق على خطر على مستوى الاستدعاء. كان استيراد صحيح واحد `import { sanitizeErrorMessage }` يعفي بصورة دائمة كل موضع إخراج آخر في الملف، وهكذا وصل تسريب فعلي إلى الإصدار رغم اجتياز الفحوصات. الآن لا يُعد السطر موثوقًا إلا عندما يمر فعليًا عبر منشئ أو منقّح معتمد:
+
+| شكل السطر                                                                                            | موثوق؟          |
+| ---------------------------------------------------------------------------------------------------- | --------------- |
+| يستدعي `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / … | نعم             |
+| يستدعي منشئًا قياسيًا **يستورده هذا الملف** من `open-sse/utils/error` أو `src/lib/api/errorResponse` | نعم             |
+| يُستدعى منشئ معتمد على **عدة أسطر**، بحيث يقع حقل `message:` في سطر لاحق                             | نعم             |
+| يستدعي `function errorResponse(...)` محلية في الملف، ويقوم جسمها بالتنقيح                            | نعم             |
+| يمرر `err.message` / `err.stack` في أي موضع آخر                                                      | **لا — مخالفة** |
+
+هناك نتيجتان يجدر معرفتهما:
+
+- لا يمنح استيراد `errorResponse` ثقة شاملة. سيظل الملف الذي يعرّف `errorResponse` الخاصة به موسومًا عند موضع الاستدعاء، لأن البوابة تحل الثقة لكل رمز، لا لكل ملف. وينطبق الأمر نفسه على `createErrorResponse`.
+- يُعد النمط `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` المتبوع بـ `error: body.error.message` نمطًا **منقّحًا** مستخدمًا عبر منفّذات `*-fetch.ts`، ولا يُوسم.
+
+تُحتسب وحدتا المنشئات المعتمدتان: `open-sse/utils/error.ts` و`src/lib/api/errorResponse.ts`. تستخدم الثانية نحو 54 من معالجات المسارات خارج `open-sse`، وهي تنقّح كلا التصديرين الخاصين بها.
+
+هناك شكلان **لا** يُعدان مخالفات، رغم أن البوابة أبلغت عنهما سابقًا بوصفهما تسريبات:
+
+- خطأ خام داخل **سجل تدقيق** — مثل `saveCallLog({ error: err.message })` أو `logToolCall(...)` أو مسجّل يأخذ الرسالة أولًا (`log.error("BATCHES", "sweep failed", { error: err.message })`). وقد تكون الاستجابة الموجّهة للعميل في الأسطر التالية جسمًا ثابتًا منشأ بواسطة `buildErrorBody`.
+- استدعاء منشئ معتمد **متعدد الأسطر**، حيث لا يذكر حقل `message:` أي منشئ على الإطلاق:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+تجمّد `KNOWN_MISSING_ERROR_HELPER` المخالفات الموجودة مسبقًا، بحيث لا تحظر البوابة إلا المخالفات _الجديدة_. تزيل `assertNoStale` الإدخال تلقائيًا بمجرد إصلاح مخالفته، فلا يمكن أن يتصلّب التجميد ويصبح دائمًا. حواجز منع التراجع: `tests/unit/check-error-helper.test.ts` و`tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## الضوابط ذات الصلة
 

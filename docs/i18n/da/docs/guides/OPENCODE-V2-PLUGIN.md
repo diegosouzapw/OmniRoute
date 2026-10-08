@@ -72,24 +72,31 @@ og angiver endpointet samt det, der gik tabt — så en begrænset modelvælger 
 
 ## Indstillinger
 
-| Nøgle                            | Standard                                                           | Bemærkninger                                                                                                   |
-| -------------------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| `providerId`                     | `"omniroute"`                                                      | Udbyder-id, integrations-id og det præfiks, som modeller vises under                                           |
-| `baseURL`                        | påkrævet                                                           | Gatewayrod, kun `http(s)`; suffikset `/v1` tilføjes, hvor det er nødvendigt                                    |
-| `apiKey`                         | tilsluttede legitimationsoplysninger, derefter `OMNIROUTE_API_KEY` | Chatnøgle til `/v1/*`                                                                                          |
-| `managementReadToken`            | bruger `apiKey` som reserve                                        | Nøgle til `/api/*` — normalt **ikke** den samme                                                                |
-| `displayName`                    | `"OmniRoute"`                                                      | Udbydernavn i modelvælgeren                                                                                    |
-| `timeoutMs`                      | `10000`                                                            | Timeout pr. endpoint for hentning (automatiske kombinationer bruger 5 sek.)                                    |
-| `modelCacheTtlMs`                | `300000`                                                           | TTL for katalogcache; et snapshot på disken fremskynder koldstarter                                            |
-| `timeouts`                       | bruger `timeoutMs` som reserve                                     | Tidsbudgetter pr. endpoint i ms: `models`, `combos`, `autoCombos`, `enrichment`                                |
-| `enrichment`                     | `true`                                                             | Hent navne, priser og budgetter for gratisniveauet                                                             |
-| `providerTag`                    | `true`                                                             | Sæt den upstream-udbyder, som der dirigeres til, foran et visningsnavn                                         |
-| `usableOnly`                     | `false`                                                            | Behold kun udbydere, som gatewayen rapporterer som klargjorte                                                  |
-| `visibleModels` / `hiddenModels` | `[]`                                                               | Tilladelseslister med eksakt match eller suffiksmatch; afvisning har forrang                                   |
-| `geminiSanitization`             | `true`                                                             | Fjern de JSON-Schema-nøgleord, som Gemini afviser, fra værktøjsskemaer (`$ref`-værktøjer videresendes uændret) |
-| `apiFormat.allowAnthropic`       | `false`                                                            | Diriger tilladelseslistede id'er gennem Anthropic API-blokken                                                  |
-| `apiFormat.anthropicModels`      | `[]`                                                               | Fuldstændige model-id'er, der dirigeres til Anthropic                                                          |
-| `logLevel` / `startupDebug`      | `warn` / `false`                                                   | Loggerens detaljeringsgrad                                                                                     |
+| Nøgle                            | Standardværdi                                                   | Bemærkninger                                                                                                   |
+| -------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `providerId`                     | `"omniroute"`                                                   | Udbyder-id, integrations-id og det præfiks, som modeller vises under                                           |
+| `baseURL`                        | påkrævet                                                        | Gateway-rod, kun `http(s)`; suffikset `/v1` tilføjes efter behov                                               |
+| `apiKey`                         | tilknyttet legitimationsoplysning, derefter `OMNIROUTE_API_KEY` | Chatnøgle til `/v1/*`                                                                                          |
+| `managementReadToken`            | bruger `apiKey` som reserve                                     | Nøgle til `/api/*` — normalt **ikke** den samme                                                                |
+| `displayName`                    | `"OmniRoute"`                                                   | Udbydernavn i vælgeren                                                                                         |
+| `timeoutMs`                      | `10000`                                                         | Timeout for hentning pr. endpoint (automatiske kombinationer bruger 5 sek.)                                    |
+| `modelCacheTtlMs`                | `300000`                                                        | TTL for katalogcache; et snapshot på disken accelererer kolde starter                                          |
+| `timeouts`                       | bruger `timeoutMs` som reserve                                  | Tidsbudgetter pr. endpoint i ms: `models`, `combos`, `autoCombos`, `enrichment`                                |
+| `enrichment`                     | `true`                                                          | Hent navne, priser og budgetter for gratisniveauet                                                             |
+| `providerTag`                    | `true`                                                          | Sæt navnet på den upstream-udbyder, som der dirigeres til, foran et visningsnavn                               |
+| `usableOnly`                     | `false`                                                         | Behold kun udbydere, som gatewayen rapporterer som klargjorte                                                  |
+| `showcasePerOwner`               | `10`                                                            | Antal poster pr. udbyder, der beholdes i standardvisningen                                                     |
+| `freshPerOwner`                  | `10`                                                            | Antal nye poster pr. udbyder, der beholdes i standardvisningen                                                 |
+| `freshWindowDays`                | `90`                                                            | Friskhedsinterval i dage for grenen med nye poster                                                             |
+| `usageMemory`                    | `true`                                                          | Gendan statisk frasorterede poster, der nævnes i brugsanalysen for 30 dage (kræver et administrationstoken)    |
+| `visibleModels` / `hiddenModels` | `[]`                                                            | Tilladelseslister med eksakte match eller suffiksmatch; afvisning har forrang                                  |
+| `geminiSanitization`             | `true`                                                          | Fjern de JSON-Schema-nøgleord, som Gemini afviser, fra værktøjsskemaer (`$ref`-værktøjer videresendes uberørt) |
+| `apiFormat.allowAnthropic`       | `false`                                                         | Diriger tilladelseslistede id'er gennem Anthropic API-blokken                                                  |
+| `apiFormat.anthropicModels`      | `[]`                                                            | Fuldstændige model-id'er, der dirigeres til Anthropic                                                          |
+| `logLevel` / `startupDebug`      | `warn` / `false`                                                | Loggerens detaljeringsgrad                                                                                     |
+
+Brugshukommelse er aktiveret som standard. Uden et administrationstoken forbliver den inaktiv
+(en opstartsmeddelelse logges), og intet gendannes.
 
 ## Sådan holdes kataloget opdateret
 
