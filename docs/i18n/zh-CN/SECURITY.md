@@ -189,7 +189,7 @@ docker run -d \
 
 ## 依赖管理
 
-- 定期运行 `npm audit`（`npm run audit:deps` 覆盖主项目 + Electron）
+- 定期运行 `npm audit`（`npm run audit:deps` 覆盖主项目）
 - 保持依赖项更新
 - 项目使用 `husky` + `lint-staged` 进行预提交检查（lint-staged + check-docs-sync + check:any-budget:t11）
 - CI 管线每次推送时运行 ESLint 安全规则（`no-eval`、`no-implied-eval`、`no-new-func` = error）

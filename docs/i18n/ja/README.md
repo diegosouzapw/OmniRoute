@@ -89,7 +89,6 @@
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![ライセンス: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![Docker Pull 数](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![Electron ダウンロード数](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
 
 <table>
   <tr>
@@ -744,7 +743,6 @@ omniroute configure codex          # 対応ツール：claude opencode qwen aide
   <tr><th align="left">プラットフォーム</th><th align="left">インストール</th><th align="left">特長</th></tr>
   <tr><td align="left" nowrap>📦 <b>npm（グローバル）</b></td><td align="left" nowrap><code>npm install -g omniroute</code></td><td align="left">1つのコマンドで、あらゆる OS に対応</td></tr>
   <tr><td align="left" nowrap>🐳 <b>Docker</b></td><td align="left" nowrap><code>docker run … diegosouzapw/omniroute</code></td><td align="left">マルチアーキテクチャ対応：<b>AMD64 + ARM64</b></td></tr>
-  <tr><td align="left" nowrap>🖥️ <b>デスクトップ（Electron）</b></td><td align="left" nowrap><code>npm run electron:build</code></td><td align="left">ネイティブウィンドウ + システムトレイ — <b>Windows / macOS / Linux</b></td></tr>
   <tr><td align="left" nowrap>🎩 <b>メニューバー（OmniRouteTray）</b></td><td align="left" nowrap><code>brew install --cask zoispag/tap/omniroute-tray</code></td><td align="left">サーバーの監視と自動更新 — <b>macOS</b></td></tr>
   <tr><td align="left" nowrap>💪 <b>ARM</b></td><td align="left" nowrap>ネイティブ <code>arm64</code></td><td align="left">Raspberry Pi、ARM サーバー、Apple Silicon</td></tr>
   <tr><td align="left" nowrap>📱 <b>Android（Termux）</b></td><td align="left" nowrap><code>pkg install nodejs && npx -y omniroute</code></td><td align="left"><b>スマートフォン上で</b>年中無休で動作、root 不要</td></tr>
@@ -754,7 +752,7 @@ omniroute configure codex          # 対応ツール：claude opencode qwen aide
   <tr><td align="left" nowrap>🛠️ <b>ソースから</b></td><td align="left" nowrap><code>npm install && npm run dev</code></td><td align="left">カスタマイズやコントリビューションに</td></tr>
 </table>
 
-<sub>📖 [Docker ガイド](docs/guides/DOCKER_GUIDE.md) · [デスクトップ](electron/README.md) · [メニューバートレイ](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
+<sub>📖 [Docker ガイド](docs/guides/DOCKER_GUIDE.md) · [メニューバートレイ](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
 
 <br/>
 
@@ -1276,7 +1274,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 でも省略さ�
   <tr><td nowrap><b>耐障害性</b></td><td>サーキットブレーカー、指数バックオフ、サンダリングハード対策、自動コンボによる自己修復</td></tr>
   <tr><td nowrap><b>ロギング</b></td><td>pino — リクエストコンテキストを含む構造化JSONログ</td></tr>
   <tr><td nowrap><b>テスト</b></td><td>Node.jsテストランナー + Vitest — 5,100以上の追跡対象テストファイルにわたる<b>39,000以上の静的テスト宣言</b>（単体、統合、E2E、セキュリティ、エコシステム）</td></tr>
-  <tr><td nowrap><b>プラットフォーム</b></td><td>デスクトップ（Electron）· Android（Termux）· PWA（任意のブラウザー）</td></tr>
+  <tr><td nowrap><b>プラットフォーム</b></td><td>Android（Termux）· PWA（任意のブラウザー）</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — リリース時にnpmおよびDocker Hubへ自動公開</td></tr>
   <tr><td nowrap><b>リンク</b></td><td><a href="https://omniroute.online">ウェブサイト</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>

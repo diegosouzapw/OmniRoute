@@ -16,7 +16,7 @@ change type to its contracts, focused checks, and CI coverage.
    [Branching & Release Model](BRANCHING_MODEL.md).
 2. **Name the contracts.** Identify every catalog, schema, generated artifact, public API, or user
    interface that the change affects. The table below gives the minimum starting set.
-3. **Write or update focused tests.** Production changes in `src/`, `open-sse/`, `electron/`, or
+3. **Write or update focused tests.** Production changes in `src/`, `open-sse/`, or
    `bin/` require an automated test in the same PR. Run the smallest test files that prove the
    behavior, then the listed focused gates.
 4. **Let CI run the broad matrix.** The complete unit shards, Vitest, coverage ratchet, and
@@ -182,7 +182,7 @@ the best-effort Bun adapter path changes; Node remains authoritative.
 **Contracts**
 
 - Root and workspace manifests/lockfile, `scripts/build/`, Next.js standalone assembly, `dist/`
-  package contents, Electron platform metadata, CI workflows, and deployment sentinels.
+  package contents, CI workflows, and deployment sentinels.
 - Supported Node ranges and the allow-listed Bun use in `CLAUDE.md` must remain intact.
 - Build artifacts stay untracked; dependency, license, workflow, and package policies apply.
 
@@ -198,7 +198,7 @@ npm run lint
 
 Use `npm run build` locally only when the change affects compilation, standalone assembly, assets,
 or runtime bundling. Use `npm run build:release` only for release/deploy validation. CI's build is
-the final cross-platform signal; platform-specific Electron changes need the matching focused build
+the final cross-platform signal; platform-specific changes need the matching focused build
 or smoke evidence.
 
 ## Local loop versus CI

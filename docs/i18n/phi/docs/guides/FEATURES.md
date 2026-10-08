@@ -264,25 +264,6 @@ Pagsubaybay sa mga administratibong aksyon na may pag-filter ayon sa uri ng aksy
 
 ---
 
-## 🖥️ Desktop Application
-
-Native na Electron desktop app para sa Windows, macOS, at Linux. Patakbuhin ang OmniRoute bilang standalone na application na may integrasyon sa system tray, offline na suporta, awtomatikong pag-update, at isang-click na pag-install.
-
-Mga pangunahing feature:
-
-- Pag-poll sa kahandaan ng server (walang blangkong screen sa cold start)
-- System tray na may pamamahala ng port
-- Content Security Policy
-- Single-instance lock
-- Awtomatikong pag-update sa pag-restart
-- UI na nakabatay sa platform (mga traffic light ng macOS, default na titlebar ng Windows/Linux)
-- Pinatibay na packaging ng Electron build — ang naka-symlink na `node_modules` sa standalone bundle ay tinutukoy at tinatanggihan bago ang packaging, na pumipigil sa runtime dependency sa build machine (v2.5.5+)
-- **Maayos na pag-shutdown** — maayos na isinasara ng Electron `before-quit` ang Next.js, na pumipigil sa mga lock ng SQLite WAL database (v3.6.2+)
-
-📖 Tingnan ang [`electron/README.md`](../../electron/README.md) para sa kumpletong dokumentasyon.
-
----
-
 ## 🌐 V1 WebSocket Bridge _(v3.6.6+)_
 
 Sinusuportahan na ngayon ng OmniRoute ang mga **OpenAI-compatible na WebSocket client** sa pamamagitan ng `/v1/ws` upgrade endpoint. Binalot ng custom na `scripts/dev/v1-ws-bridge.mjs` server ang Next.js at ina-upgrade ang mga WS connection tungo sa ganap na bidirectional streaming session. Ginagamit ng authentication ang parehong API key o session cookie na ginagamit ng mga HTTP request.

@@ -197,7 +197,7 @@ docker run -d \
 
 ## დამოკიდებულებები
 
-- რეგულარულად გაუშვით `npm audit` (`npm run audit:deps` მოიცავს ძირითად ნაწილსა და electron-ს)
+- რეგულარულად გაუშვით `npm audit` ()
 - დამოკიდებულებები განახლებული მდგომარეობაში შეინარჩუნეთ
 - პროექტი commit-მდელი შემოწმებებისთვის იყენებს `husky` + `lint-staged`-ს (lint-staged + check-docs-sync + check:any-budget:t11)
 - CI კონვეიერი ყოველი push-ის დროს უშვებს ESLint-ის უსაფრთხოების წესებს (`no-eval`, `no-implied-eval`, `no-new-func` = შეცდომა)

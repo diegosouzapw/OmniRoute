@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Aplikasi Next.js 16 (UI + rute API + pustaka + domain + server)
 ├── open-sse/             # Workspace mesin streaming (handler, eksekutor, penerjemah, server MCP)
-├── electron/             # Pembungkus desktop (Electron 41 + electron-builder 26.10)
 ├── bin/                  # Titik masuk CLI dan handler perintah
 ├── scripts/              # Skrip build, pemeriksaan, sinkronisasi, dan sekali pakai
 ├── docs/                 # Dokumentasi publik (Anda berada di sini)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Pembungkus Desktop
-
-| File             | Tujuan                                                                                          |
-| ---------------- | ----------------------------------------------------------------------------------------------- |
-| `main.js`        | Proses utama Electron (BrowserWindow, server Next.js tertanam, baki sistem, pembaruan otomatis) |
-| `preload.js`     | Jembatan IPC (contextBridge → `window.omniroute`)                                               |
-| `package.json`   | Konfigurasi electron-builder + dependensi Electron 41 + electron-builder 26.10                  |
-| `assets/`        | Ikon aplikasi (Windows .ico, macOS .icns, Linux .png)                                           |
-| `dist-electron/` | Output build (diabaikan oleh git)                                                               |
-| `types.d.ts`     | Deklarasi tipe untuk jembatan renderer                                                          |
-| `README.md`      | README Electron internal (lihat juga `docs/guides/ELECTRON_GUIDE.md`)                           |
-
----
-
 ## `bin/` — CLI
 
 | File                                                                                                        | Tujuan                                                                                                                            |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | Runner E2E MCP/A2A                                                                               |
 | `run-ecosystem-tests.mjs`           | Pengujian ekosistem (integrasi penyedia)                                                         |
 | `test-report-summary.mjs`           | Membuat markdown ringkasan cakupan                                                               |
-| `smoke-electron-packaged.mjs`       | Melakukan smoke test pada build Electron yang telah dikemas                                      |
-| `native-binary-compat.mjs`          | Memvalidasi bahwa dependensi native (`better-sqlite3`) cocok dengan Node milik Electron          |
 | `validate-pack-artifact.ts`         | Memvalidasi output npm pack                                                                      |
 | `responses-ws-proxy.mjs`            | Jembatan WebSocket untuk Codex Responses API                                                     |
 | `v1-ws-bridge.mjs`                  | Jembatan WebSocket untuk endpoint `/api/v1/ws`                                                   |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Panduan pengguna akhir (penyiapan, model, combo, CLI, audio, dll.)                           |
 | `API_REFERENCE.md`          | Referensi endpoint API beserta model autentikasi                                             |
 | `openapi.yaml`              | Spesifikasi OpenAPI 3.0 (121 path)                                                           |
-| `SETUP_GUIDE.md`            | Metode instalasi (npm, npx, Docker, Electron, Termux, sumber)                                |
+| `SETUP_GUIDE.md`            | Metode instalasi (npm, npx, Docker, Termux, sumber)                                          |
 | `ENVIRONMENT.md`            | Semua variabel lingkungan (~800 didokumentasikan, ~3.050 baris `.env.example`)               |
 | `TROUBLESHOOTING.md`        | Kesalahan umum + masalah umum yang diketahui pada v3.8.0                                     |
 | `RELEASE_CHECKLIST.md`      | Alur rilis lengkap (skill, husky, commit konvensional, deployment)                           |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Deployment Fly.io (saat ini hanya tersedia dalam bahasa Mandarin) |
 | `TERMUX_GUIDE.md`            | Android headless melalui Termux                                   |
 | `PWA_GUIDE.md`               | Instalasi Progressive Web App + service worker                    |
-| `ELECTRON_GUIDE.md`          | Build + tanda tangani + distribusikan aplikasi desktop            |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                            |
 | `PROXY_GUIDE.md`             | Proxy outbound 4 tingkat + marketplace 1proxy                     |
 

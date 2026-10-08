@@ -29,7 +29,7 @@ Objektiv sammenligning af funktioner med populære open source-AI-routere.
 | **Skjult TLS-fingeraftryk (JA3/JA4)**                    |                  ✅ wreq-js                   |        ❌         |        ❌         |       ❌        |
 | **Evalueringsframework**                                 |                 ✅ indbygget                  |        ❌         |        ❌         | ⚠ mod betaling  |
 | **MITM-proxy (opfanger Cursor/Antigravity)**             |           ✅ på tværs af platforme            |        ❌         |        ❌         |       ❌        |
-| **CLI med systembakke (uden Electron)**                  |                      ✅                       |        ❌         |        i/t        |       i/t       |
+| **CLI med systembakke**                                  |                      ✅                       |        ❌         |        i/t        |       i/t       |
 | **Automatisk CLI-godkendelse via maskin-id**             |                      ✅                       |        ❌         |        i/t        |       i/t       |
 | **Dashboard**                                            |                  Next.js 16                   |      basalt       |    proprietært    |   proprietært   |
 | **i18n**                                                 |            **42 landestandarder**             |        ❌         |        ❌         |        ⚠        |

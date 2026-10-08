@@ -265,25 +265,6 @@ Nsuso omume nchịkwa nwere nzacha dịka ụdị omume, onye mere ya, ihe e mer
 
 ---
 
-## 🖥️ Ngwa Desktop
-
-Ngwa desktop Electron e wuru kpọmkwem maka Windows, macOS, na Linux. Gbaa OmniRoute dịka ngwa kwụụrụ onwe ya, yana njikọta system tray, nkwado offline, auto-update, na nrụnye otu-pịa.
-
-Njirimara ndị bụ isi:
-
-- Nlele ugboro ugboro maka ịdị njikere nke server (enweghị ihuenyo efu mgbe a malitere ya n'ọnọdụ oyi)
-- System tray nwere njikwa port
-- Content Security Policy
-- Mkpọchi single-instance
-- Auto-update mgbe a malitegharịrị ya
-- UI dabere na platform (ọkụ okporo ụzọ macOS, titlebar ndabara nke Windows/Linux)
-- Nkwakọ Electron build e wusiri ike — a na-achọpụta `node_modules` ejikọtara site na symlink n'ime standalone bundle ma jụ ya tupu nkwakọ, iji gbochie ịdabere n'oge runtime na build machine (v2.5.5+)
-- **Mmechi nwayọọ n'enweghị mmebi** — Electron `before-quit` na-emechi Next.js nke ọma, na-egbochi mkpọchi SQLite WAL database (v3.6.2+)
-
-📖 Hụ [`electron/README.md`](../../electron/README.md) maka akwụkwọ nkọwa zuru ezu.
-
----
-
 ## 🌐 V1 WebSocket Bridge _(v3.6.6+)_
 
 OmniRoute na-akwadozi **WebSocket clients dakọtara na OpenAI** site na `/v1/ws` upgrade endpoint. Server `scripts/dev/v1-ws-bridge.mjs` ahaziri iche na-ekpuchi Next.js ma na-akwalite njikọ WS ka ha bụrụ sessions streaming zuru ezu nke na-aga n'akụkụ abụọ. Authentication na-eji otu API key ahụ ma ọ bụ session cookie dịka arịrịọ HTTP.

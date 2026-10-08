@@ -118,7 +118,6 @@ omniroute
 
 ## Begrensninger
 
-- Electron kjører ikke i Termux.
 - Det finnes ingen systemstatusfelt- eller skrivebordsintegrasjon.
 - Dette oppsettet er kun for serverbruk: bruk kontrollpanelet i nettleseren.
 - Innebygde avhengigheter kan kreve lokal kompilering.

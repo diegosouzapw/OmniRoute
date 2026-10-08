@@ -225,7 +225,7 @@ Aprėpties pastabos:
 
 - `npm run test:coverage` matuoja pagrindinio modulių testų rinkinio pirminio kodo aprėptį, neįtraukia `tests/**` ir įtraukia `open-sse/**`
 - Pull request turi išlaikyti **60%+** sakinių / eilučių / funkcijų / šakų aprėpties ribą
-- Jei PR pakeičia produkcinį kodą kataloguose `src/`, `open-sse/`, `electron/` arba `bin/`, tame pačiame PR turi būti pridėti arba atnaujinti automatiniai testai
+- Jei PR pakeičia produkcinį kodą kataloguose `src/`, `open-sse/` arba `bin/`, tame pačiame PR turi būti pridėti arba atnaujinti automatiniai testai
 - `npm run coverage:report` išspausdina išsamią naujausio aprėpties vykdymo ataskaitą pagal failus
 - `npm run test:coverage:legacy` išsaugo senesnį rodiklį istoriniam palyginimui
 - Etapinis aprėpties gerinimo planas pateiktas `docs/ops/COVERAGE_PLAN.md`
@@ -331,7 +331,6 @@ open-sse/                   # @omniroute/open-sse darbo sritis
 ├── transformer/            # Responses API transformavimo priemonė
 └── utils/                  # 22 pagalbiniai moduliai (srautai, TLS, tarpinis serveris, žurnalų registravimas)
 
-electron/                   # Electron darbalaukio programa (kelioms platformoms)
 
 tests/
 ├── unit/                   # Node.js testų vykdyklė (1 574 testų failai)

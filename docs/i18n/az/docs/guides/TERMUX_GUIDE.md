@@ -118,7 +118,6 @@ omniroute
 
 ## Məhdudiyyətlər
 
-- Electron Termux-da işləmir.
 - Sistem treyi və ya masaüstü inteqrasiyası yoxdur.
 - Bu quraşdırma yalnız server üçündür: brauzer idarəetmə panelindən istifadə edin.
 - Yerli asılılıqların lokal kompilyasiyası tələb oluna bilər.

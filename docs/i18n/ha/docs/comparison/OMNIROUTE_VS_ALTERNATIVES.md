@@ -29,7 +29,7 @@ Kwatancen siffofi na haƙiƙa da mashahuran na’urorin ba da hanya ga AI masu b
 | **Ɓoye sawun yatsan TLS (JA3/JA4)**                   |                 ✅ wreq-js                  |       ❌        |        ❌         |     ❌     |
 | **Tsarin eval**                                       |                 ✅ ginanne                  |       ❌        |        ❌         | ⚠ na biya  |
 | **Wakilin MITM (yana tare Cursor/Antigravity)**       |          ✅ dandamali daban-daban           |       ❌        |        ❌         |     ❌     |
-| **CLI mai tiren tsarin (babu Electron)**              |                     ✅                      |       ❌        |       babu        |    babu    |
+| **CLI mai tiren tsarin**                              |                     ✅                      |       ❌        |       babu        |    babu    |
 | **Tantancewar atomatik ta machine-ID a CLI**          |                     ✅                      |       ❌        |       babu        |    babu    |
 | **Allon gudanarwa**                                   |                 Next.js 16                  |    na asali     |    na mallaka     | na mallaka |
 | **i18n**                                              |               **yankuna 42**                |       ❌        |        ❌         |     ⚠      |

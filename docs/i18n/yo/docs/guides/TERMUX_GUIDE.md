@@ -118,7 +118,6 @@ omniroute
 
 ## Àwọn Ààlà
 
-- Electron kò ṣiṣẹ́ nínú Termux.
 - Kò sí system tray tàbí ìṣọ̀kan pẹ̀lú tabili.
 - Àgbékalẹ̀ yìí jẹ́ ti olupín nìkan: lo pátákó ìṣàkóso aṣàwákiri.
 - Àwọn dependency abinibi lè nílò ìkójọpọ̀ lórí ẹ̀rọ náà.

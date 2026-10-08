@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16 애플리케이션(UI + API 라우트 + 라이브러리 + 도메인 + 서버)
 ├── open-sse/             # 스트리밍 엔진 워크스페이스(핸들러, 실행기, 변환기, MCP 서버)
-├── electron/             # 데스크톱 래퍼(Electron 41 + electron-builder 26.10)
 ├── bin/                  # CLI 진입점 및 명령 핸들러
 ├── scripts/              # 빌드, 검사, 동기화 및 일회성 스크립트
 ├── docs/                 # 공개 문서(현재 위치)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — 데스크톱 래퍼
-
-| 파일             | 용도                                                                                |
-| ---------------- | ----------------------------------------------------------------------------------- |
-| `main.js`        | Electron 메인 프로세스(BrowserWindow, 임베디드 Next.js 서버, 트레이, 자동 업데이트) |
-| `preload.js`     | IPC 브리지(contextBridge → `window.omniroute`)                                      |
-| `package.json`   | electron-builder 구성 + Electron 41 + electron-builder 26.10 의존성                 |
-| `assets/`        | 앱 아이콘(Windows .ico, macOS .icns, Linux .png)                                    |
-| `dist-electron/` | 빌드 출력(git에서 무시됨)                                                           |
-| `types.d.ts`     | 렌더러 브리지용 타입 선언                                                           |
-| `README.md`      | 내부 Electron README(`docs/guides/ELECTRON_GUIDE.md`도 참조)                        |
-
----
-
 ## `bin/` — CLI
 
 | 파일                                                                                                        | 용도                                                                                                                     |
@@ -338,40 +323,38 @@ open-sse/
 
 ## `scripts/` — 빌드 및 검사 스크립트
 
-| 스크립트                            | 용도                                                                  |
-| ----------------------------------- | --------------------------------------------------------------------- |
-| `run-next.mjs`                      | 환경 변수 로드 기능을 포함한 개발/시작 실행기                         |
-| `build-next-isolated.mjs`           | 독립 실행형 빌드(Next.js 16 standalone)                               |
-| `prepublish.ts`                     | `npm pack` 실행 전 패키지 준비                                        |
-| `postinstall.mjs`                   | 최초 설치 시 `.env.example`에서 `.env` 자동 생성                      |
-| `sync-env.mjs`                      | `.env` 키를 `.env.example`과 다시 동기화                              |
-| `check-cycles.mjs`                  | 순환 종속성 감지                                                      |
-| `check-route-validation.mjs`        | 모든 API 라우트에 Zod 검증이 적용되었는지 확인                        |
-| `check-t11-any-budget.mjs`          | 파일별 명시적 `any` 허용 한도 적용                                    |
-| `check-docs-sync.mjs`               | 문서 버전 동기화 검증(기존 pre-commit)                                |
-| **`check-env-doc-sync.mjs`**        | 신규: 코드, `.env.example`, `ENVIRONMENT.md` 간 환경 변수 교차 검증   |
-| **`check-docs-counts-sync.mjs`**    | 신규: 실행기, 전략, OAuth, A2A 스킬 수가 문서와 일치하는지 검증       |
-| **`check-deprecated-versions.mjs`** | 신규: 문서에서 오래된 버전/날짜 표시                                  |
-| `check-supported-node-runtime.ts`   | 현재 Node 버전의 지원 여부 검증                                       |
-| `check-pr-test-policy.mjs`          | 프로덕션 코드 변경 시 "테스트 필수" 규칙 적용                         |
-| **`gen-provider-reference.ts`**     | 신규: 카탈로그에서 `docs/reference/PROVIDER_REFERENCE.md` 자동 생성   |
-| `i18n/generate-multilang.mjs`       | Google Translate를 통해 UI 문자열 및 문서 번역                        |
-| `i18n_autotranslate.py`             | LLM 기반 문서 번역 파이프라인                                         |
-| `validate_translation.py`           | 로케일별 번역 검증                                                    |
-| `check_translations.py`             | 코드 측 i18n 키 검사                                                  |
-| `run-playwright-tests.mjs`          | Playwright E2E 실행기                                                 |
-| `run-protocol-clients-tests.mjs`    | MCP/A2A E2E 실행기                                                    |
-| `run-ecosystem-tests.mjs`           | 생태계(제공자 통합) 테스트                                            |
-| `test-report-summary.mjs`           | 커버리지 요약 마크다운 생성                                           |
-| `smoke-electron-packaged.mjs`       | 패키징된 Electron 빌드의 스모크 테스트                                |
-| `native-binary-compat.mjs`          | 네이티브 종속성(`better-sqlite3`)이 Electron의 Node와 일치하는지 검증 |
-| `validate-pack-artifact.ts`         | npm pack 출력 검증                                                    |
-| `responses-ws-proxy.mjs`            | Codex Responses API용 WebSocket 브리지                                |
-| `v1-ws-bridge.mjs`                  | `/api/v1/ws` 엔드포인트용 WebSocket 브리지                            |
-| `standalone-server-ws.mjs`          | 독립 실행형 WS 서버 실행기                                            |
-| `system-info.mjs`                   | 지원을 위한 시스템/런타임 정보 출력                                   |
-| `healthcheck.mjs`                   | 일회성 상태 검사(Docker HEALTHCHECK에서 사용)                         |
-| `uninstall.mjs`                     | 완전 제거 스크립트                                                    |
+| 스크립트                            | 용도                                                                |
+| ----------------------------------- | ------------------------------------------------------------------- |
+| `run-next.mjs`                      | 환경 변수 로드 기능을 포함한 개발/시작 실행기                       |
+| `build-next-isolated.mjs`           | 독립 실행형 빌드(Next.js 16 standalone)                             |
+| `prepublish.ts`                     | `npm pack` 실행 전 패키지 준비                                      |
+| `postinstall.mjs`                   | 최초 설치 시 `.env.example`에서 `.env` 자동 생성                    |
+| `sync-env.mjs`                      | `.env` 키를 `.env.example`과 다시 동기화                            |
+| `check-cycles.mjs`                  | 순환 종속성 감지                                                    |
+| `check-route-validation.mjs`        | 모든 API 라우트에 Zod 검증이 적용되었는지 확인                      |
+| `check-t11-any-budget.mjs`          | 파일별 명시적 `any` 허용 한도 적용                                  |
+| `check-docs-sync.mjs`               | 문서 버전 동기화 검증(기존 pre-commit)                              |
+| **`check-env-doc-sync.mjs`**        | 신규: 코드, `.env.example`, `ENVIRONMENT.md` 간 환경 변수 교차 검증 |
+| **`check-docs-counts-sync.mjs`**    | 신규: 실행기, 전략, OAuth, A2A 스킬 수가 문서와 일치하는지 검증     |
+| **`check-deprecated-versions.mjs`** | 신규: 문서에서 오래된 버전/날짜 표시                                |
+| `check-supported-node-runtime.ts`   | 현재 Node 버전의 지원 여부 검증                                     |
+| `check-pr-test-policy.mjs`          | 프로덕션 코드 변경 시 "테스트 필수" 규칙 적용                       |
+| **`gen-provider-reference.ts`**     | 신규: 카탈로그에서 `docs/reference/PROVIDER_REFERENCE.md` 자동 생성 |
+| `i18n/generate-multilang.mjs`       | Google Translate를 통해 UI 문자열 및 문서 번역                      |
+| `i18n_autotranslate.py`             | LLM 기반 문서 번역 파이프라인                                       |
+| `validate_translation.py`           | 로케일별 번역 검증                                                  |
+| `check_translations.py`             | 코드 측 i18n 키 검사                                                |
+| `run-playwright-tests.mjs`          | Playwright E2E 실행기                                               |
+| `run-protocol-clients-tests.mjs`    | MCP/A2A E2E 실행기                                                  |
+| `run-ecosystem-tests.mjs`           | 생태계(제공자 통합) 테스트                                          |
+| `test-report-summary.mjs`           | 커버리지 요약 마크다운 생성                                         |
+| `validate-pack-artifact.ts`         | npm pack 출력 검증                                                  |
+| `responses-ws-proxy.mjs`            | Codex Responses API용 WebSocket 브리지                              |
+| `v1-ws-bridge.mjs`                  | `/api/v1/ws` 엔드포인트용 WebSocket 브리지                          |
+| `standalone-server-ws.mjs`          | 독립 실행형 WS 서버 실행기                                          |
+| `system-info.mjs`                   | 지원을 위한 시스템/런타임 정보 출력                                 |
+| `healthcheck.mjs`                   | 일회성 상태 검사(Docker HEALTHCHECK에서 사용)                       |
+| `uninstall.mjs`                     | 완전 제거 스크립트                                                  |
 
 ---
 
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | 최종 사용자 매뉴얼(설정, 모델, 콤보, CLI, 오디오 등)                            |
 | `API_REFERENCE.md`          | 인증 모델이 포함된 API 엔드포인트 참조                                          |
 | `openapi.yaml`              | OpenAPI 3.0 사양(경로 121개)                                                    |
-| `SETUP_GUIDE.md`            | 설치 방법(npm, npx, Docker, Electron, Termux, 소스)                             |
+| `SETUP_GUIDE.md`            | 설치 방법(npm, npx, Docker, Termux, 소스)                                       |
 | `ENVIRONMENT.md`            | 모든 환경 변수(약 800개 문서화, `.env.example` 약 3,050줄)                      |
 | `TROUBLESHOOTING.md`        | 일반적인 오류 + v3.8.0 알려진 문제                                              |
 | `RELEASE_CHECKLIST.md`      | 전체 릴리스 흐름(스킬, husky, conventional commits, 배포)                       |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io 배포(현재 중국어로만 제공)                              |
 | `TERMUX_GUIDE.md`            | Termux를 통한 Android 헤드리스 운영                            |
 | `PWA_GUIDE.md`               | 프로그레시브 웹 앱 설치 + 서비스 워커                          |
-| `ELECTRON_GUIDE.md`          | 데스크톱 앱 빌드 + 서명 + 배포                                 |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                         |
 | `PROXY_GUIDE.md`             | 4단계 아웃바운드 프록시 + 1proxy 마켓플레이스                  |
 

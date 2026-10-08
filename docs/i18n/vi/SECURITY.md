@@ -197,7 +197,7 @@ docker run -d \
 
 ## Các phần phụ thuộc
 
-- Chạy `npm audit` thường xuyên (`npm run audit:deps` kiểm tra phần chính + electron)
+- Chạy `npm audit` thường xuyên (`npm run audit:deps` kiểm tra phần chính)
 - Luôn cập nhật các phần phụ thuộc
 - Dự án sử dụng `husky` + `lint-staged` cho các bước kiểm tra trước khi commit (lint-staged + check-docs-sync + check:any-budget:t11)
 - Pipeline CI chạy các quy tắc bảo mật ESLint trên mỗi lần push (`no-eval`, `no-implied-eval`, `no-new-func` = lỗi)

@@ -27,7 +27,6 @@
 | भाषा            | **TypeScript 6.0+** — लक्ष्य `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                      |
 | रनटाइम          | **Node.js** `>=22.22.2 <23` किंवा `>=24.0.0 <27` (`engines` + `SUPPORTED_NODE_RANGE` द्वारे लागू)                          |
 | डेटाबेस         | `better-sqlite3` द्वारे **SQLite** (सिंगलटन, WAL जर्नलिंग)                                                                 |
-| डेस्कटॉप        | **Electron 41** + `electron-builder` 26.10 (`electron/` येथे स्वतंत्र वर्कस्पेस)                                           |
 | चाचण्या         | **Node चे नेटिव्ह टेस्ट रनर** (युनिट/इंटिग्रेशन), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | बिल्ड           | `scripts/build/build-next-isolated.mjs` द्वारे Next.js स्वतंत्र बिल्ड                                                      |
 | लिंट/स्वरूपन    | ESLint फ्लॅट कॉन्फिग + Prettier (Husky प्री-कमिटद्वारे `lint-staged`)                                                      |
@@ -51,7 +50,6 @@
 OmniRoute/
 ├── src/                  Next.js अनुप्रयोग (App Router, लायब्ररी, डोमेन, सर्व्हर, सामायिक घटक)
 ├── open-sse/             स्ट्रीमिंग इंजिन वर्कस्पेस (@omniroute/open-sse)
-├── electron/             डेस्कटॉप रॅपर (Electron 41 मुख्य प्रक्रिया + प्रीलोड)
 ├── bin/                  CLI प्रवेशबिंदू (omniroute, reset-password)
 ├── tests/                युनिट, इंटिग्रेशन, e2e, protocols-e2e, भाषांतरक, सुरक्षा, फिक्स्चर्स
 ├── scripts/              बिल्ड, सिंक, तपासणी, स्थलांतर आणि रनटाइम सहाय्यक स्क्रिप्ट्स
@@ -575,26 +573,6 @@ Hub-and-spoke भाषांतर (OpenAI हे hub आहे).
 
 ---
 
-## 5. `electron/` — डेस्कटॉप रॅपर
-
-```
-electron/
-├── main.js                  Electron मुख्य प्रोसेस
-├── preload.js               प्रीलोड ब्रिज (contextIsolation सक्षम)
-├── types.d.ts
-├── package.json             electron-builder कॉन्फिगरेशन, आवृत्ती 3.8.51
-├── README.md
-├── assets/                  बिल्ड संसाधने (आयकॉन्स, एंटायटलमेंट्स, …)
-├── node_modules/            समर्पित node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           बिल्ड आउटपुट (कमिट केलेले नाही)
-```
-
-वर्कस्पेस रूटवर पाच npm स्क्रिप्ट्स: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. स्वयंचलित अपडेट
-`electron-updater` द्वारे GitHub रिलीज फीडकडे निर्देशित केले जाते.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -659,13 +637,11 @@ bin/
 उद्देशानुसार 6 उपफोल्डर्समध्ये संघटित केले आहे.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -844,7 +820,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A प्रोटोकॉल कौशल्ये आणि डिस्कव्हरी.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK + Caveman कॉम्प्रेशन.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI इंटिग्रेशन्स.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (उपलब्ध असल्यास), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — डिप्लॉयमेंट लक्ष्ये.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — डिप्लॉयमेंट लक्ष्ये.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — सामान्य ऑपरेशनल समस्या.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — योगदानकर्त्यांची कार्यप्रणाली.
 - [CLAUDE.md](../../CLAUDE.md) — Claude Code साठी रेपोचे नियम (वरील अनेक

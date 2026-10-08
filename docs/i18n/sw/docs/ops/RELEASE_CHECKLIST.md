@@ -122,7 +122,6 @@ kiotomatiki, bila lebo yoyote.
 ### Toleo na Kumbukumbu ya Mabadiliko
 
 - [ ] Tekeleza `/version-bump-cc <patch|minor|major>` (ujuzi wa Claude Code)
-  - Husasisha `package.json`, `electron/package.json`
   - Hutengeneza upya `CHANGELOG.md` kutoka kwenye commits za git tangu tag ya mwisho
   - Husasisha badges za README.md
 - [ ] Kagua CHANGELOG.md mwenyewe na usafishe ujumbe wa commits ikiwa inahitajika
@@ -216,104 +215,6 @@ Mabadiliko yanayovunja uoanifu: ongeza footer ya `BREAKING CHANGE:` au `!` baada
 - [ ] Modeli zimesajiliwa katika `open-sse/config/providerRegistry.ts`
 - [ ] Majaribio ya kitengo katika `tests/unit/` yanajumuisha uainishaji na uelekezaji wa watoa huduma
 
-### Kompyuta ya Mezani (Electron)
-
-Ikiwa `electron/` imebadilika:
-
-- [ ] `npm run electron:smoke:packaged` inafaulu
-- [ ] Miundo imejaribiwa kwa angalau mojawapo ya `:win`, `:mac`, `:linux`
-- [ ] Vyeti vya kutia saini msimbo havijaisha muda (ikiwa unatilia saini)
-- [ ] Toleo la `electron/package.json` linalingana na `package.json` ya msingi
-- [ ] Kielekezi cha kituo cha usasishaji kiotomatiki kimesasishwa ikiwa unatolea `stable`
-
-### Mpangilio wa Muundo
-
-Hazina hutumia saraka tatu tofauti za matokeo — usizichanganye kamwe:
-
-| Saraka    | Madhumuni                                                                       | Inafuatiliwa?             |
-| --------- | ------------------------------------------------------------------------------- | ------------------------- |
-| `src/`    | Chanzo cha programu (TypeScript / TSX)                                          | Ndiyo                     |
-| `.build/` | Vipengee vya kati vya uundaji — matokeo ya `next build` (`distDir`)             | Hapana (imepuuzwa na git) |
-| `dist/`   | Kifurushi cha npm kinachoweza kusambazwa — huunganishwa na `assembleStandalone` | Hapana (imepuuzwa na git) |
-
-> **Dokezo kwa mwendeshaji:** saraka ya picha ya VPS ya mbali inasalia `/usr/lib/node_modules/omniroute/app/`.
-> Ni matokeo ya uundaji **ndani ya hazina** pekee yaliyohamishwa (`app/` → `dist/`). Ujuzi wa upelekaji husawazisha
-> maudhui ya `dist/` kwa rsync hadi saraka ya mbali ya `app/` — hakuna mabadiliko ya njia ya VPS yanayohitajika.
-
-**Mtiririko wa uundaji mmoja:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (safisha)
-  └─ next build → .build/next/   (vipengee vya kati)
-  └─ assembleStandalone          (hunakili standalone + static + public + natives → dist/)
-  └─ writes dist/BUILD_SHA       (kiashirio cha HEAD)
-```
-
-USIENDESHE `npm run build` ikifuatiwa na `npm run build:cli` tofauti kwa ajili ya upelekaji — tumia
-`npm run build:release`, ambayo hufanya uundaji upya safi + kiashirio katika amri moja.
-
-### Uthibitishaji wa Vizalia
-
-- [ ] `npm run build:release` inafaulu na `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` ni safi — hakuna `app.__qa_backup`, `scripts/scratch`, `package-lock.json`, au mabaki mengine ya ndani
-- [ ] `dist/server.js` ipo baada ya uundaji
-
-### Uwekaji Tagi na Utoaji
-
-- [ ] Endesha `/generate-release-cc` (ujuzi wa Claude Code):
-  - Huunda tagi `vX.Y.Z`
-  - Husukuma tagi na tawi
-  - Hufungua Toleo la GitHub lenye maudhui ya kumbukumbu ya mabadiliko
-  - Huambatisha visakinishaji vya Electron (ikiwa vimeundwa)
-- [ ] Au kwa mkono:
-  ```bash
-  git tag -a vX.Y.Z -m "Toleo vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Upelekaji
-
-Ujuzi wa upelekaji hutumia mtiririko mwepesi wa rsync — hakuna `npm pack`, hakuna `npm i -g`:
-
-- [ ] Tumia ujuzi wa upelekaji unaolingana na lengo:
-  - `/deploy-vps-local-cc` — VPS ya ndani (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — VPS ya Akamai (69.164.221.35)
-  - `/deploy-vps-both-cc` — zote mbili
-- [ ] Kabla ya kupeleka, thibitisha `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Uundaji lazima uendeshwe mahali ambapo `node_modules` ni halisi (checkout kuu au worktree iliyotekelezewa `npm ci` — SI worktree iliyounganishwa kwa symlink)
-- [ ] Fanya jaribio la msingi kwa instansi iliyopelekwa:
-  - Fungua `/dashboard/health` → hakikisha msururu wa toleo unalingana na toleo lililotolewa
-  - Endesha ombi la `/v1/chat/completions` dhidi ya mtoa huduma anayejulikana
-  - Thibitisha `/api/monitoring/health` inarudisha vivunja mzunguko vya `CLOSED`
-  - Thibitisha visafirishaji vya MCP vinajibu (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Baada ya Toleo
-
-- [ ] Endesha `/capture-release-evidences-cc` (ujuzi wa Claude Code)
-  - Hunasa picha za skrini/rekodi za WebP za vipengele vipya
-  - Huambatisha kwenye maelezo ya toleo / chapisho la blogu
-- [ ] Sasisha GitHub Discussions / Discord kwa tangazo la toleo
-- [ ] Fungua milestone ya toleo linalofuata
-- [ ] Ikiwa ni muhimu sana: bandika mjadala juu au uchapishe katika `news.json` kwa ajili ya bango la ndani ya programu
-
-### Kigezo cha uzinduzi wa umma wa Radar
-
-Tangazo la Radar limehifadhiwa kimakusudi likiwa na `active: false`. Uwezeshaji ni badiliko tofauti
-baada ya ushahidi kutolewa kwa kila kipengee kilicho hapa chini:
-
-- [ ] PR zote zilizopangwa kwa mfuatano za Radar zimeunganishwa na CI ya release-tip ni ya kijani
-- [ ] Sambaza na ufanyie majaribio ya awali njia za OSS za Radar huku `RADAR_ENABLED` ikiwa bado imezimwa kwa chaguo-msingi
-- [ ] Fanyia majaribio ya awali `GET /planos`, `/termos`, `/privacidade`, na `/reembolso` kwenye host ya Radar iliyotajwa
-- [ ] Rekodi utambulisho/mawasiliano/anwani ya mwendeshaji na ukaguzi wa kisheria ulioidhinishwa na mmiliki katika huduma ya faragha
-- [ ] Jaribu Stripe Checkout na webhook iliyotiwa saini katika hali ya majaribio pekee
-- [ ] Jaribu utumaji mmoja wa barua pepe ya miamala iliyosimbwa kwa njia fiche kwa kutumia mtumaji/domain iliyoidhinishwa
-- [ ] Thibitisha urejeshaji wa nakala rudufu na utekelezaji mmoja wa utafiti unaosimamiwa na wenye kikomo cha bajeti
-- [ ] Idhinisha sera ya ukaguzi wa BRL/PIX kabla ya kukubali ushahidi wa mchango
-- [ ] Wezesha Checkout ya umma baada tu ya kukamilisha vigezo vilivyotangulia, kisha washa ID mpya ya `news.json`
-- [ ] Thibitisha kwamba bango la Home linatumia maandishi yaliyotafsiriwa na kwamba ID mpya inatokea tena baada ya ID ya zamani kufungwa
-
 ## Jaribio la awali la Huduma Zilizopachikwa (v3.8.4+)
 
 Kabla ya kutoa toleo lolote linalojumuisha mabadiliko ya huduma zilizopachikwa, thibitisha:
@@ -399,7 +300,7 @@ Ikiwa toleo lina tatizo kubwa:
 - Kamwe usiruke hooks za Husky (`--no-verify`)
 - Kamwe usifanye commit ya siri, taarifa za uthibitishaji, au faili za `.env`
 - Coverage lazima ibaki ≥60/60/60/60 (statements/lines/functions/branches)
-- Daima jumuisha au sasisha majaribio unapobadilisha msimbo wa uzalishaji katika `src/`, `open-sse/`, `electron/`, au `bin/`
+- Daima jumuisha au sasisha majaribio unapobadilisha msimbo wa uzalishaji katika `src/`, `open-sse/`, au `bin/`
 
 ## Ukaguzi wa Ulandanishi wa Kiotomatiki
 

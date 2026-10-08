@@ -118,7 +118,6 @@ omniroute
 
 ## Ierobežojumi
 
-- Electron nedarbojas Termux vidē.
 - Nav sistēmas teknes vai darbvirsmas integrācijas.
 - Šī konfigurācija paredzēta tikai serverim: izmantojiet pārlūkprogrammas informācijas paneli.
 - Vietējās atkarības var būt jākompilē lokāli.

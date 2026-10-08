@@ -65,15 +65,15 @@ OmniRoute ನ ಪ್ರಸ್ತುತ ನಿಯೋಜನಾ ವಿನ್ಯಾ�
 
 ಮೂಲ issue thread ದೊಡ್ಡ ಮಟ್ಟದ cluster ಮರುರಚನೆಯನ್ನು ಪ್ರಸ್ತಾಪಿಸಿತ್ತು. ವಾಸ್ತವಿಕ workload ಸ್ವರೂಪವನ್ನು ಪರಿಶೀಲಿಸಿದ ನಂತರ, ನೀಡಿರುವ ಕಾರಣಗಳಿಗಾಗಿ ಕೆಳಗಿನವುಗಳನ್ನು **ತಿರಸ್ಕರಿಸಲಾಗಿದೆ**:
 
-| ಘಟಕ                                  | ತೀರ್ಪು     | ಕಾರಣ                                                                                                                      |
-| ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **Dragonfly**                        | **ಕೈಬಿಡಿ** | production ಪ್ರಮಾಣದ rate-limit workloadಗೆ `redis:7-alpine` ಈಗಾಗಲೇ ಸಾಕಾಗುತ್ತದೆ; ಮೀರಿಸಬೇಕಾದ ಯಾವುದೇ ಮಿತಿ ಇಲ್ಲ.                |
-| **NATS**                             | **ಕೈಬಿಡಿ** | ಪ್ರತಿ `omniroute` replica ಒಂದೇ Node.js process ಆಗಿದೆ; ಯಾವುದೇ multi-process pub/sub workload ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ.             |
-| **PostgreSQL**                       | **ಕೈಬಿಡಿ** | SQLite + sqlite-vec + FTS5 ಎಲ್ಲಾ 3 use caseಗಳನ್ನು ಪೂರೈಸುತ್ತವೆ; 97 migrationಗಳು + Electron packaging ವಲಸೆಯನ್ನು ತಡೆಯುತ್ತವೆ. |
-| **Neo4j**                            | **ಕೈಬಿಡಿ** | Routing 5-table join ಆಗಿದೆ; SQLiteನ recursive CTE ಸಾಕಾಗುತ್ತದೆ.                                                            |
-| **MinIO**                            | **ಕೈಬಿಡಿ** | multi-MB blob workload ಇಲ್ಲ; images/audio passthrough proxyಗಳಾಗಿವೆ.                                                       |
-| **pgvector / pg_ai / pg_textsearch** | **ಕೈಬಿಡಿ** | PostgreSQLನಂತೆಯೇ SQLite ಮಿತಿಯ ಕಾರಣ; pgvector ecosystem ವಿಭಜಿತವಾಗಿದೆ.                                                      |
-| **HAProxy / Envoy**                  | **ಕೈಬಿಡಿ** | Caddy ಈಗಾಗಲೇ LB + TLS ನಿರ್ವಹಿಸುತ್ತದೆ; ಎರಡನ್ನೂ Tier-1 routerಗಳಾಗಿ ಸ್ಪಷ್ಟವಾಗಿ ತಿರಸ್ಕರಿಸಲಾಗಿದೆ (`AGENTS.md` ನೋಡಿ).           |
+| ಘಟಕ                                  | ತೀರ್ಪು     | ಕಾರಣ                                                                                                            |
+| ------------------------------------ | ---------- | --------------------------------------------------------------------------------------------------------------- |
+| **Dragonfly**                        | **ಕೈಬಿಡಿ** | production ಪ್ರಮಾಣದ rate-limit workloadಗೆ `redis:7-alpine` ಈಗಾಗಲೇ ಸಾಕಾಗುತ್ತದೆ; ಮೀರಿಸಬೇಕಾದ ಯಾವುದೇ ಮಿತಿ ಇಲ್ಲ.      |
+| **NATS**                             | **ಕೈಬಿಡಿ** | ಪ್ರತಿ `omniroute` replica ಒಂದೇ Node.js process ಆಗಿದೆ; ಯಾವುದೇ multi-process pub/sub workload ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ.   |
+| **PostgreSQL**                       | **ಕೈಬಿಡಿ** | SQLite + sqlite-vec + FTS5 ಎಲ್ಲಾ 3 use caseಗಳನ್ನು ಪೂರೈಸುತ್ತವೆ; 97 migrationಗಳು packaging ವಲಸೆಯನ್ನು ತಡೆಯುತ್ತವೆ.  |
+| **Neo4j**                            | **ಕೈಬಿಡಿ** | Routing 5-table join ಆಗಿದೆ; SQLiteನ recursive CTE ಸಾಕಾಗುತ್ತದೆ.                                                  |
+| **MinIO**                            | **ಕೈಬಿಡಿ** | multi-MB blob workload ಇಲ್ಲ; images/audio passthrough proxyಗಳಾಗಿವೆ.                                             |
+| **pgvector / pg_ai / pg_textsearch** | **ಕೈಬಿಡಿ** | PostgreSQLನಂತೆಯೇ SQLite ಮಿತಿಯ ಕಾರಣ; pgvector ecosystem ವಿಭಜಿತವಾಗಿದೆ.                                            |
+| **HAProxy / Envoy**                  | **ಕೈಬಿಡಿ** | Caddy ಈಗಾಗಲೇ LB + TLS ನಿರ್ವಹಿಸುತ್ತದೆ; ಎರಡನ್ನೂ Tier-1 routerಗಳಾಗಿ ಸ್ಪಷ್ಟವಾಗಿ ತಿರಸ್ಕರಿಸಲಾಗಿದೆ (`AGENTS.md` ನೋಡಿ). |
 
 ಭವಿಷ್ಯದ use case ಇವುಗಳಲ್ಲಿ ಒಂದರ ಅಗತ್ಯವನ್ನು ಸಾಬೀತುಪಡಿಸಿದರೆ, ತಿದ್ದುಪಡಿ ಮಾಡಬೇಕಾದ ಸ್ಥಳ ಈ doc ಆಗಿದೆ.
 

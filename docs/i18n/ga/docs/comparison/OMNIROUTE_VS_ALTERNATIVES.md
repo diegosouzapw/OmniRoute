@@ -29,7 +29,7 @@ Comparáid oibiachtúil gnéithe le ródairí AI foinse oscailte a bhfuil tóir 
 | **Ceilt méarloirg TLS (JA3/JA4)**                           |                  ✅ wreq-js                   |           ❌           |         ❌          |      ❌       |
 | **Creat meastóireachta**                                    |                  ✅ ionsuite                  |           ❌           |         ❌          |   ⚠ íoctha    |
 | **Seachfhreastalaí MITM (idircheapann Cursor/Antigravity)** |               ✅ tras-ardánach                |           ❌           |         ❌          |      ❌       |
-| **CLI le tráidire córais (gan Electron)**                   |                      ✅                       |           ❌           |         n/b         |      n/b      |
+| **CLI le tráidire córais**                                  |                      ✅                       |           ❌           |         n/b         |      n/b      |
 | **Uathfhíordheimhniú CLI le haitheantas meaisín**           |                      ✅                       |           ❌           |         n/b         |      n/b      |
 | **Deais**                                                   |                  Next.js 16                   |        bunúsach        |      dílsithe       |   dílsithe    |
 | **i18n**                                                    |             **42 logchaighdeán**              |           ❌           |         ❌          |       ⚠       |

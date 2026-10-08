@@ -129,7 +129,7 @@ Any implementation following this ADR must preserve these properties:
 
 - SQLite remains the zero-configuration default.
 - Existing SQLite files and migration history remain readable.
-- npm, Electron, Docker, and restricted-runtime SQLite fallbacks retain their current startup path.
+- npm, Docker, and restricted-runtime SQLite fallbacks retain their current startup path.
 - Stored provider credentials continue to use the existing application encryption behavior.
 - A repository migration does not silently change routing, quota, API-key, or audit semantics.
 - Backup and recovery behavior is documented per backend rather than presented as universal.

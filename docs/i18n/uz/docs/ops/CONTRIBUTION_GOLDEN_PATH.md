@@ -16,7 +16,7 @@ tekshiruvlari va CI qamrovi bilan bogʻlaydi.
    tavsiflangan keyingi faol sikldan foydalaning.
 2. **Shartnomalarni sanab oʻting.** Oʻzgartirish taʼsir qiladigan har bir katalog, sxema, yaratilgan artefakt, ommaviy API yoki foydalanuvchi
    interfeysini aniqlang. Quyidagi jadval minimal boshlangʻich toʻplamni koʻrsatadi.
-3. **Yoʻnaltirilgan testlarni yozing yoki yangilang.** `src/`, `open-sse/`, `electron/` yoki
+3. **Yoʻnaltirilgan testlarni yozing yoki yangilang.** `src/`, `open-sse/` yoki
    `bin/` ichidagi ishlab chiqarish kodiga kiritilgan oʻzgartirishlar ayni PR ichida avtomatlashtirilgan testni talab qiladi. Xatti-harakatni
    tasdiqlaydigan eng kichik test fayllarini, soʻngra sanab oʻtilgan yoʻnaltirilgan tekshiruvlarni ishga tushiring.
 4. **Keng matritsani CI ishga tushirsin.** Toʻliq unit-test segmentlari, Vitest, qamrovni bosqichma-bosqich oshirish tekshiruvi va

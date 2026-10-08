@@ -197,7 +197,7 @@ docker run -d \
 
 ## תלויות
 
-- הריצו את `npm audit` באופן קבוע (`npm run audit:deps` מכסה את היישום הראשי ואת electron)
+- הריצו את `npm audit` באופן קבוע ()
 - הקפידו לעדכן את התלויות
 - הפרויקט משתמש ב-`husky` וב-`lint-staged` לבדיקות לפני commit‏ (lint-staged + check-docs-sync + check:any-budget:t11)
 - תהליך ה-CI מריץ כללי אבטחה של ESLint בכל push‏ (`no-eval`, `no-implied-eval`, `no-new-func` = שגיאה)

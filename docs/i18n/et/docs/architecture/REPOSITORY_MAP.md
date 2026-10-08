@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16 rakendus (kasutajaliides + API marsruudid + teegid + domeen + server)
 ├── open-sse/             # Voogedastusmootori tööruum (töötlejad, täitjad, tõlkija, MCP-server)
-├── electron/             # Töölauarakenduse ümbris (Electron 41 + electron-builder 26.10)
 ├── bin/                  # CLI sisendpunkt ja käsutöötlejad
 ├── scripts/              # Koostamis-, kontrollimis-, sünkroonimis- ja ühekordsed skriptid
 ├── docs/                 # Avalik dokumentatsioon (olete siin)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — töölauarakenduse ümbris
-
-| Fail             | Otstarve                                                                                              |
-| ---------------- | ----------------------------------------------------------------------------------------------------- |
-| `main.js`        | Electroni põhiprotsess (BrowserWindow, manustatud Next.js-i server, süsteemisalv, automaatvärskendus) |
-| `preload.js`     | IPC-sild (contextBridge → `window.omniroute`)                                                         |
-| `package.json`   | electron-builderi konfiguratsioon + Electron 41 + electron-builder 26.10 sõltuvused                   |
-| `assets/`        | Rakenduse ikoonid (Windowsi .ico, macOS-i .icns, Linuxi .png)                                         |
-| `dist-electron/` | Kompileerimise väljund (gitignore'iga eiratud)                                                        |
-| `types.d.ts`     | Renderdaja silla tüübideklaratsioonid                                                                 |
-| `README.md`      | Electroni sisemine README (vt ka `docs/guides/ELECTRON_GUIDE.md`)                                     |
-
----
-
 ## `bin/` — CLI
 
 | Fail                                                                                                        | Otstarve                                                                                                                            |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | MCP/A2A E2E-testide käivitaja                                                                         |
 | `run-ecosystem-tests.mjs`           | Ökosüsteemi (teenusepakkujate integratsiooni) testid                                                  |
 | `test-report-summary.mjs`           | Testikatte kokkuvõtte genereerimine Markdowni vormingus                                               |
-| `smoke-electron-packaged.mjs`       | Pakendatud Electroni koostu suitsutestimine                                                           |
-| `native-binary-compat.mjs`          | Kontrollimine, et omasõltuvused (`better-sqlite3`) vastaksid Electroni Node’ile                       |
 | `validate-pack-artifact.ts`         | Käsu `npm pack` väljundi valideerimine                                                                |
 | `responses-ws-proxy.mjs`            | WebSocketi sild Codex Responses API jaoks                                                             |
 | `v1-ws-bridge.mjs`                  | WebSocketi sild lõpp-punktile `/api/v1/ws`                                                            |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Lõppkasutaja käsiraamat (seadistamine, mudelid, kombinatsioonid, CLI-d, heli jne)                               |
 | `API_REFERENCE.md`          | API otspunktide teatmik koos autentimismudeliga                                                                 |
 | `openapi.yaml`              | OpenAPI 3.0 spetsifikatsioon (121 teed)                                                                         |
-| `SETUP_GUIDE.md`            | Paigaldusmeetodid (npm, npx, Docker, Electron, Termux, lähtekood)                                               |
+| `SETUP_GUIDE.md`            | Paigaldusmeetodid (npm, npx, Docker, Termux, lähtekood)                                                         |
 | `ENVIRONMENT.md`            | Kõik keskkonnamuutujad (~800 dokumenteeritud, `.env.example` ~3050 rida)                                        |
 | `TROUBLESHOOTING.md`        | Levinud vead + v3.8.0 teadaolevad probleemid                                                                    |
 | `RELEASE_CHECKLIST.md`      | Täielik väljalaskeprotsess (oskused, husky, conventional commits, juurutamine)                                  |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io juurutamine (praegu ainult hiina keeles)                             |
 | `TERMUX_GUIDE.md`            | Graafilise liideseta Android Termuxi kaudu                                  |
 | `PWA_GUIDE.md`               | Progressiivse veebirakenduse paigaldamine + teenusetöötaja                  |
-| `ELECTRON_GUIDE.md`          | Töölauarakenduse järk + allkirjastamine + levitamine                        |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                      |
 | `PROXY_GUIDE.md`             | 4-tasemeline väljaminev puhverserver + 1proxy turg                          |
 

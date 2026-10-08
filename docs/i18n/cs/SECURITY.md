@@ -197,7 +197,7 @@ docker run -d \
 
 ## Závislosti
 
-- Pravidelně spouštějte `npm audit` (`npm run audit:deps` zahrnuje hlavní část i Electron)
+- Pravidelně spouštějte `npm audit` ()
 - Udržujte závislosti aktuální
 - Projekt používá `husky` + `lint-staged` pro kontroly před commitem (lint-staged + check-docs-sync + check:any-budget:t11)
 - Pipeline CI při každém pushi spouští bezpečnostní pravidla ESLint (`no-eval`, `no-implied-eval`, `no-new-func` = chyba)

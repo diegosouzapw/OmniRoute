@@ -193,7 +193,7 @@ docker run -d \
 
 ## Spleáchais
 
-- Rith `npm audit` go rialta (`npm run audit:deps` clúdaíonn main + electron)
+- Rith `npm audit` go rialta (`npm run audit:deps` clúdaíonn main)
 - Coinnigh spleáchais cothrom le dáta
 - Úsáideann an tionscadal `husky` + `lint-staged` le haghaidh seiceálacha réamh-choimisiúin (lint-staged + check-docs-sync + check:any-budget:t11)
 - Ritheann píblíne CI rialacha slándála ESLint ar gach brú (`no-eval`, `no-implied-eval`, `no-new-func` = earráid)

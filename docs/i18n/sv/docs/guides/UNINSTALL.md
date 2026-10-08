@@ -83,23 +83,6 @@ docker compose down
 docker compose down -v
 ```
 
-### Electron-skrivbordsapp
-
-**Windows:**
-
-- Öppna `Inställningar → Appar → OmniRoute → Avinstallera`
-- Eller kör NSIS-avinstalleraren från installationskatalogen
-
-**macOS:**
-
-- Dra `OmniRoute.app` från `/Applications` till papperskorgen
-- Ta bort data: `rm -rf ~/Library/Application Support/omniroute`
-
-**Linux:**
-
-- Ta bort AppImage-filen
-- Ta bort data: `rm -rf ~/.omniroute`
-
 ### Installation från källkod (git clone)
 
 ```bash

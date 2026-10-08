@@ -69,7 +69,7 @@ U izvornoj raspravi o problemu predloženo je opsežnije preuređenje klastera. 
 | ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | **Dragonfly**                        | **ODBACI** | `redis:7-alpine` već je prikladan za radno opterećenje ograničavanja stope na produkcijskoj razini; nema granice koju treba probiti. |
 | **NATS**                             | **ODBACI** | Svaka replika `omniroute` jedan je Node.js proces; ne postoji viš-procesno pub/sub radno opterećenje.                                |
-| **PostgreSQL**                       | **ODBACI** | SQLite + sqlite-vec + FTS5 pokrivaju sva 3 slučaja upotrebe; 97 migracija + Electron pakiranje onemogućuju migraciju.                |
+| **PostgreSQL**                       | **ODBACI** | SQLite + sqlite-vec + FTS5 pokrivaju sva 3 slučaja upotrebe; 97 migracija pakiranje onemogućuju migraciju.                           |
 | **Neo4j**                            | **ODBACI** | Usmjeravanje je spajanje 5 tablica; rekurzivni CTE u SQLiteu je dovoljan.                                                            |
 | **MinIO**                            | **ODBACI** | Ne postoji radno opterećenje s blobovima od više MB; slike i zvuk prosljeđuju se putem proxyja.                                      |
 | **pgvector / pg_ai / pg_textsearch** | **ODBACI** | Isti razlog ograničenja SQLitea kao i za PostgreSQL; ekosustav pgvectora fragmentiran je.                                            |

@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16 alkalmazás (felhasználói felület + API-útvonalak + könyvtárak + tartományi réteg + szerver)
 ├── open-sse/             # Streamelési motor munkaterülete (kezelők, végrehajtók, fordító, MCP-szerver)
-├── electron/             # Asztali alkalmazásburkoló (Electron 41 + electron-builder 26.10)
 ├── bin/                  # CLI-belépési pont és parancskezelők
 ├── scripts/              # Buildelési, ellenőrzési, szinkronizálási és egyszeri szkriptek
 ├── docs/                 # Nyilvános dokumentáció (jelenleg itt vagy)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Asztali keretalkalmazás
-
-| Fájl             | Rendeltetés                                                                                      |
-| ---------------- | ------------------------------------------------------------------------------------------------ |
-| `main.js`        | Electron főfolyamat (BrowserWindow, beágyazott Next.js-kiszolgáló, tálca, automatikus frissítés) |
-| `preload.js`     | IPC-híd (contextBridge → `window.omniroute`)                                                     |
-| `package.json`   | electron-builder konfiguráció + Electron 41 + electron-builder 26.10 függőségek                  |
-| `assets/`        | Alkalmazásikonok (Windows .ico, macOS .icns, Linux .png)                                         |
-| `dist-electron/` | Buildkimenet (a git figyelmen kívül hagyja)                                                      |
-| `types.d.ts`     | A renderelőhíd típusdeklarációi                                                                  |
-| `README.md`      | Belső Electron README (lásd még: `docs/guides/ELECTRON_GUIDE.md`)                                |
-
----
-
 ## `bin/` — parancssori felület
 
 | Fájl                                                                                                        | Rendeltetés                                                                                                                             |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | MCP/A2A E2E-futtató                                                                                                    |
 | `run-ecosystem-tests.mjs`           | Ökoszisztéma- (szolgáltatói integrációs) tesztek                                                                       |
 | `test-report-summary.mjs`           | Lefedettségi összefoglaló generálása markdown formátumban                                                              |
-| `smoke-electron-packaged.mjs`       | A csomagolt Electron-build gyors ellenőrzése                                                                           |
-| `native-binary-compat.mjs`          | Annak ellenőrzése, hogy a natív függőségek (`better-sqlite3`) megfelelnek-e az Electron Node-verziójának               |
 | `validate-pack-artifact.ts`         | Az npm-csomagolás kimenetének ellenőrzése                                                                              |
 | `responses-ws-proxy.mjs`            | WebSocket-híd a Codex Responses API-hoz                                                                                |
 | `v1-ws-bridge.mjs`                  | WebSocket-híd az `/api/v1/ws` végponthoz                                                                               |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Végfelhasználói kézikönyv (beállítás, modellek, kombinációk, CLI-k, hang stb.)                            |
 | `API_REFERENCE.md`          | API-végpontok referenciája hitelesítési modellel                                                          |
 | `openapi.yaml`              | OpenAPI 3.0-specifikáció (121 útvonal)                                                                    |
-| `SETUP_GUIDE.md`            | Telepítési módok (npm, npx, Docker, Electron, Termux, forráskód)                                          |
+| `SETUP_GUIDE.md`            | Telepítési módok (npm, npx, Docker, Termux, forráskód)                                                    |
 | `ENVIRONMENT.md`            | Minden környezeti változó (~800 dokumentálva, ~3 050 soros `.env.example`)                                |
 | `TROUBLESHOOTING.md`        | Gyakori hibák + a v3.8.0 ismert problémái                                                                 |
 | `RELEASE_CHECKLIST.md`      | Teljes kiadási folyamat (képességek, husky, hagyományos commitok, üzembe helyezés)                        |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io-telepítés (jelenleg csak kínai nyelven)                              |
 | `TERMUX_GUIDE.md`            | Felület nélküli Android-környezet Termux használatával                      |
 | `PWA_GUIDE.md`               | Progresszív webalkalmazás telepítése + szolgáltatási munkaszál              |
-| `ELECTRON_GUIDE.md`          | Asztali alkalmazás összeállítása + aláírása + terjesztése                   |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                      |
 | `PROXY_GUIDE.md`             | Négyszintű kimenő proxy + 1proxy piactér                                    |
 

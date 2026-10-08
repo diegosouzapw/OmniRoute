@@ -197,7 +197,7 @@ docker run -d \
 
 ## డిపెండెన్సీలు
 
-- `npm audit`ను క్రమం తప్పకుండా అమలు చేయండి (`npm run audit:deps` ప్రధాన భాగం + electronను కవర్ చేస్తుంది)
+- `npm audit`ను క్రమం తప్పకుండా అమలు చేయండి (`npm run audit:deps` ప్రధాన భాగంను కవర్ చేస్తుంది)
 - డిపెండెన్సీలను అప్డేట్గా ఉంచండి
 - pre-commit తనిఖీల కోసం ప్రాజెక్ట్ `husky` + `lint-staged`ను ఉపయోగిస్తుంది (lint-staged + check-docs-sync + check:any-budget:t11)
 - ప్రతి pushపై CI pipeline ESLint భద్రతా నియమాలను అమలు చేస్తుంది (`no-eval`, `no-implied-eval`, `no-new-func` = లోపం)

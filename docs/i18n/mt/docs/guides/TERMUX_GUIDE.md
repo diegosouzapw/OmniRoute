@@ -118,7 +118,6 @@ omniroute
 
 ## Limitazzjonijiet
 
-- Electron ma jaħdimx f’Termux.
 - M’hemm l-ebda trej tas-sistema jew integrazzjoni mad-desktop.
 - Din il-konfigurazzjoni hija għas-server biss: uża d-dashboard tal-brawżer.
 - Id-dipendenzi nattivi jistgħu jeħtieġu kompilazzjoni lokali.

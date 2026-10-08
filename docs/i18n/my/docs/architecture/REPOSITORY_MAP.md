@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16 application (UI + API routes + libs + domain + server)
 ├── open-sse/             # Streaming engine workspace (handlers၊ executors၊ translator၊ MCP server)
-├── electron/             # Desktop wrapper (Electron 41 + electron-builder 26.10)
 ├── bin/                  # CLI စတင်ဝင်ရောက်ရာနေရာနှင့် command handlers
 ├── scripts/              # Build၊ စစ်ဆေးခြင်း၊ sync နှင့် တစ်ကြိမ်သုံး scripts
 ├── docs/                 # အများသုံး documentation (သင် ယခု ဤနေရာတွင် ရှိနေသည်)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Desktop Wrapper
-
-| ဖိုင်            | ရည်ရွယ်ချက်                                                                                       |
-| ---------------- | ------------------------------------------------------------------------------------------------- |
-| `main.js`        | Electron ပင်မ process (BrowserWindow၊ ထည့်သွင်းပါရှိသော Next.js server၊ tray၊ အလိုအလျောက် update) |
-| `preload.js`     | IPC bridge (contextBridge → `window.omniroute`)                                                   |
-| `package.json`   | electron-builder config + Electron 41 + electron-builder 26.10 dependency များ                    |
-| `assets/`        | App icon များ (Windows .ico၊ macOS .icns၊ Linux .png)                                             |
-| `dist-electron/` | Build output (gitignore လုပ်ထားသည်)                                                               |
-| `types.d.ts`     | Renderer bridge အတွက် type declaration များ                                                       |
-| `README.md`      | အတွင်းပိုင်း Electron README (`docs/guides/ELECTRON_GUIDE.md` ကိုလည်း ကြည့်ပါ)                    |
-
----
-
 ## `bin/` — CLI
 
 | ဖိုင်                                                                                                       | ရည်ရွယ်ချက်                                                                                                                                         |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | MCP/A2A E2E runner                                                                                                        |
 | `run-ecosystem-tests.mjs`           | Ecosystem (provider integration) test များ                                                                                |
 | `test-report-summary.mjs`           | coverage အနှစ်ချုပ် markdown ကို ထုတ်ပေးခြင်း                                                                             |
-| `smoke-electron-packaged.mjs`       | package ပြုလုပ်ထားသော Electron build ကို smoke test လုပ်ခြင်း                                                             |
-| `native-binary-compat.mjs`          | native dependency များ (`better-sqlite3`) သည် Electron ၏ Node နှင့် ကိုက်ညီကြောင်း စစ်ဆေးအတည်ပြုခြင်း                     |
 | `validate-pack-artifact.ts`         | npm pack output ကို စစ်ဆေးအတည်ပြုခြင်း                                                                                    |
 | `responses-ws-proxy.mjs`            | Codex Responses API အတွက် WebSocket bridge                                                                                |
 | `v1-ws-bridge.mjs`                  | `/api/v1/ws` endpoint အတွက် WebSocket bridge                                                                              |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | အသုံးပြုသူလက်စွဲ (ပြင်ဆင်သတ်မှတ်မှု၊ မော်ဒယ်များ၊ combo များ၊ CLI များ၊ အသံ စသည်)                                      |
 | `API_REFERENCE.md`          | အထောက်အထားစိစစ်မှု မော်ဒယ်ပါဝင်သော API endpoint ကိုးကားချက်                                                            |
 | `openapi.yaml`              | OpenAPI 3.0 သတ်မှတ်ချက် (လမ်းကြောင်း 121 ခု)                                                                           |
-| `SETUP_GUIDE.md`            | ထည့်သွင်းနည်းများ (npm, npx, Docker, Electron, Termux, မူရင်းကုဒ်)                                                     |
+| `SETUP_GUIDE.md`            | ထည့်သွင်းနည်းများ (npm, npx, Docker, Termux, မူရင်းကုဒ်)                                                               |
 | `ENVIRONMENT.md`            | ပတ်ဝန်းကျင်ဆိုင်ရာ variable အားလုံး (~800 ခု မှတ်တမ်းပြုထားပြီး `.env.example` တွင် ~3,050 လိုင်း)                     |
 | `TROUBLESHOOTING.md`        | အဖြစ်များသော အမှားများ + v3.8.0 တွင် သိရှိထားသည့် ပြဿနာများ                                                            |
 | `RELEASE_CHECKLIST.md`      | ထုတ်ဝေမှု လုပ်ငန်းစဉ်အပြည့်အစုံ (ကျွမ်းကျင်မှုများ၊ husky၊ conventional commits၊ ဖြန့်ကျက်မှု)                         |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io ဖြန့်ကျက်မှု (လက်ရှိတွင် တရုတ်ဘာသာဖြင့်သာ ရရှိနိုင်သည်)                   |
 | `TERMUX_GUIDE.md`            | Termux မှတစ်ဆင့် မျက်နှာပြင်မဲ့ Android အသုံးပြုမှု                              |
 | `PWA_GUIDE.md`               | Progressive Web App ထည့်သွင်းမှု + service worker                                |
-| `ELECTRON_GUIDE.md`          | Desktop app တည်ဆောက်ခြင်း + လက်မှတ်ထိုးခြင်း + ဖြန့်ဝေခြင်း                      |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                           |
 | `PROXY_GUIDE.md`             | အဆင့် 4 ဆင့်ပါ outbound proxy + 1proxy marketplace                               |
 

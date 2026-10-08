@@ -83,23 +83,6 @@ docker compose down
 docker compose down -v
 ```
 
-### Electron'i lauaarvutirakendus
-
-**Windows:**
-
-- Ava `Settings → Apps → OmniRoute → Uninstall`
-- Või käivita NSIS-i eemaldaja install-kataloogist
-
-**macOS:**
-
-- Lohista `OmniRoute.app` kaustast `/Applications` prügikasti
-- Eemalda andmed: `rm -rf ~/Library/Application Support/omniroute`
-
-**Linux:**
-
-- Eemalda AppImage fail
-- Eemalda andmed: `rm -rf ~/.omniroute`
-
 ### Lähtekoodist install (git clone)
 
 ```bash

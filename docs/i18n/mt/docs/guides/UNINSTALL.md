@@ -83,23 +83,6 @@ docker compose down
 docker compose down -v
 ```
 
-### Applikazzjoni tad-Desktop Electron
-
-**Windows:**
-
-- Iftaħ `Settings → Apps → OmniRoute → Uninstall`
-- Jew ħaddem id-diżinstallatur NSIS mid-direttorju tal-installazzjoni
-
-**macOS:**
-
-- Iddreggja `OmniRoute.app` minn `/Applications` għat-Trash
-- Neħħi d-data: `rm -rf ~/Library/Application Support/omniroute`
-
-**Linux:**
-
-- Neħħi l-fajl AppImage
-- Neħħi d-data: `rm -rf ~/.omniroute`
-
 ### Installazzjoni mis-Sors (git clone)
 
 ```bash

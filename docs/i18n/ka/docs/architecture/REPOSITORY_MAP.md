@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16-ის აპლიკაცია (UI + API მარშრუტები + ბიბლიოთეკები + დომენი + სერვერი)
 ├── open-sse/             # ნაკადური ძრავის სამუშაო სივრცე (დამმუშავებლები, შემსრულებლები, ტრანსლატორი, MCP სერვერი)
-├── electron/             # დესკტოპის გარსი (Electron 41 + electron-builder 26.10)
 ├── bin/                  # CLI-ის შესვლის წერტილი და ბრძანებების დამმუშავებლები
 ├── scripts/              # აგების, შემოწმების, სინქრონიზაციისა და ერთჯერადი სკრიპტები
 ├── docs/                 # საჯარო დოკუმენტაცია (თქვენ აქ ხართ)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — სამუშაო მაგიდის გარსი
-
-| ფაილი            | დანიშნულება                                                                                                     |
-| ---------------- | --------------------------------------------------------------------------------------------------------------- |
-| `main.js`        | Electron-ის მთავარი პროცესი (BrowserWindow, ჩაშენებული Next.js სერვერი, სისტემური პანელი, ავტომატური განახლება) |
-| `preload.js`     | IPC ხიდი (contextBridge → `window.omniroute`)                                                                   |
-| `package.json`   | electron-builder-ის კონფიგურაცია + Electron 41 + electron-builder 26.10-ის დამოკიდებულებები                     |
-| `assets/`        | აპლიკაციის ხატულები (Windows .ico, macOS .icns, Linux .png)                                                     |
-| `dist-electron/` | აგების შედეგი (git-ის მიერ იგნორირებული)                                                                        |
-| `types.d.ts`     | რენდერის ხიდის ტიპების დეკლარაციები                                                                             |
-| `README.md`      | შიდა Electron README (იხილეთ აგრეთვე `docs/guides/ELECTRON_GUIDE.md`)                                           |
-
----
-
 ## `bin/` — CLI
 
 | ფაილი                                                                                                       | დანიშნულება                                                                                                                                  |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | MCP/A2A E2E ტესტების გამშვები                                                                      |
 | `run-ecosystem-tests.mjs`           | ეკოსისტემის (პროვაიდერის ინტეგრაციის) ტესტები                                                      |
 | `test-report-summary.mjs`           | დაფარვის შემაჯამებელი markdown-ის გენერირება                                                       |
-| `smoke-electron-packaged.mjs`       | შეფუთული Electron აგების smoke-ტესტირება                                                           |
-| `native-binary-compat.mjs`          | შემოწმება, შეესაბამება თუ არა ნატიური დამოკიდებულებები (`better-sqlite3`) Electron-ის Node-ს       |
 | `validate-pack-artifact.ts`         | npm pack-ის შედეგის ვალიდაცია                                                                      |
 | `responses-ws-proxy.mjs`            | WebSocket ხიდი Codex Responses API-სთვის                                                           |
 | `v1-ws-bridge.mjs`                  | WebSocket ხიდი `/api/v1/ws` ბოლო წერტილისთვის                                                      |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | საბოლოო მომხმარებლის სახელმძღვანელო (გამართვა, მოდელები, კომბინაციები, CLI-ები, აუდიო და ა.შ.)               |
 | `API_REFERENCE.md`          | API-ის საბოლოო წერტილების ცნობარი ავტორიზაციის მოდელით                                                       |
 | `openapi.yaml`              | OpenAPI 3.0 სპეციფიკაცია (121 მარშრუტი)                                                                      |
-| `SETUP_GUIDE.md`            | ინსტალაციის მეთოდები (npm, npx, Docker, Electron, Termux, საწყისი კოდი)                                      |
+| `SETUP_GUIDE.md`            | ინსტალაციის მეთოდები (npm, npx, Docker, Termux, საწყისი კოდი)                                                |
 | `ENVIRONMENT.md`            | ყველა გარემოს ცვლადი (დოკუმენტირებულია ~800, `.env.example`-ში ~3,050 სტრიქონი)                              |
 | `TROUBLESHOOTING.md`        | გავრცელებული შეცდომები + v3.8.0-ის ცნობილი პრობლემები                                                        |
 | `RELEASE_CHECKLIST.md`      | გამოშვების სრული პროცესი (უნარები, husky, სტანდარტული კომიტები, განთავსება)                                  |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io-ზე განთავსება (ამჟამად მხოლოდ ჩინურ ენაზე)                                 |
 | `TERMUX_GUIDE.md`            | Android-ზე უინტერფეისო მუშაობა Termux-ის მეშვეობით                                |
 | `PWA_GUIDE.md`               | პროგრესული ვებაპის ინსტალაცია + სერვის-ვორკერი                                    |
-| `ELECTRON_GUIDE.md`          | დესკტოპ აპის აგება + ხელმოწერა + გავრცელება                                       |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                            |
 | `PROXY_GUIDE.md`             | 4-დონიანი გამავალი პროქსი + 1proxy სავაჭრო მოედანი                                |
 

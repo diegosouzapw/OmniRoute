@@ -197,7 +197,7 @@ docker run -d \
 
 ## Priklausomybės
 
-- Reguliariai paleiskite `npm audit` (`npm run audit:deps` apima pagrindinę dalį ir electron)
+- Reguliariai paleiskite `npm audit` ()
 - Nuolat atnaujinkite priklausomybes
 - Projekte patikroms prieš įrašant pakeitimus naudojami `husky` ir `lint-staged` (lint-staged + check-docs-sync + check:any-budget:t11)
 - CI konvejeris kiekvieno pakeitimų išsiuntimo metu paleidžia ESLint saugumo taisykles (`no-eval`, `no-implied-eval`, `no-new-func` = klaida)

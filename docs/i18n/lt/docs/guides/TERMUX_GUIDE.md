@@ -118,7 +118,6 @@ omniroute
 
 ## Apribojimai
 
-- „Electron“ neveikia „Termux“ aplinkoje.
 - Nėra sistemos dėklo ar integracijos su darbalaukiu.
 - Ši sąranka skirta tik serveriui: naudokite naršyklėje veikiantį valdymo skydelį.
 - Savąsias priklausomybes gali tekti kompiliuoti vietoje.

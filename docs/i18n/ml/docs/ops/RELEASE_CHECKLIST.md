@@ -122,7 +122,6 @@ E2E matrix സ്വയമേവ ഒഴിവാക്കും.
 ### Version & Changelog
 
 - [ ] `/version-bump-cc <patch|minor|major>` പ്രവർത്തിപ്പിക്കുക (Claude Code skill)
-  - `package.json`, `electron/package.json` എന്നിവയുടെ version ഉയർത്തുന്നു
   - അവസാന tag-നുശേഷമുള്ള git commits-ൽ നിന്ന് `CHANGELOG.md` വീണ്ടും സൃഷ്ടിക്കുന്നു
   - README.md badges പുതുക്കുന്നു
 - [ ] CHANGELOG.md നേരിട്ട് പരിശോധിച്ച് ആവശ്യമെങ്കിൽ commit messages വൃത്തിയാക്കുക
@@ -216,104 +215,6 @@ Breaking changes: `BREAKING CHANGE:` footer ചേർക്കുക അല്�
 - [ ] Models `open-sse/config/providerRegistry.ts`-ൽ രജിസ്റ്റർ ചെയ്തിട്ടുണ്ട്
 - [ ] `tests/unit/`-ലെ unit tests provider classification-ഉം routing-ഉം ഉൾക്കൊള്ളുന്നു
 
-### Desktop (Electron)
-
-`electron/` മാറിയിട്ടുണ്ടെങ്കിൽ:
-
-- [ ] `npm run electron:smoke:packaged` വിജയിക്കുന്നു
-- [ ] `:win`, `:mac`, `:linux` എന്നിവയിൽ കുറഞ്ഞത് ഒന്നിനെങ്കിലും builds test ചെയ്തിട്ടുണ്ട്
-- [ ] Code signing certs കാലഹരണപ്പെട്ടിട്ടില്ല (signing ചെയ്യുന്നുവെങ്കിൽ)
-- [ ] `electron/package.json` version, root `package.json`-നോട് പൊരുത്തപ്പെടുന്നു
-- [ ] `stable`-ലേക്ക് release ചെയ്യുന്നുവെങ്കിൽ auto-update channel pointer പുതുക്കിയിട്ടുണ്ട്
-
-### Build Layout
-
-repository മൂന്ന് വ്യത്യസ്ത output directories ഉപയോഗിക്കുന്നു — അവ ഒരിക്കലും തമ്മിൽ കലർത്തരുത്:
-
-| Directory | ഉദ്ദേശ്യം                                                          | Track ചെയ്തിട്ടുണ്ടോ? |
-| --------- | ------------------------------------------------------------------ | --------------------- |
-| `src/`    | Application source (TypeScript / TSX)                              | ഉണ്ട്                 |
-| `.build/` | Build intermediates — `next build` output (`distDir`)              | ഇല്ല (gitignored)     |
-| `dist/`   | വിതരണം ചെയ്യാവുന്ന npm bundle — `assembleStandalone` സജ്ജീകരിച്ചത് | ഇല്ല (gitignored)     |
-
-> **Operator കുറിപ്പ്:** remote VPS image directory `/usr/lib/node_modules/omniroute/app/` ആയി തുടരുന്നു.
-> **repository-ക്കുള്ളിലെ** build output മാത്രമാണ് മാറിയത് (`app/` → `dist/`). deploy skills,
-> `dist/`-ലെ ഉള്ളടക്കം remote `app/` dir-ലേക്ക് rsync ചെയ്യുന്നു — VPS path മാറ്റങ്ങളൊന്നും ആവശ്യമില്ല.
-
-**Single-build flow:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (വൃത്തിയാക്കുന്നു)
-  └─ next build → .build/next/   (ഇടക്കാല files)
-  └─ assembleStandalone          (standalone + static + public + natives → dist/ എന്നതിലേക്ക് പകർത്തുന്നു)
-  └─ writes dist/BUILD_SHA       (HEAD sentinel)
-```
-
-deploy ചെയ്യുന്നതിനായി `npm run build` പ്രവർത്തിപ്പിച്ചതിന് ശേഷം വേറിട്ട് `npm run build:cli` പ്രവർത്തിപ്പിക്കരുത് —
-ഒറ്റ command-ൽ clean rebuild + sentinel ചെയ്യുന്ന `npm run build:release` ഉപയോഗിക്കുക.
-
-### Artifact Validation
-
-- [ ] `npm run build:release` വിജയിക്കുകയും `dist/BUILD_SHA` == `git rev-parse --short HEAD` ആയിരിക്കുകയും ചെയ്യുന്നു
-- [ ] `npm run check:pack-artifact` പ്രശ്നങ്ങളില്ല — `app.__qa_backup`, `scripts/scratch`, `package-lock.json`, അല്ലെങ്കിൽ മറ്റ് local residue ഇല്ല
-- [ ] build-ന് ശേഷം `dist/server.js` നിലവിലുണ്ട്
-
-### Tagging & Release
-
-- [ ] `/generate-release-cc` പ്രവർത്തിപ്പിക്കുക (Claude Code skill):
-  - `vX.Y.Z` tag സൃഷ്ടിക്കുന്നു
-  - tag-ഉം branch-ഉം push ചെയ്യുന്നു
-  - changelog body ഉപയോഗിച്ച് GitHub Release തുറക്കുന്നു
-  - Electron installers attach ചെയ്യുന്നു (build ചെയ്തിട്ടുണ്ടെങ്കിൽ)
-- [ ] അല്ലെങ്കിൽ നേരിട്ട്:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deploy
-
-Deploy skills ലഘുവായ rsync flow ഉപയോഗിക്കുന്നു — `npm pack` ഇല്ല, `npm i -g` ഇല്ല:
-
-- [ ] target-നോട് പൊരുത്തപ്പെടുന്ന deploy skill ഉപയോഗിക്കുക:
-  - `/deploy-vps-local-cc` — local VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — രണ്ടും
-- [ ] deploy ചെയ്യുന്നതിന് മുമ്പ് `dist/BUILD_SHA` == `git rev-parse --short HEAD` ആണെന്ന് സ്ഥിരീകരിക്കുക
-- [ ] `node_modules` യഥാർത്ഥമായി നിലനിൽക്കുന്നിടത്ത് build പ്രവർത്തിക്കണം (main checkout അല്ലെങ്കിൽ `npm ci` ചെയ്ത worktree — symlink ചെയ്ത worktree അല്ല)
-- [ ] deploy ചെയ്ത instance smoke test ചെയ്യുക:
-  - `/dashboard/health` തുറക്കുക → version string release-നോട് പൊരുത്തപ്പെടുന്നുവെന്ന് പരിശോധിക്കുക
-  - അറിയാവുന്ന provider-നെതിരെ `/v1/chat/completions` request പ്രവർത്തിപ്പിക്കുക
-  - `/api/monitoring/health`, `CLOSED` circuit breakers മടക്കിനൽകുന്നുവെന്ന് സ്ഥിരീകരിക്കുക
-  - MCP transports പ്രതികരിക്കുന്നുവെന്ന് സ്ഥിരീകരിക്കുക (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### റിലീസിന് ശേഷം
-
-- [ ] `/capture-release-evidences-cc` പ്രവർത്തിപ്പിക്കുക (Claude Code skill)
-  - പുതിയ features-ന്റെ WebP screenshots/recordings പകർത്തുന്നു
-  - release notes / blog post-ൽ attach ചെയ്യുന്നു
-- [ ] release announcement ഉപയോഗിച്ച് GitHub Discussions / Discord പുതുക്കുക
-- [ ] അടുത്ത version-നായി milestone തുറക്കുക
-- [ ] അതീവ നിർണായകമാണെങ്കിൽ: discussion pin ചെയ്യുക അല്ലെങ്കിൽ in-app banner-നായി `news.json`-ൽ post ചെയ്യുക
-
-### Radar public-launch gate
-
-Radar announcement മനഃപൂർവം `active: false` എന്ന നിലയിലാണ് commit ചെയ്തിരിക്കുന്നത്. ചുവടെയുള്ള ഓരോ item-നും
-തെളിവ് ലഭിച്ചതിനു ശേഷം വേറിട്ട മാറ്റമായാണ് activation നടത്തേണ്ടത്:
-
-- [ ] stacked Radar PR-കൾ എല്ലാം merge ചെയ്തിട്ടുണ്ട്, release-tip CI green ആണ്
-- [ ] `RADAR_ENABLED` default ആയി off ആയിരിക്കുമ്പോൾ OSS Radar routes deploy ചെയ്ത് smoke ചെയ്യുക
-- [ ] നിർദ്ദിഷ്ട Radar host-ൽ `GET /planos`, `/termos`, `/privacidade`, `/reembolso` എന്നിവ smoke ചെയ്യുക
-- [ ] operator identity/contact/address-ഉം owner അംഗീകരിച്ച legal review-ഉം private service-ൽ രേഖപ്പെടുത്തുക
-- [ ] test mode-ൽ മാത്രം Stripe Checkout-ഉം signed webhook-ഉം പ്രവർത്തിപ്പിച്ച് പരിശോധിക്കുക
-- [ ] അംഗീകരിച്ച sender/domain ഉപയോഗിച്ച് ഒരു encrypted transactional-email delivery പ്രവർത്തിപ്പിച്ച് പരിശോധിക്കുക
-- [ ] backup restore-ഉം മേൽനോട്ടത്തിലുള്ള, budget പരിധിയിട്ട ഒരു research run-ഉം തെളിയിക്കുക
-- [ ] donation evidence സ്വീകരിക്കുന്നതിന് മുമ്പ് BRL/PIX review policy അംഗീകരിക്കുക
-- [ ] മുകളിലെ gates പൂർത്തിയായതിന് ശേഷം മാത്രം public Checkout enable ചെയ്യുക; തുടർന്ന് പുതിയ `news.json` ID സജീവമാക്കുക
-- [ ] Home banner localized copy ഉപയോഗിക്കുന്നുവെന്നും പഴയ ID dismiss ചെയ്ത ശേഷം പുതിയ ID വീണ്ടും പ്രത്യക്ഷപ്പെടുന്നുവെന്നും സ്ഥിരീകരിക്കുക
-
 ## Embedded Services സ്മോക്ക് പരിശോധന (v3.8.4+)
 
 Embedded Services മാറ്റങ്ങൾ ഉൾപ്പെടുന്ന ഏതെങ്കിലും റിലീസ് പുറത്തിറക്കുന്നതിന് മുമ്പ്, പരിശോധിക്കുക:
@@ -399,7 +300,7 @@ Embedded Services മാറ്റങ്ങൾ ഉൾപ്പെടുന്ന 
 - Husky ഹുക്കുകൾ (`--no-verify`) ഒരിക്കലും ഒഴിവാക്കരുത്
 - രഹസ്യങ്ങൾ, ക്രെഡൻഷ്യലുകൾ, അല്ലെങ്കിൽ `.env` ഫയലുകൾ ഒരിക്കലും കമ്മിറ്റ് ചെയ്യരുത്
 - കവറേജ് ≥60/60/60/60 (സ്റ്റേറ്റ്മെന്റുകൾ/ലൈനുകൾ/ഫങ്ഷനുകൾ/ബ്രാഞ്ചുകൾ) ആയി നിലനിർത്തണം
-- `src/`, `open-sse/`, `electron/`, അല്ലെങ്കിൽ `bin/` എന്നിവയിലെ പ്രൊഡക്ഷൻ കോഡ് മാറ്റുമ്പോൾ എല്ലായ്പ്പോഴും ടെസ്റ്റുകൾ ഉൾപ്പെടുത്തുകയോ അപ്ഡേറ്റ് ചെയ്യുകയോ വേണം
+- `src/`, `open-sse/`, അല്ലെങ്കിൽ `bin/` എന്നിവയിലെ പ്രൊഡക്ഷൻ കോഡ് മാറ്റുമ്പോൾ എല്ലായ്പ്പോഴും ടെസ്റ്റുകൾ ഉൾപ്പെടുത്തുകയോ അപ്ഡേറ്റ് ചെയ്യുകയോ വേണം
 
 ## ഓട്ടോമേറ്റഡ് സിങ്ക് പരിശോധന
 

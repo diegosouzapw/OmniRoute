@@ -197,7 +197,7 @@ docker run -d \
 
 ## 종속성
 
-- `npm audit`를 정기적으로 실행합니다(`npm run audit:deps`는 메인 + electron을 검사합니다)
+- `npm audit`를 정기적으로 실행합니다(`npm run audit:deps`는 메인을 검사합니다)
 - 종속성을 최신 상태로 유지합니다
 - 프로젝트는 커밋 전 검사에 `husky` + `lint-staged`를 사용합니다(lint-staged + check-docs-sync + check:any-budget:t11)
 - CI 파이프라인은 모든 푸시에서 ESLint 보안 규칙을 실행합니다(`no-eval`, `no-implied-eval`, `no-new-func` = 오류)

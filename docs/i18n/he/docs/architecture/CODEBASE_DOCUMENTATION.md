@@ -27,7 +27,6 @@
 | שפה             | **TypeScript 6.0+** — יעד `ES2022`,‏ `module: esnext`,‏ `moduleResolution: bundler`,‏ `strict: false`                          |
 | זמן ריצה        | **Node.js** `>=22.22.2 <23` או `>=24.0.0 <27` (נאכף באמצעות `engines` + `SUPPORTED_NODE_RANGE`)                                |
 | מסד נתונים      | **SQLite** באמצעות `better-sqlite3` (מופע יחיד, רישום WAL)                                                                     |
-| שולחן עבודה     | **Electron 41** + `electron-builder` 26.10 (סביבת עבודה נפרדת תחת `electron/`)                                                 |
 | בדיקות          | **מריץ הבדיקות המובנה של Node** (יחידה/אינטגרציה), **Vitest** ‏(MCP,‏ autoCombo, מטמון), **Playwright** ‏(e2e + protocols-e2e) |
 | בנייה           | Next.js עצמאי באמצעות `scripts/build/build-next-isolated.mjs`                                                                  |
 | ניתוח קוד/עיצוב | תצורה שטוחה של ESLint + ‏Prettier ‏(`lint-staged` באמצעות Husky לפני commit)                                                   |
@@ -51,7 +50,6 @@
 OmniRoute/
 ├── src/                  אפליקציית Next.js ‏(App Router, ספריות, תחום, שרת, רכיבים משותפים)
 ├── open-sse/             סביבת עבודה של מנוע הזרמה (@omniroute/open-sse)
-├── electron/             מעטפת שולחן עבודה (התהליך הראשי של Electron 41 + טעינה מקדימה)
 ├── bin/                  נקודות כניסה של CLI ‏(omniroute, reset-password)
 ├── tests/                בדיקות יחידה, אינטגרציה, e2e,‏ protocols-e2e, מתרגם, אבטחה ונתוני בדיקה
 ├── scripts/              סקריפטים לבנייה, סנכרון, בדיקה, מיגרציה וכלי עזר לזמן ריצה
@@ -575,26 +573,6 @@ open-sse/
 
 ---
 
-## 5. `electron/` — מעטפת שולחן עבודה
-
-```
-electron/
-├── main.js                  התהליך הראשי של Electron
-├── preload.js               גשר טעינה מקדימה (contextIsolation מופעל)
-├── types.d.ts
-├── package.json             תצורת electron-builder, גרסה 3.8.51
-├── README.md
-├── assets/                  משאבי בנייה (סמלים, הרשאות, …)
-├── node_modules/            תיקיית node_modules ייעודית (better-sqlite3, electron-updater)
-└── dist-electron/           פלט הבנייה (אינו נשמר במאגר)
-```
-
-חמישה סקריפטים של npm בשורש סביבת העבודה: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. העדכון האוטומטי מתבצע באמצעות
-`electron-updater`, המצביע על ערוץ ההפצות של GitHub.
-
----
-
 ## 6. `bin/` — ממשק שורת פקודה
 
 ```
@@ -659,13 +637,11 @@ bin/
 מאורגנת ב-6 תיקיות משנה לפי מטרה.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -845,7 +821,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — יכולות וגילוי בפרוטוקול A2A.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — דחיסת RTK ו-Caveman.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — שילובי CLI.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (אם קיים), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — יעדי פריסה.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — יעדי פריסה.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — בעיות תפעוליות נפוצות.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — תהליך העבודה של תורמים.
 - [CLAUDE.md](../../CLAUDE.md) — כללי המאגר עבור Claude Code (המקור המוסמך

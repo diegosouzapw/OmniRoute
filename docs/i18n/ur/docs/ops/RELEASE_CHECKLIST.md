@@ -122,7 +122,6 @@ release branch پر دوبارہ توثیق کی جاتی ہے (مسلسل relea
 ### Version اور Changelog
 
 - [ ] `/version-bump-cc <patch|minor|major>` چلائیں (Claude Code skill)
-  - `package.json`، `electron/package.json` کو bump کرتا ہے
   - آخری tag کے بعد کے git commits سے `CHANGELOG.md` دوبارہ بناتا ہے
   - README.md badges کو اپ ڈیٹ کرتا ہے
 - [ ] CHANGELOG.md کا دستی جائزہ لیں اور ضرورت پڑنے پر commit messages درست کریں
@@ -216,104 +215,6 @@ Breaking changes: `BREAKING CHANGE:` footer یا scope کے بعد `!` شامل 
 - [ ] Models، `open-sse/config/providerRegistry.ts` میں رجسٹرڈ ہوں
 - [ ] `tests/unit/` میں unit tests فراہم کنندہ کی درجہ بندی اور routing کا احاطہ کریں
 
-### ڈیسک ٹاپ (Electron)
-
-اگر `electron/` تبدیل ہوا ہے:
-
-- [ ] `npm run electron:smoke:packaged` کامیاب ہو
-- [ ] کم از کم `:win`، `:mac`، `:linux` میں سے کسی ایک کے لیے builds ٹیسٹ کیے گئے ہوں
-- [ ] Code signing certificates کی میعاد ختم نہ ہوئی ہو (اگر signing کی جا رہی ہے)
-- [ ] `electron/package.json` کا version، بنیادی `package.json` سے مماثل ہو
-- [ ] اگر `stable` پر ریلیز کی جا رہی ہے تو auto-update channel pointer اپ ڈیٹ کیا گیا ہو
-
-### بِلڈ لے آؤٹ
-
-ریپوزٹری تین الگ output directories استعمال کرتی ہے — انہیں کبھی آپس میں نہ ملائیں:
-
-| ڈائریکٹری | مقصد                                                               | ٹریک شدہ؟         |
-| --------- | ------------------------------------------------------------------ | ----------------- |
-| `src/`    | ایپلیکیشن کا ماخذ (TypeScript / TSX)                               | ہاں               |
-| `.build/` | بِلڈ کے درمیانی نتائج — `next build` کا output (`distDir`)         | نہیں (gitignored) |
-| `dist/`   | تقسیم کے قابل npm bundle — `assembleStandalone` کے ذریعے تیار کردہ | نہیں (gitignored) |
-
-> **آپریٹر نوٹ:** ریموٹ VPS image directory بدستور `/usr/lib/node_modules/omniroute/app/` ہے۔
-> صرف **ریپوزٹری کے اندر** بِلڈ output منتقل ہوا ہے (`app/` → `dist/`)۔ deploy skills، `dist/`
-> کے مندرجات کو ریموٹ `app/` directory میں rsync کرتی ہیں — VPS path میں کسی تبدیلی کی ضرورت نہیں۔
-
-**واحد بِلڈ کا عمل:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (صفائی)
-  └─ next build → .build/next/   (درمیانی نتائج)
-  └─ assembleStandalone          (standalone + static + public + natives کو dist/ میں کاپی کرتا ہے)
-  └─ writes dist/BUILD_SHA       (HEAD sentinel)
-```
-
-deploy کے لیے `npm run build` چلانے کے بعد الگ سے `npm run build:cli` ہرگز نہ چلائیں — اس کے بجائے
-`npm run build:release` استعمال کریں، جو ایک ہی کمانڈ میں صاف rebuild + sentinel انجام دیتی ہے۔
-
-### آرٹیفیکٹ کی توثیق
-
-- [ ] `npm run build:release` کامیاب ہو اور `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` صاف ہو — کوئی `app.__qa_backup`، `scripts/scratch`، `package-lock.json`، یا دوسری مقامی باقیات نہ ہوں
-- [ ] بِلڈ کے بعد `dist/server.js` موجود ہو
-
-### ٹیگنگ اور ریلیز
-
-- [ ] `/generate-release-cc` (Claude Code skill) چلائیں:
-  - `vX.Y.Z` ٹیگ بناتا ہے
-  - ٹیگ اور branch کو push کرتا ہے
-  - changelog متن کے ساتھ GitHub Release کھولتا ہے
-  - Electron installers منسلک کرتا ہے (اگر بنائے گئے ہوں)
-- [ ] یا دستی طور پر:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### تعیناتی
-
-Deploy skills ہلکا rsync طریقۂ کار استعمال کرتی ہیں — نہ `npm pack`، نہ `npm i -g`:
-
-- [ ] ہدف سے مطابقت رکھنے والی deploy skill استعمال کریں:
-  - `/deploy-vps-local-cc` — مقامی VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — دونوں
-- [ ] تعیناتی سے پہلے تصدیق کریں کہ `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] بِلڈ ایسی جگہ چلنا چاہیے جہاں `node_modules` حقیقی ہو (مرکزی checkout یا `npm ci` سے تیار کردہ worktree — symlink شدہ worktree نہیں)
-- [ ] تعینات شدہ instance کا smoke test کریں:
-  - `/dashboard/health` کھولیں → تصدیق کریں کہ version string ریلیز سے مماثل ہے
-  - کسی معروف فراہم کنندہ کے خلاف `/v1/chat/completions` request چلائیں
-  - تصدیق کریں کہ `/api/monitoring/health`، `CLOSED` circuit breakers واپس کرتا ہے
-  - تصدیق کریں کہ MCP transports جواب دیتے ہیں (`/mcp` HTTP، `/mcp-sse` SSE)
-
-### ریلیز کے بعد
-
-- [ ] `/capture-release-evidences-cc` چلائیں (Claude Code اسکل)
-  - نئی خصوصیات کے WebP اسکرین شاٹس/ریکارڈنگز محفوظ کرتا ہے
-  - انہیں ریلیز نوٹس / بلاگ پوسٹ کے ساتھ منسلک کرتا ہے
-- [ ] ریلیز کے اعلان کے ساتھ GitHub Discussions / Discord کو اپ ڈیٹ کریں
-- [ ] اگلے ورژن کے لیے مائل اسٹون کھولیں
-- [ ] اگر اہم ہو: ڈسکشن کو پن کریں یا اِن-ایپ بینر کے لیے `news.json` میں پوسٹ کریں
-
-### Radar کے عوامی اجرا کا گیٹ
-
-Radar کا اعلان جان بوجھ کر `active: false` کے ساتھ کمٹ کیا گیا ہے۔ ذیل کی ہر شق کے ثبوت فراہم ہونے کے بعد ایک علیحدہ
-تبدیلی کے ذریعے اسے فعال کیا جائے گا:
-
-- [ ] تمام اسٹیک شدہ Radar PRs مرج ہو چکے ہوں اور release-tip CI کامیاب ہو
-- [ ] OSS Radar روٹس کو ڈیپلائے کریں اور `RADAR_ENABLED` کو بطور ڈیفالٹ بند رکھتے ہوئے ان کا اسموک ٹیسٹ کریں
-- [ ] نامزد Radar ہوسٹ پر `GET /planos`، `/termos`، `/privacidade`، اور `/reembolso` کا اسموک ٹیسٹ کریں
-- [ ] نجی سروس میں آپریٹر کی شناخت/رابطہ/پتہ اور مالک سے منظور شدہ قانونی جائزہ ریکارڈ کریں
-- [ ] صرف ٹیسٹ موڈ میں Stripe Checkout اور دستخط شدہ webhook کی جانچ کریں
-- [ ] منظور شدہ بھیجنے والے/ڈومین کے ساتھ ایک انکرپٹڈ ٹرانزیکشنل ای میل کی ترسیل کی جانچ کریں
-- [ ] بیک اپ کی بحالی اور نگرانی میں، بجٹ کی حد کے اندر ایک تحقیقی رَن کو ثابت کریں
-- [ ] عطیے کے ثبوت قبول کرنے سے پہلے BRL/PIX جائزہ پالیسی کی منظوری دیں
-- [ ] عوامی Checkout کو صرف سابقہ گیٹس مکمل ہونے کے بعد فعال کریں، پھر نئی `news.json` ID کو فعال کریں
-- [ ] تصدیق کریں کہ Home بینر مقامی زبان کے متن کا استعمال کرتا ہے اور کسی پرانی ID کو مسترد کیے جانے کے بعد نئی ID دوبارہ ظاہر ہوتی ہے
-
 ## ایمبیڈڈ سروسز اسموک ٹیسٹ (v3.8.4+)
 
 ایسی کسی بھی ریلیز کو جاری کرنے سے پہلے جس میں ایمبیڈڈ سروسز کی تبدیلیاں شامل ہوں، تصدیق کریں:
@@ -399,7 +300,7 @@ Radar کا اعلان جان بوجھ کر `active: false` کے ساتھ کمٹ 
 - Husky ہُکس (`--no-verify`) کو کبھی نظرانداز نہ کریں
 - راز، اسناد، یا `.env` فائلیں کبھی کمٹ نہ کریں
 - کوریج لازماً ≥60/60/60/60 (اسٹیٹمنٹس/لائنز/فنکشنز/برانچز) برقرار رہنی چاہیے
-- `src/`، `open-sse/`، `electron/`، یا `bin/` میں پروڈکشن کوڈ تبدیل کرتے وقت ہمیشہ ٹیسٹس شامل یا اپ ڈیٹ کریں
+- `src/`، `open-sse/`،، یا `bin/` میں پروڈکشن کوڈ تبدیل کرتے وقت ہمیشہ ٹیسٹس شامل یا اپ ڈیٹ کریں
 
 ## خودکار سنک جانچ
 

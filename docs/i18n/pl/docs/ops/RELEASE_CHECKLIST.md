@@ -133,7 +133,6 @@ automatycznie, bez żadnej etykiety.
 ### Wersja i dziennik zmian
 
 - [ ] Uruchom `/version-bump-cc <patch|minor|major>` (umiejętność Claude Code)
-  - Aktualizuje wersje w `package.json`, `electron/package.json`
   - Ponownie generuje `CHANGELOG.md` na podstawie commitów git od ostatniego tagu
   - Aktualizuje odznaki w README.md
 - [ ] Ręcznie przejrzyj CHANGELOG.md i w razie potrzeby uporządkuj komunikaty commitów
@@ -227,104 +226,6 @@ Zmiany niekompatybilne wstecznie: dodaj stopkę `BREAKING CHANGE:` lub `!` po za
 - [ ] Modele są zarejestrowane w `open-sse/config/providerRegistry.ts`
 - [ ] Testy jednostkowe w `tests/unit/` obejmują klasyfikację dostawców i routing
 
-### Aplikacja desktopowa (Electron)
-
-Jeśli zmieniono `electron/`:
-
-- [ ] `npm run electron:smoke:packaged` kończy się powodzeniem
-- [ ] Kompilacje przetestowano dla co najmniej jednego z wariantów `:win`, `:mac`, `:linux`
-- [ ] Certyfikaty podpisywania kodu nie wygasły (jeśli używane jest podpisywanie)
-- [ ] Wersja w `electron/package.json` jest zgodna z głównym plikiem `package.json`
-- [ ] Wskaźnik kanału automatycznych aktualizacji został zaktualizowany, jeśli wydanie trafia do kanału `stable`
-
-### Układ kompilacji
-
-Repozytorium używa trzech odrębnych katalogów wyjściowych — nigdy ich nie pomyl:
-
-| Katalog   | Przeznaczenie                                                  | Śledzony?                  |
-| --------- | -------------------------------------------------------------- | -------------------------- |
-| `src/`    | Kod źródłowy aplikacji (TypeScript / TSX)                      | Tak                        |
-| `.build/` | Pliki pośrednie kompilacji — wynik `next build` (`distDir`)    | Nie (ignorowany przez git) |
-| `dist/`   | Dystrybucyjny pakiet npm — składany przez `assembleStandalone` | Nie (ignorowany przez git) |
-
-> **Uwaga dla operatora:** katalog obrazu na zdalnym VPS pozostaje pod ścieżką `/usr/lib/node_modules/omniroute/app/`.
-> Zmieniło się tylko wyjście kompilacji **wewnątrz repozytorium** (`app/` → `dist/`). Procedury wdrażania synchronizują
-> zawartość `dist/` przez rsync ze zdalnym katalogiem `app/` — zmiany ścieżek na VPS nie są wymagane.
-
-**Przepływ pojedynczej kompilacji:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (czyszczenie)
-  └─ next build → .build/next/   (pliki pośrednie)
-  └─ assembleStandalone          (kopiuje standalone + static + public + natywne moduły → dist/)
-  └─ zapisuje dist/BUILD_SHA     (wartość kontrolna HEAD)
-```
-
-NIE uruchamiaj `npm run build`, a następnie osobno `npm run build:cli` na potrzeby wdrożenia — użyj
-`npm run build:release`, które wykonuje czystą ponowną kompilację i zapisuje wartość kontrolną w jednym poleceniu.
-
-### Weryfikacja artefaktu
-
-- [ ] `npm run build:release` kończy się powodzeniem, a `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` nie zgłasza problemów — brak `app.__qa_backup`, `scripts/scratch`, `package-lock.json` i innych lokalnych pozostałości
-- [ ] Po kompilacji istnieje `dist/server.js`
-
-### Tagowanie i wydanie
-
-- [ ] Uruchom `/generate-release-cc` (procedura Claude Code):
-  - Tworzy tag `vX.Y.Z`
-  - Wysyła tag i gałąź
-  - Tworzy wydanie GitHub z treścią dziennika zmian
-  - Dołącza instalatory Electron (jeśli zostały zbudowane)
-- [ ] Lub wykonaj ręcznie:
-  ```bash
-  git tag -a vX.Y.Z -m "Wydanie vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Wdrożenie
-
-Procedury wdrażania korzystają z lekkiego przepływu rsync — bez `npm pack` i bez `npm i -g`:
-
-- [ ] Użyj procedury wdrażania odpowiedniej dla środowiska docelowego:
-  - `/deploy-vps-local-cc` — lokalny VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — VPS Akamai (69.164.221.35)
-  - `/deploy-vps-both-cc` — oba
-- [ ] Przed wdrożeniem potwierdź, że `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Kompilacja musi zostać uruchomiona w miejscu, w którym `node_modules` jest rzeczywistym katalogiem (główna kopia robocza lub worktree z wykonanym `npm ci` — NIE worktree korzystające z dowiązania symbolicznego)
-- [ ] Wykonaj test dymny wdrożonej instancji:
-  - Otwórz `/dashboard/health` → sprawdź, czy ciąg wersji odpowiada wydaniu
-  - Wyślij żądanie `/v1/chat/completions` do znanego dostawcy
-  - Sprawdź, czy `/api/monitoring/health` zwraca wyłączniki obwodu ze stanem `CLOSED`
-  - Potwierdź, że transporty MCP odpowiadają (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Po wydaniu
-
-- [ ] Uruchom `/capture-release-evidences-cc` (procedura Claude Code)
-  - Rejestruje zrzuty ekranu/nagrania WebP nowych funkcji
-  - Dołącza je do informacji o wydaniu / wpisu na blogu
-- [ ] Zaktualizuj GitHub Discussions / Discord, publikując ogłoszenie o wydaniu
-- [ ] Otwórz kamień milowy dla następnej wersji
-- [ ] Jeśli wydanie jest krytyczne: przypnij dyskusję lub dodaj wpis w `news.json`, aby wyświetlić baner w aplikacji
-
-### Warunki publicznego uruchomienia Radar
-
-Ogłoszenie Radar zostało celowo zatwierdzone z ustawieniem `active: false`. Aktywacja jest osobną
-zmianą wykonywaną po udokumentowaniu każdego z poniższych punktów:
-
-- [ ] Wszystkie ułożone warstwowo PR-y Radar zostały scalone, a CI dla końcowego commita wydania przechodzi pomyślnie
-- [ ] Wdróż i przetestuj dymnie trasy OSS Radar, pozostawiając `RADAR_ENABLED` domyślnie wyłączone
-- [ ] Przetestuj dymnie `GET /planos`, `/termos`, `/privacidade` i `/reembolso` na wskazanym hoście Radar
-- [ ] Zarejestruj tożsamość/dane kontaktowe/adres operatora oraz zatwierdzoną przez właściciela ocenę prawną w prywatnej usłudze
-- [ ] Przetestuj Stripe Checkout i podpisany webhook wyłącznie w trybie testowym
-- [ ] Przetestuj jedno zaszyfrowane dostarczenie wiadomości transakcyjnej od zatwierdzonego nadawcy/z zatwierdzonej domeny
-- [ ] Udowodnij możliwość odtworzenia kopii zapasowej i przeprowadź jedno nadzorowane uruchomienie badawcze z ograniczonym budżetem
-- [ ] Zatwierdź zasady weryfikacji BRL/PIX przed przyjmowaniem dowodów wpłat
-- [ ] Włącz publiczny Checkout dopiero po spełnieniu powyższych warunków, a następnie aktywuj nowy identyfikator w `news.json`
-- [ ] Sprawdź, czy baner na stronie głównej używa zlokalizowanej treści i czy nowy identyfikator pojawia się po odrzuceniu starszego identyfikatora
-
 ## Smoke embedded services (v3.8.4+)
 
 Przed wypuszczeniem dowolnego wydania zawierającego zmiany embedded services zweryfikuj:
@@ -410,7 +311,7 @@ Jeśli wydanie ma krytyczny problem:
 - Nigdy nie pomijaj hooków Husky (`--no-verify`)
 - Nigdy nie commituj sekretów, credentials ani plików `.env`
 - Coverage musi zostać ≥60/60/60/60 (statements/lines/functions/branches)
-- Zawsze dołączaj lub aktualizuj testy przy zmianie kodu produkcyjnego w `src/`, `open-sse/`, `electron/` lub `bin/`
+- Zawsze dołączaj lub aktualizuj testy przy zmianie kodu produkcyjnego w `src/`, `open-sse/` lub `bin/`
 
 ## Automatyczna kontrola synchronizacji
 

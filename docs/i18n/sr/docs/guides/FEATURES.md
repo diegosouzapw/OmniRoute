@@ -262,25 +262,6 @@ Praćenje administrativnih akcija sa filtriranjem po tipu akcije, izvršiocu, ci
 
 ---
 
-## 🖥️ Desktop aplikacija
-
-Nativna Electron desktop aplikacija za Windows, macOS i Linux. Pokrenite OmniRoute kao samostalnu aplikaciju sa integracijom u system tray, podrškom za rad bez interneta, automatskim ažuriranjem i instalacijom jednim klikom.
-
-Ključne funkcionalnosti:
-
-- Provera spremnosti servera (nema praznog ekrana pri hladnom pokretanju)
-- System tray sa upravljanjem portovima
-- Content Security Policy
-- Zaključavanje jedne instance (single-instance lock)
-- Automatsko ažuriranje pri ponovnom pokretanju
-- UI uslovljen platformom (macOS traffic lights, Windows/Linux podrazumevana titlebar traka)
-- Ojačano pakovanje Electron build-a — simbolički linkovani `node_modules` u samostalnom paketu se detektuje i odbija pre pakovanja, sprečavajući runtime zavisnost od build mašine (v2.5.5+)
-- **Elegantno isključivanje (Graceful shutdown)** — Electron `before-quit` čisto isključuje Next.js, sprečavajući zaključavanje SQLite WAL baze podataka (v3.6.2+)
-
-📖 Pogledajte [`electron/README.md`](../../electron/README.md) za kompletnu dokumentaciju.
-
----
-
 ## 🌐 V1 WebSocket Bridge _(v3.6.6+)_
 
 OmniRoute sada podržava **OpenAI-kompatibilne WebSocket klijente** putem `/v1/ws` upgrade endpointa. Prilagođeni `scripts/dev/v1-ws-bridge.mjs` server obavija Next.js i unapređuje WS konekcije u pune bidirekcione streaming sesije. Autentikacija koristi isti API ključ ili session cookie kao i HTTP zahtevi.

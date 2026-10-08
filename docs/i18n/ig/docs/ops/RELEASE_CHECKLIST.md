@@ -122,7 +122,6 @@ na-akpaghị aka, na-enweghị akara ọ bụla.
 ### Version & Changelog
 
 - [ ] Gbaa `/version-bump-cc <patch|minor|major>` (nkà Claude Code)
-  - Na-ebuli version na `package.json`, `electron/package.json`
   - Na-emepụta `CHANGELOG.md` ọzọ site na commit git kemgbe tag ikpeazụ
   - Na-emelite badge README.md
 - [ ] Jiri aka nyochaa CHANGELOG.md ma hichaa ozi commit ma ọ bụrụ na ọ dị mkpa
@@ -216,104 +215,6 @@ Mgbanwe na-emebi ndakọrịta: tinye footer `BREAKING CHANGE:` ma ọ bụ `!` 
 - [ ] E debanyere model na `open-sse/config/providerRegistry.ts`
 - [ ] Unit test dị na `tests/unit/` na-ekpuchi nhazi provider na routing
 
-### Desktop (Electron)
-
-Ọ bụrụ na `electron/` gbanwere:
-
-- [ ] `npm run electron:smoke:packaged` gafere
-- [ ] A nwalela build maka opekata mpe otu n’ime `:win`, `:mac`, `:linux`
-- [ ] Asambodo code signing agwụbeghị oge (ọ bụrụ na a na-eme signing)
-- [ ] Version dị na `electron/package.json` kwekọrọ na root `package.json`
-- [ ] Emelitela pointer nke channel auto-update ma ọ bụrụ na a na-ewepụta ya na `stable`
-
-### Nhazi Build
-
-Repository a na-eji directory mmepụta atọ dị iche iche — agwakọtala ha:
-
-| Directory | Ebumnuche                                                  | A na-esochi ya?  |
-| --------- | ---------------------------------------------------------- | ---------------- |
-| `src/`    | Isi mmalite application (TypeScript / TSX)                 | Ee               |
-| `.build/` | Ihe etiti build — mmepụta `next build` (`distDir`)         | Mba (gitignored) |
-| `dist/`   | Nchịkọta npm a pụrụ ibupu — `assembleStandalone` haziri ya | Mba (gitignored) |
-
-> **Ndetu onye ọrụ:** directory image VPS dị anya ka bụ `/usr/lib/node_modules/omniroute/app/`.
-> Naanị mmepụta build dị **n’ime repository** ka e bugharịrị (`app/` → `dist/`). Skill deploy na-eji rsync ebuga
-> ọdịnaya `dist/` n’ime directory `app/` dị anya — enweghị mgbanwe path VPS achọrọ.
-
-**Usoro otu build:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (nhicha)
-  └─ next build → .build/next/   (ihe etiti)
-  └─ assembleStandalone          (na-edetuo standalone + static + public + natives → dist/)
-  └─ writes dist/BUILD_SHA       (sentinel HEAD)
-```
-
-AGBALỊLA ịgba `npm run build` wee soro ya gbaa `npm run build:cli` iche maka deploy — jiri
-`npm run build:release`, nke na-eme rebuild dị ọcha + sentinel n’otu command.
-
-### Nnyocha Artifact
-
-- [ ] `npm run build:release` gara nke ọma ma `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` dị ọcha — enweghị `app.__qa_backup`, `scripts/scratch`, `package-lock.json`, ma ọ bụ ihe fọdụrụ n’ime igwe mpaghara
-- [ ] `dist/server.js` dị mgbe build gasịrị
-
-### Itinye Tag & Release
-
-- [ ] Gbaa `/generate-release-cc` (skill Claude Code):
-  - Na-emepụta tag `vX.Y.Z`
-  - Na-ebuga tag na branch
-  - Na-emepe GitHub Release nwere ọdịnaya changelog
-  - Na-etinye installer Electron (ọ bụrụ na e wuru ha)
-- [ ] Ma ọ bụ jiri aka mee ya:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deploy
-
-Skill deploy na-eji usoro rsync dị mfe — enweghị `npm pack`, enweghị `npm i -g`:
-
-- [ ] Jiri skill deploy kwekọrọ na target:
-  - `/deploy-vps-local-cc` — VPS mpaghara (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — VPS Akamai (69.164.221.35)
-  - `/deploy-vps-both-cc` — ha abụọ
-- [ ] Tupu deploy, gosi na `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Build ga-agba ebe `node_modules` bụ nke ezigbo ya (main checkout ma ọ bụ worktree e ji `npm ci` kwadebe — Ọ BỤGHỊ worktree ejiri symlink)
-- [ ] Mee smoke test n’instance e deploypụtara:
-  - Mepee `/dashboard/health` → lelee na version string kwekọrọ na release
-  - Gbaa arịrịọ `/v1/chat/completions` megide provider a maara
-  - Nyochaa na `/api/monitoring/health` weghachiri circuit breaker `CLOSED`
-  - Gosi na transport MCP na-aza (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Mgbe release gasịrị
-
-- [ ] Gbaa `/capture-release-evidences-cc` (nkà Claude Code)
-  - Na-esepụta nseta ihuenyo/ndekọ WebP nke atụmatụ ọhụrụ
-  - Na-etinye ha na ndetu mwepụta / edemede blọọgụ
-- [ ] Jiri ọkwa mwepụta melite GitHub Discussions / Discord
-- [ ] Mepee milestone maka ụdị na-esote
-- [ ] Ọ bụrụ na ọ dị oke mkpa: kpọgide mkparịta ụka ahụ ma ọ bụ bipụta ya na `news.json` maka ọkọlọtọ dị n'ime ngwa
-
-### Ọnụ ụzọ mmalite ọha nke Radar
-
-E ji ụma commit ọkwa Radar ahụ na `active: false`. Ime ka ọ rụọ ọrụ bụ mgbanwe dị iche
-nke a ga-eme naanị mgbe e gosipụtara ihe akaebe maka ihe niile dị n'okpuru:
-
-- [ ] Ejikọla Radar PR niile e dokọtara n'usoro, release-tip CI dịkwa ndụ ndụ
-- [ ] Deploy ma mee smoke test n'ụzọ gasị OSS Radar ebe `RADAR_ENABLED` ka bụ gbanyụọ na ndabara
-- [ ] Mee smoke test na `GET /planos`, `/termos`, `/privacidade`, na `/reembolso` n'elu host Radar a kpọrọ aha
-- [ ] Dekọọ njirimara/ozi kọntaktị/adreesị onye na-arụ ọrụ yana nyocha iwu nke onye nwe ya kwadoro n'ime ọrụ nzuzo
-- [ ] Nwalee Stripe Checkout na webhook e binyere aka na ya naanị n'ụdị nnwale
-- [ ] Nwalee otu nnyefe ozi-e azụmahịa ezoro ezo site na onye na-ezipụ/ngalaba a kwadoro
-- [ ] Gosipụta na iweghachi backup na-arụ ọrụ ma mee otu research run a na-elekọta nke nwere oke mmefu ego
-- [ ] Kwado iwu nyocha BRL/PIX tupu ịnakwere ihe akaebe onyinye
-- [ ] Mee ka Checkout ọha rụọ ọrụ naanị mgbe ọnụ ụzọ ndị bu ya ụzọ gafere, wee mee ka ID ọhụrụ dị na `news.json` rụọ ọrụ
-- [ ] Nyochaa na ọkọlọtọ Home na-eji ederede ahaziri maka asụsụ mpaghara nakwa na ID ọhụrụ na-apụta ọzọ mgbe e wepụrụ ID ochie
-
 ## Ule smoke nke Ọrụ Agbakwunyere (v3.8.4+)
 
 Tupu izipu mbipụta ọ bụla nwere mgbanwe n’ọrụ agbakwunyere, nyochaa ihe ndị a:
@@ -399,7 +300,7 @@ Tupu izipu mbipụta v3.8.x ọ bụla, nyochaa ihe ndị ọzọ ndị a:
 - Ahapụla Husky hooks (`--no-verify`)
 - Etinyekwala ihe nzuzo, ozi njirimara, ma ọ bụ faịlụ `.env` na commit
 - Mkpuchi ule ga-anọgide na ≥60/60/60/60 (nkwupụta/ahịrị/ọrụ/alaka)
-- Tinye ma ọ bụ melite ule mgbe niile mgbe ị na-agbanwe koodu mmepụta dị na `src/`, `open-sse/`, `electron/`, ma ọ bụ `bin/`
+- Tinye ma ọ bụ melite ule mgbe niile mgbe ị na-agbanwe koodu mmepụta dị na `src/`, `open-sse/`, ma ọ bụ `bin/`
 
 ## Nnyocha Mmekọrịta Akpaghị Aka
 

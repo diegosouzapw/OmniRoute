@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # កម្មវិធី Next.js 16 (UI + ផ្លូវ API + បណ្ណាល័យ + ដែន + ម៉ាស៊ីនមេ)
 ├── open-sse/             # តំបន់ការងាររបស់ម៉ាស៊ីនស្ទ្រីម (កម្មវិធីដោះស្រាយ កម្មវិធីប្រតិបត្តិ កម្មវិធីបកប្រែ ម៉ាស៊ីនមេ MCP)
-├── electron/             # ស្រទាប់កម្មវិធីផ្ទៃតុ (Electron 41 + electron-builder 26.10)
 ├── bin/                  # ចំណុចចូល CLI និងកម្មវិធីដោះស្រាយពាក្យបញ្ជា
 ├── scripts/              # ស្គ្រីបសម្រាប់បង្កើត ពិនិត្យ ធ្វើសមកាលកម្ម និងប្រតិបត្តិការតែម្ដង
 ├── docs/                 # ឯកសារណែនាំសាធារណៈ (អ្នកកំពុងនៅទីនេះ)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — ស្រោមកម្មវិធី Desktop
-
-| ឯកសារ            | គោលបំណង                                                                                                              |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `main.js`        | ដំណើរការមេរបស់ Electron (BrowserWindow, ម៉ាស៊ីនមេ Next.js ដែលបានបង្កប់, tray, ការធ្វើបច្ចុប្បន្នភាពដោយស្វ័យប្រវត្តិ) |
-| `preload.js`     | ស្ពាន IPC (contextBridge → `window.omniroute`)                                                                       |
-| `package.json`   | ការកំណត់រចនាសម្ព័ន្ធ electron-builder + Electron 41 + dependencies របស់ electron-builder 26.10                       |
-| `assets/`        | រូបតំណាងកម្មវិធី (Windows .ico, macOS .icns, Linux .png)                                                             |
-| `dist-electron/` | លទ្ធផល build (gitignored)                                                                                            |
-| `types.d.ts`     | សេចក្តីប្រកាសប្រភេទសម្រាប់ស្ពាន renderer                                                                             |
-| `README.md`      | README ផ្ទៃក្នុងរបស់ Electron (សូមមើលផងដែរ `docs/guides/ELECTRON_GUIDE.md`)                                          |
-
----
-
 ## `bin/` — CLI
 
 | ឯកសារ                                                                                                       | គោលបំណង                                                                                                                         |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | កម្មវិធីដំណើរការតេស្ត MCP/A2A E2E                                                          |
 | `run-ecosystem-tests.mjs`           | តេស្ត ecosystem (ការរួមបញ្ចូល provider)                                                    |
 | `test-report-summary.mjs`           | បង្កើត markdown សង្ខេប coverage                                                            |
-| `smoke-electron-packaged.mjs`       | ធ្វើ smoke test លើ Electron build ដែលបានវេចខ្ចប់                                           |
-| `native-binary-compat.mjs`          | ផ្ទៀងផ្ទាត់ថា native dependency (`better-sqlite3`) ត្រូវគ្នានឹង Node របស់ Electron         |
 | `validate-pack-artifact.ts`         | ផ្ទៀងផ្ទាត់ output របស់ npm pack                                                           |
 | `responses-ws-proxy.mjs`            | ស្ពាន WebSocket សម្រាប់ Codex Responses API                                                |
 | `v1-ws-bridge.mjs`                  | ស្ពាន WebSocket សម្រាប់ endpoint `/api/v1/ws`                                              |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | សៀវភៅណែនាំសម្រាប់អ្នកប្រើចុងក្រោយ (ការដំឡើង ម៉ូដែល combos CLIs អូឌីយ៉ូ ជាដើម)                                |
 | `API_REFERENCE.md`          | ឯកសារយោង API endpoint ជាមួយម៉ូដែលផ្ទៀងផ្ទាត់អត្តសញ្ញាណ                                                       |
 | `openapi.yaml`              | លក្ខណៈបច្ចេកទេស OpenAPI 3.0 (121 paths)                                                                      |
-| `SETUP_GUIDE.md`            | វិធីសាស្ត្រដំឡើង (npm, npx, Docker, Electron, Termux, កូដប្រភព)                                              |
+| `SETUP_GUIDE.md`            | វិធីសាស្ត្រដំឡើង (npm, npx, Docker, Termux, កូដប្រភព)                                                        |
 | `ENVIRONMENT.md`            | អថេរបរិស្ថានទាំងអស់ (~800 ត្រូវបានចងក្រងជាឯកសារ, ~3,050 បន្ទាត់ក្នុង `.env.example`)                         |
 | `TROUBLESHOOTING.md`        | កំហុសទូទៅ + បញ្ហាដែលបានដឹងរបស់ v3.8.0                                                                        |
 | `RELEASE_CHECKLIST.md`      | លំហូរចេញផ្សាយពេញលេញ (skills, husky, conventional commits, ការដាក់ឱ្យដំណើរការ)                                |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | ការដាក់ឱ្យដំណើរការលើ Fly.io (បច្ចុប្បន្នមានតែជាភាសាចិន)                  |
 | `TERMUX_GUIDE.md`            | Android គ្មានផ្ទៃប្រើប្រាស់តាមរយៈ Termux                                 |
 | `PWA_GUIDE.md`               | ការដំឡើង Progressive Web App + service worker                            |
-| `ELECTRON_GUIDE.md`          | ការបង្កើត + ចុះហត្ថលេខា + ចែកចាយកម្មវិធី desktop                         |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                   |
 | `PROXY_GUIDE.md`             | ប្រូកស៊ីចេញក្រៅ 4 កម្រិត + 1proxy marketplace                            |
 

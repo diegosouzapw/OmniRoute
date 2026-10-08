@@ -11,7 +11,7 @@
 1. **اختر الفرع الأساسي قبل التحرير.** ابحث عن أعلى فرع نشط من فروع `release/v*` وأنشئ فرعك من آخر نقطة فيه. استهدف ذلك الفرع، وليس `main`. إذا كان تجميد إصدار نشطًا، فلا تستهدف الفرع المجمّد؛ استخدم دورة الإصدار النشطة التالية الموضحة في
    [نموذج التفريع والإصدار](BRANCHING_MODEL.md).
 2. **حدّد العقود.** حدّد كل كتالوج، أو مخطط، أو عنصر مُنشأ، أو API عام، أو واجهة مستخدم يتأثر بالتغيير. يوضّح الجدول أدناه الحد الأدنى لمجموعة البداية.
-3. **اكتب الاختبارات المركزة أو حدّثها.** تتطلب تغييرات الإنتاج في `src/`، أو `open-sse/`، أو `electron/`، أو `bin/` اختبارًا آليًا في طلب السحب نفسه. شغّل أصغر مجموعة من ملفات الاختبار التي تثبت السلوك، ثم شغّل بوابات الفحص المركزة المدرجة.
+3. **اكتب الاختبارات المركزة أو حدّثها.** تتطلب تغييرات الإنتاج في `src/`، أو `open-sse/`، ، أو `bin/` اختبارًا آليًا في طلب السحب نفسه. شغّل أصغر مجموعة من ملفات الاختبار التي تثبت السلوك، ثم شغّل بوابات الفحص المركزة المدرجة.
 4. **دع CI يشغّل المصفوفة الواسعة.** تُشغَّل في طلب السحب جميع تقسيمات اختبارات الوحدة، وVitest، وآلية رفع حد التغطية، وبناء الإنتاج. لا تشغّل مجموعة اختبارات واسعة محليًا إلا عندما يشير فشل مركّز إلى تأثير أوسع، أو عندما يمتد التغيير عبر عدة أنظمة فرعية.
 5. **وفّق التغييرات قبل المراجعة.** اجلب الفرع الأساسي النشط، وافحص التثبيتات الجديدة فيه والفرق بين تغييراتك وبينه، ثم أعد التأسيس أو ادمج الفرع الأساسي وفقًا لسير عمل المساهمين. عالج تعارضات الملفات المُنشأة والكتالوجات انطلاقًا من مصادرها، ثم أعد إنشاءها، وأعد تشغيل الدورة المركزة، وتأكد من أن طلب السحب لا يزال يستهدف فرع الإصدار النشط.
 6. **سجّل الأدلة.** في قالب طلب السحب، أدرج الأوامر التي شغّلتها، وكل ملف اختبار أُضيف أو عُدّل، وعمليات الترحيل أو أعلام الميزات، وأي تحقق لا يزال معلقًا ولا يُجرى إلا عبر CI.
@@ -38,7 +38,7 @@ npm run check:provider-consistency
 npm run check:provider-assets
 node --import tsx/esm --test tests/unit/provider-translate-path-golden.test.ts
 node --import tsx/esm --test tests/unit/<provider-or-executor>.test.ts
-npm run gen:provider-reference   # عند تغيير الكتالوج؛ ثبّت الفرق المُنشأ
+npm run gen:provider-reference # عند تغيير الكتالوج؛ ثبّت الفرق المُنشأ
 npm run lint
 ```
 
@@ -57,8 +57,8 @@ npm run lint
 
 ```bash
 node --import tsx/esm --test tests/unit/combo-<behavior>.test.ts
-npm run test:combo:matrix        # تغييرات الاستراتيجية أو الإرسال
-npm run check:known-symbols      # تغييرات تسجيل الاستراتيجية
+npm run test:combo:matrix # تغييرات الاستراتيجية أو الإرسال
+npm run check:known-symbols # تغييرات تسجيل الاستراتيجية
 npm run lint
 ```
 
@@ -100,7 +100,7 @@ npm run i18n:sync-ui:dry
 npm run i18n:check-ui-coverage
 npm run i18n:check-value-drift
 npm run i18n:check-glossary
-npm run check:cli-i18n          # عند تغيير سلاسل/كتالوجات CLI
+npm run check:cli-i18n # عند تغيير سلاسل/كتالوجات CLI
 npm run lint
 ```
 
@@ -120,8 +120,8 @@ npm run lint
 ```bash
 node --import tsx/esm --test tests/unit/cli/<command>.test.ts
 npm run check:cli-i18n
-npm run build:cli             # تغييرات CLI المُولَّدة/المُجمَّعة
-npm run check:pack-policy     # تغييرات واجهة الحزمة
+npm run build:cli # تغييرات CLI المُولَّدة/المُجمَّعة
+npm run check:pack-policy # تغييرات واجهة الحزمة
 npm run lint
 ```
 
@@ -165,8 +165,8 @@ npm run lint
 ```bash
 node --import tsx/esm --test tests/unit/build/<behavior>.test.ts
 npm run check:build-scope
-npm run check:lockfile         # تغييرات التبعيات أو ملف القفل
-npm run check:pack-policy      # تغييرات واجهة الحزمة المنشورة
+npm run check:lockfile # تغييرات التبعيات أو ملف القفل
+npm run check:pack-policy # تغييرات واجهة الحزمة المنشورة
 npm run lint
 ```
 

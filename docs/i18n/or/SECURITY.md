@@ -197,7 +197,7 @@ docker run -d \
 
 ## ନିର୍ଭରତାଗୁଡ଼ିକ
 
-- ନିୟମିତ ଭାବେ `npm audit` ଚଲାନ୍ତୁ (`npm run audit:deps` main + electronକୁ ଅନ୍ତର୍ଭୁକ୍ତ କରେ)
+- ନିୟମିତ ଭାବେ `npm audit` ଚଲାନ୍ତୁ (`npm run audit:deps` mainକୁ ଅନ୍ତର୍ଭୁକ୍ତ କରେ)
 - ନିର୍ଭରତାଗୁଡ଼ିକୁ ଅଦ୍ୟତନ ରଖନ୍ତୁ
 - ପ୍ରକଳ୍ପଟି pre-commit ଯାଞ୍ଚ ପାଇଁ `husky` + `lint-staged` ବ୍ୟବହାର କରେ (lint-staged + check-docs-sync + check:any-budget:t11)
 - CI ପାଇପ୍ଲାଇନ୍ ପ୍ରତ୍ୟେକ pushରେ ESLint ସୁରକ୍ଷା ନିୟମ ଚଲାଏ (`no-eval`, `no-implied-eval`, `no-new-func` = ତ୍ରୁଟି)

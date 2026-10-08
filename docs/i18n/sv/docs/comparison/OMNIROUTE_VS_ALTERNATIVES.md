@@ -29,7 +29,7 @@ Objektiv funktionsjämförelse med populära AI-routrar med öppen källkod.
 | **Dold TLS-fingeravtryckning (JA3/JA4)**                |                 ✅ wreq-js                 |        ❌         |        ❌         |        ❌        |
 | **Utvärderingsramverk**                                 |                 ✅ inbyggt                 |        ❌         |        ❌         | ⚠ avgiftsbelagt  |
 | **MITM-proxy (avlyssnar Cursor/Antigravity)**           |           ✅ plattformsoberoende           |        ❌         |        ❌         |        ❌        |
-| **CLI med systemfält (utan Electron)**                  |                     ✅                     |        ❌         |  ej tillämpligt   |  ej tillämpligt  |
+| **CLI med systemfält**                                  |                     ✅                     |        ❌         |  ej tillämpligt   |  ej tillämpligt  |
 | **Automatisk CLI-autentisering med maskin-ID**          |                     ✅                     |        ❌         |  ej tillämpligt   |  ej tillämpligt  |
 | **Kontrollpanel**                                       |                 Next.js 16                 |   grundläggande   |    proprietär     |    proprietär    |
 | **i18n**                                                |           **42 språkversioner**            |        ❌         |        ❌         |        ⚠         |

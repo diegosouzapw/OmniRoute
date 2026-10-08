@@ -16,7 +16,7 @@ ersätter inte de områdesspecifika arkitektur- och säkerhetsdokument som länk
    [Modell för grenar och releaser](BRANCHING_MODEL.md).
 2. **Namnge kontrakten.** Identifiera varje katalog, schema, genererad artefakt, offentligt API eller
    användargränssnitt som ändringen påverkar. Tabellen nedan anger den minsta uppsättningen att utgå från.
-3. **Skriv eller uppdatera fokuserade tester.** Produktionsändringar i `src/`, `open-sse/`, `electron/` eller
+3. **Skriv eller uppdatera fokuserade tester.** Produktionsändringar i `src/`, `open-sse/` eller
    `bin/` kräver ett automatiserat test i samma PR. Kör de minsta testfilerna som verifierar
    beteendet och därefter de angivna fokuserade kontrollerna.
 4. **Låt CI köra den breda matrisen.** De fullständiga enhetstestdelarna, Vitest, tröskeln för kodtäckning och

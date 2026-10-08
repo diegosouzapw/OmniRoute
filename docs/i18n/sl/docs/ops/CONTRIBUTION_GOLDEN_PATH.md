@@ -16,7 +16,7 @@ vrsto spremembe povezuje z njenimi pogodbami, ciljno usmerjenimi preverjanji in 
    [Model vej in izdaj](BRANCHING_MODEL.md).
 2. **Poimenujte pogodbe.** Določite vsak katalog, shemo, ustvarjeni artefakt, javni API ali uporabniški
    vmesnik, na katerega sprememba vpliva. Spodnja tabela podaja najmanjši začetni nabor.
-3. **Napišite ali posodobite ciljno usmerjene teste.** Spremembe produkcijske kode v `src/`, `open-sse/`, `electron/` ali
+3. **Napišite ali posodobite ciljno usmerjene teste.** Spremembe produkcijske kode v `src/`, `open-sse/` ali
    `bin/` zahtevajo avtomatiziran test v isti zahtevi PR. Zaženite najmanjše testne datoteke, ki dokazujejo
    vedenje, nato pa navedena ciljno usmerjena preverjanja.
 4. **Prepustite CI izvajanje širše matrike.** Celotni sklopi testov enot, Vitest, postopno zviševanje

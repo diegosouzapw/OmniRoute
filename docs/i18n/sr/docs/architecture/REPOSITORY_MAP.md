@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16 апликација (кориснички интерфејс + API руте + библиотеке + домен + сервер)
 ├── open-sse/             # Радни простор механизма за стримовање (обрађивачи, извршиоци, преводилац, MCP сервер)
-├── electron/             # Омотач за десктоп (Electron 41 + electron-builder 26.10)
 ├── bin/                  # Улазна тачка CLI-ја и обрађивачи команди
 ├── scripts/              # Скрипте за изградњу, проверу, синхронизацију и једнократне задатке
 ├── docs/                 # Јавна документација (овде се налазите)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Омотач за десктоп
-
-| Датотека         | Намена                                                                                                  |
-| ---------------- | ------------------------------------------------------------------------------------------------------- |
-| `main.js`        | Главни Electron процес (BrowserWindow, уграђени Next.js сервер, системска палета, аутоматско ажурирање) |
-| `preload.js`     | IPC мост (contextBridge → `window.omniroute`)                                                           |
-| `package.json`   | Конфигурација за electron-builder + зависности Electron 41 + electron-builder 26.10                     |
-| `assets/`        | Иконе апликације (Windows .ico, macOS .icns, Linux .png)                                                |
-| `dist-electron/` | Излаз изградње (игнорише га git)                                                                        |
-| `types.d.ts`     | Декларације типова за мост рендерера                                                                    |
-| `README.md`      | Интерни Electron README (погледајте и `docs/guides/ELECTRON_GUIDE.md`)                                  |
-
----
-
 ## `bin/` — CLI
 
 | Датотека                                                                                                    | Намена                                                                                                                                |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | Покретач MCP/A2A E2E тестова                                                                         |
 | `run-ecosystem-tests.mjs`           | Тестови екосистема (интеграције добављача)                                                           |
 | `test-report-summary.mjs`           | Генерисање markdown сажетка покривености                                                             |
-| `smoke-electron-packaged.mjs`       | Основно тестирање запаковане Electron изградње                                                       |
-| `native-binary-compat.mjs`          | Провера да ли се изворне зависности (`better-sqlite3`) подударају са Electron-овим Node-ом           |
 | `validate-pack-artifact.ts`         | Провера излаза команде npm pack                                                                      |
 | `responses-ws-proxy.mjs`            | WebSocket мост за Codex Responses API                                                                |
 | `v1-ws-bridge.mjs`                  | WebSocket мост за крајњу тачку `/api/v1/ws`                                                          |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Приручник за крајње кориснике (подешавање, модели, комбинације, CLI алати, звук итд.)                  |
 | `API_REFERENCE.md`          | Референца API крајњих тачака са моделом аутентификације                                                |
 | `openapi.yaml`              | OpenAPI 3.0 спецификација (121 путања)                                                                 |
-| `SETUP_GUIDE.md`            | Начини инсталације (npm, npx, Docker, Electron, Termux, изворни кôд)                                   |
+| `SETUP_GUIDE.md`            | Начини инсталације (npm, npx, Docker, Termux, изворни кôд)                                             |
 | `ENVIRONMENT.md`            | Све променљиве окружења (~800 документованих, ~3.050 редова у `.env.example`)                          |
 | `TROUBLESHOOTING.md`        | Уобичајене грешке + познати проблеми у v3.8.0                                                          |
 | `RELEASE_CHECKLIST.md`      | Комплетан ток објављивања (вештине, husky, конвенционални комитови, примена)                           |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io примена (тренутно само на кинеском)                        |
 | `TERMUX_GUIDE.md`            | Android без графичког интерфејса преко Termux-а                   |
 | `PWA_GUIDE.md`               | Инсталација прогресивне веб-апликације + service worker           |
-| `ELECTRON_GUIDE.md`          | Израда + потписивање + дистрибуција десктоп апликације            |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                            |
 | `PROXY_GUIDE.md`             | Четворостепени излазни proxy + 1proxy тржиште                     |
 

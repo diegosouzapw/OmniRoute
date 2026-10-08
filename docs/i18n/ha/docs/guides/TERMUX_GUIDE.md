@@ -118,7 +118,6 @@ omniroute
 
 ## Iyakoki
 
-- Electron ba ya aiki a cikin Termux.
 - Babu system tray ko haɗin kai da tebur.
 - Wannan saitin na sabar kaɗai ne: yi amfani da dashboard na burauza.
 - Native dependencies na iya buƙatar haɗawa a cikin na’urar.

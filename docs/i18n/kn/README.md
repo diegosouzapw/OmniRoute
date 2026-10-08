@@ -89,7 +89,6 @@
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![ಪರವಾನಗಿ: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![Docker ಪುಲ್ಗಳು](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![Electron ಡೌನ್ಲೋಡ್ಗಳು](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
 
 <table>
   <tr>
@@ -744,7 +743,6 @@ omniroute configure codex          # ಇತರ ಆಯ್ಕೆಗಳು: claude 
   <tr><th align="left">ಪ್ಲಾಟ್ಫಾರ್ಮ್</th><th align="left">ಸ್ಥಾಪನೆ</th><th align="left">ಮುಖ್ಯಾಂಶಗಳು</th></tr>
   <tr><td align="left" nowrap>📦 <b>npm (ಜಾಗತಿಕ)</b></td><td align="left" nowrap><code>npm install -g omniroute</code></td><td align="left">ಒಂದೇ ಆದೇಶ, ಯಾವುದೇ OS</td></tr>
   <tr><td align="left" nowrap>🐳 <b>Docker</b></td><td align="left" nowrap><code>docker run … diegosouzapw/omniroute</code></td><td align="left">ಬಹು-ಆರ್ಕಿಟೆಕ್ಚರ್ <b>AMD64 + ARM64</b></td></tr>
-  <tr><td align="left" nowrap>🖥️ <b>ಡೆಸ್ಕ್ಟಾಪ್ (Electron)</b></td><td align="left" nowrap><code>npm run electron:build</code></td><td align="left">ಸ್ಥಳೀಯ ವಿಂಡೋ + ಸಿಸ್ಟಂ ಟ್ರೇ — <b>Windows / macOS / Linux</b></td></tr>
   <tr><td align="left" nowrap>🎩 <b>ಮೆನು-ಬಾರ್ (OmniRouteTray)</b></td><td align="left" nowrap><code>brew install --cask zoispag/tap/omniroute-tray</code></td><td align="left">ಸರ್ವರ್ ಅನ್ನು ಮೇಲ್ವಿಚಾರಣೆ ಮಾಡುತ್ತದೆ &amp; ಸ್ವಯಂ-ನವೀಕರಿಸುತ್ತದೆ — <b>macOS</b></td></tr>
   <tr><td align="left" nowrap>💪 <b>ARM</b></td><td align="left" nowrap>ಸ್ಥಳೀಯ <code>arm64</code></td><td align="left">Raspberry Pi, ARM ಸರ್ವರ್ಗಳು, Apple Silicon</td></tr>
   <tr><td align="left" nowrap>📱 <b>Android (Termux)</b></td><td align="left" nowrap><code>pkg install nodejs && npx -y omniroute</code></td><td align="left"><b>ನಿಮ್ಮ ಫೋನ್ನಲ್ಲೇ</b> 24/7 ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ, root ಅಗತ್ಯವಿಲ್ಲ</td></tr>
@@ -754,7 +752,7 @@ omniroute configure codex          # ಇತರ ಆಯ್ಕೆಗಳು: claude 
   <tr><td align="left" nowrap>🛠️ <b>ಮೂಲಕೋಡ್ನಿಂದ</b></td><td align="left" nowrap><code>npm install && npm run dev</code></td><td align="left">ಇದರ ಮೇಲೆ ಪ್ರಯೋಗ ಮಾಡಿ, ಕೊಡುಗೆ ನೀಡಿ</td></tr>
 </table>
 
-<sub>📖 [Docker ಮಾರ್ಗದರ್ಶಿ](docs/guides/DOCKER_GUIDE.md) · [ಡೆಸ್ಕ್ಟಾಪ್](electron/README.md) · [ಮೆನು-ಬಾರ್ ಟ್ರೇ](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
+<sub>📖 [Docker ಮಾರ್ಗದರ್ಶಿ](docs/guides/DOCKER_GUIDE.md) · [ಮೆನು-ಬಾರ್ ಟ್ರೇ](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
 
 <br/>
 
@@ -1276,7 +1274,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 ಕೂಡ ಇದ�
   <tr><td nowrap><b>ಸ್ಥಿತಿಸ್ಥಾಪಕತ್ವ</b></td><td>ಸರ್ಕ್ಯೂಟ್ ಬ್ರೇಕರ್, ಎಕ್ಸ್ಪೊನೆನ್ಶಿಯಲ್ ಬ್ಯಾಕ್ಆಫ್, ಆಂಟಿ-ಥಂಡರಿಂಗ್-ಹರ್ಡ್, ಸ್ವಯಂ-ಕಾಂಬೊ ಸ್ವಯಂ-ದುರಸ್ತಿ</td></tr>
   <tr><td nowrap><b>ಲಾಗಿಂಗ್</b></td><td>pino — ವಿನಂತಿ ಸಂದರ್ಭದೊಂದಿಗೆ ರಚನಾತ್ಮಕ JSON ಲಾಗ್ಗಳು</td></tr>
   <tr><td nowrap><b>ಪರೀಕ್ಷೆ</b></td><td>Node.js ಟೆಸ್ಟ್ ರನ್ನರ್ + Vitest — 5,100+ ಟ್ರ್ಯಾಕ್ ಮಾಡಲಾದ ಪರೀಕ್ಷಾ ಫೈಲ್ಗಳಲ್ಲಿ <b>39,000+ ಸ್ಥಿರ ಪರೀಕ್ಷಾ ಘೋಷಣೆಗಳು</b> (ಯೂನಿಟ್, ಇಂಟಿಗ್ರೇಶನ್, E2E, ಭದ್ರತೆ, ಪರಿಸರವ್ಯವಸ್ಥೆ)</td></tr>
-  <tr><td nowrap><b>ಪ್ಲಾಟ್ಫಾರ್ಮ್ಗಳು</b></td><td>ಡೆಸ್ಕ್ಟಾಪ್ (Electron) · Android (Termux) · PWA (ಯಾವುದೇ ಬ್ರೌಸರ್)</td></tr>
+  <tr><td nowrap><b>ಪ್ಲಾಟ್ಫಾರ್ಮ್ಗಳು</b></td><td>Android (Termux) · PWA (ಯಾವುದೇ ಬ್ರೌಸರ್)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — ಬಿಡುಗಡೆಯಾದಾಗ ಸ್ವಯಂಚಾಲಿತ npm ಪ್ರಕಟಣೆ + Docker Hub</td></tr>
   <tr><td nowrap><b>ಲಿಂಕ್ಗಳು</b></td><td><a href="https://omniroute.online">ವೆಬ್ಸೈಟ್</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>

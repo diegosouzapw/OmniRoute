@@ -122,7 +122,6 @@ E2E awtomatikament, mingħajr l-ebda tikketta.
 ### Verżjoni u Changelog
 
 - [ ] Mexxi `/version-bump-cc <patch|minor|major>` (ħila ta' Claude Code)
-  - Jgħolli `package.json`, `electron/package.json`
   - Jiġġenera mill-ġdid `CHANGELOG.md` mill-commits ta' git mill-aħħar tag
   - Jaġġorna l-badges ta' README.md
 - [ ] Irrevedi manwalment CHANGELOG.md u naddaf il-messaġġi tal-commits jekk meħtieġ
@@ -216,104 +215,6 @@ Bidliet li jkissru: żid footer `BREAKING CHANGE:` jew `!` wara l-iskop (eż. `f
 - [ ] Mudelli reġistrati f'`open-sse/config/providerRegistry.ts`
 - [ ] Testijiet unitarji f'`tests/unit/` jkopru l-klassifikazzjoni tal-providers u r-routing
 
-### Desktop (Electron)
-
-Jekk `electron/` inbidel:
-
-- [ ] `npm run electron:smoke:packaged` jgħaddi
-- [ ] Builds ittestjati għal mill-inqas wieħed minn `:win`, `:mac`, `:linux`
-- [ ] Ċertifikati ta' firma tal-kodiċi mhux skaduti (jekk qed tiffirma)
-- [ ] Il-verżjoni ta' `electron/package.json` taqbel mal-verżjoni ta' `package.json` prinċipali
-- [ ] Il-pointer tal-kanal tal-aġġornament awtomatiku aġġornat jekk qed tirrilaxxa għal `stable`
-
-### Struttura tal-Build
-
-Ir-repo juża tliet direttorji ta' output distinti — qatt tħallathom:
-
-| Direttorju | Skop                                                                 | Traċċat?        |
-| ---------- | -------------------------------------------------------------------- | --------------- |
-| `src/`     | Sors tal-applikazzjoni (TypeScript / TSX)                            | Iva             |
-| `.build/`  | Intermedji tal-build — output ta' `next build` (`distDir`)           | Le (gitignored) |
-| `dist/`    | Bundle npm li jista' jintbagħat — immuntat minn `assembleStandalone` | Le (gitignored) |
-
-> **Nota tal-operatur:** id-direttorju tal-immaġni tal-VPS remota jibqa' `/usr/lib/node_modules/omniroute/app/`.
-> Biss l-output tal-build **fir-repo** ċċaqlaq (`app/` → `dist/`). Il-ħiliet ta' deploy rsync
-> il-kontenut ta' `dist/` fid-direttorju `app/` remot — l-ebda bidla fil-paths tal-VPS meħtieġa.
-
-**Fluss ta' build wieħed:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (clean)
-  └─ next build → .build/next/   (intermediates)
-  └─ assembleStandalone          (copies standalone + static + public + natives → dist/)
-  └─ writes dist/BUILD_SHA       (HEAD sentinel)
-```
-
-TMEXXIX `npm run build` segwit minn `npm run build:cli` separat għad-deploy — uża
-`npm run build:release` li jagħmel rebuild nadif + sentinel f'kmand wieħed.
-
-### Validazzjoni tal-Artifact
-
-- [ ] `npm run build:release` jirnexxi u `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` nadif — l-ebda `app.__qa_backup`, `scripts/scratch`, `package-lock.json`, jew residwu lokali ieħor
-- [ ] `dist/server.js` jeżisti wara l-build
-
-### Tagging u Rilaxx
-
-- [ ] Mexxi `/generate-release-cc` (ħila ta' Claude Code):
-  - Joħloq it-tag `vX.Y.Z`
-  - Jimbotta t-tag u l-fergħa
-  - Iftaħ GitHub Release bil-ġisem tal-changelog
-  - Iwaħħal l-installers ta' Electron (jekk mibnija)
-- [ ] Jew manwalment:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deploy
-
-Il-ħiliet ta' deploy jużaw il-fluss ħafif ta' rsync — l-ebda `npm pack`, l-ebda `npm i -g`:
-
-- [ ] Uża l-ħila ta' deploy li taqbel mal-mira:
-  - `/deploy-vps-local-cc` — VPS lokali (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — VPS ta' Akamai (69.164.221.35)
-  - `/deploy-vps-both-cc` — it-tnejn
-- [ ] Qabel id-deploy, ikkonferma `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Il-build irid isir fejn `node_modules` huwa reali (main checkout jew worktree b'`npm ci` — MHUX worktree b'symlink)
-- [ ] Smoke test tal-istanza deployata:
-  - Iftaħ `/dashboard/health` → iċċekkja li l-verżjoni taqbel mar-rilaxx
-  - Mexxi talba `/v1/chat/completions` kontra provider magħruf
-  - Ivverifika li `/api/monitoring/health` jirritorna circuit breakers `CLOSED`
-  - Ikkonferma li t-trasporti MCP jirrispondu (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Wara r-Rilaxx
-
-- [ ] Mexxi `/capture-release-evidences-cc` (ħila ta' Claude Code)
-  - Jaqbad screenshots/recordings WebP tal-karatteristiċi ġodda
-  - Iwaħħalhom man-noti tar-rilaxx / post tal-blog
-- [ ] Aġġorna GitHub Discussions / Discord bl-avviż tar-rilaxx
-- [ ] Iftaħ il-milestone għall-verżjoni li jmiss
-- [ ] Jekk kritiku: pinnja d-diskussjoni jew poġġi f'`news.json` għal banner fl-app
-
-### Gate tat-tnedija pubblika tar-Radar
-
-L-avviż tar-Radar huwa intenzjonalment impenjat b'`active: false`. L-attivazzjoni hija bidla
-separata wara li kull oġġett hawn taħt ikun evidenzjat:
-
-- [ ] Il-PRs kollha tar-Radar f'munzell huma mmerġjati u l-CI tal-ponta tar-rilaxx hija ħadra
-- [ ] Deploy u smoke tar-rotot OSS tar-Radar b'`RADAR_ENABLED` għadu mitfi b'mod awtomatiku
-- [ ] Smoke `GET /planos`, `/termos`, `/privacidade`, u `/reembolso` fuq il-host tar-Radar imsemmi
-- [ ] Irreġistra l-identità/kuntatt/indirizz tal-operatur u reviżjoni legali approvata mis-sid fis-servizz privat
-- [ ] Eżerċita Stripe Checkout u l-webhook iffirmat biss fil-modalità ta' test
-- [ ] Eżerċita kunsinna waħda kriptata ta' email transazzjonali mal-mittent/dominju approvat
-- [ ] Ipprova r-restawr tal-backup u ġirja waħda ta' riċerka ssorveljata u b'baġit limitat
-- [ ] Approva l-politika ta' reviżjoni BRL/PIX qabel ma taċċetta evidenza ta' donazzjoni
-- [ ] Ippermetti Checkout pubbliku biss wara l-gradi preċedenti, imbagħad attiva l-ID ġdida ta' `news.json`
-- [ ] Ivverifika li l-banner tal-Home juża kopja lokalizzata u ID ġdid jerġa' jidher wara li ID anzjan jiġi skartat
-
 ## Servizzi Integrati smook (v3.8.4+)
 
 Qabel tibgħat xi rilaxx li jinkludi bidliet fis-servizzi integrati, ivverifika:
@@ -397,7 +298,7 @@ Jekk ir-rilaxx għandu problema kritika:
 - Qatt taqbeż il-hooks ta' Husky (`--no-verify`)
 - Qatt tikkommetti sigrieti, kredenzjali, jew fajls `.env`
 - Il-kopertura trid tibqa' ≥60/60/60/60 (dikjarazzjonijiet/linji/funzjonijiet/fergħat)
-- Dejjem inkludi jew aġġorna t-testijiet meta tbiddel il-kodiċi tal-produzzjoni f'`src/`, `open-sse/`, `electron/`, jew `bin/`
+- Dejjem inkludi jew aġġorna t-testijiet meta tbiddel il-kodiċi tal-produzzjoni f'`src/`, `open-sse/`, jew `bin/`
 
 ## Kontroll ta' Sinkronizzazzjoni Awtomatiku
 

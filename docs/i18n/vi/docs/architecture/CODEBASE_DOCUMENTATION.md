@@ -27,7 +27,6 @@ mà không phải tạo ra các mô-đun mới.
 | Ngôn ngữ                        | **TypeScript 6.0+** — target `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                                 |
 | Runtime                         | **Node.js** `>=22.22.2 <23` hoặc `>=24.0.0 <27` (được bắt buộc thông qua `engines` + `SUPPORTED_NODE_RANGE`)                          |
 | Cơ sở dữ liệu                   | **SQLite** thông qua `better-sqlite3` (singleton, ghi nhật ký WAL)                                                                    |
-| Máy tính để bàn                 | **Electron 41** + `electron-builder` 26.10 (workspace riêng tại `electron/`)                                                          |
 | Kiểm thử                        | **Trình chạy kiểm thử gốc của Node** (đơn vị/tích hợp), **Vitest** (MCP, autoCombo, bộ nhớ đệm), **Playwright** (e2e + protocols-e2e) |
 | Build                           | Next.js độc lập thông qua `scripts/build/build-next-isolated.mjs`                                                                     |
 | Kiểm tra định dạng/định dạng mã | Cấu hình phẳng ESLint + Prettier (`lint-staged` thông qua Husky pre-commit)                                                           |
@@ -51,7 +50,6 @@ dữ liệu được chỉ định bởi biến môi trường `DATA_DIR`, mặc
 OmniRoute/
 ├── src/                  Ứng dụng Next.js (App Router, thư viện, miền nghiệp vụ, máy chủ, thành phần dùng chung)
 ├── open-sse/             Workspace công cụ streaming (@omniroute/open-sse)
-├── electron/             Trình bao bọc máy tính để bàn (tiến trình chính Electron 41 + preload)
 ├── bin/                  Các điểm vào CLI (omniroute, reset-password)
 ├── tests/                Kiểm thử đơn vị, tích hợp, e2e, protocols-e2e, trình dịch, bảo mật, fixture
 ├── scripts/              Các script hỗ trợ build, đồng bộ, kiểm tra, migration và runtime
@@ -574,26 +572,6 @@ Các thành phần nền tảng cho luồng và tiện ích hỗ trợ nhà cung
 
 ---
 
-## 5. `electron/` — Trình bao bọc ứng dụng desktop
-
-```
-electron/
-├── main.js                  Tiến trình chính của Electron
-├── preload.js               Cầu nối preload (đã bật contextIsolation)
-├── types.d.ts
-├── package.json             Cấu hình electron-builder, phiên bản 3.8.51
-├── README.md
-├── assets/                  Tài nguyên dựng bản phát hành (biểu tượng, quyền hạn, …)
-├── node_modules/            node_modules chuyên dụng (better-sqlite3, electron-updater)
-└── dist-electron/           Đầu ra bản dựng (không được commit)
-```
-
-Năm script npm tại thư mục gốc của workspace: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Tính năng tự động cập nhật sử dụng
-`electron-updater`, trỏ đến nguồn cấp bản phát hành trên GitHub.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -658,13 +636,11 @@ Các lệnh thường dùng:
 Được tổ chức thành 6 thư mục con theo mục đích.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -844,7 +820,7 @@ Xem [A2A-SERVER.md § Thêm kỹ năng mới](../frameworks/A2A-SERVER.md). Các
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — các kỹ năng và cơ chế khám phá của giao thức A2A.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — nén RTK + Caveman.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — các tích hợp CLI.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (nếu có), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — các mục tiêu triển khai.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — các mục tiêu triển khai.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — các sự cố vận hành thường gặp.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — quy trình làm việc dành cho người đóng góp.
 - [CLAUDE.md](../../CLAUDE.md) — các quy tắc của kho lưu trữ dành cho Claude Code (nguồn thông tin chuẩn

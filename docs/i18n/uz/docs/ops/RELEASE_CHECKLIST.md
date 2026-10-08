@@ -125,7 +125,6 @@ matritsasini hech qanday yorliqsiz avtomatik ravishda oʻtkazib yuboradi.
 ### Versiya va oʻzgarishlar jurnali
 
 - [ ] `/version-bump-cc <patch|minor|major>` buyrugʻini ishga tushiring (Claude Code skill’i)
-  - `package.json`, `electron/package.json` versiyalarini oshiradi
   - Oxirgi tag’dan keyingi git commit’lari asosida `CHANGELOG.md` faylini qayta yaratadi
   - README.md badge’larini yangilaydi
 - [ ] CHANGELOG.md faylini qoʻlda koʻrib chiqing va zarur boʻlsa commit xabarlarini tozalang
@@ -219,104 +218,6 @@ Orqaga mos kelmaydigan oʻzgarishlar: `BREAKING CHANGE:` footer’ini yoki scope
 - [ ] Modellar `open-sse/config/providerRegistry.ts` ichida roʻyxatdan oʻtkazilgan
 - [ ] `tests/unit/` ichidagi modul testlari provayder tasnifi va yoʻnaltirishni qamrab oladi
 
-### Ish stoli (Electron)
-
-Agar `electron/` oʻzgargan boʻlsa:
-
-- [ ] `npm run electron:smoke:packaged` muvaffaqiyatli bajariladi
-- [ ] Buildlar `:win`, `:mac`, `:linux` variantlaridan kamida bittasi uchun sinovdan oʻtkazilgan
-- [ ] Kodni imzolash sertifikatlarining amal qilish muddati tugamagan (agar imzolash qoʻllansa)
-- [ ] `electron/package.json` versiyasi ildizdagi `package.json` versiyasiga mos
-- [ ] Agar `stable` kanaliga reliz qilinayotgan boʻlsa, avtomatik yangilash kanali koʻrsatkichi yangilangan
-
-### Build tuzilishi
-
-Repozitoriy uchta alohida chiqish katalogidan foydalanadi — ularni hech qachon aralashtirmang:
-
-| Katalog   | Maqsad                                                              | Kuzatiladimi?     |
-| --------- | ------------------------------------------------------------------- | ----------------- |
-| `src/`    | Ilova manba kodi (TypeScript / TSX)                                 | Ha                |
-| `.build/` | Build oraliq fayllari — `next build` chiqishi (`distDir`)           | Yoʻq (gitignored) |
-| `dist/`   | Tarqatiladigan npm toʻplami — `assembleStandalone` orqali yigʻiladi | Yoʻq (gitignored) |
-
-> **Operator eslatmasi:** masofaviy VPS tasvir katalogi `/usr/lib/node_modules/omniroute/app/` boʻlib qoladi.
-> Faqat **repozitoriy ichidagi** build chiqishi koʻchirildi (`app/` → `dist/`). Deploy koʻnikmalari
-> `dist/` tarkibini masofaviy `app/` katalogiga rsync orqali nusxalaydi — VPS yoʻllarini oʻzgartirish talab qilinmaydi.
-
-**Yagona build jarayoni:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (tozalash)
-  └─ next build → .build/next/   (oraliq fayllar)
-  └─ assembleStandalone          (standalone + static + public + natives fayllarini dist/ ichiga nusxalaydi)
-  └─ writes dist/BUILD_SHA       (HEAD nazorat belgisi)
-```
-
-Deploy uchun `npm run build` buyrugʻidan keyin alohida `npm run build:cli` buyrugʻini ISHGA TUSHIRMANG — bitta buyruqda toza qayta build va nazorat belgisini yaratadigan
-`npm run build:release` buyrugʻidan foydalaning.
-
-### Artefaktni tekshirish
-
-- [ ] `npm run build:release` muvaffaqiyatli yakunlanadi va `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` toza yakunlanadi — `app.__qa_backup`, `scripts/scratch`, `package-lock.json` yoki boshqa mahalliy qoldiqlar yoʻq
-- [ ] Builddan keyin `dist/server.js` mavjud
-
-### Teg qoʻyish va reliz
-
-- [ ] `/generate-release-cc` buyrugʻini ishga tushiring (Claude Code koʻnikmasi):
-  - `vX.Y.Z` tegini yaratadi
-  - Teg va branchni yuboradi
-  - Oʻzgarishlar jurnali matni bilan GitHub Release ochadi
-  - Electron oʻrnatuvchilarini biriktiradi (agar build qilingan boʻlsa)
-- [ ] Yoki qoʻlda:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deploy
-
-Deploy koʻnikmalari yengil rsync jarayonidan foydalanadi — `npm pack` ham, `npm i -g` ham ishlatilmaydi:
-
-- [ ] Maqsadga mos deploy koʻnikmasidan foydalaning:
-  - `/deploy-vps-local-cc` — mahalliy VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — har ikkisi
-- [ ] Deploy qilishdan oldin `dist/BUILD_SHA` == `git rev-parse --short HEAD` ekanini tasdiqlang
-- [ ] Build `node_modules` haqiqiy boʻlgan joyda ishga tushirilishi kerak (asosiy checkout yoki `npm ci` bajarilgan worktree — symlink qilingan worktree EMAS)
-- [ ] Deploy qilingan nusxada smoke-test oʻtkazing:
-  - `/dashboard/health` sahifasini oching → versiya satri relizga mosligini tekshiring
-  - Maʼlum provayderga `/v1/chat/completions` soʻrovini yuboring
-  - `/api/monitoring/health` `CLOSED` holatidagi circuit breakerlarni qaytarishini tekshiring
-  - MCP transportlari javob berishini tasdiqlang (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Relizdan keyin
-
-- [ ] `/capture-release-evidences-cc` buyrugʻini ishga tushiring (Claude Code koʻnikmasi)
-  - Yangi funksiyalarning WebP formatidagi skrinshotlari/yozuvlarini oladi
-  - Ularni reliz qaydlari / blog postiga biriktiradi
-- [ ] GitHub Discussions / Discordʼni reliz eʼloni bilan yangilang
-- [ ] Keyingi versiya uchun bosqichni oching
-- [ ] Agar muhim boʻlsa: muhokamani tepaga mahkamlang yoki ilova ichidagi banner uchun `news.json` fayliga joylang
-
-### Radarʼni ommaviy ishga tushirish nazorat bosqichi
-
-Radar eʼloni ataylab `active: false` holatida commit qilingan. Quyidagi har bir band
-dalillar bilan tasdiqlangandan soʻng faollashtirish alohida oʻzgartirish sifatida amalga oshiriladi:
-
-- [ ] Barcha ketma-ket Radar PRʼlari birlashtirilgan va release-tip CI muvaffaqiyatli oʻtgan
-- [ ] `RADAR_ENABLED` standart holatda hali ham oʻchiq boʻlgan holda OSS Radar yoʻnalishlarini joylashtiring va smoke-testdan oʻtkazing
-- [ ] Belgilangan Radar hostida `GET /planos`, `/termos`, `/privacidade` va `/reembolso` yoʻnalishlarini smoke-testdan oʻtkazing
-- [ ] Operatorning shaxsi/aloqa maʼlumotlari/manzilini va egasi tasdiqlagan huquqiy tekshiruvni xususiy xizmatda qayd eting
-- [ ] Stripe Checkout va imzolangan webhookʼni faqat test rejimida sinab koʻring
-- [ ] Tasdiqlangan joʻnatuvchi/domen orqali bitta shifrlangan tranzaksion elektron xat yetkazilishini sinab koʻring
-- [ ] Zaxira nusxadan tiklashni va nazorat ostida, byudjeti cheklangan bitta tadqiqot ishga tushirilishini tasdiqlang
-- [ ] Xayriya dalillarini qabul qilishdan oldin BRL/PIX tekshiruv siyosatini tasdiqlang
-- [ ] Ommaviy Checkoutʼni faqat oldingi nazorat bosqichlaridan oʻtgach yoqing, soʻng yangi `news.json` IDʼsini faollashtiring
-- [ ] Bosh sahifa bannerida mahalliylashtirilgan matn ishlatilishini va eski ID yopilgandan keyin yangi ID yana paydo boʻlishini tekshiring
-
 ## Oʻrnatilgan xizmatlar smoke-testi (v3.8.4+)
 
 Oʻrnatilgan xizmatlarga oid oʻzgarishlarni oʻz ichiga olgan har qanday relizni chiqarishdan oldin quyidagilarni tekshiring:
@@ -402,7 +303,7 @@ Agar relizda jiddiy muammo bo‘lsa:
 - Hech qachon Husky hooklarini (`--no-verify`) chetlab o‘tmang
 - Hech qachon sirlar, hisob ma’lumotlari yoki `.env` fayllarini commit qilmang
 - Qamrov ≥60/60/60/60 (bayonotlar/satrlar/funksiyalar/tarmoqlar) darajasida qolishi kerak
-- `src/`, `open-sse/`, `electron/` yoki `bin/` ichidagi ishlab chiqarish kodini o‘zgartirganda har doim testlarni qo‘shing yoki yangilang
+- `src/`, `open-sse/` yoki `bin/` ichidagi ishlab chiqarish kodini o‘zgartirganda har doim testlarni qo‘shing yoki yangilang
 
 ## Avtomatlashtirilgan sinxronlash tekshiruvi
 

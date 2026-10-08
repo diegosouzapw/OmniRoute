@@ -68,7 +68,6 @@ test("it still governs the build-like jobs — the ones that actually need the R
     jobs.includes("build"),
     "the build is the whole reason the variable exists: 18-20 GB working set vs a 16 GB hosted runner"
   );
-  assert.ok(jobs.includes("publish"), "npm-publish falls back to a full build when the artifact is missing");
 });
 
 test("fast-gates specifically stays hosted", () => {

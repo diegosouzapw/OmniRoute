@@ -27,7 +27,6 @@ ne da bi si izmišljal nove module.
 | Jezik              | **TypeScript 6.0+** — cilj `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                                          |
 | Izvajalno okolje   | **Node.js** `>=22.22.2 <23` ali `>=24.0.0 <27` (uveljavljeno prek `engines` + `SUPPORTED_NODE_RANGE`)                                        |
 | Podatkovna zbirka  | **SQLite** prek `better-sqlite3` (en primerek, beleženje WAL)                                                                                |
-| Namizna aplikacija | **Electron 41** + `electron-builder` 26.10 (ločen delovni prostor v `electron/`)                                                             |
 | Testi              | **Vgrajeni izvajalnik testov Node** (enotni/integracijski), **Vitest** (MCP, autoCombo, predpomnilnik), **Playwright** (e2e + protocols-e2e) |
 | Gradnja            | Samostojni Next.js prek `scripts/build/build-next-isolated.mjs`                                                                              |
 | Preverjanje/oblika | Ploska konfiguracija ESLint + Prettier (`lint-staged` prek Husky pred potrditvijo)                                                           |
@@ -51,7 +50,6 @@ za podatke določa okoljska spremenljivka `DATA_DIR`, privzeto pa je `~/.omnirou
 OmniRoute/
 ├── src/                  Aplikacija Next.js (App Router, knjižnice, domena, strežnik, skupna koda)
 ├── open-sse/             Delovni prostor mehanizma za pretakanje (@omniroute/open-sse)
-├── electron/             Namizni ovoj (glavni proces Electron 41 + preload)
 ├── bin/                  Vstopne točke CLI (omniroute, reset-password)
 ├── tests/                Enotni, integracijski, e2e, protocols-e2e, prevajalski in varnostni testi ter testni podatki
 ├── scripts/              Pomožni skripti za gradnjo, sinhronizacijo, preverjanje, migracije in izvajanje
@@ -575,26 +573,6 @@ Osnovni gradniki za pretakanje in pomožne funkcije ponudnikov: `stream.ts`, `st
 
 ---
 
-## 5. `electron/` — Namizni ovoj
-
-```
-electron/
-├── main.js                  Glavni proces Electron
-├── preload.js               Prednalagalni most (contextIsolation omogočen)
-├── types.d.ts
-├── package.json             Konfiguracija electron-builder, različica 3.8.51
-├── README.md
-├── assets/                  Viri za gradnjo (ikone, upravičenja, …)
-├── node_modules/            Namenski node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           Rezultat gradnje (ni vključen v repozitorij)
-```
-
-Pet skript npm v korenu delovnega prostora: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Samodejno posodabljanje poteka prek
-`electron-updater`, ki kaže na vir izdaj GitHub.
-
----
-
 ## 6. `bin/` — Vmesnik ukazne vrstice
 
 ```
@@ -659,13 +637,11 @@ Pogosti ukazi:
 Organizirano v 6 podmap glede na namen.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -845,7 +821,7 @@ Glejte [A2A-SERVER.md § Dodajanje nove veščine](../frameworks/A2A-SERVER.md).
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — zmožnosti in odkrivanje protokola A2A.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — stiskanje RTK in Caveman.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — integracije CLI.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (če je prisoten), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — ciljna okolja za uvedbo.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — ciljna okolja za uvedbo.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — pogoste operativne težave.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — potek dela za sodelujoče.
 - [CLAUDE.md](../../CLAUDE.md) — pravila repozitorija za Claude Code (glavni vir

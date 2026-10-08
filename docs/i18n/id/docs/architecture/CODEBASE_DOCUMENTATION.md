@@ -27,7 +27,6 @@ tanpa membuat modul baru.
 | Bahasa             | **TypeScript 6.0+** — target `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                       |
 | Runtime            | **Node.js** `>=22.22.2 <23` atau `>=24.0.0 <27` (diterapkan melalui `engines` + `SUPPORTED_NODE_RANGE`)                     |
 | Basis data         | **SQLite** melalui `better-sqlite3` (singleton, penjurnalan WAL)                                                            |
-| Desktop            | **Electron 41** + `electron-builder` 26.10 (workspace terpisah di `electron/`)                                              |
 | Pengujian          | **Runner pengujian bawaan Node** (unit/integrasi), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | Build              | Next.js mandiri melalui `scripts/build/build-next-isolated.mjs`                                                             |
 | Lint/format        | Konfigurasi datar ESLint + Prettier (`lint-staged` melalui pre-commit Husky)                                                |
@@ -51,7 +50,6 @@ data ditentukan oleh variabel lingkungan `DATA_DIR`, dengan nilai default `~/.om
 OmniRoute/
 ├── src/                  Aplikasi Next.js (App Router, pustaka, domain, server, komponen bersama)
 ├── open-sse/             Workspace mesin streaming (@omniroute/open-sse)
-├── electron/             Pembungkus desktop (proses utama + preload Electron 41)
 ├── bin/                  Titik masuk CLI (omniroute, reset-password)
 ├── tests/                Unit, integrasi, e2e, protocols-e2e, penerjemah, keamanan, fixture
 ├── scripts/              Skrip pembantu build, sinkronisasi, pemeriksaan, migrasi, dan runtime
@@ -575,26 +573,6 @@ Primitif streaming dan pembantu penyedia: `stream.ts`, `streamHandler.ts`,
 
 ---
 
-## 5. `electron/` — Pembungkus desktop
-
-```
-electron/
-├── main.js                  Proses utama Electron
-├── preload.js               Jembatan preload (contextIsolation diaktifkan)
-├── types.d.ts
-├── package.json             Konfigurasi electron-builder, versi 3.8.51
-├── README.md
-├── assets/                  Sumber daya build (ikon, hak akses, …)
-├── node_modules/            node_modules khusus (better-sqlite3, electron-updater)
-└── dist-electron/           Output build (tidak di-commit)
-```
-
-Lima skrip npm di root workspace: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Pembaruan otomatis dilakukan melalui
-`electron-updater` yang mengarah ke feed rilis GitHub.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -659,13 +637,11 @@ Perintah umum:
 Diorganisasikan ke dalam 6 subfolder berdasarkan tujuan.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -845,7 +821,7 @@ Lihat [A2A-SERVER.md § Menambahkan Skill Baru](../frameworks/A2A-SERVER.md). Sk
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — keterampilan dan penemuan protokol A2A.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — kompresi RTK + Caveman.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — integrasi CLI.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (jika tersedia), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — target deployment.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — target deployment.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — masalah operasional umum.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — alur kerja kontributor.
 - [CLAUDE.md](../../CLAUDE.md) — aturan repositori untuk Claude Code (sumber acuan utama

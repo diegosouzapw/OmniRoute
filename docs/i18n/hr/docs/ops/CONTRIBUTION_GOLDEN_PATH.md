@@ -16,7 +16,7 @@ vrstu promjene s njezinim ugovorima, ciljanim provjerama i pokrivenošću CI-ja.
    [Model grananja i izdanja](BRANCHING_MODEL.md).
 2. **Navedite ugovore.** Utvrdite svaki katalog, shemu, generirani artefakt, javni API ili korisničko
    sučelje na koje promjena utječe. Tablica u nastavku navodi minimalni početni skup.
-3. **Napišite ili ažurirajte ciljane testove.** Promjene produkcijskog koda u `src/`, `open-sse/`, `electron/` ili
+3. **Napišite ili ažurirajte ciljane testove.** Promjene produkcijskog koda u `src/`, `open-sse/` ili
    `bin/` zahtijevaju automatizirani test u istom PR-u. Pokrenite najmanji skup testnih datoteka koje dokazuju
    ispravno ponašanje, a zatim navedene ciljane provjere.
 4. **Prepustite CI-ju pokretanje široke matrice.** Potpune cjeline jediničnih testova, Vitest, prag pokrivenosti i

@@ -89,7 +89,6 @@
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![مجوز: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![دریافتهای Docker](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![دانلودهای Electron](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
 
 <table>
   <tr>
@@ -744,7 +743,6 @@ omniroute configure codex          # همچنین: claude opencode qwen aider go
   <tr><th align="left">پلتفرم</th><th align="left">نصب</th><th align="left">ویژگیهای برجسته</th></tr>
   <tr><td align="left" nowrap>📦 <b>npm (سراسری)</b></td><td align="left" nowrap><code>npm install -g omniroute</code></td><td align="left">یک فرمان، روی هر سیستمعامل</td></tr>
   <tr><td align="left" nowrap>🐳 <b>Docker</b></td><td align="left" nowrap><code>docker run … diegosouzapw/omniroute</code></td><td align="left">چندمعماری <b>AMD64 + ARM64</b></td></tr>
-  <tr><td align="left" nowrap>🖥️ <b>دسکتاپ (Electron)</b></td><td align="left" nowrap><code>npm run electron:build</code></td><td align="left">پنجره بومی + سینی سیستم — <b>Windows / macOS / Linux</b></td></tr>
   <tr><td align="left" nowrap>🎩 <b>نوار منو (OmniRouteTray)</b></td><td align="left" nowrap><code>brew install --cask zoispag/tap/omniroute-tray</code></td><td align="left">نظارت بر سرور و بهروزرسانی خودکار آن — <b>macOS</b></td></tr>
   <tr><td align="left" nowrap>💪 <b>ARM</b></td><td align="left" nowrap><code>arm64</code> بومی</td><td align="left">Raspberry Pi، سرورهای ARM، Apple Silicon</td></tr>
   <tr><td align="left" nowrap>📱 <b>Android (Termux)</b></td><td align="left" nowrap><code>pkg install nodejs && npx -y omniroute</code></td><td align="left">بدون نیاز به روت، بهصورت ۲۴/۷ <b>روی گوشی شما</b> اجرا میشود</td></tr>
@@ -754,7 +752,7 @@ omniroute configure codex          # همچنین: claude opencode qwen aider go
   <tr><td align="left" nowrap>🛠️ <b>از کد منبع</b></td><td align="left" nowrap><code>npm install && npm run dev</code></td><td align="left">تغییرش دهید و مشارکت کنید</td></tr>
 </table>
 
-<sub>📖 [راهنمای Docker](docs/guides/DOCKER_GUIDE.md) · [دسکتاپ](electron/README.md) · [سینی نوار منو](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
+<sub>📖 [راهنمای Docker](docs/guides/DOCKER_GUIDE.md) · [سینی نوار منو](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
 
 <br/>
 
@@ -1276,7 +1274,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 نیز از آن 
   <tr><td nowrap><b>تابآوری</b></td><td>قطعکننده مدار، عقبنشینی نمایی، جلوگیری از ازدحام همزمان، خودترمیمی خودکار ترکیبها</td></tr>
   <tr><td nowrap><b>گزارشگیری</b></td><td>pino — گزارشهای ساختاریافته JSON همراه با زمینه درخواست</td></tr>
   <tr><td nowrap><b>آزمایش</b></td><td>اجراکننده آزمون Node.js + Vitest — <b>بیش از ۳۹٬۰۰۰ اعلان آزمون ایستا</b> در بیش از ۵٬۱۰۰ فایل آزمون رهگیریشده (واحد، یکپارچهسازی، سرتاسری، امنیت، اکوسیستم)</td></tr>
-  <tr><td nowrap><b>پلتفرمها</b></td><td>دسکتاپ (Electron) · Android (Termux) · PWA (هر مرورگری)</td></tr>
+  <tr><td nowrap><b>پلتفرمها</b></td><td>Android (Termux) · PWA (هر مرورگری)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — انتشار خودکار در npm و Docker Hub هنگام انتشار نسخه</td></tr>
   <tr><td nowrap><b>پیوندها</b></td><td><a href="https://omniroute.online">وبسایت</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>

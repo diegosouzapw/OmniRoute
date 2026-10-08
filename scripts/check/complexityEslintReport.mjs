@@ -12,7 +12,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const CONFIG_PATH = path.join(ROOT, "eslint.complexity-ratchets.config.mjs");
 
 /** Positional dirs — must match config `files` scopes (see check-complexity tests). */
-export const ESLINT_SCAN_DIRS = ["src", "open-sse", "electron", "bin"];
+export const ESLINT_SCAN_DIRS = ["src", "open-sse", "bin"];
 
 const ESLINT_BIN = path.join(
   ROOT,

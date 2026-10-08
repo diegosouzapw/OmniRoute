@@ -27,7 +27,6 @@ neizgudrojot jaunus moduļus.
 | Valoda                | **TypeScript 6.0+** — mērķis `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                                      |
 | Izpildvide            | **Node.js** `>=22.22.2 <23` vai `>=24.0.0 <27` (nodrošināts ar `engines` + `SUPPORTED_NODE_RANGE`)                                         |
 | Datubāze              | **SQLite**, izmantojot `better-sqlite3` (viena instance, WAL žurnalēšana)                                                                  |
-| Darbvirsma            | **Electron 41** + `electron-builder` 26.10 (atsevišķa darbvieta direktorijā `electron/`)                                                   |
 | Testi                 | **Node iebūvētais testu izpildītājs** (vienību/integrācijas), **Vitest** (MCP, autoCombo, kešatmiņa), **Playwright** (e2e + protocols-e2e) |
 | Būvēšana              | Next.js savrupais režīms, izmantojot `scripts/build/build-next-isolated.mjs`                                                               |
 | Lintēšana/formatēšana | ESLint vienotā konfigurācija + Prettier (`lint-staged`, izmantojot Husky pirmskomita āķi)                                                  |
@@ -51,7 +50,6 @@ direktoriju nosaka vides mainīgais `DATA_DIR`; tā noklusējuma vērtība ir `~
 OmniRoute/
 ├── src/                  Next.js lietojumprogramma (App Router, bibliotēkas, domēns, serveris, koplietojamais kods)
 ├── open-sse/             Straumēšanas dzinēja darbvieta (@omniroute/open-sse)
-├── electron/             Darbvirsmas ietvars (Electron 41 galvenais process + preload)
 ├── bin/                  CLI ieejas punkti (omniroute, reset-password)
 ├── tests/                Vienību, integrācijas, e2e, protocols-e2e, tulkotāja, drošības testi un testa dati
 ├── scripts/              Būvēšanas, sinhronizācijas, pārbaužu, migrācijas un izpildlaika palīgskripti
@@ -575,26 +573,6 @@ Straumēšanas primitīvi un nodrošinātāju palīgfunkcijas: `stream.ts`, `str
 
 ---
 
-## 5. `electron/` — Darbvirsmas ietvars
-
-```
-electron/
-├── main.js                  Electron galvenais process
-├── preload.js               Priekšielādes tilts (iespējots contextIsolation)
-├── types.d.ts
-├── package.json             electron-builder konfigurācija, versija 3.8.51
-├── README.md
-├── assets/                  Būvējuma resursi (ikonas, pilnvarojumi, …)
-├── node_modules/            Atsevišķs node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           Būvējuma izvade (netiek iekļauta repozitorijā)
-```
-
-Darbvietas saknē ir pieci npm skripti: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Automātiskā atjaunināšana tiek veikta,
-izmantojot `electron-updater`, kas norāda uz GitHub laidienu plūsmu.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -659,13 +637,11 @@ Biežāk lietotās komandas:
 Sakārtota 6 apakšmapēs pēc nolūka.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -844,7 +820,7 @@ direktorijā `src/lib/a2a/skills/` un tiek reģistrētas, izmantojot A2A uzdevum
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A protokola prasmes un atklāšana.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK un Caveman saspiešana.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI integrācijas.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (ja pieejams), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — izvietošanas mērķi.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — izvietošanas mērķi.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — biežākās darbības problēmas.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — līdzstrādnieku darbplūsma.
 - [CLAUDE.md](../../CLAUDE.md) — repozitorija noteikumi Claude Code (patiesības avots

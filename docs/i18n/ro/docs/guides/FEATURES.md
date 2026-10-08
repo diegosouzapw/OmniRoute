@@ -265,25 +265,6 @@ Urmărirea acțiunilor administrative, cu filtrare după tipul acțiunii, autor,
 
 ---
 
-## 🖥️ Aplicație desktop
-
-Aplicație desktop Electron nativă pentru Windows, macOS și Linux. Rulați OmniRoute ca aplicație autonomă, cu integrare în zona de notificare a sistemului, suport offline, actualizare automată și instalare cu un singur clic.
-
-Caracteristici principale:
-
-- Verificarea periodică a disponibilității serverului (fără ecran gol la pornirea la rece)
-- Integrare în zona de notificare a sistemului, cu gestionarea porturilor
-- Politică de securitate a conținutului
-- Blocare la o singură instanță
-- Actualizare automată la repornire
-- Interfață condiționată de platformă (butoanele tip semafor din macOS, bara de titlu implicită în Windows/Linux)
-- Împachetare consolidată a buildului Electron — directoarele `node_modules` legate simbolic din pachetul autonom sunt detectate și respinse înainte de împachetare, prevenind dependența la rulare de mașina de build (v2.5.5+)
-- **Închidere controlată** — evenimentul Electron `before-quit` închide corect Next.js, prevenind blocarea bazelor de date SQLite WAL (v3.6.2+)
-
-📖 Consultați [`electron/README.md`](../../electron/README.md) pentru documentația completă.
-
----
-
 ## 🌐 Punte WebSocket V1 _(v3.6.6+)_
 
 OmniRoute acceptă acum **clienți WebSocket compatibili cu OpenAI** prin endpointul de upgrade `/v1/ws`. Serverul personalizat `scripts/dev/v1-ws-bridge.mjs` încapsulează Next.js și actualizează conexiunile WS la sesiuni complete de streaming bidirecțional. Autentificarea utilizează aceeași cheie API sau același cookie de sesiune ca solicitările HTTP.

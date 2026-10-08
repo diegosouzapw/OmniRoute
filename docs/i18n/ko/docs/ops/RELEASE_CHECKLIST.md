@@ -124,7 +124,6 @@ unit 샤드, integration, vitest, lint/typecheck, docs-sync, `check:pack-artifac
 ### 버전 및 변경 로그
 
 - [ ] `/version-bump-cc <patch|minor|major>` 실행(Claude Code 스킬)
-  - `package.json`, `electron/package.json` 버전 상향
   - 마지막 태그 이후의 git 커밋에서 `CHANGELOG.md` 재생성
   - README.md 배지 업데이트
 - [ ] CHANGELOG.md를 수동으로 검토하고 필요한 경우 커밋 메시지를 정리
@@ -218,104 +217,6 @@ Husky 훅은 `.husky/`에 있으며 git 작업 시 자동으로 실행됩니다.
 - [ ] 모델이 `open-sse/config/providerRegistry.ts`에 등록됨
 - [ ] `tests/unit/`의 단위 테스트가 공급자 분류 및 라우팅을 다룸
 
-### 데스크톱(Electron)
-
-`electron/`이 변경된 경우:
-
-- [ ] `npm run electron:smoke:packaged` 통과
-- [ ] `:win`, `:mac`, `:linux` 중 하나 이상에서 빌드 테스트
-- [ ] 코드 서명 인증서가 만료되지 않음(서명하는 경우)
-- [ ] `electron/package.json` 버전이 루트 `package.json`과 일치함
-- [ ] `stable`로 릴리스하는 경우 자동 업데이트 채널 포인터 업데이트
-
-### 빌드 레이아웃
-
-저장소는 서로 다른 세 개의 출력 디렉터리를 사용합니다. 절대 혼동하지 마세요:
-
-| 디렉터리  | 용도                                               | 추적 여부          |
-| --------- | -------------------------------------------------- | ------------------ |
-| `src/`    | 애플리케이션 소스(TypeScript / TSX)                | 예                 |
-| `.build/` | 빌드 중간 산출물 — `next build` 출력(`distDir`)    | 아니요(gitignored) |
-| `dist/`   | 배포 가능한 npm 번들 — `assembleStandalone`로 구성 | 아니요(gitignored) |
-
-> **운영자 참고:** 원격 VPS 이미지 디렉터리는 계속 `/usr/lib/node_modules/omniroute/app/`입니다.
-> **저장소 내부** 빌드 출력만 이동했습니다(`app/` → `dist/`). 배포 스킬은
-> `dist/`의 내용을 원격 `app/` 디렉터리로 rsync하므로 VPS 경로를 변경할 필요가 없습니다.
-
-**단일 빌드 흐름:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (정리)
-  └─ next build → .build/next/   (중간 산출물)
-  └─ assembleStandalone          (standalone + static + public + natives를 dist/로 복사)
-  └─ dist/BUILD_SHA 작성         (HEAD 센티널)
-```
-
-배포를 위해 `npm run build`를 실행한 다음 별도로 `npm run build:cli`를 실행하지 마세요. 한 번의 명령으로 클린 재빌드와 센티널 생성을 수행하는
-`npm run build:release`를 사용하세요.
-
-### 아티팩트 검증
-
-- [ ] `npm run build:release`가 성공하고 `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` 결과가 깨끗함 — `app.__qa_backup`, `scripts/scratch`, `package-lock.json` 또는 기타 로컬 잔여물이 없음
-- [ ] 빌드 후 `dist/server.js`가 존재함
-
-### 태그 지정 및 릴리스
-
-- [ ] `/generate-release-cc` 실행(Claude Code 스킬):
-  - `vX.Y.Z` 태그 생성
-  - 태그와 브랜치 푸시
-  - 변경 로그 본문으로 GitHub Release 생성
-  - Electron 설치 프로그램 첨부(빌드된 경우)
-- [ ] 또는 수동으로 실행:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### 배포
-
-배포 스킬은 경량 rsync 흐름을 사용합니다. `npm pack`이나 `npm i -g`는 사용하지 않습니다:
-
-- [ ] 대상과 일치하는 배포 스킬 사용:
-  - `/deploy-vps-local-cc` — 로컬 VPS(192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS(69.164.221.35)
-  - `/deploy-vps-both-cc` — 둘 다
-- [ ] 배포하기 전에 `dist/BUILD_SHA` == `git rev-parse --short HEAD`인지 확인
-- [ ] 실제 `node_modules`가 있는 위치에서 빌드를 실행해야 함(메인 체크아웃 또는 `npm ci`를 실행한 worktree — 심볼릭 링크된 worktree는 사용 금지)
-- [ ] 배포된 인스턴스 스모크 테스트:
-  - `/dashboard/health` 열기 → 버전 문자열이 릴리스와 일치하는지 확인
-  - 정상 동작이 확인된 공급자를 대상으로 `/v1/chat/completions` 요청 실행
-  - `/api/monitoring/health`가 `CLOSED` 회로 차단기를 반환하는지 확인
-  - MCP 전송이 응답하는지 확인(`/mcp` HTTP, `/mcp-sse` SSE)
-
-### 릴리스 후
-
-- [ ] `/capture-release-evidences-cc` 실행(Claude Code 스킬)
-  - 새로운 기능의 WebP 스크린샷/녹화 캡처
-  - 릴리스 노트/블로그 게시물에 첨부
-- [ ] 릴리스 공지로 GitHub Discussions / Discord 업데이트
-- [ ] 다음 버전의 마일스톤 생성
-- [ ] 중요 사항인 경우: 토론을 고정하거나 앱 내 배너를 위해 `news.json`에 게시
-
-### Radar 공개 출시 게이트
-
-Radar 공지는 의도적으로 `active: false` 상태로 커밋되어 있습니다. 아래의 모든 항목에 대한
-증빙이 완료된 후 별도의 변경을 통해 활성화합니다.
-
-- [ ] 스택된 모든 Radar PR이 병합되고 릴리스 팁 CI가 통과됨
-- [ ] `RADAR_ENABLED`가 기본적으로 계속 비활성화된 상태에서 OSS Radar 경로를 배포하고 스모크 테스트
-- [ ] 지정된 Radar 호스트에서 `GET /planos`, `/termos`, `/privacidade`, `/reembolso` 스모크 테스트
-- [ ] 비공개 서비스에 운영자 신원/연락처/주소 및 소유자가 승인한 법률 검토 기록
-- [ ] 테스트 모드에서만 Stripe Checkout 및 서명된 웹훅 테스트
-- [ ] 승인된 발신자/도메인으로 암호화된 트랜잭션 이메일 전송 1회 테스트
-- [ ] 백업 복원 및 감독하에 예산 한도가 설정된 리서치 실행 1회 검증
-- [ ] 기부 증빙을 수락하기 전에 BRL/PIX 검토 정책 승인
-- [ ] 앞선 게이트를 모두 통과한 후에만 공개 Checkout을 활성화한 다음, 새로운 `news.json` ID 활성화
-- [ ] 홈 배너가 현지화된 문구를 사용하고, 이전 ID를 닫은 후 새 ID가 다시 표시되는지 확인
-
 ## 임베디드 서비스 스모크 테스트 (v3.8.4+)
 
 임베디드 서비스 변경 사항이 포함된 릴리스를 배포하기 전에 다음을 확인하세요.
@@ -401,7 +302,7 @@ v3.8.x 릴리스를 배포하기 전에 다음 추가 항목을 확인하세요.
 - 절대로 Husky 훅을 건너뛰지 않기(`--no-verify`)
 - 절대로 비밀 정보, 자격 증명 또는 `.env` 파일을 커밋하지 않기
 - 커버리지는 ≥60/60/60/60(구문/라인/함수/브랜치)을 유지해야 함
-- `src/`, `open-sse/`, `electron/` 또는 `bin/`의 프로덕션 코드를 변경할 때는 항상 테스트를 추가하거나 업데이트하기
+- `src/`, `open-sse/` 또는 `bin/`의 프로덕션 코드를 변경할 때는 항상 테스트를 추가하거나 업데이트하기
 
 ## 자동화된 동기화 검사
 

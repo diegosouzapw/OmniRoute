@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16 ആപ്ലിക്കേഷൻ (UI + API റൂട്ടുകൾ + ലൈബ്രറികൾ + ഡൊമെയ്ൻ + സെർവർ)
 ├── open-sse/             # സ്ട്രീമിംഗ് എൻജിൻ വർക്ക്സ്പേസ് (ഹാൻഡ്ലറുകൾ, എക്സിക്യൂട്ടറുകൾ, ട്രാൻസ്ലേറ്റർ, MCP സെർവർ)
-├── electron/             # ഡെസ്ക്ടോപ്പ് റാപ്പർ (Electron 41 + electron-builder 26.10)
 ├── bin/                  # CLI എൻട്രി പോയിന്റും കമാൻഡ് ഹാൻഡ്ലറുകളും
 ├── scripts/              # ബിൽഡ്, പരിശോധന, സമന്വയം, ഒറ്റത്തവണ ഉപയോഗിക്കുന്ന സ്ക്രിപ്റ്റുകൾ
 ├── docs/                 # പൊതു ഡോക്യുമെന്റേഷൻ (നിങ്ങൾ ഇവിടെയാണ്)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — ഡെസ്ക്ടോപ്പ് റാപ്പർ
-
-| ഫയൽ              | ഉദ്ദേശ്യം                                                                                         |
-| ---------------- | ------------------------------------------------------------------------------------------------- |
-| `main.js`        | Electron പ്രധാന പ്രോസസ് (BrowserWindow, എംബെഡ് ചെയ്ത Next.js സെർവർ, ട്രേ, സ്വയമേവയുള്ള അപ്ഡേറ്റ്) |
-| `preload.js`     | IPC ബ്രിഡ്ജ് (contextBridge → `window.omniroute`)                                                 |
-| `package.json`   | electron-builder കോൺഫിഗ് + Electron 41 + electron-builder 26.10 ഡിപെൻഡൻസികൾ                       |
-| `assets/`        | ആപ്പ് ഐക്കണുകൾ (Windows .ico, macOS .icns, Linux .png)                                            |
-| `dist-electron/` | ബിൽഡ് ഔട്ട്പുട്ട് (gitignore ചെയ്തിരിക്കുന്നു)                                                    |
-| `types.d.ts`     | റെൻഡറർ ബ്രിഡ്ജിനായുള്ള ടൈപ്പ് ഡിക്ലറേഷനുകൾ                                                        |
-| `README.md`      | ആന്തരിക Electron README (`docs/guides/ELECTRON_GUIDE.md` കൂടി കാണുക)                              |
-
----
-
 ## `bin/` — CLI
 
 | ഫയൽ                                                                                                         | ഉദ്ദേശ്യം                                                                                                                         |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | MCP/A2A E2E റണ്ണർ                                                                                                     |
 | `run-ecosystem-tests.mjs`           | ഇക്കോസിസ്റ്റം (പ്രൊവൈഡർ ഇന്റഗ്രേഷൻ) പരിശോധനകൾ                                                                         |
 | `test-report-summary.mjs`           | കവറേജ് സംഗ്രഹ മാർക്ക്ഡൗൺ സൃഷ്ടിക്കുക                                                                                  |
-| `smoke-electron-packaged.mjs`       | പാക്കേജ് ചെയ്ത Electron ബിൽഡിന്റെ സ്മോക്ക് ടെസ്റ്റ് നടത്തുക                                                           |
-| `native-binary-compat.mjs`          | നേറ്റീവ് ഡിപെൻഡൻസികൾ (`better-sqlite3`) Electron-ന്റെ Node-മായി പൊരുത്തപ്പെടുന്നുവെന്ന് സാധൂകരിക്കുക                  |
 | `validate-pack-artifact.ts`         | npm pack ഔട്ട്പുട്ട് സാധൂകരിക്കുക                                                                                     |
 | `responses-ws-proxy.mjs`            | Codex Responses API-യ്ക്കായുള്ള WebSocket ബ്രിഡ്ജ്                                                                    |
 | `v1-ws-bridge.mjs`                  | `/api/v1/ws` എൻഡ്പോയിന്റിനായുള്ള WebSocket ബ്രിഡ്ജ്                                                                   |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | അന്തിമ ഉപയോക്തൃ മാനുവൽ (സജ്ജീകരണം, മോഡലുകൾ, കോമ്പോകൾ, CLI-കൾ, ഓഡിയോ തുടങ്ങിയവ)                             |
 | `API_REFERENCE.md`          | ഓതന്റിക്കേഷൻ മോഡലോടുകൂടിയ API എൻഡ്പോയിന്റ് റഫറൻസ്                                                          |
 | `openapi.yaml`              | OpenAPI 3.0 സ്പെസിഫിക്കേഷൻ (121 പാത്തുകൾ)                                                                  |
-| `SETUP_GUIDE.md`            | ഇൻസ്റ്റലേഷൻ രീതികൾ (npm, npx, Docker, Electron, Termux, സോഴ്സ്)                                            |
+| `SETUP_GUIDE.md`            | ഇൻസ്റ്റലേഷൻ രീതികൾ (npm, npx, Docker, Termux, സോഴ്സ്)                                                      |
 | `ENVIRONMENT.md`            | എല്ലാ പരിസ്ഥിതി വേരിയബിളുകളും (~800 ഡോക്യുമെന്റ് ചെയ്തവ, `.env.example`-ൽ ~3,050 വരികൾ)                    |
 | `TROUBLESHOOTING.md`        | സാധാരണ പിശകുകൾ + v3.8.0-ലെ അറിയപ്പെടുന്ന പ്രശ്നങ്ങൾ                                                        |
 | `RELEASE_CHECKLIST.md`      | സമ്പൂർണ്ണ റിലീസ് പ്രവാഹം (സ്കില്ലുകൾ, husky, conventional commits, വിന്യാസം)                               |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io വിന്യാസം (നിലവിൽ ചൈനീസ് ഭാഷയിൽ മാത്രം)                       |
 | `TERMUX_GUIDE.md`            | Termux വഴിയുള്ള Android ഹെഡ്ലെസ് പ്രവർത്തനം                         |
 | `PWA_GUIDE.md`               | Progressive Web App ഇൻസ്റ്റലേഷൻ + സർവീസ് വർക്കർ                     |
-| `ELECTRON_GUIDE.md`          | ഡെസ്ക്ടോപ്പ് ആപ്പ് ബിൽഡ് + ഒപ്പിടൽ + വിതരണം                         |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                              |
 | `PROXY_GUIDE.md`             | 4-തല ഔട്ട്ബൗണ്ട് പ്രോക്സി + 1proxy മാർക്കറ്റ്പ്ലേസ്                 |
 

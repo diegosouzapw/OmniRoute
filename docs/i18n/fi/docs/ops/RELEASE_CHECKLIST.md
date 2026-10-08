@@ -124,7 +124,6 @@ automaattisesti ilman tunnistetta.
 ### Versio ja muutosloki
 
 - [ ] Suorita `/version-bump-cc <patch|minor|major>` (Claude Code -taito)
-  - Päivittää tiedostojen `package.json`, `electron/package.json` versiot
   - Luo tiedoston `CHANGELOG.md` uudelleen viimeisimmän tunnisteen jälkeisistä git-commiteista
   - Päivittää README.md-merkit
 - [ ] Tarkista CHANGELOG.md manuaalisesti ja siisti commit-viestit tarvittaessa
@@ -218,104 +217,6 @@ Rikkovat muutokset: lisää alatunniste `BREAKING CHANGE:` tai merkki `!` kohdea
 - [ ] Mallit on rekisteröity tiedostossa `open-sse/config/providerRegistry.ts`
 - [ ] Hakemiston `tests/unit/` yksikkötestit kattavat palveluntarjoajien luokittelun ja reitityksen
 
-### Työpöytäsovellus (Electron)
-
-Jos `electron/` muuttui:
-
-- [ ] `npm run electron:smoke:packaged` läpäisee tarkistuksen
-- [ ] Koontiversiot on testattu vähintään yhdelle kohteista `:win`, `:mac`, `:linux`
-- [ ] Koodin allekirjoitusvarmenteet eivät ole vanhentuneet (jos allekirjoitusta käytetään)
-- [ ] Tiedoston `electron/package.json` versio vastaa juuren `package.json`-tiedoston versiota
-- [ ] Automaattisen päivityskanavan osoitin on päivitetty, jos julkaisu tehdään kanavalle `stable`
-
-### Koontihakemistorakenne
-
-Tietovarasto käyttää kolmea erillistä tulostehakemistoa — älä koskaan sekoita niitä:
-
-| Hakemisto | Tarkoitus                                                       | Seurataanko?    |
-| --------- | --------------------------------------------------------------- | --------------- |
-| `src/`    | Sovelluksen lähdekoodi (TypeScript / TSX)                       | Kyllä           |
-| `.build/` | Koontivälitiedostot — komennon `next build` tuloste (`distDir`) | Ei (gitignored) |
-| `dist/`   | Toimitettava npm-paketti — `assembleStandalone` kokoaa sen      | Ei (gitignored) |
-
-> **Ylläpitäjän huomautus:** VPS-etäkuvan hakemisto on edelleen `/usr/lib/node_modules/omniroute/app/`.
-> Vain tietovaraston **sisäinen** koontituloste siirtyi (`app/` → `dist/`). Käyttöönottotaidot synkronoivat rsyncillä
-> hakemiston `dist/` sisällön etäpalvelimen `app/`-hakemistoon — VPS-polkuja ei tarvitse muuttaa.
-
-**Yhden koonnin työnkulku:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (puhdistus)
-  └─ next build → .build/next/   (välitiedostot)
-  └─ assembleStandalone          (kopioi standalone-tiedostot + staattiset tiedostot + julkiset tiedostot + natiivikomponentit → dist/)
-  └─ kirjoittaa dist/BUILD_SHA   (HEAD-tarkiste)
-```
-
-ÄLÄ suorita käyttöönottoa varten ensin komentoa `npm run build` ja sitten erikseen komentoa `npm run build:cli` — käytä
-komentoa `npm run build:release`, joka tekee puhtaan uudelleenkoonnin ja luo tarkisteen yhdellä komennolla.
-
-### Artefaktin validointi
-
-- [ ] `npm run build:release` onnistuu ja `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` läpäisee tarkistuksen — ei hakemistoa `app.__qa_backup`, hakemistoa `scripts/scratch`, tiedostoa `package-lock.json` tai muita paikallisia jäänteitä
-- [ ] `dist/server.js` on olemassa koonnin jälkeen
-
-### Tunnisteen luominen ja julkaisu
-
-- [ ] Suorita `/generate-release-cc` (Claude Code -taito):
-  - Luo tunnisteen `vX.Y.Z`
-  - Työntää tunnisteen ja haaran
-  - Luo GitHub-julkaisun, jonka tekstinä on muutosloki
-  - Liittää Electron-asennusohjelmat (jos ne on koottu)
-- [ ] Tai tee se manuaalisesti:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Käyttöönotto
-
-Käyttöönottotaidot käyttävät kevyttä rsync-työnkulkua — ei komentoa `npm pack` eikä komentoa `npm i -g`:
-
-- [ ] Käytä kohdetta vastaavaa käyttöönottotaitoa:
-  - `/deploy-vps-local-cc` — paikallinen VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — molemmat
-- [ ] Varmista ennen käyttöönottoa, että `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Koonti on suoritettava ympäristössä, jossa `node_modules` on todellinen hakemisto (pääasiallinen työkopio tai komennolla `npm ci` valmisteltu worktree — EI symbolisella linkillä liitetty worktree)
-- [ ] Tee käyttöönotetun instanssin savutesti:
-  - Avaa `/dashboard/health` → tarkista, että versiotunnus vastaa julkaisua
-  - Suorita `/v1/chat/completions`-pyyntö tunnetulle palveluntarjoajalle
-  - Varmista, että `/api/monitoring/health` palauttaa tilassa `CLOSED` olevat katkaisijat
-  - Varmista, että MCP-siirtotavat vastaavat (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Julkaisun jälkeen
-
-- [ ] Suorita `/capture-release-evidences-cc` (Claude Code -taito)
-  - Tallentaa uusien ominaisuuksien WebP-kuvakaappauksia/-tallenteita
-  - Liittää ne julkaisutietoihin/blogikirjoitukseen
-- [ ] Päivitä GitHub Discussions / Discord julkaisuilmoituksella
-- [ ] Avaa seuraavan version virstanpylväs
-- [ ] Jos kriittinen: kiinnitä keskustelu tai julkaise se `news.json`-tiedostossa sovelluksen sisäistä banneria varten
-
-### Radarin julkisen julkaisun portti
-
-Radar-ilmoitus on tarkoituksella commitoitu asetuksella `active: false`. Aktivointi tehdään erillisenä
-muutoksena, kun jokaisen alla olevan kohdan toteutumisesta on näyttöä:
-
-- [ ] Kaikki pinotut Radar-PR:t on yhdistetty ja julkaisuhaaran kärjen CI on vihreä
-- [ ] Ota avoimen lähdekoodin Radar-reitit käyttöön ja tee niille toimintatesti siten, että `RADAR_ENABLED` on edelleen oletusarvoisesti pois käytöstä
-- [ ] Tee toimintatesti nimetyllä Radar-isännällä reiteille `GET /planos`, `/termos`, `/privacidade` ja `/reembolso`
-- [ ] Tallenna operaattorin henkilöllisyys/yhteystiedot/osoite sekä omistajan hyväksymä oikeudellinen tarkastus yksityiseen palveluun
-- [ ] Testaa Stripe Checkout ja allekirjoitettu webhook vain testitilassa
-- [ ] Testaa yhden salatun tapahtumasähköpostin toimitus hyväksytyllä lähettäjällä/verkkotunnuksella
-- [ ] Todista varmuuskopion palautus ja yksi valvottu, budjetiltaan rajattu tutkimusajo
-- [ ] Hyväksy BRL/PIX-tarkistuskäytäntö ennen lahjoitustodisteiden vastaanottamista
-- [ ] Ota julkinen Checkout käyttöön vasta edeltävien porttien jälkeen ja aktivoi sitten uusi `news.json`-tunnus
-- [ ] Varmista, että Home-banneri käyttää lokalisoitua tekstiä ja että uusi tunnus tulee uudelleen näkyviin sen jälkeen, kun vanhempi tunnus on suljettu
-
 ## Upotettujen palveluiden savutesti (v3.8.4+)
 
 Ennen upotettujen palveluiden muutoksia sisältävän julkaisun toimittamista varmista seuraavat asiat:
@@ -401,7 +302,7 @@ Jos julkaisussa on kriittinen ongelma:
 - Älä koskaan ohita Husky-koukkuja (`--no-verify`)
 - Älä koskaan sisällytä committiin salaisuuksia, tunnistetietoja tai `.env`-tiedostoja
 - Testikattavuuden on pysyttävä tasolla ≥60/60/60/60 (lauseet/rivit/funktiot/haarat)
-- Sisällytä tai päivitä aina testit, kun muutat tuotantokoodia hakemistoissa `src/`, `open-sse/`, `electron/` tai `bin/`
+- Sisällytä tai päivitä aina testit, kun muutat tuotantokoodia hakemistoissa `src/`, `open-sse/` tai `bin/`
 
 ## Automaattinen synkronoinnin tarkistus
 

@@ -27,7 +27,7 @@ Vitest, the 60% coverage gate, and the production build all run in CI on this PR
 
 ## Coverage Notes
 
-- If this PR changes `src/`, `open-sse/`, `electron/`, or `bin/`, explain which tests cover the change.
+- If this PR changes `src/`, `open-sse/`, or `bin/`, explain which tests cover the change.
 - If coverage moved down in any touched file, explain why and what follow-up task will recover it.
 
 ## Reviewer Notes

@@ -197,7 +197,7 @@ docker run -d \
 
 ## Bağımlılıklar
 
-- Düzenli olarak `npm audit` çalıştırın (`npm run audit:deps` ana projeyi + electron'u kapsar)
+- Düzenli olarak `npm audit` çalıştırın (`npm run audit:deps` ana projeyi'u kapsar)
 - Bağımlılıkları güncel tutun
 - Proje, commit öncesi kontroller için `husky` + `lint-staged` kullanır (lint-staged + check-docs-sync + check:any-budget:t11)
 - CI hattı her push işleminde ESLint güvenlik kurallarını çalıştırır (`no-eval`, `no-implied-eval`, `no-new-func` = hata)

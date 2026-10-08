@@ -83,23 +83,6 @@ docker compose down
 docker compose down -v
 ```
 
-### Electron ഡെസ്ക്ടോപ്പ് ആപ്പ്
-
-**Windows:**
-
-- `Settings → Apps → OmniRoute → Uninstall` തുറക്കുക
-- അല്ലെങ്കിൽ ഇൻസ്റ്റാൾ ഡയറക്ടറിയിൽനിന്ന് NSIS അൺഇൻസ്റ്റാളർ പ്രവർത്തിപ്പിക്കുക
-
-**macOS:**
-
-- `/Applications`-ൽനിന്ന് `OmniRoute.app` ട്രാഷിലേക്ക് വലിച്ചിടുക
-- ഡാറ്റ നീക്കംചെയ്യുക: `rm -rf ~/Library/Application Support/omniroute`
-
-**Linux:**
-
-- AppImage ഫയൽ നീക്കംചെയ്യുക
-- ഡാറ്റ നീക്കംചെയ്യുക: `rm -rf ~/.omniroute`
-
 ### സോഴ്സ് ഇൻസ്റ്റാൾ (git clone)
 
 ```bash

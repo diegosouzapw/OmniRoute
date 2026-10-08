@@ -220,7 +220,7 @@ npm run test:combo:live:vps:failover     # เพิ่มสถานการ�
 
 - `npm run test:coverage` วัดความครอบคลุมของซอร์สสำหรับชุดการทดสอบหน่วยหลัก ไม่รวม `tests/**` และรวม `open-sse/**`
 - Pull request ต้องรักษาเกตความครอบคลุมไว้ที่ **60%+** สำหรับ statements/lines/functions/branches
-- หาก PR เปลี่ยนแปลงโค้ดที่ใช้จริงใน `src/`, `open-sse/`, `electron/` หรือ `bin/` ต้องเพิ่มหรืออัปเดตการทดสอบอัตโนมัติใน PR เดียวกัน
+- หาก PR เปลี่ยนแปลงโค้ดที่ใช้จริงใน `src/`, `open-sse/` หรือ `bin/` ต้องเพิ่มหรืออัปเดตการทดสอบอัตโนมัติใน PR เดียวกัน
 - `npm run coverage:report` แสดงรายงานโดยละเอียดแยกตามไฟล์จากการรันความครอบคลุมครั้งล่าสุด
 - `npm run test:coverage:legacy` เก็บเมตริกแบบเดิมไว้เพื่อการเปรียบเทียบย้อนหลัง
 - ดูแผนงานการปรับปรุงความครอบคลุมแบบเป็นระยะได้ที่ `docs/ops/COVERAGE_PLAN.md`
@@ -325,7 +325,6 @@ open-sse/                   # @omniroute/open-sse workspace
 ├── transformer/            # Responses API transformer
 └── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron desktop app (cross-platform)
 
 tests/
 ├── unit/                   # Node.js test runner (122 test files)

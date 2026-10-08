@@ -118,7 +118,6 @@ omniroute
 
 ## Ograničenja
 
-- Electron se ne može izvoditi u Termuxu.
 - Nema programske trake sustava ni integracije sa stolnim okruženjem.
 - Ova je konfiguracija namijenjena samo poslužitelju: upotrebljavajte nadzornu ploču u pregledniku.
 - Izvorne ovisnosti možda će trebati lokalno kompilirati.

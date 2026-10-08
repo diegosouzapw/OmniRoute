@@ -265,25 +265,6 @@ Sledenje skrbniškim dejanjem s filtriranjem po vrsti dejanja, izvajalcu, cilju,
 
 ---
 
-## 🖥️ Namizna aplikacija
-
-Izvorna namizna aplikacija Electron za Windows, macOS in Linux. Zaženite OmniRoute kot samostojno aplikacijo z integracijo v sistemsko vrstico, podporo za delo brez povezave, samodejnim posodabljanjem in namestitvijo z enim klikom.
-
-Ključne funkcije:
-
-- Preverjanje pripravljenosti strežnika (brez praznega zaslona ob hladnem zagonu)
-- Sistemska vrstica z upravljanjem vrat
-- Pravilnik o varnosti vsebine
-- Zaklep enega primerka
-- Samodejna posodobitev ob ponovnem zagonu
-- Uporabniški vmesnik, prilagojen platformi (gumbi semaforja sistema macOS, privzeta naslovna vrstica sistemov Windows/Linux)
-- Utrjeno pakiranje gradnje Electron — simbolno povezani `node_modules` v samostojnem paketu so zaznani in zavrnjeni pred pakiranjem, kar preprečuje odvisnost izvajalnega okolja od računalnika za gradnjo (v2.5.5+)
-- **Nadzorovana zaustavitev** — Electron `before-quit` pravilno zaustavi Next.js in prepreči zaklepanje podatkovne zbirke SQLite WAL (v3.6.2+)
-
-📖 Za celotno dokumentacijo glejte [`electron/README.md`](../../electron/README.md).
-
----
-
 ## 🌐 Most WebSocket V1 _(v3.6.6+)_
 
 OmniRoute zdaj prek končne točke za nadgradnjo `/v1/ws` podpira **odjemalce WebSocket, združljive z OpenAI**. Strežnik po meri `scripts/dev/v1-ws-bridge.mjs` ovije Next.js in nadgradi povezave WS v polne dvosmerne pretočne seje. Overjanje uporablja isti ključ API ali sejni piškotek kot zahteve HTTP.

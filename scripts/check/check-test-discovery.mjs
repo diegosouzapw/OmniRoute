@@ -40,7 +40,7 @@ const BASELINE_PATH = path.resolve(
 const UPDATE = process.argv.includes("--update");
 
 // Raízes varridas em busca de arquivos de teste.
-const WALK_ROOTS = ["tests", "src", "open-sse", "electron", "bin"];
+const WALK_ROOTS = ["tests", "src", "open-sse", "bin"];
 const WALK_EXCLUDE = new Set(["node_modules", ".next", "dist", "coverage", ".git"]);
 const TEST_FILE_RE = /\.(test|spec)\.(ts|tsx|mjs)$/;
 

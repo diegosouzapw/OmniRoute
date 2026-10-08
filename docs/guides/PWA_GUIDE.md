@@ -53,13 +53,13 @@ The manifest is configured with `display: "fullscreen"`, which means the install
 
 OmniRoute includes a service worker (`sw.js`) that provides intelligent caching:
 
-| Asset Type                                              | Strategy                           | Behavior                                                                     |
-| ------------------------------------------------------- | ---------------------------------- | ---------------------------------------------------------------------------- |
-| **App Shell**                                           | Cache-first                        | `/`, `/offline`, manifest, and icons are pre-cached on install               |
-| **Static assets** (CSS, JS, images, fonts)              | Network-first with cache fallback  | Fetches fresh from the network; falls back to cache if offline               |
-| **Next.js bundles** (`/_next/`)                         | Network-first with cache update    | Fetches from network and updates cache; serves cached version if offline     |
-| **Navigation requests**                                 | Bypass (never intercepted)         | Browser owns HTTP/3→HTTP/2 fallback; a dead QUIC socket must not become `Response.error()` |
-| **API / dashboard routes** (`/api/`, `/a2a`, `/dashboard`) | Bypass (never cached)           | Always goes directly to the server — never intercepted by the service worker |
+| Asset Type                                                 | Strategy                          | Behavior                                                                                   |
+| ---------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------ |
+| **App Shell**                                              | Cache-first                       | `/`, `/offline`, manifest, and icons are pre-cached on install                             |
+| **Static assets** (CSS, JS, images, fonts)                 | Network-first with cache fallback | Fetches fresh from the network; falls back to cache if offline                             |
+| **Next.js bundles** (`/_next/`)                            | Network-first with cache update   | Fetches from network and updates cache; serves cached version if offline                   |
+| **Navigation requests**                                    | Bypass (never intercepted)        | Browser owns HTTP/3→HTTP/2 fallback; a dead QUIC socket must not become `Response.error()` |
+| **API / dashboard routes** (`/api/`, `/a2a`, `/dashboard`) | Bypass (never cached)             | Always goes directly to the server — never intercepted by the service worker               |
 
 ### Offline Page
 
@@ -171,7 +171,7 @@ If you upload a custom favicon via `Dashboard → Settings`, the PWA icon on des
 
 ## Limitations
 
-- **No push notifications** — The service worker does not implement the Push API. Notifications are handled by the Electron app instead.
+- **No push notifications** — The service worker does not implement the Push API.
 - **No background sync** — Offline actions are not queued for replay. The PWA is primarily a dashboard viewer.
 - **iOS restrictions** — Safari on iOS does not support all PWA features (e.g., install prompts are manual, and background service workers are limited).
 - **Cache size** — The service worker caches static assets only. Large response payloads from `/api/` routes are never cached.

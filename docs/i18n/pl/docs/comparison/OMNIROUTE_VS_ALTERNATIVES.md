@@ -29,7 +29,7 @@ Obiektywne porównanie funkcji z popularnymi routerami AI typu open source.
 | **Maskowanie odcisku TLS (JA3/JA4)**                                      |                  ✅ wreq-js                  |      ❌       |        ❌         |      ❌      |
 | **Framework ewaluacyjny**                                                 |                 ✅ wbudowany                 |      ❌       |        ❌         |   ⚠ płatne   |
 | **Proxy MITM (przechwytuje Cursor/Antigravity)**                          |             ✅ wieloplatformowe              |      ❌       |        ❌         |      ❌      |
-| **CLI z zasobnikiem systemowym (bez Electron)**                           |                      ✅                      |      ❌       |        b/d        |     b/d      |
+| **CLI z zasobnikiem systemowym **                                         |                      ✅                      |      ❌       |        b/d        |     b/d      |
 | **Automatyczne uwierzytelnianie CLI na podstawie identyfikatora maszyny** |                      ✅                      |      ❌       |        b/d        |     b/d      |
 | **Panel administracyjny**                                                 |                  Next.js 16                  |  podstawowy   |   własnościowy    | własnościowy |
 | **i18n**                                                                  |              **42 lokalizacje**              |      ❌       |        ❌         |      ⚠       |

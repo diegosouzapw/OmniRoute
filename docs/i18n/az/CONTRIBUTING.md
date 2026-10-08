@@ -220,7 +220,7 @@ npm run test:combo:live:vps:failover     # real provayderlərarası ehtiyat keç
 
 - `npm run test:coverage` əsas modul test dəsti üçün mənbə kodunun əhatəsini ölçür, `tests/**` qovluğunu istisna edir və `open-sse/**` qovluğunu daxil edir
 - Pull request-lər ifadələr/sətirlər/funksiyalar/budaqlar üzrə əhatə keçidini **60%+** səviyyəsində saxlamalıdır
-- PR `src/`, `open-sse/`, `electron/` və ya `bin/` daxilindəki istehsal kodunu dəyişdirirsə, həmin PR-da avtomatlaşdırılmış testlər əlavə edilməli və ya yenilənməlidir
+- PR `src/`, `open-sse/` və ya `bin/` daxilindəki istehsal kodunu dəyişdirirsə, həmin PR-da avtomatlaşdırılmış testlər əlavə edilməli və ya yenilənməlidir
 - `npm run coverage:report` son əhatə işə salınmasından əldə edilmiş fayl-fayl təfərrüatlı hesabatı çap edir
 - `npm run test:coverage:legacy` tarixi müqayisə üçün köhnə metrikanı qoruyur
 - Əhatənin mərhələli şəkildə yaxşılaşdırılması yol xəritəsi üçün `docs/ops/COVERAGE_PLAN.md` faylına baxın
@@ -325,7 +325,6 @@ open-sse/                   # @omniroute/open-sse workspace
 ├── transformer/            # Responses API transformer
 └── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron desktop app (cross-platform)
 
 tests/
 ├── unit/                   # Node.js test runner (122 test files)

@@ -121,7 +121,6 @@ unit shards, integration, vitest, lint/typecheck, docs-sync, `check:pack-artifac
 ### Version ଏବଂ Changelog
 
 - [ ] `/version-bump-cc <patch|minor|major>` ଚଲାନ୍ତୁ (Claude Code skill)
-  - `package.json`, `electron/package.json`କୁ bump କରେ
   - ଶେଷ tag ପରଠାରୁ git commitଗୁଡ଼ିକ ଆଧାରରେ `CHANGELOG.md`କୁ ପୁନଃସୃଷ୍ଟି କରେ
   - README.md badgeଗୁଡ଼ିକୁ update କରେ
 - [ ] CHANGELOG.mdକୁ ହସ୍ତଚାଳିତ ଭାବରେ review କରନ୍ତୁ ଏବଂ ଆବଶ୍ୟକ ହେଲେ commit messageଗୁଡ଼ିକୁ ସଫା କରନ୍ତୁ
@@ -215,104 +214,6 @@ Breaking change: `BREAKING CHANGE:` footer ଯୋଡ଼ନ୍ତୁ କିମ୍
 - [ ] Modelଗୁଡ଼ିକ `open-sse/config/providerRegistry.ts`ରେ register କରାଯାଇଛି
 - [ ] `tests/unit/`ର unit testଗୁଡ଼ିକ provider classification ଏବଂ routingକୁ cover କରେ
 
-### Desktop (Electron)
-
-`electron/` ପରିବର୍ତ୍ତିତ ହୋଇଥିଲେ:
-
-- [ ] `npm run electron:smoke:packaged` ସଫଳ ହୁଏ
-- [ ] `:win`, `:mac`, `:linux` ମଧ୍ୟରୁ ଅତି କମରେ ଗୋଟିଏ ପାଇଁ build test କରାଯାଇଛି
-- [ ] Code signing certificateର ମିଆଦ ସମାପ୍ତ ହୋଇନାହିଁ (sign କରାଯାଉଥିଲେ)
-- [ ] `electron/package.json` version root `package.json` ସହ ମେଳ ଖାଏ
-- [ ] `stable`କୁ release କରୁଥିଲେ auto-update channel pointer update କରାଯାଇଛି
-
-### Build Layout
-
-Repositoryଟି ତିନୋଟି ପୃଥକ output directory ବ୍ୟବହାର କରେ — ସେଗୁଡ଼ିକୁ କେବେବି ମିଶାନ୍ତୁ ନାହିଁ:
-
-| Directory | ଉଦ୍ଦେଶ୍ୟ                                                             | Track କରାଯାଏ?   |
-| --------- | -------------------------------------------------------------------- | --------------- |
-| `src/`    | Application source (TypeScript / TSX)                                | ହଁ              |
-| `.build/` | Build intermediate — `next build` output (`distDir`)                 | ନା (gitignored) |
-| `dist/`   | ପ୍ରେରଣଯୋଗ୍ୟ npm bundle — `assembleStandalone` ଦ୍ୱାରା assemble କରାଯାଏ | ନା (gitignored) |
-
-> **Operator ଟିପ୍ପଣୀ:** remote VPS image directory `/usr/lib/node_modules/omniroute/app/` ହିଁ ରହିଛି।
-> କେବଳ **repository ମଧ୍ୟରେ ଥିବା** build output ସ୍ଥାନାନ୍ତରିତ ହୋଇଛି (`app/` → `dist/`)। deploy skillଗୁଡ଼ିକ
-> `dist/`ର contentକୁ remote `app/` directoryରେ rsync କରେ — VPS pathରେ କୌଣସି ପରିବର୍ତ୍ତନ ଆବଶ୍ୟକ ନାହିଁ।
-
-**ଏକକ-build ପ୍ରବାହ:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (ସଫା କରେ)
-  └─ next build → .build/next/   (ମଧ୍ୟବର୍ତ୍ତୀ output)
-  └─ assembleStandalone          (standalone + static + public + nativeକୁ dist/ରେ copy କରେ)
-  └─ dist/BUILD_SHA ଲେଖେ        (HEAD sentinel)
-```
-
-Deploy ପାଇଁ `npm run build` ଚଲାଇ ତାହାପରେ ପୃଥକ ଭାବରେ `npm run build:cli` ଚଲାନ୍ତୁ ନାହିଁ —
-`npm run build:release` ବ୍ୟବହାର କରନ୍ତୁ, ଯାହା ଗୋଟିଏ commandରେ clean rebuild + sentinel କରେ।
-
-### Artifact Validation
-
-- [ ] `npm run build:release` ସଫଳ ହୁଏ ଏବଂ `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` ତ୍ରୁଟିମୁକ୍ତ — କୌଣସି `app.__qa_backup`, `scripts/scratch`, `package-lock.json`, କିମ୍ବା ଅନ୍ୟ local residue ନାହିଁ
-- [ ] build ପରେ `dist/server.js` ଅଛି
-
-### Tagging ଏବଂ Release
-
-- [ ] `/generate-release-cc` ଚଲାନ୍ତୁ (Claude Code skill):
-  - `vX.Y.Z` tag ସୃଷ୍ଟି କରେ
-  - tag ଏବଂ branch push କରେ
-  - changelog body ସହ GitHub Release ଖୋଲେ
-  - Electron installer attach କରେ (build କରାଯାଇଥିଲେ)
-- [ ] କିମ୍ବା ହସ୍ତଚାଳିତ ଭାବରେ:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deploy
-
-Deploy skillଗୁଡ଼ିକ ହାଲୁକା rsync flow ବ୍ୟବହାର କରେ — କୌଣସି `npm pack` ନୁହେଁ, କୌଣସି `npm i -g` ନୁହେଁ:
-
-- [ ] target ସହ ମେଳ ଖାଉଥିବା deploy skill ବ୍ୟବହାର କରନ୍ତୁ:
-  - `/deploy-vps-local-cc` — local VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — ଉଭୟ
-- [ ] deploy କରିବା ପୂର୍ବରୁ `dist/BUILD_SHA` == `git rev-parse --short HEAD` ନିଶ୍ଚିତ କରନ୍ତୁ
-- [ ] ଯେଉଁଠାରେ `node_modules` ପ୍ରକୃତ ଅଟେ ସେଠାରେ build ଚାଲିବା ଆବଶ୍ୟକ (main checkout କିମ୍ବା `npm ci` କରାଯାଇଥିବା worktree — symlink କରାଯାଇଥିବା worktree ନୁହେଁ)
-- [ ] deploy କରାଯାଇଥିବା instanceର smoke test କରନ୍ତୁ:
-  - `/dashboard/health` ଖୋଲନ୍ତୁ → version string release ସହ ମେଳ ଖାଉଛି କି ଯାଞ୍ଚ କରନ୍ତୁ
-  - ଏକ ଜଣାଶୁଣା provider ବିରୁଦ୍ଧରେ `/v1/chat/completions` request ଚଲାନ୍ତୁ
-  - `/api/monitoring/health`ରୁ `CLOSED` circuit breaker ଫେରୁଛି ବୋଲି verify କରନ୍ତୁ
-  - MCP transportଗୁଡ଼ିକ response ଦେଉଛନ୍ତି ବୋଲି ନିଶ୍ଚିତ କରନ୍ତୁ (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Release ପରେ
-
-- [ ] `/capture-release-evidences-cc` ଚଲାନ୍ତୁ (Claude Code skill)
-  - ନୂଆ featureର WebP screenshot/recording capture କରେ
-  - release note / blog postରେ attach କରେ
-- [ ] release announcement ସହ GitHub Discussions / Discord update କରନ୍ତୁ
-- [ ] ପରବର୍ତ୍ତୀ version ପାଇଁ milestone ଖୋଲନ୍ତୁ
-- [ ] ଗୁରୁତର ହୋଇଥିଲେ: discussion pin କରନ୍ତୁ କିମ୍ବା in-app banner ପାଇଁ `news.json`ରେ post କରନ୍ତୁ
-
-### Radar public-launch gate
-
-Radar announcementକୁ ଉଦ୍ଦେଶ୍ୟମୂଳକ ଭାବରେ `active: false` ସହ commit କରାଯାଇଛି। ନିମ୍ନର ପ୍ରତ୍ୟେକ itemର ପ୍ରମାଣ ମିଳିବା ପରେ
-activation ଏକ ପୃଥକ ପରିବର୍ତ୍ତନ ହେବ:
-
-- [ ] ସମସ୍ତ stacked Radar PR merge କରାଯାଇଛି ଏବଂ release-tip CI ସଫଳ
-- [ ] `RADAR_ENABLED` default ଭାବରେ ବନ୍ଦ ରଖି OSS Radar routeଗୁଡ଼ିକୁ deploy ଏବଂ smoke କରନ୍ତୁ
-- [ ] ନାମିତ Radar hostରେ `GET /planos`, `/termos`, `/privacidade`, ଏବଂ `/reembolso` smoke କରନ୍ତୁ
-- [ ] private serviceରେ operator identity/contact/address ଏବଂ owner-ଅନୁମୋଦିତ legal review record କରନ୍ତୁ
-- [ ] କେବଳ test modeରେ Stripe Checkout ଏବଂ signed webhook exercise କରନ୍ତୁ
-- [ ] ଅନୁମୋଦିତ sender/domain ସହ ଗୋଟିଏ encrypted transactional-email delivery exercise କରନ୍ତୁ
-- [ ] backup restore ଏବଂ ଗୋଟିଏ ନିରୀକ୍ଷିତ, budget-capped research run ପ୍ରମାଣ କରନ୍ତୁ
-- [ ] donation evidence ଗ୍ରହଣ କରିବା ପୂର୍ବରୁ BRL/PIX review policy ଅନୁମୋଦନ କରନ୍ତୁ
-- [ ] ପୂର୍ବବର୍ତ୍ତୀ gateଗୁଡ଼ିକ ପୂରଣ ହେବା ପରେ ମାତ୍ର public Checkout ସକ୍ରିୟ କରନ୍ତୁ, ତାପରେ ନୂଆ `news.json` ID ସକ୍ରିୟ କରନ୍ତୁ
-- [ ] Home banner localized copy ବ୍ୟବହାର କରୁଛି ଏବଂ ପୁରୁଣା ID dismiss କରାଯିବା ପରେ ଏକ ନୂଆ ID ପୁଣି ଦେଖାଯାଉଛି ବୋଲି verify କରନ୍ତୁ
-
 ## ଏମ୍ବେଡେଡ୍ ସେବାଗୁଡ଼ିକର ସ୍ମୋକ ପରୀକ୍ଷା (v3.8.4+)
 
 ଏମ୍ବେଡେଡ୍ ସେବାର ପରିବର୍ତ୍ତନ ସମ୍ମିଳିତ ଥିବା କୌଣସି ରିଲିଜ୍ ପ୍ରକାଶ କରିବା ପୂର୍ବରୁ ଯାଞ୍ଚ କରନ୍ତୁ:
@@ -398,7 +299,7 @@ activation ଏକ ପୃଥକ ପରିବର୍ତ୍ତନ ହେବ:
 - Husky ହୁକ୍ଗୁଡ଼ିକୁ (`--no-verify`) କେବେବି ଏଡ଼ାଇ ଯାଆନ୍ତୁ ନାହିଁ
 - ସିକ୍ରେଟ୍, କ୍ରେଡେନ୍ସିଆଲ୍ କିମ୍ବା `.env` ଫାଇଲ୍ଗୁଡ଼ିକୁ କେବେବି କମିଟ୍ କରନ୍ତୁ ନାହିଁ
 - କଭରେଜ୍ ≥60/60/60/60 (ଷ୍ଟେଟ୍ମେଣ୍ଟ୍/ଲାଇନ୍/ଫଙ୍କସନ୍/ବ୍ରାଞ୍ଚ୍) ରହିବା ଆବଶ୍ୟକ
-- `src/`, `open-sse/`, `electron/`, କିମ୍ବା `bin/` ରେ ପ୍ରଡକ୍ସନ୍ କୋଡ୍ ପରିବର୍ତ୍ତନ କରିବାବେଳେ ସର୍ବଦା ପରୀକ୍ଷଣଗୁଡ଼ିକୁ ଅନ୍ତର୍ଭୁକ୍ତ କିମ୍ବା ଅପଡେଟ୍ କରନ୍ତୁ
+- `src/`, `open-sse/`, କିମ୍ବା `bin/` ରେ ପ୍ରଡକ୍ସନ୍ କୋଡ୍ ପରିବର୍ତ୍ତନ କରିବାବେଳେ ସର୍ବଦା ପରୀକ୍ଷଣଗୁଡ଼ିକୁ ଅନ୍ତର୍ଭୁକ୍ତ କିମ୍ବା ଅପଡେଟ୍ କରନ୍ତୁ
 
 ## ସ୍ୱୟଂଚାଳିତ ସିଙ୍କ୍ ଯାଞ୍ଚ
 

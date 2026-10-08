@@ -122,7 +122,6 @@ E2E, fără nicio etichetă.
 ### Versiune și jurnal de modificări
 
 - [ ] Executați `/version-bump-cc <patch|minor|major>` (abilitate Claude Code)
-  - Actualizează versiunile din `package.json`, `electron/package.json`
   - Regenerează `CHANGELOG.md` din commiturile git ulterioare ultimei etichete
   - Actualizează ecusoanele din README.md
 - [ ] Revizuiți manual CHANGELOG.md și corectați mesajele commiturilor, dacă este necesar
@@ -216,104 +215,6 @@ Modificări incompatibile: adăugați subsolul `BREAKING CHANGE:` sau `!` după 
 - [ ] Modelele sunt înregistrate în `open-sse/config/providerRegistry.ts`
 - [ ] Testele unitare din `tests/unit/` acoperă clasificarea și rutarea furnizorilor
 
-### Desktop (Electron)
-
-Dacă `electron/` s-a modificat:
-
-- [ ] `npm run electron:smoke:packaged` trece
-- [ ] Buildurile au fost testate pentru cel puțin una dintre opțiunile `:win`, `:mac`, `:linux`
-- [ ] Certificatele de semnare a codului nu sunt expirate (dacă se folosește semnarea)
-- [ ] Versiunea din `electron/package.json` corespunde cu cea din fișierul `package.json` rădăcină
-- [ ] Indicatorul canalului de actualizare automată a fost actualizat dacă versiunea este publicată în `stable`
-
-### Structura buildului
-
-Repository-ul utilizează trei directoare de ieșire distincte — nu le confundați niciodată:
-
-| Director  | Scop                                                             | Urmărit?            |
-| --------- | ---------------------------------------------------------------- | ------------------- |
-| `src/`    | Sursa aplicației (TypeScript / TSX)                              | Da                  |
-| `.build/` | Fișiere intermediare de build — ieșirea `next build` (`distDir`) | Nu (ignorat de git) |
-| `dist/`   | Pachet npm distribuibil — asamblat de `assembleStandalone`       | Nu (ignorat de git) |
-
-> **Notă pentru operator:** directorul imaginii VPS de la distanță rămâne `/usr/lib/node_modules/omniroute/app/`.
-> Doar ieșirea buildului **din repository** s-a mutat (`app/` → `dist/`). Instrumentele de deployment sincronizează prin rsync
-> conținutul din `dist/` în directorul `app/` de la distanță — nu sunt necesare modificări ale căilor VPS.
-
-**Flux cu un singur build:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (curățare)
-  └─ next build → .build/next/   (fișiere intermediare)
-  └─ assembleStandalone          (copiază standalone + static + public + natives → dist/)
-  └─ writes dist/BUILD_SHA       (santinelă HEAD)
-```
-
-NU rulați `npm run build` urmat de o comandă separată `npm run build:cli` pentru deployment — utilizați
-`npm run build:release`, care efectuează într-o singură comandă un rebuild curat și creează santinela.
-
-### Validarea artefactelor
-
-- [ ] `npm run build:release` reușește și `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` nu raportează probleme — fără `app.__qa_backup`, `scripts/scratch`, `package-lock.json` sau alte reziduuri locale
-- [ ] `dist/server.js` există după build
-
-### Etichetare și publicare
-
-- [ ] Rulați `/generate-release-cc` (instrument Claude Code):
-  - Creează eticheta `vX.Y.Z`
-  - Publică eticheta și ramura
-  - Deschide o versiune GitHub Release cu conținutul jurnalului de modificări
-  - Atașează programele de instalare Electron (dacă au fost create)
-- [ ] Sau manual:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deployment
-
-Instrumentele de deployment utilizează fluxul rsync simplificat — fără `npm pack`, fără `npm i -g`:
-
-- [ ] Utilizați instrumentul de deployment care corespunde țintei:
-  - `/deploy-vps-local-cc` — VPS local (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — VPS Akamai (69.164.221.35)
-  - `/deploy-vps-both-cc` — ambele
-- [ ] Înainte de deployment, confirmați că `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Buildul trebuie să ruleze acolo unde `node_modules` este real (checkout principal sau arbore de lucru în care s-a rulat `npm ci` — NU un arbore de lucru bazat pe linkuri simbolice)
-- [ ] Efectuați un test rapid al instanței pe care s-a făcut deployment:
-  - Deschideți `/dashboard/health` → verificați dacă șirul versiunii corespunde versiunii publicate
-  - Rulați o cerere `/v1/chat/completions` către un furnizor cunoscut
-  - Verificați dacă `/api/monitoring/health` returnează disjunctoare de circuit `CLOSED`
-  - Confirmați că transporturile MCP răspund (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### După publicare
-
-- [ ] Rulați `/capture-release-evidences-cc` (abilitate Claude Code)
-  - Capturează capturi de ecran/înregistrări WebP ale funcționalităților noi
-  - Le atașează la notele de lansare/postarea de pe blog
-- [ ] Actualizați GitHub Discussions / Discord cu anunțul lansării
-- [ ] Deschideți un reper pentru versiunea următoare
-- [ ] Dacă este critic: fixați discuția sau publicați în `news.json` pentru bannerul din aplicație
-
-### Criterii pentru lansarea publică Radar
-
-Anunțul Radar este inclus în mod intenționat cu `active: false`. Activarea este o modificare separată,
-după ce există dovezi pentru fiecare element de mai jos:
-
-- [ ] Toate PR-urile Radar stivuite sunt îmbinate, iar CI-ul pentru versiunea finală este verde
-- [ ] Implementați și testați rapid rutele OSS Radar, cu `RADAR_ENABLED` încă dezactivat în mod implicit
-- [ ] Testați rapid `GET /planos`, `/termos`, `/privacidade` și `/reembolso` pe gazda Radar desemnată
-- [ ] Înregistrați identitatea/datele de contact/adresa operatorului și revizuirea juridică aprobată de proprietar în serviciul privat
-- [ ] Testați Stripe Checkout și webhook-ul semnat numai în modul de testare
-- [ ] Testați livrarea unui e-mail tranzacțional criptat folosind expeditorul/domeniul aprobat
-- [ ] Dovediți restaurarea copiei de rezervă și efectuați o rulare de cercetare supravegheată, cu buget limitat
-- [ ] Aprobați politica de revizuire BRL/PIX înainte de a accepta dovezi privind donațiile
-- [ ] Activați Checkout public numai după îndeplinirea criteriilor precedente, apoi activați noul ID din `news.json`
-- [ ] Verificați dacă bannerul de pe pagina principală folosește text localizat și dacă un ID nou reapare după ce un ID mai vechi este închis
-
 ## Teste rapide pentru serviciile încorporate (v3.8.4+)
 
 Înainte de a publica orice versiune care include modificări ale serviciilor încorporate, verificați:
@@ -399,7 +300,7 @@ Dacă versiunea lansată are o problemă critică:
 - Nu omiteți niciodată hook-urile Husky (`--no-verify`)
 - Nu includeți niciodată în commit secrete, credențiale sau fișiere `.env`
 - Acoperirea trebuie să rămână ≥60/60/60/60 (instrucțiuni/linii/funcții/ramuri)
-- Includeți sau actualizați întotdeauna testele atunci când modificați codul de producție din `src/`, `open-sse/`, `electron/` sau `bin/`
+- Includeți sau actualizați întotdeauna testele atunci când modificați codul de producție din `src/`, `open-sse/` sau `bin/`
 
 ## Verificarea automată a sincronizării
 

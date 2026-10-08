@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Ara l-[Gwida ta’ Docker](./DOCKER_GUIDE.md) għall-konfigurazzjoni kompleta ta’ Docker, inklużi l-profili ta’ Compose u Caddy HTTPS.
 
-### Applikazzjoni tad-Desktop (Electron)
-
-OmniRoute jinkludi wrapper tad-desktop mibni fuq Electron 41 + electron-builder 26.10. Skripts disponibbli (fl-għerq tal-workspace):
-
-```bash
-npm run electron:dev          # Ħaddem id-desktop b’hot-reload
-npm run electron:build        # Ibni għas-sistema operattiva attwali (identifikata awtomatikament)
-npm run electron:build:win    # Installatur għal Windows (NSIS + portabbli)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # Wettaq smoke test fuq il-build ippakkjat
-```
-
-Ir-rilaxxi tal-installaturi tad-desktop huma mehmuża mal-GitHub Releases. Għal analiżi dettaljata u kompleta ta’ Electron (iffirmar, bridge IPC, distribuzzjonijiet), ara [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _(maħluq fi stadju aktar tard)_.
-
 ### Server headless (CI/awtomatizzazzjoni)
 
 Għal konfigurazzjonijiet mhux assistiti (Docker, Kubernetes, CI), uża:

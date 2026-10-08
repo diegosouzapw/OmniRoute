@@ -91,7 +91,7 @@ Saat Anda perlu menyematkan nilai baru yang disediakan upstream dan:
 
 ### 3. Pola yang dilarang
 
-❌ **Jangan pernah** melakukan hal-hal berikut dalam kode produksi (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ **Jangan pernah** melakukan hal-hal berikut dalam kode produksi (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // BURUK: nilai literal memicu Secret Scanning + Semgrep

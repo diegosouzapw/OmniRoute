@@ -83,23 +83,6 @@ docker compose down
 docker compose down -v
 ```
 
-### Ứng dụng máy tính Electron
-
-**Windows:**
-
-- Mở `Settings → Apps → OmniRoute → Uninstall`
-- Hoặc chạy trình gỡ cài đặt NSIS từ thư mục cài đặt
-
-**macOS:**
-
-- Kéo `OmniRoute.app` từ `/Applications` vào Thùng rác
-- Xóa dữ liệu: `rm -rf ~/Library/Application Support/omniroute`
-
-**Linux:**
-
-- Xóa tệp AppImage
-- Xóa dữ liệu: `rm -rf ~/.omniroute`
-
 ### Cài đặt từ mã nguồn (git clone)
 
 ```bash

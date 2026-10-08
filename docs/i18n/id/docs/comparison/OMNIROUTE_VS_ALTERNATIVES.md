@@ -29,7 +29,7 @@ Perbandingan fitur objektif dengan router AI sumber terbuka populer.
 | **Penyamaran sidik jari TLS (JA3/JA4)**             |                  ✅ wreq-js                   |         ❌         |        ❌         |     ❌      |
 | **Kerangka kerja evaluasi**                         |                   ✅ bawaan                   |         ❌         |        ❌         | ⚠ berbayar  |
 | **Proksi MITM (mencegat Cursor/Antigravity)**       |              ✅ lintas platform               |         ❌         |        ❌         |     ❌      |
-| **CLI dengan baki sistem (tanpa Electron)**         |                      ✅                       |         ❌         |        n/a        |     n/a     |
+| **CLI dengan baki sistem**                          |                      ✅                       |         ❌         |        n/a        |     n/a     |
 | **Autentikasi otomatis berbasis ID mesin pada CLI** |                      ✅                       |         ❌         |        n/a        |     n/a     |
 | **Dasbor**                                          |                  Next.js 16                   |       dasar        |    proprieter     | proprieter  |
 | **i18n**                                            |                 **42 lokal**                  |         ❌         |        ❌         |      ⚠      |

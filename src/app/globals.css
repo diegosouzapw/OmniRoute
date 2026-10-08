@@ -30,8 +30,6 @@
 
 /* OmniRoute monochrome design system */
 :root {
-  --desktop-safe-top: 0px;
-  --desktop-safe-bottom: 0px;
   color-scheme: light;
 
   --color-primary: #2563eb;
@@ -269,11 +267,6 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-body.electron-macos {
-  --desktop-safe-top: 30px;
-  --desktop-safe-bottom: 8px;
 }
 
 /* iOS standalone PWA safe-area — keeps dashboard below the status bar */

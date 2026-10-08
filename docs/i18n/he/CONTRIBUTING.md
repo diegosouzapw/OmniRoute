@@ -220,7 +220,7 @@ npm run test:combo:live:vps:failover     # מוסיף תרחיש מעבר לגי
 
 - `npm run test:coverage` מודד את כיסוי קוד המקור עבור חבילת בדיקות היחידה הראשית, אינו כולל את `tests/**`, וכולל את `open-sse/**`
 - בקשות משיכה חייבות לשמור על שער כיסוי של **60%+** מהפקודות/שורות/פונקציות/הסתעפויות
-- אם PR משנה קוד ייצור ב-`src/`, ב-`open-sse/`, ב-`electron/` או ב-`bin/`, יש להוסיף או לעדכן בדיקות אוטומטיות באותו PR
+- אם PR משנה קוד ייצור ב-`src/`, ב-`open-sse/` או ב-`bin/`, יש להוסיף או לעדכן בדיקות אוטומטיות באותו PR
 - `npm run coverage:report` מדפיס דוח מפורט לפי קבצים מהרצת הכיסוי האחרונה
 - `npm run test:coverage:legacy` משמר את המדד הישן לצורך השוואה היסטורית
 - ראו `docs/ops/COVERAGE_PLAN.md` עבור מפת הדרכים המדורגת לשיפור הכיסוי
@@ -324,7 +324,6 @@ open-sse/                   # @omniroute/open-sse workspace
 ├── transformer/            # Responses API transformer
 └── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron desktop app (cross-platform)
 
 tests/
 ├── unit/                   # Node.js test runner (122 test files)

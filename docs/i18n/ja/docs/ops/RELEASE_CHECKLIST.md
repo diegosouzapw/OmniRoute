@@ -95,7 +95,6 @@ unit シャード、integration、vitest、lint/typecheck、docs-sync、`check:p
 ### バージョンと変更履歴
 
 - [ ] `/version-bump-cc <patch|minor|major>` を実行する（Claude Code スキル）
-  - `package.json`、`electron/package.json` のバージョンを更新する
   - 前回のタグ以降の git コミットから `CHANGELOG.md` を再生成する
   - README.md のバッジを更新する
 - [ ] CHANGELOG.md を手動でレビューし、必要に応じてコミットメッセージを整理する
@@ -189,103 +188,6 @@ Husky フックは `.husky/` にあり、git 操作時に自動実行されま�
 - [ ] モデルが `open-sse/config/providerRegistry.ts` に登録されている
 - [ ] `tests/unit/` のユニットテストでプロバイダーの分類とルーティングがカバーされている
 
-### デスクトップ（Electron）
-
-`electron/` を変更した場合:
-
-- [ ] `npm run electron:smoke:packaged` が成功する
-- [ ] `:win`、`:mac`、`:linux` のうち少なくとも 1 つでビルドをテスト済み
-- [ ] コード署名を行う場合、証明書が期限切れでない
-- [ ] `electron/package.json` のバージョンがルートの `package.json` と一致する
-- [ ] `stable` にリリースする場合、自動更新チャネルのポインターを更新済み
-
-### ビルドレイアウト
-
-このリポジトリでは 3 つの異なる出力ディレクトリを使用します。絶対に混同しないでください:
-
-| ディレクトリ | 用途                                                      | 追跡対象?           |
-| ------------ | --------------------------------------------------------- | ------------------- |
-| `src/`       | アプリケーションソース（TypeScript / TSX）                | はい                |
-| `.build/`    | ビルド中間生成物 — `next build` の出力（`distDir`）       | いいえ（gitignore） |
-| `dist/`      | 配布可能な npm バンドル — `assembleStandalone` により作成 | いいえ（gitignore） |
-
-> **運用担当者向けメモ:** リモート VPS のイメージディレクトリは引き続き `/usr/lib/node_modules/omniroute/app/` です。
-> 移動したのは **リポジトリ内の** ビルド出力のみです（`app/` → `dist/`）。デプロイスキルは
-> `dist/` の内容をリモートの `app/` ディレクトリへ rsync するため、VPS のパス変更は不要です。
-
-**単一ビルドフロー:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          （クリーンアップ）
-  └─ next build → .build/next/   （中間生成物）
-  └─ assembleStandalone          （standalone + static + public + natives を dist/ へコピー）
-  └─ writes dist/BUILD_SHA       （HEAD センチネル）
-```
-
-デプロイ時に `npm run build` を実行した後、別途 `npm run build:cli` を実行しては**なりません**。
-クリーンリビルドとセンチネル生成を 1 つのコマンドで行う `npm run build:release` を使用してください。
-
-### 成果物の検証
-
-- [ ] `npm run build:release` が成功し、`dist/BUILD_SHA` == `git rev-parse --short HEAD` である
-- [ ] `npm run check:pack-artifact` がクリーンに成功する — `app.__qa_backup`、`scripts/scratch`、`package-lock.json`、その他のローカル残留物がない
-- [ ] ビルド後に `dist/server.js` が存在する
-
-### タグ付けとリリース
-
-- [ ] `/generate-release-cc`（Claude Code スキル）を実行する:
-  - タグ `vX.Y.Z` を作成する
-  - タグとブランチを push する
-  - changelog の本文を使用して GitHub Release を作成する
-  - Electron インストーラーを添付する（ビルドした場合）
-- [ ] または手動で実行する:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### デプロイ
-
-デプロイスキルは軽量な rsync フローを使用します。`npm pack` や `npm i -g` は使用しません:
-
-- [ ] 対象に合ったデプロイスキルを使用する:
-  - `/deploy-vps-local-cc` — ローカル VPS（192.168.0.15）
-  - `/deploy-vps-akamai-cc` — Akamai VPS（69.164.221.35）
-  - `/deploy-vps-both-cc` — 両方
-- [ ] デプロイ前に `dist/BUILD_SHA` == `git rev-parse --short HEAD` であることを確認する
-- [ ] ビルドは `node_modules` が実体である場所（メインのチェックアウト、または `npm ci` を実行した worktree）で実行すること。シンボリックリンクされた worktree では実行しないこと
-- [ ] デプロイされたインスタンスをスモークテストする:
-  - `/dashboard/health` を開く → バージョン文字列がリリースと一致することを確認する
-  - 既知のプロバイダーに対して `/v1/chat/completions` リクエストを実行する
-  - `/api/monitoring/health` が `CLOSED` 状態のサーキットブレーカーを返すことを確認する
-  - MCP トランスポートが応答することを確認する（`/mcp` HTTP、`/mcp-sse` SSE）
-
-### リリース後
-
-- [ ] `/capture-release-evidences-cc`（Claude Code スキル）を実行
-  - 新機能の WebP スクリーンショット／録画を取得
-  - リリースノート／ブログ記事に添付
-- [ ] GitHub Discussions／Discord をリリース告知で更新
-- [ ] 次のバージョン用のマイルストーンを作成
-- [ ] 重要な場合：ディスカッションをピン留めするか、アプリ内バナー用に `news.json` に投稿
-
-### Radar 一般公開ゲート
-
-Radar の告知は、意図的に `active: false` の状態でコミットされています。有効化は、以下の全項目についてエビデンスが揃った後に行う個別の変更です：
-
-- [ ] 積み上げられたすべての Radar PR がマージされ、リリース先端の CI がグリーンである
-- [ ] `RADAR_ENABLED` をデフォルトで無効のままにし、OSS Radar のルートをデプロイしてスモークテストする
-- [ ] 指定された Radar ホスト上で `GET /planos`、`/termos`、`/privacidade`、`/reembolso` をスモークテストする
-- [ ] 運用担当者の身元／連絡先／住所、およびオーナー承認済みの法務レビューをプライベートサービスに記録する
-- [ ] テストモードのみで Stripe Checkout と署名付き Webhook を実行検証する
-- [ ] 承認済みの送信者／ドメインを使用して、暗号化されたトランザクションメールを 1 件配信し、動作を検証する
-- [ ] バックアップからの復元と、監督下で予算上限を設定した調査実行を 1 回行い、正常性を実証する
-- [ ] 寄付エビデンスを受け付ける前に、BRL/PIX のレビューポリシーを承認する
-- [ ] 先行するゲートをすべて通過した後にのみ公開 Checkout を有効化し、その後、新しい `news.json` ID を有効化する
-- [ ] ホームバナーでローカライズ済みの文言が使用され、古い ID を閉じた後でも新しい ID が再表示されることを確認する
-
 ## Embedded Services スモークテスト (v3.8.4+)
 
 組み込みサービスの変更を含むリリースを公開する前に、以下を確認してください。
@@ -371,7 +273,7 @@ v3.8.x リリースを公開する前に、以下の追加項目を確認して�
 - Husky フックをスキップしない（`--no-verify`）
 - シークレット、認証情報、または `.env` ファイルをコミットしない
 - カバレッジは ≥60/60/60/60（ステートメント／行／関数／ブランチ）を維持する
-- `src/`、`open-sse/`、`electron/`、または `bin/` の本番コードを変更する場合は、必ずテストを追加または更新する
+- `src/`、`open-sse/`、または `bin/` の本番コードを変更する場合は、必ずテストを追加または更新する
 
 ## 自動同期チェック
 

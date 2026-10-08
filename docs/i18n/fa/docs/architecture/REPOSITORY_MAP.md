@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # برنامه Next.js 16 (رابط کاربری + مسیرهای API + کتابخانهها + دامنه + سرور)
 ├── open-sse/             # فضای کاری موتور استریم (هندلرها، اجراکنندهها، مترجم، سرور MCP)
-├── electron/             # پوسته دسکتاپ (Electron 41 + electron-builder 26.10)
 ├── bin/                  # نقطه ورود CLI و هندلرهای فرمان
 ├── scripts/              # اسکریپتهای ساخت، بررسی، همگامسازی و تکمنظوره
 ├── docs/                 # مستندات عمومی (شما اینجا هستید)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — پوسته دسکتاپ
-
-| فایل             | هدف                                                                                     |
-| ---------------- | --------------------------------------------------------------------------------------- |
-| `main.js`        | فرایند اصلی Electron (BrowserWindow، سرور توکار Next.js، سینی سیستم، بهروزرسانی خودکار) |
-| `preload.js`     | پل IPC (contextBridge → `window.omniroute`)                                             |
-| `package.json`   | پیکربندی electron-builder + وابستگیهای Electron 41 و electron-builder 26.10             |
-| `assets/`        | آیکونهای برنامه (Windows .ico، macOS .icns، Linux .png)                                 |
-| `dist-electron/` | خروجی ساخت (نادیدهگرفتهشده توسط git)                                                    |
-| `types.d.ts`     | اعلانهای نوع برای پل رندرکننده                                                          |
-| `README.md`      | README داخلی Electron (همچنین `docs/guides/ELECTRON_GUIDE.md` را ببینید)                |
-
----
-
 ## `bin/` — CLI
 
 | فایل                                                                                                        | کاربرد                                                                                                                      |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | اجراکننده آزمونهای سرتاسری MCP/A2A                                                      |
 | `run-ecosystem-tests.mjs`           | آزمونهای اکوسیستم (یکپارچهسازی ارائهدهنده)                                              |
 | `test-report-summary.mjs`           | تولید خلاصه پوشش آزمون در قالب markdown                                                 |
-| `smoke-electron-packaged.mjs`       | آزمون دود بسته ساخت Electron                                                            |
-| `native-binary-compat.mjs`          | اعتبارسنجی تطابق وابستگیهای بومی (`better-sqlite3`) با Node در Electron                 |
 | `validate-pack-artifact.ts`         | اعتبارسنجی خروجی npm pack                                                               |
 | `responses-ws-proxy.mjs`            | پل WebSocket برای Codex Responses API                                                   |
 | `v1-ws-bridge.mjs`                  | پل WebSocket برای نقطه پایانی `/api/v1/ws`                                              |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | راهنمای کاربر نهایی (راهاندازی، مدلها، ترکیبها، رابطهای خط فرمان، صدا و غیره)                     |
 | `API_REFERENCE.md`          | مرجع نقاط پایانی API همراه با مدل احراز هویت                                                      |
 | `openapi.yaml`              | مشخصات OpenAPI 3.0 (121 مسیر)                                                                     |
-| `SETUP_GUIDE.md`            | روشهای نصب (npm، npx، Docker، Electron، Termux، کد منبع)                                          |
+| `SETUP_GUIDE.md`            | روشهای نصب (npm، npx، Docker، Termux، کد منبع)                                                    |
 | `ENVIRONMENT.md`            | همهٔ متغیرهای محیطی (حدود 800 مورد مستندشده، حدود 3,050 خط در `.env.example`)                     |
 | `TROUBLESHOOTING.md`        | خطاهای رایج + مشکلات شناختهشدهٔ v3.8.0                                                            |
 | `RELEASE_CHECKLIST.md`      | فرایند کامل انتشار (مهارتها، husky، conventional commits، استقرار)                                |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | استقرار Fly.io (در حال حاضر فقط به زبان چینی)                         |
 | `TERMUX_GUIDE.md`            | اجرای بدون رابط گرافیکی Android از طریق Termux                        |
 | `PWA_GUIDE.md`               | نصب برنامهٔ وب پیشرونده + service worker                              |
-| `ELECTRON_GUIDE.md`          | ساخت + امضا + توزیع برنامهٔ دسکتاپ                                    |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                |
 | `PROXY_GUIDE.md`             | پراکسی خروجی 4سطحی + بازارچهٔ 1proxy                                  |
 

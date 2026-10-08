@@ -118,7 +118,6 @@ omniroute
 
 ## ကန့်သတ်ချက်များ
 
-- Electron ကို Termux တွင် run မရပါ။
 - System tray သို့မဟုတ် desktop integration မရှိပါ။
 - ဤ setup သည် server-only ဖြစ်သည်။ Browser dashboard ကို အသုံးပြုပါ။
 - Native dependency များကို စက်တွင်း၌ compile လုပ်ရန် လိုအပ်နိုင်သည်။

@@ -91,7 +91,7 @@ OmniRoute ต้องฝังค่าเหล่านี้ไว้เพ�
 
 ### 3. รูปแบบต้องห้าม
 
-❌ **ห้าม** ทำสิ่งใดต่อไปนี้ในโค้ด production (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ **ห้าม** ทำสิ่งใดต่อไปนี้ในโค้ด production (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // ไม่ดี: ค่าลิเทอรัลทริกเกอร์ Secret Scanning + Semgrep

@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 עיינו ב[מדריך Docker](./DOCKER_GUIDE.md) לקבלת הוראות התקנה מלאות עבור Docker, כולל פרופילים של Compose ו-HTTPS באמצעות Caddy.
 
-### יישום שולחן עבודה (Electron)
-
-OmniRoute כולל מעטפת שולחן עבודה המבוססת על Electron 41 ועל electron-builder 26.10. הסקריפטים הזמינים (בשורש סביבת העבודה):
-
-```bash
-npm run electron:dev          # הפעלת יישום שולחן העבודה עם טעינה מחדש בזמן אמת
-npm run electron:build        # בנייה עבור מערכת ההפעלה הנוכחית (מזוהה אוטומטית)
-npm run electron:build:win    # תוכנית התקנה עבור Windows (NSIS + גרסה ניידת)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # בדיקת עשן של הבנייה הארוזה
-```
-
-גרסאות של תוכניות ההתקנה לשולחן העבודה מצורפות למהדורות GitHub. להסבר מעמיק ומלא על Electron (חתימה, גשר IPC והפצות), ראו [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _(נוצר בשלב מאוחר יותר)_.
-
 ### שרת ללא ממשק גרפי (CI/אוטומציה)
 
 עבור התקנות ללא התערבות (Docker, Kubernetes, CI), השתמשו ב:

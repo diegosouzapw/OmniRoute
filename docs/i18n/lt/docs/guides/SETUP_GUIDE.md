@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Išsamią „Docker“ sąranką, įskaitant „Compose“ profilius ir „Caddy HTTPS“, rasite [„Docker“ vadove](./DOCKER_GUIDE.md).
 
-### Darbalaukio programa (Electron)
-
-„OmniRoute“ pateikiama su darbalaukio apvalkalu, sukurtu naudojant Electron 41 ir electron-builder 26.10. Galimi scenarijai (darbo srities šakniniame kataloge):
-
-```bash
-npm run electron:dev          # Paleisti darbalaukio programą su automatiniu perkrovimu
-npm run electron:build        # Sukurti dabartinei OS (aptinkama automatiškai)
-npm run electron:build:win    # „Windows“ diegimo programa (NSIS + nešiojamoji versija)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # Atlikti supakuotos versijos bazinį patikrinimą
-```
-
-Darbalaukio diegimo programų leidimai pridedami prie „GitHub Releases“. Išsamų „Electron“ aprašą (pasirašymą, IPC tiltą, platinamuosius paketus) rasite [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _(sukurta vėlesniame etape)_.
-
 ### Serveris be grafinės sąsajos (CI / automatizavimas)
 
 Neprižiūrimoms sąrankoms („Docker“, „Kubernetes“, CI) naudokite:

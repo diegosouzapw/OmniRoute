@@ -220,7 +220,7 @@ Poznámky k pokrytí:
 
 - `npm run test:coverage` měří pokrytí zdrojového kódu pro hlavní sadu jednotkových testů, vylučuje `tests/**` a zahrnuje `open-sse/**`
 - Pull requesty musí zachovat limit pokrytí **60 % a více** pro příkazy/řádky/funkce/větve
-- Pokud PR mění produkční kód v `src/`, `open-sse/`, `electron/` nebo `bin/`, musí ve stejném PR přidat nebo aktualizovat automatizované testy
+- Pokud PR mění produkční kód v `src/`, `open-sse/` nebo `bin/`, musí ve stejném PR přidat nebo aktualizovat automatizované testy
 - `npm run coverage:report` vypíše podrobnou zprávu po jednotlivých souborech z posledního spuštění měření pokrytí
 - `npm run test:coverage:legacy` zachovává starší metriku pro historické porovnání
 - Postupný plán zlepšování pokrytí najdete v `docs/ops/COVERAGE_PLAN.md`
@@ -325,7 +325,6 @@ open-sse/                   # @omniroute/open-sse workspace
 ├── transformer/            # Responses API transformer
 └── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron desktop app (cross-platform)
 
 tests/
 ├── unit/                   # Node.js test runner (122 test files)

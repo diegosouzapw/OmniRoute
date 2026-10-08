@@ -118,7 +118,6 @@ omniroute
 
 ## Batasan
 
-- Electron tidak berjalan dalam Termux.
 - Tiada dulang sistem atau penyepaduan desktop.
 - Persediaan ini adalah untuk pelayan sahaja: gunakan papan pemuka pelayar.
 - Kebergantungan natif mungkin perlu dikompil secara setempat.

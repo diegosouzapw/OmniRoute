@@ -69,7 +69,7 @@ I den ursprungliga ärendetråden föreslogs en större omskrivning av klustret.
 | ------------------------------------ | ---------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | **Dragonfly**                        | **AVVISA** | `redis:7-alpine` räcker redan för hastighetsbegränsningens arbetslast i produktionsskala; inget kapacitetstak att överskrida. |
 | **NATS**                             | **AVVISA** | Varje `omniroute`-replik är en enda Node.js-process; det finns ingen pub/sub-arbetslast med flera processer.                  |
-| **PostgreSQL**                       | **AVVISA** | SQLite + sqlite-vec + FTS5 täcker alla tre användningsfall; 97 migreringar + Electron-paketering blockerar en migrering.      |
+| **PostgreSQL**                       | **AVVISA** | SQLite + sqlite-vec + FTS5 täcker alla tre användningsfall; 97 migreringar-paketering blockerar en migrering.                 |
 | **Neo4j**                            | **AVVISA** | Routningen är en join mellan fem tabeller; en rekursiv CTE i SQLite är tillräcklig.                                           |
 | **MinIO**                            | **AVVISA** | Ingen blobarbetslast på flera MB; bilder/ljud vidarebefordras via proxyer.                                                    |
 | **pgvector / pg_ai / pg_textsearch** | **AVVISA** | Samma skäl gällande SQLite-taket som för PostgreSQL; pgvector-ekosystemet är fragmenterat.                                    |

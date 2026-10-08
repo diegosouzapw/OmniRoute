@@ -27,7 +27,6 @@
 | ភាសា                       | **TypeScript 6.0+** — គោលដៅ `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                               |
 | បរិស្ថានដំណើរការ           | **Node.js** `>=22.22.2 <23` ឬ `>=24.0.0 <27` (ត្រូវបានអនុវត្តតាមរយៈ `engines` + `SUPPORTED_NODE_RANGE`)                            |
 | មូលដ្ឋានទិន្នន័យ           | **SQLite** តាមរយៈ `better-sqlite3` (singleton, ការកត់ត្រាបែប WAL)                                                                  |
-| ផ្ទៃតុ                     | **Electron 41** + `electron-builder` 26.10 (workspace ដាច់ដោយឡែកនៅ `electron/`)                                                    |
 | ការធ្វើតេស្ត               | **កម្មវិធីដំណើរការតេស្តដើមរបស់ Node** (unit/integration), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | ការបង្កើត                  | Next.js standalone តាមរយៈ `scripts/build/build-next-isolated.mjs`                                                                  |
 | ការត្រួតពិនិត្យ/ទ្រង់ទ្រាយ | ការកំណត់រចនាសម្ព័ន្ធ ESLint flat + Prettier (`lint-staged` តាមរយៈ Husky pre-commit)                                                |
@@ -51,7 +50,6 @@
 OmniRoute/
 ├── src/                  កម្មវិធី Next.js (App Router, បណ្ណាល័យ, domain, server, ធាតុប្រើរួម)
 ├── open-sse/             workspace ម៉ាស៊ីន streaming (@omniroute/open-sse)
-├── electron/             ស្រទាប់ផ្ទៃតុ (Electron 41 main + preload)
 ├── bin/                  ចំណុចចូល CLI (omniroute, reset-password)
 ├── tests/                Unit, integration, e2e, protocols-e2e, translator, security, fixtures
 ├── scripts/              ស្គ្រីបជំនួយសម្រាប់ build, sync, check, migration និង runtime
@@ -574,26 +572,6 @@ open-sse/
 
 ---
 
-## 5. `electron/` — កម្មវិធីស្រោបសម្រាប់ Desktop
-
-```
-electron/
-├── main.js                  ដំណើរការមេរបស់ Electron
-├── preload.js               ស្ពាន Preload (បានបើក contextIsolation)
-├── types.d.ts
-├── package.json             ការកំណត់រចនាសម្ព័ន្ធ electron-builder, កំណែ 3.8.51
-├── README.md
-├── assets/                  ធនធានសម្រាប់ Build (រូបតំណាង, entitlements, …)
-├── node_modules/            node_modules ដាច់ដោយឡែក (better-sqlite3, electron-updater)
-└── dist-electron/           លទ្ធផល Build (មិនបាន commit)
-```
-
-មានស្គ្រីប npm ចំនួនប្រាំនៅ root របស់ workspace៖ `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`។ ការធ្វើបច្ចុប្បន្នភាពដោយស្វ័យប្រវត្តិធ្វើឡើងតាមរយៈ
-`electron-updater` ដែលចង្អុលទៅកាន់ feed នៃ release របស់ GitHub។
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -658,13 +636,11 @@ Command ដែលប្រើជាទូទៅ៖
 ត្រូវបានរៀបចំជា 6 ថតរងតាមគោលបំណង។
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`។
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`។
@@ -843,7 +819,7 @@ Command ដែលប្រើជាទូទៅ៖
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — ជំនាញ និងការស្វែងរករបស់ពិធីការ A2A។
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — ការបង្ហាប់ RTK + Caveman។
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — ការរួមបញ្ចូល CLI។
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (ប្រសិនបើមាន), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — គោលដៅដាក់ឱ្យដំណើរការ។
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — គោលដៅដាក់ឱ្យដំណើរការ។
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — បញ្ហាប្រតិបត្តិការទូទៅ។
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — លំហូរការងាររបស់អ្នករួមចំណែក។
 - [CLAUDE.md](../../CLAUDE.md) — ច្បាប់ repo សម្រាប់ Claude Code (ប្រភពពិតប្រាកដ

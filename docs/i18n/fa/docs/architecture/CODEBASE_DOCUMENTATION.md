@@ -27,7 +27,6 @@
 | زبان          | **TypeScript 6.0+** — هدف `ES2022`،‏ `module: esnext`،‏ `moduleResolution: bundler`،‏ `strict: false`                   |
 | زمان اجرا     | **Node.js** `>=22.22.2 <23` یا `>=24.0.0 <27` (اعمالشده از طریق `engines` و `SUPPORTED_NODE_RANGE`)                     |
 | پایگاه داده   | **SQLite** از طریق `better-sqlite3` (تکنمونه، ثبت وقایع WAL)                                                            |
-| دسکتاپ        | **Electron 41** + `electron-builder` 26.10 (فضای کاری جداگانه در `electron/`)                                           |
 | آزمونها       | **اجراکننده آزمون بومی Node** (واحد/یکپارچهسازی)، **Vitest** (MCP، autoCombo، کش)، **Playwright** (e2e + protocols-e2e) |
 | ساخت          | خروجی مستقل Next.js از طریق `scripts/build/build-next-isolated.mjs`                                                     |
 | لینت/قالببندی | پیکربندی مسطح ESLint + Prettier (`lint-staged` از طریق پیشکامیت Husky)                                                  |
@@ -51,7 +50,6 @@
 OmniRoute/
 ├── src/                  برنامه Next.js (App Router، کتابخانهها، دامنه، سرور، اجزای مشترک)
 ├── open-sse/             فضای کاری موتور استریم (@omniroute/open-sse)
-├── electron/             پوشش دسکتاپ (فرایند اصلی Electron 41 + preload)
 ├── bin/                  نقاط ورود CLI (omniroute، reset-password)
 ├── tests/                آزمونهای واحد، یکپارچهسازی، e2e، protocols-e2e، مترجم، امنیت و دادههای آزمون
 ├── scripts/              اسکریپتهای کمکی ساخت، همگامسازی، بررسی، مهاجرت و زمان اجرا
@@ -575,26 +573,6 @@ open-sse/
 
 ---
 
-## 5. `electron/` — پوشش دسکتاپ
-
-```
-electron/
-├── main.js                  فرایند اصلی Electron
-├── preload.js               پل پیشبارگذاری (contextIsolation فعال است)
-├── types.d.ts
-├── package.json             پیکربندی electron-builder، نسخهٔ 3.8.51
-├── README.md
-├── assets/                  منابع ساخت (آیکونها، مجوزها، …)
-├── node_modules/            node_modules اختصاصی (better-sqlite3، electron-updater)
-└── dist-electron/           خروجی ساخت (commit نمیشود)
-```
-
-پنج اسکریپت npm در ریشهٔ فضای کاری وجود دارد: `electron:dev`، `electron:build`،
-`electron:build:{win,mac,linux}`، `electron:smoke:packaged`. بهروزرسانی خودکار از طریق
-`electron-updater` انجام میشود و به فید انتشار GitHub اشاره دارد.
-
----
-
 ## 6. `bin/` — رابط خط فرمان
 
 ```
@@ -659,13 +637,11 @@ bin/
 بر اساس کاربرد در 6 زیرپوشه سازماندهی شده است.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`، `prepublish.ts`،
-  `prepare-electron-standalone.mjs`، `pack-artifact-policy.ts`،
   `validate-pack-artifact.ts`، `postinstall.mjs`، `postinstallSupport.mjs`،
   `uninstall.mjs`، `bootstrap-env.mjs`، `runtime-env.mjs`،
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`، `run-next-playwright.mjs`،
   `run-standalone.mjs`، `standalone-server-ws.mjs`، `responses-ws-proxy.mjs`،
-  `v1-ws-bridge.mjs`، `smoke-electron-packaged.mjs`،
   `run-playwright-tests.mjs`، `run-ecosystem-tests.mjs`،
   `run-protocol-clients-tests.mjs`، `sync-env.mjs`، `healthcheck.mjs`،
   `system-info.mjs`.
@@ -845,7 +821,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — مهارتها و سازوکار کشف پروتکل A2A.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — فشردهسازی RTK و Caveman.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — یکپارچهسازیهای CLI.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (در صورت وجود)، [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md)، [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md)، [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md)، [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md)، [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — اهداف استقرار.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md)، [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md)، [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md)، [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md)، [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — اهداف استقرار.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — مشکلات عملیاتی رایج.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — گردشکار مشارکتکنندگان.
 - [CLAUDE.md](../../CLAUDE.md) — قوانین مخزن برای Claude Code (مرجع اصلی

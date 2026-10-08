@@ -122,7 +122,6 @@ Compose quickstartలు `:latest`ను ఉపయోగిస్తాయి; G
 ### వెర్షన్ & చేంజ్లాగ్
 
 - [ ] `/version-bump-cc <patch|minor|major>`ను అమలు చేయండి (Claude Code స్కిల్)
-  - `package.json`, `electron/package.json` వెర్షన్లను పెంచుతుంది
   - చివరి ట్యాగ్ తర్వాతి git కమిట్ల నుంచి `CHANGELOG.md`ను మళ్లీ రూపొందిస్తుంది
   - README.md బ్యాడ్జ్లను నవీకరిస్తుంది
 - [ ] CHANGELOG.mdను మాన్యువల్గా సమీక్షించి, అవసరమైతే కమిట్ సందేశాలను శుభ్రపరచండి
@@ -216,104 +215,6 @@ Husky హుక్లు `.husky/`లో ఉంటాయి మరియు git 
 - [ ] మోడల్లు `open-sse/config/providerRegistry.ts`లో నమోదు చేయబడ్డాయి
 - [ ] `tests/unit/`లోని unit testలు ప్రొవైడర్ వర్గీకరణ మరియు routingను కవర్ చేస్తాయి
 
-### డెస్క్టాప్ (Electron)
-
-`electron/` మారితే:
-
-- [ ] `npm run electron:smoke:packaged` విజయవంతమవుతుంది
-- [ ] `:win`, `:mac`, `:linux`లో కనీసం ఒకదాని కోసం buildలు పరీక్షించబడ్డాయి
-- [ ] Code signing సర్టిఫికెట్ల గడువు ముగియలేదు (signing చేస్తే)
-- [ ] `electron/package.json` version, root `package.json`తో సరిపోలుతుంది
-- [ ] `stable`కు విడుదల చేస్తుంటే auto-update channel pointer నవీకరించబడింది
-
-### Build లేఅవుట్
-
-రిపోజిటరీ మూడు విభిన్న output directoryలను ఉపయోగిస్తుంది — వాటిని ఎప్పుడూ కలపవద్దు:
-
-| Directory | ఉద్దేశ్యం                                                              | ట్రాక్ చేయబడుతుందా? |
-| --------- | ---------------------------------------------------------------------- | ------------------- |
-| `src/`    | అప్లికేషన్ మూలం (TypeScript / TSX)                                     | అవును               |
-| `.build/` | Build మధ్యంతర ఫైల్లు — `next build` output (`distDir`)                 | కాదు (gitignored)   |
-| `dist/`   | పంపిణీ చేయగల npm bundle — `assembleStandalone` ద్వారా సమీకరించబడుతుంది | కాదు (gitignored)   |
-
-> **ఆపరేటర్ గమనిక:** రిమోట్ VPS image directory `/usr/lib/node_modules/omniroute/app/`గానే ఉంటుంది.
-> **రిపోజిటరీలోని** build output మాత్రమే మారింది (`app/` → `dist/`). Deploy skillలు
-> `dist/`లోని కంటెంట్ను రిమోట్ `app/` dirలోకి rsync చేస్తాయి — VPS path మార్పులు అవసరం లేదు.
-
-**ఒకే-build ప్రవాహం:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (శుభ్రపరచడం)
-  └─ next build → .build/next/   (మధ్యంతర ఫైల్లు)
-  └─ assembleStandalone          (standalone + static + public + nativesను dist/లోకి కాపీ చేస్తుంది)
-  └─ dist/BUILD_SHAను వ్రాస్తుంది       (HEAD sentinel)
-```
-
-Deploy కోసం `npm run build`ను అమలు చేసి, తర్వాత విడిగా `npm run build:cli`ను అమలు చేయవద్దు — ఒకే commandలో శుభ్రమైన rebuild + sentinelను నిర్వహించే
-`npm run build:release`ను ఉపయోగించండి.
-
-### Artifact ధృవీకరణ
-
-- [ ] `npm run build:release` విజయవంతమవుతుంది మరియు `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` శుభ్రంగా ఉంది — `app.__qa_backup`, `scripts/scratch`, `package-lock.json` లేదా ఇతర స్థానిక అవశేషాలు లేవు
-- [ ] Build తర్వాత `dist/server.js` ఉంది
-
-### ట్యాగింగ్ & విడుదల
-
-- [ ] `/generate-release-cc` (Claude Code skill)ను అమలు చేయండి:
-  - `vX.Y.Z` ట్యాగ్ను సృష్టిస్తుంది
-  - ట్యాగ్ మరియు branchను push చేస్తుంది
-  - changelog bodyతో GitHub Releaseను తెరుస్తుంది
-  - Electron installerలను జతచేస్తుంది (build చేసి ఉంటే)
-- [ ] లేదా మాన్యువల్గా:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deploy
-
-Deploy skillలు తేలికపాటి rsync ప్రవాహాన్ని ఉపయోగిస్తాయి — `npm pack` లేదు, `npm i -g` లేదు:
-
-- [ ] లక్ష్యానికి సరిపోయే deploy skillను ఉపయోగించండి:
-  - `/deploy-vps-local-cc` — స్థానిక VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — రెండూ
-- [ ] Deploy చేయడానికి ముందు, `dist/BUILD_SHA` == `git rev-parse --short HEAD` అని నిర్ధారించండి
-- [ ] `node_modules` వాస్తవంగా ఉన్న చోటే build అమలు కావాలి (ప్రధాన checkout లేదా `npm ci` అమలు చేసిన worktree — symlink చేసిన worktreeలో కాదు)
-- [ ] Deploy చేసిన instanceపై smoke test చేయండి:
-  - `/dashboard/health`ను తెరవండి → version string విడుదలతో సరిపోలుతుందో తనిఖీ చేయండి
-  - తెలిసిన ప్రొవైడర్కు `/v1/chat/completions` requestను అమలు చేయండి
-  - `/api/monitoring/health`, `CLOSED` circuit breakerలను తిరిగి ఇస్తుందని ధృవీకరించండి
-  - MCP transportలు స్పందిస్తున్నాయని నిర్ధారించండి (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### విడుదల అనంతరం
-
-- [ ] `/capture-release-evidences-cc` ను అమలు చేయండి (Claude Code నైపుణ్యం)
-  - కొత్త ఫీచర్ల WebP స్క్రీన్షాట్లు/రికార్డింగ్లను సేకరిస్తుంది
-  - వాటిని విడుదల గమనికలు / బ్లాగ్ పోస్ట్కు జోడిస్తుంది
-- [ ] విడుదల ప్రకటనతో GitHub Discussions / Discordను నవీకరించండి
-- [ ] తదుపరి వెర్షన్ కోసం మైలురాయిని తెరవండి
-- [ ] అత్యవసరమైతే: యాప్లోని బ్యానర్ కోసం చర్చను పిన్ చేయండి లేదా `news.json`లో పోస్ట్ చేయండి
-
-### Radar పబ్లిక్-లాంచ్ గేట్
-
-Radar ప్రకటన ఉద్దేశపూర్వకంగా `active: false`తో కమిట్ చేయబడింది. దిగువన ఉన్న ప్రతి అంశానికి ఆధారం సమకూరిన తర్వాత
-యాక్టివేషన్ను ప్రత్యేక మార్పుగా చేయాలి:
-
-- [ ] స్టాక్ చేసిన అన్ని Radar PRలు విలీనం చేయబడ్డాయని, release-tip CI విజయవంతంగా ఉందని నిర్ధారించండి
-- [ ] డిఫాల్ట్గా `RADAR_ENABLED` ఇంకా ఆఫ్లోనే ఉంచి OSS Radar రూట్లను డిప్లాయ్ చేసి స్మోక్ టెస్ట్ చేయండి
-- [ ] నిర్దేశిత Radar హోస్ట్లో `GET /planos`, `/termos`, `/privacidade`, మరియు `/reembolso`లను స్మోక్ టెస్ట్ చేయండి
-- [ ] ప్రైవేట్ సర్వీస్లో ఆపరేటర్ గుర్తింపు/సంప్రదింపు వివరాలు/చిరునామా మరియు యజమాని ఆమోదించిన చట్టపరమైన సమీక్షను నమోదు చేయండి
-- [ ] Stripe Checkoutను మరియు సంతకం చేసిన webhookను టెస్ట్ మోడ్లో మాత్రమే పరీక్షించండి
-- [ ] ఆమోదించబడిన పంపినవారు/డొమైన్తో ఒక ఎన్క్రిప్ట్ చేసిన లావాదేవీ ఇమెయిల్ డెలివరీని పరీక్షించండి
-- [ ] బ్యాకప్ పునరుద్ధరణను మరియు పర్యవేక్షణలో, బడ్జెట్ పరిమితితో నిర్వహించిన ఒక పరిశోధన రన్ను నిరూపించండి
-- [ ] విరాళానికి సంబంధించిన ఆధారాలను అంగీకరించే ముందు BRL/PIX సమీక్ష విధానాన్ని ఆమోదించండి
-- [ ] పైన పేర్కొన్న గేట్లు పూర్తయిన తర్వాత మాత్రమే పబ్లిక్ Checkoutను ప్రారంభించి, ఆపై కొత్త `news.json` IDని యాక్టివేట్ చేయండి
-- [ ] Home బ్యానర్ స్థానికీకరించిన కాపీని ఉపయోగిస్తోందని, పాత IDని తీసివేసిన తర్వాత కొత్త ID మళ్లీ కనిపిస్తోందని ధృవీకరించండి
-
 ## ఎంబెడెడ్ సర్వీసుల స్మోక్ పరీక్ష (v3.8.4+)
 
 ఎంబెడెడ్ సర్వీసుల మార్పులను కలిగి ఉన్న ఏదైనా విడుదలను పంపించే ముందు, వీటిని ధృవీకరించండి:
@@ -399,7 +300,7 @@ Radar ప్రకటన ఉద్దేశపూర్వకంగా `active: 
 - Husky హుక్లను (`--no-verify`) ఎప్పుడూ దాటవేయవద్దు
 - సీక్రెట్లు, క్రెడెన్షియల్లు లేదా `.env` ఫైల్లను ఎప్పుడూ కమిట్ చేయవద్దు
 - కవరేజ్ ≥60/60/60/60గానే ఉండాలి (స్టేట్మెంట్లు/లైన్లు/ఫంక్షన్లు/బ్రాంచ్లు)
-- `src/`, `open-sse/`, `electron/` లేదా `bin/`లోని ప్రొడక్షన్ కోడ్ను మార్చేటప్పుడు ఎల్లప్పుడూ టెస్ట్లను జోడించండి లేదా నవీకరించండి
+- `src/`, `open-sse/` లేదా `bin/`లోని ప్రొడక్షన్ కోడ్ను మార్చేటప్పుడు ఎల్లప్పుడూ టెస్ట్లను జోడించండి లేదా నవీకరించండి
 
 ## ఆటోమేటెడ్ సింక్ తనిఖీ
 

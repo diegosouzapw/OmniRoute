@@ -91,7 +91,7 @@ Quando è necessario incorporare un nuovo valore fornito upstream che:
 
 ### 3. Pattern vietati
 
-❌ **Non** eseguire mai nessuna delle seguenti operazioni nel codice di produzione (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ **Non** eseguire mai nessuna delle seguenti operazioni nel codice di produzione (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // SBAGLIATO: il valore letterale attiva Secret Scanning + Semgrep

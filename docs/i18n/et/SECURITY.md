@@ -197,7 +197,7 @@ docker run -d \
 
 ## Sõltuvused
 
-- Käivita `npm audit` regulaarselt (`npm run audit:deps` katab peamise + electroni)
+- Käivita `npm audit` regulaarselt (`npm run audit:deps` katab peamisei)
 - Hoia sõltuvused ajakohasena
 - Projekt kasutab `husky` + `lint-staged` pre-commit kontrollideks (lint-staged + check-docs-sync + check:any-budget:t11)
 - CI torustik käivitab iga push’i korral ESLinti turvareeglid (`no-eval`, `no-implied-eval`, `no-new-func` = error)

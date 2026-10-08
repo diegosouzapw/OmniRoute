@@ -29,7 +29,7 @@ Populyar açıq mənbəli süni intellekt marşrutlayıcıları ilə obyektiv fu
 | **TLS barmaq izi gizliliyi (JA3/JA4)**                   |                   ✅ wreq-js                   |        ❌        |        ❌         |     ❌      |
 | **Qiymətləndirmə çərçivəsi**                             |                   ✅ daxili                    |        ❌        |        ❌         | ⚠ ödənişli  |
 | **MITM proksisi (Cursor/Antigravity sorğularını tutur)** |             ✅ çarpaz platformalı              |        ❌        |        ❌         |     ❌      |
-| **Sistem treyi olan CLI (Electron olmadan)**             |                       ✅                       |        ❌        |        n/a        |     n/a     |
+| **Sistem treyi olan CLI**                                |                       ✅                       |        ❌        |        n/a        |     n/a     |
 | **CLI maşın-ID avtomatik autentifikasiyası**             |                       ✅                       |        ❌        |        n/a        |     n/a     |
 | **İdarəetmə paneli**                                     |                   Next.js 16                   |       əsas       |    proprietar     | proprietar  |
 | **i18n**                                                 |                  **42 lokal**                  |        ❌        |        ❌         |      ⚠      |

@@ -91,7 +91,7 @@ Aşağıdakı xüsusiyyətlərə malik, yuxarı axın tərəfindən təqdim edil
 
 ### 3. Qadağan edilmiş nümunələr
 
-❌ İstehsal kodunda (`src/`, `open-sse/`, `electron/`, `bin/`) aşağıdakılardan hər hansı birini **heç vaxt** etməyin:
+❌ İstehsal kodunda (`src/`, `open-sse/`, `bin/`) aşağıdakılardan hər hansı birini **heç vaxt** etməyin:
 
 ```ts
 // PİS: hərfi dəyər Secret Scanning + Semgrep-i işə salır

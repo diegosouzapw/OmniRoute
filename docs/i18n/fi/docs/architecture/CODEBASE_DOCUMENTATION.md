@@ -27,7 +27,6 @@ lisätään ilman uusien moduulien keksimistä.
 | Kieli              | **TypeScript 6.0+** — kohde `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                                           |
 | Ajoympäristö       | **Node.js** `>=22.22.2 <23` tai `>=24.0.0 <27` (pakotetaan asetuksilla `engines` + `SUPPORTED_NODE_RANGE`)                                     |
 | Tietokanta         | **SQLite** `better-sqlite3`:n kautta (singleton, WAL-lokikirjaus)                                                                              |
-| Työpöytä           | **Electron 41** + `electron-builder` 26.10 (erillinen työtila hakemistossa `electron/`)                                                        |
 | Testit             | **Noden natiivi testiajo-ohjelma** (yksikkö-/integraatiotestit), **Vitest** (MCP, autoCombo, välimuisti), **Playwright** (e2e + protocols-e2e) |
 | Koonti             | Next.jsin itsenäinen julkaisu komentosarjalla `scripts/build/build-next-isolated.mjs`                                                          |
 | Linttaus/muotoilu  | ESLintin flat config + Prettier (`lint-staged` Husky pre-commit -koukun kautta)                                                                |
@@ -51,7 +50,6 @@ määritetään `DATA_DIR`-ympäristömuuttujalla, ja sen oletusarvo on `~/.omni
 OmniRoute/
 ├── src/                  Next.js-sovellus (App Router, kirjastot, toimialue, palvelin, jaetut osat)
 ├── open-sse/             Suoratoistomoottorin työtila (@omniroute/open-sse)
-├── electron/             Työpöytäsovelluksen kääre (Electron 41:n pääprosessi + preload)
 ├── bin/                  CLI-käynnistyspisteet (omniroute, reset-password)
 ├── tests/                Yksikkö-, integraatio-, e2e-, protocols-e2e-, kääntäjä- ja tietoturvatestit sekä testiaineistot
 ├── scripts/              Koontiin, synkronointiin, tarkistuksiin, migraatioihin ja ajonaikaiseen käyttöön tarkoitetut apukomentosarjat
@@ -575,26 +573,6 @@ Suoratoiston peruskomponentit ja palveluntarjoajien apufunktiot: `stream.ts`, `s
 
 ---
 
-## 5. `electron/` — Työpöytäsovelluksen kääre
-
-```
-electron/
-├── main.js                  Electronin pääprosessi
-├── preload.js               Esilataussilta (contextIsolation käytössä)
-├── types.d.ts
-├── package.json             electron-builder-määritykset, versio 3.8.51
-├── README.md
-├── assets/                  Koontiresurssit (kuvakkeet, käyttöoikeudet, …)
-├── node_modules/            Erillinen node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           Koontituloste (ei sisälly versionhallintaan)
-```
-
-Työtilan juuressa on viisi npm-komentosarjaa: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Automaattinen päivitys käyttää
-`electron-updater`-pakettia, joka osoittaa GitHubin julkaisuvirtaan.
-
----
-
 ## 6. `bin/` — Komentorivityökalu
 
 ```
@@ -659,13 +637,11 @@ Yleiset komennot:
 Järjestetty käyttötarkoituksen mukaan kuuteen alikansioon.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -845,7 +821,7 @@ hakemistossa `src/lib/a2a/skills/`, ja ne rekisteröidään A2A-tehtävähallinn
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A-protokollan taidot ja palvelun löytäminen.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK- ja Caveman-pakkaus.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI-integraatiot.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (jos saatavilla), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — käyttöönottokohteet.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — käyttöönottokohteet.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — yleiset käyttöongelmat.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — osallistujien työnkulku.
 - [CLAUDE.md](../../CLAUDE.md) — Claude Coden repositoriosäännöt (ensisijainen lähde

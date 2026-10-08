@@ -27,7 +27,6 @@ worden toegevoegd zonder nieuwe modules te bedenken.
 | Taal            | **TypeScript 6.0+** — target `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                      |
 | Runtime         | **Node.js** `>=22.22.2 <23` of `>=24.0.0 <27` (afgedwongen via `engines` + `SUPPORTED_NODE_RANGE`)                         |
 | Database        | **SQLite** via `better-sqlite3` (singleton, WAL-journaling)                                                                |
-| Desktop         | **Electron 41** + `electron-builder` 26.10 (afzonderlijke workspace in `electron/`)                                        |
 | Tests           | **Ingebouwde Node-testrunner** (unit/integratie), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | Build           | Zelfstandige Next.js-build via `scripts/build/build-next-isolated.mjs`                                                     |
 | Lint/format     | Platte ESLint-configuratie + Prettier (`lint-staged` via Husky pre-commit)                                                 |
@@ -51,7 +50,6 @@ gegevensdirectory wordt bepaald door de omgevingsvariabele `DATA_DIR` en is stan
 OmniRoute/
 ├── src/                  Next.js-applicatie (App Router, bibliotheken, domein, server, gedeelde code)
 ├── open-sse/             Workspace voor de streaming-engine (@omniroute/open-sse)
-├── electron/             Desktopwrapper (Electron 41-hoofdproces + preload)
 ├── bin/                  CLI-toegangspunten (omniroute, reset-password)
 ├── tests/                Unit-, integratie-, e2e-, protocols-e2e-, vertaler- en beveiligingstests en fixtures
 ├── scripts/              Hulp-scripts voor builds, synchronisatie, controles, migraties en runtime
@@ -574,26 +572,6 @@ Streamingprimitieven en providerhelpers: `stream.ts`, `streamHandler.ts`,
 
 ---
 
-## 5. `electron/` — Desktopwrapper
-
-```
-electron/
-├── main.js                  Electron-hoofdproces
-├── preload.js               Preload-bridge (contextIsolation ingeschakeld)
-├── types.d.ts
-├── package.json             electron-builder-configuratie, versie 3.8.51
-├── README.md
-├── assets/                  Buildresources (pictogrammen, entitlements, …)
-├── node_modules/            Afzonderlijke node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           Buildoutput (niet gecommit)
-```
-
-Vijf npm-scripts in de hoofdmap van de workspace: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Automatisch bijwerken verloopt via
-`electron-updater`, dat naar de GitHub-releasefeed verwijst.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -658,13 +636,11 @@ Veelgebruikte opdrachten:
 Georganiseerd in 6 submappen op basis van doel.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -844,7 +820,7 @@ Zie [A2A-SERVER.md § Een nieuwe skill toevoegen](../frameworks/A2A-SERVER.md). 
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — vaardigheden en detectie van het A2A-protocol.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK- en Caveman-compressie.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI-integraties.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (indien aanwezig), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — implementatiedoelen.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — implementatiedoelen.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — veelvoorkomende operationele problemen.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — workflow voor bijdragers.
 - [CLAUDE.md](../../CLAUDE.md) — repositoryregels voor Claude Code (de gezaghebbende bron

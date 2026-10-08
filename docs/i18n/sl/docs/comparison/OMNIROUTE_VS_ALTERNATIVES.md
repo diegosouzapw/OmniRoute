@@ -29,7 +29,7 @@ Objektivna primerjava funkcij s priljubljenimi odprtokodnimi usmerjevalniki AI.
 | **Prikrivanje prstnega odtisa TLS (JA3/JA4)**                   |                   ✅ wreq-js                    |         ❌          |        ❌         |      ❌      |
 | **Ogrodje za vrednotenje**                                      |                   ✅ vgrajeno                   |         ❌          |        ❌         | ⚠ plačljivo  |
 | **Posredniški strežnik MITM (prestrezanje Cursor/Antigravity)** |               ✅ za več platform                |         ❌          |        ❌         |      ❌      |
-| **CLI s sistemskim pladnjem (brez Electron)**                   |                       ✅                        |         ❌          |    ni na voljo    | ni na voljo  |
+| **CLI s sistemskim pladnjem**                                   |                       ✅                        |         ❌          |    ni na voljo    | ni na voljo  |
 | **Samodejna avtentikacija CLI z ID-jem naprave**                |                       ✅                        |         ❌          |    ni na voljo    | ni na voljo  |
 | **Nadzorna plošča**                                             |                   Next.js 16                    |       osnovna       |     lastniška     |  lastniška   |
 | **i18n**                                                        |            **42 jezikovnih okolij**             |         ❌          |        ❌         |      ⚠       |

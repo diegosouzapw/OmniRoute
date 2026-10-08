@@ -103,7 +103,6 @@ matrix ကို အလိုအလျောက် ကျော်သည်။
 ### Version နှင့် Changelog
 
 - [ ] `/version-bump-cc <patch|minor|major>` ကို run ပါ (Claude Code skill)
-  - `package.json`, `electron/package.json` တို့ကို bump လုပ်သည်
   - နောက်ဆုံး tag နောက်ပိုင်း git commit များမှ `CHANGELOG.md` ကို ပြန်လည်ဖန်တီးသည်
   - README.md badge များကို update လုပ်သည်
 - [ ] CHANGELOG.md ကို ကိုယ်တိုင် review လုပ်ပြီး လိုအပ်ပါက commit message များကို ရှင်းလင်းပြင်ဆင်ပါ
@@ -197,104 +196,6 @@ Breaking change များ: `BREAKING CHANGE:` footer ထည့်ပါ သ�
 - [ ] model များကို `open-sse/config/providerRegistry.ts` တွင် register လုပ်ထားသည်
 - [ ] `tests/unit/` ရှိ unit test များသည် provider classification နှင့် routing ကို လွှမ်းခြုံထားသည်
 
-### Desktop (Electron)
-
-`electron/` ပြောင်းလဲခဲ့ပါက:
-
-- [ ] `npm run electron:smoke:packaged` အောင်မြင်သည်
-- [ ] `:win`, `:mac`, `:linux` တို့အနက် အနည်းဆုံးတစ်ခုအတွက် build များကို စမ်းသပ်ပြီး
-- [ ] code signing လုပ်ပါက certificate များ သက်တမ်းမကုန်သေးပါ
-- [ ] `electron/package.json` version သည် root `package.json` နှင့် ကိုက်ညီသည်
-- [ ] `stable` သို့ release လုပ်ပါက auto-update channel pointer ကို update လုပ်ပြီး
-
-### Build ဖွဲ့စည်းပုံ
-
-Repository သည် သီးခြား output directory သုံးခုကို အသုံးပြုသည် — ၎င်းတို့ကို မည်သည့်အခါမျှ မရောထွေးပါနှင့်:
-
-| Directory | ရည်ရွယ်ချက်                                                           | Track လုပ်ထားသလား                 |
-| --------- | --------------------------------------------------------------------- | --------------------------------- |
-| `src/`    | Application source (TypeScript / TSX)                                 | လုပ်ထားသည်                        |
-| `.build/` | Build အလယ်ဆင့်ဖိုင်များ — `next build` output (`distDir`)             | မလုပ်ထားပါ (gitignore လုပ်ထားသည်) |
-| `dist/`   | ဖြန့်ချိနိုင်သော npm bundle — `assembleStandalone` ဖြင့် စုစည်းထားသည် | မလုပ်ထားပါ (gitignore လုပ်ထားသည်) |
-
-> **Operator မှတ်ချက်:** remote VPS image directory သည် `/usr/lib/node_modules/omniroute/app/` အဖြစ် ဆက်လက်တည်ရှိသည်။
-> **Repository အတွင်းရှိ** build output သာ ရွှေ့ထားသည် (`app/` → `dist/`)။ Deploy skill များက
-> `dist/` ထဲရှိ အကြောင်းအရာများကို remote `app/` directory သို့ rsync လုပ်သည် — VPS path ပြောင်းလဲရန် မလိုအပ်ပါ။
-
-**တစ်ကြိမ်တည်း build လုပ်သည့် flow:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (clean)
-  └─ next build → .build/next/   (intermediates)
-  └─ assembleStandalone          (copies standalone + static + public + natives → dist/)
-  └─ writes dist/BUILD_SHA       (HEAD sentinel)
-```
-
-Deploy လုပ်ရန် `npm run build` ကို run ပြီးနောက် `npm run build:cli` ကို သီးခြားထပ်မံ run ခြင်း မလုပ်ပါနှင့် —
-clean rebuild + sentinel ကို command တစ်ခုတည်းဖြင့် လုပ်ဆောင်ပေးသည့် `npm run build:release` ကို အသုံးပြုပါ။
-
-### Artifact စစ်ဆေးအတည်ပြုခြင်း
-
-- [ ] `npm run build:release` အောင်မြင်ပြီး `dist/BUILD_SHA` == `git rev-parse --short HEAD` ဖြစ်သည်
-- [ ] `npm run check:pack-artifact` သည် clean ဖြစ်သည် — `app.__qa_backup`, `scripts/scratch`, `package-lock.json` သို့မဟုတ် အခြား local အကြွင်းအကျန်များ မရှိပါ
-- [ ] build ပြီးနောက် `dist/server.js` ရှိသည်
-
-### Tag တပ်ခြင်းနှင့် Release
-
-- [ ] `/generate-release-cc` (Claude Code skill) ကို run ပါ:
-  - `vX.Y.Z` tag ကို ဖန်တီးသည်
-  - tag နှင့် branch ကို push လုပ်သည်
-  - changelog body ဖြင့် GitHub Release ကို ဖွင့်သည်
-  - Electron installer များကို build လုပ်ထားပါက ပူးတွဲတင်သည်
-- [ ] သို့မဟုတ် ကိုယ်တိုင်လုပ်ဆောင်ရန်:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deploy
-
-Deploy skill များသည် ပေါ့ပါးသော rsync flow ကို အသုံးပြုသည် — `npm pack` မသုံးပါ၊ `npm i -g` မသုံးပါ:
-
-- [ ] ပစ်မှတ်နှင့် ကိုက်ညီသော deploy skill ကို အသုံးပြုပါ:
-  - `/deploy-vps-local-cc` — local VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — နှစ်ခုလုံး
-- [ ] Deploy မလုပ်မီ `dist/BUILD_SHA` == `git rev-parse --short HEAD` ဖြစ်ကြောင်း အတည်ပြုပါ
-- [ ] `node_modules` အစစ်ရှိသည့်နေရာတွင် build ကို run ရမည် (main checkout သို့မဟုတ် `npm ci` လုပ်ထားသော worktree — symlink လုပ်ထားသော worktree မဖြစ်ရ)
-- [ ] Deploy လုပ်ထားသော instance ကို smoke test လုပ်ပါ:
-  - `/dashboard/health` ကို ဖွင့်ပါ → version string သည် release နှင့် ကိုက်ညီကြောင်း စစ်ဆေးပါ
-  - သိရှိပြီးသား provider တစ်ခုကို အသုံးပြု၍ `/v1/chat/completions` request တစ်ခု run ပါ
-  - `/api/monitoring/health` က `CLOSED` circuit breaker များကို ပြန်ပေးကြောင်း စစ်ဆေးပါ
-  - MCP transport များ တုံ့ပြန်ကြောင်း အတည်ပြုပါ (`/mcp` HTTP၊ `/mcp-sse` SSE)
-
-### Release ပြီးနောက်
-
-- [ ] `/capture-release-evidences-cc` ကို လုပ်ဆောင်ပါ (Claude Code skill)
-  - လုပ်ဆောင်ချက်အသစ်များ၏ WebP ဖန်သားပြင်ဓာတ်ပုံများ/မှတ်တမ်းတင်မှုများကို ဖမ်းယူပါ
-  - ထုတ်ဝေမှုမှတ်စုများ / ဘလော့ဂ်ပို့စ်တွင် ပူးတွဲပါ
-- [ ] ထုတ်ဝေမှုကြေညာချက်ဖြင့် GitHub Discussions / Discord ကို အပ်ဒိတ်လုပ်ပါ
-- [ ] နောက်ဗားရှင်းအတွက် milestone တစ်ခု ဖွင့်ပါ
-- [ ] အရေးကြီးပါက ဆွေးနွေးချက်ကို pin လုပ်ပါ သို့မဟုတ် အက်ပ်အတွင်း banner အတွက် `news.json` တွင် ပို့စ်တင်ပါ
-
-### Radar အများပြည်သူသို့ စတင်မိတ်ဆက်ခြင်း gate
-
-Radar ကြေညာချက်ကို `active: false` ဖြင့် ရည်ရွယ်ချက်ရှိရှိ commit လုပ်ထားပါသည်။ အောက်ပါအချက်တိုင်းအတွက်
-အထောက်အထားရှိပြီးနောက်မှသာ သီးခြားပြောင်းလဲမှုတစ်ခုဖြင့် အသက်သွင်းရမည်-
-
-- [ ] စုပုံထားသော Radar PR အားလုံးကို merge လုပ်ပြီး release-tip CI သည် အောင်မြင်နေသည်
-- [ ] `RADAR_ENABLED` ကို မူလအားဖြင့် ပိတ်ထားဆဲအခြေအနေတွင် OSS Radar routes များကို deploy လုပ်ပြီး smoke test ပြုလုပ်ပါ
-- [ ] သတ်မှတ်ထားသော Radar host တွင် `GET /planos`, `/termos`, `/privacidade`, နှင့် `/reembolso` တို့ကို smoke test ပြုလုပ်ပါ
-- [ ] အော်ပရေတာ၏ အထောက်အထား/ဆက်သွယ်ရန်အချက်အလက်/လိပ်စာနှင့် ပိုင်ရှင်အတည်ပြုထားသော ဥပဒေရေးရာ သုံးသပ်ချက်ကို private service တွင် မှတ်တမ်းတင်ပါ
-- [ ] စမ်းသပ်မုဒ်တွင်သာ Stripe Checkout နှင့် လက်မှတ်ထိုးထားသော webhook ကို စမ်းသပ်အသုံးပြုပါ
-- [ ] အတည်ပြုထားသော ပေးပို့သူ/domain ဖြင့် ကုဒ်ဝှက်ထားသော transactional email တစ်စောင် ပေးပို့မှုကို စမ်းသပ်ပါ
-- [ ] backup ပြန်လည်ရယူနိုင်ကြောင်းနှင့် ကြီးကြပ်ထားပြီး ဘတ်ဂျက်ကန့်သတ်ချက်ပါရှိသော သုတေသနလုပ်ဆောင်မှုတစ်ကြိမ်ကို သက်သေပြပါ
-- [ ] လှူဒါန်းမှုအထောက်အထားကို လက်မခံမီ BRL/PIX သုံးသပ်ရေးမူဝါဒကို အတည်ပြုပါ
-- [ ] အထက်ပါ gate များကို ကျော်ဖြတ်ပြီးမှသာ အများပြည်သူသုံး Checkout ကို ဖွင့်ပါ၊ ထို့နောက် `news.json` ID အသစ်ကို အသက်သွင်းပါ
-- [ ] Home banner သည် ဒေသန္တရဘာသာပြန်ထားသော စာသားကို အသုံးပြုကြောင်းနှင့် ID အဟောင်းတစ်ခုကို ပိတ်လိုက်ပြီးနောက် ID အသစ်တစ်ခု ပြန်လည်ပေါ်လာကြောင်း စစ်ဆေးပါ
-
 ## Embedded Services အခြေခံစမ်းသပ်မှု (v3.8.4+)
 
 Embedded services ပြောင်းလဲမှုများပါဝင်သည့် release တစ်ခုခုကို ဖြန့်ချိခြင်းမပြုမီ အောက်ပါတို့ကို အတည်ပြုပါ-
@@ -380,7 +281,7 @@ Release တွင် အရေးကြီးသော ပြဿနာရှိ�
 - Husky hook များကို (`--no-verify`) သုံး၍ ဘယ်သောအခါမျှ ကျော်မသွားပါနှင့်
 - လျှို့ဝှက်အချက်အလက်များ၊ အထောက်အထားများ သို့မဟုတ် `.env` file များကို ဘယ်သောအခါမျှ commit မလုပ်ပါနှင့်
 - Coverage သည် ≥60/60/60/60 (statement/line/function/branch) တွင် ဆက်လက်ရှိနေရမည်
-- `src/`၊ `open-sse/`၊ `electron/` သို့မဟုတ် `bin/` ရှိ production code ကို ပြောင်းလဲသည့်အခါ test များကို အမြဲထည့်သွင်းပါ သို့မဟုတ် အပ်ဒိတ်လုပ်ပါ
+- `src/`၊ `open-sse/`၊ သို့မဟုတ် `bin/` ရှိ production code ကို ပြောင်းလဲသည့်အခါ test များကို အမြဲထည့်သွင်းပါ သို့မဟုတ် အပ်ဒိတ်လုပ်ပါ
 
 ## အလိုအလျောက် Sync စစ်ဆေးခြင်း
 

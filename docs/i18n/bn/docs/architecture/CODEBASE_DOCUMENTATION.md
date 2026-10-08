@@ -27,7 +27,6 @@
 | ভাষা               | **TypeScript 6.0+** — টার্গেট `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                   |
 | রানটাইম            | **Node.js** `>=22.22.2 <23` অথবা `>=24.0.0 <27` (`engines` + `SUPPORTED_NODE_RANGE`-এর মাধ্যমে প্রয়োগ করা হয়)          |
 | ডেটাবেস            | `better-sqlite3`-এর মাধ্যমে **SQLite** (সিঙ্গেলটন, WAL জার্নালিং)                                                        |
-| ডেস্কটপ            | **Electron 41** + `electron-builder` 26.10 (`electron/`-এ পৃথক ওয়ার্কস্পেস)                                             |
 | পরীক্ষা            | **Node নেটিভ টেস্ট রানার** (ইউনিট/ইন্টিগ্রেশন), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | বিল্ড              | `scripts/build/build-next-isolated.mjs`-এর মাধ্যমে Next.js স্বতন্ত্র বিল্ড                                               |
 | লিন্ট/ফরম্যাট      | ESLint ফ্ল্যাট কনফিগ + Prettier (Husky pre-commit-এর মাধ্যমে `lint-staged`)                                              |
@@ -51,7 +50,6 @@
 OmniRoute/
 ├── src/                  Next.js অ্যাপ্লিকেশন (App Router, লাইব্রেরি, ডোমেইন, সার্ভার, শেয়ার্ড)
 ├── open-sse/             স্ট্রিমিং ইঞ্জিন ওয়ার্কস্পেস (@omniroute/open-sse)
-├── electron/             ডেস্কটপ র্যাপার (Electron 41 মেইন + প্রিলোড)
 ├── bin/                  CLI এন্ট্রি পয়েন্ট (omniroute, reset-password)
 ├── tests/                ইউনিট, ইন্টিগ্রেশন, e2e, protocols-e2e, ট্রান্সলেটর, সিকিউরিটি, ফিক্সচার
 ├── scripts/              বিল্ড, সিঙ্ক, পরীক্ষা, মাইগ্রেশন এবং রানটাইম সহায়ক স্ক্রিপ্ট
@@ -575,26 +573,6 @@ open-sse/
 
 ---
 
-## 5. `electron/` — ডেস্কটপ র্যাপার
-
-```
-electron/
-├── main.js                  Electron প্রধান প্রসেস
-├── preload.js               প্রিলোড ব্রিজ (contextIsolation সক্রিয়)
-├── types.d.ts
-├── package.json             electron-builder কনফিগ, সংস্করণ 3.8.51
-├── README.md
-├── assets/                  বিল্ড রিসোর্স (আইকন, এনটাইটেলমেন্ট, …)
-├── node_modules/            স্বতন্ত্র node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           বিল্ড আউটপুট (কমিট করা হয়নি)
-```
-
-ওয়ার্কস্পেস রুটে পাঁচটি npm স্ক্রিপ্ট: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`। স্বয়ংক্রিয় আপডেট
-`electron-updater`-এর মাধ্যমে হয়, যা GitHub রিলিজ ফিডের দিকে নির্দেশ করে।
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -659,13 +637,11 @@ bin/
 উদ্দেশ্য অনুযায়ী 6টি সাবফোল্ডারে সংগঠিত।
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`।
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`।
@@ -845,7 +821,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A প্রোটোকলের দক্ষতা এবং ডিসকভারি।
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK + Caveman কম্প্রেশন।
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI ইন্টিগ্রেশনসমূহ।
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (উপস্থিত থাকলে), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — ডিপ্লয়মেন্টের লক্ষ্যসমূহ।
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — ডিপ্লয়মেন্টের লক্ষ্যসমূহ।
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — সাধারণ অপারেশনাল সমস্যা।
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — কন্ট্রিবিউটর ওয়ার্কফ্লো।
 - [CLAUDE.md](../../CLAUDE.md) — Claude Code-এর জন্য রিপোজিটরির নিয়মাবলি (উপরের অনেক

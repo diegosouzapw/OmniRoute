@@ -265,25 +265,6 @@ Sporing av administrative handlinger med filtrering etter handlingstype, aktør,
 
 ---
 
-## 🖥️ Skrivebordsapplikasjon
-
-Innebygd Electron-skrivebordsapp for Windows, macOS og Linux. Kjør OmniRoute som en frittstående applikasjon med integrasjon i systemstatusfeltet, frakoblet støtte, automatisk oppdatering og ettklikksinstallasjon.
-
-Viktige funksjoner:
-
-- Kontroll av serverberedskap (ingen tom skjerm ved kaldstart)
-- Systemstatusfelt med portadministrasjon
-- Retningslinjer for innholdssikkerhet
-- Lås til én enkelt instans
-- Automatisk oppdatering ved omstart
-- Plattformtilpasset brukergrensesnitt (macOS-trafikklys, standard tittellinje for Windows/Linux)
-- Forsterket pakking av Electron-bygg — symbolske lenker til `node_modules` i den frittstående pakken oppdages og avvises før pakking, noe som forhindrer kjøretidsavhengighet av byggemaskinen (v2.5.5+)
-- **Kontrollert avslutning** — Electron `before-quit` avslutter Next.js på en ryddig måte og forhindrer SQLite WAL-databaselåser (v3.6.2+)
-
-📖 Se [`electron/README.md`](../../electron/README.md) for fullstendig dokumentasjon.
-
----
-
 ## 🌐 V1 WebSocket-bro _(v3.6.6+)_
 
 OmniRoute støtter nå **OpenAI-kompatible WebSocket-klienter** via oppgraderingsendepunktet `/v1/ws`. Den egendefinerte serveren `scripts/dev/v1-ws-bridge.mjs` omslutter Next.js og oppgraderer WS-tilkoblinger til fullstendige toveis strømmeøkter. Autentisering bruker samme API-nøkkel eller øktinformasjonskapsel som HTTP-forespørsler.

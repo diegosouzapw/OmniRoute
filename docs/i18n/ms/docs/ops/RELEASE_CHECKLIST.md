@@ -122,7 +122,6 @@ secara automatik, tanpa sebarang label.
 ### Versi & Log Perubahan
 
 - [ ] Jalankan `/version-bump-cc <patch|minor|major>` (kemahiran Claude Code)
-  - Menaikkan versi `package.json`, `electron/package.json`
   - Menjana semula `CHANGELOG.md` daripada komit git sejak tag terakhir
   - Mengemas kini lencana README.md
 - [ ] Semak CHANGELOG.md secara manual dan kemaskan mesej komit jika perlu
@@ -216,104 +215,6 @@ Perubahan pemecah keserasian: tambah pengaki `BREAKING CHANGE:` atau `!` selepas
 - [ ] Model didaftarkan dalam `open-sse/config/providerRegistry.ts`
 - [ ] Ujian unit dalam `tests/unit/` meliputi pengelasan dan penghalaan penyedia
 
-### Desktop (Electron)
-
-Jika `electron/` berubah:
-
-- [ ] `npm run electron:smoke:packaged` berjaya
-- [ ] Binaan diuji untuk sekurang-kurangnya satu daripada `:win`, `:mac`, `:linux`
-- [ ] Sijil penandatanganan kod belum tamat tempoh (jika menandatangani)
-- [ ] Versi `electron/package.json` sepadan dengan `package.json` akar
-- [ ] Penuding saluran kemas kini automatik dikemas kini jika mengeluarkan kepada `stable`
-
-### Susun Atur Binaan
-
-Repositori menggunakan tiga direktori output yang berbeza — jangan sekali-kali mencampuradukkannya:
-
-| Direktori | Tujuan                                                        | Dijejaki?          |
-| --------- | ------------------------------------------------------------- | ------------------ |
-| `src/`    | Sumber aplikasi (TypeScript / TSX)                            | Ya                 |
-| `.build/` | Perantaraan binaan — output `next build` (`distDir`)          | Tidak (gitignored) |
-| `dist/`   | Berkas npm boleh edar — dihimpunkan oleh `assembleStandalone` | Tidak (gitignored) |
-
-> **Nota pengendali:** direktori imej VPS jauh kekal sebagai `/usr/lib/node_modules/omniroute/app/`.
-> Hanya output binaan **dalam repositori** yang dipindahkan (`app/` → `dist/`). Kemahiran pengerahan menggunakan rsync
-> untuk menyalin kandungan `dist/` ke dalam direktori `app/` jauh — tiada perubahan laluan VPS diperlukan.
-
-**Aliran binaan tunggal:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (bersihkan)
-  └─ next build → .build/next/   (perantaraan)
-  └─ assembleStandalone          (menyalin kendiri + statik + awam + natif → dist/)
-  └─ writes dist/BUILD_SHA       (sentinel HEAD)
-```
-
-JANGAN jalankan `npm run build` diikuti oleh `npm run build:cli` yang berasingan untuk pengerahan — gunakan
-`npm run build:release` yang melakukan binaan semula bersih + sentinel dalam satu perintah.
-
-### Pengesahan Artifak
-
-- [ ] `npm run build:release` berjaya dan `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` bersih — tiada `app.__qa_backup`, `scripts/scratch`, `package-lock.json`, atau sisa setempat lain
-- [ ] `dist/server.js` wujud selepas binaan
-
-### Pengetagan & Keluaran
-
-- [ ] Jalankan `/generate-release-cc` (kemahiran Claude Code):
-  - Mencipta tag `vX.Y.Z`
-  - Menolak tag dan cabang
-  - Membuka GitHub Release dengan kandungan log perubahan
-  - Melampirkan pemasang Electron (jika dibina)
-- [ ] Atau secara manual:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Pengerahan
-
-Kemahiran pengerahan menggunakan aliran rsync ringan — tanpa `npm pack`, tanpa `npm i -g`:
-
-- [ ] Gunakan kemahiran pengerahan yang sepadan dengan sasaran:
-  - `/deploy-vps-local-cc` — VPS setempat (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — VPS Akamai (69.164.221.35)
-  - `/deploy-vps-both-cc` — kedua-duanya
-- [ ] Sebelum mengerah, sahkan `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Binaan mesti dijalankan di tempat `node_modules` adalah sebenar (checkout utama atau worktree yang telah menjalankan `npm ci` — BUKAN worktree pautan simbolik)
-- [ ] Uji ringkas tika pengerahan:
-  - Buka `/dashboard/health` → semak rentetan versi sepadan dengan keluaran
-  - Jalankan permintaan `/v1/chat/completions` terhadap penyedia yang diketahui
-  - Sahkan `/api/monitoring/health` mengembalikan pemutus litar `CLOSED`
-  - Sahkan pengangkutan MCP memberikan respons (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Selepas Keluaran
-
-- [ ] Jalankan `/capture-release-evidences-cc` (kemahiran Claude Code)
-  - Menangkap tangkapan skrin/rakaman WebP bagi ciri baharu
-  - Melampirkannya pada nota keluaran / catatan blog
-- [ ] Kemas kini GitHub Discussions / Discord dengan pengumuman keluaran
-- [ ] Buka pencapaian untuk versi seterusnya
-- [ ] Jika kritikal: sematkan perbincangan atau siarkan dalam `news.json` untuk sepanduk dalam aplikasi
-
-### Gerbang pelancaran awam Radar
-
-Pengumuman Radar sengaja dikomit dengan `active: false`. Pengaktifan ialah perubahan berasingan
-selepas bukti disediakan untuk setiap perkara di bawah:
-
-- [ ] Semua PR Radar bertindan telah digabungkan dan CI hujung keluaran berstatus hijau
-- [ ] Lancarkan dan lakukan ujian asap pada laluan OSS Radar dengan `RADAR_ENABLED` masih dimatikan secara lalai
-- [ ] Lakukan ujian asap pada `GET /planos`, `/termos`, `/privacidade`, dan `/reembolso` di hos Radar yang ditetapkan
-- [ ] Rekod identiti/maklumat hubungan/alamat pengendali dan semakan undang-undang yang diluluskan pemilik dalam perkhidmatan persendirian
-- [ ] Uji Stripe Checkout dan webhook bertandatangan dalam mod ujian sahaja
-- [ ] Uji satu penghantaran e-mel transaksi yang disulitkan dengan pengirim/domain yang diluluskan
-- [ ] Buktikan pemulihan sandaran dan satu pelaksanaan penyelidikan terselia dengan had belanjawan
-- [ ] Luluskan dasar semakan BRL/PIX sebelum menerima bukti sumbangan
-- [ ] Dayakan Checkout awam hanya selepas gerbang terdahulu dipenuhi, kemudian aktifkan ID `news.json` baharu
-- [ ] Sahkan sepanduk Laman Utama menggunakan teks setempat dan ID baharu muncul semula selepas ID lama ditutup
-
 ## Ujian ringkas Perkhidmatan Terbenam (v3.8.4+)
 
 Sebelum mengeluarkan sebarang keluaran yang merangkumi perubahan perkhidmatan terbenam, sahkan:
@@ -399,7 +300,7 @@ Jika keluaran mempunyai isu kritikal:
 - Jangan sekali-kali melangkau hook Husky (`--no-verify`)
 - Jangan sekali-kali melakukan commit terhadap rahsia, kelayakan, atau fail `.env`
 - Liputan mesti kekal ≥60/60/60/60 (pernyataan/baris/fungsi/cabang)
-- Sentiasa sertakan atau kemas kini ujian apabila mengubah kod produksi dalam `src/`, `open-sse/`, `electron/`, atau `bin/`
+- Sentiasa sertakan atau kemas kini ujian apabila mengubah kod produksi dalam `src/`, `open-sse/`, atau `bin/`
 
 ## Semakan Penyegerakan Automatik
 

@@ -16,7 +16,7 @@ dəyişiklik növünü onun müqavilələri, məqsədyönlü yoxlamaları və CI
    növbəti aktiv dövrdən istifadə edin.
 2. **Müqavilələri müəyyənləşdirin.** Dəyişikliyin təsir etdiyi hər bir kataloqu, sxemi, yaradılmış artefaktı, ictimai API-ni və ya istifadəçi
    interfeysini müəyyənləşdirin. Aşağıdakı cədvəldə minimum başlanğıc dəsti göstərilir.
-3. **Məqsədyönlü testləri yazın və ya yeniləyin.** `src/`, `open-sse/`, `electron/` və ya
+3. **Məqsədyönlü testləri yazın və ya yeniləyin.** `src/`, `open-sse/` və ya
    `bin/` daxilindəki istehsal dəyişiklikləri eyni PR-də avtomatlaşdırılmış test tələb edir. Davranışı təsdiqləyən ən kiçik
    test fayllarını, sonra isə sadalanmış məqsədyönlü yoxlamaları icra edin.
 4. **Geniş matrisi CI-nin icra etməsinə imkan verin.** Tam vahid test hissələri, Vitest, əhatə səviyyəsinin artırılması yoxlaması və

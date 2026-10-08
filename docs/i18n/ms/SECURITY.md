@@ -197,7 +197,7 @@ docker run -d \
 
 ## Kebergantungan
 
-- Jalankan `npm audit` secara berkala (`npm run audit:deps` merangkumi aplikasi utama + Electron)
+- Jalankan `npm audit` secara berkala (`npm run audit:deps` merangkumi aplikasi utama)
 - Pastikan kebergantungan sentiasa dikemas kini
 - Projek ini menggunakan `husky` + `lint-staged` untuk semakan pra-komit (lint-staged + check-docs-sync + check:any-budget:t11)
 - Talian paip CI menjalankan peraturan keselamatan ESLint pada setiap push (`no-eval`, `no-implied-eval`, `no-new-func` = ralat)

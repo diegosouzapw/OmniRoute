@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16 ilovasi (UI + API marshrutlari + kutubxonalar + domen + server)
 ├── open-sse/             # Oqimli uzatish mexanizmi ish maydoni (ishlov beruvchilar, bajaruvchilar, tarjimon, MCP serveri)
-├── electron/             # Ish stoli o‘rami (Electron 41 + electron-builder 26.10)
 ├── bin/                  # CLI kirish nuqtasi va buyruq ishlov beruvchilari
 ├── scripts/              # Yig‘ish, tekshirish, sinxronlash va bir martalik skriptlar
 ├── docs/                 # Ommaviy hujjatlar (siz shu yerdasiz)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Ish stoli ilovasi qobigʻi
-
-| Fayl             | Vazifasi                                                                                          |
-| ---------------- | ------------------------------------------------------------------------------------------------- |
-| `main.js`        | Electron asosiy jarayoni (BrowserWindow, ichki Next.js serveri, tizim treyi, avtomatik yangilash) |
-| `preload.js`     | IPC koʻprigi (contextBridge → `window.omniroute`)                                                 |
-| `package.json`   | electron-builder konfiguratsiyasi + Electron 41 + electron-builder 26.10 bogʻliqliklari           |
-| `assets/`        | Ilova ikonkalari (Windows .ico, macOS .icns, Linux .png)                                          |
-| `dist-electron/` | Yigʻish natijasi (git tomonidan eʼtiborsiz qoldiriladi)                                           |
-| `types.d.ts`     | Renderer koʻprigi uchun tur deklaratsiyalari                                                      |
-| `README.md`      | Ichki Electron README fayli (shuningdek, `docs/guides/ELECTRON_GUIDE.md` ga qarang)               |
-
----
-
 ## `bin/` — CLI
 
 | Fayl                                                                                                        | Vazifasi                                                                                                                                     |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | MCP/A2A E2E ishga tushirish vositasi                                                                    |
 | `run-ecosystem-tests.mjs`           | Ekotizim (provayder integratsiyasi) testlari                                                            |
 | `test-report-summary.mjs`           | Qamrov xulosasi markdownini yaratish                                                                    |
-| `smoke-electron-packaged.mjs`       | Paketlangan Electron qurilmasini smoke-testdan o‘tkazish                                                |
-| `native-binary-compat.mjs`          | Mahalliy bog‘liqliklar (`better-sqlite3`) Electron’ning Node versiyasiga mosligini tekshirish           |
 | `validate-pack-artifact.ts`         | npm pack natijasini tekshirish                                                                          |
 | `responses-ws-proxy.mjs`            | Codex Responses API uchun WebSocket ko‘prigi                                                            |
 | `v1-ws-bridge.mjs`                  | `/api/v1/ws` endpointi uchun WebSocket ko‘prigi                                                         |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Yakuniy foydalanuvchi qoʻllanmasi (sozlash, modellar, kombinatsiyalar, CLIʼlar, audio va boshqalar)            |
 | `API_REFERENCE.md`          | Autentifikatsiya modeli bilan API endpointlari maʼlumotnomasi                                                  |
 | `openapi.yaml`              | OpenAPI 3.0 spetsifikatsiyasi (121 ta yoʻl)                                                                    |
-| `SETUP_GUIDE.md`            | Oʻrnatish usullari (npm, npx, Docker, Electron, Termux, manba kodi)                                            |
+| `SETUP_GUIDE.md`            | Oʻrnatish usullari (npm, npx, Docker, Termux, manba kodi)                                                      |
 | `ENVIRONMENT.md`            | Barcha muhit oʻzgaruvchilari (~800 tasi hujjatlashtirilgan, `.env.example` ~3 050 qator)                       |
 | `TROUBLESHOOTING.md`        | Keng tarqalgan xatolar + v3.8.0 maʼlum muammolari                                                              |
 | `RELEASE_CHECKLIST.md`      | Toʻliq reliz jarayoni (koʻnikmalar, husky, anʼanaviy commitlar, joylashtirish)                                 |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.ioʼga joylashtirish (hozircha faqat xitoy tilida)                       |
 | `TERMUX_GUIDE.md`            | Termux orqali Androidʼda grafik interfeyssiz ishlash                        |
 | `PWA_GUIDE.md`               | Progressive Web App oʻrnatish + service worker                              |
-| `ELECTRON_GUIDE.md`          | Ish stoli ilovasini yigʻish + imzolash + tarqatish                          |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                      |
 | `PROXY_GUIDE.md`             | 4 darajali chiquvchi proksi + 1proxy marketplace                            |
 

@@ -118,7 +118,6 @@ omniroute
 
 ## Einschränkungen
 
-- Electron kann nicht in Termux ausgeführt werden.
 - Es gibt keine Taskleisten- oder Desktop-Integration.
 - Diese Einrichtung ist ausschließlich für den Serverbetrieb vorgesehen: Verwenden Sie das Browser-Dashboard.
 - Native Abhängigkeiten müssen möglicherweise lokal kompiliert werden.

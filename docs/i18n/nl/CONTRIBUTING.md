@@ -220,7 +220,7 @@ Opmerkingen over dekking:
 
 - `npm run test:coverage` meet de broncodedekking voor de belangrijkste unittestsuite, sluit `tests/**` uit en neemt `open-sse/**` mee
 - Pull requests moeten de dekkingsdrempel voor statements/lines/functions/branches op **60%+** houden
-- Als een PR productiecode in `src/`, `open-sse/`, `electron/` of `bin/` wijzigt, moeten in dezelfde PR geautomatiseerde tests worden toegevoegd of bijgewerkt
+- Als een PR productiecode in `src/`, `open-sse/` of `bin/` wijzigt, moeten in dezelfde PR geautomatiseerde tests worden toegevoegd of bijgewerkt
 - `npm run coverage:report` toont het gedetailleerde rapport per bestand van de meest recente dekkingsrun
 - `npm run test:coverage:legacy` behoudt de oudere meetwaarde voor historische vergelijking
 - Zie `docs/ops/COVERAGE_PLAN.md` voor de gefaseerde roadmap om de dekking te verbeteren
@@ -325,7 +325,6 @@ open-sse/                   # @omniroute/open-sse workspace
 ├── transformer/            # Responses API transformer
 └── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron desktop app (cross-platform)
 
 tests/
 ├── unit/                   # Node.js test runner (122 test files)

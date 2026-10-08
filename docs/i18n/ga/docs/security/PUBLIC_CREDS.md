@@ -91,7 +91,7 @@ Nuair is gá duit luach nua arna sholáthar ag soláthraí réamhtheachtach a le
 
 ### 3. Patrúin thoirmiscthe
 
-❌ **Ná déan riamh** aon cheann de na rudaí seo a leanas i gcód táirgthe (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ **Ná déan riamh** aon cheann de na rudaí seo a leanas i gcód táirgthe (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // DROCH: gníomhachtaíonn luach liteartha Secret Scanning + Semgrep

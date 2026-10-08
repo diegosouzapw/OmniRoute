@@ -16,7 +16,7 @@ die unten verlinkten bereichsspezifischen Architektur- und Sicherheitsdokumente,
    [Branching- & Release-Modell](BRANCHING_MODEL.md) beschrieben ist.
 2. **Benennen Sie die Verträge.** Ermitteln Sie jeden Katalog, jedes Schema, jedes generierte Artefakt, jede öffentliche API und jede
    Benutzeroberfläche, die von der Änderung betroffen ist. Die nachstehende Tabelle enthält die mindestens erforderliche Ausgangsmenge.
-3. **Schreiben oder aktualisieren Sie gezielte Tests.** Produktionsänderungen in `src/`, `open-sse/`, `electron/` oder
+3. **Schreiben oder aktualisieren Sie gezielte Tests.** Produktionsänderungen in `src/`, `open-sse/` oder
    `bin/` erfordern einen automatisierten Test im selben PR. Führen Sie zunächst die kleinstmöglichen Testdateien aus, die das
    Verhalten nachweisen, und anschließend die aufgeführten gezielten Prüfungen.
 4. **Lassen Sie CI die breite Matrix ausführen.** Die vollständigen Unit-Shards, Vitest, die Coverage-Ratchet und

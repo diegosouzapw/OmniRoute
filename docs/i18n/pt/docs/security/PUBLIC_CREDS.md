@@ -91,7 +91,7 @@ Quando precisar de incorporar um novo valor fornecido por terceiros que:
 
 ### 3. Padrões proibidos
 
-❌ **Nunca** faça qualquer uma das seguintes operações no código de produção (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ **Nunca** faça qualquer uma das seguintes operações no código de produção (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // MAU: o valor literal aciona o Secret Scanning e o Semgrep

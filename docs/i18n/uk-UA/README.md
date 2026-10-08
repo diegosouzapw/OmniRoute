@@ -89,7 +89,6 @@
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![Ліцензія: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![Завантаження Docker](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![Завантаження Electron](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
 
 <table>
   <tr>
@@ -744,7 +743,6 @@ omniroute configure codex          # також: claude opencode qwen aider goos
   <tr><th align="left">Платформа</th><th align="left">Встановлення</th><th align="left">Особливості</th></tr>
   <tr><td align="left" nowrap>📦 <b>npm (глобально)</b></td><td align="left" nowrap><code>npm install -g omniroute</code></td><td align="left">Одна команда, будь-яка ОС</td></tr>
   <tr><td align="left" nowrap>🐳 <b>Docker</b></td><td align="left" nowrap><code>docker run … diegosouzapw/omniroute</code></td><td align="left">Мультиархітектурна підтримка <b>AMD64 + ARM64</b></td></tr>
-  <tr><td align="left" nowrap>🖥️ <b>Настільний застосунок (Electron)</b></td><td align="left" nowrap><code>npm run electron:build</code></td><td align="left">Нативне вікно та системний трей — <b>Windows / macOS / Linux</b></td></tr>
   <tr><td align="left" nowrap>🎩 <b>Рядок меню (OmniRouteTray)</b></td><td align="left" nowrap><code>brew install --cask zoispag/tap/omniroute-tray</code></td><td align="left">Контролює та автоматично оновлює сервер — <b>macOS</b></td></tr>
   <tr><td align="left" nowrap>💪 <b>ARM</b></td><td align="left" nowrap>нативна підтримка <code>arm64</code></td><td align="left">Raspberry Pi, ARM-сервери, Apple Silicon</td></tr>
   <tr><td align="left" nowrap>📱 <b>Android (Termux)</b></td><td align="left" nowrap><code>pkg install nodejs && npx -y omniroute</code></td><td align="left">Працює <b>на вашому телефоні</b> цілодобово, без root-доступу</td></tr>
@@ -754,7 +752,7 @@ omniroute configure codex          # також: claude opencode qwen aider goos
   <tr><td align="left" nowrap>🛠️ <b>З вихідного коду</b></td><td align="left" nowrap><code>npm install && npm run dev</code></td><td align="left">Змінюйте код і робіть внесок у проєкт</td></tr>
 </table>
 
-<sub>📖 [Посібник із Docker](docs/guides/DOCKER_GUIDE.md) · [Настільний застосунок](electron/README.md) · [Трей у рядку меню](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
+<sub>📖 [Посібник із Docker](docs/guides/DOCKER_GUIDE.md) · [Трей у рядку меню](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
 
 <br/>
 
@@ -1276,7 +1274,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 також про
   <tr><td nowrap><b>Відмовостійкість</b></td><td>Автоматичний вимикач, експоненційна затримка повторних спроб, захист від лавиноподібних запитів, самовідновлення auto-combo</td></tr>
   <tr><td nowrap><b>Журналювання</b></td><td>pino — структуровані журнали JSON із контекстом запиту</td></tr>
   <tr><td nowrap><b>Тестування</b></td><td>Засіб запуску тестів Node.js + Vitest — <b>понад 39 000 статичних оголошень тестів</b> у понад 5 100 відстежуваних файлах тестів (модульні, інтеграційні, E2E, безпекові, екосистемні)</td></tr>
-  <tr><td nowrap><b>Платформи</b></td><td>Настільні системи (Electron) · Android (Termux) · PWA (будь-який браузер)</td></tr>
+  <tr><td nowrap><b>Платформи</b></td><td>Android (Termux) · PWA (будь-який браузер)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — автоматична публікація в npm і Docker Hub під час випуску</td></tr>
   <tr><td nowrap><b>Посилання</b></td><td><a href="https://omniroute.online">Вебсайт</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>

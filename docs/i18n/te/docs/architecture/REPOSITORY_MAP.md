@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16 అప్లికేషన్ (UI + API రూట్లు + లైబ్రరీలు + డొమైన్ + సర్వర్)
 ├── open-sse/             # స్ట్రీమింగ్ ఇంజిన్ వర్క్స్పేస్ (హ్యాండ్లర్లు, ఎగ్జిక్యూటర్లు, ట్రాన్స్లేటర్, MCP సర్వర్)
-├── electron/             # డెస్క్టాప్ ర్యాపర్ (Electron 41 + electron-builder 26.10)
 ├── bin/                  # CLI ఎంట్రీ పాయింట్ మరియు కమాండ్ హ్యాండ్లర్లు
 ├── scripts/              # బిల్డ్, తనిఖీ, సమకాలీకరణ మరియు ఒక్కసారి మాత్రమే అమలు చేసే స్క్రిప్ట్లు
 ├── docs/                 # పబ్లిక్ డాక్యుమెంటేషన్ (మీరు ఇక్కడ ఉన్నారు)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — డెస్క్టాప్ ర్యాపర్
-
-| ఫైల్             | ఉద్దేశ్యం                                                                                    |
-| ---------------- | -------------------------------------------------------------------------------------------- |
-| `main.js`        | Electron ప్రధాన ప్రాసెస్ (BrowserWindow, పొందుపరిచిన Next.js సర్వర్, ట్రే, స్వయంచాలక నవీకరణ) |
-| `preload.js`     | IPC బ్రిడ్జ్ (contextBridge → `window.omniroute`)                                            |
-| `package.json`   | electron-builder కాన్ఫిగ్ + Electron 41 + electron-builder 26.10 డిపెండెన్సీలు               |
-| `assets/`        | యాప్ ఐకాన్లు (Windows .ico, macOS .icns, Linux .png)                                         |
-| `dist-electron/` | బిల్డ్ అవుట్పుట్ (gitignore చేయబడింది)                                                       |
-| `types.d.ts`     | రెండరర్ బ్రిడ్జ్ కోసం టైప్ డిక్లరేషన్లు                                                      |
-| `README.md`      | అంతర్గత Electron README (`docs/guides/ELECTRON_GUIDE.md` కూడా చూడండి)                        |
-
----
-
 ## `bin/` — CLI
 
 | ఫైల్                                                                                                        | ఉద్దేశ్యం                                                                                                                        |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | MCP/A2A E2E రన్నర్                                                                                            |
 | `run-ecosystem-tests.mjs`           | ఎకోసిస్టమ్ (ప్రొవైడర్ ఇంటిగ్రేషన్) పరీక్షలు                                                                   |
 | `test-report-summary.mjs`           | కవరేజ్ సారాంశ markdownను రూపొందిస్తుంది                                                                       |
-| `smoke-electron-packaged.mjs`       | ప్యాకేజీ చేసిన Electron బిల్డ్పై స్మోక్ టెస్ట్ నిర్వహిస్తుంది                                                 |
-| `native-binary-compat.mjs`          | నేటివ్ డిపెండెన్సీలు (`better-sqlite3`) Electron యొక్క Nodeతో సరిపోతాయని ధ్రువీకరిస్తుంది                     |
 | `validate-pack-artifact.ts`         | npm pack అవుట్పుట్ను ధ్రువీకరిస్తుంది                                                                         |
 | `responses-ws-proxy.mjs`            | Codex Responses API కోసం WebSocket బ్రిడ్జ్                                                                   |
 | `v1-ws-bridge.mjs`                  | `/api/v1/ws` ఎండ్పాయింట్ కోసం WebSocket బ్రిడ్జ్                                                              |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | తుది వినియోగదారు మాన్యువల్ (సెటప్, మోడళ్లు, కాంబోలు, CLIలు, ఆడియో మొదలైనవి)                                   |
 | `API_REFERENCE.md`          | ప్రామాణీకరణ మోడల్తో API ఎండ్పాయింట్ సూచన                                                                      |
 | `openapi.yaml`              | OpenAPI 3.0 స్పెసిఫికేషన్ (121 పాత్లు)                                                                        |
-| `SETUP_GUIDE.md`            | ఇన్స్టాలేషన్ పద్ధతులు (npm, npx, Docker, Electron, Termux, సోర్స్)                                            |
+| `SETUP_GUIDE.md`            | ఇన్స్టాలేషన్ పద్ధతులు (npm, npx, Docker, Termux, సోర్స్)                                                      |
 | `ENVIRONMENT.md`            | అన్ని ఎన్విరాన్మెంట్ వేరియబుల్స్ (~800 డాక్యుమెంట్ చేయబడ్డాయి, `.env.example`లో ~3,050 లైన్లు)                |
 | `TROUBLESHOOTING.md`        | సాధారణ లోపాలు + v3.8.0లో తెలిసిన సమస్యలు                                                                      |
 | `RELEASE_CHECKLIST.md`      | పూర్తి విడుదల ప్రక్రియ (స్కిల్స్, husky, conventional commits, డిప్లాయ్మెంట్)                                 |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io డిప్లాయ్మెంట్ (ప్రస్తుతం చైనీస్లో మాత్రమే)                     |
 | `TERMUX_GUIDE.md`            | Termux ద్వారా Android హెడ్లెస్                                        |
 | `PWA_GUIDE.md`               | Progressive Web App ఇన్స్టాలేషన్ + సర్వీస్ వర్కర్                     |
-| `ELECTRON_GUIDE.md`          | డెస్క్టాప్ యాప్ బిల్డ్ + సైన్ + పంపిణీ                                |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                |
 | `PROXY_GUIDE.md`             | 4-స్థాయిల అవుట్బౌండ్ ప్రాక్సీ + 1proxy మార్కెట్ప్లేస్                 |
 

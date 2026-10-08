@@ -225,7 +225,7 @@ Nkọwa coverage:
 
 - `npm run test:coverage` na-atụ coverage nke source maka unit test suite bụ isi, na-ewepụ `tests/**`, ma tinye `open-sse/**`
 - Pull requests ga-edobe coverage gate na **60%+** statements/lines/functions/branches
-- Ọ bụrụ na PR agbanwee production code dị na `src/`, `open-sse/`, `electron/`, ma ọ bụ `bin/`, ọ ga-agbakwunye ma ọ bụ melite automated tests n’otu PR ahụ
+- Ọ bụrụ na PR agbanwee production code dị na `src/`, `open-sse/`, ma ọ bụ `bin/`, ọ ga-agbakwunye ma ọ bụ melite automated tests n’otu PR ahụ
 - `npm run coverage:report` na-ebipụta akụkọ zuru ezu faịlụ-kwa-faịlụ sitere na coverage run kachasị ọhụrụ
 - `npm run test:coverage:legacy` na-echekwa metric ochie maka ntụnyere akụkọ ihe mere eme
 - Lee `docs/ops/COVERAGE_PLAN.md` maka roadmap e kewara n’usoro iji meziwanye coverage
@@ -330,7 +330,6 @@ open-sse/                   # Workspace @omniroute/open-sse
 ├── transformer/            # Transformer Responses API
 └── utils/                  # Modul utility 22 (stream, TLS, proxy, logging)
 
-electron/                   # Ngwa desktop Electron (cross-platform)
 
 tests/
 ├── unit/                   # Test runner Node.js (faịlụ test 1,574)

@@ -69,7 +69,7 @@ In de oorspronkelijke issue-thread werd een bredere herziening van het cluster v
 | ------------------------------------ | ------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | **Dragonfly**                        | **SCHRAPPEN** | `redis:7-alpine` voldoet al op productieschaal voor de workload van snelheidslimieten; er is geen grens te doorbreken. |
 | **NATS**                             | **SCHRAPPEN** | Elke `omniroute`-replica is één Node.js-proces; er bestaat geen pub/sub-workload met meerdere processen.               |
-| **PostgreSQL**                       | **SCHRAPPEN** | SQLite + sqlite-vec + FTS5 dekken alle 3 usecases; 97 migraties + Electron-packaging blokkeren de migratie.            |
+| **PostgreSQL**                       | **SCHRAPPEN** | SQLite + sqlite-vec + FTS5 dekken alle 3 usecases; 97 migraties-packaging blokkeren de migratie.                       |
 | **Neo4j**                            | **SCHRAPPEN** | Routering is een join van 5 tabellen; een recursieve CTE in SQLite is voldoende.                                       |
 | **MinIO**                            | **SCHRAPPEN** | Er is geen blob-workload van meerdere MB's; afbeeldingen/audio worden via passthrough-proxy's doorgegeven.             |
 | **pgvector / pg_ai / pg_textsearch** | **SCHRAPPEN** | Dezelfde reden rond de SQLite-limiet als bij PostgreSQL; het pgvector-ecosysteem is gefragmenteerd.                    |

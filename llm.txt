@@ -1,6 +1,6 @@
 # OmniRoute
 
-> OmniRoute is a free, open-source AI Gateway that acts as a universal API proxy for multi-provider LLMs. It provides smart routing, automatic fallback, load balancing, and format translation across 358 AI providers — all through a single OpenAI-compatible endpoint. Includes a built-in MCP Server (110 tools), A2A v0.3 protocol, Memory/Skills systems, Cloud Agents (codex, cursor, devin, jules), Guardrails framework, and an Electron desktop app.
+> OmniRoute is a free, open-source AI Gateway that acts as a universal API proxy for multi-provider LLMs. It provides smart routing, automatic fallback, load balancing, and format translation across 358 AI providers — all through a single OpenAI-compatible endpoint. Includes a built-in MCP Server (110 tools), A2A v0.3 protocol, Memory/Skills systems, Cloud Agents (codex, cursor, devin, jules), Guardrails framework.
 
 ## Overview
 
@@ -14,7 +14,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 - **Runtime:** Node.js `>=22.22.2 <23 || >=24.0.0 <27`, ES Modules (`"type": "module"`)
 - **Framework:** Next.js 16 (App Router) with TypeScript 6
-- **Database:** SQLite via better-sqlite3 (local, zero-config, 193 migrations)
+- **Database:** SQLite via better-sqlite3 (local, zero-config, 198 migrations)
 - **State management:** Zustand (client), SQLite (server persistence)
 - **UI:** React 19, Tailwind CSS 4, Recharts for analytics, @lobehub/icons for 130+ provider SVG icons
 - **Auth:** OAuth 2.0 (PKCE) for providers, bcrypt for local user auth
@@ -23,7 +23,6 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 - **Streaming:** Server-Sent Events (SSE) for real-time proxy responses
 - **Proxy engine:** Custom pipeline with format translation, circuit breaker, rate limiting, auto-combo engine
 - **i18n:** next-intl with 67 languages
-- **Desktop:** Electron (cross-platform: Windows, macOS, Linux)
 - **Package:** Published on npm (`omniroute`) and Docker Hub (`diegosouzapw/omniroute`)
 
 ## Project Structure
@@ -124,7 +123,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   │   ├── secrets.ts        # Secrets management
 │   │   │   ├── stateReset.ts     # State reset utilities
 │   │   │   ├── migrationRunner.ts # Schema migration runner
-│   │   │   └── migrations/       # 193 versioned SQL migration files
+│   │   │   └── migrations/       # 198 versioned SQL migration files
 │   │   ├── evals/                # Eval runner and scheduler
 │   │   ├── memory/               # Persistent conversational memory
 │   │   │   ├── extraction.ts     # Memory extraction from conversations
@@ -247,10 +246,6 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   ├── helpers/              # Translation helpers
 │   │   └── image/                # Image format translation
 │   └── utils/                    # 100+ utility modules (stream, TLS, proxy, logging, etc.)
-├── electron/                     # Electron desktop app (cross-platform)
-│   ├── main.js                   # Electron main process
-│   ├── preload.js                # Preload script (IPC bridge)
-│   └── assets/                   # App icons and assets
 ├── tests/                        # Test suites
 │   ├── unit/                     # 5,000+ unit test files
 │   ├── integration/              # Integration tests
@@ -265,7 +260,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   ├── frameworks/               # MCP-SERVER.md (110 tools), A2A-SERVER.md, SKILLS.md, MEMORY.md, CLOUD_AGENT.md, EVALS.md, WEBHOOKS.md
 │   ├── routing/                  # AUTO-COMBO.md (16-factor scoring), REASONING_REPLAY.md
 │   ├── security/                 # GUARDRAILS.md, COMPLIANCE.md, STEALTH_GUIDE.md, PUBLIC_CREDS.md, ERROR_SANITIZATION.md
-│   ├── guides/                   # USER_GUIDE.md, TROUBLESHOOTING.md, ELECTRON_GUIDE.md, I18N.md
+│   ├── guides/                   # USER_GUIDE.md, TROUBLESHOOTING.md, I18N.md
 │   ├── ops/                      # RELEASE_CHECKLIST.md, TUNNELS_GUIDE.md, VM deployment
 │   ├── openapi.yaml              # OpenAPI specification
 │   └── screenshots/              # Dashboard screenshots
@@ -389,7 +384,7 @@ diagnostics) plus **memory**, **skill**, **agentSkill**, **githubSkill**, **pool
 
 8. **ProviderIcon component:** Unified icon system using `@lobehub/icons` (130+ SVG) with PNG fallback and generic icon fallback chain. Used on providers, dashboard, and agents pages.
 
-9. **DB architecture:** `localDb.ts` is a re-export layer only — real logic lives in 137 `src/lib/db/` modules with 193 SQL migrations.
+9. **DB architecture:** `localDb.ts` is a re-export layer only — real logic lives in 137 `src/lib/db/` modules with 198 SQL migrations.
 
 10. **Upstream headers:** Custom headers merged in executors after default auth; same header name replaces executor value. Forbidden header names in `src/shared/constants/upstreamHeaders.ts`.
 
@@ -433,7 +428,7 @@ diagnostics) plus **memory**, **skill**, **agentSkill**, **githubSkill**, **pool
 
 4. **Environment variables:** All configuration is in `.env` (from `.env.example`). Key vars: `PORT`, `NEXT_PUBLIC_BASE_URL`, `API_KEY`, `ADMIN_PASSWORD`.
 
-5. **Database layer:** Operations go through `src/lib/db/` modules (137 domain-specific files, 193 migrations). `localDb.ts` is re-exports only — add new functions to the proper `db/*.ts` module.
+5. **Database layer:** Operations go through `src/lib/db/` modules (137 domain-specific files, 198 migrations). `localDb.ts` is re-exports only — add new functions to the proper `db/*.ts` module.
 
 6. **Tests** use Node.js built-in test runner + Vitest. Run `npm test`. Vitest for MCP/autoCombo (`npm run test:vitest`). Playwright for E2E (`npm run test:e2e`). Coverage gate: ratchet vs `quality-baseline.json`, absolute floor 60% statements/lines/functions/branches.
 
@@ -445,7 +440,6 @@ diagnostics) plus **memory**, **skill**, **agentSkill**, **githubSkill**, **pool
 
 10. **Docker:** Dockerfile has two targets: `runner-base` and `runner-cli`. `docker-compose.yml` for dev (8 profiles), `docker-compose.prod.yml` for production (port 20130).
 
-11. **Electron desktop app** in `electron/` with main.js and preload.js. Build with `npm run electron:build` (supports Windows, macOS, Linux).
 
 12. **Pricing data** syncs from LiteLLM via `src/lib/pricingSync.ts`. Use `sync_pricing` MCP tool or API endpoint.
 
@@ -499,5 +493,5 @@ diagnostics) plus **memory**, **skill**, **agentSkill**, **githubSkill**, **pool
 - **Routing & resilience**: `docs/routing/AUTO-COMBO.md`, `docs/architecture/RESILIENCE_GUIDE.md`
 - **Security**: `docs/architecture/AUTHZ_GUIDE.md`, `docs/security/GUARDRAILS.md`, `docs/security/COMPLIANCE.md`, `docs/security/STEALTH_GUIDE.md`
 - **Extensibility**: `docs/frameworks/SKILLS.md`, `docs/frameworks/MEMORY.md`, `docs/frameworks/EVALS.md`, `docs/frameworks/WEBHOOKS.md`, `docs/routing/REASONING_REPLAY.md`
-- **Platform**: `docs/guides/ELECTRON_GUIDE.md`, `docs/ops/TUNNELS_GUIDE.md`
+- **Platform**: `docs/ops/TUNNELS_GUIDE.md`
 - **AI agents**: `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`

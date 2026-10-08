@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Pilnīgu Docker iestatīšanas aprakstu, tostarp Compose profilus un Caddy HTTPS, skatiet [Docker rokasgrāmatā](./DOCKER_GUIDE.md).
 
-### Darbvirsmas lietotne (Electron)
-
-OmniRoute ietver darbvirsmas ietvarprogrammu, kas veidota ar Electron 41 + electron-builder 26.10. Pieejamie skripti (darbvietas saknē):
-
-```bash
-npm run electron:dev          # Palaist darbvirsmas lietotni ar automātisku pārlādi
-npm run electron:build        # Būvēt pašreizējai OS (automātiski noteiktai)
-npm run electron:build:win    # Windows instalētājs (NSIS + portatīvā versija)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # Veikt pakotās būvējuma versijas dūmu testu
-```
-
-Darbvirsmas instalētāju laidieni ir pievienoti GitHub laidieniem. Pilnīgu un padziļinātu Electron aprakstu (parakstīšana, IPC tilts, distributīvi) skatiet [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _(izveidots vēlākā posmā)_.
-
 ### Bezgalvas serveris (CI/automatizācija)
 
 Bezuzraudzības iestatīšanai (Docker, Kubernetes, CI) izmantojiet:

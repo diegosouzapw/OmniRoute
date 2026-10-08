@@ -27,7 +27,6 @@ láì dá àwọn module tuntun sílẹ̀.
 | Èdè                 | **TypeScript 6.0+** — ibi àfojúsùn `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`              |
 | Àyíká ìṣiṣẹ́         | **Node.js** `>=22.22.2 <23` tàbí `>=24.0.0 <27` (a fi tipátipá mú un ṣiṣẹ́ nípasẹ̀ `engines` + `SUPPORTED_NODE_RANGE`)     |
 | Ìpamọ́ data          | **SQLite** nípasẹ̀ `better-sqlite3` (singleton, ìkọ̀wé journal WAL)                                                        |
-| Ẹ̀rọ orí tábìlì      | **Electron 41** + `electron-builder` 26.10 (workspace ọ̀tọ̀ ní `electron/`)                                                |
 | Àwọn ìdánwò         | **Ẹ̀rọ ìdánwò abinibi Node** (unit/integration), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | Ìkọ́                 | Next.js standalone nípasẹ̀ `scripts/build/build-next-isolated.mjs`                                                        |
 | Lint/format         | Àtòpọ̀ ESLint flat + Prettier (`lint-staged` nípasẹ̀ Husky pre-commit)                                                     |
@@ -51,7 +50,6 @@ data jẹ́ env var `DATA_DIR`, tí iye àìyípadà rẹ̀ jẹ́ `~/.omniroute
 OmniRoute/
 ├── src/                  Ohun èlò Next.js (App Router, libs, domain, server, shared)
 ├── open-sse/             Workspace ẹ̀rọ streaming (@omniroute/open-sse)
-├── electron/             Ohun ìdìpọ̀ ẹ̀rọ orí tábìlì (Electron 41 main + preload)
 ├── bin/                  Àwọn ibi ìbẹ̀rẹ̀ CLI (omniroute, reset-password)
 ├── tests/                Unit, integration, e2e, protocols-e2e, translator, security, fixtures
 ├── scripts/              Àwọn script ìrànlọ́wọ́ fún ìkọ́, sync, check, migration, àti runtime
@@ -575,26 +573,6 @@ adapter cloud (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
 
 ---
 
-## 5. `electron/` — Àpò ìbáṣepọ̀ ojú-iṣẹ́
-
-```
-electron/
-├── main.js                  Ìlànà àkọ́kọ́ Electron
-├── preload.js               Afárá ìṣàkójọ́-tẹ́lẹ̀ (contextIsolation ti ṣiṣẹ́)
-├── types.d.ts
-├── package.json             Àtúnṣe electron-builder, ẹ̀yà 3.8.51
-├── README.md
-├── assets/                  Àwọn ohun àmúlò fún ìkọ́lé (àwọn àwòrán àmì, àwọn ẹ̀tọ́, …)
-├── node_modules/            node_modules àkànṣe (better-sqlite3, electron-updater)
-└── dist-electron/           Àbájáde ìkọ́lé (a kò fi sínú ibi ìpamọ́ kóòdù)
-```
-
-Àwọn script npm márùn-ún ní gbòǹgbò workspace: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Ìmúdójúìwọ̀n aládàáṣiṣẹ́ ń gba
-`electron-updater` tí ó tọ́ka sí feed ìtújáde GitHub.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -659,13 +637,11 @@ A ṣe àfihàn binary méjì nínú `package.json` → `bin`:
 A ṣètò wọn sí àwọn fódà kékeré mẹ́fà gẹ́gẹ́ bí ète wọn.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -845,7 +821,7 @@ Wo [A2A-SERVER.md § Ṣíṣàfikún Ọgbọ́n Tuntun](../frameworks/A2A-SERV
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — àwọn ọgbọ́n protocol A2A àti ìṣàwárí.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — compression RTK + Caveman.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — àwọn ìṣọ̀kan CLI.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (tí ó bá wà), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — àwọn ibi ìmúṣiṣẹ́.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — àwọn ibi ìmúṣiṣẹ́.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — àwọn ìṣòro ìṣiṣẹ́ tí ó wọ́pọ̀.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — workflow àwọn olùkópa.
 - [CLAUDE.md](../../CLAUDE.md) — àwọn òfin repo fún Claude Code (orisun òtítọ́

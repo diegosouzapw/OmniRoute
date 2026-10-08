@@ -120,7 +120,6 @@ omniroute
 
 ## Ograniczenia
 
-- Electron nie działa w Termux.
 - Brak systemowego tray ani integracji z pulpitem.
 - Ta konfiguracja jest wyłącznie serwerowa: korzystaj z dashboardu w przeglądarce.
 - Natywne zależności mogą wymagać lokalnej kompilacji.

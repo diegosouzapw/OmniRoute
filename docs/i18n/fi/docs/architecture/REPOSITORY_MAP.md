@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16 -sovellus (käyttöliittymä + API-reitit + kirjastot + toimialue + palvelin)
 ├── open-sse/             # Suoratoistomoottorin työtila (käsittelijät, suorittimet, kääntäjä, MCP-palvelin)
-├── electron/             # Työpöytäsovelluksen kehys (Electron 41 + electron-builder 26.10)
 ├── bin/                  # CLI:n aloituspiste ja komentokäsittelijät
 ├── scripts/              # Koonti-, tarkistus-, synkronointi- ja kertaluonteiset skriptit
 ├── docs/                 # Julkinen dokumentaatio (olet täällä)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Työpöytäsovelluksen kääre
-
-| Tiedosto         | Tarkoitus                                                                                               |
-| ---------------- | ------------------------------------------------------------------------------------------------------- |
-| `main.js`        | Electronin pääprosessi (BrowserWindow, upotettu Next.js-palvelin, ilmaisinalue, automaattinen päivitys) |
-| `preload.js`     | IPC-silta (contextBridge → `window.omniroute`)                                                          |
-| `package.json`   | electron-builder-määritykset sekä Electron 41- ja electron-builder 26.10 -riippuvuudet                  |
-| `assets/`        | Sovelluskuvakkeet (Windows .ico, macOS .icns, Linux .png)                                               |
-| `dist-electron/` | Koontituloste (gitin ohittama)                                                                          |
-| `types.d.ts`     | Renderöintisillan tyyppimääritykset                                                                     |
-| `README.md`      | Sisäinen Electron-README (katso myös `docs/guides/ELECTRON_GUIDE.md`)                                   |
-
----
-
 ## `bin/` — CLI
 
 | Tiedosto                                                                                                    | Tarkoitus                                                                                                                           |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | MCP/A2A-E2E-testiajuri                                                                                           |
 | `run-ecosystem-tests.mjs`           | Ekosysteemitestit (palveluntarjoajaintegraatiot)                                                                 |
 | `test-report-summary.mjs`           | Luo kattavuusyhteenvedon Markdown-muodossa                                                                       |
-| `smoke-electron-packaged.mjs`       | Suorittaa paketoidun Electron-koonnin savutestin                                                                 |
-| `native-binary-compat.mjs`          | Varmistaa, että natiiviriippuvuudet (`better-sqlite3`) vastaavat Electronin Node-versiota                        |
 | `validate-pack-artifact.ts`         | Validoi npm-paketoinnin tulosteen                                                                                |
 | `responses-ws-proxy.mjs`            | WebSocket-silta Codex Responses API:lle                                                                          |
 | `v1-ws-bridge.mjs`                  | WebSocket-silta `/api/v1/ws`-päätepisteelle                                                                      |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Loppukäyttäjän opas (määritys, mallit, yhdistelmät, CLI:t, ääni jne.)                                        |
 | `API_REFERENCE.md`          | API-päätepisteiden viite ja todennusmalli                                                                    |
 | `openapi.yaml`              | OpenAPI 3.0 -määritys (121 polkua)                                                                           |
-| `SETUP_GUIDE.md`            | Asennustavat (npm, npx, Docker, Electron, Termux, lähdekoodi)                                                |
+| `SETUP_GUIDE.md`            | Asennustavat (npm, npx, Docker, Termux, lähdekoodi)                                                          |
 | `ENVIRONMENT.md`            | Kaikki ympäristömuuttujat (~800 dokumentoitua, ~3 050 riviä tiedostossa `.env.example`)                      |
 | `TROUBLESHOOTING.md`        | Yleiset virheet + v3.8.0:n tunnetut ongelmat                                                                 |
 | `RELEASE_CHECKLIST.md`      | Koko julkaisuprosessi (taidot, husky, conventional commits, käyttöönotto)                                    |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io-käyttöönotto (tällä hetkellä vain kiinaksi)                      |
 | `TERMUX_GUIDE.md`            | Androidin käyttö ilman graafista käyttöliittymää Termuxin kautta        |
 | `PWA_GUIDE.md`               | Progressive Web App -asennus + service worker                           |
-| `ELECTRON_GUIDE.md`          | Työpöytäsovelluksen koonti + allekirjoitus + jakelu                     |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                  |
 | `PROXY_GUIDE.md`             | 4-tasoinen lähtevä välityspalvelin + 1proxy-markkinapaikka              |
 

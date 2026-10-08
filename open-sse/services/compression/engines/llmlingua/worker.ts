@@ -128,9 +128,9 @@ let workerFactory: (workerFile: URL, options: { execArgv: string[] }) => Worker 
  */
 export function depsAvailable(): boolean {
   if (_depsAvailable !== null) return _depsAvailable;
-  // Stage 7 (issue #10321): the desktop bundle ships the LLMLingua closure as an
+  // Stage 7 (issue #10321): the desktop bundle shipped the LLMLingua closure as an
   // optional pack installed under `${DATA_DIR}/packs/ml-runtime/node_modules`
-  // (prepended to NODE_PATH by electron/main.js), so also probe the pack dirs —
+  // (prepended to NODE_PATH by the launcher), so also probe the pack dirs —
   // the ancestor walk only covers bundle-resident installs (npm/Docker).
   _depsAvailable =
     firstAncestorWith(runtimeAnchors(), GATE_DEP_REL) !== null || packMemberInstalled(GATE_DEP_REL);

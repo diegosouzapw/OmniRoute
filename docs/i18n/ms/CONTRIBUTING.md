@@ -220,7 +220,7 @@ Catatan liputan:
 
 - `npm run test:coverage` mengukur liputan sumber untuk suite ujian unit utama, mengecualikan `tests/**`, dan menyertakan `open-sse/**`
 - Permintaan tarik mesti mengekalkan get liputan pada **60%+** pernyataan/baris/fungsi/cabang
-- Jika PR mengubah kod pengeluaran dalam `src/`, `open-sse/`, `electron/`, atau `bin/`, ia mesti menambah atau mengemas kini ujian automatik dalam PR yang sama
+- Jika PR mengubah kod pengeluaran dalam `src/`, `open-sse/`, atau `bin/`, ia mesti menambah atau mengemas kini ujian automatik dalam PR yang sama
 - `npm run coverage:report` mencetak laporan terperinci fail demi fail daripada pelaksanaan liputan terkini
 - `npm run test:coverage:legacy` mengekalkan metrik lama untuk perbandingan sejarah
 - Lihat `docs/ops/COVERAGE_PLAN.md` untuk pelan hala tuju peningkatan liputan berfasa
@@ -324,7 +324,6 @@ open-sse/                   # @omniroute/open-sse workspace
 ├── transformer/            # Responses API transformer
 └── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron desktop app (cross-platform)
 
 tests/
 ├── unit/                   # Node.js test runner (122 test files)

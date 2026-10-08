@@ -118,7 +118,6 @@ omniroute
 
 ## Limitaciones
 
-- Electron no se ejecuta en Termux.
 - No hay bandeja del sistema ni integración con el escritorio.
 - Esta configuración es exclusivamente para servidor: utiliza el panel del navegador.
 - Puede que las dependencias nativas deban compilarse localmente.

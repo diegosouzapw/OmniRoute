@@ -27,7 +27,6 @@
 | ଭାଷା            | **TypeScript 6.0+** — ଟାର୍ଗେଟ୍ `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                      |
 | ରନଟାଇମ୍         | **Node.js** `>=22.22.2 <23` କିମ୍ବା `>=24.0.0 <27` (`engines` + `SUPPORTED_NODE_RANGE` ମାଧ୍ୟମରେ ଲାଗୁ)                         |
 | ଡାଟାବେସ୍        | **SQLite** `better-sqlite3` ମାଧ୍ୟମରେ (ସିଙ୍ଗଲଟନ୍, WAL ଜର୍ଣ୍ଣାଲିଂ)                                                             |
-| ଡେସ୍କଟପ୍        | **Electron 41** + `electron-builder` 26.10 (`electron/` ରେ ଅଲଗା ୱାର୍କସ୍ପେସ୍)                                                 |
 | ପରୀକ୍ଷଣ         | **Node ନେଟିଭ୍ ଟେଷ୍ଟ୍ ରନର୍** (ୟୁନିଟ୍/ଇଣ୍ଟିଗ୍ରେସନ୍), **Vitest** (MCP, autoCombo, କ୍ୟାଶ୍), **Playwright** (e2e + protocols-e2e) |
 | ନିର୍ମାଣ         | Next.js ଷ୍ଟାଣ୍ଡ-ଅଲୋନ୍ `scripts/build/build-next-isolated.mjs` ମାଧ୍ୟମରେ                                                       |
 | ଲିଣ୍ଟ୍/ଫର୍ମାଟ୍  | ESLint ଫ୍ଲାଟ୍ କନ୍ଫିଗ୍ + Prettier (`lint-staged` ପ୍ରି-କମିଟ୍ Husky ମାଧ୍ୟମରେ)                                                   |
@@ -51,7 +50,6 @@
 OmniRoute/
 ├── src/                  Next.js ଆପ୍ଲିକେସନ୍ (ଆପ୍ ରାଉଟର୍, libs, domain, server, shared)
 ├── open-sse/             ଷ୍ଟ୍ରିମିଂ ଇଞ୍ଜିନ୍ ୱାର୍କସ୍ପେସ୍ (@omniroute/open-sse)
-├── electron/             ଡେସ୍କଟପ୍ ର୍ୟାପର୍ (Electron 41 main + preload)
 ├── bin/                  CLI ଏଣ୍ଟ୍ରୀ ପଏଣ୍ଟ୍ (omniroute, reset-password)
 ├── tests/                ୟୁନିଟ୍, ଇଣ୍ଟିଗ୍ରେସନ୍, e2e, protocols-e2e, translator, security, fixtures
 ├── scripts/              ନିର୍ମାଣ, ସିଙ୍କ, ଚେକ୍, ମାଇଗ୍ରେସନ୍, ଏବଂ ରନଟାଇମ୍ ସାହାଯ୍ୟକାରୀ ସ୍କ୍ରିପ୍ଟ
@@ -574,26 +572,6 @@ open-sse/
 
 ---
 
-## 5. `electron/` — ଡେସ୍କଟପ୍ ର୍ୟାପର
-
-```
-electron/
-├── main.js                  Electron ମୁଖ୍ୟ ପ୍ରକ୍ରିୟା
-├── preload.js               ପ୍ରୀଲୋଡ୍ ବ୍ରିଜ୍ (contextIsolation ସକ୍ରିୟ)
-├── types.d.ts
-├── package.json             electron-builder କନ୍ଫିଗ୍, ସଂସ୍କରଣ 3.8.51
-├── README.md
-├── assets/                  ବିଲ୍ଡ ସମ୍ବଳ (ଆଇକନ୍, ଏଣ୍ଟାଇଟେଲମେଣ୍ଟ୍, ...)
-├── node_modules/            ସମର୍ପିତ node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           ବିଲ୍ଡ ଆଉଟପୁଟ୍ (କମିଟ୍ ହୋଇନାହିଁ)
-```
-
-ୱାର୍କସ୍ପେସ୍ ରୁଟ୍ରେ ପାଞ୍ଚଟି npm ସ୍କ୍ରିପ୍ଟ୍: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`। ସ୍ୱୟଂଚାଳିତ ଅପଡେଟ୍ GitHub ରିଲିଜ୍ ଫିଡ୍ ଆଡ଼କୁ ଇଙ୍ଗିତ କରୁଥିବା
-`electron-updater` ମାଧ୍ୟମରେ ହୁଏ।
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -658,13 +636,11 @@ bin/
 ଉଦ୍ଦେଶ୍ୟ ଅନୁସାରେ 6 ଉପ-ଫୋଲଡରେ ସଂଗଠିତ।
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`।
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`।
@@ -836,7 +812,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A ପ୍ରୋଟୋକଲ୍ ସ୍କିଲ୍ସ ଏବଂ ଆବିଷ୍କାର।
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK + କେଭମ୍ୟାନ୍ ସଞ୍ଚେତନ।
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI ଏକୀକରଣ।
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (ଯଦି ଉପସ୍ଥିତ), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — ପ୍ରଦର୍ଶନ ଲକ୍ଷ୍ୟ।
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — ପ୍ରଦର୍ଶନ ଲକ୍ଷ୍ୟ।
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — ସାଧାରଣ ପରିଚାଳନା ସମସ୍ୟା।
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — ଯୋଗଦାନକାରୀ କାର୍ଯ୍ୟପ୍ରବାହ।
 - [CLAUDE.md](../../CLAUDE.md) — Claude Code ପାଇଁ ରେପୋ ନିୟମ (ଅନେକ ଉପରୋକ୍ତ ପରମ୍ପରାର

@@ -16,7 +16,7 @@
    [Branching & Release Model](BRANCHING_MODEL.md) میں بیان کردہ اگلا فعال cycle استعمال کریں۔
 2. **Contracts کی نشان دہی کریں۔** ہر اس catalog، schema، generated artifact، public API، یا user
    interface کی شناخت کریں جسے تبدیلی متاثر کرتی ہے۔ ذیل کا جدول کم از کم ابتدائی مجموعہ فراہم کرتا ہے۔
-3. **مرکوز tests لکھیں یا اپ ڈیٹ کریں۔** `src/`، `open-sse/`، `electron/`، یا
+3. **مرکوز tests لکھیں یا اپ ڈیٹ کریں۔** `src/`، `open-sse/` ، یا
    `bin/` میں production تبدیلیوں کے لیے اسی PR میں ایک automated test درکار ہے۔ پہلے سب سے مختصر test files چلائیں جو
    رویے کو ثابت کرتی ہوں، پھر درج شدہ مرکوز gates چلائیں۔
 4. **وسیع matrix کو CI پر چلنے دیں۔** مکمل unit shards، Vitest، coverage ratchet، اور
@@ -54,7 +54,7 @@ npm run check:provider-consistency
 npm run check:provider-assets
 node --import tsx/esm --test tests/unit/provider-translate-path-golden.test.ts
 node --import tsx/esm --test tests/unit/<provider-or-executor>.test.ts
-npm run gen:provider-reference   # جب catalog تبدیل ہو؛ generated diff کو commit کریں
+npm run gen:provider-reference # جب catalog تبدیل ہو؛ generated diff کو commit کریں
 npm run lint
 ```
 
@@ -74,8 +74,8 @@ Generated catalog اور golden diffs کا contract changes کے طور پر rev
 
 ```bash
 node --import tsx/esm --test tests/unit/combo-<behavior>.test.ts
-npm run test:combo:matrix        # strategy یا dispatch میں تبدیلیاں
-npm run check:known-symbols      # strategy registration میں تبدیلیاں
+npm run test:combo:matrix # strategy یا dispatch میں تبدیلیاں
+npm run check:known-symbols # strategy registration میں تبدیلیاں
 npm run lint
 ```
 
@@ -122,7 +122,7 @@ npm run i18n:sync-ui:dry
 npm run i18n:check-ui-coverage
 npm run i18n:check-value-drift
 npm run i18n:check-glossary
-npm run check:cli-i18n          # جب CLI strings/catalogs تبدیل ہوں
+npm run check:cli-i18n # جب CLI strings/catalogs تبدیل ہوں
 npm run lint
 ```
 
@@ -145,8 +145,8 @@ commands نہ چلائیں جو external services کو call کرتی ہوں، ا
 ```bash
 node --import tsx/esm --test tests/unit/cli/<command>.test.ts
 npm run check:cli-i18n
-npm run build:cli             # تیار کردہ/بنڈل شدہ CLI تبدیلیاں
-npm run check:pack-policy     # پیکیج کی سطح میں تبدیلیاں
+npm run build:cli # تیار کردہ/بنڈل شدہ CLI تبدیلیاں
+npm run check:pack-policy # پیکیج کی سطح میں تبدیلیاں
 npm run lint
 ```
 
@@ -190,8 +190,8 @@ migration شامل کرتے وقت ایک نیا database اور سابقہ sche
 ```bash
 node --import tsx/esm --test tests/unit/build/<behavior>.test.ts
 npm run check:build-scope
-npm run check:lockfile         # dependency یا lockfile میں تبدیلیاں
-npm run check:pack-policy      # شائع شدہ پیکیج کی سطح میں تبدیلیاں
+npm run check:lockfile # dependency یا lockfile میں تبدیلیاں
+npm run check:pack-policy # شائع شدہ پیکیج کی سطح میں تبدیلیاں
 npm run lint
 ```
 

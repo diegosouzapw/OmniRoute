@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Duba [Jagorar Docker](./DOCKER_GUIDE.md) don cikakken saitin Docker, ciki har da bayanan martabar Compose da Caddy HTTPS.
 
-### Manhajar Tebur (Electron)
-
-OmniRoute yana zuwa da manhajar tebur da aka gina bisa Electron 41 + electron-builder 26.10. Rubutun da ake da su (a tushen workspace):
-
-```bash
-npm run electron:dev          # Gudanar da manhajar tebur tare da sake lodawa kai tsaye
-npm run electron:build        # Gina don OS na yanzu (ana gano shi kai tsaye)
-npm run electron:build:win    # Mai shigarwar Windows (NSIS + mai ɗaukuwa)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # Gwajin farko na ginin da aka shirya
-```
-
-Ana haɗa fitarwar masu shigar da manhajar tebur zuwa GitHub Releases. Don cikakken bayani mai zurfi game da Electron (sa hannu, gadar IPC, rabe-raben Linux), duba [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _(an ƙirƙira a wani mataki na gaba)_.
-
 ### Sabar da ba ta da mahaɗin gani (CI/aikin atomatik)
 
 Don saituna marasa buƙatar kulawa (Docker, Kubernetes, CI), yi amfani da:

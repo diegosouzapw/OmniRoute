@@ -267,25 +267,6 @@ Administratīvo darbību uzskaite ar filtrēšanu pēc darbības veida, veicēja
 
 ---
 
-## 🖥️ Darbvirsmas lietotne
-
-Native Electron darbvirsmas lietotne operētājsistēmām Windows, macOS un Linux. Palaidiet OmniRoute kā savrupu lietotni ar sistēmas teknes integrāciju, bezsaistes atbalstu, automātisko atjaunināšanu un instalēšanu ar vienu klikšķi.
-
-Galvenās funkcijas:
-
-- Servera gatavības aptauja (aukstās palaišanas laikā netiek rādīts tukšs ekrāns)
-- Sistēmas tekne ar porta pārvaldību
-- Satura drošības politika
-- Vienas instances bloķēšana
-- Automātiska atjaunināšana pēc restartēšanas
-- Platformai pielāgots interfeiss (macOS luksoforu pogas, Windows/Linux noklusējuma virsrakstjosla)
-- Nostiprināta Electron būvējuma pakotne — atsevišķajā pakotnē esošie simboliski sasaistītie `node_modules` tiek noteikti un noraidīti pirms pakotnes izveides, novēršot izpildlaika atkarību no būvējuma mašīnas (v2.5.5+)
-- **Korekta izslēgšana** — Electron `before-quit` korekti izslēdz Next.js, novēršot SQLite WAL datubāzes bloķēšanu (v3.6.2+)
-
-📖 Pilnu dokumentāciju skatiet [`electron/README.md`](../../electron/README.md).
-
----
-
 ## 🌐 V1 WebSocket tilts _(v3.6.6+)_
 
 OmniRoute tagad atbalsta **OpenAI saderīgus WebSocket klientus**, izmantojot `/v1/ws` jaunināšanas galapunktu. Pielāgotais `scripts/dev/v1-ws-bridge.mjs` serveris aptver Next.js un jaunināto WS savienojumu pārveido par pilnībā divvirzienu straumēšanas sesiju. Autentifikācijai tiek izmantota tā pati API atslēga vai sesijas sīkdatne kā HTTP pieprasījumiem.

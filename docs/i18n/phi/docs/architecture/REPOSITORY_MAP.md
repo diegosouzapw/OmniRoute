@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16 application (UI + mga API route + library + domain + server)
 ├── open-sse/             # Workspace ng streaming engine (mga handler, executor, translator, MCP server)
-├── electron/             # Desktop wrapper (Electron 41 + electron-builder 26.10)
 ├── bin/                  # Entry point ng CLI at mga command handler
 ├── scripts/              # Mga script para sa pag-build, pagsusuri, pag-sync, at minsanang gawain
 ├── docs/                 # Pampublikong dokumentasyon (narito ka)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Desktop Wrapper
-
-| File             | Layunin                                                                                                      |
-| ---------------- | ------------------------------------------------------------------------------------------------------------ |
-| `main.js`        | Pangunahing proseso ng Electron (BrowserWindow, naka-embed na Next.js server, tray, awtomatikong pag-update) |
-| `preload.js`     | IPC bridge (contextBridge → `window.omniroute`)                                                              |
-| `package.json`   | Config ng electron-builder + mga dependency ng Electron 41 + electron-builder 26.10                          |
-| `assets/`        | Mga icon ng app (Windows .ico, macOS .icns, Linux .png)                                                      |
-| `dist-electron/` | Output ng build (gitignored)                                                                                 |
-| `types.d.ts`     | Mga deklarasyon ng type para sa renderer bridge                                                              |
-| `README.md`      | Internal na README ng Electron (tingnan din ang `docs/guides/ELECTRON_GUIDE.md`)                             |
-
----
-
 ## `bin/` — CLI
 
 | File                                                                                                        | Layunin                                                                                                                               |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | MCP/A2A E2E runner                                                                          |
 | `run-ecosystem-tests.mjs`           | Mga test sa ecosystem (integrasyon ng provider)                                             |
 | `test-report-summary.mjs`           | Bumuo ng markdown ng buod ng coverage                                                       |
-| `smoke-electron-packaged.mjs`       | I-smoke test ang naka-package na Electron build                                             |
-| `native-binary-compat.mjs`          | Tiyakin na tumutugma sa Node ng Electron ang mga native dependency (`better-sqlite3`)       |
 | `validate-pack-artifact.ts`         | I-validate ang output ng npm pack                                                           |
 | `responses-ws-proxy.mjs`            | WebSocket bridge para sa Codex Responses API                                                |
 | `v1-ws-bridge.mjs`                  | WebSocket bridge para sa endpoint na `/api/v1/ws`                                           |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Manwal para sa end user (setup, mga modelo, combo, CLI, audio, atbp.)                              |
 | `API_REFERENCE.md`          | Sanggunian ng mga API endpoint kasama ang modelo ng auth                                           |
 | `openapi.yaml`              | Espesipikasyon ng OpenAPI 3.0 (121 path)                                                           |
-| `SETUP_GUIDE.md`            | Mga paraan ng pag-install (npm, npx, Docker, Electron, Termux, source)                             |
+| `SETUP_GUIDE.md`            | Mga paraan ng pag-install (npm, npx, Docker, Termux, source)                                       |
 | `ENVIRONMENT.md`            | Lahat ng env var (~800 ang dokumentado, ~3,050 linya sa `.env.example`)                            |
 | `TROUBLESHOOTING.md`        | Mga karaniwang error + mga kilalang isyu sa v3.8.0                                                 |
 | `RELEASE_CHECKLIST.md`      | Buong daloy ng release (mga skill, husky, conventional commit, deploy)                             |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Deployment sa Fly.io (kasalukuyang nasa Chinese lamang)              |
 | `TERMUX_GUIDE.md`            | Headless na Android sa pamamagitan ng Termux                         |
 | `PWA_GUIDE.md`               | Pag-install ng Progressive Web App + service worker                  |
-| `ELECTRON_GUIDE.md`          | Pag-build + pag-sign + pamamahagi ng desktop app                     |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                               |
 | `PROXY_GUIDE.md`             | 4-level na outbound proxy + 1proxy marketplace                       |
 

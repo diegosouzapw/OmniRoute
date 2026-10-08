@@ -80,14 +80,6 @@ updates:
     schedule:
       interval: "weekly"
 
-  - package-ecosystem: "npm"
-    directory: "/electron"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    commit-message:
-      prefix: "deps"
-
   - package-ecosystem: "docker"
     directory: "/"
     schedule:

@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Applikazzjoni Next.js 16 (UI + rotot tal-API + libreriji + dominju + server)
 ├── open-sse/             # Spazju tax-xogħol tal-magna tal-istreaming (handlers, executors, translator, server MCP)
-├── electron/             # Qoxra tad-desktop (Electron 41 + electron-builder 26.10)
 ├── bin/                  # Punt tad-dħul tas-CLI u handlers tal-kmandi
 ├── scripts/              # Skripts għall-bini, il-verifika, is-sinkronizzazzjoni, u kompiti ta’ darba
 ├── docs/                 # Dokumentazzjoni pubblika (inti qiegħed hawn)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Qoxra tad-Desktop
-
-| Fajl             | Għan                                                                                                  |
-| ---------------- | ----------------------------------------------------------------------------------------------------- |
-| `main.js`        | Proċess ewlieni ta’ Electron (BrowserWindow, server Next.js inkorporat, trej, aġġornament awtomatiku) |
-| `preload.js`     | Pont IPC (contextBridge → `window.omniroute`)                                                         |
-| `package.json`   | Konfigurazzjoni ta’ electron-builder + dipendenzi ta’ Electron 41 + electron-builder 26.10            |
-| `assets/`        | Ikoni tal-app (Windows .ico, macOS .icns, Linux .png)                                                 |
-| `dist-electron/` | Output tal-build (injorat minn git)                                                                   |
-| `types.d.ts`     | Dikjarazzjonijiet tat-tipi għall-pont tar-renderer                                                    |
-| `README.md`      | README intern ta’ Electron (ara wkoll `docs/guides/ELECTRON_GUIDE.md`)                                |
-
----
-
 ## `bin/` — CLI
 
 | Fajl                                                                                                        | Skop                                                                                                                                      |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | Eżekutur E2E għal MCP/A2A                                                                        |
 | `run-ecosystem-tests.mjs`           | Testijiet tal-ekosistema (integrazzjoni tal-fornituri)                                           |
 | `test-report-summary.mjs`           | Jiġġenera sommarju tal-kopertura f’markdown                                                      |
-| `smoke-electron-packaged.mjs`       | Jagħmel test bażiku tal-bini ppakkjat ta’ Electron                                               |
-| `native-binary-compat.mjs`          | Jivvalida li d-dipendenzi nattivi (`better-sqlite3`) jaqblu man-Node ta’ Electron                |
 | `validate-pack-artifact.ts`         | Jivvalida r-riżultat ta’ npm pack                                                                |
 | `responses-ws-proxy.mjs`            | Pont WebSocket għall-API Codex Responses                                                         |
 | `v1-ws-bridge.mjs`                  | Pont WebSocket għall-endpoint `/api/v1/ws`                                                       |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Manwal għall-utent finali (konfigurazzjoni, mudelli, kombinazzjonijiet, CLIs, awdjo, eċċ.)                  |
 | `API_REFERENCE.md`          | Referenza tal-endpoints tal-API bil-mudell tal-awtentikazzjoni                                              |
 | `openapi.yaml`              | Speċifikazzjoni OpenAPI 3.0 (121 mogħdija)                                                                  |
-| `SETUP_GUIDE.md`            | Metodi ta’ installazzjoni (npm, npx, Docker, Electron, Termux, kodiċi sors)                                 |
+| `SETUP_GUIDE.md`            | Metodi ta’ installazzjoni (npm, npx, Docker, Termux, kodiċi sors)                                           |
 | `ENVIRONMENT.md`            | Il-varjabbli kollha tal-ambjent (~800 dokumentati, ~3,050 linja f’`.env.example`)                           |
 | `TROUBLESHOOTING.md`        | Żbalji komuni + problemi magħrufa ta’ v3.8.0                                                                |
 | `RELEASE_CHECKLIST.md`      | Fluss sħiħ tar-rilaxx (ħiliet, husky, commits konvenzjonali, skjerament)                                    |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Skjerament fuq Fly.io (bħalissa biċ-Ċiniż biss)                          |
 | `TERMUX_GUIDE.md`            | Android mingħajr interfaċċa grafika permezz ta’ Termux                   |
 | `PWA_GUIDE.md`               | Installazzjoni ta’ Progressive Web App + service worker                  |
-| `ELECTRON_GUIDE.md`          | Build tal-applikazzjoni tad-desktop + iffirmar + distribuzzjoni          |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                   |
 | `PROXY_GUIDE.md`             | Proxy tal-ħruġ b’4 livelli + marketplace 1proxy                          |
 

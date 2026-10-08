@@ -91,7 +91,7 @@ Nígbà tí o bá nílò láti fi iye tuntun kan tí olùpèsè orísun òkè p�
 
 ### 3. Àwọn àpẹẹrẹ tí a kọ̀ láàyè
 
-❌ **Má ṣe láé** ṣe èyíkéyìí nínú kóòdù ìmúṣẹ́ (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ **Má ṣe láé** ṣe èyíkéyìí nínú kóòdù ìmúṣẹ́ (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // BÚBURÚ: iye gidi máa ń mú Secret Scanning + Semgrep ṣiṣẹ́

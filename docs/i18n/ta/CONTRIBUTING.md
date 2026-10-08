@@ -219,7 +219,7 @@ Coverage குறிப்புகள்:
 
 - `npm run test:coverage`, முதன்மையான unit சோதனைத் தொகுப்புக்கான source coverage-ஐ அளவிடுகிறது, `tests/**`-ஐ விலக்குகிறது, மேலும் `open-sse/**`-ஐ உள்ளடக்குகிறது
 - Pull request-கள் statements/lines/functions/branches ஆகியவற்றுக்கான coverage gate-ஐ **60%+** அளவில் பராமரிக்க வேண்டும்
-- ஒரு PR, `src/`, `open-sse/`, `electron/`, அல்லது `bin/` ஆகியவற்றில் production code-ஐ மாற்றினால், அதே PR-இல் automated tests-ஐச் சேர்க்கவோ புதுப்பிக்கவோ வேண்டும்
+- ஒரு PR, `src/`, `open-sse/`, அல்லது `bin/` ஆகியவற்றில் production code-ஐ மாற்றினால், அதே PR-இல் automated tests-ஐச் சேர்க்கவோ புதுப்பிக்கவோ வேண்டும்
 - `npm run coverage:report`, சமீபத்திய coverage இயக்கத்திலிருந்து விரிவான கோப்பு-வாரியான அறிக்கையை அச்சிடுகிறது
 - `npm run test:coverage:legacy`, வரலாற்று ஒப்பீட்டிற்காகப் பழைய metric-ஐப் பாதுகாக்கிறது
 - கட்டப்படியான coverage மேம்பாட்டு roadmap-க்கு `docs/ops/COVERAGE_PLAN.md`-ஐப் பார்க்கவும்
@@ -324,7 +324,6 @@ open-sse/                   # @omniroute/open-sse workspace
 ├── transformer/            # Responses API transformer
 └── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron desktop app (cross-platform)
 
 tests/
 ├── unit/                   # Node.js test runner (122 test files)

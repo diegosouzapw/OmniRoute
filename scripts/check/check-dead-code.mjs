@@ -160,7 +160,7 @@ function runKnip(cwd = ROOT) {
 function mainNewCode(baselineValue) {
   const mergeBase = resolveMergeBase(BASE_REF);
   const changed = listChangedFiles(mergeBase, {
-    dirs: ["src", "open-sse", "electron", "bin", "scripts"],
+    dirs: ["src", "open-sse", "bin", "scripts"],
     exts: [".ts", ".tsx", ".js", ".mjs"],
     // Knip still reports vendor symbols in the global advisory total. Exclude them only from
     // the PR authorship comparison so vendored public APIs remain faithful to upstream.

@@ -118,7 +118,6 @@ omniroute
 
 ## Limitazioni
 
-- Electron non funziona in Termux.
 - Non sono disponibili la barra delle applicazioni né l'integrazione con il desktop.
 - Questa configurazione è esclusivamente server: utilizza la dashboard nel browser.
 - Le dipendenze native potrebbero richiedere la compilazione locale.

@@ -118,7 +118,6 @@ omniroute
 
 ## Vikwazo
 
-- Electron haiendeshwi katika Termux.
 - Hakuna trei ya mfumo au muunganisho na mazingira ya eneo-kazi.
 - Usanidi huu ni wa seva pekee: tumia dashibodi ya kivinjari.
 - Vitegemezi asilia vinaweza kuhitaji ukamilishaji wa ndani.

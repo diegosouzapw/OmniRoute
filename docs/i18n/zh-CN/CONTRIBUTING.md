@@ -225,7 +225,7 @@ npm run test:combo:live:vps:failover     # 添加一个真实的跨 provider 故
 
 - `npm run test:coverage` 测量主单元测试套件的源代码覆盖率，排除 `tests/**`，并包含 `open-sse/**`
 - Pull Request 必须将覆盖率门禁维持在语句/行/函数/分支 **60% 以上**
-- 如果 PR 更改了 `src/`、`open-sse/`、`electron/` 或 `bin/` 中的生产代码，则必须在同一个 PR 中添加或更新自动化测试
+- 如果 PR 更改了 `src/`、`open-sse/` 或 `bin/` 中的生产代码，则必须在同一个 PR 中添加或更新自动化测试
 - `npm run coverage:report` 会输出最近一次覆盖率运行的逐文件详细报告
 - `npm run test:coverage:legacy` 保留旧版指标，以便进行历史比较
 - 分阶段覆盖率改进路线图请参阅 `docs/ops/COVERAGE_PLAN.md`
@@ -329,7 +329,6 @@ open-sse/                   # @omniroute/open-sse 工作区
 ├── transformer/            # Responses API 转换器
 └── utils/                  # 22 个工具模块（流、TLS、代理、日志记录）
 
-electron/                   # Electron 桌面应用（跨平台）
 
 tests/
 ├── unit/                   # Node.js 测试运行器（1,574 个测试文件）

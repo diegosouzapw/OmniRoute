@@ -81,23 +81,6 @@ docker compose down
 docker compose down -v
 ```
 
-### Feidhmchlár Deisce Electron
-
-**Windows:**
-
-- Oscail `Socrúcháin → Aipeanna → OmniRoute → Díshuiteáil`
-- Nó rith an suiteálaí NSIS ón eolaire suiteála
-
-**macOS:**
-
-- Tarraing `OmniRoute.app` ó `/Applications` go dtí an Bruscair
-- Bain sonraí: `rm -rf ~/Library/Application Support/omniroute`
-
-**Linux:**
-
-- Bain an comhad ImageApp
-- Bain sonraí: `rm -rf ~/.omniroute`
-
 ### Suiteáil ón bhFoinse (git clone)
 
 ```bash

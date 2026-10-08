@@ -123,7 +123,6 @@ E2E automáticamente, sin ninguna etiqueta.
 ### Versión y registro de cambios
 
 - [ ] Ejecutar `/version-bump-cc <patch|minor|major>` (habilidad de Claude Code)
-  - Incrementa la versión en `package.json`, `electron/package.json`
   - Regenera `CHANGELOG.md` a partir de los commits de git desde la última etiqueta
   - Actualiza las insignias de README.md
 - [ ] Revisar manualmente CHANGELOG.md y depurar los mensajes de commit si es necesario
@@ -217,104 +216,6 @@ Cambios incompatibles: añadir el pie `BREAKING CHANGE:` o `!` después del ámb
 - [ ] Los modelos están registrados en `open-sse/config/providerRegistry.ts`
 - [ ] Las pruebas unitarias de `tests/unit/` cubren la clasificación y el enrutamiento de proveedores
 
-### Escritorio (Electron)
-
-Si `electron/` cambió:
-
-- [ ] `npm run electron:smoke:packaged` se ejecuta correctamente
-- [ ] Se probaron las compilaciones para al menos uno de `:win`, `:mac`, `:linux`
-- [ ] Los certificados de firma de código no han caducado (si se utiliza firma)
-- [ ] La versión de `electron/package.json` coincide con la de `package.json` en la raíz
-- [ ] El puntero del canal de actualización automática está actualizado si se publica en `stable`
-
-### Estructura de compilación
-
-El repositorio utiliza tres directorios de salida distintos — no deben confundirse:
-
-| Directorio | Propósito                                                                | ¿Con seguimiento?     |
-| ---------- | ------------------------------------------------------------------------ | --------------------- |
-| `src/`     | Código fuente de la aplicación (TypeScript / TSX)                        | Sí                    |
-| `.build/`  | Archivos intermedios de compilación — salida de `next build` (`distDir`) | No (ignorado por git) |
-| `dist/`    | Paquete npm distribuible — ensamblado por `assembleStandalone`           | No (ignorado por git) |
-
-> **Nota para el operador:** el directorio de la imagen del VPS remoto continúa siendo `/usr/lib/node_modules/omniroute/app/`.
-> Solo cambió la salida de compilación **dentro del repositorio** (`app/` → `dist/`). Las herramientas de despliegue sincronizan
-> mediante rsync el contenido de `dist/` con el directorio remoto `app/` — no es necesario cambiar las rutas del VPS.
-
-**Flujo de compilación única:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (limpieza)
-  └─ next build → .build/next/   (archivos intermedios)
-  └─ assembleStandalone          (copia los archivos independientes + estáticos + públicos + nativos → dist/)
-  └─ escribe dist/BUILD_SHA      (centinela de HEAD)
-```
-
-NO ejecutar `npm run build` seguido de un `npm run build:cli` independiente para desplegar — utilizar
-`npm run build:release`, que realiza una recompilación limpia + crea el centinela en un solo comando.
-
-### Validación de artefactos
-
-- [ ] `npm run build:release` finaliza correctamente y `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` no detecta problemas — no hay `app.__qa_backup`, `scripts/scratch`, `package-lock.json` ni otros residuos locales
-- [ ] `dist/server.js` existe después de la compilación
-
-### Etiquetado y publicación
-
-- [ ] Ejecutar `/generate-release-cc` (herramienta de Claude Code):
-  - Crea la etiqueta `vX.Y.Z`
-  - Envía la etiqueta y la rama
-  - Abre una versión en GitHub con el registro de cambios en el cuerpo
-  - Adjunta los instaladores de Electron (si se compilaron)
-- [ ] O manualmente:
-  ```bash
-  git tag -a vX.Y.Z -m "Publicación vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Despliegue
-
-Las herramientas de despliegue utilizan el flujo ligero de rsync — sin `npm pack` ni `npm i -g`:
-
-- [ ] Utilizar la herramienta de despliegue que corresponda al destino:
-  - `/deploy-vps-local-cc` — VPS local (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — VPS de Akamai (69.164.221.35)
-  - `/deploy-vps-both-cc` — ambos
-- [ ] Antes del despliegue, confirmar que `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] La compilación debe ejecutarse donde `node_modules` sea real (el checkout principal o un worktree en el que se haya ejecutado `npm ci` — NO un worktree con enlaces simbólicos)
-- [ ] Realizar una prueba de humo de la instancia desplegada:
-  - Abrir `/dashboard/health` → comprobar que la cadena de versión coincide con la publicación
-  - Ejecutar una solicitud a `/v1/chat/completions` contra un proveedor conocido
-  - Verificar que `/api/monitoring/health` devuelve disyuntores `CLOSED`
-  - Confirmar que los transportes MCP responden (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Después de la publicación
-
-- [ ] Ejecutar `/capture-release-evidences-cc` (skill de Claude Code)
-  - Captura imágenes/grabaciones WebP de las nuevas funcionalidades
-  - Las adjunta a las notas de la versión / publicación del blog
-- [ ] Actualizar GitHub Discussions / Discord con el anuncio de la versión
-- [ ] Abrir un hito para la próxima versión
-- [ ] Si es crítico: fijar la discusión o publicar en `news.json` para mostrar un banner dentro de la aplicación
-
-### Criterios para el lanzamiento público de Radar
-
-El anuncio de Radar se incluye intencionadamente con `active: false`. La activación es un cambio independiente
-que se realizará una vez que haya evidencias de cada uno de los siguientes puntos:
-
-- [ ] Todas las PR apiladas de Radar están fusionadas y la CI del release tip está en verde
-- [ ] Desplegar y realizar pruebas rápidas de las rutas OSS de Radar con `RADAR_ENABLED` desactivado de forma predeterminada
-- [ ] Realizar pruebas rápidas de `GET /planos`, `/termos`, `/privacidade` y `/reembolso` en el host de Radar especificado
-- [ ] Registrar la identidad, el contacto y la dirección del operador, así como la revisión legal aprobada por el propietario, en el servicio privado
-- [ ] Probar Stripe Checkout y el webhook firmado únicamente en modo de prueba
-- [ ] Probar la entrega de un correo electrónico transaccional cifrado con el remitente/dominio aprobado
-- [ ] Demostrar la restauración de una copia de seguridad y una ejecución de investigación supervisada y con presupuesto limitado
-- [ ] Aprobar la política de revisión de BRL/PIX antes de aceptar evidencias de donaciones
-- [ ] Habilitar Checkout público solo después de superar los criterios anteriores y, a continuación, activar el nuevo ID de `news.json`
-- [ ] Verificar que el banner de Inicio utilice texto localizado y que un ID nuevo vuelva a aparecer después de descartar un ID anterior
-
 ## Pruebas rápidas de servicios integrados (v3.8.4+)
 
 Antes de publicar cualquier versión que incluya cambios en los servicios integrados, verifique lo siguiente:
@@ -400,7 +301,7 @@ Si la versión publicada tiene un problema crítico:
 - Nunca omitas los hooks de Husky (`--no-verify`)
 - Nunca incluyas secretos, credenciales ni archivos `.env` en un commit
 - La cobertura debe mantenerse en ≥60/60/60/60 (sentencias/líneas/funciones/ramas)
-- Incluye o actualiza siempre las pruebas al modificar código de producción en `src/`, `open-sse/`, `electron/` o `bin/`
+- Incluye o actualiza siempre las pruebas al modificar código de producción en `src/`, `open-sse/` o `bin/`
 
 ## Comprobación automatizada de sincronización
 

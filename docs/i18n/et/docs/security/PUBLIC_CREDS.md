@@ -91,7 +91,7 @@ Kui peate manustama uue välise teenusepakkuja väärtuse, mis:
 
 ### 3. Keelatud mustrid
 
-❌ **Ärge kunagi** tehke tootmiskoodis (`src/`, `open-sse/`, `electron/`, `bin/`) midagi järgnevast:
+❌ **Ärge kunagi** tehke tootmiskoodis (`src/`, `open-sse/`, `bin/`) midagi järgnevast:
 
 ```ts
 // HALB: literaalväärtus käivitab Secret Scanningu + Semgrepi

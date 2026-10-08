@@ -27,7 +27,6 @@ hinzugefügt werden muss, ohne neue Module zu erfinden.
 | Sprache       | **TypeScript 6.0+** — Ziel `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                       |
 | Laufzeit      | **Node.js** `>=22.22.2 <23` oder `>=24.0.0 <27` (durch `engines` + `SUPPORTED_NODE_RANGE` erzwungen)                      |
 | Datenbank     | **SQLite** über `better-sqlite3` (Singleton, WAL-Journaling)                                                              |
-| Desktop       | **Electron 41** + `electron-builder` 26.10 (separater Workspace unter `electron/`)                                        |
 | Tests         | **Nativer Node-Test-Runner** (Unit/Integration), **Vitest** (MCP, autoCombo, Cache), **Playwright** (e2e + protocols-e2e) |
 | Build         | Eigenständiges Next.js-Build über `scripts/build/build-next-isolated.mjs`                                                 |
 | Lint/Format   | ESLint-Flat-Config + Prettier (`lint-staged` über Husky-Pre-Commit)                                                       |
@@ -52,7 +51,6 @@ Datenverzeichnis wird durch die Umgebungsvariable `DATA_DIR` festgelegt und verw
 OmniRoute/
 ├── src/                  Next.js-Anwendung (App Router, Bibliotheken, Domäne, Server, gemeinsam genutzter Code)
 ├── open-sse/             Workspace der Streaming-Engine (@omniroute/open-sse)
-├── electron/             Desktop-Wrapper (Electron-41-Hauptprozess + Preload)
 ├── bin/                  CLI-Einstiegspunkte (omniroute, reset-password)
 ├── tests/                Unit-, Integrations-, e2e-, protocols-e2e-, Übersetzer- und Sicherheitstests sowie Fixtures
 ├── scripts/              Hilfsskripte für Build, Synchronisierung, Prüfung, Migration und Laufzeit
@@ -575,26 +573,6 @@ Streaming-Grundelemente und Anbieter-Hilfsfunktionen: `stream.ts`, `streamHandle
 
 ---
 
-## 5. `electron/` — Desktop-Wrapper
-
-```
-electron/
-├── main.js                  Electron-Hauptprozess
-├── preload.js               Preload-Bridge (contextIsolation aktiviert)
-├── types.d.ts
-├── package.json             electron-builder-Konfiguration, Version 3.8.51
-├── README.md
-├── assets/                  Build-Ressourcen (Symbole, Berechtigungen, …)
-├── node_modules/            Dedizierte node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           Build-Ausgabe (nicht committet)
-```
-
-Fünf npm-Skripte im Workspace-Stammverzeichnis: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Automatische Updates erfolgen über
-`electron-updater`, das auf den GitHub-Release-Feed verweist.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -659,13 +637,11 @@ Häufig verwendete Befehle:
 Nach Zweck in 6 Unterordner gegliedert.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -845,7 +821,7 @@ Siehe [A2A-SERVER.md § Hinzufügen eines neuen Skills](../frameworks/A2A-SERVER
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — Fähigkeiten und Erkennung des A2A-Protokolls.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK- und Caveman-Komprimierung.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI-Integrationen.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (falls vorhanden), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — Bereitstellungsziele.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — Bereitstellungsziele.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — häufige betriebliche Probleme.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — Arbeitsablauf für Mitwirkende.
 - [CLAUDE.md](../../CLAUDE.md) — Repository-Regeln für Claude Code (die maßgebliche Quelle

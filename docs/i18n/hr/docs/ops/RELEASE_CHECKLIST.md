@@ -121,7 +121,6 @@ preskaču E2E matricu, bez ikakve oznake.
 ### Verzija i dnevnik promjena
 
 - [ ] Pokrenite `/version-bump-cc <patch|minor|major>` (Claude Code vještina)
-  - Povećava `package.json`, `electron/package.json`
   - Regenerira `CHANGELOG.md` iz git commitova od zadnje oznake
   - Ažurira značke u README.md
 - [ ] Ručno pregledajte CHANGELOG.md i po potrebi uredite poruke commitova
@@ -215,104 +214,6 @@ Prekidajuće promjene: dodajte podnožje `BREAKING CHANGE:` ili `!` nakon opsega
 - [ ] Modeli registrirani u `open-sse/config/providerRegistry.ts`
 - [ ] Unit testovi u `tests/unit/` pokrivaju klasifikaciju pružatelja i rutiranje
 
-### Desktop (Electron)
-
-Ako se `electron/` promijenio:
-
-- [ ] `npm run electron:smoke:packaged` prolazi
-- [ ] Buildovi testirani za barem jedno od `:win`, `:mac`, `:linux`
-- [ ] Certifikati za potpisivanje koda nisu istekli (ako se potpisuje)
-- [ ] Verzija `electron/package.json` odgovara verziji u korijenskom `package.json`
-- [ ] Pokazivač kanala za automatsko ažuriranje je ažuriran ako se objavljuje na `stable`
-
-### Raspored builda
-
-Repozitorij koristi tri različita izlazna direktorija — nikada ih ne miješajte:
-
-| Direktorij | Svrha                                                  | Praćen?         |
-| ---------- | ------------------------------------------------------ | --------------- |
-| `src/`     | Izvorni kod aplikacije (TypeScript / TSX)              | Da              |
-| `.build/`  | Međuproizvodi builda — izlaz `next build` (`distDir`)  | Ne (gitignored) |
-| `dist/`    | Paket npm za isporuku — sastavlja `assembleStandalone` | Ne (gitignored) |
-
-> **Napomena za operatera:** direktorij slika na udaljenom VPS-u ostaje `/usr/lib/node_modules/omniroute/app/`.
-> Premještena je samo **unutar-repozitorijska** izlazna putanja builda (`app/` → `dist/`). Vještine deploya rsynkaju
-> sadržaj `dist/` u udaljeni direktorij `app/` — nisu potrebne promjene VPS putanja.
-
-**Tok jednog builda:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (čišćenje)
-  └─ next build → .build/next/   (međuproizvodi)
-  └─ assembleStandalone          (kopira standalone + static + public + natives → dist/)
-  └─ piše dist/BUILD_SHA         (HEAD sentinel)
-```
-
-NE pokrećite `npm run build` praćen zasebnim `npm run build:cli` za deploy — koristite
-`npm run build:release` koji radi čisti rebuild + sentinel u jednoj naredbi.
-
-### Validacija artefakta
-
-- [ ] `npm run build:release` uspijeva i `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` čisto — nema `app.__qa_backup`, `scripts/scratch`, `package-lock.json` ili drugog lokalnog ostatka
-- [ ] `dist/server.js` postoji nakon builda
-
-### Označavanje i izdanje
-
-- [ ] Pokrenite `/generate-release-cc` (Claude Code vještina):
-  - Stvara oznaku `vX.Y.Z`
-  - Gura oznaku i granu
-  - Otvara GitHub Release s tijelom dnevnika promjena
-  - Prilaže Electron instalere (ako su izgrađeni)
-- [ ] Ili ručno:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deploy
-
-Vještine deploya koriste lagani rsync tok — bez `npm pack`, bez `npm i -g`:
-
-- [ ] Koristite vještinu deploya koja odgovara cilju:
-  - `/deploy-vps-local-cc` — lokalni VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — oba
-- [ ] Prije deploya, potvrdite da `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Build mora biti pokrenut tamo gdje je `node_modules` pravi (glavni checkout ili `npm ci`'d worktree — NE symlinked worktree)
-- [ ] Smoke test deployane instance:
-  - Otvorite `/dashboard/health` → provjerite da string verzije odgovara izdanju
-  - Pokrenite zahtjev `/v1/chat/completions` prema poznatom pružatelju
-  - Provjerite da `/api/monitoring/health` vraća `CLOSED` circuit breakere
-  - Potvrdite da MCP transporti odgovaraju (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Nakon izdanja
-
-- [ ] Pokrenite `/capture-release-evidences-cc` (Claude Code vještina)
-  - Snima WebP snimke zaslona/snimke novih značajki
-  - Prilaže bilješkama o izdanju / blog postu
-- [ ] Ažurirajte GitHub Discussions / Discord s obavijesti o izdanju
-- [ ] Otvorite milestone za sljedeću verziju
-- [ ] Ako je kritično: prikvačite raspravu ili objavite u `news.json` za banner unutar aplikacije
-
-### Javna vrata pokretanja Radara
-
-Radar najava je namjerno predana s `active: false`. Aktivacija je zasebna
-promjena nakon što su svi donji koraci evidentirani:
-
-- [ ] Svi složeni Radar PR-ovi su spojeni i CI na vrhu izdanja je zelen
-- [ ] Deployajte i smoke testirajte OSS Radar rute s `RADAR_ENABLED` i dalje isključenim po zadanom
-- [ ] Smoke testirajte `GET /planos`, `/termos`, `/privacidade` i `/reembolso` na imenovanom Radar hostu
-- [ ] Zabilježite identitet/kontakt/adresu operatera i pravni pregled odobren od vlasnika u privatnoj usluzi
-- [ ] Koristite Stripe Checkout i potpisani webhook samo u testnom načinu
-- [ ] Koristite jedno šifrirano transakcijsko slanje e-pošte s odobrenim pošiljateljem/domenom
-- [ ] Dokažite obnavljanje iz sigurnosne kopije i jedno nadzirano, budžetom ograničeno istraživačko pokretanje
-- [ ] Odobrite BRL/PIX politiku pregleda prije prihvaćanja dokaza o donacijama
-- [ ] Omogućite javni Checkout tek nakon prethodnih vrata, zatim aktivirajte novi `news.json` ID
-- [ ] Provjerite da Home banner koristi lokalizirani tekst i da se novi ID ponovo pojavljuje nakon što stariji ID bude odbačen
-
 ## Smoke testovi ugrađenih servisa (v3.8.4+)
 
 Prije isporuke bilo kojeg izdanja koje uključuje promjene ugrađenih servisa, provjerite:
@@ -398,7 +299,7 @@ Ako izdanje ima kritičan problem:
 - Nikada ne preskakati Husky hookove (`--no-verify`)
 - Nikada ne commitati tajne podatke, vjerodajnice ili `.env` datoteke
 - Pokrivenost mora ostati ≥60/60/60/60 (naredbe/linije/funkcije/grane)
-- Uvijek uključiti ili ažurirati testove pri izmjeni produkcijskog koda u `src/`, `open-sse/`, `electron/` ili `bin/`
+- Uvijek uključiti ili ažurirati testove pri izmjeni produkcijskog koda u `src/`, `open-sse/` ili `bin/`
 
 ## Automatska provjera sinkronizacije
 

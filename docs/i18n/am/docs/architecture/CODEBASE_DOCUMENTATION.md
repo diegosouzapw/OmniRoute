@@ -27,7 +27,6 @@
 | ቋንቋ        | **TypeScript 6.0+** — ዒላማ `ES2022`፣ `module: esnext`፣ `moduleResolution: bundler`፣ `strict: false`                       |
 | የአሂድ ጊዜ    | **Node.js** `>=22.22.2 <23` ወይም `>=24.0.0 <27` (በ`engines` + `SUPPORTED_NODE_RANGE` የሚያስገደድ)                             |
 | የውሂብ ጎታ    | **SQLite** በ`better-sqlite3` በኩል (singleton፣ WAL journaling)                                                             |
-| ዴስክቶፕ      | **Electron 41** + `electron-builder` 26.10 (በ`electron/` የሚገኝ የተለየ workspace)                                            |
 | ሙከራዎች      | **Node native test runner** (unit/integration)፣ **Vitest** (MCP፣ autoCombo፣ cache)፣ **Playwright** (e2e + protocols-e2e) |
 | ግንባታ       | Next.js standalone በ`scripts/build/build-next-isolated.mjs` በኩል                                                          |
 | Lint/ቅርጸት  | ESLint flat config + Prettier (`lint-staged` በHusky pre-commit በኩል)                                                      |
@@ -51,7 +50,6 @@
 OmniRoute/
 ├── src/                  የNext.js መተግበሪያ (App Router፣ libs፣ domain፣ server፣ shared)
 ├── open-sse/             የStreaming engine workspace (@omniroute/open-sse)
-├── electron/             የዴስክቶፕ wrapper (Electron 41 main + preload)
 ├── bin/                  የCLI መግቢያ ነጥቦች (omniroute፣ reset-password)
 ├── tests/                Unit፣ integration፣ e2e፣ protocols-e2e፣ translator፣ security፣ fixtures
 ├── scripts/              የግንባታ፣ ማመሳሰል፣ ፍተሻ፣ migration እና የአሂድ ጊዜ አጋዥ scripts
@@ -574,26 +572,6 @@ open-sse/
 
 ---
 
-## 5. `electron/` — የዴስክቶፕ ማቀፊያ
-
-```
-electron/
-├── main.js                  የElectron ዋና ፕሮሰስ
-├── preload.js               ቅድመ-ጭነት ድልድይ (contextIsolation ነቅቷል)
-├── types.d.ts
-├── package.json             የelectron-builder ውቅር፣ ስሪት 3.8.51
-├── README.md
-├── assets/                  የግንባታ ግብዓቶች (አዶዎች፣ መብቶች፣ …)
-├── node_modules/            የተለየ node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           የግንባታ ውጤት (ወደ ማከማቻው አልተመዘገበም)
-```
-
-በworkspace ሥር አምስት npm ስክሪፕቶች አሉ፦ `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`። ራስ-ሰር ማዘመን የGitHub ልቀት ምንጭን
-በሚጠቁመው `electron-updater` በኩል ይከናወናል።
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -658,13 +636,11 @@ bin/
 በዓላማቸው መሠረት በ6 ንዑስ አቃፊዎች ተደራጅተዋል።
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -843,7 +819,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — የA2A protocol ክህሎቶች እና ፍለጋ።
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK + Caveman compression።
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — የCLI ውህደቶች።
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (ካለ)፣ [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md)፣ [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md)፣ [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md)፣ [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md)፣ [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — የdeployment ዒላማዎች።
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md)፣ [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md)፣ [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md)፣ [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md)፣ [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — የdeployment ዒላማዎች።
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — የተለመዱ የክወና ችግሮች።
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — የአስተዋጽዖ አድራጊዎች የሥራ ፍሰት።
 - [CLAUDE.md](../../CLAUDE.md) — ለClaude Code የrepo ደንቦች (ከላይ ለተጠቀሱት

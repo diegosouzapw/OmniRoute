@@ -27,7 +27,6 @@ nang hindi gumagawa ng mga bagong module.
 | Wika          | **TypeScript 6.0+** — target na `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                 |
 | Runtime       | **Node.js** `>=22.22.2 <23` o `>=24.0.0 <27` (ipinapatupad sa pamamagitan ng `engines` + `SUPPORTED_NODE_RANGE`)         |
 | Database      | **SQLite** sa pamamagitan ng `better-sqlite3` (singleton, WAL journaling)                                                |
-| Desktop       | **Electron 41** + `electron-builder` 26.10 (hiwalay na workspace sa `electron/`)                                         |
 | Mga test      | **Node native test runner** (unit/integration), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | Build         | Next.js standalone sa pamamagitan ng `scripts/build/build-next-isolated.mjs`                                             |
 | Lint/format   | ESLint flat config + Prettier (`lint-staged` sa pamamagitan ng Husky pre-commit)                                         |
@@ -51,7 +50,6 @@ directory ay ang `DATA_DIR` env var, na may default na `~/.omniroute/`.
 OmniRoute/
 ├── src/                  Next.js application (App Router, mga library, domain, server, shared)
 ├── open-sse/             Workspace ng streaming engine (@omniroute/open-sse)
-├── electron/             Desktop wrapper (Electron 41 main + preload)
 ├── bin/                  Mga CLI entry point (omniroute, reset-password)
 ├── tests/                Unit, integration, e2e, protocols-e2e, translator, security, mga fixture
 ├── scripts/              Mga helper script para sa build, sync, check, migration, at runtime
@@ -572,26 +570,6 @@ Mga primitive sa pag-stream at mga helper ng provider: `stream.ts`, `streamHandl
 
 ---
 
-## 5. `electron/` — Desktop wrapper
-
-```
-electron/
-├── main.js                  Pangunahing proseso ng Electron
-├── preload.js               Preload bridge (naka-enable ang contextIsolation)
-├── types.d.ts
-├── package.json             Config ng electron-builder, bersyon 3.8.51
-├── README.md
-├── assets/                  Mga resource sa build (mga icon, entitlement, …)
-├── node_modules/            Nakalaang node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           Output ng build (hindi naka-commit)
-```
-
-Limang npm script sa root ng workspace: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Isinasagawa ang awtomatikong pag-update sa pamamagitan ng
-`electron-updater` na nakaturo sa feed ng release sa GitHub.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -656,13 +634,11 @@ Mga karaniwang command:
 Isinaayos sa 6 na subfolder ayon sa layunin.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -842,7 +818,7 @@ Tingnan ang [A2A-SERVER.md § Pagdaragdag ng Bagong Skill](../frameworks/A2A-SER
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — mga kasanayan at discovery ng A2A protocol.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK + Caveman compression.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — mga integrasyon ng CLI.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (kung mayroon), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — mga target ng deployment.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — mga target ng deployment.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — mga karaniwang isyu sa operasyon.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — daloy ng trabaho ng contributor.
 - [CLAUDE.md](../../CLAUDE.md) — mga panuntunan ng repo para sa Claude Code (ang pangunahing

@@ -225,7 +225,7 @@ Catatan cakupan:
 
 - `npm run test:coverage` mengukur cakupan sumber untuk rangkaian pengujian unit utama, mengecualikan `tests/**`, dan menyertakan `open-sse/**`
 - Pull request harus mempertahankan gerbang cakupan pada **60%+** pernyataan/baris/fungsi/cabang
-- Jika PR mengubah kode produksi di `src/`, `open-sse/`, `electron/`, atau `bin/`, PR tersebut harus menambahkan atau memperbarui pengujian otomatis dalam PR yang sama
+- Jika PR mengubah kode produksi di `src/`, `open-sse/`, atau `bin/`, PR tersebut harus menambahkan atau memperbarui pengujian otomatis dalam PR yang sama
 - `npm run coverage:report` mencetak laporan terperinci per file dari eksekusi cakupan terbaru
 - `npm run test:coverage:legacy` mempertahankan metrik lama untuk perbandingan historis
 - Lihat `docs/ops/COVERAGE_PLAN.md` untuk peta jalan peningkatan cakupan bertahap
@@ -330,7 +330,6 @@ open-sse/                   # Workspace @omniroute/open-sse
 ├── transformer/            # Transformer Responses API
 └── utils/                  # 22 modul utilitas (aliran, TLS, proksi, logging)
 
-electron/                   # Aplikasi desktop Electron (lintas platform)
 
 tests/
 ├── unit/                   # Test runner Node.js (1.574 file pengujian)

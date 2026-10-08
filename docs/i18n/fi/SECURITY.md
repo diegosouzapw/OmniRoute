@@ -197,7 +197,7 @@ docker run -d \
 
 ## Riippuvuudet
 
-- Suorita `npm audit` säännöllisesti (`npm run audit:deps` kattaa pääsovelluksen ja Electronin)
+- Suorita `npm audit` säännöllisesti ()
 - Pidä riippuvuudet ajan tasalla
 - Projekti käyttää `husky`- ja `lint-staged`-paketteja commitia edeltäviin tarkistuksiin (lint-staged + check-docs-sync + check:any-budget:t11)
 - CI-putki suorittaa ESLintin tietoturvasäännöt jokaisen push-toiminnon yhteydessä (`no-eval`, `no-implied-eval`, `no-new-func` = virhe)

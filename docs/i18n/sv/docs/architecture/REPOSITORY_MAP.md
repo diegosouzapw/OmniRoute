@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16-applikation (UI + API-rutter + bibliotek + domän + server)
 ├── open-sse/             # Arbetsyta för strömningsmotorn (hanterare, exekverare, översättare, MCP-server)
-├── electron/             # Skrivbordsomslag (Electron 41 + electron-builder 26.10)
 ├── bin/                  # CLI-startpunkt och kommandohanterare
 ├── scripts/              # Skript för byggande, kontroller, synkronisering och engångsåtgärder
 ├── docs/                 # Offentlig dokumentation (du är här)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Skrivbordsomslag
-
-| Fil              | Syfte                                                                                               |
-| ---------------- | --------------------------------------------------------------------------------------------------- |
-| `main.js`        | Electrons huvudprocess (BrowserWindow, inbäddad Next.js-server, systemfält, automatisk uppdatering) |
-| `preload.js`     | IPC-brygga (contextBridge → `window.omniroute`)                                                     |
-| `package.json`   | electron-builder-konfiguration + beroenden för Electron 41 + electron-builder 26.10                 |
-| `assets/`        | Appikoner (Windows .ico, macOS .icns, Linux .png)                                                   |
-| `dist-electron/` | Byggutdata (ignoreras av git)                                                                       |
-| `types.d.ts`     | Typdeklarationer för renderarbryggan                                                                |
-| `README.md`      | Intern README för Electron (se även `docs/guides/ELECTRON_GUIDE.md`)                                |
-
----
-
 ## `bin/` — CLI
 
 | Fil                                                                                                         | Syfte                                                                                                                                 |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | MCP/A2A-körning för E2E-tester                                                                        |
 | `run-ecosystem-tests.mjs`           | Ekosystemtester (leverantörsintegrering)                                                              |
 | `test-report-summary.mjs`           | Generera en sammanfattning av täckningen i markdown                                                   |
-| `smoke-electron-packaged.mjs`       | Röktesta paketerat Electron-bygge                                                                     |
-| `native-binary-compat.mjs`          | Validera att systemspecifika beroenden (`better-sqlite3`) matchar Electrons Node                      |
 | `validate-pack-artifact.ts`         | Validera utdata från npm-paketering                                                                   |
 | `responses-ws-proxy.mjs`            | WebSocket-brygga för Codex Responses API                                                              |
 | `v1-ws-bridge.mjs`                  | WebSocket-brygga för slutpunkten `/api/v1/ws`                                                         |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Användarhandbok (konfiguration, modeller, kombinationer, CLI:er, ljud osv.)                            |
 | `API_REFERENCE.md`          | Referens för API-slutpunkter med autentiseringsmodell                                                  |
 | `openapi.yaml`              | OpenAPI 3.0-specifikation (121 sökvägar)                                                               |
-| `SETUP_GUIDE.md`            | Installationsmetoder (npm, npx, Docker, Electron, Termux, källkod)                                     |
+| `SETUP_GUIDE.md`            | Installationsmetoder (npm, npx, Docker, Termux, källkod)                                               |
 | `ENVIRONMENT.md`            | Alla miljövariabler (~800 dokumenterade, ~3 050 rader i `.env.example`)                                |
 | `TROUBLESHOOTING.md`        | Vanliga fel + kända problem i v3.8.0                                                                   |
 | `RELEASE_CHECKLIST.md`      | Fullständigt utgivningsflöde (färdigheter, husky, konventionella commits, driftsättning)               |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io-driftsättning (för närvarande endast på kinesiska)          |
 | `TERMUX_GUIDE.md`            | Android utan grafiskt gränssnitt via Termux                        |
 | `PWA_GUIDE.md`               | Installation av progressiv webbapp + service worker                |
-| `ELECTRON_GUIDE.md`          | Bygg + signera + distribuera skrivbordsappen                       |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                             |
 | `PROXY_GUIDE.md`             | Utgående proxy i 4 nivåer + marknadsplatsen 1proxy                 |
 

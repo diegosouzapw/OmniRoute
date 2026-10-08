@@ -16,7 +16,7 @@ comum de alteração aos seus contratos, verificações focadas e cobertura de C
    [Modelo de branches e releases](BRANCHING_MODEL.md).
 2. **Identifique os contratos.** Identifique cada catálogo, esquema, artefato gerado, API pública ou interface de
    usuário afetado pela alteração. A tabela abaixo apresenta o conjunto inicial mínimo.
-3. **Escreva ou atualize testes focados.** Alterações de produção em `src/`, `open-sse/`, `electron/` ou
+3. **Escreva ou atualize testes focados.** Alterações de produção em `src/`, `open-sse/` ou
    `bin/` exigem um teste automatizado na mesma PR. Execute os menores arquivos de teste que comprovem o
    comportamento e, em seguida, as verificações focadas listadas.
 4. **Deixe a CI executar a matriz ampla.** Os shards completos de testes unitários, o Vitest, o limite progressivo de cobertura e o

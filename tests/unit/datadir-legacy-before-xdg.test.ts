@@ -4,7 +4,7 @@
 // The canonical resolver (src/lib/dataPaths.ts::getDefaultDataDir) and the CLI
 // (bin/cli/data-dir.mjs) already did. The three self-contained copies did not —
 // scripts/build/bootstrap-env.mjs (server bootstrap, copied alone into the standalone
-// build), scripts/dev/sync-env.mjs (`npm run env:sync`) and electron/main.js (CJS) jumped
+// build) and scripts/dev/sync-env.mjs (`npm run env:sync`) jumped
 // straight to XDG whenever XDG_CONFIG_HOME was set. On a machine that exports
 // XDG_CONFIG_HOME, the first `npm run dev` therefore persisted JWT_SECRET,
 // STORAGE_ENCRYPTION_KEY and API_KEY_SECRET to ~/.config/omniroute/server.env while the app
@@ -135,24 +135,4 @@ test("bootstrapEnv persists first-run secrets into the existing legacy ~/.omniro
     );
     assert.match(persisted, new RegExp(`^JWT_SECRET=${env.JWT_SECRET}$`, "m"));
   });
-});
-
-// electron/main.js exports nothing and needs the Electron runtime, so — like
-// electron-server-env-private-modes.test.ts — pin the contract at the source: inside its
-// resolveDataDir(), the legacy-directory check must come before the XDG_CONFIG_HOME branch.
-test("electron main.js resolveDataDir checks the legacy ~/.omniroute before XDG_CONFIG_HOME", () => {
-  const src = fs.readFileSync(path.join(process.cwd(), "electron/main.js"), "utf8");
-  const start = src.indexOf("function resolveDataDir(overridePath, env = process.env) {");
-  assert.notEqual(start, -1, "electron/main.js must keep its self-contained resolveDataDir()");
-  const end = src.indexOf("\n}\n", start);
-  const fnSource = src.slice(start, end);
-
-  const legacyCheck = fnSource.search(/isDirectory\(\)/);
-  const xdgBranch = fnSource.indexOf("XDG_CONFIG_HOME");
-  assert.notEqual(xdgBranch, -1, "resolver still honours XDG_CONFIG_HOME");
-  assert.notEqual(legacyCheck, -1, "resolver must stat the legacy ~/.omniroute directory");
-  assert.ok(
-    legacyCheck < xdgBranch,
-    "the existing-legacy-dir check must precede the XDG_CONFIG_HOME branch"
-  );
 });

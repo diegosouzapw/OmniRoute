@@ -31,7 +31,7 @@ Objective feature comparison vs popular open-source AI routers.
 | **TLS fingerprint stealth (JA3/JA4)**              |                 ✅ wreq-js                  |       ❌       |        ❌         |     ❌      |
 | **Eval framework**                                 |                 ✅ built-in                 |       ❌       |        ❌         |   ⚠ paid    |
 | **MITM proxy (intercepts Cursor/Antigravity)**     |              ✅ cross-platform              |       ❌       |        ❌         |     ❌      |
-| **CLI with system tray (no Electron)**             |                     ✅                      |       ❌       |        n/a        |     n/a     |
+| **CLI with system tray**                           |                     ✅                      |       ❌       |        n/a        |     n/a     |
 | **CLI machine-ID auto-auth**                       |                     ✅                      |       ❌       |        n/a        |     n/a     |
 | **Dashboard**                                      |                 Next.js 16                  |     basic      |    proprietary    | proprietary |
 | **i18n**                                           |               **42 locales**                |       ❌       |        ❌         |      ⚠      |

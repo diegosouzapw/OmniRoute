@@ -27,7 +27,6 @@
 | ભાષા           | **TypeScript 6.0+** — લક્ષ્ય `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                  |
 | રનટાઇમ         | **Node.js** `>=22.22.2 <23` અથવા `>=24.0.0 <27` (`engines` + `SUPPORTED_NODE_RANGE` દ્વારા અમલમાં મૂકાયેલ)             |
 | ડેટાબેઝ        | `better-sqlite3` મારફતે **SQLite** (સિંગલટન, WAL જર્નલિંગ)                                                             |
-| ડેસ્કટૉપ       | **Electron 41** + `electron-builder` 26.10 (`electron/` ખાતે અલગ વર્કસ્પેસ)                                            |
 | ટેસ્ટ્સ        | **Node નેટિવ ટેસ્ટ રનર** (યુનિટ/ઇન્ટિગ્રેશન), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | બિલ્ડ          | `scripts/build/build-next-isolated.mjs` મારફતે Next.js સ્ટૅન્ડઅલોન                                                     |
 | લિન્ટ/ફોર્મેટ  | ESLint ફ્લૅટ કૉન્ફિગ + Prettier (Husky પ્રી-કમિટ મારફતે `lint-staged`)                                                 |
@@ -51,7 +50,6 @@
 OmniRoute/
 ├── src/                  Next.js એપ્લિકેશન (App Router, લાઇબ્રેરીઓ, ડોમેન, સર્વર, શેર્ડ)
 ├── open-sse/             સ્ટ્રીમિંગ એન્જિન વર્કસ્પેસ (@omniroute/open-sse)
-├── electron/             ડેસ્કટૉપ રૅપર (Electron 41 મુખ્ય + પ્રીલોડ)
 ├── bin/                  CLI એન્ટ્રી પોઇન્ટ્સ (omniroute, reset-password)
 ├── tests/                યુનિટ, ઇન્ટિગ્રેશન, e2e, protocols-e2e, ટ્રાન્સલેટર, સુરક્ષા, ફિક્સ્ચર્સ
 ├── scripts/              બિલ્ડ, સિંક, ચેક, માઇગ્રેશન અને રનટાઇમ સહાયક સ્ક્રિપ્ટ્સ
@@ -575,26 +573,6 @@ open-sse/
 
 ---
 
-## 5. `electron/` — ડેસ્કટોપ રૅપર
-
-```
-electron/
-├── main.js                  Electron મુખ્ય પ્રોસેસ
-├── preload.js               પ્રીલોડ બ્રિજ (contextIsolation સક્ષમ)
-├── types.d.ts
-├── package.json             electron-builder રૂપરેખાંકન, સંસ્કરણ 3.8.51
-├── README.md
-├── assets/                  બિલ્ડ સંસાધનો (આઇકન્સ, એન્ટાઇટલમેન્ટ્સ, …)
-├── node_modules/            સમર્પિત node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           બિલ્ડ આઉટપુટ (કમિટ કરેલ નથી)
-```
-
-વર્કસ્પેસ રૂટમાં પાંચ npm સ્ક્રિપ્ટ્સ: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. સ્વચાલિત અપડેટ
-GitHub રિલીઝ ફીડ તરફ નિર્દેશ કરતા `electron-updater` દ્વારા થાય છે.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -659,13 +637,11 @@ bin/
 હેતુ અનુસાર 6 ઉપફોલ્ડરમાં ગોઠવાયેલ છે.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -843,7 +819,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A પ્રોટોકોલ કુશળતાઓ અને ડિસ્કવરી.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK + Caveman કમ્પ્રેશન.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI ઇન્ટિગ્રેશન્સ.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (જો ઉપલબ્ધ હોય), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — ડિપ્લોયમેન્ટ લક્ષ્યો.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — ડિપ્લોયમેન્ટ લક્ષ્યો.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — સામાન્ય ઓપરેશનલ સમસ્યાઓ.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — યોગદાનકર્તા વર્કફ્લો.
 - [CLAUDE.md](../../CLAUDE.md) — Claude Code માટેના રિપોઝિટરી નિયમો (ઉપરના ઘણા નિયમો માટે

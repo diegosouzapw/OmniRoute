@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16 հավելված (UI + API երթուղիներ + գրադարաններ + տիրույթ + սերվեր)
 ├── open-sse/             # Հոսքային շարժիչի աշխատանքային տարածք (մշակիչներ, կատարիչներ, թարգմանիչ, MCP սերվեր)
-├── electron/             # Սեղանադիր հավելվածի շապիկ (Electron 41 + electron-builder 26.10)
 ├── bin/                  # CLI մուտքի կետ և հրամանների մշակիչներ
 ├── scripts/              # Կառուցման, ստուգման, համաժամացման և մեկանգամյա սկրիպտներ
 ├── docs/                 # Հանրային փաստաթղթեր (դուք այստեղ եք)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Սեղանադիր հավելվածի փաթեթ
-
-| Ֆայլ             | Նպատակ                                                                                                          |
-| ---------------- | --------------------------------------------------------------------------------------------------------------- |
-| `main.js`        | Electron-ի հիմնական գործընթաց (BrowserWindow, ներդրված Next.js սերվեր, համակարգային սկուտեղ, ավտոմատ թարմացում) |
-| `preload.js`     | IPC կամուրջ (contextBridge → `window.omniroute`)                                                                |
-| `package.json`   | electron-builder-ի կազմաձևում + Electron 41 + electron-builder 26.10 կախվածություններ                           |
-| `assets/`        | Հավելվածի պատկերակներ (Windows .ico, macOS .icns, Linux .png)                                                   |
-| `dist-electron/` | Կառուցման արդյունք (անտեսվում է git-ի կողմից)                                                                   |
-| `types.d.ts`     | Արտապատկերման կամրջի տիպերի հայտարարություններ                                                                  |
-| `README.md`      | Ներքին Electron README (տե՛ս նաև `docs/guides/ELECTRON_GUIDE.md`)                                               |
-
----
-
 ## `bin/` — CLI
 
 | Ֆայլ                                                                                                        | Նպատակ                                                                                                                                    |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | MCP/A2A E2E թեստերի գործարկիչ                                                                                       |
 | `run-ecosystem-tests.mjs`           | Էկոհամակարգի (մատակարարների ինտեգրման) թեստեր                                                                       |
 | `test-report-summary.mjs`           | Ծածկույթի ամփոփիչ markdown-ի ստեղծում                                                                               |
-| `smoke-electron-packaged.mjs`       | Փաթեթավորված Electron կառուցման ծխային թեստավորում                                                                  |
-| `native-binary-compat.mjs`          | Ստուգել, որ բնիկ կախվածությունները (`better-sqlite3`) համապատասխանում են Electron-ի Node-ին                         |
 | `validate-pack-artifact.ts`         | Ստուգել npm փաթեթավորման արդյունքը                                                                                  |
 | `responses-ws-proxy.mjs`            | WebSocket կամուրջ Codex Responses API-ի համար                                                                       |
 | `v1-ws-bridge.mjs`                  | WebSocket կամուրջ `/api/v1/ws` վերջնակետի համար                                                                     |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Վերջնական օգտագործողի ձեռնարկ (կարգավորում, մոդելներ, համակցություններ, CLI-ներ, ձայն և այլն)          |
 | `API_REFERENCE.md`          | API վերջնակետերի տեղեկատու՝ նույնականացման մոդելով                                                     |
 | `openapi.yaml`              | OpenAPI 3.0 մասնագիր (121 ուղի)                                                                        |
-| `SETUP_GUIDE.md`            | Տեղադրման եղանակներ (npm, npx, Docker, Electron, Termux, սկզբնաղբյուր)                                 |
+| `SETUP_GUIDE.md`            | Տեղադրման եղանակներ (npm, npx, Docker, Termux, սկզբնաղբյուր)                                           |
 | `ENVIRONMENT.md`            | Բոլոր միջավայրի փոփոխականները (~800-ը փաստաթղթավորված է, `.env.example`-ում՝ ~3,050 տող)               |
 | `TROUBLESHOOTING.md`        | Տարածված սխալներ + v3.8.0-ի հայտնի խնդիրներ                                                            |
 | `RELEASE_CHECKLIST.md`      | Թողարկման ամբողջական հոսք (հմտություններ, husky, conventional commits, տեղակայում)                     |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io տեղակայում (ներկայումս՝ միայն չինարեն)                                    |
 | `TERMUX_GUIDE.md`            | Android-ի առանց գրաֆիկական միջերեսի աշխատանք՝ Termux-ի միջոցով                   |
 | `PWA_GUIDE.md`               | Progressive Web App-ի տեղադրում + ծառայության աշխատիչ                            |
-| `ELECTRON_GUIDE.md`          | Սեղանադիր հավելվածի կառուցում + ստորագրում + տարածում                            |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                           |
 | `PROXY_GUIDE.md`             | 4-մակարդականի ելքային պրոքսի + 1proxy շուկա                                      |
 

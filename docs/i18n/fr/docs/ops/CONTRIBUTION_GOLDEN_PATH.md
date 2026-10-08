@@ -16,7 +16,7 @@ de modification courant à ses contrats, ses vérifications ciblées et sa couve
    [Modèle de branches et de versions](BRANCHING_MODEL.md).
 2. **Nommez les contrats.** Identifiez chaque catalogue, schéma, artefact généré, API publique ou interface
    utilisateur affecté par la modification. Le tableau ci-dessous indique l’ensemble de départ minimal.
-3. **Écrivez ou mettez à jour des tests ciblés.** Les modifications du code de production dans `src/`, `open-sse/`, `electron/` ou
+3. **Écrivez ou mettez à jour des tests ciblés.** Les modifications du code de production dans `src/`, `open-sse/` ou
    `bin/` nécessitent un test automatisé dans la même PR. Exécutez les fichiers de test les plus restreints qui valident
    le comportement, puis les contrôles ciblés indiqués.
 4. **Laissez la CI exécuter la matrice complète.** L’ensemble des segments de tests unitaires, Vitest, le seuil progressif de couverture et

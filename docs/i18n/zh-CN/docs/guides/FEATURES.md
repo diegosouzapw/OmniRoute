@@ -264,25 +264,6 @@ OpenRouter 连接可以在高级设置中存储每个连接专属的 `preset`。
 
 ---
 
-## 🖥️ 桌面应用程序
-
-适用于 Windows、macOS 和 Linux 的原生 Electron 桌面应用。可将 OmniRoute 作为独立应用程序运行，支持系统托盘集成、离线使用、自动更新和一键安装。
-
-主要功能：
-
-- 服务器就绪状态轮询（冷启动时不会出现空白屏幕）
-- 支持端口管理的系统托盘
-- 内容安全策略
-- 单实例锁
-- 重启时自动更新
-- 根据平台显示不同的界面（macOS 红绿灯按钮、Windows/Linux 默认标题栏）
-- 强化的 Electron 构建打包——打包前会检测并拒绝独立软件包中以符号链接形式存在的 `node_modules`，防止运行时依赖构建机器 (v2.5.5+)
-- **优雅关闭**——Electron `before-quit` 会彻底关闭 Next.js，防止 SQLite WAL 数据库锁定 (v3.6.2+)
-
-📖 完整文档请参阅 [`electron/README.md`](../../electron/README.md)。
-
----
-
 ## 🌐 V1 WebSocket 桥接器 _(v3.6.6+)_
 
 OmniRoute 现在通过 `/v1/ws` 升级端点支持**兼容 OpenAI 的 WebSocket 客户端**。自定义 `scripts/dev/v1-ws-bridge.mjs` 服务器会封装 Next.js，并将 WS 连接升级为完整的双向流式会话。身份验证使用与 HTTP 请求相同的 API 密钥或会话 Cookie。

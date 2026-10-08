@@ -16,7 +16,7 @@ uzual de modificare cu contractele sale, verificările specifice și acoperirea 
    [Modelul de ramificare și lansare](BRANCHING_MODEL.md).
 2. **Specificați contractele.** Identificați fiecare catalog, schemă, artefact generat, API public sau interfață cu
    utilizatorul afectată de modificare. Tabelul de mai jos prezintă setul inițial minim.
-3. **Scrieți sau actualizați testele specifice.** Modificările de producție din `src/`, `open-sse/`, `electron/` sau
+3. **Scrieți sau actualizați testele specifice.** Modificările de producție din `src/`, `open-sse/` sau
    `bin/` necesită un test automat în același PR. Rulați cele mai restrânse fișiere de test care demonstrează
    comportamentul, apoi verificările specifice enumerate.
 4. **Permiteți CI să ruleze matricea extinsă.** Segmentele complete de teste unitare, Vitest, pragul progresiv de acoperire și

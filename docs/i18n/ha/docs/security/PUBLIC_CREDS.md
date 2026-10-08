@@ -91,7 +91,7 @@ Lokacin da kake buƙatar saka sabuwar ƙima da upstream ya bayar wadda:
 
 ### 3. Tsarukan da aka haramta
 
-❌ **Kada taɓa** yin ɗaya daga cikin waɗannan a cikin production code (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ **Kada taɓa** yin ɗaya daga cikin waɗannan a cikin production code (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // MARA KYAU: literal value yana tayar da Secret Scanning + Semgrep

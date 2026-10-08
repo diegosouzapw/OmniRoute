@@ -30,7 +30,6 @@ import {
   type SidebarItemDefinition,
   type HideableSidebarItemId,
 } from "@/shared/constants/sidebarVisibility";
-import { useIsElectron } from "@/shared/hooks/useElectron";
 
 const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
 
@@ -183,14 +182,8 @@ export default function Header({
   const isMac = useSyncExternalStore(subscribePlatform, getPlatformIsMac, getPlatformIsMacServer);
   const pathname = usePathname();
   const router = useRouter();
-  const isElectron = useIsElectron();
   const t = useTranslations("header");
   const { title, description, icon, providerId } = usePageInfo(pathname);
-  const isMacElectron =
-    isElectron &&
-    typeof window !== "undefined" &&
-    (window as any).electronAPI?.platform === "darwin";
-
   const handleLogout = async () => {
     try {
       const res = await fetch("/api/auth/logout", { method: "POST" });
@@ -207,9 +200,7 @@ export default function Header({
     <header
       className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-bg px-6 py-4 lg:px-8"
       style={{
-        paddingTop: isMacElectron
-          ? "calc(1rem + var(--desktop-safe-top))"
-          : "calc(1rem + var(--ios-safe-top, 0px))",
+        paddingTop: "calc(1rem + var(--ios-safe-top, 0px))",
       }}
     >
       {/* Mobile menu button */}

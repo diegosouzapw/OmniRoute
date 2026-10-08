@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Docker-ის სრული დაყენებისთვის, Compose პროფილებისა და Caddy HTTPS-ის ჩათვლით, იხილეთ [Docker-ის სახელმძღვანელო](./DOCKER_GUIDE.md).
 
-### დესკტოპის აპლიკაცია (Electron)
-
-OmniRoute-ს მოჰყვება Electron 41-სა და electron-builder 26.10-ზე აგებული დესკტოპის გარსი. ხელმისაწვდომი სკრიპტები (სამუშაო სივრცის ძირეული დირექტორია):
-
-```bash
-npm run electron:dev          # დესკტოპის გაშვება ავტომატური გადატვირთვით
-npm run electron:build        # მიმდინარე OS-ისთვის აგება (ავტომატურად აღმოჩენილი)
-npm run electron:build:win    # Windows-ის ინსტალატორი (NSIS + პორტატიული)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # შეფუთული აგების საბაზისო ტესტირება
-```
-
-დესკტოპის ინსტალატორების გამოშვებები თან ერთვის GitHub Releases-ს. Electron-ის სრული დეტალური მიმოხილვისთვის (ხელმოწერა, IPC ხიდი, დისტრიბუტივები) იხილეთ [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _(მოგვიანებით ეტაპზე შექმნილი)_.
-
 ### უთავო სერვერი (CI/ავტომატიზაცია)
 
 ოპერატორის ჩარევის გარეშე დასაყენებლად (Docker, Kubernetes, CI) გამოიყენეთ:

@@ -27,7 +27,6 @@ mingħajr ma joħloq moduli ġodda.
 | Lingwa             | **TypeScript 6.0+** — immirat `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                                |
 | Ħin reali          | **Node.js** `>=22.22.2 <23` jew `>=24.0.0 <27` (infurzat permezz ta' `engines` + `SUPPORTED_NODE_RANGE`)                              |
 | Database           | **SQLite** permezz ta' `better-sqlite3` (singletone, WAL journaling)                                                                  |
-| Desktop            | **Electron 41** + `electron-builder` 26.10 (spazju tax-xogħol separata f'`electron/`)                                                 |
 | Testijiet          | **Xejrier tat-test ta' Node nattiv** (unità/integrazzjoni), **Vitest** (MCP, awtokumpju, kejks), **Playwright** (e2e + protocols-e2e) |
 | Ħafna tal-Bini     | Next.js awtonomu permezz ta' `scripts/build/build-next-isolated.mjs`                                                                  |
 | Lindjar/Format     | Konfigurazzjoni ċatta ESLint + Prettier (`lint-staged` permezz ta' Husky pre-commit)                                                  |
@@ -51,7 +50,6 @@ d tad-dejta huwa l-varjambli tal-ambjent `DATA_DIR`, b'defaults għal `~/.omniro
 OmniRoute/
 ├── src/                  Applikazzjoni Next.js (App Router, libs, dominju, server, komuni)
 ├── open-sse/             Xejrier tat-tixrid tax-xogħol (@omniroute/open-sse)
-├── electron/             Warapper desktop (Electron 41 principali + preload)
 ├── bin/```
 >Punti tad-dħul CLI (omniroute, reset-password)
 ├── tests/                Unità, integrazzjoni, e2e, protocols-e2e, traduttur, sigurtà, fixtures
@@ -576,26 +574,6 @@ Primitivi tal-istrimjar u għodod awżiljarji tal-fornitur: `stream.ts`, `stream
 
 ---
 
-## 5. `electron/` — Wrapper tal-Desktop
-
-```
-electron/
-├── main.js                  Proċess principali Electron
-├── preload.js               Pont ta' preload (contextIsolation attivat)
-├── types.d.ts
-├── package.json             Konfigurazzjoni ta' electron-builder, verżjoni 3.8.51
-├── README.md
-├── assets/                  Risorsi tal-bini (ikoni, drittijiet, …)
-├── node_modules/            node_modules dedikati (better-sqlite3, electron-updater)
-└── dist-electron/           Output tal-bini (mhux impenjat)
-```
-
-Ħames scripts npm fir-reġjun tax-xogħol: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. L-ġdid awtomatiku huwa permezz ta'
-`electron-updater` li jimmira lejn il-feed tal-ħruġ ta' GitHub.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -660,13 +638,11 @@ Kmandi komuni:
 Organizzati f’6 subfolders skont l-iskop.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -841,7 +817,7 @@ Ara [A2A-SERVER.md § Adding a New Skill](../frameworks/A2A-SERVER.md). Il-ħili
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — għarfien u għarfien tal-protokoll A2A.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — xogħol RTK + xogħol tal-Kavman.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — integrazzjonijiet CLI.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (jekk preżenti), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — miri ta' manipulazzjoni.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — miri ta' manipulazzjoni.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — problemi operazzjonali komuni.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — workflow tal-kontributur.
 - [CLAUDE.md](../../CLAUDE.md) - regoli tal-repo għal Claude Code (is-sors tal-verità għal ħafna mill-konvenzjonijiet ta' hawn fuq).

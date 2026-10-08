@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Compose පැතිකඩ සහ Caddy HTTPS ඇතුළු සම්පූර්ණ Docker පිහිටුවීම සඳහා [Docker මාර්ගෝපදේශය](./DOCKER_GUIDE.md) බලන්න.
 
-### ඩෙස්ක්ටොප් යෙදුම (Electron)
-
-OmniRoute සමඟ Electron 41 + electron-builder 26.10 මත ගොඩනඟන ලද ඩෙස්ක්ටොප් ආවරණයක් නිකුත් කෙරේ. ලබාගත හැකි ස්ක්රිප්ට් (වැඩබිමේ මූලය):
-
-```bash
-npm run electron:dev          # උණුසුම්-නැවත පූරණය සමඟ ඩෙස්ක්ටොප් එක ධාවනය කරන්න
-npm run electron:build        # වත්මන් OS සඳහා ගොඩනඟන්න (ස්වයංක්රීයව හඳුනා ගැනේ)
-npm run electron:build:win    # Windows ස්ථාපකය (NSIS + ගෙන යා හැකි)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # ඇසුරුම් කළ ගොඩනැඟීම දුම්-පරීක්ෂා කරන්න
-```
-
-ඩෙස්ක්ටොප් ස්ථාපකවල නිකුතු GitHub Releases වෙත අමුණා ඇත. සම්පූර්ණ Electron ගැඹුරු විස්තරය (අත්සන් කිරීම, IPC සම්බන්ධකය, බෙදාහැරීම්) සඳහා, [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) බලන්න _(පසු අදියරකදී සාදන ලදී)_.
-
 ### හිස රහිත සේවාදායකය (CI/ස්වයංක්රීයකරණය)
 
 පරිශීලක මැදිහත්වීමක් නොමැති පිහිටුවීම් සඳහා (Docker, Kubernetes, CI), භාවිත කරන්න:

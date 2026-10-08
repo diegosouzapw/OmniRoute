@@ -91,7 +91,7 @@ Mgbe ịchọrọ itinye value ọhụrụ nke upstream nyere nke:
 
 ### 3. Ụkpụrụ amachibidoro
 
-❌ **Emela mgbe ọbụla** nke ọ bụla n’ime ihe ndị a n’ime production code (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ **Emela mgbe ọbụla** nke ọ bụla n’ime ihe ndị a n’ime production code (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // ỌJỌỌ: literal value na-akpalite Secret Scanning + Semgrep

@@ -220,7 +220,7 @@ npm run test:combo:live:vps:failover     # 실제 제공자 간 장애 조치 �
 
 - `npm run test:coverage`는 기본 단위 테스트 스위트의 소스 커버리지를 측정하고, `tests/**`를 제외하며, `open-sse/**`를 포함합니다
 - 풀 리퀘스트는 구문/라인/함수/분기 커버리지 게이트를 **60%+**로 유지해야 합니다
-- PR에서 `src/`, `open-sse/`, `electron/` 또는 `bin/`의 프로덕션 코드를 변경하는 경우 동일한 PR에서 자동화된 테스트를 추가하거나 업데이트해야 합니다
+- PR에서 `src/`, `open-sse/` 또는 `bin/`의 프로덕션 코드를 변경하는 경우 동일한 PR에서 자동화된 테스트를 추가하거나 업데이트해야 합니다
 - `npm run coverage:report`는 가장 최근 커버리지 실행의 상세한 파일별 보고서를 출력합니다
 - `npm run test:coverage:legacy`는 과거 비교를 위해 이전 측정 지표를 유지합니다
 - 단계별 커버리지 개선 로드맵은 `docs/ops/COVERAGE_PLAN.md`를 참조하세요
@@ -324,7 +324,6 @@ open-sse/                   # @omniroute/open-sse workspace
 ├── transformer/            # Responses API transformer
 └── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron desktop app (cross-platform)
 
 tests/
 ├── unit/                   # Node.js test runner (122 test files)

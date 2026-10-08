@@ -29,7 +29,7 @@ Comparaison objective des fonctionnalités avec les routeurs d’IA open source 
 | **Furtivité des empreintes TLS (JA3/JA4)**                         |                   ✅ wreq-js                   |      ❌      |        ❌         |      ❌      |
 | **Framework d’évaluation**                                         |                   ✅ intégré                   |      ❌      |        ❌         |   ⚠ payant   |
 | **Proxy MITM (intercepte Cursor/Antigravity)**                     |               ✅ multiplateforme               |      ❌      |        ❌         |      ❌      |
-| **CLI avec zone de notification (sans Electron)**                  |                       ✅                       |      ❌      |        n/a        |     n/a      |
+| **CLI avec zone de notification**                                  |                       ✅                       |      ❌      |        n/a        |     n/a      |
 | **Authentification automatique de la CLI par identifiant machine** |                       ✅                       |      ❌      |        n/a        |     n/a      |
 | **Tableau de bord**                                                |                   Next.js 16                   |   basique    |   propriétaire    | propriétaire |
 | **i18n**                                                           |          **42 paramètres régionaux**           |      ❌      |        ❌         |      ⚠       |

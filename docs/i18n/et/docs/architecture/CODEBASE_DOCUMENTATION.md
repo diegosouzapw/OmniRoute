@@ -27,7 +27,6 @@ ilma uusi mooduleid välja mõtlemata.
 | Keel           | **TypeScript 6.0+** — määrake `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                      |
 | Käitusaeg      | **Node.js** `>=22.22.2 <23` või `>=24.0.0 <27` (sunditud `engines` + `SUPPORTED_NODE_RANGE` kaudu)                          |
 | Andmebaas      | **SQLite** läbi `better-sqlite3` (singleton, WAL logimine)                                                                  |
-| Töölaud        | **Electron 41** + `electron-builder` 26.10 (eraldiseisev tööruum `electron/` kataloogis)                                    |
 | Testid         | **Node'i kohalik testija** (üksik/integreerimine), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | Ehitamine      | Next.js eraldiseisev läbi `scripts/build/build-next-isolated.mjs`                                                           |
 | Lint/vormindus | ESLint lame konfiguratsioon + Prettier (`lint-staged` läbi Husky pre-commit)                                                |
@@ -50,7 +49,6 @@ Vaikimisi HTTP port: **`20128`** (API ja armatuurlaud jagavad sama protsessi). A
 OmniRoute/
 ├── src/                  Next.js rakendus (App Router, libs, domeen, server, jagatud)
 ├── open-sse/             Voogmootori tööruum (@omniroute/open-sse)
-├── electron/             Töölaud mähis (Electron 41 peamine + preload)
 ├── bin/                  CLI sisenemispunktid (omniroute, reset-password)
 ├── tests/                Üksik, integreerimine, e2e, protocols-e2e, tõlkija, turvalisus, testandmed
 ├── scripts/              Ehituse, sünkroonimise, kontrolli, migratsiooni ja käitamise abiskriptid
@@ -574,26 +572,6 @@ Voogedastuse primitiivid ja teenusepakkuja abifunktsioonid: `stream.ts`, `stream
 
 ---
 
-## 5. `electron/` — Töölaua kate
-
-```
-electron/
-├── main.js                  Electron peaprotsess
-├── preload.js               Eellaadimise sild (contextIsolation lubatud)
-├── types.d.ts
-├── package.json             electron-builder konfiguratsioon, versioon 3.8.51
-├── README.md
-├── assets/                  Ehitusressursid (ikoonid, õigused, …)
-├── node_modules/            Eraldi node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           Ehitusväljund (pole kommenteeritud)
-```
-
-Juurkaustas on viis npm-skripti: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Automaatne uuendus toimub
-`electron-updater` abil, mis osutab GitHub'i väljalaskete voogu.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -658,13 +636,11 @@ bin/
 Jaotatud otstarbe järgi kuude alamkausta.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -842,7 +818,7 @@ Vaata [A2A-SERVER.md § Uue oskuse lisamine](../frameworks/A2A-SERVER.md). Oskus
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) – A2A protokolli oskused ja avastamine.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) – RTK + Caveman tihendus.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) – CLI integratsioonid.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (kui olemas), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) – deployeerimise sihtkohad.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) – deployeerimise sihtkohad.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) – tavalised tööprobleemid.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) – toetaja töövoog.
 - [CLAUDE.md](../../CLAUDE.md) – Claude Code’i reeglid (paljude ülalnimetatud tavade allikas).

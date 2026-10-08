@@ -265,25 +265,6 @@ API key များကို ဖန်တီးခြင်း၊ အသုံ�
 
 ---
 
-## 🖥️ Desktop Application
-
-Windows၊ macOS နှင့် Linux အတွက် native Electron desktop app။ System tray ပေါင်းစပ်မှု၊ offline ပံ့ပိုးမှု၊ အလိုအလျောက် update နှင့် တစ်ချက်နှိပ် install လုပ်ဆောင်ချက်တို့ဖြင့် OmniRoute ကို သီးခြား application တစ်ခုအဖြစ် အသုံးပြုနိုင်သည်။
-
-အဓိကလုပ်ဆောင်ချက်များ-
-
-- Server အဆင်သင့်ဖြစ်မှုကို အကြိမ်ကြိမ် စစ်ဆေးခြင်း (စတင်ဖွင့်ချိန်တွင် မျက်နှာပြင်အလွတ် မပေါ်စေပါ)
-- Port စီမံခန့်ခွဲမှုပါဝင်သည့် system tray
-- အကြောင်းအရာ လုံခြုံရေးမူဝါဒ
-- Instance တစ်ခုတည်းသာ အသုံးပြုနိုင်ရန် lock
-- ပြန်လည်စတင်ချိန်တွင် အလိုအလျောက် update
-- Platform အလိုက် သတ်မှတ်ထားသော UI (macOS traffic light များ၊ Windows/Linux မူလ titlebar)
-- ပိုမိုလုံခြုံခိုင်မာသော Electron build packaging — သီးခြား bundle အတွင်း symlink ပြုလုပ်ထားသည့် `node_modules` ကို packaging မပြုလုပ်မီ ရှာဖွေပြီး ပယ်ချသဖြင့် runtime တွင် build machine ကို မှီခိုရခြင်းမှ ကာကွယ်ပေးသည် (v2.5.5+)
-- **စနစ်တကျ ပိတ်သိမ်းခြင်း** — Electron `before-quit` သည် Next.js ကို စနစ်တကျ ပိတ်သိမ်းပေးပြီး SQLite WAL database lock များ ဖြစ်ပေါ်ခြင်းကို ကာကွယ်ပေးသည် (v3.6.2+)
-
-📖 စာရွက်စာတမ်း အပြည့်အစုံအတွက် [`electron/README.md`](../../electron/README.md) ကို ကြည့်ပါ။
-
----
-
 ## 🌐 V1 WebSocket Bridge _(v3.6.6+)_
 
 ယခုအခါ OmniRoute သည် `/v1/ws` upgrade endpoint မှတစ်ဆင့် **OpenAI နှင့် တွဲဖက်အသုံးပြုနိုင်သော WebSocket client များ** ကို ပံ့ပိုးပေးသည်။ စိတ်ကြိုက် `scripts/dev/v1-ws-bridge.mjs` server သည် Next.js ကို wrapper ပြုလုပ်ပြီး WS connection များကို အပြည့်အဝ နှစ်ဖက်သွား streaming session များအဖြစ် upgrade ပြုလုပ်ပေးသည်။ Authentication အတွက် HTTP request များကဲ့သို့ တူညီသော API key သို့မဟုတ် session cookie ကို အသုံးပြုသည်။

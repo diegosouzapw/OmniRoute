@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16 ಅಪ್ಲಿಕೇಶನ್ (UI + API ರೂಟ್ಗಳು + ಲೈಬ್ರರಿಗಳು + ಡೊಮೇನ್ + ಸರ್ವರ್)
 ├── open-sse/             # ಸ್ಟ್ರೀಮಿಂಗ್ ಎಂಜಿನ್ ವರ್ಕ್ಸ್ಪೇಸ್ (ಹ್ಯಾಂಡ್ಲರ್ಗಳು, ಎಕ್ಸಿಕ್ಯೂಟರ್ಗಳು, ಅನುವಾದಕ, MCP ಸರ್ವರ್)
-├── electron/             # ಡೆಸ್ಕ್ಟಾಪ್ ವ್ರ್ಯಾಪರ್ (Electron 41 + electron-builder 26.10)
 ├── bin/                  # CLI ಪ್ರವೇಶ ಬಿಂದು ಮತ್ತು ಕಮಾಂಡ್ ಹ್ಯಾಂಡ್ಲರ್ಗಳು
 ├── scripts/              # ಬಿಲ್ಡ್, ಪರಿಶೀಲನೆ, ಸಿಂಕ್ ಮತ್ತು ಏಕ-ಬಳಕೆಯ ಸ್ಕ್ರಿಪ್ಟ್ಗಳು
 ├── docs/                 # ಸಾರ್ವಜನಿಕ ದಸ್ತಾವೇಜುಗಳು (ನೀವು ಇಲ್ಲಿದ್ದೀರಿ)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — ಡೆಸ್ಕ್ಟಾಪ್ ರ್ಯಾಪರ್
-
-| ಫೈಲ್             | ಉದ್ದೇಶ                                                                                    |
-| ---------------- | ----------------------------------------------------------------------------------------- |
-| `main.js`        | Electron ಮುಖ್ಯ ಪ್ರಕ್ರಿಯೆ (BrowserWindow, ಎಂಬೆಡ್ ಮಾಡಿದ Next.js ಸರ್ವರ್, ಟ್ರೇ, ಸ್ವಯಂ-ನವೀಕರಣ) |
-| `preload.js`     | IPC ಬ್ರಿಡ್ಜ್ (contextBridge → `window.omniroute`)                                         |
-| `package.json`   | electron-builder ಸಂರಚನೆ + Electron 41 + electron-builder 26.10 ಅವಲಂಬನೆಗಳು                 |
-| `assets/`        | ಆ್ಯಪ್ ಐಕಾನ್ಗಳು (Windows .ico, macOS .icns, Linux .png)                                    |
-| `dist-electron/` | ಬಿಲ್ಡ್ ಔಟ್ಪುಟ್ (gitignored)                                                               |
-| `types.d.ts`     | ರೆಂಡರರ್ ಬ್ರಿಡ್ಜ್ಗಾಗಿ ಪ್ರಕಾರ ಘೋಷಣೆಗಳು                                                      |
-| `README.md`      | ಆಂತರಿಕ Electron README (`docs/guides/ELECTRON_GUIDE.md` ಅನ್ನು ಸಹ ನೋಡಿ)                    |
-
----
-
 ## `bin/` — CLI
 
 | ಫೈಲ್                                                                                                        | ಉದ್ದೇಶ                                                                                                                                 |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | MCP/A2A E2E ರನ್ನರ್                                                                                                             |
 | `run-ecosystem-tests.mjs`           | ಪರಿಸರ ವ್ಯವಸ್ಥೆಯ (ಪ್ರೊವೈಡರ್ ಏಕೀಕರಣ) ಪರೀಕ್ಷೆಗಳು                                                                                  |
 | `test-report-summary.mjs`           | ಕವರೇಜ್ ಸಾರಾಂಶ ಮಾರ್ಕ್ಡೌನ್ ರಚಿಸುತ್ತದೆ                                                                                            |
-| `smoke-electron-packaged.mjs`       | ಪ್ಯಾಕೇಜ್ ಮಾಡಲಾದ Electron ಬಿಲ್ಡ್ನ ಸ್ಮೋಕ್ ಪರೀಕ್ಷೆ ನಡೆಸುತ್ತದೆ                                                                     |
-| `native-binary-compat.mjs`          | ಸ್ಥಳೀಯ ಅವಲಂಬನೆಗಳು (`better-sqlite3`) Electronನ Node ಗೆ ಹೊಂದಿಕೆಯಾಗುತ್ತವೆಯೇ ಎಂದು ಪರಿಶೀಲಿಸುತ್ತದೆ                                  |
 | `validate-pack-artifact.ts`         | npm pack ಔಟ್ಪುಟ್ ಅನ್ನು ಪರಿಶೀಲಿಸುತ್ತದೆ                                                                                          |
 | `responses-ws-proxy.mjs`            | Codex Responses API ಗಾಗಿ WebSocket ಬ್ರಿಡ್ಜ್                                                                                    |
 | `v1-ws-bridge.mjs`                  | `/api/v1/ws` ಎಂಡ್ಪಾಯಿಂಟ್ಗಾಗಿ WebSocket ಬ್ರಿಡ್ಜ್                                                                                |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | ಅಂತಿಮ ಬಳಕೆದಾರರ ಕೈಪಿಡಿ (ಸೆಟಪ್, ಮಾದರಿಗಳು, ಕಾಂಬೊಗಳು, CLIಗಳು, ಆಡಿಯೊ ಇತ್ಯಾದಿ)            |
 | `API_REFERENCE.md`          | ದೃಢೀಕರಣ ಮಾದರಿಯೊಂದಿಗೆ API ಎಂಡ್ಪಾಯಿಂಟ್ ಉಲ್ಲೇಖ                                         |
 | `openapi.yaml`              | OpenAPI 3.0 ನಿರ್ದಿಷ್ಟತೆ (121 ಪಥಗಳು)                                                 |
-| `SETUP_GUIDE.md`            | ಸ್ಥಾಪನಾ ವಿಧಾನಗಳು (npm, npx, Docker, Electron, Termux, ಮೂಲ)                          |
+| `SETUP_GUIDE.md`            | ಸ್ಥಾಪನಾ ವಿಧಾನಗಳು (npm, npx, Docker, Termux, ಮೂಲ)                                    |
 | `ENVIRONMENT.md`            | ಎಲ್ಲಾ ಪರಿಸರ ಚರಾಂಕಗಳು (~800 ದಸ್ತಾವೇಜೀಕರಿಸಲಾಗಿದೆ, ~3,050 ಸಾಲುಗಳ `.env.example`)       |
 | `TROUBLESHOOTING.md`        | ಸಾಮಾನ್ಯ ದೋಷಗಳು + v3.8.0 ತಿಳಿದಿರುವ ಸಮಸ್ಯೆಗಳು                                         |
 | `RELEASE_CHECKLIST.md`      | ಸಂಪೂರ್ಣ ಬಿಡುಗಡೆ ಪ್ರಕ್ರಿಯೆ (ಕೌಶಲ್ಯಗಳು, husky, ಸಾಂಪ್ರದಾಯಿಕ ಕಮಿಟ್ಗಳು, ನಿಯೋಜನೆ)         |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io ನಿಯೋಜನೆ (ಪ್ರಸ್ತುತ ಚೀನೀ ಭಾಷೆಯಲ್ಲಿ ಮಾತ್ರ)                         |
 | `TERMUX_GUIDE.md`            | Termux ಮೂಲಕ Android ಹೆಡ್ಲೆಸ್ ಕಾರ್ಯಾಚರಣೆ                                |
 | `PWA_GUIDE.md`               | ಪ್ರೋಗ್ರೆಸಿವ್ ವೆಬ್ ಆ್ಯಪ್ ಸ್ಥಾಪನೆ + ಸರ್ವಿಸ್ ವರ್ಕರ್                       |
-| `ELECTRON_GUIDE.md`          | ಡೆಸ್ಕ್ಟಾಪ್ ಆ್ಯಪ್ ಬಿಲ್ಡ್ + ಸಹಿ + ವಿತರಣೆ                                 |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                 |
 | `PROXY_GUIDE.md`             | 4-ಹಂತದ ಔಟ್ಬೌಂಡ್ ಪ್ರಾಕ್ಸಿ + 1proxy ಮಾರುಕಟ್ಟೆಸ್ಥಳ                        |
 

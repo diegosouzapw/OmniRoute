@@ -118,7 +118,6 @@ omniroute
 
 ## Teorainneacha
 
-- Ní ritheann Electron in Termux.
 - Níl aon tráidire córais ná comhtháthú deisce ann.
 - Is don fhreastalaí amháin atá an socrú seo: úsáid painéal an bhrabhsálaí.
 - D’fhéadfadh tiomsú áitiúil a bheith ag teastáil ó spleáchais dhúchasacha.

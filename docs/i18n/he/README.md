@@ -89,7 +89,6 @@
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![רישיון: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![משיכות Docker](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![הורדות Electron](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
 
 <table>
   <tr>
@@ -744,7 +743,6 @@ omniroute configure codex          # גם: claude opencode qwen aider goose gemi
   <tr><th align="left">פלטפורמה</th><th align="left">התקנה</th><th align="left">יתרונות בולטים</th></tr>
   <tr><td align="left" nowrap>📦 <b>npm (גלובלי)</b></td><td align="left" nowrap><code>npm install -g omniroute</code></td><td align="left">פקודה אחת, בכל מערכת הפעלה</td></tr>
   <tr><td align="left" nowrap>🐳 <b>Docker</b></td><td align="left" nowrap><code>docker run … diegosouzapw/omniroute</code></td><td align="left">תמיכה בריבוי ארכיטקטורות <b>AMD64 + ARM64</b></td></tr>
-  <tr><td align="left" nowrap>🖥️ <b>שולחן עבודה (Electron)</b></td><td align="left" nowrap><code>npm run electron:build</code></td><td align="left">חלון מקורי + מגש מערכת — <b>Windows / macOS / Linux</b></td></tr>
   <tr><td align="left" nowrap>🎩 <b>שורת תפריטים (OmniRouteTray)</b></td><td align="left" nowrap><code>brew install --cask zoispag/tap/omniroute-tray</code></td><td align="left">מפקח על השרת ומעדכן אותו אוטומטית — <b>macOS</b></td></tr>
   <tr><td align="left" nowrap>💪 <b>ARM</b></td><td align="left" nowrap><code>arm64</code> מקורי</td><td align="left">Raspberry Pi, שרתי ARM, Apple Silicon</td></tr>
   <tr><td align="left" nowrap>📱 <b>Android (Termux)</b></td><td align="left" nowrap><code>pkg install nodejs && npx -y omniroute</code></td><td align="left">פועל <b>בטלפון שלכם</b>, מסביב לשעון, ללא root</td></tr>
@@ -754,7 +752,7 @@ omniroute configure codex          # גם: claude opencode qwen aider goose gemi
   <tr><td align="left" nowrap>🛠️ <b>מקוד המקור</b></td><td align="left" nowrap><code>npm install && npm run dev</code></td><td align="left">שנו, שפרו ותרמו</td></tr>
 </table>
 
-<sub>📖 [מדריך Docker](docs/guides/DOCKER_GUIDE.md) · [שולחן עבודה](electron/README.md) · [מגש שורת התפריטים](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
+<sub>📖 [מדריך Docker](docs/guides/DOCKER_GUIDE.md) · [מגש שורת התפריטים](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
 
 <br/>
 
@@ -1276,7 +1274,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # גם CI=1 מדלג ע�
   <tr><td nowrap><b>עמידות</b></td><td>מפסק זרם, השהיה מעריכית, מניעת עומס המוני, ריפוי עצמי אוטומטי משולב</td></tr>
   <tr><td nowrap><b>רישום</b></td><td>pino — יומני JSON מובנים עם הקשר הבקשה</td></tr>
   <tr><td nowrap><b>בדיקות</b></td><td>מריץ הבדיקות של Node.js + Vitest — <b>יותר מ-39,000 הצהרות בדיקה סטטיות</b> ביותר מ-5,100 קובצי בדיקה במעקב (יחידה, אינטגרציה, E2E, אבטחה, מערכת אקולוגית)</td></tr>
-  <tr><td nowrap><b>פלטפורמות</b></td><td>מחשב שולחני (Electron) · Android (Termux) · PWA (כל דפדפן)</td></tr>
+  <tr><td nowrap><b>פלטפורמות</b></td><td>Android (Termux) · PWA (כל דפדפן)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — פרסום אוטומטי ל-npm ול-Docker Hub בעת הפצה</td></tr>
   <tr><td nowrap><b>קישורים</b></td><td><a href="https://omniroute.online">אתר אינטרנט</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>

@@ -120,7 +120,6 @@ omniroute
 
 ## Ograničenja
 
-- Electron ne radi u Termuxu.
 - Ne postoji sistemska traka (system tray) ili integracija sa radnom površinom.
 - Ovo podešavanje je samo za server: koristite kontrolnu tablu u pretraživaču.
 - Izvorne (native) zavisnosti mogu zahtijevati lokalnu kompilaciju.

@@ -42,7 +42,7 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | **Dashboard Login**   | Password-based auth with JWT tokens (HttpOnly cookies)                                                                                    |
 | **API Key Auth**      | HMAC-signed keys with CRC validation                                                                                                      |
-| **OAuth 2.0 + PKCE**  | Provider-specific browser/device OAuth uses PKCE where supported; import-only Devin credentials are handled separately.                    |
+| **OAuth 2.0 + PKCE**  | Provider-specific browser/device OAuth uses PKCE where supported; import-only Devin credentials are handled separately.                   |
 | **Token Refresh**     | Automatic OAuth token refresh before expiry                                                                                               |
 | **Secure Cookies**    | `AUTH_COOKIE_SECURE=true` for HTTPS environments                                                                                          |
 | **Authz Pipeline**    | Route classification (PUBLIC / CLIENT_API / MANAGEMENT) — see `docs/architecture/AUTHZ_GUIDE.md`                                          |
@@ -193,7 +193,7 @@ docker run -d \
 
 ## Dependencies
 
-- Run `npm audit` regularly (`npm run audit:deps` covers main + electron)
+- Run `npm audit` regularly (`npm run audit:deps` covers the root project)
 - Keep dependencies updated
 - The project uses `husky` + `lint-staged` for pre-commit checks (lint-staged + check-docs-sync + check:any-budget:t11)
 - CI pipeline runs ESLint security rules on every push (`no-eval`, `no-implied-eval`, `no-new-func` = error)

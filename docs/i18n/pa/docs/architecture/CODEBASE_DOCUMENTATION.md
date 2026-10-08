@@ -27,7 +27,6 @@
 | ਭਾਸ਼ਾ        | **TypeScript 6.0+** — ਟਾਰਗੇਟ `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                |
 | ਰਨਟਾਈਮ       | **Node.js** `>=22.22.2 <23` ਜਾਂ `>=24.0.0 <27` (`engines` + `SUPPORTED_NODE_RANGE` ਰਾਹੀਂ ਲਾਗੂ)                       |
 | ਡਾਟਾਬੇਸ      | `better-sqlite3` ਰਾਹੀਂ **SQLite** (ਸਿੰਗਲਟਨ, WAL ਜਰਨਲਿੰਗ)                                                             |
-| ਡੈਸਕਟਾਪ      | **Electron 41** + `electron-builder` 26.10 (`electron/` ਵਿੱਚ ਵੱਖਰਾ ਵਰਕਸਪੇਸ)                                          |
 | ਟੈਸਟ         | **Node ਨੇਟਿਵ ਟੈਸਟ ਰਨਰ** (ਯੂਨਿਟ/ਇੰਟੀਗ੍ਰੇਸ਼ਨ), **Vitest** (MCP, autoCombo, ਕੈਸ਼), **Playwright** (e2e + protocols-e2e) |
 | ਬਿਲਡ         | `scripts/build/build-next-isolated.mjs` ਰਾਹੀਂ Next.js ਸਟੈਂਡਅਲੋਨ                                                      |
 | ਲਿੰਟ/ਫਾਰਮੈਟ  | ESLint ਫਲੈਟ ਕੌਂਫਿਗ + Prettier (Husky ਪ੍ਰੀ-ਕਮਿਟ ਰਾਹੀਂ `lint-staged`)                                                  |
@@ -51,7 +50,6 @@
 OmniRoute/
 ├── src/                  Next.js ਐਪਲੀਕੇਸ਼ਨ (App Router, ਲਾਇਬ੍ਰੇਰੀਆਂ, ਡੋਮੇਨ, ਸਰਵਰ, ਸਾਂਝੇ ਹਿੱਸੇ)
 ├── open-sse/             ਸਟ੍ਰੀਮਿੰਗ ਇੰਜਣ ਵਰਕਸਪੇਸ (@omniroute/open-sse)
-├── electron/             ਡੈਸਕਟਾਪ ਰੈਪਰ (Electron 41 ਮੁੱਖ + ਪ੍ਰੀਲੋਡ)
 ├── bin/                  CLI ਐਂਟਰੀ ਪੁਆਇੰਟ (omniroute, reset-password)
 ├── tests/                ਯੂਨਿਟ, ਇੰਟੀਗ੍ਰੇਸ਼ਨ, e2e, protocols-e2e, ਅਨੁਵਾਦਕ, ਸੁਰੱਖਿਆ, ਫਿਕਸਚਰ
 ├── scripts/              ਬਿਲਡ, ਸਿੰਕ, ਜਾਂਚ, ਮਾਈਗ੍ਰੇਸ਼ਨ ਅਤੇ ਰਨਟਾਈਮ ਸਹਾਇਕ ਸਕ੍ਰਿਪਟਾਂ
@@ -575,26 +573,6 @@ open-sse/
 
 ---
 
-## 5. `electron/` — ਡੈਸਕਟਾਪ ਰੈਪਰ
-
-```
-electron/
-├── main.js                  Electron ਮੁੱਖ ਪ੍ਰਕਿਰਿਆ
-├── preload.js               ਪ੍ਰੀਲੋਡ ਬ੍ਰਿਜ (contextIsolation ਸਮਰੱਥ)
-├── types.d.ts
-├── package.json             electron-builder ਸੰਰਚਨਾ, ਵਰਜਨ 3.8.51
-├── README.md
-├── assets/                  ਬਿਲਡ ਸਰੋਤ (ਆਈਕਨ, ਹੱਕਦਾਰੀਆਂ, …)
-├── node_modules/            ਸਮਰਪਿਤ node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           ਬਿਲਡ ਆਉਟਪੁੱਟ (ਕਮਿਟ ਨਹੀਂ ਕੀਤਾ ਜਾਂਦਾ)
-```
-
-ਵਰਕਸਪੇਸ ਰੂਟ ਵਿੱਚ ਪੰਜ npm ਸਕ੍ਰਿਪਟਾਂ ਹਨ: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`। ਸਵੈਚਲਿਤ ਅੱਪਡੇਟ
-GitHub ਰਿਲੀਜ਼ ਫੀਡ ਵੱਲ ਇਸ਼ਾਰਾ ਕਰਦੇ `electron-updater` ਰਾਹੀਂ ਹੁੰਦਾ ਹੈ।
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -659,13 +637,11 @@ bin/
 ਉਦੇਸ਼ ਅਨੁਸਾਰ 6 ਸਬਫੋਲਡਰਾਂ ਵਿੱਚ ਵਿਵਸਥਿਤ।
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`।
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`।
@@ -844,7 +820,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A ਪ੍ਰੋਟੋਕੋਲ ਹੁਨਰ ਅਤੇ ਖੋਜ।
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK + Caveman ਕੰਪ੍ਰੈਸ਼ਨ।
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI ਇੰਟੀਗ੍ਰੇਸ਼ਨ।
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (ਜੇ ਮੌਜੂਦ ਹੋਵੇ), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — ਡਿਪਲੌਇਮੈਂਟ ਟੀਚੇ।
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — ਡਿਪਲੌਇਮੈਂਟ ਟੀਚੇ।
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — ਆਮ ਕਾਰਜਕਾਰੀ ਸਮੱਸਿਆਵਾਂ।
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — ਯੋਗਦਾਨਕਰਤਾ ਵਰਕਫ਼ਲੋ।
 - [CLAUDE.md](../../CLAUDE.md) — Claude Code ਲਈ ਰਿਪੋ ਨਿਯਮ (ਉਪਰੋਕਤ ਕਈ ਰਵਾਇਤਾਂ ਲਈ

@@ -16,7 +16,7 @@
    ପରବର୍ତ୍ତୀ ସକ୍ରିୟ cycle ବ୍ୟବହାର କରନ୍ତୁ।
 2. **Contract ଗୁଡ଼ିକ ଚିହ୍ନଟ କରନ୍ତୁ।** ପରିବର୍ତ୍ତନ ଦ୍ୱାରା ପ୍ରଭାବିତ ପ୍ରତ୍ୟେକ catalog, schema, generated artifact, public API, କିମ୍ବା user
    interface ଚିହ୍ନଟ କରନ୍ତୁ। ନିମ୍ନର table ସର୍ବନିମ୍ନ ପ୍ରାରମ୍ଭିକ ସେଟ୍ ପ୍ରଦାନ କରେ।
-3. **କେନ୍ଦ୍ରିତ test ଲେଖନ୍ତୁ କିମ୍ବା update କରନ୍ତୁ।** `src/`, `open-sse/`, `electron/`, କିମ୍ବା
+3. **କେନ୍ଦ୍ରିତ test ଲେଖନ୍ତୁ କିମ୍ବା update କରନ୍ତୁ।** `src/`, `open-sse/`, କିମ୍ବା
    `bin/` ରେ production ପରିବର୍ତ୍ତନ ପାଇଁ ସେହି PR ରେ ଏକ automated test ଆବଶ୍ୟକ। ଆଚରଣକୁ ପ୍ରମାଣିତ କରୁଥିବା ସବୁଠାରୁ ଛୋଟ test file ଗୁଡ଼ିକ ଚଲାନ୍ତୁ,
    ତା’ପରେ ତାଲିକାଭୁକ୍ତ କେନ୍ଦ୍ରିତ gate ଗୁଡ଼ିକ ଚଲାନ୍ତୁ।
 4. **CI କୁ ବ୍ୟାପକ matrix ଚଲାଇବାକୁ ଦିଅନ୍ତୁ।** ସମ୍ପୂର୍ଣ୍ଣ unit shard, Vitest, coverage ratchet, ଏବଂ

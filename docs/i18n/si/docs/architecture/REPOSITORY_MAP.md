@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16 යෙදුම (UI + API මාර්ග + පුස්තකාල + වසම + සේවාදායකය)
 ├── open-sse/             # ප්රවාහ එන්ජින් වැඩබිම (හසුරුවන්නන්, ක්රියාත්මක කරන්නන්, පරිවර්තකය, MCP සේවාදායකය)
-├── electron/             # ඩෙස්ක්ටොප් ආවරණය (Electron 41 + electron-builder 26.10)
 ├── bin/                  # CLI ප්රවේශ ලක්ෂ්යය සහ විධාන හසුරුවන්නන්
 ├── scripts/              # ගොඩනැගීමේ, පරීක්ෂා කිරීමේ, සමමුහුර්ත කිරීමේ සහ එක්වරක් පමණක් ක්රියාත්මක කරන ස්ක්රිප්ට්
 ├── docs/                 # පොදු ලේඛන (ඔබ දැන් සිටින්නේ මෙහිය)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — ඩෙස්ක්ටොප් ආවරණය
-
-| ගොනුව            | අරමුණ                                                                                                             |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `main.js`        | Electron ප්රධාන ක්රියාවලිය (BrowserWindow, කාවැද්දූ Next.js සේවාදායකය, පද්ධති තැටිය, ස්වයංක්රීය යාවත්කාලීන කිරීම) |
-| `preload.js`     | IPC පාලම (contextBridge → `window.omniroute`)                                                                     |
-| `package.json`   | electron-builder වින්යාසය + Electron 41 + electron-builder 26.10 පරායත්තතා                                        |
-| `assets/`        | යෙදුම් අයිකන (Windows .ico, macOS .icns, Linux .png)                                                              |
-| `dist-electron/` | ගොඩනැගීමේ ප්රතිදානය (gitignored)                                                                                  |
-| `types.d.ts`     | රෙන්ඩරර් පාලම සඳහා වර්ග ප්රකාශන                                                                                   |
-| `README.md`      | අභ්යන්තර Electron README (`docs/guides/ELECTRON_GUIDE.md` ද බලන්න)                                                |
-
----
-
 ## `bin/` — CLI
 
 | ගොනුව                                                                                                       | අරමුණ                                                                                                                           |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | MCP/A2A E2E ධාවකය                                                                      |
 | `run-ecosystem-tests.mjs`           | Ecosystem (provider integration) පරීක්ෂණ                                               |
 | `test-report-summary.mjs`           | coverage සාරාංශ markdown ජනනය කිරීම                                                    |
-| `smoke-electron-packaged.mjs`       | package කළ Electron build එක smoke-test කිරීම                                          |
-| `native-binary-compat.mjs`          | native deps (`better-sqlite3`) Electron හි Node සමඟ ගැළපෙන බව වලංගු කිරීම              |
 | `validate-pack-artifact.ts`         | npm pack ප්රතිදානය වලංගු කිරීම                                                         |
 | `responses-ws-proxy.mjs`            | Codex Responses API සඳහා WebSocket bridge එක                                           |
 | `v1-ws-bridge.mjs`                  | `/api/v1/ws` endpoint සඳහා WebSocket bridge එක                                         |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | අවසාන පරිශීලක අත්පොත (සැකසුම, ආකෘති, සංයෝජන, CLI, ශ්රව්ය ආදිය)                                    |
 | `API_REFERENCE.md`          | සත්යාපන ආකෘතිය සහිත API අන්ත ලක්ෂ්ය යොමුව                                                         |
 | `openapi.yaml`              | OpenAPI 3.0 පිරිවිතරය (මාර්ග 121ක්)                                                               |
-| `SETUP_GUIDE.md`            | ස්ථාපන ක්රම (npm, npx, Docker, Electron, Termux, මූලාශ්රය)                                        |
+| `SETUP_GUIDE.md`            | ස්ථාපන ක්රම (npm, npx, Docker, Termux, මූලාශ්රය)                                                  |
 | `ENVIRONMENT.md`            | සියලු පරිසර විචල්ය (~800ක් ලේඛනගත කර ඇත, `.env.example` පේළි ~3,050ක්)                            |
 | `TROUBLESHOOTING.md`        | පොදු දෝෂ + v3.8.0 දන්නා ගැටලු                                                                     |
 | `RELEASE_CHECKLIST.md`      | සම්පූර්ණ නිකුතු ප්රවාහය (කුසලතා, husky, සම්මුතික commits, යෙදවීම)                                 |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io යෙදවීම (දැනට චීන භාෂාවෙන් පමණි)                             |
 | `TERMUX_GUIDE.md`            | Termux හරහා තිර රහිත Android                                       |
 | `PWA_GUIDE.md`               | Progressive Web App ස්ථාපනය + සේවා worker                          |
-| `ELECTRON_GUIDE.md`          | ඩෙස්ක්ටොප් යෙදුම ගොඩනැගීම + අත්සන් කිරීම + බෙදාහැරීම               |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                             |
 | `PROXY_GUIDE.md`             | මට්ටම් 4ක පිටතට යන proxy + 1proxy වෙළඳපොළ                          |
 

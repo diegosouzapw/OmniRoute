@@ -29,7 +29,7 @@ Objectieve functievergelijking met populaire opensource-AI-routers.
 | **TLS-fingerprintverhulling (JA3/JA4)**                 |                 ✅ wreq-js                  |           ❌            |          ❌          |     ❌      |
 | **Evaluatieframework**                                  |                ✅ ingebouwd                 |           ❌            |          ❌          |  ⚠ betaald  |
 | **MITM-proxy (onderschept Cursor/Antigravity)**         |          ✅ platformonafhankelijk           |           ❌            |          ❌          |     ❌      |
-| **CLI met systeemvak (geen Electron)**                  |                     ✅                      |           ❌            |        n.v.t.        |   n.v.t.    |
+| **CLI met systeemvak**                                  |                     ✅                      |           ❌            |        n.v.t.        |   n.v.t.    |
 | **Automatische CLI-authenticatie via machine-ID**       |                     ✅                      |           ❌            |        n.v.t.        |   n.v.t.    |
 | **Dashboard**                                           |                 Next.js 16                  |          basis          |     propriëtair      | propriëtair |
 | **i18n**                                                |           **42 landinstellingen**           |           ❌            |          ❌          |      ⚠      |

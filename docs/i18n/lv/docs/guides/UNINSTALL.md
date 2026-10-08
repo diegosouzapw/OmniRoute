@@ -83,23 +83,6 @@ docker compose down
 docker compose down -v
 ```
 
-### Electron darbvirsmas lietotne
-
-**Windows:**
-
-- Atvērt `Iestatījumi → Lietojumprogrammas → OmniRoute → Deinstalēt`
-- Vai palaist NSIS deinstalatoru no instalācijas mapes
-
-**macOS:**
-
-- Novietojiet `OmniRoute.app` no `/Applications` mapes uz Kubelu
-- Noņemt datus: `rm -rf ~/Library/Application Support/omniroute`
-
-**Linux:**
-
-- Noņemt AppImage failu
-- Noņemt datus: `rm -rf ~/.omniroute`
-
 ### Instalēšana no pirmavota (git clone)
 
 ```bash

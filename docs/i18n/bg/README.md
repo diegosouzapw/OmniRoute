@@ -89,7 +89,6 @@
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![Лиценз: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![Изтегляния от Docker](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![Изтегляния на Electron](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
 
 <table>
   <tr>
@@ -752,7 +751,6 @@ omniroute configure codex          # също: claude opencode qwen aider goose 
   <tr><th align="left">Платформа</th><th align="left">Инсталиране</th><th align="left">Основни предимства</th></tr>
   <tr><td align="left" nowrap>📦 <b>npm (глобално)</b></td><td align="left" nowrap><code>npm install -g omniroute</code></td><td align="left">Една команда, всяка ОС</td></tr>
   <tr><td align="left" nowrap>🐳 <b>Docker</b></td><td align="left" nowrap><code>docker run … diegosouzapw/omniroute</code></td><td align="left">Множество архитектури: <b>AMD64 + ARM64</b></td></tr>
-  <tr><td align="left" nowrap>🖥️ <b>Настолно приложение (Electron)</b></td><td align="left" nowrap><code>npm run electron:build</code></td><td align="left">Собствен прозорец + системна област — <b>Windows / macOS / Linux</b></td></tr>
   <tr><td align="left" nowrap>🎩 <b>Лента с менюта (OmniRouteTray)</b></td><td align="left" nowrap><code>brew install --cask zoispag/tap/omniroute-tray</code></td><td align="left">Наблюдава и автоматично актуализира сървъра — <b>macOS</b></td></tr>
   <tr><td align="left" nowrap>💪 <b>ARM</b></td><td align="left" nowrap>собствена поддръжка на <code>arm64</code></td><td align="left">Raspberry Pi, ARM сървъри, Apple Silicon</td></tr>
   <tr><td align="left" nowrap>📱 <b>Android (Termux)</b></td><td align="left" nowrap><code>pkg install nodejs && npx -y omniroute</code></td><td align="left">Работи <b>на телефона ви</b>, денонощно, без root достъп</td></tr>
@@ -762,7 +760,7 @@ omniroute configure codex          # също: claude opencode qwen aider goose 
   <tr><td align="left" nowrap>🛠️ <b>От изходния код</b></td><td align="left" nowrap><code>npm install && npm run dev</code></td><td align="left">Експериментирайте с него, допринасяйте</td></tr>
 </table>
 
-<sub>📖 [Ръководство за Docker](docs/guides/DOCKER_GUIDE.md) · [Настолно приложение](electron/README.md) · [Икона в лентата с менюта](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
+<sub>📖 [Ръководство за Docker](docs/guides/DOCKER_GUIDE.md) · [Икона в лентата с менюта](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
 
 <br/>
 
@@ -1284,7 +1282,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 също го п�
   <tr><td nowrap><b>Устойчивост</b></td><td>Прекъсвач на веригата, експоненциално изчакване, предотвратяване на лавинообразни заявки, самовъзстановяване чрез автоматични комбинации</td></tr>
   <tr><td nowrap><b>Регистриране</b></td><td>pino — структурирани JSON регистрационни файлове с контекст на заявката</td></tr>
   <tr><td nowrap><b>Тестване</b></td><td>Инструмент за изпълнение на тестове на Node.js + Vitest — <b>39 000+ статични декларации на тестове</b> в над 5100 проследявани тестови файла (модулни, интеграционни, E2E, за сигурност и екосистема)</td></tr>
-  <tr><td nowrap><b>Платформи</b></td><td>Настолни системи (Electron) · Android (Termux) · PWA (всеки браузър)</td></tr>
+  <tr><td nowrap><b>Платформи</b></td><td>Android (Termux) · PWA (всеки браузър)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — автоматично публикуване в npm + Docker Hub при издание</td></tr>
   <tr><td nowrap><b>Връзки</b></td><td><a href="https://omniroute.online">Уебсайт</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>

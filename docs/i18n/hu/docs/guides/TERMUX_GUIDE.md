@@ -118,7 +118,6 @@ omniroute
 
 ## Korlátozások
 
-- Az Electron nem fut Termuxban.
 - Nincs rendszertálca- vagy asztali integráció.
 - Ez a konfiguráció kizárólag kiszolgálóként használható: használja a böngészős irányítópultot.
 - A natív függőségeket esetleg helyben kell lefordítani.

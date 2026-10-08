@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Compose profile များနှင့် Caddy HTTPS အပါအဝင် Docker စနစ်ထည့်သွင်းမှု အပြည့်အစုံအတွက် [Docker လမ်းညွှန်](./DOCKER_GUIDE.md) ကို ကြည့်ပါ။
 
-### Desktop App (Electron)
-
-OmniRoute တွင် Electron 41 + electron-builder 26.10 ကို အခြေခံတည်ဆောက်ထားသည့် desktop wrapper ပါဝင်သည်။ ရရှိနိုင်သော script များ (workspace root) မှာ-
-
-```bash
-npm run electron:dev          # hot-reload ဖြင့် desktop ကို run ပါ
-npm run electron:build        # လက်ရှိ OS အတွက် build လုပ်ပါ (အလိုအလျောက် သိရှိသည်)
-npm run electron:build:win    # Windows installer (NSIS + portable)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # package လုပ်ထားသည့် build ကို smoke-test လုပ်ပါ
-```
-
-Desktop installer release များကို GitHub Releases တွင် ပူးတွဲတင်ထားသည်။ Electron အကြောင်း အပြည့်အစုံ အသေးစိတ်လေ့လာရန် (signing၊ IPC bridge၊ distro များ) [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) ကို ကြည့်ပါ _(နောက်ပိုင်းအဆင့်တွင် ဖန်တီးထားသည်)_။
-
 ### Headless server (CI/automation)
 
 လူကိုယ်တိုင် ကြီးကြပ်ရန်မလိုသော စနစ်ထည့်သွင်းမှုများ (Docker၊ Kubernetes၊ CI) အတွက် အောက်ပါတို့ကို အသုံးပြုပါ-

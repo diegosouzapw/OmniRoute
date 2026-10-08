@@ -69,7 +69,7 @@ OmniRoute को विद्यमान परिनियोजन संर�
 | ------------------------------------ | ---------- | --------------------------------------------------------------------------------------------------------------------------- |
 | **Dragonfly**                        | **हटाउने** | production scale को rate-limit workload का लागि `redis:7-alpine` पहिल्यै पर्याप्त छ; पार गर्नुपर्ने कुनै सीमा छैन।          |
 | **NATS**                             | **हटाउने** | प्रत्येक `omniroute` replica एउटै Node.js process हो; कुनै multi-process pub/sub workload छैन।                              |
-| **PostgreSQL**                       | **हटाउने** | SQLite + sqlite-vec + FTS5 ले सबै 3 use case समेट्छन्; 97 migrations + Electron packaging ले migration रोक्छन्।             |
+| **PostgreSQL**                       | **हटाउने** | SQLite + sqlite-vec + FTS5 ले सबै 3 use case समेट्छन्; 97 migrations packaging ले migration रोक्छन्।                        |
 | **Neo4j**                            | **हटाउने** | Routing एउटा 5-table join हो; SQLite मा recursive CTE पर्याप्त छ।                                                           |
 | **MinIO**                            | **हटाउने** | कुनै multi-MB blob workload छैन; images/audio passthrough proxies हुन्।                                                     |
 | **pgvector / pg_ai / pg_textsearch** | **हटाउने** | PostgreSQL कै जस्तो SQLite-ceiling कारण; pgvector ecosystem खण्डित छ।                                                       |

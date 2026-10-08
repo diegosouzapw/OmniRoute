@@ -122,7 +122,6 @@ Matrix automatisch und ohne Label.
 ### Version & Changelog
 
 - [ ] `/version-bump-cc <patch|minor|major>` ausführen (Claude-Code-Skill)
-  - Aktualisiert die Versionen in `package.json`, `electron/package.json`
   - Generiert `CHANGELOG.md` aus den Git-Commits seit dem letzten Tag neu
   - Aktualisiert die Badges in README.md
 - [ ] CHANGELOG.md manuell prüfen und Commit-Nachrichten bei Bedarf bereinigen
@@ -216,104 +215,6 @@ Breaking Changes: `BREAKING CHANGE:`-Footer oder `!` nach dem Scope hinzufügen 
 - [ ] Modelle sind in `open-sse/config/providerRegistry.ts` registriert
 - [ ] Unit-Tests in `tests/unit/` decken die Anbieterklassifizierung und das Routing ab
 
-### Desktop (Electron)
-
-Falls `electron/` geändert wurde:
-
-- [ ] `npm run electron:smoke:packaged` ist erfolgreich
-- [ ] Builds wurden für mindestens eines von `:win`, `:mac`, `:linux` getestet
-- [ ] Zertifikate für die Codesignierung sind nicht abgelaufen (falls signiert wird)
-- [ ] Die Version in `electron/package.json` stimmt mit der in der Stammdatei `package.json` überein
-- [ ] Der Zeiger des Auto-Update-Kanals wurde bei einer Veröffentlichung auf `stable` aktualisiert
-
-### Build-Verzeichnisstruktur
-
-Das Repository verwendet drei unterschiedliche Ausgabeverzeichnisse — diese dürfen niemals verwechselt werden:
-
-| Verzeichnis | Zweck                                                           | Nachverfolgt?            |
-| ----------- | --------------------------------------------------------------- | ------------------------ |
-| `src/`      | Anwendungsquellcode (TypeScript / TSX)                          | Ja                       |
-| `.build/`   | Build-Zwischenergebnisse — Ausgabe von `next build` (`distDir`) | Nein (von Git ignoriert) |
-| `dist/`     | Auslieferbares npm-Paket — erstellt durch `assembleStandalone`  | Nein (von Git ignoriert) |
-
-> **Hinweis für den Betrieb:** Das Image-Verzeichnis auf dem entfernten VPS bleibt `/usr/lib/node_modules/omniroute/app/`.
-> Nur die Build-Ausgabe **im Repository** wurde verschoben (`app/` → `dist/`). Die Deployment-Skills übertragen
-> den Inhalt von `dist/` per rsync in das entfernte Verzeichnis `app/` — Änderungen an VPS-Pfaden sind nicht erforderlich.
-
-**Ablauf mit einem einzelnen Build:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (bereinigen)
-  └─ next build → .build/next/   (Zwischenergebnisse)
-  └─ assembleStandalone          (kopiert Standalone + statische Dateien + öffentliche Dateien + native Komponenten → dist/)
-  └─ schreibt dist/BUILD_SHA     (HEAD-Kennwert)
-```
-
-Für das Deployment NICHT `npm run build` und anschließend separat `npm run build:cli` ausführen — stattdessen
-`npm run build:release` verwenden, das in einem Befehl einen sauberen Neuaufbau samt Kennwert durchführt.
-
-### Artefaktvalidierung
-
-- [ ] `npm run build:release` ist erfolgreich und `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` meldet keine Probleme — kein `app.__qa_backup`, `scripts/scratch`, `package-lock.json` oder andere lokale Rückstände
-- [ ] `dist/server.js` ist nach dem Build vorhanden
-
-### Tagging und Veröffentlichung
-
-- [ ] `/generate-release-cc` ausführen (Claude-Code-Skill):
-  - Erstellt das Tag `vX.Y.Z`
-  - Pusht Tag und Branch
-  - Erstellt eine GitHub-Veröffentlichung mit dem Changelog als Beschreibung
-  - Hängt Electron-Installationsprogramme an (falls erstellt)
-- [ ] Oder manuell:
-  ```bash
-  git tag -a vX.Y.Z -m "Veröffentlichung vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deployment
-
-Deployment-Skills verwenden den schlanken rsync-Ablauf — kein `npm pack`, kein `npm i -g`:
-
-- [ ] Den zum Ziel passenden Deployment-Skill verwenden:
-  - `/deploy-vps-local-cc` — lokaler VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai-VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — beide
-- [ ] Vor dem Deployment bestätigen, dass `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Der Build muss dort ausgeführt werden, wo `node_modules` ein echtes Verzeichnis ist (Haupt-Checkout oder mit `npm ci` eingerichteter Worktree — KEIN Worktree mit symbolischer Verknüpfung)
-- [ ] Smoke-Test der bereitgestellten Instanz durchführen:
-  - `/dashboard/health` öffnen → prüfen, ob die Versionszeichenfolge mit der Veröffentlichung übereinstimmt
-  - Eine Anfrage an `/v1/chat/completions` gegen einen bekannten Anbieter ausführen
-  - Überprüfen, ob `/api/monitoring/health` Circuit Breaker mit dem Status `CLOSED` zurückgibt
-  - Bestätigen, dass MCP-Transporte antworten (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Nach der Veröffentlichung
-
-- [ ] `/capture-release-evidences-cc` ausführen (Claude Code Skill)
-  - Erfasst WebP-Screenshots/-Aufzeichnungen neuer Funktionen
-  - Hängt sie an die Versionshinweise / den Blogbeitrag an
-- [ ] GitHub Discussions / Discord mit der Release-Ankündigung aktualisieren
-- [ ] Meilenstein für die nächste Version öffnen
-- [ ] Falls kritisch: Diskussion anheften oder für ein In-App-Banner in `news.json` veröffentlichen
-
-### Freigabekriterien für den öffentlichen Start von Radar
-
-Die Radar-Ankündigung wird absichtlich mit `active: false` eingecheckt. Die Aktivierung erfolgt als separate
-Änderung, nachdem für jeden der folgenden Punkte ein Nachweis erbracht wurde:
-
-- [ ] Alle gestapelten Radar-PRs sind zusammengeführt und die CI des Release-Stands ist grün
-- [ ] Die OSS-Radar-Routen bereitstellen und Smoke-Tests durchführen, wobei `RADAR_ENABLED` standardmäßig weiterhin deaktiviert bleibt
-- [ ] Smoke-Tests für `GET /planos`, `/termos`, `/privacidade` und `/reembolso` auf dem angegebenen Radar-Host durchführen
-- [ ] Identität/Kontaktdaten/Adresse des Betreibers sowie die vom Eigentümer genehmigte rechtliche Prüfung im privaten Dienst erfassen
-- [ ] Stripe Checkout und den signierten Webhook ausschließlich im Testmodus testen
-- [ ] Eine verschlüsselte transaktionale E-Mail-Zustellung mit dem genehmigten Absender/der genehmigten Domain testen
-- [ ] Die Wiederherstellung aus einem Backup und einen beaufsichtigten Forschungslauf mit gedeckeltem Budget nachweisen
-- [ ] Die BRL/PIX-Prüfrichtlinie genehmigen, bevor Spendennachweise akzeptiert werden
-- [ ] Den öffentlichen Checkout erst nach Erfüllung der vorherigen Kriterien aktivieren und anschließend die neue `news.json`-ID aktivieren
-- [ ] Überprüfen, dass das Home-Banner lokalisierten Text verwendet und eine neue ID wieder erscheint, nachdem eine ältere ID geschlossen wurde
-
 ## Smoke-Test für eingebettete Dienste (v3.8.4+)
 
 Vor der Veröffentlichung eines Releases, das Änderungen an eingebetteten Diensten enthält, Folgendes überprüfen:
@@ -399,7 +300,7 @@ Wenn das Release ein kritisches Problem aufweist:
 - Niemals Husky-Hooks überspringen (`--no-verify`)
 - Niemals Geheimnisse, Zugangsdaten oder `.env`-Dateien committen
 - Die Testabdeckung muss bei ≥60/60/60/60 bleiben (Anweisungen/Zeilen/Funktionen/Verzweigungen)
-- Bei Änderungen am Produktionscode in `src/`, `open-sse/`, `electron/` oder `bin/` immer Tests hinzufügen oder aktualisieren
+- Bei Änderungen am Produktionscode in `src/`, `open-sse/` oder `bin/` immer Tests hinzufügen oder aktualisieren
 
 ## Automatisierte Synchronisierungsprüfung
 

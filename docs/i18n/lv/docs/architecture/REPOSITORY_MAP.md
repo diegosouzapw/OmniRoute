@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16 lietotne (UI + API maršruti + bibliotēkas + domēns + serveris)
 ├── open-sse/             # Straumēšanas dzinēja darbvieta (apdarinātāji, izpildītāji, tulkotājs, MCP serveris)
-├── electron/             # Darbvirsmas ietvars (Electron 41 + electron-builder 26.10)
 ├── bin/                  # CLI ieejas punkts un komandu apdarinātāji
 ├── scripts/              # Būvēšanas, pārbaudes, sinhronizācijas un vienreizēji skripti
 ├── docs/                 # Publiskā dokumentācija (jūs atrodaties šeit)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Darbvirsmas ietvars
-
-| Fails            | Nolūks                                                                                                            |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `main.js`        | Electron galvenais process (BrowserWindow, iegultais Next.js serveris, sistēmas tekne, automātiskā atjaunināšana) |
-| `preload.js`     | IPC tilts (contextBridge → `window.omniroute`)                                                                    |
-| `package.json`   | electron-builder konfigurācija + Electron 41 + electron-builder 26.10 atkarības                                   |
-| `assets/`        | Lietotnes ikonas (Windows .ico, macOS .icns, Linux .png)                                                          |
-| `dist-electron/` | Būvējuma izvade (gitignored)                                                                                      |
-| `types.d.ts`     | Renderētāja tilta tipu deklarācijas                                                                               |
-| `README.md`      | Iekšējais Electron README (skatiet arī `docs/guides/ELECTRON_GUIDE.md`)                                           |
-
----
-
 ## `bin/` — CLI
 
 | Fails                                                                                                       | Nolūks                                                                                                                                 |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | MCP/A2A E2E testu izpildītājs                                                                     |
 | `run-ecosystem-tests.mjs`           | Ekosistēmas (pakalpojumu sniedzēju integrācijas) testi                                            |
 | `test-report-summary.mjs`           | Ģenerē pārklājuma kopsavilkumu Markdown formātā                                                   |
-| `smoke-electron-packaged.mjs`       | Veic iepakotā Electron būvējuma dūmu testu                                                        |
-| `native-binary-compat.mjs`          | Pārbauda, vai vietējās atkarības (`better-sqlite3`) atbilst Electron izmantotajam Node            |
 | `validate-pack-artifact.ts`         | Pārbauda `npm pack` izvadi                                                                        |
 | `responses-ws-proxy.mjs`            | WebSocket tilts Codex Responses API                                                               |
 | `v1-ws-bridge.mjs`                  | WebSocket tilts galapunktam `/api/v1/ws`                                                          |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Lietotāja rokasgrāmata (iestatīšana, modeļi, kombinācijas, CLI, audio utt.)                                   |
 | `API_REFERENCE.md`          | API galapunktu uzziņas materiāls ar autentifikācijas modeli                                                   |
 | `openapi.yaml`              | OpenAPI 3.0 specifikācija (121 ceļš)                                                                          |
-| `SETUP_GUIDE.md`            | Instalēšanas metodes (npm, npx, Docker, Electron, Termux, no pirmkoda)                                        |
+| `SETUP_GUIDE.md`            | Instalēšanas metodes (npm, npx, Docker, Termux, no pirmkoda)                                                  |
 | `ENVIRONMENT.md`            | Visi vides mainīgie (~800 dokumentēti, ~3 050 rindu failā `.env.example`)                                     |
 | `TROUBLESHOOTING.md`        | Biežākās kļūdas + zināmās v3.8.0 problēmas                                                                    |
 | `RELEASE_CHECKLIST.md`      | Pilna laidiena darbplūsma (prasmes, husky, conventional commits, izvietošana)                                 |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io izvietošana (pašlaik pieejama tikai ķīniešu valodā)                |
 | `TERMUX_GUIDE.md`            | Android bezgrafiskā režīmā, izmantojot Termux                             |
 | `PWA_GUIDE.md`               | Progresīvās tīmekļa lietotnes instalēšana + servisa darbinieks            |
-| `ELECTRON_GUIDE.md`          | Darbvirsmas lietotnes būvēšana + parakstīšana + izplatīšana               |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                    |
 | `PROXY_GUIDE.md`             | 4 līmeņu izejošais starpniekserveris + 1proxy tirgus                      |
 

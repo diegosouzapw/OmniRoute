@@ -16,7 +16,7 @@ tipo di modifica con i relativi contratti, controlli mirati e copertura CI.
    [Modello di branching e rilascio](BRANCHING_MODEL.md).
 2. **Indica i contratti.** Identifica ogni catalogo, schema, artefatto generato, API pubblica o interfaccia
    utente interessati dalla modifica. La tabella seguente fornisce l'insieme iniziale minimo.
-3. **Scrivi o aggiorna test mirati.** Le modifiche al codice di produzione in `src/`, `open-sse/`, `electron/` o
+3. **Scrivi o aggiorna test mirati.** Le modifiche al codice di produzione in `src/`, `open-sse/` o
    `bin/` richiedono un test automatizzato nella stessa PR. Esegui i file di test più circoscritti che dimostrano il
    comportamento, quindi i controlli mirati elencati.
 4. **Lascia che la CI esegua la matrice completa.** Gli shard completi dei test unitari, Vitest, il controllo incrementale della copertura e

@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16アプリケーション（UI + APIルート + ライブラリ + ドメイン + サーバー）
 ├── open-sse/             # ストリーミングエンジンのワークスペース（ハンドラー、エグゼキューター、トランスレーター、MCPサーバー）
-├── electron/             # デスクトップラッパー（Electron 41 + electron-builder 26.10）
 ├── bin/                  # CLIエントリーポイントとコマンドハンドラー
 ├── scripts/              # ビルド、チェック、同期、単発実行用スクリプト
 ├── docs/                 # 公開ドキュメント（現在地）
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — デスクトップラッパー
-
-| ファイル         | 目的                                                                               |
-| ---------------- | ---------------------------------------------------------------------------------- |
-| `main.js`        | Electronメインプロセス（BrowserWindow、組み込みNext.jsサーバー、トレイ、自動更新） |
-| `preload.js`     | IPCブリッジ（contextBridge → `window.omniroute`）                                  |
-| `package.json`   | electron-builder設定 + Electron 41 + electron-builder 26.10の依存関係              |
-| `assets/`        | アプリアイコン（Windows .ico、macOS .icns、Linux .png）                            |
-| `dist-electron/` | ビルド出力（gitignore対象）                                                        |
-| `types.d.ts`     | レンダラーブリッジの型宣言                                                         |
-| `README.md`      | 内部Electron README（`docs/guides/ELECTRON_GUIDE.md`も参照）                       |
-
----
-
 ## `bin/` — CLI
 
 | ファイル                                                                                                    | 目的                                                                                                                           |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | MCP/A2A E2Eランナー                                                                |
 | `run-ecosystem-tests.mjs`           | エコシステム（プロバイダー統合）テスト                                             |
 | `test-report-summary.mjs`           | カバレッジ概要のMarkdownを生成                                                     |
-| `smoke-electron-packaged.mjs`       | パッケージ化されたElectronビルドのスモークテスト                                   |
-| `native-binary-compat.mjs`          | ネイティブ依存関係（`better-sqlite3`）がElectronのNodeと一致することを検証         |
 | `validate-pack-artifact.ts`         | npm packの出力を検証                                                               |
 | `responses-ws-proxy.mjs`            | Codex Responses API用のWebSocketブリッジ                                           |
 | `v1-ws-bridge.mjs`                  | `/api/v1/ws` エンドポイント用のWebSocketブリッジ                                   |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | エンドユーザーマニュアル（セットアップ、モデル、コンボ、CLI、音声など）           |
 | `API_REFERENCE.md`          | 認証モデルを含むAPIエンドポイントリファレンス                                     |
 | `openapi.yaml`              | OpenAPI 3.0仕様（121パス）                                                        |
-| `SETUP_GUIDE.md`            | インストール方法（npm、npx、Docker、Electron、Termux、ソース）                    |
+| `SETUP_GUIDE.md`            | インストール方法（npm、npx、Docker、Termux、ソース）                              |
 | `ENVIRONMENT.md`            | すべての環境変数（約800件を文書化、`.env.example`は約3,050行）                    |
 | `TROUBLESHOOTING.md`        | 一般的なエラー + v3.8.0の既知の問題                                               |
 | `RELEASE_CHECKLIST.md`      | 完全なリリースフロー（スキル、husky、Conventional Commits、デプロイ）             |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.ioデプロイ（現在は中国語版のみ）                                     |
 | `TERMUX_GUIDE.md`            | Termuxを使用したAndroidヘッドレス運用                                    |
 | `PWA_GUIDE.md`               | プログレッシブWebアプリのインストール + Service Worker                   |
-| `ELECTRON_GUIDE.md`          | デスクトップアプリのビルド + 署名 + 配布                                 |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                   |
 | `PROXY_GUIDE.md`             | 4段階のアウトバウンドプロキシ + 1proxyマーケットプレイス                 |
 

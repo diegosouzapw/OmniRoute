@@ -91,7 +91,7 @@
 
 ### 3. တားမြစ်ထားသော pattern များ
 
-❌ Production code (`src/`, `open-sse/`, `electron/`, `bin/`) တွင် အောက်ပါတို့မှ မည်သည့်အရာကိုမျှ **မည်သည့်အခါမျှ** မလုပ်ပါနှင့်-
+❌ Production code (`src/`, `open-sse/`, `bin/`) တွင် အောက်ပါတို့မှ မည်သည့်အရာကိုမျှ **မည်သည့်အခါမျှ** မလုပ်ပါနှင့်-
 
 ```ts
 // မကောင်းပါ- literal value က Secret Scanning + Semgrep ကို trigger လုပ်သည်

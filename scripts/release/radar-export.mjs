@@ -48,10 +48,12 @@ function firstEnv(...names) {
 
 function gitHead() {
   try {
-    return execFileSync("git", ["-C", REPO, "rev-parse", "HEAD"], {
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
-    }).trim() || null;
+    return (
+      execFileSync("git", ["-C", REPO, "rev-parse", "HEAD"], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      }).trim() || null
+    );
   } catch {
     return null;
   }
@@ -63,7 +65,8 @@ function buildProvenance(geradoEm) {
   const server = firstEnv("GITHUB_SERVER_URL");
   const repository = firstEnv("GITHUB_REPOSITORY");
   const runId = firstEnv("GITHUB_RUN_ID");
-  const runUrl = server && repository && runId ? `${server}/${repository}/actions/runs/${runId}` : null;
+  const runUrl =
+    server && repository && runId ? `${server}/${repository}/actions/runs/${runId}` : null;
   return {
     generatedAt: geradoEm,
     generator: "scripts/release/radar-export.mjs",

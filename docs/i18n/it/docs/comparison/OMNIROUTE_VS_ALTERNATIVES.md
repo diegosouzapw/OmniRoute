@@ -29,7 +29,7 @@ Confronto oggettivo delle funzionalità con i più diffusi router AI open source
 | **Occultamento del fingerprint TLS (JA3/JA4)**                 |                   ✅ wreq-js                   |         ❌         |        ❌         |       ❌       |
 | **Framework di valutazione**                                   |                  ✅ integrato                  |         ❌         |        ❌         | ⚠ a pagamento  |
 | **Proxy MITM (intercetta Cursor/Antigravity)**                 |              ✅ multipiattaforma               |         ❌         |        ❌         |       ❌       |
-| **CLI con area di notifica (senza Electron)**                  |                       ✅                       |         ❌         |        n/a        |      n/a       |
+| **CLI con area di notifica**                                   |                       ✅                       |         ❌         |        n/a        |      n/a       |
 | **Autenticazione automatica CLI tramite ID macchina**          |                       ✅                       |         ❌         |        n/a        |      n/a       |
 | **Dashboard**                                                  |                   Next.js 16                   |      di base       |   proprietaria    |  proprietaria  |
 | **i18n**                                                       |           **42 impostazioni locali**           |         ❌         |        ❌         |       ⚠        |

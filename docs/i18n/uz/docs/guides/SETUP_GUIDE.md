@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Compose profillari va Caddy HTTPS bilan birga Dockerʼni toʻliq sozlash uchun [Docker qoʻllanmasi](./DOCKER_GUIDE.md)ga qarang.
 
-### Ish stoli ilovasi (Electron)
-
-OmniRoute Electron 41 + electron-builder 26.10 asosida yaratilgan ish stoli qobigʻi bilan taqdim etiladi. Mavjud skriptlar (ish maydoni ildizi):
-
-```bash
-npm run electron:dev          # Ish stoli ilovasini tezkor qayta yuklash bilan ishga tushirish
-npm run electron:build        # Joriy OT uchun qurish (avtomatik aniqlanadi)
-npm run electron:build:win    # Windows oʻrnatuvchisi (NSIS + portativ)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # Paketlangan qurilishni tezkor sinovdan oʻtkazish
-```
-
-Ish stoli oʻrnatuvchilarining relizlari GitHub Releases sahifasiga biriktiriladi. Electron haqida batafsil maʼlumot (imzolash, IPC koʻprigi, distributivlar) uchun [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) fayliga qarang _(keyingi bosqichda yaratilgan)_.
-
 ### Interfeyssiz server (CI/avtomatlashtirish)
 
 Avtomatik sozlashlar (Docker, Kubernetes, CI) uchun quyidagilardan foydalaning:

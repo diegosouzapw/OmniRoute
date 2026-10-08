@@ -29,7 +29,7 @@ Perbandingan ciri secara objektif dengan penghala AI sumber terbuka yang popular
 | **Penyamaran cap jari TLS (JA3/JA4)**                 |                   ✅ wreq-js                   |          ❌          |        ❌         |       ❌       |
 | **Rangka kerja penilaian**                            |                ✅ terbina dalam                |          ❌          |        ❌         |   ⚠ berbayar   |
 | **Proksi MITM (memintas Cursor/Antigravity)**         |              ✅ merentas platform              |          ❌          |        ❌         |       ❌       |
-| **CLI dengan dulang sistem (tanpa Electron)**         |                       ✅                       |          ❌          |  tidak terpakai   | tidak terpakai |
+| **CLI dengan dulang sistem**                          |                       ✅                       |          ❌          |  tidak terpakai   | tidak terpakai |
 | **Pengesahan automatik ID mesin CLI**                 |                       ✅                       |          ❌          |  tidak terpakai   | tidak terpakai |
 | **Papan pemuka**                                      |                   Next.js 16                   |         asas         |    proprietari    |  proprietari   |
 | **i18n**                                              |                  **42 lokal**                  |          ❌          |        ❌         |       ⚠        |

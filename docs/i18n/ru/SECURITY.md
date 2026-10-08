@@ -197,7 +197,7 @@ docker run -d \
 
 ## Зависимости
 
-- Регулярно запускайте `npm audit` (`npm run audit:deps` проверяет основную часть проекта и Electron)
+- Регулярно запускайте `npm audit` ()
 - Своевременно обновляйте зависимости
 - Проект использует `husky` + `lint-staged` для проверок перед коммитом (lint-staged + check-docs-sync + check:any-budget:t11)
 - Конвейер CI при каждой отправке изменений запускает правила безопасности ESLint (`no-eval`, `no-implied-eval`, `no-new-func` = ошибка)

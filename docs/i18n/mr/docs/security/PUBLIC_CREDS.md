@@ -91,7 +91,7 @@ OmniRoute ने ही मूल्ये अंतर्भूत करणे
 
 ### 3. प्रतिबंधित patterns
 
-❌ production code मध्ये (`src/`, `open-sse/`, `electron/`, `bin/`) खालीलपैकी काहीही **कधीही** करू नका:
+❌ production code मध्ये (`src/`, `open-sse/`, `bin/`) खालीलपैकी काहीही **कधीही** करू नका:
 
 ```ts
 // चुकीचे: literal value मुळे Secret Scanning + Semgrep trigger होतात

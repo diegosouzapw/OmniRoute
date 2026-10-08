@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 برای راهاندازی کامل Docker، شامل پروفایلهای Compose و HTTPS با Caddy، به [راهنمای Docker](./DOCKER_GUIDE.md) مراجعه کنید.
 
-### برنامه دسکتاپ (Electron)
-
-OmniRoute همراه با یک پوسته دسکتاپ مبتنی بر Electron 41 + electron-builder 26.10 عرضه میشود. اسکریپتهای موجود (در ریشه workspace):
-
-```bash
-npm run electron:dev          # اجرای نسخه دسکتاپ با بارگذاری مجدد خودکار
-npm run electron:build        # ساخت برای سیستمعامل فعلی (با تشخیص خودکار)
-npm run electron:build:win    # نصبکننده Windows (NSIS + نسخه قابلحمل)
-npm run electron:build:mac    # macOS (dmg + zip، arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # آزمون دود نسخه بستهبندیشده
-```
-
-نسخههای منتشرشده نصبکنندههای دسکتاپ به GitHub Releases پیوست میشوند. برای بررسی عمیق و کامل Electron (امضای دیجیتال، پل IPC و توزیعها)، به [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) مراجعه کنید _(در مرحلهای بعد ایجاد شده است)_.
-
 ### سرور بدون رابط گرافیکی (CI/اتوماسیون)
 
 برای راهاندازیهای بدون نظارت (Docker، Kubernetes و CI)، از موارد زیر استفاده کنید:

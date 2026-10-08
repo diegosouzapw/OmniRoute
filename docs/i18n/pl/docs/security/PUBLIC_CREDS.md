@@ -93,7 +93,7 @@ Gdy musisz osadzić nową wartość dostarczoną przez upstream, która:
 
 ### 3. Zabronione wzorce
 
-❌ **Nigdy** nie rób żadnej z poniższych rzeczy w kodzie produkcyjnym (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ **Nigdy** nie rób żadnej z poniższych rzeczy w kodzie produkcyjnym (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // BAD: literal value triggers Secret Scanning + Semgrep

@@ -225,7 +225,7 @@ npm run test:combo:live:vps:failover     # បន្ថែម cross-provider fai
 
 - `npm run test:coverage` វាស់ source coverage សម្រាប់ unit test suite ចម្បង មិនរាប់បញ្ចូល `tests/**` និងរាប់បញ្ចូល `open-sse/**`
 - Pull requests ត្រូវរក្សា coverage gate ឱ្យនៅ **60%+** សម្រាប់ statements/lines/functions/branches
-- ប្រសិនបើ PR ផ្លាស់ប្ដូរ production code នៅក្នុង `src/`, `open-sse/`, `electron/`, ឬ `bin/` វាត្រូវបន្ថែម ឬធ្វើបច្ចុប្បន្នភាព automated tests នៅក្នុង PR ដូចគ្នា
+- ប្រសិនបើ PR ផ្លាស់ប្ដូរ production code នៅក្នុង `src/`, `open-sse/`, ឬ `bin/` វាត្រូវបន្ថែម ឬធ្វើបច្ចុប្បន្នភាព automated tests នៅក្នុង PR ដូចគ្នា
 - `npm run coverage:report` បង្ហាញរបាយការណ៍លម្អិតតាមឯកសារនីមួយៗពីការដំណើរការ coverage ចុងក្រោយ
 - `npm run test:coverage:legacy` រក្សាទុករង្វាស់ចាស់សម្រាប់ការប្រៀបធៀបប្រវត្តិសាស្ត្រ
 - សូមមើល `docs/ops/COVERAGE_PLAN.md` សម្រាប់ផែនការកែលម្អ coverage ជាដំណាក់កាល
@@ -330,7 +330,6 @@ open-sse/                   # workspace របស់ @omniroute/open-sse
 ├── transformer/            # transformer សម្រាប់ Responses API
 └── utils/                  # module utility ចំនួន 22 (stream, TLS, proxy, logging)
 
-electron/                   # កម្មវិធី desktop Electron (ឆ្លងវេទិកា)
 
 tests/
 ├── unit/                   # ឧបករណ៍ដំណើរការ test របស់ Node.js (ឯកសារ test ចំនួន 1,574)

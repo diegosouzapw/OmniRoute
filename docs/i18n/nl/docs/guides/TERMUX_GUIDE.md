@@ -118,7 +118,6 @@ omniroute
 
 ## Beperkingen
 
-- Electron werkt niet in Termux.
 - Er is geen systeemvak- of desktopintegratie.
 - Deze configuratie is uitsluitend bedoeld als server: gebruik het browserdashboard.
 - Native afhankelijkheden moeten mogelijk lokaal worden gecompileerd.

@@ -89,7 +89,6 @@
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![Լիցենզիա՝ MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![Docker ներբեռնումներ](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![Electron ներբեռնումներ](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
 
 <table>
   <tr>
@@ -744,7 +743,6 @@ omniroute configure codex          # նաև՝ claude opencode qwen aider goose g
   <tr><th align="left">Հարթակ</th><th align="left">Տեղադրում</th><th align="left">Առավելություններ</th></tr>
   <tr><td align="left" nowrap>📦 <b>npm (համընդհանուր)</b></td><td align="left" nowrap><code>npm install -g omniroute</code></td><td align="left">Մեկ հրաման, ցանկացած ՕՀ</td></tr>
   <tr><td align="left" nowrap>🐳 <b>Docker</b></td><td align="left" nowrap><code>docker run … diegosouzapw/omniroute</code></td><td align="left">Բազմաճարտարապետական՝ <b>AMD64 + ARM64</b></td></tr>
-  <tr><td align="left" nowrap>🖥️ <b>Աշխատասեղանային (Electron)</b></td><td align="left" nowrap><code>npm run electron:build</code></td><td align="left">Բնիկ պատուհան + համակարգային սկուտեղ՝ <b>Windows / macOS / Linux</b></td></tr>
   <tr><td align="left" nowrap>🎩 <b>Ընտրացանկի գոտի (OmniRouteTray)</b></td><td align="left" nowrap><code>brew install --cask zoispag/tap/omniroute-tray</code></td><td align="left">Վերահսկում և ինքնաշխատ թարմացնում է սերվերը՝ <b>macOS</b></td></tr>
   <tr><td align="left" nowrap>💪 <b>ARM</b></td><td align="left" nowrap>բնիկ <code>arm64</code></td><td align="left">Raspberry Pi, ARM սերվերներ, Apple Silicon</td></tr>
   <tr><td align="left" nowrap>📱 <b>Android (Termux)</b></td><td align="left" nowrap><code>pkg install nodejs && npx -y omniroute</code></td><td align="left">Աշխատում է <b>ձեր հեռախոսում</b>, շուրջօրյա, առանց root-ի</td></tr>
@@ -754,7 +752,7 @@ omniroute configure codex          # նաև՝ claude opencode qwen aider goose g
   <tr><td align="left" nowrap>🛠️ <b>Սկզբնաղբյուրից</b></td><td align="left" nowrap><code>npm install && npm run dev</code></td><td align="left">Փոփոխեք և ներդրում կատարեք</td></tr>
 </table>
 
-<sub>📖 [Docker-ի ուղեցույց](docs/guides/DOCKER_GUIDE.md) · [Աշխատասեղանային տարբերակ](electron/README.md) · [Ընտրացանկի գոտու սկուտեղ](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
+<sub>📖 [Docker-ի ուղեցույց](docs/guides/DOCKER_GUIDE.md) · [Ընտրացանկի գոտու սկուտեղ](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
 
 <br/>
 
@@ -1276,7 +1274,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1-ը նույնպե
   <tr><td nowrap><b>Կայունություն</b></td><td>Շղթայի անջատիչ, էքսպոնենցիալ հետաձգում, հարցումների միաժամանակյա կուտակման կանխարգելում, auto-combo ինքնավերականգնում</td></tr>
   <tr><td nowrap><b>Մատենավարում</b></td><td>pino — կառուցվածքավորված JSON մատյաններ՝ հարցման համատեքստով</td></tr>
   <tr><td nowrap><b>Թեստավորում</b></td><td>Node.js թեստերի գործարկիչ + Vitest — <b>39,000+ ստատիկ թեստային հայտարարություն</b>՝ 5,100+ վերահսկվող թեստային ֆայլերում (միավորային, ինտեգրացիոն, E2E, անվտանգության, էկոհամակարգային)</td></tr>
-  <tr><td nowrap><b>Հարթակներ</b></td><td>Սեղանադիր (Electron) · Android (Termux) · PWA (ցանկացած դիտարկիչ)</td></tr>
+  <tr><td nowrap><b>Հարթակներ</b></td><td>Android (Termux) · PWA (ցանկացած դիտարկիչ)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — թողարկման ժամանակ ավտոմատ npm հրապարակում + Docker Hub</td></tr>
   <tr><td nowrap><b>Հղումներ</b></td><td><a href="https://omniroute.online">Կայք</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>

@@ -91,7 +91,7 @@ Wanneer je een nieuwe door upstream aangeleverde waarde moet insluiten die:
 
 ### 3. Verboden patronen
 
-❌ Doe **nooit** een van de volgende dingen in productiecode (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ Doe **nooit** een van de volgende dingen in productiecode (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // FOUT: letterlijke waarde activeert Secret Scanning + Semgrep

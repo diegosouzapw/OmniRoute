@@ -29,7 +29,7 @@ Objektyvus funkcijų palyginimas su populiariais atvirojo kodo DI maršruto pari
 | **TLS kontrolinio atspaudo maskavimas (JA3/JA4)**                   |                    ✅ wreq-js                    |        ❌        |           ❌           |      ❌      |
 | **Vertinimo sistema**                                               |                  ✅ integruota                   |        ❌        |           ❌           |   ⚠ mokama   |
 | **MITM tarpinis serveris (perima Cursor/Antigravity srautą)**       |              ✅ kelioms platformoms              |        ❌        |           ❌           |      ❌      |
-| **CLI su sistemos dėklu (be Electron)**                             |                        ✅                        |        ❌        |          n/a           |     n/a      |
+| **CLI su sistemos dėklu**                                           |                        ✅                        |        ❌        |          n/a           |     n/a      |
 | **CLI automatinis autentifikavimas pagal įrenginio ID**             |                        ✅                        |        ❌        |          n/a           |     n/a      |
 | **Valdymo skydelis**                                                |                    Next.js 16                    |     bazinis      |      nuosavybinis      | nuosavybinis |
 | **i18n**                                                            |               **42 lokalizacijos**               |        ❌        |           ❌           |      ⚠       |

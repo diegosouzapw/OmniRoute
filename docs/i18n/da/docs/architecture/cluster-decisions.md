@@ -69,7 +69,7 @@ Den oprindelige issue-tråd foreslog en større omskrivning af klyngen. Efter en
 | ------------------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
 | **Dragonfly**                        | **AFVIS**  | `redis:7-alpine` er allerede tilstrækkelig til rate limit-workloaden i produktionsskala; der er ingen grænse at bryde. |
 | **NATS**                             | **AFVIS**  | Hver `omniroute`-replika er en enkelt Node.js-proces; der findes ingen pub/sub-workload med flere processer.           |
-| **PostgreSQL**                       | **AFVIS**  | SQLite + sqlite-vec + FTS5 dækker alle 3 use cases; 97 migreringer + Electron-pakning blokerer en migrering.           |
+| **PostgreSQL**                       | **AFVIS**  | SQLite + sqlite-vec + FTS5 dækker alle 3 use cases; 97 migreringer-pakning blokerer en migrering.                      |
 | **Neo4j**                            | **AFVIS**  | Routing er et join mellem 5 tabeller; en rekursiv CTE i SQLite er tilstrækkelig.                                       |
 | **MinIO**                            | **AFVIS**  | Ingen blob-workload på flere MB; billeder/lyd videresendes via proxyer.                                                |
 | **pgvector / pg_ai / pg_textsearch** | **AFVIS**  | Samme SQLite-grænse som for PostgreSQL; pgvector-økosystemet er fragmenteret.                                          |

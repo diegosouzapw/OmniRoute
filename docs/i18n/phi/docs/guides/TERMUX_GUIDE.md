@@ -118,7 +118,6 @@ omniroute
 
 ## Mga Limitasyon
 
-- Hindi tumatakbo ang Electron sa Termux.
 - Walang system tray o desktop integration.
 - Para lamang sa server ang setup na ito: gamitin ang browser dashboard.
 - Maaaring kailanganin ng mga native dependency ang lokal na pag-compile.

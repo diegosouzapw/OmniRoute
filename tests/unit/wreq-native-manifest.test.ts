@@ -321,38 +321,3 @@ test("npm, standalone, Electron, and container assembly carry the wreq license e
     rmSync(outputRoot, { recursive: true, force: true });
   }
 });
-
-test("Electron installs the Linux arm64 binding inside the platform matrix job", () => {
-  const workflow = readFileSync(join(ROOT, ".github/workflows/electron-release.yml"), "utf8");
-  const webBuildStart = workflow.indexOf("\n  web-build:");
-  const buildStart = workflow.indexOf("\n  build:");
-  const releaseStart = workflow.indexOf("\n  release:");
-
-  assert.ok(webBuildStart >= 0, "web-build job exists");
-  assert.ok(buildStart > webBuildStart, "matrix build job follows web-build");
-  assert.ok(releaseStart > buildStart, "release job follows matrix build");
-
-  const webBuildJob = workflow.slice(webBuildStart, buildStart);
-  const matrixBuildJob = workflow.slice(buildStart, releaseStart);
-  const bindingStep = "Install Linux arm64 wreq binding for cross-package";
-
-  assert.doesNotMatch(webBuildJob, new RegExp(bindingStep));
-  assert.match(
-    matrixBuildJob,
-    new RegExp(
-      `${bindingStep}[\\s\\S]*?if: matrix\\.platform == 'linux'[\\s\\S]*?@wreq-js/binding-linux-arm64-gnu@3\\.2\\.0`
-    )
-  );
-  assert.doesNotMatch(matrixBuildJob, /--package-lock=false/);
-  assert.match(matrixBuildJob, /git diff --exit-code -- package\.json package-lock\.json/);
-  assert.match(
-    matrixBuildJob,
-    /tests\/unit\/wreq-native-manifest\.test\.ts/,
-    "the cross-installed binding must be verified against the audited binary manifest"
-  );
-  assert.ok(
-    matrixBuildJob.indexOf(bindingStep) <
-      matrixBuildJob.indexOf("Build Next.js standalone (legacy per-leg fallback)"),
-    "cross-arch binding must exist before either fallback build or shared-bundle hydration"
-  );
-});

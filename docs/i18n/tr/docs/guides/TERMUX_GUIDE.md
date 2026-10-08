@@ -118,7 +118,6 @@ omniroute
 
 ## Sınırlamalar
 
-- Electron, Termux'ta çalışmaz.
 - Sistem tepsisi veya masaüstü entegrasyonu yoktur.
 - Bu kurulum yalnızca sunucu içindir: tarayıcı panosunu kullanın.
 - Yerel bağımlılıkların yerel olarak derlenmesi gerekebilir.

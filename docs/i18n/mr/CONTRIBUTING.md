@@ -219,7 +219,7 @@ npm run test:combo:live:vps:failover     # वास्तविक क्रॉ
 
 - `npm run test:coverage` मुख्य युनिट चाचणी संचाचे स्रोत कव्हरेज मोजते, `tests/**` वगळते आणि `open-sse/**` समाविष्ट करते
 - पुल रिक्वेस्ट्सनी स्टेटमेंट्स/ओळी/फंक्शन्स/ब्रँचेससाठी कव्हरेज गेट **60%+** राखले पाहिजे
-- एखाद्या PR ने `src/`, `open-sse/`, `electron/`, किंवा `bin/` मधील प्रॉडक्शन कोड बदलल्यास, त्याच PR मध्ये स्वयंचलित चाचण्या जोडल्या किंवा अद्ययावत केल्या पाहिजेत
+- एखाद्या PR ने `src/`, `open-sse/`, किंवा `bin/` मधील प्रॉडक्शन कोड बदलल्यास, त्याच PR मध्ये स्वयंचलित चाचण्या जोडल्या किंवा अद्ययावत केल्या पाहिजेत
 - `npm run coverage:report` नवीनतम कव्हरेज रनमधील प्रत्येक फाइलचा तपशीलवार अहवाल दर्शवते
 - `npm run test:coverage:legacy` ऐतिहासिक तुलनेसाठी जुने मेट्रिक जतन करते
 - टप्प्याटप्प्याने कव्हरेज सुधारण्याचा आराखडा पाहण्यासाठी `docs/ops/COVERAGE_PLAN.md` पहा
@@ -323,7 +323,6 @@ open-sse/                   # @omniroute/open-sse workspace
 ├── transformer/            # Responses API transformer
 └── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron desktop app (cross-platform)
 
 tests/
 ├── unit/                   # Node.js test runner (122 test files)

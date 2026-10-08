@@ -122,7 +122,6 @@ kai tsaye, ba tare da wani lakabi ba.
 ### Version da Changelog
 
 - [ ] Gudanar da `/version-bump-cc <patch|minor|major>` (ƙwarewar Claude Code)
-  - Yana ƙara versions na `package.json`, `electron/package.json`
   - Yana sake samar da `CHANGELOG.md` daga git commits tun daga tag na ƙarshe
   - Yana sabunta badges na README.md
 - [ ] Duba CHANGELOG.md da hannu kuma a gyara commit messages idan ya cancanta
@@ -216,104 +215,6 @@ Sauye-sauye masu karya jituwa: ƙara footer na `BREAKING CHANGE:` ko `!` bayan s
 - [ ] An yi wa models rajista a `open-sse/config/providerRegistry.ts`
 - [ ] Unit tests a `tests/unit/` suna gwada rarrabawa da routing na provider
 
-### Desktop (Electron)
-
-Idan `electron/` ya canza:
-
-- [ ] `npm run electron:smoke:packaged` ya yi nasara
-- [ ] An gwada builds na aƙalla ɗaya daga cikin `:win`, `:mac`, `:linux`
-- [ ] Takardun shaidar sa hannu kan lamba ba su ƙare ba (idan ana sanya hannu)
-- [ ] Version na `electron/package.json` ya yi daidai da na tushen `package.json`
-- [ ] An sabunta alamar auto-update channel idan ana sakin zuwa `stable`
-
-### Tsarin Build
-
-Ma’ajiyar tana amfani da directories na fitarwa guda uku daban-daban — kada a taɓa gauraya su:
-
-| Directory | Manufa                                                                  | Ana bibiyarsa?   |
-| --------- | ----------------------------------------------------------------------- | ---------------- |
-| `src/`    | Tushen manhaja (TypeScript / TSX)                                       | E                |
-| `.build/` | Matsakaitan build — fitarwar `next build` (`distDir`)                   | A'a (gitignored) |
-| `dist/`   | Kunshin npm mai shirye don aikawa — `assembleStandalone` ne ya haɗa shi | A'a (gitignored) |
-
-> **Bayanin mai gudanarwa:** directory na image a VPS na nesa har yanzu yana nan a `/usr/lib/node_modules/omniroute/app/`.
-> Fitarwar build ta **cikin ma’ajiya** ce kawai ta koma (`app/` → `dist/`). Deploy skills suna yin rsync na
-> abubuwan da ke cikin `dist/` zuwa dir na `app/` na nesa — babu buƙatar sauya path na VPS.
-
-**Tsarin build guda ɗaya:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (tsaftacewa)
-  └─ next build → .build/next/   (matsakaitan fayiloli)
-  └─ assembleStandalone          (yana kwafe standalone + static + public + natives → dist/)
-  └─ writes dist/BUILD_SHA       (alamar HEAD)
-```
-
-KADA a gudanar da `npm run build` sannan wani `npm run build:cli` daban don deploy — yi amfani da
-`npm run build:release`, wanda yake yin sabon build mai tsabta + sentinel a umarni guda.
-
-### Tabbatar da Artifact
-
-- [ ] `npm run build:release` ya yi nasara kuma `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` ya kasance tsaf — babu `app.__qa_backup`, `scripts/scratch`, `package-lock.json`, ko sauran ragowar gida
-- [ ] `dist/server.js` yana nan bayan build
-
-### Sanya Tag & Saki
-
-- [ ] Gudanar da `/generate-release-cc` (Claude Code skill):
-  - Yana ƙirƙirar tag `vX.Y.Z`
-  - Yana tura tag da branch
-  - Yana buɗe GitHub Release tare da bayanan changelog
-  - Yana haɗa Electron installers (idan an gina su)
-- [ ] Ko kuma da hannu:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deploy
-
-Deploy skills suna amfani da tsarin rsync mai sauƙi — babu `npm pack`, babu `npm i -g`:
-
-- [ ] Yi amfani da deploy skill da ya dace da wurin da ake nufi:
-  - `/deploy-vps-local-cc` — VPS na gida (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — duka biyun
-- [ ] Kafin deploy, tabbatar da `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Dole ne build ya gudana inda `node_modules` yake na ainihi (babban checkout ko worktree da aka yi wa `npm ci` — BA worktree mai symlink ba)
-- [ ] Yi smoke test ga instance da aka deploy:
-  - Buɗe `/dashboard/health` → duba cewa version string ya dace da sakin
-  - Gudanar da request na `/v1/chat/completions` ga sanannen provider
-  - Tabbatar cewa `/api/monitoring/health` yana dawo da circuit breakers na `CLOSED`
-  - Tabbatar cewa MCP transports suna amsawa (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Bayan-saki
-
-- [ ] Gudanar da `/capture-release-evidences-cc` (ƙwarewar Claude Code)
-  - Yana ɗaukar hotunan allo/rikodin WebP na sabbin fasaloli
-  - Yana haɗa su da bayanan sakin siga / rubutun bulogi
-- [ ] Sabunta GitHub Discussions / Discord da sanarwar sakin siga
-- [ ] Buɗe milestone don siga ta gaba
-- [ ] Idan yana da matuƙar muhimmanci: liƙa tattaunawar a sama ko wallafa a `news.json` don tutar cikin manhaja
-
-### Sharuɗɗan ƙaddamar da Radar ga jama'a
-
-An yi commit na sanarwar Radar da gangan tare da `active: false`. Kunna ta wani canji ne na daban
-bayan an gabatar da hujjar kammala kowane abu da ke ƙasa:
-
-- [ ] An haɗa dukkan Radar PRs masu jere, kuma release-tip CI yana kore
-- [ ] Tura kuma gudanar da gwajin farko na hanyoyin OSS Radar yayin da `RADAR_ENABLED` yake a kashe ta tsohuwa
-- [ ] Gudanar da gwajin farko na `GET /planos`, `/termos`, `/privacidade`, da `/reembolso` a kan Radar host da aka ambata
-- [ ] Yi rikodin shaidar mai gudanarwa/bayanan tuntuɓa/adireshi da kuma bita ta doka da mai shi ya amince da ita a cikin sabis na sirri
-- [ ] Gwada Stripe Checkout da signed webhook a yanayin gwaji kawai
-- [ ] Gwada aika imel guda ɗaya na mu'amala mai ɓoyewa tare da sender/domain da aka amince da su
-- [ ] Tabbatar da maido da backup da kuma gudanar da bincike guda ɗaya ƙarƙashin kulawa, tare da iyakance kasafin kuɗi
-- [ ] Amince da manufar bitar BRL/PIX kafin karɓar hujjar gudummawa
-- [ ] Kunna Checkout na jama'a ne kawai bayan cika sharuɗɗan da suka gabata, sannan kunna sabon ID na `news.json`
-- [ ] Tabbatar cewa tutar Home tana amfani da rubutu na gida, kuma sabon ID yana sake bayyana bayan an yi watsi da tsohon ID
-
 ## Gwajin hayaki na Ayyukan da Aka Gina a Ciki (v3.8.4+)
 
 Kafin fitar da kowace siga da ta ƙunshi sauye-sauyen ayyukan da aka gina a ciki, tabbatar da waɗannan:
@@ -399,7 +300,7 @@ Idan sigar da aka fitar tana da matsala mai tsanani:
 - Kada a taɓa tsallake Husky hooks (`--no-verify`)
 - Kada a taɓa yin commit na sirrika, bayanan shaidar shiga, ko fayilolin `.env`
 - Dole ne coverage ya kasance ≥60/60/60/60 (statements/lines/functions/branches)
-- A koyaushe a haɗa ko a sabunta gwaje-gwaje yayin canza lambar samarwa a cikin `src/`, `open-sse/`, `electron/`, ko `bin/`
+- A koyaushe a haɗa ko a sabunta gwaje-gwaje yayin canza lambar samarwa a cikin `src/`, `open-sse/`, ko `bin/`
 
 ## Binciken Daidaitawa na Atomatik
 

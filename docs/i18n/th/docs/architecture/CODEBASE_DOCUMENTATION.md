@@ -27,7 +27,6 @@
 | ภาษา                 | **TypeScript 6.0+** — กำหนดเป้าหมายเป็น `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                 |
 | รันไทม์              | **Node.js** `>=22.22.2 <23` หรือ `>=24.0.0 <27` (บังคับใช้ผ่าน `engines` + `SUPPORTED_NODE_RANGE`)                               |
 | ฐานข้อมูล            | **SQLite** ผ่าน `better-sqlite3` (singleton, การบันทึกเจอร์นัลแบบ WAL)                                                           |
-| เดสก์ท็อป            | **Electron 41** + `electron-builder` 26.10 (เวิร์กสเปซแยกต่างหากที่ `electron/`)                                                 |
 | การทดสอบ             | **ตัวรันการทดสอบแบบเนทีฟของ Node** (ยูนิต/อินทิเกรชัน), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | การบิลด์             | Next.js standalone ผ่าน `scripts/build/build-next-isolated.mjs`                                                                  |
 | การตรวจสอบ/จัดรูปแบบ | การกำหนดค่า ESLint แบบ flat + Prettier (`lint-staged` ผ่าน Husky pre-commit)                                                     |
@@ -51,7 +50,6 @@
 OmniRoute/
 ├── src/                  แอปพลิเคชัน Next.js (App Router, ไลบรารี, โดเมน, เซิร์ฟเวอร์, ส่วนที่ใช้ร่วมกัน)
 ├── open-sse/             เวิร์กสเปซเอนจินสตรีมมิง (@omniroute/open-sse)
-├── electron/             ตัวครอบเดสก์ท็อป (Electron 41 main + preload)
 ├── bin/                  จุดเริ่มต้น CLI (omniroute, reset-password)
 ├── tests/                ยูนิต, อินทิเกรชัน, e2e, protocols-e2e, ตัวแปล, ความปลอดภัย, fixtures
 ├── scripts/              สคริปต์ช่วยเหลือด้านการบิลด์ การซิงค์ การตรวจสอบ การย้ายข้อมูล และรันไทม์
@@ -574,26 +572,6 @@ open-sse/
 
 ---
 
-## 5. `electron/` — ตัวครอบแอปเดสก์ท็อป
-
-```
-electron/
-├── main.js                  โปรเซสหลักของ Electron
-├── preload.js               บริดจ์สำหรับพรีโหลด (เปิดใช้งาน contextIsolation)
-├── types.d.ts
-├── package.json             การกำหนดค่า electron-builder, เวอร์ชัน 3.8.51
-├── README.md
-├── assets/                  ทรัพยากรสำหรับการบิลด์ (ไอคอน, สิทธิ์, …)
-├── node_modules/            node_modules แยกเฉพาะ (better-sqlite3, electron-updater)
-└── dist-electron/           เอาต์พุตจากการบิลด์ (ไม่คอมมิต)
-```
-
-มีสคริปต์ npm ห้ารายการที่รูทของเวิร์กสเปซ: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged` การอัปเดตอัตโนมัติทำผ่าน
-`electron-updater` ซึ่งชี้ไปยังฟีดรีลีสของ GitHub
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -658,13 +636,11 @@ bin/
 จัดระเบียบออกเป็นโฟลเดอร์ย่อย 6 โฟลเดอร์ตามวัตถุประสงค์
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`
@@ -843,7 +819,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — ความสามารถและการค้นหาบริการตามโปรโตคอล A2A
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — การบีบอัดด้วย RTK และ Caveman
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — การผสานรวม CLI
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (หากมี), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — เป้าหมายการนำไปใช้งาน
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — เป้าหมายการนำไปใช้งาน
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — ปัญหาด้านการปฏิบัติงานที่พบบ่อย
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — ขั้นตอนการทำงานสำหรับผู้มีส่วนร่วม
 - [CLAUDE.md](../../CLAUDE.md) — กฎของรีโพสำหรับ Claude Code (แหล่งข้อมูลหลัก

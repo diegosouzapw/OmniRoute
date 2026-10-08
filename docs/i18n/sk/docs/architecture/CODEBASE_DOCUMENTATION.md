@@ -27,7 +27,6 @@ bez vytvárania nových modulov.
 | Jazyk                   | **TypeScript 6.0+** — cieľ `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                                               |
 | Behové prostredie       | **Node.js** `>=22.22.2 <23` alebo `>=24.0.0 <27` (vynútené prostredníctvom `engines` + `SUPPORTED_NODE_RANGE`)                                    |
 | Databáza                | **SQLite** prostredníctvom `better-sqlite3` (singleton, žurnálovanie WAL)                                                                         |
-| Desktop                 | **Electron 41** + `electron-builder` 26.10 (samostatný pracovný priestor v `electron/`)                                                           |
 | Testy                   | **Natívny testovací nástroj Node** (jednotkové/integračné), **Vitest** (MCP, autoCombo, vyrovnávacia pamäť), **Playwright** (e2e + protocols-e2e) |
 | Zostavenie              | Samostatné zostavenie Next.js prostredníctvom `scripts/build/build-next-isolated.mjs`                                                             |
 | Lintovanie/formátovanie | Plochá konfigurácia ESLint + Prettier (`lint-staged` prostredníctvom Husky pre-commit)                                                            |
@@ -51,7 +50,6 @@ adresár určuje premenná prostredia `DATA_DIR`, pričom predvolená hodnota je
 OmniRoute/
 ├── src/                  Aplikácia Next.js (App Router, knižnice, doména, server, zdieľané časti)
 ├── open-sse/             Pracovný priestor streamovacieho jadra (@omniroute/open-sse)
-├── electron/             Desktopový obal (hlavný proces Electron 41 + preload)
 ├── bin/                  Vstupné body CLI (omniroute, reset-password)
 ├── tests/                Jednotkové, integračné, e2e, protocols-e2e, prekladové, bezpečnostné testy a prípravky
 ├── scripts/              Pomocné skripty pre zostavenie, synchronizáciu, kontroly, migráciu a beh
@@ -575,26 +573,6 @@ Primitíva streamovania a pomocné nástroje poskytovateľov: `stream.ts`, `stre
 
 ---
 
-## 5. `electron/` — Obal pre desktopovú aplikáciu
-
-```
-electron/
-├── main.js                  Hlavný proces Electronu
-├── preload.js               Most preload (zapnuté contextIsolation)
-├── types.d.ts
-├── package.json             Konfigurácia electron-builder, verzia 3.8.51
-├── README.md
-├── assets/                  Prostriedky zostavenia (ikony, oprávnenia, …)
-├── node_modules/            Samostatné node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           Výstup zostavenia (nie je súčasťou repozitára)
-```
-
-Päť npm skriptov v koreňovom adresári pracovného priestoru: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Automatické aktualizácie zabezpečuje
-`electron-updater`, ktorý odkazuje na kanál vydaní GitHubu.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -659,13 +637,11 @@ Bežné príkazy:
 Usporiadané podľa účelu do 6 podpriečinkov.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -845,7 +821,7 @@ Pozrite si [A2A-SERVER.md § Pridanie novej zručnosti](../frameworks/A2A-SERVER
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — schopnosti a zisťovanie protokolu A2A.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — kompresia RTK a Caveman.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — integrácie CLI.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (ak je k dispozícii), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — cieľové prostredia nasadenia.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — cieľové prostredia nasadenia.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — bežné prevádzkové problémy.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — pracovný postup pre prispievateľov.
 - [CLAUDE.md](../../CLAUDE.md) — pravidlá repozitára pre Claude Code (zdroj pravdy

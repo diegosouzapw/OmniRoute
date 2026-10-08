@@ -220,7 +220,7 @@ Megjegyzések a lefedettségről:
 
 - Az `npm run test:coverage` méri a forráskód lefedettségét a fő unit tesztcsomaghoz, kizárja a `tests/**` fájlokat, és tartalmazza az `open-sse/**` fájlokat
 - A pull requesteknek fenn kell tartaniuk a **60%+** utasítás-/sor-/függvény-/áglefedettségi küszöböt
-- Ha egy PR módosítja a `src/`, `open-sse/`, `electron/` vagy `bin/` könyvtárban lévő éles kódot, ugyanabban a PR-ben automatizált teszteket is hozzá kell adnia vagy frissítenie kell
+- Ha egy PR módosítja a `src/`, `open-sse/` vagy `bin/` könyvtárban lévő éles kódot, ugyanabban a PR-ben automatizált teszteket is hozzá kell adnia vagy frissítenie kell
 - Az `npm run coverage:report` kiírja a legutóbbi lefedettségi futtatás részletes, fájlonkénti jelentését
 - Az `npm run test:coverage:legacy` megőrzi a régebbi mérőszámot a korábbi eredményekkel való összehasonlításhoz
 - A lefedettség szakaszos fejlesztési ütemtervét lásd a `docs/ops/COVERAGE_PLAN.md` fájlban
@@ -326,7 +326,6 @@ open-sse/                   # @omniroute/open-sse workspace
 ├── transformer/            # Responses API transformer
 └── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron desktop app (cross-platform)
 
 tests/
 ├── unit/                   # Node.js test runner (122 test files)

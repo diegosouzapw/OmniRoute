@@ -27,7 +27,6 @@
 | Γλώσσα          | **TypeScript 6.0+** — target `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                    |
 | Runtime         | **Node.js** `>=22.22.2 <23` ή `>=24.0.0 <27` (επιβάλλεται μέσω `engines` + `SUPPORTED_NODE_RANGE`)                       |
 | Βάση δεδομένων  | **SQLite** μέσω `better-sqlite3` (singleton, WAL journaling)                                                             |
-| Desktop         | **Electron 41** + `electron-builder` 26.10 (ξεχωριστός χώρος εργασίας στο `electron/`)                                   |
 | Δοκιμές         | **Node native test runner** (unit/integration), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | Build           | Next.js standalone μέσω `scripts/build/build-next-isolated.mjs`                                                          |
 | Lint/format     | ESLint flat config + Prettier (`lint-staged` μέσω Husky pre-commit)                                                      |
@@ -51,7 +50,6 @@
 OmniRoute/
 ├── src/                  # Εφαρμογή Next.js (App Router, libs, domain, server, shared)
 ├── open-sse/             # Χώρος εργασίας streaming engine (@omniroute/open-sse)
-├── electron/             # Desktop wrapper (Electron 41 main + preload)
 ├── bin/                  # Σημεία εισόδου CLI (omniroute, reset-password)
 ├── tests/                # Unit, integration, e2e, protocols-e2e, translator, security, fixtures
 ├── scripts/              # Σενάρια build, sync, check, migration και runtime helper
@@ -574,26 +572,6 @@ cloud (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
 
 ---
 
-## 5. `electron/` — Περιτύλιγμα επιφάνειας εργασίας
-
-```
-electron/
-├── main.js                  # Κύρια διεργασία Electron
-├── preload.js               # Γέφυρα preload (contextIsolation ενεργοποιημένο)
-├── types.d.ts
-├── package.json             # Ρύθμιση electron-builder, έκδοση 3.8.51
-├── README.md
-├── assets/                  # Πόροι κατασκευής (εικονίδια, entitlements, …)
-├── node_modules/            # Αποκλειστικά node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           # Έξοδος κατασκευής (δεν δεσμεύεται)
-```
-
-Πέντε npm scripts στη ρίζα του workspace: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Η αυτόματη ενημέρωση γίνεται μέσω
-`electron-updater` που δείχνει στη ροή εκδόσεων GitHub.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -658,13 +636,11 @@ bin/
 Οργανωμένος σε 6 υποφακέλους ανά σκοπό.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -842,7 +818,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — δεξιότητες πρωτοκόλλου A2A και ανακάλυψη.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — συμπίεση RTK + Caveman.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — ενσωματώσεις CLI.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (εάν υπάρχει), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — στόχοι ανάπτυξης/εγκατάστασης.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — στόχοι ανάπτυξης/εγκατάστασης.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — συνηθισμένα λειτουργικά προβλήματα.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — ροή εργασίας συνεισφερόντων.
 - [CLAUDE.md](../../CLAUDE.md) — κανόνες αποθετηρίου για το Claude Code (η πηγή αλήθειας για πολλές από τις παραπάνω συμβάσεις).

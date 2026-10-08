@@ -91,7 +91,7 @@ OmniRoute 必须嵌入这些值，以便未配置 `.env` 的用户仍能直接�
 
 ### 3. 禁止的模式
 
-❌ **绝不要**在生产代码（`src/`、`open-sse/`、`electron/`、`bin/`）中执行以下任何操作：
+❌ **绝不要**在生产代码（`src/`、`open-sse/`、`bin/`）中执行以下任何操作：
 
 ```ts
 // 错误：字面值会触发 Secret Scanning + Semgrep

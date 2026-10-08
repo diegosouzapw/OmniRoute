@@ -265,25 +265,6 @@ Hallinnollisten toimien seuranta, jota voi suodattaa toiminnon tyypin, suorittaj
 
 ---
 
-## 🖥️ Työpöytäsovellus
-
-Natiivi Electron-työpöytäsovellus Windowsille, macOS:lle ja Linuxille. Käytä OmniRoutea erillisenä sovelluksena, jossa on ilmaisinalueintegraatio, offline-tuki, automaattinen päivitys ja yhden napsautuksen asennus.
-
-Tärkeimmät ominaisuudet:
-
-- Palvelimen valmiuden kysely (ei tyhjää näyttöä kylmäkäynnistyksen yhteydessä)
-- Ilmaisinaluevalikko ja porttien hallinta
-- Sisällön suojauskäytäntö
-- Yhden ilmentymän lukitus
-- Automaattinen päivitys uudelleenkäynnistyksen yhteydessä
-- Alustakohtainen käyttöliittymä (macOS:n liikennevalopainikkeet, Windowsin/Linuxin oletusotsikkopalkki)
-- Vahvistettu Electron-koontipaketointi — erillispaketin symbolisesti linkitetty `node_modules` tunnistetaan ja hylätään ennen paketointia, mikä estää ajonaikaisen riippuvuuden koontikoneesta (v2.5.5+)
-- **Hallittu sammutus** — Electronin `before-quit` sammuttaa Next.js:n hallitusti, mikä estää SQLite WAL -tietokantalukitukset (v3.6.2+)
-
-📖 Täydellinen dokumentaatio on tiedostossa [`electron/README.md`](../../electron/README.md).
-
----
-
 ## 🌐 V1 WebSocket -silta _(v3.6.6+)_
 
 OmniRoute tukee nyt **OpenAI-yhteensopivia WebSocket-asiakasohjelmia** `/v1/ws`-päivityspäätepisteen kautta. Mukautettu `scripts/dev/v1-ws-bridge.mjs`-palvelin paketoi Next.js:n ja päivittää WS-yhteydet täysin kaksisuuntaisiksi suoratoistoistunnoiksi. Todennus käyttää samaa API-avainta tai istuntoevästettä kuin HTTP-pyynnöt.

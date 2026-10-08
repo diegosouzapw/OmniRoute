@@ -197,7 +197,7 @@ docker run -d \
 
 ## Dependențe
 
-- Rulați periodic `npm audit` (`npm run audit:deps` acoperă aplicația principală + electron)
+- Rulați periodic `npm audit` (`npm run audit:deps` acoperă aplicația principală)
 - Mențineți dependențele actualizate
 - Proiectul utilizează `husky` + `lint-staged` pentru verificările anterioare commiturilor (lint-staged + check-docs-sync + check:any-budget:t11)
 - Pipeline-ul CI rulează regulile de securitate ESLint la fiecare push (`no-eval`, `no-implied-eval`, `no-new-func` = eroare)

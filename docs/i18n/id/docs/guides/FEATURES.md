@@ -265,25 +265,6 @@ Pelacakan tindakan administratif dengan pemfilteran berdasarkan jenis tindakan, 
 
 ---
 
-## 🖥️ Aplikasi Desktop
-
-Aplikasi desktop Electron native untuk Windows, macOS, dan Linux. Jalankan OmniRoute sebagai aplikasi mandiri dengan integrasi baki sistem, dukungan offline, pembaruan otomatis, dan instalasi sekali klik.
-
-Fitur utama:
-
-- Polling kesiapan server (tanpa layar kosong saat dimulai dari kondisi dingin)
-- Baki sistem dengan pengelolaan port
-- Kebijakan Keamanan Konten
-- Penguncian instans tunggal
-- Pembaruan otomatis saat dimulai ulang
-- UI kondisional berdasarkan platform (tombol lampu lalu lintas macOS, bilah judul default Windows/Linux)
-- Pengemasan build Electron yang diperkuat — `node_modules` yang ditautkan secara simbolis dalam bundel mandiri dideteksi dan ditolak sebelum pengemasan, sehingga mencegah ketergantungan runtime pada mesin build (v2.5.5+)
-- **Penonaktifan yang mulus** — `before-quit` Electron mematikan Next.js dengan bersih, sehingga mencegah penguncian basis data SQLite WAL (v3.6.2+)
-
-📖 Lihat [`electron/README.md`](../../electron/README.md) untuk dokumentasi lengkap.
-
----
-
 ## 🌐 Jembatan WebSocket V1 _(v3.6.6+)_
 
 OmniRoute kini mendukung **klien WebSocket yang kompatibel dengan OpenAI** melalui endpoint peningkatan `/v1/ws`. Server `scripts/dev/v1-ws-bridge.mjs` khusus membungkus Next.js dan meningkatkan koneksi WS menjadi sesi streaming dua arah penuh. Autentikasi menggunakan kunci API atau cookie sesi yang sama seperti permintaan HTTP.

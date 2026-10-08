@@ -122,7 +122,6 @@ E2E, senza alcuna etichetta.
 ### Versione e changelog
 
 - [ ] Eseguire `/version-bump-cc <patch|minor|major>` (skill di Claude Code)
-  - Aggiorna le versioni in `package.json`, `electron/package.json`
   - Rigenera `CHANGELOG.md` dai commit git successivi all'ultimo tag
   - Aggiorna i badge di README.md
 - [ ] Esaminare manualmente CHANGELOG.md e ripulire i messaggi di commit, se necessario
@@ -216,104 +215,6 @@ Modifiche incompatibili: aggiungere il piè di pagina `BREAKING CHANGE:` oppure 
 - [ ] I modelli sono registrati in `open-sse/config/providerRegistry.ts`
 - [ ] Gli unit test in `tests/unit/` coprono la classificazione e l'instradamento dei provider
 
-### Desktop (Electron)
-
-Se `electron/` è stato modificato:
-
-- [ ] `npm run electron:smoke:packaged` viene completato correttamente
-- [ ] Le build sono state testate per almeno uno tra `:win`, `:mac`, `:linux`
-- [ ] I certificati di firma del codice non sono scaduti (se viene utilizzata la firma)
-- [ ] La versione in `electron/package.json` corrisponde a quella nel file `package.json` principale
-- [ ] Il puntatore del canale di aggiornamento automatico è stato aggiornato se la pubblicazione avviene sul canale `stable`
-
-### Struttura della build
-
-Il repository utilizza tre directory di output distinte — non confonderle mai:
-
-| Directory | Scopo                                                           | Versionata?          |
-| --------- | --------------------------------------------------------------- | -------------------- |
-| `src/`    | Codice sorgente dell'applicazione (TypeScript / TSX)            | Sì                   |
-| `.build/` | File intermedi della build — output di `next build` (`distDir`) | No (ignorata da git) |
-| `dist/`   | Bundle npm distribuibile — assemblato da `assembleStandalone`   | No (ignorata da git) |
-
-> **Nota per l'operatore:** la directory dell'immagine sul VPS remoto rimane `/usr/lib/node_modules/omniroute/app/`.
-> È stato spostato soltanto l'output della build **all'interno del repository** (`app/` → `dist/`). Le procedure di distribuzione sincronizzano tramite rsync
-> il contenuto di `dist/` nella directory remota `app/` — non sono necessarie modifiche ai percorsi sul VPS.
-
-**Flusso con build singola:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (clean)
-  └─ next build → .build/next/   (intermediates)
-  └─ assembleStandalone          (copies standalone + static + public + natives → dist/)
-  └─ writes dist/BUILD_SHA       (HEAD sentinel)
-```
-
-NON eseguire `npm run build` seguito separatamente da `npm run build:cli` per la distribuzione — utilizzare
-`npm run build:release`, che esegue una ricompilazione pulita e crea il sentinel con un unico comando.
-
-### Convalida degli artefatti
-
-- [ ] `npm run build:release` viene completato correttamente e `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` non segnala problemi — nessun residuo locale come `app.__qa_backup`, `scripts/scratch`, `package-lock.json` o altri file
-- [ ] `dist/server.js` esiste dopo la build
-
-### Creazione del tag e pubblicazione
-
-- [ ] Eseguire `/generate-release-cc` (funzionalità di Claude Code):
-  - Crea il tag `vX.Y.Z`
-  - Invia il tag e il branch
-  - Crea una GitHub Release con il changelog nel corpo
-  - Allega gli installer Electron (se compilati)
-- [ ] In alternativa, procedere manualmente:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Distribuzione
-
-Le procedure di distribuzione utilizzano il flusso rsync leggero — senza `npm pack` né `npm i -g`:
-
-- [ ] Utilizzare la procedura di distribuzione corrispondente alla destinazione:
-  - `/deploy-vps-local-cc` — VPS locale (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — VPS Akamai (69.164.221.35)
-  - `/deploy-vps-both-cc` — entrambi
-- [ ] Prima della distribuzione, verificare che `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] La build deve essere eseguita dove `node_modules` è reale (checkout principale o worktree preparato con `npm ci` — NON un worktree con collegamenti simbolici)
-- [ ] Eseguire uno smoke test sull'istanza distribuita:
-  - Aprire `/dashboard/health` → verificare che la stringa della versione corrisponda alla release
-  - Eseguire una richiesta a `/v1/chat/completions` utilizzando un provider noto
-  - Verificare che `/api/monitoring/health` restituisca circuit breaker `CLOSED`
-  - Verificare che i trasporti MCP rispondano (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Dopo la pubblicazione
-
-- [ ] Esegui `/capture-release-evidences-cc` (skill di Claude Code)
-  - Acquisisce screenshot/registrazioni WebP delle nuove funzionalità
-  - Li allega alle note di rilascio / al post del blog
-- [ ] Aggiorna GitHub Discussions / Discord con l'annuncio del rilascio
-- [ ] Apri la milestone per la prossima versione
-- [ ] Se critico: fissa la discussione in evidenza o pubblica in `news.json` per il banner nell'app
-
-### Gate per il lancio pubblico di Radar
-
-L'annuncio di Radar viene intenzionalmente sottoposto a commit con `active: false`. L'attivazione è una modifica separata
-da effettuare dopo aver documentato con evidenze ogni elemento seguente:
-
-- [ ] Tutte le PR Radar in stack sono state unite e la CI del release-tip è verde
-- [ ] Distribuisci e verifica le route OSS di Radar mantenendo `RADAR_ENABLED` disattivato per impostazione predefinita
-- [ ] Verifica `GET /planos`, `/termos`, `/privacidade` e `/reembolso` sull'host Radar designato
-- [ ] Registra identità/contatto/indirizzo dell'operatore e la revisione legale approvata dal proprietario nel servizio privato
-- [ ] Verifica Stripe Checkout e il webhook firmato esclusivamente in modalità test
-- [ ] Verifica una consegna di e-mail transazionale crittografata con il mittente/dominio approvato
-- [ ] Dimostra il ripristino da backup e un'esecuzione di ricerca supervisionata con un limite di budget
-- [ ] Approva la policy di revisione BRL/PIX prima di accettare le prove delle donazioni
-- [ ] Abilita il Checkout pubblico solo dopo aver superato i gate precedenti, quindi attiva il nuovo ID di `news.json`
-- [ ] Verifica che il banner Home utilizzi testo localizzato e che un nuovo ID ricompaia dopo la chiusura di un ID precedente
-
 ## Smoke test dei servizi incorporati (v3.8.4+)
 
 Prima di distribuire qualsiasi release che includa modifiche ai servizi incorporati, verificare quanto segue:
@@ -399,7 +300,7 @@ Se una release presenta un problema critico:
 - Non ignorare mai gli hook di Husky (`--no-verify`)
 - Non eseguire mai commit di segreti, credenziali o file `.env`
 - La copertura deve rimanere ≥60/60/60/60 (istruzioni/righe/funzioni/branch)
-- Includere o aggiornare sempre i test quando si modifica il codice di produzione in `src/`, `open-sse/`, `electron/` o `bin/`
+- Includere o aggiornare sempre i test quando si modifica il codice di produzione in `src/`, `open-sse/` o `bin/`
 
 ## Controllo automatico della sincronizzazione
 

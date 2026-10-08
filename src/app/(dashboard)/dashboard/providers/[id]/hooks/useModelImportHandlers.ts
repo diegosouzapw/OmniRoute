@@ -229,8 +229,9 @@ export function useModelImportHandlers({
       const failures: string[] = [];
       for (let i = 0; i < newModels.length; i++) {
         const model = newModels[i];
-        const modelId = model.id || model.name || model.model;
-        if (!modelId) continue;
+        const rawModelId = model.id || model.name || model.model;
+        if (!rawModelId) continue;
+        const modelId = typeof rawModelId === "string" ? rawModelId : String(rawModelId);
         const parts = modelId.split("/");
         const baseAlias = parts[parts.length - 1];
 

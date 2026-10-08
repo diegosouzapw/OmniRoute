@@ -265,25 +265,6 @@ Bin diddigin ayyukan gudanarwa tare da tacewa bisa nau'in aiki, mai aiwatarwa, a
 
 ---
 
-## 🖥️ Manhajar Kwamfutar Tebur
-
-Manhajar Electron ta asali don Windows, macOS, da Linux. Gudanar da OmniRoute a matsayin manhaja mai zaman kanta tare da haɗin tiren tsarin, goyon bayan aiki ba tare da intanet ba, sabuntawa ta atomatik, da shigarwa da dannawa sau ɗaya.
-
-Muhimman fasaloli:
-
-- Duba shirye-shiryen sabar lokaci-lokaci (babu allo mara komai yayin farawa daga sanyi)
-- Tiren tsarin tare da gudanar da port
-- Manufofin Tsaron Abun Ciki
-- Kulle kwafi guda
-- Sabuntawa ta atomatik yayin sake farawa
-- UI mai dogaro da dandamali (fitilun zirga-zirgar macOS, tsohuwar sandar take ta Windows/Linux)
-- Ƙarfaffen shirya kunshin ginin Electron — ana ganowa kuma a ƙi `node_modules` da aka haɗa ta symlink a cikin kunshin mai zaman kansa kafin shiryawa, don hana dogaro da abubuwan runtime daga na'urar ginawa (v2.5.5+)
-- **Kashewa cikin tsari** — Electron `before-quit` yana kashe Next.js cikin tsabta, yana hana kullewar ma'ajin bayanan SQLite WAL (v3.6.2+)
-
-📖 Duba [`electron/README.md`](../../electron/README.md) don cikakkun takardu.
-
----
-
 ## 🌐 Gadar WebSocket ta V1 _(v3.6.6+)_
 
 Yanzu OmniRoute yana goyon bayan **abokan cinikin WebSocket masu dacewa da OpenAI** ta hanyar endpoint ɗin haɓakawa na `/v1/ws`. Sabar `scripts/dev/v1-ws-bridge.mjs` ta musamman tana naɗe Next.js kuma tana haɓaka haɗin WS zuwa cikakkun zaman watsawa na ɓangarori biyu. Tantancewa tana amfani da maɓallin API ko cookie na zaman da ake amfani da shi a buƙatun HTTP.

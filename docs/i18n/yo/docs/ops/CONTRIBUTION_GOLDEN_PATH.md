@@ -16,7 +16,7 @@ rọ́pò àwọn ìwé faaji àti ààbò pàtó fún ẹ̀ka tí a so mọ́ n
    [Àwòṣe Branching àti Release](BRANCHING_MODEL.md).
 2. **Dárúkọ àwọn àdéhùn náà.** Ṣe ìdánimọ̀ gbogbo catalog, schema, artifact tí a ṣẹ̀dá, API gbangba, tàbí user
    interface tí àtúnṣe náà kan. Tábìlì tó wà ní ìsàlẹ̀ fún ọ ní àkójọpọ̀ tó kéré jù lọ láti bẹ̀rẹ̀ pẹ̀lú.
-3. **Kọ tàbí ṣàfikún àwọn ìdánwò tó dojú kọ ohun pàtó.** Àwọn àtúnṣe production nínú `src/`, `open-sse/`, `electron/`, tàbí
+3. **Kọ tàbí ṣàfikún àwọn ìdánwò tó dojú kọ ohun pàtó.** Àwọn àtúnṣe production nínú `src/`, `open-sse/`, tàbí
    `bin/` nílò ìdánwò aládàáṣiṣẹ́ nínú PR kan náà. Ṣiṣe àwọn fáìlì ìdánwò tó kéré jù lọ tí ó fi
    ìhùwàsí náà hàn, lẹ́yìn náà kí o ṣe àwọn focused gate tí a tò sílẹ̀.
 4. **Jẹ́ kí CI ṣiṣẹ́ matrix tó gbòòrò.** Gbogbo unit shards, Vitest, coverage ratchet, àti

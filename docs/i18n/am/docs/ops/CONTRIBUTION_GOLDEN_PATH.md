@@ -16,7 +16,7 @@
    [Branching & Release Model](BRANCHING_MODEL.md) የተገለጸውን ቀጣዩን ንቁ ዑደት ይጠቀሙ።
 2. **ውሎቹን ይሰይሙ።** ለውጡ የሚነካቸውን እያንዳንዱን catalog፣ schema፣ የተፈጠረ artifact፣ public API ወይም የተጠቃሚ
    interface ይለዩ። ከታች ያለው ሰንጠረዥ ዝቅተኛውን የመነሻ ስብስብ ያቀርባል።
-3. **የተኮሩ tests ይጻፉ ወይም ያዘምኑ።** በ`src/`፣ `open-sse/`፣ `electron/` ወይም
+3. **የተኮሩ tests ይጻፉ ወይም ያዘምኑ።** በ`src/`፣ `open-sse/` ወይም
    `bin/` ውስጥ የሚደረጉ የproduction ለውጦች በዚያው PR ውስጥ automated test ያስፈልጋቸዋል። ባህሪውን
    የሚያረጋግጡ አነስተኛዎቹን test files ያስኪዱ፣ ከዚያም የተዘረዘሩትን የተኮሩ gates ያስኪዱ።
 4. **CI ሰፊውን matrix እንዲያስኬድ ይፍቀዱ።** ሙሉዎቹ unit shards፣ Vitest፣ coverage ratchet እና

@@ -18,8 +18,7 @@ propojuje jednotlivé běžné typy změn s jejich kontrakty, cílenými kontrol
 2. **Určete kontrakty.** Identifikujte každý katalog, schéma, generovaný artefakt, veřejné API nebo
    uživatelské rozhraní, kterého se změna týká. Níže uvedená tabulka poskytuje minimální výchozí
    sadu.
-3. **Napište nebo aktualizujte cílené testy.** Změny produkčního kódu v `src/`, `open-sse/`,
-   `electron/` nebo `bin/` vyžadují automatizovaný test ve stejném PR. Spusťte nejmenší sadu
+3. **Napište nebo aktualizujte cílené testy.** Změny produkčního kódu v `src/`, `open-sse/` nebo `bin/` vyžadují automatizovaný test ve stejném PR. Spusťte nejmenší sadu
    testovacích souborů, která dané chování ověří, a poté uvedené cílené kontroly.
 4. **Nechte CI spustit širokou matici.** V PR se spustí úplné jednotkové segmenty, Vitest, kontrola
    minimálního pokrytí a produkční sestavení. Širokou sadu testů spouštějte lokálně pouze tehdy,

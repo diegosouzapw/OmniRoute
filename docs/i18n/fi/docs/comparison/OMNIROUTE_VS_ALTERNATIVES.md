@@ -29,7 +29,7 @@ Objektiivinen ominaisuusvertailu suosittuihin avoimen lähdekoodin tekoälyreiti
 | **TLS-sormenjäljen peittäminen (JA3/JA4)**                          |                  ✅ wreq-js                   |          ❌           |        ❌         |       ❌       |
 | **Arviointikehys**                                                  |              ✅ sisäänrakennettu              |          ❌           |        ❌         | ⚠ maksullinen  |
 | **MITM-välityspalvelin (sieppaa Cursorin/Antigravityn liikenteen)** |               ✅ monialustainen               |          ❌           |        ❌         |       ❌       |
-| **CLI ja ilmaisinaluekuvake (ei Electronia)**                       |                      ✅                       |          ❌           |      ei sov.      |    ei sov.     |
+| **CLI ja ilmaisinaluekuvake**                                       |                      ✅                       |          ❌           |      ei sov.      |    ei sov.     |
 | **CLI:n automaattinen tunnistautuminen konetunnuksella**            |                      ✅                       |          ❌           |      ei sov.      |    ei sov.     |
 | **Hallintapaneeli**                                                 |                  Next.js 16                   |       perustaso       |     suljettu      |    suljettu    |
 | **i18n**                                                            |              **42 maa-asetusta**              |          ❌           |        ❌         |       ⚠        |

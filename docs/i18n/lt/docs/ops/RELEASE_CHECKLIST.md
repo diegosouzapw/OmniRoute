@@ -122,7 +122,6 @@ matricą be jokios žymos.
 ### Versija ir pakeitimų žurnalas
 
 - [ ] Paleiskite `/version-bump-cc <patch|minor|major>` (Claude Code įgūdis)
-  - Padidina versijas failuose `package.json`, `electron/package.json`
   - Iš naujo sugeneruoja `CHANGELOG.md` iš git pakeitimų nuo paskutinės žymos
   - Atnaujina README.md ženklelius
 - [ ] Rankiniu būdu peržiūrėkite CHANGELOG.md ir, jei reikia, sutvarkykite pakeitimų pranešimus
@@ -216,104 +215,6 @@ Nesuderinami pakeitimai: pridėkite `BREAKING CHANGE:` poraštę arba `!` po sri
 - [ ] Modeliai užregistruoti faile `open-sse/config/providerRegistry.ts`
 - [ ] Vienetiniai testai kataloge `tests/unit/` apima teikėjų klasifikavimą ir maršruto parinkimą
 
-### Darbalaukio programa (Electron)
-
-Jei pakeistas `electron/`:
-
-- [ ] `npm run electron:smoke:packaged` sėkmingas
-- [ ] Komponavimo rezultatai išbandyti bent vienai iš `:win`, `:mac`, `:linux`
-- [ ] Kodo pasirašymo sertifikatų galiojimas nepasibaigęs (jei pasirašoma)
-- [ ] `electron/package.json` versija atitinka šakninio `package.json` versiją
-- [ ] Automatinio naujinimo kanalo rodyklė atnaujinta, jei leidžiama į `stable`
-
-### Komponavimo struktūra
-
-Saugykloje naudojami trys atskiri išvesties katalogai — niekada jų nesumaišykite:
-
-| Katalogas | Paskirtis                                                          | Stebimas?       |
-| --------- | ------------------------------------------------------------------ | --------------- |
-| `src/`    | Programos pirminis kodas (TypeScript / TSX)                        | Taip            |
-| `.build/` | Tarpiniai komponavimo failai — `next build` išvestis (`distDir`)   | Ne (gitignored) |
-| `dist/`   | Platinamas npm paketas — surenkamas naudojant `assembleStandalone` | Ne (gitignored) |
-
-> **Pastaba operatoriui:** nuotolinio VPS atvaizdo katalogas lieka `/usr/lib/node_modules/omniroute/app/`.
-> Pasikeitė tik **saugyklos viduje** esanti komponavimo išvestis (`app/` → `dist/`). Diegimo įgūdžiai per rsync
-> perkelia `dist/` turinį į nuotolinį `app/` katalogą — VPS kelių keisti nereikia.
-
-**Vieno komponavimo eiga:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (išvalymas)
-  └─ next build → .build/next/   (tarpiniai failai)
-  └─ assembleStandalone          (nukopijuoja standalone + static + public + natives → dist/)
-  └─ writes dist/BUILD_SHA       (HEAD kontrolinis žymeklis)
-```
-
-Diegdami NEPALEISKITE `npm run build`, o tada atskirai `npm run build:cli` — naudokite
-`npm run build:release`, kuris viena komanda atlieka švarų perkomponavimą ir sukuria kontrolinį žymeklį.
-
-### Artefakto tikrinimas
-
-- [ ] `npm run build:release` sėkmingas ir `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` be klaidų — nėra `app.__qa_backup`, `scripts/scratch`, `package-lock.json` ar kitų vietinių likučių
-- [ ] Po komponavimo yra `dist/server.js`
-
-### Žymėjimas ir leidimas
-
-- [ ] Paleiskite `/generate-release-cc` (Claude Code įgūdis):
-  - Sukuria žymą `vX.Y.Z`
-  - Išsiunčia žymą ir šaką
-  - Atidaro GitHub leidimą su pakeitimų žurnalo turiniu
-  - Prideda Electron diegimo programas (jei sukomponuotos)
-- [ ] Arba rankiniu būdu:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Diegimas
-
-Diegimo įgūdžiai naudoja lengvąją rsync eigą — be `npm pack`, be `npm i -g`:
-
-- [ ] Naudokite tikslą atitinkantį diegimo įgūdį:
-  - `/deploy-vps-local-cc` — vietinis VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — abu
-- [ ] Prieš diegdami patvirtinkite, kad `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Komponavimas turi būti vykdomas ten, kur `node_modules` yra tikras (pagrindinėje darbinėje kopijoje arba naudojant `npm ci` paruoštame worktree — NE worktree su simboline nuoroda)
-- [ ] Atlikite įdiegtos egzemplioriaus patikrą:
-  - Atidarykite `/dashboard/health` → patikrinkite, ar versijos eilutė atitinka leidimą
-  - Išsiųskite `/v1/chat/completions` užklausą žinomam teikėjui
-  - Patikrinkite, ar `/api/monitoring/health` grąžina `CLOSED` grandinės pertraukiklius
-  - Patvirtinkite, kad MCP transportai atsako (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Po leidimo
-
-- [ ] Paleiskite `/capture-release-evidences-cc` (Claude Code įgūdis)
-  - Užfiksuoja naujų funkcijų WebP ekrano kopijas / įrašus
-  - Prideda juos prie leidimo pastabų / tinklaraščio įrašo
-- [ ] Atnaujinkite GitHub Discussions / Discord, paskelbdami apie leidimą
-- [ ] Atidarykite kitos versijos etapą
-- [ ] Jei kritiška: prisekite diskusiją arba paskelbkite `news.json`, kad būtų rodoma programėlės reklamjuostėje
-
-### Radar viešo paleidimo vartai
-
-Radar pranešimas sąmoningai įtrauktas su `active: false`. Aktyvinimas yra atskiras
-pakeitimas, atliekamas pateikus visų toliau nurodytų punktų įrodymus:
-
-- [ ] Visi vienas ant kito sudėti Radar PR sujungti, o leidimo viršūnės CI yra žalias
-- [ ] Įdiekite ir patikrinkite OSS Radar maršrutus, kai `RADAR_ENABLED` pagal numatytąją nuostatą vis dar išjungtas
-- [ ] Nurodytame Radar prieglobos serveryje patikrinkite `GET /planos`, `/termos`, `/privacidade` ir `/reembolso`
-- [ ] Privačioje paslaugoje užregistruokite operatoriaus tapatybę / kontaktinius duomenis / adresą ir savininko patvirtintą teisinę peržiūrą
-- [ ] Išbandykite Stripe Checkout ir pasirašytą webhook tik testavimo režimu
-- [ ] Išbandykite vieną šifruoto transakcinio el. laiško pristatymą su patvirtintu siuntėju / domenu
-- [ ] Įrodykite atsarginės kopijos atkūrimą ir vieną prižiūrimą, riboto biudžeto tyrimo vykdymą
-- [ ] Prieš priimdami aukojimo įrodymus patvirtinkite BRL / PIX peržiūros politiką
-- [ ] Viešą Checkout įjunkite tik įvykdę ankstesnes patikras, tada aktyvinkite naują `news.json` ID
-- [ ] Patikrinkite, ar pradžios puslapio reklamjuostėje naudojamas lokalizuotas tekstas ir ar naujas ID vėl pasirodo atmetus senesnį ID
-
 ## Įterptųjų paslaugų bazinis patikrinimas (v3.8.4+)
 
 Prieš išleisdami bet kurį leidimą, kuriame yra įterptųjų paslaugų pakeitimų, patikrinkite:
@@ -399,7 +300,7 @@ Jei leidime yra kritinė problema:
 - Niekada nepraleiskite „Husky“ kablių (`--no-verify`)
 - Niekada neįtraukite paslapčių, prisijungimo duomenų ar `.env` failų
 - Testų aprėptis turi išlikti ≥60/60/60/60 (teiginiai/eilutės/funkcijos/šakos)
-- Keisdami darbinį kodą kataloguose `src/`, `open-sse/`, `electron/` ar `bin/`, visada įtraukite arba atnaujinkite testus
+- Keisdami darbinį kodą kataloguose `src/`, `open-sse/` ar `bin/`, visada įtraukite arba atnaujinkite testus
 
 ## Automatinė sinchronizavimo patikra
 

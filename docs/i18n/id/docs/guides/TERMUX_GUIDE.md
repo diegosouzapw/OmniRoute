@@ -118,7 +118,6 @@ omniroute
 
 ## Keterbatasan
 
-- Electron tidak berjalan di Termux.
 - Tidak ada baki sistem atau integrasi desktop.
 - Penyiapan ini hanya untuk server: gunakan dasbor browser.
 - Dependensi native mungkin perlu dikompilasi secara lokal.

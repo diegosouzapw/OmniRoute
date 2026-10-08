@@ -122,7 +122,6 @@ matrix automatisch over, zonder label.
 ### Versie en changelog
 
 - [ ] Voer `/version-bump-cc <patch|minor|major>` uit (Claude Code-skill)
-  - Verhoogt de versie in `package.json`, `electron/package.json`
   - Genereert `CHANGELOG.md` opnieuw op basis van git-commits sinds de laatste tag
   - Werkt badges in README.md bij
 - [ ] Controleer CHANGELOG.md handmatig en ruim commitberichten indien nodig op
@@ -216,104 +215,6 @@ Incompatibele wijzigingen: voeg een `BREAKING CHANGE:`-footer toe of een `!` na 
 - [ ] Modellen geregistreerd in `open-sse/config/providerRegistry.ts`
 - [ ] Unittests in `tests/unit/` dekken providerclassificatie en routering
 
-### Desktop (Electron)
-
-Als `electron/` is gewijzigd:
-
-- [ ] `npm run electron:smoke:packaged` slaagt
-- [ ] Builds getest voor ten minste één van `:win`, `:mac`, `:linux`
-- [ ] Certificaten voor codeondertekening zijn niet verlopen (indien ondertekening wordt gebruikt)
-- [ ] Versie in `electron/package.json` komt overeen met die in het hoofd-`package.json`
-- [ ] Verwijzing naar het kanaal voor automatische updates bijgewerkt bij een release naar `stable`
-
-### Buildindeling
-
-De repository gebruikt drie afzonderlijke uitvoermappen — haal ze nooit door elkaar:
-
-| Map       | Doel                                                                | Bijgehouden?             |
-| --------- | ------------------------------------------------------------------- | ------------------------ |
-| `src/`    | Applicatiebroncode (TypeScript / TSX)                               | Ja                       |
-| `.build/` | Tussenproducten van de build — uitvoer van `next build` (`distDir`) | Nee (genegeerd door git) |
-| `dist/`   | Distribueerbare npm-bundel — samengesteld door `assembleStandalone` | Nee (genegeerd door git) |
-
-> **Opmerking voor operators:** de map van de externe VPS-image blijft `/usr/lib/node_modules/omniroute/app/`.
-> Alleen de builduitvoer **in de repository** is verplaatst (`app/` → `dist/`). De deploy-skills synchroniseren
-> de inhoud van `dist/` via rsync naar de externe map `app/` — er zijn geen wijzigingen aan VPS-paden nodig.
-
-**Flow met één build:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (opschonen)
-  └─ next build → .build/next/   (tussenproducten)
-  └─ assembleStandalone          (kopieert standalone + static + public + natives → dist/)
-  └─ schrijft dist/BUILD_SHA     (HEAD-controlebestand)
-```
-
-Voer voor deployment NIET eerst `npm run build` uit gevolgd door een afzonderlijke `npm run build:cli` — gebruik
-`npm run build:release`, waarmee in één opdracht een schone rebuild wordt uitgevoerd en het controlebestand wordt aangemaakt.
-
-### Artefactvalidatie
-
-- [ ] `npm run build:release` slaagt en `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` is schoon — geen `app.__qa_backup`, `scripts/scratch`, `package-lock.json` of andere lokale restbestanden
-- [ ] `dist/server.js` bestaat na de build
-
-### Taggen & release
-
-- [ ] Voer `/generate-release-cc` uit (Claude Code-skill):
-  - Maakt tag `vX.Y.Z`
-  - Pusht tag en branch
-  - Opent een GitHub-release met de changelogtekst
-  - Voegt Electron-installatieprogramma's toe (indien gebouwd)
-- [ ] Of handmatig:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deployment
-
-Deploy-skills gebruiken de lichte rsync-flow — geen `npm pack`, geen `npm i -g`:
-
-- [ ] Gebruik de deploy-skill die overeenkomt met het doel:
-  - `/deploy-vps-local-cc` — lokale VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai-VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — beide
-- [ ] Controleer vóór de deployment dat `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] De build moet worden uitgevoerd waar `node_modules` echt is (hoofdcheckout of worktree waarop `npm ci` is uitgevoerd — GEEN worktree met symbolische koppelingen)
-- [ ] Voer een rooktest uit op de gedeployde instantie:
-  - Open `/dashboard/health` → controleer of de versietekenreeks overeenkomt met de release
-  - Voer een `/v1/chat/completions`-aanvraag uit bij een bekende provider
-  - Controleer of `/api/monitoring/health` circuitbreakers met status `CLOSED` retourneert
-  - Bevestig dat MCP-transports reageren (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Na de release
-
-- [ ] Voer `/capture-release-evidences-cc` uit (Claude Code-skill)
-  - Maakt WebP-schermafbeeldingen/-opnamen van nieuwe functies
-  - Voegt deze toe aan releaseopmerkingen / blogbericht
-- [ ] Werk GitHub Discussions / Discord bij met de releaseaankondiging
-- [ ] Open een milestone voor de volgende versie
-- [ ] Indien kritiek: zet de discussie vast of plaats deze in `news.json` voor een banner in de app
-
-### Radar-gate voor publieke lancering
-
-De Radar-aankondiging is bewust gecommit met `active: false`. Activering is een afzonderlijke
-wijziging nadat voor elk onderstaand punt bewijs is geleverd:
-
-- [ ] Alle gestapelde Radar-PR's zijn gemerged en de CI voor de release-tip is groen
-- [ ] Implementeer de OSS Radar-routes en voer er smoketests op uit terwijl `RADAR_ENABLED` standaard nog uitgeschakeld is
-- [ ] Voer smoketests uit op `GET /planos`, `/termos`, `/privacidade` en `/reembolso` op de genoemde Radar-host
-- [ ] Leg de identiteit/contactgegevens/het adres van de beheerder en de door de eigenaar goedgekeurde juridische beoordeling vast in de privéservice
-- [ ] Test Stripe Checkout en de ondertekende webhook uitsluitend in de testmodus
-- [ ] Test één versleutelde levering van een transactionele e-mail met de goedgekeurde afzender/het goedgekeurde domein
-- [ ] Toon aan dat een back-up kan worden hersteld en voer één begeleide onderzoekstaak uit met een budgetlimiet
-- [ ] Keur het BRL/PIX-beoordelingsbeleid goed voordat donatiebewijzen worden geaccepteerd
-- [ ] Schakel openbare Checkout pas in nadat aan de voorgaande gates is voldaan en activeer vervolgens de nieuwe `news.json`-ID
-- [ ] Controleer of de Home-banner gelokaliseerde tekst gebruikt en of een nieuwe ID opnieuw verschijnt nadat een oudere ID is gesloten
-
 ## Smoke-test voor Embedded Services (v3.8.4+)
 
 Controleer vóór het uitbrengen van een release met wijzigingen aan embedded services:
@@ -399,7 +300,7 @@ Als een release een kritiek probleem heeft:
 - Sla Husky-hooks nooit over (`--no-verify`)
 - Commit nooit geheimen, inloggegevens of `.env`-bestanden
 - De dekking moet ≥60/60/60/60 blijven (statements/regels/functies/branches)
-- Voeg altijd tests toe of werk ze bij wanneer je productiecode wijzigt in `src/`, `open-sse/`, `electron/` of `bin/`
+- Voeg altijd tests toe of werk ze bij wanneer je productiecode wijzigt in `src/`, `open-sse/` of `bin/`
 
 ## Geautomatiseerde synchronisatiecontrole
 

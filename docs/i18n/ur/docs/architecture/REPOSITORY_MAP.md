@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16 ایپلیکیشن (UI + API روٹس + لائبریریاں + ڈومین + سرور)
 ├── open-sse/             # اسٹریمنگ انجن ورک اسپیس (ہینڈلرز، ایگزیکیوٹرز، مترجم، MCP سرور)
-├── electron/             # ڈیسک ٹاپ ریپر (Electron 41 + electron-builder 26.10)
 ├── bin/                  # CLI انٹری پوائنٹ اور کمانڈ ہینڈلرز
 ├── scripts/              # بلڈ، جانچ، سنک اور یک وقتی اسکرپٹس
 ├── docs/                 # عوامی دستاویزات (آپ یہاں ہیں)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — ڈیسک ٹاپ ریپر
-
-| فائل             | مقصد                                                                               |
-| ---------------- | ---------------------------------------------------------------------------------- |
-| `main.js`        | Electron کا مرکزی پراسیس (BrowserWindow، ایمبیڈڈ Next.js سرور، ٹرے، خودکار اپ ڈیٹ) |
-| `preload.js`     | IPC برج (contextBridge → `window.omniroute`)                                       |
-| `package.json`   | electron-builder کنفیگ + Electron 41 + electron-builder 26.10 ڈیپینڈنسیز           |
-| `assets/`        | ایپ آئیکنز (Windows .ico، macOS .icns، Linux .png)                                 |
-| `dist-electron/` | بلڈ آؤٹ پٹ (gitignored)                                                            |
-| `types.d.ts`     | رینڈرر برج کے لیے ٹائپ ڈیکلریشنز                                                   |
-| `README.md`      | داخلی Electron README (`docs/guides/ELECTRON_GUIDE.md` بھی دیکھیں)                 |
-
----
-
 ## `bin/` — CLI
 
 | فائل                                                                                                        | مقصد                                                                                                                        |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | MCP/A2A E2E رنر                                                                                     |
 | `run-ecosystem-tests.mjs`           | ایکوسسٹم (پرووائیڈر انٹیگریشن) ٹیسٹس                                                                |
 | `test-report-summary.mjs`           | کوریج کے خلاصے کا markdown تیار کریں                                                                |
-| `smoke-electron-packaged.mjs`       | پیکیج شدہ Electron بلڈ کا اسموک ٹیسٹ کریں                                                           |
-| `native-binary-compat.mjs`          | توثیق کریں کہ مقامی deps (`better-sqlite3`) Electron کے Node سے مطابقت رکھتے ہیں                    |
 | `validate-pack-artifact.ts`         | npm pack آؤٹ پٹ کی توثیق کریں                                                                       |
 | `responses-ws-proxy.mjs`            | Codex Responses API کے لیے WebSocket برج                                                            |
 | `v1-ws-bridge.mjs`                  | `/api/v1/ws` اینڈ پوائنٹ کے لیے WebSocket برج                                                       |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | اختتامی صارف کا رہنما (سیٹ اپ، ماڈلز، کومبوز، CLIs، آڈیو وغیرہ)                                         |
 | `API_REFERENCE.md`          | توثیقی ماڈل کے ساتھ API اینڈ پوائنٹ حوالہ                                                               |
 | `openapi.yaml`              | OpenAPI 3.0 تفصیلات (121 راستے)                                                                         |
-| `SETUP_GUIDE.md`            | تنصیب کے طریقے (npm، npx، Docker، Electron، Termux، سورس)                                               |
+| `SETUP_GUIDE.md`            | تنصیب کے طریقے (npm، npx، Docker، Termux، سورس)                                                         |
 | `ENVIRONMENT.md`            | تمام ماحول متغیرات (~800 دستاویزی، `.env.example` کی ~3,050 سطریں)                                      |
 | `TROUBLESHOOTING.md`        | عام خرابیاں + v3.8.0 کے معلوم مسائل                                                                     |
 | `RELEASE_CHECKLIST.md`      | مکمل ریلیز کا عمل (اسکلز، husky، روایتی commits، تعیناتی)                                               |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io تعیناتی (فی الحال صرف چینی زبان میں)                       |
 | `TERMUX_GUIDE.md`            | Termux کے ذریعے Android ہیڈ لیس                                   |
 | `PWA_GUIDE.md`               | پروگریسیو ویب ایپ کی تنصیب + سروس ورکر                            |
-| `ELECTRON_GUIDE.md`          | ڈیسک ٹاپ ایپ بلڈ + دستخط + تقسیم                                  |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                            |
 | `PROXY_GUIDE.md`             | 4-سطحی آؤٹ باؤنڈ پراکسی + 1proxy مارکیٹ پلیس                      |
 

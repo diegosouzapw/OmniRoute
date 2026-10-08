@@ -29,7 +29,7 @@ Objektivní srovnání funkcí s populárními open-source AI routery.
 | **Maskování TLS fingerprintu (JA3/JA4)**            |                 ✅ wreq-js                 |        ❌        |        ❌         |        ❌        |
 | **Framework pro evaluace**                          |                ✅ vestavěný                |        ❌        |        ❌         |    ⚠ placené     |
 | **MITM proxy (zachytává Cursor/Antigravity)**       |             ✅ multiplatformní             |        ❌        |        ❌         |        ❌        |
-| **CLI se systémovou lištou (bez Electronu)**        |                     ✅                     |        ❌        | není k dispozici  | není k dispozici |
+| **CLI se systémovou lištou**                        |                     ✅                     |        ❌        | není k dispozici  | není k dispozici |
 | **Automatické ověření CLI pomocí ID zařízení**      |                     ✅                     |        ❌        | není k dispozici  | není k dispozici |
 | **Dashboard**                                       |                 Next.js 16                 |     základní     |   proprietární    |   proprietární   |
 | **i18n**                                            |             **42 lokalizací**              |        ❌        |        ❌         |        ⚠         |

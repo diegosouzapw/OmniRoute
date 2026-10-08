@@ -11,7 +11,7 @@ const toolRevision = execFileSync("git", ["rev-parse", "HEAD"], {
   encoding: "utf8",
 }).trim();
 
-const sourceRoots = ["src/", "open-sse/", "electron/", "bin/"];
+const sourceRoots = ["src/", "open-sse/", "bin/"];
 try {
   execFileSync("git", ["diff", "--quiet", "HEAD", "--", ...sourceRoots], {
     cwd: root,

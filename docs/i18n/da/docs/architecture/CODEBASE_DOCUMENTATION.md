@@ -27,7 +27,6 @@ uden at opfinde nye moduler.
 | Sprog        | **TypeScript 6.0+** — mål `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                                  |
 | Runtime      | **Node.js** `>=22.22.2 <23` eller `>=24.0.0 <27` (håndhævet via `engines` + `SUPPORTED_NODE_RANGE`)                                 |
 | Database     | **SQLite** via `better-sqlite3` (singleton, WAL-journalføring)                                                                      |
-| Desktop      | **Electron 41** + `electron-builder` 26.10 (separat workspace i `electron/`)                                                        |
 | Tests        | **Nodes indbyggede testkører** (enheds-/integrationstest), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | Build        | Selvstændig Next.js-build via `scripts/build/build-next-isolated.mjs`                                                               |
 | Lint/format  | Flad ESLint-konfiguration + Prettier (`lint-staged` via Husky pre-commit)                                                           |
@@ -51,7 +50,6 @@ angives af miljøvariablen `DATA_DIR` og er som standard `~/.omniroute/`.
 OmniRoute/
 ├── src/                  Next.js-applikation (App Router, biblioteker, domæne, server, delt kode)
 ├── open-sse/             Workspace til streamingmotoren (@omniroute/open-sse)
-├── electron/             Desktop-wrapper (Electron 41-hovedproces + preload)
 ├── bin/                  CLI-indgangspunkter (omniroute, reset-password)
 ├── tests/                Enheds-, integrations-, e2e-, protocols-e2e-, oversætter- og sikkerhedstest samt fixtures
 ├── scripts/              Hjælpescripts til build, synkronisering, kontrol, migrering og kørsel
@@ -575,26 +573,6 @@ Streaming-primitiver og provider-hjælpefunktioner: `stream.ts`, `streamHandler.
 
 ---
 
-## 5. `electron/` — Desktop-wrapper
-
-```
-electron/
-├── main.js                  Electrons hovedproces
-├── preload.js               Preload-bro (contextIsolation aktiveret)
-├── types.d.ts
-├── package.json             electron-builder-konfiguration, version 3.8.51
-├── README.md
-├── assets/                  Buildressourcer (ikoner, rettigheder, …)
-├── node_modules/            Dedikerede node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           Buildoutput (ikke committet)
-```
-
-Fem npm-scripts i workspacets rod: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Automatisk opdatering sker via
-`electron-updater`, som peger på GitHub-udgivelsesfeedet.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -659,13 +637,11 @@ Almindelige kommandoer:
 Organiseret i 6 undermapper efter formål.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -845,7 +821,7 @@ Se [A2A-SERVER.md § Tilføjelse af en ny færdighed](../frameworks/A2A-SERVER.m
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A-protokolfærdigheder og discovery.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK- og Caveman-komprimering.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI-integrationer.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (hvis den findes), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — udrulningsmål.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — udrulningsmål.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — almindelige driftsproblemer.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — arbejdsgang for bidragydere.
 - [CLAUDE.md](../../CLAUDE.md) — repository-regler for Claude Code (den autoritative kilde

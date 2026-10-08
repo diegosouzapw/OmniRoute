@@ -197,7 +197,7 @@ docker run -d \
 
 ## وابستگیها
 
-- `npm audit` را بهطور منظم اجرا کنید (`npm run audit:deps` بخشهای اصلی + electron را پوشش میدهد)
+- `npm audit` را بهطور منظم اجرا کنید (`npm run audit:deps` بخشهای اصلی را پوشش میدهد)
 - وابستگیها را بهروز نگه دارید
 - پروژه برای بررسیهای پیش از commit از `husky` + `lint-staged` استفاده میکند (lint-staged + check-docs-sync + check:any-budget:t11)
 - خط لوله CI در هر push، قواعد امنیتی ESLint را اجرا میکند (`no-eval`، `no-implied-eval`، `no-new-func` = خطا)

@@ -26,7 +26,6 @@ icad etmədən kodu hara əlavə etməli olduğunu bilə bilməsi üçün **haz�
 | Dil               | **TypeScript 6.0+** — hədəf `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                            |
 | İcra mühiti       | **Node.js** `>=22.22.2 <23` və ya `>=24.0.0 <27` (`engines` + `SUPPORTED_NODE_RANGE` vasitəsilə məcburi tətbiq olunur)          |
 | Verilənlər bazası | `better-sqlite3` vasitəsilə **SQLite** (tək instansiya, WAL jurnallaşdırması)                                                   |
-| Masaüstü          | **Electron 41** + `electron-builder` 26.10 (`electron/` daxilində ayrıca iş sahəsi)                                             |
 | Testlər           | **Node-un daxili test icraedicisi** (vahid/inteqrasiya), **Vitest** (MCP, autoCombo, keş), **Playwright** (e2e + protocols-e2e) |
 | Qurma             | `scripts/build/build-next-isolated.mjs` vasitəsilə Next.js müstəqil qurması                                                     |
 | Lint/format       | ESLint düz konfiqurasiyası + Prettier (Husky pre-commit vasitəsilə `lint-staged`)                                               |
@@ -50,7 +49,6 @@ qovluğu `DATA_DIR` mühit dəyişəni ilə təyin olunur və defolt olaraq `~/.
 OmniRoute/
 ├── src/                  Next.js tətbiqi (App Router, kitabxanalar, domen, server, ortaq komponentlər)
 ├── open-sse/             Axın mühərrikinin iş sahəsi (@omniroute/open-sse)
-├── electron/             Masaüstü örtüyü (Electron 41 əsas prosesi + preload)
 ├── bin/                  CLI giriş nöqtələri (omniroute, reset-password)
 ├── tests/                Vahid, inteqrasiya, e2e, protocols-e2e, tərcüməçi, təhlükəsizlik testləri və fiksturlar
 ├── scripts/              Qurma, sinxronizasiya, yoxlama, miqrasiya və icra vaxtı köməkçi skriptləri
@@ -574,26 +572,6 @@ Axın primitivləri və provayder köməkçiləri: `stream.ts`, `streamHandler.t
 
 ---
 
-## 5. `electron/` — Masaüstü tətbiq örtüyü
-
-```
-electron/
-├── main.js                  Electron əsas prosesi
-├── preload.js               Öncədən yükləmə körpüsü (contextIsolation aktivdir)
-├── types.d.ts
-├── package.json             electron-builder konfiqurasiyası, versiya 3.8.51
-├── README.md
-├── assets/                  Yığım resursları (ikonlar, icazələr, …)
-├── node_modules/            Xüsusi node_modules (better-sqlite3, electron-updater)
-└── dist-electron/           Yığım çıxışı (repoya daxil edilmir)
-```
-
-İş sahəsinin kökündə beş npm skripti var: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Avtomatik yeniləmə
-GitHub buraxılış lentinə yönələn `electron-updater` vasitəsilə həyata keçirilir.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -658,13 +636,11 @@ bin/
 Təyinatına görə 6 alt qovluqda təşkil edilib.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -843,7 +819,7 @@ Müştəri sorğusu
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A protokolunun bacarıqları və aşkarlanması.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK + Caveman sıxışdırması.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI inteqrasiyaları.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (mövcuddursa), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — yerləşdirmə hədəfləri.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — yerləşdirmə hədəfləri.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — tez-tez rast gəlinən istismar problemləri.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — töhfəçilər üçün iş prosesi.
 - [CLAUDE.md](../../CLAUDE.md) — Claude Code üçün repozitoriya qaydaları (yuxarıdakı

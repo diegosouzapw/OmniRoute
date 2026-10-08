@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Angalia [Mwongozo wa Docker](./DOCKER_GUIDE.md) kwa usanidi kamili wa Docker, ikijumuisha wasifu wa Compose na Caddy HTTPS.
 
-### Programu ya Kompyuta ya Mezani (Electron)
-
-OmniRoute huja na programu ya kompyuta ya mezani iliyojengwa kwa Electron 41 + electron-builder 26.10. Hati zinazopatikana (mzizi wa workspace):
-
-```bash
-npm run electron:dev          # Endesha programu ya kompyuta ya mezani kwa upakiaji upya wa moja kwa moja
-npm run electron:build        # Jenga kwa OS ya sasa (hugunduliwa kiotomatiki)
-npm run electron:build:win    # Kisakinishaji cha Windows (NSIS + portable)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # Jaribu kwa ufupi kifurushi kilichojengwa
-```
-
-Matoleo ya visakinishaji vya programu ya kompyuta ya mezani huambatishwa kwenye GitHub Releases. Kwa maelezo kamili kuhusu Electron (utiasaini, daraja la IPC, distros), angalia [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _(iliundwa katika hatua ya baadaye)_.
-
 ### Seva isiyo na kiolesura (CI/otomatiki)
 
 Kwa usanidi usiohitaji usimamizi (Docker, Kubernetes, CI), tumia:

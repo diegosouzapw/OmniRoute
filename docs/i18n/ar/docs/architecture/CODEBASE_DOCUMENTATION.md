@@ -27,7 +27,6 @@
 | اللغة           | **TypeScript 6.0+** — الهدف `ES2022`، و`module: esnext`، و`moduleResolution: bundler`، و`strict: false`                                                    |
 | وقت التشغيل     | **Node.js** `>=22.22.2 <23` أو `>=24.0.0 <27` (يُفرض عبر `engines` + `SUPPORTED_NODE_RANGE`)                                                               |
 | قاعدة البيانات  | **SQLite** عبر `better-sqlite3` (نسخة مفردة، وتسجيل يومي بنمط WAL)                                                                                         |
-| سطح المكتب      | **Electron 41** + `electron-builder` 26.10 (مساحة عمل منفصلة في `electron/`)                                                                               |
 | الاختبارات      | **مشغّل الاختبارات الأصلي في Node** (اختبارات الوحدة/التكامل)، و**Vitest** (MCP، وautoCombo، وذاكرة التخزين المؤقت)، و**Playwright** (e2e + protocols-e2e) |
 | البناء          | مخرجات Next.js مستقلة عبر `scripts/build/build-next-isolated.mjs`                                                                                          |
 | التدقيق/التنسيق | إعداد ESLint المسطح + Prettier (`lint-staged` عبر خطّاف Husky لما قبل الإيداع)                                                                             |
@@ -51,7 +50,6 @@
 OmniRoute/
 ├── src/                  تطبيق Next.js (موجّه التطبيقات، والمكتبات، والمجال، والخادم، والمكونات المشتركة)
 ├── open-sse/             مساحة عمل محرك البث (@omniroute/open-sse)
-├── electron/             غلاف سطح المكتب (العملية الرئيسية لـ Electron 41 + التحميل المسبق)
 ├── bin/                  نقاط دخول واجهة سطر الأوامر (omniroute، reset-password)
 ├── tests/                اختبارات الوحدة، والتكامل، وe2e، وprotocols-e2e، والمترجم، والأمان، والتجهيزات
 ├── scripts/              نصوص البناء، والمزامنة، والتحقق، والترحيل، والمساعدة في وقت التشغيل
@@ -575,26 +573,6 @@ open-sse/
 
 ---
 
-## 5. `electron/` — غلاف سطح المكتب
-
-```
-electron/
-├── main.js                  عملية Electron الرئيسية
-├── preload.js               جسر التحميل المسبق (مع تمكين contextIsolation)
-├── types.d.ts
-├── package.json             إعدادات electron-builder، الإصدار 3.8.51
-├── README.md
-├── assets/                  موارد البناء (الأيقونات، الاستحقاقات، …)
-├── node_modules/            مجلد node_modules مخصص (better-sqlite3، electron-updater)
-└── dist-electron/           مخرجات البناء (غير مضمنة في المستودع)
-```
-
-خمسة نصوص برمجية لـ npm في جذر مساحة العمل: `electron:dev`، و`electron:build`،
-و`electron:build:{win,mac,linux}`، و`electron:smoke:packaged`. يتم التحديث التلقائي عبر
-`electron-updater` الذي يشير إلى موجز إصدارات GitHub.
-
----
-
 ## 6. `bin/` — واجهة سطر الأوامر
 
 ```
@@ -659,13 +637,11 @@ bin/
 منظَّمة في 6 مجلدات فرعية حسب الغرض.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`، `prepublish.ts`،
-  `prepare-electron-standalone.mjs`، `pack-artifact-policy.ts`،
   `validate-pack-artifact.ts`، `postinstall.mjs`، `postinstallSupport.mjs`،
   `uninstall.mjs`، `bootstrap-env.mjs`، `runtime-env.mjs`،
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`، `run-next-playwright.mjs`،
   `run-standalone.mjs`، `standalone-server-ws.mjs`، `responses-ws-proxy.mjs`،
-  `v1-ws-bridge.mjs`، `smoke-electron-packaged.mjs`،
   `run-playwright-tests.mjs`، `run-ecosystem-tests.mjs`،
   `run-protocol-clients-tests.mjs`، `sync-env.mjs`، `healthcheck.mjs`،
   `system-info.mjs`.
@@ -845,7 +821,7 @@ bin/
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — مهارات بروتوكول A2A وآلية الاكتشاف.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — الضغط باستخدام RTK وCaveman.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — عمليات تكامل CLI.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (إن وُجد)، [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md)، [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md)، [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md)، [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md)، [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — أهداف النشر.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md)، [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md)، [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md)، [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md)، [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — أهداف النشر.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — المشكلات التشغيلية الشائعة.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — سير عمل المساهمين.
 - [CLAUDE.md](../../CLAUDE.md) — قواعد المستودع الخاصة بـ Claude Code (المصدر الموثوق

@@ -223,7 +223,7 @@ npm run test:combo:live:vps:failover     # ó ṣàfikún scenario failover cros
 
 - `npm run test:coverage` ń díwọ̀n coverage orísun fún àkójọpọ̀ ìdánwò unit àkọ́kọ́, ó yọ `tests/**` kúrò, ó sì fi `open-sse/**` kún un
 - Àwọn Pull Request gbọ́dọ̀ jẹ́ kí ẹnu-ọ̀nà coverage wà ní **60%+** fún statements/lines/functions/branches
-- Bí PR kan bá yí kóòdù production padà nínú `src/`, `open-sse/`, `electron/`, tàbí `bin/`, ó gbọ́dọ̀ ṣàfikún tàbí ṣàfikún sí àwọn ìdánwò aládàáṣiṣẹ́ nínú PR kan náà
+- Bí PR kan bá yí kóòdù production padà nínú `src/`, `open-sse/`, tàbí `bin/`, ó gbọ́dọ̀ ṣàfikún tàbí ṣàfikún sí àwọn ìdánwò aládàáṣiṣẹ́ nínú PR kan náà
 - `npm run coverage:report` ń tẹ̀ jáde ìròyìn fáìlì-kọ̀ọ̀kan tó kún fún ìṣiṣẹ́ coverage tuntun jù lọ
 - `npm run test:coverage:legacy` ń pa metric àtijọ́ mọ́ fún ìfiwéra ìtàn
 - Wo `docs/ops/COVERAGE_PLAN.md` fún ètò-ọ̀nà ìmúdára coverage ní ipele-ìpele
@@ -328,7 +328,6 @@ open-sse/                   # Workspace @omniroute/open-sse
 ├── transformer/            # Transformer Responses API
 └── utils/                  # Module utility 22 (stream, TLS, proxy, logging)
 
-electron/                   # App desktop Electron (oríṣiríṣi platform)
 
 tests/
 ├── unit/                   # Olùṣiṣẹ́ test Node.js (fáìlì test 1,574)

@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Next.js 16 應用程式（UI + API 路由 + 函式庫 + 領域邏輯 + 伺服器）
 ├── open-sse/             # 串流引擎工作區（處理常式、執行器、轉譯器、MCP 伺服器）
-├── electron/             # 桌面封裝程式（Electron 41 + electron-builder 26.10）
 ├── bin/                  # CLI 進入點與命令處理常式
 ├── scripts/              # 建置、檢查、同步及一次性指令碼
 ├── docs/                 # 公開文件（您目前所在的位置）
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — 桌面封裝程式
-
-| 檔案             | 用途                                                                      |
-| ---------------- | ------------------------------------------------------------------------- |
-| `main.js`        | Electron 主程序（BrowserWindow、嵌入式 Next.js 伺服器、系統匣、自動更新） |
-| `preload.js`     | IPC 橋接器（contextBridge → `window.omniroute`）                          |
-| `package.json`   | electron-builder 設定 + Electron 41 + electron-builder 26.10 相依套件     |
-| `assets/`        | 應用程式圖示（Windows .ico、macOS .icns、Linux .png）                     |
-| `dist-electron/` | 建置輸出（已由 git 忽略）                                                 |
-| `types.d.ts`     | 轉譯器橋接器的類型宣告                                                    |
-| `README.md`      | 內部 Electron README（另請參閱 `docs/guides/ELECTRON_GUIDE.md`）          |
-
----
-
 ## `bin/` — CLI
 
 | 檔案                                                                                                        | 用途                                                                                                                     |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | MCP/A2A E2E 執行器                                                    |
 | `run-ecosystem-tests.mjs`           | 生態系統（提供者整合）測試                                            |
 | `test-report-summary.mjs`           | 產生覆蓋率摘要 markdown                                               |
-| `smoke-electron-packaged.mjs`       | 對封裝後的 Electron 建置執行冒煙測試                                  |
-| `native-binary-compat.mjs`          | 驗證原生相依套件（`better-sqlite3`）是否與 Electron 的 Node 相符      |
 | `validate-pack-artifact.ts`         | 驗證 npm pack 輸出                                                    |
 | `responses-ws-proxy.mjs`            | Codex Responses API 的 WebSocket 橋接器                               |
 | `v1-ws-bridge.mjs`                  | `/api/v1/ws` 端點的 WebSocket 橋接器                                  |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | 終端使用者手冊（設定、模型、組合、CLI、音訊等）                               |
 | `API_REFERENCE.md`          | 含驗證模型的 API 端點參考                                                     |
 | `openapi.yaml`              | OpenAPI 3.0 規格（121 個路徑）                                                |
-| `SETUP_GUIDE.md`            | 安裝方式（npm、npx、Docker、Electron、Termux、原始碼）                        |
+| `SETUP_GUIDE.md`            | 安裝方式（npm、npx、Docker、Termux、原始碼）                                  |
 | `ENVIRONMENT.md`            | 所有環境變數（已記錄約 800 個，`.env.example` 約 3,050 行）                   |
 | `TROUBLESHOOTING.md`        | 常見錯誤 + v3.8.0 已知問題                                                    |
 | `RELEASE_CHECKLIST.md`      | 完整發行流程（技能、husky、慣例式提交、部署）                                 |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io 部署（目前僅提供中文版）                                  |
 | `TERMUX_GUIDE.md`            | 透過 Termux 在 Android 上無頭執行                                |
 | `PWA_GUIDE.md`               | 漸進式網頁應用程式安裝 + Service Worker                          |
-| `ELECTRON_GUIDE.md`          | 桌面應用程式建置 + 簽署 + 發布                                   |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                           |
 | `PROXY_GUIDE.md`             | 4 層出站代理 + 1proxy 市集                                       |
 

@@ -197,7 +197,7 @@ docker run -d \
 
 ## Afhankelijkheden
 
-- Voer regelmatig `npm audit` uit (`npm run audit:deps` controleert main + electron)
+- Voer regelmatig `npm audit` uit (`npm run audit:deps` controleert main)
 - Houd afhankelijkheden up-to-date
 - Het project gebruikt `husky` + `lint-staged` voor pre-commitcontroles (lint-staged + check-docs-sync + check:any-budget:t11)
 - De CI-pipeline voert bij elke push de ESLint-beveiligingsregels uit (`no-eval`, `no-implied-eval`, `no-new-func` = fout)

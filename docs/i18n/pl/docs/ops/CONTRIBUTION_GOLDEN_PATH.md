@@ -16,7 +16,7 @@ rodzaj zmiany z jego kontraktami, ukierunkowanymi kontrolami i zakresem CI.
    [Modelu tworzenia gałęzi i wydań](BRANCHING_MODEL.md).
 2. **Nazwij kontrakty.** Zidentyfikuj każdy katalog, schemat, wygenerowany artefakt, publiczne API lub interfejs
    użytkownika, na który wpływa zmiana. Poniższa tabela przedstawia minimalny zestaw początkowy.
-3. **Napisz lub zaktualizuj ukierunkowane testy.** Zmiany produkcyjne w `src/`, `open-sse/`, `electron/` lub
+3. **Napisz lub zaktualizuj ukierunkowane testy.** Zmiany produkcyjne w `src/`, `open-sse/` lub
    `bin/` wymagają automatycznego testu w tym samym PR. Uruchom najmniejszy zestaw plików testowych, który potwierdza
    zachowanie, a następnie wymienione kontrole ukierunkowane.
 4. **Pozwól CI uruchomić szeroką macierz.** Kompletne fragmenty testów jednostkowych, Vitest, kontrola progowa pokrycia oraz

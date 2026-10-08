@@ -197,7 +197,7 @@ docker run -d \
 
 ## Dogaro
 
-- Gudanar da `npm audit` akai-akai (`npm run audit:deps` yana duba babban ɓangare + electron)
+- Gudanar da `npm audit` akai-akai (`npm run audit:deps` yana duba babban ɓangare)
 - Riƙa sabunta abubuwan dogaro
 - Aikin yana amfani da `husky` + `lint-staged` don dubawa kafin commit (lint-staged + check-docs-sync + check:any-budget:t11)
 - Tsarin CI yana gudanar da dokokin tsaro na ESLint a kowane push (`no-eval`, `no-implied-eval`, `no-new-func` = kuskure)

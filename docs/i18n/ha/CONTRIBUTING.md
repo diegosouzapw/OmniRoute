@@ -225,7 +225,7 @@ Bayanan coverage:
 
 - `npm run test:coverage` yana auna coverage na source don babban rukunin gwaje-gwajen unit, yana ware `tests/**`, kuma yana haɗa `open-sse/**`
 - Dole Pull Request su riƙe shingen coverage na **60%+** na statements/lines/functions/branches
-- Idan PR ya canza lambar production a `src/`, `open-sse/`, `electron/`, ko `bin/`, dole ne ya ƙara ko sabunta gwaje-gwaje masu sarrafa kansu a cikin PR ɗin
+- Idan PR ya canza lambar production a `src/`, `open-sse/`, ko `bin/`, dole ne ya ƙara ko sabunta gwaje-gwaje masu sarrafa kansu a cikin PR ɗin
 - `npm run coverage:report` yana buga cikakken rahoto fayil-bayan-fayil daga gudanarwar coverage ta baya-bayan nan
 - `npm run test:coverage:legacy` yana adana tsohon ma'auni don kwatanta bayanan tarihi
 - Duba `docs/ops/COVERAGE_PLAN.md` don taswirar inganta coverage mataki-mataki
@@ -330,7 +330,6 @@ open-sse/                   # @omniroute/open-sse workspace
 ├── transformer/            # Transformer na Responses API
 └── utils/                  # Utility modules 22 (stream, TLS, proxy, logging)
 
-electron/                   # Manhajar tebur ta Electron (mai aiki a dandamali daban-daban)
 
 tests/
 ├── unit/                   # Node.js test runner (fayilolin test 1,574)

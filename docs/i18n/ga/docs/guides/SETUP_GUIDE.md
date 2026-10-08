@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Féach ar an [Treoir Docker](./DOCKER_GUIDE.md) chun socrú iomlán Docker a fháil, lena n-áirítear próifílí Compose agus Caddy HTTPS.
 
-### Aip Deisce (Electron)
-
-Tagann OmniRoute le fillteán deisce atá tógtha ar Electron 41 + electron-builder 26.10. Na scripteanna atá ar fáil (fréamh an spáis oibre):
-
-```bash
-npm run electron:dev          # Rith an deasc le hathlódáil the
-npm run electron:build        # Tóg don OS reatha (braitear go huathoibríoch é)
-npm run electron:build:win    # Suiteálaí Windows (NSIS + iniompartha)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # Déan tástáil deataigh ar an tógáil phacáistithe
-```
-
-Ceanglaítear eisiúintí na suiteálaithe deisce le GitHub Releases. Chun mionléargas iomlán ar Electron a fháil (síniú, droichead IPC, dáiltí), féach ar [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _(cruthaithe ag céim níos déanaí)_.
-
 ### Freastalaí gan chomhéadan grafach (CI/uathoibriú)
 
 Le haghaidh socruithe gan duine i láthair (Docker, Kubernetes, CI), úsáid:

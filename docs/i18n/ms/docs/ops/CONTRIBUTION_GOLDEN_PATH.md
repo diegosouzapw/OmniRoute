@@ -16,7 +16,7 @@ perubahan lazim kepada kontrak, semakan berfokus dan liputan CI masing-masing.
    [Model Percabangan & Keluaran](BRANCHING_MODEL.md).
 2. **Nyatakan kontrak.** Kenal pasti setiap katalog, skema, artifak terjana, API awam atau antara muka
    pengguna yang dipengaruhi oleh perubahan tersebut. Jadual di bawah memberikan set permulaan minimum.
-3. **Tulis atau kemas kini ujian berfokus.** Perubahan produksi dalam `src/`, `open-sse/`, `electron/` atau
+3. **Tulis atau kemas kini ujian berfokus.** Perubahan produksi dalam `src/`, `open-sse/` atau
    `bin/` memerlukan ujian automatik dalam PR yang sama. Jalankan fail ujian terkecil yang membuktikan
    tingkah laku tersebut, kemudian gerbang berfokus yang disenaraikan.
 4. **Biarkan CI menjalankan matriks yang luas.** Keseluruhan serpihan unit, Vitest, ratchet liputan dan

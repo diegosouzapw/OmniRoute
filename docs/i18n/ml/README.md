@@ -89,7 +89,6 @@
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![ലൈസൻസ്: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![Docker ഡൗൺലോഡുകൾ](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![Electron ഡൗൺലോഡുകൾ](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
 
 <table>
   <tr>
@@ -744,7 +743,6 @@ omniroute configure codex          # ഇവയും: claude opencode qwen aider
   <tr><th align="left">പ്ലാറ്റ്ഫോം</th><th align="left">ഇൻസ്റ്റാൾ</th><th align="left">പ്രധാന സവിശേഷതകൾ</th></tr>
   <tr><td align="left" nowrap>📦 <b>npm (ആഗോളം)</b></td><td align="left" nowrap><code>npm install -g omniroute</code></td><td align="left">ഒരൊറ്റ കമാൻഡ്, ഏത് OS-ലും</td></tr>
   <tr><td align="left" nowrap>🐳 <b>Docker</b></td><td align="left" nowrap><code>docker run … diegosouzapw/omniroute</code></td><td align="left">മൾട്ടി-ആർക്ക് <b>AMD64 + ARM64</b></td></tr>
-  <tr><td align="left" nowrap>🖥️ <b>ഡെസ്ക്ടോപ്പ് (Electron)</b></td><td align="left" nowrap><code>npm run electron:build</code></td><td align="left">നേറ്റീവ് വിൻഡോ + സിസ്റ്റം ട്രേ — <b>Windows / macOS / Linux</b></td></tr>
   <tr><td align="left" nowrap>🎩 <b>മെനു-ബാർ (OmniRouteTray)</b></td><td align="left" nowrap><code>brew install --cask zoispag/tap/omniroute-tray</code></td><td align="left">സെർവറിനെ നിരീക്ഷിക്കുകയും സ്വയം അപ്ഡേറ്റ് ചെയ്യുകയും ചെയ്യുന്നു — <b>macOS</b></td></tr>
   <tr><td align="left" nowrap>💪 <b>ARM</b></td><td align="left" nowrap>നേറ്റീവ് <code>arm64</code></td><td align="left">Raspberry Pi, ARM സെർവറുകൾ, Apple Silicon</td></tr>
   <tr><td align="left" nowrap>📱 <b>Android (Termux)</b></td><td align="left" nowrap><code>pkg install nodejs && npx -y omniroute</code></td><td align="left"><b>നിങ്ങളുടെ ഫോണിൽ</b> 24/7 പ്രവർത്തിക്കുന്നു, റൂട്ട് ആവശ്യമില്ല</td></tr>
@@ -754,7 +752,7 @@ omniroute configure codex          # ഇവയും: claude opencode qwen aider
   <tr><td align="left" nowrap>🛠️ <b>സോഴ്സിൽനിന്ന്</b></td><td align="left" nowrap><code>npm install && npm run dev</code></td><td align="left">പരിഷ്കരിക്കുക, സംഭാവന ചെയ്യുക</td></tr>
 </table>
 
-<sub>📖 [Docker മാർഗ്ഗനിർദ്ദേശം](docs/guides/DOCKER_GUIDE.md) · [ഡെസ്ക്ടോപ്പ്](electron/README.md) · [മെനു-ബാർ ട്രേ](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
+<sub>📖 [Docker മാർഗ്ഗനിർദ്ദേശം](docs/guides/DOCKER_GUIDE.md) · [മെനു-ബാർ ട്രേ](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
 
 <br/>
 
@@ -1277,7 +1275,7 @@ port-ൽ ഒരേ process വഴിയാണ് ലഭ്യമാക്കു�
   <tr><td nowrap><b>പ്രതിരോധശേഷി</b></td><td>സർക്യൂട്ട് ബ്രേക്കർ, എക്സ്പോണൻഷ്യൽ ബാക്ക്ഓഫ്, ആന്റി-തണ്ടറിംഗ്-ഹേർഡ്, ഓട്ടോ-കോംബോ സ്വയം-പുനഃസ്ഥാപനം</td></tr>
   <tr><td nowrap><b>ലോഗിംഗ്</b></td><td>pino — റിക്വസ്റ്റ് കോൺടെക്സ്റ്റോടുകൂടിയ ഘടനാപരമായ JSON ലോഗുകൾ</td></tr>
   <tr><td nowrap><b>ടെസ്റ്റിംഗ്</b></td><td>Node.js ടെസ്റ്റ് റണ്ണർ + Vitest — ട്രാക്ക് ചെയ്യുന്ന 5,100+ ടെസ്റ്റ് ഫയലുകളിലായി <b>39,000+ സ്റ്റാറ്റിക് ടെസ്റ്റ് ഡിക്ലറേഷനുകൾ</b> (യൂണിറ്റ്, ഇന്റഗ്രേഷൻ, E2E, സുരക്ഷ, ഇക്കോസിസ്റ്റം)</td></tr>
-  <tr><td nowrap><b>പ്ലാറ്റ്ഫോമുകൾ</b></td><td>ഡെസ്ക്ടോപ്പ് (Electron) · Android (Termux) · PWA (ഏത് ബ്രൗസറും)</td></tr>
+  <tr><td nowrap><b>പ്ലാറ്റ്ഫോമുകൾ</b></td><td>Android (Termux) · PWA (ഏത് ബ്രൗസറും)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — റിലീസ് ചെയ്യുമ്പോൾ സ്വയമേവ npm പ്രസിദ്ധീകരണം + Docker Hub</td></tr>
   <tr><td nowrap><b>ലിങ്കുകൾ</b></td><td><a href="https://omniroute.online">വെബ്സൈറ്റ്</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>

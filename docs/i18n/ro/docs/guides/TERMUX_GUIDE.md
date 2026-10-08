@@ -118,7 +118,6 @@ omniroute
 
 ## Limitări
 
-- Electron nu rulează în Termux.
 - Nu există pictogramă în zona de notificare a sistemului sau integrare cu mediul desktop.
 - Această configurație este destinată exclusiv serverului: utilizați panoul de control din browser.
 - Este posibil ca dependențele native să necesite compilare locală.

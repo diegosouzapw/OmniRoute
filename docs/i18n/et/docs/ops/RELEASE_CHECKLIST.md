@@ -114,7 +114,6 @@ Ainult testide diffid (kõik failid kausta `tests/` all, mitte ühtegi kausta `t
 ### Versioon ja muudatuste logi
 
 - [ ] Käivita `/version-bump-cc <patch|minor|major>` (Claude Code oskus)
-  - Suurendab `package.json`, `electron/package.json` versiooninumbreid
   - Genereerib `CHANGELOG.md` uuesti git-committide põhjal alates viimasest märgisest
   - Uuendab README.md märke (badges)
 - [ ] Vaata CHANGELOG.md käsitsi läbi ja korrasta vajadusel committi sõnumeid
@@ -208,104 +207,6 @@ Katkestavad muudatused (breaking changes): lisa jaluses `BREAKING CHANGE:` või 
 - [ ] Mudelid on registreeritud failis `open-sse/config/providerRegistry.ts`
 - [ ] Ühiktestid kaustas `tests/unit/` katavad teenusepakkuja klassifitseerimist ja ruutimist
 
-### Desktop (Electron)
-
-Kui `electron/` muutus:
-
-- [ ] `npm run electron:smoke:packaged` läbib
-- [ ] Buildid on testitud vähemalt üht sihtplatvormi kasutades: `:win`, `:mac`, `:linux`
-- [ ] Koodi allkirjastamise sertifikaadid ei ole aegunud (kui allkirjastatakse)
-- [ ] `electron/package.json` versioon vastab juurkataloogi `package.json` versioonile
-- [ ] Automaatuuenduse kanaliviide on uuendatud, kui väljalase on suunatud `stable`-kanalile
-
-### Buildi paigutus
-
-Repositoorium kasutab kolme eraldi väljundkataloogi — ei tohi neid segamini ajada:
-
-| Kataloog  | Eesmärk                                                  | Jälgitud?         |
-| --------- | -------------------------------------------------------- | ----------------- |
-| `src/`    | Rakenduse lähtekood (TypeScript / TSX)                   | Jah               |
-| `.build/` | Buildi vahetulemused — `next build` väljund (`distDir`)  | Ei (gitignoritud) |
-| `dist/`   | Tarnitav npm-pakett — koostatud `assembleStandalone`-iga | Ei (gitignoritud) |
-
-> **Operaatori märkus:** kaugem VPS-i pildikataloog on jätkuvalt `/usr/lib/node_modules/omniroute/app/`.
-> Liikunud on ainult **repositooriumisisene** buildi väljund (`app/` → `dist/`). Juurutamisoskused rsync'ivad
-> `dist/` sisu kaugesse `app/` kataloogi — VPS-i teekondade muutmine ei ole vajalik.
-
-**Ühe-buildi voog:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (puhastamine)
-  └─ next build → .build/next/   (vahetulemused)
-  └─ assembleStandalone          (kopeerib standalone + static + public + natives → dist/)
-  └─ writes dist/BUILD_SHA       (HEAD-i turvamärgend)
-```
-
-MITTE käivita `npm run build`, millele järgneb eraldi `npm run build:cli` juurutamiseks — kasuta
-`npm run build:release`, mis teeb puhta ülesehituse + turvamärgendi ühe käsuga.
-
-### Artefaktide valideerimine
-
-- [ ] `npm run build:release` läbib edukalt ja `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` on puhas — pole `app.__qa_backup`, `scripts/scratch`, `package-lock.json` või muid kohalikke jääke
-- [ ] `dist/server.js` eksisteerib pärast buildi
-
-### Märgistamine ja väljalase
-
-- [ ] Käivita `/generate-release-cc` (Claude Code oskus):
-  - Loob märgise `vX.Y.Z`
-  - Pushib märgise ja haru
-  - Avab GitHub Release'i koos muudatuste logi sisuga
-  - Lisab Electron installerid (kui koostatud)
-- [ ] Või käsitsi:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Juurutamine
-
-Juurutamisoskused kasutavad kerget rsync-voogu — ilma `npm pack`, ilma `npm i -g`:
-
-- [ ] Kasuta sihtkohale vastavat juurutamisoskust:
-  - `/deploy-vps-local-cc` — kohalik VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — mõlemad
-- [ ] Enne juurutamist kinnita, et `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Build peab jooksma seal, kus `node_modules` on tegelik (peamine checkout või `npm ci`-tud töökataloog — MITTE sümlingitud töökataloog)
-- [ ] Testi juurutatud eksemplari:
-  - Ava `/dashboard/health` → kontrolli, kas versiooniinfo vastab väljalaskele
-  - Käivita `/v1/chat/completions` päring tuntud teenusepakkuja vastu
-  - Kontrolli, et `/api/monitoring/health` tagastab olekud `CLOSED` (lülitid on suletud)
-  - Kinnita, et MCP transpordid vastavad (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Väljalaske-järgne etapp
-
-- [ ] Käivita `/capture-release-evidences-cc` (Claude Code oskus)
-  - Jäädvustab uute funktsioonide WebP-vormingus ekraanipilte/salvestisi
-  - Lisab need väljalaske teatele / blogipostitusele
-- [ ] Uuenda GitHub Discussions / Discordi väljalaske teatega
-- [ ] Ava verstapost järgmise versiooni jaoks
-- [ ] Kui kriitiline: kinnita arutelu või postita `news.json`-i rakendusesisese bänneri jaoks
-
-### Radari avaliku käivituse värav
-
-Radari teadaanne on tahtlikult liidetud olekuga `active: false`. Aktiveerimine on eraldi
-muudatus pärast seda, kui igaüks allolevatest punktidest on tõenditega kinnitatud:
-
-- [ ] Kõik virnastatud Radari PR-id on liidetud ja väljalaske-tipu CI on roheline
-- [ ] OSS Radari teed on juurutatud ja testitud suitsu-testiga, `RADAR_ENABLED` on vaikimisi endiselt väljas
-- [ ] Testi `GET /planos`, `/termos`, `/privacidade` ja `/reembolso` nimetatud Radari hostil
-- [ ] Registreeri operaatori isik/kontakt/aadress ja omaniku heakskiidetud juriidiline läbivaatus privaatses teenuses
-- [ ] Käivita Stripe Checkout ja allkirjastatud veebihaak (webhook) ainult testrežiimis
-- [ ] Käivita üks krüpteeritud tehingu-e-kirja saatmine heakskiidetud saatja/domeeni kaudu
-- [ ] Tõesta varunduse taastamine ja üks juhitud, eelarvega piiratud uurimiskäik
-- [ ] Kinnita BRL/PIX läbivaatuspoliitika enne annetustõendite vastuvõtmist
-- [ ] Luba avalik Checkout ainult pärast eelnevate väravate läbimist, seejärel aktiveeri uus `news.json` ID
-- [ ] Kontrolli, et avaleht kasutab lokaliseeritud sisu ja uus ID ilmub taas pärast vanema ID sulgemist
-
 ## Manustatud teenuste (Embedded Services) suitsutest (v3.8.4+)
 
 Enne mistahes väljalaske saatmist, mis sisaldab manustatud teenuste muudatusi, kontrolli:
@@ -391,7 +292,7 @@ Kui väljalaskel on kriitiline probleem:
 - Mitte kunagi ei tohi vahele jätta Husky konkse (`--no-verify`)
 - Mitte kunagi ei tohi kinnitada saladusi, mandaate ega `.env` faile
 - Katvus peab jääma ≥60/60/60/60 (laused/read/funktsioonid/harud)
-- Alati lisa või uuenda teste, kui muudad tootmiskoodi `src/`, `open-sse/`, `electron/` või `bin/` kaustades
+- Alati lisa või uuenda teste, kui muudad tootmiskoodi `src/`, `open-sse/` või `bin/` kaustades
 
 ## Automatiseeritud Sünkroonimise Kontroll
 

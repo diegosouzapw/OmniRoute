@@ -27,7 +27,6 @@ fără a inventa module noi.
 | Limbaj               | **TypeScript 6.0+** — țintă `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                                |
 | Mediu de execuție    | **Node.js** `>=22.22.2 <23` sau `>=24.0.0 <27` (impus prin `engines` + `SUPPORTED_NODE_RANGE`)                                      |
 | Bază de date         | **SQLite** prin `better-sqlite3` (singleton, jurnalizare WAL)                                                                       |
-| Desktop              | **Electron 41** + `electron-builder` 26.10 (spațiu de lucru separat în `electron/`)                                                 |
 | Teste                | **Executorul nativ de teste Node** (unitare/de integrare), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | Compilare            | Next.js autonom prin `scripts/build/build-next-isolated.mjs`                                                                        |
 | Verificare/formatare | Configurație plată ESLint + Prettier (`lint-staged` prin pre-commit Husky)                                                          |
@@ -51,7 +50,6 @@ de date este variabila de mediu `DATA_DIR`, având valoarea implicită `~/.omnir
 OmniRoute/
 ├── src/                  Aplicația Next.js (App Router, biblioteci, domeniu, server, cod partajat)
 ├── open-sse/             Spațiul de lucru al motorului de streaming (@omniroute/open-sse)
-├── electron/             Înveliș desktop (proces principal Electron 41 + preîncărcare)
 ├── bin/                  Puncte de intrare CLI (omniroute, reset-password)
 ├── tests/                Teste unitare, de integrare, e2e, protocols-e2e, translator, securitate, fixture-uri
 ├── scripts/              Scripturi auxiliare pentru compilare, sincronizare, verificare, migrare și execuție
@@ -575,26 +573,6 @@ Primitive de streaming și funcții auxiliare pentru furnizori: `stream.ts`, `st
 
 ---
 
-## 5. `electron/` — Wrapper desktop
-
-```
-electron/
-├── main.js                  Procesul principal Electron
-├── preload.js               Punte de preîncărcare (contextIsolation activat)
-├── types.d.ts
-├── package.json             Configurație electron-builder, versiunea 3.8.51
-├── README.md
-├── assets/                  Resurse de compilare (pictograme, drepturi, …)
-├── node_modules/            node_modules dedicat (better-sqlite3, electron-updater)
-└── dist-electron/           Rezultatul compilării (neinclus în depozit)
-```
-
-Cinci scripturi npm la rădăcina spațiului de lucru: `electron:dev`, `electron:build`,
-`electron:build:{win,mac,linux}`, `electron:smoke:packaged`. Actualizarea automată se face prin
-`electron-updater`, configurat să utilizeze fluxul de versiuni GitHub.
-
----
-
 ## 6. `bin/` — CLI
 
 ```
@@ -659,13 +637,11 @@ Comenzi uzuale:
 Organizat în 6 subdirectoare, în funcție de scop.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
-  `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,
   `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
   `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
   `native-binary-compat.mjs`.
 - **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
   `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
-  `v1-ws-bridge.mjs`, `smoke-electron-packaged.mjs`,
   `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
   `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
   `system-info.mjs`.
@@ -845,7 +821,7 @@ Consultați [A2A-SERVER.md § Adăugarea unei abilități noi](../frameworks/A2A
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — capabilitățile protocolului A2A și mecanismele de descoperire.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — compresia RTK și Caveman.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — integrări CLI.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (dacă există), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — medii-țintă de implementare.
+- [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — medii-țintă de implementare.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — probleme operaționale frecvente.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — fluxul de lucru al colaboratorilor.
 - [CLAUDE.md](../../CLAUDE.md) — regulile depozitului pentru Claude Code (sursa de referință

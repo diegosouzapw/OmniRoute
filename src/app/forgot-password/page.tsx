@@ -1,15 +1,12 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState, useEffect } from "react";
-import { useIsElectron } from "@/shared/hooks/useElectron";
 
 /**
  * Forgot Password Page — Phase 8.2
  *
  * Provides recovery methods:
- * - Web/CLI: CLI reset via omniroute-reset-password command + manual database reset
- * - Electron: Data directory reset instructions
+ * - CLI reset via omniroute-reset-password command + manual database reset
  */
 
 import Link from "next/link";
@@ -17,17 +14,6 @@ import { Card } from "@/shared/components";
 
 export default function ForgotPasswordPage() {
   const t = useTranslations("auth");
-  const isElectron = useIsElectron();
-  const [dataDir, setDataDir] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (isElectron && typeof window !== "undefined" && (window as any).electronAPI?.getDataDir) {
-      (window as any).electronAPI
-        .getDataDir()
-        .then((dir: string) => setDataDir(dir))
-        .catch(() => {});
-    }
-  }, [isElectron]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -37,142 +23,60 @@ export default function ForgotPasswordPage() {
           <p className="text-text-muted">{t("resetDescription")}</p>
         </div>
 
-        {isElectron ? (
-          <>
-            {/* Electron: App Reset Method */}
-            <Card className="mb-4">
-              <div className="flex items-start gap-4 p-2">
-                <div className="flex items-center justify-center size-10 rounded-lg bg-primary/10 text-primary shrink-0 mt-0.5">
-                  <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
-                    folder_open
-                  </span>
-                </div>
-                <div className="flex-1">
-                  <h2 className="text-lg font-semibold mb-1">{t("resetViaAppData")}</h2>
-                  <p className="text-sm text-text-muted mb-3">{t("deleteSettingsToReset")}</p>
-                  <ol className="text-sm text-text-muted space-y-2 list-decimal list-inside mb-3">
-                    <li>{t("quitAppCompletely")}</li>
-                    <li>
-                      {t("navigateToAppData")}:
-                      {dataDir ? (
-                        <div className="bg-black/30 rounded-lg p-2 mt-1 font-mono text-xs text-green-400 border border-white/5 break-all">
-                          {dataDir}
-                        </div>
-                      ) : (
-                        <div className="bg-black/30 rounded-lg p-2 mt-1 font-mono text-xs text-green-400 border border-white/5">
-                          <span className="text-text-muted/60">({t("checkAppDataFolder")})</span>
-                        </div>
-                      )}
-                    </li>
-                    <li>
-                      {t("deleteSettingsJson")}{" "}
-                      <code className="bg-black/30 px-1 rounded text-text-main">settings.json</code>{" "}
-                      ({t("orRemovePasswordHashField")})
-                    </li>
-                    <li>{t("relaunchAppFresh")}</li>
-                  </ol>
-                </div>
+        <>
+          {/* Method 1: CLI Reset */}
+          <Card className="mb-4">
+            <div className="flex items-start gap-4 p-2">
+              <div className="flex items-center justify-center size-10 rounded-lg bg-primary/10 text-primary shrink-0 mt-0.5">
+                <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                  terminal
+                </span>
               </div>
-            </Card>
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold mb-1">{t("methodCliTitle")}</h2>
+                <p className="text-sm text-text-muted mb-3">{t("methodCliDescription")}</p>
+                <div className="bg-black/30 rounded-lg p-3 mb-3 font-mono text-sm text-green-400 border border-white/5">
+                  <code>npx omniroute reset-password</code>
+                </div>
+                <p className="text-xs text-text-muted">{t("methodCliHint")}</p>
+              </div>
+            </div>
+          </Card>
 
-            {/* Electron: Env File Method */}
-            <Card className="mb-6">
-              <div className="flex items-start gap-4 p-2">
-                <div className="flex items-center justify-center size-10 rounded-lg bg-amber-500/10 text-amber-500 shrink-0 mt-0.5">
-                  <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
-                    settings
-                  </span>
-                </div>
-                <div className="flex-1">
-                  <h2 className="text-lg font-semibold mb-1">{t("alternativeSetPassword")}</h2>
-                  <p className="text-sm text-text-muted mb-3">{t("setNewPasswordViaEnv")}</p>
-                  <ol className="text-sm text-text-muted space-y-2 list-decimal list-inside mb-3">
-                    <li>{t("quitAppCompletely")}</li>
-                    <li>
-                      {t("openServerEnv")}{" "}
-                      <code className="bg-black/30 px-1 rounded text-text-main">server.env</code>{" "}
-                      {t("inDataDirectory")}
-                      {dataDir && (
-                        <div className="bg-black/30 rounded-lg p-2 mt-1 font-mono text-xs text-green-400 border border-white/5 break-all">
-                          {dataDir}/server.env
-                        </div>
-                      )}
-                    </li>
-                    <li>
-                      {t("addOrUpdate")}:
-                      <div className="bg-black/30 rounded-lg p-2 mt-1 font-mono text-xs text-green-400 border border-white/5">
-                        INITIAL_PASSWORD={t("newPasswordPlaceholder")}
-                      </div>
-                    </li>
-                    <li>
-                      {t("deleteAndRelaunch")}{" "}
-                      <code className="bg-black/30 px-1 rounded text-text-main">
-                        {t("settingsJson")}
-                      </code>{" "}
-                      {t("fromDataDir")}
-                    </li>
-                    <li>{t("relaunchApp")}</li>
-                  </ol>
-                </div>
+          {/* Method 2: Database Reset */}
+          <Card className="mb-6">
+            <div className="flex items-start gap-4 p-2">
+              <div className="flex items-center justify-center size-10 rounded-lg bg-amber-500/10 text-amber-500 shrink-0 mt-0.5">
+                <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                  database
+                </span>
               </div>
-            </Card>
-          </>
-        ) : (
-          <>
-            {/* Method 1: CLI Reset */}
-            <Card className="mb-4">
-              <div className="flex items-start gap-4 p-2">
-                <div className="flex items-center justify-center size-10 rounded-lg bg-primary/10 text-primary shrink-0 mt-0.5">
-                  <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
-                    terminal
-                  </span>
-                </div>
-                <div className="flex-1">
-                  <h2 className="text-lg font-semibold mb-1">{t("methodCliTitle")}</h2>
-                  <p className="text-sm text-text-muted mb-3">{t("methodCliDescription")}</p>
-                  <div className="bg-black/30 rounded-lg p-3 mb-3 font-mono text-sm text-green-400 border border-white/5">
-                    <code>npx omniroute reset-password</code>
-                  </div>
-                  <p className="text-xs text-text-muted">{t("methodCliHint")}</p>
-                </div>
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold mb-1">{t("methodManualTitle")}</h2>
+                <p className="text-sm text-text-muted mb-3">{t("methodManualDescription")}</p>
+                <ol className="text-sm text-text-muted space-y-2 list-decimal list-inside mb-3">
+                  <li>{t("stopServer")}</li>
+                  <li>
+                    {t("setPasswordInYour")}{" "}
+                    <code className="bg-black/30 px-1 rounded text-text-main">.env</code>{" "}
+                    {t("fileLabelSuffix")}
+                    <div className="bg-black/30 rounded-lg p-2 mt-1 font-mono text-xs text-green-400 border border-white/5">
+                      INITIAL_PASSWORD={t("newPasswordPlaceholder")}
+                    </div>
+                  </li>
+                  <li>
+                    {t("deleteSettingsFile")}{" "}
+                    <code className="bg-black/30 px-1 rounded text-text-main">
+                      data/settings.json
+                    </code>{" "}
+                    ({t("orRemovePasswordHashField")})
+                  </li>
+                  <li>{t("restartServerWithNewPassword")}</li>
+                </ol>
               </div>
-            </Card>
-
-            {/* Method 2: Database Reset */}
-            <Card className="mb-6">
-              <div className="flex items-start gap-4 p-2">
-                <div className="flex items-center justify-center size-10 rounded-lg bg-amber-500/10 text-amber-500 shrink-0 mt-0.5">
-                  <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
-                    database
-                  </span>
-                </div>
-                <div className="flex-1">
-                  <h2 className="text-lg font-semibold mb-1">{t("methodManualTitle")}</h2>
-                  <p className="text-sm text-text-muted mb-3">{t("methodManualDescription")}</p>
-                  <ol className="text-sm text-text-muted space-y-2 list-decimal list-inside mb-3">
-                    <li>{t("stopServer")}</li>
-                    <li>
-                      {t("setPasswordInYour")}{" "}
-                      <code className="bg-black/30 px-1 rounded text-text-main">.env</code>{" "}
-                      {t("fileLabelSuffix")}
-                      <div className="bg-black/30 rounded-lg p-2 mt-1 font-mono text-xs text-green-400 border border-white/5">
-                        INITIAL_PASSWORD={t("newPasswordPlaceholder")}
-                      </div>
-                    </li>
-                    <li>
-                      {t("deleteSettingsFile")}{" "}
-                      <code className="bg-black/30 px-1 rounded text-text-main">
-                        data/settings.json
-                      </code>{" "}
-                      ({t("orRemovePasswordHashField")})
-                    </li>
-                    <li>{t("restartServerWithNewPassword")}</li>
-                  </ol>
-                </div>
-              </div>
-            </Card>
-          </>
-        )}
+            </div>
+          </Card>
+        </>
 
         <div className="text-center">
           <Link

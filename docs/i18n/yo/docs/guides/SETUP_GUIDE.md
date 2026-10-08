@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Wo [Ìtọ́sọ́nà Docker](./DOCKER_GUIDE.md) fún ìṣètò Docker pípé, pẹ̀lú àwọn prófáìlì Compose àti Caddy HTTPS.
 
-### Ètò Orí Dẹ́sítọ́ọ̀bù (Electron)
-
-OmniRoute ní àpò dìde dẹ́sítọ́ọ̀bù tí a kọ́ lórí Electron 41 + electron-builder 26.10. Àwọn skripti tó wà (ní gbòǹgbò workspace):
-
-```bash
-npm run electron:dev          # Ṣi dẹ́sítọ́ọ̀bù pẹ̀lú àtúnrù-gbóná
-npm run electron:build        # Kọ́ fún OS tó ń ṣiṣẹ́ lọ́wọ́ (a máa ṣàwárí rẹ̀ fúnra rẹ̀)
-npm run electron:build:win    # Ẹ̀rọ ìfísórí Windows (NSIS + portable)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # Ṣe àdánwò-smoke fún ìkọ́lé tí a ti dì
-```
-
-Àwọn ẹ̀yà ìtújáde ẹ̀rọ ìfísórí dẹ́sítọ́ọ̀bù wà gẹ́gẹ́ bí asomọ́ sí GitHub Releases. Fún àlàyé Electron ní kíkún (fífi àmì sí, afárá IPC, àwọn distro), wo [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _(tí a ṣẹ̀dá ní ìpele tó tẹ̀lé)_.
-
 ### Sẹ́fà aláìní ojú-ìwò (CI/àìfọwọ́ṣe)
 
 Fún àwọn ìṣètò tí kò nílò ẹni láti bójú tó (Docker, Kubernetes, CI), lo:

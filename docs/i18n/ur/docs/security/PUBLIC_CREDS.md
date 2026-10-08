@@ -91,7 +91,7 @@ OmniRoute کو یہ اقدار شامل کرنا ضروری ہے تاکہ `.env`
 
 ### 3. ممنوعہ طریقے
 
-❌ production code (`src/`، `open-sse/`، `electron/`، `bin/`) میں درج ذیل میں سے **کبھی بھی** کچھ نہ کریں:
+❌ production code (`src/`، `open-sse/`، ، `bin/`) میں درج ذیل میں سے **کبھی بھی** کچھ نہ کریں:
 
 ```ts
 // غلط: literal value Secret Scanning + Semgrep کو متحرک کرتی ہے

@@ -118,7 +118,6 @@ omniroute
 
 ## Obmedzenia
 
-- Electron v Termuxe nefunguje.
 - Nie je k dispozícii systémová lišta ani integrácia s pracovnou plochou.
 - Toto nastavenie je určené iba pre server: používajte ovládací panel v prehliadači.
 - Natívne závislosti môžu vyžadovať lokálnu kompiláciu.

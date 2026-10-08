@@ -122,7 +122,6 @@ unit shards, integration, vitest, lint/typecheck, docs-sync, `check:pack-artifac
 ### વર્ઝન અને ચેન્જલોગ
 
 - [ ] `/version-bump-cc <patch|minor|major>` ચલાવો (Claude Code સ્કિલ)
-  - `package.json`, `electron/package.json`ના વર્ઝન વધારે છે
   - છેલ્લા ટૅગ પછીના git commitsમાંથી `CHANGELOG.md` ફરીથી બનાવે છે
   - README.md બેજિસ અપડેટ કરે છે
 - [ ] CHANGELOG.mdની મેન્યુઅલી સમીક્ષા કરો અને જરૂર પડે તો commit messages સાફ કરો
@@ -216,104 +215,6 @@ Husky hooks `.husky/`માં રહે છે અને git operations વખ�
 - [ ] Models, `open-sse/config/providerRegistry.ts` માં નોંધાયેલા છે
 - [ ] `tests/unit/` માં unit tests પ્રદાતા વર્ગીકરણ અને routing ને આવરી લે છે
 
-### ડેસ્કટૉપ (Electron)
-
-જો `electron/` બદલાયું હોય:
-
-- [ ] `npm run electron:smoke:packaged` પાસ થાય છે
-- [ ] ઓછામાં ઓછા `:win`, `:mac`, `:linux` પૈકી એક માટે builds નું પરીક્ષણ કરાયું છે
-- [ ] કોડ signing certs ની સમયમર્યાદા સમાપ્ત થઈ નથી (જો signing કરવામાં આવતું હોય)
-- [ ] `electron/package.json` નું version મૂળ `package.json` સાથે મેળ ખાય છે
-- [ ] જો `stable` પર રિલીઝ કરવામાં આવે તો auto-update channel pointer અપડેટ કરાયું છે
-
-### બિલ્ડ લેઆઉટ
-
-રિપોઝિટરી ત્રણ અલગ output directories નો ઉપયોગ કરે છે — તેમને ક્યારેય ભેળવશો નહીં:
-
-| ડિરેક્ટરી | હેતુ                                                        | ટ્રૅક કરેલી?    |
-| --------- | ----------------------------------------------------------- | --------------- |
-| `src/`    | ઍપ્લિકેશન સ્રોત (TypeScript / TSX)                          | હા              |
-| `.build/` | બિલ્ડની મધ્યવર્તી ફાઇલો — `next build` output (`distDir`)   | ના (gitignored) |
-| `dist/`   | વિતરણયોગ્ય npm bundle — `assembleStandalone` દ્વારા સંયોજિત | ના (gitignored) |
-
-> **સંચાલક નોંધ:** રિમોટ VPS image directory હજુ પણ `/usr/lib/node_modules/omniroute/app/` જ રહે છે.
-> માત્ર **રિપોઝિટરીની અંદરનું** build output ખસેડાયું છે (`app/` → `dist/`). deploy skills, `dist/`
-> ની સામગ્રીને રિમોટ `app/` dir માં rsync કરે છે — VPS path માં કોઈ ફેરફાર જરૂરી નથી.
-
-**એકલ-બિલ્ડ પ્રવાહ:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (સફાઈ)
-  └─ next build → .build/next/   (મધ્યવર્તી ફાઇલો)
-  └─ assembleStandalone          (standalone + static + public + natives ને dist/ માં કૉપિ કરે છે)
-  └─ writes dist/BUILD_SHA       (HEAD sentinel)
-```
-
-deploy માટે `npm run build` ચલાવ્યા પછી અલગથી `npm run build:cli` ચલાવશો નહીં — તેના બદલે
-`npm run build:release` નો ઉપયોગ કરો, જે એક જ command માં સ્વચ્છ પુનઃબિલ્ડ + sentinel કરે છે.
-
-### આર્ટિફૅક્ટ માન્યતા
-
-- [ ] `npm run build:release` સફળ થાય છે અને `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` સ્વચ્છ છે — કોઈ `app.__qa_backup`, `scripts/scratch`, `package-lock.json` અથવા અન્ય સ્થાનિક અવશેષ નથી
-- [ ] બિલ્ડ પછી `dist/server.js` અસ્તિત્વમાં છે
-
-### ટૅગિંગ અને રિલીઝ
-
-- [ ] `/generate-release-cc` (Claude Code skill) ચલાવો:
-  - `vX.Y.Z` ટૅગ બનાવે છે
-  - ટૅગ અને branch push કરે છે
-  - changelog body સાથે GitHub Release ખોલે છે
-  - Electron installers જોડે છે (જો build કરેલા હોય)
-- [ ] અથવા મૅન્યુઅલી:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Deploy
-
-Deploy skills હળવા rsync પ્રવાહનો ઉપયોગ કરે છે — `npm pack` નહીં, `npm i -g` નહીં:
-
-- [ ] લક્ષ્ય સાથે મેળ ખાતી deploy skill નો ઉપયોગ કરો:
-  - `/deploy-vps-local-cc` — સ્થાનિક VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — Akamai VPS (69.164.221.35)
-  - `/deploy-vps-both-cc` — બંને
-- [ ] deploy કરતાં પહેલાં ખાતરી કરો કે `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] જ્યાં `node_modules` વાસ્તવિક હોય ત્યાં build ચલાવવું આવશ્યક છે (મુખ્ય checkout અથવા `npm ci` ચલાવેલું worktree — symlink કરેલું worktree નહીં)
-- [ ] deploy કરાયેલા instance નું smoke test કરો:
-  - `/dashboard/health` ખોલો → version string રિલીઝ સાથે મેળ ખાય છે કે નહીં તે તપાસો
-  - જાણીતા પ્રદાતા સામે `/v1/chat/completions` request ચલાવો
-  - ચકાસો કે `/api/monitoring/health`, `CLOSED` circuit breakers પરત કરે છે
-  - ખાતરી કરો કે MCP transports પ્રતિસાદ આપે છે (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### રિલીઝ પછી
-
-- [ ] `/capture-release-evidences-cc` ચલાવો (Claude Code skill)
-  - નવી સુવિધાઓના WebP સ્ક્રીનશૉટ્સ/રેકોર્ડિંગ્સ કેપ્ચર કરે છે
-  - તેમને રિલીઝ નોંધો / બ્લૉગ પોસ્ટ સાથે જોડે છે
-- [ ] રિલીઝની જાહેરાત સાથે GitHub Discussions / Discord અપડેટ કરો
-- [ ] આગામી વર્ઝન માટે માઇલસ્ટોન ખોલો
-- [ ] જો ગંભીર હોય: ચર્ચાને પિન કરો અથવા ઍપમાંના બૅનર માટે `news.json`માં પોસ્ટ કરો
-
-### Radarના સાર્વજનિક લૉન્ચ માટેની શરતો
-
-Radarની જાહેરાત ઇરાદાપૂર્વક `active: false` સાથે કમિટ કરવામાં આવી છે. નીચેની દરેક બાબતનો પુરાવો મળ્યા પછી ઍક્ટિવેશન એક અલગ
-ફેરફાર તરીકે કરવામાં આવશે:
-
-- [ ] સ્ટૅક કરેલી બધી Radar PRs મર્જ થઈ ગઈ હોય અને રિલીઝ-ટિપ CI સફળ હોય
-- [ ] `RADAR_ENABLED`ને હજી પણ ડિફૉલ્ટ રૂપે બંધ રાખીને OSS Radar રૂટ્સ ડિપ્લૉય કરો અને તેમનું સ્મોક ટેસ્ટિંગ કરો
-- [ ] નિર્દિષ્ટ Radar હોસ્ટ પર `GET /planos`, `/termos`, `/privacidade`, અને `/reembolso`નું સ્મોક ટેસ્ટિંગ કરો
-- [ ] ખાનગી સર્વિસમાં ઑપરેટરની ઓળખ/સંપર્ક/સરનામું અને માલિક દ્વારા મંજૂર કરાયેલી કાનૂની સમીક્ષા નોંધો
-- [ ] માત્ર ટેસ્ટ મોડમાં Stripe Checkout અને સાઇન કરેલા webhookનું પરીક્ષણ કરો
-- [ ] મંજૂર કરેલા મોકલનાર/ડોમેન વડે એક એન્ક્રિપ્ટેડ ટ્રાન્ઝૅક્શનલ-ઈમેલ ડિલિવરીનું પરીક્ષણ કરો
-- [ ] બૅકઅપ રિસ્ટોર અને દેખરેખ હેઠળ, બજેટ-મર્યાદિત એક સંશોધન રનનો પુરાવો આપો
-- [ ] દાનનો પુરાવો સ્વીકારતા પહેલાં BRL/PIX સમીક્ષા નીતિ મંજૂર કરો
-- [ ] ઉપરની શરતો પૂર્ણ થયા પછી જ સાર્વજનિક Checkout સક્ષમ કરો, ત્યારબાદ નવું `news.json` ID સક્રિય કરો
-- [ ] ચકાસો કે Home બૅનર સ્થાનિકીકૃત લખાણનો ઉપયોગ કરે છે અને જૂનું ID કાઢી નાખ્યા પછી નવું ID ફરી દેખાય છે
-
 ## એમ્બેડેડ સર્વિસિસ સ્મોક પરીક્ષણ (v3.8.4+)
 
 એમ્બેડેડ સર્વિસિસના ફેરફારો સમાવતી કોઈપણ રિલીઝ મોકલતા પહેલાં, ચકાસો:
@@ -399,7 +300,7 @@ Radarની જાહેરાત ઇરાદાપૂર્વક `active: fal
 - Husky હુક્સ (`--no-verify`) ક્યારેય છોડશો નહીં
 - સિક્રેટ્સ, ઓળખપત્રો અથવા `.env` ફાઇલો ક્યારેય કમિટ કરશો નહીં
 - કવરેજ ≥60/60/60/60 (સ્ટેટમેન્ટ્સ/લાઇન્સ/ફંક્શન્સ/બ્રાન્ચિસ) જળવાઈ રહેવું આવશ્યક છે
-- `src/`, `open-sse/`, `electron/` અથવા `bin/` માં પ્રોડક્શન કોડ બદલતી વખતે હંમેશાં ટેસ્ટ સામેલ કરો અથવા અપડેટ કરો
+- `src/`, `open-sse/` અથવા `bin/` માં પ્રોડક્શન કોડ બદલતી વખતે હંમેશાં ટેસ્ટ સામેલ કરો અથવા અપડેટ કરો
 
 ## સ્વચાલિત સિંક તપાસ
 

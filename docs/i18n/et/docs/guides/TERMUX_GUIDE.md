@@ -118,7 +118,6 @@ omniroute
 
 ## Piirangud
 
-- Electron ei tööta Termuxis.
 - Puudub süsteemisalv ja töölauaga integreerimine.
 - See seadistus on ainult serveri jaoks: kasutage brauseripõhist juhtpaneeli.
 - Natiivsed sõltuvused võivad vajada kohalikku kompileerimist.

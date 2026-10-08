@@ -259,25 +259,6 @@ Rianú gníomhartha riaracháin le scagadh de réir cineáil gníomha, aisteora,
 
 ---
 
-## 🖥️ Feidhmchlár Deisce
-
-Feidhmchlár deisce Electron dúchasach do Windows, macOS, agus Linux. Rith OmniRoute mar fheidhmchlár neamhspleách le comhtháthú tráidire córais, tacaíocht as líne, uath-threisiú, agus suiteáil le cliceáil amháin.
-
-Príghnéithe:
-
-- Poláil réidhacht freastalaí (scáileán folamh ar fhuar-thosaigh)
-- Tráidire córais le bainistíocht poirt
-- Polasaí Slándála Ábhair
-- Glas aon-instealladh
-- Uath-threisiú ar atosaigh
-- UI coinníollach ardán (soilsí tráchta macOS, barra teidil réamhshocraithe Windows/Linux)
-- Pacáistiú suite cruaite Electron — dhéanfar sroiche `node_modules` i bhforbh bundle neamhspleách a bhrath agus a dhiúltú roimh phacáistiú, ag cosc spleáchas rithfheidhmiúcháin ar an meaisín tógála (v2.5.5+)
-- **Dúnadh milis** — dhúnadh Electron `before-quit` Next.js go glan, ag cosc glasanna bunachar sonraí SQLite WAL (v3.6.2+)
-
-📖 Féach [`electron/README.md`](../../electron/README.md) le haghaidh na ndoiciméad iomlán.
-
----
-
 ## 🌐 Trasdáile V1 WebSocket _(v3.6.6+)_
 
 Tacaíonn OmniRoute anois le **cliaint WebSocket comhoiriúnach le OpenAI** trí thúnú `/v1/ws`. Briseann an freastalaí saincheaptha `scripts/dev/v1-ws-bridge.mjs` Next.js agus uasghrádaíonn ceangail WS go seisiúin sruthú déthreoch iomlán. Úsáideann an fhiúntais an eochair API nó fianán seisiúin céanna le hiarratais HTTP.

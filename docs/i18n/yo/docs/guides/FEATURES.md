@@ -265,25 +265,6 @@ Títọpa àwọn ìgbésẹ̀ ìṣàkóso pẹ̀lú àsẹ̀ nípasẹ̀ irú 
 
 ---
 
-## 🖥️ Ìṣàfilọ́lẹ̀ Desktop
-
-Electron desktop app abinibi fún Windows, macOS, àti Linux. Ṣiṣẹ́ OmniRoute gẹ́gẹ́ bí ìṣàfilọ́lẹ̀ olómìnira pẹ̀lú ìṣọ̀kan system tray, àtìlẹ́yìn offline, àfikún-ẹ̀yà láìfọwọ́ṣe, àti ìfisórí pẹ̀lú títẹ̀ ẹ̀ẹ̀kan.
-
-Àwọn ànfààní pàtàkì:
-
-- Ṣíṣàyẹ̀wò ìmúrasílẹ̀ server (kò sí ojú ìbòjú òfo nígbà ìbẹ̀rẹ̀ tútù)
-- System tray pẹ̀lú ìṣàkóso port
-- Content Security Policy
-- Títìpa sí instance kan ṣoṣo
-- Àfikún-ẹ̀yà láìfọwọ́ṣe nígbà ìtún-bẹ̀rẹ̀
-- UI tó dá lórí platform (àwọn macOS traffic lights, titlebar àìyípadà Windows/Linux)
-- Àkójọpọ̀ Electron build tí a ti mú le — `node_modules` tí a fi symlink sínú standalone bundle ni a máa ń ṣàwárí, tí a sì kọ̀ ọ́ sílẹ̀ ṣáájú packaging, èyí tó ń dènà runtime dependency lórí ẹ̀rọ build náà (v2.5.5+)
-- **Ìdádúró pẹ̀lẹ́pẹ̀lẹ́** — Electron `before-quit` máa ń dá Next.js dúró lọ́nà tó mọ́, tí yóò sì dènà àwọn ìtìpa SQLite WAL database (v3.6.2+)
-
-📖 Wo [`electron/README.md`](../../electron/README.md) fún ìwé ìtọ́sọ́nà kíkún.
-
----
-
 ## 🌐 V1 WebSocket Bridge _(v3.6.6+)_
 
 OmniRoute ti ń ṣe àtìlẹ́yìn fún **àwọn WebSocket client tó bá OpenAI mu** báyìí nípasẹ̀ `/v1/ws` upgrade endpoint. Server àkànṣe `scripts/dev/v1-ws-bridge.mjs` máa ń fi Next.js ṣe àyíká, ó sì ń ṣe àfikún àwọn ìsopọ̀ WS sí àwọn session streaming oníbàárà méjèèjì kíkún. Ìfàṣẹsí ń lo API key kan náà tàbí session cookie bíi àwọn ìbéèrè HTTP.

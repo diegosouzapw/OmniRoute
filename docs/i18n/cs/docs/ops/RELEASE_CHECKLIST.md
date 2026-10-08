@@ -122,7 +122,6 @@ automaticky, bez jakéhokoli štítku.
 ### Verze a seznam změn
 
 - [ ] Spusťte `/version-bump-cc <patch|minor|major>` (dovednost Claude Code)
-  - Zvýší verzi v `package.json`, `electron/package.json`
   - Znovu vygeneruje `CHANGELOG.md` z commitů gitu od posledního tagu
   - Aktualizuje odznaky v README.md
 - [ ] Ručně zkontrolujte CHANGELOG.md a v případě potřeby upravte zprávy commitů
@@ -216,104 +215,6 @@ Zpětně nekompatibilní změny: přidejte patičku `BREAKING CHANGE:` nebo `!` 
 - [ ] Modely zaregistrovány v `open-sse/config/providerRegistry.ts`
 - [ ] Jednotkové testy v `tests/unit/` pokrývají klasifikaci poskytovatelů a směrování
 
-### Desktopová aplikace (Electron)
-
-Pokud se změnil `electron/`:
-
-- [ ] `npm run electron:smoke:packaged` projde
-- [ ] Sestavení otestována alespoň pro jednu z platforem `:win`, `:mac`, `:linux`
-- [ ] Certifikáty pro podepisování kódu nejsou prošlé (pokud se podepisuje)
-- [ ] Verze v `electron/package.json` odpovídá kořenovému `package.json`
-- [ ] Ukazatel kanálu automatických aktualizací je při vydání do kanálu `stable` aktualizován
-
-### Rozložení sestavení
-
-Repozitář používá tři odlišné výstupní adresáře — nikdy je nezaměňujte:
-
-| Adresář   | Účel                                                                 | Sledován?            |
-| --------- | -------------------------------------------------------------------- | -------------------- |
-| `src/`    | Zdrojový kód aplikace (TypeScript / TSX)                             | Ano                  |
-| `.build/` | Mezivýstupy sestavení — výstup `next build` (`distDir`)              | Ne (ignorován gitem) |
-| `dist/`   | Distribuovatelný balíček npm — sestavený pomocí `assembleStandalone` | Ne (ignorován gitem) |
-
-> **Poznámka pro operátora:** adresář obrazu na vzdáleném VPS zůstává `/usr/lib/node_modules/omniroute/app/`.
-> Přesunul se pouze výstup sestavení **v repozitáři** (`app/` → `dist/`). Nástroje pro nasazení synchronizují
-> obsah `dist/` pomocí rsync do vzdáleného adresáře `app/` — cesty na VPS není nutné měnit.
-
-**Postup s jediným sestavením:**
-
-```
-npm run build:release
-  └─ rm -rf .build dist          (vyčištění)
-  └─ next build → .build/next/   (mezivýstupy)
-  └─ assembleStandalone          (zkopíruje standalone + static + public + natives → dist/)
-  └─ zapíše dist/BUILD_SHA       (kontrolní hodnota HEAD)
-```
-
-Pro nasazení NESPOUŠTĚJTE `npm run build` následované samostatným `npm run build:cli` — použijte
-`npm run build:release`, který provede čisté sestavení + vytvoření kontrolní hodnoty jediným příkazem.
-
-### Ověření artefaktu
-
-- [ ] `npm run build:release` proběhne úspěšně a `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] `npm run check:pack-artifact` proběhne bez nálezů — žádné `app.__qa_backup`, `scripts/scratch`, `package-lock.json` ani jiné místní pozůstatky
-- [ ] Po sestavení existuje `dist/server.js`
-
-### Vytvoření tagu a vydání
-
-- [ ] Spusťte `/generate-release-cc` (nástroj Claude Code):
-  - Vytvoří tag `vX.Y.Z`
-  - Odešle tag a větev
-  - Vytvoří vydání na GitHubu s changelogem v popisu
-  - Přiloží instalační programy Electronu (pokud byly sestaveny)
-- [ ] Nebo ručně:
-  ```bash
-  git tag -a vX.Y.Z -m "Release vX.Y.Z"
-  git push origin vX.Y.Z
-  gh release create vX.Y.Z --notes-from-tag
-  ```
-
-### Nasazení
-
-Nástroje pro nasazení používají odlehčený postup s rsync — bez `npm pack` a bez `npm i -g`:
-
-- [ ] Použijte nástroj pro nasazení odpovídající cíli:
-  - `/deploy-vps-local-cc` — místní VPS (192.168.0.15)
-  - `/deploy-vps-akamai-cc` — VPS Akamai (69.164.221.35)
-  - `/deploy-vps-both-cc` — oba
-- [ ] Před nasazením ověřte, že `dist/BUILD_SHA` == `git rev-parse --short HEAD`
-- [ ] Sestavení musí proběhnout tam, kde je `node_modules` skutečný adresář (hlavní pracovní kopie nebo worktree připravený pomocí `npm ci` — NE worktree se symbolickým odkazem)
-- [ ] Proveďte základní ověření nasazené instance:
-  - Otevřete `/dashboard/health` → ověřte, že řetězec verze odpovídá vydání
-  - Spusťte požadavek na `/v1/chat/completions` vůči známému poskytovateli
-  - Ověřte, že `/api/monitoring/health` vrací jističe ve stavu `CLOSED`
-  - Ověřte, že transporty MCP odpovídají (`/mcp` HTTP, `/mcp-sse` SSE)
-
-### Po vydání
-
-- [ ] Spusťte `/capture-release-evidences-cc` (dovednost Claude Code)
-  - Pořídí snímky obrazovky / záznamy nových funkcí ve formátu WebP
-  - Připojí je k poznámkám k vydání / příspěvku na blogu
-- [ ] Aktualizujte GitHub Discussions / Discord oznámením o vydání
-- [ ] Otevřete milník pro příští verzi
-- [ ] Pokud je vydání kritické: připněte diskusi nebo jej zveřejněte v `news.json` jako banner v aplikaci
-
-### Podmínky veřejného spuštění Radaru
-
-Oznámení Radaru je záměrně začleněno s nastavením `active: false`. Aktivace je samostatná
-změna provedená až poté, co bude doloženo splnění všech následujících položek:
-
-- [ ] Všechny na sebe navazující PR Radaru jsou sloučeny a CI pro release-tip je úspěšné
-- [ ] Nasaďte a zběžně otestujte OSS trasy Radaru, přičemž `RADAR_ENABLED` zůstane ve výchozím nastavení vypnuté
-- [ ] Zběžně otestujte `GET /planos`, `/termos`, `/privacidade` a `/reembolso` na určeném hostiteli Radaru
-- [ ] Zaznamenejte identitu / kontakt / adresu provozovatele a vlastníkem schválenou právní kontrolu v privátní službě
-- [ ] Otestujte Stripe Checkout a podepsaný webhook pouze v testovacím režimu
-- [ ] Otestujte jedno doručení šifrovaného transakčního e-mailu se schváleným odesílatelem / doménou
-- [ ] Ověřte obnovení ze zálohy a jeden kontrolovaný výzkumný běh s omezeným rozpočtem
-- [ ] Před přijetím dokladu o daru schvalte zásady kontroly BRL/PIX
-- [ ] Veřejný Checkout povolte až po splnění předchozích podmínek a poté aktivujte nové ID v `news.json`
-- [ ] Ověřte, že banner na domovské stránce používá lokalizovaný text a že se nové ID zobrazí po odmítnutí staršího ID
-
 ## Smoke test vestavěných služeb (v3.8.4+)
 
 Před vydáním jakékoli verze, která obsahuje změny vestavěných služeb, ověřte:
@@ -399,7 +300,7 @@ Pokud má vydání kritický problém:
 - Nikdy nepřeskakujte hooky Husky (`--no-verify`)
 - Nikdy neukládejte do repozitáře tajné údaje, přihlašovací údaje ani soubory `.env`
 - Pokrytí musí zůstat ≥60/60/60/60 (příkazy/řádky/funkce/větve)
-- Při změně produkčního kódu v `src/`, `open-sse/`, `electron/` nebo `bin/` vždy zahrňte nebo aktualizujte testy
+- Při změně produkčního kódu v `src/`, `open-sse/` nebo `bin/` vždy zahrňte nebo aktualizujte testy
 
 ## Automatická kontrola synchronizace
 

@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Compose profilleri ve Caddy HTTPS dahil eksiksiz Docker kurulumu için [Docker Kılavuzu](./DOCKER_GUIDE.md) belgesine bakın.
 
-### Masaüstü Uygulaması (Electron)
-
-OmniRoute, Electron 41 + electron-builder 26.10 üzerine kurulu bir masaüstü sarmalayıcısıyla birlikte gelir. Kullanılabilir betikler (çalışma alanı kökü):
-
-```bash
-npm run electron:dev          # Masaüstü uygulamasını çalışırken yeniden yüklemeyle çalıştır
-npm run electron:build        # Geçerli işletim sistemi için derle (otomatik algılanır)
-npm run electron:build:win    # Windows yükleyicisi (NSIS + taşınabilir)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # Paketlenmiş derlemeye duman testi uygula
-```
-
-Masaüstü yükleyicilerinin sürümleri GitHub Releases sayfasına eklenir. Electron hakkında ayrıntılı bilgi (imzalama, IPC köprüsü, dağıtımlar) için [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) belgesine bakın _(daha sonraki bir aşamada oluşturuldu)_.
-
 ### Başsız sunucu (CI/otomasyon)
 
 Gözetimsiz kurulumlar (Docker, Kubernetes, CI) için şunları kullanın:

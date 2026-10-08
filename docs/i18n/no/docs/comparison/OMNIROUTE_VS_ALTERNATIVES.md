@@ -29,7 +29,7 @@ Objektiv funksjonssammenligning med populære AI-rutere med åpen kildekode.
 | **Skjult TLS-fingeravtrykk (JA3/JA4)**            |                  ✅ wreq-js                   |        ❌        |        ❌         |      ❌      |
 | **Evalueringsrammeverk**                          |                  ✅ innebygd                  |        ❌        |        ❌         |   ⚠ betalt   |
 | **MITM-proxy (avskjærer Cursor/Antigravity)**     |             ✅ plattformuavhengig             |        ❌        |        ❌         |      ❌      |
-| **CLI med systemstatusfelt (uten Electron)**      |                      ✅                       |        ❌        |   ikke aktuelt    | ikke aktuelt |
+| **CLI med systemstatusfelt**                      |                      ✅                       |        ❌        |   ikke aktuelt    | ikke aktuelt |
 | **Automatisk CLI-autentisering med maskin-ID**    |                      ✅                       |        ❌        |   ikke aktuelt    | ikke aktuelt |
 | **Kontrollpanel**                                 |                  Next.js 16                   |  grunnleggende   |    proprietær     |  proprietær  |
 | **i18n**                                          |           **42 språkinnstillinger**           |        ❌        |        ❌         |      ⚠       |

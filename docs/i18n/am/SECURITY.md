@@ -197,7 +197,7 @@ docker run -d \
 
 ## ጥገኛ ጥቅሎች
 
-- `npm audit`ን በመደበኛነት ያስኪዱ (`npm run audit:deps` ዋናውን + electronን ይሸፍናል)
+- `npm audit`ን በመደበኛነት ያስኪዱ (`npm run audit:deps` ዋናውንን ይሸፍናል)
 - ጥገኛ ጥቅሎችን የተዘመኑ አድርገው ያቆዩ
 - ፕሮጀክቱ ከcommit በፊት ለሚደረጉ ማረጋገጫዎች `husky` + `lint-staged`ን ይጠቀማል (lint-staged + check-docs-sync + check:any-budget:t11)
 - የCI pipeline በእያንዳንዱ push ላይ የESLint ደህንነት ደንቦችን ያስኬዳል (`no-eval`፣ `no-implied-eval`፣ `no-new-func` = ስህተት)

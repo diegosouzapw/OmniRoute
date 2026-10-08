@@ -197,7 +197,7 @@ docker run -d \
 
 ## පරායත්තතා
 
-- `npm audit` නිතිපතා ධාවනය කරන්න (`npm run audit:deps` මඟින් ප්රධාන + electron ආවරණය කරයි)
+- `npm audit` නිතිපතා ධාවනය කරන්න (`npm run audit:deps` මඟින් ප්රධාන ආවරණය කරයි)
 - පරායත්තතා යාවත්කාලීනව තබාගන්න
 - commit කිරීමට පෙර සිදුකරන පරීක්ෂණ සඳහා ව්යාපෘතිය `husky` + `lint-staged` භාවිත කරයි (lint-staged + check-docs-sync + check:any-budget:t11)
 - සෑම push කිරීමකදීම CI pipeline එක ESLint ආරක්ෂක නීති ධාවනය කරයි (`no-eval`, `no-implied-eval`, `no-new-func` = දෝෂයකි)

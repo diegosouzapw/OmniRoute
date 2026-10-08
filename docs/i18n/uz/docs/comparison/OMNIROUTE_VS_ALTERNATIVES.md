@@ -29,7 +29,7 @@ Mashhur ochiq kodli AI routerlari bilan funksiyalarning xolis taqqoslanishi.
 | **TLS fingerprint yashirinligi (JA3/JA4)**              |                   ✅ wreq-js                   |         ❌         |        ❌         |     ❌      |
 | **Baholash freymvorki**                                 |                    ✅ ichki                    |         ❌         |        ❌         |  ⚠ pullik   |
 | **MITM proksi (Cursor/Antigravity’ni tutib oladi)**     |               ✅ kross-platforma               |         ❌         |        ❌         |     ❌      |
-| **Tizim treyiga ega CLI (Electron’siz)**                |                       ✅                       |         ❌         |        n/a        |     n/a     |
+| **Tizim treyiga ega CLI**                               |                       ✅                       |         ❌         |        n/a        |     n/a     |
 | **CLI mashina ID’si orqali avtomatik autentifikatsiya** |                       ✅                       |         ❌         |        n/a        |     n/a     |
 | **Boshqaruv paneli**                                    |                   Next.js 16                   |       asosiy       |    yopiq kodli    | yopiq kodli |
 | **i18n**                                                |                  **42 lokal**                  |         ❌         |        ❌         |      ⚠      |

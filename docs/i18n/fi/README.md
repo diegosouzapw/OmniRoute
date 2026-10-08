@@ -89,7 +89,6 @@
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![Lisenssi: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![Docker-lataukset](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![Electron-lataukset](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
 
 <table>
   <tr>
@@ -753,7 +752,6 @@ komentotulkkisi historiasta. → [CLI-integraatiot](docs/guides/CLI-INTEGRATIONS
   <tr><th align="left">Alusta</th><th align="left">Asennus</th><th align="left">Kohokohdat</th></tr>
   <tr><td align="left" nowrap>📦 <b>npm (globaali)</b></td><td align="left" nowrap><code>npm install -g omniroute</code></td><td align="left">Yksi komento, mikä tahansa käyttöjärjestelmä</td></tr>
   <tr><td align="left" nowrap>🐳 <b>Docker</b></td><td align="left" nowrap><code>docker run … diegosouzapw/omniroute</code></td><td align="left">Useita arkkitehtuureja: <b>AMD64 + ARM64</b></td></tr>
-  <tr><td align="left" nowrap>🖥️ <b>Työpöytäsovellus (Electron)</b></td><td align="left" nowrap><code>npm run electron:build</code></td><td align="left">Natiivi ikkuna + ilmaisinalue — <b>Windows / macOS / Linux</b></td></tr>
   <tr><td align="left" nowrap>🎩 <b>Valikkorivi (OmniRouteTray)</b></td><td align="left" nowrap><code>brew install --cask zoispag/tap/omniroute-tray</code></td><td align="left">Valvoo palvelinta ja päivittää sen automaattisesti — <b>macOS</b></td></tr>
   <tr><td align="left" nowrap>💪 <b>ARM</b></td><td align="left" nowrap>natiivi <code>arm64</code></td><td align="left">Raspberry Pi, ARM-palvelimet, Apple Silicon</td></tr>
   <tr><td align="left" nowrap>📱 <b>Android (Termux)</b></td><td align="left" nowrap><code>pkg install nodejs && npx -y omniroute</code></td><td align="left">Toimii <b>puhelimessasi</b> ympäri vuorokauden ilman root-oikeuksia</td></tr>
@@ -763,7 +761,7 @@ komentotulkkisi historiasta. → [CLI-integraatiot](docs/guides/CLI-INTEGRATIONS
   <tr><td align="left" nowrap>🛠️ <b>Lähdekoodista</b></td><td align="left" nowrap><code>npm install && npm run dev</code></td><td align="left">Muokkaa ja osallistu kehitykseen</td></tr>
 </table>
 
-<sub>📖 [Docker-opas](docs/guides/DOCKER_GUIDE.md) · [Työpöytäsovellus](electron/README.md) · [Valikkorivisovellus](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
+<sub>📖 [Docker-opas](docs/guides/DOCKER_GUIDE.md) · [Valikkorivisovellus](https://github.com/zoispag/omniroute-tray) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
 
 <br/>
 
@@ -1285,7 +1283,7 @@ Kanoniset mittarit 2026-08-24: **1.029 yksilöllistä videota** · **11.132.922 
   <tr><td nowrap><b>Vikasietoisuus</b></td><td>Katkaisija, eksponentiaalinen viive, samanaikaisten pyyntöryöppyjen esto, automaattinen yhdistelmien itsekorjaus</td></tr>
   <tr><td nowrap><b>Lokitus</b></td><td>pino — rakenteiset JSON-lokit pyyntökontekstilla</td></tr>
   <tr><td nowrap><b>Testaus</b></td><td>Node.js-testiajoympäristö + Vitest — <b>yli 39 000 staattista testimääritystä</b> yli 5 100 seuratussa testitiedostossa (yksikkö-, integraatio-, E2E-, tietoturva- ja ekosysteemitestit)</td></tr>
-  <tr><td nowrap><b>Alustat</b></td><td>Työpöytä (Electron) · Android (Termux) · PWA (mikä tahansa selain)</td></tr>
+  <tr><td nowrap><b>Alustat</b></td><td>Android (Termux) · PWA (mikä tahansa selain)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automaattinen julkaisu npm:ään ja Docker Hubiin uuden version julkaisun yhteydessä</td></tr>
   <tr><td nowrap><b>Linkit</b></td><td><a href="https://omniroute.online">Verkkosivusto</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>

@@ -64,21 +64,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Pogledajte [Docker vodič](./DOCKER_GUIDE.md) za kompletno Docker podešavanje, uključujući Compose profile i Caddy HTTPS.
 
-### Desktop aplikacija (Electron)
-
-OmniRoute isporučuje desktop omotač izgrađen na Electron 41 + electron-builder 26.10. Dostupne skripte (korijen radnog prostora):
-
-```bash
-npm run electron:dev          # Pokreni desktop sa hot-reload-om
-npm run electron:build        # Izgradi za trenutni OS (automatski detektovano)
-npm run electron:build:win    # Windows instalater (NSIS + portable)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # Smoke-test upakovanog build-a
-```
-
-Izdanja desktop instalatera su priložena uz GitHub Releases. Za detaljan pregled Electron-a (potpisivanje, IPC most, distribucije), pogledajte [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _(kreirano u kasnijoj fazi)_.
-
 ### Headless server (CI/automatizacija)
 
 Za nenadgledana podešavanja (Docker, Kubernetes, CI), koristite:

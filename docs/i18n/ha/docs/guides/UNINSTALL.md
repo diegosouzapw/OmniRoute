@@ -83,23 +83,6 @@ docker compose down
 docker compose down -v
 ```
 
-### Manhajar Teburin Aiki ta Electron
-
-**Windows:**
-
-- Buɗe `Settings → Apps → OmniRoute → Uninstall`
-- Ko gudanar da mai cirewa na NSIS daga kundin adireshin girkawa
-
-**macOS:**
-
-- Ja `OmniRoute.app` daga `/Applications` zuwa Shara
-- Cire bayanai: `rm -rf ~/Library/Application Support/omniroute`
-
-**Linux:**
-
-- Cire fayil ɗin AppImage
-- Cire bayanai: `rm -rf ~/.omniroute`
-
 ### Girka daga Lambar Tushe (git clone)
 
 ```bash

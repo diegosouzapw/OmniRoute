@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 A teljes Docker-beállításhoz, beleértve a Compose-profilokat és a Caddy HTTPS-t, tekintse meg a [Docker-útmutatót](./DOCKER_GUIDE.md).
 
-### Asztali alkalmazás (Electron)
-
-Az OmniRoute egy Electron 41 + electron-builder 26.10 alapú asztali csomagolóalkalmazást is tartalmaz. Elérhető szkriptek (a munkaterület gyökerében):
-
-```bash
-npm run electron:dev          # Az asztali alkalmazás futtatása automatikus újratöltéssel
-npm run electron:build        # Összeállítás az aktuális operációs rendszerhez (automatikus felismerés)
-npm run electron:build:win    # Windows-telepítő (NSIS + hordozható)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # A csomagolt összeállítás gyors ellenőrzése
-```
-
-Az asztali telepítők kiadásai a GitHub Releases oldalán találhatók. Az Electron részletes ismertetéséért (aláírás, IPC-híd, disztribúciók) tekintse meg az [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) fájlt _(egy későbbi fázisban létrehozva)_.
-
 ### Grafikus felület nélküli kiszolgáló (CI/automatizálás)
 
 Felügyelet nélküli beállításokhoz (Docker, Kubernetes, CI) használja a következőket:

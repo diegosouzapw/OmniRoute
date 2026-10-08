@@ -62,21 +62,6 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 Lee [Nduzi Docker](./DOCKER_GUIDE.md) maka nhazi Docker zuru ezu, gụnyere profaịlụ Compose na Caddy HTTPS.
 
-### Ngwa Desktop (Electron)
-
-OmniRoute nwere wrapper desktop e wuru na Electron 41 + electron-builder 26.10. Skripụ ndị dị (na mgbọrọgwụ workspace):
-
-```bash
-npm run electron:dev          # Gbaa desktop nwere hot-reload
-npm run electron:build        # Mee build maka OS dị ugbu a (a na-achọpụta ya na-akpaghị aka)
-npm run electron:build:win    # Installer Windows (NSIS + portable)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # Mee smoke-test nke build e tinyere na ngwugwu
-```
-
-A na-etinye mwepụta installer desktop na GitHub Releases. Maka nkọwa zuru ezu banyere Electron (mbinye aka, IPC bridge, distros), lee [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _(e mepụtara n’oge ọzọ)_.
-
 ### Sava na-enweghị interface (CI/automation)
 
 Maka nhazi anaghị achọ onye na-elekọta ya (Docker, Kubernetes, CI), jiri:

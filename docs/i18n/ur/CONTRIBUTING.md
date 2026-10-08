@@ -219,7 +219,7 @@ npm run test:combo:live:vps:failover     # ایک حقیقی cross-provider fail
 
 - `npm run test:coverage` مرکزی یونٹ ٹیسٹ سوٹ کی سورس کوریج ماپتا ہے، `tests/**` کو خارج کرتا ہے، اور `open-sse/**` کو شامل کرتا ہے
 - Pull requests میں statements/lines/functions/branches کے لیے کوریج گیٹ **60%+** برقرار رہنا چاہیے
-- اگر کوئی PR `src/`، `open-sse/`، `electron/`، یا `bin/` میں production code تبدیل کرتا ہے، تو اسی PR میں خودکار ٹیسٹس شامل یا اپ ڈیٹ کرنا ضروری ہے
+- اگر کوئی PR `src/`، `open-sse/`، یا `bin/` میں production code تبدیل کرتا ہے، تو اسی PR میں خودکار ٹیسٹس شامل یا اپ ڈیٹ کرنا ضروری ہے
 - `npm run coverage:report` تازہ ترین کوریج رن کی تفصیلی، فائل بہ فائل رپورٹ دکھاتا ہے
 - `npm run test:coverage:legacy` تاریخی موازنے کے لیے پرانا میٹرک محفوظ رکھتا ہے
 - مرحلہ وار کوریج بہتری کے روڈمیپ کے لیے `docs/ops/COVERAGE_PLAN.md` دیکھیں
@@ -324,7 +324,6 @@ open-sse/                   # @omniroute/open-sse workspace
 ├── transformer/            # Responses API transformer
 └── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron desktop app (cross-platform)
 
 tests/
 ├── unit/                   # Node.js test runner (122 test files)

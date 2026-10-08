@@ -197,7 +197,7 @@ docker run -d \
 
 ## Beroenden
 
-- Kör `npm audit` regelbundet (`npm run audit:deps` omfattar main + electron)
+- Kör `npm audit` regelbundet (`npm run audit:deps` omfattar main)
 - Håll beroendena uppdaterade
 - Projektet använder `husky` + `lint-staged` för kontroller före incheckning (lint-staged + check-docs-sync + check:any-budget:t11)
 - CI-pipelinen kör ESLint-säkerhetsregler vid varje push (`no-eval`, `no-implied-eval`, `no-new-func` = fel)

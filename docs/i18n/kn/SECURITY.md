@@ -197,7 +197,7 @@ docker run -d \
 
 ## ಅವಲಂಬನೆಗಳು
 
-- `npm audit` ಅನ್ನು ನಿಯಮಿತವಾಗಿ ರನ್ ಮಾಡಿ (`npm run audit:deps` ಮುಖ್ಯ + electron ಅನ್ನು ಒಳಗೊಳ್ಳುತ್ತದೆ)
+- `npm audit` ಅನ್ನು ನಿಯಮಿತವಾಗಿ ರನ್ ಮಾಡಿ (`npm run audit:deps` ಮುಖ್ಯ ಅನ್ನು ಒಳಗೊಳ್ಳುತ್ತದೆ)
 - ಅವಲಂಬನೆಗಳನ್ನು ನವೀಕೃತವಾಗಿರಿಸಿ
 - pre-commit ಪರಿಶೀಲನೆಗಳಿಗಾಗಿ ಪ್ರಾಜೆಕ್ಟ್ `husky` + `lint-staged` ಅನ್ನು ಬಳಸುತ್ತದೆ (lint-staged + check-docs-sync + check:any-budget:t11)
 - ಪ್ರತಿಯೊಂದು pushನಲ್ಲಿಯೂ CI ಪೈಪ್ಲೈನ್ ESLint ಭದ್ರತಾ ನಿಯಮಗಳನ್ನು ರನ್ ಮಾಡುತ್ತದೆ (`no-eval`, `no-implied-eval`, `no-new-func` = ದೋಷ)

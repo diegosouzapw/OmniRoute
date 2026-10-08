@@ -91,7 +91,7 @@ Ja nepieciešams iegult jaunu augšupstraumes nodrošinātu vērtību, kas:
 
 ### 3. Aizliegtie modeļi
 
-❌ **Nekad** neveiciet nevienu no tālāk minētajām darbībām produkcijas kodā (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ **Nekad** neveiciet nevienu no tālāk minētajām darbībām produkcijas kodā (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // SLIKTI: literālā vērtība aktivizē Secret Scanning un Semgrep

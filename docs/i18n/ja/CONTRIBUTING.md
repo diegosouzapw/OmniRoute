@@ -220,7 +220,7 @@ npm run test:combo:live:vps:failover     # 実際のプロバイダー間フェ�
 
 - `npm run test:coverage` はメインのユニットテストスイートのソースカバレッジを測定し、`tests/**` を除外して、`open-sse/**` を含めます
 - プルリクエストでは、ステートメント／行／関数／分岐のカバレッジゲートを **60%以上** に維持する必要があります
-- PR で `src/`、`open-sse/`、`electron/`、または `bin/` の本番コードを変更する場合、同じ PR で自動テストを追加または更新する必要があります
+- PR で `src/`、`open-sse/`、または `bin/` の本番コードを変更する場合、同じ PR で自動テストを追加または更新する必要があります
 - `npm run coverage:report` は、直近のカバレッジ実行によるファイルごとの詳細レポートを出力します
 - `npm run test:coverage:legacy` は、過去との比較用に以前の指標を維持します
 - 段階的なカバレッジ改善ロードマップについては、`docs/ops/COVERAGE_PLAN.md` を参照してください
@@ -324,7 +324,6 @@ open-sse/                   # @omniroute/open-sse workspace
 ├── transformer/            # Responses API transformer
 └── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron desktop app (cross-platform)
 
 tests/
 ├── unit/                   # Node.js test runner (122 test files)

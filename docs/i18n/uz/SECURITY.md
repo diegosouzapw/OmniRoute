@@ -197,7 +197,7 @@ docker run -d \
 
 ## Bog‘liqliklar
 
-- `npm audit` ni muntazam ishga tushiring (`npm run audit:deps` asosiy qism va electron’ni qamrab oladi)
+- `npm audit` ni muntazam ishga tushiring ()
 - Bog‘liqliklarni yangilab turing
 - Loyiha commitdan oldingi tekshiruvlar uchun `husky` + `lint-staged` dan foydalanadi (lint-staged + check-docs-sync + check:any-budget:t11)
 - CI konveyeri har bir push uchun ESLint xavfsizlik qoidalarini ishga tushiradi (`no-eval`, `no-implied-eval`, `no-new-func` = xatolik)

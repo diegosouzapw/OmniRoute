@@ -91,7 +91,7 @@ Når du skal indlejre en ny værdi leveret af upstream, som:
 
 ### 3. Forbudte mønstre
 
-❌ Gør **aldrig** noget af følgende i produktionskode (`src/`, `open-sse/`, `electron/`, `bin/`):
+❌ Gør **aldrig** noget af følgende i produktionskode (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // DÅRLIGT: Literalværdien udløser Secret Scanning + Semgrep

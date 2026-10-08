@@ -15,7 +15,6 @@
 OmniRoute/
 ├── src/                  # Εφαρμογή Next.js 16 (διεπαφή χρήστη + διαδρομές API + βιβλιοθήκες + τομέας + διακομιστής)
 ├── open-sse/             # Χώρος εργασίας μηχανής ροής (χειριστές, εκτελεστές, μεταφραστής, διακομιστής MCP)
-├── electron/             # Περιτύλιγμα εφαρμογής υπολογιστή (Electron 41 + electron-builder 26.10)
 ├── bin/                  # Σημείο εισόδου CLI και χειριστές εντολών
 ├── scripts/              # Σενάρια δόμησης, ελέγχου, συγχρονισμού και μεμονωμένων εργασιών
 ├── docs/                 # Δημόσια τεκμηρίωση (βρίσκεστε εδώ)
@@ -294,20 +293,6 @@ open-sse/
 
 ---
 
-## `electron/` — Περίβλημα εφαρμογής επιφάνειας εργασίας
-
-| Αρχείο           | Σκοπός                                                                                                                |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `main.js`        | Κύρια διεργασία Electron (BrowserWindow, ενσωματωμένος διακομιστής Next.js, περιοχή ειδοποιήσεων, αυτόματη ενημέρωση) |
-| `preload.js`     | Γέφυρα IPC (contextBridge → `window.omniroute`)                                                                       |
-| `package.json`   | Ρυθμίσεις electron-builder + εξαρτήσεις Electron 41 + electron-builder 26.10                                          |
-| `assets/`        | Εικονίδια εφαρμογής (Windows .ico, macOS .icns, Linux .png)                                                           |
-| `dist-electron/` | Έξοδος μεταγλώττισης (αγνοείται από το git)                                                                           |
-| `types.d.ts`     | Δηλώσεις τύπων για τη γέφυρα απόδοσης                                                                                 |
-| `README.md`      | Εσωτερικό README του Electron (δείτε επίσης `docs/guides/ELECTRON_GUIDE.md`)                                          |
-
----
-
 ## `bin/` — CLI
 
 | Αρχείο                                                                                                      | Σκοπός                                                                                                                                           |
@@ -363,8 +348,6 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | Πρόγραμμα εκτέλεσης δοκιμών E2E για MCP/A2A                                                                 |
 | `run-ecosystem-tests.mjs`           | Δοκιμές οικοσυστήματος (ενσωμάτωση παρόχων)                                                                 |
 | `test-report-summary.mjs`           | Δημιουργία σύνοψης κάλυψης σε markdown                                                                      |
-| `smoke-electron-packaged.mjs`       | Βασική δοκιμή της πακεταρισμένης δόμησης Electron                                                           |
-| `native-binary-compat.mjs`          | Επαλήθευση ότι οι εγγενείς εξαρτήσεις (`better-sqlite3`) αντιστοιχούν στο Node του Electron                 |
 | `validate-pack-artifact.ts`         | Επικύρωση αποτελέσματος του npm pack                                                                        |
 | `responses-ws-proxy.mjs`            | Γέφυρα WebSocket για το Codex Responses API                                                                 |
 | `v1-ws-bridge.mjs`                  | Γέφυρα WebSocket για το τελικό σημείο `/api/v1/ws`                                                          |
@@ -387,7 +370,7 @@ open-sse/
 | `USER_GUIDE.md`             | Εγχειρίδιο τελικού χρήστη (ρύθμιση, μοντέλα, συνδυασμοί, CLI, ήχος κ.λπ.)                        |
 | `API_REFERENCE.md`          | Αναφορά τελικών σημείων API με μοντέλο ελέγχου ταυτότητας                                        |
 | `openapi.yaml`              | Προδιαγραφή OpenAPI 3.0 (121 διαδρομές)                                                          |
-| `SETUP_GUIDE.md`            | Μέθοδοι εγκατάστασης (npm, npx, Docker, Electron, Termux, πηγαίος κώδικας)                       |
+| `SETUP_GUIDE.md`            | Μέθοδοι εγκατάστασης (npm, npx, Docker, Termux, πηγαίος κώδικας)                                 |
 | `ENVIRONMENT.md`            | Όλες οι μεταβλητές περιβάλλοντος (~800 τεκμηριωμένες, ~3.050 γραμμές `.env.example`)             |
 | `TROUBLESHOOTING.md`        | Συνήθη σφάλματα + γνωστά προβλήματα της v3.8.0                                                   |
 | `RELEASE_CHECKLIST.md`      | Πλήρης ροή έκδοσης (δεξιότητες, husky, conventional commits, ανάπτυξη)                           |
@@ -438,7 +421,6 @@ open-sse/
 | `FLY_IO_DEPLOYMENT_GUIDE.md` | Ανάπτυξη στο Fly.io (προς το παρόν μόνο στα Κινεζικά)               |
 | `TERMUX_GUIDE.md`            | Android χωρίς γραφικό περιβάλλον μέσω Termux                        |
 | `PWA_GUIDE.md`               | Εγκατάσταση Progressive Web App + service worker                    |
-| `ELECTRON_GUIDE.md`          | Δόμηση + υπογραφή + διανομή εφαρμογής υπολογιστή                    |
 | `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                              |
 | `PROXY_GUIDE.md`             | Εξερχόμενος διακομιστής μεσολάβησης 4 επιπέδων + marketplace 1proxy |
 
