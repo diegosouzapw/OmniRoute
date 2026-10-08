@@ -132,13 +132,47 @@ const safe = String(err).split("\n")[0];
 
 `tests/unit/error-message-sanitization.test.ts` では、以下を検証します。
 
-- `/api/model-combo-mappings/*` 配下のすべてのルートが、4xx/5xx の際にサニタイズ済みの本文を返すこと。
+- `/api/model-combo-mappings/*` 配下のすべてのルートが、4xx/5xx のレスポンスでサニタイズ済みの本文を返すこと。
 - `sanitizeErrorMessage` が複数行のスタックトレースを除去すること。
 - `sanitizeErrorMessage` が POSIX および Windows の絶対パスを `<path>` に置換すること。
 - `sanitizeErrorMessage` が `null`/`undefined`/`Error` インスタンスの入力を安全に処理すること。
-- `buildErrorBody` が、その `message` フィールドにスタックトレースを決して露出させないこと。
+- `buildErrorBody` が、その `message` フィールドでスタックトレースを決して公開しないこと。
 
-新しいルートまたはエグゼキューターを追加する場合は、このファイルのアサーションパターンをコピーしてください。カバレッジゲート（`npm run test:coverage`）では、ステートメント／行／関数／分岐について 60% 以上が必須です。エラーパスもカバーする必要があります。
+新しいルートまたは executor を追加する場合は、このファイルのアサーションパターンをコピーしてください。カバレッジゲート（`npm run test:coverage`）では、ステートメント／行／関数／分岐について 60% 以上が必須です。そのため、エラーパスもカバーする必要があります。
+
+### 静的ゲート：`npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` は、`open-sse/executors/`、`open-sse/handlers/`、`open-sse/mcp-server/`、およびすべての `src/app/api/**/route.ts` をスキャンし、捕捉した生のエラー（`err.message` / `err.stack`）または upstream の生の `body.error.message` が、クライアント向けの本文に到達していないかを検査します。
+
+**信頼は呼び出し単位であり、決してファイル単位ではありません**（G-03、#15159）。以前のゲートは、`utils/error` パスからの import を 1 つでも検出するとファイル全体をスキップしていました。これは、呼び出し単位の危険に対してファイル単位の適用除外を行うものでした。正しい `import { sanitizeErrorMessage }` が 1 つあるだけで、そのファイル内の他のすべての sink が恒久的に除外され、その結果、実際の漏洩が発生したにもかかわらずチェックを通過していました。現在、行が信頼されるのは、認可された builder または sanitizer を実際に経由している場合のみです。
+
+| 行の形式                                                                                                             | 信頼されるか？    |
+| -------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / … を呼び出す             | はい              |
+| **このファイルが** `open-sse/utils/error` または `src/lib/api/errorResponse` から import した標準 builder を呼び出す | はい              |
+| 認可された builder が**複数行**で呼び出され、`message:` フィールドが後続行にある                                     | はい              |
+| 自身の本体でサニタイズを行う、ファイルローカルな `function errorResponse(...)` を呼び出す                            | はい              |
+| それ以外の場所に `err.message` / `err.stack` を転送する                                                              | **いいえ — 違反** |
+
+知っておくべき点が 2 つあります。
+
+- `errorResponse` を import しても、包括的に信頼されるわけではありません。独自の `errorResponse` を定義しているファイルは、引き続き呼び出し箇所でフラグが立ちます。これは、ゲートがファイル単位ではなくシンボル単位で信頼を解決するためです。`createErrorResponse` についても同様です。
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` の後に `error: body.error.message` を使用する形式は、`*-fetch.ts` executor 全体で使用されている**サニタイズ済み**のイディオムであり、フラグは立ちません。
+
+認可された builder モジュールは、`open-sse/utils/error.ts` と `src/lib/api/errorResponse.ts` の両方です。後者は、`open-sse` 外にある約 54 個のルートハンドラーで使用されており、両方の export をサニタイズします。
+
+以下の 2 つの形式は**違反ではありません**が、以前はゲートによって漏洩として報告されていました。
+
+- **監査行**内の生のエラー — `saveCallLog({ error: err.message })`、`logToolCall(...)`、またはメッセージを最初に受け取る logger（`log.error("BATCHES", "sweep failed", { error: err.message })`）。後続行のクライアント向けレスポンスは、静的な `buildErrorBody` である場合があります。
+- **複数行**の認可された builder 呼び出し。ここでは、`message:` フィールド自体には builder の名前がまったく含まれていません。
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` は既存の違反を固定し、ゲートが_新しい_違反のみをブロックするようにします。違反が修正されると、`assertNoStale` が対応するエントリを自動的に削除するため、固定リストが形骸化することはありません。リグレッション防止テストは、`tests/unit/check-error-helper.test.ts` および `tests/unit/check-error-helper-call-scope.test.ts` です。
 
 ## 関連する制御
 

@@ -120,7 +120,7 @@ Akses melalui: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ## 📖 Persediaan Penyedia
 
-Untuk menambah sambungan kunci API secara pukal daripada fail CSV atau JSON, gunakan **Papan Pemuka → Penyedia → Import daripada fail**. Lajur disusun mengikut kedudukan (`provider,name,apiKey,baseUrl,priority`); `provider` mestilah telah wujud sebagai penyedia terurus atau nod yang serasi. Lihat [Import penyedia daripada fail CSV atau JSON](../providers/CSV-IMPORT.md).
+Untuk menambah sambungan kunci API secara pukal daripada fail CSV atau JSON, gunakan **Papan Pemuka → Penyedia → Import daripada fail**. Lajur disusun mengikut kedudukan (`provider,name,apiKey,baseUrl,priority`); `provider` mesti sudah wujud sebagai penyedia terurus atau nod yang serasi. Lihat [Import penyedia daripada fail CSV atau JSON](../providers/CSV-IMPORT.md).
 
 ### 🔐 Penyedia Langganan
 
@@ -128,7 +128,7 @@ Untuk menambah sambungan kunci API secara pukal daripada fail CSV atau JSON, gun
 
 ```bash
 Papan Pemuka → Penyedia → Sambungkan Claude Code
-→ Log masuk OAuth → Muat semula token secara automatik
+→ Log masuk OAuth → Penyegaran token automatik
 → Penjejakan kuota 5 jam + mingguan
 
 Model:
@@ -137,16 +137,18 @@ Model:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Petua Pro:** Gunakan Opus untuk tugas yang rumit, Sonnet untuk kepantasan. OmniRoute menjejaki kuota bagi setiap model!
+**Petua Pro:** Gunakan Opus untuk tugas kompleks dan Sonnet untuk kepantasan. OmniRoute menjejaki kuota bagi setiap model!
 
-Laluan yang serasi dengan Claude dan Claude Code mengekalkan tahap usaha penaakulan `max` untuk model Opus dan Sonnet. Model Haiku tidak menerima tahap usaha `max`, jadi OmniRoute menurunkan permintaan tersebut kepada bajet penaakulan tinggi sebelum menghantarnya kepada penyedia huluan.
+Tiada pelayar pada hos OmniRoute? Jalankan `claude setup-token` di mana-mana sahaja Claude Code telah dilog masuk dan tampalkan token setahun itu ke dalam tab **Setup Token**. Lihat [Claude Code dengan token persediaan](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Laluan yang serasi dengan Claude dan Claude Code mengekalkan usaha pemikiran `max` untuk model Opus dan Sonnet. Model Haiku tidak menerima tahap usaha `max`, jadi OmniRoute menurunkan permintaan tersebut kepada belanjawan pemikiran tinggi sebelum menghantarnya kepada penyedia huluan.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
 Papan Pemuka → Penyedia → Sambungkan Codex
 → Log masuk OAuth (port 1455)
-→ Penetapan semula 5 jam + mingguan
+→ Tetapan semula 5 jam + mingguan
 
 Model:
   cx/gpt-5.5
@@ -160,7 +162,7 @@ Model:
 ```bash
 Papan Pemuka → Penyedia → Sambungkan GitHub
 → OAuth melalui GitHub
-→ Penetapan semula bulanan (hari pertama setiap bulan)
+→ Tetapan semula bulanan (hari pertama setiap bulan)
 
 Model:
   gh/gpt-5.5
@@ -172,38 +174,38 @@ Model:
 
 ### 💰 Penyedia Murah
 
-#### GLM-4.7 (Ditetapkan semula setiap hari, $0.6/1M)
+#### GLM-4.7 (Tetapan semula harian, $0.6/1M)
 
 1. Daftar: [Zhipu AI](https://open.bigmodel.cn)
 2. Dapatkan kunci API daripada Coding Plan
 3. Papan Pemuka → Tambah Kunci API: Penyedia: `glm`, Kunci API: `your-key`
 
-**Penggunaan:** `glm/glm-4.7` — **Petua Pro:** Coding Plan menawarkan kuota 3× pada 1/7 kos! Ditetapkan semula setiap hari pada 10:00 pagi.
+**Gunakan:** `glm/glm-4.7` — **Petua Pro:** Coding Plan menawarkan kuota 3× ganda pada 1/7 kos! Ditetapkan semula setiap hari pada pukul 10:00 pagi.
 
-#### MiniMax M2.1 (Ditetapkan semula setiap 5 jam, $0.20/1M)
+#### MiniMax M2.1 (Tetapan semula 5 jam, $0.20/1M)
 
 1. Daftar: [MiniMax](https://www.minimax.io)
 2. Dapatkan kunci API → Papan Pemuka → Tambah Kunci API
 
-**Penggunaan:** `minimax/MiniMax-M2.1` — **Petua Pro:** Pilihan termurah untuk konteks panjang (1M token)!
+**Gunakan:** `minimax/MiniMax-M2.1` — **Petua Pro:** Pilihan termurah untuk konteks panjang (1 juta token)!
 
-#### Kimi K2 (Kadar tetap $9/bulan)
+#### Kimi K2 ($9/bulan kadar tetap)
 
 1. Langgan: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. Dapatkan kunci API → Papan Pemuka → Tambah Kunci API
 
-**Penggunaan:** `kimi/kimi-k2.5` — **Petua Pro:** Kadar tetap $9/bulan untuk 10M token = kos efektif $0.90/1M!
+**Gunakan:** `kimi/kimi-k2.5` — **Petua Pro:** Kadar tetap $9/bulan untuk 10 juta token = kos efektif $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
 1. Daftar: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
 2. Cipta kunci API Qianfan → Papan Pemuka → Tambah Kunci API: Penyedia: `qianfan`
 
-**Penggunaan:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, atau ID model lain yang serasi dengan OpenAI daripada Qianfan.
+**Gunakan:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, atau ID model serasi OpenAI Qianfan yang lain.
 
 ### 🆓 Penyedia PERCUMA
 
-Penyedia percuma tanpa pengesahan mempunyai suis di sebelah **Tiada pengesahan diperlukan** pada halaman penyedia masing-masing. Mematikannya akan menyahdayakan penyedia tersebut, mengalih keluarnya daripada paparan Penyedia yang dikonfigurasikan/padat, serta mengalih keluar modelnya daripada `/v1/models`.
+Penyedia percuma tanpa pengesahan mempunyai suis di sebelah **Tiada pengesahan diperlukan** pada halaman penyedia masing-masing. Mematikannya akan menyahdayakan penyedia tersebut, mengalih keluarnya daripada paparan penyedia yang dikonfigurasikan/padat, dan mengalih keluar modelnya daripada `/v1/models`.
 
 #### Qoder (9 model PERCUMA)
 

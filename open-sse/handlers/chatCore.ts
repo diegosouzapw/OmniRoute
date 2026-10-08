@@ -2953,6 +2953,7 @@ async function handleChatCoreInner({
         provider,
         ccSessionId,
         modelInfo,
+        requestBody: body,
       }),
       reasoningRuleDirective
     );

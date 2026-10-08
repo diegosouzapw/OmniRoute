@@ -42,6 +42,18 @@
   "plugins": ["@stryker-mutator/tap-runner"],
   "tap": {
     "testFiles": [
+      "tests/unit/devin-cli-fallback-spawn-local-only-15159.test.ts",
+      "tests/unit/15633-groq-404-model-scope.test.ts",
+      "tests/unit/check-error-helper-call-scope.test.ts",
+      "tests/unit/check-error-helper-false-positives-15159.test.ts",
+      "tests/unit/codex-quota-optout.test.ts",
+      "tests/unit/compression/default-combo-lossy-policy.test.ts",
+      "tests/unit/compression/output-styles-anthropic-placement.test.ts",
+      "tests/unit/pressure-guard-scoped-failure.test.ts",
+      "tests/unit/provider-breaker-combo-local-refusal.test.ts",
+      "tests/unit/provider-breaker-combo-sse-probe.test.ts",
+      "tests/unit/provider-breaker-unreached-provider-15588.test.ts",
+      "tests/unit/stream-stall-no-account-cooldown.test.ts",
       "tests/unit/claude-passthrough-unsigned-thinking-12917.test.ts",
       "tests/unit/combo-error-code-terminal.test.ts",
       "tests/unit/model-validation-runner.test.ts",

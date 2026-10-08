@@ -665,7 +665,11 @@ test("v1 models catalog exposes bare Codex-preferred IDs for native Codex client
   const getModel = (id: string) => body.data.find((item) => item.id === id);
 
   assert.equal(response.status, 200);
-  const modelId = "codex-auto-review";
+  // `codex-auto-review` is retired (#14903): it is no longer advertised, bare or prefixed.
+  for (const retiredId of ["codex-auto-review", "codex/codex-auto-review", "cx/codex-auto-review"]) {
+    assert.equal(getModel(retiredId), undefined, `${retiredId} must not be listed`);
+  }
+  const modelId = "gpt-5.6-sol";
   const bareModel = getModel(modelId);
   const providerModel = getModel(`codex/${modelId}`);
   const aliasModel = getModel(`cx/${modelId}`);

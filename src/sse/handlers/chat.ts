@@ -138,7 +138,7 @@ import {
 } from "./reasoningRouting";
 import { createVirtualAutoCombo, resolveAutoRoutingState } from "./autoRouting";
 import { getComboFailureLogError } from "./comboFailureLogging";
-import { logAdmissionRejection } from "./admissionRejectionLog";
+import { logAdmissionRejection, logHandlerRejection } from "./admissionRejectionLog";
 
 // Pipeline integration — wired modules
 import { classify429FromError, type FailureKind } from "@/shared/utils/classify429";
@@ -457,7 +457,14 @@ async function handleChatImplementation(
     telemetry.endPhase();
   } catch {
     log.warn("CHAT", "Invalid JSON body");
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
+    return logHandlerRejection(errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body"), {
+      path: new URL(request.url).pathname,
+      model: "-",
+      requestBody: null,
+      apiKeyId: null,
+      apiKeyName: null,
+      correlationId: reqId,
+    });
   }
 
   // Only the server's policy resolver may attach execution directives or route traces.
@@ -484,11 +491,28 @@ async function handleChatImplementation(
   const msgBody = body as { messages?: unknown; input?: unknown };
   if ("messages" in msgBody && !Array.isArray(msgBody.messages)) {
     log.warn("CHAT", "Rejecting request with non-array messages");
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: Expected array");
+    return logHandlerRejection(errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: Expected array"), {
+      path: new URL(request.url).pathname,
+      model: typeof body?.model === "string" && body.model ? body.model : "-",
+      requestBody: body ?? null,
+      apiKeyId: null,
+      apiKeyName: null,
+      correlationId: reqId,
+    });
   }
   if (Array.isArray(msgBody.messages) && msgBody.messages.length === 0) {
     log.warn("CHAT", "Rejecting request with empty messages array");
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: at least one message is required");
+    return logHandlerRejection(
+      errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: at least one message is required"),
+      {
+        path: new URL(request.url).pathname,
+        model: typeof body?.model === "string" && body.model ? body.model : "-",
+        requestBody: body ?? null,
+        apiKeyId: null,
+        apiKeyName: null,
+        correlationId: reqId,
+      }
+    );
   }
   // Reject non-object entries before they reach code that reads `msg.role` /
   // `msg.content` off them (crash-then-500 in translators — #12643). The
@@ -498,11 +522,31 @@ async function handleChatImplementation(
     msgBody.messages.some((m) => m === null || typeof m !== "object" || Array.isArray(m))
   ) {
     log.warn("CHAT", "Rejecting request with non-object message entries");
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: Expected array of objects");
+    return logHandlerRejection(
+      errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: Expected array of objects"),
+      {
+        path: new URL(request.url).pathname,
+        model: typeof body?.model === "string" && body.model ? body.model : "-",
+        requestBody: body ?? null,
+        apiKeyId: null,
+        apiKeyName: null,
+        correlationId: reqId,
+      }
+    );
   }
   if (!("messages" in msgBody) && !("input" in msgBody) && sourceFormat !== "antigravity") {
     log.warn("CHAT", "Rejecting request with missing messages");
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: Expected array, received undefined");
+    return logHandlerRejection(
+      errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: Expected array, received undefined"),
+      {
+        path: new URL(request.url).pathname,
+        model: typeof body?.model === "string" && body.model ? body.model : "-",
+        requestBody: body ?? null,
+        apiKeyId: null,
+        apiKeyName: null,
+        correlationId: reqId,
+      }
+    );
   }
 
   // Reject non-string `model` before it reaches downstream code that calls
@@ -513,9 +557,19 @@ async function handleChatImplementation(
   const rawModel = (body as { model?: unknown }).model;
   if (rawModel !== undefined && rawModel !== null && typeof rawModel !== "string") {
     log.warn("CHAT", `Rejecting non-string model (typeof=${typeof rawModel})`);
-    return errorResponse(
-      HTTP_STATUS.BAD_REQUEST,
-      `model: Expected string, received ${Array.isArray(rawModel) ? "array" : typeof rawModel}`
+    return logHandlerRejection(
+      errorResponse(
+        HTTP_STATUS.BAD_REQUEST,
+        `model: Expected string, received ${Array.isArray(rawModel) ? "array" : typeof rawModel}`
+      ),
+      {
+        path: new URL(request.url).pathname,
+        model: "-",
+        requestBody: body ?? null,
+        apiKeyId: null,
+        apiKeyName: null,
+        correlationId: reqId,
+      }
     );
   }
 
@@ -660,7 +714,14 @@ async function handleChatImplementation(
 
   if (!modelStr) {
     log.warn("CHAT", "Missing model");
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "Missing model");
+    return logHandlerRejection(errorResponse(HTTP_STATUS.BAD_REQUEST, "Missing model"), {
+      path: new URL(request.url).pathname,
+      model: "-",
+      requestBody: body ?? null,
+      apiKeyId: null,
+      apiKeyName: null,
+      correlationId: reqId,
+    });
   }
 
   // Reject image-generation models routed to /v1/chat/completions (#6457).
@@ -680,9 +741,19 @@ async function handleChatImplementation(
     : false;
   if (imageModel && !isExactStoredCombo && !isChatCatalogModel) {
     log.warn("CHAT", `Rejecting image-generation model on chat endpoint: ${modelStr}`);
-    return errorResponse(
-      HTTP_STATUS.BAD_REQUEST,
-      `Model '${modelStr}' is an image-generation model and cannot be used on /v1/chat/completions. Use POST /v1/images/generations instead.`
+    return logHandlerRejection(
+      errorResponse(
+        HTTP_STATUS.BAD_REQUEST,
+        `Model '${modelStr}' is an image-generation model and cannot be used on /v1/chat/completions. Use POST /v1/images/generations instead.`
+      ),
+      {
+        path: new URL(request.url).pathname,
+        model: modelStr,
+        requestBody: body ?? null,
+        apiKeyId: null,
+        apiKeyName: null,
+        correlationId: reqId,
+      }
     );
   }
 
@@ -703,7 +774,14 @@ async function handleChatImplementation(
       "POLICY",
       `API key policy rejected: ${modelStr} (key=${policy.apiKeyInfo?.id || "unknown"})`
     );
-    return policy.rejection;
+    return logHandlerRejection(policy.rejection, {
+      path: new URL(request.url).pathname,
+      model: modelStr,
+      requestBody: body ?? null,
+      apiKeyId: policy.apiKeyInfo?.id ?? null,
+      apiKeyName: policy.apiKeyInfo?.name ?? null,
+      correlationId: reqId,
+    });
   }
   const apiKeyInfo = policy.apiKeyInfo;
   let managedLease: ManagedLeaseDispatchContext | null = null;
@@ -836,9 +914,19 @@ async function handleChatImplementation(
       guardrail: preCallGuardrails.guardrail,
       message: preCallGuardrails.message,
     });
-    return errorResponse(
-      HTTP_STATUS.BAD_REQUEST,
-      preCallGuardrails.message || "Request rejected: suspicious content detected"
+    return logHandlerRejection(
+      errorResponse(
+        HTTP_STATUS.BAD_REQUEST,
+        preCallGuardrails.message || "Request rejected: suspicious content detected"
+      ),
+      {
+        path: new URL(request.url).pathname,
+        model: modelStr,
+        requestBody: body ?? null,
+        apiKeyId: apiKeyInfo?.id ?? null,
+        apiKeyName: apiKeyInfo?.name ?? null,
+        correlationId: reqId,
+      }
     );
   }
   // Snapshot model BEFORE the guardrail payload (see reconcileGuardrailReroute).
@@ -936,7 +1024,14 @@ async function handleChatImplementation(
 
   // Short-circuit if a hook returned a direct response
   if (hookResponse) {
-    return errorResponse(hookResponse.status, hookResponse.body as any);
+    return logHandlerRejection(errorResponse(hookResponse.status, hookResponse.body as any), {
+      path: new URL(request.url).pathname,
+      model: modelStr,
+      requestBody: body ?? null,
+      apiKeyId: apiKeyInfo?.id ?? null,
+      apiKeyName: apiKeyInfo?.name ?? null,
+      correlationId: reqId,
+    });
   }
 
   // T05 — Task-Aware Smart Routing
@@ -1893,7 +1988,6 @@ async function handleSingleModelChat(
         resolveBareModelToConnectionDefault(modelStr, model, credentials.defaultModel) ?? model;
       let requestBody =
         effectiveModel !== model ? { ...body, model: `${provider}/${effectiveModel}` } : body;
-
       // If the combo explicitly overrode the provider to a passthrough provider, we
       // must preserve the original unstripped modelStr so that proxy providers
       // (e.g., cline, kilocode) get the exact string they expect.
@@ -2034,6 +2128,7 @@ async function handleSingleModelChat(
                 : undefined,
             // Forward only the DB override, not the credential-blind format fallback.
             modelTargetFormat: customModelTargetFormat,
+            runtimeModelInfo: resolved.modelInfo,
             providerProfile,
             cachedSettings: runtimeOptions.cachedSettings,
             skipUpstreamRetry: runtimeOptions.skipUpstreamRetry ?? false,

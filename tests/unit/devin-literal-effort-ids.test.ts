@@ -71,5 +71,7 @@ test("isSkippedEffortProvider covers devin providers and aliases", () => {
     assert.equal(isSkippedEffortProvider(provider), true, provider);
   }
   assert.equal(isSkippedEffortProvider("claude"), false);
-  assert.equal(isSkippedEffortProvider("codex"), true); // pre-existing skip stays
+  // #13224: Codex resolves exact discovered ids before aliases, so it is no longer skipped.
+  assert.equal(isSkippedEffortProvider("codex"), false);
+  assert.equal(isSkippedEffortProvider("glm"), true); // pre-existing skip stays
 });

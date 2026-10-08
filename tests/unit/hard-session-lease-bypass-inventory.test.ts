@@ -51,7 +51,8 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     // of the retirement-check one hoisted before enforceApiKeyPolicy) was
     // removed as dead redundant code, 6->5. #12653 added combo target
     // resolution with the same shape as imageCombo, 5->6.
-    "src/app/api/v1/images/edits/route.ts": 6,
+    // #15513: added Antigravity/Gemini image edits support branch, 6->7.
+    "src/app/api/v1/images/edits/route.ts": 7,
     "src/app/api/v1/images/generations/route.ts": 3,
     "src/app/api/v1/images/upscale/route.ts": 1,
     "src/app/api/v1/messages/count_tokens/route.ts": 1,
@@ -66,6 +67,8 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/app/api/v1/session-leases/route.ts": 1,
     "src/app/api/v1/videos/generations/route.ts": 2,
     "src/app/api/v1/web/fetch/route.ts": 1,
+    // #15703: Firecrawl Map endpoint, same quota-preflight credential lookup as web/fetch (class B).
+    "src/app/api/v1/web/map/route.ts": 1,
     // #11088/#11271: third site is the synced local-endpoint route — it resolves
     // credentials through getProviderCredentials with the connection allowlist
     // from resolveLocalSyncedEndpointRoute, and handles allRateLimited, so it is
@@ -199,8 +202,13 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     // Base drift (already present before #11754 boarded, from earlier-merged
     // #11698/#11720 retirement PRs' combined getProviderConnectionById
     // fallback in the three write-path functions): not introduced by this PR.
-    "src/lib/db/providers.ts": 3,
+    // #15485: the priority-0 move-to-top edit re-reads the row by id after reorderConnections (3 -> 4).
+    "src/lib/db/providers.ts": 4,
     "src/lib/db/readCache.ts": 2,
+    // Local embedding providers: reads the active rows only to build the allowlist of
+    // connections whose default model does not conflict with the requested one; the
+    // connection itself is still selected by getProviderCredentials (class C).
+    "src/lib/embeddings/service.ts": 1,
     "src/lib/freeProviderRankings.ts": 1,
     "src/lib/guardrails/visionBridgeCredentials.ts": 2,
     "src/lib/kimi/tokenRefresh.ts": 1,

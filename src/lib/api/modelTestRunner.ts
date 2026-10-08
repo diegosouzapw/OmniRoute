@@ -27,6 +27,7 @@ import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLease
 
 const INTERNAL_ORIGIN = "http://omniroute.internal";
 export const DEFAULT_MODEL_TEST_TIMEOUT_MS = 30_000;
+const CHATGPT_WEB_CLEAN_ROOM_PROVIDER_ID = "chatgpt-web";
 const DOLA_PRO_TEST_TIMEOUT_MS = 90_000;
 const DOUBAO_WEB_PROVIDER_ID = "doubao-web";
 const ZAI_WEB_PROVIDER_ID = "zai-web";
@@ -37,6 +38,14 @@ const STREAMING_CHAT_TEST_MAX_TOKENS = 64;
 // ignored on that endpoint, which would let a reasoning model spend the whole
 // default budget before emitting any visible text.
 const RESPONSES_TEST_MAX_OUTPUT_TOKENS = 256;
+
+export function shouldSkipWebSessionModelTest(providerId: unknown): boolean {
+  return (
+    requiresWebSessionCredential(providerId) &&
+    (typeof providerId !== "string" ||
+      providerId.trim().toLowerCase() !== CHATGPT_WEB_CLEAN_ROOM_PROVIDER_ID)
+  );
+}
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -478,7 +487,7 @@ export async function runSingleModelTest(
   if (!fullModelStr.includes("/")) {
     fullModelStr = `${providerId}/${modelId}`;
   }
-  if (requiresWebSessionCredential(providerId)) {
+  if (shouldSkipWebSessionModelTest(providerId)) {
     return {
       modelId: fullModelStr,
       status: "error",

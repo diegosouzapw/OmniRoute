@@ -1442,6 +1442,16 @@ export async function getProviderCredentials(
         allConnections = allConnections.filter((conn) => allowedConnections.includes(conn.id));
       }
       const blockedByKeyPolicyCount = connectionsBeforeKeyPolicy - allConnections.length;
+      // A scoped pool may contain an allowed but inactive account. Excluding
+      // unrelated siblings does not turn that account's unavailability into a
+      // permission failure. Preserve 403 for an explicitly forbidden pin.
+      const keyPolicyDeniesTarget =
+        allConnections.length === 0 ||
+        Boolean(
+          forcedConnectionId &&
+          allowedConnections?.length &&
+          !allowedConnections.includes(forcedConnectionId)
+        );
       if (forcedConnectionId) {
         allConnections = allConnections.filter((conn) => conn.id === forcedConnectionId);
       }
@@ -1515,7 +1525,7 @@ export async function getProviderCredentials(
         return geminiEnvCredentials;
       }
       invalidateManagedLease(options, "CONNECTION_INELIGIBLE");
-      if (blockedByKeyPolicyCount > 0) {
+      if (blockedByKeyPolicyCount > 0 && keyPolicyDeniesTarget) {
         // #13832: the pool is empty only because the calling key's allowlist /
         // quota scope removed every connection. Say so instead of returning the
         // bare null that becomes "No active credentials for provider: X".
@@ -1914,14 +1924,16 @@ export async function getProviderCredentials(
     }
 
     if (withQuota.length === 0 && exhaustedQuota.length > 0) {
-      // All remaining eligible accounts are exhausted
       const earliestResetAt = getEarliestFutureDate(
         exhaustedQuota.map((c) => {
           if (resolveProviderId(provider) === "claude") {
-            return getClaudeQuotaPreflightResetAt(c.id) || getQuotaCache(c.id)?.nextResetAt || null;
+            return (
+              getClaudeQuotaPreflightResetAt(c.id, requestedModel, c.providerSpecificData) ||
+              getQuotaCache(c.id)?.nextResetAt ||
+              null
+            );
           }
-          const entry = getQuotaCache(c.id);
-          return entry?.nextResetAt || null;
+          return getQuotaCache(c.id)?.nextResetAt || null;
         })
       );
       const earliestResetMs = parseFutureDateMs(earliestResetAt);
@@ -1934,7 +1946,7 @@ export async function getProviderCredentials(
         allRateLimited: true,
         retryAfter,
         retryAfterHuman: formatRetryAfter(retryAfter),
-        lastError: `All ${provider} accounts have exhausted their quota (cached quota state, no upstream attempt; earliest reset ${formatRetryAfter(retryAfter)})`,
+        lastError: `All ${provider} accounts have exhausted their quota (cached quota state, no upstream attempt; earliest ${formatRetryAfter(retryAfter)})`,
         lastErrorCode: 429,
       };
     }
@@ -3065,7 +3077,7 @@ export async function markAccountUnavailable(
       return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
     }
     if (
-      (hasPerModelFailureScope(provider, model, connectionPassthroughModels, status) ||
+      (hasPerModelFailureScope(provider, model, connectionPassthroughModels, status, errorText) ||
         isModelScopedClaudeQuota) &&
       provider &&
       provider !== "codex" &&
