@@ -68,3 +68,33 @@ export async function findStaleComboModelRefs(providerId: string): Promise<Stale
   }
   return stale;
 }
+
+/**
+ * Stale refs across every provider an explicit combo step pins, for the combo
+ * editor badge. Each provider keeps the same fail-open rule as above.
+ */
+export async function findAllStaleComboModelRefs(): Promise<StaleComboModelRef[]> {
+  const providers = new Set<string>();
+  for (const combo of await getCombos()) {
+    if (!Array.isArray(combo.models)) continue;
+    for (const step of combo.models as unknown[]) {
+      if (!isExplicitModelStep(step)) continue;
+      const model = getComboModelString(step);
+      const provider = model ? getComboModelProvider(step) || parseModel(model).provider : null;
+      if (provider) providers.add(provider);
+    }
+  }
+
+  // A step can match two provider ids (alias vs canonical), so dedupe.
+  const seen = new Set<string>();
+  const stale: StaleComboModelRef[] = [];
+  for (const providerId of providers) {
+    for (const ref of await findStaleComboModelRefs(providerId)) {
+      const key = JSON.stringify([ref.comboId, ref.stepId, ref.model]);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      stale.push(ref);
+    }
+  }
+  return stale;
+}
