@@ -72,6 +72,40 @@ test("provider schemas reject non-boolean preserveEncryptedReasoning values", ()
   assert.equal(updated.success, false);
 });
 
+for (const reasoningControl of ["chat-template", "openai", null] as const) {
+  test(`provider schemas accept reasoningControl=${String(reasoningControl)}`, () => {
+    const created = createProviderSchema.safeParse({
+      provider: "openai-compatible-chat-test",
+      apiKey: "token",
+      name: "Compatible",
+      providerSpecificData: { reasoningControl },
+    });
+    const updated = updateProviderConnectionSchema.safeParse({
+      providerSpecificData: { reasoningControl },
+    });
+
+    assert.equal(created.success, true);
+    assert.equal(updated.success, true);
+  });
+}
+
+for (const reasoningControl of ["auto", "template", true, 1]) {
+  test(`provider schemas reject invalid reasoningControl=${String(reasoningControl)}`, () => {
+    const created = createProviderSchema.safeParse({
+      provider: "openai-compatible-chat-test",
+      apiKey: "token",
+      name: "Compatible",
+      providerSpecificData: { reasoningControl },
+    });
+    const updated = updateProviderConnectionSchema.safeParse({
+      providerSpecificData: { reasoningControl },
+    });
+
+    assert.equal(created.success, false);
+    assert.equal(updated.success, false);
+  });
+}
+
 test("provider schemas accept boolean CC-compatible request defaults", () => {
   const created = createProviderSchema.safeParse({
     provider: "anthropic-compatible-cc-demo",

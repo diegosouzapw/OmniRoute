@@ -74,13 +74,17 @@ Consultați [A2A-SERVER.md](./A2A-SERVER.md) pentru detalii despre transport, st
 
 ### Ce este
 
-ACP este **inventarul local de agenți CLI** al OmniRoute. Acesta detectează ce CLI-uri pentru programare sunt instalate pe gazdă (Cursor, Cline, Claude Code, Codex CLI, Continue etc.), determină versiunile acestora și le afișează în panoul de control, astfel încât utilizatorul să poată configura fiecare CLI să utilizeze OmniRoute.
+ACP este **inventarul local de agenți CLI** al OmniRoute. Acesta detectează ce instrumente CLI pentru programare sunt instalate pe gazdă (Cursor, Cline, Claude Code, Codex CLI, Continue etc.), determină versiunile acestora și le afișează în panoul de control, astfel încât utilizatorul să poată configura fiecare CLI să utilizeze OmniRoute.
 
-Acesta NU este un protocol extern — este un registru intern care alimentează interfața „CLI Tools” și urmărirea amprentelor CLI (consultați [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+Interfața HTTP este un inventar intern care deservește interfața „CLI Tools” și
+urmărirea amprentelor CLI (consultați [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Separat,
+managerul intern de procese acceptă Agent Client Protocol nativ pentru lansatorul
+Gemini înregistrat și adaptoare stdio moștenite pentru alte contracte.
+Consultați [Registrul și lansatoarele ACP](./ACP.md) pentru aceste moduri distincte și limitările lor.
 
 ### Ce face
 
-- Verifică gazda pentru a găsi binarele CLI instalate (utilizează `which` / `where`, în funcție de sistemul de operare)
+- Verifică gazda pentru a găsi binare CLI instalate (utilizează `which` / `where` în funcție de sistemul de operare)
 - Citește versiunea fiecărui CLI (apelează `<bin> --version`)
 - Acceptă opțional agenți personalizați definiți de utilizator (calea binarului + verificarea versiunii + argumente de pornire)
 - Păstrează agenții personalizați în setări
@@ -90,10 +94,10 @@ Acesta NU este un protocol extern — este un registru intern care alimentează 
 
 | Endpoint          | Metodă | Descriere                                                                 | Autentificare |
 | ----------------- | ------ | ------------------------------------------------------------------------- | ------------- |
-| `/api/acp/agents` | GET    | Listează agenții detectați + personalizați (numărul instalați/total)      | Cheie API     |
+| `/api/acp/agents` | GET    | Listează agenții detectați și personalizați (număr instalați/total)       | Cheie API     |
 | `/api/acp/agents` | POST   | Adaugă/actualizează/elimină un agent personalizat (acțiunea este în corp) | Cheie API     |
 
-Structura corpului pentru POST (`customAgentBodySchema` din `src/app/api/acp/agents/route.ts`):
+Structura corpului pentru POST (`customAgentBodySchema` în `src/app/api/acp/agents/route.ts`):
 
 ```json
 {
@@ -110,13 +114,16 @@ Structura corpului pentru POST (`customAgentBodySchema` din `src/app/api/acp/age
 
 ### Cazuri de utilizare
 
-- Pagina „CLI Tools” din panoul de control listează ce este instalat și vă ajută să configurați fiecare instrument să utilizeze OmniRoute
-- Agenții personalizați permit utilizatorilor avansați să înregistreze CLI-uri interne/proprietare pe care OmniRoute nu le recunoaște în mod implicit
+- Pagina „CLI Tools” din panoul de control afișează ce este instalat și vă ajută să configurați fiecare instrument să utilizeze OmniRoute
+- Agenții personalizați le permit utilizatorilor avansați să înregistreze instrumente CLI interne/proprietare pe care OmniRoute nu le recunoaște în mod implicit
 - Rezultatul detectării alimentează matricea de amprente `cli-tools`
 
 ### Când să NU utilizați ACP
 
-- ACP nu _execută_ sarcini. Acesta doar detectează și configurează CLI-uri. Pentru a invoca efectiv un CLI, trebuie să îl lansați personal cu variabilele de mediu furnizate de OmniRoute (`OPENAI_BASE_URL`, `OPENAI_API_KEY` etc.).
+- Registrul HTTP nu acceptă sarcini și nu expune pornirea proceselor. Managerul intern
+  poate lansa un CLI înregistrat, dar nu este conectat ca mecanism automat de rezervă
+  pentru furnizori. Pentru utilizarea interactivă obișnuită, lansați personal instrumentul CLI configurat sau
+  utilizați `omniroute run`.
 
 ## 3. Agenți cloud
 

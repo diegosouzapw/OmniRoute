@@ -120,16 +120,16 @@
 
 ## 📖 প্রোভাইডার সেটআপ
 
-CSV বা JSON ফাইল থেকে একসঙ্গে একাধিক API-key সংযোগ যোগ করতে **Dashboard → Providers → Import from file** ব্যবহার করুন। কলামগুলোর অবস্থান নির্দিষ্ট (`provider,name,apiKey,baseUrl,priority`); `provider`-কে আগে থেকেই পরিচালিত প্রোভাইডার বা সামঞ্জস্যপূর্ণ নোড হিসেবে বিদ্যমান থাকতে হবে। [CSV বা JSON ফাইল থেকে প্রোভাইডার ইমপোর্ট করুন](../providers/CSV-IMPORT.md) দেখুন।
+CSV বা JSON ফাইল থেকে একসঙ্গে একাধিক API-key সংযোগ যোগ করতে **Dashboard → Providers → Import from file** ব্যবহার করুন। কলামগুলোর অবস্থান নির্দিষ্ট (`provider,name,apiKey,baseUrl,priority`); `provider`-টি আগে থেকেই একটি পরিচালিত প্রোভাইডার বা সামঞ্জস্যপূর্ণ নোড হিসেবে বিদ্যমান থাকতে হবে। দেখুন [CSV বা JSON ফাইল থেকে প্রোভাইডার ইমপোর্ট করুন](../providers/CSV-IMPORT.md)।
 
 ### 🔐 সাবস্ক্রিপশন প্রোভাইডার
 
 #### Claude Code (Pro/Max)
 
 ```bash
-Dashboard → Providers → Connect Claude Code
+Dashboard → Providers → Claude Code সংযুক্ত করুন
 → OAuth লগইন → স্বয়ংক্রিয় টোকেন রিফ্রেশ
-→ ৫-ঘণ্টা + সাপ্তাহিক কোটা ট্র্যাকিং
+→ ৫ ঘণ্টার + সাপ্তাহিক কোটা ট্র্যাকিং
 
 মডেল:
   cc/claude-opus-4-7
@@ -137,16 +137,18 @@ Dashboard → Providers → Connect Claude Code
   cc/claude-haiku-4-5-20251001
 ```
 
-**বিশেষ পরামর্শ:** জটিল কাজের জন্য Opus এবং দ্রুততার জন্য Sonnet ব্যবহার করুন। OmniRoute প্রতিটি মডেলের কোটা আলাদাভাবে ট্র্যাক করে!
+**বিশেষ পরামর্শ:** জটিল কাজের জন্য Opus এবং গতির জন্য Sonnet ব্যবহার করুন। OmniRoute প্রতিটি মডেলের কোটা আলাদাভাবে ট্র্যাক করে!
 
-Claude এবং Claude Code-সামঞ্জস্যপূর্ণ রুটগুলো Opus ও Sonnet মডেলের জন্য `max` চিন্তন প্রচেষ্টা সংরক্ষণ করে। Haiku মডেলগুলো `max` প্রচেষ্টা স্তর গ্রহণ করে না, তাই আপস্ট্রিমে পাঠানোর আগে OmniRoute সেই অনুরোধকে উচ্চ চিন্তন বাজেটে নামিয়ে আনে।
+OmniRoute হোস্টে ব্রাউজার নেই? Claude Code লগইন করা আছে এমন যেকোনো স্থানে `claude setup-token` চালান এবং এক বছরের টোকেনটি **Setup Token** ট্যাবে পেস্ট করুন। দেখুন [সেটআপ টোকেনসহ Claude Code](../providers/CLAUDE_CODE_SETUP_TOKEN.md)।
+
+Claude এবং Claude Code-সামঞ্জস্যপূর্ণ রুটগুলো Opus ও Sonnet মডেলের জন্য `max` চিন্তার প্রচেষ্টা সংরক্ষণ করে। Haiku মডেলগুলো `max` প্রচেষ্টা স্তর গ্রহণ করে না, তাই আপস্ট্রিমে পাঠানোর আগে OmniRoute সেই অনুরোধটিকে উচ্চ চিন্তার বাজেটে নামিয়ে আনে।
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-Dashboard → Providers → Connect Codex
-→ OAuth লগইন (পোর্ট 1455)
-→ ৫-ঘণ্টা + সাপ্তাহিক রিসেট
+Dashboard → Providers → Codex সংযুক্ত করুন
+→ OAuth লগইন (port 1455)
+→ ৫ ঘণ্টার + সাপ্তাহিক রিসেট
 
 মডেল:
   cx/gpt-5.5
@@ -158,9 +160,9 @@ Dashboard → Providers → Connect Codex
 #### GitHub Copilot
 
 ```bash
-Dashboard → Providers → Connect GitHub
+Dashboard → Providers → GitHub সংযুক্ত করুন
 → GitHub-এর মাধ্যমে OAuth
-→ মাসিক রিসেট (মাসের ১ তারিখ)
+→ মাসিক রিসেট (মাসের ১ম দিন)
 
 মডেল:
   gh/gpt-5.5
@@ -176,47 +178,49 @@ Dashboard → Providers → Connect GitHub
 
 1. সাইন আপ করুন: [Zhipu AI](https://open.bigmodel.cn)
 2. Coding Plan থেকে API key নিন
-3. Dashboard → Add API Key: Provider: `glm`, API Key: `your-key`
+3. Dashboard → API Key যোগ করুন: প্রোভাইডার: `glm`, API Key: `your-key`
 
 **ব্যবহার করুন:** `glm/glm-4.7` — **বিশেষ পরামর্শ:** Coding Plan ১/৭ খরচে ৩× কোটা দেয়! প্রতিদিন সকাল ১০:০০টায় রিসেট হয়।
 
-#### MiniMax M2.1 (৫ ঘণ্টা পর রিসেট, $0.20/1M)
+#### MiniMax M2.1 (৫ ঘণ্টায় রিসেট, $0.20/1M)
 
 1. সাইন আপ করুন: [MiniMax](https://www.minimax.io)
-2. API key নিন → Dashboard → Add API Key
+2. API key নিন → Dashboard → API Key যোগ করুন
 
 **ব্যবহার করুন:** `minimax/MiniMax-M2.1` — **বিশেষ পরামর্শ:** দীর্ঘ কনটেক্সটের জন্য সবচেয়ে সাশ্রয়ী বিকল্প (১M টোকেন)!
 
-#### Kimi K2 (প্রতি মাসে নির্ধারিত $9)
+#### Kimi K2 (নির্দিষ্ট $9/মাস)
 
 1. সাবস্ক্রাইব করুন: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. API key নিন → Dashboard → Add API Key
+2. API key নিন → Dashboard → API Key যোগ করুন
 
-**ব্যবহার করুন:** `kimi/kimi-k2.5` — **বিশেষ পরামর্শ:** ১০M টোকেনের জন্য প্রতি মাসে নির্ধারিত $9 = কার্যকর খরচ $0.90/1M!
+**ব্যবহার করুন:** `kimi/kimi-k2.5` — **বিশেষ পরামর্শ:** ১০M টোকেনের জন্য নির্দিষ্ট $9/মাস = কার্যকর খরচ $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
 1. সাইন আপ করুন: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. একটি Qianfan API key তৈরি করুন → Dashboard → Add API Key: Provider: `qianfan`
+2. একটি Qianfan API key তৈরি করুন → Dashboard → API Key যোগ করুন: প্রোভাইডার: `qianfan`
 
 **ব্যবহার করুন:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, অথবা অন্য কোনো Qianfan OpenAI-সামঞ্জস্যপূর্ণ মডেল ID।
 
 ### 🆓 বিনামূল্যের প্রোভাইডার
 
-যেসব বিনামূল্যের প্রোভাইডারে প্রমাণীকরণ প্রয়োজন হয় না, তাদের প্রোভাইডার পেজে **No authentication required**-এর পাশে একটি সুইচ থাকে। এটি বন্ধ করলে সেই প্রোভাইডার নিষ্ক্রিয় হয়, Providers-এর কনফিগার করা/সংক্ষিপ্ত ভিউ থেকে সরিয়ে দেওয়া হয় এবং `/v1/models` থেকে এর মডেলগুলো সরিয়ে দেওয়া হয়।
+প্রমাণীকরণবিহীন বিনামূল্যের প্রোভাইডারগুলোর নিজস্ব প্রোভাইডার পেজে **No authentication required**-এর পাশে একটি সুইচ থাকে।
+সুইচটি বন্ধ করলে সেই প্রোভাইডার নিষ্ক্রিয় হয়, Providers-এর কনফিগার করা/সংক্ষিপ্ত ভিউ থেকে সরানো হয় এবং
+`/v1/models` থেকে এর মডেলগুলো সরিয়ে দেওয়া হয়।
 
 #### Qoder (৯টি বিনামূল্যের মডেল)
 
 ```bash
-Dashboard → Connect Qoder → OAuth লগইন → অ্যাক্সেস বর্তমান প্রোভাইডার সীমার অধীন
+Dashboard → Qoder সংযুক্ত করুন → OAuth লগইন → অ্যাক্সেস বর্তমান প্রোভাইডার সীমার অধীন
 
 মডেল: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
-#### Kiro (Claude বিনামূল্যে)
+#### Kiro (বিনামূল্যের Claude)
 
 ```bash
-Dashboard → Connect Kiro → AWS Builder ID অথবা Google/GitHub → প্রতি মাসে ~৫০ ক্রেডিট
+Dashboard → Kiro সংযুক্ত করুন → AWS Builder ID অথবা Google/GitHub → প্রতি মাসে ~৫০ ক্রেডিট
 
 মডেল: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```

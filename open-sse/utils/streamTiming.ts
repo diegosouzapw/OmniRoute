@@ -100,6 +100,25 @@ export function requestTtftMs(
     : undefined;
 }
 
+const timingByStream = new WeakMap<object, StreamTiming>();
+
+/** Associate a stream with its timing so callers outside the transform can read it. */
+export function registerStreamTiming<T extends object>(stream: T, timing: StreamTiming): T {
+  timingByStream.set(stream, timing);
+  return stream;
+}
+
+/**
+ * True once the stream forwarded a chunk carrying text, reasoning or a tool call to the
+ * client. A failure after that point cannot be retried on another target. Only the first
+ * MAX_OUTPUT_PROBES forwarded chunks are probed, so a stream whose output starts later reads
+ * false here — the conservative answer (callers keep their pre-output behavior).
+ */
+export function streamEmittedOutput(stream: object | null | undefined): boolean {
+  if (!stream) return false;
+  return (timingByStream.get(stream)?.firstOutputAt ?? null) !== null;
+}
+
 export function createStreamTiming(): StreamTiming {
   const outputDecoder = new TextDecoder();
   let outputProbes = 0;

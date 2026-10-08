@@ -391,18 +391,18 @@ Napište unit testy v `tests/unit/`, které budou pokrývat minimálně:
 
 - [ ] Testy procházejí (`npm test`)
 - [ ] Kontrola lintování prochází (`npm run lint`)
-- [ ] Sestavení je úspěšné (`npm run build`)
+- [ ] Sestavení proběhne úspěšně (`npm run build`)
 - [ ] Pro nové veřejné funkce a rozhraní byly přidány typy TypeScriptu
-- [ ] Žádná natvrdo zadaná tajemství ani záložní hodnoty
-- [ ] Veřejné přihlašovací údaje upstreamu jsou vloženy prostřednictvím `resolvePublicCred()` (viz [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), nikdy jako literály
-- [ ] Chybové odpovědi procházejí přes `buildErrorBody()` / `sanitizeErrorMessage()` — těla odpovědí neobsahují nezpracované výpisy zásobníku (viz [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Příkazy shellu (`exec` / `spawn`) předávají hodnoty za běhu prostřednictvím `env`, nikoli pomocí interpolace řetězců
+- [ ] Žádné pevně zadané tajné údaje ani záložní hodnoty
+- [ ] Veřejné přihlašovací údaje upstreamu jsou vloženy pomocí `resolvePublicCred()` (viz [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), nikdy jako literály
+- [ ] Chybové odpovědi procházejí přes `buildErrorBody()` / `sanitizeErrorMessage()` — v tělech odpovědí nejsou žádné nezpracované výpisy zásobníku (viz [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Shellové příkazy (`exec` / `spawn`) předávají hodnoty za běhu prostřednictvím `env`, nikoli pomocí interpolace řetězců
 - [ ] Všechny vstupy jsou validovány pomocí schémat Zod
 - [ ] Pro změny viditelné uživatelům byl přidán **fragment** přehledu změn do `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` (viz [`changelog.d/README.md`](./changelog.d/README.md)) — neupravujte přímo `CHANGELOG.md`; fragmenty se slučují při vydání a mezi Pull Requesty nikdy nevznikají konflikty
 - [ ] Dokumentace byla aktualizována (pokud je to relevantní)
-- [ ] Nebyla vytvořena žádná nová upozornění CodeQL / Secret-Scanning, případně bylo každé z nich zamítnuto s technickým odůvodněním odkazujícím na příslušný dokument v `docs/security/`
-- [ ] Trasy, které spouštějí podřízené procesy (`/api/mcp/`, `/api/cli-tools/runtime/`), jsou v `src/server/authz/routeGuard.ts` klasifikovány jako `isLocalOnlyPath()` — viz [Pevné pravidlo č. 15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Zprávy commitů neobsahují patičky `Co-Authored-By` — commity musí být uvedeny výhradně pod identitou Git vlastníka repozitáře (Pevné pravidlo č. 16)
+- [ ] Nebyla vytvořena žádná nová upozornění CodeQL / Secret-Scanning, případně byla všechna zamítnuta s technickým odůvodněním odkazujícím na příslušný dokument v `docs/security/`
+- [ ] Trasy, které spouštějí podřízené procesy (`/api/mcp/`, `/api/cli-tools/runtime/`), jsou klasifikovány jako `isLocalOnlyPath()` v `src/server/authz/routeGuard.ts` — viz [Pevné pravidlo č. 15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Zprávy commitů neobsahují patičky AI/botů `Co-authored-by` (Pevné pravidlo č. 16) — lidští spolupracovníci, jejichž práce je znovu použita, jsou uvedeni pomocí standardních patiček `Co-authored-by: Jméno <email>`
 
 ---
 

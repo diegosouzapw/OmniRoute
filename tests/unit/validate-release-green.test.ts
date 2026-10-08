@@ -237,6 +237,26 @@ test("pre-flight wires the test-masking PR-context gate against origin/main (v3.
   );
 });
 
+test("pre-flight reports pricing freshness as drift, not as a hard failure", async () => {
+  const fs = await import("node:fs");
+  const src = fs.readFileSync(
+    new URL("../../scripts/quality/validate-release-green.mjs", import.meta.url),
+    "utf8"
+  );
+  // The gate reads git history (KNOWN_MODEL_PRICING untouched for 90 days), so it turns red
+  // by itself as time passes: a drift entry keeps it visible without blocking a release.
+  assert.match(
+    src,
+    /driftCmd\(\s*"pricing-freshness"[\s\S]*?"check:pricing-freshness"/,
+    "pricing-freshness must run check:pricing-freshness as a drift check"
+  );
+  assert.doesNotMatch(
+    src,
+    /hardCmd\(\s*"pricing-freshness"/,
+    "pricing-freshness must not be a HARD gate"
+  );
+});
+
 test("pre-flight --hermetic scrubs the live-test trigger vars (2026-07-05 false-positive fix)", async () => {
   const fs = await import("node:fs");
   const src = fs.readFileSync(
@@ -548,4 +568,23 @@ test("the --full-ci loop classifies from the curated results, not a hardcoded ki
     /kind:\s*fullCiKindFor\(g\.id,\s*results\)/,
     "--full-ci must classify each ci.yml gate through fullCiKindFor()"
   );
+});
+
+test("extractCiGates: skips steps guarded to pull_request events (no PR range outside a PR)", () => {
+  const yaml = `
+jobs:
+  lint:
+    steps:
+      - run: npm run check:public-creds
+      - name: AI attribution
+        if: github.event_name == 'pull_request'
+        run: |
+          printf '%s' "$PR_BODY" > "$RUNNER_TEMP/pr-body.md"
+          npm run check:ai-attribution -- --range "$PR_BASE_SHA..$PR_HEAD_SHA"
+      - name: still local
+        if: github.event_name != 'pull_request'
+        run: npm run check:db-rules
+`;
+  const ids = extract(yaml).map((g) => g.id);
+  assert.deepEqual(ids, ["check:public-creds", "check:db-rules"]);
 });

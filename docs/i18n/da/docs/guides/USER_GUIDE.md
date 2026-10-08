@@ -120,15 +120,15 @@ Adgang via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ## 📖 Opsætning af udbydere
 
-Hvis du vil massetilføje API-nøgleforbindelser fra en CSV- eller JSON-fil, skal du bruge **Kontrolpanel → Udbydere → Importér fra fil**. Kolonnerne er positionsbestemte (`provider,name,apiKey,baseUrl,priority`); `provider` skal allerede eksistere som en administreret udbyder eller en kompatibel node. Se [Importér udbydere fra en CSV- eller JSON-fil](../providers/CSV-IMPORT.md).
+Hvis du vil massetilføje forbindelser med API-nøgler fra en CSV- eller JSON-fil, skal du bruge **Kontrolpanel → Udbydere → Importér fra fil**. Kolonnerne er positionsbestemte (`provider,name,apiKey,baseUrl,priority`); `provider` skal allerede eksistere som en administreret udbyder eller en kompatibel node. Se [Importér udbydere fra en CSV- eller JSON-fil](../providers/CSV-IMPORT.md).
 
 ### 🔐 Abonnementsudbydere
 
 #### Claude Code (Pro/Max)
 
 ```bash
-Kontrolpanel → Udbydere → Forbind Claude Code
-→ OAuth-login → Automatisk tokenfornyelse
+Kontrolpanel → Udbydere → Tilslut Claude Code
+→ OAuth-login → Automatisk opdatering af token
 → Sporing af 5-timerskvote og ugentlig kvote
 
 Modeller:
@@ -137,14 +137,16 @@ Modeller:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Professionelt tip:** Brug Opus til komplekse opgaver og Sonnet til hastighed. OmniRoute sporer kvoten pr. model!
+**Pro-tip:** Brug Opus til komplekse opgaver og Sonnet, når hastighed er vigtig. OmniRoute sporer kvoten for hver model!
 
-Claude- og Claude Code-kompatible ruter bevarer `max`-niveauet for ræsonneringsindsats for Opus- og Sonnet-modeller. Haiku-modeller accepterer ikke indsatsniveauet `max`, så OmniRoute nedjusterer anmodningen til et højt ræsonneringsbudget, før den sendes videre til den overordnede tjeneste.
+Ingen browser på OmniRoute-værten? Kør `claude setup-token` et hvilket som helst sted, hvor Claude Code er logget ind, og indsæt det etårige token på fanen **Setup Token**. Se [Claude Code med et setup-token](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Ruter, der er kompatible med Claude og Claude Code, bevarer tænkeindsatsen `max` for Opus- og Sonnet-modeller. Haiku-modeller accepterer ikke indsatsniveauet `max`, så OmniRoute nedgraderer denne anmodning til et højt tænkebudget, før den sendes videre til upstream-udbyderen.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-Kontrolpanel → Udbydere → Forbind Codex
+Kontrolpanel → Udbydere → Tilslut Codex
 → OAuth-login (port 1455)
 → Nulstilling hver 5. time og ugentligt
 
@@ -158,7 +160,7 @@ Modeller:
 #### GitHub Copilot
 
 ```bash
-Kontrolpanel → Udbydere → Forbind GitHub
+Kontrolpanel → Udbydere → Tilslut GitHub
 → OAuth via GitHub
 → Månedlig nulstilling (den 1. i måneden)
 
@@ -178,21 +180,21 @@ Modeller:
 2. Hent en API-nøgle fra Coding Plan
 3. Kontrolpanel → Tilføj API-nøgle: Udbyder: `glm`, API-nøgle: `your-key`
 
-**Brug:** `glm/glm-4.7` — **Professionelt tip:** Coding Plan tilbyder 3× kvote til 1/7 af prisen! Nulstilles dagligt kl. 10:00.
+**Brug:** `glm/glm-4.7` — **Pro-tip:** Coding Plan giver 3× kvote til 1/7 af prisen! Nulstilles dagligt kl. 10.00.
 
 #### MiniMax M2.1 (Nulstilling hver 5. time, $0.20/1M)
 
 1. Tilmeld dig: [MiniMax](https://www.minimax.io)
 2. Hent en API-nøgle → Kontrolpanel → Tilføj API-nøgle
 
-**Brug:** `minimax/MiniMax-M2.1` — **Professionelt tip:** Den billigste mulighed til lang kontekst (1M tokens)!
+**Brug:** `minimax/MiniMax-M2.1` — **Pro-tip:** Den billigste mulighed til lang kontekst (1M tokens)!
 
-#### Kimi K2 (Fast pris på $9/måned)
+#### Kimi K2 ($9/måned fast pris)
 
 1. Abonnér: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. Hent en API-nøgle → Kontrolpanel → Tilføj API-nøgle
 
-**Brug:** `kimi/kimi-k2.5` — **Professionelt tip:** Fast pris på $9/måned for 10M tokens = en effektiv pris på $0.90/1M!
+**Brug:** `kimi/kimi-k2.5` — **Pro-tip:** Fast pris på $9/måned for 10M tokens = en effektiv pris på $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
@@ -204,12 +206,13 @@ Modeller:
 ### 🆓 GRATIS udbydere
 
 Gratis udbydere uden godkendelse har en kontakt ud for **Ingen godkendelse påkrævet** på deres udbyderside.
-Hvis den slås fra, deaktiveres udbyderen, den fjernes fra de konfigurerede og kompakte visninger under Udbydere, og dens modeller fjernes fra `/v1/models`.
+Hvis den slås fra, deaktiveres udbyderen, den fjernes fra de konfigurerede og kompakte visninger under Udbydere, og
+dens modeller fjernes fra `/v1/models`.
 
 #### Qoder (9 GRATIS modeller)
 
 ```bash
-Kontrolpanel → Forbind Qoder → OAuth-login → Adgang er underlagt udbyderens aktuelle grænser
+Kontrolpanel → Tilslut Qoder → OAuth-login → Adgangen er underlagt udbyderens aktuelle begrænsninger
 
 Modeller: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
@@ -217,7 +220,7 @@ Modeller: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, i
 #### Kiro (Claude GRATIS)
 
 ```bash
-Kontrolpanel → Forbind Kiro → AWS Builder ID eller Google/GitHub → ~50 kreditter/måned
+Kontrolpanel → Tilslut Kiro → AWS Builder ID eller Google/GitHub → ~50 kreditter/måned
 
 Modeller: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```

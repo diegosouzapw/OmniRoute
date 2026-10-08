@@ -23,11 +23,13 @@
  */
 import { parseSSEToOpenAIResponse, parseSSEToResponsesOutput } from "../handlers/sseParser.ts";
 import {
+  confirmBorrowedToolNames,
   getObservedToolNames,
   noteRefusedBorrowedToolNames,
   recordAcceptedToolNames,
   resolvePlaceholderNames,
 } from "./opencodeToolObservation.ts";
+import { isOpencodeFreeTierRefusal } from "./opencodeGeoBlock.ts";
 import {
   forgetAttempt,
   planShape,
@@ -42,6 +44,7 @@ import {
   fingerprintPlaceholderTool,
   recordRenamedToolNames,
   renamedToolNamesFor,
+  restoreFingerprintToolNames,
   retargetToolChoice,
 } from "../utils/opencodeFingerprint.ts";
 
@@ -426,7 +429,7 @@ export function prepareFreeTierRequest<T>(
       shape: chosen,
       key,
       probe: plan.probe,
-      replayNote: () => noteFreeTierOutcome({ ...attempt, probe: false }, false),
+      replayNote: (verdict) => noteFreeTierOutcome({ ...attempt, probe: false }, verdict),
     });
   }
   const preparedBody =
@@ -445,20 +448,57 @@ export function fingerprintRenamesFor(body: unknown): ReadonlyMap<string, string
   return renamedToolNamesFor(body);
 }
 
+/**
+ * Hand the caller its own tool spellings back after the free-tier quartet was canonicalised
+ * on the way out (e.g. Claude Code's `Bash`), or the client would not recognise the tool_use
+ * name in the response it gets. Takes a bare `Response` or an `{ response }` result; anything
+ * else, and any request whose tools carried no renamed quartet member, passes through with
+ * its identity intact. A free function (not part of `finalizeForcedStream`) so the park/replay
+ * arms, which must not charge the free-tier outcome twice, can restore the names too.
+ */
+export function restoreFingerprintNames<T>(body: unknown, result: T): T {
+  const renameMap = renamedToolNamesFor(body);
+  if (!renameMap) return result;
+  if (result instanceof Response) return restoreFingerprintToolNames(result, renameMap) as T;
+  const response = (result as { response?: unknown } | null)?.response;
+  if (!(response instanceof Response)) return result;
+  const restored = restoreFingerprintToolNames(response, renameMap);
+  return restored === response ? result : ({ ...result, response: restored } as T);
+}
+
 function withStreaming<T>(body: T): T {
   if (!body || typeof body !== "object" || Array.isArray(body)) return body;
   return { ...(body as Record<string, unknown>), stream: true } as T;
 }
 
 /**
+ * What the upstream answered, with enough detail to tell a refusal about the
+ * tools apart from any other failure. A bare boolean keeps the legacy callers
+ * compiling: `true` counts as an acceptance, `false` carries no verdict and is
+ * never counted.
+ */
+export interface FreeTierOutcome {
+  readonly ok: boolean;
+  readonly status: number | null;
+  readonly bodyText: string | null;
+}
+
+/**
  * Feed a gated request's outcome back, so the next one borrows a shape that still works.
  *
  * An accepted request teaches which names the upstream takes right now; a refused one only
- * teaches something when the names it carried came from the store.
+ * teaches something when the names it carried came from the store AND the refusal says
+ * something about the tools (a 403/451 carrying the refusal signals — a 429, a 5xx or a
+ * refusal about something else leaves the store alone).
  */
-export function noteFreeTierOutcome(attempt: FreeTierContractAttempt | null, ok: boolean): void {
+export function noteFreeTierOutcome(
+  attempt: FreeTierContractAttempt | null,
+  outcome: boolean | FreeTierOutcome
+): void {
   if (!attempt) return;
-  if (ok) {
+  const decided: FreeTierOutcome =
+    typeof outcome === "boolean" ? { ok: outcome, status: null, bodyText: null } : outcome;
+  if (decided.ok) {
     if (attempt.clientToolNames.length > 0) {
       recordAcceptedToolNames(
         attempt.provider,
@@ -466,11 +506,15 @@ export function noteFreeTierOutcome(attempt: FreeTierContractAttempt | null, ok:
         attempt.session,
         attempt.clientToolNames
       );
+    } else if (attempt.borrowed && !attempt.probe) {
+      confirmBorrowedToolNames(attempt.provider, attempt.model, attempt.session);
     }
     return;
   }
   if (attempt.probe) return;
-  if (attempt.borrowed) {
+  if (!attempt.borrowed) return;
+  if (decided.status === null) return;
+  if (isOpencodeFreeTierRefusal(decided.status, decided.bodyText)) {
     noteRefusedBorrowedToolNames(attempt.provider, attempt.model, attempt.session);
   }
 }

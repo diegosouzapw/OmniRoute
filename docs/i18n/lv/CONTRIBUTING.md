@@ -391,20 +391,20 @@ Uzrakstiet vienību testus direktorijā `tests/unit/`, kas aptver vismaz:
 
 ## Pull Request kontrolsaraksts
 
-- [ ] Testi ir veiksmīgi (`npm test`)
-- [ ] Lint pārbaude ir veiksmīga (`npm run lint`)
-- [ ] Būvēšana ir veiksmīga (`npm run build`)
-- [ ] Jaunām publiskajām funkcijām un saskarnēm ir pievienoti TypeScript tipi
-- [ ] Nav cietkodētu noslēpumu vai rezerves vērtību
-- [ ] Publiskie augšupējā nodrošinātāja akreditācijas dati ir iegulti, izmantojot `resolvePublicCred()` (skatiet [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), nekad kā literāļi
-- [ ] Kļūdu atbildes tiek novirzītas caur `buildErrorBody()` / `sanitizeErrorMessage()` — atbildes pamattekstā nav neapstrādātu steka izsekojumu (skatiet [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Čaulas komandas (`exec` / `spawn`) izpildlaika vērtības padod, izmantojot `env`, nevis virkņu interpolāciju
-- [ ] Visas ievades tiek validētas ar Zod shēmām
-- [ ] Lietotājiem redzamām izmaiņām ir pievienots izmaiņu žurnāla **fragment** fails `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` (skatiet [`changelog.d/README.md`](./changelog.d/README.md)) — **ne**rediģējiet `CHANGELOG.md` tieši; fragmenti tiek apkopoti laidiena izveides laikā un nekad nerada konfliktus starp PR
-- [ ] Dokumentācija ir atjaunināta (ja piemērojams)
-- [ ] Nav atvērti jauni CodeQL / Secret-Scanning brīdinājumi, vai arī katrs no tiem ir noraidīts ar tehnisku pamatojumu, atsaucoties uz atbilstošo `docs/security/` dokumentu
-- [ ] Maršruti, kas palaiž bērnprocesus (`/api/mcp/`, `/api/cli-tools/runtime/`), failā `src/server/authz/routeGuard.ts` ir klasificēti ar `isLocalOnlyPath()` — skatiet [Stingro noteikumu #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Komitziņojumos nav `Co-Authored-By` papildinājumu — komitiem ir jāparādās tikai repozitorija īpašnieka Git identitātes vārdā (Stingrais noteikums #16)
+- [ ] Testi ir sekmīgi (`npm test`)
+- [ ] Lintēšana ir sekmīga (`npm run lint`)
+- [ ] Būvēšana ir sekmīga (`npm run build`)
+- [ ] Jaunajām publiskajām funkcijām un saskarnēm ir pievienoti TypeScript tipi
+- [ ] Nav nekodētu noslēpumu vai atkāpšanās vērtību
+- [ ] Publiskie augšupstraumes akreditācijas dati ir iegulti, izmantojot `resolvePublicCred()` (skatiet [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), un nekad nav norādīti kā literāļi
+- [ ] Kļūdu atbildes tiek apstrādātas, izmantojot `buildErrorBody()` / `sanitizeErrorMessage()` — atbilžu pamattekstā nav neapstrādātu steka izsekojumu (skatiet [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Čaulas komandas (`exec` / `spawn`) izpildlaika vērtības nodod, izmantojot `env`, nevis virkņu interpolāciju
+- [ ] Visas ievades ir validētas, izmantojot Zod shēmas
+- [ ] Lietotājam redzamajām izmaiņām sadaļā `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` ir pievienots izmaiņu žurnāla **fragments** (skatiet [`changelog.d/README.md`](./changelog.d/README.md)) — **nerediģējiet** `CHANGELOG.md` tieši; fragmenti tiek apkopoti laidiena izveides laikā un nekad nerada konfliktus starp PR
+- [ ] Dokumentācija ir atjaunināta (ja attiecināms)
+- [ ] Nav izveidots neviens jauns CodeQL / Secret-Scanning brīdinājums, vai arī katrs brīdinājums ir noraidīts ar tehnisku pamatojumu, atsaucoties uz attiecīgo `docs/security/` dokumentu
+- [ ] Maršruti, kas palaiž bērnprocesus (`/api/mcp/`, `/api/cli-tools/runtime/`), failā `src/server/authz/routeGuard.ts` ir klasificēti kā `isLocalOnlyPath()` — skatiet [Stingro noteikumu Nr. 15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Izpildes ziņojumos nav AI/robotu `Co-authored-by` nobeiguma rindu (Stingrais noteikums Nr. 16) — cilvēki, kuru darbs tiek atkārtoti izmantots, tiek norādīti ar standarta `Co-authored-by: Name <email>` nobeiguma rindām
 
 ---
 

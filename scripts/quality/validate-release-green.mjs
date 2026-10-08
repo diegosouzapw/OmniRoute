@@ -17,6 +17,7 @@
 //     a real defect; exit 1.
 //   • DRIFT checks (eslint WARNINGS, cognitive-complexity, file-size, cyclomatic
 //     complexity, dead-code, type-coverage, compression-budget, openapi-coverage,
+//     pricing-freshness,
 //     workflow-lint/zizmor, codeql-ratchet) → ratchet drift accrued across the
 //     cycle is NOT a contributor's fault; it is reported and rebaselined by the
 //     maintainer at release. Drift NEVER changes the exit code, so wiring this as
@@ -359,6 +360,11 @@ export function extractCiGates(
     const steps = doc?.jobs?.[job]?.steps;
     if (!Array.isArray(steps)) continue;
     for (const step of steps) {
+      // A step guarded to pull_request events reads the PR's base/head/title/body, which a
+      // scheduled or push validation does not have (check:ai-attribution ran `git log ".."`).
+      if (typeof step?.if === "string" && /event_name\s*==\s*['"]pull_request['"]/.test(step.if)) {
+        continue;
+      }
       const runStr = typeof step?.run === "string" ? step.run : "";
       if (!runStr) continue;
       for (const rawLine of runStr.split("\n")) {
@@ -689,6 +695,15 @@ async function main() {
     "run",
     "check:codeql-ratchet",
   ]);
+  // Pricing data untouched for 90 days: a clock, not a regression, so it can't belong to a
+  // PR gate (it would red every PR at once). Reported here, refreshed at release.
+  await driftCmd(
+    "pricing-freshness",
+    "Pricing freshness (90 days)",
+    npmCmd,
+    ["run", "check:pricing-freshness"],
+    "touched within 90 days"
+  );
 
   // Docs sync + fabricated-docs (strict) is a real-defect gate (invented env vars /
   // routes, i18n mirror drift) — HARD.
@@ -698,9 +713,10 @@ async function main() {
   ]);
 
   if (!QUICK) {
-    // These are the gates that catch inherited base-red tests from cycle PRs (the fast-path
-    // PR→release does NOT run unit/vitest/integration per-PR — the v3.8.42 release PR exploded
-    // with 15 such reds). They run SILENTLY for many minutes; the announce line above + these
+    // These are the gates that catch inherited base-red tests from cycle PRs (the v3.8.42
+    // release PR exploded with 15 such reds). Non-draft code PRs into release/** run the unit
+    // suite and test:vitest per PR (quality.yml fast-unit, fast-vitest); only integration is
+    // absent. These gates run SILENTLY for many minutes; the announce line above + these
     // hard ceilings keep a long-but-healthy run from being mistaken for a hang (the ceiling also
     // converts a genuine DB-handle hang into a visible failure instead of an infinite block).
     // The slow suites are INDEPENDENT processes (each self-isolates DATA_DIR) with

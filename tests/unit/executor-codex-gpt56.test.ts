@@ -87,7 +87,11 @@ test("CodexExecutor.transformRequest accepts parenthesized GPT-5.6 effort overri
   const cases = [
     { model: "gpt-5.6-sol(ultra)", expectedModel: "gpt-5.6-sol", expectedEffort: "max" },
     { model: "gpt-5.6-terra(max)", expectedModel: "gpt-5.6-terra", expectedEffort: "max" },
-    { model: "gpt-5.6-luna(ultra)", expectedModel: "gpt-5.6-luna", expectedEffort: "max" },
+    // contract changed by #15710: a parenthesized `(ultra)` now honors the ultra alias
+    // set like the hyphen form, and Luna is max-tier only, so `gpt-5.6-luna(ultra)` is no
+    // longer an alias (exactly like `gpt-5.6-luna-ultra`). Luna's parenthesized override
+    // is `(max)`.
+    { model: "gpt-5.6-luna(max)", expectedModel: "gpt-5.6-luna", expectedEffort: "max" },
   ];
 
   for (const { model, expectedModel, expectedEffort } of cases) {

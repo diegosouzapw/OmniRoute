@@ -10,7 +10,7 @@
  * @module lib/idempotencyLayer
  */
 
-import { getSettings } from "@/lib/db/settings";
+import { getCachedSettings } from "@/lib/db/readCache";
 
 const DEFAULT_WINDOW_MS = 5000;
 
@@ -79,21 +79,39 @@ export function saveIdempotency(key, response, status, windowMs = DEFAULT_WINDOW
 }
 
 /**
- * Get current idempotency store stats.
+ * Resolve the dedup window from the `idempotencyWindowMs` setting (Settings → Cache),
+ * falling back to the 5s default when it is unset, invalid, or settings are unavailable.
+ * The read is cached, so it is cheap enough to call on every save.
  */
-export async function getIdempotencyStats() {
-  let windowMs = DEFAULT_WINDOW_MS;
+export async function getIdempotencyWindowMs() {
   try {
-    const settings = await getSettings();
-    if (typeof settings.idempotencyWindowMs === "number" && settings.idempotencyWindowMs > 0) {
-      windowMs = settings.idempotencyWindowMs;
+    const settings = await getCachedSettings();
+    const configured = settings.idempotencyWindowMs;
+    if (typeof configured === "number" && Number.isFinite(configured) && configured > 0) {
+      return configured;
     }
   } catch {
     // Fallback to default if settings unavailable
   }
+  return DEFAULT_WINDOW_MS;
+}
+
+/**
+ * Save a response for idempotency dedup using the configured window
+ * (Settings → Cache → idempotencyWindowMs). The settings read only happens when there is a key.
+ */
+export async function saveIdempotencyWithConfiguredWindow(key, response, status) {
+  if (!key) return;
+  saveIdempotency(key, response, status, await getIdempotencyWindowMs());
+}
+
+/**
+ * Get current idempotency store stats.
+ */
+export async function getIdempotencyStats() {
   return {
     activeKeys: idempotencyStore.size,
-    windowMs,
+    windowMs: await getIdempotencyWindowMs(),
   };
 }
 

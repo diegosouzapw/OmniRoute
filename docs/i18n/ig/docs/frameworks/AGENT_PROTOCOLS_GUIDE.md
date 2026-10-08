@@ -67,33 +67,37 @@ Ha atọ anaghị adabere n’otu ibe ha — họrọ ngwakọta ọ bụla.
 
 Lee [A2A-SERVER.md](./A2A-SERVER.md) maka nkọwa ụzọ mbufe, nhazi kaadị onye nnọchi anya, nhazi TTL nke ọrụ, na template maka ịgbakwunye nkà ọhụrụ.
 
-## 2. ACP — Ndekọ Ndị Ejenị CLI
+## 2. ACP — Ndebanye Aha Ndị Nnọchi Anya CLI
 
 **Ebe njedebe OmniRoute:** `GET /api/acp/agents`
 **Isi mmalite:** `src/lib/acp/{index,manager,registry}.ts`
 
 ### Ihe ọ bụ
 
-ACP bụ **ndepụta ndị ejenị CLI dị na kọmputa mpaghara nke OmniRoute**. Ọ na-achọpụta CLI ndị e ji ede koodu arụnyere na kọmputa nnabata (Cursor, Cline, Claude Code, Codex CLI, Continue, wdg.), chọpụta ụdị mbipụta ha, ma gosi ha na dashboard ka onye ọrụ nwee ike ịhazi CLI ọ bụla ka ọ na-arụtụ aka na OmniRoute.
+ACP bụ **ndepụta ndị nnọchi anya CLI dị na mpaghara** nke OmniRoute. Ọ na-achọpụta CLI ide koodu ndị arụnyere na kọmputa nnabata (Cursor, Cline, Claude Code, Codex CLI, Continue, wdg.), na-achọpụta ụdị ha, ma na-egosi ha na dashboard ka onye ọrụ nwee ike ịhazi CLI ọ bụla ka ọ na-arụtụ aka na OmniRoute.
 
-Nke a ABỤGHỊ protocol mpụga — ọ bụ ndekọ ime nke na-akwado UI "CLI Tools" na nsuso fingerprint CLI (lee [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+Akụkụ HTTP bụ ndepụta dị n'ime nke na-akwado UI "CLI Tools" na
+nsochi akara njirimara CLI (lee [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). N'akụkụ ọzọ,
+onye njikwa usoro dị n'ime na-akwado Agent Client Protocol nke mbụ maka
+onye mbido Gemini edebanyere aha yana legacy stdio adapters maka nkwekọrịta ndị ọzọ.
+Lee [ndebanye aha ACP na ndị mbido](./ACP.md) maka ọnọdụ na oke ndị ahụ dị iche iche.
 
 ### Ihe ọ na-eme
 
-- Na-enyocha kọmputa nnabata maka binary CLI arụnyere (na-eji `which` / `where` dabere na OS)
-- Na-agụ ụdị mbipụta CLI ọ bụla (na-akpọ `<bin> --version`)
-- Ọ bụrụ na achọrọ, ọ na-anabata ndị ejenị omenala onye ọrụ kọwara (ụzọ binary + nyocha ụdị mbipụta + args mmalite)
-- Na-echekwa ndị ejenị omenala na ntọala
-- Na-eweghachi ndepụta ejikọtara ọnụ na dashboard
+- Na-enyocha kọmputa nnabata maka CLI binaries arụnyere (na-eji `which` / `where` dịka OS si dị)
+- Na-agụ ụdị CLI ọ bụla (na-akpọ `<bin> --version`)
+- Ọ nwere ike ịnabata ndị nnọchi anya omenala onye ọrụ kọwara (ụzọ binary + nyocha ụdị + spawn args)
+- Na-echekwa ndị nnọchi anya omenala na ntọala
+- Na-eweghachi ndepụta jikọtara ọnụ na dashboard
 
 ### REST API
 
-| Ebe njedebe       | Usoro | Nkọwa                                                            | Nkwenye njirimara |
-| ----------------- | ----- | ---------------------------------------------------------------- | ----------------- |
-| `/api/acp/agents` | GET   | Depụta ndị ejenị achọpụtara + omenala (ọnụọgụ arụnyere/ngụkọta)  | Igodo API         |
-| `/api/acp/agents` | POST  | Tinye/melite/wepụ ejenị omenala (ihe na-ekewa action dị na body) | Igodo API         |
+| Ebe njedebe       | Usoro | Nkọwa                                                                      | Nkwenye   |
+| ----------------- | ----- | -------------------------------------------------------------------------- | --------- |
+| `/api/acp/agents` | GET   | Depụta ndị nnọchi anya achọpụtara + nke omenala (ọnụọgụ arụnyere/ngụkọta)  | Igodo API |
+| `/api/acp/agents` | POST  | Tinye/melite/wepụ onye nnọchi anya omenala (ihe na-ekewa omume dị na body) | Igodo API |
 
-Ọdịdị body maka POST (`customAgentBodySchema` dị na `src/app/api/acp/agents/route.ts`):
+Ụdị body maka POST (`customAgentBodySchema` dị na `src/app/api/acp/agents/route.ts`):
 
 ```json
 {
@@ -108,15 +112,18 @@ Nke a ABỤGHỊ protocol mpụga — ọ bụ ndekọ ime nke na-akwado UI "CLI
 }
 ```
 
-### Ebe eji ya eme ihe
+### Ojiji ndị a na-ahụkarị
 
-- Ibe "CLI Tools" nke dashboard na-edepụta ihe arụnyere ma nyere gị aka ime ka nke ọ bụla rụtụ aka na OmniRoute
-- Ndị ejenị omenala na-enye ndị ọrụ nwere nkà dị elu ohere idebanye CLI ime/nke nwere ikike pụrụ iche nke OmniRoute na-amaghị na ndabara
-- Nsonaazụ nchọpụta na-enye matrix fingerprint `cli-tools` data
+- Ibe "CLI Tools" nke dashboard na-edepụta ihe ndị arụnyere ma na-enyere gị aka ime ka nke ọ bụla rụtụ aka na OmniRoute
+- Ndị nnọchi anya omenala na-enye ndị ọrụ nwere nkà dị elu ohere idebanye CLI dị n'ime/nke nzuzo nke OmniRoute na-amaghị na ndabara
+- Nsonaazụ nchọpụta na-enye matrix akara njirimara `cli-tools` data
 
-### Mgbe ị na-EKWESỊGHỊ iji ACP
+### Mgbe a na-ekwesịghị iji ACP
 
-- ACP anaghị _arụ_ ọrụ. Naanị ihe ọ na-eme bụ ịchọpụta + ịhazi CLI. Iji kpọọ CLI n'ezie, gị onwe gị ga-eji env vars OmniRoute nyere malite ya (`OPENAI_BASE_URL`, `OPENAI_API_KEY`, wdg.).
+- Ndebanye aha HTTP anaghị anabata ọrụ ma ọ bụ kpughee mmalite usoro. Onye njikwa
+  dị n'ime nwere ike ịmalite CLI edebanyere aha, mana ejikọghị ya dịka provider
+  fallback akpaka. Maka ojiji mmekọrịta nkịtị, malite CLI ahaziri n'onwe gị ma ọ bụ
+  jiri `omniroute run`.
 
 ## 3. Ndị Ejenị Cloud
 

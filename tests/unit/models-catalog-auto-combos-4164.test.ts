@@ -20,6 +20,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "catalog-auto-test-secret";
 
 const core = await import("../../src/lib/db/core.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
 const builtinCatalog = await import("../../open-sse/services/autoCombo/builtinCatalog.ts");
 
@@ -27,6 +29,21 @@ function resetStorage() {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+}
+
+// Auto combos with zero candidates are no longer advertised — these tests must
+// seed providers so the materialized pools are non-empty.
+async function seedProviders() {
+  await settingsDb.updateSettings({ requireLogin: false });
+  for (const provider of ["openai", "anthropic", "gemini", "groq", "deepseek", "mistral"]) {
+    await providersDb.createProviderConnection({
+      provider,
+      authType: "apikey",
+      apiKey: `sk-test-4164-${provider}`,
+      name: `test-4164-${provider}`,
+      isActive: true,
+    });
+  }
 }
 
 test.beforeEach(() => {
@@ -38,7 +55,8 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
-test("#4164 /v1/models advertises every built-in auto/* combo", async () => {
+test("#4164 /v1/models advertises exactly the built-in auto/* combos with candidates", async () => {
+  await seedProviders();
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
   );
@@ -49,8 +67,18 @@ test("#4164 /v1/models advertises every built-in auto/* combo", async () => {
   const expected = Object.keys(builtinCatalog.AUTO_TEMPLATE_VARIANTS);
   assert.ok(expected.length > 0, "sanity: there are built-in auto/* variants");
 
+  // New contract: an auto id is advertised iff its materialized pool is
+  // non-empty — ids with zero candidates must be absent.
   for (const autoId of expected) {
-    assert.ok(ids.has(autoId), `expected /v1/models to advertise ${autoId}`);
+    const virtual = await builtinCatalog.createBuiltinAutoCombo(
+      autoId,
+      autoId.slice("auto/".length)
+    );
+    assert.equal(
+      ids.has(autoId),
+      virtual.models.length > 0,
+      `${autoId} must be advertised iff it has candidates (pool=${virtual.models.length})`
+    );
   }
 
   // Spot-check a couple of well-known ones and their owner tag.
@@ -60,14 +88,17 @@ test("#4164 /v1/models advertises every built-in auto/* combo", async () => {
 });
 
 test("#4164 auto/* combos appear at the top of the list", async () => {
+  await seedProviders();
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
   );
   const body = (await response.json()) as { data: Array<{ id: string }> };
-  const expected = Object.keys(builtinCatalog.AUTO_TEMPLATE_VARIANTS);
 
-  // The first N entries (N = number of auto/* variants) should all be auto/*.
-  const head = body.data.slice(0, expected.length).map((m) => m.id);
+  // The advertised auto/* block stays at the top: the first N entries (N =
+  // number of emitted auto/* ids) should all be auto/*.
+  const autoCount = body.data.filter((m) => m.id.startsWith("auto/")).length;
+  assert.ok(autoCount > 0, "sanity: seeded pool should yield auto/* entries");
+  const head = body.data.slice(0, autoCount).map((m) => m.id);
   for (const id of head) {
     assert.match(id, /^auto\//, `top-of-list entry ${id} should be an auto/* combo`);
   }
@@ -76,6 +107,7 @@ test("#4164 auto/* combos appear at the top of the list", async () => {
 test("#4164 no duplicate auto/* ids even if a persisted combo shadows one", async () => {
   // Defensive: even if a DB combo were named like an auto/* id, the listing must
   // not emit the id twice.
+  await seedProviders();
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
   );
@@ -89,6 +121,7 @@ test("#4189 every auto/* entry exposes token limits + baseline capabilities", as
   // the combo's advertised context/output limits + baseline capabilities so
   // OpenAI-compatible clients that build their picker from /v1/models get a context
   // window before the first request. Without the fix these fields are absent.
+  await seedProviders();
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
   );

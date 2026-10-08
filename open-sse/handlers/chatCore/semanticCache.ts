@@ -6,12 +6,26 @@ import {
   outputContractOf,
 } from "@/lib/semanticCache";
 import { calculateCost } from "@/lib/usage/costCalculator";
+import { getUserDatabaseSettings } from "@/lib/db/databaseSettings";
 import { finalizePendingScope, type PendingRequestScope } from "@/lib/usage/pendingRequestScope";
 import { synthesizeOpenAiSseFromJson } from "../../utils/jsonToSse.ts";
 import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import { extractUsageFromResponse } from "../usageExtractor.ts";
 import { OMNIROUTE_RESPONSE_HEADERS } from "@/shared/constants/headers";
 import { getSemanticCacheManager } from "../../services/cache/semanticCacheManager.ts";
+
+export function isSemanticCacheEnabled(
+  settings: Record<string, unknown>,
+  apiKeyInfo?: { cacheDefaultMode?: unknown } | null
+): boolean {
+  // Use the same decision for lookup and both response-store paths. The database
+  // toggle lives outside the general settings namespace.
+  return (
+    apiKeyInfo?.cacheDefaultMode !== "bypass" &&
+    settings.semanticCacheEnabled !== false &&
+    getUserDatabaseSettings().cache.semanticCacheEnabled !== false
+  );
+}
 
 export async function checkSemanticCache({
   semanticCacheEnabled,

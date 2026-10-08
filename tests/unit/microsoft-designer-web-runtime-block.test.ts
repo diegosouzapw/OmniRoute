@@ -63,6 +63,16 @@ test("creating a retired Microsoft Designer connection reports its persisted tom
   assert.equal(reactivated?.testStatus, "unavailable");
   assert.equal(reactivated?.lastErrorType, "provider_retired");
 
+  // Re-importing the SAME name with a DIFFERENT credential used to upsert onto the
+  // original row (#15159 / B-01), and the assertion below pinned that. It encoded a
+  // data-loss bug: `name` is a user-editable label, so matching on it returned the
+  // wrong account's row and overwrote its stored credential. That is now a second
+  // row.
+  //
+  // The property this test actually protects is unaffected and is asserted more
+  // strongly: the retirement tombstone is enforced by DB triggers on INSERT *and*
+  // UPDATE, so rotating the credential cannot slip a retired provider back into an
+  // active state.
   const upserted = await providersDb.createProviderConnection({
     provider: "msdesigner",
     authType: "cookie",
@@ -71,8 +81,8 @@ test("creating a retired Microsoft Designer connection reports its persisted tom
     testStatus: "active",
     providerSpecificData: { accessToken: "replacement-token" },
   });
-  assert.equal(upserted?.id, connection.id);
-  assert.equal(upserted?.isActive, false);
+  assert.notEqual(upserted?.id, connection.id, "a different credential is a different connection");
+  assert.equal(upserted?.isActive, false, "a fresh row must still be tombstoned on INSERT");
   assert.equal(upserted?.testStatus, "unavailable");
 
   const control = await providersDb.createProviderConnection({

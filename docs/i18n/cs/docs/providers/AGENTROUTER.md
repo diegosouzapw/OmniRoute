@@ -128,7 +128,7 @@ následující údaje (viz `open-sse/services/claudeCodeCompatible.ts`):
 | Hlavička                                                     | Hodnota                                                                                                            |
 | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
 | `Authorization`                                              | `Bearer <api-key>`                                                                                                 |
-| `User-Agent`                                                 | `claude-cli/2.1.258 (external, sdk-cli)`                                                                           |
+| `User-Agent`                                                 | `claude-cli/2.1.280 (external, sdk-cli)`                                                                           |
 | `anthropic-version`                                          | `2023-06-01`                                                                                                       |
 | `anthropic-beta`                                             | `claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24`                                           |
 | Přepínač beta verze redact-thinking pro jednotlivá připojení | Přidá `redact-thinking-2026-02-12` pro upstreamy, které výslovně vyžadují streamy s redigovaným uvažováním         |

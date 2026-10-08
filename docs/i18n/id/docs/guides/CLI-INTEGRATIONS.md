@@ -4,11 +4,33 @@
 
 ---
 
-OmniRoute menyediakan serangkaian perintah `setup-*` yang mengonfigurasi CLI pengkodean (Codex, Claude Code, OpenCode, Cline, …) untuk menggunakan OmniRoute sebagai backend-nya — sehingga alat tersebut berbicara ke **satu** endpoint dan OmniRoute merutekan ke penyedia yang tepat dengan fallback otomatis. Setiap perintah membaca katalog model yang **aktif** dari OmniRoute yang sedang berjalan (lokal atau jarak jauh) dan menulis file konfigurasi alat tersebut di mesin **Anda**. Kunci API direferensikan oleh variabel lingkungan di mana pun alat tersebut mendukungnya. Perintah yang menyimpan file lingkungan lokal alat dicatat di bawah ini.
+Untuk manifes executable bersama, environment child yang dibatasi, dan penyiapan
+Gemini persisten, lihat [kontrak peluncuran CLI](./CLI-LAUNCH-CONTRACTS.md).
 
-Ada juga peluncur generik — `omniroute run <target>` — yang memunculkan `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` atau `gemini` dengan env yang tepat disuntikkan, tanpa menulis konfigurasi sama sekali. Target dan aliasnya berasal dari manifes kanonis `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), dan `omniroute completion` menawarkan kata-kata target yang sama yang berasal dari manifes. Peluncur lama per alat — `omniroute launch` (Claude Code) dan `omniroute launch-codex` (Codex) — tetap tersedia.
+OmniRoute menyediakan serangkaian perintah `setup-*` yang mengonfigurasi CLI
+pemrograman (Codex, Claude Code, OpenCode, Cline, …) agar menggunakan OmniRoute
+sebagai backend-nya — sehingga alat tersebut berkomunikasi dengan **satu**
+endpoint dan OmniRoute merutekannya ke provider yang tepat dengan fallback
+otomatis. Setiap perintah membaca katalog model **aktif** dari OmniRoute yang
+sedang berjalan (lokal atau jarak jauh) dan menulis file konfigurasi milik alat
+tersebut di mesin **Anda**. API key direferensikan melalui environment variable
+jika alat tersebut mendukungnya. Perintah yang menyimpan file environment lokal
+untuk alat tersebut dicatat di bawah ini.
 
-Orientasi penyedia tersedia dari konteks lokal/jarak jauh yang sama. Perintah API-first di bawah ini menjaga otentikasi manajemen terpisah dari kredensial penyedia dan tidak pernah mencetak kredensial dalam output terstruktur:
+Tersedia juga launcher generik — `omniroute run <target>` — yang menjalankan
+`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen`, atau `gemini` dengan
+environment yang sesuai, tanpa menulis konfigurasi apa pun. Target dan aliasnya
+berasal dari manifes kanonis `bin/cli/cli-manifest.mjs`
+(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
+`open-code`, `qwen-code`, `gemini-cli`), dan `omniroute completion` menawarkan
+kata target yang sama, yang diturunkan dari manifes. Launcher lama per alat —
+`omniroute launch` (Claude Code) dan `omniroute launch-codex` (Codex) — tetap
+tersedia.
+
+Onboarding provider tersedia dari konteks lokal/jarak jauh yang sama.
+Perintah yang mengutamakan API di bawah ini memisahkan autentikasi manajemen
+dari kredensial provider dan tidak pernah mencetak kredensial dalam output
+terstruktur:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -18,16 +40,28 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Untuk skrip, lebih disukai `--credential-stdin` atau `--credential-env`; `--credential` dipertahankan untuk penggunaan lokal yang terkontrol. `providers remove` memerlukan `--yes` pada terminal non-interaktif, dan kelima perintah tersebut menghormati konteks aktif atau opsi global `--base-url`/`--api-key`.
+Untuk skrip, utamakan `--credential-stdin` atau `--credential-env`;
+`--credential` tetap tersedia untuk penggunaan lokal yang terkontrol.
+`providers remove` memerlukan `--yes` pada terminal noninteraktif, dan kelima
+perintah tersebut mematuhi konteks aktif atau opsi global
+`--base-url`/`--api-key`.
 
-Pemilih penyedia menolak awalan ID, nama, atau nama penyedia yang ambigu; gunakan ID koneksi lengkap ketika beberapa koneksi cocok. Perintah buat dan edit membaca kembali koneksi yang disimpan, dan penghapusan memverifikasi bahwa koneksi tersebut tidak lagi dapat dibaca. Impor akan melewati pasangan penyedia/nama yang sudah ada. Entri yang diimpor tidak dapat menimpa endpoint manajemen, konteks, atau kredensial manajemen yang diberikan ke CLI.
+Pemilih provider menolak prefiks ID, nama, atau nama provider yang ambigu;
+gunakan ID koneksi lengkap jika beberapa koneksi cocok. Perintah pembuatan dan
+pengeditan membaca kembali koneksi yang disimpan, sedangkan penghapusan
+memverifikasi bahwa koneksi tersebut tidak lagi dapat dibaca. Proses impor
+melewati pasangan provider/nama yang sudah ada. Entri yang diimpor tidak dapat
+menimpa endpoint manajemen, konteks, atau kredensial manajemen yang diberikan
+kepada CLI.
 
-Untuk pengaturan dasar satu kali yang ditulis tangan dari dua integrasi terkaya, lihat pembahasan mendalam per alat:
+Untuk penyiapan dasar manual satu kali bagi dua integrasi terlengkap, lihat
+pembahasan mendalam per alat:
 
 - [Konfigurasi Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
 - [Konfigurasi Codex CLI](./CODEX-CLI-CONFIGURATION.md)
-- [Mode Jarak Jauh](./REMOTE-MODE.md) — mengoperasikan OmniRoute jarak jauh (VPS / Tailnet) dari laptop Anda
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — ekstensi OmniCopilot; ini juga dapat menjalankan perintah `setup-*` ini untuk Anda dari dalam editor
+- [Mode Jarak Jauh](./REMOTE-MODE.md) — kendalikan OmniRoute jarak jauh (VPS / Tailnet) dari laptop Anda
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — ekstensi OmniCopilot; ekstensi ini juga dapat menjalankan
+  perintah `setup-*` tersebut untuk Anda dari dalam editor
 
 ---
 

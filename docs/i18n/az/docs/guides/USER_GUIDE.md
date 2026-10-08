@@ -118,17 +118,17 @@ Giriş vasitələri: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ---
 
-## 📖 Provayderlərin quraşdırılması
+## 📖 Provayderin quraşdırılması
 
-CSV və ya JSON faylından API açarı bağlantılarını toplu şəkildə əlavə etmək üçün **İdarəetmə paneli → Provayderlər → Fayldan idxal et** seçimindən istifadə edin. Sütunlar mövqeyə əsaslanır (`provider,name,apiKey,baseUrl,priority`); `provider` artıq idarə olunan provayder və ya uyğun qovşaq kimi mövcud olmalıdır. Baxın: [Provayderləri CSV və ya JSON faylından idxal etmək](../providers/CSV-IMPORT.md).
+CSV və ya JSON faylından API açarı bağlantılarını toplu şəkildə əlavə etmək üçün **İdarəetmə paneli → Provayderlər → Fayldan idxal et** yolundan istifadə edin. Sütunların sırası sabitdir (`provider,name,apiKey,baseUrl,priority`); `provider` artıq idarə olunan provayder və ya uyğun bir qovşaq kimi mövcud olmalıdır. Baxın: [Provayderləri CSV və ya JSON faylından idxal etmək](../providers/CSV-IMPORT.md).
 
 ### 🔐 Abunəlik provayderləri
 
 #### Claude Code (Pro/Max)
 
 ```bash
-İdarəetmə paneli → Provayderlər → Claude Code-u qoş
-→ OAuth ilə daxil olun → Tokenin avtomatik yenilənməsi
+İdarəetmə paneli → Provayderlər → Claude Code-a qoşul
+→ OAuth ilə daxil olma → Tokenin avtomatik yenilənməsi
 → 5 saatlıq + həftəlik kvotanın izlənməsi
 
 Modellər:
@@ -137,15 +137,17 @@ Modellər:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Peşəkar məsləhət:** Mürəkkəb tapşırıqlar üçün Opus, sürət üçün Sonnet istifadə edin. OmniRoute hər model üzrə kvotanı izləyir!
+**Peşəkar məsləhət:** Mürəkkəb tapşırıqlar üçün Opus, sürət üçün Sonnet istifadə edin. OmniRoute kvotanı hər model üzrə izləyir!
 
-Claude və Claude Code ilə uyğun marşrutlar Opus və Sonnet modelləri üçün `max` düşünmə səyini qoruyur. Haiku modelləri `max` səy səviyyəsini qəbul etmir, buna görə də OmniRoute sorğunu yuxarı axına göndərməzdən əvvəl onu yüksək düşünmə büdcəsinə endirir.
+OmniRoute hostunda brauzer yoxdur? Claude Code-a daxil olduğunuz istənilən yerdə `claude setup-token` əmrini icra edin və birillik tokeni **Quraşdırma tokeni** tabına yapışdırın. Baxın: [Claude Code-dan quraşdırma tokeni ilə istifadə](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Claude və Claude Code ilə uyğun marşrutlar Opus və Sonnet modelləri üçün `max` düşünmə səyini qoruyur. Haiku modelləri `max` səy səviyyəsini qəbul etmir, buna görə də OmniRoute həmin sorğunu yuxarı axına göndərməzdən əvvəl onu yüksək düşünmə büdcəsi səviyyəsinə endirir.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-İdarəetmə paneli → Provayderlər → Codex-i qoş
-→ OAuth ilə daxil olun (port 1455)
+İdarəetmə paneli → Provayderlər → Codex-ə qoşul
+→ OAuth ilə daxil olma (port 1455)
 → 5 saatlıq + həftəlik sıfırlanma
 
 Modellər:
@@ -158,7 +160,7 @@ Modellər:
 #### GitHub Copilot
 
 ```bash
-İdarəetmə paneli → Provayderlər → GitHub-ı qoş
+İdarəetmə paneli → Provayderlər → GitHub-a qoşul
 → GitHub vasitəsilə OAuth
 → Aylıq sıfırlanma (ayın 1-i)
 
@@ -175,24 +177,24 @@ Modellər:
 #### GLM-4.7 (Gündəlik sıfırlanma, $0.6/1M)
 
 1. Qeydiyyatdan keçin: [Zhipu AI](https://open.bigmodel.cn)
-2. Coding Plan-dan API açarını əldə edin
+2. Coding Plan-dan API açarı əldə edin
 3. İdarəetmə paneli → API açarı əlavə et: Provayder: `glm`, API açarı: `your-key`
 
-**İstifadə:** `glm/glm-4.7` — **Peşəkar məsləhət:** Coding Plan dəyərin 1/7-si müqabilində 3× kvota təklif edir! Hər gün saat 10:00-da sıfırlanır.
+**İstifadə:** `glm/glm-4.7` — **Peşəkar məsləhət:** Coding Plan xərcin 1/7-si müqabilində 3× kvota təklif edir! Hər gün saat 10:00-da sıfırlanır.
 
 #### MiniMax M2.1 (5 saatlıq sıfırlanma, $0.20/1M)
 
 1. Qeydiyyatdan keçin: [MiniMax](https://www.minimax.io)
-2. API açarını əldə edin → İdarəetmə paneli → API açarı əlavə et
+2. API açarı əldə edin → İdarəetmə paneli → API açarı əlavə et
 
 **İstifadə:** `minimax/MiniMax-M2.1` — **Peşəkar məsləhət:** Uzun kontekst (1M token) üçün ən ucuz seçimdir!
 
-#### Kimi K2 (sabit $9/ay)
+#### Kimi K2 (aylıq sabit $9)
 
 1. Abunə olun: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. API açarını əldə edin → İdarəetmə paneli → API açarı əlavə et
+2. API açarı əldə edin → İdarəetmə paneli → API açarı əlavə et
 
-**İstifadə:** `kimi/kimi-k2.5` — **Peşəkar məsləhət:** 10M token üçün sabit $9/ay = effektiv xərc $0.90/1M!
+**İstifadə:** `kimi/kimi-k2.5` — **Peşəkar məsləhət:** 10M token üçün aylıq sabit $9 = effektiv xərc $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
@@ -203,13 +205,14 @@ Modellər:
 
 ### 🆓 PULSUZ provayderlər
 
-Autentifikasiya tələb etməyən pulsuz provayderlərin provayder səhifəsində **Autentifikasiya tələb olunmur** seçiminin yanında keçid var.
-Onu söndürmək həmin provayderi deaktiv edir, Provayderlərin konfiqurasiya edilmiş/yığcam görünüşlərindən çıxarır və modellərini `/v1/models` siyahısından silir.
+Autentifikasiya tələb etməyən pulsuz provayderlərin öz səhifəsində **Autentifikasiya tələb olunmur** seçiminin yanında keçid düyməsi var.
+Onu söndürmək həmin provayderi deaktiv edir, Provayderlərin konfiqurasiya edilmiş/yığcam görünüşlərindən çıxarır və
+modellərini `/v1/models` siyahısından silir.
 
 #### Qoder (9 PULSUZ model)
 
 ```bash
-İdarəetmə paneli → Qoder-i qoş → OAuth ilə daxil olun → Giriş cari provayder limitlərinə tabedir
+İdarəetmə paneli → Qoder-ə qoşul → OAuth ilə daxil olma → Giriş cari provayder limitlərinə tabedir
 
 Modellər: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
@@ -217,7 +220,7 @@ Modellər: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, 
 #### Kiro (Claude PULSUZ)
 
 ```bash
-İdarəetmə paneli → Kiro-nu qoş → AWS Builder ID və ya Google/GitHub → ayda təxminən 50 kredit
+İdarəetmə paneli → Kiro-ya qoşul → AWS Builder ID və ya Google/GitHub → ayda təxminən 50 kredit
 
 Modellər: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```

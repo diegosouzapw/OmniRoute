@@ -2,7 +2,7 @@
 // group) are gated behind Debug Mode, but nothing in the UI says so, and Settings →
 // Sidebar applies the exact same debug filter — so with debug off there is no toggle for
 // Playground at all and no explanation. This test exercises the SAME filter predicate
-// both Sidebar.tsx (:277) and SidebarTab.tsx (:470) apply to `SIDEBAR_SECTIONS`, using the
+// both Sidebar.tsx (:277) and SidebarTab.tsx (:473) apply to `SIDEBAR_SECTIONS`, using the
 // real section/item config, and proves that with debugMode=false the "playground" item is
 // completely absent from what either surface would render — matching the issue's
 // acceptance criterion ("with debug off, Settings -> Sidebar either lists Playground or
@@ -15,7 +15,7 @@ const sidebarVisibility = await import("../../src/shared/constants/sidebarVisibi
 function visibleItemIdsWithDebug(showDebug: boolean): string[] {
   // This is exactly the predicate used in:
   //   src/shared/components/Sidebar.tsx:277
-  //   src/app/(dashboard)/dashboard/settings/components/SidebarTab.tsx:470
+  //   src/app/(dashboard)/dashboard/settings/components/SidebarTab.tsx:473
   const visibleSections = sidebarVisibility.SIDEBAR_SECTIONS.filter(
     (section) => section.visibility !== "debug" || showDebug
   );

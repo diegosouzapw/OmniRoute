@@ -1,0 +1,1 @@
+- Release-branch hygiene: document `OMNIROUTE_API_KEY_COOLDOWN_MS`, `OMNIROUTE_ESTIMATOR_CALIBRATION` and `GROK_SUBSCRIPTION_IMAGES_ENABLED` in `.env.example` + ENVIRONMENT.md, allowlist the Next-internal `NEXT_MANUAL_SIG_HANDLE`, move the orphan Cloudflare tunnel-error test into `tests/unit/` so it actually runs, and register 10 covering tests in `stryker.conf.json`.

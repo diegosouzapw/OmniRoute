@@ -118,17 +118,17 @@
 
 ---
 
-## 📖 공급자 설정
+## 📖 제공자 설정
 
-CSV 또는 JSON 파일에서 API 키 연결을 일괄 추가하려면 **대시보드 → 공급자 → 파일에서 가져오기**를 사용하세요. 열은 위치에 따라 지정됩니다(`provider,name,apiKey,baseUrl,priority`). `provider`는 관리형 공급자 또는 호환 노드로 이미 존재해야 합니다. [CSV 또는 JSON 파일에서 공급자 가져오기](../providers/CSV-IMPORT.md)를 참조하세요.
+CSV 또는 JSON 파일에서 API 키 연결을 일괄 추가하려면 **대시보드 → 제공자 → 파일에서 가져오기**를 사용하세요. 열은 위치에 따라 구분됩니다(`provider,name,apiKey,baseUrl,priority`). `provider`는 관리형 제공자 또는 호환 노드로 이미 존재해야 합니다. [CSV 또는 JSON 파일에서 제공자 가져오기](../providers/CSV-IMPORT.md)를 참조하세요.
 
-### 🔐 구독형 공급자
+### 🔐 구독 제공자
 
 #### Claude Code (Pro/Max)
 
 ```bash
-대시보드 → 공급자 → Claude Code 연결
-→ OAuth 로그인 → 토큰 자동 갱신
+대시보드 → 제공자 → Claude Code 연결
+→ OAuth 로그인 → 자동 토큰 갱신
 → 5시간 + 주간 할당량 추적
 
 모델:
@@ -137,14 +137,16 @@ CSV 또는 JSON 파일에서 API 키 연결을 일괄 추가하려면 **대시�
   cc/claude-haiku-4-5-20251001
 ```
 
-**프로 팁:** 복잡한 작업에는 Opus를, 속도가 중요할 때는 Sonnet을 사용하세요. OmniRoute는 모델별 할당량을 추적합니다!
+**전문가 팁:** 복잡한 작업에는 Opus를, 속도가 중요할 때는 Sonnet을 사용하세요. OmniRoute는 모델별 할당량을 추적합니다!
 
-Claude 및 Claude Code 호환 경로는 Opus와 Sonnet 모델의 `max` 사고 노력을 유지합니다. Haiku 모델은 `max` 노력 단계를 지원하지 않으므로, OmniRoute는 요청을 업스트림으로 보내기 전에 높은 사고 예산으로 낮춰 조정합니다.
+OmniRoute 호스트에 브라우저가 없나요? Claude Code에 로그인된 환경 어디에서든 `claude setup-token`을 실행하고 1년 유효 토큰을 **설정 토큰** 탭에 붙여 넣으세요. [설정 토큰으로 Claude Code 사용하기](../providers/CLAUDE_CODE_SETUP_TOKEN.md)를 참조하세요.
+
+Claude 및 Claude Code 호환 경로는 Opus와 Sonnet 모델의 `max` 사고 노력을 유지합니다. Haiku 모델은 `max` 노력 단계를 허용하지 않으므로 OmniRoute는 요청을 업스트림으로 보내기 전에 높은 사고 예산으로 하향 조정합니다.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-대시보드 → 공급자 → Codex 연결
+대시보드 → 제공자 → Codex 연결
 → OAuth 로그인(포트 1455)
 → 5시간 + 주간 초기화
 
@@ -158,7 +160,7 @@ Claude 및 Claude Code 호환 경로는 Opus와 Sonnet 모델의 `max` 사고 �
 #### GitHub Copilot
 
 ```bash
-대시보드 → 공급자 → GitHub 연결
+대시보드 → 제공자 → GitHub 연결
 → GitHub를 통한 OAuth
 → 매월 초기화(매월 1일)
 
@@ -170,47 +172,47 @@ Claude 및 Claude Code 호환 경로는 Opus와 Sonnet 모델의 `max` 사고 �
   gh/gemini-3.1-pro-preview
 ```
 
-### 💰 저렴한 공급자
+### 💰 저렴한 제공자
 
 #### GLM-4.7 (매일 초기화, $0.6/1M)
 
 1. 가입: [Zhipu AI](https://open.bigmodel.cn)
-2. Coding Plan에서 API 키 받기
-3. 대시보드 → API 키 추가: 공급자: `glm`, API 키: `your-key`
+2. Coding Plan에서 API 키 발급
+3. 대시보드 → API 키 추가: 제공자: `glm`, API 키: `your-key`
 
-**사용:** `glm/glm-4.7` — **프로 팁:** Coding Plan은 1/7 가격으로 3배의 할당량을 제공합니다! 매일 오전 10시에 초기화됩니다.
+**사용:** `glm/glm-4.7` — **전문가 팁:** Coding Plan은 1/7의 비용으로 3배의 할당량을 제공합니다! 매일 오전 10시에 초기화됩니다.
 
 #### MiniMax M2.1 (5시간마다 초기화, $0.20/1M)
 
 1. 가입: [MiniMax](https://www.minimax.io)
-2. API 키 받기 → 대시보드 → API 키 추가
+2. API 키 발급 → 대시보드 → API 키 추가
 
-**사용:** `minimax/MiniMax-M2.1` — **프로 팁:** 긴 컨텍스트(1M 토큰)를 위한 가장 저렴한 옵션입니다!
+**사용:** `minimax/MiniMax-M2.1` — **전문가 팁:** 긴 컨텍스트(1M 토큰)를 위한 가장 저렴한 옵션입니다!
 
 #### Kimi K2 (월 $9 정액)
 
 1. 구독: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. API 키 받기 → 대시보드 → API 키 추가
+2. API 키 발급 → 대시보드 → API 키 추가
 
-**사용:** `kimi/kimi-k2.5` — **프로 팁:** 10M 토큰에 월 $9 고정이므로 실질 비용은 $0.90/1M입니다!
+**사용:** `kimi/kimi-k2.5` — **전문가 팁:** 10M 토큰에 월 $9 정액이므로 실질 비용은 $0.90/1M입니다!
 
 #### Baidu Qianfan / ERNIE
 
 1. 가입: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. Qianfan API 키 생성 → 대시보드 → API 키 추가: 공급자: `qianfan`
+2. Qianfan API 키 생성 → 대시보드 → API 키 추가: 제공자: `qianfan`
 
 **사용:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` 또는 다른 Qianfan OpenAI 호환 모델 ID.
 
-### 🆓 무료 공급자
+### 🆓 무료 제공자
 
-인증이 필요 없는 무료 공급자의 공급자 페이지에는 **인증 필요 없음** 옆에 스위치가 있습니다.
-이 스위치를 끄면 해당 공급자가 비활성화되고, 구성된 공급자 보기 및 간단히 보기에서 제거되며,
+인증이 필요 없는 무료 제공자의 제공자 페이지에는 **인증 필요 없음** 옆에 스위치가 있습니다.
+스위치를 끄면 해당 제공자가 비활성화되고, 제공자 구성됨/축약 보기에서 제거되며,
 해당 모델도 `/v1/models`에서 제거됩니다.
 
 #### Qoder (무료 모델 9개)
 
 ```bash
-대시보드 → Qoder 연결 → OAuth 로그인 → 액세스에는 현재 공급자 제한이 적용됨
+대시보드 → Qoder 연결 → OAuth 로그인 → 액세스에는 현재 제공자 제한이 적용됨
 
 모델: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
@@ -1233,9 +1235,9 @@ OmniRoute는 클라우드 코딩 에이전트(**OpenAI Codex Cloud**, **Devin**,
 
 ---
 
-## 🛠️ 프로그래밍 방식 관리
+## 🛠️ 프로그래밍 방식의 관리
 
-**`manage` 범위가 있는 Bearer 키**를 사용하여 HTTP를 통해 모든 OmniRoute 리소스(프로바이더, 콤보, 키, 설정)를 관리할 수 있습니다.
+**`manage` 범위가 지정된 Bearer 키**를 사용하여 HTTP를 통해 모든 OmniRoute 리소스(프로바이더, 콤보, 키, 설정)를 관리할 수 있습니다.
 
 **Dashboard → API Keys → New Key → Scope: manage**에서 키를 생성한 후 다음과 같이 사용하세요.
 
