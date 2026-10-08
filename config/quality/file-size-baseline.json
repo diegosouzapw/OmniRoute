@@ -1,4 +1,5 @@
 {
+  "_rebaseline_2026_10_08_14498_openapi_prettier": "PR #14498 reconcile onto release/v3.8.52 (2026-10-08): src/app/docs/lib/openapi.generated.ts 1357->1376. The generator output on the merged spec is 1357 (tip 1347 + the 10-line POST /api/v1/systemone block); the extra 19 lines are Prettier wrapping of long description strings that tip commits added to the generated module unformatted (squash-merged without the hook). Staging the module in the reconcile merge runs lint-staged prettier --write over it, so the committed form is the formatted one. No content growth beyond the PR's own block; regenerating with scripts/docs/gen-openapi-module.mjs shrinks it back. Measured with split(\"\\n\").length.",
   "_rebaseline_2026_09_30_14498_typesafe_openapi": "PR #14498 own generated growth: src/app/docs/lib/openapi.generated.ts 1347->1357 (+10). The module is emitted from docs/openapi.yaml by scripts/docs/gen-openapi-module.mjs; the new block documents POST /api/v1/systemone and cannot be extracted from the generated artifact. The editable System One catalog emission was extracted to catalogSystemOne.ts so src/app/api/v1/models/catalog.ts remains below its frozen ceiling. Covered by the TypeSafe System One route and handler tests plus the API docs sync gate.",
   "_rebaseline_2026_09_29_15036_cursor_read_range": "PR #15036 (QuangBlue) own growth: open-sse/utils/cursorAgentProtobuf.ts 1588->1619 (+31 = ReadArgs offset/limit field constants, the two optional fields on the exec_read event type, and createReadExecEvent, which decodes them next to the shared path-event decoder it reuses and cannot move out without exporting the file's private varint helpers). The bridge-side range check lives in open-sse/executors/cursor/builtinToolBridge.ts (under cap). Covered by tests/unit/cursor-agent-exec-router.test.ts and tests/unit/cursor-builtin-tool-bridge.test.ts.",
   "_rebaseline_2026_09_29_15050_timing_safe_env_key": "PR #15050 (HouMinXi) own growth: src/sse/services/auth.ts 3622->3623 (+1 = the timingSafeCompare import; the env passthrough-key check in isValidApiKey swaps `===` for the constant-time helper on its existing line). Irreducible. Covered by tests/unit/secret-compare-constant-time.test.ts.",
@@ -552,7 +553,7 @@
     "src/app/api/providers/[id]/models/route.ts": 2452,
     "src/app/api/providers/[id]/test/route.ts": 1264,
     "src/app/api/v1/models/catalog.ts": 2133,
-    "src/app/docs/lib/openapi.generated.ts": 1357,
+    "src/app/docs/lib/openapi.generated.ts": 1376,
     "src/lib/db/apiKeys.ts": 1719,
     "src/lib/db/core.ts": 1802,
     "src/lib/db/migrationRunner.ts": 1206,
