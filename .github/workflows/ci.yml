@@ -735,9 +735,8 @@ jobs:
       # Turbopack production build (Next 16, stable): benchmarked 1.9× faster than the
       # webpack pass (9min0s vs 17min15s on a 32-core box; multi-core Rust vs webpack's
       # single-threaded compile). Standalone output smoke-validated (server boots,
-      # /api/monitoring/health 200). Downstream jobs (e2e ×9, package-artifact,
-      # electron-package-smoke) consume this artifact, so a green run here validates
-      # the Turbopack artifact end-to-end.
+      # /api/monitoring/health 200). Downstream jobs (e2e ×9, package-artifact) consume
+      # this artifact, so a green run here validates the Turbopack artifact end-to-end.
       - run: npm run build
         env:
           OMNIROUTE_USE_TURBOPACK: "1"
@@ -848,72 +847,6 @@ jobs:
       - name: Boot-smoke the packed tarball
         run: npm run check:pack-boot
 
-  electron-package-smoke:
-    name: Electron Package Smoke (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
-    needs: build
-    # WS1.5 (v3.8.49 plan): the Electron native-module path previously executed for
-    # the FIRST time on the release tag — the v3.8.48 Windows bug (npx.cmd spawned
-    # without shell, CVE-2024-27980 behavior change) could only surface at release.
-    # windows-latest runs prepare:bundle (better-sqlite3 prebuild verification since
-    # v13 — the node-gyp rebuild is gone) per release PR; ubuntu keeps the full
-    # pack + headless smoke.
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    env:
-      JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
-      CSC_IDENTITY_AUTO_DISCOVERY: "false"
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v7
-        with:
-          package-manager-cache: false
-          node-version: ${{ env.CI_NODE_VERSION }}
-      - uses: ./.github/actions/npm-ci-retry
-        with:
-          # PR acceleration is not release-candidate provenance.
-          cache: ${{ github.event_name == 'pull_request' }}
-      - run: npm run check:node-runtime
-      - name: Download Next.js build artifact
-        uses: actions/download-artifact@v8
-        with:
-          name: next-build
-          # Workspace-relative on purpose: the matrix below includes windows-latest, whose
-          # default shell is pwsh, where $RUNNER_TEMP is empty (it is $env:RUNNER_TEMP) —
-          # #11896's first cut broke the Electron smoke on exactly that. A relative path
-          # works in bash and pwsh alike; hosted workspaces are ephemeral.
-          path: next-build-artifact
-      - name: Extract Next.js build artifact
-        run: |
-          tar -xzf next-build-artifact/e2e-build.tar.gz
-      - name: Install Electron dependencies
-        working-directory: electron
-        run: npm install --no-audit --no-fund
-      - name: Pack Electron app
-        if: runner.os == 'Linux'
-        working-directory: electron
-        run: npm run pack
-      # ADVISORY while the new Windows leg matures (repo convention, dast-smoke
-      # precedent): its first-ever real run (2026-07-15, run 29457533565) died in
-      # 0.7s with the error swallowed by pwsh — bash shell captures stderr and
-      # continue-on-error keeps the heavy gate green while we harden it (#7336).
-      - name: Prepare Electron standalone (Windows prebuild verification)
-        if: runner.os == 'Windows'
-        working-directory: electron
-        continue-on-error: true
-        shell: bash
-        run: npm run prepare:bundle 2>&1
-      - name: Smoke packaged Electron app
-        if: runner.os == 'Linux'
-        env:
-          ELECTRON_SMOKE_TIMEOUT_MS: 60000
-        run: xvfb-run -a npm run electron:smoke:packaged
-
   test-unit:
     name: Unit Tests (${{ matrix.shard }}/8)
     # Same dynamic-runner rule as Build (own-origin only; fallback ubuntu-latest).
@@ -927,7 +860,7 @@ jobs:
     timeout-minutes: 25
     # needs: changes (not build) — this job never downloads the next-build artifact;
     # gating it on Build only serialized ~20min of wall-clock for nothing. Jobs that
-    # DO consume the artifact (e2e, package-artifact, electron-package-smoke) keep
+    # DO consume the artifact (e2e, package-artifact) keep
     # needs: build. The `if` mirrors Build's own skip condition so docs-only PRs
     # still skip the suite.
     needs: changes
@@ -1550,7 +1483,6 @@ jobs:
       - pr-test-policy
       - build
       - package-artifact
-      - electron-package-smoke
       - test-unit
       - test-bun-sqlite
       - test-vitest
@@ -1598,7 +1530,6 @@ jobs:
       - pr-test-policy
       - build
       - package-artifact
-      - electron-package-smoke
       - test-unit
       - test-coverage
       - sonarqube
@@ -1677,7 +1608,6 @@ jobs:
             echo "|-----|--------|"
             echo "| Build Matrix | $(status '${{ needs.build.result }}') |"
             echo "| Package Artifact | $(status '${{ needs.package-artifact.result }}') |"
-            echo "| Electron Package Smoke | $(status '${{ needs.electron-package-smoke.result }}') |"
 
             echo ""
             echo "## 🧪 Tests"

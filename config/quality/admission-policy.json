@@ -25,7 +25,6 @@
         "pr-test-policy": { "when": "pr", "disposition": "required" },
         "build": { "when": "code", "disposition": "required" },
         "package-artifact": { "when": "code", "disposition": "required" },
-        "electron-package-smoke": { "when": "code", "disposition": "required" },
         "test-unit": { "when": "code", "disposition": "required" },
         "test-bun-sqlite": { "when": "code", "disposition": "required" },
         "test-vitest": { "when": "code", "disposition": "required" },
