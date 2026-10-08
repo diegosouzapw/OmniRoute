@@ -118,9 +118,9 @@ Käyttö seuraavien kautta: WhatsApp, Telegram, Slack, Discord, iMessage, Signal
 
 ---
 
-## 📖 Palveluntarjoajan määritys
+## 📖 Palveluntarjoajien määritys
 
-Voit lisätä API-avainyhteyksiä joukkona CSV- tai JSON-tiedostosta valitsemalla **Hallintapaneeli → Palveluntarjoajat → Tuo tiedostosta**. Sarakkeiden järjestys on kiinteä (`provider,name,apiKey,baseUrl,priority`); `provider`-arvon on vastattava jo olemassa olevaa hallittua palveluntarjoajaa tai yhteensopivaa solmua. Katso [Palveluntarjoajien tuominen CSV- tai JSON-tiedostosta](../providers/CSV-IMPORT.md).
+Voit lisätä API-avainyhteyksiä joukkona CSV- tai JSON-tiedostosta valitsemalla **Hallintapaneeli → Palveluntarjoajat → Tuo tiedostosta**. Sarakkeet ovat paikkasidonnaisia (`provider,name,apiKey,baseUrl,priority`); `provider`-arvon on jo oltava hallittu palveluntarjoaja tai yhteensopiva solmu. Katso [Palveluntarjoajien tuominen CSV- tai JSON-tiedostosta](../providers/CSV-IMPORT.md).
 
 ### 🔐 Tilauspohjaiset palveluntarjoajat
 
@@ -137,9 +137,11 @@ Mallit:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Ammattilaisvinkki:** Käytä Opusta monimutkaisiin tehtäviin ja Sonnetia nopeutta vaativiin tehtäviin. OmniRoute seuraa kiintiötä mallikohtaisesti!
+**Ammattilaisen vinkki:** Käytä Opusta monimutkaisiin tehtäviin ja Sonnetia nopeutta vaativiin tehtäviin. OmniRoute seuraa kunkin mallin kiintiötä!
 
-Claude- ja Claude Code -yhteensopivat reitit säilyttävät Opus- ja Sonnet-mallien `max`-päättelypanoksen. Haiku-mallit eivät hyväksy `max`-panostasoa, joten OmniRoute alentaa pyynnön suureksi päättelybudjetiksi ennen sen lähettämistä ylävirran palveluun.
+Eikö OmniRoute-isännällä ole selainta? Suorita `claude setup-token` missä tahansa, missä Claude Codeen on kirjauduttu, ja liitä vuoden voimassa oleva tunnus **Setup Token** -välilehdelle. Katso [Claude Coden käyttäminen asetustunnuksella](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Claude- ja Claude Code -yhteensopivat reitit säilyttävät Opus- ja Sonnet-mallien `max`-päättelytason. Haiku-mallit eivät hyväksy `max`-tasoa, joten OmniRoute alentaa pyynnön korkeaan päättelybudjettiin ennen sen lähettämistä ylävirran palveluun.
 
 #### OpenAI Codex (Plus/Pro)
 
@@ -160,7 +162,7 @@ Mallit:
 ```bash
 Hallintapaneeli → Palveluntarjoajat → Yhdistä GitHub
 → OAuth GitHubin kautta
-→ Nollaus kuukausittain (kuukauden 1. päivänä)
+→ Kuukausittainen nollaus (kuukauden 1. päivänä)
 
 Mallit:
   gh/gpt-5.5
@@ -172,38 +174,40 @@ Mallit:
 
 ### 💰 Edulliset palveluntarjoajat
 
-#### GLM-4.7 (päivittäinen nollaus, $0.6/1M)
+#### GLM-4.7 (Päivittäinen nollaus, $0.6/1M)
 
 1. Rekisteröidy: [Zhipu AI](https://open.bigmodel.cn)
 2. Hanki API-avain Coding Plan -tilauksesta
 3. Hallintapaneeli → Lisää API-avain: Palveluntarjoaja: `glm`, API-avain: `your-key`
 
-**Käyttö:** `glm/glm-4.7` — **Ammattilaisvinkki:** Coding Plan tarjoaa kolminkertaisen kiintiön seitsemäsosalla hinnasta! Nollaus päivittäin klo 10.00.
+**Käyttö:** `glm/glm-4.7` — **Ammattilaisen vinkki:** Coding Plan tarjoaa kolminkertaisen kiintiön seitsemäsosalla hinnasta! Nollaus päivittäin klo 10.00.
 
-#### MiniMax M2.1 (nollaus 5 tunnin välein, $0.20/1M)
+#### MiniMax M2.1 (Nollaus 5 tunnin välein, $0.20/1M)
 
 1. Rekisteröidy: [MiniMax](https://www.minimax.io)
 2. Hanki API-avain → Hallintapaneeli → Lisää API-avain
 
-**Käyttö:** `minimax/MiniMax-M2.1` — **Ammattilaisvinkki:** Edullisin vaihtoehto pitkälle kontekstille (1M tokenia)!
+**Käyttö:** `minimax/MiniMax-M2.1` — **Ammattilaisen vinkki:** Edullisin vaihtoehto pitkälle kontekstille (1M tunnistetta)!
 
-#### Kimi K2 (kiinteästi $9/kuukausi)
+#### Kimi K2 (Kiinteästi $9/kuukausi)
 
 1. Tilaa: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. Hanki API-avain → Hallintapaneeli → Lisää API-avain
 
-**Käyttö:** `kimi/kimi-k2.5` — **Ammattilaisvinkki:** Kiinteä $9/kuukausi 10M tokenista = todellinen hinta $0.90/1M!
+**Käyttö:** `kimi/kimi-k2.5` — **Ammattilaisen vinkki:** Kiinteä $9/kuukausi 10 miljoonasta tunnisteesta = todellinen kustannus $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
 1. Rekisteröidy: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. Luo Qianfan API -avain → Hallintapaneeli → Lisää API-avain: Palveluntarjoaja: `qianfan`
+2. Luo Qianfan API-avain → Hallintapaneeli → Lisää API-avain: Palveluntarjoaja: `qianfan`
 
 **Käyttö:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` tai jokin muu Qianfanin OpenAI-yhteensopiva mallitunnus.
 
 ### 🆓 ILMAISET palveluntarjoajat
 
-Todennusta edellyttämättömillä ilmaisilla palveluntarjoajilla on kytkin niiden palveluntarjoajasivulla kohdan **Todennusta ei vaadita** vieressä. Sen poistaminen käytöstä poistaa kyseisen palveluntarjoajan käytöstä ja Palveluntarjoajat-näkymän määritettyjen palveluntarjoajien luettelosta ja tiiviistä näkymästä sekä poistaa sen mallit `/v1/models`-luettelosta.
+Todennusta edellyttämättömillä ilmaisilla palveluntarjoajilla on kytkin **Todennusta ei vaadita** -kohdan vieressä niiden palveluntarjoajasivulla.
+Sen poistaminen käytöstä poistaa kyseisen palveluntarjoajan käytöstä ja Palveluntarjoajien määritetyistä ja tiiviistä näkymistä sekä
+poistaa sen mallit `/v1/models`-luettelosta.
 
 #### Qoder (9 ILMAISTA mallia)
 

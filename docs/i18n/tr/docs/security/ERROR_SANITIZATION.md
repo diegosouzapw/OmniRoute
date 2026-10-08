@@ -139,13 +139,47 @@ topoloji bilgisi taşıyan mesajlar oluşturmamalıdır.
 
 `tests/unit/error-message-sanitization.test.ts` şunları zorunlu kılar:
 
-- `/api/model-combo-mappings/*` altındaki her rota, 4xx/5xx durumlarında temizlenmiş gövdeler döndürür.
+- `/api/model-combo-mappings/*` altındaki her rota, 4xx/5xx yanıtlarında temizlenmiş gövdeler döndürür.
 - `sanitizeErrorMessage`, çok satırlı yığın izlerini kaldırır.
 - `sanitizeErrorMessage`, POSIX ve Windows mutlak yollarını `<path>` ile değiştirir.
 - `sanitizeErrorMessage`, `null`/`undefined`/`Error` örneği girdilerini güvenli biçimde işler.
 - `buildErrorBody`, `message` alanında hiçbir zaman yığın izlerini açığa çıkarmaz.
 
-Yeni bir rota veya yürütücü eklerken bu dosyadaki doğrulama kalıbını kopyalayın. Kapsam eşiği (`npm run test:coverage`), ifadeler/satırlar/fonksiyonlar/dallar için ≥%60 oranını zorunlu kılar — hata yolları kapsanmalıdır.
+Yeni bir rota veya yürütücü eklerken bu dosyadaki doğrulama kalıbını kopyalayın. Kapsam geçidi (`npm run test:coverage`), ifadeler/satırlar/fonksiyonlar/dallar için ≥%60 oranını zorunlu kılar — hata yolları kapsanmalıdır.
+
+### Statik geçit: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs`; `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` dizinlerini ve her `src/app/api/**/route.ts` dosyasını, istemciye yönelik bir gövdeye ulaşan ham yakalanmış hatalar (`err.message` / `err.stack`) veya ham üst kaynak `body.error.message` değerleri için tarar.
+
+**Güven dosya kapsamında değil, çağrı kapsamındadır** (G-03, #15159). Geçit daha önce `utils/error` yolundan herhangi bir içe aktarma gördüğü anda dosyanın tamamını atlıyordu — çağrı kapsamındaki bir tehlikeye dosya kapsamında muafiyet uygulanıyordu. Tek bir doğru `import { sanitizeErrorMessage }`, dosyadaki diğer tüm hedefleri kalıcı olarak muaf tutuyordu; canlı ortama bir sızıntının yeşil kontrollerle gönderilmesi bu şekilde gerçekleşti. Artık bir satır yalnızca gerçekten onaylı bir oluşturucu veya temizleyici üzerinden geçtiğinde güvenilir sayılır:
+
+| Satır biçimi                                                                                                                        | Güvenilir mi?     |
+| ----------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / … çağrısı yapar                         | evet              |
+| **bu dosyanın** `open-sse/utils/error` veya `src/lib/api/errorResponse` kaynağından içe aktardığı standart bir oluşturucuyu çağırır | evet              |
+| onaylı bir oluşturucu **çok satırlı** çağrılır; bu nedenle `message:` alanı sonraki bir satırda yer alır                            | evet              |
+| kendi gövdesinde temizleme yapan, dosyaya yerel bir `function errorResponse(...)` çağırır                                           | evet              |
+| `err.message` / `err.stack` değerini başka herhangi bir yere iletir                                                                 | **hayır — ihlal** |
+
+Bilinmesi gereken iki sonuç:
+
+- `errorResponse` içe aktarmak genel bir güven sağlamaz. Kendi `errorResponse` fonksiyonunu tanımlayan bir dosya, geçit güveni dosya başına değil sembol başına çözümlediği için çağrı noktasında yine işaretlenir. Aynı durum `createErrorResponse` için de geçerlidir.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` ve ardından gelen `error: body.error.message`, `*-fetch.ts` yürütücülerinin genelinde kullanılan **temizlenmiş** kalıptır ve işaretlenmez.
+
+Her iki onaylı oluşturucu modülü de kabul edilir: `open-sse/utils/error.ts` ve `src/lib/api/errorResponse.ts`. İkincisi, `open-sse` dışındaki yaklaşık 54 rota işleyicisinin kullandığı modüldür ve dışa aktardığı her iki öğeyi de temizler.
+
+Geçidin bir zamanlar sızıntı olarak bildirdiği, ancak **ihlal olmayan** iki biçim:
+
+- **denetim satırı** içindeki ham bir hata — `saveCallLog({ error: err.message })`, `logToolCall(...)` veya önce mesaj alan bir günlükleyici (`log.error("BATCHES", "sweep failed", { error: err.message })`). Sonraki satırlardaki istemciye yönelik yanıt, statik bir `buildErrorBody` olabilir.
+- `message:` alanının hiçbir oluşturucu adı içermediği **çok satırlı** bir onaylı oluşturucu çağrısı:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER`, önceden var olan ihlalleri sabitleyerek geçidin yalnızca _yeni_ ihlalleri engellemesini sağlar. `assertNoStale`, ihlal düzeltildiğinde ilgili girdiyi otomatik olarak kaldırır; böylece sabitlenmiş liste katılaşıp kalıcılaşamaz. Regresyon korumaları: `tests/unit/check-error-helper.test.ts` ve `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## İlgili kontroller
 

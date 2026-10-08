@@ -23,6 +23,7 @@
  */
 
 import { deleteProxyById, listProxies, updateProxy } from "@/lib/db/proxies";
+import { exportProxyLogsSince } from "@/lib/db/proxyLogs";
 import { isProxyLogIncludeIps } from "@/lib/proxyLogger";
 import {
   getRecentEgressSharingSummary,
@@ -67,6 +68,13 @@ import {
   isProxyHealthBlockedResetsStreakEnabled,
   isProxySkipRecentlyFailedEnabled,
 } from "@/shared/utils/featureFlags";
+import {
+  hasProvenSuccessWithoutAttributedFailure,
+  isPassiveSweepSkipEnabled,
+  passiveVerdictKey,
+  resolvePassiveWindowMs,
+  type PassiveLogRow,
+} from "./passiveVerdict.ts";
 
 // #6246: a HEAD to the public probe target through a legit (often loaded) proxy
 // can exceed a few seconds; the old 5s ceiling produced false negatives that
@@ -538,6 +546,89 @@ async function testOneProxy(proxy: {
   }
 }
 
+/**
+ * Passive skip proof from production traffic, grouped by proxy endpoint.
+ * Filled from the persisted request log once per sweep: an endpoint whose
+ * window shows recent single-provider success and no attributed failure
+ * skips the redundant live probe. A recent failure never skips: it keeps
+ * the probe that alone can confirm it.
+ */
+interface EndpointVerdict {
+  skip: boolean;
+  /** Distinct providers observed for the endpoint; skips need exactly one. */
+  providers: string[];
+}
+
+function readPassiveVerdicts(
+  proxies: Array<{ host: string; port: number }>
+): Map<string, EndpointVerdict> {
+  const verdicts = new Map<string, EndpointVerdict>();
+  const windowMs = resolvePassiveWindowMs();
+  const now = Date.now();
+  const since = new Date(now - windowMs).toISOString();
+  let rows: Record<string, unknown>[] = [];
+  try {
+    // Bounded by the short window via idx_pl_timestamp; never let a DB
+    // hiccup fail the sweep — fall back to live probes (no skip anywhere).
+    rows = exportProxyLogsSince(since);
+  } catch (error) {
+    console.error(`${LOG_PREFIX} Passive verdicts skipped:`, error);
+    return verdicts;
+  }
+  const endpoints = new Set(proxies.map((p) => passiveVerdictKey(p.host, p.port)));
+  const byEndpoint = new Map<string, PassiveLogRow[]>();
+  for (const row of rows) {
+    const host = typeof row.proxy_host === "string" ? row.proxy_host : null;
+    const port = typeof row.proxy_port === "number" ? row.proxy_port : null;
+    if (!host || !port || !endpoints.has(passiveVerdictKey(host, port))) continue;
+    const key = passiveVerdictKey(host, port);
+    const list = byEndpoint.get(key) ?? [];
+    list.push(row as PassiveLogRow);
+    byEndpoint.set(key, list);
+  }
+  for (const [key, keyedRows] of byEndpoint) {
+    const providers = [...new Set(keyedRows.map((r) => r.provider).filter((p) => p))];
+    const skip = hasProvenSuccessWithoutAttributedFailure(keyedRows) && providers.length === 1;
+    verdicts.set(key, { skip, providers: providers as string[] });
+  }
+  return verdicts;
+}
+
+/** Test-only: skip lookup seam for sweep-level tests. */
+export type PassiveVerdictReader = (proxyId: string) => { skip: boolean; providers: string[] };
+
+let passiveReader: PassiveVerdictReader | null = null;
+
+/** Test-only: override the skip lookup. */
+export function __setPassiveVerdictReaderForTesting(fn: PassiveVerdictReader | null): void {
+  passiveReader = fn;
+}
+
+/**
+ * Passive skip check for one proxy: recent production traffic already proves
+ * this endpoint, so the live probe is redundant — but only when the window
+ * shows a single provider (a success for one provider never skips the probe
+ * another provider would need). A recent failure never skips: the live probe
+ * stays the one that can confirm it and feed auto-disable/auto-remove.
+ */
+function resolvePassiveSkip(
+  proxy: { id: string; host: string; port: number },
+  passiveVerdicts: Map<string, EndpointVerdict>
+): boolean {
+  const endpointVerdict = passiveReader
+    ? passiveReader(proxy.id)
+    : (passiveVerdicts.get(`${proxy.host}:${proxy.port}`) ?? {
+        skip: false,
+        providers: [] as string[],
+      });
+  return endpointVerdict.skip && isSingleProviderSkip(endpointVerdict);
+}
+
+/** A proven endpoint skips the probe only with exactly one observed provider. */
+function isSingleProviderSkip(endpointVerdict: EndpointVerdict): boolean {
+  return endpointVerdict.providers.length === 1;
+}
+
 async function sweep(): Promise<void> {
   // #10677: anonymous egress-sharing signal from persisted proxy_logs (no live
   // probes). Logged only when sharing exists — the sweep line is a warning
@@ -559,6 +650,13 @@ async function sweep(): Promise<void> {
   pruneBlockedHistory(proxies.map((proxy) => proxy.id));
   if (proxies.length === 0) return;
 
+  // Passive verdicts from production traffic (opt-in): an endpoint already
+  // judged by recent traffic skips the live probe. Scheduling only — skips
+  // are partitioned before the probe phase, so they never touch the failure
+  // streak, the cross-proxy evidence, the promotion tally, or the sweep
+  // verdict display.
+  const passiveEnabled = isPassiveSweepSkipEnabled();
+  const passiveVerdicts = passiveEnabled ? readPassiveVerdicts(proxies) : new Map();
   const failureMap = getFailureMap();
   const removeAfter = getRemoveAfter();
   const autoRemove = isAutoRemoveEnabled();
@@ -567,7 +665,18 @@ async function sweep(): Promise<void> {
 
   // Phase 1 — collect raw probe results across all batches WITHOUT deciding
   // (cross-proxy evidence requires every response of the target first).
-  const collected = await collectProbeResults(proxies, async (proxy) => {
+  // Passive skips are partitioned before collecting: they never enter the
+  // batching, the failure streak, the cross-proxy evidence, the promotion
+  // tally, or the sweep verdict display — they are only counted apart below.
+  const skippedIds = new Set<string>();
+  if (passiveEnabled) {
+    for (const proxy of proxies) {
+      if (resolvePassiveSkip(proxy, passiveVerdicts)) skippedIds.add(proxy.id);
+    }
+  }
+  const toProbe = proxies.filter((proxy) => !skippedIds.has(proxy.id));
+  const passiveSkipped = skippedIds.size;
+  const collected = await collectProbeResults(toProbe, async (proxy) => {
     const { outcome, status, target } = await testOneProxy(proxy);
     // Ledger: only a sweep-observed 429 with a usable key is recorded.
     // No memory write happens on fail/hang here, except a promoted
@@ -578,11 +687,10 @@ async function sweep(): Promise<void> {
     return { id: proxy.id, proxy, outcome, status, target };
   });
 
-  // Previous-generation evidence is replaced wholesale (never merged): the
-  // current sweep's answered targets become generation N-1 for the next sweep.
-  // Lift the abstention only where proof exists (same sweep or the
-  // immediately previous generation). Received HTTP statuses are never
-  // reclassified — only status-less `inconclusive` probes can become `fail`.
+  // Only live probes feed the decision phase and the evidence: skipped
+  // endpoints contribute nothing. Previous-generation evidence is replaced
+  // wholesale (never merged): the current sweep's answered targets become
+  // generation N-1 for the next sweep.
   const { tested, alive, inconclusive, blocked, hangs, removed, disabled, promoted } =
     await decideCollectedResults(collected, {
       failureMap,
@@ -596,7 +704,8 @@ async function sweep(): Promise<void> {
   console.log(
     `${LOG_PREFIX} Sweep complete: ${tested} tested, ${alive} alive, ` +
       `${blocked} refused by target, ${inconclusive} inconclusive, ${promoted} promoted, ` +
-      `${removed} auto-removed, ${disabled} auto-disabled`
+      `${removed} auto-removed, ${disabled} auto-disabled` +
+      `${passiveSkipped > 0 ? `, ${passiveSkipped} passive-skipped (recent success)` : ""}`
   );
   if (hangs > 0) {
     console.debug(`${LOG_PREFIX} stalled handshakes observed: ${hangs}`);

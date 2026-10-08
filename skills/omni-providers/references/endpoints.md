@@ -172,6 +172,8 @@ curl -X POST https://localhost:20128/api/providers/test-batch \
 
 Validate provider credentials
 
+Spawns a fixed ACP summarizer binary to validate credentials — loopback-only (Hard Rules #15/#17, audit #15159 S-01).
+
 ```bash
 curl -X POST https://localhost:20128/api/providers/validate \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
@@ -495,6 +497,8 @@ curl -X POST https://localhost:20128/api/providers/{id}/sync-models \
 
 POST providers › bulk
 
+Reaches the same spawn as /api/providers/validate (webProvidersB.ts) — loopback-only (Hard Rules #15/#17, audit #15159 S-01).
+
 ```bash
 curl -X POST https://localhost:20128/api/providers/bulk \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
@@ -693,6 +697,8 @@ curl https://localhost:20128/api/providers/health-matrix \
 ### POST /api/providers/import
 
 POST providers › import
+
+Reaches the same spawn as /api/providers/validate (webProvidersB.ts) — loopback-only (Hard Rules #15/#17, audit #15159 S-01).
 
 ```bash
 curl -X POST https://localhost:20128/api/providers/import \

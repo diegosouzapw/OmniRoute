@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Прокси скупови и ротација по налогу у opencode престају да поново користе прокси који је управо отказао (одбијена TCP провера или одговор 429 примљен преко њега) током периода на нивоу процеса који се удвостручује при сваком понављању, до задате горње границе. Статус проксија се не уписује; када су сви кандидати издвојени, избор остаје непромењен. Подразумевано је укључено; `false` враћа обичан избор.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "За провајдере чија се квота расподељује по излазној (egress) адреси, рангира члана pool-а који дели уочену egress адресу недавно одбијеног члана одмах испод здравих чланова. Само редослед, никада искључење. Захтева PROXY_SKIP_RECENTLY_FAILED, који производи сигнал одбијања који чита. Подразумевано искључено: редослед избора је тачно обична ротација.",
   "featureFlagProxyPoolEgressObservationDescription": "У контролној табли, испод прокси скупа, прикажите колико је уочених излазних IP адреса опслуживало његове чланове током последња 24 ч, колико веза их је користило и највећи број веза забележен иза једне IP адресе. Само за читање, израчунава се из евиденције проксија и никада се не користи за усмеравање. Подразумевано је искључено: уређивач скупа остаје непромењен, а рута за посматрање враћа null.",
+  "featureFlagProxyOperatorEgressDescription": "Прими оператор-пушене дате набљудене адресе по члану поула и спој их са читањем дневника за приказ и редослед поула. Исключено по подразумеваној вредности: пут пуштања одговара 404, а читање поула понаша се тачно као раније.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "У провери исправности проксија омогућите да провера коју је циљ одбио (401/403/429: прокси је проследио захтев, а одредиште је одбило ову излазну IP адресу) ресетује низ узастопних неуспеха проксија, као и успешно опслужена провера. Подразумевано је искључено: одбијање остаје неутрално и задржава низ. Одговор 5xx у оба случаја остаје неодређен, а одбијање никада не уклања, не онемогућава нити поново активира прокси.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Дозволи аутоматском чишћењу да избрише завршене (успешне/неуспешне/отказане/истекле) Batch API послове старије од вредности OMNIROUTE_BATCH_RETENTION_DAYS, заједно са њиховим контролним тачкама по редовима, и да обрише BLOB садржај отпремљених датотека након њиховог сопственог expires_at. Подразумевано је искључено: свака постојећа инсталација наставља да чува ове податке потпуно исто као раније док оператер не омогући ову опцију. Рута DELETE /api/v1/batches/delete-completed коју покреће оператер ни у једном случају није погођена — она представља засебан, безуслован уговор јавног API-ја.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Преузимај актуелни каталог xAI модела за xai-oauth везе са https://api.x.ai/v1/models користећи OAuth токен носиоца, уместо замрзнутог статичког почетног скупа. Подразумевано је искључено: xai-oauth наставља да без измена користи статички почетни скуп. Ако дође до било какве грешке при разрешавању, откривање се враћа на почетни скуп.",
@@ -5692,7 +5693,7 @@
     "claudeImportBulkModePaste": "Налепите JSON низ",
     "claudeImportBulkModeZip": "Отпреми ZIP",
     "claudeImportBulkUploadHint": "Превуците и отпустите или изаберите до 50 .credentials.json фајлова (по 256KB, укупно 10MB).",
-    "claudeImportBulkPasteHint": "Налепите низ објеката: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "Налепите низ објеката: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": "ZIP који садржи .json ставке. Максимално 50 ставки, 10MB распакованих.",
     "claudeImportBulkSubmit": "Увези све",
     "claudeImportBulkSuccess": "Број увезених Claude веза: {count}",
@@ -5724,7 +5725,7 @@
     "geminiImportBulkModePaste": "Налепи JSON низ",
     "geminiImportBulkModeZip": "Отпреми ZIP",
     "geminiImportBulkUploadHint": "Превуците и отпустите или изаберите до 50 oauth_creds.json фајлова (256KB сваки, 10MB укупно).",
-    "geminiImportBulkPasteHint": "Налепите низ објеката: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "Налепите низ објеката: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "ZIP који садржи oauth_creds.json уносе. Максимум 50 уноса, 10MB распаковано.",
     "geminiImportBulkSubmit": "Увези све",
     "geminiImportBulkSuccess": "Увезено {count} Gemini веза",
@@ -5773,7 +5774,7 @@
     "codexImportBulkModePaste": "Налепи листу",
     "codexImportBulkModeZip": "ZIP архива",
     "codexImportBulkUploadHint": "Изаберите више .json датотека или их превуците и отпустите",
-    "codexImportBulkPasteHint": "JSON низ [ {...}, {...} ] или више JSON-ова раздвојених низом --- у засебном реду",
+    "codexImportBulkPasteHint": "JSON низ [ '{...}', '{...}' ] или више JSON-ова раздвојених низом --- у засебном реду",
     "codexImportBulkZipHint": "Отпремите .zip који садржи auth.json датотеке (максимално 50 датотека, 10 MB)",
     "codexImportBulkSubmit": "Увези налоге ({count})",
     "codexImportBulkLimit": "Максимално 50 датотека по увозу",
@@ -6011,7 +6012,7 @@
     "validationModelIdPlaceholder": "нпр. meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "API кључ или JSON сервисног налога",
     "vertexCredentialHint": "API кључеви користе одабрани каталог пројекта. JSON сервисног налога омогућава откривање модела из Model Garden у реалном времену.",
-    "vertexServiceAccountPlaceholder": "Налепите API кључ, JSON сервисног налога ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) или OAuth приступни токен",
+    "vertexServiceAccountPlaceholder": "Налепите API кључ, JSON сервисног налога ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') или OAuth приступни токен",
     "webCookieProviders": "Провајдери веб-колачића",
     "weeklyShort": "Недељно — кратко",
     "xiaomiMimoBaseUrlHint": "Наговештај основног URL-а за Xiaomi Mimo",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Локална крајња тачка за proxy-core није важећа; SS/VMess/Trojan/VLESS чворови су игнорисани.",
         "NEEDS_CORE_NOT_CONFIGURED": "Ова претплата садржи чворове који захтевају локално proxy језгро (SS/VMess/Trojan/VLESS); они се не рутирају док не подесите локалну SOCKS5 крајњу тачку језгра.",
         "NO_USABLE_NODES": "Претплата није дала употребљиве чворове (http/https/socks5 или чворове са локалном крајњом тачком језгра).",
-        "SELECTOR_SWITCH_FAILED": "Управљачки позив proxy-core-а није успео; претходна рута остаје активна. Проверите управљачки URL и тајну, па освежите."
+        "SELECTOR_SWITCH_FAILED": "Управљачки позив proxy-core-а није успео; претходна рута остаје активна. Проверите управљачки URL и тајну, па освежите.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Генерисана основна конфигурација није могла да замени усвојену датотеку; уместо тога, сачувана је копија поред ње.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Неке ставке су прескочене приликом генерисања. Погледајте серверски лог."
       },
       "description": "Налепите везу за прокси претплату. Када се активира, саобраћај се рутира кроз прокси пул у глобалном режиму или режиму правила (одабрани провајдер). Чворови из претплате се аутоматски синхронизују у прокси пул и користе постојеће механизме циклирања, провере исправности и заштите од цурења.",
       "addSubscription": "Додај претплату",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Још нема евидентираног пребацивања",
       "lastSwitchMember": "Члан који опслужује",
       "nextSwitch": "Следеће могуће пребацивање",
-      "nextSwitchNow": "Сада"
+      "nextSwitchNow": "Сада",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Путања основног бинарног фајла",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Опционално: провера генерисане датотеке основним бинарним фајлом пре замене усвојене датотеке. Оставите празно да се и даље пише поред ње. Директоријум се ствара ако не постоји."
     },
     "bulkHealthcheck": "Масовна провера исправности",
     "bulkHealthcheckDesc": "Тестирајте све конфигурисане проксије на циљном URL-у да бисте открили који раде.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "Компресија MCP описа",
     "mcpAccessibilityTitle": "MCP излаз за приступачност",
     "compressionSettingsCavemanIntensity": "Интензитет Caveman режима",
-    "compressionSettingsCavemanOutputMode": "Режим Caveman излаза",
     "compressionSettingsOutputStyles": "Стилови излаза",
     "compressionStylesTileTitle": "Стилови излаза",
     "compressionSettingsOutputIntensity": "Интензитет излаза",
-    "compressionSettingsAutoClarityBypass": "Аутоматско заобилажење јасности",
     "compressionEffectivePipeline": "Ефективни пајплајн:",
     "compressionDerivedOff": "искључено",
     "compressionDerivedRuns": "покреће: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "Шта GET /v1/models приказује за овај кључ. Сужавање листе никада не мења шта кључ може да позове.",
     "catalogScopeAll": "Оба",
     "catalogScopeCombos": "Само комбинације",
-    "catalogScopeModels": "Само модели"
+    "catalogScopeModels": "Само модели",
+    "resilienceTokenRefreshTitle": "Прекидач освежавања токена",
+    "resilienceTokenRefreshDesc": "Зауставља поновљене покушаје освежавања токена после више неуспеха. Обим per-connection изолира један мртви налог, тако да здрави налози код истог провајдера настављају да се освежавају.",
+    "resilienceTokenRefreshScope": "Покушаји освежавања токена за једног провајдера",
+    "resilienceTokenRefreshTrigger": "Узастопни неуспели покушаји освежавања",
+    "resilienceTokenRefreshEffect": "Привремено заустава покушаје освежавања током периода хлађења",
+    "resilienceTokenRefreshScopeLabel": "Област",
+    "resilienceTokenRefreshScopeProvider": "Провајдер (сви налогови деле један прекидач)",
+    "resilienceTokenRefreshScopeConnection": "Веза (сваки налог има свој прекидач)",
+    "resilienceTokenRefreshThreshold": "Неуспеси пре паузирања",
+    "resilienceTokenRefreshCooldown": "Пауза после активирања"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -8544,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Учитавање…",
     "loadFailed": "Учитавање информација о енџину није успело.",
+    "settingsLoadFailed": "Учитавање сачуваних подешавања није успело. Поља приказују подразумеване вредности, а дугме Сачувај остаје онемогућено док се страница поново не учита.",
     "engineNotFound": "Енџин „{engine}“ није пронађен.",
     "saveFailed": "Чување конфигурације није успело.",
     "previewFailed": "Преглед није успео.",
@@ -8638,9 +8667,6 @@
       "minRows": {
         "label": "Минималан број редова за компакцију",
         "description": "Минималан број редова у хомогеном JSON низу потребан за покретање табеларне компакције. Подразумевано: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Очувај системски промпт"
       },
       "summarizerEnabled": {
         "label": "Активирај сумаризатор"
@@ -9029,12 +9055,7 @@
     "tooltipMinLength": "Поруке краће од овога се не компримују. Мање = више компресије.",
     "tooltipMinSavings": "Компримуј само ако се уштеди бар оволико токена.",
     "ultraSettings": "Ултра подешавања",
-    "ultraSettingsDesc": "Семантичка компресија коју покреће SLM",
-    "preview": {
-      "lite": "Одговарај сажето. Сачувај техничке термине, код, грешке, URL адресе и идентификаторе.",
-      "full": "Одговарај кратко и сажето. Задржи сву техничку суштину.",
-      "ultra": "Одговарај изузетно кратко уз уобичајене техничке скраћенице. Задржи тачне симболе."
-    }
+    "ultraSettingsDesc": "Семантичка компресија коју покреће SLM"
   },
   "translator": {
     "title": "Преводилац",
@@ -9653,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "нпр. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "нпр. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderExact": "Налепите тачан очекивани одговор",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "нпр. ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "нпр. ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "Користите JavaScript регуларни израз без косих црта на почетку и крају.",
     "suiteBuilderNamePlaceholder": "нпр. Комплет за квалитет кода",
     "suiteBuilderAddCase": "Додај случај",
@@ -10862,7 +10883,7 @@
     "grokAuthJsonDescription": "Налепите ЦЕО садржај фајла ~/.grok/auth.json (не само поље „key“ JWT-а). Обичан JWT нема refresh_token, тако да веза престаје да функционише након истека (#7610). Ако је доступан, дајте предност посебном модалном прозору за увоз auth.json.",
     "devinDesktopPasteDescription": "Налепите постојећи Devin API кључ из аутентификоване Devin сесије. Доступност извоза кључа и кораци се разликују у зависности од верзије Devin-а и налога.",
     "devinPasteDescription": "Наведите свој WINDSURF_API_KEY (добијен путем `devin auth login`, или преко наредбе „Windsurf: Provide Auth Token“ у Windsurf IDE-у).",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "Grok Build auth.json",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "API кључ / токен",
@@ -10875,7 +10896,10 @@
     "gitlabDuoSetupTitle": "Подешавање GitLab Duo OAuth-а",
     "gitlabDuoSetupMessage": "GitLab Duo OAuth није подешен. Региструјте OAuth апликацију на {applicationsUrl} са redirect URI {redirectUri} и обимима „{scopes}“, затим подесите {clientIdEnv} (и опционо {clientSecretEnv}) и поново покрените.",
     "gitlabDuoSetupDescription": "Након што апликација буде регистрована и променљиве окружења подешене на овој OmniRoute инстанци, кликните на Настави да покренете OAuth пријаву.",
-    "continue": "Настави"
+    "continue": "Настави",
+    "tabPasteSetupToken": "Токен за подешавање",
+    "claudeSetupTokenDescription": "Покрените `claude setup-token` у терминалу и налепите токен који испише. Важи годину дана и нема токен за освежавање. OmniRoute шаље један тестни захтев Anthropic-у пре него што га сачува.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Повежи Cursor",
@@ -11073,6 +11097,7 @@
     "poolEgressFailuresUnattributed": "Неуспеси без приписаног излаза: {count}",
     "poolMemberEgress": "{host}:{port} је излазио преко {egressIp} · последњих {hours} ч",
     "poolMemberEgressEmpty": "{host}:{port}: није забележен саобраћај у последњих {hours} ч",
+    "poolMemberEgressOperator": "{host}:{port} оставио кроз {egressIp} · предостављено оператором, {date}",
     "poolMemberEgressHint": "Последња излазна IP адреса забележена преко овог члана скупа током датог периода, прочитана из евиденције проксија. За члана без саобраћаја у том периоду приказује се порука да нема саобраћаја.",
     "poolRemove": "Уклони",
     "poolRemoveFailed": "Уклањање проксија из групе није успело",
@@ -11086,6 +11111,7 @@
     "poolSetAsideKindProxyUnreachable": "прокси недоступан",
     "poolSetAsideKindIpQuota429": "ограничење брзине по IP адреси (429)",
     "poolSetAsideKindSlow": "спори одговори",
+    "poolSetAsideKindGeoBlocked": "regionalno blokirano (403/451)",
     "poolSetAsideUntil": "Назад у ротацији {endsAt}",
     "poolSetAsideRepeat": "По страни {count, plural, one {# пут} other {# пута}}",
     "poolUnknownAddress": "Непозната адреса",
@@ -11094,10 +11120,15 @@
     "poolSignalPosition": "Редослед позиција",
     "poolHealthRankingOff": "Рангирање здравља искључено",
     "transportRate": "{rate} % преноса",
+    "slowAbandoned": "{count} sporih napuštanja",
+    "clientAborted": "{count} odustajanja klijenta",
+    "slowAbandonedHint": "Napusteno nakon praga čekanja zaglavlja, izuzeto iz transportne stope",
     "previousSuccessRate": "Раније {rate} % успеха",
-    "upstreamRefusals": "{count} upstream одбијања",
     "connectionTestsCount": "{count} тестова везе",
-    "notMeasured": "Није мерено"
+    "notMeasured": "Није мерено",
+    "upstream4xx": "{count} grešaka klijenta na upstream-u",
+    "upstream5xx": "{count} grešaka servera na upstream-u",
+    "uniformEgressLine": "{affected} od {exits} izlaza padaju zajedno na {provider} (poslednjih {hours} сати) — nije problem izlaza"
   },
   "playground": {
     "title": "Окружење за тестирање модела",
@@ -12871,7 +12902,10 @@
     "inheritedPool": "Наслеђује базен веза ({count})",
     "poolEmptyBlocked": "Базен празан — захтеви не успевају (не директно)",
     "directEgress": "Директно (без проксија)",
-    "ownProxy": "Сопствени прокси"
+    "ownProxy": "Сопствени прокси",
+    "freeTierPause": "Модел {model} паузиран (429), назад у {time}",
+    "freeTierPauseProvider": "Паузирано (429), назад у {time}",
+    "freeTierPauseNote": "Пауза у процесу на овој инстанци"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13053,8 +13087,8 @@
     "dbOverrideCount": "{count} прегажених вредности у DB",
     "searchPlaceholder": "Претражите ознаке...",
     "descriptionModeLabel": "Приказ описа",
-    "descriptionModeHint": "При преласку курсором: картице остају сажете, а прелазак курсором преко описа приказује цео текст. Цео текст: увек приказује комплетан опис.",
-    "descriptionModeHover": "При преласку курсором",
+    "descriptionModeHint": "При лежењу миша: картице остају мале, а лежење миша над описом приказује цео текст. Цео текст: увек прикажи комплетан опис.",
+    "descriptionModeHover": "При лежењу миша",
     "descriptionModeFull": "Цео текст",
     "categories": {
       "all": "Све",
@@ -13683,7 +13717,7 @@
     "secondaryNote": "Такође доступно на Open VSX (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "Одбаци"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Оглашава mirror ID-еве <gateway-alias>/<model> на /v1/models за моделе чији канонски власник нема активан акредитив, али их passthrough gateway са активним акредитивом усмерава. Упозорење: када је глобално омогућено, додаје ставке у каталог за све клијенте.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Оглашава mirror ID-еве '<gateway-alias>'/'<model>' на /v1/models за моделе чији канонски власник нема активан акредитив, али их passthrough gateway са активним акредитивом усмерава. Упозорење: када је глобално омогућено, додаје ставке у каталог за све клијенте.",
   "radarPage": {
     "title": "Radar каталог",
     "subtitle": "Бесплатан каталог модела обогаћен сазнањима заједнице",

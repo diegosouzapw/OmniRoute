@@ -174,6 +174,7 @@ export default function NoAuthProviderControls({
 
   return (
     <NoAuthProviderCard
+      providerId={providerId}
       enabled={enabled}
       saving={savingEnabled}
       onEnabledChange={handleEnabledChange}

@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Proxy குளங்களும் opencode-இன் ஒவ்வொரு கணக்கிற்குமான சுழற்சியும், இப்போது தோல்வியடைந்த ஒரு proxy-ஐ (மறுக்கப்பட்ட TCP ஆய்வு அல்லது அதன் வழியாகப் பெறப்பட்ட 429) ஒவ்வொரு செயல்முறைக்கும் உரிய ஒரு காலகட்டத்திற்கு மீண்டும் வழங்குவதை நிறுத்தும்; ஒவ்வொரு தொடர் தோல்வியின்போதும் அந்தக் காலகட்டம் இரட்டிப்பாகி, அதிகபட்ச வரம்பு வரை செல்லும். எந்த proxy நிலையும் எழுதப்படாது; ஒவ்வொரு தேர்வுக்குரியதும் ஒதுக்கி வைக்கப்பட்டால், தேர்வு மாறாமல் இருக்கும். இயல்பாக இயக்கப்பட்டிருக்கும்; `false` சாதாரண தேர்வை மீட்டமைக்கும்.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "egress முகவரியின்படி ஒதுக்கீடு பிரிக்கப்படும் வழங்குநர்களுக்கு, சமீபத்தில் மறுக்கப்பட்ட உறுப்பினரின் கவனிக்கப்பட்ட egress முகவரியைப் பகிரும் pool உறுப்பினரை ஆரோக்கியமான உறுப்பினர்களுக்கு நேர் கீழே வைக்கிறது. வரிசை மட்டுமே, ஒருபோதும் விலக்கப்படாது. அது படிக்கும் மறுப்பு சமிக்ஞையை உருவாக்கும் PROXY_SKIP_RECENTLY_FAILED தேவை. இயல்பாக முடக்கம்: தேர்வு வரிசை சரியாக சாதாரண சுழற்சியே.",
   "featureFlagProxyPoolEgressObservationDescription": "டாஷ்போர்டில் ஒரு proxy குளத்தின் கீழ், கடந்த 24 மணிநேரத்தில் அதன் உறுப்பினர்களுக்குச் சேவையளித்த கண்டறியப்பட்ட வெளியேற்ற IP-களின் எண்ணிக்கை, அவற்றைப் பயன்படுத்திய இணைப்புகளின் எண்ணிக்கை மற்றும் ஓர் IP-க்குப் பின்னால் காணப்பட்ட அதிகபட்ச இணைப்புகளின் எண்ணிக்கை ஆகியவற்றைக் காட்டும். படிக்க மட்டும்; proxy பதிவிலிருந்து கணக்கிடப்படும்; வழித்தடத் தேர்வுக்கு ஒருபோதும் பயன்படுத்தப்படாது. இயல்பாக முடக்கப்பட்டிருக்கும்: குளத் திருத்தி மாறாமல் இருக்கும், மேலும் கண்காணிப்பு வழித்தடம் null எனப் பதிலளிக்கும்.",
+  "featureFlagProxyOperatorEgressDescription": "பூல் உறுப்பினருக்கு ஆபரேட்டர் புஷ் செய்த தேதியுடன் காணப்பட்ட முகவரிகளை ஏற்றுக்கொண்டு, அவற்றை ஜர்னல் வாசிப்புடன் இணைத்து காட்சியாகவும் பூல் வரிசையாகவும் காட்டவும். இயல்பாக முடக்கப்பட்டுள்ளது: புஷ் பாதை 404 பதிலை வழங்கும், மேலும் பூல் வாசிப்புகள் முன்பு போலவே நடைபெறும்.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Proxy ஆரோக்கியச் சோதனையில், இலக்கு மறுத்த ஓர் ஆய்வு (401/403/429: proxy அதை அனுப்பியது, ஆனால் இலக்கு இந்த வெளியேற்ற IP-ஐ மறுத்தது), சேவையளிக்கப்பட்ட ஆய்வைப் போலவே proxy-இன் தொடர்ச்சியான தோல்வி வரிசையை மீட்டமைக்க அனுமதிக்கும். இயல்பாக முடக்கப்பட்டிருக்கும்: ஒரு மறுப்பு நடுநிலையாகவே இருந்து, தோல்வி வரிசையைத் தொடர வைத்திருக்கும். எந்த நிலையிலும் 5xx தீர்மானிக்க முடியாததாகவே இருக்கும்; மேலும் ஒரு மறுப்பு ஒருபோதும் proxy-ஐ அகற்றவோ, முடக்கவோ அல்லது மீண்டும் செயல்படுத்தவோ செய்யாது.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "OMNIROUTE_BATCH_RETENTION_DAYS-ஐ விடப் பழைய, இறுதி நிலையை அடைந்த (completed/failed/cancelled/expired) Batch API பணிகளையும், அவற்றின் ஒவ்வொரு வரிக்குமான checkpoints-ஐயும் தானியங்குச் சுத்தப்படுத்தல் நீக்க அனுமதிக்கவும்; மேலும், தங்களின் expires_at-ஐக் கடந்த பதிவேற்றப்பட்ட கோப்புகளின் BLOB உள்ளடக்கத்தை அழிக்கவும். இயல்பாக முடக்கப்பட்டுள்ளது: ஒரு நிர்வாகி இதைத் தேர்வுசெய்து இயக்கும் வரை, ஏற்கனவே உள்ள ஒவ்வொரு நிறுவலும் இந்தத் தரவை முன்பு போலவே வைத்திருக்கும். நிர்வாகியால் தூண்டப்படும் DELETE /api/v1/batches/delete-completed வழித்தடம் எந்த நிலையிலும் பாதிக்கப்படாது — அது ஒரு தனியான, நிபந்தனையற்ற பொது API ஒப்பந்தமாகும்.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "நிலையான static seed-ஐப் பயன்படுத்துவதற்குப் பதிலாக, OAuth bearer token-ஐப் பயன்படுத்தி https://api.x.ai/v1/models இலிருந்து xai-oauth இணைப்புகளுக்கான நிகழ்நேர xAI மாதிரிப் பட்டியலைப் பெறவும். இயல்பாக முடக்கப்பட்டுள்ளது: xai-oauth மாற்றமின்றி static seed-ஐத் தொடர்ந்து வழங்கும். தீர்மானிப்பதில் ஏதேனும் பிழை ஏற்பட்டால், கண்டறிதல் seed-ஐ மாற்றாகப் பயன்படுத்தும்.",
@@ -5692,7 +5693,7 @@
     "claudeImportBulkModePaste": "JSON வரிசையை ஒட்டவும்",
     "claudeImportBulkModeZip": "ஜிப் பதிவேற்றவும்",
     "claudeImportBulkUploadHint": "50 .credentials.json கோப்புகளை (ஒவ்வொன்றும் 256KB, மொத்தம் 10MB) கைவிடவும் அல்லது எடுக்கவும்.",
-    "claudeImportBulkPasteHint": "பொருள்களின் வரிசையை ஒட்டவும்: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "பொருள்களின் வரிசையை ஒட்டவும்: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": ".json உள்ளீடுகளைக் கொண்ட ZIP. அதிகபட்சம் 50 உள்ளீடுகள், 10எம்பி திறக்கப்படவில்லை.",
     "claudeImportBulkSubmit": "அனைத்தையும் இறக்குமதி செய்",
     "claudeImportBulkSuccess": "{count} கிளாட் இணைப்புகள் இறக்குமதி செய்யப்பட்டன",
@@ -5724,7 +5725,7 @@
     "geminiImportBulkModePaste": "JSON வரிசையை ஒட்டவும்",
     "geminiImportBulkModeZip": "ஜிப் பதிவேற்றவும்",
     "geminiImportBulkUploadHint": "50 oauth_creds.json கோப்புகளை (ஒவ்வொன்றும் 256KB, மொத்தம் 10MB) கைவிடவும் அல்லது எடுக்கவும்.",
-    "geminiImportBulkPasteHint": "பொருள்களின் வரிசையை ஒட்டவும்: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "பொருள்களின் வரிசையை ஒட்டவும்: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "oauth_creds.json உள்ளீடுகளைக் கொண்ட ZIP. அதிகபட்சம் 50 உள்ளீடுகள், 10எம்பி திறக்கப்படவில்லை.",
     "geminiImportBulkSubmit": "அனைத்தையும் இறக்குமதி செய்",
     "geminiImportBulkSuccess": "{count} ஜெமினி இணைப்புகள் இறக்குமதி செய்யப்பட்டன",
@@ -5773,7 +5774,7 @@
     "codexImportBulkModePaste": "பட்டியலை ஒட்டவும்",
     "codexImportBulkModeZip": "ZIP காப்பகம்",
     "codexImportBulkUploadHint": "பல .json கோப்புகளைத் தேர்ந்தெடுக்கவும் அல்லது இழுத்து விடவும்",
-    "codexImportBulkPasteHint": "JSON வரிசை [ {...}, {...} ] அல்லது பல JSONகளால் பிரிக்கப்பட்ட --- அதன் சொந்த வரியில்",
+    "codexImportBulkPasteHint": "JSON வரிசை [ '{...}', '{...}' ] அல்லது பல JSONகளால் பிரிக்கப்பட்ட --- அதன் சொந்த வரியில்",
     "codexImportBulkZipHint": "auth.json கோப்புகளைக் கொண்ட .zip ஐப் பதிவேற்றவும் (அதிகபட்சம் 50 கோப்புகள், 10 MB)",
     "codexImportBulkSubmit": "{count} கணக்குகளை இறக்குமதி செய்யவும்",
     "codexImportBulkLimit": "ஒரு இறக்குமதிக்கு அதிகபட்சம் 50 கோப்புகள்",
@@ -6011,7 +6012,7 @@
     "validationModelIdPlaceholder": "எ.கா. meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "API Key அல்லது Service Account JSON",
     "vertexCredentialHint": "API keys, தேர்ந்தெடுக்கப்பட்ட project catalog-ஐப் பயன்படுத்துகின்றன. Service Account JSON, நேரடி Model Garden கண்டறிதலைச் செயல்படுத்துகிறது.",
-    "vertexServiceAccountPlaceholder": "API key, Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) அல்லது OAuth access token-ஐ ஒட்டவும்",
+    "vertexServiceAccountPlaceholder": "API key, Service Account JSON ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') அல்லது OAuth access token-ஐ ஒட்டவும்",
     "webCookieProviders": "வலைக் குக்கி வழங்குநர்கள்",
     "weeklyShort": "வாராந்திரச் சுருக்கம்",
     "xiaomiMimoBaseUrlHint": "Xiaomi Mimo அடிப்படை URL குறிப்பு",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "உள்ளூர் proxy-core எண்ட்பாயிண்ட் செல்லாதது; SS/VMess/Trojan/VLESS முனைகள் புறக்கணிக்கப்பட்டன.",
         "NEEDS_CORE_NOT_CONFIGURED": "இந்த சந்தாவில் உள்ளூர் proxy core (SS/VMess/Trojan/VLESS) தேவைப்படும் முனைகள் உள்ளன; நீங்கள் local-core SOCKS5 எண்ட்பாயிண்ட்டை உள்ளமைக்கும் வரை அவை வழிநடத்தப்படாது.",
         "NO_USABLE_NODES": "சந்தா பயன்படுத்தக்கூடிய முனைகள் எதையும் வழங்கவில்லை (http/https/socks5 அல்லது உள்ளூர் core எண்ட்பாயிண்ட் கொண்ட முனைகள்).",
-        "SELECTOR_SWITCH_FAILED": "ப்ராக்ஸி-கோர் கட்டுப்பாட்டு அழைப்பு தோல்வியடைந்தது; முந்தைய வழி செயலில் உள்ளது. கட்டுப்பாட்டு URL மற்றும் ரகசியத்தைச் சரிபார்த்துப் புதுப்பிக்கவும்."
+        "SELECTOR_SWITCH_FAILED": "ப்ராக்ஸி-கோர் கட்டுப்பாட்டு அழைப்பு தோல்வியடைந்தது; முந்தைய வழி செயலில் உள்ளது. கட்டுப்பாட்டு URL மற்றும் ரகசியத்தைச் சரிபார்த்துப் புதுப்பிக்கவும்.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "உருவாக்கப்பட்ட மூல கட்டமைப்பு ஏற்றுக்கொள்ளப்பட்ட கோப்பை மாற்ற இயலவில்லை; அதற்குப் பதிலாக அருகிலுள்ள நகலே வைக்கப்பட்டது.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "உருவாக்கத்தின் போது சில உள்ளீடுகள் தவிர்க்கப்பட்டன. சேவையக பதிவைப் பாருங்கள்."
       },
       "description": "உங்கள் ப்ராக்ஸி சந்தா இணைப்பை ஒட்டவும். இயக்கப்பட்டதும், உலகளாவிய அல்லது விதி (குறிப்பிடப்பட்ட வழங்குநர்) பயன்முறையில் ப்ராக்ஸி பூல் மூலம் போக்குவரத்து அனுப்பப்படும். சந்தா முனைகள் தானாகவே ப்ராக்ஸி குளத்தில் ஒத்திசைக்கப்படும் மற்றும் ஏற்கனவே உள்ள வாக்குப்பதிவு, சுகாதார சோதனை மற்றும் கசிவு எதிர்ப்பு வழிமுறைகளை மீண்டும் பயன்படுத்துகின்றன.",
       "addSubscription": "சந்தாவைச் சேர்க்கவும்",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "இன்னும் மாற்றம் பதிவாகவில்லை",
       "lastSwitchMember": "சேவை செய்யும் உறுப்பினர்",
       "nextSwitch": "அடுத்த சாத்தியமான மாற்றம்",
-      "nextSwitchNow": "இப்போது"
+      "nextSwitchNow": "இப்போது",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "மூல பைனரி பாதை",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "விருப்பம்: ஏற்றுக்கொள்ளப்பட்ட கோப்பை மாற்றுவதற்கு முன், உருவாக்கப்பட்ட கோப்பை மூல பைனரியுடன் சரிபார்க்கிறது. அருகிலேயே எழுதுவதைத் தொடர, காலியாக விடவும். இல்லாவிட்டால் கோப்புறை உருவாக்கப்படும்."
     },
     "bulkHealthcheck": "தொகுதி செயல்நிலைச் சோதனை",
     "bulkHealthcheckDesc": "இலக்கு URL-க்கு எதிராக உள்ளமைக்கப்பட்ட அனைத்து ப்ராக்ஸிகளையும் சோதித்து, செயல்படுபவற்றைக் கண்டறியவும்.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP விளக்கம் சுருக்கம்",
     "mcpAccessibilityTitle": "MCP அணுகல்தன்மை வெளியீடு",
     "compressionSettingsCavemanIntensity": "கேவ்மேன் தீவிரம்",
-    "compressionSettingsCavemanOutputMode": "கேவ்மேன் வெளியீட்டு முறை",
     "compressionSettingsOutputStyles": "வெளியீட்டு பாணிகள்",
     "compressionStylesTileTitle": "வெளியீட்டு பாணிகள்",
     "compressionSettingsOutputIntensity": "வெளியீட்டு தீவிரம்",
-    "compressionSettingsAutoClarityBypass": "தானியங்கு தெளிவு பைபாஸ்",
     "compressionEffectivePipeline": "செயல்திறன்மிக்க பைப்லைன்:",
     "compressionDerivedOff": "ஆஃப்",
     "compressionDerivedRuns": "இயக்கங்கள்: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "இந்த விசைக்காக GET /v1/models எவற்றை அறிவிக்கிறது. பட்டியலைக் குறைப்பது, இந்த விசை எவற்றை அழைக்க முடியும் என்பதை ஒருபோதும் மாற்றாது.",
     "catalogScopeAll": "இரண்டும்",
     "catalogScopeCombos": "சேர்க்கைகள் மட்டும்",
-    "catalogScopeModels": "மாதிரிகள் மட்டும்"
+    "catalogScopeModels": "மாதிரிகள் மட்டும்",
+    "resilienceTokenRefreshTitle": "டோக்கன் புதுப்பிப்பு பிரேக்கர்",
+    "resilienceTokenRefreshDesc": "தொடர் தோல்விகளுக்குப் பிறகு டோக்கன் புதுப்பித்தலை முயற்சிப்பதை நிறுத்துகிறது. ஒரு இணைப்பு அளவில் பிரித்தல் ஒரு இறந்த கணக்கைத் தனிமைப்படுத்துகிறது, அதே வழங்குநரில் ஆரோக்கியமான கணக்குகள் தொடர்ந்து புதுப்பிக்கப்படும்.",
+    "resilienceTokenRefreshScope": "ஒரு வழங்குநருக்கான டோக்கன் புதுப்பிப்பு முயற்சிகள்",
+    "resilienceTokenRefreshTrigger": "தொடர்ச்சியான தோல்வியுற்ற புதுப்பிப்பு முயற்சிகள்",
+    "resilienceTokenRefreshEffect": "மீள்விசை கால அளவை மீட்டமைக்கும் முயற்சிகளை குளிர்கால அளவில் இடைநிறுத்துகிறது",
+    "resilienceTokenRefreshScopeLabel": "அளவிடை",
+    "resilienceTokenRefreshScopeProvider": "வழங்குநர் (அனைத்து கணக்குகளும் ஒரே பிரேக்கரைப் பகிர்ந்துகொள்கின்றன)",
+    "resilienceTokenRefreshScopeConnection": "இணைப்பு (ஒவ்வொரு கணக்கிற்கும் தனி பிரேக்கர் உள்ளது)",
+    "resilienceTokenRefreshThreshold": "இடைநிறுத்துவதற்கு முன் தோல்விகள்",
+    "resilienceTokenRefreshCooldown": "தாவல் பின் இடைநிறுத்தம்"
   },
   "contextRtk": {
     "title": "RTK எஞ்சின்",
@@ -8544,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "ஏற்றுகிறது…",
     "loadFailed": "இன்ஜின் தகவலை ஏற்றுவதில் தோல்வி.",
+    "settingsLoadFailed": "சேமித்த அமைப்புகளை ஏற்ற முடியவில்லை. புலங்கள் இயல்புநிலை மதிப்புகளைக் காட்டுகின்றன, மேலும் பக்கம் மீண்டும் ஏற்றப்படும் வரை சேமி முடக்கப்பட்டிருக்கும்.",
     "engineNotFound": "இன்ஜின் \"{engine}\" காணப்படவில்லை.",
     "saveFailed": "கட்டமைப்பைச் சேமிப்பதில் தோல்வி.",
     "previewFailed": "முன்னோட்டம் தோல்வியடைந்தது.",
@@ -8638,9 +8667,6 @@
       "minRows": {
         "label": "சுருக்குவதற்கான குறைந்தபட்ச வரிசைகள்",
         "description": "அட்டவணை சுருக்கத்தைத் தூண்டுவதற்கு ஒரே மாதிரியான JSON வரிசையில் தேவைப்படும் குறைந்தபட்ச வரிசைகள். இயல்புநிலை: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "சிஸ்டம் பிராம்ப்ட்டைப் பாதுகாக்கவும்"
       },
       "summarizerEnabled": {
         "label": "சுருக்கியை இயக்கு"
@@ -9029,12 +9055,7 @@
     "tooltipMinLength": "இதை விட குறைவான செய்திகள் சுருக்கப்படாது. கீழ் = அதிக சுருக்கம்.",
     "tooltipMinSavings": "குறைந்தபட்சம் இத்தனை டோக்கன்களைச் சேமித்தால் மட்டுமே சுருக்கவும்.",
     "ultraSettings": "அல்ட்ரா அமைப்புகள்",
-    "ultraSettingsDesc": "SLM-இயங்கும் சொற்பொருள் சுருக்கம்",
-    "preview": {
-      "lite": "சுருக்கமாகப் பதிலளிக்கவும். தொழில்நுட்பச் சொற்கள், code, errors, URLs மற்றும் identifiers ஆகியவற்றை மாற்றாமல் வைத்திருக்கவும்.",
-      "full": "சுருக்கமாகவும் செறிவாகவும் பதிலளிக்கவும். அனைத்து தொழில்நுட்ப உள்ளடக்கத்தையும் பாதுகாக்கவும்.",
-      "ultra": "பொதுவான தொழில்நுட்பச் சுருக்கங்களைப் பயன்படுத்தி மிகச் சுருக்கமாகப் பதிலளிக்கவும். துல்லியமான குறியீடுகளைப் பாதுகாக்கவும்."
-    }
+    "ultraSettingsDesc": "SLM-இயங்கும் சொற்பொருள் சுருக்கம்"
   },
   "translator": {
     "title": "மொழிபெயர்ப்பி",
@@ -9653,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "எ.கா. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "எ.கா. டெஃப் ஃபைபோனச்சி",
     "suiteBuilderCaseExpectedPlaceholderExact": "எதிர்பார்க்கப்படும் சரியான பதிலை ஒட்டவும்",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "எ.கா. ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "எ.கா. ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "ஜாவாஸ்கிரிப்ட் ரெகுலர் எக்ஸ்ப்ரெஷனைப் பயன்படுத்தவும்.",
     "suiteBuilderNamePlaceholder": "எ.கா. குறியீட்டுத் தரத் தொகுப்பு",
     "suiteBuilderAddCase": "சோதனை நிகழ்வைச் சேர்",
@@ -10862,7 +10883,7 @@
     "grokAuthJsonDescription": "~/.grok/auth.json இன் முழு உள்ளடக்கத்தை ஒட்டவும் (JWT \"key\" புலத்தை மட்டும் அல்ல). ஒரு அடிப்படை JWT இல் refresh_token இல்லை, எனவே காலாவதியான பிறகு இணைப்பு இறக்கிறது (#7610). கிடைக்கும்போது, குறிப்பிட்ட Import auth.json மொடல் பயன்படுத்தவும்.",
     "devinDesktopPasteDescription": "ஒரு அங்கீகாரம் பெற்ற Devin அமர்வில் இருந்து உள்ள ஒரு Devin API விசையை ஒட்டவும். விசை ஏற்றுமதி கிடைக்கும் மற்றும் படிகள் Devin பதிப்பு மற்றும் கணக்கினால் மாறுபடுகின்றன.",
     "devinPasteDescription": "உங்கள் WINDSURF_API_KEY ஐ வழங்கவும் (இது `devin auth login` மூலம் பெறப்பட்டது, அல்லது Windsurf IDE இல் \"Windsurf: Provide Auth Token\" கட்டளையின் மூலம்).",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "Grok Build auth.json",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "API விசை / டோக்கன்",
@@ -10875,7 +10896,10 @@
     "gitlabDuoSetupTitle": "GitLab Duo OAuth அமைப்பு",
     "gitlabDuoSetupMessage": "GitLab Duo OAuth அமைக்கப்படவில்லை. {applicationsUrl} இல் ஒரு OAuth பயன்பாட்டை பதிவு செய்யவும், மறுபடியும் URI {redirectUri} மற்றும் அளவைகள் \"{scopes}\" உடன், பின்னர் {clientIdEnv} (மற்றும் விருப்பமாக {clientSecretEnv}) ஐ அமைத்து மீண்டும் தொடங்கவும்.",
     "gitlabDuoSetupDescription": "அப்ப்ளிகேஷன் பதிவு செய்யப்பட்ட பிறகு மற்றும் இந்த OmniRoute instance இல் env vars அமைக்கப்பட்ட பிறகு, OAuth உள்நுழைவுக்கு தொடங்க Continue ஐ கிளிக் செய்யவும்.",
-    "continue": "தொடர்ந்து"
+    "continue": "தொடர்ந்து",
+    "tabPasteSetupToken": "அமைவு டோக்கன்",
+    "claudeSetupTokenDescription": "டெர்மினலில் `claude setup-token` ஐ இயக்கி, அது அச்சிடும் டோக்கனை ஒட்டவும். இது ஒரு வருடத்திற்குச் செல்லுபடியாகும், புதுப்பிப்பு டோக்கன் இல்லை. சேமிப்பதற்கு முன் OmniRoute Anthropic-க்கு ஒரு சோதனைக் கோரிக்கையை அனுப்புகிறது.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Connect Cursor IDE",
@@ -11073,6 +11097,7 @@
     "poolEgressFailuresUnattributed": "ஒதுக்கப்பட்ட வெளியேற்றம் இல்லாத தோல்விகள்: {count}",
     "poolMemberEgress": "{host}:{port} இலிருந்து {egressIp} வழியாக வெளியேறியது · கடந்த {hours} மணி",
     "poolMemberEgressEmpty": "{host}:{port}: கடந்த {hours} மணிநேரத்தில் போக்குவரத்து எதுவும் காணப்படவில்லை",
+    "poolMemberEgressOperator": "{host}:{port} {egressIp} வழியாக வெளியேற்றப்பட்டது · ஆபரேட்டர் வழங்கியது, {date}",
     "poolMemberEgressHint": "இந்தக் கால இடைவெளியில் இந்தப் பூல் உறுப்பினர் வழியாகக் கடைசியாகக் காணப்பட்ட வெளியேற்ற IP, ப்ராக்ஸி பதிவிலிருந்து வாசிக்கப்பட்டது. இந்த இடைவெளியில் போக்குவரத்து இல்லாத உறுப்பினருக்கு போக்குவரத்து இல்லை என்ற வரி காட்டப்படும்.",
     "poolRemove": "அகற்று",
     "poolRemoveFailed": "தொகுப்பிலிருந்து proxy-ஐ அகற்றுவது தோல்வியடைந்தது",
@@ -11086,6 +11111,7 @@
     "poolSetAsideKindProxyUnreachable": "ப்ராக்ஸியை அணுக முடியவில்லை",
     "poolSetAsideKindIpQuota429": "IP விகித வரம்பு (429)",
     "poolSetAsideKindSlow": "மெதுவான பதில்கள்",
+    "poolSetAsideKindGeoBlocked": "பகுதி தடைசெய்யப்பட்டது (403/451)",
     "poolSetAsideUntil": "சுழற்சிக்கு திரும்பு {endsAt}",
     "poolSetAsideRepeat": "ஒதுக்கி வைக்கப்பட்டது {count, plural, one {# முறை} other {# முறை}}",
     "poolUnknownAddress": "தெரியாத முகவரி",
@@ -11094,10 +11120,15 @@
     "poolSignalPosition": "நிலை வரிசை",
     "poolHealthRankingOff": "சுகாதார தரவரிசை நிறுத்தம்",
     "transportRate": "{rate}% போக்குவரத்து",
+    "slowAbandoned": "{count} மெதுவான கைவிடல்கள்",
+    "clientAborted": "{count} வாடிக்கையாளர் நிறுத்தங்கள்",
+    "slowAbandonedHint": "தலைப்புகள் காத்திருப்பு வரம்புக்குப் பிறகு கைவிடப்பட்டது, போக்குவரத்து விகிதத்தில் இருந்து நீக்கப்பட்டது",
     "previousSuccessRate": "முன்பு {rate}% வெற்றி",
-    "upstreamRefusals": "{count} அப்ஸ்ட்ரீம் மறுப்புகள்",
     "connectionTestsCount": "{count} இணைப்பு சோதனைகள்",
-    "notMeasured": "அளவிடப்படவில்லை"
+    "notMeasured": "அளவிடப்படவில்லை",
+    "upstream4xx": "{count} மேல்நிலை கிளையண்ட் பிழைகள்",
+    "upstream5xx": "{count} மேல்நிலை சர்வர் பிழைகள்",
+    "uniformEgressLine": "{provider} இல் {exits} வெளியேற்றங்களில் {affected} ஒன்றாகத் தோல்வியடைகின்றன (கடந்த {hours} மணிநேரம்) — வெளியேற்றப் பிரச்சினை அல்ல"
   },
   "playground": {
     "title": "மாதிரி சோதனைக்களம்",
@@ -12871,7 +12902,10 @@
     "inheritedPool": "இணைப்பு தொகுப்பு மரபுரிமை ({count})",
     "poolEmptyBlocked": "தொகுப்பு காலி — கோரிக்கைகள் தோல்வி (நேரடி அல்ல)",
     "directEgress": "நேரடி (ப்ராக்ஸி இல்லை)",
-    "ownProxy": "சொந்த ப்ராக்ஸி"
+    "ownProxy": "சொந்த ப்ராக்ஸி",
+    "freeTierPause": "மாதிரி {model} இடைநிறுத்தப்பட்டது (429), {time} அன்று மீண்டும்",
+    "freeTierPauseProvider": "இடைநிறுத்தப்பட்டது (429), {time} அன்று மீண்டும்",
+    "freeTierPauseNote": "இந்த நிகழ்வில் செயல்முறை இடையே இடைநிறுத்தம்"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13052,9 +13086,9 @@
     "inactiveCount": "{count} செயலற்றது",
     "dbOverrideCount": "{count} DB மேலெழுதல்கள்",
     "searchPlaceholder": "கொடிகளைத் தேடுக...",
-    "descriptionModeLabel": "விளக்கக் காட்சி",
-    "descriptionModeHint": "சுட்டியை மேலே நகர்த்தும்போது: அட்டைகள் சுருக்கமாகவே இருக்கும்; விளக்கத்தின் மீது சுட்டியை நகர்த்தினால் முழு உரை காட்டப்படும். முழு உரை: எப்போதும் முழுமையான விளக்கத்தைக் காட்டு.",
-    "descriptionModeHover": "சுட்டியை மேலே நகர்த்தும்போது",
+    "descriptionModeLabel": "விளக்னக் காட்சி",
+    "descriptionModeHint": "வெல் மீது வரும்போது: அட்டைகள் சிறியதாகவே இருக்கும், மேலும் விளக்கத்தின் மீது வெல் செய்யும்போது முழு உரை காட்டப்படும். முழு உரை: முழு விளக்கத்தையும் எப்போதும் காட்டு.",
+    "descriptionModeHover": "வெல் மீது",
     "descriptionModeFull": "முழு உரை",
     "categories": {
       "all": "அனைத்தும்",
@@ -13683,7 +13717,7 @@
     "secondaryNote": "Open VSX (Cursor, Windsurf, VSCodium…) இலும் கிடைக்கிறது",
     "dismissAriaLabel": "நிராகரி"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "/gateway-alias/<model> மின்னூட்ட அடையாளங்களை /v1/models இல் விளம்பரம் செய்கிறது, அதன் கானோனிக்கல் உரிமையாளருக்கு செயல்பாட்டில் உள்ள சான்றிதழ் இல்லை ஆனால் ஒரு பாஸ்த்ரூ கேட்வே செயல்பாட்டில் உள்ள சான்றிதழ் அவற்றை வழிநடத்துகிறது. எச்சரிக்கை: உலகளாவியமாக செயல்படுத்தப்படும் போது அனைத்து கிளையன்டுகளுக்கான பட்டியல் பதிவுகளைச் சேர்க்கிறது.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "/gateway-alias/'<model>' மின்னூட்ட அடையாளங்களை /v1/models இல் விளம்பரம் செய்கிறது, அதன் கானோனிக்கல் உரிமையாளருக்கு செயல்பாட்டில் உள்ள சான்றிதழ் இல்லை ஆனால் ஒரு பாஸ்த்ரூ கேட்வே செயல்பாட்டில் உள்ள சான்றிதழ் அவற்றை வழிநடத்துகிறது. எச்சரிக்கை: உலகளாவியமாக செயல்படுத்தப்படும் போது அனைத்து கிளையன்டுகளுக்கான பட்டியல் பதிவுகளைச் சேர்க்கிறது.",
   "radarPage": {
     "title": "ரேடார் பட்டியல்",
     "subtitle": "சமூக அறிவியுடன் வளமான இலவச மாதிரி பட்டியல்",
