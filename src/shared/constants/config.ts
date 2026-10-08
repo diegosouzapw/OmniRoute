@@ -19,6 +19,7 @@ export const PROVIDER_ENDPOINTS = {
   "llm-kiwi": "https://api.llm.kiwi/v1/chat/completions",
   literouter: "https://api.literouter.com/v1/chat/completions",
   greenpt: "https://api.greenpt.ai/v1/chat/completions",
+  ainetcafe: "https://microquickjs.com/v1/chat/completions",
   eurouter: "https://api.eurouter.ai/v1/chat/completions",
   "y-api": "https://api.y-api.bestvirtualgoods.com/v1/chat/completions",
   "mnn-ai": "https://api.mnnai.ru/v1/chat/completions",

@@ -41,12 +41,15 @@
 // Muse Code device OAuth dual-auth moves `muse-code` from frontier-labs into
 // OAUTH_PROVIDERS (same pattern as clinepass/codebuddy-cn) — 242.
 // Retiring suno (#14224, 4af4937e) removes one specialty-media apikey entry — 241.
+// Measured live on origin/release/v3.8.52 after remarge: 242 family keys (constant
+// on that tip was still 241). ainetcafe (#13862, OpenAI-compatible gateway) adds
+// one apikey/gateways entry — 243.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
 const P = await import("../../src/shared/constants/providers.ts");
 
-const APIKEY_PROVIDER_COUNT = 241;
+const APIKEY_PROVIDER_COUNT = 243;
 
 test("barrel still exports every catalog + key helpers", () => {
   for (const name of [
@@ -75,6 +78,7 @@ test(`APIKEY_PROVIDERS merges the 6 family files into ${APIKEY_PROVIDER_COUNT} e
   const keys = Object.keys((P as Record<string, object>).APIKEY_PROVIDERS);
   assert.equal(keys.length, APIKEY_PROVIDER_COUNT);
   assert.equal(new Set(keys).size, APIKEY_PROVIDER_COUNT, "duplicate keys after spread-merge");
+  assert.ok(keys.includes("ainetcafe"), "ainetcafe must be in APIKEY_PROVIDERS");
   // the merged object's entry-count equals the sum of the 6 semantic family files; families are a
   // strict partition (every provider in exactly one), so the sum must be exactly APIKEY_PROVIDER_COUNT.
   const families: [string, string][] = [
@@ -101,6 +105,7 @@ test(`APIKEY_PROVIDERS merges the 6 family files into ${APIKEY_PROVIDER_COUNT} e
     APIKEY_PROVIDER_COUNT,
     `families must partition all ${APIKEY_PROVIDER_COUNT} providers`
   );
+  assert.ok(seen.has("ainetcafe"), "ainetcafe must live in a family file");
 });
 
 test("AI_PROVIDERS Proxy aggregates all sections; lookups resolve", () => {

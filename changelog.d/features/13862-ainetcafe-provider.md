@@ -1,0 +1,1 @@
+- **feat(providers):** Added ainetcafe as an OpenAI-compatible API-key provider (`https://microquickjs.com/v1`, Kimi K3 served from its own cluster), with live model discovery via `passthroughModels` ([#13862](https://github.com/diegosouzapw/OmniRoute/pull/13862)) — thanks @mario03690

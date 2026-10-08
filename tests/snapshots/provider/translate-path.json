@@ -252,6 +252,29 @@
       "stream": "https://api.ainative.studio/api/v1/chat/completions"
     }
   },
+  "ainetcafe": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://microquickjs.com/v1/chat/completions",
+      "stream": "https://microquickjs.com/v1/chat/completions"
+    }
+  },
   "aion": {
     "format": "openai",
     "headers": {
