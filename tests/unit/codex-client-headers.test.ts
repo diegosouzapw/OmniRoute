@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import { getCodexClientVersionFromHeaders } from "../../open-sse/config/codexClient.ts";
 import { CodexExecutor } from "../../open-sse/executors/codex.ts";
+import { DEFAULT_CODEX_CLIENT_VERSION } from "../../src/shared/constants/codexClient.ts";
 
 test("getCodexClientVersionFromHeaders: extracts the version from a real Codex CLI User-Agent", () => {
   assert.equal(
@@ -79,15 +80,15 @@ test("CodexExecutor.buildHeaders falls back to the default client version when c
   const executor = new CodexExecutor();
 
   const noHeaders = executor.buildHeaders({ accessToken: "codex-token" }, true);
-  assert.equal(noHeaders.Version, "0.153.4");
+  assert.equal(noHeaders.Version, DEFAULT_CODEX_CLIENT_VERSION);
 
   const emptyHeaders = executor.buildHeaders({ accessToken: "codex-token" }, true, {});
-  assert.equal(emptyHeaders.Version, "0.153.4");
+  assert.equal(emptyHeaders.Version, DEFAULT_CODEX_CLIENT_VERSION);
 
   const nonCodexUserAgent = executor.buildHeaders({ accessToken: "codex-token" }, true, {
     "user-agent": "curl/8.4.0",
   });
-  assert.equal(nonCodexUserAgent.Version, "0.153.4");
+  assert.equal(nonCodexUserAgent.Version, DEFAULT_CODEX_CLIENT_VERSION);
 });
 
 test("CodexExecutor.buildHeaders rejects injection attempts in the caller's version/User-Agent headers", () => {
@@ -96,13 +97,13 @@ test("CodexExecutor.buildHeaders rejects injection attempts in the caller's vers
   const crlfVersion = executor.buildHeaders({ accessToken: "codex-token" }, true, {
     version: "1.0.0\r\nX-Injected: evil",
   });
-  assert.equal(crlfVersion.Version, "0.153.4");
+  assert.equal(crlfVersion.Version, DEFAULT_CODEX_CLIENT_VERSION);
   assert.equal(crlfVersion["User-Agent"].includes("\r\n"), false);
 
   const overlongVersion = executor.buildHeaders({ accessToken: "codex-token" }, true, {
     version: "1.0.0-" + "a".repeat(30),
   });
-  assert.equal(overlongVersion.Version, "0.153.4");
+  assert.equal(overlongVersion.Version, DEFAULT_CODEX_CLIENT_VERSION);
 
   const injectedUserAgent = executor.buildHeaders({ accessToken: "codex-token" }, true, {
     "user-agent": "codex_cli_rs/1.0.0\r\nX-Evil: 1",

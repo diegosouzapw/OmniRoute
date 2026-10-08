@@ -1,7 +1,9 @@
 import { t } from "../i18n.mjs";
 import { emit } from "../output.mjs";
+import { writePrivateFileAtomic } from "../private-file.mjs";
 import {
   loadContexts,
+  loadContextsForExport,
   saveContextsSecure,
   deleteContextCredential,
   migrateContextCredentials,
@@ -245,16 +247,15 @@ export function registerContexts(program) {
     .command("export")
     .description("Export contexts to JSON")
     .option("--out <path>", "Output file path (default: stdout)")
-    .option("--no-secrets", "Omit API keys from export")
+    .option("--no-secrets", "Omit credentials from export (safe default)")
+    .option("--include-secrets", "Explicitly include plaintext credentials in the export")
     .action(async (opts, cmd) => {
-      const cfg = loadContexts();
-      // Commander stores `--no-secrets` as `secrets === false`, never as `noSecrets`.
-      const redact = opts.secrets === false || opts.noSecrets === true;
-      const out = redact ? redactContextSecrets(cfg) : JSON.parse(JSON.stringify(cfg));
+      const includeSecrets = opts.includeSecrets === true && opts.secrets !== false;
+      const cfg = await loadContextsForExport({ includeSecrets });
+      const out = includeSecrets ? cfg : redactContextSecrets(cfg);
       const json = JSON.stringify(out, null, 2);
       if (opts.out) {
-        const { writeFileSync } = await import("node:fs");
-        writeFileSync(opts.out, json);
+        writePrivateFileAtomic(opts.out, json);
         process.stdout.write(`Exported to ${opts.out}\n`);
       } else {
         process.stdout.write(json + "\n");

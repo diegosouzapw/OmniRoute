@@ -175,7 +175,6 @@ const KNOWN_SVGS = new Set([
   "sparkdesk",
   "stepfun",
   "sumopod",
-  "suno",
   "t3-web",
   "tavily",
   "tencent",

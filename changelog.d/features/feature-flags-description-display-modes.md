@@ -1,0 +1,1 @@
+- **feat(dashboard): add clamp/full description display modes to the feature-flags cards.** A persisted toggle in the Feature Flags grid toolbar (`localStorage`, hydration-safe) switches every card's description between `clamp` (2-line clamp + full text on hover, via a styled tooltip) and `full` (always expanded).

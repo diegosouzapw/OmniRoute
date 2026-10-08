@@ -10,7 +10,7 @@ const providers = await import("../../src/shared/constants/providers.ts");
 const featuredProviders =
   await import("../../src/app/(dashboard)/dashboard/providers/featuredProviders.ts");
 
-const KIMI_CODING_AFF_URL = "https://www.kimi.com/code?aff=omniroute";
+const KIMI_CODING_AFF_URL = "https://www.kimi.ai/code?aff=omniroute";
 const KIMI_PLATFORM_AFF_URL = "https://platform.kimi.ai?aff=omniroute";
 
 test("moonshot: id/alias/routing untouched, display name rebranded to 'Kimi'", () => {

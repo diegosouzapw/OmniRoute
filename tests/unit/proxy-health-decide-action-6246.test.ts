@@ -80,6 +80,46 @@ test("B: an inconclusive probe never penalizes (no count bump, no status change)
   assert.equal(d.clearFailures, false);
 });
 
+test("hang: counts exactly like fail — threshold behaviour identical, on and off", () => {
+  for (const managed of [
+    { autoRemove: false, autoDisable: false },
+    { autoRemove: true, autoDisable: false },
+    { autoRemove: false, autoDisable: true },
+  ]) {
+    for (const prior of [0, 2]) {
+      const hang = decideProxyHealthAction({
+        outcome: "hang",
+        priorFailures: prior,
+        removeAfter: 3,
+        ...managed,
+      });
+      const fail = decideProxyHealthAction({
+        outcome: "fail",
+        priorFailures: prior,
+        removeAfter: 3,
+        ...managed,
+      });
+      assert.deepEqual(hang, fail, `prior ${prior} managed ${JSON.stringify(managed)}`);
+    }
+  }
+});
+
+test("functional: an unproven 403 is classified without any status mutation", async () => {
+  const decision = await import("../../src/lib/proxyHealth/decision.ts");
+  // The sweep never proves a cause (HEAD probe, no body): 403 lands blocked +
+  // unproven, and the decision leaves the operator-owned status untouched.
+  assert.equal(decision.classifyProbeStatus(403), "blocked");
+  assert.equal(decision.classifyRefusalCause(403), "unproven");
+  const d = decision.decideProxyHealthAction({
+    outcome: "blocked",
+    priorFailures: 2,
+    autoRemove: false,
+    removeAfter: 3,
+  });
+  assert.equal(d.setStatus, null);
+  assert.equal(d.remove, false);
+});
+
 test("ok: resets the failure streak; re-activates only when autoRemove manages status", () => {
   const onAuto = decideProxyHealthAction({
     outcome: "ok",

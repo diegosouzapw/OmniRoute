@@ -1,4 +1,4 @@
-import { ipVersion, isPrivateHost, normalizeHost } from "./privateHost";
+import { embeddedIpv4Host, isPrivateHost, isSameIpv6Address, normalizeHost } from "./privateHost";
 
 // #11122: the host classification lives in `./privateHost.ts` because
 // `open-sse/config/providerRegistry.ts` imports it from a module reachable by a browser
@@ -40,17 +40,7 @@ export class OutboundUrlGuardError extends Error {
 // Matching the dotted spelling alone therefore misses every mapped address that
 // arrives through a parsed URL. Fold the embedded IPv4 back out before deciding.
 export function mappedIpv4Host(hostname: string): string | null {
-  const normalized = normalizeHost(hostname);
-  if (!normalized.startsWith("::ffff:")) return null;
-  const embedded = normalized.slice("::ffff:".length);
-  if (ipVersion(embedded) === 4) return embedded;
-  const hextets = embedded.split(":");
-  if (hextets.length !== 2) return null;
-  const [high, low] = hextets.map((part) =>
-    /^[0-9a-f]{1,4}$/.test(part) ? parseInt(part, 16) : Number.NaN
-  );
-  if (Number.isNaN(high) || Number.isNaN(low)) return null;
-  return `${high >> 8}.${high & 0xff}.${low >> 8}.${low & 0xff}`;
+  return embeddedIpv4Host(hostname, true);
 }
 
 const CLOUD_METADATA_HOSTNAMES = new Set([
@@ -58,8 +48,11 @@ const CLOUD_METADATA_HOSTNAMES = new Set([
   "metadata.google.internal", // GCP
   "metadata.goog", // GCP
   "100.100.100.200", // Alibaba Cloud
-  "fd00:ec2::254", // AWS IPv6 IMDS
+  "168.63.129.16", // Azure host fabric (WireServer)
+  "192.0.0.192", // Oracle Cloud secondary IMDS
 ]);
+
+const AWS_IPV6_IMDS = "fd00:ec2::254";
 
 function isCloudMetadataIpv4(host: string): boolean {
   if (CLOUD_METADATA_HOSTNAMES.has(host)) return true;
@@ -75,10 +68,13 @@ export function isCloudMetadataHost(hostname: string): boolean {
   const host = normalizeHost(hostname);
   if (!host) return false;
   if (isCloudMetadataIpv4(host)) return true;
-  // An IPv4-mapped IPv6 literal routes to the embedded IPv4 address, so the same
-  // verdict has to apply to it — otherwise this block is spelling-sensitive.
-  const mapped = mappedIpv4Host(host);
-  return mapped !== null && isCloudMetadataIpv4(mapped);
+  // The AWS IPv6 IMDS address is compared as an address: `fd00:ec2:0:0:0:0:0:254` is the same one.
+  if (isSameIpv6Address(host, AWS_IPV6_IMDS)) return true;
+  // An IPv6 literal that carries an IPv4 address (mapped, compatible, NAT64, 6to4) routes to
+  // the embedded address, so the same verdict has to apply to it, or this block would depend
+  // on how the address is spelled.
+  const embedded = embeddedIpv4Host(host);
+  return embedded !== null && isCloudMetadataIpv4(embedded);
 }
 
 export function parseOutboundUrl(input: string | URL) {

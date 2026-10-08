@@ -121,6 +121,18 @@ export const opencode_goProvider: RegistryEntry = {
       supportsVision: false,
       supportsReasoning: true,
     },
+    // #14181: OpenCode Go now serves a GA `qwen3.8-max` alongside the preview.
+    // Without this row the provider-aware exemption in resolveModelAlias could not
+    // see it, and the stale built-in rewrite to `qwen3.8-max-preview` (which the
+    // upstream rejects with a 401) fired before dispatch. Base id only — no
+    // effort-tier variants are advertised upstream yet.
+    {
+      id: "qwen3.8-max",
+      name: "Qwen3.8 Max",
+      targetFormat: "claude",
+      supportsVision: false,
+      supportsReasoning: true,
+    },
     // qwen3.6-plus / qwen3.5-plus base ids declared identically on opencode-zen — see
     // OPENCODE_ZEN_GO_SHARED_MODELS.
     {
@@ -167,12 +179,20 @@ export const opencode_goProvider: RegistryEntry = {
     // Muse Spark 1.2 Contributor — base + effort-tier aliases from the OpenCode Go
     // registry (`opencode models opencode-go --verbose`; exact suffix set:
     // minimal/low/medium/high/xhigh, no max).
+    // supportedThinkingEfforts was missing from this base row even though
+    // executors/opencode.ts's EFFORT_TIERS already declares the identical
+    // tier set for it (#10788's own pattern: "declared on the base row so the
+    // catalog's variant synthesis (#9485) and the effort sanitizer share one
+    // source of truth with OpencodeExecutor's EFFORT_TIERS") — every sibling
+    // base row above (glm-5.2, kimi-k3, mimo-v2.5, hy3, qwen3.6-plus/3.7-max/3.7-plus)
+    // already carries it.
     {
       id: "muse-spark-1.2-contributor",
       name: "Muse Spark 1.2 Contributor",
       contextLength: 1048576,
       maxOutputTokens: 131072,
       supportsReasoning: true,
+      supportedThinkingEfforts: ["minimal", "low", "medium", "high", "xhigh"],
       supportsVision: true,
       supportsAudio: true,
       supportsVideo: true,
@@ -245,6 +265,7 @@ export const opencode_goProvider: RegistryEntry = {
       contextLength: 1048576,
       maxOutputTokens: 131072,
       supportsReasoning: true,
+      supportedThinkingEfforts: ["minimal", "low", "medium", "high", "xhigh"],
       supportsVision: true,
       supportsAudio: true,
       supportsVideo: true,
@@ -336,6 +357,28 @@ export const opencode_goProvider: RegistryEntry = {
       id: "gpt-5.6-luna",
       name: "GPT-5.6 Luna",
       supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      targetFormat: "openai-responses",
+      maxOutputTokens: 128000,
+    },
+    // OpenCode Zen Go serves gpt-6-luna ONLY on /responses: live-verified
+    // 2026-10-02, POST /chat/completions returns 400
+    // `{"type":"error","error":{"type":"ModelProtocolUnsupported","message":
+    // "Model does not support this protocol."}}` while POST /responses returns
+    // 200 with a normal completion. Same failure mode as #12196 (gpt-5.6-luna):
+    // without a registry entry getModelTargetFormat() returns null,
+    // resolveOpencodeTargetFormat() falls back to "openai" and
+    // OpencodeExecutor.buildUrl() posts to /chat/completions.
+    // Effort vocabulary also live-verified against the go upstream: none/low/
+    // medium/high/xhigh/max -> 200, "ultra" -> 400 (so declaring the exact set
+    // lets sanitizeReasoningEffortForProvider clamp instead of forwarding a
+    // 400). max_output_tokens 128000 accepted; the provider's
+    // requestDefaults.maxTokens is 16384 without an explicit value.
+    {
+      id: "gpt-6-luna",
+      name: "GPT-6 Luna",
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["none", "low", "medium", "high", "xhigh", "max"],
       targetFormat: "openai-responses",
       maxOutputTokens: 128000,
     },

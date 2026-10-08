@@ -1,1 +1,0 @@
-- **fix(usage):** Render OpenRouter PAYG account credits as a metered quota when no per-key spending limit is set ([#12468](https://github.com/diegosouzapw/OmniRoute/pull/12468))

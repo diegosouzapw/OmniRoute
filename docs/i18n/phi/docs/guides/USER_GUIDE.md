@@ -1,10 +1,10 @@
 # User Guide (Filipino)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 ---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 Kumpletong gabay para sa pag-configure ng mga provider, paggawa ng mga combo, pagsasama ng mga CLI tool, at pag-deploy ng OmniRoute.
 
@@ -120,16 +120,16 @@ I-access sa pamamagitan ng: WhatsApp, Telegram, Slack, Discord, iMessage, Signal
 
 ## 📖 Pag-set Up ng Provider
 
-Para maramihang magdagdag ng mga koneksyon ng API key mula sa isang CSV o JSON file, gamitin ang **Dashboard → Providers → Import from file**. Nakaayon sa posisyon ang mga column (`provider,name,apiKey,baseUrl,priority`); dapat umiiral na ang `provider` bilang isang pinamamahalaang provider o katugmang node. Tingnan ang [Pag-import ng mga provider mula sa isang CSV o JSON file](../providers/CSV-IMPORT.md).
+Upang maramihang magdagdag ng mga koneksiyong API-key mula sa isang CSV o JSON file, gamitin ang **Dashboard → Providers → Import from file**. Nakabatay sa posisyon ang mga column (`provider,name,apiKey,baseUrl,priority`); dapat umiiral na ang `provider` bilang isang pinamamahalaang provider o katugmang node. Tingnan ang [Pag-import ng mga provider mula sa isang CSV o JSON file](../providers/CSV-IMPORT.md).
 
 ### 🔐 Mga Subscription Provider
 
 #### Claude Code (Pro/Max)
 
 ```bash
-Dashboard → Providers → Connect Claude Code
+Dashboard → Providers → Ikonekta ang Claude Code
 → Pag-login gamit ang OAuth → Awtomatikong pag-refresh ng token
-→ 5 oras + lingguhang pagsubaybay sa quota
+→ 5-oras + lingguhang pagsubaybay sa quota
 
 Mga Model:
   cc/claude-opus-4-7
@@ -137,16 +137,18 @@ Mga Model:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Pro Tip:** Gamitin ang Opus para sa mga komplikadong gawain at Sonnet para sa bilis. Sinusubaybayan ng OmniRoute ang quota ng bawat model!
+**Tip para sa Pro:** Gamitin ang Opus para sa mga komplikadong gawain at Sonnet para sa bilis. Sinusubaybayan ng OmniRoute ang quota ng bawat model!
 
-Pinapanatili ng mga route na katugma sa Claude at Claude Code ang `max` na antas ng thinking effort para sa mga model na Opus at Sonnet. Hindi tinatanggap ng mga model na Haiku ang `max` na antas ng effort, kaya ibinababa ng OmniRoute ang kahilingang iyon sa isang mataas na thinking budget bago ito ipadala sa upstream.
+Walang browser sa OmniRoute host? Patakbuhin ang `claude setup-token` saanman naka-login ang Claude Code at i-paste ang isang-taong token sa tab na **Setup Token**. Tingnan ang [Claude Code gamit ang setup token](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Pinapanatili ng Claude at mga route na compatible sa Claude Code ang `max` na antas ng thinking effort para sa mga model na Opus at Sonnet. Hindi tinatanggap ng mga Haiku model ang antas ng effort na `max`, kaya ibinababa ng OmniRoute ang kahilingang iyon sa mataas na thinking budget bago ito ipadala upstream.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-Dashboard → Providers → Connect Codex
+Dashboard → Providers → Ikonekta ang Codex
 → Pag-login gamit ang OAuth (port 1455)
-→ Pag-reset kada 5 oras + lingguhan
+→ 5-oras + lingguhang pag-reset
 
 Mga Model:
   cx/gpt-5.5
@@ -158,7 +160,7 @@ Mga Model:
 #### GitHub Copilot
 
 ```bash
-Dashboard → Providers → Connect GitHub
+Dashboard → Providers → Ikonekta ang GitHub
 → OAuth sa pamamagitan ng GitHub
 → Buwanang pag-reset (ika-1 ng buwan)
 
@@ -178,37 +180,39 @@ Mga Model:
 2. Kunin ang API key mula sa Coding Plan
 3. Dashboard → Add API Key: Provider: `glm`, API Key: `your-key`
 
-**Gamitin:** `glm/glm-4.7` — **Pro Tip:** Nag-aalok ang Coding Plan ng 3× quota sa 1/7 ng halaga! Nire-reset araw-araw nang 10:00 AM.
+**Gamitin:** `glm/glm-4.7` — **Tip para sa Pro:** Nag-aalok ang Coding Plan ng 3× quota sa 1/7 na halaga! Nagre-reset araw-araw nang 10:00 AM.
 
-#### MiniMax M2.1 (Pag-reset kada 5 oras, $0.20/1M)
+#### MiniMax M2.1 (5-oras na pag-reset, $0.20/1M)
 
 1. Mag-sign up: [MiniMax](https://www.minimax.io)
 2. Kunin ang API key → Dashboard → Add API Key
 
-**Gamitin:** `minimax/MiniMax-M2.1` — **Pro Tip:** Pinakamurang opsyon para sa mahabang context (1M token)!
+**Gamitin:** `minimax/MiniMax-M2.1` — **Tip para sa Pro:** Pinakamurang opsyon para sa mahabang context (1M token)!
 
-#### Kimi K2 (Nakapirming $9/buwan)
+#### Kimi K2 (nakapirming $9/buwan)
 
 1. Mag-subscribe: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. Kunin ang API key → Dashboard → Add API Key
 
-**Gamitin:** `kimi/kimi-k2.5` — **Pro Tip:** Ang nakapirming $9/buwan para sa 10M token ay katumbas ng aktuwal na halagang $0.90/1M!
+**Gamitin:** `kimi/kimi-k2.5` — **Tip para sa Pro:** Ang nakapirming $9/buwan para sa 10M token ay katumbas ng epektibong halagang $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
 1. Mag-sign up: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
 2. Gumawa ng Qianfan API key → Dashboard → Add API Key: Provider: `qianfan`
 
-**Gamitin:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, o isa pang Qianfan model ID na katugma sa OpenAI.
+**Gamitin:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, o ibang Qianfan model ID na compatible sa OpenAI.
 
 ### 🆓 Mga LIBRENG Provider
 
-Ang mga libreng provider na hindi nangangailangan ng authentication ay may switch sa tabi ng **No authentication required** sa kanilang provider page. Kapag in-off ito, madi-disable ang provider na iyon, aalisin ito sa configured/compact na mga view ng Providers, at aalisin ang mga model nito mula sa `/v1/models`.
+Ang mga libreng provider na walang authentication ay may switch sa tabi ng **No authentication required** sa kanilang provider page.
+Kapag in-off ito, madi-disable ang provider na iyon, aalisin ito sa mga configured/compact view ng Providers, at
+aalisin ang mga model nito mula sa `/v1/models`.
 
 #### Qoder (9 na LIBRENG model)
 
 ```bash
-Dashboard → Connect Qoder → Pag-login gamit ang OAuth → Ang access ay napapailalim sa kasalukuyang mga limitasyon ng provider
+Dashboard → Ikonekta ang Qoder → Pag-login gamit ang OAuth → Ang access ay napapailalim sa kasalukuyang mga limitasyon ng provider
 
 Mga Model: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
@@ -216,7 +220,7 @@ Mga Model: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, 
 #### Kiro (LIBRENG Claude)
 
 ```bash
-Dashboard → Connect Kiro → AWS Builder ID o Google/GitHub → ~50 credit/buwan
+Dashboard → Ikonekta ang Kiro → AWS Builder ID o Google/GitHub → ~50 credit/buwan
 
 Mga Model: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
@@ -664,7 +668,7 @@ Para sa kumpletong sanggunian ng mga environment variable, tingnan ang [README](
 
 ## 🧩 Mga Advanced na Feature
 
-### Mga Custom na Modelo
+### Mga Custom na Model
 
 Magdagdag ng anumang model ID sa anumang provider nang hindi naghihintay ng update sa app:
 
@@ -678,19 +682,56 @@ curl -X POST http://localhost:20128/api/provider-models \
 # Alisin: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
 ```
 
-O gamitin ang Dashboard: **Providers → [Provider] → Custom Models**.
+O gamitin ang Dashboard: **Mga Provider → [Provider] → Mga Custom na Model**.
 
 Mga tala:
 
-- Ang OpenRouter at mga provider na compatible sa OpenAI/Anthropic ay pinamamahalaan lamang mula sa **Available Models**. Ang manu-manong pagdaragdag, pag-import, at awtomatikong pag-sync ay napupunta lahat sa iisang listahan ng mga available na modelo, kaya walang hiwalay na seksyong Custom Models para sa mga provider na iyon.
-- Ang seksyong **Custom Models** ay para sa mga provider na hindi naglalantad ng pinamamahalaang pag-import ng mga available na modelo.
+- Ang OpenRouter at mga provider na compatible sa OpenAI/Anthropic ay pinamamahalaan mula lamang sa **Mga Available na Model**. Ang manu-manong pagdagdag, pag-import, at awtomatikong pag-sync ay napupunta lahat sa iisang listahan ng mga available na model, kaya walang hiwalay na seksyon ng Mga Custom na Model para sa mga provider na iyon.
+- Ang seksyong **Mga Custom na Model** ay para sa mga provider na hindi nag-aalok ng mga pinamamahalaang pag-import ng mga available na model.
+
+### Mga Custom na Provider na Compatible sa OpenAI
+
+Anumang gateway na gumagamit ng OpenAI API (isang self-hosted proxy, vLLM, o third-party aggregator)
+ay maaaring idagdag bilang sarili nitong provider node:
+
+1. **Mga Provider → Magdagdag ng OpenAI Compatible**.
+2. **Pangalan**: isang label na ipapakita para sa node.
+3. **Prefix**: ang pangalan sa pag-route. Tatawagin ng mga client ang mga model bilang `<prefix>/<model>`, kaya ang node na may
+   prefix na `mygw` ay nagsisilbi sa `mygw/gpt-4o-mini`. Kinakailangan ito; walang restriksiyon sa mga character.
+4. **Uri ng API**: ang pamilya ng endpoint na inihahain ng gateway (Chat Completions, Responses,
+   Embeddings, audio, mga larawan).
+5. **Base URL**: ang API root, hanggang at kasama ang `/v1` (halimbawa,
+   `https://gateway.example.com/v1`), hindi ang buong path na `/chat/completions`. Para sa mga gateway na may
+   hindi karaniwang mga path, itakda ang mga ito sa ilalim ng **Mga Advanced na Setting** (chat path, models path).
+6. Sinusubukan lamang ng field na **API Key (para sa Pagsuri)** ang koneksiyon. Pagkatapos gawin ang node,
+   buksan ito at gamitin ang **Magdagdag ng Koneksiyon** upang i-store ang key na gagamitin ng mga request.
+
+Makakatanggap ang node ng internal id na nasa anyong `openai-compatible-<apiType>-<uuid>`; hindi mo kailangang
+i-type ito kailanman, dahil ang prefix ang pampublikong pangalan.
+
+#### Mga nakareserbang prefix
+
+Hindi maaaring gamitin bilang prefix ang id o alias ng isang built-in na provider (halimbawa, `openai`, `cf`), o
+ang id ng isang itinigil nang provider. Sinusuri ng model resolver ang mga built-in na id at alias bago ang
+mga custom na node, kaya hindi kailanman makakatanggap ng traffic ang node na gumagamit ng isa sa mga prefix na iyon:
+ang `<prefix>/model` ay mapupunta sa built-in na provider, o magsasara nang ligtas kung itinigil na ang provider
+na iyon. Tatanggihan ang paggawa o pag-edit ng node na may ganoong prefix gamit ang:
+
+```text
+prefix: "<prefix>" is a reserved provider prefix — choose a different prefix (reserved ids/aliases cannot be used for custom nodes because requests like <prefix>/model route to a built-in provider or fail closed when retired)
+```
+
+Pumili ng natatanging prefix (`mygw`, `acme-proxy`). Kung pumalya ang mga request sa isang custom na node at may
+error na bumabanggit sa isang built-in na provider o sa mga credential nito, tingnan kung nakareserba ang prefix ng node:
+naka-store pa rin ang mga node na na-save bago umiral ang panuntunang ito, ngunit nagra-route ang kanilang prefix sa
+built-in na provider. I-edit ang node at bigyan ito ng bagong prefix.
 
 ### Pag-chain ng mga OmniRoute Peer
 
-Maaaring magdagdag ng isa pang OmniRoute gateway bilang isang **Custom OpenAI-compatible** na provider. Gamitin ang
-`/v1` base URL ng peer at isang nakalaang API key na may pinakamababang pribilehiyo na ibinigay ng peer na iyon.
+Maaaring idagdag ang isa pang OmniRoute gateway bilang isang **Custom na provider na compatible sa OpenAI**. Gamitin ang
+`/v1` base URL ng peer at isang nakalaang API key na may pinakamababang kinakailangang pribilehiyo na inisyu ng peer na iyon.
 
-Para sa mga reciprocal o multi-hop chain, i-enable ang opt-in na loop guard sa bawat gateway:
+Para sa mga reciprocal o multi-hop na chain, i-enable ang opt-in na loop guard sa bawat gateway:
 
 ```bash
 # gateway-a
@@ -706,18 +747,18 @@ OMNIROUTE_PEER_URLS=http://gateway-a:20128/v1
 OMNIROUTE_PEER_MAX_HOPS=4
 ```
 
-Tanging ang mga request na ipinadala sa isang tahasang naka-allowlist na peer URL ang makatatanggap ng
-`X-OmniRoute-Peer-Trace` header. Tatanggihan ng gateway ang inuulit na instance ID o naubos nang hop
-budget gamit ang HTTP `508 Loop Detected`; walang matatanggap na peer metadata ang mga karaniwang upstream provider.
+Ang mga request lamang na ipinadala sa isang tahasang naka-allowlist na peer URL ang makakatanggap ng
+header na `X-OmniRoute-Peer-Trace`. Tinatanggihan ng gateway ang nauulit na instance ID o naubos nang hop
+budget gamit ang HTTP `508 Loop Detected`; walang peer metadata na matatanggap ang mga karaniwang upstream provider.
 
 Ang peer chaining ay hindi database replication o host failover. Nagpapanatili ang bawat gateway ng hiwalay na
 SQLite state, mga cache, rate counter, at session. Gumamit ng reverse proxy na may health check o client
-failover para sa active/passive o active/active availability, at huwag kailanman i-mount ang iisang SQLite database
-sa maraming tumatakbong OmniRoute instance.
+failover para sa active/passive o active/active na availability, at huwag kailanman i-mount ang isang SQLite database
+sa maraming tumatakbong instance ng OmniRoute.
 
 ### Mga Nakalaang Route ng Provider
 
-Direktang i-route ang mga request sa isang partikular na provider nang may validation ng modelo:
+Direktang i-route ang mga request sa isang partikular na provider na may validation ng model:
 
 ```bash
 POST http://localhost:20128/v1/providers/openai/chat/completions
@@ -725,12 +766,12 @@ POST http://localhost:20128/v1/providers/openai/embeddings
 POST http://localhost:20128/v1/providers/fireworks/images/generations
 ```
 
-Awtomatikong idinaragdag ang prefix ng provider kung wala ito. Magbabalik ng `400` ang mga hindi tumutugmang modelo.
+Awtomatikong idinaragdag ang prefix ng provider kung wala ito. Nagbabalik ng `400` ang mga hindi tumutugmang model.
 
 ### Configuration ng Network Proxy
 
 ```bash
-# Itakda ang global proxy
+# Itakda ang global na proxy
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"global": {"type":"http","host":"proxy.example.com","port":"8080"}}'
 
@@ -743,100 +784,100 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
 ```
 
-**Pagkakasunud-sunod ng prayoridad:** Partikular sa key → Partikular sa combo → Partikular sa provider → Global → Environment.
+**Pagkakasunod ng priyoridad:** Partikular sa key → Partikular sa combo → Partikular sa provider → Global → Environment.
 
-### API ng Catalog ng Modelo
+### API ng Catalog ng Model
 
 ```bash
 curl http://localhost:20128/api/models/catalog
 ```
 
-Nagbabalik ng mga modelong pinangkat ayon sa provider at may mga uri (`chat`, `embedding`, `image`).
+Nagbabalik ng mga model na nakagrupo ayon sa provider at may mga uri (`chat`, `embedding`, `image`).
 
 ### Cloud Sync
 
 - I-sync ang mga provider, combo, at setting sa iba't ibang device
 - Awtomatikong pag-sync sa background na may timeout + fail-fast
-- Piliin ang server-side na `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` sa production
+- Mas piliin ang server-side na `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` sa production
 
-### Cloudflare Quick Tunnel
+### Mabilisang Tunnel ng Cloudflare
 
-- Available sa **Dashboard → Endpoints** para sa Docker at iba pang self-hosted deployment
-- Gumagawa ng pansamantalang `https://*.trycloudflare.com` URL na nagfo-forward sa iyong kasalukuyang OpenAI-compatible na `/v1` endpoint
-- Sa unang pag-enable, ini-install lamang ang `cloudflared` kapag kinakailangan; muling ginagamit ng mga susunod na restart ang parehong pinamamahalaang binary
-- Hindi awtomatikong ibinabalik ang mga Quick Tunnel pagkatapos ng pag-restart ng OmniRoute o container; muling i-enable ang mga ito mula sa dashboard kapag kinakailangan
+- Available sa **Dashboard → Endpoints** para sa Docker at iba pang self-hosted na deployment
+- Gumagawa ng pansamantalang `https://*.trycloudflare.com` URL na nagpapasa sa kasalukuyan mong OpenAI-compatible na `/v1` endpoint
+- Sa unang pag-enable, ini-install lang ang `cloudflared` kapag kailangan; sa mga susunod na pag-restart, muling ginagamit ang parehong pinamamahalaang binary
+- Hindi awtomatikong nire-restore ang Quick Tunnels pagkatapos ng pag-restart ng OmniRoute o container; muling i-enable ang mga ito mula sa dashboard kapag kailangan
 - Pansamantala ang mga tunnel URL at nagbabago sa tuwing ihihinto/sisimulan mo ang tunnel
-- Bilang default, gumagamit ang mga pinamamahalaang Quick Tunnel ng HTTP/2 transport upang maiwasan ang maiingay na babala tungkol sa QUIC UDP buffer sa mga container na may limitadong resource
-- Itakda ang `CLOUDFLARED_PROTOCOL=quic` o `auto` kung nais mong i-override ang pinamamahalaang pagpili ng transport
-- Itakda ang `CLOUDFLARED_BIN` kung mas gusto mong gumamit ng paunang naka-install na `cloudflared` binary sa halip na ang pinamamahalaang download
+- Bilang default, gumagamit ang pinamamahalaang Quick Tunnels ng HTTP/2 transport upang maiwasan ang maiingay na babala tungkol sa QUIC UDP buffer sa mga container na may limitadong resource
+- Itakda ang `CLOUDFLARED_PROTOCOL=quic` o `auto` kung gusto mong i-override ang napiling pinamamahalaang transport
+- Itakda ang `CLOUDFLARED_BIN` kung mas gusto mong gumamit ng dati nang naka-install na `cloudflared` binary sa halip na pinamamahalaang download
 - Maaaring ipakita o itago ang mga panel ng Cloudflare Quick Tunnel, Tailscale Funnel, at ngrok Tunnel sa **Settings → Appearance**. Ang pagtatago ng panel ay hindi nagpapahinto sa tumatakbong tunnel.
 
-### Katalinuhan ng LLM Gateway (Phase 9)
+### Intelligence ng LLM Gateway (Phase 9)
 
-- **Semantic Cache** — Awtomatikong nagka-cache ng mga non-streaming na response na may temperature=0 (i-bypass gamit ang `X-OmniRoute-No-Cache: true`)
-- **Request Idempotency** — Nagde-deduplicate ng mga request sa loob ng 5s sa pamamagitan ng `Idempotency-Key` o `X-Request-Id` header
-- **Pagsubaybay sa Progreso** — Mga opt-in na SSE `event: progress` event sa pamamagitan ng `X-OmniRoute-Progress: true` header
+- **Semantic Cache** — Awtomatikong nagka-cache ng mga non-streaming na tugon na may temperature=0 (i-bypass gamit ang `X-OmniRoute-No-Cache: true`)
+- **Request Idempotency** — Nag-aalis ng mga dobleng request sa loob ng 5s sa pamamagitan ng `Idempotency-Key` o `X-Request-Id` header
+- **Progress Tracking** — Mga opsyonal na SSE `event: progress` event sa pamamagitan ng `X-OmniRoute-Progress: true` header
 
 ---
 
 ### Translator Playground
 
-I-access sa pamamagitan ng **Dashboard → Translator**. I-debug at i-visualize kung paano isinasalin ng OmniRoute ang mga API request sa pagitan ng mga provider.
+I-access sa pamamagitan ng **Dashboard → Translator**. I-debug at isalarawan kung paano isinasalin ng OmniRoute ang mga API request sa pagitan ng mga provider.
 
-| Mode             | Layunin                                                                                                     |
-| ---------------- | ----------------------------------------------------------------------------------------------------------- |
-| **Playground**   | Pumili ng source/target format, mag-paste ng request, at agad na makita ang isinaling output                |
-| **Chat Tester**  | Magpadala ng mga live na chat message sa pamamagitan ng proxy at suriin ang buong cycle ng request/response |
-| **Test Bench**   | Magpatakbo ng mga batch test sa maraming kumbinasyon ng format upang tiyakin ang kawastuhan ng pagsasalin   |
-| **Live Monitor** | Subaybayan ang mga real-time na pagsasalin habang dumadaloy ang mga request sa proxy                        |
+| Mode             | Layunin                                                                                                        |
+| ---------------- | -------------------------------------------------------------------------------------------------------------- |
+| **Playground**   | Pumili ng source/target format, mag-paste ng request, at agad na makita ang isinaling output                   |
+| **Chat Tester**  | Magpadala ng mga live na chat message sa pamamagitan ng proxy at siyasatin ang buong cycle ng request/response |
+| **Test Bench**   | Magpatakbo ng mga batch test sa maraming kumbinasyon ng format upang beripikahin ang kawastuhan ng pagsasalin  |
+| **Live Monitor** | Subaybayan ang mga real-time na pagsasalin habang dumadaloy ang mga request sa proxy                           |
 
 **Mga gamit:**
 
 - I-debug kung bakit pumapalya ang isang partikular na kumbinasyon ng client/provider
-- Tiyaking naisasalin nang tama ang mga thinking tag, tool call, at system prompt
-- Ihambing ang mga pagkakaiba ng format sa OpenAI, Claude, Gemini, at mga format ng Responses API
+- Beripikahin na wastong naisasalin ang mga thinking tag, tool call, at system prompt
+- Ihambing ang mga pagkakaiba ng format sa pagitan ng mga format ng OpenAI, Claude, Gemini, at Responses API
 
 ---
 
 ### Mga Estratehiya sa Routing
 
-I-configure sa pamamagitan ng **Dashboard → Settings → Routing**. Ipinapakita ng dashboard ang anim na pinakaginagamit na strategy; internally, mas malawak na hanay ang sinusuportahan ng mga combo at ng auto-router.
+I-configure sa pamamagitan ng **Dashboard → Settings → Routing**. Ipinapakita ng dashboard ang anim na pinakaginagamit na estratehiya; sa loob ng system, sinusuportahan ng mga combo at ng auto-router ang mas malawak na hanay.
 
-**Mga strategy na makikita sa dashboard (account-level routing):**
+**Mga estratehiyang nakikita sa dashboard (routing sa antas ng account):**
 
-| Strategy                       | Paglalarawan                                                                                                                         |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
-| **Fill First**                 | Gumagamit ng mga account ayon sa priority — pinangangasiwaan ng primary account ang lahat ng request hanggang hindi na ito available |
-| **Round Robin**                | Salit-salitang ginagamit ang lahat ng account nang may nako-configure na sticky limit (default: 3 tawag bawat account)               |
-| **P2C (Power of Two Choices)** | Pumipili ng 2 random na account at nagru-route sa mas healthy — binabalanse ang load habang isinasaalang-alang ang health            |
-| **Random**                     | Random na pumipili ng account para sa bawat request gamit ang Fisher-Yates shuffle                                                   |
-| **Least Used**                 | Nagru-route sa account na may pinakalumang `lastUsedAt` timestamp, na pantay na namamahagi ng traffic                                |
-| **Cost Optimized**             | Nagru-route sa account na may pinakamababang priority value, na nag-o-optimize para sa mga provider na may pinakamababang gastos     |
+| Estratehiya                    | Paglalarawan                                                                                                                                                        |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Fill First**                 | Gumagamit ng mga account ayon sa pagkakasunod-sunod ng priyoridad — pinangangasiwaan ng pangunahing account ang lahat ng request hanggang sa hindi na ito available |
+| **Round Robin**                | Salit-salitang umiikot sa lahat ng account na may nako-configure na sticky limit (default: 3 tawag bawat account)                                                   |
+| **P2C (Power of Two Choices)** | Pumipili ng 2 random na account at nagru-route sa mas maayos ang kondisyon — binabalanse ang load habang isinasaalang-alang ang kalagayan                           |
+| **Random**                     | Random na pumipili ng account para sa bawat request gamit ang Fisher-Yates shuffle                                                                                  |
+| **Least Used**                 | Nagru-route sa account na may pinakalumang `lastUsedAt` timestamp, kaya pantay na naipapamahagi ang traffic                                                         |
+| **Cost Optimized**             | Nagru-route sa account na may pinakamababang priority value, na nag-o-optimize para sa mga provider na may pinakamababang gastos                                    |
 
-**Mga advanced combo at auto strategy** (nako-configure bawat combo o sa pamamagitan ng mga `auto/*` prefix — tingnan ang [AUTO-COMBO.md](../routing/AUTO-COMBO.md)):
+**Mga advanced na combo at auto strategy** (nako-configure bawat combo o sa pamamagitan ng mga prefix na `auto/*` — tingnan ang [AUTO-COMBO.md](../routing/AUTO-COMBO.md)):
 
 - `priority` — mahigpit na pagkakasunod-sunod, hindi kailanman gumagamit ng round-robin
-- `weighted` — proporsyonal na paghahati ng traffic batay sa mga per-model weight
-- `fill-first` — ginagamit ang unang model hanggang maabot ang mga limitasyon
+- `weighted` — proporsyonal na paghahati ng traffic ayon sa weight ng bawat model
+- `fill-first` — inuubos muna ang kapasidad ng unang model hanggang maabot ang mga limitasyon
 - `round-robin` / `strict-random` / `random`
 - `p2c` (Power of Two Choices)
 - `least-used` at `cost-optimized`
-- `auto` — score-driven sa lahat ng candidate
-- `lkgp` (Last Known Good Provider) — nananatili sa huling matagumpay na provider, pagkatapos ay gumagamit ng mga fallback rule
+- `auto` — batay sa score sa lahat ng candidate
+- `lkgp` (Last Known Good Provider) — nananatili sa huling matagumpay na provider, pagkatapos ay bumabalik sa mga rule kapag kailangan
 - `context-optimized` — pinipili ang model na may pinakamalaking libreng context window
-- `context-relay` — pinagkakawing ang mga long-context model para sa mga follow-up turn
+- `context-relay` — pinagdurugtong ang mga long-context model para sa mga susunod na turn
 
 #### External Sticky Session Header
 
-Para sa external session affinity (halimbawa, mga Claude Code/Codex agent sa likod ng mga reverse proxy), ipadala ang:
+Para sa external session affinity (halimbawa, mga agent ng Claude Code/Codex sa likod ng mga reverse proxy), ipadala ang:
 
 ```http
 X-Session-Id: your-session-key
 ```
 
-Tinatanggap din ng OmniRoute ang `x_session_id` at ibinabalik ang aktwal na session key sa `X-OmniRoute-Session-Id`.
+Tinatanggap din ng OmniRoute ang `x_session_id` at ibinabalik ang epektibong session key sa `X-OmniRoute-Session-Id`.
 
-Kung gumagamit ka ng Nginx at nagpapadala ng mga header na underscore-form, i-enable ang:
+Kung gumagamit ka ng Nginx at nagpapadala ng mga header na nasa underscore form, i-enable ang:
 
 ```nginx
 underscores_in_headers on;
@@ -844,18 +885,18 @@ underscores_in_headers on;
 
 #### Mga Wildcard Model Alias
 
-Gumawa ng mga wildcard pattern upang muling i-map ang mga pangalan ng model:
+Gumawa ng mga wildcard pattern upang i-remap ang mga pangalan ng model:
 
 ```
 Pattern: claude-sonnet-*     →  Target: cc/claude-sonnet-4-6
 Pattern: gpt-*               →  Target: gh/gpt-5.3-codex
 ```
 
-Sinusuportahan ng mga wildcard ang `*` (anumang mga character) at `?` (iisang character).
+Sinusuportahan ng mga wildcard ang `*` (anumang mga character) at `?` (isang character).
 
 #### Mga Fallback Chain
 
-Magtakda ng mga global fallback chain na nalalapat sa lahat ng request:
+Tumukoy ng mga global fallback chain na nalalapat sa lahat ng request:
 
 ```
 Chain: production-fallback
@@ -870,54 +911,53 @@ Chain: production-fallback
 
 I-configure sa pamamagitan ng **Dashboard → Settings → Resilience**.
 
-Nagpapatupad ang OmniRoute ng provider-level resilience gamit ang limang component:
+Nagpapatupad ang OmniRoute ng resilience sa antas ng provider gamit ang limang component:
 
-1. **Request Queue at Pacing** — System-level na paghubog sa mga request:
-   - **Requests Per Minute (RPM)** — Maximum na bilang ng request bawat minuto para sa bawat account
-   - **Min Time Between Requests** — Minimum na pagitan sa milliseconds sa pagitan ng mga request
-   - **Max Concurrent Requests** — Maximum na bilang ng sabay-sabay na request para sa bawat account
+1. **Request Queue at Pacing** — Pagkontrol sa daloy ng request sa antas ng system:
+   - **Requests Per Minute (RPM)** — Maximum na bilang ng request bawat minuto sa bawat account
+   - **Min Time Between Requests** — Minimum na pagitan sa millisecond sa pagitan ng mga request
+   - **Max Concurrent Requests** — Maximum na bilang ng magkakasabay na request sa bawat account
+2. **Connection Cooldown** — Configuration ayon sa uri ng auth para sa isang koneksyon pagkatapos ng mga failure na maaaring subukang muli:
+   - **Base Cooldown** — Default na panahon ng cooldown para sa mga upstream failure na maaaring subukang muli
+   - **Use Upstream Retry Hints** — Sinusunod ang awtoritatibong `Retry-After` o mga pahiwatig sa pag-reset kapag ibinigay
+   - **Max Backoff Steps** — Pinakamataas na antas ng exponential backoff para sa mga paulit-ulit na failure
 
-2. **Connection Cooldown** — Configuration para sa bawat auth type para sa isang connection pagkatapos ng mga failure na maaaring i-retry:
-   - **Base Cooldown** — Default na cooldown window para sa mga upstream failure na maaaring i-retry
-   - **Use Upstream Retry Hints** — Sinusunod ang mga authoritative na `Retry-After` o reset hint kapag ibinigay
-   - **Max Backoff Steps** — Maximum na exponential backoff level para sa mga paulit-ulit na failure
-
-3. **Provider Circuit Breaker** — Sinusubaybayan ang mga end-to-end na provider failure, minamarkahan ang isang provider bilang degraded kapag naabot ang naka-configure na warning threshold, at binubuksan ang breaker kapag naabot ang naka-configure na failure threshold:
-   - **Degradation Threshold** — Magkakasunod na provider failure bago pumasok sa `DEGRADED`
-   - **Failure Threshold** — Magkakasunod na provider failure bago pumasok sa `OPEN`
-   - **Reset Timeout** — Palugit bago muling subukan ang provider
-   - **CLOSED** (Healthy) — Normal na dumadaloy ang mga request
-   - **DEGRADED** — Patuloy na dumadaloy ang mga request habang sinusubaybayan ang tumataas na bilang ng mga failure
+3. **Provider Circuit Breaker** — Sinusubaybayan ang mga end-to-end na failure ng provider, minamarkahang degraded ang isang provider sa naka-configure na warning threshold, at binubuksan ang breaker kapag naabot ang naka-configure na failure threshold:
+   - **Degradation Threshold** — Magkakasunod na failure ng provider bago pumasok sa `DEGRADED`
+   - **Failure Threshold** — Magkakasunod na failure ng provider bago pumasok sa `OPEN`
+   - **Reset Timeout** — Panahon bago muling subukan ang provider
+   - **CLOSED** (Malusog) — Normal na dumadaloy ang mga request
+   - **DEGRADED** — Patuloy na dumadaloy ang mga request habang sinusubaybayan ang dumaraming failure
    - **OPEN** — Pansamantalang bina-block ang provider pagkatapos ng mga paulit-ulit na failure
-   - **HALF_OPEN** — Sinusuri kung nakarekober na ang provider
+   - **HALF_OPEN** — Sinusuri kung nakabawi na ang provider
 
-   Ang mga connection-scoped na `429` rate limit ay nananatili sa **Connection Cooldown** at hindi ibinibilang sa provider breaker.
+   Ang mga limitasyon sa rate na `429` na nakatuon sa koneksyon ay nananatili sa **Connection Cooldown** at hindi ibinibilang sa provider breaker.
 
-   Ang runtime state ng provider breaker ay ipinapakita lamang sa **Dashboard → Health**.
+   Ipinapakita lamang sa **Dashboard → Health** ang runtime state ng provider breaker.
 
-4. **Wait For Cooldown** — Kung nagko-cooldown na ang bawat candidate connection, maaaring hintayin ng OmniRoute ang pinakamaagang cooldown at awtomatikong subukang muli ang parehong client request.
+4. **Wait For Cooldown** — Kung nagko-cooldown na ang bawat kandidatong koneksyon, maaaring hintayin ng OmniRoute ang pinakamaagang matapos na cooldown at awtomatikong subukang muli ang parehong request ng client.
 
-5. **Rate Limit Auto-Detection** — Kapag nagbalik ang mga upstream provider ng tahasang mga wait window, ino-override ng mga hint na iyon ang lokal na connection cooldown kapag naka-enable ang setting.
+5. **Rate Limit Auto-Detection** — Kapag nagbalik ang mga upstream provider ng tahasang mga panahon ng paghihintay, ino-override ng mga pahiwatig na iyon ang lokal na cooldown ng koneksyon kapag naka-enable ang setting.
 
-**Pro Tip:** Gamitin ang page na **Health** upang siyasatin at i-reset ang mga aktibong provider breaker pagkatapos ng outage. Configuration lamang ang binabago ng page na Resilience.
+**Propesyonal na Tip:** Gamitin ang page na **Health** upang suriin at i-reset ang mga aktibong provider breaker pagkatapos ng outage. Configuration lamang ang binabago ng page na Resilience.
 
 ---
 
 ### Pag-export / Pag-import ng Database
 
-Pamahalaan ang mga database backup sa **Dashboard → Settings → System & Storage**.
+Pamahalaan ang mga backup ng database sa **Dashboard → Settings → System & Storage**.
 
-| Aksyon                       | Paglalarawan                                                                                                                                                           |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **I-export ang Database**    | Dina-download ang kasalukuyang SQLite database bilang isang `.sqlite` file                                                                                             |
-| **I-export Lahat (.tar.gz)** | Dina-download ang buong backup archive na kinabibilangan ng: database, mga setting, combo, mga koneksyon sa provider (walang kredensyal), metadata ng API key          |
-| **I-import ang Database**    | Nag-a-upload ng `.sqlite` file upang palitan ang kasalukuyang database. Awtomatikong gumagawa ng backup bago mag-import maliban kung `DISABLE_SQLITE_AUTO_BACKUP=true` |
+| Aksyon                   | Paglalarawan                                                                                                                                                               |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Export Database**      | Dina-download ang kasalukuyang SQLite database bilang `.sqlite` file                                                                                                       |
+| **Export All (.tar.gz)** | Dina-download ang buong archive ng backup kabilang ang: database, mga setting, combo, mga koneksyon ng provider (walang credential), metadata ng API key                   |
+| **Import Database**      | Nag-a-upload ng `.sqlite` file upang palitan ang kasalukuyang database. Awtomatikong gumagawa ng backup bago ang pag-import maliban kung `DISABLE_SQLITE_AUTO_BACKUP=true` |
 
 ```bash
 # API: I-export ang database
 curl -o backup.sqlite http://localhost:20128/api/db-backups/export
 
-# API: I-export lahat (buong archive)
+# API: I-export ang lahat (buong archive)
 curl -o backup.tar.gz http://localhost:20128/api/db-backups/exportAll
 
 # API: I-import ang database
@@ -925,45 +965,45 @@ curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**Pagpapatunay sa Pag-import:** Sinusuri ang na-import na file para sa integridad (SQLite pragma check), mga kinakailangang table (`provider_connections`, `provider_nodes`, `combos`, `api_keys`), at laki (maximum na 100MB).
+**Pag-validate sa Import:** Bine-validate ang na-import na file para sa integridad (SQLite pragma check), mga kinakailangang table (`provider_connections`, `provider_nodes`, `combos`, `api_keys`), at laki (maximum na 100MB).
 
 **Mga Gamit:**
 
 - Ilipat ang OmniRoute sa pagitan ng mga machine
-- Gumawa ng mga external backup para sa disaster recovery
-- Magbahagi ng mga configuration sa mga miyembro ng team (i-export lahat → ibahagi ang archive)
+- Gumawa ng mga external na backup para sa disaster recovery
+- Ibahagi ang mga configuration sa mga miyembro ng team (i-export lahat → ibahagi ang archive)
 
 ---
 
 ### Dashboard ng Mga Setting
 
-Nakaayos ang pahina ng mga setting sa **7 tab** para sa madaling pag-navigate:
+Inayos ang page ng mga setting sa **7 tab** para sa madaling navigation:
 
-| Tab               | Nilalaman                                                                                                                                                                      |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Pangkalahatan** | Mga tool sa system storage, default na behavior, visibility ng Endpoint tunnel                                                                                                 |
-| **Hitsura**       | Mga kontrol sa theme (light/dark/system), visibility ng sidebar, mga panel toggle para sa mga tunnel card ng Cloudflare/Tailscale/ngrok                                        |
-| **AI**            | Thinking budget (passthrough / auto-strip / custom / adaptive — tingnan ang [THINKING_BUDGET.md](./THINKING_BUDGET.md)), global system prompt, mga istatistika ng prompt cache |
-| **Seguridad**     | Mga setting ng Login/Password, IP Access Control, API auth para sa `/models`, Provider Blocking, proteksyon laban sa prompt injection                                          |
-| **Routing**       | Global na routing strategy (Fill First / Round Robin / P2C / Random / Least Used / Cost Optimized), mga wildcard model alias, mga fallback chain, mga default ng combo         |
-| **Resilience**    | Request queue, cooldown ng koneksyon, configuration ng provider breaker, at behavior ng paghihintay sa cooldown                                                                |
-| **Advanced**      | Global na configuration ng proxy (HTTP/SOCKS5), mga proxy override para sa bawat provider                                                                                      |
+| Tab            | Mga Nilalaman                                                                                                                                                             |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **General**    | Mga tool sa storage ng system, default na gawi, visibility ng Endpoint tunnel                                                                                             |
+| **Appearance** | Mga kontrol sa theme (light/dark/system), visibility ng sidebar, mga toggle ng panel para sa mga tunnel card ng Cloudflare/Tailscale/ngrok                                |
+| **AI**         | Thinking budget (passthrough / auto-strip / custom / adaptive — tingnan ang [THINKING_BUDGET.md](./THINKING_BUDGET.md)), global system prompt, mga stat ng prompt cache   |
+| **Security**   | Mga setting ng Login/Password, IP Access Control, API auth para sa `/models`, Provider Blocking, proteksyon laban sa prompt injection                                     |
+| **Routing**    | Global na diskarte sa routing (Fill First / Round Robin / P2C / Random / Least Used / Cost Optimized), mga wildcard model alias, mga fallback chain, mga default ng combo |
+| **Resilience** | Queue ng request, cooldown ng koneksyon, configuration ng provider breaker, at gawi ng paghihintay sa cooldown                                                            |
+| **Advanced**   | Global na configuration ng proxy (HTTP/SOCKS5), mga override ng proxy ayon sa provider                                                                                    |
 
-Hindi na inuulit ng Pangkalahatan ang mga read-only na tala tungkol sa logging at cache. Ang mga setting para sa retention at
-optimization ng database ay pinapanatili sa pamamagitan ng `/api/settings/database`; gumagamit ang manu-manong pag-clear ng cache ng
-`DELETE /api/cache`. Ang mga limitasyon sa bilang ng row ng request log at proxy log ay kinokontrol ng
+Hindi na inuulit ng General ang mga read-only na tala tungkol sa logging at cache. Ang mga setting ng retention at
+optimization ng database ay pinananatili sa pamamagitan ng `/api/settings/database`; ginagamit ng manu-manong pag-clear ng cache ang
+`DELETE /api/cache`. Ang mga limitasyon sa dami ng row ng mga request at proxy log ay kinokontrol ng
 `CALL_LOGS_TABLE_MAX_ROWS` at `PROXY_LOGS_TABLE_MAX_ROWS`.
 
 ---
 
 ### Pamamahala ng Mga Gastos at Badyet
 
-I-access sa pamamagitan ng **Dashboard → Mga Gastos**.
+I-access sa pamamagitan ng **Dashboard → Costs**.
 
-| Tab             | Layunin                                                                                                                                          |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Badyet**      | Magtakda ng mga limitasyon sa paggastos para sa bawat API key gamit ang pang-araw-araw/panglingguhan/buwanang badyet at real-time na pagsubaybay |
-| **Pagpepresyo** | Tingnan at i-edit ang mga entry sa pagpepresyo ng model — gastos sa bawat 1K input/output token para sa bawat provider                           |
+| Tab         | Layunin                                                                                                                                                |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Budget**  | Magtakda ng mga limitasyon sa paggastos para sa bawat API key gamit ang pang-araw-araw/panglingguhan/pangbuwang mga badyet at real-time na pagsubaybay |
+| **Pricing** | Tingnan at i-edit ang mga entry sa pagpepresyo ng modelo — gastos sa bawat 1K input/output token para sa bawat provider                                |
 
 ```bash
 # API: Magtakda ng badyet
@@ -971,17 +1011,17 @@ curl -X POST http://localhost:20128/api/usage/budget \
   -H "Content-Type: application/json" \
   -d '{"keyId": "key-123", "limit": 50.00, "period": "monthly"}'
 
-# API: Kunin ang kasalukuyang status ng badyet
+# API: Kunin ang kasalukuyang katayuan ng badyet
 curl http://localhost:20128/api/usage/budget
 ```
 
-**Pagsubaybay sa Gastos:** Itinatala ng bawat request ang paggamit ng token at kinakalkula ang gastos gamit ang table ng pagpepresyo. Tingnan ang mga breakdown sa **Dashboard → Paggamit** ayon sa provider, model, at API key.
+**Pagsubaybay sa Gastos:** Itinatala ng bawat kahilingan ang paggamit ng token at kinakalkula ang gastos gamit ang talahanayan ng presyo. Tingnan ang mga detalye sa **Dashboard → Usage** ayon sa provider, modelo, at API key.
 
 ---
 
-### Transkripsyon ng Audio
+### Transkripsiyon ng Audio
 
-Sinusuportahan ng OmniRoute ang transkripsyon ng audio sa pamamagitan ng endpoint na compatible sa OpenAI:
+Sinusuportahan ng OmniRoute ang transkripsiyon ng audio sa pamamagitan ng endpoint na compatible sa OpenAI:
 
 ```bash
 POST /v1/audio/transcriptions
@@ -995,14 +1035,14 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
   -F "model=openai/whisper-1"
 ```
 
-Ang `deepgram/nova-3` ang native na Deepgram route at nangangailangan ito ng Deepgram API key.
+Ang `deepgram/nova-3` ang native na route ng Deepgram at nangangailangan ng Deepgram API key.
 Kung OpenRouter lamang ang naka-configure, gamitin ang `openrouter/deepgram/nova-3`.
 
-Mga provider ng **Speech-to-Text (transkripsyon)**:
+Mga provider ng **Speech-to-Text (transkripsiyon)**:
 
 - `openai/` (compatible sa whisper)
 - `groq/` (Groq Whisper Turbo)
-- `deepgram/` (Nova family)
+- `deepgram/` (pamilya ng Nova)
 - `assemblyai/`
 - `nvidia/` (Parakeet, Canary)
 - `huggingface/` (mga variant ng whisper)
@@ -1025,56 +1065,56 @@ Mga provider ng **Text-to-Speech (`POST /v1/audio/speech`)**:
 - `coqui/`, `tortoise/`
 - `qwen/`
 
-Mga sinusuportahang format ng audio para sa transkripsyon: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`. Nakadepende sa provider ang mga format ng output ng TTS (mp3, wav, opus, pcm, mulaw).
+Mga sinusuportahang format ng audio para sa transkripsiyon: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`. Nakadepende sa provider ang mga format ng output ng TTS (mp3, wav, opus, pcm, mulaw).
 
 ---
 
-### Mga Strategy sa Pagbabalanse ng Combo
+### Mga Estratehiya sa Pagbabalanse ng Combo
 
-I-configure ang pagbabalanse para sa bawat combo sa **Dashboard → Mga Combo → Gumawa/Mag-edit → Strategy**.
+I-configure ang pagbabalanse ng bawat combo sa **Dashboard → Combos → Create/Edit → Strategy**.
 
-| Estratehiya        | Paglalarawan                                                                                        |
-| ------------------ | --------------------------------------------------------------------------------------------------- |
-| **Round-Robin**    | Salit-salitang umiikot sa mga modelo nang sunud-sunod                                               |
-| **Priority**       | Palaging sinusubukan muna ang unang modelo; lilipat lang kapag may error                            |
-| **Random**         | Pumipili ng random na modelo mula sa combo para sa bawat kahilingan                                 |
-| **Weighted**       | Nagruruta nang proporsyonal batay sa nakatalagang timbang ng bawat modelo                           |
-| **Least-Used**     | Nagruruta sa modelong may pinakakaunting kamakailang kahilingan (gumagamit ng mga sukatan ng combo) |
-| **Cost-Optimized** | Nagruruta sa pinakamurang available na modelo (gumagamit ng talahanayan ng pagpepresyo)             |
+| Estratehiya        | Paglalarawan                                                                                   |
+| ------------------ | ---------------------------------------------------------------------------------------------- |
+| **Round-Robin**    | Salit-salitang dumadaan sa mga modelo nang sunod-sunod                                         |
+| **Priority**       | Palaging sinusubukan muna ang unang modelo; gumagamit lamang ng fallback kapag may error       |
+| **Random**         | Pumipili ng random na modelo mula sa combo para sa bawat kahilingan                            |
+| **Weighted**       | Nagru-route nang proporsyonal batay sa mga itinalagang weight sa bawat modelo                  |
+| **Least-Used**     | Nagru-route sa modelong may pinakakaunting kamakailang kahilingan (gumagamit ng combo metrics) |
+| **Cost-Optimized** | Nagru-route sa pinakamurang available na modelo (gumagamit ng talahanayan ng presyo)           |
 
 Maaaring itakda ang mga global na default ng combo sa **Dashboard → Settings → Routing → Combo Defaults**.
-Bilang default, minamana ng mga timeout ng target ng combo ang kasalukuyang timeout ng kahilingan. Gamitin lang ang **Target timeout
-(seconds)** sa mga default ng combo o sa isang indibidwal na combo kapag kailangan ng mas maikling limitasyon sa bawat target upang
-mas mabilis na ma-trigger ang fallback.
+Bilang default, minamana ng mga timeout ng target ng combo ang kasalukuyang timeout ng kahilingan. Gamitin lamang ang **Target timeout
+(seconds)** sa mga default ng combo o sa isang indibidwal na combo kapag dapat mag-trigger ng mas mabilis
+na fallback ang mas maikling limitasyon sa bawat target.
 
-Kailangang tahasang i-enable ang mga zero-latency na pag-optimize ng combo. Panatilihing naka-disable ang **Zero-latency optimizations** upang
-maiwasang paunahan ng mga feature na ito sa latency ang mga fallback na target, laktawan ang mga target batay sa kasaysayan ng TTFT,
-o i-compress ang mga fallback na kahilingan; kapag in-enable ito, papayagan ang naka-configure na hedging, mga predictive na paglaktaw batay sa TTFT,
-at maagap na pag-compress ng fallback upang ipagpalit ang katapatan ng pagruruta/kahilingan para sa mas mababang tail
+Opsyonal ang mga zero-latency optimization ng combo. Panatilihing naka-disable ang **Zero-latency optimizations** upang
+maiwasang paunahan ng mga latency feature na ito ang mga fallback target, laktawan ang mga target batay sa history ng TTFT,
+o i-compress ang mga fallback request; kapag in-enable ito, papayagan ang naka-configure na hedging, predictive TTFT
+skips, at proactive fallback compression na ipagpalit ang katapatan ng routing/kahilingan para sa mas mababang tail
 latency.
 
 I-disable ang **Reasoning token buffer** kapag nangangailangan ang mga upstream provider ng mahihigpit na limitasyon sa
-`max_tokens` / `maxOutputTokens`. Kapag naka-enable, nagdaragdag lang ang pagruruta ng combo ng karagdagang puwang para sa reasoning model
-para sa mga modelong may kilalang output cap at hindi binabago ang limitasyon ng token ng client kapag ang
-ligtas na buffered value ay lalampas sa cap na iyon. Kung ang limitasyon ng client ay lampas na sa isang kilalang cap,
-ibinababa ito ng OmniRoute sa cap na iyon bago ipadala ang upstream na kahilingan.
+`max_tokens` / `maxOutputTokens`. Kapag naka-enable, nagdaragdag lamang ang combo routing ng headroom para sa reasoning model
+para sa mga modelong may kilalang output cap at hindi binabago ang limitasyon ng token ng client kapag lalampas
+sa cap na iyon ang ligtas na buffered value. Kung lampas na sa isang kilalang cap ang limitasyon ng client,
+ibinababa ito ng OmniRoute sa cap na iyon bago ipadala ang upstream request.
 
 ---
 
-### Dashboard ng Kalagayan
+### Dashboard ng Kalusugan
 
-I-access sa pamamagitan ng **Dashboard → Health**. Real-time na pangkalahatang-ideya ng kalagayan ng system na may 6 na card:
+I-access sa pamamagitan ng **Dashboard → Health**. Real-time na pangkalahatang-ideya ng kalusugan ng system na may 6 na card:
 
-| Card                  | Ipinapakita Nito                                                          |
-| --------------------- | ------------------------------------------------------------------------- |
-| **System Status**     | Uptime, bersyon, paggamit ng memory, directory ng data                    |
-| **Provider Health**   | Runtime state ng global na circuit breaker ng provider                    |
-| **Rate Limits**       | Mga aktibong cooldown ng koneksyon sa bawat account at natitirang oras    |
-| **Active Lockouts**   | Mga aktibong lockout na nakasaklaw sa modelo at pansamantalang pagbubukod |
-| **Signature Cache**   | Mga stat ng deduplication cache (mga aktibong key, hit rate)              |
-| **Latency Telemetry** | Pagsasama-sama ng p50/p95/p99 latency sa bawat provider                   |
+| Card                  | Ipinapakita Nito                                                        |
+| --------------------- | ----------------------------------------------------------------------- |
+| **System Status**     | Uptime, bersyon, paggamit ng memory, directory ng data                  |
+| **Provider Health**   | Runtime state ng global provider circuit breaker                        |
+| **Rate Limits**       | Mga active na cooldown ng koneksyon sa bawat account at natitirang oras |
+| **Active Lockouts**   | Mga active na lockout na saklaw ang modelo at pansamantalang pagbubukod |
+| **Signature Cache**   | Mga stat ng deduplication cache (mga active key, hit rate)              |
+| **Latency Telemetry** | Pagsasama-sama ng p50/p95/p99 latency sa bawat provider                 |
 
-**Pro Tip:** Awtomatikong nagre-refresh ang pahina ng Health bawat 10 segundo. Gamitin ang card ng circuit breaker upang matukoy kung aling mga provider ang nakararanas ng mga problema.
+**Pro Tip:** Awtomatikong nagre-refresh ang page na Health bawat 10 segundo. Gamitin ang circuit breaker card upang matukoy kung aling mga provider ang nakakaranas ng mga problema.
 
 ---
 

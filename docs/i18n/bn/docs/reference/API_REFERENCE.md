@@ -1,10 +1,10 @@
 # API Reference (বাংলা)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 ---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 OmniRoute API-এর মূল রেফারেন্স। এতে সর্বজনীন `/v1` সারফেস এবং সর্বাধিক ব্যবহৃত ব্যবস্থাপনা এন্ডপয়েন্টগুলো অন্তর্ভুক্ত রয়েছে; মেশিন-পাঠযোগ্য [`docs/openapi.yaml`](../openapi.yaml) এবং `src/app/api/`-এর অধীনে থাকা রুট ট্রি হলো পূর্ণাঙ্গ উৎস।
 
@@ -88,13 +88,13 @@ Content-Type: application/json
 
 ## এক্সক্লুসিভ ম্যানেজড সেশন লিজ
 
-এক্সক্লুসিভ ম্যানেজড সেশন লিজিং হলো একটি ঐচ্ছিক, ক্লায়েন্ট-নিরপেক্ষ রাউটিং চুক্তি: একজন সক্রিয় মালিক
-একটি যোগ্য OmniRoute সংযোগ ধরে রাখে। এটি কোনো মডেল লিজ দেয় না, OAuth প্রয়োজন করে না, কোনো
-নির্দিষ্ট ক্লায়েন্টকে শনাক্ত করে না বা কোনো নির্দিষ্ট প্রোভাইডার আবশ্যক করে না।
+এক্সক্লুসিভ ম্যানেজড সেশন লিজিং একটি অপ্ট-ইন, ক্লায়েন্ট-নিরপেক্ষ রাউটিং চুক্তি: একজন সক্রিয় মালিক
+একটি যোগ্য OmniRoute সংযোগ ধারণ করে। এটি কোনো মডেল লিজ দেয় না, OAuth আবশ্যক করে না, কোনো
+নির্দিষ্ট ক্লায়েন্ট শনাক্ত করে না, বা কোনো নির্দিষ্ট প্রোভাইডার আবশ্যক করে না।
 
-প্রমাণীকরণকারী API কী-এর অবশ্যই `lease:exclusive` স্কোপ এবং একটি সুস্পষ্ট, অ-খালি
+প্রমাণীকরণকারী API কীটির অবশ্যই `lease:exclusive` স্কোপ এবং একটি সুস্পষ্ট, ফাঁকা নয় এমন
 `allowedConnections` তালিকা থাকতে হবে। কী তৈরি এবং আংশিক আপডেটের সময় ডেটাবেস মিউটেশন সীমানা
-দুটি ফিল্ড একসঙ্গে প্রয়োগ করে।
+দুটি ফিল্ডকেই একসঙ্গে প্রয়োগ করে।
 
 ```http
 POST /api/v1/session-leases
@@ -106,8 +106,8 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 ```
 
 সফল acquire, renew এবং release প্রতিক্রিয়াগুলো টাইমস্ট্যাম্প, `state` এবং সঠিক ধনাত্মক
-`generation` প্রকাশ করে, কিন্তু নির্বাচিত সংযোগ বা ক্রেডেনশিয়াল কখনোই প্রকাশ করে না। Renew এবং release-এর
-ক্ষেত্রে JSON বডিতে generation সরবরাহ করা হয়:
+`generation` প্রকাশ করে, কিন্তু নির্বাচিত সংযোগ বা ক্রেডেনশিয়াল কখনোই প্রকাশ করে না। Renew এবং release
+JSON বডিতে generation সরবরাহ করে:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -137,23 +137,23 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 }
 ```
 
-এই ঐচ্ছিক status অ্যাকশনটি একটি একক ডেটাবেস ট্রানজ্যাকশনের মধ্যে অস্বচ্ছ মালিক, প্রমাণীকৃত ম্যানেজড API কী এবং সঠিক
-সক্রিয় generation দ্বারা ফেন্স করা হয়। `displayName` কেবল ট্রিম করা কনফিগার্ড
+এই অপ্ট-ইন status অ্যাকশনটি একটি ডেটাবেস ট্রানজ্যাকশনের মধ্যে অস্বচ্ছ মালিক, প্রমাণীকৃত ম্যানেজড API কী এবং সঠিক
+সক্রিয় generation দ্বারা সুরক্ষিত। `displayName` কেবল ট্রিম করা কনফিগার্ড
 সংযোগের নাম; কোনো নিরাপদ কনফিগার্ড নাম না থাকলে এটি `null` হয়। OmniRoute কখনোই এর পরিবর্তে কোনো
-ইমেইল বা জেনারেট করা অ্যাকাউন্ট পরিচয় ব্যবহার করে না। provider মানটি একটি অসংবেদনশীল প্রদর্শন লেবেল এবং কখনোই
-জেনারেট করা সামঞ্জস্যপূর্ণ-প্রোভাইডার শনাক্তকারী নয়। ক্রেডেনশিয়াল, টোকেন, কুকি, কাঁচা সংযোগ বা API
+ইমেইল বা জেনারেট করা অ্যাকাউন্ট পরিচয় ব্যবহার করে না। প্রোভাইডার মানটি একটি অ-সংবেদনশীল প্রদর্শন লেবেল এবং কখনোই
+কোনো জেনারেট করা সামঞ্জস্যপূর্ণ-প্রোভাইডার শনাক্তকারী নয়। ক্রেডেনশিয়াল, টোকেন, কুকি, কাঁচা সংযোগ বা API
 কী আইডি, মালিকের হ্যাশ, ফেন্সিং সিক্রেট এবং অভ্যন্তরীণ রাউটিং ডেটা বাদ দেওয়া হয়।
 
-ভুল-কী, ভুল-মালিক, পুরোনো-generation, অনুপস্থিত, মেয়াদোত্তীর্ণ, রিলিজ করা এবং অবৈধ করা লুকআপগুলো
-সংযোগ মেটাডেটা ছাড়াই একই `409 LEASE_FENCE_STALE` ত্রুটি ফেরত দেয়। capacity-wait প্রতিক্রিয়া পাওয়া কোনো ক্লায়েন্টের পরিদর্শন করার মতো সক্রিয় বাইন্ডিং থাকে না। রাউটিং যখন কোনো সক্রিয় লিজকে স্থানান্তর করে,
+ভুল-কী, ভুল-মালিক, পুরোনো-generation, অনুপস্থিত, মেয়াদোত্তীর্ণ, রিলিজ করা এবং বাতিল করা লুকআপগুলো
+সংযোগের মেটাডেটা ছাড়াই একই `409 LEASE_FENCE_STALE` ত্রুটি ফেরত দেয়। যে ক্লায়েন্ট capacity-wait প্রতিক্রিয়া পেয়েছে, তার পরিদর্শন করার মতো কোনো সক্রিয় বাইন্ডিং নেই। রাউটিং যখন একটি সক্রিয় লিজকে স্থানান্তর করে,
 তখন একই generation বৈধ থাকে এবং status পারমাণবিকভাবে নতুন বাইন্ডিং ফেরত দেয়, পুরোনোটি কখনোই নয়।
 বিদ্যমান ক্লায়েন্টগুলো অপরিবর্তিত থাকে, কারণ acquire, renew, release এবং waiting প্রতিক্রিয়াগুলো
-তাদের আগের আকৃতি বজায় রাখে।
+তাদের পূর্ববর্তী কাঠামো বজায় রাখে।
 
-এই সার্ভার চুক্তি স্টক OpenAI Codex `/status` পরিবর্তন করে না। স্টক Codex বর্তমানে এর
-মডেল প্রোভাইডার এবং বিল্ট-ইন প্রমাণীকরণ/অ্যাকাউন্ট অবস্থা রিপোর্ট করে, কিন্তু ইচ্ছামতো কাস্টম
+এই সার্ভার চুক্তি স্টক OpenAI Codex `/status` পরিবর্তন করে না। স্টক Codex বর্তমানে তার
+মডেল প্রোভাইডার এবং অন্তর্নির্মিত প্রমাণীকরণ/অ্যাকাউন্ট অবস্থা রিপোর্ট করে, কিন্তু নির্বিচার কাস্টম
 প্রোভাইডার অ্যাকাউন্ট মেটাডেটা রেন্ডার করে না; ভবিষ্যতের কোনো ক্লায়েন্ট ইন্টিগ্রেশনকে এই অ্যাকশন কল করতে হবে এবং
-`connection.displayName` কীভাবে প্রদর্শন করা হবে তা নির্ধারণ করতে হবে।
+`connection.displayName` কীভাবে প্রদর্শন করবে তা নির্ধারণ করতে হবে।
 
 এরপর প্রতিটি ম্যানেজড ইনফারেন্স অনুরোধ উভয় কন্ট্রোল হেডার সরবরাহ করে:
 
@@ -163,11 +163,11 @@ X-OmniRoute-Lease-Generation: 1
 ```
 
 প্রতিটি সমর্থিত আপস্ট্রিম প্রচেষ্টার ঠিক আগে সঠিক মালিক, generation, সক্রিয় সংযোগ এবং প্রমাণীকৃত API কী
-ফেন্স করা হয়। অন্য কোনো কী দিয়ে মালিক ও generation পুনরায় ব্যবহার করলে সেটি ব্যর্থ হয়, এমনকি
-সেই কী একই সংযোগ অনুমোদন করলেও। কাঁচা মালিকের মান সংরক্ষণ, লগ বা
+ফেন্স করা হয়। অন্য কী দিয়ে মালিক ও generation পুনরায় ব্যবহার করলে তা ব্যর্থ হয়, এমনকি
+সেই কী একই সংযোগ অনুমোদন করলেও। কাঁচা মালিকের তথ্য সংরক্ষণ, লগ বা
 অনুরোধের স্ন্যাপশটে ধরে রাখা হয় না এবং আপস্ট্রিমেও ফরোয়ার্ড করা হয় না।
 
-সাময়িক প্রতিযোগিতার ক্ষেত্রে HTTP `429`, `Retry-After` এবং নিচের প্রতিক্রিয়া ফেরত দেওয়া হয়:
+সাময়িক প্রতিযোগিতার ক্ষেত্রে HTTP `429`, `Retry-After` এবং নিম্নলিখিতটি ফেরত দেওয়া হয়:
 
 ```json
 {
@@ -178,36 +178,38 @@ X-OmniRoute-Lease-Generation: 1
 }
 ```
 
-এই প্রতিক্রিয়ার অর্থ শুধু এটুকুই যে সাধারণ যোগ্য সেটটি অ-খালি ছিল এবং প্রতিটি মুক্ত প্রার্থী
-অন্য কোনো সক্রিয় লিজের দখলে ছিল। অসমর্থিত মডেল/প্রোভাইডার, পলিসির অমিল, কুলডাউন, কোটা,
-হেলথ এবং অন্যান্য সাধারণ যোগ্যতা-সংক্রান্ত ব্যর্থতার ক্ষেত্রে তাদের বিদ্যমান OmniRoute প্রতিক্রিয়া বজায় থাকে।
+এই প্রতিক্রিয়ার অর্থ কেবল এই যে সাধারণ যোগ্য সেটটি ফাঁকা ছিল না এবং প্রতিটি মুক্ত প্রার্থী
+অন্য কোনো সক্রিয় লিজের অধীনে ছিল। অসমর্থিত মডেল/প্রোভাইডার, নীতির অমিল, কুলডাউন, কোটা,
+স্বাস্থ্য এবং অন্যান্য সাধারণ যোগ্যতা ব্যর্থতা তাদের বিদ্যমান OmniRoute প্রতিক্রিয়া বজায় রাখে।
 
 ### `x-omniroute-compression`
 
-প্রতি-অনুরোধ ভিত্তিতে কম্প্রেশন প্ল্যান ওভাররাইড। এর অগ্রাধিকার সর্বোচ্চ — এটি routing-combo
-ওভাররাইড, সক্রিয় প্রোফাইল, auto-trigger এবং প্যানেলের Default-কে অগ্রাহ্য করে। মানসমূহ:
+প্রতি-অনুরোধে কম্প্রেশন পরিকল্পনার ওভাররাইড। সর্বোচ্চ অগ্রাধিকার — এটি routing-combo
+ওভাররাইড, সক্রিয় প্রোফাইল, auto-trigger এবং প্যানেলের Default-কে অতিক্রম করে। মানসমূহ:
 
-| মান           | প্রভাব                                                                                      |
-| ------------- | ------------------------------------------------------------------------------------------- |
-| `off`         | এই অনুরোধের জন্য কোনো কম্প্রেশন নয়।                                                        |
-| `default`     | প্যানেল থেকে প্রাপ্ত Default প্রোফাইল (সক্রিয় প্রোফাইল উপেক্ষা করে)।                       |
-| `engine:<id>` | সক্রিয় থাকলে একটি একক ইঞ্জিন, যেমন `engine:rtk`।                                           |
-| `<combo>`     | একটি নামযুক্ত কম্বো, প্রথমে নাম দিয়ে (কেস-সংবেদনশীল নয়), তারপর id দিয়ে মিলিয়ে দেখা হয়। |
+| মান           | প্রভাব                                                                                              |
+| ------------- | --------------------------------------------------------------------------------------------------- |
+| `off`         | এই অনুরোধে কোনো কম্প্রেশন নয়।                                                                      |
+| `default`     | প্যানেল থেকে নির্ধারিত Default প্রোফাইল (সক্রিয় প্রোফাইল উপেক্ষা করে)। Lossy ইঞ্জিনগুলো বন্ধ থাকে। |
+| `safe`        | কেবল ডিডুপ এবং হোয়াইটস্পেস ফোল্ডিং।                                                                |
+| `allow-lossy` | সারাংশ ও স্টাইল পুনর্লিখনসহ এই অনুরোধের জন্য অপারেটর পরিকল্পনা বজায় রাখে।                          |
+| `engine:<id>` | সক্রিয় থাকলে একটি একক ইঞ্জিন, যেমন `engine:rtk`। সেই ইঞ্জিনের জন্য প্রতি-অনুরোধে অপ্ট-ইন।          |
+| `<combo>`     | একটি নামযুক্ত কম্বো, প্রথমে নাম দিয়ে (কেস-সংবেদনশীল নয়), তারপর id দিয়ে মিলানো হয়।               |
 
 নোট:
 
-- অজানা মান উপেক্ষা করা হয় (অনুরোধ কখনোই প্রত্যাখ্যাত হয় না); রেজোলিউশন স্বাভাবিক অপারেটর অগ্রাধিকার অনুযায়ী এগিয়ে যায়।
-- একাধিক কম্বোর নাম একই হলে, নির্ধারিত ফলাফল পেতে কম্বোর **id** পাঠান।
-- যে কম্বোর নাম `off` বা `default`, সেটি নাম দিয়ে নির্বাচন করা যায় না (ওই কীওয়ার্ডগুলো আগে ব্যাখ্যা করা হয়); এমন কম্বোকে তার id দিয়ে উল্লেখ করুন।
-- প্রধান কম্প্রেশন সুইচটি একটি কঠোর গেট: কম্প্রেশন বিশ্বব্যাপী নিষ্ক্রিয় থাকলে এই হেডার সেটি সক্রিয় করতে পারে না।
+- অজানা মান উপেক্ষা করা হয় (অনুরোধটি কখনো প্রত্যাখ্যাত হয় না); রেজোলিউশন স্বাভাবিক অপারেটর অগ্রাধিকারে ফিরে যায়।
+- একাধিক কম্বোর নাম একই হলে, নির্ধারিত মিলের জন্য কম্বোর **id** পাঠান।
+- যে কম্বোর নাম `off` বা `default`, সেটিকে নাম দিয়ে নির্বাচন করা যায় না (এই কীওয়ার্ডগুলো আগে ব্যাখ্যা করা হয়); এমন কম্বোকে তার id দিয়ে রেফার করুন।
+- মাস্টার কম্প্রেশন সুইচটি একটি কঠোর গেট: বিশ্বব্যাপী কম্প্রেশন নিষ্ক্রিয় থাকলে, এই হেডার এটি সক্রিয় করতে পারে না।
 
-প্রয়োগ করা প্ল্যানটি প্রতিক্রিয়ার হেডারে প্রতিধ্বনিত হয়:
+প্রয়োগ করা পরিকল্পনাটি প্রতিক্রিয়া হেডারে পুনরায় পাঠানো হয়:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-যেখানে `<source>` হলো `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` অথবা `off`-এর একটি।
+যেখানে `<source>` হলো `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, অথবা `off`-এর একটি।
 
 ---
 
@@ -453,12 +455,12 @@ Bifrost, CLIProxyAPI এবং ভবিষ্যতের সাইডকার
 | POST | `/v1/images/generations`                  | OpenAI Images                          |
 | POST | `/v1/images/edits`                        | OpenAI Images (সম্পাদনা/ইনপেইন্ট)      |
 | POST | `/v1/videos/generations`                  | OpenAI-ধাঁচের ভিডিও জেনারেশন           |
-| POST | `/v1/music/generations`                   | OpenAI-ধাঁচের মিউজিক জেনারেশন          |
+| POST | `/v1/music/generations`                   | OpenAI-ধাঁচের সংগীত জেনারেশন           |
 | POST | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                     |
-| POST | `/v1/audio/speech`                        | OpenAI TTS (অডিও বডি রিটার্ন করে)      |
+| POST | `/v1/audio/speech`                        | OpenAI TTS (অডিও বডি প্রদান করে)       |
 | POST | `/v1/rerank`                              | Cohere/Voyage-ধাঁচের রির্যাঙ্ক         |
-| POST | `/v1/classify`                            | Jina classify (`api.jina.ai`)          |
-| POST | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`)     |
+| POST | `/v1/classify`                            | Jina শ্রেণিবিন্যাস (`api.jina.ai`)     |
+| POST | `/v1/segment`                             | Jina সেগমেন্টার (`segment.jina.ai`)    |
 | POST | `/v1/moderations`                         | OpenAI Moderations                     |
 | GET  | `/v1/models`                              | OpenAI                                 |
 | POST | `/v1/messages/count_tokens`               | Anthropic                              |
@@ -470,59 +472,63 @@ Bifrost, CLIProxyAPI এবং ভবিষ্যতের সাইডকার
 | POST | `/api/v1/vscode/{token}/chat/completions` | OpenAI টোকেনযুক্ত অ্যালিয়াস           |
 | POST | `/api/v1/vscode/{token}/responses`        | OpenAI Responses টোকেনযুক্ত অ্যালিয়াস |
 | POST | `/api/v1/vscode/{token}/api/chat`         | Ollama টোকেনযুক্ত অ্যালিয়াস           |
-| GET  | `/api/v1/vscode/{token}/api/tags`         | Ollama tags টোকেনযুক্ত অ্যালিয়াস      |
+| GET  | `/api/v1/vscode/{token}/api/tags`         | Ollama ট্যাগের টোকেনযুক্ত অ্যালিয়াস   |
 
-সব POST রুট একই কাঠামো অনুসরণ করে: `Bearer your-api-key` + Zod-ভ্যালিডেটেড JSON বডি (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` ইত্যাদি; `src/shared/validation/schemas.ts` দেখুন)। স্কিমা যাচাই ব্যর্থ হলে 4xx রিটার্ন করা হয়।
+সব POST রুট একই কাঠামো অনুসরণ করে: `Bearer your-api-key` + Zod-দ্বারা যাচাইকৃত JSON বডি (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` ইত্যাদি; `src/shared/validation/schemas.ts` দেখুন)। স্কিমা যাচাই ব্যর্থ হলে 4xx ফেরত দেওয়া হয়।
 
-যেসব ক্লায়েন্ট `Authorization: Bearer ...` সংযুক্ত করতে পারে না, সেগুলোর জন্য OmniRoute ক্যোয়ারি-স্ট্রিং সামঞ্জস্য (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) অথবা নিচে নথিভুক্ত নিবেদিত `/api/v1/vscode/{token}/...` এন্ডপয়েন্টের মাধ্যমে URL-এ API key গ্রহণ করে।
+যেসব ক্লায়েন্ট `Authorization: Bearer ...` সংযুক্ত করতে পারে না, সেগুলোর জন্য OmniRoute ক্যোয়ারি-স্ট্রিং সামঞ্জস্য (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) অথবা নিচে নথিভুক্ত নির্দিষ্ট `/api/v1/vscode/{token}/...` এন্ডপয়েন্টের মাধ্যমে URL-এ API কী গ্রহণ করে।
 
 ```bash
 # রির্যাঙ্ক (ক্লাউড রেজিস্ট্রি প্রোভাইডার অথবা "<prefix>/<model>" হিসেবে একটি OpenAI-সামঞ্জস্যপূর্ণ প্রোভাইডার নোড)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina classify (Foundation API ক্রেডেনশিয়াল)
+# Jina শ্রেণিবিন্যাস (Foundation API ক্রেডেনশিয়াল)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
 # Jina সেগমেন্টার
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina সার্চ (s.jina.ai; প্রোভাইডার অ্যালিয়াস: jina-search, jina-ai, jina)
+# Jina অনুসন্ধান (s.jina.ai; প্রোভাইডার অ্যালিয়াস: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # মডারেশন
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — audio/mpeg (অথবা অনুরোধকৃত ফরম্যাট) বডি রিটার্ন করে
+# TTS — audio/mpeg (অথবা অনুরোধকৃত ফরম্যাটের) বডি প্রদান করে
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# ছবি সম্পাদনা (multipart)
+# Soniox TTS-এর জন্য একটি ভাষা ও একটি ভয়েস আবশ্যক: `language`-এর ডিফল্ট মান "en"; ভয়েস অনুপস্থিত থাকলে
+# অথবা OpenAI-এর স্টক ভয়েস নাম (alloy, nova, …) হলে সেটি "Adrian" হয়ে যায়
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
+
+# ছবি সম্পাদনা (মাল্টিপার্ট)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# ভিডিও / মিউজিক জেনারেশন (প্রোভাইডার-প্রিফিক্সযুক্ত মডেল আইডি)
+# ভিডিও / সংগীত জেনারেশন (প্রোভাইডার-প্রিফিক্সযুক্ত মডেল আইডি)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **রির্যাঙ্ক প্রোভাইডার নোড:** `POST /v1/rerank` OpenAI-সামঞ্জস্যপূর্ণ প্রোভাইডার নোডেও রাউট করে
-> (oMLX, vLLM, Infinity, কোনো গেটওয়ের পেছনে থাকা TEI, …), যেগুলোকে `<node-prefix>/<model>` হিসেবে সম্বোধন করা হয়। লুপব্যাক
-> নোড (`localhost`, `127.0.0.1`, `172.16.0.0/12`) সবসময় যোগ্য। অন্য যেকোনো
-> হোস্টের নোড—LAN বক্স বা Tailscale পিয়ার—কেবল তখনই যোগ্য, যখন অপারেটর
+> **রির্যাঙ্ক প্রোভাইডার নোডসমূহ:** `POST /v1/rerank` `<node-prefix>/<model>` হিসেবে নির্দেশিত OpenAI-সামঞ্জস্যপূর্ণ প্রোভাইডার নোডেও
+> (গেটওয়ের পেছনে থাকা oMLX, vLLM, Infinity, TEI, …) রুট করে। লুপব্যাক
+> নোড (`localhost`, `127.0.0.1`, `172.16.0.0/12`) সর্বদা উপযুক্ত। অন্য যেকোনো
+> হোস্টে থাকা নোড—LAN-এর কোনো মেশিন বা Tailscale পিয়ার—শুধু তখনই উপযুক্ত, যখন অপারেটর
 > `RERANK_REMOTE_PROVIDER_NODES` ফিচার ফ্ল্যাগ সক্রিয় করেন **এবং** নোডটির বেস URL প্রোভাইডারের
 > আউটবাউন্ড URL নীতি (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) পাস করে;
-> ক্লাউড-মেটাডেটা হোস্টে কখনো রাউট করা হয় না। মেমরি ইঞ্জিনের রির্যাঙ্ক ধাপটি লুপব্যাকের মাধ্যমে
-> এই রুটকে কল করে, তাই Memory সেটিংসে `rerankProviderModel`-এর ক্ষেত্রেও একই নিয়ম প্রযোজ্য।
+> ক্লাউড-মেটাডেটা হোস্টে কখনো রুট করা হয় না। মেমরি ইঞ্জিনের রির্যাঙ্ক ধাপটি লুপব্যাকের মাধ্যমে
+> এই রুট কল করে, তাই Memory সেটিংসে `rerankProviderModel`-এর ক্ষেত্রেও একই নিয়ম প্রযোজ্য।
 >
 > **লোকাল সার্ভারের কাঠামো:** নোডটিকে `<base>/v1/rerank`-এ এবং 404 হলে `<base>/rerank`-এ কল করা হয়
 > (Infinity, TEI)। আপস্ট্রিম বডিতে Cohere/OpenAI বানান (`documents`,
-> `return_documents`) এবং TEI বানান (`texts`, `return_text`) উভয়ই থাকে এবং আপস্ট্রিম রেসপন্সকে
-> Cohere এনভেলপে স্বাভাবিকীকরণ করা হয়: TEI-এর সরাসরি `[{index, score, text}]`, সরল গেটওয়ে থেকে
+> `return_documents`) এবং TEI বানান (`texts`, `return_text`) উভয়ই থাকে, আর আপস্ট্রিম রেসপন্সকে
+> Cohere এনভেলপে স্বাভাবিকীকরণ করা হয়: TEI-এর সরাসরি `[{index, score, text}]`, হালকা গেটওয়ে থেকে পাওয়া
 > `{results: [{index, score}]}` এবং Voyage-ধাঁচের `{data: [...]}`—সবই ক্লায়েন্টের কাছে
-> `{results: [{index, relevance_score, document?}]}` হিসেবে ফিরে আসে, স্কোর অনুযায়ী সাজানো এবং `top_n`-এ সীমাবদ্ধ।
+> `{results: [{index, relevance_score, document?}]}` হিসেবে ফেরত আসে, স্কোর অনুযায়ী সাজানো এবং `top_n`-এ সীমাবদ্ধ।
 
-> **প্রোভাইডার-নোড আবিষ্কার:** একটি OpenAI-সামঞ্জস্যপূর্ণ প্রোভাইডার নোডের মডেলগুলো `GET /v1/models`-এ
-> নোড প্রিফিক্সের অধীনে প্রদর্শিত হয়। যেসব রোতে কোনো এন্ডপয়েন্ট মেটাডেটা নেই (লোকাল `/v1/models` তালিকায় যা সাধারণ),
-> সেগুলো নোডের `apiType` উত্তরাধিকারসূত্রে পায়; তাই একটি `embeddings` নোডের মডেলগুলো `type: "embedding"` এবং একটি
-> `rerank` নোডের মডেলগুলো ডিফল্টভাবে chat হওয়ার পরিবর্তে `type: "rerank"` হয়; তবে সিঙ্ক করা বা ম্যানুয়ালি যোগ করা রোতে স্পষ্টভাবে দেওয়া
+> **প্রোভাইডার-নোড আবিষ্কার:** OpenAI-সামঞ্জস্যপূর্ণ কোনো প্রোভাইডার নোডের মডেলগুলো নোড প্রিফিক্সের অধীনে `GET /v1/models`-এ দেখা যায়।
+> যেসব সারিতে কোনো এন্ডপয়েন্ট মেটাডেটা নেই (স্থানীয় `/v1/models` তালিকার ক্ষেত্রে যা সাধারণ),
+> সেগুলো নোডের `apiType` উত্তরাধিকারসূত্রে পায়; ফলে কোনো `embeddings` নোডের মডেলগুলো ডিফল্টভাবে চ্যাট না হয়ে `type: "embedding"` হয় এবং কোনো
+> `rerank` নোডের মডেলগুলো `type: "rerank"` হয়; তবে সিঙ্ক করা বা ম্যানুয়ালি যোগ করা কোনো সারিতে স্পষ্টভাবে উল্লেখ করা
 > `supportedEndpoints` এখনও অগ্রাধিকার পায়।
 
 ### নিবেদিত প্রোভাইডার রুটসমূহ
@@ -533,7 +539,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-প্রোভাইডার প্রিফিক্স অনুপস্থিত থাকলে এটি স্বয়ংক্রিয়ভাবে যোগ করা হয়। অসামঞ্জস্যপূর্ণ মডেলগুলোর ক্ষেত্রে `400` রিটার্ন করা হয়।
+প্রোভাইডার প্রিফিক্স অনুপস্থিত থাকলে এটি স্বয়ংক্রিয়ভাবে যোগ করা হয়। অমিল মডেলগুলো `400` ফেরত দেয়।
 
 ---
 
@@ -826,175 +832,176 @@ X-OmniRoute-No-Cache: true
 
 ## ড্যাশবোর্ড ও ব্যবস্থাপনা
 
-ম্যানেজমেন্ট রুটগুলো (`/api/*`, পাবলিক auth/login ব্যতীত) সাধারণ inference API key দ্বারা **অনুমোদিত নয়**। ক্রেডেনশিয়াল পরিবার, scope এবং curl উদাহরণ:
-[ম্যানেজমেন্ট প্রমাণীকরণ](../guides/MANAGEMENT-AUTH.md)।
+ব্যবস্থাপনা রুটগুলো (`/api/*`, পাবলিক auth/login ব্যতীত) সাধারণ inference API key দ্বারা **অনুমোদিত নয়**। Credential family, scope এবং curl-এর উদাহরণ:
+[ব্যবস্থাপনা প্রমাণীকরণ](../guides/MANAGEMENT-AUTH.md)।
 
 ### প্রমাণীকরণ
 
-| এন্ডপয়েন্ট                   | মেথড    | বিবরণ                      |
-| ----------------------------- | ------- | -------------------------- |
-| `/api/auth/login`             | POST    | লগইন                       |
-| `/api/auth/logout`            | POST    | লগআউট                      |
-| `/api/settings/require-login` | GET/PUT | লগইন আবশ্যক কি না টগল করুন |
+| Endpoint                      | Method  | বিবরণ                    |
+| ----------------------------- | ------- | ------------------------ |
+| `/api/auth/login`             | POST    | লগইন                     |
+| `/api/auth/logout`            | POST    | লগআউট                    |
+| `/api/settings/require-login` | GET/PUT | লগইন আবশ্যক কিনা টগল করা |
 
-### প্রোভাইডার ব্যবস্থাপনা
+### Provider ব্যবস্থাপনা
 
-| এন্ডপয়েন্ট                  | মেথড                  | বিবরণ                                                                                                                        |
-| ---------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `/api/providers`             | GET/POST              | প্রোভাইডারগুলোর তালিকা দেখুন / তৈরি করুন                                                                                     |
-| `/api/providers/[id]`        | GET/PUT/DELETE        | একটি প্রোভাইডার পরিচালনা করুন                                                                                                |
-| `/api/providers/[id]/test`   | POST                  | প্রোভাইডার সংযোগ পরীক্ষা করুন                                                                                                |
-| `/api/providers/[id]/models` | GET                   | প্রোভাইডারের মডেলগুলোর তালিকা দেখুন                                                                                          |
-| `/api/providers/validate`    | POST                  | প্রোভাইডার কনফিগ যাচাই করুন                                                                                                  |
-| `/api/providers/bulk`        | POST                  | একটি প্রোভাইডারের জন্য একযোগে একাধিক API key যোগ করুন                                                                        |
-| `/api/providers/import`      | POST                  | পার্স করা CSV/JSON ফাইল থেকে বিভিন্ন ধরনের প্রোভাইডারের একটি তালিকা আমদানি করুন (#6836); প্রতিটি সারির আংশিক ব্যর্থতার ফলাফল |
-| `/api/provider-nodes*`       | বিভিন্ন               | প্রোভাইডার নোড ব্যবস্থাপনা                                                                                                   |
-| `/api/provider-models`       | GET/POST/PATCH/DELETE | কাস্টম মডেল (যোগ, হালনাগাদ, লুকানো/দেখানো, মুছে ফেলা)                                                                        |
+| Endpoint                                | Method                | বিবরণ                                                                                                                                            |
+| --------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/api/providers`                        | GET/POST              | Provider-এর তালিকা দেখা / তৈরি করা                                                                                                               |
+| `/api/providers/[id]`                   | GET/PUT/DELETE        | একটি provider পরিচালনা করা                                                                                                                       |
+| `/api/providers/[id]/test`              | POST                  | Provider সংযোগ পরীক্ষা করা                                                                                                                       |
+| `/api/providers/[id]/models`            | GET                   | Provider model-এর তালিকা দেখা                                                                                                                    |
+| `/api/providers/validate`               | POST                  | Provider config যাচাই করা                                                                                                                        |
+| `/api/providers/bulk`                   | POST                  | একটি provider-এর জন্য একসঙ্গে একাধিক API key যোগ করা                                                                                             |
+| `/api/providers/import`                 | POST                  | পার্স করা CSV/JSON ফাইল থেকে বিভিন্ন ধরনের provider-এর তালিকা আমদানি করা (#6836); প্রতিটি সারির জন্য আংশিক ব্যর্থতার ফলাফল                       |
+| `/api/provider-nodes*`                  | Various               | Provider node ব্যবস্থাপনা                                                                                                                        |
+| `/api/provider-models`                  | GET/POST/PATCH/DELETE | কাস্টম model (যোগ, হালনাগাদ, লুকানো/দেখানো, মুছে ফেলা)                                                                                           |
+| `/api/provider-models/validate-and-add` | POST                  | ব্যবস্থাপনা-প্রমাণীকৃত, ঐচ্ছিক strict-connection যাচাইকরণ এবং atomic custom-model নিবন্ধন; দেখুন [Model যাচাইকরণ](../guides/MODEL-VALIDATION.md) |
 
 ### OAuth প্রবাহ
 
-| এন্ডপয়েন্ট                      | মেথড    | বিবরণ                      |
-| -------------------------------- | ------- | -------------------------- |
-| `/api/oauth/[provider]/[action]` | বিভিন্ন | প্রোভাইডার-নির্দিষ্ট OAuth |
+| Endpoint                         | Method  | বিবরণ                    |
+| -------------------------------- | ------- | ------------------------ |
+| `/api/oauth/[provider]/[action]` | Various | Provider-নির্দিষ্ট OAuth |
 
-### রাউটিং ও কনফিগ
+### Routing ও Config
 
-| এন্ডপয়েন্ট           | মেথড     | বিবরণ                             |
+| Endpoint              | Method   | বিবরণ                             |
 | --------------------- | -------- | --------------------------------- |
-| `/api/models/alias`   | GET/POST | মডেল উপনাম                        |
-| `/api/models/catalog` | GET      | প্রোভাইডার + ধরন অনুযায়ী সব মডেল |
-| `/api/combos*`        | বিভিন্ন  | কম্বো ব্যবস্থাপনা                 |
-| `/api/keys*`          | বিভিন্ন  | API key ব্যবস্থাপনা               |
-| `/api/pricing`        | GET      | মডেলের মূল্য নির্ধারণ             |
+| `/api/models/alias`   | GET/POST | Model alias                       |
+| `/api/models/catalog` | GET      | Provider + type অনুযায়ী সব model |
+| `/api/combos*`        | Various  | Combo ব্যবস্থাপনা                 |
+| `/api/keys*`          | Various  | API key ব্যবস্থাপনা               |
+| `/api/pricing`        | GET      | Model-এর মূল্য নির্ধারণ           |
 
 ### ব্যবহার ও বিশ্লেষণ
 
-| এন্ডপয়েন্ট                      | মেথড            | বিবরণ                                                                                                                                                                                                                                                                                                                        |
-| -------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/usage/history`             | GET             | ব্যবহারের ইতিহাস                                                                                                                                                                                                                                                                                                             |
-| `/api/usage/logs`                | GET             | ব্যবহারের লগ                                                                                                                                                                                                                                                                                                                 |
-| `/api/usage/request-logs`        | GET             | অনুরোধ-স্তরের লগ                                                                                                                                                                                                                                                                                                             |
-| `/api/usage/[connectionId]`      | GET             | প্রতিটি সংযোগের ব্যবহার                                                                                                                                                                                                                                                                                                      |
-| `/api/usage/token-limits`        | GET/POST/DELETE | প্রতিটি API কী-এর টোকেন-সীমা বাজেট                                                                                                                                                                                                                                                                                           |
-| `/api/usage/model-latency-stats` | GET             | প্রতিটি প্রোভাইডার/মডেলের রোলিং লেটেন্সি সমষ্টি (avg/p50/p95/p99, সফলতার হার); ফিল্টার: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                                      |
-| `/api/usage/cache-health`        | GET             | `call_logs`-এর ভিত্তিতে প্রম্পট-ক্যাশের স্বাস্থ্যসারাংশ — লেখা/পড়ার অনুপাত, p50/p90/p99 লেখা-আকারের বণ্টন, অতিরিক্ত লেখার ঘনত্ব, প্রতিটি মডেল অনুযায়ী বিভাজন এবং একটি `healthy`/`degraded`/`thrash`/`no-data` সিদ্ধান্ত; ক্যোয়ারি প্যারামিটার `range` (`1h`\|`24h`\|`7d`\|`30d`, ডিফল্ট `24h`) এবং ঐচ্ছিক `model` (#8827) |
+| এন্ডপয়েন্ট                      | মেথড            | বিবরণ                                                                                                                                                                                                                                                                                                               |
+| -------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/usage/history`             | GET             | ব্যবহারের ইতিহাস                                                                                                                                                                                                                                                                                                    |
+| `/api/usage/logs`                | GET             | ব্যবহারের লগ                                                                                                                                                                                                                                                                                                        |
+| `/api/usage/request-logs`        | GET             | রিকোয়েস্ট-স্তরের লগ                                                                                                                                                                                                                                                                                                |
+| `/api/usage/[connectionId]`      | GET             | প্রতিটি সংযোগের ব্যবহার                                                                                                                                                                                                                                                                                             |
+| `/api/usage/token-limits`        | GET/POST/DELETE | প্রতিটি API কী-এর টোকেন-সীমা বাজেট                                                                                                                                                                                                                                                                                  |
+| `/api/usage/model-latency-stats` | GET             | প্রতিটি প্রোভাইডার/মডেলের রোলিং ল্যাটেন্সি সমষ্টি (avg/p50/p95/p99, সফলতার হার); ফিল্টার: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                           |
+| `/api/usage/cache-health`        | GET             | `call_logs`-এর ভিত্তিতে প্রম্পট-ক্যাশের স্বাস্থ্যসারাংশ — লেখা/পড়ার অনুপাত, p50/p90/p99 লেখার আকারের বণ্টন, ভারী লেখার কেন্দ্রীভবন, মডেলভিত্তিক বিভাজন এবং একটি `healthy`/`degraded`/`thrash`/`no-data` সিদ্ধান্ত; কোয়েরি প্যারামিটার `range` (`1h`\|`24h`\|`7d`\|`30d`, ডিফল্ট `24h`) এবং ঐচ্ছিক `model` (#8827) |
 
 ### সেটিংস
 
-| এন্ডপয়েন্ট                           | মেথড          | বিবরণ                                                                                                                                                                                              |
-| ------------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/settings`                       | GET/PUT/PATCH | সাধারণ সেটিংস                                                                                                                                                                                      |
-| `/api/settings/proxy`                 | GET/PUT       | নেটওয়ার্ক প্রক্সি কনফিগারেশন                                                                                                                                                                      |
-| `/api/settings/proxy/test`            | POST          | প্রক্সি সংযোগ পরীক্ষা করুন                                                                                                                                                                         |
-| `/api/settings/ip-filter`             | GET/PUT       | IP অনুমোদন-তালিকা/ব্লক-তালিকা                                                                                                                                                                      |
-| `/api/settings/thinking-budget`       | GET/PUT       | চিন্তা/যুক্তির **অনুরোধ** পুনর্লিখন মোড (অপরিবর্তিত প্রেরণ / স্বয়ংক্রিয়ভাবে বাদ দেওয়া / কাস্টম / অভিযোজিত)। কম্প্রেশন থেকে স্বতন্ত্র। [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md) দেখুন। |
-| `/api/settings/system-prompt`         | GET/PUT       | গ্লোবাল সিস্টেম প্রম্পট                                                                                                                                                                            |
-| `/api/settings/compression`           | GET/PUT       | গ্লোবাল কম্প্রেশন কনফিগারেশন                                                                                                                                                                       |
-| `/api/settings/purge-request-history` | POST          | অনুরোধের লগ সারি এবং স্থানীয় কল-লগ আর্টিফ্যাক্ট মুছে ফেলুন                                                                                                                                        |
+| এন্ডপয়েন্ট                           | মেথড          | বিবরণ                                                                                                                                                                                        |
+| ------------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/settings`                       | GET/PUT/PATCH | সাধারণ সেটিংস                                                                                                                                                                                |
+| `/api/settings/proxy`                 | GET/PUT       | নেটওয়ার্ক প্রক্সি কনফিগারেশন                                                                                                                                                                |
+| `/api/settings/proxy/test`            | POST          | প্রক্সি সংযোগ পরীক্ষা করুন                                                                                                                                                                   |
+| `/api/settings/ip-filter`             | GET/PUT       | IP অনুমোদন-তালিকা/ব্লক-তালিকা                                                                                                                                                                |
+| `/api/settings/thinking-budget`       | GET/PUT       | চিন্তা/যুক্তির **রিকোয়েস্ট** পুনর্লিখন মোড (পাসথ্রু / স্বয়ংক্রিয়ভাবে বাদ দেওয়া / কাস্টম / অভিযোজিত)। কম্প্রেশন থেকে স্বতন্ত্র। [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md) দেখুন। |
+| `/api/settings/system-prompt`         | GET/PUT       | গ্লোবাল সিস্টেম প্রম্পট                                                                                                                                                                      |
+| `/api/settings/compression`           | GET/PUT       | গ্লোবাল কম্প্রেশন কনফিগারেশন                                                                                                                                                                 |
+| `/api/settings/purge-request-history` | POST          | রিকোয়েস্ট লগের সারি এবং স্থানীয় কল-লগ আর্টিফ্যাক্ট মুছে ফেলুন                                                                                                                              |
 
 ### কনটেক্সট ও কম্প্রেশন
 
 | Endpoint                               | Method         | Description                                                        |
 | -------------------------------------- | -------------- | ------------------------------------------------------------------ |
 | `/api/compression/preview`             | POST           | off/lite/standard/aggressive/ultra/RTK/stacked কম্প্রেশনের প্রিভিউ |
-| `/api/compression/language-packs`      | GET            | উপলভ্য Caveman ভাষা প্যাকগুলোর তালিকা                              |
+| `/api/compression/language-packs`      | GET            | উপলভ্য Caveman ভাষা প্যাকের তালিকা                                 |
 | `/api/compression/rules`               | GET            | Caveman নিয়মের মেটাডেটার তালিকা                                   |
 | `/api/context/caveman/config`          | GET/PUT        | Caveman-নির্দিষ্ট সেটিংসের উপনাম                                   |
 | `/api/context/rtk/config`              | GET/PUT        | কাস্টম ফিল্টার ও অপরিশোধিত আউটপুট সংরক্ষণসহ RTK-নির্দিষ্ট সেটিংস   |
-| `/api/context/rtk/filters`             | GET            | RTK ফিল্টার ক্যাটালগ ও কাস্টম-ফিল্টার ডায়াগনস্টিকস                |
-| `/api/context/rtk/test`                | POST           | একটি টেক্সট পেলোডে RTK প্রিভিউ/পরীক্ষা চালান                       |
-| `/api/context/rtk/raw-output/[id]`     | GET            | পয়েন্টার id দিয়ে সংরক্ষিত সম্পাদিত অপরিশোধিত আউটপুট পড়ুন        |
+| `/api/context/rtk/filters`             | GET            | RTK ফিল্টার ক্যাটালগ ও কাস্টম-ফিল্টার ডায়াগনস্টিক                 |
+| `/api/context/rtk/test`                | POST           | টেক্সট পেলোডের ওপর RTK প্রিভিউ/পরীক্ষা চালান                       |
+| `/api/context/rtk/raw-output/[id]`     | GET            | পয়েন্টার ID দিয়ে সংরক্ষিত ও সংশোধিত অপরিশোধিত আউটপুট পড়ুন       |
 | `/api/context/combos`                  | GET/POST       | কম্প্রেশন কম্বোর তালিকা/তৈরি                                       |
-| `/api/context/combos/[id]`             | GET/PUT/DELETE | কম্প্রেশন কম্বোর বিস্তারিত তথ্য/আপডেট/মুছে ফেলা                    |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | কম্প্রেশন কম্বোর বিস্তারিত/আপডেট/মুছে ফেলা                         |
 | `/api/context/combos/[id]/assignments` | GET/PUT        | রাউটিং কম্বোতে কম্প্রেশন কম্বো বরাদ্দ করুন                         |
 | `/api/context/analytics`               | GET            | কম্প্রেশন অ্যানালিটিক্সের উপনাম                                    |
 
 ### পর্যবেক্ষণ
 
-| Endpoint                             | Method     | Description                                                                                                                                                                                                                                                                                                                                                                                                        |
-| ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `/api/sessions`                      | GET        | সক্রিয় সেশন ট্র্যাকিং                                                                                                                                                                                                                                                                                                                                                                                             |
-| `/api/rate-limits`                   | GET        | অ্যাকাউন্ট-প্রতি রেট লিমিট                                                                                                                                                                                                                                                                                                                                                                                         |
-| `/api/monitoring/health`             | GET        | স্বাস্থ্য পরীক্ষা + প্রোভাইডার সারসংক্ষেপ (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`)। ম্যানেজমেন্ট ভিউতে `credentialHealth` অন্তর্ভুক্ত থাকে: প্রোব-ক্যাশ স্কেলার, `failed>0` হলে `failedConnections`, এবং `staleDbNonOkCount` (SQLite-এর স্থায়ী `test_status`, গেজটি নয়)। [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status) দেখুন। |
-| `/api/cache/stats`                   | GET/DELETE | ক্যাশ পরিসংখ্যান / সাফ করুন                                                                                                                                                                                                                                                                                                                                                                                        |
-| `/api/modality-bridge/stats`         | GET        | ইন-মেমরি `attempts`, সফলতা/`bridged`, ব্যর্থতা, ক্যাশ হিট, `totalLatencyMs`, `latencySamples`, নমুনা-হরবিশিষ্ট `averageLatencyMs`, এবং সর্বশেষ ব্যবহারের সময় (রিস্টার্টে রিসেট হয়; ম্যানেজমেন্ট প্রমাণীকরণ)                                                                                                                                                                                                      |
-| `/api/modality-bridge/video/runtime` | GET        | ম্যানেজমেন্ট প্রমাণীকরণ/প্রোবের আগে কঠোর বিশ্বস্ত-লুপব্যাক পরীক্ষা; স্যানিটাইজ করা FFmpeg/ffprobe উপলভ্যতা ও সংস্করণসমূহ (no-store)                                                                                                                                                                                                                                                                                |
-| `/api/modality-bridge/video/extract` | POST       | অভ্যন্তরীণ প্রমাণীকৃত বিশ্বস্ত-লুপব্যাক বাইট ব্রোকার; 50 MiB ইনপুট, সীমাবদ্ধ কিউ/32 MiB আউটপুট, `503` সক্ষমতা, `499` সংযোগ বিচ্ছিন্নতা, `504` সময়সীমা; এটি কোনো পাবলিক আপলোড API নয়                                                                                                                                                                                                                              |
+| Endpoint                             | Method     | Description                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/sessions`                      | GET        | সক্রিয় সেশন ট্র্যাকিং                                                                                                                                                                                                                                                                                                                                                                                        |
+| `/api/rate-limits`                   | GET        | অ্যাকাউন্ট-প্রতি রেট লিমিট                                                                                                                                                                                                                                                                                                                                                                                    |
+| `/api/monitoring/health`             | GET        | স্বাস্থ্য পরীক্ষা + প্রদানকারীর সারাংশ (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`)। ব্যবস্থাপনা ভিউতে `credentialHealth` অন্তর্ভুক্ত থাকে: প্রোব-ক্যাশ স্কেলার, `failed>0` হলে `failedConnections`, এবং `staleDbNonOkCount` (SQLite-এর স্টিকি `test_status`, গেজটি নয়)। [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status) দেখুন। |
+| `/api/cache/stats`                   | GET/DELETE | ক্যাশের পরিসংখ্যান / পরিষ্কার করুন                                                                                                                                                                                                                                                                                                                                                                            |
+| `/api/modality-bridge/stats`         | GET        | ইন-মেমরি `attempts`, সফলতা/`bridged`, ব্যর্থতা, ক্যাশ হিট, `totalLatencyMs`, `latencySamples`, নমুনা-হরবিশিষ্ট `averageLatencyMs`, এবং সর্বশেষ ব্যবহারের সময় (রিস্টার্টে রিসেট হয়; ব্যবস্থাপনা প্রমাণীকরণ)                                                                                                                                                                                                  |
+| `/api/modality-bridge/video/runtime` | GET        | ব্যবস্থাপনা প্রমাণীকরণ/প্রোবের আগে কঠোর বিশ্বস্ত-লুপব্যাক পরীক্ষা; স্যানিটাইজ করা FFmpeg/ffprobe-এর প্রাপ্যতা ও সংস্করণসমূহ (নো-স্টোর)                                                                                                                                                                                                                                                                        |
+| `/api/modality-bridge/video/extract` | POST       | অভ্যন্তরীণ প্রমাণীকৃত বিশ্বস্ত-লুপব্যাক বাইট ব্রোকার; 50 MiB ইনপুট, সীমাবদ্ধ কিউ/32 MiB আউটপুট, `503` ধারণক্ষমতা, `499` সংযোগ বিচ্ছিন্ন, `504` সময়সীমা; এটি কোনো পাবলিক আপলোড API নয়                                                                                                                                                                                                                        |
 
 ### ব্যাকআপ ও এক্সপোর্ট/ইমপোর্ট
 
-| এন্ডপয়েন্ট                 | মেথড | বিবরণ                                           |
-| --------------------------- | ---- | ----------------------------------------------- |
-| `/api/db-backups`           | GET  | উপলভ্য ব্যাকআপগুলোর তালিকা প্রদর্শন             |
-| `/api/db-backups`           | PUT  | ম্যানুয়াল ব্যাকআপ তৈরি                         |
-| `/api/db-backups`           | POST | নির্দিষ্ট ব্যাকআপ থেকে পুনরুদ্ধার               |
-| `/api/db-backups/export`    | GET  | ডেটাবেসটি .sqlite ফাইল হিসেবে ডাউনলোড           |
-| `/api/db-backups/import`    | POST | ডেটাবেস প্রতিস্থাপনের জন্য .sqlite ফাইল আপলোড   |
-| `/api/db-backups/exportAll` | GET  | সম্পূর্ণ ব্যাকআপ .tar.gz আর্কাইভ হিসেবে ডাউনলোড |
+| এন্ডপয়েন্ট                 | মেথড | বিবরণ                                               |
+| --------------------------- | ---- | --------------------------------------------------- |
+| `/api/db-backups`           | GET  | উপলভ্য ব্যাকআপগুলোর তালিকা দেখায়                   |
+| `/api/db-backups`           | PUT  | ম্যানুয়াল ব্যাকআপ তৈরি করে                         |
+| `/api/db-backups`           | POST | নির্দিষ্ট ব্যাকআপ থেকে পুনরুদ্ধার করে               |
+| `/api/db-backups/export`    | GET  | ডেটাবেসটি .sqlite ফাইল হিসেবে ডাউনলোড করে           |
+| `/api/db-backups/import`    | POST | ডেটাবেস প্রতিস্থাপন করতে .sqlite ফাইল আপলোড করে     |
+| `/api/db-backups/exportAll` | GET  | সম্পূর্ণ ব্যাকআপ .tar.gz আর্কাইভ হিসেবে ডাউনলোড করে |
 
 ### ক্লাউড সিঙ্ক
 
-| এন্ডপয়েন্ট            | মেথড    | বিবরণ                  |
-| ---------------------- | ------- | ---------------------- |
-| `/api/sync/cloud`      | বিভিন্ন | ক্লাউড সিঙ্ক কার্যক্রম |
-| `/api/sync/initialize` | POST    | সিঙ্ক আরম্ভ করা        |
-| `/api/cloud/*`         | বিভিন্ন | ক্লাউড ব্যবস্থাপনা     |
+| এন্ডপয়েন্ট            | মেথড    | বিবরণ                |
+| ---------------------- | ------- | -------------------- |
+| `/api/sync/cloud`      | বিভিন্ন | ক্লাউড সিঙ্ক অপারেশন |
+| `/api/sync/initialize` | POST    | সিঙ্ক শুরু করে       |
+| `/api/cloud/*`         | বিভিন্ন | ক্লাউড ব্যবস্থাপনা   |
 
 ### টানেল
 
-| এন্ডপয়েন্ট                | মেথড | বিবরণ                                                                        |
-| -------------------------- | ---- | ---------------------------------------------------------------------------- |
-| `/api/tunnels/cloudflared` | GET  | ড্যাশবোর্ডের জন্য Cloudflare Quick Tunnel-এর ইনস্টলেশন/রানটাইম অবস্থা দেখুন  |
-| `/api/tunnels/cloudflared` | POST | Cloudflare Quick Tunnel সক্রিয় বা নিষ্ক্রিয় করুন (`action=enable/disable`) |
-| `/api/tunnels/ngrok`       | GET  | ড্যাশবোর্ডের জন্য ngrok Tunnel-এর রানটাইম অবস্থা দেখুন                       |
-| `/api/tunnels/ngrok`       | POST | ngrok Tunnel সক্রিয় বা নিষ্ক্রিয় করুন (`action=enable/disable`)            |
+| এন্ডপয়েন্ট                | মেথড | বিবরণ                                                                         |
+| -------------------------- | ---- | ----------------------------------------------------------------------------- |
+| `/api/tunnels/cloudflared` | GET  | ড্যাশবোর্ডের জন্য Cloudflare Quick Tunnel-এর ইনস্টলেশন/রানটাইম স্ট্যাটাস পড়ে |
+| `/api/tunnels/cloudflared` | POST | Cloudflare Quick Tunnel সক্রিয় বা নিষ্ক্রিয় করে (`action=enable/disable`)   |
+| `/api/tunnels/ngrok`       | GET  | ড্যাশবোর্ডের জন্য ngrok Tunnel-এর রানটাইম স্ট্যাটাস পড়ে                      |
+| `/api/tunnels/ngrok`       | POST | ngrok Tunnel সক্রিয় বা নিষ্ক্রিয় করে (`action=enable/disable`)              |
 
 ### CLI টুল
 
 | এন্ডপয়েন্ট                        | মেথড | বিবরণ                  |
 | ---------------------------------- | ---- | ---------------------- |
-| `/api/cli-tools/claude-settings`   | GET  | Claude CLI-এর অবস্থা   |
-| `/api/cli-tools/codex-settings`    | GET  | Codex CLI-এর অবস্থা    |
-| `/api/cli-tools/droid-settings`    | GET  | Droid CLI-এর অবস্থা    |
-| `/api/cli-tools/openclaw-settings` | GET  | OpenClaw CLI-এর অবস্থা |
+| `/api/cli-tools/claude-settings`   | GET  | Claude CLI স্ট্যাটাস   |
+| `/api/cli-tools/codex-settings`    | GET  | Codex CLI স্ট্যাটাস    |
+| `/api/cli-tools/droid-settings`    | GET  | Droid CLI স্ট্যাটাস    |
+| `/api/cli-tools/openclaw-settings` | GET  | OpenClaw CLI স্ট্যাটাস |
 | `/api/cli-tools/runtime/[toolId]`  | GET  | সাধারণ CLI রানটাইম     |
 
-CLI প্রতিক্রিয়ায় অন্তর্ভুক্ত থাকে: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`।
+CLI রেসপন্সে অন্তর্ভুক্ত থাকে: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`।
 
 ### ACP এজেন্ট
 
-| এন্ডপয়েন্ট       | মেথড   | বিবরণ                                                       |
-| ----------------- | ------ | ----------------------------------------------------------- |
-| `/api/acp/agents` | GET    | অবস্থা-সহ শনাক্ত করা সব এজেন্টের তালিকা (বিল্ট-ইন + কাস্টম) |
-| `/api/acp/agents` | POST   | কাস্টম এজেন্ট যোগ করা বা শনাক্তকরণ ক্যাশ রিফ্রেশ করা        |
-| `/api/acp/agents` | DELETE | `id` কোয়েরি প্যারামিটার অনুযায়ী একটি কাস্টম এজেন্ট অপসারণ |
+| এন্ডপয়েন্ট       | মেথড   | বিবরণ                                                                  |
+| ----------------- | ------ | ---------------------------------------------------------------------- |
+| `/api/acp/agents` | GET    | শনাক্ত হওয়া সব এজেন্টের (বিল্ট-ইন + কাস্টম) স্ট্যাটাসসহ তালিকা দেখায় |
+| `/api/acp/agents` | POST   | কাস্টম এজেন্ট যোগ করে অথবা শনাক্তকরণ ক্যাশ রিফ্রেশ করে                 |
+| `/api/acp/agents` | DELETE | `id` কোয়েরি প্যারামিটার অনুযায়ী একটি কাস্টম এজেন্ট সরিয়ে দেয়       |
 
-GET প্রতিক্রিয়ায় `agents[]` (id, name, binary, version, installed, protocol, isCustom) এবং `summary` (total, installed, notFound, builtIn, custom) অন্তর্ভুক্ত থাকে।
+GET রেসপন্সে `agents[]` (id, name, binary, version, installed, protocol, isCustom) এবং `summary` (total, installed, notFound, builtIn, custom) অন্তর্ভুক্ত থাকে।
 
-### স্থিতিস্থাপকতা ও রেট সীমা
+### স্থিতিস্থাপকতা ও রেট লিমিট
 
-| এন্ডপয়েন্ট                       | মেথড      | বিবরণ                                                                                 |
-| --------------------------------- | --------- | ------------------------------------------------------------------------------------- |
-| `/api/resilience`                 | GET/PATCH | অনুরোধের সারি, সংযোগ কুলডাউন, প্রোভাইডার ব্রেকার এবং অপেক্ষার সেটিংস পাওয়া/আপডেট করা |
-| `/api/resilience/reset`           | POST      | প্রোভাইডার সার্কিট ব্রেকার রিসেট করা                                                  |
-| `/api/resilience/model-cooldowns` | GET       | অবশিষ্ট সময় অনুযায়ী সাজানো সক্রিয় প্রতি-(প্রোভাইডার, সংযোগ, মডেল) লকআউটের তালিকা   |
-| `/api/resilience/model-cooldowns` | DELETE    | মডেল লকআউট মুছুন—বডি `{provider, model}` অথবা সবকিছু মুছতে `{all: true}`              |
-| `/api/rate-limits`                | GET       | অ্যাকাউন্ট-প্রতি রেট সীমার অবস্থা                                                     |
-| `/api/rate-limit`                 | GET       | গ্লোবাল রেট সীমার কনফিগারেশন                                                          |
+| এন্ডপয়েন্ট                       | মেথড      | বিবরণ                                                                                        |
+| --------------------------------- | --------- | -------------------------------------------------------------------------------------------- |
+| `/api/resilience`                 | GET/PATCH | রিকোয়েস্ট কিউ, কানেকশন কুলডাউন, প্রোভাইডার ব্রেকার এবং অপেক্ষার সেটিংস পায়/আপডেট করে       |
+| `/api/resilience/reset`           | POST      | প্রোভাইডার সার্কিট ব্রেকার রিসেট করে                                                         |
+| `/api/resilience/model-cooldowns` | GET       | অবশিষ্ট সময় অনুযায়ী সাজানো সক্রিয় প্রতি-(প্রোভাইডার, কানেকশন, মডেল) লকআউটের তালিকা দেখায় |
+| `/api/resilience/model-cooldowns` | DELETE    | একটি মডেল লকআউট মুছে দেয়—বডি `{provider, model}` অথবা সবকিছু মুছতে `{all: true}`            |
+| `/api/rate-limits`                | GET       | অ্যাকাউন্টভিত্তিক রেট লিমিট স্ট্যাটাস                                                        |
+| `/api/rate-limit`                 | GET       | গ্লোবাল রেট লিমিট কনফিগারেশন                                                                 |
 
-> `/api/resilience/*`-এর চারটি রুটেই **ম্যানেজমেন্ট অথ** (`requireManagementAuth`) আবশ্যক। প্রোভাইডার ব্রেকার বনাম সংযোগ কুলডাউন বনাম মডেল লকআউটের পূর্ণাঙ্গ বিশ্লেষণের জন্য [স্থিতিস্থাপকতা (বর্ধিত)](#resilience-extended) দেখুন।
+> চারটি `/api/resilience/*` রুটের সবগুলোতেই **ম্যানেজমেন্ট অথেন্টিকেশন** (`requireManagementAuth`) প্রয়োজন। প্রোভাইডার ব্রেকার, কানেকশন কুলডাউন ও মডেল লকআউটের পূর্ণাঙ্গ বিশ্লেষণের জন্য [স্থিতিস্থাপকতা (বর্ধিত)](#resilience-extended) দেখুন।
 
 ### মূল্যায়ন
 
-| এন্ডপয়েন্ট  | মেথড     | বিবরণ                                       |
-| ------------ | -------- | ------------------------------------------- |
-| `/api/evals` | GET/POST | মূল্যায়ন স্যুটের তালিকা / মূল্যায়ন চালানো |
+| এন্ডপয়েন্ট  | মেথড     | বিবরণ                                                 |
+| ------------ | -------- | ----------------------------------------------------- |
+| `/api/evals` | GET/POST | মূল্যায়ন স্যুটগুলোর তালিকা দেখায় / মূল্যায়ন চালায় |
 
 ### নীতিমালা
 
-| এন্ডপয়েন্ট     | মেথড            | বিবরণ                    |
-| --------------- | --------------- | ------------------------ |
-| `/api/policies` | GET/POST/DELETE | রাউটিং নীতিমালা পরিচালনা |
+| এন্ডপয়েন্ট     | মেথড            | বিবরণ                        |
+| --------------- | --------------- | ---------------------------- |
+| `/api/policies` | GET/POST/DELETE | রাউটিং নীতিমালা পরিচালনা করে |
 
 ### কমপ্লায়েন্স
 
@@ -1006,22 +1013,22 @@ GET প্রতিক্রিয়ায় `agents[]` (id, name, binary, ver
 
 | এন্ডপয়েন্ট                | মেথড | বিবরণ                                |
 | -------------------------- | ---- | ------------------------------------ |
-| `/v1beta/models`           | GET  | Gemini ফরম্যাটে মডেলের তালিকা        |
+| `/v1beta/models`           | GET  | Gemini ফরম্যাটে মডেলের তালিকা দেখায় |
 | `/v1beta/models/{...path}` | POST | Gemini `generateContent` এন্ডপয়েন্ট |
 
-যেসব ক্লায়েন্টের নেটিভ Gemini SDK সামঞ্জস্য প্রয়োজন, তাদের জন্য এই এন্ডপয়েন্টগুলো Gemini-এর API ফরম্যাট অনুকরণ করে।
+যেসব ক্লায়েন্টে নেটিভ Gemini SDK সামঞ্জস্য প্রয়োজন, তাদের জন্য এই এন্ডপয়েন্টগুলো Gemini-এর API ফরম্যাট অনুসরণ করে।
 
 ### অভ্যন্তরীণ / সিস্টেম API
 
-| এন্ডপয়েন্ট              | মেথড | বিবরণ                                                                |
-| ------------------------ | ---- | -------------------------------------------------------------------- |
-| `/api/init`              | GET  | অ্যাপ্লিকেশন ইনিশিয়ালাইজেশন পরীক্ষা (প্রথমবার চালানোর সময় ব্যবহৃত) |
-| `/api/tags`              | GET  | Ollama-সামঞ্জস্যপূর্ণ মডেল ট্যাগ (Ollama ক্লায়েন্টের জন্য)          |
-| `/api/restart`           | POST | সার্ভারকে সুষ্ঠুভাবে পুনরায় চালু করে                                |
-| `/api/shutdown`          | POST | সার্ভারকে সুষ্ঠুভাবে বন্ধ করে                                        |
-| `/api/system/env/repair` | POST | OAuth প্রোভাইডারের এনভায়রনমেন্ট ভেরিয়েবল মেরামত করে                |
+| এন্ডপয়েন্ট              | মেথড | বিবরণ                                                                    |
+| ------------------------ | ---- | ------------------------------------------------------------------------ |
+| `/api/init`              | GET  | অ্যাপ্লিকেশন ইনিশিয়ালাইজেশন পরীক্ষা (প্রথমবার চালানোর সময় ব্যবহৃত হয়) |
+| `/api/tags`              | GET  | Ollama-সামঞ্জস্যপূর্ণ মডেল ট্যাগ (Ollama ক্লায়েন্টের জন্য)              |
+| `/api/restart`           | POST | সুশৃঙ্খলভাবে সার্ভার পুনরায় চালু করা শুরু করে                           |
+| `/api/shutdown`          | POST | সুশৃঙ্খলভাবে সার্ভার বন্ধ করা শুরু করে                                   |
+| `/api/system/env/repair` | POST | OAuth প্রোভাইডারের এনভায়রনমেন্ট ভেরিয়েবল মেরামত করে                    |
 
-> **দ্রষ্টব্য:** এই এন্ডপয়েন্টগুলো সিস্টেমের অভ্যন্তরে অথবা Ollama ক্লায়েন্টের সঙ্গে সামঞ্জস্যের জন্য ব্যবহৃত হয়। সাধারণত শেষ ব্যবহারকারীরা এগুলো কল করেন না।
+> **দ্রষ্টব্য:** এই এন্ডপয়েন্টগুলো সিস্টেম অভ্যন্তরীণভাবে অথবা Ollama ক্লায়েন্টের সঙ্গে সামঞ্জস্যের জন্য ব্যবহার করে। সাধারণত শেষ ব্যবহারকারীরা এগুলো কল করেন না।
 
 ### OAuth এনভায়রনমেন্ট মেরামত _(v3.6.1+)_
 
@@ -1034,7 +1041,7 @@ Content-Type: application/json
 }
 ```
 
-নির্দিষ্ট কোনো প্রোভাইডারের অনুপস্থিত বা ক্ষতিগ্রস্ত OAuth এনভায়রনমেন্ট ভেরিয়েবলগুলো মেরামত করে। যা রিটার্ন করে:
+একটি নির্দিষ্ট প্রোভাইডারের অনুপস্থিত বা ক্ষতিগ্রস্ত OAuth এনভায়রনমেন্ট ভেরিয়েবল মেরামত করে। যা রিটার্ন করে:
 
 ```json
 {
@@ -1465,18 +1472,18 @@ GET /.well-known/agent.json
 
 | মেথড | পাথ | বিবরণ |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | একটি Bearer কী যাচাই করে এবং ক্লাউড সিঙ্ক ক্লায়েন্টগুলোর জন্য মাস্ক করা প্রোভাইডার সংযোগ + মডেল অ্যালিয়াস রিটার্ন করে |
-| POST | `/api/cloud/credentials/update` | ক্লাউড-সিঙ্ক করা কোনো প্রোভাইডারের এনক্রিপ্ট করা ক্রেডেনশিয়াল আপডেট করে |
-| POST | `/api/cloud/model/resolve` | স্থানীয় রাউটিং টেবিল ব্যবহার করে একটি লজিক্যাল মডেল আইডিকে নির্দিষ্ট প্রোভাইডার/মডেলে রেজলভ করে |
-| GET | `/api/cloud/models/alias` | ক্লাউড সিঙ্কে উন্মুক্ত মডেল অ্যালিয়াসগুলোর তালিকা দেয় |
-| GET | `/api/assess` | সর্বশেষ অ্যাসেসমেন্ট শ্রেণিবিন্যাস পড়ে (প্রতি-প্রোভাইডার/মডেল) |
+| POST | `/api/cloud/auth` | একটি Bearer কী যাচাই করে ক্লাউড সিঙ্ক ক্লায়েন্টগুলোর জন্য মাস্ক করা প্রোভাইডার সংযোগ + মডেল অ্যালিয়াস ফেরত দেয় |
+| POST | `/api/cloud/credentials/update` | ক্লাউড-সিঙ্ক করা প্রোভাইডারের এনক্রিপ্ট করা ক্রেডেনশিয়াল আপডেট করে |
+| POST | `/api/cloud/model/resolve` | স্থানীয় রাউটিং টেবিল ব্যবহার করে একটি লজিক্যাল মডেল আইডিকে নির্দিষ্ট প্রোভাইডার/মডেলে রিজলভ করে |
+| GET | `/api/cloud/models/alias` | ক্লাউড সিঙ্কে প্রকাশিত মডেল অ্যালিয়াসগুলোর তালিকা দেয় |
+| GET | `/api/assess` | সর্বশেষ অ্যাসেসমেন্ট শ্রেণিবিন্যাস (প্রতি-প্রোভাইডার/মডেল) পড়ে |
 | POST | `/api/assess` | একটি অ্যাসেসমেন্ট চালায় — বডি: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | বিল্ট-ইন ইভ্যাল স্যুট + সর্বশেষ রানগুলোর তালিকা দেয় |
+| GET | `/api/evals` | বিল্ট-ইন ইভ্যাল স্যুট + সাম্প্রতিকতম রানগুলোর তালিকা দেয় |
 | POST | `/api/evals` | একটি ইভ্যাল রান ট্রিগার করে |
 | POST | `/api/evals/suites` | একটি কাস্টম ইভ্যাল স্যুট তৈরি করে — বডি `evalSuiteSaveSchema` দ্বারা যাচাই করা হয় |
 | GET | `/api/evals/suites/[id]` | একটি কাস্টম ইভ্যাল স্যুট পুনরুদ্ধার করে |
 
-**অথ:** `/api/cloud/auth` সরাসরি একটি Bearer কী যাচাই করে; অন্যান্য `/api/cloud/*`, `/api/evals/*`, এবং `/api/assess` রুটের জন্য ম্যানেজমেন্ট সেশন/API কী প্রয়োজন। `/api/assess` POST একটি discriminated-union স্কোপ স্কিমার সঙ্গে `validateBody` ব্যবহার করে।
+**প্রমাণীকরণ:** `/api/cloud/auth` সরাসরি একটি Bearer কী যাচাই করে এবং শুধুমাত্র `manage` / `admin` স্কোপসহ একটি কী-এর জন্য প্রতিটি সংযোগের মাস্ক করা কী ও `projectId` ফেরত দেয়; অন্যান্য `/api/cloud/*`, `/api/evals/*`, এবং `/api/assess` রুটের জন্য ম্যানেজমেন্ট সেশন/API কী প্রয়োজন। `/api/assess` POST একটি ডিসক্রিমিনেটেড-ইউনিয়ন স্কোপ স্কিমার সঙ্গে `validateBody` ব্যবহার করে।
 
 ---
 

@@ -1,6 +1,6 @@
 # Security Policy (ქართული)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇧🇦 [bs](../bs/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -222,17 +222,35 @@ docker run -d \
 
 ## მიწოდების ჯაჭვის სკანერის მიგნებები (Socket.dev / Snyk / მსგავსი)
 
-გამოქვეყნებული `omniroute` npm არტეფაქტი მოიცავს Next.js-ის `output: "standalone"` ანაწყობს, რაც ნიშნავს, რომ მარშრუტების ყველა დამმუშავებელი — მათ შორის დოკუმენტირებული პრივილეგირებული ფუნქციები (MITM, Zed-ის იმპორტი, Cloud Sync, ჩაშენებული სერვისების ზედამხედველი) — ხვდება `.next/server/*.js` მინიფიცირებულ ფრაგმენტებში. მიწოდების ჯაჭვის ევრისტიკული სკანერები ხშირად შაბლონების მიხედვით ადარებენ ამ ფრაგმენტებს მავნე პროგრამების ხელმოწერებს.
+> **მოქმედების სფეროს შენიშვნა:** რეპოზიტორიის ძირში არსებული `socket.yml` მხოლოდ Socket.dev-ის რეესტრის მხარეს, გამოქვეყნების შემდგომ შესრულებული სკანირებისთვის განსაზღვრავს `projectIgnorePaths`-ს გამოქვეყნებულ npm-არტეფაქტზე — ის არ წარმოადგენს CI/PR-ის შერწყმის სავალდებულო ბარიერს. არც ერთი სამუშაო პროცესი `.github/workflows`-ში, არც ერთი `package.json` სკრიპტი და არც ერთი `Makefile` სამიზნე არ იძახებს Socket.dev-ს.
 
-ჩვენ მიერ გამოყენებული სკანერის კონფიგურაცია განთავსებულია რეპოზიტორიის ძირეულ საქაღალდეში, ფაილში [`socket.yml`](socket.yml) (Socket.dev GitHub App-ის ფორმატი v2 — იხილეთ <https://docs.socket.dev/docs/socket-yml>). ის ცალსახად გამორიცხავს გამოუქვეყნებელ დირექტორიებს (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`, `docs/` და ა.შ.), რათა სკანერმა ანგარიში წარმოადგინოს მხოლოდ იმ კოდის გზების შესახებ, რომლებიც რეალურად აღწევს გამოქვეყნებული ვერსიის მომხმარებლებამდე — თავად სკანირებას ახორციელებს Socket GitHub App ამ ფაილის წაკითხვით და არა ამ რეპოზიტორიაში არსებული სამუშაო პროცესი.
+გამოქვეყნებული `omniroute` npm-არტეფაქტი მოიცავს Next.js-ის `output: "standalone"`
+ანაწყობს, რაც ნიშნავს, რომ ყველა მარშრუტის დამმუშავებელი — მათ შორის დოკუმენტირებული პრივილეგირებული
+ფუნქციები (MITM, Zed-ის იმპორტი, Cloud Sync, ჩაშენებული სერვისების ზედამხედველი) — ხვდება
+`.next/server/*.js` მინიფიცირებულ ნაწილებში. ევრისტიკული მიწოდების ჯაჭვის სკანერები
+ხშირად ადარებენ ამ ნაწილების შაბლონებს მავნე პროგრამების ხელწერებს.
 
-მიგნებების თითოეული კატეგორიისთვის ვინარჩუნებთ შემნახველის ცალკეულ დადასტურებას თითოეული მიგნების შესახებ:
+ჩვენ მიერ გამოყენებული სკანერის კონფიგურაცია განთავსებულია [`socket.yml`](socket.yml)-ში,
+რეპოზიტორიის ძირში (Socket.dev GitHub App-ის ფორმატი v2 — იხილეთ
+<https://docs.socket.dev/docs/socket-yml>). ის აშკარად გამორიცხავს
+არაგამოსაქვეყნებელ დირექტორიებს (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/` და სხვ.), რათა სკანერმა ანგარიში მხოლოდ იმ კოდის გზებზე შეადგინოს,
+რომლებიც რეალურად აღწევს გამოქვეყნებული პაკეტის მომხმარებლებამდე — თავად სკანირებას ახორციელებს Socket
+GitHub App, რომელიც ამ ფაილს კითხულობს, და არა ამ რეპოზიტორიაში არსებული სამუშაო პროცესი.
+
+მიგნებების თითოეული კატეგორიისთვის ვინახავთ პასუხისმგებელი პირის ინდივიდუალურ დასტურს:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  მიგნებების დეტალური რუკა: წყაროს ფაილი ↔ მონიშნული ფრაგმენტი ↔ ქცევა ↔ v3.8.6-ში გამოყენებული შემარბილებელი ზომა.
-- წყაროს კოდში არსებული `SECURITY-AUDITOR-NOTE:` ბლოკები თითოეულ მონიშნულ ფუნქციასთან იმავე დოკუმენტზე მიუთითებს.
+  მიგნებების ინდივიდუალური რუკა: საწყისი ფაილი ↔ მონიშნული ნაწილი ↔ ქცევა ↔ v3.8.6-ში
+  გამოყენებული შემარბილებელი ღონისძიება.
+- საწყის კოდში არსებული `SECURITY-AUDITOR-NOTE:` ბლოკები თითოეულ მონიშნულ ფუნქციასთან
+  იმავე დოკუმენტზე მიუთითებს.
 
-მომხმარებლებისთვის, რომელთა კონვეიერსაც გაფრთხილების შემსუბუქება არ შეუძლია: ააგეთ `OMNIROUTE_BUILD_PROFILE=minimal npm run build` ბრძანებით. ეს ოთხ მგრძნობიარე მოდულს ჩაანაცვლებს დროებითი იმპლემენტაციებით, რომლებიც შესრულებისას აბრუნებს HTTP 503 `feature-disabled` პასუხს, რის შედეგადაც პრივილეგირებული კოდის გზები ფიზიკურად აღარ იქნება პაკეტში. გამოქვეყნების ინსტრუქციისთვის იხილეთ [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
+მომხმარებლებისთვის, რომელთა კონვეიერსაც გაფრთხილების მოთხოვნების შერბილება არ შეუძლია: ააგეთ
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build` ბრძანებით. ეს ოთხ
+სენსიტიურ მოდულს ჩაანაცვლებს ჩამნაცვლებლებით, რომლებიც შესრულების დროს აბრუნებს HTTP 503
+`feature-disabled`-ს, რის შედეგადაც პრივილეგირებული კოდის გზები ფიზიკურად აღარ იქნება ანაწყობში.
+გამოქვეყნების ინსტრუქციებისთვის იხილეთ [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
 
 ## ცნობები
 

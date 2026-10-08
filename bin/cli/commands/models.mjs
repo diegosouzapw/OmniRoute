@@ -1,92 +1,75 @@
-import { apiFetch, isServerUp } from "../api.mjs";
 import { emit } from "../output.mjs";
 import { modelListSchema } from "../schemas/output-schemas.mjs";
 import { t } from "../i18n.mjs";
+import { loadModelCatalog } from "./model-api.mjs";
+import { manualListAction, modelMutationAction } from "./model-crud.mjs";
 
 export function registerModels(program) {
-  program
+  const models = program
     .command("models [provider]")
     .description(t("models.description"))
     .option("--search <query>", t("models.search"))
     .option("--json", "Output as JSON")
     .action(async (provider, opts, cmd) => {
-      const globalOpts = cmd.optsWithGlobals();
-      const exitCode = await runModelsCommand(provider, { ...opts, output: globalOpts.output });
-      if (exitCode !== 0) process.exit(exitCode);
+      process.exitCode = await runModelsCommand(provider, { ...cmd.optsWithGlobals(), ...opts });
     });
+  models
+    .command("manual <provider>")
+    .description("List manual model metadata from the selected server")
+    .action(manualListAction);
+  models
+    .command("add <provider> <model-id>")
+    .description("Add an unverified manual model, then verify persistence")
+    .option("--name <name>", "Display name")
+    .option("--api-format <format>", "API format, e.g. chat-completions or responses")
+    .option("--context-window <tokens>", "Positive integer input/context limit")
+    .option("--max-output-tokens <tokens>", "Positive integer output limit")
+    .option("--dry-run", "Preview without writing or inference")
+    .action(modelMutationAction("add"));
+  models
+    .command("edit <provider> <model-id>")
+    .description("Edit manual model metadata, then verify persistence")
+    .option("--name <name>", "Display name")
+    .option("--api-format <format>", "API format, e.g. chat-completions or responses")
+    .option("--context-window <tokens>", "Positive integer context override")
+    .option("--clear-context-window", "Clear the manual context-window override")
+    .option("--dry-run", "Preview without writing or inference")
+    .action(modelMutationAction("edit"));
+  models
+    .command("remove <provider> <model-id>")
+    .description("Remove only a manual model override, then verify persistence")
+    .option("--yes", "Confirm removal of the manual override only")
+    .option("--dry-run", "Preview without writing or inference")
+    .action(modelMutationAction("remove"));
 }
 
 export async function runModelsCommand(provider, opts = {}) {
-  const serverUp = await isServerUp();
-  if (!serverUp) {
-    console.error(t("models.noServer"));
-    return 1;
-  }
-
-  let models = [];
-
   try {
-    const res = await apiFetch("/api/models", { retry: false, timeout: 5000, acceptNotOk: true });
-    if (res.ok) {
-      const data = await res.json();
-      models = Array.isArray(data) ? data : data.models || [];
+    let models = await loadModelCatalog(opts);
+    if (provider) {
+      const filter = provider.toLowerCase();
+      models = models.filter(
+        (model) =>
+          model.provider.toLowerCase().includes(filter) || model.id.toLowerCase().startsWith(filter)
+      );
     }
-  } catch {}
-
-  if (models.length === 0) {
-    try {
-      const res = await apiFetch("/api/v1/models", {
-        retry: false,
-        timeout: 5000,
-        acceptNotOk: true,
-      });
-      if (res.ok) {
-        const data = await res.json();
-        models = Array.isArray(data) ? data : data.data || [];
-      }
-    } catch {}
-  }
-
-  if (provider) {
-    const filter = provider.toLowerCase();
-    models = models.filter(
-      (m) =>
-        (m.provider && m.provider.toLowerCase().includes(filter)) ||
-        (m.id && m.id.toLowerCase().startsWith(filter)) ||
-        (m.name && m.name.toLowerCase().includes(filter))
-    );
-  }
-
-  if (opts.search) {
-    const search = opts.search.toLowerCase();
-    models = models.filter(
-      (m) =>
-        (m.id && m.id.toLowerCase().includes(search)) ||
-        (m.name && m.name.toLowerCase().includes(search)) ||
-        (m.provider && m.provider.toLowerCase().includes(search)) ||
-        (m.description && m.description.toLowerCase().includes(search))
-    );
-  }
-
-  if (models.length === 0) {
-    console.log(t("models.noModels"));
+    if (opts.search) {
+      const search = opts.search.toLowerCase();
+      models = models.filter((model) =>
+        [model.id, model.name, model.provider, model.description].some((value) =>
+          String(value || "")
+            .toLowerCase()
+            .includes(search)
+        )
+      );
+    }
+    const table = opts.output === "table" || (!opts.output && !opts.json && process.stdout.isTTY);
+    emit(table ? models.slice(0, 50) : models, opts, modelListSchema);
+    if (table && models.length > 50)
+      console.log(`... and ${models.length - 50} more. Use --output json for the full list.`);
     return 0;
+  } catch (error) {
+    console.error(error.exitCode ? error.message : "Unable to read the model catalog.");
+    return error.exitCode || 1;
   }
-
-  const normalized = models.map((m) => ({
-    id: m.id || m.name || "unknown",
-    provider: m.provider || "unknown",
-    contextWindow: String(m.context_length || m.max_tokens || m.contextWindow || "-"),
-  }));
-
-  const display = normalized.slice(0, 50);
-  emit(display, opts, modelListSchema);
-
-  if (models.length > 50) {
-    console.log(
-      `\x1b[2m  ... and ${models.length - 50} more. Use --output json for full list.\x1b[0m`
-    );
-  }
-
-  return 0;
 }

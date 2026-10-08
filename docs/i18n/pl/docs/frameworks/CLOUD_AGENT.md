@@ -1,4 +1,9 @@
+# Cloud Agents (Polski)
+
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/CLOUD_AGENT.md) · 🇪🇹 [am](../../../am/docs/frameworks/CLOUD_AGENT.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/CLOUD_AGENT.md) · 🇦🇿 [az](../../../az/docs/frameworks/CLOUD_AGENT.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/CLOUD_AGENT.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/CLOUD_AGENT.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/CLOUD_AGENT.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/CLOUD_AGENT.md) · 🇩🇰 [da](../../../da/docs/frameworks/CLOUD_AGENT.md) · 🇩🇪 [de](../../../de/docs/frameworks/CLOUD_AGENT.md) · 🇬🇷 [el](../../../el/docs/frameworks/CLOUD_AGENT.md) · 🇪🇸 [es](../../../es/docs/frameworks/CLOUD_AGENT.md) · 🇪🇪 [et](../../../et/docs/frameworks/CLOUD_AGENT.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/CLOUD_AGENT.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/CLOUD_AGENT.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/CLOUD_AGENT.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/CLOUD_AGENT.md) · 🇮🇱 [he](../../../he/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/CLOUD_AGENT.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/CLOUD_AGENT.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/CLOUD_AGENT.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/CLOUD_AGENT.md) · 🇮🇩 [id](../../../id/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/CLOUD_AGENT.md) · 🇮🇹 [it](../../../it/docs/frameworks/CLOUD_AGENT.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/CLOUD_AGENT.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/CLOUD_AGENT.md) · 🇰🇭 [km](../../../km/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/CLOUD_AGENT.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/CLOUD_AGENT.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/CLOUD_AGENT.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/CLOUD_AGENT.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/CLOUD_AGENT.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/CLOUD_AGENT.md) · 🇲🇲 [my](../../../my/docs/frameworks/CLOUD_AGENT.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/CLOUD_AGENT.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/CLOUD_AGENT.md) · 🇳🇴 [no](../../../no/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [or](../../../or/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/CLOUD_AGENT.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/CLOUD_AGENT.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/CLOUD_AGENT.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/CLOUD_AGENT.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/CLOUD_AGENT.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/CLOUD_AGENT.md) · 🇱🇰 [si](../../../si/docs/frameworks/CLOUD_AGENT.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/CLOUD_AGENT.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/CLOUD_AGENT.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/CLOUD_AGENT.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/CLOUD_AGENT.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/CLOUD_AGENT.md) · 🇮🇳 [te](../../../te/docs/frameworks/CLOUD_AGENT.md) · 🇹🇭 [th](../../../th/docs/frameworks/CLOUD_AGENT.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/CLOUD_AGENT.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/CLOUD_AGENT.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/CLOUD_AGENT.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/CLOUD_AGENT.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/CLOUD_AGENT.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/CLOUD_AGENT.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/CLOUD_AGENT.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/CLOUD_AGENT.md)
+
 ---
+
 title: "Cloud Agenci"
 version: 3.8.40
 lastUpdated: 2026-06-28
@@ -38,35 +43,35 @@ zwykły in-memory `Record<string, CloudAgentBase>` wypełniany przy ładowaniu m
 ## Architektura
 
 ```
-Client (Dashboard / CLI / API)
-  → POST /api/v1/agents/tasks (management auth required)
-    → CreateCloudAgentTaskSchema validation (Zod)
+Klient (panel / CLI / API)
+  → POST /api/v1/agents/tasks (wymagane uwierzytelnianie administracyjne)
+    → walidacja CreateCloudAgentTaskSchema (Zod)
     → registry.getAgent(providerId)
     → getCloudAgentCredentials(providerId)
-      └─ pulls from getProviderConnections({ provider, isActive: true })
-         (apiKey first, fallback to accessToken)
+      └─ pobiera dane z getProviderConnections({ provider, isActive: true })
+         (najpierw apiKey, a w razie jego braku accessToken)
     → agent.createTask({ prompt, source, options }, credentials)
-      └─ HTTP POST to upstream provider API
-      └─ returns CloudAgentTask with internal id + externalId
-    → insertCloudAgentTask(...) into cloud_agent_tasks (SQLite)
+      └─ żądanie HTTP POST do API zewnętrznego dostawcy
+      └─ zwraca CloudAgentTask z wewnętrznym id oraz externalId
+    → insertCloudAgentTask(...) do cloud_agent_tasks (SQLite)
 
-Polling (lazy sync on read):
+Odpytywanie (leniwa synchronizacja podczas odczytu):
   GET /api/v1/agents/tasks/[id]
     → getCloudAgentTaskById(id)
-    → agent.getStatus(externalId, credentials)  // refreshes status + activities
-    → updateCloudAgentTask(...) with new status, result, completed_at
-    → return serialized task
+    → agent.getStatus(externalId, credentials)  // odświeża status i aktywności
+    → updateCloudAgentTask(...) z nowym statusem, wynikiem i completed_at
+    → zwraca zserializowane zadanie
 
-Interactions:
-  POST /api/v1/agents/tasks/[id]  body: { action: "approve" | "message" | "cancel" }
-    → agent.approvePlan(externalId, credentials)        for "approve"
-    → agent.sendMessage(externalId, message, credentials) for "message"
-    → status flips to "cancelled"                       for "cancel" (local-only)
+Interakcje:
+  POST /api/v1/agents/tasks/[id]  treść: { action: "approve" | "message" | "cancel" }
+    → agent.approvePlan(externalId, credentials)        dla "approve"
+    → agent.sendMessage(externalId, message, credentials) dla "message"
+    → status zmienia się na "cancelled"                 dla "cancel" (tylko lokalnie)
 ```
 
-Synchronizacja jest **leniwa**: status jest odświeżany z upstreamu przy każdym `GET /tasks/[id]`.
-Nie ma background pollera. Dashboardy potrzebujące świeżego stanu powinny odpytywać endpoint GET
-w rozsądnym interwale.
+Synchronizacja jest **leniwa**: status jest odświeżany u zewnętrznego dostawcy przy każdym żądaniu `GET /tasks/[id]`.
+Nie ma procesu odpytywania działającego w tle. Panele wymagające aktualnego stanu powinny odpytywać punkt końcowy GET
+w rozsądnych odstępach czasu.
 
 ## Interfejs `CloudAgentBase`
 
@@ -133,7 +138,7 @@ skorygować bez zmiany kodu.
 
 ## Typy domenowe
 
-Source: `src/lib/cloudAgent/types.ts`
+Źródło: `src/lib/cloudAgent/types.ts`
 
 ```typescript
 export const CLOUD_AGENT_STATUS = {
@@ -147,7 +152,7 @@ export const CLOUD_AGENT_STATUS = {
 
 export interface CloudAgentSource {
   repoName: string;
-  repoUrl: string; // must be a valid URL
+  repoUrl: string; // musi być prawidłowym adresem URL
   branch?: string;
 }
 
@@ -157,8 +162,8 @@ export interface CloudAgentResult {
   commitMessage?: string;
   diffUrl?: string;
   summary?: string;
-  duration?: number; // seconds, positive int
-  cost?: number; // positive float
+  duration?: number; // sekundy, dodatnia liczba całkowita
+  cost?: number; // dodatnia liczba zmiennoprzecinkowa
 }
 
 export interface CloudAgentActivity {
@@ -170,11 +175,11 @@ export interface CloudAgentActivity {
 }
 
 export interface CloudAgentTask {
-  id: string; // internal `task_...` id
+  id: string; // wewnętrzny identyfikator `task_...`
   providerId: "jules" | "devin" | "codex-cloud" | "cursor-cloud";
-  externalId?: string; // upstream provider's id
+  externalId?: string; // identyfikator dostawcy zewnętrznego
   status: CloudAgentStatus;
-  prompt: string; // 1..10000 chars
+  prompt: string; // 1..10000 znaków
   source: CloudAgentSource;
   options: {
     autoCreatePr?: boolean;
@@ -190,8 +195,7 @@ export interface CloudAgentTask {
 }
 ```
 
-Schematy walidacji (`CreateCloudAgentTaskSchema`, `UpdateCloudAgentTaskSchema`) są
-eksportowane obok typów i używane przez handlery route'ów.
+Schematy walidacji (`CreateCloudAgentTaskSchema`, `UpdateCloudAgentTaskSchema`) są eksportowane wraz z typami i używane przez procedury obsługi tras.
 
 ## Baza danych
 
@@ -307,24 +311,29 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 upstream providera — w `CloudAgentBase` nie ma abort RPC. Aby zatrzymać billing
 upstream, zakończ task w konsoli samego providera.
 
-## REST API — infrastruktura Cloud Provider
+## REST API — integracja z dostawcami chmurowymi
 
-Te pomocnicze endpointy pod `src/app/api/cloud/` są używane przez zdalnych klientów
-(CLI, aplikacja Electron lub workery sync) do odczytu metadanych połączeń providerów
-oraz rozwiązywania aliasów modeli. Są uwierzytelniane **zwykłym kluczem API**
-(przez `validateApiKey`), a nie management auth używanym przez endpointy tasków.
+Te pomocnicze endpointy w `src/app/api/cloud/` są używane przez zdalnych klientów
+(CLI, aplikację Electron lub procesy synchronizacji) do odczytywania metadanych połączeń
+z dostawcami i rozwiązywania aliasów modeli. Są uwierzytelniane za pomocą **klucza API**
+(przez `validateApiKey`), a nie uwierzytelniania administracyjnego używanego przez endpointy zadań;
+to, co zwraca `/api/cloud/auth`, zależy od zakresu klucza (patrz poniżej).
 
-| Method | Path                            | Purpose                                                             |
-| ------ | ------------------------------- | ------------------------------------------------------------------- |
-| POST   | `/api/cloud/auth`               | Validate API key, return masked connection metadata + model aliases |
-| PUT    | `/api/cloud/credentials/update` | Refresh `accessToken` / `refreshToken` / `expiresAt`                |
-| POST   | `/api/cloud/model/resolve`      | Resolve a model alias to `{ provider, model }`                      |
-| GET    | `/api/cloud/models/alias`       | List all model aliases                                              |
-| PUT    | `/api/cloud/models/alias`       | Set a model alias (and auto-sync to Cloud if enabled)               |
+| Metoda | Ścieżka                         | Przeznaczenie                                                                         |
+| ------ | ------------------------------- | ------------------------------------------------------------------------------------- |
+| POST   | `/api/cloud/auth`               | Walidacja klucza API, zwrócenie zamaskowanych metadanych połączeń i aliasów modeli    |
+| PUT    | `/api/cloud/credentials/update` | Odświeżenie `accessToken` / `refreshToken` / `expiresAt`                              |
+| POST   | `/api/cloud/model/resolve`      | Rozwiązanie aliasu modelu do `{ provider, model }`                                    |
+| GET    | `/api/cloud/models/alias`       | Wyświetlenie wszystkich aliasów modeli                                                |
+| PUT    | `/api/cloud/models/alias`       | Ustawienie aliasu modelu (i automatyczna synchronizacja z Cloud, jeśli jest włączona) |
 
-`/api/cloud/auth` nigdy nie zwraca surowego `apiKey` / `accessToken` / `refreshToken`. Zwraca
-`hasApiKey`, `hasAccessToken`, `hasRefreshToken` oraz zamaskowany podgląd
-(`maskedApiKey`: pierwsze 4 + `****` + ostatnie 4).
+`/api/cloud/auth` nigdy nie zwraca nieprzetworzonych wartości `apiKey` / `accessToken` / `refreshToken`.
+Zwraca `hasApiKey`, `hasAccessToken`, `hasRefreshToken` dla aktywnych połączeń, z których może
+korzystać dany klucz (klucz ograniczony za pomocą `allowedConnections` widzi tylko te połączenia).
+W przypadku klucza API z zakresem `manage` lub `admin`, w tym klucza wdrożeniowego z
+`OMNIROUTE_API_KEY`, zwraca również zamaskowany podgląd (`maskedApiKey`: do 4 znaków z każdego
+końca, mniej w przypadku krótkiego klucza, żadnych w przypadku klucza o długości 8 znaków lub
+mniejszej) oraz `projectId` połączenia. Oba pola są pomijane w odpowiedzi dla każdego innego klucza.
 
 ## Rozwiązywanie poświadczeń
 
@@ -382,12 +391,12 @@ na protokół JSON-RPC 2.0. Zobacz [A2A-SERVER.md](./A2A-SERVER.md).
 Dziś nie ma env varów specyficznych dla Cloud Agentów — każdy sekret żyje w tabeli
 `provider_connections`.
 
-## Zobacz też
+## Zobacz także
 
 - [A2A-SERVER.md](./A2A-SERVER.md)
 - [API_REFERENCE.md](../reference/API_REFERENCE.md)
 - [SKILLS.md](./SKILLS.md)
 - [MEMORY.md](./MEMORY.md)
-- Source: `src/lib/cloudAgent/`
-- Routes: `src/app/api/v1/agents/tasks/`, `src/app/api/cloud/`
-- Dashboard: `src/app/(dashboard)/dashboard/cloud-agents/page.tsx`
+- Kod źródłowy: `src/lib/cloudAgent/`
+- Trasy: `src/app/api/v1/agents/tasks/`, `src/app/api/cloud/`
+- Panel: `src/app/(dashboard)/dashboard/cloud-agents/page.tsx`

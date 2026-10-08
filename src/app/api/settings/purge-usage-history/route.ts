@@ -50,6 +50,7 @@ export async function POST(request: Request) {
         deletedProxyLogs: result.deletedProxyLogs,
         deletedRelayLogs: result.deletedRelayLogs,
         deletedCompressionAnalytics: result.deletedCompressionAnalytics,
+        deletedCompressionEngineBreakdown: result.deletedCompressionEngineBreakdown,
         deletedCompressionRunTelemetry: result.deletedCompressionRunTelemetry,
         deletedRoutingDecisions: result.deletedRoutingDecisions,
         deletedQuotaConsumption: result.deletedQuotaConsumption,

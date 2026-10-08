@@ -261,7 +261,17 @@ export function convertUsageToQuotaInfo(
     windows[name] = { percentUsed, resetAt: resetAtForQuota(entry) };
   }
 
-  if (Object.keys(windows).length === 0) return null;
+  if (Object.keys(windows).length === 0) {
+    // #15347: every reported window is unlimited. That is a known reading (the provider
+    // has no cap), not a failed one, so it must not look like the `null` of a failed read.
+    const reportsUnlimited = Object.values(quotasObj as Record<string, unknown>).some(
+      (entry) =>
+        !!entry &&
+        typeof entry === "object" &&
+        (entry as { unlimited?: unknown }).unlimited === true
+    );
+    return reportsUnlimited ? { used: 0, total: 0, percentUsed: 0, unlimited: true } : null;
+  }
 
   const requestedFamily =
     isAntigravityProvider(context.provider) && context.requestedModel
@@ -335,11 +345,11 @@ function normalizeQuotaWindows(
       : null;
 
   // Explicit time windows (canonical and legacy aliases).
-  const fiveHourWindow = windows["session (5h)"] || windows["session"];
+  const fiveHourWindow = windows["session (5h)"] || windows["session"] || windows.code_5h;
   if (fiveHourWindow && !normalized.window5h) {
     normalized.window5h = fiveHourWindow;
   }
-  const sevenDayWindow = windows["weekly (7d)"] || windows["weekly"];
+  const sevenDayWindow = windows["weekly (7d)"] || windows["weekly"] || windows.code_7d;
   if (sevenDayWindow && !normalized.window7d) {
     normalized.window7d = sevenDayWindow;
   }

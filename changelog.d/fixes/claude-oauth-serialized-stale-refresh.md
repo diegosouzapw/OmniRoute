@@ -1,1 +1,0 @@
-- **fix(oauth):** stop posting a Claude refresh token that another in-process refresh already consumed. Re-check the rotation map and DB inside `serializeRefresh` (both Layer 1 and Layer 2), record Layer 2 rotations, re-read the connection uncached on `invalid_grant`, and keep the Claude `refreshToken` instead of nulling it into sticky `no_refresh_token`.

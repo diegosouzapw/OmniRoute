@@ -188,6 +188,18 @@ export const RENAMED_MIGRATION_COMPATIBILITY = [
     toName: "radar_local_model_state",
   },
   {
+    // npm omniroute@3.8.50 was built from main at dea6bb8 (per its provenance
+    // attestation), which shipped model_capabilities as 163. 70f5d4cbf then moved it
+    // to 169 so 163_radar_feed_cache_generated_at could keep its slot. Without this
+    // entry, a database first migrated by that npm build keeps its 163 ledger row,
+    // so the release's 163 is treated as applied and never runs: radar_feed_cache
+    // never gets generated_at, and every boot logs the renumbering CRITICAL.
+    fromVersion: "163",
+    fromName: "model_capabilities",
+    toVersion: "169",
+    toName: "model_capabilities",
+  },
+  {
     fromVersion: "056",
     fromName: "provider_default",
     toVersion: "056",

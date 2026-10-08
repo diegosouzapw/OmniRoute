@@ -1,30 +1,36 @@
 # CLI Integrations (Malti)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/CLI-INTEGRATIONS.md) · 🇪🇹 [am](../../../am/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇦 [ar](../../../ar/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇿 [az](../../../az/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇬 [bg](../../../bg/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇩 [bn](../../../bn/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇿 [cs](../../../cs/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇰 [da](../../../da/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇪 [de](../../../de/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇷 [el](../../../el/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇸 [es](../../../es/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇪 [et](../../../et/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇷 [fa](../../../fa/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇮 [fi](../../../fi/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇷 [fr](../../../fr/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇪 [ga](../../../ga/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [gu](../../../gu/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ha](../../../ha/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇱 [he](../../../he/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [hi](../../../hi/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇷 [hr](../../../hr/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇺 [hu](../../../hu/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇲 [hy](../../../hy/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇩 [id](../../../id/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ig](../../../ig/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇹 [it](../../../it/docs/guides/CLI-INTEGRATIONS.md) · 🇯🇵 [ja](../../../ja/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇪 [ka](../../../ka/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇭 [km](../../../km/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [kn](../../../kn/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇷 [ko](../../../ko/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇹 [lt](../../../lt/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇻 [lv](../../../lv/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ml](../../../ml/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [mr](../../../mr/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇾 [ms](../../../ms/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇲 [my](../../../my/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇵 [ne](../../../ne/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇱 [nl](../../../nl/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇴 [no](../../../no/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [or](../../../or/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [pa](../../../pa/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇭 [phi](../../../phi/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇱 [pl](../../../pl/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇹 [pt](../../../pt/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇴 [ro](../../../ro/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇺 [ru](../../../ru/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇰 [si](../../../si/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇰 [sk](../../../sk/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇮 [sl](../../../sl/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇸 [sr](../../../sr/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇪 [sv](../../../sv/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇪 [sw](../../../sw/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ta](../../../ta/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [te](../../../te/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇭 [th](../../../th/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇷 [tr](../../../tr/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇰 [ur](../../../ur/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇿 [uz](../../../uz/docs/guides/CLI-INTEGRATIONS.md) · 🇻🇳 [vi](../../../vi/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [yo](../../../yo/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/CLI-INTEGRATIONS.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/CLI-INTEGRATIONS.md) · 🇪🇹 [am](../../../am/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇦 [ar](../../../ar/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇿 [az](../../../az/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇬 [bg](../../../bg/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇩 [bn](../../../bn/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇦 [bs](../../../bs/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇿 [cs](../../../cs/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇰 [da](../../../da/docs/guides/CLI-INTEGRATIONS.md) · 🇩🇪 [de](../../../de/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇷 [el](../../../el/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇸 [es](../../../es/docs/guides/CLI-INTEGRATIONS.md) · 🇪🇪 [et](../../../et/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇷 [fa](../../../fa/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇮 [fi](../../../fi/docs/guides/CLI-INTEGRATIONS.md) · 🇫🇷 [fr](../../../fr/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇪 [ga](../../../ga/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [gu](../../../gu/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ha](../../../ha/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇱 [he](../../../he/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [hi](../../../hi/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇷 [hr](../../../hr/docs/guides/CLI-INTEGRATIONS.md) · 🇭🇺 [hu](../../../hu/docs/guides/CLI-INTEGRATIONS.md) · 🇦🇲 [hy](../../../hy/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇩 [id](../../../id/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [ig](../../../ig/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇹 [it](../../../it/docs/guides/CLI-INTEGRATIONS.md) · 🇯🇵 [ja](../../../ja/docs/guides/CLI-INTEGRATIONS.md) · 🇬🇪 [ka](../../../ka/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇭 [km](../../../km/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [kn](../../../kn/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇷 [ko](../../../ko/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇹 [lt](../../../lt/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇻 [lv](../../../lv/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ml](../../../ml/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [mr](../../../mr/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇾 [ms](../../../ms/docs/guides/CLI-INTEGRATIONS.md) · 🇲🇲 [my](../../../my/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇵 [ne](../../../ne/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇱 [nl](../../../nl/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇴 [no](../../../no/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [or](../../../or/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [pa](../../../pa/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇭 [phi](../../../phi/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇱 [pl](../../../pl/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇹 [pt](../../../pt/docs/guides/CLI-INTEGRATIONS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇴 [ro](../../../ro/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇺 [ru](../../../ru/docs/guides/CLI-INTEGRATIONS.md) · 🇱🇰 [si](../../../si/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇰 [sk](../../../sk/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇮 [sl](../../../sl/docs/guides/CLI-INTEGRATIONS.md) · 🇷🇸 [sr](../../../sr/docs/guides/CLI-INTEGRATIONS.md) · 🇸🇪 [sv](../../../sv/docs/guides/CLI-INTEGRATIONS.md) · 🇰🇪 [sw](../../../sw/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [ta](../../../ta/docs/guides/CLI-INTEGRATIONS.md) · 🇮🇳 [te](../../../te/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇭 [th](../../../th/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇷 [tr](../../../tr/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/CLI-INTEGRATIONS.md) · 🇵🇰 [ur](../../../ur/docs/guides/CLI-INTEGRATIONS.md) · 🇺🇿 [uz](../../../uz/docs/guides/CLI-INTEGRATIONS.md) · 🇻🇳 [vi](../../../vi/docs/guides/CLI-INTEGRATIONS.md) · 🇳🇬 [yo](../../../yo/docs/guides/CLI-INTEGRATIONS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/CLI-INTEGRATIONS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/CLI-INTEGRATIONS.md)
 
 ---
 
+Għall-manifest tal-eżegwibbli kondiviż, l-ambjenti subordinati ristretti u
+l-konfigurazzjoni persistenti ta’ Gemini, ara [Il-kuntratti tat-tnedija tas-CLI](./CLI-LAUNCH-CONTRACTS.md).
+
 OmniRoute jinkludi familja ta’ kmandi `setup-*` li jikkonfiguraw CLI
-tal-ipprogrammar (Codex, Claude Code, OpenCode, Cline, …) biex juża lil OmniRoute bħala l-backend tiegħu — sabiex
-l-għodda tikkomunika ma’ endpoint **wieħed** u OmniRoute jidderieġiha lejn il-fornitur it-tajjeb bi
-qlib awtomatiku f’każ ta’ falliment. Kull kmand jaqra l-katalgu **attiv** tal-mudelli minn istanza
-OmniRoute li tkun qed taħdem (lokali jew remota) u jikteb il-fajl tal-konfigurazzjoni tal-għodda nnifisha fuq il-magna
-**tiegħek**. Iċ-ċavetta tal-API ssir referenza għaliha permezz ta’ varjabbli tal-ambjent kull fejn l-għodda
-tappoġġjah. Il-kmandi li jippersistu fajl tal-ambjent lokali għall-għodda huma indikati hawn taħt.
+għall-ipprogrammar (Codex, Claude Code, OpenCode, Cline, …) biex juża lil OmniRoute
+bħala l-backend tiegħu — sabiex l-għodda tikkomunika ma’ endpoint **wieħed** u
+OmniRoute jidderieġiha lejn il-fornitur it-tajjeb bi bdil awtomatiku f’każ ta’
+ħsara. Kull kmand jaqra l-katalgu **attiv** tal-mudelli minn OmniRoute li jkun
+qed jaħdem (lokalment jew mill-bogħod) u jikteb il-fajl tal-konfigurazzjoni
+tal-għodda fuq il-magna **tiegħek**. Iċ-ċavetta tal-API tiġi referenzjata permezz
+ta’ varjabbli tal-ambjent kull fejn l-għodda tappoġġjah. Il-kmandi li jippersistu
+fajl tal-ambjent lokali għall-għodda huma indikati hawn taħt.
 
-Hemm ukoll launcher ġeneriku — `omniroute run <target>` — li jniedi
-`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` jew `gemini` bl-
-ambjent korrett injettat, mingħajr ma jikteb ebda konfigurazzjoni. It-targets u l-
-aliases tagħhom jiġu mill-manifest kanoniku `bin/cli/cli-manifest.mjs`
+Hemm ukoll lanċjatur ġeneriku — `omniroute run <target>` — li jniedi
+`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` jew `gemini`
+bl-ambjent it-tajjeb injettat, mingħajr ma jikteb ebda konfigurazzjoni. Il-miri
+u l-aliases tagħhom jiġu mill-manifest kanoniku `bin/cli/cli-manifest.mjs`
 (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
-`open-code`, `qwen-code`, `gemini-cli`), u `omniroute completion` joffri l-
-istess kliem tat-targets derivat mill-manifest. Il-launchers legati għal kull għodda —
-`omniroute launch` (Claude Code) u `omniroute launch-codex` (Codex) — jibqgħu
-disponibbli.
+`open-code`, `qwen-code`, `gemini-cli`), u `omniroute completion` joffri
+l-istess kliem tal-miri derivat mill-manifest. Il-lanċjaturi preċedenti għal kull
+għodda — `omniroute launch` (Claude Code) u `omniroute launch-codex` (Codex) —
+għadhom disponibbli.
 
-L-onboarding tal-fornituri huwa disponibbli mill-istess kuntest lokali/remot. Il-
-kmandi hawn taħt, iddisinjati primarjament għall-API, iżommu l-awtentikazzjoni tal-ġestjoni separata mill-kredenzjali tal-fornitur
-u qatt ma jistampaw kredenzjali f’output strutturat:
+L-inkorporazzjoni tal-fornituri hija disponibbli mill-istess kuntest lokali jew
+remot. Il-kmandi li ġejjin, imfassla primarjament għall-API, iżommu
+l-awtentikazzjoni tal-ġestjoni separata mill-kredenzjali tal-fornitur u qatt ma
+jistampaw kredenzjali f’output strutturat:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -34,19 +40,27 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Għall-iskripts, ippreferi `--credential-stdin` jew `--credential-env`; `--credential`
-jinżamm għal użu lokali kkontrollat. `providers remove` jeħtieġ `--yes` fuq
-terminal mhux interattiv, u l-ħames kmandi kollha jirrispettaw il-kuntest attiv jew l-
-għażliet globali `--base-url`/`--api-key`.
+Għall-iskripts, ippreferi `--credential-stdin` jew `--credential-env`;
+`--credential` jinżamm għal użu lokali kkontrollat. `providers remove` jeħtieġ
+`--yes` fuq terminal mhux interattiv, u l-ħames kmandi kollha jirrispettaw
+il-kuntest attiv jew l-għażliet globali `--base-url`/`--api-key`.
 
-Għall-konfigurazzjoni bażika inizjali, miktuba bl-idejn, taż-żewġ integrazzjonijiet l-aktar kompluti, ara l-
-gwidi dettaljati għal kull għodda:
+Is-seletturi tal-fornituri jirrifjutaw prefissi tal-ID, ismijiet jew ismijiet
+tal-fornituri li jkunu ambigwi; uża ID sħiħ tal-konnessjoni meta jkun hemm diversi
+konnessjonijiet li jaqblu. Il-kmandi għall-ħolqien u l-editjar jerġgħu jaqraw
+il-konnessjoni ssejvjata, u t-tneħħija tivverifika li din ma tkunx għadha
+tista’ tinqara. Importazzjoni taqbeż par eżistenti ta’ fornitur/isem.
+L-entrati importati ma jistgħux jissostitwixxu l-endpoint tal-ġestjoni,
+il-kuntest jew il-kredenzjali tal-ġestjoni mogħtija lis-CLI.
+
+Għall-konfigurazzjoni bażika ta’ darba, miktuba bl-idejn, taż-żewġ
+integrazzjonijiet bl-aktar funzjonalità, ara l-gwidi dettaljati għal kull għodda:
 
 - [Konfigurazzjoni ta’ Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
 - [Konfigurazzjoni ta’ Codex CLI](./CODEX-CLI-CONFIGURATION.md)
 - [Modalità Remota](./REMOTE-MODE.md) — ikkontrolla OmniRoute remot (VPS / Tailnet) mil-laptop tiegħek
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — l-estensjoni OmniCopilot; tista’ wkoll tħaddem dawn il-
-  kmandi `setup-*` għalik minn ġewwa l-editur
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — l-estensjoni OmniCopilot; tista’ wkoll tħaddem dawn
+  il-kmandi `setup-*` għalik minn ġewwa l-editur
 
 ---
 
@@ -145,35 +159,35 @@ ma jiġux ippreżentati bħala miri li jistgħu jitnedew.
 
 ## Użu lokali
 
-Meta OmniRoute qed jaħdem fuq `localhost:20128`, sempliċiment eżegwixxi l-kummerċ għodda tiegħek. Il-katalogu jitniżżel mis-server lokali.
+B'OmniRoute jaħdem fuq `localhost:20128`, sempliċement ħaddem il-kmand tas-setup għall-għodda tiegħek. Il-katalgu jinġieb mis-server lokali.
 
 ```bash
-# Codex: write a profile per matched model into ~/.codex/
+# Codex: ikteb profil għal kull mudell imqabbel f'~/.codex/
 omniroute setup-codex
-codex --profile glm52            # use a generated profile
+codex --profile glm52            # uża profil iġġenerat
 
-# Claude Code: write per-model profiles, then launch one
+# Claude Code: ikteb profili għal kull mudell, imbagħad niedi wieħed
 omniroute setup-claude
 omniroute launch --profile glm52
 
-# OpenCode: write the openai-compatible provider with all catalog models
+# OpenCode: ikteb il-fornitur kompatibbli ma' openai bil-mudelli kollha tal-katalgu
 omniroute setup-opencode
-export OMNIROUTE_API_KEY=sk-...  # referenced via {env:OMNIROUTE_API_KEY}, never on disk
+export OMNIROUTE_API_KEY=sk-...  # referenzjat permezz ta' {env:OMNIROUTE_API_KEY}, qatt fuq id-disk
 opencode -m omniroute/glm/glm-5.2 "..."
 
-# Tools without auto-discovery need an explicit model:
+# Għodod mingħajr skoperta awtomatika jeħtieġu mudell espliċitu:
 omniroute setup-aider --model glm/glm-5.2
 omniroute setup-qwen --model qwen/qwen3.8-max-preview
 
-# Preview without writing anything:
+# Preview mingħajr ma tikteb xejn:
 omniroute setup-continue --dry-run
 ```
 
-Ittella mingħajr dikjarazzjoni speċifika waħda (biss injezzjoni fl-ambjent):
+Niedi mingħajr ma tikteb l-ebda konfigurazzjoni (injezzjoni tal-ambjent biss):
 
 ```bash
-omniroute launch                 # Claude Code → local OmniRoute
-omniroute launch-codex           # Codex CLI → local OmniRoute
+omniroute launch                 # Claude Code → OmniRoute lokali
+omniroute launch-codex           # Codex CLI → OmniRoute lokali
 omniroute launch-codex --profile glm52
 omniroute run claude --model openai/gpt-5.4
 omniroute run codex --model openai/gpt-5.4 --dry-run --json
@@ -183,7 +197,7 @@ omniroute run opencode --model glm/glm-5.2 -- run "reply OK"
 omniroute run qwen --model glm/glm-5.2 -- -p "reply OK"
 omniroute run gemini --model glm/glm-5.2 -- --skip-trust -p "reply OK"
 
-# Explicit command path: pass through whatever comes after --
+# Mogħdija tal-kmand espliċita: għaddi dak kollu li jiġi wara --
 omniroute run claude -- --print-system-prompt "review this diff"
 ```
 

@@ -190,10 +190,20 @@ export function applyRulesToText(
   rules: CavemanRule[]
 ): { text: string; appliedRules: string[] } {
   let result = text;
-  const lowerResult = text.toLowerCase();
+  // Keyword prefilters only need the original text (a keyword an earlier rule removed
+  // cannot reappear). The #12825 regex prefilter for file-pack rules is different: an
+  // anchored pattern such as leader_phrases' `^(?:i will|…)` only matches once
+  // pleasantries has stripped the leading "Sure, ", so it must be tested against the
+  // text as the rules so far have left it — not a snapshot taken before any ran.
+  let lowerResult = text.toLowerCase();
+  let lowerResultSource = text;
   const appliedRules: string[] = [];
 
   for (const rule of rules) {
+    if (lowerResultSource !== result) {
+      lowerResult = result.toLowerCase();
+      lowerResultSource = result;
+    }
     if (!shouldAttemptRule(rule, lowerResult)) continue;
 
     const before = result;

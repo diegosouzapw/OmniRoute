@@ -165,6 +165,13 @@ function omitOversizedPipeline(artifact: CallLogArtifact): CallLogArtifact {
   };
 }
 
+// Test-only export: the real byte budget for an artifact, so budget
+// assertions measure against the same cap the ladder enforces instead of a
+// hardcoded byte count.
+export function getArtifactMaxBytesForTest(artifact: CallLogArtifact): number {
+  return getArtifactMaxBytes(artifact);
+}
+
 function getArtifactMaxBytes(artifact: CallLogArtifact): number {
   return artifact.pipeline ? getCallLogPipelineMaxSizeBytes() : MAX_CALL_LOG_ARTIFACT_BYTES;
 }
@@ -200,9 +207,10 @@ function buildMinimalArtifactForSizeLimit(artifact: CallLogArtifact) {
  * `clientResponse`), so evicting it to keep `requestBody` traded the whole
  * upstream exchange -- including the only record of what the provider
  * actually answered -- for a raw client prompt the pipeline already holds a
- * translated copy of. Bodies go first now, and `pipeline` survives one stage
- * longer; the previous order is still reached when dropping the bodies alone
- * is not enough.
+ * translated copy of. The request body goes first on its own now (it is the
+ * usual cap-tripper and the least diagnostic side), then both bodies, and
+ * `pipeline` survives one stage longer; the previous order is still reached
+ * when dropping the request body alone is not enough.
  *
  * Two consumers depend on that ordering, not just human diagnosis:
  * `resolvePreviousResponseState` (db/responsesContinuationStore.ts) rebuilds
@@ -213,15 +221,24 @@ function buildMinimalArtifactForSizeLimit(artifact: CallLogArtifact) {
  * `pipeline.providerResponse` in preference to `responseBody`.
  */
 function buildSizeLimitStages(artifact: CallLogArtifact): Array<() => unknown> {
-  const omitBodies = <T extends object>(value: T) => ({
+  // One parametrized helper for both body-omission stages: request-only keeps
+  // the response verbatim, both-bodies drops it too. Single spread + single
+  // error-preservation call, so the two stages cannot drift apart.
+  const omitBodies = <T extends object>(value: T, keepResponse = false) => ({
     ...value,
     requestBody: OMITTED_FOR_SIZE_LIMIT,
-    responseBody: OMITTED_FOR_SIZE_LIMIT,
+    responseBody: keepResponse ? (value as { responseBody: unknown }).responseBody : OMITTED_FOR_SIZE_LIMIT,
     error: preserveErrorForSizeLimit(artifact.error),
   });
 
   return [
     () => truncateArtifactForStorage(artifact),
+    // Request body alone: the usual cap-tripper (multi-hundred-KB client
+    // prompts) and the least diagnostic once the pipeline holds a translated
+    // copy of it. Worth a stage only when there is a pipeline to keep in
+    // exchange -- without one it produces the same bytes as a later stage, so
+    // it is left out rather than costing a redundant stringify.
+    ...(artifact.pipeline ? [() => omitBodies(artifact, true)] : []),
     // Bodies alone: worth a stage only when there is a pipeline to keep in
     // exchange. Without one it produces the same bytes as the stage two lines
     // below, so it is left out rather than costing a redundant stringify.

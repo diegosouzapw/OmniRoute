@@ -6,6 +6,7 @@ import { normalizeRoutingTags } from "@/domain/tagRouter";
 import { normalizeOpenRouterPreset } from "@/shared/constants/openRouterPreset";
 import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
 import { normalizePeakHourProtection } from "@/lib/providers/peakHourProtection";
+import { normalizeDetectedReasoningControl } from "@/shared/reasoning/reasoningControl";
 
 export const CODEX_REASONING_EFFORT_VALUES = [
   "none",
@@ -190,6 +191,24 @@ export function normalizeProviderSpecificData(
 
   normalizeNestedSubObjects(provider, normalized);
 
+  if (
+    normalized.reasoningControl !== undefined &&
+    normalized.reasoningControl !== null &&
+    normalized.reasoningControl !== "chat-template" &&
+    normalized.reasoningControl !== "openai"
+  ) {
+    delete normalized.reasoningControl;
+  }
+  const hasExplicitReasoningControl =
+    normalized.reasoningControl === "chat-template" || normalized.reasoningControl === "openai";
+  if (hasExplicitReasoningControl) {
+    delete normalized.detectedReasoningControl;
+  } else if ("detectedReasoningControl" in normalized) {
+    const detected = normalizeDetectedReasoningControl(normalized.detectedReasoningControl);
+    if (detected) normalized.detectedReasoningControl = detected;
+    else delete normalized.detectedReasoningControl;
+  }
+
   if ("openaiStoreEnabled" in normalized && typeof normalized.openaiStoreEnabled !== "boolean") {
     delete normalized.openaiStoreEnabled;
   }
@@ -197,6 +216,7 @@ export function normalizeProviderSpecificData(
   if (provider === "codex") {
     if (normalized.codexFingerprintMode === null) delete normalized.codexFingerprintMode;
     if (normalized.codex_fingerprint_mode === null) delete normalized.codex_fingerprint_mode;
+    if (normalized.codexPromptCacheKeyScope === null) delete normalized.codexPromptCacheKeyScope;
   }
 
   if (

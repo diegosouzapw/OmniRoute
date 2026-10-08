@@ -1,6 +1,6 @@
 # Error Message Sanitization (ગુજરાતી)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../security/ERROR_SANITIZATION.md) · 🇪🇹 [am](../../../am/docs/security/ERROR_SANITIZATION.md) · 🇸🇦 [ar](../../../ar/docs/security/ERROR_SANITIZATION.md) · 🇦🇿 [az](../../../az/docs/security/ERROR_SANITIZATION.md) · 🇧🇬 [bg](../../../bg/docs/security/ERROR_SANITIZATION.md) · 🇧🇩 [bn](../../../bn/docs/security/ERROR_SANITIZATION.md) · 🇨🇿 [cs](../../../cs/docs/security/ERROR_SANITIZATION.md) · 🇩🇰 [da](../../../da/docs/security/ERROR_SANITIZATION.md) · 🇩🇪 [de](../../../de/docs/security/ERROR_SANITIZATION.md) · 🇬🇷 [el](../../../el/docs/security/ERROR_SANITIZATION.md) · 🇪🇸 [es](../../../es/docs/security/ERROR_SANITIZATION.md) · 🇪🇪 [et](../../../et/docs/security/ERROR_SANITIZATION.md) · 🇮🇷 [fa](../../../fa/docs/security/ERROR_SANITIZATION.md) · 🇫🇮 [fi](../../../fi/docs/security/ERROR_SANITIZATION.md) · 🇫🇷 [fr](../../../fr/docs/security/ERROR_SANITIZATION.md) · 🇮🇪 [ga](../../../ga/docs/security/ERROR_SANITIZATION.md) · 🇳🇬 [ha](../../../ha/docs/security/ERROR_SANITIZATION.md) · 🇮🇱 [he](../../../he/docs/security/ERROR_SANITIZATION.md) · 🇮🇳 [hi](../../../hi/docs/security/ERROR_SANITIZATION.md) · 🇭🇷 [hr](../../../hr/docs/security/ERROR_SANITIZATION.md) · 🇭🇺 [hu](../../../hu/docs/security/ERROR_SANITIZATION.md) · 🇦🇲 [hy](../../../hy/docs/security/ERROR_SANITIZATION.md) · 🇮🇩 [id](../../../id/docs/security/ERROR_SANITIZATION.md) · 🇳🇬 [ig](../../../ig/docs/security/ERROR_SANITIZATION.md) · 🇮🇹 [it](../../../it/docs/security/ERROR_SANITIZATION.md) · 🇯🇵 [ja](../../../ja/docs/security/ERROR_SANITIZATION.md) · 🇬🇪 [ka](../../../ka/docs/security/ERROR_SANITIZATION.md) · 🇰🇭 [km](../../../km/docs/security/ERROR_SANITIZATION.md) · 🇮🇳 [kn](../../../kn/docs/security/ERROR_SANITIZATION.md) · 🇰🇷 [ko](../../../ko/docs/security/ERROR_SANITIZATION.md) · 🇱🇹 [lt](../../../lt/docs/security/ERROR_SANITIZATION.md) · 🇱🇻 [lv](../../../lv/docs/security/ERROR_SANITIZATION.md) · 🇮🇳 [ml](../../../ml/docs/security/ERROR_SANITIZATION.md) · 🇮🇳 [mr](../../../mr/docs/security/ERROR_SANITIZATION.md) · 🇲🇾 [ms](../../../ms/docs/security/ERROR_SANITIZATION.md) · 🇲🇹 [mt](../../../mt/docs/security/ERROR_SANITIZATION.md) · 🇲🇲 [my](../../../my/docs/security/ERROR_SANITIZATION.md) · 🇳🇵 [ne](../../../ne/docs/security/ERROR_SANITIZATION.md) · 🇳🇱 [nl](../../../nl/docs/security/ERROR_SANITIZATION.md) · 🇳🇴 [no](../../../no/docs/security/ERROR_SANITIZATION.md) · 🇮🇳 [or](../../../or/docs/security/ERROR_SANITIZATION.md) · 🇮🇳 [pa](../../../pa/docs/security/ERROR_SANITIZATION.md) · 🇵🇭 [phi](../../../phi/docs/security/ERROR_SANITIZATION.md) · 🇵🇱 [pl](../../../pl/docs/security/ERROR_SANITIZATION.md) · 🇵🇹 [pt](../../../pt/docs/security/ERROR_SANITIZATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/ERROR_SANITIZATION.md) · 🇷🇴 [ro](../../../ro/docs/security/ERROR_SANITIZATION.md) · 🇷🇺 [ru](../../../ru/docs/security/ERROR_SANITIZATION.md) · 🇱🇰 [si](../../../si/docs/security/ERROR_SANITIZATION.md) · 🇸🇰 [sk](../../../sk/docs/security/ERROR_SANITIZATION.md) · 🇸🇮 [sl](../../../sl/docs/security/ERROR_SANITIZATION.md) · 🇷🇸 [sr](../../../sr/docs/security/ERROR_SANITIZATION.md) · 🇸🇪 [sv](../../../sv/docs/security/ERROR_SANITIZATION.md) · 🇰🇪 [sw](../../../sw/docs/security/ERROR_SANITIZATION.md) · 🇮🇳 [ta](../../../ta/docs/security/ERROR_SANITIZATION.md) · 🇮🇳 [te](../../../te/docs/security/ERROR_SANITIZATION.md) · 🇹🇭 [th](../../../th/docs/security/ERROR_SANITIZATION.md) · 🇹🇷 [tr](../../../tr/docs/security/ERROR_SANITIZATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/ERROR_SANITIZATION.md) · 🇵🇰 [ur](../../../ur/docs/security/ERROR_SANITIZATION.md) · 🇺🇿 [uz](../../../uz/docs/security/ERROR_SANITIZATION.md) · 🇻🇳 [vi](../../../vi/docs/security/ERROR_SANITIZATION.md) · 🇳🇬 [yo](../../../yo/docs/security/ERROR_SANITIZATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/ERROR_SANITIZATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/ERROR_SANITIZATION.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../security/ERROR_SANITIZATION.md) · 🇪🇹 [am](../../../am/docs/security/ERROR_SANITIZATION.md) · 🇸🇦 [ar](../../../ar/docs/security/ERROR_SANITIZATION.md) · 🇦🇿 [az](../../../az/docs/security/ERROR_SANITIZATION.md) · 🇧🇬 [bg](../../../bg/docs/security/ERROR_SANITIZATION.md) · 🇧🇩 [bn](../../../bn/docs/security/ERROR_SANITIZATION.md) · 🇧🇦 [bs](../../../bs/docs/security/ERROR_SANITIZATION.md) · 🇨🇿 [cs](../../../cs/docs/security/ERROR_SANITIZATION.md) · 🇩🇰 [da](../../../da/docs/security/ERROR_SANITIZATION.md) · 🇩🇪 [de](../../../de/docs/security/ERROR_SANITIZATION.md) · 🇬🇷 [el](../../../el/docs/security/ERROR_SANITIZATION.md) · 🇪🇸 [es](../../../es/docs/security/ERROR_SANITIZATION.md) · 🇪🇪 [et](../../../et/docs/security/ERROR_SANITIZATION.md) · 🇮🇷 [fa](../../../fa/docs/security/ERROR_SANITIZATION.md) · 🇫🇮 [fi](../../../fi/docs/security/ERROR_SANITIZATION.md) · 🇫🇷 [fr](../../../fr/docs/security/ERROR_SANITIZATION.md) · 🇮🇪 [ga](../../../ga/docs/security/ERROR_SANITIZATION.md) · 🇳🇬 [ha](../../../ha/docs/security/ERROR_SANITIZATION.md) · 🇮🇱 [he](../../../he/docs/security/ERROR_SANITIZATION.md) · 🇮🇳 [hi](../../../hi/docs/security/ERROR_SANITIZATION.md) · 🇭🇷 [hr](../../../hr/docs/security/ERROR_SANITIZATION.md) · 🇭🇺 [hu](../../../hu/docs/security/ERROR_SANITIZATION.md) · 🇦🇲 [hy](../../../hy/docs/security/ERROR_SANITIZATION.md) · 🇮🇩 [id](../../../id/docs/security/ERROR_SANITIZATION.md) · 🇳🇬 [ig](../../../ig/docs/security/ERROR_SANITIZATION.md) · 🇮🇹 [it](../../../it/docs/security/ERROR_SANITIZATION.md) · 🇯🇵 [ja](../../../ja/docs/security/ERROR_SANITIZATION.md) · 🇬🇪 [ka](../../../ka/docs/security/ERROR_SANITIZATION.md) · 🇰🇭 [km](../../../km/docs/security/ERROR_SANITIZATION.md) · 🇮🇳 [kn](../../../kn/docs/security/ERROR_SANITIZATION.md) · 🇰🇷 [ko](../../../ko/docs/security/ERROR_SANITIZATION.md) · 🇱🇹 [lt](../../../lt/docs/security/ERROR_SANITIZATION.md) · 🇱🇻 [lv](../../../lv/docs/security/ERROR_SANITIZATION.md) · 🇮🇳 [ml](../../../ml/docs/security/ERROR_SANITIZATION.md) · 🇮🇳 [mr](../../../mr/docs/security/ERROR_SANITIZATION.md) · 🇲🇾 [ms](../../../ms/docs/security/ERROR_SANITIZATION.md) · 🇲🇹 [mt](../../../mt/docs/security/ERROR_SANITIZATION.md) · 🇲🇲 [my](../../../my/docs/security/ERROR_SANITIZATION.md) · 🇳🇵 [ne](../../../ne/docs/security/ERROR_SANITIZATION.md) · 🇳🇱 [nl](../../../nl/docs/security/ERROR_SANITIZATION.md) · 🇳🇴 [no](../../../no/docs/security/ERROR_SANITIZATION.md) · 🇮🇳 [or](../../../or/docs/security/ERROR_SANITIZATION.md) · 🇮🇳 [pa](../../../pa/docs/security/ERROR_SANITIZATION.md) · 🇵🇭 [phi](../../../phi/docs/security/ERROR_SANITIZATION.md) · 🇵🇱 [pl](../../../pl/docs/security/ERROR_SANITIZATION.md) · 🇵🇹 [pt](../../../pt/docs/security/ERROR_SANITIZATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/ERROR_SANITIZATION.md) · 🇷🇴 [ro](../../../ro/docs/security/ERROR_SANITIZATION.md) · 🇷🇺 [ru](../../../ru/docs/security/ERROR_SANITIZATION.md) · 🇱🇰 [si](../../../si/docs/security/ERROR_SANITIZATION.md) · 🇸🇰 [sk](../../../sk/docs/security/ERROR_SANITIZATION.md) · 🇸🇮 [sl](../../../sl/docs/security/ERROR_SANITIZATION.md) · 🇷🇸 [sr](../../../sr/docs/security/ERROR_SANITIZATION.md) · 🇸🇪 [sv](../../../sv/docs/security/ERROR_SANITIZATION.md) · 🇰🇪 [sw](../../../sw/docs/security/ERROR_SANITIZATION.md) · 🇮🇳 [ta](../../../ta/docs/security/ERROR_SANITIZATION.md) · 🇮🇳 [te](../../../te/docs/security/ERROR_SANITIZATION.md) · 🇹🇭 [th](../../../th/docs/security/ERROR_SANITIZATION.md) · 🇹🇷 [tr](../../../tr/docs/security/ERROR_SANITIZATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/ERROR_SANITIZATION.md) · 🇵🇰 [ur](../../../ur/docs/security/ERROR_SANITIZATION.md) · 🇺🇿 [uz](../../../uz/docs/security/ERROR_SANITIZATION.md) · 🇻🇳 [vi](../../../vi/docs/security/ERROR_SANITIZATION.md) · 🇳🇬 [yo](../../../yo/docs/security/ERROR_SANITIZATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/ERROR_SANITIZATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/ERROR_SANITIZATION.md)
 
 ---
 
@@ -135,15 +135,49 @@ const safe = String(err).split("\n")[0];
 
 ## CI માં કવરેજ
 
-`tests/unit/error-message-sanitization.test.ts` નીચેની બાબતો લાગુ કરે છે:
+`tests/unit/error-message-sanitization.test.ts` નીચેની બાબતો સુનિશ્ચિત કરે છે:
 
-- `/api/model-combo-mappings/*` હેઠળનો દરેક રૂટ 4xx/5xx પર સેનિટાઇઝ કરેલી બોડી પરત કરે છે.
+- `/api/model-combo-mappings/*` હેઠળનો દરેક રૂટ 4xx/5xx પર સેનિટાઇઝ કરેલી બોડીઝ પરત કરે છે.
 - `sanitizeErrorMessage` બહુ-લાઇન સ્ટૅક ટ્રેસ દૂર કરે છે.
-- `sanitizeErrorMessage` POSIX અને Windowsના ઍબ્સોલ્યુટ પાથને `<path>`થી બદલે છે.
-- `sanitizeErrorMessage`, `null`/`undefined`/`Error` ઇન્સ્ટન્સ ઇનપુટને સુરક્ષિત રીતે હૅન્ડલ કરે છે.
-- `buildErrorBody` તેની `message` ફીલ્ડમાં ક્યારેય સ્ટૅક ટ્રેસ જાહેર કરતું નથી.
+- `sanitizeErrorMessage` POSIX અને Windows ઍબ્સોલ્યુટ પાથને `<path>` વડે બદલે છે.
+- `sanitizeErrorMessage` `null`/`undefined`/`Error` ઇન્સ્ટન્સ ઇનપુટ્સને સુરક્ષિત રીતે હેન્ડલ કરે છે.
+- `buildErrorBody` તેના `message` ફીલ્ડમાં ક્યારેય સ્ટૅક ટ્રેસ જાહેર કરતું નથી.
 
-નવો રૂટ અથવા એક્ઝિક્યુટર ઉમેરતી વખતે, આ ફાઇલમાંથી અસર્શન પેટર્ન કૉપી કરો. કવરેજ ગેટ (`npm run test:coverage`) ≥60% સ્ટેટમેન્ટ્સ/લાઇન્સ/ફંક્શન્સ/બ્રાન્ચિસ લાગુ કરે છે — એરર પાથ આવરી લેવા આવશ્યક છે.
+નવો રૂટ અથવા એક્ઝિક્યુટર ઉમેરતી વખતે, આ ફાઇલમાંથી અસર્શન પેટર્ન કૉપી કરો. કવરેજ ગેટ (`npm run test:coverage`) ≥60% સ્ટેટમેન્ટ્સ/લાઇન્સ/ફંક્શન્સ/બ્રાન્ચિસ સુનિશ્ચિત કરે છે — એરર પાથ્સ આવરી લેવા જરૂરી છે.
+
+### સ્ટૅટિક ગેટ: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs`, `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` અને દરેક `src/app/api/**/route.ts` ને સ્કૅન કરે છે, જેથી ક્લાયન્ટ-ફેસિંગ બોડી સુધી પહોંચતી રૉ કૉટ એરર (`err.message` / `err.stack`) અથવા રૉ અપસ્ટ્રીમ `body.error.message` શોધી શકાય.
+
+**ટ્રસ્ટ કૉલ-સ્કોપ્ડ છે, ક્યારેય ફાઇલ-સ્કોપ્ડ નથી** (G-03, #15159). અગાઉ, ગેટને `utils/error` પાથમાંથી કોઈપણ ઇમ્પોર્ટ દેખાતાં જ તે આખી ફાઇલને સ્કિપ કરી દેતું હતું — એટલે કે કૉલ-સ્કોપ્ડ જોખમ પર ફાઇલ-સ્કોપ્ડ મુક્તિ લાગુ થતી હતી. એક સાચું `import { sanitizeErrorMessage }` ફાઇલમાંના દરેક બીજા સિંકને કાયમ માટે મુક્તિ આપી દેતું હતું, અને આ રીતે લાઇવ લીક ગ્રીન સ્ટેટસ સાથે શિપ થઈ હતી. હવે કોઈ લાઇન માત્ર ત્યારે જ વિશ્વસનીય ગણાય છે જ્યારે તે ખરેખર મંજૂર બિલ્ડર અથવા સેનિટાઇઝર મારફતે રૂટ થાય:
+
+| લાઇનનો આકાર                                                                                                            | વિશ્વસનીય?       |
+| ---------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / … ને કૉલ કરે               | હા               |
+| આ ફાઇલ દ્વારા `open-sse/utils/error` અથવા `src/lib/api/errorResponse` માંથી ઇમ્પોર્ટ કરાયેલા કેનોનિકલ બિલ્ડરને કૉલ કરે | હા               |
+| મંજૂર બિલ્ડરને **મલ્ટિ-લાઇન** રીતે કૉલ કરવામાં આવે, જેથી `message:` ફીલ્ડ પછીની લાઇન પર હોય                            | હા               |
+| ફાઇલ-લોકલ `function errorResponse(...)` ને કૉલ કરે, જેની પોતાની બોડી સેનિટાઇઝ કરે છે                                   | હા               |
+| અન્ય કોઈપણ જગ્યાએ `err.message` / `err.stack` ફોરવર્ડ કરે                                                              | **ના — ઉલ્લંઘન** |
+
+જાણવા યોગ્ય બે પરિણામો:
+
+- `errorResponse` ઇમ્પોર્ટ કરવાથી સર્વવ્યાપી ટ્રસ્ટ મળતો નથી. પોતાની `errorResponse` વ્યાખ્યાયિત કરતી ફાઇલને કૉલ સાઇટ પર હજી પણ ફ્લૅગ કરવામાં આવે છે, કારણ કે ગેટ ટ્રસ્ટને ફાઇલ દીઠ નહીં પરંતુ સિમ્બોલ દીઠ રિઝોલ્વ કરે છે. આ જ બાબત `createErrorResponse` માટે પણ લાગુ પડે છે.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` પછી `error: body.error.message` એ `*-fetch.ts` એક્ઝિક્યુટર્સમાં વપરાતી **સેનિટાઇઝ્ડ** રૂઢિ છે અને તેને ફ્લૅગ કરવામાં આવતી નથી.
+
+બંને મંજૂર બિલ્ડર મોડ્યુલ ગણાય છે: `open-sse/utils/error.ts` અને `src/lib/api/errorResponse.ts`. બીજાનો ઉપયોગ `open-sse` બહારના આશરે 54 રૂટ હેન્ડલર્સ કરે છે, અને તે પોતાના બંને એક્સપોર્ટ્સને સેનિટાઇઝ કરે છે.
+
+બે આકારો જે **ઉલ્લંઘન નથી**, પરંતુ ગેટે એક સમયે બંનેને લીક તરીકે રિપોર્ટ કર્યા હતા:
+
+- **ઑડિટ રો**ની અંદર રૉ એરર — `saveCallLog({ error: err.message })`, `logToolCall(...)`, અથવા એવો લૉગર જે પહેલાં મેસેજ લે છે (`log.error("BATCHES", "sweep failed", { error: err.message })`). પછીની લાઇન્સમાં આવેલી ક્લાયન્ટ-ફેસિંગ રિસ્પોન્સ સ્ટૅટિક `buildErrorBody` હોઈ શકે છે.
+- **મલ્ટિ-લાઇન** મંજૂર બિલ્ડર કૉલ, જેમાં `message:` ફીલ્ડ કોઈ બિલ્ડરનું નામ જ આપતું નથી:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` પહેલાથી હાજર ઉલ્લંઘનોને ફ્રીઝ કરે છે, જેથી ગેટ માત્ર _નવા_ ઉલ્લંઘનોને બ્લૉક કરે. કોઈ ઉલ્લંઘન સુધારાઈ જાય ત્યારે `assertNoStale` તેની એન્ટ્રીને આપમેળે દૂર કરે છે, જેથી ફ્રીઝ થયેલી સૂચિ કાયમી જડ ન બની જાય. રિગ્રેશન ગાર્ડ્સ: `tests/unit/check-error-helper.test.ts` અને `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## સંબંધિત નિયંત્રણો
 

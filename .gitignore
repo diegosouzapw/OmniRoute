@@ -298,3 +298,6 @@ docker-compose.yml.bak
 
 # check:install-upgrade work trees (~12 GB, disposable)
 /.install-upgrade/
+
+# run-translation.mjs writes the state atomically via a per-process temp file
+/.i18n-state.json.*.tmp

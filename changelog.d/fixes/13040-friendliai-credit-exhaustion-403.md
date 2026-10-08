@@ -1,1 +1,0 @@
-- **fix(friendliai):** FriendliAI's free-tier credit-exhaustion 403 (`{"detail":"You've exhausted all your credits..."}`) is now classified as `QUOTA_EXHAUSTED` instead of `AUTH_ERROR`, so omniroute treats it as depleted credits rather than a credential problem ([#13040](https://github.com/diegosouzapw/OmniRoute/pull/13040)) — thanks @turbolego

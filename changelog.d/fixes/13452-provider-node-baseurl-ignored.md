@@ -1,1 +1,0 @@
-- **fix(sse):** stop an unhydrated `openai-compatible-*`/`anthropic-compatible-*` connection from silently routing chat requests (and its stored credential) to the real OpenAI/Anthropic API instead of the operator's configured provider-node endpoint (#13452) — thanks @DenXio101

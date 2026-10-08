@@ -51,6 +51,7 @@ test("STREAM_RECOVERY constants mirror the free-claude-code values", () => {
   assert.equal(STREAM_RECOVERY.HOLDBACK_MS, 750);
   assert.equal(STREAM_RECOVERY.BUFFER_MAX_BYTES, 65536);
   assert.equal(STREAM_RECOVERY.EARLY_RETRY_MAX, 4);
+  assert.equal(STREAM_RECOVERY.EMPTY_TURN_RETRY_MAX, 4);
 });
 
 test("HoldbackBuffer holds chunks until flushed, then commits", () => {

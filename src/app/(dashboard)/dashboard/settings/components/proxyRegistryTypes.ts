@@ -27,3 +27,27 @@ export interface ProxyItem {
   family?: string;
   relayInfo?: RelayInfo;
 }
+
+// Read-only pool visibility payload served by GET /api/admin/proxy-pool-visibility.
+export interface PoolVisibilitySetAside {
+  kind: string;
+  since: string;
+  endsAt: string;
+  streak: number;
+}
+
+export interface PoolVisibilityMember {
+  id: string | null;
+  name: string | null;
+  display: string | null;
+  userMasked: string | null;
+  opaque: boolean;
+  rank: number;
+  signal: string;
+  setAside: PoolVisibilitySetAside | null;
+}
+
+export interface PoolVisibilityPayload {
+  rankedBy?: string;
+  members: PoolVisibilityMember[];
+}

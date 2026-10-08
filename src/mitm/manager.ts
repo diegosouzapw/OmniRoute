@@ -12,7 +12,7 @@ import { provisionDnsEntries } from "./dns/provision.ts";
 import { generateCert } from "./cert/generate.ts";
 import { installCertResult, installCaCert } from "./cert/install.ts";
 import { loadOrCreateMitmCa, resolveMitmCertDir } from "./cert/rootCa.ts";
-import { decideCertMigration } from "./cert/migration.ts";
+import { resolveActiveCertPath } from "./cert/activeCert.ts";
 import { ALL_TARGETS } from "./targets/index.ts";
 import { detectAgent } from "./detection/index.ts";
 import type { AgentId, DetectionResult, MitmTarget } from "./types.ts";
@@ -28,7 +28,7 @@ import {
   type RepairPlan,
 } from "./repair.ts";
 import { runPrivilegedMitmStep } from "./privilegedMitmStep.ts";
-import { removeStopDnsEntries } from "./stopDnsTeardown.ts";
+import { removeDnsEntriesAfterFailedStart, removeStopDnsEntries } from "./stopDnsTeardown.ts";
 
 export { buildRepairPlan, collectManagedHosts, type RepairPlan };
 
@@ -419,9 +419,13 @@ export async function getMitmStatus(agentId?: string): Promise<{
     // Ignore
   }
 
-  // Check cert
+  // Check cert. #14070: resolve the file the active migration decision
+  // actually installs (ca.crt under the root-CA model), not always the
+  // legacy server.crt — otherwise a root-CA install with no leaf ever
+  // generated would wrongly report certExists:false.
   const certDir = path.join(resolveMitmDataDir(), "mitm");
-  const certExists = fs.existsSync(path.join(certDir, "server.crt"));
+  const rootCaEnabledForStatus = process.env.MITM_ROOT_CA_ENABLED === "true";
+  const certExists = fs.existsSync(resolveActiveCertPath(certDir, rootCaEnabledForStatus).certPath);
 
   return {
     running,
@@ -516,7 +520,7 @@ async function startMitmInternal(
   //    `tproxy/dynamicCert.ts`).
   const certDir = resolveMitmCertDir();
   const rootCaEnabled = process.env.MITM_ROOT_CA_ENABLED === "true";
-  const migrationDecision = decideCertMigration(certDir, rootCaEnabled);
+  const { mode: migrationDecision } = resolveActiveCertPath(certDir, rootCaEnabled);
   let certPath: string;
   if (migrationDecision === "use-legacy-leaf") {
     certPath = path.join(resolveMitmDataDir(), "mitm", "server.crt");
@@ -701,6 +705,20 @@ async function startMitmInternal(
   });
 
   if (!started) {
+    // Step 3 above already wrote the /etc/hosts entries. Leaving them behind
+    // points every AgentBridge target hostname at 127.0.0.1:<port>, where the
+    // service that actually owns the port answers with a TLS alert — so the
+    // hostnames fail machine-wide with the bridge down and no way to recover
+    // from the UI. Revert them before surfacing the startup error.
+    await runPrivilegedMitmStep(
+      sudoPassword,
+      "Skipping DNS rollback after a failed start — no sudo password available",
+      () =>
+        removeDnsEntriesAfterFailedStart(
+          { removeDNSEntry, removeDNSEntries, collectManagedHosts },
+          sudoPassword
+        )
+    );
     throw new Error(interpretMitmStartupError(stderrBuffer, port));
   }
 

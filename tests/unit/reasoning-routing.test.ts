@@ -174,6 +174,33 @@ test("default does not override a budget-only signal and force replaces discrete
   assert.equal(policy.applyReasoningRuleDirective(untouched), untouched);
 });
 
+test("force + none emits the explicit no-thinking carrier", () => {
+  // Regression: clearReasoning() only REMOVES reasoning params. Providers whose
+  // thinking mode defaults ON (DeepSeek V4 behind the native Responses API)
+  // treat an absent field as "thinking enabled" and then reject the next
+  // tool-call turn with:
+  //   400 The `reasoning_text` in the thinking mode must be passed back to the API.
+  // The forced-off directive must therefore carry an explicit `none`.
+  const forcedNone = policy.applyReasoningRuleDirective({
+    model: "deepseek/deepseek-flash",
+    reasoning_effort: "high",
+    reasoning: { effort: "high", summary: "auto" },
+    thinking: { type: "enabled", budget_tokens: 4096 },
+    _omnirouteReasoningRule: {
+      id: "force-none",
+      effortMode: "force",
+      targetEffort: "none",
+      budgetAction: "remove",
+      budgetTokens: null,
+    },
+  }) as Record<string, unknown>;
+
+  assert.equal(forcedNone.reasoning_effort, "none");
+  assert.equal(forcedNone.reasoning, undefined);
+  assert.equal(forcedNone.thinking, undefined);
+  assert.equal(forcedNone._omnirouteReasoningRule, undefined);
+});
+
 test("CRUD validates references, invalidates cache, and cascades deleted owners", async () => {
   const key = await apiKeysDb.createApiKey("Owner", "reasoning-owner-machine");
   const combo = await combosDb.createCombo({
@@ -344,8 +371,8 @@ test("static registry vocabulary outranks the operator override so the gate matc
   );
 
   // Case 2: registry-declared model, operator override NARROWS to exclude
-  // max. The override is terminal — the legacy gpt-5.6 regex must not
-  // resurrect the tier (grok ids never matched that regex, but the
+  // max. The override is terminal — the Codex alias-set fallback must not
+  // resurrect the tier (grok ids are not in those sets, but the
   // precedence guarantee must not depend on the id shape).
   setModelCapabilityOverride(registeredModel, "reasoning_efforts", ["low", "high"]);
   const narrowed = await policy.resolveReasoningRoutingRule({
@@ -356,7 +383,7 @@ test("static registry vocabulary outranks the operator override so the gate matc
   assert.equal(
     narrowed?.capability,
     "unsupported",
-    "a narrowed operator override is terminal and must not fall through to the legacy regex"
+    "a narrowed operator override is terminal and must not fall through to the Codex alias-set fallback"
   );
 
   // Case 3: registry model WITHOUT any declared vocabulary, operator
@@ -395,8 +422,8 @@ test("static registry vocabulary outranks the operator override so the gate matc
     "alias-spelled provider prefix must resolve to the same registry namespace"
   );
 
-  // Case 5: a narrowing override on a gpt-5.6 id is terminal. The legacy
-  // regex matches this exact id shape — without the terminal check it would
+  // Case 5: a narrowing override on a gpt-5.6 id is terminal. The Codex
+  // alias-set fallback matches this exact id — without the terminal check it would
   // resurrect forced max the operator explicitly declared away.
   const gpt56Model = "codex/gpt-5.6-sol";
   setModelCapabilityOverride(gpt56Model, "reasoning_efforts", ["low", "high"]);
@@ -409,6 +436,6 @@ test("static registry vocabulary outranks the operator override so the gate matc
   assert.equal(
     denied56.capability,
     "unsupported",
-    "operator narrowing override on gpt-5.6 must not be overruled by the legacy regex"
+    "operator narrowing override on gpt-5.6 must not be overruled by the Codex alias-set fallback"
   );
 });

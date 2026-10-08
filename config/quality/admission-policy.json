@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "scope": "Per-workflow candidate admission. Both named verdicts are required; neither alone certifies release publication or deployment.",
+  "profiles": {
+    "ci": {
+      "checkName": "Gate / CI",
+      "jobs": {
+        "changes": { "when": "always", "disposition": "required" },
+        "lint": { "when": "code", "disposition": "required" },
+        "quality-gate": { "when": "code", "disposition": "required" },
+        "quality-extended": { "when": "code", "disposition": "required" },
+        "docs-sync-strict": { "when": "code-or-docs", "disposition": "required" },
+        "docs-lint": {
+          "when": "docs",
+          "disposition": "advisory",
+          "reason": "Existing prose lint is advisory; strict documentation checks remain required."
+        },
+        "i18n-ui-coverage": { "when": "code-or-i18n", "disposition": "required" },
+        "i18n-glossary-zhcn": { "when": "code-or-i18n", "disposition": "required" },
+        "i18n": {
+          "when": "i18n",
+          "disposition": "advisory",
+          "reason": "Existing untranslated-catalog report; UI coverage and glossary are required."
+        },
+        "pr-test-policy": { "when": "pr", "disposition": "required" },
+        "build": { "when": "code", "disposition": "required" },
+        "package-artifact": { "when": "code", "disposition": "required" },
+        "electron-package-smoke": { "when": "code", "disposition": "required" },
+        "test-unit": { "when": "code", "disposition": "required" },
+        "test-bun-sqlite": { "when": "code", "disposition": "required" },
+        "test-vitest": { "when": "code", "disposition": "required" },
+        "test-coverage": { "when": "code", "disposition": "required" },
+        "test-e2e": { "when": "code-e2e", "disposition": "required" },
+        "test-integration": { "when": "code", "disposition": "required" },
+        "test-security": { "when": "code", "disposition": "required" },
+        "test-ecosystem": { "when": "code", "disposition": "required" },
+        "test-protocols-e2e": {
+          "when": "code",
+          "disposition": "advisory",
+          "reason": "Existing protocol E2E advisory policy, issue #10049; not counted as required PASS."
+        },
+        "sonarqube": {
+          "when": "code",
+          "disposition": "advisory",
+          "reason": "Optional external service, governed by SONARQUBE_ENABLED and service credentials."
+        },
+        "coverage-pr-comment": {
+          "when": "pr",
+          "disposition": "advisory",
+          "reason": "Presentation only; test-coverage is the required result."
+        }
+      }
+    },
+    "quality": {
+      "checkName": "Gate / Quality",
+      "jobs": {
+        "changes": { "when": "always", "disposition": "required" },
+        "docs-gates": { "when": "code-or-docs", "disposition": "required" },
+        "fast-gates": { "when": "code", "disposition": "required" },
+        "fast-vitest": { "when": "code", "disposition": "required" },
+        "fast-unit": { "when": "code", "disposition": "required" },
+        "lint-guard": { "when": "code", "disposition": "required" },
+        "merge-integrity": { "when": "always", "disposition": "required" }
+      }
+    }
+  }
+}

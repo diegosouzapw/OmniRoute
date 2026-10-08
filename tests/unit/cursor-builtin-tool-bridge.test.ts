@@ -226,19 +226,59 @@ test("background-marked shell_stream requests never use a synchronous shell tool
   assert.equal(result?.toolName, "pty_spawn");
 });
 
-test("fails closed rather than dropping Cursor timeout semantics", () => {
-  assert.equal(
-    bridgeCursorBuiltinTool(shellEvent({ timeout: 5_000 }), defs([bashTool(), ptySpawn]), "posix"),
-    null
+/**
+ * Cursor populates `timeout` (30s) and `hardTimeout` (24h) on EVERY shell exec
+ * it emits, so refusing to bridge whenever either is set made the shell bridge
+ * unreachable in practice: the client harness got narration and no tool call,
+ * and the run stalled.
+ *
+ * Dropping the guard does not broaden execution. The command is executed by the
+ * CLIENT under its own limits — exactly as with every other provider, where a
+ * tool_call carries no server-side timeout at all. OmniRoute never runs it.
+ * When the declared tool exposes a numeric timeout property we map Cursor's
+ * value onto it so the intent is preserved; when it does not, the client's own
+ * default applies.
+ */
+test("bridges a shell exec that carries Cursor timeout semantics", () => {
+  const result = bridgeCursorBuiltinTool(
+    shellEvent({ timeout: 5_000 }),
+    defs([bashTool(), ptySpawn]),
+    "posix"
   );
+  assert.equal(result?.toolName, "bash");
   assert.equal(
-    bridgeCursorBuiltinTool(
-      shellEvent({ hardTimeout: 7_000 }),
-      defs([bashTool(), ptySpawn]),
-      "posix"
-    ),
-    null
+    (result?.arguments as Record<string, unknown>).command,
+    "mktemp -d /tmp/file-tools-test-XXXXXX"
   );
+});
+
+test("maps the Cursor timeout onto a declared numeric timeout property", () => {
+  const toolWithTimeout = bashTool({
+    type: "object",
+    properties: {
+      command: { type: "string" },
+      workdir: { type: "string" },
+      timeout: { type: "integer" },
+    },
+    required: ["command"],
+    additionalProperties: false,
+  });
+  const result = bridgeCursorBuiltinTool(
+    shellEvent({ timeout: 5_000 }),
+    defs([toolWithTimeout, ptySpawn]),
+    "posix"
+  );
+  assert.equal((result?.arguments as Record<string, unknown>).timeout, 5_000);
+});
+
+test("omits the timeout when the declared tool has no compatible property", () => {
+  const result = bridgeCursorBuiltinTool(
+    shellEvent({ hardTimeout: 7_000 }),
+    defs([bashTool(), ptySpawn]),
+    "posix"
+  );
+  assert.equal(result?.toolName, "bash");
+  assert.equal("timeout" in (result?.arguments as Record<string, unknown>), false);
 });
 
 test("bridges exec_read to a schema-compatible read tool", () => {
@@ -251,6 +291,99 @@ test("bridges exec_read to a schema-compatible read tool", () => {
   assert.deepEqual(bridgeCursorBuiltinTool(event, defs([readTool])), {
     toolName: "read",
     arguments: { filePath: "/tmp/test.txt" },
+  });
+});
+
+// Claude Code's Read schema, verbatim from a live request (2026-09-29).
+const claudeCodeRead: OpenAITool = {
+  type: "function",
+  function: {
+    name: "Read",
+    description: "Reads a file",
+    parameters: {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      type: "object",
+      properties: {
+        file_path: { description: "The absolute path to the file to read", type: "string" },
+        offset: {
+          description: "The line number to start reading from.",
+          type: "integer",
+          minimum: 0,
+          maximum: 9007199254740991,
+        },
+        limit: {
+          description: "The number of lines to read.",
+          type: "integer",
+          exclusiveMinimum: 0,
+          maximum: 9007199254740991,
+        },
+        pages: { description: "Page range for PDF files", type: "string" },
+      },
+      required: ["file_path"],
+      additionalProperties: false,
+    },
+  },
+};
+
+const rangedRead: ExecServerEvent = {
+  kind: "exec_read",
+  execMsgId: 1,
+  execId: "read-range",
+  path: "/repo/service.py",
+  offset: 1195,
+  limit: 16,
+};
+
+test("bridges exec_read offset and limit to Claude Code's Read", () => {
+  // Dropping the range turned every partial read into a full re-read, which
+  // Claude Code answers with "Wasted call — file unchanged": a read loop.
+  assert.deepEqual(bridgeCursorBuiltinTool(rangedRead, defs([claudeCodeRead])), {
+    toolName: "Read",
+    arguments: { file_path: "/repo/service.py", offset: 1195, limit: 16 },
+  });
+});
+
+test("bridges exec_read offset and limit to a number-typed read tool", () => {
+  assert.deepEqual(bridgeCursorBuiltinTool(rangedRead, defs([readTool])), {
+    toolName: "read",
+    arguments: { filePath: "/repo/service.py", offset: 1195, limit: 16 },
+  });
+});
+
+test("does not bridge a ranged exec_read to a read tool that cannot carry the range", () => {
+  const pathOnlyRead: OpenAITool = {
+    type: "function",
+    function: {
+      name: "read",
+      description: "Read a file",
+      parameters: {
+        type: "object",
+        properties: { filePath: { type: "string" } },
+        required: ["filePath"],
+        additionalProperties: false,
+      },
+    },
+  };
+  assert.equal(bridgeCursorBuiltinTool(rangedRead, defs([pathOnlyRead])), null);
+});
+
+test("does not bridge an exec_read range outside the schema bounds", () => {
+  const zeroLimit: ExecServerEvent = { ...rangedRead, limit: 0 };
+  const negativeOffset: ExecServerEvent = { ...rangedRead, offset: -5 };
+  assert.equal(bridgeCursorBuiltinTool(zeroLimit, defs([claudeCodeRead])), null);
+  assert.equal(bridgeCursorBuiltinTool(negativeOffset, defs([claudeCodeRead])), null);
+});
+
+test("bridges an unranged exec_read to Claude Code's Read with the path only", () => {
+  const event: ExecServerEvent = {
+    kind: "exec_read",
+    execMsgId: 1,
+    execId: "read-full",
+    path: "/repo/service.py",
+  };
+  assert.deepEqual(bridgeCursorBuiltinTool(event, defs([claudeCodeRead])), {
+    toolName: "Read",
+    arguments: { file_path: "/repo/service.py" },
   });
 });
 
@@ -573,4 +706,154 @@ test("fails closed when no declared tool matches the built-in event", () => {
     ),
     null
   );
+});
+
+/**
+ * Cursor routes work onto its own built-ins (Grep, Ls, Write, Fetch) even when
+ * the client declared equivalents. Every unbridged variant ended the turn with
+ * a typed rejection and no tool call, so opencode saw an empty answer and
+ * retried the same step forever — the "reads a missing file in a loop" report.
+ */
+function grepEvent(over: Record<string, unknown> = {}): ExecServerEvent {
+  return {
+    kind: "exec_grep",
+    execMsgId: 1,
+    execId: "e",
+    pattern: "snake",
+    path: "/tmp/12",
+    glob: "*.cpp",
+    ...over,
+  } as ExecServerEvent;
+}
+function tool(name: string, properties: Record<string, unknown>, required: string[] = []) {
+  return {
+    type: "function",
+    function: {
+      name,
+      parameters: { type: "object", properties, required, additionalProperties: false },
+    },
+  } as OpenAITool;
+}
+
+test("bridges Cursor Grep onto a declared grep tool, carrying path and include", () => {
+  const result = bridgeCursorBuiltinTool(
+    grepEvent(),
+    defs([
+      tool(
+        "grep",
+        {
+          pattern: { type: "string" },
+          path: { type: "string" },
+          include: { type: "string" },
+        },
+        ["pattern"]
+      ),
+    ]),
+    "posix"
+  );
+  assert.deepEqual(result, {
+    toolName: "grep",
+    arguments: { pattern: "snake", path: "/tmp/12", include: "*.cpp" },
+  });
+});
+
+test("Grep without a pattern is not bridged", () => {
+  const result = bridgeCursorBuiltinTool(
+    grepEvent({ pattern: "  " }),
+    defs([tool("grep", { pattern: { type: "string" } }, ["pattern"])]),
+    "posix"
+  );
+  assert.equal(result, null);
+});
+
+test("Grep count mode bridges content search so results can be counted", () => {
+  const result = bridgeCursorBuiltinTool(
+    grepEvent({ outputMode: "count" }),
+    defs([tool("grep", { pattern: { type: "string" } }, ["pattern"])]),
+    "posix"
+  );
+  assert.deepEqual(result, { toolName: "grep", arguments: { pattern: "snake" } });
+});
+
+test("bridges Cursor Ls onto a glob tool, supplying the required pattern", () => {
+  const event = { kind: "exec_ls", execMsgId: 1, execId: "e", path: "/tmp/12" } as ExecServerEvent;
+  const result = bridgeCursorBuiltinTool(
+    event,
+    defs([tool("glob", { pattern: { type: "string" }, path: { type: "string" } }, ["pattern"])]),
+    "posix"
+  );
+  assert.deepEqual(result, { toolName: "glob", arguments: { path: "/tmp/12", pattern: "*" } });
+});
+
+test("bridges Cursor Write with the file contents it sent", () => {
+  const event = {
+    kind: "exec_write",
+    execMsgId: 1,
+    execId: "e",
+    path: "/tmp/12/snake.cpp",
+    fileText: "int main(){}",
+  } as ExecServerEvent;
+  const result = bridgeCursorBuiltinTool(
+    event,
+    defs([
+      tool("write", { filePath: { type: "string" }, content: { type: "string" } }, [
+        "filePath",
+        "content",
+      ]),
+    ]),
+    "posix"
+  );
+  assert.deepEqual(result, {
+    toolName: "write",
+    arguments: { filePath: "/tmp/12/snake.cpp", content: "int main(){}" },
+  });
+});
+
+test("a Write with no schema-compatible content property stays rejected", () => {
+  const event = {
+    kind: "exec_write",
+    execMsgId: 1,
+    execId: "e",
+    path: "/tmp/a",
+    fileText: "x",
+  } as ExecServerEvent;
+  const result = bridgeCursorBuiltinTool(
+    event,
+    defs([tool("write", { filePath: { type: "string" } }, ["filePath"])]),
+    "posix"
+  );
+  assert.equal(result, null);
+});
+
+test("binary writes and non-UTF-8 encoding hints cannot be forwarded as plain text", () => {
+  const event = {
+    kind: "exec_write",
+    execMsgId: 1,
+    execId: "e",
+    path: "/tmp/existing.bin",
+    fileText: "",
+  } as ExecServerEvent;
+  const tools = defs([
+    tool("write", { filePath: { type: "string" }, content: { type: "string" } }, [
+      "filePath",
+      "content",
+    ]),
+  ]);
+  assert.equal(bridgeCursorBuiltinTool({ ...event, hasFileBytes: true }, tools), null);
+  assert.equal(bridgeCursorBuiltinTool({ ...event, encodingHint: "utf16le" }, tools), null);
+});
+
+test("bridges Cursor Fetch onto a declared webfetch tool", () => {
+  const event = {
+    kind: "exec_fetch",
+    execMsgId: 1,
+    execId: "e",
+    url: "https://example.com",
+  } as ExecServerEvent;
+  const result = bridgeCursorBuiltinTool(
+    event,
+    defs([tool("webfetch", { url: { type: "string" } }, ["url"])]),
+    "posix"
+  );
+  assert.deepEqual(result, { toolName: "webfetch", arguments: { url: "https://example.com" } });
 });

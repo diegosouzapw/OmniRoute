@@ -12,7 +12,7 @@ import {
   buildClaudeToolUseResponse,
 } from "./devin-agentic/anthropicResponse.ts";
 import { serializeAnthropicForDevin } from "./devin-agentic/serializer.ts";
-import { parseDevinToolRequest } from "./devin-agentic/toolParser.ts";
+import { extractBareSummaryEnvelope, parseDevinToolRequest } from "./devin-agentic/toolParser.ts";
 import { asRecord, DevinAgenticBridgeError, estimateTokens } from "./devin-agentic/types.ts";
 
 type AcpMessage = {
@@ -35,6 +35,7 @@ const REPAIRABLE_TOOL_ERRORS = new Set([
   "multiple_tool_requests",
   "mixed_tool_narrative",
   "unexecuted_tool_intent",
+  "bare_summary_envelope",
 ]);
 
 function describesUnexecutedToolIntent(text: string): boolean {
@@ -444,6 +445,20 @@ async function generateAgenticOutput(
   return first;
 }
 
+function buildRepairInstruction(errorCode: string): string {
+  if (errorCode === "unexecuted_tool_intent") {
+    return "Plain text is not accepted for this repair. Return exactly one standalone <tool> JSON envelope now.";
+  }
+  if (errorCode === "bare_summary_envelope") {
+    return [
+      "Do not return a <summary> progress report.",
+      "If more work remains, return exactly one <tool> envelope now.",
+      "Otherwise, return the final user-facing answer as plain text, with no <summary> tags.",
+    ].join(" ");
+  }
+  return "Return either plain final text or exactly one standalone <tool> JSON envelope.";
+}
+
 function extractText(value: unknown): string {
   if (typeof value === "string") return value;
   if (Array.isArray(value)) return value.map((item) => extractText(item)).join("");
@@ -497,6 +512,12 @@ export class DevinCliAgenticExecutor extends BaseExecutor {
           );
         }
         tool = parseDevinToolRequest(text, prompt.tools, prompt.idSeed);
+        if (!tool && extractBareSummaryEnvelope(text) !== null) {
+          throw new DevinAgenticBridgeError(
+            "The response was a bare <summary> progress report with no tool call or final answer",
+            "bare_summary_envelope"
+          );
+        }
       } catch (error) {
         if (
           !(error instanceof DevinAgenticBridgeError) ||
@@ -512,9 +533,7 @@ export class DevinCliAgenticExecutor extends BaseExecutor {
           "",
           "[Single Repair Attempt]",
           `The previous output was rejected: ${sanitizeErrorMessage(error.message)}`,
-          requiresToolOnRepair
-            ? "Plain text is not accepted for this repair. Return exactly one standalone <tool> JSON envelope now."
-            : "Return either plain final text or exactly one standalone <tool> JSON envelope.",
+          buildRepairInstruction(error.code),
           "Do not narrate a tool action.",
         ].join("\n");
         text = await generateAgenticOutput(turnArgs, repairPrompt);
@@ -525,6 +544,15 @@ export class DevinCliAgenticExecutor extends BaseExecutor {
             "unexecuted_tool_intent",
             502
           );
+        }
+        if (!tool && error.code === "bare_summary_envelope") {
+          const stillBare = extractBareSummaryEnvelope(text);
+          if (stillBare !== null) {
+            // Bounded retry exhausted — strip the wrapper and use the inner
+            // body as the final answer rather than surfacing an internal
+            // progress-report format to the caller.
+            text = stillBare;
+          }
         }
       }
 

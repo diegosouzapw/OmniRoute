@@ -4,8 +4,7 @@
  * Opens a Playwright browser context, navigates to the provider's login page,
  * and polls for target cookies/tokens after the user completes login.
  *
- * Used as the dashboard/web fallback path when Electron is not available.
- * For Electron-native login, see electron/loginManager.js.
+ * The primary login surface for cookie providers (dashboard and web clients).
  *
  * Events:
  *   "status" — { providerId: string, status: string, message: string }

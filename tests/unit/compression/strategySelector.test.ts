@@ -132,7 +132,11 @@ describe("getEffectiveMode", () => {
 describe("selectCompressionStrategy resolves via the engines map (Task 7)", () => {
   it("resolves mode rtk when only rtk is enabled in the engines map", () => {
     const config = engineConfig({ rtk: { enabled: true } });
-    assert.equal(selectCompressionStrategy(config, null, 0), "rtk");
+    assert.equal(selectCompressionStrategy(config, null, 0), "stacked");
+    assert.equal(
+      selectCompressionStrategy(config, null, 0, undefined, undefined, {}, "allow-lossy"),
+      "rtk"
+    );
   });
 
   it("resolves mode stacked when rtk + caveman are both enabled, exposing the derived pipeline", () => {
@@ -141,7 +145,7 @@ describe("selectCompressionStrategy resolves via the engines map (Task 7)", () =
       caveman: { enabled: true, level: "full" },
     });
     assert.equal(selectCompressionStrategy(config, null, 0), "stacked");
-    const plan = selectCompressionPlan(config, null, 0);
+    const plan = selectCompressionPlan(config, null, 0, undefined, undefined, {}, "allow-lossy");
     assert.equal(plan.mode, "stacked");
     // stackPriority order: rtk (10) before caveman (20).
     assert.deepEqual(plan.stackedPipeline, [
@@ -155,10 +159,17 @@ describe("selectCompressionStrategy resolves via the engines map (Task 7)", () =
       { rtk: { enabled: true } },
       { autoTriggerTokens: 1000, autoTriggerMode: "aggressive" }
     );
-    // Below threshold: derived default (rtk) wins.
-    assert.equal(selectCompressionStrategy(config, null, 500), "rtk");
-    // At/above threshold: auto-trigger mode wins.
-    assert.equal(selectCompressionStrategy(config, null, 1500), "aggressive");
+    // Below threshold: derived default (rtk) wins, then lossy rtk leaves the default path.
+    assert.equal(selectCompressionStrategy(config, null, 500), "stacked");
+    assert.equal(
+      selectCompressionStrategy(config, null, 500, undefined, undefined, {}, "allow-lossy"),
+      "rtk"
+    );
+    // At/above threshold: auto-trigger mode wins, and stays when the request opts in.
+    assert.equal(
+      selectCompressionStrategy(config, null, 1500, undefined, undefined, {}, "allow-lossy"),
+      "aggressive"
+    );
   });
 
   it("routing-combo override still wins over the derived default", () => {
@@ -236,11 +247,19 @@ describe("selectCompressionStrategy", () => {
     };
 
     assert.equal(
-      selectCompressionStrategy(config, null, 100, body, {
-        provider: "anthropic",
-        targetFormat: "claude",
-        model: "claude-3-5-sonnet",
-      }),
+      selectCompressionStrategy(
+        config,
+        null,
+        100,
+        body,
+        {
+          provider: "anthropic",
+          targetFormat: "claude",
+          model: "claude-3-5-sonnet",
+        },
+        {},
+        "allow-lossy"
+      ),
       "standard"
     );
   });

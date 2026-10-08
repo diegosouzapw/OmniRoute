@@ -46,3 +46,17 @@ export function betterSqlite3Available(): boolean {
   }
   return cached;
 }
+
+export type BetterSqlite3Constructor = typeof import("better-sqlite3");
+
+/**
+ * Loads the better-sqlite3 constructor when it can actually open a database, or
+ * returns null. Use this instead of a top-level `import Database from
+ * "better-sqlite3"`: a static import fails the whole file at load time when the
+ * native addon is missing, before any `skip` option can take effect.
+ */
+export function loadBetterSqlite3(): BetterSqlite3Constructor | null {
+  if (!betterSqlite3Available()) return null;
+  const require = createRequire(import.meta.url);
+  return require("better-sqlite3") as BetterSqlite3Constructor;
+}

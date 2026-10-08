@@ -16,6 +16,9 @@ const TOKEN_SECRET_PREFIX = "oma_live_";
 /** How many leading chars of the secret are kept for display (prefix). */
 const DISPLAY_PREFIX_LEN = TOKEN_SECRET_PREFIX.length + 6;
 
+/** How long a successful verify may reuse the stored last_used_at stamp. */
+const LAST_USED_WRITE_INTERVAL_MS = 60_000;
+
 export interface AccessTokenRecord {
   id: string;
   name: string;
@@ -32,6 +35,15 @@ export interface VerifiedAccessToken {
   id: string;
   name: string;
   scope: AccessScope;
+}
+
+/** Outcome of a revoke. A retry of an already-revoked token is still a success. */
+export interface RevokeAccessTokenResult {
+  /** True when the token is revoked after this call, including a prior revoke. */
+  revoked: boolean;
+  alreadyRevoked: boolean;
+  /** True when a prefix matched more than one live token and nothing was revoked. */
+  ambiguous: boolean;
 }
 
 interface AccessTokenRow {
@@ -135,14 +147,20 @@ export function verifyAccessToken(secret: string | null | undefined): VerifiedAc
   if (row.revoked_at) return null;
   if (isExpired(row.expires_at)) return null;
 
-  // Best-effort usage stamp; never block validation on the write.
-  try {
-    db.prepare("UPDATE cli_access_tokens SET last_used_at = ? WHERE id = ?").run(
-      new Date().toISOString(),
-      row.id
-    );
-  } catch {
-    /* non-fatal */
+  // A management request verifies the same token at the policy and the route.
+  // Skip the write while the stored stamp is still inside the window.
+  const lastUsedMs = row.last_used_at ? Date.parse(row.last_used_at) : Number.NaN;
+  const stampIsFresh =
+    Number.isFinite(lastUsedMs) && Date.now() - lastUsedMs < LAST_USED_WRITE_INTERVAL_MS;
+  if (!stampIsFresh) {
+    try {
+      db.prepare("UPDATE cli_access_tokens SET last_used_at = ? WHERE id = ?").run(
+        new Date().toISOString(),
+        row.id
+      );
+    } catch {
+      /* non-fatal */
+    }
   }
 
   return { id: row.id, name: row.name, scope: normalizeScope(row.scope) };
@@ -161,23 +179,53 @@ export function listAccessTokens(): AccessTokenRecord[] {
 export function getAccessToken(id: string): AccessTokenRecord | null {
   const db = getDbInstance();
   const row = db.prepare("SELECT * FROM cli_access_tokens WHERE id = ?").get(id) as
-    | AccessTokenRow
-    | undefined;
+    AccessTokenRow | undefined;
   return row ? rowToRecord(row) : null;
 }
 
 /**
- * Revoke a token by id or by its display prefix. Idempotent: revoking an
- * already-revoked token is a no-op. Returns true when a row was newly revoked.
+ * Revoke a token by id, or by a display prefix that matches exactly one live
+ * token. A prefix shared by two or more live tokens revokes nothing.
+ * Revoking an already-revoked token succeeds and reports alreadyRevoked.
  */
-export function revokeAccessToken(idOrPrefix: string): boolean {
-  if (!idOrPrefix) return false;
+export function revokeAccessToken(idOrPrefix: string): RevokeAccessTokenResult {
+  const none = { revoked: false, alreadyRevoked: false, ambiguous: false };
+  if (!idOrPrefix) return none;
   const db = getDbInstance();
+
+  const matches = db
+    .prepare(
+      `SELECT id, revoked_at FROM cli_access_tokens
+         WHERE id = ? OR token_prefix = ?`
+    )
+    .all(idOrPrefix, idOrPrefix) as Array<{ id: string; revoked_at: string | null }>;
+  if (matches.length === 0) return none;
+
+  const exact = matches.find((row) => row.id === idOrPrefix);
+  // Revoked siblings do not make the one remaining live prefix ambiguous.
+  const live = matches.filter((row) => row.revoked_at == null);
+  let target = exact ?? null;
+  if (!target) {
+    if (live.length > 1) {
+      return { revoked: false, alreadyRevoked: false, ambiguous: true };
+    }
+    if (live.length === 1) target = live[0];
+    else if (matches.length === 1) target = matches[0];
+    else return none;
+  }
+  if (target.revoked_at) {
+    return { revoked: true, alreadyRevoked: true, ambiguous: false };
+  }
+
   const res = db
     .prepare(
       `UPDATE cli_access_tokens SET revoked_at = ?
-         WHERE (id = ? OR token_prefix = ?) AND revoked_at IS NULL`
+         WHERE id = ? AND revoked_at IS NULL`
     )
-    .run(new Date().toISOString(), idOrPrefix, idOrPrefix);
-  return res.changes > 0;
+    .run(new Date().toISOString(), target.id);
+  if (res.changes > 0) {
+    return { revoked: true, alreadyRevoked: false, ambiguous: false };
+  }
+  // Lost the race to another revoke of this same id.
+  return { revoked: true, alreadyRevoked: true, ambiguous: false };
 }

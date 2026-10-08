@@ -206,7 +206,7 @@ src/
 | `cacheLayer.ts`, `idempotencyLayer.ts`   | Request caching + idempotency                                                                                                                                                                                                                                                                                           |
 | (~30 more top-level files)               | Specialized helpers (logEnv, modelsDevSync, piiSanitizer, etc.)                                                                                                                                                                                                                                                         |
 
-### `src/lib/db/` — Database (122 modules + 168 migrations)
+### `src/lib/db/` — Database (137 modules + 193 migrations)
 
 | Subdir                    | Purpose                                                                                                                                                                    |
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -402,24 +402,24 @@ open-sse/
 
 ### Subsystem deep-dives
 
-| Doc                        | Purpose                                                              |
-| -------------------------- | -------------------------------------------------------------------- |
-| `MCP-SERVER.md`            | MCP server: 110 tools, 3 transports, 33 scopes, REST endpoints       |
-| `A2A-SERVER.md`            | A2A v0.3: JSON-RPC, 6 skills, REST helpers, agent card               |
-| `AGENT_PROTOCOLS_GUIDE.md` | Unified guide: A2A vs ACP vs Cloud Agents                            |
-| `CLOUD_AGENT.md`           | Codex Cloud / Devin / Jules orchestration                            |
-| `SKILLS.md`                | Skills framework (built-in + marketplace + SkillsSH + sandbox)       |
-| `RADAR.md`                 | Radar free-model catalog overlay (`RADAR_ENABLED`, off by default)   |
-| `MEMORY.md`                | Memory system (SQLite FTS5 + Qdrant)                                 |
-| `EVALS.md`                 | Eval framework (suites, runs, rubrics)                               |
-| `GUARDRAILS.md`            | PII masker, prompt injection, vision bridge                          |
-| `COMPLIANCE.md`            | Audit log, retention, noLog opt-out                                  |
-| `WEBHOOKS.md`              | HMAC-signed webhook delivery                                         |
-| `REASONING_REPLAY.md`      | Hybrid memory/SQLite cache for `reasoning_content`                   |
-| `AUTHZ_GUIDE.md`           | Authorization pipeline (`classify` → `policies` → `enforce`)         |
-| `RESILIENCE_GUIDE.md`      | Circuit breaker + cooldown + model lockout                           |
-| `docs/security/STEALTH_GUIDE.md` (git only)         | TLS fingerprinting (JA3/JA4), Claude Code CCH, MITM cert             |
-| `AUTO-COMBO.md`            | Auto Combo engine (16-factor scoring, 6 mode packs, virtual factory) |
+| Doc                                         | Purpose                                                              |
+| ------------------------------------------- | -------------------------------------------------------------------- |
+| `MCP-SERVER.md`                             | MCP server: 110 tools, 3 transports, 33 scopes, REST endpoints       |
+| `A2A-SERVER.md`                             | A2A v0.3: JSON-RPC, 6 skills, REST helpers, agent card               |
+| `AGENT_PROTOCOLS_GUIDE.md`                  | Unified guide: A2A vs ACP vs Cloud Agents                            |
+| `CLOUD_AGENT.md`                            | Codex Cloud / Devin / Jules orchestration                            |
+| `SKILLS.md`                                 | Skills framework (built-in + marketplace + SkillsSH + sandbox)       |
+| `RADAR.md`                                  | Radar free-model catalog overlay (`RADAR_ENABLED`, off by default)   |
+| `MEMORY.md`                                 | Memory system (SQLite FTS5 + Qdrant)                                 |
+| `EVALS.md`                                  | Eval framework (suites, runs, rubrics)                               |
+| `GUARDRAILS.md`                             | PII masker, prompt injection, vision bridge                          |
+| `COMPLIANCE.md`                             | Audit log, retention, noLog opt-out                                  |
+| `WEBHOOKS.md`                               | HMAC-signed webhook delivery                                         |
+| `REASONING_REPLAY.md`                       | Hybrid memory/SQLite cache for `reasoning_content`                   |
+| `AUTHZ_GUIDE.md`                            | Authorization pipeline (`classify` → `policies` → `enforce`)         |
+| `RESILIENCE_GUIDE.md`                       | Circuit breaker + cooldown + model lockout                           |
+| `docs/security/STEALTH_GUIDE.md` (git only) | TLS fingerprinting (JA3/JA4), Claude Code CCH, MITM cert             |
+| `AUTO-COMBO.md`                             | Auto Combo engine (16-factor scoring, 6 mode packs, virtual factory) |
 
 ### Compression
 

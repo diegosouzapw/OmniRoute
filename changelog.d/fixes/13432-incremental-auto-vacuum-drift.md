@@ -1,1 +1,0 @@
-- **fix(db):** reconcile `auto_vacuum` drift between the configured INCREMENTAL mode and the live SQLite pragma — detected at startup and reconciled out-of-request by the vacuum scheduler, which now also runs a bounded `PRAGMA incremental_vacuum` reclaim instead of an unconditional full `VACUUM` once INCREMENTAL is actually in effect (#13432) — thanks @tolgaaksoy

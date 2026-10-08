@@ -43,6 +43,9 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   /insufficient.*quota/i,
   /billing.*cap/i,
   /credit.*exhaust/i,
+  /exhausted.*credits/i,
+  /exhausted all your credits/i,
+  /have exhausted all your credits/i,
   /out of credits/i,
   /hard.?limit/i,
   /plan.*limit/i,
@@ -103,6 +106,13 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   /\bTPD rate limit\b/i,
   /insufficient balance/i,
 
+  // CLIProxyAPI / upstream proxy model cooldowns (Issue #6342 / #11725 follow-up).
+  // Body: {"error":{"code":"model_cooldown","message":"All credentials for model claude-opus-5 are cooling down"}}
+  // Or: "auth unavailable: N of N candidate(s) for model ... are in cooldown"
+  /all credentials for model .* are cooling down/i,
+  /model_cooldown/i,
+  /auth unavailable: .* in cooldown/i,
+
   // xAI Grok Build free-tier per-model rolling 24h cap. Live body:
   // "You've used all the included free usage for model grok-4.6 for now.
   //  Usage resets over a rolling 24-hour window — tokens (actual/limit): N/M."
@@ -115,7 +125,11 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   // classifier misclassifies them as rate_limit (6–60s retry loop) instead
   // of quota_exhausted (long cooldown + failover).
 
-  // GLM/z.ai: "已达到 5 小时的使用上限。您的限额将在 2026-09-10 19:01:19 重置。"
+  // GLM/z.ai: "[1308][Usage limit reached for 5 hour...]" or "[1310][Weekly/Monthly Limit Exhausted...]"
+  // and CJK: "已达到 5 小时的使用上限。您的限额将在 2026-09-10 19:01:19 重置。"
+  /\[1308\]/,
+  /\[1310\]/,
+  /usage limit reached for \d+\s*hour/i,
   /使用上限/,
   /限额将在/,
   /已达?到.*上限/,
@@ -200,6 +214,9 @@ const QUOTA_SCALE_RETRY_DELAY_SECONDS = 3600;
 const TERMINAL_QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   /INSUFFICIENT_G1_CREDITS_BALANCE/i,
   /credit.*exhaust/i,
+  /exhausted.*credits/i,
+  /exhausted all your credits/i,
+  /have exhausted all your credits/i,
   /out of credits/i,
   /billing.*cap/i,
   /insufficient.*quota/i,
@@ -313,11 +330,14 @@ export function classify429(response: {
   headers?: Record<string, string>;
   body?: unknown;
 }): FailureKind {
-  if (response.status !== 429) return "transient";
+  if (response.status < 400) return "transient";
   const text = bodyToText(response.body);
   if (text && TERMINAL_QUOTA_PATTERNS.some((pat) => pat.test(text))) {
     return "quota_exhausted";
   }
+  // Non-429 4xx/5xx responses that didn't match terminal patterns are
+  // still transient (the caller has already widened the scope from 429-only).
+  if (response.status !== 429) return "transient";
   const declaredDelay = upstreamRetryDelaySeconds(response.body);
   if (declaredDelay !== null && declaredDelay < QUOTA_SCALE_RETRY_DELAY_SECONDS) {
     return "rate_limit";
@@ -452,6 +472,8 @@ export function classify429FromError(err: unknown): FailureKind | undefined {
   if (body === undefined) {
     if (typeof e.body !== "undefined") {
       body = e.body;
+    } else if (typeof e.error !== "undefined") {
+      body = e.error;
     } else if (typeof e.message === "string") {
       body = e.message;
     }

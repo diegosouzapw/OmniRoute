@@ -325,6 +325,25 @@ test("resolveModelTestTimeoutMs gives zai-web checks up to 60 seconds", () => {
   assert.equal(resolveModelTestTimeoutMs("zai-web", "zai-web/glm-5.3-flash", 90_000), 90_000);
 });
 
+test("runSingleModelTest skips web-session providers before sending a chat probe", async () => {
+  const result = await runSingleModelTest({
+    providerId: "deepseek-web",
+    modelId: "deepseek-v4-pro-think",
+  });
+
+  assert.equal(result.status, "error");
+  assert.equal(result.httpStatus, 422);
+  assert.match(result.error ?? "", /Skipped:.*web-session/i);
+});
+
+test("ChatGPT Web Clean Room is eligible for an explicit model test", async () => {
+  const { shouldSkipWebSessionModelTest } = await import("../../src/lib/api/modelTestRunner.ts");
+
+  assert.equal(shouldSkipWebSessionModelTest("chatgpt-web"), false);
+  assert.equal(shouldSkipWebSessionModelTest(" CHATGPT-WEB "), false);
+  assert.equal(shouldSkipWebSessionModelTest("deepseek-web"), true);
+});
+
 // ---------------------------------------------------------------------------
 // classifyTestErrorQuota — #9511 quota classification for Test All auto-hide.
 // Distinguishes three outcomes:

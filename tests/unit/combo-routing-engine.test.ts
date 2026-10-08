@@ -1688,6 +1688,44 @@ test("handleComboChat starts hedged fallback only after explicit zero-latency op
   assert.deepEqual(calls, ["model-a", "model-b"]);
 });
 
+test("handleComboChat does not hedge a body that would double the native send buffer", async () => {
+  const calls: string[] = [];
+  const oversized = "x".repeat(256 * 1024 + 1);
+
+  const result = await handleComboChat({
+    body: { messages: [{ role: "user", content: oversized }] },
+    combo: {
+      name: "hedging-skipped-for-large-body",
+      strategy: "priority",
+      models: ["model-a", "model-b"],
+      config: {
+        maxRetries: 0,
+        retryDelayMs: 1,
+        zeroLatencyOptimizationsEnabled: true,
+        hedging: true,
+        hedgeDelayMs: 1,
+      },
+    },
+    handleSingleModel: async (_body: unknown, modelStr: string) => {
+      calls.push(modelStr);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      return okResponse({ choices: [{ message: { content: modelStr } }] });
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null,
+    allCombos: null,
+  });
+
+  const payload = (await result.json()) as {
+    choices: { message: { content: string } }[];
+  };
+  assert.equal(result.status, 200);
+  assert.equal(payload.choices[0].message.content, "model-a");
+  assert.deepEqual(calls, ["model-a"]);
+});
+
 test("handleComboChat round-robin falls through generic 400s when a later model succeeds", async () => {
   const calls: any[] = [];
 

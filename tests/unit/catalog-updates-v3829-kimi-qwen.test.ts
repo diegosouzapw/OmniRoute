@@ -27,8 +27,10 @@ test("kmca stable fallback only carries documented static capabilities", () => {
   const models = getModelsByProviderId("kmca");
   const k3 = models.find((model) => model.id === "k3");
   assert.equal(k3?.contextLength, 1048576);
+  // #14003: kimi-for-coding / kimi-for-coding-highspeed now advertise Kimi
+  // K2.8 Preview's native 1M context (was 262144 under the old K2.7 Code id).
   for (const model of models.filter((entry) => entry.id !== "k3")) {
-    assert.equal(model.contextLength, 262144);
+    assert.equal(model.contextLength, 1048576);
   }
   for (const model of models) {
     assert.equal(model.maxOutputTokens, undefined);

@@ -144,10 +144,10 @@ test("with every member set aside the pool behaves as before", async () => {
   );
 });
 
-test("with the flag at its default (off) a member set aside is still served in turn", async () => {
+test("with the flag opted out a member set aside is still served in turn", async () => {
   const members = await pool(3);
   setAside(members[1]);
-  delete process.env.PROXY_SKIP_RECENTLY_FAILED;
+  process.env.PROXY_SKIP_RECENTLY_FAILED = "false";
   assert.deepEqual(
     await picks(3),
     members.map((m) => m.host)
@@ -179,20 +179,22 @@ test("a connection's chat-path resolution skips a member set aside", async () =>
   assert.equal((first as { proxy: { host: string } }).proxy.host, a.host);
 
   setAside(b);
+  // Ranked (b last) + skip: cursor 1 lands on c, served past the set-aside member.
   const next = await settingsDb.resolveProxyForConnection("conn-pool");
   assert.equal((next as { proxy: { host: string } }).proxy.host, c.host);
 
   memory.noteProxyRecovered(keyOf(b), "proxy_unreachable");
   assert.equal(memory.isProxyAvoided(keyOf(b)), false);
-  assert.deepEqual(
-    [await pick("account", "conn-pool"), await pick("account", "conn-pool")],
-    [a.host, b.host]
-  );
+  // Rank + skip moves the cursor past c (served at cursor 1, cursor now 2), so the
+  // next pick serves c again (cursor 2 in the restored position order [a,b,c]),
+  // then rotation resumes at a.
+  const after = [await pick("account", "conn-pool"), await pick("account", "conn-pool")];
+  assert.deepEqual(after, [c.host, a.host]);
 });
 
-test("with the flag off a connection's chat-path resolution still rotates normally", async () => {
+test("with the flag opted out a connection's chat-path resolution still rotates normally", async () => {
   const [a, b] = await pool(3, "account", "conn-off");
-  delete process.env.PROXY_SKIP_RECENTLY_FAILED;
+  process.env.PROXY_SKIP_RECENTLY_FAILED = "false";
   const first = await settingsDb.resolveProxyForConnection("conn-off");
   assert.equal((first as { proxy: { host: string } }).proxy.host, a.host);
   setAside(a);

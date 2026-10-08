@@ -294,6 +294,16 @@ body.electron-macos {
   --desktop-safe-bottom: 8px;
 }
 
+/* iOS standalone PWA safe-area — keeps dashboard below the status bar */
+@media (display-mode: standalone) {
+  @supports (padding-top: env(safe-area-inset-top)) {
+    :root {
+      --ios-safe-top: env(safe-area-inset-top);
+      --ios-safe-bottom: env(safe-area-inset-bottom);
+    }
+  }
+}
+
 /* Selection — with fallback for browsers that don't support color-mix() */
 ::selection {
   background-color: rgba(229, 77, 94, 0.22);

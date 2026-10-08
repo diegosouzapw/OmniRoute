@@ -56,7 +56,18 @@ function isNonTerminalProviderError(providerErrorType: string | null): boolean {
     providerErrorType === PROVIDER_ERROR_TYPES.FINGERPRINT_REJECTION ||
     // Anthropic OAuth 403 "Request not allowed" refuses ONE request; the token
     // keeps serving the next one — never a terminal account state.
-    providerErrorType === PROVIDER_ERROR_TYPES.REQUEST_REJECTED
+    providerErrorType === PROVIDER_ERROR_TYPES.REQUEST_REJECTED ||
+    // A model the account is not entitled to is a MODEL fact, never a credential
+    // fact. Aggregator gateways answer 401 (not 404) for it — classifyProviderError
+    // already detects that phrasing and yields MODEL_NOT_FOUND (#7268) — but the
+    // bare `status === 401` in isExpiredAuthFailure() then parked the whole
+    // connection as `expired`, taking every OTHER model on the same valid
+    // credential down with it and pushing traffic onto an exhausted anonymous
+    // lane (measured: OpenCode Go, "Model grok-4.6 is not supported for format
+    // oa-compat", 401 → testStatus=expired while lastErrorType was already
+    // model_not_found). The semantic class is the trusted signal; the raw status
+    // is only fallback evidence.
+    providerErrorType === PROVIDER_ERROR_TYPES.MODEL_NOT_FOUND
   );
 }
 

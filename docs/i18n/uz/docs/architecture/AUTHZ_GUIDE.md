@@ -1,15 +1,15 @@
 # Authorization Guide (Oʻzbekcha)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
 
 ---
 
-> **Asosiy manba:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Oxirgi yangilanish:** 2026-06-28 — v3.8.40
+> **Haqiqat manbai:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **Oxirgi yangilangan sana:** 2026-09-22 — koʻlam nomfazo (scope namespaces) MCP-SERVER.md ga ishora qiladi
 
-OmniRoute har bir API soʻrovini nazorat qiladigan, marshrutdan xabardor avtorizatsiya konveyeriga ega. Tasniflash **deterministik** va **yopiq holda rad etuvchi** — tasniflab boʻlmaydigan barcha narsalar `MANAGEMENT` toifasiga tushadi va sessiya yoki boshqaruv darajasidagi tokenni talab qiladi. Ushbu sahifa marshrutlarni qoʻllab-quvvatlaydigan yoki yangi endpointlarni loyihalaydigan muhandislar uchun modelni tushuntiradi.
+OmniRoute har bir API soʻrovini boshqaradigan marshrutni biluvchi avtorizatsiya quvuriga ega. Tasniflash **deterministik** va **fail-closed** (xato boʻlsa yopiladi) — tasniflanmaydigan har qanday narsa `MANAGEMENT` sifatida yakunlanadi va sessiya yoki boshqaruv darajasidagi token talab qiladi. Ushbu sahifa marshrutlarni saqlovchi yoki yangi yakuniy nuqtalarni loyihalashtiruvchi muhandislar uchun modelni tushuntiradi.
 
-![AuthZ konveyeri (3 ta marshrut sinfi + siyosatni baholash)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ quvuri (3 ta marshrut sinfi + siyosatni baholash)](../diagrams/exported/authz-pipeline.svg)
 
 > Manba: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -17,15 +17,15 @@ OmniRoute har bir API soʻrovini nazorat qiladigan, marshrutdan xabardor avtoriz
 
 ### 1. API kaliti (Bearer)
 
-OpenAI/Anthropic/Gemini bilan mos mijoz API’lari hamda kalitda `manage` doirasi mavjud boʻlganda ayrim boshqaruv marshrutlari uchun ishlatiladi.
+OpenAI/Anthropic/Gemini bilan mos keluvchi mijoz API’lari va kalitda `manage` doirasi mavjud bo‘lganda ayrim boshqaruv yo‘nalishlari uchun ishlatiladi.
 
 ```
-Authorization: Bearer <api-kalit>
+Authorization: Bearer <api-key>
 ```
 
-`src/sse/services/auth.ts` ichidagi `isValidApiKey()` / `extractApiKey()` orqali tekshiriladi va `src/shared/utils/apiAuth.ts` orqali qayta eksport qilinadi. Validator, shuningdek, `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` muhit oʻzgaruvchilarini doimiy toʻgʻridan-toʻgʻri uzatish kalitlari sifatida qabul qiladi (masala #1350).
+`src/sse/services/auth.ts` ichidagi `isValidApiKey()` / `extractApiKey()` orqali tekshiriladi va `src/shared/utils/apiAuth.ts` orqali qayta eksport qilinadi. Validator, shuningdek, `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` muhit o‘zgaruvchilarini doimiy tranzit kalitlar sifatida qabul qiladi (masala #1350).
 
-### 2. Boshqaruv paneli sessiyasi (auth_token cookie fayli)
+### 2. Boshqaruv paneli sessiyasi (auth_token cookie-fayli)
 
 Boshqaruv paneli sahifalari va administrator amallari uchun.
 
@@ -33,43 +33,45 @@ Boshqaruv paneli sahifalari va administrator amallari uchun.
 Cookie: auth_token=<JWT_SECRET bilan imzolangan JWT>
 ```
 
-Cookie faqat JWT tekshiruvdan oʻtganida **va** `authenticated: true` qiymatini oʻz ichiga olganida sessiya hisoblanadi
-(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Cookie’dan
-foydalanuvchi har bir komponent (marshrut himoyachisi, authz konveyerini yangilash, WebSocket ulanishi, jonli
-server, `/api/settings/require-login`, `/api/auth/status`) shu yordamchi orqali oʻtadi.
-`JWT_SECRET` bilan imzolangan boshqa JWT’lar ham mavjud — Cursor CLI toʻgʻridan-toʻgʻri uzatish mexanizmi
-kalit egalariga `iss "omniroute" / aud "cursor-cli"` tokenlarini yaratadi — va ular hech qachon sessiya
-hisoblanmaydi (#13298).
+JWT tekshiruvdan o‘tganda **va** `authenticated: true` qiymatini o‘z ichiga olgandagina cookie-fayl sessiya hisoblanadi
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Cookie-faylning har bir
+iste’molchisi (boshqaruv paneli yo‘nalishi himoyachisi (`isDashboardSessionAuthenticated()`), authz konveyerining yangilanishi, WebSocket ulanishi, jonli
+server, `/api/settings/require-login`, `/api/auth/status`) shu yordamchi orqali ishlaydi.
+`JWT_SECRET` bilan imzolangan boshqa JWT’lar ham mavjud — Cursor CLI tranziti kalit egalariga
+`iss "omniroute" / aud "cursor-cli"` tokenlarini yaratadi — va ular hech qachon sessiya hisoblanmaydi
+(#13298).
 
-`src/shared/utils/apiAuth.ts` ichidagi `isDashboardSessionAuthenticated()` orqali tekshiriladi. JWT’ning 30 kunlik amal qilish muddatidan 7 kundan kam vaqt qolganda konveyer uni avtomatik ravishda yangilaydi.
+`src/shared/utils/apiAuth.ts` ichidagi `isDashboardSessionAuthenticated()` orqali tekshiriladi. JWT’ning 30 kunlik amal qilish muddatidan 7 kundan kamroq vaqt qolganida konveyer uni avtomatik ravishda yangilaydi.
 
-Ayrim boshqaruv marshrutlari **har ikkala** rejimni qabul qiladi: cookie YOKI API kalitida `manage` (yoki `admin`) doirasi mavjud boʻlsa, `Bearer <key>`. Aynan shu v3.8 versiyasida qoʻshilgan «API chaqiruvlari orqali sozlash» ish jarayonini taʼminlaydi.
+Sessiya 30 kun tugashidan oldin ham yakunlanishi mumkin, chunki har bir token yaratuvchi `mintDashboardSessionToken` orqali ishlaydi (yaratilish vaqti `iat` va identifikator `jti`) va tekshiruvchi ikkita sozlamani tekshiradi: `sessionsValidAfter`, parol o‘zgartirilganda o‘rnatiladi, shunda undan oldin yaratilgan barcha sessiyalar tekshiruvdan o‘tmaydi (parolni o‘zgartirgan brauzer yangi cookie-fayl oladi), hamda `revokedDashboardSessions`, unga `POST /api/auth/logout` tizimdan chiqarilgan sessiyaning `jti` qiymatini qo‘shadi. Eskiroq versiyada yaratilgan sessiyalar bu da’volarning hech birini o‘z ichiga olmaydi va birinchi parol o‘zgarishigacha amal qiladi. Agar sozlamalarni o‘qib bo‘lmasa, sessiyaga ishonilmaydi.
 
-#### Ixtiyoriy OIDC kirish nazorati (#6973)
+Ba’zi boshqaruv yo‘nalishlari **ikkala** rejimdan birini qabul qiladi: cookie-fayl YOKI API kalitida `manage` (yoki `admin`) doirasi mavjud bo‘lganda `Bearer <key>`. Bu v3.8 versiyasida qo‘shilgan «API chaqiruvlari orqali sozlanadigan» ish jarayonini ta’minlaydi.
 
-Boshqaruv panelidagi administrator kirishi standart parol orqali kirishga qoʻshimcha ravishda
-**ixtiyoriy ravishda yoqiladigan** OIDC (OpenID Connect) oqimini ham qoʻllab-quvvatlaydi — parol orqali kirish hech qachon olib tashlanmaydi, faqat
-toʻldiriladi:
+#### Ixtiyoriy OIDC kirish to‘sig‘i (#6973)
 
-- `settings.oidcEnabled === true` boʻlmasa **hamda** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` qiymatlarining barchasi sozlanmagan boʻlsa (Settings → Auth),
-  funksiya oʻchirilgan boʻladi. Aks holda `GET /api/auth/oidc/login` `400` qaytaradi.
+Boshqaruv panelidagi administrator kirishi, shuningdek, standart parol orqali kirish bilan birga **ixtiyoriy ravishda yoqiladigan** OIDC (OpenID Connect) jarayonini
+qo‘llab-quvvatlaydi — parol orqali kirish hech qachon olib tashlanmaydi, faqat
+to‘ldiriladi:
+
+- Faqat `settings.oidcEnabled === true` bo‘lsa **va** `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` qiymatlarining barchasi sozlangan bo‘lsa (Sozlamalar → Autentifikatsiya) yoqiladi.
+  Aks holda `GET /api/auth/oidc/login` `400` qaytaradi.
 - `GET /api/auth/oidc/login` emitentning
-  `/.well-known/openid-configuration` manzilidan `authorization_endpoint`ni aniqlaydi (topilmasa,
-  `<issuer>/authorize`dan foydalanadi), kiruvchi soʻrov asosida qayta yoʻnaltirish URI’sini
-  (`x-forwarded-proto`ni hisobga olgan holda) tuzadi va `httpOnly` turidagi `oidc_state` cookie faylida
-  saqlanadigan tasodifiy `state` bilan IdP’ga qayta yoʻnaltiradi.
-- `GET /api/auth/oidc/callback` `state`ni tekshiradi, avtorizatsiya
-  kodini almashtiradi va `issuer`/`audience`
-  tekshiruvlari bilan emitentning JWKS’i orqali ID token imzosini
-  (`jose`ning `createRemoteJWKSet` funksiyasi, har bir JWKS URI uchun keshlanadi) tekshiradi. Ixtiyoriy `oidcAllowedSubjects` ruxsat roʻyxati tokenning
-  `sub` daʼvosiga yoki uning `email` daʼvosiga mos keladi — email daʼvosi faqat
-  `email_verified === true` boʻlganda qabul qilinadi, shuning uchun IdP’dagi tasdiqlanmagan email hech qachon
-  nazoratdan oʻta olmaydi.
-- Muvaffaqiyatli yakunlanganda u parol orqali kirish chiqaradigan **aynan bir xil** 30 kunlik `auth_token` JWT’ni
-  (`src/app/api/auth/login/route.ts`) yaratadi, shu sababli boshqaruv paneli
-  sessiyasi konveyerining qolgan qismi (avtomatik yangilash, cookie bayroqlari) oʻzgarmaydi —
-  OIDC faqat cookie qanday yaratilishini almashtiradi, u beradigan ruxsatlarni emas.
+  `/.well-known/openid-configuration` manzilidan `authorization_endpoint` qiymatini aniqlaydi (topilmasa,
+  `<issuer>/authorize` dan foydalanadi), kiruvchi so‘rov asosida qayta yo‘naltirish URI manzilini yaratadi
+  (`x-forwarded-proto` ni hisobga oladi) va `httpOnly` xususiyatli `oidc_state` cookie-faylida saqlangan tasodifiy `state`
+  bilan IdP’ga qayta yo‘naltiradi.
+- `GET /api/auth/oidc/callback` `state` qiymatini tekshiradi, avtorizatsiya
+  kodini almashtiradi va emitentning JWKS’i orqali ID token imzosini
+  (`jose` paketidagi `createRemoteJWKSet`, har bir JWKS URI uchun keshlanadi) `issuer`/`audience`
+  tekshiruvlari bilan tasdiqlaydi. Ixtiyoriy `oidcAllowedSubjects` ruxsat ro‘yxati tokenning
+  `sub` da’vosi yoki uning `email` da’vosiga moslikni tekshiradi — email da’vosi faqat
+  `email_verified === true` bo‘lganda qabul qilinadi, shu sababli IdP’dagi tasdiqlanmagan email hech qachon
+  to‘siqdan o‘ta olmaydi.
+- Muvaffaqiyatli bo‘lsa, u parol orqali kirishda beriladigan **aynan o‘sha** 30 kunlik `auth_token` JWT’ni
+  yaratadi (`src/app/api/auth/login/route.ts`), shu sababli boshqaruv paneli
+  sessiya konveyerining qolgan qismi (avtomatik yangilash, cookie-fayl bayroqlari) o‘zgarmaydi —
+  OIDC faqat cookie-fayl qanday yaratilishini almashtiradi, u qanday huquqlar berishini emas.
 
 ## Marshrut sinflari
 
@@ -198,26 +200,24 @@ export async function POST(request: Request) {
 
 Toʻplamni qulaylikka qarab emas, shakliga qarab tanlang. Bitta marshrut `PUBLIC_API_ROUTES_EXACT` ga (yoki faqat GET uchun `PUBLIC_READONLY_CORS_API_ROUTES` ga) qoʻshiladi; faqat haqiqiy quyi daraxt `PUBLIC_API_ROUTE_PREFIXES` ga qoʻshiladi va u **`/` bilan tugashi shart**. Bitta marshrutni prefikslar roʻyxatiga kiritish uning boshlangʻich belgilariga ega barcha yondosh yoʻllarni, jumladan keyinchalik qoʻshilgan dinamik segmentli qardosh yoʻllarni ham ommaviy qiladi (GHSA-74g9-q8f6-793h). `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` va `tests/unit/authz/classify.test.ts` fayllaridagi birlik testlarini yangilang.
 
-## Qamrovlar
+## Doiralar
 
-API kalitlari `scopes` massiviga ega (`api_keys.scopes` ichida JSON sifatida saqlanadi, `src/lib/db/apiKeys.ts` fayliga qarang).
+Uchta nom maydoni. Har bir tekshiruvchi faqat o'zining satrlarini o'qiydi. Yonma-yon taqqoslash, jumladan, nima uchun `manage` `read:compression` uchun `scopeMatches`ni bajara olmasligi va nima uchun `read` kirish tokeni `PATCH /api/keys/{id}`ni bajara olmasligi [Uchta nom maydoni](../frameworks/MCP-SERVER.md#three-scope-namespaces)da keltirilgan.
 
-### Boshqaruv qamrovi
+API kalitlari `scopes` massivini o'z ichiga oladi (`api_keys.scopes`da JSON sifatida saqlanadi, qarang `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — Bearer sifatida yuborilganda kalitga boshqaruv API endpointlaridan foydalanish huquqini beradi.
+### Boshqaruv doirasi
 
-### MCP qamrovlari (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Boshqaruv API marshrutlariga tashuvchi orqali kirish.
+- `mcp:connect`, `self:usage`, `self:account-quota` va `policy:bypass-provider-quota` qo'shimcha aniq mos keladigan doiralardir. Ular `MANAGEMENT_API_KEY_SCOPES`dan tashqarida joylashgan. `mcp:connect` faqat `/api/mcp/` non-loopback ajratmasini ochadi.
 
-Har bir MCP vositasi `MCP_TOOL_SCOPES` orqali muayyan qamrovlarni talab qiladi. Toʻliq roʻyxat (`MCP_SCOPE_LIST`):
+### MCP asbob doiralari
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Katalog va mos kelish qoidalari (bir xil satr yoki `*` bilan tugaydigan berilgan doira): [MCP asbob doiralari](../frameworks/MCP-SERVER.md#mcp-tool-scopes). `src/shared/constants/mcpScopes.ts`dagi `MCP_SCOPE_LIST` to'liq katalog emas, balki asl terilgan kichik to'plamdir. Ijro etish `open-sse/mcp-server/scopeEnforcement.ts`da `resolveCallerScopeContext()` MCP autentifikatsiya ma'lumotlari, so'rov metama'lumotlari yoki `OMNIROUTE_MCP_SCOPES`dan doiralarni hal qilgandan so'ng amalga oshiriladi. U `OMNIROUTE_MCP_ENFORCE_SCOPES=true` bo'lmaguncha o'chirilgan holatda qoladi.
 
-`open-sse/mcp-server/server.ts` ichidagi qamrovlarni majburiy tekshirish, `resolveCallerScopeContext()` MCP autentifikatsiya maʼlumotlari, soʻrov metamaʼlumotlari yoki `OMNIROUTE_MCP_SCOPES` orqali qamrovlarni aniqlaganidan soʻng, har bir vositaning qamrovlar roʻyxatini `evaluateToolScopes()` funksiyasiga uzatadi.
+### Kirish tokeni doiralari
+
+`oma_live_…` tokenlarida `read` / `write` / `admin`, `scopeSatisfies` (`src/lib/accessTokens/scopes.ts`) bo'yicha tartiblangan. Bu daraja faqat kirish tokeni hisob ma'lumotlariga tegishli. Qarang [Boshqaruv autentifikatsiyasi](../guides/MANAGEMENT-AUTH.md).
 
 ## Autentifikatsiya talabi almashtirgichi
 
@@ -263,9 +263,9 @@ x-omniroute-auth-scopes:    vergul bilan ajratilgan roʻyxat
 
 Ishlov beruvchilar ichida `assertAuth(req, expectedClass)` dan foydalaning — agar oraliq dasturiy taʼminot chetlab oʻtilgan boʻlsa, u `AUTHZ_NOT_INITIALIZED` kodli `AuthzAssertionError` xatosini chiqaradi (testlarda konfiguratsiya regressiyalarini aniqlash uchun foydali).
 
-## Shuningdek qarang
+## Yana qarang
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — har bir oxirgi nuqta uchun autentifikatsiya belgisi
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — autentifikatsiya hodisalari uchun audit jurnali
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP qamrovini majburiy qoʻllash tafsilotlari
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — har bir yakuniy nuqta uchun avtorizatsiya belgisi
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — avtorizatsiya hodisalari uchun audit jurnali
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — uchta qamrov nomfazo va MCP asbob-qamrov katalogi
 - Manba: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

@@ -15,7 +15,10 @@ import type {
   ResilienceConnectionsResponse,
   ConnectionState,
   BreakerWithHistory,
+  RotationAccountState,
 } from "@/types/resilience";
+import { readRotationSnapshot } from "@omniroute/open-sse/services/rotationAttribution";
+import { isRotationAttributionEnabled } from "@/shared/utils/featureFlags";
 
 // Explicit column whitelist -- getRawProviderConnections() DEFAULTS TO SELECT *,
 // so passing columns is MANDATORY to avoid leaking api_key, access_token,
@@ -57,11 +60,29 @@ function categorizeErrorCode(code: string | number): string {
   return "other";
 }
 
+/** Per-account rotation state for one connection (read-only snapshot; never mutates). */
+function toRotationState(
+  connectionId: string,
+  now: number,
+  attributionOn: boolean
+): RotationAccountState[] | null {
+  if (!attributionOn) return null;
+  const snap = readRotationSnapshot(connectionId);
+  if (!snap) return null;
+  return snap.map((e) => ({
+    masked: e.masked,
+    ready: e.cooldownUntilMs === null || e.cooldownUntilMs <= now,
+    cooldownUntilMs: e.cooldownUntilMs,
+    consecutiveFails: e.consecutiveFails,
+  }));
+}
+
 function toConnectionState(
   row: Record<string, unknown>,
   breakersMap: Map<string, BreakerWithHistory>,
   lockoutsMap: Map<string, ModelLockoutInfo[]>,
-  now: number // server timestamp captured before fetch (avoids drift)
+  now: number, // server timestamp captured before fetch (avoids drift)
+  rotationByConnection?: Map<string, RotationAccountState[] | null>
 ): ConnectionState {
   // getRawProviderConnections returns camelCase keys (via rowToCamel)
   const provider = String(row.provider ?? "");
@@ -113,6 +134,7 @@ function toConnectionState(
       reason: l.reason,
       remainingMs: l.remainingMs,
     })),
+    rotation: rotationByConnection?.get(String(row.id ?? "")) ?? null,
   };
 }
 
@@ -197,10 +219,33 @@ export async function GET(req: NextRequest) {
       arr.push(l);
       lockoutsMap.set(l.connectionId, arr);
     }
+    // Rotation attribution: read-only per-connection snapshots (loopback-gated
+    // route, same tier as the rest of this response). A missing snapshot is the
+    // nominal multi-process case — rotation stays null, never a degradation.
+    // Single flag read per request; only a throwing store degrades.
+    const rotationByConnection = new Map<string, RotationAccountState[] | null>();
+    let attributionOn = false;
+    try {
+      attributionOn = isRotationAttributionEnabled();
+    } catch {
+      attributionOn = false;
+    }
+    if (attributionOn) {
+      for (const row of rawConnections) {
+        const id = String(row.id ?? "");
+        try {
+          rotationByConnection.set(id, toRotationState(id, now, true));
+        } catch (err) {
+          degraded.push("rotation");
+          console.error("[API] resilience/connections rotation snapshot error:", err);
+          rotationByConnection.set(id, null);
+          break;
+        }
+      }
+    }
     const connections = rawConnections.map((row) =>
-      toConnectionState(row, breakersMap, lockoutsMap, now)
+      toConnectionState(row, breakersMap, lockoutsMap, now, rotationByConnection)
     );
-
     // Total count (separate query; falls back to connections.length on failure)
     let totalConnections = connections.length;
     let countFailed = false;

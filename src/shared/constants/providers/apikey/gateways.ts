@@ -1,8 +1,7 @@
-/**
- * APIKEY provider catalog — gateways family (aggregators, multi-model routers & API marketplaces).
- * Pure data; merged by apikey/index.ts via spread (god-file decomposition; semantic split).
- */
+import { unificallyGateway } from "./unifically";
+/** APIKEY provider catalog — gateways family. Pure data; merged by apikey/index.ts via spread. */
 export const APIKEY_PROVIDERS_GATEWAYS = {
+  ...unificallyGateway,
   // 1min.ai (https://docs.1min.ai) — multi-model chat aggregator with its own
   // custom API (single `prompt` string + real SSE, not OpenAI-compatible).
   // OmniRoute's oneminai executor translates both directions.
@@ -234,6 +233,21 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     apiHint:
       "Create an LLM Gateway API key, then use https://api.llmgateway.io/v1 as the OpenAI-compatible base URL.",
   },
+  lyceum: {
+    id: "lyceum",
+    serviceKinds: ["llm"],
+    alias: "lyceum",
+    name: "Lyceum",
+    icon: "router",
+    color: "#4F46E5",
+    textIcon: "LY",
+    passthroughModels: true,
+    website: "https://lyceum.technology",
+    hasFree: true,
+    freeNote: "Includes monthly free credits toward serverless inference usage.",
+    apiHint:
+      "Create a Lyceum API key (lk_…), then use https://api.lyceum.technology/openai/v1 as the OpenAI-compatible base URL.",
+  },
   "llm-kiwi": {
     id: "llm-kiwi",
     serviceKinds: ["llm"],
@@ -306,24 +320,32 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     apiHint:
       "Create an EURouter API key, then use https://api.eurouter.ai/v1 as the OpenAI-compatible base URL. Models are served by third-party upstreams listed per model in the EURouter catalog; check each upstream jurisdiction, privacy and data-transfer terms before use.",
   },
-  unifically: {
-    id: "unifically",
+  // Y-API (https://y-api.bestvirtualgoods.com) — API-key gateway over third-party
+  // upstreams. Its own machine-readable catalog (models.json, synced 2026-09-29) defines
+  // `vendor` as "who trained the model, not who serves it" and states every model there
+  // is served by the gateway itself: a resale router, not an inference host. Its live
+  // catalog endpoint GET /v1/models requires a key (401 anonymously), so discovery is
+  // left to the user's own key rather than a seeded list.
+  "y-api": {
+    id: "y-api",
     serviceKinds: ["llm"],
-    alias: "unifically",
-    name: "Unifically",
-    icon: "hub",
-    color: "#10B981",
-    textIcon: "UNI",
+    alias: "y-api",
+    name: "Y-API",
+    icon: "router",
+    color: "#0891B2",
+    textIcon: "YA",
     passthroughModels: true,
-    website: "https://unifically.com",
-    // New accounts get a small one-time starting balance, not a recurring free
-    // tier, so no Free badge.
-    hasFree: false,
-    // Only the chat models are wired here. The image, video and audio models in
-    // the same catalog run through an async task API (POST /v1/tasks), which
-    // the default executor does not speak.
+    website: "https://y-api.bestvirtualgoods.com",
+    // Free in the sense the OpenRouter and UnoRouter entries above use: the publisher
+    // prices a named subset of its catalog at 0 credit, so the badge is earned by those
+    // models, not by a standing free tier. The note dates the snapshot and points at the
+    // file rather than promising the subset survives. It quotes no cash figure: the
+    // credit-to-cash conversion has changed before (1:20 promo → 1:10 on 2026-10-01).
+    hasFree: true,
+    freeNote:
+      "4 of its 20 catalog models (deepseek/deepseek-v4-flash, minimax/minimax-m2.7, tencent/hy3, xiaomi/mimo-v2.5) are priced at 0 credit in the publisher's 2026-10-04 snapshot; the rest bill against prepaid credit, and signup grants a small credit whose amount is Y-API's to set. Y-API can withdraw a free model at any time — re-check https://y-api.bestvirtualgoods.com/pricing.json.",
     apiHint:
-      "Create a Unifically API key at https://unifically.com/api-keys, then use https://api.unifically.com/v1 as the OpenAI-compatible base URL. Pay per use, no subscription. Chat models only through this entry; the media models in the same catalog use a separate async task API.",
+      "Create an API key at https://y-api.bestvirtualgoods.com, then use https://api.y-api.bestvirtualgoods.com/v1 as the OpenAI-compatible base URL. Models are served by this gateway from the third-party upstream vendors named per model in its catalog; check each upstream jurisdiction, privacy and data-transfer terms before use.",
   },
   "mnn-ai": {
     id: "mnn-ai",
@@ -743,6 +765,11 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     color: "#6366f1",
     website: "https://opencode.ai/zen",
     anonymousFallback: true,
+    // One credential fronts many upstream models (deepseek, glm, qwen, grok,
+    // minimax, ...). A 402 means "this MODEL is not in the plan", not "the
+    // account is out of credit", so it must reach the per-model lockout branch
+    // instead of parking the whole connection (#12242).
+    passthroughModels: true,
   },
   "opencode-go": {
     id: "opencode-go",
@@ -753,6 +780,11 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     color: "#6366f1",
     website: "https://opencode.ai/go",
     anonymousFallback: true,
+    // One credential fronts many upstream models (deepseek, glm, qwen, grok,
+    // minimax, ...). A 402 means "this MODEL is not in the plan", not "the
+    // account is out of credit", so it must reach the per-model lockout branch
+    // instead of parking the whole connection (#12242).
+    passthroughModels: true,
   },
   dahl: {
     id: "dahl",
@@ -783,11 +815,13 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     icon: "hub",
     color: "#22C55E",
     textIcon: "FTA",
-    website: "https://freetheai.xyz",
+    website: "https://freetheai.org",
     hasFree: true,
-    freeNote: "Free OpenAI-compatible gateway — sign up via Discord for an API key.",
+    freeNote:
+      "Free OpenAI-compatible gateway — sign up at freetheai.org for a free API key; a daily check-in unlocks the free models.",
     passthroughModels: true,
-    authHint: "Join the FreeTheAi Discord to get your free API key.",
+    authHint:
+      "Sign up at https://freetheai.org/signup for a free API key. A daily check-in unlocks the free models; linking Discord is optional and only raises the daily limit.",
   },
   "g4f-groq": {
     id: "g4f-groq",
