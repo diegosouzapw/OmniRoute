@@ -14,8 +14,8 @@ function transform(model: string, body: Record<string, unknown>) {
   return executor.transformRequest(model, body, false, {}) as TransformedBody;
 }
 
-describe("OpenCode DeepSeek json_schema fallback", () => {
-  it("downgrades DeepSeek V4 Flash Free json_schema to json_object and preserves schema in instructions", () => {
+describe("OpenCode DeepSeek json_schema handling (model-specific fallback removed 2026-10-08)", () => {
+  it("passes DeepSeek json_schema through unchanged (fallback removed with the 2026-10-08 delisting)", () => {
     const schema = {
       type: "object",
       additionalProperties: false,
@@ -23,6 +23,15 @@ describe("OpenCode DeepSeek json_schema fallback", () => {
         ok: { type: "boolean" },
       },
       required: ["ok"],
+    };
+
+    const responseFormat = {
+      type: "json_schema",
+      json_schema: {
+        name: "desktop_probe",
+        strict: true,
+        schema,
+      },
     };
 
     const result = transform("deepseek-v4-flash-free", {
@@ -33,28 +42,20 @@ describe("OpenCode DeepSeek json_schema fallback", () => {
           content: "Return the structured result.",
         },
       ],
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "desktop_probe",
-          strict: true,
-          schema,
-        },
-      },
+      response_format: responseFormat,
     });
 
-    assert.deepEqual(result.response_format, { type: "json_object" });
+    // The model-specific downgrade (json_schema -> json_object + schema-in-instructions)
+    // was removed together with the model: the fallback keyed on the now-delisted
+    // deepseek-v4-flash-free id and is unreachable for every live model. The request
+    // must now pass through untouched — no silent format rewriting.
+    assert.deepEqual(result.response_format, responseFormat);
 
-    const system = result.messages.find(
-      (message: Record<string, unknown>) => message.role === "system"
+    assert.equal(
+      result.messages.some((message: Record<string, unknown>) => message.role === "system"),
+      false,
+      "no schema-in-instructions system message may be injected"
     );
-
-    assert.ok(system);
-    assert.equal(typeof system.content, "string");
-
-    assert.match(system.content, /strictly follows this JSON schema/i);
-
-    assert.match(system.content, /"ok"/);
 
     assert.equal(
       result.messages.some(
@@ -121,8 +122,22 @@ describe("OpenCode DeepSeek json_schema fallback", () => {
     assert.deepEqual(result.response_format, originalFormat);
   });
 
-  it("applies the fallback for the opencode-zen provider", () => {
+  it("passes json_schema through for the opencode-zen provider too", () => {
     const executor = new OpencodeExecutor("opencode-zen");
+
+    const responseFormat = {
+      type: "json_schema",
+      json_schema: {
+        name: "zen_probe",
+        schema: {
+          type: "object",
+          properties: {
+            ok: { type: "boolean" },
+          },
+          required: ["ok"],
+        },
+      },
+    };
 
     const result = executor.transformRequest(
       "deepseek-v4-flash-free",
@@ -134,25 +149,13 @@ describe("OpenCode DeepSeek json_schema fallback", () => {
             content: "Return the structured result.",
           },
         ],
-        response_format: {
-          type: "json_schema",
-          json_schema: {
-            name: "zen_probe",
-            schema: {
-              type: "object",
-              properties: {
-                ok: { type: "boolean" },
-              },
-              required: ["ok"],
-            },
-          },
-        },
+        response_format: responseFormat,
       },
       false,
       {}
     ) as TransformedBody;
 
-    assert.deepEqual(result.response_format, { type: "json_object" });
+    assert.deepEqual(result.response_format, responseFormat);
   });
 
   it("does not apply the fallback to opencode-go", () => {

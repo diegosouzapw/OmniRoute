@@ -1374,77 +1374,6 @@ export class OpencodeExecutor extends BaseExecutor {
     return headers;
   }
 
-  /**
-   * OpenCode's free DeepSeek V4 Flash endpoint accepts json_object but
-   * rejects json_schema response_format with HTTP 400. Preserve the schema
-   * as an instruction and downgrade only this proven-incompatible route to
-   * json_object so callers still receive structured JSON.
-   */
-  private applyDeepSeekJsonSchemaFallback<T>(model: string, body: T): T {
-    if (
-      model !== "deepseek-v4-flash-free" ||
-      (this.provider !== "opencode" && this.provider !== "opencode-zen")
-    ) {
-      return body;
-    }
-
-    if (!body || typeof body !== "object" || Array.isArray(body)) {
-      return body;
-    }
-
-    const record = body as Record<string, unknown>;
-    const responseFormat = record.response_format as
-      | {
-          type?: string;
-          json_schema?: {
-            schema?: unknown;
-          };
-        }
-      | undefined;
-
-    if (responseFormat?.type !== "json_schema" || !responseFormat.json_schema?.schema) {
-      return body;
-    }
-
-    const schemaJson = JSON.stringify(responseFormat.json_schema.schema, null, 2);
-
-    const prompt =
-      "You must respond with valid JSON that strictly follows " +
-      "this JSON schema:\\n```json\\n" +
-      schemaJson +
-      "\\n```\\nRespond ONLY with the JSON object, no other text.";
-
-    const messages: Array<Record<string, unknown>> = Array.isArray(record.messages)
-      ? (record.messages as Array<Record<string, unknown>>).map((message) => ({ ...message }))
-      : [];
-
-    const systemMessage = messages.find((message) => message.role === "system");
-
-    if (systemMessage) {
-      if (typeof systemMessage.content === "string") {
-        systemMessage.content = `${systemMessage.content}\\n\\n${prompt}`;
-      } else if (Array.isArray(systemMessage.content)) {
-        systemMessage.content.push({
-          type: "text",
-          text: `\\n\\n${prompt}`,
-        });
-      }
-    } else {
-      messages.unshift({
-        role: "system",
-        content: prompt,
-      });
-    }
-
-    return {
-      ...record,
-      messages,
-      response_format: {
-        type: "json_object",
-      },
-    } as T;
-  }
-
   transformRequest(
     model: string,
     body: any,
@@ -1452,7 +1381,9 @@ export class OpencodeExecutor extends BaseExecutor {
     credentials: ProviderCredentials
   ): any {
     let modifiedBody = super.transformRequest(model, body, stream, credentials);
-    modifiedBody = this.applyDeepSeekJsonSchemaFallback(model, modifiedBody);
+    // The model-specific json_schema fallback that used to run here keyed on the
+    // now-delisted `deepseek-v4-flash-free` id and was removed with it (2026-10-08) —
+    // `response_format` now passes through untouched for every model.
     // Free-tier request contract (see opencodeFreeTierContract.ts): streaming plus a
     // non-empty tools array, in the shape of the surface this model is served on. Paid
     // models on the same host are not gated and stay untouched.

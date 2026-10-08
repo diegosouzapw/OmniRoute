@@ -85,12 +85,16 @@ describe("OpencodeExecutor", () => {
       assert.equal(fetchCalls[0].url, "https://opencode.ai/zen/v1/chat/completions");
     });
 
-    it("includes deepseek-v4-flash-free in opencode-zen PROVIDER_MODELS", () => {
+    it("no longer includes the delisted deepseek-v4-flash-free in opencode-zen PROVIDER_MODELS", () => {
+      // 2026-10-08: upstream delisted the model (401 "Model X is not supported") — the
+      // registry must not advertise it or auto/best-coding picks a dead target (#6998).
       const models = PROVIDER_MODELS["opencode-zen"];
       const model = models?.find((m) => m.id === "deepseek-v4-flash-free");
-      assert.ok(model, "deepseek-v4-flash-free should be in opencode-zen model list");
-      assert.equal(model.name, "DeepSeek V4 Flash Free");
-      assert.equal(model.supportsReasoning, true);
+      assert.equal(
+        model,
+        undefined,
+        "deepseek-v4-flash-free was delisted upstream and must not be advertised"
+      );
     });
 
     it("declares V4 effort tiers on OpenCode Go base models only", () => {

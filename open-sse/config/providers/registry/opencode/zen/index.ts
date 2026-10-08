@@ -131,8 +131,6 @@ export const opencode_zenProvider: RegistryEntry = {
       contextLength: 1048576,
       maxOutputTokens: 131072,
     },
-
-    // ── DeepSeek ────────────────────────────────────────────────
     // #10788: same tier vocabulary as opencode-go's DeepSeek rows — the Zen
     // upstream accepts the identical effort set on these models.
     {
@@ -178,8 +176,8 @@ export const opencode_zenProvider: RegistryEntry = {
     // nemotron-3-super-free and qwen3.6-plus-free were delisted (401).
     // 2026-08-17 sync: north-mini-code-free delisted; nemotron-3.5-lightning-free
     // and laguna-s-2.1-free added.
-    { id: "deepseek-v4-flash-free", name: "DeepSeek V4 Flash Free", supportsReasoning: true },
-    { id: "mimo-v2.5-free", name: "MiMo V2.5 Free", contextLength: 1048576 },
+    // 2026-10-08 sync: mimo-v2.5-free, hy3-free, laguna-s-2.1-free and
+    // deepseek-v4-flash-free delisted upstream (401 verified live).
     // MiMo V2.6 Flash Free ships a 1M window upstream (same as V2.5); without
     // this row it falls through to the 200000 provider default and clients
     // compact far too early.
@@ -189,9 +187,7 @@ export const opencode_zenProvider: RegistryEntry = {
       contextLength: 1048576,
       maxOutputTokens: 131072,
     },
-    { id: "hy3-free", name: "HY3 Free", contextLength: 200000 },
     { id: "nemotron-3-ultra-free", name: "Nemotron 3 Ultra Free", contextLength: 1000000 },
     { id: "nemotron-3.5-lightning-free", name: "Nemotron 3.5 Lightning Free" },
-    { id: "laguna-s-2.1-free", name: "Laguna S 2.1 Free" },
   ],
 };

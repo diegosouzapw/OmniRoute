@@ -452,6 +452,22 @@ export function classifyProviderError(
       : PROVIDER_ERROR_TYPES.UNAUTHORIZED;
   }
 
+  // #8681 (2026-10-08 live): the opencode executor refuses premium models on a
+  // keyless connection LOCALLY with a synthetic 402 (code premium_model_requires_key)
+  // before any upstream call. The model needs a key this connection does not have —
+  // a per-model capability failure, NEVER a connection/billing signal. Classifying
+  // it QUOTA_EXHAUSTED made chatCore's quota branch mark the shared noauth
+  // connection credits_exhausted, poisoning big-pickle/nemotron siblings for the
+  // whole TTL and surfacing "No active credentials for provider: opencode".
+  // MODEL_NOT_FOUND keeps it model-scoped: chatCore locks only this model.
+  if (
+    statusCode === 402 &&
+    isOpencodeFreeTierProvider(provider) &&
+    /requires an opencode api key/i.test(bodyStr)
+  ) {
+    return PROVIDER_ERROR_TYPES.MODEL_NOT_FOUND;
+  }
+
   if (statusCode === 402) return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
 
   // Google regional-availability refusal (400 FAILED_PRECONDITION "... location

@@ -51,7 +51,7 @@ test("#7622: a no-auth model excluded via providerSpecificData.excludedModels is
     provider: "opencode",
     authType: "no-auth",
     name: "OpenCode Free Account 1",
-    providerSpecificData: { excludedModels: "mimo-v2.5-free" },
+    providerSpecificData: { excludedModels: "nemotron-3-ultra-free" },
   });
   assert.ok(conn.id, "connection must be created");
 
@@ -59,8 +59,8 @@ test("#7622: a no-auth model excluded via providerSpecificData.excludedModels is
 
   const modelStrings = combo.models.map((m: { model: string }) => m.model);
   assert.ok(
-    !modelStrings.some((model: string) => model.endsWith("/mimo-v2.5-free")),
-    "BUG #7622: the excluded model 'mimo-v2.5-free' must not appear in the auto-combo " +
+    !modelStrings.some((model: string) => model.endsWith("/nemotron-3-ultra-free")),
+    "BUG #7622: the excluded model 'nemotron-3-ultra-free' must not appear in the auto-combo " +
       `candidate pool, but it did. Pool: ${JSON.stringify(modelStrings)}`
   );
 });
@@ -70,7 +70,7 @@ test("#7622: a non-excluded no-auth model from the same connection remains in th
     provider: "opencode",
     authType: "no-auth",
     name: "OpenCode Free Account 1",
-    providerSpecificData: { excludedModels: "mimo-v2.5-free" },
+    providerSpecificData: { excludedModels: "nemotron-3-ultra-free" },
   });
 
   const combo = await virtualFactory.createVirtualAutoCombo(undefined);
@@ -94,7 +94,7 @@ test("#7622 regression guard: with no excludedModels set, all opencode models re
 
   const modelStrings = combo.models.map((m: { model: string }) => m.model);
   assert.ok(
-    modelStrings.some((model: string) => model.endsWith("/mimo-v2.5-free")),
-    `baseline: no exclusion set, mimo-v2.5-free must still be present. Pool: ${JSON.stringify(modelStrings)}`
+    modelStrings.some((model: string) => model.endsWith("/nemotron-3-ultra-free")),
+    `baseline: no exclusion set, nemotron-3-ultra-free must still be present. Pool: ${JSON.stringify(modelStrings)}`
   );
 });

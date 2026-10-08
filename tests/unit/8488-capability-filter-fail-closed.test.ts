@@ -349,3 +349,74 @@ test("#12229 exhaustion: output_tokens exclusion names max_tokens vs the model c
   assert.doesNotMatch(exhaustion!.message, /structured output/i);
   assert.equal(exhaustion!.terminalReason, "capability_mismatch");
 });
+
+test("#14313 auto: opencode passthrough big-pickle survives a 12-tool request (non-empty pool)", async () => {
+  // opencode is passthroughModels:true with no unsupportedParams/toolCalling:false
+  // declaration — the optimistic tool-calling heuristic must keep its targets
+  // eligible under the fail-closed pre-filter, so auto/best-coding never 400s
+  // "No target ... supports tool calling" for a healthy pool.
+  const result = await resolveAutoStrategyOrder({
+    orderedTargets: [
+      target("opencode", "opencode/big-pickle"),
+      target("opencode", "opencode/nemotron-3-ultra-free"),
+    ] as never,
+    body: {
+      messages: [{ role: "user", content: "hi" }],
+      tools: Array.from({ length: 12 }, (_, i) => ({
+        type: "function",
+        function: { name: `lookup_${i}`, parameters: {} },
+      })),
+    },
+    combo: { id: "c1", name: "auto/best-coding", config: {} } as never,
+    settings: null,
+    config: {},
+    relayOptions: null,
+    resilienceSettings: { quotaPreflight: { enabled: false } } as never,
+    log: log as never,
+    buildAutoCandidates: (async () => []) as never,
+  });
+
+  assert.ok(
+    !("earlyResponse" in result),
+    "opencode passthrough pool with tools must not 400 capability_mismatch"
+  );
+  if ("orderedTargets" in result) {
+    assert.equal(result.orderedTargets.length, 2);
+  }
+});
+
+test("#14313 auto: empty candidate pool reports a truthful no-eligible-targets error", async () => {
+  // A pool emptied by transient skips (e.g. every noauth sibling cooling down
+  // after a free-tier 403) used to fall into the tool pre-filter and emit the
+  // misleading "No target ... supports tool calling" capability_mismatch. An
+  // empty pool is not a tool-calling mismatch — it must surface a truthful,
+  // retryable terminal reason.
+  const result = await resolveAutoStrategyOrder({
+    orderedTargets: [] as never,
+    body: {
+      messages: [{ role: "user", content: "hi" }],
+      tools: Array.from({ length: 12 }, (_, i) => ({
+        type: "function",
+        function: { name: `lookup_${i}`, parameters: {} },
+      })),
+    },
+    combo: { id: "c1", name: "auto/best-coding", config: {} } as never,
+    settings: null,
+    config: {},
+    relayOptions: null,
+    resilienceSettings: { quotaPreflight: { enabled: false } } as never,
+    log: log as never,
+    buildAutoCandidates: (async () => []) as never,
+  });
+
+  assert.ok("earlyResponse" in result);
+  if ("earlyResponse" in result) {
+    assert.equal(result.earlyResponse.status, 503);
+    const body = await result.earlyResponse.json();
+    assert.doesNotMatch(String(body?.error?.message || ""), /supports tool calling/i);
+    assert.match(String(body?.error?.message || ""), /candidate pool is empty/i);
+    assert.equal(body?.error?.code, "no_eligible_targets");
+    assert.equal(body?.diagnostics?.poolSize, 0);
+    assert.equal(body?.diagnostics?.terminalReason, "no_eligible_targets");
+  }
+});

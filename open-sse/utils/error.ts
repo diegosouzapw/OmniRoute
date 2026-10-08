@@ -214,6 +214,7 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "native_codex_pinned_model_unavailable",
   "network_error",
   "no_active_connection",
+  "no_eligible_targets",
   "no_free_eligible_connection",
   "no_local_login",
   "no_refresh_token",

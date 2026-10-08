@@ -167,6 +167,28 @@ export async function resolveAutoStrategyOrder(
       true;
 
   if (requestHasTools) {
+    // #14313: an empty candidate pool (e.g. every noauth sibling skipped by a
+    // transient free-tier refusal) must not fall into the tool pre-filter and
+    // masquerade as "no target supports tool calling" — that capability_mismatch
+    // message describes a filter that rejected a populated pool, not a pool that
+    // has nothing to filter. Surface a truthful, retryable terminal reason so
+    // operators stop chasing tool-calling config and clients can back off.
+    if (eligibleTargets.length === 0) {
+      return {
+        earlyResponse: errorResponseWithComboDiagnostics(
+          503,
+          `No eligible targets in combo ${combo.name}; the candidate pool is empty`,
+          {
+            poolSize: 0,
+            attempted: 0,
+            excluded: [],
+            attemptOrder: [],
+            terminalReason: "no_eligible_targets",
+          },
+          { code: "no_eligible_targets", type: "api_error" }
+        ),
+      };
+    }
     // Keep #5240 prompt-emulation providers (toolCalling:"emulated") even when
     // registry/capability rows honestly report toolCalling:false.
     const filtered = eligibleTargets.filter(

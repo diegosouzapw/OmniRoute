@@ -69,14 +69,16 @@ export const opencodeProvider: RegistryEntry = {
       contextLength: 1048576,
       maxOutputTokens: 131072,
     },
-    { id: "deepseek-v4-flash-free", name: "DeepSeek V4 Flash Free", supportsReasoning: true },
     // #6998: 2026-07-14 refresh — the upstream free tier rotated its lineup;
     // minimax-m3-free, minimax-m2.5-free, ling-2.6-1t-free,
     // trinity-large-preview-free, nemotron-3-super-free and qwen3.6-plus-free
-    // were delisted (401 "Model X is not supported") and replaced by the 4
-    // entries below, confirmed live against
-    // https://opencode.ai/zen/v1/chat/completions.
-    { id: "mimo-v2.5-free", name: "MiMo V2.5 Free", contextLength: 1048576 },
+    // were delisted (401 "Model X is not supported").
+    // 2026-10-08 refresh — next rotation: mimo-v2.5-free, hy3-free,
+    // north-mini-code-free and deepseek-v4-flash-free are gone upstream too (401
+    // verified live against https://opencode.ai/zen/v1/chat/completions).
+    // Advertising a delisted model here poisons the shared `noauth` connection for
+    // EVERY sibling target on the first 401 (#8133) and fails auto/best-coding at
+    // attempt 1 — so only models confirmed live above may be listed.
     // MiMo V2.6 Flash Free ships a 1M window upstream (same as V2.5); without
     // this row it falls through to the 200000 provider default and clients
     // compact far too early.
@@ -86,8 +88,6 @@ export const opencodeProvider: RegistryEntry = {
       contextLength: 1048576,
       maxOutputTokens: 131072,
     },
-    { id: "hy3-free", name: "HY3 Free", contextLength: 131000 },
     { id: "nemotron-3-ultra-free", name: "Nemotron 3 Ultra Free", contextLength: 1000000 },
-    { id: "north-mini-code-free", name: "North Mini Code Free", contextLength: 131000 },
   ],
 };
