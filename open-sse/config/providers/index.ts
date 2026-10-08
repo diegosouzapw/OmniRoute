@@ -254,6 +254,7 @@ import { literouterProvider } from "./registry/literouter/index.ts";
 import { greenptProvider } from "./registry/greenpt/index.ts";
 import { onomeoProvider } from "./registry/onomeo/index.ts";
 import { eurouterProvider } from "./registry/eurouter/index.ts";
+import { unificallyProvider } from "./registry/unifically/index.ts";
 import { yApiProvider } from "./registry/y-api/index.ts";
 import { mnnAiProvider } from "./registry/mnn-ai/index.ts";
 import { meganovaAiProvider } from "./registry/meganova-ai/index.ts";
@@ -535,6 +536,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   greenpt: greenptProvider,
   onomeo: onomeoProvider,
   eurouter: eurouterProvider,
+  unifically: unificallyProvider,
   "y-api": yApiProvider,
   "mnn-ai": mnnAiProvider,
   "meganova-ai": meganovaAiProvider,
