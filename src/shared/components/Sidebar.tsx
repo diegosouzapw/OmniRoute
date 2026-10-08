@@ -65,7 +65,7 @@ type SidebarProps = {
   isMacElectron?: boolean;
 };
 
-type HoveredItem = { id: string; label: string; x: number; y: number } | null;
+type HoveredItem = { id: string; label: string; x: number; y: number; isRtl?: boolean } | null;
 
 function parseStoredArray<T>(raw: string | null, fallback: T): T {
   try {
@@ -489,12 +489,16 @@ export default function Sidebar({
     (e: React.MouseEvent<HTMLElement>, id: string, label: string) => {
       if (!collapsed) return;
       const rect = e.currentTarget.getBoundingClientRect();
+      const isRtl = typeof document !== "undefined" && document.documentElement.dir === "rtl";
       const sidebarRect = sidebarRef.current?.getBoundingClientRect();
       setHoveredItem({
         id,
         label,
-        x: (sidebarRect?.right ?? 64) + 8,
+        x: isRtl
+          ? (typeof window !== "undefined" ? window.innerWidth - (sidebarRect?.left ?? 0) + 8 : 72)
+          : (sidebarRect?.right ?? 64) + 8,
         y: rect.top + rect.height / 2,
+        isRtl,
       });
     },
     [collapsed]
@@ -905,9 +909,19 @@ export default function Sidebar({
       {collapsed && hoveredItem && (
         <div
           className="fixed z-[200] pointer-events-none flex items-center"
-          style={{ left: hoveredItem.x, top: hoveredItem.y, transform: "translateY(-50%)" }}
+          style={
+            hoveredItem.isRtl
+              ? { right: hoveredItem.x, top: hoveredItem.y, transform: "translateY(-50%)" }
+              : { left: hoveredItem.x, top: hoveredItem.y, transform: "translateY(-50%)" }
+          }
         >
-          <div className="w-0 h-0 border-t-[5px] border-b-[5px] border-r-[6px] border-t-transparent border-b-transparent border-r-sidebar dark:border-r-sidebar" />
+          <div
+            className={
+              hoveredItem.isRtl
+                ? "w-0 h-0 border-t-[5px] border-b-[5px] border-l-[6px] border-t-transparent border-b-transparent border-l-sidebar dark:border-l-sidebar"
+                : "w-0 h-0 border-t-[5px] border-b-[5px] border-r-[6px] border-t-transparent border-b-transparent border-r-sidebar dark:border-r-sidebar"
+            }
+          />
           <div className="px-2.5 py-1.5 bg-sidebar text-text-main text-xs font-medium rounded-md shadow-lg border border-black/10 dark:border-white/10 whitespace-nowrap">
             {hoveredItem.label}
           </div>
