@@ -104,6 +104,7 @@ export interface VideoDrilldownResolveQuery {
   maxPageBytes?: number;
   page?: number;
   startSeconds?: number;
+  signal?: AbortSignal;
   variant?: VideoDrilldownVariant;
 }
 
@@ -270,7 +271,7 @@ export class VideoDrilldownLifecycle {
     let removed = 0;
     for (const [handle, entry] of this.handles) {
       if (entry.expiresAt <= now) {
-        this.dropHandle(handle, entry);
+        this.releaseEvictedHandle(handle, entry);
         removed += 1;
       }
     }
@@ -362,6 +363,10 @@ export class VideoDrilldownLifecycle {
     await this.cache.put(principalId, sessionId, videoRef, value as VideoDrilldownPutValue, {
       signal: options.signal,
     });
+    if (options.signal?.aborted) {
+      this.cache.clearSession(principalId, sessionId);
+      options.signal.throwIfAborted();
+    }
     const handle = this.registerHandle(principalId, sessionId, videoRef);
     const entry = this.handles.get(handle);
     return { expiresAt: entry?.expiresAt ?? this.now() + this.ttlMs, handle };
@@ -372,6 +377,7 @@ export class VideoDrilldownLifecycle {
     handle: string,
     query: VideoDrilldownResolveQuery
   ): Promise<VideoDrilldownPage | null> {
+    query.signal?.throwIfAborted();
     const entry = this.resolveHandleEntry(principalId, handle);
     if (!entry) return null;
     const stored = this.cache.get(principalId, entry.sessionId, entry.videoRef, {
@@ -391,7 +397,14 @@ export class VideoDrilldownLifecycle {
       query.frameCount,
       variant
     );
-    const shrunk = await Promise.all(slice.map((frame) => shrinkFrameForVariant(frame, preset)));
+    const shrunk: VideoDrilldownFrame[] = [];
+    for (const frame of slice) {
+      query.signal?.throwIfAborted();
+      shrunk.push(await shrinkFrameForVariant(frame, preset));
+      query.signal?.throwIfAborted();
+    }
+    // A concurrent DELETE/TTL expiry must not deliver already-revoked derived data.
+    if (!this.resolveHandleEntry(principalId, handle)) return null;
     const { frames, trimmed } = trimToByteBudget(
       shrunk,
       query.maxPageBytes ?? VIDEO_DRILLDOWN_MAX_PAGE_BYTES

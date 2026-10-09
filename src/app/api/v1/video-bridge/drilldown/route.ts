@@ -5,6 +5,7 @@ import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { extractApiKey, isValidApiKey } from "@/sse/services/auth";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 import { getCachedSettings } from "@/lib/db/readCache";
+import { createLogger } from "@/shared/utils/logger";
 
 import {
   isVideoBridgeDrilldownRemoteAccessEnabled,
@@ -16,6 +17,7 @@ import { getSharedVideoDrilldownLifecycle } from "@/lib/guardrails/videoBridgeDr
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+const log = createLogger("video-drilldown-consumer");
 
 // Shared with the actual guardrail producer, even across separate Next route bundles.
 // Raw remote frames are never accepted here: consumers present opaque tenant-bound handles.
@@ -102,6 +104,24 @@ export async function handleVideoBridgeDrilldownConsumerRequest(
   request: Request,
   dependencies: VideoBridgeDrilldownRouteDependencies = {}
 ): Promise<Response> {
+  try {
+    return await runConsumerRequest(request, dependencies);
+  } catch {
+    if (request.signal.aborted) return corsError(499, "Request was cancelled", "request_cancelled");
+    log.warn("Video drill-down request failed", { code: "DRILLDOWN_UNAVAILABLE" });
+    return corsError(
+      503,
+      "Video Bridge drill-down is temporarily unavailable",
+      "service_unavailable"
+    );
+  }
+}
+
+async function runConsumerRequest(
+  request: Request,
+  dependencies: VideoBridgeDrilldownRouteDependencies
+): Promise<Response> {
+  request.signal.throwIfAborted();
   const isRemoteAccessEnabled =
     dependencies.isRemoteAccessEnabled ?? isRemoteAccessEnabledFromSettings;
   if (!(await isRemoteAccessEnabled())) {
@@ -134,6 +154,7 @@ export async function handleVideoBridgeDrilldownConsumerRequest(
     page: parsed.data.page,
     startSeconds: parsed.data.start,
     variant: parsed.data.variant,
+    signal: request.signal,
   });
   if (!page) {
     return corsError(404, "Video Bridge drill-down result was not found", "not_found");
