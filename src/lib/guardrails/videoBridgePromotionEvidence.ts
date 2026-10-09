@@ -46,6 +46,8 @@ interface EvidenceRun {
   model: string;
   role: "baseline" | "candidate";
   metrics: Partial<Record<VideoBridgePromotionMetricName, number>>;
+  observationId?: string;
+  repetition?: number;
 }
 
 interface EvidenceCase {
@@ -90,8 +92,22 @@ function caseBlockers(
     blockers.push("RUN_CASE_BINDING_MISMATCH");
   }
   for (const role of ["baseline", "candidate"] as const) {
-    if (currentCase.runs.filter((run) => run.role === role).length < declared.repetitions) {
+    const roleRuns = currentCase.runs.filter((run) => run.role === role);
+    if (roleRuns.length < declared.repetitions) {
       blockers.push("OBSERVED_REPETITIONS_MISSING");
+    }
+    const repetitions = new Set(roleRuns.map((run) => run.repetition));
+    if (
+      roleRuns.length !== declared.repetitions ||
+      repetitions.size !== declared.repetitions ||
+      roleRuns.some(
+        (run) =>
+          !Number.isInteger(run.repetition) ||
+          run.repetition! < 0 ||
+          run.repetition! >= declared.repetitions
+      )
+    ) {
+      blockers.push("REPETITION_BINDING_INVALID");
     }
   }
   if (currentCase.runs.some((run) => !validMetrics(run))) {
@@ -138,6 +154,14 @@ export function validatePromotionEvidence(
     evidence.cases.flatMap((currentCase) => currentCase.runs.map((run) => run.model))
   );
   if (models.size !== 1) blockers.add("MODEL_SEPARATION_REQUIRED");
+  const runs = evidence.cases.flatMap((currentCase) => currentCase.runs);
+  const observationIds = new Set(runs.map((run) => run.observationId));
+  if (
+    observationIds.size !== runs.length ||
+    runs.some((run) => !z.uuid().safeParse(run.observationId).success)
+  ) {
+    blockers.add("OBSERVATION_IDENTITY_INVALID");
+  }
   for (const currentCase of evidence.cases) {
     for (const blocker of caseBlockers(currentCase, declared.get(currentCase.caseId))) {
       blockers.add(blocker);

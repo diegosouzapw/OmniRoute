@@ -63,6 +63,8 @@ const videoBridgePromotionRunSchema = z
     model: z.string().min(1),
     rawResponseText: z.string(),
     role: z.enum(["baseline", "candidate"]),
+    observationId: z.uuid().optional(),
+    repetition: z.number().int().nonnegative().optional(),
   })
   .strict();
 
