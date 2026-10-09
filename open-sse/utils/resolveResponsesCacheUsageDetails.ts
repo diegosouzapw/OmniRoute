@@ -24,8 +24,6 @@ type CacheUsageSource = {
  * Resolve the `input_tokens_details` object for a Responses API usage payload,
  * merging cache READ (`cached_tokens`) and cache CREATION (`cache_creation_tokens`)
  * tokens from any upstream shape instead of dropping the creation leg (#13472).
- * The `cache_creation_in_prompt` marker rides along so a client can tell whether
- * `input_tokens` already includes the write.
  */
 export function resolveResponsesCacheUsageDetails(usage: CacheUsageSource) {
   const cachedTokens =

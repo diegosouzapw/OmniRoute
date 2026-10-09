@@ -260,9 +260,7 @@ function trackUsageFromChunk(chunk, state) {
   const { promptTokens, outputTokens, cacheReadTokens, cacheCreateTokens, writeInPrompt } =
     readUsageCounters(chunk.usage);
 
-  // The cache read is always inside prompt_tokens. The write is too in folded
-  // shapes (LiteLLM), but not in the #2215 shape, which marks itself with
-  // prompt_tokens_details.cache_creation_in_prompt: false.
+  // #2215 reports cache creation outside prompt_tokens.
   const inputTokens = Math.max(
     0,
     promptTokens - cacheReadTokens - (writeInPrompt ? cacheCreateTokens : 0)

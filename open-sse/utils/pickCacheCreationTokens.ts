@@ -41,11 +41,6 @@ export function pickCacheCreationTokens(usage: CacheWriteUsageSource | null | un
   );
 }
 
-/**
- * Read the `cache_creation_in_prompt` marker from prompt/input token details.
- * `false` means the cache write is NOT included in prompt_tokens / input_tokens
- * (#2215 shape), `true` means it is. Returns `undefined` when no side said.
- */
 export function pickCacheCreationInPrompt(
   usage: CacheWriteUsageSource | null | undefined
 ): boolean | undefined {
@@ -57,10 +52,7 @@ export function pickCacheCreationInPrompt(
   return undefined;
 }
 
-/**
- * True when the write is reported only as a top-level `cache_write_tokens` (Devin
- * Desktop). Nobody has verified whether that prompt total includes the write.
- */
+// A top-level write alias has no verified inclusion contract.
 export function isTopLevelCacheWriteOnly(usage: CacheWriteUsageSource | null | undefined) {
   if (!usage || typeof usage !== "object" || !usage.cache_write_tokens) return false;
   const promptDetails = usage.prompt_tokens_details;
@@ -74,12 +66,7 @@ export function isTopLevelCacheWriteOnly(usage: CacheWriteUsageSource | null | u
   );
 }
 
-/**
- * The marker a Responses usage should carry for its write. An explicit marker wins.
- * A write reported only under the nested `*_tokens_details.cache_write_tokens` alias
- * (OpenRouter, the codex-chatgpt-web bridge) comes with an inclusive prompt total; a
- * top-level alias stays unmarked.
- */
+// Only nested cache-write aliases have a known inclusive total.
 export function resolveCacheCreationInPrompt(
   usage: CacheWriteUsageSource | null | undefined
 ): boolean | undefined {
