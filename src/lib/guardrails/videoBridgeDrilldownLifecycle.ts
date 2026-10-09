@@ -211,7 +211,36 @@ function trimToByteBudget(
   // A single oversized frame is still returned alone rather than producing an empty page —
   // the underlying cache already enforces the 32 MiB per-entry ceiling, so this only trims
   // multi-frame pages down.
-  return { frames: kept.length > 0 ? kept : frames.slice(0, 1), trimmed: kept.length < frames.length };
+  return {
+    frames: kept.length > 0 ? kept : frames.slice(0, 1),
+    trimmed: kept.length < frames.length,
+  };
+}
+
+function deriveVariantMetadata(
+  source: VideoDrilldownResult["derivation"],
+  frames: readonly VideoDrilldownFrame[],
+  variant: VideoDrilldownVariant
+): VideoDrilldownResult["derivation"] {
+  const hash = createHash("sha256").update(
+    JSON.stringify(["video-drilldown/variant-v1", source.contentHash, variant])
+  );
+  for (const frame of frames) {
+    hash.update(
+      JSON.stringify([frame.timestampSeconds, frame.width, frame.height, frame.dataUri.length])
+    );
+    hash.update(frame.dataUri);
+  }
+  return {
+    ...source,
+    contentHash: `sha256:${hash.digest("hex")}`,
+    parent: { ...source.parent, contentHash: source.contentHash },
+    policy: `${source.policy}/${variant}`,
+    resolution: frames[0]
+      ? { width: frames[0].width, height: frames[0].height }
+      : { width: 0, height: 0 },
+    version: "video-drilldown/variant-v1",
+  };
 }
 
 /**
@@ -363,9 +392,12 @@ export class VideoDrilldownLifecycle {
       variant
     );
     const shrunk = await Promise.all(slice.map((frame) => shrinkFrameForVariant(frame, preset)));
-    const { frames, trimmed } = trimToByteBudget(shrunk, query.maxPageBytes ?? VIDEO_DRILLDOWN_MAX_PAGE_BYTES);
+    const { frames, trimmed } = trimToByteBudget(
+      shrunk,
+      query.maxPageBytes ?? VIDEO_DRILLDOWN_MAX_PAGE_BYTES
+    );
     return {
-      derivation: stored.derivation,
+      derivation: deriveVariantMetadata(stored.derivation, frames, variant),
       durationSeconds: stored.durationSeconds,
       ...(stored.focusWindow ? { focusWindow: stored.focusWindow } : {}),
       frames,
