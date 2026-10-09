@@ -41,6 +41,18 @@ export function buildPromotionManifestDigest(manifest: VideoBridgePromotionManif
     .digest("hex");
 }
 
+/** Seeded random A/B order: freeze the seed before collection and verify the observed sequence. */
+export function getPromotionPairRoles(
+  seed: string,
+  caseId: string,
+  repetition: number
+): readonly ["baseline" | "candidate", "baseline" | "candidate"] {
+  const byte = createHash("sha256")
+    .update(JSON.stringify([seed, caseId, repetition]))
+    .digest()[0];
+  return byte % 2 === 0 ? ["baseline", "candidate"] : ["candidate", "baseline"];
+}
+
 interface EvidenceRun {
   caseId: string;
   model: string;
@@ -117,6 +129,18 @@ function caseBlockers(
   return blockers;
 }
 
+function validCaseOrder(currentCase: EvidenceCase, repetitions: number, seed: string): boolean {
+  if (currentCase.runs.length !== repetitions * 2) return false;
+  for (let repetition = 0; repetition < repetitions; repetition += 1) {
+    const roles = getPromotionPairRoles(seed, currentCase.caseId, repetition);
+    for (const [offset, role] of roles.entries()) {
+      const run = currentCase.runs[repetition * 2 + offset];
+      if (run?.role !== role || run.repetition !== repetition) return false;
+    }
+  }
+  return true;
+}
+
 /** Fail closed before aggregating: declared coverage is not observed evidence. */
 export function validatePromotionEvidence(
   manifest: VideoBridgePromotionManifest,
@@ -167,8 +191,16 @@ export function validatePromotionEvidence(
     blockers.add("OBSERVATION_IDENTITY_INVALID");
   }
   for (const currentCase of evidence.cases) {
-    for (const blocker of caseBlockers(currentCase, declared.get(currentCase.caseId))) {
+    const declaredCase = declared.get(currentCase.caseId);
+    for (const blocker of caseBlockers(currentCase, declaredCase)) {
       blockers.add(blocker);
+    }
+    if (
+      declaredCase &&
+      receipt &&
+      !validCaseOrder(currentCase, declaredCase.repetitions, receipt.orderSeed)
+    ) {
+      blockers.add("AB_ORDER_MISMATCH");
     }
   }
   return [...blockers];
