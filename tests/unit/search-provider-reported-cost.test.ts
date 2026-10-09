@@ -23,6 +23,7 @@ const { executeWebSearch } = await import("../../src/lib/search/executeWebSearch
 const searchProxy = await import("../../open-sse/handlers/search/searchProxy.ts");
 const { SEARCH_PROVIDERS } = await import("../../open-sse/config/searchRegistry.ts");
 const { closeCallLogSaves } = await import("../../src/lib/usage/callLogs.ts");
+const usageLimits = await import("../../src/lib/usage/apiKeyUsageLimits.ts");
 
 const ADAPTER_BASE = "http://127.0.0.1:9091/adapter";
 const originalFetch = globalThis.fetch;
@@ -293,4 +294,64 @@ test("an error response without the opt-in charges nothing", async () => {
   await settle();
   assert.equal(costLedger.listLedgerEntries(apiKeyId).length, 0);
   assert.equal(costRules.getCostSummary(apiKeyId).totalCostToday, 0);
+});
+
+test("per-key daily/weekly USD quotas count reported and static search spend, chat excluded", async () => {
+  await seedSearxng({ baseUrl: ADAPTER_BASE, trustReportedCost: true });
+  await providersDb.createProviderConnection({
+    provider: "tavily-search",
+    authType: "apikey",
+    name: "tavily-quota",
+    apiKey: "tvly-quota-key",
+    isActive: true,
+    testStatus: "active",
+  });
+  const apiKeyId = nextApiKeyId();
+  const otherKeyId = nextApiKeyId();
+  const staticCost = SEARCH_PROVIDERS["tavily-search"].costPerQuery;
+
+  globalThis.fetch = async (url) =>
+    String(url).startsWith(ADAPTER_BASE)
+      ? Response.json(searxngBody({ search_cost_usd: 0.3, request_id: "req-quota-1" }))
+      : Response.json({ results: [] });
+
+  await executeWebSearch({ query: "quota reported", provider: "searxng-search", apiKeyId });
+  await executeWebSearch({ query: "quota static", provider: "tavily-search", apiKeyId });
+  await executeWebSearch({
+    query: "quota other key",
+    provider: "tavily-search",
+    apiKeyId: otherKeyId,
+  });
+  await ledgerRows(apiKeyId, 2);
+  await ledgerRows(otherKeyId, 1);
+
+  // A chat call's ledger row (chat spend is already counted from usage_history).
+  costLedger.recordLedgerEntry({
+    apiKeyId,
+    provider: "openai",
+    model: "gpt-4o",
+    amountUsd: 5,
+    serviceTier: "standard",
+  });
+
+  const status = await usageLimits.getApiKeyUsageLimitStatus({
+    id: apiKeyId,
+    usageLimitEnabled: true,
+    dailyUsageLimitUsd: 0.3,
+    weeklyUsageLimitUsd: 1,
+  });
+  const expected = Math.round((0.3 + staticCost) * 1e6) / 1e6;
+  assert.equal(status.dailySpentUsd, expected);
+  assert.equal(status.weeklySpentUsd, expected);
+  assert.equal(status.dailyExceeded, true);
+  assert.equal(status.weeklyExceeded, false);
+
+  const other = await usageLimits.getApiKeyUsageLimitStatus({
+    id: otherKeyId,
+    usageLimitEnabled: true,
+    dailyUsageLimitUsd: 1,
+    weeklyUsageLimitUsd: 1,
+  });
+  assert.equal(other.dailySpentUsd, staticCost);
+  assert.equal(other.weeklySpentUsd, staticCost);
 });

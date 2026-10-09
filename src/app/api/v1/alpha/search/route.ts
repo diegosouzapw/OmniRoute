@@ -17,7 +17,6 @@ import {
   isValidationFailure,
   validateBody,
 } from "@/shared/validation/helpers";
-import { recordCost } from "@/domain/costRules";
 import { isAllRateLimitedCredentials } from "@/app/api/v1/_shared/rateLimit";
 import { getSettings } from "@/lib/db/settings";
 import { isProviderBlockedByIdOrAlias } from "@/shared/utils/noAuthProviders";
@@ -195,7 +194,6 @@ async function postHandler(request: Request) {
     const allResults: { title: string; url: string; snippet: string }[] = [];
     let queriesUsed = 0;
     let searchCostUsd = 0;
-    let staticCostUsd = 0;
 
     for (const item of searchQueries) {
       const result = await handleSearch({
@@ -217,23 +215,18 @@ async function postHandler(request: Request) {
       const data = result.data!;
       queriesUsed += data.usage?.queries_used || 1;
       searchCostUsd += data.usage?.search_cost_usd || 0;
-      // A provider-reported cost is charged per call (with its request id) as
-      // soon as it succeeds; static costPerQuery is summed and charged once below.
-      if (data.usage?.cost_source === "provider_reported") {
+      // Charged per call as it succeeds (one search ledger row each), so a
+      // provider-reported cost keeps its request id.
+      try {
         recordSearchUsageCost(policy.apiKeyInfo?.id, data.provider, data.usage);
-      } else {
-        staticCostUsd += data.usage?.search_cost_usd || 0;
+      } catch (e: unknown) {
+        log.warn(
+          "ALPHA_SEARCH",
+          `Cost recording failed: ${e instanceof Error ? e.message : String(e)}`
+        );
       }
       for (const r of data.results) {
         allResults.push({ title: r.title, url: r.url, snippet: r.snippet });
-      }
-    }
-
-    if (policy.apiKeyInfo?.id && staticCostUsd > 0) {
-      try {
-        recordCost(policy.apiKeyInfo.id, staticCostUsd);
-      } catch (e: any) {
-        log.warn("ALPHA_SEARCH", `Cost recording failed: ${e?.message}`);
       }
     }
 

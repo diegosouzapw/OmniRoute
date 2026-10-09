@@ -29,6 +29,7 @@
 
 import { z } from "zod";
 import { recordCost } from "@/domain/costRules";
+import { SEARCH_LEDGER_SERVICE_TIER } from "@/lib/db/costLedger";
 import type { SearchProviderConfig } from "../../config/searchRegistry.ts";
 
 export const MAX_REPORTED_SEARCH_COST_USD = 100;
@@ -126,9 +127,9 @@ function claimRequestId(providerId: string, requestId: string): boolean {
 }
 
 /**
- * Record a search call's cost against an API key. A static cost is recorded
- * exactly as before (`recordCost(id, cost)`); a provider-reported cost also
- * lands in `request_cost_ledger` with provider/model/request id, at most once
+ * Record a search call's cost against an API key: spend batch writer plus a
+ * `request_cost_ledger` row tagged `service_tier = "search"`, which is how per-key
+ * USD quotas find search spend. A provider-reported cost is recorded at most once
  * per request id.
  */
 export function recordSearchUsageCost(
@@ -138,15 +139,13 @@ export function recordSearchUsageCost(
   success = true
 ): void {
   if (!apiKeyId || !usage || !(usage.search_cost_usd > 0)) return;
-  if (usage.cost_source !== "provider_reported") {
-    recordCost(apiKeyId, usage.search_cost_usd);
-    return;
-  }
-  if (usage.request_id && !claimRequestId(providerId, usage.request_id)) return;
+  const reported = usage.cost_source === "provider_reported";
+  if (reported && usage.request_id && !claimRequestId(providerId, usage.request_id)) return;
   recordCost(apiKeyId, usage.search_cost_usd, {
     provider: providerId,
     model: `${providerId}/search`,
-    requestId: usage.request_id ?? null,
+    serviceTier: SEARCH_LEDGER_SERVICE_TIER,
+    requestId: reported ? (usage.request_id ?? null) : null,
     success,
   });
 }
