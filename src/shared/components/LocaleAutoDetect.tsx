@@ -30,12 +30,12 @@ export function LocaleAutoDetect() {
     );
     if (!detected) return;
 
+    const renderedLocale = document.documentElement.lang || null;
     persistLocale(detected as Locale);
     // Only refresh when the detected locale DIFFERS from the one the server
     // just rendered (<html lang>): refreshing on every first visit re-navigated
     // the page mid-interaction (flaky e2e "execution context destroyed" + a
     // visible flash for every new visitor whose browser already matches).
-    const renderedLocale = document.documentElement.lang || null;
     if (renderedLocale === detected) return;
     router.refresh();
     // Run once on mount only — this is a first-visit detection, not a
