@@ -435,6 +435,28 @@ export function scoreAutoTargets(
     .sort((a, b) => b.score - a.score);
 }
 
+type AutoCustomModel = { id: string; supportedEndpoints?: readonly string[] };
+
+function isValidAutoCustomModel(model: unknown): model is AutoCustomModel {
+  if (!model || typeof model !== "object" || Array.isArray(model)) return false;
+  const candidate = model as { id?: unknown; supportedEndpoints?: unknown };
+  if (typeof candidate.id !== "string" || candidate.id.length === 0) return false;
+  if (candidate.supportedEndpoints === undefined) return true;
+  return (
+    Array.isArray(candidate.supportedEndpoints) &&
+    candidate.supportedEndpoints.every((endpoint) => typeof endpoint === "string")
+  );
+}
+
+/**
+ * `customModels` is an operator-writable key_value JSON blob: drop rows that are not
+ * objects with a non-empty string `id` (and, when present, a string[] `supportedEndpoints`)
+ * so one malformed row cannot abort the auto-pool expansion.
+ */
+function sanitizeAutoCustomModels(rawModels: unknown): AutoCustomModel[] {
+  return Array.isArray(rawModels) ? rawModels.filter(isValidAutoCustomModel) : [];
+}
+
 /**
  * For an auto-combo WITHOUT an explicit `candidatePool`, broaden the eligible
  * targets to every model of every active provider connection so the router has
@@ -511,10 +533,11 @@ export async function expandAutoComboCandidatePool(
       // synced a subset (e.g. OpenRouter with importFreeModelsOnly).
       // #11088 (option 1): the synced store now persists non-chat models too —
       // chat combo pools must keep filtering them out at read time.
-      const [syncedModelsRaw, customModels] = await Promise.all([
+      const [syncedModelsRaw, rawCustomModels] = await Promise.all([
         getSyncedAvailableModels(providerId),
         getCustomModels(providerId),
       ]);
+      const customModels = sanitizeAutoCustomModels(rawCustomModels);
       const syncedModels = filterChatSelectableModels(providerId, syncedModelsRaw);
       // Custom rows include speech / transcription / image models imported from a
       // media provider's local catalog or added by hand; they are not chat targets.
