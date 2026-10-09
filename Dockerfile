@@ -91,8 +91,10 @@ COPY scripts/build/native-binary-compat.mjs ./scripts/build/native-binary-compat
 ENV BUN_INSTALL_CACHE_DIR=/root/.bun/install/cache
 # --ignore-scripts blocks broad dependency install/postinstall hooks, closing
 # the supply-chain attack surface where a transitive dep can run arbitrary code
-# at install time. better-sqlite3 still needs a native binding for the target
-# platform, so rebuild and smoke-test only that known runtime dependency below.
+# at install time. Bun itself is an explicit trusted dependency; run its small
+# bootstrap so Bun's package-local binary is usable by later build checks.
+# better-sqlite3 still needs a native binding for the target platform, so rebuild
+# and smoke-test only that known runtime dependency below.
 #
 # We REQUIRE a committed bun.lock so resolved dependency versions are reproducible.
 RUN test -f bun.lock \
@@ -103,8 +105,9 @@ RUN test -f bun.lock \
 # this keeps the native build reproducible without downloading a tool at build time.
 RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-bun-cache,target=/root/.bun/install/cache \
   bun install --frozen-lockfile --ignore-scripts --no-progress \
+  && node node_modules/bun/install.js \
   && (cd node_modules/better-sqlite3 \
-      && node node_modules/node-gyp/bin/node-gyp.js rebuild --force_build=1) \
+      && node /app/node_modules/node-gyp/bin/node-gyp.js rebuild --force_build=1) \
   && test -f node_modules/better-sqlite3/build/Release/better_sqlite3.node \
   && node -e "require('better-sqlite3')(':memory:').close()" \
   && node -e "const wreq=require('wreq-js'); if(typeof wreq.createTransport!=='function') process.exit(1)"
@@ -309,9 +312,10 @@ FROM runner-base AS runner-web
 USER root
 
 # Copy playwright and playwright-core from the builder stage.
-# The slim runtime image does not have playwright in node_modules, so npx falls
-# back to a registry download — unreliable on CI runners (exits 127 on failure).
-# Copying from the builder avoids any network access at image-build time and also
+# The slim runtime image does not have playwright in node_modules, so invoking
+# the CLI through a package runner would fall back to a registry download —
+# unreliable on CI runners (exits 127 on failure). Copying from the builder avoids
+# any network access at image-build time and also
 # ensures the same playwright version is available at runtime for web-session providers.
 COPY --from=builder /app/node_modules/playwright-core ./node_modules/playwright-core
 COPY --from=builder /app/node_modules/playwright ./node_modules/playwright
