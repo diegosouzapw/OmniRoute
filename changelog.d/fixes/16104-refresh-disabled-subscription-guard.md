@@ -1,0 +1,1 @@
+- **fix(subscriptions):** Refreshing a disabled subscription no longer deletes its missing nodes ([#16104](https://github.com/diegosouzapw/OmniRoute/pull/16104)) — thanks @maxmad64bis

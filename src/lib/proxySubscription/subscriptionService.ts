@@ -43,6 +43,7 @@ import {
   redactCoreEntryForDetail,
 } from "./coreEndpoint";
 import { isProxyReachable } from "../proxyHealth";
+import { removeStaleSubscriptionNodes } from "./staleNodes";
 import { resolveTargetScopes } from "./scopes";
 import { clampSelectorGapSeconds, setAnyControlUrlConfigured } from "./selectorTrigger";
 import { stripSelectorSuffix } from "./selectorEndpoint";
@@ -862,31 +863,10 @@ async function syncSubscriptionUnsafe(id: string): Promise<SyncResult> {
     }
 
     // Remove stale subscription nodes no longer present in the fetched set.
-    if (keptIds.length > 0) {
-      const placeholders = keptIds.map(() => "?").join(",");
-      const stale = db
-        .prepare(
-          `SELECT id FROM proxy_registry WHERE subscription_id = ? AND id NOT IN (${placeholders})`
-        )
-        .all(id, ...keptIds) as Array<{ id: string }>;
-      for (const r of stale) {
-        try {
-          await deleteProxyById(r.id, { force: true });
-        } catch {
-          // ignore
-        }
-      }
-    } else {
-      const stale = db
-        .prepare("SELECT id FROM proxy_registry WHERE subscription_id = ?")
-        .all(id) as Array<{ id: string }>;
-      for (const r of stale) {
-        try {
-          await deleteProxyById(r.id, { force: true });
-        } catch {
-          // ignore
-        }
-      }
+    // A disabled subscription keeps its rows: the refresh still upserts the
+    // fetched nodes as a preview, but skips stale removal while disabled.
+    if (sub.enabled) {
+      await removeStaleSubscriptionNodes(db, id, keptIds);
     }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
