@@ -1,4 +1,5 @@
 import { buildModalityBridgeHeader } from "./bridgeStats";
+import { VIDEO_DRILLDOWN_HANDLE_PATTERN } from "../videoBridgeDrilldownHandle";
 
 export type ModalityBridgeResponseHeaders = Partial<
   Record<"x-omniroute-modality-bridge" | "x-omniroute-video-drilldown", string>
@@ -20,7 +21,8 @@ export function buildModalityBridgeResponseHeaders(
     for (const item of result.meta.videoDrilldownHandles.slice(0, 4)) {
       if (handles.size >= 4) break;
       const handle = item && typeof item === "object" ? item.handle : undefined;
-      if (typeof handle === "string" && /^[0-9a-f]{64}$/.test(handle)) handles.add(handle);
+      if (typeof handle === "string" && VIDEO_DRILLDOWN_HANDLE_PATTERN.test(handle))
+        handles.add(handle);
     }
   }
   if (handles.size) headers["x-omniroute-video-drilldown"] = [...handles].join(",");

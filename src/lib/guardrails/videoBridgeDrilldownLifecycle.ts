@@ -4,13 +4,13 @@
 // (principalId, sessionId, videoRef) and already refuses cross-principal reads/deletes
 // without revealing whether an entry exists. This module adds the missing lifecycle on
 // top of it, without touching the frozen-shape substrate file:
-//   - opaque hashed handles, so a consumer never needs (and never sees) the raw
+//   - opaque random handles (only their hashes are retained), hiding the raw
 //     sessionId/videoRef the substrate indexes by — both are minted server-side here;
 //   - preview/standard/detail multiresolution variants, resampled on read (never stored
 //     more than once, so producing stays "zero overhead" beyond the opt-in call itself);
 //   - response pagination capped at 8 frames and a bounded response-byte budget;
 //   - a small handle registry with its own TTL/quota, cleaned up alongside the cache.
-import { createHash, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 
 import sharp from "sharp";
 
@@ -23,6 +23,7 @@ import {
   type VideoDrilldownResult,
 } from "./videoBridgeDrilldown";
 import { JPEG_FRAME_DATA_URI_PREFIX } from "./videoBridgeFrameContract";
+import { VIDEO_DRILLDOWN_HANDLE_PATTERN } from "./videoBridgeDrilldownHandle";
 
 export type VideoDrilldownVariant = "preview" | "standard" | "detail";
 
@@ -51,7 +52,9 @@ export const VIDEO_DRILLDOWN_VARIANT_PRESETS: Record<
 export const VIDEO_DRILLDOWN_MAX_PAGE_FRAMES = 8;
 export const VIDEO_DRILLDOWN_MAX_PAGE_BYTES = VIDEO_DRILLDOWN_MAX_ENTRY_BYTES;
 
-const HANDLE_PATTERN = /^[0-9a-f]{64}$/;
+function handleDigest(handle: string): string {
+  return createHash("sha256").update(handle, "utf8").digest("hex");
+}
 
 function truthyFlag(value: string | undefined): boolean {
   if (!value) return false;
@@ -302,8 +305,7 @@ export class VideoDrilldownLifecycle {
   }
 
   /**
-   * A handle evicted for quota is unreachable forever (its digest can never be re-derived
-   * without the minted sessionId/videoRef), so its cache entry must be released here too —
+   * A handle evicted for quota is unreachable forever, so release its cache entry too —
    * otherwise it would sit as unreclaimable, invisible quota usage until TTL expiry.
    */
   private releaseEvictedHandle(handle: string, entry: HandleEntry): void {
@@ -330,14 +332,8 @@ export class VideoDrilldownLifecycle {
   private registerHandle(principalId: string, sessionId: string, videoRef: string): string {
     const principalKey = principalDigest(principalId);
     const createdAt = this.now();
-    const handle = createHash("sha256")
-      .update(principalKey, "utf8")
-      .update(":", "utf8")
-      .update(sessionId, "utf8")
-      .update(":", "utf8")
-      .update(videoRef, "utf8")
-      .digest("hex");
-    this.handles.set(handle, {
+    const handle = `v1.${randomBytes(32).toString("base64url")}`;
+    this.handles.set(handleDigest(handle), {
       createdAt,
       expiresAt: createdAt + this.ttlMs,
       principalId,
@@ -362,9 +358,9 @@ export class VideoDrilldownLifecycle {
   }
 
   private resolveHandleEntry(principalId: string, handle: string): HandleEntry | null {
-    if (!HANDLE_PATTERN.test(handle)) return null;
+    if (!VIDEO_DRILLDOWN_HANDLE_PATTERN.test(handle)) return null;
     this.sweepExpiredHandles();
-    const entry = this.handles.get(handle);
+    const entry = this.handles.get(handleDigest(handle));
     if (!entry || entry.principalKey !== principalDigest(principalId)) return null;
     return entry;
   }
@@ -385,7 +381,7 @@ export class VideoDrilldownLifecycle {
       options.signal.throwIfAborted();
     }
     const handle = this.registerHandle(principalId, sessionId, videoRef);
-    const entry = this.handles.get(handle);
+    const entry = this.handles.get(handleDigest(handle));
     return { expiresAt: entry?.expiresAt ?? this.now() + this.ttlMs, handle };
   }
 
@@ -403,7 +399,7 @@ export class VideoDrilldownLifecycle {
       startSeconds: query.startSeconds,
     });
     if (!stored) {
-      this.dropHandle(handle, entry);
+      this.dropHandle(handleDigest(handle), entry);
       return null;
     }
     const variant = query.variant ?? "detail";
@@ -441,7 +437,7 @@ export class VideoDrilldownLifecycle {
     const entry = this.resolveHandleEntry(principalId, handle);
     if (!entry) return 0;
     const removed = this.cache.clearSession(principalId, entry.sessionId);
-    this.dropHandle(handle, entry);
+    this.dropHandle(handleDigest(handle), entry);
     this.armExpiryTimer();
     return removed;
   }

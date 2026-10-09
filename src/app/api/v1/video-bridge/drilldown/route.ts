@@ -6,6 +6,7 @@ import { extractApiKey, isValidApiKey } from "@/sse/services/auth";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 import { getCachedSettings } from "@/lib/db/readCache";
 import { createLogger } from "@/shared/utils/logger";
+import { VIDEO_DRILLDOWN_HANDLE_PATTERN } from "@/lib/guardrails/videoBridgeDrilldownHandle";
 
 import {
   VIDEO_DRILLDOWN_VARIANTS,
@@ -26,7 +27,7 @@ const log = createLogger("video-drilldown-consumer");
 
 const HandleSchema = z
   .string()
-  .regex(/^[0-9a-f]{64}$/, "handle must be an opaque 64-character hex value");
+  .regex(VIDEO_DRILLDOWN_HANDLE_PATTERN, "handle must be an opaque versioned or legacy token");
 const VariantSchema = z.enum(
   VIDEO_DRILLDOWN_VARIANTS as [VideoDrilldownVariant, ...VideoDrilldownVariant[]]
 );
@@ -44,12 +45,17 @@ const ReadQuerySchema = z
   .object({
     end: NonNegativeNumberSchema.optional(),
     frames: BoundedIntSchema.pipe(z.number().int().min(1).max(8)).optional(),
+    limit: BoundedIntSchema.pipe(z.number().int().min(1).max(8)).optional(),
     handle: HandleSchema,
     page: BoundedIntSchema.pipe(z.number().int().min(0)).optional(),
     start: NonNegativeNumberSchema.optional(),
     variant: VariantSchema.optional(),
   })
   .strict()
+  .refine(
+    (query) => query.frames === undefined || query.limit === undefined,
+    "use limit or the legacy frames alias, not both"
+  )
   .refine(
     (query) => query.start === undefined || query.end === undefined || query.start < query.end,
     "focus end must follow start"
@@ -128,7 +134,7 @@ export async function handleVideoBridgeDrilldownConsumerRequest(
     return await runConsumerRequest(request, dependencies);
   } catch {
     if (request.signal.aborted) return corsError(499, "Request was cancelled", "request_cancelled");
-    log.warn("Video drill-down request failed", { code: "DRILLDOWN_UNAVAILABLE" });
+    log.warn({ code: "DRILLDOWN_UNAVAILABLE" }, "Video drill-down request failed");
     return corsError(
       503,
       "Video Bridge drill-down is temporarily unavailable",
@@ -170,7 +176,7 @@ async function runConsumerRequest(
     return corsError(400, "Invalid Video Bridge drill-down query", "invalid_request");
   const page = await lifecycle.resolve(principalId, parsed.data.handle, {
     endSeconds: parsed.data.end,
-    frameCount: parsed.data.frames,
+    frameCount: parsed.data.limit ?? parsed.data.frames,
     page: parsed.data.page,
     startSeconds: parsed.data.start,
     variant: parsed.data.variant,

@@ -1002,7 +1002,8 @@ Both reads and `DELETE` always require a valid API key and the operator's indepe
 requires `modalityBridgeVideoDrilldownEnabled` and strict per-part `drilldown: true`.
 
 GET query: required `handle`; optional `variant` (`preview`, `standard`, `detail`),
-`frames` (1–8), zero-based `page`, and `start`/`end` seconds. When both focus bounds
+`limit` (1–8; legacy `frames` is accepted but cannot be combined with `limit`),
+zero-based `page`, and `start`/`end` seconds. When both focus bounds
 are supplied, `end` must be greater than `start`. Duplicate/unknown query keys are
 rejected. Successful responses contain `derivation`, `durationSeconds`, `frames`,
 `hasMore`, `page`, `variant`, and optional `focusWindow`; no-store JSON is capped at
@@ -1013,6 +1014,8 @@ Unknown, expired and cross-key GETs are indistinguishable 404 responses; cross-k
 DELETE cannot remove the owner's entry. Disabled access returns 403, missing/invalid
 authentication 401, invalid queries 400, cancellation 499 and temporary errors 503.
 Handles are process-local, expire after ten minutes, and do not survive a restart.
+New handles use `v1.` plus a 32-byte random Base64URL token; only token hashes are
+retained. Legacy 64-hex tokens remain syntactically readable for compatibility.
 See [Video Bridge guardrails](../security/GUARDRAILS.md#video-bridge-videobridgets-videobridgepipelinets)
 for consent, quotas and variant derivation details.
 

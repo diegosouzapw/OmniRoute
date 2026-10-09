@@ -52,7 +52,7 @@ test("a consented authenticated video request publishes a bounded opaque drill-d
   const handles = result.meta?.videoDrilldownHandles as
     Array<{ handle: string; expiresAt: number }> | undefined;
   assert.equal(handles?.length, 1);
-  assert.match(handles![0].handle, /^[0-9a-f]{64}$/);
+  assert.match(handles![0].handle, /^v1\.[A-Za-z0-9_-]{43}$/);
   assert.ok(handles![0].expiresAt > Date.now());
   assert.ok(!JSON.stringify(result).includes("data:image/jpeg"));
   assert.ok(!JSON.stringify(result).includes("forged-tenant"));

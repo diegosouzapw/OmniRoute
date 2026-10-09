@@ -119,6 +119,17 @@ test("consumer route resolves a produced handle for its own API key and paginate
   const body = await response.json();
   assert.equal(body.variant, "preview");
   assert.equal(body.frames.length, 2);
+  const limited = await route.handleVideoBridgeDrilldownConsumerRequest(
+    get(`/api/v1/video-bridge/drilldown?handle=${handle}&limit=1`, key),
+    { isRemoteAccessEnabled: () => true, lifecycle }
+  );
+  assert.equal(limited.status, 200);
+  assert.equal((await limited.json()).frames.length, 1);
+  const ambiguous = await route.handleVideoBridgeDrilldownConsumerRequest(
+    get(`/api/v1/video-bridge/drilldown?handle=${handle}&limit=1&frames=2`, key),
+    { isRemoteAccessEnabled: () => true, lifecycle }
+  );
+  assert.equal(ambiguous.status, 400);
   for (const frame of body.frames) {
     assert.ok(frame.width <= 320);
     assert.ok(frame.height <= 320);
