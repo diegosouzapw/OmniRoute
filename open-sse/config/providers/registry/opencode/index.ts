@@ -11,6 +11,9 @@ export const opencodeProvider: RegistryEntry = {
   authHeader: "Authorization",
   authPrefix: "Bearer",
   passthroughModels: true,
+  // #15540: the keyless Free tier serves every model below even when the account row
+  // (apiKey "public") only syncs a subset, so a partial discovery must not reject them.
+  liveCatalogAuthoritative: false,
   defaultContextLength: 200000,
   models: [
     // #2900: big-pickle's upstream runs DeepSeek thinking mode — declare the
