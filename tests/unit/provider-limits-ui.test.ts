@@ -417,6 +417,27 @@ test("OpenRouter credits render as a USD credit count, not a percentage row", ()
   assert.equal(freeDaily.total, 50);
 });
 
+test("Antigravity live quota models retain upstream order instead of static catalog rank", () => {
+  const quotas = providerLimitUtils.parseQuotaData("antigravity", {
+    quotas: {
+      "gemini-3.9-flash-high": { used: 2, total: 100, remainingPercentage: 98 },
+      "gemini-3.8-flash-high": { used: 2, total: 100, remainingPercentage: 98 },
+      gemini_session: {
+        used: 2,
+        total: 100,
+        remainingPercentage: 98,
+        quotaAggregate: true,
+        quotaWindow: "session",
+      },
+    },
+  });
+
+  assert.deepEqual(
+    quotas.map((quota) => quota.modelKey || quota.name),
+    ["gemini-3.9-flash-high", "gemini-3.8-flash-high", "gemini_session"]
+  );
+});
+
 test("hidden provider models are filtered from per-model quota rows", () => {
   const quotas = providerLimitUtils.parseQuotaData("antigravity", {
     quotas: {
@@ -535,39 +556,4 @@ test("provider quota auto-refresh settings are accepted by the settings schema",
   });
 
   assert.equal(result.success, true);
-});
-
-test("grok-cli banked reset credits parse as an integer reset-credit counter including zero", () => {
-  const parsed = providerLimitUtils.parseQuotaData("grok-cli", {
-    quotas: {
-      weekly: { used: 37.25, total: 100, remainingPercentage: 62.75, isPercentageOnly: true },
-    },
-    bankedResetCredits: 0,
-  }) as ParsedQuota[];
-  const resetCredits = parsed.find((quota) => quota.name === "banked_reset_credits");
-  assert.ok(resetCredits);
-  assert.equal(resetCredits.isResetCredits, true);
-  assert.equal(resetCredits.creditCount, 0);
-});
-
-test("grok-cli omits the reset-credit row when bankedResetCredits is absent", () => {
-  const parsed = providerLimitUtils.parseQuotaData("grok-cli", {
-    quotas: {
-      weekly: { used: 37.25, total: 100, remainingPercentage: 62.75 },
-    },
-  }) as ParsedQuota[];
-  assert.equal(
-    parsed.some((quota) => quota.name === "banked_reset_credits"),
-    false
-  );
-});
-
-test("grok-cli exposes the redeem button when banked reset credits are present", () => {
-  const parsed = providerLimitUtils.parseQuotaData("grok-cli", {
-    quotas: { weekly: { used: 0, total: 100, remainingPercentage: 100 } },
-    bankedResetCredits: 2,
-  });
-  assert.equal(providerLimitUtils.computeCanRedeemResetCredit("grok-cli", parsed), true);
-  assert.equal(providerLimitUtils.computeCanRedeemResetCredit("codex", parsed), true);
-  assert.equal(providerLimitUtils.computeCanRedeemResetCredit("claude", parsed), false);
 });

@@ -218,10 +218,13 @@ test("OpenAI -> Claude converts multimodal content, tool declarations, tool call
       message.role === "user" && message.content.some((block) => block.type === "tool_result")
   );
   assert.ok(toolResultMessage, "expected a translated tool_result message");
+  // #15754: every Anthropic tool_result block now carries a boolean is_error
+  // (strict upstreams like the Zed hosted proxy 400 when the field is missing).
   assert.deepEqual(toolResultMessage.content[0], {
     type: "tool_result",
     tool_use_id: "call_weather",
     content: [{ type: "text", text: "20C" }],
+    is_error: false,
   });
 });
 
@@ -278,9 +281,7 @@ test("OpenAI -> Claude does not leave tool results separated from their tool use
     (message) =>
       message.role === "user" &&
       message.content.some(
-        (block) =>
-          block.type === "text" &&
-          block.text === "Please wait before using that result."
+        (block) => block.type === "text" && block.text === "Please wait before using that result."
       )
   );
   assert.ok(

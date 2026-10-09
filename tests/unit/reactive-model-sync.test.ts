@@ -153,24 +153,27 @@ test("test 13: claude/codex/github do not trigger reactive sync", () => {
   assert.equal(calls.length, 0);
 });
 
-test("test 13: antigravity executor still calls maybeTriggerReactiveModelSync", () => {
+test("test 13: antigravity executor still triggers a reactive sync on 404", () => {
   const src = fs.readFileSync(
     path.join(process.cwd(), "open-sse/executors/antigravity/executeAttempt.ts"),
-    "utf8",
+    "utf8"
   );
-  assert.match(src, /maybeTriggerReactiveModelSync\(\s*provider,\s*credentials\.connectionId\s*\)/);
+  // #13739 switched the 404 path from the fire-and-forget trigger to the awaited
+  // sync (same cooldown/in-flight guard) so the request can retry once on success;
+  // reactive-model-sync-retry.test.ts covers awaitReactiveModelSync's behavior.
+  assert.match(src, /awaitReactiveModelSync\(\s*provider,\s*credentials\.connectionId\s*\)/);
 });
 
 test("test 14: claude live non-200 uses catalog fallback, not empty 502", () => {
   const src = fs.readFileSync(
     path.join(process.cwd(), "src/app/api/providers/[id]/models/route.ts"),
-    "utf8",
+    "utf8"
   );
   // Task 2 deleted the claude static early return. Claude is a
   // PROVIDER_MODELS_CONFIG live provider and must land in generic live.
   assert.doesNotMatch(
     src,
-    /if\s*\(\s*provider\s*===\s*"claude"\s*\)[\s\S]{0,400}getStaticModelsForProvider\(\s*"claude"/,
+    /if\s*\(\s*provider\s*===\s*"claude"\s*\)[\s\S]{0,400}getStaticModelsForProvider\(\s*"claude"/
   );
   const assembleIdx = src.lastIndexOf("assembleProviderModelsHeaders");
   assert.ok(assembleIdx >= 0, "generic live must assemble provider-models headers");
@@ -178,10 +181,7 @@ test("test 14: claude live non-200 uses catalog fallback, not empty 502", () => 
   // Generic live 401/non-200: warning + cached/local catalog, not a 502 empty body.
   assert.match(
     tail,
-    /if\s*\(\s*!response\.ok\s*\)[\s\S]{0,400}buildDiscoveryFallbackResponse\(\s*\)/,
+    /if\s*\(\s*!response\.ok\s*\)[\s\S]{0,400}buildDiscoveryFallbackResponse\(\s*\)/
   );
-  assert.doesNotMatch(
-    tail,
-    /if\s*\(\s*!response\.ok\s*\)[\s\S]{0,500}status:\s*502/,
-  );
+  assert.doesNotMatch(tail, /if\s*\(\s*!response\.ok\s*\)[\s\S]{0,500}status:\s*502/);
 });

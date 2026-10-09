@@ -64,8 +64,11 @@ import { handleCloudflareAiImageGeneration } from "./imageGeneration/providers/c
 import { buildXaiImageRequest } from "./imageGeneration/providers/xaiImage.ts";
 import { handleMaxaiImageGeneration } from "./imageGeneration/providers/maxaiImage.ts";
 import { handleAdobeFireflyImageGeneration } from "./imageGeneration/providers/adobeFirefly.ts";
+import { handleSyntxImageGeneration } from "./imageGeneration/providers/syntx.ts";
+import { geminiInlineImagePart } from "./imageGeneration/providers/geminiInline.ts";
 import { handleAlibabaImageGeneration } from "./imageGeneration/providers/alibabaImage.ts";
 import { handleAiHordeImageGeneration } from "./imageGeneration/providers/aihorde.ts";
+import * as codexImages from "./imageGeneration/providers/codexImages.ts";
 import { handleZenmuxImageGeneration } from "./imageGeneration/providers/zenmux.ts";
 import {
   applyPollinationsAnonymousFallback,
@@ -74,6 +77,8 @@ import {
 
 // Re-export so /v1/images/edits can dispatch Firefly reference-image edits.
 export { handleAdobeFireflyImageGeneration };
+export { handleSyntxImageGeneration };
+export { isCodexChatGptModelAccessError };
 
 interface KieImageOptions {
   model: string;
@@ -289,7 +294,7 @@ function parseJsonOrNull(value: string): unknown | null {
   }
 }
 
-function sanitizeImageProviderError(errorText: string): unknown {
+export function sanitizeImageProviderError(errorText: string): unknown {
   const parsed = parseJsonOrNull(errorText);
   if (parsed !== null) {
     return sanitizeUpstreamDetails(parsed) || sanitizeErrorMessage(errorText);
@@ -698,6 +703,10 @@ export async function handleImageGeneration({
     });
   }
 
+  if (providerConfig.format === "syntx-image") {
+    return handleSyntxImageGeneration({ model, provider, providerConfig, body, credentials, log });
+  }
+
   if (providerConfig.format === "nanobanana") {
     return handleNanoBananaImageGeneration({
       model,
@@ -1073,31 +1082,6 @@ async function handleKieImageGeneration({
  * Handle Gemini-format image generation (Antigravity / Nano Banana)
  * Uses Gemini's generateContent API with responseModalities: ["TEXT", "IMAGE"]
  */
-function geminiInlineImagePart(
-  body: unknown
-): { inlineData: { mimeType: string; data: string } } | null {
-  if (!body || typeof body !== "object") return null;
-  const record = body as Record<string, unknown>;
-  const mimeType =
-    typeof record.imageMime === "string" && record.imageMime ? record.imageMime : "image/png";
-  if (Buffer.isBuffer(record.imageBytes)) {
-    return { inlineData: { mimeType, data: record.imageBytes.toString("base64") } };
-  }
-  if (typeof record.imageBytes === "string" && record.imageBytes.length > 0) {
-    return { inlineData: { mimeType, data: record.imageBytes } };
-  }
-  if (typeof record.image_url === "string" && record.image_url.startsWith("data:")) {
-    return {
-      inlineData: {
-        mimeType:
-          record.image_url.match(/^data:(image\/[a-zA-Z0-9+-]+);base64,/)?.[1] || "image/png",
-        data: record.image_url.replace(/^data:image\/[a-zA-Z0-9+-]+;base64,/, ""),
-      },
-    };
-  }
-  return null;
-}
-
 async function handleGeminiImageGeneration({ model, providerConfig, body, credentials, log }) {
   const startTime = Date.now();
   const url = providerConfig.baseUrl;
@@ -2558,7 +2542,7 @@ export function extractImageGenerationCalls(
 // The image_generation hosted tool accepts { "auto" | "low" | "medium" | "high" }
 // for `quality`. Legacy image clients often send "standard" / "hd". Map those values
 // so OpenWebUI's quality dropdown doesn't silently get rejected upstream.
-function mapLegacyImageQualityToImageTool(value: string): string {
+export function mapLegacyImageQualityToImageTool(value: string): string {
   const normalized = value.toLowerCase();
   if (normalized === "standard") return "medium";
   if (normalized === "hd") return "high";
@@ -2628,11 +2612,10 @@ async function handleCodexImageGeneration({
     !Array.isArray(credentials.providerSpecificData)
       ? (credentials.providerSpecificData as Record<string, unknown>).workspaceId
       : undefined;
-
-  // Forward size/quality from the GPT-Image-style body into the hosted tool so
-  // OpenWebUI's size/quality selectors actually take effect. Everything else
-  // (model, n, background, moderation, output_compression) is left to the
-  // Codex backend's defaults — today that's `gpt-image-2`.
+  if (codexImages.isCodexImagesApiModel(model)) {
+    // prettier-ignore
+    return codexImages.handleCodexImagesApi({ model, provider, baseUrl: providerConfig.baseUrl, body, token, workspaceId, requestedCount, referenceImages, startTime, log, signal, logPath });
+  }
   const toolConfig: Record<string, unknown> = { type: "image_generation", output_format: "png" };
   if (referenceImages.length > 0) toolConfig.action = "edit";
   if (typeof body.size === "string" && body.size.trim()) {

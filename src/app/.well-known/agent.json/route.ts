@@ -11,10 +11,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+import { APP_CONFIG } from "@/shared/constants/appConfig";
 import { getFleetSkills } from "@/lib/conductor/fleetSkills";
 import { getBaseUrl } from "@/lib/wellKnown";
-
-const PACKAGE_VERSION = process.env.npm_package_version || "1.8.1";
 
 /**
  * GET /.well-known/agent.json
@@ -34,7 +33,7 @@ export async function GET(request?: NextRequest) {
       "格式转换和自动管理组合。根据成本、延迟、配额可用性" +
       "和任务要求将 AI 请求路由到最优提供者。",
     url: `${baseUrl}/a2a`,
-    version: PACKAGE_VERSION,
+    version: APP_CONFIG.version,
     capabilities: {
       streaming: true,
       pushNotifications: false,

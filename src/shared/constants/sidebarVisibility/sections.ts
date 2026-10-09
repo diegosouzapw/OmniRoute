@@ -472,6 +472,13 @@ const SYSTEM_GROUP: SidebarItemGroup = {
       subtitleKey: "resilienceConnectionsSubtitle",
       icon: "shield",
     },
+    {
+      id: "resilience-cooldowns",
+      href: "/dashboard/resilience/cooldowns",
+      i18nKey: "resilienceCooldowns",
+      subtitleKey: "resilienceCooldownsSubtitle",
+      icon: "timer_off",
+    },
   ],
 };
 

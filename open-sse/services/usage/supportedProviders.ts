@@ -39,7 +39,11 @@ export const USAGE_SUPPORTED_PROVIDERS: readonly string[] = [
   "minimax",
   "minimax-cn",
   "crof",
+  "clinepass",
   "nanogpt",
+  // Apmix (apmix.ai) — monthly weighted-token allowance + self-set daily/weekly caps
+  // + top-up credits (GET https://api.apmix.ai/v1/usage, Bearer key)
+  "apmix",
   "deepseek",
   "moonshot",
   "kimi",
@@ -78,6 +82,8 @@ export const USAGE_SUPPORTED_PROVIDERS: readonly string[] = [
   "command-code",
   "conol-web",
   "cnl",
+  "syntx",
+  "stx",
   // Alibaba Coding Plan triple-window quota (#9603 UI gap — fetcher existed, list entry missing)
   "bailian-coding-plan",
   // Qwen Cloud / Model Studio personal Token Plan (cookie-authenticated console gateway)
@@ -94,4 +100,7 @@ export const USAGE_SUPPORTED_PROVIDERS: readonly string[] = [
   "lyceum",
   // Devin CLI agentic quota (Codeium seat-management GetUserStatus, protobuf)
   "devin-cli",
+  // ChatPlayground subscription and daily credits (GET /api/user)
+  "chatplayground",
+  "cpl",
 ];

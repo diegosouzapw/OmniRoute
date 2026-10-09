@@ -38,10 +38,6 @@ export default function ConnectionTestButton({ connectionId, disabled, compact, 
   useEffect(() => {
     if (!open) return;
     const controller = new AbortController();
-    setLoading(true);
-    setError("");
-    setAnswer("");
-    setSaved(false);
     Promise.all([
       fetch(endpoint, { signal: controller.signal }).then(readResponse),
       fetch(
@@ -113,6 +109,12 @@ export default function ConnectionTestButton({ connectionId, disabled, compact, 
         className={compact ? "!px-1" : "!px-2"}
         onClick={(event) => {
           event.stopPropagation();
+          // Reset the per-open state in the handler, not in the loading effect
+          // (react-hooks/set-state-in-effect).
+          setLoading(true);
+          setError("");
+          setAnswer("");
+          setSaved(false);
           setOpen(true);
         }}
       >
