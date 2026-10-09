@@ -36,7 +36,7 @@ runs:
     - name: Restore node_modules cache
       if: inputs.cache != 'false'
       id: cache
-      uses: actions/cache@v5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: node_modules
         key: node-modules-bun-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.version }}-${{ steps.bun.outputs.version }}-${{ hashFiles('bun.lock', 'package.json', 'open-sse/package.json', 'packages/browser-pool/package.json', 'scripts/build/postinstall.mjs', 'scripts/build/postinstallSupport.mjs', 'scripts/build/colocateOptionals.mjs', 'scripts/build/wreqJsNative.mjs', 'scripts/build/fixPlaywrightAndroid.mjs', 'scripts/build/native-binary-compat.mjs', 'scripts/build/betterSqlitePrebuildTarget.mjs') }}
