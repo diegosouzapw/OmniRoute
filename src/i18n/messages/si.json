@@ -8787,7 +8787,11 @@
     "resilienceTokenRefreshScopeProvider": "සැපයුම්කරු (සියලු ගිණුම් එක් බ්‍රේකරයක් බෙදා ගනී)",
     "resilienceTokenRefreshScopeConnection": "සම්බන්ධතාවය (සෑම ගිණුමකටම එහිම බ්‍රේකරය ඇත)",
     "resilienceTokenRefreshThreshold": "විරාමයකට පෙර අසාර්ථකතා",
-    "resilienceTokenRefreshCooldown": "සක්‍රීය වූ පසු විරාමය"
+    "resilienceTokenRefreshCooldown": "සක්‍රීය වූ පසු විරාමය",
+    "modalityBridgeVideoDrilldownEnabled": "Retain derived video frames",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Allow temporary JPEG retention only when the authenticated request also sets drilldown: true. Raw videos are never retained.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Allow authenticated frame drill-down",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Allow API keys to read and delete only their own opaque handles. No anonymous or cross-key access."
   },
   "contextRtk": {
     "title": "RTK එන්ජිම",

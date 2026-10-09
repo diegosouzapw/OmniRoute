@@ -8787,7 +8787,11 @@
     "resilienceTokenRefreshScopeProvider": "អ្នកផ្គត់ផ្គង់ (គណនីទាំងអស់ចែករំលែកប៊្រីកឃើរតែមួយ)",
     "resilienceTokenRefreshScopeConnection": "ការតភ្ជាប់ (គណនីនីមួយៗមានឧបករណ៍ផ្ទុះផ្ទាល់ខ្លួន)",
     "resilienceTokenRefreshThreshold": "ការបរាជ័យមុនពេលផ្អាក",
-    "resilienceTokenRefreshCooldown": "ផ្អាកបន្ទាប់ពីដំណើរការ"
+    "resilienceTokenRefreshCooldown": "ផ្អាកបន្ទាប់ពីដំណើរការ",
+    "modalityBridgeVideoDrilldownEnabled": "Retain derived video frames",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Allow temporary JPEG retention only when the authenticated request also sets drilldown: true. Raw videos are never retained.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Allow authenticated frame drill-down",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Allow API keys to read and delete only their own opaque handles. No anonymous or cross-key access."
   },
   "contextRtk": {
     "title": "ម៉ាស៊ីន RTK",

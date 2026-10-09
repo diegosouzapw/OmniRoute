@@ -8787,7 +8787,11 @@
     "resilienceTokenRefreshScopeProvider": "Udbyder (alle konti deler én afbryder)",
     "resilienceTokenRefreshScopeConnection": "Forbindelse (hver konto har sin egen afbryder)",
     "resilienceTokenRefreshThreshold": "Fejl før pause",
-    "resilienceTokenRefreshCooldown": "Pause efter udløsning"
+    "resilienceTokenRefreshCooldown": "Pause efter udløsning",
+    "modalityBridgeVideoDrilldownEnabled": "Retain derived video frames",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Allow temporary JPEG retention only when the authenticated request also sets drilldown: true. Raw videos are never retained.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Allow authenticated frame drill-down",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Allow API keys to read and delete only their own opaque handles. No anonymous or cross-key access."
   },
   "contextRtk": {
     "title": "RTK Engine",

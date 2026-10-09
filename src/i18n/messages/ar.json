@@ -8787,7 +8787,11 @@
     "resilienceTokenRefreshScopeProvider": "المزوّد (جميع الحسابات تشترك في قاطع واحد)",
     "resilienceTokenRefreshScopeConnection": "الاتصال (لكل حساب قاطع خاص به)",
     "resilienceTokenRefreshThreshold": "عدد الفشل قبل الإيقاف",
-    "resilienceTokenRefreshCooldown": "الوقفة بعد التفعيل"
+    "resilienceTokenRefreshCooldown": "الوقفة بعد التفعيل",
+    "modalityBridgeVideoDrilldownEnabled": "Retain derived video frames",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Allow temporary JPEG retention only when the authenticated request also sets drilldown: true. Raw videos are never retained.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Allow authenticated frame drill-down",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Allow API keys to read and delete only their own opaque handles. No anonymous or cross-key access."
   },
   "contextRtk": {
     "title": "محرك آر تي كيه",

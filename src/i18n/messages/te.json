@@ -8787,7 +8787,11 @@
     "resilienceTokenRefreshScopeProvider": "ప్రొవైడర్ (అన్ని ఖాతాలు ఒకే బ్రేకర్‌ను పంచుకుంటాయి)",
     "resilienceTokenRefreshScopeConnection": "కనెక్షన్ (ప్రతి ఖాతాకు దాని సొంత బ్రేకర్ ఉంటుంది)",
     "resilienceTokenRefreshThreshold": "నిలిపివేయడానికి ముందు వైఫల్యాలు",
-    "resilienceTokenRefreshCooldown": "తావు తర్వాత విరామం"
+    "resilienceTokenRefreshCooldown": "తావు తర్వాత విరామం",
+    "modalityBridgeVideoDrilldownEnabled": "Retain derived video frames",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Allow temporary JPEG retention only when the authenticated request also sets drilldown: true. Raw videos are never retained.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Allow authenticated frame drill-down",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Allow API keys to read and delete only their own opaque handles. No anonymous or cross-key access."
   },
   "contextRtk": {
     "title": "RTK ఇంజిన్",

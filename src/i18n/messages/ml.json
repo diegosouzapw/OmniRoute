@@ -8787,7 +8787,11 @@
     "resilienceTokenRefreshScopeProvider": "പ്രൊവൈഡർ (എല്ലാ അക്കൗണ്ടുകളും ഒരു ബ്രേക്കർ പങ്കിടുന്നു)",
     "resilienceTokenRefreshScopeConnection": "കണക്ഷൻ (രോ അക്കൗണ്ടിനും സ്വന്തം ബ്രേക്കർ ഉണ്ട്)",
     "resilienceTokenRefreshThreshold": "പരാജയങ്ങൾ താൽക്കാലികമായി നിർത്തുന്നതിന് മുമ്പുള്ളവ",
-    "resilienceTokenRefreshCooldown": "ട്രിപ്പ് ചെയ്തതിന് ശേഷം വിശ്രമിക്കുക"
+    "resilienceTokenRefreshCooldown": "ട്രിപ്പ് ചെയ്തതിന് ശേഷം വിശ്രമിക്കുക",
+    "modalityBridgeVideoDrilldownEnabled": "Retain derived video frames",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Allow temporary JPEG retention only when the authenticated request also sets drilldown: true. Raw videos are never retained.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Allow authenticated frame drill-down",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Allow API keys to read and delete only their own opaque handles. No anonymous or cross-key access."
   },
   "contextRtk": {
     "title": "RTK എഞ്ചിൻ",

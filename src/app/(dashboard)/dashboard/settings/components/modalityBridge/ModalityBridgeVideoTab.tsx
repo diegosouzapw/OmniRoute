@@ -24,6 +24,8 @@ interface VideoState {
   modalityBridgeVideoSamplingPolicy: VideoSamplingPolicy;
   modalityBridgeVideoMaxVideos: number;
   modalityBridgeVideoTimeout: number;
+  modalityBridgeVideoDrilldownEnabled: boolean;
+  modalityBridgeVideoDrilldownRemoteEnabled: boolean;
 }
 
 // Explicit UI states for the FFmpeg/ffprobe runtime probe (#11657):
@@ -53,7 +55,8 @@ function asRecord(value: unknown): Record<string, unknown> {
 }
 
 function fromApi(value: unknown): VideoState {
-  const runtime = resolveVideoBridgeRuntimeSettings(asRecord(value));
+  const record = asRecord(value);
+  const runtime = resolveVideoBridgeRuntimeSettings(record);
   return {
     modalityBridgeVideoEnabled: runtime.enabled,
     modalityBridgeVideoAnalysisMode: runtime.analysisMode,
@@ -62,6 +65,9 @@ function fromApi(value: unknown): VideoState {
     modalityBridgeVideoSamplingPolicy: runtime.samplingPolicy,
     modalityBridgeVideoMaxVideos: runtime.maxVideos,
     modalityBridgeVideoTimeout: runtime.timeoutMs,
+    modalityBridgeVideoDrilldownEnabled: record.modalityBridgeVideoDrilldownEnabled === true,
+    modalityBridgeVideoDrilldownRemoteEnabled:
+      record.modalityBridgeVideoDrilldownRemoteEnabled === true,
   };
 }
 
@@ -239,6 +245,21 @@ export default function ModalityBridgeVideoTab({
           onChange={(checked) => void update({ modalityBridgeVideoEnabled: checked })}
           label={t("modalityBridgeVideoEnabled")}
           description={t("modalityBridgeVideoEnabledDesc")}
+        />
+
+        <Toggle
+          checked={settings.modalityBridgeVideoDrilldownEnabled}
+          onChange={(checked) => void update({ modalityBridgeVideoDrilldownEnabled: checked })}
+          label={t("modalityBridgeVideoDrilldownEnabled")}
+          description={t("modalityBridgeVideoDrilldownEnabledDesc")}
+        />
+        <Toggle
+          checked={settings.modalityBridgeVideoDrilldownRemoteEnabled}
+          onChange={(checked) =>
+            void update({ modalityBridgeVideoDrilldownRemoteEnabled: checked })
+          }
+          label={t("modalityBridgeVideoDrilldownRemoteEnabled")}
+          description={t("modalityBridgeVideoDrilldownRemoteEnabledDesc")}
         />
 
         <label className="block text-sm font-medium">

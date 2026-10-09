@@ -8787,7 +8787,11 @@
     "resilienceTokenRefreshScopeProvider": "공급자(모든 계정이 하나의 차단기를 공유)",
     "resilienceTokenRefreshScopeConnection": "연결(각 계정마다 고유한 차단기가 있습니다)",
     "resilienceTokenRefreshThreshold": "일시 중지 전 실패 횟수",
-    "resilienceTokenRefreshCooldown": "작동 후 일시 중지"
+    "resilienceTokenRefreshCooldown": "작동 후 일시 중지",
+    "modalityBridgeVideoDrilldownEnabled": "Retain derived video frames",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Allow temporary JPEG retention only when the authenticated request also sets drilldown: true. Raw videos are never retained.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Allow authenticated frame drill-down",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Allow API keys to read and delete only their own opaque handles. No anonymous or cross-key access."
   },
   "contextRtk": {
     "title": "RTK 엔진",

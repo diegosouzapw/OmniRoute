@@ -8787,7 +8787,11 @@
     "resilienceTokenRefreshScopeProvider": "வழங்குநர் (அனைத்து கணக்குகளும் ஒரே பிரேக்கரைப் பகிர்ந்துகொள்கின்றன)",
     "resilienceTokenRefreshScopeConnection": "இணைப்பு (ஒவ்வொரு கணக்கிற்கும் தனி பிரேக்கர் உள்ளது)",
     "resilienceTokenRefreshThreshold": "இடைநிறுத்துவதற்கு முன் தோல்விகள்",
-    "resilienceTokenRefreshCooldown": "தாவல் பின் இடைநிறுத்தம்"
+    "resilienceTokenRefreshCooldown": "தாவல் பின் இடைநிறுத்தம்",
+    "modalityBridgeVideoDrilldownEnabled": "Retain derived video frames",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Allow temporary JPEG retention only when the authenticated request also sets drilldown: true. Raw videos are never retained.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Allow authenticated frame drill-down",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Allow API keys to read and delete only their own opaque handles. No anonymous or cross-key access."
   },
   "contextRtk": {
     "title": "RTK எஞ்சின்",

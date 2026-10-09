@@ -8787,7 +8787,11 @@
     "resilienceTokenRefreshScopeProvider": "プロバイダー（すべてのアカウントが1つのブレーカーを共有）",
     "resilienceTokenRefreshScopeConnection": "接続（各アカウントにはそれぞれのブレーカーがあります）",
     "resilienceTokenRefreshThreshold": "一時停止までの失敗回数",
-    "resilienceTokenRefreshCooldown": "トリップ後の一時停止"
+    "resilienceTokenRefreshCooldown": "トリップ後の一時停止",
+    "modalityBridgeVideoDrilldownEnabled": "Retain derived video frames",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Allow temporary JPEG retention only when the authenticated request also sets drilldown: true. Raw videos are never retained.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Allow authenticated frame drill-down",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Allow API keys to read and delete only their own opaque handles. No anonymous or cross-key access."
   },
   "contextRtk": {
     "title": "RTKエンジン",

@@ -8787,7 +8787,11 @@
     "resilienceTokenRefreshScopeProvider": "Провайдер (все аккаунты используют один предохранитель)",
     "resilienceTokenRefreshScopeConnection": "Подключение (у каждого аккаунта свой автоматический выключатель)",
     "resilienceTokenRefreshThreshold": "Количество сбоев до приостановки",
-    "resilienceTokenRefreshCooldown": "Пауза после срабатывания"
+    "resilienceTokenRefreshCooldown": "Пауза после срабатывания",
+    "modalityBridgeVideoDrilldownEnabled": "Retain derived video frames",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Allow temporary JPEG retention only when the authenticated request also sets drilldown: true. Raw videos are never retained.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Allow authenticated frame drill-down",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Allow API keys to read and delete only their own opaque handles. No anonymous or cross-key access."
   },
   "contextRtk": {
     "title": "RTK Engine",

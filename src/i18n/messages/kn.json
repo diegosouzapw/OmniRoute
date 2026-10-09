@@ -8787,7 +8787,11 @@
     "resilienceTokenRefreshScopeProvider": "ಪೂರೈಕೆದಾರ (ಎಲ್ಲಾ ಖಾತೆಗಳು ಒಂದೇ ಬ್ರೇಕರ್ ಅನ್ನು ಹಂಚಿಕೊಳ್ಳುತ್ತವೆ)",
     "resilienceTokenRefreshScopeConnection": "ಸಂಪರ್ಕ (ಪ್ರತಿ ಖಾತೆಗೂ ತನ್ನದೇ ಆದ ಬ್ರೇಕರ್ ಇದೆ)",
     "resilienceTokenRefreshThreshold": "ವಿರಾಮ ತೆಗೆದುಕೊಳ್ಳುವ ಮೊದಲು ವಿಫಲತೆಗಳು",
-    "resilienceTokenRefreshCooldown": "ಟ್ರಿಪ್ ಆದ ನಂತರ ವಿರಾಮ"
+    "resilienceTokenRefreshCooldown": "ಟ್ರಿಪ್ ಆದ ನಂತರ ವಿರಾಮ",
+    "modalityBridgeVideoDrilldownEnabled": "Retain derived video frames",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Allow temporary JPEG retention only when the authenticated request also sets drilldown: true. Raw videos are never retained.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Allow authenticated frame drill-down",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Allow API keys to read and delete only their own opaque handles. No anonymous or cross-key access."
   },
   "contextRtk": {
     "title": "RTK ಎಂಜಿನ್",

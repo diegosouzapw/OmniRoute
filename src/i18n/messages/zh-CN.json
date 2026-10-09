@@ -8787,7 +8787,11 @@
     "resilienceTokenRefreshScopeProvider": "提供程序（所有帐户共享一个断路器）",
     "resilienceTokenRefreshScopeConnection": "连接（每个账户都有自己的熔断器）",
     "resilienceTokenRefreshThreshold": "暂停前的失败次数",
-    "resilienceTokenRefreshCooldown": "触发后暂停"
+    "resilienceTokenRefreshCooldown": "触发后暂停",
+    "modalityBridgeVideoDrilldownEnabled": "Retain derived video frames",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Allow temporary JPEG retention only when the authenticated request also sets drilldown: true. Raw videos are never retained.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Allow authenticated frame drill-down",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Allow API keys to read and delete only their own opaque handles. No anonymous or cross-key access."
   },
   "contextRtk": {
     "title": "命令输出过滤引擎",

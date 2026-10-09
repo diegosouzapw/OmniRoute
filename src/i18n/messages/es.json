@@ -8787,7 +8787,11 @@
     "resilienceTokenRefreshScopeProvider": "Proveedor (todas las cuentas comparten un cortacircuitos)",
     "resilienceTokenRefreshScopeConnection": "Conexión (cada cuenta tiene su propio disyuntor)",
     "resilienceTokenRefreshThreshold": "Fallos antes de pausar",
-    "resilienceTokenRefreshCooldown": "Pausa tras activarse"
+    "resilienceTokenRefreshCooldown": "Pausa tras activarse",
+    "modalityBridgeVideoDrilldownEnabled": "Retener fotogramas derivados del vídeo",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Permitir la retención temporal de JPEG solo cuando la solicitud autenticada también indique drilldown: true. El vídeo original nunca se retiene.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Permitir la consulta autenticada de fotogramas",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Permitir que cada clave de API consulte y elimine únicamente sus propios handles opacos. Sin acceso anónimo ni entre claves."
   },
   "contextRtk": {
     "title": "Motor RTK",

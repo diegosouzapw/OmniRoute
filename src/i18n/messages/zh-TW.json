@@ -8787,7 +8787,11 @@
     "resilienceTokenRefreshScopeProvider": "提供者（所有帳戶共用一個斷路器）",
     "resilienceTokenRefreshScopeConnection": "連線（每個帳戶各有自己的斷路器）",
     "resilienceTokenRefreshThreshold": "暫停前的失敗次數",
-    "resilienceTokenRefreshCooldown": "觸發後暫停"
+    "resilienceTokenRefreshCooldown": "觸發後暫停",
+    "modalityBridgeVideoDrilldownEnabled": "Retain derived video frames",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Allow temporary JPEG retention only when the authenticated request also sets drilldown: true. Raw videos are never retained.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Allow authenticated frame drill-down",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Allow API keys to read and delete only their own opaque handles. No anonymous or cross-key access."
   },
   "contextRtk": {
     "title": "RTK 引擎",

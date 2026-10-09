@@ -8787,7 +8787,11 @@
     "resilienceTokenRefreshScopeProvider": "Provider (l-kontijiet kollha jaqsmu breaker wieħed)",
     "resilienceTokenRefreshScopeConnection": "Konnessjoni (kull kont għandu l-breaker tiegħu)",
     "resilienceTokenRefreshThreshold": "Fallimenti qabel ma jieqaf",
-    "resilienceTokenRefreshCooldown": "Waqqaf wara li tinstab"
+    "resilienceTokenRefreshCooldown": "Waqqaf wara li tinstab",
+    "modalityBridgeVideoDrilldownEnabled": "Retain derived video frames",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Allow temporary JPEG retention only when the authenticated request also sets drilldown: true. Raw videos are never retained.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Allow authenticated frame drill-down",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Allow API keys to read and delete only their own opaque handles. No anonymous or cross-key access."
   },
   "contextRtk": {
     "title": "Magna RTK",

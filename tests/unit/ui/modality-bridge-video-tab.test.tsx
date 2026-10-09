@@ -139,6 +139,34 @@ describe("ModalityBridgeVideoTab", () => {
     expect(element.textContent).not.toContain("modalityBridgeVideoComingSoon");
   });
 
+  it("exposes separate disabled-by-default retention and remote-read switches", async () => {
+    const element = await render();
+    for (const key of [
+      "modalityBridgeVideoDrilldownEnabled",
+      "modalityBridgeVideoDrilldownRemoteEnabled",
+    ]) {
+      const toggle = element.querySelector(
+        `[role="switch"][aria-label="${key}"]`
+      ) as HTMLButtonElement | null;
+      expect(toggle, key).not.toBeNull();
+      expect(toggle?.getAttribute("aria-checked")).toBe("false");
+      await act(async () => toggle!.click());
+      await waitFor(
+        () =>
+          fetchMock.mock.calls.some(
+            ([, init]) =>
+              init?.method === "PATCH" &&
+              JSON.stringify(JSON.parse(String(init.body))) === JSON.stringify({ [key]: true })
+          ),
+        `${key} consent PATCH`
+      );
+      expect(toggle?.getAttribute("aria-checked")).toBe("true");
+    }
+    expect(fetchMock.mock.calls.some(([input]) => String(input).includes("/video/extract"))).toBe(
+      false
+    );
+  });
+
   it("labels runtime status as strict loopback without probing it from a LAN dashboard", async () => {
     const element = await render({ runtimeHostname: "192.168.0.15" });
 

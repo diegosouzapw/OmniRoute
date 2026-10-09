@@ -8787,7 +8787,11 @@
     "resilienceTokenRefreshScopeProvider": "Onye nnye (akkaunt niile dabere na otu breaker)",
     "resilienceTokenRefreshScopeConnection": "Njikọ (ọ bụrụ na ngwaọrụ ọ bụla nwere ya nke ya)",
     "resilienceTokenRefreshThreshold": "Njefọ n'ihu ka a ga-egbu oge",
-    "resilienceTokenRefreshCooldown": "Egwu mgbe e tinyere"
+    "resilienceTokenRefreshCooldown": "Egwu mgbe e tinyere",
+    "modalityBridgeVideoDrilldownEnabled": "Retain derived video frames",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Allow temporary JPEG retention only when the authenticated request also sets drilldown: true. Raw videos are never retained.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Allow authenticated frame drill-down",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Allow API keys to read and delete only their own opaque handles. No anonymous or cross-key access."
   },
   "contextRtk": {
     "title": "Injin RTK",

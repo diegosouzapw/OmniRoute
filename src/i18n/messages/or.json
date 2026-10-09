@@ -8787,7 +8787,11 @@
     "resilienceTokenRefreshScopeProvider": "ପ୍ରୋଭାଇଡର (ସମସ୍ତ ଖାତା ଗୋଟିଏ ବ୍ରେକର ଅଂଶୀଦାର କରନ୍ତି)",
     "resilienceTokenRefreshScopeConnection": "ସଂଯୋଗ (ପ୍ରତ୍ୟେକ ଖାତା ନିଜର ଏକ ବ୍ରେକର ରଖେ)",
     "resilienceTokenRefreshThreshold": "ବିରତି ଦେବା ପୂର୍ବରୁ ବିଫଳତା",
-    "resilienceTokenRefreshCooldown": "ଟ୍ରିପ୍ ପରେ ବିରତି ନିଅନ୍ତୁ"
+    "resilienceTokenRefreshCooldown": "ଟ୍ରିପ୍ ପରେ ବିରତି ନିଅନ୍ତୁ",
+    "modalityBridgeVideoDrilldownEnabled": "Retain derived video frames",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Allow temporary JPEG retention only when the authenticated request also sets drilldown: true. Raw videos are never retained.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Allow authenticated frame drill-down",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Allow API keys to read and delete only their own opaque handles. No anonymous or cross-key access."
   },
   "contextRtk": {
     "title": "RTK ଇଞ୍ଜିନ୍",
