@@ -49,17 +49,37 @@ const ReadQuerySchema = z
     start: NonNegativeNumberSchema.optional(),
     variant: VariantSchema.optional(),
   })
-  .strict();
+  .strict()
+  .refine(
+    (query) => query.start === undefined || query.end === undefined || query.start < query.end,
+    "focus end must follow start"
+  );
 const DeleteQuerySchema = z.object({ handle: HandleSchema }).strict();
 
-function queryRecord(searchParams: URLSearchParams): Record<string, string> {
-  const values: Record<string, string> = {};
-  for (const [key, value] of searchParams) values[key] = value;
+function queryRecord(searchParams: URLSearchParams): Record<string, string | string[]> {
+  const values: Record<string, string | string[]> = {};
+  for (const [key, value] of searchParams) {
+    const existing = values[key];
+    values[key] =
+      existing === undefined
+        ? value
+        : Array.isArray(existing)
+          ? [...existing, value]
+          : [existing, value];
+  }
   return values;
 }
 
 function corsJson(status: number, body: unknown): Response {
-  return new Response(JSON.stringify(body), {
+  const json = JSON.stringify(body);
+  if (Buffer.byteLength(json, "utf8") > 32 * 1024 * 1024) {
+    return corsError(
+      413,
+      "Video Bridge drill-down response exceeds the byte limit; request fewer frames",
+      "response_too_large"
+    );
+  }
+  return new Response(json, {
     status,
     headers: { ...CORS_HEADERS, "Content-Type": "application/json", "Cache-Control": "no-store" },
   });

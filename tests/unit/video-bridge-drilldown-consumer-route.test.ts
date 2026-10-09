@@ -16,9 +16,8 @@ process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 const core = await import("../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const route = await import("../../src/app/api/v1/video-bridge/drilldown/route.ts");
-const { VideoDrilldownLifecycle } = await import(
-  "../../src/lib/guardrails/videoBridgeDrilldownLifecycle.ts"
-);
+const { VideoDrilldownLifecycle } =
+  await import("../../src/lib/guardrails/videoBridgeDrilldownLifecycle.ts");
 const { VideoDrilldownCache } = await import("../../src/lib/guardrails/videoBridgeDrilldown.ts");
 const { isLocalOnlyPath } = await import("../../src/server/authz/routeGuard.ts");
 
@@ -211,4 +210,30 @@ test("consumer route rejects malformed handles and out-of-range pagination befor
 
 test("consumer route is not classified local-only — it is a real remote-authenticated surface, gated by settings instead", () => {
   assert.equal(isLocalOnlyPath("/api/v1/video-bridge/drilldown", "GET"), false);
+});
+
+test("consumer rejects ambiguous duplicate queries and reversed focus windows", async () => {
+  const { key } = await seedKey();
+  for (const suffix of ["&frames=1&frames=8", "&start=4&end=2", "&start=4&end=4"]) {
+    const response = await route.handleVideoBridgeDrilldownConsumerRequest(
+      get(`/api/v1/video-bridge/drilldown?handle=${"a".repeat(64)}${suffix}`, key),
+      { isRemoteAccessEnabled: () => true }
+    );
+    assert.equal(response.status, 400, suffix);
+  }
+});
+
+test("the remote response JSON is bounded by 32 MiB including base64 and envelope", async () => {
+  const { key } = await seedKey();
+  const lifecycle = newLifecycle();
+  // Public lifecycle port double models a future producer returning an oversized page.
+  Object.assign(lifecycle, {
+    resolve: async () => ({ frames: [{ dataUri: "x".repeat(32 * 1024 * 1024) }] }),
+  });
+  const response = await route.handleVideoBridgeDrilldownConsumerRequest(
+    get(`/api/v1/video-bridge/drilldown?handle=${"a".repeat(64)}`, key),
+    { isRemoteAccessEnabled: () => true, lifecycle }
+  );
+  assert.equal(response.status, 413);
+  assert.ok(Buffer.byteLength(await response.text(), "utf8") < 1024);
 });
