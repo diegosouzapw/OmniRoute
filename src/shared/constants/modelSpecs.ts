@@ -105,6 +105,16 @@ const AUTHORITATIVE_PROVIDER_CONTEXT_WINDOWS = new Map<string, number>([
   ["opencode-go/glm-5.2", 1000000],
   ["zenmux/z-ai/glm-5.2", 1000000],
   ["zenmux/z-ai/glm-5.2-free", 1000000],
+  // models.dev under-reports Opencode's free Xiaomi MiMo rows at 200000 while
+  // its own non-free siblings (mimo-v2.5, mimo-v2.6-flash) and its other free
+  // row (mimo-v2-pro-free) all declare 1048576. The upstream serves the full
+  // 1M window (sessions observed running past 718K), so the stale sync row
+  // must not cap the advertised context at 200K.
+  ["opencode/mimo-v2.5-free", 1048576],
+  ["opencode-zen/mimo-v2.5-free", 1048576],
+  ["opencode/mimo-v2.6-flash-free", 1048576],
+  ["opencode-zen/mimo-v2.6-flash-free", 1048576],
+  ["opencode-go/mimo-v2.6-flash-free", 1048576],
 ]);
 
 const GPT_5_6_MODEL_SPEC = {

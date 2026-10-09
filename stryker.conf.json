@@ -604,6 +604,8 @@
       "tests/unit/github-copilot-model-not-supported-learning-15634.test.ts",
       "tests/unit/alibaba-free-quota-drain-preserves-model-catalog-cache.test.ts",
       "tests/unit/upstreamErrorEnvelope.test.ts",
+      "tests/unit/provider-alias-combo-pool-12844.test.ts",
+      "tests/unit/model-capacity-failure-scope-15788.test.ts",
       "tests/unit/provider-node-local-dispatch-13452.test.ts"
     ],
     "nodeArgs": [
