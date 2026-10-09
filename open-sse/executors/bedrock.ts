@@ -168,21 +168,20 @@ function getToolResultIdFromBlock(block) {
   return normalizeToolUseId(block?.toolResult?.toolUseId);
 }
 
-function isToolResultOnlyMessage(message) {
-  return (
-    message?.role === "user" &&
-    Array.isArray(message.content) &&
-    message.content.length > 0 &&
-    message.content.every((block) => Boolean(getToolResultIdFromBlock(block)))
-  );
+function isEmptyTurnFiller(block) {
+  return block?.text === " " && Object.keys(block).length === 1;
 }
 
-function mergeConsecutiveToolResultMessages(messages) {
+function mergeConsecutiveMessagesByRole(messages) {
   const merged = [];
   for (const message of messages) {
     const previous = merged[merged.length - 1];
-    if (isToolResultOnlyMessage(previous) && isToolResultOnlyMessage(message)) {
-      previous.content.push(...message.content);
+    if (previous?.role === message?.role) {
+      const content = [...previous.content, ...message.content];
+      const hasContent = content.some((block) => !isEmptyTurnFiller(block));
+      previous.content = hasContent
+        ? content.filter((block) => !isEmptyTurnFiller(block))
+        : content.slice(0, 1);
       continue;
     }
     merged.push(message);
@@ -197,7 +196,7 @@ function ensureNonEmptyContent(message) {
 }
 
 function sanitizeBedrockToolPairs(messages) {
-  const normalized = mergeConsecutiveToolResultMessages(messages);
+  const normalized = mergeConsecutiveMessagesByRole(messages);
   const validResultCounts = new Map();
 
   for (let i = 0; i < normalized.length; i++) {
