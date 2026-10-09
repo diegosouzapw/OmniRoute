@@ -12,6 +12,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const modelsDb = await import("../../src/lib/db/models.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const virtualFactory = await import("../../open-sse/services/autoCombo/virtualFactory.ts");
 const candidateHandler = await import("../../open-sse/handlers/autoComboCandidates.ts");
 
@@ -59,6 +60,12 @@ async function seedConnections(firstExcludedModels?: string[]) {
 
 test.beforeEach(async () => {
   await resetStorage();
+  // contract changed by #15979 (on top of #15839): `excludeTosAvoid` defaults to on and
+  // uncataloged models inherit the provider's curated `tos: "avoid"` verdict, so every antigravity
+  // model (now `antigravity: "avoid"`) is ToS-filtered out of auto/*. Opt out so this file keeps
+  // guarding the per-model candidate pool shape; the ToS default is covered by
+  // issue-15059-tos-avoid-auto-default.
+  await settingsDb.updateSettings({ excludeTosAvoid: false });
 });
 
 test.after(async () => {

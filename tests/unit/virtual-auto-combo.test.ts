@@ -284,6 +284,12 @@ test("createVirtualAutoCombo restricts the no-auth pool to the allowlist", async
   // egress. The others stay usable via direct `<alias>/<model>` calls but must
   // NOT be auto-routed to. Dedicated guard:
   // tests/unit/noauth-autocombo-allowlist.test.ts.
+  // contract changed by #15979 (on top of #15839): `excludeTosAvoid` is ON by default and
+  // uncataloged models now inherit the provider's curated `tos: "avoid"` verdict, so every
+  // opencode model is ToS-filtered out by default. Opt out explicitly so this test keeps
+  // asserting the no-auth allowlist, not the ToS filter (covered by
+  // tests/unit/issue-15059-tos-avoid-auto-default.test.ts and tos-provider-alias-15059).
+  await settingsDb.updateSettings({ excludeTosAvoid: false });
   const combo: VirtualComboResult = await virtualFactory.createVirtualAutoCombo("fast");
 
   for (const allowed of ["opencode"]) {
