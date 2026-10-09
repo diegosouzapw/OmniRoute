@@ -14,6 +14,7 @@ import {
 } from "./responseSanitizer/cacheHitTokens.ts";
 import { stripObfuscationZeroWidth } from "../utils/zeroWidth.ts";
 import { normalizeArrayContentChunk } from "../utils/arrayContentDelta.ts";
+import { resolveCacheCreationInPrompt } from "../utils/pickCacheCreationTokens.ts";
 export {
   extractThinkingFromContent,
   shouldParseTextualReasoningTags,
@@ -584,6 +585,7 @@ function sanitizeResponsesUsage(usage: unknown): unknown {
     };
   }
 
+  const cacheCreationInPrompt = resolveCacheCreationInPrompt(normalized);
   const inputDetails = toRecord(normalized.input_tokens_details) || {};
   const cachedTokens = normalized.cached_tokens ?? normalized.cache_read_input_tokens;
   if (cachedTokens !== undefined && inputDetails.cached_tokens === undefined) {
@@ -594,6 +596,17 @@ function sanitizeResponsesUsage(usage: unknown): unknown {
     inputDetails.cache_creation_tokens === undefined
   ) {
     inputDetails.cache_creation_tokens = normalized.cache_creation_input_tokens;
+  }
+  const aliasWrite = inputDetails.cache_write_tokens ?? normalized.cache_write_tokens;
+  if (aliasWrite !== undefined && inputDetails.cache_creation_tokens === undefined) {
+    inputDetails.cache_creation_tokens = aliasWrite;
+  }
+  if (
+    cacheCreationInPrompt !== undefined &&
+    inputDetails.cache_creation_tokens !== undefined &&
+    inputDetails.cache_creation_in_prompt === undefined
+  ) {
+    inputDetails.cache_creation_in_prompt = cacheCreationInPrompt;
   }
   if (Object.keys(inputDetails).length > 0) {
     normalized.input_tokens_details = inputDetails;

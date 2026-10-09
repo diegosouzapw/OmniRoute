@@ -30,13 +30,14 @@ function responsesUsage(usage: CodexUsage | undefined): Record<string, unknown> 
     output_tokens: usage.outputTokens,
     total_tokens: usageDisplayTotalTokens(usage) ?? inputTokens + usage.outputTokens,
   };
-  const inputDetails: Record<string, number> = {};
+  const inputDetails: Record<string, number | boolean> = {};
   if (usage.cachedInputTokens !== undefined) {
     // cached_tokens carries cache READS only, matching OpenAI semantics.
     inputDetails.cached_tokens = usage.cachedInputTokens;
   }
   if (usage.cacheCreationInputTokens !== undefined) {
     inputDetails.cache_write_tokens = usage.cacheCreationInputTokens;
+    inputDetails.cache_creation_in_prompt = true;
   }
   if (Object.keys(inputDetails).length > 0) {
     out.input_tokens_details = inputDetails;

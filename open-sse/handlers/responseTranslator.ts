@@ -3,6 +3,10 @@ import {
   buildGeminiThoughtSignatureKey,
   storeGeminiThoughtSignature,
 } from "../services/geminiThoughtSignatureStore.ts";
+import {
+  isTopLevelCacheWriteOnly,
+  pickCacheCreationInPrompt,
+} from "../utils/pickCacheCreationTokens.ts";
 import { normalizeOpenAICompatibleFinishReasonString } from "../utils/finishReason.ts";
 import { containsTextualToolCallMarker } from "../utils/textualToolCall.ts";
 import { stripObfuscationZeroWidth } from "../utils/zeroWidth.ts";
@@ -343,10 +347,18 @@ export function translateNonStreamingResponse(
         usage.reasoning_tokens
       );
 
+      const anthropicKeys = "cache_read_input_tokens" in usage;
+      const sourceWriteInPrompt = pickCacheCreationInPrompt(usage);
+      const promptTokens = anthropicKeys
+        ? inputTokens +
+          cachedInputTokens +
+          (sourceWriteInPrompt === true ? 0 : cacheCreationInputTokens)
+        : inputTokens;
+
       result.usage = {
-        prompt_tokens: inputTokens,
+        prompt_tokens: promptTokens,
         completion_tokens: outputTokens,
-        total_tokens: inputTokens + outputTokens,
+        total_tokens: promptTokens + outputTokens,
       };
 
       if (reasoningTokens > 0) {
@@ -362,6 +374,11 @@ export function translateNonStreamingResponse(
         }
         if (cacheCreationInputTokens > 0) {
           promptDetails.cache_creation_tokens = cacheCreationInputTokens;
+          const writeInPrompt = anthropicKeys
+            ? true
+            : (pickCacheCreationInPrompt(usage) ??
+              (isTopLevelCacheWriteOnly(usage) ? undefined : true));
+          if (writeInPrompt !== undefined) promptDetails.cache_creation_in_prompt = writeInPrompt;
         }
       }
     }
@@ -673,7 +690,10 @@ export function translateNonStreamingResponse(
         if (cachedTokens > 0 || cacheCreationTokens > 0) {
           const details: JsonRecord = {};
           if (cachedTokens > 0) details.cached_tokens = cachedTokens;
-          if (cacheCreationTokens > 0) details.cache_creation_tokens = cacheCreationTokens;
+          if (cacheCreationTokens > 0) {
+            details.cache_creation_tokens = cacheCreationTokens;
+            details.cache_creation_in_prompt = false;
+          }
           usageOut.prompt_tokens_details = details;
         }
         result.usage = usageOut;
@@ -829,10 +849,12 @@ function convertOpenAINonStreamingToClaude(
   const cachedTokens = toNumber(promptDetails.cached_tokens, 0);
   const cacheCreationTokens = toNumber(promptDetails.cache_creation_tokens, 0);
 
-  // OpenAI's prompt_tokens includes all prompt-side tokens (cached + non-cached).
-  // Claude expects input_tokens to be only non-cached tokens, with cached tokens
-  // exposed separately as cache_read_input_tokens.
-  const inputTokens = promptTokens - cachedTokens - cacheCreationTokens;
+  // Same rule as openai-to-claude.ts trackUsageFromChunk.
+  const writeInPrompt = promptDetails.cache_creation_in_prompt !== false;
+  const inputTokens = Math.max(
+    0,
+    promptTokens - cachedTokens - (writeInPrompt ? cacheCreationTokens : 0)
+  );
 
   const usage: JsonRecord = {
     input_tokens: inputTokens,

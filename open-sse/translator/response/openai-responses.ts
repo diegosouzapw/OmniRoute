@@ -11,6 +11,7 @@ import { finalizeResponsesTerminalStatus } from "../helpers/responsesTerminalSta
 import { shouldParseTextualReasoningTags } from "../../handlers/responseSanitizer.ts";
 import { getReadableReasoningValue } from "../../utils/reasoningFields.ts";
 import { resolveResponsesCacheUsageDetails } from "../../utils/resolveResponsesCacheUsageDetails.ts";
+import { pickCacheCreationInPrompt } from "../../utils/pickCacheCreationTokens.ts";
 import {
   isInternalReasoningPlaceholder,
   stripInternalReasoningPlaceholder,
@@ -1412,9 +1413,13 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
         responseUsage.reasoning_tokens ||
         0;
 
+      const anthropicKeys = "cache_read_input_tokens" in responseUsage;
+      const sourceWriteInPrompt = pickCacheCreationInPrompt(responseUsage);
       const promptTokens =
         inputTokens +
-        ("cache_read_input_tokens" in responseUsage ? cacheReadTokens + cacheCreationTokens : 0);
+        (anthropicKeys
+          ? cacheReadTokens + (sourceWriteInPrompt === true ? 0 : cacheCreationTokens)
+          : 0);
 
       state.usage = {
         prompt_tokens: promptTokens,
@@ -1430,6 +1435,9 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
         }
         if (cacheCreationTokens > 0) {
           state.usage.prompt_tokens_details.cache_creation_tokens = cacheCreationTokens;
+          state.usage.prompt_tokens_details.cache_creation_in_prompt = anthropicKeys
+            ? true
+            : (pickCacheCreationInPrompt(responseUsage) ?? true);
         }
       }
 

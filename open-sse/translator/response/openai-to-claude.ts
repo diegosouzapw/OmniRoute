@@ -249,6 +249,7 @@ function readUsageCounters(usage) {
     cacheCreateTokens: firstNumber(
       promptDetails?.cache_creation_tokens ?? inputDetails?.cache_creation_tokens
     ),
+    writeInPrompt: (promptDetails ?? inputDetails)?.cache_creation_in_prompt !== false,
   };
 }
 
@@ -256,13 +257,16 @@ function readUsageCounters(usage) {
 // usage-only chunks that carry `choices: []` (#11817).
 function trackUsageFromChunk(chunk, state) {
   if (!chunk.usage || typeof chunk.usage !== "object") return;
-  const { promptTokens, outputTokens, cacheReadTokens, cacheCreateTokens } = readUsageCounters(
-    chunk.usage
-  );
+  const { promptTokens, outputTokens, cacheReadTokens, cacheCreateTokens, writeInPrompt } =
+    readUsageCounters(chunk.usage);
 
-  // input_tokens = prompt_tokens - cached_tokens - cache_creation_tokens
-  // Because OpenAI's prompt_tokens includes all prompt-side tokens
-  const inputTokens = promptTokens - cacheReadTokens - cacheCreateTokens;
+  // The cache read is always inside prompt_tokens. The write is too in folded
+  // shapes (LiteLLM), but not in the #2215 shape, which marks itself with
+  // prompt_tokens_details.cache_creation_in_prompt: false.
+  const inputTokens = Math.max(
+    0,
+    promptTokens - cacheReadTokens - (writeInPrompt ? cacheCreateTokens : 0)
+  );
 
   state.usage = {
     input_tokens: inputTokens,
