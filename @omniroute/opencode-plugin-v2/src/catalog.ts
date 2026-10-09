@@ -12,6 +12,7 @@ import {
 } from "./provider-filter.js";
 import type { LegacyModel } from "./legacy-model.js";
 import { type CapabilityPresetFlags, passesCapabilityPresets } from "./capability-presets.js";
+import { resolveFreeOnlyActive } from "./free-only-fallback.js";
 import {
   isHttpUrl,
   type ApiFormatV2,
@@ -658,6 +659,8 @@ interface PublishContext {
   providerResolve: ProviderResolve | undefined;
   /** Precomputed once per publish: every allow entry sits outside the vocabulary. */
   providerAllUnknown: boolean;
+  /** Same refresh fallback as the model pass: skip the free-tier preset when the overlay proves nothing. */
+  freeOnly: boolean;
   combosFetcher: CatalogFetchers["combos"] | undefined;
   combosTimeout: number;
   /** Shared with the combos pass: one collision warning per key, per run. */
@@ -699,6 +702,7 @@ async function publishCombos(
     combosTimeout,
     warnedCombos,
     cacheKey,
+    freeOnly,
   } = ctx;
   let rawCombos: OmniRouteRawCombo[];
   try {
@@ -771,7 +775,7 @@ async function publishCombos(
       });
       if (
         !passesCapabilityPresets(mapped, comboEnrichment, {
-          freeOnly: opts.freeOnly,
+          freeOnly,
           toolsOnly: opts.toolsOnly,
           visionOnly: opts.visionOnly,
         } satisfies CapabilityPresetFlags)
@@ -917,22 +921,9 @@ export async function collectCatalog(
   const canonicalToAlias = buildCanonicalToAliasMap(enrichment);
   const canonicalDedup = canonicalDedupSet(rawModels, canonicalToAlias);
   // `freeOnly` reads the overlay: an empty overlay (no management token,
-  // `enrichment: false`, or fetch failure) would otherwise empty the catalog
-  // silently. Warn once per refresh and keep filtering (fail-closed).
-  if (opts.freeOnly === true) {
-    let hasFreeEntry = false;
-    for (const entry of enrichment.values()) {
-      if (entry.freeType !== undefined) {
-        hasFreeEntry = true;
-        break;
-      }
-    }
-    if (!hasFreeEntry) {
-      log.warn(
-        `[omniroute-v2] freeOnly is on but the enrichment overlay has no free-tier entries (no management token, enrichment disabled, or free-tier fetch failed); publishing an empty catalog. Disable freeOnly or configure the management token.`
-      );
-    }
-  }
+  // `enrichment: false`, or fetch failure) proves nothing, so the preset is
+  // disabled for this refresh instead of publishing an empty catalog.
+  const effectiveFreeOnly = resolveFreeOnlyActive(opts.freeOnly, enrichment, log);
 
   const usable = await resolveUsableAliases(
     opts,
@@ -1035,7 +1026,7 @@ export async function collectCatalog(
     });
     if (
       !passesCapabilityPresets(mapped, enrichmentEntry, {
-        freeOnly: opts.freeOnly,
+        freeOnly: effectiveFreeOnly,
         toolsOnly: opts.toolsOnly,
         visionOnly: opts.visionOnly,
       } satisfies CapabilityPresetFlags)
@@ -1099,6 +1090,7 @@ export async function collectCatalog(
     combosTimeout,
     warnedCombos,
     cacheKey,
+    freeOnly: effectiveFreeOnly,
   });
   if (comboResult === undefined)
     return { entries: collected, counts: { models: modelCount, combos: 0 } };
