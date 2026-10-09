@@ -2,8 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const { validateResponseQuality } = await import("../../open-sse/services/combo.ts");
-const { newStreamCtx, processFrame, ctxProducedSignal } =
+const { newStreamCtx, processFrame, ctxProducedSignal, isCursorEmptyTurn } =
   await import("../../open-sse/executors/cursor");
+const { extractEmbeddedCursorToolResults } =
+  await import("../../open-sse/executors/cursor/embeddedToolResults.ts");
 
 const encoder = new TextEncoder();
 const silentLog = { warn: () => {} };
@@ -124,6 +126,52 @@ test("v9 chain: fabricated-empty cursor stream now fails combo validation (regre
   const out = await validateResponseQuality(res, true, silentLog);
   assert.equal(out.valid, false, "executor-erroring empty stream must fail over");
   assert.match(out.reason ?? "", /no usable content|aborted before content/);
+});
+
+test("v9: a tool call with blank arguments is an empty turn", () => {
+  const ctx = newStreamCtx("cursor/cursor-grok-4.6-high", () => {});
+  ctx.toolCalls.push({ id: "call_blank", name: "shell", argumentsJson: "  " });
+  ctx.endReason = "tool_calls";
+  assert.equal(ctxProducedSignal(ctx), false);
+  assert.equal(isCursorEmptyTurn(ctx), true);
+});
+
+test("v9: a tool call with arguments is usable signal", () => {
+  const ctx = newStreamCtx("cursor/cursor-grok-4.6-high", () => {});
+  ctx.toolCalls.push({ id: "call_ok", name: "shell", argumentsJson: "{}" });
+  ctx.endReason = "tool_calls";
+  assert.equal(ctxProducedSignal(ctx), true);
+  assert.equal(isCursorEmptyTurn(ctx), false);
+});
+
+test("v9: embedded tool_result XML is extracted and role:tool is left to the resume loop", () => {
+  const found = extractEmbeddedCursorToolResults([
+    {
+      role: "tool",
+      content:
+        "<tool_result>\n<tool_call_id>skip-role-tool</tool_call_id>\n<result>nope</result>\n</tool_result>",
+    },
+    {
+      role: "user",
+      content:
+        "see <tool_result>\n<tool_name>shell</tool_name>\n<tool_call_id>call_abc</tool_call_id>\n<result>a &amp; b</result>\n</tool_result>",
+    },
+  ]);
+  assert.deepEqual(found, [{ toolCallId: "call_abc", result: "a & b" }]);
+});
+
+test("v9 chain: a generic pre-content read error still passes validation", async () => {
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.error(new Error("network reset"));
+    },
+  });
+  const res = new Response(stream, {
+    status: 200,
+    headers: { "content-type": "text/event-stream" },
+  });
+  const out = await validateResponseQuality(res, true, silentLog);
+  assert.equal(out.valid, true);
 });
 
 test("v9 chain: healthy cursor stream with real content still passes validation", async () => {

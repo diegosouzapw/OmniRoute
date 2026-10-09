@@ -766,11 +766,15 @@ export async function validateResponseQuality(
       ) {
         return { valid: false, reason: "stream locked or disturbed" };
       }
-      // Live 2026-08-19: Cursor composer returns HTTP 200 + empty SSE, then
-      // driveH2 rejects with "cursor-agent stream timed out". Passing that
-      // read error through committed the dead stream and never tried Claude.
-      // A stream that dies before any token / terminator is a hop failure.
-      if (!anyContentFound && !sse.hasContentBlock && !sawTerminator) {
+      // Cursor empty-turn and stream-timeout read errors are hop failures.
+      // Any other pre-content read error still passes through; broadening this
+      // to every combo made a network reset fail over the whole chain.
+      const cursorEmptyBeforeContent =
+        !anyContentFound &&
+        !sse.hasContentBlock &&
+        !sawTerminator &&
+        /no usable content|cursor-agent stream timed out/i.test(errMsg);
+      if (cursorEmptyBeforeContent) {
         log.warn?.(
           "COMBO",
           `Streaming response aborted before content (${errMsg}) — marking as invalid for combo failover`

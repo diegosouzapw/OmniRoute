@@ -90,6 +90,7 @@ import {
   type ClassifiedCursorError,
 } from "./cursor/cursorErrors.ts";
 import { resolveCursorWireConversationId } from "./cursor/conversationId.ts";
+import { extractEmbeddedCursorToolResults } from "./cursor/embeddedToolResults.ts";
 import type { CursorReportedUsage } from "../services/cursorSessionManager.ts";
 import type { CursorTtftBreakdown } from "../utils/cursorAgentProtobuf/ttft.ts";
 import { getActiveSyncedCatalog } from "../../src/lib/db/models/activeSyncedCatalog.ts";
@@ -197,14 +198,14 @@ function tryParseJsonError(payload: Buffer): { message: string; status: number }
   }
 }
 
-/** True when the turn produced no client-visible assistant payload. */
-function isCursorEmptyTurn(ctx: StreamCtx): boolean {
-  return (
-    ctx.totalText.length === 0 &&
-    ctx.thinkingText.length === 0 &&
-    ctx.toolCalls.length === 0 &&
-    !ctx.composerInlineToolCallsEmitted
-  );
+/**
+ * True when the turn produced no client-visible assistant payload.
+ * A tool call counts only when `ctxProducedSignal` sees non-blank arguments.
+ * `receivedText` is ignored: the narration scrubber sets it on an empty delta.
+ */
+export function isCursorEmptyTurn(ctx: StreamCtx): boolean {
+  if (ctx.totalText.length > 0 || ctx.composerInlineToolCallsEmitted) return false;
+  return !ctxProducedSignal({ ...ctx, receivedText: false });
 }
 
 // ─── Phase 4: streaming dispatch context ───────────────────────────────────
@@ -1422,11 +1423,10 @@ export class CursorExecutor extends BaseExecutor {
           break;
         }
       }
-      // Extra: the translator's converted `<tool_result>` user-message shape
-      // carries results that never appear as role:"tool" messages, so the
-      // loop above never sees them. Send any that are still pending.
+      // The translator also embeds `<tool_result>` XML in user messages.
+      // Those never appear as role:"tool", so send any id still pending.
       if (!hadFailure) {
-        for (const { toolCallId, result } of convertedToolResults) {
+        for (const { toolCallId, result } of extractEmbeddedCursorToolResults(messages)) {
           if (!session.pendingToolCalls.has(toolCallId)) continue;
           if (cursorSessionManager.sendToolResult(session, toolCallId, result, false)) {
             matched++;
@@ -1648,7 +1648,7 @@ export class CursorExecutor extends BaseExecutor {
 
     // Silent empty turn (auth accepted, no text) — surface actionable error instead of
     // an empty assistant completion that chatCore maps to opaque "empty content" 502.
-    if (isCursorEmptyTurn(ctx) && ctx.endReason && ctx.endReason !== "tool_calls") {
+    if (isCursorEmptyTurn(ctx) && ctx.endReason) {
       emitCursorSseError(
         ctx,
         resolveCursorEmptyTurnError({
@@ -1729,7 +1729,7 @@ export class CursorExecutor extends BaseExecutor {
       );
     }
 
-    if (isCursorEmptyTurn(ctx) && ctx.endReason && ctx.endReason !== "tool_calls") {
+    if (isCursorEmptyTurn(ctx) && ctx.endReason) {
       const empty = resolveCursorEmptyTurnError({
         upstreamMessage: ctx.midStreamError?.message,
       });
