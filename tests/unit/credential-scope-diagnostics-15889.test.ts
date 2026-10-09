@@ -181,7 +181,7 @@ if (typeof mock.module !== "function") {
     const legacySingleId = connectionRestrictionDiagnostics("legacy-single-connection");
     assert.equal(legacySingleId.allowedConnectionsCount, 1);
     assert.equal(legacySingleId.allowedConnectionRefs?.length, 1);
-    assert.match(legacySingleId.allowedConnectionRefs![0], /^sha256:[0-9a-f]{12}$/);
+    assert.match(legacySingleId.allowedConnectionRefs![0], /^hmac-sha256:[0-9a-f]{12}$/);
     assert.doesNotMatch(JSON.stringify(legacySingleId), /legacy-single-connection/);
     const privateId = "private-selection-input-15889\nAuthorization: Bearer never-log-me";
     const result = await getProviderCredentials("kilocode", null, [privateId], "test-model", {
@@ -191,7 +191,7 @@ if (typeof mock.module !== "function") {
     assert.ok(result && "blockedByKeyPolicy" in result && result.blockedByKeyPolicy);
     const serialized = JSON.stringify(logs);
     assert.match(serialized, /allowedConnectionRefs/);
-    assert.match(serialized, /sha256:/);
+    assert.match(serialized, /hmac-sha256:/);
     assert.doesNotMatch(
       serialized,
       /never-log-me|private-test-credential-15889|synthetic-15889-secret/

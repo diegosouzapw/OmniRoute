@@ -1,5 +1,9 @@
-import { createHash } from "node:crypto";
+import { createHmac, randomBytes } from "node:crypto";
 import * as log from "../utils/logger";
+
+// Diagnostic correlation is process-local. A private ephemeral key prevents
+// caller-supplied IDs from becoming a public dictionary of their logged hashes.
+const DIAGNOSTIC_REFERENCE_KEY = randomBytes(32);
 
 const RESTRICTION_LABELS = {
   api_key_allowlist: "the API key's connection allowlist",
@@ -42,7 +46,7 @@ export function describeConnectionRestriction(sources?: readonly ConnectionRestr
     : "connection routing policy (source unspecified)";
 }
 
-/** Bound the sample and hash opaque IDs; never print raw caller-supplied IDs. */
+/** Bound the sample and pseudonymize IDs; never print raw caller-supplied IDs. */
 export function connectionRestrictionDiagnostics(
   allowedConnections: readonly string[] | string | null,
   sources?: readonly ConnectionRestrictionSource[]
@@ -58,7 +62,7 @@ export function connectionRestrictionDiagnostics(
         .map((id) =>
           id === "noauth"
             ? id
-            : `sha256:${createHash("sha256").update(id).digest("hex").slice(0, 12)}`
+            : `hmac-sha256:${createHmac("sha256", DIAGNOSTIC_REFERENCE_KEY).update(id).digest("hex").slice(0, 12)}`
         ) ?? null,
   };
 }
