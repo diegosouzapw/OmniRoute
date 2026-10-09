@@ -1,3 +1,6 @@
+# ── Bun package manager binary (Node remains the application runtime) ───────
+FROM oven/bun:1.4.2-slim AS bun-toolchain
+
 # ── Common base with runtime deps ──────────────────────────────────────────
 FROM node:26-trixie-slim AS base
 WORKDIR /app
@@ -76,40 +79,32 @@ RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-cache,targe
   && apt-get install -y --no-install-recommends python3 make g++ \
   && rm -rf /var/lib/apt/lists/*
 
-COPY package*.json ./
-# Workspace package manifests MUST be present before `npm ci` so npm materializes
-# the workspace and installs its *workspace-only* deps (e.g. safe-regex,
-# @toon-format/toon — declared in open-sse/package.json, not hoisted to root).
-# Without this, `npm ci` skips them and the application build fails with "Module not
-# found" (root cause of the v3.8.39 Docker build break). workspaces = ["open-sse"].
+COPY --from=bun-toolchain /usr/local/bin/bun /usr/local/bin/bun
+COPY package.json bun.lock ./
+# Workspace package manifests MUST be present before `bun install` so Bun materializes
+# the root workspaces and their workspace-only dependencies.
 COPY open-sse/package.json ./open-sse/package.json
+COPY packages/browser-pool/package.json ./packages/browser-pool/package.json
 COPY scripts/build/postinstall.mjs ./scripts/build/postinstall.mjs
 COPY scripts/build/postinstallSupport.mjs ./scripts/build/postinstallSupport.mjs
 COPY scripts/build/native-binary-compat.mjs ./scripts/build/native-binary-compat.mjs
-ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
+ENV BUN_INSTALL_CACHE_DIR=/root/.bun/install/cache
 # --ignore-scripts blocks broad dependency install/postinstall hooks, closing
 # the supply-chain attack surface where a transitive dep can run arbitrary code
 # at install time. better-sqlite3 still needs a native binding for the target
 # platform, so rebuild and smoke-test only that known runtime dependency below.
 #
-# We REQUIRE a committed package-lock.json so resolved dependency versions
-# are reproducible.
-RUN test -f package-lock.json \
-  || (echo "package-lock.json is required for reproducible Docker builds" >&2 && exit 1)
+# We REQUIRE a committed bun.lock so resolved dependency versions are reproducible.
+RUN test -f bun.lock \
+  || (echo "bun.lock is required for reproducible Docker builds" >&2 && exit 1)
 # `npm rebuild <pkg>` re-runs the package's own install script, so under npm 11 +
-# `--ignore-scripts` on the parent `npm ci` it depends on npm's script-allowlist
-# machinery correctly re-enabling that one package's script. Some self-hosted build
-# environments (e.g. Dokploy) hit a broken/incomplete better-sqlite3 native binding
-# from that indirection. Invoking `node-gyp rebuild` directly inside the package
-# directory bypasses npm's script-running layer entirely and is deterministic
-# regardless of npm version or ignore-scripts allowlist behavior.
-# node-gyp comes from npm's own bundled copy (deterministic, already in the image)
-# instead of `npx --yes`, which would install an arbitrary registry version
-# on-demand and run its lifecycle scripts (Sonar docker:S6505).
-RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-npm-cache,target=/root/.npm \
-  npm ci --include=optional --no-audit --no-fund --legacy-peer-deps --ignore-scripts \
+# The parent install intentionally skips lifecycle scripts. Rebuild the known
+# better-sqlite3 binding explicitly with the versioned local node-gyp dependency;
+# this keeps the native build reproducible without downloading a tool at build time.
+RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-bun-cache,target=/root/.bun/install/cache \
+  bun install --frozen-lockfile --ignore-scripts --no-progress \
   && (cd node_modules/better-sqlite3 \
-      && node /usr/local/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js rebuild --force_build=1) \
+      && node node_modules/node-gyp/bin/node-gyp.js rebuild --force_build=1) \
   && test -f node_modules/better-sqlite3/build/Release/better_sqlite3.node \
   && node -e "require('better-sqlite3')(':memory:').close()" \
   && node -e "const wreq=require('wreq-js'); if(typeof wreq.createTransport!=='function') process.exit(1)"
@@ -211,7 +206,7 @@ ENV CIRCLE_NODE_TOTAL=${OMNIROUTE_BUILD_WORKERS}
 COPY . ./
 RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-next-cache,target=/app/.build/next/cache \
   mkdir -p /app/data \
-  && npm run build \
+  && bun run build \
   && node --input-type=module -e "import { createRequire } from 'node:module'; import { pathToFileURL } from 'node:url'; const standaloneRoot = '/app/.build/next/standalone/node_modules/'; const require = createRequire('/app/.build/next/standalone/package.json'); for (const pkg of ['@atjsh/llmlingua-2', '@huggingface/transformers', 'js-tiktoken']) { const resolved = require.resolve(pkg); if (!resolved.startsWith(standaloneRoot)) throw new Error(pkg + ' resolved outside standalone: ' + resolved); await import(pathToFileURL(resolved).href); } const onnxRuntime = require.resolve('onnxruntime-node'); if (!onnxRuntime.startsWith(standaloneRoot)) throw new Error('onnxruntime-node resolved outside standalone: ' + onnxRuntime); await import(pathToFileURL(onnxRuntime).href);"
 
 # ── Runner base ────────────────────────────────────────────────────────────
@@ -252,7 +247,7 @@ RUN mkdir -p /app/data && chown node:node /app /app/data
 # `-e REQUIRE_API_KEY=false` for an intentionally keyless deployment.
 ENV REQUIRE_API_KEY=true
 
-# `npm run build` (build-next-isolated → assembleStandalone) bundles ALL runtime
+# `bun run build` (build-next-isolated → assembleStandalone) bundles ALL runtime
 # files into .build/next/standalone/ — .next, node_modules, migrations, scripts,
 # docs, and the previously hand-COPY'd modules below (@swc/helpers, pino-*, split2,
 # migrations). assembleStandalone copies them straight from the builder's
@@ -356,7 +351,7 @@ RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-cache,targe
   && rm -rf /var/lib/apt/lists/* \
   && git config --system url."https://github.com/".insteadOf "ssh://git@github.com/"
 
-# Install CLI tools globally. Separate layer from apt for better cache reuse.
+# Install CLI tools globally with Bun. Separate layer from apt for better cache reuse.
 # Pinned to exact versions per Diego's diagnosis in #12576 — floating
 # `@latest` causes two CI failures:
 #   1. `openclaw` ships a breaking major ~weekly; overnight builds silently
@@ -364,8 +359,8 @@ RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-cache,targe
 #   2. `codex` / `claude-code` dev pre-releases (`@next`, dist-tags) mutate
 #      API surface without notice; reproducible builds need a SHA-pinned dev
 #      build, not the floating `@latest`.
-RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-npm-cache,target=/root/.npm \
-  npm install -g --no-audit --no-fund \
+RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-bun-global-cache,target=/root/.bun/install/cache \
+  bun add --global \
     @openai/codex@0.159.2 \
     @anthropic-ai/claude-code@2.1.260 \
     droid@0.212.0 \
