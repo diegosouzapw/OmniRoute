@@ -185,6 +185,15 @@ export function applyCorsHeaders(
   if (allowed !== null) {
     response.headers.set("Access-Control-Allow-Origin", allowed);
     response.headers.append("Vary", "Origin");
+    // Let authorized browser clients read the bounded bridge metadata, without
+    // exposing arbitrary upstream headers or changing the origin policy.
+    const exposed = response.headers.get("Access-Control-Expose-Headers");
+    response.headers.set(
+      "Access-Control-Expose-Headers",
+      [exposed, "x-omniroute-modality-bridge", "x-omniroute-video-drilldown"]
+        .filter(Boolean)
+        .join(", ")
+    );
   }
   // RFC 9110 §12.5.5 (issue #6737): the token-authenticated /v1*/v1beta* surface
   // (relaxForTokenAuth) negotiates content-encoding via Next's built-in

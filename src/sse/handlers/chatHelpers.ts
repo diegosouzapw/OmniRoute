@@ -4,6 +4,10 @@ import {
   getModelInfoOrRetirementResponse,
 } from "../services/model";
 import {
+  withModalityBridgeResponseHeaders,
+  type ModalityBridgeResponseHeaders,
+} from "@/lib/guardrails/modalityBridge/bridgeResponseHeaders";
+import {
   clearAccountError,
   markAccountUnavailable,
   buildExhaustionOptions,
@@ -1229,21 +1233,11 @@ export function withCorrelationId(response: Response, correlationId: string | nu
  * Same try-set/clone-fallback shape as withSessionHeader — the clone reuses
  * `response.body`, so SSE streams pass through untouched.
  */
-export function withModalityBridgeHeader(response: Response, value: string | null): Response {
-  if (!response || !value) return response;
-
-  try {
-    response.headers.set("x-omniroute-modality-bridge", value);
-    return response;
-  } catch {
-    const cloned = new Response(response.body, {
-      status: response.status,
-      statusText: response.statusText,
-      headers: response.headers,
-    });
-    cloned.headers.set("x-omniroute-modality-bridge", value);
-    return cloned;
-  }
+export function withModalityBridgeHeader(
+  response: Response,
+  value: string | ModalityBridgeResponseHeaders | null
+): Response {
+  return withModalityBridgeResponseHeaders(response, value);
 }
 
 export function withConversationId(response: Response, conversationId: string | null): Response {
