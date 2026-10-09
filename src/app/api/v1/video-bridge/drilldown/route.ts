@@ -128,7 +128,7 @@ export async function handleVideoBridgeDrilldownConsumerRequest(
     return await runConsumerRequest(request, dependencies);
   } catch {
     if (request.signal.aborted) return corsError(499, "Request was cancelled", "request_cancelled");
-    log.warn("Video drill-down request failed", { code: "DRILLDOWN_UNAVAILABLE" });
+    log.warn({ code: "DRILLDOWN_UNAVAILABLE" }, "Video drill-down request failed");
     return corsError(
       503,
       "Video Bridge drill-down is temporarily unavailable",
