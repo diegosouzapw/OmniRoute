@@ -32,12 +32,43 @@ const videoBridgePromotionAllowlistEntrySchema = z
     model: z.string().min(1),
     status: videoBridgePromotionAllowlistStatusSchema,
     updatedAt: z.string().min(1),
+    policy: z.enum(["segment_aware", "contact_sheet"]).optional(),
+    modelRevision: z.string().min(1).optional(),
+    candidateSha: z
+      .string()
+      .regex(/^[a-f0-9]{40}$/)
+      .optional(),
+    manifestDigest: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .optional(),
+    runIds: z
+      .array(z.uuid())
+      .length(2)
+      .refine((ids) => ids[0] !== ids[1])
+      .optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((entry, ctx) => {
+    if (
+      entry.status === "eligible" &&
+      (!entry.policy ||
+        !entry.modelRevision ||
+        !entry.candidateSha ||
+        !entry.manifestDigest ||
+        !entry.runIds)
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message:
+          "eligible entries require policy, model revision, candidate, corpus and two distinct run IDs",
+      });
+    }
+  });
 
 export const videoBridgePromotionAllowlistSchema = z
   .object({
-    defaultStatus: videoBridgePromotionAllowlistStatusSchema,
+    defaultStatus: z.literal("hold"),
     generatedAt: z.string().min(1),
     models: z.array(videoBridgePromotionAllowlistEntrySchema),
     schemaVersion: z.literal(1),
@@ -51,14 +82,38 @@ const VIDEO_BRIDGE_PROMOTION_ALLOWLIST: VideoBridgePromotionAllowlist =
 
 /** Returns the frozen allowlist as validated at module load. */
 export function listVideoBridgePromotionAllowlist(): VideoBridgePromotionAllowlist {
-  return VIDEO_BRIDGE_PROMOTION_ALLOWLIST;
+  return structuredClone(VIDEO_BRIDGE_PROMOTION_ALLOWLIST);
+}
+
+export interface VideoBridgePromotionContext {
+  policy: "segment_aware" | "contact_sheet";
+  modelRevision: string;
+  candidateSha: string;
+}
+
+export function resolveVideoBridgePromotionStatus(
+  allowlist: VideoBridgePromotionAllowlist,
+  model: string,
+  context?: VideoBridgePromotionContext
+): VideoBridgePromotionAllowlistStatus {
+  if (!context || !videoBridgePromotionAllowlistSchema.safeParse(allowlist).success) return "hold";
+  const entry = allowlist.models.find(
+    (candidate) =>
+      candidate.model === model &&
+      candidate.policy === context.policy &&
+      candidate.modelRevision === context.modelRevision &&
+      candidate.candidateSha === context.candidateSha
+  );
+  return entry?.status ?? "hold";
 }
 
 /**
  * Looks up a model's promotion status. A model absent from the allowlist returns
  * `defaultStatus` (currently always "hold") — never silently treated as eligible.
  */
-export function getVideoBridgePromotionStatus(model: string): VideoBridgePromotionAllowlistStatus {
-  const entry = VIDEO_BRIDGE_PROMOTION_ALLOWLIST.models.find((candidate) => candidate.model === model);
-  return entry ? entry.status : VIDEO_BRIDGE_PROMOTION_ALLOWLIST.defaultStatus;
+export function getVideoBridgePromotionStatus(
+  model: string,
+  context?: VideoBridgePromotionContext
+): VideoBridgePromotionAllowlistStatus {
+  return resolveVideoBridgePromotionStatus(VIDEO_BRIDGE_PROMOTION_ALLOWLIST, model, context);
 }

@@ -6,6 +6,7 @@ import {
   getVideoBridgePromotionStatus,
   listVideoBridgePromotionAllowlist,
   videoBridgePromotionAllowlistSchema,
+  resolveVideoBridgePromotionStatus,
 } from "../../../src/lib/guardrails/videoBridgePromotionAllowlist.ts";
 
 test("the shipped allowlist file validates against its own frozen schema", () => {
@@ -36,11 +37,44 @@ test("getVideoBridgePromotionStatus returns an explicit entry's status when one 
         model: "model-x",
         status: "eligible",
         updatedAt: "2026-08-29T00:00:00.000Z",
+        policy: "segment_aware",
+        modelRevision: "model-x-frozen-revision",
+        candidateSha: "a".repeat(40),
+        manifestDigest: "b".repeat(64),
+        runIds: ["00000000-0000-4000-8000-000000000001", "00000000-0000-4000-8000-000000000002"],
       },
     ],
     schemaVersion: 1,
   });
   assert.equal(withEntry.models[0].status, "eligible");
+  const context = {
+    policy: "segment_aware" as const,
+    modelRevision: "model-x-frozen-revision",
+    candidateSha: "a".repeat(40),
+  };
+  assert.equal(resolveVideoBridgePromotionStatus(withEntry, "model-x", context), "eligible");
+  assert.equal(resolveVideoBridgePromotionStatus(withEntry, "model-x"), "hold");
+  assert.equal(
+    resolveVideoBridgePromotionStatus(withEntry, "model-x", {
+      ...context,
+      policy: "contact_sheet",
+    }),
+    "hold"
+  );
+  assert.equal(
+    resolveVideoBridgePromotionStatus(withEntry, "model-x", {
+      ...context,
+      modelRevision: "new-revision",
+    }),
+    "hold"
+  );
+  assert.equal(
+    resolveVideoBridgePromotionStatus(withEntry, "model-x", {
+      ...context,
+      candidateSha: "c".repeat(40),
+    }),
+    "hold"
+  );
 });
 
 test("allowlist schema rejects an unknown status value", () => {
@@ -68,6 +102,32 @@ test("allowlist schema rejects a schemaVersion other than the frozen literal 1",
       generatedAt: "2026-08-29T00:00:00.000Z",
       models: [],
       schemaVersion: 2,
+    })
+  );
+});
+
+test("an evidence link alone cannot promote an unbound model or flip the default", () => {
+  assert.throws(() =>
+    videoBridgePromotionAllowlistSchema.parse({
+      defaultStatus: "hold",
+      generatedAt: "2026-10-09T00:00:00.000Z",
+      schemaVersion: 1,
+      models: [
+        {
+          model: "unbound-model",
+          status: "eligible",
+          evidenceRef: "arbitrary-link",
+          updatedAt: "2026-10-09T00:00:00.000Z",
+        },
+      ],
+    })
+  );
+  assert.throws(() =>
+    videoBridgePromotionAllowlistSchema.parse({
+      defaultStatus: "eligible",
+      generatedAt: "2026-10-09T00:00:00.000Z",
+      schemaVersion: 1,
+      models: [],
     })
   );
 });

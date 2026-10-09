@@ -180,7 +180,7 @@ function meanMetricByRole(
       values.some((value) => typeof value !== "number" || !Number.isFinite(value))
     )
       return undefined;
-    caseMeans.push(values.reduce((sum, value) => sum + value!, 0) / values.length);
+    caseMeans.push(values.reduce<number>((sum, value) => sum + value!, 0) / values.length);
   }
   return caseMeans.length
     ? caseMeans.reduce((sum, value) => sum + value, 0) / caseMeans.length
