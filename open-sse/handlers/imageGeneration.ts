@@ -12,6 +12,9 @@ import {
 } from "@/shared/constants/designerWebRetirement";
 
 import { getImageProvider, parseImageModel } from "../config/imageRegistry.ts";
+import { handleGrokImageGeneration } from "./grokMedia.ts";
+import { saveImageSuccessResult, saveImageErrorResult } from "./imageResult.ts";
+export { saveImageSuccessResult, saveImageErrorResult } from "./imageResult.ts";
 import { HTTP_STATUS } from "../config/constants.ts";
 import { applyAntigravityClientProfileHeaders } from "../services/antigravityClientProfile.ts";
 import { getAntigravityEnvelopeUserAgent } from "../services/antigravityIdentity.ts";
@@ -42,9 +45,6 @@ import {
   getConfiguredTimeout,
 } from "@/shared/utils/fetchTimeout";
 import { sanitizeErrorMessage, sanitizeUpstreamDetails } from "../utils/error.ts";
-// Shared with imageUpscale/shared.ts — see imageErrorLog.ts for why a bare
-// String(value) is unsafe here (null-prototype sanitizeUpstreamDetails() payloads, #12506).
-import { stringifyImageErrorForLog } from "./imageErrorLog.ts";
 
 import { handleSDWebUIImageGeneration } from "./imageGeneration/providers/sdWebUI.ts";
 import { handleHyperbolicImageGeneration } from "./imageGeneration/providers/hyperbolic.ts";
@@ -521,6 +521,10 @@ export async function handleImageGeneration({
       credentials,
       log,
     });
+  }
+
+  if (providerConfig.format === "grok-image") {
+    return handleGrokImageGeneration({ model, providerConfig, body, credentials, signal });
   }
 
   if (providerConfig.format === "zenmux-image") {
@@ -2820,80 +2824,6 @@ export async function handleCodexImageEdit({
     logPath: "/v1/images/edits",
   });
   return result as CodexImageEditResult;
-}
-
-export function saveImageSuccessResult({
-  provider,
-  model,
-  startTime,
-  requestBody = null,
-  responseBody = null,
-  created = null,
-  images,
-  path = "/v1/images/generations",
-}) {
-  saveCallLog({
-    method: "POST",
-    path,
-    status: 200,
-    model: `${provider}/${model}`,
-    provider,
-    duration: Date.now() - startTime,
-    requestBody,
-    responseBody,
-  }).catch(() => {});
-
-  return {
-    success: true,
-    data: {
-      created: created || Math.floor(Date.now() / 1000),
-      data: images,
-    },
-  };
-}
-
-export function saveImageErrorResult({
-  provider,
-  model,
-  status,
-  startTime,
-  error,
-  requestBody = null,
-  path = "/v1/images/generations",
-  // #8307: opt-in signal for executeImageWithCredentialFallback — set by a
-  // provider handler when the failure is account/session-specific (expired
-  // or blocked credentials) rather than a generic request/provider error, so
-  // the retry loop tries the next eligible account even when the upstream
-  // status isn't a plain 401. Defaults to unset (existing 401-only behavior
-  // for every other provider is unchanged).
-  retryable = undefined,
-}: {
-  provider: string;
-  model: string;
-  status: number;
-  startTime: number;
-  error: unknown;
-  requestBody?: unknown;
-  path?: string;
-  retryable?: boolean;
-}) {
-  saveCallLog({
-    method: "POST",
-    path,
-    status,
-    model: `${provider}/${model}`,
-    provider,
-    duration: Date.now() - startTime,
-    error: stringifyImageErrorForLog(error).slice(0, 500),
-    requestBody,
-  }).catch(() => {});
-
-  return {
-    success: false,
-    status,
-    error,
-    ...(retryable !== undefined ? { retryable } : {}),
-  };
 }
 
 /**

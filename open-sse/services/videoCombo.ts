@@ -55,6 +55,12 @@ export async function executeVideoCombo(
   startTime: number,
   log: typeof logger
 ): Promise<Response> {
+  // Every target gets the client's signal, so a disconnect stops each
+  // target's local polling exactly like the single-provider route.
+  const signal = auth.request.signal;
+  const abortedResponse = () => errorResponse(499, "Request aborted");
+  if (signal.aborted) return abortedResponse();
+
   const combo = await getComboByName(comboName);
   if (!combo) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, `Combo not found: ${comboName}`);
@@ -113,6 +119,7 @@ export async function executeVideoCombo(
 
   const runTarget = async (modelStr: string, resolved: VideoModelTarget): Promise<void> => {
     try {
+      if (signal.aborted) return;
       const { provider: targetProvider, model: targetModel, isCustomModel } = resolved;
       if (!targetProvider) {
         lastError = { status: 400, error: `Invalid video model: ${modelStr}` };
@@ -198,6 +205,7 @@ export async function executeVideoCombo(
         body: { ...body, model: modelStr },
         credentials,
         log,
+        signal,
         ...(isCustomModel && { resolvedProvider: targetProvider }),
       });
 
@@ -264,6 +272,8 @@ export async function executeVideoCombo(
       fallbackAttempts: selectedFallbackCount,
     });
   }
+
+  if (signal.aborted) return abortedResponse();
 
   // All targets failed — prefer the terminal (400/401/403) error when one
   // exists; it is the actionable misconfiguration signal. Fall back to the

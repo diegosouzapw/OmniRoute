@@ -1,0 +1,1 @@
+- Prevent replay of Grok/xAI video creates on ambiguous transport failures, propagate client cancellation through video combos and job polling, and enforce deadlines, response-size limits and caller poll caps without resubmitting jobs.

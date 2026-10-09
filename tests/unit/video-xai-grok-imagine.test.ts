@@ -48,7 +48,7 @@ test("handleVideoGeneration creates + polls an xAI Grok Imagine video job and re
       createRequest = {
         url: stringUrl,
         headers: options.headers,
-        body: JSON.parse(String(options.body || "{}")),
+        body: JSON.parse(await new Response(options.body).text()),
       };
       return jsonResponse({ request_id: "xai-req-1", status: "pending" });
     }
@@ -114,10 +114,9 @@ test("handleVideoGeneration rejects xAI video requests without credentials", asy
   assert.match(result.error, /xAI API key is required/);
 });
 
-test("handleVideoGeneration surfaces a 502 when xAI returns no request_id", async () => {
+test("handleVideoGeneration preserves an xAI authentication rejection without request_id", async () => {
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () =>
-    jsonResponse({ error: { message: "Invalid API key" } }, 401);
+  globalThis.fetch = async () => jsonResponse({ error: { message: "Invalid API key" } }, 401);
 
   try {
     const result = await handleVideoGeneration({
@@ -127,7 +126,7 @@ test("handleVideoGeneration surfaces a 502 when xAI returns no request_id", asyn
     });
 
     assert.equal(result.success, false);
-    assert.equal(result.status, 502);
+    assert.equal(result.status, 401);
     assert.equal(result.error, "Invalid API key");
   } finally {
     globalThis.fetch = originalFetch;
@@ -199,7 +198,7 @@ test("handleVideoGeneration returns 504 when the xAI job never completes", async
         model: "xai/grok-imagine-video",
         prompt: "x",
         timeout_ms: 5000,
-        poll_interval_ms: 100,
+        poll_interval_ms: 1000,
       },
       credentials: { apiKey: "xai-key" },
       log: null,

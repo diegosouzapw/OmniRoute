@@ -22,6 +22,8 @@ import { handleAdobeFireflyVideoGeneration } from "./videoGeneration/adobeFirefl
 import { handleSyntxVideoGeneration } from "./videoGeneration/syntxHandler.ts";
 import { handleOpenAIVideoGeneration } from "./videoGeneration/openai.ts";
 import { getVideoJobPreset, handleVideoJobGeneration } from "./videoGeneration/job.ts";
+import { abortedVideoResult } from "./videoGeneration/abort.ts";
+import { sleep } from "../utils/sleep.ts";
 import {
   extractRunwayFailureMessage,
   normalizeRunwayVideoResult,
@@ -141,7 +143,14 @@ function resolveVideoJobPollingOverrides(body: Record<string, unknown>): {
 /**
  * Handle video generation request
  */
-export async function handleVideoGeneration({ body, credentials, log, resolvedProvider = null }) {
+export async function handleVideoGeneration({
+  body,
+  credentials,
+  log,
+  resolvedProvider = null,
+  signal = null as AbortSignal | null,
+}) {
+  if (signal?.aborted) return abortedVideoResult();
   let { provider, model } = parseVideoModel(body.model);
   if (resolvedProvider) {
     provider = resolvedProvider;
@@ -188,6 +197,7 @@ export async function handleVideoGeneration({ body, credentials, log, resolvedPr
         body,
         credentials,
         log,
+        signal,
         ...resolveVideoJobPollingOverrides(body),
       });
     }
@@ -227,6 +237,7 @@ export async function handleVideoGeneration({ body, credentials, log, resolvedPr
       body,
       credentials,
       log,
+      signal,
       ...resolveVideoJobPollingOverrides(body),
     });
   }
@@ -268,11 +279,27 @@ export async function handleVideoGeneration({ body, credentials, log, resolvedPr
   }
 
   if (providerConfig.format === "runwayml") {
-    return handleRunwayVideoGeneration({ model, provider, providerConfig, body, credentials, log });
+    return handleRunwayVideoGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+      signal,
+    });
   }
 
   if (providerConfig.format === "haiper-video") {
-    return handleHaiperVideoGeneration({ model, provider, providerConfig, body, credentials, log });
+    return handleHaiperVideoGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+      signal,
+    });
   }
 
   if (providerConfig.format === "veoaifree-web") {
@@ -287,6 +314,7 @@ export async function handleVideoGeneration({ body, credentials, log, resolvedPr
       body,
       credentials,
       log,
+      signal,
     });
   }
 
@@ -323,10 +351,26 @@ export async function handleVideoGeneration({ body, credentials, log, resolvedPr
     });
   }
   if (providerConfig.format === "novita-video") {
-    return handleNovitaVideoGeneration({ model, provider, providerConfig, body, credentials, log });
+    return handleNovitaVideoGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+      signal,
+    });
   }
   if (providerConfig.format === "xai-video") {
-    return handleXaiVideoGeneration({ model, provider, providerConfig, body, credentials, log });
+    return handleXaiVideoGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+      signal,
+    });
   }
   if (providerConfig.format === "uc-video") {
     // UC (uncensored.com): one handler serves both surfaces, picking by
@@ -827,6 +871,7 @@ async function handleRunwayVideoGeneration({
   body,
   credentials,
   log,
+  signal = null,
 }) {
   const startTime = Date.now();
   const token = credentials?.apiKey || credentials?.accessToken;
@@ -923,10 +968,7 @@ async function handleRunwayVideoGeneration({
     while (Date.now() < deadline) {
       const taskResponse = await fetch(
         buildRunwayApiUrl(`/tasks/${encodeURIComponent(taskId)}`, providerConfig.baseUrl),
-        {
-          method: "GET",
-          headers,
-        }
+        { method: "GET", headers, ...(signal ? { signal } : {}) }
       );
 
       if (!taskResponse.ok) {
@@ -987,7 +1029,8 @@ async function handleRunwayVideoGeneration({
         return { success: false, status: 502, error: errorText };
       }
 
-      await sleep(pollIntervalMs);
+      await sleep(pollIntervalMs, signal);
+      if (signal?.aborted) return abortedVideoResult();
     }
 
     const timeoutError = `Runway task timeout after ${timeoutMs}ms (taskId=${taskId}, status=${String(
@@ -1005,6 +1048,7 @@ async function handleRunwayVideoGeneration({
     }).catch(() => {});
     return { success: false, status: 504, error: timeoutError };
   } catch (err) {
+    if (signal?.aborted) return abortedVideoResult();
     if (log) log.error("VIDEO", `${provider} runway error: ${err.message}`);
     saveCallLog({
       method: "POST",
@@ -1038,6 +1082,7 @@ async function handleHaiperVideoGeneration({
   body,
   credentials,
   log,
+  signal = null,
 }) {
   const startTime = Date.now();
   const token = credentials?.apiKey || "";
@@ -1062,11 +1107,19 @@ async function handleHaiperVideoGeneration({
   const { job_id } = await res.json();
   const deadline = Date.now() + 300000;
   while (Date.now() < deadline) {
-    await sleep(5000);
-    const statusRes = await fetch(`${providerConfig.statusUrl}/${job_id}`, {
-      headers: { HAIPER_KEY: token },
-    });
-    const status = await statusRes.json();
+    await sleep(5000, signal);
+    if (signal?.aborted) return abortedVideoResult();
+    let status;
+    try {
+      const statusRes = await fetch(`${providerConfig.statusUrl}/${job_id}`, {
+        headers: { HAIPER_KEY: token },
+        ...(signal ? { signal } : {}),
+      });
+      status = await statusRes.json();
+    } catch (err) {
+      if (signal?.aborted) return abortedVideoResult();
+      throw err;
+    }
     if (status.status === "completed" || status.status === "succeeded") {
       const videoUrl = status.creation_url || status.output?.video_url;
       if (videoUrl) {
@@ -1112,8 +1165,4 @@ async function handleHaiperVideoGeneration({
     error: "Haiper video generation timed out",
   }).catch(() => {});
   return { success: false, status: 504, error: "Haiper video generation timed out" };
-}
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }

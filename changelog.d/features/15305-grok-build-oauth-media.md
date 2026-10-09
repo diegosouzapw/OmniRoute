@@ -1,0 +1,1 @@
+- **feat(oauth):** Route image generation, video generation, speech, and transcription through the existing Grok Build OAuth connection ([#15305](https://github.com/diegosouzapw/OmniRoute/pull/15305)).

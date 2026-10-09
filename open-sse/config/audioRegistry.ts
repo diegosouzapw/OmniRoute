@@ -41,6 +41,14 @@ export interface AudioProvider {
 }
 
 export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
+  "grok-cli": {
+    id: "grok-cli",
+    baseUrl: "https://api.x.ai/v1/stt",
+    authType: "oauth",
+    authHeader: "bearer",
+    format: "grok-stt",
+    models: [{ id: "grok-voice-transcribe-2.0", name: "Grok Voice Transcribe 2.0 (OAuth)" }],
+  },
   vertex: {
     id: "vertex",
     baseUrl: "https://us-central1-aiplatform.googleapis.com/v1",
@@ -303,6 +311,14 @@ export const AUDIO_TRANSLATION_PROVIDERS: Record<string, AudioProvider> = {
 };
 
 export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
+  "grok-cli": {
+    id: "grok-cli",
+    baseUrl: "https://api.x.ai/v1/tts",
+    authType: "oauth",
+    authHeader: "bearer",
+    format: "grok-tts",
+    models: [{ id: "grok-tts", name: "Grok Text to Speech (OAuth)" }],
+  },
   google: {
     id: "google",
     credentialProviderId: "gemini",

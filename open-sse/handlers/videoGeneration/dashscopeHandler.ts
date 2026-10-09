@@ -2,6 +2,8 @@ import { isJsonObject } from "../../utils/kieTask.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import { resolveAlibabaProviderMediaBaseUrl } from "@/shared/constants/alibabaProviderRegions";
 import { sanitizeErrorMessage } from "../../utils/error.ts";
+import { sleep } from "../../utils/sleep.ts";
+import { abortedVideoResult } from "./abort.ts";
 
 /**
  * Alibaba-family video generation: create async task → poll → MP4.
@@ -17,6 +19,7 @@ export async function handleDashscopeVideoGeneration({
   body,
   credentials,
   log,
+  signal = null,
 }: {
   model: string;
   provider: string;
@@ -53,6 +56,7 @@ export async function handleDashscopeVideoGeneration({
     info: (scope: string, message: string) => void;
     error: (scope: string, message: string) => void;
   } | null;
+  signal?: AbortSignal | null;
 }) {
   const startTime = Date.now();
   const timeoutMs = Number(body.timeout_ms) > 0 ? Number(body.timeout_ms) : 300000;
@@ -139,9 +143,11 @@ export async function handleDashscopeVideoGeneration({
     const deadline = startTime + timeoutMs;
     let lastStatus = "PENDING";
     while (Date.now() < deadline) {
-      await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+      await sleep(pollIntervalMs, signal);
+      if (signal?.aborted) return abortedVideoResult();
       const pollRes = await fetch(`${statusUrl}/${taskId}`, {
         headers: { Authorization: `Bearer ${token}` },
+        ...(signal ? { signal } : {}),
       });
       const pollData = await pollRes.json().catch(() => ({}));
       lastStatus = pollData?.output?.task_status || "PENDING";
@@ -189,6 +195,7 @@ export async function handleDashscopeVideoGeneration({
       error: `DashScope task ${taskId} timed out (status: ${lastStatus})`,
     };
   } catch (err: unknown) {
+    if (signal?.aborted) return abortedVideoResult();
     return {
       success: false,
       status: isJsonObject(err) && Number.isFinite(Number(err.status)) ? Number(err.status) : 502,

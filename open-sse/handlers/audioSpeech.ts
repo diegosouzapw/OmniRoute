@@ -26,6 +26,7 @@ import { handleAwsPollySpeech } from "../executors/awsPollyTts.ts";
 import { GttsUpstreamError, normalizeGttsLang, synthesizeGtts } from "../executors/gtts.ts";
 import { handleFishAudioSpeech } from "../executors/fishAudioTts.ts";
 import { errorResponse } from "../utils/error.ts";
+import { handleGrokSpeech } from "./grokMedia.ts";
 import { resolveElevenLabsVoiceId } from "./elevenLabsVoiceMap.ts";
 import { audioStreamResponse, upstreamErrorResponse } from "../utils/audioResponse.ts";
 import { handleSyntxSpeech } from "./syntxAudio.ts";
@@ -916,6 +917,10 @@ export async function handleAudioSpeech({
 
   try {
     // Route to provider-specific handler
+    if (providerConfig.format === "grok-tts") {
+      return handleGrokSpeech(providerConfig, body, credentials);
+    }
+
     if (providerConfig.format === "uc-tts") {
       const { handleUcTextToSpeech } = await import("./uc/ucTts.ts");
       const result = await handleUcTextToSpeech({

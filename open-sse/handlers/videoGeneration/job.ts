@@ -16,6 +16,7 @@ import {
 } from "@/shared/utils/fetchTimeout";
 import { sanitizeErrorMessage } from "../../utils/error.ts";
 import { sleep } from "../../utils/sleep.ts";
+import { abortedVideoResult } from "./abort.ts";
 
 interface LogLike {
   info?: (tag: string, msg: string, meta?: unknown) => void;
@@ -244,6 +245,7 @@ export async function handleVideoJobGeneration({
   log,
   maxPolls: maxPollsOverride,
   pollIntervalMs: pollIntervalOverride,
+  signal = null,
 }: {
   model: string;
   presetName: string;
@@ -255,7 +257,9 @@ export async function handleVideoJobGeneration({
   };
   maxPolls?: number;
   pollIntervalMs?: number;
+  signal?: AbortSignal | null;
 }) {
+  if (signal?.aborted) return abortedVideoResult();
   const preset = getVideoJobPreset(presetName);
   if (!preset) {
     return {
@@ -293,7 +297,9 @@ export async function handleVideoJobGeneration({
     headers: buildJobHeaders(preset, credentials),
     body: JSON.stringify(bodyForPreset),
     log,
+    signal,
   });
+  if (signal?.aborted) return abortedVideoResult();
   if (submitResult.ok === false) {
     return { success: false, status: submitResult.status, error: submitResult.error };
   }
@@ -320,7 +326,8 @@ export async function handleVideoJobGeneration({
   const pollInterval = pollIntervalOverride ?? preset.pollIntervalMs;
 
   for (let attempt = 1; attempt <= maxPolls; attempt += 1) {
-    await sleep(pollInterval);
+    await sleep(pollInterval, signal);
+    if (signal?.aborted) return abortedVideoResult();
     const pollUrl = `${baseUrl}${preset.poll.pathTemplate
       .replace("{taskId}", encodeURIComponent(taskId))
       .replace("{model}", encodeURIComponent(model))}`;
@@ -328,7 +335,9 @@ export async function handleVideoJobGeneration({
       method: "GET",
       headers: buildJobHeaders(preset, credentials),
       log,
+      signal,
     });
+    if (signal?.aborted) return abortedVideoResult();
     if (pollResult.ok === false) {
       return { success: false, status: pollResult.status, error: pollResult.error };
     }
@@ -417,11 +426,13 @@ async function fetchJson(
     headers,
     body,
     log,
+    signal,
   }: {
     method: string;
     headers: Record<string, string>;
     body?: string;
     log?: LogLike;
+    signal?: AbortSignal | null;
   }
 ): Promise<{ ok: true; data: unknown } | { ok: false; status: number; error: string }> {
   try {
@@ -430,6 +441,8 @@ async function fetchJson(
       headers,
       ...(body !== undefined ? { body } : {}),
       timeoutMs: getConfiguredTimeout(),
+      // A per-call derived signal: fetchWithTimeout never removes its abort listener.
+      ...(signal ? { signal: AbortSignal.any([signal]) } : {}),
     });
     if (!response.ok) {
       const errorText = await response.text();
@@ -439,6 +452,7 @@ async function fetchJson(
     const data = await response.json();
     return { ok: true, data };
   } catch (err: unknown) {
+    if (signal?.aborted) return { ok: false, status: 499, error: "Request aborted" };
     const message = err instanceof Error ? err.message : String(err);
     const isTimeout =
       err instanceof FetchTimeoutError || (err instanceof Error && err.name === "AbortError");

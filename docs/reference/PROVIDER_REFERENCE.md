@@ -1,14 +1,14 @@
 ---
 title: "Provider Reference"
 version: 3.8.52
-lastUpdated: 2026-10-08
+lastUpdated: 2026-10-09
 ---
 
 # Provider Reference
 
 > **Auto-generated** from `src/shared/constants/providers.ts` — do not edit by hand.
 > Regenerate with: `npm run gen:provider-reference`
-> **Last generated:** 2026-10-08
+> **Last generated:** 2026-10-09
 
 Total providers: **370**. See category breakdown below.
 
@@ -67,13 +67,13 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `ghe-copilot` | `ghe-copilot` | GitHub Enterprise Copilot | OAuth | — | Enter your GHE instance URL (e.g., https://ghe.company.com) in provider settings, then authenticate via device flow. |
 | `github` | `gh` | GitHub Copilot | OAuth | — | — |
 | `gitlab-duo` | `gitlab-duo` | GitLab Duo | OAuth | [link](https://docs.gitlab.com/user/duo_agent_platform/code_suggestions/) | GitLab Duo OAuth is not configured. Register an OAuth application at https://gitlab.com/-/profile/applications with redirect URI http://localhost:20128/callback and scopes "ai_features read_user", then set GITLAB_DUO_OAUTH_CLIENT_ID (and optionally GITLAB_DUO_OAUTH_CLIENT_SECRET) and restart. |
-| `grok-cli` | `gc` | Grok Build | OAuth | — | Sign in with your browser, or paste your ~/.grok/auth.json (or the JWT access token) from the Grok Build CLI; refresh_token is rotated automatically either way. |
+| `grok-cli` | `gc` | Grok Build | OAuth | — | Sign in with your browser, or paste your ~/.grok/auth.json (or the JWT access token) from the Grok Build CLI; refresh_token is rotated automatically either way. Imagine image/video and TTS/STT reuse this login where your account is entitled. |
 | `kilocode` | `kc` | Kilo Code | OAuth | — | Sign in with your Kilo Code account (device-code OAuth), or paste a direct API key from app.kilo.ai → Settings → API Keys. Multiple API keys are supported and rotated automatically — add each as a separate connection. Without any connection, free anonymous models are available via the anonymousFallback. |
 | `kimi-coding` | `kmc` | Kimi Code CLI | OAuth | [link](https://www.kimi.ai/code?aff=omniroute) | Sign in with the same Kimi account used by Kimi Code CLI. OmniRoute uses the CLI OAuth flow and Kimi Coding Plan endpoints. |
 | `kiro` | `kr` | Kiro AI | OAuth | — | Free tier: 50 credits/month (~25K–100K tokens). ⚠️ Kiro ToS prohibits third-party proxy/harness use. |
 | `muse-code` | `mc` | Muse Code (Meta) | OAuth | [link](https://ai.developer.meta.com/docs/muse-code/auth) | Sign in with the Muse Code device flow (same as `muse login` / CLIProxyAPI `-meta-login`) to use a Muse subscription, or paste a META_API_KEY. Device login keeps the durable dca token and mints the inference key; a 401 remints that key. Wire format is OpenAI Responses (POST /responses). |
 | `openference` | `of` | Openference | OAuth | [link](https://openference.com) | Sign in with your Openference account to route requests through api.openference.com. Includes free-tier access to Qwen3.8 27b and Llama 3.2 3B — see openference.com/pricing for current plan terms. |
-| `qoder` | `if` | Qoder | OAuth | — | — |
+| `qoder` | `if` | Qoder | OAuth | — | PAT (pt-): requires local qodercli; plain chat only, no caller tools, buffered streaming and a 45-second chat limit. HTTP keys use DashScope; browser OAuth requires administrator configuration. |
 | `trae` | `tr` | Trae | OAuth | [link](https://trae.ai) | Trae is an AI-native IDE by ByteDance (SOLO remote agent). Authorize via trae.ai in the popup, or sign in at solo.trae.ai and paste the Cloud-IDE-JWT (sent as 'Authorization: Cloud-IDE-JWT <token>', ~14-day lifetime) as the access token; web_id/biz_user_id/user_unique_id/scope/tenant/region propagate via providerSpecificData. No headless refresh for pasted tokens — re-paste on expiry. |
 | `workbuddy` | `wb` | WorkBuddy | OAuth | [link](https://www.workbuddy.ai) | Tencent WorkBuddy (www.workbuddy.ai). Authorize the CLI device flow in the popup; OmniRoute then polls for the token and attaches the required X-Product: SaaS header. The model roster is served by the authenticated catalogue, so it is discovered live rather than listed here. WorkBuddy only accepts streaming requests, which OmniRoute accumulates back into a JSON response for non-streaming callers. |
 | `xai-oauth` | `xao` | xAI OAuth (Grok) | OAuth | [link](https://x.ai) | Sign in with xAI to use api.x.ai models such as Grok 4.5. This is separate from Grok Build JWT sessions, which use cli-chat-proxy.grok.com and grok-build model aliases. |
@@ -458,7 +458,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 
 - Catalog: [`src/shared/constants/providers.ts`](../../src/shared/constants/providers.ts)
 - Registry (per-model details): [`open-sse/config/providerRegistry.ts`](../../open-sse/config/providerRegistry.ts)
-- Executors: [`open-sse/executors/`](../../open-sse/executors/) (146 implementations)
+- Executors: [`open-sse/executors/`](../../open-sse/executors/) (147 implementations)
 - Translators: [`open-sse/translator/`](../../open-sse/translator/)
 
 ## See Also

@@ -18,6 +18,7 @@ import {
 import { AI_HORDE_IMAGE_PROVIDER } from "./providers/registry/aihorde/imageModels.ts";
 import { toRegistryImageModels as toSyntxImageModels } from "../services/syntxMediaCatalog.ts";
 import { ZENMUX_IMAGE_PROVIDER } from "./providers/registry/zenmux/imageModels.ts";
+import { GROK_BUILD_PROXY_BASE_URL } from "./grokBuildEndpoints.ts";
 
 export interface ImageModelEntry {
   id: string;
@@ -93,10 +94,25 @@ export const XAI_API_KEY_IMAGE_PROVIDER: ImageProviderConfig = {
   supportedSizes: ["1024x1024", "2048x2048"],
 };
 
+const GROK_BUILD_IMAGE_PROVIDER: ImageProviderConfig = {
+  id: "grok-cli",
+  alias: "gc",
+  baseUrl: `${GROK_BUILD_PROXY_BASE_URL}/images/generations`,
+  authType: "oauth",
+  authHeader: "bearer",
+  format: "grok-image",
+  models: [{ id: "grok-imagine-image", name: "Grok Imagine Image (OAuth)" }],
+  supportedSizes: ["1024x1024", "2048x2048"],
+};
+
 export const XAI_SUBSCRIPTION_IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
   xai: { ...XAI_IMAGE_CONFIG, id: "xai", authType: "apikey" },
   "xai-oauth": { ...XAI_IMAGE_CONFIG, id: "xai-oauth", alias: "xao", authType: "oauth" },
-  "grok-cli": { ...XAI_IMAGE_CONFIG, id: "grok-cli", alias: "gc", authType: "oauth" },
+  "grok-cli": {
+    ...GROK_BUILD_IMAGE_PROVIDER,
+    models: XAI_IMAGE_CONFIG.models,
+    supportedSizes: XAI_IMAGE_CONFIG.supportedSizes,
+  },
 };
 
 export const IMAGE_MODEL_ALIASES: Record<string, ImageModelAliasEntry> = {
@@ -309,6 +325,7 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
   },
 
   xai: XAI_API_KEY_IMAGE_PROVIDER,
+  "grok-cli": GROK_BUILD_IMAGE_PROVIDER,
 
   "vercel-ai-gateway": {
     id: "vercel-ai-gateway",

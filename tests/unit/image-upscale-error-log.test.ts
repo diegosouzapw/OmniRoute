@@ -24,6 +24,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const { stringifyImageErrorForLog } = await import("../../open-sse/handlers/imageErrorLog.ts");
+const { saveImageErrorResult } = await import("../../open-sse/handlers/imageResult.ts");
 const { saveUpscaleErrorResult } = await import("../../open-sse/handlers/imageUpscale/shared.ts");
 const { getCallLogs, waitForCallLogSaves } = await import("../../src/lib/usage/callLogs.ts");
 
@@ -37,20 +38,32 @@ test.after(() => {
 
 // ── imageGeneration.ts must not carry its own copy (LEDGER-22 follow-up) ──
 
-test("imageGeneration.ts imports the shared stringifyImageErrorForLog instead of redefining it", () => {
+test("image generation delegates to a result leaf that imports the shared error stringifier", () => {
   const handlerPath = fileURLToPath(
     new URL("../../open-sse/handlers/imageGeneration.ts", import.meta.url)
   );
   const source = fs.readFileSync(handlerPath, "utf8");
+  const resultSource = fs.readFileSync(
+    new URL("../../open-sse/handlers/imageResult.ts", import.meta.url),
+    "utf8"
+  );
   assert.ok(
-    !/^function stringifyImageErrorForLog\(/m.test(source),
-    "imageGeneration.ts must not redefine stringifyImageErrorForLog — import it from ./imageErrorLog"
+    !/^function stringifyImageErrorForLog\(/m.test(source + "\n" + resultSource),
+    "neither image generation nor its result leaf may redefine stringifyImageErrorForLog"
+  );
+  assert.match(
+    source,
+    /import\s*\{[^}]*\bsaveImageErrorResult\b[^}]*\}\s*from\s*["']\.\/imageResult(?:\.ts)?["']/
+  );
+  assert.match(
+    source,
+    /export\s*\{[^}]*\bsaveImageErrorResult\b[^}]*\}\s*from\s*["']\.\/imageResult(?:\.ts)?["']/
   );
   assert.ok(
     /import\s*\{[^}]*\bstringifyImageErrorForLog\b[^}]*\}\s*from\s*["']\.\/imageErrorLog(?:\.ts)?["']/.test(
-      source
+      resultSource
     ),
-    "imageGeneration.ts must import stringifyImageErrorForLog from ./imageErrorLog"
+    "imageResult.ts must import stringifyImageErrorForLog from ./imageErrorLog"
   );
 });
 
@@ -197,4 +210,31 @@ test("saveUpscaleErrorResult persists an Error carrying an Authorization value m
   assert.equal(typeof logs[0].error, "string");
   assert.ok(!logs[0].error.includes(SECRET), `credential persisted in call log: ${logs[0].error}`);
   assert.ok(logs[0].error.startsWith("Error:"), `expected "Error: …" prefix, got ${logs[0].error}`);
+});
+
+test("saveImageErrorResult persists a redacted null-prototype error and preserves retryability", async () => {
+  const provider = "image-result-auth-regression";
+  const error = Object.assign(Object.create(null), {
+    code: "upstream_error",
+    authorization: `Bearer ${SECRET}`,
+  });
+  const result = saveImageErrorResult({
+    provider,
+    model: "fast",
+    status: 401,
+    startTime: Date.now(),
+    error,
+    retryable: true,
+  });
+  assert.equal(result.success, false);
+  assert.equal(result.status, 401);
+  assert.equal(result.error, error);
+  assert.equal(result.retryable, true);
+
+  assert.ok(await waitForCallLogSaves(60_000), "call-log save did not settle");
+  const logs = await getCallLogs({ provider, limit: 5 });
+  assert.equal(logs.length, 1);
+  assert.equal(logs[0].path, "/v1/images/generations");
+  assert.ok(!logs[0].error.includes(SECRET), "credential persisted in generation call log");
+  assert.ok(logs[0].error.includes("[REDACTED]"));
 });

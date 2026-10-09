@@ -6,6 +6,7 @@
  */
 
 import { parseModelFromRegistry } from "./registryUtils.ts";
+import { GROK_BUILD_PROXY_BASE_URL } from "./grokBuild.ts";
 import { RUNWAYML_SUPPORTED_VIDEO_MODELS } from "./runway.ts";
 import { SEGMIND_VIDEO_MODELS } from "./providers/registry/segmind/videoModels.ts";
 import { toRegistryVideoModels } from "../services/adobeFireflyModels.ts";
@@ -413,6 +414,17 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     authHeader: "bearer",
     format: "xai-video",
     models: [{ id: "grok-imagine-video", name: "Grok Imagine Video" }],
+  },
+
+  "grok-cli": {
+    id: "grok-cli",
+    alias: "gc",
+    baseUrl: `${GROK_BUILD_PROXY_BASE_URL}/videos`,
+    statusUrl: `${GROK_BUILD_PROXY_BASE_URL}/videos`,
+    authType: "oauth",
+    authHeader: "bearer",
+    format: "xai-video",
+    models: [{ id: "grok-imagine-video", name: "Grok Imagine Video (OAuth)" }],
   },
 
   // UC (uncensored.com) video generation. One handler (handleUcVideoGeneration)
