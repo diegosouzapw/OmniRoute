@@ -61,6 +61,9 @@ interface EvidenceRun {
   observationId?: string;
   repetition?: number;
   preAnalysisMs?: number;
+  mediaDigest?: string;
+  promptDigest?: string;
+  configurationDigest?: string;
 }
 
 interface EvidenceCase {
@@ -95,10 +98,21 @@ function validMetrics(run: EvidenceRun): boolean {
 
 function caseBlockers(
   currentCase: EvidenceCase,
-  declared: VideoBridgePromotionManifest["cases"][number] | undefined
+  declared: VideoBridgePromotionManifest["cases"][number] | undefined,
+  configurationDigest: string | undefined
 ): string[] {
   const blockers: string[] = [];
   if (!declared) return ["UNDECLARED_CASE"];
+  if (
+    currentCase.runs.some(
+      (run) =>
+        run.mediaDigest !== declared.mediaDigest ||
+        run.promptDigest !== declared.promptDigest ||
+        run.configurationDigest !== configurationDigest
+    )
+  ) {
+    blockers.push("RUN_INPUT_BINDING_MISMATCH");
+  }
   if (currentCase.isSecurityCase !== declared.isSecurityCase) {
     blockers.push("SECURITY_CLASSIFICATION_MISMATCH");
   }
@@ -148,6 +162,12 @@ export function validatePromotionEvidence(
   evidence: PromotionEvidenceFile
 ): string[] {
   const blockers = new Set<string>();
+  if (
+    !manifest.configurationDigest ||
+    manifest.cases.some((currentCase) => !currentCase.promptDigest)
+  ) {
+    blockers.add("INPUT_DIGEST_BINDING_MISSING");
+  }
   if (!manifest.resourceCaps) blockers.add("RESOURCE_CAPS_MISSING");
   if (evidence.comparison !== "fu07" && evidence.comparison !== "fu09") {
     blockers.add("COMPARISON_NOT_DECLARED");
@@ -216,7 +236,7 @@ export function validatePromotionEvidence(
   }
   for (const currentCase of evidence.cases) {
     const declaredCase = declared.get(currentCase.caseId);
-    for (const blocker of caseBlockers(currentCase, declaredCase)) {
+    for (const blocker of caseBlockers(currentCase, declaredCase, manifest.configurationDigest)) {
       blockers.add(blocker);
     }
     if (

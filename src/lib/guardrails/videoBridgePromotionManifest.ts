@@ -67,6 +67,10 @@ export const videoBridgePromotionCaseSchema = z
     id: z.string().min(1),
     isSecurityCase: z.boolean(),
     kind: caseKindSchema,
+    promptDigest: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .optional(),
     repetitions: z.number().int().min(VIDEO_BRIDGE_PROMOTION_MIN_REPETITIONS),
     mediaDigest: z
       .string()
@@ -119,6 +123,10 @@ export const videoBridgePromotionManifestSchema = z
     cases: z.array(videoBridgePromotionCaseSchema).min(1),
     id: z.string().min(1),
     metrics: z.array(videoBridgePromotionMetricNameSchema).min(1),
+    configurationDigest: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .optional(),
     schemaVersion: z.literal(1),
     resourceCaps: z
       .object({

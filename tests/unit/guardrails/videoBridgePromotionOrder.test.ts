@@ -19,6 +19,7 @@ function completeEvidence() {
   const manifest = videoBridgePromotionManifestSchema.parse({
     id: "unit-only-order-corpus",
     schemaVersion: 1,
+    configurationDigest: "d".repeat(64),
     resourceCaps: { ...VIDEO_BRIDGE_PROMOTION_RESOURCE_CAPS },
     metrics: [...VIDEO_BRIDGE_PROMOTION_METRIC_NAMES],
     cases: [...VIDEO_BRIDGE_PROMOTION_CASE_KINDS, "real_sanitized"].map((kind) => ({
@@ -29,6 +30,7 @@ function completeEvidence() {
       repetitions: 3,
       mediaDigest: "a".repeat(64),
       expectedFactsDigest: "b".repeat(64),
+      promptDigest: "c".repeat(64),
     })),
   });
   const runFile = {
@@ -58,6 +60,9 @@ function completeEvidence() {
           model: "unit-only-model",
           rawResponseText: "private unit response",
           preAnalysisMs: 100,
+          mediaDigest: currentCase.mediaDigest,
+          promptDigest: currentCase.promptDigest,
+          configurationDigest: manifest.configurationDigest,
           metrics: {
             latencyMs: role === "baseline" ? 1000 : 700,
             totalTokens: role === "baseline" ? 1000 : 800,
@@ -97,6 +102,12 @@ test("over-cap or unmeasured pre-analysis cannot promote", () => {
   assert.ok(
     validatePromotionEvidence(manifest, runFile).includes("PRE_ANALYSIS_METRIC_MISSING_OR_INVALID")
   );
+});
+
+test("declared case IDs cannot substitute for identical media, prompt and settings", () => {
+  const { manifest, runFile } = completeEvidence();
+  Object.assign(runFile.cases[0].runs[0], { mediaDigest: "e".repeat(64) });
+  assert.ok(validatePromotionEvidence(manifest, runFile).includes("RUN_INPUT_BINDING_MISMATCH"));
 });
 
 test("complete unit evidence can qualify only the measured lane, never promote a single execution", () => {

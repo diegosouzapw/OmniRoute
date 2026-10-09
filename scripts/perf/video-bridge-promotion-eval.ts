@@ -68,6 +68,18 @@ const videoBridgePromotionRunSchema = z
     observationId: z.uuid().optional(),
     repetition: z.number().int().nonnegative().optional(),
     preAnalysisMs: z.number().finite().nonnegative().optional(),
+    mediaDigest: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .optional(),
+    promptDigest: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .optional(),
+    configurationDigest: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .optional(),
   })
   .strict();
 
