@@ -62,13 +62,24 @@ function prepareValidationFetch(
   return { ...options, redirect: "error" };
 }
 
-/** `fetch` that runs the strict-validation fence first; plain `fetch` when there is no observer. */
+type FetchTransport = (url: string, options: RequestInit) => Promise<Response>;
+
+/**
+ * `fetch` that runs the strict-validation fence first; plain `fetch` when there is no observer.
+ * `transport` replaces the global `fetch` for the physical request (e.g. the connect-time
+ * guarded dispatch for operator-supplied base URLs, #13330); it must start the request
+ * synchronously so nothing awaited separates the fence from the transport.
+ */
 export function validationFetch(
   observer: StrictValidationDispatch | undefined,
   provider: string,
   model: string,
-  credentials: ProviderCredentials
-): (url: string, options: RequestInit) => Promise<Response> {
+  credentials: ProviderCredentials,
+  transport: FetchTransport = (url, options) => fetch(url, options)
+): FetchTransport {
   return (url, options) =>
-    fetch(url, prepareValidationFetch(observer, { provider, model, credentials, url }, options));
+    transport(
+      url,
+      prepareValidationFetch(observer, { provider, model, credentials, url }, options)
+    );
 }
