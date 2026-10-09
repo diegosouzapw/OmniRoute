@@ -80,3 +80,14 @@ test("quality retention uses measured mean recall rather than a median hiding we
   assert.equal(fu09.absoluteQuality, 0.75);
   assert.equal(fu09.qualityRetention, 0.75 / 0.8);
 });
+
+test("caption reduction uses case-balanced calls, not an optimistic median", () => {
+  const input = buildFu07PromotionInputFromAggregates({
+    baseline: { ...aggregate({ factRetention: 1, modelCalls: 8 }), meanModelCalls: 8 },
+    candidate: { ...aggregate({ factRetention: 1, modelCalls: 4 }), meanModelCalls: 7.9 },
+    criticalFactLoss: false,
+    securityCasesPassed: true,
+    tokenUsageAvailable: true,
+  });
+  assert.ok(Math.abs(input.materialGain.captionEfficiencyGain! - (8 - 7.9) / 8) < 1e-12);
+});

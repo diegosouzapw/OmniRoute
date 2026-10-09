@@ -59,6 +59,7 @@ import {
   videoBridgePromotionManifestSchema,
   videoBridgePromotionMetricNameSchema,
   type VideoBridgePromotionManifest,
+  type VideoBridgePromotionMetricName,
 } from "../../src/lib/guardrails/videoBridgePromotionManifest";
 
 const OVERALL_CASE_ID = "__overall__";
@@ -148,24 +149,32 @@ export function createVideoBridgePromotionHoldReport(
 
 function toAggregate(
   aggregate: VideoBridgePromotionAggregate | undefined,
-  qualityMean?: number
+  qualityMean?: number,
+  meanModelCalls?: number
 ): {
   qualityMean?: number;
+  meanModelCalls?: number;
   medians: VideoBridgePromotionAggregate["medians"];
   p95: VideoBridgePromotionAggregate["p95"];
 } {
-  return { medians: aggregate?.medians ?? {}, p95: aggregate?.p95 ?? {}, qualityMean };
+  return {
+    medians: aggregate?.medians ?? {},
+    p95: aggregate?.p95 ?? {},
+    qualityMean,
+    meanModelCalls,
+  };
 }
 
-function meanRecallByRole(
+function meanMetricByRole(
   runFile: VideoBridgePromotionRunFile,
-  role: "baseline" | "candidate"
+  role: "baseline" | "candidate",
+  metric: VideoBridgePromotionMetricName
 ): number | undefined {
   const caseMeans: number[] = [];
   for (const currentCase of runFile.cases) {
     const values = currentCase.runs
       .filter((run) => run.role === role)
-      .map((run) => run.metrics.factRetention);
+      .map((run) => run.metrics[metric]);
     if (
       values.length === 0 ||
       values.some((value) => typeof value !== "number" || !Number.isFinite(value))
@@ -265,8 +274,16 @@ export function buildVideoBridgePromotionReport(
 
   const baselineAggregate = aggregateByRole(runFile, "baseline");
   const candidateAggregate = aggregateByRole(runFile, "candidate");
-  const baseline = toAggregate(baselineAggregate, meanRecallByRole(runFile, "baseline"));
-  const candidate = toAggregate(candidateAggregate, meanRecallByRole(runFile, "candidate"));
+  const baseline = toAggregate(
+    baselineAggregate,
+    meanMetricByRole(runFile, "baseline", "factRetention"),
+    meanMetricByRole(runFile, "baseline", "modelCalls")
+  );
+  const candidate = toAggregate(
+    candidateAggregate,
+    meanMetricByRole(runFile, "candidate", "factRetention"),
+    meanMetricByRole(runFile, "candidate", "modelCalls")
+  );
   const criticalFactLoss = overallCriticalFactLoss(runFile);
   const securityCasesPassed = overallSecurityCasesPassed(runFile);
   const usageAvailable = tokenUsageAvailable(runFile);

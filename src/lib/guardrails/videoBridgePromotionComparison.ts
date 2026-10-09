@@ -17,6 +17,7 @@ import type { VideoBridgePromotionMetricName } from "./videoBridgePromotionManif
 export interface PromotionComparisonAggregate {
   /** Case-balanced mean recall; promotion is not based on a median hiding weak cases. */
   qualityMean?: number;
+  meanModelCalls?: number;
   medians: Partial<Record<VideoBridgePromotionMetricName, number>>;
   p95: Partial<Record<VideoBridgePromotionMetricName, number>>;
 }
@@ -58,8 +59,8 @@ export function buildFu07PromotionInputFromAggregates(
     input.candidate.p95.latencyMs
   );
   const captionEfficiencyGain = reductionRatio(
-    input.baseline.medians.modelCalls,
-    input.candidate.medians.modelCalls
+    input.baseline.meanModelCalls ?? input.baseline.medians.modelCalls,
+    input.candidate.meanModelCalls ?? input.candidate.medians.modelCalls
   );
   const qualityGain =
     baselineQuality !== undefined && candidateQuality !== undefined
