@@ -21,7 +21,7 @@ export function validateVideoLiveSource(source: string | undefined): string {
 
 function sourceEncryptionSecret(source: string): string | undefined {
   const values: Record<string, string> = {};
-  for (const name of [".env", "server.env"]) {
+  for (const name of ["server.env", ".env"]) {
     const file = path.join(source, name);
     if (fs.existsSync(file)) Object.assign(values, parse(fs.readFileSync(file)));
   }
@@ -52,6 +52,7 @@ export async function prepareVideoLiveIsolation(sourceInput: string | undefined)
       JWT_SECRET: randomBytes(32).toString("hex"),
       OMNIROUTE_CLI_SALT: randomBytes(32).toString("hex"),
       OMNIROUTE_DISABLE_BACKGROUND_SERVICES: "true",
+      OMNIROUTE_DISABLE_CREDENTIAL_HEALTH_CHECK: "true",
       DISABLE_SQLITE_AUTO_BACKUP: "true",
       REQUIRE_API_KEY: "true",
       HOST: "127.0.0.1",
@@ -72,6 +73,7 @@ export async function prepareVideoLiveIsolation(sourceInput: string | undefined)
     const db = await import("../../src/lib/db/core.ts");
     const keys = await import("../../src/lib/db/apiKeys.ts");
     const settings = await import("../../src/lib/db/settings.ts");
+    const providers = await import("../../src/lib/db/providers.ts");
     const { getMachineTokenSync } = await import("../../src/lib/machineToken.ts");
     try {
       // Never let the private test server accept copied production API keys.
@@ -79,6 +81,16 @@ export async function prepareVideoLiveIsolation(sourceInput: string | undefined)
       const owner = await keys.createApiKey("video-live-owner", "isolated-live-probe", []);
       const stranger = await keys.createApiKey("video-live-stranger", "isolated-live-probe", []);
       await settings.updateSettings({
+        cloudEnabled: false,
+        modelsDevSyncEnabled: false,
+        localOnlyManageScopeBypassEnabled: false,
+        customSystemPromptEnabled: false,
+        customSystemPrompt: "",
+        systemPrompt: { enabled: false, prefixPrompt: "", suffixPrompt: "", prompt: "" },
+        payloadRules: null,
+        systemTransforms: null,
+        ccBridgeTransforms: null,
+        modelAliases: {},
         modalityBridgeVideoEnabled: true,
         modalityBridgeVideoModel: "openai/gpt-4o-mini",
         modalityBridgeVideoAudioTranscriptionEnabled: true,
@@ -88,6 +100,12 @@ export async function prepareVideoLiveIsolation(sourceInput: string | undefined)
         modalityBridgeVideoDrilldownEnabled: true,
         modalityBridgeVideoDrilldownRemoteEnabled: true,
       });
+      const allowedProviders = new Set(["deepgram", "openai", "groq"]);
+      for (const connection of await providers.getProviderConnections()) {
+        if (!allowedProviders.has(String(connection.provider))) {
+          await providers.deleteProviderConnection(String(connection.id));
+        }
+      }
       fs.writeFileSync(
         path.join(directory, "client-context.json"),
         JSON.stringify({

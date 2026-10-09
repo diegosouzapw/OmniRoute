@@ -46,6 +46,8 @@ test("preparation uses a read-only snapshot and confines all keys/settings to pr
     assert.notEqual(context.owner, context.stranger);
     assert.equal(new URL(context.baseUrl).hostname, "127.0.0.1");
     assert.equal(context.cliToken.length > 0, true);
+    const environment = fs.readFileSync(path.join(prepared, ".env"), "utf8");
+    assert.equal(environment.includes('OMNIROUTE_DISABLE_CREDENTIAL_HEALTH_CHECK="true"'), true);
     assert.equal(createHash("sha256").update(fs.readFileSync(databasePath)).digest("hex"), before);
   } finally {
     if (prepared) fs.rmSync(prepared, { recursive: true, force: true });
