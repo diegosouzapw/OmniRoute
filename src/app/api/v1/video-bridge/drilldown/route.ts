@@ -45,12 +45,17 @@ const ReadQuerySchema = z
   .object({
     end: NonNegativeNumberSchema.optional(),
     frames: BoundedIntSchema.pipe(z.number().int().min(1).max(8)).optional(),
+    limit: BoundedIntSchema.pipe(z.number().int().min(1).max(8)).optional(),
     handle: HandleSchema,
     page: BoundedIntSchema.pipe(z.number().int().min(0)).optional(),
     start: NonNegativeNumberSchema.optional(),
     variant: VariantSchema.optional(),
   })
   .strict()
+  .refine(
+    (query) => query.frames === undefined || query.limit === undefined,
+    "use limit or the legacy frames alias, not both"
+  )
   .refine(
     (query) => query.start === undefined || query.end === undefined || query.start < query.end,
     "focus end must follow start"
@@ -171,7 +176,7 @@ async function runConsumerRequest(
     return corsError(400, "Invalid Video Bridge drill-down query", "invalid_request");
   const page = await lifecycle.resolve(principalId, parsed.data.handle, {
     endSeconds: parsed.data.end,
-    frameCount: parsed.data.frames,
+    frameCount: parsed.data.limit ?? parsed.data.frames,
     page: parsed.data.page,
     startSeconds: parsed.data.start,
     variant: parsed.data.variant,
