@@ -505,21 +505,22 @@ export function getResourcePressureObservation(): ResourcePressureObservation {
 
 /**
  * Replaces and disposes the process singleton when configuration is reloaded.
- * Cross-copy semantics (last reloader wins): dispose only when this copy's
- * runtime is still the one currently in the holder — a non-owning copy must
- * not dispose a runtime other copies already replaced. The new runtime is
- * installed in both the holder and this copy's module var; every other copy
- * adopts it via the holder on its next read, and references captured before
- * the reload are superseded.
+ * Cross-copy semantics (last reloader wins): the runtime currently in the
+ * holder is the one being superseded, so it is disposed regardless of which
+ * copy created it — disposing only this copy's own `defaultRuntime` would leak
+ * the holder's background driver whenever a different copy reloaded last (the
+ * non-owning copy's stale runtime was already disposed by whoever replaced
+ * it). The new runtime is installed in both the holder and this copy's module
+ * var; every other copy adopts it via the holder on its next read, and
+ * references captured before the reload are superseded.
  */
 export function reloadResourcePressureRuntime(
   options: ResourcePressureRuntimeOptions = {}
 ): ResourcePressureRuntime {
-  if (defaultRuntime === runtimesHolder[RESOURCE_PRESSURE_RUNTIME_KEY]) {
-    defaultRuntime.dispose();
-  }
+  const superseded = runtimesHolder[RESOURCE_PRESSURE_RUNTIME_KEY] ?? defaultRuntime;
   defaultRuntime = createResourcePressureRuntime(options);
   runtimesHolder[RESOURCE_PRESSURE_RUNTIME_KEY] = defaultRuntime;
+  superseded.dispose();
   return defaultRuntime;
 }
 

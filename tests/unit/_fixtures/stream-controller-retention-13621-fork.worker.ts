@@ -143,6 +143,14 @@ function runScenario(
       if (canary.marker.length > 0 && payload.length > 0) {
         // Grace-period drain: upstream abort is deferred, not cancelled.
       }
+      // Mirror production's drainCompletedToolHandoff (streamHandler.ts:666-689):
+      // the deferred drain ends by completing the stream, and only that
+      // completion clears the preserved drain. It does so ASYNCHRONOUSLY (from
+      // its reader loop's continuation), so handleDisconnect's onDisconnect fires
+      // before the callbacks are cleared — complete on a timer to keep that
+      // ordering. A drain that never completes retains the payload forever and
+      // is NOT the production shape.
+      setTimeout(() => controller.handleComplete(), 0);
     });
   }
 

@@ -28,14 +28,6 @@ const WORKER_RESULT_PREFIX = "RETENTION_RESULT=";
 const WORKER_TIMEOUT_MS = 30_000;
 const PAYLOAD_BYTES = 4 * 1024 * 1024;
 
-// Residual skip after upstream #15961 cross-validation (2026-10-10): the 4
-// terminal-callback modes + control ran GREEN unskipped 2/2 runs; only this
-// mode stayed RED, so it alone is re-skipped pending the deferred-drain fix.
-const SKIP_RESIDUAL_DEFERRED_DRAIN_13621 =
-  "RED: #15961 releases terminal callbacks but NOT the deferred-drain tool-handoff " +
-  "grace path — payload closure retained after handleDisconnect() (deterministic, " +
-  "failed 2/2 runs 2026-10-10); tracked via #13621";
-
 const workerFixture = fileURLToPath(
   new URL("./_fixtures/stream-controller-retention-13621-fork.worker.ts", import.meta.url)
 );
@@ -125,7 +117,7 @@ test("13621 abort: terminal abort releases the payload closure", () => {
 
 test(
   "13621 disconnect-handoff-grace: deferred drain path releases the payload closure",
-  { skip: SKIP_RESIDUAL_DEFERRED_DRAIN_13621, timeout: 60_000 },
+  { timeout: 60_000 },
   () => {
     const observed = runWorker("disconnect-handoff-grace");
 

@@ -34,6 +34,8 @@ type ResourcePressureModuleCopy = {
   reloadResourcePressureRuntime: typeof reloadResourcePressureRuntime;
 };
 
+type RuntimeInstance = ReturnType<typeof createResourcePressureRuntime>;
+
 const SECOND_EVAL_SPECIFIER = "../../open-sse/utils/resourcePressure.ts?secondevaluation";
 
 function readHolder(): unknown {
@@ -99,6 +101,65 @@ test("resourcePressure singleton is shared across duplicated module copies", asy
     observationBefore.state,
     "copy 1 observation must reflect the runtime that copy 2 reloaded"
   );
+});
+
+// Deterministic counterpart to the loader-dependent test above: swapping the
+// holder for a freshly built runtime must be observable through the public
+// readers. A module copy that served its own captured `defaultRuntime` would
+// return that copy's state and fail here — independent of whether the loader
+// ever produces a second module instance.
+test("reads resolve the runtime through the globalThis holder, not a captured copy", () => {
+  const holder = globalThis as unknown as { [RUNTIME_KEY]?: RuntimeInstance };
+  const previous = holder[RUNTIME_KEY];
+  const replacement = createResourcePressureRuntime();
+  try {
+    holder[RUNTIME_KEY] = replacement;
+    assert.strictEqual(
+      getResourcePressureObservation().state,
+      replacement.getObservation().state,
+      "getResourcePressureObservation must read the runtime through the globalThis holder"
+    );
+  } finally {
+    if (previous === undefined) {
+      delete holder[RUNTIME_KEY];
+    } else {
+      holder[RUNTIME_KEY] = previous;
+    }
+    replacement.dispose();
+  }
+});
+
+// Regression for the reload path: whichever runtime the holder currently
+// serves is the one being superseded, so it must be disposed even when another
+// module copy created it. The old guard (`dispose only if this copy's runtime
+// is the holder`) left the holder's background driver running forever whenever
+// a different copy had reloaded last.
+test("reload disposes the holder's runtime even when another copy created it", () => {
+  const holder = globalThis as unknown as { [RUNTIME_KEY]?: RuntimeInstance };
+  const previous = holder[RUNTIME_KEY];
+  const foreign = createResourcePressureRuntime();
+  let disposed = 0;
+  const originalDispose = foreign.dispose.bind(foreign);
+  foreign.dispose = () => {
+    disposed += 1;
+    originalDispose();
+  };
+
+  try {
+    holder[RUNTIME_KEY] = foreign;
+    reloadResourcePressureRuntime();
+    assert.equal(disposed, 1, "the superseded holder runtime must be disposed exactly once");
+    // The reload rebound the module's private `defaultRuntime` to the runtime it
+    // just installed. That runtime is deliberately left undisposed: disposing it
+    // would leave the `?? defaultRuntime` fallback serving a disposed runtime
+    // once the holder is restored below.
+  } finally {
+    if (previous === undefined) {
+      delete holder[RUNTIME_KEY];
+    } else {
+      holder[RUNTIME_KEY] = previous;
+    }
+  }
 });
 
 test("resourcePressure source keys its singleton via Symbol.for", () => {
