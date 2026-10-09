@@ -131,3 +131,24 @@ test("an evidence link alone cannot promote an unbound model or flip the default
     })
   );
 });
+
+test("conflicting entries for the same execution context are rejected", () => {
+  const entry = {
+    model: "same-model",
+    policy: "segment_aware",
+    modelRevision: "revision-1",
+    candidateSha: "a".repeat(40),
+    evidenceRef: "private-receipt",
+    updatedAt: "2026-10-09T00:00:00.000Z",
+  };
+  assert.equal(
+    videoBridgePromotionAllowlistSchema.safeParse({
+      ...listVideoBridgePromotionAllowlist(),
+      models: [
+        { ...entry, status: "experimental" },
+        { ...entry, status: "hold" },
+      ],
+    }).success,
+    false
+  );
+});

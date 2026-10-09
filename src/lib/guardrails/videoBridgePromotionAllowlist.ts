@@ -73,7 +73,26 @@ export const videoBridgePromotionAllowlistSchema = z
     models: z.array(videoBridgePromotionAllowlistEntrySchema),
     schemaVersion: z.literal(1),
   })
-  .strict();
+  .strict()
+  .superRefine((allowlist, ctx) => {
+    const seen = new Set<string>();
+    for (const [index, entry] of allowlist.models.entries()) {
+      const key = JSON.stringify([
+        entry.model,
+        entry.policy,
+        entry.modelRevision,
+        entry.candidateSha,
+      ]);
+      if (seen.has(key)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "duplicate promotion execution context",
+          path: ["models", index],
+        });
+      }
+      seen.add(key);
+    }
+  });
 
 export type VideoBridgePromotionAllowlist = z.infer<typeof videoBridgePromotionAllowlistSchema>;
 
