@@ -4,6 +4,7 @@ import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { extractApiKey, isValidApiKey } from "@/sse/services/auth";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
+import { getCachedSettings } from "@/lib/db/readCache";
 
 import {
   isVideoBridgeDrilldownRemoteAccessEnabled,
@@ -65,7 +66,7 @@ function corsError(status: number, message: string, type: string): Response {
 }
 
 export interface VideoBridgeDrilldownRouteDependencies {
-  isRemoteAccessEnabled?: () => boolean;
+  isRemoteAccessEnabled?: () => boolean | Promise<boolean>;
   lifecycle?: VideoDrilldownLifecycle;
 }
 
@@ -90,13 +91,20 @@ async function resolvePrincipal(
 
 export const OPTIONS = async (): Promise<Response> => handleCorsOptions();
 
+async function isRemoteAccessEnabledFromSettings(): Promise<boolean> {
+  const settings = await getCachedSettings();
+  return typeof settings.modalityBridgeVideoDrilldownRemoteEnabled === "boolean"
+    ? settings.modalityBridgeVideoDrilldownRemoteEnabled
+    : isVideoBridgeDrilldownRemoteAccessEnabled();
+}
+
 export async function handleVideoBridgeDrilldownConsumerRequest(
   request: Request,
   dependencies: VideoBridgeDrilldownRouteDependencies = {}
 ): Promise<Response> {
   const isRemoteAccessEnabled =
-    dependencies.isRemoteAccessEnabled ?? isVideoBridgeDrilldownRemoteAccessEnabled;
-  if (!isRemoteAccessEnabled()) {
+    dependencies.isRemoteAccessEnabled ?? isRemoteAccessEnabledFromSettings;
+  if (!(await isRemoteAccessEnabled())) {
     return corsError(403, "Video Bridge drill-down remote access is disabled", "feature_disabled");
   }
   if (request.method !== "GET" && request.method !== "DELETE") {

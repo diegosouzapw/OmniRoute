@@ -486,6 +486,9 @@ export const updateSettingsSchema = z.object({
   // Audio Bridge STT over Video Bridge audio extraction — defaults false
   // (Hard Rule #20). A request-side opt-in is required in addition to this.
   modalityBridgeVideoAudioTranscriptionEnabled: z.boolean().optional(),
+  // Independent retention and remote-read consent; both are off unless explicitly enabled.
+  modalityBridgeVideoDrilldownEnabled: z.boolean().optional(),
+  modalityBridgeVideoDrilldownRemoteEnabled: z.boolean().optional(),
   modalityBridgeCacheEnabled: z.boolean().optional(),
   modalityBridgeCacheTtlMinutes: z.number().int().min(1).max(1440).optional(),
   modalityBridgeCacheMaxEntries: z.number().int().min(10).max(5000).optional(),
@@ -504,7 +507,9 @@ export const updateSettingsSchema = z.object({
   // holding a worker for hours.
   searchTimeoutMs: z.number().int().min(1_000).max(120_000).optional(),
   // Per-provider timeout overrides in ms, keyed by search provider id.
-  searchProviderTimeoutsMs: z.record(z.string().max(60), z.number().int().min(1).max(120_000)).optional(),
+  searchProviderTimeoutsMs: z
+    .record(z.string().max(60), z.number().int().min(1).max(120_000))
+    .optional(),
   backgroundDegradation: z.unknown().optional(),
   bruteForceProtection: z.boolean().optional(),
   // Auto-routing settings
