@@ -102,7 +102,9 @@ function classifyStepFailure(
 }
 
 function cacheKeyFor(ref: string, sttModel: string): string {
-  return bridgeCacheKey(ref, "video-audio-transcription", sttModel);
+  return bridgeCacheKey(ref, "video-audio-transcription", sttModel, {
+    policyVersion: "video-audio-transcription-v1",
+  });
 }
 
 function readCache(
@@ -232,6 +234,31 @@ export async function orchestrateVideoAudioTranscription(
   if (!options.operatorOptIn) return optedOut("OPERATOR_OPT_OUT");
   if (!options.requestOptIn) return optedOut("REQUEST_OPT_OUT");
   if (options.signal?.aborted) return failed("ABORTED", null);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), Math.max(0, options.timeoutMs));
+  const signal = options.signal
+    ? AbortSignal.any([options.signal, controller.signal])
+    : controller.signal;
+  let onAbort: () => void;
+  try {
+    return await Promise.race([
+      new Promise<VideoAudioOrchestrationResult>((resolve) => {
+        onAbort = () => resolve(failed(options.signal?.aborted ? "ABORTED" : "TIMEOUT", null));
+        signal.addEventListener("abort", onAbort, { once: true });
+      }),
+      runVideoAudioSteps({ ...options, signal }),
+    ]);
+  } catch {
+    return failed("TRANSCRIPTION_FAILED", null);
+  } finally {
+    clearTimeout(timer);
+    signal.removeEventListener("abort", onAbort!);
+  }
+}
+
+async function runVideoAudioSteps(
+  options: VideoAudioOrchestrationOptions
+): Promise<VideoAudioOrchestrationResult> {
   const deadline = Date.now() + options.timeoutMs;
 
   const selectModel = options.selectModel ?? selectAudioBridgeModel;
@@ -242,6 +269,7 @@ export async function orchestrateVideoAudioTranscription(
     return failed("PROVIDER_UNAVAILABLE", null);
   }
   if (!sttModel) return failed("PROVIDER_UNAVAILABLE", null);
+  if (options.signal?.aborted) return failed("ABORTED", sttModel);
 
   const cached = readCache(options, sttModel);
   if (cached) {
@@ -263,6 +291,7 @@ export async function orchestrateVideoAudioTranscription(
   if (remaining().timeoutMs === 0) return failed("TIMEOUT", sttModel);
   const transcription = await runTranscription(remaining(), sttModel, extraction.value);
   if (transcription.ok === false) return transcription.result;
+  if (options.signal?.aborted) return failed("ABORTED", sttModel);
 
   const { observations, timingPrecision } = buildObservations(
     extraction.value,

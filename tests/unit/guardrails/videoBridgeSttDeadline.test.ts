@@ -76,3 +76,37 @@ test("transcription receives cancellation and only the remaining extraction budg
   assert.equal(propagated, true);
   assert.equal(result.reason, "ABORTED");
 });
+
+test("a pending model selector cannot outlive the shared deadline or later start paid work", async () => {
+  let release!: (model: string) => void;
+  const selection = new Promise<string>((resolve) => {
+    release = resolve;
+  });
+  let extractions = 0;
+  const running = orchestrateVideoAudioTranscription(
+    options({
+      timeoutMs: 20,
+      selectModel: () => selection,
+      extractAudio: async () => {
+        extractions += 1;
+        throw new Error("unexpected extraction");
+      },
+    })
+  );
+  let timer: ReturnType<typeof setTimeout>;
+  const result = await Promise.race([
+    running,
+    new Promise<null>((resolve) => {
+      timer = setTimeout(() => resolve(null), 500);
+    }),
+  ]);
+  clearTimeout(timer!);
+  release("deepgram/nova-3");
+  await running;
+  assert.equal(
+    result?.reason,
+    "TIMEOUT",
+    "selector must be bounded, not merely checked after resolving"
+  );
+  assert.equal(extractions, 0);
+});

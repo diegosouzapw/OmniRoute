@@ -3,6 +3,8 @@ import test from "node:test";
 
 import sharp from "sharp";
 
+import { BridgeCache } from "../../../src/lib/guardrails/modalityBridge/bridgeCache.ts";
+
 import {
   VideoBridgeGuardrail,
   type VideoBridgeDependencies,
@@ -109,4 +111,28 @@ test("cache read and write outages cannot discard successful STT or visual outpu
   assert.ok(payload.includes("visible blue screen"));
   assert.ok(payload.includes("private speech"));
   assert.ok(!JSON.stringify(result).includes("private cache"));
+});
+
+test("STT cache is isolated by authenticated principal and actual selected model", async () => {
+  const deps = await dependencies();
+  const getSettings = deps.getSettings!;
+  deps.getSettings = async () => ({ ...(await getSettings()), modalityBridgeCacheEnabled: true });
+  deps.resultCache = new BridgeCache({ maxEntries: 10, ttlMs: 60_000 });
+  let model = "deepgram/nova-3";
+  let calls = 0;
+  deps.selectAudioModel = async () => model;
+  deps.transcribeAudio = async () => ({ text: `speech-${++calls}` });
+  const guardrail = new VideoBridgeGuardrail({ deps });
+  const run = (id?: string) => guardrail.preCall(request(), id ? { apiKeyInfo: { id } } : {});
+  await run("tenant-a");
+  await run("tenant-a");
+  assert.equal(calls, 1, "same authenticated principal/model/content may reuse STT");
+  await run("tenant-b");
+  assert.equal(calls, 2, "another principal must transcribe independently");
+  await run();
+  await run();
+  assert.equal(calls, 4, "no authenticated identity means no STT cache");
+  model = "deepgram/nova-2";
+  await run("tenant-a");
+  assert.equal(calls, 5, "actual selected model is part of STT identity");
 });

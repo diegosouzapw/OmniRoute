@@ -379,7 +379,9 @@ test("the remaining shared budget and signal thread through extraction and trans
   );
 
   assert.ok(seen[0].timeoutMs > 0 && seen[0].timeoutMs <= 42_000);
-  assert.equal(seen[0].signal, controller.signal);
+  assert.ok(seen[0].signal);
   assert.ok(seen[1].timeoutMs > 0 && seen[1].timeoutMs <= seen[0].timeoutMs);
-  assert.equal(seen[1].signal, controller.signal);
+  assert.equal(seen[1].signal, seen[0].signal);
+  controller.abort();
+  assert.equal(seen[1].signal?.aborted, true);
 });
