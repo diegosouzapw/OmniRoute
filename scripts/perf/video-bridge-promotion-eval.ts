@@ -43,6 +43,7 @@ import {
   evaluateFu09Promotion,
   type PromotionVerdict,
 } from "../../src/lib/guardrails/videoBridgePromotionEvaluator";
+import { validatePromotionEvidence } from "../../src/lib/guardrails/videoBridgePromotionEvidence";
 import {
   videoBridgePromotionManifestSchema,
   videoBridgePromotionMetricNameSchema,
@@ -127,7 +128,8 @@ function aggregateByRole(
       .filter((run) => run.role === role)
       .map((run) => ({ caseId: OVERALL_CASE_ID, metrics: run.metrics, model: run.model }))
   );
-  return aggregatePromotionObservations(observations)[0];
+  const aggregates = aggregatePromotionObservations(observations);
+  return aggregates.length === 1 ? aggregates[0] : undefined;
 }
 
 function resolveModel(
@@ -183,8 +185,7 @@ function digestAllRuns(runFile: VideoBridgePromotionRunFile): PersistablePromoti
 /**
  * Composes aggregate -> compare -> evaluate -> digest for one baseline/candidate pair
  * spanning every case in `runFile`. Pure aside from `Date.now()` in `generatedAt` — the
- * verdicts themselves are deterministic given identical `manifest`/`runFile` input, which
- * is what #11656's "two consecutive runs produce the same eligible verdict" depends on.
+ * verdicts themselves are deterministic. This is NOT proof of independent executions.
  */
 export function buildVideoBridgePromotionReport(
   manifest: VideoBridgePromotionManifest,
@@ -218,6 +219,14 @@ export function buildVideoBridgePromotionReport(
       tokenUsageAvailable: usageAvailable,
     })
   );
+
+  const evidenceBlockers = validatePromotionEvidence(manifest, runFile);
+  if (evidenceBlockers.length > 0) {
+    for (const verdict of [fu07, fu09]) {
+      verdict.status = "hold";
+      verdict.reasons = [...new Set([...verdict.reasons, ...evidenceBlockers])];
+    }
+  }
 
   return {
     candidateModel: resolveModel(runFile, "candidate"),
@@ -276,7 +285,9 @@ async function main(): Promise<void> {
   if (!manifestPath) missingConfiguration.push("--manifest");
   if (!observationsPath) missingConfiguration.push("--observations");
   if (missingConfiguration.length > 0) {
-    console.log(JSON.stringify(createVideoBridgePromotionHoldReport(missingConfiguration), null, 2));
+    console.log(
+      JSON.stringify(createVideoBridgePromotionHoldReport(missingConfiguration), null, 2)
+    );
     return;
   }
   const manifest = await loadJson(manifestPath!, videoBridgePromotionManifestSchema);
@@ -288,8 +299,8 @@ const isMainModule =
   typeof process.argv[1] === "string" &&
   path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMainModule) {
-  main().catch((error: unknown) => {
-    console.error("Video Bridge promotion eval failed validation or execution.", error);
+  main().catch(() => {
+    console.error("Video Bridge promotion eval failed validation or execution.");
     process.exitCode = 1;
   });
 }
