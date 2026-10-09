@@ -113,6 +113,19 @@ export const NATIVE_ASSET_ENTRIES = [
 
 /** @type {{label:string, src:string[], dest:string[]}[]} */
 export const EXTRA_MODULE_ENTRIES = [
+  // The source CLI loads tsx/esm dynamically, outside Next's traced server graph.
+  // Keep its compiler and the installed target-platform binary together (#12152).
+  { label: "tsx CLI loader", src: ["node_modules", "tsx"], dest: ["node_modules", "tsx"] },
+  {
+    label: "esbuild CLI compiler",
+    src: ["node_modules", "esbuild"],
+    dest: ["node_modules", "esbuild"],
+  },
+  {
+    label: "esbuild platform binaries",
+    src: ["node_modules", "@esbuild"],
+    dest: ["node_modules", "@esbuild"],
+  },
   {
     // tlsClient.ts intentionally resolves wreq-js through a runtime-dynamic
     // require so Turbopack cannot rewrite the package name to a hashed external.

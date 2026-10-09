@@ -54,6 +54,7 @@ import {
   grantsFreeAccess,
   type FreeModelBudget,
 } from "@omniroute/open-sse/config/freeModelCatalog.ts";
+import { FREE_TIER_TOS } from "@omniroute/open-sse/config/freeTierCatalog.ts";
 import { recordAutoExclusion } from "./autoEvaluationTrace";
 import { SYNTHETIC_NOAUTH_CONNECTION_ID } from "./resilienceCandidateFilter";
 
@@ -420,6 +421,8 @@ export function filterTosAvoidCandidates<T extends StrictZeroCostCandidate>(
   if (!excludeTosAvoid) return pool;
   return pool.filter((candidate) => {
     const budgetEntry = findBudgetEntry(candidate, catalog);
-    return budgetEntry?.tos !== "avoid";
+    // Newly discovered models still inherit the provider's curated verdict.
+    const tos = budgetEntry?.tos ?? FREE_TIER_TOS[candidate.provider];
+    return tos !== "avoid";
   });
 }

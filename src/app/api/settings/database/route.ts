@@ -3,6 +3,12 @@ import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { databaseSettingsSchema } from "@/shared/validation/settingsSchemas";
 import { getDatabaseSettings, updateDatabaseSettings } from "@/lib/db/databaseSettings";
+import { redactCacheSecrets } from "@/lib/db/cacheSecrets";
+
+function publicDatabaseSettings() {
+  const settings = getDatabaseSettings();
+  return { ...settings, cache: redactCacheSecrets(settings.cache) };
+}
 
 const databaseSettingsPatchSchema = databaseSettingsSchema.partial().strict();
 
@@ -12,7 +18,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    return NextResponse.json(getDatabaseSettings());
+    return NextResponse.json(publicDatabaseSettings());
   } catch (error) {
     console.error("Error getting database settings:", error);
     return NextResponse.json({ error: "Failed to load database settings" }, { status: 500 });
@@ -35,7 +41,7 @@ export async function PATCH(request: NextRequest) {
     updateDatabaseSettings(validation.data);
 
     // Return merged settings (GET response pattern)
-    return NextResponse.json(getDatabaseSettings());
+    return NextResponse.json(publicDatabaseSettings());
   } catch (error) {
     console.error("Error updating database settings:", error);
     return NextResponse.json({ error: "Failed to update database settings" }, { status: 500 });

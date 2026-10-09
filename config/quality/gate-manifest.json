@@ -710,7 +710,7 @@
         "check:test-discovery",
         "check:test-masking",
         "check:duplication",
-        "check:cycles"
+        "check:cycles:ratchet"
       ]
     },
     "quality-scan-fast": {

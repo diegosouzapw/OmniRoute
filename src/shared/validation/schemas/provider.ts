@@ -303,6 +303,7 @@ export const providerModelMutationSchema = z.object({
   // over the auto-discovery/static-catalog context window in `getModelContextLimit()`
   // — fixes the "provider misreports context length" combo-drop case. `null` clears
   // a previously set override.
+  maxOutputTokenOverride: z.number().int().positive().nullable().optional(),
   contextWindowOverride: z.number().int().positive().nullable().optional(),
   // #1904: manual vision-capability override for custom OpenAI-compatible models whose
   // upstream discovery metadata does not self-report an image input modality (many

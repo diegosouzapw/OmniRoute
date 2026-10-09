@@ -1,4 +1,8 @@
 import {
+  listProviderOutputOverrides,
+  persistOutputTokenOverride,
+} from "@/lib/providerModels/outputTokenOverrides";
+import {
   getCustomModels,
   getAllCustomModels,
   addCustomModel,
@@ -62,6 +66,10 @@ export async function GET(request) {
 
     const models = provider ? await getCustomModels(provider) : await getAllCustomModels();
     const modelCompatOverrides = provider ? getModelCompatOverrides(provider) : [];
+    const modelOutputOverrides = listProviderOutputOverrides(provider);
+    const outputOverrides = new Map(
+      modelOutputOverrides.map((row) => [row.modelId, row.maxOutputTokenOverride])
+    );
     // #4125: surface the manual/auto context-window override (Feature 5004 table) on
     // each custom-model row so the UI can show/edit it without a second round trip.
     const modelsWithContextOverride =
@@ -69,13 +77,17 @@ export async function GET(request) {
         ? models.map((model: Record<string, unknown>) => {
             const modelId = typeof model?.id === "string" ? model.id : null;
             const record = modelId ? getModelContextOverrideRecord(provider, modelId) : null;
+            const outputOverride = modelId ? outputOverrides.get(modelId) : undefined;
+            const outputFields =
+              outputOverride === undefined ? {} : { maxOutputTokenOverride: outputOverride };
             return record
               ? {
                   ...model,
+                  ...outputFields,
                   contextWindowOverride: record.realContext,
                   contextWindowOverrideSource: record.source,
                 }
-              : model;
+              : { ...model, ...outputFields };
           })
         : models;
 
@@ -108,6 +120,7 @@ export async function GET(request) {
       models: modelsWithContextOverride,
       modelCompatOverrides,
       modelContextOverrides,
+      modelOutputOverrides,
       hiddenModelsByProvider,
     });
   } catch {
@@ -229,6 +242,7 @@ export async function PUT(request) {
       upstreamHeaders,
       compatByProtocol,
       contextWindowOverride,
+      maxOutputTokenOverride,
       supportsVision,
       generationConfig,
       isFree,
@@ -269,7 +283,9 @@ export async function PUT(request) {
       }
     }
 
-    const model = await updateCustomModel(provider, modelId, updates, { createIfMissing: true });
+    const model = await updateCustomModel(provider, modelId, updates, {
+      createIfMissing: maxOutputTokenOverride === undefined || Object.keys(updates).length > 0,
+    });
 
     if (!model) {
       const rawKeys = Object.keys(raw);
@@ -288,6 +304,7 @@ export async function PUT(request) {
             "upstreamHeaders",
             "compatByProtocol",
             "contextWindowOverride",
+            "maxOutputTokenOverride",
             "apiFormat",
             "targetFormat",
             "supportsVision",
@@ -298,6 +315,7 @@ export async function PUT(request) {
           "upstreamHeaders" in raw ||
           "compatByProtocol" in raw ||
           "contextWindowOverride" in raw ||
+          "maxOutputTokenOverride" in raw ||
           "apiFormat" in raw ||
           "targetFormat" in raw ||
           "supportsVision" in raw);
@@ -352,6 +370,7 @@ export async function PUT(request) {
         }
         return Response.json({
           ok: true,
+          ...persistOutputTokenOverride(provider, modelId, maxOutputTokenOverride),
           modelCompatOverrides: getModelCompatOverrides(provider),
           ...(contextWindowOverrideResult !== undefined
             ? { contextWindowOverride: contextWindowOverrideResult }
@@ -366,6 +385,7 @@ export async function PUT(request) {
 
     return Response.json({
       model,
+      ...persistOutputTokenOverride(provider, modelId, maxOutputTokenOverride),
       ...(contextWindowOverrideResult !== undefined
         ? { contextWindowOverride: contextWindowOverrideResult }
         : {}),

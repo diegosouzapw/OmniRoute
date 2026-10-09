@@ -318,6 +318,8 @@ USER root
 COPY --from=builder /app/node_modules/playwright-core ./node_modules/playwright-core
 COPY --from=builder /app/node_modules/playwright ./node_modules/playwright
 
+# xvfb is installed explicitly (#15300): zai-web needs a headed Chromium and the browser pool
+# starts a private Xvfb when the container has no DISPLAY.
 # Install Playwright browser binaries + OS dependencies under root, then hand
 # ownership of the browsers cache to the node user.
 # PLAYWRIGHT_BROWSERS_PATH overrides the default ~/.cache/ms-playwright so the
@@ -328,6 +330,7 @@ RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-cache,targe
   --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-lists,target=/var/lib/apt/lists,sharing=locked \
   apt-get update \
   && node node_modules/playwright/cli.js install chromium --with-deps \
+  && apt-get install -y --no-install-recommends xvfb \
   && chown -R node:node /home/node/.cache \
   && rm -rf /var/lib/apt/lists/*
 

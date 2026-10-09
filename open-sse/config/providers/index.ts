@@ -284,6 +284,8 @@ import { tabitokenProvider } from "./registry/tabitoken/index.ts";
 import { logfareProvider } from "./registry/logfare/index.ts";
 import { seekaiProvider } from "./registry/seekai/index.ts";
 import { tokenmarketProvider } from "./registry/tokenmarket/index.ts";
+import { twinmindProvider } from "./registry/twinmind/index.ts";
+import { syntxProvider } from "./registry/syntx/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   aimlapi: aimlapiProvider,
@@ -572,4 +574,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   logfare: logfareProvider,
   seekai: seekaiProvider,
   tokenmarket: tokenmarketProvider,
+  twinmind: twinmindProvider,
+  syntx: syntxProvider,
 };

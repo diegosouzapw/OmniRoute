@@ -1,0 +1,1 @@
+- Restore direct compression/Auto-Clarity contracts and consolidate the POSIX capability check without removing CLI lifecycle cases or weakening the release test policy. ([#15793](https://github.com/diegosouzapw/OmniRoute/pull/15793))

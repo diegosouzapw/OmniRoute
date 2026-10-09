@@ -5711,6 +5711,29 @@
       "stream": "https://api.synthetic.new/openai/v1/chat/completions"
     }
   },
+  "syntx": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.syntx.ai/api/v1",
+      "stream": "https://api.syntx.ai/api/v1"
+    }
+  },
   "t3-web": {
     "format": "openai",
     "headers": {
@@ -5965,6 +5988,29 @@
     "url": {
       "nonStream": "https://core-normal.trae.ai/api/remote/v1",
       "stream": "https://core-normal.trae.ai/api/remote/v1"
+    }
+  },
+  "twinmind": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api2.twinmind.com/api/v3",
+      "stream": "https://api2.twinmind.com/api/v3"
     }
   },
   "typhoon": {
