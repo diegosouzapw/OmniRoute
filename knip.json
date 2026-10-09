@@ -8,10 +8,10 @@
         "src/app/**/manifest.ts",
         "src/middleware.ts",
         "src/instrumentation.ts",
+        "src/lib/db/healthCheckWorker.ts",
+        "src/lib/usage/callLogArtifactWorker.ts",
         "bin/**/*.{mjs,ts}",
-        "scripts/**/*.{mjs,ts}",
-        "electron/main.js",
-        "electron/preload.js"
+        "scripts/**/*.{mjs,ts}"
       ],
       "project": ["src/**/*.{ts,tsx}", "!src/**/*.test.{ts,tsx}"],
       "ignore": [
@@ -24,6 +24,7 @@
         "**/.next/**"
       ],
       "ignoreDependencies": [
+        "@omniroute/open-sse",
         "typescript",
         "tsx",
         "@types/*",
@@ -49,10 +50,40 @@
         "services/**/*.ts",
         "utils/**/*.ts",
         "config/**/*.ts",
-        "mcp-server/**/*.ts"
+        "mcp-server/**/*.ts",
+        "vendor/codex-chatgpt-web/adapters/chatgpt-web/mcp-server.ts"
       ],
       "project": ["**/*.ts", "!**/*.test.ts"],
       "ignore": ["**/*.test.ts", "node_modules/**", "dist/**"]
+    },
+    "packages/browser-pool": {
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.ts", "!src/**/*.test.ts"],
+      "ignore": ["node_modules/**", "dist/**"]
+    },
+    "@omniroute/opencode-plugin": {
+      "entry": ["src/index.ts", "tsup.config.ts"],
+      "project": ["src/**/*.ts", "tsup.config.ts"],
+      "ignore": ["tests/**", "dist/**"],
+      "ignoreIssues": {
+        "**/*": ["files", "exports", "nsExports", "types", "nsTypes"]
+      }
+    },
+    "@omniroute/opencode-plugin-v2": {
+      "entry": ["src/index.ts", "tsup.config.ts"],
+      "project": ["src/**/*.ts", "tsup.config.ts"],
+      "ignore": ["tests/**", "dist/**"],
+      "ignoreIssues": {
+        "**/*": ["files", "exports", "nsExports", "types", "nsTypes"]
+      }
+    },
+    "@omniroute/opencode-provider": {
+      "entry": ["src/index.ts", "tsup.config.ts"],
+      "project": ["src/**/*.ts", "tsup.config.ts"],
+      "ignore": ["tests/**", "dist/**"],
+      "ignoreIssues": {
+        "**/*": ["files", "exports", "nsExports", "types", "nsTypes"]
+      }
     }
   },
   "include": ["exports", "nsExports", "types", "nsTypes", "files"],

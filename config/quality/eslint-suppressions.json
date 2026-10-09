@@ -895,11 +895,6 @@
       "count": 1
     }
   },
-  "src/app/(dashboard)/dashboard/settings/components/MitmProxyTab.tsx": {
-    "@next/next/no-html-link-for-pages": {
-      "count": 1
-    }
-  },
   "src/app/(dashboard)/dashboard/settings/components/ModelCapabilityOverridesTab.tsx": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -961,11 +956,6 @@
     }
   },
   "src/app/(dashboard)/dashboard/usage/components/ProviderLimits/utils.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/app/(dashboard)/dashboard/usage/components/RateLimitStatus.tsx": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
     }
