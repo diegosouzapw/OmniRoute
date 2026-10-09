@@ -75,6 +75,7 @@ test("the real producer and authenticated GET/DELETE use the same tenant-bound l
     { apiKeyInfo: policy.apiKeyInfo }
   );
   const [{ handle }] = result.meta!.videoDrilldownHandles as Array<{ handle: string }>;
+  assert.match(handle, /^v1\.[A-Za-z0-9_-]{43}$/);
   for (const variant of ["preview", "standard", "detail"]) {
     const response = await route.GET(request(handle, owner, "GET", variant));
     assert.equal(response.status, 200, `production consumer must resolve ${variant}`);

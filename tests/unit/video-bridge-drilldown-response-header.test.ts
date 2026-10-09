@@ -87,3 +87,14 @@ test("only bounded server video metadata can mint response handles", async () =>
   assert.equal(response.status, 302);
   assert.equal(response.headers.get("x-omniroute-video-drilldown"), handle);
 });
+
+test("versioned handles and legacy handles share the bounded header contract", () => {
+  const handles = [`v1.${"A".repeat(43)}`, "a".repeat(64)];
+  const header = buildModalityBridgeResponseHeaders([
+    {
+      guardrail: "video-bridge",
+      meta: { videoDrilldownHandles: handles.map((handle) => ({ handle })) },
+    },
+  ]);
+  assert.equal(header?.["x-omniroute-video-drilldown"], handles.join(","));
+});

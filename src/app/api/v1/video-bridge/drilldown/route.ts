@@ -6,6 +6,7 @@ import { extractApiKey, isValidApiKey } from "@/sse/services/auth";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 import { getCachedSettings } from "@/lib/db/readCache";
 import { createLogger } from "@/shared/utils/logger";
+import { VIDEO_DRILLDOWN_HANDLE_PATTERN } from "@/lib/guardrails/videoBridgeDrilldownHandle";
 
 import {
   VIDEO_DRILLDOWN_VARIANTS,
@@ -26,7 +27,7 @@ const log = createLogger("video-drilldown-consumer");
 
 const HandleSchema = z
   .string()
-  .regex(/^[0-9a-f]{64}$/, "handle must be an opaque 64-character hex value");
+  .regex(VIDEO_DRILLDOWN_HANDLE_PATTERN, "handle must be an opaque versioned or legacy token");
 const VariantSchema = z.enum(
   VIDEO_DRILLDOWN_VARIANTS as [VideoDrilldownVariant, ...VideoDrilldownVariant[]]
 );

@@ -55,13 +55,13 @@ test("video bridge drill-down feature flags default to opt-in / disabled", () =>
   );
 });
 
-test("produce mints an opaque hashed handle that reveals no session/video identity", async () => {
+test("produce mints a versioned opaque random handle that reveals no session/video identity", async () => {
   const lifecycle = new VideoDrilldownLifecycle({ cache: new VideoDrilldownCache({ maxEntries: 8, ttlMs: 60_000 }) });
   const { handle, expiresAt } = await lifecycle.produce(
     "principal-a",
     framesInput([{ dataUri: await jpegDataUri(640, 360), timestampSeconds: 1 }])
   );
-  assert.match(handle, /^[0-9a-f]{64}$/);
+  assert.match(handle, /^v1\.[A-Za-z0-9_-]{43}$/);
   assert.ok(expiresAt > Date.now());
 });
 
