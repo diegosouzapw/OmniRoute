@@ -82,6 +82,7 @@ const videoBridgePromotionCaseObservationsSchema = z
 
 export const videoBridgePromotionRunFileSchema = z
   .object({
+    comparison: z.enum(["fu07", "fu09"]).optional(),
     cases: z.array(videoBridgePromotionCaseObservationsSchema).min(1),
     manifestId: z.string().min(1),
     execution: promotionExecutionSchema.optional(),
@@ -91,6 +92,7 @@ export const videoBridgePromotionRunFileSchema = z
 export type VideoBridgePromotionRunFile = z.infer<typeof videoBridgePromotionRunFileSchema>;
 
 export interface VideoBridgePromotionReport {
+  comparison: "fu07" | "fu09" | null;
   candidateModel: string | null;
   execution: { state: "executed" | "not-configured"; receipt?: PromotionExecutionReceipt };
   fu07: PromotionVerdict;
@@ -111,6 +113,7 @@ export function createVideoBridgePromotionHoldReport(
   const reasons = ["REAL_EVIDENCE_RUN_NOT_CONFIGURED"];
   return {
     candidateModel: null,
+    comparison: null,
     execution: { state: "not-configured" },
     fu07: { reasons, status: "hold" },
     fu09: { reasons, status: "hold" },
@@ -234,6 +237,11 @@ export function buildVideoBridgePromotionReport(
   );
 
   const evidenceBlockers = validatePromotionEvidence(manifest, runFile);
+  if (runFile.comparison) {
+    const unmeasured = runFile.comparison === "fu07" ? fu09 : fu07;
+    unmeasured.status = "hold";
+    unmeasured.reasons = ["COMPARISON_NOT_MEASURED"];
+  }
   if (evidenceBlockers.length > 0) {
     for (const verdict of [fu07, fu09]) {
       verdict.status = "hold";
@@ -244,6 +252,7 @@ export function buildVideoBridgePromotionReport(
   const records = digestAllRuns(runFile);
   return {
     candidateModel: resolveModel(runFile, "candidate"),
+    comparison: runFile.comparison ?? null,
     execution: { state: "executed", ...(runFile.execution ? { receipt: runFile.execution } : {}) },
     fu07,
     fu09,

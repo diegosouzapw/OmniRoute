@@ -5,6 +5,7 @@ import {
 import type { PromotionVerdict } from "./videoBridgePromotionEvaluator";
 
 export interface PromotionRunReceipt {
+  comparison?: "fu07" | "fu09" | null;
   candidateModel: string | null;
   execution: { state: "executed" | "not-configured"; receipt?: PromotionExecutionReceipt };
   observationsDigest: string | null;
@@ -42,6 +43,11 @@ export function confirmVideoBridgePromotionRuns(
   if (reports.length < 2) return hold("SECOND_INDEPENDENT_RUN_REQUIRED");
   const [first, second] = reports.slice(-2);
   if (!validReport(first) || !validReport(second)) return hold("EXECUTION_RECEIPT_INVALID");
+  if (
+    (first.comparison !== "fu07" && first.comparison !== "fu09") ||
+    first.comparison !== second.comparison
+  )
+    return hold("COMPARISON_TARGET_MISMATCH");
   const left = first.execution.receipt!;
   const right = second.execution.receipt!;
   if (
@@ -63,7 +69,9 @@ export function confirmVideoBridgePromotionRuns(
   )
     return hold("EXECUTION_ORDER_INVALID");
   const lane = (name: "fu07" | "fu09"): PromotionVerdict =>
-    first[name].status === "eligible" && second[name].status === "eligible"
+    name === first.comparison &&
+    first[name].status === "eligible" &&
+    second[name].status === "eligible"
       ? { status: "eligible", reasons: [] }
       : { status: "hold", reasons: ["CONSECUTIVE_ELIGIBLE_RUNS_REQUIRED"] };
   return { fu07: lane("fu07"), fu09: lane("fu09") };

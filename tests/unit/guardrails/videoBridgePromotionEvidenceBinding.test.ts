@@ -104,6 +104,7 @@ test("unbound legacy observations cannot establish a real independent execution"
   assert.equal(report.fu07.status, "hold");
   assert.ok(report.fu07.reasons.includes("EXECUTION_RECEIPT_MISSING"));
   assert.ok(report.fu09.reasons.includes("EXECUTION_RECEIPT_MISSING"));
+  assert.ok(report.fu07.reasons.includes("COMPARISON_NOT_DECLARED"));
 });
 
 test("promotion requires a hashed sanitized real clip in addition to synthetic coverage", () => {

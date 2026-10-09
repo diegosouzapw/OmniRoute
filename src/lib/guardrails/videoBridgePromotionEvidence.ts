@@ -57,6 +57,7 @@ interface EvidenceCase {
 }
 
 export interface PromotionEvidenceFile {
+  comparison?: "fu07" | "fu09";
   manifestId: string;
   cases: EvidenceCase[];
   execution?: PromotionExecutionReceipt;
@@ -122,6 +123,9 @@ export function validatePromotionEvidence(
   evidence: PromotionEvidenceFile
 ): string[] {
   const blockers = new Set<string>();
+  if (evidence.comparison !== "fu07" && evidence.comparison !== "fu09") {
+    blockers.add("COMPARISON_NOT_DECLARED");
+  }
   const receipt = evidence.execution;
   if (!receipt) blockers.add("EXECUTION_RECEIPT_MISSING");
   else if (
