@@ -13,6 +13,7 @@ declare const EdgeRuntime: string | undefined;
 import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
 import { PROVIDERS, HTTP_STATUS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
+import { currentAppliedProxySink } from "../utils/proxyFetch.ts";
 import {
   buildAgentRequestBody,
   decodeAgentServerMessage,
@@ -42,7 +43,7 @@ import {
 } from "../utils/usageTracking.ts";
 import {
   formatCursorAgentClientVersion,
-  getCursorAgentCliVersion,
+  getCursorAgentCliVersionSync,
 } from "../utils/cursorAgentCliVersion.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 import { generateToolCallId } from "../translator/helpers/toolCallHelper.ts";
@@ -85,10 +86,12 @@ import { openCursorH2 } from "./cursor/h2AgentStream.ts";
 import {
   classifyCursorError,
   isCursorBenignCancelError,
+  isCursorStreamTimeoutError,
   resolveCursorEmptyTurnError,
   type ClassifiedCursorError,
 } from "./cursor/cursorErrors.ts";
 import { resolveCursorWireConversationId } from "./cursor/conversationId.ts";
+import { extractEmbeddedCursorToolResults } from "./cursor/embeddedToolResults.ts";
 import type { CursorReportedUsage } from "../services/cursorSessionManager.ts";
 import type { CursorTtftBreakdown } from "../utils/cursorAgentProtobuf/ttft.ts";
 import { getActiveSyncedCatalog } from "../../src/lib/db/models/activeSyncedCatalog.ts";
@@ -196,14 +199,14 @@ function tryParseJsonError(payload: Buffer): { message: string; status: number }
   }
 }
 
-/** True when the turn produced no client-visible assistant payload. */
-function isCursorEmptyTurn(ctx: StreamCtx): boolean {
-  return (
-    ctx.totalText.length === 0 &&
-    ctx.thinkingText.length === 0 &&
-    ctx.toolCalls.length === 0 &&
-    !ctx.composerInlineToolCallsEmitted
-  );
+/**
+ * True when the turn produced no client-visible assistant payload.
+ * A tool call counts only when `ctxProducedSignal` sees non-blank arguments.
+ * `receivedText` is ignored: the narration scrubber sets it on an empty delta.
+ */
+export function isCursorEmptyTurn(ctx: StreamCtx): boolean {
+  if (ctx.totalText.length > 0 || ctx.composerInlineToolCallsEmitted) return false;
+  return !ctxProducedSignal({ ...ctx, receivedText: false });
 }
 
 // ─── Phase 4: streaming dispatch context ───────────────────────────────────
@@ -235,7 +238,13 @@ export type StreamCtx = {
   // End-signal tracking (Phase 8 hardens this further).
   receivedText: boolean;
   kvAfterTextSeen: boolean;
+  // A tool call (Cursor-internal such as composer's get_mcp_tools, or a client
+  // tool still streaming) started after the last text/thinking delta. A KV
+  // checkpoint in that window is not the end of the turn.
+  toolActivitySinceText: boolean;
   endReason: "turn_ended" | "kv_after_text" | "tool_calls" | "server_end" | null;
+  // Safety timeout hit after partial content was streamed (#14727) → finish_reason "length".
+  truncatedByTimeout?: boolean;
   // Mid-stream JSON error (rare; emitted once with the error code).
   midStreamError: { message: string; status: number } | null;
   // Phase 5: tool-call indexing for parallel calls. Each McpArgs gets a
@@ -286,6 +295,8 @@ export type StreamCtx = {
       workingDir: string;
       fileText: string;
       returnFileContentAfterWrite?: boolean;
+      /** The offset/limit of a held read that was forwarded to the client. */
+      readRange?: { offset?: number; limit?: number };
       pattern: string;
       outputMode?: string;
       url?: string;
@@ -330,6 +341,7 @@ export function newStreamCtx(model: string, emit: (chunk: string) => void): Stre
     ttftBreakdown: null,
     receivedText: false,
     kvAfterTextSeen: false,
+    toolActivitySinceText: false,
     endReason: null,
     midStreamError: null,
     emittedToolCallIndex: 0,
@@ -365,6 +377,21 @@ export function newStreamCtx(model: string, emit: (chunk: string) => void): Stre
     });
   });
   return ctx;
+}
+
+export function ctxProducedSignal(ctx: StreamCtx): boolean {
+  return (
+    ctx.receivedText ||
+    ctx.thinkingText.length > 0 ||
+    // A tool call only counts as usable signal if it carried arguments. cursor
+    // truncates tool calls under load (finish_reason:"tool_calls" with
+    // arguments:"" and 0 completion tokens); treating a bare name as signal let
+    // that empty turn finalize into a clean 200 the quality gate passes, and the
+    // client then can't execute the argument-less call. Empty argumentsJson ===
+    // no usable content, so the hop fails over instead.
+    ctx.toolCalls.some((tc) => tc.argumentsJson && tc.argumentsJson.trim().length > 0) ||
+    ctx.tokenDelta > 0
+  );
 }
 
 function emitChunk(ctx: StreamCtx, delta: object, finishReason: string | null = null) {
@@ -775,6 +802,14 @@ export function processFrame(
             command: "command" in event ? event.command : "",
             workingDir: "workingDir" in event ? event.workingDir : "",
             fileText: "fileText" in event ? event.fileText : "",
+            readRange:
+              event.kind === "exec_read" &&
+              ("offset" in bridge.arguments || "limit" in bridge.arguments)
+                ? {
+                    offset: "offset" in bridge.arguments ? event.offset : undefined,
+                    limit: "limit" in bridge.arguments ? event.limit : undefined,
+                  }
+                : undefined,
             returnFileContentAfterWrite:
               event.kind === "exec_write" ? event.returnFileContentAfterWrite : undefined,
             pattern: "pattern" in event ? event.pattern : "",
@@ -822,6 +857,7 @@ export function processFrame(
       // totalText must equal what the client actually received.
       const safeDelta = ctx.narrationScrubber.feed(d.text);
       ctx.receivedText = true;
+      ctx.toolActivitySinceText = false;
       if (safeDelta) {
         ctx.totalText += safeDelta;
         emitChunk(ctx, { content: safeDelta });
@@ -833,6 +869,7 @@ export function processFrame(
       }
       ctx.thinkingText += d.text;
       ctx.receivedText = true;
+      ctx.toolActivitySinceText = false;
       // Composer (decolua/9router#1310) encodes the visible reply inside the
       // thinking field, after a final `</think>` marker. Emit the post-marker
       // suffix as plain `content` (so OpenAI-compatible clients see the reply)
@@ -901,10 +938,15 @@ export function processFrame(
       const { kind: _kind, ...breakdown } = d;
       ctx.ttftBreakdown = breakdown;
     } else if (d.kind === "unknown") {
+      // Field 7 is partial_tool_call: it streams a tool call before
+      // tool_call_started, and Cursor can save KV blobs in between.
+      if (d.field === 7) ctx.toolActivitySinceText = true;
       if (ctx.lastUnknownUpdateField !== d.field) {
         debugLog(`[cursor-agent] unhandled interaction update field=${d.field}`);
       }
       ctx.lastUnknownUpdateField = d.field;
+    } else if (d.kind === "tool_call_started") {
+      ctx.toolActivitySinceText = true;
     } else if (d.kind === "tool_call_completed" && ctx.toolCalls.length > 0) {
       // Phase 6: model paused awaiting tool result. driveH2 returns but the
       // h2 stream stays open — the session manager keeps it alive for the
@@ -920,11 +962,10 @@ export function processFrame(
       // turn. Phase 8 keeps both signals as defense-in-depth.
       //
       // Safe vs tool calls (composer family only): when the model invokes a
-      // tool, the exec_mcp event always arrives at or before this kv
-      // checkpoint (verified across many live composer-2.5 trials — a tool call
-      // never follows kv_after_text), so endReason is already "tool_calls" by
-      // the time we get here. Ending on kv_after_text therefore never truncates
-      // a pending tool call on composer.
+      // tool straight after text, the exec_mcp event always arrives at or
+      // before this kv checkpoint (verified across many live composer-2.5
+      // trials), so endReason is already "tool_calls" by the time we get here.
+      // The exception is a Cursor-internal tool call in between (below).
       //
       // Non-composer models (cursor/grok-4.5-high, auto, ...) emit the KV
       // checkpoint as a blob-store side-channel frame (envelope field 4,
@@ -935,8 +976,13 @@ export function processFrame(
       // this family only the real terminal signals (turn_ended,
       // tool_call_completed, server_end) decide — kvAfterTextSeen is kept purely
       // as an observational flag, never as the turn terminator.
+      //
+      // Composer also runs Cursor-internal tools mid-turn (get_mcp_tools, served
+      // through exec mcp_state) and saves KV blobs before it sends the exec_mcp
+      // for the client tool. A KV checkpoint after such a tool, with no
+      // text since, is that save — not the end of the turn.
       ctx.kvAfterTextSeen = true;
-      if (isComposerModel(ctx.model)) {
+      if (isComposerModel(ctx.model) && !ctx.toolActivitySinceText) {
         ctx.endReason = "kv_after_text";
       }
     }
@@ -1000,6 +1046,7 @@ export class CursorExecutor extends BaseExecutor {
     const cleanToken = stripCursorOAuthTokenPrefix(credentials.accessToken ?? "");
     const requestId = crypto.randomUUID();
     const traceParent = `00-${crypto.randomBytes(16).toString("hex")}-${crypto.randomBytes(8).toString("hex")}-01`;
+    const clientVersion = formatCursorAgentClientVersion(getCursorAgentCliVersionSync());
 
     // Mirrors cursor-agent's actual headers for agent.v1.AgentService/Run.
     // Notably: no x-cursor-checksum, no machineId, no x-amzn-trace-id.
@@ -1014,7 +1061,7 @@ export class CursorExecutor extends BaseExecutor {
       traceparent: traceParent,
       "user-agent": "connect-es/1.6.1",
       "x-cursor-client-type": "cli",
-      "x-cursor-client-version": formatCursorAgentClientVersion(getCursorAgentCliVersion()),
+      "x-cursor-client-version": clientVersion,
       "x-ghost-mode": ghostMode ? "true" : "false",
       "x-original-request-id": requestId,
       "x-request-id": requestId,
@@ -1379,6 +1426,19 @@ export class CursorExecutor extends BaseExecutor {
           break;
         }
       }
+      // The translator also embeds `<tool_result>` XML in user messages.
+      // Those never appear as role:"tool", so send any id still pending.
+      if (!hadFailure) {
+        for (const { toolCallId, result } of extractEmbeddedCursorToolResults(messages)) {
+          if (!session.pendingToolCalls.has(toolCallId)) continue;
+          if (cursorSessionManager.sendToolResult(session, toolCallId, result, false)) {
+            matched++;
+          } else {
+            hadFailure = true;
+            break;
+          }
+        }
+      }
       debugLog(`[cursor-agent] resume matched=${matched} failed=${hadFailure}`);
       if (matched === 0 || hadFailure) {
         cursorSessionManager.close(session);
@@ -1434,7 +1494,15 @@ export class CursorExecutor extends BaseExecutor {
         };
       }
       if (opened.status !== 200) {
-        const errBuf = await opened.consumeError();
+        // Publish the received status so proxy health counts it as upstream.
+        const sink = currentAppliedProxySink();
+        if (sink) sink.upstreamStatus = opened.status;
+        let errBuf: Buffer;
+        try {
+          errBuf = await opened.consumeError();
+        } catch {
+          errBuf = Buffer.alloc(0);
+        }
         const errText = errBuf.toString("utf8") || "Unknown error";
         if (opened.status === HTTP_STATUS.UNAUTHORIZED && isCursorApiKey(credentials.apiKey)) {
           invalidateCursorSessionToken(credentials.apiKey);
@@ -1501,9 +1569,10 @@ export class CursorExecutor extends BaseExecutor {
               // OpenCodex: NGHTTP2_CANCEL after client-tool suspend is expected — finish
               // the SSE turn instead of surfacing a transport failure.
               if (
-                isCursorBenignCancelError(err) &&
+                (isCursorBenignCancelError(err) || isCursorStreamTimeoutError(err)) &&
                 (ctx.totalText.length > 0 || ctx.pendingToolCalls.size > 0)
               ) {
+                if (isCursorStreamTimeoutError(err)) ctx.truncatedByTimeout = true;
                 this.finalizeSseStream(ctx, body);
                 finishLifecycle(ctx, false);
                 controller.close();
@@ -1538,9 +1607,10 @@ export class CursorExecutor extends BaseExecutor {
       await this.driveH2(h2, ctx, mcpTools, blobStore, clientPlatform, todoHistory, signal);
     } catch (err) {
       if (
-        isCursorBenignCancelError(err) &&
+        (isCursorBenignCancelError(err) || isCursorStreamTimeoutError(err)) &&
         (ctx.totalText.length > 0 || ctx.pendingToolCalls.size > 0)
       ) {
+        if (isCursorStreamTimeoutError(err)) ctx.truncatedByTimeout = true;
         finishLifecycle(ctx, false);
         return {
           response: this.buildResponseFromCtx(ctx, body),
@@ -1583,7 +1653,7 @@ export class CursorExecutor extends BaseExecutor {
 
     // Silent empty turn (auth accepted, no text) — surface actionable error instead of
     // an empty assistant completion that chatCore maps to opaque "empty content" 502.
-    if (isCursorEmptyTurn(ctx) && ctx.endReason && ctx.endReason !== "tool_calls") {
+    if (isCursorEmptyTurn(ctx) && ctx.endReason) {
       emitCursorSseError(
         ctx,
         resolveCursorEmptyTurnError({
@@ -1636,7 +1706,8 @@ export class CursorExecutor extends BaseExecutor {
     // OpenAI finish_reason: "tool_calls" if the model invoked any declared
     // tool, else "stop". A turn with mixed text + tool_calls finishes with
     // "tool_calls" (the tool calls are the actionable signal for the client).
-    const finishReason = ctx.toolCalls.length > 0 ? "tool_calls" : "stop";
+    const finishReason =
+      ctx.toolCalls.length > 0 ? "tool_calls" : ctx.truncatedByTimeout ? "length" : "stop";
     emitChunk(ctx, {}, finishReason);
     emitUsage(ctx, body);
     emitDone(ctx);
@@ -1664,7 +1735,7 @@ export class CursorExecutor extends BaseExecutor {
       );
     }
 
-    if (isCursorEmptyTurn(ctx) && ctx.endReason && ctx.endReason !== "tool_calls") {
+    if (isCursorEmptyTurn(ctx) && ctx.endReason) {
       const empty = resolveCursorEmptyTurnError({
         upstreamMessage: ctx.midStreamError?.message,
       });
@@ -1706,7 +1777,8 @@ export class CursorExecutor extends BaseExecutor {
     finalizeKimiTurn(ctx);
 
     const usage = buildCursorUsage(ctx, body);
-    const finishReason = ctx.toolCalls.length > 0 ? "tool_calls" : "stop";
+    const finishReason =
+      ctx.toolCalls.length > 0 ? "tool_calls" : ctx.truncatedByTimeout ? "length" : "stop";
     const message: {
       role: "assistant";
       content: string | null;

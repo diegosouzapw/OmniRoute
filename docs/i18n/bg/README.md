@@ -1271,20 +1271,20 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 също го п�
 <table>
   <tr><th align="left">Слой</th><th align="left">Технология</th></tr>
   <tr><td nowrap><b>Среда за изпълнение</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Език</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> в <code>src/</code> и <code>open-sse/</code> (без нито един <code>any</code> в ядрото от v2.0 насам)</td></tr>
-  <tr><td nowrap><b>Фреймуърк</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>База данни</b></td><td>better-sqlite3 (SQLite, журнал в режим WAL) + LowDB (наследен JSON формат) — 136 домейн модула, 193 миграции</td></tr>
-  <tr><td nowrap><b>Памет</b></td><td>Пълнотекстово търсене със SQLite FTS5 + int8-квантизирани векторни вграждания, типизирано затихване</td></tr>
+  <tr><td nowrap><b>Език</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> в <code>src/</code> и <code>open-sse/</code> (без нито едно <code>any</code> в ядрото от v2.0 насам)</td></tr>
+  <tr><td nowrap><b>Рамка</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
+  <tr><td nowrap><b>База данни</b></td><td>better-sqlite3 (SQLite, журнализиране чрез WAL) + LowDB (наследен JSON формат) — 137 домейн модула, 202 миграции</td></tr>
+  <tr><td nowrap><b>Памет</b></td><td>Пълнотекстово търсене със SQLite FTS5 + векторни вграждания, квантувани до int8, типизирано затихване</td></tr>
   <tr><td nowrap><b>Схеми</b></td><td>Zod 4 — валидиране на входа/изхода на MCP инструменти + API договори</td></tr>
   <tr><td nowrap><b>Протоколи</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>Поточно предаване</b></td><td>Server-Sent Events (SSE) + WebSocket мост (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Компресиране</b></td><td>Конвейер с 12 енджина — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Удостоверяване &amp; сигурност</b></td><td>OAuth 2.0 (PKCE) + JWT + API ключове + MCP удостоверяване с обхвати · AES-256-GCM за данни в покой · DOMPurify</td></tr>
-  <tr><td nowrap><b>Прикритост</b></td><td>wreq-js — имитация на JA3 / JA4 TLS отпечатъци, 3-степенно прокси</td></tr>
-  <tr><td nowrap><b>Устойчивост</b></td><td>Прекъсвач на веригата, експоненциално изчакване, защита срещу лавинообразни заявки, самовъзстановяване чрез автоматично комбиниране</td></tr>
-  <tr><td nowrap><b>Журнал</b></td><td>pino — структурирани JSON записи с контекст на заявката</td></tr>
-  <tr><td nowrap><b>Тестване</b></td><td>Инструментът за изпълнение на тестове на Node.js + Vitest — <b>39 000+ декларации на статични тестове</b> в над 5100 проследявани тестови файла (модулни, интеграционни, E2E, за сигурност и екосистема)</td></tr>
-  <tr><td nowrap><b>Платформи</b></td><td>Настолен компютър (Electron) · Android (Termux) · PWA (всеки браузър)</td></tr>
+  <tr><td nowrap><b>Компресиране</b></td><td>Конвейер с 12 механизма — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Удостоверяване &amp; сигурност</b></td><td>OAuth 2.0 (PKCE) + JWT + API ключове + удостоверяване с обхват за MCP · AES-256-GCM за съхраняваните данни · DOMPurify</td></tr>
+  <tr><td nowrap><b>Прикритост</b></td><td>wreq-js — имитиране на JA3 / JA4 TLS отпечатък, прокси на 3 нива</td></tr>
+  <tr><td nowrap><b>Устойчивост</b></td><td>Прекъсвач на веригата, експоненциално изчакване, предотвратяване на лавинообразни заявки, самовъзстановяване чрез автоматични комбинации</td></tr>
+  <tr><td nowrap><b>Регистриране</b></td><td>pino — структурирани JSON регистрационни файлове с контекст на заявката</td></tr>
+  <tr><td nowrap><b>Тестване</b></td><td>Инструмент за изпълнение на тестове на Node.js + Vitest — <b>39 000+ статични декларации на тестове</b> в над 5100 проследявани тестови файла (модулни, интеграционни, E2E, за сигурност и екосистема)</td></tr>
+  <tr><td nowrap><b>Платформи</b></td><td>Настолни системи (Electron) · Android (Termux) · PWA (всеки браузър)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — автоматично публикуване в npm + Docker Hub при издание</td></tr>
   <tr><td nowrap><b>Връзки</b></td><td><a href="https://omniroute.online">Уебсайт</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
@@ -1737,7 +1737,7 @@ MIT лиценз — вижте [LICENSE](LICENSE) за подробности.
 
 **[⬆ Обратно в началото](#-omniroute)** · Създадено с ❤️ за общността на ИИ с отворен код.
 
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · MIT лиценз · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.52 · Node ≥22.22.2 · MIT лиценз · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- GitHub Discussions са активирани за въпроси и отговори от общността -->

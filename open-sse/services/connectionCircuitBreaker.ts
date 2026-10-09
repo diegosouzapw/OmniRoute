@@ -3,8 +3,10 @@
  * account on that provider. A dead proxy still uses the provider key, because
  * it fails every account the same way.
  */
+import { resolveProviderId } from "../../src/shared/constants/providers";
+
 export function connectionCircuitBreakerName(provider: string, connectionId: string): string {
-  return `${provider}::conn::${connectionId}`;
+  return `${resolveProviderId(provider)}::conn::${connectionId}`;
 }
 
 export function failureCircuitBreakerName(
@@ -13,5 +15,5 @@ export function failureCircuitBreakerName(
   isNetworkError?: boolean
 ): string {
   if (connectionId && !isNetworkError) return connectionCircuitBreakerName(provider, connectionId);
-  return provider;
+  return resolveProviderId(provider);
 }

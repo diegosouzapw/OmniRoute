@@ -1270,23 +1270,23 @@ port kan, nítorí náà kò sí package CLI-nìkan lọ́tọ̀ ní báyìí.
 
 <table>
   <tr><th align="left">Ìpele</th><th align="left">Ìmọ̀ Ẹ̀rọ</th></tr>
-  <tr><td nowrap><b>Àyíká Ìṣiṣẹ́</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Èdè</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> jákèjádò <code>src/</code> àti <code>open-sse/</code> (kò sí <code>any</code> nínú kókó ètò láti v2.0)</td></tr>
-  <tr><td nowrap><b>Ìlànà Ètò</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Àkójọpọ̀ Dátà</b></td><td>better-sqlite3 (SQLite, ìkọ̀wé WAL) + LowDB (ogún JSON) — àwọn módùùlù ìbùdó 136, àwọn ìṣíkiri 193</td></tr>
-  <tr><td nowrap><b>Ìrántí</b></td><td>Ìwákiri ẹ̀kúnrẹ́rẹ́-ọ̀rọ̀ SQLite FTS5 + àwọn ìfìmọ́ fekítọ̀ tí a dín sí int8, ìdínkù onírúurú</td></tr>
-  <tr><td nowrap><b>Àwọn Àwòṣe</b></td><td>Zod 4 — ìfọwọ́sí àbájáde/àbáwọlé irinṣẹ́ MCP + àwọn àdéhùn API</td></tr>
-  <tr><td nowrap><b>Àwọn Ìlànà Ìbánisọ̀rọ̀</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Ṣíṣàn Dátà</b></td><td>Àwọn Ìṣẹ̀lẹ̀ Láti Ọ̀dọ̀ Sẹ́fà (SSE) + afárá WebSocket (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Ìfúnpọ̀</b></td><td>páìpù ẹrọ 12 — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Ìfàṣẹsí &amp; ààbò</b></td><td>OAuth 2.0 (PKCE) + JWT + Àwọn Kọ́kọ́rọ́ API + ìfàṣẹsí MCP tí a fi àyè rẹ̀ mọ́ · AES-256-GCM níbi ìpamọ́ · DOMPurify</td></tr>
-  <tr><td nowrap><b>Ìfarapamọ́</b></td><td>wreq-js — àfarawé àmì ìdánimọ̀ JA3 / JA4 TLS, aṣojú onípele 3</td></tr>
-  <tr><td nowrap><b>Ìfaradà</b></td><td>Olùjá iyíká, ìdádúró tí ń pọ̀ sí lọ́nà ẹ̀kúnrẹ́rẹ́, ìdènà ìrọ́pọ̀-ìbéèrè, ìmúláradá ara-ẹni auto-combo</td></tr>
-  <tr><td nowrap><b>Ìkọsílẹ̀</b></td><td>pino — àwọn àkọọ́lẹ̀ JSON tó ní ìṣètò pẹ̀lú àyíká ìbéèrè</td></tr>
-  <tr><td nowrap><b>Ìdánwò</b></td><td>Ẹrọ ìdánwò Node.js + Vitest — <b>àwọn ìkéde ìdánwò aláìyípadà 39,000+</b> jákèjádò àwọn fáìlì ìdánwò 5,100+ tí a ń tọ̀pa (ẹyọ, ìṣọ̀kan, E2E, ààbò, ètò àyíká)</td></tr>
-  <tr><td nowrap><b>Àwọn Pẹpẹ</b></td><td>Kọ̀ǹpútà orí tábìlì (Electron) · Android (Termux) · PWA (ẹ̀rọ aṣàwákiri èyíkéyìí)</td></tr>
+  <tr><td nowrap><b>Àyíká ìṣiṣẹ́</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>Èdè</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> káàkiri <code>src/</code> àti <code>open-sse/</code> (kò sí <code>any</code> nínú apá pàtàkì láti v2.0)</td></tr>
+  <tr><td nowrap><b>Ètò-iṣẹ́</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
+  <tr><td nowrap><b>Ìpamọ́ dátà</b></td><td>better-sqlite3 (SQLite, ìforúkọsílẹ̀ WAL) + LowDB (ogún JSON) — àwọn módù 137 fún àwọn àgbègbè iṣẹ́, àwọn ìṣíkiri 202</td></tr>
+  <tr><td nowrap><b>Ìrántí</b></td><td>Ìṣàwárí ọ̀rọ̀-kíkún SQLite FTS5 + àwọn àfihàn fekito tí a dín sí int8, ìdínkù onírú</td></tr>
+  <tr><td nowrap><b>Àwọn àwòṣe</b></td><td>Zod 4 — ìfọwọ́sí I/O irinṣẹ́ MCP + àwọn àdéhùn API</td></tr>
+  <tr><td nowrap><b>Àwọn ìlànà</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
+  <tr><td nowrap><b>Ṣíṣàn</b></td><td>Server-Sent Events (SSE) + afárá WebSocket (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Ìfúnpọ̀</b></td><td>páìpù onímọ́tò 12 — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Ìfàṣẹsí &amp; ààbò</b></td><td>OAuth 2.0 (PKCE) + JWT + àwọn kọ́kọ́rọ́ API + ìfàṣẹsí MCP tó ní ààlà · AES-256-GCM nígbà ìpamọ́ · DOMPurify</td></tr>
+  <tr><td nowrap><b>Ìfarapamọ́</b></td><td>wreq-js — fífarawé ìtẹ̀wọ́gbà ìka ọwọ́ TLS JA3 / JA4, aṣojú onípẹ̀ẹ̀tẹ mẹ́ta</td></tr>
+  <tr><td nowrap><b>Ìfaradà</b></td><td>Olùdásílẹ̀ sísẹ́kítì, ìdádúró tó ń pọ̀ sí ní ìlọ́po, ìdènà ìrọ̀pọ̀-ìbéèrè-lójijì, ìmúláradá ara-ẹni auto-combo</td></tr>
+  <tr><td nowrap><b>Ìforúkọsílẹ̀</b></td><td>pino — àwọn àkọsílẹ̀ JSON tó ní ìṣètò pẹ̀lú àyíká ìbéèrè</td></tr>
+  <tr><td nowrap><b>Ìdánwò</b></td><td>Olùṣiṣẹ́ ìdánwò Node.js + Vitest — <b>àwọn ìkéde ìdánwò àìyípadà 39,000+</b> káàkiri àwọn fáìlì ìdánwò 5,100+ tí a ń tọpinpin (ìdánwò ẹyọ, ìṣọ̀kan, E2E, ààbò, àyíká-ètò)</td></tr>
+  <tr><td nowrap><b>Àwọn pẹpẹ</b></td><td>Kọ̀ǹpútà tabili (Electron) · Android (Termux) · PWA (aṣàwákiri èyíkéyìí)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — ìtẹ̀jáde npm aládàáṣiṣẹ́ + Docker Hub nígbà ìtújáde</td></tr>
-  <tr><td nowrap><b>Àwọn Ọ̀nà Asopọ̀</b></td><td><a href="https://omniroute.online">Oju-òpó Wẹ́ẹ̀bù</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><td nowrap><b>Àwọn ọna asopọ</b></td><td><a href="https://omniroute.online">Ojúlé</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">
@@ -1737,7 +1737,7 @@ OmniRoute dúró lórí èjìká àwọn òmìrán. Ó bẹ̀rẹ̀ gẹ́gẹ́
 
 **[⬆ Padà sí òkè](#-omniroute)** · A kọ́ ọ pẹ̀lú ❤️ fún àwùjọ AI orísun-ṣíṣí.
 
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · Ìwé-àṣẹ MIT · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.52 · Node ≥22.22.2 · Ìwé-àṣẹ MIT · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- A ti mú GitHub Discussions ṣiṣẹ́ fún ìbéèrè àti ìdáhùn àwùjọ -->

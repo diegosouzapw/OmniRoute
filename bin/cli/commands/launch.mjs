@@ -4,6 +4,7 @@ import os from "node:os";
 import { t } from "../i18n.mjs";
 import { resolveActiveContext } from "../contexts.mjs";
 import { quoteShellArgs } from "../utils/winShellArgs.mjs";
+import { buildSafeCliLaunchEnv } from "../launch-env.mjs";
 
 function stripTrailingSlash(value) {
   let s = String(value);
@@ -25,7 +26,7 @@ function stripTrailingSlash(value) {
  * @returns {Record<string,string>}
  */
 export function buildClaudeEnv(baseEnv, baseUrlOrPort, authToken, opts = {}) {
-  const env = { ...baseEnv };
+  const env = buildSafeCliLaunchEnv(baseEnv, { inheritEnv: Boolean(opts.inheritEnv) });
   for (const key of Object.keys(env)) {
     if (key.startsWith("ANTHROPIC_")) delete env[key];
   }
@@ -193,6 +194,7 @@ export async function runLaunchCommand(opts = {}, claudeArgs = []) {
   const env = buildClaudeEnv(process.env, baseUrl, authToken, {
     configDir,
     model: opts.model,
+    inheritEnv: opts.inheritEnv,
   });
 
   const { command, shell } = await resolveClaudeSpawn(process.platform);
@@ -205,6 +207,8 @@ export async function runLaunchCommand(opts = {}, claudeArgs = []) {
       ...(process.platform === "win32" ? { windowsHide: true } : {}),
     });
     let settled = false;
+    let requestedSignalCode;
+    let escalationTimer;
     const signalExitCode = { SIGINT: 130, SIGTERM: 143, SIGHUP: 129 };
     const signalHandlers = {};
     const cleanupSignalHandlers = () => {
@@ -215,17 +219,32 @@ export async function runLaunchCommand(opts = {}, claudeArgs = []) {
     const finish = (code) => {
       if (settled) return;
       settled = true;
+      if (escalationTimer) clearTimeout(escalationTimer);
       cleanupSignalHandlers();
       resolve(code);
     };
     for (const signal of Object.keys(signalExitCode)) {
       signalHandlers[signal] = () => {
+        if (requestedSignalCode !== undefined) return;
+        requestedSignalCode = signalExitCode[signal];
         try {
           child.kill(signal);
         } catch {
-          // The child may have already exited between the signal and cleanup.
+          // The child may have already exited; its close event will settle.
         }
-        finish(signalExitCode[signal]);
+        const configuredTimeout = Number(
+          opts.signalTimeoutMs ?? process.env.OMNIROUTE_CHILD_SIGNAL_TIMEOUT_MS
+        );
+        const timeoutMs =
+          Number.isFinite(configuredTimeout) && configuredTimeout > 0 ? configuredTimeout : 5000;
+        escalationTimer = setTimeout(() => {
+          try {
+            child.kill("SIGKILL");
+          } catch {
+            // A close event may have raced with escalation.
+          }
+        }, timeoutMs);
+        escalationTimer.unref?.();
       };
       process.once(signal, signalHandlers[signal]);
     }
@@ -238,8 +257,8 @@ export async function runLaunchCommand(opts = {}, claudeArgs = []) {
         finish(1);
       }
     });
-    child.on("exit", (code, signalName) => {
-      finish(code ?? signalExitCode[signalName] ?? 0);
+    child.on("close", (code, signalName) => {
+      finish(requestedSignalCode ?? code ?? signalExitCode[signalName] ?? 0);
     });
   });
 }
@@ -258,6 +277,10 @@ export function registerLaunch(program) {
     )
     .option("--token <token>", t("launch.token") || "Token Claude sends (ANTHROPIC_AUTH_TOKEN)")
     .option("--api-key <key>", "Alias for --token (OmniRoute access token / API key)")
+    .option(
+      "--inherit-env",
+      "Explicitly pass the full parent environment to Claude Code (may expose credentials)"
+    )
     .allowUnknownOption(true)
     .allowExcessArguments(true)
     .argument("[claudeArgs...]", "arguments passed through to the claude binary")

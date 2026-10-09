@@ -4,10 +4,10 @@
 
 ---
 
-1. Rögzítse célzott tesztekkel a meglévő egykulcsos szemafor szerződését és az új atomi többkulcsos szerződést: ne legyenek részleges foglalások, továbbá legyen tesztelve a FIFO-sorba állítás, a megszakítás, az időtúllépés, a sor megtelése, az idempotens felszabadítás, a statisztikák és a takarítás.
-2. Általánosítsa helyben a meglévő fiókszemafort. Tartsa meg az `acquire()` függvényt az `acquireMany()` körüli kompatibilitási burkolóként; ne adjon hozzá második ütemezőt vagy függőséget.
-3. Cserélje le a kizárólag fiókszintű erőforrás-foglalást a `chatCore` modulban egy kumulatív, globális/szolgáltatói/fiókszintű foglalásra, közvetlenül a `withRateLimit` előtt. Foglalja le újra a teljes készletet, valahányszor a fiókrotáció módosítja a kapcsolatot, és a streamelés befejezéséig tartsa fenn a foglalást.
-4. Bővítse a meglévő rezilienciabeállítási folyamatot (típusok, alapértelmezések, normalizálás, séma, API-válasz, felhasználói felület és fordítások) a globális és szolgáltatói korlátokkal. Nevezze át a régi Bottleneck-alapú párhuzamossági vezérlést kapcsolat-/kvótahatókörű párhuzamosságra, hogy egyértelmű legyen a tényleges hatóköre.
-5. Futtassa le a célzott teszteket, a lintelést, a típusellenőrzést, a statikus ellenőrzéseket és a teljes tesztcsomagot; dokumentálja a viselkedésbeli változást a változásnaplóban.
+1. Rögzítse fókuszált tesztekkel a meglévő egykulcsos szemafor szerződését és az új, atomi többkulcsos szerződést: ne legyen részleges foglalás, legyen FIFO-sorba állítás, megszakítás, időtúllépés, megtelt sor kezelése, idempotens feloldás, statisztikák és erőforrás-takarítás.
+2. Általánosítsa helyben a meglévő fiókszemafort. Tartsa meg az `acquire()` metódust az `acquireMany()` kompatibilitási burkolójaként; ne adjon hozzá második ütemezőt vagy függőséget.
+3. Cserélje le a `chatCore` kizárólag fiókalapú foglalását egyetlen kumulatív, globális/szolgáltatói/fiókalapú foglalásra, közvetlenül a `withRateLimit` előtt. Foglalja újra a teljes készletet minden alkalommal, amikor a fiókrotáció megváltoztatja a kapcsolatot, és tartsa fenn a foglalást a streamelés befejezéséig.
+4. Bővítse a meglévő ellenálló-képességi beállítások folyamatát — típusok, alapértelmezések, normalizálás, séma, API-válasz, felhasználói felület és fordítások — a globális és szolgáltatói korlátokkal. Nevezze át a régi Bottleneck párhuzamossági vezérlőt kapcsolat-/kvótahatókörű párhuzamosságra, hogy egyértelmű legyen a tényleges hatóköre.
+5. Futtassa a fókuszált teszteket, a lintelést, a típusellenőrzést, a statikus ellenőrzéseket és a teljes tesztcsomagot; dokumentálja a viselkedés változását a változásnaplóban.
 
-Szándékosan megőrzött viselkedés: a nulla/`null` párhuzamosság megkerüli az adott korlátozó kaput, a kizárólag fiókszintű hívók továbbra is az `acquire()` függvényt használják, a blokkolt fiókok vezérlői megtartják kulcsformátumukat és API-jukat, a szolgáltatói sebességkorlátozási sor viselkedése pedig változatlan marad.
+Szándékosan megőrzött viselkedés: a nulla/null párhuzamosság megkerüli a kaput, a kizárólag fiókalapú hívók továbbra is az `acquire()` metódust használják, a blokkolt fiókok vezérlői megtartják a kulcsformátumukat és API-jukat, a szolgáltatói sebességkorlátozási sor viselkedése pedig változatlan marad.

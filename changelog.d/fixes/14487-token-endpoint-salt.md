@@ -1,0 +1,1 @@
+- fix(security): pin Google service-account token exchange and reject redirects; warn once when CLI salt persistence falls back, preserving existing tokens (#14487, items 3–4).

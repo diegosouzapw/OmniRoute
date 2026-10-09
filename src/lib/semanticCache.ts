@@ -17,6 +17,7 @@ import crypto from "crypto";
 import { LRUCache } from "./cacheLayer";
 import { getDbInstance } from "./db/core";
 import { toNumber } from "@/shared/utils/numeric";
+import { conversationSignatureFields } from "../../open-sse/utils/conversationSignatureFields";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -139,6 +140,13 @@ export function clearMemoryCache(): void {
  * The snake_case fields mirror the raw request body shape and are what `outputContractOf`
  * (#12307) fills in; the camelCase fields are the pre-existing (#12734) call-site shape.
  * `generateSignature` folds both spellings in so neither call style silently drops a field.
+ *
+ * Generation params (#15149): `reasoning`/`reasoning_effort`, `max_tokens`/
+ * `max_completion_tokens`, `top_k`, `seed`, `stop`, penalties and `logit_bias` change the
+ * generated output, so two temp=0 requests that disagree on them must not share an entry
+ * (an effort=none request would otherwise be served an effort=max replay, or vice versa).
+ * These are stored under their raw request-body key only — no camelCase mirror exists,
+ * because every caller passes `outputContractOf(body)` through untouched.
  */
 export interface SignatureConstraints {
   toolChoice?: unknown;
@@ -147,7 +155,35 @@ export interface SignatureConstraints {
   tool_choice?: unknown;
   response_format?: unknown;
   text_format?: unknown;
+  reasoning?: unknown;
+  reasoning_effort?: unknown;
+  max_tokens?: unknown;
+  max_completion_tokens?: unknown;
+  top_k?: unknown;
+  seed?: unknown;
+  stop?: unknown;
+  presence_penalty?: unknown;
+  frequency_penalty?: unknown;
+  logit_bias?: unknown;
 }
+
+/**
+ * Request-body fields that change what the model generates for the SAME conversation.
+ * Listed verbatim as body keys (#15149); `!= null` keeps falsy-but-meaningful values
+ * (seed 0, top_k 0, stop "").
+ */
+const GENERATION_PARAM_KEYS = [
+  "reasoning",
+  "reasoning_effort",
+  "max_tokens",
+  "max_completion_tokens",
+  "top_k",
+  "seed",
+  "stop",
+  "presence_penalty",
+  "frequency_penalty",
+  "logit_bias",
+] as const;
 
 /**
  * The parts of a request that decide what a *valid response* looks like.
@@ -155,6 +191,7 @@ export interface SignatureConstraints {
  * interchangeable and must not share a cache entry (#12307): a request for
  * {color, wheels} must not be served a stored {value: "..."} body, and a
  * tool-calling request must not be served the body of one without tools.
+ * Generation params (reasoning effort, max_tokens, …) count the same way (#15149).
  *
  * Returns null when the request carries none of these, so plain-chat
  * signatures — and every cache entry already written for them — are unchanged.
@@ -175,6 +212,9 @@ export function outputContractOf(body: unknown): SignatureConstraints | null {
   if (record.tool_choice != null) {
     contract.tool_choice = record.tool_choice;
     contract.toolChoice = record.tool_choice;
+  }
+  for (const key of GENERATION_PARAM_KEYS) {
+    if (record[key] != null) contract[key] = record[key];
   }
   return Object.keys(contract).length > 0 ? contract : null;
 }
@@ -205,6 +245,20 @@ function normalizeTools(tools: unknown): unknown {
 }
 
 /**
+ * Pick the #15149 generation params off a constraints object, skipping null/undefined
+ * so they drop out of `JSON.stringify` and a request without them hashes byte-identically
+ * to the legacy payload.
+ */
+function pickGenerationParams(constraints?: SignatureConstraints | null): Record<string, unknown> {
+  if (!constraints) return {};
+  const picked: Record<string, unknown> = {};
+  for (const key of GENERATION_PARAM_KEYS) {
+    if (constraints[key] != null) picked[key] = constraints[key];
+  }
+  return picked;
+}
+
+/**
  * Generate deterministic cache signature from request params.
  * @param {string} model
  * @param {Array} messages - Normalized messages array
@@ -213,7 +267,8 @@ function normalizeTools(tools: unknown): unknown {
  * @param {string} [apiKeyId] - API key ID for per-key isolation (prevents cross-user cache hits)
  * @param {SignatureConstraints} [constraints] - tool_choice/tools/response_format (#12734)
  *   plus the Responses-API `text.format` spelling (#12307): these change model behavior
- *   and must not collide with a signature computed without them.
+ *   and must not collide with a signature computed without them. Also carries the
+ *   generation params (reasoning/max_tokens/top_k/seed/stop/penalties/logit_bias, #15149).
  * @returns {string} hex signature
  */
 export function generateSignature(
@@ -233,6 +288,7 @@ export function generateSignature(
     tools: normalizeTools(constraints?.tools),
     response_format: constraints?.responseFormat ?? constraints?.response_format,
     text_format: constraints?.text_format,
+    ...pickGenerationParams(constraints),
   });
   const digest = crypto.createHash("sha256").update(payload).digest("hex");
   // Per-key cache isolation (#3740) namespaces the signature with the apiKeyId as a
@@ -267,6 +323,7 @@ function normalizeConversation(conversation: unknown) {
   return conversation.map((item: Record<string, unknown>) => ({
     role: typeof item?.role === "string" && item.role.trim().length > 0 ? item.role : "user",
     content: stringifyForSignature(item?.content),
+    ...conversationSignatureFields(item),
   }));
 }
 

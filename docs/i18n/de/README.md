@@ -1274,19 +1274,19 @@ Kanonische Kennzahlen vom 2026-08-24: **1.029 einzigartige Videos** · **11.132.
   <tr><td nowrap><b>Laufzeitumgebung</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Sprache</b></td><td>TypeScript 6.0 — <b>100 % TypeScript</b> in <code>src/</code> und <code>open-sse/</code> (seit v2.0 kein <code>any</code> im Kern)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Datenbank</b></td><td>better-sqlite3 (SQLite, WAL-Protokollierung) + LowDB (JSON-Altsystem) — 136 Domänenmodule, 193 Migrationen</td></tr>
+  <tr><td nowrap><b>Datenbank</b></td><td>better-sqlite3 (SQLite, WAL-Journaling) + LowDB (JSON-Altsystem) — 137 Domänenmodule, 202 Migrationen</td></tr>
   <tr><td nowrap><b>Speicher</b></td><td>SQLite-FTS5-Volltextsuche + int8-quantisierte Vektoreinbettungen, typisierter Verfall</td></tr>
-  <tr><td nowrap><b>Schemata</b></td><td>Zod 4 — Validierung der MCP-Tool-Ein-/Ausgabe + API-Verträge</td></tr>
+  <tr><td nowrap><b>Schemata</b></td><td>Zod 4 — Validierung der Ein- und Ausgaben von MCP-Werkzeugen + API-Verträge</td></tr>
   <tr><td nowrap><b>Protokolle</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Streaming</b></td><td>Server-Sent Events (SSE) + WebSocket-Bridge (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Streaming</b></td><td>Server-Sent Events (SSE) + WebSocket-Brücke (<code>/v1/ws</code>)</td></tr>
   <tr><td nowrap><b>Komprimierung</b></td><td>Pipeline mit 12 Engines — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Authentifizierung &amp; Sicherheit</b></td><td>OAuth 2.0 (PKCE) + JWT + API-Schlüssel + bereichsbezogene MCP-Authentifizierung · AES-256-GCM für ruhende Daten · DOMPurify</td></tr>
-  <tr><td nowrap><b>Tarnung</b></td><td>wreq-js — Imitation von JA3- / JA4-TLS-Fingerabdrücken, dreistufiger Proxy</td></tr>
-  <tr><td nowrap><b>Ausfallsicherheit</b></td><td>Leistungsschalter, exponentieller Backoff, Schutz vor Anfragestürmen, selbstheilende automatische Kombinationen</td></tr>
+  <tr><td nowrap><b>Authentifizierung &amp; Sicherheit</b></td><td>OAuth 2.0 (PKCE) + JWT + API-Schlüssel + bereichsspezifische MCP-Authentifizierung · AES-256-GCM für ruhende Daten · DOMPurify</td></tr>
+  <tr><td nowrap><b>Tarnung</b></td><td>wreq-js — Nachahmung von JA3-/JA4-TLS-Fingerabdrücken, dreistufiger Proxy</td></tr>
+  <tr><td nowrap><b>Ausfallsicherheit</b></td><td>Schutzschalter, exponentielles Backoff, Schutz vor Lastspitzen, selbstheilende automatische Kombination</td></tr>
   <tr><td nowrap><b>Protokollierung</b></td><td>pino — strukturierte JSON-Protokolle mit Anfragekontext</td></tr>
-  <tr><td nowrap><b>Tests</b></td><td>Node.js-Testrunner + Vitest — <b>mehr als 39.000 statische Testdeklarationen</b> in mehr als 5.100 erfassten Testdateien (Unit-, Integrations-, E2E-, Sicherheits- und Ökosystemtests)</td></tr>
+  <tr><td nowrap><b>Tests</b></td><td>Node.js-Test-Runner + Vitest — <b>über 39.000 statische Testdeklarationen</b> in mehr als 5.100 erfassten Testdateien (Unit-, Integrations-, E2E-, Sicherheits- und Ökosystemtests)</td></tr>
   <tr><td nowrap><b>Plattformen</b></td><td>Desktop (Electron) · Android (Termux) · PWA (jeder Browser)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatische Veröffentlichung auf npm und Docker Hub bei einem Release</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatische Veröffentlichung auf npm und Docker Hub bei Releases</td></tr>
   <tr><td nowrap><b>Links</b></td><td><a href="https://omniroute.online">Website</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
@@ -1738,7 +1738,7 @@ MIT-Lizenz – Details finden Sie unter [LICENSE](LICENSE).
 
 **[⬆ Zurück nach oben](#-omniroute)** · Mit ❤️ für die Open-Source-KI-Community entwickelt.
 
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · MIT-Lizenz · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.52 · Node ≥22.22.2 · MIT-Lizenz · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- GitHub Discussions für Fragen und Antworten der Community aktiviert -->

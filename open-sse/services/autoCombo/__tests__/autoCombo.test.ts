@@ -2,7 +2,7 @@
  * Unit tests for Auto-Combo Engine (Phase 5)
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeAll, describe, it, expect, beforeEach } from "vitest";
 import { calculateFactors, calculateScore, DEFAULT_WEIGHTS, validateWeights } from "../scoring";
 import type { ProviderCandidate, ScoringWeights } from "../scoring";
 import {
@@ -18,6 +18,13 @@ import { SelfHealingManager } from "../selfHealing";
 import { MODE_PACKS, getModePack, getModePackNames } from "../modePacks";
 import { getStrategy } from "../routerStrategy";
 import type { RoutingContext } from "../routerStrategy";
+
+// #15106: the first getTaskFitness() call in a worker pays the lazy, synchronous
+// model-intelligence DB init. Pay it here, under its own generous budget, so the
+// 5s per-test timeout measures the test and not first-call setup under parallel load.
+beforeAll(() => {
+  getTaskFitness("warmup-model", "coding");
+}, 30_000);
 
 describe("Scoring", () => {
   const candidate: ProviderCandidate = {

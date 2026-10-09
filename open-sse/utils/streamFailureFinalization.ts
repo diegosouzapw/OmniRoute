@@ -23,9 +23,12 @@ export type StreamFailurePayload = {
   message: string;
   code?: string;
   type?: string;
+  /** The stream had already forwarded text/reasoning/tool output to the client. */
+  outputEmitted?: boolean;
 };
 
 export type PipelineStreamErrorHandler = (event: {
+  error?: unknown;
   message: string;
   statusCode: number;
 }) => boolean;
@@ -37,6 +40,47 @@ function classifyPipelineStreamCode(text: string): string {
   if (lower.includes("stream content stall")) return "stream_content_stall";
   if (lower.includes("terminated")) return "stream_terminated";
   return "stream_pipeline_error";
+}
+
+const TRANSPORT_DIAGNOSTIC_CODES = new Set([
+  "ECONNRESET",
+  "ECONNREFUSED",
+  "EPIPE",
+  "ETIMEDOUT",
+  "EPROTO",
+  "ENOTFOUND",
+  "EAI_AGAIN",
+  "EHOSTUNREACH",
+  "ENETUNREACH",
+  "UND_ERR_SOCKET",
+  "UND_ERR_CONNECT_TIMEOUT",
+  "UND_ERR_HEADERS_TIMEOUT",
+  "UND_ERR_BODY_TIMEOUT",
+  "ERR_HTTP2_STREAM_ERROR",
+  "ERR_HTTP2_SESSION_ERROR",
+  "ERR_HTTP2_GOAWAY_SESSION",
+  "ERR_HTTP2_INVALID_SESSION",
+  "ERR_HTTP2_STREAM_CANCEL",
+]);
+
+function transportDiagnosticSuffix(error: unknown): string {
+  const codes = new Set<string>();
+  const seen = new Set<unknown>();
+  let current = error;
+  for (let depth = 0; depth < 8 && current && typeof current === "object"; depth++) {
+    if (seen.has(current)) break;
+    seen.add(current);
+    try {
+      const record = current as { code?: unknown; cause?: unknown };
+      const code = record.code;
+      if (typeof code === "string" && TRANSPORT_DIAGNOSTIC_CODES.has(code)) codes.add(code);
+      current = record.cause;
+    } catch {
+      break; // Diagnostics must not interfere with finalization on a hostile getter.
+    }
+  }
+  // Never include cause.message, stack, socket addresses or arbitrary code strings.
+  return codes.size ? ` (transport: ${[...codes].join(", ")})` : "";
 }
 
 /**
@@ -150,12 +194,14 @@ export function createStreamFailureFinalizers({
   onStreamComplete,
   persistFailureUsage,
   onStreamFailure,
+  hasEmittedOutput = () => false,
 }: {
   isFailureCompletionRecorded: () => boolean;
   isStreamCompletionRecorded?: () => boolean;
   onStreamComplete: (payload: StreamCompletionPayload) => void;
   persistFailureUsage: (status: number, errorCode?: string) => void;
   onStreamFailure?: ((failure: StreamFailurePayload) => void) | null;
+  hasEmittedOutput?: () => boolean;
 }) {
   const handleStreamFailure = (failure: StreamFailurePayload) => {
     if (isStreamCompletionRecorded()) {
@@ -184,7 +230,7 @@ export function createStreamFailureFinalizers({
 
     persistFailureUsage(status, projectedCode);
     try {
-      onStreamFailure?.(failure);
+      onStreamFailure?.({ ...failure, outputEmitted: hasEmittedOutput() });
     } catch {
       // Best-effort fallback state update only.
     }
@@ -205,7 +251,7 @@ export function createStreamFailureFinalizers({
 
   let pipelineStreamFailureFinalized = false;
 
-  const onPipelineStreamError: PipelineStreamErrorHandler = ({ message, statusCode }) => {
+  const onPipelineStreamError: PipelineStreamErrorHandler = ({ error, message, statusCode }) => {
     if (pipelineStreamFailureFinalized) return true;
     pipelineStreamFailureFinalized = true;
 
@@ -223,7 +269,7 @@ export function createStreamFailureFinalizers({
 
     handleStreamFailure({
       status,
-      message: normalizedMessage,
+      message: normalizedMessage + (status >= 500 ? transportDiagnosticSuffix(error) : ""),
       code,
       type,
     });

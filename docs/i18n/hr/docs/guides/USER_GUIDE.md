@@ -118,37 +118,39 @@ Pristup putem: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ---
 
-## 📖 Postavljanje pružatelja usluge
+## 📖 Postavljanje pružatelja usluga
 
-### 🔐 Pružatelji usluge po pretplati
+Za skupno dodavanje veza s API ključevima iz CSV ili JSON datoteke upotrijebite **Nadzorna ploča → Pružatelji usluga → Uvezi iz datoteke**. Stupci su pozicijski (`provider,name,apiKey,baseUrl,priority`); `provider` već mora postojati kao upravljani pružatelj usluga ili kompatibilni čvor. Pogledajte [Uvoz pružatelja usluga iz CSV ili JSON datoteke](../providers/CSV-IMPORT.md).
+
+### 🔐 Pretplatnički pružatelji usluga
 
 #### Claude Code (Pro/Max)
 
 ```bash
-Dashboard → Providers → Connect Claude Code
-→ OAuth login → Auto token refresh
-→ 5-hour + weekly quota tracking
+Nadzorna ploča → Pružatelji usluga → Poveži Claude Code
+→ OAuth prijava → Automatsko osvježavanje tokena
+→ Praćenje 5-satne i tjedne kvote
 
-Models:
+Modeli:
   cc/claude-opus-4-7
   cc/claude-sonnet-4-6
   cc/claude-haiku-4-5-20251001
 ```
 
-**Profesionalni savjet:** Koristite Opus za složene zadatke, Sonnet za brzinu. OmniRoute prati kvotu po modelu!
+**Profesionalni savjet:** Upotrebljavajte Opus za složene zadatke, a Sonnet za brzinu. OmniRoute prati kvotu za svaki model!
 
-Claude i Claude Code-kompatibilne rute čuvaju `max` razinu razmišljanja (thinking effort) za modele Opus i Sonnet.
-Haiku modeli ne prihvaćaju `max` razinu, pa OmniRoute prije slanja zahtjeva prema dobavljaču
-smanjuje taj zahtjev na visoki proračun razmišljanja (thinking budget).
+Nemate preglednik na OmniRoute domaćinu? Pokrenite `claude setup-token` bilo gdje gdje ste prijavljeni u Claude Code i zalijepite jednogodišnji token u karticu **Token za postavljanje**. Pogledajte [Claude Code s tokenom za postavljanje](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Rute kompatibilne s Claudeom i Claude Codeom zadržavaju `max` razinu intenziteta razmišljanja za modele Opus i Sonnet. Modeli Haiku ne prihvaćaju `max` razinu intenziteta, pa OmniRoute taj zahtjev prije slanja nadređenom pružatelju spušta na visok proračun za razmišljanje.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-Dashboard → Providers → Connect Codex
-→ OAuth login (port 1455)
-→ 5-hour + weekly reset
+Nadzorna ploča → Pružatelji usluga → Poveži Codex
+→ OAuth prijava (priključak 1455)
+→ Ponovno postavljanje nakon 5 sati i tjedan dana
 
-Models:
+Modeli:
   cx/gpt-5.5
   cx/gpt-5.4
   cx/gpt-5.3-codex
@@ -158,11 +160,11 @@ Models:
 #### GitHub Copilot
 
 ```bash
-Dashboard → Providers → Connect GitHub
-→ OAuth via GitHub
-→ Monthly reset (1st of month)
+Nadzorna ploča → Pružatelji usluga → Poveži GitHub
+→ OAuth putem GitHuba
+→ Mjesečno ponovno postavljanje (1. u mjesecu)
 
-Models:
+Modeli:
   gh/gpt-5.5
   gh/gpt-5.4
   gh/claude-sonnet-4.6
@@ -170,57 +172,56 @@ Models:
   gh/gemini-3.1-pro-preview
 ```
 
-### 💰 Jeftini pružatelji usluge
+### 💰 Povoljni pružatelji usluga
 
-#### GLM-4.7 (Dnevni reset, $0.6/1M)
+#### GLM-4.7 (dnevno ponovno postavljanje, $0.6/1M)
 
 1. Registrirajte se: [Zhipu AI](https://open.bigmodel.cn)
-2. Preuzmite API ključ iz Coding Plan
-3. Dashboard → Add API Key: Provider: `glm`, API Key: `your-key`
+2. Preuzmite API ključ iz plana Coding Plan
+3. Nadzorna ploča → Dodaj API ključ: Pružatelj usluga: `glm`, API ključ: `your-key`
 
-**Koristi se kao:** `glm/glm-4.7` — **Profesionalni savjet:** Coding Plan nudi 3× kvotu po 1/7 cijene! Reset svaki dan u 10:00.
+**Upotreba:** `glm/glm-4.7` — **Profesionalni savjet:** Coding Plan nudi 3× veću kvotu uz 1/7 cijene! Ponovno se postavlja svakog dana u 10:00.
 
-#### MiniMax M2.1 (Reset svakih 5h, $0.20/1M)
+#### MiniMax M2.1 (ponovno postavljanje nakon 5 h, $0.20/1M)
 
 1. Registrirajte se: [MiniMax](https://www.minimax.io)
-2. Preuzmite API ključ → Dashboard → Add API Key
+2. Preuzmite API ključ → Nadzorna ploča → Dodaj API ključ
 
-**Koristi se kao:** `minimax/MiniMax-M2.1` — **Profesionalni savjet:** Najjeftinija opcija za dugi kontekst (1M tokena)!
+**Upotreba:** `minimax/MiniMax-M2.1` — **Profesionalni savjet:** Najjeftinija opcija za dugi kontekst (1M tokena)!
 
-#### Kimi K2 ($9/mjesečno fiksno)
+#### Kimi K2 (fiksno $9 mjesečno)
 
 1. Pretplatite se: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. Preuzmite API ključ → Dashboard → Add API Key
+2. Preuzmite API ključ → Nadzorna ploča → Dodaj API ključ
 
-**Koristi se kao:** `kimi/kimi-k2.5` — **Profesionalni savjet:** Fiksno $9/mjesečno za 10M tokena = efektivna cijena $0.90/1M!
+**Upotreba:** `kimi/kimi-k2.5` — **Profesionalni savjet:** Fiksnih $9 mjesečno za 10M tokena = efektivni trošak od $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
 1. Registrirajte se: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. Kreirajte Qianfan API ključ → Dashboard → Add API Key: Provider: `qianfan`
+2. Izradite Qianfan API ključ → Nadzorna ploča → Dodaj API ključ: Pružatelj usluga: `qianfan`
 
-**Koristi se kao:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, ili neki drugi Qianfan OpenAI-kompatibilan ID modela.
+**Upotreba:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` ili neki drugi identifikator Qianfan modela kompatibilnog s OpenAI-jem.
 
-### 🆓 BESPLATNI pružatelji usluge
+### 🆓 BESPLATNI pružatelji usluga
 
-Besplatni pružatelji koji ne zahtijevaju autentikaciju imaju prekidač pored **No authentication required** na svojoj stranici pružatelja.
-Isključivanjem se onemogućuje taj pružatelj, uklanja ga iz konfiguriranih/kompaktnih prikaza pružatelja (Providers) i
-uklanja njegove modele iz `/v1/models`.
+Besplatni pružatelji usluga koji ne zahtijevaju autentifikaciju imaju prekidač pokraj opcije **Autentifikacija nije potrebna** na svojoj stranici.
+Isključivanjem se taj pružatelj usluga onemogućuje, uklanja iz konfiguriranih/sažetih prikaza pružatelja usluga te se njegovi modeli uklanjaju iz `/v1/models`.
 
 #### Qoder (9 BESPLATNIH modela)
 
 ```bash
-Dashboard → Connect Qoder → OAuth login → Access is subject to current provider limits
+Nadzorna ploča → Poveži Qoder → OAuth prijava → Pristup podliježe trenutačnim ograničenjima pružatelja usluga
 
-Models: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
+Modeli: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
 #### Kiro (Claude BESPLATNO)
 
 ```bash
-Dashboard → Connect Kiro → AWS Builder ID or Google/GitHub → ~50 credits/month
+Nadzorna ploča → Poveži Kiro → AWS Builder ID ili Google/GitHub → ~50 kredita mjesečno
 
-Models: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
+Modeli: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
 
 ---

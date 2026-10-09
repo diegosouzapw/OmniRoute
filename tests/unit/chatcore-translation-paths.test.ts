@@ -2938,6 +2938,7 @@ test("chatCore records Claude prompt cache and cache usage metadata in call logs
             { type: "text", text: "answer", cache_control: { type: "ephemeral", ttl: "10m" } },
           ],
         },
+        { role: "user", content: "follow-up" }, // #15830 strips a trailing assistant turn
       ],
       tools: [
         {
@@ -2971,13 +2972,12 @@ test("chatCore records Claude prompt cache and cache usage metadata in call logs
       );
     },
   });
-
   const detail = await waitFor(() => getLatestCallLog());
 
   assert.equal(result.success, true);
   assert.ok(detail);
   assert.equal(detail.requestBody._omniroute.claudePromptCache.applied, true);
-  // Breakpoints: system[2] (1), message content (1), assistant response (1). Tools cache_control is stripped by base.ts.
+  // Breakpoints: system[2] (1), user (1), assistant (1; kept by the final user turn). Tools cache_control is stripped by base.ts.
   assert.equal(detail.requestBody._omniroute.claudePromptCache.totalBreakpoints, 3);
   assert.equal(detail.responseBody._omniroute.claudePromptCache.applied, true);
   assert.equal(detail.responseBody._omniroute.claudePromptCache.totalBreakpoints, 3);

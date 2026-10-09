@@ -48,7 +48,7 @@ test("handleVideoGeneration creates + polls an xAI Grok Imagine video job and re
       createRequest = {
         url: stringUrl,
         headers: options.headers,
-        body: JSON.parse(String(options.body || "{}")),
+        body: JSON.parse(await new Response(options.body).text()),
       };
       return jsonResponse({ request_id: "xai-req-1", status: "pending" });
     }
@@ -198,7 +198,7 @@ test("handleVideoGeneration returns 504 when the xAI job never completes", async
         model: "xai/grok-imagine-video",
         prompt: "x",
         timeout_ms: 5000,
-        poll_interval_ms: 100,
+        poll_interval_ms: 1000,
       },
       credentials: { apiKey: "xai-key" },
       log: null,

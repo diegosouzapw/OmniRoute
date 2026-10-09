@@ -237,6 +237,8 @@ test("proxy health stats aggregate proxy_logs and force delete removes assignmen
     transportOk: 1,
     transportFailures: 2,
     transportRate: null,
+    slowAbandoned: 0,
+    clientAborted: 0,
     upstream4xx: 0,
     upstream5xx: 0,
     avgLatencyMs: 250,
@@ -269,7 +271,7 @@ test("assignProxyToScope normalizes key scope, supports removal, and blocks dele
 
   await assert.rejects(
     () => proxiesDb.deleteProxyById(proxy.id),
-    /Remove assignments first or use force=true/
+    /Remove assignments or account references first, or use force=true/
   );
 
   const removed = await proxiesDb.assignProxyToScope("key", (connection as any).id, null);

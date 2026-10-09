@@ -1,0 +1,1 @@
+- fix(sse): PII transform in warn/off mode now passes Responses text deltas through byte-identical (no buffering/re-chunking); redact snapshot sanitization guarded by test (#15507)

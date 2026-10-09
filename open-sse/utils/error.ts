@@ -1,5 +1,6 @@
 import { CORS_HEADERS } from "./cors.ts";
 import { unwrapClinepassEnvelope } from "./clinepassEnvelope.ts";
+import { extractJsonErrorFields } from "./tencentEnvelope.ts";
 import {
   redactSensitiveErrorText,
   sanitizeErrorMessage,
@@ -163,6 +164,8 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "invalid_tool_name",
   "invalid_tools",
   "invalid_trailer",
+  "key_allows_all_combos",
+  "key_allows_all_models",
   "lease_action_invalid",
   "lease_api_key_invalid",
   "lease_authentication_required",
@@ -855,17 +858,13 @@ export async function parseUpstreamError(response: Response, provider: string | 
       // stack) — still routed through sanitizeErrorMessage/buildErrorBody by
       // every consumer below (Rule #12).
       const { error: clinepassEnvError } = unwrapClinepassEnvelope(json, provider);
-      const extractedMessage = clinepassEnvError
-        ? clinepassEnvError.message
-        : json.error?.message ||
-          json.message ||
-          (typeof json.error === "string" ? json.error : null);
+      const extracted = extractJsonErrorFields(json, clinepassEnvError?.message);
       message =
-        typeof extractedMessage === "string"
-          ? extractedMessage
+        typeof extracted.message === "string"
+          ? extracted.message
           : `Upstream error: ${response.status}`;
-      errorCode = json.error?.code || json.code;
-      errorType = json.error?.type || json.type;
+      errorCode = extracted.errorCode;
+      errorType = extracted.errorType;
     } catch {
       message = text;
     }

@@ -1,0 +1,1 @@
+- fix(translator): omit the "(empty response)" text block next to tool_use in non-streaming OpenAI-to-Claude responses (#15764)

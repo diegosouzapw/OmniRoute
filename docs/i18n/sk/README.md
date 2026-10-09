@@ -1256,28 +1256,28 @@ Kanonické metriky k 2026-08-24: **1.029 jedinečných videí** · **11.132.922 
 <br/>
 <div align="center">
 
-## 🛠️ Technologický stack
+## 🛠️ Technologický zásobník
 
 </div>
 
 <table>
   <tr><th align="left">Vrstva</th><th align="left">Technológia</th></tr>
-  <tr><td nowrap><b>Runtime</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Jazyk</b></td><td>TypeScript 6.0 — <b>100 % TypeScript</b> v rámci <code>src/</code> a <code>open-sse/</code> (od verzie v2.0 bez jediného <code>any</code> v jadre)</td></tr>
+  <tr><td nowrap><b>Behové prostredie</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>Jazyk</b></td><td>TypeScript 6.0 — <b>100 % TypeScript</b> v <code>src/</code> a <code>open-sse/</code> (od v2.0 bez jediného <code>any</code> v jadre)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Databáza</b></td><td>better-sqlite3 (SQLite, žurnálovanie WAL) + LowDB (starší formát JSON) — 136 doménových modulov, 193 migrácií</td></tr>
-  <tr><td nowrap><b>Pamäť</b></td><td>Plnotextové vyhľadávanie SQLite FTS5 + vektorové vnorenia kvantizované na int8, typovaný útlm</td></tr>
-  <tr><td nowrap><b>Schémy</b></td><td>Zod 4 — validácia vstupov/výstupov nástrojov MCP + kontrakty API</td></tr>
+  <tr><td nowrap><b>Databáza</b></td><td>better-sqlite3 (SQLite, žurnálovanie WAL) + LowDB (starší formát JSON) — 137 doménových modulov, 202 migrácií</td></tr>
+  <tr><td nowrap><b>Pamäť</b></td><td>Fulltextové vyhľadávanie SQLite FTS5 + vektorové vnorenia kvantované na int8, typovaný útlm</td></tr>
+  <tr><td nowrap><b>Schémy</b></td><td>Zod 4 — validácia vstupov a výstupov nástrojov MCP + kontrakty API</td></tr>
   <tr><td nowrap><b>Protokoly</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>Streamovanie</b></td><td>Server-Sent Events (SSE) + most WebSocket (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Kompresia</b></td><td>Spracovateľský reťazec s 12 mechanizmami — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Kompresia</b></td><td>Reťazec 12 jadier — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
   <tr><td nowrap><b>Autentifikácia a bezpečnosť</b></td><td>OAuth 2.0 (PKCE) + JWT + kľúče API + autentifikácia MCP s rozsahmi · AES-256-GCM pre uložené dáta · DOMPurify</td></tr>
-  <tr><td nowrap><b>Utajenie</b></td><td>wreq-js — napodobňovanie odtlačkov TLS JA3 / JA4, 3-úrovňový proxy server</td></tr>
-  <tr><td nowrap><b>Odolnosť</b></td><td>Istič, exponenciálne predlžovanie intervalov, ochrana proti nárazovému preťaženiu, automaticky kombinované samoobnovenie</td></tr>
+  <tr><td nowrap><b>Maskovanie</b></td><td>wreq-js — napodobňovanie odtlačkov TLS JA3 / JA4, trojúrovňové proxy</td></tr>
+  <tr><td nowrap><b>Odolnosť</b></td><td>Istič, exponenciálne predlžovanie intervalov, ochrana proti nárazovému súbehu požiadaviek, automatické kombinované samoobnovenie</td></tr>
   <tr><td nowrap><b>Protokolovanie</b></td><td>pino — štruktúrované protokoly JSON s kontextom požiadavky</td></tr>
-  <tr><td nowrap><b>Testovanie</b></td><td>Spúšťač testov Node.js + Vitest — <b>viac ako 39 000 statických deklarácií testov</b> vo viac ako 5 100 sledovaných testovacích súboroch (jednotkové, integračné, E2E, bezpečnostné, ekosystémové)</td></tr>
-  <tr><td nowrap><b>Platformy</b></td><td>Počítače (Electron) · Android (Termux) · PWA (ľubovoľný prehliadač)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatické publikovanie do npm + Docker Hub pri vydaní</td></tr>
+  <tr><td nowrap><b>Testovanie</b></td><td>Testovací nástroj Node.js + Vitest — <b>viac ako 39 000 deklarácií statických testov</b> vo viac ako 5 100 sledovaných testovacích súboroch (jednotkové, integračné, E2E, bezpečnostné, ekosystémové)</td></tr>
+  <tr><td nowrap><b>Platformy</b></td><td>Počítač (Electron) · Android (Termux) · PWA (ľubovoľný prehliadač)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatické publikovanie na npm a Docker Hub pri vydaní</td></tr>
   <tr><td nowrap><b>Odkazy</b></td><td><a href="https://omniroute.online">Webová lokalita</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
@@ -1729,7 +1729,7 @@ Licencia MIT – podrobnosti nájdete v súbore [LICENSE](LICENSE).
 
 **[⬆ Späť na začiatok](#-omniroute)** · Vytvorené s ❤️ pre open-source komunitu AI.
 
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · Licencia MIT · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.52 · Node ≥22.22.2 · Licencia MIT · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- GitHub Discussions sú povolené pre komunitné otázky a odpovede -->

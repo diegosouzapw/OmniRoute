@@ -1,0 +1,1 @@
+- **fix(dashboard):** the Engine Combos pipeline editor and the sidebar settings page give each drag-and-drop list an SSR-stable id, so their drag handles hydrate without React's attribute-mismatch error and their `aria-describedby` points at the drag instructions dnd-kit renders ([#15137](https://github.com/diegosouzapw/OmniRoute/pull/15137)) — thanks @woodsonl

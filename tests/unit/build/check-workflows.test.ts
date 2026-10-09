@@ -17,6 +17,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   parseActionlintOutput,
   parseZizmorOutput,
@@ -24,6 +25,8 @@ import {
   isBinaryAvailable,
   evaluateZizmorRatchet,
   readBaselineZizmorValue,
+  runScheduledGuardCheck,
+  findScheduledJobsWithoutGuard,
   // @ts-expect-error — .mjs helper has no type declarations; runtime shape is known.
 } from "../../../scripts/check/check-workflows.mjs";
 
@@ -34,10 +37,174 @@ const evaluateZizmor = evaluateZizmorRatchet as (
 ) => RatchetVerdict;
 const readZizmorBaseline = readBaselineZizmorValue as (p?: string) => number | null;
 const qualityWorkflowPath = new URL("../../../.github/workflows/quality.yml", import.meta.url);
+const scheduledGuard = findScheduledJobsWithoutGuard as (
+  files: string[]
+) => { file: string; job: string; reason: string }[];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// scheduled-run guard — every scheduled workflow runs only in the upstream repo
+// ─────────────────────────────────────────────────────────────────────────────
+
+const EXPECTED_SCHEDULED_WORKFLOWS = [
+  "docker-publish.yml",
+  "nightly-compat.yml",
+  "nightly-llm-security.yml",
+  "nightly-mutation.yml",
+  "nightly-property.yml",
+  "nightly-release-green.yml",
+  "nightly-resilience.yml",
+  "nightly-schemathesis.yml",
+  "radar-export.yml",
+  "scorecard.yml",
+  "test-quarantine.yml",
+];
+
+function readWorkflowFiles(): string[] {
+  return collectWorkflowFiles(
+    fileURLToPath(new URL("../../../.github/workflows", import.meta.url))
+  ) as unknown as string[];
+}
+
+test("scheduled runs carry the upstream-only guard on every job", () => {
+  const dir = new URL("../../../.github/workflows/", import.meta.url);
+  const files = EXPECTED_SCHEDULED_WORKFLOWS.map((f) => new URL(f, dir).pathname);
+  assert.ok(readWorkflowFiles().length >= files.length);
+  const findings = scheduledGuard(files);
+  assert.deepEqual(findings, []);
+});
+
+test("a scheduled job without the guard is reported", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "check-workflows-guard-"));
+  try {
+    fs.writeFileSync(
+      path.join(dir, "nightly-demo.yml"),
+      "on:\n  schedule:\n    - cron: '0 0 * * *'\njobs:\n  demo:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo hi\n"
+    );
+    const findings = scheduledGuard([path.join(dir, "nightly-demo.yml")]);
+    assert.equal(findings.length, 1);
+    assert.equal(findings[0].job, "demo");
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("an unreadable scheduled workflow is reported, never silently accepted", () => {
+  const findings = scheduledGuard([
+    path.join(os.tmpdir(), "check-workflows-guard-missing-99999.yml"),
+  ]);
+  assert.equal(findings.length, 1);
+});
+
+test("invalid yaml and workflows without jobs are reported, never silently accepted", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "check-workflows-guard-"));
+  try {
+    fs.writeFileSync(path.join(dir, "broken.yml"), "on:\n  schedule:\n\t- broken: [unclosed\n");
+    fs.writeFileSync(path.join(dir, "no-jobs.yml"), "on:\n  schedule:\n    - cron: '0 0 * * *'\n");
+    assert.equal(scheduledGuard([path.join(dir, "broken.yml")]).length, 1);
+    assert.equal(scheduledGuard([path.join(dir, "no-jobs.yml")]).length, 1);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("the guard lets manual and push runs through anywhere, schedule only upstream", () => {
+  const evaluate = (eventName: string, repository: string) =>
+    eventName !== "schedule" || repository === "diegosouzapw/OmniRoute";
+  assert.equal(evaluate("workflow_dispatch", "someone/else"), true);
+  assert.equal(evaluate("push", "someone/else"), true);
+  assert.equal(evaluate("schedule", "diegosouzapw/OmniRoute"), true);
+  assert.equal(evaluate("schedule", "someone/else"), false);
+});
+
+test("a workflow without a schedule trigger reports nothing", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "check-workflows-guard-"));
+  try {
+    fs.writeFileSync(
+      path.join(dir, "push-only.yml"),
+      "on:\n  push:\n    branches: [main]\njobs:\n  demo:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo hi\n"
+    );
+    assert.deepEqual(scheduledGuard([path.join(dir, "push-only.yml")]), []);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("the scheduled-guard check reports repository-relative paths", () => {
+  const runCheck = runScheduledGuardCheck as (files: string[]) => {
+    file: string;
+    job: string;
+    reason: string;
+  }[];
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "check-workflows-guard-"));
+  try {
+    const file = path.join(dir, "nightly-demo.yml");
+    fs.writeFileSync(
+      file,
+      "on:\n  schedule:\n    - cron: '0 0 * * *'\njobs:\n  demo:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo hi\n"
+    );
+    const findings = runCheck([file]);
+    assert.equal(findings.length, 1);
+    assert.ok(!path.isAbsolute(findings[0].file));
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
 
 function readQualityWorkflow(): string {
   return fs.readFileSync(qualityWorkflowPath, "utf8");
 }
+
+test("admission workflows do not enable setup-node's redundant package-manager cache", () => {
+  for (const workflow of ["ci", "quality"]) {
+    const source = fs.readFileSync(
+      new URL(`../../../.github/workflows/${workflow}.yml`, import.meta.url),
+      "utf8"
+    );
+    const steps = [
+      ...source.matchAll(
+        /(?:^|\n)      - uses: actions\/setup-node@[^\n]+\n        with:\n((?:          [^\n]*\n)+)/g
+      ),
+    ];
+    assert.ok(steps.length > 0);
+    assert.equal(
+      steps.length,
+      [...source.matchAll(/^      - uses: actions\/setup-node@/gm)].length
+    );
+    for (const [step, inputs] of steps) {
+      assert.match(inputs, /package-manager-cache: false/, step);
+      assert.doesNotMatch(inputs, /^\s*cache:/m, step);
+    }
+    const admission = source
+      .slice(source.indexOf("\n  admission-verdict:\n"))
+      .split("\n  ci-summary:")[0];
+    for (const action of ["checkout", "setup-node", "upload-artifact"]) {
+      assert.match(admission, new RegExp(`actions/${action}@[a-f0-9]{40}`));
+    }
+  }
+});
+
+test("integration candidates never restore PR dependency, lint or browser caches", () => {
+  for (const workflow of ["ci", "quality"]) {
+    const source = fs.readFileSync(
+      new URL(`../../../.github/workflows/${workflow}.yml`, import.meta.url),
+      "utf8"
+    );
+    const steps = source.split(/^      - /m).slice(1);
+    const installers = steps.filter((step) =>
+      step.includes("uses: ./.github/actions/npm-ci-retry")
+    );
+    assert.ok(installers.length > 0);
+    for (const step of installers) {
+      assert.match(step, /cache: \$\{\{ github\.event_name == 'pull_request' \}\}/);
+    }
+    const caches = steps.filter((step) => /uses: actions\/cache(?:\/restore)?@/.test(step));
+    assert.ok(caches.length > 0);
+    for (const step of caches) {
+      assert.match(step, /if: github\.event_name == 'pull_request'/);
+      assert.match(step, /uses: actions\/cache@[a-f0-9]{40}/);
+    }
+  }
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // parseActionlintOutput
@@ -91,10 +258,8 @@ test("parseActionlintOutput: preserves finding text exactly (trimmed)", () => {
 // parseZizmorOutput
 // ─────────────────────────────────────────────────────────────────────────────
 
-test("parseZizmorOutput: empty string returns count=0", () => {
-  const result = parseZizmorOutput("");
-  assert.equal(result.count, 0);
-  assert.deepEqual(result.diagnostics, []);
+test("parseZizmorOutput: empty output is not a measured zero", () => {
+  assert.throws(() => parseZizmorOutput(""), /invalid.*JSON/);
 });
 
 test("parseZizmorOutput: JSON with empty diagnostics array returns count=0", () => {
@@ -128,24 +293,17 @@ test("parseZizmorOutput: bare JSON array (older zizmor format) counts correctly"
   assert.equal(result.diagnostics.length, 3);
 });
 
-test("parseZizmorOutput: invalid JSON falls back to line counting", () => {
-  // Non-JSON output (e.g. text format or error message) — each non-empty line = 1
+test("parseZizmorOutput: invalid JSON cannot be interpreted as frozen findings", () => {
   const textOutput = "warning: unpinned action\nerror: script injection risk\n";
-  const result = parseZizmorOutput(textOutput);
-  assert.equal(result.count, 2);
-  // diagnostics is empty array in fallback mode
-  assert.deepEqual(result.diagnostics, []);
+  assert.throws(() => parseZizmorOutput(textOutput), /invalid.*JSON/);
 });
 
-test("parseZizmorOutput: JSON with unknown shape returns count=0 (graceful)", () => {
-  // Unexpected but valid JSON — neither array nor { diagnostics }
-  const result = parseZizmorOutput(JSON.stringify({ errors: [], warnings: [] }));
-  assert.equal(result.count, 0);
+test("parseZizmorOutput: unknown schema is incomplete, not zero findings", () => {
+  assert.throws(() => parseZizmorOutput(JSON.stringify({ errors: [], warnings: [] })), /schema/);
 });
 
-test("parseZizmorOutput: whitespace-only returns count=0", () => {
-  const result = parseZizmorOutput("   \n\t\n   ");
-  assert.equal(result.count, 0);
+test("parseZizmorOutput: whitespace-only is not a measured zero", () => {
+  assert.throws(() => parseZizmorOutput("   \n\t\n   "), /invalid.*JSON/);
 });
 
 test("parseZizmorOutput: large diagnostics array counted correctly", () => {
@@ -292,7 +450,7 @@ test("readBaselineZizmorValue: reads metrics.zizmorFindings.value", () => {
   });
 });
 
-test("readBaselineZizmorValue: missing file returns null (graceful SKIP)", () => {
+test("readBaselineZizmorValue: missing file returns null (caller must reject incomplete ratchet)", () => {
   assert.equal(readZizmorBaseline("/tmp/does-not-exist-88888/quality-baseline.json"), null);
 });
 
@@ -318,50 +476,22 @@ test("readBaselineZizmorValue: invalid JSON returns null (does not throw)", () =
 // quality.yml — release PR build gate regression coverage (#7307)
 // ─────────────────────────────────────────────────────────────────────────────
 
-test("#7307 quality.yml keeps the advisory production build (disabled: hosted 7 GB cannot finish it)", () => {
+test("quality admission covers both bases and delegates required build/package checks to CI", () => {
   const source = readQualityWorkflow();
-  const buildJob = source.match(/\n  build:\n[\s\S]*?\n  # Docs\/OpenAPI contract gates only/);
-
-  assert.match(source, /pull_request:\n\s+branches: \["release\/\*\*"\]/);
-  assert.ok(buildJob, "quality.yml must define the build job before docs-gates");
-  assert.match(buildJob[0], /name: Build \(advisory\)/);
-  assert.match(buildJob[0], /needs: changes/);
-  // Live predicate is a static skip. `continue-on-error` still paints a GitHub
-  // check FAILURE, and the hosted runner ResourceExhausts this tree (#11976) —
-  // so the job must not run. Bare `if: false` (zizmor obfuscation flags
-  // `${{ false }}`). The body below is the restore recipe, not dead code.
-  const buildDirectives = buildJob[0]
-    .split("\n")
-    .filter((line) => !/^\s*#/.test(line))
-    .join("\n");
-  assert.match(buildDirectives, /\n {4}if: false\n/);
-  // Runner PINNED to hosted. The self-hosted pool is 2 permanently-busy runners, where this
-  // job either queued for hours or was killed by cancel-in-progress — ~10-15% of runs ever
-  // reached a conclusion across 2026-08-13/14. It must NOT go back on the USE_VPS_RUNNER
-  // switch (other workflows keep that variable).
-  assert.match(buildJob[0], /\n {4}runs-on: ubuntu-latest\n/);
-  // Check the DIRECTIVES, not the prose: the comment above legitimately explains why the
-  // self-hosted pool was abandoned, so a naive /self-hosted/ scan over the whole block would
-  // match its own rationale.
-  assert.doesNotMatch(buildDirectives, /self-hosted/);
-  assert.doesNotMatch(buildDirectives, /USE_VPS_RUNNER/);
-  // Memory provisioning mirrored from build.yml: --max-old-space-size bounds only V8's heap,
-  // never Turbopack's native Rust allocation (#6409), so the swapfile is the load-bearing
-  // half. Dropping either one puts the hosted build back at risk of an OOM.
-  assert.match(buildJob[0], /fallocate -l 10G \/mnt\/swapfile/);
-  assert.match(buildJob[0], /swapon \/mnt\/swapfile/);
-  assert.match(buildJob[0], /NODE_OPTIONS: "--max-old-space-size=12288"/);
-  assert.match(buildJob[0], /OMNIROUTE_BUILD_MEMORY_MB: "12288"/);
-  assert.match(buildJob[0], /continue-on-error: true/);
-  assert.match(buildJob[0], /uses: actions\/checkout@[0-9a-f]{40} # v7/);
-  assert.match(buildJob[0], /uses: actions\/setup-node@[0-9a-f]{40} # v7/);
-  assert.match(buildJob[0], /uses: \.\/\.github\/actions\/npm-ci-retry/);
-  assert.match(buildJob[0], /npm run check:node-runtime/);
-  assert.match(buildJob[0], /npm run build/);
-  assert.match(buildJob[0], /OMNIROUTE_USE_TURBOPACK: "1"/);
-  assert.doesNotMatch(buildJob[0], /actions\/upload-artifact/);
-  assert.match(
-    buildJob[0],
-    /remove\s+# continue-on-error after the production-build signal is stable/
+  assert.match(source, /pull_request:\n\s+branches: \[main, "release\/\*\*"\]/);
+  assert.match(source, /merge_group:\n\s+types: \[checks_requested\]/);
+  assert.doesNotMatch(source, /\n  build:\n/, "no permanently skipped duplicate build job");
+  const ci = fs.readFileSync(new URL("../../../.github/workflows/ci.yml", import.meta.url), "utf8");
+  const policy = JSON.parse(
+    fs.readFileSync(
+      new URL("../../../config/quality/admission-policy.json", import.meta.url),
+      "utf8"
+    )
   );
+  for (const job of ["build", "package-artifact", "electron-package-smoke"]) {
+    assert.equal(policy.profiles.ci.jobs[job].disposition, "required", job);
+    assert.match(ci, new RegExp("\\n  " + job + ":\\n"), "CI implements " + job);
+  }
+  assert.match(ci, /npm run build/);
+  assert.match(ci, /npm run check:pack-boot/);
 });

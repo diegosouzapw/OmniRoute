@@ -1,4 +1,5 @@
 import { getProxyById } from "@/lib/db/proxies";
+import { isProxyRegistryStatusAlive } from "@/lib/db/proxies/guards";
 import { isRelayProxyType, extractRelayAuth } from "@/lib/db/proxies/mappers";
 
 /**
@@ -20,8 +21,9 @@ import { isRelayProxyType, extractRelayAuth } from "@/lib/db/proxies/mappers";
  *   - `proxyId` is looked up in the proxy registry and hydrated to its live
  *     `{ type, host, port, username?, password? }` record;
  *   - an inline `proxy` (custom / legacy) passes through unchanged;
- *   - an unknown/deleted `proxyId` (or any read failure) degrades to `proxy: null`
- *     (direct egress) — never throws.
+ *   - an unknown, inactive, or deleted `proxyId` (or any read failure) is
+ *     marked unavailable so the executor skips that account rather than
+ *     silently changing its required-proxy intent to direct egress.
  */
 
 export interface ResolvedAccountProxy {
@@ -46,6 +48,13 @@ interface ProxyRegistryRecordLike {
   username?: string | null;
   password?: string | null;
   notes?: string | null;
+  status?: string | null;
+}
+
+export interface ResolvedAccountProxyEntry {
+  fingerprint: string;
+  proxy: ResolvedAccountProxy | null;
+  proxyUnavailable?: true;
 }
 
 /** Async lookup of a proxy registry record by id (null when absent). */
@@ -78,16 +87,17 @@ function normalizeRecord(rec: ProxyRegistryRecordLike | Partial<ResolvedAccountP
 export async function resolveAccountProxies(
   entries: unknown,
   lookup: ProxyByIdLookup
-): Promise<Array<{ fingerprint: string; proxy: ResolvedAccountProxy | null }>> {
+): Promise<ResolvedAccountProxyEntry[]> {
   if (!Array.isArray(entries)) return [];
-  const out: Array<{ fingerprint: string; proxy: ResolvedAccountProxy | null }> = [];
+  const out: ResolvedAccountProxyEntry[] = [];
   for (const raw of entries) {
     if (!raw || typeof raw !== "object") continue;
     const entry = raw as AccountProxyEntry;
     if (typeof entry.fingerprint !== "string") continue;
 
     // By-id reference (Proxy Pool): resolve to the live record so a pool edit
-    // propagates to every referencing account. Unknown/deleted id → direct.
+    // propagates to every referencing account. Unknown/dead ids remain a
+    // required-proxy binding and therefore block direct dispatch.
     if (typeof entry.proxyId === "string" && entry.proxyId) {
       let record: ProxyRegistryRecordLike | null = null;
       try {
@@ -95,10 +105,13 @@ export async function resolveAccountProxies(
       } catch {
         record = null;
       }
-      out.push({
-        fingerprint: entry.fingerprint,
-        proxy: record ? normalizeRecord(record) : null,
-      });
+      const proxy =
+        record && isProxyRegistryStatusAlive(record.status) ? normalizeRecord(record) : null;
+      out.push(
+        proxy
+          ? { fingerprint: entry.fingerprint, proxy }
+          : { fingerprint: entry.fingerprint, proxy: null, proxyUnavailable: true }
+      );
       continue;
     }
 

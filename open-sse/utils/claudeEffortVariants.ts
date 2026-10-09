@@ -32,6 +32,7 @@
 import { getModelSpec } from "@/shared/constants/modelSpecs";
 import { extendCodexGpt56EffortValues } from "@/shared/reasoning/effortStandardization";
 import { supportsXHighEffort } from "../config/providerModels.ts";
+import { isAntigravityClaudeTierFamilyBase } from "./antigravityLiteralModelIds.ts";
 import { isDevinLiteralModelIdProvider } from "./devinLiteralModelIds.ts";
 
 /** Base reasoning-effort levels advertised for every effort-capable Claude model. */
@@ -115,6 +116,9 @@ export function shouldExposeClaudeEffortVariants(
   if (providerSlash > 0 && isDevinLiteralModelIdProvider(id.slice(0, providerSlash))) {
     return false;
   }
+  // Antigravity Claude 5.x tiers are real catalog ids kept literal at dispatch
+  // (antigravityLiteralModelIds.ts) — never synthesize phantom tiers on a bare id.
+  if (isAntigravityClaudeTierFamilyBase(id)) return false;
 
   const name = bareModelName(id);
   if (KIRO_OPUS_5_MAX_VARIANT_RE.test(name)) return false;

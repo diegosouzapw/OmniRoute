@@ -94,6 +94,8 @@ export type CursorSession = {
       /** Exact text Cursor asked to write, echoed back in WriteSuccess. */
       fileText: string;
       returnFileContentAfterWrite?: boolean;
+      /** The offset/limit of a held read that was forwarded to the client. */
+      readRange?: { offset?: number; limit?: number };
       /** Pattern Cursor searched for, echoed back in GrepSuccess. */
       pattern: string;
       outputMode?: string;
@@ -248,7 +250,8 @@ export class CursorSessionManager {
                             builtin.execMsgId,
                             builtin.execId,
                             builtin.path,
-                            text
+                            text,
+                            builtin.readRange
                           )
                       : builtin.kind === "write"
                         ? writeFailed

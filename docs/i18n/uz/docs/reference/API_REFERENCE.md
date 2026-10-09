@@ -778,9 +778,9 @@ X-OmniRoute-No-Cache: true
 
 ---
 
-## Boshqaruv paneli va boshqarish
+## Boshqaruv paneli va boshqaruv
 
-Boshqaruv yoʻnalishlari (`/api/*`, ommaviy autentifikatsiya/kirish bundan mustasno) oddiy inferens API kalitlari orqali avtorizatsiya qilinmaydi. Hisob maʼlumotlari oilalari, qamrovlar va curl misollari:
+Boshqaruv marshrutlari (`/api/*`, ommaviy autentifikatsiya/kirish marshrutlaridan tashqari) oddiy inferens API kalitlari orqali avtorizatsiya **qilinmaydi**. Hisob maʼlumotlari toifalari, ruxsat doiralari va curl misollari:
 [Boshqaruv autentifikatsiyasi](../guides/MANAGEMENT-AUTH.md).
 
 ### Autentifikatsiya
@@ -793,17 +793,18 @@ Boshqaruv yoʻnalishlari (`/api/*`, ommaviy autentifikatsiya/kirish bundan musta
 
 ### Provayderlarni boshqarish
 
-| Soʻnggi nuqta                | Metod                 | Tavsif                                                                                                                                  |
-| ---------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/providers`             | GET/POST              | Provayderlarni roʻyxatlash / yaratish                                                                                                   |
-| `/api/providers/[id]`        | GET/PUT/DELETE        | Provayderni boshqarish                                                                                                                  |
-| `/api/providers/[id]/test`   | POST                  | Provayder ulanishini sinash                                                                                                             |
-| `/api/providers/[id]/models` | GET                   | Provayder modellarini roʻyxatlash                                                                                                       |
-| `/api/providers/validate`    | POST                  | Provayder konfiguratsiyasini tekshirish                                                                                                 |
-| `/api/providers/bulk`        | POST                  | BITTA provayder uchun API kalitlarini ommaviy qoʻshish                                                                                  |
-| `/api/providers/import`      | POST                  | Tahlil qilingan CSV/JSON faylidan turli provayderlar ROʻYXATINI import qilish (#6836); har bir qator boʻyicha qisman xatolik natijalari |
-| `/api/provider-nodes*`       | Turli                 | Provayder tugunlarini boshqarish                                                                                                        |
-| `/api/provider-models`       | GET/POST/PATCH/DELETE | Maxsus modellar (qoʻshish, yangilash, yashirish/koʻrsatish, oʻchirish)                                                                  |
+| Soʻnggi nuqta                           | Metod                 | Tavsif                                                                                                                                                                                  |
+| --------------------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST              | Provayderlarni roʻyxatlash / yaratish                                                                                                                                                   |
+| `/api/providers/[id]`                   | GET/PUT/DELETE        | Provayderni boshqarish                                                                                                                                                                  |
+| `/api/providers/[id]/test`              | POST                  | Provayder ulanishini sinash                                                                                                                                                             |
+| `/api/providers/[id]/models`            | GET                   | Provayder modellarini roʻyxatlash                                                                                                                                                       |
+| `/api/providers/validate`               | POST                  | Provayder konfiguratsiyasini tekshirish                                                                                                                                                 |
+| `/api/providers/bulk`                   | POST                  | BITTA provayder uchun API kalitlarini ommaviy qoʻshish                                                                                                                                  |
+| `/api/providers/import`                 | POST                  | Tahlil qilingan CSV/JSON faylidan turli provayderlar ROʻYXATINI import qilish (#6836); har bir qator boʻyicha qisman xatolik natijalari                                                 |
+| `/api/provider-nodes*`                  | Turli                 | Provayder tugunlarini boshqarish                                                                                                                                                        |
+| `/api/provider-models`                  | GET/POST/PATCH/DELETE | Maxsus modellar (qoʻshish, yangilash, yashirish/koʻrsatish, oʻchirish)                                                                                                                  |
+| `/api/provider-models/validate-and-add` | POST                  | Boshqaruv autentifikatsiyasidan oʻtgan, ixtiyoriy qatʼiy ulanish tekshiruvi va maxsus modelni atomar roʻyxatdan oʻtkazish; [Modelni tekshirish](../guides/MODEL-VALIDATION.md)ga qarang |
 
 ### OAuth jarayonlari
 
@@ -811,7 +812,7 @@ Boshqaruv yoʻnalishlari (`/api/*`, ommaviy autentifikatsiya/kirish bundan musta
 | -------------------------------- | ----- | ------------------------------ |
 | `/api/oauth/[provider]/[action]` | Turli | Provayderga xos OAuth jarayoni |
 
-### Yoʻnaltirish va konfiguratsiya
+### Marshrutlash va konfiguratsiya
 
 | Soʻnggi nuqta         | Metod    | Tavsif                                    |
 | --------------------- | -------- | ----------------------------------------- |
@@ -823,59 +824,59 @@ Boshqaruv yoʻnalishlari (`/api/*`, ommaviy autentifikatsiya/kirish bundan musta
 
 ### Foydalanish va tahlil
 
-| Endpoint                         | Metod           | Tavsif                                                                                                                                                                                                                                                                                                                                           |
-| -------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `/api/usage/history`             | GET             | Foydalanish tarixi                                                                                                                                                                                                                                                                                                                               |
-| `/api/usage/logs`                | GET             | Foydalanish jurnallari                                                                                                                                                                                                                                                                                                                           |
-| `/api/usage/request-logs`        | GET             | Soʻrov darajasidagi jurnallar                                                                                                                                                                                                                                                                                                                    |
-| `/api/usage/[connectionId]`      | GET             | Har bir ulanish boʻyicha foydalanish                                                                                                                                                                                                                                                                                                             |
-| `/api/usage/token-limits`        | GET/POST/DELETE | Har bir API kaliti uchun token cheklovi byudjetlari                                                                                                                                                                                                                                                                                              |
-| `/api/usage/model-latency-stats` | GET             | Har bir provayder/model boʻyicha sirgʻaluvchi kechikish agregati (oʻrtacha/p50/p95/p99, muvaffaqiyat darajasi); filtrlar: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                        |
-| `/api/usage/cache-health`        | GET             | `call_logs` asosidagi prompt keshi holati xulosasi — yozish/oʻqish nisbati, yozish hajmining p50/p90/p99 taqsimoti, katta hajmli yozuvlar konsentratsiyasi, modellar boʻyicha taqsimot va `healthy`/`degraded`/`thrash`/`no-data` xulosasi; soʻrov parametrlari: `range` (`1h`\|`24h`\|`7d`\|`30d`, standart `24h`) va ixtiyoriy `model` (#8827) |
+| Endpoint                         | Metod           | Tavsif                                                                                                                                                                                                                                                                                                                                                 |
+| -------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/api/usage/history`             | GET             | Foydalanish tarixi                                                                                                                                                                                                                                                                                                                                     |
+| `/api/usage/logs`                | GET             | Foydalanish jurnallari                                                                                                                                                                                                                                                                                                                                 |
+| `/api/usage/request-logs`        | GET             | Soʻrov darajasidagi jurnallar                                                                                                                                                                                                                                                                                                                          |
+| `/api/usage/[connectionId]`      | GET             | Har bir ulanish boʻyicha foydalanish                                                                                                                                                                                                                                                                                                                   |
+| `/api/usage/token-limits`        | GET/POST/DELETE | Har bir API kaliti uchun token cheklovi budjetlari                                                                                                                                                                                                                                                                                                     |
+| `/api/usage/model-latency-stats` | GET             | Provayder/model boʻyicha siljuvchi kechikish agregati (avg/p50/p95/p99, muvaffaqiyat darajasi); filtrlar: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                                              |
+| `/api/usage/cache-health`        | GET             | `call_logs` boʻyicha prompt keshi holati xulosasi — yozish/oʻqish nisbati, yozish hajmining p50/p90/p99 taqsimoti, katta hajmdagi yozuvlar konsentratsiyasi, har bir model boʻyicha taqsimot va `healthy`/`degraded`/`thrash`/`no-data` xulosasi; soʻrov parametrlari: `range` (`1h`\|`24h`\|`7d`\|`30d`, standart `24h`) va ixtiyoriy `model` (#8827) |
 
 ### Sozlamalar
 
-| Endpoint                              | Metod         | Tavsif                                                                                                                                                                                                                         |
-| ------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `/api/settings`                       | GET/PUT/PATCH | Umumiy sozlamalar                                                                                                                                                                                                              |
-| `/api/settings/proxy`                 | GET/PUT       | Tarmoq proksi konfiguratsiyasi                                                                                                                                                                                                 |
-| `/api/settings/proxy/test`            | POST          | Proksi ulanishini sinash                                                                                                                                                                                                       |
-| `/api/settings/ip-filter`             | GET/PUT       | Ruxsat etilgan/bloklangan IP manzillar roʻyxati                                                                                                                                                                                |
-| `/api/settings/thinking-budget`       | GET/PUT       | Fikrlash/mulohaza yuritish **soʻrovi**ni qayta yozish rejimi (oʻzgarishsiz uzatish / avtomatik olib tashlash / maxsus / moslashuvchan). Siqishdan mustaqil. [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md) fayliga qarang. |
-| `/api/settings/system-prompt`         | GET/PUT       | Global tizim prompti                                                                                                                                                                                                           |
-| `/api/settings/compression`           | GET/PUT       | Global siqish konfiguratsiyasi                                                                                                                                                                                                 |
-| `/api/settings/purge-request-history` | POST          | Soʻrov jurnali qatorlari va lokal chaqiruv jurnali artefaktlarini tozalash                                                                                                                                                     |
+| Endpoint                              | Metod         | Tavsif                                                                                                                                                                                                                        |
+| ------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/settings`                       | GET/PUT/PATCH | Umumiy sozlamalar                                                                                                                                                                                                             |
+| `/api/settings/proxy`                 | GET/PUT       | Tarmoq proksi konfiguratsiyasi                                                                                                                                                                                                |
+| `/api/settings/proxy/test`            | POST          | Proksi ulanishini sinash                                                                                                                                                                                                      |
+| `/api/settings/ip-filter`             | GET/PUT       | Ruxsat berilgan/bloklangan IP manzillar roʻyxati                                                                                                                                                                              |
+| `/api/settings/thinking-budget`       | GET/PUT       | Fikrlash/mulohaza yuritish **soʻrovi**ni qayta yozish rejimi (oʻzgartirmasdan oʻtkazish / avtomatik olib tashlash / maxsus / adaptiv). Siqishdan mustaqil. [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md) fayliga qarang. |
+| `/api/settings/system-prompt`         | GET/PUT       | Global tizim prompti                                                                                                                                                                                                          |
+| `/api/settings/compression`           | GET/PUT       | Global siqish konfiguratsiyasi                                                                                                                                                                                                |
+| `/api/settings/purge-request-history` | POST          | Soʻrov jurnali qatorlari va lokal chaqiruv jurnali artefaktlarini tozalash                                                                                                                                                    |
 
 ### Kontekst va siqish
 
-| Endpoint                               | Metod          | Tavsif                                                                           |
-| -------------------------------------- | -------------- | -------------------------------------------------------------------------------- |
-| `/api/compression/preview`             | POST           | off/lite/standard/aggressive/ultra/RTK/stacked siqishni oldindan ko‘rish         |
-| `/api/compression/language-packs`      | GET            | Mavjud Caveman til paketlarini ro‘yxatlash                                       |
-| `/api/compression/rules`               | GET            | Caveman qoidalari metama’lumotlarini ro‘yxatlash                                 |
-| `/api/context/caveman/config`          | GET/PUT        | Caveman’ga xos sozlamalar taxallusi                                              |
-| `/api/context/rtk/config`              | GET/PUT        | RTK’ga xos sozlamalar, jumladan maxsus filtrlar va xom chiqishni saqlash         |
-| `/api/context/rtk/filters`             | GET            | RTK filtrlar katalogi va maxsus filtr diagnostikasi                              |
-| `/api/context/rtk/test`                | POST           | Matnli yuklama bilan RTK oldindan ko‘rish/sinovini bajarish                      |
-| `/api/context/rtk/raw-output/[id]`     | GET            | Ko‘rsatkich identifikatori bo‘yicha saqlangan, tahrirlangan xom chiqishni o‘qish |
-| `/api/context/combos`                  | GET/POST       | Siqish kombinatsiyalari ro‘yxati/yaratish                                        |
-| `/api/context/combos/[id]`             | GET/PUT/DELETE | Siqish kombinatsiyasi tafsilotlari/yangilash/o‘chirish                           |
-| `/api/context/combos/[id]/assignments` | GET/PUT        | Siqish kombinatsiyalarini marshrutlash kombinatsiyalariga tayinlash              |
-| `/api/context/analytics`               | GET            | Siqish tahlili taxallusi                                                         |
+| Endpoint                               | Metod          | Tavsif                                                                                            |
+| -------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------- |
+| `/api/compression/preview`             | POST           | off/lite/standard/aggressive/ultra/RTK/stacked siqishni oldindan ko‘rish                          |
+| `/api/compression/language-packs`      | GET            | Mavjud Caveman til paketlari ro‘yxati                                                             |
+| `/api/compression/rules`               | GET            | Caveman qoidalari metama’lumotlari ro‘yxati                                                       |
+| `/api/context/caveman/config`          | GET/PUT        | Caveman uchun maxsus sozlamalar taxallusi                                                         |
+| `/api/context/rtk/config`              | GET/PUT        | Maxsus filtrlar va xom chiqishni saqlashni o‘z ichiga olgan RTK uchun maxsus sozlamalar           |
+| `/api/context/rtk/filters`             | GET            | RTK filtrlari katalogi va maxsus filtr diagnostikasi                                              |
+| `/api/context/rtk/test`                | POST           | Matnli yuklamaga nisbatan RTK oldindan ko‘rish/sinovini ishga tushirish                           |
+| `/api/context/rtk/raw-output/[id]`     | GET            | Ko‘rsatkich identifikatori orqali saqlangan, maxfiy ma’lumotlari yashirilgan xom chiqishni o‘qish |
+| `/api/context/combos`                  | GET/POST       | Siqish kombinatsiyalari ro‘yxati/yaratish                                                         |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | Siqish kombinatsiyasi tafsilotlari/yangilash/o‘chirish                                            |
+| `/api/context/combos/[id]/assignments` | GET/PUT        | Siqish kombinatsiyalarini marshrutlash kombinatsiyalariga biriktirish                             |
+| `/api/context/analytics`               | GET            | Siqish tahlili taxallusi                                                                          |
 
 ### Monitoring
 
-| Endpoint                             | Metod      | Tavsif                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `/api/sessions`                      | GET        | Faol seanslarni kuzatish                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `/api/rate-limits`                   | GET        | Har bir hisob uchun so‘rovlar tezligi cheklovlari                                                                                                                                                                                                                                                                                                                                                                                    |
-| `/api/monitoring/health`             | GET        | Holat tekshiruvi + provayder xulosasi (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Boshqaruv ko‘rinishi `credentialHealth`ni o‘z ichiga oladi: sinov keshi skalyarlari, `failed>0` bo‘lganda `failedConnections` va `staleDbNonOkCount` (SQLite’dagi yopishqoq `test_status`, o‘lchov emas). [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status)ga qarang. |
-| `/api/cache/stats`                   | GET/DELETE | Kesh statistikasi / tozalash                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `/api/modality-bridge/stats`         | GET        | Xotiradagi `attempts`, muvaffaqiyatlar/`bridged`, muvaffaqiyatsizliklar, keshga tushishlar, `totalLatencyMs`, `latencySamples`, namuna soniga asoslangan `averageLatencyMs` va oxirgi foydalanish vaqti (qayta ishga tushirilganda nolga tushadi; boshqaruv autentifikatsiyasi)                                                                                                                                                      |
-| `/api/modality-bridge/video/runtime` | GET        | Boshqaruv autentifikatsiyasi/sinovidan oldin qat’iy ishonchli loopback tekshiruvi; tozalangan FFmpeg/ffprobe mavjudligi va versiyalari (saqlanmaydi)                                                                                                                                                                                                                                                                                 |
-| `/api/modality-bridge/video/extract` | POST       | Ichki autentifikatsiyalangan ishonchli loopback bayt brokeri; 50 MiB kirish, cheklangan navbat/32 MiB chiqish, sig‘im uchun `503`, uzilish uchun `499`, muddat tugashi uchun `504`; ommaviy fayl yuklash API’si emas                                                                                                                                                                                                                 |
+| Endpoint                             | Metod      | Tavsif                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ------------------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/sessions`                      | GET        | Faol seanslarni kuzatish                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `/api/rate-limits`                   | GET        | Har bir hisob uchun tezlik cheklovlari                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `/api/monitoring/health`             | GET        | Holat tekshiruvi + provayder xulosasi (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Boshqaruv ko‘rinishi `credentialHealth`ni o‘z ichiga oladi: tekshiruv keshi skalyarlari, `failed>0` bo‘lganda `failedConnections` va `staleDbNonOkCount` (SQLite’da saqlanib qoluvchi `test_status`, o‘lchov emas). [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status)ga qarang. |
+| `/api/cache/stats`                   | GET/DELETE | Kesh statistikasi / tozalash                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `/api/modality-bridge/stats`         | GET        | Xotiradagi `attempts`, muvaffaqiyatlar/`bridged`, muvaffaqiyatsizliklar, keshga tushishlar, `totalLatencyMs`, `latencySamples`, namunalar soniga asoslangan `averageLatencyMs` va oxirgi foydalanish vaqti (qayta ishga tushirilganda tiklanadi; boshqaruv autentifikatsiyasi)                                                                                                                                                                 |
+| `/api/modality-bridge/video/runtime` | GET        | Boshqaruv autentifikatsiyasi/tekshiruvidan oldin ishonchli loopback’ni qat’iy tekshirish; sanitizatsiya qilingan FFmpeg/ffprobe mavjudligi va versiyalari (saqlanmaydi)                                                                                                                                                                                                                                                                        |
+| `/api/modality-bridge/video/extract` | POST       | Ichki autentifikatsiyalangan ishonchli loopback bayt brokeri; 50 MiB kirish, cheklangan navbat/32 MiB chiqish, sig‘im uchun `503`, uzilish uchun `499`, muddat tugashi uchun `504`; ommaviy yuklash API’si emas                                                                                                                                                                                                                                |
 
-### Zaxiralash va eksport/import qilish
+### Zaxiralash va eksport/import
 
 | Endpoint                    | Metod | Tavsif                                                          |
 | --------------------------- | ----- | --------------------------------------------------------------- |
@@ -919,42 +920,42 @@ CLI javoblari quyidagilarni oʻz ichiga oladi: `installed`, `runnable`, `command
 
 | Endpoint          | Metod  | Tavsif                                                                 |
 | ----------------- | ------ | ---------------------------------------------------------------------- |
-| `/api/acp/agents` | GET    | Holati bilan barcha aniqlangan agentlarni (ichki + maxsus) roʻyxatlash |
+| `/api/acp/agents` | GET    | Holati bilan barcha aniqlangan agentlarni roʻyxatlash (ichki + maxsus) |
 | `/api/acp/agents` | POST   | Maxsus agent qoʻshish yoki aniqlash keshini yangilash                  |
-| `/api/acp/agents` | DELETE | `id` soʻrov parametri boʻyicha maxsus agentni olib tashlash            |
+| `/api/acp/agents` | DELETE | Maxsus agentni `id` soʻrov parametri boʻyicha olib tashlash            |
 
-GET javobi `agents[]` (id, nomi, ikkilik fayli, versiyasi, oʻrnatilganligi, protokoli, maxsusligi) va `summary` (jami, oʻrnatilgan, topilmagan, ichki, maxsus) maʼlumotlarini oʻz ichiga oladi.
+GET javobi `agents[]` (id, name, binary, version, installed, protocol, isCustom) va `summary` (total, installed, notFound, builtIn, custom) maydonlarini oʻz ichiga oladi.
 
 ### Barqarorlik va tezlik cheklovlari
 
-| Endpoint                          | Metod     | Tavsif                                                                                                 |
-| --------------------------------- | --------- | ------------------------------------------------------------------------------------------------------ |
-| `/api/resilience`                 | GET/PATCH | Soʻrovlar navbati, ulanishning sovish davri, provayder uzgichi va kutish sozlamalarini olish/yangilash |
-| `/api/resilience/reset`           | POST      | Provayder zanjir uzgichlarini qayta tiklash                                                            |
-| `/api/resilience/model-cooldowns` | GET       | Qolgan vaqt boʻyicha saralangan faol (provayder, ulanish, model) blokirovkalarini roʻyxatlash          |
-| `/api/resilience/model-cooldowns` | DELETE    | Model blokirovkasini tozalash — tana: `{provider, model}` yoki barchasini tozalash uchun `{all: true}` |
-| `/api/rate-limits`                | GET       | Har bir hisob uchun tezlik cheklovi holati                                                             |
-| `/api/rate-limit`                 | GET       | Global tezlik cheklovi konfiguratsiyasi                                                                |
+| Endpoint                          | Metod     | Tavsif                                                                                                        |
+| --------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------- |
+| `/api/resilience`                 | GET/PATCH | Soʻrovlar navbati, ulanishning kutish davri, provayder uzgichi va kutish sozlamalarini olish/yangilash        |
+| `/api/resilience/reset`           | POST      | Provayder zanjir uzgichlarini qayta tiklash                                                                   |
+| `/api/resilience/model-cooldowns` | GET       | Qolgan vaqt boʻyicha saralangan faol (provayder, ulanish, model) blokirovkalarini roʻyxatlash                 |
+| `/api/resilience/model-cooldowns` | DELETE    | Model blokirovkasini tozalash — asosiy qism `{provider, model}` yoki barchasini oʻchirish uchun `{all: true}` |
+| `/api/rate-limits`                | GET       | Har bir hisob uchun tezlik cheklovi holati                                                                    |
+| `/api/rate-limit`                 | GET       | Global tezlik cheklovi konfiguratsiyasi                                                                       |
 
-> Barcha toʻrtta `/api/resilience/*` marshruti **boshqaruv autentifikatsiyasini** (`requireManagementAuth`) talab qiladi. Provayder uzgichi, ulanishning sovish davri va model blokirovkasi oʻrtasidagi farqlarning toʻliq tavsifi uchun [Barqarorlik (kengaytirilgan)](#resilience-extended) boʻlimiga qarang.
+> Barcha toʻrtta `/api/resilience/*` marshruti **boshqaruv autentifikatsiyasini** (`requireManagementAuth`) talab qiladi. Provayder uzgichi, ulanishning kutish davri va model blokirovkasi oʻrtasidagi farqlarning toʻliq tafsilotlari uchun [Barqarorlik (kengaytirilgan)](#resilience-extended) boʻlimiga qarang.
 
 ### Baholashlar
 
-| Endpoint     | Metod    | Tavsif                                                        |
-| ------------ | -------- | ------------------------------------------------------------- |
-| `/api/evals` | GET/POST | Baholash toʻplamlarini roʻyxatlash/baholashni ishga tushirish |
+| Endpoint     | Metod    | Tavsif                                                          |
+| ------------ | -------- | --------------------------------------------------------------- |
+| `/api/evals` | GET/POST | Baholash toʻplamlarini roʻyxatlash / baholashni ishga tushirish |
 
 ### Siyosatlar
 
 | Endpoint        | Metod           | Tavsif                                |
 | --------------- | --------------- | ------------------------------------- |
-| `/api/policies` | GET/POST/DELETE | Yoʻnaltirish siyosatlarini boshqarish |
+| `/api/policies` | GET/POST/DELETE | Marshrutlash siyosatlarini boshqarish |
 
 ### Muvofiqlik
 
-| Endpoint                    | Metod | Tavsif                                 |
-| --------------------------- | ----- | -------------------------------------- |
-| `/api/compliance/audit-log` | GET   | Muvofiqlik audit jurnali (oxirgi N ta) |
+| Endpoint                    | Metod | Tavsif                              |
+| --------------------------- | ----- | ----------------------------------- |
+| `/api/compliance/audit-log` | GET   | Muvofiqlik audit jurnali (oxirgi N) |
 
 ### v1beta (Gemini bilan mos)
 
@@ -963,7 +964,7 @@ GET javobi `agents[]` (id, nomi, ikkilik fayli, versiyasi, oʻrnatilganligi, pro
 | `/v1beta/models`           | GET   | Modellarni Gemini formatida roʻyxatlash |
 | `/v1beta/models/{...path}` | POST  | Gemini `generateContent` endpointi      |
 
-Bu endpointlar mahalliy Gemini SDK mosligini kutadigan mijozlar uchun Gemini API formatini takrorlaydi.
+Bu endpointlar mahalliy Gemini SDK bilan moslikni kutadigan mijozlar uchun Gemini API formatini takrorlaydi.
 
 ### Ichki / tizim APIʼlari
 
@@ -971,13 +972,13 @@ Bu endpointlar mahalliy Gemini SDK mosligini kutadigan mijozlar uchun Gemini API
 | ------------------------ | ----- | --------------------------------------------------------------------------- |
 | `/api/init`              | GET   | Ilovani ishga tushirish tekshiruvi (birinchi ishga tushirishda ishlatiladi) |
 | `/api/tags`              | GET   | Ollama bilan mos model teglari (Ollama mijozlari uchun)                     |
-| `/api/restart`           | POST  | Serverni toʻgʻri qayta ishga tushirishni boshlash                           |
-| `/api/shutdown`          | POST  | Serverni toʻgʻri oʻchirishni boshlash                                       |
-| `/api/system/env/repair` | POST  | OAuth provayderining muhit oʻzgaruvchilarini tiklash                        |
+| `/api/restart`           | POST  | Serverni muammosiz qayta ishga tushirishni boshlash                         |
+| `/api/shutdown`          | POST  | Serverni muammosiz o‘chirishni boshlash                                     |
+| `/api/system/env/repair` | POST  | OAuth provayderining muhit o‘zgaruvchilarini tiklash                        |
 
-> **Eslatma:** Bu endpointlar tizim tomonidan ichki tarzda yoki Ollama mijozlari bilan moslik uchun ishlatiladi. Odatda ular oxirgi foydalanuvchilar tomonidan chaqirilmaydi.
+> **Eslatma:** Bu endpointlar tizim tomonidan ichki maqsadlarda yoki Ollama mijozlari bilan moslikni ta’minlash uchun ishlatiladi. Odatda, ular oxirgi foydalanuvchilar tomonidan chaqirilmaydi.
 
-### OAuth muhiti oʻzgaruvchilarini tiklash _(v3.6.1+)_
+### OAuth muhitini tiklash _(v3.6.1+)_
 
 ```bash
 POST /api/system/env/repair
@@ -988,7 +989,7 @@ Content-Type: application/json
 }
 ```
 
-Muayyan provayder uchun yetishmayotgan yoki buzilgan OAuth muhiti oʻzgaruvchilarini tiklaydi. Quyidagini qaytaradi:
+Muayyan provayder uchun yetishmayotgan yoki buzilgan OAuth muhit o‘zgaruvchilarini tiklaydi. Quyidagini qaytaradi:
 
 ```json
 {

@@ -9,6 +9,8 @@ process.env.DATA_DIR = testDataDir;
 
 const { IMAGE_PROVIDERS, parseImageModel } = await import("../../open-sse/config/imageRegistry.ts");
 const { VIDEO_PROVIDERS, parseVideoModel } = await import("../../open-sse/config/videoRegistry.ts");
+const { XAI_SUBSCRIPTION_IMAGE_PROVIDERS } =
+  await import("../../open-sse/config/imageRegistryData.ts");
 const {
   AUDIO_SPEECH_PROVIDERS,
   AUDIO_TRANSCRIPTION_PROVIDERS,
@@ -73,6 +75,16 @@ test("Grok CLI media prefixes use the existing OAuth pool and leave xai API-key 
   assert.equal(VIDEO_PROVIDERS.xai.authType, "apikey");
   assert.equal(parseImageModel("grok-imagine-image").provider, "xai");
   assert.equal(parseVideoModel("grok-imagine-video").provider, "xai");
+});
+
+test("the optional subscription image catalog keeps the Grok Build dispatch contract", () => {
+  const direct = IMAGE_PROVIDERS["grok-cli"];
+  const optional = XAI_SUBSCRIPTION_IMAGE_PROVIDERS["grok-cli"];
+  assert.equal(direct.format, "grok-image");
+  assert.equal(optional.format, direct.format);
+  assert.equal(optional.baseUrl, `${proxy}/images/generations`);
+  assert.equal(optional.authType, "oauth");
+  assert.ok(optional.models.some((model) => model.id === "grok-imagine-image-2.0"));
 });
 
 test("Grok OAuth images translate square size, preserve base64 output, and never send the API key", async (t) => {
@@ -209,7 +221,7 @@ test("Grok OAuth video submits once and polls the creating account until complet
     assert.equal(new Headers(init?.headers).get("authorization"), "Bearer oauth-access-fixture");
     if (String(url) === `${proxy}/videos/generations`) {
       submissions++;
-      assert.equal(JSON.parse(String(init?.body)).model, "grok-imagine-video");
+      assert.equal(JSON.parse(await new Response(init?.body).text()).model, "grok-imagine-video");
       return jsonResponse({ request_id: "grok-job-1" });
     }
     assert.equal(String(url), `${proxy}/videos/grok-job-1`);
@@ -223,7 +235,7 @@ test("Grok OAuth video submits once and polls the creating account until complet
       model: "gc/grok-imagine-video",
       prompt: "a rotating cube",
       duration: 2,
-      poll_interval_ms: 1,
+      poll_interval_ms: 1000,
     },
     credentials,
     log: null,
@@ -244,7 +256,12 @@ test("Grok video stops on a polling auth failure without submitting another job"
     return jsonResponse({ error: { message: "expired" } }, 401);
   });
   const result = await handleVideoGeneration({
-    body: { model: "gc/grok-imagine-video", prompt: "x", poll_interval_ms: 1, timeout_ms: 50 },
+    body: {
+      model: "gc/grok-imagine-video",
+      prompt: "x",
+      poll_interval_ms: 1000,
+      timeout_ms: 10000,
+    },
     credentials,
     log: null,
   });
@@ -266,8 +283,8 @@ test("Grok video normalizes fractional timeout options before creating abort sig
     body: {
       model: "gc/grok-imagine-video",
       prompt: "x",
-      timeout_ms: 1000.75,
-      poll_interval_ms: 1.25,
+      timeout_ms: 10000.75,
+      poll_interval_ms: 1000.25,
     },
     credentials,
     log: null,
@@ -285,7 +302,7 @@ test("Grok video timeout errors sanitize provider-controlled job status", async 
     return jsonResponse({ status: "pending Authorization: Bearer sensitive-fixture-access-token" });
   });
   const result = await handleVideoGeneration({
-    body: { model: "gc/grok-imagine-video", prompt: "x", poll_interval_ms: 1, timeout_ms: 500 },
+    body: { model: "gc/grok-imagine-video", prompt: "x", poll_interval_ms: 1000, timeout_ms: 3000 },
     credentials,
     log: null,
   });
@@ -300,7 +317,12 @@ test("Grok video does not poll a rejected create response even if it contains a 
     return jsonResponse({ request_id: "rejected-job", error: { message: "quota exhausted" } }, 429);
   });
   const result = await handleVideoGeneration({
-    body: { model: "gc/grok-imagine-video", prompt: "x", poll_interval_ms: 1, timeout_ms: 10 },
+    body: {
+      model: "gc/grok-imagine-video",
+      prompt: "x",
+      poll_interval_ms: 1000,
+      timeout_ms: 10000,
+    },
     credentials,
     log: null,
   });

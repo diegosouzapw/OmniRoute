@@ -8,6 +8,8 @@
  */
 
 import { sanitizeErrorMessage } from "../../utils/error.ts";
+import { sleep } from "../../utils/sleep.ts";
+import { abortedVideoResult } from "./abort.ts";
 import {
   buildNovitaPollUrl,
   buildNovitaSubmitBody,
@@ -27,12 +29,11 @@ interface NovitaHandlerArgs {
     info?: (scope: string, message: string) => void;
     error?: (scope: string, message: string) => void;
   } | null;
+  signal?: AbortSignal | null;
 }
 
 const DEFAULT_TIMEOUT_MS = 300_000;
 const DEFAULT_POLL_INTERVAL_MS = 2500;
-
-const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 type NovitaHandlerResult =
   | { success: true; data: { created: number; data: [{ url: string; format: string }] } }
@@ -45,7 +46,11 @@ async function submitNovitaTask(
   payload: Record<string, unknown>,
   log: NovitaHandlerArgs["log"]
 ): Promise<{ taskId: string } | { error: NovitaHandlerResult }> {
-  const submitRes = await fetch(submitUrl, { method: "POST", headers, body: JSON.stringify(payload) });
+  const submitRes = await fetch(submitUrl, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
+  });
   const submitData = await submitRes.json().catch(() => ({}));
   const taskId = parseNovitaTaskId(submitData);
   if (taskId) return { taskId };
@@ -79,13 +84,18 @@ async function pollNovitaTask(
   token: string,
   taskId: string,
   deadline: number,
-  pollIntervalMs: number
+  pollIntervalMs: number,
+  signal?: AbortSignal | null
 ): Promise<NovitaHandlerResult> {
   let lastStatus = "UNKNOWN";
 
   while (Date.now() < deadline) {
-    await sleep(pollIntervalMs);
-    const pollRes = await fetch(pollUrl, { headers: { Authorization: `Bearer ${token}` } });
+    await sleep(pollIntervalMs, signal);
+    if (signal?.aborted) return abortedVideoResult();
+    const pollRes = await fetch(pollUrl, {
+      headers: { Authorization: `Bearer ${token}` },
+      ...(signal ? { signal } : {}),
+    });
     const pollData = await pollRes.json().catch(() => ({}));
     const result = parseNovitaTaskResult(pollData);
     lastStatus = result.status;
@@ -95,14 +105,21 @@ async function pollNovitaTask(
     if (result.videoUrl) {
       return {
         success: true,
-        data: { created: Math.floor(Date.now() / 1000), data: [{ url: result.videoUrl, format: "mp4" }] },
+        data: {
+          created: Math.floor(Date.now() / 1000),
+          data: [{ url: result.videoUrl, format: "mp4" }],
+        },
       };
     }
 
     return { success: false, status: 502, error: sanitizeErrorMessage(result.errorMessage) };
   }
 
-  return { success: false, status: 504, error: `Novita task ${taskId} timed out (status: ${lastStatus})` };
+  return {
+    success: false,
+    status: 504,
+    error: `Novita task ${taskId} timed out (status: ${lastStatus})`,
+  };
 }
 
 export async function handleNovitaVideoGeneration({
@@ -112,6 +129,7 @@ export async function handleNovitaVideoGeneration({
   body,
   credentials,
   log,
+  signal = null,
 }: NovitaHandlerArgs): Promise<NovitaHandlerResult> {
   const token = credentials?.apiKey || credentials?.accessToken;
   if (!token) {
@@ -126,15 +144,26 @@ export async function handleNovitaVideoGeneration({
   const payload = buildNovitaSubmitBody(params);
   const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
 
-  log?.info?.("VIDEO", `${provider}/${model} (novita-video) | prompt: "${params.prompt.slice(0, 60)}..."`);
+  log?.info?.(
+    "VIDEO",
+    `${provider}/${model} (novita-video) | prompt: "${params.prompt.slice(0, 60)}..."`
+  );
 
   try {
     const submitted = await submitNovitaTask(submitUrl, headers, payload, log);
     if ("error" in submitted) return submitted.error;
 
     const pollUrl = buildNovitaPollUrl(statusUrl, submitted.taskId);
-    return await pollNovitaTask(pollUrl, token, submitted.taskId, Date.now() + timeoutMs, pollIntervalMs);
+    return await pollNovitaTask(
+      pollUrl,
+      token,
+      submitted.taskId,
+      Date.now() + timeoutMs,
+      pollIntervalMs,
+      signal
+    );
   } catch (err) {
+    if (signal?.aborted) return abortedVideoResult();
     const e = (err ?? {}) as { message?: string; status?: number };
     log?.error?.("VIDEO", `Novita video generation failed: ${e.message}`);
     return {

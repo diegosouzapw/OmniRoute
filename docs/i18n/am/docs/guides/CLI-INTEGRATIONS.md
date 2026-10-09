@@ -4,11 +4,33 @@
 
 ---
 
-OmniRoute የኮዲንግ CLI (Codex, Claude Code, OpenCode, Cline, …) OmniRouteን እንደ ባክኤንድ እንዲጠቀም የሚያዋቅሩ የ`setup-*` ትዕዛዞች ቤተሰብ ያቀርባል — ስለዚህ መሳሪያው ከአንድ **ነጠላ** የመጨረሻ ነጥብ ጋር ይነጋገራል እና OmniRoute ወደ ትክክለኛው አቅራቢ በራስ-ሰር ምትኬ (auto-fallback) ያዞራል. እያንዳንዱ ትዕዛዝ ከሚሰራ OmniRoute (አካባቢያዊ ወይም የርቀት) **ቀጥታ** ሞዴል ካታሎግ ያነባል እና የመሳሪያውን የራሱን የማዋቀሪያ ፋይል **በእርስዎ** ማሽን ላይ ይጽፋል. የኤፒአይ ቁልፉ መሳሪያው በሚደግፍበት ቦታ ሁሉ በአካባቢ ተለዋዋጭ (environment variable) ይጠቀሳል. የመሳሪያ-አካባቢያዊ የአካባቢ ፋይልን የሚያስቀምጡ ትዕዛዞች ከታች ተጠቅሰዋል.
+ስለ የጋራ executable manifest፣ የተገደቡ የልጅ environments እና ቀጣይነት ያለው
+የGemini ማዋቀር፣ [CLI ማስጀመሪያ ውሎች](./CLI-LAUNCH-CONTRACTS.md)ን ይመልከቱ።
 
-አጠቃላይ አስጀማሪም አለ — `omniroute run <target>` — ትክክለኛው አካባቢ (env) ተወግሮበት `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` ወይም `gemini`ን የሚያስጀምር፣ ምንም አይነት ማዋቀር ሳይጽፍ. ኢላማዎች (Targets) እና ቅጽል ስሞቻቸው (aliases) ከዋናው ማኒፌስት `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`) ይመጣሉ፣ እና `omniroute completion` ተመሳሳይ በማኒፌስት የተገኙ ኢላማ ቃላትን ያቀርባል. የቆዩት የመሳሪያ-ለ-መሳሪያ አስጀማሪዎች — `omniroute launch` (Claude Code) እና `omniroute launch-codex` (Codex) — አሁንም ይገኛሉ.
+OmniRoute የcoding CLIን (Codex፣ Claude Code፣ OpenCode፣ Cline፣ …) OmniRouteን
+እንደ backend እንዲጠቀም የሚያዋቅሩ የ`setup-*` ትዕዛዞች ስብስብ ይዞ ይመጣል — በዚህም
+መሣሪያው ከ**አንድ** endpoint ጋር ይገናኛል፣ OmniRoute ደግሞ auto-fallbackን በመጠቀም
+ወደ ትክክለኛው provider ይመራዋል። እያንዳንዱ ትዕዛዝ እየሰራ ካለ
+OmniRoute (አካባቢያዊ ወይም ሩቅ) የ**ቀጥታ** model catalogን ያነባል
+እና የመሣሪያውን የራሱ config file በ**እርስዎ** ማሽን ላይ ይጽፋል።
+መሣሪያው በሚደግፈው ቦታ ሁሉ API keyው በenvironment variable አማካይነት
+ይጠቀሳል። የመሣሪያውን አካባቢያዊ environment file በቋሚነት የሚያስቀምጡ
+ትዕዛዞች ከታች ተጠቅሰዋል።
 
-የአቅራቢ ምዝገባ (onboarding) ከተመሳሳይ አካባቢያዊ/የርቀት አውድ (context) ይገኛል. ከታች ያሉት ኤፒአይ-መጀመሪያ ትዕዛዞች የአስተዳደር ማረጋገጫን ከአቅራቢ ምስክርነቶች (credentials) ይለያሉ እና በተዋቀረ ውፅዓት (structured output) ውስጥ ምስክርነትን በጭራሽ አያትሙም:
+በተጨማሪም አጠቃላይ launcher አለ — `omniroute run <target>` — ይህም
+`claude`፣ `codex`፣ `aider`፣ `goose`፣ `opencode`፣ `qwen` ወይም `gemini`ን
+ትክክለኛው env ተካትቶ ያስነሳል፣ ምንም config ሳይጽፍ። Targets እና
+aliases ከዋናው manifest `bin/cli/cli-manifest.mjs` ይመጣሉ
+(`claude-code|cc|anthropic`፣ `codex-cli|openai-codex|openai`፣ `goose-cli`፣
+`open-code`፣ `qwen-code`፣ `gemini-cli`)፣ እና `omniroute completion` በተመሳሳይ
+ከmanifest የተገኙ target ቃላትን ያቀርባል። የቀድሞዎቹ ለእያንዳንዱ መሣሪያ
+የተለዩ launchers — `omniroute launch` (Claude Code) እና
+`omniroute launch-codex` (Codex) — አሁንም ይገኛሉ።
+
+Provider onboarding ከዚያው አካባቢያዊ/ሩቅ context ውስጥ ይገኛል። ከታች
+ያሉት API-first ትዕዛዞች የmanagement authenticationን ከprovider
+credentials ለይተው ያቆያሉ፣ እንዲሁም በstructured output ውስጥ credentialን
+ፈጽሞ አያትሙም፦
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -18,16 +40,28 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-ለስክሪፕቶች፣ `--credential-stdin` ወይም `--credential-env`ን ይምረጡ; `--credential` ለቁጥጥር የሚደረግበት አካባቢያዊ አጠቃቀም ተይዟል. `providers remove` መስተጋብራዊ ባልሆነ ተርሚናል ላይ `--yes`ን ይፈልጋል፣ እና አምስቱም ትዕዛዞች ንቁውን አውድ (active context) ወይም ዓለም አቀፋዊውን `--base-url`/`--api-key` አማራጮችን ያከብራሉ.
+ለscripts፣ `--credential-stdin` ወይም `--credential-env`ን ይምረጡ፤
+`--credential` ቁጥጥር በተደረገበት አካባቢያዊ አጠቃቀም እንዲውል
+ተቀምጧል። `providers remove` በnon-interactive terminal ላይ `--yes`ን
+ይፈልጋል፣ እና አምስቱም ትዕዛዞች ገቢር contextን ወይም አጠቃላይ
+`--base-url`/`--api-key` optionsን ያከብራሉ።
 
-የአቅራቢ መራጮች ግልጽ ያልሆኑ የመታወቂያ ቅድመ ቅጥያዎችን (ID prefixes)፣ ስሞችን ወይም የአቅራቢ ስሞችን አይቀበሉም; ብዙ ግንኙነቶች ሲዛመዱ ሙሉ የግንኙነት መታወቂያን ይጠቀሙ. የመፍጠር እና የማስተካከል ትዕዛዞች የተቀመጠውን ግንኙነት መልሰው ያነባሉ፣ እና ማስወገድ (removal) ከእንግዲህ ማንበብ እንደማይቻል ያረጋግጣል. ማስመጣት (import) ያለውን የአቅራቢ/ስም ጥንድ ይዘላል. የገቡ ግቤቶች (imported entries) ለCLI የቀረበውን የአስተዳደር የመጨረሻ ነጥብ (management endpoint)፣ አውድ (context) ወይም የአስተዳደር ምስክርነቶችን (management credentials) መሻር አይችሉም.
+Provider selectors አሻሚ የID prefixes፣ names ወይም provider namesን
+ውድቅ ያደርጋሉ፤ ብዙ connections ሲዛመዱ ሙሉ connection IDን ይጠቀሙ።
+የcreate እና edit ትዕዛዞች የተቀመጠውን connection መልሰው ያነባሉ፣
+removal ደግሞ ከዚያ በኋላ ሊነበብ እንደማይችል ያረጋግጣል። Import
+ቀድሞ ያለ provider/name pairን ይዘላል። ወደውስጥ የገቡ entries
+ለCLIው የቀረቡትን management endpoint፣ context ወይም management
+credentials ሊተኩ አይችሉም።
 
-ለሁለቱ እጅግ የበለጸጉ ውህደቶች የአንድ ጊዜ፣ በእጅ የተጻፈ መሰረታዊ ማዋቀር፣ የመሳሪያ-ለ-መሳሪያ ጥልቅ ዳሰሳዎችን ይመልከቱ:
+በእጅ አንድ ጊዜ ብቻ ስለሚጻፈው የሁለቱ እጅግ ባለጸጋ integrations መሠረታዊ
+ማዋቀር፣ ለእያንዳንዱ መሣሪያ የተዘጋጁትን ዝርዝር መመሪያዎች ይመልከቱ፦
 
-- [Claude Code ማዋቀር](./CLAUDE-CODE-CONFIGURATION.md)
-- [Codex CLI ማዋቀር](./CODEX-CLI-CONFIGURATION.md)
-- [የርቀት ሁነታ](./REMOTE-MODE.md) — የርቀት OmniRouteን (VPS / Tailnet) ከላፕቶፕዎ ያንቀሳቅሱ
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — የOmniCopilot ቅጥያ; እነዚህን `setup-*` ትዕዛዞች ከአርታዒው ውስጥ ለእርስዎ ማስኬድ ይችላል
+- [የClaude Code ውቅር](./CLAUDE-CODE-CONFIGURATION.md)
+- [የCodex CLI ውቅር](./CODEX-CLI-CONFIGURATION.md)
+- [የርቀት ሁነታ](./REMOTE-MODE.md) — ሩቅ OmniRouteን (VPS / Tailnet) ከlaptopዎ ይቆጣጠሩ
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot extension፤ እነዚህን
+  `setup-*` ትዕዛዞችም ከeditor ውስጥ ሆኖ ሊያስኬድልዎ ይችላል
 
 ---
 

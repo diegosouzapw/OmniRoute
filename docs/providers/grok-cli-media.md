@@ -54,6 +54,16 @@ does not prove the upstream job stopped; do not blindly repeat the request.
 Explicit video combos retain their existing concurrent fan-out behavior, so use
 a concrete model when you want only one generation.
 
+Video requests accept a positive `timeout_ms` up to 1,800,000 ms,
+`poll_interval_ms` from 1,000 to 1,800,000 ms, and `max_polls` from 1 to 300.
+Defaults are 300,000 ms and 2,500 ms; the poll count is bounded by the request
+deadline and the server ceiling. Invalid or out-of-range controls return 400
+before creating a job. Create and poll JSON responses are limited to 1 MiB.
+The deadline also covers response-body reads. Client cancellation stops local
+fetches, waits and polling for Grok/xAI and compatible job-polling handlers,
+including their combo targets. It does not establish that the provider's remote
+job was cancelled.
+
 ```json
 {
   "model": "gc/grok-tts",

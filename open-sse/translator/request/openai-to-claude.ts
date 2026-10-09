@@ -182,8 +182,13 @@ export function openaiToClaudeRequest(model, body, stream, credentials = null) {
   if (body.temperature === undefined && body.top_p !== undefined) {
     result.top_p = body.top_p;
   }
-  if (body.stop !== undefined) {
-    result.stop_sequences = Array.isArray(body.stop) ? body.stop : [body.stop];
+  // `stop: null` is how many OpenAI-compatible clients serialize "no stop"; wrapping it
+  // would send `stop_sequences: [null]`, which Anthropic rejects with a 400.
+  const stopSequences = (Array.isArray(body.stop) ? body.stop : [body.stop]).filter(
+    (value) => typeof value === "string" && value !== ""
+  );
+  if (stopSequences.length > 0) {
+    result.stop_sequences = stopSequences;
   }
 
   // Thinking configuration
@@ -555,6 +560,10 @@ function getContentBlocksFromMessage(
       type: "tool_result",
       tool_use_id: sanitizedToolUseId,
       content: toolContent,
+      // Zed's cloud proxy (cloud.zed.dev/completions) strictly requires
+      // `is_error` on every Anthropic tool_result block. OpenAI tool messages
+      // carry no such flag, so default to false unless the caller set it.
+      is_error: msg.is_error === true,
     });
   } else if (msg.role === "user") {
     if (typeof msg.content === "string") {
@@ -577,7 +586,9 @@ function getContentBlocksFromMessage(
             type: "tool_result",
             tool_use_id: sanitizeToolId(part.tool_use_id), // #7705
             content: resultContent,
-            ...(part.is_error && { is_error: part.is_error }),
+            // Always emit a boolean: Zed's strict Anthropic parser rejects
+            // tool_result blocks with a missing `is_error` field.
+            is_error: part.is_error === true,
           });
         } else if (part.type === "image_url" || part.type === "image") {
           const imageBlock = openAiImagePartToClaudeBlock(part);

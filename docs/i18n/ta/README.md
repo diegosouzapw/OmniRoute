@@ -1264,26 +1264,26 @@ Dashboard இல்லாத headless runtime-க்கு Docker `base` profile
 <br/>
 <div align="center">
 
-## 🛠️ தொழில்நுட்ப அடுக்கு
+## 🛠️ தொழில்நுட்பத் தொகுப்பு
 
 </div>
 
 <table>
   <tr><th align="left">அடுக்கு</th><th align="left">தொழில்நுட்பம்</th></tr>
   <tr><td nowrap><b>இயக்கச் சூழல்</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>மொழி</b></td><td>TypeScript 6.0 — <code>src/</code> மற்றும் <code>open-sse/</code> முழுவதும் <b>100% TypeScript</b> (v2.0 முதல் மையத்தில் <code>any</code> அறவே இல்லை)</td></tr>
+  <tr><td nowrap><b>மொழி</b></td><td>TypeScript 6.0 — <code>src/</code> மற்றும் <code>open-sse/</code> முழுவதிலும் <b>100% TypeScript</b> (v2.0 முதல் மையப் பகுதியில் <code>any</code> எதுவுமில்லை)</td></tr>
   <tr><td nowrap><b>கட்டமைப்பு</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>தரவுத்தளம்</b></td><td>better-sqlite3 (SQLite, WAL பதிவேடு) + LowDB (JSON மரபு) — 136 களத் தொகுதிகள், 193 இடமாற்றங்கள்</td></tr>
-  <tr><td nowrap><b>நினைவகம்</b></td><td>SQLite FTS5 முழு-உரை + int8-அளவாக்கப்பட்ட திசையன் உட்பொதிவுகள், வகைப்படுத்தப்பட்ட தேய்வு</td></tr>
-  <tr><td nowrap><b>திட்டவடிவங்கள்</b></td><td>Zod 4 — MCP கருவி I/O சரிபார்ப்பு + API ஒப்பந்தங்கள்</td></tr>
+  <tr><td nowrap><b>தரவுத்தளம்</b></td><td>better-sqlite3 (SQLite, WAL பதிவேடு) + LowDB (JSON மரபமைப்பு) — 137 களத் தொகுதிகள், 202 இடமாற்றங்கள்</td></tr>
+  <tr><td nowrap><b>நினைவகம்</b></td><td>SQLite FTS5 முழு-உரை + int8 அளவாக்கப்பட்ட திசையன் உட்பொதிவுகள், வகையிடப்பட்ட தேய்வு</td></tr>
+  <tr><td nowrap><b>திட்டவடிவங்கள்</b></td><td>Zod 4 — MCP கருவி உள்ளீடு/வெளியீட்டுச் சரிபார்ப்பு + API ஒப்பந்தங்கள்</td></tr>
   <tr><td nowrap><b>நெறிமுறைகள்</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>தொடரோட்டம்</b></td><td>சேவையகம் அனுப்பும் நிகழ்வுகள் (SSE) + WebSocket பாலம் (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>சுருக்கம்</b></td><td>12-எஞ்சின் செயலாக்கத் தொடர் — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>அங்கீகாரம் &amp; பாதுகாப்பு</b></td><td>OAuth 2.0 (PKCE) + JWT + API விசைகள் + MCP வரம்புடைய அங்கீகாரம் · சேமிப்பில் AES-256-GCM குறியாக்கம் · DOMPurify</td></tr>
-  <tr><td nowrap><b>மறைமுகத்தன்மை</b></td><td>wreq-js — JA3 / JA4 TLS கைரேகைப் போலிப்படுத்தல், 3-நிலை ப்ராக்ஸி</td></tr>
-  <tr><td nowrap><b>மீள்திறன்</b></td><td>சுற்றுத் துண்டிப்பான், அடுக்குக்குறி பின்னடைவு, ஒரேநேரக் கோரிக்கைப் பெருக்கத் தடுப்பு, தானியங்கு-சேர்க்கை சுய-குணப்படுத்தல்</td></tr>
-  <tr><td nowrap><b>பதிவாக்கம்</b></td><td>pino — கோரிக்கைச் சூழலுடன் கட்டமைக்கப்பட்ட JSON பதிவுகள்</td></tr>
-  <tr><td nowrap><b>சோதனை</b></td><td>Node.js சோதனை இயக்கி + Vitest — 5,100+ கண்காணிக்கப்படும் சோதனைக் கோப்புகளில் <b>39,000+ நிலையான சோதனை அறிவிப்புகள்</b> (அலகு, ஒருங்கிணைப்பு, E2E, பாதுகாப்பு, சூழலமைப்பு)</td></tr>
+  <tr><td nowrap><b>தொடரோட்டம்</b></td><td>Server-Sent Events (SSE) + WebSocket இணைப்புப் பாலம் (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>சுருக்கம்</b></td><td>12-பொறி செயலாக்கத் தொடர் — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>அங்கீகாரம் &amp; பாதுகாப்பு</b></td><td>OAuth 2.0 (PKCE) + JWT + API விசைகள் + MCP வரம்பிடப்பட்ட அங்கீகாரம் · சேமிப்பில் AES-256-GCM குறியாக்கம் · DOMPurify</td></tr>
+  <tr><td nowrap><b>மறைநிலை</b></td><td>wreq-js — JA3 / JA4 TLS கைரேகைப் போலாக்கம், 3-நிலை பதிலி</td></tr>
+  <tr><td nowrap><b>மீள்திறன்</b></td><td>சுற்றுத் துண்டிப்பான், அதிவேகப் பின்னடைவு, ஒரேநேரக் கோரிக்கைப் பெருக்கத் தடுப்பு, தானியங்குச் சேர்க்கை சுய-சீரமைப்பு</td></tr>
+  <tr><td nowrap><b>பதிவிடுதல்</b></td><td>pino — கோரிக்கைச் சூழலுடன் கட்டமைக்கப்பட்ட JSON பதிவுகள்</td></tr>
+  <tr><td nowrap><b>சோதனை</b></td><td>Node.js சோதனை இயக்கி + Vitest — 5,100+ கண்காணிக்கப்படும் சோதனைக் கோப்புகள் முழுவதிலும் <b>39,000+ நிலையான சோதனை அறிவிப்புகள்</b> (அலகு, ஒருங்கிணைப்பு, E2E, பாதுகாப்பு, சூழலமைப்பு)</td></tr>
   <tr><td nowrap><b>தளங்கள்</b></td><td>மேசைக்கணினி (Electron) · Android (Termux) · PWA (எந்த உலாவியும்)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — வெளியீட்டின்போது தானியங்கு npm வெளியீடு + Docker Hub</td></tr>
   <tr><td nowrap><b>இணைப்புகள்</b></td><td><a href="https://omniroute.online">இணையதளம்</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
@@ -1737,7 +1737,7 @@ MIT உரிமம் - விவரங்களுக்கு [LICENSE](LICEN
 
 **[⬆ மேலே திரும்பு](#-omniroute)** · திறந்த மூல AI சமூகத்திற்காக ❤️ உடன் உருவாக்கப்பட்டது.
 
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · MIT உரிமம் · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.52 · Node ≥22.22.2 · MIT உரிமம் · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- சமூகக் கேள்வி-பதில்களுக்காக GitHub Discussions இயக்கப்பட்டுள்ளது -->

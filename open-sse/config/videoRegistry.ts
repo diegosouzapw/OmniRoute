@@ -10,6 +10,7 @@ import { GROK_BUILD_PROXY_BASE_URL } from "./grokBuild.ts";
 import { RUNWAYML_SUPPORTED_VIDEO_MODELS } from "./runway.ts";
 import { SEGMIND_VIDEO_MODELS } from "./providers/registry/segmind/videoModels.ts";
 import { toRegistryVideoModels } from "../services/adobeFireflyModels.ts";
+import { toRegistryVideoModels as toSyntxVideoModels } from "../services/syntxMediaCatalog.ts";
 
 interface VideoModel {
   id: string;
@@ -492,6 +493,15 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
       "NanoGPT video endpoint returns 404 — no video route is published under " +
       "/api/v1/video(s)/generations. Use another video provider.",
     models: [{ id: "default", name: "NanoGPT Video" }],
+  },
+  syntx: {
+    id: "syntx",
+    alias: "stx",
+    baseUrl: "https://api.syntx.ai/api/v1/video/generate",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "syntx-video",
+    models: toSyntxVideoModels(),
   },
 };
 

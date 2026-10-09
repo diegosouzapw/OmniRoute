@@ -1,0 +1,1 @@
+- fix(usage): scale Claude extra-usage amounts by decimal_places so SGD 60.00 no longer shows as 6,000.00 (#15635)

@@ -603,8 +603,8 @@ test("Chat Completions -> Responses: an upstream error arriving after a deferred
     undefined,
     "an upstream error must win over a deferred length cutoff, not surface as incomplete"
   );
-  const failedEvent = events.find((e) => e.event === "response.completed");
-  assert.ok(failedEvent, "response.completed carries the failed status in this translator");
+  const failedEvent = events.find((e) => e.event === "response.failed");
+  assert.ok(failedEvent, "response.failed carries the failed status in this translator");
   assert.equal(failedEvent.data.response.status, "failed");
   assert.ok(failedEvent.data.response.error, "must carry the upstream error");
 });

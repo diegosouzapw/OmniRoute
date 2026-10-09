@@ -73,6 +73,15 @@ function getGuardrailLogger(context: GuardrailContext) {
   return context.log || console;
 }
 
+function guardrailLogMetadata(meta: Record<string, unknown> | null) {
+  if (!meta || !("videoBridgeLogRedaction" in meta)) return meta ?? undefined;
+  // The shadow contains the original transcript for downstream log redaction.
+  // Keep it in execution results, but never emit it to diagnostic transports.
+  const diagnostic = { ...meta };
+  delete diagnostic.videoBridgeLogRedaction;
+  return diagnostic;
+}
+
 export function resolveDisabledGuardrails({
   apiKeyInfo,
   body,
@@ -173,7 +182,7 @@ export class GuardrailRegistry {
         logger.debug?.(
           "GUARDRAIL",
           `${guardrail.name} pre-call ${execution.blocked ? "blocked" : modified ? "modified" : "passed"}`,
-          meta || undefined
+          guardrailLogMetadata(meta)
         );
 
         if (execution.blocked) {
@@ -249,7 +258,7 @@ export class GuardrailRegistry {
         logger.debug?.(
           "GUARDRAIL",
           `${guardrail.name} post-call ${execution.blocked ? "blocked" : modified ? "modified" : "passed"}`,
-          meta || undefined
+          guardrailLogMetadata(meta)
         );
 
         if (execution.blocked) {

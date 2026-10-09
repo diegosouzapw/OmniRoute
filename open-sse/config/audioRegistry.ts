@@ -10,6 +10,10 @@
 import { getProviderAlias } from "@/shared/constants/providers";
 import { isLoopbackNodeHost } from "@/shared/network/loopbackNodeHost";
 import { hasUnsafeModelIdSyntax } from "../utils/modelIdSafety.ts";
+import {
+  toRegistrySpeechModels as toSyntxSpeechModels,
+  toRegistryTranscriptionModels as toSyntxTranscriptionModels,
+} from "../services/syntxMediaCatalog.ts";
 
 interface AudioModel {
   id: string;
@@ -26,6 +30,7 @@ export interface AudioProvider {
    * id already is the credential key.
    */
   credentialProviderId?: string;
+  alias?: string;
   baseUrl: string;
   authType: string;
   authHeader: string;
@@ -269,6 +274,15 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
       { id: "whisper-1", name: "Whisper 1" },
       { id: "gpt-4o-transcription", name: "GPT-4o Transcription" },
     ],
+  },
+  syntx: {
+    id: "syntx",
+    alias: "stx",
+    baseUrl: "https://api.syntx.ai/api/v1/audio/transcriptions",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "syntx-audio",
+    models: toSyntxTranscriptionModels(),
   },
 };
 
@@ -624,6 +638,15 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     format: "uc-tts",
     models: [{ id: "jade", name: "UC Voice (Jade)" }],
   },
+  syntx: {
+    id: "syntx",
+    alias: "stx",
+    baseUrl: "https://api.syntx.ai/api/v1/audio/speech",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "syntx-audio",
+    models: toSyntxSpeechModels(),
+  },
 };
 
 /**
@@ -667,16 +690,18 @@ export { isLoopbackNodeHost };
  * Build a dynamic AudioProvider from a provider_node DB entry.
  *
  * Loopback nodes keep `authType: "none"` — a local Ollama/LM Studio has no key and
- * must not be blocked on a missing credential. A remote node is the opposite: it is
- * only reachable when the operator opted in, and it must present the credential
- * stored on its connection, so it is built as an api-key provider keyed by the node
- * id (`credentialProviderId`) rather than by the caller-facing prefix.
+ * must not be blocked on a missing credential. Every other node — a remote node the
+ * operator opted into, or a hostname listed in `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS`
+ * (#14635) — must present the credential stored on its connection, so it is built as an
+ * api-key provider keyed by the node id (`credentialProviderId`) rather than by the
+ * caller-facing prefix.
  */
 export function buildDynamicAudioProvider(node: ProviderNodeRow, audioPath: string): AudioProvider {
   if (!node.prefix || !node.baseUrl) {
     throw new Error(`Invalid provider_node: missing prefix or baseUrl`);
   }
   const baseUrl = node.baseUrl.replace(/\/+$/, "");
+  // Auth follows the built-in loopback class only (see above).
   const isLocal = isLoopbackNodeHost(node.baseUrl);
   return {
     id: node.prefix,
