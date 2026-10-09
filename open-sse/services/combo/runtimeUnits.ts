@@ -5,7 +5,8 @@
  * @changes
  * - [2026-07-24] [Composer] - Skip execute-mode units at concurrency cap before dispatch
  */
-import { errorResponse, errorResponseWithComboDiagnostics } from "../../utils/error.ts";
+import { errorResponse } from "../../utils/error.ts";
+import { buildContextBudgetResponse, readBudgetFailure } from "./budgetExhaustion.ts";
 import type { ComboDiagnostics } from "../../utils/error.ts";
 import { recordComboRequest } from "../comboMetrics.ts";
 import { resolveDelayMs, requestScopedReplayKey } from "./comboPredicates.ts";
@@ -214,11 +215,13 @@ export async function executeRuntimeUnitCombo(args: {
   let fallbackCount = 0;
   let observedFailure = false;
   let allObservedFailuresQuota = true;
+  const budgetFailures: Array<Awaited<ReturnType<typeof readBudgetFailure>>> = [];
   const targetFailureTrust = new Map<
     string,
     { observedFailure: boolean; allObservedFailuresQuota: boolean }
   >();
   const observeFailure = async (response: Response, unit: ResolvedComboUnit): Promise<boolean> => {
+    budgetFailures.push(await readBudgetFailure(response));
     const quotaExhausted = await isQuotaExhaustionResponse(
       response,
       unit.kind === "model" ? unit.provider : null,
@@ -280,9 +283,9 @@ export async function executeRuntimeUnitCombo(args: {
       }
       args.nesting.attemptBudget.count += 1;
       if (args.nesting.attemptBudget.count > args.nesting.attemptBudget.limit) {
-        lastResponse = errorResponseWithComboDiagnostics(
-          503,
-          "Maximum combo retry limit reached",
+        lastResponse = buildContextBudgetResponse(
+          budgetFailures.at(-1)?.error,
+          budgetFailures,
           buildAttemptBudgetDiag()
         );
         await observeFailure(lastResponse, unit);

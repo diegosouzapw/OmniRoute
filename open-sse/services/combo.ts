@@ -43,7 +43,7 @@ import { getCachedProviderConnectionById } from "../../src/lib/db/readCache.ts";
 
 import { expandPromptCacheAffinityTargetsFromConnections } from "./combo/promptCacheAffinity.ts";
 
-import { getCachedProviderConnections } from "../../src/lib/db/readCache";
+import { getCachedProviderPoolConnections } from "./providerConnectionPool.ts";
 import {
   resolveResilienceSettings,
   type ResilienceSettings,
@@ -355,7 +355,7 @@ export async function buildAutoCandidates(
   await Promise.all(
     uniqueProviders.map(async (provider) => {
       try {
-        const connections = (await getCachedProviderConnections({
+        const connections = (await getCachedProviderPoolConnections({
           provider,
           isActive: true,
         })) as Array<Record<string, unknown>>;
@@ -909,7 +909,7 @@ async function handleComboChatInner({
 
   let pinnedLockWaitMs = 0;
   if (activeNativeTurnPin) {
-    const activeConnections = (await getCachedProviderConnections({
+    const activeConnections = (await getCachedProviderPoolConnections({
       provider: resolveProviderId(activeNativeTurnPin.provider),
       isActive: true,
     })) as Array<Record<string, unknown>>;

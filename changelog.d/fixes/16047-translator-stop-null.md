@@ -1,0 +1,1 @@
+- **fix(translator):** a null `stop` is dropped instead of being sent as `stop_sequences: [null]` to Claude and `stopSequences: [null]` to Gemini, which both reject it (#16047)

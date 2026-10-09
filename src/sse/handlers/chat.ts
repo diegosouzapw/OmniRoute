@@ -1,3 +1,5 @@
+import { intersectAllowedConnectionIds } from "./chat/connectionConstraints.ts";
+import { hasQoderCallerTools } from "@omniroute/open-sse/services/qoderCapabilities";
 import { randomUUID } from "crypto";
 import { resolveChatRequestBody } from "./requestBody";
 import * as chatAdmission from "./chatAdmission.ts";
@@ -76,7 +78,6 @@ import {
 } from "@/lib/db/sessionAccountAffinity";
 import { dispatchChatWithAffinityEviction } from "./chatDispatch";
 import { getCachedSettings, getCombosCacheVersion } from "@/lib/db/readCache";
-import { intersectAllowedConnectionIds } from "./chat/allowedConnectionIds.ts";
 import { isManagedComboUnsupported } from "./chat/managedComboSupport.ts";
 import * as muse from "./chat/museOwnership.ts";
 import { comboCheckProvider, ghComboGate } from "./chat/githubLiveCatalogFilter.ts";
@@ -1115,6 +1116,7 @@ async function handleChatImplementation(
         allowedConnections,
         resolvedModel,
         {
+          requireToolCalling: hasQoderCallerTools(body),
           sessionKey: sessionAffinityKey,
           ...(target?.allowRateLimitedConnection ? { allowRateLimitedConnections: true } : {}),
           ...(target?.connectionId ? { forcedConnectionId: target.connectionId } : {}),
@@ -1738,6 +1740,7 @@ async function handleSingleModelChat(
               museOwner ? [museOwner.connectionId] : effectiveAllowedConnections,
               model,
               {
+                requireToolCalling: hasQoderCallerTools(body),
                 sessionKey: museOwner ? null : occupancySessionKey,
                 reserveOAuthSession: true,
                 excludeConnectionIds: Array.from(excludedConnectionIds),
@@ -1834,7 +1837,7 @@ async function handleSingleModelChat(
             requestRetryBudgetLeftMs = Math.max(0, requestRetryBudgetLeftMs - retryDecision.waitMs);
             log.info(
               "COOLDOWN_RETRY",
-              `${provider}/${model} cooldown elapsed — restarting request attempt ${requestRetryAttempt + 1}/${retrySettings.maxRetries}`
+              `${provider}/${model} cooldown elapsed — restarting request (retry ${requestRetryAttempt}/${retrySettings.maxRetries})`
             );
             continue requestAttemptLoop;
           }

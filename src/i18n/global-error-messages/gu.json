@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "કંઈક ખોટું થયું",
+      "description": "અણધારિત ભૂલ થઈ છે. આ નોંધવામાં આવી છે અને અમારી ટીમ તપાસ કરશે.",
+      "detailsAriaLabel": "ભૂલ વિગતો",
+      "retryAriaLabel": "પૃષ્ઠને ફરીથી લોડ કરવાનો પ્રયાસ કરો",
+      "tryAgain": "ફરીથી પ્રયાસ કરો",
+      "statusAriaLabel": "સિસ્ટમ સ્થિતિ ખોલો",
+      "systemStatus": "સિસ્ટમ સ્થિતિ"
+    }
+  }
+}

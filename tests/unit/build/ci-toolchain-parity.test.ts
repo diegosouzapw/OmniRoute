@@ -28,7 +28,8 @@ test("release acceptance uses the repository's supported development runtime and
 test("the exact npm version participates in dependency cache identity", () => {
   const cache = action.runs.steps.find((step: { id?: string }) => step.id === "node-modules");
   assert.match(cache.with.key, /steps\.npm\.outputs\.version/);
-  assert.match(cache.with.key, /node-modules-v2-/);
+  assert.match(cache.with.key, /node-modules-v3-/);
+  assert.ok(cache.with.key.includes("scripts/ci/verify-ci-install.mjs"));
   const bootstrap = action.runs.steps.findIndex((step: { id?: string }) => step.id === "npm");
   const restore = action.runs.steps.findIndex(
     (step: { id?: string }) => step.id === "node-modules"

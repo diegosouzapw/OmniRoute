@@ -203,15 +203,27 @@ function unauthorized(message: string): Response {
  * reads `undefined` as "no owner filter" — so the anonymous caller landed in the
  * same unfiltered bucket as the operator.
  */
-export function resolveListScope(scope: ApiKeyRequestScope): OwnedListScope {
-  if (scope.apiKey && !scope.apiKeyId) {
+export function resolveListScope(
+  scope: ApiKeyRequestScope,
+  policy?: {
+    apiKey: string | null;
+    apiKeyInfo: { id: string; scopes?: string[] } | null;
+  }
+): OwnedListScope {
+  // Call only after policy.rejection has been handled. Bare x-api-key is
+  // resolved by policy even when the legacy extractor cannot see it (#14481).
+  // Preserve the presented key so an unknown key cannot fall back to a session.
+  const apiKey = scope.apiKey ?? policy?.apiKey;
+  const apiKeyId = scope.apiKeyId ?? policy?.apiKeyInfo?.id;
+  const metadata = scope.apiKeyMetadata ?? policy?.apiKeyInfo;
+  if (apiKey && !apiKeyId) {
     return { mode: "rejected", response: unauthorized("Invalid API key") };
   }
-  if (scope.apiKeyId && hasManageScope(scope.apiKeyMetadata?.scopes ?? [])) {
+  if (apiKeyId && hasManageScope(metadata?.scopes ?? [])) {
     return { mode: "instance" };
   }
-  if (scope.apiKeyId) {
-    return { mode: "api_key", apiKeyId: scope.apiKeyId };
+  if (apiKeyId) {
+    return { mode: "api_key", apiKeyId };
   }
   if (scope.isSessionAuth) {
     return { mode: "instance" };

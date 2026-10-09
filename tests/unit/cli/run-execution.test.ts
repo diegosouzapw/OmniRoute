@@ -11,6 +11,14 @@ import { runCliTarget } from "../../../bin/cli/commands/run.mjs";
 const originalFetch = globalThis.fetch;
 const originalPath = process.env.PATH;
 
+// All executable fixtures below are POSIX scripts. Keep that capability check in one
+// place; each case is still registered and reports its own skip on Windows.
+function requirePosix(t: import("node:test").TestContext): boolean {
+  if (process.platform !== "win32") return true;
+  t.skip("POSIX executable/signal fixture; Windows behavior has launcher-specific tests");
+  return false;
+}
+
 async function makeFakeCli(name: string, body: string) {
   const dir = await mkdtemp(path.join(os.tmpdir(), "omniroute-run-cli-"));
   const file = path.join(dir, name);
@@ -41,10 +49,7 @@ for (const remote of [
   "https://relay.example.test/v1/",
 ]) {
   test(`run Aider uses one /v1 API suffix for ${remote} and preserves exit code`, async (t) => {
-    if (process.platform === "win32") {
-      t.skip("POSIX fake executable; Windows shim behavior is covered by launch tests");
-      return;
-    }
+    if (!requirePosix(t)) return;
 
     const capture = await mkdtemp(path.join(os.tmpdir(), "omniroute-run-capture-"));
     const capturePath = path.join(capture, "aider.json");
@@ -83,10 +88,7 @@ process.exit(7);`
 }
 
 test("run gives Gemini an isolated GEMINI_CLI_HOME forcing api-key auth and removes it", async (t) => {
-  if (process.platform === "win32") {
-    t.skip("POSIX fake executable; Windows shim behavior is covered by launch tests");
-    return;
-  }
+  if (!requirePosix(t)) return;
 
   const capture = await mkdtemp(path.join(os.tmpdir(), "omniroute-run-gemini-capture-"));
   const capturePath = path.join(capture, "gemini.json");
@@ -132,10 +134,7 @@ fs.writeFileSync(${JSON.stringify(capturePath)}, JSON.stringify({
 });
 
 test("run gives Qwen an isolated temporary home and removes it after exit", async (t) => {
-  if (process.platform === "win32") {
-    t.skip("POSIX fake executable; Windows shim behavior is covered by launch tests");
-    return;
-  }
+  if (!requirePosix(t)) return;
 
   const capture = await mkdtemp(path.join(os.tmpdir(), "omniroute-run-qwen-capture-"));
   const capturePath = path.join(capture, "qwen.json");
@@ -177,10 +176,7 @@ fs.writeFileSync(${JSON.stringify(capturePath)}, JSON.stringify({
 });
 
 test("run waits for a signalled child to close before removing its temporary home", async (t) => {
-  if (process.platform === "win32") {
-    t.skip("POSIX signals; Windows lifecycle is covered by launcher-specific tests");
-    return;
-  }
+  if (!requirePosix(t)) return;
 
   const capture = await mkdtemp(path.join(os.tmpdir(), "omniroute-run-signal-capture-"));
   const readyPath = path.join(capture, "ready");
@@ -226,10 +222,7 @@ setInterval(() => {}, 1000);`
 });
 
 test("legacy Claude launcher resolves only after a signalled child closes", async (t) => {
-  if (process.platform === "win32") {
-    t.skip("POSIX signals; Windows lifecycle is covered by launcher-specific tests");
-    return;
-  }
+  if (!requirePosix(t)) return;
 
   const capture = await mkdtemp(path.join(os.tmpdir(), "omniroute-claude-signal-"));
   const readyPath = path.join(capture, "ready");
@@ -273,10 +266,7 @@ setInterval(() => {}, 1000);`
 });
 
 test("legacy Codex launcher resolves only after a signalled child closes", async (t) => {
-  if (process.platform === "win32") {
-    t.skip("POSIX signals; Windows lifecycle is covered by launcher-specific tests");
-    return;
-  }
+  if (!requirePosix(t)) return;
 
   const capture = await mkdtemp(path.join(os.tmpdir(), "omniroute-codex-signal-"));
   const readyPath = path.join(capture, "ready");

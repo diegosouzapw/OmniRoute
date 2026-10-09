@@ -1,5 +1,4 @@
-/** Allowed-connection id list helpers for handleSingleModelChat (extracted from chat.ts). */
-
+/** Intersect key, quota and pinned-target connection scopes without widening either. */
 function normalizeAllowedConnectionIds(value: unknown): string[] | null {
   if (!Array.isArray(value)) return null;
   const ids = value.filter(

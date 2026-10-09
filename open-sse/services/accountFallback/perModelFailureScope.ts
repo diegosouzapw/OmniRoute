@@ -25,6 +25,45 @@ export function isModelNotFound404(status: number | undefined, errorText: unknow
   return MODEL_NOT_FOUND_404_REGEX.test(text);
 }
 
+function namesExactModel(
+  text: string,
+  marker: string,
+  model: string,
+  allowUrlSuffix = false
+): boolean {
+  const token = `${marker}${model}`;
+  const index = text.indexOf(token);
+  if (index < 0) return false;
+  const following = text[index + token.length];
+  return (
+    following === undefined ||
+    /[\s,;)]/.test(following) ||
+    (allowUrlSuffix && /[?#]/.test(following))
+  );
+}
+
+/** Only explicit attribution to the current model can narrow a 413/504 failure. */
+export function isExplicitModelCapacityFailure(
+  status: number | undefined,
+  errorText: unknown,
+  model: string | null | undefined
+): boolean {
+  if (!model || (status !== 413 && status !== 504)) return false;
+  const text = (typeof errorText === "string" ? errorText : JSON.stringify(errorText ?? ""))
+    .replace(/[`"']/g, "")
+    .toLowerCase();
+  const id = model.toLowerCase();
+  if (status === 413) {
+    return namesExactModel(text, "request too large for model ", id);
+  }
+  if (!/timeout|timed out/i.test(text)) return false;
+  return (
+    namesExactModel(text, `/models/${id}:`, "streamgeneratecontent", true) ||
+    namesExactModel(text, `/models/${id}:`, "generatecontent", true) ||
+    namesExactModel(text, "model ", id)
+  );
+}
+
 /**
  * @param status - When 429, only per-model *quota* providers qualify. Omit for
  *   the non-quota question (404/5xx), which also includes Claude.
@@ -36,7 +75,11 @@ export function hasPerModelFailureScope(
   status?: number,
   errorText?: unknown
 ): boolean {
-  if (isModelNotFound404(status, errorText)) return true;
+  if (
+    isModelNotFound404(status, errorText) ||
+    isExplicitModelCapacityFailure(status, errorText, model)
+  )
+    return true;
   if (status === 429) return hasPerModelQuota(provider, model, connectionPassthroughModels);
   if (hasPerModelQuota(provider, model, connectionPassthroughModels)) return true;
   if (typeof connectionPassthroughModels === "boolean") return connectionPassthroughModels;

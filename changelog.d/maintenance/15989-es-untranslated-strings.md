@@ -1,0 +1,1 @@
+- **fix(i18n):** translate 63 untranslated and half-English Spanish UI strings ([#15989](https://github.com/diegosouzapw/OmniRoute/pull/15989)) — thanks @pacocartones

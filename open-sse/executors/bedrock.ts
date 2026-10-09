@@ -390,12 +390,18 @@ function convertStopReason(reason) {
 function usageFromBedrock(usage) {
   const input = Number(usage?.inputTokens || 0);
   const output = Number(usage?.outputTokens || 0);
+  // Converse reports cache usage as `cacheReadInputTokens` / `cacheWriteInputTokens`, and
+  // `inputTokens` then counts only the NON-cached input. OpenAI-style `prompt_tokens` is the
+  // whole prompt (cached tokens included), which is also what the cost calculator expects.
+  const cacheRead = Number(usage?.cacheReadInputTokens || 0);
+  const cacheWrite = Number(usage?.cacheWriteInputTokens || 0);
+  const promptTokens = input + cacheRead + cacheWrite;
   return {
-    prompt_tokens: input,
+    prompt_tokens: promptTokens,
     completion_tokens: output,
-    total_tokens: Number(usage?.totalTokens || input + output),
-    cache_read_input_tokens: Number(usage?.cacheReadInputTokenCount || 0),
-    cache_creation_input_tokens: Number(usage?.cacheWriteInputTokenCount || 0),
+    total_tokens: Number(usage?.totalTokens || promptTokens + output),
+    cache_read_input_tokens: cacheRead,
+    cache_creation_input_tokens: cacheWrite,
   };
 }
 

@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "حدث خطأ ما",
+      "description": "حدث خطأ غير متوقع. تم تسجيل هذا وسيتحقق فريقنا منه.",
+      "detailsAriaLabel": "تفاصيل الخطأ",
+      "retryAriaLabel": "إعادة تحميل الصفحة",
+      "tryAgain": "حاول مرة أخرى",
+      "statusAriaLabel": "فتح حالة النظام",
+      "systemStatus": "حالة النظام"
+    }
+  }
+}

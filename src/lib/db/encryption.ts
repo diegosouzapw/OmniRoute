@@ -100,7 +100,10 @@ function ensureSecretLoaded(): string | undefined {
         for (const line of content.split("\n")) {
           const trimmed = line.trim();
           if (trimmed.startsWith("STORAGE_ENCRYPTION_KEY=")) {
-            const val = trimmed.split("=", 2)[1]?.trim().replace(/^["'](.*)["']$/, "$1");
+            const val = trimmed
+              .split("=", 2)[1]
+              ?.trim()
+              .replace(/^["'](.*)["']$/, "$1");
             if (val) {
               process.env.STORAGE_ENCRYPTION_KEY = val;
               return val;
@@ -162,6 +165,41 @@ function getLegacyDynamicKey(): Buffer | null {
 /** Check if encryption is enabled. */
 export function isEncryptionEnabled(): boolean {
   return !!ensureSecretLoaded();
+}
+
+/**
+ * Loud production warning when STORAGE_ENCRYPTION_KEY is unset.
+ *
+ * Dev/test keep the plaintext passthrough. In production the same empty-key
+ * contract applies (`.env.example`: "Leave empty to disable DB encryption";
+ * `docs/reference/ENVIRONMENT.md`: "empty = disabled"). Exiting here would
+ * crash-loop Docker, which sets NODE_ENV=production and starts from that
+ * example env. The box is logged once at boot and the process keeps serving.
+ *
+ * Call once from `src/instrumentation-node.ts`, not from encrypt()/decrypt().
+ * `encryptionEnabled` is injectable so a test can reach this branch without
+ * reading the operator's `.env`.
+ */
+export function assertEncryptionKeyConfiguredForProduction(
+  env: NodeJS.ProcessEnv = process.env,
+  logger: Pick<Console, "error"> = console,
+  encryptionEnabled: () => boolean = isEncryptionEnabled
+): void {
+  if (isTestContext()) return;
+  if (env.NODE_ENV !== "production") return;
+  if (encryptionEnabled()) return;
+
+  logger.error("");
+  logger.error("═══════════════════════════════════════════════════");
+  logger.error("  ⚠  STARTUP: STORAGE_ENCRYPTION_KEY is not set");
+  logger.error("═══════════════════════════════════════════════════");
+  logger.error("  • Credential encryption is disabled. Provider credentials (API keys,");
+  logger.error("    OAuth tokens) will be stored in plaintext. An empty key is the");
+  logger.error("    documented default, so startup continues.");
+  logger.error("    → Generate a key with: openssl rand -base64 32");
+  logger.error("    → Set STORAGE_ENCRYPTION_KEY and restart to encrypt credentials at rest.");
+  logger.error("═══════════════════════════════════════════════════");
+  logger.error("");
 }
 
 /**
@@ -364,12 +402,14 @@ export function decryptConnectionFields<T extends ConnectionFields | null | unde
 
   if (credentialDecryptFailed) {
     const failed: Array<{ field: string; value: unknown }> = [];
-    if (looksEncrypted(row.apiKey) && apiKey === null) failed.push({ field: "apiKey", value: row.apiKey });
+    if (looksEncrypted(row.apiKey) && apiKey === null)
+      failed.push({ field: "apiKey", value: row.apiKey });
     if (looksEncrypted(row.accessToken) && accessToken === null)
       failed.push({ field: "accessToken", value: row.accessToken });
     if (looksEncrypted(row.refreshToken) && refreshToken === null)
       failed.push({ field: "refreshToken", value: row.refreshToken });
-    if (looksEncrypted(row.idToken) && idToken === null) failed.push({ field: "idToken", value: row.idToken });
+    if (looksEncrypted(row.idToken) && idToken === null)
+      failed.push({ field: "idToken", value: row.idToken });
 
     const connectionId = typeof row.id === "string" ? row.id : "";
     const provider = typeof row.provider === "string" ? row.provider : "unknown";

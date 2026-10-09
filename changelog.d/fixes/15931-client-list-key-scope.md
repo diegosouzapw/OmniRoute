@@ -1,0 +1,1 @@
+- **fix(auth):** Preserve the validated API key owner and management scope on file and batch list requests sent with a bare `x-api-key`, including requests carrying a dashboard session; reject unknown keys instead of falling back to session visibility ([#15931](https://github.com/diegosouzapw/OmniRoute/pull/15931)).

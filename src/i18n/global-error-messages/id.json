@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "Sesuatu telah salah",
+      "description": "Terjadi kesalahan yang tidak terduga. Ini telah dicatat dan tim kami akan menyelidiki.",
+      "detailsAriaLabel": "Rincian kesalahan",
+      "retryAriaLabel": "Coba muat ulang halaman tersebut",
+      "tryAgain": "Coba Lagi",
+      "statusAriaLabel": "Buka status sistem",
+      "systemStatus": "Status Sistem"
+    }
+  }
+}
