@@ -1,0 +1,1 @@
+- **fix(ci):** the quality-rail membership guard (G0) pins `cycles` in the fast-gates `ratchet_gates` array, completing the #15590 landing whose squash omitted the matching test update — every PR off `release/v3.8.52` was red on `Unit Tests (3/8)` + `fast-path (3/4)` over the stale gate-membership needle (#15682)

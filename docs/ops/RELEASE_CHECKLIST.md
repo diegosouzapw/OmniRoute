@@ -137,7 +137,7 @@ matrix automatically, without any label.
 - [ ] `npm run lint` — 0 errors (warnings are pre-existing)
 - [ ] `npm run typecheck:core` — clean
 - [ ] `npm run typecheck:noimplicit:core` — clean (strict)
-- [ ] `npm run check:cycles` — no circular deps
+- [ ] `npm run check:cycles:ratchet` — within the frozen `metrics.cycles` ceiling (bare `check:cycles` exits 1 on any cycle, #15281)
 - [ ] `npm run check:any-budget:t11` — within budget
 - [ ] `npm run check:route-validation:t06` — clean
 - [ ] `npm run check:node-runtime` — supported runtime floor met (`>=22.22.2 <23`, `>=24.0.0 <27`, per `SUPPORTED_NODE_RANGE` in `src/shared/utils/nodeRuntimeSupport.ts`; aligned with `package.json` `engines`)
