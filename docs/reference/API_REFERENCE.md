@@ -993,6 +993,29 @@ verdicts; the second stage can still produce its requested visible reasoning as 
 | `/api/modality-bridge/video/runtime` | GET        | Strict trusted-loopback check before management auth/probe; sanitized FFmpeg/ffprobe availability and versions (no-store)                                                                                                                                                                                                                                                                    |
 | `/api/modality-bridge/video/extract` | POST       | Internal authenticated trusted-loopback byte broker; 50 MiB input, bounded queue/32 MiB output, `503` capacity, `499` disconnect, `504` deadline; not a public upload API                                                                                                                                                                                                                    |
 
+### Video frame drill-down
+
+`GET /api/v1/video-bridge/drilldown` reads a tenant-bound opaque handle returned in
+`x-omniroute-video-drilldown` after an explicitly consented Video Bridge request.
+Both reads and `DELETE` always require a valid API key and the operator's independent
+`modalityBridgeVideoDrilldownRemoteEnabled` permission. Production retention additionally
+requires `modalityBridgeVideoDrilldownEnabled` and strict per-part `drilldown: true`.
+
+GET query: required `handle`; optional `variant` (`preview`, `standard`, `detail`),
+`frames` (1–8), zero-based `page`, and `start`/`end` seconds. When both focus bounds
+are supplied, `end` must be greater than `start`. Duplicate/unknown query keys are
+rejected. Successful responses contain `derivation`, `durationSeconds`, `frames`,
+`hasMore`, `page`, `variant`, and optional `focusWindow`; no-store JSON is capped at
+32 MiB including Base64. Oversized output returns 413; request fewer frames.
+
+`DELETE /api/v1/video-bridge/drilldown?handle=...` returns `{ "removed": 0|1 }`.
+Unknown, expired and cross-key GETs are indistinguishable 404 responses; cross-key
+DELETE cannot remove the owner's entry. Disabled access returns 403, missing/invalid
+authentication 401, invalid queries 400, cancellation 499 and temporary errors 503.
+Handles are process-local, expire after ten minutes, and do not survive a restart.
+See [Video Bridge guardrails](../security/GUARDRAILS.md#video-bridge-videobridgets-videobridgepipelinets)
+for consent, quotas and variant derivation details.
+
 ### Backup & Export/Import
 
 | Endpoint                    | Method | Description                             |

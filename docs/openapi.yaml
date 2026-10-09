@@ -1557,6 +1557,9 @@ paths:
         "200":
           description: Chat completion response (or SSE stream)
           headers:
+            X-OmniRoute-Video-Drilldown:
+              description: Up to four comma-separated opaque handles after explicitly consented authenticated video analysis; absent without retained frames. Also available on SSE success responses.
+              schema: { type: string, maxLength: 259 }
             X-OmniRoute-Response-Cost:
               schema:
                 type: string
@@ -7060,12 +7063,105 @@ paths:
         "504":
           description: Fixed 120-second broker extraction deadline exceeded
 
+  /api/v1/video-bridge/drilldown:
+    get:
+      tags: [System]
+      summary: Read authenticated tenant-bound video frame variants
+      description: Requires explicit remote drill-down operator consent and an authenticated API key. Resolves an opaque handle from the x-omniroute-video-drilldown chat response header; never accepts a client principal, raw video or session ID. JSON including Base64 is limited to 32 MiB. Unknown, expired and cross-key handles return indistinguishable 404 responses. Handles are process-local and expire after ten minutes or a restart.
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: handle
+          required: true
+          schema: { type: string, pattern: "^[0-9a-f]{64}$" }
+        - in: query
+          name: variant
+          schema: { type: string, enum: [preview, standard, detail], default: detail }
+          description: JPEG maximum dimension 320, 640 or 1280 respectively; never upscaled.
+        - in: query
+          name: frames
+          schema: { type: integer, minimum: 1, maximum: 8 }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 0, default: 0 }
+        - in: query
+          name: start
+          schema: { type: number, minimum: 0 }
+        - in: query
+          name: end
+          schema: { type: number, minimum: 0 }
+          description: Must follow start when both bounds are supplied. Duplicate or unknown query keys are rejected.
+      responses:
+        "200":
+          description: No-store page with actual variant derivation metadata and bounded JPEG frames
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [derivation, durationSeconds, frames, hasMore, page, variant]
+                properties:
+                  derivation:
+                    {
+                      type: object,
+                      description: "Content hash, parent hash, policy, version, creation time and actual JPEG resolution.",
+                    }
+                  durationSeconds: { type: number }
+                  focusWindow: { type: object }
+                  frames:
+                    type: array
+                    maxItems: 8
+                    items:
+                      type: object
+                      required: [dataUri, timestampSeconds, width, height]
+                      properties:
+                        dataUri: { type: string }
+                        timestampSeconds: { type: number }
+                        width: { type: integer }
+                        height: { type: integer }
+                  hasMore: { type: boolean }
+                  page: { type: integer, minimum: 0 }
+                  variant: { type: string, enum: [preview, standard, detail] }
+        "400": { description: Invalid or ambiguous query }
+        "401": { description: Authentication required or invalid API key }
+        "403": { description: Remote access disabled or API-key policy denied }
+        "404": { description: Unknown, expired or cross-key handle }
+        "413": { description: Serialized response exceeds 32 MiB; request fewer frames }
+        "499": { description: Request cancelled }
+        "503": { description: Temporarily unavailable; sanitized error }
+    delete:
+      tags: [System]
+      summary: Delete an authenticated owner's video drill-down handle
+      description: Idempotent; unknown, expired or cross-key handles remove zero entries. Releases retained frames and accounting for the owner only. Remote operator consent and a valid API key are always required.
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: handle
+          required: true
+          schema: { type: string, pattern: "^[0-9a-f]{64}$" }
+      responses:
+        "200":
+          description: No-store deletion result
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [removed]
+                properties:
+                  removed: { type: integer, minimum: 0, maximum: 1 }
+        "400": { description: Invalid handle or ambiguous query }
+        "401": { description: Authentication required or invalid API key }
+        "403": { description: Remote access disabled or API-key policy denied }
+        "499": { description: Request cancelled }
+        "503": { description: Temporarily unavailable; sanitized error }
+
   /api/modality-bridge/video/drilldown:
     get:
       x-loopback-only: true
       tags: [System]
       summary: Read a bounded Video Bridge drill-down slice
-      description: Internal loopback/token-authenticated lookup into a short-lived cache isolated by an opaque principal, session, and media reference. It never downloads media or starts a subprocess; start/end and frame count only select already materialized, canonicalized JPEG frames whose dimensions were derived from their bytes. This cache substrate is not yet wired to the transparent Video Bridge request path and does not yet expose multi-resolution selection.
+      description: Internal loopback/token-authenticated raw cache substrate, isolated by an opaque principal, session and media reference. It never downloads media or starts a subprocess. The transparent producer and authenticated public variant consumer use their own shared opaque-handle lifecycle at /api/v1/video-bridge/drilldown; this raw endpoint does not expose multi-resolution selection.
       security: []
       parameters:
         - in: header

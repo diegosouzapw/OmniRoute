@@ -17,13 +17,11 @@
 //    `audioTranscript` with the sampled visual frame captions
 //    (videoBridgeHelpers.ts::describeVideoPart already does the fusion
 //    internally; this port names that boundary explicitly and is where a
-//    real audio-transcription backend would be substituted).
+//    server STT is composed here by `createVideoSttAdapter`).
 //  - `VideoDrilldownPort` — the frame-zoom persistence boundary
-//    (videoBridgeDrilldown.ts::VideoDrilldownCache.put). NOT wired into
-//    `processVideoPart` yet: today only the separate
-//    `/api/modality-bridge/video/drilldown` route writes drill-down entries.
-//    The type lives here so a future extraction step can seed drill-down
-//    candidates from a processed part without re-deriving the port shape.
+//    (videoBridgeDrilldown.ts::VideoDrilldownCache.put). The production adapter
+//    is composed around the describing port by `createVideoDrilldownAdapter`;
+//    it publishes already-derived frames via the shared tenant-bound lifecycle.
 import { createHash } from "node:crypto";
 
 import { fetch as undiciFetch } from "undici";
@@ -97,8 +95,8 @@ export interface VideoAudioTranscriptionPort {
   describePart: typeof defaultDescribeVideoPart;
 }
 
-/** Frame drill-down persistence boundary (videoBridgeDrilldown.ts). Not yet
- * wired into `processVideoPart` — see the module header note above. */
+/** Legacy raw-store port; the production describing adapter uses the shared
+ * opaque-handle lifecycle rather than exposing raw session/ref keys. */
 export interface VideoDrilldownPort {
   put: VideoDrilldownCache["put"];
 }
