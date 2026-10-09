@@ -76,12 +76,31 @@ test("promotion observations must match the frozen manifest and observed coverag
       data.runFile.cases[0].isSecurityCase = true;
     },
   ];
-  for (const mutate of mutations) {
+  const expectedReasons = [
+    "MANIFEST_BINDING_MISMATCH",
+    "CASE_COVERAGE_MISSING",
+    "OBSERVED_REPETITIONS_MISSING",
+    "MODEL_SEPARATION_REQUIRED",
+    "RUN_CASE_BINDING_MISMATCH",
+    "REQUIRED_METRIC_MISSING_OR_INVALID",
+    "SECURITY_CLASSIFICATION_MISMATCH",
+  ];
+  for (const [index, mutate] of mutations.entries()) {
     const data = evidence();
     mutate(data);
     const report = buildVideoBridgePromotionReport(data.manifest, data.runFile);
     assert.equal(report.fu07.status, "hold");
     assert.equal(report.fu09.status, "hold");
+    assert.ok(report.fu07.reasons.includes(expectedReasons[index]));
+    assert.ok(report.fu09.reasons.includes(expectedReasons[index]));
     assert.ok(!JSON.stringify(report).includes("private response"));
   }
+});
+
+test("unbound legacy observations cannot establish a real independent execution", () => {
+  const data = evidence();
+  const report = buildVideoBridgePromotionReport(data.manifest, data.runFile);
+  assert.equal(report.fu07.status, "hold");
+  assert.ok(report.fu07.reasons.includes("EXECUTION_RECEIPT_MISSING"));
+  assert.ok(report.fu09.reasons.includes("EXECUTION_RECEIPT_MISSING"));
 });

@@ -43,7 +43,11 @@ import {
   evaluateFu09Promotion,
   type PromotionVerdict,
 } from "../../src/lib/guardrails/videoBridgePromotionEvaluator";
-import { validatePromotionEvidence } from "../../src/lib/guardrails/videoBridgePromotionEvidence";
+import {
+  validatePromotionEvidence,
+  promotionExecutionSchema,
+  type PromotionExecutionReceipt,
+} from "../../src/lib/guardrails/videoBridgePromotionEvidence";
 import {
   videoBridgePromotionManifestSchema,
   videoBridgePromotionMetricNameSchema,
@@ -76,6 +80,7 @@ export const videoBridgePromotionRunFileSchema = z
   .object({
     cases: z.array(videoBridgePromotionCaseObservationsSchema).min(1),
     manifestId: z.string().min(1),
+    execution: promotionExecutionSchema.optional(),
   })
   .strict();
 
@@ -83,7 +88,7 @@ export type VideoBridgePromotionRunFile = z.infer<typeof videoBridgePromotionRun
 
 export interface VideoBridgePromotionReport {
   candidateModel: string | null;
-  execution: { state: "executed" | "not-configured" };
+  execution: { state: "executed" | "not-configured"; receipt?: PromotionExecutionReceipt };
   fu07: PromotionVerdict;
   fu09: PromotionVerdict;
   generatedAt: string;
@@ -230,7 +235,7 @@ export function buildVideoBridgePromotionReport(
 
   return {
     candidateModel: resolveModel(runFile, "candidate"),
-    execution: { state: "executed" },
+    execution: { state: "executed", ...(runFile.execution ? { receipt: runFile.execution } : {}) },
     fu07,
     fu09,
     generatedAt: new Date().toISOString(),
