@@ -2,6 +2,8 @@
 FROM node:26-trixie-slim AS base
 WORKDIR /app
 
+ARG BUN_VERSION=1.4.2
+
 # `apt-get upgrade` pulls the security-patched versions of the Debian (trixie)
 # base-image packages at build time — clears the subset of container-scan CVEs
 # (perl / util-linux / systemd / ncurses / zlib / tar / sqlite / shadow / pam …)

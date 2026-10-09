@@ -485,6 +485,18 @@
     "protobufjs": true,
     "unrs-resolver": true
   },
+  "trustedDependencies": [
+    "@parcel/watcher",
+    "@swc/core",
+    "better-sqlite3",
+    "esbuild",
+    "keytar",
+    "libxmljs2",
+    "onnxruntime-node",
+    "protobufjs",
+    "sharp",
+    "unrs-resolver"
+  ],
   "overrides": {
     "browserslist": "^4.28.8",
     "joi": "^18.2.9",
