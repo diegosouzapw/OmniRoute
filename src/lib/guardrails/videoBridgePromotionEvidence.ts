@@ -12,6 +12,7 @@ export const promotionExecutionSchema = z
   .object({
     runId: z.uuid(),
     candidateSha: z.string().regex(/^[a-f0-9]{40}$/),
+    modelRevision: z.string().min(1).optional(),
     manifestDigest: z.string().regex(/^[a-f0-9]{64}$/),
     startedAt: z.iso.datetime(),
     finishedAt: z.iso.datetime(),
@@ -181,6 +182,7 @@ export function validatePromotionEvidence(
     blockers.add("COMPARISON_NOT_DECLARED");
   }
   const receipt = evidence.execution;
+  if (!receipt?.modelRevision) blockers.add("MODEL_REVISION_MISSING");
   if (!receipt) blockers.add("EXECUTION_RECEIPT_MISSING");
   else if (
     !promotionExecutionSchema.safeParse(receipt).success ||

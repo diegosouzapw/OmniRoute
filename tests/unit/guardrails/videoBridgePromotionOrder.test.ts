@@ -39,6 +39,7 @@ function completeEvidence() {
     execution: {
       runId: randomUUID(),
       candidateSha: "a".repeat(40),
+      modelRevision: "unit-only-model-revision",
       manifestDigest: buildPromotionManifestDigest(manifest),
       realModel: true as const,
       startedAt: "2026-10-09T10:00:00.000Z",

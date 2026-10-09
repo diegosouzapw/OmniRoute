@@ -13,6 +13,7 @@ function report(startedAt: string, finishedAt: string, digest: string) {
       receipt: {
         runId: randomUUID(),
         candidateSha: "a".repeat(40),
+        modelRevision: "same-model-revision-2026-10",
         manifestDigest: "b".repeat(64),
         startedAt,
         finishedAt,
@@ -43,6 +44,8 @@ test("promotion requires two distinct consecutive eligible executions of the sam
   );
   for (const patch of [
     { candidateSha: "e".repeat(40) },
+    { modelRevision: "different-revision" },
+    { modelRevision: undefined },
     { manifestDigest: "e".repeat(64) },
     { runId: first.execution.receipt.runId },
     { orderSeed: first.execution.receipt.orderSeed },

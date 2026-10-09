@@ -56,6 +56,7 @@ function validReport(report: PromotionRunReceipt): boolean {
   return (
     report.execution.state === "executed" &&
     promotionExecutionSchema.safeParse(report.execution.receipt).success &&
+    Boolean(report.execution.receipt?.modelRevision) &&
     typeof report.candidateModel === "string" &&
     report.candidateModel.length > 0 &&
     typeof report.observationsDigest === "string" &&
@@ -79,6 +80,7 @@ export function confirmVideoBridgePromotionRuns(
   const right = second.execution.receipt!;
   if (
     left.candidateSha !== right.candidateSha ||
+    left.modelRevision !== right.modelRevision ||
     left.manifestDigest !== right.manifestDigest ||
     first.candidateModel !== second.candidateModel
   )
