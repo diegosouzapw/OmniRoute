@@ -71,8 +71,11 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: "26"
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: ./.github/actions/bun-install
       # #8090 — this is the ONLY Node 26 build in the whole CI matrix (ci.yml pins
       # CI_NODE_VERSION=24). It failed every nightly with the runner-reclaimed
       # signature ("The runner has received a shutdown signal" / "The operation was
@@ -84,7 +87,7 @@ jobs:
       # validates that the app *builds* on Node 26 (the point of this compat job) at a
       # much lower memory peak. Turbopack-on-Node-24 stays covered by ci.yml's build
       # job. See docs/reference/ENVIRONMENT.md (OMNIROUTE_USE_TURBOPACK) and #6409.
-      - run: npm run build
+      - run: bun run build
         env:
           OMNIROUTE_USE_TURBOPACK: "0"
 
@@ -112,10 +115,13 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:node-runtime
-      - run: npm run test:unit:ci:shard
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: ./.github/actions/bun-install
+      - run: bun run check:node-runtime
+      - run: bun run test:unit:ci:shard
 
   report:
     name: Open / update tracking issue on failure

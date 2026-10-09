@@ -21,13 +21,16 @@ jobs:
         with:
           persist-credentials: false
       - uses: actions/setup-node@v7
-        with: { node-version: "24", cache: npm }
-      - run: npm ci
+        with: { node-version: "24", package-manager-cache: false }
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: ./.github/actions/bun-install
       - name: Build CLI bundle
         env:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
           OMNIROUTE_BUILD_BACKEND_ONLY: "1"
-        run: npm run build:cli
+        run: bun run build:cli
       - name: Start OmniRoute (background)
         env:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation

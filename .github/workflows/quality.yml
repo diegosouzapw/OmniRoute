@@ -46,7 +46,7 @@ jobs:
           package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
       - name: Validate gate inventory
-        run: npm run check:gate-manifest
+        run: bun run check:gate-manifest
       - id: classify
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -83,14 +83,17 @@ jobs:
         with:
           package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-      - uses: ./.github/actions/npm-ci-retry
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: ./.github/actions/bun-install
         with:
           # PR acceleration is not release-candidate provenance.
           cache: ${{ github.event_name == 'pull_request' }}
       # One walk of src/app/api for openapi-routes + docs-symbols (both still fail independently).
-      - run: npm run check:api-docs-refs
+      - run: bun run check:api-docs-refs
       - name: Docs accuracy (fabricated-docs + i18n mirrors, strict)
-        run: npm run check:docs-all
+        run: bun run check:docs-all
 
   fast-gates:
     name: Fast Quality Gates
@@ -130,7 +133,10 @@ jobs:
         with:
           package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-      - uses: ./.github/actions/npm-ci-retry
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: ./.github/actions/bun-install
         with:
           # PR acceleration is not release-candidate provenance.
           cache: ${{ github.event_name == 'pull_request' }}
@@ -141,7 +147,7 @@ jobs:
           path: |
             .eslintcache
             .eslintcache-complexity
-          key: eslint-${{ runner.os }}-${{ hashFiles('eslint.config.mjs', 'eslint.complexity-ratchets.config.mjs', 'config/quality/eslint-suppressions.json', 'package-lock.json') }}
+          key: eslint-${{ runner.os }}-${{ hashFiles('eslint.config.mjs', 'eslint.complexity-ratchets.config.mjs', 'config/quality/eslint-suppressions.json', 'bun.lock') }}
           # No restore-keys fallback on purpose (#11600, P-II.1 of the v3.8.50 postmortem): a
           # cache built under a different suppressions file / lint config / lockfile reports
           # stale per-file verdicts, which is exactly how 215 pre-existing errors stayed
@@ -257,22 +263,22 @@ jobs:
             # release. See scripts/check/newCodeMode.mjs.
             case "$g" in file-size|complexity-ratchets|dead-code) NEW_CODE=1 ;; *) NEW_CODE= ;; esac
             if [ -n "$NEW_CODE" ] && [ -n "${PR_BASE_SHA:-}" ]; then
-              npm run "check:$g" -- --base-ref "$PR_BASE_SHA" || failed+=("$g")
+              bun run "check:$g" -- --base-ref "$PR_BASE_SHA" || failed+=("$g")
             else
-              npm run "check:$g" || failed+=("$g")
+              bun run "check:$g" || failed+=("$g")
             fi
             echo "::endgroup::"
           done
           for g in "${ratchet_gates[@]}"; do
             echo "::group::check:$g (ratchet)"
-            npm run "check:$g" -- --ratchet || failed+=("$g")
+            bun run "check:$g" -- --ratchet || failed+=("$g")
             echo "::endgroup::"
           done
           echo "::group::typecheck:core"
-          npm run typecheck:core || failed+=("typecheck:core")
+          bun run typecheck:core || failed+=("typecheck:core")
           echo "::endgroup::"
           echo "::group::check:dashboard-typecheck"
-          npm run check:dashboard-typecheck || failed+=("check:dashboard-typecheck")
+          bun run check:dashboard-typecheck || failed+=("check:dashboard-typecheck")
           echo "::endgroup::"
           # #10134: TS7 zero-new-diagnostics ratchet — folded into this non-fail-fast
           # loop (never a separate blocking step) so an earlier red gate cannot abort
@@ -280,7 +286,7 @@ jobs:
           # comparison needs the PR base SHA (empty on workflow_dispatch).
           if [ -n "${PR_BASE_SHA:-}" ]; then
             echo "::group::check:ts7-diagnostics-ratchet"
-            npm run check:ts7-diagnostics-ratchet -- --base-ref "$PR_BASE_SHA" || failed+=("ts7-diagnostics-ratchet")
+            bun run check:ts7-diagnostics-ratchet -- --base-ref "$PR_BASE_SHA" || failed+=("ts7-diagnostics-ratchet")
             echo "::endgroup::"
           fi
           if (( ${#failed[@]} )); then
@@ -290,7 +296,7 @@ jobs:
       # WS4.2 (v3.8.49 plan): TypeScript 7 native-compiler SHADOW — advisory only.
       # TS7 went GA 2026-07-08 with 8-12x type-check speedups; its Compiler API only
       # arrives in 7.1, so typescript-eslint / type-coverage / Stryker stay on 6.x
-      # (the hybrid is the officially documented pattern). Isolated npx on purpose:
+      # (the hybrid is the officially documented pattern). Isolated bunx --no-install on purpose:
       # installing an alias package could collide node_modules/.bin/tsc with 6.x.
       # The full result stays advisory while #8484 has a backlog. The blocking
       # base-relative ratchet (folded into the non-fail-fast gates step above)
@@ -301,7 +307,7 @@ jobs:
         run: |
           RC=0
           START=$(date +%s)
-          npm exec --yes --package=typescript@7.0.2 -- tsc --pretty false -p tsconfig.typecheck-core.json || RC=$?
+          bunx --package typescript@7.0.2 tsc --pretty false -p tsconfig.typecheck-core.json || RC=$?
           echo "[ts7-shadow] exit=$RC elapsed=$(( $(date +%s) - START ))s — the 6.x step above stays authoritative"
           exit $RC
       # TIA: build the impact map at runtime (gitignored, ~21MB) and run only the
@@ -398,14 +404,17 @@ jobs:
         with:
           package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-      - uses: ./.github/actions/npm-ci-retry
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: ./.github/actions/bun-install
         with:
           # PR acceleration is not release-candidate provenance.
           cache: ${{ github.event_name == 'pull_request' }}
       # WS5.2/5.3: JUnit feeds Trunk Flaky Tests — the fast-path runs on EVERY PR,
       # which is where flaky-detection volume actually comes from (ci.yml's heavy
       # jobs only run on the release PR). Advisory upload, own-origin only.
-      - run: npm run test:vitest -- --reporter=default --reporter=junit --outputFile.junit=trunk-junit/vitest-fastpath.xml
+      - run: bun run test:vitest -- --reporter=default --reporter=junit --outputFile.junit=trunk-junit/vitest-fastpath.xml
       - name: Upload test results to Trunk (advisory)
         if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         continue-on-error: true
@@ -453,14 +462,17 @@ jobs:
         with:
           package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-      - uses: ./.github/actions/npm-ci-retry
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: ./.github/actions/bun-install
         with:
           # PR acceleration is not release-candidate provenance.
           cache: ${{ github.event_name == 'pull_request' }}
       # QW-d: fonte única — o mesmo npm script do CI pesado/local. Fecha dois drifts do
       # comando inline antigo: os dirs `memory` e `usage` estavam FORA do glob (testes
       # silenciosamente não rodavam no fast path) e o setupPolyfill não era importado.
-      - run: npm run test:unit:ci:shard
+      - run: bun run test:unit:ci:shard
         env:
           TEST_SHARD: ${{ matrix.shard }}/4
 
@@ -470,7 +482,7 @@ jobs:
   # arquivo+regra; qualquer warning NOVO aparece e o --max-warnings 0 falha o job — o
   # drift de +41/+88 warnings por ciclo passa a morrer no PR que o introduz, em vez de
   # ser rebaselinado às cegas na release. Aperto do baseline (na reconciliação da
-  # release): npx eslint . --prune-suppressions --suppressions-location config/quality/eslint-suppressions.json
+  # release): bunx --no-install eslint . --prune-suppressions --suppressions-location config/quality/eslint-suppressions.json
   #
   # Forks use hosted runners and the same required code-quality result. A base-red
   # is maintainer work, but must not be reported as a passing candidate.
@@ -496,7 +508,10 @@ jobs:
         with:
           package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-      - uses: ./.github/actions/npm-ci-retry
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: ./.github/actions/bun-install
         with:
           # PR acceleration is not release-candidate provenance.
           cache: ${{ github.event_name == 'pull_request' }}
@@ -507,7 +522,7 @@ jobs:
           path: |
             .eslintcache
             .eslintcache-complexity
-          key: eslint-${{ runner.os }}-${{ hashFiles('eslint.config.mjs', 'eslint.complexity-ratchets.config.mjs', 'config/quality/eslint-suppressions.json', 'package-lock.json') }}
+          key: eslint-${{ runner.os }}-${{ hashFiles('eslint.config.mjs', 'eslint.complexity-ratchets.config.mjs', 'config/quality/eslint-suppressions.json', 'bun.lock') }}
           # No restore-keys fallback on purpose (#11600, P-II.1 of the v3.8.50 postmortem): a
           # cache built under a different suppressions file / lint config / lockfile reports
           # stale per-file verdicts, which is exactly how 215 pre-existing errors stayed
@@ -515,7 +530,7 @@ jobs:
           # partial cache from another configuration.
       - name: ESLint (baseline congelado — warning novo = vermelho)
         # lint:json writes the report; --max-warnings 0 keeps no-new-warnings policy.
-        run: npm run lint:json -- --max-warnings 0
+        run: bun run lint:json -- --max-warnings 0
         env:
           NODE_OPTIONS: --max-old-space-size=8192
       # ── G0 (trilho .50): motor de ratchet também no trilho B ─────────────────────
@@ -526,7 +541,7 @@ jobs:
       # invocations run --allow-missing: coverage.* metrics skip gracefully while
       # the deterministic ones (eslint / openapi-coverage / i18n-ui) stay BLOCKING.
       # Coverage authority remains on the main rail (ci.yml test-coverage → quality-gate).
-      - run: npm run quality:collect
+      - run: bun run quality:collect
       - name: Ratchet check (blocking)
         run: node scripts/quality/check-quality-ratchet.mjs --allow-missing --summary .artifacts/quality-ratchet.md
       - name: Require-tighten (blocking)
@@ -535,7 +550,7 @@ jobs:
       # on a real regression (open alerts > baseline in quality-baseline.json);
       # a measurement failure (gh/auth/api) self-skips with exit 0.
       - name: CodeQL alerts ratchet (blocking)
-        run: npm run check:codeql-ratchet
+        run: bun run check:codeql-ratchet
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Append ratchet summary
@@ -569,14 +584,17 @@ jobs:
         with:
           package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-      - uses: ./.github/actions/npm-ci-retry
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: ./.github/actions/bun-install
         with:
           # PR acceleration is not release-candidate provenance.
           cache: ${{ github.event_name == 'pull_request' }}
       - name: CHANGELOG integrity (nenhum bullet da base pode sumir no merge-result)
-        run: npm run check:changelog-integrity
+        run: bun run check:changelog-integrity
       - name: Agent-skills generator sync (SKILL.md gerado ≡ catálogo)
-        run: npm run check:agent-skills-sync
+        run: bun run check:agent-skills-sync
 
   admission-verdict:
     name: Gate / Quality

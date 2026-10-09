@@ -28,8 +28,11 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: "24"
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: ./.github/actions/bun-install
       - name: Reject new API-route TypeScript diagnostics
         run: node scripts/check/check-api-typecheck.mjs
       - name: API typecheck gate unit tests

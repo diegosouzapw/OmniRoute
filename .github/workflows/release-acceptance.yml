@@ -24,8 +24,11 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version-file: ".node-version"
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: ./.github/actions/bun-install
         with:
           cache: "false"
       - name: Emit shadow acceptance report

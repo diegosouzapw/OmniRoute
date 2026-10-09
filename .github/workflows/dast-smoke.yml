@@ -44,12 +44,15 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "24"
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: ./.github/actions/bun-install
       - name: Build CLI bundle
         env:
           OMNIROUTE_BUILD_BACKEND_ONLY: "1"
-        run: npm run build:cli
+        run: bun run build:cli
       - name: Start OmniRoute
         env:
           PORT: "20128"
@@ -81,7 +84,7 @@ jobs:
             --max-examples 8 --workers 4 --checks all --max-response-time 30 \
             --request-timeout 20 --suppress-health-check all --no-color
       - name: Install promptfoo
-        run: npm install -g promptfoo@0.122.0
+        run: bun add --global promptfoo@0.122.0
       - name: promptfoo injection-guard (blocking)
         env:
           OMNIROUTE_URL: http://localhost:20128

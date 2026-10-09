@@ -20,13 +20,16 @@ jobs:
         with:
           persist-credentials: false
       - uses: actions/setup-node@v7
-        with: { node-version: "24", cache: npm }
-      - run: npm ci
+        with: { node-version: "24", package-manager-cache: false }
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: ./.github/actions/bun-install
       - name: Build CLI bundle
         env:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
           OMNIROUTE_BUILD_BACKEND_ONLY: "1"
-        run: npm run build:cli
+        run: bun run build:cli
       # Own port: this box also hosts the deployed server (the a11y job's
       # "20128 is already used" nights prove it). A test server that dies on
       # EADDRINUSE must NOT let the eval fall through to whatever else answers
@@ -48,7 +51,7 @@ jobs:
           tail -40 server.log || true
           exit 1
       - name: promptfoo guard-validation
-        run: npx --yes promptfoo@latest eval -c promptfooconfig.yaml --no-cache
+        run: bunx --no-install --yes promptfoo@latest eval -c promptfooconfig.yaml --no-cache
         env:
           OMNIROUTE_URL: http://localhost:21778
           OMNIROUTE_API_KEY: not-needed-blocked-before-upstream
@@ -85,15 +88,18 @@ jobs:
         if: steps.gate.outputs.run == 'true'
       - uses: actions/setup-node@v7
         if: steps.gate.outputs.run == 'true'
-        with: { node-version: "24", cache: npm }
-      - run: npm ci
+        with: { node-version: "24", package-manager-cache: false }
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: ./.github/actions/bun-install
         if: steps.gate.outputs.run == 'true'
       - name: Build CLI bundle
         if: steps.gate.outputs.run == 'true'
         env:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
           OMNIROUTE_BUILD_BACKEND_ONLY: "1"
-        run: npm run build:cli
+        run: bun run build:cli
       # Same contract as the promptfoo job above: dedicated port, and the
       # health wait must fail the job instead of letting garak probe whatever
       # else listens on the default port.

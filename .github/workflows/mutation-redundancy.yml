@@ -47,12 +47,15 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: "24"
-          cache: npm
-      - run: npm ci
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: ./.github/actions/bun-install
       - name: Run Stryker (disableBail)
         env:
           BATCH_MUTATE: ${{ matrix.batch.mutate }}
-        run: npx stryker run --config-file stryker.disablebail.json --mutate "$BATCH_MUTATE"
+        run: bunx --no-install stryker run --config-file stryker.disablebail.json --mutate "$BATCH_MUTATE"
       - name: Upload mutation report
         if: always()
         uses: actions/upload-artifact@v7

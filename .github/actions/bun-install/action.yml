@@ -1,0 +1,64 @@
+name: bun install with retry
+description: >-
+  Install the root workspace with the repository-pinned Bun version. Restores
+  node_modules from an exact Actions cache key or runs a frozen Bun install
+  with retries for transient registry failures.
+inputs:
+  cache:
+    description: Set to "false" to skip the node_modules cache.
+    required: false
+    default: "true"
+runs:
+  using: composite
+  steps:
+    - name: Verify pinned Bun version
+      id: bun
+      shell: bash
+      run: |
+        set -euo pipefail
+        expected=$(node -p "require('./package.json').packageManager.replace(/^bun@/, '')")
+        if ! [[ "$expected" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "Invalid pinned Bun version: $expected" >&2
+          exit 1
+        fi
+        actual=$(bun --version)
+        if [ "$actual" != "$expected" ]; then
+          echo "Bun version $actual differs from package.json pin $expected" >&2
+          exit 1
+        fi
+        echo "version=$actual" >> "$GITHUB_OUTPUT"
+
+    - name: Resolve Node version for the cache key
+      id: node
+      shell: bash
+      run: echo "version=$(node --version)" >> "$GITHUB_OUTPUT"
+
+    - name: Restore node_modules cache
+      if: inputs.cache != 'false'
+      id: cache
+      uses: actions/cache@v5
+      with:
+        path: node_modules
+        key: node-modules-bun-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.version }}-${{ steps.bun.outputs.version }}-${{ hashFiles('bun.lock', 'package.json', 'open-sse/package.json', 'packages/browser-pool/package.json', 'scripts/build/postinstall.mjs', 'scripts/build/postinstallSupport.mjs', 'scripts/build/colocateOptionals.mjs', 'scripts/build/wreqJsNative.mjs', 'scripts/build/fixPlaywrightAndroid.mjs', 'scripts/build/native-binary-compat.mjs', 'scripts/build/betterSqlitePrebuildTarget.mjs') }}
+
+    - name: bun install (with retry)
+      if: inputs.cache == 'false' || steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        set -euo pipefail
+        max_attempts=5
+        for attempt in $(seq 1 "$max_attempts"); do
+          if bun install --frozen-lockfile --no-progress; then
+            exit 0
+          fi
+          if [ "$attempt" -lt "$max_attempts" ]; then
+            sleep "$((attempt * 5))"
+          fi
+        done
+        echo "bun install failed after $max_attempts attempts" >&2
+        exit 1
+
+    - name: Report restored dependencies
+      if: inputs.cache != 'false' && steps.cache.outputs.cache-hit == 'true'
+      shell: bash
+      run: echo "node_modules restored from Bun cache — bun install skipped"

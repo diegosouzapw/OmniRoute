@@ -39,14 +39,19 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: "24"
-          cache: npm
+          package-manager-cache: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
 
       - name: Install dependencies
-        run: npm ci
+        uses: ./.github/actions/bun-install
 
       - name: Build Next.js app & CLI bundle
         run: |
-          npm run build:release
+          bun run build:release
         env:
           NODE_OPTIONS: "--max-old-space-size=12288"
           OMNIROUTE_BUILD_MEMORY_MB: "12288"

@@ -19,9 +19,12 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: "24"
-          cache: npm
-      - run: npm ci
-      - run: npm run test:heap
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: ./.github/actions/bun-install
+      - run: bun run test:heap
 
   chaos:
     if: ${{ github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute' }}
@@ -34,9 +37,12 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: "24"
-          cache: npm
-      - run: npm ci
-      - run: npm run test:chaos
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: ./.github/actions/bun-install
+      - run: bun run test:chaos
 
   k6-soak:
     if: ${{ github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute' }}
@@ -49,13 +55,16 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: "24"
-          cache: npm
-      - run: npm ci
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: ./.github/actions/bun-install
       - name: Build CLI bundle
         env:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
           OMNIROUTE_BUILD_BACKEND_ONLY: "1"
-        run: npm run build:cli
+        run: bun run build:cli
       - name: Start OmniRoute (background)
         env:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
@@ -119,14 +128,17 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: "24"
-          cache: npm
-      - run: npm ci
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: ./.github/actions/bun-install
       - name: Cache Playwright browsers
         uses: actions/cache@v6.1.0
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('bun.lock') }}
           restore-keys: playwright-chromium-${{ runner.os }}-
-      - run: npx playwright install --with-deps chromium
+      - run: bunx --no-install playwright install --with-deps chromium
       - name: Run axe a11y suite (self-building webServer)
-        run: npx playwright test tests/e2e/a11y.spec.ts
+        run: bunx --no-install playwright test tests/e2e/a11y.spec.ts
