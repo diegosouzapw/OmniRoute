@@ -5,7 +5,7 @@
  *
  * The manifest is the CONTRACT a promotion-evidence run must satisfy before any verdict
  * (see videoBridgePromotionEvaluator.ts) can be computed: it freezes the 8 required
- * scenario kinds, the minimum repetition count per case/model, and the closed metric set
+ * synthetic scenario kinds plus a private sanitized clip, repetitions, and metric set
  * that must be recorded. It does not describe HOW a case's fixture is generated (see
  * videoBridgePromotionFixtures.ts for the declarative recipes) or execute anything.
  */
@@ -29,7 +29,7 @@ export type VideoBridgePromotionCaseKind = (typeof VIDEO_BRIDGE_PROMOTION_CASE_K
 /** #11656 requires "at least three repetitions per case and model". */
 export const VIDEO_BRIDGE_PROMOTION_MIN_REPETITIONS = 3;
 
-const caseKindSchema = z.enum(VIDEO_BRIDGE_PROMOTION_CASE_KINDS);
+const caseKindSchema = z.enum(VIDEO_BRIDGE_PROMOTION_CASE_KINDS).or(z.literal("real_sanitized"));
 
 /**
  * The closed metric set #11656 requires: "medians and p95 for latency plus tokens, calls,
@@ -61,6 +61,14 @@ export const videoBridgePromotionCaseSchema = z
     isSecurityCase: z.boolean(),
     kind: caseKindSchema,
     repetitions: z.number().int().min(VIDEO_BRIDGE_PROMOTION_MIN_REPETITIONS),
+    mediaDigest: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .optional(),
+    expectedFactsDigest: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .optional(),
   })
   .strict();
 

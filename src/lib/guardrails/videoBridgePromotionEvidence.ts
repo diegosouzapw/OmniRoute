@@ -115,6 +115,16 @@ export function validatePromotionEvidence(
   )
     blockers.add("EXECUTION_RECEIPT_INVALID");
   if (evidence.manifestId !== manifest.id) blockers.add("MANIFEST_BINDING_MISMATCH");
+  if (!manifest.cases.some((currentCase) => currentCase.kind === "real_sanitized")) {
+    blockers.add("REAL_SANITIZED_CASE_MISSING");
+  }
+  if (
+    manifest.cases.some(
+      (currentCase) => !currentCase.mediaDigest || !currentCase.expectedFactsDigest
+    )
+  ) {
+    blockers.add("FIXTURE_DIGEST_BINDING_MISSING");
+  }
   if (VIDEO_BRIDGE_PROMOTION_METRIC_NAMES.some((metric) => !manifest.metrics.includes(metric))) {
     blockers.add("MANIFEST_METRIC_SET_INCOMPLETE");
   }

@@ -5,6 +5,7 @@ import { buildVideoBridgePromotionReport } from "../../../scripts/perf/video-bri
 import {
   VIDEO_BRIDGE_PROMOTION_CASE_KINDS,
   VIDEO_BRIDGE_PROMOTION_METRIC_NAMES,
+  videoBridgePromotionManifestSchema,
 } from "../../../src/lib/guardrails/videoBridgePromotionManifest.ts";
 
 function evidence() {
@@ -103,4 +104,27 @@ test("unbound legacy observations cannot establish a real independent execution"
   assert.equal(report.fu07.status, "hold");
   assert.ok(report.fu07.reasons.includes("EXECUTION_RECEIPT_MISSING"));
   assert.ok(report.fu09.reasons.includes("EXECUTION_RECEIPT_MISSING"));
+});
+
+test("promotion requires a hashed sanitized real clip in addition to synthetic coverage", () => {
+  const data = evidence();
+  const report = buildVideoBridgePromotionReport(data.manifest, data.runFile);
+  assert.ok(report.fu07.reasons.includes("REAL_SANITIZED_CASE_MISSING"));
+  assert.ok(report.fu09.reasons.includes("FIXTURE_DIGEST_BINDING_MISSING"));
+  const parsed = videoBridgePromotionManifestSchema.parse({
+    ...data.manifest,
+    cases: [
+      ...data.manifest.cases,
+      {
+        id: "sanitized-private-clip",
+        kind: "real_sanitized",
+        fixtureRecipeId: "private-clip-sha256",
+        isSecurityCase: false,
+        repetitions: 3,
+        mediaDigest: "a".repeat(64),
+        expectedFactsDigest: "b".repeat(64),
+      },
+    ],
+  });
+  assert.equal(parsed.cases.at(-1)?.kind, "real_sanitized");
 });
