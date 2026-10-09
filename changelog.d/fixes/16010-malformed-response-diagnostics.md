@@ -1,0 +1,1 @@
+- Retain bounded, content-free upstream and translated response shape counts for malformed non-streaming failures, independently of truncated payload artifacts ([#16010](https://github.com/diegosouzapw/OmniRoute/issues/16010)).
