@@ -28,15 +28,13 @@ const WORKER_RESULT_PREFIX = "RETENTION_RESULT=";
 const WORKER_TIMEOUT_MS = 30_000;
 const PAYLOAD_BYTES = 4 * 1024 * 1024;
 
-// The 5 pinned defect modes below are skipped, not deleted: the full RED suite
-// (payload closure retained 4 MiB through 10 GC passes) was captured verbatim on
-// 2026-10-09 against the unfixed tree and is quoted in issue #13621 as evidence.
-// The defect is owned by upstream PR #15961 (controller callback release); when
-// it lands, delete the skip option from all 5 tests to re-run the full RED suite.
-const SKIP_UNTIL_UPSTREAM_15961 =
-  "RED until upstream #15961 (controller callback release) lands — pinned controller " +
-  "retains onDisconnect/onError closures; unskipped RED evidence 2026-10-09: all 5 modes " +
-  "retained 4 MiB through 10 GC passes, complete-nopin control collected (see issue #13621)";
+// Residual skip after upstream #15961 cross-validation (2026-10-10): the 4
+// terminal-callback modes + control ran GREEN unskipped 2/2 runs; only this
+// mode stayed RED, so it alone is re-skipped pending the deferred-drain fix.
+const SKIP_RESIDUAL_DEFERRED_DRAIN_13621 =
+  "RED: #15961 releases terminal callbacks but NOT the deferred-drain tool-handoff " +
+  "grace path — payload closure retained after handleDisconnect() (deterministic, " +
+  "failed 2/2 runs 2026-10-10); tracked via #13621";
 
 const workerFixture = fileURLToPath(
   new URL("./_fixtures/stream-controller-retention-13621-fork.worker.ts", import.meta.url)
@@ -101,49 +99,33 @@ test("13621 control: unpinned terminal controller releases the payload closure (
   );
 });
 
-test(
-  "13621 complete: terminal handleComplete releases the payload closure",
-  { skip: SKIP_UNTIL_UPSTREAM_15961 },
-  () => {
-    const observed = runWorker("complete");
+test("13621 complete: terminal handleComplete releases the payload closure", () => {
+  const observed = runWorker("complete");
 
-    assert.equal(observed.collected, true, "payload closure retained after handleComplete()");
-  }
-);
+  assert.equal(observed.collected, true, "payload closure retained after handleComplete()");
+});
 
-test(
-  "13621 disconnect: terminal handleDisconnect releases the payload closure",
-  { skip: SKIP_UNTIL_UPSTREAM_15961 },
-  () => {
-    const observed = runWorker("disconnect");
+test("13621 disconnect: terminal handleDisconnect releases the payload closure", () => {
+  const observed = runWorker("disconnect");
 
-    assert.equal(observed.collected, true, "payload closure retained after handleDisconnect()");
-  }
-);
+  assert.equal(observed.collected, true, "payload closure retained after handleDisconnect()");
+});
 
-test(
-  "13621 error: terminal handleError releases the payload closure",
-  { skip: SKIP_UNTIL_UPSTREAM_15961 },
-  () => {
-    const observed = runWorker("error");
+test("13621 error: terminal handleError releases the payload closure", () => {
+  const observed = runWorker("error");
 
-    assert.equal(observed.collected, true, "payload closure retained after handleError()");
-  }
-);
+  assert.equal(observed.collected, true, "payload closure retained after handleError()");
+});
 
-test(
-  "13621 abort: terminal abort releases the payload closure",
-  { skip: SKIP_UNTIL_UPSTREAM_15961 },
-  () => {
-    const observed = runWorker("abort");
+test("13621 abort: terminal abort releases the payload closure", () => {
+  const observed = runWorker("abort");
 
-    assert.equal(observed.collected, true, "payload closure retained after abort()");
-  }
-);
+  assert.equal(observed.collected, true, "payload closure retained after abort()");
+});
 
 test(
   "13621 disconnect-handoff-grace: deferred drain path releases the payload closure",
-  { skip: SKIP_UNTIL_UPSTREAM_15961, timeout: 60_000 },
+  { skip: SKIP_RESIDUAL_DEFERRED_DRAIN_13621, timeout: 60_000 },
   () => {
     const observed = runWorker("disconnect-handoff-grace");
 
