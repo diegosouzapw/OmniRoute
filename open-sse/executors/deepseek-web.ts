@@ -6,6 +6,7 @@ import {
   parseDeepSeekToolCalls,
   buildToolConversationPrompt,
 } from "../translator/deepseekWebTools.ts";
+import { DeepSeekImageError, uploadDeepSeekImages } from "./deepseek-web/image-upload.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 import {
   isThinkingModel,
@@ -742,7 +743,8 @@ function wrapStreamWithCleanup(
 
 async function getPowChallenge(
   accessToken: string,
-  signal?: AbortSignal | null
+  signal?: AbortSignal | null,
+  targetPath = "/api/v0/chat/completion"
 ): Promise<PowChallenge> {
   const resp = await fetch(`${DEEPSEEK_API_BASE}/v0/chat/create_pow_challenge`, {
     method: "POST",
@@ -751,14 +753,14 @@ async function getPowChallenge(
       "Content-Type": "application/json",
       Authorization: `Bearer ${accessToken}`,
     },
-    body: JSON.stringify({ target_path: "/api/v0/chat/completion" }),
+    body: JSON.stringify({ target_path: targetPath }),
     signal: signal ?? undefined,
   });
   if (!resp.ok) throw new Error(`create_pow_challenge HTTP ${resp.status}`);
   const json = await resp.json();
   const bizData = json?.data?.biz_data || json?.biz_data;
   if (!bizData?.challenge?.challenge) throw new Error(`No PoW challenge: code=${json?.code}`);
-  return bizData.challenge as PowChallenge;
+  return { ...bizData.challenge, target_path: targetPath } as PowChallenge;
 }
 
 // ── Tool-call response builder (#2820) ──────────────────────────────────
@@ -944,7 +946,19 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       const prompt = hasTools
         ? buildToolConversationPrompt(messages, toolSystemPrompt)
         : messagesToPrompt(promptMessages, historyWindow);
-      const refFileIds = Array.isArray(bodyObj.ref_file_ids) ? bodyObj.ref_file_ids : [];
+      const uploadedFileIds = await uploadDeepSeekImages({
+        messages,
+        headers: { ...FAKE_HEADERS, Authorization: `Bearer ${accessToken}` },
+        signal,
+        createPowHeader: async (targetPath, uploadSignal) =>
+          solvePow(await getPowChallenge(accessToken, uploadSignal, targetPath), uploadSignal),
+      });
+      const refFileIds = [
+        ...new Set([
+          ...(Array.isArray(bodyObj.ref_file_ids) ? bodyObj.ref_file_ids : []),
+          ...uploadedFileIds,
+        ]),
+      ];
       log?.info?.(
         "DEEPSEEK-WEB",
         `model_type=${modelType}, thinking=${thinkingEnabled}, search=${searchEnabled}, files=${refFileIds.length}, stream=${stream !== false}, persist=${persistSession}, window=${historyWindow}`
@@ -1200,7 +1214,7 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      log?.error?.("DEEPSEEK-WEB", `Execute failed: ${msg}`);
+      log?.error?.("DEEPSEEK-WEB", `Execute failed: ${sanitizeErrorMessage(msg)}`);
 
       if (err instanceof Error && err.name === "AbortError") {
         return {
@@ -1212,7 +1226,10 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       }
 
       return {
-        response: errorResponse(502, `DeepSeek error: ${sanitizeErrorMessage(msg)}`),
+        response: errorResponse(
+          err instanceof DeepSeekImageError ? err.status : 502,
+          `DeepSeek error: ${sanitizeErrorMessage(msg)}`
+        ),
         url: COMPLETION_URL,
         headers: {},
         transformedBody: body,
