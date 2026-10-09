@@ -1,0 +1,2 @@
+- **fix(db):** the first better-sqlite3 open no longer blocks for seconds on hosts with slow reverse DNS — the addon's musl probe calls `process.report.getReport()`, whose network section reverse-resolves every open TCP handle; the driver now constructs it with `process.report.excludeNetwork` on and restores the caller's value (~6.5s → ~0.6s first capability lookup under vitest, #15106)
+- **fix(i18n):** zh-CN `codexKeyServiceMode` uses the glossary term 提供者 instead of 提供商, and the route-namespace map is regenerated to carry the new namespace (#13554)
