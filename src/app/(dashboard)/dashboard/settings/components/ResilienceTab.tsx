@@ -102,6 +102,43 @@ function formatMs(value: number | null | undefined) {
   return `${value}ms`;
 }
 
+/**
+ * Build a human-readable message from a failed API response.
+ *
+ * The API returns structured validation errors shaped as:
+ *   { error: { message: "Invalid request",
+ *              details: [{ field: "requestQueue",
+ *                          message: 'Unrecognized key: "globalConcurrentRequests"',
+ *                          keys: ["globalConcurrentRequests"] }] } }
+ *
+ * Without this, the UI only ever surfaces the generic `message`
+ * ("Invalid request"), which tells the operator nothing about which
+ * field to fix or why it was rejected.
+ */
+function formatApiError(json: unknown, status: number): string {
+  const error = (json as { error?: unknown })?.error;
+  if (!error) return `HTTP ${status}`;
+
+  const base = typeof error === "string" ? error : (error as { message?: string }).message;
+  const details = (error as { details?: unknown })?.details;
+
+  // Only string errors carry no detail to expand.
+  if (typeof error === "string" || !Array.isArray(details) || details.length === 0) {
+    return base || `HTTP ${status}`;
+  }
+
+  const lines = details
+    .map((detail) => {
+      const { field, message } = detail as { field?: string; message?: string };
+      if (!field && !message) return null;
+      return field ? `${field}: ${message ?? "invalid"}` : (message ?? "invalid");
+    })
+    .filter((line): line is string => line !== null);
+
+  if (lines.length === 0) return base || `HTTP ${status}`;
+  return [base, ...lines].join(" — ");
+}
+
 function SectionDescription({
   scope,
   trigger,
@@ -1182,7 +1219,7 @@ export default function ResilienceTab() {
       });
       const json = await response.json();
       if (!response.ok) {
-        throw new Error(json?.error?.message || json?.error || `HTTP ${response.status}`);
+        throw new Error(formatApiError(json, response.status));
       }
       setData(toResilienceResponse(json));
       notify.success(tx("savedSuccessfully", "Resilience settings updated."));
