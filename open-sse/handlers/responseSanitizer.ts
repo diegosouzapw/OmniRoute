@@ -861,6 +861,7 @@ function sanitizeResponsesOutputItem(item: unknown, index: number): JsonRecord |
       type: "message",
       role: toString(itemRecord.role) || "assistant",
       content,
+      ...(itemRecord.phase ? { phase: toString(itemRecord.phase) } : {}),
     };
     return sanitized;
   }
