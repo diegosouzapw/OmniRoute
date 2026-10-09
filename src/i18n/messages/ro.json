@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "Număr Eșecuri",
       "retryAfterMs": "Reîncearcă După (ms)",
-      "lastFailureKind": "Ultimul Tip de Eșec"
+      "lastFailureKind": "Ultimul Tip de Eșec",
+      "lastClose": "Ultima închidere"
     },
     "empty": {
       "title": "Nicio conexiune",

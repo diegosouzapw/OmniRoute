@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "Število napak",
       "retryAfterMs": "Ponovni poskus čez (ms)",
-      "lastFailureKind": "Vrsta zadnje napake"
+      "lastFailureKind": "Vrsta zadnje napake",
+      "lastClose": "Zadnje zaprtje"
     },
     "empty": {
       "title": "Ni povezav",

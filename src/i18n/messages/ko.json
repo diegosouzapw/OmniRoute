@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "실패 횟수",
       "retryAfterMs": "재시도까지(ms)",
-      "lastFailureKind": "마지막 실패 유형"
+      "lastFailureKind": "마지막 실패 유형",
+      "lastClose": "최종 종가"
     },
     "empty": {
       "title": "연결 없음",

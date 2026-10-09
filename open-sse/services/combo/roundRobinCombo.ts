@@ -826,9 +826,12 @@ export async function handleRoundRobinCombo({
             }
 
             if (provider && provider !== "unknown") {
-              recordProviderSuccess(provider, effectiveConnectionId || undefined, {
-                providerProbeSettled: isProviderProbeResponse(result),
-              });
+              recordProviderSuccess(
+                provider,
+                effectiveConnectionId || undefined,
+                { providerProbeSettled: isProviderProbeResponse(result) },
+                log
+              );
             }
 
             if (stickyRoundRobinEnabled) {

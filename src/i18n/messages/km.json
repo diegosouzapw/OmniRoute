@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "ចំនួនបរាជ័យ",
       "retryAfterMs": "ព្យាយាមម្ដងទៀតបន្ទាប់ពី (ms)",
-      "lastFailureKind": "ប្រភេទបរាជ័យចុងក្រោយ"
+      "lastFailureKind": "ប្រភេទបរាជ័យចុងក្រោយ",
+      "lastClose": "ការបិទចុងក្រោយ"
     },
     "empty": {
       "title": "គ្មានការតភ្ជាប់ទេ",

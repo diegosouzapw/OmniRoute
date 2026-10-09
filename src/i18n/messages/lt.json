@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "Trikčių skaičius",
       "retryAfterMs": "Bandyti dar kartą po (ms)",
-      "lastFailureKind": "Paskutinės trikties tipas"
+      "lastFailureKind": "Paskutinės trikties tipas",
+      "lastClose": "Paskutinis Uždarymas"
     },
     "empty": {
       "title": "Nėra ryšių",

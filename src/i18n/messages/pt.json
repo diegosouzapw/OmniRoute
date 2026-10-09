@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "Contagem de Falhas",
       "retryAfterMs": "Repetir Após (ms)",
-      "lastFailureKind": "Último Tipo de Falha"
+      "lastFailureKind": "Último Tipo de Falha",
+      "lastClose": "Último Fechamento"
     },
     "empty": {
       "title": "Sem ligações",

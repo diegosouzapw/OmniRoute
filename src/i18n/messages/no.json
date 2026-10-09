@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "Antall Feil",
       "retryAfterMs": "Prøv Igjen Etter (ms)",
-      "lastFailureKind": "Siste Feiltype"
+      "lastFailureKind": "Siste Feiltype",
+      "lastClose": "Siste lukking"
     },
     "empty": {
       "title": "Ingen tilkoblinger",

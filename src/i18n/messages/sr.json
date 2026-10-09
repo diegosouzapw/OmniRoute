@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "Број неуспеха",
       "retryAfterMs": "Поновни покушај након (мс)",
-      "lastFailureKind": "Врста последњег неуспеха"
+      "lastFailureKind": "Врста последњег неуспеха",
+      "lastClose": "Последње затварање"
     },
     "empty": {
       "title": "Нема веза",

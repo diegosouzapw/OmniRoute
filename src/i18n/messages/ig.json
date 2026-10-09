@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "Ọnụọgụ Ọdịda",
       "retryAfterMs": "Nwaa Ọzọ Mgbe (ms) Gachara",
-      "lastFailureKind": "Ụdị Ọdịda Ikpeazụ"
+      "lastFailureKind": "Ụdị Ọdịda Ikpeazụ",
+      "lastClose": "Nkeikpegọ nke ọsọ nso"
     },
     "empty": {
       "title": "Enweghị njikọ",

@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "تعداد شکست‌ها",
       "retryAfterMs": "تلاش مجدد پس از (ms)",
-      "lastFailureKind": "آخرین نوع شکست"
+      "lastFailureKind": "آخرین نوع شکست",
+      "lastClose": "آخرین بسته شدن"
     },
     "empty": {
       "title": "بدون اتصال",

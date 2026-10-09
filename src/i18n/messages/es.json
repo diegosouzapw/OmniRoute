@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "Cantidad de Fallos",
       "retryAfterMs": "Reintentar Después (ms)",
-      "lastFailureKind": "Último Tipo de Fallo"
+      "lastFailureKind": "Último Tipo de Fallo",
+      "lastClose": "Último cierre"
     },
     "empty": {
       "title": "Sin conexiones",

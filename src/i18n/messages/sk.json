@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "Počet Zlyhaní",
       "retryAfterMs": "Skúsiť Znova Po (ms)",
-      "lastFailureKind": "Posledný Typ Zlyhania"
+      "lastFailureKind": "Posledný Typ Zlyhania",
+      "lastClose": "Posledné zatvorenie"
     },
     "empty": {
       "title": "Žiadne pripojenia",

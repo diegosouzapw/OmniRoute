@@ -1,0 +1,1 @@
+- **fix(resilience):** show when a blocked provider serves again on the connection card ([#16082](https://github.com/diegosouzapw/OmniRoute/pull/16082)) — thanks @maxmad64bis

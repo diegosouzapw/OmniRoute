@@ -21,6 +21,7 @@ import {
   resetAllCircuitBreakers,
 } from "../../src/shared/utils/circuitBreaker.ts";
 import { lockModel, clearAllModelLockouts } from "../../open-sse/services/accountFallback.ts";
+import { resolveProviderId } from "../../src/shared/constants/providers.ts";
 import * as routeGuard from "../../src/server/authz/routeGuard.ts";
 
 // Import the route AFTER env/db setup so its module-level bindings see the
@@ -329,6 +330,58 @@ test("alias join: connection provider=cx matches breaker name=codex via resolveP
   assert.ok(c1, "connection should exist");
   assert.ok(c1.breaker !== null, "breaker should be found via alias resolution");
   assert.equal(c1.breaker.state, "OPEN");
+});
+
+// --- Last close verdict ----------------------------------------------------------------
+
+test("connection exposes the last close verdict after a probe success", async () => {
+  const id1 = await seedConnection({
+    provider: "close-probe-provider",
+    authType: "apikey",
+    name: "acc1",
+    priority: 1,
+  });
+  const cb = getCircuitBreaker(resolveProviderId("close-probe-provider"), {
+    failureThreshold: 1,
+    resetTimeout: 80,
+  });
+  cb._onFailure();
+  await new Promise((r) => setTimeout(r, 120));
+  cb.canExecute();
+  assert.equal(cb.state, "HALF_OPEN");
+  await cb.execute(async () => true);
+  assert.equal(cb.state, "CLOSED");
+  const body = await json(await GET(makeReq("?provider=close-probe-provider&windowMs=0")));
+  const c1 = findConn(body, id1);
+  assert.ok(c1, "connection should exist");
+  assert.ok(c1.breaker !== null, "breaker should be joined");
+  assert.ok(c1.breaker.lastClose, "last close verdict should be present");
+  assert.equal(c1.breaker.lastClose.from, "HALF_OPEN");
+  assert.equal(c1.breaker.lastClose.reason, "probe-success");
+});
+
+test("degraded recovery is not reported as a close verdict", async () => {
+  const id1 = await seedConnection({
+    provider: "close-degraded-provider",
+    authType: "apikey",
+    name: "acc1",
+    priority: 1,
+  });
+  const cb = getCircuitBreaker(resolveProviderId("close-degraded-provider"), {
+    failureThreshold: 5,
+    degradationThreshold: 2,
+    resetTimeout: 60_000,
+  });
+  cb._onFailure();
+  cb._onFailure();
+  assert.equal(cb.state, "DEGRADED");
+  cb._onSuccess();
+  assert.equal(cb.state, "CLOSED");
+  const body = await json(await GET(makeReq("?provider=close-degraded-provider&windowMs=0")));
+  const c1 = findConn(body, id1);
+  assert.ok(c1, "connection should exist");
+  assert.ok(c1.breaker !== null, "breaker should be joined");
+  assert.equal(c1.breaker.lastClose, null);
 });
 
 // --- Static guard -------------------------------------------------------------------

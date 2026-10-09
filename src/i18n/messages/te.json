@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "వైఫల్యాల సంఖ్య",
       "retryAfterMs": "తర్వాత మళ్లీ ప్రయత్నించండి (ms)",
-      "lastFailureKind": "చివరి వైఫల్య రకం"
+      "lastFailureKind": "చివరి వైఫల్య రకం",
+      "lastClose": "చివరి మూసివేత"
     },
     "empty": {
       "title": "కనెక్షన్‌లు లేవు",

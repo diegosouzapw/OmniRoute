@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "विफलता गणना",
       "retryAfterMs": "पुनः प्रयास बाद (ms)",
-      "lastFailureKind": "अंतिम विफलता प्रकार"
+      "lastFailureKind": "अंतिम विफलता प्रकार",
+      "lastClose": "अंतिम बंद"
     },
     "empty": {
       "title": "कोई कनेक्शन नहीं",

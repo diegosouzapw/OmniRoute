@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "ವೈಫಲ್ಯಗಳ ಸಂಖ್ಯೆ",
       "retryAfterMs": "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸುವವರೆಗಿನ ಸಮಯ (ms)",
-      "lastFailureKind": "ಕೊನೆಯ ವೈಫಲ್ಯದ ವಿಧ"
+      "lastFailureKind": "ಕೊನೆಯ ವೈಫಲ್ಯದ ವಿಧ",
+      "lastClose": "ಕೊನೆಯ ಮುಕ್ತಾಯ"
     },
     "empty": {
       "title": "ಯಾವುದೇ ಸಂಪರ್ಕಗಳಿಲ್ಲ",
