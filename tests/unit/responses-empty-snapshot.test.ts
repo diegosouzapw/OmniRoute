@@ -60,3 +60,11 @@ test("recovery preserves terminal tools and does not cross explicit message iden
   assert.deepEqual(result.output[1], tool);
   assert.equal(parse([message("", "other")]).output[0].content[0].text, "");
 });
+
+test("invalid sparse content indices cannot inflate reconstructed message arrays", () => {
+  for (const content_index of [-1, 10000]) {
+    const result = parse([message("")], [{ ...delta, content_index, delta: "must be ignored" }]);
+    assert.equal(result.output[0].content.length, 1);
+    assert.equal(result.output[0].content[0].text, "Synthetic answer");
+  }
+});

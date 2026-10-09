@@ -709,9 +709,11 @@ export function parseSSEToResponsesOutput(rawSSE, fallbackModel) {
     ) {
       const refusal = eventType === "response.refusal.delta";
       const field = refusal ? "refusal" : "text";
+      const contentIndex = toOutputIndex(evt.content_index) ?? 0;
+      // Untrusted sparse indices must not allocate enormous reconstructed arrays.
+      if (contentIndex < 0 || contentIndex >= 4096) continue;
       const messageItem = ensureResponsesMessageItem(outputItems, outputIndex, evt.item_id);
       const content = Array.isArray(messageItem.content) ? messageItem.content : [];
-      const contentIndex = toOutputIndex(evt.content_index) ?? 0;
       const firstPart = { ...toRecord(content[contentIndex]) };
       firstPart.type = refusal ? "refusal" : "output_text";
       if (!refusal)
@@ -728,9 +730,10 @@ export function parseSSEToResponsesOutput(rawSSE, fallbackModel) {
     ) {
       const refusal = eventType === "response.refusal.done";
       const field = refusal ? "refusal" : "text";
+      const contentIndex = toOutputIndex(evt.content_index) ?? 0;
+      if (contentIndex < 0 || contentIndex >= 4096) continue;
       const messageItem = ensureResponsesMessageItem(outputItems, outputIndex, evt.item_id);
       const content = Array.isArray(messageItem.content) ? messageItem.content : [];
-      const contentIndex = toOutputIndex(evt.content_index) ?? 0;
       const firstPart = { ...toRecord(content[contentIndex]) };
       firstPart.type = refusal ? "refusal" : "output_text";
       if (!refusal)
