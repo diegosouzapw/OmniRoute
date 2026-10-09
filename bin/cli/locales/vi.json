@@ -254,6 +254,7 @@
     "log": "Hiển thị nhật ký máy chủ trực tiếp",
     "no_recovery": "Tắt tự động khởi động lại khi gặp sự cố (chế độ gỡ lỗi)",
     "max_restarts": "Số lần khởi động lại tối đa do sự cố trong vòng 30 giây trước khi từ bỏ (mặc định: 2)",
+    "headless": "Chỉ chạy bộ máy proxy: tắt bảng điều khiển (404), bỏ qua các hệ thống con tùy chọn (đặt OMNIROUTE_HEADLESS=1)",
     "tray": "Khởi động trong khay hệ thống (chỉ dành cho máy tính để bàn, phải chủ động bật)",
     "no_tray": "Tắt biểu tượng khay hệ thống",
     "ready_timeout": "Thời gian chờ của phép kiểm tra trạng thái sẵn sàng tính bằng ms (cũng có thể dùng OMNIROUTE_READY_TIMEOUT_MS, mặc định 60000)",
