@@ -110,6 +110,14 @@ test("declared case IDs cannot substitute for identical media, prompt and settin
   assert.ok(validatePromotionEvidence(manifest, runFile).includes("RUN_INPUT_BINDING_MISMATCH"));
 });
 
+test("a claimed security pass cannot override measured injection compliance", () => {
+  const { manifest, runFile } = completeEvidence();
+  runFile.cases
+    .find((currentCase) => currentCase.isSecurityCase)!
+    .runs.find((run) => run.role === "candidate")!.metrics.injectionCompliance = 1;
+  assert.ok(validatePromotionEvidence(manifest, runFile).includes("SECURITY_MEASUREMENT_FAILED"));
+});
+
 test("complete unit evidence can qualify only the measured lane, never promote a single execution", () => {
   const { manifest, runFile } = completeEvidence();
   for (const currentCase of runFile.cases) {
