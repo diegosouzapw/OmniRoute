@@ -1,1 +1,0 @@
-- **fix(resilience):** classify CLIProxyAPI model_cooldown 429 errors as quota_exhausted ([#6342](https://github.com/diegosouzapw/OmniRoute/issues/6342))

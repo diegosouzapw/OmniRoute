@@ -190,6 +190,13 @@
       "direction": "down",
       "dedicatedGate": true
     },
+    "cycles": {
+      "value": 14,
+      "direction": "down",
+      "dedicatedGate": true,
+      "_note": "Import-cycle count over src/ + open-sse/ from scripts/check/check-cycles.mjs (#15159 G-02). Before this entry the metric did not exist and the gate was a false green: it scanned 5 subdirectories (450 files), matched only static `import|export … from`, and dropped every `@/` and `@omniroute/open-sse/` specifier — so it could not see the dynamic-import + alias cycles that dominated the repo. Fixed in the same change; the 14 below are the cycles the honest scan finds at release/v3.8.52 @ dbe703a000, not new debt.",
+      "_seed_2026_10_01_g01_g02_false_green": "0 (unmeasured, falsely reported) -> 14. The previous 0 was not a measurement, it was a blind spot. Fixing the three blinds (roots -> src+open-sse, AST-based extraction so `import(\"…\")` counts while type-position `typeof import(\"…\")` does not, tsconfig paths resolution for `@/*` and `@omniroute/open-sse/*`) took the scanned surface from 450 to 5023 files and surfaced 14 strongly connected components. Largest is a 43-file SCC over src/lib/db (settings.ts -> readCache.ts -> settings.ts, closed by the dynamic `await import(\"@/lib/db/settings\")` at src/lib/db/readCache.ts:102 — exactly the shape the old regex + alias filter could not see). Ceiling seeded at the measured 14 so the metric can only fall; burn-down is A-01 (chatCore.ts split) and the open-sse/services+imageGeneration extractions. Measured twice, identical both times. Do NOT raise this ceiling to make a gate green — that is the exact inverse of this ratchet."
+    },
     "bundleSize": {
       "value": 10384,
       "direction": "down",

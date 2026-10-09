@@ -261,7 +261,17 @@ export function convertUsageToQuotaInfo(
     windows[name] = { percentUsed, resetAt: resetAtForQuota(entry) };
   }
 
-  if (Object.keys(windows).length === 0) return null;
+  if (Object.keys(windows).length === 0) {
+    // #15347: every reported window is unlimited. That is a known reading (the provider
+    // has no cap), not a failed one, so it must not look like the `null` of a failed read.
+    const reportsUnlimited = Object.values(quotasObj as Record<string, unknown>).some(
+      (entry) =>
+        !!entry &&
+        typeof entry === "object" &&
+        (entry as { unlimited?: unknown }).unlimited === true
+    );
+    return reportsUnlimited ? { used: 0, total: 0, percentUsed: 0, unlimited: true } : null;
+  }
 
   const requestedFamily =
     isAntigravityProvider(context.provider) && context.requestedModel

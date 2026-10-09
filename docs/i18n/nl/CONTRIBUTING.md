@@ -394,15 +394,15 @@ Schrijf unittests in `tests/unit/` die minimaal het volgende afdekken:
 - [ ] Build slaagt (`npm run build`)
 - [ ] TypeScript-typen toegevoegd voor nieuwe openbare functies en interfaces
 - [ ] Geen hardgecodeerde geheimen of terugvalwaarden
-- [ ] Openbare upstream-referenties ingesloten via `resolvePublicCred()` (zie [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), nooit als literals
+- [ ] Openbare upstream-inloggegevens ingesloten via `resolvePublicCred()` (zie [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), nooit als letterlijke waarden
 - [ ] Foutreacties worden verwerkt via `buildErrorBody()` / `sanitizeErrorMessage()` — geen onbewerkte stacktraces in responsbody's (zie [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Shellopdrachten (`exec` / `spawn`) geven runtimewaarden door via `env`, niet via tekenreeksinterpolatie
+- [ ] Shell-opdrachten (`exec` / `spawn`) geven runtimewaarden door via `env`, niet via tekenreeksinterpolatie
 - [ ] Alle invoer gevalideerd met Zod-schema's
-- [ ] Changelog**fragment** toegevoegd onder `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` voor gebruikersgerichte wijzigingen (zie [`changelog.d/README.md`](./changelog.d/README.md)) — bewerk `CHANGELOG.md` **niet** rechtstreeks; fragmenten worden bij een release samengevoegd en veroorzaken nooit conflicten tussen pull requests
+- [ ] **Fragment** voor de changelog toegevoegd onder `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` voor gebruikersgerichte wijzigingen (zie [`changelog.d/README.md`](./changelog.d/README.md)) — bewerk `CHANGELOG.md` **niet** rechtstreeks; fragmenten worden bij een release samengevoegd en veroorzaken nooit conflicten tussen pull requests
 - [ ] Documentatie bijgewerkt (indien van toepassing)
-- [ ] Geen nieuwe CodeQL- / Secret-Scanning-waarschuwingen geopend, of elke waarschuwing is afgewezen met een technische onderbouwing die verwijst naar het relevante document in `docs/security/`
-- [ ] Routes die onderliggende processen starten (`/api/mcp/`, `/api/cli-tools/runtime/`) geclassificeerd als `isLocalOnlyPath()` in `src/server/authz/routeGuard.ts` — zie [Harde regel #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Geen `Co-Authored-By`-trailers in commitberichten — commits mogen uitsluitend onder de Git-identiteit van de eigenaar van de repository verschijnen (Harde regel #16)
+- [ ] Geen nieuwe CodeQL- of Secret-Scanning-meldingen geopend, of elke melding afgewezen met een technische onderbouwing die verwijst naar het relevante document in `docs/security/`
+- [ ] Routes die onderliggende processen starten (`/api/mcp/`, `/api/cli-tools/runtime/`) geclassificeerd als `isLocalOnlyPath()` in `src/server/authz/routeGuard.ts` — zie [harde regel #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Geen AI-/bottrailers met `Co-authored-by` in commitberichten (harde regel #16) — menselijke medewerkers van wie werk wordt hergebruikt, worden vermeld met standaardtrailers in de vorm `Co-authored-by: Name <email>`
 
 ---
 

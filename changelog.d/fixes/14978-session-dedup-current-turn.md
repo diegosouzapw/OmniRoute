@@ -1,1 +1,0 @@
-- **fix(compression):** keep `session-dedup` from rewriting the current turn, so an agent that re-reads a file gets the file back instead of a `[dedup:ref …]` marker.

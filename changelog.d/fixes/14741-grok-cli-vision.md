@@ -1,1 +1,0 @@
-- **fix(providers):** Grok Build `grok-4.6` is declared vision capable, so images reach it directly instead of being replaced by a Vision Bridge description ([#14741](https://github.com/diegosouzapw/OmniRoute/pull/14741))

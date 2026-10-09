@@ -137,15 +137,49 @@ jau sākotnēji veidot ziņojumus, kas atklāj sistēmas topoloģiju.
 
 ## Pārklājums CI vidē
 
-`tests/unit/error-message-sanitization.test.ts` nodrošina, ka:
+`tests/unit/error-message-sanitization.test.ts` nodrošina:
 
-- Katrs maršruts zem `/api/model-combo-mappings/*` 4xx/5xx gadījumos atgriež sanitizētus atbilžu ķermeņus.
+- Katrs maršruts zem `/api/model-combo-mappings/*` 4xx/5xx gadījumā atgriež sanitizētu atbildes ķermeni.
 - `sanitizeErrorMessage` noņem vairākrindu steka izsekojumus.
 - `sanitizeErrorMessage` aizstāj POSIX un Windows absolūtos ceļus ar `<path>`.
-- `sanitizeErrorMessage` droši apstrādā `null`/`undefined`/`Error` instances ievades.
-- `buildErrorBody` savā `message` laukā nekad neatklāj steka izsekojumus.
+- `sanitizeErrorMessage` droši apstrādā `null`/`undefined`/`Error` instances ievaddatus.
+- `buildErrorBody` savā laukā `message` nekad neatklāj steka izsekojumus.
 
-Pievienojot jaunu maršrutu vai izpildītāju, nokopējiet apgalvojumu modeli no šī faila. Pārklājuma slieksnis (`npm run test:coverage`) pieprasa ≥60% priekšrakstu/rindu/funkciju/zaru pārklājumu — kļūdu ceļiem jābūt pārklātiem.
+Pievienojot jaunu maršrutu vai izpildītāju, kopējiet pārbaudes šablonu no šī faila. Pārklājuma slieksnis (`npm run test:coverage`) pieprasa ≥60% priekšrakstu/rindu/funkciju/atzaru pārklājumu — kļūdu ceļiem jābūt pārklātiem.
+
+### Statiskā pārbaude: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` pārbauda `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` un katru `src/app/api/**/route.ts`, meklējot neapstrādātu notvertu kļūdu (`err.message` / `err.stack`) vai neapstrādātu augšupstraumes `body.error.message`, kas nonāk klientam paredzētā atbildes ķermenī.
+
+**Uzticēšanās attiecas uz izsaukumu, nevis failu** (G-03, #15159). Agrāk pārbaude izlaida visu failu, tiklīdz tajā konstatēja jebkādu importu no `utils/error` ceļa — faila līmeņa izņēmums tika piemērots izsaukuma līmeņa riskam. Viens pareizs `import { sanitizeErrorMessage }` uz visiem laikiem atbrīvoja no pārbaudes visas pārējās izvades vietas failā, un tā produkcijā nonāca reāla datu noplūde, lai gan pārbaudes bija sekmīgas. Tagad rindai uzticas tikai tad, ja tā faktiski novirza datus caur apstiprinātu veidotāju vai sanitizētāju:
+
+| Rindas forma                                                                                                     | Uzticama?          |
+| ---------------------------------------------------------------------------------------------------------------- | ------------------ |
+| izsauc `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …             | jā                 |
+| izsauc kanonisku veidotāju, **kuru šis fails importē** no `open-sse/utils/error` vai `src/lib/api/errorResponse` | jā                 |
+| apstiprināts veidotājs tiek izsaukts **vairākās rindās**, tāpēc lauks `message:` atrodas vēlākā rindā            | jā                 |
+| izsauc failā lokālu `function errorResponse(...)`, kuras ķermenis pats veic sanitizēšanu                         | jā                 |
+| pārsūta `err.message` / `err.stack` jebkur citur                                                                 | **nē — pārkāpums** |
+
+Divas sekas, ko vērts zināt:
+
+- `errorResponse` importēšana _nenozīmē_ pilnīgu uzticēšanos. Fails, kas definē savu `errorResponse`, joprojām tiek atzīmēts izsaukuma vietā, jo pārbaude uzticēšanos nosaka katram simbolam, nevis visam failam. Tas pats attiecas uz `createErrorResponse`.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))`, kam seko `error: body.error.message`, ir **sanitizētais** paņēmiens, kas tiek izmantots visos `*-fetch.ts` izpildītājos un netiek atzīmēts.
+
+Tiek ņemti vērā abi apstiprināto veidotāju moduļi: `open-sse/utils/error.ts` un `src/lib/api/errorResponse.ts`. Otro izmanto aptuveni 54 maršrutu apstrādātāji ārpus `open-sse`, un tas sanitizē abus savus eksportus.
+
+Divas formas, kas **nav** pārkāpumi, lai gan agrāk pārbaude tās ziņoja kā noplūdes:
+
+- neapstrādāta kļūda **audita ierakstā** — `saveCallLog({ error: err.message })`, `logToolCall(...)` vai žurnalētājs, kas vispirms saņem ziņojumu (`log.error("BATCHES", "sweep failed", { error: err.message })`). Klientam paredzētā atbilde nākamajās rindās var izmantot statisku `buildErrorBody`.
+- **vairākrindu** apstiprināta veidotāja izsaukums, kurā lauks `message:` vispār nenosauc veidotāju:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` iesaldē iepriekš pastāvējušos pārkāpumus, lai pārbaude bloķētu tikai _jaunus_ pārkāpumus. `assertNoStale` automātiski noņem ierakstu, tiklīdz tā pārkāpums ir novērsts, tāpēc iesaldētais saraksts nevar pārakmeņoties. Regresijas aizsargpārbaudes: `tests/unit/check-error-helper.test.ts` un `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Saistītie kontroles mehānismi
 

@@ -1,0 +1,1 @@
+- **fix(cursor):** Composer turns no longer end on a KV save that arrives while a tool call is still in flight (after an internal `get_mcp_tools` call, or while a client tool call is streaming), so the client tool call is returned instead of a one-line narration with `finish_reason: "stop"` ([#15261](https://github.com/diegosouzapw/OmniRoute/pull/15261))

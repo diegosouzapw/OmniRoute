@@ -63,7 +63,7 @@ function baseFetch(url: string, init?: Record<string, unknown>) {
   }) as unknown as Promise<{ status: number; json: () => Promise<unknown> }>;
 }
 
-function joinUrl(base: string, path: string): string {
+export function joinUrl(base: string, path: string): string {
   const b = base.endsWith("/") ? base.slice(0, -1) : base;
   return `${b}${path}`;
 }

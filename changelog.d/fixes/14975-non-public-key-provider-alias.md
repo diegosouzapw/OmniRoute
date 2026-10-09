@@ -1,1 +1,0 @@
-- **fix(auth):** API keys with "Disable Non-Public Models" accept a published model addressed by provider alias (`sx/tts-rt-v2`) instead of answering 403; the alias stays as strict as the provider that serves it (provider-node prefixes, hidden flags and key-group denies on the canonical provider) ([#14975](https://github.com/diegosouzapw/OmniRoute/pull/14975))

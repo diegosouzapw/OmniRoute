@@ -4,11 +4,31 @@
 
 ---
 
-OmniRoute သည် coding CLI (Codex, Claude Code, OpenCode, Cline, …) ကို OmniRoute အား ၎င်း၏ backend အဖြစ် အသုံးပြုရန် configure လုပ်ပေးသည့် `setup-*` ကွန်မန်းများ မိသားစုကို ပံ့ပိုးပေးသည် — ထို့ကြောင့် tool သည် **တစ်ခုတည်းသော** endpoint နှင့် ဆက်သွယ်ပြီး OmniRoute သည် မှန်ကန်သော provider သို့ auto-fallback ဖြင့် လမ်းကြောင်းပြောင်းပေးသည်။ ကွန်မန်းတစ်ခုစီသည် လည်ပတ်နေသော OmniRoute (local သို့မဟုတ် remote) မှ **တိုက်ရိုက်** model catalog ကို ဖတ်ပြီး **သင့်** စက်ပေါ်ရှိ tool ၏ ကိုယ်ပိုင် config file ကို ရေးသားသည်။ API key ကို tool က ပံ့ပိုးပေးသည့် နေရာတိုင်းတွင် environment variable ဖြင့် ရည်ညွှန်းသည်။ tool-local environment file ကို ထိန်းသိမ်းထားသော ကွန်မန်းများကို အောက်တွင် ဖော်ပြထားသည်။
+မျှဝေထားသော executable manifest၊ ကန့်သတ်ထားသည့် child environment များနှင့် အမြဲတမ်းသိမ်းဆည်းထားသော
+Gemini setup အကြောင်းကို [CLI စတင်ခြင်းဆိုင်ရာ သဘောတူညီချက်များ](./CLI-LAUNCH-CONTRACTS.md) တွင် ကြည့်ပါ။
 
-ယေဘုယျ launcher တစ်ခုလည်း ရှိသည် — `omniroute run <target>` — ၎င်းသည် `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` သို့မဟုတ် `gemini` ကို မည်သည့် config မှ မရေးဘဲ မှန်ကန်သော env ထည့်သွင်းထားပြီး စတင်အလုပ်လုပ်စေသည်။ Targets များနှင့် ၎င်းတို့၏ အမည်ဝှက်များသည် စံ manifest `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`) မှ ဆင်းသက်လာပြီး `omniroute completion` သည် manifest မှ ဆင်းသက်လာသော target စကားလုံးများကို ပေးသည်။ အမွေအနှစ် per-tool launchers များ — `omniroute launch` (Claude Code) နှင့် `omniroute launch-codex` (Codex) — ဆက်လက်ရရှိနိုင်ပါသည်။
+OmniRoute တွင် coding CLI (Codex, Claude Code, OpenCode, Cline, …) ကို
+၎င်း၏ backend အဖြစ် OmniRoute အသုံးပြုရန် စီစဉ်ပေးသည့် `setup-*` command မျိုးစုံ ပါဝင်သည် — ထို့ကြောင့်
+tool သည် endpoint **တစ်ခုတည်း** နှင့် ဆက်သွယ်ပြီး OmniRoute က သင့်တော်သော provider ထံသို့
+အလိုအလျောက် အရန်ပြောင်းသုံးခြင်းဖြင့် လမ်းကြောင်းခွဲပေးသည်။ Command တစ်ခုစီသည် လည်ပတ်နေသော
+OmniRoute (local သို့မဟုတ် remote) မှ **လက်ရှိအသုံးပြုနေသော** model catalog ကို ဖတ်ပြီး
+tool ကိုယ်ပိုင် config file ကို **သင့်** စက်ပေါ်တွင် ရေးသားသည်။ Tool က ပံ့ပိုးသည့်နေရာတိုင်းတွင်
+API key ကို environment variable ဖြင့် ရည်ညွှန်းထားသည်။ Tool-local environment file ကို
+အမြဲတမ်းသိမ်းဆည်းသော command များကို အောက်တွင် မှတ်သားဖော်ပြထားသည်။
 
-Provider onboarding ကို local/remote context မှ ရရှိနိုင်ပါသည်။ အောက်ပါ API-first ကွန်မန်းများသည် စီမံခန့်ခွဲမှု စစ်မှန်ကြောင်း အတည်ပြုခြင်းကို provider credentials မှ သီးခြားထားရှိပြီး structured output တွင် credential ကို ဘယ်တော့မှ မထုတ်ပြန်ပါ-
+မည်သည့် config ကိုမျှ မရေးသားဘဲ မှန်ကန်သော env ကို ထည့်သွင်းကာ
+`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` သို့မဟုတ် `gemini` ကို စတင်ပေးသည့်
+ယေဘုယျ launcher — `omniroute run <target>` — လည်း ရှိသည်။ Target များနှင့် ၎င်းတို့၏
+alias များကို မူရင်း manifest ဖြစ်သော `bin/cli/cli-manifest.mjs` မှ ရယူသည်
+(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
+`open-code`, `qwen-code`, `gemini-cli`)၊ ထို့အပြင် `omniroute completion` ကလည်း
+တူညီသော manifest မှ ဆင်းသက်လာသည့် target စကားလုံးများကို ပေးသည်။ ယခင် tool အလိုက် launcher များဖြစ်သော —
+`omniroute launch` (Claude Code) နှင့် `omniroute launch-codex` (Codex) — ကိုလည်း
+ဆက်လက်အသုံးပြုနိုင်သည်။
+
+တူညီသော local/remote context မှ provider မိတ်ဆက်ထည့်သွင်းခြင်းကိုလည်း ပြုလုပ်နိုင်သည်။ အောက်ပါ
+API-first command များသည် စီမံခန့်ခွဲမှု authentication ကို provider
+credential များနှင့် သီးခြားထားပြီး structured output ထဲတွင် credential တစ်ခုကိုမျှ မဖော်ပြပါ။
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -18,16 +38,27 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-script များအတွက် `--credential-stdin` သို့မဟုတ် `--credential-env` ကို ပိုနှစ်သက်ပါ; `--credential` ကို ထိန်းချုပ်ထားသော local အသုံးပြုမှုအတွက် ထိန်းသိမ်းထားသည်။ `providers remove` သည် non-interactive terminal တွင် `--yes` လိုအပ်ပြီး ကွန်မန်းငါးခုလုံးသည် active context သို့မဟုတ် global `--base-url`/`--api-key` options များကို လိုက်နာသည်။
+Script များအတွက် `--credential-stdin` သို့မဟုတ် `--credential-env` ကို ဦးစားပေးအသုံးပြုပါ။
+`--credential` ကို ထိန်းချုပ်ထားသော local အသုံးပြုမှုအတွက် ဆက်လက်ထားရှိသည်။ Non-interactive
+terminal တစ်ခုတွင် `providers remove` သည် `--yes` လိုအပ်ပြီး command ငါးခုစလုံးက
+လက်ရှိအသုံးပြုနေသော context သို့မဟုတ် global `--base-url`/`--api-key` option များကို လိုက်နာသည်။
 
-Provider selectors များသည် မရေရာသော ID prefixes, အမည်များ သို့မဟုတ် provider အမည်များကို ငြင်းပယ်သည်; ချိတ်ဆက်မှုများစွာ ကိုက်ညီပါက connection ID အပြည့်အစုံကို အသုံးပြုပါ။ Create နှင့် edit ကွန်မန်းများသည် သိမ်းဆည်းထားသော connection ကို ပြန်ဖတ်ပြီး ဖယ်ရှားခြင်းသည် ၎င်းကို ဆက်လက်ဖတ်ရှု၍မရကြောင်း စစ်ဆေးသည်။ import တစ်ခုသည် ရှိပြီးသား provider/name အတွဲကို ကျော်သွားသည်။ import လုပ်ထားသော entries များသည် CLI သို့ ပံ့ပိုးပေးထားသော management endpoint, context သို့မဟုတ် management credentials များကို ကျော်လွန်၍ မရပါ။
+Provider selector များသည် မရှင်းလင်းသော ID prefix များ၊ အမည်များ သို့မဟုတ် provider အမည်များကို
+လက်မခံပါ။ Connection အများအပြားနှင့် ကိုက်ညီနေပါက connection ID အပြည့်အစုံကို အသုံးပြုပါ။
+ဖန်တီးခြင်းနှင့် ပြင်ဆင်ခြင်း command များသည် သိမ်းဆည်းထားသော connection ကို ပြန်ဖတ်ပြီး၊
+ဖယ်ရှားခြင်းသည် ၎င်းကို ထပ်မံဖတ်ရှု၍မရတော့ကြောင်း စစ်ဆေးအတည်ပြုသည်။
+Import လုပ်ရာတွင် ရှိနှင့်ပြီးသော provider/name အတွဲကို ကျော်သွားသည်။ Import လုပ်ထားသော entry များသည်
+CLI သို့ ပေးထားသော စီမံခန့်ခွဲမှု endpoint၊ context သို့မဟုတ် စီမံခန့်ခွဲမှု credential များကို
+အစားထိုး၍မရပါ။
 
-အချမ်းသာဆုံး integration နှစ်ခု၏ တစ်ကြိမ်တည်း၊ လက်ဖြင့်ရေးသားထားသော အခြေခံ setup အတွက် per-tool deep dives များကို ကြည့်ပါ-
+လုပ်ဆောင်ချက်အကြွယ်ဝဆုံး integration နှစ်ခု၏ တစ်ကြိမ်သာ ပြုလုပ်ရသော ကိုယ်တိုင်ရေးသားထားသည့် အခြေခံ setup အတွက်
+tool တစ်ခုချင်းစီဆိုင်ရာ အသေးစိတ်လမ်းညွှန်များကို ကြည့်ပါ။
 
-- [Claude Code configuration](./CLAUDE-CODE-CONFIGURATION.md)
-- [Codex CLI configuration](./CODEX-CLI-CONFIGURATION.md)
-- [Remote Mode](./REMOTE-MODE.md) — သင့် laptop မှ remote OmniRoute (VPS / Tailnet) ကို မောင်းနှင်ပါ
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot extension; ၎င်းသည် editor အတွင်းမှ သင့်အတွက် ဤ `setup-*` ကွန်မန်းများကိုလည်း လုပ်ဆောင်ပေးနိုင်သည်
+- [Claude Code စီစဉ်သတ်မှတ်ခြင်း](./CLAUDE-CODE-CONFIGURATION.md)
+- [Codex CLI စီစဉ်သတ်မှတ်ခြင်း](./CODEX-CLI-CONFIGURATION.md)
+- [Remote Mode](./REMOTE-MODE.md) — သင့် laptop မှ remote OmniRoute (VPS / Tailnet) ကို ထိန်းချုပ်အသုံးပြုပါ
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot extension ဖြစ်ပြီး editor အတွင်းမှ
+  ဤ `setup-*` command များကိုလည်း သင့်အတွက် လုပ်ဆောင်ပေးနိုင်သည်
 
 ---
 

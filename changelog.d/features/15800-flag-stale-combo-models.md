@@ -1,0 +1,1 @@
+- **feat(combos):** a successful model sync now flags combo steps pinned to models that are missing from the provider's synced catalog. The sync response lists them in `staleComboRefs` and an audit entry is written. Combos are never modified ([#15800](https://github.com/diegosouzapw/OmniRoute/pull/15800)) — thanks @tiagovilasboas

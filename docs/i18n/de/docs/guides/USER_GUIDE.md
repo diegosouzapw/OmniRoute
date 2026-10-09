@@ -122,7 +122,7 @@ Zugriff über: WhatsApp, Telegram, Slack, Discord, iMessage, Signal ...
 
 Um API-Schlüssel-Verbindungen gesammelt aus einer CSV- oder JSON-Datei hinzuzufügen, verwenden Sie **Dashboard → Anbieter → Aus Datei importieren**. Die Spalten sind positionsabhängig (`provider,name,apiKey,baseUrl,priority`); `provider` muss bereits als verwalteter Anbieter oder kompatibler Knoten vorhanden sein. Siehe [Anbieter aus einer CSV- oder JSON-Datei importieren](../providers/CSV-IMPORT.md).
 
-### 🔐 Abonnement-Anbieter
+### 🔐 Abonnementanbieter
 
 #### Claude Code (Pro/Max)
 
@@ -139,7 +139,9 @@ Modelle:
 
 **Profi-Tipp:** Verwenden Sie Opus für komplexe Aufgaben und Sonnet für Geschwindigkeit. OmniRoute überwacht das Kontingent pro Modell!
 
-Mit Claude und Claude Code kompatible Routen behalten den Denkaufwand `max` für Opus- und Sonnet-Modelle bei. Haiku-Modelle akzeptieren die Aufwandsstufe `max` nicht, daher stuft OmniRoute diese Anfrage auf ein hohes Denkbudget herab, bevor sie an den Upstream-Anbieter gesendet wird.
+Kein Browser auf dem OmniRoute-Host? Führen Sie `claude setup-token` an einem beliebigen Ort aus, an dem Claude Code angemeldet ist, und fügen Sie das ein Jahr gültige Token in den Tab **Setup-Token** ein. Siehe [Claude Code mit einem Setup-Token](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Claude- und Claude-Code-kompatible Routen behalten für Opus- und Sonnet-Modelle den Denkaufwand `max` bei. Haiku-Modelle unterstützen die Aufwandsstufe `max` nicht. Daher stuft OmniRoute diese Anfrage auf ein hohes Denkbudget herab, bevor sie an den Upstream-Anbieter gesendet wird.
 
 #### OpenAI Codex (Plus/Pro)
 
@@ -172,44 +174,44 @@ Modelle:
 
 ### 💰 Günstige Anbieter
 
-#### GLM-4.7 (tägliche Zurücksetzung, $0.6/1M)
+#### GLM-4.7 (tägliche Zurücksetzung, 0,6 $/1 Mio.)
 
 1. Registrieren: [Zhipu AI](https://open.bigmodel.cn)
 2. API-Schlüssel aus dem Coding Plan abrufen
 3. Dashboard → API-Schlüssel hinzufügen: Anbieter: `glm`, API-Schlüssel: `your-key`
 
-**Verwendung:** `glm/glm-4.7` — **Profi-Tipp:** Der Coding Plan bietet das 3-fache Kontingent zu 1/7 der Kosten! Tägliche Zurücksetzung um 10:00 Uhr.
+**Verwendung:** `glm/glm-4.7` — **Profi-Tipp:** Der Coding Plan bietet das dreifache Kontingent zu einem Siebtel der Kosten! Tägliche Zurücksetzung um 10:00 Uhr.
 
-#### MiniMax M2.1 (Zurücksetzung nach 5 Std., $0.20/1M)
+#### MiniMax M2.1 (Zurücksetzung nach 5 Std., 0,20 $/1 Mio.)
 
 1. Registrieren: [MiniMax](https://www.minimax.io)
 2. API-Schlüssel abrufen → Dashboard → API-Schlüssel hinzufügen
 
 **Verwendung:** `minimax/MiniMax-M2.1` — **Profi-Tipp:** Günstigste Option für lange Kontexte (1 Mio. Token)!
 
-#### Kimi K2 ($9/Monat pauschal)
+#### Kimi K2 (Pauschalpreis von 9 $/Monat)
 
 1. Abonnieren: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. API-Schlüssel abrufen → Dashboard → API-Schlüssel hinzufügen
 
-**Verwendung:** `kimi/kimi-k2.5` — **Profi-Tipp:** Feste $9/Monat für 10 Mio. Token = effektive Kosten von $0.90/1M!
+**Verwendung:** `kimi/kimi-k2.5` — **Profi-Tipp:** Feste 9 $/Monat für 10 Mio. Token = effektive Kosten von 0,90 $/1 Mio.!
 
 #### Baidu Qianfan / ERNIE
 
 1. Registrieren: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
 2. Einen Qianfan-API-Schlüssel erstellen → Dashboard → API-Schlüssel hinzufügen: Anbieter: `qianfan`
 
-**Verwendung:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` oder eine andere mit OpenAI kompatible Qianfan-Modell-ID.
+**Verwendung:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` oder eine andere OpenAI-kompatible Qianfan-Modell-ID.
 
 ### 🆓 KOSTENLOSE Anbieter
 
-Kostenlose Anbieter ohne Authentifizierung verfügen auf ihrer Anbieterseite über einen Schalter neben **Keine Authentifizierung erforderlich**.
-Wenn Sie ihn deaktivieren, wird der betreffende Anbieter deaktiviert, aus den konfigurierten und kompakten Anbieteransichten entfernt und seine Modelle werden aus `/v1/models` entfernt.
+Anbieter ohne Authentifizierung verfügen auf ihrer Anbieterseite über einen Schalter neben **Keine Authentifizierung erforderlich**.
+Wenn Sie ihn ausschalten, wird der betreffende Anbieter deaktiviert, aus den konfigurierten und kompakten Anbieteransichten entfernt und seine Modelle werden aus `/v1/models` entfernt.
 
 #### Qoder (9 KOSTENLOSE Modelle)
 
 ```bash
-Dashboard → Qoder verbinden → OAuth-Anmeldung → Der Zugriff unterliegt den aktuellen Beschränkungen des Anbieters
+Dashboard → Qoder verbinden → OAuth-Anmeldung → Der Zugriff unterliegt den aktuellen Anbieterbeschränkungen
 
 Modelle: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
@@ -217,7 +219,7 @@ Modelle: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if
 #### Kiro (Claude KOSTENLOS)
 
 ```bash
-Dashboard → Kiro verbinden → AWS Builder ID oder Google/GitHub → ~50 Credits/Monat
+Dashboard → Kiro verbinden → AWS Builder ID oder Google/GitHub → ~50 Guthabenpunkte/Monat
 
 Modelle: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```

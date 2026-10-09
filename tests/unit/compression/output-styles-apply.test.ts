@@ -151,8 +151,9 @@ test("Responses input (no messages) uses instructions field", () => {
 });
 
 test("terse-prose localizes per language (back-compat with the legacy caveman packs)", () => {
-  // Regression guard: the legacy caveman output mode localized to en/pt-BR/ja/id; the
-  // migrated terse-prose style must inject the SAME localized text, not fall back to English.
+  // Regression guard: the legacy caveman output mode carries a localized text per language;
+  // the migrated terse-prose style must inject the SAME localized text, not fall back to
+  // English. (Every language × level pair is pinned in output-styles-legacy-parity.test.ts.)
   const ptBR = applyOutputStyles(
     { messages: [{ role: "user", content: "Resuma os logs." }] },
     sel(["terse-prose", "lite"]),

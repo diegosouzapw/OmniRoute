@@ -68,6 +68,7 @@ export type NonStreamingProviderLegResult =
   | {
       kind: "error";
       result: ChatCoreErrorResult;
+      upstreamDiagnostic?: Record<string, unknown>;
       receipt: ProviderLegReceipt;
       usage: ProviderLegUsage | null;
     };

@@ -246,7 +246,8 @@ export async function runServe(opts = {}) {
   // BEFORE any pid file is written or any child is spawned. Otherwise the
   // doomed child's EADDRINUSE arrives only after this process has rewritten
   // the pid files of the healthy instance that actually owns the port.
-  const busyPids = await resolveServeBusyPids(dashboardPort);
+  const serverHost = resolveServerHost();
+  const busyPids = await resolveServeBusyPids(dashboardPort, { host: serverHost });
   if (busyPids.length > 0) {
     reportPortInUse(dashboardPort, busyPids);
     process.exit(1);
@@ -276,7 +277,7 @@ export async function runServe(opts = {}) {
     // #10492: HOSTNAME is standard shell state on Unix-like systems, not an
     // OmniRoute bind setting. The resolver only keeps its legacy meaning on
     // Windows; OMNIROUTE_SERVER_HOST is the cross-platform explicit setting.
-    HOSTNAME: resolveServerHost(),
+    HOSTNAME: serverHost,
     NODE_ENV: "production",
     // #5238: preserve a user-set NODE_OPTIONS (incl. their own
     // `--max-old-space-size=…`) instead of clobbering it with the calibrated
@@ -347,15 +348,15 @@ export async function resolveServeBusyPids(port, deps = {}) {
   // findListeningPids() returning null means the discovery tool itself is
   // missing or unusable (Termux, slim containers, #14518) — fall back to a
   // bind probe so the guard still answers before spawning the doomed child.
-  let busyPids = await discover(port);
+  let busyPids = await discover(port, { host: deps.host });
   if (busyPids === null) {
     // Discovery tool missing/unusable (#14518): the bind probe is the guard.
-    if (!(await probe(port))) busyPids = [null];
+    if (!(await probe(port, { host: deps.host }))) busyPids = [null];
     else busyPids = [];
   } else if (busyPids.length === 0) {
     // Discovery ran and saw nothing, but that window can race a starting
     // instance; a bind probe costs nothing and doubles as confirmation.
-    if (!(await probe(port))) busyPids = [null];
+    if (!(await probe(port, { host: deps.host }))) busyPids = [null];
   }
   return busyPids;
 }
@@ -385,7 +386,7 @@ function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
   // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
   // heap via NODE_OPTIONS (a CLI arg would shadow/override their value).
   const server = spawn(
-    process.versions.bun ? process.execPath : "node",
+    process.execPath,
     [
       ...(process.versions.bun
         ? ["--preload", BUN_PRELOAD_PATH]
@@ -410,7 +411,7 @@ function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, 
   // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
   // heap via NODE_OPTIONS (a CLI arg would shadow/override their value).
   const server = spawn(
-    process.versions.bun ? process.execPath : "node",
+    process.execPath,
     [
       ...(process.versions.bun
         ? ["--preload", BUN_PRELOAD_PATH]

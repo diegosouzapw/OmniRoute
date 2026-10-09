@@ -1,0 +1,1 @@
+- fix(sse): opencode park-and-resume replay no longer serves proxy-set-aside accounts by default; the #14750 "serve anyway" fallback is now opt-in via `OPENCODE_PARK_REPLAY_SERVE_SETASIDE` (#14851)

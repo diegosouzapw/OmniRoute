@@ -28,24 +28,6 @@ export const codexProvider: RegistryEntry = {
     tokenUrl: "https://auth.openai.com/oauth/token",
   },
   models: [
-    // Live Codex catalog: 872K maximum window, low default, low..ultra.
-    { id: "gpt-6.1-sol", name: "GPT 6.1 Sol", ...GPT_5_6_CODEX_CAPABILITIES },
-    { id: "gpt-6.1-sol-ultra", name: "GPT 6.1 Sol (Ultra)", ...GPT_5_6_CODEX_CAPABILITIES },
-    { id: "gpt-6.1-sol-max", name: "GPT 6.1 Sol (Max)", ...GPT_5_6_CODEX_CAPABILITIES },
-    {
-      id: "gpt-6.1-sol-xhigh",
-      name: "GPT 6.1 Sol (xHigh)",
-      ...GPT_5_6_CODEX_CAPABILITIES,
-      timeoutMs: 1200000,
-    },
-    {
-      id: "gpt-6.1-sol-high",
-      name: "GPT 6.1 Sol (High)",
-      ...GPT_5_6_CODEX_CAPABILITIES,
-      timeoutMs: 1200000,
-    },
-    { id: "gpt-6.1-sol-medium", name: "GPT 6.1 Sol (Medium)", ...GPT_5_6_CODEX_CAPABILITIES },
-    { id: "gpt-6.1-sol-low", name: "GPT 6.1 Sol (Low)", ...GPT_5_6_CODEX_CAPABILITIES },
     // Astra shares GPT-5.6's Codex limits: the live OAuth catalog reports
     // max_context_window=872000 (context_window=272000 is the pricing tier).
     { id: "gpt-6-astra", name: "GPT 6 Astra", ...GPT_5_6_CODEX_CAPABILITIES },
@@ -84,6 +66,23 @@ export const codexProvider: RegistryEntry = {
     },
     { id: "gpt-6-sol-medium", name: "GPT 6 Sol (Medium)", ...GPT_5_6_CODEX_CAPABILITIES },
     { id: "gpt-6-sol-low", name: "GPT 6 Sol (Low)", ...GPT_5_6_CODEX_CAPABILITIES },
+    { id: "gpt-6.1-sol", name: "GPT 6.1 Sol", ...GPT_5_6_CODEX_CAPABILITIES },
+    { id: "gpt-6.1-sol-ultra", name: "GPT 6.1 Sol (Ultra)", ...GPT_5_6_CODEX_CAPABILITIES },
+    { id: "gpt-6.1-sol-max", name: "GPT 6.1 Sol (Max)", ...GPT_5_6_CODEX_CAPABILITIES },
+    {
+      id: "gpt-6.1-sol-xhigh",
+      name: "GPT 6.1 Sol (xHigh)",
+      ...GPT_5_6_CODEX_CAPABILITIES,
+      timeoutMs: 1200000,
+    },
+    {
+      id: "gpt-6.1-sol-high",
+      name: "GPT 6.1 Sol (High)",
+      ...GPT_5_6_CODEX_CAPABILITIES,
+      timeoutMs: 1200000,
+    },
+    { id: "gpt-6.1-sol-medium", name: "GPT 6.1 Sol (Medium)", ...GPT_5_6_CODEX_CAPABILITIES },
+    { id: "gpt-6.1-sol-low", name: "GPT 6.1 Sol (Low)", ...GPT_5_6_CODEX_CAPABILITIES },
     { id: "gpt-6-luna", name: "GPT 6 Luna", ...GPT_5_6_CODEX_CAPABILITIES },
     { id: "gpt-6-luna-max", name: "GPT 6 Luna (Max)", ...GPT_5_6_CODEX_CAPABILITIES },
     {

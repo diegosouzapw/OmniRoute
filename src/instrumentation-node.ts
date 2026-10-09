@@ -272,9 +272,12 @@ export async function warmAdaptiveVirtualLanesIntoRuntime(): Promise<void> {
  * fetcher.
  */
 export async function registerQuotaFetchers(): Promise<void> {
-  // Side-effect registrations for agentrouter, freeModel, grokCli, xaiOauth,
-  // firecrawl (same ordering as the legacy chat.ts path).
-  await import("@omniroute/open-sse/services/quotaTrackersBatch.ts");
+  // Explicit call after the import resolves. A module-load side effect invokes
+  // registerQuotaFetcher while webpack is still binding that async export and
+  // throws "(0 , e.Zd) is not a function", caching an empty HTTP 500 on chat.
+  const { registerQuotaTrackersBatch } =
+    await import("@omniroute/open-sse/services/quotaTrackersBatch.ts");
+  registerQuotaTrackersBatch();
 
   const [
     { registerCodexQuotaFetcher },
@@ -349,6 +352,12 @@ export async function registerNodejs(): Promise<void> {
   // Subscribe the proxy set-aside webhook bridge (side-effect import only).
   await import("@/lib/proxyEvents/proxyTransitionBridge");
 
+  // Steer the local core selector off every set-aside member, whatever the
+  // refusal kind (explicit idempotent registration; safe to call twice).
+  const { registerSelectorTransitionSubscriber } =
+    await import("@/lib/proxySubscription/proxyTransitionSubscriber");
+  registerSelectorTransitionSubscriber();
+
   // Register quota fetchers early so combo routing can use real quota-aware
   // scoring for generic providers in the App Router production runtime.
   await registerQuotaFetchers();
@@ -369,6 +378,11 @@ export async function registerNodejs(): Promise<void> {
   await ensureSecrets();
   await Promise.all([
     import("@/lib/env/runtimeEnv").then(({ enforceWebRuntimeEnv }) => enforceWebRuntimeEnv()),
+    // Warn loudly at boot if STORAGE_ENCRYPTION_KEY is missing in production.
+    // Do not exit: an empty key is the documented encryption-disabled contract.
+    import("@/lib/db/encryption").then(({ assertEncryptionKeyConfiguredForProduction }) =>
+      assertEncryptionKeyConfiguredForProduction()
+    ),
     import("@/lib/usage/migrations"),
     import("@/lib/consoleInterceptor").then(({ initConsoleInterceptor }) =>
       initConsoleInterceptor()

@@ -1,1 +1,0 @@
-- **fix(api):** `POST /api/cloud/auth` returns `maskedApiKey` and `projectId` only to keys with the `manage` / `admin` scope (both fields are omitted for other keys), lists only the connections a key is allowed to use, and shows at most a quarter of a short key

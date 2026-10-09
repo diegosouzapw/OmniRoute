@@ -1263,19 +1263,19 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 также про
 <table>
   <tr><th align="left">Уровень</th><th align="left">Технология</th></tr>
   <tr><td nowrap><b>Среда выполнения</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Язык</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> во всех <code>src/</code> и <code>open-sse/</code> (с версии v2.0 в ядре нет ни одного <code>any</code>)</td></tr>
+  <tr><td nowrap><b>Язык</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> в <code>src/</code> и <code>open-sse/</code> (начиная с v2.0 в ядре нет ни одного <code>any</code>)</td></tr>
   <tr><td nowrap><b>Фреймворк</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>База данных</b></td><td>better-sqlite3 (SQLite, журналирование WAL) + LowDB (устаревший формат JSON) — 136 доменных модулей, 193 миграции</td></tr>
+  <tr><td nowrap><b>База данных</b></td><td>better-sqlite3 (SQLite, журналирование WAL) + LowDB (устаревший формат JSON) — 137 доменных модулей, 193 миграции</td></tr>
   <tr><td nowrap><b>Память</b></td><td>Полнотекстовый поиск SQLite FTS5 + векторные эмбеддинги с квантованием int8, типизированное затухание</td></tr>
   <tr><td nowrap><b>Схемы</b></td><td>Zod 4 — валидация ввода-вывода инструментов MCP + контракты API</td></tr>
   <tr><td nowrap><b>Протоколы</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>Потоковая передача</b></td><td>Server-Sent Events (SSE) + мост WebSocket (<code>/v1/ws</code>)</td></tr>
   <tr><td nowrap><b>Сжатие</b></td><td>Конвейер из 12 движков — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Аутентификация и безопасность</b></td><td>OAuth 2.0 (PKCE) + JWT + ключи API + аутентификация MCP с областями доступа · AES-256-GCM для хранимых данных · DOMPurify</td></tr>
-  <tr><td nowrap><b>Скрытность</b></td><td>wreq-js — имитация TLS-отпечатков JA3 / JA4, трёхуровневое проксирование</td></tr>
-  <tr><td nowrap><b>Отказоустойчивость</b></td><td>Автоматический выключатель, экспоненциальная задержка повторных попыток, защита от лавинообразных запросов, самовосстановление автоматических комбинаций</td></tr>
+  <tr><td nowrap><b>Аутентификация и безопасность</b></td><td>OAuth 2.0 (PKCE) + JWT + ключи API + авторизация MCP с областями доступа · AES-256-GCM для хранимых данных · DOMPurify</td></tr>
+  <tr><td nowrap><b>Маскировка</b></td><td>wreq-js — имитация TLS-отпечатков JA3 / JA4, трёхуровневое проксирование</td></tr>
+  <tr><td nowrap><b>Отказоустойчивость</b></td><td>Автоматический выключатель, экспоненциальная задержка, защита от лавинообразных запросов, самовосстановление автоматических комбинаций</td></tr>
   <tr><td nowrap><b>Журналирование</b></td><td>pino — структурированные журналы JSON с контекстом запросов</td></tr>
-  <tr><td nowrap><b>Тестирование</b></td><td>Средство запуска тестов Node.js + Vitest — <b>более 39 000 статических объявлений тестов</b> в более чем 5 100 отслеживаемых файлах тестов (модульные, интеграционные, E2E, безопасности, экосистемы)</td></tr>
+  <tr><td nowrap><b>Тестирование</b></td><td>Средство запуска тестов Node.js + Vitest — <b>более 39 000 статических объявлений тестов</b> в более чем 5 100 отслеживаемых тестовых файлах (модульные, интеграционные, E2E, безопасность, экосистема)</td></tr>
   <tr><td nowrap><b>Платформы</b></td><td>Настольные системы (Electron) · Android (Termux) · PWA (любой браузер)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — автоматическая публикация в npm и Docker Hub при выпуске релиза</td></tr>
   <tr><td nowrap><b>Ссылки</b></td><td><a href="https://omniroute.online">Веб-сайт</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
@@ -1729,7 +1729,7 @@ OmniRoute стоит на плечах гигантов. Он начинался
 
 **[⬆ Вернуться наверх](#-omniroute)** · Создано с ❤️ для сообщества разработчиков ИИ с открытым исходным кодом.
 
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · Лицензия MIT · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.52 · Node ≥22.22.2 · Лицензия MIT · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- GitHub Discussions включены для вопросов и ответов сообщества -->

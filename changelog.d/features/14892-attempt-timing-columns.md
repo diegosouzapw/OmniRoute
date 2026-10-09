@@ -1,1 +1,0 @@
-- **feat(proxy-logs):** record per-attempt upstream headers duration on proxy log rows, plus opt-in first-chunk duration (`PROXY_LOG_FIRST_CHUNK_TIMING`), and show them in the proxy log detail ([#14892](https://github.com/diegosouzapw/OmniRoute/pull/14892)) — thanks @maxmad64bis

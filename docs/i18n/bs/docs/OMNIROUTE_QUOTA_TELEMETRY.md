@@ -4,18 +4,18 @@
 
 ---
 
-OmniRoute razdvaja telemetriju kvota provajdera od Ghostlight računovodstva.
+OmniRoute odvaja telemetriju kvota pružatelja usluga od Ghostlight obračuna.
 
-## Istinita stanja
+## Vjerodostojna stanja
 
-- `healthy` znači da je izvor prijavio iskoristiv preostali kapacitet.
-- `approaching_limit` znači da je izvor prijavio preostali kapacitet na ili ispod konfigurisanog praga.
-- `exhausted` se emituje samo kada izvor prijavi nulti kapacitet ili upotrebu na svom limitu.
+- `healthy` znači da je izvor prijavio upotrebljivi preostali kapacitet.
+- `approaching_limit` znači da je izvor prijavio preostali kapacitet jednak konfiguriranom pragu ili manji od njega.
+- `exhausted` se emituje samo kada izvor prijavi nulti kapacitet ili potrošnju koja je dostigla ograničenje.
 - `unavailable` znači da podržani izvor nije uspio vratiti podatke.
-- `unknown` znači da ne postoji podržani izvor ili da limit provajdera nije poznat.
+- `unknown` znači da ne postoji podržani izvor ili da ograničenje pružatelja usluga nije poznato.
 
-`unknown` nije iscrpljen i ne onemogućava provajdera.
+Nepoznato stanje nije isto što i iscrpljeno te ne onemogućava pružatelja usluga.
 
-Izvori se preferiraju ovim redoslijedom: zvanični API provajdera, autentifikovani API za upotrebu, eksplicitno mapirana zaglavlja odgovora, administratorska konfiguracija, lokalne procjene, `unknown`. Lokalne procjene se nikada ne prikazuju kao podaci o naplati provajdera.
+Izvori imaju prednost sljedećim redoslijedom: službeni API pružatelja usluga, autentificirani API za potrošnju, eksplicitno mapirana zaglavlja odgovora, administratorska konfiguracija, lokalne procjene, nepoznato. Lokalne procjene nikada se ne predstavljaju kao podaci pružatelja usluga o naplati.
 
-Zaglavlja odgovora se analiziraju samo kroz eksplicitno mapiranje provajdera. Generička imena zaglavlja se ne pretpostavljaju globalno.
+Zaglavlja odgovora raščlanjuju se isključivo putem eksplicitnog mapiranja za pružatelja usluga. Ne pretpostavlja se da generički nazivi zaglavlja vrijede globalno.

@@ -36,10 +36,9 @@ test("Codex exposes Astra and its effort variants with live OAuth limits", () =>
       assert.equal(model.supportsVision, true);
       assert.equal(model.supportsXHighEffort, true);
     }
-    const solIds = ["gpt-6.1-sol", ...EFFORTS.map((effort) => `gpt-6.1-sol-${effort}`)];
     assert.deepEqual(
-      models.slice(0, solIds.length + ids.length).map((model) => model.id),
-      [...solIds, ...ids]
+      models.slice(0, ids.length).map((model) => model.id),
+      ids
     );
   }
 });

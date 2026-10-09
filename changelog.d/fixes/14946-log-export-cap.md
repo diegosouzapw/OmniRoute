@@ -1,1 +1,0 @@
-- **fix(dashboard):** the Logs page Export button now requests the server maximum (50k rows) instead of the silent 10k default and warns when the export was still truncated; `GET /api/logs/export` mirrors the cap metadata in `X-OmniRoute-Export-*` response headers ([#14946](https://github.com/diegosouzapw/OmniRoute/pull/14946)) — thanks @shipsfromrio

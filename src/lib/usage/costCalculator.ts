@@ -101,11 +101,11 @@ export function getCodexFastCostMultiplier(
 
   const modelKey = stripCodexEffortSuffix(normalizeModelName(String(model || "")).toLowerCase());
   const compactModelKey = modelKey.replace(/-/g, "");
-  // GPT-6.1 Sol purchased-credit/USD Fast rate is 2x, not the 2.5x
-  // included-subscription consumption multiplier (codex/pricing and codex/speed).
-  if (compactModelKey === "gpt6.1sol") return 2;
   // Codex GPT-6 Fast is 2.5x Standard (https://developers.openai.com/codex/pricing).
-  if (/^gpt6(?:astra|sol|luna)$/.test(compactModelKey)) {
+  if (
+    /^gpt-6(?:\.1)?-(?:astra|sol|luna)$/.test(modelKey) ||
+    /^gpt6(?:\.1)?(?:astra|sol|luna)$/.test(compactModelKey)
+  ) {
     return 2.5;
   }
   if (
@@ -171,9 +171,14 @@ export function computeCostFromPricing(
   // completion_tokens is reasoning-inclusive. Reasoning is already billed at
   // the output rate above, so a dedicated price contributes only its premium.
   const reasoningTokens = tokens.reasoning ?? tokens.reasoning_tokens ?? 0;
-  if (reasoningTokens > 0 && pricing.reasoning !== undefined && pricing.reasoning !== null) {
+  if (reasoningTokens > outputTokens) {
+    // Reasoning exceeding completion is impossible when completion is inclusive,
+    // so the provider reports separate buckets (#15496): bill reasoning on top.
+    cost += reasoningTokens * (reasoningPrice / 1_000_000);
+  } else if (reasoningTokens > 0 && pricing.reasoning !== undefined && pricing.reasoning !== null) {
     cost += reasoningTokens * ((reasoningPrice - outputPrice) / 1_000_000);
   }
+  cost = Math.max(0, cost);
 
   if (cacheCreationTokens > 0) cost += cacheCreationTokens * (cacheCreationPrice / 1_000_000);
 

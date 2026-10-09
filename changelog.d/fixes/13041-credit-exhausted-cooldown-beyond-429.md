@@ -1,1 +1,0 @@
-- **resilience**: credit-exhausted upstream errors (e.g. "You have exhausted all your credits") now classify as quota exhaustion even when the upstream answers with a non-429 status, so the provider breaker applies the long quota cooldown instead of a transient retry (#13041 — thanks @turbolego)

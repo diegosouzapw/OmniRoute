@@ -44,6 +44,34 @@ describe("providerLimits/quotaNormalize — isUsageQuotaKeyAllowed", () => {
     assert.equal(isUsageQuotaKeyAllowed("anthropic", "models"), true);
     assert.equal(isUsageQuotaKeyAllowed("antigravity", "credits"), true);
   });
+  it("keeps Antigravity family weekly buckets that are not model ids", () => {
+    assert.equal(isUsageQuotaKeyAllowed("antigravity", "gemini_weekly"), true);
+    assert.equal(isUsageQuotaKeyAllowed("antigravity", "claude_gpt_weekly"), true);
+    assert.equal(isUsageQuotaKeyAllowed("agy", "gemini_weekly"), true);
+    const quotas = {
+      "gemini-3.1-flash-lite": { remainingPercentage: 10, quotaSource: "retrieveUserQuota" },
+      gemini_weekly: { remainingPercentage: 40, quotaSource: "retrieveUserQuotaSummary" },
+      claude_gpt_weekly: { remainingPercentage: 20, quotaSource: "retrieveUserQuotaSummary" },
+      "not-a-model": { remainingPercentage: 1 },
+    };
+    const out = normalizeUsageQuotasForProvider("antigravity", quotas);
+    assert.equal(out.gemini_weekly.remainingPercentage, 40);
+    assert.equal(out.claude_gpt_weekly.remainingPercentage, 20);
+    assert.equal(out["not-a-model"], undefined);
+  });
+  it("keeps Antigravity family session (5-hour) buckets next to the weekly ones (#13739)", () => {
+    assert.equal(isUsageQuotaKeyAllowed("antigravity", "gemini_session"), true);
+    assert.equal(isUsageQuotaKeyAllowed("agy", "claude_gpt_session"), true);
+    const quotas = {
+      gemini_session: { remainingPercentage: 70, quotaSource: "retrieveUserQuotaSummary" },
+      gemini_weekly: { remainingPercentage: 40, quotaSource: "retrieveUserQuotaSummary" },
+      claude_gpt_session: { remainingPercentage: 55, quotaSource: "retrieveUserQuotaSummary" },
+    };
+    const out = normalizeUsageQuotasForProvider("antigravity", quotas);
+    assert.equal(out.gemini_session.remainingPercentage, 70);
+    assert.equal(out.gemini_weekly.remainingPercentage, 40);
+    assert.equal(out.claude_gpt_session.remainingPercentage, 55);
+  });
 });
 
 describe("providerLimits/quotaNormalize — sanitize/normalize are callable & pure-shaped", () => {

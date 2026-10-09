@@ -1,1 +1,0 @@
-- **fix(sse):** Count persisted-cooldown bypasses served through the rate-limited allow-list so operators can see re-served targets ([#15004](https://github.com/diegosouzapw/OmniRoute/pull/15004)) — thanks @maxmad64bis

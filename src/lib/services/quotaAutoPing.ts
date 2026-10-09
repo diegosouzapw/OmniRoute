@@ -27,7 +27,8 @@ import { splitCodexReasoningSuffix } from "@omniroute/open-sse/executors/codex/r
 import { isModelSelectable } from "@omniroute/open-sse/services/modelLifecycle.ts";
 import { getCodexUsage } from "@omniroute/open-sse/services/usage/codex.ts";
 import { throttleQuotaFetch } from "@omniroute/open-sse/services/quotaFetchThrottle.ts";
-import { getSettings } from "@/lib/db/settings";
+import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import { getSettings, resolveProxyForConnection } from "@/lib/db/settings";
 import { getProviderConnections, updateProviderConnection } from "@/lib/db/providers";
 import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLeaseIsolation";
 import { refreshAndUpdateCredentialsWithResolver } from "@/lib/usage/providerLimits/credentialRefresh";
@@ -76,6 +77,8 @@ export interface QuotaAutoPingDeps {
    * it runs unattended once a minute per connection.
    */
   throttleQuotaFetch: () => Promise<void>;
+  resolveProxyForConnection: (connectionId: string) => Promise<{ proxy?: unknown } | null>;
+  runWithProxyContext: <T>(proxyConfig: unknown, callback: () => Promise<T>) => Promise<T>;
   getExecutor: (provider: "codex") => Promise<BaseExecutor>;
   canExecuteProvider: (provider: string) => boolean;
   isConnectionUnavailableToAuxiliaryActivity: (connectionId: string) => Promise<boolean>;
@@ -153,6 +156,8 @@ export function createDefaultQuotaAutoPingDeps(): QuotaAutoPingDeps {
       refreshAndUpdateCredentialsWithResolver(connection, loadQuotaAutoPingExecutor),
     getCodexUsage,
     throttleQuotaFetch,
+    resolveProxyForConnection,
+    runWithProxyContext,
     getExecutor: loadQuotaAutoPingExecutor,
     canExecuteProvider: (provider) => getCircuitBreaker(provider).canExecute(),
     isConnectionUnavailableToAuxiliaryActivity,
@@ -414,37 +419,40 @@ async function pingConnection(
   const current = await refreshConnectionForPing(connection, provider, deps, state, key, nowMs);
   if (!current) return;
 
-  // Pace this the same way every other quota fetcher does. Placed after the skip
-  // checks above so a connection that never reaches the network does not consume a
-  // slot and delay the ones that do.
-  await deps.throttleQuotaFetch();
-  const usage = await deps.getCodexUsage(current.accessToken, current.providerSpecificData);
-  const quotas = (usage.quotas as JsonRecord) || {};
-  const quota = quotas[providerConfig.quotaKey] as JsonRecord | undefined;
-  const resetAt = quota?.resetAt as string | undefined;
-  if (!resetAt) return;
-  state.resetCache[key] = resetAt;
+  const proxyInfo = await deps.resolveProxyForConnection(current.id);
+  await deps.runWithProxyContext(proxyInfo?.proxy ?? null, async () => {
+    // Pace this the same way every other quota fetcher does. Placed after the skip
+    // checks above so a connection that never reaches the network does not consume a
+    // slot and delay the ones that do.
+    await deps.throttleQuotaFetch();
+    const usage = await deps.getCodexUsage(current.accessToken, current.providerSpecificData);
+    const quotas = (usage.quotas as JsonRecord) || {};
+    const quota = quotas[providerConfig.quotaKey] as JsonRecord | undefined;
+    const resetAt = quota?.resetAt as string | undefined;
+    if (!resetAt) return;
+    state.resetCache[key] = resetAt;
 
-  const resetKey = normalizeResetKey(resetAt);
-  if (
-    !shouldSendPing(providerConfig, quotas, quota, cachedReset, resetAt, current, resetKey, nowMs)
-  ) {
-    return;
-  }
+    const resetKey = normalizeResetKey(resetAt);
+    if (
+      !shouldSendPing(providerConfig, quotas, quota, cachedReset, resetAt, current, resetKey, nowMs)
+    ) {
+      return;
+    }
 
-  const ok = await sendCodexPing(current, providerConfig, deps);
-  if (!ok) {
-    state.failureCache[key] = nowMs;
-    log.warn(`${provider}:${current.id}: ping failed`, { resetAt });
-    return;
-  }
+    const ok = await sendCodexPing(current, providerConfig, deps);
+    if (!ok) {
+      state.failureCache[key] = nowMs;
+      log.warn(`${provider}:${current.id}: ping failed`, { resetAt });
+      return;
+    }
 
-  delete state.failureCache[key];
-  await deps.updateProviderConnection(current.id, {
-    lastPingedResetKey: resetKey,
-    lastPingAt: new Date(nowMs).toISOString(),
+    delete state.failureCache[key];
+    await deps.updateProviderConnection(current.id, {
+      lastPingedResetKey: resetKey,
+      lastPingAt: new Date(nowMs).toISOString(),
+    });
+    log.info(`${provider}:${current.id}: ping sent`, { resetAt, model: providerConfig.pingModel });
   });
-  log.info(`${provider}:${current.id}: ping sent`, { resetAt, model: providerConfig.pingModel });
 }
 
 /**
