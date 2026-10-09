@@ -124,6 +124,36 @@ export function analyzeForgottenSiblingTests({
   const suppressed = [];
   const maskingRisks = [];
 
+  // Shared by import edges and direct path-literal edges: a candidate test that is in the
+  // diff clears the edge; a deleted/masked one is a masking risk; an absent one is a finding
+  // unless an allowlist entry covers the (consumer, test) pair.
+  const evaluate = (changedModule, consumer, candidateTest, reason) => {
+    const status = changed.get(candidateTest);
+    if (status === "D" || (status && maskingAdded)) {
+      maskingRisks.push({
+        changedModule,
+        consumer,
+        candidateTest,
+        reason:
+          status === "D"
+            ? "candidate sibling test was deleted"
+            : "candidate sibling test adds skip/todo masking",
+      });
+      return;
+    }
+    if (status) return;
+    const finding = {
+      changedModule,
+      changedSymbols: [...(changedSymbolsByFile[changedModule] || [])].sort(),
+      consumer,
+      candidateTest,
+      reason,
+    };
+    const exception = allow.get(`${consumer}\0${candidateTest}`);
+    if (exception) suppressed.push({ ...finding, exception });
+    else findings.push(finding);
+  };
+
   for (const edge of importEdges(root)) {
     if (!changedModules.includes(edge.module)) continue;
     const tests = [...new Set(impactMap.sources?.[edge.consumer] || [])].sort();
@@ -137,31 +167,28 @@ export function analyzeForgottenSiblingTests({
       continue;
     }
     for (const candidateTest of tests) {
-      const status = changed.get(candidateTest);
-      const masking = status === "D" || (status && maskingAdded);
-      if (masking) {
-        maskingRisks.push({
-          changedModule: edge.module,
-          consumer: edge.consumer,
-          candidateTest,
-          reason:
-            status === "D"
-              ? "candidate sibling test was deleted"
-              : "candidate sibling test adds skip/todo masking",
-        });
-        continue;
-      }
-      if (status) continue;
-      const finding = {
-        changedModule: edge.module,
-        changedSymbols: [...(changedSymbolsByFile[edge.module] || [])].sort(),
-        consumer: edge.consumer,
+      evaluate(
+        edge.module,
+        edge.consumer,
         candidateTest,
-        reason: "candidate sibling test is absent from the PR diff",
-      };
-      const exception = allow.get(`${edge.consumer}\0${candidateTest}`);
-      if (exception) suppressed.push({ ...finding, exception });
-      else findings.push(finding);
+        "candidate sibling test is absent from the PR diff"
+      );
+    }
+  }
+
+  // Direct path-literal edges: a changed workflow / root config / quality artifact has no
+  // import consumer — the pinning test reads the file itself, so the edge is file → test
+  // (consumer === changedModule). Built by build-test-impact-map.mjs → `artifacts`.
+  for (const [file, status] of changed) {
+    if (status === "D" || isProduction(file)) continue;
+    const tests = [...new Set(impactMap.artifacts?.[file] || [])].sort();
+    for (const candidateTest of tests) {
+      evaluate(
+        file,
+        file,
+        candidateTest,
+        "candidate sibling test pins this file by path literal and is absent from the PR diff"
+      );
     }
   }
   return { mode: "advisory", findings, diagnostics, suppressed, maskingRisks };
