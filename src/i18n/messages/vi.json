@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Chế độ dịch vụ Codex cho khóa API này",
+    "description": "Áp dụng cho các yêu cầu Codex, bao gồm các mô hình Codex bên trong các tổ hợp. Chế độ bắt buộc sẽ ghi đè thiết lập của ứng dụng khách, thiết lập chung và thiết lập mặc định của kết nối. Các nhà cung cấp khác không bị ảnh hưởng.",
+    "label": "Chế độ dịch vụ",
+    "inherit": "Kế thừa hành vi hiện có",
+    "default": "Buộc dùng Standard (mặc định)",
+    "priority": "Buộc dùng Fast / Priority",
+    "flex": "Buộc dùng Flex",
+    "warning": "Thiết lập này không cấp quyền truy cập nhà cung cấp. Khả năng sử dụng, phí và mức tiêu thụ hạn ngạch phụ thuộc vào tài khoản Codex và mô hình của bạn. Các chế độ bắt buộc yêu cầu phương thức truyền tải HTTP hoặc Responses WebSocket; các yêu cầu app-server sẽ bị từ chối.",
+    "confirm": "Áp dụng “{mode}” cho khóa API này? Thay đổi này sẽ có hiệu lực với các yêu cầu tiếp theo.",
+    "save": "Lưu chế độ",
+    "retry": "Thử lại",
+    "loadError": "Không thể tải chế độ dịch vụ đã lưu.",
+    "saveError": "Không thể lưu chế độ dịch vụ. Vui lòng thử lại."
+  },
   "common": {
     "save": "Lưu",
     "cancel": "Hủy bỏ",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "Phân tích",
     "usageAnalyticsTitle": "Phân tích mức sử dụng",
+    "tokenDisplayCompact": "Rút gọn",
+    "tokenDisplayExact": "Chính xác",
+    "tokenDisplayMode": "Chế độ hiển thị token",
     "diversityScoreTitle": "Đa dạng nhà cung cấp",
     "diversityScoreDesc": "Ảnh chụp nhanh sự tập trung của nhà cung cấp trong khung thời gian lưu lượng truy cập gần đây.",
     "diversityShannonEntropy": "Entropy Shannon",
@@ -5572,6 +5590,8 @@
     "modelsActive": "Đang hoạt động",
     "showModel": "Hiển thị mô hình",
     "hideModel": "Ẩn mô hình",
+    "blacklistModel": "Chặn",
+    "blacklistModelTooltip": "Chặn mô hình này và ẩn nó khỏi danh mục",
     "removeModel": "Xóa mô hình",
     "rateLimitProtected": "Được bảo vệ",
     "rateLimitUnprotected": "Không được bảo vệ",
@@ -5712,6 +5732,8 @@
     "targetFormatAuto": "Mặc định (tự động)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Token đầu ra tối đa",
+    "maxOutputTokenOverrideHint": "Nhập số nguyên dương cho số token. Để trống để dùng giá trị mặc định.",
     "contextWindowOverrideLabel": "Ghi đè cửa sổ ngữ cảnh",
     "contextWindowOverridePlaceholder": "Ví dụ: 131072",
     "contextWindowOverrideHint": "Đặt thủ công cửa sổ ngữ cảnh thực tế của mô hình (token) khi nhà cung cấp báo sai. Giá trị này được ưu tiên hơn giá trị tự động phát hiện hoặc danh mục và ngăn định tuyến combo loại bỏ mô hình.",
@@ -6710,7 +6732,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Tín dụng bổ sung",
+    "codexPaidCreditsToggleTitle": "Cho phép sử dụng tín dụng trả phí của Codex sau khi hết hạn mức gói đăng ký (có thể phát sinh phí bổ sung)",
+    "codexPaidCreditsEnabled": "Đã bật tín dụng trả phí của Codex (có thể phát sinh phí bổ sung)",
+    "codexPaidCreditsDisabled": "Đã tắt tín dụng trả phí của Codex",
+    "failedUpdateCodexPaidCredits": "Không thể cập nhật chính sách tín dụng trả phí của Codex",
+    "allowCodexPaidCreditsLabel": "Cho phép tín dụng trả phí của Codex",
+    "allowCodexPaidCreditsDescription": "Cho phép tài khoản này sử dụng tín dụng trả phí sau khi hạn mức gói đăng ký đạt đến ngưỡng cắt. Yêu cầu có tín dụng khả dụng do OpenAI báo cáo; có thể phát sinh phí. Giới hạn Spark và thời gian chờ (cooldown) từ upstream vẫn được áp dụng. Tính khả dụng của tín dụng được kiểm tra ngay cả khi tính năng preflight hạn mức bị tắt."
   },
   "settings": {
     "title": "Cài đặt",
@@ -10093,7 +10122,11 @@
     "updatedShort": "Đã cập nhật",
     "lastRefreshed": "Cập nhật lần cuối",
     "providerQuota": "Hạn ngạch nhà cung cấp",
-    "providerQuotaHomeHint": "Trạng thái theo thời gian thực của các tài khoản đã kết nối"
+    "providerQuotaHomeHint": "Trạng thái theo thời gian thực của các tài khoản đã kết nối",
+    "codexPaidCreditsLabel": "Tín dụng trả phí Codex",
+    "codexPaidCreditsAvailable": "Khả dụng (không báo cáo số dư)",
+    "codexPaidCreditsUnavailable": "Không khả dụng hoặc đã đạt giới hạn chi tiêu",
+    "codexPaidCreditsUnlimited": "Không giới hạn"
   },
   "modals": {
     "waitingAuth": "Đang chờ ủy quyền",

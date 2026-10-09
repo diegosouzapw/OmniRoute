@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Режим обслуговування Codex для цього ключа API",
+    "description": "Застосовується до запитів Codex, зокрема до моделей Codex у комбінаціях. Примусово встановлені режими мають пріоритет над налаштуваннями клієнта, глобальними налаштуваннями та стандартними параметрами підключення. Інші провайдери залишаються без змін.",
+    "label": "Режим обслуговування",
+    "inherit": "Успадкувати поточну поведінку",
+    "default": "Примусово: стандартний (за замовчуванням)",
+    "priority": "Примусово: швидкий / пріоритетний",
+    "flex": "Примусово: гнучкий",
+    "warning": "Це не надає доступу до провайдера. Доступність, плата та використання квоти залежать від вашого облікового запису Codex і моделі. Примусово встановлені режими потребують транспорту HTTP або Responses WebSocket; запити app-server відхиляються.",
+    "confirm": "Застосувати режим «{mode}» до цього ключа API? Зміна набуде чинності для наступних запитів.",
+    "save": "Зберегти режим",
+    "retry": "Повторити",
+    "loadError": "Не вдалося завантажити збережений режим обслуговування.",
+    "saveError": "Не вдалося зберегти режим обслуговування. Спробуйте ще раз."
+  },
   "common": {
     "save": "зберегти",
     "cancel": "Скасувати",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "Аналітика",
     "usageAnalyticsTitle": "Аналітика використання",
+    "tokenDisplayCompact": "Компактно",
+    "tokenDisplayExact": "Точно",
+    "tokenDisplayMode": "Режим відображення токенів",
     "diversityScoreTitle": "Різноманітність постачальників",
     "diversityScoreDesc": "Розподіл навантаження між провайдерами для останнього вікна трафіку.",
     "diversityShannonEntropy": "Ентропія Шеннона",
@@ -5572,6 +5590,8 @@
     "modelsActive": "активні",
     "showModel": "Показати модель",
     "hideModel": "Приховати модель",
+    "blacklistModel": "До чорного списку",
+    "blacklistModelTooltip": "Сховати цю модель із каталогу",
     "removeModel": "Зняти модель",
     "rateLimitProtected": "Захищений",
     "rateLimitUnprotected": "Незахищений",
@@ -5712,6 +5732,8 @@
     "targetFormatAuto": "За замовчуванням (авто)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Макс вихідних токенів",
+    "maxOutputTokenOverrideHint": "Введіть додатне ціле число токенів. Залиште поле порожнім для значення за замовчуванням.",
     "contextWindowOverrideLabel": "Перевизначення вікна контексту",
     "contextWindowOverridePlaceholder": "наприклад, 131072",
     "contextWindowOverrideHint": "Встановіть реальне вікно контексту цієї моделі (у токенах) вручну, якщо провайдер повідомляє його некоректно. Має пріоритет над автоматично визначеними значеннями або значеннями з каталогу та запобігає виключенню моделі комбінованою маршрутизацією.",
@@ -6710,7 +6732,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Налаштування",
@@ -10093,7 +10122,11 @@
     "updatedShort": "Оновлено",
     "lastRefreshed": "Останнє оновлення",
     "providerQuota": "Квота провайдера",
-    "providerQuotaHomeHint": "Стан у реальному часі за підключеними акаунтами"
+    "providerQuotaHomeHint": "Стан у реальному часі за підключеними акаунтами",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Очікування авторизації",

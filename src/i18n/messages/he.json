@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "מצב השירות של Codex עבור מפתח API זה",
+    "description": "חל על בקשות Codex, כולל מודלי Codex בתוך שילובים. מצבים כפויים גוברים על הגדרות הלקוח, ההגדרות הגלובליות וברירות המחדל של החיבור. ספקים אחרים נותרים ללא שינוי.",
+    "label": "מצב שירות",
+    "inherit": "ירושה של ההתנהגות הקיימת",
+    "default": "כפיית מצב רגיל (ברירת מחדל)",
+    "priority": "כפיית מצב מהיר / בעדיפות",
+    "flex": "כפיית מצב גמיש",
+    "warning": "אפשרות זו אינה מעניקה גישה לספק. הזמינות, החיובים וניצול המכסה תלויים בחשבון ובמודל Codex שלך. מצבים כפויים דורשים תעבורת HTTP או Responses WebSocket; בקשות app-server נדחות.",
+    "confirm": "להחיל את „{mode}” על מפתח API זה? השינוי ייכנס לתוקף בבקשות הבאות.",
+    "save": "שמירת המצב",
+    "retry": "ניסיון חוזר",
+    "loadError": "לא ניתן לטעון את מצב השירות השמור.",
+    "saveError": "לא ניתן לשמור את מצב השירות. נא לנסות שוב."
+  },
   "common": {
     "save": "שמור",
     "cancel": "בטל",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "אנליטיקס",
     "usageAnalyticsTitle": "ניתוח נתוני שימוש",
+    "tokenDisplayCompact": "מקוצר",
+    "tokenDisplayExact": "מדויק",
+    "tokenDisplayMode": "מצב תצוגת טוקנים",
     "diversityScoreTitle": "מגוון ספקים",
     "diversityScoreDesc": "תמונת מצב של ריכוזיות ספקים עבור חלון התעבורה האחרון.",
     "diversityShannonEntropy": "אנטרופיית שנון",
@@ -5572,6 +5590,8 @@
     "modelsActive": "פעילים",
     "showModel": "הצג מודל",
     "hideModel": "הסתר מודל",
+    "blacklistModel": "חסימה",
+    "blacklistModelTooltip": "חסום את המודל והסתר אותו מהקטלוג",
     "removeModel": "הסר את הדגם",
     "rateLimitProtected": "מוגן",
     "rateLimitUnprotected": "לא מוגן",
@@ -5712,6 +5732,8 @@
     "targetFormatAuto": "ברירת מחדל (אוטומטי)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "אסימוני פלט מקסימליים",
+    "maxOutputTokenOverrideHint": "יש להזין מספר שלם וחיובי של טוקנים. השאירו ריק כדי להשתמש בברירת המחדל.",
     "contextWindowOverrideLabel": "עקיפת חלון הקשר",
     "contextWindowOverridePlaceholder": "למשל 131072",
     "contextWindowOverrideHint": "הגדר ידנית את חלון ההקשר האמיתי של דגם זה (אסימונים) כאשר הספק מדווח עליו בצורה שגויה. גובר על ערכים שזוהו אוטומטית/בקטלוג ומונע מניתוב משולב להשמיט את הדגם.",
@@ -6710,7 +6732,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "הגדרות",
@@ -10093,7 +10122,11 @@
     "updatedShort": "עודכן",
     "lastRefreshed": "רענון אחרון",
     "providerQuota": "מכסת ספק",
-    "providerQuotaHomeHint": "סטטוס בזמן אמת בכל החשבונות המחוברים"
+    "providerQuotaHomeHint": "סטטוס בזמן אמת בכל החשבונות המחוברים",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "ממתין לאישור",

@@ -535,6 +535,16 @@
       "configSource": "qoder",
       "provider": "qoder"
     },
+    "stx": {
+      "className": "SyntxExecutor",
+      "configSource": "<custom-config>",
+      "provider": "syntx"
+    },
+    "syntx": {
+      "className": "SyntxExecutor",
+      "configSource": "<custom-config>",
+      "provider": "syntx"
+    },
     "t3-web": {
       "className": "T3ChatWebExecutor",
       "configSource": "<custom-config>",
@@ -676,6 +686,6 @@
       "provider": "zai-web"
     }
   },
-  "keyCount": 135,
+  "keyCount": 137,
   "sharedInstances": []
 }

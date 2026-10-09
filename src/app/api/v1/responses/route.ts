@@ -204,10 +204,13 @@ async function postHandler(request: any) {
       parsedBody
     );
     const accept = String(request.headers?.get?.("accept") || "");
+    const correlationId =
+      resolveIncomingCorrelationId(request.headers.get("x-correlation-id")) ??
+      resolveIncomingCorrelationId(request.headers.get("x-request-id")) ??
+      generateRequestId();
     const wantsStreaming = resolveStreamFlag(resolvedBody?.stream, accept, "openai-responses");
     if (wantsStreaming) {
       const thresholdMs = resolveKeepaliveThreshold(resolvedBody?.model);
-      const correlationId = generateRequestId();
       const { signal: streamSignal, deadlineController } = createStreamDeadlineSignal(
         request.signal
       );
@@ -225,12 +228,13 @@ async function postHandler(request: any) {
           intervalMs: SSE_HEARTBEAT_INTERVAL_MS,
         },
         errorFrame: OPENAI_RESPONSES_ERROR_FRAME,
+        extraHeaders: { "X-Correlation-Id": correlationId },
         correlationId,
         deadlineController,
       });
     }
 
-    return finishAdmission(await handleChat(resolved, null, resolvedBody));
+    return finishAdmission(await handleChat(resolved, null, resolvedBody, correlationId));
   } catch (error) {
     admission.lease?.release();
     throw error;

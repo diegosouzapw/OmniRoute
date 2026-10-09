@@ -1265,7 +1265,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 จะข้า�
   <tr><td nowrap><b>รันไทม์</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>ภาษา</b></td><td>TypeScript 6.0 — <b>TypeScript 100%</b> ครอบคลุมทั้ง <code>src/</code> และ <code>open-sse/</code> (ไม่มี <code>any</code> ในส่วนแกนหลักตั้งแต่ v2.0)</td></tr>
   <tr><td nowrap><b>เฟรมเวิร์ก</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>ฐานข้อมูล</b></td><td>better-sqlite3 (SQLite, การบันทึกแบบ WAL) + LowDB (JSON แบบดั้งเดิม) — โมดูลโดเมน 137 รายการ, การย้ายข้อมูล 193 รายการ</td></tr>
+  <tr><td nowrap><b>ฐานข้อมูล</b></td><td>better-sqlite3 (SQLite, การบันทึกแบบ WAL) + LowDB (JSON แบบดั้งเดิม) — โมดูลโดเมน 137 รายการ, การย้ายข้อมูล 202 รายการ</td></tr>
   <tr><td nowrap><b>หน่วยความจำ</b></td><td>การค้นหาข้อความแบบเต็มด้วย SQLite FTS5 + เวกเตอร์เอ็มเบดดิงที่ควอนไทซ์เป็น int8, การลดทอนแบบมีชนิดข้อมูล</td></tr>
   <tr><td nowrap><b>สคีมา</b></td><td>Zod 4 — การตรวจสอบ I/O ของเครื่องมือ MCP + ข้อตกลง API</td></tr>
   <tr><td nowrap><b>โปรโตคอล</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

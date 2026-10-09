@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "આ API કી માટે Codex સેવા મોડ",
+    "description": "કોમ્બોમાંના Codex મોડેલો સહિત, Codex વિનંતીઓ પર લાગુ થાય છે. ફરજિયાત મોડ ક્લાયન્ટ, વૈશ્વિક સેટિંગ્સ અને કનેક્શન ડિફૉલ્ટને ઓવરરાઇડ કરે છે. અન્ય પ્રદાતાઓમાં કોઈ ફેરફાર થતો નથી.",
+    "label": "સેવા મોડ",
+    "inherit": "હાલની વર્તણૂક જાળવો",
+    "default": "Standard ફરજિયાત કરો (ડિફૉલ્ટ)",
+    "priority": "Fast / Priority ફરજિયાત કરો",
+    "flex": "Flex ફરજિયાત કરો",
+    "warning": "આ પ્રદાતાની ઍક્સેસ આપતું નથી. ઉપલબ્ધતા, શુલ્ક અને ક્વોટાનો વપરાશ તમારા Codex એકાઉન્ટ અને મોડેલ પર આધારિત છે. ફરજિયાત મોડ માટે HTTP અથવા Responses WebSocket ટ્રાન્સપોર્ટ જરૂરી છે; app-server વિનંતીઓ નકારવામાં આવે છે.",
+    "confirm": "આ API કી પર “{mode}” લાગુ કરવો છે? આ પછીની વિનંતીઓથી અમલમાં આવશે.",
+    "save": "મોડ સાચવો",
+    "retry": "ફરી પ્રયાસ કરો",
+    "loadError": "સાચવેલો સેવા મોડ લોડ કરી શકાયો નહીં.",
+    "saveError": "સેવા મોડ સાચવી શકાયો નહીં. કૃપા કરીને ફરી પ્રયાસ કરો."
+  },
   "common": {
     "save": "સાચવો",
     "cancel": "રદ કરો",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "વિશ્લેષણ",
     "usageAnalyticsTitle": "વપરાશ એનાલિટિક્સ",
+    "tokenDisplayCompact": "સંક્ષિપ્ત",
+    "tokenDisplayExact": "ચોક્કસ",
+    "tokenDisplayMode": "ટોકન પ્રદર્શન મોડ",
     "diversityScoreTitle": "પ્રદાતા વિવિધતા",
     "diversityScoreDesc": "તાજેતરના ટ્રાફિક વિન્ડો માટે પ્રોવાઇડર કોન્સન્ટ્રેશન સ્નેપશોટ.",
     "diversityShannonEntropy": "શેનન એન્ટ્રોપી",
@@ -5572,6 +5590,8 @@
     "modelsActive": "સક્રિય",
     "showModel": "મોડેલ બતાવો",
     "hideModel": "મોડેલ છુપાવો",
+    "blacklistModel": "બ્લોક",
+    "blacklistModelTooltip": "આ મોડેલને બ્લોક કરી કેટલોગમાંથી છુપાવો",
     "removeModel": "મોડેલ દૂર કરો",
     "rateLimitProtected": "સુરક્ષિત",
     "rateLimitUnprotected": "અસુરક્ષિત",
@@ -5712,6 +5732,8 @@
     "targetFormatAuto": "ડિફૉલ્ટ (ઓટો)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "મહત્તમ આઉટપુટ ટોકન્સ",
+    "maxOutputTokenOverrideHint": "ટોકનની ધન પૂર્ણાંક સંખ્યા દાખલ કરો. મૂળભૂત મૂલ્ય માટે ખાલી રાખો.",
     "contextWindowOverrideLabel": "કોન્ટેક્સ્ટ વિન્ડો ઓવરરાઇડ",
     "contextWindowOverridePlaceholder": "દા.ત. 131072",
     "contextWindowOverrideHint": "જ્યારે પ્રોવાઇડર ખોટી માહિતી આપે ત્યારે આ મોડેલની વાસ્તવિક કોન્ટેક્સ્ટ વિન્ડો (ટોકન્સ) મેન્યુઅલી સેટ કરો. ઓટો-ડિટેક્ટ થયેલ/કેટલોગ મૂલ્યો કરતાં આને પ્રાધાન્ય મળે છે અને કોમ્બો રૂટિંગને મોડેલ છોડી દેવાથી અટકાવે છે.",
@@ -6710,7 +6732,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "સેટિંગ્સ",
@@ -10093,7 +10122,11 @@
     "updatedShort": "અપડેટ કરેલ",
     "lastRefreshed": "છેલ્લે રિફ્રેશ કરેલ",
     "providerQuota": "પ્રદાતા ક્વોટા",
-    "providerQuotaHomeHint": "કનેક્ટેડ એકાઉન્ટ્સમાં લાઇવ સ્થિતિ"
+    "providerQuotaHomeHint": "કનેક્ટેડ એકાઉન્ટ્સમાં લાઇવ સ્થિતિ",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "અધિકૃતતાની રાહ જોઈ રહ્યું છે",
