@@ -540,6 +540,7 @@ export type ProcessVideoPartResult =
       description: string;
       /** Log-safe redacted shadow (see `DescribedVideo.descriptionRedacted`); undefined when no transcript cue was rendered. */
       descriptionRedacted?: string;
+      drilldown?: DescribedVideo["drilldown"];
       durationSeconds: number;
       framesExtracted: number;
       framesRequested: number;
@@ -746,6 +747,7 @@ export async function processVideoPart(
       dedupDropped: described.dedupDropped ?? 0,
       description: described.description,
       descriptionRedacted: described.descriptionRedacted,
+      drilldown: described.drilldown,
       durationSeconds: described.durationSeconds,
       framesExtracted: described.framesExtracted ?? described.framesUsed,
       framesRequested: described.framesRequested,

@@ -103,6 +103,7 @@ export interface VideoPart {
   audioTranscript?: unknown;
   contactSheet?: boolean;
   audioTranscription?: boolean;
+  drilldown?: boolean;
 }
 
 /**
@@ -171,6 +172,7 @@ export function extractVideoParts(body: VideoRequestBody): VideoPart[] {
         (object) => object.contactSheet !== undefined
       )?.contactSheet;
       const audioTranscription = objects.some((object) => object.audioTranscription === true);
+      const drilldown = objects.some((object) => object.drilldown === true);
       return {
         container,
         ...(startSeconds === undefined && endSeconds === undefined
@@ -184,6 +186,7 @@ export function extractVideoParts(body: VideoRequestBody): VideoPart[] {
         ...(audioTranscript === undefined ? {} : { audioTranscript }),
         ...(contactSheet === undefined ? {} : { contactSheet: contactSheet === true }),
         ...(audioTranscription ? { audioTranscription: true } : {}),
+        ...(drilldown ? { drilldown: true } : {}),
       };
     });
 }
@@ -264,6 +267,7 @@ export interface DescribedVideo {
   transcriptCues?: VideoTranscriptCue[];
   contactSheetUsed?: boolean;
   fusion?: VideoFusionTelemetry;
+  drilldown?: { handle: string; expiresAt: number };
 }
 
 export interface VideoCaptionFrame {
