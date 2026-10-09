@@ -177,6 +177,10 @@ export async function POST(request) {
       dimensions,
       supportedInputTypes,
       modelType,
+      // Manual context-window override set at ADD time — same Feature-5004 table
+      // the PUT path (#4125) writes, so the chatCore guard sees the real window
+      // from the first request instead of DEFAULT_LIMITS.default (128k).
+      contextWindowOverride,
     } = validation.data;
 
     const model = await addCustomModel(
@@ -200,6 +204,17 @@ export async function POST(request) {
         ...(typeof modelType === "string" ? { modelType } : {}),
       }
     );
+
+    if (contextWindowOverride != null) {
+      setModelContextOverride(provider, modelId, contextWindowOverride, "manual");
+      return Response.json({
+        model: {
+          ...model,
+          contextWindowOverride,
+          contextWindowOverrideSource: "manual",
+        },
+      });
+    }
     return Response.json({ model });
   } catch (error) {
     console.error("Error adding provider model:", error);
