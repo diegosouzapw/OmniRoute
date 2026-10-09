@@ -141,6 +141,7 @@ const forwardShim = require("./_internal/forwardTarget.cjs");
 const aliasConfigShim = require("./_internal/aliasConfig.cjs");
 const standaloneRoutingShim = require("./_internal/standaloneRouting.cjs");
 const writeBackpressureShim = require("./_internal/writeBackpressure.cjs");
+const peerGuardShim = require("./_internal/peerGuard.cjs");
 
 // Inspector capture (D4 fallback). The standalone proxy intercepts AgentBridge
 // traffic inline (no MitmHandlerBase / agentBridgeHook), so it posts captured
@@ -897,6 +898,17 @@ async function startMitmServer() {
   server.requestTimeout = MITM_IDLE_TIMEOUT_MS * 5; // hard cap on a full request
   server.headersTimeout = MITM_IDLE_TIMEOUT_MS; // time allowed to send headers
   server.keepAliveTimeout = MITM_IDLE_TIMEOUT_MS; // idle keep-alive window
+
+  // GHSA-qxg2-rm3h-4cxp: the listener is dual-stack (the DNS spoof maps target
+  // hosts to both 127.0.0.1 and ::1), so refuse non-loopback peers here, before
+  // any other connection listener — otherwise a LAN peer reaches intercept()
+  // with the operator's ROUTER_API_KEY, or passthrough() as an open TLS relay.
+  // MITM_ALLOW_REMOTE_CLIENTS=1 is the explicit opt-in for a trusted LAN.
+  server.prependListener("connection", (socket) => {
+    if (!peerGuardShim.guardLoopbackPeer(socket)) {
+      vlog(1, `[MITM] refused non-loopback peer ${socket.remoteAddress || "unknown"}`);
+    }
+  });
 
   server.listen(LOCAL_PORT, () => {
     stats.startedAt = new Date().toISOString();
