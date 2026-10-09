@@ -558,8 +558,11 @@ additional frames. Retention failure preserves the usable visual response. Conse
 requests bypass the whole-video result cache so cached results never replay handles.
 
 Successful JSON and SSE responses expose at most four opaque handles in the bounded
-`x-omniroute-video-drilldown` header. Authorized browser origins can read that header;
-this does not broaden the CORS origin policy. The authenticated public consumer is
+`x-omniroute-video-drilldown` header. Authorized browser origins can read that header
+without broadening the CORS origin policy. New handles use `v1.<32-byte random base64url
+token>`, and the registry retains only
+their SHA-256 hashes. The reader/header parser also accepts legacy 64-hex tokens.
+The authenticated public consumer is
 `GET /api/v1/video-bridge/drilldown?handle=...`, independently gated by
 `modalityBridgeVideoDrilldownRemoteEnabled=true`. Explicit persisted false revokes
 access even when the legacy `OMNIROUTE_VIDEO_BRIDGE_DRILLDOWN_REMOTE_ENABLED` env
@@ -569,7 +572,8 @@ fallback is enabled. Production retention has the analogous legacy
 The consumer derives ownership from the authenticated key, applies key policy, and
 returns the same 404 for unknown, expired and another key's handles. It accepts
 `variant=preview|standard|detail` (maximum JPEG dimension 320/640/1280, never upscaled),
-`frames=1..8`, zero-based `page`, and optional `start`/`end` focus seconds. Duplicate
+`limit=1..8` (or the legacy `frames` alias, never both), zero-based `page`, and optional
+`start`/`end` focus seconds. Duplicate
 query keys and reversed focus windows are rejected. Each returned variant has a hash
 of its actual content and actual resolution metadata, linked to the retained source.
 Variants are derived on read rather than stored as extra retained copies. The JSON

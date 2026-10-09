@@ -7074,14 +7074,19 @@ paths:
         - in: query
           name: handle
           required: true
-          schema: { type: string, pattern: "^[0-9a-f]{64}$" }
+          schema: { type: string, pattern: "^(?:v1\\.[A-Za-z0-9_-]{43}|[0-9a-f]{64})$" }
         - in: query
           name: variant
           schema: { type: string, enum: [preview, standard, detail], default: detail }
           description: JPEG maximum dimension 320, 640 or 1280 respectively; never upscaled.
         - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 8 }
+          description: Page frame limit; cannot be combined with the legacy frames alias.
+        - in: query
           name: frames
           schema: { type: integer, minimum: 1, maximum: 8 }
+          deprecated: true
         - in: query
           name: page
           schema: { type: integer, minimum: 0, default: 0 }
@@ -7139,7 +7144,7 @@ paths:
         - in: query
           name: handle
           required: true
-          schema: { type: string, pattern: "^[0-9a-f]{64}$" }
+          schema: { type: string, pattern: "^(?:v1\\.[A-Za-z0-9_-]{43}|[0-9a-f]{64})$" }
       responses:
         "200":
           description: No-store deletion result
