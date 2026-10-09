@@ -5736,6 +5736,8 @@
     "targetFormatAuto": "Par défaut (auto)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Jetons de sortie maximale",
+    "maxOutputTokenOverrideHint": "Saisissez un nombre entier positif de jetons. Laissez vide pour utiliser la valeur par défaut.",
     "contextWindowOverrideLabel": "Surcharge de la fenêtre de contexte",
     "contextWindowOverridePlaceholder": "par ex. 131072",
     "contextWindowOverrideHint": "Définissez manuellement la fenêtre de contexte réelle de ce modèle (jetons) lorsque le fournisseur la signale de manière erronée. L'emporte sur les valeurs détectées automatiquement/du catalogue et empêche le routage combiné d'abandonner le modèle.",

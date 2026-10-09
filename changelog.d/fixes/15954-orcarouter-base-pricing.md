@@ -1,0 +1,1 @@
+- Added OrcaRouter's verified base token prices for all seven fixed catalog models and corrected the Gemini Flash rate. The adaptive `auto` route remains unpriced; context-tier and time-of-day adjustments remain outside these estimates.

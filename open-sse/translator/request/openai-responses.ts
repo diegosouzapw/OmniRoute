@@ -15,6 +15,7 @@ import {
 } from "../../config/providerRegistry.ts";
 import { collectResponsesTools } from "./openai-responses/additionalTools.ts";
 import { flattenNamespaceToolName } from "./openai-responses/namespaceFlatten.ts";
+import { mergeHistoricalToolIdentities } from "./openai-responses/historyToolIdentity.ts";
 import { openaiToOpenAIResponsesRequest } from "./openai-responses/toResponses.ts";
 import {
   JsonRecord,
@@ -939,6 +940,7 @@ export function openaiResponsesToOpenAIRequest(
   delete result.prompt_cache_options;
   delete result.prompt_cache_retention;
 
+  mergeHistoricalToolIdentities(namespaceToolIdentityMap, rawInputItems, tools);
   if (namespaceToolIdentityMap.size > 0) {
     // chatCore extracts and deletes these transient side channels before dispatch.
     // Non-enumerability keeps internal request metadata off the upstream wire.

@@ -5736,6 +5736,8 @@
     "targetFormatAuto": "පෙරනිමි (ස්වයංක්රීය)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "උපරිම ප්රතිදාන ටෝකන",
+    "maxOutputTokenOverrideHint": "ටෝකන සඳහා ධන පූර්ණ සංඛ්‍යාවක් ඇතුළත් කරන්න. පෙරනිමි අගය සඳහා හිස්ව තබන්න.",
     "contextWindowOverrideLabel": "සන්දර්භ කවුළුව අභිබවා යාම",
     "contextWindowOverridePlaceholder": "උදා. 131072",
     "contextWindowOverrideHint": "සපයන්නා මෙය වැරදි ලෙස වාර්තා කරන විට, මෙම ආකෘතියේ සැබෑ සන්දර්භ කවුළුව (ටෝකන) අතින් සකසන්න. මෙය ස්වයංක්රීයව අනාවරණය කරගත්/නාමාවලි අගයන් අභිබවා යන අතර සංයෝජිත මාර්ගගත කිරීමෙන් ආකෘතිය ඉවත් වීම වළක්වයි.",

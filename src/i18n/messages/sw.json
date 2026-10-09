@@ -5736,6 +5736,8 @@
     "targetFormatAuto": "Chaguomsingi (kiotomatiki)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Tokeni za Juu za Kutoa",
+    "maxOutputTokenOverrideHint": "Weka idadi kamili chanya ya tokeni. Acha wazi ili kutumia thamani chaguomsingi.",
     "contextWindowOverrideLabel": "Ubatilishaji wa Dirisha la Muktadha",
     "contextWindowOverridePlaceholder": "k.m. 131072",
     "contextWindowOverrideHint": "Weka kwa mikono dirisha halisi la muktadha la mfano huu (tokens) wakati mtoa huduma anaporipoti vibaya. Inachukua nafasi ya thamani zilizogunduliwa kiotomatiki/katalogi na kuzuia uelekezaji wa combo usidondoshe mfano huo.",

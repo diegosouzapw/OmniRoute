@@ -5736,6 +5736,8 @@
     "targetFormatAuto": "Подразумевано (аутоматски)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Максималан број излазних токена",
+    "maxOutputTokenOverrideHint": "Унесите позитиван цео број токена. Оставите празно за подразумевану вредност.",
     "contextWindowOverrideLabel": "Ручно подешавање прозора контекста",
     "contextWindowOverridePlaceholder": "нпр. 131072",
     "contextWindowOverrideHint": "Ручно поставите стварни прозор контекста овог модела (у токенима) када провајдер погрешно пријави вредност. Ово има приоритет над аутоматски детектованим/каталошким вредностима и спречава да combo рутирање избаци модел.",

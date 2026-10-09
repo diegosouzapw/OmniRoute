@@ -5736,6 +5736,8 @@
     "targetFormatAuto": "डिफ़ॉल्ट (स्वतः)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "अधिकतम आउटपुट टोकन",
+    "maxOutputTokenOverrideHint": "टोकन की धनात्मक पूर्णांक संख्या दर्ज करें। डिफ़ॉल्ट मान के लिए खाली छोड़ें।",
     "contextWindowOverrideLabel": "कॉन्टेक्स्ट विंडो ओवरराइड",
     "contextWindowOverridePlaceholder": "उदा. 131072",
     "contextWindowOverrideHint": "जब प्रदाता गलत रिपोर्ट करता है, तो इस मॉडल की वास्तविक कॉन्टेक्स्ट विंडो (टोकन) मैन्युअल रूप से सेट करें। यह स्वतः-पहचाने गए/कैटलॉग मानों पर प्राथमिकता लेता है और कॉम्बो रूटिंग को मॉडल हटाने से रोकता है।",

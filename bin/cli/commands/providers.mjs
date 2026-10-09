@@ -185,6 +185,7 @@ async function runProviderTest(db, connection, { serverUp = false } = {}) {
         connection: publicConnection(connection),
         ...result,
         skipped: true,
+        error: "No local probe for this provider; start OmniRoute to run its server-owned test",
       };
     }
     updateProviderTestResult(db, connection.id, result);
@@ -281,15 +282,17 @@ export async function runTestCommand(selector, opts = {}) {
       return 1;
     }
 
-    const result = await runProviderTest(db, connection);
+    const result = await runProviderTest(db, connection, { serverUp: await isServerUp() });
     if (opts.json) {
       console.log(JSON.stringify(result, null, 2));
+    } else if (result.skipped) {
+      console.log(`\x1b[33mSKIP\x1b[0m ${connection.name}: ${result.error}`);
     } else if (result.valid) {
       console.log(`\x1b[32mOK\x1b[0m ${connection.name}: provider test passed`);
     } else {
       console.log(`\x1b[31mFAIL\x1b[0m ${connection.name}: ${result.error}`);
     }
-    return result.valid ? 0 : 1;
+    return result.skipped ? 3 : result.valid ? 0 : 1;
   } finally {
     db.close();
   }
@@ -509,14 +512,38 @@ export async function runProvidersStatusCommand(opts = {}) {
     return 3;
   }
 
-  const res = await apiFetch("/api/providers/expiration", { acceptNotOk: true, retry: false });
+  const res = await apiFetch("/api/providers", { acceptNotOk: true, retry: false });
   if (!res.ok) {
     console.error(t("common.error", { message: `HTTP ${res.status}` }));
     return 1;
   }
 
   const data = await res.json();
-  const list = data.list || [];
+  const expirationRes = await apiFetch("/api/providers/expiration", {
+    acceptNotOk: true,
+    retry: false,
+  }).catch(() => null);
+  const expirationData = expirationRes?.ok ? await expirationRes.json().catch(() => ({})) : {};
+  const expirations = new Map(
+    (expirationData.list || []).map((entry) => [entry.connectionId, entry])
+  );
+  // Expiration is optional metadata, not the inventory of configured connections.
+  // Project public fields explicitly: the management API may reveal API keys by policy.
+  const list = (data.connections || []).map((connection) => {
+    const expiration = expirations.get(connection.id);
+    return {
+      ...publicConnection(connection),
+      connectionId: connection.id,
+      connectionName: connection.name ?? expiration?.connectionName ?? "",
+      expiryType: expiration?.expiryType ?? null,
+      alertDays: expiration?.alertDays ?? null,
+      lastChecked: expiration?.lastChecked ?? null,
+      note: expiration?.note ?? null,
+      expiresAt: expiration?.expiresAt ?? connection.expiresAt ?? null,
+      status: expiration?.status ?? "unknown",
+      rateLimitedUntil: connection.rateLimitedUntil ?? null,
+    };
+  });
 
   // Optional provider filter
   const filter = opts.provider ? String(opts.provider).toLowerCase() : null;

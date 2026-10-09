@@ -5736,6 +5736,8 @@
     "targetFormatAuto": "Predefinito (auto)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Gettoni di output massimi",
+    "maxOutputTokenOverrideHint": "Inserisci un numero intero positivo di token. Lascia vuoto per usare il valore predefinito.",
     "contextWindowOverrideLabel": "Forzatura finestra di contesto",
     "contextWindowOverridePlaceholder": "ad es. 131072",
     "contextWindowOverrideHint": "Imposta manualmente la finestra di contesto reale di questo modello (in token) quando il provider la segnala in modo errato. Prevale sui valori rilevati automaticamente o da catalogo ed evita che il routing combinato escluda il modello.",

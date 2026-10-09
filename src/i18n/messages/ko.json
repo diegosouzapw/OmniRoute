@@ -5736,6 +5736,8 @@
     "targetFormatAuto": "기본값 (자동)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "최대 출력 토큰",
+    "maxOutputTokenOverrideHint": "양의 정수 토큰 수를 입력하세요. 기본값을 사용하려면 비워 두세요.",
     "contextWindowOverrideLabel": "컨텍스트 창 재정의",
     "contextWindowOverridePlaceholder": "예: 131072",
     "contextWindowOverrideHint": "제공자가 모델의 실제 컨텍스트 창(토큰)을 잘못 보고할 때 수동으로 설정합니다. 자동 감지/카탈로그 값보다 우선 적용되며 콤보 라우팅에서 모델이 누락되는 것을 방지합니다.",

@@ -547,6 +547,8 @@ jobs:
           # PR acceleration is not release-candidate provenance.
           cache: ${{ github.event_name == 'pull_request' }}
       - run: node scripts/i18n/check-ui-keys-coverage.mjs --threshold=65
+      - name: i18n ICU compilation (all UI catalogs)
+        run: npm run check:ui-icu
       # Real-translation ratchet: a leaf copied verbatim from en.json passes key
       # parity above but is still English to the user (es shipped 55% English).
       # Blocking since PR-4 retranslated the verbatim-English backlog: the share of

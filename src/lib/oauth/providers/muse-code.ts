@@ -1,39 +1,33 @@
 import {
-  MUSE_CODE_DEFAULT_POLL_INTERVAL_SEC,
   MUSE_CODE_DEVICE_GRANT,
   isMuseDcaToken,
   museCodeHeaders,
 } from "@omniroute/open-sse/config/museCode.ts";
-import {
-  mintMuseApiKey,
-  type MuseMintedKey,
-} from "@omniroute/open-sse/services/museCodeAuth.ts";
+import { mintMuseApiKey, type MuseMintedKey } from "@omniroute/open-sse/services/museCodeAuth.ts";
 import { MUSE_CODE_CONFIG } from "../constants/oauth";
-
-function requiredText(value: unknown, field: string): string {
-  if (typeof value !== "string" || !value.trim()) {
-    throw new Error(`Muse Code device authorization response missing ${field}`);
-  }
-  return value.trim();
-}
+import {
+  museResponseRecord,
+  normalizeMuseDeviceResponse,
+  normalizeMusePollResponse,
+} from "./museCodeDeviceResponse";
 
 async function postForm(
   url: string,
   params: Record<string, string>
 ): Promise<{ ok: boolean; status: number; data: Record<string, unknown> }> {
-  const response = await fetch(url, {
-    method: "POST",
-    headers: museCodeHeaders({ "Content-Type": "application/x-www-form-urlencoded" }),
-    body: new URLSearchParams(params),
-  });
-  const text = await response.text();
-  let data: Record<string, unknown> = {};
   try {
-    data = text ? (JSON.parse(text) as Record<string, unknown>) : {};
+    const response = await fetch(url, {
+      method: "POST",
+      redirect: "error",
+      signal: AbortSignal.timeout(20_000),
+      headers: museCodeHeaders({ "Content-Type": "application/x-www-form-urlencoded" }),
+      body: new URLSearchParams(params),
+    });
+    const data = await response.json().catch(() => null);
+    return { ok: response.ok, status: response.status, data: museResponseRecord(data) };
   } catch {
-    data = { error: "invalid_response", error_description: text };
+    return { ok: false, status: 0, data: { error: "network_error" } };
   }
-  return { ok: response.ok, status: response.status, data };
 }
 
 export const museCode = {
@@ -44,33 +38,21 @@ export const museCode = {
     if (!ok) {
       throw new Error("Muse Code device authorization request failed.");
     }
-    const expiresIn = Number(data.expires_in);
-    if (!Number.isFinite(expiresIn) || expiresIn <= 0) {
-      throw new Error("Muse Code returned an invalid device code expiry.");
-    }
-    const interval = Number(data.interval);
-    return {
-      device_code: requiredText(data.device_code, "device_code"),
-      user_code: requiredText(data.user_code, "user_code"),
-      verification_uri: typeof data.verification_uri === "string" ? data.verification_uri : "",
-      verification_uri_complete:
-        typeof data.verification_uri_complete === "string"
-          ? data.verification_uri_complete
-          : "",
-      expires_in: expiresIn,
-      interval:
-        Number.isFinite(interval) && interval > 0
-          ? interval
-          : MUSE_CODE_DEFAULT_POLL_INTERVAL_SEC,
-    };
+    return normalizeMuseDeviceResponse(data);
   },
   pollToken: async (config, deviceCode: string) => {
-    const { ok, data } = await postForm(config.tokenUrl, {
+    const {
+      ok,
+      data: raw,
+      status,
+    } = await postForm(config.tokenUrl, {
       client_id: config.clientId,
       device_code: deviceCode,
       grant_type: MUSE_CODE_DEVICE_GRANT,
     });
-    return { ok, data };
+    if (status === 0) return { ok: false, data: { error: "network_error" } };
+    const data = normalizeMusePollResponse(raw, ok);
+    return { ok: ok && data.error !== "invalid_response", data };
   },
   /**
    * After the device grant, mint the subscription inference key. CLIProxyAPI
