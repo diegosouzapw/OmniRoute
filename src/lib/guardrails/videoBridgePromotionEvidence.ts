@@ -60,6 +60,7 @@ interface EvidenceRun {
   metrics: Partial<Record<VideoBridgePromotionMetricName, number>>;
   observationId?: string;
   repetition?: number;
+  preAnalysisMs?: number;
 }
 
 interface EvidenceCase {
@@ -147,6 +148,7 @@ export function validatePromotionEvidence(
   evidence: PromotionEvidenceFile
 ): string[] {
   const blockers = new Set<string>();
+  if (!manifest.resourceCaps) blockers.add("RESOURCE_CAPS_MISSING");
   if (evidence.comparison !== "fu07" && evidence.comparison !== "fu09") {
     blockers.add("COMPARISON_NOT_DECLARED");
   }
@@ -183,6 +185,28 @@ export function validatePromotionEvidence(
   );
   if (models.size !== 1) blockers.add("MODEL_SEPARATION_REQUIRED");
   const runs = evidence.cases.flatMap((currentCase) => currentCase.runs);
+  if (
+    runs.some(
+      (run) =>
+        typeof run.preAnalysisMs !== "number" ||
+        !Number.isFinite(run.preAnalysisMs) ||
+        run.preAnalysisMs < 0
+    )
+  ) {
+    blockers.add("PRE_ANALYSIS_METRIC_MISSING_OR_INVALID");
+  }
+  const caps = manifest.resourceCaps;
+  if (
+    caps &&
+    runs.some(
+      (run) =>
+        (run.metrics.cpuMs ?? Infinity) > caps.maxCpuMs ||
+        (run.metrics.rssKiB ?? Infinity) > caps.maxRssKiB ||
+        (run.preAnalysisMs ?? Infinity) > caps.maxPreAnalysisMs
+    )
+  ) {
+    blockers.add("RESOURCE_CAP_EXCEEDED");
+  }
   const observationIds = new Set(runs.map((run) => run.observationId));
   if (
     observationIds.size !== runs.length ||

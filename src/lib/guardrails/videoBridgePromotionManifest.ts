@@ -29,6 +29,13 @@ export type VideoBridgePromotionCaseKind = (typeof VIDEO_BRIDGE_PROMOTION_CASE_K
 /** #11656 requires "at least three repetitions per case and model". */
 export const VIDEO_BRIDGE_PROMOTION_MIN_REPETITIONS = 3;
 
+/** Promotion admission caps, frozen before collecting observations (not runtime RSS enforcement). */
+export const VIDEO_BRIDGE_PROMOTION_RESOURCE_CAPS = {
+  maxCpuMs: 30_000,
+  maxRssKiB: 524_288,
+  maxPreAnalysisMs: 30_000,
+} as const;
+
 const caseKindSchema = z.enum(VIDEO_BRIDGE_PROMOTION_CASE_KINDS).or(z.literal("real_sanitized"));
 
 /**
@@ -113,6 +120,17 @@ export const videoBridgePromotionManifestSchema = z
     id: z.string().min(1),
     metrics: z.array(videoBridgePromotionMetricNameSchema).min(1),
     schemaVersion: z.literal(1),
+    resourceCaps: z
+      .object({
+        maxCpuMs: z.number().positive().max(VIDEO_BRIDGE_PROMOTION_RESOURCE_CAPS.maxCpuMs),
+        maxRssKiB: z.number().positive().max(VIDEO_BRIDGE_PROMOTION_RESOURCE_CAPS.maxRssKiB),
+        maxPreAnalysisMs: z
+          .number()
+          .positive()
+          .max(VIDEO_BRIDGE_PROMOTION_RESOURCE_CAPS.maxPreAnalysisMs),
+      })
+      .strict()
+      .optional(),
   })
   .strict()
   .superRefine((manifest, ctx) => {

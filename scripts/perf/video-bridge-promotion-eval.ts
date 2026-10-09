@@ -67,6 +67,7 @@ const videoBridgePromotionRunSchema = z
     role: z.enum(["baseline", "candidate"]),
     observationId: z.uuid().optional(),
     repetition: z.number().int().nonnegative().optional(),
+    preAnalysisMs: z.number().finite().nonnegative().optional(),
   })
   .strict();
 

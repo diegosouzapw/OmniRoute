@@ -10,6 +10,7 @@ import {
 import {
   VIDEO_BRIDGE_PROMOTION_CASE_KINDS,
   VIDEO_BRIDGE_PROMOTION_METRIC_NAMES,
+  VIDEO_BRIDGE_PROMOTION_RESOURCE_CAPS,
   videoBridgePromotionManifestSchema,
 } from "../../../src/lib/guardrails/videoBridgePromotionManifest.ts";
 import { buildVideoBridgePromotionReport } from "../../../scripts/perf/video-bridge-promotion-eval.ts";
@@ -18,6 +19,7 @@ function completeEvidence() {
   const manifest = videoBridgePromotionManifestSchema.parse({
     id: "unit-only-order-corpus",
     schemaVersion: 1,
+    resourceCaps: { ...VIDEO_BRIDGE_PROMOTION_RESOURCE_CAPS },
     metrics: [...VIDEO_BRIDGE_PROMOTION_METRIC_NAMES],
     cases: [...VIDEO_BRIDGE_PROMOTION_CASE_KINDS, "real_sanitized"].map((kind) => ({
       kind,
@@ -55,6 +57,7 @@ function completeEvidence() {
           observationId: randomUUID(),
           model: "unit-only-model",
           rawResponseText: "private unit response",
+          preAnalysisMs: 100,
           metrics: {
             latencyMs: role === "baseline" ? 1000 : 700,
             totalTokens: role === "baseline" ? 1000 : 800,
@@ -77,6 +80,23 @@ function completeEvidence() {
 test("a randomized-order label does not prove observed A/B execution order", () => {
   const { manifest, runFile } = completeEvidence();
   assert.ok(validatePromotionEvidence(manifest, runFile).includes("AB_ORDER_MISMATCH"));
+});
+
+test("resource evidence without frozen CPU, RSS and pre-analysis caps cannot promote", () => {
+  const { manifest, runFile } = completeEvidence();
+  delete manifest.resourceCaps;
+  runFile.execution.manifestDigest = buildPromotionManifestDigest(manifest);
+  assert.ok(validatePromotionEvidence(manifest, runFile).includes("RESOURCE_CAPS_MISSING"));
+});
+
+test("over-cap or unmeasured pre-analysis cannot promote", () => {
+  const { manifest, runFile } = completeEvidence();
+  runFile.cases[0].runs[0].metrics.rssKiB = VIDEO_BRIDGE_PROMOTION_RESOURCE_CAPS.maxRssKiB + 1;
+  assert.ok(validatePromotionEvidence(manifest, runFile).includes("RESOURCE_CAP_EXCEEDED"));
+  runFile.cases[0].runs[0].preAnalysisMs = NaN;
+  assert.ok(
+    validatePromotionEvidence(manifest, runFile).includes("PRE_ANALYSIS_METRIC_MISSING_OR_INVALID")
+  );
 });
 
 test("complete unit evidence can qualify only the measured lane, never promote a single execution", () => {
