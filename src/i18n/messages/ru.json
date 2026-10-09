@@ -5732,6 +5732,8 @@
     "targetFormatAuto": "По умолчанию (авто)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Максимальное количество токенов вывода",
+    "maxOutputTokenOverrideHint": "Введите положительное целое число токенов. Оставьте поле пустым для значения по умолчанию.",
     "contextWindowOverrideLabel": "Переопределение контекстного окна",
     "contextWindowOverridePlaceholder": "например, 131072",
     "contextWindowOverrideHint": "Укажите реальный размер контекстного окна модели (в токенах) вручную, если провайдер сообщает его некорректно. Имеет приоритет над автоопределением/каталогом и предотвращает исключение модели при комбинированной маршрутизации.",

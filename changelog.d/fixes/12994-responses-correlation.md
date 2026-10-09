@@ -1,0 +1,1 @@
+- Preserve valid caller correlation IDs on Responses requests, accepting X-Request-Id after X-Correlation-Id, and return the same ID used by call logs on streaming, early keepalive and JSON responses.

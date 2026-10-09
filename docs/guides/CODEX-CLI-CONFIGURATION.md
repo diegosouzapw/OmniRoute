@@ -297,6 +297,23 @@ omniroute setup-codex --codex-home /path/to/.codex
 
 The command fetches `/v1/models`, uses tuned profiles for known models, falls back to catalog metadata for other compatible text models, and writes `~/.codex/<name>.config.toml` for each. Idempotent — safe to re-run.
 
+If the base `config.toml` has no `model_providers.omniroute` definition, explicit
+`setup-codex` includes that definition in each generated overlay, using the selected
+local or remote endpoint. It leaves the base file unchanged. An existing provider
+definition is inherited, including its endpoint and authentication settings. Invalid
+base TOML stops generation before writing profiles.
+
+When you supply `--api-key` or `OMNIROUTE_API_KEY`, a newly defined provider refers to
+`env_key = "OMNIROUTE_API_KEY"`; the key itself is never saved or printed in the
+preview. Set that variable in the environment where you launch Codex. Without a
+supplied key, the new definition has no key requirement, for an OmniRoute instance
+configured to accept unauthenticated requests.
+
+The opt-in catalog auto-sync described below preserves provider definitions already
+in an overlay but does not bootstrap new provider settings; configure the provider
+first with explicit setup or the dashboard. Existing provider settings are omitted
+from dry-run previews because they may contain operator-managed credentials.
+
 OmniRoute can also **auto-sync** these same profile files after a successful provider model discovery/import changes the live catalog. This is **opt-in and off by default**: toggle it from the **CLI Code dashboard** ("CLI profile auto-sync" → Codex), or set `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (it also honors `CLI_ALLOW_CONFIG_WRITES`, on by default). When enabled it only writes separate `~/.codex/*.config.toml` profile files; it never changes the active/default `~/.codex/config.toml`, Codex-lb settings, auth, or provider selection.
 
 ---

@@ -10,7 +10,6 @@ import {
 } from "./nodeSqliteShared";
 import type { SqliteAdapter } from "./types";
 
-
 type DriverLoader = (moduleName: string) => unknown;
 
 type SpawnSyncLike = (
@@ -198,6 +197,27 @@ function getSqlJsPendingCache(): Map<string, Promise<SqliteAdapter>> {
 }
 
 /**
+ * better-sqlite3 13 picks its prebuild with `process.report.getReport()` (isLinuxMusl) the
+ * first time a Database is constructed. That report includes a network section that
+ * reverse-resolves every open TCP handle, so once the process holds sockets (a listening
+ * server, an upstream keep-alive) the first DB open blocked the event loop for ~6s on hosts
+ * with slow reverse DNS (#15106). Only `header.glibcVersionRuntime` is read, so drop the
+ * network section for the construction and restore the caller's setting afterwards.
+ */
+function withReportNetworkExcluded<T>(fn: () => T): T {
+  const report = process.report as
+    (NodeJS.ProcessReport & { excludeNetwork?: boolean }) | undefined;
+  if (!report || typeof report.excludeNetwork !== "boolean") return fn();
+  const previous = report.excludeNetwork;
+  report.excludeNetwork = true;
+  try {
+    return fn();
+  } finally {
+    report.excludeNetwork = previous;
+  }
+}
+
+/**
  * @internal
  *
  * Builds the synchronous driver cascade. Keeping the loader injectable makes
@@ -250,7 +270,7 @@ export function createSyncDriverFactory(load: DriverLoader, betterSqliteProbe?: 
         const BetterSqlite = load("better-sqlite3") as {
           new (p: string, o?: object): import("better-sqlite3").Database;
         };
-        const db = new BetterSqlite(filePath, options);
+        const db = withReportNetworkExcluded(() => new BetterSqlite(filePath, options));
         return createBetterSqliteAdapter(db);
       } catch (err) {
         logSwallowedDriverError("better-sqlite3", err);

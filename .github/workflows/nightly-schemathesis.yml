@@ -22,6 +22,15 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with: { node-version: "24", cache: npm }
+      - name: Prepare isolated runtime state
+        id: runtime
+        run: |
+          data_dir=$(mktemp -d "$RUNNER_TEMP/omniroute-schemathesis.XXXXXX")
+          mkdir "$data_dir/plugins"
+          {
+            echo "DATA_DIR=$data_dir"
+            echo "OMNIROUTE_PLUGINS_DIR=$data_dir/plugins"
+          } >> "$GITHUB_ENV"
       - run: npm ci
       - name: Build CLI bundle
         env:
@@ -31,14 +40,30 @@ jobs:
       - name: Start OmniRoute (background)
         env:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
-          PORT: "20128"
+          HOSTNAME: "127.0.0.1"
+          PORT: "21780"
         run: |
+          # A persistent runner can already host another deployment. Never fuzz it.
+          if (echo > /dev/tcp/127.0.0.1/"$PORT") 2>/dev/null; then
+            echo "::error::Port $PORT is already occupied; refusing to probe another server."
+            exit 1
+          fi
           node dist/server.js > server.log 2>&1 &
-          echo $! > server.pid
-          for i in $(seq 1 30); do
-            if curl -sf http://localhost:20128/api/monitoring/health >/dev/null; then echo "server up"; break; fi
+          server_pid=$!
+          echo "$server_pid" > "$DATA_DIR/server.pid"
+          for _ in $(seq 1 30); do
+            if ! kill -0 "$server_pid" 2>/dev/null; then
+              echo "::error::OmniRoute exited before becoming ready; see server.log."
+              exit 1
+            fi
+            if curl --max-time 2 -sf "http://127.0.0.1:$PORT/api/monitoring/health" >/dev/null && kill -0 "$server_pid" 2>/dev/null; then
+              echo "server up"
+              exit 0
+            fi
             sleep 2
           done
+          echo "::error::OmniRoute did not become healthy after 30 attempts; see server.log."
+          exit 1
       - uses: actions/setup-python@v7
         with: { python-version: "3.12" }
       - name: Install schemathesis
@@ -52,7 +77,7 @@ jobs:
         continue-on-error: true
         run: |
           schemathesis run docs/openapi.yaml \
-            --url http://localhost:20128 \
+            --url http://127.0.0.1:21780 \
             --max-examples 20 \
             --workers 4 \
             --checks all \
@@ -64,8 +89,11 @@ jobs:
             --no-color \
             || true
       - name: Stop server
-        if: always()
-        run: kill "$(cat server.pid)" || true
+        if: always() && steps.runtime.outcome == 'success'
+        run: |
+          if [ -n "$DATA_DIR" ] && [ -f "$DATA_DIR/server.pid" ]; then
+            kill "$(cat "$DATA_DIR/server.pid")" || true
+          fi
       - name: Upload schemathesis report
         if: always()
         uses: actions/upload-artifact@v7

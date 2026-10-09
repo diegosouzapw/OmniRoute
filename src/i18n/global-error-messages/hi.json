@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "कुछ गलत हो गया",
+      "description": "एक अप्रत्याशित त्रुटि हुई। इसे लॉग किया गया है और हमारी टीम इसकी जांच करेगी।",
+      "detailsAriaLabel": "त्रुटि विवरण",
+      "retryAriaLabel": "पृष्ठ को फिर से लोड करने का प्रयास करें",
+      "tryAgain": "फिर से प्रयास करें",
+      "statusAriaLabel": "सिस्टम स्थिति खोलें",
+      "systemStatus": "सिस्टम स्थिति"
+    }
+  }
+}

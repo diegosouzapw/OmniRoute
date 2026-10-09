@@ -59,6 +59,14 @@ export const opencode_goProvider: RegistryEntry = {
     },
     { id: "mimo-v2.5-high", name: "MiMo-V2.5 (high effort)", supportsReasoning: true },
     { id: "mimo-v2.5-max", name: "MiMo-V2.5 (max effort)", supportsReasoning: true },
+    // MiMo V2.6 Flash Free ships a 1M window upstream; without this row it
+    // falls through to the 200000 provider default and clients compact early.
+    {
+      id: "mimo-v2.6-flash-free",
+      name: "MiMo V2.6 Flash Free",
+      contextLength: 1048576,
+      maxOutputTokens: 131072,
+    },
     // #3110: MiniMax M3 via OpenCode Go tier
     {
       id: "minimax-m3",

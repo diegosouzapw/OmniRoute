@@ -421,6 +421,7 @@
       "tests/unit/public-client-ids-3493.test.ts",
       "tests/unit/publicCreds.test.ts",
       "tests/unit/qoder-oauth-config.test.ts",
+      "tests/unit/qoder-pat-tools-13697.test.ts",
       "tests/unit/quota-exhaustion-cutoff-opencode.test.ts",
       "tests/unit/quota-groups-route.test.ts",
       "tests/unit/quota-key-models-route.test.ts",
@@ -604,7 +605,10 @@
       "tests/unit/db-proxies-ventilated.test.ts",
       "tests/unit/github-copilot-model-not-supported-learning-15634.test.ts",
       "tests/unit/alibaba-free-quota-drain-preserves-model-catalog-cache.test.ts",
-      "tests/unit/upstreamErrorEnvelope.test.ts"
+      "tests/unit/upstreamErrorEnvelope.test.ts",
+      "tests/unit/provider-alias-combo-pool-12844.test.ts",
+      "tests/unit/model-capacity-failure-scope-15788.test.ts",
+      "tests/unit/provider-node-local-dispatch-13452.test.ts"
     ],
     "nodeArgs": [
       "--import",

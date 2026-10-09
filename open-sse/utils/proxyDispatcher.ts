@@ -72,7 +72,7 @@ export function isUpstreamHttp2Enabled(
   return !["false", "0", "no", "off"].includes(raw);
 }
 
-function getDispatcherOptions(
+export function getDispatcherOptions(
   hostname?: string,
   env: Record<string, string | undefined> = process.env
 ) {

@@ -123,10 +123,13 @@ test("supportsTokenRefresh includes the muse-code remint path", () => {
 test("refreshMuseCodeToken remints from providerSpecificData.dcaToken", async () => {
   globalThis.fetch = async (_url, init = {}) => {
     assert.equal((init.headers as Record<string, string>).Authorization, "Bearer dca:from-data");
-    return new Response(JSON.stringify({ api_key: "LLM|new", base_url: "https://api.meta.ai/v1" }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ api_key: "LLM|new", base_url: "https://api.meta.ai/v1" }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   };
 
   const result = await refreshMuseCodeToken("not-a-dca", { dcaToken: "dca:from-data" }, null);
@@ -199,7 +202,12 @@ test("#14267 requestDeviceCode rejects an off-origin authorization URL", async (
     ...VALID_GRANT,
     verification_uri_complete: "https://evil.example.com/device/?user_code=USER-1",
   });
-  await assert.rejects(() => museCode.requestDeviceCode(MUSE_CODE_CONFIG), /unexpected origin/);
+  // The device-response validation now lives in museCodeDeviceResponse.ts (#15869), which
+  // reports every rejected authorization URL (off-origin or with credentials) as invalid.
+  await assert.rejects(
+    () => museCode.requestDeviceCode(MUSE_CODE_CONFIG),
+    /invalid authorization URL/
+  );
 });
 
 test("#14267 requestDeviceCode rejects embedded credentials in the authorization URL", async () => {
@@ -207,12 +215,20 @@ test("#14267 requestDeviceCode rejects embedded credentials in the authorization
     ...VALID_GRANT,
     verification_uri_complete: "https://user:pass@auth.meta.com/oauth/device/",
   });
-  await assert.rejects(() => museCode.requestDeviceCode(MUSE_CODE_CONFIG), /unexpected origin/);
+  // The device-response validation now lives in museCodeDeviceResponse.ts (#15869), which
+  // reports every rejected authorization URL (off-origin or with credentials) as invalid.
+  await assert.rejects(
+    () => museCode.requestDeviceCode(MUSE_CODE_CONFIG),
+    /invalid authorization URL/
+  );
 });
 
 test("#14267 requestDeviceCode rejects a device code expiry beyond 24h", async () => {
   mockDeviceGrant({ ...VALID_GRANT, expires_in: 100000 });
-  await assert.rejects(() => museCode.requestDeviceCode(MUSE_CODE_CONFIG), /invalid device code expiry/);
+  await assert.rejects(
+    () => museCode.requestDeviceCode(MUSE_CODE_CONFIG),
+    /invalid device code expiry/
+  );
 });
 
 test("#14267 pollToken maps pending codes to fixed messages, discarding upstream text", async () => {

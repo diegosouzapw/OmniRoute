@@ -53,6 +53,7 @@ import {
   isAlibabaFreeTierVisionComboName,
 } from "../dashscopeTextModels.ts";
 import type { ComboLike } from "./types.ts";
+import { isRecord } from "./comboData.ts";
 
 /** Sentinel pattern used for "all models of a provider". */
 const PROVIDER_WILDCARD_SENTINEL = "*";
@@ -160,9 +161,9 @@ async function filterAlibabaFreeDrainedModelIds(
     return modelIds;
   }
   try {
-    const { getProviderConnections } = await import("../../../src/lib/db/providers.ts");
-    const connections = await getProviderConnections({ provider: providerId });
-    const connection = connections.find((entry) => entry.id === connectionId);
+    const { getCachedProviderPoolConnections } = await import("../providerConnectionPool.ts");
+    const connections = await getCachedProviderPoolConnections({ provider: providerId });
+    const connection = connections.find((entry) => isRecord(entry) && entry.id === connectionId);
     if (!connection) return modelIds;
 
     if (isAlibabaFreeTierVisionComboName(comboName)) {

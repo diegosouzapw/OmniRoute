@@ -68,6 +68,8 @@ import {
 } from "@omniroute/open-sse/utils/chatgptWebExecutorAdapter.ts";
 import { applyOperatorActivationIntent } from "@/lib/providers/operatorDisable";
 import { getRequestPeerLocality } from "@/shared/utils/apiAuth";
+import { hydrateCompatibleNodeCreation } from "@/lib/providers/compatibleNodeCreation";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 function projectCodexAccountPoolWithRoutingQuota(
   connection: Parameters<typeof projectCodexAccountPool>[0],
@@ -203,6 +205,16 @@ export async function POST(request: Request) {
       allowNoCredential,
     } = validation.data;
     const provider = resolveProviderId(requestedProvider);
+    if (provider === "cloudflare-ai" && Object.hasOwn(body, "accountId")) {
+      return NextResponse.json(
+        {
+          error: sanitizeErrorMessage(
+            "Use providerSpecificData.accountId instead of top-level accountId"
+          ),
+        },
+        { status: 400 }
+      );
+    }
     const retirementResponse =
       rejectRetiredCommonChatGptWebProvider(requestedProvider) ??
       rejectRetiredCommonChatGptWebProvider(provider);
@@ -285,16 +297,11 @@ export async function POST(request: Request) {
 
       // Allow multiple connections for compatible nodes exactly like first-party providers
 
-      providerSpecificData = {
-        ...(providerSpecificData || {}),
-        prefix: node.prefix,
-        apiType: node.apiType,
-        baseUrl: node.baseUrl,
-        nodeName: node.name,
-        ...(node.chatPath ? { chatPath: node.chatPath } : {}),
-        ...(node.modelsPath ? { modelsPath: node.modelsPath } : {}),
-        ...(node.customHeaders ? { customHeaders: node.customHeaders } : {}),
-      };
+      const hydrated = hydrateCompatibleNodeCreation(provider, node, providerSpecificData, true);
+      if (hydrated.error) {
+        return NextResponse.json({ error: sanitizeErrorMessage(hydrated.error) }, { status: 400 });
+      }
+      providerSpecificData = hydrated.data;
     } else if (isAnthropicCompatibleProvider(provider)) {
       const node: any = await resolveProviderNodeForConnection(provider);
       if (!node) {
@@ -310,15 +317,11 @@ export async function POST(request: Request) {
 
       // Allow multiple connections for compatible nodes exactly like first-party providers
 
-      providerSpecificData = {
-        ...(providerSpecificData || {}),
-        prefix: node.prefix,
-        baseUrl: node.baseUrl,
-        nodeName: node.name,
-        ...(node.chatPath ? { chatPath: node.chatPath } : {}),
-        ...(node.modelsPath ? { modelsPath: node.modelsPath } : {}),
-        ...(node.customHeaders ? { customHeaders: node.customHeaders } : {}),
-      };
+      const hydrated = hydrateCompatibleNodeCreation(provider, node, providerSpecificData, false);
+      if (hydrated.error) {
+        return NextResponse.json({ error: sanitizeErrorMessage(hydrated.error) }, { status: 400 });
+      }
+      providerSpecificData = hydrated.data;
     }
 
     providerSpecificData = normalizeProviderSpecificData(provider, providerSpecificData) || null;

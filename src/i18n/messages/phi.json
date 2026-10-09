@@ -5732,6 +5732,8 @@
     "targetFormatAuto": "Default (awtomatiko)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Max Output Token",
+    "maxOutputTokenOverrideHint": "Maglagay ng positibong buong bilang ng mga token. Iwanang blangko para sa default.",
     "contextWindowOverrideLabel": "Override sa Context Window",
     "contextWindowOverridePlaceholder": "hal. 131072",
     "contextWindowOverrideHint": "Manwal na itakda ang totoong context window (mga token) ng modelong ito kapag mali ang ulat ng provider. Mas nangingibabaw ito kaysa sa mga auto-detected/catalog na halaga at pinipigilan ang combo routing na alisin ang modelo.",

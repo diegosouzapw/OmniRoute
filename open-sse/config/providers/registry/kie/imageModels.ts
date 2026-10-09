@@ -13,6 +13,7 @@ export interface KieImageModelEntry {
   id: string;
   name: string;
   isMarket?: boolean;
+  kieFluxKontextModel?: "flux-kontext-pro" | "flux-kontext-max";
 }
 
 export const KIE_IMAGE_MODELS: KieImageModelEntry[] = [
@@ -21,8 +22,9 @@ export const KIE_IMAGE_MODELS: KieImageModelEntry[] = [
   { id: "seedream/4.5-edit", name: "Seedream 4.5 Edit", isMarket: true },
   { id: "seedream/5.0-lite-text-to-image", name: "Seedream 5.0 Lite", isMarket: true },
   { id: "seedream/5.0-lite-image-to-image", name: "Seedream 5.0 Lite I2I", isMarket: true },
-  { id: "z-image/4.0-text-to-image", name: "Z-Image v4.0", isMarket: true },
-  { id: "z-image/4.5-text-to-image", name: "Z-Image v4.5", isMarket: true },
+  { id: "z-image", name: "Z-Image", isMarket: true },
+  { id: "z-image/4.0-text-to-image", name: "Z-Image (legacy alias 4.0)", isMarket: true },
+  { id: "z-image/4.5-text-to-image", name: "Z-Image (legacy alias 4.5)", isMarket: true },
   { id: "google-imagen/nano-banana-2", name: "Nano Banana 2", isMarket: true },
   { id: "google-imagen/nano-banana", name: "Nano Banana", isMarket: true },
   { id: "google-imagen/nano-banana-pro", name: "Nano Banana Pro", isMarket: true },
@@ -31,7 +33,20 @@ export const KIE_IMAGE_MODELS: KieImageModelEntry[] = [
   { id: "flux/2-pro-text-to-image", name: "Flux 2 Pro T2I", isMarket: true },
   { id: "flux/2-image-to-image", name: "Flux 2 I2I", isMarket: true },
   { id: "flux/2-text-to-image", name: "Flux 2 T2I", isMarket: true },
-  { id: "flux/kontext", name: "Flux Kontext", isMarket: true },
+  // Dedicated API retained for compatibility; both tiers remain documented at
+  // https://docs.kie.ai/old-model/flux-kontext-api/generate-or-edit-image (2026-10-08).
+  {
+    id: "flux/kontext",
+    name: "Flux Kontext Pro",
+    isMarket: false,
+    kieFluxKontextModel: "flux-kontext-pro",
+  },
+  {
+    id: "flux/kontext-max",
+    name: "Flux Kontext Max",
+    isMarket: false,
+    kieFluxKontextModel: "flux-kontext-max",
+  },
   { id: "grok-imagine/text-to-image", name: "Grok Imagine T2I", isMarket: true },
   { id: "grok-imagine/image-to-image", name: "Grok Imagine I2I", isMarket: true },
   { id: "gpt/gpt-image-1.5-text-to-image", name: "GPT Image 1.5 T2I", isMarket: true },

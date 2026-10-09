@@ -1,0 +1,1 @@
+- Reject conflicting node identity before binding a new compatible-provider credential through a bare-type fallback, and report misplaced Cloudflare account IDs instead of discarding them.
