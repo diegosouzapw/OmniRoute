@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codex pakalpojuma režīms šai API atslēgai",
+    "description": "Attiecas uz Codex pieprasījumiem, tostarp Codex modeļiem kombinācijās. Piespiedu režīmi ignorē klienta, globālos iestatījumus un savienojuma noklusējuma iestatījumus. Citi pakalpojumu sniedzēji netiek ietekmēti.",
+    "label": "Pakalpojuma režīms",
+    "inherit": "Mantot pašreizējo darbību",
+    "default": "Piespiedu standarta režīms (noklusējums)",
+    "priority": "Piespiedu ātrais/prioritārais režīms",
+    "flex": "Piespiedu elastīgais režīms",
+    "warning": "Tas nepiešķir piekļuvi pakalpojumu sniedzējam. Pieejamība, maksa un kvotas patēriņš ir atkarīgi no jūsu Codex konta un modeļa. Piespiedu režīmiem nepieciešams HTTP vai Responses WebSocket transports; app-server pieprasījumi tiek noraidīti.",
+    "confirm": "Vai lietot režīmu “{mode}” šai API atslēgai? Tas stāsies spēkā turpmākajiem pieprasījumiem.",
+    "save": "Saglabāt režīmu",
+    "retry": "Mēģināt vēlreiz",
+    "loadError": "Neizdevās ielādēt saglabāto pakalpojuma režīmu.",
+    "saveError": "Neizdevās saglabāt pakalpojuma režīmu. Lūdzu, mēģiniet vēlreiz."
+  },
   "common": {
     "save": "Saglabāt",
     "cancel": "Atcelt",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "Analītika",
     "usageAnalyticsTitle": "Lietojuma analītika",
+    "tokenDisplayCompact": "Kompakts",
+    "tokenDisplayExact": "Precīzs",
+    "tokenDisplayMode": "Tokenu attēlošanas režīms",
     "diversityScoreTitle": "Pakalpojumu sniedzēju daudzveidība",
     "diversityScoreDesc": "Pakalpojumu sniedzēju koncentrācijas momentuzņēmums par neseno datplūsmas periodu.",
     "diversityShannonEntropy": "Šenona entropija",
@@ -5572,6 +5590,8 @@
     "modelsActive": "Aktīvs",
     "showModel": "Rādīt modeli",
     "hideModel": "Slēpt modeli",
+    "blacklistModel": "Bloķēt",
+    "blacklistModelTooltip": "Bloķēt šo modeli un paslēpt to no kataloga",
     "removeModel": "Noņemt modeli",
     "rateLimitProtected": "Aizsargāts",
     "rateLimitUnprotected": "Neaizsargāts",
@@ -5712,6 +5732,8 @@
     "targetFormatAuto": "Noklusējums (automātiski)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Maksimālais izvades tokenu skaits",
+    "maxOutputTokenOverrideHint": "Ievadiet pozitīvu veselu tokenu skaitu. Atstājiet tukšu, lai izmantotu noklusējumu.",
     "contextWindowOverrideLabel": "Konteksta loga manuāla pārrakstīšana",
     "contextWindowOverridePlaceholder": "piem., 131072",
     "contextWindowOverrideHint": "Manuāli iestatīt šī modeļa faktisko konteksta logu (tokenos), ja nodrošinātājs to norāda nepareizi. Šai vērtībai ir prioritāte pār automātiski noteiktajām un katalogā esošajām vērtībām, un tā novērš modeļa izslēgšanu no kombinētās maršrutēšanas.",
@@ -6710,7 +6732,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Iestatījumi",
@@ -10093,7 +10122,11 @@
     "updatedShort": "Atjaunināts",
     "lastRefreshed": "Pēdējoreiz atsvaidzināts",
     "providerQuota": "Pakalpojuma sniedzēja kvota",
-    "providerQuotaHomeHint": "Pievienoto kontu statuss reāllaikā"
+    "providerQuotaHomeHint": "Pievienoto kontu statuss reāllaikā",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Tiek gaidīta autorizācija",

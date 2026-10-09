@@ -16,6 +16,7 @@ import {
   toRegistryImageModels,
 } from "../services/adobeFireflyModels.ts";
 import { AI_HORDE_IMAGE_PROVIDER } from "./providers/registry/aihorde/imageModels.ts";
+import { toRegistryImageModels as toSyntxImageModels } from "../services/syntxMediaCatalog.ts";
 import { ZENMUX_IMAGE_PROVIDER } from "./providers/registry/zenmux/imageModels.ts";
 
 export interface ImageModelEntry {
@@ -26,6 +27,7 @@ export interface ImageModelEntry {
   imageRequired?: boolean;
   description?: string;
   isMarket?: boolean;
+  kieFluxKontextModel?: "flux-kontext-pro" | "flux-kontext-max";
   supportedSizes?: string[];
   mediaCapabilities?: Record<string, unknown>;
 }
@@ -915,6 +917,16 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     // Persona web derives imageWidth/imageHeight from an aspect ratio; uc-direct
     // passes any OpenAI-style size through. These are the aspect buckets.
     supportedSizes: ["1024x1024", "1024x576", "576x1024", "1024x768", "768x1024"],
+  },
+  syntx: {
+    id: "syntx",
+    alias: "stx",
+    baseUrl: "https://api.syntx.ai/api/v1/design/generate",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "syntx-image",
+    models: toSyntxImageModels(),
+    supportedSizes: [],
   },
 
   // Cloudflare Workers AI image generation (FLUX.1 Schnell). Reuses the same

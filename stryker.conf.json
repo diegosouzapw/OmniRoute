@@ -319,6 +319,7 @@
       "tests/unit/executor-contract-violation-terminal.test.ts",
       "tests/unit/executor-devin-cli-agentic-acp.test.ts",
       "tests/unit/executor-web-cookie-sweep.test.ts",
+      "tests/unit/executor-twinmind.test.ts",
       "tests/unit/expiry-first-account-rotation.test.ts",
       "tests/unit/explicit-inactive-probe-w2.test.ts",
       "tests/unit/false-terminal-401-quota.test.ts",
@@ -418,6 +419,7 @@
       "tests/unit/public-client-ids-3493.test.ts",
       "tests/unit/publicCreds.test.ts",
       "tests/unit/qoder-oauth-config.test.ts",
+      "tests/unit/qoder-pat-tools-13697.test.ts",
       "tests/unit/quota-exhaustion-cutoff-opencode.test.ts",
       "tests/unit/quota-groups-route.test.ts",
       "tests/unit/quota-key-models-route.test.ts",
@@ -601,7 +603,8 @@
       "tests/unit/db-proxies-ventilated.test.ts",
       "tests/unit/github-copilot-model-not-supported-learning-15634.test.ts",
       "tests/unit/alibaba-free-quota-drain-preserves-model-catalog-cache.test.ts",
-      "tests/unit/upstreamErrorEnvelope.test.ts"
+      "tests/unit/upstreamErrorEnvelope.test.ts",
+      "tests/unit/provider-node-local-dispatch-13452.test.ts"
     ],
     "nodeArgs": [
       "--import",

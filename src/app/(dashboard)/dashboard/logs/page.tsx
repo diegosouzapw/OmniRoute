@@ -4,7 +4,11 @@ import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { ConfirmModal, RequestLoggerV2 } from "@/shared/components";
 import { useTranslations } from "next-intl";
-import { buildLogExportUrl, readLogExportTruncation } from "@/shared/utils/logExport";
+import {
+  buildLogExportUrl,
+  readLogExportTruncation,
+  readLogExportEmittedCount,
+} from "@/shared/utils/logExport";
 
 const TIME_RANGES = [
   { label: "1h", hours: 1 },
@@ -68,8 +72,11 @@ function LogsPageContent() {
       // #13999: ask for the server's maximum row cap instead of silently getting the 10k default.
       const res = await fetch(buildLogExportUrl(hours, logType));
       if (!res.ok) throw new Error(t("exportFailed"));
-      const truncation = readLogExportTruncation(res.headers);
       const blob = await res.blob();
+      const truncation = readLogExportTruncation(
+        res.headers,
+        await readLogExportEmittedCount(blob)
+      );
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;

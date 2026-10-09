@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "وضع خدمة Codex لمفتاح API هذا",
+    "description": "ينطبق على طلبات Codex، بما في ذلك نماذج Codex داخل التركيبات. تتجاوز الأوضاع المفروضة إعدادات العميل والإعدادات العامة والإعدادات الافتراضية للاتصال. يظل مقدمو الخدمات الآخرون دون تغيير.",
+    "label": "وضع الخدمة",
+    "inherit": "استخدام السلوك الحالي",
+    "default": "فرض الوضع القياسي (الافتراضي)",
+    "priority": "فرض الوضع السريع / ذي الأولوية",
+    "flex": "فرض الوضع المرن",
+    "warning": "لا يمنح هذا إمكانية الوصول إلى مقدم الخدمة. يعتمد التوفر والرسوم واستهلاك الحصة على حساب Codex والنموذج لديك. تتطلب الأوضاع المفروضة النقل عبر HTTP أو Responses WebSocket؛ وتُرفض طلبات app-server.",
+    "confirm": "هل تريد تطبيق «{mode}» على مفتاح API هذا؟ يسري ذلك على الطلبات اللاحقة.",
+    "save": "حفظ الوضع",
+    "retry": "إعادة المحاولة",
+    "loadError": "تعذر تحميل وضع الخدمة المحفوظ.",
+    "saveError": "تعذر حفظ وضع الخدمة. يُرجى المحاولة مرة أخرى."
+  },
   "common": {
     "save": "حفظ",
     "cancel": "إلغاء",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "التحليلات",
     "usageAnalyticsTitle": "تحليلات الاستخدام",
+    "tokenDisplayCompact": "مختصر",
+    "tokenDisplayExact": "دقيق",
+    "tokenDisplayMode": "وضع عرض الرموز",
     "diversityScoreTitle": "تنوع مقدمي الخدمة",
     "diversityScoreDesc": "لقطة تركيز الموفر لنافذة حركة المرور الأخيرة.",
     "diversityShannonEntropy": "إنتروبيا شانون",
@@ -5572,6 +5590,8 @@
     "modelsActive": "نشطة",
     "showModel": "إظهار النموذج",
     "hideModel": "إخفاء النموذج",
+    "blacklistModel": "حظر",
+    "blacklistModelTooltip": "حظر هذا النموذج وإخفاؤه من الكتالوج",
     "removeModel": "إزالة النموذج",
     "rateLimitProtected": "محمي",
     "rateLimitUnprotected": "غير محمي",
@@ -5712,6 +5732,8 @@
     "targetFormatAuto": "افتراضي (تلقائي)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "الحد الأقصى لرموز الإخراج",
+    "maxOutputTokenOverrideHint": "أدخل عددًا صحيحًا موجبًا من الرموز. اتركه فارغًا لاستخدام القيمة الافتراضية.",
     "contextWindowOverrideLabel": "تجاوز نافذة السياق",
     "contextWindowOverridePlaceholder": "مثال: 131072",
     "contextWindowOverrideHint": "عيّن يدويًا نافذة السياق الحقيقية لهذا النموذج (بالرموز) عندما يبلغ المزوّد عنها بصورة خاطئة. تتغلب هذه القيمة على القيم المكتشفة تلقائيًا أو الواردة في الكتالوج، وتمنع توجيه المجموعات من إسقاط النموذج.",
@@ -6710,7 +6732,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "الإعدادات",
@@ -10093,7 +10122,11 @@
     "updatedShort": "تم التحديث",
     "lastRefreshed": "آخر تحديث",
     "providerQuota": "حصة المزود",
-    "providerQuotaHomeHint": "الحالة المباشرة عبر الحسابات المتصلة"
+    "providerQuotaHomeHint": "الحالة المباشرة عبر الحسابات المتصلة",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "في انتظار التصريح",

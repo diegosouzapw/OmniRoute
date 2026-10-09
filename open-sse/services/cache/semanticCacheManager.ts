@@ -28,6 +28,7 @@ import {
   type EmbeddingGenerator,
 } from "./embeddingClient.ts";
 import { synthesizeOpenAiSseFromJson } from "../../utils/jsonToSse.ts";
+import { conversationSignatureFields } from "../../utils/conversationSignatureFields.ts";
 import { isCompleteTextProjection } from "./semanticProjection";
 
 export interface CacheLookupParams {
@@ -116,6 +117,7 @@ function normalizeMessagesForHash(conversation: unknown): Array<{ role: string; 
     return {
       role,
       content: stringifyValue(record.content),
+      ...conversationSignatureFields(record),
     };
   });
 }

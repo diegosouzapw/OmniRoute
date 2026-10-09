@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Режим услуге Codex за овај API кључ",
+    "description": "Примењује се на Codex захтеве, укључујући Codex моделе у комбинацијама. Принудно подешени режими имају предност над клијентом, глобалним подешавањима и подразумеваним вредностима везе. Остали добављачи остају непромењени.",
+    "label": "Режим услуге",
+    "inherit": "Наследи постојеће понашање",
+    "default": "Принудно користи стандардни режим (подразумевано)",
+    "priority": "Принудно користи брзи / приоритетни режим",
+    "flex": "Принудно користи флексибилни режим",
+    "warning": "Ово не омогућава приступ добављачу. Доступност, трошкови и потрошња квоте зависе од вашег Codex налога и модела. Принудно подешени режими захтевају HTTP или Responses WebSocket транспорт; app-server захтеви се одбијају.",
+    "confirm": "Применити „{mode}“ на овај API кључ? Ово ће важити за наредне захтеве.",
+    "save": "Сачувај режим",
+    "retry": "Покушај поново",
+    "loadError": "Није могуће учитати сачувани режим услуге.",
+    "saveError": "Није могуће сачувати режим услуге. Покушајте поново."
+  },
   "common": {
     "save": "Сачувај",
     "cancel": "Откажи",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "Аналитика",
     "usageAnalyticsTitle": "Аналитика коришћења",
+    "tokenDisplayCompact": "Компактно",
+    "tokenDisplayExact": "Тачно",
+    "tokenDisplayMode": "Режим приказа токена",
     "diversityScoreTitle": "Разноврсност провајдера",
     "diversityScoreDesc": "Преглед концентрације провајдера током недавног периода саобраћаја.",
     "diversityShannonEntropy": "Шенонова ентропија",
@@ -5572,6 +5590,8 @@
     "modelsActive": "Активни",
     "showModel": "Прикажи модел",
     "hideModel": "Сакриј модел",
+    "blacklistModel": "Блокирај",
+    "blacklistModelTooltip": "Блокирај овај модел и сакриј га из каталога",
     "removeModel": "Уклони модел",
     "rateLimitProtected": "Заштићено",
     "rateLimitUnprotected": "Незаштићено",
@@ -5712,6 +5732,8 @@
     "targetFormatAuto": "Подразумевано (аутоматски)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Максималан број излазних токена",
+    "maxOutputTokenOverrideHint": "Унесите позитиван цео број токена. Оставите празно за подразумевану вредност.",
     "contextWindowOverrideLabel": "Ручно подешавање прозора контекста",
     "contextWindowOverridePlaceholder": "нпр. 131072",
     "contextWindowOverrideHint": "Ручно поставите стварни прозор контекста овог модела (у токенима) када провајдер погрешно пријави вредност. Ово има приоритет над аутоматски детектованим/каталошким вредностима и спречава да combo рутирање избаци модел.",
@@ -6710,7 +6732,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Подешавања",
@@ -10093,7 +10122,11 @@
     "updatedShort": "Ажурирано",
     "lastRefreshed": "Последње ажурирање",
     "providerQuota": "Квота провајдера",
-    "providerQuotaHomeHint": "Статус повезаних налога у реалном времену"
+    "providerQuotaHomeHint": "Статус повезаних налога у реалном времену",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Чекање на овлашћење",

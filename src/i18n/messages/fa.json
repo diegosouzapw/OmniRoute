@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "حالت سرویس Codex برای این کلید API",
+    "description": "برای درخواستهای Codex، از جمله مدلهای Codex در ترکیبها، اعمال میشود. حالتهای اجباری، تنظیمات کلاینت، تنظیمات عمومی و پیشفرضهای اتصال را نادیده میگیرند. سایر ارائهدهندگان بدون تغییر باقی میمانند.",
+    "label": "حالت سرویس",
+    "inherit": "استفاده از رفتار فعلی",
+    "default": "اجبار حالت استاندارد (پیشفرض)",
+    "priority": "اجبار حالت سریع / اولویتدار",
+    "flex": "اجبار حالت انعطافپذیر",
+    "warning": "این گزینه دسترسی به ارائهدهنده را اعطا نمیکند. دسترسپذیری، هزینهها و مصرف سهمیه به حساب و مدل Codex شما بستگی دارد. حالتهای اجباری به انتقال HTTP یا Responses WebSocket نیاز دارند؛ درخواستهای app-server رد میشوند.",
+    "confirm": "حالت «{mode}» برای این کلید API اعمال شود؟ این تغییر برای درخواستهای بعدی اعمال میشود.",
+    "save": "ذخیره حالت",
+    "retry": "تلاش مجدد",
+    "loadError": "حالت سرویس ذخیرهشده بارگیری نشد.",
+    "saveError": "حالت سرویس ذخیره نشد. لطفاً دوباره تلاش کنید."
+  },
   "common": {
     "save": "ذخیره",
     "cancel": "لغو",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "تحلیلها",
     "usageAnalyticsTitle": "تحلیل مصرف",
+    "tokenDisplayCompact": "فشرده",
+    "tokenDisplayExact": "دقیق",
+    "tokenDisplayMode": "حالت نمایش توکن",
     "diversityScoreTitle": "تنوع ارائه دهنده",
     "diversityScoreDesc": "تصویر لحظه‌ای از تمرکز ارائه‌دهندگان برای بازه ترافیک اخیر.",
     "diversityShannonEntropy": "آنتروپی شانون",
@@ -5572,6 +5590,8 @@
     "modelsActive": "فعال",
     "showModel": "نمایش مدل",
     "hideModel": "پنهان کردن مدل",
+    "blacklistModel": "مسدود کردن",
+    "blacklistModelTooltip": "این مدل را مسدود و از کاتالوگ پنهان کنید",
     "removeModel": "حذف مدل",
     "rateLimitProtected": "محافظتشده",
     "rateLimitUnprotected": "بدون محافظت",
@@ -5712,6 +5732,8 @@
     "targetFormatAuto": "پیش‌فرض (خودکار)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "حداکثر توکن های خروجی",
+    "maxOutputTokenOverrideHint": "یک عدد صحیح مثبت برای تعداد توکن‌ها وارد کنید. برای مقدار پیش‌فرض خالی بگذارید.",
     "contextWindowOverrideLabel": "بازنویسی پنجره زمینه",
     "contextWindowOverridePlaceholder": "مثلاً 131072",
     "contextWindowOverrideHint": "هنگامی که ارائه‌دهنده پنجره زمینه واقعی این مدل (توکن‌ها) را نادرست گزارش می‌کند، آن را به صورت دستی تنظیم کنید. بر مقادیر شناسایی‌شده خودکار/کاتالوگ اولویت دارد و از حذف مدل توسط مسیریابی ترکیبی جلوگیری می‌کند.",
@@ -6710,7 +6732,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "تنظیمات",
@@ -10093,7 +10122,11 @@
     "updatedShort": "به‌روزرسانی شد",
     "lastRefreshed": "آخرین به‌روزرسانی",
     "providerQuota": "سهمیه ارائه‌دهنده",
-    "providerQuotaHomeHint": "وضعیت لحظه‌ای در حساب‌های متصل"
+    "providerQuotaHomeHint": "وضعیت لحظه‌ای در حساب‌های متصل",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "در انتظار تأیید مجوز",

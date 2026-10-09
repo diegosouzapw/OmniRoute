@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "এই API কী-এর জন্য Codex সার্ভিস মোড",
+    "description": "কম্বোর ভেতরের Codex মডেলসহ Codex অনুরোধগুলোর ক্ষেত্রে প্রযোজ্য। বাধ্যতামূলক মোড ক্লায়েন্ট, গ্লোবাল সেটিংস এবং সংযোগের ডিফল্টকে অগ্রাহ্য করে। অন্যান্য প্রোভাইডার অপরিবর্তিত থাকে।",
+    "label": "সার্ভিস মোড",
+    "inherit": "বিদ্যমান আচরণ অনুসরণ করুন",
+    "default": "Standard বাধ্যতামূলক করুন (ডিফল্ট)",
+    "priority": "Fast / Priority বাধ্যতামূলক করুন",
+    "flex": "Flex বাধ্যতামূলক করুন",
+    "warning": "এটি প্রোভাইডার অ্যাক্সেস দেয় না। প্রাপ্যতা, চার্জ এবং কোটা ব্যবহার আপনার Codex অ্যাকাউন্ট ও মডেলের ওপর নির্ভর করে। বাধ্যতামূলক মোডের জন্য HTTP অথবা Responses WebSocket ট্রান্সপোর্ট প্রয়োজন; app-server অনুরোধ প্রত্যাখ্যান করা হয়।",
+    "confirm": "এই API কী-তে “{mode}” প্রয়োগ করবেন? এটি পরবর্তী অনুরোধগুলো থেকে কার্যকর হবে।",
+    "save": "মোড সংরক্ষণ করুন",
+    "retry": "আবার চেষ্টা করুন",
+    "loadError": "সংরক্ষিত সার্ভিস মোড লোড করা যায়নি।",
+    "saveError": "সার্ভিস মোড সংরক্ষণ করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।"
+  },
   "common": {
     "save": "সংরক্ষণ করুন",
     "cancel": "বাতিল করুন",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "বিশ্লেষণ",
     "usageAnalyticsTitle": "ব্যবহারের বিশ্লেষণ",
+    "tokenDisplayCompact": "সংক্ষিপ্ত",
+    "tokenDisplayExact": "সঠিক",
+    "tokenDisplayMode": "টোকেন প্রদর্শন মোড",
     "diversityScoreTitle": "প্রদানকারী বৈচিত্র্য",
     "diversityScoreDesc": "সাম্প্রতিক ট্রাফিক উইন্ডোর জন্য প্রোভাইডার কনসেন্ট্রেশন স্ন্যাপশট।",
     "diversityShannonEntropy": "শ্যানন এনট্রপি",
@@ -5572,6 +5590,8 @@
     "modelsActive": "সক্রিয়",
     "showModel": "মডেল দেখান",
     "hideModel": "মডেল লুকান",
+    "blacklistModel": "ব্লক",
+    "blacklistModelTooltip": "এই মডেল ব্লক করে ক্যাটালগ থেকে লুকান",
     "removeModel": "মডেল সরান",
     "rateLimitProtected": "সুরক্ষিত",
     "rateLimitUnprotected": "অসুরক্ষিত",
@@ -5712,6 +5732,8 @@
     "targetFormatAuto": "ডিফল্ট (স্বয়ংক্রিয়)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "সর্বোচ্চ আউটপুট টোকেন",
+    "maxOutputTokenOverrideHint": "টোকেনের ধনাত্মক পূর্ণসংখ্যা লিখুন। ডিফল্ট মান ব্যবহার করতে খালি রাখুন।",
     "contextWindowOverrideLabel": "কনটেক্সট উইন্ডো ওভাররাইড",
     "contextWindowOverridePlaceholder": "যেমন: 131072",
     "contextWindowOverrideHint": "প্রোভাইডার ভুল রিপোর্ট করলে ম্যানুয়ালি এই মডেলের আসল কনটেক্সট উইন্ডো (টোকেন) সেট করুন। এটি স্বয়ংক্রিয়ভাবে সনাক্ত করা/ক্যাটালগ মানের চেয়ে অগ্রাধিকার পায় এবং কম্বো রাউটিং থেকে মডেলটি বাদ পড়া রোধ করে।",
@@ -6710,7 +6732,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "সেটিংস",
@@ -10093,7 +10122,11 @@
     "updatedShort": "আপডেট করা হয়েছে",
     "lastRefreshed": "সর্বশেষ রিফ্রেশ করা হয়েছে",
     "providerQuota": "প্রোভাইডার কোটা",
-    "providerQuotaHomeHint": "সংযুক্ত অ্যাকাউন্টগুলোর লাইভ স্ট্যাটাস"
+    "providerQuotaHomeHint": "সংযুক্ত অ্যাকাউন্টগুলোর লাইভ স্ট্যাটাস",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "অনুমোদনের জন্য অপেক্ষা করা হচ্ছে",

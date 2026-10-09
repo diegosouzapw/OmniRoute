@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Modo de servicio de Codex para esta clave de API",
+    "description": "Se aplica a las solicitudes de Codex, incluidos los modelos de Codex dentro de las combinaciones. Los modos forzados prevalecen sobre el cliente, la configuración global y los valores predeterminados de conexión. Los demás proveedores no se ven afectados.",
+    "label": "Modo de servicio",
+    "inherit": "Heredar el comportamiento existente",
+    "default": "Forzar Estándar (predeterminado)",
+    "priority": "Forzar Rápido / Prioridad",
+    "flex": "Forzar Flex",
+    "warning": "Esto no concede acceso al proveedor. La disponibilidad, los cargos y el consumo de cuota dependen de tu cuenta y modelo de Codex. Los modos forzados requieren el transporte HTTP o Responses WebSocket; las solicitudes de app-server se rechazan.",
+    "confirm": "¿Aplicar «{mode}» a esta clave de API? Esto se aplicará a las solicitudes posteriores.",
+    "save": "Guardar modo",
+    "retry": "Reintentar",
+    "loadError": "No se pudo cargar el modo de servicio guardado.",
+    "saveError": "No se pudo guardar el modo de servicio. Inténtalo de nuevo."
+  },
   "common": {
     "save": "Guardar",
     "cancel": "Cancelar",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "Analítica",
     "usageAnalyticsTitle": "Análisis de uso",
+    "tokenDisplayCompact": "Compacto",
+    "tokenDisplayExact": "Exacto",
+    "tokenDisplayMode": "Modo de visualización de tokens",
     "diversityScoreTitle": "Diversidad de proveedores",
     "diversityScoreDesc": "Muestra la concentración de proveedores para la ventana de tráfico reciente.",
     "diversityShannonEntropy": "Entropía de Shannon",
@@ -5572,6 +5590,8 @@
     "modelsActive": "activos",
     "showModel": "Mostrar modelo",
     "hideModel": "Ocultar modelo",
+    "blacklistModel": "Bloquear",
+    "blacklistModelTooltip": "Bloquear este modelo y ocultarlo del catálogo",
     "removeModel": "Quitar modelo",
     "rateLimitProtected": "Protegido",
     "rateLimitUnprotected": "Desprotegido",
@@ -5712,6 +5732,8 @@
     "targetFormatAuto": "Predeterminado (automático)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Fichas de salida máxima",
+    "maxOutputTokenOverrideHint": "Introduce un número entero positivo de tokens. Déjalo vacío para usar el valor predeterminado.",
     "contextWindowOverrideLabel": "Sobrescritura de la ventana de contexto",
     "contextWindowOverridePlaceholder": "p. ej., 131072",
     "contextWindowOverrideHint": "Establece manualmente la ventana de contexto real de este modelo (en tokens) cuando el proveedor la indica de forma incorrecta. Tiene prioridad sobre los valores detectados automáticamente o del catálogo, y evita que el enrutamiento combinado descarte el modelo.",
@@ -6710,7 +6732,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Configuración",
@@ -10093,7 +10122,11 @@
     "updatedShort": "Actualizado",
     "lastRefreshed": "Última actualización",
     "providerQuota": "Cuota del proveedor",
-    "providerQuotaHomeHint": "Estado en tiempo real de las cuentas conectadas"
+    "providerQuotaHomeHint": "Estado en tiempo real de las cuentas conectadas",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Esperando autorización",

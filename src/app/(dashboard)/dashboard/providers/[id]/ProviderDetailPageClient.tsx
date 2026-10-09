@@ -151,6 +151,7 @@ export default function ProviderDetailPageClient() {
     handleToggleRateLimit,
     handleToggleQuotaVisibility,
     handleToggleClaudeExtraUsage,
+    handleToggleCodexPaidCredits,
     handleToggleCodexLimit,
     handleToggleCliproxyapiMode,
     handleSetUpstreamProxyMode,
@@ -728,6 +729,7 @@ export default function ProviderDetailPageClient() {
                 handleToggleRateLimit={handleToggleRateLimit}
                 handleToggleQuotaVisibility={handleToggleQuotaVisibility}
                 handleToggleClaudeExtraUsage={handleToggleClaudeExtraUsage}
+                handleToggleCodexPaidCredits={handleToggleCodexPaidCredits}
                 canAutoSync={!usesCuratedModelsOnly && compatibleSupportsModelImport}
                 handleToggleConnectionAutoSync={handleToggleConnectionAutoSync}
                 handleToggleCliproxyapiMode={handleToggleCliproxyapiMode}

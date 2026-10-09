@@ -97,6 +97,8 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "command-code",
   "conol-web",
   "cnl",
+  "syntx",
+  "stx",
   // Alibaba Coding Plan (console API key) + Qwen personal Token Plan (console cookie) — #9603
   "bailian-coding-plan",
   "qwen-cloud-token-plan",
@@ -956,6 +958,7 @@ export async function fetchAndPersistProviderLimits(
       modelQuotas: previous.modelQuotas,
       plan: previous.plan ?? usage.plan ?? null,
       bankedResetCredits: previous.bankedResetCredits,
+      paidCredits: previous.paidCredits,
       billing: previous.billing,
       message: null,
       _stale: true,

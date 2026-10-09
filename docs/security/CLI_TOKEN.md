@@ -55,6 +55,14 @@ default: `/etc/machine-id` is commonly world-readable, so any local user could
 otherwise derive the same token for every install that never set
 `OMNIROUTE_CLI_SALT`.
 
+If the salt cannot be read or created, both the server and CLI emit one warning
+per process before using that compatibility fallback. The warning contains no
+salt, token, filesystem path or raw error. Restore access to `DATA_DIR` or set
+`OMNIROUTE_CLI_SALT`, then restart the affected process. The warning makes the
+failure visible; it does not make the public fallback salt private or disable
+CLI authentication. Existing valid persisted salts and explicit environment
+overrides retain their previous token values.
+
 ## Salt rotation
 
 Set `OMNIROUTE_CLI_SALT` to rotate the derived token without code changes — it

@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Mode layanan Codex untuk kunci API ini",
+    "description": "Berlaku untuk permintaan Codex, termasuk model Codex di dalam kombinasi. Mode yang dipaksakan mengesampingkan pengaturan klien, pengaturan global, dan default koneksi. Penyedia lain tetap tidak berubah.",
+    "label": "Mode layanan",
+    "inherit": "Ikuti perilaku yang ada",
+    "default": "Paksa Standar (default)",
+    "priority": "Paksa Cepat / Prioritas",
+    "flex": "Paksa Fleksibel",
+    "warning": "Ini tidak memberikan akses ke penyedia. Ketersediaan, biaya, dan penggunaan kuota bergantung pada akun dan model Codex Anda. Mode yang dipaksakan memerlukan transpor HTTP atau Responses WebSocket; permintaan app-server akan ditolak.",
+    "confirm": "Terapkan “{mode}” ke kunci API ini? Perubahan ini berlaku untuk permintaan berikutnya.",
+    "save": "Simpan mode",
+    "retry": "Coba lagi",
+    "loadError": "Tidak dapat memuat mode layanan yang tersimpan.",
+    "saveError": "Tidak dapat menyimpan mode layanan. Silakan coba lagi."
+  },
   "common": {
     "save": "Simpan",
     "cancel": "Batalkan",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "Analisis",
     "usageAnalyticsTitle": "Analisis Penggunaan",
+    "tokenDisplayCompact": "Ringkas",
+    "tokenDisplayExact": "Persis",
+    "tokenDisplayMode": "Mode Tampilan Token",
     "diversityScoreTitle": "Keanekaragaman Penyedia",
     "diversityScoreDesc": "Cuplikan konsentrasi penyedia untuk jendela lalu lintas terbaru.",
     "diversityShannonEntropy": "Entropi Shannon",
@@ -5572,6 +5590,8 @@
     "modelsActive": "aktif",
     "showModel": "Tampilkan model",
     "hideModel": "Sembunyikan model",
+    "blacklistModel": "Blokir",
+    "blacklistModelTooltip": "Blokir model ini dan sembunyikan dari katalog",
     "removeModel": "Hapus modelnya",
     "rateLimitProtected": "Dilindungi",
     "rateLimitUnprotected": "Tidak terlindungi",
@@ -5712,6 +5732,8 @@
     "targetFormatAuto": "Default (otomatis)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Token Output Maks",
+    "maxOutputTokenOverrideHint": "Masukkan jumlah token berupa bilangan bulat positif. Kosongkan untuk menggunakan nilai default.",
     "contextWindowOverrideLabel": "Penggantian Jendela Konteks",
     "contextWindowOverridePlaceholder": "mis. 131072",
     "contextWindowOverrideHint": "Atur secara manual jendela konteks riil model ini (token) ketika penyedia salah melaporkannya. Mengalahkan nilai yang terdeteksi otomatis/katalog dan mencegah perutean kombo menjatuhkan model.",
@@ -6710,7 +6732,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Pengaturan",
@@ -10093,7 +10122,11 @@
     "updatedShort": "Diperbarui",
     "lastRefreshed": "Terakhir disegarkan",
     "providerQuota": "Kuota Penyedia",
-    "providerQuotaHomeHint": "Status langsung di seluruh akun yang terhubung"
+    "providerQuotaHomeHint": "Status langsung di seluruh akun yang terhubung",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Menunggu Otorisasi",

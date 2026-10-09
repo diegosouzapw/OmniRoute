@@ -40,6 +40,7 @@ import {
   fetchGheCopilotModels,
 } from "@omniroute/open-sse/services/githubCopilotModels.ts";
 import { fetchKiroAvailableModels } from "@omniroute/open-sse/services/kiroModels.ts";
+import { resolveClineModels } from "@omniroute/open-sse/services/clinepassModels.ts";
 import {
   buildGlmCodingHeaders,
   buildGlmModelsUrl,
@@ -102,6 +103,7 @@ import { fetchCursorAvailableModels } from "@/lib/providerModels/cursorAvailable
 import { ensureCursorAutoCatalogEntry } from "@/lib/providerModels/cursorAutoCatalog";
 import { resolveCursorBearerToken } from "@omniroute/open-sse/services/cursorApiKeyAuth.ts";
 import { resolveCopilotDiscoveryToken } from "@/lib/providerModels/copilotDiscoveryToken";
+import { toDiscoveryCatalogModel } from "./discovery/catalogModels";
 import {
   type JsonRecord,
   asRecord,
@@ -140,7 +142,8 @@ import {
 } from "./discovery/codex";
 import { getCodexDiscoveryMode } from "@/shared/services/codexDiscoveryPolicy";
 import { fetchClaudeDiscoveryModels } from "./discovery/claude";
-import { maybeHandleConolModelDiscovery } from "./conolDiscovery";
+import { maybeHandleConolOrSyntxModelDiscovery } from "./webSessionDiscovery";
+import { maybeHandleTwinmindModelDiscovery } from "./twinmindDiscovery";
 import { maybeHandleVertexModelDiscovery } from "./vertexDiscovery";
 import { buildNoAuthModelsResponse, filterModelsForRoute } from "./modelRouteProjection";
 
@@ -277,22 +280,12 @@ export async function GET(
     // Check for synced models from ANY connection of this provider.
     // When sync has been performed (even on a different connection),
     // use the synced list as the authoritative source instead of static models.
-    let providerSyncedModels: Array<{
-      id: string;
-      name: string;
-      apiFormat?: string;
-      supportedEndpoints?: string[];
-    }> | null = null;
+    let providerSyncedModels: ReturnType<typeof toDiscoveryCatalogModel>[] | null = null;
     try {
       const allSynced = usesCuratedModelsOnly ? [] : await getSyncedAvailableModels(provider);
       const selectableSynced = filterModelsForRoute(provider, allSynced, chatOnly);
       if (selectableSynced.length > 0) {
-        providerSyncedModels = selectableSynced.map((m) => ({
-          id: m.id,
-          name: m.name || m.id,
-          ...(m.apiFormat ? { apiFormat: m.apiFormat } : {}),
-          ...(m.supportedEndpoints ? { supportedEndpoints: m.supportedEndpoints } : {}),
-        }));
+        providerSyncedModels = selectableSynced.map((model) => toDiscoveryCatalogModel(model));
       }
     } catch {
       // DB unavailable — fall through to static catalog
@@ -305,20 +298,9 @@ export async function GET(
 
     const toLocalCatalogModels = () => {
       const localCatalog = mergeLocalCatalogModels(registryCatalogModels, specialtyCatalogModels);
-      return localCatalog.map((model) => ({
-        id: model.id,
-        name: model.name || model.id,
-        ...((model as Record<string, unknown>).apiFormat
-          ? { apiFormat: (model as Record<string, unknown>).apiFormat as string | undefined }
-          : {}),
-        ...((model as Record<string, unknown>).supportedEndpoints
-          ? {
-              supportedEndpoints: (model as Record<string, unknown>).supportedEndpoints as
-                string[] | undefined,
-            }
-          : {}),
-        ...(registryCatalogModels.length > 0 ? { owned_by: provider } : {}),
-      }));
+      return localCatalog.map((model) =>
+        toDiscoveryCatalogModel(model, registryCatalogModels.length > 0 ? provider : undefined)
+      );
     };
 
     const buildCachedDiscoveryResponse = (warning?: string) =>
@@ -448,28 +430,12 @@ export async function GET(
         /* DB unavailable — fall through to static catalog */
       }
       const freshRegistry = freshSynced.length
-        ? freshSynced.map((m) => ({
-            id: m.id,
-            name: m.name || m.id,
-            ...(m.apiFormat ? { apiFormat: m.apiFormat } : {}),
-            ...(m.supportedEndpoints ? { supportedEndpoints: m.supportedEndpoints } : {}),
-          }))
+        ? freshSynced.map((model) => toDiscoveryCatalogModel(model))
         : getModelsByProviderId(provider) || [];
       const freshSpecialty = freshSynced.length ? [] : getStaticModelsForProvider(provider) || [];
-      const freshLocal = mergeLocalCatalogModels(freshRegistry, freshSpecialty).map((model) => ({
-        id: model.id,
-        name: model.name || model.id,
-        ...((model as Record<string, unknown>).apiFormat
-          ? { apiFormat: (model as Record<string, unknown>).apiFormat as string | undefined }
-          : {}),
-        ...((model as Record<string, unknown>).supportedEndpoints
-          ? {
-              supportedEndpoints: (model as Record<string, unknown>).supportedEndpoints as
-                string[] | undefined,
-            }
-          : {}),
-        ...(freshRegistry.length > 0 ? { owned_by: provider } : {}),
-      }));
+      const freshLocal = mergeLocalCatalogModels(freshRegistry, freshSpecialty).map((model) =>
+        toDiscoveryCatalogModel(model, freshRegistry.length > 0 ? provider : undefined)
+      );
       if (freshLocal.length > 0) {
         return buildResponse({
           provider,
@@ -666,7 +632,7 @@ export async function GET(
       }
     }
 
-    const conolResponse = await maybeHandleConolModelDiscovery({
+    const webDiscoveryArgs = {
       provider,
       connectionId,
       apiKey,
@@ -678,8 +644,15 @@ export async function GET(
       buildDiscoveryFallbackResponse,
       buildResponse,
       buildApiDiscoveryResponse,
-    });
+    };
+    const conolResponse = await maybeHandleConolOrSyntxModelDiscovery(webDiscoveryArgs);
     if (conolResponse) return conolResponse;
+
+    const twinmindResponse = await maybeHandleTwinmindModelDiscovery({
+      ...webDiscoveryArgs,
+      refreshToken: (connection as { refreshToken?: unknown }).refreshToken,
+    });
+    if (twinmindResponse) return twinmindResponse;
 
     if (provider === "bedrock") {
       const cachedResponse = maybeReturnCachedDiscovery();
@@ -2195,20 +2168,7 @@ export async function GET(
       return buildResponse({
         provider,
         connectionId,
-        models: localCatalog.map((m) => ({
-          id: m.id,
-          name: m.name || m.id,
-          ...((m as Record<string, unknown>).apiFormat
-            ? { apiFormat: (m as Record<string, unknown>).apiFormat as string | undefined }
-            : {}),
-          ...((m as Record<string, unknown>).supportedEndpoints
-            ? {
-                supportedEndpoints: (m as Record<string, unknown>).supportedEndpoints as
-                  string[] | undefined,
-              }
-            : {}),
-          ...(registryCatalogModels.length > 0 ? { owned_by: provider } : {}),
-        })),
+        models: toLocalCatalogModels(),
         source: "local_catalog",
         // #5460/#5465 — providers with no discovery config (embedding/rerank/
         // web-cookie providers like voyage-ai, jina-ai, t3-web) are
@@ -2224,11 +2184,8 @@ export async function GET(
       );
     }
 
-    const cachedResponse = maybeReturnCachedDiscovery();
-    if (cachedResponse) return cachedResponse;
-
-    const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
-    if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+    const cachedOrDisabledResponse = maybeReturnCachedDiscovery() || maybeReturnAutoFetchDisabled();
+    if (cachedOrDisabledResponse) return cachedOrDisabledResponse;
 
     // Get auth token
     const token = accessToken || apiKey;
@@ -2245,6 +2202,20 @@ export async function GET(
         },
         { status: 400 }
       );
+    }
+
+    if (provider === "cline") {
+      const models = await resolveClineModels((input, init) =>
+        safeOutboundFetch(String(input), {
+          ...SAFE_OUTBOUND_FETCH_PRESETS.modelsPagination,
+          guard: getProviderOutboundGuard(),
+          proxyConfig: proxy,
+          ...init,
+        })
+      );
+      return models === null
+        ? buildDiscoveryFallbackResponse() || errorResponse(502, "Cline catalog unavailable")
+        : buildApiDiscoveryResponse(models);
     }
 
     // Build request URL

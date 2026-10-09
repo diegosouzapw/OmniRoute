@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "کچھ غلط ہو گیا",
+      "description": "ایک غیر متوقع خرابی پیش آئی ہے۔ یہ لاگ کر دیا گیا ہے اور ہماری ٹیم تحقیقات کرے گی۔",
+      "detailsAriaLabel": "غلطی کی تفصیلات",
+      "retryAriaLabel": "صفحہ دوبارہ لوڈ کرنے کی کوشش کریں",
+      "tryAgain": "پھر کوشش کریں",
+      "statusAriaLabel": "نظام کی حیثیت کھولیں",
+      "systemStatus": "سسٹم کی حیثیت"
+    }
+  }
+}
